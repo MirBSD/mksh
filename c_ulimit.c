@@ -1,4 +1,5 @@
-/*	$OpenBSD: c_ulimit.c,v 1.10 2003/10/22 07:40:38 jmc Exp $	*/
+/* $MirBSD: c_ulimit.c,v 1.4 2004/04/07 17:14:11 tg Exp $	*/
+/* $OpenBSD: c_ulimit.c,v 1.10 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
 	ulimit -- handle "ulimit" builtin
@@ -17,6 +18,8 @@
 	the extended 4.nBSD resource limits.  It now includes the code
 	that was originally under case SYSULIMIT in source file "xec.c".
 */
+
+static const char RCSId[] = "$MirBSD: c_ulimit.c,v 1.4 2004/04/07 17:14:11 tg Exp $";
 
 #include "sh.h"
 #include "ksh_time.h"
@@ -56,6 +59,9 @@ c_ulimit(wp)
 #ifdef RLIMIT_CPU
 		{ "time(cpu-seconds)", RLIMIT, RLIMIT_CPU, RLIMIT_CPU, 1, 't' },
 #endif
+#ifdef RLIMIT_TIME
+		{ "humantime(seconds)", RLIMIT, RLIMIT_TIME, RLIMIT_TIME, 1, 'T' },
+#endif
 #ifdef RLIMIT_FSIZE
 		{ "file(blocks)", RLIMIT, RLIMIT_FSIZE, RLIMIT_FSIZE, 512, 'f' },
 #else /* RLIMIT_FSIZE */
@@ -73,16 +79,16 @@ c_ulimit(wp)
 		{ "coredump(blocks)", RLIMIT, RLIMIT_CORE, RLIMIT_CORE, 512, 'c' },
 #endif
 #ifdef RLIMIT_DATA
-		{ "data(kbytes)", RLIMIT, RLIMIT_DATA, RLIMIT_DATA, 1024, 'd' },
+		{ "data(KiB)", RLIMIT, RLIMIT_DATA, RLIMIT_DATA, 1024, 'd' },
 #endif
 #ifdef RLIMIT_STACK
-		{ "stack(kbytes)", RLIMIT, RLIMIT_STACK, RLIMIT_STACK, 1024, 's' },
+		{ "stack(KiB)", RLIMIT, RLIMIT_STACK, RLIMIT_STACK, 1024, 's' },
 #endif
 #ifdef RLIMIT_MEMLOCK
-		{ "lockedmem(kbytes)", RLIMIT, RLIMIT_MEMLOCK, RLIMIT_MEMLOCK, 1024, 'l' },
+		{ "lockedmem(KiB)", RLIMIT, RLIMIT_MEMLOCK, RLIMIT_MEMLOCK, 1024, 'l' },
 #endif
 #ifdef RLIMIT_RSS
-		{ "memory(kbytes)", RLIMIT, RLIMIT_RSS, RLIMIT_RSS, 1024, 'm' },
+		{ "memory(KiB)", RLIMIT, RLIMIT_RSS, RLIMIT_RSS, 1024, 'm' },
 #endif
 #ifdef RLIMIT_NOFILE
 		{ "nofiles(descriptors)", RLIMIT, RLIMIT_NOFILE, RLIMIT_NOFILE, 1, 'n' },
@@ -95,7 +101,7 @@ c_ulimit(wp)
 		{ "processes", RLIMIT, RLIMIT_NPROC, RLIMIT_NPROC, 1, 'p' },
 #endif
 #ifdef RLIMIT_VMEM
-		{ "vmemory(kbytes)", RLIMIT, RLIMIT_VMEM, RLIMIT_VMEM, 1024, 'v' },
+		{ "vmemory(KiB)", RLIMIT, RLIMIT_VMEM, RLIMIT_VMEM, 1024, 'v' },
 #else /* RLIMIT_VMEM */
   /* These are not quite right - really should subtract etext or something */
 # ifdef UL_GMEMLIM /* svr4/xenix */
@@ -111,7 +117,7 @@ c_ulimit(wp)
 # endif /* UL_GMEMLIM */
 #endif /* RLIMIT_VMEM */
 #ifdef RLIMIT_SWAP
-		{ "swap(kbytes)", RLIMIT_SWAP, RLIMIT_SWAP, 1024, 'w' },
+		{ "swap(KiB)", RLIMIT_SWAP, RLIMIT_SWAP, 1024, 'w' },
 #endif
 		{ (char *) 0 }
 	    };

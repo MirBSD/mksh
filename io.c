@@ -1,4 +1,5 @@
-/*	$OpenBSD: io.c,v 1.13 2003/11/10 21:26:39 millert Exp $	*/
+/* $MirBSD: io.c,v 1.3 2004/04/07 17:24:40 tg Exp $ */
+/* $OpenBSD: io.c,v 1.13 2003/11/10 21:26:39 millert Exp $	*/
 
 /*
  * shell buffered IO and formatted output
@@ -505,7 +506,9 @@ maketemp(ap, type, tlist)
 	Temp_type type;
 	struct temp **tlist;
 {
+#ifndef	HAVE_MKSTEMP
 	static unsigned int inc;
+#endif
 	struct temp *tp;
 	int len;
 	int fd;
@@ -519,7 +522,7 @@ maketemp(ap, type, tlist)
 	tp->name = path = (char *) &tp[1];
 	tp->shf = (struct shf *) 0;
 	tp->type = type;
-#ifdef __OpenBSD__
+#ifdef	HAVE_MKSTEMP
 	shf_snprintf(path, len, "%s/shXXXXXXXX", dir);
 	fd = mkstemp(path);
 	if (fd >= 0)
@@ -550,7 +553,7 @@ maketemp(ap, type, tlist)
 			 */
 			break;
 	}
-#endif /* __OpenBSD__ */
+#endif	/* !def HAVE_MKSTEMP */
 	tp->pid = procpid;
 
 	tp->next = *tlist;
