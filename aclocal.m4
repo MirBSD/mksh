@@ -4,7 +4,7 @@ dnl the file misc/COPYING for details.
 dnl
 dnl This file is covered by the GPL 'cause it contains some modified versions
 dnl of autoconf's macros, in particular:
-dnl	AC_FUNC_MMAP AC_LANG_C AC_LANG_CPLUXPLUS KSH_HEADER_SYS_WAIT
+dnl	AC_FUNC_MMAP AC_LANG_C AC_LANG_CPLUXPLUS
 dnl	AC_HEADER_STAT
 dnl
 dnl
@@ -843,6 +843,7 @@ yes
 	    ;;	#(
 	  MINIX)
 	    AC_CHECK_HEADER(minix/config.h, ksh_cv_os_type=$i)dnl
+	    AC_MSG_CHECKING(for problematic OS continues)
 	    ;;	#(
 	  SCO)
 	    # Both native SCO cpp and gcc understand this (leave comments in)
@@ -1204,31 +1205,6 @@ ${CXX-g++} -o conftest$ac_exe_suffix $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_e
 ])
 dnl
 dnl
-dnl Like AC_HEADER_SYS_WAIT, only HAVE_SYS_WAIT_H if sys/wait.h exists and
-dnl defines POSIX_SYS_WAIT if it is posix compatable.  This way things
-dnl like WNOHANG, WUNTRACED can still be used.
-AC_DEFUN(KSH_HEADER_SYS_WAIT,
-[AC_CACHE_CHECK([for sys/wait.h that is POSIX.1 compatible], ksh_cv_header_sys_wait_h,
-[AC_TRY_COMPILE([#include <sys/types.h>
-#include <sys/wait.h>
-#ifndef WEXITSTATUS
-#define WEXITSTATUS(stat_val) ((unsigned)(stat_val) >> 8)
-#endif
-#ifndef WIFEXITED
-#define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
-#endif], [int s;
-wait (&s);
-s = WIFEXITED (s) ? WEXITSTATUS (s) : 1;],
-ksh_cv_header_sys_wait_h=yes, ksh_cv_header_sys_wait_h=no)])
-if test $ksh_cv_header_sys_wait_h = yes; then
-  AC_DEFINE(POSIX_SYS_WAIT)dnl
-  AC_DEFINE(HAVE_SYS_WAIT_H)dnl
-else
-  AC_CHECK_HEADERS(sys/wait.h)dnl
-fi
-])
-dnl
-dnl
 dnl Modified test from autoconf's acspecific.m4(AC_HEADER_STAT) test: need
 dnl to check if S_ISSOCK == S_ISFIFO (FreeBSD).
 undefine([AC_HEADER_STAT])dnl
@@ -1288,3 +1264,21 @@ else
 AC_CHECK_LIB(x, opendir, LIBS="$LIBS -lx")
 fi
 ])      
+dnl
+dnl
+dnl Like AC_HEADER_SYS_WAIT, only HAVE_SYS_WAIT_H if sys/wait.h exists and
+dnl defines POSIX_SYS_WAIT if it is posix compatable.  This way things
+dnl like WNOHANG, WUNTRACED can still be used.
+AC_DEFUN(KSH_HEADER_SYS_WAIT,
+[AC_CACHE_CHECK([for sys/wait.h that is POSIX.1 compatible],
+  ksh_cv_header_sys_wait_h,
+[AC_MSG_RESULT(further testing...)
+AC_HEADER_SYS_WAIT
+ksh_cv_header_sys_wait_h=$ac_cv_header_sys_wait_h
+unset ac_cv_header_sys_wait_h
+AC_MSG_CHECKING(if we got a POSIX.1 compatible sys/wait.h)])
+AC_CHECK_HEADERS(sys/wait.h)
+if test $ksh_cv_header_sys_wait_h = yes; then
+  AC_DEFINE(POSIX_SYS_WAIT)dnl
+fi
+])
