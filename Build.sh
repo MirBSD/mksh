@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: Build.sh,v 1.9 2004/08/27 20:05:42 tg Exp $
+# $MirBSD: Build.sh,v 1.10 2004/09/03 20:02:49 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -26,6 +26,20 @@
 # - Solaris: SHELL=ksh LDFLAGS=-ldl WEIRD_OS=1 ksh ./Build.sh
 # - Interix: SHELL=ksh ksh ./Build.sh (also on GNU and most *BSD)
 # - Mac OSX: SHELL=bash WEIRD_OS=1 bash ./Build.sh
+#
+# Explicit note: you _have_ to use a "modern" bourne-compatible shell
+# to execute this script. Explicit notice to Debian GNU/Something pak-
+# kagers: you also have to set SHELL=/path/to/yourshell in the envi-
+# ronment of the script, as shown above.
+# Shells known to work:
+# - mirbsdksh, pdksh 5.2
+# - GNU bash 2.05*
+# Shells which should work:
+# - Solaris /usr/xpg4/bin/sh
+# - AT&T ast-ksh (88 and 93)
+# Shells known to *not* work:
+# - non-bourne (csh, bsh, ...)
+# - zsh
 
 SHELL="${SHELL:-/bin/sh}"; export SHELL
 CONFIG_SHELL="${SHELL}"; export CONFIG_SHELL
