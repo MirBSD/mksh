@@ -1,3 +1,4 @@
+/*	$MirBSD: sh.h,v 1.2 2003/04/12 14:32:14 tg Exp $	*/
 /*	$OpenBSD: sh.h,v 1.12 2002/10/07 23:09:32 vincent Exp $	*/
 
 /*
@@ -366,9 +367,9 @@ typedef INT32 Tflag;
 #define ISMAGIC(c)	((unsigned char)(c) == MAGIC)
 #define	NOT		'!'	/* might use ^ (ie, [!...] vs [^..]) */
 
-#define	LINE	1024		/* input line size */
-#define	PATH	1024		/* pathname size (todo: PATH_MAX/pathconf()) */
-#define ARRAYMAX 1023		/* max array index */
+#define	LINE	4096		/* input line size */
+#define	PATH	4096		/* pathname size (todo: PATH_MAX/pathconf()) */
+#define ARRAYMAX 4095		/* max array index */
 
 EXTERN	const char *kshname;	/* $0 */
 EXTERN	pid_t	kshpid;		/* $$, shell pid */

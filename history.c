@@ -1,4 +1,5 @@
-/*	$OpenBSD: history.c,v 1.18 2003/04/06 23:39:17 deraadt Exp $	*/
+/*	$MirBSD: history.c,v 1.5 2003/04/15 20:10:21 tg Exp $	*/
+/*	$OpenBSD: history.c,v 1.19 2003/04/15 08:35:34 deraadt Exp $	*/
 
 /*
  * command history
@@ -934,7 +935,7 @@ hist_shrink(oldbase, oldbytes)
 	int oldbytes;
 {
 	int fd;
-	char	nfile[1024];
+	char	nfile[4096];
 	struct	stat statb;
 	unsigned char *nbase = oldbase;
 	int nbytes = oldbytes;
@@ -1018,8 +1019,8 @@ histload(s, base, bytes)
 	register int bytes;
 {
 	State state;
-	int	lno;
-	unsigned char	*line;
+	int	lno = 0;
+	unsigned char	*line = NULL;
 
 	for (state = shdr; bytes-- > 0; base++) {
 		switch (state) {
