@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: Build.sh,v 1.11 2004/09/11 18:32:26 tg Exp $
+# $MirBSD: Build.sh,v 1.12 2004/10/28 16:08:32 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -57,45 +57,41 @@ if test -e strlfun.c; then
 	echo "Building..."
 	$CC $COPTS $CFLAGS $CPPFLAGS $LDFLAGS -o ksh.unstripped *.c
 	echo "Finalizing..."
-	tbl <ksh.1tbl >ksh.1
-	nroff -mdoc -Tascii <ksh.1 >ksh.cat1 || rm -f ksh.cat1
-	cp ksh.unstripped ksh
-	if test -z "$WEIRD_OS"; then
-		strip -R .note -R .comment --strip-unneeded --strip-all ksh \
-		    || strip ksh || rm -f ksh
-	else
-		echo "Trying to strip..."
-		strip ksh || \
-		echo "Remember to strip the ksh binary yourself!"
-	fi
-	if test -e ksh; then
-		BINARY=ksh
-	else
-		BINARY=ksh.unstripped
-	fi
+	tbl <ksh.1tbl >mksh.1 || cat ksh.1tbl >mksh.1
+	nroff -mdoc -Tascii <ksh.1 >mksh.cat1 || rm -f mksh.cat1
+	man=mksh.cat1
+	test -s $man || man=mksh.1
+	test -s $man || man=ksh.1tbl
+	cp ksh.unstripped mksh
+	strip -R .note -R .comment --strip-unneeded --strip-all mksh \
+	    || strip mksh || mv ksh.unstripped mksh
 	size $BINARY
 	echo "done."
 	echo ""
 	echo "If you want to test mirbsdksh:"
-	echo "perl ./tests/th -s ./tests -p ./ksh -C pdksh,sh,ksh,posix,posix-upu"
+	echo "perl ./tests/th -s ./tests -p ./mksh -C" \
+	    "pdksh,sh,ksh,posix,posix-upu"
 	echo ""
-	echo "generated files: ksh <- ksh.unstripped   ksh.cat1 <- ksh.1"
+	echo "generated files: mksh $man"
 	echo ""
 	echo "Sample Installation Commands:"
-	echo "# install -c -s -o root -g bin -m 555 $BINARY /bin/mksh"
+	echo "a) installing the executable"
+	echo "# install -c -s -o root -g bin -m 555 mksh /bin/mksh"
 	echo "# echo /bin/mksh >>/etc/shells"
-	echo " - OR -"
-	echo "# install -c -o root -g bin -m 555 $BINARY /bin/ksh"
-	echo "# echo /bin/ksh >>/etc/shells"
-	echo " - DOCUMENTATION -"
-	echo "# install -c -o root -g bin -m 444 ksh.1" \
-	    "/usr/share/man/man1/mksh.1"
-	if test -e ksh.cat1; then
-		echo " - OR -"
-		echo "# install -c -o root -g bin -m 444 ksh.cat1" \
+	echo "b) installing the manual page (system dependent)"
+	if test -s mksh.cat1; then
+		echo "   - most Unices, BSD"
+		echo "# install -c -o root -g bin -m 444 mksh.cat1" \
 		    "/usr/local/man/cat1/mksh.0"
 	fi
-	echo " - Adjust the paths accordingly for your system."
+	if test -s mksh.1; then
+		echo "   - some Unices, GNU/Linux"
+		echo "# install -c -o root -g bin -m 444 mksh.1" \
+		    "/usr/share/man/man1/mksh.1"
+	fi
+	echo "   - the unformatted manual page"
+	echo "=> format ksh.1tbl yourself and copy to the appropriate place."
+	echo "=> visit http://wiki.mirbsd.de/MirbsdKsh for online manpages."
 else
 	echo "Your kit isn't complete, please download the"
 	echo "mirbsdksh-1.x.cpio.gz distfile, then extract"
