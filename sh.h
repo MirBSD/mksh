@@ -1,4 +1,4 @@
-/* $MirBSD: sh.h,v 1.7 2004/05/23 12:47:01 tg Exp $	*/
+/* $MirBSD: sh.h,v 1.8 2004/05/24 19:06:55 tg Exp $	*/
 /* $OpenBSD: sh.h,v 1.17 2004/05/10 16:28:47 pvalchev Exp $	*/
 /* $From: sh.h,v 1.2 1994/05/19 18:32:40 michael Exp michael $ */
 
@@ -28,8 +28,6 @@ extern void * malloc  ARGS((size_t));
 extern void * realloc ARGS((void *, size_t));
 extern int    free    ARGS((void *));
 extern int    exit    ARGS((int));
-extern int    rand    ARGS((void));
-extern void   srand   ARGS((unsigned int));
 extern int    atoi    ARGS((const char *));
 #endif /* HAVE_STDLIB_H */
 

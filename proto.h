@@ -1,4 +1,4 @@
-/* $MirBSD: proto.h,v 1.2 2004/04/27 19:59:57 tg Exp $ */
+/* $MirBSD: proto.h,v 1.3 2004/05/24 19:06:55 tg Exp $ */
 /* $OpenBSD: proto.h,v 1.11 2003/05/16 19:58:57 jsyn Exp $	*/
 
 /*
@@ -213,6 +213,10 @@ int	make_path	ARGS((const char *cwd, const char *file,
 void	simplify_path	ARGS((char *path));
 char	*get_phys_path	ARGS((const char *path));
 void	set_current_wd	ARGS((char *path));
+/* rnd.c */
+long	rnd_get		ARGS((void));
+void	rnd_put		ARGS((long));
+void	rnd_seed	ARGS((long));
 /* syn.c */
 void 	initkeywords	ARGS((void));
 struct op * compile	ARGS((Source *s));
@@ -276,7 +280,6 @@ void	change_random	ARGS((void));
 int	array_ref_len	ARGS((const char *cp));
 char *	arrayname	ARGS((const char *str));
 void    set_array	ARGS((const char *var, int reset, char **vals));
-long	prng_seed	ARGS((long));
 /* version.c */
 /* vi.c: see edit.h */
 

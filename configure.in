@@ -1,4 +1,4 @@
-dnl $MirBSD: configure.in,v 1.5 2004/05/24 16:35:08 tg Exp $
+dnl $MirBSD: configure.in,v 1.6 2004/05/24 19:06:54 tg Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl
@@ -26,8 +26,9 @@ dnl
 AC_HEADER_DIRENT
 KSH_UNISTD_H
 KSH_TERM_CHECK
-AC_CHECK_HEADERS(stddef.h stdlib.h string.h memory.h fcntl.h limits.h paths.h \
-	sys/param.h sys/resource.h values.h ulimit.h sys/time.h)
+AC_CHECK_HEADERS(sys/param.h sys/types.h sys/resource.h sys/time.h \
+	stddef.h stdlib.h string.h limits.h paths.h \
+	memory.h fcntl.h values.h ulimit.h)
 AC_HEADER_TIME
 KSH_HEADER_SYS_WAIT
 dnl
@@ -73,8 +74,9 @@ KSH_MEMMOVE
 KSH_MEMSET
 AC_CHECK_FUNCS(arc4random arc4random_addrandom arc4random_push confstr \
 	dup2 flock getcwd getgroups getpagesize getrusage getwd killpg \
-	mkstemp nice setrlimit strcasecmp strerror strlcat strlcpy \
-	strstr sysconf tcsetpgrp ulimit valloc wait3 waitpid)
+	mkstemp nice random setrlimit srandom strcasecmp strerror \
+	strlcat strlcpy strstr sysconf tcsetpgrp ulimit valloc wait3 \
+	waitpid)
 AC_CHECK_FUNCS(sigsetjmp _setjmp, break)
 AC_FUNC_MMAP
 KSH_FUNC_LSTAT

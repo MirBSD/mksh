@@ -1,4 +1,4 @@
-/*	$MirBSD: misc.c,v 1.6 2004/04/17 00:47:19 tg Exp $	*/
+/*	$MirBSD: misc.c,v 1.7 2004/05/24 19:06:55 tg Exp $	*/
 /*	$OpenBSD: misc.c,v 1.20 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -1268,9 +1268,6 @@ reset_nonblock(fd)
 }
 
 
-#ifdef HAVE_SYS_PARAM_H
-# include <sys/param.h>
-#endif /* HAVE_SYS_PARAM_H */
 #ifndef MAXPATHLEN
 # define MAXPATHLEN PATH
 #endif /* MAXPATHLEN */

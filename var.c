@@ -1,4 +1,4 @@
-/* $MirBSD: var.c,v 1.5 2004/05/23 12:47:01 tg Exp $	*/
+/* $MirBSD: var.c,v 1.6 2004/05/24 19:06:55 tg Exp $	*/
 /* $OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
 
 #include "sh.h"
@@ -889,7 +889,7 @@ makenv()
 void
 change_random()
 {
-    srand(prng_seed(rand() ^ time(NULL)));
+	rnd_seed(time(NULL) * getpid());
 }
 
 /*
@@ -942,7 +942,7 @@ getspec(vp)
 		break;
 	  case V_RANDOM:
 		vp->flag &= ~SPECIAL;
-		setint(vp, (long) (rand() & 0x7fff));
+		setint(vp, rnd_get());
 		vp->flag |= SPECIAL;
 		break;
 #endif /* KSH */
@@ -1044,8 +1044,7 @@ setspec(vp)
 		break;
 	  case V_RANDOM:
 		vp->flag &= ~SPECIAL;
-		srand(prng_seed(((unsigned int)intval(vp))
-		    ^ ((unsigned long)rand() << 24)));
+		rnd_put(intval(vp));
 		vp->flag |= SPECIAL;
 		break;
 	  case V_SECONDS:
@@ -1235,35 +1234,4 @@ set_array(var, reset, vals)
 		/* would be nice to deal with errors here... (see above) */
 		setstr(vq, vals[i], KSH_RETURN_ERROR);
 	}
-}
-
-/* Return a seed PRNG value, and feed one back to arc4random */
-long
-prng_seed(val)
-	long val;
-{
-	unsigned long i, j;
-
-#ifdef	HAVE_ARC4RANDOM
-	i = arc4random();
-#else
-	i = ((long) (time((time_t *)0) * getpid()));
-#endif
-	j = (rand() << 16) | rand();
-
-	i ^= val;
-	j ^= val;
-
-#if defined(HAVE_ARC4RANDOM_PUSH)
-	arc4random_push(j);
-#elif defined(HAVE_ARC4RANDOM_ADDRANDOM)
-	arc4random_addrandom((u_char *)(&j), sizeof (j));
-#else
-	while (j) {
-		rand();
-		j >>= 1;
-	}
-#endif
-
-	return i;
 }

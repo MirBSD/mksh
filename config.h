@@ -1,4 +1,4 @@
-/* $MirBSD: config.h,v 1.8 2004/05/24 17:15:37 tg Exp $ */
+/* $MirBSD: config.h,v 1.9 2004/05/24 19:06:54 tg Exp $ */
 /* $OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -248,11 +248,17 @@
 /* Define if you have the nice function.  */
 #define HAVE_NICE 1
 
+/* Define if you have the random function.  */
+#define HAVE_RANDOM 1
+
 /* Define if you have the setrlimit function.  */
 #define HAVE_SETRLIMIT 1
 
 /* Define if you have the sigsetjmp function.  */
 #define HAVE_SIGSETJMP 1
+
+/* Define if you have the srandom function.  */
+#define HAVE_SRANDOM 1
 
 /* Define if you have the strcasecmp function.  */
 #define HAVE_STRCASECMP 1
@@ -328,6 +334,9 @@
 
 /* Define if you have the <sys/time.h> header file.  */
 #define HAVE_SYS_TIME_H 1
+
+/* Define if you have the <sys/types.h> header file.  */
+#define HAVE_SYS_TYPES_H 1
 
 /* Define if you have the <sys/wait.h> header file.  */
 #define HAVE_SYS_WAIT_H 1

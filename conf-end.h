@@ -1,4 +1,4 @@
-/* $MirBSD: conf-end.h,v 1.3 2004/05/24 16:35:08 tg Exp $ */
+/* $MirBSD: conf-end.h,v 1.4 2004/05/24 19:06:54 tg Exp $ */
 /* $OpenBSD: conf-end.h,v 1.2 1996/08/25 12:37:58 downsj Exp $	*/
 
 /* Include ksh features? */
@@ -81,6 +81,14 @@
 #if !defined(JOB_SIGS) || !(defined(POSIX_PGRP) || defined(BSD_PGRP))
 # undef JOBS /* if no JOB_SIGS, no job control support */
 #endif
+
+#ifdef HAVE_SYS_PARAM_H
+# include <sys/param.h>
+#else
+# ifdef HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+# endif /* HAVE_SYS_TYPES_H */
+#endif /* HAVE_SYS_PARAM_H */
 
 /* pdksh assumes system calls return EINTR if a signal happened (this so
  * the signal handler doesn't have to longjmp()).  I don't know if this
