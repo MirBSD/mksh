@@ -1,4 +1,4 @@
-.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 2.5 2004/12/13 19:36:27 tg Exp $
+.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 2.6 2004/12/18 18:39:10 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.79 2004/12/04 07:05:13 jaredy Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -1100,7 +1100,7 @@ form
 where
 .Ar expr
 is an arithmetic expression.
-Array indices are currently limited to the range 0 through 4095 (for
+Array indices are currently limited to the range 0 through 2147483647 (for
 .Nm mksh )
 or 0 to 1023 (for other korn shells), inclusive.
 Parameter substitutions take the form

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/conf-end.h,v 2.1 2004/12/10 18:09:41 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/conf-end.h,v 2.2 2004/12/18 18:39:10 tg Exp $ */
 /*	$OpenBSD: conf-end.h,v 1.2 1996/08/25 12:37:58 downsj Exp $	*/
 
 #ifndef CONF_END_H
@@ -40,6 +40,10 @@
  * means, such as this header ;-)
  * End of configuration stuff for PD ksh.
  */
+
+#if SIZEOF_INT < 4
+# error "int cannot hold 32 bit"
+#endif
 
 #if defined(EMACS) || defined(VI)
 # define	EDIT

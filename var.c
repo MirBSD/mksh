@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/var.c,v 2.1 2004/12/10 18:09:42 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/var.c,v 2.2 2004/12/18 18:39:10 tg Exp $ */
 /*	$OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
 
 #include "sh.h"
@@ -7,7 +7,7 @@
 #include "ksh_stat.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.1 2004/12/10 18:09:42 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.2 2004/12/18 18:39:10 tg Exp $");
 
 /*
  * Variables
@@ -125,9 +125,9 @@ initvar(void)
  * non-zero if this is an array, sets *valp to the array index, returns
  * the basename of the array.
  */
-const char *array_index_calc(const char *n, bool_t *arrayp, int *valp);
+static const char *array_index_calc(const char *, bool_t *, int *);
 
-const char *
+static const char *
 array_index_calc(const char *n, bool_t *arrayp, int *valp)
 {
 	const char *p;
@@ -146,7 +146,7 @@ array_index_calc(const char *n, bool_t *arrayp, int *valp)
 		afree(tmp, ATEMP);
 		n = str_nsave(n, p - n, ATEMP);
 		evaluate(sub, &rval, KSH_UNWIND_ERROR);
-		if (rval < 0 || rval > ARRAYMAX)
+		if (rval < 0 || rval > 2147483647)
 			errorf("%s: subscript out of range", n);
 		*valp = rval;
 		afree(sub, ATEMP);
