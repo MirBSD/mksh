@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/shf.c,v 2.4 2004/12/31 17:42:45 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/shf.c,v 2.5 2004/12/31 19:37:03 tg Exp $ */
 /*	$OpenBSD: shf.c,v 1.10 2004/12/18 22:35:41 millert Exp $	*/
 
 /*
@@ -7,9 +7,8 @@
 
 #include "sh.h"
 #include "ksh_stat.h"
-#include "ksh_limval.h"
 
-__RCSID("$MirBSD: src/bin/ksh/shf.c,v 2.4 2004/12/31 17:42:45 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/shf.c,v 2.5 2004/12/31 19:37:03 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -759,6 +758,9 @@ shf_smprintf(const char *fmt, ...)
 #undef FP  			/* if you want floating point stuff */
 
 #define BUF_SIZE	128
+#ifndef DMAXEXP
+# define DMAXEXP	128	/* should be big enough */
+#endif
 #define FPBUF_SIZE	(DMAXEXP+16)/* this must be >
 				 *	MAX(DMAXEXP, log10(pow(2, DSIGNIF)))
 				 *    + ceil(log10(DMAXEXP)) + 8 (I think).
@@ -823,7 +825,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 	int		flags;
 	unsigned long	lnum;
 					/* %#o produces the longest output */
-	char		numbuf[(BITS(long) + 2) / 3 + 1];
+	char		numbuf[(8*sizeof(long) + 2) / 3 + 1];
 	/* this stuff for dealing with the buffer */
 	int		nwritten = 0;
 #ifdef FP

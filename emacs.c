@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/emacs.c,v 2.7 2004/12/28 22:37:23 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/emacs.c,v 2.8 2004/12/31 19:37:03 tg Exp $ */
 /*	$OpenBSD: emacs.c,v 1.34 2004/12/23 11:29:02 jsg Exp $	*/
 
 /*
@@ -13,12 +13,12 @@
 
 #include "sh.h"
 #include "ksh_stat.h"
-#include "ksh_dir.h"
+#include <dirent.h>
 #include <ctype.h>
 #include <locale.h>
 #include "edit.h"
 
-__RCSID("$MirBSD: src/bin/ksh/emacs.c,v 2.7 2004/12/28 22:37:23 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/emacs.c,v 2.8 2004/12/31 19:37:03 tg Exp $");
 
 static	Area	aedit;
 #define	AEDIT	&aedit		/* area for kill ring and macro defns */

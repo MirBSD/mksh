@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/eval.c,v 2.8 2004/12/28 22:40:39 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/eval.c,v 2.9 2004/12/31 19:37:03 tg Exp $ */
 /*	$OpenBSD: eval.c,v 1.24 2004/12/22 18:52:37 millert Exp $	*/
 
 /*
@@ -7,10 +7,16 @@
 
 #include "sh.h"
 #include <pwd.h>
-#include "ksh_dir.h"
+#include <dirent.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/eval.c,v 2.8 2004/12/28 22:40:39 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/eval.c,v 2.9 2004/12/31 19:37:03 tg Exp $");
+
+#ifdef OPENDIR_DOES_NONDIR
+extern DIR *ksh_opendir(const char *d);
+#else /* OPENDIR_DOES_NONDIR */
+# define ksh_opendir(d)	opendir(d)
+#endif /* OPENDIR_DOES_NONDIR */
 
 /*
  * string expansion
@@ -1097,7 +1103,7 @@ globit(XString *xs, char **xpp, char *sp, XPtrV *wp, int check)
 			    || !gmatch(name, sp, true))
 				continue;
 
-			len = NLENGTH(d) + 1;
+			len = strlen(d->d_name) + 1;
 			XcheckN(*xs, xp, len);
 			memcpy(xp, name, len);
 			*xpp = xp + len - 1;

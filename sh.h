@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/sh.h,v 2.10 2004/12/31 17:29:28 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/sh.h,v 2.11 2004/12/31 19:37:03 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.23 2004/12/18 22:11:43 millert Exp $	*/
 
 #ifndef SH_H
@@ -138,9 +138,6 @@ void *memmove(void *d, const void *s, size_t n);
 # endif /* L_SET */
 #endif /* !SEEK_SET */
 
-/* Some machines (eg, FreeBSD 1.1.5) define CLK_TCK in limits.h
- * (ksh_limval.h assumes limits has been included, if available)
- */
 #ifdef HAVE_LIMITS_H
 # include <limits.h>
 #endif /* HAVE_LIMITS_H */

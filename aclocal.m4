@@ -1,4 +1,4 @@
-dnl $MirBSD: src/bin/ksh/aclocal.m4,v 2.5 2004/12/31 18:41:46 tg Exp $
+dnl $MirBSD: src/bin/ksh/aclocal.m4,v 2.6 2004/12/31 19:37:03 tg Exp $
 dnl-
 dnl Copyright (c) 2004
 dnl	Thorsten "mirabile" Glaser <tg@66h.42h.de>
@@ -220,63 +220,6 @@ AC_DEFUN(KSH_DEV_FD,
 	ksh_cv_dev_fd=no)])
   if test $ksh_cv_dev_fd = yes; then
     AC_DEFINE(HAVE_DEV_FD)
-  fi
- ])dnl
-dnl
-dnl
-dnl  Check for sys_siglist[] declaration and existence.
-AC_DEFUN(KSH_SYS_SIGLIST,
- [AC_DECL_SYS_SIGLIST
-  if test ac_cv_decl_sys_siglist = yes; then
-    AC_DEFINE(HAVE_SYS_SIGLIST)
-  else
-    AC_CACHE_CHECK(for sys_siglist in library, ksh_cv_var_sys_siglist,
-      [AC_TRY_LINK(, [
-	  extern char *sys_siglist[];
-	  char *p = sys_siglist[2];
-	  if (p)
-		  return 12;
-	  ], ksh_cv_var_sys_siglist=yes, ksh_cv_var_sys_siglist=no)])
-    if test $ksh_cv_var_sys_siglist = yes; then
-      AC_DEFINE(HAVE_SYS_SIGLIST)
-    fi
-  fi
- ])dnl
-dnl
-dnl
-dnl  Check for sys_errlist[] declaration and existence.
-AC_DEFUN(KSH_SYS_ERRLIST,
- [AC_CACHE_CHECK(for sys_errlist declaration in errno.h, ksh_cv_decl_sys_errlist,
-  [AC_TRY_COMPILE([#include <errno.h>],
-    [char *msg = *(sys_errlist + 1); if (msg && *msg) return 12; ],
-    ksh_cv_decl_sys_errlist=yes, ksh_cv_decl_sys_errlist=no)])
-  if test $ksh_cv_decl_sys_errlist = yes; then
-    AC_DEFINE(SYS_ERRLIST_DECLARED)
-    AC_DEFINE(HAVE_SYS_ERRLIST)
-  else
-    AC_CACHE_CHECK(for sys_errlist in library, ksh_cv_var_sys_errlist,
-      [AC_TRY_LINK(, [
-	    extern char *sys_errlist[];
-	    extern int sys_nerr;
-	    char *p;
-	    p = sys_errlist[sys_nerr - 1];
-	    if (p) return 12;
-	  ], ksh_cv_var_sys_errlist=yes, ksh_cv_var_sys_errlist=no)])
-    if test $ksh_cv_var_sys_errlist = yes; then
-      AC_DEFINE(HAVE_SYS_ERRLIST)
-    fi
-  fi
- ])dnl
-dnl
-dnl
-dnl  Check if time() declared in time.h
-AC_DEFUN(KSH_TIME_DECLARED,
- [AC_CACHE_CHECK(time() declaration in time.h, ksh_cv_time_delcared,
-    [AC_TRY_COMPILE([#include <sys/types.h>
-#include <time.h>], [time_t (*f)() = time; if (f) return 12;],
-      ksh_cv_time_delcared=yes, ksh_cv_time_delcared=no)])
-  if test $ksh_cv_time_delcared = yes; then
-    AC_DEFINE(TIME_DECLARED)
   fi
  ])dnl
 dnl

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/misc.c,v 2.9 2004/12/28 22:33:21 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/misc.c,v 2.10 2004/12/31 19:37:03 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.20 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -7,13 +7,11 @@
 
 #include "sh.h"
 #include <ctype.h>	/* for FILECHCONV */
-#ifdef HAVE_LIMITS_H
-# include <limits.h>
-#endif
 #include <sys/ioctl.h>
+#include <dirent.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.9 2004/12/28 22:33:21 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.10 2004/12/31 19:37:03 tg Exp $");
 
 #ifndef UCHAR_MAX
 # define UCHAR_MAX	0xFF
@@ -1191,25 +1189,6 @@ reset_nonblock(int fd)
 # define MAXPATHLEN PATH
 #endif /* MAXPATHLEN */
 
-#ifdef HPUX_GETWD_BUG
-# include "ksh_dir.h"
-
-/*
- * Work around bug in hpux 10.x C library - getwd/getcwd dump core
- * if current directory is not readable.  Done in macro 'cause code
- * is needed in GETWD and GETCWD cases.
- */
-# define HPUX_GETWD_BUG_CODE \
-	{ \
-	    DIR *d = ksh_opendir("."); \
-	    if (!d) \
-		return NULL; \
-	    closedir(d); \
-	}
-#else /* HPUX_GETWD_BUG */
-# define HPUX_GETWD_BUG_CODE
-#endif /* HPUX_GETWD_BUG */
-
 /* Like getcwd(), except bsize is ignored if buf is 0 (MAXPATHLEN is used) */
 char *
 ksh_get_wd(char *buf, int bsize)
@@ -1217,9 +1196,6 @@ ksh_get_wd(char *buf, int bsize)
 #ifdef HAVE_GETCWD
 	char *b;
 	char *ret;
-
-	/* Before memory allocated */
-	HPUX_GETWD_BUG_CODE
 
 	/* Assume getcwd() available */
 	if (!buf) {

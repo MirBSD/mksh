@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/config.h,v 2.5 2004/12/31 18:41:46 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/config.h,v 2.6 2004/12/31 19:37:03 tg Exp $ */
 /*	$OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -61,12 +61,6 @@
 /* Define if the 'S_IS*' macros in <sys/stat.h> do not work properly.  */
 /* #undef STAT_MACROS_BROKEN */
 
-/* Define if 'sys_siglist' is declared by <signal.h>.  */
-#define SYS_SIGLIST_DECLARED 1
-
-/* Define if you can safely include both <sys/time.h> and <time.h>.  */
-#define TIME_WITH_SYS_TIME 1
-
 /* Define to 'int' if <sys/types.h> doesn't define.  */
 /* #undef uid_t */
 
@@ -109,20 +103,8 @@
 /* Define to the type of struct rlimit fields if the rlim_t type is missing */
 /* #undef rlim_t */
 
-/* Define if time() is declared in <time.h> */
-#define TIME_DECLARED 1
-
 /* Define to 'unsigned' if <signal.h> doesn't define */
 /* #undef sigset_t */
-
-/* Define if sys_errlist[] and sys_nerr are in the C library */
-#define HAVE_SYS_ERRLIST 1
-
-/* Define if sys_errlist[] and sys_nerr are defined in <errno.h> */
-#define SYS_ERRLIST_DECLARED 1
-
-/* Define if sys_siglist[] is in the C library */
-#define HAVE_SYS_SIGLIST 1
 
 /* Define if you have a sane <termios.h> header file */
 #define HAVE_TERMIOS_H 1

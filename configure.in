@@ -1,4 +1,4 @@
-dnl $MirBSD: src/bin/ksh/configure.in,v 2.3 2004/12/31 18:41:47 tg Exp $
+dnl $MirBSD: src/bin/ksh/configure.in,v 2.4 2004/12/31 19:37:03 tg Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl
@@ -76,9 +76,6 @@ AC_CHECK_FUNCS(arc4random arc4random_addrandom arc4random_push confstr \
 AC_CHECK_FUNCS(sigsetjmp _setjmp, break)
 AC_FUNC_MMAP
 KSH_FUNC_LSTAT
-KSH_SYS_ERRLIST
-KSH_SYS_SIGLIST
-KSH_TIME_DECLARED
 dnl
 dnl Structures
 dnl

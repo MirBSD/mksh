@@ -1,13 +1,12 @@
-/**	$MirBSD: src/bin/ksh/var.c,v 2.7 2004/12/31 19:15:39 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/var.c,v 2.8 2004/12/31 19:37:03 tg Exp $ */
 /*	$OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
 
 #include "sh.h"
 #include <time.h>
-#include "ksh_limval.h"
 #include "ksh_stat.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.7 2004/12/31 19:15:39 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.8 2004/12/31 19:37:03 tg Exp $");
 
 /*
  * Variables
@@ -291,7 +290,7 @@ str_val(struct tbl *vp)
 	else {				/* integer source */
 		/* worst case number length is when base=2, so use BITS(long) */
 			     /* minus base #     number    null */
-		static char strbuf[1 + 2 + 1 + BITS(long) + 1];
+		static char strbuf[1 + 2 + 1 + 8*sizeof(long) + 1];
 		const char *digits = (vp->flag & UCASEV_AL) ?
 				  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 				: "0123456789abcdefghijklmnopqrstuvwxyz";
