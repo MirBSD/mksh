@@ -1,5 +1,5 @@
-/*	$MirBSD: sh.h,v 1.5 2003/09/25 20:59:37 tg Exp $	*/
-/*	$OpenBSD: sh.h,v 1.14 2003/09/01 15:47:40 naddy Exp $	*/
+/*	$MirBSD: sh.h,v 1.6 2003/12/23 13:41:50 tg Exp $	*/
+/*	$OpenBSD: sh.h,v 1.15 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
  * Public Domain Bourne/Korn shell
@@ -483,7 +483,7 @@ enum sh_flag {
 #endif
 	FIGNOREEOF,	/* eof does not exit */
 	FTALKING,	/* -i: interactive */
-	FKEYWORD,	/* -k: name=value anywere */
+	FKEYWORD,	/* -k: name=value anywhere */
 	FLOGIN,		/* -l: a login shell */
 	FMARKDIRS,	/* mark dirs with / in file name completion */
 	FMONITOR,	/* -m: job control monitoring */
@@ -500,7 +500,7 @@ enum sh_flag {
 	FPOSIX,		/* -o posix: be posixly correct */
 	FPRIVILEGED,	/* -p: use suid_profile */
 	FRESTRICTED,	/* -r: restricted shell */
-	FSH,		/* -o sh: favor sh behavour */
+	FSH,		/* -o sh: favor sh behaviour */
 	FSTDIN,		/* -s: (invocation) parse stdin */
 	FTRACKALL,	/* -h: create tracked aliases for all commands */
 	FVERBOSE,	/* -v: echo input */
@@ -690,11 +690,11 @@ EXTERN char	*current_wd;
 EXTERN int	current_wd_size;
 
 #ifdef EDIT
-/* Minimium required space to work with on a line - if the prompt leaves less
+/* Minimum required space to work with on a line - if the prompt leaves less
  * space than this on a line, the prompt is truncated.
  */
 # define MIN_EDIT_SPACE	7
-/* Minimium allowed value for x_cols: 2 for prompt, 3 for " < " at end of line
+/* Minimum allowed value for x_cols: 2 for prompt, 3 for " < " at end of line
  */
 # define MIN_COLS	(2 + MIN_EDIT_SPACE + 3)
 EXTERN	int	x_cols I__(80);	/* tty columns */

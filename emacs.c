@@ -1,5 +1,5 @@
-/*	$MirBSD: emacs.c,v 1.6 2003/09/25 20:59:35 tg Exp $	*/
-/*	$OpenBSD: emacs.c,v 1.27 2003/09/01 15:47:40 naddy Exp $	*/
+/*	$MirBSD: emacs.c,v 1.7 2003/12/23 13:41:48 tg Exp $	*/
+/*	$OpenBSD: emacs.c,v 1.28 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
  *  Emacs-like command line editing and history
@@ -213,7 +213,7 @@ static const struct x_ftab x_ftab[] = {
 	{ x_yank,		"yank",				0 },
         { x_comp_list,		"complete-list",		0 },
         { x_expand,		"expand-file",			0 },
-        { x_fold_capitialize,	"capitalize-word",		XF_ARG },
+        { x_fold_capitalize,	"capitalize-word",		XF_ARG },
         { x_fold_lower,		"downcase-word",		XF_ARG },
         { x_fold_upper,		"upcase-word",			XF_ARG },
         { x_set_arg,		"set-arg",			XF_NOBIND },
@@ -308,8 +308,8 @@ static	struct x_defbindings const x_defbindings[] = {
         { XFUNC_fold_upper,		1,	'u'  },
         { XFUNC_fold_lower,		1,	'L'  },
         { XFUNC_fold_lower,		1,	'l'  },
-        { XFUNC_fold_capitialize,	1,	'C'  },
-        { XFUNC_fold_capitialize,	1,	'c'  },
+        { XFUNC_fold_capitalize,	1,	'C'  },
+        { XFUNC_fold_capitalize,	1,	'c'  },
 #ifdef OS2
 	{ XFUNC_meta3,			0,	0xE0 },
 	{ XFUNC_mv_back,		3,	'K'  },
@@ -1136,7 +1136,7 @@ x_transpose(c)
 	 *     gnu emacs:		abCd	acbD   abcd_	abdc_
 	 * Pdksh currently goes with GNU behavior since I believe this is the
 	 * most common version of emacs, unless in gmacs mode, in which case
-	 * it does the at&t ksh gmacs mdoe.
+	 * it does the at&t ksh gmacs mode.
 	 * This should really be broken up into 3 functions so users can bind
 	 * to the one they want.
 	 */
@@ -2104,7 +2104,7 @@ x_fold_lower(c)
 
 /* Lowercase N(1) words */
 static int
-x_fold_capitialize(c)
+x_fold_capitalize(c)
   int c;
 {
 	return x_fold_case('C');
@@ -2133,7 +2133,7 @@ x_fold_case(c)
 	}
 	while (x_arg--) {
 		/*
-		 * fisrt skip over any white-space
+		 * first skip over any white-space
 		 */
 		while (cp != xep && is_mfs(*cp))
 			cp++;
@@ -2145,7 +2145,7 @@ x_fold_case(c)
 			if (c == 'L') {		/* lowercase */
 				if (isupper(*cp))
 					*cp = tolower(*cp);
-			} else {		/* uppercase, capitialize */
+			} else {		/* uppercase, capitalize */
 				if (islower(*cp))
 					*cp = toupper(*cp);
 			}
@@ -2158,7 +2158,7 @@ x_fold_case(c)
 			if (c == 'U') {		/* uppercase */
 				if (islower(*cp))
 					*cp = toupper(*cp);
-			} else {		/* lowercase, capitialize */
+			} else {		/* lowercase, capitalize */
 				if (isupper(*cp))
 					*cp = tolower(*cp);
 			}
