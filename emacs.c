@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/emacs.c,v 2.2 2004/12/13 19:05:09 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/emacs.c,v 2.3 2004/12/13 19:09:06 tg Exp $ */
 /*	$OpenBSD: emacs.c,v 1.28 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -19,7 +19,7 @@
 #include <locale.h>
 #include "edit.h"
 
-__RCSID("$MirBSD: src/bin/ksh/emacs.c,v 2.2 2004/12/13 19:05:09 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/emacs.c,v 2.3 2004/12/13 19:09:06 tg Exp $");
 
 static	Area	aedit;
 #define	AEDIT	&aedit		/* area for kill ring and macro defns */
@@ -213,11 +213,6 @@ static const struct x_ftab x_ftab[] = {
         { x_comment,		"comment",			0 },
 #ifdef DEBUG
         { x_debug_info,		"debug-info",			0 },
-#else
-	{ 0, 0, 0 },
-#endif
-#ifdef OS2
-	{ x_meta3,		"prefix-3",			XF_PREFIX },
 #else
 	{ 0, 0, 0 },
 #endif

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/syn.c,v 2.1 2004/12/10 18:09:42 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/syn.c,v 2.2 2004/12/13 19:09:06 tg Exp $ */
 /*	$OpenBSD: syn.c,v 1.14 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include "c_test.h"
 
-__RCSID("$MirBSD: src/bin/ksh/syn.c,v 2.1 2004/12/10 18:09:42 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/syn.c,v 2.2 2004/12/13 19:09:06 tg Exp $");
 
 struct nesting_state {
 	int	start_token;	/* token than began nesting (eg, FOR) */
@@ -537,7 +537,7 @@ function_body(char *name, int ksh_func)
 
 	sname = wdstrip(name);
 	/* Check for valid characters in name.  posix and ksh93 say only
-	 * allow [a-zA-Z_0-9] but this allows more as old pdksh's have
+	 * allow [a-zA-Z_0-9] but this allows more as old pdkshs have
 	 * allowed more (the following were never allowed:
 	 *	nul space nl tab $ ' " \ ` ( ) & | ; = < >
 	 *  C_QUOTE covers all but = and adds # [ ? *)

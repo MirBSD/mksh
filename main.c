@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/main.c,v 2.4 2004/12/13 19:05:09 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/main.c,v 2.5 2004/12/13 19:09:06 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -15,7 +15,7 @@
  * shell version
  */
 
-__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.4 2004/12/13 19:05:09 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.5 2004/12/13 19:09:06 tg Exp $");
 
 static const char version_param[] =
 #ifdef KSH
@@ -122,7 +122,7 @@ main(int argc, char *argv[])
 	/* make sure argv[] is sane */
 	if (!*argv) {
 		static const char	*empty_argv[] = {
-					    "pdksh", (char *) 0
+					    "mksh", (char *) 0
 					};
 
 		argv = (char **) empty_argv;

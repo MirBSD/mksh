@@ -1,4 +1,4 @@
-.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 2.2 2004/12/13 18:24:33 tg Exp $
+.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 2.3 2004/12/13 19:09:06 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.79 2004/12/04 07:05:13 jaredy Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -176,7 +176,7 @@ parameter match the pattern
 .Dq \&*r\&*sh
 (e.g.,
 .Dq rsh ,
-.Dq rksh ,
+.Dq rmksh ,
 .Dq rpdksh ,
 etc.).
 The following restrictions come into effect after the shell processes any
@@ -259,7 +259,7 @@ If the
 parameter is not set (and not
 .Dv NULL )
 and
-.Nm pdksh
+.Nm
 was compiled with the
 .Dv DEFAULT_ENV
 macro defined, the file named in that macro is included (after the above
@@ -1102,9 +1102,7 @@ where
 is an arithmetic expression.
 Array indices are currently limited to the range 0 through 4095 (for
 .Nm mksh )
-or 1023 (for
-.Nm pdksh ) ,
-inclusive.
+or 1023 (for other korn shells), inclusive.
 Parameter substitutions take the form
 .Ic $ Ns Ar name ,
 .Ic ${ Ns Ar name Ns Ic \&}
@@ -1862,7 +1860,7 @@ matches all strings (think about it).
 .El
 .Pp
 Note that
-.Nm pdksh
+.Nm
 currently never matches
 .Dq \&.
 and
@@ -1874,11 +1872,6 @@ Bourne
 and GNU
 .Xr bash
 do.
-For
-.Nm pdksh ,
-this may have to change (too bad), but
-.Nm mksh
-will not adopt this behaviour.
 .Pp
 Note that none of the above pattern elements match either a period
 .Pq Sq \&.
@@ -3318,7 +3311,7 @@ If used outside of a function or
 script, it has the same effect as
 .Ic exit .
 Note that
-.Nm pdksh
+.Nm
 treats both profile and
 .Ev ENV
 files as
@@ -3536,7 +3529,7 @@ was set, the vi command-line mode would let the
 driver do the work until
 .Tn ESC
 (^[) was entered.
-.Nm pdksh
+.Nm
 is always in viraw mode.
 .It Ic vi-esccomplete
 In vi command-line editing, do command and file name completion when escape
@@ -4964,8 +4957,8 @@ Command/file name enumeration.
 List all the commands or files that match the current big-word.
 .It Ic ^V
 Display the version of
-.Nm pdksh ;
-it is displayed until another key is pressed (this key is ignored).
+.Nm
+until another key is pressed (this key is ignored).
 .It Ic @ Ns Ar c
 Macro expansion.
 Execute the commands found in the alias
@@ -5280,7 +5273,7 @@ domain Korn shell, as delivered with
 .Sh NOTES
 .Nm sh
 is implemented as a run-time option of
-.Nm pdksh ,
+.Nm mksh ,
 with only those
 .Nm ksh
 features whose syntax or semantics are incompatible with a traditional Bourne
