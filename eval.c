@@ -1,5 +1,5 @@
-/**	$MirBSD: src/bin/ksh/eval.c,v 2.3 2004/12/13 19:05:09 tg Exp $ */
-/*	$OpenBSD: eval.c,v 1.16 2004/12/08 21:23:18 millert Exp $	*/
+/**	$MirBSD: src/bin/ksh/eval.c,v 2.4 2004/12/14 15:54:23 tg Exp $ */
+/*	$OpenBSD: eval.c,v 1.18 2004/12/13 16:37:06 millert Exp $	*/
 
 /*
  * Expansion - quoting, separation, substitution, globbing
@@ -10,7 +10,7 @@
 #include "ksh_dir.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/eval.c,v 2.3 2004/12/13 19:05:09 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/eval.c,v 2.4 2004/12/14 15:54:23 tg Exp $");
 
 /*
  * string expansion
@@ -1010,9 +1010,10 @@ globit(XString *xs, char **xpp, char *sp, XPtrV *wp, int check)
 		if ((check & GF_EXCHECK)
 		    || ((check & GF_MARKDIR) && (check & GF_GLOBBED)))
 		{
-#define stat_check()	(stat_done ? stat_done : \
-			    (stat_done = stat(Xstring(*xs, xp), &statb) < 0 \
-				? -1 : 1))
+#define	stat_check()						\
+	(stat_done ? stat_done :				\
+	    ((stat_done = stat(Xstring(*xs, xp), &statb) < 0)	\
+	    ? -1 : 1))
 			struct stat lstatb, statb;
 			int stat_done = 0;	 /* -1: failed, 1 ok */
 

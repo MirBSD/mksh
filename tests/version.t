@@ -5,5 +5,5 @@ category: pdksh
 stdin:
 	echo $KSH_VERSION
 expected-stdout-pattern:
-	/PD KSH v5\.2\.14 MirOS R19 in (native )?KSH mode( as mksh)?/
+	/PD KSH v5\.2\.14 MirOS R20 in (native )?KSH mode( as mksh)?/
 ---

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/main.c,v 2.5 2004/12/13 19:09:06 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/main.c,v 2.6 2004/12/14 15:54:24 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -15,7 +15,7 @@
  * shell version
  */
 
-__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.5 2004/12/13 19:09:06 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.6 2004/12/14 15:54:24 tg Exp $");
 
 static const char version_param[] =
 #ifdef KSH
@@ -26,7 +26,7 @@ static const char version_param[] =
 	;
 
 const char ksh_version[] =
-	"@(#)PD KSH v5.2.14 MirOS R19 in "
+	"@(#)PD KSH v5.2.14 MirOS R20 in "
 #ifdef MIRBSD_NATIVE
 	"native "
 #endif
