@@ -1,5 +1,5 @@
-/**	$MirBSD: eval.c,v 1.6 2004/10/28 11:53:41 tg Exp $ */
-/*	$OpenBSD: eval.c,v 1.14 2003/11/10 21:26:39 millert Exp $	*/
+/**	$MirBSD: eval.c,v 1.7 2004/11/26 15:43:53 tg Exp $ */
+/*	$OpenBSD: eval.c,v 1.15 2004/11/25 04:36:47 jaredy Exp $	*/
 
 /*
  * Expansion - quoting, separation, substitution, globbing
@@ -10,7 +10,7 @@
 #include "ksh_dir.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: eval.c,v 1.6 2004/10/28 11:53:41 tg Exp $");
+__RCSID("$MirBSD: eval.c,v 1.7 2004/11/26 15:43:53 tg Exp $");
 
 /*
  * string expansion
@@ -37,6 +37,7 @@ typedef struct Expand {
 #define	XARG		3	/* expanding $*, $@ */
 #define	XCOM		4	/* expanding $() */
 #define XNULLSUB	5	/* "$@" when $# is 0 (don't generate word) */
+#define XSUBMID		6	/* middle of expanding ${} */
 
 /* States used for field splitting */
 #define IFS_WORD	0	/* word has chars (or quotes) */
@@ -273,7 +274,7 @@ expand(char *cp, XPtrV *wp, int f)
 			  /* format is:
 			   *   OSUBST [{x] plain-variable-part \0
 			   *     compiled-word-part CSUBST [}x]
-			   * This is were all syntax checking gets done...
+			   * This is where all syntax checking gets done...
 			   */
 			  {
 				char *varname = ++sp; /* skip the { or x (}) */
@@ -472,6 +473,7 @@ expand(char *cp, XPtrV *wp, int f)
 			continue;
 
 		  case XSUB:
+		  case XSUBMID:
 			if ((c = *x.str++) == 0) {
 				type = XBASE;
 				if (f&DOBLANK)
@@ -554,7 +556,7 @@ expand(char *cp, XPtrV *wp, int f)
 			 * doesn't do this, but POSIX does).
 			 */
 			if (word == IFS_WORD
-			    || (!ctype(c, C_IFSWS) && (c || word == IFS_NWS)))
+			    || (!ctype(c, C_IFSWS) && word == IFS_NWS))
 			{
 				char *p;
 
@@ -585,6 +587,17 @@ expand(char *cp, XPtrV *wp, int f)
 			if (word != IFS_NWS)
 				word = ctype(c, C_IFSWS) ? IFS_WS : IFS_NWS;
 		} else {
+			if (type == XSUB) {
+				if (word == IFS_NWS && Xlength(ds, dp) == 0) {
+					char *p = strdup("");
+
+					if (p == NULL)
+						internal_errorf(1, "unable "
+						    "to allocate memory");
+					XPput(*wp, p);
+				}
+				type = XSUBMID;
+			}
 			/* age tilde_ok info - ~ code tests second bit */
 			tilde_ok <<= 1;
 			/* mark any special second pass chars */
