@@ -1,5 +1,5 @@
-/*	$MirBSD: misc.c,v 1.2 2003/06/26 18:26:21 tg Exp $	*/
-/*	$OpenBSD: misc.c,v 1.16 2003/04/16 23:11:52 tdeval Exp $	*/
+/*	$MirBSD: misc.c,v 1.3 2003/08/16 15:19:49 tg Exp $	*/
+/*	$OpenBSD: misc.c,v 1.18 2003/08/06 21:08:05 millert Exp $	*/
 
 /*
  * Miscellaneous functions
@@ -91,8 +91,6 @@ str_save(s, ap)
 		return NULL;
 	len = strlen(s)+1;
 	p = alloc(len, ap);
-	if (!p)
-		return NULL;
 	strlcpy(p, s, len+1);
 	return (p);
 }
@@ -1053,13 +1051,13 @@ ksh_getopt(argv, go, options)
 				go->optarg = argv[go->optind - 1] + go->p;
 				go->p = 0;
 			} else
-				go->optarg = (char *) 0;;
+				go->optarg = (char *) 0;
 		} else {
 			if (argv[go->optind] && digit(argv[go->optind][0])) {
 				go->optarg = argv[go->optind++];
 				go->p = 0;
 			} else
-				go->optarg = (char *) 0;;
+				go->optarg = (char *) 0;
 		}
 	}
 	return c;

@@ -1,5 +1,5 @@
-/*	$MirBSD: emacs.c,v 1.3 2003/06/29 19:45:40 tg Exp $	*/
-/*	$OpenBSD: emacs.c,v 1.20 2003/06/26 00:09:45 deraadt Exp $	*/
+/*	$MirBSD: emacs.c,v 1.4 2003/08/16 15:19:48 tg Exp $	*/
+/*	$OpenBSD: emacs.c,v 1.22 2003/08/02 19:44:12 fgsch Exp $	*/
 
 /*
  *  Emacs-like command line editing and history
@@ -554,7 +554,7 @@ x_delete(nc, force_push)
 	/*
 	 * This lets us yank a word we have deleted.
 	 */
-	if (nc > 1 || force_push)
+	if (force_push)
 		x_push(nc);
 
 	xep -= nc;
@@ -1264,7 +1264,9 @@ x_meta_yank(c)
 	int c;
 {
 	int	len;
-	if (x_last_command != XFUNC_yank && x_last_command != XFUNC_meta_yank) {
+	if ((x_last_command != XFUNC_yank && x_last_command != XFUNC_meta_yank)
+	    || killstack[killtp] == 0) {
+		killtp = killsp;
 		x_e_puts("\nyank something first");
 		x_redraw(-1);
 		return KSTD;
