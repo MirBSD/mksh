@@ -1,4 +1,4 @@
-/**	$MirBSD: history.c,v 1.9 2004/08/27 14:08:35 tg Stab $ */
+/**	$MirBSD: history.c,v 1.10 2004/09/21 11:33:41 tg Exp $ */
 /*	$OpenBSD: history.c,v 1.24 2004/08/03 12:44:59 danh Exp $	*/
 
 /*
@@ -940,7 +940,7 @@ hist_shrink(oldbase, oldbytes)
 	int oldbytes;
 {
 	int fd;
-	char	nfile[4096];
+	char	nfile[PATH_MAX];
 	struct	stat statb;
 	unsigned char *nbase = oldbase;
 	int nbytes = oldbytes;
