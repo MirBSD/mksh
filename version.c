@@ -1,4 +1,4 @@
-/**	$MirBSD: version.c,v 1.15 2004/10/28 16:35:03 tg Exp $ */
+/**	$MirBSD: version.c,v 1.16 2004/11/10 17:22:13 tg Exp $ */
 /*	$OpenBSD: version.c,v 1.12 1999/07/14 13:37:24 millert Exp $	*/
 
 /*-
@@ -6,11 +6,11 @@
  *	Thorsten "mirabile" Glaser <tg@66h.42h.de>
  *
  * Licensee is hereby permitted to deal in this work without restric-
- * tion, including unlimited rights to use, publically perform, modi-
- * fy, merge, distribute, sell, give away or sublicence, provided the
- * above copyright notices, these terms and the disclaimer are retai-
- * ned in all redistributions, or reproduced in accompanying documen-
- * tation or other materials provided with binary redistributions.
+ * tion, including unlimited rights to use, publicly perform, modify,
+ * merge, distribute, sell, give away or sublicence, provided all co-
+ * pyright notices above, these terms and the disclaimer are retained
+ * in all redistributions or reproduced in accompanying documentation
+ * or other materials provided with binary redistributions.
  *
  * Licensor hereby provides this work "AS IS" and WITHOUT WARRANTY of
  * any kind, expressed or implied, to the maximum extent permitted by
@@ -26,7 +26,7 @@
 #include "sh.h"
 
 const char ksh_version[] =
-	"@(#)PD KSH v5.2.14 MirOS $Revision: 1.15 $ in "
+	"@(#)PD KSH v5.2.14 MirOS $Revision: 1.16 $ in "
 #ifdef MIRBSD_NATIVE
 	"native "
 #endif

@@ -1,4 +1,4 @@
-$MirBSD: README,v 1.4 2004/10/28 11:11:16 tg Exp $
+$MirBSD: README,v 1.5 2004/11/10 17:22:12 tg Exp $
 
 This is the README for mirbsdksh, developed as part of the MirBSD
 operating system at The MirOS Project, and produced portably.
@@ -26,10 +26,10 @@ to your likes. Don't complain if anything doesn't work.
 
 LEGAL INFORMATION
 
-This package as a whole is placed under the MirOS licence, found at
-https://mirbsd.bsdadvocacy.org/cvs.cgi/src/share/misc/licence.template
-as well as on top of the "Build.sh" or "rnd.c" files found in the
-distribution.
+This package as a whole is placed under the MirOS licence template
+as contained in the "version.c" source code file in this distribu-
+tion, by having the project leader asserting a collective copyright.
+
 The files alloc.c (Marc Espie), ksh.1tbl and sh.1tbl (University of
 California, Berkeley) are provided under a 2-clause or 3-clause BSD
 licence, respectively.
@@ -40,6 +40,7 @@ aclocal.m4, from which only the functions which required the file to
 be under the GNU GPL have been removed.
 
 
+The information below is mostly unmaintained.
 ________________________________________________________________________
 
 $OpenBSD: README,v 1.10 2003/03/10 03:48:16 david Exp $
@@ -79,17 +80,9 @@ them).
 
 
 Files of interest:
-	NEWS		short list of noticeable changes in various versions.
 	CONTRIBUTORS	short history of pdksh, people who contributed, etc.
 	NOTES		lists of known bugs in pdksh, at&t ksh, and posix.
 	PROJECTS	list of things that need to be done in pdksh.
-	BUG-REPORTS	list of recently reported bugs that have been fixed
-			and all reported bugs that haven't been fixed.
-	LEGAL		A file detailing legal issues concerning pdksh.
-	etc/*		system profile and kshrc files used by Simon J. Gerraty.
-	misc/README*	readme files from previous versions.
-	misc/Changes*	changelog files from previous versions.
-	os2/*		files and info needed to compile ksh on os/2.
 	tests/*		pdksh's regression testing system.
 
 
