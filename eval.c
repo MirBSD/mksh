@@ -1,4 +1,4 @@
-/**	$MirBSD: eval.c,v 1.8 2004/12/08 23:00:14 tg Exp $ */
+/**	$MirBSD: eval.c,v 1.9 2004/12/09 16:32:09 tg Exp $ */
 /*	$OpenBSD: eval.c,v 1.16 2004/12/08 21:23:18 millert Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include "ksh_dir.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: eval.c,v 1.8 2004/12/08 23:00:14 tg Exp $");
+__RCSID("$MirBSD: eval.c,v 1.9 2004/12/09 16:32:09 tg Exp $");
 
 /*
  * string expansion
@@ -812,7 +812,6 @@ varsub(Expand *xp, char *sp, char *word, int *stypep, int *slenp)
 			}
 			if (XPsize(wv) == 0) {
 				xp->str = null;
-				xp->var = global(sp);
 				state = p[1] == '@' ? XNULLSUB : XSUB;
 				XPfree(wv);
 			} else {
