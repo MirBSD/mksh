@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: BuildGNU.sh,v 1.9 2004/04/23 23:06:07 tg Exp $
+# $MirBSD: BuildGNU.sh,v 1.9.2.1 2004/04/24 21:37:06 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -22,12 +22,12 @@
 # Note:	on some systems, you must run it with a pre-existing bash or
 #	korn shell, because the Bourne seems to choke on the if sta-
 #	tement below for some unknown reason.
-# Note:	Solaris might want LDFLAGS=-ldl, some GNU/Linux systems usu-
+# Note:	Solaris might want LDFLAGS=-ldl. Some GNU/Linux systems usu-
 #	ally have problems with their perl path (use -I for the .ph)
 # Note:	For a couple of systems (Solaris, Microsoft Interix), you'll
 #	have to use a pre-installed ksh or GNU bash for bootstrap.
 # Note:	On Mac OSX, you need LDFLAGS= (empty) - it seems to not find
-#	the C Runtime Initialization Object files else.
+#	the C Runtime Initialization Object files otherwise.
 
 SHELL="${SHELL:-/bin/sh}"; export SHELL
 CONFIG_SHELL="${SHELL}"; export CONFIG_SHELL
@@ -36,7 +36,7 @@ CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -I. -DKSH"
 CFLAGS="-O2 -fomit-frame-pointer -fno-strict-aliasing $CFLAGS"
 LDFLAGS="${LDFLAGS:--static}"
 
-if [ -e strlcpy.c -a -e strlcat.c ]; then
+if [ -e strlfun.c ]; then
 	echo "Configuring..."
 	$SHELL ./configure
 	echo "Generating prerequisites..."
@@ -46,18 +46,25 @@ if [ -e strlcpy.c -a -e strlcat.c ]; then
 	$CC $CFLAGS $CPPFLAGS $LDFLAGS -o ksh *.c
 	echo "Finalizing..."
 	tbl <ksh.1tbl | nroff -mandoc -Tascii >ksh.cat1
-	cp ksh ksh.unstripped
-	strip -R .note -R .comment -R .rel.dyn -R .sbss \
-	    --strip-unneeded --strip-all ksh \
-	    || strip ksh || mv ksh.unstripped ksh
-	rm -f ksh.unstripped
+	if [ -z "$WEIRD_OS" ]; then
+		cp ksh ksh.unstripped
+		strip -R .note -R .comment -R .rel.dyn -R .sbss \
+		    --strip-unneeded --strip-all ksh \
+		    || strip ksh || mv ksh.unstripped ksh
+		rm -f ksh.unstripped
+	else
+		echo "Remember to strip the ksh binary!"
+	fi
 	size ksh
 	echo "done."
+	echo ""
+	echo "If you want to test mirbsdksh:"
+	echo "perl ./tests/th -s ./tests -p ./ksh -C pdksh,sh,ksh,posix,posix-upu"
 else
-	echo "Copy strlcpy.c and strlcat.c here first, and"
-	echo "optionally kill Ulrich Drepper & co. for not"
-	echo "including it into your broken libc imitation"
+	echo "Your kit isn't complete, please download the"
+	echo "mirbsdksh-1.x.cpio.gz distfile, then extract"
+	echo "it and try again! Due to the folks of Ulrich"
+	echo "Drepper & co. not including strlcpy/strlcat,"
+	echo "this is a necessity to circumvent the broken"
+	echo "libc imitation of GNU."
 fi
-
-# If you want to test mirbsdksh:
-# $ perl ./tests/th -s ./tests -p ./ksh -C pdksh,sh,ksh,posix,posix-upu
