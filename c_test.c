@@ -1,3 +1,4 @@
+/*	$MirBSD: c_test.c,v 1.2 2004/04/17 00:47:17 tg Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.10 2003/10/10 19:09:07 millert Exp $	*/
 
 /*
@@ -391,7 +392,7 @@ test_eval(te, op, opnd1, opnd2, do_eval)
 		{
 			int s2;
 			/* ksh88/ksh93 succeed if file2 can't be stated
-			 * (subtly different from `does not exist').
+			 * (subtly different from 'does not exist').
 			 */
 			return stat(opnd1, &b1) == 0
 				&& (((s2 = stat(opnd2, &b2)) == 0
@@ -401,7 +402,7 @@ test_eval(te, op, opnd1, opnd2, do_eval)
 		{
 			int s1;
 			/* ksh88/ksh93 succeed if file1 can't be stated
-			 * (subtly different from `does not exist').
+			 * (subtly different from 'does not exist').
 			 */
 			return stat(opnd2, &b2) == 0
 				&& (((s1 = stat(opnd1, &b1)) == 0

@@ -1,4 +1,5 @@
-/*	$OpenBSD: jobs.c,v 1.21 2003/11/10 21:26:39 millert Exp $	*/
+/* $MirBSD: jobs.c,v 1.3 2004/04/17 00:47:19 tg Exp $ */
+/* $OpenBSD: jobs.c,v 1.21 2003/11/10 21:26:39 millert Exp $	*/
 
 /*
  * Process and job control
@@ -635,7 +636,7 @@ exchild(t, flags, close_fd)
 				}
 			}
 		}
-		remove_job(j, "child");	/* in case of `jobs` command */
+		remove_job(j, "child");	/* in case of 'jobs' command */
 		nzombie = 0;
 #ifdef JOBS
 		ttypgrp_ok = 0;
@@ -815,7 +816,6 @@ j_kill(cp, sig)
 	int	sig;
 {
 	Job	*j;
-	Proc	*p;
 	int	rv = 0;
 	int	ecode;
 #ifdef JOB_SIGS
@@ -1245,10 +1245,10 @@ j_waitj(j, flags, where)
 		if (tty_fd >= 0) {
 			/* Only restore tty settings if job was originally
 			 * started in the foreground.  Problems can be
-			 * caused by things like `more foobar &' which will
+			 * caused by things like 'more foobar &' which will
 			 * typically get and save the shell's vi/emacs tty
 			 * settings before setting up the tty for itself;
-			 * when more exits, it restores the `original'
+			 * when more exits, it restores the 'original'
 			 * settings, and things go down hill from there...
 			 */
 			if (j->state == PEXITED && j->status == 0
@@ -1557,7 +1557,7 @@ j_print(j, how, shf)
 		case PSIGNALLED:
 			if (WIFCORED(p->status))
 				coredumped = 1;
-			/* kludge for not reporting `normal termination signals'
+			/* kludge for not reporting 'normal termination signals'
 			 * (ie, SIGINT, SIGPIPE)
 			 */
 			if (how == JP_SHORT && !coredumped

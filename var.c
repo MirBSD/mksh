@@ -1,3 +1,4 @@
+/*	$MirBSD: var.c,v 1.2 2004/04/17 00:47:20 tg Exp $	*/
 /*	$OpenBSD: var.c,v 1.16 2003/08/05 20:52:27 millert Exp $	*/
 
 #include "sh.h"
@@ -765,7 +766,7 @@ unset(vp, array_ref)
 	/* If foo[0] is being unset, the remainder of the array is kept... */
 	vp->flag &= SPECIAL | (array_ref ? ARRAY|DEFINED : 0);
 	if (vp->flag & SPECIAL)
-		unsetspec(vp);	/* responsible for `unspecial'ing var */
+		unsetspec(vp);	/* responsible for 'unspecial'ing var */
 }
 
 /* return a pointer to the first char past a legal variable name (returns the
@@ -1114,7 +1115,7 @@ unsetspec(vp)
 	   * set in various places.
 	   * Don't know what at&t does for:
 	   *		MAIL, MAILPATH, HISTSIZE, HISTFILE,
-	   * Unsetting these in at&t ksh does not loose the `specialness':
+	   * Unsetting these in at&t ksh does not loose the 'specialness':
 	   *    no effect: IFS, COLUMNS, PATH, TMPDIR,
 	   *		VISUAL, EDITOR,
 	   * pdkshisms: no effect:

@@ -1,4 +1,5 @@
-/*	$OpenBSD: main.c,v 1.25 2003/06/26 00:09:45 deraadt Exp $	*/
+/*	$MirBSD: main.c,v 1.2 2004/04/17 00:47:19 tg Exp $	*/
+/*	$OpenBSD: main.c,v 1.26 2004/01/08 05:43:14 jmc Exp $	*/
 
 /*
  * startup, main loop, environments and error handling
@@ -177,7 +178,7 @@ main(int argc, char *argv[])
 	}
 
 
-	/* Turn on nohup by default for how - will change to off
+	/* Turn on nohup by default for now - will change to off
 	 * by default once people are aware of its existence
 	 * (at&t ksh does not have a nohup option - it always sends
 	 * the hup).
@@ -612,7 +613,7 @@ shell(s, toplevel)
 		t = compile(s);
 		if (t != NULL && t->type == TEOF) {
 			if (wastty && Flag(FIGNOREEOF) && --attempts > 0) {
-				shellf("Use `exit' to leave ksh\n");
+				shellf("Use 'exit' to leave ksh\n");
 				s->type = SSTDIN;
 			} else if (wastty && !really_exit
 				   && j_stopped_running())

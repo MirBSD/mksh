@@ -1,3 +1,4 @@
+$MirBSD: NOTES,v 1.2 2004/04/17 00:47:16 tg Stab $
 $OpenBSD: NOTES,v 1.9 2003/10/26 15:07:25 jmc Exp $
 
 General features of at&t ksh88 that are not (yet) in pdksh:
@@ -7,7 +8,7 @@ General features of at&t ksh88 that are not (yet) in pdksh:
     - trap DEBUG, local ERR and EXIT traps in functions.
     - ERRNO parameter.
     - doesn't have posix file globbing (eg, [[:alpha:]], etc.).
-    - use of an `agent' to execute unreadable/setuid/setgid shell scripts
+    - use of an 'agent' to execute unreadable/setuid/setgid shell scripts
       (don't ask).
     - read/select aren't hooked in to the command line editor
     - the last command of a pipeline is not run in the parent shell
@@ -29,10 +30,10 @@ Known bugs (see also BUG-REPORTS and PROJECTS files):
 	  of a command (eg, HISTFILE=/foo/bar echo hi) effects the parent
 	  shell.  Note that setting other (not so special) parameters
 	  does not effect the parent shell.
-	- `echo hi | exec cat -n' causes at&t to exit, `exec echo hi | cat -n'
+	- 'echo hi | exec cat -n' causes at&t to exit, 'exec echo hi | cat -n'
 	  does not.  pdksh exits for neither.  Don't think POSIX requires
 	  an exit, but not sure.
-	- `echo foo | read bar; echo $bar' prints foo in at&t ksh, nothing
+	- 'echo foo | read bar; echo $bar' prints foo in at&t ksh, nothing
 	  in pdksh (ie, the read is done in a separate process in pdksh).
     Misc:
 
@@ -40,12 +41,12 @@ Known problems not caused by ksh:
     - after stoping a job, emacs/vi is not re-entered.  Hitting return
       prints the prompt and everything is fine again.  Problem (often
       involving a pager like less) is related to order of process
-      scheduling (shell runs before `stop'ed (sub) processes have had a chance
+      scheduling (shell runs before 'stop'ed (sub) processes have had a chance
       to clean up the screen/terminal).
 
 Known differences between pdksh & at&t ksh (that may change)
     - vi:
-	- `^U': at&t: kills only what has been inserted, pdksh: kills to
+	- '^U': at&t: kills only what has been inserted, pdksh: kills to
 	  start of line
     - at&t ksh login shells say "Warning: you have running jobs" if you
       try to exit when there are running jobs.  An immediate second attempt
@@ -65,7 +66,7 @@ Known differences between pdksh & at&t ksh (that may change)
       it is the same as set -o.
     - in pdksh emacs mode, ^T does what gnu emacs does, not what at&t ksh
       does.
-    - in ksh93, `. name' calls a function (defined with function) with POSIX
+    - in ksh93, '. name' calls a function (defined with function) with POSIX
       semantics (instead of ksh semantics).  in pdksh, . does not call
       functions.
     - test: "test -f foo bar blah" is the same as "test -f foo" (the extra
@@ -126,7 +127,7 @@ Known differences between pdksh & at&t ksh (that are not likely to change)
     - at&t ksh seems to allow function calls inside expressions
       (eg, typeset -i x='y(2)') but they do not seem to be regular functions
       nor math functions (eg, pow, exp) - anyone known anything about this?
-    - `set -o nounset; unset foo; echo ${#foo}`: at&t ksh prints 0; pdksh
+    - 'set -o nounset; unset foo; echo ${#foo}': at&t ksh prints 0; pdksh
       generates error.  Same for ${#foo[*]} and ${#foo[@]}.
     - . file: at&t ksh parses the whole file before executing anything,
       pdksh executes as it parses.  This means aliases defined in the file
@@ -136,14 +137,14 @@ Known differences between pdksh & at&t ksh (that are not likely to change)
     - a return in $ENV in at&t ksh will cause the shell to exit, while in
       pdksh it will stop executing the script (this is consistent with
       what a return in .profile does in both shells).
-    - at&t ksh does file globbing for `echo "${foo:-"*"}"`, pdksh does not
+    - at&t ksh does file globbing for 'echo "${foo:-"*"}"', pdksh does not
       (POSIX would seem to indicate pdksh is right).
     - at&t ksh thinks ${a:##foo} is ok, pdksh doesn't.
     - at&t does tilde expansion on here-document delimiters, pdksh does
       not.  eg.
 	$ cat << ~michael
 	~michael
-	$ 
+	$
       works for pdksh, not for at&t ksh (POSIX seems to agree with pdksh).
     - in at&t ksh, tracked aliases have the export flag implicitly set
       and tracked aliases and normal aliases live in the same name space
@@ -162,9 +163,9 @@ Known differences between pdksh & at&t ksh (that are not likely to change)
       stopped jobs when job control is enabled.  pdksh doesn't.
     - at&t ksh automatically sets the bgnice option for interactive shells;
       pdksh does not.
-    - in at&t ksh, "eval `false`; echo $?" prints 1, pdksh prints 0 (which
-      is what POSIX says it should).  Same goes for "wait `false`; echo $?".
-      (same goes for "set `false`; echo $?" if posix option is set - some
+    - in at&t ksh, "eval $(false); echo $?" prints 1, pdksh prints 0 (which
+      is what POSIX says it should).  Same goes for "wait $(false); echo $?".
+      (same goes for "set $(false); echo $?" if posix option is set - some
       scripts that use the old getopt depend on this, so be careful about
       setting the posix option).
     - in at&t ksh, print -uX and read -uX are interrperted as -u with no
@@ -206,7 +207,7 @@ Known differences between pdksh & at&t ksh (that are not likely to change)
     - pdksh bumps RANDOM in parent after a fork, at&t ksh bumps it in both
       parent and child:
 	RANDOM=1
-	echo child: `echo $RANDOM`
+	echo child: $(echo $RANDOM)
 	echo parent: $RANDOM
       will produce "child: 16838 parent: 5758" in pdksh, while at&t ksh
       will produce "child: 5758 parent: 5758".
@@ -214,7 +215,7 @@ Known differences between pdksh & at&t ksh (that are not likely to change)
 Oddities in ksh (pd & at&t):
     - array references inside (())/$(()) are strange:
 	  $(( x[2] )) does the expected, $(( $x[2] )) doesn't.
-    - `typeset -R3 X='x '; echo "($X)"` produces (  x) - trailing
+    - 'typeset -R3 X='x '; echo "($X)"' produces (  x) - trailing
       spaces are stripped.
     - typeset -R turns off Z flag.
     - both shells have the following mis-feature:
@@ -232,7 +233,7 @@ Oddities in ksh (pd & at&t):
 	a=[ab]
 	$ x=typeset; $x a=[ab]; echo "$a"
 	a=a
-	$ 
+	$
     - both ignore SIGTSTP,SIGTTIN,SIGTTOU in exec'd processes when talking
       and not monitoring (at&t ksh kind of does this).  Doesn't really make
       sense.
@@ -255,19 +256,19 @@ at&t ksh bugs:
       Bus error (core dumped)
     - (only riscos, hpux)
       $ typeset x[
-      $ 
+      $
     - (only osf/1)
       $ A=B cat << EOF
       .$A.
       EOF
       Segmentation fault(coredump)
-      $ 
+      $
     - (only osf/1)
       $ read "?foo "
       foo Foo
       $ set | grep Foo
       =Foo
-      $ 
+      $
     - (all)
       $ typeset -i A
       $ typeset -L3 A
@@ -278,20 +279,20 @@ at&t ksh bugs:
       a, ,
       a, , b
       a, , c
-      $ 
+      $
     - (all)
       $ echo ${abc:-G { I } K }
       G { I K }
-      $ 
+      $
       $ abc=hi
       $ echo ${abc:-G { I } K }
       hi K }
       $
-      The second echo should only have printed `hi'.
+      The second echo should only have printed 'hi'.
     - (all)
       $ echo ${abc:- > foo}
       syntax error: > unexpected
-      $ 
+      $
     - (all? hpux) read reads too much from pipe (when pipe isn't stdin)
 	print 'hi\nthere' | ksh 8<&0 0< /dev/tty
 	    $ read -u8 x
@@ -301,7 +302,7 @@ at&t ksh bugs:
 	    $ read -u8 y
 	    $ print $y
 	    there
-	    $ 
+	    $
     - (all)
 	$ umask 0
 	$ umask
@@ -316,8 +317,8 @@ at&t ksh bugs:
 	$ echo : "$@"		# this is ok
 	:
 	$ echo :"$@"		# this should print : too (me thinks)
- 
-	$ 
+
+	$
     - (only osf/1)
 	$ set +m
 	$ sleep 1 &		# wait for a sec or two
@@ -336,13 +337,13 @@ at&t ksh bugs:
     - (osf/1) POSIX says OPTIND shall be initialized to 1
 	$ echo $OPTIND
 	0
-	$ 
+	$
     - (osf/1 + others?)
 	$ typeset -ri r=10
 	$ let r=12
 	$ echo $r
 	12
-	$ 
+	$
     - (osf/1 + others?)
 	$ typeset -i a
 	$ typeset -L3 a
@@ -357,7 +358,7 @@ at&t ksh bugs:
 	$ x='2^I^J^M '
 	$ echo "($x)"
 	(^I^J^M)
-	$ 
+	$
     - (osf/1 + others?)
 	$ typeset +i RANDOM
 	Memory fault (core dumped)
@@ -370,7 +371,7 @@ at&t ksh bugs:
 	(DEF )
 	$ typeset | grep ' x$'
 	leftjust 4 x
-	$ 
+	$
 	$ typeset -L4 x=def
 	$ echo "($x)"
 	(def )
@@ -379,7 +380,7 @@ at&t ksh bugs:
 	(AB  )
 	$ typeset | grep ' x$'
 	uppercase x
-	$ 
+	$
 	$ typeset -i x
 	$ x='2()'
 	$ x='()'
@@ -388,7 +389,7 @@ at&t ksh bugs:
 	$ unset foo
 	$ echo "${foo:-"*"}"
 	<results of * expansion>
-	$ 
+	$
     - (osf/1, others?)
 	$ alias blah
 	blah: alias not found
@@ -419,14 +420,14 @@ at&t ksh bugs:
 	bcdef
 	$ echo ${f#abc|a|d}
 	abcdef
-	$ 
+	$
     - (osf/1, hp-ux, others?)
 	$ i() echo hi
 	$ typeset -f
 	function i
 	{
 	hi
-	$ 
+	$
     - (osf/1, others?)
 	$ function X {
 		echo start of X
@@ -453,7 +454,7 @@ at&t ksh bugs:
 		echo end of X
 		}
 	}
-	$ 
+	$
     - (osf/1, others?)
 	 $ while read x; do print -r "A $x"; done |&
 	 [1] 18212
@@ -469,12 +470,12 @@ at&t ksh bugs:
 	 ksh: p: bad file unit number
 	 $ while read x; do print -r "A $x"; done |&
 	 ksh: process already exists
-	 $ 
+	 $
     - (osf/1, others?) in restricted shells, command -p should not work.
 	$ PATH=/tmp ksh -r
-	$ print hi | command -p cat -n 
+	$ print hi | command -p cat -n
 	     1  hi
-	$ 
+	$
     - (osf/1, others?) error message wrong for autoload files that don't define
       functions
 	$ FPATH=/tmp
@@ -482,8 +483,8 @@ at&t ksh bugs:
 	$ aja
 	hi there
 	ksh: echo:  not found
-	$ 
-    - (SunOS M-12/28/93d): 
+	$
+    - (SunOS M-12/28/93d):
 	$ cat -n << X $(
 	> echo foo
 	> )
@@ -496,7 +497,7 @@ at&t ksh bugs:
 POSIX sh questions (references are to POSIX 1003.2-1992)
 	- arithmetic expressions: how are empty expressions treated?
 	  (eg, echo $((  ))).  at&t ksh (and now pdksh) echo 0.
-	  Same question goes for `test "" -eq 0' - does this generate an error
+	  Same question goes for 'test "" -eq 0' - does this generate an error
 	  or, if not, what is the exit code?
 	- should tilde expansion occur after :'s in the word part of ${..=..}?
 	  (me thinks it should)
@@ -519,7 +520,7 @@ POSIX sh bugs (references are to POSIX 1003.2-1992)
 	  "foo     ^W" will do nothing.  This is inconsistent with the vi
 	  spec, which says delete preceding word including and interceding
 	  blanks (para at line 5189, section 5).
-	- parameter expansion, section 3.6.2, line 391: `in each case that a
+	- parameter expansion, section 3.6.2, line 391: 'in each case that a
 	  value of word is needed (..), word shall be subjected to tilde
 	  expansion, parameter expansion, ...'.  Various expansions should not
 	  be performed if parameter is in double quotes.
@@ -538,7 +539,7 @@ POSIX sh bugs (references are to POSIX 1003.2-1992)
 		Y'`
 		Number of args: 1
 			1: <XY>
-		$ 
+		$
 	  POSIX would indicate the backslash-newline would be preserved.
 	- does not say how "cat << ''" is to be treated (illegal, read 'til
 	  blank line, or read 'til eof).  at&t ksh reads til eof, bourne shell

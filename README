@@ -1,3 +1,4 @@
+$MirBSD: README,v 1.2 2004/04/17 00:47:16 tg Exp $
 $OpenBSD: README,v 1.10 2003/03/10 03:48:16 david Exp $
 
 Last updated Jul '99 for pdksh-5.2.14.
@@ -101,7 +102,7 @@ Compiling/Installing:
 	  perfect - see BUG-REPORTS file), using gcc - cc has problems with
 	  macro expansions in the argument of a macro (in this case, the ARGS
 	  macro).
-	* On TitanOS (Stardent/Titan), use `CC="cc -43" configure ...'.
+	* On TitanOS (Stardent/Titan), use 'CC="cc -43" configure ...'.
 	  When configure finishes, edit config.h, undef HAVE_DIRENT_H and
 	  define HAVE_SYS_DIR_H (the dirent.h header file is broken).
 	* On Linux (red hat distribution), check that /dev/tty has mode 0666

@@ -1,3 +1,4 @@
+/*	$MirBSD: c_sh.c,v 1.2 2004/04/17 00:47:17 tg Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.17 2003/03/13 09:03:07 deraadt Exp $	*/
 
 /*
@@ -646,8 +647,8 @@ c_set(wp)
 			;
 	}
 	/* POSIX says set exit status is 0, but old scripts that use
-	 * getopt(1), use the construct: set -- `getopt ab:c "$@"`
-	 * which assumes the exit value set will be that of the ``
+	 * getopt(1), use the construct: set -- $(getopt ab:c "$@")
+	 * which assumes the exit value set will be that of the $()
 	 * (subst_exstat is cleared in execute() so that it will be 0
 	 * if there are no command substitutions).
 	 */
