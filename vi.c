@@ -1,5 +1,3 @@
-/*	$OpenBSD: vi.c,v 1.11 2003/03/13 09:03:07 deraadt Exp $	*/
-
 /*
  *	vi command editing
  *	written by John Rochester (initially for nsh)
@@ -65,7 +63,6 @@ static void 	x_vi_zotc ARGS((int c));
 static void	vi_pprompt ARGS((int full));
 static void	vi_error ARGS((void));
 static void	vi_macro_reset ARGS((void));
-static int	x_vi_putbuf	ARGS((const char *s, size_t len));
 
 #define C_	0x1		/* a valid command that isn't a M_, E_, U_ */
 #define M_	0x2		/* movement command (h, l, etc.) */
@@ -422,7 +419,7 @@ vi_hook(ch)
 				}
 			} else {
 				locpat[srchlen] = '\0';
-				(void) strlcpy(srchpat, locpat, sizeof srchpat);
+				(void) strcpy(srchpat, locpat);
 			}
 			state = VCMD;
 		} else if (ch == edchars.erase || ch == Ctrl('h')) {
@@ -1406,7 +1403,7 @@ save_edstate(old)
 	new = (struct edstate *)alloc(sizeof(struct edstate), APERM);
 	new->cbuf = alloc(old->cbufsize, APERM);
 	new->cbufsize = old->cbufsize;
-	strlcpy(new->cbuf, old->cbuf, new->cbufsize);
+	strcpy(new->cbuf, old->cbuf);
 	new->linelen = old->linelen;
 	new->cursor = old->cursor;
 	new->winleft = old->winleft;
@@ -1471,17 +1468,6 @@ edit_reset(buf, len)
 	morec = ' ';
 	lastref = 1;
 	holdlen = 0;
-}
-
-/*
- * this is used for calling x_escape() in complete_word()
- */
-static int
-x_vi_putbuf(s, len)
-	const char *s;
-	size_t len;
-{
-	return putbuf(s, len, 0);
 }
 
 static int
@@ -1979,7 +1965,7 @@ expand_word(command)
 	del_range(start, end);
 	es->cursor = start;
 	for (i = 0; i < nwords; ) {
-		if (x_escape(words[i], strlen(words[i]), x_vi_putbuf) != 0) {
+		if (putbuf(words[i], (int) strlen(words[i]), 0) != 0) {
 			rval = -1;
 			break;
 		}
@@ -2082,12 +2068,9 @@ complete_word(command, count)
 	buf = save_edstate(es);
 	del_range(start, end);
 	es->cursor = start;
-
-	/* escape all shell-sensitive characters and put the result into
-	 * command buffer */
-	rval = x_escape(match, match_len, x_vi_putbuf);
-
-	if (rval == 0 && is_unique) {
+	if (putbuf(match, match_len, 0) != 0)
+		rval = -1;
+	else if (is_unique) {
 		/* If exact match, don't undo.  Allows directory completions
 		 * to be used (ie, complete the next portion of the path).
 		 */
@@ -2146,7 +2129,7 @@ char_len(c)
 	return len;
 }
 
-/* Similar to x_zotc(emacs.c), but no tab weirdness */
+/* Similar to x_zotc(emacs.c), but no tab wierdness */
 static void
 x_vi_zotc(c)
 	int c;

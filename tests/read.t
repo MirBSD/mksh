@@ -1,5 +1,3 @@
-#	$OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
-
 #
 # To test:
 #   POSIX:
@@ -13,7 +11,7 @@
 #	    - a here-document isn't terminated after newline ????
 #	- remaining vars set to empty string (not null)
 #	- check field splitting
-#	- left over fields and their separators assigned to last var
+#	- left over fields and their seperators assigned to last var
 #	- exit status is normally 0
 #	- exit status is > 0 on eof
 #	- exit status > 0 on error

@@ -1,5 +1,3 @@
-$OpenBSD: PROJECTS,v 1.5 1999/07/14 13:37:23 millert Exp $
-
 Things to be done in pdksh (see also the NOTES file):
 
     * builtin utilities: 

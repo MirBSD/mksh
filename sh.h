@@ -1,10 +1,8 @@
-/*	$OpenBSD: sh.h,v 1.12 2002/10/07 23:09:32 vincent Exp $	*/
-
 /*
  * Public Domain Bourne/Korn shell
  */
 
-/* $From: sh.h,v 1.2 1994/05/19 18:32:40 michael Exp michael $ */
+/* $Id: sh.h,v 1.1.3.1 2004/03/21 00:34:15 tg Exp $ */
 
 #include "config.h"	/* system and option configuration info */
 
@@ -352,7 +350,7 @@ typedef int bool_t;
 /* Table flag type - needs > 16 and < 32 bits */
 typedef INT32 Tflag;
 
-#define	NUFILE	32		/* Number of user-accessible files */
+#define	NUFILE	10		/* Number of user-accessible files */
 #define	FDBASE	10		/* First file usable by Shell */
 
 /* you're not going to run setuid shell scripts, are you? */
@@ -373,7 +371,7 @@ typedef INT32 Tflag;
 EXTERN	const char *kshname;	/* $0 */
 EXTERN	pid_t	kshpid;		/* $$, shell pid */
 EXTERN	pid_t	procpid;	/* pid of executing process */
-EXTERN	uid_t	ksheuid;	/* effective uid of shell */
+EXTERN	int	ksheuid;	/* effective uid of shell */
 EXTERN	int	exstat;		/* exit status */
 EXTERN	int	subst_exstat;	/* exit status of last $(..)/`..` */
 EXTERN	const char *safe_prompt; /* safe prompt if PS1 substitution fails */
@@ -384,7 +382,7 @@ EXTERN	const char *safe_prompt; /* safe prompt if PS1 substitution fails */
  */
 
 typedef struct Area {
-	struct link *freelist;	/* free list */
+	struct Block *freelist;	/* free list */
 } Area;
 
 EXTERN	Area	aperm;		/* permanent object space */
@@ -410,18 +408,18 @@ EXTERN	Area	aperm;		/* permanent object space */
  * parsing & execution environment
  */
 EXTERN	struct env {
-	short	type;			/* environment type - see below */
+	short	type;			/* enviroment type - see below */
 	short	flags;			/* EF_* */
 	Area	area;			/* temporary allocation area */
 	struct	block *loc;		/* local variables and functions */
 	short  *savefd;			/* original redirected fd's */
-	struct	env *oenv;		/* link to previous environment */
+	struct	env *oenv;		/* link to previous enviroment */
 	ksh_jmp_buf jbuf;		/* long jump back to env creator */
 	struct temp *temps;		/* temp files */
 } *e;
 
 /* struct env.type values */
-#define	E_NONE	0		/* dummy environment */
+#define	E_NONE	0		/* dummy enviroment */
 #define	E_PARSE	1		/* parsing command # */
 #define	E_FUNC	2		/* executing function # */
 #define	E_INCL	3		/* including a file via . # */
@@ -503,7 +501,6 @@ enum sh_flag {
 	FPOSIX,		/* -o posix: be posixly correct */
 	FPRIVILEGED,	/* -p: use suid_profile */
 	FRESTRICTED,	/* -r: restricted shell */
-	FSH,		/* -o sh: favor sh behavour */
 	FSTDIN,		/* -s: (invocation) parse stdin */
 	FTRACKALL,	/* -h: create tracked aliases for all commands */
 	FVERBOSE,	/* -v: echo input */

@@ -1,5 +1,3 @@
-/*	$OpenBSD: io.c,v 1.12 2003/03/10 03:48:16 david Exp $	*/
-
 /*
  * shell buffered IO and formatted output
  */
@@ -15,7 +13,7 @@ static int initio_done;
  */
 
 
-/* A shell error occurred (eg, syntax error, etc.) */
+/* A shell error occured (eg, syntax error, etc.) */
 void
 #ifdef HAVE_PROTOTYPES
 errorf(const char *fmt, ...)
@@ -299,12 +297,11 @@ savefd(fd, noclose)
 
 	if (fd < FDBASE) {
 		nfd = ksh_dupbase(fd, FDBASE);
-		if (nfd < 0) {
+		if (nfd < 0)
 			if (errno == EBADF)
 				return -1;
 			else
 				errorf("too many files open in shell");
-		}
 		if (!noclose)
 			close(fd);
 	} else
@@ -365,7 +362,7 @@ check_fd(name, mode, emsgp)
 		}
 		fl &= O_ACCMODE;
 #ifdef OS2
-		if (mode == W_OK ) {
+		if (mode == W_OK ) { 
 		       if (setmode(fd, O_TEXT) == -1) {
 				if (emsgp)
 					*emsgp = "couldn't set write mode";
@@ -375,7 +372,7 @@ check_fd(name, mode, emsgp)
 	      		if (setmode(fd, O_BINARY) == -1) {
 				if (emsgp)
 					*emsgp = "couldn't set read mode";
-				return -1;
+				return -1; 
 			}
 #else /* OS2 */
 		/* X_OK is a kludge to disable this check for dups (x<&1):
@@ -452,7 +449,7 @@ coproc_write_close(fd)
 	}
 }
 
-/* Called to check for existence of/value of the co-process file descriptor.
+/* Called to check for existance of/value of the co-process file descriptor.
  * (Used by check_fd() and by c_read/c_print to deal with -p option).
  */
 int
@@ -519,12 +516,6 @@ maketemp(ap, type, tlist)
 	tp->name = path = (char *) &tp[1];
 	tp->shf = (struct shf *) 0;
 	tp->type = type;
-#ifdef __OpenBSD__
-	shf_snprintf(path, len, "%s/shXXXXXXXX", dir);
-	fd = mkstemp(path);
-	if (fd >= 0)
-		tp->shf = shf_fdopen(fd, SHF_WR, (struct shf *) 0);
-#else
 	while (1) {
 		/* Note that temp files need to fit 8.3 DOS limits */
 		shf_snprintf(path, len, "%s/sh%05u.%03x",
@@ -550,7 +541,7 @@ maketemp(ap, type, tlist)
 			 */
 			break;
 	}
-#endif /* __OpenBSD__ */
+	tp->next = NULL;
 	tp->pid = procpid;
 
 	tp->next = *tlist;

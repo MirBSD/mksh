@@ -1,8 +1,7 @@
-/*	$OpenBSD: expand.h,v 1.3 2001/03/26 16:19:45 todd Exp $	*/
-
 /*
  * Expanding strings
  */
+/* $Id: expand.h,v 1.1.3.1 2004/03/21 00:34:10 tg Exp $ */
 
 #define X_EXTRA		8	/* this many extra bytes in X string */
 
@@ -12,7 +11,7 @@
 
 	Xinit(xs, xp, 128, ATEMP); /* allocate initial string */
 	while ((c = generate()) {
-		Xcheck(xs, xp);	/* expand string if necessary */
+		Xcheck(xs, xp);	/* expand string if neccessary */
 		Xput(xs, xp, c); /* add character */
 	}
 	return Xclose(xs, xp);	/* resize string */

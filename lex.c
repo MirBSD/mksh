@@ -1,5 +1,3 @@
-/*	$OpenBSD: lex.c,v 1.17 2003/02/28 09:45:09 jmc Exp $	*/
-
 /*
  * lexical analysis and source input
  */
@@ -218,7 +216,7 @@ yylex(cf)
 				if (isalnum(c)) {
 					*wp++ = CHAR, *wp++ = '\\';
 					*wp++ = CHAR, *wp++ = c;
-				} else
+				} else 
 #endif
 				if (c) /* trailing \ is lost */
 					*wp++ = QCHAR, *wp++ = c;
@@ -647,12 +645,11 @@ Done:
 		if (c == c2 || (c == '<' && c2 == '>')) {
 			iop->flag = c == c2 ?
 				  (c == '>' ? IOCAT : IOHERE) : IORDWR;
-			if (iop->flag == IOHERE) {
+			if (iop->flag == IOHERE)
 				if ((c2 = getsc()) == '-')
 					iop->flag |= IOSKIP;
 				else
 					ungetsc(c2);
-			}
 		} else if (c2 == '&')
 			iop->flag = IODUP | (c == '<' ? IORDUP : 0);
 		else {
@@ -702,13 +699,11 @@ Done:
 
 		  case '(':  /*)*/
 #ifdef KSH
-			if (!Flag(FSH)) {
-				if ((c2 = getsc()) == '(') /*)*/
-					/* XXX need to handle ((...); (...)) */
-					c = MDPAREN;
-				else
-					ungetsc(c2);
-			}
+			if ((c2 = getsc()) == '(') /*)*/
+				/* XXX need to handle ((...); (...)) */
+				c = MDPAREN;
+			else
+				ungetsc(c2);
 #endif /* KSH */
 			return c;
 		  /*(*/
@@ -730,7 +725,7 @@ Done:
 	/* copy word to unprefixed string ident */
 	for (sp = yylval.cp, dp = ident; dp < ident+IDENT && (c = *sp++) == CHAR; )
 		*dp++ = *sp++;
-	/* Make sure the ident array stays '\0' padded */
+	/* Make sure the ident array stays '\0' paded */
 	memset(dp, 0, (ident+IDENT) - dp + 1);
 	if (c != EOS)
 		*ident = '\0';	/* word is not unquoted */
@@ -1124,7 +1119,7 @@ set_prompt(to, s)
 		 */
 		{
 			struct shf *shf;
-			char * volatile ps1;
+			char *ps1;
 			Area *saved_atemp;
 
 			ps1 = str_val(global("PS1"));

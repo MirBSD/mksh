@@ -1,5 +1,3 @@
-/*	$OpenBSD: tty.h,v 1.2 1996/11/21 07:59:36 downsj Exp $	*/
-
 /*
 	tty.h -- centralized definitions for a variety of terminal interfaces
 
@@ -10,6 +8,7 @@
 
 	last edit:	30-Jul-1987	D A Gwyn
 */
+/* $Id: tty.h,v 1.1.3.1 2004/03/21 00:34:18 tg Exp $ */
 
 /* some useful #defines */
 #ifdef EXTERN

@@ -1,5 +1,3 @@
-$OpenBSD: IAFA-PACKAGE,v 1.7 1999/07/14 13:37:23 millert Exp $
-
 Title:		pdksh
 Version:	5.2.14
 Description:	A public domain implementation of the Korn shell (ksh88),

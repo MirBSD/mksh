@@ -1,5 +1,3 @@
-/*	$OpenBSD: var.c,v 1.13 2003/03/13 09:03:07 deraadt Exp $	*/
-
 #include "sh.h"
 #include "ksh_time.h"
 #include "ksh_limval.h"
@@ -65,12 +63,11 @@ popblock()
 
 	e->loc = l->next;	/* pop block */
 	for (i = l->vars.size; --i >= 0; )
-		if ((vp = *vpp++) != NULL && (vp->flag&SPECIAL)) {
+		if ((vp = *vpp++) != NULL && (vp->flag&SPECIAL))
 			if ((vq = global(vp->name))->flag & ISSET)
 				setspec(vq);
 			else
 				unsetspec(vq);
-		}
 	if (l->flags & BF_DOGETOPTS)
 		user_opt = l->getopts_state;
 	afreeall(&l->area);
@@ -165,7 +162,7 @@ global(n)
 	register struct block *l = e->loc;
 	register struct tbl *vp;
 	register int c;
-	unsigned h;
+	unsigned h; 
 	bool_t	 array;
 	int	 val;
 
@@ -220,12 +217,11 @@ global(n)
 	}
 	for (l = e->loc; ; l = l->next) {
 		vp = tsearch(&l->vars, n, h);
-		if (vp != NULL) {
+		if (vp != NULL)
 			if (array)
 				return arraysearch(vp, val);
 			else
 				return vp;
-		}
 		if (l->next == NULL)
 			break;
 	}
@@ -357,9 +353,7 @@ setstr(vq, s, error_ok)
 	const char *s;
 	int error_ok;
 {
-	int no_ro_check = error_ok & 0x4;
-	error_ok &= ~0x4;
-	if ((vq->flag & RDONLY) && !no_ro_check) {
+	if (vq->flag & RDONLY) {
 		warningf(TRUE, "%s: is read only", vq->name);
 		if (!error_ok)
 			errorf(null);
@@ -426,7 +420,7 @@ getint(vp, nump)
 	int base, neg;
 	int have_base = 0;
 	long num;
-
+	
 	if (vp->flag&SPECIAL)
 		getspec(vp);
 	/* XXX is it possible for ISSET to be set and val.s to be 0? */
@@ -437,7 +431,7 @@ getint(vp, nump)
 		return vp->type;
 	}
 	s = vp->val.s + vp->type;
-	if (s == NULL)	/* redundant given initial test */
+	if (s == NULL)	/* redundent given initial test */
 		s = null;
 	base = 10;
 	num = 0;
@@ -481,7 +475,7 @@ setint_v(vq, vp)
 {
 	int base;
 	long num;
-
+	
 	if ((base = getint(vp, &num)) == -1)
 		return NULL;
 	if (!(vq->flag & INTEGER) && (vq->flag & ALLOC)) {
@@ -604,7 +598,7 @@ typeset(var, set, clr, field, base)
 		return NULL;
 	if (*val == '[') {
 		int len;
-
+		
 		len = array_ref_len(val);
 		if (len == 0)
 			return NULL;
@@ -625,7 +619,7 @@ typeset(var, set, clr, field, base)
 	if (*val == '=')
 		tvar = str_nsave(var, val++ - var, ATEMP);
 	else {
-		/* Importing from original environment: must have an = */
+		/* Importing from original envirnment: must have an = */
 		if (set & IMPORT)
 			return NULL;
 		tvar = (char *) var;
@@ -696,7 +690,7 @@ typeset(var, set, clr, field, base)
 			if (fake_assign) {
 				if (!setstr(t, s, KSH_RETURN_ERROR)) {
 					/* Somewhat arbitrary action here:
-					 * zap contents of variable, but keep
+					 * zap contents of varibale, but keep
 					 * the flag settings.
 					 */
 					ok = 0;
@@ -721,13 +715,13 @@ typeset(var, set, clr, field, base)
 	if (val != NULL) {
 		if (vp->flag&INTEGER) {
 			/* do not zero base before assignment */
-			setstr(vp, val, KSH_UNWIND_ERROR | 0x4);
+			setstr(vp, val, KSH_UNWIND_ERROR);
 			/* Done after assignment to override default */
 			if (base > 0)
 				vp->type = base;
 		} else
 			/* setstr can't fail (readonly check already done) */
-			setstr(vp, val, KSH_RETURN_ERROR | 0x4);
+			setstr(vp, val, KSH_RETURN_ERROR);
 	}
 
 	/* only x[0] is ever exported, so use vpbase */
@@ -1152,8 +1146,7 @@ arraysearch(vp, val)
 		else
 			new = curr;
 	} else
-		new = (struct tbl *)alloc(sizeof(struct tbl)+strlen(vp->name)+1,
-		    vp->areap);
+		new = (struct tbl *)alloc(sizeof(struct tbl)+strlen(vp->name)+1, vp->areap);
 	strcpy(new->name, vp->name);
 	new->flag = vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL);
 	new->type = vp->type;

@@ -1,6 +1,5 @@
-/*	$OpenBSD: ksh_stat.h,v 1.3 1996/10/01 02:05:39 downsj Exp $	*/
-
 /* Wrapper around the ugly sys/stat includes/ifdefs */
+/* $Id: ksh_stat.h,v 1.1.3.1 2004/03/21 00:34:12 tg Exp $ */
 
 /* assumes <sys/types.h> already included */
 #include <sys/stat.h>

@@ -1,11 +1,10 @@
-/*	$OpenBSD: shf.h,v 1.2 1999/01/08 20:25:02 millert Exp $	*/
-
 #ifndef SHF_H
 # define SHF_H
 
 /*
  * Shell file I/O routines
  */
+/* $Id: shf.h,v 1.1.3.1 2004/03/21 00:34:16 tg Exp $ */
 
 #define SHF_BSIZE	512
 

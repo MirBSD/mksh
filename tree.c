@@ -1,5 +1,3 @@
-/*	$OpenBSD: tree.c,v 1.10 2002/02/27 19:37:09 dhartmei Exp $	*/
-
 /*
  * command tree climbing
  */
@@ -372,7 +370,7 @@ int
 #ifdef HAVE_PROTOTYPES
 fptreef(struct shf *shf, int indent, const char *fmt, ...)
 #else
-fptreef(shf, indent, fmt, va_alist)
+fptreef(shf, indent, fmt, va_alist) 
   struct shf *shf;
   int indent;
   const char *fmt;
@@ -382,7 +380,7 @@ fptreef(shf, indent, fmt, va_alist)
   va_list	va;
 
   SH_VA_START(va, fmt);
-
+  
   vfptreef(shf, indent, fmt, va);
   va_end(va);
   return 0;
@@ -508,7 +506,7 @@ tcopy(t, ap)
 		for (tw = t->vars; *tw++ != NULL; )
 			;
 		rw = r->vars = (char **)
-			alloc((tw - t->vars + 1) * sizeof(*tw), ap);
+			alloc((int)(tw - t->vars) * sizeof(*tw), ap);
 		for (tw = t->vars; *tw != NULL; )
 			*rw++ = wdcopy(*tw++, ap);
 		*rw = NULL;
@@ -520,7 +518,7 @@ tcopy(t, ap)
 		for (tw = t->args; *tw++ != NULL; )
 			;
 		rw = r->args = (char **)
-			alloc((tw - t->args + 1) * sizeof(*tw), ap);
+			alloc((int)(tw - t->args) * sizeof(*tw), ap);
 		for (tw = t->args; *tw != NULL; )
 			*rw++ = wdcopy(*tw++, ap);
 		*rw = NULL;
@@ -681,7 +679,7 @@ iocopy(iow, ap)
 
 	for (ior = iow; *ior++ != NULL; )
 		;
-	ior = (struct ioword **) alloc((ior - iow + 1) * sizeof(*ior), ap);
+	ior = (struct ioword **) alloc((int)(ior - iow) * sizeof(*ior), ap);
 
 	for (i = 0; iow[i] != NULL; i++) {
 		register struct ioword *p, *q;

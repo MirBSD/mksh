@@ -1,6 +1,5 @@
-/*	$OpenBSD: ksh_dir.h,v 1.1.1.1 1996/08/14 06:19:11 downsj Exp $	*/
-
 /* Wrapper around the ugly dir includes/ifdefs */
+/* $Id: ksh_dir.h,v 1.1.3.1 2004/03/21 00:34:11 tg Exp $ */
 
 #if defined(HAVE_DIRENT_H)
 # include <dirent.h>

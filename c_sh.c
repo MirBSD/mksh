@@ -1,5 +1,3 @@
-/*	$OpenBSD: c_sh.c,v 1.17 2003/03/13 09:03:07 deraadt Exp $	*/
-
 /*
  * built-in Bourne commands
  */
@@ -305,11 +303,11 @@ c_read(wp)
 	 * make sure the other side of the pipe is closed first.  This allows
 	 * the detection of eof.
 	 *
-	 * This is not compatible with at&t ksh... the fd is kept so another
-	 * coproc can be started with same output, however, this means eof
+	 * This is not compatiable with at&t ksh... the fd is kept so another
+	 * coproc can be started with same ouput, however, this means eof
 	 * can't be detected...  This is why it is closed here.
 	 * If this call is removed, remove the eof check below, too.
-	 * coproc_readw_close(fd);
+	* coproc_readw_close(fd);
 	 */
 #endif /* KSH */
 
@@ -603,7 +601,7 @@ c_brkcont(wp)
 		 */
 		if (n == quit) {
 			warningf(TRUE, "%s: cannot %s", wp[0], wp[0]);
-			return 0;
+			return 0; 
 		}
 		/* POSIX says if n is too big, the last enclosing loop
 		 * shall be used.  Doesn't say to print an error but we
@@ -846,11 +844,11 @@ c_exec(wp)
 			 * keeps them open).
 			 */
 #ifdef KSH
-			if (!Flag(FSH) && i > 2 && e->savefd[i])
+			if (i > 2 && e->savefd[i])
 				fd_clexec(i);
 #endif /* KSH */
 		}
-		e->savefd = NULL;
+		e->savefd = NULL; 
 	}
 	return 0;
 }

@@ -1,5 +1,3 @@
-/*	$OpenBSD: c_test.c,v 1.9 2003/02/28 09:45:09 jmc Exp $	*/
-
 /*
  * test(1); version 7-like  --  author Erik Baalbergen
  * modified by Eric Gisin to be used as built-in.
@@ -126,10 +124,10 @@ c_test(wp)
 	te.pos.wp = wp + 1;
 	te.wp_end = wp + argc;
 
-	/*
+	/* 
 	 * Handle the special cases from POSIX.2, section 4.62.4.
-	 * Implementation of all the rules isn't necessary since
-	 * our parser does the right thing for the omitted steps.
+	 * Implementation of all the rules isn't necessary since 
+	 * our parser does the right thing for the ommited steps.
 	 */
 	if (argc <= 5) {
 		char **owp = wp;
@@ -240,7 +238,7 @@ test_eval(te, op, opnd1, opnd2, do_eval)
 			if (not)
 				res = !res;
 		}
-		return res;
+		return res; 
 	  case TO_FILRD: /* -r */
 		return test_eaccess(opnd1, R_OK) == 0;
 	  case TO_FILWR: /* -w */

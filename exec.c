@@ -1,5 +1,3 @@
-/*	$OpenBSD: exec.c,v 1.27 2003/02/28 09:45:09 jmc Exp $	*/
-
 /*
  * execute command tree
  */
@@ -101,7 +99,7 @@ execute(t, flags)
 	newenv(E_EXEC);
 	if (trap)
 		runtraps(0);
-
+ 
 	if (t->type == TCOM) {
 		/* Clear subst_exstat before argument expansion.  Used by
 		 * null commands (see comexec() and c_eval()) and by c_set().
@@ -450,7 +448,7 @@ comexec(t, tp, ap, flags)
 	int volatile flags;
 {
 	int i;
-	volatile int rv = 0;
+	int rv = 0;
 	register char *cp;
 	register char **lastp;
 	static struct op texec; /* Must be static (XXX but why?) */
@@ -464,7 +462,7 @@ comexec(t, tp, ap, flags)
 	 * functions/dot scripts, but in interactive and scipt) -
 	 * perhaps save last arg here and set it in shell()?.
 	 */
-	if (!Flag(FSH) && Flag(FTALKING) && *(lastp = ap)) {
+	if (Flag(FTALKING) && *(lastp = ap)) {
 		while (*++lastp)
 			;
 		/* setstr() can't fail here */
@@ -712,12 +710,10 @@ comexec(t, tp, ap, flags)
 		}
 
 #ifdef KSH
-		if (!Flag(FSH)) {
-			/* set $_ to program's full path */
-			/* setstr() can't fail here */
-			setstr(typeset("_", LOCAL|EXPORT, 0, INTEGER, 0),
-			       tp->val.s, KSH_RETURN_ERROR);
-		}
+		/* set $_ to program's full path */
+		/* setstr() can't fail here */
+		setstr(typeset("_", LOCAL|EXPORT, 0, INTEGER, 0), tp->val.s,
+		       KSH_RETURN_ERROR);
 #endif /* KSH */
 
 		if (flags&XEXEC) {
@@ -832,7 +828,7 @@ scriptexec(tp, ap)
 		} else {
 		        /* Use ksh documented shell default if present
 			 * else use OS2_SHELL which is assumed to need
-			 * the /c option and '\' as dir separator.
+			 * the /c option and '\' as dir separater.
 			 */
 		         char *p = shell;
 
@@ -1138,14 +1134,14 @@ search_access(path, mode, errnop)
 	char *tp = mpath + strlen(mpath);
 	char *p;
 	char **sfx;
-
+ 
 	/* If a suffix has been specified, check if it is one of the
 	 * suffixes that indicate the file is executable - if so, change
 	 * the access test to R_OK...
 	 * This code assumes OS/2 files can have only one suffix...
 	 */
 	if ((p = strrchr((p = ksh_strrchr_dirsep(mpath)) ? p : mpath, '.'))) {
-		if (mode == X_OK)
+		if (mode == X_OK) 
 			mode = R_OK;
 		return search_access1(mpath, mode, errnop);
 	}
@@ -1221,7 +1217,7 @@ search(name, path, mode, errnop)
 	}
 
 	/* Look in current context always. (os2 style) */
-	if (search_access(Xstring(xs, xp), mode, errnop) == 0)
+	if (search_access(Xstring(xs, xp), mode, errnop) == 0) 
 		return Xstring(xs, xp); /* not Xclose() - xp may be wrong */
 #else /* OS2 */
 	if (ksh_strchr_dirsep(name)) {
@@ -1379,19 +1375,13 @@ iosetup(iop, tp)
 		return -1;
 	}
 	/* Do not save if it has already been redirected (i.e. "cat >x >y"). */
-	if (e->savefd[iop->unit] == 0) {
-		/* If these are the same, it means unit was previously closed */
-		if (u == iop->unit)
-			e->savefd[iop->unit] = -1;
-		else
-			/* c_exec() assumes e->savefd[fd] set for any
-			 * redirections.  Ask savefd() not to close iop->unit;
-			 * this allows error messages to be seen if iop->unit
-			 * is 2; also means we can't lose the fd (eg, both
-			 * dup2 below and dup2 in restfd() failing).
-			 */
-			e->savefd[iop->unit] = savefd(iop->unit, 1);
-	}
+	if (e->savefd[iop->unit] == 0)
+		/* c_exec() assumes e->savefd[fd] set for any redirections.
+		 * Ask savefd() not to close iop->unit - allows error messages
+		 * to be seen if iop->unit is 2; also means we can't lose
+		 * the fd (eg, both dup2 below and dup2 in restfd() failing).
+		 */
+		e->savefd[iop->unit] = savefd(iop->unit, 1);
 
 	if (do_close)
 		close(iop->unit);
@@ -1492,7 +1482,7 @@ herein(content, sub)
 	return fd;
 }
 
-#if defined(KSH) || defined(EDIT)
+#ifdef KSH
 /*
  *	ksh special - the select command processing section
  *	print the args in column form - assuming that we can
@@ -1591,43 +1581,11 @@ pr_menu(ap)
 	smi.arg_width = nwidth;
 	smi.num_width = dwidth;
 	print_columns(shl_out, n, select_fmt_entry, (void *) &smi,
-		dwidth + nwidth + 2, 1);
+		dwidth + nwidth + 2);
 
 	return n;
 }
-
-/* XXX: horrible kludge to fit within the framework */
-
-static char *plain_fmt_entry ARGS((void *arg, int i, char *buf, int buflen));
-
-static char *
-plain_fmt_entry(arg, i, buf, buflen)
-	void *arg;
-	int i;
-	char *buf;
-	int buflen;
-{
-	shf_snprintf(buf, buflen, "%s", ((char *const *)arg)[i]);
-	return buf;
-}
-
-int
-pr_list(ap)
-	char *const *ap;
-{
-	char *const *pp;
-	int nwidth;
-	int i, n;
-
-	for (n = 0, nwidth = 0, pp = ap; *pp; n++, pp++) {
-		i = strlen(*pp);
-		nwidth = (i > nwidth) ? i : nwidth;
-	}
-	print_columns(shl_out, n, plain_fmt_entry, (void *) ap, nwidth + 1, 0);
-
-	return n;
-}
-#endif /* KSH || EDIT */
+#endif /* KSH */
 #ifdef KSH
 
 /*

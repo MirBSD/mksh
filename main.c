@@ -1,7 +1,5 @@
-/*	$OpenBSD: main.c,v 1.23 2003/03/10 03:48:16 david Exp $	*/
-
 /*
- * startup, main loop, environments and error handling
+ * startup, main loop, enviroments and error handling
  */
 
 #define	EXTERN				/* define EXTERNs in sh.h */
@@ -66,9 +64,7 @@ static const char *const initcoms [] = {
 #ifdef KSH
 	 /* Aliases that are builtin commands in at&t */
 	  "login=exec login",
-#ifndef __OpenBSD__
 	  "newgrp=exec newgrp",
-#endif /* __OpenBSD__ */
 #endif /* KSH */
 	  NULL,
 	/* this is what at&t ksh seems to track, with the addition of emacs */
@@ -119,7 +115,7 @@ main(argc, argv)
 
 	ainit(&aperm);		/* initialize permanent Area */
 
-	/* set up base environment */
+	/* set up base enviroment */
 	memset(&env, 0, sizeof(env));
 	env.type = E_NONE;
 	ainit(&env.area);
@@ -180,7 +176,7 @@ main(argc, argv)
 
 
 	/* Turn on nohup by default for how - will change to off
-	 * by default once people are aware of its existence
+	 * by default once people are aware of its existance
 	 * (at&t ksh does not have a nohup option - it always sends
 	 * the hup).
 	 */
@@ -205,22 +201,7 @@ main(argc, argv)
 	change_flag(FPOSIX, OF_SPECIAL, 1);
 #endif /* POSIXLY_CORRECT */
 
-	/* Check to see if we're /bin/sh. */
-	if (!strcmp(&kshname[strlen(kshname) - 3], "/sh")
-	    || !strcmp(kshname, "sh") || !strcmp(kshname, "-sh"))
-		Flag(FSH) = 1;
-
-	/* Set edit mode to emacs by default, may be overridden
-	 * by the environment or the user.  Also, we want tab completion
-	 * on in vi by default. */
-#if defined(EDIT) && defined(EMACS)
-	change_flag(FEMACS, OF_SPECIAL, 1);
-#endif /* EDIT && EMACS */
-#if defined(EDIT) && defined(VI)
-	Flag(FVITABCOMPLETE) = 1;
-#endif /* EDIT && VI */
-
-	/* import environment */
+	/* import enviroment */
 	if (environ != NULL)
 		for (wp = environ; *wp != NULL; wp++)
 			typeset(*wp, IMPORT|EXPORT, 0, 0, 0);
@@ -338,8 +319,7 @@ main(argc, argv)
 	{
 		struct stat s_stdin;
 
-		if (fstat(0, &s_stdin) >= 0 && S_ISCHR(s_stdin.st_mode) &&
-		    Flag(FTALKING))
+		if (fstat(0, &s_stdin) >= 0 && S_ISCHR(s_stdin.st_mode))
 			reset_nonblock(0);
 	}
 
@@ -458,6 +438,7 @@ include(name, argc, argv, intr_ok)
 	int intr_ok;
 {
 	register Source *volatile s = NULL;
+	Source *volatile sold;
 	struct shf *shf;
 	char **volatile old_argv;
 	volatile int old_argc;
@@ -474,9 +455,11 @@ include(name, argc, argv, intr_ok)
 		old_argv = (char **) 0;
 		old_argc = 0;
 	}
+	sold = source;
 	newenv(E_INCL);
 	i = ksh_sigsetjmp(e->jbuf, 0);
 	if (i) {
+		source = sold;
 		if (s) /* Do this before quitenv(), which frees the memory */
 			shf_close(s->u.shf);
 		quitenv();
@@ -513,6 +496,7 @@ include(name, argc, argv, intr_ok)
 	s->u.shf = shf;
 	s->file = str_save(name, ATEMP);
 	i = shell(s, FALSE);
+	source = sold;
 	shf_close(s->u.shf);
 	quitenv();
 	if (old_argv) {
@@ -545,7 +529,6 @@ shell(s, toplevel)
 	volatile int wastty = s->flags & SF_TTY;
 	volatile int attempts = 13;
 	volatile int interactive = Flag(FTALKING) && toplevel;
-	Source *volatile old_source = source;
 	int i;
 
 	newenv(E_PARSE);
@@ -553,6 +536,7 @@ shell(s, toplevel)
 		really_exit = 0;
 	i = ksh_sigsetjmp(e->jbuf, 0);
 	if (i) {
+		s->start = s->str = null;
 		switch (i) {
 		  case LINTR: /* we get here if SIGINT not caught or ignored */
 		  case LERROR:
@@ -572,20 +556,16 @@ shell(s, toplevel)
 				 * a tty, but to have stopped jobs, one only
 				 * needs FMONITOR set (not FTALKING/SF_TTY)...
 				 */
-				/* toss any input we have so far */
-				s->start = s->str = null;
 				break;
 			}
 			/* fall through... */
 		  case LEXIT:
 		  case LLEAVE:
 		  case LRETURN:
-			source = old_source;
 			quitenv();
 			unwind(i);	/* keep on going */
 			/*NOREACHED*/
 		  default:
-			source = old_source;
 			quitenv();
 			internal_errorf(1, "shell: %d", i);
 			/*NOREACHED*/
@@ -596,12 +576,11 @@ shell(s, toplevel)
 		if (trap)
 			runtraps(0);
 
-		if (s->next == NULL) {
+		if (s->next == NULL)
 			if (Flag(FVERBOSE))
 				s->flags |= SF_ECHO;
 			else
 				s->flags &= ~SF_ECHO;
-		}
 
 		if (interactive) {
 			j_notify();
@@ -642,7 +621,6 @@ shell(s, toplevel)
 		reclaim();
 	}
 	quitenv();
-	source = old_source;
 	return exstat;
 }
 
@@ -759,7 +737,7 @@ cleanup_parents_env()
 
 	/* Don't clean up temporary files - parent will probably need them.
 	 * Also, can't easily reclaim memory since variables, etc. could be
-	 * anywhere.
+	 * anywyere.
 	 */
 
 	/* close all file descriptors hiding in savefd */

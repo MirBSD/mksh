@@ -1,9 +1,7 @@
-/*	$OpenBSD: proto.h,v 1.9 2001/02/19 09:49:54 camield Exp $	*/
-
 /*
  * prototypes for PD-KSH
  * originally generated using "cproto.c 3.5 92/04/11 19:28:01 cthuang "
- * $From: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $
+ * $Id: proto.h,v 1.1.3.1 2004/03/21 00:34:14 tg Exp $
  */
 
 /* alloc.c */
@@ -78,7 +76,6 @@ char *	search		ARGS((const char *name, const char *path, int mode,
 			      int *errnop));
 int	search_access	ARGS((const char *path, int mode, int *errnop));
 int	pr_menu		ARGS((char *const *ap));
-int	pr_list		ARGS((char *const *ap));
 /* expr.c */
 int 	evaluate	ARGS((const char *expr, long *rval, int error_ok));
 int	v_evaluate	ARGS((struct tbl *vp, const char *expr, volatile int error_ok));
@@ -201,7 +198,7 @@ int	ksh_getopt	ARGS((char **argv, Getopt *go, const char *options));
 void	print_value_quoted ARGS((const char *s));
 void	print_columns	ARGS((struct shf *shf, int n,
 			      char *(*func)(void *, int, char *, int),
-			      void *arg, int max_width, int prefcol));
+			      void *arg, int max_width));
 int	strip_nuls	ARGS((char *buf, int nbytes));
 char	*str_zcpy	ARGS((char *dst, const char *src, int dsize));
 int	blocking_read	ARGS((int fd, char *buf, int nbytes));

@@ -1,5 +1,3 @@
-/*	$OpenBSD: tty.c,v 1.2 1996/10/01 02:05:51 downsj Exp $	*/
-
 #include "sh.h"
 #include "ksh_stat.h"
 #define EXTERN

@@ -1,10 +1,8 @@
-/*	$OpenBSD: lex.h,v 1.7 2003/02/28 09:45:09 jmc Exp $	*/
-
 /*
  * Source input, lexer and parser
  */
 
-/* $From: lex.h,v 1.4 1994/05/31 13:34:34 michael Exp $ */
+/* $Id: lex.h,v 1.1.3.1 2004/03/21 00:34:13 tg Exp $ */
 
 #define	IDENT	64
 
@@ -22,7 +20,7 @@ struct source {
 	char	ugbuf[2];	/* buffer for ungetsc() (SREREAD) and
 				 * alias (SALIAS) */
 	int	line;		/* line number */
-	int	errline;	/* line the error occurred on (0 if not set) */
+	int	errline;	/* line the error occured on (0 if not set) */
 	const char *file;	/* input file name */
 	int	flags;		/* SF_* */
 	Area	*areap;
@@ -37,7 +35,7 @@ struct source {
 #define	SSTRING		3	/* string */
 #define	SWSTR		4	/* string without \n */
 #define	SWORDS		5	/* string[] */
-#define	SWORDSEP	6	/* string[] separator */
+#define	SWORDSEP	6	/* string[] seperator */
 #define	SALIAS		7	/* alias expansion */
 #define SREREAD		8	/* read ahead to be re-scanned */
 

@@ -1,5 +1,4 @@
 #!/bin/sh
-#	$OpenBSD: emacs-gen.sh,v 1.1.1.1 1996/08/14 06:19:10 downsj Exp $
 
 case $# in
 1)	file=$1;;

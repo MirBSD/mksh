@@ -1,5 +1,3 @@
-/*	$OpenBSD: missing.c,v 1.4 1999/06/15 01:18:35 millert Exp $	*/
-
 /*
  * Routines which may be missing on some machines
  */

@@ -1,6 +1,5 @@
-/*	$OpenBSD: ksh_limval.h,v 1.1.1.1 1996/08/14 06:19:11 downsj Exp $	*/
-
 /* Wrapper around the values.h/limits.h includes/ifdefs */
+/* $Id: ksh_limval.h,v 1.1.3.1 2004/03/21 00:34:11 tg Exp $ */
 
 #ifdef HAVE_VALUES_H
 # include <values.h>

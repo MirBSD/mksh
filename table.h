@@ -1,6 +1,4 @@
-/*	$OpenBSD: table.h,v 1.5 1999/06/15 01:18:36 millert Exp $	*/
-
-/* $From: table.h,v 1.3 1994/05/31 13:34:34 michael Exp $ */
+/* $Id: table.h,v 1.1.3.1 2004/03/21 00:34:17 tg Exp $ */
 
 /*
  * generic hashed associative table for commands and variables.

@@ -1,20 +1,13 @@
-/*	$OpenBSD: conf-end.h,v 1.2 1996/08/25 12:37:58 downsj Exp $	*/
-
 /*
  * End of configuration stuff for PD ksh.
+ *
+ * RCSid: $Id: conf-end.h,v 1.1.3.1 2004/03/21 00:34:18 tg Exp $
  */
 
 #if defined(EMACS) || defined(VI)
 # define	EDIT
 #else
 # undef		EDIT
-#endif
-
-/* Super small configuration-- no editing. */
-#if defined(EDIT) && defined(NOEDIT)
-# undef EDIT
-# undef EMACS
-# undef VI
 #endif
 
 /* Editing implies history */

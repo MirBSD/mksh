@@ -1,5 +1,3 @@
-/*	$OpenBSD: history.c,v 1.17 2003/02/28 09:45:09 jmc Exp $	*/
-
 /*
  * command history
  *
@@ -67,7 +65,7 @@ static char   **hist_get_newest ARGS((int allow_cur));
 static char   **hist_get_oldest ARGS(());
 static void	histbackup ARGS((void));
 
-static char   **current;	/* current position in history[] */
+static char   **current;	/* current postition in history[] */
 static int	curpos;		/* current index in history[] */
 static char    *hname;		/* current name of history file */
 static int	hstarted;	/* set after hist_init() called */
@@ -493,7 +491,7 @@ histnum(n)
 }
 
 /*
- * This will become unnecessary if hist_get is modified to allow
+ * This will become unecessary if hist_get is modified to allow
  * searching from positions other than the end, and in either
  * direction.
  */
@@ -860,8 +858,8 @@ hist_init(s)
 		/*
 		 * check on its validity
 		 */
-		if (base == MAP_FAILED || *base != HMAGIC1 || base[1] != HMAGIC2) {
-			if (base != (unsigned char *)-1)
+		if ((int)base == -1 || *base != HMAGIC1 || base[1] != HMAGIC2) {
+			if ((int)base !=  -1)
 				munmap((caddr_t)base, hsize);
 			hist_finish();
 			unlink(hname);
@@ -889,7 +887,7 @@ typedef enum state {
 	shdr,		/* expecting a header */
 	sline,		/* looking for a null byte to end the line */
 	sn1,		/* bytes 1 to 4 of a line no */
-	sn2, sn3, sn4
+	sn2, sn3, sn4,
 } State;
 
 static int
@@ -898,7 +896,7 @@ hist_count_lines(base, bytes)
 	register int bytes;
 {
 	State state = shdr;
-	int lines = 0;
+	register lines = 0;
 
 	while (bytes--) {
 		switch (state)
@@ -1107,7 +1105,7 @@ writehistfile(lno, cmd)
 			/* someone has added some lines */
 			bytes = sizenow - hsize;
 			base = (unsigned char *)mmap(0, sizenow, PROT_READ, MAP_FLAGS, histfd, 0);
-			if (base == MAP_FAILED)
+			if ((int)base == -1)
 				goto bad;
 			new = base + hsize;
 			if (*new != COMMAND) {

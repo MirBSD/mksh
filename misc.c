@@ -1,5 +1,3 @@
-/*	$OpenBSD: misc.c,v 1.14 2003/03/13 09:03:07 deraadt Exp $	*/
-
 /*
  * Miscellaneous functions
  */
@@ -161,7 +159,6 @@ const struct option options[] = {
 	{ "posix",	  0,		OF_ANY }, /* non-standard */
 	{ "privileged",	'p',		OF_ANY },
 	{ "restricted",	'r',	    OF_CMDLINE },
-	{ "sh",		  0,		OF_ANY }, /* non-standard */
 	{ "stdin",	's',	    OF_CMDLINE }, /* pseudo non-standard */
 	{ "trackall",	'h',		OF_ANY },
 	{ "verbose",	'v',		OF_ANY },
@@ -244,7 +241,7 @@ printoptions(verbose)
 					oi.opt_width = len;
 			}
 		print_columns(shl_stdout, n, options_fmt_entry, &oi,
-			      oi.opt_width + 5, 1);
+			      oi.opt_width + 5);
 	} else {
 		/* short version ala ksh93 */
 		shprintf("set");
@@ -312,9 +309,7 @@ change_flag(f, what, newval)
 #ifdef OS2
 		;
 #else /* OS2 */
-		seteuid(ksheuid = getuid());
-		setuid(ksheuid);
-		setegid(getgid());
+		setuid(ksheuid = getuid());
 		setgid(getgid());
 #endif /* OS2 */
 	} else if (f == FPOSIX && newval) {
@@ -350,11 +345,9 @@ parse_args(argv, what, setargsp)
 	if (cmd_opts[0] == '\0') {
 		char *p, *q;
 
-		/* see cmd_opts[] declaration */
-		strlcpy(cmd_opts, "o:", sizeof cmd_opts);
+		strcpy(cmd_opts, "o:"); /* see cmd_opts[] declaration */
 		p = cmd_opts + strlen(cmd_opts);
-		/* see set_opts[] declaration */
-		strlcpy(set_opts, "A:o;s", sizeof set_opts);
+		strcpy(set_opts, "A:o;s"); /* see set_opts[] declaration */
 		q = set_opts + strlen(set_opts);
 		for (i = 0; i < NELEM(options); i++) {
 			if (options[i].c) {
@@ -478,15 +471,18 @@ getn(as, ai)
 	const char *as;
 	int *ai;
 {
-	char *p;
-	long n;
+	const char *s;
+	register int n;
+	int sawdigit = 0;
 
-	n = strtol(as, &p, 10);
-
-	if (!*as || *p || INT_MIN >= n || n >= INT_MAX)
+	s = as;
+	if (*s == '-' || *s == '+')
+		s++;
+	for (n = 0; digit(*s); s++, sawdigit = 1)
+		n = n * 10 + (*s - '0');
+	*ai = (*as == '-') ? -n : n;
+	if (*s || !sawdigit)
 		return 0;
-
-	*ai = (int)n;
 	return 1;
 }
 
@@ -544,7 +540,7 @@ gmatch(s, p, isfile)
  * if it contains no pattern characters or if there is a syntax error.
  * Syntax errors are:
  *	- [ with no closing ]
- *	- imbalanced $(...) expression
+ *	- imballenced $(...) expression
  *	- [...] and *(...) not nested (eg, [a$(b|]c), *(a[b|c]d))
  */
 /*XXX
@@ -1028,11 +1024,11 @@ ksh_getopt(argv, go, options)
 		}
 		go->p = 0;
 	} else if (*o == ',') {
-		/* argument is attached to option character, even if null */
+		/* argument is attatched to option character, even if null */
 		go->optarg = argv[go->optind - 1] + go->p;
 		go->p = 0;
 	} else if (*o == '#') {
-		/* argument is optional and may be attached or unattached
+		/* argument is optional and may be attatched or unattatched
 		 * but must start with a digit.  optarg is set to 0 if the
 		 * argument is missing.
 		 */
@@ -1092,13 +1088,12 @@ print_value_quoted(s)
  * element
  */
 void
-print_columns(shf, n, func, arg, max_width, prefcol)
+print_columns(shf, n, func, arg, max_width)
 	struct shf *shf;
 	int n;
 	char *(*func) ARGS((void *, int, char *, int));
 	void *arg;
 	int max_width;
-	int prefcol;
 {
 	char *str = (char *) alloc(max_width + 1, ATEMP);
 	int i;
@@ -1114,7 +1109,7 @@ print_columns(shf, n, func, arg, max_width, prefcol)
 	if (!cols)
 		cols = 1;
 	rows = (n + cols - 1) / cols;
-	if (prefcol && n && cols > rows) {
+	if (n && cols > rows) {
 		int tmp = rows;
 
 		rows = cols;

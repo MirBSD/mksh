@@ -1,5 +1,3 @@
-/*	$OpenBSD: c_ksh.c,v 1.16 2003/02/28 09:45:09 jmc Exp $	*/
-
 /*
  * built-in Korn commands: c_*
  */
@@ -335,7 +333,7 @@ c_print(wp)
 		while ((c = *s++) != '\0') {
 			Xcheck(xs, xp);
 #ifdef OS2
-			if ((flags & PO_FSLASH) && c == '\\')
+			if ((flags & PO_FSLASH) && c == '\\') 
 				if (*s == '\\')
 					*s++;
 				else
@@ -361,7 +359,7 @@ c_print(wp)
 				case '0':
 					/* Look for an octal number: can have
 					 * three digits (not counting the
-					 * leading 0).  Truly burnt.
+					 * leading 0).  Truely burnt.
 					 */
 					c = 0;
 					for (i = 0; i < 3; i++) {
@@ -392,8 +390,8 @@ c_print(wp)
 		Xfree(xs, xp);
 	} else {
 		int n, len = Xlength(xs, xp);
-		int UNINITIALIZED(opipe);
 #ifdef KSH
+		int UNINITIALIZED(opipe);
 
 		/* Ensure we aren't killed by a SIGPIPE while writing to
 		 * a coprocess.  at&t ksh doesn't seem to do this (seems
@@ -608,7 +606,7 @@ c_typeset(wp)
  		local = 1;
  		break;
  	}
-
+ 
 	fieldstr = basestr = (char *) 0;
 	builtin_opt.flags |= GF_PLUSOPT;
 	/* at&t ksh seems to have 0-9 as options, which are multiplied
@@ -653,7 +651,7 @@ c_typeset(wp)
 			break;
 		  case 'p': /* posix export/readonly -p flag.
 			     * typset -p is the same as typeset (in pdksh);
-			     * here for compatibility with ksh93.
+			     * here for compatability with ksh93.
 			     */
 			pflag = 1;
 			break;
@@ -704,7 +702,7 @@ c_typeset(wp)
 		return 1;
 	}
 	if (wp[builtin_opt.optind]) {
-		/* Take care of exclusions.
+		/* Take care of exclusions.  
 		 * At this point, flags in fset are cleared in fclr and vise
 		 * versa.  This property should be preserved.
 		 */
@@ -824,19 +822,19 @@ c_typeset(wp)
 				shprintf("-x ");
 			    if ((vp->flag&RDONLY))
 				shprintf("-r ");
-			    if ((vp->flag&TRACE))
+			    if ((vp->flag&TRACE)) 
 				shprintf("-t ");
-			    if ((vp->flag&LJUST))
+			    if ((vp->flag&LJUST)) 
 				shprintf("-L%d ", vp->u2.field);
-			    if ((vp->flag&RJUST))
+			    if ((vp->flag&RJUST)) 
 				shprintf("-R%d ", vp->u2.field);
-			    if ((vp->flag&ZEROFIL))
+			    if ((vp->flag&ZEROFIL)) 
 				shprintf("-Z ");
-			    if ((vp->flag&LCASEV))
+			    if ((vp->flag&LCASEV)) 
 				shprintf("-l ");
-			    if ((vp->flag&UCASEV_AL))
+			    if ((vp->flag&UCASEV_AL)) 
 				shprintf("-u ");
-			    if ((vp->flag&INT_U))
+			    if ((vp->flag&INT_U)) 
 				shprintf("-U ");
 			    shprintf("%s\n", vp->name);
 			    if (vp->flag&ARRAY)
@@ -1112,14 +1110,13 @@ c_jobs(wp)
 			return 1;
 		}
 	wp += builtin_opt.optind;
-	if (!*wp) {
+	if (!*wp)
 		if (j_jobs((char *) 0, flag, nflag))
 			rv = 1;
-	} else {
+	else
 		for (; *wp; wp++)
 			if (j_jobs(*wp, flag, nflag))
 				rv = 1;
-	}
 	return rv;
 }
 
@@ -1211,7 +1208,6 @@ c_kill(wp)
 						builtin_opt.optarg);
 					return 1;
 				}
-				break;
 			  case '?':
 				return 1;
 			}
@@ -1264,7 +1260,7 @@ c_kill(wp)
 
 			print_columns(shl_stdout, SIGNALS - 1,
 				kill_fmt_entry, (void *) &ki,
-				ki.num_width + ki.name_width + mess_width + 3, 1);
+				ki.num_width + ki.name_width + mess_width + 3);
 		}
 		return 0;
 	}

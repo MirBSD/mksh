@@ -16,7 +16,7 @@
 #	/etc/profile
 
 # RCSid:
-#	$Id: sys_config.sh,v 1.1 2004/03/21 00:34:32 tg Exp $
+#	$Id: sys_config.sh,v 1.1.3.1 2004/03/21 00:34:32 tg Exp $
 #
 #	@(#)Copyright (c) 1991 Simon J. Gerraty
 #

@@ -1,5 +1,3 @@
-/*	$OpenBSD: mail.c,v 1.9 1999/06/15 01:18:35 millert Exp $	*/
-
 /*
  * Mailbox checking code by Robert J. Gibson, adapted for PD ksh by
  * John R. MacMillan
@@ -186,17 +184,8 @@ mbox_t	*mbp;
 {
 	struct tbl	*vp;
 
-#if 0
-	/*
-	 * I doubt this $_ overloading is bad in /bin/sh mode.  Anyhow, we
-	 * crash as the code looks now if we do not set vp.  Now, this is
-	 * easy to fix too, but I'd like to see what POSIX says before doing
-	 * a change like that.
-	 */
-	if (!Flag(FSH))
-#endif
-		/* Ignore setstr errors here (arbitrary) */
-		setstr((vp = local("_", FALSE)), mbp->mb_path, KSH_RETURN_ERROR);
+	/* Ignore setstr errors here (arbitrary) */
+	setstr((vp = local("_", FALSE)), mbp->mb_path, KSH_RETURN_ERROR);
 
 	shellf("%s\n", substitute(mbp->mb_msg ? mbp->mb_msg : MBMESSAGE, 0));
 
