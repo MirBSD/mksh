@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/edit.c,v 2.6 2004/12/28 22:32:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/edit.c,v 2.7 2004/12/31 17:11:11 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.23 2004/12/18 22:12:23 millert Exp $	*/
 
 /*
@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/edit.c,v 2.6 2004/12/28 22:32:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/edit.c,v 2.7 2004/12/31 17:11:11 tg Exp $");
 
 #if defined(TIOCGWINSZ)
 static RETSIGTYPE x_sigwinch(int sig);
@@ -29,15 +29,16 @@ static volatile sig_atomic_t got_sigwinch;
 static void check_sigwinch(void);
 #endif /* TIOCGWINSZ */
 
+#if !defined(_POSIX_VDISABLE) || (_POSIX_VDISABLE < 0)
+#define _POSIX_VDISABLE	0377
+#endif
+
 static int	x_file_glob(int flags, const char *str, int slen,
 				  char ***wordsp);
 static int	x_command_glob(int flags, const char *str, int slen,
 				     char ***wordsp);
 static int	x_locate_word(const char *buf, int buflen, int pos,
 				    int *startp, int *is_command);
-
-static char vdisable_c;
-
 
 /* Called from main */
 void
@@ -59,23 +60,6 @@ x_init(void)
 #endif /* TIOCGWINSZ */
 
 	x_init_emacs();
-
-	/* Bizarreness to figure out how to disable
-	 * a struct termios.c_cc[] char
-	 */
-#ifdef _POSIX_VDISABLE
-	if (_POSIX_VDISABLE >= 0)
-		vdisable_c = (char) _POSIX_VDISABLE;
-	else
-		/* 'feature not available' */
-		vdisable_c = (char) 0377;
-#else
-# if defined(HAVE_PATHCONF) && defined(_PC_VDISABLE)
-	vdisable_c = fpathconf(tty_fd, _PC_VDISABLE);
-# else
-	vdisable_c = (char) 0377;	/* default to old BSD value */
-# endif
-#endif /* _POSIX_VDISABLE */
 }
 
 #if defined(TIOCGWINSZ)
@@ -218,11 +202,11 @@ x_mode(bool onoff)
 #  endif
 #  ifdef VLNEXT
 		/* osf/1 processes lnext when ~icanon */
-		cb.c_cc[VLNEXT] = vdisable_c;
+		cb.c_cc[VLNEXT] = _POSIX_VDISABLE;
 #  endif /* VLNEXT */
 #  ifdef VDISCARD
 		/* sunos 4.1.x & osf/1 processes discard(flush) when ~icanon */
-		cb.c_cc[VDISCARD] = vdisable_c;
+		cb.c_cc[VDISCARD] = _POSIX_VDISABLE;
 #  endif /* VDISCARD */
 		cb.c_cc[VTIME] = 0;
 		cb.c_cc[VMIN] = 1;
@@ -269,17 +253,17 @@ x_mode(bool onoff)
 #endif /* __CYGWIN__ */
 
 		/* Convert unset values to internal 'unset' value */
-		if (edchars.erase == vdisable_c)
+		if (edchars.erase == _POSIX_VDISABLE)
 			edchars.erase = -1;
-		if (edchars.kill == vdisable_c)
+		if (edchars.kill == _POSIX_VDISABLE)
 			edchars.kill = -1;
-		if (edchars.intr == vdisable_c)
+		if (edchars.intr == _POSIX_VDISABLE)
 			edchars.intr = -1;
-		if (edchars.quit == vdisable_c)
+		if (edchars.quit == _POSIX_VDISABLE)
 			edchars.quit = -1;
-		if (edchars.eof == vdisable_c)
+		if (edchars.eof == _POSIX_VDISABLE)
 			edchars.eof = -1;
-		if (edchars.werase == vdisable_c)
+		if (edchars.werase == _POSIX_VDISABLE)
 			edchars.werase = -1;
 		if (memcmp(&edchars, &oldchars, sizeof(edchars)) != 0)
 			x_emacs_keys(&edchars);
