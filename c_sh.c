@@ -1,5 +1,5 @@
-/**	$MirBSD: src/bin/ksh/c_sh.c,v 2.5 2004/12/18 19:22:28 tg Exp $ */
-/*	$OpenBSD: c_sh.c,v 1.17 2003/03/13 09:03:07 deraadt Exp $	*/
+/**	$MirBSD: src/bin/ksh/c_sh.c,v 2.6 2004/12/28 22:22:49 tg Exp $ */
+/*	$OpenBSD: c_sh.c,v 1.22 2004/12/19 01:58:04 millert Exp $	*/
 
 /*
  * built-in Bourne commands
@@ -10,7 +10,7 @@
 #include "ksh_time.h"
 #include "ksh_times.h"
 
-__RCSID("$MirBSD: src/bin/ksh/c_sh.c,v 2.5 2004/12/18 19:22:28 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/c_sh.c,v 2.6 2004/12/28 22:22:49 tg Exp $");
 
 static	char *clocktos(clock_t t);
 
@@ -59,7 +59,7 @@ c_umask(char **wp)
 	int i;
 	char *cp;
 	int symbolic = 0;
-	int old_umask;
+	mode_t old_umask;
 	int optc;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "S")) != EOF)
@@ -93,7 +93,7 @@ c_umask(char **wp)
 		} else
 			shprintf("%#3.3o\n", old_umask);
 	} else {
-		int new_umask;
+		mode_t new_umask;
 
 		if (digit(*cp)) {
 			for (new_umask = 0; *cp >= '0' && *cp <= '7'; cp++)
