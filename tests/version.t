@@ -4,6 +4,6 @@ description:
 category: pdksh
 stdin:
 	echo $KSH_VERSION
-expected-stdout:
-	@(#)PD KSH v5.2.14 99/07/13.2 MirOS $Revision: 1.14 $
+expected-stdout-pattern:
+	/PD KSH v5\.2\.14 MirOS \$Revision: 1.15 $ in (native )?KSH mode( as mksh)?/
 ---
