@@ -1,4 +1,4 @@
-/**	$MirBSD: table.c,v 1.3 2004/09/21 11:57:15 tg Exp $ */
+/**	$MirBSD: table.c,v 1.4 2004/10/28 11:03:24 tg Exp $ */
 /*	$OpenBSD: table.c,v 1.5 1999/01/10 17:55:03 millert Exp $	*/
 
 /*
@@ -15,9 +15,9 @@ static int      tnamecmp    ARGS((void *p1, void *p2));
 
 unsigned int
 hash(n)
-	register const char * n;
+	const char * n;
 {
-	register unsigned int h = 0;
+	unsigned int h = 0;
 
 	while (*n != '\0')
 		h = 2*h + *n++;
@@ -26,8 +26,8 @@ hash(n)
 
 void
 tinit(tp, ap, tsize)
-	register struct table *tp;
-	register Area *ap;
+	struct table *tp;
+	Area *ap;
 	int tsize;
 {
 	tp->areap = ap;
@@ -39,12 +39,12 @@ tinit(tp, ap, tsize)
 
 static void
 texpand(tp, nsize)
-	register struct table *tp;
+	struct table *tp;
 	int nsize;
 {
-	register int i;
-	register struct tbl *tblp, **p;
-	register struct tbl **ntblp, **otblp = tp->tbls;
+	int i;
+	struct tbl *tblp, **p;
+	struct tbl **ntblp, **otblp = tp->tbls;
 	int osize = tp->size;
 
 	ntblp = (struct tbl**) alloc(sizeofN(struct tbl *, nsize), tp->areap);
@@ -74,11 +74,11 @@ texpand(tp, nsize)
 
 struct tbl *
 tsearch(tp, n, h)
-	register struct table *tp;	/* table */
-	register const char *n;		/* name to enter */
+	struct table *tp;	/* table */
+	const char *n;		/* name to enter */
 	unsigned int h;			/* hash(n) */
 {
-	register struct tbl **pp, *p;
+	struct tbl **pp, *p;
 
 	if (tp->size == 0)
 		return NULL;
@@ -97,12 +97,12 @@ tsearch(tp, n, h)
 
 struct tbl *
 tenter(tp, n, h)
-	register struct table *tp;	/* table */
-	register const char *n;		/* name to enter */
+	struct table *tp;	/* table */
+	const char *n;		/* name to enter */
 	unsigned int h;			/* hash(n) */
 {
-	register struct tbl **pp, *p;
-	register int len;
+	struct tbl **pp, *p;
+	int len;
 
 	if (tp->size == 0)
 		texpand(tp, INIT_TBLS);
@@ -139,7 +139,7 @@ tenter(tp, n, h)
 
 void
 tdelete(p)
-	register struct tbl *p;
+	struct tbl *p;
 {
 	p->flag = 0;
 }
@@ -174,10 +174,10 @@ tnamecmp(p1, p2)
 
 struct tbl **
 tsort(tp)
-	register struct table *tp;
+	struct table *tp;
 {
-	register int i;
-	register struct tbl **p, **sp, **dp;
+	int i;
+	struct tbl **p, **sp, **dp;
 
 	p = (struct tbl **)alloc(sizeofN(struct tbl *, tp->size+1), ATEMP);
 	sp = tp->tbls;		/* source */
@@ -212,7 +212,7 @@ tprintinfo(tp)
 	shellf("    Ncmp name\n");
 	twalk(&ts, tp);
 	while ((te = tnext(&ts))) {
-		register struct tbl **pp, *p;
+		struct tbl **pp, *p;
 
 		h = hash(n = te->name);
 		ncmp = 0;

@@ -1,4 +1,4 @@
-/**	$MirBSD: exec.c,v 1.3 2004/09/21 11:57:08 tg Exp $ */
+/**	$MirBSD: exec.c,v 1.4 2004/10/28 11:03:23 tg Exp $ */
 /*	$OpenBSD: exec.c,v 1.31 2003/12/15 05:25:52 otto Exp $	*/
 
 /*
@@ -449,13 +449,13 @@ static int
 comexec(t, tp, ap, flags)
 	struct op *t;
 	struct tbl *volatile tp;
-	register char **ap;
+	char **ap;
 	int volatile flags;
 {
 	int i;
 	volatile int rv = 0;
-	register char *cp;
-	register char **lastp;
+	char *cp;
+	char **lastp;
 	static struct op texec; /* Must be static (XXX but why?) */
 	int type_flags;
 	int keepasn_ok;
@@ -753,8 +753,8 @@ comexec(t, tp, ap, flags)
 
 static void
 scriptexec(tp, ap)
-	register struct op *tp;
-	register char **ap;
+	struct op *tp;
+	char **ap;
 {
 	char *shell;
 
@@ -768,8 +768,8 @@ scriptexec(tp, ap)
 #ifdef	SHARPBANG
 	{
 		char buf[LINE];
-		register char *cp;
-		register int fd, n;
+		char *cp;
+		int fd, n;
 
 		buf[0] = '\0';
 		if ((fd = open(tp->str, O_RDONLY)) >= 0) {
@@ -867,9 +867,9 @@ scriptexec(tp, ap)
 
 int
 shcomexec(wp)
-	register char **wp;
+	char **wp;
 {
-	register struct tbl *tp;
+	struct tbl *tp;
 
 	tp = tsearch(&builtins, *wp, hash(*wp));
 	if (tp == NULL)
@@ -959,7 +959,7 @@ builtin(name, func)
 	const char *name;
 	int (*func) ARGS((char **));
 {
-	register struct tbl *tp;
+	struct tbl *tp;
 	Tflag flag;
 
 	/* see if any flags should be set for this builtin */
@@ -1293,10 +1293,10 @@ call_builtin(tp, wp)
  */
 static int
 iosetup(iop, tp)
-	register struct ioword *iop;
+	struct ioword *iop;
 	struct tbl *tp;
 {
-	register int u = -1;
+	int u = -1;
 	char *cp = iop->name;
 	int iotype = iop->flag & IOTYPE;
 	int do_open = 1, do_close = 0, UNINITIALIZED(flags);
@@ -1508,7 +1508,7 @@ herein(content, sub)
  */
 static char *
 do_selectargs(ap, print_menu)
-	register char **ap;
+	char **ap;
 	bool_t print_menu;
 {
 	static const char *const read_args[] = {

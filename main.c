@@ -1,4 +1,4 @@
-/**	$MirBSD: main.c,v 1.9 2004/08/27 14:08:35 tg Stab $ */
+/**	$MirBSD: main.c,v 1.10 2004/10/28 11:03:23 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -10,6 +10,8 @@
 #include "sh.h"
 #include "ksh_stat.h"
 #include "ksh_time.h"
+
+__RCSID("$MirBSD: main.c,v 1.10 2004/10/28 11:03:23 tg Exp $");
 
 extern char **environ;
 
@@ -86,7 +88,7 @@ static const char *const initcoms [] = {
 int
 main(int argc, char *argv[])
 {
-	register int i;
+	int i;
 	int argi;
 	Source *s;
 	struct block *l;
@@ -458,7 +460,7 @@ include(name, argc, argv, intr_ok)
 	char **argv;
 	int intr_ok;
 {
-	register Source *volatile s = NULL;
+	Source *volatile s = NULL;
 	struct shf *shf;
 	char **volatile old_argv;
 	volatile int old_argc;
@@ -527,7 +529,7 @@ int
 command(comm)
 	const char *comm;
 {
-	register Source *s;
+	Source *s;
 
 	s = pushs(SSTRING, ATEMP);
 	s->start = s->str = comm;
@@ -687,7 +689,7 @@ void
 newenv(type)
 	int type;
 {
-	register struct env *ep;
+	struct env *ep;
 
 	ep = (struct env *) alloc(sizeof(*ep), ATEMP);
 	ep->type = type;
@@ -703,8 +705,8 @@ newenv(type)
 void
 quitenv()
 {
-	register struct env *ep = e;
-	register int fd;
+	struct env *ep = e;
+	int fd;
 
 	if (ep->oenv && ep->oenv->loc != ep->loc)
 		popblock();
@@ -856,9 +858,7 @@ is_restricted(name)
 }
 
 void
-aerror(ap, msg)
-	Area *ap;
-	const char *msg;
+aerror(Area *ap GCC_FUNC_ATTR(unused), const char *msg)
 {
 	internal_errorf(1, "alloc: %s", msg);
 	errorf(null); /* this is never executed - keeps gcc quiet */

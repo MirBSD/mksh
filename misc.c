@@ -1,4 +1,4 @@
-/**	$MirBSD: misc.c,v 1.9 2004/09/21 11:57:13 tg Exp $ */
+/**	$MirBSD: misc.c,v 1.10 2004/10/28 11:03:23 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.20 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -10,6 +10,8 @@
 #ifdef HAVE_LIMITS_H
 # include <limits.h>
 #endif
+
+__RCSID("$MirBSD: misc.c,v 1.10 2004/10/28 11:03:23 tg Exp $");
 
 #ifndef UCHAR_MAX
 # define UCHAR_MAX	0xFF
@@ -27,10 +29,10 @@ static const unsigned char *cclass ARGS((const unsigned char *p, int sub));
  */
 void
 setctypes(s, t)
-	register const char *s;
-	register int t;
+	const char *s;
+	int t;
 {
-	register int i;
+	unsigned i;
 
 	if (t & C_IFS) {
 		for (i = 0; i < UCHAR_MAX+1; i++)
@@ -44,7 +46,7 @@ setctypes(s, t)
 void
 initctypes()
 {
-	register int c;
+	int c;
 
 	for (c = 'a'; c <= 'z'; c++)
 		ctypes[c] |= C_ALPHA;
@@ -64,10 +66,10 @@ initctypes()
 
 char *
 ulton(n, base)
-	register unsigned long n;
+	unsigned long n;
 	int base;
 {
-	register char *p;
+	char *p;
 	static char buf [20];
 
 	p = &buf[sizeof(buf)];
@@ -81,7 +83,7 @@ ulton(n, base)
 
 char *
 str_save(s, ap)
-	register const char *s;
+	const char *s;
 	Area *ap;
 {
 	size_t len;
@@ -101,7 +103,7 @@ str_save(s, ap)
  */
 char *
 str_nsave(s, n, ap)
-	register const char *s;
+	const char *s;
 	int n;
 	Area *ap;
 {
@@ -119,7 +121,7 @@ char *
 Xcheck_grow_(xsp, xp, more)
 	XString *xsp;
 	char *xp;
-	int more;
+	size_t more;
 {
 	char *old_beg = xsp->beg;
 
@@ -196,7 +198,7 @@ int
 option(n)
 	const char *n;
 {
-	int i;
+	unsigned i;
 
 	for (i = 0; i < NELEM(options); i++)
 		if (options[i].name && strcmp(options[i].name, n) == 0)
@@ -236,7 +238,7 @@ static void
 printoptions(verbose)
 	int verbose;
 {
-	int i;
+	unsigned i;
 
 	if (verbose) {
 		struct options_info oi;
@@ -268,9 +270,9 @@ printoptions(verbose)
 char *
 getoptions()
 {
-	int i;
+	unsigned i;
 	char m[(int) FNFLAGS + 1];
-	register char *cp = m;
+	char *cp = m;
 
 	for (i = 0; i < NELEM(options); i++)
 		if (options[i].c && Flag(i))
@@ -355,6 +357,7 @@ parse_args(argv, what, setargsp)
 	char *array = (char *) 0;
 	Getopt go;
 	int i, optc, set, sortargs = 0, arrayset = 0;
+	unsigned u;
 
 	/* First call?  Build option strings... */
 	if (cmd_opts[0] == '\0') {
@@ -366,12 +369,12 @@ parse_args(argv, what, setargsp)
 		/* see set_opts[] declaration */
 		strlcpy(set_opts, "A:o;s", sizeof set_opts);
 		q = set_opts + strlen(set_opts);
-		for (i = 0; i < NELEM(options); i++) {
-			if (options[i].c) {
-				if (options[i].flags & OF_CMDLINE)
-					*p++ = options[i].c;
-				if (options[i].flags & OF_SET)
-					*q++ = options[i].c;
+		for (u = 0; u < NELEM(options); u++) {
+			if (options[u].c) {
+				if (options[u].flags & OF_CMDLINE)
+					*p++ = options[u].c;
+				if (options[u].flags & OF_SET)
+					*q++ = options[u].c;
 			}
 		}
 		*p = '\0';
@@ -434,15 +437,15 @@ parse_args(argv, what, setargsp)
 				sortargs = 1;
 				break;
 			}
-			for (i = 0; i < NELEM(options); i++)
-				if (optc == options[i].c
-				    && (what & options[i].flags))
+			for (u = 0; u < NELEM(options); u++)
+				if (optc == options[u].c
+				    && (what & options[u].flags))
 				{
-					change_flag((enum sh_flag) i, what,
+					change_flag((enum sh_flag) u, what,
 						    set);
 					break;
 				}
-			if (i == NELEM(options)) {
+			if (u == NELEM(options)) {
 				internal_errorf(1, "parse_args: '%c'", optc);
 				return -1; /* not reached */
 			}
@@ -538,7 +541,7 @@ gmatch(s, p, isfile)
 	 * the pattern.  If check fails, just to a strcmp().
 	 */
 	if (!isfile && !has_globbing(p, pe)) {
-		int len = pe - p + 1;
+		size_t len = pe - p + 1;
 		char tbuf[64];
 		char *t = len <= sizeof(tbuf) ? tbuf
 				: (char *) alloc(len, ATEMP);
@@ -627,7 +630,7 @@ do_gmatch(s, se, p, pe, isfile)
 	const unsigned char *se, *pe;
 	int isfile;
 {
-	register int sc, pc;
+	int sc, pc;
 	const unsigned char *prest, *psub, *pnext;
 	const unsigned char *srest;
 
@@ -759,9 +762,9 @@ do_gmatch(s, se, p, pe, isfile)
 static const unsigned char *
 cclass(p, sub)
 	const unsigned char *p;
-	register int sub;
+	int sub;
 {
-	register int c, d, not, found = 0;
+	int c, d, not, found = 0;
 	const unsigned char *orig_p = p;
 
 	if ((not = (ISMAGIC(*p) && *++p == NOT)))
@@ -841,10 +844,10 @@ qsortp(base, n, f)
 }
 
 #define	swap2(a, b)	{\
-	register void *t; t = *(a); *(a) = *(b); *(b) = t;\
+	void *t; t = *(a); *(a) = *(b); *(b) = t;\
 }
 #define	swap3(a, b, c)	{\
-	register void *t; t = *(a); *(a) = *(c); *(c) = *(b); *(b) = t;\
+	void *t; t = *(a); *(a) = *(c); *(c) = *(b); *(b) = t;\
 }
 
 static void
@@ -852,8 +855,8 @@ qsort1(base, lim, f)
 	void **base, **lim;
 	int (*f) ARGS((void *, void *));
 {
-	register void **i, **j;
-	register void **lptr, **hptr;
+	void **i, **j;
+	void **lptr, **hptr;
 	size_t n;
 	int c;
 

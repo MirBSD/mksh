@@ -1,4 +1,4 @@
-/**	$MirBSD: jobs.c,v 1.5 2004/09/21 11:57:10 tg Exp $ */
+/**	$MirBSD: jobs.c,v 1.6 2004/10/28 11:03:23 tg Exp $ */
 /*	$OpenBSD: jobs.c,v 1.21 2003/11/10 21:26:39 millert Exp $	*/
 
 /*
@@ -30,6 +30,8 @@
 #include "ksh_wait.h"
 #include "ksh_times.h"
 #include "tty.h"
+
+__RCSID("$MirBSD: jobs.c,v 1.6 2004/10/28 11:03:23 tg Exp $");
 
 /* Start of system configuration stuff */
 
@@ -1309,8 +1311,7 @@ j_waitj(j, flags, where)
  * If jobs are compiled in then this routine expects sigchld to be blocked.
  */
 static RETSIGTYPE
-j_sigchld(sig)
-	int	sig;
+j_sigchld(int sig GCC_FUNC_ATTR(unused))
 {
 	int		errno_ = errno;
 	Job		*j;

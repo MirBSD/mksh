@@ -1,8 +1,10 @@
-/**	$MirBSD: path.c,v 1.4 2004/09/21 14:03:58 tg Exp $ */
+/**	$MirBSD: path.c,v 1.5 2004/10/28 11:03:24 tg Exp $ */
 /*	$OpenBSD: path.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 #include "sh.h"
 #include "ksh_stat.h"
+
+__RCSID("$MirBSD: path.c,v 1.5 2004/10/28 11:03:24 tg Exp $");
 
 /*
  *	Contains a routine to search a : separated list of
@@ -241,8 +243,8 @@ do_phys_path(xsp, xp, path)
 	const char *path;
 {
 	const char *p, *q;
-	int len, llen;
-	int savepos;
+	size_t len;
+	int savepos, llen;
 	char lbuf[PATH_MAX];
 
 	Xcheck(*xsp, xp);
@@ -251,7 +253,7 @@ do_phys_path(xsp, xp, path)
 			p++;
 		if (!*p)
 			break;
-		len = (q = ksh_strchr_dirsep(p)) ? q - p : strlen(p);
+		len = (q = ksh_strchr_dirsep(p)) ? (size_t)(q - p) : strlen(p);
 		if (len == 1 && p[0] == '.')
 			continue;
 		if (len == 2 && p[0] == '.' && p[1] == '.') {

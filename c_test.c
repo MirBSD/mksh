@@ -1,4 +1,4 @@
-/**	$MirBSD: c_test.c,v 1.4 2004/09/21 11:57:07 tg Exp $ */
+/**	$MirBSD: c_test.c,v 1.5 2004/10/28 11:03:22 tg Exp $ */
 /*	$OpenBSD: c_test.c,v 1.10 2003/10/10 19:09:07 millert Exp $	*/
 
 /*
@@ -13,6 +13,8 @@
 #include "sh.h"
 #include "ksh_stat.h"
 #include "c_test.h"
+
+__RCSID("$MirBSD: c_test.c,v 1.5 2004/10/28 11:03:22 tg Exp $");
 
 /* test(1) accepts the following grammar:
 	oexpr	::= aexpr | aexpr "-o" oexpr ;
@@ -623,10 +625,7 @@ ptest_isa(te, meta)
 }
 
 static const char *
-ptest_getopnd(te, op, do_eval)
-	Test_env *te;
-	Test_op op;
-	int do_eval;
+ptest_getopnd(Test_env *te, Test_op op, int do_eval GCC_FUNC_ATTR(unused))
 {
 	if (te->pos.wp >= te->wp_end)
 		return op == TO_FILTT ? "1" : (const char *) 0;

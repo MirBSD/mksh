@@ -1,4 +1,4 @@
-/**	$MirBSD: edit.c,v 1.7 2004/09/21 11:57:08 tg Exp $ */
+/**	$MirBSD: edit.c,v 1.8 2004/10/28 11:03:22 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.18 2003/08/22 18:17:10 fgsch Exp $	*/
 
 /*
@@ -22,6 +22,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
+__RCSID("$MirBSD: edit.c,v 1.8 2004/10/28 11:03:22 tg Exp $");
 
 #if defined(TIOCGWINSZ)
 static RETSIGTYPE x_sigwinch ARGS((int sig));
@@ -82,8 +83,7 @@ x_init()
 
 #if defined(TIOCGWINSZ)
 static RETSIGTYPE
-x_sigwinch(sig)
-    	int sig;
+x_sigwinch(int sig GCC_FUNC_ATTR(unused))
 {
 	got_sigwinch = 1;
 	return RETSIGVAL;
@@ -385,7 +385,7 @@ set_editmode(ed)
 #endif
 		    };
 	char *rcp;
-	int i;
+	unsigned i;
 
 	if ((rcp = ksh_strrchr_dirsep(ed)))
 		ed = ++rcp;
@@ -548,11 +548,8 @@ x_print_expansions(nwords, words, is_command)
  *	- returns number of matching strings
  */
 static int
-x_file_glob(flags, str, slen, wordsp)
-	int flags;
-	const char *str;
-	int slen;
-	char ***wordsp;
+x_file_glob(int flags GCC_FUNC_ATTR(unused), const char *str,
+    int slen, char ***wordsp)
 {
 	char *toglob;
 	char **words;

@@ -1,4 +1,4 @@
-/**	$MirBSD: proto.h,v 1.5 2004/09/21 11:57:13 tg Exp $ */
+/**	$MirBSD: proto.h,v 1.6 2004/10/28 11:03:24 tg Exp $ */
 /*	$OpenBSD: proto.h,v 1.11 2003/05/16 19:58:57 jsyn Exp $	*/
 /*	$From: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $ */
 
@@ -89,7 +89,7 @@ void 	hist_init	ARGS((Source *s));
 void 	hist_finish	ARGS((void));
 void	histsave	ARGS((int lno, const char *cmd, int dowrite));
 #ifdef HISTORY
-int 	c_fc	 	ARGS((register char **wp));
+int 	c_fc	 	ARGS((char **wp));
 void	sethistsize	ARGS((int n));
 void	sethistfile	ARGS((const char *name));
 # ifdef EASY_HISTORY

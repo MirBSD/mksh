@@ -1,4 +1,4 @@
-/**	$MirBSD: expand.h,v 1.3 2004/09/21 11:57:09 tg Exp $ */
+/**	$MirBSD: expand.h,v 1.4 2004/10/28 11:03:23 tg Exp $ */
 /*	$OpenBSD: expand.h,v 1.3 2001/03/26 16:19:45 todd Exp $	*/
 
 /*
@@ -70,7 +70,7 @@ typedef char * XStringP;
 #define	Xsavepos(xs, xp) ((xp) - (xs).beg)
 #define	Xrestpos(xs, xp, n) ((xs).beg + (n))
 
-char *	Xcheck_grow_	ARGS((XString *xsp, char *xp, int more));
+char *	Xcheck_grow_	ARGS((XString *xsp, char *xp, size_t more));
 
 /*
  * expandable vector of generic pointers
@@ -82,7 +82,7 @@ typedef struct XPtrV {
 } XPtrV;
 
 #define	XPinit(x, n) do { \
-			register void **vp__; \
+			void **vp__; \
 			vp__ = (void**) alloc(sizeofN(void*, n), ATEMP); \
 			(x).cur = (x).beg = vp__; \
 			(x).end = vp__ + n; \

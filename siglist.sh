@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: siglist.sh,v 1.2 2004/05/24 19:56:19 tg Stab $
+# $MirBSD: siglist.sh,v 1.3 2004/10/28 11:03:24 tg Exp $
 # $OpenBSD: siglist.sh,v 1.4 1997/06/19 13:58:47 kstailey Exp $
 #
 # Script to generate a sorted, complete list of signals, suitable
@@ -18,9 +18,9 @@ CPP="${1-cc -E}"
 # The trap here to make up for a bug in bash (1.14.3(1)) that calls the trap
 (trap $trapsigs;
  echo '#include "sh.h"';
- echo '	{ QwErTy SIGNALS , "DUMMY" , "hook for number of signals" },';
+ echo '	{ QwErTy SIGNALS , "DUMMY" , "hook for number of signals", 0, 0, 0, 0, 0 },';
  sed -e '/^[	 ]*#/d' -e 's/^[	 ]*\([^ 	][^ 	]*\)[	 ][	 ]*\(.*[^ 	]\)[ 	]*$/#ifdef SIG\1\
-	{ QwErTy SIG\1 , "\1", "\2" },\
+	{ QwErTy SIG\1 , "\1", "\2", 0, 0, 0, 0, 0 },\
 #endif/') > $in
 $CPP $in  > $out
 sed -n 's/{ QwErTy/{/p' < $out | awk '{print NR, $0}' | sort +2n +0n |

@@ -1,4 +1,4 @@
-/**	$MirBSD: vi.c,v 1.7 2004/09/21 11:57:17 tg Exp $ */
+/**	$MirBSD: vi.c,v 1.8 2004/10/28 11:03:24 tg Exp $ */
 /*	$OpenBSD: vi.c,v 1.13 2004/05/10 16:28:47 pvalchev Exp $	*/
 
 /*
@@ -14,6 +14,8 @@
 #include <ctype.h>
 #include "ksh_stat.h"		/* completion */
 #include "edit.h"
+
+__RCSID("$MirBSD: vi.c,v 1.8 2004/10/28 11:03:24 tg Exp $");
 
 #define Ctrl(c)		(c&0x1f)
 #define	is_wordch(c)	(letnum(c))
@@ -238,7 +240,7 @@ x_vi(buf, len)
 
 	x_putc('\r'); x_putc('\n'); x_flush();
 
-	if (c == -1 || len <= es->linelen)
+	if (c == -1 || len <= (size_t)es->linelen)
 		return -1;
 
 	if (es->cbuf != buf)
@@ -1799,7 +1801,7 @@ outofwin()
 static void
 rewindow()
 {
-	register int	tcur, tcol;
+	int	tcur, tcol;
 	int		holdcur1, holdcol1;
 	int		holdcur2, holdcol2;
 
@@ -2115,9 +2117,7 @@ complete_word(command, count)
 }
 
 static int
-print_expansions(e, command)
-	struct edstate *e;
-	int	command;
+print_expansions(struct edstate *e, int	command GCC_FUNC_ATTR(unused))
 {
 	int nwords;
 	int start, end;

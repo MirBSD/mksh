@@ -1,4 +1,4 @@
-/**	$MirBSD: c_ksh.c,v 1.6 2004/09/21 11:57:07 tg Exp $ */
+/**	$MirBSD: c_ksh.c,v 1.7 2004/10/28 11:03:21 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.18 2004/02/10 13:03:36 jmc Exp $	*/
 
 /*
@@ -12,6 +12,8 @@
 #ifdef __CYGWIN__
 #include <sys/cygwin.h>
 #endif /* __CYGWIN__ */
+
+__RCSID("$MirBSD: c_ksh.c,v 1.7 2004/10/28 11:03:21 tg Exp $");
 
 int
 c_cd(wp)
@@ -331,7 +333,7 @@ c_print(wp)
 	Xinit(xs, xp, 128, ATEMP);
 
 	while (*wp != NULL) {
-		register int c;
+		int c;
 		s = *wp;
 		while ((c = *s++) != '\0') {
 			Xcheck(xs, xp);
@@ -1016,8 +1018,8 @@ int
 c_unalias(wp)
 	char **wp;
 {
-	register struct table *t = &aliases;
-	register struct tbl *ap;
+	struct table *t = &aliases;
+	struct tbl *ap;
 	int rv = 0, all = 0;
 	int optc;
 
@@ -1152,8 +1154,8 @@ c_fgbg(wp)
 #endif
 
 struct kill_info {
-	int num_width;
-	int name_width;
+	size_t num_width;
+	size_t name_width;
 };
 static char *kill_fmt_entry ARGS((void *arg, int i, char *buf, int buflen));
 
@@ -1246,8 +1248,8 @@ c_kill(wp)
 					shprintf("%s%s", p, sigtraps[i].name);
 			shprintf(newline);
 		} else {
-			int w, i;
-			int mess_width;
+			int i;
+			size_t w, mess_width;
 			struct kill_info ki;
 
 			for (i = SIGNALS, ki.num_width = 1; i >= 10; i /= 10)
@@ -1408,7 +1410,7 @@ c_bind(wp)
 	char **wp;
 {
 	int rv = 0, macro = 0, list = 0;
-	register char *cp;
+	char *cp;
 	int optc;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "lm")) != EOF)

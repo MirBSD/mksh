@@ -1,4 +1,4 @@
-/**	$MirBSD: mail.c,v 1.3 2004/09/21 11:57:13 tg Exp $ */
+/**	$MirBSD: mail.c,v 1.4 2004/10/28 11:03:23 tg Exp $ */
 /*	$OpenBSD: mail.c,v 1.9 1999/06/15 01:18:35 millert Exp $	*/
 
 /*
@@ -40,7 +40,7 @@ static void     mprintit    ARGS((mbox_t *mbp));
 void
 mcheck()
 {
-	register mbox_t	*mbp;
+	mbox_t	*mbp;
 	time_t		 now;
 	struct tbl	*vp;
 	struct stat	 stbuf;
@@ -90,7 +90,7 @@ mcset(interval)
 
 void
 mbset(p)
-	register char	*p;
+	char	*p;
 {
 	struct stat	stbuf;
 
@@ -109,10 +109,10 @@ mbset(p)
 
 void
 mpset(mptoparse)
-	register char	*mptoparse;
+	char	*mptoparse;
 {
-	register mbox_t	*mbp;
-	register char	*mpath, *mmsg, *mval;
+	mbox_t	*mbp;
+	char	*mpath, *mmsg, *mval;
 	char *p;
 
 	munset( mplist );
@@ -149,9 +149,9 @@ mpset(mptoparse)
 
 static void
 munset(mlist)
-register mbox_t	*mlist;
+mbox_t	*mlist;
 {
-	register mbox_t	*mbp;
+	mbox_t	*mbp;
 
 	while (mlist != NULL) {
 		mbp = mlist;
@@ -168,7 +168,7 @@ mballoc(p, m)
 	char	*m;
 {
 	struct stat	stbuf;
-	register mbox_t	*mbp;
+	mbox_t	*mbp;
 
 	mbp = (mbox_t *)alloc(sizeof(mbox_t), APERM);
 	mbp->mb_next = NULL;

@@ -1,4 +1,4 @@
-/**	$MirBSD: c_sh.c,v 1.4 2004/09/21 11:57:07 tg Exp $ */
+/**	$MirBSD: c_sh.c,v 1.5 2004/10/28 11:03:22 tg Exp $ */
 /*	$OpenBSD: c_sh.c,v 1.17 2003/03/13 09:03:07 deraadt Exp $	*/
 
 /*
@@ -9,6 +9,8 @@
 #include "ksh_stat.h" 	/* umask() */
 #include "ksh_time.h"
 #include "ksh_times.h"
+
+__RCSID("$MirBSD: c_sh.c,v 1.5 2004/10/28 11:03:22 tg Exp $");
 
 static	char *clocktos ARGS((clock_t t));
 
@@ -25,8 +27,8 @@ int
 c_shift(wp)
 	char **wp;
 {
-	register struct block *l = e->loc;
-	register int n;
+	struct block *l = e->loc;
+	int n;
 	long val;
 	char *arg;
 
@@ -57,8 +59,8 @@ int
 c_umask(wp)
 	char **wp;
 {
-	register int i;
-	register char *cp;
+	int i;
+	char *cp;
 	int symbolic = 0;
 	int old_umask;
 	int optc;
@@ -239,11 +241,11 @@ int
 c_read(wp)
 	char **wp;
 {
-	register int c = 0;
+	int c = 0;
 	int expand = 1, history = 0;
 	int expanding;
 	int ecode = 0;
-	register char *cp;
+	char *cp;
 	int fd = 0;
 	struct shf *shf;
 	int optc;
@@ -425,7 +427,7 @@ int
 c_eval(wp)
 	char **wp;
 {
-	register struct source *s;
+	struct source *s;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return 1;
@@ -468,7 +470,7 @@ c_trap(wp)
 {
 	int i;
 	char *s;
-	register Trap *p;
+	Trap *p;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return 1;
@@ -625,7 +627,7 @@ c_set(wp)
 {
 	int argi, setargs;
 	struct block *l = e->loc;
-	register char **owp = wp;
+	char **owp = wp;
 
 	if (wp[1] == NULL) {
 		static const char *const args [] = { "set", "-", NULL };
@@ -659,7 +661,7 @@ int
 c_unset(wp)
 	char **wp;
 {
-	register char *id;
+	char *id;
 	int optc, unset_var = 1;
 	int ret = 0;
 
@@ -694,8 +696,7 @@ c_unset(wp)
 }
 
 int
-c_times(wp)
-	char **wp;
+c_times(char **wp GCC_FUNC_ATTR(unused))
 {
 	struct tms all;
 
@@ -808,8 +809,8 @@ clocktos(t)
 	clock_t t;
 {
 	static char temp[22]; /* enough for 64 bit clock_t */
-	register int i;
-	register char *cp = temp + sizeof(temp);
+	int i;
+	char *cp = temp + sizeof(temp);
 
 	/* note: posix says must use max precision, ie, if clk_tck is
 	 * 1000, must print 3 places after decimal (if non-zero, else 1).
@@ -830,8 +831,7 @@ clocktos(t)
 
 /* exec with no args - args case is taken care of in comexec() */
 int
-c_exec(wp)
-	char ** wp;
+c_exec(char **wp GCC_FUNC_ATTR(unused))
 {
 	int i;
 
@@ -858,8 +858,7 @@ c_exec(wp)
 
 /* dummy function, special case in comexec() */
 int
-c_builtin(wp)
-	char ** wp;
+c_builtin(char **wp GCC_FUNC_ATTR(unused))
 {
 	return 0;
 }

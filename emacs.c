@@ -1,4 +1,4 @@
-/**	$MirBSD: emacs.c,v 1.9 2004/09/21 11:57:08 tg Exp $ */
+/**	$MirBSD: emacs.c,v 1.10 2004/10/28 11:03:22 tg Exp $ */
 /*	$OpenBSD: emacs.c,v 1.28 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -18,6 +18,8 @@
 #include <ctype.h>
 #include <locale.h>
 #include "edit.h"
+
+__RCSID("$MirBSD: emacs.c,v 1.10 2004/10/28 11:03:22 tg Exp $");
 
 static	Area	aedit;
 #define	AEDIT	&aedit		/* area for kill ring and macro defns */
@@ -403,8 +405,7 @@ x_emacs(buf, len)
 }
 
 static int
-x_insert(c)
-	int c;
+x_insert(int c GCC_FUNC_ATTR(unused))
 {
 	char	str[2];
 
@@ -423,8 +424,7 @@ x_insert(c)
 }
 
 static int
-x_ins_string(c)
-	int c;
+x_ins_string(int c GCC_FUNC_ATTR(unused))
 {
 	if (macroptr)   {
 		x_e_putc(BEL);
@@ -462,7 +462,7 @@ x_ins(s)
 	char	*s;
 {
 	char *cp = xcp;
-	register int	adj = x_adj_done;
+	int	adj = x_adj_done;
 
 	if (x_do_ins(s, strlen(s)) < 0)
 		return -1;
@@ -501,8 +501,7 @@ x_emacs_putbuf(s, len)
 }
 
 static int
-x_del_back(c)
-	int c;
+x_del_back(int c GCC_FUNC_ATTR(unused))
 {
 	int col = xcp - xbuf;
 
@@ -518,8 +517,7 @@ x_del_back(c)
 }
 
 static int
-x_del_char(c)
-	int c;
+x_del_char(int c GCC_FUNC_ATTR(unused))
 {
 	int nleft = xep - xcp;
 
@@ -592,32 +590,28 @@ x_delete(nc, push)
 }
 
 static int
-x_del_bword(c)
-	int c;
+x_del_bword(int c GCC_FUNC_ATTR(unused))
 {
 	x_delete(x_bword(), TRUE);
 	return KSTD;
 }
 
 static int
-x_mv_bword(c)
-	int c;
+x_mv_bword(int c GCC_FUNC_ATTR(unused))
 {
 	(void)x_bword();
 	return KSTD;
 }
 
 static int
-x_mv_fword(c)
-	int c;
+x_mv_fword(int c GCC_FUNC_ATTR(unused))
 {
 	x_goto(xcp + x_fword());
 	return KSTD;
 }
 
 static int
-x_del_fword(c)
-	int c;
+x_del_fword(int c GCC_FUNC_ATTR(unused))
 {
 	x_delete(x_fword(), TRUE);
 	return KSTD;
@@ -627,7 +621,7 @@ static int
 x_bword()
 {
 	int	nc = 0;
-	register char *cp = xcp;
+	char *cp = xcp;
 
 	if (cp == xbuf)  {
 		x_e_putc(BEL);
@@ -654,7 +648,7 @@ static int
 x_fword()
 {
 	int	nc = 0;
-	register char	*cp = xcp;
+	char	*cp = xcp;
 
 	if (cp == xep)  {
 		x_e_putc(BEL);
@@ -678,7 +672,7 @@ x_fword()
 
 static void
 x_goto(cp)
-	register char *cp;
+	char *cp;
 {
   if (cp < xbp || cp >= (xbp + x_displen))
   {
@@ -705,10 +699,9 @@ x_goto(cp)
 }
 
 static void
-x_bs(c)
-	int c;
+x_bs(int c GCC_FUNC_ATTR(unused))
 {
-	register int i;
+	int i;
 	i = x_size(c);
 	while (i--)
 		x_e_putc('\b');
@@ -716,17 +709,16 @@ x_bs(c)
 
 static int
 x_size_str(cp)
-	register char *cp;
+	char *cp;
 {
-	register int size = 0;
+	int size = 0;
 	while (*cp)
 		size += x_size(*cp++);
 	return size;
 }
 
 static int
-x_size(c)
-	int c;
+x_size(int c GCC_FUNC_ATTR(unused))
 {
 	if (c=='\t')
 		return 4;	/* Kludge, tabs are always four spaces. */
@@ -737,9 +729,9 @@ x_size(c)
 
 static void
 x_zots(str)
-	register char *str;
+	char *str;
 {
-  register int	adj = x_adj_done;
+  int	adj = x_adj_done;
 
   x_lastcp();
   while (*str && str < xlp && adj == x_adj_done)
@@ -747,8 +739,7 @@ x_zots(str)
 }
 
 static void
-x_zotc(c)
-	int c;
+x_zotc(int c GCC_FUNC_ATTR(unused))
 {
 	if (c == '\t')  {
 		/*  Kludge, tabs are always four spaces.  */
@@ -761,8 +752,7 @@ x_zotc(c)
 }
 
 static int
-x_mv_back(c)
-	int c;
+x_mv_back(int c GCC_FUNC_ATTR(unused))
 {
 	int col = xcp - xbuf;
 
@@ -777,8 +767,7 @@ x_mv_back(c)
 }
 
 static int
-x_mv_forw(c)
-	int c;
+x_mv_forw(int c GCC_FUNC_ATTR(unused))
 {
 	int nleft = xep - xcp;
 
@@ -793,8 +782,7 @@ x_mv_forw(c)
 }
 
 static int
-x_search_char_forw(c)
-	int c;
+x_search_char_forw(int c GCC_FUNC_ATTR(unused))
 {
 	char *cp = xcp;
 
@@ -814,8 +802,7 @@ x_search_char_forw(c)
 }
 
 static int
-x_search_char_back(c)
-	int c;
+x_search_char_back(int c GCC_FUNC_ATTR(unused))
 {
 	char *cp = xcp, *p;
 
@@ -836,8 +823,7 @@ x_search_char_back(c)
 }
 
 static int
-x_newline(c)
-	int c;
+x_newline(int c GCC_FUNC_ATTR(unused))
 {
 	x_e_putc('\r');
 	x_e_putc('\n');
@@ -847,27 +833,45 @@ x_newline(c)
 }
 
 static int
-x_end_of_text(c)
-	int c;
+x_end_of_text(int c GCC_FUNC_ATTR(unused))
 {
 	return KEOL;
 }
 
-static int x_beg_hist(c) int c; { x_load_hist(history); return KSTD;}
+static int
+x_beg_hist(int c GCC_FUNC_ATTR(unused))
+{
+	x_load_hist(history);
+	return KSTD;
+}
 
-static int x_end_hist(c) int c; { x_load_hist(histptr); return KSTD;}
+static int
+x_end_hist(int c GCC_FUNC_ATTR(unused))
+{
+	x_load_hist(histptr);
+	return KSTD;
+}
 
-static int x_prev_com(c) int c; { x_load_hist(x_histp - x_arg); return KSTD;}
+static int
+x_prev_com(int c GCC_FUNC_ATTR(unused))
+{
+	x_load_hist(x_histp - x_arg);
+	return KSTD;
+}
 
-static int x_next_com(c) int c; { x_load_hist(x_histp + x_arg); return KSTD;}
+static int
+x_next_com(int c GCC_FUNC_ATTR(unused))
+{
+	x_load_hist(x_histp + x_arg);
+	return KSTD;
+}
 
 /* Goto a particular history number obtained from argument.
  * If no argument is given history 1 is probably not what you
  * want so we'll simply go to the oldest one.
  */
 static int
-x_goto_hist(c)
-	int c;
+x_goto_hist(int c GCC_FUNC_ATTR(unused))
 {
 	if (x_arg_defaulted)
 		x_load_hist(history);
@@ -878,7 +882,7 @@ x_goto_hist(c)
 
 static void
 x_load_hist(hp)
-	register char **hp;
+	char **hp;
 {
 	int	oldsize;
 
@@ -918,12 +922,11 @@ x_eot_del(c)
 
 /* reverse incremental history search */
 static int
-x_search_hist(c)
-	int c;
+x_search_hist(int c GCC_FUNC_ATTR(unused))
 {
 	int offset = -1;	/* offset of match in xbuf, else -1 */
 	char pat [256+1];	/* pattern buffer */
-	register char *p = pat;
+	char *p = pat;
 	Findex f;
 
 	*p = '\0';
@@ -986,7 +989,7 @@ x_search(pat, sameline, offset)
 	int sameline;
 	int offset;
 {
-	register char **hp;
+	char **hp;
 	int i;
 
 	for (hp = x_histp - (sameline ? 0 : 1) ; hp >= history; --hp) {
@@ -1018,8 +1021,7 @@ x_match(str, pat)
 }
 
 static int
-x_del_line(c)
-	int c;
+x_del_line(int c GCC_FUNC_ATTR(unused))
 {
 	int	i, j;
 
@@ -1037,24 +1039,21 @@ x_del_line(c)
 }
 
 static int
-x_mv_end(c)
-	int c;
+x_mv_end(int c GCC_FUNC_ATTR(unused))
 {
 	x_goto(xep);
 	return KSTD;
 }
 
 static int
-x_mv_begin(c)
-	int c;
+x_mv_begin(int c GCC_FUNC_ATTR(unused))
 {
 	x_goto(xbuf);
 	return KSTD;
 }
 
 static int
-x_draw_line(c)
-	int c;
+x_draw_line(int c GCC_FUNC_ATTR(unused))
 {
 	x_redraw(-1);
 	return KSTD;
@@ -1122,8 +1121,7 @@ x_redraw(limit)
 }
 
 static int
-x_transpose(c)
-	int c;
+x_transpose(int c GCC_FUNC_ATTR(unused))
 {
 	char	tmp;
 
@@ -1175,24 +1173,21 @@ x_transpose(c)
 }
 
 static int
-x_literal(c)
-	int c;
+x_literal(int c GCC_FUNC_ATTR(unused))
 {
 	x_curprefix = -1;
 	return KSTD;
 }
 
 static int
-x_meta1(c)
-	int c;
+x_meta1(int c GCC_FUNC_ATTR(unused))
 {
 	x_curprefix = 1;
 	return KSTD;
 }
 
 static int
-x_meta2(c)
-	int c;
+x_meta2(int c GCC_FUNC_ATTR(unused))
 {
 	x_curprefix = 2;
 	return KSTD;
@@ -1200,8 +1195,7 @@ x_meta2(c)
 
 #ifdef OS2
 static int
-x_meta3(c)
-	int c;
+x_meta3(int c GCC_FUNC_ATTR(unused))
 {
 	x_curprefix = 3;
 	return KSTD;
@@ -1209,8 +1203,7 @@ x_meta3(c)
 #endif /* OS2 */
 
 static int
-x_kill(c)
-	int c;
+x_kill(int c GCC_FUNC_ATTR(unused))
 {
 	int col = xcp - xbuf;
 	int lastcol = xep - xbuf;
@@ -1241,8 +1234,7 @@ x_push(nchars)
 }
 
 static int
-x_yank(c)
-	int c;
+x_yank(int c GCC_FUNC_ATTR(unused))
 {
 	if (killsp == 0)
 		killtp = KILLSIZE;
@@ -1260,8 +1252,7 @@ x_yank(c)
 }
 
 static int
-x_meta_yank(c)
-	int c;
+x_meta_yank(int c GCC_FUNC_ATTR(unused))
 {
 	int	len;
 	if ((x_last_command != XFUNC_yank && x_last_command != XFUNC_meta_yank)
@@ -1285,8 +1276,7 @@ x_meta_yank(c)
 }
 
 static int
-x_abort(c)
-	int c;
+x_abort(int c GCC_FUNC_ATTR(unused))
 {
 	/* x_zotc(c); */
 	xlp = xep = xcp = xbp = xbuf;
@@ -1296,16 +1286,14 @@ x_abort(c)
 }
 
 static int
-x_error(c)
-	int c;
+x_error(int c GCC_FUNC_ATTR(unused))
 {
 	x_e_putc(BEL);
 	return KSTD;
 }
 
 static int
-x_stuffreset(c)
-	int c;
+x_stuffreset(int c GCC_FUNC_ATTR(unused))
 {
 #ifdef TIOCSTI
 	(void)x_stuff(c);
@@ -1321,8 +1309,7 @@ x_stuffreset(c)
 }
 
 static int
-x_stuff(c)
-	int c;
+x_stuff(int c GCC_FUNC_ATTR(unused))
 {
 #if 0 || defined TIOCSTI
 	char	ch = c;
@@ -1367,11 +1354,10 @@ x_mapin(cp)
 }
 
 static char *
-x_mapout(c)
-	int c;
+x_mapout(int c GCC_FUNC_ATTR(unused))
 {
 	static char buf[8];
-	register char *p = buf;
+	char *p = buf;
 
 #ifdef OS2
 	if (c == 0xE0) {
@@ -1507,7 +1493,8 @@ x_bind(a1, a2, macro, list)
 void
 x_init_emacs()
 {
-	register int i, j;
+	unsigned i;
+	int j;
 	char *locale;
 
 	ainit(AEDIT);
@@ -1571,16 +1558,14 @@ x_emacs_keys(ec)
 }
 
 static int
-x_set_mark(c)
-	int c;
+x_set_mark(int c GCC_FUNC_ATTR(unused))
 {
 	xmp = xcp;
 	return KSTD;
 }
 
 static int
-x_kill_region(c)
-	int c;
+x_kill_region(int c GCC_FUNC_ATTR(unused))
 {
 	int	rsize;
 	char	*xr;
@@ -1603,8 +1588,7 @@ x_kill_region(c)
 }
 
 static int
-x_xchg_point_mark(c)
-	int c;
+x_xchg_point_mark(int c GCC_FUNC_ATTR(unused))
 {
 	char	*tmp;
 
@@ -1619,8 +1603,7 @@ x_xchg_point_mark(c)
 }
 
 static int
-x_version(c)
-	int c;
+x_version(int c GCC_FUNC_ATTR(unused))
 {
 	char *o_xbuf = xbuf, *o_xend = xend;
 	char *o_xbp = xbp, *o_xep = xep, *o_xcp = xcp;
@@ -1649,19 +1632,17 @@ x_version(c)
 }
 
 static int
-x_noop(c)
-	int c;
+x_noop(int c GCC_FUNC_ATTR(unused))
 {
 	return KSTD;
 }
 
 #ifdef SILLY
 static int
-x_game_of_life(c)
-	int c;
+x_game_of_life(int c GCC_FUNC_ATTR(unused))
 {
 	char	newbuf [256+1];
-	register char *ip, *op;
+	char *ip, *op;
 	int	i, len;
 
 	i = xep - xbuf;
@@ -1714,57 +1695,49 @@ x_game_of_life(c)
 
 
 static int
-x_comp_comm(c)
-	int c;
+x_comp_comm(int c GCC_FUNC_ATTR(unused))
 {
 	do_complete(XCF_COMMAND, CT_COMPLETE);
 	return KSTD;
 }
 static int
-x_list_comm(c)
-	int c;
+x_list_comm(int c GCC_FUNC_ATTR(unused))
 {
 	do_complete(XCF_COMMAND, CT_LIST);
 	return KSTD;
 }
 static int
-x_complete(c)
-	int c;
+x_complete(int c GCC_FUNC_ATTR(unused))
 {
 	do_complete(XCF_COMMAND_FILE, CT_COMPLETE);
 	return KSTD;
 }
 static int
-x_enumerate(c)
-	int c;
+x_enumerate(int c GCC_FUNC_ATTR(unused))
 {
 	do_complete(XCF_COMMAND_FILE, CT_LIST);
 	return KSTD;
 }
 static int
-x_comp_file(c)
-	int c;
+x_comp_file(int c GCC_FUNC_ATTR(unused))
 {
 	do_complete(XCF_FILE, CT_COMPLETE);
 	return KSTD;
 }
 static int
-x_list_file(c)
-	int c;
+x_list_file(int c GCC_FUNC_ATTR(unused))
 {
 	do_complete(XCF_FILE, CT_LIST);
 	return KSTD;
 }
 static int
-x_comp_list(c)
-	int c;
+x_comp_list(int c GCC_FUNC_ATTR(unused))
 {
 	do_complete(XCF_COMMAND_FILE, CT_COMPLIST);
 	return KSTD;
 }
 static int
-x_expand(c)
-	int c;
+x_expand(int c GCC_FUNC_ATTR(unused))
 {
 	char **words;
 	int nwords = 0;
@@ -1881,8 +1854,7 @@ x_adjust()
 static int unget_char = -1;
 
 static void
-x_e_ungetc(c)
-	int c;
+x_e_ungetc(int c GCC_FUNC_ATTR(unused))
 {
 	unget_char = c;
 }
@@ -1908,8 +1880,7 @@ x_e_getc()
 }
 
 static void
-x_e_putc(c)
-	int c;
+x_e_putc(int c GCC_FUNC_ATTR(unused))
 {
   if (c == '\r' || c == '\n')
     x_col = 0;
@@ -1939,8 +1910,7 @@ x_e_putc(c)
 
 #ifdef DEBUG
 static int
-x_debug_info(c)
-	int c;
+x_debug_info(int c GCC_FUNC_ATTR(unused))
 {
 	x_flush();
 	shellf("\nksh debug:\n");
@@ -1960,7 +1930,7 @@ static void
 x_e_puts(s)
 	const char *s;
 {
-  register int	adj = x_adj_done;
+  int	adj = x_adj_done;
 
   while (*s && adj == x_adj_done)
     x_e_putc(*s++);
@@ -1977,8 +1947,7 @@ x_e_puts(s)
  */
 
 static int
-x_set_arg(c)
-	int c;
+x_set_arg(int c GCC_FUNC_ATTR(unused))
 {
 	int n = 0;
 	int first = 1;
@@ -2001,8 +1970,7 @@ x_set_arg(c)
 
 /* Comment or uncomment the current line. */
 static int
-x_comment(c)
-	int c;
+x_comment(int c GCC_FUNC_ATTR(unused))
 {
 	int oldsize = x_size_str(xbuf);
 	int len = xep - xbuf;
@@ -2038,10 +2006,9 @@ x_comment(c)
  */
 
 static int
-x_prev_histword(c)
-	int c;
+x_prev_histword(int c GCC_FUNC_ATTR(unused))
 {
-  register char *rcp;
+  char *rcp;
   char *cp;
 
   cp = *histptr;
@@ -2088,24 +2055,21 @@ x_prev_histword(c)
 
 /* Uppercase N(1) words */
 static int
-x_fold_upper(c)
-  int c;
+x_fold_upper(int c GCC_FUNC_ATTR(unused))
 {
 	return x_fold_case('U');
 }
 
 /* Lowercase N(1) words */
 static int
-x_fold_lower(c)
-  int c;
+x_fold_lower(int c GCC_FUNC_ATTR(unused))
 {
 	return x_fold_case('L');
 }
 
 /* Lowercase N(1) words */
 static int
-x_fold_capitalize(c)
-  int c;
+x_fold_capitalize(int c GCC_FUNC_ATTR(unused))
 {
 	return x_fold_case('C');
 }
@@ -2122,8 +2086,7 @@ x_fold_capitalize(c)
  */
 
 static int
-x_fold_case(c)
-	int c;
+x_fold_case(int c GCC_FUNC_ATTR(unused))
 {
 	char *cp = xcp;
 
@@ -2192,8 +2155,8 @@ x_fold_case(c)
 static char *
 x_lastcp()
 {
-  register char *rcp;
-  register int i;
+  char *rcp;
+  int i;
 
   if (!xlp_valid)
   {

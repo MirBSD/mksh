@@ -1,4 +1,4 @@
-/**	$MirBSD: c_ulimit.c,v 1.6 2004/09/21 11:57:07 tg Exp $ */
+/**	$MirBSD: c_ulimit.c,v 1.7 2004/10/28 11:03:22 tg Exp $ */
 /*	$OpenBSD: c_ulimit.c,v 1.10 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -31,6 +31,8 @@
 extern	long ulimit();
 # endif /* HAVE_ULIMIT */
 #endif /* HAVE_ULIMIT_H */
+
+__RCSID("$MirBSD: c_ulimit.c,v 1.7 2004/10/28 11:03:22 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2
@@ -115,9 +117,9 @@ c_ulimit(wp)
 # endif /* UL_GMEMLIM */
 #endif /* RLIMIT_VMEM */
 #ifdef RLIMIT_SWAP
-		{ "swap(KiB)", RLIMIT_SWAP, RLIMIT_SWAP, 1024, 'w' },
+		{ "swap(KiB)", RLIMIT, RLIMIT_SWAP, RLIMIT_SWAP, 1024, 'w' },
 #endif
-		{ (char *) 0 }
+		{ NULL, RLIMIT, 0, 0, 0, 0 }
 	    };
 	static char	options[3 + NELEM(limits)];
 	rlim_t		UNINITIALIZED(val);
@@ -200,7 +202,10 @@ c_ulimit(wp)
 					val = limit.rlim_cur;
 				else if (how & HARD)
 					val = limit.rlim_max;
-			} else
+			}
+#ifdef HAVE_ULIMIT
+			  else
+#endif
 #endif /* HAVE_SETRLIMIT */
 #ifdef HAVE_ULIMIT
 			{
@@ -244,7 +249,10 @@ c_ulimit(wp)
 			else if (how & HARD)
 				val = limit.rlim_max;
 		}
-	} else
+	}
+#ifdef HAVE_ULIMIT
+	  else
+#endif
 #endif /* HAVE_SETRLIMIT */
 #ifdef HAVE_ULIMIT
 	{

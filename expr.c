@@ -1,4 +1,4 @@
-/**	$MirBSD: expr.c,v 1.4 2004/09/21 11:57:09 tg Exp $ */
+/**	$MirBSD: expr.c,v 1.5 2004/10/28 11:03:23 tg Exp $ */
 /*	$OpenBSD: expr.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -567,7 +567,7 @@ assign_check(es, op, vasn)
 static struct tbl *
 tempvar()
 {
-	register struct tbl *vp;
+	struct tbl *vp;
 
 	vp = (struct tbl*) alloc(sizeof(struct tbl), ATEMP);
 	vp->flag = ISSET|INTEGER;

@@ -1,4 +1,4 @@
-/**	$MirBSD: tty.c,v 1.3 2004/09/21 11:57:16 tg Exp $ */
+/**	$MirBSD: tty.c,v 1.4 2004/10/28 11:03:24 tg Exp $ */
 /*	$OpenBSD: tty.c,v 1.2 1996/10/01 02:05:51 downsj Exp $	*/
 
 #include "sh.h"
@@ -6,6 +6,8 @@
 #define EXTERN
 #include "tty.h"
 #undef EXTERN
+
+__RCSID("$MirBSD: tty.c,v 1.4 2004/10/28 11:03:24 tg Exp $");
 
 int
 get_tty(fd, ts)
@@ -38,10 +40,7 @@ get_tty(fd, ts)
 }
 
 int
-set_tty(fd, ts, flags)
-	int fd;
-	TTY_state *ts;
-	int flags;
+set_tty(int fd, TTY_state *ts, int flags GCC_FUNC_ATTR(unused))
 {
 	int ret = 0;
 

@@ -1,4 +1,4 @@
-/**	$MirBSD: syn.c,v 1.4 2004/09/21 11:57:14 tg Exp $ */
+/**	$MirBSD: syn.c,v 1.5 2004/10/28 11:03:24 tg Exp $ */
 /*	$OpenBSD: syn.c,v 1.14 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -7,6 +7,8 @@
 
 #include "sh.h"
 #include "c_test.h"
+
+__RCSID("$MirBSD: syn.c,v 1.5 2004/10/28 11:03:24 tg Exp $");
 
 struct nesting_state {
 	int	start_token;	/* token than began nesting (eg, FOR) */
@@ -79,7 +81,7 @@ static struct op *
 pipeline(cf)
 	int cf;
 {
-	register struct op *t, *p, *tl = NULL;
+	struct op *t, *p, *tl = NULL;
 
 	t = get_command(cf);
 	if (t != NULL) {
@@ -99,8 +101,8 @@ pipeline(cf)
 static struct op *
 andor()
 {
-	register struct op *t, *p;
-	register int c;
+	struct op *t, *p;
+	int c;
 
 	t = pipeline(0);
 	if (t != NULL) {
@@ -118,8 +120,8 @@ static struct op *
 c_list(multi)
 	int multi;
 {
-	register struct op *t = NULL, *p, *tl = NULL;
-	register int c;
+	struct op *t = NULL, *p, *tl = NULL;
+	int c;
 	int have_sep;
 
 	while (1) {
@@ -156,7 +158,7 @@ static struct ioword *
 synio(cf)
 	int cf;
 {
-	register struct ioword *iop;
+	struct ioword *iop;
 	int ishere;
 
 	if (tpeek(cf) != REDIR)
@@ -189,7 +191,7 @@ static struct op *
 nested(type, smark, emark)
 	int type, smark, emark;
 {
-	register struct op *t;
+	struct op *t;
 	struct nesting_state old_nesting;
 
 	nesting_push(&old_nesting, smark);
@@ -203,8 +205,8 @@ static struct op *
 get_command(cf)
 	int cf;
 {
-	register struct op *t;
-	register int c, iopn = 0, syniocf;
+	struct op *t;
+	int c, iopn = 0, syniocf;
 	struct ioword *iop, **iops;
 	XPtrV args, vars;
 	struct nesting_state old_nesting;
@@ -419,8 +421,8 @@ get_command(cf)
 static struct op *
 dogroup()
 {
-	register int c;
-	register struct op *list;
+	int c;
+	struct op *list;
 
 	c = token(CONTIN|KEYWORD|ALIAS);
 	/* A {...} can be used instead of do...done for for/select loops
@@ -442,7 +444,7 @@ dogroup()
 static struct op *
 thenpart()
 {
-	register struct op *t;
+	struct op *t;
 
 	musthave(THEN, KEYWORD|ALIAS);
 	t = newtp(0);
@@ -456,7 +458,7 @@ thenpart()
 static struct op *
 elsepart()
 {
-	register struct op *t;
+	struct op *t;
 
 	switch (token(KEYWORD|ALIAS|VARASN)) {
 	  case ELSE:
@@ -479,7 +481,7 @@ elsepart()
 static struct op *
 caselist()
 {
-	register struct op *t, *tl;
+	struct op *t, *tl;
 	int c;
 
 	c = token(CONTIN|KEYWORD|ALIAS);
@@ -506,8 +508,8 @@ static struct op *
 casepart(endtok)
 	int endtok;
 {
-	register struct op *t;
-	register int c;
+	struct op *t;
+	int c;
 	XPtrV ptns;
 
 	XPinit(ptns, 16);
@@ -595,7 +597,7 @@ function_body(name, ksh_func)
 static char **
 wordlist()
 {
-	register int c;
+	int c;
 	XPtrV args;
 
 	XPinit(args, 16);
@@ -628,7 +630,7 @@ block(type, t1, t2, wp)
 	struct op *t1, *t2;
 	char **wp;
 {
-	register struct op *t;
+	struct op *t;
 
 	t = newtp(type);
 	t->left = t1;
@@ -677,14 +679,14 @@ const	struct tokeninfo {
 #endif /* KSH */
 	/* and some special cases... */
 	{ "newline",	'\n',	FALSE },
-	{ 0 }
+	{ NULL, 0, FALSE }
 };
 
 void
 initkeywords()
 {
-	register struct tokeninfo const *tt;
-	register struct tbl *p;
+	struct tokeninfo const *tt;
+	struct tbl *p;
 
 	tinit(&keywords, APERM, 32); /* must be 2^n (currently 20 keywords) */
 	for (tt = tokentab; tt->name; tt++) {
@@ -771,7 +773,7 @@ static struct op *
 newtp(type)
 	int type;
 {
-	register struct op *t;
+	struct op *t;
 
 	t = (struct op *) alloc(sizeof(*t), ATEMP);
 	t->type = type;
@@ -901,10 +903,8 @@ dbtestp_isa(te, meta)
 }
 
 static const char *
-dbtestp_getopnd(te, op, do_eval)
-	Test_env *te;
-	Test_op op;
-	int do_eval;
+dbtestp_getopnd(Test_env *te, Test_op op GCC_FUNC_ATTR(unused),
+    int do_eval GCC_FUNC_ATTR(unused))
 {
 	int c = tpeek(ARRAYVAR);
 
@@ -918,12 +918,11 @@ dbtestp_getopnd(te, op, do_eval)
 }
 
 static int
-dbtestp_eval(te, op, opnd1, opnd2, do_eval)
-	Test_env *te;
-	Test_op op;
-	const char *opnd1;
-	const char *opnd2;
-	int do_eval;
+dbtestp_eval(Test_env *te GCC_FUNC_ATTR(unused),
+    Test_op op GCC_FUNC_ATTR(unused),
+    const char *opnd1 GCC_FUNC_ATTR(unused),
+    const char *opnd2 GCC_FUNC_ATTR(unused),
+    int do_eval GCC_FUNC_ATTR(unused))
 {
 	return 1;
 }
