@@ -2,7 +2,7 @@
 
 # Guess values for system-dependent variables and create Makefiles.
 # Generated automatically using autoconf version 2.13.20040919 
-# $MirBSD: src/bin/ksh/configure,v 2.2 2004/12/13 19:53:37 tg Exp $
+# $MirBSD: src/bin/ksh/configure,v 2.3 2004/12/28 22:44:55 tg Exp $
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 2004
 #	Free Software Foundation, Inc.
 #
@@ -1541,7 +1541,7 @@ EOF
   fi
  
 for ac_hdr in sys/param.h sys/types.h sys/resource.h sys/time.h \
-	stddef.h stdlib.h stdint.h string.h limits.h paths.h \
+	stdbool.h stddef.h stdint.h stdlib.h string.h limits.h paths.h \
 	memory.h fcntl.h values.h ulimit.h
 do
 ac_safe=$(echo "$ac_hdr" | sed 'y%./+-%__p_%')
