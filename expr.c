@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/expr.c,v 2.3 2004/12/18 18:58:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/expr.c,v 2.4 2004/12/18 19:22:29 tg Exp $ */
 /*	$OpenBSD: expr.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/expr.c,v 2.3 2004/12/18 18:58:30 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/expr.c,v 2.4 2004/12/18 19:22:29 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -168,7 +168,7 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok)
 	/* save state to allow recursive calls */
 	curstate.expression = curstate.tokp = expr;
 	curstate.noassign = 0;
-	curstate.evaling = (struct tbl *) 0;
+	curstate.evaling = NULL;
 
 	newenv(E_ERRH);
 	i = ksh_sigsetjmp(e->jbuf, 0);
@@ -194,7 +194,7 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok)
 	v = intvar(es, evalexpr(es, MAX_PREC));
 
 	if (es->tok != END)
-		evalerr(es, ET_UNEXPECTED, (char *) 0);
+		evalerr(es, ET_UNEXPECTED, NULL);
 
 	if (vp->flag & INTEGER)
 		setint_v(vp, v);
@@ -298,7 +298,7 @@ evalexpr(Expr_state *es, enum prec prec)
 			vl = es->val;
 			token(es);
 		} else {
-			evalerr(es, ET_UNEXPECTED, (char *) 0);
+			evalerr(es, ET_UNEXPECTED, NULL);
 			/*NOTREACHED*/
 		}
 		if (es->tok == O_PLUSPLUS || es->tok == O_MINUSMINUS) {
@@ -574,7 +574,7 @@ intvar(Expr_state *es, struct tbl *vp)
 		vp->flag |= EXPRINEVAL;
 		v_evaluate(vq, str_val(vp), KSH_UNWIND_ERROR);
 		vp->flag &= ~EXPRINEVAL;
-		es->evaling = (struct tbl *) 0;
+		es->evaling = NULL;
 	}
 	return vq;
 }

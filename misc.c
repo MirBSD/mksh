@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/misc.c,v 2.5 2004/12/18 19:17:10 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/misc.c,v 2.6 2004/12/18 19:22:30 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.20 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -13,7 +13,7 @@
 #include <sys/ioctl.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.5 2004/12/18 19:17:10 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.6 2004/12/18 19:22:30 tg Exp $");
 
 #ifndef UCHAR_MAX
 # define UCHAR_MAX	0xFF
@@ -132,7 +132,7 @@ const struct option options[] = {
 	{ "braceexpand",  0,		OF_ANY }, /* non-standard */
 #endif
 	{ "bgnice",	  0,		OF_ANY },
-	{ (char *) 0, 	'c',	    OF_CMDLINE },
+	{ NULL, 	'c',	    OF_CMDLINE },
 	{ "emacs",	  0,		OF_ANY },
 	{ "emacs-usemeta",  0,		OF_ANY }, /* non-standard */
 	{ "errexit",	'e',		OF_ANY },
@@ -145,7 +145,7 @@ const struct option options[] = {
 #ifdef JOBS
 	{ "monitor",	'm',		OF_ANY },
 #else /* JOBS */
-	{ (char *) 0,	'm',		     0 }, /* so FMONITOR not ifdef'd */
+	{ NULL,	'm',		     0 }, /* so FMONITOR not ifdef'd */
 #endif /* JOBS */
 	{ "noclobber",	'C',		OF_ANY },
 	{ "noexec",	'n',		OF_ANY },
@@ -173,7 +173,7 @@ const struct option options[] = {
 	/* Anonymous flags: used internally by shell only
 	 * (not visible to user)
 	 */
-	{ (char *) 0,	0,		OF_INTERNAL }, /* FTALKING_I */
+	{ NULL,	0,		OF_INTERNAL }, /* FTALKING_I */
 };
 
 /*
@@ -316,7 +316,7 @@ parse_args(char **argv, int what, int *setargsp)
 	static char cmd_opts[NELEM(options) + 5]; /* o:T:\0 */
 	static char set_opts[NELEM(options) + 5]; /* Ao;s\0 */
 	char *opts;
-	char *array = (char *) 0;
+	char *array = NULL;
 	Getopt go;
 	int i, optc, set, sortargs = 0, arrayset = 0;
 	unsigned u;
@@ -378,7 +378,7 @@ parse_args(char **argv, int what, int *setargsp)
 		  case 'o':
 			if (what == OF_FIRSTTIME)
 				break;
-			if (go.optarg == (char *) 0) {
+			if (go.optarg == NULL) {
 				/* lone -o: print options
 				 *
 				 * Note that on the command line, -o requires
@@ -785,7 +785,7 @@ pat_scan(const unsigned char *p, const unsigned char *pe, int match_sep)
 		if ((*p & 0x80) && strchr("*+?@! ", *p & 0x7f))
 			nest++;
 	}
-	return (const unsigned char *) 0;
+	return NULL;
 }
 
 
@@ -892,7 +892,7 @@ void
 ksh_getopt_reset(Getopt *go, int flags)
 {
 	go->optind = 1;
-	go->optarg = (char *) 0;
+	go->optarg = NULL;
 	go->p = 0;
 	go->flags = flags;
 	go->info = 0;
@@ -940,7 +940,7 @@ ksh_getopt(char **argv, Getopt *go, const char *options)
 			go->info |= GI_MINUSMINUS;
 			return EOF;
 		}
-		if (arg == (char *) 0
+		if (arg == NULL
 		    || ((flag != '-' ) /* neither a - nor a + (if + allowed) */
 			&& (!(go->flags & GF_PLUSOPT) || flag != '+'))
 		    || (c = arg[1]) == '\0')
@@ -979,7 +979,7 @@ ksh_getopt(char **argv, Getopt *go, const char *options)
 		else if (argv[go->optind])
 			go->optarg = argv[go->optind++];
 		else if (*o == ';')
-			go->optarg = (char *) 0;
+			go->optarg = NULL;
 		else {
 			if (options[0] == ':') {
 				go->buf[0] = c;
@@ -1008,13 +1008,13 @@ ksh_getopt(char **argv, Getopt *go, const char *options)
 				go->optarg = argv[go->optind - 1] + go->p;
 				go->p = 0;
 			} else
-				go->optarg = (char *) 0;
+				go->optarg = NULL;
 		} else {
 			if (argv[go->optind] && digit(argv[go->optind][0])) {
 				go->optarg = argv[go->optind++];
 				go->p = 0;
 			} else
-				go->optarg = (char *) 0;
+				go->optarg = NULL;
 		}
 	}
 	return c;
@@ -1225,7 +1225,7 @@ reset_nonblock(int fd)
 	{ \
 	    DIR *d = ksh_opendir("."); \
 	    if (!d) \
-		return (char *) 0; \
+		return NULL; \
 	    closedir(d); \
 	}
 #else /* HPUX_GETWD_BUG */
@@ -1276,7 +1276,7 @@ ksh_get_wd(char *buf, int bsize)
 		errno = EACCES;
 		if (b != buf)
 			afree(b, ATEMP);
-		return (char *) 0;
+		return NULL;
 	}
 	len = strlen(b) + 1;
 	if (!buf)
@@ -1284,7 +1284,7 @@ ksh_get_wd(char *buf, int bsize)
 	else if (buf != b) {
 		if (len > bsize) {
 			errno = ERANGE;
-			return (char *) 0;
+			return NULL;
 		}
 		memcpy(buf, b, len);
 		afree(b, ATEMP);

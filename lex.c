@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/lex.c,v 2.5 2004/12/18 19:17:10 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/lex.c,v 2.6 2004/12/18 19:22:29 tg Exp $ */
 /*	$OpenBSD: lex.c,v 1.18 2003/08/06 21:08:05 millert Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/lex.c,v 2.5 2004/12/18 19:17:10 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/lex.c,v 2.6 2004/12/18 19:22:29 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state.
@@ -112,7 +112,7 @@ yylex(int cf)
 
   Again:
 	states[0].ls_state = -1;
-	states[0].ls_info.base = (Lex_state *) 0;
+	states[0].ls_info.base = NULL;
 	statep = &states[1];
 	state_info.base = states;
 	state_info.end = &states[STATE_BSIZE];
@@ -651,9 +651,9 @@ Done:
 				ungetsc(c2);
 		}
 
-		iop->name = (char *) 0;
-		iop->delim = (char *) 0;
-		iop->heredoc = (char *) 0;
+		iop->name = NULL;
+		iop->delim = NULL;
+		iop->heredoc = NULL;
 		Xfree(ws, wp);	/* free word */
 		yylval.iop = iop;
 		return REDIR;
@@ -1057,7 +1057,7 @@ getsc_line(Source *s)
 		}
 	}
 	if (interactive)
-		set_prompt(PS2, (Source *) 0);
+		set_prompt(PS2, NULL);
 }
 
 void
@@ -1078,8 +1078,8 @@ set_prompt(int to, Source *s)
 			Area *saved_atemp;
 
 			ps1 = str_val(global("PS1"));
-			shf = shf_sopen((char *) 0, strlen(ps1) * 2,
-				SHF_WR | SHF_DYNAMIC, (struct shf *) 0);
+			shf = shf_sopen(NULL, strlen(ps1) * 2,
+				SHF_WR | SHF_DYNAMIC, NULL);
 			while (*ps1) {
 				if (*ps1 != '!' || *++ps1 == '!')
 					shf_putchar(*ps1++, shf);

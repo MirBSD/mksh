@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/table.c,v 2.1 2004/12/10 18:09:42 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/table.c,v 2.2 2004/12/18 19:22:30 tg Exp $ */
 /*	$OpenBSD: table.c,v 1.5 1999/01/10 17:55:03 millert Exp $	*/
 
 /*
@@ -7,7 +7,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirBSD: src/bin/ksh/table.c,v 2.1 2004/12/10 18:09:42 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/table.c,v 2.2 2004/12/18 19:22:30 tg Exp $");
 
 #define	INIT_TBLS	8	/* initial table size (power of 2) */
 
@@ -124,7 +124,7 @@ tenter(struct table *tp, const char *n, unsigned int h)
 	p->type = 0;
 	p->areap = tp->areap;
 	p->u2.field = 0;
-	p->u.array = (struct tbl *)0;
+	p->u.array = NULL;
 	memcpy(p->name, n, len);
 
 	/* enter in tp->tbls */

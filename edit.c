@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/edit.c,v 2.3 2004/12/18 19:17:10 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/edit.c,v 2.4 2004/12/18 19:22:28 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.18 2003/08/22 18:17:10 fgsch Exp $	*/
 
 /*
@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/edit.c,v 2.3 2004/12/18 19:17:10 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/edit.c,v 2.4 2004/12/18 19:22:28 tg Exp $");
 
 #if defined(TIOCGWINSZ)
 static RETSIGTYPE x_sigwinch(int sig);
@@ -439,10 +439,10 @@ x_print_expansions(int nwords, char *const *words, int is_command)
 
 		/* Special case for 1 match (prefix is whole word) */
 		if (nwords == 1)
-			prefix_len = x_basename(words[0], (char *) 0);
+			prefix_len = x_basename(words[0], NULL);
 		/* Any (non-trailing) slashes in non-common word suffixes? */
 		for (i = 0; i < nwords; i++)
-			if (x_basename(words[i] + prefix_len, (char *) 0)
+			if (x_basename(words[i] + prefix_len, NULL)
 							> prefix_len)
 				break;
 		/* All in same directory? */
@@ -454,7 +454,7 @@ x_print_expansions(int nwords, char *const *words, int is_command)
 			XPinit(l, nwords + 1);
 			for (i = 0; i < nwords; i++)
 				XPput(l, words[i] + prefix_len);
-			XPput(l, (char *) 0);
+			XPput(l, NULL);
 		}
 	}
 
@@ -545,7 +545,7 @@ x_file_glob(int flags GCC_FUNC_ATTR(unused), const char *str,
 	}
 	afree(toglob, ATEMP);
 
-	*wordsp = nwords ? words : (char **) 0;
+	*wordsp = nwords ? words : NULL;
 
 	return nwords;
 }
@@ -605,7 +605,7 @@ x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 	nwords = XPsize(w);
 
 	if (!nwords) {
-		*wordsp = (char **) 0;
+		*wordsp = NULL;
 		XPfree(w);
 		return 0;
 	}
@@ -623,7 +623,7 @@ x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 			alloc(sizeof(struct path_order_info) * nwords, ATEMP);
 		for (i = 0; i < nwords; i++) {
 			info[i].word = words[i];
-			info[i].base = x_basename(words[i], (char *) 0);
+			info[i].base = x_basename(words[i], NULL);
 			if (!last_info || info[i].base != last_info->base
 			    || FILENCMP(words[i],
 					last_info->word, info[i].base) != 0)
@@ -738,7 +738,7 @@ x_cf_glob(int flags, const char *buf, int buflen, int pos, int *startp, int *end
 	nwords = (is_command ? x_command_glob : x_file_glob)(flags,
 				    buf + *startp, len, &words);
 	if (nwords == 0) {
-		*wordsp = (char **) 0;
+		*wordsp = NULL;
 		return 0;
 	}
 
@@ -761,7 +761,7 @@ add_glob(const char *str, int slen)
 	bool_t saw_slash = FALSE;
 
 	if (slen < 0)
-		return (char *) 0;
+		return NULL;
 
 	toglob = str_nsave(str, slen + 1, ATEMP); /* + 1 for "*" */
 	toglob[slen] = '\0';
@@ -840,7 +840,7 @@ x_basename(const char *s, const char *se)
 {
 	const char *p;
 
-	if (se == (char *) 0)
+	if (se == NULL)
 		se = s + strlen(s);
 	if (s == se)
 		return 0;

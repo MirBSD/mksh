@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/emacs.c,v 2.4 2004/12/18 19:17:10 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/emacs.c,v 2.5 2004/12/18 19:22:28 tg Exp $ */
 /*	$OpenBSD: emacs.c,v 1.28 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -18,7 +18,7 @@
 #include <locale.h>
 #include "edit.h"
 
-__RCSID("$MirBSD: src/bin/ksh/emacs.c,v 2.4 2004/12/18 19:17:10 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/emacs.c,v 2.5 2004/12/18 19:22:28 tg Exp $");
 
 static	Area	aedit;
 #define	AEDIT	&aedit		/* area for kill ring and macro defns */
@@ -318,7 +318,7 @@ x_emacs(char *buf, size_t len)
 	xlp_valid = TRUE;
 	xmp = NULL;
 	x_curprefix = 0;
-	macroptr = (char *) 0;
+	macroptr = NULL;
 	x_histp = histptr + 1;
 	x_last_command = XFUNC_error;
 
@@ -404,7 +404,7 @@ x_ins_string(int c GCC_FUNC_ATTR(unused))
 	macroptr = x_atab[c>>8][c & CHARMASK];
 	if (macroptr && !*macroptr) {
 		/* XXX bell? */
-		macroptr = (char *) 0;
+		macroptr = NULL;
 	}
 	return KSTD;
 }
@@ -1033,7 +1033,7 @@ x_redraw(int limit)
 	if (xbp == xbuf)
 	{
 	  pprompt(prompt + prompt_skip, 0);
-	  x_col = promptlen(prompt, (const char **) 0);
+	  x_col = promptlen(prompt, NULL);
 	}
 	x_displen = xx_cols - 2 - x_col;
 	xlp_valid = FALSE;
@@ -1732,7 +1732,7 @@ x_e_getc(void)
 		if (macroptr)  {
 			c = *macroptr++;
 			if (!*macroptr)
-				macroptr = (char *) 0;
+				macroptr = NULL;
 		} else
 			c = x_getc();
 	}

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/syn.c,v 2.3 2004/12/18 18:58:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/syn.c,v 2.4 2004/12/18 19:22:30 tg Exp $ */
 /*	$OpenBSD: syn.c,v 1.14 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include "c_test.h"
 
-__RCSID("$MirBSD: src/bin/ksh/syn.c,v 2.3 2004/12/18 18:58:30 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/syn.c,v 2.4 2004/12/18 19:22:30 tg Exp $");
 
 struct nesting_state {
 	int	start_token;	/* token than began nesting (eg, FOR) */
@@ -72,7 +72,7 @@ yyparse(void)
 	if (c == 0 && !outtree)
 		outtree = newtp(TEOF);
 	else if (c != '\n' && c != 0)
-		syntaxerr((char *) 0);
+		syntaxerr(NULL);
 }
 
 static struct op *
@@ -84,7 +84,7 @@ pipeline(int cf)
 	if (t != NULL) {
 		while (token(0) == '|') {
 			if ((p = get_command(CONTIN)) == NULL)
-				syntaxerr((char *) 0);
+				syntaxerr(NULL);
 			if (tl == NULL)
 				t = tl = block(TPIPE, t, p, NOWORDS);
 			else
@@ -105,7 +105,7 @@ andor(void)
 	if (t != NULL) {
 		while ((c = token(0)) == LOGAND || c == LOGOR) {
 			if ((p = pipeline(CONTIN)) == NULL)
-				syntaxerr((char *) 0);
+				syntaxerr(NULL);
 			t = block(c == LOGAND? TAND: TOR, t, p, NOWORDS);
 		}
 		REJECT;
@@ -178,7 +178,7 @@ static void
 musthave(int c, int cf)
 {
 	if ((token(cf)) != c)
-		syntaxerr((char *) 0);
+		syntaxerr(NULL);
 }
 
 static struct op *
@@ -261,7 +261,7 @@ get_command(int cf)
 				/* Must be a function */
 				if (iopn != 0 || XPsize(args) != 1
 				    || XPsize(vars) != 0)
-					syntaxerr((char *) 0);
+					syntaxerr(NULL);
 				ACCEPT;
 				/*(*/
 				musthave(')', 0);
@@ -360,8 +360,8 @@ get_command(int cf)
 	  case BANG:
 		syniocf &= ~(KEYWORD|ALIAS);
 		t = pipeline(0);
-		if (t == (struct op *) 0)
-			syntaxerr((char *) 0);
+		if (t == NULL)
+			syntaxerr(NULL);
 		t = block(TBANG, NOBLOCK, t, NOWORDS);
 		break;
 
@@ -423,7 +423,7 @@ dogroup(void)
 	else if (c == '{')
 		c = '}';
 	else
-		syntaxerr((char *) 0);
+		syntaxerr(NULL);
 	list = c_list(TRUE);
 	musthave(c, KEYWORD|ALIAS);
 	return list;
@@ -438,7 +438,7 @@ thenpart(void)
 	t = newtp(0);
 	t->left = c_list(TRUE);
 	if (t->left == NULL)
-		syntaxerr((char *) 0);
+		syntaxerr(NULL);
 	t->right = elsepart();
 	return (t);
 }
@@ -451,7 +451,7 @@ elsepart(void)
 	switch (token(KEYWORD|ALIAS|VARASN)) {
 	  case ELSE:
 		if ((t = c_list(TRUE)) == NULL)
-			syntaxerr((char *) 0);
+			syntaxerr(NULL);
 		return (t);
 
 	  case ELIF:
@@ -479,7 +479,7 @@ caselist(void)
 	else if (c == '{')
 		c = '}';
 	else
-		syntaxerr((char *) 0);
+		syntaxerr(NULL);
 	t = tl = NULL;
 	while ((tpeek(CONTIN|KEYWORD|ESACONLY)) != c) { /* no ALIAS here */
 		struct op *tc = casepart(c);
@@ -557,7 +557,7 @@ function_body(char *name, int ksh_func)
 
 	old_func_parse = e->flags & EF_FUNC_PARSE;
 	e->flags |= EF_FUNC_PARSE;
-	if ((t->left = get_command(CONTIN)) == (struct op *) 0) {
+	if ((t->left = get_command(CONTIN)) == NULL) {
 		/*
 		 * Probably something like foo() followed by eof or ;.
 		 * This is accepted by sh and ksh88.
@@ -570,9 +570,9 @@ function_body(char *name, int ksh_func)
 		t->left->args[0][0] = CHAR;
 		t->left->args[0][1] = ':';
 		t->left->args[0][2] = EOS;
-		t->left->args[1] = (char *) 0;
+		t->left->args[1] = NULL;
 		t->left->vars = (char **) alloc(sizeof(char *), ATEMP);
-		t->left->vars[0] = (char *) 0;
+		t->left->vars[0] = NULL;
 		t->left->lineno = 1;
 	}
 	if (!old_func_parse)
@@ -597,7 +597,7 @@ wordlist(void)
 	while ((c = token(0)) == LWORD)
 		XPput(args, yylval.cp);
 	if (c != '\n' && c != ';')
-		syntaxerr((char *) 0);
+		syntaxerr(NULL);
 	if (XPsize(args) == 0) {
 		XPfree(args);
 		return NULL;
@@ -703,7 +703,7 @@ syntaxerr(const char *what)
 		/*NOTREACHED*/
 
 	case LWORD:
-		s = snptreef((char *) 0, 32, "%S", yylval.cp);
+		s = snptreef(NULL, 32, "%S", yylval.cp);
 		break;
 
 	case REDIR:
@@ -830,7 +830,7 @@ dbtestp_isa(Test_env *te, Test_meta meta)
 {
 	int c = tpeek(ARRAYVAR | (meta == TM_BINOP ? 0 : CONTIN));
 	int uqword = 0;
-	char *save = (char *) 0;
+	char *save = NULL;
 	int ret = 0;
 
 	/* unquoted word? */
@@ -876,7 +876,7 @@ dbtestp_getopnd(Test_env *te, Test_op op GCC_FUNC_ATTR(unused),
 	int c = tpeek(ARRAYVAR);
 
 	if (c != LWORD)
-		return (const char *) 0;
+		return NULL;
 
 	ACCEPT;
 	XPput(*te->pos.av, yylval.cp);

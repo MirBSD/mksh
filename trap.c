@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/trap.c,v 2.2 2004/12/18 18:58:31 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/trap.c,v 2.3 2004/12/18 19:22:30 tg Exp $ */
 /*	$OpenBSD: trap.c,v 1.13 2003/02/28 09:45:09 jmc Exp $	*/
 
 /*
@@ -9,7 +9,7 @@
 #define FROM_TRAP_C
 #include "sh.h"
 
-__RCSID("$MirBSD: src/bin/ksh/trap.c,v 2.2 2004/12/18 18:58:31 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/trap.c,v 2.3 2004/12/18 19:22:30 tg Exp $");
 
 /* Table is indexed by signal number
  *
@@ -137,7 +137,7 @@ trapsig(int i)
 		(*p->shtrap)(i);
 #ifdef V7_SIGNALS
 	if (sigtraps[i].cursig == trapsig) /* this for SIGCHLD,SIGALRM */
-		sigaction(i, &Sigact_trap, (struct sigaction *) 0);
+		sigaction(i, &Sigact_trap, NULL);
 #endif /* V7_SIGNALS */
 	errno = errno_;
 	return RETSIGVAL;
@@ -215,7 +215,7 @@ runtraps(int flag)
 		fatal_trap = 0;
 	for (p = sigtraps, i = SIGNALS+1; --i >= 0; p++)
 		if (p->set && (!flag
-			       || ((p->flags & flag) && p->trap == (char *) 0)))
+			       || ((p->flags & flag) && p->trap == NULL)))
 			runtrap(p);
 }
 
@@ -228,7 +228,7 @@ runtrap(Trap *p)
 	int	UNINITIALIZED(old_changed);
 
 	p->set = 0;
-	if (trapstr == (char *) 0) { /* SIG_DFL */
+	if (trapstr == NULL) { /* SIG_DFL */
 		if (p->flags & TF_FATAL) {
 			/* eg, SIGHUP */
 			exstat = 128 + i;
@@ -246,7 +246,7 @@ runtrap(Trap *p)
 	if (i == SIGEXIT_ || i == SIGERR_) {	/* avoid recursion on these */
 		old_changed = p->flags & TF_CHANGED;
 		p->flags &= ~TF_CHANGED;
-		p->trap = (char *) 0;
+		p->trap = NULL;
 	}
 	oexstat = exstat;
 	/* Note: trapstr is fully parsed before anything is executed, thus
@@ -277,7 +277,7 @@ cleartraps(void)
 	for (i = SIGNALS+1, p = sigtraps; --i >= 0; p++) {
 		p->set = 0;
 		if ((p->flags & TF_USER_SET) && (p->trap && p->trap[0]))
-			settrap(p, (char *) 0);
+			settrap(p, NULL);
 	}
 }
 
@@ -403,7 +403,7 @@ setsig(Trap *p, handler_t f, int flags)
 		sigemptyset(&sigact.sa_mask);
 		sigact.sa_flags = KSH_SA_FLAGS;
 		sigact.sa_handler = f;
-		sigaction(p->signal, &sigact, (struct sigaction *) 0);
+		sigaction(p->signal, &sigact, NULL);
 	}
 
 	return 1;

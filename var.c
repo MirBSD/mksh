@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/var.c,v 2.4 2004/12/18 19:17:10 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/var.c,v 2.5 2004/12/18 19:22:30 tg Exp $ */
 /*	$OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
 
 #include "sh.h"
@@ -7,7 +7,7 @@
 #include "ksh_stat.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.4 2004/12/18 19:17:10 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.5 2004/12/18 19:22:30 tg Exp $");
 
 /*
  * Variables
@@ -102,7 +102,7 @@ initvar(void)
 			{ "SECONDS",		V_SECONDS },
 			{ "TMOUT",		V_TMOUT },
 			{ "LINENO",		V_LINENO },
-			{ (char *) 0,	0 }
+			{ NULL,	0 }
 		};
 	int i;
 	struct tbl *tp;
@@ -255,7 +255,7 @@ local(const char *n, bool_t copy)
 	vp = tenter(&l->vars, n, h);
 	if (copy && !(vp->flag & DEFINED)) {
 		struct block *ll = l;
-		struct tbl *vq = (struct tbl *) 0;
+		struct tbl *vq = NULL;
 
 		while ((ll = ll->next) && !(vq = tsearch(&ll->vars, n, h)))
 			;
@@ -645,11 +645,11 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 			if (fake_assign) {
 				if (t->flag & INTEGER) {
 					s = str_val(t);
-					free_me = (char *) 0;
+					free_me = NULL;
 				} else {
 					s = t->val.s + t->type;
 					free_me = (t->flag & ALLOC) ? t->val.s
-								  : (char *) 0;
+								  : NULL;
 				}
 				t->flag &= ~ALLOC;
 			}
@@ -729,7 +729,7 @@ unset(struct tbl *vp, int array_ref)
 				afree((void *) tmp->val.s, tmp->areap);
 			afree(tmp, tmp->areap);
 		}
-		vp->u.array = (struct tbl *) 0;
+		vp->u.array = NULL;
 	}
 	/* If foo[0] is being unset, the remainder of the array is kept... */
 	vp->flag &= SPECIAL | (array_ref ? ARRAY|DEFINED : 0);
@@ -894,7 +894,7 @@ getspec(struct tbl *vp)
 		 * (see initcoms[] in main.c).
 		 */
 		if (vp->flag & ISSET)
-			setint(vp, (long) (time((time_t *)0) - seconds));
+			setint(vp, (long) (time(NULL) - seconds));
 		vp->flag |= SPECIAL;
 		break;
 	  case V_RANDOM:
@@ -947,7 +947,7 @@ setspec(struct tbl *vp)
 	  case V_TMPDIR:
 		if (tmpdir) {
 			afree(tmpdir, APERM);
-			tmpdir = (char *) 0;
+			tmpdir = NULL;
 		}
 		/* Use tmpdir iff it is an absolute path, is writable and
 		 * searchable and is a directory...
@@ -986,7 +986,7 @@ setspec(struct tbl *vp)
 		break;
 	  case V_SECONDS:
 		vp->flag &= ~SPECIAL;
-		seconds = time((time_t*) 0) - intval(vp);
+		seconds = time(NULL) - intval(vp);
 		vp->flag |= SPECIAL;
 		break;
 	  case V_TMOUT:
@@ -1021,7 +1021,7 @@ unsetspec(struct tbl *vp)
 		/* should not become unspecial */
 		if (tmpdir) {
 			afree(tmpdir, APERM);
-			tmpdir = (char *) 0;
+			tmpdir = NULL;
 		}
 		break;
 	  case V_LINENO:

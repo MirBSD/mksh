@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/io.c,v 2.3 2004/12/18 18:58:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/io.c,v 2.4 2004/12/18 19:22:29 tg Exp $ */
 /*	$OpenBSD: io.c,v 1.13 2003/11/10 21:26:39 millert Exp $	*/
 
 /*
@@ -77,7 +77,7 @@ bi_errorf(const char *fmt, ...)
 	if ((builtin_flag & SPEC_BI)
 	    || (Flag(FPOSIX) && (builtin_flag & KEEPASN)))
 	{
-		builtin_argv0 = (char *) 0;
+		builtin_argv0 = NULL;
 		unwind(LERROR);
 	}
 }
@@ -433,13 +433,13 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	len = strlen(dir) + 3 + 20 + 20 + 1;
 	tp = (struct temp *) alloc(sizeof(struct temp) + len, ap);
 	tp->name = path = (char *) &tp[1];
-	tp->shf = (struct shf *) 0;
+	tp->shf = NULL;
 	tp->type = type;
 #ifdef	HAVE_MKSTEMP
 	shf_snprintf(path, len, "%s/shXXXXXXXX", dir);
 	fd = mkstemp(path);
 	if (fd >= 0)
-		tp->shf = shf_fdopen(fd, SHF_WR, (struct shf *) 0);
+		tp->shf = shf_fdopen(fd, SHF_WR, NULL);
 #else
 	while (1) {
 		/* Note that temp files need to fit 8.3 DOS limits */
@@ -450,7 +450,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 		 */
 		fd = open(path, O_RDWR|O_CREAT|O_EXCL|O_TRUNC, 0600);
 		if (fd >= 0) {
-			tp->shf = shf_fdopen(fd, SHF_WR, (struct shf *) 0);
+			tp->shf = shf_fdopen(fd, SHF_WR, NULL);
 			break;
 		}
 		if (errno != EINTR

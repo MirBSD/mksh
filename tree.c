@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/tree.c,v 2.2 2004/12/18 18:58:32 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/tree.c,v 2.3 2004/12/18 19:22:30 tg Exp $ */
 /*	$OpenBSD: tree.c,v 1.10 2002/02/27 19:37:09 dhartmei Exp $	*/
 
 /*
@@ -7,7 +7,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirBSD: src/bin/ksh/tree.c,v 2.2 2004/12/18 18:58:32 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/tree.c,v 2.3 2004/12/18 19:22:30 tg Exp $");
 
 #define INDENT	4
 
@@ -553,7 +553,7 @@ wdstrip(const char *wp)
 	struct shf shf;
 	int c;
 
-	shf_sopen((char *) 0, 32, SHF_WR | SHF_DYNAMIC, &shf);
+	shf_sopen(NULL, 32, SHF_WR | SHF_DYNAMIC, &shf);
 
 	/* problems:
 	 *	`...` -> $(...)
@@ -629,11 +629,11 @@ iocopy(struct ioword **iow, Area *ap)
 		q = (struct ioword *) alloc(sizeof(*p), ap);
 		ior[i] = q;
 		*q = *p;
-		if (p->name != (char *) 0)
+		if (p->name != NULL)
 			q->name = wdcopy(p->name, ap);
-		if (p->delim != (char *) 0)
+		if (p->delim != NULL)
 			q->delim = wdcopy(p->delim, ap);
-		if (p->heredoc != (char *) 0)
+		if (p->heredoc != NULL)
 			q->heredoc = str_save(p->heredoc, ap);
 	}
 	ior[i] = NULL;

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/c_sh.c,v 2.4 2004/12/18 18:58:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/c_sh.c,v 2.5 2004/12/18 19:22:28 tg Exp $ */
 /*	$OpenBSD: c_sh.c,v 1.17 2003/03/13 09:03:07 deraadt Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include "ksh_time.h"
 #include "ksh_times.h"
 
-__RCSID("$MirBSD: src/bin/ksh/c_sh.c,v 2.4 2004/12/18 18:58:30 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/c_sh.c,v 2.5 2004/12/18 19:22:28 tg Exp $");
 
 static	char *clocktos(clock_t t);
 
@@ -200,7 +200,7 @@ c_dot(char **wp)
 			;
 	} else {
 		argc = 0;
-		argv = (char **) 0;
+		argv = NULL;
 	}
 	i = include(file, argc, argv, 0);
 	if (i < 0) { /* should not happen */
@@ -219,8 +219,8 @@ c_wait(char **wp)
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return 1;
 	wp += builtin_opt.optind;
-	if (*wp == (char *) 0) {
-		while (waitfor((char *) 0, &sig) >= 0)
+	if (*wp == NULL) {
+		while (waitfor(NULL, &sig) >= 0)
 			;
 		rv = sig;
 	} else {
@@ -348,7 +348,7 @@ c_read(char **wp)
 						/* set prompt in case this is
 						 * called from .profile or $ENV
 						 */
-						set_prompt(PS2, (Source *) 0);
+						set_prompt(PS2, NULL);
 						pprompt(prompt, 0);
 					}
 				} else if (c != EOF)
@@ -540,7 +540,7 @@ int
 c_brkcont(char **wp)
 {
 	int n, quit;
-	struct env *ep, *last_ep = (struct env *) 0;
+	struct env *ep, *last_ep = NULL;
 	char *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/shf.c,v 2.2 2004/12/13 19:05:09 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/shf.c,v 2.3 2004/12/18 19:22:30 tg Exp $ */
 /*	$OpenBSD: shf.c,v 1.8 2003/02/28 09:45:09 jmc Exp $	*/
 
 /*
@@ -9,7 +9,7 @@
 #include "ksh_stat.h"
 #include "ksh_limval.h"
 
-__RCSID("$MirBSD: src/bin/ksh/shf.c,v 2.2 2004/12/13 19:05:09 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/shf.c,v 2.3 2004/12/18 19:22:30 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -96,7 +96,7 @@ shf_fdopen(int fd, int sflags, struct shf *shf)
 			shf->buf = (unsigned char *) alloc(bsize, ATEMP);
 			sflags |= SHF_ALLOCB;
 		} else
-			shf->buf = (unsigned char *) 0;
+			shf->buf = NULL;
 	} else {
 		shf = (struct shf *) alloc(sizeof(struct shf) + bsize, ATEMP);
 		shf->buf = (unsigned char *) &shf[1];
@@ -520,7 +520,7 @@ shf_getse(char *buf, int bsize, struct shf *shf)
 		internal_errorf(1, "shf_getse: flags %x", shf->flags);
 
 	if (bsize <= 0)
-		return (char *) 0;
+		return NULL;
 
 	--bsize;	/* save room for null */
 	do {
@@ -749,7 +749,7 @@ shf_smprintf(const char *fmt, ...)
 	struct shf shf;
 	va_list args;
 
-	shf_sopen((char *) 0, 0, SHF_WR|SHF_DYNAMIC, &shf);
+	shf_sopen(NULL, 0, SHF_WR|SHF_DYNAMIC, &shf);
 	SH_VA_START(args, fmt);
 	shf_vfprintf(&shf, fmt, args);
 	va_end(args);

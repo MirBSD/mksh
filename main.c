@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/main.c,v 2.9 2004/12/18 19:17:10 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/main.c,v 2.10 2004/12/18 19:22:30 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -15,7 +15,7 @@
  * shell version
  */
 
-__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.9 2004/12/18 19:17:10 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.10 2004/12/18 19:22:30 tg Exp $");
 
 const char ksh_version[] =
 	"@(#)PD KSH v5.2.14 MirOS R20 in "
@@ -151,7 +151,7 @@ main(int argc, char *argv[])
 	def_path = DEFAULT__PATH;
 #if defined(HAVE_CONFSTR) && defined(_CS_PATH)
 	{
-		size_t len = confstr(_CS_PATH, (char *) 0, 0);
+		size_t len = confstr(_CS_PATH, NULL, 0);
 		char *new;
 
 		if (len > 0) {
@@ -221,7 +221,7 @@ main(int argc, char *argv[])
 		    || stat(pwd, &s_pwd) < 0 || stat(".", &s_dot) < 0
 		    || s_pwd.st_dev != s_dot.st_dev
 		    || s_pwd.st_ino != s_dot.st_ino)
-			pwdx = (char *) 0;
+			pwdx = NULL;
 		set_current_wd(pwdx);
 		if (current_wd[0])
 			simplify_path(current_wd);
@@ -267,7 +267,7 @@ main(int argc, char *argv[])
 
 	/* this to note if monitor is set on command line (see below) */
 	Flag(FMONITOR) = 127;
-	argi = parse_args(argv, OF_CMDLINE, (int *) 0);
+	argi = parse_args(argv, OF_CMDLINE, NULL);
 	if (argi < 0)
 		exit(1);
 
@@ -291,13 +291,13 @@ main(int argc, char *argv[])
 		s = pushs(SSTDIN, ATEMP);
 		s->file = "<stdin>";
 		s->u.shf = shf_fdopen(0, SHF_RD | can_seek(0),
-				      (struct shf *) 0);
+				      NULL);
 		if (isatty(0) && isatty(2)) {
 			Flag(FTALKING) = Flag(FTALKING_I) = 1;
 			/* The following only if isatty(0) */
 			s->flags |= SF_TTY;
 			s->u.shf->flags |= SHF_INTERRUPT;
-			s->file = (char *) 0;
+			s->file = NULL;
 		}
 	}
 
@@ -337,14 +337,14 @@ main(int argc, char *argv[])
 		warningf(FALSE, "Cannot determine current working directory");
 
 	if (Flag(FLOGIN)) {
-		include(KSH_SYSTEM_PROFILE, 0, (char **) 0, 1);
+		include(KSH_SYSTEM_PROFILE, 0, NULL, 1);
 		if (!Flag(FPRIVILEGED))
 			include(substitute("$HOME/.profile", 0), 0,
-				(char **) 0, 1);
+				NULL, 1);
 	}
 
 	if (Flag(FPRIVILEGED))
-		include("/etc/suid_profile", 0, (char **) 0, 1);
+		include("/etc/suid_profile", 0, NULL, 1);
 	else {
 		char *env_file;
 
@@ -358,7 +358,7 @@ main(int argc, char *argv[])
 #endif /* DEFAULT_ENV */
 		env_file = substitute(env_file, DOTILDE);
 		if (*env_file != '\0')
-			include(env_file, 0, (char **) 0, 1);
+			include(env_file, 0, NULL, 1);
 	}
 
 	if (is_restricted(argv[0]) || is_restricted(str_val(global("SHELL"))))
@@ -367,7 +367,7 @@ main(int argc, char *argv[])
 		static const char *const restr_com[] = {
 						"typeset", "-r", "PATH",
 						    "ENV", "SHELL",
-						(char *) 0
+						NULL
 					    };
 		shcomexec((char **) restr_com);
 		/* After typeset command... */
@@ -403,7 +403,7 @@ include(const char *name, int argc, char **argv, int intr_ok)
 		old_argv = e->loc->argv;
 		old_argc = e->loc->argc;
 	} else {
-		old_argv = (char **) 0;
+		old_argv = NULL;
 		old_argc = 0;
 	}
 	newenv(E_INCL);
@@ -698,10 +698,10 @@ cleanup_parents_env(void)
 				if (ep->savefd[fd] > 0)
 					close(ep->savefd[fd]);
 			afree(ep->savefd, &ep->area);
-			ep->savefd = (short *) 0;
+			ep->savefd = NULL;
 		}
 	}
-	e->oenv = (struct env *) 0;
+	e->oenv = NULL;
 }
 
 /* Called just before an execve cleanup stuff temporary files */

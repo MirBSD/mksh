@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: src/bin/ksh/siglist.sh,v 2.1 2004/12/10 18:09:42 tg Exp $
+# $MirBSD: src/bin/ksh/siglist.sh,v 2.2 2004/12/18 19:22:30 tg Exp $
 # $OpenBSD: siglist.sh,v 1.4 1997/06/19 13:58:47 kstailey Exp $
 #
 # Script to generate a sorted, complete list of signals, suitable
@@ -31,7 +31,7 @@ sed -n 's/{ QwErTy/{/p' < $out | awk '{print NR, $0}' | sort +2n +0n |
 		n = $2;
 		if (n > 0 && n != last) {
 		    while (++last < n) {
-			printf "\t{ %d , (char *) 0, `Signal %d` } ,\n", last, last;
+			printf "\t{ %d , NULL, `Signal %d` } ,\n", last, last;
 		    }
 		    print;
 		}

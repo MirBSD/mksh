@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/eval.c,v 2.4 2004/12/14 15:54:23 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/eval.c,v 2.5 2004/12/18 19:22:29 tg Exp $ */
 /*	$OpenBSD: eval.c,v 1.18 2004/12/13 16:37:06 millert Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include "ksh_dir.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/eval.c,v 2.4 2004/12/14 15:54:23 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/eval.c,v 2.5 2004/12/18 19:22:29 tg Exp $");
 
 /*
  * string expansion
@@ -198,7 +198,7 @@ expand(char *cp, XPtrV *wp, int f)
 	doblank = 0;
 	make_magic = 0;
 	word = (f&DOBLANK) ? IFS_WS : IFS_WORD;
-	st_head.next = (SubType *) 0;
+	st_head.next = NULL;
 	st = &st_head;
 
 	while (1) {
@@ -305,7 +305,7 @@ expand(char *cp, XPtrV *wp, int f)
 
 						newst = (SubType *) alloc(
 							sizeof(SubType), ATEMP);
-						newst->next = (SubType *) 0;
+						newst->next = NULL;
 						newst->prev = st;
 						st->next = newst;
 					}
@@ -713,7 +713,7 @@ varsub(Expand *xp, char *sp, char *word, int *stypep, int *slenp)
 	if (sp[0] == '\0')	/* Bad variable name */
 		return -1;
 
-	xp->var = (struct tbl *) 0;
+	xp->var = NULL;
 
 	/* ${#var}, string length or array size */
 	if (sp[0] == '#' && (c = sp[1]) != '\0') {
@@ -871,7 +871,7 @@ comsub(Expand *xp, char *cp)
 
 		if ((io->flag&IOTYPE) != IOREAD)
 			errorf("funny $() command: %s",
-				snptreef((char *) 0, 32, "%R", io));
+				snptreef(NULL, 32, "%R", io));
 		shf = shf_open(name = evalstr(io->name, DOTILDE), O_RDONLY, 0,
 			SHF_MAPHI|SHF_CLEXEC);
 		if (shf == NULL)
@@ -880,7 +880,7 @@ comsub(Expand *xp, char *cp)
 	} else {
 		int ofd1, pv[2];
 		openpipe(pv);
-		shf = shf_fdopen(pv[0], SHF_RD, (struct shf *) 0);
+		shf = shf_fdopen(pv[0], SHF_RD, NULL);
 		ofd1 = savefd(1, 0);	/* fd 1 may be closed... */
 		if (pv[1] != 1) {
 			ksh_dup2(pv[1], 1, FALSE);
@@ -1171,7 +1171,7 @@ maybe_expand_tilde(char *p, XString *dsp, char **dpp, int isassign)
 		p += 2;
 	}
 	*tp = '\0';
-	r = (p[0] == EOS || p[0] == CHAR || p[0] == CSUBST) ? tilde(Xstring(ts, tp)) : (char *) 0;
+	r = (p[0] == EOS || p[0] == CHAR || p[0] == CSUBST) ? tilde(Xstring(ts, tp)) : NULL;
 	Xfree(ts, tp);
 	if (r) {
 		while (*r) {
@@ -1207,7 +1207,7 @@ tilde(char *cp)
 		dp = homedir(cp);
 	/* If HOME, PWD or OLDPWD are not set, don't expand ~ */
 	if (dp == null)
-		dp = (char *) 0;
+		dp = NULL;
 	return dp;
 }
 
@@ -1252,7 +1252,7 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 
 	/* find matching close brace, if any */
 	if (p) {
-		comma = (char *) 0;
+		comma = NULL;
 		count = 1;
 		for (p += 2; *p && count; p++) {
 			if (ISMAGIC(*p)) {

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/history.c,v 2.5 2004/12/18 19:17:10 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/history.c,v 2.6 2004/12/18 19:22:29 tg Exp $ */
 /*	$OpenBSD: history.c,v 1.24 2004/08/03 12:44:59 danh Exp $	*/
 
 /*
@@ -21,7 +21,7 @@
 #include "sh.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/history.c,v 2.5 2004/12/18 19:17:10 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/history.c,v 2.6 2004/12/18 19:22:29 tg Exp $");
 
 #ifndef EASY_HISTORY
 /*	Defines and includes for the complicated case */
@@ -71,10 +71,10 @@ c_fc(char **wp)
 {
 	struct shf *shf;
 	struct temp UNINITIALIZED(*tf);
-	char *p, *editor = (char *) 0;
+	char *p, *editor = NULL;
 	int gflag = 0, lflag = 0, nflag = 0, sflag = 0, rflag = 0;
 	int optc;
-	char *first = (char *) 0, *last = (char *) 0;
+	char *first = NULL, *last = NULL;
 	char **hfirst, **hlast, **hp;
 
 	if (!Flag(FTALKING_I)) {
@@ -130,7 +130,7 @@ c_fc(char **wp)
 
 	/* Substitute and execute command */
 	if (sflag) {
-		char *pat = (char *) 0, *rep = (char *) 0;
+		char *pat = NULL, *rep = NULL;
 
 		if (editor || lflag || nflag || rflag) {
 			bi_errorf("can't use -e, -l, -n, -r with -s (-e -)");
@@ -296,7 +296,7 @@ hist_execute(char *cmd)
 		if ((q = strchr(p, '\n'))) {
 			*q++ = '\0'; /* kill the newline */
 			if (!*q) /* ignore trailing newline */
-				q = (char *) 0;
+				q = NULL;
 		}
 #ifdef EASY_HISTORY
 		if (p != cmd)
@@ -371,7 +371,7 @@ hist_replace(char **hp, const char *pat, const char *rep, int global)
 static char **
 hist_get(const char *str, int approx, int allow_cur)
 {
-	char **hp = (char **) 0;
+	char **hp = NULL;
 	int n;
 
 	if (getn(str, &n)) {
@@ -381,18 +381,18 @@ hist_get(const char *str, int approx, int allow_cur)
 				hp = hist_get_oldest();
 			else {
 				bi_errorf("%s: not in history", str);
-				hp = (char **) 0;
+				hp = NULL;
 			}
 		} else if (hp > histptr) {
 			if (approx)
 				hp = hist_get_newest(allow_cur);
 			else {
 				bi_errorf("%s: not in history", str);
-				hp = (char **) 0;
+				hp = NULL;
 			}
 		} else if (!allow_cur && hp == histptr) {
 			bi_errorf("%s: invalid range", str);
-			hp = (char **) 0;
+			hp = NULL;
 		}
 	} else {
 		int anchored = *str == '?' ? (++str, 0) : 1;
@@ -401,7 +401,7 @@ hist_get(const char *str, int approx, int allow_cur)
 		n = findhist(histptr - history - 1, 0, str, anchored);
 		if (n < 0) {
 			bi_errorf("%s: not in history", str);
-			hp = (char **) 0;
+			hp = NULL;
 		} else
 			hp = &history[n];
 	}
@@ -414,7 +414,7 @@ hist_get_newest(int allow_cur)
 {
 	if (histptr < history || (!allow_cur && histptr == history)) {
 		bi_errorf("no history (yet)");
-		return (char **) 0;
+		return NULL;
 	}
 	if (allow_cur)
 		return histptr;
@@ -427,7 +427,7 @@ hist_get_oldest(void)
 {
 	if (histptr <= history) {
 		bi_errorf("no history (yet)");
-		return (char **) 0;
+		return NULL;
 	}
 	return history;
 }

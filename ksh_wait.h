@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/ksh_wait.h,v 2.1 2004/12/10 18:09:41 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/ksh_wait.h,v 2.2 2004/12/18 19:22:29 tg Exp $ */
 /*	$OpenBSD: ksh_wait.h,v 1.3 1997/06/19 13:58:43 kstailey Exp $	*/
 
 #ifndef KSH_WAIT_H
@@ -49,7 +49,7 @@ typedef int WAIT_T;
 
 #if !defined(HAVE_WAITPID) && defined(HAVE_WAIT3)
   /* always used with p == -1 */
-# define ksh_waitpid(p, s, o)	wait3((s), (o), (struct rusage *) 0)
+# define ksh_waitpid(p, s, o)	wait3((s), (o), NULL)
 #else /* !HAVE_WAITPID && HAVE_WAIT3 */
 # define ksh_waitpid(p, s, o)	waitpid((p), (s), (o))
 #endif /* !HAVE_WAITPID && HAVE_WAIT3 */
