@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/main.c,v 2.2 2004/12/13 16:48:54 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/main.c,v 2.3 2004/12/13 18:53:25 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -11,13 +11,41 @@
 #include "ksh_stat.h"
 #include "ksh_time.h"
 
-__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.2 2004/12/13 16:48:54 tg Exp $");
+/*
+ * shell version
+ */
 
-extern char **environ;
+__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.3 2004/12/13 18:53:25 tg Exp $");
+
+static const char version_param[] =
+#ifdef KSH
+	"KSH_VERSION"
+#else /* KSH */
+	"SH_VERSION"
+#endif /* KSH */
+	;
+
+const char ksh_version[] =
+	"@(#)PD KSH v5.2.14 MirOS R19 in "
+#ifdef MIRBSD_NATIVE
+	"native "
+#endif
+#ifdef KSH
+	"KSH"
+#else
+	"POSIX"
+#endif
+	" mode"
+#ifndef MIRBSD_NATIVE
+	" as mksh"
+#endif
+	;
 
 /*
  * global data
  */
+
+extern char **environ;
 
 static void	reclaim(void);
 static void	remove_temps(struct temp *tp);
@@ -30,14 +58,6 @@ static int	is_restricted(char *name);
 static const char initifs[] = "IFS= \t\n";
 
 static const char initsubs[] = "${PS2=> } ${PS3=#? } ${PS4=+ }";
-
-static const char version_param[] =
-#ifdef KSH
-	"KSH_VERSION"
-#else /* KSH */
-	"SH_VERSION"
-#endif /* KSH */
-	;
 
 static const char *const initcoms [] = {
 	"typeset", "-x", "SHELL", "PATH", "HOME", NULL,

@@ -1,18 +1,18 @@
-$MirBSD: src/bin/ksh/NOTES,v 2.2 2004/12/13 17:33:35 tg Exp $
+$MirBSD: src/bin/ksh/NOTES,v 2.3 2004/12/13 18:53:25 tg Exp $
 $OpenBSD: NOTES,v 1.9 2003/10/26 15:07:25 jmc Exp $
 
 General features of at&t ksh88 that are not (yet) in pdksh:
-    - exported aliases and functions (not in ksh93).
-    - set -t.
-    - signals/traps not cleared during functions.
-    - trap DEBUG, local ERR and EXIT traps in functions.
-    - ERRNO parameter.
-    - doesn't have posix file globbing (eg, [[:alpha:]], etc.).
-    - use of an 'agent' to execute unreadable/setuid/setgid shell scripts
-      (don't ask).
-    - read/select aren't hooked in to the command line editor
-    - the last command of a pipeline is not run in the parent shell
-    - MAIL, MAILPATH, MAILCHECK have been removed in mirbsdksh.
+	- exported aliases and functions (not in ksh93).
+	- set -t.
+	- signals/traps not cleared during functions.
+	- trap DEBUG, local ERR and EXIT traps in functions.
+	- ERRNO parameter.
+	- doesn't have posix file globbing (eg, [[:alpha:]], etc.).
+	- use of an 'agent' to execute unreadable/setuid/setgid shell scripts
+	  (don't ask).
+	- read/select aren't hooked in to the command line editor
+	- the last command of a pipeline is not run in the parent shell
+	- MAIL, MAILPATH, MAILCHECK have been removed in mirbsdksh.
 
 Known bugs (see also BUG-REPORTS and PROJECTS files):
     Variable parsing, Expansion:

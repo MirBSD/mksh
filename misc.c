@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/misc.c,v 2.1 2004/12/10 18:09:41 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/misc.c,v 2.2 2004/12/13 18:53:25 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.20 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -10,8 +10,10 @@
 #ifdef HAVE_LIMITS_H
 # include <limits.h>
 #endif
+#include <sys/ioctl.h>
+#include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.1 2004/12/10 18:09:41 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.2 2004/12/13 18:53:25 tg Exp $");
 
 #ifndef UCHAR_MAX
 # define UCHAR_MAX	0xFF
@@ -1334,10 +1336,60 @@ ksh_get_wd(char *buf, int bsize)
 }
 
 #ifdef KSH
-#include "ksh_stat.h"
+
+#if !defined(HAVE_SETSID)
+#define NO_CHVT "setsid not implemented"
+#elif !defined(TIOCSCTTY)
+#define NO_CHVT "no TIOCSCTTY ioctl"
+#else
+static char *
+chvt(char *f)
+{
+	int fd;
+
+	if (chown(f, 0, 0))
+		return "chown";
+	if (chmod(f, 0600))
+		return "chmod";
+#if defined(HAVE_REVOKE) && !defined(linux)
+	if (revoke(f))
+		return "revoke";
+#endif
+
+	if ((fd = open(f, O_RDWR)) == -1) {
+		sleep(1);
+		if ((fd = open(f, O_RDWR)) == -1)
+			return "open";
+	}
+	switch (fork()) {
+	case -1:
+		return "fork";
+	case 0:
+		break;
+	default:
+		_exit(0);
+	}
+	if (setsid() == -1)
+		return "setsid";
+	if (ioctl(fd, TIOCSCTTY, NULL) == -1)
+		return "ioctl";
+	dup2(fd, 0);
+	dup2(fd, 1);
+	dup2(fd, 2);
+	if (fd > 2)
+		close(fd);
+
+	return NULL;
+}
+#endif
+
 static int
 parse_T(char *fn)
 {
+#ifdef NO_CHVT
+	warningf(0, "chvt: %s", NO_CHVT);
+	return -1;
+#else
 	char *rv, dv[20];
 	struct stat sb;
 
@@ -1361,5 +1413,6 @@ parse_T(char *fn)
 		return -1;
 	}
 	return 0;
+#endif
 }
 #endif

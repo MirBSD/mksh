@@ -1,4 +1,4 @@
-dnl $MirBSD: src/bin/ksh/aclocal.m4,v 2.1 2004/12/10 18:09:40 tg Exp $
+dnl $MirBSD: src/bin/ksh/aclocal.m4,v 2.2 2004/12/13 18:53:25 tg Exp $
 dnl-
 dnl Copyright (c) 2004
 dnl	Thorsten "mirabile" Glaser <tg@66h.42h.de>
@@ -20,7 +20,7 @@ dnl of this work, even if advised of the possibility of such damage.
 dnl-
 dnl Based upon code by:
 dnl Copyright (C) 1996, Memorial University of Newfoundland.
-dnl ------------------------------------------------------------
+dnl-
 dnl
 dnl
 dnl Like AC_CHECK_TYPE(), only
@@ -46,7 +46,6 @@ $3
   fi
   ])dnl
  ])dnl
-dnl
 dnl
 dnl
 dnl Check for memmove and if not found, check for bcopy.  AC_CHECK_FUNCS()
@@ -114,7 +113,6 @@ AC_DEFUN(KSH_MEMMOVE,
  ])dnl
 dnl
 dnl
-dnl
 dnl Check for sigsetjmp()/siglongjmp() and _setjmp()/_longjmp() pairs.
 dnl Can't use simple library check as QNX 422 has _setjmp() but not _longjmp()
 dnl (go figure).
@@ -133,7 +131,6 @@ AC_DEFUN(KSH_SETJMP,
     fi
   fi
  ])dnl
-dnl
 dnl
 dnl
 dnl Check for memset function.   AC_CHECK_FUNCS() not used 'cause it confuses
@@ -156,7 +153,6 @@ AC_DEFUN(KSH_MEMSET,
     AC_DEFINE(HAVE_MEMSET)
   fi
  ])dnl
-dnl
 dnl
 dnl
 dnl Check for rlim_t in a few places, and if not found, figure out the
@@ -191,7 +187,6 @@ AC_DEFUN(KSH_RLIM_CHECK,
     AC_DEFINE_UNQUOTED(rlim_t, $ksh_cv_rlim_check)
   fi
  ])dnl
-dnl
 dnl
 dnl
 AC_DEFUN(KSH_DEV_FD,
@@ -229,7 +224,6 @@ AC_DEFUN(KSH_DEV_FD,
  ])dnl
 dnl
 dnl
-dnl
 dnl  Check for sys_siglist[] declaration and existence.
 AC_DEFUN(KSH_SYS_SIGLIST,
  [AC_DECL_SYS_SIGLIST
@@ -248,7 +242,6 @@ AC_DEFUN(KSH_SYS_SIGLIST,
     fi
   fi
  ])dnl
-dnl
 dnl
 dnl
 dnl  Check for sys_errlist[] declaration and existence.
@@ -276,7 +269,6 @@ AC_DEFUN(KSH_SYS_ERRLIST,
  ])dnl
 dnl
 dnl
-dnl
 dnl  Check if time() declared in time.h
 AC_DEFUN(KSH_TIME_DECLARED,
  [AC_CACHE_CHECK(time() declaration in time.h, ksh_cv_time_delcared,
@@ -287,7 +279,6 @@ AC_DEFUN(KSH_TIME_DECLARED,
     AC_DEFINE(TIME_DECLARED)
   fi
  ])dnl
-dnl
 dnl
 dnl
 dnl Check for working times (ie, it exists and doesn't always return 0).
@@ -329,7 +320,6 @@ AC_DEFUN(KSH_TIMES_CHECK,
  ])dnl
 dnl
 dnl
-dnl
 AC_DEFUN(KSH_C_VOID,
  [AC_CACHE_CHECK(if compiler understands void, ksh_cv_c_void,
     [AC_TRY_COMPILE(
@@ -346,7 +336,6 @@ AC_DEFUN(KSH_C_VOID,
  ])dnl
 dnl
 dnl
-dnl
 dnl Early MIPS compilers (used in Ultrix 4.2) don't like
 dnl "int x; int *volatile a = &x; *a = 0;"
 AC_DEFUN(KSH_C_VOLATILE,
@@ -361,7 +350,6 @@ AC_DEFUN(KSH_C_VOLATILE,
     AC_DEFINE(volatile, )
   fi
  ])dnl
-dnl
 dnl
 dnl
 dnl Check if C compiler understands gcc's __attribute((...)).
@@ -386,7 +374,6 @@ void test_uk() { return; }
     AC_DEFINE(HAVE_GCC_FUNC_ATTR)
   fi
  ])dnl
-dnl
 dnl
 dnl
 dnl Check if dup2() does not clear the close on exec flag
@@ -426,7 +413,6 @@ main()
     AC_DEFINE(DUP2_BROKEN)
   fi
  ])dnl
-dnl
 dnl
 dnl
 dnl Check type of signal routines (posix, 4.2bsd, 4.1bsd or v7)
@@ -565,7 +551,6 @@ AC_DEFUN(KSH_SIGNAL_CHECK,
  ])dnl
 dnl
 dnl
-dnl
 dnl What kind of process groups: POSIX, BSD, SYSV or none
 dnl	BSD uses setpgrp(pid, pgrp), getpgrp(pid)
 dnl	POSIX uses setpid(pid, pgrp), getpgrp(void)
@@ -668,7 +653,6 @@ AC_DEFUN(KSH_PGRP_CHECK,
  ])dnl
 dnl
 dnl
-dnl
 dnl Check if the pgrp of setpgrp() can't be the pid of a zombie process.
 dnl On some systems, the kernel doesn't count zombie processes when checking
 dnl if a process group is valid, which can cause problems in creating the
@@ -730,7 +714,6 @@ AC_DEFUN(KSH_PGRP_SYNC,
  ])dnl
 dnl
 dnl
-dnl
 dnl Check to see if opendir will open non-directories (not a nice thing)
 AC_DEFUN(KSH_OPENDIR_CHECK,
  [AC_CACHE_CHECK(if opendir() fails to open non-directories, ksh_cv_opendir_ok,
@@ -779,7 +762,6 @@ AC_DEFUN(KSH_OPENDIR_CHECK,
  ])dnl
 dnl
 dnl
-dnl
 dnl Like AC_HAVE_HEADER(unistd.h) but only defines HAVE_UNISTD_H if
 dnl the header file is sane (MIPS RISC/os 5.0 (and later?) has a unistd.h
 dnl in the bsd43 environ that is incorrect - it defines POSIX_VERSION even
@@ -797,7 +779,6 @@ AC_DEFUN(KSH_UNISTD_H,
     AC_DEFINE(HAVE_UNISTD_H)
   fi
  ])dnl
-dnl
 dnl
 dnl
 dnl Several OSes need to be detected and symbols defined so the shell can
@@ -1024,7 +1005,6 @@ README file for work arounds.]))dnl
  ])dnl
 dnl
 dnl
-dnl
 dnl Some systems (eg, SunOS 4.0.3) have <termios.h> and <termio.h> but don't
 dnl have the related functions/defines (eg, tcsetattr(), TCSADRAIN, etc.)
 dnl or the functions don't work well with tty process groups.  Sun's bad
@@ -1079,7 +1059,6 @@ dnl       AC_DEFINE(SYS_IOCTL_WITH_TERMIO)
 dnl     fi
   fi
  ])dnl
-dnl
 dnl
 dnl
 dnl  Check if lstat() is available - special test needed 'cause lstat only

@@ -1,13 +1,13 @@
-$MirBSD: src/bin/ksh/README,v 2.2 2004/12/13 17:33:35 tg Exp $
+$MirBSD: src/bin/ksh/README,v 2.3 2004/12/13 18:53:25 tg Exp $
 
 This is the README for mirbsdksh, developed as part of the MirBSD
 operating system at The MirOS Project, and produced portably.
 Legal information is provided about a screenpage farther down.
 
-To build on MirOS only, issue 'make obj && make depend && make'.
+To build mksh on MirOS, issue 'make obj && make depend && make'.
 
-To build on other systems, consult http://wiki.mirbsd.de/MirbsdKsh
-or read Build.sh first.
+To build mksh on other operating systems, read Builsd.sh first
+or consult http://wiki.mirbsd.de/MirbsdKsh for further infos.
 
 Set the CC, CFLAGS, CPPFLAGS and LDFLAGS environment variables
 to your likes. Don't complain if anything doesn't work.
@@ -16,8 +16,8 @@ to your likes. Don't complain if anything doesn't work.
 LEGAL INFORMATION
 
 This package as a whole is placed under the MirOS licence template
-as contained in the "version.c" source code file in this distribu-
-tion, by having the project leader asserting a collective copyright.
+as contained in the "Build.sh" source file in this distribution,
+by having the project leader asserting a collective copyright.
 
 The files alloc.c (Marc Espie), ksh.1tbl and sh.1tbl (University of
 California, Berkeley) are provided under a 2-clause or 3-clause BSD
@@ -48,11 +48,6 @@ machines.  For example, in the CS dept. of MUN, pdksh is installed on a
 variety of machines including Suns, HPs, DecStations, pcs running Linux,
 etc., and is the login shell of ~5200 users.
 
-Note that pdksh is provided AS IS, with NO WARRANTY, either expressed or
-implied.  Also note that although the bulk of the code in pdksh is in the
-public domain, some files are copyrighted (but freely distributable) and
-subject to certain conditions.
-
 If you would like to be notified via email of new releases as they become
 available, send mail to pdksh-request@cs.mun.ca with subject
 "send release notifications" (or "don't send release notifications" to stop
@@ -60,12 +55,7 @@ them).
 
 Newer versions of pdksh may be available from
 	ftp://ftp.cs.mun.ca:/pub/pdksh/
-you may want to check for one if you run into any problems, as the problem may
-already be fixed (you can get new release notifications automatically - see
-above).  The file pdksh-unstable-XXX.tar.gz has the very latest version which
-may not compile (it is generated automatically when changes are detected
-in the main source repository) - it is for those who want to follow
-changes as they are made.
+[...]
 
 You can send bug reports, fixes, and enhancements to pdksh@cs.mun.ca (please
 don't assume I will see bug reports that are posted to some newsgroup or

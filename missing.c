@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/missing.c,v 2.1 2004/12/10 18:09:41 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/missing.c,v 2.2 2004/12/13 18:53:25 tg Exp $ */
 /*	$OpenBSD: missing.c,v 1.5 2003/05/16 18:49:46 jsyn Exp $	*/
 
 /*
@@ -8,6 +8,8 @@
 #include "sh.h"
 #include "ksh_stat.h"
 #include "ksh_dir.h"
+
+__RCSID("$MirBSD: src/bin/ksh/missing.c,v 2.2 2004/12/13 18:53:25 tg Exp $");
 
 #ifndef HAVE_MEMSET
 void *
@@ -289,3 +291,67 @@ dup2(oldd, newd)
 	return fcntl(oldd, F_DUPFD, newd);
 }
 #endif /* !HAVE_DUP2 */
+
+/*
+ * Random functions
+ */
+
+#ifndef HAVE_SRANDOM
+#undef HAVE_RANDOM
+#endif
+
+#ifdef KSH
+
+int rnd_state;
+
+void
+rnd_seed(long newval)
+{
+	rnd_put(newval);
+	rnd_state = 0;
+}
+
+long
+rnd_get(void)
+{
+#ifdef HAVE_ARC4RANDOM
+	if (!rnd_state)
+		return arc4random() & 0x7FFF;
+#endif
+#ifdef HAVE_RANDOM
+	return random() & 0x7FFF;
+#else
+	return rand();
+#endif
+}
+
+void
+rnd_put(long newval)
+{
+	long sv;
+
+	rnd_state = 1 | rnd_get();
+	sv = (rnd_get() << (newval & 7)) ^ newval;
+
+#if defined(HAVE_ARC4RANDOM_PUSH)
+	arc4random_push(sv);
+#elif defined(HAVE_ARC4RANDOM_ADDRANDOM)
+	arc4random_addrandom((char *)&sv, sizeof(sv));
+#endif
+#ifdef HAVE_ARC4RANDOM
+	sv ^= arc4random();
+#endif
+
+#ifdef HAVE_RANDOM
+	srandom(sv);
+#else
+	srand(sv);
+#endif
+
+	while (rnd_state) {
+		rnd_get();
+		rnd_state >>= 1;
+	}
+	rnd_state = 1;
+}
+#endif /* def KSH */

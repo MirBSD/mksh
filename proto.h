@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/proto.h,v 2.2 2004/12/13 16:48:54 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/proto.h,v 2.3 2004/12/13 18:53:25 tg Exp $ */
 /*	$OpenBSD: proto.h,v 1.11 2003/05/16 19:58:57 jsyn Exp $	*/
 /*	$From: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $ */
 
@@ -54,8 +54,6 @@ int 	c_exec(char **wp);
 int 	c_builtin(char **wp);
 /* c_test.c */
 int 	c_test(char **wp);
-/* chvt.c */
-char *	chvt(char *);
 /* edit.c: most prototypes in edit.h */
 void 	x_init(void);
 int 	x_read(char *buf, size_t len);
@@ -205,16 +203,16 @@ char	*str_zcpy(char *dst, const char *src, int dsize);
 int	blocking_read(int fd, char *buf, int nbytes);
 int	reset_nonblock(int fd);
 char	*ksh_get_wd(char *buf, int bsize);
+/* missing.c */
+long	rnd_get(void);
+void	rnd_put(long);
+void	rnd_seed(long);
 /* path.c */
 int	make_path(const char *cwd, const char *file,
 			      char **pathlist, XString *xsp, int *phys_pathp);
 void	simplify_path(char *path);
 char	*get_phys_path(const char *path);
 void	set_current_wd(char *path);
-/* rnd.c */
-long	rnd_get(void);
-void	rnd_put(long);
-void	rnd_seed(long);
 /* syn.c */
 void 	initkeywords(void);
 struct op * compile(Source *s);
