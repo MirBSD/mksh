@@ -1,4 +1,4 @@
-# $MirOS: src/bin/ksh/Makefile,v 1.1.7.1 2005/03/06 15:42:53 tg Exp $
+# $MirOS: src/bin/ksh/Makefile,v 1.2 2005/03/15 18:58:32 tg Exp $
 # $OpenBSD: Makefile,v 1.18 2004/02/16 19:07:19 deraadt Exp $
 
 PROG=	ksh
@@ -15,7 +15,7 @@ LINKS=	${BINDIR}/ksh ${BINDIR}/rksh
 LINKS+=	${BINDIR}/ksh ${BINDIR}/sh
 MLINKS=	ksh.1 rksh.1 ksh.1 ulimit.1
 
-.depend emacs.o: emacs.out
+beforedepend: emacs.out
 
 emacs.out: emacs.c
 	${SHELL} ${.CURDIR}/emacs-gen.sh ${.CURDIR}/emacs.c >emacs.out
