@@ -1,5 +1,5 @@
-/* $MirBSD: jobs.c,v 1.4 2004/05/24 19:56:11 tg Stab $ */
-/* $OpenBSD: jobs.c,v 1.21 2003/11/10 21:26:39 millert Exp $	*/
+/**	$MirBSD: jobs.c,v 1.5 2004/09/21 11:57:10 tg Exp $ */
+/*	$OpenBSD: jobs.c,v 1.21 2003/11/10 21:26:39 millert Exp $	*/
 
 /*
  * Process and job control

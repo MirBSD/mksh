@@ -1,5 +1,5 @@
-/* $MirBSD: ksh_stat.h,v 1.3 2004/05/24 19:56:14 tg Stab $ */
-/* $OpenBSD: ksh_stat.h,v 1.3 1996/10/01 02:05:39 downsj Exp $	*/
+/**	$MirBSD: ksh_stat.h,v 1.4 2004/09/21 11:57:11 tg Exp $ */
+/*	$OpenBSD: ksh_stat.h,v 1.3 1996/10/01 02:05:39 downsj Exp $	*/
 
 /* Wrapper around the ugly sys/stat includes/ifdefs */
 

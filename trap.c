@@ -1,5 +1,5 @@
-/* $MirBSD: trap.c,v 1.2 2004/05/24 19:56:20 tg Stab $ */
-/* $OpenBSD: trap.c,v 1.13 2003/02/28 09:45:09 jmc Exp $	*/
+/**	$MirBSD: trap.c,v 1.3 2004/09/21 11:57:16 tg Exp $ */
+/*	$OpenBSD: trap.c,v 1.13 2003/02/28 09:45:09 jmc Exp $	*/
 
 /*
  * signal handling

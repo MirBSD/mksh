@@ -1,5 +1,5 @@
-/* $MirBSD: ksh_time.h,v 1.2 2004/05/24 19:56:14 tg Stab $ */
-/* $OpenBSD: ksh_time.h,v 1.2 1996/10/01 02:05:40 downsj Exp $	*/
+/**	$MirBSD: ksh_time.h,v 1.3 2004/09/21 11:57:11 tg Exp $ */
+/*	$OpenBSD: ksh_time.h,v 1.2 1996/10/01 02:05:40 downsj Exp $	*/
 
 #ifndef KSH_TIME_H
 # define KSH_TIME_H

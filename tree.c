@@ -1,5 +1,5 @@
-/* $MirBSD: tree.c,v 1.2 2004/05/24 19:56:20 tg Stab $ */
-/* $OpenBSD: tree.c,v 1.10 2002/02/27 19:37:09 dhartmei Exp $	*/
+/**	$MirBSD: tree.c,v 1.3 2004/09/21 11:57:16 tg Exp $ */
+/*	$OpenBSD: tree.c,v 1.10 2002/02/27 19:37:09 dhartmei Exp $	*/
 
 /*
  * command tree climbing

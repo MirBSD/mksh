@@ -1,4 +1,4 @@
-/**	$MirBSD: history.c,v 1.10 2004/09/21 11:33:41 tg Exp $ */
+/**	$MirBSD: history.c,v 1.11 2004/09/21 11:57:09 tg Exp $ */
 /*	$OpenBSD: history.c,v 1.24 2004/08/03 12:44:59 danh Exp $	*/
 
 /*

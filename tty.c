@@ -1,5 +1,5 @@
-/* $MirBSD: tty.c,v 1.2 2004/05/24 19:56:20 tg Stab $ */
-/* $OpenBSD: tty.c,v 1.2 1996/10/01 02:05:51 downsj Exp $	*/
+/**	$MirBSD: tty.c,v 1.3 2004/09/21 11:57:16 tg Exp $ */
+/*	$OpenBSD: tty.c,v 1.2 1996/10/01 02:05:51 downsj Exp $	*/
 
 #include "sh.h"
 #include "ksh_stat.h"

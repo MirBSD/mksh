@@ -1,5 +1,5 @@
-/* $MirBSD: syn.c,v 1.3 2004/05/24 19:56:19 tg Stab $ */
-/* $OpenBSD: syn.c,v 1.14 2003/10/22 07:40:38 jmc Exp $	*/
+/**	$MirBSD: syn.c,v 1.4 2004/09/21 11:57:14 tg Exp $ */
+/*	$OpenBSD: syn.c,v 1.14 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
  * shell parser (C version)

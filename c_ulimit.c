@@ -1,5 +1,5 @@
-/* $MirBSD: c_ulimit.c,v 1.5 2004/05/24 19:55:58 tg Stab $ */
-/* $OpenBSD: c_ulimit.c,v 1.10 2003/10/22 07:40:38 jmc Exp $	*/
+/**	$MirBSD: c_ulimit.c,v 1.6 2004/09/21 11:57:07 tg Exp $ */
+/*	$OpenBSD: c_ulimit.c,v 1.10 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
 	ulimit -- handle "ulimit" builtin

@@ -1,5 +1,5 @@
-/* $MirBSD: missing.c,v 1.2 2004/05/24 19:56:17 tg Stab $ */
-/* $OpenBSD: missing.c,v 1.5 2003/05/16 18:49:46 jsyn Exp $	*/
+/**	$MirBSD: missing.c,v 1.3 2004/09/21 11:57:13 tg Exp $ */
+/*	$OpenBSD: missing.c,v 1.5 2003/05/16 18:49:46 jsyn Exp $	*/
 
 /*
  * Routines which may be missing on some machines

@@ -1,6 +1,6 @@
-/* $MirBSD: table.h,v 1.2 2004/05/24 19:56:19 tg Stab $ */
-/* $OpenBSD: table.h,v 1.5 1999/06/15 01:18:36 millert Exp $	*/
-/* $From: table.h,v 1.3 1994/05/31 13:34:34 michael Exp $ */
+/**	$MirBSD: table.h,v 1.3 2004/09/21 11:57:16 tg Exp $ */
+/*	$OpenBSD: table.h,v 1.5 1999/06/15 01:18:36 millert Exp $	*/
+/*	$From: table.h,v 1.3 1994/05/31 13:34:34 michael Exp $ */
 
 /*
  * generic hashed associative table for commands and variables.

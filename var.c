@@ -1,5 +1,5 @@
-/* $MirBSD: var.c,v 1.7 2004/05/24 19:56:20 tg Stab $ */
-/* $OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
+/**	$MirBSD: var.c,v 1.8 2004/09/21 11:57:17 tg Exp $ */
+/*	$OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
 
 #include "sh.h"
 #include "ksh_time.h"

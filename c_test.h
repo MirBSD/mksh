@@ -1,5 +1,5 @@
-/* $MirBSD: c_test.h,v 1.2 2004/05/24 19:55:58 tg Stab $ */
-/* $OpenBSD: c_test.h,v 1.2 2003/10/22 07:40:38 jmc Exp $	*/
+/**	$MirBSD: c_test.h,v 1.3 2004/09/21 11:57:07 tg Exp $ */
+/*	$OpenBSD: c_test.h,v 1.2 2003/10/22 07:40:38 jmc Exp $	*/
 
 /* Various types of operations.  Keeping things grouped nicely
  * (unary,binary) makes switch() statements more efficient.

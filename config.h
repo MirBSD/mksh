@@ -1,5 +1,5 @@
-/* $MirBSD: config.h,v 1.11 2004/06/03 12:30:38 tg Stab $ */
-/* $OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
+/**	$MirBSD: config.h,v 1.12 2004/09/21 11:57:08 tg Exp $ */
+/*	$OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
  * This is mirbsdksh "config.h" for both MirOS systems, on which it

@@ -1,5 +1,5 @@
-/* $MirBSD: expr.c,v 1.3 2004/05/24 19:56:09 tg Stab $ */
-/* $OpenBSD: expr.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
+/**	$MirBSD: expr.c,v 1.4 2004/09/21 11:57:09 tg Exp $ */
+/*	$OpenBSD: expr.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
  * Korn expression evaluation

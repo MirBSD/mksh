@@ -1,5 +1,5 @@
-/* $MirBSD: alloc.c,v 1.4 2004/05/24 19:55:55 tg Stab $ */
-/* $OpenBSD: alloc.c,v 1.7 2004/02/19 18:51:17 deraadt Exp $	*/
+/**	$MirBSD: alloc.c,v 1.5 2004/09/21 11:57:07 tg Exp $ */
+/*	$OpenBSD: alloc.c,v 1.7 2004/02/19 18:51:17 deraadt Exp $	*/
 
 /*
  * Copyright (c) 2002 Marc Espie.

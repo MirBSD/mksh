@@ -1,5 +1,5 @@
-/* $MirBSD: conf-end.h,v 1.6 2004/05/24 19:55:59 tg Stab $ */
-/* $OpenBSD: conf-end.h,v 1.2 1996/08/25 12:37:58 downsj Exp $	*/
+/**	$MirBSD: conf-end.h,v 1.7 2004/09/21 11:57:07 tg Exp $ */
+/*	$OpenBSD: conf-end.h,v 1.2 1996/08/25 12:37:58 downsj Exp $	*/
 
 /* Include ksh features? */
 /* #define KSH 1 */

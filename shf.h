@@ -1,5 +1,5 @@
-/* $MirBSD: shf.h,v 1.2 2004/05/24 19:56:18 tg Stab $ */
-/* $OpenBSD: shf.h,v 1.2 1999/01/08 20:25:02 millert Exp $	*/
+/**	$MirBSD: shf.h,v 1.3 2004/09/21 11:57:14 tg Exp $ */
+/*	$OpenBSD: shf.h,v 1.2 1999/01/08 20:25:02 millert Exp $	*/
 
 #ifndef SHF_H
 # define SHF_H

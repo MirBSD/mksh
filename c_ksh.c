@@ -1,5 +1,5 @@
-/* $MirBSD: c_ksh.c,v 1.5 2004/09/21 11:37:29 tg Exp $ */
-/* $OpenBSD: c_ksh.c,v 1.18 2004/02/10 13:03:36 jmc Exp $	*/
+/**	$MirBSD: c_ksh.c,v 1.6 2004/09/21 11:57:07 tg Exp $ */
+/*	$OpenBSD: c_ksh.c,v 1.18 2004/02/10 13:03:36 jmc Exp $	*/
 
 /*
  * built-in Korn commands: c_*

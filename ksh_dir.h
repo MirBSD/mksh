@@ -1,5 +1,5 @@
-/* $MirBSD: ksh_dir.h,v 1.2 2004/05/24 19:56:13 tg Stab $ */
-/* $OpenBSD: ksh_dir.h,v 1.1.1.1 1996/08/14 06:19:11 downsj Exp $	*/
+/**	$MirBSD: ksh_dir.h,v 1.3 2004/09/21 11:57:10 tg Exp $ */
+/*	$OpenBSD: ksh_dir.h,v 1.1.1.1 1996/08/14 06:19:11 downsj Exp $	*/
 
 /* Wrapper around the ugly dir includes/ifdefs */
 

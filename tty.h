@@ -1,5 +1,5 @@
-/* $MirBSD: tty.h,v 1.2 2004/05/24 19:56:20 tg Stab $ */
-/* $OpenBSD: tty.h,v 1.2 1996/11/21 07:59:36 downsj Exp $	*/
+/**	$MirBSD: tty.h,v 1.3 2004/09/21 11:57:16 tg Exp $ */
+/*	$OpenBSD: tty.h,v 1.2 1996/11/21 07:59:36 downsj Exp $	*/
 
 /*
 	tty.h -- centralized definitions for a variety of terminal interfaces

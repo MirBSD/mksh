@@ -1,5 +1,5 @@
-/* $MirBSD: exec.c,v 1.2 2004/05/24 19:56:07 tg Stab $ */
-/* $OpenBSD: exec.c,v 1.31 2003/12/15 05:25:52 otto Exp $	*/
+/**	$MirBSD: exec.c,v 1.3 2004/09/21 11:57:08 tg Exp $ */
+/*	$OpenBSD: exec.c,v 1.31 2003/12/15 05:25:52 otto Exp $	*/
 
 /*
  * execute command tree

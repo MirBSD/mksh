@@ -1,6 +1,6 @@
-/* $MirBSD: edit.h,v 1.2 2004/05/24 19:56:05 tg Stab $ */
-/* $OpenBSD: edit.h,v 1.3 1999/11/14 22:04:02 d Exp $	*/
-/* $From: edit.h,v 1.2 1994/05/19 18:32:40 michael Exp michael $ */
+/**	$MirBSD: edit.h,v 1.3 2004/09/21 11:57:08 tg Exp $ */
+/*	$OpenBSD: edit.h,v 1.3 1999/11/14 22:04:02 d Exp $	*/
+/*	$From: edit.h,v 1.2 1994/05/19 18:32:40 michael Exp michael $ */
 
 /* some useful #defines */
 #ifdef EXTERN

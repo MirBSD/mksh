@@ -1,5 +1,5 @@
-/* $MirBSD: io.c,v 1.4 2004/05/24 19:56:10 tg Stab $ */
-/* $OpenBSD: io.c,v 1.13 2003/11/10 21:26:39 millert Exp $	*/
+/**	$MirBSD: io.c,v 1.5 2004/09/21 11:57:09 tg Exp $ */
+/*	$OpenBSD: io.c,v 1.13 2003/11/10 21:26:39 millert Exp $	*/
 
 /*
  * shell buffered IO and formatted output
