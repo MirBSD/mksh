@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/history.c,v 2.7 2004/12/28 22:32:08 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: history.c,v 1.24 2004/08/03 12:44:59 danh Exp $	*/
 
 /*
@@ -21,7 +21,7 @@
 #include "sh.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/history.c,v 2.7 2004/12/28 22:32:08 tg Exp $");
+__RCSID("$MirOS$");
 
 #ifndef EASY_HISTORY
 /*	Defines and includes for the complicated case */

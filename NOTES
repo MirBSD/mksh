@@ -1,4 +1,4 @@
-$MirBSD: src/bin/ksh/NOTES,v 2.3 2004/12/13 18:53:25 tg Exp $
+$MirOS$
 $OpenBSD: NOTES,v 1.9 2003/10/26 15:07:25 jmc Exp $
 
 General features of at&t ksh88 that are not (yet) in pdksh:

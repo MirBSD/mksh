@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/lex.h,v 2.3 2004/12/18 19:17:10 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: lex.h,v 1.8 2004/11/02 22:09:24 deraadt Exp $	*/
 /*	$From: lex.h,v 1.4 1994/05/31 13:34:34 michael Exp $ */
 

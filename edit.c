@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/edit.c,v 2.8 2004/12/31 17:39:12 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: edit.c,v 1.23 2004/12/18 22:12:23 millert Exp $	*/
 
 /*
@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/edit.c,v 2.8 2004/12/31 17:39:12 tg Exp $");
+__RCSID("$MirOS$");
 
 #if defined(TIOCGWINSZ)
 static RETSIGTYPE x_sigwinch(int sig);

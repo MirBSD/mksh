@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $MirBSD: src/bin/ksh/tests/th,v 2.1 2004/12/10 18:09:45 tg Exp $
+# $MirOS$
 # $OpenBSD: th,v 1.10 2003/09/01 05:16:46 fgsch Exp $
 #
 # Test harness for pdksh tests.

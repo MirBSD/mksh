@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/misc.c,v 2.10 2004/12/31 19:37:03 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: misc.c,v 1.20 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -11,7 +11,7 @@
 #include <dirent.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.10 2004/12/31 19:37:03 tg Exp $");
+__RCSID("$MirOS$");
 
 #ifndef UCHAR_MAX
 # define UCHAR_MAX	0xFF

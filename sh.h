@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/sh.h,v 2.12 2004/12/31 19:54:16 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: sh.h,v 1.23 2004/12/18 22:11:43 millert Exp $	*/
 /*	$From: sh.h,v 1.2 1994/05/19 18:32:40 michael Exp michael $ */
 

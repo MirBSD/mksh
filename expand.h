@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/expand.h,v 2.1 2004/12/10 18:09:41 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: expand.h,v 1.3 2001/03/26 16:19:45 todd Exp $	*/
 
 #ifndef EXPAND_H

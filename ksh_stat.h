@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/ksh_stat.h,v 2.1 2004/12/10 18:09:41 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: ksh_stat.h,v 1.3 1996/10/01 02:05:39 downsj Exp $	*/
 
 #ifndef KSH_STAT_H

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/missing.c,v 2.6 2004/12/31 19:37:03 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: missing.c,v 1.5 2003/05/16 18:49:46 jsyn Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/missing.c,v 2.6 2004/12/31 19:37:03 tg Exp $");
+__RCSID("$MirOS$");
 
 #ifndef HAVE_STRERROR
 char *

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/lex.c,v 2.8 2004/12/28 22:40:40 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: lex.c,v 1.30 2004/12/22 18:57:28 otto Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/lex.c,v 2.8 2004/12/28 22:40:40 tg Exp $");
+__RCSID("$MirOS$");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state.

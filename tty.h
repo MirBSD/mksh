@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/tty.h,v 2.2 2004/12/31 17:39:12 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: tty.h,v 1.4 2004/12/18 22:12:23 millert Exp $	*/
 
 #ifndef TTY_H

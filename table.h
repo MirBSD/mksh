@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/table.h,v 2.2 2005/01/18 17:12:22 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: table.h,v 1.5 1999/06/15 01:18:36 millert Exp $	*/
 /*	$From: table.h,v 1.3 1994/05/31 13:34:34 michael Exp $ */
 

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/var.c,v 2.9 2005/01/18 17:12:22 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
 
 #include "sh.h"
@@ -6,7 +6,7 @@
 #include "ksh_stat.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.9 2005/01/18 17:12:22 tg Exp $");
+__RCSID("$MirOS$");
 
 /*
  * Variables

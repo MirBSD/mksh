@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/shf.c,v 2.5 2004/12/31 19:37:03 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: shf.c,v 1.10 2004/12/18 22:35:41 millert Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/shf.c,v 2.5 2004/12/31 19:37:03 tg Exp $");
+__RCSID("$MirOS$");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */

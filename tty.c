@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/tty.c,v 2.4 2004/12/31 17:42:45 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: tty.c,v 1.5 2004/12/18 22:35:41 millert Exp $	*/
 
 #include "sh.h"
@@ -7,7 +7,7 @@
 #include "tty.h"
 #undef EXTERN
 
-__RCSID("$MirBSD: src/bin/ksh/tty.c,v 2.4 2004/12/31 17:42:45 tg Exp $");
+__RCSID("$MirOS$");
 
 /* Initialize tty_fd.  Used for saving/reseting tty modes upon
  * foreground job completion and for setting up tty process group.

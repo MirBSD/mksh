@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/ksh_wait.h,v 2.2 2004/12/18 19:22:29 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: ksh_wait.h,v 1.3 1997/06/19 13:58:43 kstailey Exp $	*/
 
 #ifndef KSH_WAIT_H

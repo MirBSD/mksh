@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/eval.c,v 2.9 2004/12/31 19:37:03 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: eval.c,v 1.24 2004/12/22 18:52:37 millert Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include <dirent.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/eval.c,v 2.9 2004/12/31 19:37:03 tg Exp $");
+__RCSID("$MirOS$");
 
 #ifdef OPENDIR_DOES_NONDIR
 extern DIR *ksh_opendir(const char *d);

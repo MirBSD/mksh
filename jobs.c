@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/jobs.c,v 2.8 2004/12/31 18:41:47 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: jobs.c,v 1.30 2004/12/22 18:48:56 millert Exp $	*/
 
 /*
@@ -32,7 +32,7 @@
 #include <sys/resource.h>
 #include "tty.h"
 
-__RCSID("$MirBSD: src/bin/ksh/jobs.c,v 2.8 2004/12/31 18:41:47 tg Exp $");
+__RCSID("$MirOS$");
 
 /* Start of system configuration stuff */
 

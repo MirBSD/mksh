@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/table.c,v 2.2 2004/12/18 19:22:30 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: table.c,v 1.5 1999/01/10 17:55:03 millert Exp $	*/
 
 /*
@@ -7,7 +7,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirBSD: src/bin/ksh/table.c,v 2.2 2004/12/18 19:22:30 tg Exp $");
+__RCSID("$MirOS$");
 
 #define	INIT_TBLS	8	/* initial table size (power of 2) */
 

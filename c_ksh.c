@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/c_ksh.c,v 2.7 2004/12/31 17:29:28 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: c_ksh.c,v 1.18 2004/02/10 13:03:36 jmc Exp $	*/
 
 /*
@@ -13,7 +13,7 @@
 #include <sys/cygwin.h>
 #endif /* __CYGWIN__ */
 
-__RCSID("$MirBSD: src/bin/ksh/c_ksh.c,v 2.7 2004/12/31 17:29:28 tg Exp $");
+__RCSID("$MirOS$");
 
 int
 c_cd(char **wp)

@@ -1,4 +1,4 @@
-# $MirBSD: src/bin/ksh/tests/bksl-nl.t,v 2.1 2004/12/10 18:09:44 tg Exp $
+# $MirOS$
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 #
 # These tests deal with how \newline is handled in various situations.  The

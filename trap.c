@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/trap.c,v 2.6 2004/12/31 19:24:20 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: trap.c,v 1.19 2004/12/22 17:47:03 millert Exp $	*/
 
 /*
@@ -9,7 +9,7 @@
 #define FROM_TRAP_C
 #include "sh.h"
 
-__RCSID("$MirBSD: src/bin/ksh/trap.c,v 2.6 2004/12/31 19:24:20 tg Exp $");
+__RCSID("$MirOS$");
 
 Trap sigtraps[NSIG + 1];
 

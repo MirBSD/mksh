@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/c_sh.c,v 2.11 2004/12/31 18:41:46 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: c_sh.c,v 1.25 2004/12/22 18:48:56 millert Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
-__RCSID("$MirBSD: src/bin/ksh/c_sh.c,v 2.11 2004/12/31 18:41:46 tg Exp $");
+__RCSID("$MirOS$");
 
 static void p_time(struct shf *, int, struct timeval *, int, char *, char *);
 

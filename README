@@ -1,4 +1,4 @@
-$MirBSD: src/bin/ksh/README,v 2.4 2004/12/31 19:24:20 tg Exp $
+$MirOS$
 
 This is the README for mirbsdksh, developed as part of the MirBSD
 operating system at The MirOS Project, and produced portably.

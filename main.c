@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/main.c,v 2.16 2005/01/18 17:12:22 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: main.c,v 1.35 2004/12/22 18:57:28 otto Exp $	*/
 
 /*
@@ -15,7 +15,7 @@
  * shell version
  */
 
-__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.16 2005/01/18 17:12:22 tg Exp $");
+__RCSID("$MirOS$");
 
 const char ksh_version[] =
 	"@(#)PD KSH v5.2.14 MirOS R20 in "

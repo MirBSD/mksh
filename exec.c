@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/exec.c,v 2.9 2004/12/31 17:42:44 tg Exp $ */
+/**	$MirOS$ */
 /*	$OpenBSD: exec.c,v 1.35 2004/12/18 22:35:41 millert Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/exec.c,v 2.9 2004/12/31 17:42:44 tg Exp $");
+__RCSID("$MirOS$");
 
 static int	comexec(struct op *t, struct tbl *volatile tp, char **ap,
 			      int volatile flags);
