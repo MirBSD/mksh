@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: Build.sh,v 1.17 2004/12/05 13:24:34 tg Exp $
+# $MirBSD: Build.sh,v 1.18 2004/12/10 15:32:58 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <tg@66h.42h.de>
@@ -19,25 +19,26 @@
 # rect or other, however caused, arising in any way out of the usage
 # of this work, even if advised of the possibility of such damage.
 #-
-# Build the more||less portable mirbsdksh on most operating systems.
+# Build the more or less portable mksh on most (non-MirBSD) UNIX®ish
+# operating systems.
 # Notes for building on various operating systems:
-# - on most OSes, you will need a pre-installed bash or ksh to build
-#   because the Bourne shell chokes on some statements below.
-# - Solaris: SHELL=ksh LDFLAGS=-ldl WEIRD_OS=1 ksh ./Build.sh
-# - Interix: SHELL=ksh ksh ./Build.sh (also on GNU and most *BSD)
-# - Mac OSX: SHELL=bash WEIRD_OS=1 bash ./Build.sh
+# - Solaris: SHELL=ksh LDFLAGS=-ldl WEIRD_OS=1 sh ./Build.sh
+# - Interix: SHELL=ksh sh ./Build.sh (also on GNU and most *BSD)
+# - Mac OSX: SHELL=bash WEIRD_OS=1 sh ./Build.sh
 #
-# Explicit note: you _have_ to use a "modern" bourne-compatible shell
-# to execute this script. Explicit notice to Debian GNU/Something pak-
+# Explicit note: you _have_ to use a "modern" bourne-compatible pre-
+# installed shell to execute the build script, such as the GNU bash,
+# PDKSH or any AT&T KSH. Explicit notice to Debian GNU/Some*nix pak-
 # kagers: you also have to set SHELL=/path/to/yourshell in the envi-
 # ronment of the script, as shown above.
 # Shells known to work:
 # - mirbsdksh, pdksh 5.2
 # - GNU bash 2.05*
-# Shells which should work:
 # - Solaris /usr/xpg4/bin/sh
+# Shells which should work:
 # - AT&T ast-ksh (88 and 93)
 # Shells known to *not* work:
+# - Solaris /bin/sh (bourne non-POSIX)
 # - non-bourne (csh, bsh, ...)
 # - zsh
 
@@ -49,6 +50,10 @@ COPTS="-O2 -fomit-frame-pointer -fno-strict-aliasing -fno-strength-reduce"
 [ -z "$WEIRD_OS" ] && LDFLAGS="${LDFLAGS:--static}"
 
 if test -e strlfun.c; then
+	echo "Preparing testsuite..."
+	for hdr in errno signal; do
+		h2ph -d . /usr/include/$hdr.h && mv _h2ph_pre.ph $hdr.ph
+	done
 	echo "Configuring..."
 	$SHELL ./configure
 	echo "Generating prerequisites..."
@@ -92,7 +97,7 @@ if test -e strlfun.c; then
 	echo "=> visit http://wiki.mirbsd.de/MirbsdKsh for online manpages."
 else
 	echo "Your kit isn't complete, please download the"
-	echo "mirbsdksh-1.x.cpio.gz distfile, then extract"
+	echo "mirbsdksh-Rxx.cpio.gz distfile, then extract"
 	echo "it and try again! Due to the folks of Ulrich"
 	echo "Drepper & co. not including strlcpy/strlcat,"
 	echo "this is a necessity to circumvent the broken"
