@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/jobs.c,v 2.6 2004/12/28 22:32:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/jobs.c,v 2.7 2004/12/31 17:39:12 tg Exp $ */
 /*	$OpenBSD: jobs.c,v 1.26 2004/12/18 22:12:23 millert Exp $	*/
 
 /*
@@ -31,7 +31,7 @@
 #include "ksh_times.h"
 #include "tty.h"
 
-__RCSID("$MirBSD: src/bin/ksh/jobs.c,v 2.6 2004/12/28 22:32:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/jobs.c,v 2.7 2004/12/31 17:39:12 tg Exp $");
 
 /* Start of system configuration stuff */
 
@@ -143,7 +143,7 @@ struct job {
 	Proc	*last_proc;	/* last process in list */
 	Coproc_id coproc_id;	/* 0 or id of coprocess output pipe */
 #ifdef TTY_PGRP
-	TTY_state ttystate;	/* saved tty state for stopped jobs */
+	struct termios ttystate;/* saved tty state for stopped jobs */
 	pid_t	saved_ttypgrp;	/* saved tty process group for stopped jobs */
 #endif /* TTY_PGRP */
 };
@@ -339,7 +339,7 @@ j_change(void)
 	int i;
 
 	if (Flag(FMONITOR)) {
-		/* Don't call get_tty() 'til we own the tty process group */
+		/* Don't call tcgetattr() 'til we own the tty process group */
 		tty_init(false);
 
 # ifdef TTY_PGRP
@@ -404,7 +404,7 @@ j_change(void)
 			warningf(false, "warning: won't have full job control");
 # endif /* TTY_PGRP */
 		if (tty_fd >= 0)
-			get_tty(tty_fd, &tty_state);
+			tcgetattr(tty_fd, &tty_state);
 	} else {
 # ifdef TTY_PGRP
 		ttypgrp_ok = 0;
@@ -887,14 +887,12 @@ j_resume(const char *cp, int bg)
 # ifdef TTY_PGRP
 		/* attach tty to job */
 		if (j->state == PRUNNING) {
-			if (ttypgrp_ok && (j->flags & JF_SAVEDTTY)) {
-				set_tty(tty_fd, &j->ttystate, TF_NONE);
-			}
+			if (ttypgrp_ok && (j->flags & JF_SAVEDTTY))
+				tcsetattr(tty_fd, TCSADRAIN, &j->ttystate);
 			/* See comment in j_waitj regarding saved_ttypgrp. */
 			if (ttypgrp_ok && tcsetpgrp(tty_fd, (j->flags & JF_SAVEDTTYPGRP) ? j->saved_ttypgrp : j->pgrp) < 0) {
-				if (j->flags & JF_SAVEDTTY) {
-					set_tty(tty_fd, &tty_state, TF_NONE);
-				}
+				if (j->flags & JF_SAVEDTTY)
+					tcsetattr(tty_fd, TCSADRAIN, &tty_state);
 				sigprocmask(SIG_SETMASK, &omask,
 					NULL);
 				bi_errorf("1st tcsetpgrp(%d, %d) failed: %s",
@@ -915,9 +913,8 @@ j_resume(const char *cp, int bg)
 		if (!bg) {
 			j->flags &= ~JF_FG;
 # ifdef TTY_PGRP
-			if (ttypgrp_ok && (j->flags & JF_SAVEDTTY)) {
-				set_tty(tty_fd, &tty_state, TF_NONE);
-			}
+			if (ttypgrp_ok && (j->flags & JF_SAVEDTTY))
+				tcsetattr(tty_fd, TCSADRAIN, &tty_state);
 			if (ttypgrp_ok && tcsetpgrp(tty_fd, our_pgrp) < 0) {
 				warningf(true,
 				"fg: 2nd tcsetpgrp(%d, %d) failed: %s",
@@ -1216,7 +1213,7 @@ j_waitj(Job *j, int flags, const char *where)
 			}
 			if (j->state == PSTOPPED) {
 				j->flags |= JF_SAVEDTTY;
-				get_tty(tty_fd, &j->ttystate);
+				tcgetattr(tty_fd, &j->ttystate);
 			}
 		}
 #endif /* TTY_PGRP */
@@ -1232,10 +1229,9 @@ j_waitj(Job *j, int flags, const char *where)
 			if (j->state == PEXITED && j->status == 0
 			    && (j->flags & JF_USETTYMODE))
 			{
-				get_tty(tty_fd, &tty_state);
+				tcgetattr(tty_fd, &tty_state);
 			} else {
-				set_tty(tty_fd, &tty_state,
-				    (j->state == PEXITED) ? 0 : TF_MIPSKLUDGE);
+				tcsetattr(tty_fd, TCSADRAIN, &tty_state);
 				/* Don't use tty mode if job is stopped and
 				 * later restarted and exits.  Consider
 				 * the sequence:

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/edit.c,v 2.7 2004/12/31 17:11:11 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/edit.c,v 2.8 2004/12/31 17:39:12 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.23 2004/12/18 22:12:23 millert Exp $	*/
 
 /*
@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/edit.c,v 2.7 2004/12/31 17:11:11 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/edit.c,v 2.8 2004/12/31 17:39:12 tg Exp $");
 
 #if defined(TIOCGWINSZ)
 static RETSIGTYPE x_sigwinch(int sig);
@@ -175,7 +175,7 @@ x_mode(bool onoff)
 	x_cur_mode = onoff;
 
 	if (onoff) {
-		TTY_state	cb;
+		struct termios	cb;
 		X_chars		oldchars;
 
 		oldchars = edchars;
@@ -245,7 +245,7 @@ x_mode(bool onoff)
 #  endif /* TIOCGATC */
 #endif /* HAVE_TERMIOS_H || HAVE_TERMIO_H */
 
-		set_tty(tty_fd, &cb, TF_WAIT);
+		tcsetattr(tty_fd, TCSADRAIN, &cb);
 
 #ifdef __CYGWIN__
 		if (edchars.eof == '\0')
@@ -268,8 +268,7 @@ x_mode(bool onoff)
 		if (memcmp(&edchars, &oldchars, sizeof(edchars)) != 0)
 			x_emacs_keys(&edchars);
 	} else {
-		/* TF_WAIT doesn't seem to be necessary when leaving xmode */
-		set_tty(tty_fd, &tty_state, TF_NONE);
+		tcsetattr(tty_fd, TCSADRAIN, &tty_state);
 	}
 
 	return prev;

@@ -1,19 +1,8 @@
-/**	$MirBSD: src/bin/ksh/tty.h,v 2.1 2004/12/10 18:09:42 tg Exp $ */
-/*	$OpenBSD: tty.h,v 1.2 1996/11/21 07:59:36 downsj Exp $	*/
+/**	$MirBSD: src/bin/ksh/tty.h,v 2.2 2004/12/31 17:39:12 tg Exp $ */
+/*	$OpenBSD: tty.h,v 1.4 2004/12/18 22:12:23 millert Exp $	*/
 
 #ifndef TTY_H
 #define TTY_H
-
-/*
-	tty.h -- centralized definitions for a variety of terminal interfaces
-
-	created by DPK, Oct. 1986
-
-	Rearranged to work with autoconf, added TTY_state, get_tty/set_tty
-						Michael Rendell, May '94
-
-	last edit:	30-Jul-1987	D A Gwyn
-*/
 
 /* some useful #defines */
 #ifdef EXTERN
@@ -35,73 +24,13 @@
 # define SYS_IOCTL_WITH_TERMIO
 #endif /* SYS_IOCTL_WITH_TERMIO */
 
-#ifdef	HAVE_TERMIOS_H
-# include <termios.h>
-# ifdef SYS_IOCTL_WITH_TERMIOS
-#  if !(defined(sun) && !defined(__svr4__)) /* too many warnings on sunos */
-    /* Need to include sys/ioctl.h on some systems to get the TIOCGWINSZ
-     * stuff (eg, digital unix).
-     */
-#   include <sys/ioctl.h>
-#  endif /* !(sun && !__svr4__) */
-# endif /* SYS_IOCTL_WITH_TERMIOS */
+#include <termios.h>
 typedef struct termios TTY_state;
-#else
-# ifdef HAVE_TERMIO_H
-#  include <termio.h>
-#  ifdef SYS_IOCTL_WITH_TERMIO
-#   include <sys/ioctl.h> /* see comment above in termios stuff */
-#  endif /* SYS_IOCTL_WITH_TERMIO */
-#  if _BSD_SYSV			/* BRL UNIX System V emulation */
-#   ifndef NTTYDISC
-#    define	TIOCGETD	_IOR( 't', 0, int )
-#    define	TIOCSETD	_IOW( 't', 1, int )
-#    define	NTTYDISC	2
-#   endif
-#   ifndef TIOCSTI
-#    define	TIOCSTI		_IOW( 't', 114, char )
-#   endif
-#   ifndef TIOCSPGRP
-#    define	TIOCSPGRP	_IOW( 't', 118, int )
-#   endif
-#  endif /* _BSD_SYSV */
-typedef struct termio TTY_state;
-# else /* HAVE_TERMIO_H */
-/* Assume BSD tty stuff.  Uses TIOCGETP, TIOCSETN; uses TIOCGATC/TIOCSATC if
- * available, otherwise it uses TIOCGETC/TIOCSETC (also uses TIOCGLTC/TIOCSLTC
- * if available)
- */
-#  ifdef _MINIX
-#   include <sgtty.h>
-#   define TIOCSETN	TIOCSETP
-#  else
-#   include <sys/ioctl.h>
-#  endif
-typedef struct {
-	struct sgttyb	sgttyb;
-#  ifdef TIOCGATC
-	struct lchars	lchars;
-#  else /* TIOCGATC */
-	struct tchars	tchars;
-#   ifdef TIOCGLTC
-	struct ltchars	ltchars;
-#   endif /* TIOCGLTC */
-#  endif /* TIOCGATC */
-} TTY_state;
-# endif /* HAVE_TERMIO_H */
-#endif /* HAVE_TERMIOS_H */
-
-/* Flags for set_tty() */
-#define TF_NONE		0x00
-#define TF_WAIT		0x01	/* drain output, even it requires sleep() */
-#define TF_MIPSKLUDGE	0x02	/* kludge to unwedge RISC/os 5.0 tty driver */
 
 EXTERN int		tty_fd I__(-1);	/* dup'd tty file descriptor */
 EXTERN int		tty_devtty;	/* true if tty_fd is from /dev/tty */
-EXTERN TTY_state	tty_state;	/* saved tty state */
+EXTERN struct termios	tty_state;	/* saved tty state */
 
-extern int	get_tty(int fd, TTY_state *ts);
-extern int	set_tty(int fd, TTY_state *ts, int flags);
 extern void	tty_init(int init_ttystate);
 extern void	tty_close(void);
 
