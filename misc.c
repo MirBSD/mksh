@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/misc.c,v 2.4 2004/12/18 18:58:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/misc.c,v 2.5 2004/12/18 19:17:10 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.20 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -13,7 +13,7 @@
 #include <sys/ioctl.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.4 2004/12/18 18:58:30 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.5 2004/12/18 19:17:10 tg Exp $");
 
 #ifndef UCHAR_MAX
 # define UCHAR_MAX	0xFF
@@ -133,14 +133,10 @@ const struct option options[] = {
 #endif
 	{ "bgnice",	  0,		OF_ANY },
 	{ (char *) 0, 	'c',	    OF_CMDLINE },
-#ifdef EMACS
 	{ "emacs",	  0,		OF_ANY },
 	{ "emacs-usemeta",  0,		OF_ANY }, /* non-standard */
-#endif
 	{ "errexit",	'e',		OF_ANY },
-#ifdef EMACS
 	{ "gmacs",	  0,		OF_ANY },
-#endif
 	{ "ignoreeof",	  0,		OF_ANY },
 	{ "interactive",'i',	    OF_CMDLINE },
 	{ "keyword",	'k',		OF_ANY },
@@ -168,13 +164,11 @@ const struct option options[] = {
 	{ "stdin",	's',	    OF_CMDLINE }, /* pseudo non-standard */
 	{ "trackall",	'h',		OF_ANY },
 	{ "verbose",	'v',		OF_ANY },
-#ifdef VI
 	{ "vi",		  0,		OF_ANY },
 	{ "viraw",	  0,		OF_ANY }, /* no effect */
 	{ "vi-show8",	  0,		OF_ANY }, /* non-standard */
 	{ "vi-tabcomplete",  0, 	OF_ANY }, /* non-standard */
 	{ "vi-esccomplete",  0, 	OF_ANY }, /* non-standard */
-#endif
 	{ "xtrace",	'x',		OF_ANY },
 	/* Anonymous flags: used internally by shell only
 	 * (not visible to user)
@@ -283,27 +277,13 @@ change_flag(enum sh_flag f, int what, int newval)
 			j_change();
 	} else
 #endif /* JOBS */
-#ifdef EDIT
-	if (0
-# ifdef VI
-	    || f == FVI
-# endif /* VI */
-# ifdef EMACS
-	    || f == FEMACS || f == FGMACS
-# endif /* EMACS */
-	   )
-	{
+	if (f == FVI || f == FEMACS || f == FGMACS) {
 		if (newval) {
-# ifdef VI
 			Flag(FVI) = 0;
-# endif /* VI */
-# ifdef EMACS
 			Flag(FEMACS) = Flag(FGMACS) = 0;
-# endif /* EMACS */
 			Flag(f) = newval;
 		}
 	} else
-#endif /* EDIT */
 	/* Turning off -p? */
 	if (f == FPRIVILEGED && oldval && !newval) {
 		seteuid(ksheuid = getuid());

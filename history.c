@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/history.c,v 2.4 2004/12/13 19:18:01 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/history.c,v 2.5 2004/12/18 19:17:10 tg Exp $ */
 /*	$OpenBSD: history.c,v 1.24 2004/08/03 12:44:59 danh Exp $	*/
 
 /*
@@ -21,10 +21,9 @@
 #include "sh.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/history.c,v 2.4 2004/12/13 19:18:01 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/history.c,v 2.5 2004/12/18 19:17:10 tg Exp $");
 
-#ifdef HISTORY
-# ifndef EASY_HISTORY
+#ifndef EASY_HISTORY
 /*	Defines and includes for the complicated case */
 
 #  include <sys/file.h>
@@ -50,7 +49,7 @@ static int sprinkle(int);
 #   define MAP_FLAGS	MAP_PRIVATE
 #  endif
 
-# endif	/* of EASY_HISTORY */
+#endif	/* of EASY_HISTORY */
 
 static int	hist_execute(char *cmd);
 static int	hist_replace(char **hp, const char *pat, const char *rep,
@@ -547,12 +546,12 @@ sethistfile(const char *name)
 	/*
 	 * its a new name - possibly
 	 */
-# ifdef EASY_HISTORY
+#ifdef EASY_HISTORY
 	if (hname) {
 		afree(hname, APERM);
 		hname = NULL;
 	}
-# else
+#else
 	if (histfd) {
 		/* yes the file is open */
 		(void) close(histfd);
@@ -564,7 +563,7 @@ sethistfile(const char *name)
 		histptr = history - 1;
 		hist_source->line = 0;
 	}
-# endif
+#endif
 
 	hist_init(hist_source);
 }
@@ -582,7 +581,7 @@ init_histvec(void)
 	}
 }
 
-# ifdef EASY_HISTORY
+#ifdef EASY_HISTORY
 /*
  * save command in history
  */
@@ -717,7 +716,7 @@ hist_finish(void)
   }
 }
 
-# else /* EASY_HISTORY */
+#else /* EASY_HISTORY */
 
 /*
  *	Routines added by Peter Collinson BSDI(Europe)/Hillside Systems to
@@ -775,9 +774,9 @@ histsave(int lno, const char *cmd, int dowrite)
  *	Each command is
  *	<command byte><command number(4 bytes)><bytes><null>
  */
-# define HMAGIC1		0xab
-# define HMAGIC2		0xcd
-# define COMMAND		0xff
+#define HMAGIC1		0xab
+#define HMAGIC2		0xcd
+#define COMMAND		0xff
 
 void
 hist_init(Source *s)
@@ -1111,30 +1110,4 @@ sprinkle(int fd)
 
 	return(write(fd, mag, 2) != 2);
 }
-
-# endif
-#else /* HISTORY */
-
-/* No history to be compiled in: dummy routines to avoid lots more ifdefs */
-void
-init_histvec()
-{
-}
-void
-hist_init(s)
-	Source *s;
-{
-}
-void
-hist_finish()
-{
-}
-void
-histsave(lno, cmd, dowrite)
-	int lno;
-	const char *cmd;
-	int dowrite;
-{
-	errorf("history not enabled");
-}
-#endif /* HISTORY */
+#endif

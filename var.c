@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/var.c,v 2.3 2004/12/18 18:58:32 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/var.c,v 2.4 2004/12/18 19:17:10 tg Exp $ */
 /*	$OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
 
 #include "sh.h"
@@ -7,7 +7,7 @@
 #include "ksh_stat.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.3 2004/12/18 18:58:32 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.4 2004/12/18 19:17:10 tg Exp $");
 
 /*
  * Variables
@@ -94,14 +94,10 @@ initvar(void)
 			{ "PATH",		V_PATH },
 			{ "POSIXLY_CORRECT",	V_POSIXLY_CORRECT },
 			{ "TMPDIR",		V_TMPDIR },
-#ifdef HISTORY
 			{ "HISTFILE",		V_HISTFILE },
 			{ "HISTSIZE",		V_HISTSIZE },
-#endif /* HISTORY */
-#ifdef EDIT
 			{ "EDITOR",		V_EDITOR },
 			{ "VISUAL",		V_VISUAL },
-#endif /* EDIT */
 			{ "RANDOM",		V_RANDOM },
 			{ "SECONDS",		V_SECONDS },
 			{ "TMOUT",		V_TMOUT },
@@ -906,13 +902,11 @@ getspec(struct tbl *vp)
 		setint(vp, rnd_get());
 		vp->flag |= SPECIAL;
 		break;
-#ifdef HISTORY
 	  case V_HISTSIZE:
 		vp->flag &= ~SPECIAL;
 		setint(vp, (long) histsize);
 		vp->flag |= SPECIAL;
 		break;
-#endif /* HISTORY */
 	  case V_OPTIND:
 		vp->flag &= ~SPECIAL;
 		setint(vp, (long) user_opt.uoptind);
@@ -966,7 +960,6 @@ setspec(struct tbl *vp)
 				tmpdir = str_save(s, APERM);
 		}
 		break;
-#ifdef HISTORY
 	  case V_HISTSIZE:
 		vp->flag &= ~SPECIAL;
 		sethistsize((int) intval(vp));
@@ -975,8 +968,6 @@ setspec(struct tbl *vp)
 	  case V_HISTFILE:
 		sethistfile(str_val(vp));
 		break;
-#endif /* HISTORY */
-#ifdef EDIT
 	  case V_VISUAL:
 		set_editmode(str_val(vp));
 		break;
@@ -988,7 +979,6 @@ setspec(struct tbl *vp)
 		if ((x_cols = intval(vp)) <= MIN_COLS)
 			x_cols = MIN_COLS;
 		break;
-#endif /* EDIT */
 	  case V_RANDOM:
 		vp->flag &= ~SPECIAL;
 		rnd_put(intval(vp));

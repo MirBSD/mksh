@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/exec.c,v 2.4 2004/12/18 18:58:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/exec.c,v 2.5 2004/12/18 19:17:10 tg Exp $ */
 /*	$OpenBSD: exec.c,v 1.31 2003/12/15 05:25:52 otto Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/exec.c,v 2.4 2004/12/18 18:58:30 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/exec.c,v 2.5 2004/12/18 19:17:10 tg Exp $");
 
 static int	comexec(struct op *t, struct tbl *volatile tp, char **ap,
 			      int volatile flags);
@@ -1315,9 +1315,8 @@ herein(const char *content, int sub)
 static char *
 do_selectargs(char **ap, bool_t print_menu)
 {
-	static const char *const read_args[] = {
-					"read", "-r", "REPLY", (char *) 0
-				    };
+	static const char *const read_args[] =
+	   {"read", "-r", "REPLY", NULL};
 	char *s;
 	int i, argct;
 

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/sh.h,v 2.4 2004/12/18 18:58:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/sh.h,v 2.5 2004/12/18 19:17:10 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.18 2004/05/31 10:36:35 otto Exp $	*/
 
 #ifndef SH_H
@@ -427,14 +427,10 @@ enum sh_flag {
 #endif
 	FBGNICE,	/* bgnice */
 	FCOMMAND,	/* -c: (invocation) execute specified command */
-#ifdef EMACS
 	FEMACS,		/* emacs command editing */
 	FEMACSUSEMETA,	/* use 8th bit as meta */
-#endif
 	FERREXIT,	/* -e: quit on error */
-#ifdef EMACS
 	FGMACS,		/* gmacs command editing */
-#endif
 	FIGNOREEOF,	/* eof does not exit */
 	FTALKING,	/* -i: interactive */
 	FKEYWORD,	/* -k: name=value anywhere */
@@ -458,13 +454,11 @@ enum sh_flag {
 	FSTDIN,		/* -s: (invocation) parse stdin */
 	FTRACKALL,	/* -h: create tracked aliases for all commands */
 	FVERBOSE,	/* -v: echo input */
-#ifdef VI
 	FVI,		/* vi command editing */
 	FVIRAW,		/* always read in raw mode (ignored) */
 	FVISHOW8,	/* display chars with 8th bit set as is (versus M-) */
 	FVITABCOMPLETE,	/* enable tab as file name completion char */
 	FVIESCCOMPLETE,	/* enable ESC as file name completion in command mode */
-#endif
 	FXTRACE,	/* -x: execution trace */
 	FTALKING_I,	/* (internal): initial shell was interactive */
 	FNFLAGS /* (place holder: how many flags are there) */
@@ -639,7 +633,6 @@ EXTERN Tflag	builtin_flag;	/* flags of called builtin (SPEC_BI, etc.) */
 EXTERN char	*current_wd;
 EXTERN int	current_wd_size;
 
-#ifdef EDIT
 /* Minimum required space to work with on a line - if the prompt leaves less
  * space than this on a line, the prompt is truncated.
  */
@@ -648,9 +641,6 @@ EXTERN int	current_wd_size;
  */
 # define MIN_COLS	(2 + MIN_EDIT_SPACE + 3)
 EXTERN	int	x_cols I__(80);	/* tty columns */
-#else
-# define x_cols 80		/* for pr_menu(exec.c) */
-#endif
 
 /* These to avoid bracket matching problems */
 #define OPAREN	'('

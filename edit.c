@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/edit.c,v 2.2 2004/12/13 19:05:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/edit.c,v 2.3 2004/12/18 19:17:10 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.18 2003/08/22 18:17:10 fgsch Exp $	*/
 
 /*
@@ -7,7 +7,6 @@
  */
 
 #include "config.h"
-#ifdef EDIT
 
 #include "sh.h"
 #include "tty.h"
@@ -22,7 +21,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/edit.c,v 2.2 2004/12/13 19:05:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/edit.c,v 2.3 2004/12/18 19:17:10 tg Exp $");
 
 #if defined(TIOCGWINSZ)
 static RETSIGTYPE x_sigwinch(int sig);
@@ -59,9 +58,7 @@ x_init(void)
 	check_sigwinch();
 #endif /* TIOCGWINSZ */
 
-#ifdef EMACS
 	x_init_emacs();
-#endif /* EMACS */
 
 	/* Bizarreness to figure out how to disable
 	 * a struct termios.c_cc[] char
@@ -134,16 +131,11 @@ x_read(char *buf, size_t len)
 #endif /* TIOCGWINSZ */
 
 	x_mode(TRUE);
-#ifdef EMACS
 	if (Flag(FEMACS) || Flag(FGMACS))
 		i = x_emacs(buf, len);
-	else
-#endif
-#ifdef VI
-	if (Flag(FVI))
+	else if (Flag(FVI))
 		i = x_vi(buf, len);
 	else
-#endif
 		i = -1;		/* internal error */
 	x_mode(FALSE);
 	return i;
@@ -289,11 +281,8 @@ x_mode(bool_t onoff)
 			edchars.eof = -1;
 		if (edchars.werase == vdisable_c)
 			edchars.werase = -1;
-		if (memcmp(&edchars, &oldchars, sizeof(edchars)) != 0) {
-#ifdef EMACS
+		if (memcmp(&edchars, &oldchars, sizeof(edchars)) != 0)
 			x_emacs_keys(&edchars);
-#endif
-		}
 	} else {
 		/* TF_WAIT doesn't seem to be necessary when leaving xmode */
 		set_tty(tty_fd, &tty_state, TF_NONE);
@@ -357,12 +346,8 @@ void
 set_editmode(const char *ed)
 {
 	static const enum sh_flag edit_flags[] = {
-#ifdef EMACS
 			FEMACS, FGMACS,
-#endif
-#ifdef VI
 			FVI,
-#endif
 		    };
 	char *rcp;
 	unsigned i;
@@ -985,4 +970,3 @@ x_escape(const char *s, size_t len, int (*putbuf_func) (const char *, size_t))
 
 	return (rval);
 }
-#endif /* EDIT */

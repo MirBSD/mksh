@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/lex.c,v 2.4 2004/12/18 18:58:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/lex.c,v 2.5 2004/12/18 19:17:10 tg Exp $ */
 /*	$OpenBSD: lex.c,v 1.18 2003/08/06 21:08:05 millert Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/lex.c,v 2.4 2004/12/18 18:58:30 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/lex.c,v 2.5 2004/12/18 19:17:10 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state.
@@ -982,16 +982,7 @@ getsc_line(Source *s)
 		ksh_tmout_state = TMOUT_READING;
 		alarm(ksh_tmout);
 	}
-#ifdef EDIT
-	if (have_tty && (0
-# ifdef VI
-			 || Flag(FVI)
-# endif /* VI */
-# ifdef EMACS
-			 || Flag(FEMACS) || Flag(FGMACS)
-# endif /* EMACS */
-		))
-	{
+	if (have_tty && (Flag(FVI) || Flag(FEMACS) || Flag(FGMACS))) {
 		int nread;
 
 		nread = x_read(xp, LINE);
@@ -999,10 +990,7 @@ getsc_line(Source *s)
 			nread = 0;
 		xp[nread] = '\0';
 		xp += nread;
-	}
-	else
-#endif /* EDIT */
-	{
+	} else {
 		if (interactive) {
 			pprompt(prompt, 0);
 		} else
@@ -1052,23 +1040,21 @@ getsc_line(Source *s)
 			shf_fdclose(s->u.shf);
 		s->str = NULL;
 	} else if (interactive) {
-#ifdef HISTORY
 		char *p = Xstring(s->xs, xp);
 		if (cur_prompt == PS1)
 			while (*p && ctype(*p, C_IFS) && ctype(*p, C_IFSWS))
 				p++;
 		if (*p) {
-# ifdef EASY_HISTORY
+#ifdef EASY_HISTORY
 			if (cur_prompt == PS2)
 				histappend(Xstring(s->xs, xp), 1);
 			else
-# endif /* EASY_HISTORY */
+#endif /* EASY_HISTORY */
 			{
 				s->line++;
 				histsave(s->line, s->str, 1);
 			}
 		}
-#endif /* HISTORY */
 	}
 	if (interactive)
 		set_prompt(PS2, (Source *) 0);

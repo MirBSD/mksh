@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/main.c,v 2.8 2004/12/18 19:02:29 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/main.c,v 2.9 2004/12/18 19:17:10 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -15,7 +15,7 @@
  * shell version
  */
 
-__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.8 2004/12/18 19:02:29 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.9 2004/12/18 19:17:10 tg Exp $");
 
 const char ksh_version[] =
 	"@(#)PD KSH v5.2.14 MirOS R20 in "
@@ -62,9 +62,7 @@ static const char *const initcoms [] = {
 #endif
 	  "autoload=typeset -fu",
 	  "functions=typeset -f",
-# ifdef HISTORY
 	  "history=fc -l",
-# endif /* HISTORY */
 	  "integer=typeset -i",
 	  "nohup=nohup ",
 	  "local=typeset",
@@ -102,9 +100,7 @@ main(int argc, char *argv[])
 
 	/* make sure argv[] is sane */
 	if (!*argv) {
-		static const char	*empty_argv[] = {
-					    "mksh", (char *) 0
-					};
+		static const char *empty_argv[] = {"mksh", NULL};
 
 		argv = (char **) empty_argv;
 		argc = 1;
@@ -199,12 +195,8 @@ main(int argc, char *argv[])
 	/* Set edit mode to emacs by default, may be overridden
 	 * by the environment or the user.  Also, we want tab completion
 	 * on in vi by default. */
-#if defined(EDIT) && defined(EMACS)
 	change_flag(FEMACS, OF_SPECIAL, 1);
-#endif /* EDIT && EMACS */
-#if defined(EDIT) && defined(VI)
 	Flag(FVITABCOMPLETE) = 1;
-#endif /* EDIT && VI */
 
 	/* import environment */
 	if (environ != NULL)
@@ -322,11 +314,9 @@ main(int argc, char *argv[])
 	i = Flag(FMONITOR) != 127;
 	Flag(FMONITOR) = 0;
 	j_init(i);
-#ifdef EDIT
 	/* Do this after j_init(), as tty_fd is not initialized 'til then */
 	if (Flag(FTALKING))
 		x_init();
-#endif
 
 	l = e->loc;
 	l->argv = &argv[argi - 1];

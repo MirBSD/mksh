@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/proto.h,v 2.4 2004/12/18 18:58:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/proto.h,v 2.5 2004/12/18 19:17:10 tg Exp $ */
 /*	$OpenBSD: proto.h,v 1.11 2003/05/16 19:58:57 jsyn Exp $	*/
 /*	$From: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $ */
 
@@ -91,19 +91,17 @@ void	init_histvec(void);
 void 	hist_init(Source *s);
 void 	hist_finish(void);
 void	histsave(int lno, const char *cmd, int dowrite);
-#ifdef HISTORY
 int 	c_fc(char **wp);
 void	sethistsize(int n);
 void	sethistfile(const char *name);
-# ifdef EASY_HISTORY
+#ifdef EASY_HISTORY
 void 	histappend(const char *cmd, int nl_separate);
-# endif
+#endif
 char **	histpos(void);
 int 	histN(void);
 int 	histnum(int n);
 int	findhist(int start, int fwd, const char *str,
 			      int anchored);
-#endif /* HISTORY */
 /* io.c */
 void 	errorf(const char *fmt, ...)
 				GCC_FUNC_ATTR2(noreturn, format(printf, 1, 2));

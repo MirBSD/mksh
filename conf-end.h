@@ -1,23 +1,14 @@
-/**	$MirBSD: src/bin/ksh/conf-end.h,v 2.4 2004/12/18 19:02:29 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/conf-end.h,v 2.5 2004/12/18 19:17:10 tg Exp $ */
 /*	$OpenBSD: conf-end.h,v 1.2 1996/08/25 12:37:58 downsj Exp $	*/
 
 #ifndef CONF_END_H
 #define CONF_END_H
-
-/* Include emacs editing? */
-#define EMACS 1
-
-/* Include vi editing? */
-#define VI 1
 
 /* Include job control? */
 #define JOBS 1
 
 /* Include brace-expansion? */
 #define BRACE_EXPAND 1
-
-/* Include any history? */
-#define HISTORY 1
 
 /* Include complex history? */
 #define COMPLEX_HISTORY
@@ -35,29 +26,11 @@
 # error "int cannot hold 32 bit"
 #endif
 
-#if defined(EMACS) || defined(VI)
-# define	EDIT
-#else
-# undef		EDIT
-#endif
-
-/* Super small configuration-- no editing. */
-#if defined(EDIT) && defined(NOEDIT)
-# undef EDIT
-# undef EMACS
-# undef VI
-#endif
-
-/* Editing implies history */
-#if defined(EDIT) && !defined(HISTORY)
-# define HISTORY
-#endif /* EDIT */
-
 /*
  * if you don't have mmap() you can't use Peter Collinson's history
  * mechanism.  If that is the case, then define EASY_HISTORY
  */
-#if defined(HISTORY) && (!defined(COMPLEX_HISTORY) || !defined(HAVE_MMAP) || !defined(HAVE_FLOCK))
+#if !defined(COMPLEX_HISTORY) || !defined(HAVE_MMAP) || !defined(HAVE_FLOCK)
 # undef COMPLEX_HISTORY
 # define EASY_HISTORY			/* sjg's trivial history file */
 #endif

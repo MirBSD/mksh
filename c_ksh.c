@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/c_ksh.c,v 2.3 2004/12/18 18:58:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/c_ksh.c,v 2.4 2004/12/18 19:17:10 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.18 2004/02/10 13:03:36 jmc Exp $	*/
 
 /*
@@ -13,7 +13,7 @@
 #include <sys/cygwin.h>
 #endif /* __CYGWIN__ */
 
-__RCSID("$MirBSD: src/bin/ksh/c_ksh.c,v 2.3 2004/12/18 18:58:30 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/c_ksh.c,v 2.4 2004/12/18 19:17:10 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -1341,7 +1341,6 @@ c_getopts(char **wp)
 	return optc < 0 ? 1 : ret;
 }
 
-#ifdef EMACS
 int
 c_bind(char **wp)
 {
@@ -1375,7 +1374,6 @@ c_bind(char **wp)
 
 	return rv;
 }
-#endif
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -1388,9 +1386,7 @@ const struct builtin kshbuiltins [] = {
 	{"+command", c_command},
 	{"echo", c_print},
  	{"*=export", c_typeset},
-#ifdef HISTORY
 	{"+fc", c_fc},
-#endif /* HISTORY */
 	{"+getopts", c_getopts},
 	{"+jobs", c_jobs},
 	{"+kill", c_kill},
@@ -1405,8 +1401,6 @@ const struct builtin kshbuiltins [] = {
 	{"+bg", c_fgbg},
 	{"+fg", c_fgbg},
 #endif
-#ifdef EMACS
 	{"bind", c_bind},
-#endif
 	{NULL, NULL}
 };

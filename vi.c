@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/vi.c,v 2.2 2004/12/13 19:05:09 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/vi.c,v 2.3 2004/12/18 19:17:10 tg Exp $ */
 /*	$OpenBSD: vi.c,v 1.13 2004/05/10 16:28:47 pvalchev Exp $	*/
 
 /*
@@ -8,14 +8,13 @@
  */
 
 #include "config.h"
-#ifdef VI
 
 #include "sh.h"
 #include <ctype.h>
 #include "ksh_stat.h"		/* completion */
 #include "edit.h"
 
-__RCSID("$MirBSD: src/bin/ksh/vi.c,v 2.2 2004/12/13 19:05:09 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/vi.c,v 2.3 2004/12/18 19:17:10 tg Exp $");
 
 #define Ctrl(c)		(c&0x1f)
 #define	is_wordch(c)	(letnum(c))
@@ -2113,4 +2112,3 @@ vi_macro_reset(void)
 		memset((char *) &macro, 0, sizeof(macro));
 	}
 }
-#endif	/* VI */
