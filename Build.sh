@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: Build.sh,v 1.15 2004/11/10 19:58:06 tg Exp $
+# $MirBSD: Build.sh,v 1.16 2004/11/13 17:16:22 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -55,20 +55,14 @@ if test -e strlfun.c; then
 	$SHELL ./siglist.sh "$CC -E $CPPFLAGS" <siglist.in >siglist.out
 	$SHELL ./emacs-gen.sh emacs.c >emacs.out
 	echo "Building..."
-	$CC $COPTS $CFLAGS $CPPFLAGS $LDFLAGS -o ksh.unstripped *.c
-	test -e ksh.unstripped || exit 1
+	$CC $COPTS $CFLAGS $CPPFLAGS $LDFLAGS -o mksh *.c
+	test -e mksh || exit 1
 	echo "Finalizing..."
 	tbl <ksh.1tbl >mksh.1 || cat ksh.1tbl >mksh.1
 	nroff -mdoc -Tascii <mksh.1 >mksh.cat1 || rm -f mksh.cat1
 	man=mksh.cat1
 	test -s $man || man=mksh.1
 	test -s $man || man=ksh.1tbl
-	cp ksh.unstripped mksh
-	strip -R .comment --strip-unneeded --strip-all mksh || rm mksh
-	if ! test -e mksh; then
-		cp ksh.unstripped mksh
-		strip mksh || mv ksh.unstripped mksh
-	fi
 	size mksh
 	echo "done."
 	echo ""
