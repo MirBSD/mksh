@@ -1,7 +1,8 @@
-/* $MirBSD: rnd.c,v 1.6 2004/08/06 23:03:57 tg Exp $
- *-
+/**	$MirBSD: rnd.c,v 1.7 2004/08/27 14:55:45 tg Stab $ */
+
+/*-
  * Copyright (c) 2004
- *	Thorsten "mirabile" Glaser <x86@ePost.de>
+ *	Thorsten "mirabile" Glaser <tg@66h.42h.de>
  *
  * Licensee is hereby permitted to deal in this work without restric-
  * tion, including unlimited rights to use, publically perform, modi-

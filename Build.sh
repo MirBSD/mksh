@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: Build.sh,v 1.7 2004/06/02 15:06:49 tg Exp $
+# $MirBSD: Build.sh,v 1.8 2004/08/27 14:55:45 tg Stab $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -38,7 +38,7 @@ if test -e strlfun.c; then
 	echo "Configuring..."
 	$SHELL ./configure
 	echo "Generating prerequisites..."
-	$SHELL ./siglist.sh "gcc -E $CPPFLAGS" <siglist.in >siglist.out
+	$SHELL ./siglist.sh "$CC -E $CPPFLAGS" <siglist.in >siglist.out
 	$SHELL ./emacs-gen.sh emacs.c >emacs.out
 	echo "Building..."
 	$CC $COPTS $CFLAGS $CPPFLAGS $LDFLAGS -o ksh.unstripped *.c

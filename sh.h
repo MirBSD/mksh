@@ -1,7 +1,8 @@
-/**	$MirBSD: sh.h,v 1.10 2004/08/27 14:08:36 tg Exp $ */
+/**	$MirBSD: sh.h,v 1.11 2004/08/27 14:55:45 tg Stab $ */
 /*	$OpenBSD: sh.h,v 1.18 2004/05/31 10:36:35 otto Exp $	*/
 
 /*
+ * mirbsdksh - MirOS Project Korn-Shell
  * Public Domain Bourne/Korn shell
  */
 
