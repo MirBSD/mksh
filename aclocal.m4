@@ -4,7 +4,7 @@ dnl the file misc/COPYING for details.
 dnl
 dnl This file is covered by the GPL 'cause it contains some modified versions
 dnl of autoconf's macros, in particular:
-dnl	AC_FUNC_MMAP AC_LANG_C AC_LANG_CPLUXPLUS
+dnl	AC_FUNC_MMAP
 dnl	AC_HEADER_STAT
 dnl
 dnl
@@ -1170,38 +1170,6 @@ main()
 if test $ac_cv_func_mmap = yes; then
   AC_DEFINE(HAVE_MMAP)
 fi
-])
-dnl
-dnl
-dnl
-dnl Modified AC_LANG_C, AC_LANG_CPLUSPLUS, AC_TRY_RUN to handle executable
-dnl extensions.
-undefine([AC_LANG_C])dnl
-undefine([AC_LANG_CPLUXPLUS])dnl
-dnl AC_LANG_C()
-AC_DEFUN(AC_LANG_C,
-[define([AC_LANG], [C])dnl
-ac_ext=c
-# CFLAGS is not in ac_cpp because -g, -O, etc. are not valid cpp options.
-ac_cpp='echo $CPP $CPPFLAGS 1>&AC_FD_CC;
-$CPP $CPPFLAGS'
-ac_compile='echo ${CC-cc} -c $CFLAGS $CPPFLAGS conftest.$ac_ext 1>&AC_FD_CC;
-${CC-cc} -c $CFLAGS $CPPFLAGS conftest.$ac_ext 1>&AC_FD_CC 2>&AC_FD_CC'
-ac_link='echo ${CC-cc} -o conftest$ac_exe_suffix $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS 1>&AC_FD_CC;
-${CC-cc} -o conftest$ac_exe_suffix $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS 1>&AC_FD_CC 2>&AC_FD_CC'
-])
-
-dnl AC_LANG_CPLUSPLUS()
-AC_DEFUN(AC_LANG_CPLUSPLUS,
-[define([AC_LANG], [CPLUSPLUS])dnl
-ac_ext=C
-# CXXFLAGS is not in ac_cpp because -g, -O, etc. are not valid cpp options.
-ac_cpp='echo $CXXCPP $CPPFLAGS 1>&AC_FD_CC;
-$CXXCPP $CPPFLAGS'
-ac_compile='echo ${CXX-g++} -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext 1>&AC_FD_CC;
-${CXX-g++} -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext 1>&AC_FD_CC 2>&AC_FD_CC'
-ac_link='echo ${CXX-g++} -o conftest$ac_exe_suffix $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS 1>&AC_FD_CC;
-${CXX-g++} -o conftest$ac_exe_suffix $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS 1>&AC_FD_CC 2>&AC_FD_CC'
 ])
 dnl
 dnl
