@@ -1,4 +1,4 @@
-dnl $MirBSD: configure.in,v 1.8 2004/10/28 11:53:41 tg Exp $
+dnl $MirBSD: configure.in,v 1.9 2004/12/09 23:23:29 tg Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl
@@ -6,6 +6,13 @@ AC_INIT(c_ksh.c)
 test -s config.h.in || sed -e 's!^/\* #undef \(.*\) \*/!#undef \1!' \
     -e 's!^#define \(.*\) 1!#undef \1!' <config.h >config.h.in
 AC_CONFIG_HEADER(config.h)
+dnl
+dnl  This could be Interix/SFU
+dnl
+case $INTERIX_ROOT:$MIROS in
+*:)	CPPFLAGS="$CPPFLAGS -DINTERIX -D_ALL_SOURCE"
+	;;
+esac
 dnl
 dnl
 dnl  Start of auto-configuration stuff...
@@ -70,7 +77,7 @@ KSH_MEMMOVE
 KSH_MEMSET
 AC_CHECK_FUNCS(arc4random arc4random_addrandom arc4random_push confstr \
 	dup2 flock getcwd getgroups getpagesize getrusage getwd killpg \
-	mkstemp nice random setrlimit srandom strcasecmp strerror \
+	mkstemp nice random revoke setrlimit srandom strcasecmp strerror \
 	strlcat strlcpy strstr sysconf tcsetpgrp ulimit valloc wait3 \
 	waitpid)
 AC_CHECK_FUNCS(sigsetjmp _setjmp, break)
