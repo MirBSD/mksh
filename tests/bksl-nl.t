@@ -1,7 +1,7 @@
-# $MirBSD: bksl-nl.t,v 1.2 2004/05/24 19:56:24 tg Stab $
+# $MirBSD: bksl-nl.t,v 1.3 2004/11/01 12:27:22 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 #
-#  These tests deal with how \newline is handled in various situations.  The
+# These tests deal with how \newline is handled in various situations.  The
 # first group of tests are places where it shouldn't be collapsed, the next
 # group of tests are places where it should be collapsed.
 #
