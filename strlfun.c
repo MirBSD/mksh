@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/strlfun.c,v 1.1 2004/12/10 18:12:29 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/strlfun.c,v 1.1.15.1 2004/12/10 18:12:29 tg Exp $ */
 /**	_MirBSD: src/lib/libc/string/strlfun.c,v 1.7 2004/12/05 16:07:53 tg Exp $ */
 /*	$OpenBSD: strlcpy.c,v 1.8 2003/06/17 21:56:24 millert Exp $ */
 /*	$OpenBSD: strlcat.c,v 1.11 2003/06/17 21:56:24 millert Exp $ */
@@ -59,7 +59,7 @@
 #define __RCSID(x)	static const char __rcsid[] = (x)
 #endif
 
-__RCSID("$MirBSD: src/bin/ksh/strlfun.c,v 1.1 2004/12/10 18:12:29 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/strlfun.c,v 1.1.15.1 2004/12/10 18:12:29 tg Exp $");
 
 
 #ifndef	HAVE_STRLCPY
