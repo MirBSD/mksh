@@ -1,18 +1,18 @@
->>> http://templeofhate.com/tglaser/MirBSD/index.php
+>> http://templeofhate.com/tglaser/MirBSD/index.php
+>> MirBSD is a modified version of OpenBSD (http://www.OpenBSD.org/)
+>> Thank you, Theo de Raadt and all other contributors to OpenBSD.
 
-Copyright (c) 2000-2003 by Thorsten "mirabile" Glaser <x86@ePost.de>
+Copyright (c) 1982-2003 by Thorsten "mirabile" Glaser <x86@ePost.de>
 Contributors:
-Copyright (c) 1968-2003 NOP by the authors of and contributors to C,
-    UNIX®, BSD/Berkeley Unix, 386BSD, NetBSD and OpenBSD. The licen-
-    ce of the file before patching also applies to the patch, unless
-    special provisions are made.
+Copyright © 1968-2003 NOP by the authors of and contributors to AT&T
+    UNIX®; the "C" Language, xBSD/Berkeley Unix; 386BSD, NetBSD 1.1,
+    OpenBSD and MirBSD. The licence conditions of specific files be-
+    fore patching also applies to the patched unless the file is re-
+    placed in its entirety (not easily distinguishable in the diff).
 
 I hereby permit everyone who obtained a copy of this work to distri-
 bute, sell, give away, modify, sublicense, merge and use it, freely.
-I retain the right to be known as the author of the work. The author
-and every single contributor, unless marked with "NOP" above, hereby
-waive their right to require additional patent licences for usage of
-this work, even if the work could infringe patents hold by them.
+I retain the right to be known as the author of the work.
 
 The work is provided "as is", with no explicit or implicit warranty.
 Use it at your own risk. Neither the author, nor contributors may be
@@ -21,18 +21,19 @@ by the creation or modification of this work. Since modern computing
 devices are error-prone, flawless behaviour cannot be expected.
 
 
-This diff, ID $MirBSD: obsd.diff,v 1.20 2003/02/11 21:08:29 tg Exp $
+This diff, ID $MirBSD: obsd.diff,v 1.21 2003/02/23 17:59:42 tg Exp $
 (/usr/ports/mystuff/diff-metafiles to obsd.diff) is made
-against /cvs on Tue Jan 28 23:58:42 UTC 2003.
+against CTM on Sun Feb 23 17:35:50 UTC 2003.
 
-### GENERATOR: @(#)_MirBSD: regen-obsdp.sh,v 1.7 2003/02/10 19:33:07 tg Exp $
+### GENERATOR: @(#)_MirBSD: regen-obsdp.sh,v 1.11 2003/02/23 17:34:59 tg Exp $
+### CTM OpenBSD-cvs 3060
 Index: src/bin/csh/csh.1
 ===================================================================
 RCS file: /cvs/src/bin/csh/csh.1,v
 retrieving revision 1.42
 diff -u -r1.42 csh.1
 --- src/bin/csh/csh.1	13 Nov 2001 13:59:53 -0000	1.42
-+++ src/bin/csh/csh.1	11 Feb 2003 20:50:21 -0000
++++ src/bin/csh/csh.1	11 Feb 2003 21:09:28 -0000
 @@ -1839,6 +1839,9 @@
  .Ar cputime
  (the maximum
@@ -49,7 +50,7 @@ RCS file: /cvs/src/bin/csh/func.c,v
 retrieving revision 1.15
 diff -u -r1.15 func.c
 --- src/bin/csh/func.c	9 Jun 2002 05:47:05 -0000	1.15
-+++ src/bin/csh/func.c	11 Feb 2003 20:50:21 -0000
++++ src/bin/csh/func.c	11 Feb 2003 21:09:28 -0000
 @@ -1156,6 +1156,7 @@
      { RLIMIT_MEMLOCK,	"memorylocked",	1024,	"kbytes" },
      { RLIMIT_NPROC,	"maxproc",	1,	"" },
@@ -117,7 +118,7 @@ RCS file: /cvs/src/bin/ksh/c_ulimit.c,v
 retrieving revision 1.9
 diff -u -r1.9 c_ulimit.c
 --- src/bin/ksh/c_ulimit.c	9 Jun 2002 05:47:05 -0000	1.9
-+++ src/bin/ksh/c_ulimit.c	11 Feb 2003 20:50:21 -0000
++++ src/bin/ksh/c_ulimit.c	11 Feb 2003 21:09:28 -0000
 @@ -56,6 +56,9 @@
  #ifdef RLIMIT_CPU
  		{ "time(cpu-seconds)", RLIMIT, RLIMIT_CPU, RLIMIT_CPU, 1, 't' },
@@ -134,7 +135,7 @@ RCS file: /cvs/src/bin/ksh/history.c,v
 retrieving revision 1.16
 diff -u -r1.16 history.c
 --- src/bin/ksh/history.c	27 Nov 2002 20:53:03 -0000	1.16
-+++ src/bin/ksh/history.c	11 Feb 2003 20:50:21 -0000
++++ src/bin/ksh/history.c	11 Feb 2003 21:09:28 -0000
 @@ -1017,8 +1017,8 @@
  	register int bytes;
  {
@@ -152,7 +153,7 @@ RCS file: /cvs/src/bin/ksh/ksh.1tbl,v
 retrieving revision 1.48
 diff -u -r1.48 ksh.1tbl
 --- src/bin/ksh/ksh.1tbl	18 Sep 2002 07:33:25 -0000	1.48
-+++ src/bin/ksh/ksh.1tbl	11 Feb 2003 20:50:21 -0000
++++ src/bin/ksh/ksh.1tbl	11 Feb 2003 21:09:28 -0000
 @@ -4018,6 +4018,11 @@
  .Ar n
  .Tn CPU
@@ -168,16 +169,16 @@ diff -u -r1.48 ksh.1tbl
 Index: src/distrib/Makefile
 ===================================================================
 RCS file: /cvs/src/distrib/Makefile,v
-retrieving revision 1.21
-diff -u -r1.21 Makefile
---- src/distrib/Makefile	31 Dec 2002 16:22:00 -0000	1.21
-+++ src/distrib/Makefile	11 Feb 2003 20:50:21 -0000
+retrieving revision 1.22
+diff -u -r1.22 Makefile
+--- src/distrib/Makefile	30 Jan 2003 21:58:56 -0000	1.22
++++ src/distrib/Makefile	23 Feb 2003 16:47:15 -0000
 @@ -1,23 +1,14 @@
- #	$OpenBSD: Makefile,v 1.21 2002/12/31 16:22:22 miod Exp $
+ #	$OpenBSD: Makefile,v 1.22 2003/01/30 21:59:18 deraadt Exp $
  
  .if	make(obj)
--SUBDIR= special alpha crunch hp300 i386 mac68k macppc mvme68k \
-+SUBDIR= special alpha hp300 i386 mac68k macppc mvme68k \
+-SUBDIR= special alpha crunch hp300 hppa i386 mac68k macppc mvme68k \
++SUBDIR= special alpha hp300 hppa i386 mac68k macppc mvme68k \
  	mvme88k mvmeppc sparc sparc64 vax
  .elif	!make(install)
  SUBDIR= special
@@ -200,352 +201,49 @@ diff -u -r1.21 Makefile
 Index: src/distrib/sets/lists/base/md.i386
 ===================================================================
 RCS file: /cvs/src/distrib/sets/lists/base/md.i386,v
-retrieving revision 1.344
-diff -u -r1.344 md.i386
---- src/distrib/sets/lists/base/md.i386	15 Jan 2003 15:05:09 -0000	1.344
-+++ src/distrib/sets/lists/base/md.i386	11 Feb 2003 20:50:21 -0000
-@@ -33,47 +33,6 @@
- ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/cpp0
- ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include
- ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/specs
+retrieving revision 1.346
+diff -u -r1.346 md.i386
+--- src/distrib/sets/lists/base/md.i386	13 Feb 2003 21:35:03 -0000	1.346
++++ src/distrib/sets/lists/base/md.i386	23 Feb 2003 16:54:52 -0000
+@@ -33,9 +33,6 @@
+ ./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/cpp0
+ ./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/include
+ ./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/specs
 -./usr/lib/lib45.so.2.0
 -./usr/lib/libacl.so.6.0
 -./usr/lib/libasn1.so.3.0
--./usr/lib/libc.so.29.0
--./usr/lib/libcrypto.so.9.0
--./usr/lib/libcurses++.so.2.0
--./usr/lib/libcurses.so.9.0
--./usr/lib/libdes.so.8.0
--./usr/lib/libedit.so.1.0
--./usr/lib/libform.so.2.0
+ ./usr/lib/libc.so.29.0
+ ./usr/lib/libcrypto.so.9.0
+ ./usr/lib/libcurses++.so.2.0
+@@ -43,19 +40,11 @@
+ ./usr/lib/libdes.so.8.0
+ ./usr/lib/libedit.so.1.0
+ ./usr/lib/libform.so.2.0
 -./usr/lib/libg2c.so.7.0
 -./usr/lib/libgssapi.so.2.0
--./usr/lib/libiberty.so.5.0
+ ./usr/lib/libiberty.so.5.0
 -./usr/lib/libkadm.so.8.0
 -./usr/lib/libkafs.so.11.0
 -./usr/lib/libkdb.so.7.0
 -./usr/lib/libkrb.so.11.0
 -./usr/lib/libkrb5.so.5.0
--./usr/lib/libkvm.so.7.0
--./usr/lib/libm.so.1.0
--./usr/lib/libmenu.so.2.0
--./usr/lib/libncurses.so.9.0
+ ./usr/lib/libkvm.so.7.0
+ ./usr/lib/libm.so.1.0
+ ./usr/lib/libmenu.so.2.0
+ ./usr/lib/libncurses.so.9.0
 -./usr/lib/libobjc.so.1.0
--./usr/lib/libocurses.so.4.0
--./usr/lib/libossaudio.so.2.0
--./usr/lib/libotermcap.so.4.0
--./usr/lib/libpanel.so.2.0
--./usr/lib/libpcap.so.2.0
--./usr/lib/libperl.so.8.0
--./usr/lib/libpthread.so.1.0
--./usr/lib/libreadline.so.1.0
--./usr/lib/libsectok.so.4.0
--./usr/lib/libskey.so.4.0
--./usr/lib/libssl.so.7.0
--./usr/lib/libstdc++.so.31.0
--./usr/lib/libtermcap.so.9.0
--./usr/lib/libtermlib.so.9.0
--./usr/lib/libusbhid.so.1.0
--./usr/lib/libutil.so.8.0
--./usr/lib/libwrap.so.3.0
--./usr/lib/libz.so.2.0
- ./usr/libdata/perl5/i386-openbsd
- ./usr/libdata/perl5/i386-openbsd/5.8.0
- ./usr/libdata/perl5/i386-openbsd/5.8.0/.packlist
-@@ -223,46 +182,43 @@
- ./usr/libdata/perl5/i386-openbsd/5.8.0/Time/HiRes.pm
- ./usr/libdata/perl5/i386-openbsd/5.8.0/Unicode
- ./usr/libdata/perl5/i386-openbsd/5.8.0/Unicode/Normalize.pm
--./usr/libdata/perl5/i386-openbsd/5.8.0/XS
--./usr/libdata/perl5/i386-openbsd/5.8.0/XS/APItest.pm
--./usr/libdata/perl5/i386-openbsd/5.8.0/XS/Typemap.pm
- ./usr/libdata/perl5/i386-openbsd/5.8.0/XSLoader.pm
- ./usr/libdata/perl5/i386-openbsd/5.8.0/attrs.pm
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/B
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/B/B.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/B/B.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/B/B.a
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/B/C
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/B/C/C.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/B/C/C.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/B/C/C.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/B/C/extralibs.ld
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/B/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/ByteLoader
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/ByteLoader/ByteLoader.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/ByteLoader/ByteLoader.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/ByteLoader/ByteLoader.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/ByteLoader/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Cwd
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Cwd/Cwd.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Cwd/Cwd.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Cwd/Cwd.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Cwd/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/DB_File
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/DB_File/DB_File.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/DB_File/DB_File.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/DB_File/DB_File.a
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/DB_File/autosplit.ix
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/DB_File/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Data
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Data/Dumper
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Data/Dumper/Dumper.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Data/Dumper/Dumper.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Data/Dumper/Dumper.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Data/Dumper/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Devel
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Devel/DProf
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Devel/DProf/DProf.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Devel/DProf/DProf.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Devel/DProf/DProf.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Devel/DProf/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Devel/PPPort
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Devel/PPPort/PPPort.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Devel/PPPort/PPPort.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Devel/PPPort/PPPort.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Devel/PPPort/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Devel/Peek
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Devel/Peek/Peek.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Devel/Peek/Peek.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Devel/Peek/Peek.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Devel/Peek/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Digest
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Digest/MD5
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Digest/MD5/MD5.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Digest/MD5/MD5.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Digest/MD5/MD5.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Digest/MD5/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/DynaLoader
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/DynaLoader/DynaLoader.a
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/DynaLoader/autosplit.ix
-@@ -272,75 +228,74 @@
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/DynaLoader/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Byte
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Byte/Byte.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Byte/Byte.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Byte/Byte.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Byte/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/CN
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/CN/CN.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/CN/CN.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/CN/CN.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/CN/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/EBCDIC
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/EBCDIC/EBCDIC.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/EBCDIC/EBCDIC.so
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Encode.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Encode.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/EBCDIC/EBCDIC.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/EBCDIC/extralibs.ld
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Encode.a
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/JP
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/JP/JP.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/JP/JP.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/JP/JP.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/JP/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/KR
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/KR/KR.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/KR/KR.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/KR/KR.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/KR/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Symbol
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Symbol/Symbol.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Symbol/Symbol.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Symbol/Symbol.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Symbol/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/TW
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/TW/TW.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/TW/TW.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/TW/TW.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/TW/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Unicode
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Unicode/Unicode.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Unicode/Unicode.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Unicode/Unicode.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/Unicode/extralibs.ld
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Encode/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Fcntl
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Fcntl/Fcntl.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Fcntl/Fcntl.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Fcntl/Fcntl.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Fcntl/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/File
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/File/Glob
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/File/Glob/Glob.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/File/Glob/Glob.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/File/Glob/Glob.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/File/Glob/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Filter
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Filter/Util
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Filter/Util/Call
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Filter/Util/Call/Call.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Filter/Util/Call/Call.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Filter/Util/Call/Call.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Filter/Util/Call/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/I18N
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/I18N/Langinfo
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/I18N/Langinfo/Langinfo.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/I18N/Langinfo/Langinfo.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/I18N/Langinfo/Langinfo.a
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/I18N/Langinfo/autosplit.ix
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/I18N/Langinfo/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/IO
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/IO/IO.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/IO/IO.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/IO/IO.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/IO/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/IPC
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/IPC/SysV
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/IPC/SysV/SysV.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/IPC/SysV/SysV.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/IPC/SysV/SysV.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/IPC/SysV/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/List
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/List/Util
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/List/Util/Util.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/List/Util/Util.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/List/Util/Util.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/List/Util/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/MIME
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/MIME/Base64
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/MIME/Base64/Base64.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/MIME/Base64/Base64.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/MIME/Base64/Base64.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/MIME/Base64/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/NDBM_File
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/NDBM_File/NDBM_File.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/NDBM_File/NDBM_File.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/NDBM_File/NDBM_File.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/NDBM_File/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/ODBM_File
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/ODBM_File/ODBM_File.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/ODBM_File/ODBM_File.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/ODBM_File/ODBM_File.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/ODBM_File/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Opcode
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Opcode/Opcode.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Opcode/Opcode.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Opcode/Opcode.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Opcode/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/POSIX
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/POSIX/POSIX.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/POSIX/POSIX.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/POSIX/POSIX.a
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/POSIX/abs.al
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/POSIX/alarm.al
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/POSIX/assert.al
-@@ -369,6 +324,7 @@
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/POSIX/execvp.al
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/POSIX/exit.al
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/POSIX/exp.al
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/POSIX/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/POSIX/fabs.al
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/POSIX/fclose.al
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/POSIX/fcntl.al
-@@ -493,29 +449,29 @@
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/POSIX/waitpid.al
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/PerlIO
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/PerlIO/encoding
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/PerlIO/encoding/encoding.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/PerlIO/encoding/encoding.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/PerlIO/encoding/encoding.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/PerlIO/encoding/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/PerlIO/scalar
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/PerlIO/scalar/scalar.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/PerlIO/scalar/scalar.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/PerlIO/scalar/extralibs.ld
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/PerlIO/scalar/scalar.a
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/PerlIO/via
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/PerlIO/via/via.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/PerlIO/via/via.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/PerlIO/via/extralibs.ld
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/PerlIO/via/via.a
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/SDBM_File
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/SDBM_File/SDBM_File.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/SDBM_File/SDBM_File.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/SDBM_File/SDBM_File.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/SDBM_File/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Socket
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Socket/Socket.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Socket/Socket.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Socket/Socket.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Socket/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Storable
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Storable/CAN_FLOCK.al
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Storable/Storable.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Storable/Storable.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Storable/Storable.a
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Storable/_freeze.al
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Storable/_retrieve.al
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Storable/_store.al
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Storable/_store_fd.al
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Storable/autosplit.ix
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Storable/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Storable/fd_retrieve.al
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Storable/freeze.al
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Storable/lock_nstore.al
-@@ -534,42 +490,35 @@
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Storable/thaw.al
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Sys
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Sys/Hostname
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Sys/Hostname/Hostname.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Sys/Hostname/Hostname.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Sys/Hostname/Hostname.a
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Sys/Hostname/autosplit.ix
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Sys/Hostname/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Sys/Syslog
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Sys/Syslog/Syslog.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Sys/Syslog/Syslog.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Sys/Syslog/Syslog.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Sys/Syslog/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Time
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Time/HiRes
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Time/HiRes/HiRes.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Time/HiRes/HiRes.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Time/HiRes/HiRes.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Time/HiRes/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Unicode
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Unicode/Normalize
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Unicode/Normalize/Normalize.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Unicode/Normalize/Normalize.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Unicode/Normalize/Normalize.a
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Unicode/Normalize/autosplit.ix
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/XS
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/XS/APItest
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/XS/APItest/APItest.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/XS/APItest/APItest.so
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/XS/Typemap
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/XS/Typemap/Typemap.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/XS/Typemap/Typemap.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/Unicode/Normalize/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/attrs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/attrs/attrs.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/attrs/attrs.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/attrs/attrs.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/attrs/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/re
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/re/re.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/re/re.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/re/extralibs.ld
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/re/re.a
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/sdbm
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/sdbm/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/threads
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/threads/extralibs.ld
- ./usr/libdata/perl5/i386-openbsd/5.8.0/auto/threads/shared
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/threads/shared/shared.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/threads/shared/shared.so
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/threads/threads.bs
--./usr/libdata/perl5/i386-openbsd/5.8.0/auto/threads/threads.so
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/threads/shared/extralibs.ld
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/threads/shared/shared.a
-+./usr/libdata/perl5/i386-openbsd/5.8.0/auto/threads/threads.a
- ./usr/libdata/perl5/i386-openbsd/5.8.0/encoding.pm
- ./usr/libdata/perl5/i386-openbsd/5.8.0/lib.pm
- ./usr/libdata/perl5/i386-openbsd/5.8.0/ops.pm
-@@ -1447,32 +1396,6 @@
+ ./usr/lib/libocurses.so.4.0
+ ./usr/lib/libossaudio.so.2.0
+ ./usr/lib/libotermcap.so.4.0
+@@ -1419,6 +1408,7 @@
+ ./usr/libdata/perl5/site_perl/i386-openbsd/i386/ptrace.ph
+ ./usr/libdata/perl5/site_perl/i386-openbsd/i386/rbus_machdep.ph
+ ./usr/libdata/perl5/site_perl/i386-openbsd/i386/reg.ph
++./usr/libdata/perl5/site_perl/i386-openbsd/i386/reloc.ph
+ ./usr/libdata/perl5/site_perl/i386-openbsd/i386/segments.ph
+ ./usr/libdata/perl5/site_perl/i386-openbsd/i386/setjmp.ph
+ ./usr/libdata/perl5/site_perl/i386-openbsd/i386/signal.ph
+@@ -1454,32 +1444,6 @@
  ./usr/libdata/perl5/site_perl/i386-openbsd/kerberosIV/krb_db.ph
  ./usr/libdata/perl5/site_perl/i386-openbsd/kerberosIV/krb_err.ph
  ./usr/libdata/perl5/site_perl/i386-openbsd/kerberosIV/prot.ph
@@ -578,11 +276,9 @@ diff -u -r1.344 md.i386
  ./usr/libdata/perl5/site_perl/i386-openbsd/keynote.ph
  ./usr/libdata/perl5/site_perl/i386-openbsd/kvm.ph
  ./usr/libdata/perl5/site_perl/i386-openbsd/langinfo.ph
-@@ -2102,11 +2025,7 @@
- ./usr/libdata/perl5/site_perl/i386-openbsd/xfs/xfs_vopdefs.ph
- ./usr/libdata/perl5/site_perl/i386-openbsd/zconf.ph
+@@ -2111,9 +2075,6 @@
  ./usr/libdata/perl5/site_perl/i386-openbsd/zlib.ph
--./usr/libexec/ld.so
+ ./usr/libexec/ld.so
  ./usr/local/libdata/perl5/site_perl/i386-openbsd
 -./usr/mdec/biosboot
 -./usr/mdec/boot
@@ -590,7 +286,7 @@ diff -u -r1.344 md.i386
  ./usr/mdec/mbr
  ./usr/sbin/apm
  ./usr/sbin/apmd
-@@ -2117,25 +2036,3 @@
+@@ -2124,25 +2085,3 @@
  ./usr/sbin/wsfontload
  ./usr/sbin/wsmoused
  ./usr/sbin/zzz
@@ -619,10 +315,10 @@ diff -u -r1.344 md.i386
 Index: src/distrib/sets/lists/base/mi
 ===================================================================
 RCS file: /cvs/src/distrib/sets/lists/base/mi,v
-retrieving revision 1.255
-diff -u -r1.255 mi
---- src/distrib/sets/lists/base/mi	20 Jan 2003 22:10:45 -0000	1.255
-+++ src/distrib/sets/lists/base/mi	11 Feb 2003 20:50:21 -0000
+retrieving revision 1.259
+diff -u -r1.259 mi
+--- src/distrib/sets/lists/base/mi	20 Feb 2003 08:23:05 -0000	1.259
++++ src/distrib/sets/lists/base/mi	23 Feb 2003 16:54:50 -0000
 @@ -45,7 +45,6 @@
  ./dev
  ./dev/MAKEDEV
@@ -667,7 +363,15 @@ diff -u -r1.255 mi
  ./usr/bin/c2ph
  ./usr/bin/cal
  ./usr/bin/calendar
-@@ -204,6 +202,7 @@
+@@ -194,7 +192,6 @@
+ ./usr/bin/comm
+ ./usr/bin/compile_et
+ ./usr/bin/compress
+-./usr/bin/cpp
+ ./usr/bin/crontab
+ ./usr/bin/ctags
+ ./usr/bin/cu
+@@ -204,6 +201,7 @@
  ./usr/bin/dbmmanage
  ./usr/bin/dc
  ./usr/bin/deroff
@@ -675,7 +379,7 @@ diff -u -r1.255 mi
  ./usr/bin/diff
  ./usr/bin/diff3
  ./usr/bin/dirname
-@@ -254,6 +253,7 @@
+@@ -254,6 +252,7 @@
  ./usr/bin/head
  ./usr/bin/help
  ./usr/bin/hexdump
@@ -683,7 +387,7 @@ diff -u -r1.255 mi
  ./usr/bin/hoststat
  ./usr/bin/hpftodit
  ./usr/bin/htdigest
-@@ -272,12 +272,8 @@
+@@ -272,12 +271,8 @@
  ./usr/bin/ipcs
  ./usr/bin/join
  ./usr/bin/jot
@@ -696,7 +400,7 @@ diff -u -r1.255 mi
  ./usr/bin/ktrace
  ./usr/bin/lam
  ./usr/bin/last
-@@ -320,6 +316,7 @@
+@@ -320,6 +315,7 @@
  ./usr/bin/msgs
  ./usr/bin/nawk
  ./usr/bin/nc
@@ -704,7 +408,7 @@ diff -u -r1.255 mi
  ./usr/bin/neqn
  ./usr/bin/netstat
  ./usr/bin/newaliases
-@@ -329,6 +326,7 @@
+@@ -329,6 +325,7 @@
  ./usr/bin/nm
  ./usr/bin/nohup
  ./usr/bin/nroff
@@ -712,7 +416,7 @@ diff -u -r1.255 mi
  ./usr/bin/od
  ./usr/bin/oldrdist
  ./usr/bin/olf2elf
-@@ -338,7 +336,6 @@
+@@ -338,10 +335,10 @@
  ./usr/bin/otp-sha1
  ./usr/bin/page
  ./usr/bin/pagesize
@@ -720,7 +424,11 @@ diff -u -r1.255 mi
  ./usr/bin/passwd
  ./usr/bin/paste
  ./usr/bin/patch
-@@ -418,7 +415,6 @@
++./usr/bin/pcpp
+ ./usr/bin/perl
+ ./usr/bin/perl5.8.0
+ ./usr/bin/perlbug
+@@ -417,7 +414,6 @@
  ./usr/bin/ssh-agent
  ./usr/bin/ssh-keygen
  ./usr/bin/ssh-keyscan
@@ -728,7 +436,7 @@ diff -u -r1.255 mi
  ./usr/bin/strings
  ./usr/bin/su
  ./usr/bin/sudo
-@@ -437,6 +433,7 @@
+@@ -436,6 +432,7 @@
  ./usr/bin/tftp
  ./usr/bin/tic
  ./usr/bin/time
@@ -736,7 +444,7 @@ diff -u -r1.255 mi
  ./usr/bin/tip
  ./usr/bin/tn3270
  ./usr/bin/top
-@@ -464,7 +461,6 @@
+@@ -462,7 +459,6 @@
  ./usr/bin/uudecode
  ./usr/bin/uuencode
  ./usr/bin/vacation
@@ -744,7 +452,7 @@ diff -u -r1.255 mi
  ./usr/bin/vgrind
  ./usr/bin/vi
  ./usr/bin/view
-@@ -482,13 +478,11 @@
+@@ -480,13 +476,11 @@
  ./usr/bin/whois
  ./usr/bin/window
  ./usr/bin/write
@@ -759,7 +467,7 @@ diff -u -r1.255 mi
  ./usr/bin/yyfix
  ./usr/bin/zcat
  ./usr/bin/zcmp
-@@ -1416,15 +1410,10 @@
+@@ -1414,15 +1408,10 @@
  ./usr/libdata/ssh
  ./usr/libdata/ssh/Ssh.bin
  ./usr/libexec
@@ -775,7 +483,7 @@ diff -u -r1.255 mi
  ./usr/libexec/auth/login_lchpass
  ./usr/libexec/auth/login_passwd
  ./usr/libexec/auth/login_radius
-@@ -1455,17 +1444,8 @@
+@@ -1453,17 +1442,8 @@
  ./usr/libexec/ftpd
  ./usr/libexec/getNAME
  ./usr/libexec/getty
@@ -794,7 +502,7 @@ diff -u -r1.255 mi
  ./usr/libexec/locate.bigram
  ./usr/libexec/locate.code
  ./usr/libexec/locate.concatdb
-@@ -1478,6 +1458,7 @@
+@@ -1476,6 +1456,7 @@
  ./usr/libexec/makekey
  ./usr/libexec/makewhatis
  ./usr/libexec/ntalkd
@@ -802,7 +510,7 @@ diff -u -r1.255 mi
  ./usr/libexec/rpc.rquotad
  ./usr/libexec/rpc.rstatd
  ./usr/libexec/rpc.rusersd
-@@ -1546,7 +1527,6 @@
+@@ -1544,7 +1525,6 @@
  ./usr/sbin/bootpef
  ./usr/sbin/bootpgw
  ./usr/sbin/bootptest
@@ -810,12 +518,11 @@ diff -u -r1.255 mi
  ./usr/sbin/certpatch
  ./usr/sbin/chat
  ./usr/sbin/chgrp
-@@ -1559,14 +1539,10 @@
+@@ -1557,13 +1537,10 @@
  ./usr/sbin/dev_mkdb
  ./usr/sbin/dhcpd
  ./usr/sbin/dhcrelay
 -./usr/sbin/dig
--./usr/sbin/dnsquery
  ./usr/sbin/editmap
  ./usr/sbin/edquota
 -./usr/sbin/ext_srvtab
@@ -825,7 +532,7 @@ diff -u -r1.255 mi
  ./usr/sbin/getencstat
  ./usr/sbin/getextattr
  ./usr/sbin/group
-@@ -1574,19 +1550,9 @@
+@@ -1571,19 +1548,9 @@
  ./usr/sbin/groupdel
  ./usr/sbin/groupinfo
  ./usr/sbin/groupmod
@@ -845,7 +552,7 @@ diff -u -r1.255 mi
  ./usr/sbin/kvm_mkdb
  ./usr/sbin/logresolve
  ./usr/sbin/lpc
-@@ -1594,24 +1560,16 @@
+@@ -1591,24 +1558,16 @@
  ./usr/sbin/lptest
  ./usr/sbin/mailstats
  ./usr/sbin/mailwrapper
@@ -861,16 +568,16 @@ diff -u -r1.255 mi
  ./usr/sbin/moptrace
  ./usr/sbin/mtree
 -./usr/sbin/named
--./usr/sbin/named.reload
--./usr/sbin/named.restart
--./usr/sbin/ndc
+-./usr/sbin/named-checkconf
+-./usr/sbin/named-checkzone
  ./usr/sbin/ndp
  ./usr/sbin/netgroup_mkdb
 -./usr/sbin/nslookup
+-./usr/sbin/nsupdate
  ./usr/sbin/openssl
  ./usr/sbin/pac
  ./usr/sbin/pkg
-@@ -1628,7 +1586,6 @@
+@@ -1625,7 +1584,6 @@
  ./usr/sbin/pppstats
  ./usr/sbin/praliases
  ./usr/sbin/pstat
@@ -878,7 +585,7 @@ diff -u -r1.255 mi
  ./usr/sbin/pwd_mkdb
  ./usr/sbin/quot
  ./usr/sbin/quotaoff
-@@ -1638,7 +1595,6 @@
+@@ -1635,7 +1593,6 @@
  ./usr/sbin/rdate
  ./usr/sbin/rdconfig
  ./usr/sbin/repquota
@@ -886,7 +593,7 @@ diff -u -r1.255 mi
  ./usr/sbin/rip6query
  ./usr/sbin/rmgroup
  ./usr/sbin/rmt
-@@ -1648,7 +1604,6 @@
+@@ -1647,7 +1604,6 @@
  ./usr/sbin/rpc.bootparamd
  ./usr/sbin/rpc.lockd
  ./usr/sbin/rpc.pcnfsd
@@ -894,7 +601,7 @@ diff -u -r1.255 mi
  ./usr/sbin/rtadvd
  ./usr/sbin/rtsold
  ./usr/sbin/rwhod
-@@ -1665,8 +1620,6 @@
+@@ -1664,8 +1620,6 @@
  ./usr/sbin/spppcontrol
  ./usr/sbin/spray
  ./usr/sbin/sshd
@@ -903,7 +610,7 @@ diff -u -r1.255 mi
  ./usr/sbin/suexec
  ./usr/sbin/supfilesrv
  ./usr/sbin/supscan
-@@ -1691,18 +1644,6 @@
+@@ -1690,18 +1644,6 @@
  ./usr/sbin/vipw
  ./usr/sbin/visudo
  ./usr/sbin/vnconfig
@@ -922,7 +629,7 @@ diff -u -r1.255 mi
  ./usr/sbin/zdump
  ./usr/sbin/zic
  ./usr/share
-@@ -2030,6 +1971,7 @@
+@@ -2029,6 +1971,7 @@
  ./usr/share/man/cat8/usermod.0
  ./usr/share/man/whatis.db
  ./usr/share/misc
@@ -930,15 +637,7 @@ diff -u -r1.255 mi
  ./usr/share/misc/airport
  ./usr/share/misc/ascii
  ./usr/share/misc/birthtoken
-@@ -2043,7 +1985,6 @@
- ./usr/share/misc/mdoc.template
- ./usr/share/misc/more.help
- ./usr/share/misc/na.phone
--./usr/share/misc/nslookup.help
- ./usr/share/misc/scsi_modes
- ./usr/share/misc/termcap
- ./usr/share/misc/termcap.db
-@@ -2071,26 +2012,6 @@
+@@ -2069,26 +2012,6 @@
  ./usr/share/mk/bsd.sys.mk
  ./usr/share/mk/sys.mk
  ./usr/share/nls
@@ -965,7 +664,7 @@ diff -u -r1.255 mi
  ./usr/share/pf
  ./usr/share/pf/queue1
  ./usr/share/pf/queue2
-@@ -2351,1121 +2272,11 @@
+@@ -2349,1121 +2272,11 @@
  ./usr/share/vi/catalog/spanish
  ./usr/share/vi/catalog/swedish
  ./usr/share/zoneinfo
@@ -2087,7 +1786,21 @@ diff -u -r1.255 mi
  ./usr/share/zoneinfo/posixrules
  ./usr/share/zoneinfo/right
  ./usr/share/zoneinfo/right/Africa
-@@ -4048,14 +2859,8 @@
+@@ -4026,12 +2839,12 @@
+ ./usr/src
+ ./var
+ ./var/account
+-./var/cron/atjobs
+ ./var/audit
+ ./var/authpf
+ ./var/backups
+ ./var/crash
+ ./var/cron
++./var/cron/atjobs
+ ./var/cron/tabs
+ ./var/db
+ ./var/db/ns
+@@ -4045,12 +2858,8 @@
  ./var/games/phantasia
  ./var/games/save
  ./var/log
@@ -2097,12 +1810,10 @@ diff -u -r1.255 mi
 -./var/named
 -./var/named/dev
 -./var/named/etc
--./var/named/named-xfer
--./var/named/namedb
  ./var/preserve
  ./var/quotas
  ./var/run
-@@ -4092,9 +2897,3 @@
+@@ -4087,9 +2896,3 @@
  ./var/www/icons/small
  ./var/www/logs
  ./var/www/users
@@ -2115,10 +1826,10 @@ diff -u -r1.255 mi
 Index: src/distrib/sets/lists/comp/md.i386
 ===================================================================
 RCS file: /cvs/src/distrib/sets/lists/comp/md.i386,v
-retrieving revision 1.88
-diff -u -r1.88 md.i386
---- src/distrib/sets/lists/comp/md.i386	15 Jan 2003 15:05:09 -0000	1.88
-+++ src/distrib/sets/lists/comp/md.i386	11 Feb 2003 20:50:21 -0000
+retrieving revision 1.89
+diff -u -r1.89 md.i386
+--- src/distrib/sets/lists/comp/md.i386	13 Feb 2003 21:35:04 -0000	1.89
++++ src/distrib/sets/lists/comp/md.i386	23 Feb 2003 16:54:51 -0000
 @@ -1,5 +1,9 @@
 +./usr/bin/addr2line
 +./usr/bin/gasp
@@ -2129,7 +1840,15 @@ diff -u -r1.88 md.i386
  ./usr/include/bfd.h
  ./usr/include/bfdlink.h
  ./usr/include/dlfcn.h
-@@ -61,79 +65,37 @@
+@@ -44,6 +48,7 @@
+ ./usr/include/i386/ptrace.h
+ ./usr/include/i386/rbus_machdep.h
+ ./usr/include/i386/reg.h
++./usr/include/i386/reloc.h
+ ./usr/include/i386/segments.h
+ ./usr/include/i386/setjmp.h
+ ./usr/include/i386/signal.h
+@@ -61,25 +66,19 @@
  ./usr/include/i386/vmparam.h
  ./usr/include/ieeefp.h
  ./usr/include/link.h
@@ -2137,40 +1856,38 @@ diff -u -r1.88 md.i386
 +./usr/lib/crtbeginS.o
 +./usr/lib/crtend.o
 +./usr/lib/crtendS.o
- ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/SYSCALLS.c.X
- ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/cc1
--./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/cc1obj
--./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/cc1plus
--./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/f771
- ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/fpic
- ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/fpic/libgcc.a
- ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/README
--./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/exception
- ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/float.h
- ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/limits.h
--./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/new
--./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/new.h
- ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/syslimits.h
--./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/typeinfo
- ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/libgcc.a
+ ./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/SYSCALLS.c.X
+ ./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/cc1
+-./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/cc1obj
+-./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/cc1plus
+-./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/f771
+ ./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/fpic
+ ./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/fpic/libgcc.a
+ ./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/include/README
+-./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/include/exception
+ ./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/include/float.h
+ ./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/include/limits.h
+-./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/include/new
+-./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/include/new.h
+ ./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/include/syslimits.h
+-./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/include/typeinfo
+ ./usr/lib/gcc-lib/i386-unknown-openbsd3.3/2.95.3/libgcc.a
 -./usr/lib/lib45_pic.a
 -./usr/lib/libacl_pic.a
 -./usr/lib/libasn1_pic.a
  ./usr/lib/libbfd.a
--./usr/lib/libc_pic.a
--./usr/lib/libcom_err_pic.a
--./usr/lib/libcrypto_pic.a
--./usr/lib/libcurses++_pic.a
--./usr/lib/libcurses_pic.a
--./usr/lib/libdes_pic.a
--./usr/lib/libedit_pic.a
--./usr/lib/libform_pic.a
+ ./usr/lib/libc_pic.a
+ ./usr/lib/libcom_err_pic.a
+@@ -89,25 +88,13 @@
+ ./usr/lib/libdes_pic.a
+ ./usr/lib/libedit_pic.a
+ ./usr/lib/libform_pic.a
 -./usr/lib/libfrtbegin_pic.a
 -./usr/lib/libg2c_pic.a
 -./usr/lib/libgssapi_pic.a
  ./usr/lib/libi386.a
 -./usr/lib/libi386_p.a
--./usr/lib/libiberty_pic.a
+ ./usr/lib/libiberty_pic.a
 -./usr/lib/libkadm5clnt_pic.a
 -./usr/lib/libkadm5srv_pic.a
 -./usr/lib/libkadm_pic.a
@@ -2178,33 +1895,19 @@ diff -u -r1.88 md.i386
 -./usr/lib/libkdb_pic.a
 -./usr/lib/libkrb5_pic.a
 -./usr/lib/libkrb_pic.a
--./usr/lib/libkvm_pic.a
--./usr/lib/libm_pic.a
--./usr/lib/libmenu_pic.a
+ ./usr/lib/libkvm_pic.a
+ ./usr/lib/libm_pic.a
+ ./usr/lib/libmenu_pic.a
  ./usr/lib/libmmalloc.a
--./usr/lib/libncurses_pic.a
+ ./usr/lib/libncurses_pic.a
 -./usr/lib/libobjc_pic.a
--./usr/lib/libocurses_pic.a
+ ./usr/lib/libocurses_pic.a
  ./usr/lib/libopcodes.a
--./usr/lib/libossaudio_pic.a
--./usr/lib/libotermcap_pic.a
--./usr/lib/libpanel_pic.a
--./usr/lib/libpcap_pic.a
--./usr/lib/libperl_pic.a
--./usr/lib/libpthread_pic.a
- ./usr/lib/libreadline.a
--./usr/lib/libreadline_pic.a
--./usr/lib/libsectok_pic.a
--./usr/lib/libskey_pic.a
--./usr/lib/libssl_pic.a
--./usr/lib/libstdc++_pic.a
--./usr/lib/libtelnet_pic.a
--./usr/lib/libtermcap_pic.a
--./usr/lib/libtermlib_pic.a
--./usr/lib/libusbhid_pic.a
--./usr/lib/libutil_pic.a
--./usr/lib/libwrap_pic.a
--./usr/lib/libz_pic.a
+ ./usr/lib/libossaudio_pic.a
+@@ -129,11 +116,19 @@
+ ./usr/lib/libutil_pic.a
+ ./usr/lib/libwrap_pic.a
+ ./usr/lib/libz_pic.a
 -./usr/lib/scrt0.o
 +./usr/libdata/ldscripts
 +./usr/libdata/ldscripts/elf_i386.x
@@ -2225,17 +1928,17 @@ diff -u -r1.88 md.i386
 Index: src/distrib/sets/lists/comp/mi
 ===================================================================
 RCS file: /cvs/src/distrib/sets/lists/comp/mi,v
-retrieving revision 1.362
-diff -u -r1.362 mi
---- src/distrib/sets/lists/comp/mi	19 Jan 2003 03:39:50 -0000	1.362
-+++ src/distrib/sets/lists/comp/mi	11 Feb 2003 20:50:21 -0000
-@@ -2,15 +2,12 @@
+retrieving revision 1.368
+diff -u -r1.368 mi
+--- src/distrib/sets/lists/comp/mi	20 Feb 2003 08:23:05 -0000	1.368
++++ src/distrib/sets/lists/comp/mi	23 Feb 2003 16:54:48 -0000
+@@ -2,16 +2,11 @@
  ./usr/bin/ar
  ./usr/bin/as
  ./usr/bin/asa
 -./usr/bin/c++
 -./usr/bin/c++filt
- ./usr/bin/cc
+-./usr/bin/cc
 -./usr/bin/f77
 +./usr/bin/crunchgen
 +./usr/bin/crunchide
@@ -2244,10 +1947,19 @@ diff -u -r1.362 mi
  ./usr/bin/fpr
 -./usr/bin/g++
 -./usr/bin/g77
- ./usr/bin/gcc
+-./usr/bin/gcc
  ./usr/bin/gcov
  ./usr/bin/gprof
-@@ -889,32 +886,6 @@
+ ./usr/bin/ld
+@@ -19,6 +14,7 @@
+ ./usr/bin/lint
+ ./usr/bin/lorder
+ ./usr/bin/mkstr
++./usr/bin/pgcc
+ ./usr/bin/protoize
+ ./usr/bin/ranlib
+ ./usr/bin/rpcgen
+@@ -898,32 +894,6 @@
  ./usr/include/kerberosIV/krb_db.h
  ./usr/include/kerberosIV/krb_err.h
  ./usr/include/kerberosIV/prot.h
@@ -2280,7 +1992,7 @@ diff -u -r1.362 mi
  ./usr/include/keynote.h
  ./usr/include/kvm.h
  ./usr/include/langinfo.h
-@@ -1611,116 +1582,51 @@
+@@ -1620,116 +1590,51 @@
  ./usr/lib/crt0.o
  ./usr/lib/debug
  ./usr/lib/gcrt0.o
@@ -2397,11 +2109,12 @@ diff -u -r1.362 mi
  ./usr/libdata/lint/llib-lposix.ln
  ./usr/libdata/lint/llib-lstdc.ln
  ./usr/libexec/lint1
-@@ -1748,13 +1654,10 @@
+@@ -1757,14 +1662,10 @@
  ./usr/share/man/cat1/ar.0
  ./usr/share/man/cat1/as.0
  ./usr/share/man/cat1/asa.0
 -./usr/share/man/cat1/c++.0
+-./usr/share/man/cat1/c++filt.0
  ./usr/share/man/cat1/cc.0
  ./usr/share/man/cat1/cccp.0
 -./usr/share/man/cat1/f77.0
@@ -2410,8 +2123,8 @@ diff -u -r1.362 mi
 -./usr/share/man/cat1/g++.0
  ./usr/share/man/cat1/gcc-local.0
  ./usr/share/man/cat1/gcc.0
- ./usr/share/man/cat1/gprof.0
-@@ -3513,12 +3416,6 @@
+ ./usr/share/man/cat1/gcov.0
+@@ -3527,12 +3428,6 @@
  ./usr/share/man/cat3/jn.0
  ./usr/share/man/cat3/jnf.0
  ./usr/share/man/cat3/jrand48.0
@@ -2424,7 +2137,7 @@ diff -u -r1.362 mi
  ./usr/share/man/cat3/kerberos.0
  ./usr/share/man/cat3/keybound.0
  ./usr/share/man/cat3/keycrunch.0
-@@ -3554,114 +3451,6 @@
+@@ -3568,114 +3463,6 @@
  ./usr/share/man/cat3/kn_remove_authorizer.0
  ./usr/share/man/cat3/kn_sign_assertion.0
  ./usr/share/man/cat3/kn_verify_assertion.0
@@ -2539,7 +2252,7 @@ diff -u -r1.362 mi
  ./usr/share/man/cat3/krb_ck_repl.0
  ./usr/share/man/cat3/krb_get_admhst.0
  ./usr/share/man/cat3/krb_get_cred.0
-@@ -4707,18 +4496,6 @@
+@@ -4722,18 +4509,6 @@
  ./usr/share/man/cat3/y1f.0
  ./usr/share/man/cat3/yn.0
  ./usr/share/man/cat3/ynf.0
@@ -2561,10 +2274,10 @@ diff -u -r1.362 mi
 Index: src/distrib/sets/lists/etc/mi
 ===================================================================
 RCS file: /cvs/src/distrib/sets/lists/etc/mi,v
-retrieving revision 1.67
-diff -u -r1.67 mi
---- src/distrib/sets/lists/etc/mi	16 Dec 2002 00:14:30 -0000	1.67
-+++ src/distrib/sets/lists/etc/mi	11 Feb 2003 20:50:21 -0000
+retrieving revision 1.70
+diff -u -r1.70 mi
+--- src/distrib/sets/lists/etc/mi	20 Feb 2003 08:23:06 -0000	1.70
++++ src/distrib/sets/lists/etc/mi	23 Feb 2003 16:54:42 -0000
 @@ -1,10 +1,5 @@
  ./.cshrc
  ./.profile
@@ -2615,7 +2328,7 @@ diff -u -r1.67 mi
  ./etc/sliphome/slip.hosts
  ./etc/sliphome/slip.login
  ./etc/spwd.db
-@@ -111,7 +101,6 @@
+@@ -111,46 +101,24 @@
  ./etc/sysctl.conf
  ./etc/syslog.conf
  ./etc/systrace/usr_sbin_lpd
@@ -2623,10 +2336,13 @@ diff -u -r1.67 mi
  ./etc/ttys
  ./etc/weekly
  ./root/.cshrc
-@@ -120,30 +109,15 @@
+ ./root/.klogin
+ ./root/.login
  ./root/.profile
- ./var/at/at.deny
- ./var/crash/minfree
++./var/crash/minfree
+ ./var/cron/at.deny
+ ./var/cron/cron.deny
+-./var/crash/minfree
 -./var/cron/log
  ./var/cron/tabs/root
  ./var/db/locate.database
@@ -2646,11 +2362,17 @@ diff -u -r1.67 mi
 -./var/log/xferlog
  ./var/mail/root
  ./var/msgs/bounds
--./var/named/named.boot
--./var/named/namedb/localhost.rev
--./var/named/namedb/localhost.v6.rev
--./var/named/namedb/localhost.zone
--./var/named/namedb/root.cache
+-./var/named/etc/named-dual.conf
+-./var/named/etc/named-simple.conf
+-./var/named/etc/named.conf
+-./var/named/master
+-./var/named/slave
+-./var/named/standard
+-./var/named/standard/localhost
+-./var/named/standard/loopback
+-./var/named/standard/loopback6.arpa
+-./var/named/standard/loopback6.int
+-./var/named/standard/root.hint
  ./var/run/utmp
  ./var/www/cgi-bin/printenv
  ./var/www/cgi-bin/test-cgi
@@ -2660,21 +2382,21 @@ RCS file: /cvs/src/distrib/sets/lists/man/md.i386,v
 retrieving revision 1.29
 diff -u -r1.29 md.i386
 --- src/distrib/sets/lists/man/md.i386	25 May 2000 21:56:28 -0000	1.29
-+++ src/distrib/sets/lists/man/md.i386	11 Feb 2003 20:50:21 -0000
-@@ -1,5 +1 @@
++++ src/distrib/sets/lists/man/md.i386	23 Feb 2003 16:54:51 -0000
+@@ -1,5 +1,2 @@
 -./usr/share/man/cat1/ld.so.0
--./usr/share/man/cat1/ldd.0
+ ./usr/share/man/cat1/ldd.0
 -./usr/share/man/cat5/ar.0
 -./usr/share/man/cat5/ranlib.0
  ./usr/share/man/cat8/ldconfig.0
 Index: src/distrib/sets/lists/man/mi
 ===================================================================
 RCS file: /cvs/src/distrib/sets/lists/man/mi,v
-retrieving revision 1.418
-diff -u -r1.418 mi
---- src/distrib/sets/lists/man/mi	27 Jan 2003 08:03:23 -0000	1.418
-+++ src/distrib/sets/lists/man/mi	11 Feb 2003 20:50:21 -0000
-@@ -39,6 +39,16 @@
+retrieving revision 1.425
+diff -u -r1.425 mi
+--- src/distrib/sets/lists/man/mi	17 Feb 2003 01:10:33 -0000	1.425
++++ src/distrib/sets/lists/man/mi	23 Feb 2003 16:54:40 -0000
+@@ -40,6 +40,16 @@
  ./usr/share/info/amdref.info-1
  ./usr/share/info/amdref.info-2
  ./usr/share/info/amdref.info-3
@@ -2691,7 +2413,7 @@ diff -u -r1.418 mi
  ./usr/share/info/bfd.info
  ./usr/share/info/bfd.info-1
  ./usr/share/info/bfd.info-2
-@@ -47,6 +57,10 @@
+@@ -48,6 +58,10 @@
  ./usr/share/info/bfd.info-5
  ./usr/share/info/bfd.info-6
  ./usr/share/info/bfd.info-7
@@ -2702,7 +2424,7 @@ diff -u -r1.418 mi
  ./usr/share/info/cpp.info
  ./usr/share/info/cpp.info-1
  ./usr/share/info/cpp.info-2
-@@ -67,28 +81,7 @@
+@@ -68,28 +82,7 @@
  ./usr/share/info/cvsclient.info-3
  ./usr/share/info/dc.info
  ./usr/share/info/dir
@@ -2732,7 +2454,7 @@ diff -u -r1.418 mi
  ./usr/share/info/gcc.info
  ./usr/share/info/gcc.info-1
  ./usr/share/info/gcc.info-10
-@@ -134,14 +127,19 @@
+@@ -135,14 +128,19 @@
  ./usr/share/info/gdbint.info-1
  ./usr/share/info/gdbint.info-2
  ./usr/share/info/gzip.info
@@ -2754,7 +2476,7 @@ diff -u -r1.418 mi
  ./usr/share/info/mmalloc.info
  ./usr/share/info/readline.info
  ./usr/share/info/rluserman.info
-@@ -169,7 +167,6 @@
+@@ -170,7 +168,6 @@
  ./usr/share/man/cat1/a2p.0
  ./usr/share/man/cat1/addftinfo.0
  ./usr/share/man/cat1/afmtodit.0
@@ -2762,7 +2484,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat1/alias.0
  ./usr/share/man/cat1/alpha
  ./usr/share/man/cat1/apply.0
-@@ -188,6 +185,7 @@
+@@ -189,6 +186,7 @@
  ./usr/share/man/cat1/bdes.0
  ./usr/share/man/cat1/bg.0
  ./usr/share/man/cat1/biff.0
@@ -2770,7 +2492,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat1/c2ph.0
  ./usr/share/man/cat1/cal.0
  ./usr/share/man/cat1/calendar.0
-@@ -220,6 +218,8 @@
+@@ -221,6 +219,8 @@
  ./usr/share/man/cat1/cpio.0
  ./usr/share/man/cat1/cpp.0
  ./usr/share/man/cat1/crontab.0
@@ -2779,7 +2501,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat1/csh.0
  ./usr/share/man/cat1/ctags.0
  ./usr/share/man/cat1/cu.0
-@@ -231,12 +231,11 @@
+@@ -232,9 +232,9 @@
  ./usr/share/man/cat1/dd.0
  ./usr/share/man/cat1/deroff.0
  ./usr/share/man/cat1/df.0
@@ -2789,11 +2511,8 @@ diff -u -r1.418 mi
 -./usr/share/man/cat1/dig.0
  ./usr/share/man/cat1/dirname.0
  ./usr/share/man/cat1/dirs.0
--./usr/share/man/cat1/dnsquery.0
  ./usr/share/man/cat1/domainname.0
- ./usr/share/man/cat1/dprofpp.0
- ./usr/share/man/cat1/du.0
-@@ -267,11 +266,9 @@
+@@ -267,11 +267,9 @@
  ./usr/share/man/cat1/fold.0
  ./usr/share/man/cat1/foreach.0
  ./usr/share/man/cat1/from.0
@@ -2805,7 +2524,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat1/gencat.0
  ./usr/share/man/cat1/getconf.0
  ./usr/share/man/cat1/getopt.0
-@@ -321,14 +318,9 @@
+@@ -322,14 +320,9 @@
  ./usr/share/man/cat1/jobs.0
  ./usr/share/man/cat1/join.0
  ./usr/share/man/cat1/jot.0
@@ -2820,7 +2539,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat1/ksh.0
  ./usr/share/man/cat1/ktrace.0
  ./usr/share/man/cat1/lam.0
-@@ -405,7 +397,6 @@
+@@ -406,7 +399,6 @@
  ./usr/share/man/cat1/otp-sha1.0
  ./usr/share/man/cat1/page.0
  ./usr/share/man/cat1/pagesize.0
@@ -2828,7 +2547,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat1/passwd.0
  ./usr/share/man/cat1/paste.0
  ./usr/share/man/cat1/patch.0
-@@ -521,7 +512,6 @@
+@@ -522,7 +514,6 @@
  ./usr/share/man/cat1/psbb.0
  ./usr/share/man/cat1/psed.0
  ./usr/share/man/cat1/pstruct.0
@@ -2836,7 +2555,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat1/purgestat.0
  ./usr/share/man/cat1/pushd.0
  ./usr/share/man/cat1/pwd.0
-@@ -655,13 +645,11 @@
+@@ -657,13 +648,11 @@
  ./usr/share/man/cat1/whois.0
  ./usr/share/man/cat1/window.0
  ./usr/share/man/cat1/write.0
@@ -2851,7 +2570,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat1/yyfix.0
  ./usr/share/man/cat1/zcat.0
  ./usr/share/man/cat1/zcmp.0
-@@ -1484,13 +1472,8 @@
+@@ -1491,13 +1480,8 @@
  ./usr/share/man/cat4/zero.0
  ./usr/share/man/cat5
  ./usr/share/man/cat5/.rhosts.0
@@ -2865,7 +2584,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat5/aliases.0
  ./usr/share/man/cat5/alpha
  ./usr/share/man/cat5/bootparams.0
-@@ -1545,7 +1528,6 @@
+@@ -1552,7 +1536,6 @@
  ./usr/share/man/cat5/krb.equiv.0
  ./usr/share/man/cat5/krb.extra.0
  ./usr/share/man/cat5/krb.realms.0
@@ -2873,7 +2592,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat5/lastlog.0
  ./usr/share/man/cat5/link.0
  ./usr/share/man/cat5/login.conf.0
-@@ -1563,7 +1545,6 @@
+@@ -1570,7 +1553,6 @@
  ./usr/share/man/cat5/mvme88k
  ./usr/share/man/cat5/mvmeppc
  ./usr/share/man/cat5/netgroup.0
@@ -2881,15 +2600,15 @@ diff -u -r1.418 mi
  ./usr/share/man/cat5/networks.0
  ./usr/share/man/cat5/newsyslog.conf.0
  ./usr/share/man/cat5/passwd.0
-@@ -1579,7 +1560,6 @@
- ./usr/share/man/cat5/resolver.0
+@@ -1587,7 +1569,6 @@
+ ./usr/share/man/cat5/rndc.conf.0
  ./usr/share/man/cat5/rpc.0
  ./usr/share/man/cat5/rtadvd.conf.0
 -./usr/share/man/cat5/securenet.0
  ./usr/share/man/cat5/services.0
  ./usr/share/man/cat5/shells.0
  ./usr/share/man/cat5/skey.0
-@@ -1604,7 +1584,6 @@
+@@ -1612,7 +1593,6 @@
  ./usr/share/man/cat5/vgrindefs.0
  ./usr/share/man/cat5/wsconsctl.conf.0
  ./usr/share/man/cat5/wtmp.0
@@ -2897,7 +2616,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat6
  ./usr/share/man/cat6/bs.0
  ./usr/share/man/cat6/cfscores.0
-@@ -1650,7 +1629,6 @@
+@@ -1658,7 +1638,6 @@
  ./usr/share/man/cat8/accton.0
  ./usr/share/man/cat8/activadm.0
  ./usr/share/man/cat8/activinit.0
@@ -2905,7 +2624,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat8/alpha
  ./usr/share/man/cat8/alpha/MAKEDEV.0
  ./usr/share/man/cat8/alpha/boot_alpha.0
-@@ -1677,7 +1655,6 @@
+@@ -1685,7 +1664,6 @@
  ./usr/share/man/cat8/bootpef.0
  ./usr/share/man/cat8/bootpgw.0
  ./usr/share/man/cat8/bootptest.0
@@ -2913,7 +2632,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat8/brconfig.0
  ./usr/share/man/cat8/ccdconfig.0
  ./usr/share/man/cat8/certpatch.0
-@@ -1714,7 +1691,6 @@
+@@ -1722,7 +1700,6 @@
  ./usr/share/man/cat8/dumpfs.0
  ./usr/share/man/cat8/editmap.0
  ./usr/share/man/cat8/edquota.0
@@ -2921,7 +2640,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat8/extattrctl.0
  ./usr/share/man/cat8/faithd.0
  ./usr/share/man/cat8/faq.0
-@@ -1752,8 +1728,6 @@
+@@ -1760,8 +1737,6 @@
  ./usr/share/man/cat8/hppa/wsconscfg.0
  ./usr/share/man/cat8/hppa/wsconsctl.0
  ./usr/share/man/cat8/hppa/wsfontload.0
@@ -2930,7 +2649,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat8/httpd.0
  ./usr/share/man/cat8/i386
  ./usr/share/man/cat8/i386/MAKEDEV.0
-@@ -1782,32 +1756,13 @@
+@@ -1790,32 +1765,13 @@
  ./usr/share/man/cat8/iostat.0
  ./usr/share/man/cat8/ipsecadm.0
  ./usr/share/man/cat8/isakmpd.0
@@ -2963,7 +2682,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat8/login_lchpass.0
  ./usr/share/man/cat8/login_passwd.0
  ./usr/share/man/cat8/login_radius.0
-@@ -1837,14 +1792,11 @@
+@@ -1845,14 +1801,11 @@
  ./usr/share/man/cat8/mailq.0
  ./usr/share/man/cat8/mailstats.0
  ./usr/share/man/cat8/mailwrapper.0
@@ -2978,21 +2697,17 @@ diff -u -r1.418 mi
  ./usr/share/man/cat8/mknod.0
  ./usr/share/man/cat8/modload.0
  ./usr/share/man/cat8/modstat.0
-@@ -1874,13 +1826,8 @@
+@@ -1882,9 +1835,6 @@
  ./usr/share/man/cat8/mvme68k/installboot.0
  ./usr/share/man/cat8/mvme88k
  ./usr/share/man/cat8/mvmeppc
--./usr/share/man/cat8/named-xfer.0
+-./usr/share/man/cat8/named-checkconf.0
+-./usr/share/man/cat8/named-checkzone.0
 -./usr/share/man/cat8/named.0
--./usr/share/man/cat8/named.reload.0
--./usr/share/man/cat8/named.restart.0
  ./usr/share/man/cat8/ncheck.0
  ./usr/share/man/cat8/ncheck_ffs.0
--./usr/share/man/cat8/ndc.0
  ./usr/share/man/cat8/ndp.0
- ./usr/share/man/cat8/netgroup_mkdb.0
- ./usr/share/man/cat8/netstart.0
-@@ -1928,7 +1875,6 @@
+@@ -1935,7 +1885,6 @@
  ./usr/share/man/cat8/renice.0
  ./usr/share/man/cat8/repquota.0
  ./usr/share/man/cat8/restore.0
@@ -3000,7 +2715,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat8/rip6query.0
  ./usr/share/man/cat8/rmail.0
  ./usr/share/man/cat8/rmgroup.0
-@@ -1946,7 +1892,6 @@
+@@ -1955,7 +1904,6 @@
  ./usr/share/man/cat8/rpc.rusersd.0
  ./usr/share/man/cat8/rpc.rwalld.0
  ./usr/share/man/cat8/rpc.sprayd.0
@@ -3008,7 +2723,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat8/rpcinfo.0
  ./usr/share/man/cat8/rquotad.0
  ./usr/share/man/cat8/rrestore.0
-@@ -2002,10 +1947,7 @@
+@@ -2012,10 +1960,7 @@
  ./usr/share/man/cat8/sshd.0
  ./usr/share/man/cat8/ssl.0
  ./usr/share/man/cat8/starttls.0
@@ -3019,7 +2734,7 @@ diff -u -r1.418 mi
  ./usr/share/man/cat8/sudo.0
  ./usr/share/man/cat8/suexec.0
  ./usr/share/man/cat8/supfilesrv.0
-@@ -2042,27 +1984,13 @@
+@@ -2052,27 +1997,13 @@
  ./usr/share/man/cat8/vax/boot_vax.0
  ./usr/share/man/cat8/vax/format.0
  ./usr/share/man/cat8/vax/kbd.0
@@ -3047,46 +2762,13 @@ diff -u -r1.418 mi
  ./usr/share/man/cat8/zdump.0
  ./usr/share/man/cat8/zic.0
  ./usr/share/man/cat9
-Index: src/distrib/sets/lists/misc/mi
-===================================================================
-RCS file: /cvs/src/distrib/sets/lists/misc/mi,v
-retrieving revision 1.5
-diff -u -r1.5 mi
---- src/distrib/sets/lists/misc/mi	25 Jul 2000 16:19:04 -0000	1.5
-+++ src/distrib/sets/lists/misc/mi	11 Feb 2003 20:50:21 -0000
-@@ -164,25 +164,6 @@
- ./usr/share/doc/smm/09.sendmail/Makefile
- ./usr/share/doc/smm/09.sendmail/intro.me
- ./usr/share/doc/smm/10.named
--./usr/share/doc/smm/10.named/00macs.me
--./usr/share/doc/smm/10.named/00title.me
--./usr/share/doc/smm/10.named/Makefile
--./usr/share/doc/smm/10.named/ack.me
--./usr/share/doc/smm/10.named/build.me
--./usr/share/doc/smm/10.named/files.me
--./usr/share/doc/smm/10.named/intro.me
--./usr/share/doc/smm/10.named/manage.me
--./usr/share/doc/smm/10.named/named.boot.cache
--./usr/share/doc/smm/10.named/named.boot.primary
--./usr/share/doc/smm/10.named/named.boot.secondary
--./usr/share/doc/smm/10.named/named.local
--./usr/share/doc/smm/10.named/ns.me
--./usr/share/doc/smm/10.named/resolv.conf
--./usr/share/doc/smm/10.named/root.cache
--./usr/share/doc/smm/10.named/setup.me
--./usr/share/doc/smm/10.named/types.me
--./usr/share/doc/smm/10.named/ucbhosts
--./usr/share/doc/smm/10.named/ucbhosts.rev
- ./usr/share/doc/smm/11.timedop
- ./usr/share/doc/smm/12.timed
- ./usr/share/doc/smm/13.amd
 Index: src/etc/inetd.conf
 ===================================================================
 RCS file: /cvs/src/etc/inetd.conf,v
 retrieving revision 1.50
 diff -u -r1.50 inetd.conf
 --- src/etc/inetd.conf	2 Aug 2002 23:27:11 -0000	1.50
-+++ src/etc/inetd.conf	11 Feb 2003 20:50:21 -0000
++++ src/etc/inetd.conf	11 Feb 2003 21:09:29 -0000
 @@ -22,6 +22,7 @@
  #ntalk		dgram	udp	wait	root	/usr/libexec/ntalkd	ntalkd
  #bootps		dgram	udp	wait	root	/usr/sbin/bootpd	bootpd
@@ -3101,7 +2783,7 @@ RCS file: /cvs/src/etc/sysctl.conf,v
 retrieving revision 1.28
 diff -u -r1.28 sysctl.conf
 --- src/etc/sysctl.conf	31 May 2002 19:35:06 -0000	1.28
-+++ src/etc/sysctl.conf	11 Feb 2003 20:50:22 -0000
++++ src/etc/sysctl.conf	11 Feb 2003 21:09:29 -0000
 @@ -11,12 +11,12 @@
  #net.inet.esp.enable=0		# 0=Disable the ESP IPsec protocol
  #net.inet.ah.enable=0		# 0=Disable the AH IPsec protocol
@@ -3123,7 +2805,7 @@ RCS file: /cvs/src/gnu/usr.bin/binutils/binutils/bucomm.c,v
 retrieving revision 1.5
 diff -u -r1.5 bucomm.c
 --- src/gnu/usr.bin/binutils/binutils/bucomm.c	13 May 2002 17:07:10 -0000	1.5
-+++ src/gnu/usr.bin/binutils/binutils/bucomm.c	11 Feb 2003 20:50:22 -0000
++++ src/gnu/usr.bin/binutils/binutils/bucomm.c	11 Feb 2003 21:09:29 -0000
 @@ -215,7 +215,7 @@
    static char template[] = "stXXXXXX";
    char *tmpname;
@@ -3139,7 +2821,7 @@ RCS file: /cvs/src/gnu/usr.bin/perl/Configure,v
 retrieving revision 1.11
 diff -u -r1.11 Configure
 --- src/gnu/usr.bin/perl/Configure	27 Oct 2002 22:24:54 -0000	1.11
-+++ src/gnu/usr.bin/perl/Configure	11 Feb 2003 20:50:22 -0000
++++ src/gnu/usr.bin/perl/Configure	11 Feb 2003 21:09:29 -0000
 @@ -747,7 +747,7 @@
  dlsrc=''
  ld=''
@@ -3155,7 +2837,7 @@ RCS file: /cvs/src/gnu/usr.bin/perl/Makefile.bsd-wrapper,v
 retrieving revision 1.51
 diff -u -r1.51 Makefile.bsd-wrapper
 --- src/gnu/usr.bin/perl/Makefile.bsd-wrapper	27 Oct 2002 22:24:54 -0000	1.51
-+++ src/gnu/usr.bin/perl/Makefile.bsd-wrapper	11 Feb 2003 20:50:22 -0000
++++ src/gnu/usr.bin/perl/Makefile.bsd-wrapper	15 Feb 2003 23:14:06 -0000
 @@ -6,9 +6,15 @@
  # To build a threaded perl, uncomment this.  Currently, there are bugs...
  #THREADED=-Dusethreads
@@ -3165,9 +2847,9 @@ diff -u -r1.51 Makefile.bsd-wrapper
  .include <bsd.own.mk>
  
 +.if !defined(NOPIC)
-+USE_DL=y
++USE_DL?=y
 +.else
-+USE_DL=n
++USE_DL?=n
 +.endif
 +
  # Our lndir is hacked; specify a full path to avoid potential conflicts
@@ -3197,7 +2879,7 @@ RCS file: /cvs/src/gnu/usr.sbin/sendmail/sendmail/conf.c,v
 retrieving revision 1.17
 diff -u -r1.17 conf.c
 --- src/gnu/usr.sbin/sendmail/sendmail/conf.c	1 Jan 2003 19:59:00 -0000	1.17
-+++ src/gnu/usr.sbin/sendmail/sendmail/conf.c	11 Feb 2003 20:50:22 -0000
++++ src/gnu/usr.sbin/sendmail/sendmail/conf.c	11 Feb 2003 21:09:30 -0000
 @@ -3722,6 +3722,7 @@
  
  	lim.rlim_cur = lim.rlim_max = RLIM_INFINITY;
@@ -3217,7 +2899,7 @@ RCS file: /cvs/src/lib/libc/gen/login_cap.c,v
 retrieving revision 1.15
 diff -u -r1.15 login_cap.c
 --- src/lib/libc/gen/login_cap.c	15 Dec 2002 13:26:44 -0000	1.15
-+++ src/lib/libc/gen/login_cap.c	11 Feb 2003 20:50:22 -0000
++++ src/lib/libc/gen/login_cap.c	11 Feb 2003 21:09:30 -0000
 @@ -492,6 +492,7 @@
  	char *	name;
  } r_list[] = {
@@ -3232,7 +2914,7 @@ RCS file: /cvs/src/lib/libc/sys/getrlimit.2,v
 retrieving revision 1.11
 diff -u -r1.11 getrlimit.2
 --- src/lib/libc/sys/getrlimit.2	18 Oct 2000 05:11:47 -0000	1.11
-+++ src/lib/libc/sys/getrlimit.2	11 Feb 2003 20:50:22 -0000
++++ src/lib/libc/sys/getrlimit.2	11 Feb 2003 21:09:30 -0000
 @@ -68,6 +68,9 @@
  .It Li RLIMIT_CPU
  The maximum amount of cpu time (in seconds) to be used by
@@ -3246,11 +2928,11 @@ diff -u -r1.11 getrlimit.2
 Index: src/lib/libpthread/uthread/uthread_mutex.c
 ===================================================================
 RCS file: /cvs/src/lib/libpthread/uthread/uthread_mutex.c,v
-retrieving revision 1.16
-diff -u -r1.16 uthread_mutex.c
---- src/lib/libpthread/uthread/uthread_mutex.c	27 Jan 2003 22:22:08 -0000	1.16
-+++ src/lib/libpthread/uthread/uthread_mutex.c	11 Feb 2003 20:50:22 -0000
-@@ -115,9 +115,9 @@
+retrieving revision 1.17
+diff -u -r1.17 uthread_mutex.c
+--- src/lib/libpthread/uthread/uthread_mutex.c	31 Jan 2003 04:45:55 -0000	1.17
++++ src/lib/libpthread/uthread/uthread_mutex.c	23 Feb 2003 16:38:11 -0000
+@@ -111,9 +111,9 @@
  		   const pthread_mutexattr_t * mutex_attr)
  {
  	pthread_mutex_t	pmutex;
@@ -3263,7 +2945,7 @@ diff -u -r1.16 uthread_mutex.c
  	int		flags = 0;
  	int		ret = 0;
  
-@@ -127,10 +127,10 @@
+@@ -123,10 +123,10 @@
  	/* Check if default mutex attributes: */
  	else if (mutex_attr == NULL || *mutex_attr == NULL) {
  		/* Default to a (error checking) POSIX mutex: */
@@ -3282,7 +2964,7 @@ RCS file: /cvs/src/lib/libutil/passwd.c,v
 retrieving revision 1.36
 diff -u -r1.36 passwd.c
 --- src/lib/libutil/passwd.c	31 Jul 2002 21:53:12 -0000	1.36
-+++ src/lib/libutil/passwd.c	11 Feb 2003 20:50:22 -0000
++++ src/lib/libutil/passwd.c	11 Feb 2003 21:09:30 -0000
 @@ -354,6 +354,7 @@
  	/* Unlimited resource limits. */
  	rlim.rlim_cur = rlim.rlim_max = RLIM_INFINITY;
@@ -3297,7 +2979,7 @@ RCS file: /cvs/src/sbin/isakmpd/util.c,v
 retrieving revision 1.29
 diff -u -r1.29 util.c
 --- src/sbin/isakmpd/util.c	9 Jan 2003 02:51:37 -0000	1.29
-+++ src/sbin/isakmpd/util.c	11 Feb 2003 20:50:22 -0000
++++ src/sbin/isakmpd/util.c	11 Feb 2003 21:09:30 -0000
 @@ -402,7 +402,8 @@
  	    j += snprintf ((*address) + j, addrlen - j, "%02x%02x",
  			   ((struct sockaddr_in6 *)sa)->sin6_addr.s6_addr[2 * i],
@@ -3308,1925 +2990,13 @@ diff -u -r1.29 util.c
  	  }
  	break;
  
-Index: src/sys/arch/i386/stand/libsa/apmprobe.c
-===================================================================
-RCS file: /cvs/src/sys/arch/i386/stand/libsa/apmprobe.c,v
-retrieving revision 1.9
-diff -u -r1.9 apmprobe.c
---- src/sys/arch/i386/stand/libsa/apmprobe.c	20 Jun 2002 20:22:36 -0000	1.9
-+++ src/sys/arch/i386/stand/libsa/apmprobe.c	11 Feb 2003 20:50:22 -0000
-@@ -68,6 +68,8 @@
- 
- extern int debug;
- 
-+static int apm_is_connected;
-+
- static __inline u_int
- apm_check()
- {
-@@ -101,6 +103,7 @@
- 			 : "=a" (rv)
- 			 : "0" (APM_DISCONNECT), "b" (APM_DEV_APM_BIOS)
- 			 : "%ecx", "%edx", "cc");
-+	if (!(rv & 0xff)) apm_is_connected = 0;
- 	return (rv & 0xff)? rv >> 8 : 0;
- }
- 
-@@ -145,6 +148,7 @@
- 			ai->apm_code16_base, ai->apm_code16_len,
- 			ai->apm_data_base,   ai->apm_data_len);
- #endif
-+	apm_is_connected = 2;
- 	/* inform apm bios about our driver version */
- 	__asm __volatile (DOINT(0x15) "\n\t"
- 			  "setc %b1\n\t"
-@@ -158,8 +162,61 @@
- 	return 0;
- }
- 
-+static __inline int
-+apm_driver_version(v)
-+{
-+	register u_int16_t rv;
-+	__asm __volatile(DOINT(0x15) "\n\t"
-+			 "setc %b0"
-+			 : "=a" (rv)
-+			 : "0" (APM_DRIVER_VERSION), "b" (APM_DEV_APM_BIOS), "c" (v)
-+			 : "%edx", "cc");
-+	return (rv & 0xff)? rv >> 8 : 0;
-+}
-+
-+static __inline int
-+apm_connect_real(ai)
-+	bios_apminfo_t *ai;
-+{
-+	register u_int16_t f;
-+	__asm __volatile (DOINT(0x15) "\n\t"
-+			  "setc %b1\n\t"
-+			  "movb %%ah, %h1\n\t"
-+			  "movzwl %%ax, %%eax\n\tshll $4, %0\n\t"
-+			  "movzwl %%cx, %%ecx\n\tshll $4, %2\n\t"
-+			  "movzwl %%dx, %%edx\n\tshll $4, %3\n\t"
-+			  : "=a" (ai->apm_code32_base),
-+			    "=b" (f),
-+			    "=c" (ai->apm_code16_base),
-+			    "=d" (ai->apm_data_base)
-+			  : "0" (APM_REAL_CONNECT), "1" (APM_DEV_APM_BIOS)
-+			  : "cc");
-+	ai->apm_entry    = BIOS_regs.biosr_bx;
-+#if 0
-+	ai->apm_code_len = BIOS_regs.biosr_si & 0xffff;
-+	ai->apm_data_len = BIOS_regs.biosr_di & 0xffff;
-+#else
-+	ai->apm_code_len = 0x10000;
-+	ai->apm_data_len = 0x10000;
-+#endif
-+	if (!(f & 0xff)) apm_is_connected = 1;
-+	return (f & 0xff)? f >> 8 : 0;
-+}
-+
- static bios_apminfo_t ai;
- 
-+static __inline int
-+apm_set_power_state(devices, how)
-+{
-+	register u_int16_t rv;
-+	__asm __volatile(DOINT(0x15) "\n\t"
-+			 "setc %b0"
-+			 : "=a" (rv)
-+			 : "0" (APM_SET_PWR_STATE), "b" (devices), "c" (how)
-+			 : "%edx", "cc");
-+	return (rv & 0xff)? rv >> 8 : 0;
-+}
-+
- void
- apmprobe()
- {
-@@ -171,13 +228,12 @@
- #ifdef DEBUG
- 		if (debug)
- 			printf("apm[%x cs=%x[%x]/%x[%x] ds=%x[%x] @ %x]",
--			       ai.apm_detail,
--			       ai.apm_code32_base, ai.apm_code_len,
--			       ai.apm_code16_base, ai.apm_code16_len,
--			       ai.apm_data_base, ai.apm_data_len,
--			       ai.apm_entry);
--		else
--			printf(" apm");
-+			    ai.apm_detail,
-+			    ai.apm_code32_base, ai.apm_code_len,
-+			    ai.apm_code16_base, ai.apm_code16_len,
-+			    ai.apm_data_base, ai.apm_data_len,
-+			    ai.apm_entry);
-+		  else	printf(" apm");
- #else
- 		printf(" apm");
- #endif
-@@ -196,3 +252,48 @@
- 			i386_round_page(ai.apm_data_base + ai.apm_data_len));
- }
- 
-+void
-+apmturnoff(a1,a2)
-+	int a1, a2;
-+{
-+	bios_apminfo_t ai;
-+	int f;
-+
-+	if (a1 == -1) a1 = APM_DEV_ALLDEVS;
-+	if (a2 == -1) a2 = APM_SYS_OFF;
-+	if ((ai.apm_detail = apm_check())) {
-+
-+		apm_disconnect();
-+		if (apm_connect_real(&ai) != 0)
-+			printf("apmturnoff: connect error\n");
-+		else {
-+			f = apm_driver_version(0x0102);
-+			if (f) {
-+				f = apm_driver_version(0x0101);
-+				if (f)
-+					printf ("apmturnoff: driver_version returned %x\n", f);
-+				  else	printf ("apmturnoff: 1.1 connection\n");
-+			}
-+
-+			f = apm_set_power_state(a1, a2);
-+			printf ("apmturnoff: apm_set_power_state returned %x\n",
-+				 f);
-+			printf ("apmturnoff: detail=%x\n",
-+				ai.apm_detail);
-+		}
-+	} else
-+		printf ("apmturnoff: apm_check returned 0\n");
-+}
-+
-+/*
-+ *	if we are booting into DOS, we should not
-+ *	leave apm connected in "real mode".  Try to
-+ *	leave apm in the "reset" state.
-+ */
-+
-+void
-+apm_reset()
-+{
-+	if (apm_is_connected)
-+		apm_disconnect();
-+}
-Index: src/sys/arch/i386/stand/libsa/cmd_i386.c
-===================================================================
-RCS file: /cvs/src/sys/arch/i386/stand/libsa/cmd_i386.c,v
-retrieving revision 1.24
-diff -u -r1.24 cmd_i386.c
---- src/sys/arch/i386/stand/libsa/cmd_i386.c	14 Mar 2002 03:15:32 -0000	1.24
-+++ src/sys/arch/i386/stand/libsa/cmd_i386.c	11 Feb 2003 20:50:22 -0000
-@@ -50,6 +50,7 @@
- int Xdiskinfo(void);
- int Xmemory(void);
- int Xregs(void);
-+int Xturnoff (void);
- 
- /* From gidt.S */
- int bootbuf(void *, int);
-@@ -61,6 +62,7 @@
- #ifdef DEBUG
- 	{ "regs",     CMDT_CMD, Xregs },
- #endif
-+	{ "off",	CMDT_CMD, Xturnoff },
- 	{ NULL, 0 }
- };
- 
-@@ -83,6 +85,27 @@
- #endif
- 
- int
-+Xturnoff()
-+{
-+	int a1, a2;
-+	a1 = a2 = -1;
-+	switch(cmd.argc)
-+	{
-+	case 0:
-+		printf("machine off [dev [how] ]\n");
-+		return 0;
-+	case 1:
-+		break;
-+	case 3:
-+		a2 = strtol(cmd.argv[2], NULL, 0);
-+	case 2:
-+		a1 = strtol(cmd.argv[1], NULL, 0);
-+	}
-+	apmturnoff(a1, a2);
-+	return 0;
-+}
-+
-+int
- Xboot()
- {
- #ifndef _TEST
-@@ -112,7 +135,7 @@
- 	dev += (cmd.argv[1][2] - '0');
- 	part = (cmd.argv[1][3] - 'a');
- 
--	if (part > 0)
-+	if (part >= 0)
- 		printf("[%x,%d]\n", dev, part);
- 	else
- 		printf("[%x]\n", dev);
-@@ -122,7 +145,7 @@
- 	if(st) goto bad;
- 
- 	/* Frob boot flag in buffer from HD */
--	if((dev & 0x80) && (part > 0)){
-+	if((dev & 0x80) && (part >= 0)) {
- 		int i, j;
- 
- 		for(i = 0, j = DOSPARTOFF; i < 4; i++, j += 16)
-@@ -131,6 +154,7 @@
- 			else
- 				buf[j] &= ~0x80;
- 	}
-+	apm_reset();
- 
- 	/* Load %dl, ljmp */
- 	bcopy(buf, dest, DEV_BSIZE);
-Index: src/sys/arch/i386/stand/libsa/gidt.S
-===================================================================
-RCS file: /cvs/src/sys/arch/i386/stand/libsa/gidt.S,v
-retrieving revision 1.24
-diff -u -r1.24 gidt.S
---- src/sys/arch/i386/stand/libsa/gidt.S	17 Sep 2001 13:09:47 -0000	1.24
-+++ src/sys/arch/i386/stand/libsa/gidt.S	11 Feb 2003 20:50:22 -0000
-@@ -41,9 +41,6 @@
- #undef _LOCORE
- #include <assym.h>
- 
--#define addr32  .byte 0x67
--#define data32  .byte 0x66
--
- #define	SNULL	0x00
- #define S32TEXT	0x08
- #define	S32DATA	0x10
-@@ -52,26 +49,17 @@
- 
- #ifdef GIDT_DEBUG
- #define	gidt_debug0		; \
--	movl	$0xb8000, %eax	; \
--	movl	$0x47314730, (%eax)
-+	mov	$0xb8000, %eax	; \
-+	mov	$0x47314730, (%eax)
- #define	gidt_debug1		; \
--	data32			; \
--	movl	$(0xb8000 - LINKADDR), %eax	; \
--	data32			; \
--	addr32			; \
--	movl	$0x4f314f30, (%eax)
-+	mov	$(0xb8000 - LINKADDR), %eax	; \
-+	mov	$0x4f314f30, (%eax)
- #define	gidt_debug2		; \
--	data32			; \
--	movl	$0xb8004, %eax	; \
--	data32			; \
--	addr32			; \
--	movl	$0x47334732, (%eax)
-+	mov	$0xb8004, %eax	; \
-+	mov	$0x47334732, (%eax)
- #define	gidt_debug3		; \
--	data32			; \
--	movl	$0xb8004, %eax	; \
--	data32			; \
--	addr32			; \
--	movl	$0x4f334f32, (%eax)
-+	mov	$0xb8004, %eax	; \
-+	mov	$0x4f334f32, (%eax)
- #define gidt_debug4		; \
- 	movl	$0xb8008, %eax	; \
- 	movl	$0x47344733, (%eax)
-@@ -86,58 +74,47 @@
- #define prot2real						\
- 	gidt_debug0;						\
- 								\
--	movl	$S16DATA, %ax;					\
--	/* ljmp	$S16TEXT, $1f */;				\
--	.byte	0xea;		/* Change to 16bit mode */	\
--	.long	1f - LINKADDR;					\
--	.word	S16TEXT;					\
-+	ljmp	$S16TEXT, $1f - LINKADDR;			\
- 1:								\
--	movl	%ax, %ds;					\
--	movl	%ax, %es;					\
-+	.code16;						\
-+	movw	$S16DATA, %ax;					\
-+	mov	%ax, %ds;					\
-+	mov	%ax, %es;					\
- 	gidt_debug1;						\
- 								\
- 	movl	%cr0, %eax;	/* disable pmmm */		\
--	data32;							\
- 	andl 	$~CR0_PE, %eax;					\
- 	movl	%eax, %cr0;					\
- 								\
--	/* ljmp	(LINKADDR >> 4), $1f */;			\
--	.byte	0xea;		/* load real mode cs:ip */	\
--	.word	1f;						\
--	.word	(LINKADDR >> 4);				\
-+	/* reload real cs:ip */					\
-+	data32 ljmp	$(LINKADDR >> 4), $1f - LINKADDR;	\
- 1:								\
--	data32;							\
--	xorl	%eax, %eax;	/* setup: %ds, %es, %ss */	\
--	movl	%ax, %ds;					\
--	movl	%ax, %es;					\
--	movl	%ax, %ss;					\
-+	xor	%ax, %ax;	/* setup: %ds, %es, %ss */	\
-+	mov	%ax, %ds;					\
-+	mov	%ax, %es;					\
-+	mov	%ax, %ss;					\
- 								\
- 	gidt_debug2;						\
- 								\
--	addr32;							\
--	data32;							\
--	lidt	Idtr_real;	/* load idtr for real mode */
-+	data32 addr32 lidt Idtr_real;	/* load idtr for real mode */
- 
- #define real2prot						\
- 	gidt_debug3;						\
- 								\
--	addr32;							\
--	data32;							\
--	lgdt	Gdtr;		/* load the gdtr */		\
-+	data32 addr32 lgdt Gdtr;	/* load the gdtr */	\
- 								\
- 	movl	%cr0, %eax;	/* enable pmmm */		\
--	data32;							\
- 	orl	$CR0_PE, %eax;					\
- 	movl	%eax, %cr0;					\
- 								\
--	data32;							\
--	ljmp	$S32TEXT, $1f;   /* reload %cs,flush pipeline */\
-+	data32 ljmp	$S32TEXT, $1f;   /* reload %cs,flush pipeline */\
- 1:								\
-+	.code32;						\
- 	/* reload 32bit %ds, %ss, %es */			\
--	movl	$S32DATA, %eax;					\
--	movl	%ax, %ds;					\
--	movl	%ax, %ss;					\
--	movl	%ax, %es;					\
-+	mov	$S32DATA, %eax;					\
-+	mov	%ax, %ds;					\
-+	mov	%ax, %ss;					\
-+	mov	%ax, %es;					\
- 								\
- 	gidt_debug4;						\
- 								\
-@@ -148,6 +125,7 @@
- 	.globl	_C_LABEL(BIOS_regs)
- 
- 	.text
-+	.code32
- 	.globl	_ASM_LABEL(pmm_init)
- 	.globl	_C_LABEL(_rtt)
- 
-@@ -187,29 +165,35 @@
- 	movl	$0, %esp	/* segment violation */
- 	ret
- 
--	.align	3, 0x90
-+	.align	8, 0x90
-+	.code16
- pmm_init:
- 	/* reload new gdt */
--	lgdt	Gdtr
--	ljmp	$S32TEXT, $1f
--1:	
--	movl	$S32DATA, %eax
--	movl	%eax, %ds
--	movl	%eax, %ss
--	movl	%eax, %es
--	movl	%eax, %fs
--	movl	%eax, %gs
-+	addr32 data32 lgdt Gdtr
-+	movl	%cr0, %eax
-+	orl	$CR0_PE, %eax
-+	movl	%eax, %cr0
-+
-+	data32 ljmp	$S32TEXT, $1f
-+1:	.code32
-+	mov	$S32DATA, %eax
-+	mov	%ax, %ds
-+	mov	%ax, %ss
-+	mov	%ax, %es
-+	mov	%ax, %fs
-+	mov	%ax, %gs
- 
- 	/* load idtr for interrupts */
- 	lidt	Idtr
- 	ret
- 
--#define IPROC(n)	X/**/n
--#define IEMU(n)		IPROC(emu/**/n)
--	.align 3
-+#define IPROC(n)	X##n
-+#define IEMU(n)		IPROC(emu##n)
-+	.align 8, 0x90
- idt:
- #define idte(e)	\
--	.word IPROC(e), S32TEXT, (0x80|SDT_SYS386TGT) << 8, (LINKADDR >> 16)
-+	.long IPROC(e) - LINKADDR |  (S32TEXT << 16)
-+	.long ((0x80|SDT_SYS386TGT) << 24) | (LINKADDR >> 16)
- 		/* internal (0-31) */
- 	idte(de); idte(db); idte(nmi); idte(bp); idte(of); idte(br)
- 	idte(ud); idte(nm); idte(df);  idte(fo); idte(ts); idte(np)
-@@ -221,7 +205,7 @@
- 		/* Maskable interrupts (32-255) */
- 		/* BIOS entry points (32-63) */
- 		/* DOS entry points (64-80) */
--#define idtb(b)	idte(emu/**/b)
-+#define idtb(b)	idte(emu##b)
- 	idtb(0);  idtb(1);  idtb(2);  idtb(3);  idtb(4);  idtb(5)
- 	idtb(6);  idtb(7);  idtb(8);  idtb(9);  idtb(10); idtb(11)
- 	idtb(12); idtb(13); idtb(14); idtb(15); idtb(16); idtb(17)
-@@ -235,15 +219,15 @@
- 	.long	idt
- 	.word	0
- 
--	.align	3
-+	.align	8
- Idtr_real:	.word	1023
- 		.long	0
- 		.word	0
- 
--	.align	3
-+	.align	8
- Idtr_reset:	.long	0, 0
- 
--	.align	3
-+	.align	8
- gdt:
- 		/* 0x00 : null */
- 	.space	8
-@@ -344,109 +328,101 @@
-  *
-  */
- 	.globl	EMUh
--	.align	3, 0x90
-+	.align	8, 0x90
- EMUh:
- 	/* save %eax */
--	movl	%eax, 3f
--	popl	%eax
--
--	pushal
--	pushl	%ds
--	pushl	%es
--	pushl	%fs
--	pushl	%gs
-+	mov	%eax, 3f+2
-+	mov	%ebx, 4f+2
-+	pop	%eax
-+
-+	pusha
-+	push	%ds
-+	push	%es
-+	push	%fs
-+	push	%gs
- 
- 	/* save BIOS int vector */
--	movb	%al, intno
-+	mov	%al, intno
-+	mov	_C_LABEL(BIOS_regs), %ebx
- 
- 	prot2real
- 
--	pushl	%ds
-+	push	%bx
-+	push	%ds
-+
-+	mov	BIOSR_ES(%bx), %ax
-+	mov	%ax, %es
-+	mov	BIOSR_DS(%bx), %ax
-+	mov	%ax, %ds
- 
--	addr32
--	movl	_C_LABEL(BIOS_regs)+(BIOSR_ES), %eax
--	movl	%ax, %es
--	addr32
--	movl	_C_LABEL(BIOS_regs)+(BIOSR_DS), %eax
--	movl	%ax, %ds
--
--	data32
--	# movl	$Leax, %eax
--	.byte	0xb8
--3:	.long	0x90909090	/* restore %eax */
-+4:	mov	$0, %ebx
-+3:	mov	$0, %eax
- 
- 	;sti
- 	int	$0
- intno	= . - 1
- 	;cli
- 
--	popl	%ds
--
--	addr32
--	data32
--	movl	%ebx, _C_LABEL(BIOS_regs)+(BIOSR_BX)
--	movl	%es, %bx
--	addr32
--	movl	%bx, _C_LABEL(BIOS_regs)+(BIOSR_ES)
--	movb	%ah, %bh	/* save flags to return to caller */
-+	pop	%ds
-+	addr32 mov	%eax, 2f+1	/* save %eax */
-+	mov	%ebx, %eax
-+	pop	%bx
-+
-+	mov	%eax, BIOSR_BX(%bx)
-+	mov	%es, %ax
-+	mov	%ax, BIOSR_ES(%bx)
- 	lahf
--	xchgb	%ah, %bh
--
--	addr32
--	data32
--	movl	%eax, 2f	/* save %eax */
-+	mov	%ah, %bh
- 
- 	real2prot
- 
--	# movl	$Leax, %eax
--	.byte	0xb8
--2:	.long	0x90909090	/* eax */
-+2:	mov	$0, %eax
- 
- 	/* pass BIOS return values back to caller */
--	movl	%eax, 0xb*4(%esp)
--	movl	%ecx, 0xa*4(%esp)
--	movl	%edx, 0x9*4(%esp)
-+	mov	%eax, 0xb*4(%esp)
-+	mov	%ecx, 0xa*4(%esp)
-+	mov	%edx, 0x9*4(%esp)
- 	movb	%bh , 0xe*4(%esp)
- 
- 	/* clear NT flag in eflags */
- 	/* Martin Fredriksson <martin@gbg.netman.se> */
- 	pushf
--	popl	%eax
--	andl	$0xffffbfff, %eax
--	pushl	%eax
-+	pop	%eax
-+	and	$0xffffbfff, %eax
-+	push	%eax
- 	popf
- 
- 	/* save registers into save area */
--	movl	%eax, _C_LABEL(BIOS_regs)+BIOSR_AX
--	movl	%ecx, _C_LABEL(BIOS_regs)+BIOSR_CX
--	movl	%edx, _C_LABEL(BIOS_regs)+BIOSR_DX
--	movl	%ebp, _C_LABEL(BIOS_regs)+BIOSR_BP
--	movl	%esi, _C_LABEL(BIOS_regs)+BIOSR_SI
--	movl	%edi, _C_LABEL(BIOS_regs)+BIOSR_DI
--
--	popl	%gs
--	popl	%fs
--	popl	%es
--	popl	%ds
--	popal
-+	mov	%eax, _C_LABEL(BIOS_regs)+BIOSR_AX
-+	mov	%ecx, _C_LABEL(BIOS_regs)+BIOSR_CX
-+	mov	%ebx, _C_LABEL(BIOS_regs)+BIOSR_BX
-+	mov	%edx, _C_LABEL(BIOS_regs)+BIOSR_DX
-+	mov	%ebp, _C_LABEL(BIOS_regs)+BIOSR_BP
-+	mov	%esi, _C_LABEL(BIOS_regs)+BIOSR_SI
-+	mov	%edi, _C_LABEL(BIOS_regs)+BIOSR_DI
-+
-+	pop	%gs
-+	pop	%fs
-+	pop	%es
-+	pop	%ds
-+	popa
- 	iret
- 
- /* Call buffer at 07c0:0000 in real mode to simulate a BIOS boot */
- ENTRY(bootbuf)
--	popl	%eax		/* Don't need return address */
--	popl	%esi		/* Buffer */
--	popl	%edx		/* Device */
-+	pop	%eax		/* Don't need return address */
-+	pop	%esi		/* Buffer */
-+	pop	%edx		/* Device */
- 	prot2real		/* Switch */
- 
- 	/* Set up stack */
- 	cli
--	xorl	%ax, %ax
--	movl	%ax, %ss
--	data32
--	movl	$0xfffc, %esp
-+	xor	%ax, %ax
-+	mov	%ax, %ss
-+	mov	$0xfffc, %esp
- 	sti
- 
- 	/* Jump to buffer */
--	addr32
- 	ljmp $0x0, $0x7c00
- 
-+	.end
-Index: src/sys/arch/i386/stand/libsa/libsa.h
-===================================================================
-RCS file: /cvs/src/sys/arch/i386/stand/libsa/libsa.h,v
-retrieving revision 1.35
-diff -u -r1.35 libsa.h
---- src/sys/arch/i386/stand/libsa/libsa.h	20 Jun 2002 20:22:36 -0000	1.35
-+++ src/sys/arch/i386/stand/libsa/libsa.h	11 Feb 2003 20:50:22 -0000
-@@ -35,6 +35,7 @@
- #include <machine/biosvar.h>
- 
- #define	EXEC_AOUT
-+#define	EXEC_ELF
- 
- #define	DEFAULT_KERNEL_ADDRESS	0x100000
- 
-@@ -56,6 +57,12 @@
- 
- void *getSYSCONFaddr(void);
- void *getEBDAaddr(void);
-+
-+void apmturnoff (int, int);
-+void apm_reset (void);
-+
-+void devboot (dev_t, char *);
-+void machdep (void);
- 
- extern const char bdevs[][4];
- extern const int nbdevs;
-Index: src/sys/dev/ic/dc.c
-===================================================================
-RCS file: /cvs/src/sys/dev/ic/dc.c,v
-retrieving revision 1.53
-diff -u -r1.53 dc.c
---- src/sys/dev/ic/dc.c	21 Oct 2002 20:30:10 -0000	1.53
-+++ src/sys/dev/ic/dc.c	11 Feb 2003 20:50:22 -0000
-@@ -640,6 +640,7 @@
- 	struct dc_softc		*sc = (struct dc_softc *)self;
- 	int			i, rval, phy_reg;
- 
-+	phy_reg = 0;
- 	bzero((char *)&frame, sizeof(frame));
- 
- 	/*
-@@ -732,7 +733,6 @@
- 			printf("dc%d: phy_read: bad phy register %x\n",
- 			    sc->dc_unit, reg);
- 			return(0);
--			break;
- 		}
- 
- 		rval = CSR_READ_4(sc, phy_reg) & 0x0000FFFF;
-@@ -763,6 +763,7 @@
- 	struct dc_mii_frame	frame;
- 	int			i, phy_reg;
- 
-+	phy_reg = 0;
- 	bzero((char *)&frame, sizeof(frame));
- 
- 	if (DC_IS_ADMTEK(sc) && phy != DC_ADMTEK_PHYADDR)
-@@ -1617,7 +1618,7 @@
- 	struct dc_softc *sc;
- {
- 	struct ifnet		*ifp;
--	int			error = 0, mac_offset, tmp, i;
-+	int			error = 0, mac_offset, tmp = 0, i;
- 
- 	/*
- 	 * Get station address from the EEPROM.
-Index: src/sys/dev/mii/bmtphy.c
-===================================================================
-RCS file: /cvs/src/sys/dev/mii/bmtphy.c,v
-retrieving revision 1.5
-diff -u -r1.5 bmtphy.c
---- src/sys/dev/mii/bmtphy.c	14 Mar 2002 01:26:35 -0000	1.5
-+++ src/sys/dev/mii/bmtphy.c	11 Feb 2003 20:50:22 -0000
-@@ -93,11 +93,16 @@
- 	struct mii_data *mii = ma->mii_data;
- 	char *model;
- 
--	if (MII_MODEL(ma->mii_id2) == MII_MODEL_BROADCOM_BCM5201)
-+	switch (MII_MODEL(ma->mii_id2)) {
-+    case MII_MODEL_BROADCOM_BCM5201:
- 		model = MII_STR_BROADCOM_BCM5201;
--	else if (MII_MODEL(ma->mii_id2) == MII_MODEL_BROADCOM_BCM5221)
-+		break;
-+    case MII_MODEL_BROADCOM_BCM5221:
- 		model = MII_STR_BROADCOM_BCM5221;
--
-+		break;
-+    default:
-+	model = "unknown";
-+    }
- 	printf(": %s, rev. %d\n", model, MII_REV(ma->mii_id2));
- 
- 	sc->mii_inst = mii->mii_instance;
-Index: src/sys/kern/kern_sig.c
-===================================================================
-RCS file: /cvs/src/sys/kern/kern_sig.c,v
-retrieving revision 1.61
-diff -u -r1.61 kern_sig.c
---- src/sys/kern/kern_sig.c	1 Oct 2002 17:33:17 -0000	1.61
-+++ src/sys/kern/kern_sig.c	11 Feb 2003 20:50:22 -0000
-@@ -83,7 +83,6 @@
- 	{ 0, filt_sigattach, filt_sigdetach, filt_signal };
- 
- void proc_stop(struct proc *p);
--void killproc(struct proc *, char *);
- int cansignal(struct proc *, struct pcred *, struct proc *, int);
- 
- struct pool sigacts_pool;	/* memory pool for sigacts structures */
-@@ -1228,20 +1227,6 @@
- }
- 
- /*
-- * Kill the current process for stated reason.
-- */
--void
--killproc(p, why)
--	struct proc *p;
--	char *why;
--{
--
--	log(LOG_ERR, "pid %d was killed: %s\n", p->p_pid, why);
--	uprintf("sorry, pid %d was killed: %s\n", p->p_pid, why);
--	psignal(p, SIGKILL);
--}
--
--/*
-  * Force the current process to exit with the specified signal, dumping core
-  * if appropriate.  We bypass the normal tests for masked and caught signals,
-  * allowing unrecoverable failures to terminate the process without changing
-@@ -1254,6 +1239,36 @@
- 	register struct proc *p;
- 	int signum;
- {
-+    switch (signum) {
-+    case 0:
-+    case SIGKILL:
-+    case SIGINT:
-+    case SIGTERM:
-+    case SIGALRM:
-+    case SIGSTOP:
-+    case SIGTTIN:
-+    case SIGTTOU:
-+    case SIGTSTP:
-+    case SIGHUP:
-+    case SIGUSR1:
-+    case SIGUSR2:
-+	break;
-+    default:
-+	if (p->p_pptr != NULL)
-+		log(LOG_INFO, "signal %d received by (%.32s:%d) UID(%lu) "
-+		    "EUID(%lu), parent (%.32s:%d) UID(%lu) EUID(%lu)\n",
-+		    signum, p->p_comm, p->p_pid,
-+		    (unsigned long) p->p_cred->p_ruid,
-+		    (unsigned long) p->p_ucred->cr_uid,
-+		    p->p_pptr->p_comm, p->p_pptr->p_pid,
-+		    (unsigned long) p->p_pptr->p_cred->p_ruid,
-+		    (unsigned long) p->p_pptr->p_ucred->cr_uid);
-+	  else
-+		log(LOG_INFO, "signal %d received by (%.32s:%d) UID(%lu) "
-+		    "EUID(%lu), zombie\n", signum, p->p_comm, p->p_pid,
-+		    (unsigned long) p->p_cred->p_ruid,
-+		    (unsigned long) p->p_ucred->cr_uid);
-+    }
- 
- 	/* Mark process as going away */
- 	p->p_flag |= P_WEXIT;
-@@ -1309,7 +1324,7 @@
- 	cred->cr_uid = p->p_cred->p_ruid;
- 	cred->cr_gid = p->p_cred->p_rgid;
- 
--	sprintf(name, "%s.core", p->p_comm);
-+	snprintf(name, sizeof(name), "%s.core", p->p_comm);
- 	NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, name, p);
- 
- 	error = vn_open(&nd, O_CREAT | FWRITE | O_NOFOLLOW, S_IRUSR | S_IWUSR);
-@@ -1394,6 +1409,13 @@
- 	crfree(cred);
- 	if (error == 0)
- 		error = error1;
-+    if (!error)
-+	log(LOG_WARNING, "core dumped for pid %d (%s)\n",
-+	    p->p_pid, p->p_comm);
-+    else
-+	log(LOG_WARNING, "error %d while dumping core for pid %d (%s)\n",
-+	    error, p->p_pid, p->p_comm);
-+
- 	return (error);
- }
- 
-Index: src/sys/kern/kern_synch.c
-===================================================================
-RCS file: /cvs/src/sys/kern/kern_synch.c,v
-retrieving revision 1.46
-diff -u -r1.46 kern_synch.c
---- src/sys/kern/kern_synch.c	15 Oct 2002 20:17:00 -0000	1.46
-+++ src/sys/kern/kern_synch.c	11 Feb 2003 20:50:22 -0000
-@@ -737,6 +737,20 @@
- 			if (rlim->rlim_cur < rlim->rlim_max)
- 				rlim->rlim_cur += 5;
- 		}
-+	  } else {
-+		rlim = &p->p_rlimit[RLIMIT_TIME];
-+		if (rlim->rlim_cur != RLIM_INFINITY) {
-+			s = time.tv_sec - p->p_stats->p_start.tv_sec;
-+			if (s >= rlim->rlim_cur) {
-+				if (s >= rlim->rlim_max)
-+					psignal(p, SIGKILL);
-+				 else {
-+					psignal(p, SIGXCPU);
-+					if (rlim->rlim_cur < rlim->rlim_max)
-+						rlim->rlim_cur += 5;
-+				}
-+			}
-+		}
- 	}
- 	if (s > 10 * 60 && p->p_ucred->cr_uid && p->p_nice == NZERO) {
- 		p->p_nice = NZERO + 4;
-Index: src/sys/kern/subr_userconf.c
-===================================================================
-RCS file: /cvs/src/sys/kern/subr_userconf.c,v
-retrieving revision 1.31
-diff -u -r1.31 subr_userconf.c
---- src/sys/kern/subr_userconf.c	29 Jul 2002 23:18:35 -0000	1.31
-+++ src/sys/kern/subr_userconf.c	11 Feb 2003 20:50:22 -0000
-@@ -482,7 +482,7 @@
- 		}
- 
- 		if (c == 'y' || c == 'Y') {
--			int share = 0, i, *lk;
-+			int share = 0, i, *lk = NULL;
- 
- 			/* XXX add cmd 'c' <devno> */
- 			userconf_hist_cmd('c');
-@@ -1059,7 +1059,7 @@
- {
- 	int i = 0, found = 0;
- 	struct cfdata new;
--	int  val, max_unit, star_unit, orig;
-+	int  val, max_unit, star_unit, orig = 0;
- 
- 	bzero(&new, sizeof(struct cfdata));
- 
-Index: src/sys/kern/sys_generic.c
-===================================================================
-RCS file: /cvs/src/sys/kern/sys_generic.c,v
-retrieving revision 1.41
-diff -u -r1.41 sys_generic.c
---- src/sys/kern/sys_generic.c	12 Aug 2002 14:32:22 -0000	1.41
-+++ src/sys/kern/sys_generic.c	11 Feb 2003 20:50:22 -0000
-@@ -657,7 +657,7 @@
- 	} */ *uap = v;
- 	fd_set bits[6], *pibits[3], *pobits[3];
- 	struct timeval atv;
--	int s, ncoll, error = 0, timo;
-+	int s, ncoll, error = 0, timo = 0;
- 	u_int nd, ni;
- 
- 	nd = SCARG(uap, nd);
-@@ -926,7 +926,7 @@
- 	struct pollfd pfds[4], *pl = pfds;
- 	int msec = SCARG(uap, timeout);
- 	struct timeval atv;
--	int timo, ncoll, i, s, error, error2;
-+	int timo = 0, ncoll, i, s, error, error2;
- 	extern int nselcoll, selwait;
- 	u_int nfds = SCARG(uap, nfds);
- 
-Index: src/sys/kern/vfs_syscalls.c
-===================================================================
-RCS file: /cvs/src/sys/kern/vfs_syscalls.c,v
-retrieving revision 1.98
-diff -u -r1.98 vfs_syscalls.c
---- src/sys/kern/vfs_syscalls.c	2 Oct 2002 21:56:08 -0000	1.98
-+++ src/sys/kern/vfs_syscalls.c	11 Feb 2003 20:50:22 -0000
-@@ -109,7 +109,7 @@
- 	char fspath[MNAMELEN];
- 	struct vattr va;
- 	struct nameidata nd;
--	struct vfsconf *vfsp;
-+	struct vfsconf *vfsp = NULL;
- 	struct timeval tv;
- 
- 	if (usermount == 0 && (error = suser(p->p_ucred, &p->p_acflag)))
-Index: src/sys/lib/libz/Makefile
-===================================================================
-RCS file: /cvs/src/sys/lib/libz/Makefile,v
-retrieving revision 1.3
-diff -u -r1.3 Makefile
---- src/sys/lib/libz/Makefile	8 Sep 1998 04:07:25 -0000	1.3
-+++ src/sys/lib/libz/Makefile	11 Feb 2003 20:50:22 -0000
-@@ -5,7 +5,7 @@
- NOPIC=
- NOPROFILE=
- 
--CPPFLAGS+=	-I. ${ZCPPFLAGS} -D_ZLIB_PRIVATE
-+CPPFLAGS+=	-I. -I${.CURDIR} ${ZCPPFLAGS} -D_ZLIB_PRIVATE
- 
- # files to be copied down from libz.
- LIBZSRCS= adler32.c crc32.c infblock.c infcodes.c inffast.c \
-Index: src/sys/miscfs/procfs/procfs_vnops.c
-===================================================================
-RCS file: /cvs/src/sys/miscfs/procfs/procfs_vnops.c,v
-retrieving revision 1.26
-diff -u -r1.26 procfs_vnops.c
---- src/sys/miscfs/procfs/procfs_vnops.c	6 Apr 2002 23:39:51 -0000	1.26
-+++ src/sys/miscfs/procfs/procfs_vnops.c	11 Feb 2003 20:50:22 -0000
-@@ -746,7 +746,7 @@
- 	struct vnode *dvp = ap->a_dvp;
- 	char *pname = cnp->cn_nameptr;
- 	struct proc *curp = curproc;
--	struct proc_target *pt;
-+	struct proc_target *pt = NULL;
- 	struct vnode *fvp;
- 	pid_t pid;
- 	struct pfsnode *pfs;
-Index: src/sys/miscfs/union/union_vnops.c
-===================================================================
-RCS file: /cvs/src/sys/miscfs/union/union_vnops.c,v
-retrieving revision 1.19
-diff -u -r1.19 union_vnops.c
---- src/sys/miscfs/union/union_vnops.c	8 Jun 2002 18:43:12 -0000	1.19
-+++ src/sys/miscfs/union/union_vnops.c	11 Feb 2003 20:50:22 -0000
-@@ -1097,7 +1097,7 @@
- 	int error = 0;
- 	struct union_node *dun;
- 	struct vnode *dvp;
--	struct vnode *vp;
-+	struct vnode *vp = NULL;
- 	struct proc *p = ap->a_cnp->cn_proc;
- 
- 	dun = VTOUNION(ap->a_dvp);
-Index: src/sys/net/if_bridge.c
-===================================================================
-RCS file: /cvs/src/sys/net/if_bridge.c,v
-retrieving revision 1.109
-diff -u -r1.109 if_bridge.c
---- src/sys/net/if_bridge.c	7 Jan 2003 17:46:59 -0000	1.109
-+++ src/sys/net/if_bridge.c	11 Feb 2003 20:50:22 -0000
-@@ -2116,7 +2116,7 @@
- 	struct tdb *tdb;
- 	u_int32_t spi;
- 	u_int16_t cpi;
--	int error, off;
-+	int error, off = 0;
- 	u_int8_t proto = 0;
- #ifdef INET
- 	struct ip *ip;
-Index: src/sys/net/if_vlan.c
-===================================================================
-RCS file: /cvs/src/sys/net/if_vlan.c,v
-retrieving revision 1.33
-diff -u -r1.33 if_vlan.c
---- src/sys/net/if_vlan.c	7 Jan 2003 09:00:12 -0000	1.33
-+++ src/sys/net/if_vlan.c	11 Feb 2003 20:50:22 -0000
-@@ -376,7 +376,7 @@
- 		 */
- 		ifv->ifv_if.if_mtu = p->if_mtu - EVL_ENCAPLEN;
- #ifdef DIAGNOSTIC
--		printf("%s: initialized with non-standard mtu %d (parent %s)\n",
-+		printf("%s: initialized with non-standard mtu %ld (parent %s)\n",
- 		    ifv->ifv_if.if_xname, ifv->ifv_if.if_mtu,
- 		    ifv->ifv_p->if_xname);
- #endif
-Index: src/sys/net/pf.c
-===================================================================
-RCS file: /cvs/src/sys/net/pf.c,v
-retrieving revision 1.311
-diff -u -r1.311 pf.c
---- src/sys/net/pf.c	25 Jan 2003 22:48:23 -0000	1.311
-+++ src/sys/net/pf.c	11 Feb 2003 20:50:22 -0000
-@@ -942,6 +942,7 @@
- 	u_int32_t	opc;
- 	u_int16_t	oip = *ip;
- 
-+	opc = 0U;
- 	PF_ACPY(&oia, ia, af);
- 	PF_ACPY(&ooa, oa, af);
- 
-@@ -1023,12 +1024,12 @@
- 	struct m_tag	*mtag;
- 	int		 len;
- #ifdef INET
--	struct ip	*h2;
-+	struct ip	*h2 = NULL;
- #endif /* INET */
- #ifdef INET6
--	struct ip6_hdr	*h2_6;
-+	struct ip6_hdr	*h2_6 = NULL;
- #endif /* INET6 */
--	struct tcphdr	*th2;
-+	struct tcphdr	*th2 = NULL;
- 
- 	switch (af) {
- #ifdef INET
-@@ -1041,6 +1042,8 @@
- 		len = sizeof(struct ip6_hdr) + sizeof(struct tcphdr);
- 		break;
- #endif /* INET6 */
-+    default:
-+	printf("panic: trying to send RST to an unhandled address family\n");
- 	}
- 
- 	/* don't reply to RST packets */
-@@ -2380,6 +2383,8 @@
- 			state_icmp++;
- 		break;
- #endif /* INET6 */
-+	default:
-+		return (PF_DROP);
- 	}
- 
- 	if (direction == PF_OUT) {
-@@ -3214,6 +3219,8 @@
- 			state_icmp++;
- 		break;
- #endif /* INET6 */
-+		default:
-+			return (PF_DROP);
- 	}
- 
- 	if (!state_icmp) {
-@@ -3382,6 +3389,8 @@
- 			} while (!terminal);
- 			break;
- #endif /* INET6 */
-+		default:
-+			return (PF_DROP);
- 		}
- 
- 		switch (pd2.proto) {
-@@ -4268,8 +4277,9 @@
- 			r0.ifp = ifp;
- 			r0.action = action;
- 			r0.nr = -1;
--			PFLOG_PACKET(ifp, h, m, AF_INET, dir, reason, &r0);
--		} else
-+			if (h != NULL)
-+				PFLOG_PACKET(ifp, h, m, AF_INET, dir, reason, &r0);
-+		} else if (h != NULL)
- 			PFLOG_PACKET(ifp, h, m, AF_INET, dir, reason, r);
- 	}
- 
-Index: src/sys/net/pfkeyv2.c
-===================================================================
-RCS file: /cvs/src/sys/net/pfkeyv2.c,v
-retrieving revision 1.84
-diff -u -r1.84 pfkeyv2.c
---- src/sys/net/pfkeyv2.c	31 Jul 2002 00:13:14 -0000	1.84
-+++ src/sys/net/pfkeyv2.c	11 Feb 2003 20:50:22 -0000
-@@ -803,7 +803,7 @@
- 
-     struct tdb sa, *sa2 = NULL;
- 
--    struct sadb_msg *smsg;
-+    struct sadb_msg *smsg = NULL;
-     struct sadb_spirange *sprng;
-     struct sadb_sa *ssa;
-     struct sadb_supported *ssup;
-@@ -1773,7 +1773,8 @@
- 	for (i = 1; i <= SADB_EXT_MAX; i++)
- 	  headers[i] = NULL;
- 
--	smsg->sadb_msg_errno = abs(rval);
-+    if (smsg != NULL)
-+  	  smsg->sadb_msg_errno = abs(rval);
-     }
-     else
-     {
-@@ -1783,6 +1784,9 @@
- 	  if (headers[i])
- 	    seen |= (1 << i);
- 
-+    if (smsg == NULL)
-+      goto realret;
-+
- 	if ((seen & sadb_exts_allowed_out[smsg->sadb_msg_type]) != seen)
- 	  goto realret;
- 
-@@ -1822,7 +1826,7 @@
-     struct sadb_prop *sa_prop;
-     struct sadb_msg *smsg;
-     int rval = 0;
--    int i, j;
-+    int i = 0, j;
- 
-     *seq = pfkeyv2_seq++;
- 
-@@ -2106,7 +2110,7 @@
-     void *p, *headers[SADB_EXT_MAX+1], *buffer = NULL;
-     struct sadb_msg *smsg;
-     int rval = 0;
--    int i;
-+    int i = 0;
- 
-     switch (sa->tdb_sproto)
-     {
-Index: src/sys/netinet/ip_ah.c
-===================================================================
-RCS file: /cvs/src/sys/netinet/ip_ah.c,v
-retrieving revision 1.70
-diff -u -r1.70 ip_ah.c
---- src/sys/netinet/ip_ah.c	5 Jul 2002 23:20:31 -0000	1.70
-+++ src/sys/netinet/ip_ah.c	11 Feb 2003 20:50:22 -0000
-@@ -682,7 +682,7 @@
- int
- ah_input_cb(void *op)
- {
--	int roff, rplen, error, skip, protoff;
-+	int roff, rplen, error = 0, skip, protoff;
- 	unsigned char calc[AH_ALEN_MAX];
- 	struct mbuf *m1, *m0, *m;
- 	struct cryptodesc *crd;
-@@ -1214,7 +1214,7 @@
- int
- ah_output_cb(void *op)
- {
--	int skip, protoff, error;
-+	int skip, protoff, error = 0;
- 	struct tdb_crypto *tc;
- 	struct cryptop *crp;
- 	struct tdb *tdb;
-Index: src/sys/netinet/ip_esp.c
-===================================================================
-RCS file: /cvs/src/sys/netinet/ip_esp.c,v
-retrieving revision 1.76
-diff -u -r1.76 ip_esp.c
---- src/sys/netinet/ip_esp.c	7 Nov 2002 15:16:17 -0000	1.76
-+++ src/sys/netinet/ip_esp.c	11 Feb 2003 20:50:22 -0000
-@@ -453,7 +453,7 @@
- esp_input_cb(void *op)
- {
- 	u_int8_t lastthree[3], aalg[AH_HMAC_HASHLEN];
--	int hlen, roff, skip, protoff, error;
-+	int hlen, roff, skip, protoff, error = 0;
- 	struct mbuf *m1, *mo, *m;
- 	struct cryptodesc *crd;
- 	struct auth_hash *esph;
-@@ -979,7 +979,7 @@
- 	struct tdb_crypto *tc;
- 	struct tdb *tdb;
- 	struct mbuf *m;
--	int error, s;
-+	int error = 0, s;
- 
- 	tc = (struct tdb_crypto *) crp->crp_opaque;
- 	m = (struct mbuf *) crp->crp_buf;
-Index: src/sys/netinet/ip_ipcomp.c
-===================================================================
-RCS file: /cvs/src/sys/netinet/ip_ipcomp.c,v
-retrieving revision 1.9
-diff -u -r1.9 ip_ipcomp.c
---- src/sys/netinet/ip_ipcomp.c	12 Sep 2002 10:11:17 -0000	1.9
-+++ src/sys/netinet/ip_ipcomp.c	11 Feb 2003 20:50:22 -0000
-@@ -206,7 +206,7 @@
- ipcomp_input_cb(op)
- 	void *op;
- {
--	int error, s, skip, protoff, roff, hlen = IPCOMP_HLENGTH, clen;
-+	int error = 0, s, skip, protoff, roff, hlen = IPCOMP_HLENGTH, clen;
- 	u_int8_t nproto;
- 	struct mbuf *m, *m1, *mo;
- 	struct cryptodesc *crd;
-@@ -609,7 +609,7 @@
- 	struct tdb_crypto *tc;
- 	struct tdb *tdb;
- 	struct mbuf *m;
--	int error, s, skip, rlen;
-+	int error = 0, s, skip, rlen;
- #ifdef INET
- 	struct ip *ip;
- #endif
-Index: src/sys/netinet/ip_ipsp.c
-===================================================================
-RCS file: /cvs/src/sys/netinet/ip_ipsp.c,v
-retrieving revision 1.150
-diff -u -r1.150 ip_ipsp.c
---- src/sys/netinet/ip_ipsp.c	19 Nov 2002 18:34:19 -0000	1.150
-+++ src/sys/netinet/ip_ipsp.c	11 Feb 2003 20:50:22 -0000
-@@ -867,7 +867,7 @@
- 	    ntohl(tdb->tdb_spi), ipsp_address(tdb->tdb_dst), tdb->tdb_sproto);
- 
- 	l += sprintf(buffer + l, "\tEstablished %d seconds ago\n",
--	    time.tv_sec - tdb->tdb_established);
-+	    (int) (time.tv_sec - tdb->tdb_established));
- 
- 	l += sprintf(buffer + l, "\tSource = %s", ipsp_address(tdb->tdb_src));
- 
-Index: src/sys/netinet/ip_output.c
-===================================================================
-RCS file: /cvs/src/sys/netinet/ip_output.c,v
-retrieving revision 1.150
-diff -u -r1.150 ip_output.c
---- src/sys/netinet/ip_output.c	10 Oct 2002 17:27:18 -0000	1.150
-+++ src/sys/netinet/ip_output.c	11 Feb 2003 20:50:22 -0000
-@@ -100,24 +100,24 @@
- ip_output(struct mbuf *m0, ...)
- {
- 	struct ip *ip;
--	struct ifnet *ifp;
-+	struct ifnet *ifp = NULL;
- 	struct mbuf *m = m0;
- 	int hlen = sizeof (struct ip);
- 	int len, error = 0;
- 	struct route iproute;
--	struct sockaddr_in *dst;
--	struct in_ifaddr *ia;
-+	struct sockaddr_in *dst = NULL;
-+	struct in_ifaddr *ia ;
- 	struct mbuf *opt;
- 	struct route *ro;
- 	int flags;
- 	struct ip_moptions *imo;
- 	va_list ap;
- 	u_int8_t sproto = 0, donerouting = 0;
--	u_long mtu;
-+	u_long mtu = 0;
- #ifdef IPSEC
- 	u_int32_t icmp_mtu = 0;
- 	union sockaddr_union sdst;
--	u_int32_t sspi;
-+	u_int32_t sspi = 0;
- 	struct m_tag *mtag;
- 	struct tdb_ident *tdbi;
- 
-Index: src/sys/netinet/ipsec_output.c
-===================================================================
-RCS file: /cvs/src/sys/netinet/ipsec_output.c,v
-retrieving revision 1.25
-diff -u -r1.25 ipsec_output.c
---- src/sys/netinet/ipsec_output.c	28 Aug 2002 15:42:41 -0000	1.25
-+++ src/sys/netinet/ipsec_output.c	11 Feb 2003 20:50:22 -0000
-@@ -65,15 +65,15 @@
- ipsp_process_packet(struct mbuf *m, struct tdb *tdb, int af, int tunalready)
- {
- 	struct timeval tv;
--	int i, off, error;
-+	int i = 0, off = 0, error;
- 	struct mbuf *mp;
- 
- #ifdef INET
- 	int setdf = 0;
--	struct ip *ip;
-+	struct ip *ip = NULL;
- #endif /* INET */
- #ifdef INET6
--	struct ip6_hdr *ip6;
-+	struct ip6_hdr *ip6 = NULL;
- #endif /* INET6 */
- 
- 	/* Check that the transform is allowed by the administrator. */
-@@ -323,11 +323,11 @@
- ipsp_process_done(struct mbuf *m, struct tdb *tdb)
- {
- #ifdef INET
--	struct ip *ip;
-+	struct ip *ip = NULL;
- #endif /* INET */
- 
- #ifdef INET6
--	struct ip6_hdr *ip6;
-+	struct ip6_hdr *ip6 = NULL;
- #endif /* INET6 */
- 
- 	struct tdb_ident *tdbi;
-Index: src/sys/netinet/tcp_input.c
-===================================================================
-RCS file: /cvs/src/sys/netinet/tcp_input.c,v
-retrieving revision 1.124
-diff -u -r1.124 tcp_input.c
---- src/sys/netinet/tcp_input.c	11 Sep 2002 03:26:41 -0000	1.124
-+++ src/sys/netinet/tcp_input.c	11 Feb 2003 20:50:22 -0000
-@@ -432,7 +432,7 @@
- #endif /* IPSEC */
- 	int af;
- #ifdef TCP_ECN
--	u_char iptos;
-+	u_char iptos = 0;
- #endif
- 
- 	va_start(ap, m);
-Index: src/sys/netinet/tcp_output.c
-===================================================================
-RCS file: /cvs/src/sys/netinet/tcp_output.c,v
-retrieving revision 1.54
-diff -u -r1.54 tcp_output.c
---- src/sys/netinet/tcp_output.c	25 Jan 2003 15:27:07 -0000	1.54
-+++ src/sys/netinet/tcp_output.c	11 Feb 2003 20:50:22 -0000
-@@ -220,8 +220,8 @@
- 	register struct tcpcb *tp;
- {
- 	register struct socket *so = tp->t_inpcb->inp_socket;
--	register long len, win, txmaxseg;
--	int off, flags, error;
-+	register long len = 0, win, txmaxseg;
-+	int off, flags, error = 0;
- 	register struct mbuf *m;
- 	register struct tcphdr *th;
- 	u_char opt[MAX_TCPOPTLEN];
-@@ -229,7 +229,7 @@
- 	int idle, sendalot = 0;
- #ifdef TCP_SACK
- 	int i, sack_rxmit = 0;
--	struct sackhole *p;
-+	struct sackhole *p = NULL;
- #endif
- #if defined(TCP_SACK)
- 	int maxburst = TCP_MAXBURST;
-Index: src/sys/netinet/tcp_subr.c
-===================================================================
-RCS file: /cvs/src/sys/netinet/tcp_subr.c,v
-retrieving revision 1.65
-diff -u -r1.65 tcp_subr.c
---- src/sys/netinet/tcp_subr.c	28 Aug 2002 15:42:41 -0000	1.65
-+++ src/sys/netinet/tcp_subr.c	11 Feb 2003 20:50:22 -0000
-@@ -134,7 +134,7 @@
- #endif
- int	tcp_do_sack = TCP_DO_SACK;		/* RFC 2018 selective ACKs */
- int	tcp_ack_on_push = 0;	/* set to enable immediate ACK-on-PUSH */
--int	tcp_do_ecn = 0;		/* RFC3168 ECN enabled/disabled? */
-+int	tcp_do_ecn = 1;		/* RFC3168 ECN enabled/disabled? */
- 
- #ifndef TCBHASHSIZE
- #define	TCBHASHSIZE	128
-@@ -212,7 +212,7 @@
- 	if ((m = tp->t_template) == 0) {
- 		m = m_get(M_DONTWAIT, MT_HEADER);
- 		if (m == NULL)
--			return (0);
-+			return (NULL);
- 
- 		switch (tp->pf) {
- 		case 0:	/*default to PF_INET*/
-@@ -287,6 +287,8 @@
- 		}
- 		break;
- #endif /* INET6 */
-+    default:
-+	return (NULL);
- 	}
- 
- 	th->th_sport = inp->inp_lport;
-@@ -392,6 +394,8 @@
- 			xchg(ti->ti_dst.s_addr, ti->ti_src.s_addr, u_int32_t);
- 			th = (void *)((caddr_t)ti + sizeof(struct ip));
- 			break;
-+	default:
-+	    return;
- 		}
- 		xchg(th->th_dport, th->th_sport, u_int16_t);
- #undef xchg
-@@ -408,6 +412,8 @@
- 		tlen += sizeof (struct tcpiphdr);
- 		th = (struct tcphdr *)((caddr_t)ti + sizeof(struct ip));
- 		break;
-+    default:
-+	return;
- 	}
- 
- 	m->m_len = tlen;
-@@ -808,6 +814,7 @@
- 	} else {
- 		m = NULL;
- 		ip6 = NULL;
-+	off = 0;
- 		sa6_src = &sa6_any;
- 	}
- 
-Index: src/sys/netinet/tcp_usrreq.c
-===================================================================
-RCS file: /cvs/src/sys/netinet/tcp_usrreq.c,v
-retrieving revision 1.67
-diff -u -r1.67 tcp_usrreq.c
---- src/sys/netinet/tcp_usrreq.c	11 Sep 2002 03:15:14 -0000	1.67
-+++ src/sys/netinet/tcp_usrreq.c	11 Feb 2003 20:50:22 -0000
-@@ -783,10 +783,10 @@
- {
- 	int error = 0, s;
- 	struct tcp_ident_mapping tir;
--	struct inpcb *inp;
--	struct sockaddr_in *fin, *lin;
-+	struct inpcb *inp = NULL;
-+	struct sockaddr_in *fin = NULL, *lin = NULL;
- #ifdef INET6
--	struct sockaddr_in6 *fin6, *lin6;
-+	struct sockaddr_in6 *fin6 = NULL, *lin6 = NULL;
- 	struct in6_addr f6, l6;
- #endif
- 
-Index: src/sys/netinet/udp_usrreq.c
-===================================================================
-RCS file: /cvs/src/sys/netinet/udp_usrreq.c,v
-retrieving revision 1.86
-diff -u -r1.86 udp_usrreq.c
---- src/sys/netinet/udp_usrreq.c	28 Aug 2002 15:42:41 -0000	1.86
-+++ src/sys/netinet/udp_usrreq.c	11 Feb 2003 20:50:22 -0000
-@@ -714,6 +714,7 @@
- 		m = NULL;
- 		ip6 = NULL;
- 		cmdarg = NULL;
-+		off = 0;
- 		/* XXX: translate addresses into internal form */
- 		sa6 = *(struct sockaddr_in6 *)sa;
- #ifndef SCOPEDROUTING
-Index: src/sys/netinet6/in6_ifattach.c
-===================================================================
-RCS file: /cvs/src/sys/netinet6/in6_ifattach.c,v
-retrieving revision 1.32
-diff -u -r1.32 in6_ifattach.c
---- src/sys/netinet6/in6_ifattach.c	12 Sep 2002 01:11:32 -0000	1.32
-+++ src/sys/netinet6/in6_ifattach.c	11 Feb 2003 20:50:22 -0000
-@@ -674,12 +674,13 @@
- 	nd6_purge(ifp);
- 
- 	/* nuke any of IPv6 addresses we have */
--	for (ifa = ifp->if_addrlist.tqh_first; ifa; ifa = next)
--	{
-+	ifa = ifp->if_addrlist.tqh_first;
-+	while (ifa) {
- 		next = ifa->ifa_list.tqe_next;
- 		if (ifa->ifa_addr->sa_family != AF_INET6)
- 			continue;
- 		in6_purgeaddr(ifa);
-+		ifa = next;
- 	}
- 
- 	/* undo everything done by in6_ifattach(), just in case */
-@@ -734,6 +735,7 @@
- 		}
- 
- 		IFAFREE(&oia->ia_ifa);
-+		ifa = next;
- 	}
- 
- 	/* cleanup multicast address kludge table, if there is any */
-Index: src/sys/netinet6/ip6_forward.c
-===================================================================
-RCS file: /cvs/src/sys/netinet6/ip6_forward.c,v
-retrieving revision 1.24
-diff -u -r1.24 ip6_forward.c
---- src/sys/netinet6/ip6_forward.c	9 Jun 2002 14:38:17 -0000	1.24
-+++ src/sys/netinet6/ip6_forward.c	11 Feb 2003 20:50:22 -0000
-@@ -88,7 +88,7 @@
- 	struct ip6_hdr *ip6 = mtod(m, struct ip6_hdr *);
- 	struct sockaddr_in6 *dst;
- 	struct rtentry *rt;
--	int error, type = 0, code = 0;
-+	int error = 0, type = 0, code = 0;
- 	struct mbuf *mcopy = NULL;
- 	long time_second = time.tv_sec;
- 	struct ifnet *origifp;	/* maybe unnecessary */
-Index: src/sys/netinet6/ip6_output.c
-===================================================================
-RCS file: /cvs/src/sys/netinet6/ip6_output.c,v
-retrieving revision 1.73
-diff -u -r1.73 ip6_output.c
---- src/sys/netinet6/ip6_output.c	31 Oct 2002 18:02:05 -0000	1.73
-+++ src/sys/netinet6/ip6_output.c	11 Feb 2003 20:50:22 -0000
-@@ -168,7 +168,7 @@
- 	struct m_tag *mtag;
- 	union sockaddr_union sdst;
- 	struct tdb_ident *tdbi;
--	u_int32_t sspi;
-+	u_int32_t sspi = 0;
- 	struct inpcb *inp;
- 	struct tdb *tdb;
- 	int s;
-Index: src/sys/netinet6/raw_ip6.c
-===================================================================
-RCS file: /cvs/src/sys/netinet6/raw_ip6.c,v
-retrieving revision 1.17
-diff -u -r1.17 raw_ip6.c
---- src/sys/netinet6/raw_ip6.c	11 Sep 2002 03:27:08 -0000	1.17
-+++ src/sys/netinet6/raw_ip6.c	11 Feb 2003 20:50:22 -0000
-@@ -378,7 +378,8 @@
- 	int error = 0;
- 	struct ip6_pktopts opt, *optp = NULL, *origoptp;
- 	struct ifnet *oifp = NULL;
--	int type, code;		/* for ICMPv6 output statistics only */
-+	/* for ICMPv6 output statistics only */
-+	int type = 0, code = 0;
- 	int priv = 0;
- 	va_list ap;
- 	int flags;
-Index: src/sys/nfs/nfsproto.h
-===================================================================
-RCS file: /cvs/src/sys/nfs/nfsproto.h,v
-retrieving revision 1.4
-diff -u -r1.4 nfsproto.h
---- src/sys/nfs/nfsproto.h	28 Jan 2002 22:35:57 -0000	1.4
-+++ src/sys/nfs/nfsproto.h	11 Feb 2003 20:50:22 -0000
-@@ -54,18 +54,18 @@
-  * Specification"
-  */
- 
--#define NFS_PORT	2049
-+#define	NFS_PORT	2049
- #define	NFS_PROG	100003
--#define NFS_VER2	2
-+#define	NFS_VER2	2
- #define	NFS_VER3	3
--#define NFS_VER4        4
--#define NFS_V2MAXDATA	8192
--#define	NFS_MAXDGRAMDATA 16384
-+#define	NFS_VER4        4
-+#define	NFS_V2MAXDATA	8192
-+#define	NFS_MAXDGRAMDATA 32768
- #define	NFS_MAXDATA	32768
- #define	NFS_MAXPATHLEN	1024
- #define	NFS_MAXNAMLEN	255
- #define	NFS_MAXPKTHDR	404
--#define NFS_MAXPACKET	(NFS_MAXPKTHDR + NFS_MAXDATA)
-+#define	NFS_MAXPACKET	(NFS_MAXPKTHDR + NFS_MAXDATA)
- #define	NFS_MINPACKET	20
- #define	NFS_FABLKSIZE	512	/* Size in bytes of a block wrt fa_blocks */
- 
-@@ -100,12 +100,12 @@
- #define	NFSERR_SERVERFAULT	10006
- #define	NFSERR_BADTYPE		10007
- #define	NFSERR_JUKEBOX		10008
--#define NFSERR_TRYLATER		NFSERR_JUKEBOX
-+#define	NFSERR_TRYLATER		NFSERR_JUKEBOX
- #define	NFSERR_STALEWRITEVERF	30001	/* Fake return for nfs_commit() */
- 
--#define NFSERR_RETVOID		0x20000000 /* Return void, not error */
--#define NFSERR_AUTHERR		0x40000000 /* Mark an authentication error */
--#define NFSERR_RETERR		0x80000000 /* Mark an error return for V3 */
-+#define	NFSERR_RETVOID		0x20000000 /* Return void, not error */
-+#define	NFSERR_AUTHERR		0x40000000 /* Mark an authentication error */
-+#define	NFSERR_RETERR		0x80000000 /* Mark an error return for V3 */
- 
- /* Sizes in bytes of various nfs rpc components */
- #define	NFSX_UNSIGNED	4
-@@ -115,38 +115,38 @@
- #define	NFSX_V2FATTR	68
- #define	NFSX_V2SATTR	32
- #define	NFSX_V2COOKIE	4
--#define NFSX_V2STATFS	20
-+#define	NFSX_V2STATFS	20
- 
- /* specific to NFS Version 3 */
--#define NFSX_V3FH		(sizeof (fhandle_t)) /* size this server uses */
-+#define	NFSX_V3FH		(sizeof (fhandle_t)) /* size this server uses */
- #define	NFSX_V3FHMAX		64	/* max. allowed by protocol */
--#define NFSX_V3FATTR		84
--#define NFSX_V3SATTR		60	/* max. all fields filled in */
--#define NFSX_V3SRVSATTR		(sizeof (struct nfsv3_sattr))
--#define NFSX_V3POSTOPATTR	(NFSX_V3FATTR + NFSX_UNSIGNED)
--#define NFSX_V3WCCDATA		(NFSX_V3POSTOPATTR + 8 * NFSX_UNSIGNED)
--#define NFSX_V3COOKIEVERF 	8
--#define NFSX_V3WRITEVERF 	8
--#define NFSX_V3CREATEVERF	8
--#define NFSX_V3STATFS		52
--#define NFSX_V3FSINFO		48
--#define NFSX_V3PATHCONF		24
-+#define	NFSX_V3FATTR		84
-+#define	NFSX_V3SATTR		60	/* max. all fields filled in */
-+#define	NFSX_V3SRVSATTR		(sizeof (struct nfsv3_sattr))
-+#define	NFSX_V3POSTOPATTR	(NFSX_V3FATTR + NFSX_UNSIGNED)
-+#define	NFSX_V3WCCDATA		(NFSX_V3POSTOPATTR + 8 * NFSX_UNSIGNED)
-+#define	NFSX_V3COOKIEVERF 	8
-+#define	NFSX_V3WRITEVERF 	8
-+#define	NFSX_V3CREATEVERF	8
-+#define	NFSX_V3STATFS		52
-+#define	NFSX_V3FSINFO		48
-+#define	NFSX_V3PATHCONF		24
- 
- /* variants for both versions */
--#define NFSX_FH(v3)		((v3) ? (NFSX_V3FHMAX + NFSX_UNSIGNED) : \
-+#define	NFSX_FH(v3)		((v3) ? (NFSX_V3FHMAX + NFSX_UNSIGNED) : \
- 					NFSX_V2FH)
--#define NFSX_SRVFH(v3)		((v3) ? NFSX_V3FH : NFSX_V2FH)
-+#define	NFSX_SRVFH(v3)		((v3) ? NFSX_V3FH : NFSX_V2FH)
- #define	NFSX_FATTR(v3)		((v3) ? NFSX_V3FATTR : NFSX_V2FATTR)
--#define NFSX_PREOPATTR(v3)	((v3) ? (7 * NFSX_UNSIGNED) : 0)
--#define NFSX_POSTOPATTR(v3)	((v3) ? (NFSX_V3FATTR + NFSX_UNSIGNED) : 0)
--#define NFSX_POSTOPORFATTR(v3)	((v3) ? (NFSX_V3FATTR + NFSX_UNSIGNED) : \
-+#define	NFSX_PREOPATTR(v3)	((v3) ? (7 * NFSX_UNSIGNED) : 0)
-+#define	NFSX_POSTOPATTR(v3)	((v3) ? (NFSX_V3FATTR + NFSX_UNSIGNED) : 0)
-+#define	NFSX_POSTOPORFATTR(v3)	((v3) ? (NFSX_V3FATTR + NFSX_UNSIGNED) : \
- 					NFSX_V2FATTR)
--#define NFSX_WCCDATA(v3)	((v3) ? NFSX_V3WCCDATA : 0)
--#define NFSX_WCCORFATTR(v3)	((v3) ? NFSX_V3WCCDATA : NFSX_V2FATTR)
-+#define	NFSX_WCCDATA(v3)	((v3) ? NFSX_V3WCCDATA : 0)
-+#define	NFSX_WCCORFATTR(v3)	((v3) ? NFSX_V3WCCDATA : NFSX_V2FATTR)
- #define	NFSX_SATTR(v3)		((v3) ? NFSX_V3SATTR : NFSX_V2SATTR)
- #define	NFSX_COOKIEVERF(v3)	((v3) ? NFSX_V3COOKIEVERF : 0)
- #define	NFSX_WRITEVERF(v3)	((v3) ? NFSX_V3WRITEVERF : 0)
--#define NFSX_READDIR(v3)	((v3) ? (5 * NFSX_UNSIGNED) : \
-+#define	NFSX_READDIR(v3)	((v3) ? (5 * NFSX_UNSIGNED) : \
- 					(2 * NFSX_UNSIGNED))
- #define	NFSX_STATFS(v3)		((v3) ? NFSX_V3STATFS : NFSX_V2STATFS)
- 
-@@ -174,7 +174,7 @@
- #define	NFSPROC_PATHCONF	20
- #define	NFSPROC_COMMIT		21
- 
--#define NFSPROC_NOOP		25
-+#define	NFSPROC_NOOP		25
- #define	NFS_NPROCS		26
- 
- /* Actual Version 2 procedure numbers */
-@@ -201,35 +201,35 @@
- /*
-  * Constants used by the Version 3 protocol for various RPCs
-  */
--#define NFSV3SATTRTIME_DONTCHANGE	0
--#define NFSV3SATTRTIME_TOSERVER		1
--#define NFSV3SATTRTIME_TOCLIENT		2
--
--#define NFSV3ACCESS_READ		0x01
--#define NFSV3ACCESS_LOOKUP		0x02
--#define NFSV3ACCESS_MODIFY		0x04
--#define NFSV3ACCESS_EXTEND		0x08
--#define NFSV3ACCESS_DELETE		0x10
--#define NFSV3ACCESS_EXECUTE		0x20
--
--#define NFSV3WRITE_UNSTABLE		0
--#define NFSV3WRITE_DATASYNC		1
--#define NFSV3WRITE_FILESYNC		2
--
--#define NFSV3CREATE_UNCHECKED		0
--#define NFSV3CREATE_GUARDED		1
--#define NFSV3CREATE_EXCLUSIVE		2
--
--#define NFSV3FSINFO_LINK		0x01
--#define NFSV3FSINFO_SYMLINK		0x02
--#define NFSV3FSINFO_HOMOGENEOUS		0x08
--#define NFSV3FSINFO_CANSETTIME		0x10
-+#define	NFSV3SATTRTIME_DONTCHANGE	0
-+#define	NFSV3SATTRTIME_TOSERVER		1
-+#define	NFSV3SATTRTIME_TOCLIENT		2
-+
-+#define	NFSV3ACCESS_READ		0x01
-+#define	NFSV3ACCESS_LOOKUP		0x02
-+#define	NFSV3ACCESS_MODIFY		0x04
-+#define	NFSV3ACCESS_EXTEND		0x08
-+#define	NFSV3ACCESS_DELETE		0x10
-+#define	NFSV3ACCESS_EXECUTE		0x20
-+
-+#define	NFSV3WRITE_UNSTABLE		0
-+#define	NFSV3WRITE_DATASYNC		1
-+#define	NFSV3WRITE_FILESYNC		2
-+
-+#define	NFSV3CREATE_UNCHECKED		0
-+#define	NFSV3CREATE_GUARDED		1
-+#define	NFSV3CREATE_EXCLUSIVE		2
-+
-+#define	NFSV3FSINFO_LINK		0x01
-+#define	NFSV3FSINFO_SYMLINK		0x02
-+#define	NFSV3FSINFO_HOMOGENEOUS		0x08
-+#define	NFSV3FSINFO_CANSETTIME		0x10
- 
- /* Conversion macros */
- #define	vtonfsv2_mode(t,m) \
- 		txdr_unsigned(((t) == VFIFO) ? MAKEIMODE(VCHR, (m)) : \
- 				MAKEIMODE((t), (m)))
--#define vtonfsv3_mode(m)	txdr_unsigned((m) & 07777)
-+#define	vtonfsv3_mode(m)	txdr_unsigned((m) & 07777)
- #define	nfstov_mode(a)		(fxdr_unsigned(u_int16_t, (a))&07777)
- #define	vtonfsv2_type(a)	txdr_unsigned(nfsv2_type[((int32_t)(a))])
- #define	vtonfsv3_type(a)	txdr_unsigned(nfsv3_type[((int32_t)(a))])
-@@ -249,7 +249,7 @@
-  * NFS_SMALLFH should be in the range of 32 to 64 and be divisible by 4.
-  */
- #ifndef NFS_SMALLFH
--#define NFS_SMALLFH	64
-+#define	NFS_SMALLFH	64
- #endif
- union nfsfh {
- 	fhandle_t fh_generic;
-@@ -400,18 +400,18 @@
- 	} sf_un;
- };
- 
--#define sf_tsize	sf_un.sf_nfsv2.nfsv2sf_tsize
--#define sf_bsize	sf_un.sf_nfsv2.nfsv2sf_bsize
--#define sf_blocks	sf_un.sf_nfsv2.nfsv2sf_blocks
--#define sf_bfree	sf_un.sf_nfsv2.nfsv2sf_bfree
--#define sf_bavail	sf_un.sf_nfsv2.nfsv2sf_bavail
--#define sf_tbytes	sf_un.sf_nfsv3.nfsv3sf_tbytes
--#define sf_fbytes	sf_un.sf_nfsv3.nfsv3sf_fbytes
--#define sf_abytes	sf_un.sf_nfsv3.nfsv3sf_abytes
--#define sf_tfiles	sf_un.sf_nfsv3.nfsv3sf_tfiles
--#define sf_ffiles	sf_un.sf_nfsv3.nfsv3sf_ffiles
--#define sf_afiles	sf_un.sf_nfsv3.nfsv3sf_afiles
--#define sf_invarsec	sf_un.sf_nfsv3.nfsv3sf_invarsec
-+#define	sf_tsize	sf_un.sf_nfsv2.nfsv2sf_tsize
-+#define	sf_bsize	sf_un.sf_nfsv2.nfsv2sf_bsize
-+#define	sf_blocks	sf_un.sf_nfsv2.nfsv2sf_blocks
-+#define	sf_bfree	sf_un.sf_nfsv2.nfsv2sf_bfree
-+#define	sf_bavail	sf_un.sf_nfsv2.nfsv2sf_bavail
-+#define	sf_tbytes	sf_un.sf_nfsv3.nfsv3sf_tbytes
-+#define	sf_fbytes	sf_un.sf_nfsv3.nfsv3sf_fbytes
-+#define	sf_abytes	sf_un.sf_nfsv3.nfsv3sf_abytes
-+#define	sf_tfiles	sf_un.sf_nfsv3.nfsv3sf_tfiles
-+#define	sf_ffiles	sf_un.sf_nfsv3.nfsv3sf_ffiles
-+#define	sf_afiles	sf_un.sf_nfsv3.nfsv3sf_afiles
-+#define	sf_invarsec	sf_un.sf_nfsv3.nfsv3sf_invarsec
- 
- struct nfsv3_fsinfo {
- 	u_int32_t fs_rtmax;
-Index: src/sys/stand/boot/cmd.c
-===================================================================
-RCS file: /cvs/src/sys/stand/boot/cmd.c,v
-retrieving revision 1.48
-diff -u -r1.48 cmd.c
---- src/sys/stand/boot/cmd.c	14 Jul 2002 09:18:55 -0000	1.48
-+++ src/sys/stand/boot/cmd.c	11 Feb 2003 20:50:22 -0000
-@@ -86,8 +86,19 @@
- {
- 	cmd.cmd = NULL;
- 
--	if (!readline(cmd_buf, sizeof(cmd_buf), cmd.timeout))
-+	switch (readline(cmd_buf, sizeof(cmd_buf), cmd.timeout))
-+	{
-+	default:
-+		cmd.timeout = 0;
-+		break;
-+	case 0:
-+		cmd.timeout = 0;
- 		cmd.cmd = cmd_table;
-+		break;
-+	case -1:
-+		strncpy(cmd_buf, "boot", 5);
-+		break;
-+	}
- 
- 	return docmd();
- }
-@@ -238,11 +249,16 @@
- 			if (!(i++ % 1000) && (getsecs() >= tt))
- 				break;
- 
-+#if 0
- 		if (!cnischar()) {
- 			strncpy(buf, "boot", 5);
- 			putchar('\n');
- 			return strlen(buf);
- 		}
-+#else
-+		if (!cnischar())
-+			return -1;
-+#endif
- 	} else
- 		while (!cnischar()) ;
- 
-@@ -499,4 +515,3 @@
- 	exit();
- 	return 0; /* just in case */
- }
--
-Index: src/sys/sys/resource.h
-===================================================================
-RCS file: /cvs/src/sys/sys/resource.h,v
-retrieving revision 1.4
-diff -u -r1.4 resource.h
---- src/sys/sys/resource.h	14 Mar 2002 01:26:52 -0000	1.4
-+++ src/sys/sys/resource.h	11 Feb 2003 20:50:22 -0000
-@@ -89,8 +89,9 @@
- #define	RLIMIT_MEMLOCK	6		/* locked-in-memory address space */
- #define	RLIMIT_NPROC	7		/* number of processes */
- #define	RLIMIT_NOFILE	8		/* number of open files */
-+#define	RLIMIT_TIME	9		/* user time */
- 
--#define	RLIM_NLIMITS	9		/* number of resource limits */
-+#define	RLIM_NLIMITS	10		/* number of resource limits */
- 
- #define	RLIM_INFINITY	(((u_quad_t)1 << 63) - 1)
- 
-Index: src/sys/ufs/ffs/ffs_softdep.c
-===================================================================
-RCS file: /cvs/src/sys/ufs/ffs/ffs_softdep.c,v
-retrieving revision 1.42
-diff -u -r1.42 ffs_softdep.c
---- src/sys/ufs/ffs/ffs_softdep.c	12 Oct 2002 01:09:23 -0000	1.42
-+++ src/sys/ufs/ffs/ffs_softdep.c	11 Feb 2003 20:50:22 -0000
-@@ -327,7 +327,7 @@
- 	struct sema *semap;
- 	struct lockit *interlock;
- {
--	int s;
-+	int s = 0;
- 
- 	if (semap->value++ > 0) {
- 		if (interlock != NULL)
-Index: src/sys/ufs/ffs/ffs_vfsops.c
-===================================================================
-RCS file: /cvs/src/sys/ufs/ffs/ffs_vfsops.c,v
-retrieving revision 1.54
-diff -u -r1.54 ffs_vfsops.c
---- src/sys/ufs/ffs/ffs_vfsops.c	1 Aug 2002 16:41:11 -0000	1.54
-+++ src/sys/ufs/ffs/ffs_vfsops.c	11 Feb 2003 20:50:22 -0000
-@@ -167,7 +167,7 @@
- 	struct ufsmount *ump = NULL;
- 	register struct fs *fs;
- 	int error = 0, flags;
--	int ronly;
-+	int ronly = 0;
- 	mode_t accessmode;
- 	size_t size;
- 
-Index: src/sys/uvm/uvm_amap.c
-===================================================================
-RCS file: /cvs/src/sys/uvm/uvm_amap.c,v
-retrieving revision 1.27
-diff -u -r1.27 uvm_amap.c
---- src/sys/uvm/uvm_amap.c	9 May 2002 14:13:56 -0000	1.27
-+++ src/sys/uvm/uvm_amap.c	11 Feb 2003 20:50:22 -0000
-@@ -1007,7 +1007,7 @@
- 	struct vm_amap *amap;
- 	int slotoff, slots;
- {
--	int byanon, lcv, stop, curslot, ptr, slotend;
-+	int byanon, lcv, stop, curslot, ptr, slotend = 0;
- 	struct vm_anon *anon;
- 
- 	/*
-Index: src/sys/uvm/uvm_map.c
-===================================================================
-RCS file: /cvs/src/sys/uvm/uvm_map.c,v
-retrieving revision 1.56
-diff -u -r1.56 uvm_map.c
---- src/sys/uvm/uvm_map.c	9 Dec 2002 02:34:59 -0000	1.56
-+++ src/sys/uvm/uvm_map.c	11 Feb 2003 20:50:22 -0000
-@@ -304,9 +304,10 @@
- 
- 	RB_FOREACH(tmp, uvm_tree, &map->rbhead) {
- 		if (tmp->ownspace != uvm_rb_space(map, tmp)) {
--			printf("%s: %d/%d ownspace %x != %x %s\n",
-+			printf("%s: %d/%d ownspace %lx != %lx %s\n",
- 			    name, n + 1, map->nentries,
--			    tmp->ownspace, uvm_rb_space(map, tmp),
-+			    (unsigned long) tmp->ownspace,
-+		   (unsigned long) uvm_rb_space(map, tmp),
- 			    tmp->next == &map->header ? "(last)" : "");
- 			goto error;
- 		}
-@@ -314,13 +315,14 @@
- 	trtmp = NULL;
- 	RB_FOREACH(tmp, uvm_tree, &map->rbhead) {
- 		if (tmp->space != uvm_rb_subtree_space(tmp)) {
--			printf("%s: space %d != %d\n",
-+			printf("%s: space %ld != %d\n",
- 			    name, tmp->space, uvm_rb_subtree_space(tmp));
- 			goto error;
- 		}
- 		if (trtmp != NULL && trtmp->start >= tmp->start) {
--			printf("%s: corrupt: %p >= %p\n",
--			    name, trtmp->start, tmp->start);
-+			printf("%s: corrupt: %lu >= %lu\n",
-+			    name, (unsigned long) trtmp->start,
-+			    (unsigned long) tmp->start);
- 			goto error;
- 		}
- 		n++;
-Index: src/sys/uvm/uvm_pager.c
-===================================================================
-RCS file: /cvs/src/sys/uvm/uvm_pager.c,v
-retrieving revision 1.33
-diff -u -r1.33 uvm_pager.c
---- src/sys/uvm/uvm_pager.c	29 Oct 2002 18:29:59 -0000	1.33
-+++ src/sys/uvm/uvm_pager.c	11 Feb 2003 20:50:22 -0000
-@@ -795,7 +795,7 @@
- 	struct vm_page *pg, *pgs[npages];
- 	struct uvm_object *uobj;
- 	int i, error;
--	boolean_t write, swap;
-+	boolean_t write, swap = FALSE;
- 	UVMHIST_FUNC("uvm_aio_aiodone"); UVMHIST_CALLED(ubchist);
- 	UVMHIST_LOG(ubchist, "bp %p", bp, 0,0,0);
- 
-Index: src/sys/uvm/uvm_swap.c
-===================================================================
-RCS file: /cvs/src/sys/uvm/uvm_swap.c,v
-retrieving revision 1.55
-diff -u -r1.55 uvm_swap.c
---- src/sys/uvm/uvm_swap.c	12 Oct 2002 01:09:23 -0000	1.55
-+++ src/sys/uvm/uvm_swap.c	11 Feb 2003 20:50:22 -0000
-@@ -1813,7 +1813,7 @@
- #ifdef UVM_SWAP_ENCRYPT
- 	vaddr_t dstkva;
- 	struct vm_page *tpps[MAXBSIZE >> PAGE_SHIFT];
--	struct swapdev *sdp;
-+	struct swapdev *sdp = NULL;
- 	int	encrypt = 0;
- #endif
- 	UVMHIST_FUNC("uvm_swap_io"); UVMHIST_CALLED(pdhist);
 Index: src/usr.bin/passwd/Makefile
 ===================================================================
 RCS file: /cvs/src/usr.bin/passwd/Makefile,v
 retrieving revision 1.26
 diff -u -r1.26 Makefile
 --- src/usr.bin/passwd/Makefile	8 May 2002 19:41:31 -0000	1.26
-+++ src/usr.bin/passwd/Makefile	11 Feb 2003 20:50:22 -0000
++++ src/usr.bin/passwd/Makefile	11 Feb 2003 21:09:33 -0000
 @@ -23,12 +23,16 @@
  LDADD+=	-lkrb5 -lasn1
  .endif
@@ -5253,7 +3023,7 @@ RCS file: /cvs/src/usr.bin/rdist/Makefile,v
 retrieving revision 1.12
 diff -u -r1.12 Makefile
 --- src/usr.bin/rdist/Makefile	9 May 2002 19:12:40 -0000	1.12
-+++ src/usr.bin/rdist/Makefile	11 Feb 2003 20:50:22 -0000
++++ src/usr.bin/rdist/Makefile	11 Feb 2003 21:09:33 -0000
 @@ -2,7 +2,7 @@
  
  
@@ -5269,7 +3039,7 @@ RCS file: /cvs/src/usr.bin/rsh/Makefile,v
 retrieving revision 1.6
 diff -u -r1.6 Makefile
 --- src/usr.bin/rsh/Makefile	6 May 2002 22:23:31 -0000	1.6
-+++ src/usr.bin/rsh/Makefile	11 Feb 2003 20:50:22 -0000
++++ src/usr.bin/rsh/Makefile	11 Feb 2003 21:09:33 -0000
 @@ -7,7 +7,7 @@
  
  .include <bsd.own.mk>	# For KERBEROS
@@ -5285,7 +3055,7 @@ RCS file: /cvs/src/usr.bin/skeyinit/skeyinit.c,v
 retrieving revision 1.41
 diff -u -r1.41 skeyinit.c
 --- src/usr.bin/skeyinit/skeyinit.c	16 Nov 2002 23:05:14 -0000	1.41
-+++ src/usr.bin/skeyinit/skeyinit.c	11 Feb 2003 20:50:22 -0000
++++ src/usr.bin/skeyinit/skeyinit.c	11 Feb 2003 21:09:33 -0000
 @@ -181,13 +181,13 @@
  	case 1:
  		if (!defaultsetup) {
@@ -5310,10 +3080,10 @@ diff -u -r1.41 skeyinit.c
 Index: src/usr.bin/ssh/lib/Makefile
 ===================================================================
 RCS file: /cvs/src/usr.bin/ssh/lib/Makefile,v
-retrieving revision 1.37
-diff -u -r1.37 Makefile
---- src/usr.bin/ssh/lib/Makefile	12 Jan 2003 16:58:52 -0000	1.37
-+++ src/usr.bin/ssh/lib/Makefile	11 Feb 2003 20:50:22 -0000
+retrieving revision 1.39
+diff -u -r1.39 Makefile
+--- src/usr.bin/ssh/lib/Makefile	21 Feb 2003 09:03:47 -0000	1.39
++++ src/usr.bin/ssh/lib/Makefile	23 Feb 2003 16:42:53 -0000
 @@ -24,7 +24,7 @@
  CFLAGS+= -DKRB5 -I${DESTDIR}/usr/include/kerberosV
  .endif # KERBEROS5
@@ -5326,10 +3096,10 @@ diff -u -r1.37 Makefile
 Index: src/usr.bin/ssh/ssh.c
 ===================================================================
 RCS file: /cvs/src/usr.bin/ssh/ssh.c,v
-retrieving revision 1.189
-diff -u -r1.189 ssh.c
---- src/usr.bin/ssh/ssh.c	9 Dec 2002 16:50:08 -0000	1.189
-+++ src/usr.bin/ssh/ssh.c	11 Feb 2003 20:50:22 -0000
+retrieving revision 1.190
+diff -u -r1.190 ssh.c
+--- src/usr.bin/ssh/ssh.c	6 Feb 2003 09:27:07 -0000	1.190
++++ src/usr.bin/ssh/ssh.c	23 Feb 2003 16:42:49 -0000
 @@ -138,6 +138,14 @@
  /* # of replies received for global requests */
  static int client_global_request_id = 0;
@@ -5406,7 +3176,7 @@ RCS file: /cvs/src/usr.bin/ssh/ssh.h,v
 retrieving revision 1.71
 diff -u -r1.71 ssh.h
 --- src/usr.bin/ssh/ssh.h	22 Jun 2002 02:00:07 -0000	1.71
-+++ src/usr.bin/ssh/ssh.h	11 Feb 2003 20:50:22 -0000
++++ src/usr.bin/ssh/ssh.h	11 Feb 2003 21:09:34 -0000
 @@ -95,4 +95,6 @@
  /* Minimum modulus size (n) for RSA keys. */
  #define SSH_RSA_MINIMUM_MODULUS_SIZE	768
@@ -5417,10 +3187,10 @@ diff -u -r1.71 ssh.h
 Index: src/usr.bin/ssh/sshconnect2.c
 ===================================================================
 RCS file: /cvs/src/usr.bin/ssh/sshconnect2.c,v
-retrieving revision 1.110
-diff -u -r1.110 sshconnect2.c
---- src/usr.bin/ssh/sshconnect2.c	19 Dec 2002 00:06:40 -0000	1.110
-+++ src/usr.bin/ssh/sshconnect2.c	11 Feb 2003 20:50:22 -0000
+retrieving revision 1.111
+diff -u -r1.111 sshconnect2.c
+--- src/usr.bin/ssh/sshconnect2.c	16 Feb 2003 17:09:35 -0000	1.111
++++ src/usr.bin/ssh/sshconnect2.c	23 Feb 2003 16:42:49 -0000
 @@ -47,10 +47,14 @@
  #include "canohost.h"
  #include "msg.h"
@@ -5436,7 +3206,7 @@ diff -u -r1.110 sshconnect2.c
  extern Options options;
  
  /*
-@@ -219,6 +223,7 @@
+@@ -221,6 +225,7 @@
  {
  	Authctxt authctxt;
  	int type;
@@ -5444,7 +3214,7 @@ diff -u -r1.110 sshconnect2.c
  
  	if (options.challenge_response_authentication)
  		options.kbd_interactive_authentication = 1;
-@@ -259,6 +264,15 @@
+@@ -261,6 +266,15 @@
  	if (authctxt.method == NULL)
  		fatal("ssh_userauth2: internal error: cannot send userauth none request");
  
@@ -5460,7 +3230,7 @@ diff -u -r1.110 sshconnect2.c
  	/* initial userauth request */
  	userauth_none(&authctxt);
  
-@@ -335,6 +349,7 @@
+@@ -337,6 +351,7 @@
  	Authctxt *authctxt = ctxt;
  	char *authlist = NULL;
  	int partial;
@@ -5468,7 +3238,7 @@ diff -u -r1.110 sshconnect2.c
  
  	if (authctxt == NULL)
  		fatal("input_userauth_failure: no authentication context");
-@@ -343,6 +358,13 @@
+@@ -345,6 +360,13 @@
  	partial = packet_get_char();
  	packet_check_eom();
  
@@ -5482,7 +3252,7 @@ diff -u -r1.110 sshconnect2.c
  	if (partial != 0)
  		log("Authenticated with partial success.");
  	debug("Authentications that can continue: %s", authlist);
-@@ -815,10 +837,19 @@
+@@ -817,10 +839,19 @@
  {
  	static int attempt = 0;
  
@@ -5504,7 +3274,7 @@ diff -u -r1.110 sshconnect2.c
  		debug3("userauth_kbdint: disable: no info_req_seen");
  		dispatch_set(SSH2_MSG_USERAUTH_INFO_REQUEST, NULL);
  		return 0;
-@@ -830,20 +861,115 @@
+@@ -832,20 +863,115 @@
  	packet_put_cstring(authctxt->service);
  	packet_put_cstring(authctxt->method->name);
  	packet_put_cstring("");					/* lang */
@@ -5622,7 +3392,7 @@ diff -u -r1.110 sshconnect2.c
  	Authctxt *authctxt = ctxt;
  	char *name, *inst, *lang, *prompt, *response;
  	u_int num_prompts, i;
-@@ -868,6 +994,10 @@
+@@ -870,6 +996,10 @@
  	xfree(lang);
  
  	num_prompts = packet_get_int();
@@ -5633,7 +3403,7 @@ diff -u -r1.110 sshconnect2.c
  	/*
  	 * Begin to build info response packet based on prompts requested.
  	 * We commit to providing the correct number of responses, so if
-@@ -877,22 +1007,51 @@
+@@ -879,22 +1009,51 @@
  	packet_start(SSH2_MSG_USERAUTH_INFO_RESPONSE);
  	packet_put_int(num_prompts);
  
@@ -5697,7 +3467,7 @@ diff -u -r1.110 sshconnect2.c
  }
  
  static int
-@@ -1033,7 +1192,7 @@
+@@ -1035,7 +1194,7 @@
  	if (sensitive->external_keysign)
  		ok = ssh_keysign(private, &signature, &slen,
  		    buffer_ptr(&b), buffer_len(&b));
@@ -5712,7 +3482,7 @@ RCS file: /cvs/src/usr.bin/ssh/ssh/Makefile,v
 retrieving revision 1.42
 diff -u -r1.42 Makefile
 --- src/usr.bin/ssh/ssh/Makefile	20 Jun 2002 19:55:45 -0000	1.42
-+++ src/usr.bin/ssh/ssh/Makefile	11 Feb 2003 20:50:22 -0000
++++ src/usr.bin/ssh/ssh/Makefile	11 Feb 2003 21:09:34 -0000
 @@ -23,7 +23,7 @@
  DPADD+=  ${LIBKRB5} ${LIBASN1} ${LIBCOM_ERR}
  .endif # KERBEROS5
@@ -5725,11 +3495,11 @@ diff -u -r1.42 Makefile
 Index: src/usr.bin/ssh/sshd/Makefile
 ===================================================================
 RCS file: /cvs/src/usr.bin/ssh/sshd/Makefile,v
-retrieving revision 1.51
-diff -u -r1.51 Makefile
---- src/usr.bin/ssh/sshd/Makefile	20 Jun 2002 19:55:45 -0000	1.51
-+++ src/usr.bin/ssh/sshd/Makefile	11 Feb 2003 20:50:22 -0000
-@@ -26,7 +26,7 @@
+retrieving revision 1.52
+diff -u -r1.52 Makefile
+--- src/usr.bin/ssh/sshd/Makefile	21 Feb 2003 09:03:47 -0000	1.52
++++ src/usr.bin/ssh/sshd/Makefile	23 Feb 2003 16:42:54 -0000
+@@ -27,7 +27,7 @@
  DPADD+= ${LIBKRB5} ${LIBKAFS} ${LIBASN1} ${LIBCOM_ERR}
  .endif # KERBEROS5
  
@@ -5744,7 +3514,7 @@ RCS file: /cvs/src/usr.bin/sudo/Makefile.bsd-wrapper,v
 retrieving revision 1.15
 diff -u -r1.15 Makefile.bsd-wrapper
 --- src/usr.bin/sudo/Makefile.bsd-wrapper	26 Apr 2002 16:04:02 -0000	1.15
-+++ src/usr.bin/sudo/Makefile.bsd-wrapper	11 Feb 2003 20:50:22 -0000
++++ src/usr.bin/sudo/Makefile.bsd-wrapper	11 Feb 2003 21:09:34 -0000
 @@ -14,7 +14,7 @@
  DPADD+= ${LIBSKEY}
  .endif
@@ -5760,7 +3530,7 @@ RCS file: /cvs/src/usr.bin/xlint/lint1/Makefile,v
 retrieving revision 1.3
 diff -u -r1.3 Makefile
 --- src/usr.bin/xlint/lint1/Makefile	11 Sep 2001 00:06:06 -0000	1.3
-+++ src/usr.bin/xlint/lint1/Makefile	11 Feb 2003 20:50:22 -0000
++++ src/usr.bin/xlint/lint1/Makefile	11 Feb 2003 21:09:34 -0000
 @@ -8,7 +8,7 @@
  LDADD+=	-ll
  DPADD+=	${LIBL}
@@ -5776,7 +3546,7 @@ RCS file: /cvs/src/usr.sbin/amd/fsinfo/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
 --- src/usr.sbin/amd/fsinfo/Makefile	18 Oct 1995 08:46:59 -0000	1.1.1.1
-+++ src/usr.sbin/amd/fsinfo/Makefile	11 Feb 2003 20:50:22 -0000
++++ src/usr.sbin/amd/fsinfo/Makefile	11 Feb 2003 21:09:34 -0000
 @@ -12,7 +12,7 @@
  CLEANFILES= \
  	fsi_gram.c y.tab.c fsi_gram.h y.tab.h \
@@ -5792,7 +3562,7 @@ RCS file: /cvs/src/usr.sbin/arp/arp.8,v
 retrieving revision 1.12
 diff -u -r1.12 arp.8
 --- src/usr.sbin/arp/arp.8	13 Feb 2002 08:33:25 -0000	1.12
-+++ src/usr.sbin/arp/arp.8	11 Feb 2003 20:50:22 -0000
++++ src/usr.sbin/arp/arp.8	11 Feb 2003 21:09:34 -0000
 @@ -136,6 +136,7 @@
  .Ed
  .Pp
@@ -5807,7 +3577,7 @@ RCS file: /cvs/src/usr.sbin/arp/arp.c,v
 retrieving revision 1.25
 diff -u -r1.25 arp.c
 --- src/usr.sbin/arp/arp.c	3 Dec 2002 22:33:28 -0000	1.25
-+++ src/usr.sbin/arp/arp.c	11 Feb 2003 20:50:22 -0000
++++ src/usr.sbin/arp/arp.c	11 Feb 2003 21:09:34 -0000
 @@ -198,7 +198,9 @@
  	args[3] = &arg[3][0];
  	args[4] = &arg[4][0];
@@ -5825,7 +3595,7 @@ RCS file: /cvs/src/usr.sbin/ppp/ppp/alias_nbt.c,v
 retrieving revision 1.8
 diff -u -r1.8 alias_nbt.c
 --- src/usr.sbin/ppp/ppp/alias_nbt.c	15 Jun 2002 08:01:37 -0000	1.8
-+++ src/usr.sbin/ppp/ppp/alias_nbt.c	11 Feb 2003 20:50:22 -0000
++++ src/usr.sbin/ppp/ppp/alias_nbt.c	11 Feb 2003 21:09:34 -0000
 @@ -111,7 +111,7 @@
  		case CFT_ERR:
  			printf("\nName in conflict error.\n");
@@ -5841,7 +3611,7 @@ RCS file: /cvs/src/usr.sbin/pppd/Makefile,v
 retrieving revision 1.15
 diff -u -r1.15 Makefile
 --- src/usr.sbin/pppd/Makefile	19 May 2002 20:47:30 -0000	1.15
-+++ src/usr.sbin/pppd/Makefile	11 Feb 2003 20:50:22 -0000
++++ src/usr.sbin/pppd/Makefile	11 Feb 2003 21:09:34 -0000
 @@ -15,6 +15,6 @@
  
  LDADD=	-lpcap -lutil
@@ -5856,7 +3626,7 @@ RCS file: /cvs/src/usr.sbin/rpc.lockd/Makefile,v
 retrieving revision 1.4
 diff -u -r1.4 Makefile
 --- src/usr.sbin/rpc.lockd/Makefile	19 Aug 1997 08:04:55 -0000	1.4
-+++ src/usr.sbin/rpc.lockd/Makefile	11 Feb 2003 20:50:22 -0000
++++ src/usr.sbin/rpc.lockd/Makefile	11 Feb 2003 21:09:34 -0000
 @@ -7,7 +7,7 @@
  DPADD=	${LIBRPCSVC}
  LDADD=	-lrpcsvc
@@ -5872,7 +3642,7 @@ RCS file: /cvs/src/usr.sbin/user/user.c,v
 retrieving revision 1.40
 diff -u -r1.40 user.c
 --- src/usr.sbin/user/user.c	10 Dec 2002 20:49:06 -0000	1.40
-+++ src/usr.sbin/user/user.c	11 Feb 2003 20:50:23 -0000
++++ src/usr.sbin/user/user.c	11 Feb 2003 21:09:34 -0000
 @@ -1129,8 +1129,8 @@
  				    len + strlen(newlogin) >= sizeof(buf))) {
  					(void) close(ptmpfd);
@@ -5918,48 +3688,6 @@ src/lib/libc/sys/getrlimit.2			humantime
 src/lib/libpthread/uthread/uthread_mutex.c	uninitialized
 src/lib/libutil/passwd.c			humantime
 src/sbin/isakmpd/util.c				gcc botch
-src/sys/arch/i386/stand/libsa/apmprobe.c	mwatts+KNF
-src/sys/arch/i386/stand/libsa/cmd_i386.c	mwatts
-src/sys/arch/i386/stand/libsa/gidt.S		ansi C fixes; ELF
-src/sys/arch/i386/stand/libsa/libsa.h		mwatts; ELF
-src/sys/dev/ic/dc.c
-src/sys/dev/mii/bmtphy.c
-src/sys/kern/kern_sig.c
-src/sys/kern/kern_synch.c
-src/sys/kern/subr_userconf.c
-src/sys/kern/sys_generic.c
-src/sys/kern/vfs_syscalls.c
-src/sys/lib/libz/Makefile			$.curdir
-src/sys/miscfs/procfs/procfs_vnops.c
-src/sys/miscfs/union/union_vnops.c
-src/sys/net/if_bridge.c
-src/sys/net/if_vlan.c
-src/sys/net/pf.c
-src/sys/net/pfkeyv2.c
-src/sys/netinet/ip_ah.c
-src/sys/netinet/ip_esp.c
-src/sys/netinet/ip_ipcomp.c
-src/sys/netinet/ip_ipsp.c
-src/sys/netinet/ip_output.c
-src/sys/netinet/ipsec_output.c
-src/sys/netinet/tcp_input.c
-src/sys/netinet/tcp_output.c
-src/sys/netinet/tcp_subr.c			ECN on by default
-src/sys/netinet/tcp_usrreq.c
-src/sys/netinet/udp_usrreq.c
-src/sys/netinet6/in6_ifattach.c
-src/sys/netinet6/ip6_forward.c
-src/sys/netinet6/ip6_output.c
-src/sys/netinet6/raw_ip6.c
-src/sys/nfs/nfsproto.h				higher default block sizes
-src/sys/stand/boot/cmd.c			mwatts
-src/sys/sys/resource.h				humantime
-src/sys/ufs/ffs/ffs_softdep.c
-src/sys/ufs/ffs/ffs_vfsops.c
-src/sys/uvm/uvm_amap.c
-src/sys/uvm/uvm_map.c
-src/sys/uvm/uvm_pager.c
-src/sys/uvm/uvm_swap.c
 src/usr.bin/passwd/Makefile			$.curdir, krb4
 src/usr.bin/rdist/Makefile			$.curdir
 src/usr.bin/rsh/Makefile			kerberos4
