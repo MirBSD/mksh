@@ -1,4 +1,4 @@
-/**	$MirBSD: chvt.c,v 1.2 2004/11/10 19:58:06 tg Exp $ */
+/**	$MirBSD: chvt.c,v 1.3 2004/11/10 20:08:21 tg Exp $ */
 
 /*-
  * Copyright (c) 2004
@@ -24,7 +24,7 @@
 #include <sys/ioctl.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: chvt.c,v 1.2 2004/11/10 19:58:06 tg Exp $");
+__RCSID("$MirBSD: chvt.c,v 1.3 2004/11/10 20:08:21 tg Exp $");
 
 
 char *
@@ -67,6 +67,6 @@ chvt(char *f)
 
 	return NULL;
 #else
-	return "TIOCSCTTY not implemented";
+	return "ioctl - TIOCSCTTY not implemented";
 #endif
 }
