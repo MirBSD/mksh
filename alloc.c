@@ -1,4 +1,4 @@
-/* $MirBSD: alloc.c,v 1.3 2004/05/23 12:47:00 tg Exp $	*/
+/* $MirBSD: alloc.c,v 1.4 2004/05/24 19:55:55 tg Stab $ */
 /* $OpenBSD: alloc.c,v 1.7 2004/02/19 18:51:17 deraadt Exp $	*/
 
 /*

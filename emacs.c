@@ -1,5 +1,5 @@
-/*	$MirBSD: emacs.c,v 1.7 2003/12/23 13:41:48 tg Exp $	*/
-/*	$OpenBSD: emacs.c,v 1.28 2003/10/22 07:40:38 jmc Exp $	*/
+/* $MirBSD: emacs.c,v 1.8 2004/05/24 19:56:05 tg Stab $ */
+/* $OpenBSD: emacs.c,v 1.28 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
  *  Emacs-like command line editing and history
@@ -541,7 +541,7 @@ x_delete(nc, push)
 {
 	int	i,j;
 	char	*cp;
-	
+
 	if (nc == 0)
 		return;
 	if (xmp != NULL && xmp > xcp) {
@@ -588,7 +588,7 @@ x_delete(nc, push)
 	for (cp = x_lastcp(); cp > xcp; )
 		x_bs(*--cp);
 
-	return;	
+	return;
 }
 
 static int
@@ -1071,7 +1071,7 @@ x_redraw(limit)
 {
 	int	i, j;
 	char	*cp;
-	
+
 	x_adj_ok = 0;
 	if (limit == -1)
 		x_e_putc('\n');
@@ -1528,7 +1528,7 @@ x_init_emacs()
 		for (j = 0; j < X_TABSZ; j++)
 			x_atab[i][j] = NULL;
 
-	/* Determine if we can translate meta key or use 8-bit AscII 
+	/* Determine if we can translate meta key or use 8-bit AscII
 	 * XXX - It would be nice if there was a locale attribute to
 	 * determine if the locale is 7-bit or not.
 	 */
@@ -1844,8 +1844,8 @@ do_complete(flags, type)
 		completed = 1;
 	}
 
-	if (completed)	
-		x_redraw(0);	
+	if (completed)
+		x_redraw(0);
 
 	x_free_words(nwords, words);
 }
@@ -1891,7 +1891,7 @@ static int
 x_e_getc()
 {
 	int c;
-	
+
 	if (unget_char >= 0) {
 		c = unget_char;
 		unget_char = -1;
@@ -2126,7 +2126,7 @@ x_fold_case(c)
 	int c;
 {
 	char *cp = xcp;
-	
+
 	if (cp == xep) {
 		x_e_putc(BEL);
 		return KSTD;

@@ -1,8 +1,7 @@
-#	$OpenBSD: regress.t,v 1.12 2003/11/08 19:17:27 jmc Exp $
-
+# $MirBSD: regress.t,v 1.2 2004/05/24 19:56:25 tg Stab $
+# $OpenBSD: regress.t,v 1.12 2003/11/08 19:17:27 jmc Exp $
 #
 # The first 39 of these tests are from the old Bugs script.
-#
 
 name: regression-1
 description:
@@ -500,7 +499,7 @@ script:
 	    read x y z
 	    a=x$a
 	done
-	echo 1: ${x-x not set} ${y-y not set} ${z-z not set} 
+	echo 1: ${x-x not set} ${y-y not set} ${z-z not set}
 	echo 2: ${x:+x not null} ${y:+y not null} ${z:+z not null}
 stdin:
 	a A Aa
@@ -562,7 +561,7 @@ description:
 	Command substitution breaks reading in while loop
 	(test from <sjg@void.zen.oz.au>)
 stdin:
-	(echo abcdef; echo; echo 123) | 
+	(echo abcdef; echo; echo 123) |
 	    while read line
 	    do
 	      # the following line breaks it
@@ -594,7 +593,7 @@ stdin:
 	if false; then echo hi ; fi
 	false || true
 	false && true
-	while false; do echo hi; done 
+	while false; do echo hi; done
 	echo ok
 expected-stdout:
 	ok
@@ -785,7 +784,7 @@ stdin:
 	alias foo='echo hi ; '
 	foo
 	foo echo there
-expected-stdout: 
+expected-stdout:
 	hi
 	hi
 	there
@@ -800,7 +799,7 @@ stdin:
 	set a b c
 	set -o noglob +o allexport
 	echo A: $*, *
-expected-stdout: 
+expected-stdout:
 	A: a b c, *
 ---
 
@@ -818,7 +817,7 @@ stdin:
 	echo mark 1
 	sed 's/^/X /' < ab* | sed 's/^/Y /'
 	echo mark 2
-expected-stdout: 
+expected-stdout:
 	X stuff
 	mark 1
 	Y X stuff
@@ -890,7 +889,7 @@ stdin:
 	echo "line 50: OPTIND=$OPTIND"
 	getopts kbfl optc
 	echo "line 60: ret=$?, optc=$optc, OPTIND=$OPTIND"
-expected-stdout: 
+expected-stdout:
 	line 1: OPTIND=1
 	line 2: ret=0, optc=f, OPTIND=2
 	bfunc: enter (args: -BBB blah; OPTIND=2)
@@ -935,7 +934,7 @@ stdin:
 	if [[ -n 1 ]] then
 	    echo ok dbrackets
 	fi
-expected-stdout: 
+expected-stdout:
 	ok dparen
 	ok dbrackets
 ---
@@ -954,7 +953,7 @@ stdin:
 	echo 6 ${x:#*X}
 	echo 7 ${x##*X}
 	echo 8 ${x:##*X}
-expected-stdout: 
+expected-stdout:
 	1 fooXbar
 	2 fooXbar
 	3 foo
@@ -984,7 +983,7 @@ stdin:
 	IFS="$IFS:"
 	eval $(echo :; false)
 	echo F $?
-expected-stdout: 
+expected-stdout:
 	A 1
 	B 1
 	C 1
@@ -1009,7 +1008,7 @@ stdin:
 	typeset -i | grep xxx | sed 's/^/    /'
 	echo N
 	typeset | grep xxx | sed 's/^/    /'
-expected-stdout: 
+expected-stdout:
 	A
 	    xxx
 	B
@@ -1026,7 +1025,7 @@ description:
 stdin:
 	trap 'echo hi' exit
 	trap exit 1
-expected-stdout: 
+expected-stdout:
 	hi
 ---
 
@@ -1037,7 +1036,7 @@ stdin:
 	a[12]=hi
 	a[8]=there
 	echo ${#a[*]}
-expected-stdout: 
+expected-stdout:
 	2
 ---
 
@@ -1051,7 +1050,7 @@ stdin:
 	echo B $?
 	( (exit 103) ; exit)
 	echo C $?
-expected-stdout: 
+expected-stdout:
 	A 0
 	B 1
 	C 103
@@ -1067,7 +1066,7 @@ stdin:
 	echo B
 	(echo C; trap 'echo sub exit' EXIT; echo C last)
 	echo parent last
-expected-stdout: 
+expected-stdout:
 	start
 	A
 	A last
@@ -1086,8 +1085,7 @@ stdin:
 	touch a
 	test a -nt b && echo nt OK || echo nt BAD
 	test b -ot a && echo ot OK || echo ot BAD
-expected-stdout: 
+expected-stdout:
 	nt OK
 	ot OK
 ---
-

@@ -1,4 +1,5 @@
-/*	$OpenBSD: ksh_wait.h,v 1.3 1997/06/19 13:58:43 kstailey Exp $	*/
+/* $MirBSD: ksh_wait.h,v 1.2 2004/05/24 19:56:15 tg Stab $ */
+/* $OpenBSD: ksh_wait.h,v 1.3 1997/06/19 13:58:43 kstailey Exp $	*/
 
 /* Wrapper around the ugly sys/wait includes/ifdefs */
 

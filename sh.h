@@ -1,4 +1,4 @@
-/* $MirBSD: sh.h,v 1.8 2004/05/24 19:06:55 tg Exp $	*/
+/* $MirBSD: sh.h,v 1.9 2004/05/24 19:56:17 tg Exp $ */
 /* $OpenBSD: sh.h,v 1.17 2004/05/10 16:28:47 pvalchev Exp $	*/
 /* $From: sh.h,v 1.2 1994/05/19 18:32:40 michael Exp michael $ */
 

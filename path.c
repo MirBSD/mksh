@@ -1,4 +1,5 @@
-/*	$OpenBSD: path.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
+/* $MirBSD: path.c,v 1.2 2004/05/24 19:56:17 tg Stab $ */
+/* $OpenBSD: path.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 #include "sh.h"
 #include "ksh_stat.h"

@@ -7,7 +7,7 @@ consistent):
     sh-v	generic		any system V bourne shell like thing
     ksh		generic		any ksh
     posix	generic		basic posix shell
-    posix-upu	generic		`user portability utility' options
+    posix-upu	generic		'user portability utility' options
     sh-v7	specific	the real v7 bourne shell
     sh-sysv	specific	the real sysv bourne shell
     pdksh	specific	public domain ksh
@@ -15,7 +15,7 @@ consistent):
     ksh93	specific	at&t ksh93
     bash	specific	GNU bourne-again shell
 
-The idea is to categorize all the tests according to the `best match'
+The idea is to categorize all the tests according to the 'best match'
 (most generic thing).  All generics that apply should be specified.
 Generally, at most one specific shell will be given.
 

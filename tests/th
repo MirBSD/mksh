@@ -1,7 +1,6 @@
 #!/usr/bin/perl
-#	$OpenBSD: th,v 1.10 2003/09/01 05:16:46 fgsch Exp $
-
-
+# $MirBSD: th,v 1.2 2004/05/24 19:56:25 tg Stab $
+# $OpenBSD: th,v 1.10 2003/09/01 05:16:46 fgsch Exp $
 #
 # Test harness for pdksh tests.
 #
@@ -74,7 +73,7 @@
 #					The first word is either
 #					file, dir or symlink; second word is
 #					expected permissions; third word
-#					is user-id; fourth is group-id; 
+#					is user-id; fourth is group-id;
 #					fifth is "exact" or "pattern"
 #					indicating whether the file contents
 #					which follow is to be matched exactly
@@ -91,7 +90,7 @@
 #	time-limit		    	Time limit - the program is sent a
 #					SIGKILL N seconds.  Default is no
 #					limit.
-#	expected-fail		    	`yes' if the test is expected to fail.
+#	expected-fail		    	'yes' if the test is expected to fail.
 #	expected-exit		    	expected exit code.  Can be a number,
 #					or a C expression using the variables
 #					e, s and w (exit code, termination
@@ -105,7 +104,7 @@
 #	expected-stderr-pattern	    m	A perl pattern which matches the
 #					expected standard error.
 #	category		    m	Specify a comma separated list of
-#					`categories' of program that the test
+#					'categories' of program that the test
 #					is to be run for.  A category can be
 #					negated by prefixing the name with a !.
 #					The idea is that some tests in a

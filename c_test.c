@@ -1,5 +1,5 @@
-/*	$MirBSD: c_test.c,v 1.2 2004/04/17 00:47:17 tg Exp $	*/
-/*	$OpenBSD: c_test.c,v 1.10 2003/10/10 19:09:07 millert Exp $	*/
+/* $MirBSD: c_test.c,v 1.3 2004/05/24 19:55:57 tg Stab $ */
+/* $OpenBSD: c_test.c,v 1.10 2003/10/10 19:09:07 millert Exp $	*/
 
 /*
  * test(1); version 7-like  --  author Erik Baalbergen

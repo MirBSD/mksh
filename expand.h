@@ -1,4 +1,5 @@
-/*	$OpenBSD: expand.h,v 1.3 2001/03/26 16:19:45 todd Exp $	*/
+/* $MirBSD: expand.h,v 1.2 2004/05/24 19:56:08 tg Stab $ */
+/* $OpenBSD: expand.h,v 1.3 2001/03/26 16:19:45 todd Exp $	*/
 
 /*
  * Expanding strings

@@ -1,5 +1,6 @@
-#	$OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
-
+# $MirBSD: history.t,v 1.2 2004/05/24 19:56:25 tg Stab $
+# $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
+#
 # Not tested yet:
 #	- commands in history file are not numbered negatively
 # (and a few hundred other things)
@@ -169,7 +170,7 @@ expected-stderr-pattern:
 
 name: history-list-3
 description:
-	Can give number `options' to fc
+	Can give number 'options' to fc
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"

@@ -108,4 +108,3 @@ expected-stdout:
 	dot B 3
 	C 3
 ---
-

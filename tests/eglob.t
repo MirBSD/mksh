@@ -142,4 +142,3 @@ expected-stdout:
 	3: abcdef
 	4: cdef
 ---
-

@@ -1,4 +1,4 @@
-/* $MirBSD: io.c,v 1.3 2004/04/07 17:24:40 tg Exp $ */
+/* $MirBSD: io.c,v 1.4 2004/05/24 19:56:10 tg Stab $ */
 /* $OpenBSD: io.c,v 1.13 2003/11/10 21:26:39 millert Exp $	*/
 
 /*

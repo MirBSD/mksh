@@ -1,5 +1,5 @@
-/*	$MirBSD: lex.c,v 1.2 2004/04/17 00:47:19 tg Exp $	*/
-/*	$OpenBSD: lex.c,v 1.18 2003/08/06 21:08:05 millert Exp $	*/
+/* $MirBSD: lex.c,v 1.3 2004/05/24 19:56:15 tg Stab $ */
+/* $OpenBSD: lex.c,v 1.18 2003/08/06 21:08:05 millert Exp $	*/
 
 /*
  * lexical analysis and source input

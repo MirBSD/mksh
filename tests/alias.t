@@ -109,4 +109,3 @@ expected-stdout:
 	hi
 	there
 ---
-

@@ -1,5 +1,5 @@
-/*	$MirBSD: c_sh.c,v 1.2 2004/04/17 00:47:17 tg Exp $	*/
-/*	$OpenBSD: c_sh.c,v 1.17 2003/03/13 09:03:07 deraadt Exp $	*/
+/* $MirBSD: c_sh.c,v 1.3 2004/05/24 19:55:55 tg Stab $ */
+/* $OpenBSD: c_sh.c,v 1.17 2003/03/13 09:03:07 deraadt Exp $	*/
 
 /*
  * built-in Bourne commands

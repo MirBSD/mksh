@@ -1,4 +1,4 @@
-/* $MirBSD: c_ksh.c,v 1.3 2004/05/23 12:47:00 tg Exp $	*/
+/* $MirBSD: c_ksh.c,v 1.4 2004/05/24 19:55:55 tg Stab $ */
 /* $OpenBSD: c_ksh.c,v 1.18 2004/02/10 13:03:36 jmc Exp $	*/
 
 /*

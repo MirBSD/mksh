@@ -1,10 +1,9 @@
-/* $MirBSD: proto.h,v 1.3 2004/05/24 19:06:55 tg Exp $ */
+/* $MirBSD: proto.h,v 1.4 2004/05/24 19:56:17 tg Stab $ */
 /* $OpenBSD: proto.h,v 1.11 2003/05/16 19:58:57 jsyn Exp $	*/
-
-/*
+/* $From: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $
+ *
  * prototypes for PD-KSH
  * originally generated using "cproto.c 3.5 92/04/11 19:28:01 cthuang "
- * $From: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $
  */
 
 /* alloc.c */

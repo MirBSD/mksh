@@ -1,5 +1,5 @@
-/*	$MirBSD: shf.c,v 1.2 2004/04/17 00:47:19 tg Exp $	*/
-/*	$OpenBSD: shf.c,v 1.8 2003/02/28 09:45:09 jmc Exp $	*/
+/* $MirBSD: shf.c,v 1.3 2004/05/24 19:56:18 tg Stab $ */
+/* $OpenBSD: shf.c,v 1.8 2003/02/28 09:45:09 jmc Exp $	*/
 
 /*
  *  Shell file I/O routines

@@ -1,5 +1,5 @@
-#	$OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
-
+# $MirBSD: bksl-nl.t,v 1.2 2004/05/24 19:56:24 tg Stab $
+# $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 #
 #  These tests deal with how \newline is handled in various situations.  The
 # first group of tests are places where it shouldn't be collapsed, the next
@@ -47,7 +47,7 @@ description:
 	Check interaction of aliases, single quotes and here-documents
 	with backslash-newline
 	(don't know what posix has to say about this)
-stdin: 
+stdin:
 	a=2
 	alias x='echo hi
 	cat << "EOF"
@@ -281,7 +281,7 @@ description:
 	Check that \ at the end of an alias is collapsed when followed
 	by a newline
 	(don't know what posix has to say about this)
-stdin: 
+stdin:
 	alias x='echo hi\'
 	x
 	echo there
@@ -292,7 +292,7 @@ expected-stdout:
 name: blsk-nl-10
 description:
 	Check that \newline in a keyword is collapsed
-stdin: 
+stdin:
 	i\
 	f true; then\
 	 echo pass; el\
@@ -309,7 +309,7 @@ name: blsk-nl-ksh-1
 description:
 	Check that \newline is collapsed in extended globbing
 	(ksh93 fails this)
-stdin: 
+stdin:
 	xxx=foo
 	case $xxx in
 	(f*\
@@ -327,7 +327,7 @@ name: blsk-nl-ksh-2
 description:
 	Check that \newline is collapsed in ((...)) expressions
 	(ksh93 fails this)
-stdin: 
+stdin:
 	i=1
 	(\
 	(\
@@ -338,4 +338,3 @@ stdin:
 expected-stdout:
 	3
 ---
-

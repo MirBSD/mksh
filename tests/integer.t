@@ -13,7 +13,7 @@ expected-stderr-pattern:
 
 name: integer-base-err-2
 description:
-	Can't have multiple bases in a `constant' (causes shell to exit)
+	Can't have multiple bases in a 'constant' (causes shell to exit)
 	(ksh88 fails this test)
 expected-exit: e != 0
 stdin:
@@ -73,7 +73,7 @@ expected-stdout:
 
 name: integer-base-2
 description:
-	Check `stickyness' of base in various situations
+	Check 'stickyness' of base in various situations
 stdin:
 	typeset -i i=8
 	echo $i
@@ -215,4 +215,3 @@ expected-stdout:
 	64
 	64
 ---
-

@@ -76,4 +76,3 @@ expected-stdout:
 	6
 	6,5,3
 ---
-

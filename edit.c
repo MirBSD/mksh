@@ -1,5 +1,5 @@
-/*	$MirBSD: edit.c,v 1.5 2004/04/17 00:47:18 tg Exp $	*/
-/*	$OpenBSD: edit.c,v 1.18 2003/08/22 18:17:10 fgsch Exp $	*/
+/* $MirBSD: edit.c,v 1.6 2004/05/24 19:56:04 tg Stab $ */
+/* $OpenBSD: edit.c,v 1.18 2003/08/22 18:17:10 fgsch Exp $	*/
 
 /*
  * Command line editing - common code

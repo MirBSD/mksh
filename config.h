@@ -1,4 +1,4 @@
-/* $MirBSD: config.h,v 1.9 2004/05/24 19:06:54 tg Exp $ */
+/* $MirBSD: config.h,v 1.10 2004/05/24 19:56:00 tg Exp $ */
 /* $OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*

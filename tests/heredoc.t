@@ -2,7 +2,7 @@ name: heredoc-1
 description:
 	Check ordering/content of redundent here documents.
 stdin:
-	cat << EOF1 << EOF2 
+	cat << EOF1 << EOF2
 	hi
 	EOF1
 	there
@@ -58,7 +58,7 @@ expected-stderr-pattern: /.*/
 name: heredoc-5
 description:
 	Check that backslash quotes a $, ` and \ and kills a \newline
-stdin: 
+stdin:
 	a=BAD
 	b=ok
 	cat << EOF
@@ -85,7 +85,7 @@ name: heredoc-6
 description:
 	Check that \newline in initial here-delim word doesn't imply
 	a quoted here-doc.
-stdin: 
+stdin:
 	a=i
 	cat << EO\
 	F
@@ -102,7 +102,7 @@ description:
 	Check that double quoted $ expressions in here delimiters are
 	not expanded and match the delimiter.
 	POSIX says only quote removal is applied to the delimiter.
-stdin: 
+stdin:
 	a=b
 	cat << "E$a"
 	hi
@@ -123,7 +123,7 @@ description:
 	delimiters are not expanded and match the delimiter.
 	POSIX says only quote removal is applied to the delimiter
 	(\ counts as a quote).
-stdin: 
+stdin:
 	a=b
 	cat << "E\$a"
 	hi
@@ -328,4 +328,3 @@ expected-stdout:
 	hi
 	Left overs: *
 ---
-

@@ -159,4 +159,3 @@ expected-stdout:
 	 <10> <h> <ith> <ere>
 	 <11> <h:ith:ere>
 ---
-

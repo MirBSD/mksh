@@ -1,10 +1,10 @@
-/*	$OpenBSD: tree.h,v 1.8 2003/10/22 07:40:38 jmc Exp $	*/
+/* $MirBSD: tree.h,v 1.2 2004/05/24 19:56:20 tg Stab $ */
+/* $OpenBSD: tree.h,v 1.8 2003/10/22 07:40:38 jmc Exp $	*/
+/* $From: tree.h,v 1.3 1994/05/31 13:34:34 michael Exp $ */
 
 /*
  * command trees for compile/execute
  */
-
-/* $From: tree.h,v 1.3 1994/05/31 13:34:34 michael Exp $ */
 
 #define	NOBLOCK	((struct op *)NULL)
 #define	NOWORD	((char *)NULL)

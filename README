@@ -1,4 +1,47 @@
-$MirBSD: README,v 1.2 2004/04/17 00:47:16 tg Exp $
+$MirBSD: README,v 1.3 2004/05/24 19:55:53 tg Stab $
+
+This is the README for mirbsdksh, developed as part of the MirBSD
+operating system at The MirOS Project, and produced portably.
+Legal information is provided about a screenpage farther down.
+
+To build on MirOS only, issue 'make obj && make depend && make'.
+
+To build on other systems, consult:
+ * if you have a pre-installed GNU bash or (pd)ksh
+   => there have been build problems e.g. with /bin/sh on
+      Solaris, which isn't the Bourne shell anyways
+ * if you can build statically
+   => this is not possible on Solaris and Mac OSX, for example
+ * if you need additional libs
+
+Then issue a command like
+$ SHELL=bash bash ./Build.sh
+$ SHELL=ksh WEIRD_OS=1 LDFLAGS=-ldl ksh ./Build.sh
+
+Always try with as few options first as possible.
+
+Set the CC, CFLAGS, CPPFLAGS and LDFLAGS environment variables
+to your likes. Don't complain if anything doesn't work.
+
+
+LEGAL INFORMATION
+
+This package as a whole is placed under the MirOS licence, found at
+https://mirbsd.bsdadvocacy.org/cvs.cgi/src/share/misc/licence.template
+as well as on top of the "Build.sh" or "rnd.c" files found in the
+distribution.
+The files alloc.c (Marc Espie), ksh.1tbl and sh.1tbl (University of
+California, Berkeley) are provided under a 2-clause or 3-clause BSD
+licence, respectively.
+
+All files from the original pdksh distribution which were not public
+domain have been removed from the source tree, with the exception of
+aclocal.m4, from which only the functions which required the file to
+be under the GNU GPL have been removed.
+
+
+________________________________________________________________________
+
 $OpenBSD: README,v 1.10 2003/03/10 03:48:16 david Exp $
 
 Last updated Jul '99 for pdksh-5.2.14.

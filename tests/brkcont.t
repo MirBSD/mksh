@@ -191,5 +191,3 @@ expected-exit: e != 0
 expected-stderr-pattern:
 	/.*continue.*/
 ---
-
-

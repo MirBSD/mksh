@@ -1,4 +1,4 @@
-/* $MirBSD: vi.c,v 1.4 2004/05/23 12:47:01 tg Exp $	*/
+/* $MirBSD: vi.c,v 1.5 2004/05/24 19:56:21 tg Stab $ */
 /* $OpenBSD: vi.c,v 1.13 2004/05/10 16:28:47 pvalchev Exp $	*/
 
 /*
@@ -7,6 +7,7 @@
  *	bludgeoned to fit pdksh by Larry Bouzane, Jeff Sparkes & Eric Gisin
  *
  */
+
 #include "config.h"
 #ifdef VI
 

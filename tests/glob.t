@@ -96,4 +96,3 @@ stdin:
 expected-stdout:
 	-bc abc bbc cbc ebc
 ---
-

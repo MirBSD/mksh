@@ -1,4 +1,4 @@
-dnl $MirBSD: aclocal.m4,v 1.8 2004/05/24 17:32:10 tg Exp $
+dnl $MirBSD: aclocal.m4,v 1.9 2004/05/24 19:55:54 tg Stab $
 dnl
 dnl Copyright (c) 2004 Thorsten Glaser
 dnl Copyright (C) 1996, Memorial University of Newfoundland.
@@ -937,7 +937,7 @@ yes
       #
       # Force dirent check to find the right thing.  There is a dirent.h
       # (and a sys/dirent.h) file which compiles, but generates garbage...
-      # 
+      #
       ac_cv_header_dirent_dirent_h=no
       ac_cv_header_dirent_sys_ndir_h=no
       ac_cv_header_dirent_sys_dir_h=yes

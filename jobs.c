@@ -1,4 +1,4 @@
-/* $MirBSD: jobs.c,v 1.3 2004/04/17 00:47:19 tg Exp $ */
+/* $MirBSD: jobs.c,v 1.4 2004/05/24 19:56:11 tg Stab $ */
 /* $OpenBSD: jobs.c,v 1.21 2003/11/10 21:26:39 millert Exp $	*/
 
 /*

@@ -1,4 +1,4 @@
-/* $MirBSD: var.c,v 1.6 2004/05/24 19:06:55 tg Exp $	*/
+/* $MirBSD: var.c,v 1.7 2004/05/24 19:56:20 tg Stab $ */
 /* $OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
 
 #include "sh.h"

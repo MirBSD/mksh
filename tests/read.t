@@ -1,5 +1,5 @@
-#	$OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
-
+# $MirBSD: read.t,v 1.2 2004/05/24 19:56:25 tg Stab $
+# $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
 #
 # To test:
 #   POSIX:
@@ -55,4 +55,3 @@ stdin:
 expected-stdout:
 	[abc]
 ---
-

@@ -127,7 +127,7 @@ expected-stdout:
 name: xxx-param-subst-qmark-1
 description:
 	Check suppresion of error message with null string.  According to
-	POSIX, it shouldn't print the error as `word' isn't ommitted.
+	POSIX, it shouldn't print the error as 'word' isn't ommitted.
 stdin:
 	unset foo
 	x=
@@ -160,4 +160,3 @@ expected-stdout:
 expected-stderr: !
 	XX
 ---
-

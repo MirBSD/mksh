@@ -1,10 +1,10 @@
-/*	$OpenBSD: lex.h,v 1.7 2003/02/28 09:45:09 jmc Exp $	*/
+/* $MirBSD: lex.h,v 1.2 2004/05/24 19:56:16 tg Stab $ */
+/* $OpenBSD: lex.h,v 1.7 2003/02/28 09:45:09 jmc Exp $	*/
+/* $From: lex.h,v 1.4 1994/05/31 13:34:34 michael Exp $ */
 
 /*
  * Source input, lexer and parser
  */
-
-/* $From: lex.h,v 1.4 1994/05/31 13:34:34 michael Exp $ */
 
 #define	IDENT	64
 

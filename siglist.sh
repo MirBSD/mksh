@@ -1,10 +1,9 @@
 #!/bin/sh
-#	$OpenBSD: siglist.sh,v 1.4 1997/06/19 13:58:47 kstailey Exp $
-
+# $MirBSD: siglist.sh,v 1.2 2004/05/24 19:56:19 tg Stab $
+# $OpenBSD: siglist.sh,v 1.4 1997/06/19 13:58:47 kstailey Exp $
 #
 # Script to generate a sorted, complete list of signals, suitable
 # for inclusion in trap.c as array initializer.
-#
 
 set -e
 

@@ -1,11 +1,8 @@
-/*	$MirBSD: expr.c,v 1.2 2004/04/17 00:47:18 tg Exp $	*/
-/*	$OpenBSD: expr.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
+/* $MirBSD: expr.c,v 1.3 2004/05/24 19:56:09 tg Stab $ */
+/* $OpenBSD: expr.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
  * Korn expression evaluation
- */
-/*
- * todo: better error handling: if in builtin, should be builtin error, etc.
  */
 
 #include "sh.h"

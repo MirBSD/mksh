@@ -1,4 +1,4 @@
-/* $MirBSD: c_ulimit.c,v 1.4 2004/04/07 17:14:11 tg Exp $	*/
+/* $MirBSD: c_ulimit.c,v 1.5 2004/05/24 19:55:58 tg Stab $ */
 /* $OpenBSD: c_ulimit.c,v 1.10 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -18,8 +18,6 @@
 	the extended 4.nBSD resource limits.  It now includes the code
 	that was originally under case SYSULIMIT in source file "xec.c".
 */
-
-static const char RCSId[] = "$MirBSD: c_ulimit.c,v 1.4 2004/04/07 17:14:11 tg Exp $";
 
 #include "sh.h"
 #include "ksh_time.h"
