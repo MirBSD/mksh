@@ -1,5 +1,5 @@
-/**	$MirBSD: lex.h,v 1.4 2004/10/28 11:53:42 tg Exp $ */
-/*	$OpenBSD: lex.h,v 1.7 2003/02/28 09:45:09 jmc Exp $	*/
+/**	$MirBSD: lex.h,v 1.5 2004/11/03 15:33:01 tg Exp $ */
+/*	$OpenBSD: lex.h,v 1.8 2004/11/02 22:09:24 deraadt Exp $	*/
 /*	$From: lex.h,v 1.4 1994/05/31 13:34:34 michael Exp $ */
 
 #ifndef LEX_H
@@ -127,7 +127,7 @@ EXTERN	struct ioword *heres [HERES], **herep;
 EXTERN	char	ident [IDENT+1];
 
 #ifdef HISTORY
-# define HISTORYSIZE	128	/* size of saved history */
+# define HISTORYSIZE	511	/* size of saved history */
 
 EXTERN	char  **history;	/* saved commands */
 EXTERN	char  **histptr;	/* last history item */
