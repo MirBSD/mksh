@@ -1,4 +1,4 @@
-/* $MirBSD: conf-end.h,v 1.4 2004/05/24 19:06:54 tg Exp $ */
+/* $MirBSD: conf-end.h,v 1.5 2004/05/24 19:08:52 tg Exp $ */
 /* $OpenBSD: conf-end.h,v 1.2 1996/08/25 12:37:58 downsj Exp $	*/
 
 /* Include ksh features? */
@@ -89,6 +89,10 @@
 #  include <sys/types.h>
 # endif /* HAVE_SYS_TYPES_H */
 #endif /* HAVE_SYS_PARAM_H */
+
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
 
 /* pdksh assumes system calls return EINTR if a signal happened (this so
  * the signal handler doesn't have to longjmp()).  I don't know if this

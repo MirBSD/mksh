@@ -1,4 +1,4 @@
-dnl $MirBSD: configure.in,v 1.6 2004/05/24 19:06:54 tg Exp $
+dnl $MirBSD: configure.in,v 1.7 2004/05/24 19:08:52 tg Stab $
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl
@@ -10,7 +10,6 @@ dnl
 dnl
 dnl  Start of auto-configuration stuff...
 dnl
-dnl
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_GCC_TRADITIONAL
@@ -20,18 +19,16 @@ dnl
 dnl Program name munging stuff (prefix, suffix, transform)
 AC_ARG_PROGRAM
 dnl
-dnl
 dnl Headers
 dnl
 AC_HEADER_DIRENT
 KSH_UNISTD_H
 KSH_TERM_CHECK
 AC_CHECK_HEADERS(sys/param.h sys/types.h sys/resource.h sys/time.h \
-	stddef.h stdlib.h string.h limits.h paths.h \
+	stddef.h stdlib.h stdint.h string.h limits.h paths.h \
 	memory.h fcntl.h values.h ulimit.h)
 AC_HEADER_TIME
 KSH_HEADER_SYS_WAIT
-dnl
 dnl
 dnl Typedefs
 dnl
@@ -67,7 +64,6 @@ KSH_CHECK_H_TYPE(sigset_t, for sigset_t in <sys/types.h> and <signal.h>,
   [#include <signal.h>], unsigned)
 KSH_RLIM_CHECK
 dnl
-dnl
 dnl Library functions
 dnl
 KSH_MEMMOVE
@@ -85,12 +81,10 @@ KSH_SYS_SIGLIST
 KSH_TIME_DECLARED
 KSH_TIMES_CHECK
 dnl
-dnl
 dnl Structures
 dnl
 AC_HEADER_STAT
 AC_STRUCT_ST_RDEV
-dnl
 dnl
 dnl Compiler characteristics
 dnl
@@ -100,14 +94,12 @@ KSH_C_VOLATILE
 KSH_C_PROTOTYPES
 KSH_C_FUNC_ATTR
 dnl
-dnl
 dnl System services
 dnl
 AC_SYS_INTERPRETER
 if test $ac_cv_sys_interpreter = no;
   then AC_DEFINE(SHARPBANG)
 fi
-dnl
 dnl
 dnl  Misc ksh tests
 dnl
