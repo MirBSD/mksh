@@ -1,4 +1,4 @@
-/* $MirBSD: rnd.c,v 1.2 2004/05/24 20:13:03 tg Exp $
+/* $MirBSD: rnd.c,v 1.3 2004/05/24 20:48:08 tg Exp $
  *-
  * Copyright (c) 2004
  *	Thorsten Glaser <x86@ePost.de>
@@ -63,7 +63,7 @@ rnd_put(long newval)
 #if defined(HAVE_ARC4RANDOM_PUSH)
 	arc4random_push(sv);
 #elif defined(HAVE_ARC4RANDOM_ADDRANDOM)
-	arc4random_addrandom(sv, 4);
+	arc4random_addrandom((char *)&sv, sizeof(sv));
 #endif
 #ifdef	HAVE_ARC4RANDOM
 	sv ^= arc4random();
