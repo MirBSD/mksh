@@ -1,7 +1,42 @@
-/* $MirBSD: conf-end.h,v 1.2 2004/03/21 01:25:04 tg Exp $ */
+/* $MirBSD: conf-end.h,v 1.3 2004/05/24 16:35:08 tg Exp $ */
 /* $OpenBSD: conf-end.h,v 1.2 1996/08/25 12:37:58 downsj Exp $	*/
 
+/* Include ksh features? */
+/* #define KSH 1 */
+
+/* Include emacs editing? */
+#define EMACS 1
+
+/* Include vi editing? */
+#define VI 1
+
+/* Include job control? */
+#define JOBS 1
+
+/* Include brace-expansion? */
+#define BRACE_EXPAND 1
+
+/* Include any history? */
+#define HISTORY 1
+
+/* Include complex history? */
+#define COMPLEX_HISTORY
+
+/* Strict POSIX behaviour? */
+/* #undef POSIXLY_CORRECT */
+
+/* Specify default $ENV? */
+/* #undef DEFAULT_ENV */
+
+/* Include shl(1) support? */
+/* #undef SWTCH */
+
+/* Include game-of-life? */
+/* #undef SILLY */
+
 /*
+ * The above are defined for mirbsdksh via external
+ * means, such as this header ;-)
  * End of configuration stuff for PD ksh.
  */
 

@@ -1,4 +1,4 @@
-/* $MirBSD: config.h,v 1.6 2004/04/27 19:30:39 tg Exp $ */
+/* $MirBSD: config.h,v 1.7 2004/05/24 16:35:08 tg Exp $ */
 /* $OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -196,39 +196,6 @@
 /* Define if your C library's getwd/getcwd function dumps core in unreadable
  * directories.  */
 /* #undef HPUX_GETWD_BUG */
-
-/* Include ksh features? */
-/* #define KSH 1 */
-
-/* Include emacs editing? */
-#define EMACS 1
-
-/* Include vi editing? */
-#define VI 1
-
-/* Include job control? */
-#define JOBS 1
-
-/* Include brace-expansion? */
-#define BRACE_EXPAND 1
-
-/* Include any history? */
-#define HISTORY 1
-
-/* Include complex history? */
-#define COMPLEX_HISTORY
-
-/* Strict POSIX behaviour? */
-/* #undef POSIXLY_CORRECT */
-
-/* Specify default $ENV? */
-/* #undef DEFAULT_ENV */
-
-/* Include shl(1) support? */
-/* #undef SWTCH */
-
-/* Include game-of-life? */
-/* #undef SILLY */
 
 /* The number of bytes in a int.  */
 #define SIZEOF_INT 4

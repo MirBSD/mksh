@@ -5,7 +5,7 @@ dnl
 dnl This file is covered by the GPL 'cause it contains some modified versions
 dnl of autoconf's macros, in particular:
 dnl	AC_FUNC_MMAP AC_LANG_C AC_LANG_CPLUXPLUS KSH_HEADER_SYS_WAIT
-dnl	AC_HEADER_STAT AC_PROG_CC
+dnl	AC_HEADER_STAT
 dnl
 dnl
 dnl Like AC_CHECK_TYPE(), only
@@ -1270,51 +1270,6 @@ You lose.
 ], ac_cv_header_stat_broken=yes, ac_cv_header_stat_broken=no)])
 if test $ac_cv_header_stat_broken = yes; then
   AC_DEFINE(STAT_MACROS_BROKEN)
-fi
-])
-dnl
-dnl
-dnl Need to change the "accepts -g" test - some broken systems
-dnl allow "cc -c -g ..." but fail on the link (missing -lg).
-dnl LaserMoon's linux/FT is such a broken system...
-undefine([AC_PROG_CC])dnl
-AC_DEFUN(AC_PROG_CC,
-[AC_BEFORE([$0], [AC_PROG_CPP])dnl
-AC_CHECK_PROG(CC, gcc, gcc, cc)
-
-AC_CACHE_CHECK(whether we are using GNU C, ac_cv_prog_gcc,
-[dnl The semicolon is to pacify NeXT's syntax-checking cpp.
-cat > conftest.c <<EOF
-#ifdef __GNUC__
-  yes;
-#endif
-EOF
-if ${CC-cc} -E conftest.c 2>&AC_FD_CC | egrep yes >/dev/null 2>&1; then
-  ac_cv_prog_gcc=yes
-else
-  ac_cv_prog_gcc=no
-fi])
-if test $ac_cv_prog_gcc = yes; then
-  GCC=yes
-  if test "${CFLAGS+set}" != set; then
-    AC_CACHE_CHECK(whether ${CC-cc} accepts -g, ac_cv_prog_gcc_g,
-[echo 'int main(){ return 0; }' > conftest.c
-if test -z "$(${CC-cc} -g conftest.c 2>&1)"; then
-  ac_cv_prog_gcc_g=yes
-else
-  ac_cv_prog_gcc_g=no
-fi
-rm -f conftest*
-])
-    if test $ac_cv_prog_gcc_g = yes; then
-      CFLAGS="-g -O"
-    else
-      CFLAGS="-O"
-    fi
-  fi
-else
-  GCC=
-  test "${CFLAGS+set}" = set || CFLAGS="-g"
 fi
 ])
 dnl
