@@ -1,4 +1,4 @@
-.\"	$MirBSD: src/bin/ksh/sh.1tbl,v 2.5 2004/12/31 19:01:53 tg Exp $
+.\"	$MirBSD: src/bin/ksh/sh.1tbl,v 2.6 2005/01/02 21:49:12 tg Exp $
 .\"	_MirBSD: src/bin/ksh/ksh.1tbl,v 2.10 2004/12/31 19:00:30 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.84 2004/12/22 18:58:44 millert Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
@@ -3914,7 +3914,7 @@ but are accepting bug fixes for its behaviour as well.
 .Pp
 By the way, the most frequently reported bug is:
 .Bd -literal -offset indent
-$ echo hi | read a; print $a   # Does not show hi
+$ echo hi | read a; echo $a   # Does not print hi
 .Ed
 .Pp
 The
