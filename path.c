@@ -1,10 +1,10 @@
-/**	$MirBSD: path.c,v 1.5 2004/10/28 11:03:24 tg Exp $ */
+/**	$MirBSD: path.c,v 1.6 2004/10/28 11:11:19 tg Exp $ */
 /*	$OpenBSD: path.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 #include "sh.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: path.c,v 1.5 2004/10/28 11:03:24 tg Exp $");
+__RCSID("$MirBSD: path.c,v 1.6 2004/10/28 11:11:19 tg Exp $");
 
 /*
  *	Contains a routine to search a : separated list of
@@ -16,7 +16,7 @@ __RCSID("$MirBSD: path.c,v 1.5 2004/10/28 11:03:24 tg Exp $");
  */
 
 #ifdef S_ISLNK
-static char	*do_phys_path ARGS((XString *xsp, char *xp, const char *path));
+static char	*do_phys_path(XString *xsp, char *xp, const char *path);
 #endif /* S_ISLNK */
 
 /*

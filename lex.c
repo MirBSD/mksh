@@ -1,4 +1,4 @@
-/**	$MirBSD: lex.c,v 1.5 2004/10/28 11:03:23 tg Exp $ */
+/**	$MirBSD: lex.c,v 1.6 2004/10/28 11:11:18 tg Exp $ */
 /*	$OpenBSD: lex.c,v 1.18 2003/08/06 21:08:05 millert Exp $	*/
 
 /*
@@ -8,6 +8,7 @@
 #include "sh.h"
 #include <ctype.h>
 
+__RCSID("$MirBSD: lex.c,v 1.6 2004/10/28 11:11:18 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state.
@@ -53,16 +54,16 @@ struct State_info {
 };
 
 
-static void	readhere ARGS((struct ioword *iop));
-static int	getsc__ ARGS((void));
-static void	getsc_line ARGS((Source *s));
-static int	getsc_bn ARGS((void));
-static char	*get_brace_var ARGS((XString *wsp, char *wp));
-static int	arraysub ARGS((char **strp));
-static const char *ungetsc ARGS((int c));
-static void	gethere ARGS((void));
-static Lex_state *push_state_ ARGS((State_info *si, Lex_state *old_end));
-static Lex_state *pop_state_ ARGS((State_info *si, Lex_state *old_end));
+static void	readhere(struct ioword *iop);
+static int	getsc__(void);
+static void	getsc_line(Source *s);
+static int	getsc_bn(void);
+static char	*get_brace_var(XString *wsp, char *wp);
+static int	arraysub(char **strp);
+static const char *ungetsc(int c);
+static void	gethere(void);
+static Lex_state *push_state_(State_info *si, Lex_state *old_end);
+static Lex_state *pop_state_(State_info *si, Lex_state *old_end);
 
 static int backslash_skip;
 static int ignore_backslash_newline;
@@ -1343,7 +1344,7 @@ ungetsc(c)
 
 /* Called to get a char that isn't a \newline sequence. */
 static int
-getsc_bn ARGS((void))
+getsc_bn(void)
 {
 	int c, c2;
 

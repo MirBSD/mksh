@@ -1,4 +1,4 @@
-/**	$MirBSD: table.h,v 1.3 2004/09/21 11:57:16 tg Exp $ */
+/**	$MirBSD: table.h,v 1.4 2004/10/28 11:11:19 tg Exp $ */
 /*	$OpenBSD: table.h,v 1.5 1999/06/15 01:18:36 millert Exp $	*/
 /*	$From: table.h,v 1.3 1994/05/31 13:34:34 michael Exp $ */
 
@@ -20,7 +20,7 @@ struct tbl {			/* table item */
 	union {
 		char *s;	/* string */
 		long i;		/* integer */
-		int (*f) ARGS((char **));	/* int function */
+		int (*f)(char **);	/* int function */
 		struct op *t;	/* "function" tree */
 	} val;			/* value */
 	int	index;		/* index for an array */
@@ -145,7 +145,7 @@ EXTERN	struct table homedirs;	/* homedir() cache */
 
 struct builtin {
 	const char   *name;
-	int  (*func) ARGS((char **));
+	int  (*func)(char **);
 };
 
 /* these really are externs! Look in table.c for them */

@@ -1,4 +1,4 @@
-/**	$MirBSD: ksh_dir.h,v 1.3 2004/09/21 11:57:10 tg Exp $ */
+/**	$MirBSD: ksh_dir.h,v 1.4 2004/10/28 11:11:18 tg Exp $ */
 /*	$OpenBSD: ksh_dir.h,v 1.1.1.1 1996/08/14 06:19:11 downsj Exp $	*/
 
 /* Wrapper around the ugly dir includes/ifdefs */
@@ -21,7 +21,7 @@
 #endif /* HAVE_DIRENT_H */
 
 #ifdef OPENDIR_DOES_NONDIR
-extern DIR *ksh_opendir ARGS((const char *d));
+extern DIR *ksh_opendir(const char *d);
 #else /* OPENDIR_DOES_NONDIR */
 # define ksh_opendir(d)	opendir(d)
 #endif /* OPENDIR_DOES_NONDIR */

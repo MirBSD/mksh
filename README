@@ -1,4 +1,4 @@
-$MirBSD: README,v 1.3 2004/05/24 19:55:53 tg Stab $
+$MirBSD: README,v 1.4 2004/10/28 11:11:16 tg Exp $
 
 This is the README for mirbsdksh, developed as part of the MirBSD
 operating system at The MirOS Project, and produced portably.
@@ -143,8 +143,7 @@ Compiling/Installing:
 	  in __start (perhaps our system doesn't have the full svr4
 	  environ?).  Try compiling in the bsd43 environ instead (still not
 	  perfect - see BUG-REPORTS file), using gcc - cc has problems with
-	  macro expansions in the argument of a macro (in this case, the ARGS
-	  macro).
+	  macro expansions in the argument of a macro.
 	* On TitanOS (Stardent/Titan), use 'CC="cc -43" configure ...'.
 	  When configure finishes, edit config.h, undef HAVE_DIRENT_H and
 	  define HAVE_SYS_DIR_H (the dirent.h header file is broken).

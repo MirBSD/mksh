@@ -1,4 +1,4 @@
-/**	$MirBSD: mail.c,v 1.4 2004/10/28 11:03:23 tg Exp $ */
+/**	$MirBSD: mail.c,v 1.5 2004/10/28 11:11:18 tg Exp $ */
 /*	$OpenBSD: mail.c,v 1.9 1999/06/15 01:18:35 millert Exp $	*/
 
 /*
@@ -12,6 +12,8 @@
 #include "sh.h"
 #include "ksh_stat.h"
 #include "ksh_time.h"
+
+__RCSID("$MirBSD: mail.c,v 1.5 2004/10/28 11:11:18 tg Exp $");
 
 #define MBMESSAGE	"you have mail in $_"
 
@@ -33,9 +35,9 @@ static mbox_t	mbox;
 static time_t	mlastchkd;	/* when mail was last checked */
 static time_t	mailcheck_interval;
 
-static void     munset      ARGS((mbox_t *mlist)); /* free mlist and mval */
-static mbox_t * mballoc     ARGS((char *p, char *m)); /* allocate a new mbox */
-static void     mprintit    ARGS((mbox_t *mbp));
+static void     munset(mbox_t *mlist); /* free mlist and mval */
+static mbox_t * mballoc(char *p, char *m); /* allocate a new mbox */
+static void     mprintit(mbox_t *mbp);
 
 void
 mcheck()

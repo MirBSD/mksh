@@ -1,4 +1,4 @@
-/**	$MirBSD: table.c,v 1.4 2004/10/28 11:03:24 tg Exp $ */
+/**	$MirBSD: table.c,v 1.5 2004/10/28 11:11:19 tg Exp $ */
 /*	$OpenBSD: table.c,v 1.5 1999/01/10 17:55:03 millert Exp $	*/
 
 /*
@@ -7,10 +7,12 @@
 
 #include "sh.h"
 
+__RCSID("$MirBSD: table.c,v 1.5 2004/10/28 11:11:19 tg Exp $");
+
 #define	INIT_TBLS	8	/* initial table size (power of 2) */
 
-static void     texpand     ARGS((struct table *tp, int nsize));
-static int      tnamecmp    ARGS((void *p1, void *p2));
+static void     texpand(struct table *tp, int nsize);
+static int      tnamecmp(void *p1, void *p2);
 
 
 unsigned int
@@ -194,7 +196,7 @@ tsort(tp)
 
 #ifdef PERF_DEBUG /* performance debugging */
 
-void tprintinfo ARGS((struct table *tp));
+void tprintinfo(struct table *tp);
 
 void
 tprintinfo(tp)

@@ -1,4 +1,4 @@
-/**	$MirBSD: c_test.c,v 1.5 2004/10/28 11:03:22 tg Exp $ */
+/**	$MirBSD: c_test.c,v 1.6 2004/10/28 11:11:17 tg Exp $ */
 /*	$OpenBSD: c_test.c,v 1.10 2003/10/10 19:09:07 millert Exp $	*/
 
 /*
@@ -14,7 +14,7 @@
 #include "ksh_stat.h"
 #include "c_test.h"
 
-__RCSID("$MirBSD: c_test.c,v 1.5 2004/10/28 11:03:22 tg Exp $");
+__RCSID("$MirBSD: c_test.c,v 1.6 2004/10/28 11:11:17 tg Exp $");
 
 /* test(1) accepts the following grammar:
 	oexpr	::= aexpr | aexpr "-o" oexpr ;
@@ -90,17 +90,17 @@ static const struct t_op b_ops [] = {
 	{"",	TO_NONOP }
     };
 
-static int	test_stat ARGS((const char *path, struct stat *statb));
-static int	test_eaccess ARGS((const char *path, int mode));
-static int	test_oexpr ARGS((Test_env *te, int do_eval));
-static int	test_aexpr ARGS((Test_env *te, int do_eval));
-static int	test_nexpr ARGS((Test_env *te, int do_eval));
-static int	test_primary ARGS((Test_env *te, int do_eval));
-static int	ptest_isa ARGS((Test_env *te, Test_meta meta));
-static const char *ptest_getopnd ARGS((Test_env *te, Test_op op, int do_eval));
-static int	ptest_eval ARGS((Test_env *te, Test_op op, const char *opnd1,
-				const char *opnd2, int do_eval));
-static void	ptest_error ARGS((Test_env *te, int offset, const char *msg));
+static int	test_stat(const char *path, struct stat *statb);
+static int	test_eaccess(const char *path, int mode);
+static int	test_oexpr(Test_env *te, int do_eval);
+static int	test_aexpr(Test_env *te, int do_eval);
+static int	test_nexpr(Test_env *te, int do_eval);
+static int	test_primary(Test_env *te, int do_eval);
+static int	ptest_isa(Test_env *te, Test_meta meta);
+static const char *ptest_getopnd(Test_env *te, Test_op op, int do_eval);
+static int	ptest_eval(Test_env *te, Test_op op, const char *opnd1,
+				const char *opnd2, int do_eval);
+static void	ptest_error(Test_env *te, int offset, const char *msg);
 
 int
 c_test(wp)

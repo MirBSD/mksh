@@ -1,4 +1,4 @@
-/**	$MirBSD: main.c,v 1.10 2004/10/28 11:03:23 tg Exp $ */
+/**	$MirBSD: main.c,v 1.11 2004/10/28 11:11:18 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -11,7 +11,7 @@
 #include "ksh_stat.h"
 #include "ksh_time.h"
 
-__RCSID("$MirBSD: main.c,v 1.10 2004/10/28 11:03:23 tg Exp $");
+__RCSID("$MirBSD: main.c,v 1.11 2004/10/28 11:11:18 tg Exp $");
 
 extern char **environ;
 
@@ -19,9 +19,9 @@ extern char **environ;
  * global data
  */
 
-static void	reclaim ARGS((void));
-static void	remove_temps ARGS((struct temp *tp));
-static int	is_restricted ARGS((char *name));
+static void	reclaim(void);
+static void	remove_temps(struct temp *tp);
+static int	is_restricted(char *name);
 
 /*
  * shell initialization

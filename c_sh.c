@@ -1,4 +1,4 @@
-/**	$MirBSD: c_sh.c,v 1.5 2004/10/28 11:03:22 tg Exp $ */
+/**	$MirBSD: c_sh.c,v 1.6 2004/10/28 11:11:17 tg Exp $ */
 /*	$OpenBSD: c_sh.c,v 1.17 2003/03/13 09:03:07 deraadt Exp $	*/
 
 /*
@@ -10,9 +10,9 @@
 #include "ksh_time.h"
 #include "ksh_times.h"
 
-__RCSID("$MirBSD: c_sh.c,v 1.5 2004/10/28 11:03:22 tg Exp $");
+__RCSID("$MirBSD: c_sh.c,v 1.6 2004/10/28 11:11:17 tg Exp $");
 
-static	char *clocktos ARGS((clock_t t));
+static	char *clocktos(clock_t t);
 
 
 /* :, false and true */
@@ -863,8 +863,8 @@ c_builtin(char **wp GCC_FUNC_ATTR(unused))
 	return 0;
 }
 
-extern	int c_test ARGS((char **wp));		/* in c_test.c */
-extern	int c_ulimit ARGS((char **wp));		/* in c_ulimit.c */
+extern	int c_test(char **wp);		/* in c_test.c */
+extern	int c_ulimit(char **wp);		/* in c_ulimit.c */
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;

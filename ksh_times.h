@@ -1,4 +1,4 @@
-/**	$MirBSD: ksh_times.h,v 1.3 2004/09/21 11:57:12 tg Exp $ */
+/**	$MirBSD: ksh_times.h,v 1.4 2004/10/28 11:11:18 tg Exp $ */
 /*	$OpenBSD: ksh_times.h,v 1.2 1996/10/01 02:05:41 downsj Exp $	*/
 
 #ifndef KSH_TIMES_H
@@ -10,12 +10,12 @@
 #include <sys/times.h>
 
 #ifdef TIMES_BROKEN
-extern clock_t	ksh_times ARGS((struct tms *));
+extern clock_t	ksh_times(struct tms *);
 #else /* TIMES_BROKEN */
 # define ksh_times times
 #endif /* TIMES_BROKEN */
 
 #ifdef HAVE_TIMES
-extern clock_t	times ARGS((struct tms *));
+extern clock_t	times(struct tms *);
 #endif /* HAVE_TIMES */
 #endif /* KSH_TIMES_H */

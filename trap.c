@@ -1,4 +1,4 @@
-/**	$MirBSD: trap.c,v 1.4 2004/10/28 11:03:24 tg Exp $ */
+/**	$MirBSD: trap.c,v 1.5 2004/10/28 11:11:19 tg Exp $ */
 /*	$OpenBSD: trap.c,v 1.13 2003/02/28 09:45:09 jmc Exp $	*/
 
 /*
@@ -9,7 +9,7 @@
 #define FROM_TRAP_C
 #include "sh.h"
 
-__RCSID("$MirBSD: trap.c,v 1.4 2004/10/28 11:03:24 tg Exp $");
+__RCSID("$MirBSD: trap.c,v 1.5 2004/10/28 11:11:19 tg Exp $");
 
 /* Table is indexed by signal number
  *
@@ -59,7 +59,7 @@ inittraps()
 }
 
 #ifdef KSH
-static RETSIGTYPE alarm_catcher ARGS((int sig));
+static RETSIGTYPE alarm_catcher(int sig);
 
 void
 alarm_init()

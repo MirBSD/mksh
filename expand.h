@@ -1,4 +1,4 @@
-/**	$MirBSD: expand.h,v 1.4 2004/10/28 11:03:23 tg Exp $ */
+/**	$MirBSD: expand.h,v 1.5 2004/10/28 11:11:18 tg Exp $ */
 /*	$OpenBSD: expand.h,v 1.3 2001/03/26 16:19:45 todd Exp $	*/
 
 /*
@@ -70,7 +70,7 @@ typedef char * XStringP;
 #define	Xsavepos(xs, xp) ((xp) - (xs).beg)
 #define	Xrestpos(xs, xp, n) ((xs).beg + (n))
 
-char *	Xcheck_grow_	ARGS((XString *xsp, char *xp, size_t more));
+char *	Xcheck_grow_(XString *xsp, char *xp, size_t more);
 
 /*
  * expandable vector of generic pointers

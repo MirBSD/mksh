@@ -1,4 +1,4 @@
-/**	$MirBSD: c_ksh.c,v 1.7 2004/10/28 11:03:21 tg Exp $ */
+/**	$MirBSD: c_ksh.c,v 1.8 2004/10/28 11:11:16 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.18 2004/02/10 13:03:36 jmc Exp $	*/
 
 /*
@@ -13,7 +13,7 @@
 #include <sys/cygwin.h>
 #endif /* __CYGWIN__ */
 
-__RCSID("$MirBSD: c_ksh.c,v 1.7 2004/10/28 11:03:21 tg Exp $");
+__RCSID("$MirBSD: c_ksh.c,v 1.8 2004/10/28 11:11:16 tg Exp $");
 
 int
 c_cd(wp)
@@ -1157,7 +1157,7 @@ struct kill_info {
 	size_t num_width;
 	size_t name_width;
 };
-static char *kill_fmt_entry ARGS((void *arg, int i, char *buf, int buflen));
+static char *kill_fmt_entry(void *arg, int i, char *buf, int buflen);
 
 /* format a single kill item */
 static char *

@@ -1,4 +1,4 @@
-/**	$MirBSD: emacs.c,v 1.10 2004/10/28 11:03:22 tg Exp $ */
+/**	$MirBSD: emacs.c,v 1.11 2004/10/28 11:11:17 tg Exp $ */
 /*	$OpenBSD: emacs.c,v 1.28 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -19,7 +19,7 @@
 #include <locale.h>
 #include "edit.h"
 
-__RCSID("$MirBSD: emacs.c,v 1.10 2004/10/28 11:03:22 tg Exp $");
+__RCSID("$MirBSD: emacs.c,v 1.11 2004/10/28 11:11:17 tg Exp $");
 
 static	Area	aedit;
 #define	AEDIT	&aedit		/* area for kill ring and macro defns */
@@ -37,7 +37,7 @@ static	Area	aedit;
 #define	KINTR	2		/* ^G, ^C */
 
 struct	x_ftab  {
-	int		(*xf_func) ARGS((int c));
+	int		(*xf_func)(int c);
 	const char	*xf_name;
 	short		xf_flags;
 };
@@ -123,34 +123,34 @@ static	int	x_curprefix;
 static	char    *macroptr;
 static	int	prompt_skip;
 
-static int      x_ins       ARGS((char *cp));
-static void     x_delete    ARGS((int nc, int push));
-static int	x_bword     ARGS((void));
-static int	x_fword     ARGS((void));
-static void     x_goto      ARGS((char *cp));
-static void     x_bs        ARGS((int c));
-static int      x_size_str  ARGS((char *cp));
-static int      x_size      ARGS((int c));
-static void     x_zots      ARGS((char *str));
-static void     x_zotc      ARGS((int c));
-static void     x_load_hist ARGS((char **hp));
-static int      x_search    ARGS((char *pat, int sameline, int offset));
-static int      x_match     ARGS((char *str, char *pat));
-static void	x_redraw    ARGS((int limit));
-static void     x_push      ARGS((int nchars));
-static char *   x_mapin     ARGS((const char *cp));
-static char *   x_mapout    ARGS((int c));
-static void     x_print     ARGS((int prefix, int key));
-static void	x_adjust    ARGS((void));
-static void	x_e_ungetc  ARGS((int c));
-static int	x_e_getc    ARGS((void));
-static void	x_e_putc    ARGS((int c));
-static void	x_e_puts    ARGS((const char *s));
-static int	x_comment   ARGS((int c));
-static int	x_fold_case ARGS((int c));
-static char	*x_lastcp ARGS((void));
-static void	do_complete ARGS((int flags, Comp_type type));
-static int	x_emacs_putbuf	ARGS((const char *s, size_t len));
+static int      x_ins(char *cp);
+static void     x_delete(int nc, int push);
+static int	x_bword(void);
+static int	x_fword(void);
+static void     x_goto(char *cp);
+static void     x_bs(int c);
+static int      x_size_str(char *cp);
+static int      x_size(int c);
+static void     x_zots(char *str);
+static void     x_zotc(int c);
+static void     x_load_hist(char **hp);
+static int      x_search(char *pat, int sameline, int offset);
+static int      x_match(char *str, char *pat);
+static void	x_redraw(int limit);
+static void     x_push(int nchars);
+static char *   x_mapin(const char *cp);
+static char *   x_mapout(int c);
+static void     x_print(int prefix, int key);
+static void	x_adjust(void);
+static void	x_e_ungetc(int c);
+static int	x_e_getc(void);
+static void	x_e_putc(int c);
+static void	x_e_puts(const char *s);
+static int	x_comment(int c);
+static int	x_fold_case(int c);
+static char	*x_lastcp(void);
+static void	do_complete(int flags, Comp_type type);
+static int	x_emacs_putbuf(const char *s, size_t len);
 
 
 /* The lines between START-FUNC-TAB .. END-FUNC-TAB are run through a
@@ -2167,5 +2167,4 @@ x_lastcp()
   xlp_valid = TRUE;
   return (xlp);
 }
-
 #endif /* EDIT */

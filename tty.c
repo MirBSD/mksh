@@ -1,4 +1,4 @@
-/**	$MirBSD: tty.c,v 1.4 2004/10/28 11:03:24 tg Exp $ */
+/**	$MirBSD: tty.c,v 1.5 2004/10/28 11:11:19 tg Exp $ */
 /*	$OpenBSD: tty.c,v 1.2 1996/10/01 02:05:51 downsj Exp $	*/
 
 #include "sh.h"
@@ -7,7 +7,7 @@
 #include "tty.h"
 #undef EXTERN
 
-__RCSID("$MirBSD: tty.c,v 1.4 2004/10/28 11:03:24 tg Exp $");
+__RCSID("$MirBSD: tty.c,v 1.5 2004/10/28 11:11:19 tg Exp $");
 
 int
 get_tty(fd, ts)
@@ -119,7 +119,7 @@ tty_init(init_ttystate)
 		 * so force it to be done here...
 		 */
 		{
-			extern char *ttyname ARGS((int));
+			extern char *ttyname(int);
 			char *s = ttyname(isatty(2) ? 2 : 0);
 			int fd;
 

@@ -1,4 +1,4 @@
-/**	$MirBSD: ksh_time.h,v 1.3 2004/09/21 11:57:11 tg Exp $ */
+/**	$MirBSD: ksh_time.h,v 1.4 2004/10/28 11:11:18 tg Exp $ */
 /*	$OpenBSD: ksh_time.h,v 1.2 1996/10/01 02:05:40 downsj Exp $	*/
 
 #ifndef KSH_TIME_H
@@ -18,7 +18,7 @@
 #endif /* TIME_WITH_SYS_TIME */
 
 #ifndef TIME_DECLARED
-extern time_t time ARGS((time_t *));
+extern time_t time(time_t *);
 #endif
 
 #ifndef CLK_TCK

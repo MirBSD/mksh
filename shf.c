@@ -1,4 +1,4 @@
-/**	$MirBSD: shf.c,v 1.4 2004/09/21 11:57:14 tg Exp $ */
+/**	$MirBSD: shf.c,v 1.5 2004/10/28 11:11:19 tg Exp $ */
 /*	$OpenBSD: shf.c,v 1.8 2003/02/28 09:45:09 jmc Exp $	*/
 
 /*
@@ -9,6 +9,7 @@
 #include "ksh_stat.h"
 #include "ksh_limval.h"
 
+__RCSID("$MirBSD: shf.c,v 1.5 2004/10/28 11:11:19 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -20,8 +21,8 @@
  * file descriptors.
  */
 
-static int	shf_fillbuf	ARGS((struct shf *shf));
-static int	shf_emptybuf	ARGS((struct shf *shf, int flags));
+static int	shf_fillbuf(struct shf *shf);
+static int	shf_emptybuf(struct shf *shf, int flags);
 
 /* Open a file.  First three args are for open(), last arg is flags for
  * this package.  Returns NULL if file could not be opened, or if a dup

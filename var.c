@@ -1,4 +1,4 @@
-/**	$MirBSD: var.c,v 1.9 2004/10/28 11:03:24 tg Exp $ */
+/**	$MirBSD: var.c,v 1.10 2004/10/28 11:11:19 tg Exp $ */
 /*	$OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
 
 #include "sh.h"
@@ -6,6 +6,8 @@
 #include "ksh_limval.h"
 #include "ksh_stat.h"
 #include <ctype.h>
+
+__RCSID("$MirBSD: var.c,v 1.10 2004/10/28 11:11:19 tg Exp $");
 
 /*
  * Variables
@@ -18,14 +20,14 @@
  */
 static	struct tbl vtemp;
 static	struct table specials;
-static char	*formatstr	ARGS((struct tbl *vp, const char *s));
-static void	export		ARGS((struct tbl *vp, const char *val));
-static int	special		ARGS((const char *name));
-static void	unspecial	ARGS((const char *name));
-static void	getspec		ARGS((struct tbl *vp));
-static void	setspec		ARGS((struct tbl *vp));
-static void	unsetspec	ARGS((struct tbl *vp));
-static struct tbl *arraysearch  ARGS((struct tbl *, int));
+static char	*formatstr(struct tbl *vp, const char *s);
+static void	export(struct tbl *vp, const char *val);
+static int	special(const char *name);
+static void	unspecial(const char *name);
+static void	getspec(struct tbl *vp);
+static void	setspec(struct tbl *vp);
+static void	unsetspec(struct tbl *vp);
+static struct tbl *arraysearch(struct tbl *, int);
 
 /*
  * create a new block for function calls and simple commands

@@ -1,4 +1,4 @@
-/**	$MirBSD: history.c,v 1.12 2004/10/28 11:03:23 tg Exp $ */
+/**	$MirBSD: history.c,v 1.13 2004/10/28 11:11:18 tg Exp $ */
 /*	$OpenBSD: history.c,v 1.24 2004/08/03 12:44:59 danh Exp $	*/
 
 /*
@@ -20,6 +20,8 @@
 
 #include "sh.h"
 #include "ksh_stat.h"
+
+__RCSID("$MirBSD: history.c,v 1.13 2004/10/28 11:11:18 tg Exp $");
 
 #ifdef HISTORY
 # ifdef EASY_HISTORY
@@ -44,13 +46,13 @@
 static int	histfd;
 static int	hsize;
 
-static int hist_count_lines ARGS((unsigned char *, int));
-static int hist_shrink ARGS((unsigned char *, int));
-static unsigned char *hist_skip_back ARGS((unsigned char *,int *,int));
-static void histload ARGS((Source *, unsigned char *, int));
-static void histinsert ARGS((Source *, int, unsigned char *));
-static void writehistfile ARGS((int, char *));
-static int sprinkle ARGS((int));
+static int hist_count_lines(unsigned char *, int);
+static int hist_shrink(unsigned char *, int);
+static unsigned char *hist_skip_back(unsigned char *,int *,int);
+static void histload(Source *, unsigned char *, int);
+static void histinsert(Source *, int, unsigned char *);
+static void writehistfile(int, char *);
+static int sprinkle(int);
 
 #  ifdef MAP_FILE
 #   define MAP_FLAGS	(MAP_FILE|MAP_PRIVATE)
@@ -60,13 +62,13 @@ static int sprinkle ARGS((int));
 
 # endif	/* of EASY_HISTORY */
 
-static int	hist_execute ARGS((char *cmd));
-static int	hist_replace ARGS((char **hp, const char *pat, const char *rep,
-				   int global));
-static char   **hist_get ARGS((const char *str, int approx, int allow_cur));
-static char   **hist_get_newest ARGS((int allow_cur));
-static char   **hist_get_oldest ARGS((void));
-static void	histbackup ARGS((void));
+static int	hist_execute(char *cmd);
+static int	hist_replace(char **hp, const char *pat, const char *rep,
+				   int global);
+static char   **hist_get(const char *str, int approx, int allow_cur);
+static char   **hist_get_newest(int allow_cur);
+static char   **hist_get_oldest(void);
+static void	histbackup(void);
 
 static char   **current;	/* current position in history[] */
 static int	curpos;		/* current index in history[] */
