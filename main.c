@@ -1,4 +1,4 @@
-/**	$MirBSD: main.c,v 1.12 2004/10/28 11:53:42 tg Exp $ */
+/**	$MirBSD: main.c,v 1.13 2004/10/31 23:01:18 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -11,7 +11,7 @@
 #include "ksh_stat.h"
 #include "ksh_time.h"
 
-__RCSID("$MirBSD: main.c,v 1.12 2004/10/28 11:53:42 tg Exp $");
+__RCSID("$MirBSD: main.c,v 1.13 2004/10/31 23:01:18 tg Exp $");
 
 extern char **environ;
 
@@ -126,6 +126,12 @@ main(int argc, char *argv[])
 
 	/* Do this first so output routines (eg, errorf, shellf) can work */
 	initio();
+
+#ifdef KSH
+	argi = parse_args(argv, OF_FIRSTTIME, NULL);
+	if (argi < 0)
+		exit(1);
+#endif
 
 	initvar();
 

@@ -1,4 +1,4 @@
-/**	$MirBSD: misc.c,v 1.13 2004/10/31 22:28:42 tg Exp $ */
+/**	$MirBSD: misc.c,v 1.14 2004/10/31 23:01:18 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.20 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -11,7 +11,7 @@
 # include <limits.h>
 #endif
 
-__RCSID("$MirBSD: misc.c,v 1.13 2004/10/31 22:28:42 tg Exp $");
+__RCSID("$MirBSD: misc.c,v 1.14 2004/10/31 23:01:18 tg Exp $");
 
 #ifndef UCHAR_MAX
 # define UCHAR_MAX	0xFF
@@ -381,6 +381,8 @@ parse_args(char **argv, int what, int *setargsp)
 				|| ((p = ksh_strrchr_dirsep(argv[0]))
 				     && *++p == '-'));
 		opts = cmd_opts;
+	} else if (what == OF_FIRSTTIME) {
+		opts = cmd_opts;
 	} else
 		opts = set_opts;
 	ksh_getopt_reset(&go, GF_ERROR|GF_PLUSOPT);
@@ -388,12 +390,18 @@ parse_args(char **argv, int what, int *setargsp)
 		set = (go.info & GI_PLUS) ? 0 : 1;
 		switch (optc) {
 		  case 'A':
+#ifdef KSH
+			if (what == OF_FIRSTTIME)
+				break;
+#endif
 			arrayset = set ? 1 : -1;
 			array = go.optarg;
 			break;
 
 #ifdef KSH
 		  case 'T':
+			if (what != OF_FIRSTTIME)
+				break;
 			if (parse_T(go.optarg))
 				return -1;
 			change_flag(FTALKING, OF_CMDLINE, 1);
@@ -401,6 +409,10 @@ parse_args(char **argv, int what, int *setargsp)
 #endif
 
 		  case 'o':
+#ifdef KSH
+			if (what == OF_FIRSTTIME)
+				break;
+#endif
 			if (go.optarg == (char *) 0) {
 				/* lone -o: print options
 				 *
@@ -431,6 +443,10 @@ parse_args(char **argv, int what, int *setargsp)
 			return -1;
 
 		  default:
+#ifdef KSH
+			if (what == OF_FIRSTTIME)
+				break;
+#endif
 			/* -s: sort positional params (at&t ksh stupidity) */
 			if (what == OF_SET && optc == 's') {
 				sortargs = 1;
