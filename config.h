@@ -1,4 +1,4 @@
-/* $MirBSD: config.h,v 1.10 2004/05/24 19:56:00 tg Exp $ */
+/* $MirBSD: config.h,v 1.10.2.1 2004/06/03 12:24:05 tg Exp $ */
 /* $OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -210,7 +210,7 @@
 #define HAVE_ARC4RANDOM_ADDRANDOM 1
 
 /* Define if you have the arc4random_push function.  */
-#define HAVE_ARC4RANDOM_PUSH 1
+/* #undef HAVE_ARC4RANDOM_PUSH */
 
 /* Define if you have the break function.  */
 /* #undef HAVE_BREAK */
