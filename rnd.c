@@ -1,4 +1,4 @@
-/* $MirBSD: rnd.c,v 1.3 2004/05/24 20:48:08 tg Exp $
+/* $MirBSD: rnd.c,v 1.4 2004/05/24 22:05:25 tg Exp $
  *-
  * Copyright (c) 2004
  *	Thorsten Glaser <x86@ePost.de>
@@ -33,7 +33,7 @@ int rnd_state;
 void
 rnd_seed(long newval)
 {
-	rnd_put(time(NULL) ^ (getpid() << 16) ^ newval);
+	rnd_put(newval);
 	rnd_state = 0;
 }
 
