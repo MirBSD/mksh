@@ -1,5 +1,6 @@
-.\"	$MirBSD: ksh.1tbl,v 1.37 2004/11/03 21:15:41 tg Exp $
-.\"	$OpenBSD: ksh.1tbl,v 1.74 2004/11/03 19:19:39 jaredy Exp $
+.\"	$MirBSD: ksh.1tbl,v 1.38 2004/11/10 16:52:08 tg Exp $
+.\"	$OpenBSD: ksh.1tbl,v 1.78 2004/11/08 23:42:02 jmc Exp $
+.\"	$OpenBSD: sh.1tbl,v 1.52 2004/11/09 21:56:54 jmc Exp $
 .\"
 .\" Copyright (c) 1980, 1990, 1993
 .\"     The Regents of the University of California.  All rights reserved.
@@ -32,10 +33,10 @@
 .\"
 .\"     @(#)ksh.1tbl      8.2 (Berkeley) 8/19/96
 .\"
-.Dd April 7, 2004
+.Dd November 10, 2004
 .Dt KSH 1
 .Os MirOS
-.\" define Mx macro for portable mksh
+.\" define Mx macro for portable mksh, just in case...
 .de Mx
 .nr cF \\n(.f
 .nr cZ \\n(.s
@@ -47,11 +48,14 @@
 .	if "\\$1"6"  \&MirOS #6\\*(aa
 .	if "\\$1"."  \&MirOS\\$1\\*(aa
 .	if "\\$1","  \&MirOS\\$1\\*(aa
+.	if "\\$1"MirBSD"  \&MirBSD\\*(aa
 .\}
 ..
 .Sh NAME
-.Nm ksh
-.Nd MirBSD Korn shell (derived from pdksh)
+.Nm ksh ,
+.Nm mksh ,
+.Nm sh
+.Nd MirBSD Korn/Bourne shell
 .Sh SYNOPSIS
 .Nm
 .Op Fl +abCefhiklmnprsuvxX
@@ -71,8 +75,12 @@
 is a command interpreter intended for both interactive and shell
 script use.
 Its command language is a superset of the
-.Xr sh 1
-shell language.
+.Xr sh C
+shell language and compatible to the original Korn shell.
+.Nm mirbsdksh
+is derived from
+.Nm pdksh ,
+the public domain Korn shell.
 .Ss Shell startup
 The following options can be specified only on the command line:
 .Bl -tag -width Ds
@@ -1021,8 +1029,8 @@ the sequence of characters
 contains four fields:
 .Sq A ,
 .Sq B ,
-.Sq ""
-and
+.Sq
+(an empty field) and
 .Sq D .
 Note that if the
 .Ev IFS
@@ -1493,7 +1501,13 @@ above for details.
 This parameter is not imported from the environment when the shell is
 started.
 .It Ev KSH_VERSION
-The version of the shell and the date the version was created (read-only).
+The version of the shell, consisting of the upstream
+.Nm pdksh
+version and date, the string
+.Dq MirOS
+and the
+.Xr rcs 1
+revision number (read-only).
 See also the version commands in
 .Sx Emacs editing mode
 and
@@ -1592,6 +1606,22 @@ Default is
 for non-root users,
 .Dq \&#\ \&
 for root.
+.Pp
+Since Backslashes and other special characters may be
+interpreted by the shell, to set
+.Ev PS1
+either escape the backslash itself,
+or use double quotes.
+The latter is more practical.
+This is a more complex example which embeds the current working
+directory, in reverse video, into the prompt string, avoiding to
+directly enter special characters (for example with
+.Ic ^^
+in the emacs editing mode):
+.Bd -literal -offset indent
+$ x=$(print \e\e001)
+$ PS1="$x$(print \e\er)$x$(tput so)$x\e$PWD$x$(tput se)$x> "
+.Ed
 .It Ev PS2
 Secondary prompt string, by default
 .Dq \&>\ \& ,
@@ -4418,11 +4448,10 @@ slightly different from the emacs mode in the original Korn shell.
 By default, the eight bit is used as Meta, but this can be turned
 off by entering
 .Ic set +o emacs-usemeta ,
-which is default in the
+contained in the default
 .Mx 6
-and up
-.Pa /etc/profile
-file.
+.Pa /etc/profile .
+.Pp
 In the emacs mode, various editing commands
 (typically bound to one or more control characters) cause immediate actions
 without waiting for a newline.
@@ -5216,6 +5245,8 @@ deleted and a new prompt to be printed.
 .Xr system 3 ,
 .Xr environ 7
 .Pp
+.Pa http://docsrv.sco.com:507/en/man/html.C/sh.C.html
+.Pp
 .Rs
 .%A Morris Bolsky
 .%A David Korn
@@ -5255,14 +5286,16 @@ traditional Bourne or
 compliant shells is an issue.
 .Pp
 .Nm mksh
-is the common name for the
-.Mx
-Korn shell installed in
+is the name for the portable version of
+.Mx MirBSD
+.Nm ksh
+installed as
 .Pa /bin/mksh
-or
-.Pa /usr/local/bin/mksh
-on foreign systems, installed from the portable mirbsdksh sources at
-.Pa http://wiki.mirbsd.de/MirbsdKsh .
+on other, foreign, operating systems.
+Visit
+.Pa http://wiki.mirbsd.de/MirbsdKsh
+to obtain the latest version of
+.Nm mksh .
 .Sh AUTHORS
 This shell is based on the public domain 7th edition Bourne shell clone by
 Charles Forsyth and parts of the BRL shell by Doug A. Gwyn, Doug Kingston,
@@ -5286,21 +5319,26 @@ The
 file in the source distribution contains a more complete list of people and
 their part in the shell's development.
 .Sh BUGS
-Any bugs in
-.Nm pdksh
-should be reported to pdksh@cs.mun.ca.
-Do not forget to report to the
+Send bug reports for
+.Nm
+to the
 .Mx
-developer team as well, because the modifications
-imposed may have introduced different behaviour.
+development team at
+.Aq miros\-discuss@66h.42h.de .
 Please include the version of
-.Nm pdksh
+.Nm
 .Po
 .Ic echo $KSH_VERSION
 shows it
 .Pc ,
-the machine, operating system, and compiler you are using and a description of
-how to repeat the bug (a small shell script that demonstrates the bug is best).
+the machine, operating system, and compiler you are using and how you built
+.Nm
+(it is recommended to use the provided
+.Pa Build.sh
+mechanism if using
+.Nm mksh )
+and a description of how to repeat the bug (a small shell script that
+demonstrates the bug is best).
 The following, if relevant (if you are not sure, include them), can also be
 helpful: options you are using (both
 .Pa options.h
@@ -5308,12 +5346,11 @@ and
 .Ic set Fl o Ic options )
 and a copy of your
 .Pa config.h
-(the file generated by the
+and
+.Pa config.log
+(the files generated by the
 .Pa configure
 script).
-New versions of
-.Nm pdksh
-can be obtained from \fBftp://ftp.cs.mun.ca/pub/pdksh\fR.
 .Pp
 By the way, the most frequently reported bug is:
 .Bd -literal -offset indent
@@ -5328,7 +5365,3 @@ For another known bug, refer to the comment above the
 paragraph in the section
 .Sx Emacs editing mode
 above.
-.br
-The
-.Mx
-team is luckily accepting fixes for known (and unknown) bugs.
