@@ -1,5 +1,5 @@
-/**	$MirBSD: eval.c,v 1.7 2004/11/26 15:43:53 tg Exp $ */
-/*	$OpenBSD: eval.c,v 1.15 2004/11/25 04:36:47 jaredy Exp $	*/
+/**	$MirBSD: eval.c,v 1.8 2004/12/08 23:00:14 tg Exp $ */
+/*	$OpenBSD: eval.c,v 1.16 2004/12/08 21:23:18 millert Exp $	*/
 
 /*
  * Expansion - quoting, separation, substitution, globbing
@@ -10,7 +10,7 @@
 #include "ksh_dir.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: eval.c,v 1.7 2004/11/26 15:43:53 tg Exp $");
+__RCSID("$MirBSD: eval.c,v 1.8 2004/12/08 23:00:14 tg Exp $");
 
 /*
  * string expansion
@@ -785,6 +785,7 @@ varsub(Expand *xp, char *sp, char *word, int *stypep, int *slenp)
 		}
 		if (e->loc->argc == 0) {
 			xp->str = null;
+			xp->var = global(sp);
 			state = c == '@' ? XNULLSUB : XSUB;
 		} else {
 			xp->u.strv = (const char **) e->loc->argv + 1;
@@ -811,6 +812,7 @@ varsub(Expand *xp, char *sp, char *word, int *stypep, int *slenp)
 			}
 			if (XPsize(wv) == 0) {
 				xp->str = null;
+				xp->var = global(sp);
 				state = p[1] == '@' ? XNULLSUB : XSUB;
 				XPfree(wv);
 			} else {
