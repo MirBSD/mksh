@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/c_ulimit.c,v 2.1 2004/12/10 18:09:41 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/c_ulimit.c,v 2.2 2004/12/31 19:15:39 tg Exp $ */
 /*	$OpenBSD: c_ulimit.c,v 1.10 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -20,7 +20,7 @@
 */
 
 #include "sh.h"
-#include "ksh_time.h"
+#include <time.h>
 #ifdef HAVE_SYS_RESOURCE_H
 # include <sys/resource.h>
 #endif /* HAVE_SYS_RESOURCE_H */
@@ -32,7 +32,7 @@ extern	long ulimit();
 # endif /* HAVE_ULIMIT */
 #endif /* HAVE_ULIMIT_H */
 
-__RCSID("$MirBSD: src/bin/ksh/c_ulimit.c,v 2.1 2004/12/10 18:09:41 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/c_ulimit.c,v 2.2 2004/12/31 19:15:39 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2

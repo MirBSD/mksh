@@ -1,13 +1,13 @@
-/**	$MirBSD: src/bin/ksh/var.c,v 2.6 2004/12/28 22:32:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/var.c,v 2.7 2004/12/31 19:15:39 tg Exp $ */
 /*	$OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
 
 #include "sh.h"
-#include "ksh_time.h"
+#include <time.h>
 #include "ksh_limval.h"
 #include "ksh_stat.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.6 2004/12/28 22:32:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.7 2004/12/31 19:15:39 tg Exp $");
 
 /*
  * Variables

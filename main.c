@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/main.c,v 2.14 2004/12/31 17:15:07 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/main.c,v 2.15 2004/12/31 19:15:39 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.35 2004/12/22 18:57:28 otto Exp $	*/
 
 /*
@@ -9,13 +9,13 @@
 
 #include "sh.h"
 #include "ksh_stat.h"
-#include "ksh_time.h"
+#include <time.h>
 
 /*
  * shell version
  */
 
-__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.14 2004/12/31 17:15:07 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.15 2004/12/31 19:15:39 tg Exp $");
 
 const char ksh_version[] =
 	"@(#)PD KSH v5.2.14 MirOS R20 in "
