@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: Build.sh,v 1.10 2004/09/03 20:02:49 tg Exp $
+# $MirBSD: Build.sh,v 1.11 2004/09/11 18:32:26 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -82,18 +82,18 @@ if test -e strlfun.c; then
 	echo "generated files: ksh <- ksh.unstripped   ksh.cat1 <- ksh.1"
 	echo ""
 	echo "Sample Installation Commands:"
-	echo "# install -c -s -o root -g bin -m 555 $BINARY /bin/mirbsdksh"
-	echo "# echo /bin/mirbsdksh >>/etc/shells"
+	echo "# install -c -s -o root -g bin -m 555 $BINARY /bin/mksh"
+	echo "# echo /bin/mksh >>/etc/shells"
 	echo " - OR -"
 	echo "# install -c -o root -g bin -m 555 $BINARY /bin/ksh"
 	echo "# echo /bin/ksh >>/etc/shells"
 	echo " - DOCUMENTATION -"
 	echo "# install -c -o root -g bin -m 444 ksh.1" \
-	    "/usr/share/man/man1/mirbsdksh.1"
+	    "/usr/share/man/man1/mksh.1"
 	if test -e ksh.cat1; then
 		echo " - OR -"
 		echo "# install -c -o root -g bin -m 444 ksh.cat1" \
-		    "/usr/local/man/cat1/mirbsdksh.0"
+		    "/usr/local/man/cat1/mksh.0"
 	fi
 	echo " - Adjust the paths accordingly for your system."
 else
