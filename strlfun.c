@@ -1,4 +1,5 @@
-/**	$MirBSD: strlfun.c,v 1.1.4.2 2004/11/10 17:29:20 tg Exp $ */
+/**	$MirBSD: strlfun.c,v 1.1.4.3 2004/12/05 16:10:58 tg Exp $ */
+/**	_MirBSD: src/lib/libc/string/strlfun.c,v 1.7 2004/12/05 16:07:53 tg Exp $ */
 /*	$OpenBSD: strlcpy.c,v 1.8 2003/06/17 21:56:24 millert Exp $ */
 /*	$OpenBSD: strlcat.c,v 1.11 2003/06/17 21:56:24 millert Exp $ */
 
@@ -19,14 +20,12 @@
  * licious intent or gross negligence; in no event shall licensor, an
  * author or contributor be held liable for any damage, direct, indi-
  * rect or other, however caused, arising in any way out of the usage
- * of covered work, even if advised of the possibility of such damage.
+ * of this work, even if advised of the possibility of such damage.
  *-
  * Implementation for most of this code by myself.
- * Some optimizations idea from Bodo Eggert in d.a.s.r.
+ * Some optimisation ideas from Bodo Eggert (via d.a.s.r).
  * The rest of the code is covered by the terms below:
- */
-
-/*
+ *-
  * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -57,11 +56,10 @@
 #endif /* ! def HAVE_CONFIG_H */
 
 #ifndef __RCSID
-#define __RCSID(x)	static const char __rcsid[] \
-			__attribute__((section(".comment"))) = (x)
+#define __RCSID(x)	static const char __rcsid[] = (x)
 #endif
 
-__RCSID("$MirBSD: strlfun.c,v 1.1.4.2 2004/11/10 17:29:20 tg Exp $");
+__RCSID("$MirBSD: strlfun.c,v 1.1.4.3 2004/12/05 16:10:58 tg Exp $");
 
 
 #ifndef	HAVE_STRLCPY
@@ -85,7 +83,7 @@ strlcpy(char *dst, const char *src, size_t siz)
 	if (!siz) {
 		/* Save, since we've copied at max. (siz-1) characters */
 		*dst = '\0';	/* NUL-terminate dst */
-  traverse_src:
+traverse_src:
 		while (*s++)
 			;
 	}
@@ -106,13 +104,14 @@ size_t
 strlcat(char *dst, const char *src, size_t siz)
 {
 	char *d = dst;
-	size_t n = siz, dl;
+	size_t dl, n = siz;
 	const size_t sl = strlen(src);
 
 	while (n-- && (*d++ != '\0'))
 		;
 	if (!++n && (*d != '\0'))
 		return strlen(src);
+
 	dl = --d - dst;		/* original strlen(dst), max. siz-1 */
 	n = siz - dl;
 	dl += sl;
