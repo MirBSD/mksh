@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: BuildGNU.sh,v 1.6 2004/04/07 17:14:11 tg Exp $
+# $MirBSD: BuildGNU.sh,v 1.7 2004/04/07 18:43:41 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -19,19 +19,27 @@
 # possibility of such damage.
 #-
 # Build the mirbsdksh on GNU operating systems (and more?)
+# Note:	on some systems, you must run it with a pre-existing bash or
+#	korn shell, because the Bourne seems to choke on the if sta-
+#	tement below for some unknown reason.
+# Note:	Solaris might want LDFLAGS=-ldl, some GNU/Linux systems usu-
+#	ally have problems with their perl path (use -I for the .ph)
 
+SHELL="${SHELL:-/bin/sh}"; export SHELL
+CONFIG_SHELL="${SHELL}"; export CONFIG_SHELL
 CC="${CC:-gcc}"
 CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -I. -DKSH"
-CFLAGS="-O2 -fomit-frame-pointer -fno-strict-aliasing -static $CFLAGS"
+CFLAGS="-O2 -fomit-frame-pointer -fno-strict-aliasing $CFLAGS"
+LDFLAGS="${LDFLAGS:--static}"
 
 if [ -e strlcpy.c -a -e strlcat.c ]; then
 	echo "Configuring..."
-	/bin/sh ./configure
+	$SHELL ./configure
 	echo "Generating prerequisites..."
-	/bin/sh ./siglist.sh "gcc -E $CPPFLAGS" <siglist.in >siglist.out
-	/bin/sh ./emacs-gen.sh emacs.c >emacs.out
+	$SHELL ./siglist.sh "gcc -E $CPPFLAGS" <siglist.in >siglist.out
+	$SHELL ./emacs-gen.sh emacs.c >emacs.out
 	echo "Building..."
-	$CC $CFLAGS $CPPFLAGS -o ksh *.c
+	$CC $CFLAGS $CPPFLAGS $LDFLAGS -o ksh *.c
 	echo "Finalizing..."
 	tbl <ksh.1tbl | nroff -mandoc -Tascii >ksh.cat1
 	strip -R .note -R .comment -R .rel.dyn -R .sbss \
@@ -43,3 +51,6 @@ else
 	echo "optionally kill Ulrich Drepper & co. for not"
 	echo "including it into your broken libc imitation"
 fi
+
+# If you want to test mirbsdksh:
+# $ perl ./tests/th -s ./tests -p ./ksh -C pdksh,sh,ksh,posix,posix-upu
