@@ -1,5 +1,5 @@
-/*	$MirBSD: history.c,v 1.5 2003/04/15 20:10:21 tg Exp $	*/
-/*	$OpenBSD: history.c,v 1.19 2003/04/15 08:35:34 deraadt Exp $	*/
+/*	$MirBSD: history.c,v 1.6 2003/05/22 14:06:07 tg Exp $	*/
+/*	$OpenBSD: history.c,v 1.22 2003/05/18 01:02:42 jsyn Exp $	*/
 
 /*
  * command history
@@ -65,7 +65,7 @@ static int	hist_replace ARGS((char **hp, const char *pat, const char *rep,
 				   int global));
 static char   **hist_get ARGS((const char *str, int approx, int allow_cur));
 static char   **hist_get_newest ARGS((int allow_cur));
-static char   **hist_get_oldest ARGS(());
+static char   **hist_get_oldest ARGS((void));
 static void	histbackup ARGS((void));
 
 static char   **current;	/* current position in history[] */
@@ -863,7 +863,7 @@ hist_init(s)
 		 * check on its validity
 		 */
 		if (base == MAP_FAILED || *base != HMAGIC1 || base[1] != HMAGIC2) {
-			if (base != (unsigned char *)-1)
+			if (base != MAP_FAILED)
 				munmap((caddr_t)base, hsize);
 			hist_finish();
 			unlink(hname);
@@ -1097,7 +1097,7 @@ writehistfile(lno, cmd)
 	unsigned char	*base;
 	unsigned char	*new;
 	int	bytes;
-	char	hdr[5];
+	unsigned char	hdr[5];
 
 	(void) flock(histfd, LOCK_EX);
 	sizenow = lseek(histfd, 0L, SEEK_END);
@@ -1161,7 +1161,7 @@ static int
 sprinkle(fd)
 	int fd;
 {
-	static char mag[] = { HMAGIC1, HMAGIC2 };
+	static unsigned char mag[] = { HMAGIC1, HMAGIC2 };
 
 	return(write(fd, mag, 2) != 2);
 }
