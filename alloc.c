@@ -1,5 +1,6 @@
-/*	$MirBSD: alloc.c,v 1.2 2004/04/17 00:47:16 tg Exp $	*/
-/*	$OpenBSD: alloc.c,v 1.6 2003/08/05 20:52:27 millert Exp $	*/
+/* $MirBSD: alloc.c,v 1.3 2004/05/23 12:47:00 tg Exp $	*/
+/* $OpenBSD: alloc.c,v 1.7 2004/02/19 18:51:17 deraadt Exp $	*/
+
 /*
  * Copyright (c) 2002 Marc Espie.
  *
@@ -63,7 +64,7 @@ alloc(size_t size, Area *ap)
 {
 	struct link *l;
 
-	l = malloc(size + sizeof(struct link));
+	l = malloc(sizeof(struct link) + size);
 	if (l == NULL)
 		internal_errorf(1, "unable to allocate memory");
 	l->next = ap->freelist;
@@ -87,15 +88,15 @@ aresize(void *ptr, size_t size, Area *ap)
 	lprev = l->prev;
 	lnext = l->next;
 
-	l2 = realloc(l, size+sizeof(struct link));
+	l2 = realloc(l, sizeof(struct link) + size);
 	if (l2 == NULL)
 		internal_errorf(1, "unable to allocate memory");
 	if (lprev)
-	    lprev->next = l2;
+		lprev->next = l2;
 	else
-	    ap->freelist = l2;
+		ap->freelist = l2;
 	if (lnext)
-	    lnext->prev = l2;
+		lnext->prev = l2;
 
 	return L2P(l2);
 }

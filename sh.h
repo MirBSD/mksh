@@ -1,10 +1,5 @@
-/*	$MirBSD: sh.h,v 1.6 2003/12/23 13:41:50 tg Exp $	*/
-/*	$OpenBSD: sh.h,v 1.15 2003/10/22 07:40:38 jmc Exp $	*/
-
-/*
- * Public Domain Bourne/Korn shell
- */
-
+/* $MirBSD: sh.h,v 1.7 2004/05/23 12:47:01 tg Exp $	*/
+/* $OpenBSD: sh.h,v 1.17 2004/05/10 16:28:47 pvalchev Exp $	*/
 /* $From: sh.h,v 1.2 1994/05/19 18:32:40 michael Exp michael $ */
 
 #include "config.h"	/* system and option configuration info */
@@ -247,15 +242,7 @@ extern int dup2 ARGS((int, int));
  * by autoconf (assumes an 8 bit byte, but I'm not concerned).
  * NOTE: INT32 may end up being more than 32 bits.
  */
-#if SIZEOF_INT >= 4
 # define INT32	int
-#else /* SIZEOF_INT */
-# if SIZEOF_LONG >= 4
-#  define INT32	long
-# else /* SIZEOF_LONG */
-   #error cannot find 32 bit type...
-# endif /* SIZEOF_LONG */
-#endif /* SIZEOF_INT */
 
 /* end of common headers */
 
@@ -367,8 +354,8 @@ typedef INT32 Tflag;
 #define	NOT		'!'	/* might use ^ (ie, [!...] vs [^..]) */
 
 #define	LINE	4096		/* input line size */
-#define	PATH	4096		/* pathname size (todo: PATH_MAX/pathconf()) */
-#define ARRAYMAX 4095		/* max array index */
+#define	PATH	1024		/* pathname size (todo: PATH_MAX/pathconf()) */
+#define ARRAYMAX 2047		/* max array index */
 
 EXTERN	const char *kshname;	/* $0 */
 EXTERN	pid_t	kshpid;		/* $$, shell pid */

@@ -1,5 +1,5 @@
-# $MirBSD: Makefile,v 1.2 2004/04/07 17:14:11 tg Exp $
-# $OpenBSD: Makefile,v 1.16 2004/01/09 17:10:07 brad Exp $
+# $MirBSD: Makefile,v 1.3 2004/05/23 12:47:00 tg Exp $
+# $OpenBSD: Makefile,v 1.18 2004/02/16 19:07:19 deraadt Exp $
 
 PROG=	ksh
 SRCS=	alloc.c c_ksh.c c_sh.c c_test.c c_ulimit.c edit.c emacs.c \

@@ -1,5 +1,5 @@
-/* $MirBSD: var.c,v 1.4 2004/04/29 18:58:16 tg Exp $	*/
-/* $OpenBSD: var.c,v 1.16 2003/08/05 20:52:27 millert Exp $	*/
+/* $MirBSD: var.c,v 1.5 2004/05/23 12:47:01 tg Exp $	*/
+/* $OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
 
 #include "sh.h"
 #include "ksh_time.h"
@@ -885,13 +885,11 @@ makenv()
 
 /*
  * Called after a fork in parent to bump the random number generator.
- * Done to ensure children will not get the same random number sequence
- * if the parent doesn't use $RANDOM.
  */
 void
 change_random()
 {
-    prng_seed(rand());
+    srand(prng_seed(rand() ^ time(NULL)));
 }
 
 /*

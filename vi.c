@@ -1,5 +1,5 @@
-/*	$MirBSD: vi.c,v 1.3 2003/12/23 13:41:51 tg Exp $	*/
-/*	$OpenBSD: vi.c,v 1.12 2003/10/16 22:08:48 millert Exp $	*/
+/* $MirBSD: vi.c,v 1.4 2004/05/23 12:47:01 tg Exp $	*/
+/* $OpenBSD: vi.c,v 1.13 2004/05/10 16:28:47 pvalchev Exp $	*/
 
 /*
  *	vi command editing
