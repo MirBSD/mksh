@@ -1,5 +1,5 @@
-/*	$MirBSD: history.c,v 1.4 2003/04/12 14:32:14 tg Exp $	*/
-/*	$OpenBSD: history.c,v 1.18 2003/04/06 23:39:17 deraadt Exp $	*/
+/*	$MirBSD: history.c,v 1.5 2003/04/15 20:10:21 tg Exp $	*/
+/*	$OpenBSD: history.c,v 1.19 2003/04/15 08:35:34 deraadt Exp $	*/
 
 /*
  * command history
