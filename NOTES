@@ -1,5 +1,10 @@
-$MirOS$
+$MirOS: src/bin/ksh/NOTES,v 1.1.7.1 2005/03/06 15:42:53 tg Exp $
 $OpenBSD: NOTES,v 1.9 2003/10/26 15:07:25 jmc Exp $
+
+
+* http://www.research.att.com/~gsf/public/ifs.sh
+  # tests 6856 passed 5192 failed 1664
+
 
 General features of at&t ksh88 that are not (yet) in pdksh:
 	- exported aliases and functions (not in ksh93).
