@@ -1,9 +1,9 @@
-/**	$MirBSD: src/bin/ksh/proto.h,v 2.9 2004/12/31 17:29:28 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/proto.h,v 2.10 2004/12/31 17:42:45 tg Exp $ */
 /*	$OpenBSD: proto.h,v 1.11 2003/05/16 19:58:57 jsyn Exp $	*/
 /*	$From: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $ */
 
 #ifndef PROTO_H
-/*	$OpenBSD: proto.h,v 1.17 2004/12/18 21:58:39 millert Exp $	*/
+/*	$OpenBSD: proto.h,v 1.18 2004/12/18 22:35:41 millert Exp $	*/
 
 /*
  * prototypes for PD-KSH
@@ -70,7 +70,6 @@ char	*debunk(char *dp, const char *sp, size_t dlen);
 void	expand(char *cp, XPtrV *wp, int f);
 int glob_str(char *cp, XPtrV *wp, int markdirs);
 /* exec.c */
-int	fd_clexec(int fd);
 int 	execute(struct op * volatile t, volatile int flags);
 int 	shcomexec(char **wp);
 struct tbl * findfunc(const char *name, unsigned int h, int create);

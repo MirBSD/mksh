@@ -1,5 +1,5 @@
-/**	$MirBSD: src/bin/ksh/exec.c,v 2.8 2004/12/28 22:40:40 tg Exp $ */
-/*	$OpenBSD: exec.c,v 1.39 2004/12/22 18:57:28 otto Exp $	*/
+/**	$MirBSD: src/bin/ksh/exec.c,v 2.9 2004/12/31 17:42:44 tg Exp $ */
+/*	$OpenBSD: exec.c,v 1.35 2004/12/18 22:35:41 millert Exp $	*/
 
 /*
  * execute command tree
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/exec.c,v 2.8 2004/12/28 22:40:40 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/exec.c,v 2.9 2004/12/31 17:42:44 tg Exp $");
 
 static int	comexec(struct op *t, struct tbl *volatile tp, char **ap,
 			      int volatile flags);
@@ -37,24 +37,6 @@ static void	dbteste_error(Test_env *te, int offset, const char *msg);
 /* a bit field would be smaller, but this will work */
 static char clexec_tab[MAXFD+1];
 #endif
-
-/*
- * we now use this function always.
- */
-int
-fd_clexec(int fd)
-{
-#ifndef F_SETFD
-	if (fd >= 0 && fd < sizeof(clexec_tab)) {
-		clexec_tab[fd] = 1;
-		return 0;
-	}
-	return -1;
-#else
-	return fcntl(fd, F_SETFD, 1);
-#endif
-}
-
 
 /*
  * execute command tree

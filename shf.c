@@ -1,5 +1,5 @@
-/**	$MirBSD: src/bin/ksh/shf.c,v 2.3 2004/12/18 19:22:30 tg Exp $ */
-/*	$OpenBSD: shf.c,v 1.8 2003/02/28 09:45:09 jmc Exp $	*/
+/**	$MirBSD: src/bin/ksh/shf.c,v 2.4 2004/12/31 17:42:45 tg Exp $ */
+/*	$OpenBSD: shf.c,v 1.10 2004/12/18 22:35:41 millert Exp $	*/
 
 /*
  *  Shell file I/O routines
@@ -9,7 +9,7 @@
 #include "ksh_stat.h"
 #include "ksh_limval.h"
 
-__RCSID("$MirBSD: src/bin/ksh/shf.c,v 2.3 2004/12/18 19:22:30 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/shf.c,v 2.4 2004/12/31 17:42:45 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -113,7 +113,7 @@ shf_fdopen(int fd, int sflags, struct shf *shf)
 	shf->errno_ = 0;
 	shf->bsize = bsize;
 	if (sflags & SHF_CLEXEC)
-		fd_clexec(fd);
+		fcntl(fd, F_SETFD, FD_CLOEXEC);
 	return shf;
 }
 
@@ -153,7 +153,7 @@ shf_reopen(int fd, int sflags, struct shf *shf)
 	shf->flags = (shf->flags & (SHF_ALLOCS | SHF_ALLOCB)) | sflags;
 	shf->errno_ = 0;
 	if (sflags & SHF_CLEXEC)
-		fd_clexec(fd);
+		fcntl(fd, F_SETFD, FD_CLOEXEC);
 	return shf;
 }
 

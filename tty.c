@@ -1,5 +1,5 @@
-/**	$MirBSD: src/bin/ksh/tty.c,v 2.3 2004/12/31 17:39:12 tg Exp $ */
-/*	$OpenBSD: tty.c,v 1.4 2004/12/18 22:12:23 millert Exp $	*/
+/**	$MirBSD: src/bin/ksh/tty.c,v 2.4 2004/12/31 17:42:45 tg Exp $ */
+/*	$OpenBSD: tty.c,v 1.5 2004/12/18 22:35:41 millert Exp $	*/
 
 #include "sh.h"
 #include "ksh_stat.h"
@@ -7,7 +7,7 @@
 #include "tty.h"
 #undef EXTERN
 
-__RCSID("$MirBSD: src/bin/ksh/tty.c,v 2.3 2004/12/31 17:39:12 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/tty.c,v 2.4 2004/12/31 17:42:45 tg Exp $");
 
 /* Initialize tty_fd.  Used for saving/reseting tty modes upon
  * foreground job completion and for setting up tty process group.
@@ -42,7 +42,7 @@ tty_init(int init_ttystate)
 	if ((tty_fd = ksh_dupbase(tfd, FDBASE)) < 0) {
 		warningf(false, "j_ttyinit: dup of tty fd failed: %s",
 			strerror(errno));
-	} else if (fd_clexec(tty_fd) < 0) {
+	} else if (fcntl(tty_fd, F_SETFD, FD_CLOEXEC) < 0) {
 		warningf(false, "j_ttyinit: can't set close-on-exec flag: %s",
 			strerror(errno));
 		close(tty_fd);

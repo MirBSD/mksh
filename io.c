@@ -1,5 +1,5 @@
-/**	$MirBSD: src/bin/ksh/io.c,v 2.5 2004/12/28 22:32:08 tg Exp $ */
-/*	$OpenBSD: io.c,v 1.13 2003/11/10 21:26:39 millert Exp $	*/
+/**	$MirBSD: src/bin/ksh/io.c,v 2.6 2004/12/31 17:42:45 tg Exp $ */
+/*	$OpenBSD: io.c,v 1.17 2004/12/18 22:35:41 millert Exp $	*/
 
 /*
  * shell buffered IO and formatted output
@@ -259,7 +259,7 @@ savefd(int fd, int noclose)
 			close(fd);
 	} else
 		nfd = fd;
-	fd_clexec(nfd);
+	fcntl(nfd, F_SETFD, FD_CLOEXEC);
 	return nfd;
 }
 

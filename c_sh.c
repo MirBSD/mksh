@@ -1,5 +1,5 @@
-/**	$MirBSD: src/bin/ksh/c_sh.c,v 2.9 2004/12/31 17:29:28 tg Exp $ */
-/*	$OpenBSD: c_sh.c,v 1.26 2004/12/22 18:57:28 otto Exp $	*/
+/**	$MirBSD: src/bin/ksh/c_sh.c,v 2.10 2004/12/31 17:42:44 tg Exp $ */
+/*	$OpenBSD: c_sh.c,v 1.21 2004/12/18 22:35:41 millert Exp $	*/
 
 /*
  * built-in Bourne commands
@@ -10,7 +10,7 @@
 #include "ksh_time.h"
 #include "ksh_times.h"
 
-__RCSID("$MirBSD: src/bin/ksh/c_sh.c,v 2.9 2004/12/31 17:29:28 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/c_sh.c,v 2.10 2004/12/31 17:42:44 tg Exp $");
 
 static	char *clocktos(clock_t t);
 
@@ -808,7 +808,7 @@ c_exec(char **wp GCC_FUNC_ATTR(unused))
 			 * keeps them open).
 			 */
 			if (!Flag(FSH) && i > 2 && e->savefd[i])
-				fd_clexec(i);
+				fcntl(i, F_SETFD, FD_CLOEXEC);
 		}
 		e->savefd = NULL;
 	}
