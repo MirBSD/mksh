@@ -1,4 +1,4 @@
-# $MirBSD: Makefile,v 1.4 2004/05/24 19:06:54 tg Exp $
+# $MirBSD: Makefile,v 1.5 2004/06/03 12:37:07 tg Exp $
 # $OpenBSD: Makefile,v 1.18 2004/02/16 19:07:19 deraadt Exp $
 
 PROG=	ksh
@@ -20,14 +20,14 @@ MLINKS=	ksh.1 rksh.1 ksh.1 ulimit.1
 .depend emacs.o: emacs.out
 
 siglist.out: config.h sh.h siglist.in siglist.sh
-	/bin/sh ${.CURDIR}/siglist.sh \
+	${SHELL} ${.CURDIR}/siglist.sh \
 	    "${CC} -E ${CPPFLAGS}" <${.CURDIR}/siglist.in >siglist.out
 
 emacs.out: emacs.c
-	/bin/sh ${.CURDIR}/emacs-gen.sh ${.CURDIR}/emacs.c >emacs.out
+	${SHELL} ${.CURDIR}/emacs-gen.sh ${.CURDIR}/emacs.c >emacs.out
 
 check test:
-	/bin/sh ${.CURDIR}/tests/th.sh ${.CURDIR}/tests/th \
+	${SHELL} ${.CURDIR}/tests/th.sh ${.CURDIR}/tests/th \
 	    -s ${.CURDIR}/tests -p ./ksh -C pdksh,sh,ksh,posix,posix-upu
 
 .include <bsd.prog.mk>
