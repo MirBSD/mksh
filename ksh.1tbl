@@ -1,4 +1,4 @@
-.\" $MirBSD: ksh.1tbl,v 1.30 2004/09/21 14:03:58 tg Exp $
+.\" $MirBSD: ksh.1tbl,v 1.31 2004/10/28 15:07:35 tg Exp $
 .\" $OpenBSD: ksh.1tbl,v 1.72 2004/08/07 16:46:58 millert Exp $
 .\"
 .\" Copyright (c) 1980, 1990, 1993
@@ -5223,9 +5223,18 @@ Charles Forsyth and parts of the BRL shell by Doug A. Gwyn, Doug Kingston,
 Ron Natalie, Arnold Robbins, Lou Salkind, and others.
 The first release of
 .Nm pdksh
-was created by Eric Gisin, and it was subsequently maintained by John R.
-MacMillan (change!john@sq.sq.com) and Simon J. Gerraty (sjg@zen.void.oz.au).
-The current maintainer is Michael Rendell (michael@cs.mun.ca).
+was created by Eric Gisin, and it was subsequently maintained by
+.An John R. MacMillan Aq change!john@sq.sq.com
+and
+.An Simon J. Gerraty Aq sjg@zen.void.oz.au .
+The current maintainer is
+.An Michael Rendell Aq michael@cs.mun.ca
+for the upstream version of
+.Nm pdksh
+and
+.An Thorsten Glaser Aq tg@66h.42h.de
+for
+.Mx .
 The
 .Pa CONTRIBUTORS
 file in the source distribution contains a more complete list of people and
