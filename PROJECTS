@@ -1,5 +1,11 @@
-$MirBSD: PROJECTS,v 1.2 2004/05/24 19:55:53 tg Exp $
+$MirBSD: PROJECTS,v 1.3 2004/08/06 00:19:33 tg Stab $
 $OpenBSD: PROJECTS,v 1.5 1999/07/14 13:37:23 millert Exp $
+
+
+Wouldn't it be nice to:
+ * have 64 bit signed arithmetic in mirbsdksh expressions?
+ * have md4/md5/sha1/rmd160/sha245/sha384/sha512/cksum builtin?
+
 
 Things to be done in pdksh (see also the NOTES file):
 
