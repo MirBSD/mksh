@@ -790,7 +790,7 @@ and VAR is set to
 the substitution for $VAR results in four fields:
 .Sq A ,
 .Sq B ,
-.Sq ,\&
+.Sq "" ,
 and
 .Sq D .
 Note that if the
@@ -2424,7 +2424,7 @@ The shell exits with the specified exit status.
 If
 .Ar status
 is not specified, the exit status is the current value of the
-.Ic ?\&
+.Ic \&?
 parameter.
 .It Xo Ic export Op Fl p
 .Op Ar parameter Ns Op \&= Ns Ar value
