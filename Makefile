@@ -1,4 +1,4 @@
-# $MirBSD: Makefile,v 1.5 2004/06/03 12:37:07 tg Exp $
+# $MirBSD: Makefile,v 1.6 2004/07/15 16:21:04 tg Stab $
 # $OpenBSD: Makefile,v 1.18 2004/02/16 19:07:19 deraadt Exp $
 
 PROG=	ksh
@@ -6,11 +6,11 @@ SRCS=	alloc.c c_ksh.c c_sh.c c_test.c c_ulimit.c edit.c emacs.c \
 	eval.c exec.c expr.c history.c io.c jobs.c lex.c mail.c \
 	main.c misc.c missing.c path.c rnd.c shf.c syn.c table.c \
 	trap.c tree.c tty.c var.c version.c vi.c
-MAN=	ksh.1 sh.1
+MAN=	ksh.1tbl sh.1tbl
 
 CPPFLAGS+=	-DHAVE_CONFIG_H -I. -DKSH
 CFLAGS+=	-Wall -Werror
-CLEANFILES+=	siglist.out emacs.out ksh.1 sh.1
+CLEANFILES+=	siglist.out emacs.out
 
 LINKS=	${BINDIR}/ksh ${BINDIR}/rksh
 LINKS+=	${BINDIR}/ksh ${BINDIR}/sh
