@@ -1,3 +1,4 @@
+/*	$MirBSD: history.c,v 1.4 2003/04/12 14:32:14 tg Exp $	*/
 /*	$OpenBSD: history.c,v 1.18 2003/04/06 23:39:17 deraadt Exp $	*/
 
 /*
@@ -934,7 +935,7 @@ hist_shrink(oldbase, oldbytes)
 	int oldbytes;
 {
 	int fd;
-	char	nfile[1024];
+	char	nfile[4096];
 	struct	stat statb;
 	unsigned char *nbase = oldbase;
 	int nbytes = oldbytes;
