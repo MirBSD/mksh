@@ -1,4 +1,4 @@
-.\"	$MirBSD: ksh.1tbl,v 1.41 2004/11/10 17:18:29 tg Exp $
+.\"	$MirBSD: ksh.1tbl,v 1.42 2004/11/26 15:46:29 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.78 2004/11/08 23:42:02 jmc Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.52 2004/11/09 21:56:54 jmc Exp $
 .\"
@@ -1018,7 +1018,11 @@ As a special case, leading and trailing
 whitespace is stripped (i.e., no leading or trailing empty field is created by
 it); leading or trailing
 .Pf non- Ev IFS
-whitespace does create an empty field.
+whitespace as well as leading or trailing
+.Ev IFS
+non-whitespace (after stripping
+.Ev IFS
+whitespace) does create an empty field.
 .Pp
 Example: If
 .Ev IFS
