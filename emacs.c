@@ -1,4 +1,4 @@
-/*	$OpenBSD: emacs.c,v 1.22 2003/08/02 19:44:12 fgsch Exp $	*/
+/*	$OpenBSD: emacs.c,v 1.26 2003/08/27 14:56:11 fgsch Exp $	*/
 
 /*
  *  Emacs-like command line editing and history
@@ -122,7 +122,7 @@ static	char    *macroptr;
 static	int	prompt_skip;
 
 static int      x_ins       ARGS((char *cp));
-static void     x_delete    ARGS((int nc, int force_push));
+static void     x_delete    ARGS((int nc, int push));
 static int	x_bword     ARGS((void));
 static int	x_fword     ARGS((void));
 static void     x_goto      ARGS((char *cp));
@@ -535,9 +535,9 @@ x_del_char(c)
 
 /* Delete nc chars to the right of the cursor (including cursor position) */
 static void
-x_delete(nc, force_push)
+x_delete(nc, push)
 	int nc;
-	int force_push;
+	int push;
 {
 	int	i,j;
 	char	*cp;
@@ -554,7 +554,7 @@ x_delete(nc, force_push)
 	/*
 	 * This lets us yank a word we have deleted.
 	 */
-	if (force_push)
+	if (push)
 		x_push(nc);
 
 	xep -= nc;
@@ -595,7 +595,7 @@ static int
 x_del_bword(c)
 	int c;
 {
-	x_delete(x_bword(), FALSE);
+	x_delete(x_bword(), TRUE);
 	return KSTD;
 }
 
@@ -619,7 +619,7 @@ static int
 x_del_fword(c)
 	int c;
 {
-	x_delete(x_fword(), FALSE);
+	x_delete(x_fword(), TRUE);
 	return KSTD;
 }
 
@@ -1783,12 +1783,15 @@ x_expand(c)
 
 	x_goto(xbuf + start);
 	x_delete(end - start, FALSE);
-	for (i = 0; i < nwords; i++)
-		if (x_ins(words[i]) < 0 || (i < nwords - 1 && x_ins(space) < 0))
+	for (i = 0; i < nwords;) {
+		if (x_escape(words[i], strlen(words[i]), x_emacs_putbuf) < 0 ||
+		    (++i < nwords && x_ins(space) < 0))
 		{
 			x_e_putc(BEL);
 			return KSTD;
 		}
+	}
+	x_adjust();
 
 	return KSTD;
 }
@@ -1823,7 +1826,7 @@ do_complete(flags, type)
 	olen = end - start;
 	nlen = x_longest_prefix(nwords, words);
 	/* complete */
-	if (nlen > olen) {
+	if (nwords == 1 || nlen > olen) {
 		x_goto(xbuf + start);
 		x_delete(olen, FALSE);
 		x_escape(words[0], nlen, x_emacs_putbuf);
