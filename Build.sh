@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: BuildGNU.sh,v 1.9.2.1 2004/04/24 21:37:06 tg Exp $
+# $MirBSD: Build.sh,v 1.1.2.1 2004/04/24 21:42:17 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
