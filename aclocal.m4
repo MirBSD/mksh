@@ -1,4 +1,4 @@
-dnl $MirBSD: src/bin/ksh/aclocal.m4,v 2.4 2004/12/31 17:29:28 tg Exp $
+dnl $MirBSD: src/bin/ksh/aclocal.m4,v 2.5 2004/12/31 18:41:46 tg Exp $
 dnl-
 dnl Copyright (c) 2004
 dnl	Thorsten "mirabile" Glaser <tg@66h.42h.de>
@@ -277,45 +277,6 @@ AC_DEFUN(KSH_TIME_DECLARED,
       ksh_cv_time_delcared=yes, ksh_cv_time_delcared=no)])
   if test $ksh_cv_time_delcared = yes; then
     AC_DEFINE(TIME_DECLARED)
-  fi
- ])dnl
-dnl
-dnl
-dnl Check for working times (ie, it exists and doesn't always return 0).
-dnl Defines TIMES_BROKEN if it doesn't exist or if it always returns 0
-dnl (also checks for existance of getrusage if times doesn't work).
-dnl  XXX: requires clock_t to be typedefed/defined...
-AC_DEFUN(KSH_TIMES_CHECK,
- [AC_CACHE_CHECK(if times() is present/working, ksh_cv_func_times_ok,
-    [AC_TRY_RUN([
-#include <sys/types.h>
-#include <sys/times.h>
-/* if missing, clock_t is defined to be INT32 */
-#if SIZEOF_INT == 4
-# define INT32	int
-#else /* SIZEOF_INT */
-# if SIZEOF_LONG == 4
-#  define INT32	long
-# else /* SIZEOF_LONG */
-   #error cannot find 32 bit type...
-# endif /* SIZEOF_LONG */
-#endif /* SIZEOF_INT */
-	  main()
-	  {
-	    extern clock_t times();
-	    struct tms tms;
-	    times(&tms);
-	    sleep(1);
-	    if (times(&tms) == 0)
-	      exit(1);
-	    exit(0);
-	  }
-	], ksh_cv_func_times_ok=yes, ksh_cv_func_times_ok=no,
-	AC_MSG_ERROR(cannot determine if times works when cross compiling)
-	)])
-  if test $ksh_cv_func_times_ok = no; then
-    AC_DEFINE(TIMES_BROKEN)
-    AC_CHECK_FUNCS(getrusage)
   fi
  ])dnl
 dnl

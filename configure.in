@@ -1,4 +1,4 @@
-dnl $MirBSD: src/bin/ksh/configure.in,v 2.2 2004/12/28 22:44:39 tg Exp $
+dnl $MirBSD: src/bin/ksh/configure.in,v 2.3 2004/12/31 18:41:47 tg Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl
@@ -79,7 +79,6 @@ KSH_FUNC_LSTAT
 KSH_SYS_ERRLIST
 KSH_SYS_SIGLIST
 KSH_TIME_DECLARED
-KSH_TIMES_CHECK
 dnl
 dnl Structures
 dnl

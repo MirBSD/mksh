@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/missing.c,v 2.4 2004/12/18 19:22:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/missing.c,v 2.5 2004/12/31 18:41:47 tg Exp $ */
 /*	$OpenBSD: missing.c,v 1.5 2003/05/16 18:49:46 jsyn Exp $	*/
 
 /*
@@ -9,7 +9,7 @@
 #include "ksh_stat.h"
 #include "ksh_dir.h"
 
-__RCSID("$MirBSD: src/bin/ksh/missing.c,v 2.4 2004/12/18 19:22:30 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/missing.c,v 2.5 2004/12/31 18:41:47 tg Exp $");
 
 #ifndef HAVE_MEMSET
 void *
@@ -188,65 +188,6 @@ strerror(err)
 # endif /* HAVE_SYS_ERRLIST */
 }
 #endif /* !HAVE_STRERROR */
-
-#ifdef TIMES_BROKEN
-# include "ksh_time.h"
-# include "ksh_times.h"
-# ifdef HAVE_GETRUSAGE
-#  include <sys/resource.h>
-# else /* HAVE_GETRUSAGE */
-#  include <sys/timeb.h>
-# endif /* HAVE_GETRUSAGE */
-
-clock_t
-ksh_times(tms)
-	struct tms *tms;
-{
-	static clock_t base_sec;
-	clock_t rv;
-
-# ifdef HAVE_GETRUSAGE
-	{
-		struct timeval tv;
-		struct rusage ru;
-
-		getrusage(RUSAGE_SELF, &ru);
-		tms->tms_utime = ru.ru_utime.tv_sec * CLK_TCK
-			+ ru.ru_utime.tv_usec * CLK_TCK / 1000000;
-		tms->tms_stime = ru.ru_stime.tv_sec * CLK_TCK
-			+ ru.ru_stime.tv_usec * CLK_TCK / 1000000;
-
-		getrusage(RUSAGE_CHILDREN, &ru);
-		tms->tms_cutime = ru.ru_utime.tv_sec * CLK_TCK
-			+ ru.ru_utime.tv_usec * CLK_TCK / 1000000;
-		tms->tms_cstime = ru.ru_stime.tv_sec * CLK_TCK
-			+ ru.ru_stime.tv_usec * CLK_TCK / 1000000;
-
-		gettimeofday(&tv, NULL);
-		if (base_sec == 0)
-			base_sec = tv.tv_sec;
-		rv = (tv.tv_sec - base_sec) * CLK_TCK;
-		rv += tv.tv_usec * CLK_TCK / 1000000;
-	}
-# else /* HAVE_GETRUSAGE */
-	/* Assume times() available, but always returns 0
-	 * (also assumes ftime() available)
-	 */
-	{
-		struct timeb tb;
-
-		if (times(tms) == (clock_t) -1)
-			return (clock_t) -1;
-		ftime(&tb);
-		if (base_sec == 0)
-			base_sec = tb.time;
-		rv = (tb.time - base_sec) * CLK_TCK;
-		rv += tb.millitm * CLK_TCK / 1000;
-	}
-# endif /* HAVE_GETRUSAGE */
-	return rv;
-}
-#endif /* TIMES_BROKEN */
 
 #ifdef OPENDIR_DOES_NONDIR
 /* Prevent opendir() from attempting to open non-directories.  Such

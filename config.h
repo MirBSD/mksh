@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/config.h,v 2.4 2004/12/31 17:29:28 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/config.h,v 2.5 2004/12/31 18:41:46 tg Exp $ */
 /*	$OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -141,9 +141,6 @@
 
 /* Define if you have a sane <termio.h> header file */
 /* #undef HAVE_TERMIO_H */
-
-/* Define if you don't have times() or if it always returns 0 */
-/* #undef TIMES_BROKEN */
 
 /* Define if opendir() will open non-directory files */
 /* #undef OPENDIR_DOES_NONDIR */

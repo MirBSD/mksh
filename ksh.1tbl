@@ -1,4 +1,4 @@
-.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 2.8 2004/12/31 18:22:54 tg Exp $
+.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 2.9 2004/12/31 18:41:47 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.84 2004/12/22 18:58:44 millert Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -3864,21 +3864,24 @@ the user CPU time (time spent running in user mode) and the system CPU time
 (time spent running in kernel mode).
 Times are reported to standard error; the format of the output is:
 .Pp
-.Dl 0.00s real    0.00s user    0.00s system
+.Dl "0m0.00s real     0m0.00s user     0m0.00s system"
 .Pp
-unless the
+If the
 .Fl p
-option is given (only possible if
+option is given the output is slightly longer:
+.Bd -literal -offset indent
+real     0.00
+user     0.00
+sys      0.00
+.Ed
+.Pp
+It is an error to specify the
+.Fl p
+option unless
 .Ar pipeline
-is a simple command), in which case the output is slightly longer:
+is a simple command.
 .Pp
-.Dl real   0.00
-.Dl user   0.00
-.Dl sys    0.00
-.Pp
-(the number of digits after the decimal may vary from system to system).
-Note
-that simple redirections of standard error do not effect the output of the
+Simple redirections of standard error do not effect the output of the
 .Ic time
 command:
 .Pp
@@ -3889,8 +3892,13 @@ Times for the first command do not go to
 .Dq afile ,
 but those of the second command do.
 .It Ic times
-Print the accumulated user and system times used by the shell and by processes
-which have exited that the shell started.
+Print the accumulated user and system times used both by the shell
+and by processes that the shell started which have exited.
+The format of the output is:
+.Bd -literal -offset indent
+0m0.00s 0m0.00s
+0m0.00s 0m0.00s
+.Ed
 .It Ic trap Op Ar handler signal ...
 Sets a trap handler that is to be executed when any of the
 specified signals are received.
