@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/var.c,v 2.8 2004/12/31 19:37:03 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/var.c,v 2.9 2005/01/18 17:12:22 tg Exp $ */
 /*	$OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
 
 #include "sh.h"
@@ -6,7 +6,7 @@
 #include "ksh_stat.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.8 2004/12/31 19:37:03 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.9 2005/01/18 17:12:22 tg Exp $");
 
 /*
  * Variables
@@ -101,6 +101,7 @@ initvar(void)
 			{ "SECONDS",		V_SECONDS },
 			{ "TMOUT",		V_TMOUT },
 			{ "LINENO",		V_LINENO },
+			{ "PGRP",		V_PGRP },
 			{ NULL,	0 }
 		};
 	int i;
@@ -914,6 +915,16 @@ getspec(struct tbl *vp)
 	  case V_LINENO:
 		vp->flag &= ~SPECIAL;
 		setint(vp, (long) current_lineno + user_lineno);
+		vp->flag |= SPECIAL;
+		break;
+	  case V_PGRP:
+#ifdef BSD_PGRP
+#define getpgID() getpgrp(0)
+#else
+#define getpgID() getpgrp()
+#endif
+		vp->flag &= ~SPECIAL;
+		setint(vp, getpgID());
 		vp->flag |= SPECIAL;
 		break;
 	}

@@ -1,4 +1,4 @@
-.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 2.10 2004/12/31 19:00:30 tg Exp $
+.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 2.11 2005/01/18 17:12:21 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.84 2004/12/22 18:58:44 millert Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -1493,6 +1493,9 @@ colon, or two adjacent colons, is treated as a
 .Dq \&. ,
 the current directory.
 This is dangerous.
+.It Ev PGRP
+The current process group, see
+.Xr getpgrp 2 .
 .It Ev POSIXLY_CORRECT
 If set, this parameter causes the
 .Ic posix

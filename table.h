@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/table.h,v 2.1 2004/12/10 18:09:42 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/table.h,v 2.2 2005/01/18 17:12:22 tg Exp $ */
 /*	$OpenBSD: table.h,v 1.5 1999/06/15 01:18:36 millert Exp $	*/
 /*	$From: table.h,v 1.3 1994/05/31 13:34:34 michael Exp $ */
 
@@ -166,6 +166,7 @@ extern const struct builtin shbuiltins [], kshbuiltins [];
 #define V_TMOUT			15
 #define V_TMPDIR		16
 #define V_LINENO		17
+#define V_PGRP			18
 
 /* values for set_prompt() */
 #define PS1	0		/* command */

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/main.c,v 2.15 2004/12/31 19:15:39 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/main.c,v 2.16 2005/01/18 17:12:22 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.35 2004/12/22 18:57:28 otto Exp $	*/
 
 /*
@@ -15,7 +15,7 @@
  * shell version
  */
 
-__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.15 2004/12/31 19:15:39 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.16 2005/01/18 17:12:22 tg Exp $");
 
 const char ksh_version[] =
 	"@(#)PD KSH v5.2.14 MirOS R20 in "
@@ -49,7 +49,7 @@ static const char initsubs[] = "${PS2=> } ${PS3=#? } ${PS4=+ }";
 static const char *const initcoms [] = {
 	"typeset", "-x", "SHELL", "PATH", "HOME", NULL,
 	"typeset", "-r", "KSH_VERSION", NULL,
-	"typeset", "-i", "PPID", NULL,
+	"typeset", "-i", "PGRP=0", "PPID", NULL,
 	"typeset", "-i", "OPTIND=1", NULL,
 	"eval", "typeset -i RANDOM SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
 	"alias",
