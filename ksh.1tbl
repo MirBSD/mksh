@@ -1,5 +1,5 @@
-.\"	$MirBSD: ksh.1tbl,v 1.42 2004/11/26 15:46:29 tg Exp $
-.\"	$OpenBSD: ksh.1tbl,v 1.78 2004/11/08 23:42:02 jmc Exp $
+.\"	$MirBSD: ksh.1tbl,v 1.43 2004/12/07 17:57:58 tg Exp $
+.\"	$OpenBSD: ksh.1tbl,v 1.79 2004/12/04 07:05:13 jaredy Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.52 2004/11/09 21:56:54 jmc Exp $
 .\"
 .\" Copyright (c) 1980, 1990, 1993
@@ -1600,7 +1600,7 @@ Secondary prompt string, by default
 .Dq \&>\ \& ,
 used when more input is needed to complete a command.
 .It Ev PS3
-Prompt used by
+Prompt used by the
 .Ic select
 statement when reading a menu selection.
 Default is
@@ -4526,7 +4526,7 @@ Moves the cursor backward to the beginning of the word; words consist of
 alphanumerics, underscore
 .Pq Sq _
 and dollar sign
-.Pq Sq $
+.Pq Dq $ \&
 characters.
 .It Ic beginning-of-history ^[<
 Moves to the beginning of the history.
@@ -4868,7 +4868,7 @@ insert mode; if
 is not specified, the last word is inserted.
 .It Ic \&#
 Insert the comment character
-.Pq Sq #
+.Pq Dq # \&
 at the start of the current line and return the line to the shell (equivalent
 to
 .Ic \&I#^J ) .
