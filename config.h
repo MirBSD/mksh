@@ -1,4 +1,4 @@
-/* $MirBSD: config.h,v 1.7 2004/05/24 16:35:08 tg Exp $ */
+/* $MirBSD: config.h,v 1.8 2004/05/24 17:15:37 tg Exp $ */
 /* $OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -32,9 +32,6 @@
 
 /* Define if your struct stat has st_rdev.  */
 #define HAVE_ST_RDEV 1
-
-/* Define if you have <sys/wait.h> that is POSIX.1 compatible.  */
-#define HAVE_SYS_WAIT_H 1
 
 /* Define if you have <unistd.h>.  */
 #define HAVE_UNISTD_H 1
