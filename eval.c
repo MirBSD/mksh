@@ -1,4 +1,4 @@
-/**	$MirBSD: eval.c,v 1.9 2004/12/09 16:32:09 tg Exp $ */
+/**	$MirBSD: eval.c,v 1.10 2004/12/10 16:01:34 tg Exp $ */
 /*	$OpenBSD: eval.c,v 1.16 2004/12/08 21:23:18 millert Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include "ksh_dir.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: eval.c,v 1.9 2004/12/09 16:32:09 tg Exp $");
+__RCSID("$MirBSD: eval.c,v 1.10 2004/12/10 16:01:34 tg Exp $");
 
 /*
  * string expansion
@@ -556,7 +556,7 @@ expand(char *cp, XPtrV *wp, int f)
 			 * doesn't do this, but POSIX does).
 			 */
 			if (word == IFS_WORD
-			    || (!ctype(c, C_IFSWS) && word == IFS_NWS))
+			    || (!ctype(c, C_IFSWS) && c && word == IFS_NWS))
 			{
 				char *p;
 

@@ -147,12 +147,12 @@ stdin:
 	showargs 10 ${FOO-`echo -n h:i`th:ere}
 	showargs 11 "${FOO-`echo -n h:i`th:ere}"
 expected-stdout:
-	1: [] [b] [] []
+	1: [] [b] []
 	2: [:b::]
-	 <3> <> <b> <> <>
+	 <3> <> <b> <>
 	 <4> <:b::>
-	5: [a] [b] []
-	 <6> <a> <b> <>
+	5: [a] [b]
+	 <6> <a> <b>
 	7: [a] [] [c]
 	 <8> <a> <> <c>
 	9: [h] [ith] [ere]

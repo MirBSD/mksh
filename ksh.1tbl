@@ -1,4 +1,4 @@
-.\"	$MirBSD: ksh.1tbl,v 1.44 2004/12/07 18:01:50 tg Exp $
+.\"	$MirBSD: ksh.1tbl,v 1.45 2004/12/10 16:01:34 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.79 2004/12/04 07:05:13 jaredy Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.52 2004/11/09 21:56:54 jmc Exp $
 .\"
@@ -1015,14 +1015,12 @@ whitespace
 characters, delimit a field.
 As a special case, leading and trailing
 .Ev IFS
-whitespace is stripped (i.e., no leading or trailing empty field is created by
-it); leading or trailing
+whitespace and trailing
+.Ev IFS
+non-whitespace is stripped (i.e., no leading or trailing
+empty field is created by it); leading or trailing
 .Pf non- Ev IFS
-whitespace as well as leading or trailing
-.Ev IFS
-non-whitespace (after stripping
-.Ev IFS
-whitespace) does create an empty field.
+whitespace does create an empty field.
 .Pp
 Example: If
 .Ev IFS
