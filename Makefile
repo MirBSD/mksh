@@ -1,4 +1,4 @@
-# $MirOS$
+# $MirOS: src/bin/ksh/Makefile,v 1.1.7.1 2005/03/06 15:42:53 tg Exp $
 # $OpenBSD: Makefile,v 1.18 2004/02/16 19:07:19 deraadt Exp $
 
 PROG=	ksh
@@ -8,7 +8,7 @@ SRCS=	alloc.c c_ksh.c c_sh.c c_test.c c_ulimit.c edit.c emacs.c eval.c \
 MAN=	ksh.1 sh.1
 
 CPPFLAGS+=	-DHAVE_CONFIG_H -I. -DMIRBSD_NATIVE
-CFLAGS+=	-Wall -Werror -W -pedantic
+CFLAGS+=	-Wall -Wextra -pedantic
 CLEANFILES+=	emacs.out
 
 LINKS=	${BINDIR}/ksh ${BINDIR}/rksh
