@@ -1,11 +1,10 @@
-/* $MirBSD: vi.c,v 1.5 2004/05/24 19:56:21 tg Stab $ */
+/* $MirBSD: vi.c,v 1.6 2004/09/21 11:42:29 tg Exp $ */
 /* $OpenBSD: vi.c,v 1.13 2004/05/10 16:28:47 pvalchev Exp $	*/
 
 /*
  *	vi command editing
  *	written by John Rochester (initially for nsh)
  *	bludgeoned to fit pdksh by Larry Bouzane, Jeff Sparkes & Eric Gisin
- *
  */
 
 #include "config.h"
@@ -16,7 +15,6 @@
 #include "ksh_stat.h"		/* completion */
 #include "edit.h"
 
-#define CMDLEN		4096
 #define Ctrl(c)		(c&0x1f)
 #define	is_wordch(c)	(letnum(c))
 
@@ -141,24 +139,24 @@ const unsigned char	classify[128] = {
 #define VSEARCH		9		/* /, ? */
 #define VVERSION	10		/* <ESC> ^V */
 
-static char		undocbuf[CMDLEN];
+static char		undocbuf[LINE];
 
 static struct edstate 	*save_edstate ARGS((struct edstate *old));
 static void		restore_edstate ARGS((struct edstate *old, struct edstate *new));
 static void 		free_edstate ARGS((struct edstate *old));
 
 static struct edstate	ebuf;
-static struct edstate	undobuf = { 0, undocbuf, CMDLEN, 0, 0 };
+static struct edstate	undobuf = { 0, undocbuf, LINE, 0, 0 };
 
 static struct edstate	*es;			/* current editor state */
 static struct edstate	*undo;
 
-static char	ibuf[CMDLEN];		/* input buffer */
+static char	ibuf[LINE];		/* input buffer */
 static int	first_insert;		/* set when starting in insert mode */
 static int	saved_inslen;		/* saved inslen for first insert */
 static int	inslen;			/* length of input buffer */
 static int	srchlen;		/* length of current search pattern */
-static char	ybuf[CMDLEN];		/* yank buffer */
+static char	ybuf[LINE];		/* yank buffer */
 static int	yanklen;		/* length of yank buffer */
 static int	fsavecmd = ' ';		/* last find command */
 static int	fsavech;		/* character to find */
@@ -196,7 +194,7 @@ x_vi(buf, len)
 {
 	int	c;
 
-	vi_reset(buf, len > CMDLEN ? CMDLEN : len);
+	vi_reset(buf, len > LINE ? LINE : len);
 	vi_pprompt(1);
 	x_flush();
 	while (1) {
@@ -1386,7 +1384,7 @@ static int	wbuf_len;		/* length of window buffers (x_cols-3)*/
 static int	win;			/* window buffer in use */
 static char	morec;			/* more character at right of window */
 static int	lastref;		/* argument to last refresh() */
-static char	holdbuf[CMDLEN];	/* place to hold last edit buffer */
+static char	holdbuf[LINE];		/* place to hold last edit buffer */
 static int	holdlen;		/* length of holdbuf */
 
 static void
