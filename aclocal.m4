@@ -1,11 +1,8 @@
-dnl Copyright (C) 1996, Memorial University of Newfoundland.
-dnl This file is covered by the GNU General Public License, version 2, see
-dnl the file misc/COPYING for details.
+dnl $MirBSD: aclocal.m4,v 1.8 2004/05/24 17:32:10 tg Exp $
 dnl
-dnl This file is covered by the GPL 'cause it contains some modified versions
-dnl of autoconf's macros, in particular:
-dnl	AC_FUNC_MMAP
-dnl	AC_HEADER_STAT
+dnl Copyright (c) 2004 Thorsten Glaser
+dnl Copyright (C) 1996, Memorial University of Newfoundland.
+dnl ------------------------------------------------------------
 dnl
 dnl
 dnl Like AC_CHECK_TYPE(), only
@@ -1088,105 +1085,6 @@ if test $ksh_cv_func_lstat = yes; then
   AC_DEFINE(HAVE_LSTAT)
 fi
 ])
-dnl
-dnl
-dnl
-dnl Modified test from autoconf's acspecific.m4: MMAP test needs to check
-dnl for/use the MAP_FILE flag. (Needed for older NetBSD systems).
-undefine([AC_FUNC_MMAP])dnl
-AC_DEFUN(AC_FUNC_MMAP,
-[AC_CHECK_FUNCS(valloc getpagesize)
-AC_CACHE_CHECK(for working mmap, ac_cv_func_mmap,
-[AC_TRY_RUN([
-/* Thanks to Mike Haertel and Jim Avera for this test. */
-#include <sys/types.h>
-#include <fcntl.h>
-#include <sys/mman.h>
-
-#ifndef HAVE_GETPAGESIZE
-# include <sys/param.h>
-# ifdef EXEC_PAGESIZE
-#  define getpagesize() EXEC_PAGESIZE
-# else
-#  ifdef NBPG
-#   define getpagesize() NBPG * CLSIZE
-#   ifndef CLSIZE
-#    define CLSIZE 1
-#   endif
-#  else
-#   ifdef NBPC
-#    define getpagesize() NBPC
-#   else
-#    define getpagesize() PAGESIZE /* SVR4 */
-#   endif
-#  endif
-# endif
-#endif
-
-#ifndef HAVE_VALLOC
-# define valloc malloc
-#endif
-
-#ifdef __cplusplus
-extern "C" { void *valloc(unsigned), *malloc(unsigned); }
-#else
-char *valloc(), *malloc();
-#endif
-
-#ifndef MAP_FILE
-# define MAP_FILE 0
-#endif /* MAP_FILE */
-
-int
-main()
-{
-  char *buf1, *buf2, *buf3;
-  int i = getpagesize(), j;
-  int i2 = i * 2;
-  int fd;
-
-  buf1 = (char *)valloc(i2);
-  buf2 = (char *)valloc(i);
-  buf3 = (char *)malloc(i2);
-  for (j = 0; j < i2; ++j)
-    *(buf1 + j) = rand();
-  fd = open("conftestmmap", O_CREAT | O_RDWR, 0666);
-  write(fd, buf1, i2);
-  mmap(buf2, i, PROT_READ | PROT_WRITE, MAP_FILE | MAP_FIXED | MAP_PRIVATE, fd, 0);
-  for (j = 0; j < i; ++j)
-    if (*(buf1 + j) != *(buf2 + j))
-      exit(1);
-  lseek(fd, (long)i, 0);
-  read(fd, buf2, i); /* read into mapped memory -- file should not change */
-  /* (it does in i386 SVR4.0 - Jim Avera, jima@netcom.com) */
-  lseek(fd, (long)0, 0);
-  read(fd, buf3, i2);
-  for (j = 0; j < i2; ++j)
-    if (*(buf1 + j) != *(buf3 + j))
-      exit(1);
-  exit(0);
-}
-], ac_cv_func_mmap=yes, ac_cv_func_mmap=no, ac_cv_func_mmap=no)])
-if test $ac_cv_func_mmap = yes; then
-  AC_DEFINE(HAVE_MMAP)
-fi
-])
-dnl
-dnl
-dnl Need to change to check for ndir
-dnl
-undefine([AC_HEADER_DIRENT])dnl
-AC_DEFUN(AC_HEADER_DIRENT,
-[ac_header_dirent=no
-AC_CHECK_HEADERS_DIRENT(dirent.h sys/ndir.h sys/dir.h ndir.h,
-  [ac_header_dirent=$ac_hdr; break])
-# Two versions of opendir et al. are in -ldir and -lx on SCO Xenix.
-if test $ac_header_dirent = dirent.h; then
-AC_CHECK_LIB(dir, opendir, LIBS="$LIBS -ldir", AC_CHECK_LIB(ndir, opendir, LIBS="$LIBS -lndir"))
-else
-AC_CHECK_LIB(x, opendir, LIBS="$LIBS -lx")
-fi
-])      
 dnl
 dnl
 dnl Like AC_HEADER_SYS_WAIT, only HAVE_SYS_WAIT_H if sys/wait.h exists and
