@@ -1,0 +1,16 @@
+$MirBSD: LEGAL,v 1.6 2004/04/24 21:45:00 tg Exp $
+$OpenBSD: LEGAL,v 1.2 2003/07/17 20:59:43 deraadt Exp $
+
+pdksh is provided AS IS, with NO WARRANTY, either expressed or implied.
+
+The vast majority of the code that makes pdksh is in the public domain.
+The exceptions are not included in the MirBSD source tree.
+
+That's it.  Short and simple.
+
+Now european (except Commonwealth) copyright laws come into the game.
+This means, public domain does not exist, and authors are always
+liable for a minimum of things.
+That's why, this package is placed under the MirOS licence template, found
+at https://mirbsd.bsdadvocacy.org/cvs.cgi/src/share/misc/licence.template
+or at the top of the "Build.sh" file found in the standalone distfile.
