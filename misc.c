@@ -1,4 +1,4 @@
-/**	$MirBSD: misc.c,v 1.12 2004/10/28 11:53:42 tg Exp $ */
+/**	$MirBSD: misc.c,v 1.13 2004/10/31 22:28:42 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.20 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -11,7 +11,7 @@
 # include <limits.h>
 #endif
 
-__RCSID("$MirBSD: misc.c,v 1.12 2004/10/28 11:53:42 tg Exp $");
+__RCSID("$MirBSD: misc.c,v 1.13 2004/10/31 22:28:42 tg Exp $");
 
 #ifndef UCHAR_MAX
 # define UCHAR_MAX	0xFF
@@ -23,6 +23,10 @@ static int	do_gmatch(const unsigned char *s, const unsigned char *p,
 			const unsigned char *se, const unsigned char *pe,
 			int isfile);
 static const unsigned char *cclass(const unsigned char *p, int sub);
+
+#ifdef KSH
+static int parse_T(char *);
+#endif
 
 /*
  * Fast character classes
@@ -319,7 +323,8 @@ change_flag(enum sh_flag f, int what, int newval)
 	}
 	/* Changing interactive flag? */
 	if (f == FTALKING) {
-		if ((what == OF_CMDLINE || what == OF_SET) && procpid == kshpid)
+		if ((what == OF_CMDLINE || what == OF_SET)
+		    && procpid == kshpid)
 			Flag(FTALKING_I) = newval;
 	}
 }
@@ -333,7 +338,7 @@ parse_args(char **argv, int what, int *setargsp)
 	   	     		/* OF_CMDLINE or OF_SET */
 
 {
-	static char cmd_opts[NELEM(options) + 3]; /* o:\0 */
+	static char cmd_opts[NELEM(options) + 5]; /* o:T:\0 */
 	static char set_opts[NELEM(options) + 5]; /* Ao;s\0 */
 	char *opts;
 	char *array = (char *) 0;
@@ -346,7 +351,11 @@ parse_args(char **argv, int what, int *setargsp)
 		char *p, *q;
 
 		/* see cmd_opts[] declaration */
+#ifdef KSH
+		strlcpy(cmd_opts, "o:T:", sizeof cmd_opts);
+#else
 		strlcpy(cmd_opts, "o:", sizeof cmd_opts);
+#endif
 		p = cmd_opts + strlen(cmd_opts);
 		/* see set_opts[] declaration */
 		strlcpy(set_opts, "A:o;s", sizeof set_opts);
@@ -382,6 +391,14 @@ parse_args(char **argv, int what, int *setargsp)
 			arrayset = set ? 1 : -1;
 			array = go.optarg;
 			break;
+
+#ifdef KSH
+		  case 'T':
+			if (parse_T(go.optarg))
+				return -1;
+			change_flag(FTALKING, OF_CMDLINE, 1);
+			break;
+#endif
 
 		  case 'o':
 			if (go.optarg == (char *) 0) {
@@ -1299,3 +1316,34 @@ ksh_get_wd(char *buf, int bsize)
 	return b;
 #endif /* HAVE_GETCWD */
 }
+
+#ifdef KSH
+#include "ksh_stat.h"
+static int
+parse_T(char *fn)
+{
+	char *rv, dv[20];
+	struct stat sb;
+
+	strlcpy(dv, fn, 20);
+	if (stat(dv, &sb)) {
+		snprintf(dv, 20, "/dev/ttyC%s", fn);
+		if (stat(dv, &sb)) {
+			snprintf(dv, 20, "/dev/tty%s", fn);
+			if (stat(dv, &sb)) {
+				warningf(0, "chvt: can't find tty %s", fn);
+				return -1;
+			}
+		}
+	}
+	if (!(sb.st_mode & S_IFCHR)) {
+		warningf(0, "chvt: not a char device: %s", fn);
+		return -1;
+	}
+	if ((rv = chvt(dv)) != NULL) {
+		warningf(0, "chvt: failed to %s: %s", rv, strerror(errno));
+		return -1;
+	}
+	return 0;
+}
+#endif

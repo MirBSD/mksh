@@ -1,8 +1,8 @@
-# $MirBSD: Makefile,v 1.8 2004/10/28 16:35:01 tg Exp $
+# $MirBSD: Makefile,v 1.9 2004/10/31 22:28:41 tg Exp $
 # $OpenBSD: Makefile,v 1.18 2004/02/16 19:07:19 deraadt Exp $
 
 PROG=	ksh
-SRCS=	alloc.c c_ksh.c c_sh.c c_test.c c_ulimit.c edit.c emacs.c \
+SRCS=	alloc.c c_ksh.c c_sh.c c_test.c c_ulimit.c chvt.c edit.c emacs.c \
 	eval.c exec.c expr.c history.c io.c jobs.c lex.c mail.c \
 	main.c misc.c missing.c path.c rnd.c shf.c syn.c table.c \
 	trap.c tree.c tty.c var.c version.c vi.c

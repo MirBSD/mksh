@@ -1,4 +1,4 @@
-/**	$MirBSD: proto.h,v 1.8 2004/10/28 11:53:43 tg Exp $ */
+/**	$MirBSD: proto.h,v 1.9 2004/10/31 22:28:43 tg Exp $ */
 /*	$OpenBSD: proto.h,v 1.11 2003/05/16 19:58:57 jsyn Exp $	*/
 /*	$From: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $ */
 
@@ -54,6 +54,8 @@ int 	c_exec(char **wp);
 int 	c_builtin(char **wp);
 /* c_test.c */
 int 	c_test(char **wp);
+/* chvt.c */
+char *	chvt(char *);
 /* edit.c: most prototypes in edit.h */
 void 	x_init(void);
 int 	x_read(char *buf, size_t len);
