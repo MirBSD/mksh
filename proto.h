@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/proto.h,v 2.6 2004/12/28 22:32:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/proto.h,v 2.7 2004/12/28 22:33:21 tg Exp $ */
 /*	$OpenBSD: proto.h,v 1.11 2003/05/16 19:58:57 jsyn Exp $	*/
 /*	$From: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $ */
 
@@ -195,7 +195,6 @@ void	print_columns(struct shf *shf, int n,
 			      char *(*func)(void *, int, char *, int),
 			      void *arg, int max_width, int prefcol);
 int	strip_nuls(char *buf, int nbytes);
-char	*str_zcpy(char *dst, const char *src, int dsize);
 int	blocking_read(int fd, char *buf, int nbytes);
 int	reset_nonblock(int fd);
 char	*ksh_get_wd(char *buf, int bsize);

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/misc.c,v 2.8 2004/12/28 22:32:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/misc.c,v 2.9 2004/12/28 22:33:21 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.20 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -13,7 +13,7 @@
 #include <sys/ioctl.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.8 2004/12/28 22:32:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.9 2004/12/28 22:33:21 tg Exp $");
 
 #ifndef UCHAR_MAX
 # define UCHAR_MAX	0xFF
@@ -1124,23 +1124,6 @@ strip_nuls(char *buf, int nbytes)
 		return dst - buf;
 	}
 	return nbytes;
-}
-
-/* Copy at most dsize-1 bytes from src to dst, ensuring dst is null terminated.
- * Returns dst.
- */
-char *
-str_zcpy(char *dst, const char *src, int dsize)
-{
-	if (dsize > 0) {
-		int len = strlen(src);
-
-		if (len >= dsize)
-			len = dsize - 1;
-		memcpy(dst, src, len);
-		dst[len] = '\0';
-	}
-	return dst;
 }
 
 /* Like read(2), but if read fails due to non-blocking flag, resets flag
