@@ -1,4 +1,4 @@
-.\"	$MirBSD: ksh.1tbl,v 1.43 2004/12/07 17:57:58 tg Exp $
+.\"	$MirBSD: ksh.1tbl,v 1.44 2004/12/07 18:01:50 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.79 2004/12/04 07:05:13 jaredy Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.52 2004/11/09 21:56:54 jmc Exp $
 .\"
@@ -4526,7 +4526,7 @@ Moves the cursor backward to the beginning of the word; words consist of
 alphanumerics, underscore
 .Pq Sq _
 and dollar sign
-.Pq Dq $ \&
+.Pq Sq \&$
 characters.
 .It Ic beginning-of-history ^[<
 Moves to the beginning of the history.
@@ -4868,10 +4868,10 @@ insert mode; if
 is not specified, the last word is inserted.
 .It Ic \&#
 Insert the comment character
-.Pq Dq # \&
+.Pq Sq \&#
 at the start of the current line and return the line to the shell (equivalent
 to
-.Ic \&I#^J ) .
+.Ic \&I\&#^J ) .
 .It Ar n Ns Ic g
 Like
 .Ic G ,
@@ -4885,7 +4885,7 @@ using the vi editor; if
 .Ar n
 is not specified, the current line is edited.
 The actual command executed is
-.Ic fc Fl e Ic ${VISUAL;-${EDITOR:-vi}} Ar n .
+.Ic fc Fl e Ic ${VISUAL:-${EDITOR:-vi}} Ar n .
 .It Ic \&* No and Ic ^X
 Command or file name expansion is applied to the current big-word (with an
 appended
