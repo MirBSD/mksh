@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: BuildGNU.sh,v 1.5 2004/03/22 19:03:52 tg Exp $
+# $MirBSD: BuildGNU.sh,v 1.6 2004/04/07 17:14:11 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -18,10 +18,10 @@
 # ly, but not by a developer's malice intent, even if advised of the
 # possibility of such damage.
 #-
-# Build the mirbsdksh on GNU operating systems
+# Build the mirbsdksh on GNU operating systems (and more?)
 
 CC="${CC:-gcc}"
-CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -I."
+CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -I. -DKSH"
 CFLAGS="-O2 -fomit-frame-pointer -fno-strict-aliasing -static $CFLAGS"
 
 if [ -e strlcpy.c -a -e strlcat.c ]; then
@@ -31,7 +31,7 @@ if [ -e strlcpy.c -a -e strlcat.c ]; then
 	/bin/sh ./siglist.sh "gcc -E $CPPFLAGS" <siglist.in >siglist.out
 	/bin/sh ./emacs-gen.sh emacs.c >emacs.out
 	echo "Building..."
-	$CC $CFLAGS $CPPFLAGS -DKSH -o ksh *.c
+	$CC $CFLAGS $CPPFLAGS -o ksh *.c
 	echo "Finalizing..."
 	tbl <ksh.1tbl | nroff -mandoc -Tascii >ksh.cat1
 	strip -R .note -R .comment -R .rel.dyn -R .sbss \

@@ -1,4 +1,4 @@
-.\" $MirBSD: sh.1tbl,v 1.6 2004/04/07 16:56:19 tg Exp $
+.\" $MirBSD: sh.1tbl,v 1.7 2004/04/07 17:14:13 tg Exp $
 .\" _MirBSD: ksh.1tbl,v 1.19 2004/04/07 16:54:01 tg Exp $
 .\" $OpenBSD: ksh.1tbl,v 1.65 2004/01/23 23:08:45 jmc Exp $
 .\"
@@ -3835,7 +3835,7 @@ imposed may have introduced different behaviour.
 Please include the version of
 .Nm pdksh
 .Po
-.Ic echo $KSH_VERSION
+.Ic echo $SH_VERSION
 shows it
 .Pc ,
 the machine, operating system, and compiler you are using and a description of
