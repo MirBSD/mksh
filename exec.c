@@ -1,4 +1,4 @@
-/*	$OpenBSD: exec.c,v 1.27 2003/02/28 09:45:09 jmc Exp $	*/
+/*	$OpenBSD: exec.c,v 1.31 2003/12/15 05:25:52 otto Exp $	*/
 
 /*
  * execute command tree
@@ -230,8 +230,10 @@ execute(t, flags)
 		e->savefd[1] = savefd(1, 0);
 
 		openpipe(pv);
-		ksh_dup2(pv[0], 0, FALSE);
-		close(pv[0]);
+		if (pv[0] != 0) {
+			ksh_dup2(pv[0], 0, FALSE);
+			close(pv[0]);
+		}
 		coproc.write = pv[1];
 		coproc.job = (void *) 0;
 
@@ -457,11 +459,12 @@ comexec(t, tp, ap, flags)
 	int type_flags;
 	int keepasn_ok;
 	int fcflags = FC_BI|FC_FUNC|FC_PATH;
+	int bourne_function_call = 0;
 
 #ifdef KSH
 	/* snag the last argument for $_ XXX not the same as at&t ksh,
 	 * which only seems to set $_ after a newline (but not in
-	 * functions/dot scripts, but in interactive and scipt) -
+	 * functions/dot scripts, but in interactive and script) -
 	 * perhaps save last arg here and set it in shell()?.
 	 */
 	if (!Flag(FSH) && Flag(FTALKING) && *(lastp = ap)) {
@@ -546,9 +549,10 @@ comexec(t, tp, ap, flags)
 		newblock();
 		/* ksh functions don't keep assignments, POSIX functions do. */
 		if (keepasn_ok && tp && tp->type == CFUNC
-		    && !(tp->flag & FKSH))
+		    && !(tp->flag & FKSH)) {
+			bourne_function_call = 1;
 			type_flags = 0;
-		else
+		} else
 			type_flags = LOCAL|LOCAL_COPY|EXPORT;
 	}
 	if (Flag(FEXPORT))
@@ -565,6 +569,8 @@ comexec(t, tp, ap, flags)
 				shf_flush(shl_out);
 		}
 		typeset(cp, type_flags, 0, 0, 0);
+		if (bourne_function_call && !(type_flags & EXPORT))
+			typeset(cp, LOCAL|LOCAL_COPY|EXPORT, 0, 0, 0);
 	}
 
 	if ((cp = *ap) == NULL) {
@@ -1355,6 +1361,8 @@ iosetup(iop, tp)
 				snptreef((char *) 0, 32, "%R", &iotmp), emsg);
 			return -1;
 		}
+		if (u == iop->unit)
+			return 0;		/* "dup from" == "dup to" */
 		break;
 	  }
 	}
