@@ -1,5 +1,5 @@
-/* $MirBSD: main.c,v 1.8 2004/05/24 19:56:16 tg Exp $ */
-/* $OpenBSD: main.c,v 1.26 2004/01/08 05:43:14 jmc Exp $	*/
+/**	$MirBSD: main.c,v 1.9 2004/08/27 14:08:35 tg Stab $ */
+/*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
  * startup, main loop, environments and error handling
@@ -734,7 +734,8 @@ quitenv()
 				 * Don't do it for SIGQUIT, since we'd
 				 * dump a core..
 				 */
-				if (sig == SIGINT || sig == SIGTERM) {
+				if ((sig == SIGINT || sig == SIGTERM) &&
+				    getpgrp() == kshpid) {
 					setsig(&sigtraps[sig], SIG_DFL,
 						SS_RESTORE_CURR|SS_FORCE);
 					kill(0, sig);

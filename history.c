@@ -1,5 +1,5 @@
-/* $MirBSD: history.c,v 1.8 2004/05/24 19:56:09 tg Exp $ */
-/* $OpenBSD: history.c,v 1.22 2003/05/18 01:02:42 jsyn Exp $	*/
+/**	$MirBSD: history.c,v 1.9 2004/08/27 14:08:35 tg Stab $ */
+/*	$OpenBSD: history.c,v 1.24 2004/08/03 12:44:59 danh Exp $	*/
 
 /*
  * command history
@@ -86,6 +86,11 @@ c_fc(wp)
 	int optc;
 	char *first = (char *) 0, *last = (char *) 0;
 	char **hfirst, **hlast, **hp;
+
+	if (!Flag(FTALKING_I)) {
+		bi_errorf("history functions not available");
+		return 1;
+	}
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "e:glnrs0,1,2,3,4,5,6,7,8,9,")) != EOF)
 		switch (optc) {

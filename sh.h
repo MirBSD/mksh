@@ -1,5 +1,10 @@
-/* $MirBSD: sh.h,v 1.9 2004/05/24 19:56:17 tg Exp $ */
-/* $OpenBSD: sh.h,v 1.17 2004/05/10 16:28:47 pvalchev Exp $	*/
+/**	$MirBSD: sh.h,v 1.10 2004/08/27 14:08:36 tg Exp $ */
+/*	$OpenBSD: sh.h,v 1.18 2004/05/31 10:36:35 otto Exp $	*/
+
+/*
+ * Public Domain Bourne/Korn shell
+ */
+
 /* $From: sh.h,v 1.2 1994/05/19 18:32:40 michael Exp michael $ */
 
 #include "config.h"	/* system and option configuration info */
@@ -111,7 +116,6 @@ void *memmove ARGS((void *d, const void *s, size_t n));
 #endif /* HAVE_PROTOTYPES */
 
 #include <errno.h>
-extern int errno;
 
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
