@@ -1,4 +1,4 @@
-/*	$MirBSD: sh.h,v 1.3 2003/05/22 14:06:07 tg Exp $	*/
+/*	$MirBSD: sh.h,v 1.4 2003/06/26 18:26:21 tg Exp $	*/
 /*	$OpenBSD: sh.h,v 1.13 2003/05/16 19:58:57 jsyn Exp $	*/
 
 /*
@@ -475,6 +475,7 @@ enum sh_flag {
 	FCOMMAND,	/* -c: (invocation) execute specified command */
 #ifdef EMACS
 	FEMACS,		/* emacs command editing */
+	FEMACSUSEMETA,	/* use 8th bit as meta */
 #endif
 	FERREXIT,	/* -e: quit on error */
 #ifdef EMACS

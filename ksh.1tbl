@@ -1,4 +1,4 @@
-.\"	$MirBSD: ksh.1tbl,v 1.6 2003/06/14 11:51:40 tg Exp $
+.\"	$MirBSD: ksh.1tbl,v 1.7 2003/06/26 18:26:21 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.53 2003/06/06 10:05:52 jmc Exp $
 .\"
 .\" Copyright (c) 1980, 1990, 1993
@@ -3353,6 +3353,9 @@ Enable brace expansion (a.k.a., alternation).
 .It Ic emacs
 Enable BRL emacs-like command-line editing (interactive shells only); see
 .Sx Emacs editing mode .
+.It Ic emacs-usemeta
+In emacs command-line editing, use the 8th bit as meta (^[) prefix.
+This is the default.
 .It Ic gmacs
 Enable gmacs-like command-line editing (interactive shells only).
 Currently identical to emacs editing except that transpose (^T) acts slightly
@@ -4313,9 +4316,15 @@ When the
 .Ic emacs
 option is set, interactive input line editing is enabled.
 Warning: This mode is
-slightly different from the emacs mode in the original Korn shell and the 8th
-bit is stripped in emacs mode.
-In this mode, various editing commands
+slightly different from the emacs mode in the original Korn shell.
+By default, the eight bit is used as Meta, but this can be turned
+off by entering
+.Ic set +o emacs-usemeta ,
+which is default in the
+.Mx 6
+.Pa /etc/profile
+file.
+In the emacs mode, various editing commands
 (typically bound to one or more control characters) cause immediate actions
 without waiting for a newline.
 Several editing commands are bound to particular
