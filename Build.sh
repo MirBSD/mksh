@@ -1,8 +1,8 @@
 #!/bin/sh
-# $MirBSD: Build.sh,v 1.6 2004/05/25 22:19:30 tg Exp $
+# $MirBSD: Build.sh,v 1.7 2004/06/02 15:06:49 tg Exp $
 #-
 # Copyright (c) 2004
-#	Thorsten Glaser <x86@ePost.de>
+#	Thorsten "mirabile" Glaser <x86@ePost.de>
 #
 # Licensee is hereby permitted to deal in this work without restric-
 # tion, including unlimited rights to use, publically perform, modi-
@@ -14,10 +14,10 @@
 # Licensor hereby provides this work "AS IS" and WITHOUT WARRANTY of
 # any kind, expressed or implied, to the maximum extent permitted by
 # applicable law, but with the warranty of being written without ma-
-# licious intent or gross negligence; in no event shall an author or
-# contributor be held liable for any direct, indirect or other dama-
-# ge, however caused, arising in any way out of the usage of covered
-# work, even if advised of the possibility of such damage.
+# licious intent or gross negligence; in no event shall licensor, an
+# author or contributor be held liable for any damage, direct, indi-
+# rect or other, however caused, arising in any way out of the usage
+# of covered work, even if advised of the possibility of such damage.
 #-
 # Build the more||less portable mirbsdksh on most operating systems.
 # Notes for building on various operating systems:
