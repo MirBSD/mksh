@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/sh.h,v 2.8 2004/12/28 22:32:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/sh.h,v 2.9 2004/12/31 17:08:29 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.23 2004/12/18 22:11:43 millert Exp $	*/
 
 #ifndef SH_H
@@ -255,8 +255,12 @@ extern int dup2(int, int);
 
 #ifndef EXECSHELL
 /* shell to exec scripts (see also $SHELL initialization in main.c) */
-#  define EXECSHELL	"/bin/sh"
-#  define EXECSHELL_STR	"EXECSHELL"
+# ifdef _PATH_BSHELL
+#  define EXECSHELL	_PATH_BSHELL
+# else
+#  define EXECSHELL	"/bin/mksh"
+# endif
+# define EXECSHELL_STR	"EXECSHELL"
 #endif
 
 /* ISABSPATH() means path is fully and completely specified,
