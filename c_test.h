@@ -1,5 +1,8 @@
-/**	$MirBSD: c_test.h,v 1.4 2004/10/28 11:11:17 tg Exp $ */
+/**	$MirBSD: c_test.h,v 1.5 2004/10/28 11:53:40 tg Exp $ */
 /*	$OpenBSD: c_test.h,v 1.2 2003/10/22 07:40:38 jmc Exp $	*/
+
+#ifndef C_TEST_H
+#define C_TEST_H
 
 /* Various types of operations.  Keeping things grouped nicely
  * (unary,binary) makes switch() statements more efficient.
@@ -54,3 +57,5 @@ Test_op	test_isop(Test_env *te, Test_meta meta, const char *s);
 int     test_eval(Test_env *te, Test_op op, const char *opnd1,
 			const char *opnd2, int do_eval);
 int	test_parse(Test_env *te);
+
+#endif	/* ndef C_TEST_H */

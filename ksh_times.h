@@ -1,8 +1,8 @@
-/**	$MirBSD: ksh_times.h,v 1.4 2004/10/28 11:11:18 tg Exp $ */
+/**	$MirBSD: ksh_times.h,v 1.5 2004/10/28 11:53:42 tg Exp $ */
 /*	$OpenBSD: ksh_times.h,v 1.2 1996/10/01 02:05:41 downsj Exp $	*/
 
 #ifndef KSH_TIMES_H
-# define KSH_TIMES_H
+#define KSH_TIMES_H
 
 /* Needed for clock_t on some systems (ie, NeXT in non-posix mode) */
 #include "ksh_time.h"
@@ -18,4 +18,5 @@ extern clock_t	ksh_times(struct tms *);
 #ifdef HAVE_TIMES
 extern clock_t	times(struct tms *);
 #endif /* HAVE_TIMES */
+
 #endif /* KSH_TIMES_H */

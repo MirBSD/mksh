@@ -1,5 +1,8 @@
-/**	$MirBSD: sh.h,v 1.14 2004/10/28 11:11:19 tg Exp $ */
+/**	$MirBSD: sh.h,v 1.15 2004/10/28 11:53:43 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.18 2004/05/31 10:36:35 otto Exp $	*/
+
+#ifndef SH_H
+#define SH_H
 
 /*
  * mirbsdksh - MirOS Project Korn-Shell
@@ -102,13 +105,8 @@ void *memmove(void *d, const void *s, size_t n);
 # endif
 #endif /* HAVE_MEMMOVE */
 
-#ifdef HAVE_PROTOTYPES
 # include <stdarg.h>
 # define SH_VA_START(va, argn) va_start(va, argn)
-#else
-# include <varargs.h>
-# define SH_VA_START(va, argn) va_start(va)
-#endif /* HAVE_PROTOTYPES */
 
 #include <errno.h>
 
@@ -722,3 +720,5 @@ EXTERN	int	x_cols I__(80);	/* tty columns */
 # undef EXTERN
 #endif
 #undef I__
+
+#endif	/* ndef SH_H */

@@ -1,6 +1,9 @@
-/**	$MirBSD: lex.h,v 1.3 2004/09/21 11:57:13 tg Exp $ */
+/**	$MirBSD: lex.h,v 1.4 2004/10/28 11:53:42 tg Exp $ */
 /*	$OpenBSD: lex.h,v 1.7 2003/02/28 09:45:09 jmc Exp $	*/
 /*	$From: lex.h,v 1.4 1994/05/31 13:34:34 michael Exp $ */
+
+#ifndef LEX_H
+#define LEX_H
 
 /*
  * Source input, lexer and parser
@@ -130,3 +133,5 @@ EXTERN	char  **history;	/* saved commands */
 EXTERN	char  **histptr;	/* last history item */
 EXTERN	int	histsize;	/* history size */
 #endif /* HISTORY */
+
+#endif	/* ndef LEX_H */

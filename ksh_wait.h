@@ -1,5 +1,8 @@
-/**	$MirBSD: ksh_wait.h,v 1.3 2004/09/21 11:57:12 tg Exp $ */
+/**	$MirBSD: ksh_wait.h,v 1.4 2004/10/28 11:53:42 tg Exp $ */
 /*	$OpenBSD: ksh_wait.h,v 1.3 1997/06/19 13:58:43 kstailey Exp $	*/
+
+#ifndef KSH_WAIT_H
+#define KSH_WAIT_H
 
 /* Wrapper around the ugly sys/wait includes/ifdefs */
 
@@ -50,3 +53,5 @@ typedef int WAIT_T;
 #else /* !HAVE_WAITPID && HAVE_WAIT3 */
 # define ksh_waitpid(p, s, o)	waitpid((p), (s), (o))
 #endif /* !HAVE_WAITPID && HAVE_WAIT3 */
+
+#endif	/* ndef KSH_WAIT_H */

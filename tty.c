@@ -1,4 +1,4 @@
-/**	$MirBSD: tty.c,v 1.5 2004/10/28 11:11:19 tg Exp $ */
+/**	$MirBSD: tty.c,v 1.6 2004/10/28 11:53:43 tg Exp $ */
 /*	$OpenBSD: tty.c,v 1.2 1996/10/01 02:05:51 downsj Exp $	*/
 
 #include "sh.h"
@@ -7,12 +7,10 @@
 #include "tty.h"
 #undef EXTERN
 
-__RCSID("$MirBSD: tty.c,v 1.5 2004/10/28 11:11:19 tg Exp $");
+__RCSID("$MirBSD: tty.c,v 1.6 2004/10/28 11:53:43 tg Exp $");
 
 int
-get_tty(fd, ts)
-	int fd;
-	TTY_state *ts;
+get_tty(int fd, TTY_state *ts)
 {
 	int ret;
 
@@ -99,8 +97,7 @@ set_tty(int fd, TTY_state *ts, int flags GCC_FUNC_ATTR(unused))
  * foreground job completion and for setting up tty process group.
  */
 void
-tty_init(init_ttystate)
-	int init_ttystate;
+tty_init(int init_ttystate)
 {
 	int	do_close = 1;
 	int	tfd;
@@ -170,7 +167,7 @@ tty_init(init_ttystate)
 }
 
 void
-tty_close()
+tty_close(void)
 {
 	if (tty_fd >= 0) {
 		close(tty_fd);

@@ -1,8 +1,8 @@
-/**	$MirBSD: ksh_time.h,v 1.4 2004/10/28 11:11:18 tg Exp $ */
+/**	$MirBSD: ksh_time.h,v 1.5 2004/10/28 11:53:42 tg Exp $ */
 /*	$OpenBSD: ksh_time.h,v 1.2 1996/10/01 02:05:40 downsj Exp $	*/
 
 #ifndef KSH_TIME_H
-# define KSH_TIME_H
+#define KSH_TIME_H
 
 /* Wrapper around the ugly time.h,sys/time.h includes/ifdefs */
 
@@ -24,4 +24,5 @@ extern time_t time(time_t *);
 #ifndef CLK_TCK
 # define CLK_TCK 60			/* 60HZ */
 #endif
+
 #endif /* KSH_TIME_H */

@@ -1,5 +1,8 @@
-/**	$MirBSD: ksh_limval.h,v 1.3 2004/09/21 11:57:10 tg Exp $ */
+/**	$MirBSD: ksh_limval.h,v 1.4 2004/10/28 11:53:42 tg Exp $ */
 /*	$OpenBSD: ksh_limval.h,v 1.1.1.1 1996/08/14 06:19:11 downsj Exp $	*/
+
+#ifndef KSH_LIMVAL_H
+#define KSH_LIMVAL_H
 
 /* Wrapper around the values.h/limits.h includes/ifdefs */
 
@@ -23,3 +26,5 @@
 #ifndef BITS
 # define BITS(t)	(BITSPERBYTE * sizeof(t))
 #endif
+
+#endif	/* ndef KSH_LIMVAL_H */

@@ -1,5 +1,8 @@
-/**	$MirBSD: expand.h,v 1.5 2004/10/28 11:11:18 tg Exp $ */
+/**	$MirBSD: expand.h,v 1.6 2004/10/28 11:53:41 tg Exp $ */
 /*	$OpenBSD: expand.h,v 1.3 2001/03/26 16:19:45 todd Exp $	*/
+
+#ifndef EXPAND_H
+#define EXPAND_H
 
 /*
  * Expanding strings
@@ -106,3 +109,5 @@ typedef struct XPtrV {
 					 sizeofN(void*, XPsize(x)), ATEMP)
 
 #define	XPfree(x)	afree((void*) (x).beg, ATEMP)
+
+#endif	/* ndef EXPAND_H */

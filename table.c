@@ -1,4 +1,4 @@
-/**	$MirBSD: table.c,v 1.5 2004/10/28 11:11:19 tg Exp $ */
+/**	$MirBSD: table.c,v 1.6 2004/10/28 11:53:43 tg Exp $ */
 /*	$OpenBSD: table.c,v 1.5 1999/01/10 17:55:03 millert Exp $	*/
 
 /*
@@ -7,7 +7,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirBSD: table.c,v 1.5 2004/10/28 11:11:19 tg Exp $");
+__RCSID("$MirBSD: table.c,v 1.6 2004/10/28 11:53:43 tg Exp $");
 
 #define	INIT_TBLS	8	/* initial table size (power of 2) */
 
@@ -16,8 +16,7 @@ static int      tnamecmp(void *p1, void *p2);
 
 
 unsigned int
-hash(n)
-	const char * n;
+hash(const char *n)
 {
 	unsigned int h = 0;
 
@@ -27,10 +26,7 @@ hash(n)
 }
 
 void
-tinit(tp, ap, tsize)
-	struct table *tp;
-	Area *ap;
-	int tsize;
+tinit(struct table *tp, Area *ap, int tsize)
 {
 	tp->areap = ap;
 	tp->tbls = NULL;
@@ -40,9 +36,7 @@ tinit(tp, ap, tsize)
 }
 
 static void
-texpand(tp, nsize)
-	struct table *tp;
-	int nsize;
+texpand(struct table *tp, int nsize)
 {
 	int i;
 	struct tbl *tblp, **p;
@@ -75,10 +69,10 @@ texpand(tp, nsize)
 }
 
 struct tbl *
-tsearch(tp, n, h)
-	struct table *tp;	/* table */
-	const char *n;		/* name to enter */
-	unsigned int h;			/* hash(n) */
+tsearch(struct table *tp, const char *n, unsigned int h)
+	                 	/* table */
+	              		/* name to enter */
+	               			/* hash(n) */
 {
 	struct tbl **pp, *p;
 
@@ -98,10 +92,10 @@ tsearch(tp, n, h)
 }
 
 struct tbl *
-tenter(tp, n, h)
-	struct table *tp;	/* table */
-	const char *n;		/* name to enter */
-	unsigned int h;			/* hash(n) */
+tenter(struct table *tp, const char *n, unsigned int h)
+	                 	/* table */
+	              		/* name to enter */
+	               			/* hash(n) */
 {
 	struct tbl **pp, *p;
 	int len;
@@ -140,24 +134,20 @@ tenter(tp, n, h)
 }
 
 void
-tdelete(p)
-	struct tbl *p;
+tdelete(struct tbl *p)
 {
 	p->flag = 0;
 }
 
 void
-twalk(ts, tp)
-	struct tstate *ts;
-	struct table *tp;
+twalk(struct tstate *ts, struct table *tp)
 {
 	ts->left = tp->size;
 	ts->next = tp->tbls;
 }
 
 struct tbl *
-tnext(ts)
-	struct tstate *ts;
+tnext(struct tstate *ts)
 {
 	while (--ts->left >= 0) {
 		struct tbl *p = *ts->next++;
@@ -168,15 +158,13 @@ tnext(ts)
 }
 
 static int
-tnamecmp(p1, p2)
-	void *p1, *p2;
+tnamecmp(void *p1, void *p2)
 {
 	return strcmp(((struct tbl *)p1)->name, ((struct tbl *)p2)->name);
 }
 
 struct tbl **
-tsort(tp)
-	struct table *tp;
+tsort(struct table *tp)
 {
 	int i;
 	struct tbl **p, **sp, **dp;

@@ -1,4 +1,4 @@
-dnl $MirBSD: aclocal.m4,v 1.9 2004/05/24 19:55:54 tg Stab $
+dnl $MirBSD: aclocal.m4,v 1.10 2004/10/28 11:53:39 tg Exp $
 dnl
 dnl Copyright (c) 2004 Thorsten Glaser
 dnl Copyright (C) 1996, Memorial University of Newfoundland.
@@ -341,24 +341,6 @@ AC_DEFUN(KSH_C_VOLATILE,
     :
   else
     AC_DEFINE(volatile, )
-  fi
- ])dnl
-dnl
-dnl
-dnl
-dnl Check if function prototypes work (including stdc vararg prototypes)
-AC_DEFUN(KSH_C_PROTOTYPES,
- [AC_CACHE_CHECK(if compiler understands prototypes, ksh_cv_c_prototypes,
-    [AC_TRY_COMPILE([
-#include <stdarg.h>
-void foo(char *fmt, ...);
-int bar(int a, char b, char *c);
-int bar(a, b, c) int a; char b; char *c;
-{ foo("%d%c%s\n", a, b, c); return a + b + *c; }
-void foo(char *fmt, ...) { va_list a; va_start(a, fmt); va_end(a); }
-      ], , ksh_cv_c_prototypes=yes, ksh_cv_c_prototypes=no)])
-  if test $ksh_cv_c_prototypes = yes; then
-    AC_DEFINE(HAVE_PROTOTYPES)
   fi
  ])dnl
 dnl

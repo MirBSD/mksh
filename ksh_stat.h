@@ -1,5 +1,8 @@
-/**	$MirBSD: ksh_stat.h,v 1.4 2004/09/21 11:57:11 tg Exp $ */
+/**	$MirBSD: ksh_stat.h,v 1.5 2004/10/28 11:53:42 tg Exp $ */
 /*	$OpenBSD: ksh_stat.h,v 1.3 1996/10/01 02:05:39 downsj Exp $	*/
+
+#ifndef KSH_STAT_H
+#define KSH_STAT_H
 
 /* Wrapper around the ugly sys/stat includes/ifdefs */
 
@@ -64,3 +67,5 @@
 #ifndef S_IXOTH
 # define S_IXOTH	00001	/* user execute bit */
 #endif /* S_IXOTH */
+
+#endif	/* ndef KSH_STAT_H */

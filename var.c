@@ -1,4 +1,4 @@
-/**	$MirBSD: var.c,v 1.10 2004/10/28 11:11:19 tg Exp $ */
+/**	$MirBSD: var.c,v 1.11 2004/10/28 11:53:44 tg Exp $ */
 /*	$OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
 
 #include "sh.h"
@@ -7,7 +7,7 @@
 #include "ksh_stat.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: var.c,v 1.10 2004/10/28 11:11:19 tg Exp $");
+__RCSID("$MirBSD: var.c,v 1.11 2004/10/28 11:53:44 tg Exp $");
 
 /*
  * Variables
@@ -34,7 +34,7 @@ static struct tbl *arraysearch(struct tbl *, int);
  * assume caller has allocated and set up e->loc
  */
 void
-newblock()
+newblock(void)
 {
 	struct block *l;
 	static char *const empty[] = {null};
@@ -60,7 +60,7 @@ newblock()
  * pop a block handling special variables
  */
 void
-popblock()
+popblock(void)
 {
 	struct block *l = e->loc;
 	struct tbl *vp, **vpp = l->vars.tbls, *vq;
@@ -82,7 +82,7 @@ popblock()
 
 /* called by main() to initialize variable data structures */
 void
-initvar()
+initvar(void)
 {
 	static const struct {
 		const char *name;
@@ -131,10 +131,7 @@ initvar()
 const char *array_index_calc(const char *n, bool_t *arrayp, int *valp);
 
 const char *
-array_index_calc(n, arrayp, valp)
-	const char *n;
-	bool_t *arrayp;
-	int *valp;
+array_index_calc(const char *n, bool_t *arrayp, int *valp)
 {
 	const char *p;
 	int len;
@@ -164,8 +161,7 @@ array_index_calc(n, arrayp, valp)
  * Search for variable, if not found create globally.
  */
 struct tbl *
-global(n)
-	const char *n;
+global(const char *n)
 {
 	struct block *l = e->loc;
 	struct tbl *vp;
@@ -247,9 +243,7 @@ global(n)
  * Search for local variable, if not found create locally.
  */
 struct tbl *
-local(n, copy)
-	const char *n;
-	bool_t copy;
+local(const char *n, bool_t copy)
 {
 	struct block *l = e->loc;
 	struct tbl *vp;
@@ -293,8 +287,7 @@ local(n, copy)
 
 /* get variable string value */
 char *
-str_val(vp)
-	struct tbl *vp;
+str_val(struct tbl *vp)
 {
 	char *s;
 
@@ -342,8 +335,7 @@ str_val(vp)
 
 /* get variable integer value, with error checking */
 long
-intval(vp)
-	struct tbl *vp;
+intval(struct tbl *vp)
 {
 	long num;
 	int base;
@@ -357,10 +349,7 @@ intval(vp)
 
 /* set variable to string value */
 int
-setstr(vq, s, error_ok)
-	struct tbl *vq;
-	const char *s;
-	int error_ok;
+setstr(struct tbl *vq, const char *s, int error_ok)
 {
 	int no_ro_check = error_ok & 0x4;
 	error_ok &= ~0x4;
@@ -401,9 +390,7 @@ setstr(vq, s, error_ok)
 
 /* set variable to integer */
 void
-setint(vq, n)
-	struct tbl *vq;
-	long n;
+setint(struct tbl *vq, long int n)
 {
 	if (!(vq->flag&INTEGER)) {
 		struct tbl *vp = &vtemp;
@@ -421,9 +408,7 @@ setint(vq, n)
 }
 
 int
-getint(vp, nump)
-	struct tbl *vp;
-	long *nump;
+getint(struct tbl *vp, long int *nump)
 {
 	char *s;
 	int c;
@@ -480,8 +465,7 @@ getint(vp, nump)
  * (vq and vp may be the same)
  */
 struct tbl *
-setint_v(vq, vp)
-	struct tbl *vq, *vp;
+setint_v(struct tbl *vq, struct tbl *vp)
 {
 	int base;
 	long num;
@@ -502,9 +486,7 @@ setint_v(vq, vp)
 }
 
 static char *
-formatstr(vp, s)
-	struct tbl *vp;
-	const char *s;
+formatstr(struct tbl *vp, const char *s)
 {
 	int olen, nlen;
 	char *p, *q;
@@ -566,9 +548,7 @@ formatstr(vp, s)
  * make vp->val.s be "name=value" for quick exporting.
  */
 static void
-export(vp, val)
-	struct tbl *vp;
-	const char *val;
+export(struct tbl *vp, const char *val)
 {
 	char *xp;
 	char *op = (vp->flag&ALLOC) ? vp->val.s : NULL;
@@ -592,10 +572,7 @@ export(vp, val)
  * LCASEV, UCASEV_AL), and optionally set its value if an assignment.
  */
 struct tbl *
-typeset(var, set, clr, field, base)
-	const char *var;
-	Tflag clr, set;
-	int field, base;
+typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 {
 	struct tbl *vp;
 	struct tbl *vpbase, *t;
@@ -746,9 +723,7 @@ typeset(var, set, clr, field, base)
  * the name lookup (eg, x[2]).
  */
 void
-unset(vp, array_ref)
-	struct tbl *vp;
-	int array_ref;
+unset(struct tbl *vp, int array_ref)
 {
 	if (vp->flag & ALLOC)
 		afree((void*)vp->val.s, vp->areap);
@@ -776,9 +751,7 @@ unset(vp, array_ref)
  * null if whole string is legal).
  */
 char *
-skip_varname(s, aok)
-	const char *s;
-	int aok;
+skip_varname(const char *s, int aok)
 {
 	int alen;
 
@@ -793,9 +766,9 @@ skip_varname(s, aok)
 
 /* Return a pointer to the first character past any legal variable name.  */
 char *
-skip_wdvarname(s, aok)
-	const char *s;
-	int aok;	/* skip array de-reference? */
+skip_wdvarname(const char *s, int aok)
+
+	        	/* skip array de-reference? */
 {
 	if (s[0] == CHAR && letter(s[1])) {
 		do
@@ -826,9 +799,7 @@ skip_wdvarname(s, aok)
 
 /* Check if coded string s is a variable name */
 int
-is_wdvarname(s, aok)
-	const char *s;
-	int aok;
+is_wdvarname(const char *s, int aok)
 {
 	char *p = skip_wdvarname(s, aok);
 
@@ -837,8 +808,7 @@ is_wdvarname(s, aok)
 
 /* Check if coded string s is a variable assignment */
 int
-is_wdvarassign(s)
-	const char *s;
+is_wdvarassign(const char *s)
 {
 	char *p = skip_wdvarname(s, TRUE);
 
@@ -849,7 +819,7 @@ is_wdvarassign(s)
  * Make the exported environment from the exported names in the dictionary.
  */
 char **
-makenv()
+makenv(void)
 {
 	struct block *l = e->loc;
 	XPtrV env;
@@ -889,7 +859,7 @@ makenv()
  * Called after a fork in parent to bump the random number generator.
  */
 void
-change_random()
+change_random(void)
 {
 	rnd_seed(time(NULL) * getpid());
 }
@@ -900,8 +870,7 @@ change_random()
 
 /* Test if name is a special parameter */
 static int
-special(name)
-	const char * name;
+special(const char *name)
 {
 	struct tbl *tp;
 
@@ -911,8 +880,7 @@ special(name)
 
 /* Make a variable non-special */
 static void
-unspecial(name)
-	const char * name;
+unspecial(const char *name)
 {
 	struct tbl *tp;
 
@@ -927,8 +895,7 @@ static	time_t	seconds;		/* time SECONDS last set */
 static	int	user_lineno;		/* what user set $LINENO to */
 
 static void
-getspec(vp)
-	struct tbl *vp;
+getspec(struct tbl *vp)
 {
 	switch (special(vp->name)) {
 #ifdef KSH
@@ -969,8 +936,7 @@ getspec(vp)
 }
 
 static void
-setspec(vp)
-	struct tbl *vp;
+setspec(struct tbl *vp)
 {
 	char *s;
 
@@ -1070,8 +1036,7 @@ setspec(vp)
 }
 
 static void
-unsetspec(vp)
-	struct tbl *vp;
+unsetspec(struct tbl *vp)
 {
 	switch (special(vp->name)) {
 	  case V_PATH:
@@ -1129,9 +1094,7 @@ unsetspec(vp)
  * vp, indexed by val.
  */
 static struct tbl *
-arraysearch(vp, val)
-	struct tbl *vp;
-	int val;
+arraysearch(struct tbl *vp, int val)
 {
 	struct tbl *prev, *curr, *new;
 	size_t namelen = strlen(vp->name) + 1;
@@ -1175,8 +1138,7 @@ arraysearch(vp, val)
  * bracket.
  */
 int
-array_ref_len(cp)
-	const char *cp;
+array_ref_len(const char *cp)
 {
 	const char *s = cp;
 	int c;
@@ -1194,8 +1156,7 @@ array_ref_len(cp)
  * Make a copy of the base of an array name
  */
 char *
-arrayname(str)
-	const char *str;
+arrayname(const char *str)
 {
 	const char *p;
 
@@ -1209,10 +1170,7 @@ arrayname(str)
 /* Set (or overwrite, if !reset) the array variable var to the values in vals.
  */
 void
-set_array(var, reset, vals)
-	const char *var;
-	int reset;
-	char **vals;
+set_array(const char *var, int reset, char **vals)
 {
 	struct tbl *vp, *vq;
 	int i;

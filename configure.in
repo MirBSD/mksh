@@ -1,4 +1,4 @@
-dnl $MirBSD: configure.in,v 1.7 2004/05/24 19:08:52 tg Stab $
+dnl $MirBSD: configure.in,v 1.8 2004/10/28 11:53:41 tg Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl
@@ -91,7 +91,6 @@ dnl
 AC_C_CONST
 KSH_C_VOID
 KSH_C_VOLATILE
-KSH_C_PROTOTYPES
 KSH_C_FUNC_ATTR
 dnl
 dnl System services

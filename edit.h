@@ -1,6 +1,9 @@
-/**	$MirBSD: edit.h,v 1.4 2004/10/28 11:11:17 tg Exp $ */
+/**	$MirBSD: edit.h,v 1.5 2004/10/28 11:53:41 tg Exp $ */
 /*	$OpenBSD: edit.h,v 1.3 1999/11/14 22:04:02 d Exp $	*/
 /*	$From: edit.h,v 1.2 1994/05/19 18:32:40 michael Exp michael $ */
+
+#ifndef EDIT_H
+#define EDIT_H
 
 /* some useful #defines */
 #ifdef EXTERN
@@ -67,9 +70,5 @@ int 	x_vi(char *buf, size_t len);
 # undef EXTERN
 #endif
 #undef I__
-/*
- * Local Variables:
- * version-control:t
- * comment-column:40
- * End:
- */
+
+#endif	/* ndef EDIT_H */

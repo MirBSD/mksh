@@ -1,6 +1,9 @@
-/**	$MirBSD: proto.h,v 1.7 2004/10/28 11:11:19 tg Exp $ */
+/**	$MirBSD: proto.h,v 1.8 2004/10/28 11:53:43 tg Exp $ */
 /*	$OpenBSD: proto.h,v 1.11 2003/05/16 19:58:57 jsyn Exp $	*/
 /*	$From: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $ */
+
+#ifndef PROTO_H
+#define PROTO_H
 
 /*
  * prototypes for PD-KSH
@@ -305,3 +308,5 @@ extern int gettimeofday( /* struct timeval *tv, struct timezone *tz */ );
 extern int setrlimit( /* int resource, struct rlimit *rlp */ );
 extern int lstat( /* const char *path, struct stat *buf */ );
 #endif
+
+#endif	/* ndef PROTO_H */

@@ -1,4 +1,4 @@
-/**	$MirBSD: config.h,v 1.12 2004/09/21 11:57:08 tg Exp $ */
+/**	$MirBSD: config.h,v 1.13 2004/10/28 11:53:40 tg Exp $ */
 /*	$OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -117,9 +117,6 @@
 
 /* Define to nothing if compiler doesn't like the volatile keyword */
 /* #undef volatile */
-
-/* Define if C compiler groks function prototypes */
-#define HAVE_PROTOTYPES 1
 
 /* Define if C compiler groks __attribute__((...)) (const, noreturn, format) */
 #define HAVE_GCC_FUNC_ATTR 1

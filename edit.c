@@ -1,4 +1,4 @@
-/**	$MirBSD: edit.c,v 1.9 2004/10/28 11:11:17 tg Exp $ */
+/**	$MirBSD: edit.c,v 1.10 2004/10/28 11:53:41 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.18 2003/08/22 18:17:10 fgsch Exp $	*/
 
 /*
@@ -22,7 +22,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: edit.c,v 1.9 2004/10/28 11:11:17 tg Exp $");
+__RCSID("$MirBSD: edit.c,v 1.10 2004/10/28 11:53:41 tg Exp $");
 
 #if defined(TIOCGWINSZ)
 static RETSIGTYPE x_sigwinch(int sig);
@@ -42,7 +42,7 @@ static char vdisable_c;
 
 /* Called from main */
 void
-x_init()
+x_init(void)
 {
 	/* set to -2 to force initial binding */
 	edchars.erase = edchars.kill = edchars.intr = edchars.quit
@@ -124,9 +124,7 @@ check_sigwinch(void)
  * read an edited command line
  */
 int
-x_read(buf, len)
-	char *buf;
-	size_t len;
+x_read(char *buf, size_t len)
 {
 	int	i;
 
@@ -154,7 +152,7 @@ x_read(buf, len)
 /* tty I/O */
 
 int
-x_getc()
+x_getc(void)
 {
 #ifdef OS2
 	unsigned char c = _read_kbd(0, 1, 0);
@@ -176,29 +174,26 @@ x_getc()
 }
 
 void
-x_flush()
+x_flush(void)
 {
 	shf_flush(shl_out);
 }
 
 void
-x_putc(c)
-	int c;
+x_putc(int c)
 {
 	shf_putc(c, shl_out);
 }
 
 void
-x_puts(s)
-	const char *s;
+x_puts(const char *s)
 {
 	while (*s != 0)
 		shf_putc(*s++, shl_out);
 }
 
 bool_t
-x_mode(onoff)
-	bool_t	onoff;
+x_mode(bool_t onoff)
 {
 	static bool_t	x_cur_mode;
 	bool_t		prev;
@@ -232,14 +227,7 @@ x_mode(onoff)
 #  ifdef _BSD_SYSV	/* need to force CBREAK instead of RAW (need CRMOD on output) */
 		cb.c_lflag &= ~(ICANON|ECHO);
 #  else
-#   ifdef SWTCH	/* need CBREAK to handle swtch char */
-		cb.c_lflag &= ~(ICANON|ECHO);
-		cb.c_lflag |= ISIG;
-		cb.c_cc[VINTR] = vdisable_c;
-		cb.c_cc[VQUIT] = vdisable_c;
-#   else
 		cb.c_lflag &= ~(ISIG|ICANON|ECHO);
-#   endif
 #  endif
 #  ifdef VLNEXT
 		/* osf/1 processes lnext when ~icanon */
@@ -331,9 +319,7 @@ x_mode(onoff)
  *      length
  */
 int
-promptlen(cp, spp)
-    const char  *cp;
-    const char **spp;
+promptlen(const char *cp, const char **spp)
 {
     int count = 0;
     const char *sp = cp;
@@ -373,8 +359,7 @@ promptlen(cp, spp)
 }
 
 void
-set_editmode(ed)
-	const char *ed;
+set_editmode(const char *ed)
 {
 	static const enum sh_flag edit_flags[] = {
 #ifdef EMACS
@@ -408,10 +393,7 @@ set_editmode(ed)
  * moved to the start of the line after (un)commenting.
  */
 int
-x_do_comment(buf, bsize, lenp)
-	char *buf;
-	int bsize;
-	int *lenp;
+x_do_comment(char *buf, int bsize, int *lenp)
 {
 	int i, j;
 	int len = *lenp;
@@ -460,41 +442,8 @@ static void	glob_table(const char *pat, XPtrV *wp, struct table *tp);
 static void	glob_path(int flags, const char *pat, XPtrV *wp,
 				const char *path);
 
-#if 0 /* not used... */
-int	x_complete_word(const char *str, int slen, int is_command,
-			      int *multiple, char **ret);
-int
-x_complete_word(str, slen, is_command, nwordsp, ret)
-	const char *str;
-	int slen;
-	int is_command;
-	int *nwordsp;
-	char **ret;
-{
-	int nwords;
-	int prefix_len;
-	char **words;
-
-	nwords = (is_command ? x_command_glob : x_file_glob)(XCF_FULLPATH,
-				str, slen, &words);
-	*nwordsp = nwords;
-	if (nwords == 0) {
-		*ret = (char *) 0;
-		return -1;
-	}
-
-	prefix_len = x_longest_prefix(nwords, words);
-	*ret = str_nsave(words[0], prefix_len, ATEMP);
-	x_free_words(nwords, words);
-	return prefix_len;
-}
-#endif /* 0 */
-
 void
-x_print_expansions(nwords, words, is_command)
-	int nwords;
-	char *const *words;
-	int is_command;
+x_print_expansions(int nwords, char *const *words, int is_command)
 {
 	int use_copy = 0;
 	int prefix_len;
@@ -632,9 +581,7 @@ static int path_order_cmp(const void *aa, const void *bb);
 
 /* Compare routine used in x_command_glob() */
 static int
-path_order_cmp(aa, bb)
-	const void *aa;
-	const void *bb;
+path_order_cmp(const void *aa, const void *bb)
 {
 	const struct path_order_info *a = (const struct path_order_info *) aa;
 	const struct path_order_info *b = (const struct path_order_info *) bb;
@@ -645,11 +592,7 @@ path_order_cmp(aa, bb)
 }
 
 static int
-x_command_glob(flags, str, slen, wordsp)
-	int flags;
-	const char *str;
-	int slen;
-	char ***wordsp;
+x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 {
 	char *toglob;
 	char *pat;
@@ -743,12 +686,7 @@ x_command_glob(flags, str, slen, wordsp)
 			    || (c) == '`' || (c) == '=' || (c) == ':' )
 
 static int
-x_locate_word(buf, buflen, pos, startp, is_commandp)
-	const char *buf;
-	int buflen;
-	int pos;
-	int *startp;
-	int *is_commandp;
+x_locate_word(const char *buf, int buflen, int pos, int *startp, int *is_commandp)
 {
 	int p;
 	int start, end;
@@ -800,15 +738,7 @@ x_locate_word(buf, buflen, pos, startp, is_commandp)
 }
 
 int
-x_cf_glob(flags, buf, buflen, pos, startp, endp, wordsp, is_commandp)
-	int flags;
-	const char *buf;
-	int buflen;
-	int pos;
-	int *startp;
-	int *endp;
-	char ***wordsp;
-	int *is_commandp;
+x_cf_glob(int flags, const char *buf, int buflen, int pos, int *startp, int *endp, char ***wordsp, int *is_commandp)
 {
 	int len;
 	int nwords;
@@ -844,9 +774,7 @@ x_cf_glob(flags, buf, buflen, pos, startp, endp, wordsp, is_commandp)
  * new string is returned.
  */
 static char *
-add_glob(str, slen)
-	const char *str;
-	int slen;
+add_glob(const char *str, int slen)
 {
 	char *toglob;
 	char *s;
@@ -885,9 +813,7 @@ add_glob(str, slen)
  * Find longest common prefix
  */
 int
-x_longest_prefix(nwords, words)
-	int nwords;
-	char *const *words;
+x_longest_prefix(int nwords, char *const *words)
 {
 	int i, j;
 	int prefix_len;
@@ -907,9 +833,7 @@ x_longest_prefix(nwords, words)
 }
 
 void
-x_free_words(nwords, words)
-	int nwords;
-	char **words;
+x_free_words(int nwords, char **words)
 {
 	int i;
 
@@ -932,9 +856,7 @@ x_free_words(nwords, words)
  *			0
  */
 int
-x_basename(s, se)
-	const char *s;
-	const char *se;
+x_basename(const char *s, const char *se)
 {
 	const char *p;
 
@@ -959,10 +881,7 @@ x_basename(s, se)
  * are added to wp.
  */
 static void
-glob_table(pat, wp, tp)
-	const char *pat;
-	XPtrV *wp;
-	struct table *tp;
+glob_table(const char *pat, XPtrV *wp, struct table *tp)
 {
 	struct tstate ts;
 	struct tbl *te;
@@ -974,11 +893,7 @@ glob_table(pat, wp, tp)
 }
 
 static void
-glob_path(flags, pat, wp, path)
-	int flags;
-	const char *pat;
-	XPtrV *wp;
-	const char *path;
+glob_path(int flags, const char *pat, XPtrV *wp, const char *path)
 {
 	const char *sp, *p;
 	char *xp;
@@ -1048,10 +963,7 @@ glob_path(flags, pat, wp, path)
  * keybinding-specific function
  */
 int
-x_escape(s, len, putbuf_func)
-	const char *s;
-	size_t len;
-	int putbuf_func(const char *s, size_t len);
+x_escape(const char *s, size_t len, int (*putbuf_func) (const char *, size_t))
 {
 	size_t add, wlen;
 	const char *ifs = str_val(local("IFS", 0));

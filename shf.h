@@ -1,8 +1,8 @@
-/**	$MirBSD: shf.h,v 1.4 2004/10/28 11:11:19 tg Exp $ */
+/**	$MirBSD: shf.h,v 1.5 2004/10/28 11:53:43 tg Exp $ */
 /*	$OpenBSD: shf.h,v 1.2 1999/01/08 20:25:02 millert Exp $	*/
 
 #ifndef SHF_H
-# define SHF_H
+#define SHF_H
 
 /*
  * Shell file I/O routines

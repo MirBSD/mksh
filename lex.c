@@ -1,4 +1,4 @@
-/**	$MirBSD: lex.c,v 1.6 2004/10/28 11:11:18 tg Exp $ */
+/**	$MirBSD: lex.c,v 1.7 2004/10/28 11:53:42 tg Exp $ */
 /*	$OpenBSD: lex.c,v 1.18 2003/08/06 21:08:05 millert Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: lex.c,v 1.6 2004/10/28 11:11:18 tg Exp $");
+__RCSID("$MirBSD: lex.c,v 1.7 2004/10/28 11:53:42 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state.
@@ -99,8 +99,7 @@ static int ignore_backslash_newline;
  */
 
 int
-yylex(cf)
-	int cf;
+yylex(int cf)
 {
 	Lex_state states[STATE_BSIZE], *statep;
 	State_info state_info;
@@ -771,7 +770,7 @@ Done:
 }
 
 static void
-gethere()
+gethere(void)
 {
 	struct ioword **p;
 
@@ -785,8 +784,7 @@ gethere()
  */
 
 static void
-readhere(iop)
-	struct ioword *iop;
+readhere(struct ioword *iop)
 {
 	int c;
 	char *volatile eof;
@@ -844,13 +842,7 @@ readhere(iop)
 }
 
 void
-#ifdef HAVE_PROTOTYPES
 yyerror(const char *fmt, ...)
-#else
-yyerror(fmt, va_alist)
-	const char *fmt;
-	va_dcl
-#endif
 {
 	va_list va;
 
@@ -871,9 +863,7 @@ yyerror(fmt, va_alist)
  */
 
 Source *
-pushs(type, areap)
-	int type;
-	Area *areap;
+pushs(int type, Area *areap)
 {
 	Source *s;
 
@@ -896,7 +886,7 @@ pushs(type, areap)
 }
 
 static int
-getsc__()
+getsc__(void)
 {
 	Source *s = source;
 	int c;
@@ -997,8 +987,7 @@ getsc__()
 }
 
 static void
-getsc_line(s)
-	Source *s;
+getsc_line(Source *s)
 {
 	char *xp = Xstring(s->xs, xp);
 	int interactive = Flag(FTALKING) && s->type == SSTDIN;
@@ -1110,9 +1099,7 @@ getsc_line(s)
 }
 
 void
-set_prompt(to, s)
-	int to;
-	Source *s;
+set_prompt(int to, Source *s)
 {
 	cur_prompt = to;
 
@@ -1168,44 +1155,8 @@ set_prompt(to, s)
 
 /* See also related routine, promptlen() in edit.c */
 void
-pprompt(cp, ntruncate)
-	const char *cp;
-	int ntruncate;
+pprompt(const char *cp, int ntruncate)
 {
-#if 0
-	char nbuf[32];
-	int c;
-
-	while (*cp != 0) {
-		if (*cp != '!')
-			c = *cp++;
-		else if (*++cp == '!')
-			c = *cp++;
-		else {
-			int len;
-			char *p;
-
-			shf_snprintf(p = nbuf, sizeof(nbuf), "%d",
-				source->line + 1);
-			len = strlen(nbuf);
-			if (ntruncate) {
-				if (ntruncate >= len) {
-					ntruncate -= len;
-					continue;
-				}
-				p += ntruncate;
-				len -= ntruncate;
-				ntruncate = 0;
-			}
-			shf_write(p, len, shl_out);
-			continue;
-		}
-		if (ntruncate)
-			--ntruncate;
-		else
-			shf_putc(c, shl_out);
-	}
-#endif /* 0 */
 	shf_puts(cp + ntruncate, shl_out);
 	shf_flush(shl_out);
 }
@@ -1214,9 +1165,7 @@ pprompt(cp, ntruncate)
  * the :[-+?=#%] or close-brace.
  */
 static char *
-get_brace_var(wsp, wp)
-	XString *wsp;
-	char *wp;
+get_brace_var(XString *wsp, char *wp)
 {
 	enum parse_state {
 			   PS_INITIAL, PS_SAW_HASH, PS_IDENT,
@@ -1291,8 +1240,7 @@ get_brace_var(wsp, wp)
  * (Returned string double null terminated)
  */
 static int
-arraysub(strp)
-	char **strp;
+arraysub(char **strp)
 {
 	XString ws;
 	char	*wp;
@@ -1319,8 +1267,7 @@ arraysub(strp)
 
 /* Unget a char: handles case when we are already at the start of the buffer */
 static const char *
-ungetsc(c)
-	int c;
+ungetsc(int c)
 {
 	if (backslash_skip)
 		backslash_skip--;
@@ -1372,9 +1319,7 @@ getsc_bn(void)
 }
 
 static Lex_state *
-push_state_(si, old_end)
-	State_info *si;
-	Lex_state *old_end;
+push_state_(State_info *si, Lex_state *old_end)
 {
 	Lex_state	*new = alloc(sizeof(Lex_state) * STATE_BSIZE, ATEMP);
 
@@ -1385,9 +1330,7 @@ push_state_(si, old_end)
 }
 
 static Lex_state *
-pop_state_(si, old_end)
-	State_info *si;
-	Lex_state *old_end;
+pop_state_(State_info *si, Lex_state *old_end)
 {
 	Lex_state *old_base = si->base;
 

@@ -1,5 +1,8 @@
-/**	$MirBSD: conf-end.h,v 1.7 2004/09/21 11:57:07 tg Exp $ */
+/**	$MirBSD: conf-end.h,v 1.8 2004/10/28 11:53:40 tg Exp $ */
 /*	$OpenBSD: conf-end.h,v 1.2 1996/08/25 12:37:58 downsj Exp $	*/
+
+#ifndef CONF_END_H
+#define CONF_END_H
 
 /* Include ksh features? */
 /* #define KSH 1 */
@@ -23,16 +26,10 @@
 #define COMPLEX_HISTORY
 
 /* Strict POSIX behaviour? */
-/* #undef POSIXLY_CORRECT */
+#undef POSIXLY_CORRECT
 
 /* Specify default $ENV? */
 /* #undef DEFAULT_ENV */
-
-/* Include shl(1) support? */
-/* #undef SWTCH */
-
-/* Include game-of-life? */
-/* #undef SILLY */
 
 /*
  * The above are defined for mirbsdksh via external
@@ -57,11 +54,6 @@
 #if defined(EDIT) && !defined(HISTORY)
 # define HISTORY
 #endif /* EDIT */
-
-/* It's there, use it */
-#if defined(KSH) && defined(EDIT)
-# define SILLY
-#endif
 
 /*
  * if you don't have mmap() you can't use Peter Collinson's history
@@ -113,3 +105,5 @@
 # define GCC_FUNC_ATTR(x)
 # define GCC_FUNC_ATTR2(x,y)
 #endif /* HAVE_GCC_FUNC_ATTR */
+
+#endif	/* ndef CONF_END_H */

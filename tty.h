@@ -1,5 +1,8 @@
-/**	$MirBSD: tty.h,v 1.4 2004/10/28 11:11:19 tg Exp $ */
+/**	$MirBSD: tty.h,v 1.5 2004/10/28 11:53:43 tg Exp $ */
 /*	$OpenBSD: tty.h,v 1.2 1996/11/21 07:59:36 downsj Exp $	*/
+
+#ifndef TTY_H
+#define TTY_H
 
 /*
 	tty.h -- centralized definitions for a variety of terminal interfaces
@@ -108,3 +111,5 @@ extern void	tty_close(void);
 # undef EXTERN
 #endif
 #undef I__
+
+#endif	/* ndef TTY_H */

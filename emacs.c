@@ -1,4 +1,4 @@
-/**	$MirBSD: emacs.c,v 1.11 2004/10/28 11:11:17 tg Exp $ */
+/**	$MirBSD: emacs.c,v 1.12 2004/10/28 11:53:41 tg Exp $ */
 /*	$OpenBSD: emacs.c,v 1.28 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -19,7 +19,7 @@
 #include <locale.h>
 #include "edit.h"
 
-__RCSID("$MirBSD: emacs.c,v 1.11 2004/10/28 11:11:17 tg Exp $");
+__RCSID("$MirBSD: emacs.c,v 1.12 2004/10/28 11:53:41 tg Exp $");
 
 static	Area	aedit;
 #define	AEDIT	&aedit		/* area for kill ring and macro defns */
@@ -220,11 +220,6 @@ static const struct x_ftab x_ftab[] = {
         { x_fold_upper,		"upcase-word",			XF_ARG },
         { x_set_arg,		"set-arg",			XF_NOBIND },
         { x_comment,		"comment",			0 },
-#ifdef SILLY
-	{ x_game_of_life,	"play-game-of-life",		0 },
-#else
-	{ 0, 0, 0 },
-#endif
 #ifdef DEBUG
         { x_debug_info,		"debug-info",			0 },
 #else
@@ -332,9 +327,7 @@ static	struct x_defbindings const x_defbindings[] = {
 };
 
 int
-x_emacs(buf, len)
-	char *buf;
-	size_t len;
+x_emacs(char *buf, size_t len)
 {
 	int	c;
 	const char *p;
@@ -441,9 +434,7 @@ x_ins_string(int c GCC_FUNC_ATTR(unused))
 static int x_do_ins(const char *cp, int len);
 
 static int
-x_do_ins(cp, len)
-	const char *cp;
-	int len;
+x_do_ins(const char *cp, int len)
 {
 	if (xep+len >= xend) {
 		x_e_putc(BEL);
@@ -458,8 +449,7 @@ x_do_ins(cp, len)
 }
 
 static int
-x_ins(s)
-	char	*s;
+x_ins(char *s)
 {
 	char *cp = xcp;
 	int	adj = x_adj_done;
@@ -489,9 +479,7 @@ x_ins(s)
  * this is used for x_escape() in do_complete()
  */
 static int
-x_emacs_putbuf(s, len)
-	const char *s;
-	size_t len;
+x_emacs_putbuf(const char *s, size_t len)
 {
 	int rval;
 
@@ -533,9 +521,7 @@ x_del_char(int c GCC_FUNC_ATTR(unused))
 
 /* Delete nc chars to the right of the cursor (including cursor position) */
 static void
-x_delete(nc, push)
-	int nc;
-	int push;
+x_delete(int nc, int push)
 {
 	int	i,j;
 	char	*cp;
@@ -618,7 +604,7 @@ x_del_fword(int c GCC_FUNC_ATTR(unused))
 }
 
 static int
-x_bword()
+x_bword(void)
 {
 	int	nc = 0;
 	char *cp = xcp;
@@ -645,7 +631,7 @@ x_bword()
 }
 
 static int
-x_fword()
+x_fword(void)
 {
 	int	nc = 0;
 	char	*cp = xcp;
@@ -671,8 +657,7 @@ x_fword()
 }
 
 static void
-x_goto(cp)
-	char *cp;
+x_goto(char *cp)
 {
   if (cp < xbp || cp >= (xbp + x_displen))
   {
@@ -708,8 +693,7 @@ x_bs(int c GCC_FUNC_ATTR(unused))
 }
 
 static int
-x_size_str(cp)
-	char *cp;
+x_size_str(char *cp)
 {
 	int size = 0;
 	while (*cp)
@@ -728,8 +712,7 @@ x_size(int c GCC_FUNC_ATTR(unused))
 }
 
 static void
-x_zots(str)
-	char *str;
+x_zots(char *str)
 {
   int	adj = x_adj_done;
 
@@ -881,8 +864,7 @@ x_goto_hist(int c GCC_FUNC_ATTR(unused))
 }
 
 static void
-x_load_hist(hp)
-	char **hp;
+x_load_hist(char **hp)
 {
 	int	oldsize;
 
@@ -903,16 +885,14 @@ x_load_hist(hp)
 }
 
 static int
-x_nl_next_com(c)
-	int	c;
+x_nl_next_com(int c)
 {
 	x_nextcmd = source->line - (histptr - x_histp) + 1;
 	return (x_newline(c));
 }
 
 static int
-x_eot_del(c)
-	int	c;
+x_eot_del(int c)
 {
 	if (xep == xbuf && x_arg_defaulted)
 		return (x_end_of_text(c));
@@ -984,10 +964,7 @@ x_search_hist(int c GCC_FUNC_ATTR(unused))
 
 /* search backward from current line */
 static int
-x_search(pat, sameline, offset)
-	char *pat;
-	int sameline;
-	int offset;
+x_search(char *pat, int sameline, int offset)
 {
 	char **hp;
 	int i;
@@ -1009,8 +986,7 @@ x_search(pat, sameline, offset)
 
 /* return position of first match of pattern in string, else -1 */
 static int
-x_match(str, pat)
-	char *str, *pat;
+x_match(char *str, char *pat)
 {
 	if (*pat == '^') {
 		return (strncmp(str, pat+1, strlen(pat+1)) == 0) ? 0 : -1;
@@ -1065,8 +1041,7 @@ x_draw_line(int c GCC_FUNC_ATTR(unused))
  * redrawing.
  */
 static void
-x_redraw(limit)
-  int limit;
+x_redraw(int limit)
 {
 	int	i, j;
 	char	*cp;
@@ -1223,8 +1198,7 @@ x_kill(int c GCC_FUNC_ATTR(unused))
 }
 
 static void
-x_push(nchars)
-	int nchars;
+x_push(int nchars)
 {
 	char	*cp = str_nsave(xcp, nchars, AEDIT);
 	if (killstack[killsp])
@@ -1311,7 +1285,7 @@ x_stuffreset(int c GCC_FUNC_ATTR(unused))
 static int
 x_stuff(int c GCC_FUNC_ATTR(unused))
 {
-#if 0 || defined TIOCSTI
+#if defined(TIOCSTI)
 	char	ch = c;
 	bool_t	savmode = x_mode(FALSE);
 
@@ -1323,8 +1297,7 @@ x_stuff(int c GCC_FUNC_ATTR(unused))
 }
 
 static char *
-x_mapin(cp)
-	const char *cp;
+x_mapin(const char *cp)
 {
 	char *new, *op;
 
@@ -1375,8 +1348,7 @@ x_mapout(int c GCC_FUNC_ATTR(unused))
 }
 
 static void
-x_print(prefix, key)
-	int prefix, key;
+x_print(int prefix, int key)
 {
 	if (prefix == 1)
 		shprintf("%s", x_mapout(x_prefix1));
@@ -1394,10 +1366,10 @@ x_print(prefix, key)
 }
 
 int
-x_bind(a1, a2, macro, list)
-	const char *a1, *a2;
-	int macro;		/* bind -m */
-	int list;		/* bind -l */
+x_bind(const char *a1, const char *a2, int macro, int list)
+
+	          		/* bind -m */
+	         		/* bind -l */
 {
 	Findex f;
 	int prefix, key;
@@ -1462,12 +1434,6 @@ x_bind(a1, a2, macro, list)
 			bi_errorf("%s: no such function", a2);
 			return 1;
 		}
-#if 0		/* This breaks the bind commands that map arrow keys */
-		if (f == XFUNC_meta1)
-			x_prefix1 = key;
-		if (f == XFUNC_meta2)
-			x_prefix2 = key;
-#endif /* 0 */
 	} else {
 		f = XFUNC_ins_string;
 		m2 = x_mapin(a2);
@@ -1491,7 +1457,7 @@ x_bind(a1, a2, macro, list)
 }
 
 void
-x_init_emacs()
+x_init_emacs(void)
 {
 	unsigned i;
 	int j;
@@ -1527,9 +1493,7 @@ x_init_emacs()
 static void bind_if_not_bound(int p, int k, int func);
 
 static void
-bind_if_not_bound(p, k, func)
-	int p, k;
-	int func;
+bind_if_not_bound(int p, int k, int func)
 {
 	/* Has user already bound this key?  If so, don't override it */
 	if (x_bound[((p) * X_TABSZ + (k)) / 8]
@@ -1540,8 +1504,7 @@ bind_if_not_bound(p, k, func)
 }
 
 void
-x_emacs_keys(ec)
-	X_chars *ec;
+x_emacs_keys(X_chars *ec)
 {
 	if (ec->erase >= 0) {
 		bind_if_not_bound(0, ec->erase, XFUNC_del_back);
@@ -1637,58 +1600,6 @@ x_noop(int c GCC_FUNC_ATTR(unused))
 	return KSTD;
 }
 
-#ifdef SILLY
-static int
-x_game_of_life(int c GCC_FUNC_ATTR(unused))
-{
-	char	newbuf [256+1];
-	char *ip, *op;
-	int	i, len;
-
-	i = xep - xbuf;
-	*xep = 0;
-	len = x_size_str(xbuf);
-	xcp = xbp = xbuf;
-	memmove(newbuf+1, xbuf, i);
-	newbuf[0] = 'A';
-	newbuf[i] = 'A';
-	for (ip = newbuf+1, op = xbuf; --i >= 0; ip++, op++)  {
-		/*  Empty space  */
-		if (*ip < '@' || *ip == '_' || *ip == 0x7F)  {
-			/*  Two adults, make whoopee */
-			if (ip[-1] < '_' && ip[1] < '_')  {
-				/*  Make kid look like parents.  */
-				*op = '`' + ((ip[-1] + ip[1])/2)%32;
-				if (*op == 0x7F) /* Birth defect */
-					*op = '`';
-			}
-			else
-				*op = ' ';	/* nothing happens */
-			continue;
-		}
-		/*  Child */
-		if (*ip > '`')  {
-			/*  All alone, dies  */
-			if (ip[-1] == ' ' && ip[1] == ' ')
-				*op = ' ';
-			else	/*  Gets older */
-				*op = *ip-'`'+'@';
-			continue;
-		}
-		/*  Adult  */
-		/*  Overcrowded, dies */
-		if (ip[-1] >= '@' && ip[1] >= '@')  {
-			*op = ' ';
-			continue;
-		}
-		*op = *ip;
-	}
-	*op = 0;
-	x_redraw(len);
-	return KSTD;
-}
-#endif
-
 /*
  *	File/command name completion routines
  */
@@ -1771,9 +1682,9 @@ x_expand(int c GCC_FUNC_ATTR(unused))
 
 /* type == 0 for list, 1 for complete and 2 for complete-list */
 static void
-do_complete(flags, type)
-	int flags;	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
-	Comp_type type;
+do_complete(int flags, Comp_type type)
+	          	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
+
 {
 	char **words;
 	int nwords;
@@ -1838,7 +1749,7 @@ do_complete(flags, type)
  */
 
 static void
-x_adjust()
+x_adjust(void)
 {
   x_adj_done++;			/* flag the fact that we were called. */
   /*
@@ -1860,7 +1771,7 @@ x_e_ungetc(int c GCC_FUNC_ATTR(unused))
 }
 
 static int
-x_e_getc()
+x_e_getc(void)
 {
 	int c;
 
@@ -1927,8 +1838,7 @@ x_debug_info(int c GCC_FUNC_ATTR(unused))
 #endif
 
 static void
-x_e_puts(s)
-	const char *s;
+x_e_puts(const char *s)
 {
   int	adj = x_adj_done;
 
@@ -2153,7 +2063,7 @@ x_fold_case(int c GCC_FUNC_ATTR(unused))
  */
 
 static char *
-x_lastcp()
+x_lastcp(void)
 {
   char *rcp;
   int i;

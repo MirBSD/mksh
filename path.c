@@ -1,10 +1,10 @@
-/**	$MirBSD: path.c,v 1.6 2004/10/28 11:11:19 tg Exp $ */
+/**	$MirBSD: path.c,v 1.7 2004/10/28 11:53:43 tg Exp $ */
 /*	$OpenBSD: path.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 #include "sh.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: path.c,v 1.6 2004/10/28 11:11:19 tg Exp $");
+__RCSID("$MirBSD: path.c,v 1.7 2004/10/28 11:53:43 tg Exp $");
 
 /*
  *	Contains a routine to search a : separated list of
@@ -35,12 +35,12 @@ static char	*do_phys_path(XString *xsp, char *xp, const char *path);
  *	was appended to result.
  */
 int
-make_path(cwd, file, cdpathp, xsp, phys_pathp)
-	const char *cwd;
-	const char *file;
-	char	**cdpathp;	/* & of : separated list */
-	XString	*xsp;
-	int	*phys_pathp;
+make_path(const char *cwd, const char *file, char **cdpathp, XString *xsp, int *phys_pathp)
+
+
+	    	          	/* & of : separated list */
+
+
 {
 	int	rval = 0;
 	int	use_cdpath = 1;
@@ -113,8 +113,7 @@ make_path(cwd, file, cdpathp, xsp, phys_pathp)
  * ie, simplify_path("/a/b/c/./../d/..") returns "/a/b"
  */
 void
-simplify_path(path)
-	char	*path;
+simplify_path(char *path)
 {
 	char	*cur;
 	char	*t;
@@ -196,8 +195,7 @@ simplify_path(path)
 
 
 void
-set_current_wd(path)
-	char *path;
+set_current_wd(char *path)
 {
 	int len;
 	char *p = path;
@@ -216,8 +214,7 @@ set_current_wd(path)
 
 #ifdef S_ISLNK
 char *
-get_phys_path(path)
-	const char *path;
+get_phys_path(const char *path)
 {
 	XString xs;
 	char *xp;
@@ -237,10 +234,7 @@ get_phys_path(path)
 }
 
 static char *
-do_phys_path(xsp, xp, path)
-	XString *xsp;
-	char *xp;
-	const char *path;
+do_phys_path(XString *xsp, char *xp, const char *path)
 {
 	const char *p, *q;
 	size_t len;

@@ -1,4 +1,4 @@
-/**	$MirBSD: main.c,v 1.11 2004/10/28 11:11:18 tg Exp $ */
+/**	$MirBSD: main.c,v 1.12 2004/10/28 11:53:42 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -11,7 +11,7 @@
 #include "ksh_stat.h"
 #include "ksh_time.h"
 
-__RCSID("$MirBSD: main.c,v 1.11 2004/10/28 11:11:18 tg Exp $");
+__RCSID("$MirBSD: main.c,v 1.12 2004/10/28 11:53:42 tg Exp $");
 
 extern char **environ;
 
@@ -69,9 +69,6 @@ static const char *const initcoms [] = {
 #ifdef KSH
 	 /* Aliases that are builtin commands in at&t */
 	  "login=exec login",
-#ifndef __OpenBSD__
-	  "newgrp=exec newgrp",
-#endif /* __OpenBSD__ */
 #endif /* KSH */
 	  NULL,
 	/* this is what at&t ksh seems to track, with the addition of emacs */
@@ -454,11 +451,7 @@ main(int argc, char *argv[])
 }
 
 int
-include(name, argc, argv, intr_ok)
-	const char *name;
-	int argc;
-	char **argv;
-	int intr_ok;
+include(const char *name, int argc, char **argv, int intr_ok)
 {
 	Source *volatile s = NULL;
 	struct shf *shf;
@@ -526,8 +519,7 @@ include(name, argc, argv, intr_ok)
 }
 
 int
-command(comm)
-	const char *comm;
+command(const char *comm)
 {
 	Source *s;
 
@@ -540,9 +532,9 @@ command(comm)
  * run the commands from the input source, returning status.
  */
 int
-shell(s, toplevel)
-	Source *volatile s;		/* input source */
-	int volatile toplevel;
+shell(Source *volatile s, volatile int toplevel)
+	                   		/* input source */
+
 {
 	struct op *t;
 	volatile int wastty = s->flags & SF_TTY;
@@ -651,8 +643,7 @@ shell(s, toplevel)
 
 /* return to closest error handler or shell(), exit if none found */
 void
-unwind(i)
-	int i;
+unwind(int i)
 {
 	/* ordering for EXIT vs ERR is a bit odd (this is what at&t ksh does) */
 	if (i == LEXIT || (Flag(FERREXIT) && (i == LERROR || i == LINTR)
@@ -686,8 +677,7 @@ unwind(i)
 }
 
 void
-newenv(type)
-	int type;
+newenv(int type)
 {
 	struct env *ep;
 
@@ -703,7 +693,7 @@ newenv(type)
 }
 
 void
-quitenv()
+quitenv(void)
 {
 	struct env *ep = e;
 	int fd;
@@ -756,7 +746,7 @@ quitenv()
 
 /* Called after a fork to cleanup stuff left over from parents environment */
 void
-cleanup_parents_env()
+cleanup_parents_env(void)
 {
 	struct env *ep;
 	int fd;
@@ -781,7 +771,7 @@ cleanup_parents_env()
 
 /* Called just before an execve cleanup stuff temporary files */
 void
-cleanup_proc_env()
+cleanup_proc_env(void)
 {
 	struct env *ep;
 
@@ -791,7 +781,7 @@ cleanup_proc_env()
 
 /* remove temp files and free ATEMP Area */
 static void
-reclaim()
+reclaim(void)
 {
 	remove_temps(e->temps);
 	e->temps = NULL;
@@ -799,8 +789,7 @@ reclaim()
 }
 
 static void
-remove_temps(tp)
-	struct temp *tp;
+remove_temps(struct temp *tp)
 {
 #ifdef OS2
 	static struct temp *delayed_remove;
@@ -845,8 +834,7 @@ remove_temps(tp)
 
 /* Returns true if name refers to a restricted shell */
 static int
-is_restricted(name)
-	char *name;
+is_restricted(char *name)
 {
 	char *p;
 

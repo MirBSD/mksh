@@ -1,6 +1,9 @@
-/**	$MirBSD: tree.h,v 1.3 2004/09/21 11:57:16 tg Exp $ */
+/**	$MirBSD: tree.h,v 1.4 2004/10/28 11:53:43 tg Exp $ */
 /*	$OpenBSD: tree.h,v 1.8 2003/10/22 07:40:38 jmc Exp $	*/
 /*	$From: tree.h,v 1.3 1994/05/31 13:34:34 michael Exp $ */
+
+#ifndef TREE_H
+#define TREE_H
 
 /*
  * command trees for compile/execute
@@ -140,3 +143,5 @@ struct ioword {
 #define DB_AND	3		/* && -> -a conversion */
 #define DB_BE	4		/* an inserted -BE */
 #define DB_PAT	5		/* a pattern argument */
+
+#endif	/* ndef TREE_H */

@@ -1,4 +1,4 @@
-/**	$MirBSD: trap.c,v 1.5 2004/10/28 11:11:19 tg Exp $ */
+/**	$MirBSD: trap.c,v 1.6 2004/10/28 11:53:43 tg Exp $ */
 /*	$OpenBSD: trap.c,v 1.13 2003/02/28 09:45:09 jmc Exp $	*/
 
 /*
@@ -9,7 +9,7 @@
 #define FROM_TRAP_C
 #include "sh.h"
 
-__RCSID("$MirBSD: trap.c,v 1.5 2004/10/28 11:11:19 tg Exp $");
+__RCSID("$MirBSD: trap.c,v 1.6 2004/10/28 11:53:43 tg Exp $");
 
 /* Table is indexed by signal number
  *
@@ -25,7 +25,7 @@ Trap sigtraps[SIGNALS+1] = {
 static struct sigaction Sigact_ign, Sigact_trap;
 
 void
-inittraps()
+inittraps(void)
 {
 #ifdef HAVE_SYS_SIGLIST
 # ifndef SYS_SIGLIST_DECLARED
@@ -62,7 +62,7 @@ inittraps()
 static RETSIGTYPE alarm_catcher(int sig);
 
 void
-alarm_init()
+alarm_init(void)
 {
 	sigtraps[SIGALRM].flags |= TF_SHELL_USES;
 	setsig(&sigtraps[SIGALRM], alarm_catcher,
@@ -89,9 +89,7 @@ alarm_catcher(int sig GCC_FUNC_ATTR(unused))
 #endif /* KSH */
 
 Trap *
-gettrap(name, igncase)
-	const char *name;
-	int igncase;
+gettrap(const char *name, int igncase)
 {
 	int i;
 	Trap *p;
@@ -125,8 +123,7 @@ gettrap(name, igncase)
  * trap signal handler
  */
 RETSIGTYPE
-trapsig(i)
-	int i;
+trapsig(int i)
 {
 	Trap *p = &sigtraps[i];
 	int errno_ = errno;
@@ -152,7 +149,7 @@ trapsig(i)
  * work if user has trapped SIGINT.
  */
 void
-intrcheck()
+intrcheck(void)
 {
 	if (intrsig)
 		runtraps(TF_DFL_INTR|TF_FATAL);
@@ -162,7 +159,7 @@ intrcheck()
  * termination has been received.
  */
 int
-fatal_trap_check()
+fatal_trap_check(void)
 {
 	int i;
 	Trap *p;
@@ -180,7 +177,7 @@ fatal_trap_check()
  * is set.
  */
 int
-trap_pending()
+trap_pending(void)
 {
 	int i;
 	Trap *p;
@@ -198,8 +195,7 @@ trap_pending()
  * can interrupt commands.
  */
 void
-runtraps(flag)
-	int flag;
+runtraps(int flag)
 {
 	int i;
 	Trap *p;
@@ -228,8 +224,7 @@ runtraps(flag)
 }
 
 void
-runtrap(p)
-	Trap *p;
+runtrap(Trap *p)
 {
 	int	i = p->signal;
 	char	*trapstr = p->trap;
@@ -275,7 +270,7 @@ runtrap(p)
 
 /* clear pending traps and reset user's trap handlers; used after fork(2) */
 void
-cleartraps()
+cleartraps(void)
 {
 	int i;
 	Trap *p;
@@ -292,7 +287,7 @@ cleartraps()
 
 /* restore signals just before an exec(2) */
 void
-restoresigs()
+restoresigs(void)
 {
 	int i;
 	Trap *p;
@@ -304,9 +299,7 @@ restoresigs()
 }
 
 void
-settrap(p, s)
-	Trap *p;
-	char *s;
+settrap(Trap *p, char *s)
 {
 	handler_t f;
 
@@ -342,7 +335,7 @@ settrap(p, s)
  * kill shell (unless user catches it and exits)
  */
 int
-block_pipe()
+block_pipe(void)
 {
 	int restore_dfl = 0;
 	Trap *p = &sigtraps[SIGPIPE];
@@ -360,8 +353,7 @@ block_pipe()
 
 /* Called by c_print() to undo whatever block_pipe() did */
 void
-restore_pipe(restore_dfl)
-	int restore_dfl;
+restore_pipe(int restore_dfl)
 {
 	if (restore_dfl)
 		setsig(&sigtraps[SIGPIPE], SIG_DFL, SS_RESTORE_CURR);
@@ -372,10 +364,7 @@ restore_pipe(restore_dfl)
  * FTALKING.
  */
 int
-setsig(p, f, flags)
-	Trap *p;
-	handler_t f;
-	int flags;
+setsig(Trap *p, handler_t f, int flags)
 {
 	struct sigaction sigact;
 
@@ -426,9 +415,7 @@ setsig(p, f, flags)
 
 /* control what signal is set to before an exec() */
 void
-setexecsig(p, restore)
-	Trap *p;
-	int restore;
+setexecsig(Trap *p, int restore)
 {
 	/* XXX debugging */
 	if (!(p->flags & (TF_ORIG_IGN|TF_ORIG_DFL)))

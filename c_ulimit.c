@@ -1,4 +1,4 @@
-/**	$MirBSD: c_ulimit.c,v 1.7 2004/10/28 11:03:22 tg Exp $ */
+/**	$MirBSD: c_ulimit.c,v 1.8 2004/10/28 11:53:40 tg Exp $ */
 /*	$OpenBSD: c_ulimit.c,v 1.10 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -32,7 +32,7 @@ extern	long ulimit();
 # endif /* HAVE_ULIMIT */
 #endif /* HAVE_ULIMIT_H */
 
-__RCSID("$MirBSD: c_ulimit.c,v 1.7 2004/10/28 11:03:22 tg Exp $");
+__RCSID("$MirBSD: c_ulimit.c,v 1.8 2004/10/28 11:53:40 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2
@@ -44,8 +44,7 @@ __RCSID("$MirBSD: c_ulimit.c,v 1.7 2004/10/28 11:03:22 tg Exp $");
 #endif /* RLIM_INFINITY */
 
 int
-c_ulimit(wp)
-	char **wp;
+c_ulimit(char **wp)
 {
 	static const struct limits {
 		const char	*name;

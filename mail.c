@@ -1,4 +1,4 @@
-/**	$MirBSD: mail.c,v 1.5 2004/10/28 11:11:18 tg Exp $ */
+/**	$MirBSD: mail.c,v 1.6 2004/10/28 11:53:42 tg Exp $ */
 /*	$OpenBSD: mail.c,v 1.9 1999/06/15 01:18:35 millert Exp $	*/
 
 /*
@@ -13,7 +13,7 @@
 #include "ksh_stat.h"
 #include "ksh_time.h"
 
-__RCSID("$MirBSD: mail.c,v 1.5 2004/10/28 11:11:18 tg Exp $");
+__RCSID("$MirBSD: mail.c,v 1.6 2004/10/28 11:53:42 tg Exp $");
 
 #define MBMESSAGE	"you have mail in $_"
 
@@ -40,14 +40,14 @@ static mbox_t * mballoc(char *p, char *m); /* allocate a new mbox */
 static void     mprintit(mbox_t *mbp);
 
 void
-mcheck()
+mcheck(void)
 {
 	mbox_t	*mbp;
 	time_t		 now;
 	struct tbl	*vp;
 	struct stat	 stbuf;
 
-	now = time((time_t *) 0);
+	now = time(NULL);
 	if (mlastchkd == 0)
 		mlastchkd = now;
 	if (now - mlastchkd >= mailcheck_interval) {
@@ -84,15 +84,13 @@ mcheck()
 }
 
 void
-mcset(interval)
-	long interval;
+mcset(long int interval)
 {
 	mailcheck_interval = interval;
 }
 
 void
-mbset(p)
-	char	*p;
+mbset(char *p)
 {
 	struct stat	stbuf;
 
@@ -110,8 +108,7 @@ mbset(p)
 }
 
 void
-mpset(mptoparse)
-	char	*mptoparse;
+mpset(char *mptoparse)
 {
 	mbox_t	*mbp;
 	char	*mpath, *mmsg, *mval;
@@ -150,8 +147,7 @@ mpset(mptoparse)
 }
 
 static void
-munset(mlist)
-mbox_t	*mlist;
+munset(mbox_t *mlist)
 {
 	mbox_t	*mbp;
 
@@ -165,9 +161,7 @@ mbox_t	*mlist;
 }
 
 static mbox_t *
-mballoc(p, m)
-	char	*p;
-	char	*m;
+mballoc(char *p, char *m)
 {
 	struct stat	stbuf;
 	mbox_t	*mbp;
@@ -184,8 +178,7 @@ mballoc(p, m)
 }
 
 static void
-mprintit( mbp )
-mbox_t	*mbp;
+mprintit(mbox_t *mbp)
 {
 	struct tbl	*vp;
 

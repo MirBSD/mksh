@@ -1,6 +1,9 @@
-/**	$MirBSD: table.h,v 1.4 2004/10/28 11:11:19 tg Exp $ */
+/**	$MirBSD: table.h,v 1.5 2004/10/28 11:53:43 tg Exp $ */
 /*	$OpenBSD: table.h,v 1.5 1999/06/15 01:18:36 millert Exp $	*/
 /*	$From: table.h,v 1.3 1994/05/31 13:34:34 michael Exp $ */
+
+#ifndef TABLE_H
+#define TABLE_H
 
 /*
  * generic hashed associative table for commands and variables.
@@ -116,12 +119,8 @@ struct block {
 	struct	table vars;	/* local variables */
 	struct	table funs;	/* local functions */
 	Getopt	getopts_state;
-#if 1
 	char *	error;		/* error handler */
 	char *	exit;		/* exit handler */
-#else
-	Trap	error, exit;
-#endif
 	struct	block *next;	/* enclosing block */
 };
 
@@ -181,3 +180,5 @@ EXTERN char *tmpdir;		/* TMPDIR value */
 EXTERN const char *prompt;
 EXTERN int cur_prompt;		/* PS1 or PS2 */
 EXTERN int current_lineno;	/* LINENO value */
+
+#endif	/* ndef TABLE_H */
