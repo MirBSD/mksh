@@ -1,4 +1,4 @@
-/**	$MirBSD: chvt.c,v 1.5 2004/12/09 23:25:17 tg Exp $ */
+/**	$MirBSD: chvt.c,v 1.6 2004/12/10 15:01:05 tg Exp $ */
 
 /*-
  * Copyright (c) 2004
@@ -24,11 +24,12 @@
 #include <sys/ioctl.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: chvt.c,v 1.5 2004/12/09 23:25:17 tg Exp $");
+__RCSID("$MirBSD: chvt.c,v 1.6 2004/12/10 15:01:05 tg Exp $");
 
 char *
 chvt(char *f)
 {
+#ifdef HAVE_SETSID
 #ifdef TIOCSCTTY
 	int fd;
 
@@ -67,5 +68,8 @@ chvt(char *f)
 	return NULL;
 #else
 	return "ioctl - TIOCSCTTY not implemented";
+#endif
+#else
+	return "setsid not implemented";
 #endif
 }

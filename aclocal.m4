@@ -1,6 +1,24 @@
-dnl $MirBSD: aclocal.m4,v 1.10 2004/10/28 11:53:39 tg Exp $
+dnl $MirBSD: aclocal.m4,v 1.11 2004/12/10 15:01:05 tg Exp $
+dnl-
+dnl Copyright (c) 2004
+dnl	Thorsten "mirabile" Glaser <tg@66h.42h.de>
 dnl
-dnl Copyright (c) 2004 Thorsten Glaser
+dnl Licensee is hereby permitted to deal in this work without restric-
+dnl tion, including unlimited rights to use, publicly perform, modify,
+dnl merge, distribute, sell, give away or sublicence, provided all co-
+dnl pyright notices above, these terms and the disclaimer are retained
+dnl in all redistributions or reproduced in accompanying documentation
+dnl or other materials provided with binary redistributions.
+dnl
+dnl Licensor hereby provides this work "AS IS" and WITHOUT WARRANTY of
+dnl any kind, expressed or implied, to the maximum extent permitted by
+dnl applicable law, but with the warranty of being written without ma-
+dnl licious intent or gross negligence; in no event shall licensor, an
+dnl author or contributor be held liable for any damage, direct, indi-
+dnl rect or other, however caused, arising in any way out of the usage
+dnl of this work, even if advised of the possibility of such damage.
+dnl-
+dnl Based upon code by:
 dnl Copyright (C) 1996, Memorial University of Newfoundland.
 dnl ------------------------------------------------------------
 dnl
@@ -786,7 +804,7 @@ dnl Several OSes need to be detected and symbols defined so the shell can
 dnl deal with them.  This is a bit kludgy, but...
 dnl Currently tests for:
 dnl	AIX, ISC (Interactive systems corp), MINIX, OS2 using EMX library,
-dnl	SCO (santa cruz operation), NEXT
+dnl	SCO (santa cruz operation), NEXT, Interix/MS Services for Unix
 dnl DO NOT USE with AC_AIX, AC_MINIX or AC_ISC_POSIX tests as these are
 dnl incorperated in this test.
 AC_DEFUN(KSH_OS_TYPE,
@@ -797,7 +815,7 @@ AC_DEFUN(KSH_OS_TYPE,
     [ ksh_cv_os_type=no
       # Some tests below add -C to CPPFLAGS
       saveCPPFLAGS="$CPPFLAGS"
-      for i in AIX ISC MINIX SCO OS2_EMX TITANOS NEXT HPUX; do
+      for i in AIX ISC MINIX SCO OS2_EMX TITANOS NEXT HPUX Interix; do
 	case $i in	#((
 	  AIX)
 	    AC_EGREP_CPP(yes,
@@ -874,12 +892,19 @@ yes
 #endif
 	       ], ksh_cv_os_type=$i)
 	    ;;	#(
+	  Interix)
+	    AC_EGREP_CPP(INTERIX_H,
+	      [#include <interix/interix.h>], ksh_cv_os_type=$i)dnl
+	    ;;	#(
 	esac		#))
 	test $ksh_cv_os_type != no && break
       done
     ])
   case $ksh_cv_os_type in	#((
     AIX)
+      AC_DEFINE(_ALL_SOURCE)dnl
+      ;;			#(
+    Interix)
       AC_DEFINE(_ALL_SOURCE)dnl
       ;;			#(
     ISC)

@@ -1,4 +1,4 @@
-/**	$MirBSD: config.h,v 1.14 2004/12/09 23:23:29 tg Exp $ */
+/**	$MirBSD: config.h,v 1.15 2004/12/10 15:01:05 tg Exp $ */
 /*	$OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -253,6 +253,9 @@
 
 /* Define if you have the setrlimit function.  */
 #define HAVE_SETRLIMIT 1
+
+/* Define if you have the setsid function.  */
+#define HAVE_SETSID 1
 
 /* Define if you have the sigsetjmp function.  */
 #define HAVE_SIGSETJMP 1
