@@ -1,4 +1,4 @@
-/**	$MirBSD: sh.h,v 1.18 2004/11/10 17:31:38 tg Exp $ */
+/**	$MirBSD: sh.h,v 1.19 2004/11/10 19:58:06 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.18 2004/05/31 10:36:35 otto Exp $	*/
 
 #ifndef SH_H
@@ -723,8 +723,12 @@ EXTERN	int	x_cols I__(80);	/* tty columns */
 #undef I__
 
 #ifndef __RCSID
+#ifdef __ELF__
 #define __RCSID(x)	static const char __rcsid[] \
 			GCC_FUNC_ATTR(section(".comment")) = (x)
+#else
+#define __RCSID(x)	static const char __rcsid[] = (x)
+#endif
 #endif
 
 #endif	/* ndef SH_H */

@@ -1,15 +1,15 @@
-/**	$MirBSD: chvt.c,v 1.1 2004/10/31 22:28:41 tg Exp $ */
+/**	$MirBSD: chvt.c,v 1.2 2004/11/10 19:58:06 tg Exp $ */
 
 /*-
  * Copyright (c) 2004
  *	Thorsten "mirabile" Glaser <tg@66h.42h.de>
  *
  * Licensee is hereby permitted to deal in this work without restric-
- * tion, including unlimited rights to use, publically perform, modi-
- * fy, merge, distribute, sell, give away or sublicence, provided the
- * above copyright notices, these terms and the disclaimer are retai-
- * ned in all redistributions, or reproduced in accompanying documen-
- * tation or other materials provided with binary redistributions.
+ * tion, including unlimited rights to use, publicly perform, modify,
+ * merge, distribute, sell, give away or sublicence, provided all co-
+ * pyright notices above, these terms and the disclaimer are retained
+ * in all redistributions or reproduced in accompanying documentation
+ * or other materials provided with binary redistributions.
  *
  * Licensor hereby provides this work "AS IS" and WITHOUT WARRANTY of
  * any kind, expressed or implied, to the maximum extent permitted by
@@ -24,20 +24,23 @@
 #include <sys/ioctl.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: chvt.c,v 1.1 2004/10/31 22:28:41 tg Exp $");
+__RCSID("$MirBSD: chvt.c,v 1.2 2004/11/10 19:58:06 tg Exp $");
 
 
 char *
 chvt(char *f)
 {
+#ifdef TIOCSCTTY
 	int fd;
 
 	if (chown(f, 0, 0))
 		return "chown";
 	if (chmod(f, 0600))
 		return "chmod";
+#ifndef linux
 	if (revoke(f))
 		return "revoke";
+#endif
 
 	if ((fd = open(f, O_RDWR)) == -1) {
 		sleep(1);
@@ -63,4 +66,7 @@ chvt(char *f)
 		close(fd);
 
 	return NULL;
+#else
+	return "TIOCSCTTY not implemented";
+#endif
 }

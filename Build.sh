@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: Build.sh,v 1.14 2004/11/10 17:13:10 tg Exp $
+# $MirBSD: Build.sh,v 1.15 2004/11/10 19:58:06 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -56,9 +56,10 @@ if test -e strlfun.c; then
 	$SHELL ./emacs-gen.sh emacs.c >emacs.out
 	echo "Building..."
 	$CC $COPTS $CFLAGS $CPPFLAGS $LDFLAGS -o ksh.unstripped *.c
+	test -e ksh.unstripped || exit 1
 	echo "Finalizing..."
 	tbl <ksh.1tbl >mksh.1 || cat ksh.1tbl >mksh.1
-	nroff -mdoc -Tascii <ksh.1 >mksh.cat1 || rm -f mksh.cat1
+	nroff -mdoc -Tascii <mksh.1 >mksh.cat1 || rm -f mksh.cat1
 	man=mksh.cat1
 	test -s $man || man=mksh.1
 	test -s $man || man=ksh.1tbl
