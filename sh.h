@@ -1,4 +1,4 @@
-/**	$MirBSD: sh.h,v 1.16 2004/10/28 16:49:13 tg Exp $ */
+/**	$MirBSD: sh.h,v 1.17 2004/11/10 17:29:55 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.18 2004/05/31 10:36:35 otto Exp $	*/
 
 #ifndef SH_H
@@ -438,6 +438,7 @@ EXTERN	struct env {
 #define OF_SET		0x02	/* set builtin */
 #define OF_SPECIAL	0x04	/* a special variable changing */
 #define OF_INTERNAL	0x08	/* set internally by shell */
+#define OF_FIRSTTIME	0x10	/* as early as possible, once */
 #define OF_ANY		(OF_CMDLINE | OF_SET | OF_SPECIAL | OF_INTERNAL)
 
 struct option {
@@ -720,5 +721,10 @@ EXTERN	int	x_cols I__(80);	/* tty columns */
 # undef EXTERN
 #endif
 #undef I__
+
+#ifndef __RCSID
+#define __RCSID(x)	static const char __rcsid[] \
+			__attribute__((section(".comment"))) = (x)
+#endif
 
 #endif	/* ndef SH_H */
