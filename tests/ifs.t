@@ -159,3 +159,17 @@ expected-stdout:
 	 <10> <h> <ith> <ere>
 	 <11> <h:ith:ere>
 ---
+
+name: IFS-subst-2
+description:
+	manual page test, IFS=<space>:
+stdin:
+	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	IFS=" :"
+	x=" A :  B::D"
+	echo -n '1:'; for i in $x ; do echo -n " [$i]" ; done ; echo
+	showargs 2 $x
+expected-stdout:
+	1: [A] [B] [] [D]
+	 <2> <A> <B> <> <D>
+---
