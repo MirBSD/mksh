@@ -1,5 +1,5 @@
 #! /bin/sh
-# $MirBSD: configure,v 1.5 2004/04/07 17:22:48 tg Exp $
+# $MirBSD: configure,v 1.6 2004/04/17 00:37:08 tg Exp $
 #
 # Guess values for system-dependent variables and create Makefiles.
 # Generated automatically using autoconf version 2.13.20020210 
@@ -210,14 +210,14 @@ cat <<EOF
                           out for sh).  Brace expansion can also be disabled
                           at run time (see set +o braceexpand).
   --enable-history={no,simple,complex} By default, simple history is used for
-                          ksh, no history is used for sh.  \`simple' means
+                          ksh, no history is used for sh.  'simple' means
                           history file is read on start-up, written when shell
-                          exists.  \`complex' means history files are updated
+                          exists.  'complex' means history files are updated
                           after each command so concurrent shells read each
-                          other's commands.  Note: \`complex' history doesn't
+                          other's commands.  Note: 'complex' history doesn't
                           work well across NFS; also, it requires the mmap()
                           and flock() functions - if these aren't available,
-                          \`simple' history is automatically used.
+                          'simple' history is automatically used.
   --enable-posixly-correct Enable if you want POSIX behavior by default
                           (otherwise, posix behavior is only turned on if the
                           environment variable POSIXLY_CORRECT is present or by
@@ -843,7 +843,7 @@ if eval "test \"$(echo '$''{'ac_cv_prog_gcc_g'+set}')\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   echo 'int main(){ return 0; }' > conftest.c
-if test -z "`${CC-cc} -g conftest.c 2>&1`"; then
+if test -z "$(${CC-cc} -g conftest.c 2>&1)"; then
   ac_cv_prog_gcc_g=yes
 else
   ac_cv_prog_gcc_g=no
@@ -992,7 +992,7 @@ echo "$ac_t""$ac_cv_prog_gcc_traditional" 1>&6
 fi
 
 if test X"$GCC" = Xyes && test -f $srcdir/Warn-flags; then
-  CFLAGS="${CFLAGS+$CFLAGS }`cat $srcdir/Warn-flags`"
+  CFLAGS="${CFLAGS+$CFLAGS }$(cat $srcdir/Warn-flags)"
 fi
 
 LDSTATIC=${LDSTATIC-}
@@ -1391,7 +1391,7 @@ test "$program_transform_name" = "" && program_transform_name="s,x,x,"
 ac_header_dirent=no
 for ac_hdr in dirent.h sys/ndir.h sys/dir.h ndir.h
 do
-ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
+ac_safe=$(echo "$ac_hdr" | sed 'y%./+-%__p_%')
 echo $ac_n "checking for $ac_hdr that defines DIR""... $ac_c" 1>&6
 echo "configure:1402: checking for $ac_hdr that defines DIR" >&5
 if eval "test \"$(echo '$''{'ac_cv_header_dirent_$ac_safe'+set}')\" = set"; then
@@ -1417,9 +1417,9 @@ else
 fi
 rm -f conftest*
 fi
-if eval "test \"`echo '$ac_cv_header_dirent_'$ac_safe`\" = yes"; then
+if eval "test \"$(echo '$ac_cv_header_dirent_'$ac_safe)\" = yes"; then
   echo "$ac_t""yes" 1>&6
-    ac_tr_hdr=HAVE_`echo $ac_hdr | sed 'y%abcdefghijklmnopqrstuvwxyz./-%ABCDEFGHIJKLMNOPQRSTUVWXYZ___%'`
+    ac_tr_hdr=HAVE_$(echo $ac_hdr | sed 'y%abcdefghijklmnopqrstuvwxyz./-%ABCDEFGHIJKLMNOPQRSTUVWXYZ___%')
   cat >> confdefs.h <<EOF
 #define $ac_tr_hdr 1
 EOF
@@ -4052,7 +4052,7 @@ EOF
 # Ultrix sh set writes to stderr and can't be redirected directly,
 # and sets the high bit in the cache file unless we assign to the vars.
 (set) 2>&1 |
-  case $((ac_space=' '; set | grep ac_space) 2>&1) in
+  case $(ac_space=' '; set | grep ac_space 2>&1) in
   *ac_space=\ *)
     # 'set' does not quote correctly, so add quotes (double-quote substitution
     # turns \\\\ into \\, and sed turns \\ into \).
@@ -4099,12 +4099,13 @@ DEFS=-DHAVE_CONFIG_H
 
 echo creating $CONFIG_STATUS
 rm -f $CONFIG_STATUS
+HOSTNAME="$(hostname 2>/dev/null)" || HOSTNAME="$(uname -n 2>/dev/null)"
 cat > $CONFIG_STATUS <<EOF
 #! /bin/sh
 # Generated automatically by configure.
 # Run this file to recreate the current configuration.
 # This directory was configured as follows,
-# on host $((hostname || uname -n) 2>/dev/null | sed 1q):
+# on host $(echo "$HOSTNAME" | sed 1q):
 #
 # $0 $ac_configure_args
 #

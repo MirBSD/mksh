@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: BuildGNU.sh,v 1.7 2004/04/07 18:43:41 tg Exp $
+# $MirBSD: BuildGNU.sh,v 1.8 2004/04/17 00:37:07 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -18,7 +18,7 @@
 # ly, but not by a developer's malice intent, even if advised of the
 # possibility of such damage.
 #-
-# Build the mirbsdksh on GNU operating systems (and more?)
+# Build the mirbsdksh on GNU and other operating systems.
 # Note:	on some systems, you must run it with a pre-existing bash or
 #	korn shell, because the Bourne seems to choke on the if sta-
 #	tement below for some unknown reason.
@@ -42,8 +42,11 @@ if [ -e strlcpy.c -a -e strlcat.c ]; then
 	$CC $CFLAGS $CPPFLAGS $LDFLAGS -o ksh *.c
 	echo "Finalizing..."
 	tbl <ksh.1tbl | nroff -mandoc -Tascii >ksh.cat1
+	cp ksh ksh.unstripped
 	strip -R .note -R .comment -R .rel.dyn -R .sbss \
-	    --strip-unneeded --strip-all ksh
+	    --strip-unneeded --strip-all ksh \
+	    || strip ksh || mv ksh.unstripped ksh
+	rm -f ksh.unstripped
 	size ksh
 	echo "done."
 else
