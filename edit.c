@@ -1,3 +1,4 @@
+/*	$MirBSD: edit.c,v 1.4 2003/08/31 20:54:02 tg Exp $	*/
 /*	$OpenBSD: edit.c,v 1.18 2003/08/22 18:17:10 fgsch Exp $	*/
 
 /*
@@ -1060,7 +1061,7 @@ x_escape(s, len, putbuf_func)
 	int rval=0;
 
 	for (add = 0, wlen = len; wlen - add > 0; add++) {
-		if (strchr("\\$(){}*&;#|<>\"'`", s[add]) || strchr(ifs, s[add])) {
+		if (strchr("\\$(){}[]*&;#|<>\"'`", s[add]) || strchr(ifs, s[add])) {
 			if (putbuf_func(s, add) != 0) {
 				rval = -1;
 				break;

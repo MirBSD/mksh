@@ -1,3 +1,4 @@
+/*	$MirBSD: c_ulimit.c,v 1.2 2003/03/23 21:47:52 tg Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.9 2002/06/09 05:47:27 todd Exp $	*/
 
 /*
@@ -55,6 +56,9 @@ c_ulimit(wp)
 		/* Do not use options -H, -S or -a */
 #ifdef RLIMIT_CPU
 		{ "time(cpu-seconds)", RLIMIT, RLIMIT_CPU, RLIMIT_CPU, 1, 't' },
+#endif
+#ifdef RLIMIT_TIME
+		{ "humantime(seconds)", RLIMIT, RLIMIT_TIME, RLIMIT_TIME, 1, 'T' },
 #endif
 #ifdef RLIMIT_FSIZE
 		{ "file(blocks)", RLIMIT, RLIMIT_FSIZE, RLIMIT_FSIZE, 512, 'f' },
