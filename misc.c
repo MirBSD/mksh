@@ -1,3 +1,4 @@
+/*	$MirBSD: misc.c,v 1.4 2003/09/25 20:59:37 tg Exp $	*/
 /*	$OpenBSD: misc.c,v 1.19 2003/09/01 15:47:40 naddy Exp $	*/
 
 /*
