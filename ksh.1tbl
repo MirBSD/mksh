@@ -1,4 +1,4 @@
-.\"	$MirBSD: ksh.1tbl,v 1.39 2004/11/10 17:01:11 tg Exp $
+.\"	$MirBSD: ksh.1tbl,v 1.40 2004/11/10 17:13:10 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.78 2004/11/08 23:42:02 jmc Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.52 2004/11/09 21:56:54 jmc Exp $
 .\"
@@ -1384,12 +1384,6 @@ When an external command is executed by the shell, this parameter is set in the
 environment of the new process to the path of the executed command.
 In interactive use, this parameter is also set in the parent shell to the last
 word of the previous command.
-When
-.Ev MAILPATH
-messages are evaluated, this parameter contains the name of the file that
-changed (see
-.Ev MAILPATH
-parameter below).
 .It Ev CDPATH
 Search path for the
 .Ic cd
@@ -1519,31 +1513,6 @@ executed.
 .It Ev LINES
 Set to the number of lines on the terminal or window.
 Not yet implemented.
-.It Ev MAIL
-If set, the user will be informed of the arrival of mail in the named file.
-This parameter is ignored if the
-.Ev MAILPATH
-parameter is set.
-.It Ev MAILCHECK
-How often, in seconds, the shell will check for mail in the file(s) specified
-by
-.Ev MAIL
-or
-.Ev MAILPATH .
-If set to 0, the shell checks before each prompt.
-The default is 600 (10 minutes).
-.It Ev MAILPATH
-A list of files to be checked for mail.
-The list is colon separated, and each file may be followed by a
-.Ql \&?
-and a message to be printed if new mail has arrived.
-Command, parameter and
-arithmetic substitution is performed on the message, and, during substitution,
-the parameter
-.Ev $_
-contains the name of the file.
-The default message is
-.Dq you have mail in $_ .
 .It Ev OLDPWD
 The previous working directory.
 Unset if

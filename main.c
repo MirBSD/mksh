@@ -1,4 +1,4 @@
-/**	$MirBSD: main.c,v 1.14 2004/10/31 23:02:05 tg Exp $ */
+/**	$MirBSD: main.c,v 1.15 2004/11/10 17:13:11 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -11,7 +11,7 @@
 #include "ksh_stat.h"
 #include "ksh_time.h"
 
-__RCSID("$MirBSD: main.c,v 1.14 2004/10/31 23:02:05 tg Exp $");
+__RCSID("$MirBSD: main.c,v 1.15 2004/11/10 17:13:11 tg Exp $");
 
 extern char **environ;
 
@@ -45,7 +45,7 @@ static const char *const initcoms [] = {
 	"typeset", "-i", "PPID", NULL,
 	"typeset", "-i", "OPTIND=1", NULL,
 #ifdef KSH
-	"eval", "typeset -i RANDOM MAILCHECK=\"${MAILCHECK-600}\" SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
+	"eval", "typeset -i RANDOM SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
 #endif /* KSH */
 	"alias",
 	 /* Standard ksh aliases */
@@ -606,9 +606,6 @@ shell(Source *volatile s, volatile int toplevel)
 
 		if (interactive) {
 			j_notify();
-#ifdef KSH
-			mcheck();
-#endif /* KSH */
 			set_prompt(PS1, s);
 		}
 

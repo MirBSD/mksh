@@ -1,4 +1,4 @@
-/**	$MirBSD: table.h,v 1.5 2004/10/28 11:53:43 tg Exp $ */
+/**	$MirBSD: table.h,v 1.6 2004/11/10 17:13:11 tg Exp $ */
 /*	$OpenBSD: table.h,v 1.5 1999/06/15 01:18:36 millert Exp $	*/
 /*	$From: table.h,v 1.3 1994/05/31 13:34:34 michael Exp $ */
 
@@ -156,9 +156,6 @@ extern const struct builtin shbuiltins [], kshbuiltins [];
 #define	V_IFS			2
 #define	V_SECONDS		3
 #define	V_OPTIND		4
-#define	V_MAIL			5
-#define	V_MAILPATH		6
-#define	V_MAILCHECK		7
 #define	V_RANDOM		8
 #define V_HISTSIZE		9
 #define V_HISTFILE		10

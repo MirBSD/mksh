@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: Build.sh,v 1.13 2004/10/28 16:35:01 tg Exp $
+# $MirBSD: Build.sh,v 1.14 2004/11/10 17:13:10 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -63,9 +63,12 @@ if test -e strlfun.c; then
 	test -s $man || man=mksh.1
 	test -s $man || man=ksh.1tbl
 	cp ksh.unstripped mksh
-	strip -R .note -R .comment --strip-unneeded --strip-all mksh \
-	    || strip mksh || mv ksh.unstripped mksh
-	size $BINARY
+	strip -R .comment --strip-unneeded --strip-all mksh || rm mksh
+	if ! test -e mksh; then
+		cp ksh.unstripped mksh
+		strip mksh || mv ksh.unstripped mksh
+	fi
+	size mksh
 	echo "done."
 	echo ""
 	echo "If you want to test mirbsdksh:"

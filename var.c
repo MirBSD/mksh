@@ -1,4 +1,4 @@
-/**	$MirBSD: var.c,v 1.11 2004/10/28 11:53:44 tg Exp $ */
+/**	$MirBSD: var.c,v 1.12 2004/11/10 17:13:11 tg Exp $ */
 /*	$OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
 
 #include "sh.h"
@@ -7,7 +7,7 @@
 #include "ksh_stat.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: var.c,v 1.11 2004/10/28 11:53:44 tg Exp $");
+__RCSID("$MirBSD: var.c,v 1.12 2004/11/10 17:13:11 tg Exp $");
 
 /*
  * Variables
@@ -103,9 +103,6 @@ initvar(void)
 			{ "VISUAL",		V_VISUAL },
 #endif /* EDIT */
 #ifdef KSH
-			{ "MAIL",		V_MAIL },
-			{ "MAILCHECK",		V_MAILCHECK },
-			{ "MAILPATH",		V_MAILPATH },
 			{ "RANDOM",		V_RANDOM },
 			{ "SECONDS",		V_SECONDS },
 			{ "TMOUT",		V_TMOUT },
@@ -999,17 +996,6 @@ setspec(struct tbl *vp)
 		break;
 #endif /* EDIT */
 #ifdef KSH
-	  case V_MAIL:
-		mbset(str_val(vp));
-		break;
-	  case V_MAILPATH:
-		mpset(str_val(vp));
-		break;
-	  case V_MAILCHECK:
-		vp->flag &= ~SPECIAL;
-		mcset(intval(vp));
-		vp->flag |= SPECIAL;
-		break;
 	  case V_RANDOM:
 		vp->flag &= ~SPECIAL;
 		rnd_put(intval(vp));
@@ -1056,18 +1042,8 @@ unsetspec(struct tbl *vp)
 			tmpdir = (char *) 0;
 		}
 		break;
-#ifdef KSH
-	  case V_MAIL:
-		mbset((char *) 0);
-		break;
-	  case V_MAILPATH:
-		mpset((char *) 0);
-		break;
-#endif /* KSH */
-
 	  case V_LINENO:
 #ifdef KSH
-	  case V_MAILCHECK:	/* at&t ksh leaves previous value in place */
 	  case V_RANDOM:
 	  case V_SECONDS:
 	  case V_TMOUT:		/* at&t ksh leaves previous value in place */
@@ -1079,7 +1055,7 @@ unsetspec(struct tbl *vp)
 	   * but OPTARG does not (still set by getopts) and _ is also still
 	   * set in various places.
 	   * Don't know what at&t does for:
-	   *		MAIL, MAILPATH, HISTSIZE, HISTFILE,
+	   *		HISTSIZE, HISTFILE,
 	   * Unsetting these in at&t ksh does not loose the 'specialness':
 	   *    no effect: IFS, COLUMNS, PATH, TMPDIR,
 	   *		VISUAL, EDITOR,

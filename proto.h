@@ -1,4 +1,4 @@
-/**	$MirBSD: proto.h,v 1.9 2004/10/31 22:28:43 tg Exp $ */
+/**	$MirBSD: proto.h,v 1.10 2004/11/10 17:13:11 tg Exp $ */
 /*	$OpenBSD: proto.h,v 1.11 2003/05/16 19:58:57 jsyn Exp $	*/
 /*	$From: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $ */
 
@@ -164,13 +164,6 @@ void 	yyerror(const char *fmt, ...)
 Source * pushs(int type, Area *areap);
 void	set_prompt(int to, Source *s);
 void 	pprompt(const char *cp, int ntruncate);
-/* mail.c */
-#ifdef KSH
-void 	mcheck(void);
-void 	mcset(long interval);
-void 	mbset(char *p);
-void 	mpset(char *mptoparse);
-#endif /* KSH */
 /* main.c */
 int 	include(const char *name, int argc, char **argv,
 			      int intr_ok);
