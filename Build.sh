@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: Build.sh,v 1.4 2004/05/24 20:13:03 tg Exp $
+# $MirBSD: Build.sh,v 1.5 2004/05/24 20:17:50 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten Glaser <x86@ePost.de>
@@ -44,8 +44,9 @@ if test -e strlfun.c; then
 	$CC $COPTS $CFLAGS $CPPFLAGS $LDFLAGS -o ksh.unstripped *.c
 	echo "Finalizing..."
 	tbl <ksh.1tbl >ksh.1
-	nroff -mandoc -Tascii <ksh.1 >ksh.cat1
+	nroff -man -Tascii <ksh.1 >ksh.cat1
 	if [ -z "$WEIRD_OS" ]; then
+		cp ksh.unstripped ksh
 		strip -R .note -R .comment -R .rel.dyn -R .sbss \
 		    --strip-unneeded --strip-all ksh \
 		    || strip ksh || rm -f ksh
@@ -57,6 +58,8 @@ if test -e strlfun.c; then
 	echo ""
 	echo "If you want to test mirbsdksh:"
 	echo "perl ./tests/th -s ./tests -p ./ksh -C pdksh,sh,ksh,posix,posix-upu"
+	echo ""
+	echo "generated files: ksh <- ksh.unstripped   ksh.cat1 <- ksh.1"
 else
 	echo "Your kit isn't complete, please download the"
 	echo "mirbsdksh-1.x.cpio.gz distfile, then extract"
