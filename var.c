@@ -1,4 +1,4 @@
-/* $MirBSD: var.c,v 1.3 2004/04/27 19:59:57 tg Exp $	*/
+/* $MirBSD: var.c,v 1.4 2004/04/29 18:58:16 tg Exp $	*/
 /* $OpenBSD: var.c,v 1.16 2003/08/05 20:52:27 millert Exp $	*/
 
 #include "sh.h"
@@ -1259,7 +1259,7 @@ prng_seed(val)
 #if defined(HAVE_ARC4RANDOM_PUSH)
 	arc4random_push(j);
 #elif defined(HAVE_ARC4RANDOM_ADDRANDOM)
-	arc4random_addrandom(&j, sizeof (j));
+	arc4random_addrandom((u_char *)(&j), sizeof (j));
 #else
 	while (j) {
 		rand();
