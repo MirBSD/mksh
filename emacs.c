@@ -1,3 +1,4 @@
+/*	$MirBSD: emacs.c,v 1.7 2003/12/23 13:41:48 tg Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.28 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*

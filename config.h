@@ -1,4 +1,5 @@
-/*	$OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
+/* $MirBSD: config.h,v 1.5 2004/04/24 21:45:00 tg Exp $ */
+/* $OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /* config.h.  NOT generated automatically. */
 
@@ -24,10 +25,10 @@
 /* Define to empty if the keyword does not work.  */
 /* #undef const */
 
-/* Define to `int' if <sys/types.h> doesn't define.  */
+/* Define to 'int' if <sys/types.h> doesn't define.  */
 /* #undef gid_t */
 
-/* Define if you have a working `mmap' system call.  */
+/* Define if you have a working 'mmap' system call.  */
 #define HAVE_MMAP 1
 
 /* Define if your struct stat has st_rdev.  */
@@ -42,13 +43,13 @@
 /* Define if on MINIX.  */
 /* #undef _MINIX */
 
-/* Define to `int' if <sys/types.h> doesn't define.  */
+/* Define to 'int' if <sys/types.h> doesn't define.  */
 /* #undef mode_t */
 
-/* Define to `long' if <sys/types.h> doesn't define.  */
+/* Define to 'long' if <sys/types.h> doesn't define.  */
 /* #undef off_t */
 
-/* Define to `int' if <sys/types.h> doesn't define.  */
+/* Define to 'int' if <sys/types.h> doesn't define.  */
 /* #undef pid_t */
 
 /* Define if the system does not provide POSIX.1 features except
@@ -61,16 +62,16 @@
 /* Define as the return type of signal handlers (int or void).  */
 #define RETSIGTYPE void
 
-/* Define if the `S_IS*' macros in <sys/stat.h> do not work properly.  */
+/* Define if the 'S_IS*' macros in <sys/stat.h> do not work properly.  */
 /* #undef STAT_MACROS_BROKEN */
 
-/* Define if `sys_siglist' is declared by <signal.h>.  */
+/* Define if 'sys_siglist' is declared by <signal.h>.  */
 #define SYS_SIGLIST_DECLARED 1
 
 /* Define if you can safely include both <sys/time.h> and <time.h>.  */
 #define TIME_WITH_SYS_TIME 1
 
-/* Define to `int' if <sys/types.h> doesn't define.  */
+/* Define to 'int' if <sys/types.h> doesn't define.  */
 /* #undef uid_t */
 
 /* Define if the closedir function returns void instead of int.  */
@@ -83,7 +84,7 @@
 /* #undef DUP2_BROKEN */
 
 /* Define as the return value of signal handlers (0 or ).  */
-#define RETSIGVAL 
+#define RETSIGVAL
 
 /* Define if you have posix signal routines (sigaction(), et. al.) */
 #define POSIX_SIGNALS 1
@@ -136,7 +137,7 @@
 /* Define if time() is declared in <time.h> */
 #define TIME_DECLARED 1
 
-/* Define to `unsigned' if <signal.h> doesn't define */
+/* Define to 'unsigned' if <signal.h> doesn't define */
 /* #undef sigset_t */
 
 /* Define if sys_errlist[] and sys_nerr are in the C library */
@@ -237,11 +238,7 @@
 #define SIZEOF_INT 4
 
 /* The number of bytes in a long.  */
-#if defined(alpha)
-#define SIZEOF_LONG 8
-#else
 #define SIZEOF_LONG 4
-#endif
 
 /* Define if you have the _setjmp function.  */
 /* #undef HAVE__SETJMP */
@@ -270,6 +267,9 @@
 /* Define if you have the killpg function.  */
 #define HAVE_KILLPG 1
 
+/* Define if you have the mkstemp function.  */
+#define HAVE_MKSTEMP 1
+
 /* Define if you have the nice function.  */
 #define HAVE_NICE 1
 
@@ -284,6 +284,12 @@
 
 /* Define if you have the strerror function.  */
 #define HAVE_STRERROR 1
+
+/* Define if you have the strlcat function.  */
+#define HAVE_STRLCAT 1
+
+/* Define if you have the strlcpy function.  */
+#define HAVE_STRLCPY 1
 
 /* Define if you have the strstr function.  */
 #define HAVE_STRSTR 1

@@ -1,3 +1,4 @@
+/*	$MirBSD: edit.c,v 1.5 2004/04/17 00:47:18 tg Exp $	*/
 /*	$OpenBSD: edit.c,v 1.18 2003/08/22 18:17:10 fgsch Exp $	*/
 
 /*
@@ -68,7 +69,7 @@ x_init()
 	if (_POSIX_VDISABLE >= 0)
 		vdisable_c = (char) _POSIX_VDISABLE;
 	else
-		/* `feature not available' */
+		/* 'feature not available' */
 		vdisable_c = (char) 0377;
 #else
 # if defined(HAVE_PATHCONF) && defined(_PC_VDISABLE)
@@ -107,7 +108,7 @@ check_sigwinch ARGS((void))
 			if (ws.ws_col) {
 				x_cols = ws.ws_col < MIN_COLS ? MIN_COLS
 						: ws.ws_col;
-				
+
 				if ((vp = typeset("COLUMNS", 0, 0, 0, 0)))
 					setint(vp, (long) ws.ws_col);
 			}
@@ -210,7 +211,7 @@ x_mode(onoff)
 	if (onoff) {
 		TTY_state	cb;
 		X_chars		oldchars;
-		
+
 		oldchars = edchars;
 		cb = tty_state;
 
@@ -292,7 +293,7 @@ x_mode(onoff)
 			edchars.eof = '\4';
 #endif /* __CYGWIN__ */
 
-		/* Convert unset values to internal `unset' value */
+		/* Convert unset values to internal 'unset' value */
 		if (edchars.erase == vdisable_c)
 			edchars.erase = -1;
 		if (edchars.kill == vdisable_c)
@@ -1060,7 +1061,7 @@ x_escape(s, len, putbuf_func)
 	int rval=0;
 
 	for (add = 0, wlen = len; wlen - add > 0; add++) {
-		if (strchr("\\$(){}*&;#|<>\"'`", s[add]) || strchr(ifs, s[add])) {
+		if (strchr("\\$(){}[]*&;#|<>\"'`", s[add]) || strchr(ifs, s[add])) {
 			if (putbuf_func(s, add) != 0) {
 				rval = -1;
 				break;

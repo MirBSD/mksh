@@ -1,3 +1,4 @@
+/*	$MirBSD: syn.c,v 1.2 2004/04/17 00:47:20 tg Exp $	*/
 /*	$OpenBSD: syn.c,v 1.14 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -746,7 +747,7 @@ syntaxerr(what)
 			s = redir;
 		}
 	}
-	yyerror("syntax error: `%s' %s\n", s, what);
+	yyerror("syntax error: '%s' %s\n", s, what);
 }
 
 static void

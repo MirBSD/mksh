@@ -1,3 +1,4 @@
+/*	$MirBSD: c_ksh.c,v 1.2 2004/04/17 00:47:17 tg Exp $	*/
 /*	$OpenBSD: c_ksh.c,v 1.17 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -862,7 +863,7 @@ c_typeset(wp)
 			    }
 			    shprintf(newline);
 			}
-			/* Only report first `element' of an array with
+			/* Only report first 'element' of an array with
 			 * no set elements.
 			 */
 			if (!any_set)
@@ -873,7 +874,7 @@ c_typeset(wp)
 	}
 	return 0;
 }
-	
+
 int
 c_alias(wp)
 	char **wp;
@@ -938,7 +939,7 @@ c_alias(wp)
 		return c_unalias((char **) args);
 	}
 
-	
+
 	if (*wp == NULL) {
 		struct tbl *ap, **p;
 
@@ -1193,7 +1194,7 @@ c_kill(wp)
 	/* assume old style options if -digits or -UPPERCASE */
 	if ((p = wp[1]) && *p == '-' && (digit(p[1]) || isupper(p[1]))) {
 		if (!(t = gettrap(p + 1, TRUE))) {
-			bi_errorf("bad signal `%s'", p + 1);
+			bi_errorf("bad signal '%s'", p + 1);
 			return 1;
 		}
 		i = (wp[2] && strcmp(wp[2], "--") == 0) ? 3 : 2;
@@ -1207,7 +1208,7 @@ c_kill(wp)
 				break;
 			  case 's':
 				if (!(t = gettrap(builtin_opt.optarg, TRUE))) {
-					bi_errorf("bad signal `%s'",
+					bi_errorf("bad signal '%s'",
 						builtin_opt.optarg);
 					return 1;
 				}

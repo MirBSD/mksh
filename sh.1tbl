@@ -1,7 +1,11 @@
-.\"	$OpenBSD: sh.1tbl,v 1.40 2003/12/22 11:54:02 jmc Exp $
+.\" $MirBSD: sh.1tbl,v 1.7 2004/04/07 17:14:13 tg Exp $
+.\" _MirBSD: ksh.1tbl,v 1.19 2004/04/07 16:54:01 tg Exp $
+.\" $OpenBSD: ksh.1tbl,v 1.65 2004/01/23 23:08:45 jmc Exp $
 .\"
 .\" Copyright (c) 1980, 1990, 1993
 .\"     The Regents of the University of California.  All rights reserved.
+.\" Copyright (c) 2003, 2004
+.\"	The MirOS Project (http://mirbsd.de/).  All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -15,7 +19,7 @@
 .\"    may be used to endorse or promote products derived from this software
 .\"    without specific prior written permission.
 .\"
-.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS "AS IS" AND
 .\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 .\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 .\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
@@ -29,19 +33,19 @@
 .\"
 .\"     @(#)ksh.1tbl      8.2 (Berkeley) 8/19/96
 .\"
-.Dd August 19, 1996
-.Dt KSH 1
+.Dd April 7, 2004
+.Dt SH 1
 .Os
 .Sh NAME
 .Nm sh
-.Nd public domain Bourne shell
+.Nd MirOS Bourne shell (derived from pdksh)
 .Sh SYNOPSIS
-.Nm sh
+.Nm
 .Op Fl +abCefhiklmnprsuvxX
 .Op Fl +o Ar option
 .Oo [ Fl c Ar command-string [
 .Xo Ar command-name ] No \&| Fl s No \&|
-.Ar file No ]\ 
+.Ar file No ]\ \&
 .Xc
 .Op Ar argument ... Oc
 .Sh DESCRIPTION
@@ -52,7 +56,7 @@ interactive and script use.
 The following options can be specified only on the command line:
 .Bl -tag -width Ds
 .It Fl c Ar command-string
-.Nm ksh
+.Nm
 will execute the command(s) contained in
 .Ar command-string .
 .It Fl i
@@ -93,7 +97,7 @@ option is used or if both standard input and standard error are attached
 to a tty.
 An interactive shell has job control enabled (if available), ignores the
 .Dv SIGINT ,
-.Dv SIGQUIT ,
+.Dv SIGQUIT
 and
 .Dv SIGTERM
 signals, and prints prompts before reading input (see
@@ -134,7 +138,7 @@ command is disabled.
 .It
 The
 .Ev SHELL ,
-.Ev ENV ,
+.Ev ENV
 and
 .Ev PATH
 parameters cannot be changed.
@@ -222,7 +226,7 @@ characters (space, tab, and newline) or meta-characters
 .Ql > ,
 .Ql | ,
 .Ql \&; ,
-.Ql ( ,
+.Ql (
 and
 .Ql \&)
 .Pc .
@@ -275,7 +279,7 @@ shell and must be quoted if they are to represent themselves:
 .Ql { ,
 .Ql } ,
 .Ql * ,
-.Ql \&? ,
+.Ql \&?
 and
 .Ql [ .
 The first three of these are the above mentioned quoting characters (see
@@ -308,7 +312,7 @@ style alterations (see
 below);
 and finally,
 .Ql * ,
-.Ql \&? ,
+.Ql \&?
 and
 .Ql [
 are used in file name generation (see
@@ -332,9 +336,8 @@ A simple-command consists of some combination of parameter assignments
 below),
 input/output redirections (see
 .Sx Input/output redirections
-below),
-and command words; the only restriction is that parameter assignments come
-before any command words.
+below) and command words; the only restriction is that
+parameter assignments come before any command words.
 The command words, if any, define the command
 that is to be executed and its arguments.
 The command may be a shell built-in
@@ -375,7 +378,7 @@ tokens:
 .Ql && ,
 .Ql || ,
 .Ql & ,
-.Ql |& ,
+.Ql |&
 and
 .Ql \&; .
 The first two are for conditional execution:
@@ -396,7 +399,7 @@ and
 .Ql ||
 have equal precedence which is higher than that of
 .Ql & ,
-.Ql |& ,
+.Ql |&
 and
 .Ql \&; ,
 which also have equal precedence.
@@ -446,14 +449,11 @@ are only recognized if they are unquoted and if they are used as the first
 word of a command (i.e., they can't be preceded by parameter assignments or
 redirections):
 .Pp
-.TS
-center;
-lfB lfB lfB lfB lfB .
-case    else    function        !
-do      esac    if      until   [[
-done    fi      in      while   {
-elif    for     time    then    }
-.TE
+.Ic case , do , done , elif ,
+.Ic else , esac , fi , for ,
+.Ic function , if , in ,
+.Ic then , time , until , while ,
+.Ic \&! , \&[ , \&{ , \&}
 .Pp
 .Sy Note:
 Some shells (but not this one) execute control structure commands in a
@@ -540,7 +540,7 @@ if no
 .Ar list
 is executed, the exit status is zero.
 .It Xo Ic for Ar name No [
-.Ic in Ar word Ar ... term Ns No ]
+.Ic in Ar word Ar ... term Ns ]
 .Ic do Ar list Ic done
 .Xc
 For each
@@ -770,7 +770,7 @@ characters are called
 .Dq IFS whitespace .
 Sequences of one or more
 .Ev IFS
-whitespace characters, in combination with zero or no
+whitespace characters, in combination with zero or one
 .Pf non- Ev IFS
 whitespace
 characters, delimit a field.
@@ -788,11 +788,11 @@ is set to
 and VAR is set to
 .Dq <space>A<space>:<space><space>B::D ,
 the substitution for $VAR results in four fields:
-.Dq A ,
-.Dq B ,
-.Dq ,
+.Sq A ,
+.Sq B ,
+.Sq ""
 and
-.Dq D .
+.Sq D .
 Note that if the
 .Ev IFS
 parameter is set to the
@@ -882,8 +882,8 @@ or
 where
 .Ar name
 is a parameter name.
-If substitution is performed on a parameter that is not set, a
-null string is substituted unless the
+If substitution is performed on a parameter
+that is not set, a null string is substituted unless the
 .Ic nounset
 option
 .Po
@@ -931,7 +931,7 @@ Lastly, parameters can be assigned values using assignment operators
 inside arithmetic expressions (see
 .Sx Arithmetic expressions
 below) or using the
-.Xo Ic ${ Ns Ar name Ns No =
+.Xo Ic ${ Ns Ar name Ns =
 .Ns Ar value Ns Ic \&}
 .Xc
 form of the parameter substitution (see below).
@@ -944,7 +944,7 @@ commands, or by parameter assignments followed by simple commands) are put in
 the environment (see
 .Xr environ 7 )
 of commands run by the shell as
-.Ar name Ns No = Ns Ar value
+.Ar name Ns = Ns Ar value
 pairs.
 The order in which parameters appear in the environment of a command is
 unspecified.
@@ -997,7 +997,7 @@ is set and not
 it is substituted; otherwise,
 .Ar word
 is printed on standard error (preceded by
-.Ar name Ns No \&: )
+.Ar name Ns \&: )
 and an error occurs (normally causing termination of a shell script, function
 or .-script).
 If word is omitted the string
@@ -1262,6 +1262,7 @@ below.
 .It Ev PPID
 The process ID of the shell's parent (read-only).
 .It Ev PS1
+The primary prompt for interactive shells.
 The prompt is printed verbatim (i.e., no substitutions are done).
 Default is
 .Dq \&$\ \&
@@ -1276,7 +1277,7 @@ used when more input is needed to complete a command.
 Used to prefix commands that are printed during execution tracing (see
 .Ic set Fl x
 command below).
-The prompt is printed verbatim (i.e., no substitutions are done).
+This prompt is printed verbatim (i.e., no substitutions are done).
 Default is
 .Dq \&+\ \& .
 .It Ev PWD
@@ -1323,7 +1324,7 @@ In parameter assignments (those preceding a simple-command or those occurring
 in the arguments of
 .Ic alias ,
 .Ic export ,
-.Ic readonly ,
+.Ic readonly
 and
 .Ic typeset ) ,
 tilde expansion is done after any unquoted colon
@@ -1352,7 +1353,7 @@ The pattern elements have the following meaning:
 Matches any single character.
 .It Ic \&*
 Matches any sequence of characters.
-.It Ic \&[ Ns No .. Ns Ic \&]
+.It Ic \&[ Ns .. Ns Ic \&]
 Matches any of the characters inside the brackets.
 Ranges of characters can be
 specified by separating two characters by a
@@ -1373,9 +1374,9 @@ Also, a
 .Ql \&!
 appearing at the start of the list has special meaning (see below), so to
 represent itself it must be quoted or appear later in the list.
-.It Ic \&[\&! Ns No .. Ns Ic \&]
+.It Ic \&[\&! Ns .. Ns Ic \&]
 Like
-.Ic \&[ Ns No .. Ns Ic \&] ,
+.Ic \&[ Ns .. Ns Ic \&] ,
 except it matches any character not inside the brackets.
 .Sm on
 Matches any string of characters that matches zero or more occurrences of the
@@ -1389,7 +1390,7 @@ matches the strings
 .Dq foobarfoo ,
 etc.
 .Sm off
-.It Xo Ic \&+( Ar pattern Ic \&| No \ ...\ 
+.It Xo Ic \&+( Ar pattern Ic \&| No \ ...\ \&
 .Ic \&| Ar pattern Ic \&)
 .Xc
 .Sm on
@@ -1403,7 +1404,7 @@ matches the strings
 .Dq foobar ,
 etc.
 .Sm off
-.It Xo Ic \&?( Ar pattern Ic \&| No \ ...\ 
+.It Xo Ic \&?( Ar pattern Ic \&| No \ ...\ \&
 .Ic \&| Ar pattern Ic \&)
 .Xc
 .Sm on
@@ -1417,7 +1418,7 @@ only matches the strings
 and
 .Dq bar .
 .Sm off
-.It Xo Ic \&@( Ar pattern Ic \&| No \ ...\ 
+.It Xo Ic \&@( Ar pattern Ic \&| No \ ...\ \&
 .Ic \&| Ar pattern Ic \&)
 .Xc
 .Sm on
@@ -1429,7 +1430,7 @@ only matches the strings
 and
 .Dq bar .
 .Sm off
-.It Xo Ic \&!( Ar pattern Ic \&| No \ ...\ 
+.It Xo Ic \&!( Ar pattern Ic \&| No \ ...\ \&
 .Ic \&| Ar pattern Ic \&)
 .Xc
 .Sm on
@@ -1466,7 +1467,7 @@ Note that none of the above pattern elements match either a period
 at the start of a file name or a slash
 .Pq Sq / ,
 even if they are explicitly used in a
-.Ic \&[ Ns No .. Ns Ic \&]
+.Ic \&[ Ns .. Ns Ic \&]
 sequence; also, the names
 .Dq \&.
 and
@@ -1485,7 +1486,7 @@ The
 character classes (i.e.,
 .Ic \&[\&: Ns Ar class-name Ns Ic \&:\&]
 inside a
-.Ic \&[ Ns No .. Ns Ic \&]
+.Ic \&[ Ns .. Ns Ic \&]
 expression) are not yet implemented.
 .Ss Input/output redirection
 When a command is executed, its standard input, standard output, and standard
@@ -1556,7 +1557,7 @@ backslash
 escapes for
 .Ql $ ,
 .Ql ` ,
-.Ql \e ,
+.Ql \e
 and
 .Ql \enewline .
 If multiple here documents are used on the same command line, they are saved in
@@ -1616,7 +1617,7 @@ will print an error with a line number prepended to it.
 Integer arithmetic expressions can be used with the
 .Ic let
 command, inside
-.Ic $(( Ns No .. Ns Ic ))
+.Ic $(( Ns .. Ns Ic ))
 expressions, inside array references (e.g.,
 .Sm off
 .Ar name Ic \&[ Ar expr Ic \&] ) ,
@@ -1625,7 +1626,7 @@ as numeric arguments to the
 .Ic test
 command, and as the value of an assignment to an integer parameter.
 .Pp
-Expressions may contain alpha-numeric parameter identifiers, array references,
+Expressions may contain alpha-numeric parameter identifiers, array references
 and integer constants and may be combined with the following C operators
 (listed and grouped in increasing order of precedence):
 .Pp
@@ -2043,7 +2044,7 @@ command.
 Argument expansion of
 .Ic alias ,
 .Ic export ,
-.Ic readonly ,
+.Ic readonly
 and
 .Ic typeset
 commands.
@@ -2217,7 +2218,7 @@ above).
 .Pp
 When listing aliases, one of two formats is used.
 Normally, aliases are listed as
-.Ar name Ns No = Ns Ar value ,
+.Ar name Ns = Ns Ar value ,
 where
 .Ar value
 is quoted.
@@ -2270,9 +2271,9 @@ below for more information).
 .Ar ...
 .Oc
 .Xc
-Set or view the current emacs command editing key bindings/macros (see
-.Sx Emacs interactive input line editing
-below for a complete description).
+Set or view the current emacs command editing key bindings/macros.
+.Nm
+should not have emacs mode, according to Bourne shell documentation, though.
 .It Ic break Op Ar level
 Exit the
 .Ar level Ns th
@@ -2314,7 +2315,7 @@ is used.
 If
 .Ar dir
 is
-.Ql - ,
+.Dq - ,
 the previous working directory is used (see
 .Ev OLDPWD
 parameter).
@@ -2369,7 +2370,8 @@ option is given, a default search path is used instead of the current value of
 .Ev PATH
 (the actual value of the default path is system dependent: on
 .Tn POSIX Ns ish
-systems, it is the value returned by
+systems,
+it is the value returned by
 .Ic getconf CS_PATH ) .
 .It Ic continue Op Ar level
 Jumps to the beginning of the
@@ -2416,7 +2418,7 @@ If no command is given except for I/O redirection, the I/O redirection is
 permanent and the shell is
 not replaced.
 Any file descriptors which are opened or
-.Xr dup 2 Ns No 'd
+.Xr dup 2 Ns 'd
 in this way are made available to other executed commands (note that the Korn
 shell differs here: it does not pass on file descriptors greater than 2).
 .It Ic exit Op Ar status
@@ -2424,7 +2426,7 @@ The shell exits with the specified exit status.
 If
 .Ar status
 is not specified, the exit status is the current value of the
-.Ic ?\&
+.Ic \&?
 parameter.
 .It Xo Ic export Op Fl p
 .Op Ar parameter Ns Op \&= Ns Ar value
@@ -2444,7 +2446,7 @@ A command that exits with a non-zero status.
 .It Xo Ic fc
 .Oo Fl e No \&- \&| Fl s Oc
 .Op Fl g
-.Op Ar old Ns No = Ns Ar new
+.Op Ar old Ns = Ns Ar new
 .Op Ar prefix
 .Xc
 Re-execute the selected command (the previous command by default) after
@@ -2607,7 +2609,7 @@ These include
 .Ql \en ,
 .Ql \er ,
 .Ql \et ,
-.Ql \ev ,
+.Ql \ev
 and
 .Ql \e0###
 .Po
@@ -2882,7 +2884,7 @@ during file name generation.
 .It Ic bgnice
 Background jobs are run with lower priority.
 .It Ic ignoreeof
-The shell will not exit when end-of-file is read;
+The shell will not (easily) exit when end-of-file is read;
 .Ic exit
 must be used.
 .It Ic nohup
@@ -3420,7 +3422,7 @@ Parameters (or functions) are placed in the environment of
 any executed commands.
 Exported functions are not yet implemented.
 .El
-.It Xo Ic ulimit Op Fl acdfHlmnpsStv
+.It Xo Ic ulimit Op Fl acdfHlmnpsSt
 .Op Ar value
 .Xc
 Display or set process limits.
@@ -3484,6 +3486,11 @@ kilobytes on the size of the stack area.
 Impose a time limit of
 .Ar n
 .Tn CPU
+seconds to be used by each process.
+.It Fl T Ar n
+Impose a real time limit of
+.Ar n
+.Tn human
 seconds to be used by each process.
 .El
 .Pp
@@ -3638,7 +3645,7 @@ A job may be referred to in
 .Ic bg ,
 .Ic fg ,
 .Ic jobs ,
-.Ic kill ,
+.Ic kill
 and
 .Ic wait
 commands either by the process ID of the last process in the command pipeline
@@ -3786,8 +3793,12 @@ signal and the shell exits.
 .%D 1993
 .%O "ISBN 1-55937-266-9"
 .Re
+.Sh VERSION
+This page documents version @(#)PD KSH v5.2.14 99/07/13.2 of the public
+domain Korn shell, as delivered with
+.Mx .
 .Sh NOTES
-.Nm
+.Nm sh
 is implemented as a run-time option of
 .Nm pdksh ,
 with only those
@@ -3817,10 +3828,14 @@ their part in the shell's development.
 Any bugs in
 .Nm pdksh
 should be reported to pdksh@cs.mun.ca.
+Do not forget to report to the
+.Mx
+developer team as well, because the modifications
+imposed may have introduced different behaviour.
 Please include the version of
 .Nm pdksh
 .Po
-.Ic echo $KSH_VERSION
+.Ic echo $SH_VERSION
 shows it
 .Pc ,
 the machine, operating system, and compiler you are using and a description of
@@ -3837,11 +3852,23 @@ and a copy of your
 script).
 New versions of
 .Nm pdksh
-can be obtained from ftp://ftp.cs.mun.ca/pub/pdksh.
+can be obtained from \fBftp://ftp.cs.mun.ca/pub/pdksh\fR.
 .Pp
-BTW, the most frequently reported bug is:
+By the way, the most frequently reported bug is:
 .Bd -literal -offset indent
 echo hi | read a; echo $a\ \ \ # Does not print hi
 .Ed
 .Pp
-I'm aware of this and there is no need to report it.
+The
+.Nm pdksh
+author is aware of this and there is no need to report it.
+For another known bug, refer to the comment above the
+.Em complete-command
+paragraph in the section
+.Sx Emacs editing mode
+in
+.Xr ksh 3 .
+.br
+The
+.Mx
+team is luckily accepting fixes for known (and unknown) bugs.

@@ -1,3 +1,4 @@
+/*	$MirBSD: vi.c,v 1.3 2003/12/23 13:41:51 tg Exp $	*/
 /*	$OpenBSD: vi.c,v 1.12 2003/10/16 22:08:48 millert Exp $	*/
 
 /*
@@ -14,7 +15,7 @@
 #include "ksh_stat.h"		/* completion */
 #include "edit.h"
 
-#define CMDLEN		1024
+#define CMDLEN		4096
 #define Ctrl(c)		(c&0x1f)
 #define	is_wordch(c)	(letnum(c))
 

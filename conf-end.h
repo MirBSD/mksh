@@ -1,4 +1,5 @@
-/*	$OpenBSD: conf-end.h,v 1.2 1996/08/25 12:37:58 downsj Exp $	*/
+/* $MirBSD: conf-end.h,v 1.2 2004/03/21 01:25:04 tg Exp $ */
+/* $OpenBSD: conf-end.h,v 1.2 1996/08/25 12:37:58 downsj Exp $	*/
 
 /*
  * End of configuration stuff for PD ksh.
@@ -21,6 +22,11 @@
 #if defined(EDIT) && !defined(HISTORY)
 # define HISTORY
 #endif /* EDIT */
+
+/* It's there, use it */
+#if defined(KSH) && defined(EDIT)
+# define SILLY
+#endif
 
 /*
  * if you don't have mmap() you can't use Peter Collinson's history
