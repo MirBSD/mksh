@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/config.h,v 2.2 2004/12/13 19:05:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/config.h,v 2.3 2004/12/28 22:44:39 tg Exp $ */
 /*	$OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -310,6 +310,9 @@
 
 /* Define if you have the <paths.h> header file.  */
 #define HAVE_PATHS_H 1
+
+/* Define if you have the <stdbool.h> header file.  */
+#define HAVE_STDBOOL_H 1
 
 /* Define if you have the <stddef.h> header file.  */
 #define HAVE_STDDEF_H 1

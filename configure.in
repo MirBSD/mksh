@@ -1,4 +1,4 @@
-dnl $MirBSD: src/bin/ksh/configure.in,v 2.1 2004/12/10 18:09:41 tg Exp $
+dnl $MirBSD: src/bin/ksh/configure.in,v 2.2 2004/12/28 22:44:39 tg Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl
@@ -25,7 +25,7 @@ AC_HEADER_DIRENT
 KSH_UNISTD_H
 KSH_TERM_CHECK
 AC_CHECK_HEADERS(sys/param.h sys/types.h sys/resource.h sys/time.h \
-	stddef.h stdlib.h stdint.h string.h limits.h paths.h \
+	stdbool.h stddef.h stdint.h stdlib.h string.h limits.h paths.h \
 	memory.h fcntl.h values.h ulimit.h)
 AC_HEADER_TIME
 KSH_HEADER_SYS_WAIT

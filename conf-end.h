@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/conf-end.h,v 2.6 2004/12/18 19:27:21 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/conf-end.h,v 2.7 2004/12/28 22:44:39 tg Exp $ */
 /*	$OpenBSD: conf-end.h,v 1.2 1996/08/25 12:37:58 downsj Exp $	*/
 
 #ifndef CONF_END_H
@@ -73,5 +73,21 @@
 # define GCC_FUNC_ATTR(x)
 # define GCC_FUNC_ATTR2(x,y)
 #endif /* HAVE_GCC_FUNC_ATTR */
+
+#ifndef HAVE_STDBOOL_H
+#if defined(__GNUC__) && __GNUC__ >= 3
+/* Support for _C99: type _Bool is already built-in. */
+#define false	0
+#define true	1
+#else
+typedef enum {
+	false = 0,
+	true = 1
+} _Bool;
+#define	false	false
+#define	true	true
+#endif
+#define bool _Bool
+#endif
 
 #endif	/* ndef CONF_END_H */
