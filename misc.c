@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/misc.c,v 2.7 2004/12/18 19:27:21 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/misc.c,v 2.8 2004/12/28 22:32:08 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.20 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -13,7 +13,7 @@
 #include <sys/ioctl.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.7 2004/12/18 19:27:21 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.8 2004/12/28 22:32:08 tg Exp $");
 
 #ifndef UCHAR_MAX
 # define UCHAR_MAX	0xFF
@@ -439,7 +439,7 @@ parse_args(char **argv, int what, int *setargsp)
 		*setargsp = !arrayset && ((go.info & GI_MINUSMINUS)
 					  || argv[go.optind]);
 
-	if (arrayset && (!*array || *skip_varname(array, FALSE))) {
+	if (arrayset && (!*array || *skip_varname(array, false))) {
 		bi_errorf("%s: is not an identifier", array);
 		return -1;
 	}
@@ -955,7 +955,7 @@ ksh_getopt(char **argv, Getopt *go, const char *options)
 			go->buf[0] = c;
 			go->optarg = go->buf;
 		} else {
-			warningf(TRUE, "%s%s-%c: unknown option",
+			warningf(true, "%s%s-%c: unknown option",
 				(go->flags & GF_NONAME) ? "" : argv[0],
 				(go->flags & GF_NONAME) ? "" : ": ", c);
 			if (go->flags & GF_ERROR)
@@ -981,7 +981,7 @@ ksh_getopt(char **argv, Getopt *go, const char *options)
 				go->optarg = go->buf;
 				return ':';
 			}
-			warningf(TRUE, "%s%s-'%c' requires argument",
+			warningf(true, "%s%s-'%c' requires argument",
 				(go->flags & GF_NONAME) ? "" : argv[0],
 				(go->flags & GF_NONAME) ? "" : ": ", c);
 			if (go->flags & GF_ERROR)

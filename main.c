@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/main.c,v 2.11 2004/12/18 19:27:21 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/main.c,v 2.12 2004/12/28 22:32:08 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -15,7 +15,7 @@
  * shell version
  */
 
-__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.11 2004/12/18 19:27:21 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.12 2004/12/28 22:32:08 tg Exp $");
 
 const char ksh_version[] =
 	"@(#)PD KSH v5.2.14 MirOS R20 in "
@@ -332,7 +332,7 @@ main(int argc, char *argv[])
 	 * user will know why things broke.
 	 */
 	if (!current_wd[0] && Flag(FTALKING))
-		warningf(FALSE, "Cannot determine current working directory");
+		warningf(false, "Cannot determine current working directory");
 
 	if (Flag(FLOGIN)) {
 		include(KSH_SYSTEM_PROFILE, 0, NULL, 1);
@@ -380,7 +380,7 @@ main(int argc, char *argv[])
 	} else
 		Flag(FTRACKALL) = 1;	/* set after ENV */
 
-	shell(s, TRUE);	/* doesn't return */
+	shell(s, true);	/* doesn't return */
 	return 0;
 }
 
@@ -440,7 +440,7 @@ include(const char *name, int argc, char **argv, int intr_ok)
 	s = pushs(SFILE, ATEMP);
 	s->u.shf = shf;
 	s->file = str_save(name, ATEMP);
-	i = shell(s, FALSE);
+	i = shell(s, false);
 	quitenv(s->u.shf);
 	if (old_argv) {
 		e->loc->argv = old_argv;
@@ -456,7 +456,7 @@ command(const char *comm)
 
 	s = pushs(SSTRING, ATEMP);
 	s->start = s->str = comm;
-	return shell(s, FALSE);
+	return shell(s, false);
 }
 
 /*

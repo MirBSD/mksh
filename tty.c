@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/tty.c,v 2.1 2004/12/10 18:09:42 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/tty.c,v 2.2 2004/12/28 22:32:08 tg Exp $ */
 /*	$OpenBSD: tty.c,v 1.2 1996/10/01 02:05:51 downsj Exp $	*/
 
 #include "sh.h"
@@ -7,7 +7,7 @@
 #include "tty.h"
 #undef EXTERN
 
-__RCSID("$MirBSD: src/bin/ksh/tty.c,v 2.1 2004/12/10 18:09:42 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/tty.c,v 2.2 2004/12/28 22:32:08 tg Exp $");
 
 int
 get_tty(int fd, TTY_state *ts)
@@ -131,7 +131,7 @@ tty_init(int init_ttystate)
 # if !defined(__mips) || !(defined(_SYSTYPE_BSD43) || defined(__SYSTYPE_BSD43))
 		if (tfd < 0) {
 			tty_devtty = 0;
-			warningf(FALSE,
+			warningf(false,
 				"No controlling tty (open /dev/tty: %s)",
 				strerror(errno));
 		}
@@ -148,15 +148,15 @@ tty_init(int init_ttystate)
 		else if (isatty(2))
 			tfd = 2;
 		else {
-			warningf(FALSE, "Can't find tty file descriptor");
+			warningf(false, "Can't find tty file descriptor");
 			return;
 		}
 	}
 	if ((tty_fd = ksh_dupbase(tfd, FDBASE)) < 0) {
-		warningf(FALSE, "j_ttyinit: dup of tty fd failed: %s",
+		warningf(false, "j_ttyinit: dup of tty fd failed: %s",
 			strerror(errno));
 	} else if (fd_clexec(tty_fd) < 0) {
-		warningf(FALSE, "j_ttyinit: can't set close-on-exec flag: %s",
+		warningf(false, "j_ttyinit: can't set close-on-exec flag: %s",
 			strerror(errno));
 		close(tty_fd);
 		tty_fd = -1;

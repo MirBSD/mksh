@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/var.c,v 2.5 2004/12/18 19:22:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/var.c,v 2.6 2004/12/28 22:32:08 tg Exp $ */
 /*	$OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
 
 #include "sh.h"
@@ -7,7 +7,7 @@
 #include "ksh_stat.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.5 2004/12/18 19:22:30 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.6 2004/12/28 22:32:08 tg Exp $");
 
 /*
  * Variables
@@ -119,22 +119,22 @@ initvar(void)
  * non-zero if this is an array, sets *valp to the array index, returns
  * the basename of the array.
  */
-static const char *array_index_calc(const char *, bool_t *, int *);
+static const char *array_index_calc(const char *, bool *, int *);
 
 static const char *
-array_index_calc(const char *n, bool_t *arrayp, int *valp)
+array_index_calc(const char *n, bool *arrayp, int *valp)
 {
 	const char *p;
 	int len;
 
-	*arrayp = FALSE;
-	p = skip_varname(n, FALSE);
+	*arrayp = false;
+	p = skip_varname(n, false);
 	if (p != n && *p == '[' && (len = array_ref_len(p))) {
 		char *sub, *tmp;
 		long rval;
 
 		/* Calculate the value of the subscript */
-		*arrayp = TRUE;
+		*arrayp = true;
 		tmp = str_nsave(p+1, len-2, ATEMP);
 		sub = substitute(tmp, 0);
 		afree(tmp, ATEMP);
@@ -158,7 +158,7 @@ global(const char *n)
 	struct tbl *vp;
 	int c;
 	unsigned h;
-	bool_t	 array;
+	bool	 array;
 	int	 val;
 
 	/* Check to see if this is an array */
@@ -234,12 +234,12 @@ global(const char *n)
  * Search for local variable, if not found create locally.
  */
 struct tbl *
-local(const char *n, bool_t copy)
+local(const char *n, bool copy)
 {
 	struct block *l = e->loc;
 	struct tbl *vp;
 	unsigned h;
-	bool_t	 array;
+	bool	 array;
 	int	 val;
 
 	/* Check to see if this is an array */
@@ -345,7 +345,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 	int no_ro_check = error_ok & 0x4;
 	error_ok &= ~0x4;
 	if ((vq->flag & RDONLY) && !no_ro_check) {
-		warningf(TRUE, "%s: is read only", vq->name);
+		warningf(true, "%s: is read only", vq->name);
 		if (!error_ok)
 			errorf(null);
 		return 0;
@@ -355,7 +355,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 			/* debugging */
 			if (s >= vq->val.s
 			    && s <= vq->val.s + strlen(vq->val.s))
-				internal_errorf(TRUE,
+				internal_errorf(true,
 				    "setstr: %s=%s: assigning to self",
 				    vq->name, s);
 			afree((void*)vq->val.s, vq->areap);
@@ -571,7 +571,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	const char *val;
 
 	/* check for valid variable name, search for value */
-	val = skip_varname(var, FALSE);
+	val = skip_varname(var, false);
 	if (val == var)
 		return NULL;
 	if (*val == '[') {
@@ -610,7 +610,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 				  || strcmp(tvar, "SHELL") == 0))
 		errorf("%s: restricted", tvar);
 
-	vp = (set&LOCAL) ? local(tvar, (set & LOCAL_COPY) ? TRUE : FALSE)
+	vp = (set&LOCAL) ? local(tvar, (set & LOCAL_COPY) ? true : false)
 		: global(tvar);
 	set &= ~(LOCAL|LOCAL_COPY);
 
@@ -801,7 +801,7 @@ is_wdvarname(const char *s, int aok)
 int
 is_wdvarassign(const char *s)
 {
-	char *p = skip_wdvarname(s, TRUE);
+	char *p = skip_wdvarname(s, true);
 
 	return p != s && p[0] == CHAR && p[1] == '=';
 }

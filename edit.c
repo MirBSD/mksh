@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/edit.c,v 2.5 2004/12/28 22:28:01 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/edit.c,v 2.6 2004/12/28 22:32:08 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.23 2004/12/18 22:12:23 millert Exp $	*/
 
 /*
@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/edit.c,v 2.5 2004/12/28 22:28:01 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/edit.c,v 2.6 2004/12/28 22:32:08 tg Exp $");
 
 #if defined(TIOCGWINSZ)
 static RETSIGTYPE x_sigwinch(int sig);
@@ -130,14 +130,14 @@ x_read(char *buf, size_t len)
 		check_sigwinch();
 #endif /* TIOCGWINSZ */
 
-	x_mode(TRUE);
+	x_mode(true);
 	if (Flag(FEMACS) || Flag(FGMACS))
 		i = x_emacs(buf, len);
 	else if (Flag(FVI))
 		i = x_vi(buf, len);
 	else
 		i = -1;		/* internal error */
-	x_mode(FALSE);
+	x_mode(false);
 	return i;
 }
 
@@ -151,9 +151,9 @@ x_getc(void)
 
 	while ((n = blocking_read(0, &c, 1)) < 0 && errno == EINTR)
 		if (trap) {
-			x_mode(FALSE);
+			x_mode(false);
 			runtraps(0);
-			x_mode(TRUE);
+			x_mode(true);
 		}
 	if (n != 1)
 		return -1;
@@ -179,11 +179,11 @@ x_puts(const char *s)
 		shf_putc(*s++, shl_out);
 }
 
-bool_t
-x_mode(bool_t onoff)
+bool
+x_mode(bool onoff)
 {
-	static bool_t	x_cur_mode;
-	bool_t		prev;
+	static bool	x_cur_mode;
+	bool		prev;
 
 	if (x_cur_mode == onoff)
 		return x_cur_mode;
@@ -758,7 +758,7 @@ add_glob(const char *str, int slen)
 {
 	char *toglob;
 	char *s;
-	bool_t saw_slash = FALSE;
+	bool saw_slash = false;
 
 	if (slen < 0)
 		return NULL;
@@ -779,7 +779,7 @@ add_glob(const char *str, int slen)
 			 || (s[1] == '(' /*)*/ && strchr("*+?@!", *s)))
 			break;
 		else if (ISDIRSEP(*s))
-			saw_slash = TRUE;
+			saw_slash = true;
 	}
 	if (!*s && (*toglob != '~' || saw_slash)) {
 		toglob[slen] = '*';
@@ -867,7 +867,7 @@ glob_table(const char *pat, XPtrV *wp, struct table *tp)
 	struct tbl *te;
 
 	for (twalk(&ts, tp); (te = tnext(&ts)); ) {
-		if (gmatch(te->name, pat, FALSE))
+		if (gmatch(te->name, pat, false))
 			XPput(*wp, str_save(te->name, ATEMP));
 	}
 }

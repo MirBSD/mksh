@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/vi.c,v 2.4 2004/12/18 19:22:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/vi.c,v 2.5 2004/12/28 22:32:09 tg Exp $ */
 /*	$OpenBSD: vi.c,v 1.13 2004/05/10 16:28:47 pvalchev Exp $	*/
 
 /*
@@ -14,7 +14,7 @@
 #include "ksh_stat.h"		/* completion */
 #include "edit.h"
 
-__RCSID("$MirBSD: src/bin/ksh/vi.c,v 2.4 2004/12/18 19:22:30 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/vi.c,v 2.5 2004/12/28 22:32:09 tg Exp $");
 
 #define Ctrl(c)		(c&0x1f)
 #define	is_wordch(c)	(letnum(c))
@@ -219,7 +219,7 @@ x_vi(char *buf, size_t len)
 				x_vi_zotc(c);
 				x_flush();
 				trapsig(c == edchars.intr ? SIGINT : SIGQUIT);
-				x_mode(FALSE);
+				x_mode(false);
 				unwind(LSHELL);
 			} else if (c == edchars.eof && state != VVERSION) {
 				if (es->linelen == 0) {

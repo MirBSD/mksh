@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/emacs.c,v 2.5 2004/12/18 19:22:28 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/emacs.c,v 2.6 2004/12/28 22:32:08 tg Exp $ */
 /*	$OpenBSD: emacs.c,v 1.28 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -18,7 +18,7 @@
 #include <locale.h>
 #include "edit.h"
 
-__RCSID("$MirBSD: src/bin/ksh/emacs.c,v 2.5 2004/12/18 19:22:28 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/emacs.c,v 2.6 2004/12/28 22:32:08 tg Exp $");
 
 static	Area	aedit;
 #define	AEDIT	&aedit		/* area for kill ring and macro defns */
@@ -315,7 +315,7 @@ x_emacs(char *buf, size_t len)
 	xbp = xbuf = buf; xend = buf + len;
 	xlp = xcp = xep = buf;
 	*xcp = 0;
-	xlp_valid = TRUE;
+	xlp_valid = true;
 	xmp = NULL;
 	x_curprefix = 0;
 	macroptr = NULL;
@@ -369,7 +369,7 @@ x_emacs(char *buf, size_t len)
 			return i;
 		  case KINTR:	/* special case for interrupt */
 			trapsig(SIGINT);
-			x_mode(FALSE);
+			x_mode(false);
 			unwind(LSHELL);
 		}
 	}
@@ -438,7 +438,7 @@ x_ins(char *s)
 	 * x_zots() may result in a call to x_adjust()
 	 * we want xcp to reflect the new position.
 	 */
-	xlp_valid = FALSE;
+	xlp_valid = false;
 	x_lastcp();
 	x_adj_ok = (xcp >= xlp);
 	x_zots(cp);
@@ -478,7 +478,7 @@ x_del_back(int c GCC_FUNC_ATTR(unused))
 	if (x_arg > col)
 		x_arg = col;
 	x_goto(xcp - x_arg);
-	x_delete(x_arg, FALSE);
+	x_delete(x_arg, false);
 	return KSTD;
 }
 
@@ -493,7 +493,7 @@ x_del_char(int c GCC_FUNC_ATTR(unused))
 	}
 	if (x_arg > nleft)
 		x_arg = nleft;
-	x_delete(x_arg, FALSE);
+	x_delete(x_arg, false);
 	return KSTD;
 }
 
@@ -546,7 +546,7 @@ x_delete(int nc, int push)
 	}
 	/*x_goto(xcp);*/
 	x_adj_ok = 1;
-	xlp_valid = FALSE;
+	xlp_valid = false;
 	for (cp = x_lastcp(); cp > xcp; )
 		x_bs(*--cp);
 
@@ -556,7 +556,7 @@ x_delete(int nc, int push)
 static int
 x_del_bword(int c GCC_FUNC_ATTR(unused))
 {
-	x_delete(x_bword(), TRUE);
+	x_delete(x_bword(), true);
 	return KSTD;
 }
 
@@ -577,7 +577,7 @@ x_mv_fword(int c GCC_FUNC_ATTR(unused))
 static int
 x_del_fword(int c GCC_FUNC_ATTR(unused))
 {
-	x_delete(x_fword(), TRUE);
+	x_delete(x_fword(), true);
 	return KSTD;
 }
 
@@ -855,7 +855,7 @@ x_load_hist(char **hp)
 	strlcpy(xbuf, *hp, xend - xbuf);
 	xbp = xbuf;
 	xep = xcp = xbuf + strlen(xbuf);
-	xlp_valid = FALSE;
+	xlp_valid = false;
 	if (xep > x_lastcp())
 	  x_goto(xep);
 	else
@@ -985,7 +985,7 @@ x_del_line(int c GCC_FUNC_ATTR(unused))
 	xcp = xbuf;
 	x_push(i);
 	xlp = xbp = xep = xbuf;
-	xlp_valid = TRUE;
+	xlp_valid = true;
 	*xcp = 0;
 	xmp = NULL;
 	x_redraw(j);
@@ -1036,7 +1036,7 @@ x_redraw(int limit)
 	  x_col = promptlen(prompt, NULL);
 	}
 	x_displen = xx_cols - 2 - x_col;
-	xlp_valid = FALSE;
+	xlp_valid = false;
 	cp = x_lastcp();
 	x_zots(xbp);
 	if (xbp != xbuf || xep > xlp)
@@ -1162,7 +1162,7 @@ x_kill(int c GCC_FUNC_ATTR(unused))
 		x_goto(xbuf + x_arg);
 		ndel = -ndel;
 	}
-	x_delete(ndel, TRUE);
+	x_delete(ndel, true);
 	return KSTD;
 }
 
@@ -1207,7 +1207,7 @@ x_meta_yank(int c GCC_FUNC_ATTR(unused))
 	}
 	len = strlen(killstack[killtp]);
 	x_goto(xcp - len);
-	x_delete(len, FALSE);
+	x_delete(len, false);
 	do {
 		if (killtp == 0)
 			killtp = KILLSIZE - 1;
@@ -1223,7 +1223,7 @@ x_abort(int c GCC_FUNC_ATTR(unused))
 {
 	/* x_zotc(c); */
 	xlp = xep = xcp = xbp = xbuf;
-	xlp_valid = TRUE;
+	xlp_valid = true;
 	*xcp = 0;
 	return KINTR;
 }
@@ -1244,7 +1244,7 @@ x_stuffreset(int c GCC_FUNC_ATTR(unused))
 #else
 	x_zotc(c);
 	xlp = xcp = xep = xbp = xbuf;
-	xlp_valid = TRUE;
+	xlp_valid = true;
 	*xcp = 0;
 	x_redraw(-1);
 	return KSTD;
@@ -1256,7 +1256,7 @@ x_stuff(int c GCC_FUNC_ATTR(unused))
 {
 #if defined(TIOCSTI)
 	char	ch = c;
-	bool_t	savmode = x_mode(FALSE);
+	bool	savmode = x_mode(false);
 
 	(void)ioctl(TTY, TIOCSTI, &ch);
 	(void)x_mode(savmode);
@@ -1495,7 +1495,7 @@ x_kill_region(int c GCC_FUNC_ATTR(unused))
 		xr = xmp;
 	}
 	x_goto(xr);
-	x_delete(rsize, TRUE);
+	x_delete(rsize, true);
 	xmp = xr;
 	return KSTD;
 }
@@ -1616,7 +1616,7 @@ x_expand(int c GCC_FUNC_ATTR(unused))
 	}
 
 	x_goto(xbuf + start);
-	x_delete(end - start, FALSE);
+	x_delete(end - start, false);
 	for (i = 0; i < nwords;) {
 		if (x_escape(words[i], strlen(words[i]), x_emacs_putbuf) < 0 ||
 		    (++i < nwords && x_ins(space) < 0))
@@ -1662,7 +1662,7 @@ do_complete(int flags, Comp_type type)
 	/* complete */
 	if (nwords == 1 || nlen > olen) {
 		x_goto(xbuf + start);
-		x_delete(olen, FALSE);
+		x_delete(olen, false);
 		x_escape(words[0], nlen, x_emacs_putbuf);
 		x_adjust();
 		completed = 1;
@@ -1707,7 +1707,7 @@ x_adjust(void)
    */
   if ((xbp = xcp - (x_displen / 2)) < xbuf)
     xbp = xbuf;
-  xlp_valid = FALSE;
+  xlp_valid = false;
   x_redraw(xx_cols);
   x_flush();
 }
@@ -2024,6 +2024,6 @@ x_lastcp(void)
       i += x_size(*rcp);
     xlp = rcp;
   }
-  xlp_valid = TRUE;
+  xlp_valid = true;
   return (xlp);
 }

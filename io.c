@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/io.c,v 2.4 2004/12/18 19:22:29 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/io.c,v 2.5 2004/12/28 22:32:08 tg Exp $ */
 /*	$OpenBSD: io.c,v 1.13 2003/11/10 21:26:39 millert Exp $	*/
 
 /*
@@ -25,7 +25,7 @@ errorf(const char *fmt, ...)
 	shl_stdout_ok = 0;	/* debugging: note that stdout not valid */
 	exstat = 1;
 	if (*fmt) {
-		error_prefix(TRUE);
+		error_prefix(true);
 		SH_VA_START(va, fmt);
 		shf_vfprintf(shl_out, fmt, va);
 		va_end(va);
@@ -60,7 +60,7 @@ bi_errorf(const char *fmt, ...)
 	shl_stdout_ok = 0;	/* debugging: note that stdout not valid */
 	exstat = 1;
 	if (*fmt) {
-		error_prefix(TRUE);
+		error_prefix(true);
 		/* not set when main() calls parse_args() */
 		if (builtin_argv0)
 			shf_fprintf(shl_out, "%s: ", builtin_argv0);
@@ -88,7 +88,7 @@ internal_errorf(int jump, const char *fmt, ...)
 {
 	va_list va;
 
-	error_prefix(TRUE);
+	error_prefix(true);
 	shf_fprintf(shl_out, "internal error: ");
 	SH_VA_START(va, fmt);
 	shf_vfprintf(shl_out, fmt, va);
@@ -271,7 +271,7 @@ restfd(int fd, int ofd)
 	if (ofd < 0)		/* original fd closed */
 		close(fd);
 	else if (fd != ofd) {
-		ksh_dup2(ofd, fd, TRUE); /* XXX: what to do if this fails? */
+		ksh_dup2(ofd, fd, true); /* XXX: what to do if this fails? */
 		close(ofd);
 	}
 }

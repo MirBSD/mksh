@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/lex.c,v 2.6 2004/12/18 19:22:29 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/lex.c,v 2.7 2004/12/28 22:32:08 tg Exp $ */
 /*	$OpenBSD: lex.c,v 1.18 2003/08/06 21:08:05 millert Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/lex.c,v 2.6 2004/12/18 19:22:29 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/lex.c,v 2.7 2004/12/28 22:32:08 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state.
@@ -162,7 +162,7 @@ yylex(int cf)
 		  case SBASE:
 			if (c == '[' && (cf & (VARASN|ARRAYVAR))) {
 				*wp = EOS; /* temporary */
-				if (is_wdvarname(Xstring(ws, wp), FALSE))
+				if (is_wdvarname(Xstring(ws, wp), false))
 				{
 					char *p, *tmp;
 
@@ -831,7 +831,7 @@ yyerror(const char *fmt, ...)
 		source = source->next;
 	source->str = null;	/* zap pending input */
 
-	error_prefix(TRUE);
+	error_prefix(true);
 	SH_VA_START(va, fmt);
 	shf_vfprintf(shl_out, fmt, va);
 	va_end(va);

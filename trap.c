@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/trap.c,v 2.3 2004/12/18 19:22:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/trap.c,v 2.4 2004/12/28 22:32:08 tg Exp $ */
 /*	$OpenBSD: trap.c,v 1.13 2003/02/28 09:45:09 jmc Exp $	*/
 
 /*
@@ -9,7 +9,7 @@
 #define FROM_TRAP_C
 #include "sh.h"
 
-__RCSID("$MirBSD: src/bin/ksh/trap.c,v 2.3 2004/12/18 19:22:30 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/trap.c,v 2.4 2004/12/28 22:32:08 tg Exp $");
 
 /* Table is indexed by signal number
  *
@@ -200,7 +200,7 @@ runtraps(int flag)
 
 	if (ksh_tmout_state == TMOUT_LEAVING) {
 		ksh_tmout_state = TMOUT_EXECUTING;
-		warningf(FALSE, "timed out waiting for input");
+		warningf(false, "timed out waiting for input");
 		unwind(LEXIT);
 	} else
 		/* XXX: this means the alarm will have no effect if a trap

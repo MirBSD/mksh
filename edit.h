@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/edit.h,v 2.1 2004/12/10 18:09:41 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/edit.h,v 2.2 2004/12/28 22:32:08 tg Exp $ */
 /*	$OpenBSD: edit.h,v 1.3 1999/11/14 22:04:02 d Exp $	*/
 /*	$From: edit.h,v 1.2 1994/05/19 18:32:40 michael Exp michael $ */
 
@@ -39,7 +39,7 @@ int 	x_getc(void);
 void 	x_flush(void);
 void 	x_putc(int c);
 void 	x_puts(const char *s);
-bool_t 	x_mode(bool_t onoff);
+bool 	x_mode(bool onoff);
 int 	promptlen(const char *cp, const char **spp);
 int	x_do_comment(char *buf, int bsize, int *lenp);
 void	x_print_expansions(int nwords, char *const *words, int is_command);

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/history.c,v 2.6 2004/12/18 19:22:29 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/history.c,v 2.7 2004/12/28 22:32:08 tg Exp $ */
 /*	$OpenBSD: history.c,v 1.24 2004/08/03 12:44:59 danh Exp $	*/
 
 /*
@@ -21,7 +21,7 @@
 #include "sh.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/history.c,v 2.6 2004/12/18 19:22:29 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/history.c,v 2.7 2004/12/28 22:32:08 tg Exp $");
 
 #ifndef EASY_HISTORY
 /*	Defines and includes for the complicated case */
@@ -153,8 +153,8 @@ c_fc(char **wp)
 			return 1;
 		}
 
-		hp = first ? hist_get(first, FALSE, FALSE)
-			   : hist_get_newest(FALSE);
+		hp = first ? hist_get(first, false, false)
+			   : hist_get_newest(false);
 		if (!hp)
 			return 1;
 		return hist_replace(hp, pat, rep, gflag);
@@ -174,23 +174,23 @@ c_fc(char **wp)
 		return 1;
 	}
 	if (!first) {
-		hfirst = lflag ? hist_get("-16", TRUE, TRUE)
-			       : hist_get_newest(FALSE);
+		hfirst = lflag ? hist_get("-16", true, true)
+			       : hist_get_newest(false);
 		if (!hfirst)
 			return 1;
 		/* can't fail if hfirst didn't fail */
-		hlast = hist_get_newest(FALSE);
+		hlast = hist_get_newest(false);
 	} else {
 		/* POSIX says not an error if first/last out of bounds
 		 * when range is specified; at&t ksh and pdksh allow out of
 		 * bounds for -l as well.
 		 */
-		hfirst = hist_get(first, (lflag || last) ? TRUE : FALSE,
-				lflag ? TRUE : FALSE);
+		hfirst = hist_get(first, (lflag || last) ? true : false,
+				lflag ? true : false);
 		if (!hfirst)
 			return 1;
-		hlast = last ? hist_get(last, TRUE, lflag ? TRUE : FALSE)
-			    : (lflag ? hist_get_newest(FALSE) : hfirst);
+		hlast = last ? hist_get(last, true, lflag ? true : false)
+			    : (lflag ? hist_get_newest(false) : hfirst);
 		if (!hlast)
 			return 1;
 	}
@@ -237,7 +237,7 @@ c_fc(char **wp)
 	}
 
 	/* Ignore setstr errors here (arbitrary) */
-	setstr(local("_", FALSE), tf->name, KSH_RETURN_ERROR);
+	setstr(local("_", false), tf->name, KSH_RETURN_ERROR);
 
 	/* XXX: source should not get trashed by this.. */
 	{
@@ -300,7 +300,7 @@ hist_execute(char *cmd)
 		}
 #ifdef EASY_HISTORY
 		if (p != cmd)
-			histappend(p, TRUE);
+			histappend(p, true);
 		else
 #endif /* EASY_HISTORY */
 			histsave(++(hist_source->line), p, 1);

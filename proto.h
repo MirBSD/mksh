@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/proto.h,v 2.5 2004/12/18 19:17:10 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/proto.h,v 2.6 2004/12/28 22:32:08 tg Exp $ */
 /*	$OpenBSD: proto.h,v 1.11 2003/05/16 19:58:57 jsyn Exp $	*/
 /*	$From: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $ */
 
@@ -252,7 +252,7 @@ void 	newblock(void);
 void 	popblock(void);
 void	initvar(void);
 struct tbl *	global(const char *n);
-struct tbl *	local(const char *n, bool_t copy);
+struct tbl *	local(const char *n, bool copy);
 char *	str_val(struct tbl *vp);
 long 	intval(struct tbl *vp);
 int 	setstr(struct tbl *vq, const char *s, int error_ok);

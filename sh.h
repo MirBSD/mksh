@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/sh.h,v 2.7 2004/12/28 22:28:01 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/sh.h,v 2.8 2004/12/28 22:32:08 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.23 2004/12/18 22:11:43 millert Exp $	*/
 
 #ifndef SH_H
@@ -292,10 +292,6 @@ extern int dup2(int, int);
 # define FILENCMP(s1, s2, n) strncmp(s1, s2, n)
 # define ksh_strchr_dirsep(p)   strchr(p, DIRSEP)
 # define ksh_strrchr_dirsep(p)  strrchr(p, DIRSEP)
-
-typedef int bool_t;
-#define	FALSE	0
-#define	TRUE	1
 
 #define	NELEM(a) (sizeof(a) / sizeof((a)[0]))
 #define	sizeofN(type, n) (sizeof(type) * (n))

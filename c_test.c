@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/c_test.c,v 2.3 2004/12/18 19:22:28 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/c_test.c,v 2.4 2004/12/28 22:32:08 tg Exp $ */
 /*	$OpenBSD: c_test.c,v 1.10 2003/10/10 19:09:07 millert Exp $	*/
 
 /*
@@ -14,7 +14,7 @@
 #include "ksh_stat.h"
 #include "c_test.h"
 
-__RCSID("$MirBSD: src/bin/ksh/c_test.c,v 2.3 2004/12/18 19:22:28 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/c_test.c,v 2.4 2004/12/28 22:32:08 tg Exp $");
 
 /* test(1) accepts the following grammar:
 	oexpr	::= aexpr | aexpr "-o" oexpr ;
@@ -338,11 +338,11 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2, int do
 	 */
 	  case TO_STEQL: /* = */
 		if (te->flags & TEF_DBRACKET)
-			return gmatch(opnd1, opnd2, FALSE);
+			return gmatch(opnd1, opnd2, false);
 		return strcmp(opnd1, opnd2) == 0;
 	  case TO_STNEQ: /* != */
 		if (te->flags & TEF_DBRACKET)
-			return !gmatch(opnd1, opnd2, FALSE);
+			return !gmatch(opnd1, opnd2, false);
 		return strcmp(opnd1, opnd2) != 0;
 	  case TO_STLT: /* < */
 		return strcmp(opnd1, opnd2) < 0;
