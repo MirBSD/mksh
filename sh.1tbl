@@ -1,4 +1,4 @@
-.\"	$MirBSD: src/bin/ksh/sh.1tbl,v 2.3 2004/12/13 19:47:25 tg Exp $
+.\"	$MirBSD: src/bin/ksh/sh.1tbl,v 2.4 2004/12/31 17:15:07 tg Exp $
 .\"	_MirBSD: src/bin/ksh/ksh.1tbl,v 2.5 2004/12/13 19:36:27 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.79 2004/12/04 07:05:13 jaredy Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
@@ -1254,10 +1254,6 @@ above for details.
 .Sy Note:
 This parameter is not imported from the environment when the shell is
 started.
-.It Ev SH_VERSION
-The version of
-.Nm
-(read-only).
 .It Ev LINENO
 The line number of the function or shell script that is currently being
 executed.

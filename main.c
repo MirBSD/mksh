@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/main.c,v 2.13 2004/12/28 22:40:40 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/main.c,v 2.14 2004/12/31 17:15:07 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.35 2004/12/22 18:57:28 otto Exp $	*/
 
 /*
@@ -15,7 +15,7 @@
  * shell version
  */
 
-__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.13 2004/12/28 22:40:40 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.14 2004/12/31 17:15:07 tg Exp $");
 
 const char ksh_version[] =
 	"@(#)PD KSH v5.2.14 MirOS R20 in "
@@ -231,12 +231,11 @@ main(int argc, char *argv[])
 			setstr(pwd_v, current_wd, KSH_RETURN_ERROR);
 	}
 	ppid = getppid();
+	rnd_seed( (*((long *)kshname)) ^ ((long)time(NULL) * kshpid * ppid) );
 	setint(global("PPID"), (long) ppid);
-	rnd_seed( (*((long *)kshname))
-		^ ((long) (time(NULL) * kshpid * ppid)) );
 	setint(global("RANDOM"), rnd_get());
-	/* setstr can't fail here */
-	setstr(global("KSH_VERSION"), ksh_version, KSH_RETURN_ERROR);
+	if (!Flag(FSH))
+		setstr(global("KSH_VERSION"), ksh_version, KSH_RETURN_ERROR);
 
 	/* execute initialization statements */
 	for (wp = (char**) initcoms; *wp != NULL; wp++) {
