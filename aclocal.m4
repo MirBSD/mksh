@@ -1,4 +1,4 @@
-dnl $MirBSD: aclocal.m4,v 1.11 2004/12/10 15:01:05 tg Exp $
+dnl $MirBSD: aclocal.m4,v 1.12 2004/12/10 15:22:19 tg Exp $
 dnl-
 dnl Copyright (c) 2004
 dnl	Thorsten "mirabile" Glaser <tg@66h.42h.de>
@@ -893,8 +893,14 @@ yes
 	       ], ksh_cv_os_type=$i)
 	    ;;	#(
 	  Interix)
-	    AC_EGREP_CPP(INTERIX_H,
-	      [#include <interix/interix.h>], ksh_cv_os_type=$i)dnl
+	    AC_EGREP_CPP(is_interix_sfu,
+	      [
+#include <interix/interix.h>
+#if defined(__MirInterix__)
+#elif defined(_INTERIX_INTERIX_H) || defined(WIN_REG_NONE)
+is_interix_sfu
+#endif
+	       ], ksh_cv_os_type=$i)dnl
 	    ;;	#(
 	esac		#))
 	test $ksh_cv_os_type != no && break
