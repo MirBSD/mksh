@@ -1,4 +1,4 @@
-.\"	$MirBSD: ksh.1tbl,v 1.16 2004/03/22 19:03:52 tg Exp $
+.\"	$MirBSD: ksh.1tbl,v 1.17 2004/04/07 16:38:51 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.65 2004/01/23 23:08:45 jmc Exp $
 .\"
 .\" Copyright (c) 1980, 1990, 1993
@@ -35,9 +35,9 @@
 .Os
 .Sh NAME
 .Nm ksh
-.Nd public domain Korn shell
+.Nd MirOS Korn shell (derived from pdksh)
 .Sh SYNOPSIS
-.Nm ksh
+.Nm
 .Op Fl +abCefhiklmnprsuvxX
 .Op Fl +o Ar option
 .Oo [ Fl c Ar command-string [
@@ -97,7 +97,7 @@ option is used or if both standard input and standard error are attached
 to a tty.
 An interactive shell has job control enabled (if available), ignores the
 .Dv SIGINT ,
-.Dv SIGQUIT ,
+.Dv SIGQUIT
 and
 .Dv SIGTERM
 signals, and prints prompts before reading input (see
@@ -138,7 +138,7 @@ command is disabled.
 .It
 The
 .Ev SHELL ,
-.Ev ENV ,
+.Ev ENV
 and
 .Ev PATH
 parameters cannot be changed.
@@ -226,7 +226,7 @@ characters (space, tab, and newline) or meta-characters
 .Ql > ,
 .Ql | ,
 .Ql \&; ,
-.Ql ( ,
+.Ql (
 and
 .Ql \&)
 .Pc .
@@ -285,7 +285,7 @@ shell and must be quoted if they are to represent themselves:
 .Ql { ,
 .Ql } ,
 .Ql * ,
-.Ql \&? ,
+.Ql \&?
 and
 .Ql [ .
 The first three of these are the above mentioned quoting characters (see
@@ -318,7 +318,7 @@ style alterations (see
 below);
 and finally,
 .Ql * ,
-.Ql \&? ,
+.Ql \&?
 and
 .Ql [
 are used in file name generation (see
@@ -342,9 +342,8 @@ A simple-command consists of some combination of parameter assignments
 below),
 input/output redirections (see
 .Sx Input/output redirections
-below),
-and command words; the only restriction is that parameter assignments come
-before any command words.
+below) and command words; the only restriction is that
+parameter assignments come before any command words.
 The command words, if any, define the command
 that is to be executed and its arguments.
 The command may be a shell built-in
@@ -385,7 +384,7 @@ tokens:
 .Ql && ,
 .Ql || ,
 .Ql & ,
-.Ql |& ,
+.Ql |&
 and
 .Ql \&; .
 The first two are for conditional execution:
@@ -406,7 +405,7 @@ and
 .Ql ||
 have equal precedence which is higher than that of
 .Ql & ,
-.Ql |& ,
+.Ql |&
 and
 .Ql \&; ,
 which also have equal precedence.
@@ -491,7 +490,7 @@ In the following compound command descriptions, command lists (denoted as
 that are followed by reserved words must end with a semicolon, a newline, or
 a (syntactically correct) reserved word.
 For example,
-.Bd -unfilled -offset indent
+.Bd -unfilled -offset -indent
 .Ic { echo foo; echo bar; }
 .Ic { echo foo; echo bar<newline> }
 .Ic { { echo foo; echo bar; } }
@@ -914,7 +913,7 @@ automatically tracked:
 .Ic date , ed , emacs , grep ,
 .Ic ls , mail , make , mv ,
 .Ic pr , rm , sed , sh ,
-.Ic vi ,
+.Ic vi
 and
 .Ic who .
 .Ss Substitution
@@ -969,7 +968,7 @@ the sequence of characters
 contains four fields:
 .Sq A ,
 .Sq B ,
-.Sq "" ,
+.Sq ""
 and
 .Sq D .
 Note that if the
@@ -1351,7 +1350,7 @@ value as reported by
 if that value is non-zero.
 This parameter is used by the interactive line editing modes, and by
 .Ic select ,
-.Ic set Fl o ,
+.Ic set Fl o
 and
 .Ic kill -l
 commands to format information columns.
@@ -1407,10 +1406,8 @@ If
 .Ev HISTFILE
 isn't set, no history file is used.
 This is different from the original Korn shell, which uses
-.Pa $HOME/.sh_history ;
-in future,
-.Nm pdksh
-may also use a default history file.
+.Pa $HOME/.sh_history
+by default.
 .It Ev HISTSIZE
 The number of commands normally stored for history.
 The default is 128.
@@ -1633,7 +1630,7 @@ In parameter assignments (those preceding a simple-command or those occurring
 in the arguments of
 .Ic alias ,
 .Ic export ,
-.Ic readonly ,
+.Ic readonly
 and
 .Ic typeset ) ,
 tilde expansion is done after any unquoted colon
@@ -1664,7 +1661,7 @@ and
 expands to four words:
 .Dq ace ,
 .Dq abXe ,
-.Dq abYe ,
+.Dq abYe
 and
 .Dq ade ) .
 As noted in the example, brace expressions can be nested and the resulting
@@ -1903,7 +1900,7 @@ backslash
 escapes for
 .Ql $ ,
 .Ql ` ,
-.Ql \e ,
+.Ql \e
 and
 .Ql \enewline .
 If multiple here documents are used on the same command line, they are saved in
@@ -1936,7 +1933,7 @@ Parameter, command, and arithmetic
 substitutions, tilde substitutions, and (if the shell is interactive)
 file name generation are all performed on the
 .Ar file ,
-.Ar marker ,
+.Ar marker
 and
 .Ar fd
 arguments of redirections.
@@ -1972,7 +1969,7 @@ as numeric arguments to the
 .Ic test
 command, and as the value of an assignment to an integer parameter.
 .Pp
-Expressions may contain alpha-numeric parameter identifiers, array references,
+Expressions may contain alpha-numeric parameter identifiers, array references
 and integer constants and may be combined with the following C operators
 (listed and grouped in increasing order of precedence):
 .Pp
@@ -2451,7 +2448,7 @@ command.
 Argument expansion of
 .Ic alias ,
 .Ic export ,
-.Ic readonly ,
+.Ic readonly
 and
 .Ic typeset
 commands.
@@ -3089,7 +3086,7 @@ These include
 .Ql \en ,
 .Ql \er ,
 .Ql \et ,
-.Ql \ev ,
+.Ql \ev
 and
 .Ql \e0###
 .Po
@@ -4194,7 +4191,7 @@ A job may be referred to in
 .Ic bg ,
 .Ic fg ,
 .Ic jobs ,
-.Ic kill ,
+.Ic kill
 and
 .Ic wait
 commands either by the process ID of the last process in the command pipeline
@@ -4298,7 +4295,7 @@ signal and the shell exits.
 The shell supports three modes of reading command lines from a tty in an
 interactive session, which is controlled by the
 .Ic emacs ,
-.Ic gmacs ,
+.Ic gmacs
 and
 .Ic vi
 options (at most one of these can be set at once).
@@ -4663,7 +4660,7 @@ You start out in insert mode.
 There are file name and command completion commands
 .Po
 .Ic = , \e , \&* , ^X ,
-.Ic ^E , ^F ,
+.Ic ^E , ^F
 and, optionally,
 .Ic <tab>
 .Pc .
@@ -4774,7 +4771,7 @@ Insert the comment character
 .Pq Sq #
 at the start of the current line and return the line to the shell (equivalent
 to
-.Ic \&I#^J ) .
+.Ic \&I#^J ) .
 .It Ar n Ns Ic g
 Like
 .Ic G ,
@@ -5143,7 +5140,22 @@ deleted and a new prompt to be printed.
 .Re
 .Sh VERSION
 This page documents version @(#)PD KSH v5.2.14 99/07/13.2 of the public
-domain Korn shell.
+domain Korn shell, as delivered with
+.Mx .
+.Sh NOTES
+.Nm sh
+is implemented as a run-time option of
+.Nm pdksh ,
+with only those
+.Nm ksh
+features whose syntax or semantics are incompatible with a traditional Bourne
+shell disabled.
+Since this leaves some
+.Nm ksh
+extensions exposed, caution should be used where backwards compatibility with
+traditional Bourne or
+.Tn POSIX
+compliant shells is an issue.
 .Sh AUTHORS
 This shell is based on the public domain 7th edition Bourne shell clone by
 Charles Forsyth and parts of the BRL shell by Doug A. Gwyn, Doug Kingston,
@@ -5161,6 +5173,10 @@ their part in the shell's development.
 Any bugs in
 .Nm pdksh
 should be reported to pdksh@cs.mun.ca.
+Do not forget to report to the
+.Mx
+developer team as well, because the modifications
+imposed may have introduced different behaviour.
 Please include the version of
 .Nm pdksh
 .Po
@@ -5181,11 +5197,16 @@ and a copy of your
 script).
 New versions of
 .Nm pdksh
-can be obtained from ftp://ftp.cs.mun.ca/pub/pdksh.
+can be obtained from \fBftp://ftp.cs.mun.ca/pub/pdksh\fR.
 .Pp
-BTW, the most frequently reported bug is:
+By the way, the most frequently reported bug is:
 .Bd -literal -offset indent
 echo hi | read a; echo $a\ \ \ # Does not print hi
 .Ed
 .Pp
-I'm aware of this and there is no need to report it.
+The
+.Nm pdksh
+author is aware of this and there is no need to report it.
+The
+.Mx
+team is luckily accepting fixes for known (and unknown) bugs.
