@@ -1017,8 +1017,8 @@ histload(s, base, bytes)
 	register int bytes;
 {
 	State state;
-	int	lno;
-	unsigned char	*line;
+	int	lno = 0;
+	unsigned char	*line = NULL;
 
 	for (state = shdr; bytes-- > 0; base++) {
 		switch (state) {
