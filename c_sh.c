@@ -1,4 +1,4 @@
-/**	$MirBSD: c_sh.c,v 1.7 2004/10/28 11:53:39 tg Exp $ */
+/**	$MirBSD: c_sh.c,v 1.8 2004/12/10 22:21:24 tg Exp $ */
 /*	$OpenBSD: c_sh.c,v 1.17 2003/03/13 09:03:07 deraadt Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include "ksh_time.h"
 #include "ksh_times.h"
 
-__RCSID("$MirBSD: c_sh.c,v 1.7 2004/10/28 11:53:39 tg Exp $");
+__RCSID("$MirBSD: c_sh.c,v 1.8 2004/12/10 22:21:24 tg Exp $");
 
 static	char *clocktos(clock_t t);
 
@@ -540,7 +540,7 @@ c_exitreturn(char **wp)
 		how = LSHELL;
 	}
 
-	quitenv();	/* get rid of any i/o redirections */
+	quitenv(NULL);	/* get rid of any i/o redirections */
 	unwind(how);
 	/*NOTREACHED*/
 	return 0;

@@ -1,4 +1,4 @@
-/**	$MirBSD: exec.c,v 1.6 2004/10/28 11:53:41 tg Exp $ */
+/**	$MirBSD: exec.c,v 1.7 2004/12/10 22:21:25 tg Exp $ */
 /*	$OpenBSD: exec.c,v 1.31 2003/12/15 05:25:52 otto Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: exec.c,v 1.6 2004/10/28 11:53:41 tg Exp $");
+__RCSID("$MirBSD: exec.c,v 1.7 2004/12/10 22:21:25 tg Exp $");
 
 /* Does ps4 get parameter substitutions done? */
 #ifdef KSH
@@ -215,7 +215,7 @@ execute(struct op *volatile t, volatile int flags)
 		i = ksh_sigsetjmp(e->jbuf, 0);
 		if (i) {
 			sigprocmask(SIG_SETMASK, &omask, (sigset_t *) 0);
-			quitenv();
+			quitenv(NULL);
 			unwind(i);
 			/*NOTREACHED*/
 		}
@@ -321,7 +321,7 @@ execute(struct op *volatile t, volatile int flags)
 			if ((e->flags&EF_BRKCONT_PASS)
 			    || (i != LBREAK && i != LCONTIN))
 			{
-				quitenv();
+				quitenv(NULL);
 				unwind(i);
 			} else if (i == LBREAK) {
 				rv = 0;
@@ -361,7 +361,7 @@ execute(struct op *volatile t, volatile int flags)
 			if ((e->flags&EF_BRKCONT_PASS)
 			    || (i != LBREAK && i != LCONTIN))
 			{
-				quitenv();
+				quitenv(NULL);
 				unwind(i);
 			} else if (i == LBREAK) {
 				rv = 0;
@@ -431,7 +431,7 @@ execute(struct op *volatile t, volatile int flags)
     Break:
 	exstat = rv;
 
-	quitenv();		/* restores IO */
+	quitenv(NULL);		/* restores IO */
 	if ((flags&XEXEC))
 		unwind(LEXIT);	/* exit child */
 	if (rv != 0 && !(flags & XERROK)) {
@@ -686,11 +686,11 @@ comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
 		  case LEXIT:
 		  case LLEAVE:
 		  case LSHELL:
-			quitenv();
+			quitenv(NULL);
 			unwind(i);
 			/*NOTREACHED*/
 		  default:
-			quitenv();
+			quitenv(NULL);
 			internal_errorf(1, "CFUNC %d", i);
 		}
 		break;
@@ -1453,8 +1453,7 @@ herein(const char *content, int sub)
 	i = ksh_sigsetjmp(e->jbuf, 0);
 	if (i) {
 		source = osource;
-		quitenv();
-		shf_close(shf);	/* after quitenv */
+		quitenv(shf);
 		close(fd);
 		return -2; /* special to iosetup(): don't print error */
 	}
@@ -1470,7 +1469,7 @@ herein(const char *content, int sub)
 	} else
 		shf_puts(content, shf);
 
-	quitenv();
+	quitenv(NULL);
 
 	if (shf_close(shf) == EOF) {
 		close(fd);

@@ -1,4 +1,4 @@
-/**	$MirBSD: lex.c,v 1.7 2004/10/28 11:53:42 tg Exp $ */
+/**	$MirBSD: lex.c,v 1.8 2004/12/10 22:21:25 tg Exp $ */
 /*	$OpenBSD: lex.c,v 1.18 2003/08/06 21:08:05 millert Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: lex.c,v 1.7 2004/10/28 11:53:42 tg Exp $");
+__RCSID("$MirBSD: lex.c,v 1.8 2004/12/10 22:21:25 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state.
@@ -1140,7 +1140,7 @@ set_prompt(int to, Source *s)
 			} else
 				prompt = str_save(substitute(ps1, 0),
 						 saved_atemp);
-			quitenv();
+			quitenv(NULL);
 		}
 #else /* KSH */
 		prompt = str_val(global("PS1"));
