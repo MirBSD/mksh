@@ -1,4 +1,4 @@
-/**	$MirBSD: main.c,v 1.13 2004/10/31 23:01:18 tg Exp $ */
+/**	$MirBSD: main.c,v 1.14 2004/10/31 23:02:05 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -11,7 +11,7 @@
 #include "ksh_stat.h"
 #include "ksh_time.h"
 
-__RCSID("$MirBSD: main.c,v 1.13 2004/10/31 23:01:18 tg Exp $");
+__RCSID("$MirBSD: main.c,v 1.14 2004/10/31 23:02:05 tg Exp $");
 
 extern char **environ;
 
@@ -260,11 +260,11 @@ main(int argc, char *argv[])
 	}
 	ppid = getppid();
 	setint(global("PPID"), (long) ppid);
-#ifdef	KSH
+#ifdef KSH
 	rnd_seed( (*((long *)kshname))
 		^ ((long) (time(NULL) * kshpid * ppid)) );
 	setint(global("RANDOM"), rnd_get());
-#endif	/* KSH */
+#endif /* KSH */
 	/* setstr can't fail here */
 	setstr(global(version_param), ksh_version, KSH_RETURN_ERROR);
 
