@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/eval.c,v 2.1 2004/12/10 18:09:41 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/eval.c,v 2.2 2004/12/13 16:48:53 tg Exp $ */
 /*	$OpenBSD: eval.c,v 1.16 2004/12/08 21:23:18 millert Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include "ksh_dir.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/eval.c,v 2.1 2004/12/10 18:09:41 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/eval.c,v 2.2 2004/12/13 16:48:53 tg Exp $");
 
 /*
  * string expansion
@@ -287,12 +287,12 @@ expand(char *cp, XPtrV *wp, int f)
 					char endc;
 					char *str, *end;
 
+					sp = varname - 2; /* restore sp */
 					end = (char *) wdscan(sp, CSUBST);
 					/* ({) the } or x is already skipped */
 					endc = *end;
 					*end = EOS;
-					str = snptreef((char *) 0, 64, "%S",
-							varname - 1);
+					str = snptreef(NULL, 64, "%S", sp);
 					*end = endc;
 					errorf("%s: bad substitution", str);
 				}
@@ -801,6 +801,7 @@ varsub(Expand *xp, char *sp, char *word, int *stypep, int *slenp)
 			  case '=':	/* can't assign to a vector */
 			  case '%':	/* can't trim a vector (yet) */
 			  case '#':
+			  case '?':
 				return -1;
 			}
 			XPinit(wv, 32);
