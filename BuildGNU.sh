@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: BuildGNU.sh,v 1.4 2004/03/21 02:49:39 tg Exp $
+# $MirBSD: BuildGNU.sh,v 1.5 2004/03/22 19:03:52 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -34,7 +34,8 @@ if [ -e strlcpy.c -a -e strlcat.c ]; then
 	$CC $CFLAGS $CPPFLAGS -DKSH -o ksh *.c
 	echo "Finalizing..."
 	tbl <ksh.1tbl | nroff -mandoc -Tascii >ksh.cat1
-	strip --strip-unneeded --strip-all -R .note -R .comment ksh
+	strip -R .note -R .comment -R .rel.dyn -R .sbss \
+	    --strip-unneeded --strip-all ksh
 	size ksh
 	echo "done."
 else
