@@ -1,4 +1,4 @@
-.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 2.4 2004/12/13 19:18:01 tg Exp $
+.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 2.5 2004/12/13 19:36:27 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.79 2004/12/04 07:05:13 jaredy Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -607,7 +607,7 @@ For historical reasons, open and close braces may be used instead of
 and
 .Ic esac
 (e.g.,
-.Ic case $foo { *) echo bar; } ) .
+.Ic case $foo { *) print bar; } ) .
 The exit status of a
 .Ic case
 statement is that of the executed
@@ -639,7 +639,7 @@ For historical reasons, open and close braces may be used instead of
 and
 .Ic done
 (e.g.,
-.Ic for i\&; { echo $i; } ) .
+.Ic for i\&; { print $i; } ) .
 The exit status of a
 .Ic for
 statement is the last exit status of
@@ -728,7 +728,7 @@ For historical reasons, open and close braces may be used instead of
 and
 .Ic done
 (e.g.,
-.Ic select i; { echo $i; } ) .
+.Ic select i; { print $i; } ) .
 The exit status of a
 .Ic select
 statement is zero if a
@@ -1079,8 +1079,8 @@ This should be fixed soon.
 .Pp
 Arithmetic substitutions are replaced by the value of the specified expression.
 For example, the command
-.Ic echo $((2+3*4))
-prints 14.
+.Ic print $((2+3*4))
+displays 14.
 See
 .Sx Arithmetic expressions
 for a description of an expression.
@@ -2564,7 +2564,7 @@ loop
 .Ic alias a='for ' i='j'
 .It
 .Xo
-.Ic a i in 1 2; do echo i=$i j=$j;
+.Ic a i in 1 2; do print i=$i j=$j;
 .Ic done
 .Xc
 .El
@@ -3587,20 +3587,6 @@ and
 statements.
 The following basic expressions are available:
 .Bl -tag -width 17n
-.It Ar str
-.Ar str
-has non-zero length.
-Note that there is the potential for problems if
-.Ar str
-turns out to be an operator (e.g.,
-.Fl r ) .
-It is generally better to use a test like
-.Sm off
-.Ic \&[\ X\&" Ar str Ic \&" Ic \ \&]
-.Sm on
-instead (double quotes are used in case
-.Ar str
-contains spaces or file globbing characters).
 .It Fl r Ar file
 .Ar file
 exists and is readable.
@@ -3708,21 +3694,22 @@ rules described below).
 is not empty (has non-zero length).
 Note that there is the potential for problems if
 .Ar string
-turns out to be an operator (e.g.,
+turns out to be an operator (e.g.
 .Fl r ) .
 It is generally better to use a test like
+.No ( Ns Nm sh )
+.Bk -words
 .Sm off
 .Ic \&[\ X\&" Ar string Ic \&" Ic \ \&]
 .Sm on
-or (on
-.Nm ksh
-only)
-.Sm off
-.Ic \&[\&[ Fl n Ar string Ic \ \&]\&]
-.Sm on
+.Ek
+.No or ( Ns Nm ksh )
+.Bk -words
+.Ic \&[[ Fl n Ar string Ic \&]]
+.Ek
 instead (double quotes are used in case
 .Ar string
-contains spaces or file globbing characters).
+contains spaces or globbing characters).
 .It Fl z Ar string
 .Ar string
 is empty.
@@ -3800,7 +3787,9 @@ if the first argument is a unary operator, including an unstripped
 .Pp
 .Sy Note:
 A common mistake is to use
+.Bk -words
 .Ic if \&[ $foo = bar \&]
+.Ek
 which fails if parameter
 .Ic foo
 is
@@ -3812,7 +3801,14 @@ characters), or if it is a unary operator like
 or
 .Sq Fl n .
 Use tests like
+.No ( Ns Nm sh )
+.Bk -words
 .Ic if \&[ \&"X$foo\&" = Xbar \&]
+.Ek
+.No or ( Ns Nm ksh )
+.Bk -words
+.Ic if \&[[ \&$foo = bar \&]]
+.Ek
 instead.
 .It Xo Ic time Op Fl p
 .Op Ar pipeline
@@ -5304,7 +5300,7 @@ development team at
 Please include the version of
 .Nm
 .Po
-.Ic echo $KSH_VERSION
+.Ic print $KSH_VERSION
 shows it
 .Pc ,
 the machine, operating system, and compiler you are using and how you built
@@ -5329,7 +5325,7 @@ script).
 .Pp
 By the way, the most frequently reported bug is:
 .Bd -literal -offset indent
-$ echo hi | read a; echo $a   # Does not print hi
+$ print hi | read a; print $a   # Does not show hi
 .Ed
 .Pp
 The
