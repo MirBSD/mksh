@@ -1,5 +1,5 @@
-/*	$MirBSD: sh.h,v 1.4 2003/06/26 18:26:21 tg Exp $	*/
-/*	$OpenBSD: sh.h,v 1.13 2003/05/16 19:58:57 jsyn Exp $	*/
+/*	$MirBSD: sh.h,v 1.5 2003/09/25 20:59:37 tg Exp $	*/
+/*	$OpenBSD: sh.h,v 1.14 2003/09/01 15:47:40 naddy Exp $	*/
 
 /*
  * Public Domain Bourne/Korn shell

@@ -1,5 +1,5 @@
-/*	$MirBSD: emacs.c,v 1.5 2003/08/31 20:54:03 tg Exp $	*/
-/*	$OpenBSD: emacs.c,v 1.26 2003/08/27 14:56:11 fgsch Exp $	*/
+/*	$MirBSD: emacs.c,v 1.6 2003/09/25 20:59:35 tg Exp $	*/
+/*	$OpenBSD: emacs.c,v 1.27 2003/09/01 15:47:40 naddy Exp $	*/
 
 /*
  *  Emacs-like command line editing and history

@@ -1,5 +1,5 @@
-/*	$MirBSD: misc.c,v 1.3 2003/08/16 15:19:49 tg Exp $	*/
-/*	$OpenBSD: misc.c,v 1.18 2003/08/06 21:08:05 millert Exp $	*/
+/*	$MirBSD: misc.c,v 1.4 2003/09/25 20:59:37 tg Exp $	*/
+/*	$OpenBSD: misc.c,v 1.19 2003/09/01 15:47:40 naddy Exp $	*/
 
 /*
  * Miscellaneous functions
