@@ -1329,7 +1329,7 @@ if test $ac_cv_prog_gcc = yes; then
   if test "${CFLAGS+set}" != set; then
     AC_CACHE_CHECK(whether ${CC-cc} accepts -g, ac_cv_prog_gcc_g,
 [echo 'int main(){ return 0; }' > conftest.c
-if test -z "`${CC-cc} -g conftest.c 2>&1`"; then
+if test -z "$(${CC-cc} -g conftest.c 2>&1)"; then
   ac_cv_prog_gcc_g=yes
 else
   ac_cv_prog_gcc_g=no
