@@ -1,4 +1,4 @@
-/**	$MirBSD: sh.h,v 1.11 2004/08/27 14:55:45 tg Stab $ */
+/**	$MirBSD: sh.h,v 1.12 2004/09/21 11:37:29 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.18 2004/05/31 10:36:35 otto Exp $	*/
 
 /*
@@ -357,7 +357,9 @@ typedef INT32 Tflag;
 #define	NOT		'!'	/* might use ^ (ie, [!...] vs [^..]) */
 
 #define	LINE	4096		/* input line size */
-#define	PATH	1024		/* pathname size (todo: PATH_MAX/pathconf()) */
+#ifndef PATH_MAX
+#define	PATH_MAX 1024		/* pathname size (todo: pathconf()) */
+#endif
 #define ARRAYMAX 2047		/* max array index */
 
 EXTERN	const char *kshname;	/* $0 */

@@ -1,4 +1,4 @@
-/* $MirBSD: c_ksh.c,v 1.4 2004/05/24 19:55:55 tg Stab $ */
+/* $MirBSD: c_ksh.c,v 1.5 2004/09/21 11:37:29 tg Exp $ */
 /* $OpenBSD: c_ksh.c,v 1.18 2004/02/10 13:03:36 jmc Exp $	*/
 
 /*
@@ -99,7 +99,7 @@ c_cd(wp)
 		return 1;
 	}
 
-	Xinit(xs, xp, PATH, ATEMP);
+	Xinit(xs, xp, PATH_MAX, ATEMP);
 	/* xp will have a bogus value after make_path() - set it to 0
 	 * so that if it's used, it will cause a dump
 	 */
@@ -156,7 +156,7 @@ c_cd(wp)
 	/* Set PWD */
 	if (pwd) {
 #ifdef __CYGWIN__
-		char ptmp[PATH];  /* larger than MAX_PATH */
+		char ptmp[PATH_MAX];  /* larger than MAX_PATH */
 		cygwin_conv_to_full_posix_path(pwd, ptmp);
 #else /* __CYGWIN__ */
 		char *ptmp = pwd;
