@@ -1,4 +1,4 @@
-/**	$MirBSD: strlfun.c,v 1.1.4.1 2004/08/27 19:36:55 tg Exp $ */
+/**	$MirBSD: strlfun.c,v 1.1.4.2 2004/11/10 17:29:20 tg Exp $ */
 /*	$OpenBSD: strlcpy.c,v 1.8 2003/06/17 21:56:24 millert Exp $ */
 /*	$OpenBSD: strlcat.c,v 1.11 2003/06/17 21:56:24 millert Exp $ */
 
@@ -7,11 +7,11 @@
  *	Thorsten "mirabile" Glaser <tg@66h.42h.de>
  *
  * Licensee is hereby permitted to deal in this work without restric-
- * tion, including unlimited rights to use, publically perform, modi-
- * fy, merge, distribute, sell, give away or sublicence, provided the
- * above copyright notices, these terms and the disclaimer are retai-
- * ned in all redistributions, or reproduced in accompanying documen-
- * tation or other materials provided with binary redistributions.
+ * tion, including unlimited rights to use, publicly perform, modify,
+ * merge, distribute, sell, give away or sublicence, provided all co-
+ * pyright notices above, these terms and the disclaimer are retained
+ * in all redistributions or reproduced in accompanying documentation
+ * or other materials provided with binary redistributions.
  *
  * Licensor hereby provides this work "AS IS" and WITHOUT WARRANTY of
  * any kind, expressed or implied, to the maximum extent permitted by
@@ -21,8 +21,9 @@
  * rect or other, however caused, arising in any way out of the usage
  * of covered work, even if advised of the possibility of such damage.
  *-
- * Implementation by myself
- * Some optimizations idea from Bodo Eggert
+ * Implementation for most of this code by myself.
+ * Some optimizations idea from Bodo Eggert in d.a.s.r.
+ * The rest of the code is covered by the terms below:
  */
 
 /*
@@ -45,21 +46,22 @@
 #include <sys/types.h>
 #include <string.h>
 
-#ifdef	HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 /* packaged with third-party software */
 #include "config.h"
-#define	LIBC_SCCS
-#else	/* ! def(HAVE_CONFIG_H) */
-/* integrated into C library */
-#undef	HAVE_STRLCPY
-#undef	HAVE_STRLCAT
-#endif	/* ! def(HAVE_CONFIG_H) */
+#define LIBC_SCCS
+#else /* ! def HAVE_CONFIG_H */
+/* integrated into MirOS C library */
+#undef HAVE_STRLCPY
+#undef HAVE_STRLCAT
+#endif /* ! def HAVE_CONFIG_H */
 
-#if defined(__RCSID)
-__RCSID("$MirBSD: strlfun.c,v 1.1.4.1 2004/08/27 19:36:55 tg Exp $");
-#elif defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$MirBSD: strlfun.c,v 1.1.4.1 2004/08/27 19:36:55 tg Exp $";
-#endif	/* LIBC_SCCS and not lint */
+#ifndef __RCSID
+#define __RCSID(x)	static const char __rcsid[] \
+			__attribute__((section(".comment"))) = (x)
+#endif
+
+__RCSID("$MirBSD: strlfun.c,v 1.1.4.2 2004/11/10 17:29:20 tg Exp $");
 
 
 #ifndef	HAVE_STRLCPY
