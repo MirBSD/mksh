@@ -1,4 +1,4 @@
-.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 2.3 2004/12/13 19:09:06 tg Exp $
+.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 2.4 2004/12/13 19:18:01 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.79 2004/12/04 07:05:13 jaredy Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -53,8 +53,8 @@
 ..
 .Sh NAME
 .Nm ksh ,
-.Nm mksh ,
-.Nm sh
+.Nm sh ,
+.Nm mksh
 .Nd MirBSD Korn/Bourne shell
 .Sh SYNOPSIS
 .Nm
@@ -77,7 +77,7 @@ script use.
 Its command language is a superset of the
 .Xr sh C
 shell language and compatible to the original Korn shell.
-.Nm mirbsdksh
+.Nm mksh
 is derived from
 .Nm pdksh ,
 the public domain Korn shell.
@@ -260,7 +260,7 @@ parameter is not set (and not
 .Dv NULL )
 and
 .Nm
-was compiled with the
+was compiled with the non-default
 .Dv DEFAULT_ENV
 macro defined, the file named in that macro is included (after the above
 mentioned substitutions have been performed).
@@ -1102,7 +1102,7 @@ where
 is an arithmetic expression.
 Array indices are currently limited to the range 0 through 4095 (for
 .Nm mksh )
-or 1023 (for other korn shells), inclusive.
+or 0 to 1023 (for other korn shells), inclusive.
 Parameter substitutions take the form
 .Ic $ Ns Ar name ,
 .Ic ${ Ns Ar name Ns Ic \&}
@@ -1468,9 +1468,7 @@ parameters all point to the same file.
 If
 .Ev HISTFILE
 isn't set, no history file is used.
-This is different from the original Korn shell, which uses
-.Pa $HOME/.sh_history
-by default.
+This is different from the original Korn shell.
 .It Ev HISTSIZE
 The number of commands normally stored for history.
 The default is 511.
@@ -1495,13 +1493,9 @@ above for details.
 This parameter is not imported from the environment when the shell is
 started.
 .It Ev KSH_VERSION
-The version of the shell, consisting of the upstream
-.Nm pdksh
-version (and sometimes date), the string
-.Dq MirOS
-and the
-.Xr rcs 1
-revision number (read-only).
+The version of
+.Nm
+(read-only).
 See also the version commands in
 .Sx Emacs editing mode
 and
@@ -4573,8 +4567,7 @@ is appended.
 If there is no command or file name with the current partial word
 as its prefix, a bell character is output (usually causing a beep to be
 sounded).
-Currently being considered a bug in
-.Nm ,
+Currently being considered a bug,
 if the file name contains \fB[\fR or \fB]\fR, it cannot be completed, even if
 the character is escaped, in \fBemacs\fR mode.
 This surprisingly works in \fBvi\fR mode; please submit a fix.
@@ -5287,7 +5280,7 @@ compliant shells is an issue.
 .Pp
 .Nm mksh
 is the name for the portable version of
-.Mx MirBSD
+.Mx
 .Nm ksh
 installed as
 .Pa /bin/mksh
@@ -5297,26 +5290,9 @@ Visit
 to obtain the latest version of
 .Nm mksh .
 .Sh AUTHORS
-This shell is based on the public domain 7th edition Bourne shell clone by
-Charles Forsyth and parts of the BRL shell by Doug A. Gwyn, Doug Kingston,
-Ron Natalie, Arnold Robbins, Lou Salkind, and others.
-The first release of
-.Nm pdksh
-was created by Eric Gisin, and it was subsequently maintained by
-.An John R. MacMillan Aq change!john@sq.sq.com
-and
-.An Simon J. Gerraty Aq sjg@zen.void.oz.au .
-The current maintainer is
-.An Michael Rendell Aq michael@cs.mun.ca
-for the upstream version of
-.Nm pdksh
-and
-.An Thorsten Glaser Aq tg@66h.42h.de
-for
-.Mx .
 The
 .Pa CONTRIBUTORS
-file in the source distribution contains a more complete list of people and
+file in the source distribution contains an almost complete list of people and
 their part in the shell's development.
 .Sh BUGS
 Send bug reports for
@@ -5335,8 +5311,7 @@ the machine, operating system, and compiler you are using and how you built
 .Nm
 (it is recommended to use the provided
 .Pa Build.sh
-mechanism if using
-.Nm mksh )
+mechanism)
 and a description of how to repeat the bug (a small shell script that
 demonstrates the bug is best).
 The following, if relevant (if you are not sure, include them), can also be
