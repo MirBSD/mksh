@@ -1,15 +1,14 @@
-/**	$MirBSD: src/bin/ksh/sh.h,v 2.11 2004/12/31 19:37:03 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/sh.h,v 2.12 2004/12/31 19:54:16 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.23 2004/12/18 22:11:43 millert Exp $	*/
+/*	$From: sh.h,v 1.2 1994/05/19 18:32:40 michael Exp michael $ */
 
 #ifndef SH_H
-/*	$OpenBSD: sh.h,v 1.22 2004/12/18 21:58:39 millert Exp $	*/
+#define SH_H
 
 /*
  * mirbsdksh - MirOS Project Korn-Shell
  * from: Public Domain Bourne/Korn shell
  */
-
-/* $From: sh.h,v 1.2 1994/05/19 18:32:40 michael Exp michael $ */
 
 #include "config.h"	/* system and option configuration info */
 
@@ -179,6 +178,10 @@ void *memmove(void *d, const void *s, size_t n);
 
 /* this is a hang-over from older versions of the os2 port */
 #define ksh_dupbase(fd, base) fcntl(fd, F_DUPFD, base)
+
+#if defined(__sun__) && defined(__svr4__)
+typedef void (*sig_t)();
+#endif
 
 #ifdef HAVE_SIGSETJMP
 # define ksh_sigsetjmp(env,sm)	sigsetjmp((env), (sm))
