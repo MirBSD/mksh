@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: Build.sh,v 1.1.2.1 2004/04/24 21:42:17 tg Exp $
+# $MirBSD: Build.sh,v 1.1.2.2 2004/04/24 23:34:03 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -34,7 +34,7 @@ CONFIG_SHELL="${SHELL}"; export CONFIG_SHELL
 CC="${CC:-gcc}"
 CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -I. -DKSH"
 CFLAGS="-O2 -fomit-frame-pointer -fno-strict-aliasing $CFLAGS"
-LDFLAGS="${LDFLAGS:--static}"
+[ -z "$WEIRD_OS" ] && LDFLAGS="${LDFLAGS:--static}"
 
 if [ -e strlfun.c ]; then
 	echo "Configuring..."
