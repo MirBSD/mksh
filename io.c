@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/io.c,v 2.1 2004/12/10 18:09:41 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/io.c,v 2.2 2004/12/13 19:05:09 tg Exp $ */
 /*	$OpenBSD: io.c,v 1.13 2003/11/10 21:26:39 millert Exp $	*/
 
 /*
@@ -308,20 +308,6 @@ check_fd(char *name, int mode, const char **emsgp)
 			return -1;
 		}
 		fl &= O_ACCMODE;
-#ifdef OS2
-		if (mode == W_OK ) {
-		       if (setmode(fd, O_TEXT) == -1) {
-				if (emsgp)
-					*emsgp = "couldn't set write mode";
-				return -1;
-			}
-		 } else if (mode == R_OK)
-	      		if (setmode(fd, O_BINARY) == -1) {
-				if (emsgp)
-					*emsgp = "couldn't set read mode";
-				return -1;
-			}
-#else /* OS2 */
 		/* X_OK is a kludge to disable this check for dups (x<&1):
 		 * historical shells never did this check (XXX don't know what
 		 * posix has to say).
@@ -336,7 +322,6 @@ check_fd(char *name, int mode, const char **emsgp)
 					      : "fd not open for writing";
 			return -1;
 		}
-#endif /* OS2 */
 		return fd;
 	}
 #ifdef KSH

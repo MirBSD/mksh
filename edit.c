@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/edit.c,v 2.1 2004/12/10 18:09:41 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/edit.c,v 2.2 2004/12/13 19:05:08 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.18 2003/08/22 18:17:10 fgsch Exp $	*/
 
 /*
@@ -22,7 +22,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/edit.c,v 2.1 2004/12/10 18:09:41 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/edit.c,v 2.2 2004/12/13 19:05:08 tg Exp $");
 
 #if defined(TIOCGWINSZ)
 static RETSIGTYPE x_sigwinch(int sig);
@@ -154,10 +154,6 @@ x_read(char *buf, size_t len)
 int
 x_getc(void)
 {
-#ifdef OS2
-	unsigned char c = _read_kbd(0, 1, 0);
-	return c == 0 ? 0xE0 : c;
-#else /* OS2 */
 	char c;
 	int n;
 
@@ -170,7 +166,6 @@ x_getc(void)
 	if (n != 1)
 		return -1;
 	return (int) (unsigned char) c;
-#endif /* OS2 */
 }
 
 void

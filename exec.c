@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/exec.c,v 2.2 2004/12/13 16:48:53 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/exec.c,v 2.3 2004/12/13 19:05:09 tg Exp $ */
 /*	$OpenBSD: exec.c,v 1.31 2003/12/15 05:25:52 otto Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/exec.c,v 2.2 2004/12/13 16:48:53 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/exec.c,v 2.3 2004/12/13 19:05:09 tg Exp $");
 
 /* Does ps4 get parameter substitutions done? */
 #ifdef KSH
@@ -36,9 +36,6 @@ static int	dbteste_eval(Test_env *te, Test_op op, const char *opnd1,
 				const char *opnd2, int do_eval);
 static void	dbteste_error(Test_env *te, int offset, const char *msg);
 #endif /* KSH */
-#ifdef OS2
-static int	search_access1(const char *path, int mode, int *errnop);
-#endif /* OS2 */
 
 
 /*
@@ -421,8 +418,7 @@ execute(struct op *volatile t, volatile int flags)
 #endif
 		restoresigs();
 		cleanup_proc_env();
-		/* XINTACT bit is for OS2 */
-		ksh_execve(t->str, t->args, ap, (flags & XINTACT) ? 1 : 0);
+		ksh_execve(t->str, t->args, ap, 0);
 		if (errno == ENOEXEC)
 			scriptexec(t, ap);
 		else
@@ -772,35 +768,16 @@ scriptexec(struct op *tp, char **ap)
 				buf[n] = '\0';
 			(void) close(fd);
 		}
-		if ((buf[0] == '#' && buf[1] == '!' && (cp = &buf[2]))
-# ifdef OS2
-		    || (strncmp(buf, "extproc", 7) == 0 && isspace(buf[7])
-			&& (cp = &buf[7]))
-# endif /* OS2 */
-		    )
+		if ((buf[0] == '#' && buf[1] == '!' && (cp = &buf[2])))
 		{
 			while (*cp && (*cp == ' ' || *cp == '\t'))
 				cp++;
 			if (*cp && *cp != '\n') {
 				char *a0 = cp, *a1 = (char *) 0;
-# ifdef OS2
-				char *a2 = cp;
-# endif /* OS2 */
 
 				while (*cp && *cp != '\n' && *cp != ' '
-				       && *cp != '\t')
-				{
-# ifdef OS2
-			/* Allow shell search without prepended path
-			 * if shell with / in pathname cannot be found.
-			 * Use / explicitly so \ can be used if explicit
-			 * needs to be forced.
-			 */
-					if (*cp == '/')
-						a2 = cp + 1;
-# endif /* OS2 */
+				    && *cp != '\t')
 					cp++;
-				}
 				if (*cp && *cp != '\n') {
 					*cp++ = '\0';
 					while (*cp
@@ -817,38 +794,9 @@ scriptexec(struct op *tp, char **ap)
 					*cp = '\0';
 					if (a1)
 						*tp->args-- = a1;
-# ifdef OS2
-					if (a0 != a2) {
-						char *tmp_a0 = str_nsave(a0,
-							strlen(a0) + 5, ATEMP);
-						if (search_access(tmp_a0, X_OK,
-								(int *) 0))
-							a0 = a2;
-						afree(tmp_a0, ATEMP);
-					}
-# endif /* OS2 */
 					shell = a0;
 				}
 			}
-# ifdef OS2
-		} else {
-		        /* Use ksh documented shell default if present
-			 * else use OS2_SHELL which is assumed to need
-			 * the /c option and '\' as dir separator.
-			 */
-		         char *p = shell;
-
-			 shell = str_val(global("EXECSHELL"));
-			 if (shell && *shell)
-				 shell = search(shell, path, X_OK, (int *) 0);
-			 if (!shell || !*shell) {
-				 shell = p;
-				 *tp->args-- = "/c";
-				 for (p = tp->str; *p; p++)
-					 if (*p == '/')
-						 *p = '\\';
-			 }
-# endif /* OS2 */
 		}
 	}
 #endif	/* SHARPBANG */
@@ -1094,7 +1042,6 @@ search_access(const char *path, int mode, int *errnop)
 
 	            		/* set if candidate found, but not suitable */
 {
-#ifndef OS2
 	int ret, err = 0;
 	struct stat statb;
 
@@ -1114,73 +1061,7 @@ search_access(const char *path, int mode, int *errnop)
 	if (err && errnop && !*errnop)
 		*errnop = err;
 	return ret;
-#else /* !OS2 */
-	/*
-	 * NOTE: ASSUMES path can be modified and has enough room at the
-	 *       end of the string for a suffix (ie, 4 extra characters).
-	 *	 Certain code knows this (eg, eval.c(globit()),
-	 *	 exec.c(search())).
-	 */
-	static char *xsuffixes[] = { ".ksh", ".exe", ".", ".sh", ".cmd",
-				     ".com", ".bat", (char *) 0
-				   };
-	static char *rsuffixes[] = { ".ksh", ".", ".sh", ".cmd", ".bat",
-				      (char *) 0
-				   };
-	int i;
-	char *mpath = (char *) path;
-	char *tp = mpath + strlen(mpath);
-	char *p;
-	char **sfx;
-
-	/* If a suffix has been specified, check if it is one of the
-	 * suffixes that indicate the file is executable - if so, change
-	 * the access test to R_OK...
-	 * This code assumes OS/2 files can have only one suffix...
-	 */
-	if ((p = strrchr((p = ksh_strrchr_dirsep(mpath)) ? p : mpath, '.'))) {
-		if (mode == X_OK)
-			mode = R_OK;
-		return search_access1(mpath, mode, errnop);
-	}
-	/* Try appending the various suffixes.  Different suffixes for
-	 * read and execute 'cause we don't want to read an executable...
-	 */
-	sfx = mode == R_OK ? rsuffixes : xsuffixes;
-	for (i = 0; sfx[i]; i++) {
-		strcpy(tp, p = sfx[i]);
-		if (search_access1(mpath, R_OK, errnop) == 0)
-			return 0;
-		*tp = '\0';
-	}
-	return -1;
-#endif /* !OS2 */
 }
-
-#ifdef OS2
-static int
-search_access1(path, mode, errnop)
-	const char *path;
-	int mode;
-	int *errnop;		/* set if candidate found, but not suitable */
-{
-	int ret, err = 0;
-	struct stat statb;
-
-	if (stat(path, &statb) < 0)
-		return -1;
-	ret = eaccess(path, mode);
-	if (ret < 0)
-		err = errno; /* File exists, but we can't access it */
-	else if (!S_ISREG(statb.st_mode)) {
-		ret = -1;
-		err = S_ISDIR(statb.st_mode) ? EISDIR : EACCES;
-	}
-	if (err && errnop && !*errnop)
-		*errnop = err;
-	return ret;
-}
-#endif /* OS2 */
 
 /*
  * search for command with PATH
@@ -1199,25 +1080,6 @@ search(const char *name, const char *path, int mode, int *errnop)
 
 	if (errnop)
 		*errnop = 0;
-#ifdef OS2
-	/* Xinit() allocates 8 additional bytes, so appended suffixes won't
-	 * overflow the memory.
-	 */
-	namelen = strlen(name) + 1;
-	Xinit(xs, xp, namelen, ATEMP);
-	memcpy(Xstring(xs, xp), name, namelen);
-
- 	if (ksh_strchr_dirsep(name)) {
-		if (search_access(Xstring(xs, xp), mode, errnop) >= 0)
-			return Xstring(xs, xp); /* not Xclose() - see above */
-		Xfree(xs, xp);
-		return NULL;
-	}
-
-	/* Look in current context always. (os2 style) */
-	if (search_access(Xstring(xs, xp), mode, errnop) == 0)
-		return Xstring(xs, xp); /* not Xclose() - xp may be wrong */
-#else /* OS2 */
 	if (ksh_strchr_dirsep(name)) {
 		if (search_access(name, mode, errnop) == 0)
 			return (char *) name;
@@ -1226,7 +1088,6 @@ search(const char *name, const char *path, int mode, int *errnop)
 
 	namelen = strlen(name) + 1;
 	Xinit(xs, xp, 128, ATEMP);
-#endif /* OS2 */
 
 	sp = path;
 	while (sp != NULL) {
@@ -1243,11 +1104,7 @@ search(const char *name, const char *path, int mode, int *errnop)
 		XcheckN(xs, xp, namelen);
 		memcpy(xp, name, namelen);
  		if (search_access(Xstring(xs, xp), mode, errnop) == 0)
-#ifdef OS2
- 			return Xstring(xs, xp); /* Not Xclose() - see above */
-#else /* OS2 */
 			return Xclose(xs, xp + namelen);
-#endif /* OS2 */
 		if (*sp++ == '\0')
 			sp = NULL;
 	}
@@ -1356,10 +1213,6 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			return -1;
 		}
 		u = open(cp, flags, 0666);
-#ifdef OS2
-		if (u < 0 && strcmp(cp, "/dev/null") == 0)
-			u = open("nul", flags, 0666);
-#endif /* OS2 */
 	}
 	if (u < 0) {
 		/* herein() may already have printed message */

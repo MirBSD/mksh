@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/vi.c,v 2.1 2004/12/10 18:09:42 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/vi.c,v 2.2 2004/12/13 19:05:09 tg Exp $ */
 /*	$OpenBSD: vi.c,v 1.13 2004/05/10 16:28:47 pvalchev Exp $	*/
 
 /*
@@ -15,7 +15,7 @@
 #include "ksh_stat.h"		/* completion */
 #include "edit.h"
 
-__RCSID("$MirBSD: src/bin/ksh/vi.c,v 2.1 2004/12/10 18:09:42 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/vi.c,v 2.2 2004/12/13 19:05:09 tg Exp $");
 
 #define Ctrl(c)		(c&0x1f)
 #define	is_wordch(c)	(letnum(c))
@@ -267,32 +267,8 @@ vi_hook(int ch)
 			}
 			switch (vi_insert(ch)) {
 			case -1:
-#ifdef OS2
-				/* Arrow keys generate 0xe0X, where X is H.. */
-				state = VCMD;
-				argc1 = 1;
-				switch (x_getc()) {
-				  case 'H':
-					*curcmd='k';
-					break;
-				  case 'K':
-					*curcmd='h';
-					break;
-				  case 'P':
-					*curcmd='j';
-					break;
-				  case 'M':
-					*curcmd='l';
-					break;
-				  default:
-					vi_error();
-					state = VNORMAL;
-				}
-				break;
-#else /* OS2 */
 				vi_error();
 				state = VNORMAL;
-#endif /* OS2 */
 				break;
 			case 0:
 				if (state == VLIT) {
@@ -646,9 +622,6 @@ vi_insert(int ch)
 		saved_inslen = 0;
 	switch (ch) {
 
-#ifdef OS2
-	case 224:	 /* function key prefix */
-#endif /* OS2 */
 	case '\0':
 		return -1;
 

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/history.c,v 2.1 2004/12/10 18:09:41 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/history.c,v 2.2 2004/12/13 19:05:09 tg Exp $ */
 /*	$OpenBSD: history.c,v 1.24 2004/08/03 12:44:59 danh Exp $	*/
 
 /*
@@ -21,17 +21,13 @@
 #include "sh.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/history.c,v 2.1 2004/12/10 18:09:41 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/history.c,v 2.2 2004/12/13 19:05:09 tg Exp $");
 
 #ifdef HISTORY
 # ifdef EASY_HISTORY
 
 #  ifndef HISTFILE
-#   ifdef OS2
-#    define HISTFILE "history.ksh"
-#   else /* OS2 */
 #    define HISTFILE ".pdksh_history"
-#   endif /* OS2 */
 #  endif
 
 # else

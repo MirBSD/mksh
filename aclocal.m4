@@ -1,4 +1,4 @@
-dnl $MirBSD: src/bin/ksh/aclocal.m4,v 2.2 2004/12/13 18:53:25 tg Exp $
+dnl $MirBSD: src/bin/ksh/aclocal.m4,v 2.3 2004/12/13 19:05:08 tg Exp $
 dnl-
 dnl Copyright (c) 2004
 dnl	Thorsten "mirabile" Glaser <tg@66h.42h.de>
@@ -784,7 +784,7 @@ dnl
 dnl Several OSes need to be detected and symbols defined so the shell can
 dnl deal with them.  This is a bit kludgy, but...
 dnl Currently tests for:
-dnl	AIX, ISC (Interactive systems corp), MINIX, OS2 using EMX library,
+dnl	AIX, ISC (Interactive systems corp), MINIX,
 dnl	SCO (santa cruz operation), NEXT, Interix/MS Services for Unix
 dnl DO NOT USE with AC_AIX, AC_MINIX or AC_ISC_POSIX tests as these are
 dnl incorperated in this test.
@@ -796,7 +796,7 @@ AC_DEFUN(KSH_OS_TYPE,
     [ ksh_cv_os_type=no
       # Some tests below add -C to CPPFLAGS
       saveCPPFLAGS="$CPPFLAGS"
-      for i in AIX ISC MINIX SCO OS2_EMX TITANOS NEXT HPUX Interix; do
+      for i in AIX ISC MINIX SCO TITANOS NEXT HPUX Interix; do
 	case $i in	#((
 	  AIX)
 	    AC_EGREP_CPP(yes,
@@ -829,14 +829,6 @@ yes
 	    AC_EGREP_CPP(The Santa Cruz Operation,
 	      [#include <unistd.h>], ksh_cv_os_type=$i)dnl
 	    CPPFLAGS="$saveCPPFLAGS"
-	    ;;	#(
-	  OS2_EMX)
-	    AC_EGREP_CPP(yes,
-	      [
-#ifdef __EMX__
-yes
-#endif
-	       ], ksh_cv_os_type=$i)dnl
 	    ;;	#(
 	  TITANOS)
 	    AC_EGREP_CPP(YesTitan,
@@ -913,11 +905,6 @@ is_interix_sfu
       ;;			#(
     SCO)
       AC_DEFINE(OS_SCO)dnl
-      ;;			#(
-    OS2_EMX)
-      # XXX change this to OS_OS2 or OS_OS2_EMX?
-      AC_DEFINE(OS2)dnl
-      ac_exe_suffix=.exe
       ;;			#(
     TITANOS)
       # Need to use cc -43 to get a shell with job control

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/shf.c,v 2.1 2004/12/10 18:09:42 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/shf.c,v 2.2 2004/12/13 19:05:09 tg Exp $ */
 /*	$OpenBSD: shf.c,v 1.8 2003/02/28 09:45:09 jmc Exp $	*/
 
 /*
@@ -9,7 +9,7 @@
 #include "ksh_stat.h"
 #include "ksh_limval.h"
 
-__RCSID("$MirBSD: src/bin/ksh/shf.c,v 2.1 2004/12/10 18:09:42 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/shf.c,v 2.2 2004/12/13 19:05:09 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -542,14 +542,6 @@ shf_getse(char *buf, int bsize, struct shf *shf)
 		shf->rnleft -= ncopy;
 		buf += ncopy;
 		bsize -= ncopy;
-#ifdef OS2
-		if (end && buf > orig_buf + 1 && buf[-2] == '\r') {
-			buf--;
-			bsize++;
-			buf[-1] = '\n';
-		}
-#endif
-
 	} while (!end && bsize);
 	*buf = '\0';
 	return buf;

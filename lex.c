@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/lex.c,v 2.2 2004/12/13 16:48:53 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/lex.c,v 2.3 2004/12/13 19:05:09 tg Exp $ */
 /*	$OpenBSD: lex.c,v 1.18 2003/08/06 21:08:05 millert Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/lex.c,v 2.2 2004/12/13 16:48:53 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/lex.c,v 2.3 2004/12/13 19:05:09 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state.
@@ -215,12 +215,6 @@ yylex(int cf)
 			switch (c) {
 			  case '\\':
 				c = getsc();
-#ifdef OS2
-				if (isalnum(c)) {
-					*wp++ = CHAR, *wp++ = '\\';
-					*wp++ = CHAR, *wp++ = c;
-				} else
-#endif
 				if (c) /* trailing \ is lost */
 					*wp++ = QCHAR, *wp++ = c;
 				break;

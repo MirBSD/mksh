@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/config.h,v 2.1 2004/12/10 18:09:41 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/config.h,v 2.2 2004/12/13 19:05:08 tg Exp $ */
 /*	$OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -174,9 +174,6 @@
 
 /* Define if you arg running ISC unix */
 /* #undef OS_ISC */
-
-/* Define if you arg running OS2 with the EMX library */
-/* #undef OS2 */
 
 /* Define if you have a POSIX.1 compatible <sys/wait.h> */
 #define POSIX_SYS_WAIT 1

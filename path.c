@@ -1,10 +1,10 @@
-/**	$MirBSD: src/bin/ksh/path.c,v 2.1 2004/12/10 18:09:42 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/path.c,v 2.2 2004/12/13 19:05:09 tg Exp $ */
 /*	$OpenBSD: path.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 #include "sh.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/path.c,v 2.1 2004/12/10 18:09:42 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/path.c,v 2.2 2004/12/13 19:05:09 tg Exp $");
 
 /*
  *	Contains a routine to search a : separated list of
@@ -126,10 +126,10 @@ simplify_path(char *path)
 
 	if ((isrooted = ISROOTEDPATH(path)))
 		very_start++;
-#if defined (OS2) || defined (__CYGWIN__)
+#if defined (__CYGWIN__)
 	if (path[0] && path[1] == ':')	/* skip a: */
 		very_start += 2;
-#endif /* OS2 || __CYGWIN__ */
+#endif
 
 	/* Before			After
 	 *  /foo/			/foo
@@ -139,7 +139,7 @@ simplify_path(char *path)
 	 *  ..				..
 	 *  ./foo			foo
 	 *  foo/../../../bar		../../bar
-	 * OS2 and CYGWIN:
+	 * CYGWIN:
 	 *  a:/foo/../..		a:/
 	 *  a:.				a:
 	 *  a:..			a:..

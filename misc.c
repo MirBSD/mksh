@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/misc.c,v 2.2 2004/12/13 18:53:25 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/misc.c,v 2.3 2004/12/13 19:05:09 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.20 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -13,7 +13,7 @@
 #include <sys/ioctl.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.2 2004/12/13 18:53:25 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.3 2004/12/13 19:05:09 tg Exp $");
 
 #ifndef UCHAR_MAX
 # define UCHAR_MAX	0xFF
@@ -309,14 +309,10 @@ change_flag(enum sh_flag f, int what, int newval)
 #endif /* EDIT */
 	/* Turning off -p? */
 	if (f == FPRIVILEGED && oldval && !newval) {
-#ifdef OS2
-		;
-#else /* OS2 */
 		seteuid(ksheuid = getuid());
 		setuid(ksheuid);
 		setegid(getgid());
 		setgid(getgid());
-#endif /* OS2 */
 	} else if (f == FPOSIX && newval) {
 #ifdef BRACE_EXPAND
 		Flag(FBRACEEXPAND) = 0

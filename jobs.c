@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/jobs.c,v 2.1 2004/12/10 18:09:41 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/jobs.c,v 2.2 2004/12/13 19:05:09 tg Exp $ */
 /*	$OpenBSD: jobs.c,v 1.21 2003/11/10 21:26:39 millert Exp $	*/
 
 /*
@@ -31,7 +31,7 @@
 #include "ksh_times.h"
 #include "tty.h"
 
-__RCSID("$MirBSD: src/bin/ksh/jobs.c,v 2.1 2004/12/10 18:09:41 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/jobs.c,v 2.2 2004/12/13 19:05:09 tg Exp $");
 
 /* Start of system configuration stuff */
 
@@ -641,10 +641,6 @@ exchild(struct op *t, int flags, int close_fd)
 		Flag(FMONITOR) = 0;
 #endif /* JOBS */
 		Flag(FTALKING) = 0;
-#ifdef OS2
-		if (tty_fd >= 0)
-			flags |= XINTACT;
-#endif /* OS2 */
 		tty_close();
 		cleartraps();
 		execute(t, (flags & XERROK) | XEXEC); /* no return */

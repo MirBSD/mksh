@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/eval.c,v 2.2 2004/12/13 16:48:53 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/eval.c,v 2.3 2004/12/13 19:05:09 tg Exp $ */
 /*	$OpenBSD: eval.c,v 1.16 2004/12/08 21:23:18 millert Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include "ksh_dir.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/eval.c,v 2.2 2004/12/13 16:48:53 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/eval.c,v 2.3 2004/12/13 19:05:09 tg Exp $");
 
 /*
  * string expansion
@@ -1049,17 +1049,8 @@ globit(XString *xs, char **xpp, char *sp, XPtrV *wp, int check)
 				*xp = '\0';
 			}
 		}
-#ifdef OS2 /* Done this way to avoid bug in gcc 2.7.2... */
-    /* Ugly kludge required for command
-     * completion - see how search_access()
-     * is implemented for OS/2...
-     */
-# define KLUDGE_VAL	4
-#else /* OS2 */
-# define KLUDGE_VAL	0
-#endif /* OS2 */
-		XPput(*wp, str_nsave(Xstring(*xs, xp), Xlength(*xs, xp)
-			+ KLUDGE_VAL, ATEMP));
+		XPput(*wp, str_nsave(Xstring(*xs, xp), Xlength(*xs, xp),
+		    ATEMP));
 		return;
 	}
 
@@ -1233,10 +1224,6 @@ homedir(char *name)
 
 	ap = tenter(&homedirs, name, hash(name));
 	if (!(ap->flag & ISSET)) {
-#ifdef OS2
-		/* No usernames in OS2 - punt */
-		return NULL;
-#else /* OS2 */
 		struct passwd *pw;
 
 		pw = getpwnam(name);
@@ -1244,7 +1231,6 @@ homedir(char *name)
 			return NULL;
 		ap->val.s = str_save(pw->pw_dir, APERM);
 		ap->flag |= DEFINED|ISSET|ALLOC;
-#endif /* OS2 */
 	}
 	return ap->val.s;
 }

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/tree.h,v 2.1 2004/12/10 18:09:42 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/tree.h,v 2.2 2004/12/13 19:05:09 tg Exp $ */
 /*	$OpenBSD: tree.h,v 1.8 2003/10/22 07:40:38 jmc Exp $	*/
 /*	$From: tree.h,v 1.3 1994/05/31 13:34:34 michael Exp $ */
 
@@ -113,7 +113,6 @@ struct ioword {
 #define XERROK	BIT(8)		/* non-zero exit ok (for set -e) */
 #define XCOPROC BIT(9)		/* starting a co-process */
 #define XTIME	BIT(10)		/* timing TCOM command */
-#define XINTACT BIT(11)		/* OS2: proc started from interactive session */
 
 /*
  * flags to control expansion of words (assumed by t->evalflags to fit
