@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/var.c,v 2.2 2004/12/18 18:39:10 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/var.c,v 2.3 2004/12/18 18:58:32 tg Exp $ */
 /*	$OpenBSD: var.c,v 1.17 2004/05/08 19:42:35 deraadt Exp $	*/
 
 #include "sh.h"
@@ -7,7 +7,7 @@
 #include "ksh_stat.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.2 2004/12/18 18:39:10 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/var.c,v 2.3 2004/12/18 18:58:32 tg Exp $");
 
 /*
  * Variables
@@ -102,11 +102,9 @@ initvar(void)
 			{ "EDITOR",		V_EDITOR },
 			{ "VISUAL",		V_VISUAL },
 #endif /* EDIT */
-#ifdef KSH
 			{ "RANDOM",		V_RANDOM },
 			{ "SECONDS",		V_SECONDS },
 			{ "TMOUT",		V_TMOUT },
-#endif /* KSH */
 			{ "LINENO",		V_LINENO },
 			{ (char *) 0,	0 }
 		};
@@ -886,16 +884,13 @@ unspecial(const char *name)
 		tdelete(tp);
 }
 
-#ifdef KSH
 static	time_t	seconds;		/* time SECONDS last set */
-#endif /* KSH */
 static	int	user_lineno;		/* what user set $LINENO to */
 
 static void
 getspec(struct tbl *vp)
 {
 	switch (special(vp->name)) {
-#ifdef KSH
 	  case V_SECONDS:
 		vp->flag &= ~SPECIAL;
 		/* On start up the value of SECONDS is used before seconds
@@ -911,7 +906,6 @@ getspec(struct tbl *vp)
 		setint(vp, rnd_get());
 		vp->flag |= SPECIAL;
 		break;
-#endif /* KSH */
 #ifdef HISTORY
 	  case V_HISTSIZE:
 		vp->flag &= ~SPECIAL;
@@ -995,7 +989,6 @@ setspec(struct tbl *vp)
 			x_cols = MIN_COLS;
 		break;
 #endif /* EDIT */
-#ifdef KSH
 	  case V_RANDOM:
 		vp->flag &= ~SPECIAL;
 		rnd_put(intval(vp));
@@ -1011,7 +1004,6 @@ setspec(struct tbl *vp)
 		if (vp->flag & INTEGER)
 			ksh_tmout = vp->val.i >= 0 ? vp->val.i : 0;
 		break;
-#endif /* KSH */
 	  case V_LINENO:
 		vp->flag &= ~SPECIAL;
 		/* The -1 is because line numbering starts at 1. */
@@ -1043,11 +1035,9 @@ unsetspec(struct tbl *vp)
 		}
 		break;
 	  case V_LINENO:
-#ifdef KSH
 	  case V_RANDOM:
 	  case V_SECONDS:
 	  case V_TMOUT:		/* at&t ksh leaves previous value in place */
-#endif /* KSH */
 		unspecial(vp->name);
 		break;
 

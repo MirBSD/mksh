@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/lex.c,v 2.3 2004/12/13 19:05:09 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/lex.c,v 2.4 2004/12/18 18:58:30 tg Exp $ */
 /*	$OpenBSD: lex.c,v 1.18 2003/08/06 21:08:05 millert Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/lex.c,v 2.3 2004/12/13 19:05:09 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/lex.c,v 2.4 2004/12/18 18:58:30 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state.
@@ -124,14 +124,11 @@ yylex(int cf)
 
 	if (cf&ONEWORD)
 		state = SWORD;
-#ifdef KSH
 	else if (cf&LETEXPR) {
 		*wp++ = OQUOTE;	 /* enclose arguments in (double) quotes */
 		state = SLETPAREN;
 		statep->ls_sletparen.nparen = 0;
-	}
-#endif /* KSH */
-	else {		/* normal lexing */
+	} else {		/* normal lexing */
 		state = (cf & HEREDELIM) ? SHEREDELIM : SBASE;
 		while ((c = getsc()) == ' ' || c == '\t')
 			;
@@ -196,7 +193,6 @@ yylex(int cf)
 			}
 			/* fall through.. */
 		  Sbase1:	/* includes *(...|...) pattern (*+?@!) */
-#ifdef KSH
 			if (c == '*' || c == '@' || c == '+' || c == '?'
 			    || c == '!')
 			{
@@ -209,7 +205,6 @@ yylex(int cf)
 				}
 				ungetsc(c2);
 			}
-#endif /* KSH */
 			/* fall through.. */
 		  Sbase2:	/* doesn't include *(...|...) pattern (*+?@!) */
 			switch (c) {
@@ -526,7 +521,6 @@ yylex(int cf)
 		  case SWORD:	/* ONEWORD */
 			goto Subst;
 
-#ifdef KSH
 		  case SLETPAREN:	/* LETEXPR: (( ... )) */
 			/*(*/
 			if (c == ')') {
@@ -546,7 +540,6 @@ yylex(int cf)
 				 */
 				++statep->ls_sletparen.nparen;
 			goto Sbase2;
-#endif /* KSH */
 
 		  case SHEREDELIM:	/* <<,<<- delimiter */
 			/* XXX chuck this state (and the next) - use
@@ -681,10 +674,8 @@ Done:
 				    (c == '|') ? LOGOR :
 				    (c == '&') ? LOGAND :
 				    YYERRCODE;
-#ifdef KSH
 			else if (c == '|' && c2 == '&')
 				c = COPROC;
-#endif /* KSH */
 			else
 				ungetsc(c2);
 			return c;
@@ -696,7 +687,6 @@ Done:
 			return c;
 
 		  case '(':  /*)*/
-#ifdef KSH
 			if (!Flag(FSH)) {
 				if ((c2 = getsc()) == '(') /*)*/
 					/* XXX need to handle ((...); (...)) */
@@ -704,7 +694,6 @@ Done:
 				else
 					ungetsc(c2);
 			}
-#endif /* KSH */
 			return c;
 		  /*(*/
 		  case ')':
@@ -714,11 +703,8 @@ Done:
 
 	*wp++ = EOS;		/* terminate word */
 	yylval.cp = Xclose(ws, wp);
-	if (state == SWORD
-#ifdef KSH
-		|| state == SLETPAREN
-#endif /* KSH */
-		)	/* ONEWORD? */
+	if (state == SWORD || state == SLETPAREN)
+		/* ONEWORD? */
 		return LWORD;
 	ungetsc(c);		/* unget terminator */
 
@@ -992,12 +978,10 @@ getsc_line(Source *s)
 	*xp = '\0';
 	s->start = s->str = xp;
 
-#ifdef KSH
 	if (have_tty && ksh_tmout) {
 		ksh_tmout_state = TMOUT_READING;
 		alarm(ksh_tmout);
 	}
-#endif /* KSH */
 #ifdef EDIT
 	if (have_tty && (0
 # ifdef VI
@@ -1055,13 +1039,11 @@ getsc_line(Source *s)
 	 * trap may have been executed.
 	 */
 	source = s;
-#ifdef KSH
 	if (have_tty && ksh_tmout)
 	{
 		ksh_tmout_state = TMOUT_EXECUTING;
 		alarm(0);
 	}
-#endif /* KSH */
 	s->start = s->str = Xstring(s->xs, xp);
 	strip_nuls(Xstring(s->xs, xp), Xlength(s->xs, xp));
 	/* Note: if input is all nulls, this is not eof */
@@ -1099,7 +1081,6 @@ set_prompt(int to, Source *s)
 
 	switch (to) {
 	case PS1: /* command */
-#ifdef KSH
 		/* Substitute ! and !! here, before substitutions are done
 		 * so ! in expanded variables are not expanded.
 		 * NOTE: this is not what at&t ksh does (it does it after
@@ -1136,9 +1117,6 @@ set_prompt(int to, Source *s)
 						 saved_atemp);
 			quitenv(NULL);
 		}
-#else /* KSH */
-		prompt = str_val(global("PS1"));
-#endif /* KSH */
 		break;
 
 	case PS2: /* command continuation */

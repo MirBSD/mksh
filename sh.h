@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/sh.h,v 2.3 2004/12/18 18:39:10 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/sh.h,v 2.4 2004/12/18 18:58:30 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.18 2004/05/31 10:36:35 otto Exp $	*/
 
 #ifndef SH_H
@@ -549,7 +549,6 @@ EXTERN	int volatile fatal_trap;/* received a fatal signal */
 extern	Trap	sigtraps[SIGNALS+1];
 #endif /* !FROM_TRAP_C */
 
-#ifdef KSH
 /*
  * TMOUT support
  */
@@ -561,7 +560,6 @@ enum tmout_enum {
 	};
 EXTERN unsigned int ksh_tmout;
 EXTERN enum tmout_enum ksh_tmout_state I__(TMOUT_EXECUTING);
-#endif /* KSH */
 
 /* For "You have stopped jobs" message */
 EXTERN int really_exit;
@@ -613,7 +611,6 @@ typedef struct {
 EXTERN Getopt builtin_opt;	/* for shell builtin commands */
 EXTERN Getopt user_opt;		/* parsing state for getopts builtin command */
 
-#ifdef KSH
 /* This for co-processes */
 
 typedef INT32 Coproc_id; /* something that won't (realisticly) wrap */
@@ -626,7 +623,6 @@ struct coproc {
 	void    *job;           /* 0 or job of co-process using input pipe */
 };
 EXTERN struct coproc coproc;
-#endif /* KSH */
 
 /* Used in jobs.c and by coprocess stuff in exec.c */
 #ifdef JOB_SIGS

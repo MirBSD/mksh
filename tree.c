@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/tree.c,v 2.1 2004/12/10 18:09:42 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/tree.c,v 2.2 2004/12/18 18:58:32 tg Exp $ */
 /*	$OpenBSD: tree.c,v 1.10 2002/02/27 19:37:09 dhartmei Exp $	*/
 
 /*
@@ -7,7 +7,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirBSD: src/bin/ksh/tree.c,v 2.1 2004/12/10 18:09:42 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/tree.c,v 2.2 2004/12/18 18:58:32 tg Exp $");
 
 #define INDENT	4
 
@@ -80,11 +80,9 @@ ptree(struct op *t, int indent, struct shf *shf)
 		fptreef(shf, indent, " ]] ");
 		break;
 	  }
-#ifdef KSH
 	  case TSELECT:
 		fptreef(shf, indent, "select %s ", t->str);
 		/* fall through */
-#endif /* KSH */
 	  case TFOR:
 		if (t->type == TFOR)
 			fptreef(shf, indent, "for %s ", t->str);
@@ -324,7 +322,6 @@ tputS(char *wp, struct shf *shf)
 			if (*wp++ == '}')
 				tputc('}', shf);
 			break;
-#ifdef KSH
 		  case OPAT:
 			tputc(*wp++, shf);
 			tputc('(', shf);
@@ -335,7 +332,6 @@ tputS(char *wp, struct shf *shf)
 		  case CPAT:
 			tputc(')', shf);
 			break;
-#endif /* KSH */
 		}
 }
 
@@ -529,7 +525,6 @@ wdscan(const char *wp, int c)
 				return (char *) wp;
 			nest--;
 			break;
-#ifdef KSH
 		  case OPAT:
 			nest++;
 			wp++;
@@ -541,7 +536,6 @@ wdscan(const char *wp, int c)
 			if (wp[-1] == CPAT)
 				nest--;
 			break;
-#endif /* KSH */
 		  default:
 			internal_errorf(0,
 				"wdscan: unknown char 0x%x (carrying on)",
@@ -605,7 +599,6 @@ wdstrip(const char *wp)
 			if (*wp++ == '}')
 				shf_putchar('}', &shf);
 			break;
-#ifdef KSH
 		  case OPAT:
 			shf_putchar(*wp++, &shf);
 			shf_putchar('(', &shf);
@@ -616,7 +609,6 @@ wdstrip(const char *wp)
 		  case CPAT:
 			shf_putchar(')', &shf);
 			break;
-#endif /* KSH */
 		}
 }
 

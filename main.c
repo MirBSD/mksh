@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/main.c,v 2.6 2004/12/14 15:54:24 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/main.c,v 2.7 2004/12/18 18:58:30 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -15,14 +15,10 @@
  * shell version
  */
 
-__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.6 2004/12/14 15:54:24 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.7 2004/12/18 18:58:30 tg Exp $");
 
 static const char version_param[] =
-#ifdef KSH
 	"KSH_VERSION"
-#else /* KSH */
-	"SH_VERSION"
-#endif /* KSH */
 	;
 
 const char ksh_version[] =
@@ -30,12 +26,7 @@ const char ksh_version[] =
 #ifdef MIRBSD_NATIVE
 	"native "
 #endif
-#ifdef KSH
-	"KSH"
-#else
-	"POSIX"
-#endif
-	" mode"
+	"KSH mode"
 #ifndef MIRBSD_NATIVE
 	" as mksh"
 #endif
@@ -64,9 +55,7 @@ static const char *const initcoms [] = {
 	"typeset", "-r", version_param, NULL,
 	"typeset", "-i", "PPID", NULL,
 	"typeset", "-i", "OPTIND=1", NULL,
-#ifdef KSH
 	"eval", "typeset -i RANDOM SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
-#endif /* KSH */
 	"alias",
 	 /* Standard ksh aliases */
 	  "hash=alias -t",	/* not "alias -t --": hash -r needs to work */
@@ -75,7 +64,6 @@ static const char *const initcoms [] = {
 	  "stop=kill -STOP",
 	  "suspend=kill -STOP $$",
 #endif
-#ifdef KSH
 	  "autoload=typeset -fu",
 	  "functions=typeset -f",
 # ifdef HISTORY
@@ -85,11 +73,8 @@ static const char *const initcoms [] = {
 	  "nohup=nohup ",
 	  "local=typeset",
 	  "r=fc -e -",
-#endif /* KSH */
-#ifdef KSH
 	 /* Aliases that are builtin commands in at&t */
 	  "login=exec login",
-#endif /* KSH */
 	  NULL,
 	/* this is what at&t ksh seems to track, with the addition of emacs */
 	"alias", "-tU",
@@ -142,11 +127,9 @@ main(int argc, char *argv[])
 	/* Do this first so output routines (eg, errorf, shellf) can work */
 	initio();
 
-#ifdef KSH
 	argi = parse_args(argv, OF_FIRSTTIME, NULL);
 	if (argi < 0)
 		exit(1);
-#endif
 
 	initvar();
 
@@ -154,9 +137,7 @@ main(int argc, char *argv[])
 
 	inittraps();
 
-#ifdef KSH
 	coproc_init();
-#endif /* KSH */
 
 	/* set up variable and command dictionaries */
 	tinit(&taliases, APERM, 0);
@@ -275,11 +256,9 @@ main(int argc, char *argv[])
 	}
 	ppid = getppid();
 	setint(global("PPID"), (long) ppid);
-#ifdef KSH
 	rnd_seed( (*((long *)kshname))
 		^ ((long) (time(NULL) * kshpid * ppid)) );
 	setint(global("RANDOM"), rnd_get());
-#endif /* KSH */
 	/* setstr can't fail here */
 	setstr(global(version_param), ksh_version, KSH_RETURN_ERROR);
 
@@ -393,13 +372,8 @@ main(int argc, char *argv[])
 	else {
 		char *env_file;
 
-#ifndef KSH
-		if (!Flag(FPOSIX))
-			env_file = null;
-		else
-#endif /* !KSH */
-			/* include $ENV */
-			env_file = str_val(global("ENV"));
+		/* include $ENV */
+		env_file = str_val(global("ENV"));
 
 #ifdef DEFAULT_ENV
 		/* If env isn't set, include default environment */
@@ -428,9 +402,7 @@ main(int argc, char *argv[])
 
 	if (Flag(FTALKING)) {
 		hist_init(s);
-#ifdef KSH
 		alarm_init();
-#endif /* KSH */
 	} else
 		Flag(FTRACKALL) = 1;	/* set after ENV */
 

@@ -1,11 +1,8 @@
-/**	$MirBSD: src/bin/ksh/conf-end.h,v 2.2 2004/12/18 18:39:10 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/conf-end.h,v 2.3 2004/12/18 18:58:30 tg Exp $ */
 /*	$OpenBSD: conf-end.h,v 1.2 1996/08/25 12:37:58 downsj Exp $	*/
 
 #ifndef CONF_END_H
 #define CONF_END_H
-
-/* Include ksh features? */
-/* #define KSH 1 */
 
 /* Include emacs editing? */
 #define EMACS 1
@@ -26,11 +23,7 @@
 #define COMPLEX_HISTORY
 
 /* Strict POSIX behaviour? */
-#ifdef KSH
 #undef POSIXLY_CORRECT
-#else
-#define POSIXLY_CORRECT 1
-#endif
 
 /* Specify default $ENV? */
 /* #undef DEFAULT_ENV */

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/io.c,v 2.2 2004/12/13 19:05:09 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/io.c,v 2.3 2004/12/18 18:58:30 tg Exp $ */
 /*	$OpenBSD: io.c,v 1.13 2003/11/10 21:26:39 millert Exp $	*/
 
 /*
@@ -323,17 +323,13 @@ check_fd(char *name, int mode, const char **emsgp)
 			return -1;
 		}
 		return fd;
-	}
-#ifdef KSH
-	else if (name[0] == 'p' && !name[1])
+	} else if (name[0] == 'p' && !name[1])
 		return coproc_getfd(mode, emsgp);
-#endif /* KSH */
 	if (emsgp)
 		*emsgp = "illegal file descriptor name";
 	return -1;
 }
 
-#ifdef KSH
 /* Called once from main */
 void
 coproc_init(void)
@@ -415,8 +411,6 @@ coproc_cleanup(int reuse)
 		coproc.write = -1;
 	}
 }
-#endif /* KSH */
-
 
 /*
  * temporary files

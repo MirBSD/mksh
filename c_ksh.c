@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/c_ksh.c,v 2.2 2004/12/13 19:05:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/c_ksh.c,v 2.3 2004/12/18 18:58:30 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.18 2004/02/10 13:03:36 jmc Exp $	*/
 
 /*
@@ -13,7 +13,7 @@
 #include <sys/cygwin.h>
 #endif /* __CYGWIN__ */
 
-__RCSID("$MirBSD: src/bin/ksh/c_ksh.c,v 2.2 2004/12/13 19:05:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/c_ksh.c,v 2.3 2004/12/18 18:58:30 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -274,14 +274,12 @@ c_print(char **wp)
 			  case 'n':
 				flags &= ~PO_NL;
 				break;
-#ifdef KSH
 			  case 'p':
 				if ((fd = coproc_getfd(W_OK, &emsg)) < 0) {
 					bi_errorf("-p: %s", emsg);
 					return 1;
 				}
 				break;
-#endif /* KSH */
 			  case 'r':
 				flags &= ~PO_EXPAND;
 				break;
@@ -368,7 +366,6 @@ c_print(char **wp)
 	} else {
 		int n, len = Xlength(xs, xp);
 		int UNINITIALIZED(opipe);
-#ifdef KSH
 
 		/* Ensure we aren't killed by a SIGPIPE while writing to
 		 * a coprocess.  at&t ksh doesn't seem to do this (seems
@@ -379,40 +376,25 @@ c_print(char **wp)
 			flags |= PO_COPROC;
 			opipe = block_pipe();
 		}
-#endif /* KSH */
 		for (s = Xstring(xs, xp); len > 0; ) {
 			n = write(fd, s, len);
 			if (n < 0) {
-#ifdef KSH
 				if (flags & PO_COPROC)
 					restore_pipe(opipe);
-#endif /* KSH */
 				if (errno == EINTR) {
 					/* allow user to ^C out */
 					intrcheck();
-#ifdef KSH
 					if (flags & PO_COPROC)
 						opipe = block_pipe();
-#endif /* KSH */
 					continue;
 				}
-#ifdef KSH
-				/* This doesn't really make sense - could
-				 * break scripts (print -p generates
-				 * error message).
-				*if (errno == EPIPE)
-				*	coproc_write_close(fd);
-				 */
-#endif /* KSH */
 				return 1;
 			}
 			s += n;
 			len -= n;
 		}
-#ifdef KSH
 		if (flags & PO_COPROC)
 			restore_pipe(opipe);
-#endif /* KSH */
 	}
 
 	return 0;
@@ -1034,7 +1016,6 @@ c_unalias(char **wp)
 	return rv;
 }
 
-#ifdef KSH
 int
 c_let(char **wp)
 {
@@ -1052,7 +1033,6 @@ c_let(char **wp)
 				rv = val == 0;
 	return rv;
 }
-#endif /* KSH */
 
 int
 c_jobs(char **wp)
@@ -1414,9 +1394,7 @@ const struct builtin kshbuiltins [] = {
 	{"+getopts", c_getopts},
 	{"+jobs", c_jobs},
 	{"+kill", c_kill},
-#ifdef KSH
 	{"let", c_let},
-#endif /* KSH */
 	{"print", c_print},
 	{"pwd", c_pwd},
  	{"*=readonly", c_typeset},

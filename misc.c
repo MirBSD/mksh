@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/misc.c,v 2.3 2004/12/13 19:05:09 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/misc.c,v 2.4 2004/12/18 18:58:30 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.20 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -13,7 +13,7 @@
 #include <sys/ioctl.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.3 2004/12/13 19:05:09 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.4 2004/12/18 18:58:30 tg Exp $");
 
 #ifndef UCHAR_MAX
 # define UCHAR_MAX	0xFF
@@ -25,10 +25,7 @@ static int	do_gmatch(const unsigned char *s, const unsigned char *p,
 			const unsigned char *se, const unsigned char *pe,
 			int isfile);
 static const unsigned char *cclass(const unsigned char *p, int sub);
-
-#ifdef KSH
 static int parse_T(char *);
-#endif
 
 /*
  * Fast character classes
@@ -349,11 +346,7 @@ parse_args(char **argv, int what, int *setargsp)
 		char *p, *q;
 
 		/* see cmd_opts[] declaration */
-#ifdef KSH
 		strlcpy(cmd_opts, "o:T:", sizeof cmd_opts);
-#else
-		strlcpy(cmd_opts, "o:", sizeof cmd_opts);
-#endif
 		p = cmd_opts + strlen(cmd_opts);
 		/* see set_opts[] declaration */
 		strlcpy(set_opts, "A:o;s", sizeof set_opts);
@@ -388,15 +381,12 @@ parse_args(char **argv, int what, int *setargsp)
 		set = (go.info & GI_PLUS) ? 0 : 1;
 		switch (optc) {
 		  case 'A':
-#ifdef KSH
 			if (what == OF_FIRSTTIME)
 				break;
-#endif
 			arrayset = set ? 1 : -1;
 			array = go.optarg;
 			break;
 
-#ifdef KSH
 		  case 'T':
 			if (what != OF_FIRSTTIME)
 				break;
@@ -404,13 +394,10 @@ parse_args(char **argv, int what, int *setargsp)
 				return -1;
 			change_flag(FTALKING, OF_CMDLINE, 1);
 			break;
-#endif
 
 		  case 'o':
-#ifdef KSH
 			if (what == OF_FIRSTTIME)
 				break;
-#endif
 			if (go.optarg == (char *) 0) {
 				/* lone -o: print options
 				 *
@@ -441,10 +428,8 @@ parse_args(char **argv, int what, int *setargsp)
 			return -1;
 
 		  default:
-#ifdef KSH
 			if (what == OF_FIRSTTIME)
 				break;
-#endif
 			/* -s: sort positional params (at&t ksh stupidity) */
 			if (what == OF_SET && optc == 's') {
 				sortargs = 1;
@@ -675,8 +660,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se, const unsigned char *
 
 		  /*
 		   * [*+?@!](pattern|pattern|..)
-		   *
-		   * Not ifdef'd KSH as this is needed for ${..%..}, etc.
+		   * ${..%..}, etc.
 		   */
 		  case 0x80|'+': /* matches one or more times */
 		  case 0x80|'*': /* matches zero or more times */
@@ -1331,8 +1315,6 @@ ksh_get_wd(char *buf, int bsize)
 #endif /* HAVE_GETCWD */
 }
 
-#ifdef KSH
-
 #if !defined(HAVE_SETSID)
 #define NO_CHVT "setsid not implemented"
 #elif !defined(TIOCSCTTY)
@@ -1411,4 +1393,3 @@ parse_T(char *fn)
 	return 0;
 #endif
 }
-#endif

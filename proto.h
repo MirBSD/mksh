@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/proto.h,v 2.3 2004/12/13 18:53:25 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/proto.h,v 2.4 2004/12/18 18:58:30 tg Exp $ */
 /*	$OpenBSD: proto.h,v 1.11 2003/05/16 19:58:57 jsyn Exp $	*/
 /*	$From: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $ */
 
@@ -132,14 +132,12 @@ void 	restfd(int fd, int ofd);
 void 	openpipe(int *pv);
 void 	closepipe(int *pv);
 int	check_fd(char *name, int mode, const char **emsgp);
-#ifdef KSH
 void	coproc_init(void);
 void	coproc_read_close(int fd);
 void	coproc_readw_close(int fd);
 void	coproc_write_close(int fd);
 int	coproc_getfd(int mode, const char **emsgp);
 void	coproc_cleanup(int reuse);
-#endif /* KSH */
 struct temp *maketemp(Area *ap, Temp_type type, struct temp **tlist);
 /* jobs.c */
 void 	j_init(int mflagset);
@@ -228,9 +226,7 @@ struct tbl **	tsort(struct table *tp);
 /* trace.c */
 /* trap.c */
 void	inittraps(void);
-#ifdef KSH
 void	alarm_init(void);
-#endif /* KSH */
 Trap *	gettrap(const char *name, int igncase);
 RETSIGTYPE trapsig(int i);
 void	intrcheck(void);

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/c_sh.c,v 2.3 2004/12/13 19:05:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/c_sh.c,v 2.4 2004/12/18 18:58:30 tg Exp $ */
 /*	$OpenBSD: c_sh.c,v 1.17 2003/03/13 09:03:07 deraadt Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include "ksh_time.h"
 #include "ksh_times.h"
 
-__RCSID("$MirBSD: src/bin/ksh/c_sh.c,v 2.3 2004/12/13 19:05:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/c_sh.c,v 2.4 2004/12/18 18:58:30 tg Exp $");
 
 static	char *clocktos(clock_t t);
 
@@ -250,14 +250,12 @@ c_read(char **wp)
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "prsu,")) != EOF)
 		switch (optc) {
-#ifdef KSH
 		  case 'p':
 			if ((fd = coproc_getfd(R_OK, &emsg)) < 0) {
 				bi_errorf("-p: %s", emsg);
 				return 1;
 			}
 			break;
-#endif /* KSH */
 		  case 'r':
 			expand = 0;
 			break;
@@ -297,7 +295,6 @@ c_read(char **wp)
 		}
 	}
 
-#ifdef KSH
 	/* If we are reading from the co-process for the first time,
 	 * make sure the other side of the pipe is closed first.  This allows
 	 * the detection of eof.
@@ -308,7 +305,6 @@ c_read(char **wp)
 	 * If this call is removed, remove the eof check below, too.
 	 * coproc_readw_close(fd);
 	 */
-#endif /* KSH */
 
 	if (history)
 		Xinit(xs, xp, 128, ATEMP);
@@ -401,14 +397,12 @@ c_read(char **wp)
 		histsave(source->line, Xstring(xs, xp), 1);
 		Xfree(xs, xp);
 	}
-#ifdef KSH
 	/* if this is the co-process fd, close the file descriptor
 	 * (can get eof if and only if all processes are have died, ie,
 	 * coproc.njobs is 0 and the pipe is closed).
 	 */
 	if (c == EOF && !ecode)
 		coproc_read_close(fd);
-#endif /* KSH */
 
 	return ecode ? ecode : c == EOF;
 }
@@ -813,10 +807,8 @@ c_exec(char **wp GCC_FUNC_ATTR(unused))
 			 * happens is unspecified and the bourne shell
 			 * keeps them open).
 			 */
-#ifdef KSH
 			if (!Flag(FSH) && i > 2 && e->savefd[i])
 				fd_clexec(i);
-#endif /* KSH */
 		}
 		e->savefd = NULL;
 	}

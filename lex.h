@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/lex.h,v 2.1 2004/12/10 18:09:41 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/lex.h,v 2.2 2004/12/18 18:58:30 tg Exp $ */
 /*	$OpenBSD: lex.h,v 1.8 2004/11/02 22:09:24 deraadt Exp $	*/
 /*	$From: lex.h,v 1.4 1994/05/31 13:34:34 michael Exp $ */
 
@@ -55,9 +55,7 @@ struct source {
  */
 #define	SBASE	0		/* outside any lexical constructs */
 #define	SWORD	1		/* implicit quoting for substitute() */
-#ifdef KSH
 #define	SLETPAREN 2		/* inside (( )), implicit quoting */
-#endif /* KSH */
 #define	SSQUOTE	3		/* inside '' */
 #define	SDQUOTE	4		/* inside "" */
 #define	SBRACE	5		/* inside ${} */
@@ -99,9 +97,7 @@ typedef union {
 #define	FUNCTION 274
 #define	TIME	275
 #define	REDIR	276
-#ifdef KSH
 #define MDPAREN	277		/* (( )) */
-#endif /* KSH */
 #define BANG	278		/* ! */
 #define DBRACKET 279		/* [[ .. ]] */
 #define COPROC	280		/* |& */

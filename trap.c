@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/trap.c,v 2.1 2004/12/10 18:09:42 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/trap.c,v 2.2 2004/12/18 18:58:31 tg Exp $ */
 /*	$OpenBSD: trap.c,v 1.13 2003/02/28 09:45:09 jmc Exp $	*/
 
 /*
@@ -9,7 +9,7 @@
 #define FROM_TRAP_C
 #include "sh.h"
 
-__RCSID("$MirBSD: src/bin/ksh/trap.c,v 2.1 2004/12/10 18:09:42 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/trap.c,v 2.2 2004/12/18 18:58:31 tg Exp $");
 
 /* Table is indexed by signal number
  *
@@ -58,7 +58,6 @@ inittraps(void)
 	setsig(&sigtraps[SIGHUP], trapsig, SS_RESTORE_ORIG);
 }
 
-#ifdef KSH
 static RETSIGTYPE alarm_catcher(int sig);
 
 void
@@ -86,7 +85,6 @@ alarm_catcher(int sig GCC_FUNC_ATTR(unused))
 	errno = errno_;
 	return RETSIGVAL;
 }
-#endif /* KSH */
 
 Trap *
 gettrap(const char *name, int igncase)
@@ -200,7 +198,6 @@ runtraps(int flag)
 	int i;
 	Trap *p;
 
-#ifdef KSH
 	if (ksh_tmout_state == TMOUT_LEAVING) {
 		ksh_tmout_state = TMOUT_EXECUTING;
 		warningf(FALSE, "timed out waiting for input");
@@ -210,7 +207,6 @@ runtraps(int flag)
 		 * is caught after the alarm() was started...not good.
 		 */
 		ksh_tmout_state = TMOUT_EXECUTING;
-#endif /* KSH */
 	if (!flag)
 		trap = 0;
 	if (flag & TF_DFL_INTR)

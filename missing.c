@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/missing.c,v 2.2 2004/12/13 18:53:25 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/missing.c,v 2.3 2004/12/18 18:58:30 tg Exp $ */
 /*	$OpenBSD: missing.c,v 1.5 2003/05/16 18:49:46 jsyn Exp $	*/
 
 /*
@@ -9,7 +9,7 @@
 #include "ksh_stat.h"
 #include "ksh_dir.h"
 
-__RCSID("$MirBSD: src/bin/ksh/missing.c,v 2.2 2004/12/13 18:53:25 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/missing.c,v 2.3 2004/12/18 18:58:30 tg Exp $");
 
 #ifndef HAVE_MEMSET
 void *
@@ -300,8 +300,6 @@ dup2(oldd, newd)
 #undef HAVE_RANDOM
 #endif
 
-#ifdef KSH
-
 int rnd_state;
 
 void
@@ -354,4 +352,3 @@ rnd_put(long newval)
 	}
 	rnd_state = 1;
 }
-#endif /* def KSH */

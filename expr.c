@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/expr.c,v 2.2 2004/12/13 16:48:53 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/expr.c,v 2.3 2004/12/18 18:58:30 tg Exp $ */
 /*	$OpenBSD: expr.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/expr.c,v 2.2 2004/12/13 16:48:53 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/expr.c,v 2.3 2004/12/18 18:58:30 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -466,16 +466,13 @@ token(Expr_state *es)
 			if (len == 0)
 				evalerr(es, ET_STR, "missing ]");
 			cp += len;
-		}
-#ifdef KSH
-		else if (c == '(' /*)*/ ) {
+		} else if (c == '(' /*)*/ ) {
 		    /* todo: add math functions (all take single argument):
 		     * abs acos asin atan cos cosh exp int log sin sinh sqrt
 		     * tan tanh
 		     */
 		    ;
 		}
-#endif /* KSH */
 		if (es->noassign) {
 			es->val = tempvar();
 			es->val->flag |= EXPRLVALUE;

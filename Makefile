@@ -1,4 +1,4 @@
-# $MirBSD: src/bin/ksh/Makefile,v 2.3 2004/12/13 18:53:25 tg Exp $
+# $MirBSD: src/bin/ksh/Makefile,v 2.4 2004/12/18 18:58:30 tg Exp $
 # $OpenBSD: Makefile,v 1.18 2004/02/16 19:07:19 deraadt Exp $
 
 PROG=	ksh
@@ -7,7 +7,7 @@ SRCS=	alloc.c c_ksh.c c_sh.c c_test.c c_ulimit.c edit.c emacs.c eval.c \
 	path.c shf.c syn.c table.c trap.c tree.c tty.c var.c vi.c
 MAN=	ksh.1tbl sh.1tbl
 
-CPPFLAGS+=	-DHAVE_CONFIG_H -I. -DKSH -DMIRBSD_NATIVE
+CPPFLAGS+=	-DHAVE_CONFIG_H -I. -DMIRBSD_NATIVE
 CFLAGS+=	-Wall -Werror -W -pedantic
 CLEANFILES+=	siglist.out emacs.out
 

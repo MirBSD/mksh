@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/exec.c,v 2.3 2004/12/13 19:05:09 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/exec.c,v 2.4 2004/12/18 18:58:30 tg Exp $ */
 /*	$OpenBSD: exec.c,v 1.31 2003/12/15 05:25:52 otto Exp $	*/
 
 /*
@@ -10,14 +10,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/exec.c,v 2.3 2004/12/13 19:05:09 tg Exp $");
-
-/* Does ps4 get parameter substitutions done? */
-#ifdef KSH
-# define PS4_SUBSTITUTE(s)	substitute((s), 0)
-#else
-# define PS4_SUBSTITUTE(s)	(s)
-#endif /* KSH */
+__RCSID("$MirBSD: src/bin/ksh/exec.c,v 2.4 2004/12/18 18:58:30 tg Exp $");
 
 static int	comexec(struct op *t, struct tbl *volatile tp, char **ap,
 			      int volatile flags);
@@ -25,17 +18,13 @@ static void	scriptexec(struct op *tp, char **ap);
 static int	call_builtin(struct tbl *tp, char **wp);
 static int	iosetup(struct ioword *iop, struct tbl *tp);
 static int	herein(const char *content, int sub);
-#ifdef KSH
 static char 	*do_selectargs(char **ap, bool_t print_menu);
-#endif /* KSH */
-#ifdef KSH
 static int	dbteste_isa(Test_env *te, Test_meta meta);
 static const char *dbteste_getopnd(Test_env *te, Test_op op,
 					 int do_eval);
 static int	dbteste_eval(Test_env *te, Test_op op, const char *opnd1,
 				const char *opnd2, int do_eval);
 static void	dbteste_error(Test_env *te, int offset, const char *msg);
-#endif /* KSH */
 
 
 /*
@@ -118,7 +107,7 @@ execute(struct op *volatile t, volatile int flags)
 			timex_hook(t, &ap);
 		if (Flag(FXTRACE) && ap[0]) {
 			shf_fprintf(shl_out, "%s",
-				PS4_SUBSTITUTE(str_val(global("PS4"))));
+				substitute(str_val(global("PS4")), 0));
 			for (i = 0; ap[i]; i++)
 				shf_fprintf(shl_out, "%s%s", ap[i],
 					ap[i + 1] ? space : newline);
@@ -196,7 +185,6 @@ execute(struct op *volatile t, volatile int flags)
 		rv = execute(t, flags & XERROK);
 		break;
 
-#ifdef KSH
 	  case TCOPROC:
 	  {
 # ifdef JOB_SIGS
@@ -261,7 +249,6 @@ execute(struct op *volatile t, volatile int flags)
 			coproc.readw);
 		break;
 	  }
-#endif /* KSH */
 
 	  case TASYNC:
 		/* XXX non-optimal, I think - "(foo &)", forks for (),
@@ -284,7 +271,6 @@ execute(struct op *volatile t, volatile int flags)
 		rv = !execute(t->right, XERROK);
 		break;
 
-#ifdef KSH
 	  case TDBRACKET:
 	    {
 		Test_env te;
@@ -299,14 +285,11 @@ execute(struct op *volatile t, volatile int flags)
 		rv = test_parse(&te);
 		break;
 	    }
-#endif /* KSH */
 
 	  case TFOR:
-#ifdef KSH
 	  case TSELECT:
 	    {
 		volatile bool_t is_first = TRUE;
-#endif /* KSH */
 		ap = (t->vars != NULL) ?
 			  eval(t->vars, DOBLANK|DOGLOB|DOTILDE)
 			: e->loc->argv + 1;
@@ -331,9 +314,7 @@ execute(struct op *volatile t, volatile int flags)
 				setstr(global(t->str), *ap++, KSH_UNWIND_ERROR);
 				rv = execute(t->left, flags & XERROK);
 			}
-		}
-#ifdef KSH
-		else { /* TSELECT */
+		} else { /* TSELECT */
 			for (;;) {
 				if (!(cp = do_selectargs(ap, is_first))) {
 					rv = 1;
@@ -345,7 +326,6 @@ execute(struct op *volatile t, volatile int flags)
 			}
 		}
 	    }
-#endif /* KSH */
 		break;
 
 	  case TWHILE:
@@ -455,7 +435,6 @@ comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
 	int fcflags = FC_BI|FC_FUNC|FC_PATH;
 	int bourne_function_call = 0;
 
-#ifdef KSH
 	/* snag the last argument for $_ XXX not the same as at&t ksh,
 	 * which only seems to set $_ after a newline (but not in
 	 * functions/dot scripts, but in interactive and script) -
@@ -468,7 +447,6 @@ comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
 		setstr(typeset("_", LOCAL, 0, INTEGER, 0), *--lastp,
 		       KSH_RETURN_ERROR);
 	}
-#endif /* KSH */
 
 	/* Deal with the shell builtins builtin, exec and command since
 	 * they can be followed by other commands.  This must be done before
@@ -556,7 +534,7 @@ comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
 		if (Flag(FXTRACE)) {
 			if (i == 0)
 				shf_fprintf(shl_out, "%s",
-					PS4_SUBSTITUTE(str_val(global("PS4"))));
+					substitute(str_val(global("PS4")), 0));
 			shf_fprintf(shl_out, "%s%s", cp,
 				t->vars[i + 1] ? space : newline);
 			if (!t->vars[i + 1])
@@ -711,14 +689,12 @@ comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
 			break;
 		}
 
-#ifdef KSH
 		if (!Flag(FSH)) {
 			/* set $_ to program's full path */
 			/* setstr() can't fail here */
 			setstr(typeset("_", LOCAL|EXPORT, 0, INTEGER, 0),
 			       tp->val.s, KSH_RETURN_ERROR);
 		}
-#endif /* KSH */
 
 		if (flags&XEXEC) {
 			j_exit();
@@ -1153,7 +1129,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 
 	if (Flag(FXTRACE))
 		shellf("%s%s\n",
-			PS4_SUBSTITUTE(str_val(global("PS4"))),
+			substitute(str_val(global("PS4")), 0),
 			snptreef((char *) 0, 32, "%R", &iotmp));
 
 	switch (iotype) {
@@ -1252,7 +1228,6 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		}
 		if (iotype != IODUP)
 			close(u);
-#ifdef KSH
 		/* Touching any co-process fd in an empty exec
 		 * causes the shell to close its copies
 		 */
@@ -1262,7 +1237,6 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			else			/* possible exec >&p */
 				coproc_write_close(u);
 		}
-#endif /* KSH */
 	}
 	if (u == 2) /* Clear any write errors */
 		shf_reopen(2, SHF_WR, shl_out);
@@ -1334,7 +1308,6 @@ herein(const char *content, int sub)
 	return fd;
 }
 
-#if defined(KSH) || defined(EDIT)
 /*
  *	ksh special - the select command processing section
  *	print the args in column form - assuming that we can
@@ -1457,8 +1430,6 @@ pr_list(char *const *ap)
 
 	return n;
 }
-#endif /* KSH || EDIT */
-#ifdef KSH
 
 /*
  *	[[ ... ]] evaluation routines
@@ -1543,4 +1514,3 @@ dbteste_error(Test_env *te, int offset, const char *msg)
 	te->flags |= TEF_ERROR;
 	internal_errorf(0, "dbteste_error: %s (offset %d)", msg, offset);
 }
-#endif /* KSH */
