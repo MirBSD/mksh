@@ -1,5 +1,5 @@
 #! /bin/sh
-# $MirBSD: configure,v 1.4 2004/03/21 02:32:48 tg Exp $
+# $MirBSD: configure,v 1.5 2004/04/07 17:22:48 tg Exp $
 #
 # Guess values for system-dependent variables and create Makefiles.
 # Generated automatically using autoconf version 2.13.20020210 
@@ -2425,7 +2425,7 @@ EOF
 
   fi
  
-for ac_func in confstr dup2 flock getcwd getwd killpg nice \
+for ac_func in confstr dup2 flock getcwd getwd killpg mkstemp nice \
 	setrlimit strerror strcasecmp strstr sysconf tcsetpgrp \
 	ulimit waitpid wait3
 do
@@ -4369,14 +4369,6 @@ cat >> $CONFIG_STATUS <<\EOF
     mv conftest.h $ac_file
   fi
 fi; done
-
-EOF
-cat >> $CONFIG_STATUS <<EOF
-# Extra initialization commands, if any
-
-EOF
-cat >> $CONFIG_STATUS <<\EOF
-# Extra commands, if any
 
 exit 0
 EOF

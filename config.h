@@ -1,4 +1,4 @@
-/* $MirBSD: config.h,v 1.2 2004/03/21 01:19:44 tg Exp $ */
+/* $MirBSD: config.h,v 1.3 2004/04/07 17:22:48 tg Exp $ */
 /* $OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /* config.h.  NOT generated automatically. */
@@ -266,6 +266,9 @@
 
 /* Define if you have the killpg function.  */
 #define HAVE_KILLPG 1
+
+/* Define if you have the mkstemp function.  */
+#define HAVE_MKSTEMP 1
 
 /* Define if you have the nice function.  */
 #define HAVE_NICE 1
