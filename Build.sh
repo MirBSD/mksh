@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: Build.sh,v 1.12 2004/10/28 16:08:32 tg Exp $
+# $MirBSD: Build.sh,v 1.13 2004/10/28 16:35:01 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -44,7 +44,7 @@
 SHELL="${SHELL:-/bin/sh}"; export SHELL
 CONFIG_SHELL="${SHELL}"; export CONFIG_SHELL
 CC="${CC:-gcc}"
-CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -I. -DKSH"
+CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -I. -DKSH -DMKSH"
 COPTS="-O2 -fomit-frame-pointer -fno-strict-aliasing -fno-strength-reduce"
 [ -z "$WEIRD_OS" ] && LDFLAGS="${LDFLAGS:--static}"
 

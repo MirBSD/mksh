@@ -1,4 +1,4 @@
-/**	$MirBSD: conf-end.h,v 1.8 2004/10/28 11:53:40 tg Exp $ */
+/**	$MirBSD: conf-end.h,v 1.9 2004/10/28 16:35:01 tg Exp $ */
 /*	$OpenBSD: conf-end.h,v 1.2 1996/08/25 12:37:58 downsj Exp $	*/
 
 #ifndef CONF_END_H
@@ -26,7 +26,11 @@
 #define COMPLEX_HISTORY
 
 /* Strict POSIX behaviour? */
+#ifdef KSH
 #undef POSIXLY_CORRECT
+#else
+#define POSIXLY_CORRECT 1
+#endif
 
 /* Specify default $ENV? */
 /* #undef DEFAULT_ENV */

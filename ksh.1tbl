@@ -1,4 +1,4 @@
-.\" $MirBSD: ksh.1tbl,v 1.32 2004/10/28 16:19:01 tg Exp $
+.\" $MirBSD: ksh.1tbl,v 1.33 2004/10/28 16:35:02 tg Exp $
 .\" $OpenBSD: ksh.1tbl,v 1.72 2004/08/07 16:46:58 millert Exp $
 .\"
 .\" Copyright (c) 1980, 1990, 1993
@@ -32,6 +32,9 @@
 .\"
 .\"     @(#)ksh.1tbl      8.2 (Berkeley) 8/19/96
 .\"
+.Dd April 7, 2004
+.Dt KSH 1
+.Os MirOS
 .\" define Mx macro for portable mksh
 .de Mx
 .nr cF \\n(.f
@@ -46,12 +49,9 @@
 .	if "\\$1","  \&MirOS\\$1\\*(aa
 .\}
 ..
-.Dd April 7, 2004
-.Dt KSH 1
-.Os
 .Sh NAME
 .Nm ksh
-.Nd MirOS Korn shell (derived from pdksh)
+.Nd MirBSD Korn shell (derived from pdksh)
 .Sh SYNOPSIS
 .Nm
 .Op Fl +abCefhiklmnprsuvxX
@@ -5231,7 +5231,7 @@ extensions exposed, caution should be used where backwards compatibility with
 traditional Bourne or
 .Tn POSIX
 compliant shells is an issue.
-.pp
+.Pp
 .Nm mksh
 is the common name for the
 .Mx
@@ -5239,7 +5239,8 @@ Korn shell installed in
 .Pa /bin/mksh
 or
 .Pa /usr/local/bin/mksh
-on foreign systems, installed from the portable mirbsdksh sources.
+on foreign systems, installed from the portable mirbsdksh sources at
+.Pa http://wiki.mirbsd.de/MirbsdKsh .
 .Sh AUTHORS
 This shell is based on the public domain 7th edition Bourne shell clone by
 Charles Forsyth and parts of the BRL shell by Doug A. Gwyn, Doug Kingston,

@@ -2,7 +2,7 @@
 
 # Guess values for system-dependent variables and create Makefiles.
 # Generated automatically using autoconf version 2.13.20040919 
-# $MirBSD: configure,v 1.12 2004/10/28 11:53:40 tg Exp $
+# $MirBSD: configure,v 1.13 2004/10/28 16:35:01 tg Exp $
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 2004
 #	Free Software Foundation, Inc.
 #
@@ -4356,8 +4356,17 @@ cat >> $CONFIG_STATUS <<\EOF
   fi
 fi; done
 
+EOF
+cat >> $CONFIG_STATUS <<EOF
+# Extra initialization commands, if any
+
+EOF
+cat >> $CONFIG_STATUS <<\EOF
+# Extra commands, if any
+
 exit 0
 EOF
 chmod +x $CONFIG_STATUS
 rm -fr confdefs* $ac_clean_files
 test "$no_create" = yes || $SHELL $CONFIG_STATUS || exit 1
+
