@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/main.c,v 2.10 2004/12/18 19:22:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/main.c,v 2.11 2004/12/18 19:27:21 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -15,7 +15,7 @@
  * shell version
  */
 
-__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.10 2004/12/18 19:22:30 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.11 2004/12/18 19:27:21 tg Exp $");
 
 const char ksh_version[] =
 	"@(#)PD KSH v5.2.14 MirOS R20 in "
@@ -183,9 +183,7 @@ main(int argc, char *argv[])
 	 * brace expansion, so set this before setting up FPOSIX
 	 * (change_flag() clears FBRACEEXPAND when FPOSIX is set).
 	 */
-#ifdef BRACE_EXPAND
 	Flag(FBRACEEXPAND) = 1;
-#endif /* BRACE_EXPAND */
 
 	/* Check to see if we're /bin/sh. */
 	if (!strcmp(&kshname[strlen(kshname) - 3], "/sh")

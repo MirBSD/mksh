@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/misc.c,v 2.6 2004/12/18 19:22:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/misc.c,v 2.7 2004/12/18 19:27:21 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.20 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -13,7 +13,7 @@
 #include <sys/ioctl.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.6 2004/12/18 19:22:30 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/misc.c,v 2.7 2004/12/18 19:27:21 tg Exp $");
 
 #ifndef UCHAR_MAX
 # define UCHAR_MAX	0xFF
@@ -128,9 +128,7 @@ const struct option options[] = {
 	 * entries MUST match the order of sh_flag F* enumerations in sh.h.
 	 */
 	{ "allexport",	'a',		OF_ANY },
-#ifdef BRACE_EXPAND
 	{ "braceexpand",  0,		OF_ANY }, /* non-standard */
-#endif
 	{ "bgnice",	  0,		OF_ANY },
 	{ NULL, 	'c',	    OF_CMDLINE },
 	{ "emacs",	  0,		OF_ANY },
@@ -291,10 +289,7 @@ change_flag(enum sh_flag f, int what, int newval)
 		setegid(getgid());
 		setgid(getgid());
 	} else if (f == FPOSIX && newval) {
-#ifdef BRACE_EXPAND
-		Flag(FBRACEEXPAND) = 0
-#endif /* BRACE_EXPAND */
-		;
+		Flag(FBRACEEXPAND) = 0;
 	}
 	/* Changing interactive flag? */
 	if (f == FTALKING) {

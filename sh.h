@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/sh.h,v 2.5 2004/12/18 19:17:10 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/sh.h,v 2.6 2004/12/18 19:27:21 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.18 2004/05/31 10:36:35 otto Exp $	*/
 
 #ifndef SH_H
@@ -422,9 +422,7 @@ extern const struct option options[];
  */
 enum sh_flag {
 	FEXPORT = 0,	/* -a: export all */
-#ifdef BRACE_EXPAND
 	FBRACEEXPAND,	/* enable {} globbing */
-#endif
 	FBGNICE,	/* bgnice */
 	FCOMMAND,	/* -c: (invocation) execute specified command */
 	FEMACS,		/* emacs command editing */

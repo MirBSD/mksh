@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/eval.c,v 2.5 2004/12/18 19:22:29 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/eval.c,v 2.6 2004/12/18 19:27:21 tg Exp $ */
 /*	$OpenBSD: eval.c,v 1.18 2004/12/13 16:37:06 millert Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include "ksh_dir.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/eval.c,v 2.5 2004/12/18 19:22:29 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/eval.c,v 2.6 2004/12/18 19:27:21 tg Exp $");
 
 /*
  * string expansion
@@ -54,10 +54,8 @@ static char	*maybe_expand_tilde(char *p, XString *dsp, char **dpp,
 					  int isassign);
 static	char   *tilde(char *acp);
 static	char   *homedir(char *name);
-#ifdef BRACE_EXPAND
 static void	alt_expand(XPtrV *wp, char *start, char *exp_start,
 				 char *end, int fdo);
-#endif
 
 /* compile and expand word */
 char *
@@ -184,10 +182,8 @@ expand(char *cp, XPtrV *wp, int f)
 		f &= ~DOGLOB;
 	if (Flag(FMARKDIRS))
 		f |= DOMARKDIRS;
-#ifdef BRACE_EXPAND
 	if (Flag(FBRACEEXPAND) && (f & DOGLOB))
 		f |= DOBRACE_;
-#endif /* BRACE_EXPAND */
 
 	Xinit(ds, dp, 128, ATEMP);	/* init dest. string */
 	type = XBASE;
@@ -562,15 +558,12 @@ expand(char *cp, XPtrV *wp, int f)
 
 				*dp++ = '\0';
 				p = Xclose(ds, dp);
-#ifdef BRACE_EXPAND
 				if (fdo & DOBRACE_)
 					/* also does globbing */
 					alt_expand(wp, p, p,
 						   p + Xlength(ds, (dp - 1)),
 						   fdo | (f & DOMARKDIRS));
-				else
-#endif /* BRACE_EXPAND */
-				if (fdo & DOGLOB)
+				else if (fdo & DOGLOB)
 					glob(p, wp, f & DOMARKDIRS);
 				else if ((f & DOPAT) || !(fdo & DOMAGIC_))
 					XPput(*wp, p);
@@ -625,7 +618,6 @@ expand(char *cp, XPtrV *wp, int f)
 						*dp++ = MAGIC;
 					}
 					break;
-#ifdef BRACE_EXPAND
 				  case OBRACE:
 				  case ',':
 				  case CBRACE:
@@ -636,7 +628,6 @@ expand(char *cp, XPtrV *wp, int f)
 						*dp++ = MAGIC;
 					}
 					break;
-#endif /* BRACE_EXPAND */
 				  case '=':
 					/* Note first unquoted = for ~ */
 					if (!(f & DOTEMP_) && !saw_eq) {
@@ -1236,7 +1227,6 @@ homedir(char *name)
 	return ap->val.s;
 }
 
-#ifdef BRACE_EXPAND
 static void
 alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 {
@@ -1312,4 +1302,3 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 	}
 	return;
 }
-#endif /* BRACE_EXPAND */

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/conf-end.h,v 2.5 2004/12/18 19:17:10 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/conf-end.h,v 2.6 2004/12/18 19:27:21 tg Exp $ */
 /*	$OpenBSD: conf-end.h,v 1.2 1996/08/25 12:37:58 downsj Exp $	*/
 
 #ifndef CONF_END_H
@@ -6,9 +6,6 @@
 
 /* Include job control? */
 #define JOBS 1
-
-/* Include brace-expansion? */
-#define BRACE_EXPAND 1
 
 /* Include complex history? */
 #define COMPLEX_HISTORY
