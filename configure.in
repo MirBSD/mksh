@@ -1,4 +1,4 @@
-dnl $MirBSD: configure.in,v 1.1.3.1.2.3.2.2 2004/04/24 21:39:14 tg Exp $
+dnl $MirBSD: configure.in,v 1.1.3.1.2.3.2.3 2004/04/27 19:25:01 tg Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl
@@ -272,10 +272,10 @@ dnl Library functions
 dnl
 KSH_MEMMOVE
 KSH_MEMSET
-AC_CHECK_FUNCS(confstr dup2 flock getcwd getwd killpg mkstemp nice \
-	setrlimit strerror strcasecmp strlcat strlcpy strstr \
-	sysconf tcsetpgrp ulimit waitpid wait3)
-AC_CHECK_FUNCS(sigsetjmp _setjmp, break)
+AC_CHECK_FUNCS(_setjmp arc4random arc4random_addrandom arc4random_push break \
+	confstr dup2 flock getcwd getgroups getpagesize getrusage getwd \
+	killpg mkstemp nice setrlimit sigsetjmp strcasecmp strerror strlcat \
+	strlcpy strstr sysconf tcsetpgrp ulimit valloc wait3 waitpid)
 AC_FUNC_MMAP
 KSH_FUNC_LSTAT
 KSH_SYS_ERRLIST
