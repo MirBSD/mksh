@@ -1,6 +1,6 @@
-.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 2.1 2004/12/10 18:09:41 tg Exp $
+.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 2.2 2004/12/13 18:24:33 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.79 2004/12/04 07:05:13 jaredy Exp $
-.\"	$OpenBSD: sh.1tbl,v 1.52 2004/11/09 21:56:54 jmc Exp $
+.\"	$OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
 .\" Copyright (c) 1980, 1990, 1993
 .\"     The Regents of the University of California.  All rights reserved.
@@ -120,7 +120,7 @@ If there are no non-option
 arguments, the shell reads commands from the standard input.
 The name of
 the shell (i.e., the contents of
-.Va $0 )
+.Ic $0 )
 is determined as follows: if the
 .Fl c
 option is used and there is a non-option argument, it is used as the name;
@@ -133,8 +133,8 @@ A shell is
 .Dq interactive
 if the
 .Fl i
-option is used or if both standard input and standard error are attached
-to a tty.
+option is used or if both standard input and standard error are attached to a
+.Xr tty 4 .
 An interactive shell has job control enabled (if available), ignores the
 .Dv SIGINT ,
 .Dv SIGQUIT
@@ -347,7 +347,7 @@ The first three of these are the above mentioned quoting characters (see
 .Sx Quoting
 below);
 .Ql # ,
-if used at the beginning of a word, introduces a comment -- everything after
+if used at the beginning of a word, introduces a comment \(em everything after
 the
 .Ql #
 up to the nearest newline is ignored;
@@ -450,7 +450,7 @@ only if the exit status of
 .Ar cmd1
 is zero;
 .Ql ||
-is the opposite --
+is the opposite \(em
 .Ar cmd2
 is executed only if the exit status of
 .Ar cmd1
@@ -545,14 +545,14 @@ In the following compound command descriptions, command lists (denoted as
 that are followed by reserved words must end with a semicolon, a newline, or
 a (syntactically correct) reserved word.
 For example,
-.Bd -unfilled -offset -indent
+.Bd -unfilled -offset indent
 .Ic { echo foo; echo bar; }
 .Ic { echo foo; echo bar<newline> }
 .Ic { { echo foo; echo bar; } }
 .Ed
 .Pp
 are all valid, but
-.Bd -unfilled -offset -indent
+.Bd -unfilled -offset indent
 .Ic { echo foo; echo bar }
 .Ed
 .Pp
@@ -630,7 +630,7 @@ If
 .Ic in
 is not used to specify a word list, the positional parameters
 .Po
-.Va $1 , $2 ,
+.Ic $1 , $2 ,
 etc.\&
 .Pc
 are used instead.
@@ -721,7 +721,7 @@ statement is executed inside the loop.
 If
 .Ic in Ar word ...\&
 is omitted, the positional parameters are used (i.e.,
-.Va $1 , $2 ,
+.Ic $1 , $2 ,
 etc.).
 For historical reasons, open and close braces may be used instead of
 .Ic do
@@ -1017,8 +1017,8 @@ As a special case, leading and trailing
 .Ev IFS
 whitespace and trailing
 .Ev IFS
-non-whitespace is stripped (i.e., no leading or trailing
-empty field is created by it); leading or trailing
+non-whitespace are stripped (i.e., no leading or trailing
+empty field is created by it); leading
 .Pf non- Ev IFS
 whitespace does create an empty field.
 .Pp
@@ -1312,7 +1312,7 @@ Process ID of the last background process started.
 If no background processes have been started, the parameter is not set.
 .It Ev \&#
 The number of positional parameters (i.e.,
-.Va $1 , $2 ,
+.Ic $1 , $2 ,
 etc.).
 .It Ev \&$
 The process ID of the shell, or the
@@ -1356,7 +1356,7 @@ Further positional parameters may be accessed using
 .Ic ${ Ns Ar number Ns Ic \&} .
 .It Ev \&*
 All positional parameters (except parameter 0); i.e.,
-.Va $1 , $2 , $3 ,
+.Ic $1 , $2 , $3 ,
 \&...
 If used
 outside of double quotes, parameters are separate words (which are subjected
@@ -2028,7 +2028,7 @@ any redirections must appear at the end.
 Redirections are processed after
 pipelines are created and in the order they are given, so
 .Pp
-.Ic cat /foo/bar 2\&>&1 \&> /dev/null \&| cat -n
+.Dl Ic cat /foo/bar 2\*(Gt&1 \*(Gt /dev/null \&| cat -n
 .Pp
 will print an error with a line number prepended to it.
 .Ss Arithmetic expressions
@@ -2262,7 +2262,7 @@ in that they are executed in the current environment.
 However, unlike
 .Li .-scripts ,
 shell arguments (i.e., positional parameters
-.Va $1 , $2 ,
+.Ic $1 , $2 ,
 etc.) are never visible
 inside them.
 When the shell is determining the location of a command, functions
@@ -2321,7 +2321,9 @@ assignments made inside functions are visible after the function completes.
 If this is not the desired effect, the
 .Ic typeset
 command can be used inside a function to create a local parameter.
-Note that special parameters (e.g., $$, $\&!) can't be scoped in this way.
+Note that special parameters (e.g.
+.Ic \&$$ , $\&! )
+can't be scoped in this way.
 .Pp
 The exit status of a function is that of the last command executed in the
 function.
@@ -2337,8 +2339,11 @@ defined with the
 notation:
 .Bl -bullet
 .It
-The $0 parameter is set to the name of the function (Bourne-style functions
-leave $0 untouched).
+The
+.Ic $0
+parameter is set to the name of the function (Bourne-style functions leave
+.Ic $0
+untouched).
 .It
 Parameter assignments preceding function calls are not kept in the shell
 environment (executing Bourne-style functions will keep assignments).
@@ -2438,7 +2443,7 @@ mode, signal names are listed one per line; in
 .Pf non- Tn POSIX
 mode,
 signal numbers, names, and descriptions are printed in columns.
-In future, a new option
+In the future, a new option
 .Po Fl v
 \ perhaps
 .Pc
@@ -2596,7 +2601,9 @@ mode, the expression
 .Sq Ic \&!
 arguments) is always true as it is a non-zero length string; in
 .Pf non- Tn POSIX
-mode, it tests if file descriptor 1 is a tty (i.e., the
+mode, it tests if file descriptor 1 is a
+.Xr tty 4
+(i.e., the
 .Ar fd
 argument to the
 .Fl t
@@ -2640,7 +2647,9 @@ special commands
 .Ic readonly , return , set , shift ,
 .Ic trap , unset
 .Pp
-Additional ksh special commands
+Additional
+.Nm
+special commands
 .Pp
 .Ic builtin , times , typeset
 .Pp
@@ -2657,12 +2666,16 @@ regular commands
 .Ic jobs , kill , read , true ,
 .Ic umask , unalias , wait
 .Pp
-Additional ksh regular commands
+Additional
+.Nm
+regular commands
 .Pp
 .Ic \&[ , echo , let , print ,
 .Ic pwd , test , ulimit , whence
 .Pp
-In the future, the additional ksh special and regular commands may be treated
+In the future, the additional
+.Nm
+special and regular commands may be treated
 differently from the
 .Tn POSIX
 special and regular commands.
@@ -2693,8 +2706,7 @@ Exit status is set to zero.
 .Op Ic +-
 .Oo Ar name
 .Op Ns = Ns Ar value
-.Ar ...
-.Oc
+.Ar ... Oc
 .Xc
 Without arguments,
 .Ic alias
@@ -2944,7 +2956,7 @@ The shell exits with the specified exit status.
 If
 .Ar status
 is not specified, the exit status is the current value of the
-.Ic \&?
+.Ic $\&?
 parameter.
 .It Xo Ic export Op Fl p
 .Op Ar parameter Ns Op \&= Ns Ar value
@@ -3118,10 +3130,10 @@ below for the format of
 .Ar job
 and the displayed job.
 .It Xo Ic kill
-.Oo Fl s Ar signame No \&|
-.Fl signum No \&| Fl signame Oc {
-.Ar job No \&|
-.Ar pid No \&|
+.Oo Fl s Ar signame \*(Ba
+.Fl Ar signum | Fl Ar signame Oc {
+.Ar job |
+.Ar pid |
 .Ar pgrp No } Ar ...
 .Xc
 Send the specified signal to the specified jobs, process IDs, or process
@@ -3153,7 +3165,7 @@ Since expressions may need to be quoted,
 is syntactic sugar for
 .Ic let \&" Ns Ar expr Ns Ic \&" .
 .It Xo Ic print
-.Oo Fl nprsu Ns Ar n No \&|
+.Oo Fl nprsu Ns Ar n \*(Ba
 .Fl R Op Fl en Oc
 .Op Ar argument ...
 .Xc
@@ -3205,7 +3217,7 @@ The
 .Fl R
 option is used to emulate, to some degree, the
 .Bx
-.Xr echo
+.Xr echo 1
 command, which does not process
 .Ql \e
 sequences unless the
@@ -3258,7 +3270,9 @@ exits with a non-zero status.
 .Pp
 The first parameter may have a question mark and a string appended to it, in
 which case the string is used as a prompt (printed to standard error before
-any input is read) if the input is a tty (e.g.,
+any input is read) if the input is a
+.Xr tty 4
+(e.g.,
 .Ic read nfoo?'number of foos: ' ) .
 .Pp
 The
@@ -3517,7 +3531,9 @@ Enable vi-like command-line editing (interactive shells only).
 No effect.
 In the original Korn shell, unless
 .Ic viraw
-was set, the vi command-line mode would let the tty driver do the work until
+was set, the vi command-line mode would let the
+.Xr tty 4
+driver do the work until
 .Tn ESC
 (^[) was entered.
 .Nm pdksh
@@ -3547,7 +3563,7 @@ will print the long names of all options that are currently on.
 .Pp
 Remaining arguments, if any, are positional parameters and are assigned, in
 order, to the positional parameters (i.e.
-.Va $1 , $2 ,
+.Ic $1 , $2 ,
 etc.).
 If options end with
 .Ql --
@@ -3555,7 +3571,7 @@ and there are no remaining arguments, all positional parameters are cleared.
 If no options or arguments are given, the values of all names are printed.
 For unknown historical reasons, a lone
 .Ql -
-option is treated specially -- it clears both the
+option is treated specially \(em it clears both the
 .Fl x
 and
 .Fl v
@@ -3674,35 +3690,24 @@ doesn't exist (thus
 returns true if and only if option
 .Ar foo
 exists).
-.It Ar file Fl nt Ar file
-first
-.Ar file
-is newer than second
-.Ar file
-or first
-.Ar file
-exists and the second
-.Ar file
-does not.
-.It Ar file Fl ot Ar file
-first
-.Ar file
-is older than second
-.Ar file
-or second
-.Ar file
-exists and the first
-.Ar file
-does not.
-.It Ar file Fl ef Ar file
-first
-.Ar file
-is the same file as second
-.Ar file .
+.It Ar file1 Fl nt Ar file2
+.Ar file1
+is newer than
+.Ar file2 .
+.It Ar file1 Fl ot Ar file2
+.Ar file1
+is older than
+.Ar file2 .
+.It Ar file1 Fl ef Ar file2
+.Ar file1
+is the same file as
+.Ar file2 .
 .It Fl t Op Ar fd
 File descriptor
 .Ar fd
-is a tty device.
+is a
+.Xr tty 4
+device.
 If the
 .Ic posix
 option is not set,
@@ -3713,7 +3718,24 @@ to the special
 rules described below).
 .It Ar string
 .Ar string
-is not empty.
+is not empty (has non-zero length).
+Note that there is the potential for problems if
+.Ar string
+turns out to be an operator (e.g.,
+.Fl r ) .
+It is generally better to use a test like
+.Sm off
+.Ic \&[\ X\&" Ar string Ic \&" Ic \ \&]
+.Sm on
+or (on
+.Nm ksh
+only)
+.Sm off
+.Ic \&[\&[ Fl n Ar string Ic \ \&]\&]
+.Sm on
+instead (double quotes are used in case
+.Ar string
+contains spaces or file globbing characters).
 .It Fl z Ar string
 .Ar string
 is empty.
@@ -3846,8 +3868,8 @@ but those of the second command do.
 Print the accumulated user and system times used by the shell and by processes
 which have exited that the shell started.
 .It Ic trap Op Ar handler signal ...
-Sets trap handler that is to be executed when any of the specified signals are
-received.
+Sets a trap handler that is to be executed when any of the
+specified signals are received.
 .Ar handler
 is either a
 .Dv NULL
@@ -3894,7 +3916,7 @@ commands, the current state of the traps that have been set since the shell
 started.
 Note that the output of
 .Ic trap
-can not be usefully piped to another process (an artifact of the fact that
+cannot be usefully piped to another process (an artifact of the fact that
 traps are cleared when subprocesses are created).
 .Pp
 The original Korn shell's
@@ -4019,7 +4041,7 @@ This is the default action (option exists for ksh93 compatibility).
 .It Fl r
 Read-only attribute.
 Parameters with this attribute may not be assigned to or unset.
-Once this attribute is set, it can not be turned off.
+Once this attribute is set, it cannot be turned off.
 .It Fl t
 Tag attribute.
 Has no meaning to the shell; provided for application use.
@@ -4071,7 +4093,7 @@ limit is imposed.
 Note that some systems may not allow limits to be increased
 once they are set.
 Also note that the types of limits available are system
-dependent -- some systems have only the
+dependent \(em some systems have only the
 .Fl f
 limit.
 .Bl -tag -width 5n
@@ -4287,8 +4309,9 @@ A job may be referred to in the
 and
 .Ic wait
 commands either by the process ID of the last process in the command pipeline
-(as stored in the $! parameter) or by prefixing the job number with a percent
-sign
+(as stored in the
+.Ic $\&!
+parameter) or by prefixing the job number with a percent sign
 .Pq Sq % .
 Other percent sequences can also be used to refer to jobs:
 .Bl -tag -width 10n
@@ -4317,8 +4340,9 @@ The job starting with string
 .Pp
 When a job changes state (e.g., a background job finishes or foreground job is
 stopped), the shell prints the following status information:
-.Pp
+.Bd -unfilled -offset indent
 .Ic \&[ Ar number Ic \&] Ar flag status command
+.Ed
 .Pp
 where
 .Bl -tag -width "status"
@@ -4340,7 +4364,7 @@ indicates the current state of the job and can be:
 The job has neither stopped nor exited (note that running does not necessarily
 mean consuming
 .Tn CPU
-time -- the process could be blocked waiting for some
+time \(em the process could be blocked waiting for some
 event).
 .It Cm Done Op Ar number
 The job exited.
@@ -4384,15 +4408,18 @@ is immediately made to exit the shell, the running jobs are sent a
 .Dv SIGHUP
 signal and the shell exits.
 .Ss Interactive input line editing
-The shell supports three modes of reading command lines from a tty in an
-interactive session, which is controlled by the
+The shell supports three modes of reading command lines from a
+.Xr tty 4
+in an interactive session, which is controlled by the
 .Ic emacs ,
 .Ic gmacs
 and
 .Ic vi
 options (at most one of these can be set at once).
-If none of these options are enabled, the shell simply reads lines using the
-normal tty driver.
+If none of these options are enabled, the shell simply
+reads lines using the normal
+.Xr tty 4
+driver.
 If the
 .Ic emacs
 or
@@ -4503,7 +4530,9 @@ Furthermore, many editing commands are useful only on terminals with
 a visible cursor.
 The default bindings were chosen to resemble corresponding
 Emacs key bindings.
-The users' tty characters (e.g.,
+The users'
+.Xr tty 4
+characters (e.g.,
 .Dv ERASE )
 are bound to
 reasonable substitutes and override the default bindings.
@@ -4793,8 +4822,9 @@ mode.
 In insert mode, most characters are simply put in the buffer at the
 current cursor position as they are typed; however, some characters are
 treated specially.
-In particular, the following characters are taken from
-current tty settings (see
+In particular, the following characters are taken from current
+.Xr tty 4
+settings (see
 .Xr tty 1 )
 and have their usual meaning (normal values are in parentheses): kill (^U),
 erase (^?), werase (^W), eof (^D), intr (^C), and quit (^\e).
@@ -5219,6 +5249,7 @@ deleted and a new prompt to be printed.
 .Xr srand 3 ,
 .Xr srandom 3 ,
 .Xr system 3 ,
+.Xr tty 4 ,
 .Xr environ 7
 .Pp
 .Pa http://docsrv.sco.com:507/en/man/html.C/sh.C.html

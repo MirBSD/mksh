@@ -1,4 +1,4 @@
-.\"	$MirBSD: src/bin/ksh/sh.1tbl,v 2.1 2004/12/10 18:09:42 tg Exp $
+.\"	$MirBSD: src/bin/ksh/sh.1tbl,v 2.2 2004/12/13 18:24:34 tg Exp $
 .\"	_MirBSD: src/bin/ksh/ksh.1tbl,v 1.41 2004/11/10 17:18:29 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.78 2004/11/08 23:42:02 jmc Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.52 2004/11/09 21:56:54 jmc Exp $
@@ -2333,15 +2333,6 @@ is assumed.
 This command is only available on systems which support job control (see
 .Sx Job control
 below for more information).
-.It Xo
-.Ic bind Op Fl m
-.Oo Ar key
-.Op Ns = Ns Ar editing-command
-.Ar ... Oc
-.Xc
-Set or view the current emacs command editing key bindings/macros.
-.Nm
-should now have the emacs mode according to the Bourne shell documentation.
 .It Ic break Op Ar level
 Exit the
 .Ar level Ns th
@@ -3075,20 +3066,6 @@ and
 statements.
 The following basic expressions are available:
 .Bl -tag -width 17n
-.It Ar str
-.Ar str
-has non-zero length.
-Note that there is the potential for problems if
-.Ar str
-turns out to be an operator (e.g.,
-.Fl r ) .
-It is generally better to use a test like
-.Sm off
-.Ic \&[\ X\&" Ar str Ic \&" Ic \ \&]
-.Sm on
-instead (double quotes are used in case
-.Ar str
-contains spaces or file globbing characters).
 .It Fl r Ar file
 .Ar file
 exists and is readable.
@@ -3334,6 +3311,10 @@ lists, as a series of
 .Ic trap
 commands, the current state of the traps that have been set since the shell
 started.
+Note that the output of
+.Ic trap
+cannot be usefully piped to another process (an artifact of the fact that
+traps are cleared when subprocesses are created).
 .Pp
 The original Korn shell's
 .Dv DEBUG
