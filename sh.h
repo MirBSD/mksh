@@ -1,5 +1,5 @@
-/**	$MirBSD: src/bin/ksh/sh.h,v 2.6 2004/12/18 19:27:21 tg Exp $ */
-/*	$OpenBSD: sh.h,v 1.18 2004/05/31 10:36:35 otto Exp $	*/
+/**	$MirBSD: src/bin/ksh/sh.h,v 2.7 2004/12/28 22:28:01 tg Exp $ */
+/*	$OpenBSD: sh.h,v 1.23 2004/12/18 22:11:43 millert Exp $	*/
 
 #ifndef SH_H
 #define SH_H
@@ -502,7 +502,7 @@ typedef struct trap {
 	const char *name;	/* short name */
 	const char *mess;	/* descriptive name */
 	char   *trap;		/* trap command */
-	int	volatile set;	/* trap pending */
+	volatile sig_atomic_t set; /* trap pending */
 	int	flags;		/* TF_* */
 	handler_t cursig;	/* current handler (valid if TF_ORIG_* set) */
 	handler_t shtrap;	/* shell signal handler */
@@ -533,9 +533,9 @@ typedef struct trap {
 #define SIGEXIT_	0	/* for trap EXIT */
 #define SIGERR_		SIGNALS	/* for trap ERR */
 
-EXTERN	int volatile trap;	/* traps pending? */
-EXTERN	int volatile intrsig;	/* pending trap interrupts executing command */
-EXTERN	int volatile fatal_trap;/* received a fatal signal */
+EXTERN	volatile sig_atomic_t trap;	/* traps pending? */
+EXTERN	volatile sig_atomic_t intrsig;	/* pending trap interrupts executing command */
+EXTERN	volatile sig_atomic_t fatal_trap;/* received a fatal signal */
 #ifndef FROM_TRAP_C
 /* Kludge to avoid bogus re-declaration of sigtraps[] error on AIX 3.2.5 */
 extern	Trap	sigtraps[SIGNALS+1];

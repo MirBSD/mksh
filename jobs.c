@@ -1,5 +1,5 @@
-/**	$MirBSD: src/bin/ksh/jobs.c,v 2.4 2004/12/18 19:22:29 tg Exp $ */
-/*	$OpenBSD: jobs.c,v 1.21 2003/11/10 21:26:39 millert Exp $	*/
+/**	$MirBSD: src/bin/ksh/jobs.c,v 2.5 2004/12/28 22:28:01 tg Exp $ */
+/*	$OpenBSD: jobs.c,v 1.26 2004/12/18 22:12:23 millert Exp $	*/
 
 /*
  * Process and job control
@@ -31,7 +31,7 @@
 #include "ksh_times.h"
 #include "tty.h"
 
-__RCSID("$MirBSD: src/bin/ksh/jobs.c,v 2.4 2004/12/18 19:22:29 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/jobs.c,v 2.5 2004/12/28 22:28:01 tg Exp $");
 
 /* Start of system configuration stuff */
 
@@ -181,7 +181,7 @@ static int		child_max;	/* CHILD_MAX */
 
 #ifdef JOB_SIGS
 /* held_sigchld is set if sigchld occurs before a job is completely started */
-static int		held_sigchld;
+static volatile sig_atomic_t	held_sigchld;
 #endif /* JOB_SIGS */
 
 #ifdef JOBS

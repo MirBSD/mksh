@@ -1,5 +1,5 @@
-/**	$MirBSD: src/bin/ksh/edit.c,v 2.4 2004/12/18 19:22:28 tg Exp $ */
-/*	$OpenBSD: edit.c,v 1.18 2003/08/22 18:17:10 fgsch Exp $	*/
+/**	$MirBSD: src/bin/ksh/edit.c,v 2.5 2004/12/28 22:28:01 tg Exp $ */
+/*	$OpenBSD: edit.c,v 1.23 2004/12/18 22:12:23 millert Exp $	*/
 
 /*
  * Command line editing - common code
@@ -21,11 +21,11 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/edit.c,v 2.4 2004/12/18 19:22:28 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/edit.c,v 2.5 2004/12/28 22:28:01 tg Exp $");
 
 #if defined(TIOCGWINSZ)
 static RETSIGTYPE x_sigwinch(int sig);
-static int got_sigwinch;
+static volatile sig_atomic_t got_sigwinch;
 static void check_sigwinch(void);
 #endif /* TIOCGWINSZ */
 
