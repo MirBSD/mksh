@@ -1,4 +1,4 @@
-/**	$MirBSD: path.c,v 1.3 2004/09/21 11:57:13 tg Exp $ */
+/**	$MirBSD: path.c,v 1.4 2004/09/21 14:03:58 tg Exp $ */
 /*	$OpenBSD: path.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 #include "sh.h"
@@ -243,7 +243,7 @@ do_phys_path(xsp, xp, path)
 	const char *p, *q;
 	int len, llen;
 	int savepos;
-	char lbuf[PATH];
+	char lbuf[PATH_MAX];
 
 	Xcheck(*xsp, xp);
 	for (p = path; p; p = q) {
