@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/c_ksh.c,v 2.6 2004/12/28 22:32:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/c_ksh.c,v 2.7 2004/12/31 17:29:28 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.18 2004/02/10 13:03:36 jmc Exp $	*/
 
 /*
@@ -13,7 +13,7 @@
 #include <sys/cygwin.h>
 #endif /* __CYGWIN__ */
 
-__RCSID("$MirBSD: src/bin/ksh/c_ksh.c,v 2.6 2004/12/28 22:32:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/c_ksh.c,v 2.7 2004/12/31 17:29:28 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -1173,16 +1173,16 @@ c_kill(char **wp)
 			for (; wp[i]; i++) {
 				if (!bi_getn(wp[i], &n))
 					return 1;
-				if (n > 128 && n < 128 + SIGNALS)
+				if (n > 128 && n < 128 + NSIG)
 					n -= 128;
-				if (n > 0 && n < SIGNALS && sigtraps[n].name)
+				if (n > 0 && n < NSIG && sigtraps[n].name)
 					shprintf("%s\n", sigtraps[n].name);
 				else
 					shprintf("%d\n", n);
 			}
 		} else if (Flag(FPOSIX)) {
 			p = null;
-			for (i = 1; i < SIGNALS; i++, p = space)
+			for (i = 1; i < NSIG; i++, p = space)
 				if (sigtraps[i].name)
 					shprintf("%s%s", p, sigtraps[i].name);
 			shprintf(newline);
@@ -1191,10 +1191,10 @@ c_kill(char **wp)
 			size_t w, mess_width;
 			struct kill_info ki;
 
-			for (i = SIGNALS, ki.num_width = 1; i >= 10; i /= 10)
+			for (i = NSIG, ki.num_width = 1; i >= 10; i /= 10)
 				ki.num_width++;
 			ki.name_width = mess_width = 0;
-			for (i = 0; i < SIGNALS; i++) {
+			for (i = 0; i < NSIG; i++) {
 				w = sigtraps[i].name ? strlen(sigtraps[i].name)
 						     : ki.num_width;
 				if (w > ki.name_width)
@@ -1204,7 +1204,7 @@ c_kill(char **wp)
 					mess_width = w;
 			}
 
-			print_columns(shl_stdout, SIGNALS - 1,
+			print_columns(shl_stdout, NSIG - 1,
 				kill_fmt_entry, (void *) &ki,
 				ki.num_width + ki.name_width + mess_width + 3, 1);
 		}

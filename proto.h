@@ -1,9 +1,9 @@
-/**	$MirBSD: src/bin/ksh/proto.h,v 2.8 2004/12/28 22:40:40 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/proto.h,v 2.9 2004/12/31 17:29:28 tg Exp $ */
 /*	$OpenBSD: proto.h,v 1.11 2003/05/16 19:58:57 jsyn Exp $	*/
 /*	$From: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $ */
 
 #ifndef PROTO_H
-/*	$OpenBSD: proto.h,v 1.23 2004/12/22 18:57:28 otto Exp $	*/
+/*	$OpenBSD: proto.h,v 1.17 2004/12/18 21:58:39 millert Exp $	*/
 
 /*
  * prototypes for PD-KSH
@@ -236,7 +236,7 @@ void 	restoresigs(void);
 void	settrap(Trap *p, char *s);
 int	block_pipe(void);
 void	restore_pipe(int restore_dfl);
-int	setsig(Trap *p, handler_t f, int flags);
+int	setsig(Trap *p, sig_t f, int flags);
 void	setexecsig(Trap *p, int restore);
 /* tree.c */
 int 	fptreef(struct shf *f, int indent, const char *fmt, ...);

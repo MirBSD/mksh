@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/c_sh.c,v 2.8 2004/12/28 22:40:39 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/c_sh.c,v 2.9 2004/12/31 17:29:28 tg Exp $ */
 /*	$OpenBSD: c_sh.c,v 1.26 2004/12/22 18:57:28 otto Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include "ksh_time.h"
 #include "ksh_times.h"
 
-__RCSID("$MirBSD: src/bin/ksh/c_sh.c,v 2.8 2004/12/28 22:40:39 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/c_sh.c,v 2.9 2004/12/31 17:29:28 tg Exp $");
 
 static	char *clocktos(clock_t t);
 
@@ -461,7 +461,7 @@ c_trap(char **wp)
 	if (*wp == NULL) {
 		int anydfl = 0;
 
-		for (p = sigtraps, i = SIGNALS+1; --i >= 0; p++) {
+		for (p = sigtraps, i = NSIG + 1; --i >= 0; p++) {
 			if (p->trap == NULL)
 				anydfl = 1;
 			else {

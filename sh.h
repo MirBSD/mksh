@@ -1,8 +1,8 @@
-/**	$MirBSD: src/bin/ksh/sh.h,v 2.9 2004/12/31 17:08:29 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/sh.h,v 2.10 2004/12/31 17:29:28 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.23 2004/12/18 22:11:43 millert Exp $	*/
 
 #ifndef SH_H
-#define SH_H
+/*	$OpenBSD: sh.h,v 1.22 2004/12/18 21:58:39 millert Exp $	*/
 
 /*
  * mirbsdksh - MirOS Project Korn-Shell
@@ -146,35 +146,8 @@ void *memmove(void *d, const void *s, size_t n);
 #endif /* HAVE_LIMITS_H */
 
 #include <signal.h>
-#ifdef	NSIG
-# define SIGNALS	NSIG
-#else
-# ifdef	_MINIX
-#  define SIGNALS	(_NSIG+1) /* _NSIG is # of signals used, excluding 0. */
-# else
-#  ifdef _SIGMAX	/* QNX */
-#   define SIGNALS	_SIGMAX
-#  else /* _SIGMAX */
-#   define SIGNALS	32
-#  endif /* _SIGMAX */
-# endif	/* _MINIX */
-#endif	/* NSIG */
-#ifndef SIGCHLD
-# define SIGCHLD SIGCLD
-#endif
-/* struct sigaction.sa_flags is set to KSH_SA_FLAGS.  Used to ensure
- * system calls are interrupted
- */
-#ifdef SA_INTERRUPT
-# define KSH_SA_FLAGS	SA_INTERRUPT
-#else /* SA_INTERRUPT */
-# define KSH_SA_FLAGS	0
-#endif /* SA_INTERRUPT */
-
-typedef	RETSIGTYPE (*handler_t)(int);	/* signal handler */
-
-#ifdef USE_FAKE_SIGACT
-# include "sigact.h"			/* use sjg's fake sigaction() */
+#ifndef NSIG
+#define NSIG	32
 #endif
 
 #ifdef HAVE_PATHS_H
@@ -504,8 +477,8 @@ typedef struct trap {
 	char   *trap;		/* trap command */
 	volatile sig_atomic_t set; /* trap pending */
 	int	flags;		/* TF_* */
-	handler_t cursig;	/* current handler (valid if TF_ORIG_* set) */
-	handler_t shtrap;	/* shell signal handler */
+	sig_t cursig;		/* current handler (valid if TF_ORIG_* set) */
+	sig_t shtrap;		/* shell signal handler */
 } Trap;
 
 /* values for Trap.flags */
@@ -531,14 +504,14 @@ typedef struct trap {
 #define SS_SHTRAP	BIT(5)	/* trap for internal use (CHLD,ALRM,WINCH) */
 
 #define SIGEXIT_	0	/* for trap EXIT */
-#define SIGERR_		SIGNALS	/* for trap ERR */
+#define SIGERR_		NSIG	/* for trap ERR */
 
 EXTERN	volatile sig_atomic_t trap;	/* traps pending? */
 EXTERN	volatile sig_atomic_t intrsig;	/* pending trap interrupts executing command */
 EXTERN	volatile sig_atomic_t fatal_trap;/* received a fatal signal */
 #ifndef FROM_TRAP_C
 /* Kludge to avoid bogus re-declaration of sigtraps[] error on AIX 3.2.5 */
-extern	Trap	sigtraps[SIGNALS+1];
+extern	Trap	sigtraps[NSIG + 1];
 #endif /* !FROM_TRAP_C */
 
 /*

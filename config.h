@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/config.h,v 2.3 2004/12/28 22:44:39 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/config.h,v 2.4 2004/12/31 17:29:28 tg Exp $ */
 /*	$OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -81,24 +81,6 @@
 
 /* Define as the return value of signal handlers (0 or ).  */
 #define RETSIGVAL
-
-/* Define if you have posix signal routines (sigaction(), et. al.) */
-#define POSIX_SIGNALS 1
-
-/* Define if you have BSD4.2 signal routines (sigsetmask(), et. al.) */
-/* #undef BSD42_SIGNALS */
-
-/* Define if you have BSD4.1 signal routines (sigset(), et. al.) */
-/* #undef BSD41_SIGNALS */
-
-/* Define if you have v7 signal routines (signal(), signal reset on delivery) */
-/* #undef V7_SIGNALS */
-
-/* Define to use the fake posix signal routines (sigact.[ch]) */
-/* #undef USE_FAKE_SIGACT */
-
-/* Define if signals don't interrupt read() */
-/* #undef SIGNALS_DONT_INTERRUPT */
 
 /* Define if you have bsd versions of the setpgrp() and getpgrp() routines */
 /* #undef BSD_PGRP */

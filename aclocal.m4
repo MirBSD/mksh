@@ -1,4 +1,4 @@
-dnl $MirBSD: src/bin/ksh/aclocal.m4,v 2.3 2004/12/13 19:05:08 tg Exp $
+dnl $MirBSD: src/bin/ksh/aclocal.m4,v 2.4 2004/12/31 17:29:28 tg Exp $
 dnl-
 dnl Copyright (c) 2004
 dnl	Thorsten "mirabile" Glaser <tg@66h.42h.de>
@@ -436,117 +436,8 @@ AC_DEFUN(KSH_SIGNAL_CHECK,
 	    sigset(SIGINT, foo); sigrelse(SIGINT);
 	    sighold(SIGINT); sigpause(SIGINT);
 	  ], ksh_cv_signal_check=bsd41, ksh_cv_signal_check=v7)))])
-  if test $ksh_cv_signal_check = posix; then
-    AC_DEFINE(POSIX_SIGNALS)
-  else
-    AC_DEFINE(USE_FAKE_SIGACT)
-    if test $ksh_cv_signal_check = bsd42; then
-      AC_DEFINE(BSD42_SIGNALS)
-    elif test $ksh_cv_signal_check = bsd41; then
-      AC_DEFINE(BSD41_SIGNALS)
-      AC_CACHE_CHECK(if signals interrupt read(), ksh_cv_signals_interrupt,
-	[AC_TRY_RUN([
-#include <errno.h>
-#include <signal.h>
-
-		extern int errno;
-		int flag = 0;
-
-		RETSIGTYPE
-		catcher(int sig)
-		{
-		    flag = 1;
-		    return RETSIGVAL;
-		}
-
-		int
-		main()
-		{
-		    int pid;
-		    int fdc[2];	/* child writes to parent */
-		    int fdp[2];	/* parent writes to child */
-		    char buf;
-		    int nread;
-
-		    if (pipe(fdc) < 0)
-			exit(1);
-		    if (pipe(fdp) < 0)
-			exit(2);
-		    if ((pid = fork()) < 0)
-			exit(3);
-		    if (pid == 0) {
-			close(fdc[0]);
-			close(fdp[1]);
-			if (read(fdp[0], &buf, 1) != 0)
-			    exit(10);
-			sleep(1); /* let parent into read */
-			if (kill(getppid(), SIGALRM) < 0)
-			    exit(11);
-			sleep(1); /* ensure parent gets to run */
-			write(fdc[1], "1", 1);
-			close(fdc[1]);
-			exit(0);
-		    }
-		    close(fdc[1]);
-		    close(fdp[0]);
-
-		    /* Use native routines for test as this is what the shell
-		     * will be using...
-		     */
-#ifdef POSIX_SIGNALS
-		    {
-			struct sigaction sa, osa;
-			sa.sa_handler = catcher;
-			sigemptyset(&sa.sa_mask);
-			sa.sa_flags = 0;
-			sigaction(SIGALRM, &sa, &osa);
-		    }
-#else /* POSIX_SIGNALS */
-# ifdef BSD42_SIGNALS
-		    {
-			struct sigvec vec, ovec;
-			vec.sv_handler = catcher;
-			vec.sv_mask = 0;
-			vec.sv_flags = 0;
-#  ifdef SV_INTERRUPT
-			vec.sv_flags |= SV_INTERRUPT;
-#  endif /* SV_INTERRUPT */
-			sigvec(SIGALRM, &vec, &ovec);
-		    }
-# else /* BSD42_SIGNALS */
-#  ifdef BSD41_SIGNALS
-		    sigset(SIGALRM, catcher);
-#  else /* BSD41_SIGNALS */
-#   ifdef V7_SIGNALS
-		    signal(SIGALRM, catcher);
-#   else /* V7_SIGNALS */
-		    what kind of signals do you have?
-#   endif /* V7_SIGNALS */
-#  endif /* BSD41_SIGNALS */
-# endif /* BSD42_SIGNALS */
-#endif /* POSIX_SIGNALS */
-		    close(fdp[1]); /* start child */
-		    nread = read(fdc[0], &buf, 1);
-		    if (nread == 0)
-			exit(4);
-		    if (nread > 0)
-			exit(5);
-		    if (errno != EINTR)
-			exit(6);
-		    if (!flag)
-			exit(7);
-		    exit(0);
-		    return 0;
-		}
-	  ], ksh_cv_signals_interrupt=yes, ksh_cv_signals_interrupt=no,
-	  AC_MSG_ERROR(cannot determine if signals interrupt read() when cross compiling)
-	  )])
-      if test $ksh_cv_signals_interrupt = no ; then
-	AC_DEFINE(SIGNALS_DONT_INTERRUPT)
-      fi
-    else
-      AC_DEFINE(V7_SIGNALS)
-    fi
+  if test $ksh_cv_signal_check != posix; then
+    AC_MSG_WARN(no posix signals)
   fi
  ])dnl
 dnl

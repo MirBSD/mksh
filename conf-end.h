@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/conf-end.h,v 2.8 2004/12/28 22:47:04 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/conf-end.h,v 2.9 2004/12/31 17:29:28 tg Exp $ */
 /*	$OpenBSD: conf-end.h,v 1.2 1996/08/25 12:37:58 downsj Exp $	*/
 
 #ifndef CONF_END_H
@@ -33,8 +33,7 @@
 #endif
 
 /* Can we safely catch sigchld and wait for processes? */
-#if (defined(HAVE_WAITPID) || defined(HAVE_WAIT3)) \
-    && (defined(POSIX_SIGNALS) || defined(BSD42_SIGNALS))
+#if defined(HAVE_WAITPID) || defined(HAVE_WAIT3)
 # define JOB_SIGS
 #endif
 
@@ -53,18 +52,6 @@
 #ifdef HAVE_STDINT_H
 # include <stdint.h>
 #endif
-
-/* pdksh assumes system calls return EINTR if a signal happened (this so
- * the signal handler doesn't have to longjmp()).  I don't know if this
- * happens (or can be made to happen) with sigset() et. al. (the bsd41 signal
- * routines), so, the autoconf stuff checks what they do and defines
- * SIGNALS_DONT_INTERRUPT if signals don't interrupt read().
- * If SIGNALS_DONT_INTERRUPT isn't defined and your compiler chokes on this,
- * delete the hash in front of the error (and file a bug report).
- */
-#ifdef SIGNALS_DONT_INTERRUPT
-  # error pdksh needs interruptable system calls.
-#endif /* SIGNALS_DONT_INTERRUPT */
 
 #ifdef HAVE_GCC_FUNC_ATTR
 # define GCC_FUNC_ATTR(x)	__attribute__((x))
