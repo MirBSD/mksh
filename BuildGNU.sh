@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: BuildGNU.sh,v 1.8 2004/04/17 00:37:07 tg Exp $
+# $MirBSD: BuildGNU.sh,v 1.9 2004/04/23 23:06:07 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -24,6 +24,10 @@
 #	tement below for some unknown reason.
 # Note:	Solaris might want LDFLAGS=-ldl, some GNU/Linux systems usu-
 #	ally have problems with their perl path (use -I for the .ph)
+# Note:	For a couple of systems (Solaris, Microsoft Interix), you'll
+#	have to use a pre-installed ksh or GNU bash for bootstrap.
+# Note:	On Mac OSX, you need LDFLAGS= (empty) - it seems to not find
+#	the C Runtime Initialization Object files else.
 
 SHELL="${SHELL:-/bin/sh}"; export SHELL
 CONFIG_SHELL="${SHELL}"; export CONFIG_SHELL
