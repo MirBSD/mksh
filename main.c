@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/main.c,v 2.7 2004/12/18 18:58:30 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/main.c,v 2.8 2004/12/18 19:02:29 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -15,11 +15,7 @@
  * shell version
  */
 
-__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.7 2004/12/18 18:58:30 tg Exp $");
-
-static const char version_param[] =
-	"KSH_VERSION"
-	;
+__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.8 2004/12/18 19:02:29 tg Exp $");
 
 const char ksh_version[] =
 	"@(#)PD KSH v5.2.14 MirOS R20 in "
@@ -52,7 +48,7 @@ static const char initsubs[] = "${PS2=> } ${PS3=#? } ${PS4=+ }";
 
 static const char *const initcoms [] = {
 	"typeset", "-x", "SHELL", "PATH", "HOME", NULL,
-	"typeset", "-r", version_param, NULL,
+	"typeset", "-r", "KSH_VERSION", NULL,
 	"typeset", "-i", "PPID", NULL,
 	"typeset", "-i", "OPTIND=1", NULL,
 	"eval", "typeset -i RANDOM SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
@@ -195,16 +191,6 @@ main(int argc, char *argv[])
 	Flag(FBRACEEXPAND) = 1;
 #endif /* BRACE_EXPAND */
 
-	/* set posix flag just before environment so that it will have
-	 * exactly the same effect as the POSIXLY_CORRECT environment
-	 * variable.  If this needs to be done sooner to ensure correct posix
-	 * operation, an initial scan of the environment will also have
-	 * done sooner.
-	 */
-#ifdef POSIXLY_CORRECT
-	change_flag(FPOSIX, OF_SPECIAL, 1);
-#endif /* POSIXLY_CORRECT */
-
 	/* Check to see if we're /bin/sh. */
 	if (!strcmp(&kshname[strlen(kshname) - 3], "/sh")
 	    || !strcmp(kshname, "sh") || !strcmp(kshname, "-sh"))
@@ -260,7 +246,7 @@ main(int argc, char *argv[])
 		^ ((long) (time(NULL) * kshpid * ppid)) );
 	setint(global("RANDOM"), rnd_get());
 	/* setstr can't fail here */
-	setstr(global(version_param), ksh_version, KSH_RETURN_ERROR);
+	setstr(global("KSH_VERSION"), ksh_version, KSH_RETURN_ERROR);
 
 	/* execute initialization statements */
 	for (wp = (char**) initcoms; *wp != NULL; wp++) {

@@ -1,4 +1,4 @@
-.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 2.6 2004/12/18 18:39:10 tg Exp $
+.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 2.7 2004/12/18 19:02:29 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.79 2004/12/04 07:05:13 jaredy Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -2378,9 +2378,7 @@ The
 option is set automatically when the shell starts up if the environment
 contains the
 .Dv POSIXLY_CORRECT
-parameter. (The shell can also be compiled so that it is in
-.Tn POSIX
-mode by default; however, this is usually not desirable).
+parameter.
 .Pp
 The following is a list of things that are affected by the state of the
 .Ic posix
