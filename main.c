@@ -1,5 +1,5 @@
-/*	$MirBSD: main.c,v 1.5 2004/04/26 18:38:20 tg Exp $	*/
-/*	$OpenBSD: main.c,v 1.26 2004/01/08 05:43:14 jmc Exp $	*/
+/* $MirBSD: main.c,v 1.6 2004/04/27 19:59:56 tg Exp $	*/
+/* $OpenBSD: main.c,v 1.26 2004/01/08 05:43:14 jmc Exp $	*/
 
 /*
  * startup, main loop, environments and error handling
@@ -94,6 +94,9 @@ main(int argc, char *argv[])
 	char **wp;
 	struct env env;
 	pid_t ppid;
+#ifdef	KSH
+	long trnd;
+#endif
 
 #ifdef MEM_DEBUG
 	chmem_set_defaults("ct", 1);
@@ -115,6 +118,9 @@ main(int argc, char *argv[])
 		argc = 1;
 	}
 	kshname = *argv;
+#ifdef	KSH
+	trnd = *((long *)kshname);
+#endif
 
 	ainit(&aperm);		/* initialize permanent Area */
 
@@ -255,9 +261,10 @@ main(int argc, char *argv[])
 	}
 	ppid = getppid();
 	setint(global("PPID"), (long) ppid);
-#ifdef KSH
-	setint(global("RANDOM"), (long) (time((time_t *)0) * kshpid * ppid));
-#endif /* KSH */
+#ifdef	KSH
+	trnd ^= ((long) (time((time_t *)0) * kshpid * ppid));
+	setint(global("RANDOM"), prng_seed(trnd));
+#endif	/* KSH */
 	/* setstr can't fail here */
 	setstr(global(version_param), ksh_version, KSH_RETURN_ERROR);
 
@@ -848,7 +855,8 @@ is_restricted(name)
 	if ((p = ksh_strrchr_dirsep(name)))
 		name = p;
 	/* accepts rsh, rksh, rpdksh, pdrksh, etc. */
-	return (p = strchr(name, 'r')) && strstr(p, "sh");
+	return (p = strchr(name, 'r')) && strstr(p, "sh")
+	    && !strstr(p-2, "mirbsdksh") && !strstr(p-2, "mirosksh");
 }
 
 void
