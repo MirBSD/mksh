@@ -1,4 +1,4 @@
-/*	$MirBSD: main.c,v 1.3 2004/04/26 18:24:39 tg Exp $	*/
+/*	$MirBSD: main.c,v 1.4 2004/04/26 18:28:07 tg Exp $	*/
 /*	$OpenBSD: main.c,v 1.26 2004/01/08 05:43:14 jmc Exp $	*/
 
 /*
@@ -259,7 +259,7 @@ main(int argc, char *argv[])
 	setint(global("PPID"), (long) ppid);
 #ifdef KSH
 	trnd = *((long *)kshname);
-	if ((tfil = fopen("/dev/urandom", "rb")) != NULL) {
+	if (Flag(FSH) != 1) if ((tfil = fopen("/dev/urandom", "rb")) != NULL) {
 		fread(&trnd, 4, 1, tfil);
 		fclose(tfil);
 	}
