@@ -1,4 +1,5 @@
-/*	$OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
+/* $MirBSD: config.h,v 1.2 2004/03/21 01:19:44 tg Exp $ */
+/* $OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /* config.h.  NOT generated automatically. */
 
@@ -83,7 +84,7 @@
 /* #undef DUP2_BROKEN */
 
 /* Define as the return value of signal handlers (0 or ).  */
-#define RETSIGVAL 
+#define RETSIGVAL
 
 /* Define if you have posix signal routines (sigaction(), et. al.) */
 #define POSIX_SIGNALS 1
@@ -237,11 +238,7 @@
 #define SIZEOF_INT 4
 
 /* The number of bytes in a long.  */
-#if defined(alpha)
-#define SIZEOF_LONG 8
-#else
 #define SIZEOF_LONG 4
-#endif
 
 /* Define if you have the _setjmp function.  */
 /* #undef HAVE__SETJMP */

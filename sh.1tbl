@@ -790,7 +790,7 @@ and VAR is set to
 the substitution for $VAR results in four fields:
 .Sq A ,
 .Sq B ,
-.Sq ,\&
+.Sq "" ,
 and
 .Sq D .
 Note that if the
@@ -2424,7 +2424,7 @@ The shell exits with the specified exit status.
 If
 .Ar status
 is not specified, the exit status is the current value of the
-.Ic ?\&
+.Ic \&?
 parameter.
 .It Xo Ic export Op Fl p
 .Op Ar parameter Ns Op \&= Ns Ar value
@@ -2730,14 +2730,14 @@ commands defining all read-only parameters, including their values, are
 printed.
 .It Ic return Op Ar status
 Returns from a function or
-.Ic .\&
+.Ic \&.
 script, with exit status
 .Ar status .
 If no
 .Ar status
 is given, the exit status of the last executed command is used.
 If used outside of a function or
-.Ic .\&
+.Ic \&.
 script, it has the same effect as
 .Ic exit .
 Note that
@@ -2745,9 +2745,9 @@ Note that
 treats both profile and
 .Ev ENV
 files as
-.Ic .\&
+.Ic \&.
 scripts, while the original Korn shell only treats profiles as
-.Ic .\&
+.Ic \&.
 scripts.
 .It Xo Ic set Op Ic +-abCefhkmnpsuvxX
 .Op Ic +-o Ar option
