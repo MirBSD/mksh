@@ -1,4 +1,4 @@
-/*	$MirBSD: main.c,v 1.4 2004/04/26 18:28:07 tg Exp $	*/
+/*	$MirBSD: main.c,v 1.5 2004/04/26 18:38:20 tg Exp $	*/
 /*	$OpenBSD: main.c,v 1.26 2004/01/08 05:43:14 jmc Exp $	*/
 
 /*
@@ -94,8 +94,6 @@ main(int argc, char *argv[])
 	char **wp;
 	struct env env;
 	pid_t ppid;
-	long trnd;
-	FILE *tfil;
 
 #ifdef MEM_DEBUG
 	chmem_set_defaults("ct", 1);
@@ -258,13 +256,7 @@ main(int argc, char *argv[])
 	ppid = getppid();
 	setint(global("PPID"), (long) ppid);
 #ifdef KSH
-	trnd = *((long *)kshname);
-	if (Flag(FSH) != 1) if ((tfil = fopen("/dev/urandom", "rb")) != NULL) {
-		fread(&trnd, 4, 1, tfil);
-		fclose(tfil);
-	}
-	trnd ^= (long) (time((time_t *)0) * kshpid * ppid);
-	setint(global("RANDOM"), trnd);
+	setint(global("RANDOM"), (long) (time((time_t *)0) * kshpid * ppid));
 #endif /* KSH */
 	/* setstr can't fail here */
 	setstr(global(version_param), ksh_version, KSH_RETURN_ERROR);

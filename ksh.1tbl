@@ -1,4 +1,4 @@
-.\" $MirBSD: ksh.1tbl,v 1.20 2004/04/26 18:20:45 tg Exp $
+.\" $MirBSD: ksh.1tbl,v 1.21 2004/04/26 18:38:19 tg Exp $
 .\" $OpenBSD: ksh.1tbl,v 1.65 2004/01/23 23:08:45 jmc Exp $
 .\"
 .\" Copyright (c) 1980, 1990, 1993
@@ -1565,11 +1565,6 @@ The point in the series can be set by assigning a number to
 .Ev RANDOM
 (see
 .Xr rand 3 ) .
-On startup,
-.Nm
-reads four bytes out of
-.Pa /dev/urandom
-if exists, and XORs the default seed with it.
 .It Ev REPLY
 Default parameter for the
 .Ic read
@@ -5107,7 +5102,6 @@ deleted and a new prompt to be printed.
 .It Pa ~/.profile
 .It Pa /etc/profile
 .It Pa /etc/suid_profile
-.It Pa /dev/urandom
 .El
 .Sh SEE ALSO
 .Xr awk 1 ,
