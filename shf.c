@@ -1,3 +1,4 @@
+/*	$MirBSD: shf.c,v 1.2 2004/04/17 00:47:19 tg Exp $	*/
 /*	$OpenBSD: shf.c,v 1.8 2003/02/28 09:45:09 jmc Exp $	*/
 
 /*
@@ -856,13 +857,13 @@ shf_smprintf(fmt, va_alist)
 #define ABIGNUM		32000	/* big numer that will fit in a short */
 #define LOG2_10		3.321928094887362347870319429	/* log base 2 of 10 */
 
-#define	FL_HASH		0x001	/* `#' seen */
-#define FL_PLUS		0x002	/* `+' seen */
-#define FL_RIGHT	0x004	/* `-' seen */
-#define FL_BLANK	0x008	/* ` ' seen */
-#define FL_SHORT	0x010	/* `h' seen */
-#define FL_LONG		0x020	/* `l' seen */
-#define FL_ZERO		0x040	/* `0' seen */
+#define	FL_HASH		0x001	/* '#' seen */
+#define FL_PLUS		0x002	/* '+' seen */
+#define FL_RIGHT	0x004	/* '-' seen */
+#define FL_BLANK	0x008	/* ' ' seen */
+#define FL_SHORT	0x010	/* 'h' seen */
+#define FL_LONG		0x020	/* 'l' seen */
+#define FL_ZERO		0x040	/* '0' seen */
 #define FL_DOT		0x080	/* '.' seen */
 #define FL_UPPER	0x100	/* format character was uppercase */
 #define FL_NUMBER	0x200	/* a number was formated %[douxefg] */
@@ -1176,7 +1177,7 @@ shf_vfprintf(shf, fmt, args)
 				(void) memcpy(s, p, precision);
 				s += precision;
 				/*
-				 *	`g' format strips trailing
+				 *	'g' format strips trailing
 				 *  zeros after the decimal.
 				 */
 				if (c == 'g' && !(flags & FL_HASH)) {

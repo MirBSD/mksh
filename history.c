@@ -1,4 +1,4 @@
-/*	$MirBSD: history.c,v 1.6 2003/05/22 14:06:07 tg Exp $	*/
+/*	$MirBSD: history.c,v 1.7 2004/04/17 00:47:18 tg Exp $	*/
 /*	$OpenBSD: history.c,v 1.22 2003/05/18 01:02:42 jsyn Exp $	*/
 
 /*
@@ -980,7 +980,7 @@ hist_shrink(oldbase, oldbytes)
 
 
 /*
- *	find a pointer to the data `no' back from the end of the file
+ *	find a pointer to the data 'no' back from the end of the file
  *	return the pointer and the number of bytes left
  */
 static unsigned char *

@@ -1,3 +1,4 @@
+/*	$MirBSD: expr.c,v 1.2 2004/04/17 00:47:18 tg Exp $	*/
 /*	$OpenBSD: expr.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -245,15 +246,15 @@ evalerr(es, type, str)
 		default:
 			s = opinfo[(int)es->tok].name;
 		}
-		warningf(TRUE, "%s: unexpected `%s'", es->expression, s);
+		warningf(TRUE, "%s: unexpected '%s'", es->expression, s);
 		break;
 
 	case ET_BADLIT:
-		warningf(TRUE, "%s: bad number `%s'", es->expression, str);
+		warningf(TRUE, "%s: bad number '%s'", es->expression, str);
 		break;
 
 	case ET_RECURSIVE:
-		warningf(TRUE, "%s: expression recurses on parameter `%s'",
+		warningf(TRUE, "%s: expression recurses on parameter '%s'",
 			es->expression, str);
 		break;
 

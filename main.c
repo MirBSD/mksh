@@ -1,3 +1,4 @@
+/*	$MirBSD: main.c,v 1.2 2004/04/17 00:47:19 tg Exp $	*/
 /*	$OpenBSD: main.c,v 1.26 2004/01/08 05:43:14 jmc Exp $	*/
 
 /*
@@ -612,7 +613,7 @@ shell(s, toplevel)
 		t = compile(s);
 		if (t != NULL && t->type == TEOF) {
 			if (wastty && Flag(FIGNOREEOF) && --attempts > 0) {
-				shellf("Use `exit' to leave ksh\n");
+				shellf("Use 'exit' to leave ksh\n");
 				s->type = SSTDIN;
 			} else if (wastty && !really_exit
 				   && j_stopped_running())

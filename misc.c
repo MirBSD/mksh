@@ -1,4 +1,4 @@
-/*	$MirBSD: misc.c,v 1.5 2003/12/23 13:41:50 tg Exp $	*/
+/*	$MirBSD: misc.c,v 1.6 2004/04/17 00:47:19 tg Exp $	*/
 /*	$OpenBSD: misc.c,v 1.20 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -443,7 +443,7 @@ parse_args(argv, what, setargsp)
 					break;
 				}
 			if (i == NELEM(options)) {
-				internal_errorf(1, "parse_args: `%c'", optc);
+				internal_errorf(1, "parse_args: '%c'", optc);
 				return -1; /* not reached */
 			}
 		}
@@ -1029,7 +1029,7 @@ ksh_getopt(argv, go, options)
 				go->optarg = go->buf;
 				return ':';
 			}
-			warningf(TRUE, "%s%s-`%c' requires argument",
+			warningf(TRUE, "%s%s-'%c' requires argument",
 				(go->flags & GF_NONAME) ? "" : argv[0],
 				(go->flags & GF_NONAME) ? "" : ": ", c);
 			if (go->flags & GF_ERROR)

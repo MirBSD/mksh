@@ -1,3 +1,4 @@
+/*	$MirBSD: lex.c,v 1.2 2004/04/17 00:47:19 tg Exp $	*/
 /*	$OpenBSD: lex.c,v 1.18 2003/08/06 21:08:05 millert Exp $	*/
 
 /*
@@ -126,7 +127,7 @@ yylex(cf)
 #ifdef KSH
 	else if (cf&LETEXPR) {
 		*wp++ = OQUOTE;	 /* enclose arguments in (double) quotes */
-		state = SLETPAREN;	
+		state = SLETPAREN;
 		statep->ls_sletparen.nparen = 0;
 	}
 #endif /* KSH */
@@ -467,7 +468,7 @@ yylex(cf)
 						statep->ls_scsparen.csstate = 0;
 						state = statep->ls_state
 							= SCSPAREN;
-						
+
 					}
 				}
 			}
@@ -827,7 +828,7 @@ readhere(iop)
 		ungetsc(c);
 		while ((c = getsc()) != '\n') {
 			if (c == 0)
-				yyerror("here document `%s' unclosed\n", eof);
+				yyerror("here document '%s' unclosed\n", eof);
 			Xcheck(xs, xp);
 			Xput(xs, xp, c);
 		}
