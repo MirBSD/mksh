@@ -1,4 +1,4 @@
-/**	$MirBSD: sh.h,v 1.15 2004/10/28 11:53:43 tg Exp $ */
+/**	$MirBSD: sh.h,v 1.16 2004/10/28 16:49:13 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.18 2004/05/31 10:36:35 otto Exp $	*/
 
 #ifndef SH_H
@@ -352,7 +352,7 @@ typedef INT32 Tflag;
 #ifndef PATH_MAX
 #define	PATH_MAX 1024		/* pathname size (todo: pathconf()) */
 #endif
-#define ARRAYMAX 2047		/* max array index */
+#define ARRAYMAX 4095		/* max array index */
 
 EXTERN	const char *kshname;	/* $0 */
 EXTERN	pid_t	kshpid;		/* $$, shell pid */

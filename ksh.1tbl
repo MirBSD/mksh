@@ -1,4 +1,4 @@
-.\" $MirBSD: ksh.1tbl,v 1.33 2004/10/28 16:35:02 tg Exp $
+.\" $MirBSD: ksh.1tbl,v 1.34 2004/10/28 16:49:13 tg Exp $
 .\" $OpenBSD: ksh.1tbl,v 1.72 2004/08/07 16:46:58 millert Exp $
 .\"
 .\" Copyright (c) 1980, 1990, 1993
@@ -1068,8 +1068,8 @@ form
 where
 .Ar expr
 is an arithmetic expression.
-Array indices are currently limited to the range 0 through 2047 (for
-.Nm mirbsdksh )
+Array indices are currently limited to the range 0 through 4095 (for
+.Nm mksh )
 or 1023 (for
 .Nm pdksh ) ,
 inclusive.
