@@ -56,7 +56,7 @@ description:
 	Simple test, IFS=<white-space>:
 stdin:
 	showargs() { for i; do echo -n " <$i>"; done; echo; }
-	IFS="IFS:"
+	IFS="$IFS:"
 	set --
 	showargs 1 $*
 	showargs 2 "$*"
@@ -77,7 +77,7 @@ description:
 	At&t ksh fails this, POSIX says the test is correct.
 stdin:
 	showargs() { for i; do echo -n " <$i>"; done; echo; }
-	IFS="IFS:"
+	IFS="$IFS:"
 	set --
 	showargs :"$@"
 expected-stdout:
@@ -90,7 +90,7 @@ description:
 	pdksh fails both of these tests
 stdin:
 	showargs() { for i; do echo -n " <$i>"; done; echo; }
-	IFS="IFS:"
+	IFS="$IFS:"
 	x=
 	set --
 	showargs "$x$@"
@@ -106,7 +106,7 @@ description:
 	Simple test, IFS=<white-space>:
 stdin:
 	showargs() { for i; do echo -n " <$i>"; done; echo; }
-	IFS="IFS:"
+	IFS="$IFS:"
 	set --
 	showargs "$@$@"
 expected-stdout:
@@ -119,7 +119,7 @@ description:
 	Don't know what POSIX thinks of this.  at&t ksh does not do this.
 stdin:
 	showargs() { for i; do echo -n " <$i>"; done; echo; }
-	IFS="IFS:"
+	IFS="$IFS:"
 	set --
 	showargs "${@:-}"
 expected-stdout:
