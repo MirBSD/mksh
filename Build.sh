@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: src/bin/ksh/Build.sh,v 2.1 2004/12/10 18:09:40 tg Exp $
+# $MirBSD: src/bin/ksh/Build.sh,v 2.2 2004/12/13 17:33:35 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <tg@66h.42h.de>
@@ -20,27 +20,18 @@
 # of this work, even if advised of the possibility of such damage.
 #-
 # Build the more or less portable mksh on most (non-MirBSD) UNIX®ish
-# operating systems.
-# Notes for building on various operating systems:
+# operating systems. Building on various operating systems:
 # - Solaris: SHELL=ksh LDFLAGS=-ldl WEIRD_OS=1 sh ./Build.sh
 # - Interix: SHELL=ksh sh ./Build.sh (also on GNU and most *BSD)
 # - Mac OSX: SHELL=bash WEIRD_OS=1 sh ./Build.sh
 #
 # Explicit note: you _have_ to use a "modern" bourne-compatible pre-
 # installed shell to execute the build script, such as the GNU bash,
-# PDKSH or any AT&T KSH. Explicit notice to Debian GNU/Some*nix pak-
+# PDKSH or AT&T KSH; Solaris /usr/xpg4/bin/sh works as well; Solaris
+# /bin/sh, zsh or non-bourne (csh, bsh) won't do. Rebuild afterwards
+# with mksh (suggested). Explicit notice to Debian GNU/Some*nix pak-
 # kagers: you also have to set SHELL=/path/to/yourshell in the envi-
 # ronment of the script, as shown above.
-# Shells known to work:
-# - mirbsdksh, pdksh 5.2
-# - GNU bash 2.05*
-# - Solaris /usr/xpg4/bin/sh
-# Shells which should work:
-# - AT&T ast-ksh (88 and 93)
-# Shells known to *not* work:
-# - Solaris /bin/sh (bourne non-POSIX)
-# - non-bourne (csh, bsh, ...)
-# - zsh
 
 SHELL="${SHELL:-/bin/sh}"; export SHELL
 CONFIG_SHELL="${SHELL}"; export CONFIG_SHELL
