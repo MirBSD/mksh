@@ -1,4 +1,5 @@
-/*	$OpenBSD: ksh_stat.h,v 1.3 1996/10/01 02:05:39 downsj Exp $	*/
+/* $MirBSD: ksh_stat.h,v 1.2 2004/05/24 17:25:43 tg Exp $ */
+/* $OpenBSD: ksh_stat.h,v 1.3 1996/10/01 02:05:39 downsj Exp $	*/
 
 /* Wrapper around the ugly sys/stat includes/ifdefs */
 
@@ -8,6 +9,12 @@
 #ifndef HAVE_LSTAT
 # define lstat(path, buf)	stat(path, buf)
 #endif /* HAVE_LSTAT */
+
+#if defined(S_ISSOCK) && defined(S_IFIFO)
+# if S_ISSOCK (S_IFIFO)
+#  define STAT_MACROS_BROKEN
+# endif
+#endif
 
 #ifdef STAT_MACROS_BROKEN
 # undef S_ISREG

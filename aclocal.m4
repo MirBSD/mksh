@@ -1173,51 +1173,6 @@ fi
 ])
 dnl
 dnl
-dnl Modified test from autoconf's acspecific.m4(AC_HEADER_STAT) test: need
-dnl to check if S_ISSOCK == S_ISFIFO (FreeBSD).
-undefine([AC_HEADER_STAT])dnl
-AC_DEFUN(AC_HEADER_STAT,
-[AC_CACHE_CHECK(whether stat file-mode macros are broken,
-  ac_cv_header_stat_broken,
-[AC_EGREP_CPP([You lose], [#include <sys/types.h>
-#include <sys/stat.h>
-
-#if defined(S_ISBLK) && defined(S_IFDIR)
-# if S_ISBLK (S_IFDIR)
-You lose.
-# endif
-#endif
-
-#if defined(S_ISBLK) && defined(S_IFCHR)
-# if S_ISBLK (S_IFCHR)
-You lose.
-# endif
-#endif
-
-#if defined(S_ISLNK) && defined(S_IFREG)
-# if S_ISLNK (S_IFREG)
-You lose.
-# endif
-#endif
-
-#if defined(S_ISSOCK) && defined(S_IFREG)
-# if S_ISSOCK (S_IFREG)
-You lose.
-# endif
-#endif
-
-#if defined(S_ISSOCK) && defined(S_IFIFO)
-# if S_ISSOCK (S_IFIFO)
-You lose.
-# endif
-#endif
-], ac_cv_header_stat_broken=yes, ac_cv_header_stat_broken=no)])
-if test $ac_cv_header_stat_broken = yes; then
-  AC_DEFINE(STAT_MACROS_BROKEN)
-fi
-])
-dnl
-dnl
 dnl Need to change to check for ndir
 dnl
 undefine([AC_HEADER_DIRENT])dnl
