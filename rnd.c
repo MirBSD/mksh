@@ -1,4 +1,4 @@
-/* $MirBSD: rnd.c,v 1.5 2004/06/02 15:06:50 tg Exp $
+/* $MirBSD: rnd.c,v 1.6 2004/08/06 23:03:57 tg Exp $
  *-
  * Copyright (c) 2004
  *	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -41,9 +41,8 @@ long
 rnd_get(void)
 {
 #ifdef	HAVE_ARC4RANDOM
-	if (!rnd_state) {
+	if (!rnd_state)
 		return arc4random() & 0x7FFF;
-	} else
 #endif
 #ifdef	HAVE_RANDOM
 	return random() & 0x7FFF;
