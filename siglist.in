@@ -1,4 +1,4 @@
-# $MirBSD: src/bin/ksh/siglist.in,v 1.1 2004/12/10 18:08:08 tg Exp $
+# $MirBSD: src/bin/ksh/siglist.in,v 2.1 2004/12/10 18:09:42 tg Exp $
 # $OpenBSD: siglist.in,v 1.1.1.1 1996/08/14 06:19:11 downsj Exp $
 #
 # List of signals used to initialize ksh's signal table (see trap.c

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/eval.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/eval.c,v 2.1 2004/12/10 18:09:41 tg Exp $ */
 /*	$OpenBSD: eval.c,v 1.16 2004/12/08 21:23:18 millert Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include "ksh_dir.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/eval.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/eval.c,v 2.1 2004/12/10 18:09:41 tg Exp $");
 
 /*
  * string expansion

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/version.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/version.c,v 2.1 2004/12/10 18:09:42 tg Exp $ */
 /*	$OpenBSD: version.c,v 1.12 1999/07/14 13:37:24 millert Exp $	*/
 
 /*-
@@ -26,7 +26,7 @@
 #include "sh.h"
 
 const char ksh_version[] =
-	"@(#)PD KSH v5.2.14 MirOS R18 in "
+	"@(#)PD KSH v5.2.14 MirOS R19 in "
 #ifdef MIRBSD_NATIVE
 	"native "
 #endif

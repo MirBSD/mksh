@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/ksh_limval.h,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/ksh_limval.h,v 2.1 2004/12/10 18:09:41 tg Exp $ */
 /*	$OpenBSD: ksh_limval.h,v 1.1.1.1 1996/08/14 06:19:11 downsj Exp $	*/
 
 #ifndef KSH_LIMVAL_H

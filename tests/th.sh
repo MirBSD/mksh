@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: src/bin/ksh/tests/th.sh,v 1.1 2004/12/10 18:08:08 tg Exp $
+# $MirBSD: src/bin/ksh/tests/th.sh,v 2.1 2004/12/10 18:09:45 tg Exp $
 # $OpenBSD: th.sh,v 1.4 2001/01/28 23:04:57 niklas Exp $
 #
 # Simple script to find perl and run it

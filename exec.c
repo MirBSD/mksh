@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/exec.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/exec.c,v 2.1 2004/12/10 18:09:41 tg Exp $ */
 /*	$OpenBSD: exec.c,v 1.31 2003/12/15 05:25:52 otto Exp $	*/
 
 /*
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/exec.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/exec.c,v 2.1 2004/12/10 18:09:41 tg Exp $");
 
 /* Does ps4 get parameter substitutions done? */
 #ifdef KSH

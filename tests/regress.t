@@ -1,4 +1,4 @@
-# $MirBSD: src/bin/ksh/tests/regress.t,v 1.1 2004/12/10 18:08:08 tg Exp $
+# $MirBSD: src/bin/ksh/tests/regress.t,v 2.1 2004/12/10 18:09:45 tg Exp $
 # $OpenBSD: regress.t,v 1.12 2003/11/08 19:17:27 jmc Exp $
 #
 # The first 39 of these tests are from the old Bugs script.

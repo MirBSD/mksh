@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/alloc.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/alloc.c,v 2.1 2004/12/10 18:09:40 tg Exp $ */
 /*	$OpenBSD: alloc.c,v 1.7 2004/02/19 18:51:17 deraadt Exp $	*/
 
 /*

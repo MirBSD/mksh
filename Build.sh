@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: src/bin/ksh/Build.sh,v 1.1 2004/12/10 18:08:08 tg Exp $
+# $MirBSD: src/bin/ksh/Build.sh,v 2.1 2004/12/10 18:09:40 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <tg@66h.42h.de>

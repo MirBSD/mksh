@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/tree.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/tree.c,v 2.1 2004/12/10 18:09:42 tg Exp $ */
 /*	$OpenBSD: tree.c,v 1.10 2002/02/27 19:37:09 dhartmei Exp $	*/
 
 /*
@@ -7,7 +7,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirBSD: src/bin/ksh/tree.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/tree.c,v 2.1 2004/12/10 18:09:42 tg Exp $");
 
 #define INDENT	4
 

@@ -1,4 +1,4 @@
-$MirBSD: src/bin/ksh/CONTRIBUTORS,v 1.1 2004/12/10 18:08:08 tg Exp $
+$MirBSD: src/bin/ksh/CONTRIBUTORS,v 2.1 2004/12/10 18:09:40 tg Exp $
 $OpenBSD: CONTRIBUTORS,v 1.9 1999/07/14 13:37:23 millert Exp $
 
 This is a partial history of this shell gleened from old change logs and

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/syn.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/syn.c,v 2.1 2004/12/10 18:09:42 tg Exp $ */
 /*	$OpenBSD: syn.c,v 1.14 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include "c_test.h"
 
-__RCSID("$MirBSD: src/bin/ksh/syn.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/syn.c,v 2.1 2004/12/10 18:09:42 tg Exp $");
 
 struct nesting_state {
 	int	start_token;	/* token than began nesting (eg, FOR) */
