@@ -1,4 +1,4 @@
-.\"	$MirBSD: ksh.1tbl,v 1.5 2003/06/09 01:03:48 tg Exp $
+.\"	$MirBSD: ksh.1tbl,v 1.6 2003/06/14 11:51:40 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.53 2003/06/06 10:05:52 jmc Exp $
 .\"
 .\" Copyright (c) 1980, 1990, 1993
@@ -449,20 +449,20 @@ are only recognized if they are unquoted and if they are used as the first
 word of a command (i.e., they can't be preceded by parameter assignments or
 redirections):
 .Pp
-.TS
-center;
-lfB lfB lfB lfB lfB .
-case    else    function        then    !
-do      esac    if      time    [[
-done    fi      in      until   {
-elif    for     select  while   }
-.TE
+.\" .TS
+.\" center;
+.\" lfB lfB lfB lfB lfB .
+.\" case    else    function        then    !
+.\" do      esac    if      time    [[
+.\" done    fi      in      until   {
+.\" elif    for     select  while   }
+.\" .TE
 .\"
-.\".Ic case , do , done , elif ,
-.\".Ic else , esac , fi , for ,
-.\".Ic function , if , in , select ,
-.\".Ic then , time , until , while ,
-.\".Ic \&! , \&[\&[ , \&{ , \&}
+.Ic case , do , done , elif ,
+.Ic else , esac , fi , for ,
+.Ic function , if , in , select ,
+.Ic then , time , until , while ,
+.Ic \&! , \&[\&[ , \&{ , \&}
 .Pp
 .Sy Note:
 Some shells (but not this one) execute control structure commands in a
