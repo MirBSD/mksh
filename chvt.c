@@ -1,4 +1,4 @@
-/**	$MirBSD: chvt.c,v 1.3 2004/11/10 20:08:21 tg Exp $ */
+/**	$MirBSD: chvt.c,v 1.4 2004/12/05 16:10:58 tg Exp $ */
 
 /*-
  * Copyright (c) 2004
@@ -17,15 +17,14 @@
  * licious intent or gross negligence; in no event shall licensor, an
  * author or contributor be held liable for any damage, direct, indi-
  * rect or other, however caused, arising in any way out of the usage
- * of covered work, even if advised of the possibility of such damage.
+ * of this work, even if advised of the possibility of such damage.
  */
 
 #include "sh.h"
 #include <sys/ioctl.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: chvt.c,v 1.3 2004/11/10 20:08:21 tg Exp $");
-
+__RCSID("$MirBSD: chvt.c,v 1.4 2004/12/05 16:10:58 tg Exp $");
 
 char *
 chvt(char *f)

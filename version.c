@@ -1,4 +1,4 @@
-/**	$MirBSD: version.c,v 1.16 2004/11/10 17:22:13 tg Exp $ */
+/**	$MirBSD: version.c,v 1.17 2004/12/05 16:10:58 tg Exp $ */
 /*	$OpenBSD: version.c,v 1.12 1999/07/14 13:37:24 millert Exp $	*/
 
 /*-
@@ -18,7 +18,7 @@
  * licious intent or gross negligence; in no event shall licensor, an
  * author or contributor be held liable for any damage, direct, indi-
  * rect or other, however caused, arising in any way out of the usage
- * of covered work, even if advised of the possibility of such damage.
+ * of this work, even if advised of the possibility of such damage.
  *-
  * value of $KSH_VERSION (or $SH_VERSION)
  */
@@ -26,7 +26,7 @@
 #include "sh.h"
 
 const char ksh_version[] =
-	"@(#)PD KSH v5.2.14 MirOS $Revision: 1.16 $ in "
+	"@(#)PD KSH v5.2.14 MirOS $Revision: 1.17 $ in "
 #ifdef MIRBSD_NATIVE
 	"native "
 #endif
