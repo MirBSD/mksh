@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: src/bin/ksh/Build.sh,v 2.4 2004/12/18 18:58:30 tg Exp $
+# $MirBSD: src/bin/ksh/Build.sh,v 2.5 2004/12/31 19:24:20 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <tg@66h.42h.de>
@@ -41,15 +41,13 @@ COPTS="-O2 -fomit-frame-pointer -fno-strict-aliasing -fno-strength-reduce"
 [ -z "$WEIRD_OS" ] && LDFLAGS="${LDFLAGS:--static}"
 
 if test -e strlfun.c; then
-	echo "Preparing testsuite..."
-	for hdr in errno signal; do
-		h2ph -d . /usr/include/$hdr.h && mv _h2ph_pre.ph $hdr.ph
-	done
 	echo "Configuring..."
 	$SHELL ./configure
 	echo "Generating prerequisites..."
-	$SHELL ./siglist.sh "$CC -E $CPPFLAGS" <siglist.in >siglist.out
 	$SHELL ./emacs-gen.sh emacs.c >emacs.out
+	for hdr in errno signal; do
+		h2ph -d . /usr/include/$hdr.h && mv _h2ph_pre.ph $hdr.ph
+	done
 	echo "Building..."
 	$CC $COPTS $CFLAGS $CPPFLAGS $LDFLAGS -o mksh *.c
 	test -e mksh || exit 1

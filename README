@@ -1,4 +1,4 @@
-$MirBSD: src/bin/ksh/README,v 2.3 2004/12/13 18:53:25 tg Exp $
+$MirBSD: src/bin/ksh/README,v 2.4 2004/12/31 19:24:20 tg Exp $
 
 This is the README for mirbsdksh, developed as part of the MirBSD
 operating system at The MirOS Project, and produced portably.
@@ -19,9 +19,7 @@ This package as a whole is placed under the MirOS licence template
 as contained in the "Build.sh" source file in this distribution,
 by having the project leader asserting a collective copyright.
 
-The files alloc.c (Marc Espie), ksh.1tbl and sh.1tbl (University of
-California, Berkeley) are provided under a 2-clause or 3-clause BSD
-licence, respectively.
+The file alloc.c by Marc Espie is provided under a 2-clause BSD licence.
 
 All files from the original pdksh distribution which were not public
 domain have been removed from the source tree, with the exception of

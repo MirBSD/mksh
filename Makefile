@@ -1,4 +1,4 @@
-# $MirBSD: src/bin/ksh/Makefile,v 2.4 2004/12/18 18:58:30 tg Exp $
+# $MirBSD: src/bin/ksh/Makefile,v 2.5 2004/12/31 19:24:20 tg Exp $
 # $OpenBSD: Makefile,v 1.18 2004/02/16 19:07:19 deraadt Exp $
 
 PROG=	ksh
@@ -9,18 +9,13 @@ MAN=	ksh.1tbl sh.1tbl
 
 CPPFLAGS+=	-DHAVE_CONFIG_H -I. -DMIRBSD_NATIVE
 CFLAGS+=	-Wall -Werror -W -pedantic
-CLEANFILES+=	siglist.out emacs.out
+CLEANFILES+=	emacs.out
 
 LINKS=	${BINDIR}/ksh ${BINDIR}/rksh
 LINKS+=	${BINDIR}/ksh ${BINDIR}/sh
 MLINKS=	ksh.1 rksh.1 ksh.1 ulimit.1
 
-.depend trap.o: siglist.out
 .depend emacs.o: emacs.out
-
-siglist.out: config.h sh.h siglist.in siglist.sh
-	${SHELL} ${.CURDIR}/siglist.sh \
-	    "${CC} -E ${CPPFLAGS}" <${.CURDIR}/siglist.in >siglist.out
 
 emacs.out: emacs.c
 	${SHELL} ${.CURDIR}/emacs-gen.sh ${.CURDIR}/emacs.c >emacs.out
