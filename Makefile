@@ -1,4 +1,4 @@
-# $MirBSD: src/bin/ksh/Makefile,v 2.1 2004/12/10 18:09:40 tg Exp $
+# $MirBSD: src/bin/ksh/Makefile,v 2.2 2004/12/13 16:50:50 tg Exp $
 # $OpenBSD: Makefile,v 1.18 2004/02/16 19:07:19 deraadt Exp $
 
 PROG=	ksh
@@ -26,8 +26,8 @@ siglist.out: config.h sh.h siglist.in siglist.sh
 emacs.out: emacs.c
 	${SHELL} ${.CURDIR}/emacs-gen.sh ${.CURDIR}/emacs.c >emacs.out
 
-check test:
-	${SHELL} ${.CURDIR}/tests/th.sh ${.CURDIR}/tests/th \
-	    -s ${.CURDIR}/tests -p ./ksh -C pdksh,sh,ksh,posix,posix-upu
+check:
+	/usr/bin/perl ${.CURDIR}/tests/th -s ${.CURDIR}/tests \
+	    -p ./ksh -C pdksh,sh,ksh,posix,posix-upu
 
 .include <bsd.prog.mk>
