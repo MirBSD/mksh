@@ -1,4 +1,4 @@
-/* $MirBSD: config.h,v 1.10 2004/05/24 19:56:00 tg Exp $ */
+/* $MirBSD: config.h,v 1.11 2004/06/03 12:30:38 tg Stab $ */
 /* $OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -313,6 +313,9 @@
 
 /* Define if you have the <stddef.h> header file.  */
 #define HAVE_STDDEF_H 1
+
+/* Define if you have the <stdint.h> header file.  */
+#define HAVE_STDINT_H 1
 
 /* Define if you have the <stdlib.h> header file.  */
 #define HAVE_STDLIB_H 1
