@@ -1,4 +1,5 @@
-/*	$OpenBSD: edit.c,v 1.16 2003/05/05 22:02:33 fgsch Exp $	*/
+/*	$MirBSD: edit.c,v 1.3 2003/06/29 19:45:40 tg Exp $	*/
+/*	$OpenBSD: edit.c,v 1.17 2003/06/26 00:09:45 deraadt Exp $	*/
 
 /*
  * Command line editing - common code
@@ -629,6 +630,8 @@ struct path_order_info {
 	int base;
 	int path_order;
 };
+
+static int path_order_cmp(const void *aa, const void *bb);
 
 /* Compare routine used in x_command_glob() */
 static int
