@@ -21,19 +21,19 @@ by the creation or modification of this work. Since modern computing
 devices are error-prone, flawless behaviour cannot be expected.
 
 
-This diff, ID $MirBSD: obsd.diff,v 1.13 2003/01/24 16:24:59 tg Exp $
+This diff, ID $MirBSD: obsd.diff,v 1.14 2003/01/26 13:10:24 tg Exp $
 (/usr/ports/mystuff/diff-metafiles to obsd.diff) is made
-against CTM on Fri Jan 24 16:21:56 UTC 2003.
+against CTM on Sun Jan 26 12:58:06 UTC 2003.
 
 ### GENERATOR: @(#)_MirBSD: regen-obsdp.sh,v 1.6 2003/01/21 19:56:49 tg Exp $
-### CTM OpenBSD-cvs 2971
+### CTM OpenBSD-cvs 2976
 Index: src/bin/csh/csh.1
 ===================================================================
 RCS file: /cvs/src/bin/csh/csh.1,v
 retrieving revision 1.42
 diff -u -r1.42 csh.1
 --- src/bin/csh/csh.1	13 Nov 2001 13:59:53 -0000	1.42
-+++ src/bin/csh/csh.1	21 Jan 2003 20:14:21 -0000
++++ src/bin/csh/csh.1	24 Jan 2003 16:25:25 -0000
 @@ -1839,6 +1839,9 @@
  .Ar cputime
  (the maximum
@@ -50,7 +50,7 @@ RCS file: /cvs/src/bin/csh/func.c,v
 retrieving revision 1.15
 diff -u -r1.15 func.c
 --- src/bin/csh/func.c	9 Jun 2002 05:47:05 -0000	1.15
-+++ src/bin/csh/func.c	21 Jan 2003 20:14:21 -0000
++++ src/bin/csh/func.c	24 Jan 2003 16:25:25 -0000
 @@ -1156,6 +1156,7 @@
      { RLIMIT_MEMLOCK,	"memorylocked",	1024,	"kbytes" },
      { RLIMIT_NPROC,	"maxproc",	1,	"" },
@@ -118,7 +118,7 @@ RCS file: /cvs/src/bin/ksh/c_ulimit.c,v
 retrieving revision 1.9
 diff -u -r1.9 c_ulimit.c
 --- src/bin/ksh/c_ulimit.c	9 Jun 2002 05:47:05 -0000	1.9
-+++ src/bin/ksh/c_ulimit.c	21 Jan 2003 20:14:21 -0000
++++ src/bin/ksh/c_ulimit.c	24 Jan 2003 16:25:25 -0000
 @@ -56,6 +56,9 @@
  #ifdef RLIMIT_CPU
  		{ "time(cpu-seconds)", RLIMIT, RLIMIT_CPU, RLIMIT_CPU, 1, 't' },
@@ -129,13 +129,31 @@ diff -u -r1.9 c_ulimit.c
  #ifdef RLIMIT_FSIZE
  		{ "file(blocks)", RLIMIT, RLIMIT_FSIZE, RLIMIT_FSIZE, 512, 'f' },
  #else /* RLIMIT_FSIZE */
+Index: src/bin/ksh/history.c
+===================================================================
+RCS file: /cvs/src/bin/ksh/history.c,v
+retrieving revision 1.16
+diff -u -r1.16 history.c
+--- src/bin/ksh/history.c	27 Nov 2002 20:53:03 -0000	1.16
++++ src/bin/ksh/history.c	26 Jan 2003 11:36:04 -0000
+@@ -1017,8 +1017,8 @@
+ 	register int bytes;
+ {
+ 	State state;
+-	int	lno;
+-	unsigned char	*line;
++	int	lno = 0;
++	unsigned char	*line = NULL;
+ 
+ 	for (state = shdr; bytes-- > 0; base++) {
+ 		switch (state) {
 Index: src/bin/ksh/ksh.1tbl
 ===================================================================
 RCS file: /cvs/src/bin/ksh/ksh.1tbl,v
 retrieving revision 1.48
 diff -u -r1.48 ksh.1tbl
 --- src/bin/ksh/ksh.1tbl	18 Sep 2002 07:33:25 -0000	1.48
-+++ src/bin/ksh/ksh.1tbl	21 Jan 2003 20:14:21 -0000
++++ src/bin/ksh/ksh.1tbl	24 Jan 2003 16:25:25 -0000
 @@ -4018,6 +4018,11 @@
  .Ar n
  .Tn CPU
@@ -154,7 +172,7 @@ RCS file: /cvs/src/distrib/Makefile,v
 retrieving revision 1.21
 diff -u -r1.21 Makefile
 --- src/distrib/Makefile	31 Dec 2002 16:22:00 -0000	1.21
-+++ src/distrib/Makefile	21 Jan 2003 20:14:21 -0000
++++ src/distrib/Makefile	24 Jan 2003 16:25:25 -0000
 @@ -1,23 +1,14 @@
  #	$OpenBSD: Makefile,v 1.21 2002/12/31 16:22:22 miod Exp $
  
@@ -186,7 +204,7 @@ RCS file: /cvs/src/distrib/sets/lists/base/md.i386,v
 retrieving revision 1.344
 diff -u -r1.344 md.i386
 --- src/distrib/sets/lists/base/md.i386	15 Jan 2003 15:05:09 -0000	1.344
-+++ src/distrib/sets/lists/base/md.i386	21 Jan 2003 20:14:21 -0000
++++ src/distrib/sets/lists/base/md.i386	24 Jan 2003 16:25:25 -0000
 @@ -33,47 +33,6 @@
  ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/cpp0
  ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include
@@ -601,7 +619,7 @@ RCS file: /cvs/src/distrib/sets/lists/base/mi,v
 retrieving revision 1.255
 diff -u -r1.255 mi
 --- src/distrib/sets/lists/base/mi	20 Jan 2003 22:10:45 -0000	1.255
-+++ src/distrib/sets/lists/base/mi	21 Jan 2003 20:14:21 -0000
++++ src/distrib/sets/lists/base/mi	24 Jan 2003 16:25:25 -0000
 @@ -45,7 +45,6 @@
  ./dev
  ./dev/MAKEDEV
@@ -2029,20 +2047,24 @@ RCS file: /cvs/src/distrib/sets/lists/comp/md.i386,v
 retrieving revision 1.88
 diff -u -r1.88 md.i386
 --- src/distrib/sets/lists/comp/md.i386	15 Jan 2003 15:05:09 -0000	1.88
-+++ src/distrib/sets/lists/comp/md.i386	21 Jan 2003 20:14:21 -0000
-@@ -63,9 +63,7 @@
++++ src/distrib/sets/lists/comp/md.i386	26 Jan 2003 12:49:06 -0000
+@@ -63,72 +63,18 @@
  ./usr/include/link.h
  ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/SYSCALLS.c.X
  ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/cc1
 -./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/cc1obj
- ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/cc1plus
+-./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/cc1plus
 -./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/f771
  ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/fpic
  ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/fpic/libgcc.a
  ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/README
-@@ -77,58 +75,11 @@
+-./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/exception
+ ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/float.h
+ ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/limits.h
+-./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/new
+-./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/new.h
  ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/syslimits.h
- ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/typeinfo
+-./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/include/typeinfo
  ./usr/lib/gcc-lib/i386-unknown-openbsd3.2/2.95.3/libgcc.a
 -./usr/lib/lib45_pic.a
 -./usr/lib/libacl_pic.a
@@ -2105,10 +2127,13 @@ RCS file: /cvs/src/distrib/sets/lists/comp/mi,v
 retrieving revision 1.362
 diff -u -r1.362 mi
 --- src/distrib/sets/lists/comp/mi	19 Jan 2003 03:39:50 -0000	1.362
-+++ src/distrib/sets/lists/comp/mi	21 Jan 2003 20:14:21 -0000
-@@ -5,12 +5,12 @@
- ./usr/bin/c++
- ./usr/bin/c++filt
++++ src/distrib/sets/lists/comp/mi	26 Jan 2003 12:48:25 -0000
+@@ -2,15 +2,12 @@
+ ./usr/bin/ar
+ ./usr/bin/as
+ ./usr/bin/asa
+-./usr/bin/c++
+-./usr/bin/c++filt
  ./usr/bin/cc
 -./usr/bin/f77
 +./usr/bin/crunchgen
@@ -2116,12 +2141,12 @@ diff -u -r1.362 mi
  ./usr/bin/flex
  ./usr/bin/flex++
  ./usr/bin/fpr
- ./usr/bin/g++
+-./usr/bin/g++
 -./usr/bin/g77
  ./usr/bin/gcc
  ./usr/bin/gcov
  ./usr/bin/gprof
-@@ -889,32 +889,6 @@
+@@ -889,32 +886,6 @@
  ./usr/include/kerberosIV/krb_db.h
  ./usr/include/kerberosIV/krb_err.h
  ./usr/include/kerberosIV/prot.h
@@ -2154,7 +2179,7 @@ diff -u -r1.362 mi
  ./usr/include/keynote.h
  ./usr/include/kvm.h
  ./usr/include/langinfo.h
-@@ -1611,116 +1585,51 @@
+@@ -1611,116 +1582,51 @@
  ./usr/lib/crt0.o
  ./usr/lib/debug
  ./usr/lib/gcrt0.o
@@ -2271,15 +2296,21 @@ diff -u -r1.362 mi
  ./usr/libdata/lint/llib-lposix.ln
  ./usr/libdata/lint/llib-lstdc.ln
  ./usr/libexec/lint1
-@@ -1751,7 +1660,6 @@
- ./usr/share/man/cat1/c++.0
+@@ -1748,13 +1654,10 @@
+ ./usr/share/man/cat1/ar.0
+ ./usr/share/man/cat1/as.0
+ ./usr/share/man/cat1/asa.0
+-./usr/share/man/cat1/c++.0
  ./usr/share/man/cat1/cc.0
  ./usr/share/man/cat1/cccp.0
 -./usr/share/man/cat1/f77.0
  ./usr/share/man/cat1/flex.0
  ./usr/share/man/cat1/fpr.0
- ./usr/share/man/cat1/g++.0
-@@ -3513,12 +3421,6 @@
+-./usr/share/man/cat1/g++.0
+ ./usr/share/man/cat1/gcc-local.0
+ ./usr/share/man/cat1/gcc.0
+ ./usr/share/man/cat1/gprof.0
+@@ -3513,12 +3416,6 @@
  ./usr/share/man/cat3/jn.0
  ./usr/share/man/cat3/jnf.0
  ./usr/share/man/cat3/jrand48.0
@@ -2292,7 +2323,7 @@ diff -u -r1.362 mi
  ./usr/share/man/cat3/kerberos.0
  ./usr/share/man/cat3/keybound.0
  ./usr/share/man/cat3/keycrunch.0
-@@ -3554,114 +3456,6 @@
+@@ -3554,114 +3451,6 @@
  ./usr/share/man/cat3/kn_remove_authorizer.0
  ./usr/share/man/cat3/kn_sign_assertion.0
  ./usr/share/man/cat3/kn_verify_assertion.0
@@ -2407,7 +2438,7 @@ diff -u -r1.362 mi
  ./usr/share/man/cat3/krb_ck_repl.0
  ./usr/share/man/cat3/krb_get_admhst.0
  ./usr/share/man/cat3/krb_get_cred.0
-@@ -4707,18 +4501,6 @@
+@@ -4707,18 +4496,6 @@
  ./usr/share/man/cat3/y1f.0
  ./usr/share/man/cat3/yn.0
  ./usr/share/man/cat3/ynf.0
@@ -2432,7 +2463,7 @@ RCS file: /cvs/src/distrib/sets/lists/etc/mi,v
 retrieving revision 1.67
 diff -u -r1.67 mi
 --- src/distrib/sets/lists/etc/mi	16 Dec 2002 00:14:30 -0000	1.67
-+++ src/distrib/sets/lists/etc/mi	21 Jan 2003 20:14:21 -0000
++++ src/distrib/sets/lists/etc/mi	24 Jan 2003 16:25:26 -0000
 @@ -1,10 +1,5 @@
  ./.cshrc
  ./.profile
@@ -2520,7 +2551,7 @@ RCS file: /cvs/src/distrib/sets/lists/game/mi,v
 retrieving revision 1.14
 diff -u -r1.14 mi
 --- src/distrib/sets/lists/game/mi	23 May 2002 18:44:47 -0000	1.14
-+++ src/distrib/sets/lists/game/mi	21 Jan 2003 20:14:21 -0000
++++ src/distrib/sets/lists/game/mi	24 Jan 2003 16:25:26 -0000
 @@ -1,3 +1,5 @@
 +./usr/bin/dict
 +./usr/bin/tinyirc
@@ -2583,7 +2614,7 @@ RCS file: /cvs/src/distrib/sets/lists/man/md.i386,v
 retrieving revision 1.29
 diff -u -r1.29 md.i386
 --- src/distrib/sets/lists/man/md.i386	25 May 2000 21:56:28 -0000	1.29
-+++ src/distrib/sets/lists/man/md.i386	21 Jan 2003 20:14:21 -0000
++++ src/distrib/sets/lists/man/md.i386	24 Jan 2003 16:25:26 -0000
 @@ -1,4 +1,3 @@
 -./usr/share/man/cat1/ld.so.0
  ./usr/share/man/cat1/ldd.0
@@ -2595,7 +2626,7 @@ RCS file: /cvs/src/distrib/sets/lists/man/mi,v
 retrieving revision 1.417
 diff -u -r1.417 mi
 --- src/distrib/sets/lists/man/mi	22 Jan 2003 01:54:50 -0000	1.417
-+++ src/distrib/sets/lists/man/mi	24 Jan 2003 14:24:32 -0000
++++ src/distrib/sets/lists/man/mi	26 Jan 2003 12:49:22 -0000
 @@ -67,28 +67,6 @@
  ./usr/share/info/cvsclient.info-3
  ./usr/share/info/dc.info
@@ -2695,7 +2726,15 @@ diff -u -r1.417 mi
  ./usr/share/man/cat1/ksh.0
  ./usr/share/man/cat1/ktrace.0
  ./usr/share/man/cat1/lam.0
-@@ -405,7 +373,6 @@
+@@ -395,6 +363,7 @@
+ ./usr/share/man/cat1/nm.0
+ ./usr/share/man/cat1/nohup.0
+ ./usr/share/man/cat1/nroff.0
++./usr/share/man/cat1/nslookup.0
+ ./usr/share/man/cat1/od.0
+ ./usr/share/man/cat1/oldrdist.0
+ ./usr/share/man/cat1/olf2elf.0
+@@ -405,7 +374,6 @@
  ./usr/share/man/cat1/otp-sha1.0
  ./usr/share/man/cat1/page.0
  ./usr/share/man/cat1/pagesize.0
@@ -2703,7 +2742,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat1/passwd.0
  ./usr/share/man/cat1/paste.0
  ./usr/share/man/cat1/patch.0
-@@ -521,7 +488,6 @@
+@@ -521,7 +489,6 @@
  ./usr/share/man/cat1/psbb.0
  ./usr/share/man/cat1/psed.0
  ./usr/share/man/cat1/pstruct.0
@@ -2711,7 +2750,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat1/purgestat.0
  ./usr/share/man/cat1/pushd.0
  ./usr/share/man/cat1/pwd.0
-@@ -659,9 +625,6 @@
+@@ -659,9 +626,6 @@
  ./usr/share/man/cat1/xargs.0
  ./usr/share/man/cat1/xsubpp.0
  ./usr/share/man/cat1/yes.0
@@ -2721,7 +2760,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat1/yyfix.0
  ./usr/share/man/cat1/zcat.0
  ./usr/share/man/cat1/zcmp.0
-@@ -1483,13 +1446,8 @@
+@@ -1483,13 +1447,8 @@
  ./usr/share/man/cat4/zero.0
  ./usr/share/man/cat5
  ./usr/share/man/cat5/.rhosts.0
@@ -2735,7 +2774,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat5/aliases.0
  ./usr/share/man/cat5/alpha
  ./usr/share/man/cat5/bootparams.0
-@@ -1544,7 +1502,6 @@
+@@ -1544,7 +1503,6 @@
  ./usr/share/man/cat5/krb.equiv.0
  ./usr/share/man/cat5/krb.extra.0
  ./usr/share/man/cat5/krb.realms.0
@@ -2743,7 +2782,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat5/lastlog.0
  ./usr/share/man/cat5/link.0
  ./usr/share/man/cat5/login.conf.0
-@@ -1562,7 +1519,6 @@
+@@ -1562,7 +1520,6 @@
  ./usr/share/man/cat5/mvme88k
  ./usr/share/man/cat5/mvmeppc
  ./usr/share/man/cat5/netgroup.0
@@ -2751,7 +2790,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat5/networks.0
  ./usr/share/man/cat5/newsyslog.conf.0
  ./usr/share/man/cat5/passwd.0
-@@ -1578,7 +1534,6 @@
+@@ -1578,7 +1535,6 @@
  ./usr/share/man/cat5/resolver.0
  ./usr/share/man/cat5/rpc.0
  ./usr/share/man/cat5/rtadvd.conf.0
@@ -2759,7 +2798,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat5/services.0
  ./usr/share/man/cat5/shells.0
  ./usr/share/man/cat5/skey.0
-@@ -1603,7 +1558,6 @@
+@@ -1603,7 +1559,6 @@
  ./usr/share/man/cat5/vgrindefs.0
  ./usr/share/man/cat5/wsconsctl.conf.0
  ./usr/share/man/cat5/wtmp.0
@@ -2767,7 +2806,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat6
  ./usr/share/man/cat6/bs.0
  ./usr/share/man/cat6/cfscores.0
-@@ -1649,7 +1603,6 @@
+@@ -1649,7 +1604,6 @@
  ./usr/share/man/cat8/accton.0
  ./usr/share/man/cat8/activadm.0
  ./usr/share/man/cat8/activinit.0
@@ -2775,7 +2814,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat8/alpha
  ./usr/share/man/cat8/alpha/MAKEDEV.0
  ./usr/share/man/cat8/alpha/boot_alpha.0
-@@ -1676,7 +1629,6 @@
+@@ -1676,7 +1630,6 @@
  ./usr/share/man/cat8/bootpef.0
  ./usr/share/man/cat8/bootpgw.0
  ./usr/share/man/cat8/bootptest.0
@@ -2783,7 +2822,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat8/brconfig.0
  ./usr/share/man/cat8/ccdconfig.0
  ./usr/share/man/cat8/certpatch.0
-@@ -1713,7 +1665,6 @@
+@@ -1713,7 +1666,6 @@
  ./usr/share/man/cat8/dumpfs.0
  ./usr/share/man/cat8/editmap.0
  ./usr/share/man/cat8/edquota.0
@@ -2791,7 +2830,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat8/extattrctl.0
  ./usr/share/man/cat8/faithd.0
  ./usr/share/man/cat8/faq.0
-@@ -1751,8 +1702,6 @@
+@@ -1751,8 +1703,6 @@
  ./usr/share/man/cat8/hppa/wsconscfg.0
  ./usr/share/man/cat8/hppa/wsconsctl.0
  ./usr/share/man/cat8/hppa/wsfontload.0
@@ -2800,7 +2839,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat8/httpd.0
  ./usr/share/man/cat8/i386
  ./usr/share/man/cat8/i386/MAKEDEV.0
-@@ -1781,32 +1730,13 @@
+@@ -1781,32 +1731,13 @@
  ./usr/share/man/cat8/iostat.0
  ./usr/share/man/cat8/ipsecadm.0
  ./usr/share/man/cat8/isakmpd.0
@@ -2833,7 +2872,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat8/login_lchpass.0
  ./usr/share/man/cat8/login_passwd.0
  ./usr/share/man/cat8/login_radius.0
-@@ -1836,14 +1766,11 @@
+@@ -1836,14 +1767,11 @@
  ./usr/share/man/cat8/mailq.0
  ./usr/share/man/cat8/mailstats.0
  ./usr/share/man/cat8/mailwrapper.0
@@ -2848,7 +2887,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat8/mknod.0
  ./usr/share/man/cat8/modload.0
  ./usr/share/man/cat8/modstat.0
-@@ -1873,13 +1800,8 @@
+@@ -1873,13 +1801,8 @@
  ./usr/share/man/cat8/mvme68k/installboot.0
  ./usr/share/man/cat8/mvme88k
  ./usr/share/man/cat8/mvmeppc
@@ -2862,7 +2901,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat8/ndp.0
  ./usr/share/man/cat8/netgroup_mkdb.0
  ./usr/share/man/cat8/netstart.0
-@@ -1889,7 +1811,6 @@
+@@ -1889,7 +1812,6 @@
  ./usr/share/man/cat8/newsyslog.0
  ./usr/share/man/cat8/nfsd.0
  ./usr/share/man/cat8/nologin.0
@@ -2870,7 +2909,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat8/ntalkd.0
  ./usr/share/man/cat8/pac.0
  ./usr/share/man/cat8/pcnfsd.0
-@@ -1927,7 +1848,6 @@
+@@ -1927,7 +1849,6 @@
  ./usr/share/man/cat8/renice.0
  ./usr/share/man/cat8/repquota.0
  ./usr/share/man/cat8/restore.0
@@ -2878,7 +2917,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat8/rip6query.0
  ./usr/share/man/cat8/rmail.0
  ./usr/share/man/cat8/rmgroup.0
-@@ -1945,7 +1865,6 @@
+@@ -1945,7 +1866,6 @@
  ./usr/share/man/cat8/rpc.rusersd.0
  ./usr/share/man/cat8/rpc.rwalld.0
  ./usr/share/man/cat8/rpc.sprayd.0
@@ -2886,7 +2925,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat8/rpcinfo.0
  ./usr/share/man/cat8/rquotad.0
  ./usr/share/man/cat8/rrestore.0
-@@ -2001,10 +1920,7 @@
+@@ -2001,10 +1921,7 @@
  ./usr/share/man/cat8/sshd.0
  ./usr/share/man/cat8/ssl.0
  ./usr/share/man/cat8/starttls.0
@@ -2897,7 +2936,7 @@ diff -u -r1.417 mi
  ./usr/share/man/cat8/sudo.0
  ./usr/share/man/cat8/suexec.0
  ./usr/share/man/cat8/supfilesrv.0
-@@ -2041,27 +1957,13 @@
+@@ -2041,27 +1958,13 @@
  ./usr/share/man/cat8/vax/boot_vax.0
  ./usr/share/man/cat8/vax/format.0
  ./usr/share/man/cat8/vax/kbd.0
@@ -2931,7 +2970,7 @@ RCS file: /cvs/src/distrib/sets/lists/misc/mi,v
 retrieving revision 1.5
 diff -u -r1.5 mi
 --- src/distrib/sets/lists/misc/mi	25 Jul 2000 16:19:04 -0000	1.5
-+++ src/distrib/sets/lists/misc/mi	21 Jan 2003 20:14:21 -0000
++++ src/distrib/sets/lists/misc/mi	24 Jan 2003 16:25:26 -0000
 @@ -164,25 +164,6 @@
  ./usr/share/doc/smm/09.sendmail/Makefile
  ./usr/share/doc/smm/09.sendmail/intro.me
@@ -2964,7 +3003,7 @@ RCS file: /cvs/src/etc/inetd.conf,v
 retrieving revision 1.50
 diff -u -r1.50 inetd.conf
 --- src/etc/inetd.conf	2 Aug 2002 23:27:11 -0000	1.50
-+++ src/etc/inetd.conf	21 Jan 2003 20:14:21 -0000
++++ src/etc/inetd.conf	24 Jan 2003 16:25:26 -0000
 @@ -22,6 +22,7 @@
  #ntalk		dgram	udp	wait	root	/usr/libexec/ntalkd	ntalkd
  #bootps		dgram	udp	wait	root	/usr/sbin/bootpd	bootpd
@@ -2979,7 +3018,7 @@ RCS file: /cvs/src/etc/sysctl.conf,v
 retrieving revision 1.28
 diff -u -r1.28 sysctl.conf
 --- src/etc/sysctl.conf	31 May 2002 19:35:06 -0000	1.28
-+++ src/etc/sysctl.conf	21 Jan 2003 20:14:21 -0000
++++ src/etc/sysctl.conf	24 Jan 2003 16:25:26 -0000
 @@ -11,12 +11,12 @@
  #net.inet.esp.enable=0		# 0=Disable the ESP IPsec protocol
  #net.inet.ah.enable=0		# 0=Disable the AH IPsec protocol
@@ -2995,13 +3034,29 @@ diff -u -r1.28 sysctl.conf
 -#kern.usercrypto=1		# 1=enable userland use of /dev/crypto
 +#kern.usercrypto=0		# 0=disable userland use of /dev/crypto
  #kern.splassert=2		# 2=enable and verbose error messages.
+Index: src/gnu/usr.bin/binutils/binutils/bucomm.c
+===================================================================
+RCS file: /cvs/src/gnu/usr.bin/binutils/binutils/bucomm.c,v
+retrieving revision 1.5
+diff -u -r1.5 bucomm.c
+--- src/gnu/usr.bin/binutils/binutils/bucomm.c	13 May 2002 17:07:10 -0000	1.5
++++ src/gnu/usr.bin/binutils/binutils/bucomm.c	26 Jan 2003 11:49:12 -0000
+@@ -215,7 +215,7 @@
+   static char template[] = "stXXXXXX";
+   char *tmpname;
+   char *slash = strrchr (filename, '/');
+-  char c;
++  char c = 0;
+ 
+ #ifdef HAVE_DOS_BASED_FILE_SYSTEM
+   {
 Index: src/gnu/usr.bin/perl/Configure
 ===================================================================
 RCS file: /cvs/src/gnu/usr.bin/perl/Configure,v
 retrieving revision 1.11
 diff -u -r1.11 Configure
 --- src/gnu/usr.bin/perl/Configure	27 Oct 2002 22:24:54 -0000	1.11
-+++ src/gnu/usr.bin/perl/Configure	21 Jan 2003 20:14:22 -0000
++++ src/gnu/usr.bin/perl/Configure	24 Jan 2003 16:25:26 -0000
 @@ -747,7 +747,7 @@
  dlsrc=''
  ld=''
@@ -3017,7 +3072,7 @@ RCS file: /cvs/src/gnu/usr.bin/perl/Makefile.bsd-wrapper,v
 retrieving revision 1.51
 diff -u -r1.51 Makefile.bsd-wrapper
 --- src/gnu/usr.bin/perl/Makefile.bsd-wrapper	27 Oct 2002 22:24:54 -0000	1.51
-+++ src/gnu/usr.bin/perl/Makefile.bsd-wrapper	21 Jan 2003 20:14:22 -0000
++++ src/gnu/usr.bin/perl/Makefile.bsd-wrapper	24 Jan 2003 16:25:26 -0000
 @@ -6,9 +6,15 @@
  # To build a threaded perl, uncomment this.  Currently, there are bugs...
  #THREADED=-Dusethreads
@@ -3059,7 +3114,7 @@ RCS file: /cvs/src/gnu/usr.sbin/sendmail/sendmail/conf.c,v
 retrieving revision 1.17
 diff -u -r1.17 conf.c
 --- src/gnu/usr.sbin/sendmail/sendmail/conf.c	1 Jan 2003 19:59:00 -0000	1.17
-+++ src/gnu/usr.sbin/sendmail/sendmail/conf.c	21 Jan 2003 20:14:22 -0000
++++ src/gnu/usr.sbin/sendmail/sendmail/conf.c	24 Jan 2003 16:25:26 -0000
 @@ -3722,6 +3722,7 @@
  
  	lim.rlim_cur = lim.rlim_max = RLIM_INFINITY;
@@ -3079,7 +3134,7 @@ RCS file: /cvs/src/lib/libc/gen/login_cap.c,v
 retrieving revision 1.15
 diff -u -r1.15 login_cap.c
 --- src/lib/libc/gen/login_cap.c	15 Dec 2002 13:26:44 -0000	1.15
-+++ src/lib/libc/gen/login_cap.c	21 Jan 2003 20:14:22 -0000
++++ src/lib/libc/gen/login_cap.c	24 Jan 2003 16:25:26 -0000
 @@ -492,6 +492,7 @@
  	char *	name;
  } r_list[] = {
@@ -3094,7 +3149,7 @@ RCS file: /cvs/src/lib/libc/sys/getrlimit.2,v
 retrieving revision 1.11
 diff -u -r1.11 getrlimit.2
 --- src/lib/libc/sys/getrlimit.2	18 Oct 2000 05:11:47 -0000	1.11
-+++ src/lib/libc/sys/getrlimit.2	21 Jan 2003 20:14:22 -0000
++++ src/lib/libc/sys/getrlimit.2	24 Jan 2003 16:25:26 -0000
 @@ -68,6 +68,9 @@
  .It Li RLIMIT_CPU
  The maximum amount of cpu time (in seconds) to be used by
@@ -3105,13 +3160,48 @@ diff -u -r1.11 getrlimit.2
  .It Li RLIMIT_DATA
  The maximum size (in bytes) of the data segment for a process;
  this defines how far a program may extend its break with the
+Index: src/lib/libpthread/uthread/uthread_mutex.c
+===================================================================
+RCS file: /cvs/src/lib/libpthread/uthread/uthread_mutex.c,v
+retrieving revision 1.15
+diff -u -r1.15 uthread_mutex.c
+--- src/lib/libpthread/uthread/uthread_mutex.c	30 Oct 2002 19:11:34 -0000	1.15
++++ src/lib/libpthread/uthread/uthread_mutex.c	26 Jan 2003 11:29:16 -0000
+@@ -114,10 +114,10 @@
+ pthread_mutex_init(pthread_mutex_t * mutex,
+ 		   const pthread_mutexattr_t * mutex_attr)
+ {
+-	enum pthread_mutextype	type;
+-	int		protocol;
+-	int		ceiling;
+-	int		flags;
++	enum pthread_mutextype	type = PTHREAD_MUTEX_ERRORCHECK;
++	int		protocol = PTHREAD_PRIO_NONE;
++	int		ceiling = PTHREAD_MAX_PRIORITY;
++	int		flags = 0;
+ 	pthread_mutex_t	pmutex;
+ 	int		ret = 0;
+ 
+@@ -127,10 +127,10 @@
+ 	/* Check if default mutex attributes: */
+ 	else if (mutex_attr == NULL || *mutex_attr == NULL) {
+ 		/* Default to a (error checking) POSIX mutex: */
+-		type = PTHREAD_MUTEX_ERRORCHECK;
++		/*type = PTHREAD_MUTEX_ERRORCHECK;
+ 		protocol = PTHREAD_PRIO_NONE;
+ 		ceiling = PTHREAD_MAX_PRIORITY;
+-		flags = 0;
++		flags = 0;*/
+ 	}
+ 
+ 	/* Check mutex type: */
 Index: src/lib/libutil/passwd.c
 ===================================================================
 RCS file: /cvs/src/lib/libutil/passwd.c,v
 retrieving revision 1.36
 diff -u -r1.36 passwd.c
 --- src/lib/libutil/passwd.c	31 Jul 2002 21:53:12 -0000	1.36
-+++ src/lib/libutil/passwd.c	21 Jan 2003 20:14:22 -0000
++++ src/lib/libutil/passwd.c	24 Jan 2003 16:25:26 -0000
 @@ -354,6 +354,7 @@
  	/* Unlimited resource limits. */
  	rlim.rlim_cur = rlim.rlim_max = RLIM_INFINITY;
@@ -3120,13 +3210,30 @@ diff -u -r1.36 passwd.c
  	(void)setrlimit(RLIMIT_FSIZE, &rlim);
  	(void)setrlimit(RLIMIT_STACK, &rlim);
  	(void)setrlimit(RLIMIT_DATA, &rlim);
+Index: src/sbin/isakmpd/util.c
+===================================================================
+RCS file: /cvs/src/sbin/isakmpd/util.c,v
+retrieving revision 1.29
+diff -u -r1.29 util.c
+--- src/sbin/isakmpd/util.c	9 Jan 2003 02:51:37 -0000	1.29
++++ src/sbin/isakmpd/util.c	26 Jan 2003 11:38:21 -0000
+@@ -402,7 +402,8 @@
+ 	    j += snprintf ((*address) + j, addrlen - j, "%02x%02x",
+ 			   ((struct sockaddr_in6 *)sa)->sin6_addr.s6_addr[2 * i],
+ 			   ((struct sockaddr_in6 *)sa)->sin6_addr.s6_addr[2 * i + 1]);
+-	    (*address)[j] = (++j < addrlen) ? ':' : '\0';
++	    ++j;
++	    (*address)[j] = (j < addrlen) ? ':' : '\0';
+ 	  }
+ 	break;
+ 
 Index: src/sys/arch/i386/stand/libsa/apmprobe.c
 ===================================================================
 RCS file: /cvs/src/sys/arch/i386/stand/libsa/apmprobe.c,v
 retrieving revision 1.9
 diff -u -r1.9 apmprobe.c
 --- src/sys/arch/i386/stand/libsa/apmprobe.c	20 Jun 2002 20:22:36 -0000	1.9
-+++ src/sys/arch/i386/stand/libsa/apmprobe.c	21 Jan 2003 20:14:22 -0000
++++ src/sys/arch/i386/stand/libsa/apmprobe.c	24 Jan 2003 16:25:26 -0000
 @@ -68,6 +68,8 @@
  
  extern int debug;
@@ -3289,7 +3396,7 @@ RCS file: /cvs/src/sys/arch/i386/stand/libsa/cmd_i386.c,v
 retrieving revision 1.24
 diff -u -r1.24 cmd_i386.c
 --- src/sys/arch/i386/stand/libsa/cmd_i386.c	14 Mar 2002 03:15:32 -0000	1.24
-+++ src/sys/arch/i386/stand/libsa/cmd_i386.c	21 Jan 2003 20:14:22 -0000
++++ src/sys/arch/i386/stand/libsa/cmd_i386.c	24 Jan 2003 16:25:26 -0000
 @@ -50,6 +50,7 @@
  int Xdiskinfo(void);
  int Xmemory(void);
@@ -3366,7 +3473,7 @@ RCS file: /cvs/src/sys/arch/i386/stand/libsa/gidt.S,v
 retrieving revision 1.24
 diff -u -r1.24 gidt.S
 --- src/sys/arch/i386/stand/libsa/gidt.S	17 Sep 2001 13:09:47 -0000	1.24
-+++ src/sys/arch/i386/stand/libsa/gidt.S	21 Jan 2003 20:14:22 -0000
++++ src/sys/arch/i386/stand/libsa/gidt.S	24 Jan 2003 16:25:26 -0000
 @@ -204,8 +204,8 @@
  	lidt	Idtr
  	ret
@@ -3393,7 +3500,7 @@ RCS file: /cvs/src/sys/arch/i386/stand/libsa/libsa.h,v
 retrieving revision 1.35
 diff -u -r1.35 libsa.h
 --- src/sys/arch/i386/stand/libsa/libsa.h	20 Jun 2002 20:22:36 -0000	1.35
-+++ src/sys/arch/i386/stand/libsa/libsa.h	21 Jan 2003 20:14:22 -0000
++++ src/sys/arch/i386/stand/libsa/libsa.h	24 Jan 2003 16:25:26 -0000
 @@ -57,6 +57,12 @@
  void *getSYSCONFaddr(void);
  void *getEBDAaddr(void);
@@ -3413,7 +3520,7 @@ RCS file: /cvs/src/sys/dev/ic/dc.c,v
 retrieving revision 1.53
 diff -u -r1.53 dc.c
 --- src/sys/dev/ic/dc.c	21 Oct 2002 20:30:10 -0000	1.53
-+++ src/sys/dev/ic/dc.c	21 Jan 2003 20:14:22 -0000
++++ src/sys/dev/ic/dc.c	24 Jan 2003 16:25:26 -0000
 @@ -640,6 +640,7 @@
  	struct dc_softc		*sc = (struct dc_softc *)self;
  	int			i, rval, phy_reg;
@@ -3453,7 +3560,7 @@ RCS file: /cvs/src/sys/dev/mii/bmtphy.c,v
 retrieving revision 1.5
 diff -u -r1.5 bmtphy.c
 --- src/sys/dev/mii/bmtphy.c	14 Mar 2002 01:26:35 -0000	1.5
-+++ src/sys/dev/mii/bmtphy.c	21 Jan 2003 20:14:22 -0000
++++ src/sys/dev/mii/bmtphy.c	24 Jan 2003 16:25:27 -0000
 @@ -93,11 +93,16 @@
  	struct mii_data *mii = ma->mii_data;
  	char *model;
@@ -3480,7 +3587,7 @@ RCS file: /cvs/src/sys/kern/kern_sig.c,v
 retrieving revision 1.61
 diff -u -r1.61 kern_sig.c
 --- src/sys/kern/kern_sig.c	1 Oct 2002 17:33:17 -0000	1.61
-+++ src/sys/kern/kern_sig.c	21 Jan 2003 20:14:22 -0000
++++ src/sys/kern/kern_sig.c	24 Jan 2003 16:25:27 -0000
 @@ -83,7 +83,6 @@
  	{ 0, filt_sigattach, filt_sigdetach, filt_signal };
  
@@ -3576,7 +3683,7 @@ RCS file: /cvs/src/sys/kern/kern_synch.c,v
 retrieving revision 1.46
 diff -u -r1.46 kern_synch.c
 --- src/sys/kern/kern_synch.c	15 Oct 2002 20:17:00 -0000	1.46
-+++ src/sys/kern/kern_synch.c	21 Jan 2003 20:14:22 -0000
++++ src/sys/kern/kern_synch.c	24 Jan 2003 16:25:27 -0000
 @@ -737,6 +737,20 @@
  			if (rlim->rlim_cur < rlim->rlim_max)
  				rlim->rlim_cur += 5;
@@ -3604,7 +3711,7 @@ RCS file: /cvs/src/sys/kern/subr_userconf.c,v
 retrieving revision 1.31
 diff -u -r1.31 subr_userconf.c
 --- src/sys/kern/subr_userconf.c	29 Jul 2002 23:18:35 -0000	1.31
-+++ src/sys/kern/subr_userconf.c	21 Jan 2003 20:14:23 -0000
++++ src/sys/kern/subr_userconf.c	24 Jan 2003 16:25:27 -0000
 @@ -482,7 +482,7 @@
  		}
  
@@ -3629,7 +3736,7 @@ RCS file: /cvs/src/sys/kern/sys_generic.c,v
 retrieving revision 1.41
 diff -u -r1.41 sys_generic.c
 --- src/sys/kern/sys_generic.c	12 Aug 2002 14:32:22 -0000	1.41
-+++ src/sys/kern/sys_generic.c	21 Jan 2003 20:14:23 -0000
++++ src/sys/kern/sys_generic.c	24 Jan 2003 16:25:27 -0000
 @@ -657,7 +657,7 @@
  	} */ *uap = v;
  	fd_set bits[6], *pibits[3], *pobits[3];
@@ -3654,7 +3761,7 @@ RCS file: /cvs/src/sys/kern/vfs_syscalls.c,v
 retrieving revision 1.98
 diff -u -r1.98 vfs_syscalls.c
 --- src/sys/kern/vfs_syscalls.c	2 Oct 2002 21:56:08 -0000	1.98
-+++ src/sys/kern/vfs_syscalls.c	21 Jan 2003 20:14:23 -0000
++++ src/sys/kern/vfs_syscalls.c	24 Jan 2003 16:25:27 -0000
 @@ -109,7 +109,7 @@
  	char fspath[MNAMELEN];
  	struct vattr va;
@@ -3670,7 +3777,7 @@ RCS file: /cvs/src/sys/lib/libz/Makefile,v
 retrieving revision 1.3
 diff -u -r1.3 Makefile
 --- src/sys/lib/libz/Makefile	8 Sep 1998 04:07:25 -0000	1.3
-+++ src/sys/lib/libz/Makefile	21 Jan 2003 20:14:23 -0000
++++ src/sys/lib/libz/Makefile	24 Jan 2003 16:25:27 -0000
 @@ -5,7 +5,7 @@
  NOPIC=
  NOPROFILE=
@@ -3686,7 +3793,7 @@ RCS file: /cvs/src/sys/miscfs/procfs/procfs_vnops.c,v
 retrieving revision 1.26
 diff -u -r1.26 procfs_vnops.c
 --- src/sys/miscfs/procfs/procfs_vnops.c	6 Apr 2002 23:39:51 -0000	1.26
-+++ src/sys/miscfs/procfs/procfs_vnops.c	21 Jan 2003 20:14:23 -0000
++++ src/sys/miscfs/procfs/procfs_vnops.c	24 Jan 2003 16:25:27 -0000
 @@ -746,7 +746,7 @@
  	struct vnode *dvp = ap->a_dvp;
  	char *pname = cnp->cn_nameptr;
@@ -3702,7 +3809,7 @@ RCS file: /cvs/src/sys/miscfs/union/union_vnops.c,v
 retrieving revision 1.19
 diff -u -r1.19 union_vnops.c
 --- src/sys/miscfs/union/union_vnops.c	8 Jun 2002 18:43:12 -0000	1.19
-+++ src/sys/miscfs/union/union_vnops.c	21 Jan 2003 20:14:23 -0000
++++ src/sys/miscfs/union/union_vnops.c	24 Jan 2003 16:25:27 -0000
 @@ -1097,7 +1097,7 @@
  	int error = 0;
  	struct union_node *dun;
@@ -3718,7 +3825,7 @@ RCS file: /cvs/src/sys/net/if_bridge.c,v
 retrieving revision 1.109
 diff -u -r1.109 if_bridge.c
 --- src/sys/net/if_bridge.c	7 Jan 2003 17:46:59 -0000	1.109
-+++ src/sys/net/if_bridge.c	21 Jan 2003 20:14:23 -0000
++++ src/sys/net/if_bridge.c	24 Jan 2003 16:25:27 -0000
 @@ -2116,7 +2116,7 @@
  	struct tdb *tdb;
  	u_int32_t spi;
@@ -3734,7 +3841,7 @@ RCS file: /cvs/src/sys/net/if_vlan.c,v
 retrieving revision 1.33
 diff -u -r1.33 if_vlan.c
 --- src/sys/net/if_vlan.c	7 Jan 2003 09:00:12 -0000	1.33
-+++ src/sys/net/if_vlan.c	21 Jan 2003 20:14:23 -0000
++++ src/sys/net/if_vlan.c	24 Jan 2003 16:25:27 -0000
 @@ -376,7 +376,7 @@
  		 */
  		ifv->ifv_if.if_mtu = p->if_mtu - EVL_ENCAPLEN;
@@ -3747,10 +3854,10 @@ diff -u -r1.33 if_vlan.c
 Index: src/sys/net/pf.c
 ===================================================================
 RCS file: /cvs/src/sys/net/pf.c,v
-retrieving revision 1.307
-diff -u -r1.307 pf.c
---- src/sys/net/pf.c	23 Jan 2003 13:35:55 -0000	1.307
-+++ src/sys/net/pf.c	24 Jan 2003 14:31:28 -0000
+retrieving revision 1.311
+diff -u -r1.311 pf.c
+--- src/sys/net/pf.c	25 Jan 2003 22:48:23 -0000	1.311
++++ src/sys/net/pf.c	26 Jan 2003 08:51:06 -0000
 @@ -942,6 +942,7 @@
  	u_int32_t	opc;
  	u_int16_t	oip = *ip;
@@ -3784,7 +3891,7 @@ diff -u -r1.307 pf.c
  	}
  
  	/* don't reply to RST packets */
-@@ -2374,6 +2377,8 @@
+@@ -2380,6 +2383,8 @@
  			state_icmp++;
  		break;
  #endif /* INET6 */
@@ -3793,7 +3900,7 @@ diff -u -r1.307 pf.c
  	}
  
  	if (direction == PF_OUT) {
-@@ -3203,6 +3208,8 @@
+@@ -3214,6 +3219,8 @@
  			state_icmp++;
  		break;
  #endif /* INET6 */
@@ -3802,7 +3909,7 @@ diff -u -r1.307 pf.c
  	}
  
  	if (!state_icmp) {
-@@ -3371,6 +3378,8 @@
+@@ -3382,6 +3389,8 @@
  			} while (!terminal);
  			break;
  #endif /* INET6 */
@@ -3811,7 +3918,7 @@ diff -u -r1.307 pf.c
  		}
  
  		switch (pd2.proto) {
-@@ -4251,8 +4260,9 @@
+@@ -4268,8 +4277,9 @@
  			r0.ifp = ifp;
  			r0.action = action;
  			r0.nr = -1;
@@ -3829,7 +3936,7 @@ RCS file: /cvs/src/sys/net/pfkeyv2.c,v
 retrieving revision 1.84
 diff -u -r1.84 pfkeyv2.c
 --- src/sys/net/pfkeyv2.c	31 Jul 2002 00:13:14 -0000	1.84
-+++ src/sys/net/pfkeyv2.c	21 Jan 2003 20:14:23 -0000
++++ src/sys/net/pfkeyv2.c	24 Jan 2003 16:25:27 -0000
 @@ -803,7 +803,7 @@
  
      struct tdb sa, *sa2 = NULL;
@@ -3883,7 +3990,7 @@ RCS file: /cvs/src/sys/netinet/ip_ah.c,v
 retrieving revision 1.70
 diff -u -r1.70 ip_ah.c
 --- src/sys/netinet/ip_ah.c	5 Jul 2002 23:20:31 -0000	1.70
-+++ src/sys/netinet/ip_ah.c	21 Jan 2003 20:14:23 -0000
++++ src/sys/netinet/ip_ah.c	24 Jan 2003 16:25:27 -0000
 @@ -682,7 +682,7 @@
  int
  ah_input_cb(void *op)
@@ -3908,7 +4015,7 @@ RCS file: /cvs/src/sys/netinet/ip_esp.c,v
 retrieving revision 1.76
 diff -u -r1.76 ip_esp.c
 --- src/sys/netinet/ip_esp.c	7 Nov 2002 15:16:17 -0000	1.76
-+++ src/sys/netinet/ip_esp.c	21 Jan 2003 20:14:23 -0000
++++ src/sys/netinet/ip_esp.c	24 Jan 2003 16:25:27 -0000
 @@ -453,7 +453,7 @@
  esp_input_cb(void *op)
  {
@@ -3933,7 +4040,7 @@ RCS file: /cvs/src/sys/netinet/ip_ipcomp.c,v
 retrieving revision 1.9
 diff -u -r1.9 ip_ipcomp.c
 --- src/sys/netinet/ip_ipcomp.c	12 Sep 2002 10:11:17 -0000	1.9
-+++ src/sys/netinet/ip_ipcomp.c	21 Jan 2003 20:14:24 -0000
++++ src/sys/netinet/ip_ipcomp.c	24 Jan 2003 16:25:27 -0000
 @@ -206,7 +206,7 @@
  ipcomp_input_cb(op)
  	void *op;
@@ -3958,7 +4065,7 @@ RCS file: /cvs/src/sys/netinet/ip_ipsp.c,v
 retrieving revision 1.150
 diff -u -r1.150 ip_ipsp.c
 --- src/sys/netinet/ip_ipsp.c	19 Nov 2002 18:34:19 -0000	1.150
-+++ src/sys/netinet/ip_ipsp.c	21 Jan 2003 20:14:24 -0000
++++ src/sys/netinet/ip_ipsp.c	24 Jan 2003 16:25:27 -0000
 @@ -867,7 +867,7 @@
  	    ntohl(tdb->tdb_spi), ipsp_address(tdb->tdb_dst), tdb->tdb_sproto);
  
@@ -3974,7 +4081,7 @@ RCS file: /cvs/src/sys/netinet/ip_output.c,v
 retrieving revision 1.150
 diff -u -r1.150 ip_output.c
 --- src/sys/netinet/ip_output.c	10 Oct 2002 17:27:18 -0000	1.150
-+++ src/sys/netinet/ip_output.c	21 Jan 2003 20:14:24 -0000
++++ src/sys/netinet/ip_output.c	24 Jan 2003 16:25:27 -0000
 @@ -100,24 +100,24 @@
  ip_output(struct mbuf *m0, ...)
  {
@@ -4011,7 +4118,7 @@ RCS file: /cvs/src/sys/netinet/ipsec_output.c,v
 retrieving revision 1.25
 diff -u -r1.25 ipsec_output.c
 --- src/sys/netinet/ipsec_output.c	28 Aug 2002 15:42:41 -0000	1.25
-+++ src/sys/netinet/ipsec_output.c	21 Jan 2003 20:14:24 -0000
++++ src/sys/netinet/ipsec_output.c	24 Jan 2003 16:25:27 -0000
 @@ -65,15 +65,15 @@
  ipsp_process_packet(struct mbuf *m, struct tdb *tdb, int af, int tunalready)
  {
@@ -4051,7 +4158,7 @@ RCS file: /cvs/src/sys/netinet/tcp_input.c,v
 retrieving revision 1.124
 diff -u -r1.124 tcp_input.c
 --- src/sys/netinet/tcp_input.c	11 Sep 2002 03:26:41 -0000	1.124
-+++ src/sys/netinet/tcp_input.c	21 Jan 2003 20:14:24 -0000
++++ src/sys/netinet/tcp_input.c	24 Jan 2003 16:25:27 -0000
 @@ -432,7 +432,7 @@
  #endif /* IPSEC */
  	int af;
@@ -4064,17 +4171,17 @@ diff -u -r1.124 tcp_input.c
 Index: src/sys/netinet/tcp_output.c
 ===================================================================
 RCS file: /cvs/src/sys/netinet/tcp_output.c,v
-retrieving revision 1.53
-diff -u -r1.53 tcp_output.c
---- src/sys/netinet/tcp_output.c	28 Aug 2002 15:42:41 -0000	1.53
-+++ src/sys/netinet/tcp_output.c	21 Jan 2003 20:14:25 -0000
+retrieving revision 1.54
+diff -u -r1.54 tcp_output.c
+--- src/sys/netinet/tcp_output.c	25 Jan 2003 15:27:07 -0000	1.54
++++ src/sys/netinet/tcp_output.c	26 Jan 2003 08:54:18 -0000
 @@ -220,8 +220,8 @@
  	register struct tcpcb *tp;
  {
  	register struct socket *so = tp->t_inpcb->inp_socket;
--	register long len, win;
+-	register long len, win, txmaxseg;
 -	int off, flags, error;
-+	register long len = 0, win;
++	register long len = 0, win, txmaxseg;
 +	int off, flags, error = 0;
  	register struct mbuf *m;
  	register struct tcphdr *th;
@@ -4094,7 +4201,7 @@ RCS file: /cvs/src/sys/netinet/tcp_subr.c,v
 retrieving revision 1.65
 diff -u -r1.65 tcp_subr.c
 --- src/sys/netinet/tcp_subr.c	28 Aug 2002 15:42:41 -0000	1.65
-+++ src/sys/netinet/tcp_subr.c	21 Jan 2003 20:14:25 -0000
++++ src/sys/netinet/tcp_subr.c	24 Jan 2003 16:25:27 -0000
 @@ -134,7 +134,7 @@
  #endif
  int	tcp_do_sack = TCP_DO_SACK;		/* RFC 2018 selective ACKs */
@@ -4154,7 +4261,7 @@ RCS file: /cvs/src/sys/netinet/tcp_usrreq.c,v
 retrieving revision 1.67
 diff -u -r1.67 tcp_usrreq.c
 --- src/sys/netinet/tcp_usrreq.c	11 Sep 2002 03:15:14 -0000	1.67
-+++ src/sys/netinet/tcp_usrreq.c	21 Jan 2003 20:14:25 -0000
++++ src/sys/netinet/tcp_usrreq.c	24 Jan 2003 16:25:27 -0000
 @@ -783,10 +783,10 @@
  {
  	int error = 0, s;
@@ -4175,7 +4282,7 @@ RCS file: /cvs/src/sys/netinet/udp_usrreq.c,v
 retrieving revision 1.86
 diff -u -r1.86 udp_usrreq.c
 --- src/sys/netinet/udp_usrreq.c	28 Aug 2002 15:42:41 -0000	1.86
-+++ src/sys/netinet/udp_usrreq.c	21 Jan 2003 20:14:25 -0000
++++ src/sys/netinet/udp_usrreq.c	24 Jan 2003 16:25:27 -0000
 @@ -714,6 +714,7 @@
  		m = NULL;
  		ip6 = NULL;
@@ -4190,7 +4297,7 @@ RCS file: /cvs/src/sys/netinet6/in6_ifattach.c,v
 retrieving revision 1.32
 diff -u -r1.32 in6_ifattach.c
 --- src/sys/netinet6/in6_ifattach.c	12 Sep 2002 01:11:32 -0000	1.32
-+++ src/sys/netinet6/in6_ifattach.c	21 Jan 2003 20:14:25 -0000
++++ src/sys/netinet6/in6_ifattach.c	24 Jan 2003 16:25:28 -0000
 @@ -674,12 +674,13 @@
  	nd6_purge(ifp);
  
@@ -4221,7 +4328,7 @@ RCS file: /cvs/src/sys/netinet6/ip6_forward.c,v
 retrieving revision 1.24
 diff -u -r1.24 ip6_forward.c
 --- src/sys/netinet6/ip6_forward.c	9 Jun 2002 14:38:17 -0000	1.24
-+++ src/sys/netinet6/ip6_forward.c	21 Jan 2003 20:14:25 -0000
++++ src/sys/netinet6/ip6_forward.c	24 Jan 2003 16:25:28 -0000
 @@ -88,7 +88,7 @@
  	struct ip6_hdr *ip6 = mtod(m, struct ip6_hdr *);
  	struct sockaddr_in6 *dst;
@@ -4237,7 +4344,7 @@ RCS file: /cvs/src/sys/netinet6/ip6_output.c,v
 retrieving revision 1.73
 diff -u -r1.73 ip6_output.c
 --- src/sys/netinet6/ip6_output.c	31 Oct 2002 18:02:05 -0000	1.73
-+++ src/sys/netinet6/ip6_output.c	21 Jan 2003 20:14:25 -0000
++++ src/sys/netinet6/ip6_output.c	24 Jan 2003 16:25:28 -0000
 @@ -168,7 +168,7 @@
  	struct m_tag *mtag;
  	union sockaddr_union sdst;
@@ -4253,7 +4360,7 @@ RCS file: /cvs/src/sys/netinet6/raw_ip6.c,v
 retrieving revision 1.17
 diff -u -r1.17 raw_ip6.c
 --- src/sys/netinet6/raw_ip6.c	11 Sep 2002 03:27:08 -0000	1.17
-+++ src/sys/netinet6/raw_ip6.c	21 Jan 2003 20:14:25 -0000
++++ src/sys/netinet6/raw_ip6.c	24 Jan 2003 16:25:28 -0000
 @@ -378,7 +378,8 @@
  	int error = 0;
  	struct ip6_pktopts opt, *optp = NULL, *origoptp;
@@ -4270,7 +4377,7 @@ RCS file: /cvs/src/sys/nfs/nfsproto.h,v
 retrieving revision 1.4
 diff -u -r1.4 nfsproto.h
 --- src/sys/nfs/nfsproto.h	28 Jan 2002 22:35:57 -0000	1.4
-+++ src/sys/nfs/nfsproto.h	21 Jan 2003 20:14:25 -0000
++++ src/sys/nfs/nfsproto.h	24 Jan 2003 16:25:28 -0000
 @@ -54,18 +54,18 @@
   * Specification"
   */
@@ -4488,7 +4595,7 @@ RCS file: /cvs/src/sys/stand/boot/cmd.c,v
 retrieving revision 1.48
 diff -u -r1.48 cmd.c
 --- src/sys/stand/boot/cmd.c	14 Jul 2002 09:18:55 -0000	1.48
-+++ src/sys/stand/boot/cmd.c	21 Jan 2003 20:14:25 -0000
++++ src/sys/stand/boot/cmd.c	24 Jan 2003 16:25:28 -0000
 @@ -86,8 +86,19 @@
  {
  	cmd.cmd = NULL;
@@ -4538,7 +4645,7 @@ RCS file: /cvs/src/sys/sys/resource.h,v
 retrieving revision 1.4
 diff -u -r1.4 resource.h
 --- src/sys/sys/resource.h	14 Mar 2002 01:26:52 -0000	1.4
-+++ src/sys/sys/resource.h	21 Jan 2003 20:14:25 -0000
++++ src/sys/sys/resource.h	24 Jan 2003 16:25:28 -0000
 @@ -89,8 +89,9 @@
  #define	RLIMIT_MEMLOCK	6		/* locked-in-memory address space */
  #define	RLIMIT_NPROC	7		/* number of processes */
@@ -4556,7 +4663,7 @@ RCS file: /cvs/src/sys/ufs/ffs/ffs_softdep.c,v
 retrieving revision 1.42
 diff -u -r1.42 ffs_softdep.c
 --- src/sys/ufs/ffs/ffs_softdep.c	12 Oct 2002 01:09:23 -0000	1.42
-+++ src/sys/ufs/ffs/ffs_softdep.c	21 Jan 2003 20:14:25 -0000
++++ src/sys/ufs/ffs/ffs_softdep.c	24 Jan 2003 16:25:28 -0000
 @@ -327,7 +327,7 @@
  	struct sema *semap;
  	struct lockit *interlock;
@@ -4572,7 +4679,7 @@ RCS file: /cvs/src/sys/ufs/ffs/ffs_vfsops.c,v
 retrieving revision 1.54
 diff -u -r1.54 ffs_vfsops.c
 --- src/sys/ufs/ffs/ffs_vfsops.c	1 Aug 2002 16:41:11 -0000	1.54
-+++ src/sys/ufs/ffs/ffs_vfsops.c	21 Jan 2003 20:14:25 -0000
++++ src/sys/ufs/ffs/ffs_vfsops.c	24 Jan 2003 16:25:28 -0000
 @@ -167,7 +167,7 @@
  	struct ufsmount *ump = NULL;
  	register struct fs *fs;
@@ -4588,7 +4695,7 @@ RCS file: /cvs/src/sys/uvm/uvm_amap.c,v
 retrieving revision 1.27
 diff -u -r1.27 uvm_amap.c
 --- src/sys/uvm/uvm_amap.c	9 May 2002 14:13:56 -0000	1.27
-+++ src/sys/uvm/uvm_amap.c	21 Jan 2003 20:14:25 -0000
++++ src/sys/uvm/uvm_amap.c	24 Jan 2003 16:25:28 -0000
 @@ -1007,7 +1007,7 @@
  	struct vm_amap *amap;
  	int slotoff, slots;
@@ -4604,7 +4711,7 @@ RCS file: /cvs/src/sys/uvm/uvm_map.c,v
 retrieving revision 1.56
 diff -u -r1.56 uvm_map.c
 --- src/sys/uvm/uvm_map.c	9 Dec 2002 02:34:59 -0000	1.56
-+++ src/sys/uvm/uvm_map.c	21 Jan 2003 20:14:25 -0000
++++ src/sys/uvm/uvm_map.c	24 Jan 2003 16:25:28 -0000
 @@ -304,9 +304,10 @@
  
  	RB_FOREACH(tmp, uvm_tree, &map->rbhead) {
@@ -4642,7 +4749,7 @@ RCS file: /cvs/src/sys/uvm/uvm_pager.c,v
 retrieving revision 1.33
 diff -u -r1.33 uvm_pager.c
 --- src/sys/uvm/uvm_pager.c	29 Oct 2002 18:29:59 -0000	1.33
-+++ src/sys/uvm/uvm_pager.c	21 Jan 2003 20:14:25 -0000
++++ src/sys/uvm/uvm_pager.c	24 Jan 2003 16:25:28 -0000
 @@ -795,7 +795,7 @@
  	struct vm_page *pg, *pgs[npages];
  	struct uvm_object *uobj;
@@ -4658,7 +4765,7 @@ RCS file: /cvs/src/sys/uvm/uvm_swap.c,v
 retrieving revision 1.55
 diff -u -r1.55 uvm_swap.c
 --- src/sys/uvm/uvm_swap.c	12 Oct 2002 01:09:23 -0000	1.55
-+++ src/sys/uvm/uvm_swap.c	21 Jan 2003 20:14:25 -0000
++++ src/sys/uvm/uvm_swap.c	24 Jan 2003 16:25:28 -0000
 @@ -1813,7 +1813,7 @@
  #ifdef UVM_SWAP_ENCRYPT
  	vaddr_t dstkva;
@@ -4674,7 +4781,7 @@ RCS file: /cvs/src/usr.bin/passwd/Makefile,v
 retrieving revision 1.26
 diff -u -r1.26 Makefile
 --- src/usr.bin/passwd/Makefile	8 May 2002 19:41:31 -0000	1.26
-+++ src/usr.bin/passwd/Makefile	21 Jan 2003 20:14:25 -0000
++++ src/usr.bin/passwd/Makefile	24 Jan 2003 16:25:28 -0000
 @@ -23,12 +23,16 @@
  LDADD+=	-lkrb5 -lasn1
  .endif
@@ -4701,7 +4808,7 @@ RCS file: /cvs/src/usr.bin/rdist/Makefile,v
 retrieving revision 1.12
 diff -u -r1.12 Makefile
 --- src/usr.bin/rdist/Makefile	9 May 2002 19:12:40 -0000	1.12
-+++ src/usr.bin/rdist/Makefile	21 Jan 2003 20:14:25 -0000
++++ src/usr.bin/rdist/Makefile	24 Jan 2003 16:25:28 -0000
 @@ -2,7 +2,7 @@
  
  
@@ -4717,7 +4824,7 @@ RCS file: /cvs/src/usr.bin/rsh/Makefile,v
 retrieving revision 1.6
 diff -u -r1.6 Makefile
 --- src/usr.bin/rsh/Makefile	6 May 2002 22:23:31 -0000	1.6
-+++ src/usr.bin/rsh/Makefile	21 Jan 2003 20:14:25 -0000
++++ src/usr.bin/rsh/Makefile	24 Jan 2003 16:25:31 -0000
 @@ -7,7 +7,7 @@
  
  .include <bsd.own.mk>	# For KERBEROS
@@ -4727,13 +4834,41 @@ diff -u -r1.6 Makefile
  SRCS+=	des_rw.c
  CFLAGS+=-DKERBEROS
  SRCS+=	krcmd.c kcmd.c
+Index: src/usr.bin/skeyinit/skeyinit.c
+===================================================================
+RCS file: /cvs/src/usr.bin/skeyinit/skeyinit.c,v
+retrieving revision 1.41
+diff -u -r1.41 skeyinit.c
+--- src/usr.bin/skeyinit/skeyinit.c	16 Nov 2002 23:05:14 -0000	1.41
++++ src/usr.bin/skeyinit/skeyinit.c	26 Jan 2003 11:42:59 -0000
+@@ -181,13 +181,13 @@
+ 	case 1:
+ 		if (!defaultsetup) {
+ 			fprintf(stderr,
+-"You must authenticate yourself before using S/Key for the first time.  In
+-secure mode this is normally done via an existing S/Key key.  However, since
+-you do not have an entry in the S/Key database you will have to specify an
+-alternate authentication type via the `-a' flag, e.g.
+-    \"skeyinit -s -a krb5\" or \"skeyinit -s -a passwd\"\n
+-Note that entering a plaintext password over a non-secure link defeats the
+-purpose of using S/Key in the fist place.\n");
++"You must authenticate yourself before using S/Key for the first time.  In "
++"secure mode this is normally done via an existing S/Key key.  However, since "
++"you do not have an entry in the S/Key database you will have to specify an "
++"alternate authentication type via the `-a' flag, e.g. "
++"    \"skeyinit -s -a krb5\" or \"skeyinit -s -a passwd\"\n"
++"Note that entering a plaintext password over a non-secure link defeats the "
++"purpose of using S/Key in the fist place.\n");
+ 			exit(1);
+ 		}
+ 		break;
 Index: src/usr.bin/ssh/lib/Makefile
 ===================================================================
 RCS file: /cvs/src/usr.bin/ssh/lib/Makefile,v
 retrieving revision 1.37
 diff -u -r1.37 Makefile
 --- src/usr.bin/ssh/lib/Makefile	12 Jan 2003 16:58:52 -0000	1.37
-+++ src/usr.bin/ssh/lib/Makefile	21 Jan 2003 20:14:25 -0000
++++ src/usr.bin/ssh/lib/Makefile	24 Jan 2003 16:25:31 -0000
 @@ -24,7 +24,7 @@
  CFLAGS+= -DKRB5 -I${DESTDIR}/usr/include/kerberosV
  .endif # KERBEROS5
@@ -4749,7 +4884,7 @@ RCS file: /cvs/src/usr.bin/ssh/ssh.c,v
 retrieving revision 1.189
 diff -u -r1.189 ssh.c
 --- src/usr.bin/ssh/ssh.c	9 Dec 2002 16:50:08 -0000	1.189
-+++ src/usr.bin/ssh/ssh.c	21 Jan 2003 20:14:25 -0000
++++ src/usr.bin/ssh/ssh.c	24 Jan 2003 16:25:31 -0000
 @@ -138,6 +138,14 @@
  /* # of replies received for global requests */
  static int client_global_request_id = 0;
@@ -4826,7 +4961,7 @@ RCS file: /cvs/src/usr.bin/ssh/ssh.h,v
 retrieving revision 1.71
 diff -u -r1.71 ssh.h
 --- src/usr.bin/ssh/ssh.h	22 Jun 2002 02:00:07 -0000	1.71
-+++ src/usr.bin/ssh/ssh.h	21 Jan 2003 20:14:25 -0000
++++ src/usr.bin/ssh/ssh.h	24 Jan 2003 16:25:31 -0000
 @@ -95,4 +95,6 @@
  /* Minimum modulus size (n) for RSA keys. */
  #define SSH_RSA_MINIMUM_MODULUS_SIZE	768
@@ -4840,7 +4975,7 @@ RCS file: /cvs/src/usr.bin/ssh/sshconnect2.c,v
 retrieving revision 1.110
 diff -u -r1.110 sshconnect2.c
 --- src/usr.bin/ssh/sshconnect2.c	19 Dec 2002 00:06:40 -0000	1.110
-+++ src/usr.bin/ssh/sshconnect2.c	21 Jan 2003 20:14:25 -0000
++++ src/usr.bin/ssh/sshconnect2.c	24 Jan 2003 16:25:31 -0000
 @@ -47,10 +47,14 @@
  #include "canohost.h"
  #include "msg.h"
@@ -5132,7 +5267,7 @@ RCS file: /cvs/src/usr.bin/ssh/ssh/Makefile,v
 retrieving revision 1.42
 diff -u -r1.42 Makefile
 --- src/usr.bin/ssh/ssh/Makefile	20 Jun 2002 19:55:45 -0000	1.42
-+++ src/usr.bin/ssh/ssh/Makefile	21 Jan 2003 20:14:25 -0000
++++ src/usr.bin/ssh/ssh/Makefile	24 Jan 2003 16:25:31 -0000
 @@ -23,7 +23,7 @@
  DPADD+=  ${LIBKRB5} ${LIBASN1} ${LIBCOM_ERR}
  .endif # KERBEROS5
@@ -5148,7 +5283,7 @@ RCS file: /cvs/src/usr.bin/ssh/sshd/Makefile,v
 retrieving revision 1.51
 diff -u -r1.51 Makefile
 --- src/usr.bin/ssh/sshd/Makefile	20 Jun 2002 19:55:45 -0000	1.51
-+++ src/usr.bin/ssh/sshd/Makefile	21 Jan 2003 20:14:25 -0000
++++ src/usr.bin/ssh/sshd/Makefile	24 Jan 2003 16:25:31 -0000
 @@ -26,7 +26,7 @@
  DPADD+= ${LIBKRB5} ${LIBKAFS} ${LIBASN1} ${LIBCOM_ERR}
  .endif # KERBEROS5
@@ -5164,7 +5299,7 @@ RCS file: /cvs/src/usr.bin/sudo/Makefile.bsd-wrapper,v
 retrieving revision 1.15
 diff -u -r1.15 Makefile.bsd-wrapper
 --- src/usr.bin/sudo/Makefile.bsd-wrapper	26 Apr 2002 16:04:02 -0000	1.15
-+++ src/usr.bin/sudo/Makefile.bsd-wrapper	21 Jan 2003 20:14:25 -0000
++++ src/usr.bin/sudo/Makefile.bsd-wrapper	24 Jan 2003 16:25:31 -0000
 @@ -14,7 +14,7 @@
  DPADD+= ${LIBSKEY}
  .endif
@@ -5180,7 +5315,7 @@ RCS file: /cvs/src/usr.bin/xlint/lint1/Makefile,v
 retrieving revision 1.3
 diff -u -r1.3 Makefile
 --- src/usr.bin/xlint/lint1/Makefile	11 Sep 2001 00:06:06 -0000	1.3
-+++ src/usr.bin/xlint/lint1/Makefile	21 Jan 2003 20:14:26 -0000
++++ src/usr.bin/xlint/lint1/Makefile	24 Jan 2003 16:25:31 -0000
 @@ -8,7 +8,7 @@
  LDADD+=	-ll
  DPADD+=	${LIBL}
@@ -5196,7 +5331,7 @@ RCS file: /cvs/src/usr.sbin/amd/fsinfo/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
 --- src/usr.sbin/amd/fsinfo/Makefile	18 Oct 1995 08:46:59 -0000	1.1.1.1
-+++ src/usr.sbin/amd/fsinfo/Makefile	21 Jan 2003 20:14:26 -0000
++++ src/usr.sbin/amd/fsinfo/Makefile	24 Jan 2003 16:25:31 -0000
 @@ -12,7 +12,7 @@
  CLEANFILES= \
  	fsi_gram.c y.tab.c fsi_gram.h y.tab.h \
@@ -5212,7 +5347,7 @@ RCS file: /cvs/src/usr.sbin/arp/arp.8,v
 retrieving revision 1.12
 diff -u -r1.12 arp.8
 --- src/usr.sbin/arp/arp.8	13 Feb 2002 08:33:25 -0000	1.12
-+++ src/usr.sbin/arp/arp.8	21 Jan 2003 20:14:26 -0000
++++ src/usr.sbin/arp/arp.8	24 Jan 2003 16:25:31 -0000
 @@ -136,6 +136,7 @@
  .Ed
  .Pp
@@ -5227,7 +5362,7 @@ RCS file: /cvs/src/usr.sbin/arp/arp.c,v
 retrieving revision 1.25
 diff -u -r1.25 arp.c
 --- src/usr.sbin/arp/arp.c	3 Dec 2002 22:33:28 -0000	1.25
-+++ src/usr.sbin/arp/arp.c	21 Jan 2003 20:14:26 -0000
++++ src/usr.sbin/arp/arp.c	24 Jan 2003 16:25:31 -0000
 @@ -198,7 +198,9 @@
  	args[3] = &arg[3][0];
  	args[4] = &arg[4][0];
@@ -5239,13 +5374,29 @@ diff -u -r1.25 arp.c
  		i = sscanf(line, "%49s %49s %49s %49s %49s", arg[0], arg[1], arg[2],
  		    arg[3], arg[4]);
  		if (i < 2) {
+Index: src/usr.sbin/ppp/ppp/alias_nbt.c
+===================================================================
+RCS file: /cvs/src/usr.sbin/ppp/ppp/alias_nbt.c,v
+retrieving revision 1.8
+diff -u -r1.8 alias_nbt.c
+--- src/usr.sbin/ppp/ppp/alias_nbt.c	15 Jun 2002 08:01:37 -0000	1.8
++++ src/usr.sbin/ppp/ppp/alias_nbt.c	26 Jan 2003 11:47:22 -0000
+@@ -111,7 +111,7 @@
+ 		case CFT_ERR:
+ 			printf("\nName in conflict error.\n");
+ 		default:
+-			printf("\n???=%0x\n", rcode );
++			printf("\n??? = %0x\n", rcode );
+ 
+ 	}
+ }
 Index: src/usr.sbin/pppd/Makefile
 ===================================================================
 RCS file: /cvs/src/usr.sbin/pppd/Makefile,v
 retrieving revision 1.15
 diff -u -r1.15 Makefile
 --- src/usr.sbin/pppd/Makefile	19 May 2002 20:47:30 -0000	1.15
-+++ src/usr.sbin/pppd/Makefile	21 Jan 2003 20:14:26 -0000
++++ src/usr.sbin/pppd/Makefile	24 Jan 2003 16:25:31 -0000
 @@ -15,6 +15,6 @@
  
  LDADD=	-lpcap -lutil
@@ -5260,7 +5411,7 @@ RCS file: /cvs/src/usr.sbin/rpc.lockd/Makefile,v
 retrieving revision 1.4
 diff -u -r1.4 Makefile
 --- src/usr.sbin/rpc.lockd/Makefile	19 Aug 1997 08:04:55 -0000	1.4
-+++ src/usr.sbin/rpc.lockd/Makefile	21 Jan 2003 20:14:26 -0000
++++ src/usr.sbin/rpc.lockd/Makefile	24 Jan 2003 16:25:31 -0000
 @@ -7,7 +7,7 @@
  DPADD=	${LIBRPCSVC}
  LDADD=	-lrpcsvc
@@ -5270,6 +5421,24 @@ diff -u -r1.4 Makefile
  
  CLEANFILES= nlm_prot_svc.c nlm_prot.h
  
+Index: src/usr.sbin/user/user.c
+===================================================================
+RCS file: /cvs/src/usr.sbin/user/user.c,v
+retrieving revision 1.40
+diff -u -r1.40 user.c
+--- src/usr.sbin/user/user.c	10 Dec 2002 20:49:06 -0000	1.40
++++ src/usr.sbin/user/user.c	26 Jan 2003 11:48:01 -0000
+@@ -1129,8 +1129,8 @@
+ 				    len + strlen(newlogin) >= sizeof(buf))) {
+ 					(void) close(ptmpfd);
+ 					pw_abort();
+-					errx(EXIT_FAILURE, "can't add `%s',
+-					    line too long (%d bytes)", buf,
++					errx(EXIT_FAILURE, "can't add `%s', "
++					    "line too long (%d bytes)", buf,
+ 					    len + strlen(newlogin));
+ 				}
+ 				if (write(ptmpfd, buf, len) != len) {
 
 Index: ports/mystuff/diff-metafiles (meta file)
 ===================================================================
@@ -5282,6 +5451,7 @@ Index: ports/mystuff/diff-patchfiles (meta file)
 src/bin/csh/csh.1				humantime
 src/bin/csh/func.c				humantime
 src/bin/ksh/c_ulimit.c				humantime
+src/bin/ksh/history.c				uninitialized
 src/bin/ksh/ksh.1tbl				humantime
 src/distrib/Makefile				-crunch
 src/distrib/sets/lists/base/md.i386		sync...
@@ -5295,12 +5465,15 @@ src/distrib/sets/lists/man/mi
 src/distrib/sets/lists/misc/mi
 src/etc/inetd.conf				irc bridge
 src/etc/sysctl.conf				ECN on by default
+src/gnu/usr.bin/binutils/binutils/bucomm.c	uninitialized
 src/gnu/usr.bin/perl/Configure			usedl=n (static linking)
 src/gnu/usr.bin/perl/Makefile.bsd-wrapper	$.curdir, usedl
 src/gnu/usr.sbin/sendmail/sendmail/conf.c	humantime
 src/lib/libc/gen/login_cap.c			humantime
 src/lib/libc/sys/getrlimit.2			humantime
+src/lib/libpthread/uthread/uthread_mutex.c	uninitialized
 src/lib/libutil/passwd.c			humantime
+src/sbin/isakmpd/util.c				gcc botch
 src/sys/arch/i386/stand/libsa/apmprobe.c	mwatts+KNF
 src/sys/arch/i386/stand/libsa/cmd_i386.c	mwatts
 src/sys/arch/i386/stand/libsa/gidt.S		ansi C fixes
@@ -5347,6 +5520,7 @@ src/sys/uvm/uvm_swap.c
 src/usr.bin/passwd/Makefile			$.curdir, krb4
 src/usr.bin/rdist/Makefile			$.curdir
 src/usr.bin/rsh/Makefile			kerberos4
+src/usr.bin/skeyinit/skeyinit.c			string literal
 src/usr.bin/ssh/lib/Makefile 			kerberos4
 src/usr.bin/ssh/ssh.c				gobbles
 src/usr.bin/ssh/ssh.h				gobbles
@@ -5358,8 +5532,10 @@ src/usr.bin/xlint/lint1/Makefile		$.curdir
 src/usr.sbin/amd/fsinfo/Makefile		$.curdir
 src/usr.sbin/arp/arp.8				arp stripcomments
 src/usr.sbin/arp/arp.c				stripcomments
+src/usr.sbin/ppp/ppp/alias_nbt.c		trigraph
 src/usr.sbin/pppd/Makefile			$.curdir
 src/usr.sbin/rpc.lockd/Makefile			$.curdir
+src/usr.sbin/user/user.c			string literal
 Index: ports/mystuff/diff-addedfiles (meta file)
 ===================================================================
 Index: ports/mystuff/diff-notes (meta file)
@@ -5378,12 +5554,11 @@ Index: ports/mystuff/diff-notes (meta file)
 . add an ssh exploit for network testing (gobbles, integration work by me)
 . add compile flag for gcc-3.2 kernel builds
 . add ctm-update and other helpful macroes to /etc/profile
-. add extra BIND 4 host command and nslookup compat emulation
+. add extra host command and nslookup compat emulation from audited bind4
 . add faster/leaner method of clearing /tmp if not a separate filesystem
 . add first floppy always in all kernels, even when detached
 . add flags to build no kernel, or just no ramdiscs, to make release
 . add fork bomb defusion code (schubert, integration work by me)
-. add fsck fix (jedi/sector one; partially committed by henning@)
 . add gs, ggr and stripcomm functions to /etc/profile
 . add kernel config file source into kernel image (jedi/sector one, me)
 . add kernel signal patch (jedi/sector one)
@@ -5399,27 +5574,24 @@ Index: ports/mystuff/diff-notes (meta file)
 . add random seed file exchanger and rdate to cron
 . add several lots of gcc-3.2 related small patches or fixes
 . allow only S/KEY authentication for ftp users by default
-. backport in-tree gcc propolice change to egcc
 . build and install crunch tools, honour DESTDIR
 . build only telnet{,d} with kerberos any more
-. build strictly optimized for _pentium_ _only_, speed (-O2)
-. build using gcc-3.2 (only...)
-. build using in-tree g++-2.95.3 (g++-3.2 doesnt work on libcurses++)
+. build using gcc-3.2 as the system compiler, try using g++-3.2 too
 . build with no Kerberos more than necessary
 . build with no YP, NLS, AFS, profiled libraries
 . disable building of shared libs temporarily until switch to ELF is completed
 . disable hardware cache on hard discs by default due to softdep
-. don't build Objective C, Fortran 77
-. don't build code that doesn't compile cleanly yet
-. don't build in-tree BIND 4 except host/nslookup
+. don't build Objective C, Fortran 77 in gcc-2.95
+. don't build in-tree BIND 4 and BIND 9
 . don't read fd? disklabel in /boot until it is needed
 . enable TCP Explicit Congestion Notification by default
 . enable softdep by default
 . fix DESTDIR/BINDIR in some Makefiles
-. fix building of rdate with latest SuSE GNU/Linux
-. fix mount(8) needing -t ... (reverse, new patch by gluk@, committed, ci by todd)
-. fix patch-metafiles containing spaces before tabs
+. fix building of rdate with latest SuSE GNU/Linux and glibc per se
+. fix fsck includes
+. fix patch-metafiles containing spaces before tabs, etc.
 . fix trailing whitespace in diffs by mwatts and especially jedi/sector one
+. fix wsvt25 entries in terminfo/termcap for lynx-current
 . get rid of ``...´´ chars mis-used in manpages as "..."
 . get rid of kerberos/afs/... leftovers
 . get rid of pcvtfonts, we don't use wscons
@@ -5436,13 +5608,11 @@ Index: ports/mystuff/diff-notes (meta file)
 . make dynamic linking capability in csu flaggable
 . make kernel and libc 16 bytes smaller
 . make kernel execute ELF binaries right now (me by drahn@ and NetBSD)
-. make patch split into more than one file
-. make sendmail.cf nicer
+. make sendmail.cf nicer ;-)
 . make unique colourized xterm
 . pipe disklabel, fdisk in-binary man pages through col -b (hint by watts)
 . plus everything I've forgotten
 . regenerate ports and patches; get rid of $OpenBSD rcs id when unneeded
-. split up core diff into some parts
 . sync distrib/sets/lists accordingly
 . sync log files with local usus
 . sync mtree and rc files with reality
