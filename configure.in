@@ -1,4 +1,4 @@
-dnl $MirBSD: configure.in,v 1.3 2004/05/24 16:24:42 tg Exp $
+dnl $MirBSD: configure.in,v 1.4 2004/05/24 16:26:27 tg Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl
@@ -252,8 +252,8 @@ void) ksh_cv_signal_retval=  ;;
     AC_MSG_ERROR(Internal erorr: unknown signal return type: $ac_cv_type_signal)
 esac
 AC_DEFINE_UNQUOTED(RETSIGVAL, $ksh_cv_signal_retval)
-AC_CHECK_SIZEOF(int)
-AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(int, 4)
+AC_CHECK_SIZEOF(long, 4)
 dnl sh.h sets INT32 to int or long as appropriate.  Some burnt systems, such
 dnl as NeXT's, clock_t is in sys/time.h (in non-posix mode).
 KSH_CHECK_H_TYPE(clock_t, [[for clock_t in any of <sys/types.h>, <sys/times.h> and <sys/time.h>]],
