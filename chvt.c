@@ -1,4 +1,4 @@
-/**	$MirBSD: chvt.c,v 1.4 2004/12/05 16:10:58 tg Exp $ */
+/**	$MirBSD: chvt.c,v 1.5 2004/12/09 23:25:17 tg Exp $ */
 
 /*-
  * Copyright (c) 2004
@@ -24,7 +24,7 @@
 #include <sys/ioctl.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: chvt.c,v 1.4 2004/12/05 16:10:58 tg Exp $");
+__RCSID("$MirBSD: chvt.c,v 1.5 2004/12/09 23:25:17 tg Exp $");
 
 char *
 chvt(char *f)
@@ -36,7 +36,7 @@ chvt(char *f)
 		return "chown";
 	if (chmod(f, 0600))
 		return "chmod";
-#ifndef linux
+#if defined(HAVE_REVOKE) && !defined(linux)
 	if (revoke(f))
 		return "revoke";
 #endif
