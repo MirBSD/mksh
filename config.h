@@ -1,4 +1,4 @@
-/* $MirBSD: config.h,v 1.4 2004/04/17 00:47:17 tg Exp $ */
+/* $MirBSD: config.h,v 1.5 2004/04/24 21:45:00 tg Exp $ */
 /* $OpenBSD: config.h,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /* config.h.  NOT generated automatically. */
@@ -284,6 +284,12 @@
 
 /* Define if you have the strerror function.  */
 #define HAVE_STRERROR 1
+
+/* Define if you have the strlcat function.  */
+#define HAVE_STRLCAT 1
+
+/* Define if you have the strlcpy function.  */
+#define HAVE_STRLCPY 1
 
 /* Define if you have the strstr function.  */
 #define HAVE_STRSTR 1
