@@ -1,10 +1,4 @@
-dnl $MirBSD: configure.in,v 1.1.3.1.2.3.2.1 2004/04/17 00:26:28 tg Exp $
-dnl
-dnl This file, configure.in, which is a part of pdksh (the public domain ksh),
-dnl is placed in the public domain.  It comes with no licence, warranty
-dnl or guarantee of any kind (i.e., at your own risk).
-dnl
-dnl
+dnl $MirBSD: configure.in,v 1.1.3.1.2.3.2.2 2004/04/24 21:39:14 tg Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl
@@ -279,8 +273,8 @@ dnl
 KSH_MEMMOVE
 KSH_MEMSET
 AC_CHECK_FUNCS(confstr dup2 flock getcwd getwd killpg mkstemp nice \
-	setrlimit strerror strcasecmp strstr sysconf tcsetpgrp \
-	ulimit waitpid wait3)
+	setrlimit strerror strcasecmp strlcat strlcpy strstr \
+	sysconf tcsetpgrp ulimit waitpid wait3)
 AC_CHECK_FUNCS(sigsetjmp _setjmp, break)
 AC_FUNC_MMAP
 KSH_FUNC_LSTAT
