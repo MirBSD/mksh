@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: Build.sh,v 1.8 2004/08/27 14:55:45 tg Stab $
+# $MirBSD: Build.sh,v 1.9 2004/08/27 20:05:42 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -44,11 +44,10 @@ if test -e strlfun.c; then
 	$CC $COPTS $CFLAGS $CPPFLAGS $LDFLAGS -o ksh.unstripped *.c
 	echo "Finalizing..."
 	tbl <ksh.1tbl >ksh.1
-	nroff -mdoc -Tascii <ksh.1 >ksh.cat1
+	nroff -mdoc -Tascii <ksh.1 >ksh.cat1 || rm -f ksh.cat1
 	cp ksh.unstripped ksh
 	if test -z "$WEIRD_OS"; then
-		strip -R .note -R .comment -R .rel.dyn -R .sbss \
-		    --strip-unneeded --strip-all ksh \
+		strip -R .note -R .comment --strip-unneeded --strip-all ksh \
 		    || strip ksh || rm -f ksh
 	else
 		echo "Trying to strip..."
@@ -56,16 +55,33 @@ if test -e strlfun.c; then
 		echo "Remember to strip the ksh binary yourself!"
 	fi
 	if test -e ksh; then
-		size ksh
+		BINARY=ksh
 	else
-		size ksh.unstripped
+		BINARY=ksh.unstripped
 	fi
+	size $BINARY
 	echo "done."
 	echo ""
 	echo "If you want to test mirbsdksh:"
 	echo "perl ./tests/th -s ./tests -p ./ksh -C pdksh,sh,ksh,posix,posix-upu"
 	echo ""
 	echo "generated files: ksh <- ksh.unstripped   ksh.cat1 <- ksh.1"
+	echo ""
+	echo "Sample Installation Commands:"
+	echo "# install -c -s -o root -g bin -m 555 $BINARY /bin/mirbsdksh"
+	echo "# echo /bin/mirbsdksh >>/etc/shells"
+	echo " - OR -"
+	echo "# install -c -o root -g bin -m 555 $BINARY /bin/ksh"
+	echo "# echo /bin/ksh >>/etc/shells"
+	echo " - DOCUMENTATION -"
+	echo "# install -c -o root -g bin -m 444 ksh.1" \
+	    "/usr/share/man/man1/mirbsdksh.1"
+	if test -e ksh.cat1; then
+		echo " - OR -"
+		echo "# install -c -o root -g bin -m 444 ksh.cat1" \
+		    "/usr/local/man/cat1/mirbsdksh.0"
+	fi
+	echo " - Adjust the paths accordingly for your system."
 else
 	echo "Your kit isn't complete, please download the"
 	echo "mirbsdksh-1.x.cpio.gz distfile, then extract"
