@@ -1,4 +1,4 @@
-.\"	$MirBSD: ksh.1tbl,v 1.40 2004/11/10 17:13:10 tg Exp $
+.\"	$MirBSD: ksh.1tbl,v 1.41 2004/11/10 17:18:29 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.78 2004/11/08 23:42:02 jmc Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.52 2004/11/09 21:56:54 jmc Exp $
 .\"
@@ -1497,7 +1497,7 @@ started.
 .It Ev KSH_VERSION
 The version of the shell, consisting of the upstream
 .Nm pdksh
-version and date, the string
+version (and sometimes date), the string
 .Dq MirOS
 and the
 .Xr rcs 1
