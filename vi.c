@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/vi.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/vi.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: vi.c,v 1.13 2004/05/10 16:28:47 pvalchev Exp $	*/
 
 /*
@@ -15,7 +15,7 @@
 #include "ksh_stat.h"		/* completion */
 #include "edit.h"
 
-__RCSID("$MirBSD: src/bin/ksh/vi.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/vi.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $");
 
 #define Ctrl(c)		(c&0x1f)
 #define	is_wordch(c)	(letnum(c))

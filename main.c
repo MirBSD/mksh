@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/main.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/main.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -11,7 +11,7 @@
 #include "ksh_stat.h"
 #include "ksh_time.h"
 
-__RCSID("$MirBSD: src/bin/ksh/main.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/main.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $");
 
 extern char **environ;
 

@@ -1,4 +1,4 @@
-dnl $MirBSD: src/bin/ksh/aclocal.m4,v 1.1 2004/12/10 18:08:08 tg Exp $
+dnl $MirBSD: src/bin/ksh/aclocal.m4,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $
 dnl-
 dnl Copyright (c) 2004
 dnl	Thorsten "mirabile" Glaser <tg@66h.42h.de>

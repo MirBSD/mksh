@@ -1,4 +1,4 @@
-# $MirBSD: src/bin/ksh/Makefile,v 1.1 2004/12/10 18:08:08 tg Exp $
+# $MirBSD: src/bin/ksh/Makefile,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $
 # $OpenBSD: Makefile,v 1.18 2004/02/16 19:07:19 deraadt Exp $
 
 PROG=	ksh

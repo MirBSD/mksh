@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/shf.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/shf.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: shf.c,v 1.8 2003/02/28 09:45:09 jmc Exp $	*/
 
 /*
@@ -9,7 +9,7 @@
 #include "ksh_stat.h"
 #include "ksh_limval.h"
 
-__RCSID("$MirBSD: src/bin/ksh/shf.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/shf.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */

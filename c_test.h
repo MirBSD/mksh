@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/c_test.h,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/c_test.h,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: c_test.h,v 1.2 2003/10/22 07:40:38 jmc Exp $	*/
 
 #ifndef C_TEST_H

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/chvt.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/chvt.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $ */
 
 /*-
  * Copyright (c) 2004
@@ -24,7 +24,7 @@
 #include <sys/ioctl.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/chvt.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/chvt.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $");
 
 char *
 chvt(char *f)

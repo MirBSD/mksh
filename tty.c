@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/tty.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/tty.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: tty.c,v 1.2 1996/10/01 02:05:51 downsj Exp $	*/
 
 #include "sh.h"
@@ -7,7 +7,7 @@
 #include "tty.h"
 #undef EXTERN
 
-__RCSID("$MirBSD: src/bin/ksh/tty.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/tty.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $");
 
 int
 get_tty(int fd, TTY_state *ts)

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/c_test.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/c_test.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: c_test.c,v 1.10 2003/10/10 19:09:07 millert Exp $	*/
 
 /*
@@ -14,7 +14,7 @@
 #include "ksh_stat.h"
 #include "c_test.h"
 
-__RCSID("$MirBSD: src/bin/ksh/c_test.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/c_test.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $");
 
 /* test(1) accepts the following grammar:
 	oexpr	::= aexpr | aexpr "-o" oexpr ;

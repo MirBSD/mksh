@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/jobs.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/jobs.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: jobs.c,v 1.21 2003/11/10 21:26:39 millert Exp $	*/
 
 /*
@@ -31,7 +31,7 @@
 #include "ksh_times.h"
 #include "tty.h"
 
-__RCSID("$MirBSD: src/bin/ksh/jobs.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/jobs.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $");
 
 /* Start of system configuration stuff */
 

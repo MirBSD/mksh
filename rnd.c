@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/rnd.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/rnd.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $ */
 
 /*-
  * Copyright (c) 2004
@@ -23,7 +23,7 @@
 #include "sh.h"
 #include "proto.h"
 
-__RCSID("$MirBSD: src/bin/ksh/rnd.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/rnd.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $");
 
 #ifndef	HAVE_SRANDOM
 #undef	HAVE_RANDOM

@@ -1,4 +1,4 @@
-/**	$MirBSD: src/bin/ksh/c_ksh.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/c_ksh.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.18 2004/02/10 13:03:36 jmc Exp $	*/
 
 /*
@@ -13,7 +13,7 @@
 #include <sys/cygwin.h>
 #endif /* __CYGWIN__ */
 
-__RCSID("$MirBSD: src/bin/ksh/c_ksh.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/c_ksh.c,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $");
 
 int
 c_cd(char **wp)

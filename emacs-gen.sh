@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: src/bin/ksh/emacs-gen.sh,v 1.1 2004/12/10 18:08:08 tg Exp $
+# $MirBSD: src/bin/ksh/emacs-gen.sh,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $
 # $OpenBSD: emacs-gen.sh,v 1.1.1.1 1996/08/14 06:19:10 downsj Exp $
 
 case $# in

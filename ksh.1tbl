@@ -1,4 +1,4 @@
-.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 1.1 2004/12/10 18:08:08 tg Exp $
+.\"	$MirBSD: src/bin/ksh/ksh.1tbl,v 1.1.15.1 2004/12/10 18:08:08 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.79 2004/12/04 07:05:13 jaredy Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.52 2004/11/09 21:56:54 jmc Exp $
 .\"
