@@ -1,5 +1,3 @@
-/*	$OpenBSD: config.h,v 1.7 2003/02/28 09:45:09 jmc Exp $	*/
-
 /* config.h.  Generated automatically by configure.  */
 /* config.h.in.  Generated automatically from configure.in by autoheader.  */
 /*
@@ -30,7 +28,7 @@
 /* #undef gid_t */
 
 /* Define if you have a working `mmap' system call.  */
-#define HAVE_MMAP 1
+/* #undef HAVE_MMAP */
 
 /* Define if your struct stat has st_rdev.  */
 #define HAVE_ST_RDEV 1
@@ -67,7 +65,7 @@
 /* #undef STAT_MACROS_BROKEN */
 
 /* Define if `sys_siglist' is declared by <signal.h>.  */
-#define SYS_SIGLIST_DECLARED 1
+/* #undef SYS_SIGLIST_DECLARED */
 
 /* Define if you can safely include both <sys/time.h> and <time.h>.  */
 #define TIME_WITH_SYS_TIME 1
@@ -79,7 +77,7 @@
 /* #undef VOID_CLOSEDIR */
 
 /* Define if your kernal doesn't handle scripts starting with #! */
-/* #undef SHARPBANG */
+#define SHARPBANG 1
 
 /* Define if dup2() preserves the close-on-exec flag (ultrix does this) */
 /* #undef DUP2_BROKEN */
@@ -88,7 +86,7 @@
 #define RETSIGVAL 
 
 /* Define if you have posix signal routines (sigaction(), et. al.) */
-#define POSIX_SIGNALS 1
+/* #undef POSIX_SIGNALS */
 
 /* Define if you have BSD4.2 signal routines (sigsetmask(), et. al.) */
 /* #undef BSD42_SIGNALS */
@@ -97,10 +95,10 @@
 /* #undef BSD41_SIGNALS */
 
 /* Define if you have v7 signal routines (signal(), signal reset on delivery) */
-/* #undef V7_SIGNALS */
+#define V7_SIGNALS 1
 
 /* Define to use the fake posix signal routines (sigact.[ch]) */
-/* #undef USE_FAKE_SIGACT */
+/* #define USE_FAKE_SIGACT 1 */
 
 /* Define if signals don't interrupt read() */
 /* #undef SIGNALS_DONT_INTERRUPT */
@@ -109,13 +107,13 @@
 /* #undef BSD_PGRP */
 
 /* Define if you have POSIX versions of the setpgid() and getpgrp() routines */
-#define POSIX_PGRP 1
+/* #undef POSIX_PGRP */
 
 /* Define if you have sysV versions of the setpgrp() and getpgrp() routines */
 /* #undef SYSV_PGRP */
 
 /* Define if you don't have setpgrp(), setpgid() or getpgrp() routines */
-/* #undef NO_PGRP */
+#define NO_PGRP 1
 
 /* Define to char if your compiler doesn't like the void keyword */
 /* #undef void */
@@ -133,7 +131,7 @@
 /* #undef clock_t */
 
 /* Define to the type of struct rlimit fields if the rlim_t type is missing */
-/* #undef rlim_t */
+#define rlim_t	long
 
 /* Define if time() is declared in <time.h> */
 #define TIME_DECLARED 1
@@ -145,10 +143,10 @@
 #define HAVE_SYS_ERRLIST 1
 
 /* Define if sys_errlist[] and sys_nerr are defined in <errno.h> */
-#define SYS_ERRLIST_DECLARED 1
+/* #undef SYS_ERRLIST_DECLARED */
 
 /* Define if sys_siglist[] is in the C library */
-#define HAVE_SYS_SIGLIST 1
+/* #undef HAVE_SYS_SIGLIST */
 
 /* Define if you have a sane <termios.h> header file */
 #define HAVE_TERMIOS_H 1
@@ -163,10 +161,10 @@
 /* #undef HAVE_BCOPY */
 
 /* Define if you have a lstat() function in your C library */
-#define HAVE_LSTAT 1
+/* #undef HAVE_LSTAT */
 
 /* Define if you have a sane <termio.h> header file */
-/* #undef HAVE_TERMIO_H */
+#define HAVE_TERMIO_H 1
 
 /* Define if you don't have times() or if it always returns 0 */
 /* #undef TIMES_BROKEN */
@@ -184,23 +182,19 @@
 /* #undef OS_ISC */
 
 /* Define if you arg running OS2 with the EMX library */
-/* #undef OS2 */
+#define OS2 1
 
-/* Define if you have a POSIX.1 compatible <sys/wait.h> */
+/* Define if you have a POSIX.1 compatiable <sys/wait.h> */
 #define POSIX_SYS_WAIT 1
 
 /* Define if your OS maps references to /dev/fd/n to file descriptor n */
-#define HAVE_DEV_FD 1
+/* #undef HAVE_DEV_FD */
 
 /* Default PATH (see comments in configure.in for more details) */
-#define DEFAULT_PATH "/bin:/usr/bin:/sbin:/usr/sbin"
-
-/* Define if your C library's getwd/getcwd function dumps core in unreadable
- * directories.  */
-/* #undef HPUX_GETWD_BUG */
+#define DEFAULT_PATH "c:/usr/bin;c:/os2;/os2"
 
 /* Include ksh features? (see comments in configure.in for more details) */
-/* #define KSH 1 */
+#define KSH 1
 
 /* Include emacs editing? (see comments in configure.in for more details) */
 #define EMACS 1
@@ -218,7 +212,7 @@
 #define HISTORY 1
 
 /* Include complex history? (see comments in configure.in for more details) */
-#define COMPLEX_HISTORY
+/* #undef COMPLEX_HISTORY */
 
 /* Strict POSIX behaviour? (see comments in configure.in for more details) */
 /* #undef POSIXLY_CORRECT */
@@ -236,50 +230,40 @@
 #define SIZEOF_INT 4
 
 /* The number of bytes in a long.  */
-#if defined(alpha)
-#define SIZEOF_LONG 8
-#else
 #define SIZEOF_LONG 4
-#endif
 
 /* Define if you have the _setjmp function.  */
 /* #undef HAVE__SETJMP */
 
 /* Define if you have the confstr function.  */
-#define HAVE_CONFSTR 1
+/* #undef HAVE_CONFSTR */
 
 /* Define if you have the flock function.  */
 #define HAVE_FLOCK 1
 
-/* Define if you have the getcwd function.  */
-#define HAVE_GETCWD 1
-
 /* Define if you have the getgroups function.  */
 /* #undef HAVE_GETGROUPS */
-
-/* Define if you have the getpagesize function.  */
-#define HAVE_GETPAGESIZE 1
 
 /* Define if you have the getrusage function.  */
 /* #undef HAVE_GETRUSAGE */
 
 /* Define if you have the getwd function.  */
-#define HAVE_GETWD 1
+/* #undef HAVE_GETWD */
 
 /* Define if you have the killpg function.  */
-#define HAVE_KILLPG 1
+/* #undef HAVE_KILLPG */
 
 /* Define if you have the nice function.  */
-#define HAVE_NICE 1
+/* #undef HAVE_NICE */
 
 /* Define if you have the setrlimit function.  */
-#define HAVE_SETRLIMIT 1
+/* #undef HAVE_SETRLIMIT */
 
 /* Define if you have the sigsetjmp function.  */
 #define HAVE_SIGSETJMP 1
 
 /* Define if you have the strcasecmp function.  */
-#define HAVE_STRCASECMP 1
+/* #undef HAVE_STRCASECMP */
 
 /* Define if you have the strerror function.  */
 #define HAVE_STRERROR 1
@@ -294,13 +278,10 @@
 #define HAVE_TCSETPGRP 1
 
 /* Define if you have the ulimit function.  */
-/* #undef HAVE_ULIMIT */
-
-/* Define if you have the valloc function.  */
-#define HAVE_VALLOC 1
+#define HAVE_ULIMIT 1
 
 /* Define if you have the wait3 function.  */
-#define HAVE_WAIT3 1
+/* #undef HAVE_WAIT3 */
 
 /* Define if you have the waitpid function.  */
 #define HAVE_WAITPID 1
@@ -321,7 +302,7 @@
 /* #undef HAVE_NDIR_H */
 
 /* Define if you have the <paths.h> header file.  */
-#define HAVE_PATHS_H 1
+/* #undef HAVE_PATHS_H */
 
 /* Define if you have the <stddef.h> header file.  */
 #define HAVE_STDDEF_H 1
