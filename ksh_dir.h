@@ -1,4 +1,4 @@
-/**	$MirBSD: ksh_dir.h,v 1.5 2004/10/28 11:53:42 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/ksh_dir.h,v 1.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: ksh_dir.h,v 1.1.1.1 1996/08/14 06:19:11 downsj Exp $	*/
 
 #ifndef KSH_DIR_H

@@ -1,4 +1,4 @@
-/**	$MirBSD: c_ulimit.c,v 1.8 2004/10/28 11:53:40 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/c_ulimit.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: c_ulimit.c,v 1.10 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -32,7 +32,7 @@ extern	long ulimit();
 # endif /* HAVE_ULIMIT */
 #endif /* HAVE_ULIMIT_H */
 
-__RCSID("$MirBSD: c_ulimit.c,v 1.8 2004/10/28 11:53:40 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/c_ulimit.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2

@@ -1,4 +1,4 @@
-/**	$MirBSD: proto.h,v 1.11 2004/12/10 22:21:26 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/proto.h,v 1.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: proto.h,v 1.11 2003/05/16 19:58:57 jsyn Exp $	*/
 /*	$From: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $ */
 
@@ -171,7 +171,7 @@ int 	command(const char *comm);
 int 	shell(Source *volatile s, int volatile toplevel);
 void 	unwind(int i) GCC_FUNC_ATTR(noreturn);
 void 	newenv(int type);
-void 	quitenv(struct shf *shf);
+void 	quitenv(void);
 void	cleanup_parents_env(void);
 void	cleanup_proc_env(void);
 void 	aerror(Area *ap, const char *msg)

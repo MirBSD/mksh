@@ -1,4 +1,4 @@
-/**	$MirBSD: main.c,v 1.16 2004/12/10 22:21:25 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/main.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
 
 /*
@@ -11,7 +11,7 @@
 #include "ksh_stat.h"
 #include "ksh_time.h"
 
-__RCSID("$MirBSD: main.c,v 1.16 2004/12/10 22:21:25 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/main.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
 
 extern char **environ;
 
@@ -479,7 +479,9 @@ include(const char *name, int argc, char **argv, int intr_ok)
 	newenv(E_INCL);
 	i = ksh_sigsetjmp(e->jbuf, 0);
 	if (i) {
-		quitenv(s ? s->u.shf : NULL);
+		if (s) /* Do this before quitenv(), which frees the memory */
+			shf_close(s->u.shf);
+		quitenv();
 		if (old_argv) {
 			e->loc->argv = old_argv;
 			e->loc->argc = old_argc;
@@ -513,7 +515,8 @@ include(const char *name, int argc, char **argv, int intr_ok)
 	s->u.shf = shf;
 	s->file = str_save(name, ATEMP);
 	i = shell(s, FALSE);
-	quitenv(s->u.shf);
+	shf_close(s->u.shf);
+	quitenv();
 	if (old_argv) {
 		e->loc->argv = old_argv;
 		e->loc->argc = old_argc;
@@ -579,12 +582,12 @@ shell(Source *volatile s, volatile int toplevel)
 		  case LLEAVE:
 		  case LRETURN:
 			source = old_source;
-			quitenv(NULL);
+			quitenv();
 			unwind(i);	/* keep on going */
 			/*NOREACHED*/
 		  default:
 			source = old_source;
-			quitenv(NULL);
+			quitenv();
 			internal_errorf(1, "shell: %d", i);
 			/*NOREACHED*/
 		}
@@ -636,7 +639,7 @@ shell(Source *volatile s, volatile int toplevel)
 
 		reclaim();
 	}
-	quitenv(NULL);
+	quitenv();
 	source = old_source;
 	return exstat;
 }
@@ -671,7 +674,7 @@ unwind(int i)
 			/* Fall through... */
 
 		  default:
-			quitenv(NULL);
+			quitenv();
 		}
 	}
 }
@@ -693,7 +696,7 @@ newenv(int type)
 }
 
 void
-quitenv(struct shf *shf)
+quitenv(void)
 {
 	struct env *ep = e;
 	int fd;
@@ -708,6 +711,7 @@ quitenv(struct shf *shf)
 		if (ep->savefd[2]) /* Clear any write errors */
 			shf_reopen(2, SHF_WR, shl_out);
 	}
+	reclaim();
 
 	/* Bottom of the stack.
 	 * Either main shell is exiting or cleanup_parents_env() was called.
@@ -736,14 +740,8 @@ quitenv(struct shf *shf)
 			chmem_allfree();
 #endif /* MEM_DEBUG */
 		}
-		if (shf)
-			shf_close(shf);
-		reclaim();
 		exit(exstat);
 	}
-	if (shf)
-		shf_close(shf);
-	reclaim();
 
 	e = e->oenv;
 	afree(ep, ATEMP);

@@ -1,4 +1,4 @@
-dnl $MirBSD: configure.in,v 1.10 2004/12/10 15:01:05 tg Exp $
+dnl $MirBSD: src/bin/ksh/configure.in,v 1.1 2004/12/10 18:08:08 tg Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl

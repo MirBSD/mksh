@@ -1,4 +1,4 @@
-/**	$MirBSD: trap.c,v 1.6 2004/10/28 11:53:43 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/trap.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: trap.c,v 1.13 2003/02/28 09:45:09 jmc Exp $	*/
 
 /*
@@ -9,7 +9,7 @@
 #define FROM_TRAP_C
 #include "sh.h"
 
-__RCSID("$MirBSD: trap.c,v 1.6 2004/10/28 11:53:43 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/trap.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
 
 /* Table is indexed by signal number
  *

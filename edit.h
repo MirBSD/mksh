@@ -1,4 +1,4 @@
-/**	$MirBSD: edit.h,v 1.5 2004/10/28 11:53:41 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/edit.h,v 1.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: edit.h,v 1.3 1999/11/14 22:04:02 d Exp $	*/
 /*	$From: edit.h,v 1.2 1994/05/19 18:32:40 michael Exp michael $ */
 

@@ -1,4 +1,4 @@
-# $MirBSD: history.t,v 1.2 2004/05/24 19:56:25 tg Stab $
+# $MirBSD: src/bin/ksh/tests/history.t,v 1.1 2004/12/10 18:08:08 tg Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 #
 # Not tested yet:

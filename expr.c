@@ -1,4 +1,4 @@
-/**	$MirBSD: expr.c,v 1.8 2004/12/10 22:21:25 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/expr.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: expr.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: expr.c,v 1.8 2004/12/10 22:21:25 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/expr.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -176,7 +176,7 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok)
 		/* Clear EXPRINEVAL in of any variables we were playing with */
 		if (curstate.evaling)
 			curstate.evaling->flag &= ~EXPRINEVAL;
-		quitenv(NULL);
+		quitenv();
 		if (i == LAEXPR) {
 			if (error_ok == KSH_RETURN_ERROR)
 				return 0;
@@ -202,7 +202,7 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok)
 		/* can fail if readonly */
 		setstr(vp, str_val(v), error_ok);
 
-	quitenv(NULL);
+	quitenv();
 
 	return 1;
 }

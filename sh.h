@@ -1,4 +1,4 @@
-/**	$MirBSD: sh.h,v 1.19 2004/11/10 19:58:06 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/sh.h,v 1.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.18 2004/05/31 10:36:35 otto Exp $	*/
 
 #ifndef SH_H

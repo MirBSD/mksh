@@ -1,4 +1,4 @@
-/**	$MirBSD: ksh_times.h,v 1.5 2004/10/28 11:53:42 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/ksh_times.h,v 1.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: ksh_times.h,v 1.2 1996/10/01 02:05:41 downsj Exp $	*/
 
 #ifndef KSH_TIMES_H

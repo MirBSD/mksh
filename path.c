@@ -1,10 +1,10 @@
-/**	$MirBSD: path.c,v 1.7 2004/10/28 11:53:43 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/path.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: path.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
 
 #include "sh.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: path.c,v 1.7 2004/10/28 11:53:43 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/path.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
 
 /*
  *	Contains a routine to search a : separated list of

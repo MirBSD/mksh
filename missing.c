@@ -1,4 +1,4 @@
-/**	$MirBSD: missing.c,v 1.3 2004/09/21 11:57:13 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/missing.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: missing.c,v 1.5 2003/05/16 18:49:46 jsyn Exp $	*/
 
 /*

@@ -1,4 +1,4 @@
-/**	$MirBSD: io.c,v 1.7 2004/10/28 11:53:42 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/io.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: io.c,v 1.13 2003/11/10 21:26:39 millert Exp $	*/
 
 /*

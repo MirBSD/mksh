@@ -1,4 +1,4 @@
-/**	$MirBSD: tree.h,v 1.4 2004/10/28 11:53:43 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/tree.h,v 1.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: tree.h,v 1.8 2003/10/22 07:40:38 jmc Exp $	*/
 /*	$From: tree.h,v 1.3 1994/05/31 13:34:34 michael Exp $ */
 

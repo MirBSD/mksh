@@ -1,4 +1,4 @@
-/**	$MirBSD: misc.c,v 1.14 2004/10/31 23:01:18 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/misc.c,v 1.1 2004/12/10 18:08:08 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.20 2003/10/22 07:40:38 jmc Exp $	*/
 
 /*
@@ -11,7 +11,7 @@
 # include <limits.h>
 #endif
 
-__RCSID("$MirBSD: misc.c,v 1.14 2004/10/31 23:01:18 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/misc.c,v 1.1 2004/12/10 18:08:08 tg Exp $");
 
 #ifndef UCHAR_MAX
 # define UCHAR_MAX	0xFF
