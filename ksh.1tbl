@@ -1,4 +1,4 @@
-.\"	$MirBSD: ksh.1tbl,v 1.38 2004/11/10 16:52:08 tg Exp $
+.\"	$MirBSD: ksh.1tbl,v 1.39 2004/11/10 17:01:11 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.78 2004/11/08 23:42:02 jmc Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.52 2004/11/09 21:56:54 jmc Exp $
 .\"
@@ -1600,7 +1600,7 @@ the escape codes with this non-printing character.
 If you don't have any non-printing characters, you're out of luck.
 By the way, don't blame me for
 this hack; it's in the original
-.Xr ksh .
+.Xr ksh88 1 .
 Default is
 .Dq \&$\ \&
 for non-root users,
@@ -1900,9 +1900,14 @@ but the original
 .Xr ksh ,
 Bourne
 .Xr sh
-and
+and GNU
 .Xr bash
-do, so this may have to change (too bad).
+do.
+For
+.Nm pdksh ,
+this may have to change (too bad), but
+.Nm mksh
+will not adopt this behaviour.
 .Pp
 Note that none of the above pattern elements match either a period
 .Pq Sq \&.
