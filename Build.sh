@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: Build.sh,v 1.3 2004/05/24 19:55:51 tg Exp $
+# $MirBSD: Build.sh,v 1.4 2004/05/24 20:13:03 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten Glaser <x86@ePost.de>
@@ -47,7 +47,8 @@ if test -e strlfun.c; then
 	nroff -mandoc -Tascii <ksh.1 >ksh.cat1
 	if [ -z "$WEIRD_OS" ]; then
 		strip -R .note -R .comment -R .rel.dyn -R .sbss \
-		    --strip-unneeded --strip-all ksh || strip ksh
+		    --strip-unneeded --strip-all ksh \
+		    || strip ksh || rm -f ksh
 	else
 		echo "Remember to strip the ksh binary!"
 	fi

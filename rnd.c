@@ -1,4 +1,4 @@
-/* $MirBSD: rnd.c,v 1.1 2004/05/24 19:06:55 tg Exp $
+/* $MirBSD: rnd.c,v 1.2 2004/05/24 20:13:03 tg Exp $
  *-
  * Copyright (c) 2004
  *	Thorsten Glaser <x86@ePost.de>
@@ -55,10 +55,10 @@ rnd_get(void)
 void
 rnd_put(long newval)
 {
-	u_int32_t sv;
+	long sv;
 
 	rnd_state = 1 | rnd_get();
-	sv = (((u_int32_t)rnd_get()) << (newval & 7)) ^ (u_int32_t)newval;
+	sv = (rnd_get() << (newval & 7)) ^ newval;
 
 #if defined(HAVE_ARC4RANDOM_PUSH)
 	arc4random_push(sv);
