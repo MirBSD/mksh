@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirBSD: Build.sh,v 1.1.2.2 2004/04/24 23:34:03 tg Exp $
+# $MirBSD: Build.sh,v 1.1.2.3 2004/04/27 19:12:01 tg Exp $
 #-
 # Copyright (c) 2004
 #	Thorsten "mirabile" Glaser <x86@ePost.de>
@@ -19,15 +19,12 @@
 # possibility of such damage.
 #-
 # Build the mirbsdksh on GNU and other operating systems.
-# Note:	on some systems, you must run it with a pre-existing bash or
-#	korn shell, because the Bourne seems to choke on the if sta-
-#	tement below for some unknown reason.
-# Note:	Solaris might want LDFLAGS=-ldl. Some GNU/Linux systems usu-
-#	ally have problems with their perl path (use -I for the .ph)
-# Note:	For a couple of systems (Solaris, Microsoft Interix), you'll
-#	have to use a pre-installed ksh or GNU bash for bootstrap.
-# Note:	On Mac OSX, you need LDFLAGS= (empty) - it seems to not find
-#	the C Runtime Initialization Object files otherwise.
+# Notes for building on various operating systems:
+# - on most OSes, you will need a pre-installed bash or ksh to build
+#   because the Bourne shell chokes on some statements below.
+# - Solaris: SHELL=ksh LDFLAGS=-ldl WEIRD_OS=1 ksh ./Build.sh
+# - Interix: SHELL=ksh ksh ./Build.sh (also on GNU and most *BSD)
+# - Mac OSX: SHELL=bash WEIRD_OS=1 bash ./Build.sh
 
 SHELL="${SHELL:-/bin/sh}"; export SHELL
 CONFIG_SHELL="${SHELL}"; export CONFIG_SHELL
