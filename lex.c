@@ -1,5 +1,5 @@
-/**	$MirBSD: src/bin/ksh/lex.c,v 2.7 2004/12/28 22:32:08 tg Exp $ */
-/*	$OpenBSD: lex.c,v 1.18 2003/08/06 21:08:05 millert Exp $	*/
+/**	$MirBSD: src/bin/ksh/lex.c,v 2.8 2004/12/28 22:40:40 tg Exp $ */
+/*	$OpenBSD: lex.c,v 1.30 2004/12/22 18:57:28 otto Exp $	*/
 
 /*
  * lexical analysis and source input
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/lex.c,v 2.7 2004/12/28 22:32:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/lex.c,v 2.8 2004/12/28 22:40:40 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state.

@@ -1,9 +1,9 @@
-/**	$MirBSD: src/bin/ksh/proto.h,v 2.7 2004/12/28 22:33:21 tg Exp $ */
+/**	$MirBSD: src/bin/ksh/proto.h,v 2.8 2004/12/28 22:40:40 tg Exp $ */
 /*	$OpenBSD: proto.h,v 1.11 2003/05/16 19:58:57 jsyn Exp $	*/
 /*	$From: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $ */
 
 #ifndef PROTO_H
-#define PROTO_H
+/*	$OpenBSD: proto.h,v 1.23 2004/12/22 18:57:28 otto Exp $	*/
 
 /*
  * prototypes for PD-KSH

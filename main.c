@@ -1,5 +1,5 @@
-/**	$MirBSD: src/bin/ksh/main.c,v 2.12 2004/12/28 22:32:08 tg Exp $ */
-/*	$OpenBSD: main.c,v 1.28 2004/08/23 14:56:32 millert Exp $	*/
+/**	$MirBSD: src/bin/ksh/main.c,v 2.13 2004/12/28 22:40:40 tg Exp $ */
+/*	$OpenBSD: main.c,v 1.35 2004/12/22 18:57:28 otto Exp $	*/
 
 /*
  * startup, main loop, environments and error handling
@@ -15,7 +15,7 @@
  * shell version
  */
 
-__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.12 2004/12/28 22:32:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/main.c,v 2.13 2004/12/28 22:40:40 tg Exp $");
 
 const char ksh_version[] =
 	"@(#)PD KSH v5.2.14 MirOS R20 in "

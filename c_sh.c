@@ -1,5 +1,5 @@
-/**	$MirBSD: src/bin/ksh/c_sh.c,v 2.7 2004/12/28 22:32:08 tg Exp $ */
-/*	$OpenBSD: c_sh.c,v 1.22 2004/12/19 01:58:04 millert Exp $	*/
+/**	$MirBSD: src/bin/ksh/c_sh.c,v 2.8 2004/12/28 22:40:39 tg Exp $ */
+/*	$OpenBSD: c_sh.c,v 1.26 2004/12/22 18:57:28 otto Exp $	*/
 
 /*
  * built-in Bourne commands
@@ -10,7 +10,7 @@
 #include "ksh_time.h"
 #include "ksh_times.h"
 
-__RCSID("$MirBSD: src/bin/ksh/c_sh.c,v 2.7 2004/12/28 22:32:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/c_sh.c,v 2.8 2004/12/28 22:40:39 tg Exp $");
 
 static	char *clocktos(clock_t t);
 

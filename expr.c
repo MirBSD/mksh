@@ -1,5 +1,5 @@
-/**	$MirBSD: src/bin/ksh/expr.c,v 2.5 2004/12/28 22:32:08 tg Exp $ */
-/*	$OpenBSD: expr.c,v 1.9 2003/10/22 07:40:38 jmc Exp $	*/
+/**	$MirBSD: src/bin/ksh/expr.c,v 2.6 2004/12/28 22:40:40 tg Exp $ */
+/*	$OpenBSD: expr.c,v 1.16 2004/12/22 18:57:28 otto Exp $	*/
 
 /*
  * Korn expression evaluation
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include <ctype.h>
 
-__RCSID("$MirBSD: src/bin/ksh/expr.c,v 2.5 2004/12/28 22:32:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/expr.c,v 2.6 2004/12/28 22:40:40 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {

@@ -1,5 +1,5 @@
-/**	$MirBSD: src/bin/ksh/eval.c,v 2.7 2004/12/28 22:32:08 tg Exp $ */
-/*	$OpenBSD: eval.c,v 1.18 2004/12/13 16:37:06 millert Exp $	*/
+/**	$MirBSD: src/bin/ksh/eval.c,v 2.8 2004/12/28 22:40:39 tg Exp $ */
+/*	$OpenBSD: eval.c,v 1.24 2004/12/22 18:52:37 millert Exp $	*/
 
 /*
  * Expansion - quoting, separation, substitution, globbing
@@ -10,7 +10,7 @@
 #include "ksh_dir.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/eval.c,v 2.7 2004/12/28 22:32:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/eval.c,v 2.8 2004/12/28 22:40:39 tg Exp $");
 
 /*
  * string expansion

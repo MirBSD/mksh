@@ -1,5 +1,5 @@
-/**	$MirBSD: src/bin/ksh/exec.c,v 2.7 2004/12/28 22:32:08 tg Exp $ */
-/*	$OpenBSD: exec.c,v 1.31 2003/12/15 05:25:52 otto Exp $	*/
+/**	$MirBSD: src/bin/ksh/exec.c,v 2.8 2004/12/28 22:40:40 tg Exp $ */
+/*	$OpenBSD: exec.c,v 1.39 2004/12/22 18:57:28 otto Exp $	*/
 
 /*
  * execute command tree
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include "ksh_stat.h"
 
-__RCSID("$MirBSD: src/bin/ksh/exec.c,v 2.7 2004/12/28 22:32:08 tg Exp $");
+__RCSID("$MirBSD: src/bin/ksh/exec.c,v 2.8 2004/12/28 22:40:40 tg Exp $");
 
 static int	comexec(struct op *t, struct tbl *volatile tp, char **ap,
 			      int volatile flags);
