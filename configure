@@ -1,5 +1,5 @@
-#! /bin/sh
-# $MirBSD: configure,v 1.7 2004/04/17 00:47:17 tg Exp $
+#!/bin/sh
+# $MirBSD: configure,v 1.7.4.1 2004/04/24 21:40:25 tg Exp $
 #
 # Guess values for system-dependent variables and create Makefiles.
 # Generated automatically using autoconf version 2.13.20020210
@@ -2426,8 +2426,8 @@ EOF
   fi
 
 for ac_func in confstr dup2 flock getcwd getwd killpg mkstemp nice \
-	setrlimit strerror strcasecmp strstr sysconf tcsetpgrp \
-	ulimit waitpid wait3
+	setrlimit strerror strcasecmp strlcat strlcpy strstr \
+	sysconf tcsetpgrp ulimit waitpid wait3
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
 echo "configure:2439: checking for $ac_func" >&5
