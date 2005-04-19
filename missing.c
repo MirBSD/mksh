@@ -1,4 +1,4 @@
-/**	$MirOS$ */
+/**	$MirOS: src/bin/ksh/missing.c,v 1.1.7.1 2005/03/06 15:42:54 tg Exp $ */
 /*	$OpenBSD: missing.c,v 1.5 2003/05/16 18:49:46 jsyn Exp $	*/
 
 /*
@@ -8,7 +8,7 @@
 #include "sh.h"
 #include "ksh_stat.h"
 
-__RCSID("$MirOS$");
+__RCSID("$MirOS: src/bin/ksh/missing.c,v 1.1.7.1 2005/03/06 15:42:54 tg Exp $");
 
 #ifndef HAVE_STRERROR
 char *
@@ -128,7 +128,7 @@ rnd_put(long newval)
 #if defined(HAVE_ARC4RANDOM_PUSH)
 	arc4random_push(sv);
 #elif defined(HAVE_ARC4RANDOM_ADDRANDOM)
-	arc4random_addrandom((char *)&sv, sizeof(sv));
+	arc4random_addrandom((unsigned char *)&sv, sizeof(sv));
 #endif
 #ifdef HAVE_ARC4RANDOM
 	sv ^= arc4random();
