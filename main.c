@@ -1,4 +1,4 @@
-/**	$MirOS$ */
+/**	$MirOS: src/bin/ksh/main.c,v 1.1.7.1 2005/03/06 15:42:54 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.35 2004/12/22 18:57:28 otto Exp $	*/
 
 /*
@@ -15,7 +15,7 @@
  * shell version
  */
 
-__RCSID("$MirOS$");
+__RCSID("$MirOS: src/bin/ksh/main.c,v 1.1.7.1 2005/03/06 15:42:54 tg Exp $");
 
 const char ksh_version[] =
 	"@(#)PD KSH v5.2.14 MirOS R20 in "
@@ -233,7 +233,8 @@ main(int argc, char *argv[])
 	ppid = getppid();
 	rnd_seed( (*((long *)kshname)) ^ ((long)time(NULL) * kshpid * ppid) );
 	setint(global("PPID"), (long) ppid);
-	setint(global("RANDOM"), rnd_get());
+	/* Note: don't setint here, it loops into rnd_put() */
+	rnd_get();
 	if (!Flag(FSH))
 		setstr(global("KSH_VERSION"), ksh_version, KSH_RETURN_ERROR);
 
