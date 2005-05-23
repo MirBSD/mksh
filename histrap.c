@@ -1,13 +1,14 @@
-/**	$MirOS: src/bin/mksh/histrap.c,v 1.1 2005/05/23 03:06:07 tg Exp $ */
+/**	$MirOS: src/bin/mksh/histrap.c,v 1.2 2005/05/23 12:01:09 tg Exp $ */
 /*	$OpenBSD: history.c,v 1.30 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: trap.c,v 1.22 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
+#include <sys/param.h>	/* for BSD */
 #include <sys/file.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.1 2005/05/23 03:06:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.2 2005/05/23 12:01:09 tg Exp $");
 
 static int	histfd;
 static int	hsize;
@@ -31,6 +32,20 @@ static int	curpos;		/* current index in history[] */
 static char    *hname;		/* current name of history file */
 static int	hstarted;	/* set after hist_init() called */
 static Source	*hist_source;
+
+#if defined(BSD) || defined(__APPLE__)
+#define	mksh_signame(x)	sys_signame[(x)]
+#define	mksh_siglist(x)	sys_siglist[(x)]
+#elif defined(__INTERIX)
+#define	mksh_signame(x)	__sys_signame[(x)]
+#define	mksh_siglist(x)	__sys_siglist[(x)]
+#define	NSIG		__sys_nsig
+#elif defined(__gnu_linux__) || defined(__sun__)
+#define	NEED_MKSH_SIGNAME
+#define	mksh_siglist(x)	strerror(x)
+#else
+# error "Define sys_sig{name,list} for this platform!"
+#endif
 
 Trap sigtraps[NSIG + 1];
 
@@ -952,6 +967,30 @@ sprinkle(int fd)
 	return(write(fd, mag, 2) != 2);
 }
 
+#ifdef NEED_MKSH_SIGNAME
+
+struct _mksh_sigpair {
+	int nr;
+	const char *name;
+} mksh_sigpair[] = {
+#include "signames.inc"
+    { 0, NULL }
+};
+
+static const char * const
+mksh_signame(int s)
+{
+	int i = 0;
+
+	while (mksh_sigpair[i].name != NULL) {
+		if (mksh_sigpair[i].nr == s)
+			return mksh_sigpair[i].name;
+		++i;
+	}
+	return NULL;
+}
+#endif
+
 void
 inittraps(void)
 {
@@ -964,8 +1003,8 @@ inittraps(void)
 			sigtraps[i].name = "ERR";
 			sigtraps[i].mess = "Error handler";
 		} else {
-			sigtraps[i].name = sys_signame[i];
-			sigtraps[i].mess = sys_siglist[i];
+			sigtraps[i].name = mksh_signame(i);
+			sigtraps[i].mess = mksh_siglist(i);
 		}
 	}
 	sigtraps[SIGEXIT_].name = "EXIT";	/* our name for signal 0 */
