@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/histrap.c,v 1.5 2005/05/23 15:09:22 tg Exp $ */
+/**	$MirOS: src/bin/mksh/histrap.c,v 1.6 2005/05/23 15:36:55 tg Exp $ */
 /*	$OpenBSD: history.c,v 1.30 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: trap.c,v 1.22 2005/03/30 17:16:37 deraadt Exp $	*/
 
@@ -8,18 +8,20 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.5 2005/05/23 15:09:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.6 2005/05/23 15:36:55 tg Exp $");
 
 static int	histfd;
 static int	hsize;
 
+static void histinsert(Source *, int, unsigned char *);
+#ifndef __sun__
 static int hist_count_lines(unsigned char *, int);
 static int hist_shrink(unsigned char *, int);
 static unsigned char *hist_skip_back(unsigned char *,int *,int);
 static void histload(Source *, unsigned char *, int);
-static void histinsert(Source *, int, unsigned char *);
 static void writehistfile(int, char *);
 static int sprinkle(int);
+#endif
 
 static int	hist_execute(char *);
 static int	hist_replace(char **, const char *, const char *, int);
@@ -595,8 +597,10 @@ histsave(int lno, const char *cmd, int dowrite)
 	if ((cp = strchr(c, '\n')) != NULL)
 		*cp = '\0';
 
+#ifndef __sun__
 	if (histfd && dowrite)
 		writehistfile(lno, c);
+#endif
 
 	hp = histptr;
 
@@ -636,9 +640,11 @@ histsave(int lno, const char *cmd, int dowrite)
 void
 hist_init(Source *s)
 {
+#ifndef __sun__
 	unsigned char	*base;
 	int	lines;
 	int	fd;
+#endif
 
 	if (Flag(FTALKING) == 0)
 		return;
@@ -647,6 +653,10 @@ hist_init(Source *s)
 
 	hist_source = s;
 
+#ifdef __sun__
+	hname = NULL;
+	histfd = 0;
+#else
 	hname = str_val(global("HISTFILE"));
 	if (hname == NULL)
 		return;
@@ -702,6 +712,7 @@ hist_init(Source *s)
 	}
 	(void) flock(histfd, LOCK_UN);
 	hsize = lseek(histfd, 0L, SEEK_END);
+#endif
 }
 
 typedef enum state {
@@ -711,6 +722,7 @@ typedef enum state {
 	sn2, sn3, sn4
 } State;
 
+#ifndef __sun__
 static int
 hist_count_lines(unsigned char *base, int bytes)
 {
@@ -790,7 +802,6 @@ hist_shrink(unsigned char *oldbase, int oldbytes)
 	return 0;
 }
 
-
 /*
  *	find a pointer to the data 'no' back from the end of the file
  *	return the pointer and the number of bytes left
@@ -867,6 +878,7 @@ histload(Source *s, unsigned char *base, int bytes)
 		}
 	}
 }
+#endif
 
 /*
  *	Insert a line into the history at a specified number
@@ -884,6 +896,7 @@ histinsert(Source *s, int lno, unsigned char *line)
 	}
 }
 
+#ifndef __sun__
 /*
  *	write a command to the end of the history file
  *	This *MAY* seem easy but it's also necessary to check
@@ -947,15 +960,19 @@ writehistfile(int lno, char *cmd)
 bad:
 	hist_finish();
 }
+#endif
 
 void
 hist_finish(void)
 {
+#ifndef __sun__
 	(void) flock(histfd, LOCK_UN);
 	(void) close(histfd);
+#endif
 	histfd = 0;
 }
 
+#ifndef __sun__
 /*
  *	add magic to the history file
  */
@@ -966,6 +983,7 @@ sprinkle(int fd)
 
 	return(write(fd, mag, 2) != 2);
 }
+#endif
 
 #ifdef NEED_MKSH_SIGNAME
 static const char *

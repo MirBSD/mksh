@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/main.c,v 1.2 2005/05/23 14:22:03 tg Exp $ */
+/**	$MirOS: src/bin/mksh/main.c,v 1.3 2005/05/23 15:36:55 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.38 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: tty.c,v 1.8 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include <pwd.h>
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.2 2005/05/23 14:22:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.3 2005/05/23 15:36:55 tg Exp $");
 
 extern char **environ;
 
@@ -201,7 +201,7 @@ main(int argc, char *argv[])
 			setstr(pwd_v, current_wd, KSH_RETURN_ERROR);
 	}
 	ppid = getppid();
-#if !defined(__gnu_linux__) && !defined(__INTERIX)
+#if !defined(__gnu_linux__) && !defined(__INTERIX) && !defined(__sun__)
 	srand((*((long *)kshname)) ^ ((long)time(NULL) * kshpid * ppid));
 #endif
 	setint(global("PPID"), (long) ppid);

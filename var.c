@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/var.c,v 1.2 2005/05/23 14:22:03 tg Exp $ */
+/**	$MirOS: src/bin/mksh/var.c,v 1.3 2005/05/23 15:36:56 tg Exp $ */
 /*	$OpenBSD: var.c,v 1.26 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <time.h>
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.2 2005/05/23 14:22:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.3 2005/05/23 15:36:56 tg Exp $");
 
 /*
  * Variables
@@ -855,7 +855,7 @@ makenv(void)
  * Someone has set the srand() value, therefore from now on
  * we return values from rand() instead of arc4random()
  */
-#if !defined(__gnu_linux__) && !defined(__INTERIX)
+#if !defined(__gnu_linux__) && !defined(__INTERIX) && !defined(__sun__)
 int use_rand = 0;
 #else
 int use_rand = 1;
@@ -919,7 +919,7 @@ getspec(struct tbl *vp)
 		vp->flag &= ~SPECIAL;
 		if (use_rand)
 			setint(vp, (long) (rand() & 0x7fff));
-#if !defined(__gnu_linux__) && !defined(__INTERIX)
+#if !defined(__gnu_linux__) && !defined(__INTERIX) && !defined(__sun__)
 		else
 			setint(vp, (long) (arc4random() & 0x7fff));
 #endif
