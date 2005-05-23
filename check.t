@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.4 2005/05/23 15:02:04 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.5 2005/05/23 15:03:04 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -711,8 +711,6 @@ expected-stderr-pattern:
 name: cd-history
 description:
 	Test someone's CD history package (uses arrays)
-# Fails on OS/2, since directory names are prepended with drive letter.
-category: !os:os2
 stdin:
 	# go to known place before doing anything
 	cd /
@@ -1038,7 +1036,6 @@ expected-stdout:
 name: glob-bad-2
 description:
 	Check that symbolic links aren't stat()'d
-category: !os:os2
 file-setup: dir 755 "dir"
 file-setup: symlink 644 "dir/abc"
 	non-existent-file
@@ -1879,8 +1876,6 @@ name: history-ed-1
 description:
 	Basic (ed) editing works (assumes you have generic ed editor
 	that prints no prompts).
-# No ed on os/2 (yet?).
-category: !os:os2
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -1900,7 +1895,6 @@ expected-stderr-pattern:
 name: history-ed-2
 description:
 	Correct command is edited when number given
-category: !os:os2
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -1929,7 +1923,6 @@ description:
 	in history.
 	(NOTE: adapted for COMPLEX HISTORY compile time option)
 	(ksh88 fails 'cause it lists the fc command)
-category: !os:os2
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -3434,8 +3427,6 @@ name: xxx-exec-environment-2
 description:
 	Check to make sure exec doesn't change environment if a program
 	isn't exec-ed
-# Under os/2, _emx_sig environment variable changes.
-category: !os:os2
 stdin:
 	env > bar1
 	FOO=bar exec; env > bar2
