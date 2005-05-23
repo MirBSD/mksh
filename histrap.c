@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/histrap.c,v 1.6 2005/05/23 15:36:55 tg Exp $ */
+/**	$MirOS: src/bin/mksh/histrap.c,v 1.7 2005/05/23 15:54:31 tg Exp $ */
 /*	$OpenBSD: history.c,v 1.30 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: trap.c,v 1.22 2005/03/30 17:16:37 deraadt Exp $	*/
 
@@ -8,17 +8,17 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.6 2005/05/23 15:36:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.7 2005/05/23 15:54:31 tg Exp $");
 
 static int	histfd;
 static int	hsize;
 
-static void histinsert(Source *, int, unsigned char *);
 #ifndef __sun__
 static int hist_count_lines(unsigned char *, int);
 static int hist_shrink(unsigned char *, int);
 static unsigned char *hist_skip_back(unsigned char *,int *,int);
 static void histload(Source *, unsigned char *, int);
+static void histinsert(Source *, int, unsigned char *);
 static void writehistfile(int, char *);
 static int sprinkle(int);
 #endif
@@ -588,7 +588,8 @@ init_histvec(void)
  * save command in history
  */
 void
-histsave(int lno, const char *cmd, int dowrite)
+histsave(int lno __attribute__((unused)), const char *cmd,
+    int dowrite __attribute__((unused)))
 {
 	char **hp;
 	char *c, *cp;
@@ -878,7 +879,6 @@ histload(Source *s, unsigned char *base, int bytes)
 		}
 	}
 }
-#endif
 
 /*
  *	Insert a line into the history at a specified number
@@ -896,7 +896,6 @@ histinsert(Source *s, int lno, unsigned char *line)
 	}
 }
 
-#ifndef __sun__
 /*
  *	write a command to the end of the history file
  *	This *MAY* seem easy but it's also necessary to check

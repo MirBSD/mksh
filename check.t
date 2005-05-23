@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.5 2005/05/23 15:03:04 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.6 2005/05/23 15:54:30 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1876,6 +1876,8 @@ name: history-ed-1
 description:
 	Basic (ed) editing works (assumes you have generic ed editor
 	that prints no prompts).
+# we don't have persistent history on Solaris (no flock)
+category: !os:solaris
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -1895,6 +1897,7 @@ expected-stderr-pattern:
 name: history-ed-2
 description:
 	Correct command is edited when number given
+category: !os:solaris
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -1923,6 +1926,7 @@ description:
 	in history.
 	(NOTE: adapted for COMPLEX HISTORY compile time option)
 	(ksh88 fails 'cause it lists the fc command)
+category: !os:solaris
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -3604,5 +3608,5 @@ category: pdksh
 stdin:
 	echo $KSH_VERSION
 expected-stdout:
-	@(#)MIRBSD KSH R21
+	@(#)MIRBSD KSH R21 2005/05/23
 ---

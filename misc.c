@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/misc.c,v 1.2 2005/05/23 15:18:16 tg Exp $ */
+/**	$MirOS: src/bin/mksh/misc.c,v 1.3 2005/05/23 15:54:31 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.28 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
@@ -7,7 +7,7 @@
 #include <sys/param.h>	/* for MAXPATHLEN */
 #include <sys/stat.h>
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.2 2005/05/23 15:18:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.3 2005/05/23 15:54:31 tg Exp $");
 
 short chtypes[UCHAR_MAX+1];	/* type bits for unsigned char */
 
@@ -1451,7 +1451,7 @@ chvt(char *f)
 #endif
 
 static int
-parse_T(char *fn)
+parse_T(char *fn __attribute__((unused)))
 {
 #ifdef NO_CHVT
 	warningf(0, "chvt: %s", NO_CHVT);
