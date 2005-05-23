@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.6 2005/05/23 15:54:30 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.7 2005/05/23 16:17:00 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1872,12 +1872,96 @@ expected-stdout:
 expected-stderr-pattern:
 	/^X*echo AB def\nX*$/
 ---
+name: history-ed-1-old
+description:
+	Basic (ed) editing works (assumes you have generic ed editor
+	that prints no prompts).
+category: os:interix
+arguments: !-i!
+env-setup: !ENV=./Env!HISTFILE=hist.file!
+file-setup: file 644 "Env"
+	PS1=X
+stdin:
+	echo abc def
+	fc echo
+	s/abc/FOOBAR/
+	w
+	q
+expected-stdout:
+	abc def
+	13
+	16
+	FOOBAR def
+expected-stderr-pattern:
+	/^X*echo FOOBAR def\nX*$/
+---
+name: history-ed-2-old
+description:
+	Correct command is edited when number given
+category: os:interix
+arguments: !-i!
+env-setup: !ENV=./Env!HISTFILE=hist.file!
+file-setup: file 644 "Env"
+	PS1=X
+stdin:
+	echo line 1
+	echo line 2 is here
+	echo line 3
+	echo line 4
+	fc 2
+	s/is here/is changed/
+	w
+	q
+expected-stdout:
+	line 1
+	line 2 is here
+	line 3
+	line 4
+	20
+	23
+	line 2 is changed
+expected-stderr-pattern:
+	/^X*echo line 2 is changed\nX*$/
+---
+name: history-ed-3-old
+description:
+	Newly created multi line commands show up as single command
+	in history.
+	(NOTE: will fail if using COMPLEX HISTORY compile time option)
+	(ksh88 fails 'cause it lists the fc command)
+category: os:interix
+arguments: !-i!
+env-setup: !ENV=./Env!HISTFILE=hist.file!
+file-setup: file 644 "Env"
+	PS1=X
+stdin:
+	echo abc def
+	fc echo
+	s/abc/FOOBAR/
+	$a
+	echo a new line
+	.
+	w
+	q
+	fc -l
+expected-stdout:
+	abc def
+	13
+	32
+	FOOBAR def
+	a new line
+	1	echo abc def
+	2	echo FOOBAR def
+		echo a new line
+expected-stderr-pattern:
+	/^X*echo FOOBAR def\necho a new line\nX*$/
+---
 name: history-ed-1
 description:
 	Basic (ed) editing works (assumes you have generic ed editor
 	that prints no prompts).
 # we don't have persistent history on Solaris (no flock)
-category: !os:solaris
+category: !os:solaris, !os:interix
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -1897,7 +1981,7 @@ expected-stderr-pattern:
 name: history-ed-2
 description:
 	Correct command is edited when number given
-category: !os:solaris
+category: !os:solaris, !os:interix
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -1926,7 +2010,7 @@ description:
 	in history.
 	(NOTE: adapted for COMPLEX HISTORY compile time option)
 	(ksh88 fails 'cause it lists the fc command)
-category: !os:solaris
+category: !os:solaris, !os:interix
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
