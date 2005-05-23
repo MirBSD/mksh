@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/jobs.c,v 1.1 2005/05/23 03:06:08 tg Exp $ */
+/**	$MirOS: src/bin/mksh/jobs.c,v 1.2 2005/05/23 16:23:19 tg Exp $ */
 /*	$OpenBSD: jobs.c,v 1.34 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
@@ -7,7 +7,7 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.1 2005/05/23 03:06:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.2 2005/05/23 16:23:19 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -126,7 +126,7 @@ static int		kill_job(Job *, int);
 void
 j_init(int mflagset)
 {
-	child_max = CHILD_MAX; /* so syscon() isn't always being called */
+	child_max = sysconf(_SC_CHILD_MAX);
 
 	sigemptyset(&sm_default);
 	sigprocmask(SIG_SETMASK, &sm_default, NULL);

@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.5 2005/05/23 15:36:55 tg Exp $ */
+/**	$MirOS: src/bin/mksh/sh.h,v 1.6 2005/05/23 16:23:19 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.27 2005/03/28 21:33:04 deraadt Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
@@ -35,6 +35,10 @@
 
 #ifndef SH_H
 #define SH_H
+
+#if defined(__INTERIX) && !defined(_ALL_SOURCE)
+#define _ALL_SOURCE
+#endif
 
 #include <sys/types.h>
 

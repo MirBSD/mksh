@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/edit.c,v 1.2 2005/05/23 15:18:15 tg Exp $ */
+/**	$MirOS: src/bin/mksh/edit.c,v 1.3 2005/05/23 16:23:18 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.29 2005/04/13 02:33:08 deraadt Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.37 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include <libgen.h>
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.2 2005/05/23 15:18:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.3 2005/05/23 16:23:18 tg Exp $");
 
 #define	BEL		0x07
 
@@ -203,7 +203,9 @@ x_mode(bool onoff)
 		/* osf/1 processes lnext when ~icanon */
 		cb.c_cc[VLNEXT] = _POSIX_VDISABLE;
 		/* sunos 4.1.x & osf/1 processes discard(flush) when ~icanon */
+#ifdef VDISCARD
 		cb.c_cc[VDISCARD] = _POSIX_VDISABLE;
+#endif
 		cb.c_cc[VTIME] = 0;
 		cb.c_cc[VMIN] = 1;
 

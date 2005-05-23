@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/histrap.c,v 1.7 2005/05/23 15:54:31 tg Exp $ */
+/**	$MirOS: src/bin/mksh/histrap.c,v 1.8 2005/05/23 16:23:18 tg Exp $ */
 /*	$OpenBSD: history.c,v 1.30 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: trap.c,v 1.22 2005/03/30 17:16:37 deraadt Exp $	*/
 
@@ -8,7 +8,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.7 2005/05/23 15:54:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.8 2005/05/23 16:23:18 tg Exp $");
 
 static int	histfd;
 static int	hsize;
@@ -39,9 +39,8 @@ static Source	*hist_source;
 #define	mksh_signame(x)	sys_signame[(x)]
 #define	mksh_siglist(x)	sys_siglist[(x)]
 #elif defined(__INTERIX)
-#define	mksh_signame(x)	__sys_signame[(x)]
-#define	mksh_siglist(x)	__sys_siglist[(x)]
-#define	NSIG		__sys_nsig
+#define	mksh_signame(x)	_sys_signame[(x)]
+#define	mksh_siglist(x) _sys_siglist[(x)]
 #elif defined(__gnu_linux__) || defined(__sun__)
 #define	NEED_MKSH_SIGNAME
 #define	mksh_siglist(x)	strerror(x)
