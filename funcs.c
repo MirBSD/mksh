@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/funcs.c,v 1.4 2005/05/23 15:23:12 tg Exp $ */
+/**	$MirOS: src/bin/mksh/funcs.c,v 1.5 2005/05/23 15:24:42 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.29 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <ulimit.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.4 2005/05/23 15:23:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.5 2005/05/23 15:24:42 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -2824,12 +2824,18 @@ c_ulimit(char **wp)
 		{ "coredump(blocks)", RLIMIT, RLIMIT_CORE, RLIMIT_CORE, 512, 'c' },
 		{ "data(KiB)", RLIMIT, RLIMIT_DATA, RLIMIT_DATA, 1024, 'd' },
 		{ "stack(KiB)", RLIMIT, RLIMIT_STACK, RLIMIT_STACK, 1024, 's' },
+#ifdef RLIMIT_MEMLOCK
 		{ "lockedmem(KiB)", RLIMIT, RLIMIT_MEMLOCK, RLIMIT_MEMLOCK,
 		    1024, 'l' },
+#endif
+#ifdef RLIMIT_RSS
 		{ "memory(KiB)", RLIMIT, RLIMIT_RSS, RLIMIT_RSS, 1024, 'm' },
+#endif
 		{ "nofiles(descriptors)", RLIMIT, RLIMIT_NOFILE, RLIMIT_NOFILE,
 		    1, 'n' },
+#ifdef RLIMIT_NPROC
 		{ "processes", RLIMIT, RLIMIT_NPROC, RLIMIT_NPROC, 1, 'p' },
+#endif
 #ifdef RLIMIT_VMEM
 		{ "vmemory(KiB)", RLIMIT, RLIMIT_VMEM, RLIMIT_VMEM, 1024, 'v' },
 #endif /* RLIMIT_VMEM */
