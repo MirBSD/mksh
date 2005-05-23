@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/histrap.c,v 1.2 2005/05/23 12:01:09 tg Exp $ */
+/**	$MirOS: src/bin/mksh/histrap.c,v 1.3 2005/05/23 12:06:39 tg Exp $ */
 /*	$OpenBSD: history.c,v 1.30 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: trap.c,v 1.22 2005/03/30 17:16:37 deraadt Exp $	*/
 
@@ -8,7 +8,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.2 2005/05/23 12:01:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.3 2005/05/23 12:06:39 tg Exp $");
 
 static int	histfd;
 static int	hsize;
@@ -968,19 +968,17 @@ sprinkle(int fd)
 }
 
 #ifdef NEED_MKSH_SIGNAME
-
-struct _mksh_sigpair {
-	int nr;
-	const char *name;
-} mksh_sigpair[] = {
-#include "signames.inc"
-    { 0, NULL }
-};
-
 static const char * const
 mksh_signame(int s)
 {
 	int i = 0;
+	static const struct _mksh_sigpair {
+		int nr;
+		const char *name;
+	} const mksh_sigpair[] = {
+#include "signames.inc"
+		{ 0, NULL }
+	};
 
 	while (mksh_sigpair[i].name != NULL) {
 		if (mksh_sigpair[i].nr == s)
