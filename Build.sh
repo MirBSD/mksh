@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.2 2005/05/23 16:56:22 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.3 2005/05/23 17:24:23 tg Exp $
 #-
 # Recognised command line parameters and their defaults:
 #	CC		gcc
@@ -9,11 +9,14 @@
 #	LIBS		(empty)
 #	srcdir		(path of script)
 #	NROFF		nroff
+# Hints:
+#	Mac OSX		LDFLAGS=
+# 	Solaris		LDFLAGS=
 
 SHELL="${SHELL:-/bin/sh}"
 CC="${CC:-gcc}"
-CFLAGS="${CFLAGS:--O2 -fno-strict-aliasing -fno-strength-reduce}"
-LDFLAGS="${LDFLAGS:--static}"
+CFLAGS="${CFLAGS--O2 -fno-strict-aliasing -fno-strength-reduce}"
+LDFLAGS="${LDFLAGS--static}"
 srcdir="${srcdir:-`dirname $0`}"
 curdir="`pwd`"
 NROFF="${NROFF:-nroff}"
@@ -33,7 +36,7 @@ for hdr in errno signal; do
 done
 echo Building...
 ( cd $srcdir; $CC $CFLAGS $CPPFLAGS $LDFLAGS -o $curdir/mksh $SRCS $LIBS )
-test -e mksh || exit 1
+test -x mksh || exit 1
 echo Finalising...
 $NROFF -mdoc <$srcdir/mksh.1 >mksh.cat1 || rm -f mksh.cat1
 size mksh
