@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $MirOS: src/bin/mksh/check.pl,v 1.1 2005/05/23 03:06:05 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.2 2005/05/23 14:48:21 tg Exp $
 # $OpenBSD: th,v 1.11 2004/11/29 06:20:02 jsg Exp $
 #-
 # Test harness for pdksh tests.
@@ -620,6 +620,7 @@ category_check
 	if ($c =~ /^!/) {
 	    $c = $';
 	    return 0 if (defined $categories{$c});
+	    $ok = 1;
 	} else {
 	    $ok = 1 if (defined $categories{$c});
 	}

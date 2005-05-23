@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.2 2005/05/23 11:59:06 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.3 2005/05/23 14:48:21 tg Exp $
 
 PROG=		mksh
 SRCS=		alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c \
@@ -10,6 +10,6 @@ check:
 
 regress: ${PROG} check.pl check.t
 	perl ${.CURDIR}/check.pl -s ${.CURDIR}/check.t ${V} \
-	    -p ./${PROG} -C pdksh,sh,ksh,posix,posix-upu
+	    -p ./${PROG} -C pdksh
 
 .include <bsd.prog.mk>
