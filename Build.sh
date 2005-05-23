@@ -1,6 +1,6 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.1 2005/05/23 16:48:52 tg Exp $
-
+# $MirOS: src/bin/mksh/Build.sh,v 1.2 2005/05/23 16:56:22 tg Exp $
+#-
 # Recognised command line parameters and their defaults:
 #	CC		gcc
 #	CFLAGS		-O2 -fno-strict-aliasing -fno-strength-reduce
@@ -23,6 +23,7 @@ export SHELL CC
 SRCS="alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
+# Hello Mr Drepper, we all like you too...</sarcasm>
 [ x"$OS" = x"Linux" ] && SRCS="$SRCS strlfun.c"
 
 echo Generating prerequisites...
@@ -31,7 +32,7 @@ for hdr in errno signal; do
 	h2ph -d . /usr/include/$hdr.h && mv _h2ph_pre.ph $hdr.ph
 done
 echo Building...
-#( cd $srcdir; $CC $CFLAGS $CPPFLAGS $LDFLAGS -o $curdir/mksh $SRCS $LIBS )
+( cd $srcdir; $CC $CFLAGS $CPPFLAGS $LDFLAGS -o $curdir/mksh $SRCS $LIBS )
 test -e mksh || exit 1
 echo Finalising...
 $NROFF -mdoc <$srcdir/mksh.1 >mksh.cat1 || rm -f mksh.cat1
