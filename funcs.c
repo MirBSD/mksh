@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/funcs.c,v 1.3 2005/05/23 15:18:16 tg Exp $ */
+/**	$MirOS: src/bin/mksh/funcs.c,v 1.4 2005/05/23 15:23:12 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.29 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <ulimit.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.3 2005/05/23 15:18:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.4 2005/05/23 15:23:12 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -1465,7 +1465,7 @@ c_umask(char **wp)
 			cp[-1] = '\0';
 			shprintf("%s\n", buf);
 		} else
-			shprintf("%#3.3o\n", old_umask);
+			shprintf("%#3.3o\n", (unsigned) old_umask);
 	} else {
 		mode_t new_umask;
 
