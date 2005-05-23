@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.1 2005/05/23 03:06:09 tg Exp $ */
+/**	$MirOS: src/bin/mksh/sh.h,v 1.2 2005/05/23 14:19:14 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.27 2005/03/28 21:33:04 deraadt Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
@@ -38,8 +38,12 @@
 
 #include <sys/types.h>
 
-#if defined(__gnu_linux__)
+#if defined(__gnu_linux__) && !defined(_POSIX_SOURCE)
 #define _POSIX_SOURCE
+#endif
+
+#ifndef __RCSID
+#define	__RCSID(x)	static const char __rcsid[] __attribute__((used)) = (x)
 #endif
 
 #include <errno.h>
@@ -1287,5 +1291,10 @@ extern void	tty_close(void);
 # undef EXTERN
 #endif
 #undef I__
+
+#if defined(__gnu_linux__)
+size_t strlcat(char *, const char *, size_t);
+size_t strlcpy(char *, const char *, size_t);
+#endif
 
 #endif

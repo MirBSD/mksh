@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/histrap.c,v 1.3 2005/05/23 12:06:39 tg Exp $ */
+/**	$MirOS: src/bin/mksh/histrap.c,v 1.4 2005/05/23 14:19:14 tg Exp $ */
 /*	$OpenBSD: history.c,v 1.30 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: trap.c,v 1.22 2005/03/30 17:16:37 deraadt Exp $	*/
 
@@ -8,7 +8,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.3 2005/05/23 12:06:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.4 2005/05/23 14:19:14 tg Exp $");
 
 static int	histfd;
 static int	hsize;
@@ -975,7 +975,7 @@ mksh_signame(int s)
 	static const struct _mksh_sigpair {
 		int nr;
 		const char *name;
-	} const mksh_sigpair[] = {
+	} mksh_sigpair[] = {
 #include "signames.inc"
 		{ 0, NULL }
 	};
