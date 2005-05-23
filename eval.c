@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/eval.c,v 1.1 2005/05/23 03:06:06 tg Exp $ */
+/**	$MirOS: src/bin/mksh/eval.c,v 1.2 2005/05/23 15:18:15 tg Exp $ */
 /*	$OpenBSD: eval.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
@@ -6,7 +6,7 @@
 #include <dirent.h>
 #include <pwd.h>
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.1 2005/05/23 03:06:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.2 2005/05/23 15:18:15 tg Exp $");
 
 /*
  * string expansion
@@ -881,7 +881,7 @@ trimsub(char *str, char *pat, int how)
 	case '#':		/* shortest at beginning */
 		for (p = str; p <= end; p++) {
 			c = *p; *p = '\0';
-			if (gmatch(str, pat, false)) {
+			if (gmatchx(str, pat, false)) {
 				*p = c;
 				return p;
 			}
@@ -891,7 +891,7 @@ trimsub(char *str, char *pat, int how)
 	case '#'|0x80:	/* longest match at beginning */
 		for (p = end; p >= str; p--) {
 			c = *p; *p = '\0';
-			if (gmatch(str, pat, false)) {
+			if (gmatchx(str, pat, false)) {
 				*p = c;
 				return p;
 			}
@@ -900,13 +900,13 @@ trimsub(char *str, char *pat, int how)
 		break;
 	case '%':		/* shortest match at end */
 		for (p = end; p >= str; p--) {
-			if (gmatch(p, pat, false))
+			if (gmatchx(p, pat, false))
 				return str_nsave(str, p - str, ATEMP);
 		}
 		break;
 	case '%'|0x80:	/* longest match at end */
 		for (p = str; p <= end; p++) {
-			if (gmatch(p, pat, false))
+			if (gmatchx(p, pat, false))
 				return str_nsave(str, p - str, ATEMP);
 		}
 		break;
@@ -1061,7 +1061,7 @@ globit(XString *xs,	/* dest string */
 			    (name[1] == 0 || (name[1] == '.' && name[2] == 0)))
 				continue; /* always ignore . and .. */
 			if ((*name == '.' && *sp != '.') ||
-			    !gmatch(name, sp, true))
+			    !gmatchx(name, sp, true))
 				continue;
 
 			len = strlen(d->d_name) + 1;

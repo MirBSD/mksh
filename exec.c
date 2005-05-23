@@ -1,11 +1,11 @@
-/**	$MirOS: src/bin/mksh/exec.c,v 1.1 2005/05/23 03:06:07 tg Exp $ */
+/**	$MirOS: src/bin/mksh/exec.c,v 1.2 2005/05/23 15:18:16 tg Exp $ */
 /*	$OpenBSD: exec.c,v 1.41 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 #include <sys/stat.h>
 #include <ctype.h>
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.1 2005/05/23 03:06:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.2 2005/05/23 15:18:16 tg Exp $");
 
 static int	comexec(struct op *, struct tbl *volatile, char **,
 		    int volatile);
@@ -319,7 +319,7 @@ execute(struct op *volatile t,
 		for (t = t->left; t != NULL && t->type == TPAT; t = t->right)
 		    for (ap = t->vars; *ap; ap++)
 			if ((s = evalstr(*ap, DOTILDE|DOPAT)) &&
-			    gmatch(cp, s, false))
+			    gmatchx(cp, s, false))
 				goto Found;
 		break;
 	  Found:

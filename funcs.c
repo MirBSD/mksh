@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/funcs.c,v 1.2 2005/05/23 14:19:13 tg Exp $ */
+/**	$MirOS: src/bin/mksh/funcs.c,v 1.3 2005/05/23 15:18:16 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.29 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <ulimit.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.2 2005/05/23 14:19:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.3 2005/05/23 15:18:16 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -2515,11 +2515,11 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	 */
 	case TO_STEQL: /* = */
 		if (te->flags & TEF_DBRACKET)
-			return gmatch(opnd1, opnd2, false);
+			return gmatchx(opnd1, opnd2, false);
 		return strcmp(opnd1, opnd2) == 0;
 	case TO_STNEQ: /* != */
 		if (te->flags & TEF_DBRACKET)
-			return !gmatch(opnd1, opnd2, false);
+			return !gmatchx(opnd1, opnd2, false);
 		return strcmp(opnd1, opnd2) != 0;
 	case TO_STLT: /* < */
 		return strcmp(opnd1, opnd2) < 0;

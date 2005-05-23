@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/edit.c,v 1.1 2005/05/23 03:06:06 tg Exp $ */
+/**	$MirOS: src/bin/mksh/edit.c,v 1.2 2005/05/23 15:18:15 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.29 2005/04/13 02:33:08 deraadt Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.37 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include <libgen.h>
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.1 2005/05/23 03:06:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.2 2005/05/23 15:18:15 tg Exp $");
 
 #define	BEL		0x07
 
@@ -792,7 +792,7 @@ glob_table(const char *pat, XPtrV *wp, struct table *tp)
 	struct tbl *te;
 
 	for (twalk(&ts, tp); (te = tnext(&ts)); ) {
-		if (gmatch(te->name, pat, false))
+		if (gmatchx(te->name, pat, false))
 			XPput(*wp, str_save(te->name, ATEMP));
 	}
 }

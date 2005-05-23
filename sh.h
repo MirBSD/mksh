@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.2 2005/05/23 14:19:14 tg Exp $ */
+/**	$MirOS: src/bin/mksh/sh.h,v 1.3 2005/05/23 15:18:17 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.27 2005/03/28 21:33:04 deraadt Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
@@ -255,6 +255,10 @@ struct temp {
 #define shl_stdout	(&shf_iob[1])
 #define shl_out		(&shf_iob[2])
 EXTERN int shl_stdout_ok;
+
+#ifdef __sun__
+typedef void (*sig_t)(int);
+#endif
 
 /*
  * trap handlers
@@ -1175,7 +1179,7 @@ void	change_flag(enum sh_flag, int, int);
 int	parse_args(char **, int, int *);
 int	getn(const char *, int *);
 int	bi_getn(const char *, int *);
-int	gmatch(const char *, const char *, int);
+int	gmatchx(const char *, const char *, int);
 int	has_globbing(const char *, const char *);
 const unsigned char *pat_scan(const unsigned char *, const unsigned char *,
     int);
