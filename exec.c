@@ -1,11 +1,11 @@
-/**	$MirOS: src/bin/mksh/exec.c,v 1.2 2005/05/23 15:18:16 tg Exp $ */
+/**	$MirOS: src/bin/mksh/exec.c,v 1.3 2005/05/25 11:31:15 tg Exp $ */
 /*	$OpenBSD: exec.c,v 1.41 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 #include <sys/stat.h>
 #include <ctype.h>
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.2 2005/05/23 15:18:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.3 2005/05/25 11:31:15 tg Exp $");
 
 static int	comexec(struct op *, struct tbl *volatile, char **,
 		    int volatile);
@@ -30,6 +30,7 @@ execute(struct op *volatile t,
 {
 	int i;
 	volatile int rv = 0;
+	volatile int rv_prop = 0; /* rv being propogated or newly generated? */
 	int pv[2];
 	char ** volatile ap;
 	char *s, *cp;
@@ -111,6 +112,7 @@ execute(struct op *volatile t,
 
 	case TPAREN:
 		rv = execute(t->left, flags|XFORK);
+		rv_prop = 1;
 		break;
 
 	case TPIPE:
@@ -223,6 +225,7 @@ execute(struct op *volatile t,
 			rv = execute(t->right, flags & XERROK);
 		else
 			flags |= XERROK;
+		rv_prop = 1;
 		break;
 
 	case TBANG:
@@ -265,6 +268,7 @@ execute(struct op *volatile t,
 			}
 		}
 		rv = 0; /* in case of a continue */
+		rv_prop = 1;
 		if (t->type == TFOR) {
 			while (*ap != NULL) {
 				setstr(global(t->str), *ap++, KSH_UNWIND_ERROR);
@@ -274,6 +278,7 @@ execute(struct op *volatile t,
 			for (;;) {
 				if (!(cp = do_selectargs(ap, is_first))) {
 					rv = 1;
+					rv_prop = 0;
 					break;
 				}
 				is_first = false;
@@ -303,6 +308,7 @@ execute(struct op *volatile t,
 		rv = 0; /* in case of a continue */
 		while ((execute(t->left, XERROK) == 0) == (t->type == TWHILE))
 			rv = execute(t->right, flags & XERROK);
+		rv_prop = 1;
 		break;
 
 	case TIF:
@@ -312,6 +318,7 @@ execute(struct op *volatile t,
 		rv = execute(t->left, XERROK) == 0 ?
 		    execute(t->right->left, flags & XERROK) :
 		    execute(t->right->right, flags & XERROK);
+		rv_prop = 1;
 		break;
 
 	case TCASE:
@@ -324,10 +331,12 @@ execute(struct op *volatile t,
 		break;
 	  Found:
 		rv = execute(t->left, flags & XERROK);
+		rv_prop = 1;
 		break;
 
 	case TBRACE:
 		rv = execute(t->left, flags & XERROK);
+		rv_prop = 1;
 		break;
 
 	case TFUNCT:
@@ -339,6 +348,7 @@ execute(struct op *volatile t,
 		 * (allows "ls -l | time grep foo").
 		 */
 		rv = timex(t, flags & ~XEXEC);
+		rv_prop = 1;
 		break;
 
 	case TEXEC:		/* an eval'd TCOM */
@@ -358,7 +368,7 @@ execute(struct op *volatile t,
 	quitenv(NULL);		/* restores IO */
 	if ((flags&XEXEC))
 		unwind(LEXIT);	/* exit child */
-	if (rv != 0 && !(flags & XERROK)) {
+	if (rv != 0 && !rv_prop && !(flags & XERROK)) {
 		if (Flag(FERREXIT))
 			unwind(LERROR);
 		trapsig(SIGERR_);
