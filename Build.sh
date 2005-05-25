@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.3 2005/05/23 17:24:23 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.4 2005/05/25 09:53:02 tg Exp $
 #-
 # Recognised command line parameters and their defaults:
 #	CC		gcc
@@ -10,6 +10,7 @@
 #	srcdir		(path of script)
 #	NROFF		nroff
 # Hints:
+#	GNU/Linux	CPPFLAGS='-D_FILE_OFFSET_BITS=64'
 #	Mac OSX		LDFLAGS=
 # 	Solaris		LDFLAGS=
 
