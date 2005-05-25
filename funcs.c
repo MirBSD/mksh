@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/funcs.c,v 1.5 2005/05/23 15:24:42 tg Exp $ */
+/**	$MirOS: src/bin/mksh/funcs.c,v 1.6 2005/05/25 09:18:16 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.29 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <ulimit.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.5 2005/05/23 15:24:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.6 2005/05/25 09:18:16 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -2816,31 +2816,57 @@ c_ulimit(char **wp)
 		char	option;
 	} limits[] = {
 		/* Do not use options -H, -S or -a */
-		{ "time(cpu-seconds)", RLIMIT, RLIMIT_CPU, RLIMIT_CPU, 1, 't' },
-#ifdef RLIMIT_TIME
-		{ "humantime(seconds)", RLIMIT, RLIMIT_TIME, RLIMIT_TIME, 1, 'T' },
+#ifdef RLIMIT_CPU
+		{ "time(cpu-seconds)", RLIMIT, RLIMIT_CPU, RLIMIT_CPU,
+		    1, 't' },
 #endif
-		{ "file(blocks)", RLIMIT, RLIMIT_FSIZE, RLIMIT_FSIZE, 512, 'f' },
-		{ "coredump(blocks)", RLIMIT, RLIMIT_CORE, RLIMIT_CORE, 512, 'c' },
-		{ "data(KiB)", RLIMIT, RLIMIT_DATA, RLIMIT_DATA, 1024, 'd' },
-		{ "stack(KiB)", RLIMIT, RLIMIT_STACK, RLIMIT_STACK, 1024, 's' },
+#ifdef RLIMIT_TIME
+		{ "humantime(seconds)", RLIMIT, RLIMIT_TIME, RLIMIT_TIME,
+		    1, 'T' },
+#endif
+#ifdef RLIMIT_FSIZE
+		{ "file(blocks)", RLIMIT, RLIMIT_FSIZE, RLIMIT_FSIZE,
+		    512, 'f' },
+#endif
+#ifdef RLIMIT_CORE
+		{ "coredump(blocks)", RLIMIT, RLIMIT_CORE, RLIMIT_CORE,
+		    512, 'c' },
+#endif
+#ifdef RLIMIT_DATA
+		{ "data(KiB)", RLIMIT, RLIMIT_DATA, RLIMIT_DATA,
+		    1024, 'd' },
+#endif
+#ifdef RLIMIT_STACK
+		{ "stack(KiB)", RLIMIT, RLIMIT_STACK, RLIMIT_STACK,
+		    1024, 's' },
+#endif
 #ifdef RLIMIT_MEMLOCK
 		{ "lockedmem(KiB)", RLIMIT, RLIMIT_MEMLOCK, RLIMIT_MEMLOCK,
 		    1024, 'l' },
 #endif
 #ifdef RLIMIT_RSS
-		{ "memory(KiB)", RLIMIT, RLIMIT_RSS, RLIMIT_RSS, 1024, 'm' },
+		{ "memory(KiB)", RLIMIT, RLIMIT_RSS, RLIMIT_RSS,
+		    1024, 'm' },
 #endif
+#ifdef RLIMIT_NOFILE
 		{ "nofiles(descriptors)", RLIMIT, RLIMIT_NOFILE, RLIMIT_NOFILE,
 		    1, 'n' },
+#endif
 #ifdef RLIMIT_NPROC
-		{ "processes", RLIMIT, RLIMIT_NPROC, RLIMIT_NPROC, 1, 'p' },
+		{ "processes", RLIMIT, RLIMIT_NPROC, RLIMIT_NPROC,
+		    1, 'p' },
 #endif
 #ifdef RLIMIT_VMEM
-		{ "vmemory(KiB)", RLIMIT, RLIMIT_VMEM, RLIMIT_VMEM, 1024, 'v' },
-#endif /* RLIMIT_VMEM */
+		{ "vmemory(KiB)", RLIMIT, RLIMIT_VMEM, RLIMIT_VMEM,
+		    1024, 'v' },
+#endif
 #ifdef RLIMIT_SWAP
-		{ "swap(KiB)", RLIMIT, RLIMIT_SWAP, RLIMIT_SWAP, 1024, 'w' },
+		{ "swap(KiB)", RLIMIT, RLIMIT_SWAP, RLIMIT_SWAP,
+		    1024, 'w' },
+#endif
+#ifdef RLIMIT_LOCKS
+		{ "flocks", RLIMIT, RLIMIT_LOCKS, RLIMIT_LOCKS,
+		    -1, 'L' },
 #endif
 		{ NULL, 0, 0, 0, 0, 0 }
 	};
@@ -2916,7 +2942,16 @@ c_ulimit(char **wp)
 	if (all) {
 		for (l = limits; l->name; l++) {
 			if (l->which == RLIMIT) {
+#ifdef RLIMIT_LOCKS
+				if (getrlimit(l->gcmd, &limit) < 0)
+					if ((errno == EINVAL) &&
+					    (l->gcmd == RLIMIT_LOCKS)) {
+						limit.rlim_cur = RLIM_INFINITY;
+						limit.rlim_max = RLIM_INFINITY;
+					}
+#else
 				getrlimit(l->gcmd, &limit);
+#endif
 				if (how & SOFT)
 					val = limit.rlim_cur;
 				else if (how & HARD)
