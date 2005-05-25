@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/funcs.c,v 1.6 2005/05/25 09:18:16 tg Exp $ */
+/**	$MirOS: src/bin/mksh/funcs.c,v 1.7 2005/05/25 09:39:49 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.29 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <ulimit.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.6 2005/05/25 09:18:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.7 2005/05/25 09:39:49 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -1792,7 +1792,8 @@ c_read(char **wp)
 int
 c_eval(char **wp)
 {
-	struct source *s;
+	struct source *s, *saves = source;
+	int savef, rv;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return 1;
@@ -1826,7 +1827,12 @@ c_eval(char **wp)
 		exstat = subst_exstat;
 	}
 
-	return shell(s, false);
+	savef = Flag(FERREXIT);
+	Flag(FERREXIT) = 0;
+	rv = shell(s, false);
+	Flag(FERREXIT) = savef;
+	source = saves;
+	return (rv);
 }
 
 int
