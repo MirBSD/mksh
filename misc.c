@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/misc.c,v 1.3 2005/05/23 15:54:31 tg Exp $ */
+/**	$MirOS: src/bin/mksh/misc.c,v 1.4 2005/05/25 13:46:01 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.28 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
@@ -7,7 +7,7 @@
 #include <sys/param.h>	/* for MAXPATHLEN */
 #include <sys/stat.h>
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.3 2005/05/23 15:54:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.4 2005/05/25 13:46:01 tg Exp $");
 
 short chtypes[UCHAR_MAX+1];	/* type bits for unsigned char */
 
@@ -264,10 +264,10 @@ change_flag(enum sh_flag f,
 		}
 	} else if (f == FPRIVILEGED && oldval && !newval) {
 		/* Turning off -p? */
-		seteuid(ksheuid = getuid());
+		seteuid(ksheuid = kshuid = getuid());
 		setuid(ksheuid);
-		setegid(getgid());
-		setgid(getgid());
+		setegid(kshegid = kshgid = getgid());
+		setgid(kshegid);
 	} else if (f == FPOSIX && newval) {
 		Flag(FBRACEEXPAND) = 0;
 	}

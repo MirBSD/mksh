@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.6 2005/05/23 16:23:19 tg Exp $ */
+/**	$MirOS: src/bin/mksh/sh.h,v 1.7 2005/05/25 13:46:01 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.27 2005/03/28 21:33:04 deraadt Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
@@ -112,6 +112,9 @@ EXTERN	char *	kshname;	/* $0 */
 EXTERN	pid_t	kshpid;		/* $$, shell pid */
 EXTERN	pid_t	procpid;	/* pid of executing process */
 EXTERN	uid_t	ksheuid;	/* effective uid of shell */
+EXTERN	uid_t	kshuid;		/* real uid of shell */
+EXTERN	gid_t	kshegid;	/* effective gid of shell */
+EXTERN	gid_t	kshgid;		/* real gid of shell */
 EXTERN	int	exstat;		/* exit status */
 EXTERN	int	subst_exstat;	/* exit status of last $(..)/`..` */
 EXTERN	const char *safe_prompt; /* safe prompt if PS1 substitution fails */
@@ -1239,6 +1242,7 @@ void	change_random(void);
 int	array_ref_len(const char *);
 char *	arrayname(const char *);
 void    set_array(const char *, int, char **);
+int	eaccess(const char *, int);
 
 enum Test_op {
 	TO_NONOP = 0,	/* non-operator */

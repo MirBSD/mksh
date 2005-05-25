@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/main.c,v 1.5 2005/05/25 11:37:23 tg Exp $ */
+/**	$MirOS: src/bin/mksh/main.c,v 1.6 2005/05/25 13:46:01 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.38 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: tty.c,v 1.8 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include <pwd.h>
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.5 2005/05/25 11:37:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.6 2005/05/25 13:46:01 tg Exp $");
 
 extern char **environ;
 
@@ -217,6 +217,10 @@ main(int argc, char *argv[])
 	}
 
 	ksheuid = geteuid();
+	kshuid = getuid();
+	kshegid = getegid();
+	kshgid = getgid();
+
 	safe_prompt = ksheuid ? "$ " : "# ";
 	{
 		struct tbl *vp = global("PS1");
@@ -231,7 +235,7 @@ main(int argc, char *argv[])
 	}
 
 	/* Set this before parsing arguments */
-	Flag(FPRIVILEGED) = getuid() != ksheuid || getgid() != getegid();
+	Flag(FPRIVILEGED) = kshuid != ksheuid || kshgid != kshegid;
 
 	/* this to note if monitor is set on command line (see below) */
 	Flag(FMONITOR) = 127;

@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/funcs.c,v 1.7 2005/05/25 09:39:49 tg Exp $ */
+/**	$MirOS: src/bin/mksh/funcs.c,v 1.8 2005/05/25 13:46:00 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.29 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <ulimit.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.7 2005/05/25 09:39:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.8 2005/05/25 13:46:00 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -184,7 +184,7 @@ c_pwd(char **wp)
 	}
 	p = current_wd[0] ? (physical ? get_phys_path(current_wd) : current_wd) :
 	    NULL;
-	if (p && access(p, R_OK) < 0)
+	if (p && eaccess(p, R_OK) < 0)
 		p = NULL;
 	if (!p) {
 		p = ksh_get_wd(NULL, 0);
@@ -2627,7 +2627,7 @@ test_eaccess(const char *pathl, int mode)
 	}
 #endif /* !HAVE_DEV_FD */
 
-	res = access(pathl, mode);
+	res = eaccess(pathl, mode);
 	/*
 	 * On most (all?) unixes, access() says everything is executable for
 	 * root - avoid this on files by using stat().
