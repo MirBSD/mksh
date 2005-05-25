@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/edit.c,v 1.4 2005/05/25 23:31:05 tg Exp $ */
+/**	$MirOS: src/bin/mksh/edit.c,v 1.5 2005/05/25 23:39:10 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.29 2005/04/13 02:33:08 deraadt Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.37 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include <libgen.h>
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.4 2005/05/25 23:31:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.5 2005/05/25 23:39:10 tg Exp $");
 
 #define	BEL		0x07
 
@@ -87,28 +87,27 @@ x_sigwinch(int sig __attribute__((unused)))
 static void
 check_sigwinch(void)
 {
-		struct winsize ws;
+	struct winsize ws;
 
-		got_sigwinch = 0;
-		if (procpid == kshpid && ioctl(tty_fd, TIOCGWINSZ, &ws) >= 0) {
-			struct tbl *vp;
+	got_sigwinch = 0;
+	if (procpid == kshpid && ioctl(tty_fd, TIOCGWINSZ, &ws) >= 0) {
+		struct tbl *vp;
 
-			/* Do NOT export COLUMNS/LINES.  Many applications
-			 * check COLUMNS/LINES before checking ws.ws_col/row,
-			 * so if the app is started with C/L in the environ
-			 * and the window is then resized, the app won't
-			 * see the change cause the environ doesn't change.
-			 */
-			if (ws.ws_col) {
-				x_cols = ws.ws_col < MIN_COLS ? MIN_COLS :
-				    ws.ws_col;
+		/* Do NOT export COLUMNS/LINES.  Many applications
+		 * check COLUMNS/LINES before checking ws.ws_col/row,
+		 * so if the app is started with C/L in the environ
+		 * and the window is then resized, the app won't
+		 * see the change cause the environ doesn't change.
+		 */
+		if (ws.ws_col) {
+			x_cols = ws.ws_col < MIN_COLS ? MIN_COLS : ws.ws_col;
 
-				if ((vp = typeset("COLUMNS", 0, 0, 0, 0)))
-					setint(vp, (long) ws.ws_col);
-			}
-			if (ws.ws_row && (vp = typeset("LINES", 0, 0, 0, 0)))
-				setint(vp, (long) ws.ws_row);
+			if ((vp = typeset("COLUMNS", 0, 0, 0, 0)))
+				setint(vp, (long) ws.ws_col);
 		}
+		if (ws.ws_row && (vp = typeset("LINES", 0, 0, 0, 0)))
+			setint(vp, (long) ws.ws_row);
+	}
 }
 
 /*
@@ -224,9 +223,8 @@ x_mode(bool onoff)
 		if (memcmp(&edchars, &oldchars, sizeof(edchars)) != 0) {
 			x_emacs_keys(&edchars);
 		}
-	} else {
+	} else
 		tcsetattr(tty_fd, TCSADRAIN, &tty_state);
-	}
 
 	return prev;
 }
@@ -3965,89 +3963,94 @@ vi_cmd(int argcnt, const char *cmd)
 				ohnum = hnum;
 			}
 			break;
-		case '_': {
-			int	inspace;
-			char	*p, *sp;
+		case '_':
+			{
+				int	inspace;
+				char	*p, *sp;
 
-			if (histnum(-1) < 0)
-				return -1;
-			p = *histpos();
+				if (histnum(-1) < 0)
+					return -1;
+				p = *histpos();
 #define issp(c)		(isspace((c)) || (c) == '\n')
-			if (argcnt) {
-				while (*p && issp(*p))
-					p++;
-				while (*p && --argcnt) {
-					while (*p && !issp(*p))
-						p++;
+				if (argcnt) {
 					while (*p && issp(*p))
 						p++;
-				}
-				if (!*p)
-					return -1;
-				sp = p;
-			} else {
-				sp = p;
-				inspace = 0;
-				while (*p) {
-					if (issp(*p))
-						inspace = 1;
-					else if (inspace) {
-						inspace = 0;
-						sp = p;
+					while (*p && --argcnt) {
+						while (*p && !issp(*p))
+							p++;
+						while (*p && issp(*p))
+							p++;
 					}
+					if (!*p)
+						return -1;
+					sp = p;
+				} else {
+					sp = p;
+					inspace = 0;
+					while (*p) {
+						if (issp(*p))
+							inspace = 1;
+						else if (inspace) {
+							inspace = 0;
+							sp = p;
+						}
+						p++;
+					}
+					p = sp;
+				}
+				modified = 1;
+				hnum = hlast;
+				if (es->cursor != es->linelen)
+					es->cursor++;
+				while (*p && !issp(*p)) {
+					argcnt++;
 					p++;
 				}
-				p = sp;
-			}
-			modified = 1; hnum = hlast;
-			if (es->cursor != es->linelen)
-				es->cursor++;
-			while (*p && !issp(*p)) {
-				argcnt++;
-				p++;
-			}
-			if (putbuf(space, 1, 0) != 0)
-				argcnt = -1;
-			else if (putbuf(sp, argcnt, 0) != 0)
-				argcnt = -1;
-			if (argcnt < 0) {
-				if (es->cursor != 0)
-					es->cursor--;
-				return -1;
-			}
-			insert = INSERT;
-			}
-			break;
-
-		case '~': {
-			char	*p;
-			int	i;
-
-			if (es->linelen == 0)
-				return -1;
-			for (i = 0; i < argcnt; i++) {
-				p = &es->cbuf[es->cursor];
-				if (islower(*p)) {
-					modified = 1; hnum = hlast;
-					*p = toupper(*p);
-				} else if (isupper(*p)) {
-					modified = 1; hnum = hlast;
-					*p = tolower(*p);
+				if (putbuf(space, 1, 0) != 0)
+					argcnt = -1;
+				else if (putbuf(sp, argcnt, 0) != 0)
+					argcnt = -1;
+				if (argcnt < 0) {
+					if (es->cursor != 0)
+						es->cursor--;
+					return -1;
 				}
-				if (es->cursor < es->linelen - 1)
-					es->cursor++;
+				insert = INSERT;
 			}
 			break;
+
+		case '~':
+			{
+				char	*p;
+				int	i;
+
+				if (es->linelen == 0)
+					return -1;
+				for (i = 0; i < argcnt; i++) {
+					p = &es->cbuf[es->cursor];
+					if (islower(*p)) {
+						modified = 1;
+						hnum = hlast;
+						*p = toupper(*p);
+					} else if (isupper(*p)) {
+						modified = 1;
+						hnum = hlast;
+						*p = tolower(*p);
+					}
+					if (es->cursor < es->linelen - 1)
+						es->cursor++;
+				}
+				break;
 			}
 
 		case '#':
-		    {
-			int ret = x_do_comment(es->cbuf, es->cbufsize,
-			    &es->linelen);
-			if (ret >= 0)
-				es->cursor = 0;
-			return ret;
-		    }
+			{
+				int ret = x_do_comment(es->cbuf, es->cbufsize,
+				    &es->linelen);
+				if (ret >= 0)
+					es->cursor = 0;
+				return ret;
+			}
 
 		case '=':			/* at&t ksh */
 		case Ctrl('e'):			/* Nonstandard vi/ksh */
@@ -4088,7 +4091,6 @@ domove(int argcnt, const char *cmd, int sub)
 	int	ncursor = 0;
 
 	switch (*cmd) {
-
 	case 'b':
 		if (!sub && es->cursor == 0)
 			return -1;
