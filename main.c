@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/main.c,v 1.4 2005/05/23 15:54:31 tg Exp $ */
+/**	$MirOS: src/bin/mksh/main.c,v 1.5 2005/05/25 11:37:23 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.38 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: tty.c,v 1.8 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include <pwd.h>
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.4 2005/05/23 15:54:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.5 2005/05/25 11:37:23 tg Exp $");
 
 extern char **environ;
 
@@ -18,7 +18,7 @@ static void	reclaim(void);
 static void	remove_temps(struct temp *tp);
 static int	is_restricted(char *name);
 
-const char ksh_version[] = "@(#)MIRBSD KSH R21 2005/05/23";
+const char ksh_version[] = "@(#)MIRBSD KSH R22 2005/05/25";
 
 static const char initifs[] = "IFS= \t\n";
 
