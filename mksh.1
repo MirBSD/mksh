@@ -1,13 +1,11 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.4 2005/05/25 14:15:40 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.5 2005/05/25 23:31:07 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.98 2005/05/12 09:18:24 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
-.\"
-.\"	Public Domain
-.\"
+.\"-
 .Dd May 22, 2005
 .Dt MKSH 1
 .Os MirOS
-.\" define Mx macro for portable mksh, just in case...
+.\" this macro only exists in MirNroff by default
 .de Mx
 .nr cF \\n(.f
 .nr cZ \\n(.s
@@ -202,7 +200,8 @@ In the absence of fatal errors,
 the exit status is that of the last command executed, or zero, if no
 command is executed.
 .Ss Command syntax
-The shell begins parsing its input by breaking it into
+The shell begins parsing its input by removing any backslash-newline
+combinations, then breaking it into
 .Em words .
 Words, which are sequences of characters, are delimited by unquoted whitespace
 characters (space, tab, and newline) or meta-characters
@@ -471,7 +470,7 @@ a (syntactically correct) reserved word.
 For example, the following are all valid:
 .Bd -literal -offset indent
 $ { echo foo; echo bar; }
-$ { echo foo; echo bar\*(Ltnewline\*(Gt }
+$ { echo foo; echo bar\*(Ltnewline\*(Gt}
 $ { { echo foo; echo bar; } }
 .Ed
 .Pp
@@ -1184,6 +1183,10 @@ If
 is omitted, the string
 .Dq parameter null or not set
 is used instead.
+Currently a bug, if
+.Ar word
+is a variable which expands to the null string, the
+error message is also printed.
 .El
 .Pp
 In the above modifiers, the
@@ -1487,8 +1490,7 @@ colon, or two adjacent colons, is treated as a
 .Sq \&.
 (the current directory).
 .It Ev PGRP
-The current process group, see
-.Xr getpgrp 2 .
+The current process group (read-only).
 .It Ev PPID
 The process ID of the shell's parent (read-only).
 .It Ev PS1
@@ -1916,7 +1918,8 @@ escapes for
 .Ql ` ,
 .Ql \e ,
 and
-.Ql \enewline .
+.Ql \enewline ;
+any backslash preceding double quotes is removed.
 If multiple here documents are used on the same command line, they are saved in
 order.
 .It \*(Lt\*(Lt- Ar marker
@@ -2026,11 +2029,13 @@ integers may be prefixed with
 .Sq 0X
 or
 .Sq 0x
-(specifying base 16), similar to AT&T ksh,
+(specifying base 16), similar to AT&T
+.Nm ksh ,
 or
 .Sq 0
-(base 8), as an mksh extension,
-in all forms of arithmetic expressions,
+(base 8), as an
+.Nm
+extension, in all forms of arithmetic expressions,
 except as numeric arguments to the
 .Ic test
 command.
@@ -2165,8 +2170,8 @@ Some notes concerning co-processes:
 .It
 The only way to close the co-process's input (so the co-process reads an
 end-of-file) is to redirect the input to a numbered file descriptor and then
-close that file descriptor e.g.\&
-.Ic exec 3\*(Gt&p; exec 3\*(Gt&- .
+close that file descriptor:
+.Ic exec 3\*(Gt&p; exec 3\*(Gt&-
 .It
 In order for co-processes to share a common output, the shell must keep the
 write portion of the output pipe open.
@@ -2470,7 +2475,8 @@ argument to the
 .Fl t
 test may be left out and defaults to 1).
 .It
-Tilde expansion after equal signs is disabled.
+Tilde expansion after equal signs (not assignments) is disabled,
+although not strictly forbidden by POSIX, for consistency with other shells.
 .El
 .Ss Strict Bourne shell mode
 When the
@@ -2508,6 +2514,15 @@ Sequences of
 .Sq ((...))
 are not interpreted as arithmetic expressions.
 .El
+.Pp
+This does not make
+.Nm
+a real bourne shell emulation, though.
+Access to many enhanced features is still available, and
+.Ql ^
+as synonym for
+.Ql |
+has probably not been in use since the 1980s anyway.
 .Ss Command execution
 After evaluation of command-line arguments, redirections, and parameter
 assignments, the type of command is determined: a special built-in, a
@@ -3795,7 +3810,7 @@ characters), or if it is a unary operator like
 or
 .Sq Fl n .
 Use tests like
-.Dq if \&[ \&"X$foo\&" = Xbar \&]
+.Dq if \&[ x\&"$foo\&" = x"bar" \&]
 instead.
 .Pp
 .It Xo
@@ -4070,7 +4085,7 @@ except zero padding is used instead of space padding.
 .Pp
 .It Xo
 .Ic ulimit
-.Op Fl acdfHlmnpSsTtv
+.Op Fl acdfHLlmnpSsTtvw
 .Op Ar value
 .Xc
 Display or set process limits.
@@ -4108,6 +4123,8 @@ blocks on files written by the shell and its child processes (files of any
 size may be read).
 .It Fl H
 Set the hard limit only (the default is to set both hard and soft limits).
+.It Fl L Ar n
+Control flocks; documentation is missing.
 .It Fl l Ar n
 Impose a limit of
 .Ar n
@@ -4142,6 +4159,10 @@ CPU seconds spent in user mode to be used by each process.
 Impose a limit of
 .Ar n
 kibibytes on the amount of virtual memory used.
+.It Fl w Ar n
+Impose a limit of
+.Ar n
+kibibytes on the amount of swap space used.
 .El
 .Pp
 As far as
@@ -4473,7 +4494,7 @@ an
 (if the command can be prefixed with a count); and any keys the command is
 bound to by default, written using caret notation
 e.g. the ASCII ESC character is written as ^[.
-^[A-Z] sequences are not case sensitive.
+These control sequences are not case sensitive.
 A count prefix for a command is entered using the sequence
 .Pf ^[ Ns Ar n ,
 where
@@ -4547,11 +4568,6 @@ is appended.
 If there is no command or file name with the current partial word
 as its prefix, a bell character is output (usually causing a beep to be
 sounded).
-.\" XXX
-Currently being considered a bug,
-if the file name contains \fB[\fR or \fB]\fR, it cannot be completed, even if
-the character is escaped, in \fBemacs\fR mode.
-This surprisingly works in \fBvi\fR mode; please submit a fix.
 .It complete-command: ^X^[
 Automatically completes as much as is unique of the command name having the
 partial word up to the cursor as its prefix, as in the
@@ -4569,6 +4585,7 @@ If only one completion is possible,
 match as in the
 .Ic complete
 command above.
+Note that ^I is usually generated by the TAB (tabulator) key.
 .It Xo delete-char-backward:
 .Op Ar n
 .No ERASE , ^? , ^H
@@ -4825,13 +4842,6 @@ colon
 .Pq Ic \&:
 commands).
 .El
-.Pp
-Note that the ^X stands for control-X; also
-.Aq esc ,
-.Aq space ,
-and
-.Aq tab
-are used for escape, space, and tab, respectively (no kidding).
 .Pp
 Like
 .Xr vi 1 ,
@@ -5367,6 +5377,7 @@ Shell database.
 .Xr dup 2 ,
 .Xr execve 2 ,
 .Xr getgid 2 ,
+.Xr getpgrp 2 ,
 .Xr getuid 2 ,
 .Xr open 2 ,
 .Xr pipe 2 ,
@@ -5425,9 +5436,3 @@ The
 author is aware of this and there is no need to report it.
 This does not work because the last command of a pipe sequence
 is run in a subshell.
-.Pp
-For another known bug, refer to the comment above the
-.Em complete-command
-paragraph in the section
-.Sx Emacs editing mode
-above.

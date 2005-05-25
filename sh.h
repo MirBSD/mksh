@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.7 2005/05/25 13:46:01 tg Exp $ */
+/**	$MirOS: src/bin/mksh/sh.h,v 1.8 2005/05/25 23:31:08 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.27 2005/03/28 21:33:04 deraadt Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
@@ -995,6 +995,7 @@ typedef union {
 #define ESACONLY	BIT(7)	/* only accept esac keyword */
 #define CMDWORD		BIT(8)	/* parsing simple command (alias related) */
 #define HEREDELIM	BIT(9)	/* parsing <<,<<- delimiter */
+#define	LQCHAR		BIT(10)	/* source string contains QCHAR */
 
 #define	HERES	10		/* max << in line */
 

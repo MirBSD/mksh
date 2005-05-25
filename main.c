@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/main.c,v 1.6 2005/05/25 13:46:01 tg Exp $ */
+/**	$MirOS: src/bin/mksh/main.c,v 1.7 2005/05/25 23:31:07 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.38 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: tty.c,v 1.8 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include <pwd.h>
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.6 2005/05/25 13:46:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.7 2005/05/25 23:31:07 tg Exp $");
 
 extern char **environ;
 
@@ -46,11 +46,10 @@ static const char *initcoms [] = {
 	 /* Aliases that are builtin commands in at&t */
 	  "login=exec login",
 	  NULL,
-	/* this is what at&t ksh seems to track, with the addition of emacs */
+	 /* this is what at&t ksh seems to track, with the addition of emacs */
 	"alias", "-tU",
 	  "cat", "cc", "chmod", "cp", "date", "ed", "emacs", "grep", "ls",
-	  "mail", "make", "mv", "pr", "rm", "sed", "sh", "vi", "who",
-	  NULL,
+	  "make", "mv", "pr", "rm", "sed", "sh", "vi", "who", NULL,
 	NULL
 };
 

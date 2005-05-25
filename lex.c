@@ -1,11 +1,11 @@
-/**	$MirOS: src/bin/mksh/lex.c,v 1.1 2005/05/23 03:06:08 tg Exp $ */
+/**	$MirOS: src/bin/mksh/lex.c,v 1.2 2005/05/25 23:31:07 tg Exp $ */
 /*	$OpenBSD: lex.c,v 1.36 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 #include <ctype.h>
 #include <libgen.h>
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.1 2005/05/23 03:06:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.2 2005/05/25 23:31:07 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state.
@@ -342,6 +342,13 @@ yylex(int cf)
 					}
 				}
 				break;
+			case QCHAR:
+				if (cf & LQCHAR) {
+					*wp++ = QCHAR;
+					*wp++ = getsc();
+					break;
+				}
+				/* FALLTHRU */
 			default:
 				*wp++ = CHAR, *wp++ = c;
 			}

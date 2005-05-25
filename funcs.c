@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/funcs.c,v 1.8 2005/05/25 13:46:00 tg Exp $ */
+/**	$MirOS: src/bin/mksh/funcs.c,v 1.9 2005/05/25 23:31:06 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.29 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <ulimit.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.8 2005/05/25 13:46:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.9 2005/05/25 23:31:06 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -2822,18 +2822,6 @@ c_ulimit(char **wp)
 		char	option;
 	} limits[] = {
 		/* Do not use options -H, -S or -a */
-#ifdef RLIMIT_CPU
-		{ "time(cpu-seconds)", RLIMIT, RLIMIT_CPU, RLIMIT_CPU,
-		    1, 't' },
-#endif
-#ifdef RLIMIT_TIME
-		{ "humantime(seconds)", RLIMIT, RLIMIT_TIME, RLIMIT_TIME,
-		    1, 'T' },
-#endif
-#ifdef RLIMIT_FSIZE
-		{ "file(blocks)", RLIMIT, RLIMIT_FSIZE, RLIMIT_FSIZE,
-		    512, 'f' },
-#endif
 #ifdef RLIMIT_CORE
 		{ "coredump(blocks)", RLIMIT, RLIMIT_CORE, RLIMIT_CORE,
 		    512, 'c' },
@@ -2842,9 +2830,13 @@ c_ulimit(char **wp)
 		{ "data(KiB)", RLIMIT, RLIMIT_DATA, RLIMIT_DATA,
 		    1024, 'd' },
 #endif
-#ifdef RLIMIT_STACK
-		{ "stack(KiB)", RLIMIT, RLIMIT_STACK, RLIMIT_STACK,
-		    1024, 's' },
+#ifdef RLIMIT_FSIZE
+		{ "file(blocks)", RLIMIT, RLIMIT_FSIZE, RLIMIT_FSIZE,
+		    512, 'f' },
+#endif
+#ifdef RLIMIT_LOCKS
+		{ "flocks", RLIMIT, RLIMIT_LOCKS, RLIMIT_LOCKS,
+		    -1, 'L' },
 #endif
 #ifdef RLIMIT_MEMLOCK
 		{ "lockedmem(KiB)", RLIMIT, RLIMIT_MEMLOCK, RLIMIT_MEMLOCK,
@@ -2862,6 +2854,18 @@ c_ulimit(char **wp)
 		{ "processes", RLIMIT, RLIMIT_NPROC, RLIMIT_NPROC,
 		    1, 'p' },
 #endif
+#ifdef RLIMIT_STACK
+		{ "stack(KiB)", RLIMIT, RLIMIT_STACK, RLIMIT_STACK,
+		    1024, 's' },
+#endif
+#ifdef RLIMIT_TIME
+		{ "humantime(seconds)", RLIMIT, RLIMIT_TIME, RLIMIT_TIME,
+		    1, 'T' },
+#endif
+#ifdef RLIMIT_CPU
+		{ "time(cpu-seconds)", RLIMIT, RLIMIT_CPU, RLIMIT_CPU,
+		    1, 't' },
+#endif
 #ifdef RLIMIT_VMEM
 		{ "vmemory(KiB)", RLIMIT, RLIMIT_VMEM, RLIMIT_VMEM,
 		    1024, 'v' },
@@ -2869,10 +2873,6 @@ c_ulimit(char **wp)
 #ifdef RLIMIT_SWAP
 		{ "swap(KiB)", RLIMIT, RLIMIT_SWAP, RLIMIT_SWAP,
 		    1024, 'w' },
-#endif
-#ifdef RLIMIT_LOCKS
-		{ "flocks", RLIMIT, RLIMIT_LOCKS, RLIMIT_LOCKS,
-		    -1, 'L' },
 #endif
 		{ NULL, 0, 0, 0, 0, 0 }
 	};

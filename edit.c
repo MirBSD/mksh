@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/edit.c,v 1.3 2005/05/23 16:23:18 tg Exp $ */
+/**	$MirOS: src/bin/mksh/edit.c,v 1.4 2005/05/25 23:31:05 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.29 2005/04/13 02:33:08 deraadt Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.37 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include <libgen.h>
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.3 2005/05/23 16:23:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.4 2005/05/25 23:31:05 tg Exp $");
 
 #define	BEL		0x07
 
@@ -72,8 +72,7 @@ x_init(void)
 
 	if (setsig(&sigtraps[SIGWINCH], x_sigwinch, SS_RESTORE_ORIG|SS_SHTRAP))
 		sigtraps[SIGWINCH].flags |= TF_SHELL_USES;
-	got_sigwinch = 1; /* force initial check */
-	check_sigwinch();
+	check_sigwinch();	/* force initial check */
 
 	x_init_emacs();
 }
@@ -88,7 +87,6 @@ x_sigwinch(int sig __attribute__((unused)))
 static void
 check_sigwinch(void)
 {
-	if (got_sigwinch) {
 		struct winsize ws;
 
 		got_sigwinch = 0;
@@ -111,7 +109,6 @@ check_sigwinch(void)
 			if (ws.ws_row && (vp = typeset("LINES", 0, 0, 0, 0)))
 				setint(vp, (long) ws.ws_row);
 		}
-	}
 }
 
 /*
@@ -426,6 +423,9 @@ x_file_glob(int flags __attribute__((unused)), const char *str,
 			escaping = 1;
 			continue;
 		}
+		/* specially escape escaped [ for globbing */
+		if (escaping && toglob[i] == '[')
+			toglob[idx++] = QCHAR;
 
 		toglob[idx] = toglob[i];
 		idx++;
@@ -440,7 +440,7 @@ x_file_glob(int flags __attribute__((unused)), const char *str,
 	s = pushs(SWSTR, ATEMP);
 	s->start = s->str = toglob;
 	source = s;
-	if (yylex(ONEWORD) != LWORD) {
+	if (yylex(ONEWORD|LQCHAR) != LWORD) {
 		source = sold;
 		internal_errorf(0, "fileglob: substitute error");
 		return 0;
@@ -877,7 +877,7 @@ x_escape(const char *s, size_t len, int (*putbuf_func) (const char *, size_t))
 	int rval=0;
 
 	for (add = 0, wlen = len; wlen - add > 0; add++) {
-		if (strchr("\\$()[]{}*&;#|<>\"'`", s[add]) || strchr(ifs, s[add])) {
+		if (strchr("\\$()[{}*&;#|<>\"'`", s[add]) || strchr(ifs, s[add])) {
 			if (putbuf_func(s, add) != 0) {
 				rval = -1;
 				break;
@@ -2473,6 +2473,7 @@ x_version(int c __attribute__((unused)))
 	int lim = x_lastcp() - xbp;
 	char *v = strdup(ksh_version + 4);
 
+	check_sigwinch();	/* mksh hack ;-) */
 	xbuf = xbp = xcp = v;
 	xend = xep = v + strlen(v);
 	x_redraw(lim);
