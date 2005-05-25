@@ -1,11 +1,11 @@
-/**	$MirOS: src/bin/mksh/exec.c,v 1.4 2005/05/25 13:45:59 tg Exp $ */
+/**	$MirOS: src/bin/mksh/exec.c,v 1.5 2005/05/25 14:07:29 tg Exp $ */
 /*	$OpenBSD: exec.c,v 1.41 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 #include <sys/stat.h>
 #include <ctype.h>
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.4 2005/05/25 13:45:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.5 2005/05/25 14:07:29 tg Exp $");
 
 static int	comexec(struct op *, struct tbl *volatile, char **,
 		    int volatile);
@@ -368,8 +368,8 @@ execute(struct op *volatile t,
 	quitenv(NULL);		/* restores IO */
 	if ((flags&XEXEC))
 		unwind(LEXIT);	/* exit child */
-	if (rv != 0 && !rv_prop && !(flags & XERROK)) {
-		if (Flag(FERREXIT))
+	if (rv != 0 && !(flags & XERROK)) {
+		if (Flag(FERREXIT) && !rv_prop)
 			unwind(LERROR);
 		trapsig(SIGERR_);
 	}
