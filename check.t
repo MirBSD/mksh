@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.13 2005/05/25 14:20:53 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.14 2005/05/25 14:39:33 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3697,6 +3697,35 @@ stdin:
 expected-stdout:
 	a=/sweet b=/sweet c=d~ /sweet
 	a=~ b=~ c=d~ /sweet
+---
+name: errexit-1
+description:
+	Check some "exit on error" conditions
+stdin:
+	set -ex
+	/usr/bin/env false && echo something
+	echo END
+expected-stdout:
+	END
+expected-stderr:
+	+ /usr/bin/env false
+	+ echo END
+---
+name: errexit-2
+description:
+	Check some "exit on error" edge conditions
+stdin:
+	set -ex
+	if /usr/bin/env true; then
+		/usr/bin/env false && echo something
+	fi
+	echo END
+expected-stdout:
+	END
+expected-stderr:
+	+ /usr/bin/env true
+	+ /usr/bin/env false
+	+ echo END
 ---
 name: version-1
 description:
