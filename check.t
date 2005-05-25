@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.12 2005/05/25 13:50:15 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.13 2005/05/25 14:20:53 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3685,6 +3685,18 @@ description:
 	Check c flag is set.
 arguments: !-c!echo "[$-]"!
 expected-stdout-pattern: /^\[.*c.*\]$/
+---
+name: tilde-expand-1
+description:
+	Check tilde expansion after equal signs
+env-setup: !HOME=/sweet!
+stdin:
+	echo ${A=a=}~ b=~ c=d~ ~
+	set -o posix
+	echo ${A=a=}~ b=~ c=d~ ~
+expected-stdout:
+	a=/sweet b=/sweet c=d~ /sweet
+	a=~ b=~ c=d~ /sweet
 ---
 name: version-1
 description:
