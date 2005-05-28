@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/main.c,v 1.8 2005/05/26 23:01:30 tg Exp $ */
+/**	$MirOS: src/bin/mksh/main.c,v 1.9 2005/05/28 21:02:02 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.38 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: tty.c,v 1.8 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -9,8 +9,11 @@
 #include <sys/stat.h>
 #include <ctype.h>
 #include <pwd.h>
+#if !HAVE_ARC4RANDOM
+#include <time.h>
+#endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.8 2005/05/26 23:01:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.9 2005/05/28 21:02:02 tg Exp $");
 
 extern char **environ;
 
@@ -18,7 +21,7 @@ static void	reclaim(void);
 static void	remove_temps(struct temp *tp);
 static int	is_restricted(char *name);
 
-const char ksh_version[] = "@(#)MIRBSD KSH R22 2005/05/25";
+const char ksh_version[] = "@(#)MIRBSD KSH R22 2005/05/28";
 
 static const char initifs[] = "IFS= \t\n";
 
