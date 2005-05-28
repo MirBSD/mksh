@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/var.c,v 1.5 2005/05/26 23:01:30 tg Exp $ */
+/**	$MirOS: src/bin/mksh/var.c,v 1.6 2005/05/28 21:11:35 tg Exp $ */
 /*	$OpenBSD: var.c,v 1.26 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <time.h>
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.5 2005/05/26 23:01:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.6 2005/05/28 21:11:35 tg Exp $");
 
 /*
  * Variables
@@ -1005,7 +1005,7 @@ setspec(struct tbl *vp)
 		vp->flag &= ~SPECIAL;
 		srand((unsigned int)intval(vp));
 		use_rand = 1;
-#ifdef __MirBSD__
+#if defined(__MirBSD__) && HAVE_ARC4RANDOM
 		arc4random_push((unsigned)vp ^ (unsigned)rand());
 #endif
 		vp->flag |= SPECIAL;
