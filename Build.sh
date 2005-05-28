@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.5 2005/05/25 23:44:50 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.6 2005/05/28 21:30:32 tg Exp $
 #-
 # Recognised command line parameters and their defaults:
 #	CC		gcc
@@ -15,11 +15,12 @@
 # 	Solaris		LDFLAGS=
 
 SHELL="${SHELL:-/bin/sh}"
-CC="${CC:-gcc}"
-CFLAGS="${CFLAGS--O2 -fno-strict-aliasing -fno-strength-reduce}"
-LDFLAGS="${LDFLAGS--static}"
 srcdir="${srcdir:-`dirname $0`}"
 curdir="`pwd`"
+CC="${CC:-gcc}"
+CFLAGS="${CFLAGS--O2 -fno-strict-aliasing -fno-strength-reduce}"
+CPPFLAGS="-I $curdir $CPPFLAGS"
+LDFLAGS="${LDFLAGS--static}"
 NROFF="${NROFF:-nroff}"
 OS="`uname -s || uname`"
 export SHELL CC
