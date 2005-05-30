@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $MirOS: src/bin/mksh/check.pl,v 1.2 2005/05/23 14:48:21 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.3 2005/05/30 07:05:29 tg Exp $
 # $OpenBSD: th,v 1.11 2004/11/29 06:20:02 jsg Exp $
 #-
 # Test harness for pdksh tests.
@@ -494,6 +494,7 @@ run_test
 	if ($program_kludge) {
 	    @argv = split(' ', $test_prog);
 	} else {
+	    $test_prog =~ s/ /\\ /g;
 	    @argv = ($test_prog);
 	}
 	if (defined $test{'arguments'}) {

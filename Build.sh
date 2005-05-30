@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.6 2005/05/28 21:30:32 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.7 2005/05/30 07:05:29 tg Exp $
 #-
 # Recognised command line parameters and their defaults:
 #	CC		gcc
@@ -19,7 +19,6 @@ srcdir="${srcdir:-`dirname $0`}"
 curdir="`pwd`"
 CC="${CC:-gcc}"
 CFLAGS="${CFLAGS--O2 -fno-strict-aliasing -fno-strength-reduce}"
-CPPFLAGS="-I $curdir $CPPFLAGS"
 LDFLAGS="${LDFLAGS--static}"
 NROFF="${NROFF:-nroff}"
 OS="`uname -s || uname`"
@@ -39,20 +38,21 @@ SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 [ x"$OS" = x"Linux" ] && SRCS="$SRCS strlfun.c"
 
 $e Generating prerequisites...
-$SHELL $srcdir/gensigs.sh
+$SHELL "$srcdir/gensigs.sh"
 for hdr in errno signal; do
 	h2ph -d . /usr/include/$hdr.h && mv _h2ph_pre.ph $hdr.ph
 done
 $e Building...
-( cd $srcdir; $CC $CFLAGS $CPPFLAGS $LDFLAGS -o $curdir/mksh $SRCS $LIBS )
+( cd "$srcdir" && exec $CC $CFLAGS -I "$curdir" $CPPFLAGS $LDFLAGS \
+    -o $curdir/mksh $SRCS $LIBS )
 test -x mksh || exit 1
 $e Finalising...
-$NROFF -mdoc <$srcdir/mksh.1 >mksh.cat1 || rm -f mksh.cat1
+$NROFF -mdoc <"$srcdir/mksh.1" >mksh.cat1 || rm -f mksh.cat1
 [ $q = 1 ] || size mksh
 $e done.
 $e
 $e Testing mirbsdksh:
-$e "$ perl $srcdir/check.pl -s $srcdir/check.t -p $curdir/mksh -C pdksh"
+$e "$ perl '$srcdir/check.pl' -s '$srcdir/check.t' -p '$curdir/mksh' -C pdksh"
 $e
 $e Installing mirbsdksh:
 $e "# install -c -s -o root -g bin -m 555 mksh /bin/mksh"
