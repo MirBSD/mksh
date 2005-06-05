@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.7 2005/05/30 07:05:29 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.8 2005/06/05 16:34:59 tg Exp $
 #-
 # Recognised command line parameters and their defaults:
 #	CC		gcc
@@ -26,9 +26,16 @@ export SHELL CC
 if [ x"$1" = x"-q" ]; then
 	e=:
 	q=1
+	shift
 else
 	e=echo
 	q=0
+fi
+if [ x"$1" = x"-r" ]; then
+	r=1
+	shift
+else
+	r=0
 fi
 
 SRCS="alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
@@ -47,7 +54,7 @@ $e Building...
     -o $curdir/mksh $SRCS $LIBS )
 test -x mksh || exit 1
 $e Finalising...
-$NROFF -mdoc <"$srcdir/mksh.1" >mksh.cat1 || rm -f mksh.cat1
+[ $r = 1 ] || $NROFF -mdoc <"$srcdir/mksh.1" >mksh.cat1 || rm -f mksh.cat1
 [ $q = 1 ] || size mksh
 $e done.
 $e
@@ -64,4 +71,4 @@ if test -s mksh.cat1; then
 	    "/usr/share/man/cat1/mksh.0"
 	$e or
 fi
-$e "# install -c -o root -g bin -m 444 mksh.1 /usr/man/man1/mksh.1"
+$e "# install -c -o root -g bin -m 444 mksh.1 /usr/share/man/man1/mksh.1"
