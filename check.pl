@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $MirOS: src/bin/mksh/check.pl,v 1.3 2005/05/30 07:05:29 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.4 2005/06/05 16:38:19 tg Exp $
 # $OpenBSD: th,v 1.11 2004/11/29 06:20:02 jsg Exp $
 #-
 # Test harness for pdksh tests.
@@ -87,11 +87,11 @@
 #					newline in the file contents.
 #					The permissions, user and group fields
 #					may be * meaning accept any value.
-#	time-limit		    	Time limit - the program is sent a
+#	time-limit			Time limit - the program is sent a
 #					SIGKILL N seconds.  Default is no
 #					limit.
-#	expected-fail		    	'yes' if the test is expected to fail.
-#	expected-exit		    	expected exit code.  Can be a number,
+#	expected-fail			'yes' if the test is expected to fail.
+#	expected-exit			expected exit code.  Can be a number,
 #					or a C expression using the variables
 #					e, s and w (exit code, termination
 #					signal, and status code).
@@ -265,7 +265,7 @@ die "$prog: couldn't cd to $pwd - $!\n" if !chdir($pwd);
 if (!$program_kludge) {
     $test_prog = "$pwd/$test_prog" if substr($test_prog, 0, 1) ne '/';
     die "$prog: $test_prog is not executable - bye\n"
-    	if (! -x $test_prog && $os ne 'os2');
+	if (! -x $test_prog && $os ne 'os2');
 }
 
 @trap_sigs = ('TERM', 'QUIT', 'INT', 'PIPE', 'HUP');
@@ -943,7 +943,7 @@ read_test
 		}
 		if ($field eq 'file-result') {
 		    local($type, $perm, $uid, $gid, $matchType,
-		    	  $rest, $c, $len, $name);
+			  $rest, $c, $len, $name);
 		    #
 		    # format is: type perm uid gid matchType "name"
 		    #

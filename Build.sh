@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.8 2005/06/05 16:34:59 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.9 2005/06/05 16:38:19 tg Exp $
 #-
 # Recognised command line parameters and their defaults:
 #	CC		gcc
@@ -12,7 +12,7 @@
 # Hints (don't take tgem seriously, WFM rather):
 #	GNU/Linux	CPPFLAGS='-D_FILE_OFFSET_BITS=64'
 #	Mac OSX		LDFLAGS=
-# 	Solaris		LDFLAGS=
+#	Solaris		LDFLAGS=
 
 SHELL="${SHELL:-/bin/sh}"
 srcdir="${srcdir:-`dirname $0`}"
