@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/funcs.c,v 1.10 2005/06/08 10:14:08 tg Exp $ */
+/**	$MirOS: src/bin/mksh/funcs.c,v 1.11 2005/06/08 10:25:40 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.29 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <ulimit.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.10 2005/06/08 10:14:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.11 2005/06/08 10:25:40 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -2868,9 +2868,6 @@ c_ulimit(char **wp)
 #endif
 #ifdef RLIMIT_VMEM
 		{ "vmemory(KiB)", RLIMIT, RLIMIT_VMEM, RLIMIT_VMEM,
-		    1024, 'v' },
-#elif defined(RLIMIT_AS)
-		{ "amemory(KiB)", RLIMIT, RLIMIT_AS, RLIMIT_AS,
 		    1024, 'v' },
 #endif
 #ifdef RLIMIT_SWAP
