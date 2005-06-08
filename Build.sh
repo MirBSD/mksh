@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.14 2005/06/08 22:47:54 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.15 2005/06/08 23:02:08 tg Exp $
 #-
 # Recognised environment variables and their defaults:
 #	CC		gcc
@@ -9,10 +9,7 @@
 #	LIBS		(empty)
 #	srcdir		(path of script)
 #	NROFF		nroff		# (ignored if -r option given)
-# Hints (WFM; don't take them seriously):
-#	GNU/Linux	CPPFLAGS='-D_FILE_OFFSET_BITS=64'
-#	Mac OSX		LDFLAGS=
-#	Solaris		LDFLAGS=
+# GNU/Linux, Mac, Solaris: add -d, maybe -r, CPPFLAGS='-D_FILE_OFFSET_BITS=64'
 
 SHELL="${SHELL:-/bin/sh}"
 CC="${CC:-gcc}"
