@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/eval.c,v 1.3 2005/05/25 10:01:24 tg Exp $ */
+/**	$MirOS: src/bin/mksh/eval.c,v 1.4 2005/06/08 22:34:03 tg Exp $ */
 /*	$OpenBSD: eval.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
@@ -6,7 +6,7 @@
 #include <dirent.h>
 #include <pwd.h>
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.3 2005/05/25 10:01:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.4 2005/06/08 22:34:03 tg Exp $");
 
 /*
  * string expansion
@@ -339,7 +339,7 @@ expand(char *cp,	/* input word */
 					case '?':
 						f &= ~DOBLANK;
 						f |= DOTEMP_;
-						/* fall through */
+						/* FALLTHRU */
 					default:
 						/* Enable tilde expansion */
 						tilde_ok = 1;

@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/edit.c,v 1.7 2005/06/08 22:22:23 tg Exp $ */
+/**	$MirOS: src/bin/mksh/edit.c,v 1.8 2005/06/08 22:34:02 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.29 2005/04/13 02:33:08 deraadt Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.37 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include <libgen.h>
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.7 2005/06/08 22:22:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.8 2005/06/08 22:34:02 tg Exp $");
 
 #define	BEL		0x07
 
@@ -3788,7 +3788,7 @@ vi_cmd(int argcnt, const char *cmd)
 		case 'g':
 			if (!argcnt)
 				argcnt = hlast;
-			/* fall through */
+			/* FALLTHRU */
 		case 'G':
 			if (!argcnt)
 				argcnt = 1;
@@ -3938,7 +3938,7 @@ vi_cmd(int argcnt, const char *cmd)
 			c3 = 1;
 			srchlen = 0;
 			lastsearch = *cmd;
-			/* fall through */
+			/* FALLTHRU */
 		case 'n':
 		case 'N':
 			if (lastsearch == ' ')

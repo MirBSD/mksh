@@ -1,11 +1,11 @@
-/**	$MirOS: src/bin/mksh/lex.c,v 1.3 2005/06/08 21:51:21 tg Exp $ */
+/**	$MirOS: src/bin/mksh/lex.c,v 1.4 2005/06/08 22:34:03 tg Exp $ */
 /*	$OpenBSD: lex.c,v 1.36 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 #include <ctype.h>
 #include <libgen.h>
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.3 2005/06/08 21:51:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.4 2005/06/08 22:34:03 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -184,7 +184,7 @@ yylex(int cf)
 				*wp++ = c;
 				break;
 			}
-			/* fall through.. */
+			/* FALLTHRU */
 		  Sbase1:	/* includes *(...|...) pattern (*+?@!) */
 			if (c == '*' || c == '@' || c == '+' || c == '?' ||
 			    c == '!') {
@@ -197,7 +197,7 @@ yylex(int cf)
 				}
 				ungetsc(c2);
 			}
-			/* fall through.. */
+			/* FALLTHRU */
 		  Sbase2:	/* doesn't include *(...|...) pattern (*+?@!) */
 			switch (c) {
 			case '\\':
@@ -504,7 +504,7 @@ yylex(int cf)
 						*wp++ = c;
 						break;
 					}
-					/* fall through.. */
+					/* FALLTHRU */
 				default:
 					if (c) { /* trailing \ is lost */
 						*wp++ = '\\';
@@ -1123,7 +1123,7 @@ get_brace_var(XString *wsp, char *wp)
 				state = PS_SAW_HASH;
 				break;
 			}
-			/* fall through.. */
+			/* FALLTHRU */
 		case PS_SAW_HASH:
 			if (letter(c))
 				state = PS_IDENT;

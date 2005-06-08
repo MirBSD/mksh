@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/main.c,v 1.12 2005/06/08 22:22:24 tg Exp $ */
+/**	$MirOS: src/bin/mksh/main.c,v 1.13 2005/06/08 22:34:03 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.38 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: tty.c,v 1.8 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <time.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.12 2005/06/08 22:22:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.13 2005/06/08 22:34:03 tg Exp $");
 
 const char ksh_version[] = "@(#)MIRBSD KSH R23 2005/06/08";
 
@@ -390,15 +390,15 @@ include(const char *name, int argc, char **argv, int intr_ok)
 			 */
 			if (intr_ok && (exstat - 128) != SIGTERM)
 				return 1;
-			/* fall through... */
+			/* FALLTHRU */
 		case LEXIT:
 		case LLEAVE:
 		case LSHELL:
 			unwind(i);
-			/*NOREACHED*/
+			/* NOTREACHED */
 		default:
 			internal_errorf(1, "include: %d", i);
-			/*NOREACHED*/
+			/* NOTREACHED */
 		}
 	}
 	if (argv) {
@@ -468,19 +468,19 @@ shell(Source * volatile s, volatile int toplevel)
 				s->start = s->str = null;
 				break;
 			}
-			/* fall through... */
+			/* FALLTHRU */
 		case LEXIT:
 		case LLEAVE:
 		case LRETURN:
 			source = old_source;
 			quitenv(NULL);
 			unwind(i);	/* keep on going */
-			/*NOREACHED*/
+			/* NOTREACHED */
 		default:
 			source = old_source;
 			quitenv(NULL);
 			internal_errorf(1, "shell: %d", i);
-			/*NOREACHED*/
+			/* NOTREACHED */
 		}
 	}
 	while (1) {
@@ -551,13 +551,11 @@ unwind(int i)
 		case E_LOOP:
 		case E_ERRH:
 			siglongjmp(e->jbuf, i);
-			/*NOTREACHED*/
-
+			/* NOTREACHED */
 		case E_NONE:
 			if (i == LINTR)
 				e->flags |= EF_FAKE_SIGDIE;
-			/* Fall through... */
-
+			/* FALLTHRU */
 		default:
 			quitenv(NULL);
 		}
