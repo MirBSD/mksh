@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.12 2005/06/08 22:42:31 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.13 2005/06/08 22:46:06 tg Exp $
 #-
 # Recognised environment variables and their defaults:
 #	CC		gcc
@@ -66,7 +66,8 @@ v $SHELL "'$srcdir/gensigs.sh'" || exit 1
 (v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS" \
     "$LDFLAGS $LDSTATIC -o '$curdir/mksh' $SRCS $LIBS") || exit 1
 test -x mksh || exit 1
-v "${NROFF:-nroff} -mdoc <'$srcdir/mksh.1' >mksh.cat1" || rm -f mksh.cat1
+[ $r = 1 ] || v "${NROFF:-nroff} -mdoc <'$srcdir/mksh.1' >mksh.cat1" \
+    || rm -f mksh.cat1
 [ $q = 1 ] || v size mksh
 $e
 $e Testing mirbsdksh:
