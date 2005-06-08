@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.11 2005/06/08 21:51:20 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.12 2005/06/08 22:42:31 tg Exp $
 #-
 # Recognised environment variables and their defaults:
 #	CC		gcc
@@ -17,25 +17,34 @@
 SHELL="${SHELL:-/bin/sh}"
 CC="${CC:-gcc}"
 CFLAGS="${CFLAGS--O2 -fno-strict-aliasing -fno-strength-reduce}"
-LDFLAGS="${LDFLAGS--static}"
 export SHELL CC
 srcdir="${srcdir:-`dirname "$0"`}"
 curdir="`pwd`"
 
-if [ x"$1" = x"-q" ]; then
-	e=:
-	q=1
+e=echo
+q=0
+r=0
+LDSTATIC=-static
+
+while [ -n "$1" ]; do
+	case "$1" in
+	-d)
+		LDSTATIC=
+		;;
+	-q)
+		e=:
+		q=1
+		;;
+	-r)
+		r=1
+		;;
+	*)
+		echo "$0: Unknown option '$1'!"
+		exit 1
+		;;
+	esac
 	shift
-else
-	e=echo
-	q=0
-fi
-if [ x"$1" = x"-r" ]; then
-	r=1
-	shift
-else
-	r=0
-fi
+done
 
 v()
 {
@@ -54,8 +63,8 @@ Linux)
 esac
 
 v $SHELL "'$srcdir/gensigs.sh'" || exit 1
-(v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS $LDFLAGS" \
-    "-o '$curdir/mksh' $SRCS $LIBS") || exit 1
+(v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS" \
+    "$LDFLAGS $LDSTATIC -o '$curdir/mksh' $SRCS $LIBS") || exit 1
 test -x mksh || exit 1
 v "${NROFF:-nroff} -mdoc <'$srcdir/mksh.1' >mksh.cat1" || rm -f mksh.cat1
 [ $q = 1 ] || v size mksh
