@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.10 2005/05/26 23:12:09 tg Exp $ */
+/**	$MirOS: src/bin/mksh/sh.h,v 1.11 2005/06/08 21:51:22 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.27 2005/03/28 21:33:04 deraadt Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
@@ -8,33 +8,6 @@
 /*	$OpenBSD: proto.h,v 1.26 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
-
-/*-
- * Copyright (c) 2005
- *	Thorsten "mirabile" Glaser <tg@66h.42h.de>
- *
- * Licensee is hereby permitted to deal in this work without restric-
- * tion, including unlimited rights to use, publicly perform, modify,
- * merge, distribute, sell, give away or sublicence, provided all co-
- * pyright notices above, these terms and the disclaimer are retained
- * in all redistributions or reproduced in accompanying documentation
- * or other materials provided with binary redistributions.
- *
- * All advertising materials mentioning features or use of this soft-
- * ware must display the following acknowledgement:
- *	This product includes material provided by Thorsten Glaser.
- *
- * Licensor hereby provides this work "AS IS" and WITHOUT WARRANTY of
- * any kind, expressed or implied, to the maximum extent permitted by
- * applicable law, but with the warranty of being written without ma-
- * licious intent or gross negligence; in no event shall licensor, an
- * author or contributor be held liable for any damage, direct, indi-
- * rect or other, however caused, arising in any way out of the usage
- * of this work, even if advised of the possibility of such damage.
- */
-
-#ifndef SH_H
-#define SH_H
 
 #if defined(__INTERIX) && !defined(_ALL_SOURCE)
 #define _ALL_SOURCE
@@ -53,7 +26,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
-#if !defined(__sun__)	/* not on Solaris */
+#if !defined(__sun__)
 #include <paths.h>
 #endif
 #include <setjmp.h>
@@ -1347,6 +1320,4 @@ size_t confstr(int, char *, size_t);
 #else
 #define	HAVE_ARC4RANDOM	1
 #endif
-#endif
-
 #endif

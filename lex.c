@@ -1,15 +1,14 @@
-/**	$MirOS: src/bin/mksh/lex.c,v 1.2 2005/05/25 23:31:07 tg Exp $ */
+/**	$MirOS: src/bin/mksh/lex.c,v 1.3 2005/06/08 21:51:21 tg Exp $ */
 /*	$OpenBSD: lex.c,v 1.36 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 #include <ctype.h>
 #include <libgen.h>
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.2 2005/05/25 23:31:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.3 2005/06/08 21:51:21 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
- * needed for each particular state.
- */
+ * needed for each particular state. */
 typedef struct lex_state Lex_state;
 struct lex_state {
 	int ls_state;

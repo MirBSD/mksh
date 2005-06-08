@@ -1,44 +1,10 @@
-# $MirOS: src/bin/mksh/check.t,v 1.16 2005/06/05 16:38:19 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.17 2005/06/08 21:51:20 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
 #-
-# Some information on tests:
-# The bksl-nl tests deal with how \newline is handled in various situa-
-#  tions. The first group of tests are places where it shouldn't be col-
-#  lapsed, the next group tests are places where it should be collapsed.
-# In history - Not tested yet:
-#	- commands in history file are not numbered negatively
-#  (and a few hundred other things)
-#  You may also want to test IFS with the script at
-#  http://www.research.att.com/~gsf/public/ifs.sh
-# Read - To test:
-#   POSIX:
-#	- if no -r, \ is escape character
-#	    - \newline disappear
-#	    - \<IFS> -> don't break here
-#	    - \<anything-else> -> <anything-else>
-#	- if -r, backslash is not special
-#	- if stdin is tty and shell interactive
-#	    - prompt for continuation if \newline (prompt to stderr)
-#	    - a here-document isn't terminated after newline ????
-#	- remaining vars set to empty string (not null)
-#	- check field splitting
-#	- left over fields and their separators assigned to last var
-#	- exit status is normally 0
-#	- exit status is > 0 on eof
-#	- exit status > 0 on error
-#	- signals interrupt reads
-#   extra:
-#	- can't change read-only variables
-#	- error if var name bogus
-#	- set -o allexport effects read
-# ksh:
-#	x check default variable: REPLY
-#	- check -p, -s, -u options
-#	- check var?prompt stuff
-#	- "echo a b | read x y" sets x,y in parent shell (at&t)
-# Regression: The first 39 of these tests are from the old Bugs script.
+# You may also want to test IFS with the script at
+# http://www.research.att.com/~gsf/public/ifs.sh
 
 name: alias-1
 description:
@@ -3734,5 +3700,5 @@ category: pdksh
 stdin:
 	echo $KSH_VERSION
 expected-stdout:
-	@(#)MIRBSD KSH R22 2005/06/05
+	@(#)MIRBSD KSH R23 2005/06/08
 ---

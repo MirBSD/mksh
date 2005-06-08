@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/alloc.c,v 1.1 2005/05/23 03:06:05 tg Exp $ */
+/**	$MirOS: src/bin/mksh/alloc.c,v 1.2 2005/06/08 21:51:20 tg Exp $ */
 /*	$OpenBSD: alloc.c,v 1.7 2004/02/19 18:51:17 deraadt Exp $	*/
 
 /*-
@@ -24,15 +24,13 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-/*
+ *-
  * area-based allocation built on malloc/free
  */
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.1 2005/05/23 03:06:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.2 2005/06/08 21:51:20 tg Exp $");
 
 struct link {
 	struct link *prev;

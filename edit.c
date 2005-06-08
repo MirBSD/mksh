@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/edit.c,v 1.5 2005/05/25 23:39:10 tg Exp $ */
+/**	$MirOS: src/bin/mksh/edit.c,v 1.6 2005/06/08 21:51:20 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.29 2005/04/13 02:33:08 deraadt Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.37 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include <libgen.h>
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.5 2005/05/25 23:39:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.6 2005/06/08 21:51:20 tg Exp $");
 
 #define	BEL		0x07
 
@@ -1761,31 +1761,31 @@ x_end_of_text(int c __attribute__((unused)))
 	return KEOL;
 }
 
-static int 
-x_beg_hist(int c __attribute__((unused))) 
-{ 
-	x_load_hist(history); 
+static int
+x_beg_hist(int c __attribute__((unused)))
+{
+	x_load_hist(history);
 	return KSTD;
 }
 
-static int 
-x_end_hist(int c __attribute__((unused))) 
-{ 
-	x_load_hist(histptr); 
+static int
+x_end_hist(int c __attribute__((unused)))
+{
+	x_load_hist(histptr);
 	return KSTD;
 }
 
-static int 
-x_prev_com(int c __attribute__((unused))) 
-{ 
-	x_load_hist(x_histp - x_arg); 
+static int
+x_prev_com(int c __attribute__((unused)))
+{
+	x_load_hist(x_histp - x_arg);
 	return KSTD;
 }
 
-static int 
-x_next_com(int c __attribute__((unused))) 
-{ 
-	x_load_hist(x_histp + x_arg); 
+static int
+x_next_com(int c __attribute__((unused)))
+{
+	x_load_hist(x_histp + x_arg);
 	return KSTD;
 }
 

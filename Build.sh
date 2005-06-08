@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.10 2005/06/08 10:19:33 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.11 2005/06/08 21:51:20 tg Exp $
 #-
 # Recognised environment variables and their defaults:
 #	CC		gcc
@@ -8,21 +8,20 @@
 #	LDFLAGS		-static
 #	LIBS		(empty)
 #	srcdir		(path of script)
-#	NROFF		nroff	# (ignored if -r option given)
-# Hints (don't take tgem seriously, WFM rather):
+#	NROFF		nroff		# (ignored if -r option given)
+# Hints (WFM; don't take them seriously):
 #	GNU/Linux	CPPFLAGS='-D_FILE_OFFSET_BITS=64'
 #	Mac OSX		LDFLAGS=
 #	Solaris		LDFLAGS=
 
 SHELL="${SHELL:-/bin/sh}"
-srcdir="${srcdir:-`dirname $0`}"
-curdir="`pwd`"
 CC="${CC:-gcc}"
 CFLAGS="${CFLAGS--O2 -fno-strict-aliasing -fno-strength-reduce}"
 LDFLAGS="${LDFLAGS--static}"
-NROFF="${NROFF:-nroff}"
-OS="`uname -s || uname`"
 export SHELL CC
+srcdir="${srcdir:-`dirname "$0"`}"
+curdir="`pwd`"
+
 if [ x"$1" = x"-q" ]; then
 	e=:
 	q=1
@@ -38,25 +37,28 @@ else
 	r=0
 fi
 
+v()
+{
+	$e "$*"
+	eval "$*"
+}
+
 SRCS="alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
-# Hello Mr Drepper, we all like you too...</sarcasm>
-[ x"$OS" = x"Linux" ] && SRCS="$SRCS strlfun.c"
+case "`uname -s 2>/dev/null || uname`" in
+Linux)
+	# Hello Mr Drepper, we all like you too...</sarcasm>
+	SRCS="$SRCS strlfun.c"
+	;;
+esac
 
-$e Generating prerequisites...
-$SHELL "$srcdir/gensigs.sh"
-for hdr in errno signal; do
-	h2ph -d . /usr/include/$hdr.h && mv _h2ph_pre.ph $hdr.ph
-done
-$e Building...
-( cd "$srcdir" && exec $CC $CFLAGS -I "$curdir" $CPPFLAGS $LDFLAGS \
-    -o $curdir/mksh $SRCS $LIBS )
+v $SHELL "'$srcdir/gensigs.sh'" || exit 1
+(v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS $LDFLAGS" \
+    "-o '$curdir/mksh' $SRCS $LIBS") || exit 1
 test -x mksh || exit 1
-$e Finalising...
-[ $r = 1 ] || $NROFF -mdoc <"$srcdir/mksh.1" >mksh.cat1 || rm -f mksh.cat1
-[ $q = 1 ] || size mksh
-$e done.
+v "${NROFF:-nroff} -mdoc <'$srcdir/mksh.1' >mksh.cat1" || rm -f mksh.cat1
+[ $q = 1 ] || v size mksh
 $e
 $e Testing mirbsdksh:
 $e "$ perl '$srcdir/check.pl' -s '$srcdir/check.t' -p '$curdir/mksh' -C pdksh"
