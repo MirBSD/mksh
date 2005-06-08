@@ -1,14 +1,14 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.9 2005/06/05 16:38:19 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.10 2005/06/08 10:19:33 tg Exp $
 #-
-# Recognised command line parameters and their defaults:
+# Recognised environment variables and their defaults:
 #	CC		gcc
 #	CFLAGS		-O2 -fno-strict-aliasing -fno-strength-reduce
 #	CPPFLAGS	(empty)
 #	LDFLAGS		-static
 #	LIBS		(empty)
 #	srcdir		(path of script)
-#	NROFF		nroff
+#	NROFF		nroff	# (ignored if -r option given)
 # Hints (don't take tgem seriously, WFM rather):
 #	GNU/Linux	CPPFLAGS='-D_FILE_OFFSET_BITS=64'
 #	Mac OSX		LDFLAGS=
