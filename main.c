@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/main.c,v 1.13 2005/06/08 22:34:03 tg Exp $ */
+/**	$MirOS: src/bin/mksh/main.c,v 1.14 2005/06/08 22:35:45 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.38 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: tty.c,v 1.8 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <time.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.13 2005/06/08 22:34:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.14 2005/06/08 22:35:45 tg Exp $");
 
 const char ksh_version[] = "@(#)MIRBSD KSH R23 2005/06/08";
 
@@ -694,8 +694,7 @@ is_restricted(char *name)
 	if ((p = strrchr(name, '/')))
 		name = p;
 	/* accepts rsh, rksh, rmksh, rpdksh, pdrksh, etc. */
-	return (p = strchr(name, 'r')) && strstr(p, "sh") &&
-	    !strstr(p-2, "mirbsdksh") && !strstr(p-2, "mirosksh");
+	return (p = strchr(name, 'r')) && strstr(p, "sh");
 }
 
 void
