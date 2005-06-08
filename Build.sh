@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.13 2005/06/08 22:46:06 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.14 2005/06/08 22:47:54 tg Exp $
 #-
 # Recognised environment variables and their defaults:
 #	CC		gcc
@@ -39,7 +39,7 @@ while [ -n "$1" ]; do
 		r=1
 		;;
 	*)
-		echo "$0: Unknown option '$1'!"
+		echo "$0: Unknown option '$1'!" >&2
 		exit 1
 		;;
 	esac
