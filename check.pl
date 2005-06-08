@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $MirOS: src/bin/mksh/check.pl,v 1.5 2005/06/08 11:06:45 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.6 2005/06/08 21:39:59 tg Exp $
 # $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
 #-
 # Example test:
@@ -134,7 +134,7 @@ $os = defined $^O ? $^O : 'unknown';
 ($prog = $0) =~ s#.*/##;
 
 $Usage = <<EOF ;
-Usage: $prog [-s test-set] [-C category] [-p prog] [-v] [-e e=v] test-name ...
+Usage: $prog [-s test-set] [-C category] [-p prog] [-v] [-e e=v] name ...
 	-p p	Use p as the program to test
 	-C c	Specify the comma separated list of categories the program
 		belongs to (see category field).
@@ -146,8 +146,8 @@ Usage: $prog [-s test-set] [-C category] [-p prog] [-v] [-e e=v] test-name ...
 	-v	Verbose mode: print reason test failed.
 	-e e=v	Set the environment variable e to v for all tests
 		(if no =v is given, the current value is used)
-    test-name(s) specifies the name of the test(s) to run; if none are
-    specified, all tests are run.
+	name	specifies the name of the test(s) to run; if none are
+		specified, all tests are run.
 EOF
 
 # See comment above for flag meanings
@@ -180,7 +180,7 @@ EOF
 # Categories of the program under test.  Provide the current
 # os by default.
 %categories = (
-	"os:$os", '1'
+	    "os:$os", '1'
 	);
 
 $temps = "/tmp/rts$$";
@@ -379,8 +379,6 @@ run_test
     local(*test) = @_;
     local($name) = $test{':full-name'};
 
-    #print "Running test $name...\n" if $verbose;
-
     if (defined $test{'stdin'}) {
 	return undef if !&write_file($tempi, $test{'stdin'});
 	$ifile = $tempi;
@@ -405,9 +403,8 @@ run_test
 
 	for ($i = 0; $i < $test{'file-setup'}; $i++) {
 	    $val = $test{"file-setup:$i"};
-	    #
+
 	    # format is: type perm "name"
-	    #
 	    ($type, $perm, $rest) =
 		split(' ', $val, 3);
 	    $c = substr($rest, 0, 1);
@@ -893,15 +890,14 @@ read_test
 		chop $val if $do_chop;
 		$do_chop = 1;
 		$need_redo = 1;
-		#
+
 		# Syntax check on fields that can several instances
 		# (can give useful line numbers this way)
-		#
+
 		if ($field eq 'file-setup') {
 		    local($type, $perm, $rest, $c, $len, $name);
-		    #
+
 		    # format is: type perm "name"
-		    #
 		    if ($val !~ /^[ \t]*(\S+)[ \t]+(\S+)[ \t]+([^ \t].*)/) {
 			print STDERR
 		    "$prog:$file:$.: bad paramter line for file-setup field\n";
@@ -937,9 +933,8 @@ read_test
 		if ($field eq 'file-result') {
 		    local($type, $perm, $uid, $gid, $matchType,
 			  $rest, $c, $len, $name);
-		    #
+
 		    # format is: type perm uid gid matchType "name"
-		    #
 		    if ($val !~ /^\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*)/) {
 			print STDERR
 		    "$prog:$file:$.: bad paramter line for file-result field\n";
@@ -1126,9 +1121,8 @@ check_file_result
 
     for ($i = 0; $i < $test{'file-result'}; $i++) {
 	$val = $test{"file-result:$i"};
-	#
+
 	# format is: type perm "name"
-	#
 	($type, $perm, $uid, $gid, $matchType, $rest) =
 	    split(' ', $val, 6);
 	$c = substr($rest, 0, 1);
@@ -1199,7 +1193,8 @@ check_file_result
     return $why;
 }
 
-sub HELP_MESSAGE
+sub
+HELP_MESSAGE
 {
     print STDERR $Usage;
     exit 0;
