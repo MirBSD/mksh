@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.5 2005/05/25 23:31:07 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.6 2005/06/08 10:14:09 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.98 2005/05/12 09:18:24 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"-
@@ -4159,6 +4159,8 @@ CPU seconds spent in user mode to be used by each process.
 Impose a limit of
 .Ar n
 kibibytes on the amount of virtual memory used.
+If the operating system has no concept of a virtual memory
+limit, an available memory limit is used instead.
 .It Fl w Ar n
 Impose a limit of
 .Ar n
