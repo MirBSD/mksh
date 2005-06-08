@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/main.c,v 1.11 2005/06/08 21:51:21 tg Exp $ */
+/**	$MirOS: src/bin/mksh/main.c,v 1.12 2005/06/08 22:22:24 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.38 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: tty.c,v 1.8 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,21 +13,21 @@
 #include <time.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.11 2005/06/08 21:51:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.12 2005/06/08 22:22:24 tg Exp $");
 
 const char ksh_version[] = "@(#)MIRBSD KSH R23 2005/06/08";
 
 extern char **environ;
 
-static void	reclaim(void);
-static void	remove_temps(struct temp *tp);
-static int	is_restricted(char *name);
+static void reclaim(void);
+static void remove_temps(struct temp * tp);
+static int is_restricted(char *name);
 
 static const char initifs[] = "IFS= \t\n";
 
 static const char initsubs[] = "${PS2=> } ${PS3=#? } ${PS4=+ }";
 
-static const char *initcoms [] = {
+static const char *initcoms[] = {
 	"typeset", "-r", "KSH_VERSION", NULL,
 	"typeset", "-x", "SHELL", "PATH", "HOME", NULL,
 	"typeset", "-i", "PGRP=0", "PPID", NULL,
@@ -35,24 +35,24 @@ static const char *initcoms [] = {
 	"eval", "typeset -i RANDOM SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
 	"alias",
 	 /* Standard ksh aliases */
-	  "hash=alias -t",	/* not "alias -t --": hash -r needs to work */
-	  "type=whence -v",
-	  "stop=kill -STOP",
-	  "suspend=kill -STOP $$",
-	  "autoload=typeset -fu",
-	  "functions=typeset -f",
-	  "history=fc -l",
-	  "integer=typeset -i",
-	  "nohup=nohup ",
-	  "local=typeset",
-	  "r=fc -e -",
+	"hash=alias -t",	/* not "alias -t --": hash -r needs to work */
+	"type=whence -v",
+	"stop=kill -STOP",
+	"suspend=kill -STOP $$",
+	"autoload=typeset -fu",
+	"functions=typeset -f",
+	"history=fc -l",
+	"integer=typeset -i",
+	"nohup=nohup ",
+	"local=typeset",
+	"r=fc -e -",
 	 /* Aliases that are builtin commands in at&t */
-	  "login=exec login",
-	  NULL,
+	"login=exec login",
+	NULL,
 	 /* this is what at&t ksh seems to track, with the addition of emacs */
 	"alias", "-tU",
-	  "cat", "cc", "chmod", "cp", "date", "ed", "emacs", "grep", "ls",
-	  "make", "mv", "pr", "rm", "sed", "sh", "vi", "who", NULL,
+	"cat", "cc", "chmod", "cp", "date", "ed", "emacs", "grep", "ls",
+	"make", "mv", "pr", "rm", "sed", "sh", "vi", "who", NULL,
 	NULL
 };
 
@@ -76,7 +76,7 @@ main(int argc, char *argv[])
 			"mksh", NULL
 		};
 
-		argv = (char **) empty_argv;
+		argv = (char **)empty_argv;
 		argc = 1;
 	}
 	kshname = *argv;
@@ -171,7 +171,7 @@ main(int argc, char *argv[])
 	/* import environment */
 	if (environ != NULL)
 		for (wp = environ; *wp != NULL; wp++)
-			typeset(*wp, IMPORT|EXPORT, 0, 0, 0);
+			typeset(*wp, IMPORT | EXPORT, 0, 0, 0);
 
 	kshpid = procpid = getpid();
 	typeset(initifs, 0, 0, 0, 0);	/* for security */
@@ -206,13 +206,13 @@ main(int argc, char *argv[])
 #if !HAVE_ARC4RANDOM
 	srand((*((long *)kshname)) ^ ((long)time(NULL) * kshpid * ppid));
 #endif
-	setint(global("PPID"), (long) ppid);
+	setint(global("PPID"), (long)ppid);
 	/* setstr can't fail here */
 	if (!Flag(FSH))
 		setstr(global("KSH_VERSION"), ksh_version, KSH_RETURN_ERROR);
 
 	/* execute initialisation statements */
-	for (wp = (char**) initcoms; *wp != NULL; wp++) {
+	for (wp = (char **)initcoms; *wp != NULL; wp++) {
 		shcomexec(wp);
 		for (; *wp != NULL; wp++)
 			;
@@ -254,7 +254,8 @@ main(int argc, char *argv[])
 	} else if (argi < argc && !Flag(FSTDIN)) {
 		s = pushs(SFILE, ATEMP);
 		s->file = kshname = argv[argi++];
-		s->u.shf = shf_open(s->file, O_RDONLY, 0, SHF_MAPHI|SHF_CLEXEC);
+		s->u.shf = shf_open(s->file, O_RDONLY, 0,
+		    SHF_MAPHI | SHF_CLEXEC);
 		if (s->u.shf == NULL) {
 			exstat = 127; /* POSIX */
 			errorf("%s: %s", s->file, strerror(errno));
@@ -294,7 +295,7 @@ main(int argc, char *argv[])
 	l = e->loc;
 	l->argv = &argv[argi - 1];
 	l->argc = argc - argi;
-	l->argv[0] = (char *) kshname;
+	l->argv[0] = (char *)kshname;
 	getopts_reset(1);
 
 	/* Disable during .profile/ENV reading */
@@ -315,7 +316,6 @@ main(int argc, char *argv[])
 			include(substitute("$HOME/.profile", 0), 0,
 			    NULL, 1);
 	}
-
 	if (Flag(FPRIVILEGED))
 		include("/etc/suid_profile", 0, NULL, 1);
 	else {
@@ -335,7 +335,7 @@ main(int argc, char *argv[])
 			"ENV", "SHELL",
 			NULL
 		};
-		shcomexec((char **) restr_com);
+		shcomexec((char **)restr_com);
 		/* After typeset command... */
 		Flag(FRESTRICTED) = 1;
 	}
@@ -361,7 +361,7 @@ include(const char *name, int argc, char **argv, int intr_ok)
 	volatile int old_argc;
 	int i;
 
-	shf = shf_open(name, O_RDONLY, 0, SHF_MAPHI|SHF_CLEXEC);
+	shf = shf_open(name, O_RDONLY, 0, SHF_MAPHI | SHF_CLEXEC);
 	if (shf == NULL)
 		return -1;
 
@@ -431,7 +431,7 @@ command(const char *comm)
  * run the commands from the input source, returning status.
  */
 int
-shell(Source *volatile s, volatile int toplevel)
+shell(Source * volatile s, volatile int toplevel)
 {
 	struct op *t;
 	volatile int wastty = s->flags & SF_TTY;
@@ -483,7 +483,6 @@ shell(Source *volatile s, volatile int toplevel)
 			/*NOREACHED*/
 		}
 	}
-
 	while (1) {
 		if (trap)
 			runtraps(0);
@@ -494,12 +493,10 @@ shell(Source *volatile s, volatile int toplevel)
 			else
 				s->flags &= ~SF_ECHO;
 		}
-
 		if (interactive) {
 			j_notify();
 			set_prompt(PS1, s);
 		}
-
 		t = compile(s);
 		if (t != NULL && t->type == TEOF) {
 			if (wastty && Flag(FIGNOREEOF) && --attempts > 0) {
@@ -520,7 +517,6 @@ shell(Source *volatile s, volatile int toplevel)
 				break;
 			}
 		}
-
 		if (t && (!Flag(FNOEXEC) || (s->flags & SF_TTY)))
 			exstat = execute(t, 0);
 
@@ -597,10 +593,9 @@ quitenv(struct shf *shf)
 			/* if ep->savefd[fd] < 0, means fd was closed */
 			if (ep->savefd[fd])
 				restfd(fd, ep->savefd[fd]);
-		if (ep->savefd[2]) /* Clear any write errors */
+		if (ep->savefd[2])	/* Clear any write errors */
 			shf_reopen(2, SHF_WR, shl_out);
 	}
-
 	/* Bottom of the stack.
 	 * Either main shell is exiting or cleanup_parents_env() was called.
 	 */
@@ -620,7 +615,7 @@ quitenv(struct shf *shf)
 				if ((sig == SIGINT || sig == SIGTERM) &&
 				    getpgrp() == kshpid) {
 					setsig(&sigtraps[sig], SIG_DFL,
-					    SS_RESTORE_CURR|SS_FORCE);
+					    SS_RESTORE_CURR | SS_FORCE);
 					kill(0, sig);
 				}
 			}
@@ -719,8 +714,8 @@ aerror(Area *ap __attribute__((unused)), const char *msg)
 void
 tty_init(int init_ttystate)
 {
-	int	do_close = 1;
-	int	tfd;
+	int do_close = 1;
+	int tfd;
 
 	if (tty_fd >= 0) {
 		close(tty_fd);
@@ -736,7 +731,6 @@ tty_init(int init_ttystate)
 			    strerror(errno));
 		}
 	}
-
 	if (tfd < 0) {
 		do_close = 0;
 		if (isatty(0))
@@ -905,7 +899,7 @@ can_seek(int fd)
 	    SHF_UNBUF : 0;
 }
 
-struct shf	shf_iob[3];
+struct shf shf_iob[3];
 
 void
 initio(void)
@@ -1113,7 +1107,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	dir = tmpdir ? tmpdir : "/tmp";
 	len = strlen(dir) + 6 + 10 + 1;
 	tp = (struct temp *) alloc(sizeof(struct temp) + len, ap);
-	tp->name = pathname = (char *) &tp[1];
+	tp->name = pathname = (char *)&tp[1];
 	tp->shf = NULL;
 	tp->type = type;
 	shf_snprintf(pathname, len, "%s/mksh.XXXXXXXXXX", dir);
@@ -1128,8 +1122,8 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 
 #define	INIT_TBLS	8	/* initial table size (power of 2) */
 
-static void	texpand(struct table *, int);
-static int	tnamecmp(void *, void *);
+static void texpand(struct table *, int);
+static int tnamecmp(void *, void *);
 
 unsigned int
 hash(const char *n)
@@ -1159,28 +1153,28 @@ texpand(struct table *tp, int nsize)
 	struct tbl **ntblp, **otblp = tp->tbls;
 	int osize = tp->size;
 
-	ntblp = (struct tbl**) alloc(sizeofN(struct tbl *, nsize), tp->areap);
+	ntblp = (struct tbl **)alloc(sizeofN(struct tbl *, nsize), tp->areap);
 	for (i = 0; i < nsize; i++)
 		ntblp[i] = NULL;
 	tp->size = nsize;
-	tp->nfree = 8*nsize/10;	/* table can get 80% full */
+	tp->nfree = 8 * nsize / 10;	/* table can get 80% full */
 	tp->tbls = ntblp;
 	if (otblp == NULL)
 		return;
 	for (i = 0; i < osize; i++)
 		if ((tblp = otblp[i]) != NULL) {
-			if ((tblp->flag&DEFINED)) {
+			if ((tblp->flag & DEFINED)) {
 				for (p = &ntblp[hash(tblp->name) &
-				    (tp->size-1)]; *p != NULL; p--)
-					if (p == ntblp) /* wrap */
+				    (tp->size - 1)]; *p != NULL; p--)
+					if (p == ntblp)	/* wrap */
 						p += tp->size;
 				*p = tblp;
 				tp->nfree--;
 			} else if (!(tblp->flag & FINUSE)) {
-				afree((void*)tblp, tp->areap);
+				afree((void *)tblp, tp->areap);
 			}
 		}
-	afree((void*)otblp, tp->areap);
+	afree((void *)otblp, tp->areap);
 }
 
 /* table */
@@ -1195,11 +1189,11 @@ tsearch(struct table *tp, const char *n, unsigned int h)
 		return NULL;
 
 	/* search for name in hashed table */
-	for (pp = &tp->tbls[h & (tp->size-1)]; (p = *pp) != NULL; pp--) {
+	for (pp = &tp->tbls[h & (tp->size - 1)]; (p = *pp) != NULL; pp--) {
 		if (*p->name == *n && strcmp(p->name, n) == 0 &&
-		    (p->flag&DEFINED))
+		    (p->flag & DEFINED))
 			return p;
-		if (pp == tp->tbls) /* wrap */
+		if (pp == tp->tbls)	/* wrap */
 			pp += tp->size;
 	}
 
@@ -1217,24 +1211,23 @@ tenter(struct table *tp, const char *n, unsigned int h)
 
 	if (tp->size == 0)
 		texpand(tp, INIT_TBLS);
-  Search:
+Search:
 	/* search for name in hashed table */
-	for (pp = &tp->tbls[h & (tp->size-1)]; (p = *pp) != NULL; pp--) {
+	for (pp = &tp->tbls[h & (tp->size - 1)]; (p = *pp) != NULL; pp--) {
 		if (*p->name == *n && strcmp(p->name, n) == 0)
 			return p;	/* found */
-		if (pp == tp->tbls) /* wrap */
+		if (pp == tp->tbls)	/* wrap */
 			pp += tp->size;
 	}
 
 	if (tp->nfree <= 0) {	/* too full */
-		texpand(tp, 2*tp->size);
+		texpand(tp, 2 * tp->size);
 		goto Search;
 	}
-
 	/* create new tbl entry */
 	len = strlen(n) + 1;
-	p = (struct tbl *) alloc(offsetof(struct tbl, name[0]) + len,
-				 tp->areap);
+	p = (struct tbl *)alloc(offsetof(struct tbl, name[0])+len,
+	    tp->areap);
 	p->flag = 0;
 	p->type = 0;
 	p->areap = tp->areap;
@@ -1266,7 +1259,7 @@ tnext(struct tstate *ts)
 {
 	while (--ts->left >= 0) {
 		struct tbl *p = *ts->next++;
-		if (p != NULL && (p->flag&DEFINED))
+		if (p != NULL && (p->flag & DEFINED))
 			return p;
 	}
 	return NULL;
@@ -1284,15 +1277,15 @@ tsort(struct table *tp)
 	int i;
 	struct tbl **p, **sp, **dp;
 
-	p = (struct tbl **)alloc(sizeofN(struct tbl *, tp->size+1), ATEMP);
+	p = (struct tbl **)alloc(sizeofN(struct tbl *, tp->size + 1), ATEMP);
 	sp = tp->tbls;		/* source */
 	dp = p;			/* dest */
 	for (i = 0; i < tp->size; i++)
-		if ((*dp = *sp++) != NULL && (((*dp)->flag&DEFINED) ||
-		    ((*dp)->flag&ARRAY)))
+		if ((*dp = *sp++) != NULL && (((*dp)->flag & DEFINED) ||
+		    ((*dp)->flag & ARRAY)))
 			dp++;
 	i = dp - p;
-	qsortp((void**)p, (size_t)i, tnamecmp);
+	qsortp((void **)p, (size_t)i, tnamecmp);
 	p[i] = NULL;
 	return p;
 }
