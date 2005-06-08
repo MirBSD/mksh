@@ -1,9 +1,7 @@
 #!/usr/bin/perl
-# $MirOS: src/bin/mksh/check.pl,v 1.4 2005/06/05 16:38:19 tg Exp $
-# $OpenBSD: th,v 1.11 2004/11/29 06:20:02 jsg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.5 2005/06/08 11:06:45 tg Exp $
+# $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
 #-
-# Test harness for pdksh tests.
-#
 # Example test:
 #		name: a-test
 #		description:
@@ -127,13 +125,11 @@
 #		The value must start and end with the f-s-c.
 #	p	tag takes parameters (used with m).
 #	s	tag can be used several times.
-#
+
+use POSIX qw(EINTR);
+use Getopt::Std;
 
 $os = defined $^O ? $^O : 'unknown';
-
-require 'signal.ph' unless $os eq 'os2';
-require 'errno.ph' unless $os eq 'os2';
-require 'getopts.pl';
 
 ($prog = $0) =~ s#.*/##;
 
@@ -154,9 +150,7 @@ Usage: $prog [-s test-set] [-C category] [-p prog] [-v] [-e e=v] test-name ...
     specified, all tests are run.
 EOF
 
-#
 # See comment above for flag meanings
-#
 %test_fields = (
 	    'name',			'r',
 	    'description',		'm',
@@ -186,7 +180,6 @@ EOF
 # Categories of the program under test.  Provide the current
 # os by default.
 %categories = (
-#	(defined $^O ? "os:$^O" : "os:unknown"), '1'
 	"os:$os", '1'
 	);
 
@@ -203,7 +196,7 @@ $nxpassed = 0;
 
 %known_tests = ();
 
-if (!&Getopts('C:p:Ps:t:ve:')) {
+if (!getopts('C:p:Ps:t:ve:')) {
     print STDERR $Usage;
     exit 1;
 }
@@ -516,7 +509,7 @@ run_test
 	$xpid = waitpid($pid, 0);
 	$child_kill_ok = 0;
 	if ($xpid < 0) {
-	    next if $! == &EINTR;
+	    next if $! == EINTR;
 	    print STDERR "$prog: error waiting for child - $!\n";
 	    return undef;
 	}
@@ -1204,4 +1197,10 @@ check_file_result
     }
 
     return $why;
+}
+
+sub HELP_MESSAGE
+{
+    print STDERR $Usage;
+    exit 0;
 }
