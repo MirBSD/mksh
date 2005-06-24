@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.11 2005/06/08 21:51:22 tg Exp $ */
+/**	$MirOS: src/bin/mksh/sh.h,v 1.12 2005/06/24 15:36:57 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.27 2005/03/28 21:33:04 deraadt Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
@@ -239,7 +239,7 @@ struct temp {
 #define shl_out		(&shf_iob[2])
 EXTERN int shl_stdout_ok;
 
-#ifdef __sun__
+#if defined(__sun__) || defined(__CYGWIN__)
 typedef void (*sig_t)(int);
 #endif
 
@@ -1315,7 +1315,7 @@ size_t confstr(int, char *, size_t);
 
 #ifndef HAVE_ARC4RANDOM
 #if defined(__gnu_linux__) || defined(__INTERIX) || defined(__sun__) \
-    || defined(__NetBSD__)
+    || defined(__NetBSD__) || defined(__CYGWIN__)
 #define	HAVE_ARC4RANDOM	0
 #else
 #define	HAVE_ARC4RANDOM	1
