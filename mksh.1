@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.9 2005/06/08 21:51:21 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.10 2005/07/04 11:57:55 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.99 2005/05/25 16:52:06 jaredy Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -107,15 +107,7 @@ Restricted shell.
 A shell is
 .Dq restricted
 if this
-option is used or if either the basename the shell was invoked
-with or the
-.Ev SHELL
-parameter match the pattern
-.Dq *r*sh
-(e.g.\&
-.Nm rsh ,
-.Nm rksh ,
-.Nm rpdksh ) .
+option is used.
 The following restrictions come into effect after the shell processes any
 profile and
 .Ev ENV

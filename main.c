@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/main.c,v 1.16 2005/06/24 15:42:03 tg Exp $ */
+/**	$MirOS: src/bin/mksh/main.c,v 1.17 2005/07/04 11:57:55 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.38 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: tty.c,v 1.8 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,15 +13,14 @@
 #include <time.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.16 2005/06/24 15:42:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.17 2005/07/04 11:57:55 tg Exp $");
 
-const char ksh_version[] = "@(#)MIRBSD KSH R23 2005/06/24";
+const char ksh_version[] = "@(#)MIRBSD KSH R23 2005/07/04";
 
 extern char **environ;
 
 static void reclaim(void);
 static void remove_temps(struct temp * tp);
-static int is_restricted(char *name);
 
 static const char initifs[] = "IFS= \t\n";
 
@@ -329,8 +328,6 @@ main(int argc, char *argv[])
 			include(env_file, 0, NULL, 1);
 	}
 
-	if (is_restricted(argv[0]) || is_restricted(str_val(global("SHELL"))))
-		restricted = 1;
 	if (restricted) {
 		static const char *const restr_com[] = {
 			"typeset", "-r", "PATH",
@@ -685,18 +682,6 @@ remove_temps(struct temp *tp)
 		if (tp->pid == procpid) {
 			unlink(tp->name);
 		}
-}
-
-/* Returns true if name refers to a restricted shell */
-static int
-is_restricted(char *name)
-{
-	char *p;
-
-	if ((p = strrchr(name, '/')))
-		name = p;
-	/* accepts rsh, rksh, rmksh, rpdksh, pdrksh, etc. */
-	return (p = strchr(name, 'r')) && strstr(p, "sh");
 }
 
 void
