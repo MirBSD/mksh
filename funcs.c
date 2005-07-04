@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/funcs.c,v 1.13 2005/07/04 12:27:26 tg Exp $ */
+/**	$MirOS: src/bin/mksh/funcs.c,v 1.14 2005/07/04 12:34:22 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.29 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <ulimit.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.13 2005/07/04 12:27:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.14 2005/07/04 12:34:22 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -2183,13 +2183,8 @@ c_exec(char **wp __attribute__((unused)))
 		for (i = 0; i < NUFILE; i++) {
 			if (e->savefd[i] > 0)
 				close(e->savefd[i]);
-			/*
-			 * For ksh keep anything > 2 private,
-			 * for sh, let them be (POSIX says what
-			 * happens is unspecified and the bourne shell
-			 * keeps them open).
-			 */
-			if (!Flag(FSH) && i > 2 && e->savefd[i])
+			/* For ksh keep anything > 2 private */
+			if (i > 2 && e->savefd[i])
 				fcntl(i, F_SETFD, FD_CLOEXEC);
 		}
 		e->savefd = NULL;

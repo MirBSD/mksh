@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/main.c,v 1.18 2005/07/04 12:27:26 tg Exp $ */
+/**	$MirOS: src/bin/mksh/main.c,v 1.19 2005/07/04 12:34:23 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.38 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: tty.c,v 1.8 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <time.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.18 2005/07/04 12:27:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.19 2005/07/04 12:34:23 tg Exp $");
 
 const char ksh_version[] = "@(#)MIRBSD KSH R23 2005/07/04";
 
@@ -29,8 +29,7 @@ static const char initsubs[] = "${PS2=> } ${PS3=#? } ${PS4=+ }";
 static const char *initcoms[] = {
 	"typeset", "-r", "KSH_VERSION", NULL,
 	"typeset", "-x", "SHELL", "PATH", "HOME", NULL,
-	"typeset", "-i", "PGRP=0", "PPID", NULL,
-	"typeset", "-i", "OPTIND=1", NULL,
+	"typeset", "-i", "PPID", "OPTIND=1", NULL,
 	"eval", "typeset -i RANDOM SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
 	"alias",
 	 /* Standard ksh aliases */
@@ -156,11 +155,6 @@ main(int argc, char *argv[])
 	 */
 	Flag(FBRACEEXPAND) = 1;
 
-	/* Check to see if we're /bin/sh. */
-	if (!strcmp(&kshname[strlen(kshname) - 3], "/sh") ||
-	    !strcmp(kshname, "sh") || !strcmp(kshname, "-sh"))
-		Flag(FSH) = 1;
-
 	/* Set edit mode to emacs by default, may be overridden
 	 * by the environment or the user.  Also, we want tab completion
 	 * on in vi by default. */
@@ -207,8 +201,7 @@ main(int argc, char *argv[])
 #endif
 	setint(global("PPID"), (long)ppid);
 	/* setstr can't fail here */
-	if (!Flag(FSH))
-		setstr(global("KSH_VERSION"), ksh_version, KSH_RETURN_ERROR);
+	setstr(global("KSH_VERSION"), ksh_version, KSH_RETURN_ERROR);
 
 	/* execute initialisation statements */
 	for (wp = (char **)initcoms; *wp != NULL; wp++) {

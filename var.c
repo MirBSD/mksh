@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/var.c,v 1.7 2005/07/04 12:07:41 tg Exp $ */
+/**	$MirOS: src/bin/mksh/var.c,v 1.8 2005/07/04 12:34:24 tg Exp $ */
 /*	$OpenBSD: var.c,v 1.26 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <time.h>
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.7 2005/07/04 12:07:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.8 2005/07/04 12:34:24 tg Exp $");
 
 /*
  * Variables
@@ -98,7 +98,6 @@ initvar(void)
 		{ "SECONDS",		V_SECONDS },
 		{ "TMOUT",		V_TMOUT },
 		{ "LINENO",		V_LINENO },
-		{ "PGRP",		V_PGRP },
 		{ NULL,	0 }
 	};
 	int i;
@@ -932,11 +931,6 @@ getspec(struct tbl *vp)
 	case V_LINENO:
 		vp->flag &= ~SPECIAL;
 		setint(vp, (long) current_lineno + user_lineno);
-		vp->flag |= SPECIAL;
-		break;
-	case V_PGRP:
-		vp->flag &= ~SPECIAL;
-		setint(vp, getpgrp());
 		vp->flag |= SPECIAL;
 		break;
 	}

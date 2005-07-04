@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.13 2005/07/04 12:07:41 tg Exp $ */
+/**	$MirOS: src/bin/mksh/sh.h,v 1.14 2005/07/04 12:34:24 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.27 2005/03/28 21:33:04 deraadt Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
@@ -190,10 +190,10 @@ enum sh_flag {
 	FNOTIFY,	/* -b: asynchronous job completion notification */
 	FNOUNSET,	/* -u: using an unset var is an error */
 	FPHYSICAL,	/* -o physical: don't do logical cds/pwds */
-	FPOSIX,		/* -o posix: be posixly correct */
+	FPOSIX,		/* -o posix (disabled) */
 	FPRIVILEGED,	/* -p: use suid_profile */
 	FRESTRICTED,	/* -r: restricted shell */
-	FSH,		/* -o sh: favor sh behaviour */
+	FSH,		/* -o sh (disabled) */
 	FSTDIN,		/* -s: (invocation) parse stdin */
 	FTRACKALL,	/* -h: create tracked aliases for all commands */
 	FVERBOSE,	/* -v: echo input */
@@ -204,7 +204,7 @@ enum sh_flag {
 	FVIESCCOMPLETE,	/* enable ESC as file name completion in command mode */
 	FXTRACE,	/* -x: execution trace */
 	FTALKING_I,	/* (internal): initial shell was interactive */
-	FNFLAGS /* (place holder: how many flags are there) */
+	FNFLAGS		/* (place holder: how many flags are there) */
 };
 
 #define Flag(f)	(shell_flags[(int) (f)])
@@ -626,13 +626,10 @@ extern const struct builtin shbuiltins [], kshbuiltins [];
 #define	V_RANDOM		8
 #define V_HISTSIZE		9
 #define V_HISTFILE		10
-#define V_VISUAL		11
-#define V_EDITOR		12
 #define V_COLUMNS		13
 #define V_TMOUT			15
 #define V_TMPDIR		16
 #define V_LINENO		17
-#define	V_PGRP			18
 
 /* values for set_prompt() */
 #define PS1	0		/* command */

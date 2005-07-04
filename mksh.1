@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.12 2005/07/04 12:27:27 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.13 2005/07/04 12:34:23 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.99 2005/05/25 16:52:06 jaredy Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -22,7 +22,7 @@
 ..
 .Sh NAME
 .Nm mksh
-.Nd MirBSD Korn/Bourne shell
+.Nd MirBSD Korn shell
 .Sh SYNOPSIS
 .Nm
 .Bk -words
@@ -1454,8 +1454,6 @@ An empty string resulting from a leading or trailing
 colon, or two adjacent colons, is treated as a
 .Sq \&.
 (the current directory).
-.It Ev PGRP
-The current process group (read-only).
 .It Ev PPID
 The process ID of the shell's parent (read-only).
 .It Ev PS1
@@ -2263,51 +2261,6 @@ trapped) will have their default effect in a function.
 The EXIT trap, if set in a function, will be executed after the function
 returns.
 .El
-.Ss Strict Bourne shell mode
-When the
-.Ic sh
-option is enabled (see the
-.Ic set
-command),
-.Nm
-will behave like
-.Xr sh 1
-in the following ways:
-.Bl -bullet
-.It
-The parameter
-.Ic $_
-is not set to:
-.Pp
-.Bl -dash -compact
-.It
-the expanded alias' full programme path after entering commands
-that are tracked aliases
-.It
-the last argument on the command line after entering external
-commands
-.El
-.It
-File descriptors are left untouched when executing
-.Ic exec
-with no arguments.
-.It
-Backslash-escaped special characters are not substituted in
-.Ev PS1 .
-.It
-Sequences of
-.Sq ((...))
-are not interpreted as arithmetic expressions.
-.El
-.Pp
-This does not make
-.Nm
-a real bourne shell emulation, though.
-Access to many enhanced features is still available, and
-.Ql ^
-as synonym for
-.Ql |
-has probably not been in use since the 1980s anyway.
 .Ss Command execution
 After evaluation of command-line arguments, redirections, and parameter
 assignments, the type of command is determined: a special built-in, a
@@ -3316,10 +3269,6 @@ commands above for more details.
 The shell is a restricted shell.
 This option can only be used when the shell is invoked.
 See above for a description of what this means.
-.It Ic sh
-Enable strict Bourne shell mode (see
-.Sx Strict Bourne shell mode
-above).
 .It Ic vi
 Enable
 .Xr vi 1 Ns -like
@@ -5156,7 +5105,6 @@ Shell database.
 .Xr dup 2 ,
 .Xr execve 2 ,
 .Xr getgid 2 ,
-.Xr getpgrp 2 ,
 .Xr getuid 2 ,
 .Xr open 2 ,
 .Xr pipe 2 ,

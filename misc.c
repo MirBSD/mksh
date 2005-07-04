@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/misc.c,v 1.5 2005/07/04 12:27:27 tg Exp $ */
+/**	$MirOS: src/bin/mksh/misc.c,v 1.6 2005/07/04 12:34:23 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.28 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
@@ -7,7 +7,7 @@
 #include <sys/param.h>	/* for MAXPATHLEN */
 #include <sys/stat.h>
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.5 2005/07/04 12:27:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.6 2005/07/04 12:34:23 tg Exp $");
 
 short chtypes[UCHAR_MAX+1];	/* type bits for unsigned char */
 
@@ -252,7 +252,7 @@ change_flag(enum sh_flag f,
 	int oldval;
 
 	/* disabled functionality */
-	if (f == FPOSIX)
+	if ((f == FPOSIX) || (f == FSH))
 		return;
 
 	oldval = Flag(f);

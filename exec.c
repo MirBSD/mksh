@@ -1,11 +1,11 @@
-/**	$MirOS: src/bin/mksh/exec.c,v 1.6 2005/07/04 12:27:25 tg Exp $ */
+/**	$MirOS: src/bin/mksh/exec.c,v 1.7 2005/07/04 12:34:22 tg Exp $ */
 /*	$OpenBSD: exec.c,v 1.41 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 #include <sys/stat.h>
 #include <ctype.h>
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.6 2005/07/04 12:27:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.7 2005/07/04 12:34:22 tg Exp $");
 
 static int	comexec(struct op *, struct tbl *volatile, char **,
 		    int volatile);
@@ -398,7 +398,7 @@ comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
 	 * functions/dot scripts, but in interactive and script) -
 	 * perhaps save last arg here and set it in shell()?.
 	 */
-	if (!Flag(FSH) && Flag(FTALKING) && *(lastp = ap)) {
+	if (Flag(FTALKING) && *(lastp = ap)) {
 		while (*++lastp)
 			;
 		/* setstr() can't fail here */
@@ -647,12 +647,10 @@ comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
 			break;
 		}
 
-		if (!Flag(FSH)) {
-			/* set $_ to programme's full path */
-			/* setstr() can't fail here */
-			setstr(typeset("_", LOCAL|EXPORT, 0, INTEGER, 0),
-			    tp->val.s, KSH_RETURN_ERROR);
-		}
+		/* set $_ to programme's full path */
+		/* setstr() can't fail here */
+		setstr(typeset("_", LOCAL|EXPORT, 0, INTEGER, 0),
+		    tp->val.s, KSH_RETURN_ERROR);
 
 		if (flags&XEXEC) {
 			j_exit();
