@@ -1,11 +1,11 @@
-/**	$MirOS: src/bin/mksh/lex.c,v 1.4 2005/06/08 22:34:03 tg Exp $ */
+/**	$MirOS: src/bin/mksh/lex.c,v 1.5 2005/07/04 12:27:26 tg Exp $ */
 /*	$OpenBSD: lex.c,v 1.36 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 #include <ctype.h>
 #include <libgen.h>
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.4 2005/06/08 22:34:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.5 2005/07/04 12:27:26 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -138,11 +138,7 @@ yylex(int cf)
 	}
 	if (source->flags & SF_ALIAS) {	/* trailing ' ' in alias definition */
 		source->flags &= ~SF_ALIAS;
-		/* In POSIX mode, a trailing space only counts if we are
-		 * parsing a simple command
-		 */
-		if (!Flag(FPOSIX) || (cf & CMDWORD))
-			cf |= ALIAS;
+		cf |= ALIAS;
 	}
 
 	/* Initial state: one of SBASE SHEREDELIM SWORD SASPAREN */
@@ -323,22 +319,20 @@ yylex(int cf)
 				 * $ ` \.").
 				 */
 				statep->ls_sbquote.indquotes = 0;
-				if (!Flag(FPOSIX)) {
-					Lex_state *s = statep;
-					Lex_state *base = state_info.base;
-					while (1) {
-						for (; s != base; s--) {
-							if (s->ls_state == SDQUOTE) {
-								statep->ls_sbquote.indquotes = 1;
-								break;
-							}
+				Lex_state *s = statep;
+				Lex_state *base = state_info.base;
+				while (1) {
+					for (; s != base; s--) {
+						if (s->ls_state == SDQUOTE) {
+							statep->ls_sbquote.indquotes = 1;
+							break;
 						}
-						if (s != base)
-							break;
-						if (!(s = s->ls_info.base))
-							break;
-						base = s-- - STATE_BSIZE;
 					}
+					if (s != base)
+						break;
+					if (!(s = s->ls_info.base))
+						break;
+					base = s-- - STATE_BSIZE;
 				}
 				break;
 			case QCHAR:

@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/eval.c,v 1.4 2005/06/08 22:34:03 tg Exp $ */
+/**	$MirOS: src/bin/mksh/eval.c,v 1.5 2005/07/04 12:27:25 tg Exp $ */
 /*	$OpenBSD: eval.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
@@ -6,7 +6,7 @@
 #include <dirent.h>
 #include <pwd.h>
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.4 2005/06/08 22:34:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.5 2005/07/04 12:27:25 tg Exp $");
 
 /*
  * string expansion
@@ -613,8 +613,9 @@ expand(char *cp,	/* input word */
 					break;
 				case '=':
 					/* Note first unquoted = for ~ */
-					if (!(f & DOTEMP_) && (!Flag(FPOSIX)
-					    || (f & DOASNTILDE)) && !saw_eq) {
+					if (!(f & DOTEMP_) && !saw_eq &&
+					    (Flag(FBRACEEXPAND) ||
+					    (f & DOASNTILDE))) {
 						saw_eq = 1;
 						tilde_ok = 1;
 					}

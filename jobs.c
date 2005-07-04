@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/jobs.c,v 1.2 2005/05/23 16:23:19 tg Exp $ */
+/**	$MirOS: src/bin/mksh/jobs.c,v 1.3 2005/07/04 12:27:26 tg Exp $ */
 /*	$OpenBSD: jobs.c,v 1.34 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
@@ -7,7 +7,7 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.2 2005/05/23 16:23:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.3 2005/07/04 12:27:26 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -1310,9 +1310,8 @@ j_lookup(const char *cp, int *ecodep)
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->last_proc && j->last_proc->pid == job)
 				return j;
-		/* ...then look for process group (this is non-POSIX),
-		 * but should not break anything (so FPOSIX isn't used).
-		 */
+		/* ...then look for process group (this is non-POSIX,
+		 * but should not break anything */
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->pgrp && j->pgrp == job)
 				return j;

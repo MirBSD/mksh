@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/misc.c,v 1.4 2005/05/25 13:46:01 tg Exp $ */
+/**	$MirOS: src/bin/mksh/misc.c,v 1.5 2005/07/04 12:27:27 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.28 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
@@ -7,7 +7,7 @@
 #include <sys/param.h>	/* for MAXPATHLEN */
 #include <sys/stat.h>
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.4 2005/05/25 13:46:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.5 2005/07/04 12:27:27 tg Exp $");
 
 short chtypes[UCHAR_MAX+1];	/* type bits for unsigned char */
 
@@ -251,6 +251,10 @@ change_flag(enum sh_flag f,
 {
 	int oldval;
 
+	/* disabled functionality */
+	if (f == FPOSIX)
+		return;
+
 	oldval = Flag(f);
 	Flag(f) = newval;
 	if (f == FMONITOR) {
@@ -268,8 +272,6 @@ change_flag(enum sh_flag f,
 		setuid(ksheuid);
 		setegid(kshegid = kshgid = getgid());
 		setgid(kshegid);
-	} else if (f == FPOSIX && newval) {
-		Flag(FBRACEEXPAND) = 0;
 	}
 	/* Changing interactive flag? */
 	if (f == FTALKING) {
@@ -404,7 +406,7 @@ parse_args(char **argv,
 	    (argv[go.optind][0] == '-' || argv[go.optind][0] == '+') &&
 	    argv[go.optind][1] == '\0') {
 		/* lone - clears -v and -x flags */
-		if (argv[go.optind][0] == '-' && !Flag(FPOSIX))
+		if (argv[go.optind][0] == '-')
 			Flag(FVERBOSE) = Flag(FXTRACE) = 0;
 		/* set skips lone - or + option */
 		go.optind++;

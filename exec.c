@@ -1,11 +1,11 @@
-/**	$MirOS: src/bin/mksh/exec.c,v 1.5 2005/05/25 14:07:29 tg Exp $ */
+/**	$MirOS: src/bin/mksh/exec.c,v 1.6 2005/07/04 12:27:25 tg Exp $ */
 /*	$OpenBSD: exec.c,v 1.41 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 #include <sys/stat.h>
 #include <ctype.h>
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.5 2005/05/25 14:07:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.6 2005/07/04 12:27:25 tg Exp $");
 
 static int	comexec(struct op *, struct tbl *volatile, char **,
 		    int volatile);
@@ -844,14 +844,6 @@ findcom(const char *name, int flags)
 	}
 	if (!tp && (flags & FC_REGBI) && tbi && (tbi->flag & REG_BI))
 		tp = tbi;
-	/* todo: posix says non-special/non-regular builtins must
-	 * be triggered by some user-controllable means like a
-	 * special directory in PATH.  Requires modifications to
-	 * the search() function.  Tracked aliases should be
-	 * modified to allow tracking of builtin commands.
-	 * This should be under control of the FPOSIX flag.
-	 * If this is changed, also change c_whence...
-	 */
 	if (!tp && (flags & FC_UNREGBI) && tbi)
 		tp = tbi;
 	if (!tp && (flags & FC_PATH) && !(flags & FC_DEFPATH)) {

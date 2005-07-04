@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.11 2005/07/04 12:07:40 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.12 2005/07/04 12:27:27 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.99 2005/05/25 16:52:06 jaredy Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -810,12 +810,6 @@ the
 and the newline are stripped; otherwise, both the
 .Ql \e
 and the character following are unchanged.
-.Pp
-.Sy Note :
-See
-.Sx POSIX mode
-below for a special rule regarding
-differences in quoting when the shell is in POSIX mode.
 .Ss Aliases
 There are two types of aliases: normal command aliases and tracked aliases.
 Command aliases are normally used as a short hand for a long or often used
@@ -2269,168 +2263,6 @@ trapped) will have their default effect in a function.
 The EXIT trap, if set in a function, will be executed after the function
 returns.
 .El
-.Ss POSIX mode
-The shell is intended to be POSIX compliant;
-however, in some cases, POSIX behaviour is contrary either to
-the original Korn shell behaviour or to user convenience.
-How the shell behaves in these cases is determined by the state of the
-.Ic posix
-option
-.Pq Ic set -o posix .
-If it is on, the POSIX behaviour is followed; otherwise, it is not.
-.Pp
-The following is a list of things that are affected by the state of the
-.Ic posix
-option:
-.Bl -bullet
-.It
-Reading of
-.Ev $ENV .
-If not in
-.Ic posix
-mode, the
-.Ev ENV
-parameter is not expanded and included when the shell starts.
-.It
-Occurrences of
-.Ic \e\&"
-inside double quoted
-.Ic `..`
-command substitutions.
-In POSIX mode, the
-.Ic \e\&"
-is interpreted when the command is interpreted;
-in non-POSIX mode,
-the backslash is stripped before the command substitution is interpreted.
-For example,
-.Ic echo \&"`echo \e\&"hi\e\&"`\&"
-produces
-.Dq \&"hi\&"
-in POSIX mode,
-.Dq hi
-in non-POSIX mode.
-To avoid problems, use the
-.Ic $(...)\&
-form of command substitution.
-.It
-.Ic kill -l
-output.
-In POSIX mode, only signal names are listed (in a single line);
-in non-POSIX mode,
-signal numbers, names, and descriptions are printed (in columns).
-In the future, a new option
-.Pq Fl v No perhaps
-will be added to distinguish the two behaviours.
-.It
-.Ic fg
-exit status.
-In POSIX mode, the exit status is 0 if no errors occur;
-in non-POSIX mode, the exit status is that of the last foregrounded job.
-.It
-.Ic eval
-exit status.
-If
-.Ic eval
-gets to see an empty command (i.e.\&
-.Ic eval `false` ) ,
-its exit status in POSIX mode will be 0.
-In non-POSIX mode,
-it will be the exit status of the last command substitution that was
-done in the processing of the arguments to
-.Ic eval
-(or 0 if there were no command substitutions).
-.It
-.Ic getopts .
-In POSIX mode, options must start with a
-.Ql - ;
-in non-POSIX mode, options can start with either
-.Ql -
-or
-.Ql + .
-.It
-Brace expansion (also known as alternation).
-In POSIX mode, brace expansion is disabled;
-in non-POSIX mode, brace expansion is enabled.
-Note that
-.Ic set -o posix
-automatically turns the
-.Ic braceexpand
-option off; however, it can be explicitly turned on later.
-.It
-.Ic set - .
-In POSIX mode, this does not clear the
-.Ic verbose
-or
-.Ic xtrace
-options; in non-POSIX mode, it does.
-.It
-.Ic set
-exit status.
-In POSIX mode, the exit status of
-.Ic set
-is 0 if there are no errors;
-in non-POSIX mode, the exit status is that of any
-command substitutions performed in generating the
-.Ic set
-command.
-For example,
-.Ic set -- `false`; echo $?\&
-prints 0 in POSIX mode, 1 in non-POSIX mode.
-This construct is used in most shell scripts that use the old
-.Xr getopt 1
-command.
-.It
-Argument expansion of the
-.Ic alias ,
-.Ic export ,
-.Ic readonly ,
-and
-.Ic typeset
-commands.
-In POSIX mode, normal argument expansion is done; in non-POSIX mode,
-field splitting, file globbing, brace expansion, and (normal) tilde expansion
-are turned off, while assignment tilde expansion is turned on.
-.It
-Signal specification.
-In POSIX mode, signals can be specified as digits, only
-if signal numbers match POSIX values
-(i.e. HUP=1, INT=2, QUIT=3, ABRT=6, KILL=9, ALRM=14, and TERM=15);
-in non-POSIX mode, signals can always be digits.
-.It
-Alias expansion.
-In POSIX mode, alias expansion is only carried out when reading command words;
-in non-POSIX mode, alias expansion is carried out on any
-word following an alias that ended in a space.
-For example, the following
-.Ic for
-loop uses parameter
-.Sq i
-in POSIX mode and
-.Sq j
-in non-POSIX mode:
-.Bd -literal -offset indent
-alias a='for ' i='j'
-a i in 1 2; do echo i=$i j=$j; done
-.Ed
-.Pp
-.It
-.Ic test .
-In POSIX mode, the expression
-.Sq Fl t
-(preceded by some number of
-.Sq \&!
-arguments) is always true as it is a non-zero length string;
-in non-POSIX mode, it tests if file descriptor 1 is a
-.Xr tty 4
-(i.e. the
-.Ar fd
-argument to the
-.Fl t
-test may be left out and defaults to 1).
-.It
-Tilde expansion after equal signs (not assignments) is disabled,
-although not strictly forbidden by POSIX, for consistency with other shells.
-.El
 .Ss Strict Bourne shell mode
 When the
 .Ic sh
@@ -3414,6 +3246,8 @@ the value of
 Background jobs are run with lower priority.
 .It Ic braceexpand
 Enable brace expansion (a.k.a. alternation).
+This is enabled by default.
+If disabled, tilde expansion after an equals sign is disabled as a side effect.
 .It Ic emacs
 Enable BRL emacs-like command-line editing (interactive shells only); see
 .Sx Emacs editing mode .
@@ -3478,11 +3312,6 @@ See the
 and
 .Ic pwd
 commands above for more details.
-.It Ic posix
-Enable POSIX mode.
-See
-.Sx POSIX mode
-above.
 .It Ic restricted
 The shell is a restricted shell.
 This option can only be used when the shell is invoked.

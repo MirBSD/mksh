@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/main.c,v 1.17 2005/07/04 11:57:55 tg Exp $ */
+/**	$MirOS: src/bin/mksh/main.c,v 1.18 2005/07/04 12:27:26 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.38 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: tty.c,v 1.8 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <time.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.17 2005/07/04 11:57:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.18 2005/07/04 12:27:26 tg Exp $");
 
 const char ksh_version[] = "@(#)MIRBSD KSH R23 2005/07/04";
 
@@ -152,9 +152,7 @@ main(int argc, char *argv[])
 	Flag(FNOHUP) = 1;
 
 	/* Turn on brace expansion by default.  At&t kshs that have
-	 * alternation always have it on.  BUT, posix doesn't have
-	 * brace expansion, so set this before setting up FPOSIX
-	 * (change_flag() clears FBRACEEXPAND when FPOSIX is set).
+	 * alternation always have it on.
 	 */
 	Flag(FBRACEEXPAND) = 1;
 
@@ -807,8 +805,7 @@ bi_errorf(const char *fmt, ...)
 	 * non-interactive shells to exit.
 	 * XXX odd use of KEEPASN; also may not want LERROR here
 	 */
-	if ((builtin_flag & SPEC_BI) ||
-	    (Flag(FPOSIX) && (builtin_flag & KEEPASN))) {
+	if (builtin_flag & SPEC_BI) {
 		builtin_argv0 = NULL;
 		unwind(LERROR);
 	}

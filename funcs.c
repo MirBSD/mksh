@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/funcs.c,v 1.12 2005/06/24 15:40:38 tg Exp $ */
+/**	$MirOS: src/bin/mksh/funcs.c,v 1.13 2005/07/04 12:27:26 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.29 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <ulimit.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.12 2005/06/24 15:40:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.13 2005/07/04 12:27:26 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -1076,10 +1076,7 @@ c_fgbg(char **wp)
 			rv = j_resume(*wp, bg);
 	else
 		rv = j_resume("%%", bg);
-	/* POSIX says fg shall return 0 (unless an error occurs).
-	 * at&t ksh returns the exit value of the job...
-	 */
-	return (bg || Flag(FPOSIX)) ? 0 : rv;
+	return bg ? 0 : rv;
 }
 
 struct kill_info {
@@ -1164,12 +1161,6 @@ c_kill(char **wp)
 				else
 					shprintf("%d\n", n);
 			}
-		} else if (Flag(FPOSIX)) {
-			p = null;
-			for (i = 1; i < NSIG; i++, p = space)
-				if (sigtraps[i].name)
-					shprintf("%s%s", p, sigtraps[i].name);
-			shprintf(newline);
 		} else {
 			int w, j;
 			int mess_width;
@@ -1222,8 +1213,7 @@ void
 getopts_reset(int val)
 {
 	if (val >= 1) {
-		ksh_getopt_reset(&user_opt,
-		    GF_NONAME | (Flag(FPOSIX) ? 0 : GF_PLUSOPT));
+		ksh_getopt_reset(&user_opt, GF_NONAME | GF_PLUSOPT);
 		user_opt.optind = user_opt.uoptind = val;
 	}
 }
@@ -1799,33 +1789,32 @@ c_eval(char **wp)
 		return 1;
 	s = pushs(SWORDS, ATEMP);
 	s->u.strv = wp + builtin_opt.optind;
-	if (!Flag(FPOSIX)) {
-		/*
-		 * Handle case where the command is empty due to failed
-		 * command substitution, eg, eval "$(false)".
-		 * In this case, shell() will not set/change exstat (because
-		 * compiled tree is empty), so will use this value.
-		 * subst_exstat is cleared in execute(), so should be 0 if
-		 * there were no substitutions.
-		 *
-		 * A strict reading of POSIX says we don't do this (though
-		 * it is traditionally done). [from 1003.2-1992]
-		 *    3.9.1: Simple Commands
-		 *	... If there is a command name, execution shall
-		 *	continue as described in 3.9.1.1.  If there
-		 *	is no command name, but the command contained a command
-		 *	substitution, the command shall complete with the exit
-		 *	status of the last command substitution
-		 *    3.9.1.1: Command Search and Execution
-		 *	...(1)...(a) If the command name matches the name of
-		 *	a special built-in utility, that special built-in
-		 *	utility shall be invoked.
-		 * 3.14.5: Eval
-		 *	... If there are no arguments, or only null arguments,
-		 *	eval shall return an exit status of zero.
-		 */
-		exstat = subst_exstat;
-	}
+
+	/*
+	 * Handle case where the command is empty due to failed
+	 * command substitution, eg, eval "$(false)".
+	 * In this case, shell() will not set/change exstat (because
+	 * compiled tree is empty), so will use this value.
+	 * subst_exstat is cleared in execute(), so should be 0 if
+	 * there were no substitutions.
+	 *
+	 * A strict reading of POSIX says we don't do this (though
+	 * it is traditionally done). [from 1003.2-1992]
+	 *    3.9.1: Simple Commands
+	 *	... If there is a command name, execution shall
+	 *	continue as described in 3.9.1.1.  If there
+	 *	is no command name, but the command contained a command
+	 *	substitution, the command shall complete with the exit
+	 *	status of the last command substitution
+	 *    3.9.1.1: Command Search and Execution
+	 *	...(1)...(a) If the command name matches the name of
+	 *	a special built-in utility, that special built-in
+	 *	utility shall be invoked.
+	 * 3.14.5: Eval
+	 *	... If there are no arguments, or only null arguments,
+	 *	eval shall return an exit status of zero.
+	 */
+	exstat = subst_exstat;
 
 	savef = Flag(FERREXIT);
 	Flag(FERREXIT) = 0;
@@ -2009,7 +1998,7 @@ c_set(char **wp)
 	 * (subst_exstat is cleared in execute() so that it will be 0
 	 * if there are no command substitutions).
 	 */
-	return Flag(FPOSIX) ? 0 : subst_exstat;
+	return subst_exstat;
 }
 
 int
@@ -2387,11 +2376,7 @@ c_test(char **wp)
 			}
 			if (argc == 1) {
 				opnd1 = (*te.getopnd)(&te, TO_NONOP, 1);
-				/* Historically, -t by itself test if fd 1
-				 * is a file descriptor, but POSIX says its
-				 * a string test...
-				 */
-				if (!Flag(FPOSIX) && strcmp(opnd1, "-t") == 0)
+				if (strcmp(opnd1, "-t") == 0)
 				    break;
 				res = (*te.eval)(&te, TO_STNZE, opnd1,
 				    NULL, 1);
@@ -2507,10 +2492,8 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 		if (opnd1 && !bi_getn(opnd1, &res)) {
 			te->flags |= TEF_ERROR;
 			res = 0;
-		} else {
-			/* generate error if in FPOSIX mode? */
+		} else
 			res = isatty(opnd1 ? res : 0);
-		}
 		return res;
 	case TO_FILUID: /* -O */
 		return test_stat(opnd1, &b1) == 0 && b1.st_uid == ksheuid;
