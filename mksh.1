@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.10 2005/07/04 11:57:55 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.11 2005/07/04 12:07:40 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.99 2005/05/25 16:52:06 jaredy Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -1355,28 +1355,6 @@ This parameter is used by the interactive line editing modes, and by the
 and
 .Ic kill -l
 commands to format information columns.
-.It Ev EDITOR
-If the
-.Ev VISUAL
-parameter is not set, this parameter controls the command-line editing mode for
-interactive shells.
-See the
-.Ev VISUAL
-parameter below for how this works.
-.Pp
-Note:
-traditionally,
-.Ev EDITOR
-was used to specify the name of an (old-style) line editor, such as
-.Xr ed 1 ,
-and
-.Ev VISUAL
-was used to specify a (new-style) screen editor, such as
-.Xr vi 1 .
-Hence if
-.Ev VISUAL
-is set, it overrides
-.Ev EDITOR .
 .It Ev ENV
 If this parameter is found to be set after any profile files are executed, the
 expanded value is used as a shell startup file.
@@ -1599,24 +1577,6 @@ If this parameter is not
 set, or does not contain the absolute path of a writable directory, temporary
 files are created in
 .Pa /tmp .
-.It Ev VISUAL
-If set, this parameter controls the command-line editing mode for interactive
-shells.
-If the last component of the path specified in this parameter contains
-the string
-.Dq vi ,
-.Dq emacs ,
-or
-.Dq gmacs ,
-the
-.Xr vi ,
-.Xr emacs ,
-or
-.Xr gmacs
-(Gosling emacs) editing mode is enabled, respectively.
-See also the
-.Ev EDITOR
-parameter, above.
 .El
 .Ss Tilde expansion
 Tilde expansion, which is done in parallel with parameter substitution, is done
@@ -3459,7 +3419,7 @@ Enable BRL emacs-like command-line editing (interactive shells only); see
 .Sx Emacs editing mode .
 .It Ic emacs-usemeta
 In emacs command-line editing, use the 8th bit as meta (^[) prefix.
-This is the default.
+This is disabled by default, so you can use high-bit7 characters in pathnames.
 .It Ic gmacs
 Enable gmacs-like command-line editing (interactive shells only).
 Currently identical to emacs editing except that transpose (^T) acts slightly
@@ -4434,11 +4394,7 @@ The default is
 .Ic emacs .
 Editing modes can be set explicitly using the
 .Ic set
-built-in, or implicitly via the
-.Ev EDITOR
-and
-.Ev VISUAL
-environment variables.
+built-in.
 If none of these options are enabled,
 the shell simply reads lines using the normal
 .Xr tty 4

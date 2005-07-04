@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/edit.c,v 1.8 2005/06/08 22:34:02 tg Exp $ */
+/**	$MirOS: src/bin/mksh/edit.c,v 1.9 2005/07/04 12:07:40 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.29 2005/04/13 02:33:08 deraadt Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.37 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include <libgen.h>
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.8 2005/06/08 22:34:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.9 2005/07/04 12:07:40 tg Exp $");
 
 #define	BEL		0x07
 
@@ -267,24 +267,6 @@ promptlen(const char *cp, const char **spp)
 	if (spp)
 		*spp = sp;
 	return count;
-}
-
-void
-set_editmode(const char *ed)
-{
-	static const enum sh_flag edit_flags[] = {
-		FEMACS, FGMACS, FVI
-	};
-	char *rcp;
-	unsigned i;
-
-	if ((rcp = strrchr(ed, '/')))
-		ed = ++rcp;
-	for (i = 0; i < NELEM(edit_flags); i++)
-		if (strstr(ed, options[(int)edit_flags[i]].name)) {
-			change_flag(edit_flags[i], OF_SPECIAL, 1);
-			return;
-		}
 }
 
 /* ------------------------------------------------------------------------- */
@@ -2371,7 +2353,7 @@ x_init_emacs(void)
 		for (j = 0; j < X_TABSZ; j++)
 			x_atab[i][j] = NULL;
 
-	Flag(FEMACSUSEMETA) = 1;
+	Flag(FEMACSUSEMETA) = 0;
 }
 
 static void bind_if_not_bound(int p, int k, int func);

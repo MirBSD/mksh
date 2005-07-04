@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.12 2005/06/24 15:36:57 tg Exp $ */
+/**	$MirOS: src/bin/mksh/sh.h,v 1.13 2005/07/04 12:07:41 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.27 2005/03/28 21:33:04 deraadt Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
@@ -1028,7 +1028,6 @@ int	c_test(char **);
 /* edit.c */
 void	x_init(void);
 int	x_read(char *, size_t);
-void	set_editmode(const char *);
 int	x_bind(const char *, const char *, int, int);
 /* eval.c */
 char *	substitute(const char *, int);

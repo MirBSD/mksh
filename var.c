@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/var.c,v 1.6 2005/05/28 21:11:35 tg Exp $ */
+/**	$MirOS: src/bin/mksh/var.c,v 1.7 2005/07/04 12:07:41 tg Exp $ */
 /*	$OpenBSD: var.c,v 1.26 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <time.h>
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.6 2005/05/28 21:11:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.7 2005/07/04 12:07:41 tg Exp $");
 
 /*
  * Variables
@@ -94,8 +94,6 @@ initvar(void)
 		{ "TMPDIR",		V_TMPDIR },
 		{ "HISTFILE",		V_HISTFILE },
 		{ "HISTSIZE",		V_HISTSIZE },
-		{ "EDITOR",		V_EDITOR },
-		{ "VISUAL",		V_VISUAL },
 		{ "RANDOM",		V_RANDOM },
 		{ "SECONDS",		V_SECONDS },
 		{ "TMOUT",		V_TMOUT },
@@ -990,13 +988,6 @@ setspec(struct tbl *vp)
 	case V_HISTFILE:
 		sethistfile(str_val(vp));
 		break;
-	case V_VISUAL:
-		set_editmode(str_val(vp));
-		break;
-	case V_EDITOR:
-		if (!(global("VISUAL")->flag & ISSET))
-			set_editmode(str_val(vp));
-		break;
 	case V_COLUMNS:
 		if ((x_cols = intval(vp)) <= MIN_COLS)
 			x_cols = MIN_COLS;
@@ -1063,8 +1054,7 @@ unsetspec(struct tbl *vp)
 	   * Don't know what at&t does for:
 	   *		HISTSIZE, HISTFILE,
 	   * Unsetting these in at&t ksh does not loose the 'specialness':
-	   *    no effect: IFS, COLUMNS, PATH, TMPDIR,
-	   *		VISUAL, EDITOR,
+	   *    no effect: IFS, COLUMNS, PATH, TMPDIR
 	   */
 	}
 }
