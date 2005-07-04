@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/main.c,v 1.19 2005/07/04 12:34:23 tg Exp $ */
+/**	$MirOS: src/bin/mksh/main.c,v 1.20 2005/07/04 12:47:13 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.38 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: tty.c,v 1.8 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,9 +13,9 @@
 #include <time.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.19 2005/07/04 12:34:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.20 2005/07/04 12:47:13 tg Exp $");
 
-const char ksh_version[] = "@(#)MIRBSD KSH R23 2005/07/04";
+const char ksh_version[] = "@(#)MIRBSD KSH R24 2005/07/04";
 
 extern char **environ;
 
@@ -67,6 +67,8 @@ main(int argc, char *argv[])
 	char **wp;
 	struct env env;
 	pid_t ppid;
+	struct tbl *vp;
+	struct stat s_stdin;
 
 	/* make sure argv[] is sane */
 	if (!*argv) {
@@ -136,11 +138,9 @@ main(int argc, char *argv[])
 	/* Set PATH to def_path (will set the path global variable).
 	 * (import of environment below will probably change this setting).
 	 */
-	{
-		struct tbl *vp = global("PATH");
-		/* setstr can't fail here */
-		setstr(vp, def_path, KSH_RETURN_ERROR);
-	}
+	vp = global("PATH");
+	/* setstr can't fail here */
+	setstr(vp, def_path, KSH_RETURN_ERROR);
 
 
 	/* Turn on nohup by default for now - will change to off
@@ -150,7 +150,7 @@ main(int argc, char *argv[])
 	 */
 	Flag(FNOHUP) = 1;
 
-	/* Turn on brace expansion by default.  At&t kshs that have
+	/* Turn on brace expansion by default.  AT&T kshs that have
 	 * alternation always have it on.
 	 */
 	Flag(FBRACEEXPAND) = 1;
@@ -216,17 +216,12 @@ main(int argc, char *argv[])
 	kshgid = getgid();
 
 	safe_prompt = ksheuid ? "$ " : "# ";
-	{
-		struct tbl *vp = global("PS1");
-
-		/* Set PS1 if it isn't set, or we are root and prompt doesn't
-		 * contain a #.
-		 */
-		if (!(vp->flag & ISSET) ||
-		    (!ksheuid && !strchr(str_val(vp), '#')))
-			/* setstr can't fail here */
-			setstr(vp, safe_prompt, KSH_RETURN_ERROR);
-	}
+	vp = global("PS1");
+	/* Set PS1 if unset or we are root and prompt doesn't contain a # */
+	if (!(vp->flag & ISSET) ||
+	    (!ksheuid && !strchr(str_val(vp), '#')))
+		/* setstr can't fail here */
+		setstr(vp, safe_prompt, KSH_RETURN_ERROR);
 
 	/* Set this before parsing arguments */
 	Flag(FPRIVILEGED) = kshuid != ksheuid || kshgid != kshegid;
@@ -268,13 +263,9 @@ main(int argc, char *argv[])
 	}
 
 	/* This bizarreness is mandated by POSIX */
-	{
-		struct stat s_stdin;
-
-		if (fstat(0, &s_stdin) >= 0 && S_ISCHR(s_stdin.st_mode) &&
-		    Flag(FTALKING))
-			reset_nonblock(0);
-	}
+	if (fstat(0, &s_stdin) >= 0 && S_ISCHR(s_stdin.st_mode) &&
+	    Flag(FTALKING))
+		reset_nonblock(0);
 
 	/* initialize job control */
 	i = Flag(FMONITOR) != 127;

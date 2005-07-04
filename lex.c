@@ -1,11 +1,11 @@
-/**	$MirOS: src/bin/mksh/lex.c,v 1.6 2005/07/04 12:34:23 tg Exp $ */
+/**	$MirOS: src/bin/mksh/lex.c,v 1.7 2005/07/04 12:47:13 tg Exp $ */
 /*	$OpenBSD: lex.c,v 1.36 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 #include <ctype.h>
 #include <libgen.h>
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.6 2005/07/04 12:34:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.7 2005/07/04 12:47:13 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -97,7 +97,7 @@ static int ignore_backslash_newline;
 int
 yylex(int cf)
 {
-	Lex_state states[STATE_BSIZE], *statep;
+	Lex_state states[STATE_BSIZE], *statep, *s2, *base;
 	State_info state_info;
 	int c, state;
 	XString ws;		/* expandable output word */
@@ -319,20 +319,20 @@ yylex(int cf)
 				 * $ ` \.").
 				 */
 				statep->ls_sbquote.indquotes = 0;
-				Lex_state *s = statep;
-				Lex_state *base = state_info.base;
+				s2 = statep;
+				base = state_info.base;
 				while (1) {
-					for (; s != base; s--) {
-						if (s->ls_state == SDQUOTE) {
+					for (; s2 != base; s2--) {
+						if (s2->ls_state == SDQUOTE) {
 							statep->ls_sbquote.indquotes = 1;
 							break;
 						}
 					}
-					if (s != base)
+					if (s2 != base)
 						break;
-					if (!(s = s->ls_info.base))
+					if (!(s2 = s2->ls_info.base))
 						break;
-					base = s-- - STATE_BSIZE;
+					base = s2-- - STATE_BSIZE;
 				}
 				break;
 			case QCHAR:
