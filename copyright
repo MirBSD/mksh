@@ -27,7 +27,7 @@ mirbsdksh as a whole is covered by the following terms:
 The author recognises the contributions of the pdksh authors who have
 dedicated their work into the Public Domain.
 
-The file "alloc.c" is covered by the following terms:
+The file "alloc.c" is covered by the following terms instead:
 
 /*-
  * Copyright (c) 2002 Marc Espie.
@@ -53,3 +53,6 @@ The file "alloc.c" is covered by the following terms:
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+On systems which use the GNU libc, an additional file, "strlfun.c", is
+included into the build. It is covered by the ISC/OpenBSD licence.
