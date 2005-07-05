@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.14 2005/07/04 12:34:24 tg Exp $ */
+/**	$MirOS: src/bin/mksh/sh.h,v 1.15 2005/07/05 22:00:20 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.27 2005/03/28 21:33:04 deraadt Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
@@ -1311,7 +1311,8 @@ size_t confstr(int, char *, size_t);
 
 #ifndef HAVE_ARC4RANDOM
 #if defined(__gnu_linux__) || defined(__INTERIX) || defined(__sun__) \
-    || defined(__NetBSD__) || defined(__CYGWIN__)
+    || (defined(__NetBSD__) && (__NetBSD_Version__ < 106020000)) \
+    || defined(__CYGWIN__)
 #define	HAVE_ARC4RANDOM	0
 #else
 #define	HAVE_ARC4RANDOM	1
