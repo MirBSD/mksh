@@ -1,4 +1,6 @@
-mirbsdksh as a whole is covered by the following terms:
+$MirOS: src/bin/mksh/copyright,v 1.3 2005/07/05 21:32:42 tg Exp $
+
+mirbsdksh is a collective work under the following licence:
 
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005
