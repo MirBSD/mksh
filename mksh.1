@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.13 2005/07/04 12:34:23 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.14 2005/07/06 00:02:06 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.99 2005/05/25 16:52:06 jaredy Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -3497,18 +3497,6 @@ expr -a expr		Logical AND.
 ! expr			Logical NOT.
 ( expr )		Grouping.
 .Ed
-.Pp
-On operating systems not supporting
-.Pa /dev/fd/ Ns Ar n
-devices (where
-.Ar n
-is a file descriptor number), the
-.Ic test
-command will attempt to fake it for all tests that operate on files (except the
-.Fl e
-test).
-For example,
-[ -w /dev/fd/2 ] tests if file descriptor 2 is writable.
 .Pp
 Note that some special rules are applied (courtesy of POSIX)
 if the number of

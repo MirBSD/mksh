@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.23 2005/07/05 21:48:42 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.24 2005/07/06 00:02:05 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3170,8 +3170,6 @@ name: regression-53
 description:
 	Check that getopts works in functions
 stdin:
-	#!/bin/ksh
-	
 	bfunc() {
 	    echo bfunc: enter "(args: $*; OPTIND=$OPTIND)"
 	    while getopts B oc; do
@@ -3704,5 +3702,5 @@ category: pdksh
 stdin:
 	echo $KSH_VERSION
 expected-stdout:
-	@(#)MIRBSD KSH R24 2005/07/04
+	@(#)MIRBSD KSH R24 2005/07/06
 ---

@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/funcs.c,v 1.14 2005/07/04 12:34:22 tg Exp $ */
+/**	$MirOS: src/bin/mksh/funcs.c,v 1.15 2005/07/06 00:02:05 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.29 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <ulimit.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.14 2005/07/04 12:34:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.15 2005/07/06 00:02:05 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -2302,7 +2302,6 @@ static const struct t_op b_ops [] = {
 	{"",	TO_NONOP }
 };
 
-static int	test_stat(const char *, struct stat *);
 static int	test_eaccess(const char *, int);
 static int	test_oexpr(Test_env *, int);
 static int	test_aexpr(Test_env *, int);
@@ -2450,39 +2449,35 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	case TO_FILEX: /* -x */
 		return test_eaccess(opnd1, X_OK) == 0;
 	case TO_FILAXST: /* -a */
-		return test_stat(opnd1, &b1) == 0;
 	case TO_FILEXST: /* -e */
-		/* at&t ksh does not appear to do the /dev/fd/ thing for
-		 * this (unless the os itself handles it)
-		 */
 		return stat(opnd1, &b1) == 0;
 	case TO_FILREG: /* -r */
-		return test_stat(opnd1, &b1) == 0 && S_ISREG(b1.st_mode);
+		return stat(opnd1, &b1) == 0 && S_ISREG(b1.st_mode);
 	case TO_FILID: /* -d */
-		return test_stat(opnd1, &b1) == 0 && S_ISDIR(b1.st_mode);
+		return stat(opnd1, &b1) == 0 && S_ISDIR(b1.st_mode);
 	case TO_FILCDEV: /* -c */
-		return test_stat(opnd1, &b1) == 0 && S_ISCHR(b1.st_mode);
+		return stat(opnd1, &b1) == 0 && S_ISCHR(b1.st_mode);
 	case TO_FILBDEV: /* -b */
-		return test_stat(opnd1, &b1) == 0 && S_ISBLK(b1.st_mode);
+		return stat(opnd1, &b1) == 0 && S_ISBLK(b1.st_mode);
 	case TO_FILFIFO: /* -p */
-		return test_stat(opnd1, &b1) == 0 && S_ISFIFO(b1.st_mode);
+		return stat(opnd1, &b1) == 0 && S_ISFIFO(b1.st_mode);
 	case TO_FILSYM: /* -h -L */
 		return lstat(opnd1, &b1) == 0 && S_ISLNK(b1.st_mode);
 	case TO_FILSOCK: /* -S */
-		return test_stat(opnd1, &b1) == 0 && S_ISSOCK(b1.st_mode);
+		return stat(opnd1, &b1) == 0 && S_ISSOCK(b1.st_mode);
 	case TO_FILCDF:/* -H HP context dependent files (directories) */
 		return 0;
 	case TO_FILSETU: /* -u */
-		return test_stat(opnd1, &b1) == 0 &&
+		return stat(opnd1, &b1) == 0 &&
 		    (b1.st_mode & S_ISUID) == S_ISUID;
 	case TO_FILSETG: /* -g */
-		return test_stat(opnd1, &b1) == 0 &&
+		return stat(opnd1, &b1) == 0 &&
 		    (b1.st_mode & S_ISGID) == S_ISGID;
 	case TO_FILSTCK: /* -k */
-		return test_stat(opnd1, &b1) == 0 &&
+		return stat(opnd1, &b1) == 0 &&
 		    (b1.st_mode & S_ISVTX) == S_ISVTX;
 	case TO_FILGZ: /* -s */
-		return test_stat(opnd1, &b1) == 0 && b1.st_size > 0L;
+		return stat(opnd1, &b1) == 0 && b1.st_size > 0L;
 	case TO_FILTT: /* -t */
 		if (opnd1 && !bi_getn(opnd1, &res)) {
 			te->flags |= TEF_ERROR;
@@ -2491,9 +2486,9 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 			res = isatty(opnd1 ? res : 0);
 		return res;
 	case TO_FILUID: /* -O */
-		return test_stat(opnd1, &b1) == 0 && b1.st_uid == ksheuid;
+		return stat(opnd1, &b1) == 0 && b1.st_uid == ksheuid;
 	case TO_FILGID: /* -G */
-		return test_stat(opnd1, &b1) == 0 && b1.st_gid == getegid();
+		return stat(opnd1, &b1) == 0 && b1.st_gid == getegid();
 	/*
 	 * Binary Operators
 	 */
@@ -2567,49 +2562,12 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	return 1;
 }
 
-/* Nasty kludge to handle Korn's bizarre /dev/fd hack */
-static int
-test_stat(const char *pathl, struct stat *statb)
-{
-#ifdef __INTERIX
-	int fd;
-
-	if (strncmp(pathl, "/dev/fd/", 8) == 0 && getn(pathl + 8, &fd))
-		return fstat(fd, statb);
-#endif
-
-	return stat(pathl, statb);
-}
-
-/* Routine to handle Korn's /dev/fd hack, and to deal with X_OK on
- * non-directories when running as root.
- */
+/* On most/all unixen, access() says everything is executable for root... */
 static int
 test_eaccess(const char *pathl, int mode)
 {
-	int res;
+	int res = eaccess(pathl, mode);
 
-#ifdef __INTERIX
-	int fd;
-
-	/* Note: doesn't handle //dev/fd, etc.. (this is ok) */
-	if (strncmp(pathl, "/dev/fd/", 8) == 0 && getn(pathl + 8, &fd)) {
-		int flags;
-
-		if ((flags = fcntl(fd, F_GETFL, 0)) < 0
-		    || (mode & X_OK)
-		    || ((mode & W_OK) && (flags & O_ACCMODE) == O_RDONLY)
-		    || ((mode & R_OK) && (flags & O_ACCMODE) == O_WRONLY))
-			return -1;
-		return 0;
-	}
-#endif /* !HAVE_DEV_FD */
-
-	res = eaccess(pathl, mode);
-	/*
-	 * On most (all?) unixes, access() says everything is executable for
-	 * root - avoid this on files by using stat().
-	 */
 	if (res == 0 && ksheuid == 0 && (mode & X_OK)) {
 		struct stat statb;
 
@@ -2621,7 +2579,6 @@ test_eaccess(const char *pathl, int mode)
 			res = (statb.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH)) ?
 			    0 : -1;
 	}
-
 	return res;
 }
 
