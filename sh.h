@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.15 2005/07/05 22:00:20 tg Exp $ */
+/**	$MirOS: src/bin/mksh/sh.h,v 1.16 2005/07/07 23:27:52 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.27 2005/03/28 21:33:04 deraadt Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
@@ -13,7 +13,7 @@
 #define _ALL_SOURCE
 #endif
 
-#include <sys/types.h>
+#include <sys/param.h>
 
 #if defined(__gnu_linux__) && !defined(_POSIX_SOURCE)
 #define _POSIX_SOURCE

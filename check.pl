@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $MirOS: src/bin/mksh/check.pl,v 1.6 2005/06/08 21:39:59 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.7 2005/07/07 23:27:52 tg Exp $
 # $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
 #-
 # Example test:
@@ -17,7 +17,7 @@
 #			+ false
 #		expected-exit: 1
 #		---
-#	This runs the test-program (eg, pdksh) with the arguments -x and -f,
+#	This runs the test-program (eg, mksh) with the arguments -x and -f,
 #	standard input is a file containing "echo hi*\nfalse\n".  The program
 #	is expected to produce "hi*" (no trailing newline) on standard output,
 #	"+ echo hi*\n+false\n" on standard error, and an exit code of 1.
@@ -484,7 +484,6 @@ run_test
 	if ($program_kludge) {
 	    @argv = split(' ', $test_prog);
 	} else {
-	    $test_prog =~ s/ /\\ /g;
 	    @argv = ($test_prog);
 	}
 	if (defined $test{'arguments'}) {
@@ -493,7 +492,7 @@ run_test
 			   substr($test{'arguments'}, 1)));
 	}
 	push(@argv, $temps) if defined $test{'script'};
-	exec(@argv);
+	exec { $argv[0] } @argv;
 	print STDERR "$prog: couldn't execute $test_prog - $!\n";
 	kill('TERM', $$);
 	exit(95);

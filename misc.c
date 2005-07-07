@@ -1,13 +1,12 @@
-/**	$MirOS: src/bin/mksh/misc.c,v 1.6 2005/07/04 12:34:23 tg Exp $ */
+/**	$MirOS: src/bin/mksh/misc.c,v 1.7 2005/07/07 23:27:52 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.28 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 #include <sys/ioctl.h>
-#include <sys/param.h>	/* for MAXPATHLEN */
 #include <sys/stat.h>
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.6 2005/07/04 12:34:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.7 2005/07/07 23:27:52 tg Exp $");
 
 short chtypes[UCHAR_MAX+1];	/* type bits for unsigned char */
 
