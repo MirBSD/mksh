@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.24 2005/07/06 00:02:05 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.25 2005/07/07 22:00:45 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3681,7 +3681,7 @@ expected-stderr:
 ---
 name: errexit-2
 description:
-	Check some "exit on error" edge conditions
+	Check some "exit on error" edge conditions needed for make(1)
 stdin:
 	set -ex
 	if /usr/bin/env true; then
@@ -3689,11 +3689,10 @@ stdin:
 	fi
 	echo END
 expected-stdout:
-	END
 expected-stderr:
 	+ /usr/bin/env true
 	+ /usr/bin/env false
-	+ echo END
+expected-exit: 1
 ---
 name: version-1
 description:
@@ -3702,5 +3701,5 @@ category: pdksh
 stdin:
 	echo $KSH_VERSION
 expected-stdout:
-	@(#)MIRBSD KSH R24 2005/07/06
+	@(#)MIRBSD KSH R24 2005/07/07
 ---

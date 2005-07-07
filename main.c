@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/main.c,v 1.21 2005/07/06 00:02:06 tg Exp $ */
+/**	$MirOS: src/bin/mksh/main.c,v 1.22 2005/07/07 22:00:45 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.38 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: tty.c,v 1.8 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,9 +13,9 @@
 #include <time.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.21 2005/07/06 00:02:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.22 2005/07/07 22:00:45 tg Exp $");
 
-const char ksh_version[] = "@(#)MIRBSD KSH R24 2005/07/06";
+const char ksh_version[] = "@(#)MIRBSD KSH R24 2005/07/07";
 
 extern char **environ;
 
