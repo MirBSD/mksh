@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/edit.c,v 1.10 2005/07/12 13:23:59 tg Exp $ */
+/**	$MirOS: src/bin/mksh/edit.c,v 1.11 2005/07/12 13:30:37 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.29 2005/04/13 02:33:08 deraadt Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.37 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include <libgen.h>
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.10 2005/07/12 13:23:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.11 2005/07/12 13:30:37 tg Exp $");
 
 #define	BEL		0x07
 
@@ -334,7 +334,7 @@ x_print_expansions(int nwords, char * const *words, int is_command)
 {
 	int use_copy = 0;
 	int prefix_len;
-	XPtrV l = {};
+	XPtrV l = { NULL, NULL, NULL };
 
 	/* Check if all matches are in the same directory (in this
 	 * case, we want to omit the directory name)
