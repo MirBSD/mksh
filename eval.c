@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/eval.c,v 1.5 2005/07/04 12:27:25 tg Exp $ */
+/**	$MirOS: src/bin/mksh/eval.c,v 1.6 2005/07/12 13:24:00 tg Exp $ */
 /*	$OpenBSD: eval.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
@@ -6,7 +6,7 @@
 #include <dirent.h>
 #include <pwd.h>
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.5 2005/07/04 12:27:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.6 2005/07/12 13:24:00 tg Exp $");
 
 /*
  * string expansion
@@ -149,7 +149,7 @@ expand(char *cp,	/* input word */
 	char *dp, *sp;		/* dest., source */
 	int fdo, word;		/* second pass flags; have word */
 	int doblank;		/* field splitting of parameter/command subst */
-	Expand x;		/* expansion variables */
+	Expand x = {};		/* expansion variables */
 	SubType st_head, *st;
 	int newlines = 0; /* For trailing newlines in COMSUB */
 	int saw_eq, tilde_ok;
@@ -260,7 +260,7 @@ expand(char *cp,	/* input word */
 			    {
 				char *varname = ++sp; /* skip the { or x (}) */
 				int stype;
-				int slen;
+				int slen = 0;
 
 				sp = strchr(sp, '\0') + 1; /* skip variable */
 				type = varsub(&x, varname, sp, &stype, &slen);
