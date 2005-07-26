@@ -1,4 +1,4 @@
-.\"	$MirOS$
+.\"	$MirOS: src/bin/ksh/sh.1,v 1.1.7.1 2005/03/06 15:42:54 tg Exp $
 .\"	_MirBSD: src/bin/ksh/ksh.1tbl,v 2.10 2004/12/31 19:00:30 tg Exp $
 .\"	$OpenBSD: ksh.1tbl,v 1.84 2004/12/22 18:58:44 millert Exp $
 .\"	$OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
@@ -3869,8 +3869,24 @@ signal and the shell exits.
 .Re
 .Sh NOTES
 .Nm sh
+and
+.Nm ksh
+will be obsoleted in
+.Mx 9
+whose
+.Pa /bin/sh
+will be a
+.Nx
+ash, and
+.Pa /bin/ksh
+and
+.Pa /bin/rksh
+will cease to exist in favour of
+.Pa /bin/mksh .
+.Pp
+.Nm sh
 is implemented as a run-time option of
-.Nm mksh ,
+.Nm ksh ,
 with only those
 .Nm ksh
 features whose syntax or semantics are incompatible with a traditional Bourne
