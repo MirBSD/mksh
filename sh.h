@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.16 2005/07/07 23:27:52 tg Exp $ */
+/**	$MirOS: src/bin/mksh/sh.h,v 1.17 2005/08/02 12:35:27 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.27 2005/03/28 21:33:04 deraadt Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
@@ -364,8 +364,6 @@ EXTERN struct coproc coproc;
 
 /* Used in jobs.c and by coprocess stuff in exec.c */
 EXTERN sigset_t		sm_default, sm_sigchld;
-
-extern const char ksh_version[];
 
 /* name of called builtin function (used by error functions) */
 EXTERN char	*builtin_argv0;

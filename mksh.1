@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.14 2005/07/06 00:02:06 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.99 2005/05/25 16:52:06 jaredy Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.15 2005/08/02 12:35:26 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.101 2005/08/01 19:29:57 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
 .Dd May 22, 2005
@@ -1418,11 +1418,6 @@ This parameter is not imported from the environment when the shell is
 started.
 .It Ev KSH_VERSION
 The name and version of the shell (read-only).
-See also the version commands in
-.Sx Emacs editing mode
-and
-.Sx Vi editing mode
-sections, below.
 .It Ev LINENO
 The line number of the function or shell script that is currently being
 executed.
@@ -4507,11 +4502,8 @@ lines (earlier).
 Uppercase the next
 .Ar n
 words.
-.It version: ^V
-Display the version of
-.Nm .
-The current edit buffer is restored as soon as any
-key is pressed (the key is then processed, unless it is a space).
+.It quote: ^V
+Synonym for ^^.
 .It yank: ^Y
 Inserts the most recently killed text string at the current cursor position.
 .It yank-pop: ^[y
@@ -4726,9 +4718,6 @@ enumeration command).
 .It = and ^E
 Command/file name enumeration.
 List all the commands or files that match the current big-word.
-.It ^V
-Display the version of the shell;
-it is displayed until another key is pressed (this key is ignored).
 .It @ Ns Ar c
 Macro expansion.
 Execute the commands found in the alias

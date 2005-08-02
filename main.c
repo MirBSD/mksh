@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/main.c,v 1.22 2005/07/07 22:00:45 tg Exp $ */
+/**	$MirOS: src/bin/mksh/main.c,v 1.23 2005/08/02 12:35:26 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.38 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: tty.c,v 1.8 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,9 +13,9 @@
 #include <time.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.22 2005/07/07 22:00:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.23 2005/08/02 12:35:26 tg Exp $");
 
-const char ksh_version[] = "@(#)MIRBSD KSH R24 2005/07/07";
+#define	MKSH_VERSION	"@(#)MIRBSD KSH R24 2005/08/02"
 
 extern char **environ;
 
@@ -201,7 +201,7 @@ main(int argc, char *argv[])
 #endif
 	setint(global("PPID"), (long)ppid);
 	/* setstr can't fail here */
-	setstr(global("KSH_VERSION"), ksh_version, KSH_RETURN_ERROR);
+	setstr(global("KSH_VERSION"), MKSH_VERSION, KSH_RETURN_ERROR);
 
 	/* execute initialisation statements */
 	for (wp = (char **)initcoms; *wp != NULL; wp++) {

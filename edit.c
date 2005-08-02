@@ -1,7 +1,7 @@
-/**	$MirOS: src/bin/mksh/edit.c,v 1.11 2005/07/12 13:30:37 tg Exp $ */
+/**	$MirOS: src/bin/mksh/edit.c,v 1.12 2005/08/02 12:35:26 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.29 2005/04/13 02:33:08 deraadt Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
-/*	$OpenBSD: emacs.c,v 1.37 2005/03/30 17:16:37 deraadt Exp $	*/
+/*	$OpenBSD: emacs.c,v 1.38 2005/08/01 04:27:31 deraadt Exp $	*/
 /*	$OpenBSD: vi.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include <libgen.h>
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.11 2005/07/12 13:30:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.12 2005/08/02 12:35:26 tg Exp $");
 
 #define	BEL		0x07
 
@@ -1048,16 +1048,15 @@ static int	x_emacs_putbuf(const char *, size_t);
 #define XFUNC_stuff 43
 #define XFUNC_stuffreset 44
 #define XFUNC_transpose 45
-#define XFUNC_version 46
-#define XFUNC_xchg_point_mark 47
-#define XFUNC_yank 48
-#define XFUNC_comp_list 49
-#define XFUNC_expand 50
-#define XFUNC_fold_capitalize 51
-#define XFUNC_fold_lower 52
-#define XFUNC_fold_upper 53
-#define XFUNC_set_arg 54
-#define XFUNC_comment 55
+#define XFUNC_xchg_point_mark 46
+#define XFUNC_yank 47
+#define XFUNC_comp_list 48
+#define XFUNC_expand 49
+#define XFUNC_fold_capitalize 50
+#define XFUNC_fold_lower 51
+#define XFUNC_fold_upper 52
+#define XFUNC_set_arg 53
+#define XFUNC_comment 54
 
 static int x_abort (int);
 static int x_beg_hist (int);
@@ -1105,7 +1104,6 @@ static int x_set_mark (int);
 static int x_stuff (int);
 static int x_stuffreset (int);
 static int x_transpose (int);
-static int x_version (int);
 static int x_xchg_point_mark (int);
 static int x_yank (int);
 static int x_comp_list (int);
@@ -1163,7 +1161,6 @@ static const struct x_ftab x_ftab[] = {
 	{ x_stuff,		"stuff",			0 },
 	{ x_stuffreset,		"stuff-reset",			0 },
 	{ x_transpose,		"transpose-chars",		0 },
-	{ x_version,		"version",			0 },
 	{ x_xchg_point_mark,	"exchange-point-and-mark",	0 },
 	{ x_yank,		"yank",				0 },
 	{ x_comp_list,		"complete-list",		0 },
@@ -1228,7 +1225,7 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_set_mark,		1,	  ' '  },
 	{ XFUNC_kill_region,		0, MKCTRL('W') },
 	{ XFUNC_xchg_point_mark,	2, MKCTRL('X') },
-	{ XFUNC_version,		0, MKCTRL('V') },
+	{ XFUNC_literal,		0, MKCTRL('V') },
 	{ XFUNC_prev_histword,		1,	  '.'  },
 	{ XFUNC_prev_histword,		1,	  '_'  },
 	{ XFUNC_set_arg,		1,	  '0'  },
@@ -2432,38 +2429,6 @@ x_xchg_point_mark(int c __attribute__((unused)))
 }
 
 static int
-x_version(int c __attribute__((unused)))
-{
-	char *o_xbuf = xbuf, *o_xend = xend;
-	char *o_xbp = xbp, *o_xep = xep, *o_xcp = xcp;
-	int lim = x_lastcp() - xbp;
-	char *v = strdup(ksh_version + 4);
-
-	check_sigwinch();	/* mksh hack ;-) */
-	xbuf = xbp = xcp = v;
-	xend = xep = v + strlen(v);
-	x_redraw(lim);
-	x_flush();
-
-	c = x_e_getc();
-	xbuf = o_xbuf;
-	xend = o_xend;
-	xbp = o_xbp;
-	xep = o_xep;
-	xcp = o_xcp;
-	x_redraw(strlen(ksh_version));
-
-	if (c < 0)
-		return KSTD;
-	/* This is what at&t ksh seems to do...  Very bizarre */
-	if (c != ' ')
-		x_e_ungetc(c);
-
-	free(v);
-	return KSTD;
-}
-
-static int
 x_noop(int c __attribute__((unused)))
 {
 	return KSTD;
@@ -3043,7 +3008,6 @@ const unsigned char	classify[128] = {
 #define VREDO		7		/* . */
 #define VLIT		8		/* ^V */
 #define VSEARCH		9		/* /, ? */
-#define VVERSION	10		/* <ESC> ^V */
 
 static char		undocbuf[LINE];
 
@@ -3128,7 +3092,7 @@ x_vi(char *buf, size_t len)
 				trapsig(c == edchars.intr ? SIGINT : SIGQUIT);
 				x_mode(false);
 				unwind(LSHELL);
-			} else if (c == edchars.eof && state != VVERSION) {
+			} else if (c == edchars.eof) {
 				if (es->linelen == 0) {
 					x_vi_zotc(edchars.eof);
 					c = -1;
@@ -3208,14 +3172,6 @@ vi_hook(int ch)
 						return -1;
 					refresh(0);
 				}
-				if (state == VVERSION) {
-					save_cbuf();
-					es->cursor = 0;
-					es->linelen = 0;
-					putbuf(ksh_version + 4,
-					    strlen(ksh_version + 4), 0);
-					refresh(0);
-				}
 			}
 		}
 		break;
@@ -3228,12 +3184,6 @@ vi_hook(int ch)
 			es->cbuf[es->cursor++] = ch;
 		refresh(1);
 		state = VNORMAL;
-		break;
-
-	case VVERSION:
-		restore_cbuf();
-		state = VNORMAL;
-		refresh(0);
 		break;
 
 	case VARG1:
@@ -3452,8 +3402,6 @@ nextstate(int ch)
 		return VXCH;
 	else if (ch == '.')
 		return VREDO;
-	else if (ch == Ctrl('v'))
-		return VVERSION;
 	else if (is_cmd(ch))
 		return VCMD;
 	else
