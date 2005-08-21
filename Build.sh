@@ -1,18 +1,12 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.16 2005/07/07 23:27:52 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.17 2005/08/21 13:02:16 tg Exp $
 #-
-# Recognised environment variables and their defaults:
-#	CC		gcc
-#	CFLAGS		-O2 -fno-strict-aliasing -fno-strength-reduce
-#	CPPFLAGS	(empty)
-#	LDFLAGS		-static
-#	LIBS		(empty)
-#	NROFF		nroff		# (ignored if -r option given)
-# GNU/Linux, Mac, Solaris: add -d, CPPFLAGS='-D_FILE_OFFSET_BITS=64'
+# This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and
+# NROFF. Add -d for dynamic linkage (on Mac, GNU/Linux and Solaris).
 
 SHELL="${SHELL:-/bin/sh}"
 CC="${CC:-gcc}"
-CFLAGS="${CFLAGS--O2 -fno-strict-aliasing -fno-strength-reduce}"
+CFLAGS="${CFLAGS--O2 -fno-strict-aliasing -fno-strength-reduce -Wall -D_FILE_OFFSET_BITS=64}"
 export SHELL CC
 srcdir="${srcdir:-`dirname "$0"`}"
 curdir="`pwd`"
@@ -23,7 +17,7 @@ r=0
 LDSTATIC=-static
 
 while [ -n "$1" ]; do
-	case "$1" in
+	case $1 in
 	-d)
 		LDSTATIC=
 		;;

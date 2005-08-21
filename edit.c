@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/edit.c,v 1.12 2005/08/02 12:35:26 tg Exp $ */
+/**	$MirOS: src/bin/mksh/edit.c,v 1.13 2005/08/21 13:02:17 tg Exp $ */
 /*	$OpenBSD: edit.c,v 1.29 2005/04/13 02:33:08 deraadt Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.38 2005/08/01 04:27:31 deraadt Exp $	*/
@@ -10,9 +10,7 @@
 #include <ctype.h>
 #include <libgen.h>
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.12 2005/08/02 12:35:26 tg Exp $");
-
-#define	BEL		0x07
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.13 2005/08/21 13:02:17 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1333,7 +1331,7 @@ x_insert(int c)
 	 *  Should allow tab and control chars.
 	 */
 	if (c == 0) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		return KSTD;
 	}
 	str[0] = c;
@@ -1347,7 +1345,7 @@ static int
 x_ins_string(int c)
 {
 	if (macroptr) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		return KSTD;
 	}
 	macroptr = x_atab[c >> 8][c & CHARMASK];
@@ -1364,7 +1362,7 @@ static int
 x_do_ins(const char *cp, int len)
 {
 	if (xep + len >= xend) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		return -1;
 	}
 	memmove(xcp + len, xcp, xep - xcp + 1);
@@ -1418,7 +1416,7 @@ x_del_back(int c __attribute__((unused)))
 	int col = xcp - xbuf;
 
 	if (col == 0) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		return KSTD;
 	}
 	if (x_arg > col)
@@ -1434,7 +1432,7 @@ x_del_char(int c __attribute__((unused)))
 	int nleft = xep - xcp;
 
 	if (!nleft) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		return KSTD;
 	}
 	if (x_arg > nleft)
@@ -1532,7 +1530,7 @@ x_bword(void)
 	char *cp = xcp;
 
 	if (cp == xbuf) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		return 0;
 	}
 	while (x_arg--) {
@@ -1556,7 +1554,7 @@ x_fword(void)
 	char *cp = xcp;
 
 	if (cp == xep) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		return 0;
 	}
 	while (x_arg--) {
@@ -1646,7 +1644,7 @@ x_mv_back(int c __attribute__((unused)))
 	int col = xcp - xbuf;
 
 	if (col == 0) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		return KSTD;
 	}
 	if (x_arg > col)
@@ -1661,7 +1659,7 @@ x_mv_forw(int c __attribute__((unused)))
 	int nleft = xep - xcp;
 
 	if (!nleft) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		return KSTD;
 	}
 	if (x_arg > nleft)
@@ -1681,7 +1679,7 @@ x_search_char_forw(int c)
 		if (c < 0 ||
 		    ((cp = (cp == xep) ? NULL : strchr(cp + 1, c)) == NULL &&
 		    (cp = strchr(xbuf, c)) == NULL)) {
-			x_e_putc(BEL);
+			x_e_putc(7);
 			return KSTD;
 		}
 	}
@@ -1700,7 +1698,7 @@ x_search_char_back(int c)
 			if (p-- == xbuf)
 				p = xep;
 			if (c < 0 || p == cp) {
-				x_e_putc(BEL);
+				x_e_putc(7);
 				return KSTD;
 			}
 			if (*p == c)
@@ -1778,7 +1776,7 @@ x_load_hist(char **hp)
 	int oldsize;
 
 	if (hp < history || hp > histptr) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		return;
 	}
 	x_histp = hp;
@@ -1848,7 +1846,7 @@ x_search_hist(int c)
 			/* add char to pattern */
 			/* overflow check... */
 			if (p >= &pat[sizeof(pat) - 1]) {
-				x_e_putc(BEL);
+				x_e_putc(7);
 				continue;
 			}
 			*p++ = c, *p = '\0';
@@ -1889,7 +1887,7 @@ x_search(char *pat, int sameline, int offset)
 			return i;
 		}
 	}
-	x_e_putc(BEL);
+	x_e_putc(7);
 	x_histp = histptr;
 	return -1;
 }
@@ -2018,11 +2016,11 @@ x_transpose(int c __attribute__((unused)))
 	 * to the one they want.
 	 */
 	if (xcp == xbuf) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		return KSTD;
 	} else if (xcp == xep || Flag(FGMACS)) {
 		if (xcp - xbuf == 1) {
-			x_e_putc(BEL);
+			x_e_putc(7);
 			return KSTD;
 		}
 		/* Gosling/Unipress emacs style: Swap two characters before the
@@ -2157,7 +2155,7 @@ x_abort(int c __attribute__((unused)))
 static int
 x_error(int c __attribute__((unused)))
 {
-	x_e_putc(BEL);
+	x_e_putc(7);
 	return KSTD;
 }
 
@@ -2397,7 +2395,7 @@ x_kill_region(int c __attribute__((unused)))
 	char *xr;
 
 	if (xmp == NULL) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		return KSTD;
 	}
 	if (xmp > xcp) {
@@ -2419,7 +2417,7 @@ x_xchg_point_mark(int c __attribute__((unused)))
 	char *tmp;
 
 	if (xmp == NULL) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		return KSTD;
 	}
 	tmp = xmp;
@@ -2499,7 +2497,7 @@ x_expand(int c __attribute__((unused)))
 	    &start, &end, &words, &is_command);
 
 	if (nwords == 0) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		return KSTD;
 	}
 	x_goto(xbuf + start);
@@ -2507,7 +2505,7 @@ x_expand(int c __attribute__((unused)))
 	for (i = 0; i < nwords;) {
 		if (x_escape(words[i], strlen(words[i]), x_emacs_putbuf) < 0 ||
 		    (++i < nwords && x_ins(space) < 0)) {
-			x_e_putc(BEL);
+			x_e_putc(7);
 			return KSTD;
 		}
 	}
@@ -2531,7 +2529,7 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
 	    &start, &end, &words, &is_command);
 	/* no match */
 	if (nwords == 0) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		return;
 	}
 	if (type == CT_LIST) {
@@ -2629,7 +2627,7 @@ x_e_putc(int c)
 	if (x_col < xx_cols) {
 		x_putc(c);
 		switch (c) {
-		case BEL:
+		case 7:
 			break;
 		case '\r':
 		case '\n':
@@ -2675,7 +2673,7 @@ x_set_arg(int c)
 	for (; c >= 0 && isdigit(c); c = x_e_getc(), first = 0)
 		n = n * 10 + (c - '0');
 	if (c < 0 || first) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		x_arg = 1;
 		x_arg_defaulted = 1;
 	} else {
@@ -2696,7 +2694,7 @@ x_comment(int c __attribute__((unused)))
 	int ret = x_do_comment(xbuf, xend - xbuf, &len);
 
 	if (ret < 0)
-		x_e_putc(BEL);
+		x_e_putc(7);
 	else {
 		xep = xbuf + len;
 		*xep = '\0';
@@ -2732,7 +2730,7 @@ x_prev_histword(int c __attribute__((unused)))
 
 	cp = *histptr;
 	if (!cp)
-		x_e_putc(BEL);
+		x_e_putc(7);
 	else if (x_arg_defaulted) {
 		rcp = &cp[strlen(cp) - 1];
 		/*
@@ -2809,7 +2807,7 @@ x_fold_case(int c)
 	char *cp = xcp;
 
 	if (cp == xep) {
-		x_e_putc(BEL);
+		x_e_putc(7);
 		return KSTD;
 	}
 	while (x_arg--) {
@@ -3427,10 +3425,8 @@ vi_insert(int ch)
 			else
 				es->cbuf[es->cursor] = undo->cbuf[es->cursor];
 		} else {
-			if (es->cursor == 0) {
-				/* x_putc(BEL); no annoying bell here */
+			if (es->cursor == 0)
 				return 0;
-			}
 			if (inslen > 0)
 				inslen--;
 			es->cursor--;
@@ -4965,7 +4961,7 @@ vi_error(void)
 {
 	/* Beem out of any macros as soon as an error occurs */
 	vi_macro_reset();
-	x_putc(BEL);
+	x_putc(7);
 	x_flush();
 }
 
