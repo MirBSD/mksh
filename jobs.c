@@ -1,13 +1,13 @@
-/**	$MirOS: src/bin/mksh/jobs.c,v 1.3 2005/07/04 12:27:26 tg Exp $ */
+/**	$MirOS: src/bin/mksh/jobs.c,v 1.4 2005/08/21 12:43:55 bsiegert Exp $ */
 /*	$OpenBSD: jobs.c,v 1.34 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
+#include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <sys/wait.h>
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.3 2005/07/04 12:27:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.4 2005/08/21 12:43:55 bsiegert Exp $");
 
 /* Order important! */
 #define PRUNNING	0
