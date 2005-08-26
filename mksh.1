@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.16 2005/08/21 13:02:17 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.17 2005/08/26 21:54:05 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.101 2005/08/01 19:29:57 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -14,7 +14,6 @@
 .	if \\n(.$==0 \&MirOS\\*(aa
 .\}
 .if \\n(.$==1 \{\
-.	if "\\$1"6"  \&MirOS #6\\*(aa
 .	if "\\$1"."  \&MirOS\\$1\\*(aa
 .	if "\\$1","  \&MirOS\\$1\\*(aa
 .	if "\\$1"MirBSD"  \&MirBSD\\*(aa
@@ -1859,7 +1858,8 @@ escapes for
 .Ql \e ,
 and
 .Ql \enewline ;
-any backslash preceding double quotes is removed.
+any backslash preceding double quotes is removed (see
+.Sx BUGS ) .
 If multiple here documents are used on the same command line, they are saved in
 order.
 .It \*(Lt\*(Lt- Ar marker
@@ -5124,6 +5124,14 @@ Please report bugs in
 to the
 .Mx
 development team.
+.Pp
+Quoting rules for here documents are the same as for
+double-quoted strings due to legacy reasons; this conforms with
+.St -p1003.2-92
+interpretation #104 and considered a feature of
+.Nm
+despite breaking compatibility with
+.St -susv3 .
 .Pp
 By the way, the most frequently reported bug is:
 .Bd -literal -offset indent
