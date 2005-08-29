@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.4 2005/08/26 22:03:55 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.5 2005/08/29 01:16:22 tg Exp $
 
 PROG=		mksh
 SRCS=		alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c \
@@ -6,6 +6,8 @@ SRCS=		alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c \
 CDIAGFLAGS+=	-Wno-cast-qual
 
 .include <bsd.own.mk>
+
+NO_PRINTF_BUILTIN=broken for now
 
 .ifndef NO_PRINTF_BUILTIN
 .PATH: ${BSDSRCDIR}/usr.bin/printf
