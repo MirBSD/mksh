@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.18 2005/08/26 22:03:56 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.19 2005/09/11 14:47:27 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.101 2005/08/01 19:29:57 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -2314,8 +2314,7 @@ Additional
 regular commands
 .Pp
 .Ic \&[ , echo , let , print ,
-.Ic printf , pwd , test , ulimit ,
-.Ic whence
+.Ic pwd , test , ulimit , whence
 .Pp
 In the future, the additional
 .Nm
@@ -2967,15 +2966,6 @@ option is given.
 As above, the
 .Fl n
 option suppresses the trailing newline.
-.Pp
-.It Ic printf Ar format Op Ar arguments
-This builtin is not included with portable
-.Nm
-and only available under
-.Mx .
-It mimics the
-.Xr printf 1
-behaviour; see there for a complete reference.
 .Pp
 .It Ic pwd Op Fl LP
 Print the present working directory.
@@ -5083,7 +5073,6 @@ Shell database.
 .Xr ed 1 ,
 .Xr getconf 1 ,
 .Xr getopt 1 ,
-.Xr printf 1 ,
 .Xr sed 1 ,
 .Xr sh 1 ,
 .Xr stty 1 ,
