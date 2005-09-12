@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/funcs.c,v 1.17 2005/08/26 22:03:55 tg Exp $ */
+/**	$MirOS: src/bin/mksh/funcs.c,v 1.18 2005/09/12 19:28:18 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.29 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <ulimit.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.17 2005/08/26 22:03:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.18 2005/09/12 19:28:18 tg Exp $");
 
 #ifdef USE_PRINTF
 int c_printf(char **);
@@ -1637,7 +1637,7 @@ c_read(char **wp)
 	struct shf *shf;
 	int optc;
 	const char *emsg;
-	XString cs, xs;
+	XString cs, xs = { NULL, NULL, 0, NULL};
 	struct tbl *vp;
 	char *xp = NULL;
 	static char REPLY[] = "REPLY";
