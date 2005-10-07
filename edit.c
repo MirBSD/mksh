@@ -1,5 +1,5 @@
-/**	$MirOS: src/bin/mksh/edit.c,v 1.13 2005/08/21 13:02:17 tg Exp $ */
-/*	$OpenBSD: edit.c,v 1.29 2005/04/13 02:33:08 deraadt Exp $	*/
+/**	$MirOS: src/bin/mksh/edit.c,v 1.14 2005/10/07 18:32:23 tg Exp $ */
+/*	$OpenBSD: edit.c,v 1.30 2005/09/11 18:08:47 otto Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.38 2005/08/01 04:27:31 deraadt Exp $	*/
 /*	$OpenBSD: vi.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include <libgen.h>
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.13 2005/08/21 13:02:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.14 2005/10/07 18:32:23 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -117,9 +117,6 @@ x_read(char *buf, size_t len)
 {
 	int i;
 
-	if (got_sigwinch)
-		check_sigwinch();
-
 	x_mode(true);
 	if (Flag(FEMACS) || Flag(FGMACS))
 		i = x_emacs(buf, len);
@@ -128,6 +125,7 @@ x_read(char *buf, size_t len)
 	else
 		i = -1;		/* internal error */
 	x_mode(false);
+	check_sigwinch();
 	return i;
 }
 
