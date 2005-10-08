@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.21 2005/10/08 19:30:59 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.22 2005/10/08 19:34:39 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.101 2005/08/01 19:29:57 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -2260,13 +2260,7 @@ Special built-in commands differ from other commands in that the
 parameter is not used to find them, an error during their execution can
 cause a non-interactive shell to exit, and parameter assignments that are
 specified before the command are kept after the command completes.
-Just to confuse things, if the
-.Ic posix
-option is turned off (see the
-.Ic set
-command below), some special commands are very special in that no field
-splitting, file globbing, brace expansion, nor tilde expansion is performed
-on arguments that look like assignments.
+There are some confusions regarding POSIX that is not uber-strictly adhered to.
 Regular built-in commands are different only in that the
 .Ev PATH
 parameter is not used to find them.
@@ -3410,11 +3404,8 @@ is a
 .Xr tty 4
 device.
 If the
-.Ic posix
-option is not set,
 .Ar fd
-may be left out, in which case it is taken to be 1 (the behaviour differs due
-to the special POSIX rules described above).
+may be left out, in which case it is taken to be 1.
 .It Fl u Ar file
 .Ar file Ns 's
 mode has the setuid bit set.
