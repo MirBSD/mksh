@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.17 2005/08/02 12:35:27 tg Exp $ */
+/**	$MirOS: src/bin/mksh/sh.h,v 1.18 2005/10/08 19:31:00 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.27 2005/03/28 21:33:04 deraadt Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
@@ -1257,7 +1257,7 @@ struct test_env {
 	void	(*error)(Test_env *, int, const char *);
 };
 
-Test_op	test_isop(Test_env *, Test_meta, const char *);
+Test_op	test_isop(Test_meta, const char *);
 int     test_eval(Test_env *, Test_op, const char *, const char *, int);
 int	test_parse(Test_env *);
 

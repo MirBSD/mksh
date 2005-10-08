@@ -1,11 +1,11 @@
-/**	$MirOS: src/bin/mksh/exec.c,v 1.8 2005/07/07 22:00:45 tg Exp $ */
+/**	$MirOS: src/bin/mksh/exec.c,v 1.9 2005/10/08 19:30:58 tg Exp $ */
 /*	$OpenBSD: exec.c,v 1.41 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 #include <sys/stat.h>
 #include <ctype.h>
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.8 2005/07/07 22:00:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.9 2005/10/08 19:30:58 tg Exp $");
 
 static int	comexec(struct op *, struct tbl *volatile, char **,
 		    int volatile);
@@ -1348,7 +1348,7 @@ dbteste_isa(Test_env *te, Test_meta meta)
 			    *p == CHAR && q < &buf[sizeof(buf) - 1]; p += 2)
 				*q++ = p[1];
 			*q = '\0';
-			ret = test_isop(te, meta, buf);
+			ret = test_isop(meta, buf);
 		}
 	} else if (meta == TM_END)
 		ret = 0;

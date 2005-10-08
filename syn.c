@@ -1,9 +1,9 @@
-/**	$MirOS: src/bin/mksh/syn.c,v 1.2 2005/07/04 12:27:28 tg Exp $ */
+/**	$MirOS: src/bin/mksh/syn.c,v 1.3 2005/10/08 19:31:00 tg Exp $ */
 /*	$OpenBSD: syn.c,v 1.22 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.2 2005/07/04 12:27:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.3 2005/10/08 19:31:00 tg Exp $");
 
 struct nesting_state {
 	int	start_token;	/* token than began nesting (eg, FOR) */
@@ -846,7 +846,7 @@ dbtestp_isa(Test_env *te, Test_meta meta)
 			ret = 1;
 			save = wdcopy(yylval.iop->flag == IOREAD ?
 			    db_lthan : db_gthan, ATEMP);
-		} else if (uqword && (ret = test_isop(te, meta, ident)))
+		} else if (uqword && (ret = test_isop(meta, ident)))
 			save = yylval.cp;
 	} else /* meta == TM_END */
 		ret = uqword && strcmp(yylval.cp, db_close) == 0;

@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/funcs.c,v 1.18 2005/09/12 19:28:18 tg Exp $ */
+/**	$MirOS: src/bin/mksh/funcs.c,v 1.19 2005/10/08 19:30:59 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.29 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,7 +13,7 @@
 #include <ulimit.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.18 2005/09/12 19:28:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.19 2005/10/08 19:30:59 tg Exp $");
 
 #ifdef USE_PRINTF
 int c_printf(char **);
@@ -2415,20 +2415,17 @@ c_test(char **wp)
  */
 
 Test_op
-test_isop(Test_env *te, Test_meta meta, const char *s)
+test_isop(Test_meta meta, const char *s)
 {
 	char sc1;
-	const struct t_op *otab;
+	const struct t_op *tbl;
 
-	otab = meta == TM_UNOP ? u_ops : b_ops;
+	tbl = meta == TM_UNOP ? u_ops : b_ops;
 	if (*s) {
 		sc1 = s[1];
-		for (; otab->op_text[0]; otab++)
-			if (sc1 == otab->op_text[1] &&
-			    strcmp(s, otab->op_text) == 0 &&
-			    ((te->flags & TEF_DBRACKET) ||
-			    (otab->op_num != TO_STLT && otab->op_num != TO_STGT)))
-				return otab->op_num;
+		for (; tbl->op_text[0]; tbl++)
+			if (sc1 == tbl->op_text[1] && !strcmp(s, tbl->op_text))
+				return tbl->op_num;
 	}
 	return TO_NONOP;
 }
@@ -2722,7 +2719,7 @@ ptest_isa(Test_env *te, Test_meta meta)
 		return meta == TM_END;
 
 	if (meta == TM_UNOP || meta == TM_BINOP)
-		ret = test_isop(te, meta, *te->pos.wp);
+		ret = test_isop(meta, *te->pos.wp);
 	else if (meta == TM_END)
 		ret = 0;
 	else

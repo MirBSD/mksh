@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.31 2005/10/08 18:53:09 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.32 2005/10/08 19:30:58 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3693,6 +3693,17 @@ expected-stderr:
 	+ /usr/bin/env true
 	+ /usr/bin/env false
 expected-exit: 1
+---
+name: test-stlt
+description:
+	Check that test also can handle string1 < string2 etc.
+stdin:
+	test 2005/10/08 '<' 2005/08/21 && echo ja || echo nein
+	test 2005/08/21 \< 2005/10/08 && echo ja || echo nein
+expected-stdout:
+	nein
+	ja
+expected-stderr-pattern: !/unexpected op/
 ---
 name: version-1
 description:

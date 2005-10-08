@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.20 2005/10/07 18:36:19 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.21 2005/10/08 19:30:59 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.101 2005/08/01 19:29:57 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -736,13 +736,6 @@ and
 expressions are patterns (e.g. the comparison
 .Ic [[ foobar = f*r ]]
 succeeds).
-.It
-There are two additional binary operators,
-.Ql \*(Lt
-and
-.Ql \*(Gt ,
-which return true if their first string operand is less than, or greater than,
-their second string operand, respectively.
 .It
 The single argument form of
 .Ic test ,
@@ -3466,6 +3459,10 @@ is empty.
 Strings are equal.
 .It Ar string No == Ar string
 Strings are equal.
+.It Ar string No \*(Gt Ar string
+First string operand is greater than second string operand.
+.It Ar string No \*(Lt Ar string
+First string operand is less than second string operand.
 .It Ar string No != Ar string
 Strings are not equal.
 .It Ar number Fl eq Ar number
@@ -3524,7 +3521,8 @@ or
 .Sq Fl n .
 Use tests like
 .Dq if \&[ x\&"$foo\&" = x"bar" \&]
-instead.
+instead, or the double-bracket operator:
+.Dq if \&[[ $foo = bar \&]]
 .Pp
 .It Xo
 .Ic time
