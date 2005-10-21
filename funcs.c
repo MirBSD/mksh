@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/funcs.c,v 1.19 2005/10/08 19:30:59 tg Exp $ */
+/**	$MirOS: src/bin/mksh/funcs.c,v 1.20 2005/10/21 11:44:25 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.29 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,11 +13,7 @@
 #include <ulimit.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.19 2005/10/08 19:30:59 tg Exp $");
-
-#ifdef USE_PRINTF
-int c_printf(char **);
-#endif
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.20 2005/10/21 11:44:25 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -1083,20 +1079,6 @@ c_fgbg(char **wp)
 	return bg ? 0 : rv;
 }
 
-#ifdef USE_PRINTF
-int
-c_printf(char **wp)
-{
-	extern int progprintf(int, char *[]);
-	int argc;
-
-	for (argc = 0; wp[argc]; argc++)
-		;
-
-	return progprintf(argc, wp);
-}
-#endif
-
 struct kill_info {
 	int num_width;
 	int name_width;
@@ -1391,9 +1373,6 @@ const struct builtin kshbuiltins [] = {
 	{"+bg", c_fgbg},
 	{"+fg", c_fgbg},
 	{"bind", c_bind},
-#ifdef USE_PRINTF
-	{"printf", c_printf},
-#endif
 	{NULL, NULL}
 };
 
