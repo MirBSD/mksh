@@ -1,12 +1,12 @@
-/**	$MirOS: src/bin/mksh/var.c,v 1.8 2005/07/04 12:34:24 tg Exp $ */
-/*	$OpenBSD: var.c,v 1.26 2005/03/30 17:16:37 deraadt Exp $	*/
+/**	$MirOS: src/bin/mksh/var.c,v 1.9 2005/10/21 11:55:23 tg Exp $ */
+/*	$OpenBSD: var.c,v 1.27 2005/10/08 18:02:59 otto Exp $	*/
 
 #include "sh.h"
 #include <sys/stat.h>
 #include <ctype.h>
 #include <time.h>
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.8 2005/07/04 12:34:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.9 2005/10/21 11:55:23 tg Exp $");
 
 /*
  * Variables
@@ -135,7 +135,7 @@ array_index_calc(const char *n, bool *arrayp, int *valp)
 		n = str_nsave(n, p - n, ATEMP);
 		evaluate(sub, &rval, KSH_UNWIND_ERROR, true);
 		if (rval < 0 || rval > 2147483647)
-			errorf("%s: subscript out of range", n);
+			errorf("%s: subscript %ld out of range", n, rval);
 		*valp = rval;
 		afree(sub, ATEMP);
 	}
