@@ -1,6 +1,6 @@
-/**	$MirOS: src/bin/mksh/funcs.c,v 1.20 2005/10/21 11:44:25 tg Exp $ */
+/**	$MirOS: src/bin/mksh/funcs.c,v 1.21 2005/10/21 12:41:55 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
-/*	$OpenBSD: c_sh.c,v 1.29 2005/03/30 17:16:37 deraadt Exp $	*/
+/*	$OpenBSD: c_sh.c,v 1.31 2005/10/08 18:07:31 otto Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.14 2005/03/30 17:16:37 deraadt Exp $	*/
 
@@ -13,7 +13,7 @@
 #include <ulimit.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.20 2005/10/21 11:44:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.21 2005/10/21 12:41:55 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -2192,6 +2192,90 @@ c_exec(char **wp __attribute__((unused)))
 	return 0;
 }
 
+static int
+c_mknod(char **wp)
+{
+	int argc, optc, rv = 0;
+	bool ismkfifo = false;
+	char **argv;
+	void *set = NULL;
+	mode_t mode = 0, oldmode = 0;
+
+	while ((optc = ksh_getopt(wp, &builtin_opt, "m:")) != EOF) {
+		switch (optc) {
+		case 'm':
+			set = setmode(builtin_opt.optarg);
+			if (set == NULL) {
+				bi_errorf("invalid file mode");
+				return (1);
+			}
+			mode = getmode(set, DEFFILEMODE);
+			free(set);
+			break;
+		default:
+			goto c_mknod_usage;
+		}
+	}
+	argv = &wp[builtin_opt.optind];
+	if (argv[0] == '\0')
+		goto c_mknod_usage;
+	for (argc = 0; argv[argc]; argc++)
+		;
+	if (argc == 2 && argv[1][0] == 'p')
+		ismkfifo = true;
+	else if (argc != 4 || (argv[1][0] != 'b' && argv[1][0] != 'c'))
+		goto c_mknod_usage;
+
+	if (set != NULL)
+		oldmode = umask(0);
+	else
+		mode = DEFFILEMODE;
+
+	mode |= (argv[1][0] == 'b') ? S_IFBLK :
+	    (argv[1][0] == 'c') ? S_IFCHR : 0;
+
+	if (!ismkfifo) {
+		unsigned long major, minor;
+		dev_t dv;
+		char *c;
+
+		major = strtoul(argv[2], &c, 0);
+		if ((c == argv[2]) || (*c != '\0')) {
+			bi_errorf("non-numeric device major '%s'", argv[2]);
+			goto c_mknod_err;
+		}
+		minor = strtoul(argv[3], &c, 0);
+		if ((c == argv[3]) || (*c != '\0')) {
+			bi_errorf("non-numeric device minor '%s'", argv[3]);
+			goto c_mknod_err;
+		}
+		dv = makedev(major, minor);
+		if ((unsigned long)major(dv) != major) {
+			bi_errorf("device major too large: %ld", major);
+			goto c_mknod_err;
+		}
+		if ((unsigned long)minor(dv) != minor) {
+			bi_errorf("device minor too large: %ld", minor);
+			goto c_mknod_err;
+		}
+		if (mknod(argv[0], mode, dv))
+			goto c_mknod_failed;
+	} else if (mkfifo(argv[0], mode)) {
+c_mknod_failed:
+		bi_errorf("%s: %s", *wp, strerror(errno));
+c_mknod_err:
+		rv = 1;
+	}
+
+	if (set)
+		umask(oldmode);
+	return (rv);
+c_mknod_usage:
+	bi_errorf("usage: mknod [-m mode] name [b | c] major minor");
+	bi_errorf("usage: mknod [-m mode] name p");
+	return (1);
+}
+
 /* dummy function, special case in comexec() */
 int
 c_builtin(char **wp __attribute__((unused)))
@@ -2227,6 +2311,7 @@ const struct builtin shbuiltins [] = {
 	{"ulimit", c_ulimit},
 	{"+umask", c_umask},
 	{"*=unset", c_unset},
+	{"mknod", c_mknod},
 	{NULL, NULL}
 };
 

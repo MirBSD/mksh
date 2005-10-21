@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/main.c,v 1.27 2005/10/08 18:53:10 tg Exp $ */
+/**	$MirOS: src/bin/mksh/main.c,v 1.28 2005/10/21 12:41:55 tg Exp $ */
 /*	$OpenBSD: main.c,v 1.38 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: tty.c,v 1.8 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
@@ -13,9 +13,9 @@
 #include <time.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.27 2005/10/08 18:53:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.28 2005/10/21 12:41:55 tg Exp $");
 
-#define	MKSH_VERSION	"@(#)MIRBSD KSH R24 2005/10/08"
+#define	MKSH_VERSION	"@(#)MIRBSD KSH R24 2005/10/21"
 
 extern char **environ;
 

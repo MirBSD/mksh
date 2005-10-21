@@ -1,11 +1,11 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.18 2005/10/08 19:31:00 tg Exp $ */
-/*	$OpenBSD: sh.h,v 1.27 2005/03/28 21:33:04 deraadt Exp $	*/
+/**	$MirOS: src/bin/mksh/sh.h,v 1.19 2005/10/21 12:41:56 tg Exp $ */
+/*	$OpenBSD: sh.h,v 1.28 2005/10/04 20:35:11 otto Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
 /*	$OpenBSD: tree.h,v 1.10 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: expand.h,v 1.6 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: lex.h,v 1.9 2004/12/18 21:04:52 millert Exp $	*/
-/*	$OpenBSD: proto.h,v 1.26 2005/03/28 21:28:22 deraadt Exp $	*/
+/*	$OpenBSD: proto.h,v 1.27 2005/10/06 06:39:36 otto Exp $	*/
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
@@ -452,28 +452,6 @@ struct shf {
 };
 
 extern struct shf shf_iob[];
-
-struct shf *shf_open(const char *, int, int, int);
-struct shf *shf_fdopen(int, int, struct shf *);
-struct shf *shf_reopen(int, int, struct shf *);
-struct shf *shf_sopen(char *, int, int, struct shf *);
-int	    shf_close(struct shf *);
-int	    shf_fdclose(struct shf *);
-char	   *shf_sclose(struct shf *);
-int	    shf_finish(struct shf *);
-int	    shf_flush(struct shf *);
-int	    shf_seek(struct shf *, off_t, int);
-int	    shf_read(char *, int, struct shf *);
-char	   *shf_getse(char *, int, struct shf *);
-int	    shf_getchar(struct shf *s);
-int	    shf_ungetc(int, struct shf *);
-int	    shf_putchar(int, struct shf *);
-int	    shf_puts(const char *, struct shf *);
-int	    shf_write(const char *, int, struct shf *);
-int	    shf_fprintf(struct shf *, const char *, ...);
-int	    shf_snprintf(char *, int, const char *, ...);
-char	    *shf_smprintf(const char *, ...);
-int	    shf_vfprintf(struct shf *, const char *, va_list);
 
 struct table {
 	Area   *areap;		/* area to allocate entries */
@@ -984,7 +962,34 @@ void	afreeall(Area *);
 void *	alloc(size_t, Area *);
 void *	aresize(void *, size_t, Area *);
 void	afree(void *, Area *);
-/* c_funcs.c */
+/* edit.c */
+void	x_init(void);
+int	x_read(char *, size_t);
+int	x_bind(const char *, const char *, int, int);
+/* eval.c */
+char *	substitute(const char *, int);
+char **	eval(char **, int);
+char *	evalstr(char *cp, int);
+char *	evalonestr(char *cp, int);
+char	*debunk(char *, const char *, size_t);
+void	expand(char *, XPtrV *, int);
+int	glob_str(char *, XPtrV *, int);
+/* exec.c */
+int	execute(struct op * volatile, volatile int);
+int	shcomexec(char **);
+struct tbl * findfunc(const char *, unsigned int, int);
+int	define(const char *, struct op *);
+void	builtin(const char *, int (*)(char **));
+struct tbl *	findcom(const char *, int);
+void	flushcom(int);
+char *	search(const char *, const char *, int, int *);
+int	search_access(const char *, int, int *);
+int	pr_menu(char *const *);
+int	pr_list(char *const *);
+/* expr.c */
+int	evaluate(const char *, long *, int, bool);
+int	v_evaluate(struct tbl *, const char *, volatile int, bool);
+/* funcs.c */
 int	c_hash(char **);
 int	c_cd(char **);
 int	c_pwd(char **);
@@ -1020,33 +1025,6 @@ void	timex_hook(struct op *, char ** volatile *);
 int	c_exec(char **);
 int	c_builtin(char **);
 int	c_test(char **);
-/* edit.c */
-void	x_init(void);
-int	x_read(char *, size_t);
-int	x_bind(const char *, const char *, int, int);
-/* eval.c */
-char *	substitute(const char *, int);
-char **	eval(char **, int);
-char *	evalstr(char *cp, int);
-char *	evalonestr(char *cp, int);
-char	*debunk(char *, const char *, size_t);
-void	expand(char *, XPtrV *, int);
-int	glob_str(char *, XPtrV *, int);
-/* exec.c */
-int	execute(struct op * volatile, volatile int);
-int	shcomexec(char **);
-struct tbl * findfunc(const char *, unsigned int, int);
-int	define(const char *, struct op *);
-void	builtin(const char *, int (*)(char **));
-struct tbl *	findcom(const char *, int);
-void	flushcom(int);
-char *	search(const char *, const char *, int, int *);
-int	search_access(const char *, int, int *);
-int	pr_menu(char *const *);
-int	pr_list(char *const *);
-/* expr.c */
-int	evaluate(const char *, long *, int, bool);
-int	v_evaluate(struct tbl *, const char *, volatile int, bool);
 /* histrap.c */
 void	init_histvec(void);
 void	hist_init(Source *);
@@ -1176,6 +1154,28 @@ int	make_path(const char *, const char *, char **, XString *, int *);
 void	simplify_path(char *);
 char	*get_phys_path(const char *);
 void	set_current_wd(char *);
+/* shf.c */
+struct shf *shf_open(const char *, int, int, int);
+struct shf *shf_fdopen(int, int, struct shf *);
+struct shf *shf_reopen(int, int, struct shf *);
+struct shf *shf_sopen(char *, int, int, struct shf *);
+int	shf_close(struct shf *);
+int	shf_fdclose(struct shf *);
+char *	shf_sclose(struct shf *);
+int	shf_finish(struct shf *);
+int	shf_flush(struct shf *);
+int	shf_seek(struct shf *, off_t, int);
+int	shf_read(char *, int, struct shf *);
+char *	shf_getse(char *, int, struct shf *);
+int	shf_getchar(struct shf *s);
+int	shf_ungetc(int, struct shf *);
+int	shf_putchar(int, struct shf *);
+int	shf_puts(const char *, struct shf *);
+int	shf_write(const char *, int, struct shf *);
+int	shf_fprintf(struct shf *, const char *, ...);
+int	shf_snprintf(char *, int, const char *, ...);
+char *	shf_smprintf(const char *, ...);
+int	shf_vfprintf(struct shf *, const char *, va_list);
 /* syn.c */
 void	initkeywords(void);
 struct op * compile(Source *);
