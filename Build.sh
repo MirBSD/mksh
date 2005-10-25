@@ -1,8 +1,7 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.21 2005/10/25 20:59:00 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.22 2005/10/25 21:07:21 tg Exp $
 #-
-# This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and
-# NROFF. Add -d for dynamic linkage (on Mac, GNU/Linux and Solaris).
+# This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
 SHELL="${SHELL:-/bin/sh}"
 case $SHELL in
