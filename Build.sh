@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.17 2005/08/21 13:02:16 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.18 2005/10/25 19:46:10 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and
 # NROFF. Add -d for dynamic linkage (on Mac, GNU/Linux and Solaris).
@@ -48,12 +48,16 @@ SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 case "`uname -s 2>/dev/null || uname`" in
 Linux)
 	# Hello Mr Drepper, we all like you too...</sarcasm>
-	SRCS="$SRCS strlfun.c"
+	SRCS="$SRCS compat.c strlfun.c"
+	;;
+SunOS)
+	SRCS="$SRCS compat.c"
+	CFLAGS="$CFLAGS -Wno-char-subscripts"
 	;;
 esac
 
 v $SHELL "'$srcdir/gensigs.sh'" || exit 1
-(v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS" \
+(v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS" -DNEED_COMPAT \
     "$LDFLAGS $LDSTATIC -o '$curdir/mksh' $SRCS $LIBS") || exit 1
 test -x mksh || exit 1
 [ $r = 1 ] || v "${NROFF:-nroff} -mdoc <'$srcdir/mksh.1' >mksh.cat1" \

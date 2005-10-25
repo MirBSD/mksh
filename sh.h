@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.19 2005/10/21 12:41:56 tg Exp $ */
+/**	$MirOS: src/bin/mksh/sh.h,v 1.20 2005/10/25 19:46:11 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.28 2005/10/04 20:35:11 otto Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
@@ -41,6 +41,9 @@
 #include <unistd.h>
 #if defined(__sun__) || defined(__gnu_linux__)
 #include <values.h>
+#endif
+#if defined(NEED_COMPAT)
+#include "compat.h"
 #endif
 
 /* some useful #defines */
@@ -1274,38 +1277,6 @@ extern void	tty_close(void);
 # undef EXTERN
 #endif
 #undef I__
-
-#if defined(__gnu_linux__)
-size_t strlcat(char *, const char *, size_t);
-size_t strlcpy(char *, const char *, size_t);
-#endif
-
-#if defined(__sun__)
-size_t confstr(int, char *, size_t);
-#endif
-
-#ifndef timeradd
-#define	timeradd(tvp, uvp, vvp)						\
-	do {								\
-		(vvp)->tv_sec = (tvp)->tv_sec + (uvp)->tv_sec;		\
-		(vvp)->tv_usec = (tvp)->tv_usec + (uvp)->tv_usec;	\
-		if ((vvp)->tv_usec >= 1000000) {			\
-			(vvp)->tv_sec++;				\
-			(vvp)->tv_usec -= 1000000;			\
-		}							\
-	} while (0)
-#endif
-#ifndef timersub
-#define	timersub(tvp, uvp, vvp)						\
-	do {								\
-		(vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec;		\
-		(vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec;	\
-		if ((vvp)->tv_usec < 0) {				\
-			(vvp)->tv_sec--;				\
-			(vvp)->tv_usec += 1000000;			\
-		}							\
-	} while (0)
-#endif
 
 #ifndef HAVE_ARC4RANDOM
 #if defined(__gnu_linux__) || defined(__INTERIX) || defined(__sun__) \
