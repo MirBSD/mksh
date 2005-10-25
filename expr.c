@@ -1,10 +1,9 @@
-/**	$MirOS: src/bin/mksh/expr.c,v 1.1 2005/05/23 03:06:07 tg Exp $ */
+/**	$MirOS: src/bin/mksh/expr.c,v 1.2 2005/10/25 19:53:27 tg Exp $ */
 /*	$OpenBSD: expr.c,v 1.18 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
-#include <ctype.h>
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.1 2005/05/23 03:06:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.2 2005/10/25 19:53:27 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {

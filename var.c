@@ -1,12 +1,9 @@
-/**	$MirOS: src/bin/mksh/var.c,v 1.9 2005/10/21 11:55:23 tg Exp $ */
+/**	$MirOS: src/bin/mksh/var.c,v 1.10 2005/10/25 19:53:29 tg Exp $ */
 /*	$OpenBSD: var.c,v 1.27 2005/10/08 18:02:59 otto Exp $	*/
 
 #include "sh.h"
-#include <sys/stat.h>
-#include <ctype.h>
-#include <time.h>
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.9 2005/10/21 11:55:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.10 2005/10/25 19:53:29 tg Exp $");
 
 /*
  * Variables

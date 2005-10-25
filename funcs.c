@@ -1,22 +1,12 @@
-/**	$MirOS: src/bin/mksh/funcs.c,v 1.22 2005/10/25 19:35:14 tg Exp $ */
+/**	$MirOS: src/bin/mksh/funcs.c,v 1.23 2005/10/25 19:53:27 tg Exp $ */
 /*	$OpenBSD: c_ksh.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.31 2005/10/08 18:07:31 otto Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.14 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
-#include <sys/time.h>
-#if defined(__sun__)
-#include <sys/mkdev.h>
-#endif
-#include <sys/stat.h>
-#include <sys/resource.h>
-#include <ctype.h>
-#if !defined(__OpenBSD__) && !defined(__CYGWIN__)
-#include <ulimit.h>
-#endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.22 2005/10/25 19:35:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.23 2005/10/25 19:53:27 tg Exp $");
 
 int
 c_cd(char **wp)

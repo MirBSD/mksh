@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.20 2005/10/25 19:46:11 tg Exp $ */
+/**	$MirOS: src/bin/mksh/sh.h,v 1.21 2005/10/25 19:53:28 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.28 2005/10/04 20:35:11 otto Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
@@ -23,12 +23,23 @@
 #define	__RCSID(x)	static const char __rcsid[] __attribute__((used)) = (x)
 #endif
 
+#include <sys/time.h>
+#include <sys/file.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <sys/resource.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <ctype.h>
+#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <libgen.h>
 #include <limits.h>
 #if !defined(__sun__)
 #include <paths.h>
 #endif
+#include <pwd.h>
 #include <setjmp.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -38,10 +49,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
+#include <time.h>
 #include <unistd.h>
-#if defined(__sun__) || defined(__gnu_linux__)
-#include <values.h>
-#endif
 #if defined(NEED_COMPAT)
 #include "compat.h"
 #endif

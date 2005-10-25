@@ -1,10 +1,9 @@
-/**	$MirOS: src/bin/mksh/shf.c,v 1.1 2005/05/23 03:06:10 tg Exp $ */
+/**	$MirOS: src/bin/mksh/shf.c,v 1.2 2005/10/25 19:53:29 tg Exp $ */
 /*	$OpenBSD: shf.c,v 1.13 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
-#include <sys/stat.h>
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.1 2005/05/23 03:06:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.2 2005/10/25 19:53:29 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
