@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.19 2005/10/25 19:46:52 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.20 2005/10/25 20:54:29 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and
 # NROFF. Add -d for dynamic linkage (on Mac, GNU/Linux and Solaris).
@@ -49,6 +49,9 @@ SRCS="alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
 case "`uname -s 2>/dev/null || uname`" in
+Darwin)
+	LDSTATIC= # never works
+	;;
 Linux)
 	# Hello Mr Drepper, we all like you too...</sarcasm>
 	SRCS="$SRCS compat.c strlfun.c"
