@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.20 2005/10/25 20:54:29 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.21 2005/10/25 20:59:00 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and
 # NROFF. Add -d for dynamic linkage (on Mac, GNU/Linux and Solaris).
@@ -55,10 +55,12 @@ Darwin)
 Linux)
 	# Hello Mr Drepper, we all like you too...</sarcasm>
 	SRCS="$SRCS compat.c strlfun.c"
+	LDSTATIC= # glibc dlopens the PAM library with getpwnam at runtime
 	;;
 SunOS)
 	SRCS="$SRCS compat.c"
 	CFLAGS="$CFLAGS -Wno-char-subscripts"
+	LDSTATIC= # alternatively you need libdl... same suckage as above
 	;;
 esac
 
