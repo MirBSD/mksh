@@ -1,10 +1,13 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.18 2005/10/25 19:46:10 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.19 2005/10/25 19:46:52 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and
 # NROFF. Add -d for dynamic linkage (on Mac, GNU/Linux and Solaris).
 
 SHELL="${SHELL:-/bin/sh}"
+case $SHELL in
+*csh*)	SHELL=/bin/sh ;;
+esac
 CC="${CC:-gcc}"
 CFLAGS="${CFLAGS--O2 -fno-strict-aliasing -fno-strength-reduce -Wall -D_FILE_OFFSET_BITS=64}"
 export SHELL CC
