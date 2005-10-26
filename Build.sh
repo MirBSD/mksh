@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.22 2005/10/25 21:07:21 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.23 2005/10/26 08:47:19 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
@@ -76,7 +76,7 @@ $e "$ perl '$srcdir/check.pl' -s '$srcdir/check.t' -p '$curdir/mksh' -C pdksh"
 $e
 $e Installing mirbsdksh:
 $e "# install -c -s -o root -g bin -m 555 mksh /bin/mksh"
-$e "# echo /bin/mksh >>/etc/shells"
+$e "# fgrep -qx /bin/mksh /etc/shells || echo /bin/mksh >>/etc/shells"
 $e
 $e Installing the manual:
 if test -s mksh.cat1; then
