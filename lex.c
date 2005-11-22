@@ -1,9 +1,8 @@
-/**	$MirOS: src/bin/mksh/lex.c,v 1.9 2005/11/22 18:36:19 tg Exp $ */
 /*	$OpenBSD: lex.c,v 1.37 2005/09/11 18:02:27 otto Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.9 2005/11/22 18:36:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.10 2005/11/22 18:40:43 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */

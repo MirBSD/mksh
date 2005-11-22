@@ -1,4 +1,3 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.22 2005/11/22 18:36:20 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.28 2005/10/04 20:35:11 otto Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
@@ -8,6 +7,8 @@
 /*	$OpenBSD: proto.h,v 1.27 2005/10/06 06:39:36 otto Exp $	*/
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
+
+#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.23 2005/11/22 18:40:43 tg Exp $"
 
 #if defined(__INTERIX) && !defined(_ALL_SOURCE)
 #define _ALL_SOURCE

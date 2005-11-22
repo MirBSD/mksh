@@ -1,4 +1,3 @@
-/**	$MirOS: src/bin/mksh/alloc.c,v 1.2 2005/06/08 21:51:20 tg Exp $ */
 /*	$OpenBSD: alloc.c,v 1.7 2004/02/19 18:51:17 deraadt Exp $	*/
 
 /*-
@@ -30,7 +29,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.2 2005/06/08 21:51:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.3 2005/11/22 18:40:40 tg Exp $");
 
 struct link {
 	struct link *prev;

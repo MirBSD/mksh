@@ -1,10 +1,10 @@
-/**	$MirOS: src/bin/mksh/misc.c,v 1.8 2005/10/25 19:53:28 tg Exp $ */
 /*	$OpenBSD: misc.c,v 1.28 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.8 2005/10/25 19:53:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.9 2005/11/22 18:40:43 tg Exp $"
+	"\n" MKSH_SH_H_ID);
 
 short chtypes[UCHAR_MAX+1];	/* type bits for unsigned char */
 

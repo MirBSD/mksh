@@ -1,9 +1,8 @@
-/**	$MirOS: src/bin/mksh/syn.c,v 1.3 2005/10/08 19:31:00 tg Exp $ */
 /*	$OpenBSD: syn.c,v 1.22 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.3 2005/10/08 19:31:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.4 2005/11/22 18:40:44 tg Exp $");
 
 struct nesting_state {
 	int	start_token;	/* token than began nesting (eg, FOR) */

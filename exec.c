@@ -1,9 +1,8 @@
-/**	$MirOS: src/bin/mksh/exec.c,v 1.11 2005/11/22 18:36:19 tg Exp $ */
 /*	$OpenBSD: exec.c,v 1.42 2005/09/11 18:02:27 otto Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.11 2005/11/22 18:36:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.12 2005/11/22 18:40:41 tg Exp $");
 
 static int	comexec(struct op *, struct tbl *volatile, char **,
 		    int volatile);
