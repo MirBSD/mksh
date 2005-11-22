@@ -1,10 +1,10 @@
-/**	$MirOS: src/bin/mksh/sh.h,v 1.21 2005/10/25 19:53:28 tg Exp $ */
+/**	$MirOS: src/bin/mksh/sh.h,v 1.22 2005/11/22 18:36:20 tg Exp $ */
 /*	$OpenBSD: sh.h,v 1.28 2005/10/04 20:35:11 otto Exp $	*/
 /*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
 /*	$OpenBSD: tree.h,v 1.10 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: expand.h,v 1.6 2005/03/30 17:16:37 deraadt Exp $	*/
-/*	$OpenBSD: lex.h,v 1.9 2004/12/18 21:04:52 millert Exp $	*/
+/*	$OpenBSD: lex.h,v 1.10 2005/09/11 18:02:27 otto Exp $	*/
 /*	$OpenBSD: proto.h,v 1.27 2005/10/06 06:39:36 otto Exp $	*/
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
@@ -954,6 +954,7 @@ typedef union {
 #define CMDWORD		BIT(8)	/* parsing simple command (alias related) */
 #define HEREDELIM	BIT(9)	/* parsing <<,<<- delimiter */
 #define	LQCHAR		BIT(10)	/* source string contains QCHAR */
+#define	HEREDOC		BIT(11)	/* parsing a here document */
 
 #define	HERES	10		/* max << in line */
 

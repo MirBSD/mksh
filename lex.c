@@ -1,9 +1,9 @@
-/**	$MirOS: src/bin/mksh/lex.c,v 1.8 2005/10/25 19:53:28 tg Exp $ */
-/*	$OpenBSD: lex.c,v 1.36 2005/03/30 17:16:37 deraadt Exp $	*/
+/**	$MirOS: src/bin/mksh/lex.c,v 1.9 2005/11/22 18:36:19 tg Exp $ */
+/*	$OpenBSD: lex.c,v 1.37 2005/09/11 18:02:27 otto Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.8 2005/10/25 19:53:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.9 2005/11/22 18:36:19 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -218,11 +218,16 @@ yylex(int cf)
 			case '\\':
 				c = getsc();
 				switch (c) {
-				case '"': case '\\':
+				case '"':
+					if ((cf & HEREDOC))
+						goto heredocquote;
+					/* FALLTROUGH */
+				case '\\':
 				case '$': case '`':
 					*wp++ = QCHAR, *wp++ = c;
 					break;
 				default:
+heredocquote:
 					Xcheck(ws, wp);
 					if (c) { /* trailing \ is lost */
 						*wp++ = CHAR, *wp++ = '\\';

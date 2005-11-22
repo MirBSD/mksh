@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.24 2005/11/22 18:09:18 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.25 2005/11/22 18:36:20 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.107 2005/11/16 12:49:21 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -1849,9 +1849,9 @@ escapes for
 .Ql ` ,
 .Ql \e ,
 and
-.Ql \enewline ;
-any backslash preceding double quotes is removed (see
-.Sx BUGS ) .
+.Ql \enewline .
+Handling of double quotes follows
+.St -susv3 .
 If multiple here documents are used on the same command line, they are saved in
 order.
 .It \*(Lt\*(Lt- Ar marker
@@ -5146,21 +5146,14 @@ Privileged shell profile.
 .Sh AUTHORS
 This shell is based on the public domain korn shell.
 It has been developed further by the MirOS project
-incorporating changes from the OpenBSD project.
+incorporating changes from the Debian and OpenBSD
+projects and suggestions from many people.
 .Sh BUGS
 Please report bugs in
 .Nm
 to the
 .Mx
 development team.
-.Pp
-Quoting rules for here documents are the same as for
-double-quoted strings due to legacy reasons; this conforms with
-.St -p1003.2-92
-interpretation #104 and considered a feature of
-.Nm
-despite breaking compatibility with
-.St -susv3 .
 .Pp
 By the way, the most frequently reported bug is:
 .Bd -literal -offset indent

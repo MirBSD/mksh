@@ -1,9 +1,9 @@
-/**	$MirOS: src/bin/mksh/exec.c,v 1.10 2005/10/25 19:53:27 tg Exp $ */
-/*	$OpenBSD: exec.c,v 1.41 2005/03/30 17:16:37 deraadt Exp $	*/
+/**	$MirOS: src/bin/mksh/exec.c,v 1.11 2005/11/22 18:36:19 tg Exp $ */
+/*	$OpenBSD: exec.c,v 1.42 2005/09/11 18:02:27 otto Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.10 2005/10/25 19:53:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.11 2005/11/22 18:36:19 tg Exp $");
 
 static int	comexec(struct op *, struct tbl *volatile, char **,
 		    int volatile);
@@ -1170,7 +1170,7 @@ herein(const char *content, int sub)
 		s = pushs(SSTRING, ATEMP);
 		s->start = s->str = content;
 		source = s;
-		if (yylex(ONEWORD) != LWORD)
+		if (yylex(ONEWORD|HEREDOC) != LWORD)
 			internal_errorf(1, "herein: yylex");
 		source = osource;
 		shf_puts(evalstr(yylval.cp, 0), shf);
