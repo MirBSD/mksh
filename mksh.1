@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.25 2005/11/22 18:36:20 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.26 2006/01/27 10:58:36 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.107 2005/11/16 12:49:21 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -231,7 +231,7 @@ is used to separate commands;
 is used to create asynchronous pipelines;
 .Ql &&
 and
-.Ql ||
+.Ql \*(Ba\*(Ba
 are used to specify conditional execution;
 .Ql ;;
 is used in
@@ -344,7 +344,7 @@ assignments is that of the last command substitution performed during the
 parameter assignment or 0 if there were no command substitutions.
 .Pp
 Commands can be chained together using the
-.Ql |
+.Ql \*(Ba
 token to form pipelines, in which the standard output of each command but the
 last is piped (see
 .Xr pipe 2 )
@@ -360,9 +360,9 @@ if the original status was not 0, the complemented status will be 0.
 of commands can be created by separating pipelines by any of the following
 tokens:
 .Ql && ,
-.Ql || ,
+.Ql \*(Ba\*(Ba ,
 .Ql & ,
-.Ql |& ,
+.Ql \*(Ba& ,
 and
 .Ql \&; .
 The first two are for conditional execution:
@@ -372,7 +372,7 @@ executes
 only if the exit status of
 .Ar cmd1
 is zero;
-.Ql ||
+.Ql \*(Ba\*(Ba
 is the opposite \(em
 .Ar cmd2
 is executed only if the exit status of
@@ -380,24 +380,24 @@ is executed only if the exit status of
 is non-zero.
 .Ql &&
 and
-.Ql ||
+.Ql \*(Ba\*(Ba
 have equal precedence which is higher than that of
 .Ql & ,
-.Ql |& ,
+.Ql \*(Ba& ,
 and
 .Ql \&; ,
 which also have equal precedence.
 Note that the
 .Ql &&
 and
-.Ql ||
+.Ql \*(Ba\*(Ba
 operators are
 .Qq left-associative .
 For example, both of these commands will print only
 .Qq bar :
 .Bd -literal -offset indent
-$ false && echo foo || echo bar
-$ true || echo foo && echo bar
+$ false && echo foo \*(Ba\*(Ba echo bar
+$ true \*(Ba\*(Ba echo foo && echo bar
 .Ed
 .Pp
 The
@@ -416,7 +416,7 @@ ignored and with input redirected from
 .Pa /dev/null
 (however, redirections specified in the asynchronous command have precedence).
 The
-.Ql |&
+.Ql \*(Ba&
 operator starts a co-process which is a special kind of asynchronous process
 (see
 .Sx Co-processes
@@ -424,10 +424,10 @@ below).
 Note that a command must follow the
 .Ql &&
 and
-.Ql ||
+.Ql \*(Ba\*(Ba
 operators, while it need not follow
 .Ql & ,
-.Ql |& ,
+.Ql \*(Ba& ,
 or
 .Ql \&; .
 The exit status of a list is that of the last command executed, with the
@@ -720,7 +720,7 @@ and
 operators are replaced with
 .Ql &&
 and
-.Ql || ,
+.Ql \*(Ba\*(Ba ,
 respectively.
 .It
 Operators (e.g.\&
@@ -749,7 +749,7 @@ Parameter, command, and arithmetic substitutions are performed as expressions
 are evaluated and lazy expression evaluation is used for the
 .Ql &&
 and
-.Ql ||
+.Ql \*(Ba\*(Ba
 operators.
 This means that in the following statement,
 .Ic $(\*(Lt foo)
@@ -1686,7 +1686,7 @@ except it matches any character not inside the brackets.
 Matches any string of characters that matches zero or more occurrences of the
 specified patterns.
 Example: The pattern
-.Ic *(foo|bar)
+.Ic *(foo\*(Babar)
 matches the strings
 .Dq ,
 .Dq foo ,
@@ -1699,7 +1699,7 @@ etc.
 Matches any string of characters that matches one or more occurrences of the
 specified patterns.
 Example: The pattern
-.Ic +(foo|bar)
+.Ic +(foo\*(Babar)
 matches the strings
 .Dq foo ,
 .Dq bar ,
@@ -1711,7 +1711,7 @@ etc.
 Matches the empty string or a string that matches one of the specified
 patterns.
 Example: The pattern
-.Ic ?(foo|bar)
+.Ic ?(foo\*(Babar)
 only matches the strings
 .Dq ,
 .Dq foo ,
@@ -1722,7 +1722,7 @@ and
 .Sm on
 Matches a string that matches one of the specified patterns.
 Example: The pattern
-.Ic @(foo|bar)
+.Ic @(foo\*(Babar)
 only matches the strings
 .Dq foo
 and
@@ -1732,7 +1732,7 @@ and
 .Sm on
 Matches any string that does not match one of the specified patterns.
 Examples: The pattern
-.Ic !(foo|bar)
+.Ic !(foo\*(Babar)
 matches all strings except
 .Dq foo
 and
@@ -2894,7 +2894,7 @@ is syntactic sugar for
 .Ic mknod
 .Op Fl m Ar mode
 .Ar name
-.Op Cm c | Cm b
+.Op Cm c \*(Ba Cm b
 .Ar major minor
 .Xc
 .It Xo
@@ -3058,6 +3058,32 @@ If the
 .Fl s
 option is used, input is saved to the history file.
 .Pp
+Another handy set of tricks:
+If
+.Ic read
+is run in a loop such as
+.Ic while read foo; do ...; done
+then leading whitespace will be removed (IFS) and backslashes processed
+.Pf ( Fl r ) .
+You might want to use
+.Ic while IFS= read -r foo; do ...; done
+for pristine I/O (variable splitting, as in
+.Ic while IFS= read foo bar; do ...; done
+is not possible though).
+.Pp
+The inner loop will be executed in a subshell and variable changes
+cannot be propagated if executed in a pipeline:
+.Bd -literal -offset indent
+foo \*(Ba bar \*(Ba while read foo; do ...; done
+.Ed
+.Pp
+Use co-processes instead:
+.Bd -literal -offset indent
+foo \*(Ba bar \*(Ba&
+while read -p foo; do ...; done
+exec 3\*(Gt&p; exec 3\*(Gt&-
+.Ed
+.Pp
 .It Xo
 .Ic readonly
 .Op Fl p
@@ -3160,7 +3186,7 @@ explicitly tested by a shell construct such as
 .Ic while ,
 .Ic && ,
 or
-.Ic ||
+.Ic \*(Ba\*(Ba
 statements.
 .It Fl f \*(Ba Ic noglob
 Do not expand file name patterns.
@@ -4699,7 +4725,7 @@ with the resulting words.
 If the current big-word is the first on the line (or
 follows one of the following characters:
 .Ql \&; ,
-.Ql | ,
+.Ql \*(Ba ,
 .Ql & ,
 .Ql ( ,
 or
@@ -5157,7 +5183,7 @@ development team.
 .Pp
 By the way, the most frequently reported bug is:
 .Bd -literal -offset indent
-$ print hi | read a; print $a   # Does not show hi
+$ print hi \*(Ba read a; print $a   # Does not show hi
 .Ed
 .Pp
 The
