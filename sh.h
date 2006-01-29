@@ -1,14 +1,14 @@
-/*	$OpenBSD: sh.h,v 1.28 2005/10/04 20:35:11 otto Exp $	*/
-/*	$OpenBSD: shf.h,v 1.5 2005/03/30 17:16:37 deraadt Exp $	*/
-/*	$OpenBSD: table.h,v 1.6 2004/12/18 20:55:52 millert Exp $	*/
+/*	$OpenBSD: sh.h,v 1.29 2005/12/11 18:53:51 deraadt Exp $	*/
+/*	$OpenBSD: shf.h,v 1.6 2005/12/11 18:53:51 deraadt Exp $	*/
+/*	$OpenBSD: table.h,v 1.7 2005/12/11 20:31:21 otto Exp $	*/
 /*	$OpenBSD: tree.h,v 1.10 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: expand.h,v 1.6 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: lex.h,v 1.10 2005/09/11 18:02:27 otto Exp $	*/
-/*	$OpenBSD: proto.h,v 1.27 2005/10/06 06:39:36 otto Exp $	*/
+/*	$OpenBSD: proto.h,v 1.29 2005/12/11 20:31:21 otto Exp $	*/
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.23 2005/11/22 18:40:43 tg Exp $"
+#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.24 2006/01/29 20:04:53 tg Exp $"
 
 #if defined(__INTERIX) && !defined(_ALL_SOURCE)
 #define _ALL_SOURCE
@@ -227,7 +227,6 @@ EXTERN	char shell_flags [FNFLAGS];
 EXTERN	char	null [] I__("");	/* null value for variable */
 EXTERN	char	space [] I__(" ");
 EXTERN	char	newline [] I__("\n");
-EXTERN	char	slash [] I__("/");
 
 enum temp_type {
 	TT_HEREDOC_EXP,	/* expanded heredoc */
@@ -585,7 +584,7 @@ struct block {
 #define BF_DOGETOPTS	BIT(0)	/* save/restore getopts state */
 
 /*
- * Used by twalk() and tnext() routines.
+ * Used by ktwalk() and ktnext() routines.
  */
 struct tstate {
 	int left;
@@ -1048,7 +1047,6 @@ int	c_fc(char **);
 void	sethistsize(int);
 void	sethistfile(const char *);
 char **	histpos(void);
-int	histN(void);
 int	histnum(int);
 int	findhist(int, int, const char *, int);
 int	findhistrel(const char *);
@@ -1100,7 +1098,6 @@ void	newenv(int);
 void	quitenv(struct shf *);
 void	cleanup_parents_env(void);
 void	cleanup_proc_env(void);
-void	aerror(Area *, const char *) __attribute__((__noreturn__));
 void	errorf(const char *, ...)
 	    __attribute__((__noreturn__, __format__ (printf, 1, 2)));
 void	warningf(int, const char *, ...)
@@ -1130,13 +1127,13 @@ int	coproc_getfd(int, const char **);
 void	coproc_cleanup(int);
 struct temp *maketemp(Area *, Temp_type, struct temp **);
 unsigned int	hash(const char *);
-void		tinit(struct table *, Area *, int);
-struct tbl *	tsearch(struct table *, const char *, unsigned int);
-struct tbl *	tenter(struct table *, const char *, unsigned int);
-void		tdelete(struct tbl *);
-void		twalk(struct tstate *, struct table *);
-struct tbl *	tnext(struct tstate *);
-struct tbl **	tsort(struct table *);
+void		ktinit(struct table *, Area *, int);
+struct tbl *	ktsearch(struct table *, const char *, unsigned int);
+struct tbl *	ktenter(struct table *, const char *, unsigned int);
+void		ktdelete(struct tbl *);
+void		ktwalk(struct tstate *, struct table *);
+struct tbl *	ktnext(struct tstate *);
+struct tbl **	ktsort(struct table *);
 /* misc.c */
 void	setctypes(const char *, int);
 void	initctypes(void);
@@ -1176,9 +1173,7 @@ struct shf *shf_sopen(char *, int, int, struct shf *);
 int	shf_close(struct shf *);
 int	shf_fdclose(struct shf *);
 char *	shf_sclose(struct shf *);
-int	shf_finish(struct shf *);
 int	shf_flush(struct shf *);
-int	shf_seek(struct shf *, off_t, int);
 int	shf_read(char *, int, struct shf *);
 char *	shf_getse(char *, int, struct shf *);
 int	shf_getchar(struct shf *s);

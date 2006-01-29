@@ -1,12 +1,12 @@
-/*	$OpenBSD: main.c,v 1.38 2005/03/30 17:16:37 deraadt Exp $	*/
+/*	$OpenBSD: main.c,v 1.40 2005/12/11 20:31:21 otto Exp $	*/
 /*	$OpenBSD: tty.c,v 1.8 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
-/*	$OpenBSD: table.c,v 1.11 2005/03/30 17:16:37 deraadt Exp $	*/
+/*	$OpenBSD: table.c,v 1.12 2005/12/11 20:31:21 otto Exp $	*/
 
 #define	EXTERN				/* define EXTERNs in sh.h */
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.31 2005/11/22 18:40:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.32 2006/01/29 20:04:52 tg Exp $");
 
 #define	MKSH_VERSION	"@(#)MIRBSD KSH R26 2005/11/22"
 
@@ -99,15 +99,15 @@ main(int argc, char *argv[])
 	coproc_init();
 
 	/* set up variable and command dictionaries */
-	tinit(&taliases, APERM, 0);
-	tinit(&aliases, APERM, 0);
-	tinit(&homedirs, APERM, 0);
+	ktinit(&taliases, APERM, 0);
+	ktinit(&aliases, APERM, 0);
+	ktinit(&homedirs, APERM, 0);
 
 	/* define shell keywords */
 	initkeywords();
 
 	/* define built-in commands */
-	tinit(&builtins, APERM, 64); /* must be 2^n (currently 40 builtins) */
+	ktinit(&builtins, APERM, 64); /* must be 2^n (currently 40 builtins) */
 	for (i = 0; shbuiltins[i].name != NULL; i++)
 		builtin(shbuiltins[i].name, shbuiltins[i].func);
 	for (i = 0; kshbuiltins[i].name != NULL; i++)
@@ -659,14 +659,6 @@ remove_temps(struct temp *tp)
 		}
 }
 
-void
-aerror(Area *ap __attribute__((unused)), const char *msg)
-{
-	internal_errorf(1, "alloc: %s", msg);
-	errorf(null); /* this is never executed - keeps gcc quiet */
-	/*NOTREACHED*/
-}
-
 /* Initialize tty_fd.  Used for saving/reseting tty modes upon
  * foreground job completion and for setting up tty process group.
  */
@@ -1094,7 +1086,7 @@ hash(const char *n)
 }
 
 void
-tinit(struct table *tp, Area *ap, int tsize)
+ktinit(struct table *tp, Area *ap, int tsize)
 {
 	tp->areap = ap;
 	tp->tbls = NULL;
@@ -1139,7 +1131,7 @@ texpand(struct table *tp, int nsize)
 /* name to enter */
 /* hash(n) */
 struct tbl *
-tsearch(struct table *tp, const char *n, unsigned int h)
+ktsearch(struct table *tp, const char *n, unsigned int h)
 {
 	struct tbl **pp, *p;
 
@@ -1162,7 +1154,7 @@ tsearch(struct table *tp, const char *n, unsigned int h)
 /* name to enter */
 /* hash(n) */
 struct tbl *
-tenter(struct table *tp, const char *n, unsigned int h)
+ktenter(struct table *tp, const char *n, unsigned int h)
 {
 	struct tbl **pp, *p;
 	int len;
@@ -1200,20 +1192,20 @@ Search:
 }
 
 void
-tdelete(struct tbl *p)
+ktdelete(struct tbl *p)
 {
 	p->flag = 0;
 }
 
 void
-twalk(struct tstate *ts, struct table *tp)
+ktwalk(struct tstate *ts, struct table *tp)
 {
 	ts->left = tp->size;
 	ts->next = tp->tbls;
 }
 
 struct tbl *
-tnext(struct tstate *ts)
+ktnext(struct tstate *ts)
 {
 	while (--ts->left >= 0) {
 		struct tbl *p = *ts->next++;
@@ -1230,7 +1222,7 @@ tnamecmp(void *p1, void *p2)
 }
 
 struct tbl **
-tsort(struct table *tp)
+ktsort(struct table *tp)
 {
 	int i;
 	struct tbl **p, **sp, **dp;

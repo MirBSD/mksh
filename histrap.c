@@ -1,9 +1,9 @@
-/*	$OpenBSD: history.c,v 1.31 2005/07/31 16:12:52 espie Exp $	*/
+/*	$OpenBSD: history.c,v 1.32 2005/12/11 18:53:51 deraadt Exp $	*/
 /*	$OpenBSD: trap.c,v 1.22 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.13 2005/11/22 18:40:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.14 2006/01/29 20:04:51 tg Exp $");
 
 static int	histfd;
 static int	hsize;
@@ -25,7 +25,6 @@ static char   **hist_get_oldest(void);
 static void	histbackup(void);
 
 static char   **current;	/* current position in history[] */
-static int	curpos;		/* current index in history[] */
 static char    *hname;		/* current name of history file */
 static int	hstarted;	/* set after hist_init() called */
 static Source	*hist_source;
@@ -433,23 +432,15 @@ histpos(void)
 }
 
 int
-histN(void)
-{
-	return curpos;
-}
-
-int
 histnum(int n)
 {
 	int	last = histptr - history;
 
 	if (n < 0 || n >= last) {
 		current = histptr;
-		curpos = last;
 		return last;
 	} else {
 		current = &history[n];
-		curpos = n;
 		return n;
 	}
 }

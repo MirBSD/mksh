@@ -1,8 +1,8 @@
-/*	$OpenBSD: eval.c,v 1.27 2005/03/30 17:16:37 deraadt Exp $	*/
+/*	$OpenBSD: eval.c,v 1.28 2005/12/11 20:31:21 otto Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.9 2005/11/22 18:40:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.10 2006/01/29 20:04:50 tg Exp $");
 
 /*
  * string expansion
@@ -1181,7 +1181,7 @@ homedir(char *name)
 {
 	struct tbl *ap;
 
-	ap = tenter(&homedirs, name, hash(name));
+	ap = ktenter(&homedirs, name, hash(name));
 	if (!(ap->flag & ISSET)) {
 		struct passwd *pw;
 

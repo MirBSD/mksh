@@ -1,8 +1,8 @@
-/*	$OpenBSD: syn.c,v 1.22 2005/03/30 17:16:37 deraadt Exp $	*/
+/*	$OpenBSD: syn.c,v 1.23 2005/12/11 20:31:21 otto Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.4 2005/11/22 18:40:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.5 2006/01/29 20:04:53 tg Exp $");
 
 struct nesting_state {
 	int	start_token;	/* token than began nesting (eg, FOR) */
@@ -659,10 +659,10 @@ initkeywords(void)
 	struct tokeninfo const *tt;
 	struct tbl *p;
 
-	tinit(&keywords, APERM, 32); /* must be 2^n (currently 20 keywords) */
+	ktinit(&keywords, APERM, 32); /* must be 2^n (currently 20 keywords) */
 	for (tt = tokentab; tt->name; tt++) {
 		if (tt->reserved) {
-			p = tenter(&keywords, tt->name, hash(tt->name));
+			p = ktenter(&keywords, tt->name, hash(tt->name));
 			p->flag |= DEFINED|ISSET;
 			p->type = CKEYWD;
 			p->val.i = tt->val;

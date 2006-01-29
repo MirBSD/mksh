@@ -1,8 +1,8 @@
-/*	$OpenBSD: shf.c,v 1.13 2005/03/30 17:16:37 deraadt Exp $	*/
+/*	$OpenBSD: shf.c,v 1.14 2005/12/11 18:53:51 deraadt Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.3 2005/11/22 18:40:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.4 2006/01/29 20:04:53 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -260,22 +260,6 @@ shf_sclose(struct shf *shf)
 	return (char *) s;
 }
 
-/* Flush and free file structure, don't close file descriptor */
-int
-shf_finish(struct shf *shf)
-{
-	int ret = 0;
-
-	if (shf->fd >= 0)
-		ret = shf_flush(shf);
-	if (shf->flags & SHF_ALLOCS)
-		afree(shf, shf->areap);
-	else if (shf->flags & SHF_ALLOCB)
-		afree(shf->buf, shf->areap);
-
-	return ret;
-}
-
 /* Un-read what has been read but not examined, or write what has been
  * buffered.  Returns 0 for success, EOF for (write) error.
  */
@@ -431,50 +415,6 @@ shf_fillbuf(struct shf *shf)
 	}
 	return 0;
 }
-
-/* Seek to a new position in the file.  If writing, flushes the buffer
- * first.  If reading, optimizes small relative seeks that stay inside the
- * buffer.  Returns 0 for success, EOF otherwise.
- */
-int
-shf_seek(struct shf *shf, off_t where, int from)
-{
-	if (shf->fd < 0) {
-		errno = EINVAL;
-		return EOF;
-	}
-
-	if (shf->flags & SHF_ERROR) {
-		errno = shf->errno_;
-		return EOF;
-	}
-
-	if ((shf->flags & SHF_WRITING) && shf_emptybuf(shf, EB_READSW) == EOF)
-		return EOF;
-
-	if (shf->flags & SHF_READING) {
-		if (from == SEEK_CUR &&
-		    (where < 0 ? -where >= shf->rbsize - shf->rnleft :
-		    where < shf->rnleft)) {
-			shf->rnleft -= where;
-			shf->rp += where;
-			return 0;
-		}
-		shf->rnleft = 0;
-		shf->rp = shf->buf;
-	}
-
-	shf->flags &= ~(SHF_EOF | SHF_READING | SHF_WRITING);
-
-	if (lseek(shf->fd, where, from) < 0) {
-		shf->errno_ = errno;
-		shf->flags |= SHF_ERROR;
-		return EOF;
-	}
-
-	return 0;
-}
-
 
 /* Read a buffer from shf.  Returns the number of bytes read into buf,
  * if no bytes were read, returns 0 if end of file was seen, EOF if

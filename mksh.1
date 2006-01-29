@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.27 2006/01/27 10:59:30 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.107 2005/11/16 12:49:21 jmc Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.28 2006/01/29 20:04:52 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.109 2005/12/06 20:40:02 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
 .Dd May 22, 2005
@@ -1468,11 +1468,20 @@ If you don't have any non-printing characters, you're out of luck.
 By the way, don't blame me for
 this hack; it's in the original
 .Xr ksh88 1 .
-The default is
+The default prompt is
 .Sq $\ \&
 for non-root users,
 .Sq #\ \&
 for root.
+If
+.Nm
+is invoked by root and
+.Ev PS1
+does not contain a
+.Sq #
+character, the default value will be used even if
+.Ev PS1
+already exists in the environment.
 .Pp
 Since Backslashes and other special characters may be
 interpreted by the shell, to set

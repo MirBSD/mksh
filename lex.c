@@ -1,8 +1,8 @@
-/*	$OpenBSD: lex.c,v 1.37 2005/09/11 18:02:27 otto Exp $	*/
+/*	$OpenBSD: lex.c,v 1.38 2005/12/11 20:31:21 otto Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.10 2005/11/22 18:40:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.11 2006/01/29 20:04:52 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -710,12 +710,12 @@ Done:
 		int h = hash(ident);
 
 		/* { */
-		if ((cf & KEYWORD) && (p = tsearch(&keywords, ident, h)) &&
+		if ((cf & KEYWORD) && (p = ktsearch(&keywords, ident, h)) &&
 		    (!(cf & ESACONLY) || p->val.i == ESAC || p->val.i == '}')) {
 			afree(yylval.cp, ATEMP);
 			return p->val.i;
 		}
-		if ((cf & ALIAS) && (p = tsearch(&aliases, ident, h)) &&
+		if ((cf & ALIAS) && (p = ktsearch(&aliases, ident, h)) &&
 		    (p->flag & ISSET)) {
 			Source *s;
 

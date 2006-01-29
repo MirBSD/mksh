@@ -1,11 +1,11 @@
-/*	$OpenBSD: edit.c,v 1.30 2005/09/11 18:08:47 otto Exp $	*/
+/*	$OpenBSD: edit.c,v 1.31 2005/12/11 20:31:21 otto Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.39 2005/09/26 19:25:22 otto Exp $	*/
-/*	$OpenBSD: vi.c,v 1.21 2005/03/30 17:16:37 deraadt Exp $	*/
+/*	$OpenBSD: vi.c,v 1.22 2005/12/11 20:31:21 otto Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.17 2005/11/22 18:40:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.18 2006/01/29 20:04:49 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -760,7 +760,7 @@ glob_table(const char *pat, XPtrV *wp, struct table *tp)
 	struct tstate ts;
 	struct tbl *te;
 
-	for (twalk(&ts, tp); (te = tnext(&ts)); ) {
+	for (ktwalk(&ts, tp); (te = ktnext(&ts)); ) {
 		if (gmatchx(te->name, pat, false))
 			XPput(*wp, str_save(te->name, ATEMP));
 	}
@@ -3568,7 +3568,7 @@ vi_cmd(int argcnt, const char *cmd)
 
 				/* lookup letter in alias list... */
 				alias[1] = cmd[1];
-				ap = tsearch(&aliases, alias, hash(alias));
+				ap = ktsearch(&aliases, alias, hash(alias));
 				if (!cmd[1] || !ap || !(ap->flag & ISSET))
 					return -1;
 				/* check if this is a recursive call... */
