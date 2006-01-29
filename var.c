@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.13 2006/01/29 20:04:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.14 2006/01/29 20:10:16 tg Exp $");
 
 /*
  * Variables
@@ -13,8 +13,8 @@ __RCSID("$MirOS: src/bin/mksh/var.c,v 1.13 2006/01/29 20:04:54 tg Exp $");
  * otherwise, (val.s + type) contains string value.
  * if (flag&EXPORT), val.s contains "name=value" for E-Z exporting.
  */
-static	struct tbl vtemp;
-static	struct table specials;
+static struct tbl vtemp;
+static struct table specials;
 static char	*formatstr(struct tbl *, const char *);
 static void	export(struct tbl *, const char *);
 static int	special(const char *);
@@ -848,7 +848,9 @@ makenv(void)
  * Someone has set the srand() value, therefore from now on
  * we return values from rand() instead of arc4random()
  */
-int use_rand = !HAVE_ARC4RANDOM;
+#if HAVE_ARC4RANDOM
+int use_rand = 0;
+#endif
 
 /*
  * Called after a fork in parent to bump the random number generator.
@@ -858,7 +860,9 @@ int use_rand = !HAVE_ARC4RANDOM;
 void
 change_random(void)
 {
+#if HAVE_ARC4RANDOM
 	if (use_rand)
+#endif
 		rand();
 }
 
@@ -906,7 +910,9 @@ getspec(struct tbl *vp)
 		break;
 	case V_RANDOM:
 		vp->flag &= ~SPECIAL;
+#if HAVE_ARC4RANDOM
 		if (use_rand)
+#endif
 			setint(vp, (long) (rand() & 0x7fff));
 #if HAVE_ARC4RANDOM
 		else
