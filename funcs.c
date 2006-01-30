@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.25 2006/01/29 20:04:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.26 2006/01/30 12:37:22 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -347,7 +347,7 @@ c_print(char **wp)
 
 		/* Ensure we aren't killed by a SIGPIPE while writing to
 		 * a coprocess.  at&t ksh doesn't seem to do this (seems
-		 * to just check that the co-process is alive, which is
+		 * to just check that the co-process is alive which is
 		 * not enough).
 		 */
 		if (coproc.write >= 0 && coproc.write == fd) {
@@ -541,7 +541,7 @@ c_typeset(char **wp)
 
 	fieldstr = basestr = NULL;
 	builtin_opt.flags |= GF_PLUSOPT;
-	/* at&t ksh seems to have 0-9 as options, which are multiplied
+	/* at&t ksh seems to have 0-9 as options which are multiplied
 	 * to get a number that is used with -L, -R, -Z or -i (eg, -1R2
 	 * sets right justify in a field of 12).  This allows options
 	 * to be grouped in an order (eg, -Lu12), but disallows -i8 -L3 and

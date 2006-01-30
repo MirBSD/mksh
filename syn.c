@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.5 2006/01/29 20:04:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.6 2006/01/30 12:37:24 tg Exp $");
 
 struct nesting_state {
 	int	start_token;	/* token than began nesting (eg, FOR) */
@@ -242,7 +242,7 @@ get_command(int cf)
 				break;
 
 			case '(':
-				/* Check for "> foo (echo hi)", which at&t ksh
+				/* Check for "> foo (echo hi)" which at&t ksh
 				 * allows (not POSIX, but not disallowed)
 				 */
 				afree(t, ATEMP);

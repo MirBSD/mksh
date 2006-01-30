@@ -6,7 +6,7 @@
 #define	EXTERN				/* define EXTERNs in sh.h */
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.33 2006/01/29 20:56:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.34 2006/01/30 12:37:23 tg Exp $");
 
 #define	MKSH_VERSION	"@(#)MIRBSD KSH R26 2006/01/29"
 
@@ -481,7 +481,7 @@ shell(Source * volatile s, volatile int toplevel)
 				really_exit = 1;
 				s->type = SSTDIN;
 			} else {
-				/* this for POSIX, which says EXIT traps
+				/* this for POSIX which says EXIT traps
 				 * shall be taken in the environment
 				 * immediately after the last command
 				 * executed.

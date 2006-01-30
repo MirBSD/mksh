@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.6 2005/11/22 18:40:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.7 2006/01/30 12:37:23 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -930,7 +930,7 @@ j_waitj(Job *j,
 			 * a fork/exec instead of an exec (the fork means
 			 * the execed shell gets a different pid from its
 			 * pgrp, so naturally it sets its pgrp and gets hosed
-			 * when it gets foregrounded by the parent shell, which
+			 * when it gets foregrounded by the parent shell which
 			 * has restored the tty's pgrp to that of the su
 			 * process).
 			 */

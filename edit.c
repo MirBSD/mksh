@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.18 2006/01/29 20:04:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.19 2006/01/30 12:37:21 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -597,7 +597,7 @@ x_locate_word(const char *buf, int buflen, int pos, int *startp,
 		iscmd = p < 0 || strchr(";|&()`", buf[p]);
 		if (iscmd) {
 			/* If command has a /, path, etc. is not searched;
-			 * only current directory is searched, which is just
+			 * only current directory is searched which is just
 			 * like file globbing.
 			 */
 			for (p = start; p < end; p++)

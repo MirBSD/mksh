@@ -1,4 +1,4 @@
-$MirOS: src/bin/mksh/copyright,v 1.9 2006/01/27 00:44:16 tg Stab $
+$MirOS: src/bin/mksh/copyright,v 1.10 2006/01/30 12:37:21 tg Exp $
 
 mksh is a collective work under the following licence:
 
@@ -34,5 +34,5 @@ stead, please look at the file for the complete terms.
 On systems which use the GNU libc, an additional file (strlfun.c) has
 to be built. It is covered by the ISC/OpenBSD licence.
 
-On GNU/Cygwin, GNU/Linux, Solaris, setmode.c is compiled in, which is
-covered by a three-clause UCB licence.
+On GNU/Cygwin, GNU/Linux, Solaris, setmode.c is compiled in (which is
+covered by a three-clause UCB licence).

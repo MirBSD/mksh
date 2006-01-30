@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.13 2006/01/29 20:04:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.14 2006/01/30 12:37:22 tg Exp $");
 
 static int	comexec(struct op *, struct tbl *volatile, char **,
 		    int volatile);
@@ -395,7 +395,7 @@ comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
 
 	/* Deal with the shell builtins builtin, exec and command since
 	 * they can be followed by other commands.  This must be done before
-	 * we know if we should create a local block, which must be done
+	 * we know if we should create a local block which must be done
 	 * before we can do a path search (in case the assignments change
 	 * PATH).
 	 * Odd cases:

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.15 2006/01/29 20:16:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.16 2006/01/30 12:37:24 tg Exp $");
 
 /*
  * Variables
@@ -583,7 +583,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 		/* IMPORT is only used when the shell starts up and is
 		 * setting up its environment.  Allow only simple array
 		 * references at this time since parameter/command substitution
-		 * is preformed on the [expression], which would be a major
+		 * is preformed on the [expression] which would be a major
 		 * security hole.
 		 */
 		if (set & IMPORT) {
@@ -616,8 +616,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	vpbase = (vp->flag & ARRAY) ? global(arrayname(var)) : vp;
 
 	/* only allow export flag to be set.  at&t ksh allows any attribute to
-	 * be changed, which means it can be truncated or modified
-	 * (-L/-R/-Z/-i).
+	 * be changed which means it can be truncated or modified (-L/-R/-Z/-i)
 	 */
 	if ((vpbase->flag&RDONLY) &&
 	    (val || clr || (set & ~EXPORT)))
