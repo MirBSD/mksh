@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.29 2006/01/30 12:37:23 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.30 2006/02/16 11:48:32 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.109 2005/12/06 20:40:02 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -1858,9 +1858,9 @@ escapes for
 .Ql ` ,
 .Ql \e ,
 and
-.Ql \enewline .
-Handling of double quotes follows
-.St -susv3 .
+.Ql \enewline ,
+but not for
+.Ql \&" .
 If multiple here documents are used on the same command line, they are saved in
 order.
 .It \*(Lt\*(Lt- Ar marker
@@ -3261,6 +3261,8 @@ Enable BRL emacs-like command-line editing (interactive shells only); see
 .It Ic emacs-usemeta
 In emacs command-line editing, use the 8th bit as meta (^[) prefix.
 This is disabled by default, so you can use high-bit7 characters in pathnames.
+If this option is not set, characters in the range 128\-160 are printed as is,
+which may cause problems in some locales.
 .It Ic gmacs
 Enable gmacs-like command-line editing (interactive shells only).
 Currently identical to emacs editing except that transpose (^T) acts slightly
@@ -3334,7 +3336,7 @@ In vi command-line editing, do command and file name completion when escape
 Prefix characters with the eighth bit set with
 .Sq M- .
 If this option is not set, characters in the range 128\-160 are printed as is,
-which may cause problems.
+which may cause problems in some locales.
 .It Ic vi-tabcomplete
 In vi command-line editing, do command and file name completion when tab (^I)
 is entered in insert mode.

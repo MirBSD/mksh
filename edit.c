@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.19 2006/01/30 12:37:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.20 2006/02/16 11:48:31 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -28,7 +28,7 @@ X_chars edchars;
 int x_getc(void);
 void x_flush(void);
 void x_putc(int);
-void x_puts(const char *);
+void x_puts(const u_char *);
 bool x_mode(bool);
 int promptlen(const char *, const char **);
 int x_do_comment(char *, int, int *);
@@ -156,7 +156,7 @@ x_putc(int c)
 }
 
 void
-x_puts(const char *s)
+x_puts(const u_char *s)
 {
 	while (*s != 0)
 		shf_putc(*s++, shl_out);
@@ -870,7 +870,7 @@ static	Area	aedit;
 #define	AEDIT	&aedit		/* area for kill ring and macro defns */
 
 #define	MKCTRL(x)	((x) == '?' ? 0x7F : (x) & 0x1F)	/* ASCII */
-#define	UNCTRL(x)	((x) == 0x7F ? '?' : (x) | 0x40)	/* ASCII */
+#define	UNCTRL(x)	((x) ^ 0x40)				/* ASCII */
 #define	META(x)		((x) & 0x7f)
 #define	ISMETA(x)	(Flag(FEMACSUSEMETA) && ((x) & 0x80))
 
@@ -973,7 +973,7 @@ static void     x_goto(char *);
 static void     x_bs(int);
 static int      x_size_str(char *);
 static int      x_size(int);
-static void     x_zots(char *);
+static void     x_zots(u_char *);
 static void     x_zotc(int);
 static void     x_load_hist(char **);
 static int      x_search(char *, int, int);
@@ -1368,7 +1368,7 @@ x_do_ins(const char *cp, int len)
 static int
 x_ins(char *s)
 {
-	char *cp = xcp;
+	u_char *cp = (u_char *)xcp;
 	int adj = x_adj_done;
 
 	if (x_do_ins(s, strlen(s)) < 0)
@@ -1383,7 +1383,7 @@ x_ins(char *s)
 	x_zots(cp);
 	if (adj == x_adj_done) {	/* has x_adjust() been called? */
 		/* no */
-		for (cp = xlp; cp > xcp; )
+		for (cp = (u_char *)xlp; cp > (u_char *)xcp; )
 			x_bs(*--cp);
 	}
 	x_adj_ok = 1;
@@ -1439,7 +1439,7 @@ static void
 x_delete(int nc, int push)
 {
 	int i, j;
-	char *cp;
+	u_char *cp;
 
 	if (nc == 0)
 		return;
@@ -1456,15 +1456,15 @@ x_delete(int nc, int push)
 		x_push(nc);
 
 	xep -= nc;
-	cp = xcp;
+	cp = (u_char *)xcp;
 	j = 0;
 	i = nc;
 	while (i--) {
-		j += x_size(*cp++);
+		j += x_size(*(u_char *)cp++);
 	}
 	memmove(xcp, xcp + nc, xep - xcp + 1);	/* Copies the null */
 	x_adj_ok = 0;			/* don't redraw */
-	x_zots(xcp);
+	x_zots((u_char *)xcp);
 	/*
 	 * if we are already filling the line,
 	 * there is no need to ' ','\b'.
@@ -1482,7 +1482,7 @@ x_delete(int nc, int push)
 	/*x_goto(xcp);*/
 	x_adj_ok = 1;
 	xlp_valid = false;
-	for (cp = x_lastcp(); cp > xcp;)
+	for (cp = (u_char *)x_lastcp(); cp > (u_char *)xcp; )
 		x_bs(*--cp);
 
 	return;
@@ -1571,11 +1571,15 @@ x_goto(char *cp)
 		xcp = cp;
 		x_adjust();
 	} else if (cp < xcp) {		/* move back */
-		while (cp < xcp)
-			x_bs(*--xcp);
+		u_char *uxcp = (u_char *)xcp;
+		while ((u_char *)cp < uxcp)
+			x_bs(*--uxcp);
+		xcp = (char *)uxcp;
 	} else if (cp > xcp) {		/* move forward */
-		while (cp > xcp)
-			x_zotc(*xcp++);
+		u_char *uxcp = (u_char *)xcp;
+		while ((u_char *)cp > uxcp)
+			x_zotc(*uxcp++);
+		xcp = (char *)uxcp;
 	}
 }
 
@@ -1594,7 +1598,7 @@ x_size_str(char *cp)
 {
 	int size = 0;
 	while (*cp)
-		size += x_size(*cp++);
+		size += x_size(*(u_char *)cp++);
 	return size;
 }
 
@@ -1603,18 +1607,18 @@ x_size(int c)
 {
 	if (c == '\t')
 		return 4;	/* Kludge, tabs are always four spaces. */
-	if (iscntrl(c))		/* control char */
-		return 2;
+	if (c < ' ' || c == 0x7f)
+		return 2;	/* control u_char */
 	return 1;
 }
 
 static void
-x_zots(char *str)
+x_zots(u_char *str)
 {
 	int adj = x_adj_done;
 
 	x_lastcp();
-	while (*str && str < xlp && adj == x_adj_done)
+	while (*str && str < (u_char *)xlp && adj == x_adj_done)
 		x_zotc(*str++);
 }
 
@@ -1624,7 +1628,7 @@ x_zotc(int c)
 	if (c == '\t') {
 		/*  Kludge, tabs are always four spaces.  */
 		x_e_puts("    ");
-	} else if (iscntrl(c)) {
+	} else if (c < ' ' || c == 0x7f) {
 		x_e_putc('^');
 		x_e_putc(UNCTRL(c));
 	} else
@@ -1944,7 +1948,7 @@ static void
 x_redraw(int limit)
 {
 	int i, j;
-	char *cp;
+	u_char *cp;
 
 	x_adj_ok = 0;
 	if (limit == -1)
@@ -1958,8 +1962,8 @@ x_redraw(int limit)
 	}
 	x_displen = xx_cols - 2 - x_col;
 	xlp_valid = false;
-	cp = x_lastcp();
-	x_zots(xbp);
+	cp = (u_char *)x_lastcp();
+	x_zots((u_char *)xbp);
 	if (xbp != xbuf || xep > xlp)
 		limit = xx_cols;
 	if (limit >= 0) {
@@ -1983,7 +1987,7 @@ x_redraw(int limit)
 		while (j--)
 			x_e_putc('\b');
 	}
-	for (cp = xlp; cp > xcp; )
+	for (cp = (u_char *)xlp; cp > (u_char *)xcp; )
 		x_bs(*--cp);
 	x_adj_ok = 1;
 	return;
@@ -2018,10 +2022,10 @@ x_transpose(int c __attribute__((unused)))
 		/* Gosling/Unipress emacs style: Swap two characters before the
 		 * cursor, do not change cursor position
 		 */
-		x_bs(xcp[-1]);
-		x_bs(xcp[-2]);
-		x_zotc(xcp[-1]);
-		x_zotc(xcp[-2]);
+		x_bs(((u_char *)xcp)[-1]);
+		x_bs(((u_char *)xcp)[-2]);
+		x_zotc(((u_char *)xcp)[-1]);
+		x_zotc(((u_char *)xcp)[-2]);
 		tmp = xcp[-1];
 		xcp[-1] = xcp[-2];
 		xcp[-2] = tmp;
@@ -2029,13 +2033,13 @@ x_transpose(int c __attribute__((unused)))
 		/* GNU emacs style: Swap the characters before and under the
 		 * cursor, move cursor position along one.
 		 */
-		x_bs(xcp[-1]);
-		x_zotc(xcp[0]);
-		x_zotc(xcp[-1]);
+		x_bs(((u_char *)xcp)[-1]);
+		x_zotc(((u_char *)xcp)[0]);
+		x_zotc(((u_char *)xcp)[-1]);
 		tmp = xcp[-1];
 		xcp[-1] = xcp[0];
 		xcp[0] = tmp;
-		x_bs(xcp[0]);
+		x_bs(((u_char *)xcp)[0]);
 		x_goto(xcp + 1);
 	}
 	return KSTD;
@@ -2212,7 +2216,7 @@ x_mapout(int c)
 	static char buf[8];
 	char *p = buf;
 
-	if (iscntrl(c)) {
+	if (c < ' ' || c == 0x7f) {
 		*p++ = '^';
 		*p++ = UNCTRL(c);
 	} else
@@ -2868,7 +2872,7 @@ x_lastcp(void)
 
 	if (!xlp_valid) {
 		for (i = 0, rcp = xbp; rcp < xep && i < x_displen; rcp++)
-			i += x_size(*rcp);
+			i += x_size(*(u_char *)rcp);
 		xlp = rcp;
 	}
 	xlp_valid = true;
@@ -4932,7 +4936,7 @@ static void
 x_vi_zotc(int c)
 {
 	if (Flag(FVISHOW8) && (c & 0x80)) {
-		x_puts("M-");
+		x_puts((u_char *)"M-");
 		c &= 0x7f;
 	}
 	if (c < ' ' || c == 0x7f) {
