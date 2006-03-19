@@ -8,17 +8,9 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.24 2006/01/29 20:04:53 tg Exp $"
-
-#if defined(__INTERIX) && !defined(_ALL_SOURCE)
-#define _ALL_SOURCE
-#endif
+#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.25 2006/03/19 18:06:32 tg Exp $"
 
 #include <sys/param.h>
-
-#if defined(__gnu_linux__) && !defined(_POSIX_SOURCE)
-#define _POSIX_SOURCE
-#endif
 
 #ifndef __RCSID
 #define	__RCSID(x)	static const char __rcsid[] __attribute__((used)) = (x)

@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.24 2006/01/27 00:50:12 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.25 2006/03/19 18:06:31 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
@@ -51,13 +51,18 @@ case "`uname -s 2>/dev/null || uname`" in
 Darwin)
 	LDSTATIC= # never works
 	;;
+Interix)
+	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
+	;;
 Linux)
 	# Hello Mr Drepper, we all like you too...</sarcasm>
 	SRCS="$SRCS compat.c strlfun.c"
+	CPPFLAGS="$CPPFLAGS -D_POSIX_SOURCE"
 	LDSTATIC= # glibc dlopens the PAM library with getpwnam at runtime
 	;;
 SunOS)
 	SRCS="$SRCS compat.c"
+	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE"
 	CFLAGS="$CFLAGS -Wno-char-subscripts"
 	LDSTATIC= # alternatively you need libdl... same suckage as above
 	;;
