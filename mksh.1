@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.31 2006/05/08 11:42:36 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.32 2006/05/08 11:59:41 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.109 2005/12/06 20:40:02 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -187,7 +187,7 @@ substitution and the resulting file
 (if any) is read and executed.
 If the
 .Ev ENV
-variable is unset, the file
+variable is unset or empty, the file
 .Pa $HOME/.mkshrc
 is read and processed like above instead, leaving
 .Ev ENV
@@ -5137,7 +5137,7 @@ deleted and a new prompt to be printed.
 User's startup script.
 Used only if
 .Ev ENV
-is unset.
+is unset or empty.
 .It Pa ~/.profile
 User's login profile.
 .It Pa /etc/profile

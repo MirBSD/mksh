@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $MirOS: src/bin/mksh/check.pl,v 1.7 2005/07/07 23:27:52 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.8 2006/05/08 11:59:41 tg Exp $
 # $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
 #-
 # Example test:
@@ -56,6 +56,7 @@
 #					    USER, LOGNAME, HOME, PATH, SHELL
 #					(values taken from the environment of
 #					the test harness).
+#					ENV is set to /nonexistant.
 #	file-setup		    mps Used to create files, directories
 #					and symlinks.  First word is either
 #					file, dir or symlink; second word is
@@ -232,6 +233,7 @@ $all_tests = @ARGV == 0;
 foreach $env (('USER', 'LOGNAME', 'HOME', 'PATH', 'SHELL')) {
     $new_env{$env} = $ENV{$env} if defined $ENV{$env};
 }
+$new_env{'ENV'} = '/nonexistant';
 if (defined $opt_e) {
     # XXX need a way to allow many -e arguments...
     if ($opt_e =~ /^([a-zA-Z_]\w*)(|=(.*))$/) {
