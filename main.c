@@ -6,9 +6,9 @@
 #define	EXTERN				/* define EXTERNs in sh.h */
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.34 2006/01/30 12:37:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.35 2006/05/08 11:42:36 tg Exp $");
 
-#define	MKSH_VERSION	"@(#)MIRBSD KSH R26 2006/01/29"
+#define	MKSH_VERSION	"@(#)MIRBSD KSH R26 2006/05/08"
 
 extern char **environ;
 
@@ -298,7 +298,8 @@ main(int argc, char *argv[])
 		char *env_file;
 
 		/* include $ENV */
-		env_file = substitute(str_val(global("ENV")), DOTILDE);
+		env_file = substitute(substitute("${ENV:-~/.mkshrc}", 0),
+		    DOTILDE);
 		if (*env_file != '\0')
 			include(env_file, 0, NULL, 1);
 	}

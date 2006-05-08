@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.30 2006/02/16 11:48:32 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.31 2006/05/08 11:42:36 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.109 2005/12/06 20:40:02 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -95,7 +95,9 @@ A privileged shell does not process
 .Pa $HOME/.profile
 nor the
 .Ev ENV
-parameter (see below).
+parameter or
+.Pa $HOME/.mkshrc
+(see below).
 Instead, the file
 .Pa /etc/suid_profile
 is processed.
@@ -183,6 +185,16 @@ command, arithmetic, and tilde
 .Pq Sq ~
 substitution and the resulting file
 (if any) is read and executed.
+If the
+.Ev ENV
+variable is unset, the file
+.Pa $HOME/.mkshrc
+is read and processed like above instead, leaving
+.Ev ENV
+unset in the shell environment.
+This processing does not occur if
+.Ev ENV
+is set to a non-existing filename.
 .Pp
 The exit status of the shell is 127 if the command file specified on the
 command line could not be opened, or non-zero if a fatal syntax error
@@ -5121,6 +5133,11 @@ deleted and a new prompt to be printed.
 .El
 .Sh FILES
 .Bl -tag -width "/etc/suid_profileXX" -compact
+.It Pa ~/.mkshrc
+User's startup script.
+Used only if
+.Ev ENV
+is unset.
 .It Pa ~/.profile
 User's login profile.
 .It Pa /etc/profile
