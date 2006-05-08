@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.10 2006/01/29 20:04:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.11 2006/05/08 11:07:38 tg Exp $");
 
 /*
  * string expansion
@@ -36,15 +36,15 @@ typedef struct Expand {
 #define IFS_WS		1	/* have seen IFS white-space */
 #define IFS_NWS		2	/* have seen IFS non-white-space */
 
-static	int	varsub(Expand *, char *, char *, int *, int *);
-static	int	comsub(Expand *, char *);
-static	char   *trimsub(char *, char *, int);
-static	void	glob(char *, XPtrV *, int);
-static	void	globit(XString *, char **, char *, XPtrV *, int);
-static char	*maybe_expand_tilde(char *, XString *, char **, int);
-static	char   *tilde(char *);
-static	char   *homedir(char *);
-static void	alt_expand(XPtrV *, char *, char *, char *, int);
+static int varsub(Expand *, char *, char *, int *, int *);
+static int comsub(Expand *, char *);
+static char *trimsub(char *, char *, int);
+static void glob(char *, XPtrV *, int);
+static void globit(XString *, char **, char *, XPtrV *, int);
+static char *maybe_expand_tilde(char *, XString *, char **, int);
+static char *tilde(char *);
+static char *homedir(char *);
+static void alt_expand(XPtrV *, char *, char *, char *, int);
 
 /* compile and expand word */
 char *
