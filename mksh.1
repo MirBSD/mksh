@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.32 2006/05/08 11:59:41 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.33 2006/05/08 12:12:36 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.109 2005/12/06 20:40:02 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -1468,6 +1468,26 @@ can be put in the prompt by placing
 .Ql !!
 in
 .Ev PS1 .
+.Pp
+More advanced settings
+can be found in the file
+.Pa /etc/profile
+on any MirOS system as well as at
+.Pa http://cvs.mirbsd.de/contrib/samples/etc_profile
+or on the website), but you might like the following example
+(note that ${HOSTNAME:-$(hostname -s)} and the
+root-vs-user distinguishing clause are (in this example) executed at
+.Ev PS1
+assignment time, while the $USER and $PWD are escaped
+and thus will be evaluated each time a prompt is displayed):
+.Bd -literal -offset indent
+PS1="\e${USER}@${HOSTNAME:-$(hostname -s)}:\e$PWD $(
+	if [[ $(id -u) -eq 0 ]]; then
+		print '#'
+	else
+		print '$'
+	fi) "
+.Ed
 .Pp
 Note that since the command-line editors try to figure out how long the prompt
 is (so they know how far it is to the edge of the screen), escape codes in
