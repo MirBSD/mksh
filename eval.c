@@ -1,8 +1,8 @@
-/*	$OpenBSD: eval.c,v 1.28 2005/12/11 20:31:21 otto Exp $	*/
+/*	$OpenBSD: eval.c,v 1.30 2006/04/10 14:38:59 jaredy Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.11 2006/05/08 11:07:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.12 2006/05/10 18:54:09 tg Exp $");
 
 /*
  * string expansion
@@ -852,7 +852,7 @@ comsub(Expand *xp, char *cp)
 		int ofd1, pv[2];
 		openpipe(pv);
 		shf = shf_fdopen(pv[0], SHF_RD, NULL);
-		ofd1 = savefd(1, 0);	/* fd 1 may be closed... */
+		ofd1 = savefd(1);
 		if (pv[1] != 1) {
 			ksh_dup2(pv[1], 1, false);
 			close(pv[1]);

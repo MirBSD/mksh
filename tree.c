@@ -1,8 +1,8 @@
-/*	$OpenBSD: tree.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
+/*	$OpenBSD: tree.c,v 1.18 2006/04/10 14:38:59 jaredy Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.3 2005/11/22 18:40:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.4 2006/05/10 18:54:13 tg Exp $");
 
 #define INDENT	4
 

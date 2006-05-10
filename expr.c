@@ -1,8 +1,8 @@
-/*	$OpenBSD: expr.c,v 1.18 2005/03/30 17:16:37 deraadt Exp $	*/
+/*	$OpenBSD: expr.c,v 1.19 2006/04/10 14:38:59 jaredy Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.3 2005/11/22 18:40:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.4 2006/05/10 18:54:10 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -182,7 +182,7 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok,
 			errorf(null);
 		}
 		unwind(i);
-		/*NOTREACHED*/
+		/* NOTREACHED */
 	}
 
 	token(es);
@@ -298,7 +298,7 @@ evalexpr(Expr_state *es, enum prec prec)
 			token(es);
 		} else {
 			evalerr(es, ET_UNEXPECTED, NULL);
-			/*NOTREACHED*/
+			/* NOTREACHED */
 		}
 		if (es->tok == O_PLUSPLUS || es->tok == O_MINUSMINUS) {
 			vl = do_ppmm(es, es->tok, vl, false);

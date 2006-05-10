@@ -1,8 +1,8 @@
-/*	$OpenBSD: shf.c,v 1.14 2005/12/11 18:53:51 deraadt Exp $	*/
+/*	$OpenBSD: shf.c,v 1.15 2006/04/02 00:48:33 deraadt Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.4 2006/01/29 20:04:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.5 2006/05/10 18:54:12 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -280,7 +280,7 @@ shf_flush(struct shf *shf)
 	if (shf->flags & SHF_READING) {
 		shf->flags &= ~(SHF_EOF | SHF_READING);
 		if (shf->rnleft > 0) {
-			lseek(shf->fd, (off_t) -shf->rnleft, 1);
+			lseek(shf->fd, (off_t) -shf->rnleft, SEEK_CUR);
 			shf->rnleft = 0;
 			shf->rp = shf->buf;
 		}

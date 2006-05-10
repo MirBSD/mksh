@@ -1,8 +1,8 @@
-/*	$OpenBSD: exec.c,v 1.44 2005/12/11 20:31:21 otto Exp $	*/
+/*	$OpenBSD: exec.c,v 1.46 2006/04/10 14:38:59 jaredy Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.14 2006/01/30 12:37:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.15 2006/05/10 18:54:10 tg Exp $");
 
 static int	comexec(struct op *, struct tbl *volatile, char **,
 		    int volatile);
@@ -113,9 +113,8 @@ execute(struct op *volatile t,
 	case TPIPE:
 		flags |= XFORK;
 		flags &= ~XEXEC;
-		e->savefd[0] = savefd(0, 0);
-		(void) ksh_dup2(e->savefd[0], 0, false); /* stdin of first */
-		e->savefd[1] = savefd(1, 0);
+		e->savefd[0] = savefd(0);
+		e->savefd[1] = savefd(1);
 		while (t->type == TPIPE) {
 			openpipe(pv);
 			(void) ksh_dup2(pv[1], 1, false); /* stdout of curr */
@@ -160,7 +159,7 @@ execute(struct op *volatile t,
 			sigprocmask(SIG_SETMASK, &omask, NULL);
 			quitenv(NULL);
 			unwind(i);
-			/*NOTREACHED*/
+			/* NOTREACHED */
 		}
 		/* Already have a (live) co-process? */
 		if (coproc.job && coproc.write >= 0)
@@ -170,8 +169,8 @@ execute(struct op *volatile t,
 		coproc_cleanup(true);
 
 		/* do this before opening pipes, in case these fail */
-		e->savefd[0] = savefd(0, 0);
-		e->savefd[1] = savefd(1, 0);
+		e->savefd[0] = savefd(0);
+		e->savefd[1] = savefd(1);
 
 		openpipe(pv);
 		if (pv[0] != 0) {
@@ -607,7 +606,7 @@ comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
 		case LSHELL:
 			quitenv(NULL);
 			unwind(i);
-			/*NOTREACHED*/
+			/* NOTREACHED */
 		default:
 			quitenv(NULL);
 			internal_errorf(1, "CFUNC %d", i);
@@ -1091,7 +1090,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			 * is 2; also means we can't lose the fd (eg, both
 			 * dup2 below and dup2 in restfd() failing).
 			 */
-			e->savefd[iop->unit] = savefd(iop->unit, 1);
+			e->savefd[iop->unit] = savefd(iop->unit);
 	}
 
 	if (do_close)

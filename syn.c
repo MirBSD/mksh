@@ -1,8 +1,8 @@
-/*	$OpenBSD: syn.c,v 1.23 2005/12/11 20:31:21 otto Exp $	*/
+/*	$OpenBSD: syn.c,v 1.27 2006/04/10 14:38:59 jaredy Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.6 2006/01/30 12:37:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.7 2006/05/10 18:54:13 tg Exp $");
 
 struct nesting_state {
 	int	start_token;	/* token than began nesting (eg, FOR) */
@@ -693,7 +693,7 @@ syntaxerr(const char *what)
 		}
 		/* don't quote the EOF */
 		yyerror("syntax error: unexpected EOF\n");
-		/*NOTREACHED*/
+		/* NOTREACHED */
 
 	case LWORD:
 		s = snptreef(NULL, 32, "%S", yylval.cp);
@@ -775,14 +775,12 @@ compile(Source *s)
 static int
 assign_command(char *s)
 {
-	char c = *s;
-
 	if (!*s)
 		return 0;
-	return (c == 'a' && strcmp(s, "alias") == 0) ||
-	    (c == 'e' && strcmp(s, "export") == 0) ||
-	    (c == 'r' && strcmp(s, "readonly") == 0) ||
-	    (c == 't' && strcmp(s, "typeset") == 0);
+	return (strcmp(s, "alias") == 0) ||
+	    (strcmp(s, "export") == 0) ||
+	    (strcmp(s, "readonly") == 0) ||
+	    (strcmp(s, "typeset") == 0);
 }
 
 /* Check if we are in the middle of reading an alias */

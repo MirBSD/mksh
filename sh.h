@@ -4,11 +4,11 @@
 /*	$OpenBSD: tree.h,v 1.10 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: expand.h,v 1.6 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: lex.h,v 1.10 2005/09/11 18:02:27 otto Exp $	*/
-/*	$OpenBSD: proto.h,v 1.29 2005/12/11 20:31:21 otto Exp $	*/
+/*	$OpenBSD: proto.h,v 1.30 2006/03/17 16:30:13 millert Exp $	*/
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.25 2006/03/19 18:06:32 tg Exp $"
+#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.26 2006/05/10 18:54:12 tg Exp $"
 
 #include <sys/param.h>
 
@@ -1106,7 +1106,7 @@ void	shprintf(const char *, ...)
 int	can_seek(int);
 void	initio(void);
 int	ksh_dup2(int, int, int);
-int	savefd(int, int);
+int	savefd(int);
 void	restfd(int, int);
 void	openpipe(int *);
 void	closepipe(int *);

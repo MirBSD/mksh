@@ -1,11 +1,11 @@
 /*	$OpenBSD: edit.c,v 1.31 2005/12/11 20:31:21 otto Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.39 2005/09/26 19:25:22 otto Exp $	*/
-/*	$OpenBSD: vi.c,v 1.22 2005/12/11 20:31:21 otto Exp $	*/
+/*	$OpenBSD: vi.c,v 1.23 2006/04/10 14:38:59 jaredy Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.20 2006/02/16 11:48:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.21 2006/05/10 18:54:09 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {

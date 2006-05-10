@@ -1,8 +1,8 @@
-/*	$OpenBSD: jobs.c,v 1.34 2005/03/30 17:16:37 deraadt Exp $	*/
+/*	$OpenBSD: jobs.c,v 1.35 2006/02/06 16:47:07 jmc Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.7 2006/01/30 12:37:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.8 2006/05/10 18:54:11 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -1408,7 +1408,7 @@ new_job(void)
 	return newj;
 }
 
-/* Allocate new process strut
+/* Allocate new process struct
  *
  * If jobs are compiled in then this routine expects sigchld to be blocked.
  */

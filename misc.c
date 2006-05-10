@@ -1,9 +1,9 @@
-/*	$OpenBSD: misc.c,v 1.28 2005/03/30 17:16:37 deraadt Exp $	*/
+/*	$OpenBSD: misc.c,v 1.30 2006/03/12 00:26:58 deraadt Exp $	*/
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.10 2005/11/24 19:39:10 tg Exp $"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.11 2006/05/10 18:54:11 tg Exp $"
 	"\t" MKSH_SH_H_ID);
 
 short chtypes[UCHAR_MAX+1];	/* type bits for unsigned char */
@@ -328,7 +328,7 @@ parse_args(char **argv,
 	} else
 		opts = set_opts;
 	ksh_getopt_reset(&go, GF_ERROR|GF_PLUSOPT);
-	while ((optc = ksh_getopt(argv, &go, opts)) != EOF) {
+	while ((optc = ksh_getopt(argv, &go, opts)) != -1) {
 		set = (go.info & GI_PLUS) ? 0 : 1;
 		switch (optc) {
 		case 'A':
@@ -896,14 +896,14 @@ ksh_getopt(char **argv, Getopt *go, const char *optionsp)
 			go->optind++;
 			go->p = 0;
 			go->info |= GI_MINUSMINUS;
-			return EOF;
+			return -1;
 		}
 		if (arg == NULL ||
 		    ((flag != '-' ) && /* neither a - nor a + (if + allowed) */
 		    (!(go->flags & GF_PLUSOPT) || flag != '+')) ||
 		    (c = arg[1]) == '\0') {
 			go->p = 0;
-			return EOF;
+			return -1;
 		}
 		go->optind++;
 		go->info &= ~(GI_MINUS|GI_PLUS);
