@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.28 2006/05/27 11:30:07 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.29 2006/05/27 20:33:01 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
@@ -8,7 +8,7 @@ case $SHELL in
 *csh*)	SHELL=/bin/sh ;;
 esac
 CC="${CC:-gcc}"
-CFLAGS="${CFLAGS--O2 -fno-strict-aliasing -fno-strength-reduce -Wall -D_FILE_OFFSET_BITS=64}"
+CFLAGS="${CFLAGS--O2 -fno-strict-aliasing -fno-strength-reduce -Wall}"
 export SHELL CC
 srcdir="${srcdir:-`dirname "$0"`}"
 curdir="`pwd`"
@@ -50,27 +50,30 @@ SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 case "`uname -s 2>/dev/null || uname`" in
 Darwin)
 	LDSTATIC= # never works
+	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 	;;
 Interix)
-	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
+	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE -DNEED_COMPAT"
 	;;
 Linux)
 	# Hello Mr Drepper, we all like you too...</sarcasm>
 	SRCS="$SRCS compat.c strlfun.c"
 	CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=2 -D_BSD_SOURCE"
+	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64 -DNEED_COMPAT"
 	LDSTATIC= # glibc dlopens the PAM library with getpwnam at runtime
 	;;
 SunOS)
 	SRCS="$SRCS compat.c"
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D_POSIX_C_SOURCE=200112L"
 	CPPFLAGS="$CPPFLAGS -D__EXTENSIONS__"
+	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64 -DNEED_COMPAT"
 	CFLAGS="$CFLAGS -Wno-char-subscripts"
 	LDSTATIC= # alternatively you need libdl... same suckage as above
 	;;
 esac
 
 v $SHELL "'$srcdir/gensigs.sh'" || exit 1
-(v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS" -DNEED_COMPAT \
+(v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS" \
     "$LDFLAGS $LDSTATIC -o '$curdir/mksh' $SRCS $LIBS") || exit 1
 test -x mksh || exit 1
 [ $r = 1 ] || v "${NROFF:-nroff} -mdoc <'$srcdir/mksh.1' >mksh.cat1" \
