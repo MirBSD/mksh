@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.27 2006/05/26 22:24:20 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.28 2006/05/27 11:30:07 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
@@ -62,7 +62,8 @@ Linux)
 	;;
 SunOS)
 	SRCS="$SRCS compat.c"
-	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE"
+	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D_POSIX_C_SOURCE=200112L"
+	CPPFLAGS="$CPPFLAGS -D__EXTENSIONS__"
 	CFLAGS="$CFLAGS -Wno-char-subscripts"
 	LDSTATIC= # alternatively you need libdl... same suckage as above
 	;;
