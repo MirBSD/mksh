@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.42 2006/05/27 11:36:50 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.43 2006/06/21 19:27:35 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3738,13 +3738,26 @@ stdin:
 expected-stdout:
 	x
 ---
-name: mkshrc-2
+name: mkshrc-2a
 description:
 	Check that ~/.mkshrc works correctly.
-	Part 2: verify mkshrc can be read
+	Part 2: verify mkshrc is not read (non-interactive shells)
 file-setup: file 644 ".mkshrc"
 	FNORD=42
 env-setup: !HOME=.!ENV=!
+stdin:
+	echo x $FNORD
+expected-stdout:
+	x
+---
+name: mkshrc-2b
+description:
+	Check that ~/.mkshrc works correctly.
+	Part 2: verify mkshrc can be read (interactive shells)
+file-setup: file 644 ".mkshrc"
+	FNORD=42
+arguments: !-i!
+env-setup: !HOME=.!ENV=!PS1=!
 stdin:
 	echo x $FNORD
 expected-stdout:
@@ -3769,5 +3782,5 @@ category: pdksh
 stdin:
 	echo $KSH_VERSION
 expected-stdout:
-	@(#)MIRBSD KSH R27 2006/05/26
+	@(#)MIRBSD KSH R27 2006/06/21
 ---

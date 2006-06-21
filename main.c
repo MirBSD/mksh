@@ -6,9 +6,9 @@
 #define	EXTERN				/* define EXTERNs in sh.h */
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.38 2006/05/26 23:36:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.39 2006/06/21 19:27:35 tg Exp $");
 
-#define	MKSH_VERSION	"@(#)MIRBSD KSH R27 2006/05/26"
+#define	MKSH_VERSION	"@(#)MIRBSD KSH R27 2006/06/21"
 
 extern char **environ;
 
@@ -294,7 +294,7 @@ main(int argc, char *argv[])
 	}
 	if (Flag(FPRIVILEGED))
 		include("/etc/suid_profile", 0, NULL, 1);
-	else {
+	else if (Flag(FTALKING)) {
 		char *env_file;
 
 		/* include $ENV */

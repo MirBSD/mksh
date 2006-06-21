@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.35 2006/05/10 19:30:33 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.36 2006/06/21 19:27:35 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.112 2006/04/22 14:10:36 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -179,9 +179,9 @@ otherwise, the basename the shell was called with (i.e. argv[0]) is used.
 .Pp
 If the
 .Ev ENV
-parameter is set when the shell starts (or, in the case of login shells,
-after any profiles are processed), its value is subjected to parameter,
-command, arithmetic, and tilde
+parameter is set when an interactive shell starts (or, in the case of login
+shells, after any profiles are processed), its value is subjected to
+parameter, command, arithmetic, and tilde
 .Pq Sq ~
 substitution and the resulting file
 (if any) is read and executed.
@@ -5154,7 +5154,7 @@ deleted and a new prompt to be printed.
 .Sh FILES
 .Bl -tag -width "/etc/suid_profileXX" -compact
 .It Pa ~/.mkshrc
-User's startup script.
+User's startup script (interactive shells).
 Used only if
 .Ev ENV
 is unset or empty.
