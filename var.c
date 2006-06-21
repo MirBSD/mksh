@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.18 2006/05/26 22:17:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.19 2006/06/21 19:35:38 tg Exp $");
 
 /*
  * Variables
@@ -997,7 +997,7 @@ setspec(struct tbl *vp)
 		srand((unsigned int)intval(vp));
 #if HAVE_ARC4RANDOM
 		use_rand = 1;
-#if defined(__MirBSD__) && (MirBSD >= 0x07AD)
+#if HAVE_ARC4RANDOM_PUSH
 		arc4random_push((unsigned)vp ^ (unsigned)rand());
 #endif
 #endif
