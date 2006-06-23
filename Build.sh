@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.29 2006/05/27 20:33:01 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.30 2006/06/23 15:05:39 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
@@ -9,14 +9,14 @@ case $SHELL in
 esac
 CC="${CC:-gcc}"
 CFLAGS="${CFLAGS--O2 -fno-strict-aliasing -fno-strength-reduce -Wall}"
-export SHELL CC
+export SHELL
 srcdir="${srcdir:-`dirname "$0"`}"
 curdir="`pwd`"
 
 e=echo
 q=0
 r=0
-LDSTATIC=-static
+x=0
 
 while [ -n "$1" ]; do
 	case $1 in
@@ -30,6 +30,9 @@ while [ -n "$1" ]; do
 	-r)
 		r=1
 		;;
+	-x)
+		x=1
+		;;
 	*)
 		echo "$0: Unknown option '$1'!" >&2
 		exit 1
@@ -41,13 +44,15 @@ done
 v()
 {
 	$e "$*"
-	eval "$*"
+	eval "$@"
 }
 
-SRCS="alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
+[ $x = 1 ] || LDSTATIC=-static
+[ $x = 1 ] || SRCS=
+SRCS="alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c $SRCS"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
-case "`uname -s 2>/dev/null || uname`" in
+[ $x = 1 ] || case "`uname -s 2>/dev/null || uname`" in
 Darwin)
 	LDSTATIC= # never works
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
@@ -72,6 +77,7 @@ SunOS)
 	;;
 esac
 
+export CC CPPFLAGS
 v $SHELL "'$srcdir/gensigs.sh'" || exit 1
 (v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS" \
     "$LDFLAGS $LDSTATIC -o '$curdir/mksh' $SRCS $LIBS") || exit 1
@@ -81,7 +87,7 @@ test -x mksh || exit 1
 [ $q = 1 ] || v size mksh
 echo '#!/bin/sh' >Test.sh
 echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t' -p '$curdir/mksh' -C pdksh" >>Test.sh
-chmod 555 Test.sh
+chmod 755 Test.sh
 $e
 $e To test mirbsdksh, execute ./Test.sh
 $e
