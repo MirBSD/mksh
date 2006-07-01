@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.30 2006/06/23 15:05:39 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.31 2006/07/01 14:39:41 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
@@ -72,7 +72,6 @@ SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D_POSIX_C_SOURCE=200112L"
 	CPPFLAGS="$CPPFLAGS -D__EXTENSIONS__"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64 -DNEED_COMPAT"
-	CFLAGS="$CFLAGS -Wno-char-subscripts"
 	LDSTATIC= # alternatively you need libdl... same suckage as above
 	;;
 esac
