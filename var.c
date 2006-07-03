@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.19 2006/06/21 19:35:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.20 2006/07/03 12:16:31 tg Exp $");
 
 /*
  * Variables
@@ -503,7 +503,7 @@ formatstr(struct tbl *vp, const char *s)
 		if (vp->flag & RJUST) {
 			const char *qq = s + olen;
 			/* strip trailing spaces (at&t uses qq[-1] == ' ') */
-			while (qq > s && isspace(qq[-1]))
+			while (qq > s && isspace((unsigned char)qq[-1]))
 				--qq;
 			slen = qq - s;
 			if (slen > vp->u2.field) {
@@ -516,7 +516,7 @@ formatstr(struct tbl *vp, const char *s)
 				vp->u2.field - slen, null, slen, s);
 		} else {
 			/* strip leading spaces/zeros */
-			while (isspace(*s))
+			while (isspace((unsigned char)*s))
 				s++;
 			if (vp->flag & ZEROFIL)
 				while (*s == '0')
@@ -529,11 +529,11 @@ formatstr(struct tbl *vp, const char *s)
 
 	if (vp->flag & UCASEV_AL) {
 		for (q = p; *q; q++)
-			if (islower(*q))
+			if (islower((unsigned char)*q))
 				*q = toupper(*q);
 	} else if (vp->flag & LCASEV) {
 		for (q = p; *q; q++)
-			if (isupper(*q))
+			if (isupper((unsigned char)*q))
 				*q = tolower(*q);
 	}
 

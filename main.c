@@ -6,9 +6,9 @@
 #define	EXTERN				/* define EXTERNs in sh.h */
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.39 2006/06/21 19:27:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.40 2006/07/03 12:16:30 tg Exp $");
 
-#define	MKSH_VERSION	"@(#)MIRBSD KSH R27 2006/06/21"
+#define	MKSH_VERSION	"@(#)MIRBSD KSH R27 2006/07/03"
 
 extern char **environ;
 
@@ -936,7 +936,7 @@ check_fd(char *name, int mode, const char **emsgp)
 {
 	int fd, fl;
 
-	if (isdigit(name[0]) && !name[1]) {
+	if (isdigit((unsigned char)name[0]) && !name[1]) {
 		fd = name[0] - '0';
 		if ((fl = fcntl(fd = name[0] - '0', F_GETFL, 0)) < 0) {
 			if (emsgp)

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.12 2006/05/10 18:54:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.13 2006/07/03 12:16:30 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -898,7 +898,7 @@ getsc__(void)
 				source->flags |= s->flags & SF_ALIAS;
 				s = source;
 			} else if (*s->u.tblp->val.s &&
-			    isspace(strchr(s->u.tblp->val.s, 0)[-1])) {
+			    isspace((unsigned char)strchr(s->u.tblp->val.s, 0)[-1])) {
 				source = s = s->next;	/* pop source stack */
 				/* Note that this alias ended with a space,
 				 * enabling alias expansion on the following

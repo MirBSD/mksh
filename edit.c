@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.21 2006/05/10 18:54:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.22 2006/07/03 12:16:29 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -592,7 +592,8 @@ x_locate_word(const char *buf, int buflen, int pos, int *startp,
 		int iscmd;
 
 		/* Figure out if this is a command */
-		for (p = start - 1; p >= 0 && isspace(buf[p]); p--)
+		for (p = start - 1; p >= 0 && isspace((unsigned char)buf[p]);
+		    p--)
 			;
 		iscmd = p < 0 || strchr(";|&()`", buf[p]);
 		if (iscmd) {
@@ -897,12 +898,13 @@ struct x_defbindings {
 #define	XF_PREFIX	4	/* function sets prefix */
 
 /* Separator for completion */
-#define	is_cfs(c)	(c == ' ' || c == '\t' || c == '"' || c == '\'')
-#define	is_mfs(c)	(!(isalnum(c) || c == '_' || c == '$'))  /* Separator for motion */
+#define	is_cfs(c)	((c) == ' ' || (c) == '\t' || (c) == '"' || (c) == '\'')
+#define	is_mfs(c)	(!(isalnum((unsigned char)(c)) || (c) == '_' || \
+			    (c) == '$'))	/* Separator for motion */
 
-# define CHARMASK	0xFF		/* 8-bit character mask */
-# define X_NTABS	3		/* normal, meta1, meta2 */
-#define X_TABSZ		(CHARMASK+1)	/* size of keydef tables etc */
+#define CHARMASK	0xFF			/* 8-bit character mask */
+#define X_NTABS		3			/* normal, meta1, meta2 */
+#define X_TABSZ		(CHARMASK+1)		/* size of keydef tables etc */
 
 /* Arguments for do_complete()
  * 0 = enumerate  M-= complete as much as possible and then list
@@ -2666,7 +2668,7 @@ x_set_arg(int c)
 	int first = 1;
 
 	c &= CHARMASK;	/* strip command prefix */
-	for (; c >= 0 && isdigit(c); c = x_e_getc(), first = 0)
+	for (; c >= 0 && isdigit((unsigned char)c); c = x_e_getc(), first = 0)
 		n = n * 10 + (c - '0');
 	if (c < 0 || first) {
 		x_e_putc(7);
@@ -2818,10 +2820,10 @@ x_fold_case(int c)
 		 */
 		if (cp != xep) {
 			if (c == 'L') {		/* lowercase */
-				if (isupper(*cp))
+				if (isupper((unsigned char)*cp))
 					*cp = tolower(*cp);
 			} else {		/* uppercase, capitalize */
-				if (islower(*cp))
+				if (islower((unsigned char)*cp))
 					*cp = toupper(*cp);
 			}
 			cp++;
@@ -2831,10 +2833,10 @@ x_fold_case(int c)
 		 */
 		while (cp != xep && !is_mfs(*cp)) {
 			if (c == 'U') {		/* uppercase */
-				if (islower(*cp))
+				if (islower((unsigned char)*cp))
 					*cp = toupper(*cp);
 			} else {		/* lowercase, capitalize */
-				if (isupper(*cp))
+				if (isupper((unsigned char)*cp))
 					*cp = tolower(*cp);
 			}
 			cp++;
@@ -3181,7 +3183,7 @@ vi_hook(int ch)
 		break;
 
 	case VARG1:
-		if (isdigit(ch))
+		if (isdigit((unsigned char)ch))
 			argc1 = argc1 * 10 + ch - '0';
 		else {
 			curcmd[cmdlen++] = ch;
@@ -3207,7 +3209,7 @@ vi_hook(int ch)
 		break;
 
 	case VARG2:
-		if (isdigit(ch))
+		if (isdigit((unsigned char)ch))
 			argc2 = argc2 * 10 + ch - '0';
 		else {
 			if (argc1 == 0)
@@ -3270,9 +3272,9 @@ vi_hook(int ch)
 			int i;
 			int n = srchlen;
 
-			while (n > 0 && isspace(locpat[n - 1]))
+			while (n > 0 && isspace((unsigned char)locpat[n - 1]))
 				n--;
-			while (n > 0 && !isspace(locpat[n - 1]))
+			while (n > 0 && !isspace((unsigned char)locpat[n - 1]))
 				n--;
 			for (i = srchlen; --i >= n; )
 				es->linelen -= char_len((unsigned char)locpat[i]);
@@ -3640,8 +3642,8 @@ vi_cmd(int argcnt, const char *cmd)
 					return -1;
 				if (*cmd == 'c' &&
 				    (cmd[1] == 'w' || cmd[1] == 'W') &&
-				    !isspace(es->cbuf[es->cursor])) {
-					while (isspace(es->cbuf[--ncursor]))
+				    !isspace((unsigned char)(es->cbuf[es->cursor]))) {
+					while (isspace((unsigned char)(es->cbuf[--ncursor])))
 						;
 					ncursor++;
 				}
@@ -3892,7 +3894,7 @@ vi_cmd(int argcnt, const char *cmd)
 				if (histnum(-1) < 0)
 					return -1;
 				p = *histpos();
-#define issp(c)		(isspace((c)) || (c) == '\n')
+#define issp(c)		(isspace((unsigned char)(c)) || (c) == '\n')
 				if (argcnt) {
 					while (*p && issp(*p))
 						p++;
@@ -3949,11 +3951,11 @@ vi_cmd(int argcnt, const char *cmd)
 					return -1;
 				for (i = 0; i < argcnt; i++) {
 					p = &es->cbuf[es->cursor];
-					if (islower(*p)) {
+					if (islower((unsigned char)*p)) {
 						modified = 1;
 						hnum = hlast;
 						*p = toupper(*p);
-					} else if (isupper(*p)) {
+					} else if (isupper((unsigned char)*p)) {
 						modified = 1;
 						hnum = hlast;
 						*p = tolower(*p);
@@ -4100,7 +4102,8 @@ domove(int argcnt, const char *cmd, int sub)
 
 	case '^':
 		ncursor = 0;
-		while (ncursor < es->linelen - 1 && isspace(es->cbuf[ncursor]))
+		while (ncursor < es->linelen - 1 &&
+		    isspace((unsigned char)(es->cbuf[ncursor])))
 			ncursor++;
 		break;
 
@@ -4369,12 +4372,13 @@ forwword(int argcnt)
 			while (is_wordch(es->cbuf[ncursor]) &&
 			    ncursor < es->linelen)
 				ncursor++;
-		else if (!isspace(es->cbuf[ncursor]))
+		else if (!isspace((unsigned char)(es->cbuf[ncursor])))
 			while (!is_wordch(es->cbuf[ncursor]) &&
-			    !isspace(es->cbuf[ncursor]) &&
+			    !isspace((unsigned char)(es->cbuf[ncursor])) &&
 			    ncursor < es->linelen)
 				ncursor++;
-		while (isspace(es->cbuf[ncursor]) && ncursor < es->linelen)
+		while (isspace((unsigned char)(es->cbuf[ncursor])) &&
+		    ncursor < es->linelen)
 			ncursor++;
 	}
 	return ncursor;
@@ -4387,7 +4391,7 @@ backword(int argcnt)
 
 	ncursor = es->cursor;
 	while (ncursor > 0 && argcnt--) {
-		while (--ncursor > 0 && isspace(es->cbuf[ncursor]))
+		while (--ncursor > 0 && isspace((unsigned char)(es->cbuf[ncursor])))
 			;
 		if (ncursor > 0) {
 			if (is_wordch(es->cbuf[ncursor]))
@@ -4397,7 +4401,7 @@ backword(int argcnt)
 			else
 				while (--ncursor >= 0 &&
 				    !is_wordch(es->cbuf[ncursor]) &&
-				    !isspace(es->cbuf[ncursor]))
+				    !isspace((unsigned char)(es->cbuf[ncursor])))
 					;
 			ncursor++;
 		}
@@ -4413,7 +4417,7 @@ endword(int argcnt)
 	ncursor = es->cursor;
 	while (ncursor < es->linelen && argcnt--) {
 		while (++ncursor < es->linelen - 1 &&
-		    isspace(es->cbuf[ncursor]))
+		    isspace((unsigned char)(es->cbuf[ncursor])))
 			;
 		if (ncursor < es->linelen - 1) {
 			if (is_wordch(es->cbuf[ncursor]))
@@ -4423,7 +4427,7 @@ endword(int argcnt)
 			else
 				while (++ncursor < es->linelen &&
 				    !is_wordch(es->cbuf[ncursor]) &&
-				    !isspace(es->cbuf[ncursor]))
+				    !isspace((unsigned char)(es->cbuf[ncursor])))
 					;
 			ncursor--;
 		}
@@ -4438,9 +4442,11 @@ Forwword(int argcnt)
 
 	ncursor = es->cursor;
 	while (ncursor < es->linelen && argcnt--) {
-		while (!isspace(es->cbuf[ncursor]) && ncursor < es->linelen)
+		while (!isspace((unsigned char)(es->cbuf[ncursor])) &&
+		    ncursor < es->linelen)
 			ncursor++;
-		while (isspace(es->cbuf[ncursor]) && ncursor < es->linelen)
+		while (isspace((unsigned char)(es->cbuf[ncursor])) &&
+		    ncursor < es->linelen)
 			ncursor++;
 	}
 	return ncursor;
@@ -4453,9 +4459,11 @@ Backword(int argcnt)
 
 	ncursor = es->cursor;
 	while (ncursor > 0 && argcnt--) {
-		while (--ncursor >= 0 && isspace(es->cbuf[ncursor]))
+		while (--ncursor >= 0 &&
+		    isspace((unsigned char)(es->cbuf[ncursor])))
 			;
-		while (ncursor >= 0 && !isspace(es->cbuf[ncursor]))
+		while (ncursor >= 0 &&
+		    !isspace((unsigned char)(es->cbuf[ncursor])))
 			ncursor--;
 		ncursor++;
 	}
@@ -4470,11 +4478,11 @@ Endword(int argcnt)
 	ncursor = es->cursor;
 	while (ncursor < es->linelen - 1 && argcnt--) {
 		while (++ncursor < es->linelen - 1 &&
-		    isspace(es->cbuf[ncursor]))
+		    isspace((unsigned char)(es->cbuf[ncursor])))
 			;
 		if (ncursor < es->linelen - 1) {
 			while (++ncursor < es->linelen &&
-			    !isspace(es->cbuf[ncursor]))
+			    !isspace((unsigned char)(es->cbuf[ncursor])))
 				;
 			ncursor--;
 		}
