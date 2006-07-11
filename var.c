@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.20 2006/07/03 12:16:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.21 2006/07/11 14:51:01 tg Exp $");
 
 /*
  * Variables
@@ -530,11 +530,11 @@ formatstr(struct tbl *vp, const char *s)
 	if (vp->flag & UCASEV_AL) {
 		for (q = p; *q; q++)
 			if (islower((unsigned char)*q))
-				*q = toupper(*q);
+				*q = toupper((unsigned char)*q);
 	} else if (vp->flag & LCASEV) {
 		for (q = p; *q; q++)
 			if (isupper((unsigned char)*q))
-				*q = tolower(*q);
+				*q = tolower((unsigned char)*q);
 	}
 
 	return p;

@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.22 2006/07/03 12:16:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.23 2006/07/11 14:51:01 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -2821,10 +2821,10 @@ x_fold_case(int c)
 		if (cp != xep) {
 			if (c == 'L') {		/* lowercase */
 				if (isupper((unsigned char)*cp))
-					*cp = tolower(*cp);
+					*cp = tolower((unsigned char)*cp);
 			} else {		/* uppercase, capitalize */
 				if (islower((unsigned char)*cp))
-					*cp = toupper(*cp);
+					*cp = toupper((unsigned char)*cp);
 			}
 			cp++;
 		}
@@ -2834,10 +2834,10 @@ x_fold_case(int c)
 		while (cp != xep && !is_mfs(*cp)) {
 			if (c == 'U') {		/* uppercase */
 				if (islower((unsigned char)*cp))
-					*cp = toupper(*cp);
+					*cp = toupper((unsigned char)*cp);
 			} else {		/* lowercase, capitalize */
 				if (isupper((unsigned char)*cp))
-					*cp = tolower(*cp);
+					*cp = tolower((unsigned char)*cp);
 			}
 			cp++;
 		}
@@ -3954,11 +3954,11 @@ vi_cmd(int argcnt, const char *cmd)
 					if (islower((unsigned char)*p)) {
 						modified = 1;
 						hnum = hlast;
-						*p = toupper(*p);
+						*p = toupper((unsigned char)*p);
 					} else if (isupper((unsigned char)*p)) {
 						modified = 1;
 						hnum = hlast;
-						*p = tolower(*p);
+						*p = tolower((unsigned char)*p);
 					}
 					if (es->cursor < es->linelen - 1)
 						es->cursor++;
