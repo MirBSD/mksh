@@ -1,0 +1,36 @@
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.1 2006/07/23 18:44:22 tg Exp $
+
+: ${HOSTNAME:=$(hostname -s 2>/dev/null || hostname)}
+PS1='$(((rv=$?)) && print $rv\|)${USER:=$(id -un)}@${HOSTNAME:=nil}:$(
+	local pfx=~ wd=${PWD:-$(pwd)}
+	[[ ${wd#$pfx} = $wd || $pfx = ?(/) ]] || wd=\~${wd#$pfx}
+	pfx=; let n="( (n = ${COLUMNS:-80} / 3) < 7 ? 7 : n)"
+	while (( (${#pfx} + ${#wd}) > n )); do
+		if [[ $wd = */* ]]; then
+			pfx=.../
+			wd="${wd#*/}"
+		else
+			pfx=...
+			wd="${wd#?????}"
+		fi
+	done
+	print -r -- "$pfx$wd")'" $(if (( $(id -u) )); then
+		print \$; else print \#; fi) "
+: ${EDITOR:=/bin/ed}
+export EDITOR HOSTNAME PS1 USER
+
+alias l='/bin/ls -F'
+alias la='l -a'
+alias ll='l -l'
+alias lo='la -lo'
+
+function Lstripcom		# strip comments from file
+{
+	local _line
+	set -o noglob
+	cat "$@" | while read _line; do
+		_line=${_line%%#*}
+		[[ -n $_line ]] && print -r -- $_line
+	done
+	set +o noglob
+}
