@@ -1,8 +1,8 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.40 2006/07/23 14:35:44 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.41 2006/07/27 14:45:30 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.112 2006/04/22 14:10:36 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
-.Dd June 23, 2006
+.Dd June 27, 2006
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -5186,42 +5186,73 @@ Privileged shell profile.
 .Pa http://docsrv.sco.com:507/en/man/html.C/sh.C.html
 .Rs
 .%A Morris Bolsky
-.%A David Korn
-.%T "The KornShell Command and Programming Language"
-.%D 1983
-.%O "ISBN 0-13-516972-0"
+.%B "The KornShell Command and Programming Language"
+.%D 1989
+.%I "Prentice Hall PTR"
+.%P "xvi\ +\ 356 pages"
+.%O "ISBN 978\-0\-13\-516972\-8 (0\-13\-516972\-0)"
+.Re
+.Rs
+.%A Morris I. Bolsky
+.%A David G. Korn
+.%B "The New KornShell Command and Programming Language (2nd Edition)"
+.%D 1995
+.%I "Prentice Hall PTR"
+.%P "xvi\ +\ 400 pages"
+.%O "ISBN 978\-0\-13\-182700\-4 (0\-13\-182700\-6)"
 .Re
 .Rs
 .%A Stephen G. Kochan
 .%A Patrick H. Wood
-.%T "UNIX Shell Programming"
-.%O "Hayden"
+.%B "UNIX Shell Programming"
+.%V "Revised Edition"
+.%D 1990
+.%I "Hayden"
+.%P "xi\ +\ 490 pages"
+.%O "ISBN 978\-0\-672\-48448\-3 (0\-672\-48448\-X)"
 .Re
 .Rs
 .%A "IEEE Inc."
-.%T "IEEE Standard for Information Technology \- Portable Operating " \
-    "System Interface (POSIX) \- Part 2: Shell and Utilities"
+.%B "IEEE Standard for Information Technology \- Portable Operating System Interface (POSIX)"
+.%V "Part 2: Shell and Utilities"
 .%D 1993
-.%O "ISBN 1-55937-266-9"
+.%I "IEEE Press"
+.%P "xvii\ +\ 1195 pages"
+.%O "ISBN 978\-1\-55937\-255\-8 (1\-55937\-255\-9)"
 .Re
 .Rs
 .%A Bill Rosenblatt
-.%T "Learning the Korn Shell"
+.%B "Learning the Korn Shell"
 .%D 1993
-.%O "O'Reilly, ISBN 1-56592-054-6"
+.%I "O'Reilly"
+.%P "360 pages"
+.%O "ISBN 978\-1\-56592\-054\-5 (1\-56592\-054\-6)"
 .Re
 .Rs
 .%A Bill Rosenblatt
 .%A Arnold Robbins
-.%T "Learning the Korn Shell, Second Edition"
+.%B "Learning the Korn Shell, Second Edition"
 .%D 2002
-.%O "O'Reilly, ISBN 0-596-00195-9"
+.%I "O'Reilly"
+.%P "432 pages"
+.%O "ISBN 978\-0\-596\-00195\-7 (0\-596\-00195\-9)"
+.Re
+.Rs
+.%A Barry Rosenberg
+.%B "KornShell Programming Tutorial"
+.%D 1991
+.%I "Addison\-Wesley Professional"
+.%P "xxi\ +\ 324 pages"
+.%O "ISBN 978\-0\-201\-56324\-5 (0\-201\-56324\-X)"
 .Re
 .Sh AUTHORS
-This shell is based on the public domain korn shell.
+This shell was based on the public domain korn shell
+and is currently maintained by
+.An Thorsten Glaser Aq tg@mirbsd.de .
 It has been developed further by the MirOS project
 incorporating changes from the Debian and OpenBSD
-projects and suggestions from many people.
+projects and patches and suggestions from users
+and many other persons.
 .Sh BUGS
 This document attempts to describe
 .Nm "" R27 .
@@ -5237,9 +5268,19 @@ on the internet and is better suited for teaching
 .Nm
 than the second edition (which is still okay to buy and read)
 but this manual page is a more complete reference.
+The other books document usually
+.At
+.Nm ksh
+in differing versions, sometimes even
+.Nm pdksh ,
+but due to its relative novelty, none documents
+.Nm mksh
+yet.
+.Pp
 Please report bugs in
 .Nm
-or this manual page to the MirOS Project discussion mailing list.
+or this manual page to the MirOS Project discussion mailing list at
+.Aq miros-discuss@mirbsd.org .
 .Pp
 By the way, the most frequently reported bug is:
 .Bd -literal -offset indent
