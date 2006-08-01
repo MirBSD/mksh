@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.27 2006/06/21 19:35:38 tg Exp $"
+#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.28 2006/08/01 12:22:26 tg Exp $"
 
 #include <sys/param.h>
 
@@ -1268,6 +1268,8 @@ EXTERN struct termios	tty_state;	/* saved tty state */
 
 extern void	tty_init(int);
 extern void	tty_close(void);
+
+#include "version.h"
 
 /* be sure not to interfere with anyone else's idea about EXTERN */
 #ifdef EXTERN_DEFINED

@@ -6,9 +6,7 @@
 #define	EXTERN				/* define EXTERNs in sh.h */
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.42 2006/07/23 14:35:44 tg Exp $");
-
-#define	MKSH_VERSION	"@(#)MIRBSD KSH R27 2006/07/23"
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.43 2006/08/01 12:22:26 tg Exp $");
 
 extern char **environ;
 
