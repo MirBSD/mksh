@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.23 2006/07/11 14:51:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.24 2006/08/01 12:44:16 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -47,6 +47,10 @@ static void x_sigwinch(int);
 static volatile sig_atomic_t got_sigwinch;
 static void check_sigwinch(void);
 
+static int path_order_cmp(const void *aa, const void *bb);
+static char *add_glob(const char *, int);
+static void glob_table(const char *, XPtrV *, struct table *);
+static void glob_path(int flags, const char *, XPtrV *, const char *);
 static int x_file_glob(int, const char *, int, char ***);
 static int x_command_glob(int, const char *, int, char ***);
 static int x_locate_word(const char *, int, int, int *, int *);
@@ -316,10 +320,6 @@ x_do_comment(char *buf, int bsize, int *lenp)
 /*           Common file/command completion code for vi/emacs	             */
 
 
-static char *add_glob(const char *, int);
-static void glob_table(const char *, XPtrV *, struct table *);
-static void glob_path(int flags, const char *, XPtrV *, const char *);
-
 void
 x_print_expansions(int nwords, char * const *words, int is_command)
 {
@@ -454,8 +454,6 @@ struct path_order_info {
 	int base;
 	int path_order;
 };
-
-static int path_order_cmp(const void *aa, const void *bb);
 
 /* Compare routine used in x_command_glob() */
 static int
@@ -995,6 +993,11 @@ static char	*x_lastcp(void);
 static void	do_complete(int, Comp_type);
 static int	x_emacs_putbuf(const char *, size_t);
 
+static int unget_char = -1;
+
+static int x_do_ins(const char *, int);
+static void bind_if_not_bound(int, int, int);
+
 #define XFUNC_abort 0
 #define XFUNC_beg_hist 1
 #define XFUNC_comp_comm 2
@@ -1050,6 +1053,7 @@ static int	x_emacs_putbuf(const char *, size_t);
 #define XFUNC_fold_upper 52
 #define XFUNC_set_arg 53
 #define XFUNC_comment 54
+#define XFUNC_version 55
 
 static int x_abort (int);
 static int x_beg_hist (int);
@@ -1106,6 +1110,7 @@ static int x_fold_lower (int);
 static int x_fold_upper (int);
 static int x_set_arg (int);
 static int x_comment (int);
+static int x_version (int);
 
 static const struct x_ftab x_ftab[] = {
 	{ x_abort,		"abort",			0 },
@@ -1163,6 +1168,7 @@ static const struct x_ftab x_ftab[] = {
 	{ x_fold_upper,		"upcase-word",			XF_ARG },
 	{ x_set_arg,		"set-arg",			XF_NOBIND },
 	{ x_comment,		"comment",			0 },
+	{ x_version,		"version",			0 },
 	{ 0,			NULL,				0 }
 };
 
@@ -1219,6 +1225,7 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_kill_region,		0, MKCTRL('W') },
 	{ XFUNC_xchg_point_mark,	2, MKCTRL('X') },
 	{ XFUNC_literal,		0, MKCTRL('V') },
+	{ XFUNC_version,		1, MKCTRL('V') },
 	{ XFUNC_prev_histword,		1,	  '.'  },
 	{ XFUNC_prev_histword,		1,	  '_'  },
 	{ XFUNC_set_arg,		1,	  '0'  },
@@ -1350,8 +1357,6 @@ x_ins_string(int c)
 	}
 	return KSTD;
 }
-
-static int x_do_ins(const char *cp, int len);
 
 static int
 x_do_ins(const char *cp, int len)
@@ -2349,8 +2354,6 @@ x_init_emacs(void)
 	Flag(FEMACSUSEMETA) = 0;
 }
 
-static void bind_if_not_bound(int p, int k, int func);
-
 static void
 bind_if_not_bound(int p, int k, int func)
 {
@@ -2574,7 +2577,6 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
  * RETURN VALUE:
  *      None
  */
-
 static void
 x_adjust(void)
 {
@@ -2588,8 +2590,6 @@ x_adjust(void)
 	x_redraw(xx_cols);
 	x_flush();
 }
-
-static int unget_char = -1;
 
 static void
 x_e_ungetc(int c)
@@ -2660,7 +2660,6 @@ x_e_puts(const char *s)
  * RETURN VALUE:
  *      KSTD
  */
-
 static int
 x_set_arg(int c)
 {
@@ -2681,7 +2680,6 @@ x_set_arg(int c)
 	}
 	return KSTD;
 }
-
 
 /* Comment or uncomment the current line. */
 static int
@@ -2704,6 +2702,37 @@ x_comment(int c __attribute__((unused)))
 	return KSTD;
 }
 
+static int
+x_version(int c __attribute__((unused)))
+{
+	char *o_xbuf = xbuf, *o_xend = xend;
+	char *o_xbp = xbp, *o_xep = xep, *o_xcp = xcp;
+	int lim = x_lastcp() - xbp;
+	char *v = strdup(MKSH_VERSION + 4);
+	int vlen;
+
+	xbuf = xbp = xcp = v;
+	xend = xep = v + (vlen = strlen(v));
+	x_redraw(lim);
+	x_flush();
+
+	c = x_e_getc();
+	xbuf = o_xbuf;
+	xend = o_xend;
+	xbp = o_xbp;
+	xep = o_xep;
+	xcp = o_xcp;
+	x_redraw(vlen);
+
+	if (c < 0)
+		return KSTD;
+	/* This is what at&t ksh seems to do...  Very bizarre */
+	if (c != ' ')
+		x_e_ungetc(c);
+
+	free(v);
+	return KSTD;
+}
 
 /* NAME:
  *      x_prev_histword - recover word from prev command
@@ -2719,7 +2748,6 @@ x_comment(int c __attribute__((unused)))
  * RETURN VALUE:
  *      KSTD
  */
-
 static int
 x_prev_histword(int c __attribute__((unused)))
 {
@@ -2798,7 +2826,6 @@ x_fold_capitalize(int c __attribute__((unused)))
  * RETURN VALUE:
  *      None
  */
-
 static int
 x_fold_case(int c)
 {
@@ -2865,7 +2892,6 @@ x_fold_case(int c)
  * RETURN VALUE:
  *      cp or NULL
  */
-
 static char *
 x_lastcp(void)
 {
@@ -3004,6 +3030,7 @@ const unsigned char	classify[128] = {
 #define VREDO		7		/* . */
 #define VLIT		8		/* ^V */
 #define VSEARCH		9		/* /, ? */
+#define VVERSION	10		/* <ESC> ^V */
 
 static char		undocbuf[LINE];
 
@@ -3088,7 +3115,7 @@ x_vi(char *buf, size_t len)
 				trapsig(c == edchars.intr ? SIGINT : SIGQUIT);
 				x_mode(false);
 				unwind(LSHELL);
-			} else if (c == edchars.eof) {
+			} else if (c == edchars.eof && state != VVERSION) {
 				if (es->linelen == 0) {
 					x_vi_zotc(edchars.eof);
 					c = -1;
@@ -3168,6 +3195,14 @@ vi_hook(int ch)
 						return -1;
 					refresh(0);
 				}
+				if (state == VVERSION) {
+					save_cbuf();
+					es->cursor = 0;
+					es->linelen = 0;
+					putbuf(MKSH_VERSION + 4,
+					    strlen(MKSH_VERSION + 4), 0);
+					refresh(0);
+				}
 			}
 		}
 		break;
@@ -3180,6 +3215,12 @@ vi_hook(int ch)
 			es->cbuf[es->cursor++] = ch;
 		refresh(1);
 		state = VNORMAL;
+		break;
+
+	case VVERSION:
+		restore_cbuf();
+		state = VNORMAL;
+		refresh(0);
 		break;
 
 	case VARG1:
@@ -3398,6 +3439,8 @@ nextstate(int ch)
 		return VXCH;
 	else if (ch == '.')
 		return VREDO;
+	else if (ch == Ctrl('v'))
+		return VVERSION;
 	else if (is_cmd(ch))
 		return VCMD;
 	else

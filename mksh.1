@@ -1,8 +1,8 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.41 2006/07/27 14:45:30 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.42 2006/08/01 12:44:17 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.112 2006/04/22 14:10:36 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
-.Dd June 27, 2006
+.Dd August 1, 2006
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -1409,6 +1409,11 @@ This parameter is not imported from the environment when the shell is
 started.
 .It Ev KSH_VERSION
 The name and version of the shell (read-only).
+See also the version commands in
+.Sx Emacs editing mode
+and
+.Sx Vi editing mode
+sections, below.
 .It Ev LINENO
 The line number of the function or shell script that is currently being
 executed.
@@ -4521,7 +4526,7 @@ Introduces a 2-character command sequence.
 The last
 .Pq Ar n Ns th
 word of the previous command is inserted at the cursor.
-.It quote: ^^
+.It quote: ^^ , ^V
 The following character is taken literally rather than as an editing command.
 .It redraw: ^L
 Reprints the prompt string and the current input line.
@@ -4584,8 +4589,11 @@ lines (earlier).
 Uppercase the next
 .Ar n
 words.
-.It quote: ^V
-Synonym for ^^.
+.It version: ^[^V
+Display the version of
+.Nm .
+The current edit buffer is restored as soon as a key is pressed.
+The restoring keypress is processed, unless it is a space.
 .It yank: ^Y
 Inserts the most recently killed text string at the current cursor position.
 .It yank-pop: ^[y
@@ -4800,6 +4808,11 @@ enumeration command).
 .It = and ^E
 Command/file name enumeration.
 List all the commands or files that match the current big-word.
+.It ^V
+Display the version of
+.Nm .
+The current edit buffer is restored as soon as a key is pressed.
+The restoring keypress is ignored.
 .It @ Ns Ar c
 Macro expansion.
 Execute the commands found in the alias
