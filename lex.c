@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.16 2006/08/01 14:10:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.17 2006/08/01 14:35:44 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -57,6 +57,8 @@ static const char *ungetsc(int);
 static void	gethere(void);
 static Lex_state *push_state_(State_info *, Lex_state *);
 static Lex_state *pop_state_(State_info *, Lex_state *);
+
+static int dopprompt(const char *, int, const char **, int);
 
 static int backslash_skip;
 static int ignore_backslash_newline;
@@ -1085,18 +1087,10 @@ set_prompt(int to, Source *s)
 	}
 }
 
-/* See also related routine, promptlen() in edit.c */
-void
-pprompt(const char *cp, int ntruncate)
+static int
+dopprompt(const char *cp, int ntruncate, const char **spp, int doprint)
 {
-	shf_puts(cp + ntruncate, shl_out);
-	shf_flush(shl_out);
-}
-
-int
-promptlen(const char *cp, const char **spp)
-{
-	int count = 0;
+	int count = 0, lines = 0;
 	const char *sp = cp;
 	char delimiter = 0;
 	int indelimit = 0;
@@ -1112,10 +1106,17 @@ promptlen(const char *cp, const char **spp)
 		cp += 2;
 	}
 	for (; *cp; cp++) {
+		if (!indelimit && ntruncate)
+			--ntruncate;
+		else if (doprint) {
+			shf_puts(cp, shl_out);
+			doprint = 0;
+		}
 		if (indelimit && *cp != delimiter)
 			;
 		else if (*cp == '\n' || *cp == '\r') {
 			count = 0;
+			++lines;
 			sp = cp + 1;
 		} else if (*cp == '\t') {
 			count = (count | 7) + 1;
@@ -1129,7 +1130,22 @@ promptlen(const char *cp, const char **spp)
 	}
 	if (spp)
 		*spp = sp;
-	return count;
+	if (doprint)
+		shf_flush(shl_out);
+	return (count + (lines * x_cols));
+}
+
+
+void
+pprompt(const char *cp, int ntruncate)
+{
+	dopprompt(cp, ntruncate, NULL, 1);
+}
+
+int
+promptlen(const char *cp, const char **spp)
+{
+	return (dopprompt(cp, 0, spp, 0));
 }
 
 /* Read the variable part of a ${...} expression (ie, up to but not including
