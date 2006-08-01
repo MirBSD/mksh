@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.16 2006/08/01 12:57:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.17 2006/08/01 13:19:42 tg Exp $");
 
 static int	histfd;
 static int	hsize;
@@ -29,6 +29,7 @@ static char    *hname;		/* current name of history file */
 static int	hstarted;	/* set after hist_init() called */
 static Source	*hist_source;
 
+#ifndef mksh_siglist
 #if defined(BSD) || defined(__APPLE__)
 #define	mksh_signame(x)	sys_signame[(x)]
 #define	mksh_siglist(x)	sys_siglist[(x)]
@@ -41,6 +42,7 @@ static Source	*hist_source;
 #else
 # error "Define sys_sig{name,list} for this platform!"
 #endif
+#endif /* ndef mksh_siglist */
 
 Trap sigtraps[NSIG + 1];
 
