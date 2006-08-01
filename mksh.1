@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.42 2006/08/01 12:44:17 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.112 2006/04/22 14:10:36 jmc Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.43 2006/08/01 14:09:19 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
 .Dd August 1, 2006
@@ -1430,7 +1430,7 @@ When using
 .Ic getopts ,
 it contains the argument for a parsed option, if it requires one.
 .It Ev OPTIND
-The index of the last argument processed when using
+The index of the next argument to be processed when using
 .Ic getopts .
 Assigning 1 to this parameter causes
 .Ic getopts
@@ -2796,7 +2796,9 @@ Each time
 .Ic getopts
 is invoked, it places the next option in the shell parameter
 .Ar name
-and the index of the next argument to be processed in the shell parameter
+and the index of the argument to be processed by the next call to
+.Ic getopts
+in the shell parameter
 .Ev OPTIND .
 If the option was introduced with a
 .Ql + ,

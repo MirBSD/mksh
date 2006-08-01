@@ -1,9 +1,9 @@
-/*	$OpenBSD: history.c,v 1.34 2006/03/17 16:30:13 millert Exp $	*/
+/*	$OpenBSD: history.c,v 1.35 2006/05/29 18:22:24 otto Exp $	*/
 /*	$OpenBSD: trap.c,v 1.22 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.18 2006/08/01 13:43:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.19 2006/08/01 14:09:19 tg Exp $");
 
 static int	histfd;
 static int	hsize;
@@ -857,8 +857,7 @@ histload(Source *s, unsigned char *base, int bytes)
 				if (histptr >= history && lno-1 != s->line) {
 					/* a replacement ? */
 					histinsert(s, lno, line);
-				}
-				else {
+				} else {
 					s->line = lno;
 					histsave(lno, (char *)line, 0);
 				}

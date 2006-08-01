@@ -3,12 +3,12 @@
 /*	$OpenBSD: table.h,v 1.7 2005/12/11 20:31:21 otto Exp $	*/
 /*	$OpenBSD: tree.h,v 1.10 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: expand.h,v 1.6 2005/03/30 17:16:37 deraadt Exp $	*/
-/*	$OpenBSD: lex.h,v 1.10 2005/09/11 18:02:27 otto Exp $	*/
+/*	$OpenBSD: lex.h,v 1.11 2006/05/29 18:22:24 otto Exp $	*/
 /*	$OpenBSD: proto.h,v 1.30 2006/03/17 16:30:13 millert Exp $	*/
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.28 2006/08/01 12:22:26 tg Exp $"
+#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.29 2006/08/01 14:09:20 tg Exp $"
 
 #include <sys/param.h>
 

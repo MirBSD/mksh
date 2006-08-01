@@ -1,11 +1,11 @@
 /*	$OpenBSD: edit.c,v 1.31 2005/12/11 20:31:21 otto Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
-/*	$OpenBSD: emacs.c,v 1.39 2005/09/26 19:25:22 otto Exp $	*/
+/*	$OpenBSD: emacs.c,v 1.40 2006/07/10 17:12:41 beck Exp $	*/
 /*	$OpenBSD: vi.c,v 1.23 2006/04/10 14:38:59 jaredy Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.24 2006/08/01 12:44:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.25 2006/08/01 14:09:18 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -956,6 +956,7 @@ static int	cur_col;		/* current column on line */
 static int	pwidth;			/* width of prompt */
 static int	prompt_trunc;		/* how much of prompt to truncate */
 static int	prompt_skip;		/* how much of prompt to skip */
+static int	prompt_redraw;		/* do we need to redraw the prompt? */
 static int	winwidth;		/* width of window */
 static char	*wbuf[2];		/* window buffers */
 static int	wbuf_len;		/* length of window buffers (x_cols-3)*/
@@ -1278,10 +1279,19 @@ x_emacs(char *buf, size_t len)
 	x_col = promptlen(prompt, &p);
 	prompt_skip = p - prompt;
 	x_adj_ok = 1;
+	prompt_redraw = 1;
+	if (x_col > xx_cols)
+		x_col = x_col - (x_col / xx_cols) * xx_cols;
 	x_displen = xx_cols - 2 - x_col;
 	x_adj_done = 0;
 
 	pprompt(prompt, 0);
+	if (x_displen < 1) {
+		x_col = 0;
+		x_displen = xx_cols - 2;
+		x_e_putc('\n');
+		prompt_redraw = 0;
+	}
 
 	if (x_nextcmd >= 0) {
 		int off = source->line - x_nextcmd;
@@ -1954,7 +1964,7 @@ x_draw_line(int c __attribute__((unused)))
 static void
 x_redraw(int limit)
 {
-	int i, j;
+	int i, j, x_trunc = 0;
 	u_char *cp;
 
 	x_adj_ok = 0;
@@ -1964,10 +1974,19 @@ x_redraw(int limit)
 		x_e_putc('\r');
 	x_flush();
 	if (xbp == xbuf) {
-		pprompt(prompt + prompt_skip, 0);
 		x_col = promptlen(prompt, NULL);
+		if (x_col > xx_cols)
+			x_trunc = (x_col / xx_cols) * xx_cols;
+		if (prompt_redraw)
+			pprompt(prompt + prompt_skip, x_trunc);
 	}
+	if (x_col > xx_cols)
+		x_col = x_col - (x_col / xx_cols) * xx_cols;
 	x_displen = xx_cols - 2 - x_col;
+	if (x_displen < 1) {
+		x_col = 0;
+		x_displen = xx_cols - 2;
+	}
 	xlp_valid = false;
 	cp = (u_char *)x_lastcp();
 	x_zots((u_char *)xbp);
