@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.33 2006/07/23 18:44:22 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.34 2006/08/01 12:57:07 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
@@ -63,7 +63,7 @@ Interix)
 Linux)
 	# Hello Mr Drepper, we all like you too...</sarcasm>
 	SRCS="$SRCS compat.c strlfun.c"
-	CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=2 -D_BSD_SOURCE"
+	CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=2 -D_BSD_SOURCE -D_GNU_SOURCE"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64 -DNEED_COMPAT"
 	LDSTATIC= # glibc dlopens the PAM library with getpwnam at runtime
 	;;

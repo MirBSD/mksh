@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.15 2006/05/10 18:54:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.16 2006/08/01 12:57:07 tg Exp $");
 
 static int	histfd;
 static int	hsize;
@@ -37,7 +37,7 @@ static Source	*hist_source;
 #define	mksh_siglist(x) _sys_siglist[(x)]
 #elif defined(__gnu_linux__) || defined(__sun__) || defined(__CYGWIN__)
 #define	NEED_MKSH_SIGNAME
-#define	mksh_siglist(x)	strerror(x)
+#define	mksh_siglist(x)	strsignal(x)
 #else
 # error "Define sys_sig{name,list} for this platform!"
 #endif
@@ -648,7 +648,7 @@ hist_init(Source *s)
 		return;
 	hname = str_save(hname, APERM);
 
-  retry:
+ retry:
 	/* we have a file and are interactive */
 	if ((fd = open(hname, O_RDWR|O_CREAT|O_APPEND, 0600)) < 0)
 		return;
@@ -943,7 +943,7 @@ writehistfile(int lno, char *cmd)
 	hsize = lseek(histfd, 0L, SEEK_END);
 	(void) flock(histfd, LOCK_UN);
 	return;
-bad:
+ bad:
 	hist_finish();
 }
 #endif
@@ -986,10 +986,10 @@ mksh_signame(int s)
 
 	while (mksh_sigpair[i].name != NULL) {
 		if (mksh_sigpair[i].nr == s)
-			return mksh_sigpair[i].name;
+			return (mksh_sigpair[i].name);
 		++i;
 	}
-	return NULL;
+	return (NULL);
 }
 #endif
 
