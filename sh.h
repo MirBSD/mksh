@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.29 2006/08/01 14:09:20 tg Exp $"
+#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.30 2006/08/01 14:10:25 tg Exp $"
 
 #include <sys/param.h>
 
@@ -1081,6 +1081,7 @@ void	yyerror(const char *, ...)
 Source * pushs(int, Area *);
 void	set_prompt(int, Source *);
 void	pprompt(const char *, int);
+int	promptlen(const char *, const char **);
 /* main.c */
 int	include(const char *, int, char **, int);
 int	command(const char *);

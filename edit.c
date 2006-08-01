@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.25 2006/08/01 14:09:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.26 2006/08/01 14:10:24 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -30,7 +30,6 @@ void x_flush(void);
 void x_putc(int);
 void x_puts(const u_char *);
 bool x_mode(bool);
-int promptlen(const char *, const char **);
 int x_do_comment(char *, int, int *);
 void x_print_expansions(int, char *const *, int);
 int x_cf_glob(int, const char *, int, int, int *, int *, char ***, int *);
@@ -223,45 +222,6 @@ x_mode(bool onoff)
 		tcsetattr(tty_fd, TCSADRAIN, &tty_state);
 
 	return prev;
-}
-
-int
-promptlen(const char *cp, const char **spp)
-{
-	int count = 0;
-	const char *sp = cp;
-	char delimiter = 0;
-	int indelimit = 0;
-
-	/* Undocumented AT&T ksh feature:
-	 * If the second char in the prompt string is \r then the first char
-	 * is taken to be a non-printing delimiter and any chars between two
-	 * instances of the delimiter are not considered to be part of the
-	 * prompt length
-	 */
-	if (*cp && cp[1] == '\r') {
-		delimiter = *cp;
-		cp += 2;
-	}
-	for (; *cp; cp++) {
-		if (indelimit && *cp != delimiter)
-			;
-		else if (*cp == '\n' || *cp == '\r') {
-			count = 0;
-			sp = cp + 1;
-		} else if (*cp == '\t') {
-			count = (count | 7) + 1;
-		} else if (*cp == '\b') {
-			if (count > 0)
-				count--;
-		} else if (*cp == delimiter)
-			indelimit = !indelimit;
-		else
-			count++;
-	}
-	if (spp)
-		*spp = sp;
-	return count;
 }
 
 /* ------------------------------------------------------------------------- */

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.15 2006/08/01 14:09:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.16 2006/08/01 14:10:25 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -1091,6 +1091,45 @@ pprompt(const char *cp, int ntruncate)
 {
 	shf_puts(cp + ntruncate, shl_out);
 	shf_flush(shl_out);
+}
+
+int
+promptlen(const char *cp, const char **spp)
+{
+	int count = 0;
+	const char *sp = cp;
+	char delimiter = 0;
+	int indelimit = 0;
+
+	/* Undocumented AT&T ksh feature:
+	 * If the second char in the prompt string is \r then the first char
+	 * is taken to be a non-printing delimiter and any chars between two
+	 * instances of the delimiter are not considered to be part of the
+	 * prompt length
+	 */
+	if (*cp && cp[1] == '\r') {
+		delimiter = *cp;
+		cp += 2;
+	}
+	for (; *cp; cp++) {
+		if (indelimit && *cp != delimiter)
+			;
+		else if (*cp == '\n' || *cp == '\r') {
+			count = 0;
+			sp = cp + 1;
+		} else if (*cp == '\t') {
+			count = (count | 7) + 1;
+		} else if (*cp == '\b') {
+			if (count > 0)
+				count--;
+		} else if (*cp == delimiter)
+			indelimit = !indelimit;
+		else
+			count++;
+	}
+	if (spp)
+		*spp = sp;
+	return count;
 }
 
 /* Read the variable part of a ${...} expression (ie, up to but not including
