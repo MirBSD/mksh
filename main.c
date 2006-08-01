@@ -6,7 +6,7 @@
 #define	EXTERN				/* define EXTERNs in sh.h */
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.43 2006/08/01 12:22:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.44 2006/08/01 13:43:27 tg Exp $");
 
 extern char **environ;
 
@@ -1161,7 +1161,7 @@ ktenter(struct table *tp, const char *n, unsigned int h)
 
 	if (tp->size == 0)
 		texpand(tp, INIT_TBLS);
-Search:
+ Search:
 	/* search for name in hashed table */
 	for (pp = &tp->tbls[h & (tp->size - 1)]; (p = *pp) != NULL; pp--) {
 		if (*p->name == *n && strcmp(p->name, n) == 0)

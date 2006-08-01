@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.13 2006/07/03 12:16:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.14 2006/08/01 13:43:27 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -102,8 +102,7 @@ yylex(int cf)
 	char *sp, *dp;
 	int c2;
 
-
-  Again:
+ Again:
 	states[0].ls_state = -1;
 	states[0].ls_info.base = NULL;
 	statep = &states[1];
@@ -178,7 +177,7 @@ yylex(int cf)
 				break;
 			}
 			/* FALLTHRU */
-		  Sbase1:	/* includes *(...|...) pattern (*+?@!) */
+ Sbase1:		/* includes *(...|...) pattern (*+?@!) */
 			if (c == '*' || c == '@' || c == '+' || c == '?' ||
 			    c == '!') {
 				c2 = getsc();
@@ -191,7 +190,7 @@ yylex(int cf)
 				ungetsc(c2);
 			}
 			/* FALLTHRU */
-		  Sbase2:	/* doesn't include *(...|...) pattern (*+?@!) */
+ Sbase2:		/* doesn't include *(...|...) pattern (*+?@!) */
 			switch (c) {
 			case '\\':
 				c = getsc();
@@ -212,7 +211,7 @@ yylex(int cf)
 			}
 			break;
 
-		  Subst:
+ Subst:
 			switch (c) {
 			case '\\':
 				c = getsc();
@@ -226,7 +225,7 @@ yylex(int cf)
 					*wp++ = QCHAR, *wp++ = c;
 					break;
 				default:
-heredocquote:
+ heredocquote:
 					Xcheck(ws, wp);
 					if (c) { /* trailing \ is lost */
 						*wp++ = CHAR, *wp++ = '\\';
@@ -601,7 +600,7 @@ heredocquote:
 			break;
 		}
 	}
-Done:
+ Done:
 	Xcheck(ws, wp);
 	if (statep != &states[1])
 		/* XXX figure out what is missing */

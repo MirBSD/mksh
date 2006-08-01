@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.28 2006/07/03 12:16:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.29 2006/08/01 13:43:26 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -2254,16 +2254,16 @@ c_mknod(char **wp)
 		if (mknod(argv[0], mode, dv))
 			goto c_mknod_failed;
 	} else if (mkfifo(argv[0], mode)) {
-c_mknod_failed:
+ c_mknod_failed:
 		bi_errorf("%s: %s", *wp, strerror(errno));
-c_mknod_err:
+ c_mknod_err:
 		rv = 1;
 	}
 
 	if (set)
 		umask(oldmode);
 	return (rv);
-c_mknod_usage:
+ c_mknod_usage:
 	bi_errorf("usage: mknod [-m mode] name [b | c] major minor");
 	bi_errorf("usage: mknod [-m mode] name p");
 	return (1);

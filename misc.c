@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.11 2006/05/10 18:54:11 tg Exp $"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.12 2006/08/01 13:43:28 tg Exp $"
 	"\t" MKSH_SH_H_ID);
 
 short chtypes[UCHAR_MAX+1];	/* type bits for unsigned char */
@@ -778,7 +778,7 @@ qsort1(void **base, void **lim, int (*f) (void *, void *))
 	size_t n;
 	int c;
 
-  top:
+ top:
 	n = (lim - base) / 2;
 	if (n == 0)
 		return;
@@ -799,7 +799,7 @@ qsort1(void **base, void **lim, int (*f) (void *, void *))
 			}
 		}
 
-	  begin:
+ begin:
 		if (j > hptr) {
 			if ((c = (*f)(*hptr, *j)) == 0) {
 				hptr ++;

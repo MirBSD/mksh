@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.17 2006/08/01 13:19:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.18 2006/08/01 13:43:27 tg Exp $");
 
 static int	histfd;
 static int	hsize;
@@ -669,8 +669,7 @@ hist_init(Source *s)
 			hist_finish();
 			return;
 		}
-	}
-	else if (hsize > 0) {
+	} else if (hsize > 0) {
 		/*
 		 * we have some data
 		 */

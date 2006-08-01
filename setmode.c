@@ -48,7 +48,7 @@
 #endif
 
 __SCCSID("@(#)setmode.c	8.2 (Berkeley) 3/25/94");
-__RCSID("$MirOS: src/bin/mksh/setmode.c,v 1.2 2006/07/03 12:16:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/setmode.c,v 1.3 2006/08/01 13:43:28 tg Exp $");
 
 #define	SET_LEN	6		/* initial # of bitcmd struct to malloc */
 #define	SET_LEN_INCR 4		/* # of bitcmd structs to add as needed */
@@ -103,7 +103,8 @@ getmode(const void *bbox, mode_t omode)
 
 		case 'o':
 			value = newmode & S_IRWXO;
-common:			if (set->cmd2 & CMD2_CLR) {
+ common:
+			if (set->cmd2 & CMD2_CLR) {
 				clrval =
 				    (set->cmd2 & CMD2_SET) ?  S_IRWXO : value;
 				if (set->cmd2 & CMD2_UBITS)
@@ -238,7 +239,8 @@ setmode(const char *p)
 			}
 		}
 
-getop:		if ((op = *p++) != '+' && op != '-' && op != '=') {
+ getop:
+		if ((op = *p++) != '+' && op != '-' && op != '=') {
 			free(saveset);
 			return (NULL);
 		}
@@ -318,7 +320,8 @@ getop:		if ((op = *p++) != '+' && op != '-' && op != '=') {
 			}
 		}
 
-apply:		if (!*p)
+ apply:
+		if (!*p)
 			break;
 		if (*p != ',')
 			goto getop;

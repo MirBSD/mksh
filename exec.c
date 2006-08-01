@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.15 2006/05/10 18:54:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.16 2006/08/01 13:43:26 tg Exp $");
 
 static int	comexec(struct op *, struct tbl *volatile, char **,
 		    int volatile);
@@ -318,7 +318,7 @@ execute(struct op *volatile t,
 			    gmatchx(cp, s, false))
 				goto Found;
 		break;
-	  Found:
+ Found:
 		rv = execute(t->left, flags & XERROK);
 		break;
 
@@ -348,7 +348,7 @@ execute(struct op *volatile t,
 		else
 			errorf("%s: %s", s, strerror(errno));
 	}
-    Break:
+ Break:
 	exstat = rv;
 
 	quitenv(NULL);		/* restores IO */
@@ -654,7 +654,7 @@ comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
 		rv = exchild(&texec, flags, -1);
 		break;
 	}
-  Leave:
+ Leave:
 	if (flags & XEXEC) {
 		exstat = rv;
 		unwind(LLEAVE);
@@ -841,7 +841,7 @@ findcom(const char *name, int flags)
 		}
 	}
 
-  Search:
+ Search:
 	if ((!tp || (tp->type == CTALIAS && !(tp->flag&ISSET))) &&
 	    (flags & FC_PATH)) {
 		if (!tp) {

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.12 2006/05/10 18:54:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.13 2006/08/01 13:43:26 tg Exp $");
 
 /*
  * string expansion
@@ -1074,7 +1074,8 @@ globit(XString *xs,	/* dest string */
 			xp = Xstring(*xs, xp) + prefix_len;
 		}
 		closedir(dirp);
-	  Nodir:;
+ Nodir:
+		;
 	}
 
 	if (np != NULL)

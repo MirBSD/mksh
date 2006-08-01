@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.7 2006/05/10 18:54:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.8 2006/08/01 13:43:28 tg Exp $");
 
 struct nesting_state {
 	int	start_token;	/* token than began nesting (eg, FOR) */
@@ -264,10 +264,10 @@ get_command(int cf)
 				goto Leave;
 			}
 		}
-	  Leave:
+ Leave:
 		break;
 
-	  Subshell:
+ Subshell:
 	case '(':
 		t = nested(TPAREN, '(', ')');
 		break;
@@ -682,7 +682,7 @@ syntaxerr(const char *what)
 		what = "unexpected";
 	REJECT;
 	c = token(0);
-    Again:
+ Again:
 	switch (c) {
 	case 0:
 		if (nesting.start_token) {

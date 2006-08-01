@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.8 2006/05/10 18:54:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.9 2006/08/01 13:43:27 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -1045,7 +1045,7 @@ j_sigchld(int sig __attribute__((unused)))
 			for (p = j->proc_list; p != NULL; p = p->next)
 				if (p->pid == pid)
 					goto found;
-found:
+ found:
 		if (j == NULL) {
 			/* Can occur if process has kids, then execs shell
 			warningf(true, "bad process waited for (pid = %d)",
