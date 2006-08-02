@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.37 2006/08/02 11:50:28 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.38 2006/08/02 14:17:13 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
@@ -90,7 +90,7 @@ test -x mksh || exit 1
 [ $r = 1 ] || v "${NROFF:-nroff} -mdoc <'$srcdir/mksh.1' >mksh.cat1" \
     || rm -f mksh.cat1
 [ $q = 1 ] || v size mksh
-echo '#!/bin/sh' >Test.sh
+echo "#!$SHELL" >Test.sh
 echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t' -p '$curdir/mksh' -C pdksh \$*" >>Test.sh
 chmod 755 Test.sh
 $e
