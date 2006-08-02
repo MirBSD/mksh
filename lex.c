@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.20 2006/08/02 10:42:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.21 2006/08/02 11:33:37 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -58,7 +58,7 @@ static void	gethere(void);
 static Lex_state *push_state_(State_info *, Lex_state *);
 static Lex_state *pop_state_(State_info *, Lex_state *);
 
-static int dopprompt(const char *, int, const char **, int);
+static int dopprompt(const char *, int, int);
 
 static int backslash_skip;
 static int ignore_backslash_newline;
@@ -1088,12 +1088,10 @@ set_prompt(int to, Source *s)
 }
 
 static int
-dopprompt(const char *cp, int ntruncate, const char **spp, int doprint)
+dopprompt(const char *cp, int ntruncate, int doprint)
 {
-	int columns = 0, lines = 0;
-	const char *sp = cp;
+	int columns = 0, lines = 0, indelimit = 0;
 	char delimiter = 0;
-	int indelimit = 0;
 
 	/* Undocumented AT&T ksh feature:
 	 * If the second char in the prompt string is \r then the first char
@@ -1109,9 +1107,8 @@ dopprompt(const char *cp, int ntruncate, const char **spp, int doprint)
 		if (indelimit && *cp != delimiter)
 			;
 		else if (*cp == '\n' || *cp == '\r') {
+			lines += columns / x_cols + ((*cp == '\n') ? 1 : 0);
 			columns = 0;
-			++lines;
-			sp = cp + 1;
 		} else if (*cp == '\t') {
 			columns = (columns | 7) + 1;
 		} else if (*cp == '\b') {
@@ -1121,31 +1118,27 @@ dopprompt(const char *cp, int ntruncate, const char **spp, int doprint)
 			indelimit = !indelimit;
 		else
 			columns++;
-		if (*cp != delimiter) {
-			if (ntruncate && !indelimit)
-				--ntruncate;
-			else if (doprint)
-				shf_putc(*cp, shl_out);
-		}
+		if (doprint && (*cp != delimiter) &&
+		    (indelimit || (ntruncate < (x_cols * lines + columns))))
+			shf_putc(*cp, shl_out);
 	}
-	if (spp)
-		*spp = sp;
 	if (doprint)
 		shf_flush(shl_out);
-	return (columns + (lines * x_cols));
+	indelimit = (x_cols * lines + columns);
+	return indelimit;
 }
 
 
 void
 pprompt(const char *cp, int ntruncate)
 {
-	dopprompt(cp, ntruncate, NULL, 1);
+	dopprompt(cp, ntruncate, 1);
 }
 
 int
-promptlen(const char *cp, const char **spp)
+promptlen(const char *cp)
 {
-	return (dopprompt(cp, 0, spp, 0));
+	return (dopprompt(cp, 0, 0));
 }
 
 /* Read the variable part of a ${...} expression (ie, up to but not including

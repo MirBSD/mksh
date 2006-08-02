@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.28 2006/08/01 14:59:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.29 2006/08/02 11:33:36 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -915,8 +915,7 @@ static	char    *macroptr;
 static int	cur_col;		/* current column on line */
 static int	pwidth;			/* width of prompt */
 static int	prompt_trunc;		/* how much of prompt to truncate */
-static int	prompt_skip;		/* how much of prompt to skip */
-static int	prompt_redraw;		/* do we need to redraw the prompt? */
+static int	prompt_redraw;		/* 0 if newline forced after prompt */
 static int	winwidth;		/* width of window */
 static char	*wbuf[2];		/* window buffers */
 static int	wbuf_len;		/* length of window buffers (x_cols-3)*/
@@ -1220,9 +1219,7 @@ static struct x_defbindings const x_defbindings[] = {
 int
 x_emacs(char *buf, size_t len)
 {
-	int	c;
-	const char *p;
-	int	i;
+	int c, i;
 	u_char f;
 
 	xbp = xbuf = buf; xend = buf + len;
@@ -1236,8 +1233,7 @@ x_emacs(char *buf, size_t len)
 	x_last_command = XFUNC_error;
 
 	xx_cols = x_cols;
-	x_col = promptlen(prompt, &p);
-	prompt_skip = p - prompt;
+	x_col = promptlen(prompt);
 	x_adj_ok = 1;
 	prompt_redraw = 1;
 	if (x_col > xx_cols)
@@ -1934,11 +1930,11 @@ x_redraw(int limit)
 		x_e_putc('\r');
 	x_flush();
 	if (xbp == xbuf) {
-		x_col = promptlen(prompt, NULL);
+		x_col = promptlen(prompt);
 		if (x_col > xx_cols)
 			x_trunc = (x_col / xx_cols) * xx_cols;
 		if (prompt_redraw)
-			pprompt(prompt + prompt_skip, x_trunc);
+			pprompt(prompt, x_trunc);
 	}
 	if (x_col > xx_cols)
 		x_col %= xx_cols;
@@ -2934,7 +2930,6 @@ static int	complete_word(int, int);
 static int	print_expansions(struct edstate *, int);
 static int	char_len(int);
 static void	x_vi_zotc(int);
-static void	vi_pprompt(int);
 static void	vi_error(void);
 static void	vi_macro_reset(void);
 static int	x_vi_putbuf(const char *, size_t);
@@ -3067,7 +3062,7 @@ x_vi(char *buf, size_t len)
 	int c;
 
 	vi_reset(buf, len > LINE ? LINE : len);
-	vi_pprompt(1);
+	pprompt(prompt, prompt_trunc);
 	x_flush();
 	while (1) {
 		if (macro.p) {
@@ -4282,7 +4277,6 @@ free_edstate(struct edstate *old)
 static void
 edit_reset(char *buf, size_t len)
 {
-	const char *p;
 
 	es = &ebuf;
 	es->cbuf = buf;
@@ -4294,8 +4288,7 @@ edit_reset(char *buf, size_t len)
 	es->cursor = undo->cursor = 0;
 	es->winleft = undo->winleft = 0;
 
-	cur_col = pwidth = promptlen(prompt, &p);
-	prompt_skip = p - prompt;
+	cur_col = pwidth = promptlen(prompt);
 	if (pwidth > x_cols - 3 - MIN_EDIT_SPACE) {
 		cur_col = x_cols - 3 - MIN_EDIT_SPACE;
 		prompt_trunc = pwidth - cur_col;
@@ -4581,7 +4574,7 @@ redraw_line(int newl)
 		x_putc('\r');
 		x_putc('\n');
 	}
-	vi_pprompt(0);
+	pprompt(prompt, prompt_trunc);
 	cur_col = pwidth;
 	morec = ' ';
 }
@@ -4746,7 +4739,7 @@ ed_mov_opt(int col, char *wb)
 	if (col < cur_col) {
 		if (col + 1 < cur_col - col) {
 			x_putc('\r');
-			vi_pprompt(0);
+			pprompt(prompt, prompt_trunc);
 			cur_col = pwidth;
 			while (cur_col++ < col)
 				x_putc(*wb++);
@@ -4974,12 +4967,6 @@ x_vi_zotc(int c)
 		c ^= '@';
 	}
 	x_putc(c);
-}
-
-static void
-vi_pprompt(int full)
-{
-	pprompt(prompt + (full ? 0 : prompt_skip), prompt_trunc);
 }
 
 static void
