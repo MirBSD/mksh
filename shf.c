@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.5 2006/05/10 18:54:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.6 2006/08/02 12:50:20 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -727,9 +727,6 @@ shf_smprintf(const char *fmt, ...)
 	    (sizeof(int) < sizeof(long) ? ((s) ?			\
 	    (long) va_arg((a), int) : va_arg((a), unsigned)) :		\
 	    va_arg((a), unsigned)))
-
-#define ABIGNUM		32000	/* big numer that will fit in a short */
-#define LOG2_10		3.321928094887362347870319429	/* log base 2 of 10 */
 
 #define	FL_HASH		0x001	/* '#' seen */
 #define FL_PLUS		0x002	/* '+' seen */
