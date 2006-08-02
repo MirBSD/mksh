@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.29 2006/08/02 11:33:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.30 2006/08/02 12:49:04 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -2233,7 +2233,7 @@ x_bind(const char *a1, const char *a2,
 
 	if (x_tab == NULL) {
 		bi_errorf("cannot bind, not a tty");
-		return 1;
+		return (1);
 	}
 	/* List function names */
 	if (list) {
@@ -2241,7 +2241,7 @@ x_bind(const char *a1, const char *a2,
 			if (x_ftab[f].xf_name &&
 			    !(x_ftab[f].xf_flags & XF_NOBIND))
 				shprintf("%s\n", x_ftab[f].xf_name);
-		return 0;
+		return (0);
 	}
 	if (a1 == NULL) {
 		for (prefix = 0; prefix < X_NTABS; prefix++)
@@ -2252,7 +2252,7 @@ x_bind(const char *a1, const char *a2,
 					continue;
 				x_print(prefix, key);
 			}
-		return 0;
+		return (0);
 	}
 	m1 = x_mapin(a1);
 	prefix = key = 0;
@@ -2265,10 +2265,18 @@ x_bind(const char *a1, const char *a2,
 		else
 			break;
 	}
+	if (*++m1) {
+		char msg[256] = "bind: key sequence '";
+		const char *c = a1;
+		while (*c)
+			strlcat(msg, x_mapout(*c++), sizeof (msg));
+		bi_errorf("%s' too long", msg);
+		return (1);
+	}
 
 	if (a2 == NULL) {
 		x_print(prefix, key);
-		return 0;
+		return (0);
 	}
 	if (*a2 == 0)
 		f = XFUNC_insert;
@@ -2279,7 +2287,7 @@ x_bind(const char *a1, const char *a2,
 				break;
 		if (f == NELEM(x_ftab) || x_ftab[f].xf_flags & XF_NOBIND) {
 			bi_errorf("%s: no such function", a2);
-			return 1;
+			return (1);
 		}
 	} else {
 		f = XFUNC_ins_string;
@@ -2300,7 +2308,7 @@ x_bind(const char *a1, const char *a2,
 		x_bound[(prefix * X_TABSZ + key) / 8] |=
 		    (1 << ((prefix * X_TABSZ + key) % 8));
 
-	return 0;
+	return (0);
 }
 
 void
