@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.49 2006/08/02 11:50:28 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.50 2006/08/02 12:38:45 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -2110,17 +2110,18 @@ name: IFS-space-colon-3
 description:
 	Simple test, IFS=<white-space>:
 	pdksh fails both of these tests
+	not sure whether #2 is correct
 stdin:
 	showargs() { for i; do echo -n " <$i>"; done; echo; }
 	IFS="$IFS:"
 	x=
 	set --
-	showargs "$x$@"
-	showargs "$@$x"
+	showargs "$x$@" 1
+	showargs "$@$x" 2
 expected-fail: yes
 expected-stdout:
-	 <>
-	 <>
+	 <> <1>
+	 <> <2>
 ---
 name: IFS-space-colon-4
 description:
@@ -2982,12 +2983,17 @@ name: regression-39
 description:
 	set -e: errors in command substitutions aren't ignored
 	Not clear if they should be or not... bash passes here
-expected-fail: yes
+	this may actually be required for make, so changed the
+	test to make this an mksh feature, not a bug
 arguments: !-e!
 stdin:
 	echo `false; echo hi`
+#expected-fail: yes
+#expected-stdout:
+#	hi
+expected-fail: no
 expected-stdout:
-	hi
+	
 ---
 name: regression-40
 description:
