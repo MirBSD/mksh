@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.48 2006/08/02 14:00:19 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.49 2006/08/02 14:02:55 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -2487,7 +2487,7 @@ bind '^XH'=beginning-of-line
 bind '^X4~'=end-of-line
 bind '^X8~'=end-of-line
 bind '^XF'=end-of-line
-bind '^X3~'=eot-or-delete
+bind '^X3~'=delete-char-forward
 .Ed
 .Pp
 .It Ic break Op Ar level
