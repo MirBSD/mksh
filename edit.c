@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.31 2006/08/02 12:54:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.32 2006/08/02 13:32:17 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1015,6 +1015,8 @@ static void bind_if_not_bound(int, int, int);
 #define XFUNC_comment 54
 #define XFUNC_version 55
 
+/* XFUNC_* must be < 128 */
+
 static int x_abort (int);
 static int x_beg_hist (int);
 static int x_comp_comm (int);
@@ -1214,6 +1216,9 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_next_com,		2,	  'B'	},
 	{ XFUNC_mv_forw,		2,	  'C'	},
 	{ XFUNC_mv_back,		2,	  'D'	},
+	{ XFUNC_mv_begin | 0x80,	2,	  '1'	},
+	{ XFUNC_mv_end | 0x80,		2,	  '4'	},
+	{ XFUNC_eot_del | 0x80,		2,	  '3'	},
 };
 
 int
@@ -1266,6 +1271,11 @@ x_emacs(char *buf, size_t len)
 		}
 		f = x_curprefix == -1 ? XFUNC_insert :
 		    x_tab[x_curprefix][c & CHARMASK];
+		if (f & 0x80) {
+			f &= 0x7F;
+			if ((i = x_e_getc()) != '~')
+				x_e_ungetc(i);
+		}
 
 		if (!(x_ftab[f].xf_flags & XF_PREFIX) &&
 		    x_last_command != XFUNC_set_arg) {
@@ -1795,6 +1805,11 @@ x_search_hist(int c)
 		if ((c = x_e_getc()) < 0)
 			return KSTD;
 		f = x_tab[0][c & CHARMASK];
+		if (f & 0x80) {
+			f &= 0x7F;
+			if ((c = x_e_getc()) != '~')
+				x_e_ungetc(c);
+		}
 		if (c == MKCTRL('['))
 			break;
 		else if (f == XFUNC_search_hist)
@@ -2210,13 +2225,15 @@ x_mapout(int c)
 static void
 x_print(int prefix, int key)
 {
+	int f = x_tab[prefix][key];
+
 	if (prefix == 1)
 		shprintf("%s", x_mapout(x_prefix1));
 	if (prefix == 2)
 		shprintf("%s", x_mapout(x_prefix2));
-	shprintf("%s = ", x_mapout(key));
-	if (x_tab[prefix][key] != XFUNC_ins_string)
-		shprintf("%s\n", x_ftab[x_tab[prefix][key]].xf_name);
+	shprintf("%s%s = ", x_mapout(key), (f & 0x80) ? "~" : "");
+	if ((f & 0x7F) != XFUNC_ins_string)
+		shprintf("%s\n", x_ftab[f & 0x7F].xf_name);
 	else
 		shprintf("'%s'\n", x_atab[prefix][key]);
 }
@@ -2246,7 +2263,7 @@ x_bind(const char *a1, const char *a2,
 	if (a1 == NULL) {
 		for (prefix = 0; prefix < X_NTABS; prefix++)
 			for (key = 0; key < X_TABSZ; key++) {
-				f = x_tab[prefix][key];
+				f = x_tab[prefix][key] & 0x7F;
 				if (f == XFUNC_insert || f == XFUNC_error ||
 				    (macro && f != XFUNC_ins_string))
 					continue;
@@ -2258,14 +2275,15 @@ x_bind(const char *a1, const char *a2,
 	prefix = key = 0;
 	for (;; m1++) {
 		key = *m1 & CHARMASK;
-		if (x_tab[prefix][key] == XFUNC_meta1)
+		f = x_tab[prefix][key] & 0x7F;
+		if (f == XFUNC_meta1)
 			prefix = 1;
-		else if (x_tab[prefix][key] == XFUNC_meta2)
+		else if (f == XFUNC_meta2)
 			prefix = 2;
 		else
 			break;
 	}
-	if (*++m1) {
+	if (*++m1 && ((*m1 != '~') || *(m1+1))) {
 		char msg[256] = "bind: key sequence '";
 		const char *c = a1;
 		while (*c)
@@ -2295,9 +2313,10 @@ x_bind(const char *a1, const char *a2,
 		sp = str_save(m2, AEDIT);
 	}
 
-	if (x_tab[prefix][key] == XFUNC_ins_string && x_atab[prefix][key])
+	if ((x_tab[prefix][key] & 0x7F) == XFUNC_ins_string &&
+	    x_atab[prefix][key])
 		afree((void *)x_atab[prefix][key], AEDIT);
-	x_tab[prefix][key] = f;
+	x_tab[prefix][key] = f | ((*m1) ? 0x80 : 0);
 	x_atab[prefix][key] = sp;
 
 	/* Track what the user has bound so x_emacs_keys() won't toast things */

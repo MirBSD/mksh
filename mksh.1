@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.45 2006/08/02 11:50:28 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.46 2006/08/02 13:32:18 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -2451,7 +2451,8 @@ for more information.
 The specified editing command is bound to the given
 .Ar string ,
 which should consist of a control character
-optionally preceded by one of the two prefix characters.
+optionally preceded by one of the two prefix characters
+and optionally succeded by a tilde character.
 Future input of the
 .Ar string
 will cause the editing command to be immediately invoked.
@@ -2462,14 +2463,17 @@ flag is given, the specified input
 will afterwards be immediately replaced by the given
 .Ar substitute
 string which may contain editing commands.
+If a tilde postfix is given, a tilde trailing the one or
+two prefices and the control character is ignored, any
+other trailing character will be processed afterwards.
 .Pp
 Control characters may be written using caret notation
 i.e. ^X represents Control-X.
 Note that although only two prefix characters (usually ESC and ^X)
 are supported, some multi-character sequences can be supported.
 .Pp
-The following default bindings show how the arrow keys
-on an ANSI terminal or xterm are bound
+The following default bindings show how the arrow keys, the
+home, end and delete key on an ANSI terminal or xterm are bound
 (of course some escape sequences won't work out quite this nicely):
 .Bd -literal -offset indent
 bind '^[['=prefix-2
@@ -2477,6 +2481,9 @@ bind '^XA'=up-history
 bind '^XB'=down-history
 bind '^XC'=forward-char
 bind '^XD'=backward-char
+bind '^X1~'=beginning-of-line
+bind '^X3~'=eot-or-delete
+bind '^X4~'=end-of-line
 .Ed
 .Pp
 .It Ic break Op Ar level
@@ -5268,7 +5275,7 @@ projects and patches and suggestions from users
 and many other persons.
 .Sh BUGS
 This document attempts to describe
-.Nm "" R27 .
+.Nm "" R28 .
 The O'Reilly book documents the
 .At
 .Nm KSH88
