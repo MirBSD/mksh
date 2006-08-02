@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.43 2006/08/01 14:09:19 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.44 2006/08/02 10:41:03 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -1485,13 +1485,15 @@ Note that since the command-line editors try to figure out how long the prompt
 is (so they know how far it is to the edge of the screen), escape codes in
 the prompt tend to mess things up.
 You can tell the shell not to count certain
-sequences (such as escape codes) by prefixing your prompt with a non-printing
+sequences (such as escape codes) by prefixing your prompt with a
 character (such as control-A) followed by a carriage return and then delimiting
-the escape codes with this non-printing character.
-If you don't have any non-printing characters, you're out of luck.
+the escape codes with this character.
+Any occurences of that character in the prompt are not printed.
 By the way, don't blame me for
-this hack; it's in the original
-.Xr ksh88 1 .
+this hack; it's derived from the original
+.Xr ksh88 1 ,
+which did print the delimiter character so you were out of luck
+if you did not have any non-printing characters.
 The default prompt is
 .Sq $\ \&
 for non-root users,

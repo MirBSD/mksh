@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.35 2006/08/02 10:02:21 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.36 2006/08/02 10:41:03 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
