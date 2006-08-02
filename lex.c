@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.19 2006/08/02 10:41:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.20 2006/08/02 10:42:30 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -1090,7 +1090,7 @@ set_prompt(int to, Source *s)
 static int
 dopprompt(const char *cp, int ntruncate, const char **spp, int doprint)
 {
-	int count = 0, lines = 0;
+	int columns = 0, lines = 0;
 	const char *sp = cp;
 	char delimiter = 0;
 	int indelimit = 0;
@@ -1109,18 +1109,18 @@ dopprompt(const char *cp, int ntruncate, const char **spp, int doprint)
 		if (indelimit && *cp != delimiter)
 			;
 		else if (*cp == '\n' || *cp == '\r') {
-			count = 0;
+			columns = 0;
 			++lines;
 			sp = cp + 1;
 		} else if (*cp == '\t') {
-			count = (count | 7) + 1;
+			columns = (columns | 7) + 1;
 		} else if (*cp == '\b') {
-			if (count > 0)
-				count--;
+			if (columns > 0)
+				columns--;
 		} else if (*cp == delimiter)
 			indelimit = !indelimit;
 		else
-			count++;
+			columns++;
 		if (*cp != delimiter) {
 			if (ntruncate && !indelimit)
 				--ntruncate;
@@ -1132,7 +1132,7 @@ dopprompt(const char *cp, int ntruncate, const char **spp, int doprint)
 		*spp = sp;
 	if (doprint)
 		shf_flush(shl_out);
-	return (count + (lines * x_cols));
+	return (columns + (lines * x_cols));
 }
 
 
