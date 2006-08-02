@@ -1,8 +1,8 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.44 2006/08/02 10:41:03 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.45 2006/08/02 11:50:28 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
-.Dd August 1, 2006
+.Dd August 2, 2006
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -1461,39 +1461,6 @@ can be put in the prompt by placing
 in
 .Ev PS1 .
 .Pp
-More advanced settings
-can be found in the file
-.Pa /etc/profile
-on any MirOS system as well as at
-.Pa http://cvs.mirbsd.de/contrib/samples/etc_profile
-or on the website), but you might like the following example
-(note that ${HOSTNAME:-$(hostname -s)} and the
-root-vs-user distinguishing clause are (in this example) executed at
-.Ev PS1
-assignment time, while the $USER and $PWD are escaped
-and thus will be evaluated each time a prompt is displayed):
-.Bd -literal -offset indent
-PS1="\e${USER}@${HOSTNAME:-$(hostname -s)}:\e$PWD $(
-	if [[ $(id -u) -eq 0 ]]; then
-		print '#'
-	else
-		print '$'
-	fi) "
-.Ed
-.Pp
-Note that since the command-line editors try to figure out how long the prompt
-is (so they know how far it is to the edge of the screen), escape codes in
-the prompt tend to mess things up.
-You can tell the shell not to count certain
-sequences (such as escape codes) by prefixing your prompt with a
-character (such as control-A) followed by a carriage return and then delimiting
-the escape codes with this character.
-Any occurences of that character in the prompt are not printed.
-By the way, don't blame me for
-this hack; it's derived from the original
-.Xr ksh88 1 ,
-which did print the delimiter character so you were out of luck
-if you did not have any non-printing characters.
 The default prompt is
 .Sq $\ \&
 for non-root users,
@@ -1509,6 +1476,35 @@ character, the default value will be used even if
 .Ev PS1
 already exists in the environment.
 .Pp
+The
+.Nm
+distribution comes with a sample
+.Pa dot.mkshrc
+containing a sophisticated example, but you might like the following one
+(note that ${HOSTNAME:=$(hostname -s)} and the
+root-vs-user distinguishing clause are (in this example) executed at
+.Ev PS1
+assignment time, while the $USER and $PWD are escaped
+and thus will be evaluated each time a prompt is displayed):
+.Bd -literal
+PS1='${USER:=$(id -un)}'"@${HOSTNAME:=$(hostname -s)}:\e$PWD $(
+	if (( $(id -u) )); then print \e$; else print \e#; fi) "
+.Ed
+.Pp
+Note that since the command-line editors try to figure out how long the prompt
+is (so they know how far it is to the edge of the screen), escape codes in
+the prompt tend to mess things up.
+You can tell the shell not to count certain
+sequences (such as escape codes) by prefixing your prompt with a
+character (such as control-A) followed by a carriage return and then delimiting
+the escape codes with this character.
+Any occurences of that character in the prompt are not printed.
+By the way, don't blame me for
+this hack; it's derived from the original
+.Xr ksh88 1 ,
+which did print the delimiter character so you were out of luck
+if you did not have any non-printing characters.
+.Pp
 Since Backslashes and other special characters may be
 interpreted by the shell, to set
 .Ev PS1
@@ -1517,14 +1513,14 @@ or use double quotes.
 The latter is more practical.
 This is a more complex example,
 avoiding to directly enter special characters (for example with
-.Ic ^^
+.Ic ^V
 in the emacs editing mode),
 which embeds the current working directory,
 in reverse video,
 in the prompt string:
 .Bd -literal -offset indent
 x=$(print \e\e001)
-PS1="$x$(print \e\er)$x$(tput so)$x\e$PWD$x$(tput se)$x\*(Gt "
+PS1="$x$(print \e\er)$x$(tput smso)$x\e$PWD$x$(tput rmso)$x\*(Gt "
 .Ed
 .It Ev PS2
 Secondary prompt string, by default
@@ -4533,7 +4529,7 @@ word of the previous command is inserted at the cursor.
 .It quote: ^^ , ^V
 The following character is taken literally rather than as an editing command.
 .It redraw: ^L
-Reprints the prompt string and the current input line.
+Reprints the last line of the prompt string and the current input line.
 .It Xo search-character-backward:
 .Op Ar n
 .No ^[^]

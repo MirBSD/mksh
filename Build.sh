@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.36 2006/08/02 10:41:03 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.37 2006/08/02 11:50:28 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
@@ -57,6 +57,7 @@ CYGWIN*)
 	LDSTATIC= # they don't want it
 	SRCS="$SRCS compat.c"
 	CPPFLAGS="$CPPFLAGS -DNEED_COMPAT"
+	: ${NROFF:=nroff -c}
 	;;
 Darwin)
 	LDSTATIC= # never works
