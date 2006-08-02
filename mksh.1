@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.47 2006/08/02 13:34:02 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.48 2006/08/02 14:00:19 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -2472,8 +2472,8 @@ i.e. ^X represents Control-X.
 Note that although only two prefix characters (usually ESC and ^X)
 are supported, some multi-character sequences can be supported.
 .Pp
-The following default bindings show how the arrow keys, the
-home, end and delete key on an ANSI terminal or xterm are bound
+The following default bindings show how the arrow keys, the home, end and
+delete key on a BSD wsvt25, xterm-xfree86 or GNU screen terminal are bound
 (of course some escape sequences won't work out quite this nicely):
 .Bd -literal -offset indent
 bind '^[['=prefix-2
@@ -2482,8 +2482,12 @@ bind '^XB'=down-history
 bind '^XC'=forward-char
 bind '^XD'=backward-char
 bind '^X1~'=beginning-of-line
-bind '^X3~'=eot-or-delete
+bind '^X7~'=beginning-of-line
+bind '^XH'=beginning-of-line
 bind '^X4~'=end-of-line
+bind '^X8~'=end-of-line
+bind '^XF'=end-of-line
+bind '^X3~'=eot-or-delete
 .Ed
 .Pp
 .It Ic break Op Ar level
