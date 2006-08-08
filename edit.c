@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.34 2006/08/02 14:02:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.35 2006/08/08 20:07:52 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1169,11 +1169,7 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_meta_yank,		1,	  'y'	},
 	{ XFUNC_literal,		0, MKCTRL('^')	},
 	{ XFUNC_comment,		1,	  '#'	},
-#if defined(TIOCSTI)
-	{ XFUNC_stuff,			0, MKCTRL('T')	},
-#else
 	{ XFUNC_transpose,		0, MKCTRL('T')	},
-#endif
 	{ XFUNC_complete,		1, MKCTRL('[')	},
 	{ XFUNC_comp_list,		0, MKCTRL('I')	},
 	{ XFUNC_comp_list,		1,	  '='	},
