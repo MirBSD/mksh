@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.51 2006/08/08 20:17:21 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.52 2006/08/08 20:19:14 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
@@ -4327,9 +4327,8 @@ are bound to
 reasonable substitutes and override the default bindings.
 .Bl -tag -width Ds
 .It abort: ^C, ^G
-Useful as a response to a request for a
-.Ic search-history
-pattern in order to abort the search.
+Abort the current command, empty the line buffer and
+set the exit state to interrupted.
 .It auto-insert: Op Ar n
 Simply causes the character to appear as literal input.
 Most ordinary characters are bound to this.
@@ -4562,7 +4561,7 @@ backwards for commands matching the input.
 An initial
 .Ql ^
 in the search string anchors the search.
-The abort key will leave search mode.
+The escape key will leave search mode.
 Other commands will be executed after leaving search mode.
 Successive
 .Ic search-history
