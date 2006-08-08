@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.35 2006/08/08 20:07:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.36 2006/08/08 20:17:20 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1001,19 +1001,17 @@ static void bind_if_not_bound(int, int, int);
 #define XFUNC_search_char_back 40
 #define XFUNC_search_hist 41
 #define XFUNC_set_mark 42
-#define XFUNC_stuff 43
-#define XFUNC_stuffreset 44
-#define XFUNC_transpose 45
-#define XFUNC_xchg_point_mark 46
-#define XFUNC_yank 47
-#define XFUNC_comp_list 48
-#define XFUNC_expand 49
-#define XFUNC_fold_capitalize 50
-#define XFUNC_fold_lower 51
-#define XFUNC_fold_upper 52
-#define XFUNC_set_arg 53
-#define XFUNC_comment 54
-#define XFUNC_version 55
+#define XFUNC_transpose 43
+#define XFUNC_xchg_point_mark 44
+#define XFUNC_yank 45
+#define XFUNC_comp_list 46
+#define XFUNC_expand 47
+#define XFUNC_fold_capitalize 48
+#define XFUNC_fold_lower 49
+#define XFUNC_fold_upper 50
+#define XFUNC_set_arg 51
+#define XFUNC_comment 52
+#define XFUNC_version 53
 
 /* XFUNC_* must be < 128 */
 
@@ -1060,8 +1058,6 @@ static int x_search_char_forw (int);
 static int x_search_char_back (int);
 static int x_search_hist (int);
 static int x_set_mark (int);
-static int x_stuff (int);
-static int x_stuffreset (int);
 static int x_transpose (int);
 static int x_xchg_point_mark (int);
 static int x_yank (int);
@@ -1118,8 +1114,6 @@ static const struct x_ftab x_ftab[] = {
 	{ x_search_char_back,	"search-character-backward",	XF_ARG },
 	{ x_search_hist,	"search-history",		0 },
 	{ x_set_mark,		"set-mark-command",		0 },
-	{ x_stuff,		"stuff",			0 },
-	{ x_stuffreset,		"stuff-reset",			0 },
 	{ x_transpose,		"transpose-chars",		0 },
 	{ x_xchg_point_mark,	"exchange-point-and-mark",	0 },
 	{ x_yank,		"yank",				0 },
@@ -2149,36 +2143,6 @@ static int
 x_error(int c __attribute__((unused)))
 {
 	x_e_putc(7);
-	return KSTD;
-}
-
-static int
-x_stuffreset(int c)
-{
-#ifdef TIOCSTI
-	(void)x_stuff(c);
-	return KINTR;
-#else
-	x_zotc(c);
-	xlp = xcp = xep = xbp = xbuf;
-	xlp_valid = true;
-	*xcp = 0;
-	x_redraw(-1);
-	return KSTD;
-#endif
-}
-
-static int
-x_stuff(int c)
-{
-#ifdef TIOCSTI
-	char ch = c;
-	bool savmode = x_mode(false);
-
-	(void)ioctl(tty_fd, TIOCSTI, &ch);
-	(void)x_mode(savmode);
-	x_redraw(-1);
-#endif
 	return KSTD;
 }
 
