@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.52 2006/08/08 20:17:20 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.53 2006/08/09 20:21:08 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3782,6 +3782,41 @@ stdin:
 	echo x $FNORD
 expected-stdout:
 	x
+---
+name: posix-mode-1
+description:
+	Check that posix mode turns braceexpand off
+	and that that works correctly
+stdin:
+	set -o braceexpand
+	set +o posix
+	set +o | fgrep -q posix && echo posix || echo noposix
+	set +o | fgrep -q braceexpand && echo brex || echo nobrex
+	echo {a,b,c}
+	set +o braceexpand
+	echo {a,b,c}
+	set -o braceexpand
+	echo {a,b,c}
+	set -o posix
+	echo {a,b,c}
+	set +o | fgrep -q posix && echo posix || echo noposix
+	set +o | fgrep -q braceexpand && echo brex || echo nobrex
+	set -o braceexpand
+	echo {a,b,c}
+	set +o | fgrep -q posix && echo posix || echo noposix
+	set +o | fgrep -q braceexpand && echo brex || echo nobrex
+expected-stdout:
+	noposix
+	brex
+	a b c
+	{a,b,c}
+	a b c
+	{a,b,c}
+	posix
+	nobrex
+	a b c
+	posix
+	brex
 ---
 name: version-1
 description:
