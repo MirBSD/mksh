@@ -1,8 +1,8 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.53 2006/08/09 20:27:18 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.54 2006/08/09 20:44:15 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
-.Dd August 8, 2006
+.Dd August 9, 2006
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -3355,10 +3355,19 @@ See the
 and
 .Ic pwd
 commands above for more details.
+.It Ic posix
+Enable POSIX mode.
+Currently, this just turns off
+.Ic braceexpand
+mode when turned on, which can be turned back on manually.
 .It Ic restricted
 The shell is a restricted shell.
 This option can only be used when the shell is invoked.
 See above for a description of what this means.
+.It Ic sh
+This flag only exists for
+.Nm pdksh
+compatibility and cannot be turned on.
 .It Ic vi
 Enable
 .Xr vi 1 Ns -like

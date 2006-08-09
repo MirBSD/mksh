@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.31 2006/08/02 11:33:37 tg Exp $"
+#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.32 2006/08/09 20:44:16 tg Exp $"
 
 #include <sys/param.h>
 
@@ -195,10 +195,10 @@ enum sh_flag {
 	FNOTIFY,	/* -b: asynchronous job completion notification */
 	FNOUNSET,	/* -u: using an unset var is an error */
 	FPHYSICAL,	/* -o physical: don't do logical cds/pwds */
-	FPOSIX,		/* -o posix (disabled) */
+	FPOSIX,		/* -o posix (try to be more compatible) */
 	FPRIVILEGED,	/* -p: use suid_profile */
 	FRESTRICTED,	/* -r: restricted shell */
-	FSH,		/* -o sh (disabled) */
+	FSH,		/* -o sh (dummy, for pdksh compatibility) */
 	FSTDIN,		/* -s: (invocation) parse stdin */
 	FTRACKALL,	/* -h: create tracked aliases for all commands */
 	FVERBOSE,	/* -v: echo input */

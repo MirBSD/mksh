@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.12 2006/08/01 13:43:28 tg Exp $"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.13 2006/08/09 20:44:15 tg Exp $"
 	"\t" MKSH_SH_H_ID);
 
 short chtypes[UCHAR_MAX+1];	/* type bits for unsigned char */
@@ -248,8 +248,8 @@ change_flag(enum sh_flag f,
 {
 	int oldval;
 
-	/* disabled functionality */
-	if ((f == FPOSIX) || (f == FSH))
+	/* limited pdksh compatibility (FSH stays always off) */
+	if (f == FSH)
 		return;
 
 	oldval = Flag(f);
@@ -257,18 +257,17 @@ change_flag(enum sh_flag f,
 	if (f == FMONITOR) {
 		if (what != OF_CMDLINE && newval != oldval)
 			j_change();
-	} else if (f == FVI || f == FEMACS || f == FGMACS) {
-		if (newval) {
-			Flag(FVI) = 0;
-			Flag(FEMACS) = Flag(FGMACS) = 0;
-			Flag(f) = newval;
-		}
+	} else if ((f == FVI || f == FEMACS || f == FGMACS) && newval) {
+		Flag(FVI) = Flag(FEMACS) = Flag(FGMACS) = 0;
+		Flag(f) = newval;
 	} else if (f == FPRIVILEGED && oldval && !newval) {
 		/* Turning off -p? */
 		seteuid(ksheuid = kshuid = getuid());
 		setuid(ksheuid);
 		setegid(kshegid = kshgid = getgid());
 		setgid(kshegid);
+	} else if (f == FPOSIX && newval) {
+		Flag(FBRACEEXPAND) = 0;
 	}
 	/* Changing interactive flag? */
 	if (f == FTALKING) {

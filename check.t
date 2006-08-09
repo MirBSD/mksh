@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.53 2006/08/09 20:21:08 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.54 2006/08/09 20:44:15 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3825,5 +3825,5 @@ category: pdksh
 stdin:
 	echo $KSH_VERSION
 expected-stdout:
-	@(#)MIRBSD KSH R28 2006/08/08
+	@(#)MIRBSD KSH R28 2006/08/09
 ---

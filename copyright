@@ -1,4 +1,4 @@
-$MirOS: src/bin/mksh/copyright,v 1.13 2006/08/09 20:34:42 tg Exp $
+$MirOS: src/bin/mksh/copyright,v 1.14 2006/08/09 20:44:15 tg Exp $
 
 mksh is a collective work under the following licence:
 
@@ -12,8 +12,8 @@ mksh is a collective work under the following licence:
 # in all redistributions or reproduced in accompanying documentation
 # or other materials provided with binary redistributions.
 #
-# All advertising materials mentioning features or use of this soft-
-# ware must display the following acknowledgement:
+# Advertising materials mentioning features or use of this work must
+# display the following acknowledgement:
 #	This product includes material provided by Thorsten Glaser.
 #
 # Licensor offers the work "AS IS" and WITHOUT WARRANTY of any kind,
@@ -23,7 +23,7 @@ mksh is a collective work under the following licence:
 # or other damage, or direct damage except proven a consequence of a
 # direct error of said person and intended use of this work, loss or
 # other issues arising in any way out of its use, even if advised of
-# the possibility of such damage or existence of a nontrivial bug.
+# the possibility of such damage or existence of a defect.
 
 Licensor recognises the contributions of the pdksh authors, who have
 dedicated their work into the Public Domain.
