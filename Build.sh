@@ -1,11 +1,11 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.46 2006/08/12 20:01:35 tg Stab $
+# $MirOS: src/bin/mksh/Build.sh,v 1.47 2006/08/12 20:19:36 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
-: ${CFLAGS=-O2 -fno-strict-aliasing -fno-strength-reduce -Wall}
-: ${CC:=gcc} ${srcdir:=`dirname "$0"`} ${NROFF:=nroff}
-curdir=`pwd`
+: ${CFLAGS='-O2 -fno-strict-aliasing -fno-strength-reduce -Wall'}
+: ${CC=gcc} ${NROFF=nroff}
+curdir=`pwd` srcdir=`dirname "$0"`
 echo | $NROFF -v 2>&1 | grep GNU >&- 2>&- && NROFF="$NROFF -c"
 
 e=echo
@@ -13,8 +13,9 @@ q=0
 r=0
 x=0
 
-while test -n "$1"; do
-	case $1 in
+for i
+do
+	case $i in
 	-d)
 		LDSTATIC=
 		;;
@@ -29,11 +30,10 @@ while test -n "$1"; do
 		x=1
 		;;
 	*)
-		echo "$0: Unknown option '$1'!" >&2
+		echo "$0: Unknown option '$i'!" >&2
 		exit 1
 		;;
 	esac
-	shift
 done
 
 v()
@@ -50,7 +50,7 @@ fi
 SRCS="$SRCS alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
-test $x = 1 || case "`uname -s 2>/dev/null || uname`" in
+test $x = 1 || case `uname -s 2>/dev/null || uname` in
 CYGWIN*)
 	LDSTATIC= # they don't want it
 	SRCS="$SRCS compat.c"
@@ -84,9 +84,8 @@ esac
 
 if test x"$sigseen" = x:; then
 	$e Generating list of signal names
-	NSIG=`( echo '#include <signal.h>'; echo "mksh_test: NSIG" ) | \
-	    $CC $CPPFLAGS -E - | grep mksh_test: | sed 's/^mksh_test: //'`
-	NSIG=`printf %d "$NSIG" 2>&-`
+	NSIG=`printf %d "`(echo '#include <signal.h>'; echo mksh_test: NSIG) | \
+	    $CC $CPPFLAGS -E - | grep mksh_test | sed 's/^mksh_test: //'`" 2>&-`
 	test $NSIG -gt 1 || exit 1
 	echo '#include <signal.h>' | $CC $CPPFLAGS -E -dD - | \
 	    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
