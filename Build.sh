@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.39 2006/08/12 18:43:55 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.40 2006/08/12 18:48:39 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
@@ -7,6 +7,9 @@ CC="${CC:-gcc}"
 CFLAGS="${CFLAGS--O2 -fno-strict-aliasing -fno-strength-reduce -Wall}"
 srcdir="${srcdir:-`dirname "$0"`}"
 curdir="`pwd`"
+
+: ${NROFF:=nroff}
+echo | $NROFF -v 2>&1 | fgrep GNU >&- 2>&- && NROFF="$NROFF -c"
 
 e=echo
 q=0
@@ -44,7 +47,7 @@ v()
 
 [ $x = 1 ] || LDSTATIC=-static
 [ $x = 1 ] || SRCS=
-SRCS="alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c $SRCS"
+SRCS="$SRCS alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
 [ $x = 1 ] || case "`uname -s 2>/dev/null || uname`" in
@@ -52,7 +55,6 @@ CYGWIN*)
 	LDSTATIC= # they don't want it
 	SRCS="$SRCS compat.c"
 	CPPFLAGS="$CPPFLAGS -DNEED_COMPAT"
-	: ${NROFF:=nroff -c}
 	;;
 Darwin)
 	LDSTATIC= # never works
@@ -77,7 +79,6 @@ SunOS)
 	;;
 esac
 
-export CC CPPFLAGS
 (echo '#include <signal.h>' | $CC $CPPFLAGS -E -dD -D_ANSI_SOURCE - \
     | grep '[	 ]SIG[A-Z0-9]*[	 ]' \
     | sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' \
@@ -89,7 +90,7 @@ done | fgrep -v '{ ,' >signames.inc) || exit 1
 (v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS" \
     "$LDFLAGS $LDSTATIC -o '$curdir/mksh' $SRCS $LIBS") || exit 1
 test -x mksh || exit 1
-[ $r = 1 ] || v "${NROFF:-nroff} -mdoc <'$srcdir/mksh.1' >mksh.cat1" \
+[ $r = 1 ] || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" \
     || rm -f mksh.cat1
 [ $q = 1 ] || v size mksh
 echo "#!$curdir/mksh" >Test.sh
