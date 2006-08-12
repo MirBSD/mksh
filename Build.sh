@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.44 2006/08/12 19:51:08 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.45 2006/08/12 19:53:39 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
@@ -7,9 +7,7 @@ CC="${CC:-gcc}"
 CFLAGS="${CFLAGS--O2 -fno-strict-aliasing -fno-strength-reduce -Wall}"
 srcdir="${srcdir:-`dirname "$0"`}"
 curdir="`pwd`"
-
-: ${NROFF:=nroff}
-echo | $NROFF -v 2>&1 | grep GNU >&- 2>&- && NROFF="$NROFF -c"
+echo | ${NROFF:=nroff} -v 2>&1 | grep GNU >&- 2>&- && NROFF="$NROFF -c"
 
 e=echo
 q=0
