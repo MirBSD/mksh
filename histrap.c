@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.20 2006/08/12 19:51:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.21 2006/08/12 20:32:33 tg Exp $");
 
 static int	histfd;
 static int	hsize;
@@ -984,12 +984,11 @@ mksh_signame(int s)
 		{ 0, NULL }
 	};
 
-	while (mksh_sigpair[i].name != NULL) {
-		if (mksh_sigpair[i].nr == s)
-			return (mksh_sigpair[i].name);
-		++i;
-	}
-	return (NULL);
+ mksh_sigscan:
+	if ((mksh_sigpair[i].nr == s) || !mksh_sigpair[i].name)
+		return (mksh_sigpair[i].name);
+	++i;
+	goto mksh_sigscan;
 }
 #endif
 
