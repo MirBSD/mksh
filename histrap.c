@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.19 2006/08/01 14:09:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.20 2006/08/12 19:51:09 tg Exp $");
 
 static int	histfd;
 static int	hsize;
@@ -37,7 +37,7 @@ static Source	*hist_source;
 #define	mksh_signame(x)	_sys_signame[(x)]
 #define	mksh_siglist(x) _sys_siglist[(x)]
 #elif defined(__gnu_linux__) || defined(__sun__) || defined(__CYGWIN__)
-#define	NEED_MKSH_SIGNAME
+#define	NEED_MKSH_SIGNAME	/* sync the list above with Build.sh */
 #define	mksh_siglist(x)	strsignal(x)
 #else
 # error "Define sys_sig{name,list} for this platform!"
