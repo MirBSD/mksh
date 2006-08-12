@@ -1,15 +1,10 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.38 2006/08/02 14:17:13 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.39 2006/08/12 18:43:55 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
-SHELL="${SHELL:-/bin/sh}"
-case $SHELL in
-*csh*)	SHELL=/bin/sh ;;
-esac
 CC="${CC:-gcc}"
 CFLAGS="${CFLAGS--O2 -fno-strict-aliasing -fno-strength-reduce -Wall}"
-export SHELL
 srcdir="${srcdir:-`dirname "$0"`}"
 curdir="`pwd`"
 
@@ -83,15 +78,23 @@ SunOS)
 esac
 
 export CC CPPFLAGS
-v $SHELL "'$srcdir/gensigs.sh'" || exit 1
+(echo '#include <signal.h>' | $CC $CPPFLAGS -E -dD -D_ANSI_SOURCE - \
+    | grep '[	 ]SIG[A-Z0-9]*[	 ]' \
+    | sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' \
+    | while read name; do
+	( echo '#include <signal.h>'; echo "__mksh_test: SIG$name" ) \
+	    | $CC $CPPFLAGS -E - | fgrep __mksh_test: | sed \
+	    's/^__mksh_test: \([0-9]*\).*$/		{ \1, "'$name'" },/'
+done | fgrep -v '{ ,' >signames.inc) || exit 1
 (v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS" \
     "$LDFLAGS $LDSTATIC -o '$curdir/mksh' $SRCS $LIBS") || exit 1
 test -x mksh || exit 1
 [ $r = 1 ] || v "${NROFF:-nroff} -mdoc <'$srcdir/mksh.1' >mksh.cat1" \
     || rm -f mksh.cat1
 [ $q = 1 ] || v size mksh
-echo "#!$SHELL" >Test.sh
-echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t' -p '$curdir/mksh' -C pdksh \$*" >>Test.sh
+echo "#!$curdir/mksh" >Test.sh
+echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t'" \
+    "-p '$curdir/mksh' -C pdksh \$*" >>Test.sh
 chmod 755 Test.sh
 $e
 $e To test mirbsdksh, execute ./Test.sh
