@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.41 2006/08/12 18:49:21 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.42 2006/08/12 19:26:20 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
@@ -79,7 +79,7 @@ SunOS)
 	;;
 esac
 
-(echo '#include <signal.h>' | $CC $CPPFLAGS -E -dD -D_ANSI_SOURCE - \
+(echo '#include <signal.h>' | $CC $CPPFLAGS -E -dD - \
     | grep '[	 ]SIG[A-Z0-9]*[	 ]' \
     | sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' \
     | while read name; do
