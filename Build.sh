@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.47 2006/08/12 20:19:36 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.48 2006/08/12 20:30:22 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
@@ -84,16 +84,16 @@ esac
 
 if test x"$sigseen" = x:; then
 	$e Generating list of signal names
-	NSIG=`printf %d "`(echo '#include <signal.h>'; echo mksh_test: NSIG) | \
-	    $CC $CPPFLAGS -E - | grep mksh_test | sed 's/^mksh_test: //'`" 2>&-`
+	NSIG=`printf %d "\`(echo '#include <signal.h>';echo mksh_cfg: NSIG) | \
+	    $CC $CPPFLAGS -E - | grep mksh_cfg | sed 's/^mksh_cfg: //'\`" 2>&-`
 	test $NSIG -gt 1 || exit 1
 	echo '#include <signal.h>' | $CC $CPPFLAGS -E -dD - | \
 	    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
 	    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | \
 	    while read name; do
-		( echo '#include <signal.h>'; echo "mksh_test: SIG$name" ) | \
-		    $CC $CPPFLAGS -E - | grep mksh_test: | \
-		    sed 's/^mksh_test: \([0-9]*\).*$/\1:'$name/
+		( echo '#include <signal.h>'; echo "mksh_cfg: SIG$name" ) | \
+		    $CC $CPPFLAGS -E - | grep mksh_cfg: | \
+		    sed 's/^mksh_cfg: \([0-9]*\).*$/\1:'$name/
 	done | grep -v '^:' | while IFS=: read nr name; do
 		nr=`printf %d "$nr" 2>&-`
 		test $nr -gt 0 -a $nr -lt $NSIG || continue
