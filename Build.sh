@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.42 2006/08/12 19:26:20 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.43 2006/08/12 19:38:44 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
 
@@ -79,14 +79,28 @@ SunOS)
 	;;
 esac
 
-(echo '#include <signal.h>' | $CC $CPPFLAGS -E -dD - \
+sigseen=:; $e Generating list of signal names
+NSIG=`( echo '#include <signal.h>'; echo "__mksh_test: NSIG" ) \
+    | $CC $CPPFLAGS -E - | grep __mksh_test: | sed 's/^__mksh_test: //'`
+NSIG=`printf %d "$NSIG"`
+echo '#include <signal.h>' | $CC $CPPFLAGS -E -dD - \
     | grep '[	 ]SIG[A-Z0-9]*[	 ]' \
     | sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' \
     | while read name; do
 	( echo '#include <signal.h>'; echo "__mksh_test: SIG$name" ) \
-	    | $CC $CPPFLAGS -E - | fgrep __mksh_test: | sed \
-	    's/^__mksh_test: \([0-9]*\).*$/		{ \1, "'$name'" },/'
-done | fgrep -v '{ ,' >signames.inc) || exit 1
+	    | $CC $CPPFLAGS -E - | grep __mksh_test: | sed \
+	    's/^__mksh_test: \([0-9]*\).*$/\1:'$name/
+done | grep -v '^:' | while IFS=: read number name; do
+	nr=`printf %d "$number"`
+	test $nr -gt 0 -a $nr -lt $NSIG || continue
+	case $sigseen in
+	*:$nr:*) ;;
+	*)	echo "		{ $nr, \"$name\" },"
+		sigseen=$sigseen$nr:
+		;;
+	esac
+done >signames.inc
+test -s signames.inc || exit 1
 (v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS" \
     "$LDFLAGS $LDSTATIC -o '$curdir/mksh' $SRCS $LIBS") || exit 1
 test -x mksh || exit 1
