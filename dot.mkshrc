@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.1 2006/07/23 18:44:22 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.2 2006/08/14 20:32:44 tg Exp $
 
 : ${HOSTNAME:=$(hostname -s 2>/dev/null || hostname)}
 PS1='$(((rv=$?)) && print $rv\|)${USER:=$(id -un)}@${HOSTNAME:=nil}:$(
@@ -24,13 +24,13 @@ alias la='l -a'
 alias ll='l -l'
 alias lo='la -lo'
 
-function Lstripcom		# strip comments from file
+# strip comments (and leading/trailing whitespace if IFS is set) from
+# any file(s) given as argument, or stdin if none, and spew to stdout
+function Lstripcom
 {
-	local _line
-	set -o noglob
 	cat "$@" | while read _line; do
+		set -o noglob
 		_line=${_line%%#*}
 		[[ -n $_line ]] && print -r -- $_line
 	done
-	set +o noglob
 }
