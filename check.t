@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.54 2006/08/09 20:44:15 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.55 2006/08/14 20:36:39 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3817,6 +3817,32 @@ expected-stdout:
 	a b c
 	posix
 	brex
+---
+name: pipeline-subshell-1
+description:
+	pdksh bug: last command of a pipeline is executed in a
+	subshell - make sure it still is, scripts depend on it
+file-setup: file 644 "abcx"
+file-setup: file 644 "abcy"
+stdin:
+	echo *
+	echo a | while read d; do
+		echo $d
+		echo $d*
+		echo *
+		set -o noglob
+		echo $d*
+		echo *
+	done
+	echo *
+expected-stdout:
+	abcx abcy
+	a
+	abcx abcy
+	abcx abcy
+	a*
+	*
+	abcx abcy
 ---
 name: version-1
 description:
