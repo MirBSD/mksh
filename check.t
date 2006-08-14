@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.55 2006/08/14 20:36:39 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.56 2006/08/14 20:41:21 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3542,7 +3542,7 @@ expected-stderr-pattern:
 	/bad substitution/
 expected-exit: 1
 ---
-name: xxx-subsitution-eval-order
+name: xxx-substitution-eval-order
 description:
 	Check order of evaluation of expressions
 stdin:
@@ -3724,15 +3724,19 @@ expected-stderr:
 	+ /usr/bin/env false
 expected-exit: e != 0
 ---
-name: test-stlt
+name: test-stlt-1
 description:
 	Check that test also can handle string1 < string2 etc.
 stdin:
 	test 2005/10/08 '<' 2005/08/21 && echo ja || echo nein
 	test 2005/08/21 \< 2005/10/08 && echo ja || echo nein
+	test 2005/10/08 '>' 2005/08/21 && echo ja || echo nein
+	test 2005/08/21 \> 2005/10/08 && echo ja || echo nein
 expected-stdout:
 	nein
 	ja
+	ja
+	nein
 expected-stderr-pattern: !/unexpected op/
 ---
 name: mkshrc-1

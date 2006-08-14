@@ -1,8 +1,8 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.55 2006/08/11 13:46:32 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.56 2006/08/14 20:41:21 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
-.Dd August 11, 2006
+.Dd August 14, 2006
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -5319,3 +5319,7 @@ The
 author is aware of this and there is no need to report it.
 This does not work because the last command of a pipe sequence
 is run in a subshell.
+In
+.Nm "" ,
+this is a feature which can be depended on by scripts.
+Use co-routines to work around if necessary and possible.
