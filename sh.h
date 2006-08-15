@@ -8,7 +8,11 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.33 2006/08/15 23:43:30 tg Exp $"
+#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.33.2.1 2006/08/15 23:49:53 tg Exp $"
+
+#if defined(__Plan9__) && !defined(__GNUC__)
+#define __attribute__(x) /* nothing */
+#endif
 
 #include <sys/param.h>
 
@@ -17,9 +21,13 @@
 #endif
 
 #include <sys/time.h>
+#if !defined(__Plan9__)
 #include <sys/file.h>
+#endif
 #include <sys/ioctl.h>
+#if !defined(__Plan9__)
 #include <sys/mman.h>
+#endif
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -28,16 +36,24 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#if !defined(__Plan9__)
 #include <libgen.h>
+#endif
 #include <limits.h>
-#if !defined(__sun__)
+#if !defined(__sun__) && !defined(__Plan9__)
 #include <paths.h>
 #endif
 #include <pwd.h>
 #include <setjmp.h>
 #include <signal.h>
 #include <stdarg.h>
+#if !defined(__Plan9__)
 #include <stdbool.h>
+#else
+typedef int bool;
+#define true 1
+#define false 0
+#endif
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -244,7 +260,7 @@ struct temp {
 #define shl_out		(&shf_iob[2])
 EXTERN int shl_stdout_ok;
 
-#if defined(__sun__) || defined(__CYGWIN__)
+#if defined(__sun__) || defined(__CYGWIN__) || defined(__Plan9__)
 typedef void (*sig_t)(int);
 #endif
 
@@ -1283,7 +1299,7 @@ extern void	tty_close(void);
 #ifndef HAVE_ARC4RANDOM
 #if defined(__gnu_linux__) || defined(__INTERIX) || defined(__sun__) \
     || (defined(__NetBSD__) && (__NetBSD_Version__ < 106020000)) \
-    || defined(__CYGWIN__)
+    || defined(__CYGWIN__) || defined(__Plan9__)
 #define	HAVE_ARC4RANDOM	0
 #else
 #define	HAVE_ARC4RANDOM	1

@@ -3,12 +3,12 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.23 2006/08/15 23:45:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.23.2.1 2006/08/15 23:49:52 tg Exp $");
 
 static int	histfd;
 static int	hsize;
 
-#if defined(__sun__)
+#if defined(__sun__) || defined(__Plan9__)
 #define NO_HISTORY
 #endif
 
@@ -43,6 +43,16 @@ static Source	*hist_source;
 #elif defined(__gnu_linux__) || defined(__sun__) || defined(__CYGWIN__)
 #define	NEED_MKSH_SIGNAME	/* sync the list above with Build.sh */
 #define	mksh_siglist(x)	strsignal(x)
+#elif defined(__Plan9__)
+#define mksh_signame(x) _mksh_signame[(x)+1]
+#define mksh_siglist(x) _mksh_signame[(x)+1]
+const char _mksh_signame[] = {
+	"HUP", "INT", "QUIT", "ILL",
+	"ABRT", "FPE", "KILL", "SEGV",
+	"PIPE", "ALRM", "TERM", "USR1",
+	"USR2", "BUS", "CHLD", "CONT",
+	"STOP", "TSTP", "TTIN", "TTOU"
+};
 #else
 # error "Define sys_sig{name,list} for this platform!"
 #endif

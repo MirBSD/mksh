@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.29 2006/08/01 13:43:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.29.2.1 2006/08/15 23:49:52 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -2185,6 +2185,7 @@ c_exec(char **wp __attribute__((unused)))
 	return 0;
 }
 
+#ifndef __Plan9__
 static int
 c_mknod(char **wp)
 {
@@ -2268,6 +2269,7 @@ c_mknod(char **wp)
 	bi_errorf("usage: mknod [-m mode] name p");
 	return (1);
 }
+#endif
 
 /* dummy function, special case in comexec() */
 int
@@ -2304,7 +2306,9 @@ const struct builtin shbuiltins [] = {
 	{"ulimit", c_ulimit},
 	{"+umask", c_umask},
 	{"*=unset", c_unset},
+#ifndef __Plan9__
 	{"mknod", c_mknod},
+#endif
 	{NULL, NULL}
 };
 

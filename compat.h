@@ -1,11 +1,11 @@
-/* $MirOS: src/bin/mksh/compat.h,v 1.1.2.7 2005/11/19 23:51:01 tg Exp $ */
+/* $MirOS: src/bin/mksh/compat.h,v 1.1.2.7.2.1 2006/08/15 23:49:51 tg Exp $ */
 
 /* Part I: extra headers */
 
 #if defined(__sun__) || defined(__INTERIX)
 #include <sys/mkdev.h>
 #endif
-#if !defined(__OpenBSD__) && !defined(__CYGWIN__)
+#if !defined(__OpenBSD__) && !defined(__CYGWIN__) && !defined(__Plan9__)
 #include <ulimit.h>
 #endif
 #if defined(__sun__) || defined(__gnu_linux__)
@@ -45,7 +45,7 @@
 
 /* Part III: OS-dependent additions */
 
-#if defined(__gnu_linux__)
+#if defined(__gnu_linux__) || defined(__Plan9__)
 size_t strlcat(char *, const char *, size_t);
 size_t strlcpy(char *, const char *, size_t);
 #endif
@@ -64,4 +64,8 @@ void	*setmode(const char *);
 #define	makedev(x,y)	mkdev((x),(y))
 extern int   __cdecl	seteuid(uid_t);
 extern int   __cdecl	setegid(gid_t);
+#endif
+
+#if defined(__Plan9__)
+typedef unsigned char u_char;
 #endif
