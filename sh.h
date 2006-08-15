@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.33 2006/08/15 23:43:30 tg Exp $"
+#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.34 2006/08/15 23:54:09 tg Exp $"
 
 #include <sys/param.h>
 
@@ -27,7 +27,9 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#if defined(__Plan9__)
 #include <inttypes.h>
+#endif
 #include <libgen.h>
 #include <limits.h>
 #if !defined(__sun__)
