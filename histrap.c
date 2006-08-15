@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.21 2006/08/12 20:32:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.22 2006/08/15 23:43:30 tg Exp $");
 
 static int	histfd;
 static int	hsize;
@@ -641,10 +641,7 @@ hist_init(Source *s)
 
 	hist_source = s;
 
-#ifdef __sun__
-	hname = NULL;
-	histfd = 0;
-#else
+#if !defined(__sun__)
 	hname = str_val(global("HISTFILE"));
 	if (hname == NULL)
 		return;
@@ -701,6 +698,9 @@ hist_init(Source *s)
 	}
 	(void) flock(histfd, LOCK_UN);
 	hsize = lseek(histfd, 0L, SEEK_END);
+#else
+	hname = NULL;
+	histfd = 0;
 #endif
 }
 

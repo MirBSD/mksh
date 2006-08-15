@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.32 2006/08/09 20:44:16 tg Exp $"
+#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.33 2006/08/15 23:43:30 tg Exp $"
 
 #include <sys/param.h>
 
@@ -27,6 +27,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <libgen.h>
 #include <limits.h>
 #if !defined(__sun__)
@@ -65,7 +66,7 @@
 #define	BIT(i)		(1<<(i))	/* define bit in flag */
 
 /* Table flag type - needs > 16 and < 32 bits */
-typedef int32_t Tflag;
+typedef int32_t		Tflag;
 
 #define	NUFILE		32	/* Number of user-accessible files */
 #define	FDBASE		10	/* First file usable by Shell */
