@@ -3,12 +3,16 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.22 2006/08/15 23:43:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.23 2006/08/15 23:45:53 tg Exp $");
 
 static int	histfd;
 static int	hsize;
 
-#ifndef __sun__
+#if defined(__sun__)
+#define NO_HISTORY
+#endif
+
+#ifdef NO_HISTORY
 static int hist_count_lines(unsigned char *, int);
 static int hist_shrink(unsigned char *, int);
 static unsigned char *hist_skip_back(unsigned char *,int *,int);
@@ -585,7 +589,7 @@ histsave(int lno __attribute__((unused)), const char *cmd,
 	if ((cp = strchr(c, '\n')) != NULL)
 		*cp = '\0';
 
-#ifndef __sun__
+#ifdef NO_HISTORY
 	if (histfd && dowrite)
 		writehistfile(lno, c);
 #endif
@@ -628,7 +632,7 @@ histsave(int lno __attribute__((unused)), const char *cmd,
 void
 hist_init(Source *s)
 {
-#ifndef __sun__
+#ifdef NO_HISTORY
 	unsigned char	*base;
 	int	lines;
 	int	fd;
@@ -641,7 +645,7 @@ hist_init(Source *s)
 
 	hist_source = s;
 
-#if !defined(__sun__)
+#ifdef NO_HISTORY
 	hname = str_val(global("HISTFILE"));
 	if (hname == NULL)
 		return;
@@ -711,7 +715,7 @@ typedef enum state {
 	sn2, sn3, sn4
 } State;
 
-#ifndef __sun__
+#ifdef NO_HISTORY
 static int
 hist_count_lines(unsigned char *base, int bytes)
 {
@@ -951,14 +955,14 @@ writehistfile(int lno, char *cmd)
 void
 hist_finish(void)
 {
-#ifndef __sun__
+#ifdef NO_HISTORY
 	(void) flock(histfd, LOCK_UN);
 	(void) close(histfd);
 #endif
 	histfd = 0;
 }
 
-#ifndef __sun__
+#ifdef NO_HISTORY
 /*
  *	add magic to the history file
  */
