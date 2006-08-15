@@ -3,14 +3,29 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.23 2006/08/15 23:45:53 tg Exp $");
-
-static int	histfd;
-static int	hsize;
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.24 2006/08/15 23:56:32 tg Exp $");
 
 #if defined(__sun__)
 #define NO_HISTORY
 #endif
+
+#ifndef mksh_siglist
+#if defined(BSD) || defined(__APPLE__)
+#define	mksh_signame(x)	sys_signame[(x)]
+#define	mksh_siglist(x)	sys_siglist[(x)]
+#elif defined(__INTERIX)
+#define	mksh_signame(x)	_sys_signame[(x)]
+#define	mksh_siglist(x) _sys_siglist[(x)]
+#elif defined(__gnu_linux__) || defined(__sun__) || defined(__CYGWIN__)
+#define	NEED_MKSH_SIGNAME	/* sync the list above with Build.sh */
+#define	mksh_siglist(x)	strsignal(x)
+#else
+# error "Define sys_sig{name,list} for this platform!"
+#endif
+#endif /* ndef mksh_siglist */
+
+Trap sigtraps[NSIG + 1];
+static struct sigaction Sigact_ign, Sigact_trap;
 
 #ifdef NO_HISTORY
 static int hist_count_lines(unsigned char *, int);
@@ -33,24 +48,8 @@ static char    *hname;		/* current name of history file */
 static int	hstarted;	/* set after hist_init() called */
 static Source	*hist_source;
 
-#ifndef mksh_siglist
-#if defined(BSD) || defined(__APPLE__)
-#define	mksh_signame(x)	sys_signame[(x)]
-#define	mksh_siglist(x)	sys_siglist[(x)]
-#elif defined(__INTERIX)
-#define	mksh_signame(x)	_sys_signame[(x)]
-#define	mksh_siglist(x) _sys_siglist[(x)]
-#elif defined(__gnu_linux__) || defined(__sun__) || defined(__CYGWIN__)
-#define	NEED_MKSH_SIGNAME	/* sync the list above with Build.sh */
-#define	mksh_siglist(x)	strsignal(x)
-#else
-# error "Define sys_sig{name,list} for this platform!"
-#endif
-#endif /* ndef mksh_siglist */
-
-Trap sigtraps[NSIG + 1];
-
-static struct sigaction Sigact_ign, Sigact_trap;
+static int	histfd;
+static int	hsize;
 
 int
 c_fc(char **wp)
