@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.21 2006/07/11 14:51:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.21.2.1 2006/08/18 19:02:22 tg Exp $");
 
 /*
  * Variables
@@ -917,10 +917,10 @@ getspec(struct tbl *vp)
 #if HAVE_ARC4RANDOM
 		if (use_rand)
 #endif
-			setint(vp, (long) (rand() & 0x7fff));
+			setint(vp, (long) (rand() & 0x7FFF));
 #if HAVE_ARC4RANDOM
 		else
-			setint(vp, (long) (arc4random() & 0x7fff));
+			setint(vp, arc4random() & 0x7FFFFFFF);
 #endif
 		vp->flag |= SPECIAL;
 		break;

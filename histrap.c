@@ -3,35 +3,11 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.23.2.1 2006/08/15 23:49:52 tg Exp $");
-
-static int	histfd;
-static int	hsize;
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.23.2.2 2006/08/18 19:02:22 tg Exp $");
 
 #if defined(__sun__) || defined(__Plan9__)
 #define NO_HISTORY
 #endif
-
-#ifdef NO_HISTORY
-static int hist_count_lines(unsigned char *, int);
-static int hist_shrink(unsigned char *, int);
-static unsigned char *hist_skip_back(unsigned char *,int *,int);
-static void histload(Source *, unsigned char *, int);
-static void histinsert(Source *, int, unsigned char *);
-static void writehistfile(int, char *);
-static int sprinkle(int);
-#endif
-
-static int	hist_execute(char *);
-static int	hist_replace(char **, const char *, const char *, int);
-static char   **hist_get(const char *, int, int);
-static char   **hist_get_oldest(void);
-static void	histbackup(void);
-
-static char   **current;	/* current position in history[] */
-static char    *hname;		/* current name of history file */
-static int	hstarted;	/* set after hist_init() called */
-static Source	*hist_source;
 
 #ifndef mksh_siglist
 #if defined(BSD) || defined(__APPLE__)
@@ -59,8 +35,31 @@ const char _mksh_signame[] = {
 #endif /* ndef mksh_siglist */
 
 Trap sigtraps[NSIG + 1];
-
 static struct sigaction Sigact_ign, Sigact_trap;
+
+#ifdef NO_HISTORY
+static int hist_count_lines(unsigned char *, int);
+static int hist_shrink(unsigned char *, int);
+static unsigned char *hist_skip_back(unsigned char *,int *,int);
+static void histload(Source *, unsigned char *, int);
+static void histinsert(Source *, int, unsigned char *);
+static void writehistfile(int, char *);
+static int sprinkle(int);
+#endif
+
+static int	hist_execute(char *);
+static int	hist_replace(char **, const char *, const char *, int);
+static char   **hist_get(const char *, int, int);
+static char   **hist_get_oldest(void);
+static void	histbackup(void);
+
+static char   **current;	/* current position in history[] */
+static char    *hname;		/* current name of history file */
+static int	hstarted;	/* set after hist_init() called */
+static Source	*hist_source;
+
+static int	histfd;
+static int	hsize;
 
 int
 c_fc(char **wp)

@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.33.2.1 2006/08/15 23:49:53 tg Exp $"
+#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.33.2.2 2006/08/18 19:02:22 tg Exp $"
 
 #if defined(__Plan9__) && !defined(__GNUC__)
 #define __attribute__(x) /* nothing */
@@ -35,7 +35,6 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <inttypes.h>
 #if !defined(__Plan9__)
 #include <libgen.h>
 #endif
