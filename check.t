@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.57 2006/08/18 13:40:15 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.58 2006/08/18 13:41:09 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1393,6 +1393,7 @@ name: heredoc-tmpfile-8
 description:
 	Check that heredoc temp files aren't removed too soon or too late.
 	Heredoc in function, backgrounded call to function.
+	This check can fail on slow machines (<100 MHz), that's normal.
 stdin:
 	TMPDIR=$PWD
 	# Background eval so main shell doesn't do parsing
