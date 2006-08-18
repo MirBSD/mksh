@@ -1,12 +1,9 @@
-/* $MirOS: src/bin/mksh/compat.h,v 1.2 2006/08/16 00:00:24 tg Exp $ */
+/* $MirOS: src/bin/mksh/compat.h,v 1.3 2006/08/18 18:59:49 tg Exp $ */
 
 /* Part I: extra headers */
 
 #if defined(__sun__) || defined(__INTERIX)
 #include <sys/mkdev.h>
-#endif
-#if defined(__Plan9__)
-#include <inttypes.h>
 #endif
 #if !defined(__OpenBSD__) && !defined(__CYGWIN__)
 #include <ulimit.h>
