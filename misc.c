@@ -3,8 +3,8 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.13 2006/08/09 20:44:15 tg Exp $"
-	"\t" MKSH_SH_H_ID);
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.14 2006/08/22 22:16:04 tg Exp $"
+	"\t" MKSH_SH_H_ID "\t" MKSH_COMPAT_H_ID);
 
 short chtypes[UCHAR_MAX+1];	/* type bits for unsigned char */
 
@@ -13,7 +13,7 @@ static int do_gmatch(const unsigned char *, const unsigned char *,
 static const unsigned char *cclass(const unsigned char *, int);
 static int parse_T(char *);
 
-static char	*do_phys_path(XString *, char *, const char *);
+static char *do_phys_path(XString *, char *, const char *);
 
 /*
  * Fast character classes

@@ -1,5 +1,6 @@
-/* $MirOS: src/bin/mksh/compat.h,v 1.3 2006/08/18 18:59:49 tg Exp $ */
+#define MKSH_COMPAT_H_ID "$MirOS: src/bin/mksh/compat.h,v 1.4 2006/08/22 22:16:04 tg Exp $"
 
+#ifdef NEED_COMPAT
 /* Part I: extra headers */
 
 #if defined(__sun__) || defined(__INTERIX)
@@ -39,7 +40,7 @@
 #endif
 
 #ifndef S_ISTXT
-#define	S_ISTXT	0001000			/* sticky bit */
+#define S_ISTXT 0001000
 #endif
 
 
@@ -55,13 +56,15 @@ size_t confstr(int, char *, size_t);
 #endif
 
 #if defined(__gnu_linux__) || defined(__sun__) || defined(__CYGWIN__)
-#define	DEFFILEMODE	(S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
-mode_t	 getmode(const void *, mode_t);
-void	*setmode(const char *);
+#define DEFFILEMODE (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
+mode_t getmode(const void *, mode_t);
+void *setmode(const char *);
 #endif
 
-#if defined(__INTERIX)
+#ifdef __INTERIX
 #define	makedev(x,y)	mkdev((x),(y))
-extern int   __cdecl	seteuid(uid_t);
-extern int   __cdecl	setegid(gid_t);
+extern int __cdecl seteuid(uid_t);
+extern int __cdecl setegid(gid_t);
+#endif
+
 #endif
