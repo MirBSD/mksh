@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.36 2006/08/22 22:16:04 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.37 2006/08/22 22:21:20 tg Exp $"
 
 #include <sys/param.h>
 
@@ -44,8 +44,6 @@
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
-#include "compat.h"
-#include "version.h"
 
 /* some useful #defines */
 #ifdef EXTERN
@@ -56,6 +54,9 @@
 # define EXTERN_DEFINED
 #endif
 
+#include "compat.h"
+#include "version.h"
+
 #define EXECSHELL	"/bin/mksh"
 #define EXECSHELL_STR	"EXECSHELL"
 
@@ -64,7 +65,7 @@
 #define	BIT(i)		(1<<(i))	/* define bit in flag */
 
 /* Table flag type - needs > 16 and < 32 bits */
-typedef int32_t		Tflag;
+typedef int32_t Tflag;
 
 #define	NUFILE		32	/* Number of user-accessible files */
 #define	FDBASE		10	/* First file usable by Shell */
@@ -103,32 +104,32 @@ typedef struct Area {
 	struct link *freelist;	/* free list */
 } Area;
 
-EXTERN	Area	aperm;		/* permanent object space */
+EXTERN Area aperm;		/* permanent object space */
 #define	APERM	&aperm
 #define	ATEMP	&e->area
 
 /*
  * parsing & execution environment
  */
-EXTERN	struct env {
-	short type;			/* environment type - see below */
-	short flags;			/* EF_* */
-	Area area;			/* temporary allocation area */
-	struct block *loc;		/* local variables and functions */
-	short *savefd;			/* original redirected fds */
-	struct env *oenv;		/* link to previous environment */
-	sigjmp_buf jbuf;		/* long jump back to env creator */
-	struct temp *temps;		/* temp files */
+EXTERN struct env {
+	short type;		/* environment type - see below */
+	short flags;		/* EF_* */
+	Area area;		/* temporary allocation area */
+	struct block *loc;	/* local variables and functions */
+	short *savefd;		/* original redirected fds */
+	struct env *oenv;	/* link to previous environment */
+	sigjmp_buf jbuf;	/* long jump back to env creator */
+	struct temp *temps;	/* temp files */
 } *e;
 
 /* struct env.type values */
-#define	E_NONE	0		/* dummy environment */
-#define	E_PARSE	1		/* parsing command # */
-#define	E_FUNC	2		/* executing function # */
-#define	E_INCL	3		/* including a file via . # */
-#define	E_EXEC	4		/* executing command tree */
-#define	E_LOOP	5		/* executing for/while # */
-#define	E_ERRH	6		/* general error handler # */
+#define	E_NONE	0	/* dummy environment */
+#define	E_PARSE	1	/* parsing command # */
+#define	E_FUNC	2	/* executing function # */
+#define	E_INCL	3	/* including a file via . # */
+#define	E_EXEC	4	/* executing command tree */
+#define	E_LOOP	5	/* executing for/while # */
+#define	E_ERRH	6	/* general error handler # */
 /* # indicates env has valid jbuf (see unwind()) */
 
 /* struct env.flag values */
@@ -143,15 +144,15 @@ EXTERN	struct env {
 #define STOP_RETURN(t)	((t) == E_FUNC || (t) == E_INCL)
 
 /* values for siglongjmp(e->jbuf, 0) */
-#define LRETURN	1		/* return statement */
-#define	LEXIT	2		/* exit statement */
-#define LERROR	3		/* errorf() called */
-#define LLEAVE	4		/* untrappable exit/error */
-#define LINTR	5		/* ^C noticed */
-#define	LBREAK	6		/* break statement */
-#define	LCONTIN	7		/* continue statement */
-#define LSHELL	8		/* return to interactive shell() */
-#define LAEXPR	9		/* error in arithmetic expression */
+#define LRETURN	1	/* return statement */
+#define	LEXIT	2	/* exit statement */
+#define LERROR	3	/* errorf() called */
+#define LLEAVE	4	/* untrappable exit/error */
+#define LINTR	5	/* ^C noticed */
+#define	LBREAK	6	/* break statement */
+#define	LCONTIN	7	/* continue statement */
+#define LSHELL	8	/* return to interactive shell() */
+#define LAEXPR	9	/* error in arithmetic expression */
 
 /* option processing */
 #define OF_CMDLINE	0x01	/* command line */
@@ -228,7 +229,7 @@ typedef enum temp_type Temp_type;
 struct temp {
 	struct temp *next;
 	struct shf *shf;
-	int pid;		/* pid of process parsed here-doc */
+	int pid;	/* pid of process parsed here-doc */
 	Temp_type type;
 	char *name;
 };
@@ -596,22 +597,22 @@ struct builtin {
 extern const struct builtin shbuiltins [], kshbuiltins [];
 
 /* var spec values */
-#define	V_NONE			0
-#define	V_PATH			1
-#define	V_IFS			2
-#define	V_SECONDS		3
-#define	V_OPTIND		4
-#define	V_RANDOM		8
-#define V_HISTSIZE		9
-#define V_HISTFILE		10
-#define V_COLUMNS		13
-#define V_TMOUT			15
-#define V_TMPDIR		16
-#define V_LINENO		17
+#define	V_NONE		0
+#define	V_PATH		1
+#define	V_IFS		2
+#define	V_SECONDS	3
+#define	V_OPTIND	4
+#define	V_RANDOM	8
+#define V_HISTSIZE	9
+#define V_HISTFILE	10
+#define V_COLUMNS	13
+#define V_TMOUT		15
+#define V_TMPDIR	16
+#define V_LINENO	17
 
 /* values for set_prompt() */
-#define PS1	0		/* command */
-#define PS2	1		/* command continuation */
+#define PS1	0	/* command */
+#define PS2	1	/* command continuation */
 
 EXTERN char *path;		/* copy of either PATH or def_path */
 EXTERN const char *def_path;	/* path to use if PATH not set */
@@ -673,18 +674,18 @@ struct op {
 /*
  * prefix codes for words in command tree
  */
-#define	EOS	0		/* end of string */
-#define	CHAR	1		/* unquoted character */
-#define	QCHAR	2		/* quoted character */
-#define	COMSUB	3		/* $() substitution (0 terminated) */
-#define EXPRSUB	4		/* $(()) substitution (0 terminated) */
-#define	OQUOTE	5		/* opening " or ' */
-#define	CQUOTE	6		/* closing " or ' */
-#define	OSUBST	7		/* opening ${ subst (followed by { or X) */
-#define	CSUBST	8		/* closing } of above (followed by } or X) */
-#define OPAT	9		/* open pattern: *(, @(, etc. */
-#define SPAT	10		/* separate pattern: | */
-#define CPAT	11		/* close pattern: ) */
+#define	EOS	0	/* end of string */
+#define	CHAR	1	/* unquoted character */
+#define	QCHAR	2	/* quoted character */
+#define	COMSUB	3	/* $() substitution (0 terminated) */
+#define EXPRSUB	4	/* $(()) substitution (0 terminated) */
+#define	OQUOTE	5	/* opening " or ' */
+#define	CQUOTE	6	/* closing " or ' */
+#define	OSUBST	7	/* opening ${ subst (followed by { or X) */
+#define	CSUBST	8	/* closing } of above (followed by } or X) */
+#define OPAT	9	/* open pattern: *(, @(, etc. */
+#define SPAT	10	/* separate pattern: | */
+#define CPAT	11	/* close pattern: ) */
 
 /*
  * IO redirection
@@ -698,18 +699,18 @@ struct ioword {
 };
 
 /* ioword.flag - type of redirection */
-#define	IOTYPE	0xF		/* type: bits 0:3 */
-#define	IOREAD	0x1		/* < */
-#define	IOWRITE	0x2		/* > */
-#define	IORDWR	0x3		/* <>: todo */
-#define	IOHERE	0x4		/* << (here file) */
-#define	IOCAT	0x5		/* >> */
-#define	IODUP	0x6		/* <&/>& */
-#define	IOEVAL	BIT(4)		/* expand in << */
-#define	IOSKIP	BIT(5)		/* <<-, skip ^\t* */
-#define	IOCLOB	BIT(6)		/* >|, override -o noclobber */
-#define IORDUP	BIT(7)		/* x<&y (as opposed to x>&y) */
-#define IONAMEXP BIT(8)		/* name has been expanded */
+#define	IOTYPE	0xF	/* type: bits 0:3 */
+#define	IOREAD	0x1	/* < */
+#define	IOWRITE	0x2	/* > */
+#define	IORDWR	0x3	/* <>: todo */
+#define	IOHERE	0x4	/* << (here file) */
+#define	IOCAT	0x5	/* >> */
+#define	IODUP	0x6	/* <&/>& */
+#define	IOEVAL	BIT(4)	/* expand in << */
+#define	IOSKIP	BIT(5)	/* <<-, skip ^\t* */
+#define	IOCLOB	BIT(6)	/* >|, override -o noclobber */
+#define IORDUP	BIT(7)	/* x<&y (as opposed to x>&y) */
+#define IONAMEXP BIT(8)	/* name has been expanded */
 
 /* execute/exchild flags */
 #define	XEXEC	BIT(0)		/* execute without forking */
@@ -748,13 +749,13 @@ struct ioword {
  * like all other t->vars[]) in which the second character is the one that
  * is examined. The DB_* defines are the values for these second characters.
  */
-#define DB_NORM	1		/* normal argument */
-#define DB_OR	2		/* || -> -o conversion */
-#define DB_AND	3		/* && -> -a conversion */
-#define DB_BE	4		/* an inserted -BE */
-#define DB_PAT	5		/* a pattern argument */
+#define DB_NORM	1	/* normal argument */
+#define DB_OR	2	/* || -> -o conversion */
+#define DB_AND	3	/* && -> -a conversion */
+#define DB_BE	4	/* an inserted -BE */
+#define DB_PAT	5	/* a pattern argument */
 
-#define X_EXTRA		8	/* this many extra bytes in X string */
+#define X_EXTRA	8	/* this many extra bytes in X string */
 
 typedef struct XString {
 	char *end, *beg;	/* end, begin of string */
