@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.37 2006/08/22 22:21:20 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.38 2006/08/22 22:22:07 tg Exp $"
 
 #include <sys/param.h>
 
@@ -44,6 +44,7 @@
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
+#include "compat.h"
 
 /* some useful #defines */
 #ifdef EXTERN
@@ -53,8 +54,6 @@
 # define EXTERN extern
 # define EXTERN_DEFINED
 #endif
-
-#include "compat.h"
 #include "version.h"
 
 #define EXECSHELL	"/bin/mksh"
