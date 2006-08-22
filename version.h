@@ -1,1 +1,0 @@
-EXTERN const char MKSH_VERSION[] I__("@(#)MIRBSD KSH R28 2006/08/18");

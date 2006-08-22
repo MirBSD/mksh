@@ -8,7 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.38 2006/08/22 22:22:07 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.39 2006/08/22 22:49:37 tg Exp $"
+#define MKSH_VERSION "R28 2006/08/22"
 
 #include <sys/param.h>
 
@@ -44,7 +45,72 @@
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
-#include "compat.h"
+
+#ifdef NEED_COMPAT
+/* extra headers */
+
+#if defined(__sun__) || defined(__INTERIX)
+#include <sys/mkdev.h>
+#endif
+#if !defined(__OpenBSD__) && !defined(__CYGWIN__)
+#include <ulimit.h>
+#endif
+#if defined(__sun__) || defined(__gnu_linux__)
+#include <values.h>
+#endif
+
+/* extra macros */
+
+#ifndef timeradd
+#define	timeradd(tvp, uvp, vvp)						\
+	do {								\
+		(vvp)->tv_sec = (tvp)->tv_sec + (uvp)->tv_sec;		\
+		(vvp)->tv_usec = (tvp)->tv_usec + (uvp)->tv_usec;	\
+		if ((vvp)->tv_usec >= 1000000) {			\
+			(vvp)->tv_sec++;				\
+			(vvp)->tv_usec -= 1000000;			\
+		}							\
+	} while (0)
+#endif
+#ifndef timersub
+#define	timersub(tvp, uvp, vvp)						\
+	do {								\
+		(vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec;		\
+		(vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec;	\
+		if ((vvp)->tv_usec < 0) {				\
+			(vvp)->tv_sec--;				\
+			(vvp)->tv_usec += 1000000;			\
+		}							\
+	} while (0)
+#endif
+
+#ifndef S_ISTXT
+#define S_ISTXT 0001000
+#endif
+
+/* OS-dependent additions */
+
+#if defined(__gnu_linux__)
+size_t strlcat(char *, const char *, size_t);
+size_t strlcpy(char *, const char *, size_t);
+#endif
+
+#if defined(__sun__)
+size_t confstr(int, char *, size_t);
+#endif
+
+#if defined(__gnu_linux__) || defined(__sun__) || defined(__CYGWIN__)
+#define DEFFILEMODE (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
+mode_t getmode(const void *, mode_t);
+void *setmode(const char *);
+#endif
+
+#ifdef __INTERIX
+#define	makedev(x,y)	mkdev((x),(y))
+extern int __cdecl seteuid(uid_t);
+extern int __cdecl setegid(gid_t);
+#endif
+#endif
 
 /* some useful #defines */
 #ifdef EXTERN
@@ -54,7 +120,6 @@
 # define EXTERN extern
 # define EXTERN_DEFINED
 #endif
-#include "version.h"
 
 #define EXECSHELL	"/bin/mksh"
 #define EXECSHELL_STR	"EXECSHELL"
@@ -95,6 +160,10 @@ EXTERN	gid_t kshgid;		/* real gid of shell */
 EXTERN	int exstat;		/* exit status */
 EXTERN	int subst_exstat;	/* exit status of last $(..)/`..` */
 EXTERN	const char *safe_prompt; /* safe prompt if PS1 substitution fails */
+#ifndef EXTERN_DEFINED
+static const char initvsn[] = "KSH_VERSION=@(#)MIRBSD KSH " MKSH_VERSION;
+#endif
+EXTERN	const char *KSH_VERSION I__(initvsn + 16);
 
 /*
  * Area-based allocation built on malloc/free
