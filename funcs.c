@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.29.2.2 2006/08/24 18:52:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.29.2.3 2006/08/24 20:52:11 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -2063,7 +2063,6 @@ c_times(char **wp __attribute__((unused)))
 
 	return 0;
 }
-
 
 /*
  * time pipeline (really a statement, not a built-in command)

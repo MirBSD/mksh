@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.56.2.1 2006/08/18 19:02:21 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.56.2.2 2006/08/24 20:52:09 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3849,6 +3849,22 @@ expected-stdout:
 	*
 	abcx abcy
 ---
+name: persist-history-1
+description:
+	Check if persistent history saving works
+# we don't have persistent history on Solaris (no flock)
+category: !os:solaris,!os:plan9
+arguments: !-i!
+env-setup: !ENV=./Env!HISTFILE=hist.file!
+file-setup: file 644 "Env"
+	PS1=X
+stdin:
+	cat hist.file
+expected-stdout-pattern:
+	/cat hist.file/
+expected-stderr-pattern:
+	/^X*$/
+---
 name: version-1
 description:
 	Check version of shell.
@@ -3856,5 +3872,5 @@ category: pdksh
 stdin:
 	echo $KSH_VERSION
 expected-stdout:
-	@(#)MIRBSD KSH R28 2006/08/18
+	@(#)MIRBSD KSH R28 2006/08/24
 ---

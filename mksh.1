@@ -1,8 +1,8 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.56 2006/08/14 20:41:21 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.56.2.1 2006/08/24 20:52:13 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
-.Dd August 14, 2006
+.Dd August 22, 2006
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -5301,25 +5301,23 @@ yet.
 .Pp
 Please report bugs in
 .Nm
-or this manual page to the MirOS Project discussion mailing list at
+to the
 .Aq miros-discuss@mirbsd.org
-or in the
+mailing list or in the
 .Li \&#mksh
-channel on the OPN IRC network at
-.Pa irc.freenode.net
-.Pq port 6667 .
+or
+.Li \&#ksh
+IRC channel at
+.Pa irc.freenode.net .
 .Pp
 By the way, the most frequently reported bug is:
 .Bd -literal -offset indent
 $ print hi \*(Ba read a; print $a   # Does not show hi
 .Ed
 .Pp
-The
-.Nm pdksh
-author is aware of this and there is no need to report it.
 This does not work because the last command of a pipe sequence
-is run in a subshell.
-In
-.Nm "" ,
-this is a feature which can be depended on by scripts.
+is executed in a subshell.
+This is a
+.Nm
+feature which can be depended on by scripts.
 Use co-routines to work around if necessary and possible.

@@ -1,7 +1,7 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.48.2.3 2006/08/24 20:15:01 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.48.2.4 2006/08/24 20:52:08 tg Exp $
 #-
-# This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
+# Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
 if test -d mksh; then
 	echo "$0: Error: ./mksh is a directory!" >&2
@@ -126,12 +126,10 @@ test -x mksh || exit 1
 test $r = 1 || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
     rm -f mksh.cat1
 test $q = 1 || v size mksh
-echo "#!$curdir/mksh" >Test.sh
+echo "#!$curdir/mksh" >test.sh
 echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t'" \
-    "-p '$curdir/mksh' -C pdksh \$*" >>Test.sh
-chmod 755 Test.sh
-$e
-$e To test mksh, execute ./Test.sh
+    "-p '$curdir/mksh' -C pdksh \$*" >>test.sh
+chmod 755 test.sh
 $e
 $e Installing the shell:
 $e "# install -c -s -o root -g bin -m 555 mksh /bin/mksh"
@@ -145,3 +143,6 @@ if test -s mksh.cat1; then
 	$e or
 fi
 $e "# install -c -o root -g bin -m 444 mksh.1 /usr/share/man/man1/mksh.1"
+$e
+$e Run the regression test suite: ./test.sh
+$e Please also read the sample file dot.mkshrc and the manual.

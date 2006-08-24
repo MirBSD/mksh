@@ -8,7 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define	MKSH_SH_H_ID	"$MirOS: src/bin/mksh/sh.h,v 1.33.2.2 2006/08/18 19:02:22 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.33.2.3 2006/08/24 20:52:15 tg Exp $"
+#define MKSH_VERSION "R28 2006/08/24"
 
 #if defined(__Plan9__) && !defined(__GNUC__)
 #define __attribute__(x) /* nothing */
@@ -60,8 +61,84 @@ typedef int bool;
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
-#if defined(NEED_COMPAT)
-#include "compat.h"
+
+#ifdef NEED_COMPAT
+/* extra headers */
+
+#if defined(__sun__) || defined(__INTERIX)
+#include <sys/mkdev.h>
+#endif
+#if defined(__Plan9__)
+#include <inttypes.h>
+#endif
+#if !defined(__OpenBSD__) && !defined(__CYGWIN__) && !defined(__Plan9__)
+#include <ulimit.h>
+#endif
+#if defined(__sun__) || defined(__gnu_linux__)
+#include <values.h>
+#endif
+
+/* extra macros */
+
+#ifndef timeradd
+#define	timeradd(tvp, uvp, vvp)						\
+	do {								\
+		(vvp)->tv_sec = (tvp)->tv_sec + (uvp)->tv_sec;		\
+		(vvp)->tv_usec = (tvp)->tv_usec + (uvp)->tv_usec;	\
+		if ((vvp)->tv_usec >= 1000000) {			\
+			(vvp)->tv_sec++;				\
+			(vvp)->tv_usec -= 1000000;			\
+		}							\
+	} while (0)
+#endif
+#ifndef timersub
+#define	timersub(tvp, uvp, vvp)						\
+	do {								\
+		(vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec;		\
+		(vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec;	\
+		if ((vvp)->tv_usec < 0) {				\
+			(vvp)->tv_sec--;				\
+			(vvp)->tv_usec += 1000000;			\
+		}							\
+	} while (0)
+#endif
+
+#ifndef S_ISTXT
+#define S_ISTXT 0001000
+#endif
+
+#ifdef __Plan9__
+#define S_ISLNK(x)	0
+#define S_ISSOCK(x)	0
+#define killpg(p,s)	kill(-(p), (s))
+#endif
+
+/* OS-dependent additions */
+
+#if defined(__gnu_linux__) || defined(__Plan9__)
+size_t strlcat(char *, const char *, size_t);
+size_t strlcpy(char *, const char *, size_t);
+#endif
+
+#if defined(__sun__)
+size_t confstr(int, char *, size_t);
+#endif
+
+#if defined(__gnu_linux__) || defined(__sun__) || defined(__CYGWIN__)
+#define DEFFILEMODE (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
+mode_t getmode(const void *, mode_t);
+void *setmode(const char *);
+#endif
+
+#ifdef __INTERIX
+#define	makedev(x,y)	mkdev((x),(y))
+extern int __cdecl seteuid(uid_t);
+extern int __cdecl setegid(gid_t);
+#endif
+
+#if defined(__Plan9__)
+typedef unsigned char u_char;
+#endif
 #endif
 
 /* some useful #defines */
@@ -81,13 +158,13 @@ typedef int bool;
 #define	BIT(i)		(1<<(i))	/* define bit in flag */
 
 /* Table flag type - needs > 16 and < 32 bits */
-typedef int32_t		Tflag;
+typedef int32_t Tflag;
 
 #define	NUFILE		32	/* Number of user-accessible files */
 #define	FDBASE		10	/* First file usable by Shell */
 
 /* Make MAGIC a char that might be printed to make bugs more obvious, but
- * not a char that is used often.  Also, can't use the high bit as it causes
+ * not a char that is used often. Also, can't use the high bit as it causes
  * portability problems (calling strchr(x, 0x80|'x') is error prone).
  */
 #define	MAGIC		(7)	/* prefix for *?[!{,} during expand */
@@ -102,16 +179,20 @@ typedef int32_t		Tflag;
 #define	_PATH_DEFPATH	"/bin:/usr/bin:/sbin:/usr/sbin"
 #endif
 
-EXTERN	char *	kshname;	/* $0 */
-EXTERN	pid_t	kshpid;		/* $$, shell pid */
-EXTERN	pid_t	procpid;	/* pid of executing process */
-EXTERN	uid_t	ksheuid;	/* effective uid of shell */
-EXTERN	uid_t	kshuid;		/* real uid of shell */
-EXTERN	gid_t	kshegid;	/* effective gid of shell */
-EXTERN	gid_t	kshgid;		/* real gid of shell */
-EXTERN	int	exstat;		/* exit status */
-EXTERN	int	subst_exstat;	/* exit status of last $(..)/`..` */
+EXTERN	char *kshname;		/* $0 */
+EXTERN	pid_t kshpid;		/* $$, shell pid */
+EXTERN	pid_t procpid;		/* pid of executing process */
+EXTERN	uid_t ksheuid;		/* effective uid of shell */
+EXTERN	uid_t kshuid;		/* real uid of shell */
+EXTERN	gid_t kshegid;		/* effective gid of shell */
+EXTERN	gid_t kshgid;		/* real gid of shell */
+EXTERN	int exstat;		/* exit status */
+EXTERN	int subst_exstat;	/* exit status of last $(..)/`..` */
 EXTERN	const char *safe_prompt; /* safe prompt if PS1 substitution fails */
+#ifndef EXTERN_DEFINED
+static const char initvsn[] = "KSH_VERSION=@(#)MIRBSD KSH " MKSH_VERSION;
+#endif
+EXTERN	const char *KSH_VERSION I__(initvsn + 16);
 
 /*
  * Area-based allocation built on malloc/free
@@ -120,32 +201,32 @@ typedef struct Area {
 	struct link *freelist;	/* free list */
 } Area;
 
-EXTERN	Area	aperm;		/* permanent object space */
+EXTERN Area aperm;		/* permanent object space */
 #define	APERM	&aperm
 #define	ATEMP	&e->area
 
 /*
  * parsing & execution environment
  */
-EXTERN	struct env {
-	short	type;			/* environment type - see below */
-	short	flags;			/* EF_* */
-	Area	area;			/* temporary allocation area */
-	struct	block *loc;		/* local variables and functions */
-	short  *savefd;			/* original redirected fds */
-	struct	env *oenv;		/* link to previous environment */
-	sigjmp_buf jbuf;		/* long jump back to env creator */
-	struct temp *temps;		/* temp files */
+EXTERN struct env {
+	short type;		/* environment type - see below */
+	short flags;		/* EF_* */
+	Area area;		/* temporary allocation area */
+	struct block *loc;	/* local variables and functions */
+	short *savefd;		/* original redirected fds */
+	struct env *oenv;	/* link to previous environment */
+	sigjmp_buf jbuf;	/* long jump back to env creator */
+	struct temp *temps;	/* temp files */
 } *e;
 
 /* struct env.type values */
-#define	E_NONE	0		/* dummy environment */
-#define	E_PARSE	1		/* parsing command # */
-#define	E_FUNC	2		/* executing function # */
-#define	E_INCL	3		/* including a file via . # */
-#define	E_EXEC	4		/* executing command tree */
-#define	E_LOOP	5		/* executing for/while # */
-#define	E_ERRH	6		/* general error handler # */
+#define	E_NONE	0	/* dummy environment */
+#define	E_PARSE	1	/* parsing command # */
+#define	E_FUNC	2	/* executing function # */
+#define	E_INCL	3	/* including a file via . # */
+#define	E_EXEC	4	/* executing command tree */
+#define	E_LOOP	5	/* executing for/while # */
+#define	E_ERRH	6	/* general error handler # */
 /* # indicates env has valid jbuf (see unwind()) */
 
 /* struct env.flag values */
@@ -160,15 +241,15 @@ EXTERN	struct env {
 #define STOP_RETURN(t)	((t) == E_FUNC || (t) == E_INCL)
 
 /* values for siglongjmp(e->jbuf, 0) */
-#define LRETURN	1		/* return statement */
-#define	LEXIT	2		/* exit statement */
-#define LERROR	3		/* errorf() called */
-#define LLEAVE	4		/* untrappable exit/error */
-#define LINTR	5		/* ^C noticed */
-#define	LBREAK	6		/* break statement */
-#define	LCONTIN	7		/* continue statement */
-#define LSHELL	8		/* return to interactive shell() */
-#define LAEXPR	9		/* error in arithmetic expression */
+#define LRETURN	1	/* return statement */
+#define	LEXIT	2	/* exit statement */
+#define LERROR	3	/* errorf() called */
+#define LLEAVE	4	/* untrappable exit/error */
+#define LINTR	5	/* ^C noticed */
+#define	LBREAK	6	/* break statement */
+#define	LCONTIN	7	/* continue statement */
+#define LSHELL	8	/* return to interactive shell() */
+#define LAEXPR	9	/* error in arithmetic expression */
 
 /* option processing */
 #define OF_CMDLINE	0x01	/* command line */
@@ -179,9 +260,9 @@ EXTERN	struct env {
 #define OF_ANY		(OF_CMDLINE | OF_SET | OF_SPECIAL | OF_INTERNAL)
 
 struct option {
-    const char	*name;	/* long name of option */
-    char	c;	/* character flag (if any) */
-    short	flags;	/* OF_* */
+	const char *name;	/* long name of option */
+	char c;			/* character flag (if any) */
+	short flags;		/* OF_* */
 };
 extern const struct option options[];
 
@@ -241,13 +322,13 @@ enum temp_type {
 	TT_HIST_EDIT	/* temp file used for history editing (fc -e) */
 };
 typedef enum temp_type Temp_type;
-/* temp/heredoc files.  The file is removed when the struct is freed. */
+/* temp/heredoc files. The file is removed when the struct is freed. */
 struct temp {
-	struct temp	*next;
-	struct shf	*shf;
-	int		pid;		/* pid of process parsed here-doc */
-	Temp_type	type;
-	char		*name;
+	struct temp *next;
+	struct shf *shf;
+	int pid;	/* pid of process parsed here-doc */
+	Temp_type type;
+	char *name;
 };
 
 /*
@@ -267,12 +348,12 @@ typedef void (*sig_t)(int);
  * trap handlers
  */
 typedef struct trap {
-	int	signal;		/* signal number */
+	int signal;		/* signal number */
 	const char *name;	/* short name */
 	const char *mess;	/* descriptive name */
-	char   *trap;		/* trap command */
+	char *trap;		/* trap command */
 	volatile sig_atomic_t set; /* trap pending */
-	int	flags;		/* TF_* */
+	int flags;		/* TF_* */
 	sig_t cursig;		/* current handler (valid if TF_ORIG_* set) */
 	sig_t shtrap;		/* shell signal handler */
 } Trap;
@@ -373,12 +454,12 @@ EXTERN Getopt user_opt;		/* parsing state for getopts builtin command */
 
 typedef int32_t Coproc_id; /* something that won't (realisticly) wrap */
 struct coproc {
-	int	read;		/* pipe from co-process's stdout */
-	int	readw;		/* other side of read (saved temporarily) */
-	int	write;		/* pipe to co-process's stdin */
-	Coproc_id id;		/* id of current output pipe */
-	int	njobs;		/* number of live jobs using output pipe */
-	void    *job;           /* 0 or job of co-process using input pipe */
+	int read;	/* pipe from co-process's stdout */
+	int readw;	/* other side of read (saved temporarily) */
+	int write;	/* pipe to co-process's stdin */
+	Coproc_id id;	/* id of current output pipe */
+	int njobs;	/* number of live jobs using output pipe */
+	void *job;	/* 0 or job of co-process using input pipe */
 };
 EXTERN struct coproc coproc;
 
@@ -474,32 +555,32 @@ struct shf {
 extern struct shf shf_iob[];
 
 struct table {
-	Area   *areap;		/* area to allocate entries */
-	short	size, nfree;	/* hash size (always 2^^n), free entries */
-	struct	tbl **tbls;	/* hashed table items */
+	Area *areap;		/* area to allocate entries */
+	short size, nfree;	/* hash size (always 2^^n), free entries */
+	struct tbl **tbls;	/* hashed table items */
 };
 
 struct tbl {			/* table item */
-	Tflag	flag;		/* flags */
-	int	type;		/* command type (see below), base (if INTEGER),
+	Tflag flag;		/* flags */
+	int type;		/* command type (see below), base (if INTEGER),
 				 * or offset from val.s of value (if EXPORT) */
-	Area	*areap;		/* area to allocate from */
+	Area *areap;		/* area to allocate from */
 	union {
 		char *s;	/* string */
 		long i;		/* integer */
 		int (*f)(char **);	/* int function */
 		struct op *t;	/* "function" tree */
 	} val;			/* value */
-	int	index;		/* index for an array */
+	int index;		/* index for an array */
 	union {
-	    int	field;		/* field with for -L/-R/-Z */
-	    int errno_;		/* CEXEC/CTALIAS */
+		int field;	/* field with for -L/-R/-Z */
+		int errno_;	/* CEXEC/CTALIAS */
 	} u2;
 	union {
 		struct tbl *array;	/* array values */
-		char *fpath;		/* temporary path to undef function */
+		char *fpath;	/* temporary path to undef function */
 	} u;
-	char	name[4];	/* name -- variable length */
+	char name[4];		/* name -- variable length */
 };
 
 /* common flag bits */
@@ -534,7 +615,7 @@ struct tbl {			/* table item */
 #define SPEC_BI		BIT(12)	/* a POSIX special builtin */
 #define REG_BI		BIT(13)	/* a POSIX regular builtin */
 /* Attributes that can be set by the user (used to decide if an unset param
- * should be repoted by set/typeset).  Does not include ARRAY or LOCAL.
+ * should be repoted by set/typeset). Does not include ARRAY or LOCAL.
  */
 #define USERATTRIB	(EXPORT|INTEGER|RDONLY|LJUST|RJUST|ZEROFIL\
 			 |LCASEV|UCASEV_AL|INT_U|INT_L)
@@ -563,7 +644,7 @@ struct tbl {			/* table item */
 #define AI_ARGV(a, i)	((i) == 0 ? (a).argv[0] : (a).argv[(i) - (a).skip])
 #define AI_ARGC(a)	((a).argc_ - (a).skip)
 
-/* Argument info.  Used for $#, $* for shell, functions, includes, etc. */
+/* Argument info. Used for $#, $* for shell, functions, includes, etc. */
 struct arg_info {
 	int flags;	/* AF_* */
 	char **argv;
@@ -575,17 +656,16 @@ struct arg_info {
  * activation record for function blocks
  */
 struct block {
-	Area	area;		/* area to allocate things */
-	/*struct arg_info argi;*/
-	char	**argv;
-	int	argc;
-	int	flags;		/* see BF_* */
-	struct	table vars;	/* local variables */
-	struct	table funs;	/* local functions */
-	Getopt	getopts_state;
-	char *	error;		/* error handler */
-	char *	exit;		/* exit handler */
-	struct	block *next;	/* enclosing block */
+	Area area;		/* area to allocate things */
+	char **argv;
+	int argc;
+	int flags;		/* see BF_* */
+	struct table vars;	/* local variables */
+	struct table funs;	/* local functions */
+	Getopt getopts_state;
+	char *error;		/* error handler */
+	char *exit;		/* exit handler */
+	struct block *next;	/* enclosing block */
 };
 
 /* Values for struct block.flags */
@@ -607,29 +687,29 @@ EXTERN	struct table keywords;	/* keywords */
 EXTERN	struct table homedirs;	/* homedir() cache */
 
 struct builtin {
-	const char   *name;
-	int  (*func)(char **);
+	const char *name;
+	int (*func)(char **);
 };
 
 extern const struct builtin shbuiltins [], kshbuiltins [];
 
 /* var spec values */
-#define	V_NONE			0
-#define	V_PATH			1
-#define	V_IFS			2
-#define	V_SECONDS		3
-#define	V_OPTIND		4
-#define	V_RANDOM		8
-#define V_HISTSIZE		9
-#define V_HISTFILE		10
-#define V_COLUMNS		13
-#define V_TMOUT			15
-#define V_TMPDIR		16
-#define V_LINENO		17
+#define	V_NONE		0
+#define	V_PATH		1
+#define	V_IFS		2
+#define	V_SECONDS	3
+#define	V_OPTIND	4
+#define	V_RANDOM	8
+#define V_HISTSIZE	9
+#define V_HISTFILE	10
+#define V_COLUMNS	13
+#define V_TMOUT		15
+#define V_TMPDIR	16
+#define V_LINENO	17
 
 /* values for set_prompt() */
-#define PS1	0		/* command */
-#define PS2	1		/* command continuation */
+#define PS1	0	/* command */
+#define PS2	1	/* command continuation */
 
 EXTERN char *path;		/* copy of either PATH or def_path */
 EXTERN const char *def_path;	/* path to use if PATH not set */
@@ -646,21 +726,21 @@ EXTERN int current_lineno;	/* LINENO value */
  * Description of a command or an operation on commands.
  */
 struct op {
-	short	type;			/* operation type, see below */
+	short type;			/* operation type, see below */
 	union { /* WARNING: newtp(), tcopy() use evalflags = 0 to clear union */
-		short	evalflags;	/* TCOM: arg expansion eval() flags */
-		short	ksh_func;	/* TFUNC: function x (vs x()) */
+		short evalflags;	/* TCOM: arg expansion eval() flags */
+		short ksh_func;		/* TFUNC: function x (vs x()) */
 	} u;
-	char  **args;			/* arguments to a command */
-	char  **vars;			/* variable assignments */
-	struct ioword	**ioact;	/* IO actions (eg, < > >>) */
+	char **args;			/* arguments to a command */
+	char **vars;			/* variable assignments */
+	struct ioword **ioact;		/* IO actions (eg, < > >>) */
 	struct op *left, *right;	/* descendents */
-	char   *str;			/* word for case; identifier for for,
+	char *str;			/* word for case; identifier for for,
 					 * select, and functions;
 					 * path to execute for TEXEC;
 					 * time hook for TCOM.
 					 */
-	int	lineno;			/* TCOM/TFUNC: LINENO for this */
+	int lineno;			/* TCOM/TFUNC: LINENO for this */
 };
 
 /* Tree.type values */
@@ -691,18 +771,18 @@ struct op {
 /*
  * prefix codes for words in command tree
  */
-#define	EOS	0		/* end of string */
-#define	CHAR	1		/* unquoted character */
-#define	QCHAR	2		/* quoted character */
-#define	COMSUB	3		/* $() substitution (0 terminated) */
-#define EXPRSUB	4		/* $(()) substitution (0 terminated) */
-#define	OQUOTE	5		/* opening " or ' */
-#define	CQUOTE	6		/* closing " or ' */
-#define	OSUBST	7		/* opening ${ subst (followed by { or X) */
-#define	CSUBST	8		/* closing } of above (followed by } or X) */
-#define OPAT	9		/* open pattern: *(, @(, etc. */
-#define SPAT	10		/* separate pattern: | */
-#define CPAT	11		/* close pattern: ) */
+#define	EOS	0	/* end of string */
+#define	CHAR	1	/* unquoted character */
+#define	QCHAR	2	/* quoted character */
+#define	COMSUB	3	/* $() substitution (0 terminated) */
+#define EXPRSUB	4	/* $(()) substitution (0 terminated) */
+#define	OQUOTE	5	/* opening " or ' */
+#define	CQUOTE	6	/* closing " or ' */
+#define	OSUBST	7	/* opening ${ subst (followed by { or X) */
+#define	CSUBST	8	/* closing } of above (followed by } or X) */
+#define OPAT	9	/* open pattern: *(, @(, etc. */
+#define SPAT	10	/* separate pattern: | */
+#define CPAT	11	/* close pattern: ) */
 
 /*
  * IO redirection
@@ -716,18 +796,18 @@ struct ioword {
 };
 
 /* ioword.flag - type of redirection */
-#define	IOTYPE	0xF		/* type: bits 0:3 */
-#define	IOREAD	0x1		/* < */
-#define	IOWRITE	0x2		/* > */
-#define	IORDWR	0x3		/* <>: todo */
-#define	IOHERE	0x4		/* << (here file) */
-#define	IOCAT	0x5		/* >> */
-#define	IODUP	0x6		/* <&/>& */
-#define	IOEVAL	BIT(4)		/* expand in << */
-#define	IOSKIP	BIT(5)		/* <<-, skip ^\t* */
-#define	IOCLOB	BIT(6)		/* >|, override -o noclobber */
-#define IORDUP	BIT(7)		/* x<&y (as opposed to x>&y) */
-#define IONAMEXP BIT(8)		/* name has been expanded */
+#define	IOTYPE	0xF	/* type: bits 0:3 */
+#define	IOREAD	0x1	/* < */
+#define	IOWRITE	0x2	/* > */
+#define	IORDWR	0x3	/* <>: todo */
+#define	IOHERE	0x4	/* << (here file) */
+#define	IOCAT	0x5	/* >> */
+#define	IODUP	0x6	/* <&/>& */
+#define	IOEVAL	BIT(4)	/* expand in << */
+#define	IOSKIP	BIT(5)	/* <<-, skip ^\t* */
+#define	IOCLOB	BIT(6)	/* >|, override -o noclobber */
+#define IORDUP	BIT(7)	/* x<&y (as opposed to x>&y) */
+#define IONAMEXP BIT(8)	/* name has been expanded */
 
 /* execute/exchild flags */
 #define	XEXEC	BIT(0)		/* execute without forking */
@@ -764,20 +844,20 @@ struct ioword {
  * indicating how the arguments have been munged are kept in t->vars[].
  * The contents of t->vars[] are stuffed strings (so they can be treated
  * like all other t->vars[]) in which the second character is the one that
- * is examined.  The DB_* defines are the values for these second characters.
+ * is examined. The DB_* defines are the values for these second characters.
  */
-#define DB_NORM	1		/* normal argument */
-#define DB_OR	2		/* || -> -o conversion */
-#define DB_AND	3		/* && -> -a conversion */
-#define DB_BE	4		/* an inserted -BE */
-#define DB_PAT	5		/* a pattern argument */
+#define DB_NORM	1	/* normal argument */
+#define DB_OR	2	/* || -> -o conversion */
+#define DB_AND	3	/* && -> -a conversion */
+#define DB_BE	4	/* an inserted -BE */
+#define DB_PAT	5	/* a pattern argument */
 
-#define X_EXTRA		8	/* this many extra bytes in X string */
+#define X_EXTRA	8	/* this many extra bytes in X string */
 
 typedef struct XString {
-	char   *end, *beg;	/* end, begin of string */
-	size_t	len;		/* length */
-	Area	*areap;		/* area to allocate/free from */
+	char *end, *beg;	/* end, begin of string */
+	size_t len;		/* length */
+	Area *areap;		/* area to allocate/free from */
 } XString;
 
 typedef char *XStringP;
@@ -796,9 +876,9 @@ typedef char *XStringP;
 
 /* check if there are at least n bytes left */
 #define	XcheckN(xs, xp, n) do { \
-		    int more = ((xp) + (n)) - (xs).end; \
-		    if (more > 0) \
-			xp = Xcheck_grow_(&xs, xp, more); \
+			int more = ((xp) + (n)) - (xs).end; \
+			if (more > 0) \
+				xp = Xcheck_grow_(&xs, xp, more); \
 		} while (0)
 
 /* check for overflow, expand string */
@@ -819,15 +899,15 @@ typedef char *XStringP;
 #define	Xsavepos(xs, xp) ((xp) - (xs).beg)
 #define	Xrestpos(xs, xp, n) ((xs).beg + (n))
 
-char *	Xcheck_grow_(XString *, char *, unsigned);
+char *Xcheck_grow_(XString *, char *, unsigned);
 
 /*
  * expandable vector of generic pointers
  */
 
 typedef struct XPtrV {
-	void  **cur;		/* next avail pointer */
-	void  **beg, **end;	/* begin, end of vector */
+	void **cur;		/* next avail pointer */
+	void **beg, **end;	/* begin, end of vector */
 } XPtrV;
 
 #define	XPinit(x, n) do { \
@@ -841,7 +921,7 @@ typedef struct XPtrV {
 			if ((x).cur >= (x).end) { \
 				int n = XPsize(x); \
 				(x).beg = (void**) aresize((void*) (x).beg, \
-						   sizeofN(void*, n*2), ATEMP); \
+				    sizeofN(void*, n*2), ATEMP); \
 				(x).cur = (x).beg + n; \
 				(x).end = (x).cur + n; \
 			} \
@@ -915,9 +995,9 @@ struct source {
 #define STBRACE		12	/* parsing ${..[#%]..} */
 
 typedef union {
-	int	i;
-	char   *cp;
-	char  **wp;
+	int i;
+	char *cp;
+	char **wp;
 	struct op *o;
 	struct ioword *iop;
 } YYSTYPE;
@@ -973,262 +1053,261 @@ EXTERN	char	ident [IDENT+1];
 
 #define HISTORYSIZE	500	/* size of saved history */
 
-EXTERN	char  **history;	/* saved commands */
-EXTERN	char  **histptr;	/* last history item */
-EXTERN	int	histsize;	/* history size */
+EXTERN	char **history;	/* saved commands */
+EXTERN	char **histptr;	/* last history item */
+EXTERN	int histsize;	/* history size */
 
 /* alloc.c */
-Area *	ainit(Area *);
-void	afreeall(Area *);
-void *	alloc(size_t, Area *);
-void *	aresize(void *, size_t, Area *);
-void	afree(void *, Area *);
+Area *ainit(Area *);
+void afreeall(Area *);
+void *alloc(size_t, Area *);
+void *aresize(void *, size_t, Area *);
+void afree(void *, Area *);
 /* edit.c */
-void	x_init(void);
-int	x_read(char *, size_t);
-int	x_bind(const char *, const char *, int, int);
+void x_init(void);
+int x_read(char *, size_t);
+int x_bind(const char *, const char *, int, int);
 /* eval.c */
-char *	substitute(const char *, int);
-char **	eval(char **, int);
-char *	evalstr(char *cp, int);
-char *	evalonestr(char *cp, int);
-char	*debunk(char *, const char *, size_t);
-void	expand(char *, XPtrV *, int);
-int	glob_str(char *, XPtrV *, int);
+char *substitute(const char *, int);
+char **eval(char **, int);
+char *evalstr(char *cp, int);
+char *evalonestr(char *cp, int);
+char *debunk(char *, const char *, size_t);
+void expand(char *, XPtrV *, int);
+int glob_str(char *, XPtrV *, int);
 /* exec.c */
-int	execute(struct op * volatile, volatile int);
-int	shcomexec(char **);
-struct tbl * findfunc(const char *, unsigned int, int);
-int	define(const char *, struct op *);
-void	builtin(const char *, int (*)(char **));
-struct tbl *	findcom(const char *, int);
-void	flushcom(int);
-char *	search(const char *, const char *, int, int *);
-int	search_access(const char *, int, int *);
-int	pr_menu(char *const *);
-int	pr_list(char *const *);
+int execute(struct op * volatile, volatile int);
+int shcomexec(char **);
+struct tbl *findfunc(const char *, unsigned int, int);
+int define(const char *, struct op *);
+void builtin(const char *, int (*)(char **));
+struct tbl *findcom(const char *, int);
+void flushcom(int);
+char *search(const char *, const char *, int, int *);
+int search_access(const char *, int, int *);
+int pr_menu(char *const *);
+int pr_list(char *const *);
 /* expr.c */
-int	evaluate(const char *, long *, int, bool);
-int	v_evaluate(struct tbl *, const char *, volatile int, bool);
+int evaluate(const char *, long *, int, bool);
+int v_evaluate(struct tbl *, const char *, volatile int, bool);
 /* funcs.c */
-int	c_hash(char **);
-int	c_cd(char **);
-int	c_pwd(char **);
-int	c_print(char **);
-int	c_whence(char **);
-int	c_command(char **);
-int	c_typeset(char **);
-int	c_alias(char **);
-int	c_unalias(char **);
-int	c_let(char **);
-int	c_jobs(char **);
-int	c_fgbg(char **);
-int	c_kill(char **);
-void	getopts_reset(int);
-int	c_getopts(char **);
-int	c_bind(char **);
-int	c_label(char **);
-int	c_shift(char **);
-int	c_umask(char **);
-int	c_dot(char **);
-int	c_wait(char **);
-int	c_read(char **);
-int	c_eval(char **);
-int	c_trap(char **);
-int	c_brkcont(char **);
-int	c_exitreturn(char **);
-int	c_set(char **);
-int	c_unset(char **);
-int	c_ulimit(char **);
-int	c_times(char **);
-int	timex(struct op *, int);
-void	timex_hook(struct op *, char ** volatile *);
-int	c_exec(char **);
-int	c_builtin(char **);
-int	c_test(char **);
+int c_hash(char **);
+int c_cd(char **);
+int c_pwd(char **);
+int c_print(char **);
+int c_whence(char **);
+int c_command(char **);
+int c_typeset(char **);
+int c_alias(char **);
+int c_unalias(char **);
+int c_let(char **);
+int c_jobs(char **);
+int c_fgbg(char **);
+int c_kill(char **);
+void getopts_reset(int);
+int c_getopts(char **);
+int c_bind(char **);
+int c_label(char **);
+int c_shift(char **);
+int c_umask(char **);
+int c_dot(char **);
+int c_wait(char **);
+int c_read(char **);
+int c_eval(char **);
+int c_trap(char **);
+int c_brkcont(char **);
+int c_exitreturn(char **);
+int c_set(char **);
+int c_unset(char **);
+int c_ulimit(char **);
+int c_times(char **);
+int timex(struct op *, int);
+void timex_hook(struct op *, char ** volatile *);
+int c_exec(char **);
+int c_builtin(char **);
+int c_test(char **);
 /* histrap.c */
-void	init_histvec(void);
-void	hist_init(Source *);
-void	hist_finish(void);
-void	histsave(int, const char *, int);
-int	c_fc(char **);
-void	sethistsize(int);
-void	sethistfile(const char *);
-char **	histpos(void);
-int	histnum(int);
-int	findhist(int, int, const char *, int);
-int	findhistrel(const char *);
-char  **hist_get_newest(int);
-void	inittraps(void);
-void	alarm_init(void);
-Trap *	gettrap(const char *, int);
-void	trapsig(int);
-void	intrcheck(void);
-int	fatal_trap_check(void);
-int	trap_pending(void);
-void	runtraps(int intr);
-void	runtrap(Trap *);
-void	cleartraps(void);
-void	restoresigs(void);
-void	settrap(Trap *, char *);
-int	block_pipe(void);
-void	restore_pipe(int);
-int	setsig(Trap *, sig_t, int);
-void	setexecsig(Trap *, int);
+void init_histvec(void);
+void hist_init(Source *);
+void hist_finish(void);
+void histsave(int, const char *, int);
+int c_fc(char **);
+void sethistsize(int);
+void sethistfile(const char *);
+char **histpos(void);
+int histnum(int);
+int findhist(int, int, const char *, int);
+int findhistrel(const char *);
+char **hist_get_newest(int);
+void inittraps(void);
+void alarm_init(void);
+Trap *gettrap(const char *, int);
+void trapsig(int);
+void intrcheck(void);
+int fatal_trap_check(void);
+int trap_pending(void);
+void runtraps(int intr);
+void runtrap(Trap *);
+void cleartraps(void);
+void restoresigs(void);
+void settrap(Trap *, char *);
+int block_pipe(void);
+void restore_pipe(int);
+int setsig(Trap *, sig_t, int);
+void setexecsig(Trap *, int);
 /* jobs.c */
-void	j_init(int);
-void	j_exit(void);
-void	j_change(void);
-int	exchild(struct op *, int, int);
-void	startlast(void);
-int	waitlast(void);
-int	waitfor(const char *, int *);
-int	j_kill(const char *, int);
-int	j_resume(const char *, int);
-int	j_jobs(const char *, int, int);
-int	j_njobs(void);
-void	j_notify(void);
-pid_t	j_async(void);
-int	j_stopped_running(void);
+void j_init(int);
+void j_exit(void);
+void j_change(void);
+int exchild(struct op *, int, int);
+void startlast(void);
+int waitlast(void);
+int waitfor(const char *, int *);
+int j_kill(const char *, int);
+int j_resume(const char *, int);
+int j_jobs(const char *, int, int);
+int j_njobs(void);
+void j_notify(void);
+pid_t j_async(void);
+int j_stopped_running(void);
 /* lex.c */
-int	yylex(int);
-void	yyerror(const char *, ...)
-	    __attribute__((__noreturn__, __format__ (printf, 1, 2)));
-Source * pushs(int, Area *);
-void	set_prompt(int, Source *);
-void	pprompt(const char *, int);
-int	promptlen(const char *);
+int yylex(int);
+void yyerror(const char *, ...)
+    __attribute__((__noreturn__, __format__ (printf, 1, 2)));
+Source *pushs(int, Area *);
+void set_prompt(int, Source *);
+void pprompt(const char *, int);
+int promptlen(const char *);
 /* main.c */
-int	include(const char *, int, char **, int);
-int	command(const char *);
-int	shell(Source *volatile, int volatile);
-void	unwind(int) __attribute__((__noreturn__));
-void	newenv(int);
-void	quitenv(struct shf *);
-void	cleanup_parents_env(void);
-void	cleanup_proc_env(void);
-void	errorf(const char *, ...)
-	    __attribute__((__noreturn__, __format__ (printf, 1, 2)));
-void	warningf(int, const char *, ...)
-	    __attribute__((__format__ (printf, 2, 3)));
-void	bi_errorf(const char *, ...)
-	    __attribute__((__format__ (printf, 1, 2)));
-void	internal_errorf(int, const char *, ...)
-	    __attribute__((__format__ (printf, 2, 3)));
-void	error_prefix(int);
-void	shellf(const char *, ...)
-	    __attribute__((__format__ (printf, 1, 2)));
-void	shprintf(const char *, ...)
-	    __attribute__((__format__ (printf, 1, 2)));
-int	can_seek(int);
-void	initio(void);
-int	ksh_dup2(int, int, int);
-int	savefd(int);
-void	restfd(int, int);
-void	openpipe(int *);
-void	closepipe(int *);
-int	check_fd(char *, int, const char **);
-void	coproc_init(void);
-void	coproc_read_close(int);
-void	coproc_readw_close(int);
-void	coproc_write_close(int);
-int	coproc_getfd(int, const char **);
-void	coproc_cleanup(int);
+int include(const char *, int, char **, int);
+int command(const char *);
+int shell(Source *volatile, int volatile);
+void unwind(int) __attribute__((__noreturn__));
+void newenv(int);
+void quitenv(struct shf *);
+void cleanup_parents_env(void);
+void cleanup_proc_env(void);
+void errorf(const char *, ...)
+    __attribute__((__noreturn__, __format__ (printf, 1, 2)));
+void warningf(int, const char *, ...)
+    __attribute__((__format__ (printf, 2, 3)));
+void bi_errorf(const char *, ...)
+    __attribute__((__format__ (printf, 1, 2)));
+void internal_errorf(int, const char *, ...)
+    __attribute__((__format__ (printf, 2, 3)));
+void error_prefix(int);
+void shellf(const char *, ...)
+    __attribute__((__format__ (printf, 1, 2)));
+void shprintf(const char *, ...)
+    __attribute__((__format__ (printf, 1, 2)));
+int can_seek(int);
+void initio(void);
+int ksh_dup2(int, int, int);
+int savefd(int);
+void restfd(int, int);
+void openpipe(int *);
+void closepipe(int *);
+int check_fd(char *, int, const char **);
+void coproc_init(void);
+void coproc_read_close(int);
+void coproc_readw_close(int);
+void coproc_write_close(int);
+int coproc_getfd(int, const char **);
+void coproc_cleanup(int);
 struct temp *maketemp(Area *, Temp_type, struct temp **);
-unsigned int	hash(const char *);
-void		ktinit(struct table *, Area *, int);
-struct tbl *	ktsearch(struct table *, const char *, unsigned int);
-struct tbl *	ktenter(struct table *, const char *, unsigned int);
-void		ktdelete(struct tbl *);
-void		ktwalk(struct tstate *, struct table *);
-struct tbl *	ktnext(struct tstate *);
-struct tbl **	ktsort(struct table *);
+unsigned int hash(const char *);
+void ktinit(struct table *, Area *, int);
+struct tbl *ktsearch(struct table *, const char *, unsigned int);
+struct tbl *ktenter(struct table *, const char *, unsigned int);
+void ktdelete(struct tbl *);
+void ktwalk(struct tstate *, struct table *);
+struct tbl *ktnext(struct tstate *);
+struct tbl **ktsort(struct table *);
 /* misc.c */
-void	setctypes(const char *, int);
-void	initctypes(void);
-char *	ulton(unsigned long, int);
-char *	str_save(const char *, Area *);
-char *	str_nsave(const char *, int, Area *);
-int	option(const char *);
-char *	getoptions(void);
-void	change_flag(enum sh_flag, int, int);
-int	parse_args(char **, int, int *);
-int	getn(const char *, int *);
-int	bi_getn(const char *, int *);
-int	gmatchx(const char *, const char *, int);
-int	has_globbing(const char *, const char *);
-const unsigned char *pat_scan(const unsigned char *, const unsigned char *,
-    int);
-void	qsortp(void **, size_t, int (*)(void *, void *));
-int	xstrcmp(void *, void *);
-void	ksh_getopt_reset(Getopt *, int);
-int	ksh_getopt(char **, Getopt *, const char *);
-void	print_value_quoted(const char *);
-void	print_columns(struct shf *, int, char *(*)(void *, int, char *, int),
+void setctypes(const char *, int);
+void initctypes(void);
+char *ulton(unsigned long, int);
+char *str_save(const char *, Area *);
+char *str_nsave(const char *, int, Area *);
+int option(const char *);
+char *getoptions(void);
+void change_flag(enum sh_flag, int, int);
+int parse_args(char **, int, int *);
+int getn(const char *, int *);
+int bi_getn(const char *, int *);
+int gmatchx(const char *, const char *, int);
+int has_globbing(const char *, const char *);
+const unsigned char *pat_scan(const unsigned char *, const unsigned char *, int);
+void qsortp(void **, size_t, int (*)(void *, void *));
+int xstrcmp(void *, void *);
+void ksh_getopt_reset(Getopt *, int);
+int ksh_getopt(char **, Getopt *, const char *);
+void print_value_quoted(const char *);
+void print_columns(struct shf *, int, char *(*)(void *, int, char *, int),
     void *, int, int prefcol);
-int	strip_nuls(char *, int);
-int	blocking_read(int, char *, int);
-int	reset_nonblock(int);
-char	*ksh_get_wd(char *, int);
-int	make_path(const char *, const char *, char **, XString *, int *);
-void	simplify_path(char *);
-char	*get_phys_path(const char *);
-void	set_current_wd(char *);
+int strip_nuls(char *, int);
+int blocking_read(int, char *, int);
+int reset_nonblock(int);
+char *ksh_get_wd(char *, int);
+int make_path(const char *, const char *, char **, XString *, int *);
+void simplify_path(char *);
+char *get_phys_path(const char *);
+void set_current_wd(char *);
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);
 struct shf *shf_fdopen(int, int, struct shf *);
 struct shf *shf_reopen(int, int, struct shf *);
 struct shf *shf_sopen(char *, int, int, struct shf *);
-int	shf_close(struct shf *);
-int	shf_fdclose(struct shf *);
-char *	shf_sclose(struct shf *);
-int	shf_flush(struct shf *);
-int	shf_read(char *, int, struct shf *);
-char *	shf_getse(char *, int, struct shf *);
-int	shf_getchar(struct shf *s);
-int	shf_ungetc(int, struct shf *);
-int	shf_putchar(int, struct shf *);
-int	shf_puts(const char *, struct shf *);
-int	shf_write(const char *, int, struct shf *);
-int	shf_fprintf(struct shf *, const char *, ...);
-int	shf_snprintf(char *, int, const char *, ...);
-char *	shf_smprintf(const char *, ...);
-int	shf_vfprintf(struct shf *, const char *, va_list);
+int shf_close(struct shf *);
+int shf_fdclose(struct shf *);
+char *shf_sclose(struct shf *);
+int shf_flush(struct shf *);
+int shf_read(char *, int, struct shf *);
+char *shf_getse(char *, int, struct shf *);
+int shf_getchar(struct shf *s);
+int shf_ungetc(int, struct shf *);
+int shf_putchar(int, struct shf *);
+int shf_puts(const char *, struct shf *);
+int shf_write(const char *, int, struct shf *);
+int shf_fprintf(struct shf *, const char *, ...);
+int shf_snprintf(char *, int, const char *, ...);
+char *shf_smprintf(const char *, ...);
+int shf_vfprintf(struct shf *, const char *, va_list);
 /* syn.c */
-void	initkeywords(void);
-struct op * compile(Source *);
+void initkeywords(void);
+struct op *compile(Source *);
 /* tree.c */
-int	fptreef(struct shf *, int, const char *, ...);
-char *	snptreef(char *, int, const char *, ...);
-struct op *	tcopy(struct op *, Area *);
-char *	wdcopy(const char *, Area *);
-char *	wdscan(const char *, int);
-char *	wdstrip(const char *);
-void	tfree(struct op *, Area *);
+int fptreef(struct shf *, int, const char *, ...);
+char *snptreef(char *, int, const char *, ...);
+struct op *tcopy(struct op *, Area *);
+char *wdcopy(const char *, Area *);
+char *wdscan(const char *, int);
+char *wdstrip(const char *);
+void tfree(struct op *, Area *);
 /* var.c */
-void	newblock(void);
-void	popblock(void);
-void	initvar(void);
-struct tbl *	global(const char *);
-struct tbl *	local(const char *, bool);
-char *	str_val(struct tbl *);
-long	intval(struct tbl *);
-int	setstr(struct tbl *, const char *, int);
+void newblock(void);
+void popblock(void);
+void initvar(void);
+struct tbl *global(const char *);
+struct tbl *local(const char *, bool);
+char *str_val(struct tbl *);
+long intval(struct tbl *);
+int setstr(struct tbl *, const char *, int);
 struct tbl *setint_v(struct tbl *, struct tbl *, bool);
-void	setint(struct tbl *, long);
-int	getint(struct tbl *, long *, bool);
-struct tbl *	typeset(const char *, Tflag, Tflag, int, int);
-void	unset(struct tbl *, int);
-char  * skip_varname(const char *, int);
-char	*skip_wdvarname(const char *, int);
-int	is_wdvarname(const char *, int);
-int	is_wdvarassign(const char *);
-char **	makenv(void);
-void	change_random(void);
-int	array_ref_len(const char *);
-char *	arrayname(const char *);
-void    set_array(const char *, int, char **);
-int	eaccess(const char *, int);
+void setint(struct tbl *, long);
+int getint(struct tbl *, long *, bool);
+struct tbl *typeset(const char *, Tflag, Tflag, int, int);
+void unset(struct tbl *, int);
+char *skip_varname(const char *, int);
+char *skip_wdvarname(const char *, int);
+int is_wdvarname(const char *, int);
+int is_wdvarassign(const char *);
+char **makenv(void);
+void change_random(void);
+int array_ref_len(const char *);
+char *arrayname(const char *);
+void set_array(const char *, int, char **);
+int eaccess(const char *, int);
 
 enum Test_op {
 	TO_NONOP = 0,	/* non-operator */
@@ -1263,30 +1342,28 @@ typedef enum Test_meta Test_meta;
 
 typedef struct test_env Test_env;
 struct test_env {
-	int	flags;		/* TEF_* */
+	int flags;		/* TEF_* */
 	union {
-		char	**wp;		/* used by ptest_* */
-		XPtrV	*av;		/* used by dbtestp_* */
+		char **wp;	/* used by ptest_* */
+		XPtrV *av;	/* used by dbtestp_* */
 	} pos;
-	char **wp_end;			/* used by ptest_* */
-	int	(*isa)(Test_env *, Test_meta);
+	char **wp_end;		/* used by ptest_* */
+	int (*isa)(Test_env *, Test_meta);
 	const char *(*getopnd) (Test_env *, Test_op, int);
-	int	(*eval)(Test_env *, Test_op, const char *, const char *, int);
-	void	(*error)(Test_env *, int, const char *);
+	int (*eval)(Test_env *, Test_op, const char *, const char *, int);
+	void (*error)(Test_env *, int, const char *);
 };
 
 Test_op	test_isop(Test_meta, const char *);
-int     test_eval(Test_env *, Test_op, const char *, const char *, int);
-int	test_parse(Test_env *);
+int test_eval(Test_env *, Test_op, const char *, const char *, int);
+int test_parse(Test_env *);
 
-EXTERN int		tty_fd I__(-1);	/* dup'd tty file descriptor */
-EXTERN int		tty_devtty;	/* true if tty_fd is from /dev/tty */
-EXTERN struct termios	tty_state;	/* saved tty state */
+EXTERN int tty_fd I__(-1);	/* dup'd tty file descriptor */
+EXTERN int tty_devtty;		/* true if tty_fd is from /dev/tty */
+EXTERN struct termios tty_state;	/* saved tty state */
 
-extern void	tty_init(int);
-extern void	tty_close(void);
-
-#include "version.h"
+extern void tty_init(int);
+extern void tty_close(void);
 
 /* be sure not to interfere with anyone else's idea about EXTERN */
 #ifdef EXTERN_DEFINED
@@ -1299,9 +1376,9 @@ extern void	tty_close(void);
 #if defined(__gnu_linux__) || defined(__INTERIX) || defined(__sun__) \
     || (defined(__NetBSD__) && (__NetBSD_Version__ < 106020000)) \
     || defined(__CYGWIN__) || defined(__Plan9__)
-#define	HAVE_ARC4RANDOM	0
+#define HAVE_ARC4RANDOM 0
 #else
-#define	HAVE_ARC4RANDOM	1
+#define HAVE_ARC4RANDOM 1
 #endif
 #endif
 

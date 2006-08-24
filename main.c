@@ -3,22 +3,22 @@
 /*	$OpenBSD: io.c,v 1.22 2006/03/17 16:30:13 millert Exp $	*/
 /*	$OpenBSD: table.c,v 1.12 2005/12/11 20:31:21 otto Exp $	*/
 
-#define	EXTERN				/* define EXTERNs in sh.h */
+#define	EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.44.2.3 2006/08/24 20:20:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.44.2.4 2006/08/24 20:52:13 tg Exp $");
 
 extern char **environ;
 
 static void reclaim(void);
-static void remove_temps(struct temp * tp);
+static void remove_temps(struct temp *);
 
 static const char initifs[] = "IFS= \t\n";
 
 static const char initsubs[] = "${PS2=> } ${PS3=#? } ${PS4=+ }";
 
 static const char *initcoms[] = {
-	"typeset", "-r", "KSH_VERSION", NULL,
+	"typeset", "-r", initvsn, NULL,
 	"typeset", "-x", "SHELL", "PATH", "HOME", NULL,
 	"typeset", "-i", "PPID", "OPTIND=1", NULL,
 #ifdef __Plan9__
@@ -196,8 +196,6 @@ main(int argc, char *argv[])
 	srand((*((long *)kshname)) ^ ((long)time(NULL) * kshpid * ppid));
 #endif
 	setint(global("PPID"), (long)ppid);
-	/* setstr can't fail here */
-	setstr(global("KSH_VERSION"), MKSH_VERSION, KSH_RETURN_ERROR);
 
 	/* execute initialisation statements */
 	for (wp = (char **)initcoms; *wp != NULL; wp++) {

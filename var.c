@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.21.2.1 2006/08/18 19:02:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.21.2.2 2006/08/24 20:52:15 tg Exp $");
 
 /*
  * Variables
