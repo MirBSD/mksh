@@ -1,4 +1,4 @@
-/* $MirOS: src/bin/mksh/compat.h,v 1.1.2.7.2.3 2006/08/24 19:52:56 tg Exp $ */
+/* $MirOS: src/bin/mksh/compat.h,v 1.1.2.7.2.4 2006/08/24 20:07:22 tg Exp $ */
 
 /* Part I: extra headers */
 
@@ -46,8 +46,9 @@
 #endif
 
 #ifdef __Plan9__
-#define S_ISLNK(x) 0
-#define S_ISSOCK(x) 0
+#define S_ISLNK(x)	0
+#define S_ISSOCK(x)	0
+#define killpg(p,s)	kill(-(p), (s))
 #endif
 
 
