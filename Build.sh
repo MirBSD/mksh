@@ -1,7 +1,12 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.49 2006/08/22 22:01:59 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.50 2006/08/24 20:32:52 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
+
+if test -d mksh; then
+	echo "$0: Error: ./mksh is a directory!" >&2
+	exit 1
+fi
 
 : ${CFLAGS='-O2 -fno-strict-aliasing -fno-strength-reduce -Wall'}
 : ${CC=gcc} ${NROFF=nroff}

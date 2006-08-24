@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.37 2006/08/22 22:49:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.38 2006/08/24 20:32:52 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -42,9 +42,11 @@ void x_init_emacs(void);
 void x_emacs_keys(X_chars *);
 int x_vi(char *, size_t);
 
+#if defined(TIOCGWINSZ) && defined(SIGWINCH)
 static void x_sigwinch(int);
 static volatile sig_atomic_t got_sigwinch;
 static void check_sigwinch(void);
+#endif
 
 static int path_order_cmp(const void *aa, const void *bb);
 static char *add_glob(const char *, int);
@@ -66,14 +68,17 @@ x_init(void)
 	/* default value for deficient systems */
 	edchars.werase = 027;	/* ^W */
 
+#if defined(TIOCGWINSZ) && defined(SIGWINCH)
 	if (setsig(&sigtraps[SIGWINCH], x_sigwinch,
 	    SS_RESTORE_ORIG | SS_SHTRAP))
 		sigtraps[SIGWINCH].flags |= TF_SHELL_USES;
 	check_sigwinch();	/* force initial check */
+#endif
 
 	x_init_emacs();
 }
 
+#if defined(TIOCGWINSZ) && defined(SIGWINCH)
 /* ARGSUSED */
 static void
 x_sigwinch(int sig __attribute__((unused)))
@@ -106,6 +111,7 @@ check_sigwinch(void)
 			setint(vp, (long)ws.ws_row);
 	}
 }
+#endif
 
 /*
  * read an edited command line
@@ -123,7 +129,9 @@ x_read(char *buf, size_t len)
 	else
 		i = -1;		/* internal error */
 	x_mode(false);
+#if defined(TIOCGWINSZ) && defined(SIGWINCH)
 	check_sigwinch();
+#endif
 	return i;
 }
 
@@ -188,11 +196,15 @@ x_mode(bool onoff)
 		edchars.intr = cb.c_cc[VINTR];
 		edchars.quit = cb.c_cc[VQUIT];
 		edchars.eof = cb.c_cc[VEOF];
+#ifdef VWERASE
 		edchars.werase = cb.c_cc[VWERASE];
+#endif
 		cb.c_iflag &= ~(INLCR | ICRNL);
 		cb.c_lflag &= ~(ISIG | ICANON | ECHO);
+#ifdef VLNEXT
 		/* osf/1 processes lnext when ~icanon */
 		cb.c_cc[VLNEXT] = _POSIX_VDISABLE;
+#endif
 		/* sunos 4.1.x & osf/1 processes discard(flush) when ~icanon */
 #ifdef VDISCARD
 		cb.c_cc[VDISCARD] = _POSIX_VDISABLE;
