@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/compat.c,v 1.1.2.7 2005/11/19 23:51:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/compat.c,v 1.1.2.7.2.1 2006/08/24 19:52:55 tg Exp $");
 
 #ifndef __SCCSID
 #define	__SCCSID(x)	static const char __sccsid[] __attribute__((used)) = (x)
@@ -14,4 +14,30 @@ __RCSID("$MirOS: src/bin/mksh/compat.c,v 1.1.2.7 2005/11/19 23:51:01 tg Exp $");
 #define	__RCSID(x)	__RCSID2((x),setmode)
 #include "setmode.c"
 #undef __RCSID
+#endif
+
+#ifdef __Plan9__
+int
+seteuid(int x)
+{
+	return (setuid(x));
+}
+
+int
+setegid(int x)
+{
+	return (setuid(x));
+}
+
+int
+setreuid(int x)
+{
+	return (setuid(x));
+}
+
+int
+setregid(int x)
+{
+	return (setuid(x));
+}
 #endif

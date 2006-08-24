@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.9.2.1 2006/08/24 19:17:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.9.2.2 2006/08/24 19:52:56 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -1251,8 +1251,10 @@ j_print(Job *j, int how, struct shf *shf)
 				    WEXITSTATUS(p->status));
 			break;
 		case PSIGNALLED:
+#ifdef WCOREDUMP
 			if (WCOREDUMP(p->status))
 				coredumped = 1;
+#endif
 			/* kludge for not reporting 'normal termination signals'
 			 * (ie, SIGINT, SIGPIPE)
 			 */

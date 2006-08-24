@@ -1,4 +1,4 @@
-/* $MirOS: src/bin/mksh/compat.h,v 1.1.2.7.2.2 2006/08/18 19:04:34 tg Exp $ */
+/* $MirOS: src/bin/mksh/compat.h,v 1.1.2.7.2.3 2006/08/24 19:52:56 tg Exp $ */
 
 /* Part I: extra headers */
 
@@ -43,6 +43,11 @@
 
 #ifndef S_ISTXT
 #define	S_ISTXT	0001000			/* sticky bit */
+#endif
+
+#ifdef __Plan9__
+#define S_ISLNK(x) 0
+#define S_ISSOCK(x) 0
 #endif
 
 
