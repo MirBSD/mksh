@@ -6,7 +6,7 @@
 #define	EXTERN				/* define EXTERNs in sh.h */
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.44.2.2 2006/08/24 19:18:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.44.2.3 2006/08/24 20:20:12 tg Exp $");
 
 extern char **environ;
 
@@ -149,11 +149,13 @@ main(int argc, char *argv[])
 	 */
 	Flag(FBRACEEXPAND) = 1;
 
+#ifndef __Plan9__
 	/* Set edit mode to emacs by default, may be overridden
 	 * by the environment or the user.  Also, we want tab completion
 	 * on in vi by default. */
 	change_flag(FEMACS, OF_SPECIAL, 1);
 	Flag(FVITABCOMPLETE) = 1;
+#endif
 
 	/* import environment */
 	if (environ != NULL)
