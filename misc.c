@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.13 2006/08/09 20:44:15 tg Exp $"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.13.2.1 2006/08/24 19:23:03 tg Exp $"
 	"\t" MKSH_SH_H_ID);
 
 short chtypes[UCHAR_MAX+1];	/* type bits for unsigned char */
@@ -1130,7 +1130,7 @@ reset_nonblock(int fd)
 }
 
 
-/* Like getcwd(), except bsize is ignored if buf is 0 (MAXPATHLEN is used) */
+/* Like getcwd(), except bsize is ignored if buf is 0 (PATH_MAX is used) */
 char *
 ksh_get_wd(char *buf, int bsize)
 {
@@ -1141,8 +1141,8 @@ ksh_get_wd(char *buf, int bsize)
 	 * inject possibly allocated space into the ATEMP area. */
 	/* Assume getcwd() available */
 	if (!buf) {
-		bsize = MAXPATHLEN;
-		b = alloc(MAXPATHLEN + 1, ATEMP);
+		bsize = PATH_MAX;
+		b = alloc(PATH_MAX + 1, ATEMP);
 	} else
 		b = buf;
 
