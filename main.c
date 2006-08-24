@@ -6,7 +6,7 @@
 #define	EXTERN				/* define EXTERNs in sh.h */
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.44.2.1 2006/08/15 23:49:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.44.2.2 2006/08/24 19:18:21 tg Exp $");
 
 extern char **environ;
 
@@ -117,7 +117,7 @@ main(int argc, char *argv[])
 	init_histvec();
 
 	def_path = _PATH_DEFPATH;
-#if !defined(__CYGWIN__)
+#ifdef _CS_PATH
 	{
 		size_t len;
 		char *new;
