@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.9.2.2 2006/08/24 19:52:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.9.2.3 2006/08/24 19:59:41 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -412,8 +412,10 @@ exchild(struct op *t, int flags,
 				setsig(&sigtraps[tt_sigs[i]], SIG_DFL,
 				    SS_RESTORE_DFL|SS_FORCE);
 		}
+#ifndef __Plan9__
 		if (Flag(FBGNICE) && (flags & XBGND))
 			nice(4);
+#endif
 		if ((flags & XBGND) && !Flag(FMONITOR)) {
 			setsig(&sigtraps[SIGINT], SIG_IGN,
 			    SS_RESTORE_IGN|SS_FORCE);
