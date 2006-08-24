@@ -1,7 +1,12 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.48.2.2 2006/08/18 19:04:34 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.48.2.3 2006/08/24 20:15:01 tg Exp $
 #-
 # This script recognises CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS and NROFF.
+
+if test -d mksh; then
+	echo "$0: Error: ./mksh is a directory!" >&2
+	exit 1
+fi
 
 : ${CFLAGS='-O2 -fno-strict-aliasing -fno-strength-reduce -Wall'}
 : ${CC=gcc} ${NROFF=nroff}
