@@ -8,11 +8,11 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.33.2.3 2006/08/24 20:52:15 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.33.2.4 2006/08/24 21:02:36 tg Exp $"
 #define MKSH_VERSION "R28 2006/08/24"
 
-#if defined(__Plan9__) && !defined(__GNUC__)
-#define __attribute__(x) /* nothing */
+#if defined(__Plan9__)
+#define __attribute__(x)	/* nothing */
 #endif
 
 #include <sys/param.h>
