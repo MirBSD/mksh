@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.23.2.2 2006/08/18 19:02:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.23.2.3 2006/08/24 18:53:00 tg Exp $");
 
 #if defined(__sun__) || defined(__Plan9__)
 #define NO_HISTORY
@@ -22,7 +22,7 @@ __RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.23.2.2 2006/08/18 19:02:22 tg Exp $"
 #elif defined(__Plan9__)
 #define mksh_signame(x) _mksh_signame[(x)+1]
 #define mksh_siglist(x) _mksh_signame[(x)+1]
-const char _mksh_signame[] = {
+const char *_mksh_signame[] = {
 	"HUP", "INT", "QUIT", "ILL",
 	"ABRT", "FPE", "KILL", "SEGV",
 	"PIPE", "ALRM", "TERM", "USR1",
