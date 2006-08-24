@@ -3,10 +3,10 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.24 2006/08/15 23:56:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.25 2006/08/24 18:57:30 tg Exp $");
 
-#if defined(__sun__)
-#define NO_HISTORY
+#if !defined(__sun__)
+#define DO_HISTORY
 #endif
 
 #ifndef mksh_siglist
@@ -27,7 +27,7 @@ __RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.24 2006/08/15 23:56:32 tg Exp $");
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign, Sigact_trap;
 
-#ifdef NO_HISTORY
+#ifdef DO_HISTORY
 static int hist_count_lines(unsigned char *, int);
 static int hist_shrink(unsigned char *, int);
 static unsigned char *hist_skip_back(unsigned char *,int *,int);
@@ -588,7 +588,7 @@ histsave(int lno __attribute__((unused)), const char *cmd,
 	if ((cp = strchr(c, '\n')) != NULL)
 		*cp = '\0';
 
-#ifdef NO_HISTORY
+#ifdef DO_HISTORY
 	if (histfd && dowrite)
 		writehistfile(lno, c);
 #endif
@@ -631,7 +631,7 @@ histsave(int lno __attribute__((unused)), const char *cmd,
 void
 hist_init(Source *s)
 {
-#ifdef NO_HISTORY
+#ifdef DO_HISTORY
 	unsigned char	*base;
 	int	lines;
 	int	fd;
@@ -644,7 +644,7 @@ hist_init(Source *s)
 
 	hist_source = s;
 
-#ifdef NO_HISTORY
+#ifdef DO_HISTORY
 	hname = str_val(global("HISTFILE"));
 	if (hname == NULL)
 		return;
@@ -714,7 +714,7 @@ typedef enum state {
 	sn2, sn3, sn4
 } State;
 
-#ifdef NO_HISTORY
+#ifdef DO_HISTORY
 static int
 hist_count_lines(unsigned char *base, int bytes)
 {
@@ -954,14 +954,14 @@ writehistfile(int lno, char *cmd)
 void
 hist_finish(void)
 {
-#ifdef NO_HISTORY
+#ifdef DO_HISTORY
 	(void) flock(histfd, LOCK_UN);
 	(void) close(histfd);
 #endif
 	histfd = 0;
 }
 
-#ifdef NO_HISTORY
+#ifdef DO_HISTORY
 /*
  *	add magic to the history file
  */
