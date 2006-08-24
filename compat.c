@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/compat.c,v 1.1.2.7.2.1 2006/08/24 19:52:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/compat.c,v 1.1.2.7.2.2 2006/08/24 19:58:31 tg Exp $");
 
 #ifndef __SCCSID
 #define	__SCCSID(x)	static const char __sccsid[] __attribute__((used)) = (x)
@@ -39,5 +39,15 @@ int
 setregid(int x)
 {
 	return (setuid(x));
+}
+
+int
+mkstemp(char *x)
+{
+	char *fn;
+
+	if ((fn = mktemp(x)) == NULL)
+		return (-1);
+	return (open(fn, O_CREAT|O_EXCL|O_RDWR, 0600));
 }
 #endif
