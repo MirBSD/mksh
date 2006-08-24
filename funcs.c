@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.29.2.1 2006/08/15 23:49:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.29.2.2 2006/08/24 18:52:26 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -2049,16 +2049,21 @@ c_times(char **wp __attribute__((unused)))
 {
 	struct rusage usage;
 
+#ifdef RUSAGE_SELF
 	(void) getrusage(RUSAGE_SELF, &usage);
 	p_time(shl_stdout, 0, &usage.ru_utime, 0, NULL, " ");
 	p_time(shl_stdout, 0, &usage.ru_stime, 0, NULL, "\n");
+#endif
 
+#ifdef RUSAGE_CHILDREN
 	(void) getrusage(RUSAGE_CHILDREN, &usage);
 	p_time(shl_stdout, 0, &usage.ru_utime, 0, NULL, " ");
 	p_time(shl_stdout, 0, &usage.ru_stime, 0, NULL, "\n");
+#endif
 
 	return 0;
 }
+
 
 /*
  * time pipeline (really a statement, not a built-in command)
@@ -2069,6 +2074,9 @@ timex(struct op *t, int f)
 #define TF_NOARGS	BIT(0)
 #define TF_NOREAL	BIT(1)		/* don't report real time */
 #define TF_POSIX	BIT(2)		/* report in posix format */
+#if !defined(RUSAGE_SELF) || !defined(RUSAGE_CHILDREN)
+	return (0);
+#else
 	int rv = 0;
 	struct rusage ru0, ru1, cru0, cru1;
 	struct timeval usrtime, systime, tv0, tv1;
@@ -2129,7 +2137,8 @@ timex(struct op *t, int f)
 		p_time(shl_out, 0, &systime, 5, NULL, " system\n");
 	shf_flush(shl_out);
 
-	return rv;
+	return (rv);
+#endif
 }
 
 void
@@ -2553,8 +2562,12 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 		return stat(opnd1, &b1) == 0 &&
 		    (b1.st_mode & S_ISGID) == S_ISGID;
 	case TO_FILSTCK: /* -k */
+#ifdef S_ISVTX
 		return stat(opnd1, &b1) == 0 &&
 		    (b1.st_mode & S_ISVTX) == S_ISVTX;
+#else
+		return (0);
+#endif
 	case TO_FILGZ: /* -s */
 		return stat(opnd1, &b1) == 0 && b1.st_size > 0L;
 	case TO_FILTT: /* -t */
@@ -2827,6 +2840,7 @@ ptest_error(Test_env *te, int offset, const char *msg)
 int
 c_ulimit(char **wp)
 {
+#ifndef __Plan9__
 	static const struct limits {
 		const char	*name;
 		enum { RLIMIT, ULIMIT } which;
@@ -3017,5 +3031,6 @@ c_ulimit(char **wp)
 			shprintf("%ld\n", (long) val);
 		}
 	}
-	return 0;
+#endif
+	return (0);
 }
