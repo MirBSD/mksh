@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.36.2.1 2006/08/24 18:28:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.36.2.2 2006/08/24 18:38:51 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -196,11 +196,15 @@ x_mode(bool onoff)
 		edchars.intr = cb.c_cc[VINTR];
 		edchars.quit = cb.c_cc[VQUIT];
 		edchars.eof = cb.c_cc[VEOF];
+#ifdef VWERASE
 		edchars.werase = cb.c_cc[VWERASE];
+#endif
 		cb.c_iflag &= ~(INLCR | ICRNL);
 		cb.c_lflag &= ~(ISIG | ICANON | ECHO);
+#ifdef VLNEXT
 		/* osf/1 processes lnext when ~icanon */
 		cb.c_cc[VLNEXT] = _POSIX_VDISABLE;
+#endif
 		/* sunos 4.1.x & osf/1 processes discard(flush) when ~icanon */
 #ifdef VDISCARD
 		cb.c_cc[VDISCARD] = _POSIX_VDISABLE;
