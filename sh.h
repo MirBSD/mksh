@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.40 2006/08/24 20:35:40 tg Exp $"
-#define MKSH_VERSION "R28 2006/08/24"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.41 2006/08/26 20:30:27 tg Exp $"
+#define MKSH_VERSION "R28 2006/08/26"
 
 #include <sys/param.h>
 
@@ -1342,21 +1342,3 @@ extern void tty_close(void);
 # undef EXTERN
 #endif
 #undef I__
-
-#ifndef HAVE_ARC4RANDOM
-#if defined(__gnu_linux__) || defined(__INTERIX) || defined(__sun__) \
-    || (defined(__NetBSD__) && (__NetBSD_Version__ < 106020000)) \
-    || defined(__CYGWIN__)
-#define HAVE_ARC4RANDOM 0
-#else
-#define HAVE_ARC4RANDOM 1
-#endif
-#endif
-
-#ifndef HAVE_ARC4RANDOM_PUSH
-#if defined(__MirBSD__) && (MirBSD >= 0x07AD)
-#define HAVE_ARC4RANDOM_PUSH 1
-#else
-#define HAVE_ARC4RANDOM_PUSH 0
-#endif
-#endif

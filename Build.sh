@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.50 2006/08/24 20:32:52 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.51 2006/08/26 20:30:27 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -111,6 +111,51 @@ if test x"$sigseen" = x:; then
 	done >signames.inc
 	test -s signames.inc || exit 1
 fi
+
+$e Scanning for functions...
+
+test 0 = "$HAVE_ARC4RANDOM" -o 0 = "$HAVE_ARC4RANDOM" ||
+{
+	$e ... arc4random
+	cat >scn.c <<-'EOF'
+		#include <stdlib.h>
+		int main() { arc4random(); return (0); }
+	EOF
+	$CC $CFLAGS $CPPFLAGS $LDFLAGS -Wno-error scn.c $LIBS
+	if test -e a.out -o -e a.exe; then
+		HAVE_ARC4RANDOM=1
+		$e "==> arc4random... yes"
+	else
+		HAVE_ARC4RANDOM=0
+		$e "==> arc4random... no"
+	fi
+	rm -f scn.c a.out a.exe
+}
+
+test 0 = "$HAVE_ARC4RANDOM_PUSH" -o 0 = "$HAVE_ARC4RANDOM_PUSH" ||
+if test 1 = "$HAVE_ARC4RANDOM"; then
+	$e ... arc4random_push
+	cat >scn.c <<-'EOF'
+		#include <stdlib.h>
+		int main() { arc4random_push(1); return (0); }
+	EOF
+	$CC $CFLAGS $CPPFLAGS $LDFLAGS -Wno-error scn.c $LIBS
+	if test -e a.out -o -e a.exe; then
+		HAVE_ARC4RANDOM_PUSH=1
+		$e "==> arc4random_push... yes"
+	else
+		HAVE_ARC4RANDOM_PUSH=0
+		$e "==> arc4random_push... no"
+	fi
+	rm -f scn.c a.out a.exe
+else
+	HAVE_ARC4RANDOM_PUSH=0
+fi
+
+$e ... done.
+CPPFLAGS="$CPPFLAGS -DHAVE_ARC4RANDOM=$HAVE_ARC4RANDOM \
+	-DHAVE_ARC4RANDOM_PUSH=$HAVE_ARC4RANDOM_PUSH"
+
 (v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS" \
     "$LDFLAGS $LDSTATIC -o '$curdir/mksh' $SRCS $LIBS") || exit 1
 test -x mksh || exit 1
