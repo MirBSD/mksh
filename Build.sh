@@ -1,7 +1,15 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.51 2006/08/26 20:30:27 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.52 2006/08/26 20:48:29 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
+
+addcppf()
+{
+	for i
+	do
+		eval CPPFLAGS=\"\$CPPFLAGS -D$i=\$$i\"
+	done
+}
 
 if test -d mksh; then
 	echo "$0: Error: ./mksh is a directory!" >&2
@@ -84,6 +92,7 @@ SunOS)
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64 -DNEED_COMPAT"
 	LDSTATIC= # alternatively you need libdl... same suckage as above
 	sigseen=:
+	r=1
 	;;
 esac
 
@@ -101,7 +110,7 @@ if test x"$sigseen" = x:; then
 		    sed 's/^mksh_cfg: \([0-9]*\).*$/\1:'$name/
 	done | grep -v '^:' | while IFS=: read nr name; do
 		nr=`printf %d "$nr" 2>&-`
-		test $nr -gt 0 -a $nr -lt $NSIG || continue
+		test $nr -gt 0 && test $nr -lt $NSIG || continue
 		case $sigseen in
 		*:$nr:*) ;;
 		*)	echo "		{ $nr, \"$name\" },"
@@ -109,12 +118,12 @@ if test x"$sigseen" = x:; then
 			;;
 		esac
 	done >signames.inc
-	test -s signames.inc || exit 1
+	test -f signames.inc || exit 1
 fi
 
 $e Scanning for functions...
 
-test 0 = "$HAVE_ARC4RANDOM" -o 0 = "$HAVE_ARC4RANDOM" ||
+test 0 = "$HAVE_ARC4RANDOM" || test 1 = "$HAVE_ARC4RANDOM" ||
 {
 	$e ... arc4random
 	cat >scn.c <<-'EOF'
@@ -122,7 +131,7 @@ test 0 = "$HAVE_ARC4RANDOM" -o 0 = "$HAVE_ARC4RANDOM" ||
 		int main() { arc4random(); return (0); }
 	EOF
 	$CC $CFLAGS $CPPFLAGS $LDFLAGS -Wno-error scn.c $LIBS
-	if test -e a.out -o -e a.exe; then
+	if test -f a.out || test -f a.exe; then
 		HAVE_ARC4RANDOM=1
 		$e "==> arc4random... yes"
 	else
@@ -132,7 +141,7 @@ test 0 = "$HAVE_ARC4RANDOM" -o 0 = "$HAVE_ARC4RANDOM" ||
 	rm -f scn.c a.out a.exe
 }
 
-test 0 = "$HAVE_ARC4RANDOM_PUSH" -o 0 = "$HAVE_ARC4RANDOM_PUSH" ||
+test 0 = "$HAVE_ARC4RANDOM_PUSH" || test 1 = "$HAVE_ARC4RANDOM_PUSH" ||
 if test 1 = "$HAVE_ARC4RANDOM"; then
 	$e ... arc4random_push
 	cat >scn.c <<-'EOF'
@@ -140,7 +149,7 @@ if test 1 = "$HAVE_ARC4RANDOM"; then
 		int main() { arc4random_push(1); return (0); }
 	EOF
 	$CC $CFLAGS $CPPFLAGS $LDFLAGS -Wno-error scn.c $LIBS
-	if test -e a.out -o -e a.exe; then
+	if test -f a.out || test -f a.exe; then
 		HAVE_ARC4RANDOM_PUSH=1
 		$e "==> arc4random_push... yes"
 	else
@@ -153,15 +162,16 @@ else
 fi
 
 $e ... done.
-CPPFLAGS="$CPPFLAGS -DHAVE_ARC4RANDOM=$HAVE_ARC4RANDOM \
-	-DHAVE_ARC4RANDOM_PUSH=$HAVE_ARC4RANDOM_PUSH"
+addcppf HAVE_ARC4RANDOM HAVE_ARC4RANDOM_PUSH
 
 (v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS" \
     "$LDFLAGS $LDSTATIC -o '$curdir/mksh' $SRCS $LIBS") || exit 1
-test -x mksh || exit 1
+result=mksh
+test -f mksh.exe && result=mksh.exe
+test -f $result || exit 1
 test $r = 1 || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
     rm -f mksh.cat1
-test $q = 1 || v size mksh
+test $q = 1 || v size $result
 echo "#!$curdir/mksh" >test.sh
 echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t'" \
     "-p '$curdir/mksh' -C pdksh \$*" >>test.sh
@@ -173,7 +183,7 @@ $e "# grep -qx /bin/mksh /etc/shells || echo /bin/mksh >>/etc/shells"
 $e "# install -c -o root -g bin -m 444 dot.mkshrc /usr/share/doc/mksh/examples/"
 $e
 $e Installing the manual:
-if test -s mksh.cat1; then
+if test -f mksh.cat1; then
 	$e "# install -c -o root -g bin -m 444 mksh.cat1" \
 	    "/usr/share/man/cat1/mksh.0"
 	$e or
