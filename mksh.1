@@ -1,8 +1,8 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.57 2006/08/22 22:49:36 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.58 2006/08/28 03:31:01 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
-.Dd August 22, 2006
+.Dd August 28, 2006
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -1777,11 +1777,13 @@ matches all strings (think about it).
 .Pp
 Note that
 .Nm mksh
+.Po and Nm pdksh Pc
 never matches
 .Sq \&.
 and
 .Sq .. ,
-but AT&T
+but
+.At
 .Nm ksh ,
 Bourne
 .Nm sh ,
@@ -1992,7 +1994,8 @@ integers may be prefixed with
 .Sq 0X
 or
 .Sq 0x
-(specifying base 16), similar to AT&T
+(specifying base 16), similar to
+.At
 .Nm ksh ,
 or
 .Sq 0
@@ -5278,27 +5281,6 @@ and many other persons.
 .Sh BUGS
 This document attempts to describe
 .Nm "" R28 .
-The O'Reilly book documents the
-.At
-.Nm KSH88
-(in the 1993 first edition) or, respectively, the
-.At
-.Nm KSH93
-(in the 2002 second edition).
-The first edition can sometimes be found lurking around
-on the internet and is better suited for teaching
-.Nm
-than the second edition (which is still okay to buy and read)
-but this manual page is a more complete reference.
-The other books document usually
-.At
-.Nm ksh
-in differing versions, sometimes even
-.Nm pdksh ,
-but due to its relative novelty, none documents
-.Nm mksh
-yet.
-.Pp
 Please report bugs in
 .Nm
 to the
@@ -5317,7 +5299,7 @@ $ print hi \*(Ba read a; print $a   # Does not show hi
 .Pp
 This does not work because the last command of a pipe sequence
 is executed in a subshell.
-This is a
+This is an
 .Nm
 feature which can be depended on by scripts.
 Use co-routines to work around if necessary and possible.
