@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.29.2.3 2006/08/24 20:52:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.29.2.4 2006/08/28 01:49:17 tg Exp $");
 
 int
 c_cd(char **wp)

@@ -1,8 +1,21 @@
+/*
+ * Plan 9 portability issues
+ *
+ * Added many lines of the form
+ * +#ifdef RUSAGE_CHILDREN
+ * This is probably causing the shell to hang after
+ * executing external commands (such as 'lc', 'ls')
+ * while running a simple echo/print fine.
+ *
+ * tg@ has stopped development on the plan9 branch,
+ * but if someone wants to continue in that area...
+ */
+
 /*	$OpenBSD: jobs.c,v 1.35 2006/02/06 16:47:07 jmc Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.9.2.4 2006/08/24 20:52:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.9.2.5 2006/08/28 01:49:18 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0

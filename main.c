@@ -6,7 +6,7 @@
 #define	EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.44.2.4 2006/08/24 20:52:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.44.2.5 2006/08/28 01:49:18 tg Exp $");
 
 extern char **environ;
 

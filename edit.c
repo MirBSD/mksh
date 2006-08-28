@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.36.2.3 2006/08/24 20:52:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.36.2.4 2006/08/28 01:49:16 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {

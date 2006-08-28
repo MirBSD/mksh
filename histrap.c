@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.23.2.5 2006/08/24 20:52:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.23.2.6 2006/08/28 01:49:18 tg Exp $");
 
 #if !defined(__sun__) && !defined(__Plan9__)
 #define DO_HISTORY

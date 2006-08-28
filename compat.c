@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/compat.c,v 1.1.2.7.2.3 2006/08/24 20:52:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/compat.c,v 1.1.2.7.2.4 2006/08/28 01:49:15 tg Exp $");
 
 #ifndef __SCCSID
 #define	__SCCSID(x)	static const char __sccsid[] __attribute__((used)) = (x)

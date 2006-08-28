@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.13.2.2 2006/08/24 20:52:13 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.13.2.3 2006/08/28 01:49:19 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 short chtypes[UCHAR_MAX+1];	/* type bits for unsigned char */

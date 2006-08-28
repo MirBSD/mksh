@@ -1,6 +1,6 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.2 2006/08/14 20:32:44 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.2.2.1 2006/08/28 01:49:15 tg Exp $
 
-: ${HOSTNAME:=$(hostname -s 2>/dev/null || hostname)}
+: ${EDITOR:=/bin/ed} ${HOSTNAME:=$(hostname -s 2>/dev/null || hostname)}
 PS1='$(((rv=$?)) && print $rv\|)${USER:=$(id -un)}@${HOSTNAME:=nil}:$(
 	local pfx=~ wd=${PWD:-$(pwd)}
 	[[ ${wd#$pfx} = $wd || $pfx = ?(/) ]] || wd=\~${wd#$pfx}
@@ -16,13 +16,15 @@ PS1='$(((rv=$?)) && print $rv\|)${USER:=$(id -un)}@${HOSTNAME:=nil}:$(
 	done
 	print -r -- "$pfx$wd")'" $(if (( $(id -u) )); then
 		print \$; else print \#; fi) "
-: ${EDITOR:=/bin/ed}
 export EDITOR HOSTNAME PS1 USER
 
 alias l='/bin/ls -F'
 alias la='l -a'
 alias ll='l -l'
 alias lo='la -lo'
+[ -x /usr/bin/hd ] || eval alias hd=\''hexdump -e '\''\'\'''\''"%08.8_ax' \
+	'  " 8/1 "%02X " " - " 8/1 "%02X "'\''\'\'''\'' -e '\''\'\'''\'\" \
+	'  |" "%_p"'\''\'\'''\'' -e '\''\'\'''\''"|\n"'\''\'\'''\'' '\'
 
 # strip comments (and leading/trailing whitespace if IFS is set) from
 # any file(s) given as argument, or stdin if none, and spew to stdout

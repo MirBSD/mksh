@@ -1,8 +1,9 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.11 2006/08/01 12:46:01 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.11.2.1 2006/08/28 01:49:14 tg Exp $
 
 PROG=		mksh
 SRCS=		alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c \
 		jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c
+CPPFLAGS+=	-DHAVE_ARC4RANDOM -DHAVE_ARC4RANDOM_PUSH
 CDIAGFLAGS+=	-Wno-cast-qual
 
 LINKS+=		${BINDIR}/${PROG} ${BINDIR}/sh
