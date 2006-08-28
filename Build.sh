@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.48.2.4 2006/08/24 20:52:08 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.48.2.5 2006/08/28 01:26:49 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -85,6 +85,7 @@ Plan9)
 	LDSTATIC=
 	CC=cc
 	CFLAGS=-O
+	r=1
 	;;
 SunOS)
 	SRCS="$SRCS compat.c"
