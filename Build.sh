@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.53 2006/08/28 01:30:37 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.54 2006/08/28 01:37:29 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -193,4 +193,4 @@ fi
 $e "# $i -c -o root -g bin -m 444 mksh.1 /usr/share/man/man1/mksh.1"
 $e
 $e Run the regression test suite: ./test.sh
-$e Please also read the sample file dot.mkshrc and the manual.
+$e Please also read the sample file dot.mkshrc and the fine manual.
