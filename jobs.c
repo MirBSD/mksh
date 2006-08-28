@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.10 2006/08/24 20:32:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.11 2006/08/28 01:25:33 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -54,10 +54,8 @@ struct job {
 	pid_t	pgrp;		/* process group of job */
 	pid_t	ppid;		/* pid of process that forked job */
 	int32_t	age;		/* number of jobs started */
-#ifdef RUSAGE_CHILDREN
 	struct timeval systime;	/* system time used by job */
 	struct timeval usrtime;	/* user time used by job */
-#endif
 	Proc	*proc_list;	/* process list */
 	Proc	*last_proc;	/* last process in list */
 	Coproc_id coproc_id;	/* 0 or id of coprocess output pipe */
@@ -85,9 +83,7 @@ static const char	*const lookup_msgs[] = {
 	NULL
 };
 
-#ifdef RUSAGE_CHILDREN
 struct timeval	j_systime, j_usrtime;	/* user and system time of last j_waitjed job */
-#endif
 
 static Job		*job_list;	/* job list */
 static Job		*last_job;
@@ -340,10 +336,8 @@ exchild(struct op *t, int flags,
 		 */
 		j->flags = (flags & XXCOM) ? JF_XXCOM :
 		    ((flags & XBGND) ? 0 : (JF_FG|JF_USETTYMODE));
-#ifdef RUSAGE_CHILDREN
 		timerclear(&j->usrtime);
 		timerclear(&j->systime);
-#endif
 		j->state = PRUNNING;
 		j->pgrp = 0;
 		j->ppid = procpid;
@@ -995,10 +989,8 @@ j_waitj(Job *j,
 			trapsig(WTERMSIG(status));
 	}
 
-#ifdef RUSAGE_CHILDREN
 	j_usrtime = j->usrtime;
 	j_systime = j->systime;
-#endif
 	rv = j->status;
 
 	if (!(flags & JW_ASYNCNOTIFY) &&
@@ -1026,9 +1018,7 @@ j_sigchld(int sig __attribute__((unused)))
 	Proc		*p = NULL;
 	int		pid;
 	int		status;
-#ifdef RUSAGE_CHILDREN
 	struct rusage	ru0, ru1;
-#endif
 
 	/* Don't wait for any processes if a job is partially started.
 	 * This is so we don't do away with the process group leader
@@ -1041,18 +1031,14 @@ j_sigchld(int sig __attribute__((unused)))
 			return;
 		}
 
-#ifdef RUSAGE_CHILDREN
 	getrusage(RUSAGE_CHILDREN, &ru0);
-#endif
 	do {
 		pid = waitpid(-1, &status, (WNOHANG|WUNTRACED));
 
 		if (pid <= 0)	/* return if would block (0) ... */
 			break;	/* ... or no children or interrupted (-1) */
 
-#ifdef RUSAGE_CHILDREN
 		getrusage(RUSAGE_CHILDREN, &ru1);
-#endif
 
 		/* find job and process structures for this pid */
 		for (j = job_list; j != NULL; j = j->next)
@@ -1065,19 +1051,15 @@ j_sigchld(int sig __attribute__((unused)))
 			warningf(true, "bad process waited for (pid = %d)",
 				pid);
 			 */
-#ifdef RUSAGE_CHILDREN
 			ru0 = ru1;
-#endif
 			continue;
 		}
 
-#ifdef RUSAGE_CHILDREN
 		timeradd(&j->usrtime, &ru1.ru_utime, &j->usrtime);
 		timersub(&j->usrtime, &ru0.ru_utime, &j->usrtime);
 		timeradd(&j->systime, &ru1.ru_stime, &j->systime);
 		timersub(&j->systime, &ru0.ru_stime, &j->systime);
 		ru0 = ru1;
-#endif
 		p->status = status;
 		if (WIFSTOPPED(status))
 			p->state = PSTOPPED;
