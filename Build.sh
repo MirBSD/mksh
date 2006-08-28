@@ -1,7 +1,13 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.52 2006/08/26 20:48:29 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.53 2006/08/28 01:30:37 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
+
+v()
+{
+	$e "$*"
+	eval "$@"
+}
 
 addcppf()
 {
@@ -49,40 +55,34 @@ do
 	esac
 done
 
-v()
-{
-	$e "$*"
-	eval "$@"
-}
-
 if test $x = 0; then
 	LDSTATIC=-static
 	SRCS=
 	sigseen=
+	NOWARN=-Wno-error
 fi
 SRCS="$SRCS alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
 test $x = 1 || case `uname -s 2>/dev/null || uname` in
 CYGWIN*)
-	LDSTATIC= # they don't want it
+	LDSTATIC=
 	SRCS="$SRCS compat.c"
 	CPPFLAGS="$CPPFLAGS -DNEED_COMPAT"
 	sigseen=:
 	;;
 Darwin)
-	LDSTATIC= # never works
+	LDSTATIC=
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 	;;
 Interix)
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE -DNEED_COMPAT"
 	;;
 Linux)
-	# Hello Mr Drepper, we all like you too...</sarcasm>
 	SRCS="$SRCS compat.c strlfun.c"
 	CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=2 -D_BSD_SOURCE -D_GNU_SOURCE"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64 -DNEED_COMPAT"
-	LDSTATIC= # glibc dlopens the PAM library with getpwnam at runtime
+	LDSTATIC=
 	sigseen=:
 	;;
 SunOS)
@@ -90,7 +90,7 @@ SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D_POSIX_C_SOURCE=200112L"
 	CPPFLAGS="$CPPFLAGS -D__EXTENSIONS__"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64 -DNEED_COMPAT"
-	LDSTATIC= # alternatively you need libdl... same suckage as above
+	LDSTATIC=
 	sigseen=:
 	r=1
 	;;
@@ -130,7 +130,7 @@ test 0 = "$HAVE_ARC4RANDOM" || test 1 = "$HAVE_ARC4RANDOM" ||
 		#include <stdlib.h>
 		int main() { arc4random(); return (0); }
 	EOF
-	$CC $CFLAGS $CPPFLAGS $LDFLAGS -Wno-error scn.c $LIBS
+	$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS
 	if test -f a.out || test -f a.exe; then
 		HAVE_ARC4RANDOM=1
 		$e "==> arc4random... yes"
@@ -148,7 +148,7 @@ if test 1 = "$HAVE_ARC4RANDOM"; then
 		#include <stdlib.h>
 		int main() { arc4random_push(1); return (0); }
 	EOF
-	$CC $CFLAGS $CPPFLAGS $LDFLAGS -Wno-error scn.c $LIBS
+	$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS
 	if test -f a.out || test -f a.exe; then
 		HAVE_ARC4RANDOM_PUSH=1
 		$e "==> arc4random_push... yes"
@@ -176,19 +176,21 @@ echo "#!$curdir/mksh" >test.sh
 echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t'" \
     "-p '$curdir/mksh' -C pdksh \$*" >>test.sh
 chmod 755 test.sh
+i=install
+test -f /usr/ucb/$i && i=/usr/ucb/$i
 $e
 $e Installing the shell:
-$e "# install -c -s -o root -g bin -m 555 mksh /bin/mksh"
+$e "# $i -c -s -o root -g bin -m 555 mksh /bin/mksh"
 $e "# grep -qx /bin/mksh /etc/shells || echo /bin/mksh >>/etc/shells"
-$e "# install -c -o root -g bin -m 444 dot.mkshrc /usr/share/doc/mksh/examples/"
+$e "# $i -c -o root -g bin -m 444 dot.mkshrc /usr/share/doc/mksh/examples/"
 $e
 $e Installing the manual:
 if test -f mksh.cat1; then
-	$e "# install -c -o root -g bin -m 444 mksh.cat1" \
+	$e "# $i -c -o root -g bin -m 444 mksh.cat1" \
 	    "/usr/share/man/cat1/mksh.0"
 	$e or
 fi
-$e "# install -c -o root -g bin -m 444 mksh.1 /usr/share/man/man1/mksh.1"
+$e "# $i -c -o root -g bin -m 444 mksh.1 /usr/share/man/man1/mksh.1"
 $e
 $e Run the regression test suite: ./test.sh
 $e Please also read the sample file dot.mkshrc and the manual.
