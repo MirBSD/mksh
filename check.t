@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.64 2006/08/28 17:42:55 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.65 2006/09/07 13:25:14 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3795,8 +3795,8 @@ description:
 stdin:
 	set -o braceexpand
 	set +o posix
-	set +o | fgrep -q posix && echo posix || echo noposix
-	set +o | fgrep -q braceexpand && echo brex || echo nobrex
+	set +o | fgrep posix >&- && echo posix || echo noposix
+	set +o | fgrep braceexpand >&- && echo brex || echo nobrex
 	echo {a,b,c}
 	set +o braceexpand
 	echo {a,b,c}
@@ -3804,12 +3804,12 @@ stdin:
 	echo {a,b,c}
 	set -o posix
 	echo {a,b,c}
-	set +o | fgrep -q posix && echo posix || echo noposix
-	set +o | fgrep -q braceexpand && echo brex || echo nobrex
+	set +o | fgrep posix >&- && echo posix || echo noposix
+	set +o | fgrep braceexpand >&- && echo brex || echo nobrex
 	set -o braceexpand
 	echo {a,b,c}
-	set +o | fgrep -q posix && echo posix || echo noposix
-	set +o | fgrep -q braceexpand && echo brex || echo nobrex
+	set +o | fgrep posix >&- && echo posix || echo noposix
+	set +o | fgrep braceexpand >&- && echo brex || echo nobrex
 expected-stdout:
 	noposix
 	brex
