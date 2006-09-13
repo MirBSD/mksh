@@ -1,8 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.58 2006/08/28 03:31:01 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.59 2006/09/13 16:14:29 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
-.\" $OpenBSD: sh.1tbl,v 1.53 2004/12/10 01:56:56 jaredy Exp $
 .\"
-.Dd August 28, 2006
+.Dd September 13, 2006
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -1546,23 +1545,20 @@ May be unset or
 .Dv NULL
 if the shell doesn't know where it is.
 .It Ev RANDOM
-A pseudo-random number generator.
 Every time
 .Ev RANDOM
-is referenced, it is assigned the next random number in the range
-0\-32767.
-By default,
+is referenced, it is assigned a pseudo-random number first.
+By default, if available,
 .Xr arc4random 3
-is used to produce values.
-If the variable
+is used to produce unsigned 31\-bit values (0\-2147483647)
+whose quality depends on the operating environment.
+If
 .Ev RANDOM
-is assigned a value, the value is used as the seed to
+is assigned a value, it is used as the seed to
 .Xr srand 3
-and subsequent references of
-.Ev RANDOM
-will use
-.Xr rand 3
-to produce values, resulting in a predictable sequence.
+and subsequent references yield a semi-predictable sequence
+of unsigned 15\-bit results (0\-32767) employing
+.Xr rand 3 .
 .It Ev REPLY
 Default parameter for the
 .Ic read
