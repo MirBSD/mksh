@@ -8,13 +8,25 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.42 2006/08/28 01:40:54 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.43 2006/09/21 22:03:23 tg Exp $"
 #define MKSH_VERSION "R28 2006/08/28"
 
 #include <sys/param.h>
 
+#if !defined(__RCSID) || !defined(__SCCSID)
+#if !defined(__GNUC__) || defined(lint)
+#define __attribute__(x) /* deleted */
+#endif
+#undef __IDSTRING
+#define	__IDSTRING(prefix, string)				\
+	static const char __IDSTRING_EXPAND(__LINE__,prefix) []	\
+	    __attribute__((used)) = (string)
 #ifndef __RCSID
-#define	__RCSID(x)	static const char __rcsid[] __attribute__((used)) = (x)
+#define	__RCSID(x)	__IDSTRING(rcsid,x)
+#endif
+#ifndef __SCCSID
+#define	__SCCSID(x)	__IDSTRING(sccsid,x)
+#endif
 #endif
 
 #include <sys/time.h>
