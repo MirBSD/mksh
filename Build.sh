@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.56 2006/09/21 22:09:41 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.57 2006/09/21 22:12:05 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -172,7 +172,7 @@ test $r = 1 || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
     rm -f mksh.cat1
 test $q = 1 || v size $result
 case $curdir in
-* *)	echo "#!./mksh" >test.sh ;;
+*\ *)	echo "#!./mksh" >test.sh ;;
 *)	echo "#!$curdir/mksh" >test.sh ;;
 esac
 echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t'" \
