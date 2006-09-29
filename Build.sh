@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.57 2006/09/21 22:12:05 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.58 2006/09/29 19:33:48 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -22,7 +22,7 @@ if test -d mksh; then
 	exit 1
 fi
 
-: ${CFLAGS='-O2 -fno-strict-aliasing -fno-strength-reduce -Wall'}
+: ${CFLAGS='-O2 -fno-strict-aliasing -Wall'}
 : ${CC=gcc} ${NROFF=nroff}
 curdir=`pwd` srcdir=`dirname "$0"`
 echo | $NROFF -v 2>&1 | grep GNU >&- 2>&- && NROFF="$NROFF -c"
