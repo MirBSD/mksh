@@ -6,7 +6,7 @@
 #define	EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.48 2006/08/24 20:32:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.49 2006/09/30 02:13:21 tg Exp $");
 
 extern char **environ;
 
@@ -188,7 +188,7 @@ main(int argc, char *argv[])
 	}
 	ppid = getppid();
 #if !HAVE_ARC4RANDOM
-	srand((*((long *)kshname)) ^ ((long)time(NULL) * kshpid * ppid));
+	srand(((long)kshname) ^ ((long)time(NULL) * kshpid * ppid));
 #endif
 	setint(global("PPID"), (long)ppid);
 
