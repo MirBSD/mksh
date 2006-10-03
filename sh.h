@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.46 2006/09/30 02:23:22 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.47 2006/10/03 19:46:14 tg Exp $"
 #define MKSH_VERSION "R28 2006/09/30"
 
 #include <sys/cdefs.h>
@@ -25,7 +25,7 @@
 #define __IDSTRING_EXPAND(l,p)		__IDSTRING_CONCAT(l,p)
 #define __IDSTRING(prefix, string)				\
 	static const char __IDSTRING_EXPAND(__LINE__,prefix) []	\
-	    __attribute__((used)) = "@(""#)" string
+	    __attribute__((used)) = "@(""#)" #prefix ": " string
 #define	__RCSID(x)	__IDSTRING(rcsid,x)
 #define	__SCCSID(x)	__IDSTRING(sccsid,x)
 #endif
