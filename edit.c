@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.41 2006/11/05 16:10:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.42 2006/11/05 16:41:02 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1722,31 +1722,33 @@ x_del_char(int c __attribute__((unused)))
 static void
 x_delete(int nc, int push)
 {
-	int i, j;
+	int i, nb, nw;
 	char *cp;
 
 	if (nc == 0)
 		return;
+
+	nw = 0;
+	cp = xcp;
+	for (i = 0; i < nc; ++i)
+		nw += x_size2(cp, &cp);
+	nb = cp - xcp;
+
 	if (xmp != NULL && xmp > xcp) {
-		if (xcp + nc > xmp)
+		if (xcp + nb > xmp)
 			xmp = xcp;
 		else
-			xmp -= nc;
+			xmp -= nb;
 	}
 	/*
 	 * This lets us yank a word we have deleted.
 	 */
 	if (push)
-		x_push(nc);
+		x_push(nb);
 
-	xep -= nc;
+	xep -= nb;
 	cp = xcp;
-	j = 0;
-	i = nc;
-	while (i--) {
-		j += x_size2(cp, &cp);
-	}
-	memmove(xcp, xcp + nc, xep - xcp + 1);	/* Copies the null */
+	memmove(xcp, xcp + nb, xep - xcp + 1);	/* Copies the null */
 	x_adj_ok = 0;			/* don't redraw */
 	x_zots(xcp);
 	/*
@@ -1755,11 +1757,11 @@ x_delete(int nc, int push)
 	 * But if we must, make sure we do the minimum.
 	 */
 	if ((i = xx_cols - 2 - x_col) > 0) {
-		j = (j < i) ? j : i;
-		i = j;
+		nw = (nw < i) ? nw : i;
+		i = nw;
 		while (i--)
 			x_e_putc2(' ');
-		i = j;
+		i = nw;
 		while (i--)
 			x_e_putc2('\b');
 	}
