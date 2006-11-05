@@ -6,7 +6,12 @@
 #define	EXTERN
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.49 2006/09/30 02:13:21 tg Exp $");
+#if (HAVE_LANGSTUFF - 0)
+#include <langinfo.h>
+#include <locale.h>
+#endif
+
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.50 2006/11/05 12:11:14 tg Exp $");
 
 extern char **environ;
 
@@ -60,6 +65,9 @@ main(int argc, char *argv[])
 	pid_t ppid;
 	struct tbl *vp;
 	struct stat s_stdin;
+#if (HAVE_LANGSTUFF - 0)
+	const char *cc;
+#endif
 
 	/* make sure argv[] is sane */
 	if (!*argv) {
@@ -133,6 +141,19 @@ main(int argc, char *argv[])
 	/* setstr can't fail here */
 	setstr(vp, def_path, KSH_RETURN_ERROR);
 
+
+#if (HAVE_LANGSTUFF - 0)
+	/* Check if we're in an UTF-8 locale */
+	cc = setlocale(LC_CTYPE, "");
+#ifdef CODESET
+	if (strcasecmp(cc, "UTF-8") && strcasecmp(cc, "utf8") &&
+	    strcasecmp(cc, "CESU-8") && strcasecmp(cc, "cesu8"))
+		cc = nl_langinfo(CODESET);
+#endif
+	if (!strcasecmp(cc, "UTF-8") || !strcasecmp(cc, "utf8") ||
+	    !strcasecmp(cc, "CESU-8") || !strcasecmp(cc, "cesu8"))
+		Flag(FUTFHACK) = 1;
+#endif
 
 	/* Turn on nohup by default for now - will change to off
 	 * by default once people are aware of its existence
