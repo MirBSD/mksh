@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.55 2006/11/05 21:00:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.56 2006/11/05 21:11:17 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -55,28 +55,6 @@ static void glob_path(int flags, const char *, XPtrV *, const char *);
 static int x_file_glob(int, const char *, int, char ***);
 static int x_command_glob(int, const char *, int, char ***);
 static int x_locate_word(const char *, int, int, int *, int *);
-
-#if 1
-static void D(const char *, ...)
-    __attribute__((__format__ (printf, 1, 2)));
-static void
-D(const char *fmt, ...)
-{
-	static FILE *_Dfp = NULL;
-	va_list ap;
-
-	if (_Dfp == NULL) {
-		if ((_Dfp = fopen("/tmp/mksh.dbg", "ab+")) == NULL)
-			abort();
-		fprintf(_Dfp, "\n\nOpening from %ld\n", (long)getpid());
-	}
-	va_start(ap, fmt);
-	vfprintf(_Dfp, fmt, ap);
-	fflush(_Dfp);
-}
-#else
-#define D(x)	/* nothing */
-#endif
 
 /* +++ generic editing functions +++ */
 
@@ -1968,7 +1946,6 @@ x_zots(char *str)
 	x_lastcp();
 	while (*str && str < xlp && adj == x_adj_done)
 		x_zotc3(&str);
-	D(" x_zots:last=%02X,prev=%02X,xlp=%02X,col=%d", *(unsigned char *)str, *(unsigned char *)(str-1), *(unsigned char *)xlp, x_col);
 }
 
 static void
@@ -2369,7 +2346,6 @@ x_redraw(int limit)
 	x_zots(xbp);
 	if (xbp != xbuf || xep > xlp)
 		limit = xx_cols;
-	D("\nx_redraw lim=%d", limit);
 	if (limit >= 0) {
 		if (xep > xlp)
 			i = 0;			/* we fill the line */
@@ -2381,15 +2357,12 @@ x_redraw(int limit)
 				i -= x_size2(cpl, &cpl);
 		}
 
-		D(" x_col=%d,i=%d ", x_col, i);
-		for (j = 0; j < i && x_col < (xx_cols - 2); j++) {
-			x_e_putc2(' ');
-			D(" x_col=%d,j=%d ", x_col, j);
-		}
-		while (x_col < (xx_cols - 2)) {
+		j = 0;
+		while ((j < i) || (x_col < (xx_cols - 2))) {
+			if (!(x_col < (xx_cols - 2)))
+				break;
 			x_e_putc2(' ');
 			j++;
-			D(" x_col=%d,SPC,j=%d ", x_col, j);
 		}
 		i = ' ';
 		if (xep > xlp) {		/* more off screen */
@@ -3358,28 +3331,16 @@ x_lastcp(void)
 		int i = 0, j;
 		char *xlp2;
 
-		D("\nx_lastcp(%d) ", x_displen);
 		xlp = xbp;
 		while (xlp < xep) {
 			j = x_size2(xlp, &xlp2);
-			if ((i + j) > x_displen) {
-				if (i > 94)
-					D("%d.>.%02X%02X%02X", j, *((unsigned char *)xlp+0), *((unsigned char *)xlp+1), *((unsigned char *)xlp+2));
+			if ((i + j) > x_displen)
 				break;
-			}
-			if (i > 94)
-				D("%d[", j);
 			i += j;
-			if (i > 94) {
-				while (xlp < xlp2)
-					D("%02X", *(unsigned char *)xlp++);
-				D("]=%d ", i);
-			}
 			xlp = xlp2;
 		}
 	}
 	xlp_valid = true;
-	D(" <lastcp:xlp=%02X>", *(unsigned char *)xlp);
 	return (xlp);
 }
 
