@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.51 2006/11/05 19:15:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.52 2006/11/05 19:35:52 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -2204,9 +2204,14 @@ x_load_hist(char **hp)
 	xbp = xbuf;
 	xep = xcp = xbuf + strlen(xbuf);
 	xlp_valid = false;
-	if (xep <= x_lastcp())
+	D("J");
+	if (xep <= x_lastcp()) {
+		D("K %d ", oldsize);
 		x_redraw(oldsize);
+	}
+	D("L");
 	x_goto(xep);
+	D("M");
 }
 
 static int
@@ -2405,8 +2410,13 @@ x_redraw(int limit)
 	if (limit >= 0) {
 		if (xep > xlp)
 			i = 0;			/* we fill the line */
-		else
-			i = limit - (xlp - xbp);
+		else {
+			char *cpl = xbp;
+
+			i = limit;
+			while (cpl < xlp)
+				i -= utf_widthadj(cpl, (const char **)&cpl);
+		}
 
 		for (j = 0; j < i && x_col < (xx_cols - 2); j++)
 			x_e_putc2(' ');
@@ -3052,7 +3062,7 @@ x_e_putc2(int c)
 
 	if (c == '\r' || c == '\n')
 		x_col = 0;
-	if (x_col < xx_cols) {
+	if ((x_col < xx_cols) && (x_col || (c != '\b'))) {
 		if (Flag(FUTFHACK) && (c > 0x7F)) {
 			char utf_tmp[3];
 			size_t x;
@@ -3094,7 +3104,7 @@ x_e_putc3(const char **cp)
 
 	if (c == '\r' || c == '\n')
 		x_col = 0;
-	if (x_col < xx_cols) {
+	if ((x_col < xx_cols) && (x_col || (c != '\b'))) {
 		if (Flag(FUTFHACK) && (c > 0x7F)) {
 			char *cp2;
 
