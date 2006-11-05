@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.43 2006/11/05 16:43:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.44 2006/11/05 16:48:17 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1691,11 +1691,13 @@ static int
 x_del_back(int c __attribute__((unused)))
 {
 	int i = x_arg;
+	char *cp = xcp;
 
 	while (i--) {
 		if (xcp == xbuf) {
+			x_goto(cp);
 			x_e_putc2(7);
-			return KSTD;
+			return (KSTD);
 		}
 		x_goto(xcp - 1);
 	}
