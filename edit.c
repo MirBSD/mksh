@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.48 2006/11/05 17:34:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.49 2006/11/05 17:54:46 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -862,6 +862,7 @@ x_escape(const char *s, size_t len, int (*putbuf_func) (const char *, size_t))
 static size_t mbxtowc(unsigned *, const char *);
 static size_t wcxtomb(char *, unsigned);
 static int wcxwidth(unsigned);
+static int x_e_getmbc(char *);
 
 /* UTF-8 hack: high-level functions */
 
@@ -1481,6 +1482,32 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_del_char | 0x80,	2,	  '3'	},
 };
 
+static int
+x_e_getmbc(char *sbuf)
+{
+	int c, pos = 0;
+	unsigned char *buf = (unsigned char *)sbuf;
+
+	memset(buf, 0, 4);
+	buf[pos++] = c = x_e_getc();
+	if (c == -1)
+		return (-1);
+	if (Flag(FUTFHACK)) {
+		if ((buf[0] >= 0xC2) && (buf[0] < 0xF0)) {
+			buf[pos++] = c = x_e_getc();
+			if (c == -1)
+				return (-1);
+		}
+		if ((buf[0] >= 0xE0) && (buf[0] < 0xF0)) {
+			buf[pos++] = c = x_e_getc();
+			if (c == -1)
+				return (-1);
+		}
+	}
+	buf[pos] = '\0';
+	return (pos);
+}
+
 int
 x_emacs(char *buf, size_t len)
 {
@@ -1990,29 +2017,36 @@ x_mv_back(int c __attribute__((unused)))
 static int
 x_mv_forw(int c __attribute__((unused)))
 {
-	int nleft = xep - xcp;
+	char *cp = xcp, *cp2;
 
-	if (!nleft) {
+	if (xcp == xep) {
 		x_e_putc2(7);
 		return KSTD;
 	}
-	if (x_arg > nleft)
-		x_arg = nleft;
-	x_goto(xcp + x_arg);
+	while (x_arg--) {
+		utf_widthadj(cp, (const char **)&cp2);
+		if (cp2 > xep)
+			break;
+		cp = cp2;
+	}
+	x_goto(cp);
 	return KSTD;
 }
 
 static int
-x_search_char_forw(int c)
+x_search_char_forw(int c __attribute__((unused)))
 {
 	char *cp = xcp;
+	char tmp[4];
 
 	*xep = '\0';
-	c = x_e_getc();
+	if (x_e_getmbc(tmp) < 0) {
+		x_e_putc2(7);
+		return KSTD;
+	}
 	while (x_arg--) {
-		if (c < 0 ||
-		    ((cp = (cp == xep) ? NULL : strchr(cp + 1, c)) == NULL &&
-		    (cp = strchr(xbuf, c)) == NULL)) {
+		if ((cp = (cp == xep) ? NULL : strstr(cp + 1, tmp)) == NULL &&
+		    (cp = strstr(xbuf, tmp)) == NULL) {
 			x_e_putc2(7);
 			return KSTD;
 		}
@@ -2022,20 +2056,35 @@ x_search_char_forw(int c)
 }
 
 static int
-x_search_char_back(int c)
+x_search_char_back(int c __attribute__((unused)))
 {
 	char *cp = xcp, *p;
+	char tmp[4];
+	int b;
 
-	c = x_e_getc();
+	if (x_e_getmbc(tmp) < 0) {
+		x_e_putc2(7);
+		return KSTD;
+	}
 	for (; x_arg--; cp = p)
 		for (p = cp; ; ) {
 			if (p-- == xbuf)
 				p = xep;
-			if (c < 0 || p == cp) {
+			if (p == cp) {
 				x_e_putc2(7);
 				return KSTD;
 			}
-			if (*p == c)
+			if ((tmp[1] && ((p+1) > xep)) ||
+			    (tmp[2] && ((p+2) > xep)))
+				continue;
+			b = 1;
+			if (*p != tmp[0])
+				b = 0;
+			if (b && tmp[1] && p[1] != tmp[1])
+				b = 0;
+			if (b && tmp[2] && p[2] != tmp[2])
+				b = 0;
+			if (b)
 				break;
 		}
 	x_goto(cp);
