@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.21 2006/08/02 11:33:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.22 2006/11/05 15:31:36 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -1116,7 +1116,15 @@ dopprompt(const char *cp, int ntruncate, int doprint)
 				columns--;
 		} else if (*cp == delimiter)
 			indelimit = !indelimit;
-		else
+		else if (Flag(FUTFHACK) && ((unsigned)*cp > 0x7F)) {
+			const char *cp2;
+			columns += utf_widthadj(cp, &cp2);
+			if (doprint && (indelimit ||
+			    (ntruncate < (x_cols * lines + columns))))
+				shf_write(cp, cp2 - cp, shl_out);
+			cp = cp2 - /* loop increment */ 1;
+			continue;
+		} else
 			columns++;
 		if (doprint && (*cp != delimiter) &&
 		    (indelimit || (ntruncate < (x_cols * lines + columns))))

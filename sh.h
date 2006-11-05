@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.48 2006/11/05 12:11:14 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.49 2006/11/05 15:31:37 tg Exp $"
 #define MKSH_VERSION "R28 2006/11/05"
 
 #include <sys/cdefs.h>
@@ -1053,6 +1053,9 @@ void afree(void *, Area *);
 void x_init(void);
 int x_read(char *, size_t);
 int x_bind(const char *, const char *, int, int);
+/* UTF-8 hack stuff */
+int utf_widthadj(const char *, const char **);
+#define utf_width(x)	utf_widthadj(x, NULL);
 /* eval.c */
 char *substitute(const char *, int);
 char **eval(char **, int);
