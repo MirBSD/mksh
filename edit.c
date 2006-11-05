@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.50 2006/11/05 19:12:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.51 2006/11/05 19:15:15 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -3003,20 +3003,16 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
 static void
 x_adjust(void)
 {
-//	int i;
-
 	D(" x_adjust ");
 	x_adj_done++;			/* flag the fact that we were called. */
 	/*
 	 * we had a problem if the prompt length > xx_cols / 2
 	 */
-/*	xbp = xcp;
-	for (i = 0; i < (x_displen / 2); ++i)
-		xbp = utf_backch(xbp);
-	if (xbp < xbuf)
-		xbp = xbuf;*/
-        if ((xbp = xcp - (x_displen / 2)) < xbuf)
-                xbp = xbuf;
+	if ((xbp = xcp - (x_displen / 2)) < xbuf)
+		xbp = xbuf;
+	if (Flag(FUTFHACK))
+		while ((xbp > xbuf) && ((*xbp & 0xC0) == 0x80))
+			--xbp;
 	xlp_valid = false;
 	D("xbp=%td xcp=%td ", xbp-xbuf, xcp-xbuf);
 	x_redraw(xx_cols);
