@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.49 2006/11/05 15:31:37 tg Exp $"
-#define MKSH_VERSION "R28 2006/11/05"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.50 2006/11/05 17:01:47 tg Exp $"
+#define MKSH_VERSION "R29 2006/11/05"
 
 #include <sys/cdefs.h>
 #if !defined(__RCSID) || !defined(__SCCSID)
@@ -283,7 +283,7 @@ enum sh_flag {
 	FSH,		/* -o sh (dummy, for pdksh compatibility) */
 	FSTDIN,		/* -s: (invocation) parse stdin */
 	FTRACKALL,	/* -h: create tracked aliases for all commands */
-	FUTFHACK,	/* utf-8 hack for command line editing */
+	FUTFHACK,	/* -U: utf-8 hack for command line editing */
 	FVERBOSE,	/* -v: echo input */
 	FVI,		/* vi command editing */
 	FVIRAW,		/* always read in raw mode (ignored) */

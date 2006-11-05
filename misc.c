@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.17 2006/11/05 12:11:14 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.18 2006/11/05 17:01:46 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 short chtypes[UCHAR_MAX+1];	/* type bits for unsigned char */
@@ -142,7 +142,7 @@ const struct option options[] = {
 	{ "sh",		  0,		OF_ANY }, /* non-standard */
 	{ "stdin",	's',	    OF_CMDLINE }, /* pseudo non-standard */
 	{ "trackall",	'h',		OF_ANY },
-	{ "utf8-hack",	  0,		OF_ANY }, /* non-standard */
+	{ "utf8-hack",	'U',		OF_ANY }, /* non-standard */
 	{ "verbose",	'v',		OF_ANY },
 	{ "vi",		  0,		OF_ANY },
 	{ "viraw",	  0,		OF_ANY }, /* no effect */

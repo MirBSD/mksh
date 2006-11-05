@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.59 2006/09/13 16:14:29 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.60 2006/11/05 17:01:46 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\"
 .Dd September 13, 2006
@@ -11,7 +11,7 @@
 .Sh SYNOPSIS
 .Nm
 .Bk -words
-.Op Fl +abCefhiklmnpruvXx
+.Op Fl +abCefhiklmnprUuvXx
 .Op Fl T Ar /dev/ttyCn
 .Op Fl +o Ar option
 .Oo Fl c Ar string \*(Ba Fl s \*(Ba
@@ -3265,6 +3265,19 @@ the positional parameters (or to array
 if
 .Fl A
 is used).
+.It Fl U \(*Ba Ic utf8-hack
+Enable an experimental UTF-8 hack for the
+.Sx Emacs editing mode .
+This is enabled automatically if your system supports these two calls and
+.Fn setlocale LC_CTYPE \&""
+or an afterwards
+.Fn nl_langinfo CODESET
+return something that matches to
+.Dq UTF-8 ,
+.Dq utf8 ,
+.Dq CESU-8 ,
+or
+.Dq cesu8 .
 .It Fl u \*(Ba Ic nounset
 Referencing of an unset parameter is treated as an error, unless one of the
 .Ql - ,
