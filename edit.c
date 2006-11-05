@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.52 2006/11/05 19:35:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.53 2006/11/05 19:48:58 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1924,7 +1924,12 @@ x_goto(char *cp)
 	D("A1");
 	if (cp > xep)
 		D(" cp > xep ");
-	D("A2");
+	D("A2 xbp=%td xcp=%td tgp=%td ", xbp-xbuf, xcp-xbuf, cp-xbuf);
+	if (Flag(FUTFHACK))
+		while ((cp > xbuf) && ((*cp & 0xC0) == 0x80)) {
+			--cp;
+			D("A2a xbp=%td xcp=%td tgp=%td ", xbp-xbuf, xcp-xbuf, cp-xbuf);
+		}
 	if (cp < xbp || cp >= utf_getcpfromcols(xbp, x_displen)) {
 		D("A3");
 		/* we are heading off screen */
@@ -1953,6 +1958,7 @@ x_bs2(char *cp)
 	int i;
 
 	i = x_size2(cp, NULL);
+	D("M");
 	while (i--)
 		x_e_putc2('\b');
 }
@@ -2430,6 +2436,7 @@ x_redraw(int limit)
 			i = '<';
 		x_e_putc2(i);
 		j++;
+		D("N");
 		while (j--)
 			x_e_putc2('\b');
 	}
@@ -3062,6 +3069,8 @@ x_e_putc2(int c)
 
 	if (c == '\r' || c == '\n')
 		x_col = 0;
+	if (!x_col && (c == '\b'))
+		D("O2 ");
 	if ((x_col < xx_cols) && (x_col || (c != '\b'))) {
 		if (Flag(FUTFHACK) && (c > 0x7F)) {
 			char utf_tmp[3];
@@ -3104,6 +3113,8 @@ x_e_putc3(const char **cp)
 
 	if (c == '\r' || c == '\n')
 		x_col = 0;
+	if (!x_col && (c == '\b'))
+		D("O3 ");
 	if ((x_col < xx_cols) && (x_col || (c != '\b'))) {
 		if (Flag(FUTFHACK) && (c > 0x7F)) {
 			char *cp2;
