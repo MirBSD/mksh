@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.46 2006/11/05 17:11:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.47 2006/11/05 17:24:00 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1192,7 +1192,7 @@ static int	holdlen;		/* length of holdbuf */
 static int      x_ins(char *);
 static void     x_delete(int, int);
 static int	x_bword(void);
-static int	x_fword(void);
+static int	x_fword(int);
 static void     x_goto(char *);
 static void     x_bs2(char *);
 static int      x_size_str(char *);
@@ -1810,21 +1810,21 @@ x_mv_bword(int c __attribute__((unused)))
 static int
 x_mv_fword(int c __attribute__((unused)))
 {
-	x_goto(xcp + x_fword());
+	x_fword(1);
 	return KSTD;
 }
 
 static int
 x_del_fword(int c __attribute__((unused)))
 {
-	x_delete(x_fword(), true);
+	x_delete(x_fword(0), true);
 	return KSTD;
 }
 
 static int
 x_bword(void)
 {
-	int nc = 0;
+	int nc = 0, nb = 0;
 	char *cp = xcp;
 
 	if (cp == xbuf) {
@@ -1834,22 +1834,24 @@ x_bword(void)
 	while (x_arg--) {
 		while (cp != xbuf && is_mfs(cp[-1])) {
 			cp--;
-			nc++;
+			nb++;
 		}
 		while (cp != xbuf && !is_mfs(cp[-1])) {
 			cp--;
-			nc++;
+			nb++;
 		}
 	}
 	x_goto(cp);
+	for (cp = xcp; cp < (xcp + nb); ++nc)
+		utf_widthadj(cp, (const char **)&cp);
 	return nc;
 }
 
 static int
-x_fword(void)
+x_fword(int move)
 {
-	int nc = 0;
-	char *cp = xcp;
+	int nb = 0, nc = 0;
+	char *cp = xcp, *cp2;
 
 	if (cp == xep) {
 		x_e_putc2(7);
@@ -1858,13 +1860,17 @@ x_fword(void)
 	while (x_arg--) {
 		while (cp != xep && is_mfs(*cp)) {
 			cp++;
-			nc++;
+			nb++;
 		}
 		while (cp != xep && !is_mfs(*cp)) {
 			cp++;
-			nc++;
+			nb++;
 		}
 	}
+	for (cp2 = xcp; cp2 < cp; ++nc)
+		utf_widthadj(cp2, (const char **)&cp2);
+	if (move)
+		x_goto(cp);
 	return nc;
 }
 
