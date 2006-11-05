@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.53 2006/11/05 19:48:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.54 2006/11/05 19:56:20 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -56,7 +56,7 @@ static int x_file_glob(int, const char *, int, char ***);
 static int x_command_glob(int, const char *, int, char ***);
 static int x_locate_word(const char *, int, int, int *, int *);
 
-#if 1
+#if 0
 static void D(const char *, ...)
     __attribute__((__format__ (printf, 1, 2)));
 static void
@@ -1604,12 +1604,10 @@ x_insert(int c)
 	static int left = 0, pos, save_arg;
 	static char str[4];
 
-	D("{%d}", left);
 	/*
 	 *  Should allow tab and control chars.
 	 */
 	if (c == 0) {
-		D("->0 ");
 		left = 0;
 		x_e_putc2(7);
 		return KSTD;
@@ -1619,12 +1617,10 @@ x_insert(int c)
 			str[pos++] = c;
 			left--;
 			if (!left) {
-				D("%02X]", c);
 				str[pos] = '\0';
 				x_arg = save_arg;
 				goto x_insert_write;
 			}
-			D("%02X|", c);
 			return (KSTD);
 		}
 		if (left) {
@@ -1639,15 +1635,12 @@ x_insert(int c)
 		else if ((c >= 0xE0) && (c < 0xF0))
 			left = 2;
 		if (left) {
-			D("[%02X|", c);
 			save_arg = x_arg;
 			pos = 1;
 			str[0] = c;
 			return (KSTD);
 		}
-		D("<%02X>", c);
-	} else
-		D("|%02X}", c);
+	}
 	left = 0;
 	str[0] = c;
 	str[1] = '\0';
@@ -1692,7 +1685,6 @@ x_ins(char *s)
 	char *cp = xcp;
 	int adj = x_adj_done;
 
-	D(" x_ins(%s) ", s);
 	if (x_do_ins(s, strlen(s)) < 0)
 		return -1;
 	/*
@@ -1704,13 +1696,11 @@ x_ins(char *s)
 	x_adj_ok = (xcp >= xlp);
 	x_zots(cp);
 	if (adj == x_adj_done) {	/* has x_adjust() been called? */
-		D("H xlp=%td xcp=%td ", xlp-xbuf, xcp-xbuf); /* no */
-		for (cp = xlp; cp > xcp; ) {
-			D(":");
+		/* no */
+		cp = xlp;
+		while (cp > xcp)
 			x_bs2(cp = utf_backch(cp));
-		}
 	}
-	D("I");
 	x_adj_ok = 1;
 	return 0;
 }
@@ -1918,38 +1908,20 @@ x_fword(int move)
 static void
 x_goto(char *cp)
 {
-	D("A");
-	if (cp < xbuf)
-		D(" cp < xbuf ");
-	D("A1");
-	if (cp > xep)
-		D(" cp > xep ");
-	D("A2 xbp=%td xcp=%td tgp=%td ", xbp-xbuf, xcp-xbuf, cp-xbuf);
 	if (Flag(FUTFHACK))
-		while ((cp > xbuf) && ((*cp & 0xC0) == 0x80)) {
+		while ((cp > xbuf) && ((*cp & 0xC0) == 0x80))
 			--cp;
-			D("A2a xbp=%td xcp=%td tgp=%td ", xbp-xbuf, xcp-xbuf, cp-xbuf);
-		}
 	if (cp < xbp || cp >= utf_getcpfromcols(xbp, x_displen)) {
-		D("A3");
 		/* we are heading off screen */
 		xcp = cp;
 		x_adjust();
-		D("A3a");
 	} else if (cp < xcp) {		/* move back */
-		D("A4");
-		while (cp < xcp) {
-			D("A4a %td %td ", cp-xbuf, xcp-xbuf);
+		while (cp < xcp)
 			x_bs2(xcp = utf_backch(xcp));
-		}
 	} else if (cp > xcp) {		/* move forward */
-		D("A5");
-		while (cp > xcp) {
-			D("A5a");
+		while (cp > xcp)
 			x_zotc3(&xcp);
-		}
 	}
-	D("B");
 }
 
 static void
@@ -1958,7 +1930,6 @@ x_bs2(char *cp)
 	int i;
 
 	i = x_size2(cp, NULL);
-	D("M");
 	while (i--)
 		x_e_putc2('\b');
 }
@@ -1967,10 +1938,8 @@ static int
 x_size_str(char *cp)
 {
 	int size = 0;
-	D("C");
 	while (*cp)
 		size += x_size2(cp, &cp);
-	D("D");
 	return size;
 }
 
@@ -1995,20 +1964,9 @@ x_zots(char *str)
 {
 	int adj = x_adj_done;
 
-	D("E");
 	x_lastcp();
-	D("F");
-	if (!*str)
-		D("-");
-	if (adj != x_adj_done)
-		D("%d!%d", adj, x_adj_done);
-	if (str >= xlp)
-		D(" str=%td xlp=%td ", str-xbuf, xlp-xbuf);
-	while (*str && str < xlp && adj == x_adj_done) {
-		D("'");
+	while (*str && str < xlp && adj == x_adj_done)
 		x_zotc3(&str);
-	}
-	D("G");
 }
 
 static void
@@ -2210,14 +2168,10 @@ x_load_hist(char **hp)
 	xbp = xbuf;
 	xep = xcp = xbuf + strlen(xbuf);
 	xlp_valid = false;
-	D("J");
 	if (xep <= x_lastcp()) {
-		D("K %d ", oldsize);
 		x_redraw(oldsize);
 	}
-	D("L");
 	x_goto(xep);
-	D("M");
 }
 
 static int
@@ -2436,7 +2390,6 @@ x_redraw(int limit)
 			i = '<';
 		x_e_putc2(i);
 		j++;
-		D("N");
 		while (j--)
 			x_e_putc2('\b');
 	}
@@ -3020,7 +2973,6 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
 static void
 x_adjust(void)
 {
-	D(" x_adjust ");
 	x_adj_done++;			/* flag the fact that we were called. */
 	/*
 	 * we had a problem if the prompt length > xx_cols / 2
@@ -3031,7 +2983,6 @@ x_adjust(void)
 		while ((xbp > xbuf) && ((*xbp & 0xC0) == 0x80))
 			--xbp;
 	xlp_valid = false;
-	D("xbp=%td xcp=%td ", xbp-xbuf, xcp-xbuf);
 	x_redraw(xx_cols);
 	x_flush();
 }
@@ -3069,9 +3020,7 @@ x_e_putc2(int c)
 
 	if (c == '\r' || c == '\n')
 		x_col = 0;
-	if (!x_col && (c == '\b'))
-		D("O2 ");
-	if ((x_col < xx_cols) && (x_col || (c != '\b'))) {
+	if (x_col < xx_cols) {
 		if (Flag(FUTFHACK) && (c > 0x7F)) {
 			char utf_tmp[3];
 			size_t x;
@@ -3101,7 +3050,6 @@ x_e_putc2(int c)
 			break;
 		}
 	}
-	D("\nx_e_putc:col=%d(%d) ", x_col, xx_cols - 2);
 	if (x_adj_ok && (x_col < 0 || x_col >= (xx_cols - 2)))
 		x_adjust();
 }
@@ -3113,9 +3061,7 @@ x_e_putc3(const char **cp)
 
 	if (c == '\r' || c == '\n')
 		x_col = 0;
-	if (!x_col && (c == '\b'))
-		D("O3 ");
-	if ((x_col < xx_cols) && (x_col || (c != '\b'))) {
+	if (x_col < xx_cols) {
 		if (Flag(FUTFHACK) && (c > 0x7F)) {
 			char *cp2;
 
@@ -3140,7 +3086,6 @@ x_e_putc3(const char **cp)
 			break;
 		}
 	}
-	D("\nx_e_putc:col=%d(%d) ", x_col, xx_cols - 2);
 	if (x_adj_ok && (x_col < 0 || x_col >= (xx_cols - 2)))
 		x_adjust();
 }
