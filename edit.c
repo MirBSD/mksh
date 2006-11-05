@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.49 2006/11/05 17:54:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.50 2006/11/05 19:12:41 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -863,6 +863,7 @@ static size_t mbxtowc(unsigned *, const char *);
 static size_t wcxtomb(char *, unsigned);
 static int wcxwidth(unsigned);
 static int x_e_getmbc(char *);
+char *utf_getcpfromcols(char *, int);
 
 /* UTF-8 hack: high-level functions */
 
@@ -894,6 +895,16 @@ utf_widthadj(const char *src, const char **dst)
 	if (dst)
 		*dst = src + len;
 	return (wcxwidth(wc));
+}
+
+char *
+utf_getcpfromcols(char *p, int cols)
+{
+	int c = 0;
+
+	while (c < cols)
+		c += utf_widthadj(p, (const char **)&p);
+	return (p);
 }
 
 /* UTF-8 hack: low-level functions */
@@ -1681,6 +1692,7 @@ x_ins(char *s)
 	char *cp = xcp;
 	int adj = x_adj_done;
 
+	D(" x_ins(%s) ", s);
 	if (x_do_ins(s, strlen(s)) < 0)
 		return -1;
 	/*
@@ -1692,9 +1704,11 @@ x_ins(char *s)
 	x_adj_ok = (xcp >= xlp);
 	x_zots(cp);
 	if (adj == x_adj_done) {	/* has x_adjust() been called? */
-		D("H"); /* no */
-		for (cp = xlp; cp > xcp; )
+		D("H xlp=%td xcp=%td ", xlp-xbuf, xcp-xbuf); /* no */
+		for (cp = xlp; cp > xcp; ) {
+			D(":");
 			x_bs2(cp = utf_backch(cp));
+		}
 	}
 	D("I");
 	x_adj_ok = 1;
@@ -1905,16 +1919,30 @@ static void
 x_goto(char *cp)
 {
 	D("A");
-	if (cp < xbp || cp >= (xbp + x_displen)) {
+	if (cp < xbuf)
+		D(" cp < xbuf ");
+	D("A1");
+	if (cp > xep)
+		D(" cp > xep ");
+	D("A2");
+	if (cp < xbp || cp >= utf_getcpfromcols(xbp, x_displen)) {
+		D("A3");
 		/* we are heading off screen */
 		xcp = cp;
 		x_adjust();
+		D("A3a");
 	} else if (cp < xcp) {		/* move back */
-		while (cp < xcp)
+		D("A4");
+		while (cp < xcp) {
+			D("A4a %td %td ", cp-xbuf, xcp-xbuf);
 			x_bs2(xcp = utf_backch(xcp));
+		}
 	} else if (cp > xcp) {		/* move forward */
-		while (cp > xcp)
+		D("A5");
+		while (cp > xcp) {
+			D("A5a");
 			x_zotc3(&xcp);
+		}
 	}
 	D("B");
 }
@@ -1964,8 +1992,16 @@ x_zots(char *str)
 	D("E");
 	x_lastcp();
 	D("F");
-	while (*str && str < xlp && adj == x_adj_done)
+	if (!*str)
+		D("-");
+	if (adj != x_adj_done)
+		D("%d!%d", adj, x_adj_done);
+	if (str >= xlp)
+		D(" str=%td xlp=%td ", str-xbuf, xlp-xbuf);
+	while (*str && str < xlp && adj == x_adj_done) {
+		D("'");
 		x_zotc3(&str);
+	}
 	D("G");
 }
 
@@ -2967,13 +3003,22 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
 static void
 x_adjust(void)
 {
+//	int i;
+
+	D(" x_adjust ");
 	x_adj_done++;			/* flag the fact that we were called. */
 	/*
 	 * we had a problem if the prompt length > xx_cols / 2
 	 */
-	if ((xbp = xcp - (x_displen / 2)) < xbuf)
-		xbp = xbuf;
+/*	xbp = xcp;
+	for (i = 0; i < (x_displen / 2); ++i)
+		xbp = utf_backch(xbp);
+	if (xbp < xbuf)
+		xbp = xbuf;*/
+        if ((xbp = xcp - (x_displen / 2)) < xbuf)
+                xbp = xbuf;
 	xlp_valid = false;
+	D("xbp=%td xcp=%td ", xbp-xbuf, xcp-xbuf);
 	x_redraw(xx_cols);
 	x_flush();
 }
@@ -3041,6 +3086,7 @@ x_e_putc2(int c)
 			break;
 		}
 	}
+	D("\nx_e_putc:col=%d(%d) ", x_col, xx_cols - 2);
 	if (x_adj_ok && (x_col < 0 || x_col >= (xx_cols - 2)))
 		x_adjust();
 }
@@ -3077,6 +3123,7 @@ x_e_putc3(const char **cp)
 			break;
 		}
 	}
+	D("\nx_e_putc:col=%d(%d) ", x_col, xx_cols - 2);
 	if (x_adj_ok && (x_col < 0 || x_col >= (xx_cols - 2)))
 		x_adjust();
 }
@@ -3341,7 +3388,7 @@ x_lastcp(void)
 		xlp = xbp;
 		while (xlp < xep) {
 			j = x_size2(xlp, &xlp2);
-			if ((i + j) >= x_displen)
+			if ((i + j) > x_displen)
 				break;
 			i += j;
 			xlp = xlp2;
