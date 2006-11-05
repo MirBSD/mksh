@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.39 2006/11/05 15:31:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.40 2006/11/05 15:36:09 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1092,7 +1092,7 @@ static	Area	aedit;
 #define	MKCTRL(x)	((x) == '?' ? 0x7F : (x) & 0x1F)	/* ASCII */
 #define	UNCTRL(x)	((x) ^ 0x40)				/* ASCII */
 #define	META(x)		((x) & 0x7f)
-#define	ISMETA(x)	(Flag(FEMACSUSEMETA) && ((x) & 0x80))
+#define	ISMETA(x)	(!Flag(FUTFHACK) && Flag(FEMACSUSEMETA) && ((x) & 0x80))
 
 
 /* values returned by keyboard functions */
