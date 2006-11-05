@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.47 2006/11/05 17:24:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.48 2006/11/05 17:34:39 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1690,18 +1690,18 @@ x_emacs_putbuf(const char *s, size_t len)
 static int
 x_del_back(int c __attribute__((unused)))
 {
-	int i = x_arg;
-	char *cp = xcp;
+	int i = 0;
 
-	while (i--) {
-		if (xcp == xbuf) {
-			x_goto(cp);
-			x_e_putc2(7);
-			return (KSTD);
-		}
-		x_goto(xcp - 1);
+	if (xcp == xbuf) {
+		x_e_putc2(7);
+		return (KSTD);
 	}
-	x_delete(x_arg, false);
+	while (i++ < x_arg) {
+		x_goto(xcp - 1);
+		if (xcp == xbuf)
+			break;
+	}
+	x_delete(i, false);
 	return KSTD;
 }
 
@@ -1975,15 +1975,15 @@ x_zotc3(char **cp)
 static int
 x_mv_back(int c __attribute__((unused)))
 {
-	int col = xcp - xbuf;
-
-	if (col == 0) {
+	if (xcp == xbuf) {
 		x_e_putc2(7);
 		return KSTD;
 	}
-	if (x_arg > col)
-		x_arg = col;
-	x_goto(xcp - x_arg);
+	while (x_arg--) {
+		x_goto(xcp - 1);
+		if (xcp == xbuf)
+			break;
+	}
 	return KSTD;
 }
 
