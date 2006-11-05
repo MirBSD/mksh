@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.40 2006/11/05 15:36:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.41 2006/11/05 16:10:10 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -56,19 +56,22 @@ static int x_file_glob(int, const char *, int, char ***);
 static int x_command_glob(int, const char *, int, char ***);
 static int x_locate_word(const char *, int, int, int *, int *);
 
-#if 0
-static void D(int);
+#if 1
+static void D(const char *, ...)
+    __attribute__((__format__ (printf, 1, 2)));
 static void
-D(int c)
+D(const char *fmt, ...)
 {
 	static FILE *_Dfp = NULL;
+	va_list ap;
 
 	if (_Dfp == NULL) {
 		if ((_Dfp = fopen("/tmp/mksh.dbg", "ab+")) == NULL)
 			abort();
 		fprintf(_Dfp, "\n\nOpening from %ld\n", (long)getpid());
 	}
-	putc(c, _Dfp);
+	va_start(ap, fmt);
+	vfprintf(_Dfp, fmt, ap);
 	fflush(_Dfp);
 }
 #else
@@ -1560,17 +1563,57 @@ x_emacs(char *buf, size_t len)
 static int
 x_insert(int c)
 {
-	char str[2];
+	static int left = 0, pos, save_arg;
+	static char str[4];
 
+	D("{%d}", left);
 	/*
 	 *  Should allow tab and control chars.
 	 */
 	if (c == 0) {
+		D("->0 ");
+		left = 0;
 		x_e_putc2(7);
 		return KSTD;
 	}
+	if (Flag(FUTFHACK)) {
+		if (((c & 0xC0) == 0x80) && left) {
+			str[pos++] = c;
+			left--;
+			if (!left) {
+				D("%02X]", c);
+				str[pos] = '\0';
+				x_arg = save_arg;
+				goto x_insert_write;
+			}
+			D("%02X|", c);
+			return (KSTD);
+		}
+		if (left) {
+			/* flush invalid multibyte */
+			str[pos] = '\0';
+			while (save_arg--)
+				x_ins(str);
+			left = 0;
+		}
+		if ((c >= 0xC2) && (c < 0xE0))
+			left = 1;
+		else if ((c >= 0xE0) && (c < 0xF0))
+			left = 2;
+		if (left) {
+			D("[%02X|", c);
+			save_arg = x_arg;
+			pos = 1;
+			str[0] = c;
+			return (KSTD);
+		}
+		D("<%02X>", c);
+	} else
+		D("|%02X}", c);
+	left = 0;
 	str[0] = c;
 	str[1] = '\0';
+ x_insert_write:
 	while (x_arg--)
 		x_ins(str);
 	return KSTD;
@@ -1622,10 +1665,11 @@ x_ins(char *s)
 	x_adj_ok = (xcp >= xlp);
 	x_zots(cp);
 	if (adj == x_adj_done) {	/* has x_adjust() been called? */
-		/* no */
+		D("H"); /* no */
 		for (cp = xlp; cp > xcp; )
 			x_bs2(cp = utf_backch(cp));
 	}
+	D("I");
 	x_adj_ok = 1;
 	return 0;
 }
@@ -1806,7 +1850,7 @@ x_fword(void)
 static void
 x_goto(char *cp)
 {
-	D('A');
+	D("A");
 	if (cp < xbp || cp >= (xbp + x_displen)) {
 		/* we are heading off screen */
 		xcp = cp;
@@ -1818,7 +1862,7 @@ x_goto(char *cp)
 		while (cp > xcp)
 			x_zotc3(&xcp);
 	}
-	D('B');
+	D("B");
 }
 
 static void
@@ -1835,10 +1879,10 @@ static int
 x_size_str(char *cp)
 {
 	int size = 0;
-	D('C');
+	D("C");
 	while (*cp)
 		size += x_size2(cp, &cp);
-	D('D');
+	D("D");
 	return size;
 }
 
@@ -1863,12 +1907,12 @@ x_zots(char *str)
 {
 	int adj = x_adj_done;
 
-	D('E');
+	D("E");
 	x_lastcp();
-	D('F');
+	D("F");
 	while (*str && str < xlp && adj == x_adj_done)
 		x_zotc3(&str);
-	D('G');
+	D("G");
 }
 
 static void
