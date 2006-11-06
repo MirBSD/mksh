@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.56 2006/11/05 21:11:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.57 2006/11/06 19:57:19 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -55,6 +55,28 @@ static void glob_path(int flags, const char *, XPtrV *, const char *);
 static int x_file_glob(int, const char *, int, char ***);
 static int x_command_glob(int, const char *, int, char ***);
 static int x_locate_word(const char *, int, int, int *, int *);
+
+#if 0
+static void D(const char *, ...)
+    __attribute__((__format__ (printf, 1, 2)));
+static void
+D(const char *fmt, ...)
+{
+	static FILE *_Dfp = NULL;
+	va_list ap;
+
+	if (_Dfp == NULL) {
+		if ((_Dfp = fopen("/tmp/mksh.dbg", "ab+")) == NULL)
+			abort();
+		fprintf(_Dfp, "\n\nOpening from %ld\n", (long)getpid());
+	}
+	va_start(ap, fmt);
+	vfprintf(_Dfp, fmt, ap);
+	fflush(_Dfp);
+}
+#else
+#define D(x)	/* nothing */
+#endif
 
 /* +++ generic editing functions +++ */
 
@@ -1705,11 +1727,9 @@ x_del_back(int c __attribute__((unused)))
 		x_e_putc2(7);
 		return (KSTD);
 	}
-	while (i++ < x_arg) {
+	do {
 		x_goto(xcp - 1);
-		if (xcp == xbuf)
-			break;
-	}
+	} while ((++i < x_arg) && (xcp != xbuf));
 	x_delete(i, false);
 	return KSTD;
 }
