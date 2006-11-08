@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.60 2006/11/08 23:38:28 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.61 2006/11/08 23:45:46 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -12,7 +12,9 @@ v()
 ac_test()
 {
 	f=$1
-	fu=$(echo $f | tr '[a-z]' '[A-Z]')
+	fu=$(echo $f | tr qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM)
+	fd=$3
+	test x"$fd" = x"" && fd=$f
 	test 0 = "$HAVE_$fu" && return
 	test 1 = "$HAVE_$fu" && return
 	if test x"$2" = x""; then
@@ -24,15 +26,15 @@ ac_test()
 		eval HAVE_$fu=0
 		return
 	fi
-	$e ... $f
+	$e ... $fd
 	cat >scn.c
 	$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS
 	if test -f a.out || test -f a.exe; then
 		eval HAVE_$fu=1
-		$e "==> $f... yes"
+		$e "==> $fd... yes"
 	else
 		eval HAVE_$fu=0
-		$e "==> $f... no"
+		$e "==> $fd... no"
 	fi
 	rm -f scn.c a.out a.exe
 }
@@ -165,6 +167,16 @@ EOF
 ac_test arc4random_push HAVE_ARC4RANDOM <<-'EOF'
 	#include <stdlib.h>
 	int main() { arc4random_push(1); return (0); }
+EOF
+
+ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<'EOF'
+	#include <locale.h>
+	int main() { setlocale(LC_CTYPE, ""); return (0); }
+EOF
+
+ac_test langinfo_codeset HAVE_SETLOCALE_CTYPE 'nl_langinfo(CODESET)' <<'EOF'
+	#include <langinfo.h>
+	int main() { nl_langinfo(CODESET); return (0); }
 EOF
 
 ac_test setmode <<-'EOF'

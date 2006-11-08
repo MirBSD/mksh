@@ -6,12 +6,14 @@
 #define	EXTERN
 #include "sh.h"
 
-#if (HAVE_LANGSTUFF - 0)
+#if HAVE_LANGINFO_CODESET
 #include <langinfo.h>
+#endif
+#if HAVE_SETLOCALE_CTYPE
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.50 2006/11/05 12:11:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.51 2006/11/08 23:45:47 tg Exp $");
 
 extern char **environ;
 
@@ -65,7 +67,7 @@ main(int argc, char *argv[])
 	pid_t ppid;
 	struct tbl *vp;
 	struct stat s_stdin;
-#if (HAVE_LANGSTUFF - 0)
+#if HAVE_SETLOCALE_CTYPE
 	const char *cc;
 #endif
 
@@ -142,10 +144,10 @@ main(int argc, char *argv[])
 	setstr(vp, def_path, KSH_RETURN_ERROR);
 
 
-#if (HAVE_LANGSTUFF - 0)
+#if HAVE_SETLOCALE_CTYPE
 	/* Check if we're in an UTF-8 locale */
 	cc = setlocale(LC_CTYPE, "");
-#ifdef CODESET
+#if HAVE_LANGINFO_CODESET
 	if (strcasecmp(cc, "UTF-8") && strcasecmp(cc, "utf8") &&
 	    strcasecmp(cc, "CESU-8") && strcasecmp(cc, "cesu8"))
 		cc = nl_langinfo(CODESET);
