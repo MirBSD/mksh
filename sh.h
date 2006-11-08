@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.52 2006/11/08 23:45:47 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.53 2006/11/08 23:50:47 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/08"
 
 #include <sys/cdefs.h>
@@ -106,14 +106,14 @@
 
 /* OS-dependent additions */
 
-#if !defined(HAVE_SETMODE) || (HAVE_SETMODE == 0)
+#if !HAVE_SETMODE
 mode_t getmode(const void *, mode_t);
 void *setmode(const char *);
 #endif
-#if !defined(HAVE_STRLCAT) || (HAVE_STRLCAT == 0)
+#if !HAVE_STRLCAT
 size_t strlcat(char *, const char *, size_t);
 #endif
-#if !defined(HAVE_STRLCPY) || (HAVE_STRLCPY == 0)
+#if !HAVE_STRLCPY
 size_t strlcpy(char *, const char *, size_t);
 #endif
 
