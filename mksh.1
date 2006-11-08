@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.62 2006/11/08 20:32:44 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.63 2006/11/08 23:49:01 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\"
 .Dd November 8, 2006
@@ -3268,11 +3268,11 @@ is used).
 .It Fl U \(*Ba Ic utf8-hack
 Enable an experimental UTF-8 hack for the
 .Sx Emacs editing mode .
-This is enabled automatically if your system supports these two calls and
+This is enabled automatically if your system supports
 .Fn setlocale LC_CTYPE \&""
-or an afterwards
-.Fn nl_langinfo CODESET
-return something that matches to
+and optionally
+.Fn nl_langinfo CODESET ,
+and at least one of these returns something that matches
 .Dq UTF-8 ,
 .Dq utf8 ,
 .Dq CESU-8 ,
@@ -5210,7 +5210,9 @@ Privileged shell profile.
 .Xr pipe 2 ,
 .Xr wait 2 ,
 .Xr getopt 3 ,
+.Xr nl_langinfo 3 ,
 .Xr rand 3 ,
+.Xr setlocale 3 ,
 .Xr signal 3 ,
 .Xr srand 3 ,
 .Xr system 3 ,
@@ -5218,6 +5220,7 @@ Privileged shell profile.
 .Xr shells 5 ,
 .Xr environ 7 ,
 .Xr script 7 ,
+.Xr utf-8 7 ,
 .Xr mknod 8
 .Pp
 .Pa http://docsrv.sco.com:507/en/man/html.C/sh.C.html
