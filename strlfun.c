@@ -1,5 +1,5 @@
-/* $MirOS: src/bin/mksh/strlfun.c,v 1.5 2006/11/08 23:02:30 tg Exp $ */
-/* _MirOS: src/lib/libc/string/strlfun.c,v 1.9 2006/11/08 23:01:50 tg Exp $ */
+/* $MirOS: src/bin/mksh/strlfun.c,v 1.6 2006/11/08 23:23:41 tg Exp $ */
+/* _MirOS: src/lib/libc/string/strlfun.c,v 1.10 2006/11/08 23:18:04 tg Exp $ */
 
 /*-
  * Copyright (c) 2006
@@ -33,7 +33,7 @@
 #undef HAVE_STRLCPY
 #undef HAVE_STRLCAT
 #else
-#if (HAVE_CONFIG_H - 0)
+#if defined(HAVE_CONFIG_H) && (HAVE_CONFIG_H != 0)
 /* usually when packaged with third-party software */
 #ifdef CONFIG_H_FILENAME
 #include CONFIG_H_FILENAME
@@ -71,12 +71,12 @@ extern size_t strlen(const char *);
 #define __predict_false(exp)	((exp) != 0)
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/strlfun.c,v 1.5 2006/11/08 23:02:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/strlfun.c,v 1.6 2006/11/08 23:23:41 tg Exp $");
 
 size_t strlcat(char *, const char *, size_t);
 size_t strlcpy(char *, const char *, size_t);
 
-#if !(HAVE_STRLCAT - 0)
+#if !defined(HAVE_STRLCAT) || (HAVE_STRLCAT == 0)
 /*
  * Appends src to string dst of size siz (unlike strncat, siz is the
  * full size of dst, not space left).  At most siz-1 characters
@@ -113,7 +113,7 @@ strlcat(char *dst, const char *src, size_t dlen)
  * copyright notice and this permission notice appear in all copies.
  */
 
-#if !(HAVE_STRLCPY - 0)
+#if !defined(HAVE_STRLCPY) || (HAVE_STRLCPY == 0)
 /*
  * Copy src to string dst of size siz.  At most siz-1 characters
  * will be copied.  Always NUL terminates (unless siz == 0).

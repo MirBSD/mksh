@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.50 2006/11/05 17:01:47 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.51 2006/11/08 23:23:41 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/05"
 
 #include <sys/cdefs.h>
@@ -60,7 +60,6 @@
 #include <time.h>
 #include <unistd.h>
 
-#ifdef NEED_COMPAT
 /* extra headers */
 
 #if defined(__sun__) || defined(__INTERIX)
@@ -101,11 +100,20 @@
 #ifndef S_ISTXT
 #define S_ISTXT 0001000
 #endif
+#ifndef DEFFILEMODE
+#define DEFFILEMODE (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
+#endif
 
 /* OS-dependent additions */
 
-#if defined(__gnu_linux__)
+#if !defined(HAVE_SETMODE) || (HAVE_SETMODE == 0)
+mode_t getmode(const void *, mode_t);
+void *setmode(const char *);
+#endif
+#if !defined(HAVE_STRLCAT) || (HAVE_STRLCAT == 0)
 size_t strlcat(char *, const char *, size_t);
+#endif
+#if !defined(HAVE_STRLCPY) || (HAVE_STRLCPY == 0)
 size_t strlcpy(char *, const char *, size_t);
 #endif
 
@@ -113,17 +121,10 @@ size_t strlcpy(char *, const char *, size_t);
 size_t confstr(int, char *, size_t);
 #endif
 
-#if defined(__gnu_linux__) || defined(__sun__) || defined(__CYGWIN__)
-#define DEFFILEMODE (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
-mode_t getmode(const void *, mode_t);
-void *setmode(const char *);
-#endif
-
 #ifdef __INTERIX
 #define	makedev(x,y)	mkdev((x),(y))
 extern int __cdecl seteuid(uid_t);
 extern int __cdecl setegid(gid_t);
-#endif
 #endif
 
 /* some useful #defines */

@@ -1,4 +1,5 @@
-/**	_MirOS: src/lib/libc/gen/setmode.c,v 1.5 2006/07/03 12:13:52 tg Exp $ */
+/**	$MirOS: src/bin/mksh/setmode.c,v 1.4 2006/11/08 23:23:41 tg Exp $ */
+/**	_MirOS: src/lib/libc/gen/setmode.c,v 1.6 2006/11/08 23:18:04 tg Exp $ */
 /*	$OpenBSD: setmode.c,v 1.17 2005/08/08 08:05:34 espie Exp $	*/
 /*	$NetBSD: setmode.c,v 1.15 1997/02/07 22:21:06 christos Exp $	*/
 
@@ -34,6 +35,15 @@
  * SUCH DAMAGE.
  */
 
+#if defined(HAVE_CONFIG_H) && (HAVE_CONFIG_H != 0)
+/* usually when packaged with third-party software */
+#ifdef CONFIG_H_FILENAME
+#include CONFIG_H_FILENAME
+#else
+#include "config.h"
+#endif
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -48,7 +58,7 @@
 #endif
 
 __SCCSID("@(#)setmode.c	8.2 (Berkeley) 3/25/94");
-__RCSID("$MirOS: src/bin/mksh/setmode.c,v 1.3 2006/08/01 13:43:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/setmode.c,v 1.4 2006/11/08 23:23:41 tg Exp $");
 
 #define	SET_LEN	6		/* initial # of bitcmd struct to malloc */
 #define	SET_LEN_INCR 4		/* # of bitcmd structs to add as needed */
