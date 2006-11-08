@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.61 2006/11/08 20:27:26 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.62 2006/11/08 20:32:44 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\"
 .Dd November 8, 2006
@@ -3309,6 +3309,9 @@ In emacs command-line editing, use the 8th bit as meta (^[) prefix.
 This is disabled by default, so you can use high-bit7 characters in pathnames.
 If this option is not set, characters in the range 128\-160 are printed as is,
 which may cause problems in some locales.
+This option has no effect if the
+.Ic utf8-hack
+option is enabled.
 .It Ic gmacs
 Enable gmacs-like command-line editing (interactive shells only).
 Currently identical to emacs editing except that transpose-chars (^T) acts
@@ -5289,7 +5292,7 @@ projects and patches and suggestions from users
 and many other persons.
 .Sh BUGS
 This document attempts to describe
-.Nm "" R28 .
+.Nm "" R29 .
 Please report bugs in
 .Nm
 to the
