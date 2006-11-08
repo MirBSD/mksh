@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.59 2006/11/08 23:23:40 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.60 2006/11/08 23:38:28 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -9,12 +9,49 @@ v()
 	eval "$@"
 }
 
+ac_test()
+{
+	f=$1
+	fu=$(echo $f | tr '[a-z]' '[A-Z]')
+	test 0 = "$HAVE_$fu" && return
+	test 1 = "$HAVE_$fu" && return
+	if test x"$2" = x""; then
+		ft=1
+	else
+		eval ft=\$$2
+	fi
+	if test 0 = "$ft"; then
+		eval HAVE_$fu=0
+		return
+	fi
+	$e ... $f
+	cat >scn.c
+	$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS
+	if test -f a.out || test -f a.exe; then
+		eval HAVE_$fu=1
+		$e "==> $f... yes"
+	else
+		eval HAVE_$fu=0
+		$e "==> $f... no"
+	fi
+	rm -f scn.c a.out a.exe
+}
+
 addcppf()
 {
 	for i
 	do
 		eval CPPFLAGS=\"\$CPPFLAGS -D$i=\$$i\"
 	done
+}
+
+addsrcs()
+{
+	eval i=\$$1
+	test 0 = $i && case " $SRCS " in
+	*\ $2\ *)	;;
+	*)		SRCS="$SRCS $2" ;;
+	esac
 }
 
 if test -d mksh; then
@@ -120,114 +157,37 @@ fi
 
 $e Scanning for functions... please ignore any errors.
 
-f=arc4random
-fu=$(echo $f | tr '[a-z]' '[A-Z]')
-test 0 = "$HAVE_$fu" || test 1 = "$HAVE_$fu" ||
-{
-	$e ... $f
-	cat >scn.c <<-'EOF'
-		#include <stdlib.h>
-		int main() { arc4random(); return (0); }
-	EOF
-	$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS
-	if test -f a.out || test -f a.exe; then
-		eval HAVE_$fu=1
-		$e "==> $f... yes"
-	else
-		eval HAVE_$fu=0
-		$e "==> $f... no"
-	fi
-	rm -f scn.c a.out a.exe
-}
+ac_test arc4random <<-'EOF'
+	#include <stdlib.h>
+	int main() { arc4random(); return (0); }
+EOF
 
-f=arc4random_push
-fu=$(echo $f | tr '[a-z]' '[A-Z]')
-test 0 = "$HAVE_$fu" || test 1 = "$HAVE_$fu" ||
-if test 1 = "$HAVE_ARC4RANDOM"; then
-	$e ... $f
-	cat >scn.c <<-'EOF'
-		#include <stdlib.h>
-		int main() { arc4random_push(1); return (0); }
-	EOF
-	$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS
-	if test -f a.out || test -f a.exe; then
-		eval HAVE_$fu=1
-		$e "==> $f... yes"
-	else
-		eval HAVE_$fu=0
-		$e "==> $f... no"
-	fi
-	rm -f scn.c a.out a.exe
-else
-	HAVE_ARC4RANDOM_PUSH=0
-fi
+ac_test arc4random_push HAVE_ARC4RANDOM <<-'EOF'
+	#include <stdlib.h>
+	int main() { arc4random_push(1); return (0); }
+EOF
 
-f=setmode
-fu=$(echo $f | tr '[a-z]' '[A-Z]')
-test 0 = "$HAVE_$fu" || test 1 = "$HAVE_$fu" ||
-{
-	$e ... $f
-	cat >scn.c <<-'EOF'
-		#include <unistd.h>
-		int main(int ac, char *av[]) { setmode(av[0]); return (0); }
-	EOF
-	$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS
-	if test -f a.out || test -f a.exe; then
-		eval HAVE_$fu=1
-		$e "==> $f... yes"
-	else
-		eval HAVE_$fu=0
-		SRCS="$SRCS setmode.c"
-		$e "==> $f... no"
-	fi
-	rm -f scn.c a.out a.exe
-}
+ac_test setmode <<-'EOF'
+	#include <unistd.h>
+	int main(int ac, char *av[]) { setmode(av[0]); return (0); }
+EOF
 
-f=strlcat
-fu=$(echo $f | tr '[a-z]' '[A-Z]')
-test 0 = "$HAVE_$fu" || test 1 = "$HAVE_$fu" ||
-{
-	$e ... $f
-	cat >scn.c <<-'EOF'
-		#include <string.h>
-		int main(int ac, char *av[]) { strlcat(av[0], av[1], 1); return (0); }
-	EOF
-	$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS
-	if test -f a.out || test -f a.exe; then
-		eval HAVE_$fu=1
-		$e "==> $f... yes"
-	else
-		eval HAVE_$fu=0
-		SRCS="$SRCS strlfun.c"
-		$e "==> $f... no"
-	fi
-	rm -f scn.c a.out a.exe
-}
+ac_test strlcat <<-'EOF'
+	#include <string.h>
+	int main(int ac, char *av[]) { strlcat(av[0], av[1], 1); return (0); }
+EOF
 
-f=strlcpy
-fu=$(echo $f | tr '[a-z]' '[A-Z]')
-test 0 = "$HAVE_$fu" || test 1 = "$HAVE_$fu" ||
-{
-	$e ... $f
-	cat >scn.c <<-'EOF'
-		#include <string.h>
-		int main(int ac, char *av[]) { strlcpy(av[0], av[1], 1); return (0); }
-	EOF
-	$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS
-	if test -f a.out || test -f a.exe; then
-		eval HAVE_$fu=1
-		$e "==> $f... yes"
-	else
-		eval HAVE_$fu=0
-		SRCS="$SRCS strlfun.c"
-		$e "==> $f... no"
-	fi
-	rm -f scn.c a.out a.exe
-}
+ac_test strlcpy <<-'EOF'
+	#include <string.h>
+	int main(int ac, char *av[]) { strlcpy(av[0], av[1], 1); return (0); }
+EOF
 
 $e ... done.
 addcppf HAVE_ARC4RANDOM HAVE_ARC4RANDOM_PUSH HAVE_SETMODE \
     HAVE_STRLCAT HAVE_STRLCPY
+addsrcs HAVE_SETMODE setmode.c
+addsrcs HAVE_STRLCAT strlfun.c
+addsrcs HAVE_STRLCPY strlfun.c
 
 (v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS" \
     "-DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\"" \
