@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.51 2006/11/08 23:45:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.52 2006/11/09 22:08:07 tg Exp $");
 
 extern char **environ;
 
@@ -67,6 +67,10 @@ main(int argc, char *argv[])
 	pid_t ppid;
 	struct tbl *vp;
 	struct stat s_stdin;
+#if !defined(_PATH_DEFPATH) && defined(_CS_PATH)
+	size_t k;
+	char *cp;
+#endif
 #if HAVE_SETLOCALE_CTYPE
 	const char *cc;
 #endif
@@ -123,17 +127,17 @@ main(int argc, char *argv[])
 
 	init_histvec();
 
+#ifdef _PATH_DEFPATH
 	def_path = _PATH_DEFPATH;
+#else
 #ifdef _CS_PATH
-	{
-		size_t len;
-		char *new;
-
-		if ((len = confstr(_CS_PATH, NULL, 0)) > 0) {
-			confstr(_CS_PATH, new = alloc(len + 1, APERM), len + 1);
-			def_path = new;
-		}
-	}
+	if ((len = confstr(_CS_PATH, NULL, 0)) != (size_t)-1 &&
+	    len > 0 && confstr(_CS_PATH, new = alloc(len + 1, APERM),
+	    len + 1) == len + 1)
+		def_path = new;
+	else
+#endif
+		def_path = "/bin:/usr/bin:/sbin:/usr/sbin";
 #endif
 
 	/* Set PATH to def_path (will set the path global variable).

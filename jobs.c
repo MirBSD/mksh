@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.11 2006/08/28 01:25:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.12 2006/11/09 22:08:07 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -92,8 +92,10 @@ static pid_t		async_pid;
 
 static int		nzombie;	/* # of zombies owned by this process */
 static int32_t		njobs;		/* # of jobs started */
-static int		child_max;	/* CHILD_MAX */
 
+#ifndef CHILD_MAX
+#define CHILD_MAX	_POSIX_CHILD_MAX
+#endif
 
 /* held_sigchld is set if sigchld occurs before a job is completely started */
 static volatile sig_atomic_t held_sigchld;
@@ -121,8 +123,6 @@ static int		kill_job(Job *, int);
 void
 j_init(int mflagset)
 {
-	child_max = sysconf(_SC_CHILD_MAX);
-
 	sigemptyset(&sm_default);
 	sigprocmask(SIG_SETMASK, &sm_default, NULL);
 
@@ -840,7 +840,7 @@ j_set_async(Job *j)
 	}
 	async_job = j;
 	async_pid = j->last_proc->pid;
-	while (nzombie > child_max) {
+	while (nzombie > CHILD_MAX) {
 		oldest = NULL;
 		for (jl = job_list; jl; jl = jl->next)
 			if (jl != async_job && (jl->flags & JF_ZOMBIE) &&

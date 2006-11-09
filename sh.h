@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.62 2006/11/09 21:20:49 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.63 2006/11/09 22:08:08 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/09"
 
 #if HAVE_SYS_PARAM_H
@@ -158,10 +158,7 @@ typedef int32_t Tflag;
 
 #define	LINE		4096	/* input line size */
 #ifndef PATH_MAX
-#define	PATH_MAX	1024	/* pathname size (todo: PATH_MAX/pathconf()) */
-#endif
-#ifndef _PATH_DEFPATH
-#define	_PATH_DEFPATH	"/bin:/usr/bin:/sbin:/usr/sbin"
+#define	PATH_MAX	1024	/* pathname size */
 #endif
 
 EXTERN	char *kshname;		/* $0 */
