@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.63 2006/11/08 23:49:01 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.64 2006/11/09 22:11:08 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\"
-.Dd November 8, 2006
+.Dd November 9, 2006
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -2601,10 +2601,8 @@ exit, and command assignments are not permanent).
 If the
 .Fl p
 option is given, a default search path is used instead of the current value of
-.Ev PATH
-(the actual value of the default path is system dependent: on
-POSIX-ish systems, it is the value returned by
-.Ic getconf CS_PATH ) .
+.Ev PATH ,
+the actual value of which is system dependent.
 .Pp
 If the
 .Fl v
@@ -5195,7 +5193,6 @@ Privileged shell profile.
 .Xr arc4random 1 ,
 .Xr awk 1 ,
 .Xr ed 1 ,
-.Xr getconf 1 ,
 .Xr getopt 1 ,
 .Xr sed 1 ,
 .Xr sh 1 ,

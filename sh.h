@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.63 2006/11/09 22:08:08 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.64 2006/11/09 22:11:08 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/09"
 
 #if HAVE_SYS_PARAM_H
@@ -116,7 +116,7 @@ void *setmode(const char *);
 size_t strlcpy(char *, const char *, size_t);
 #endif
 
-#if defined(__sun__)
+#if defined(__sun__) && !defined(_PATH_DEFPATH) && defined(_CS_PATH)
 size_t confstr(int, char *, size_t);
 #endif
 
