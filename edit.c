@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.57 2006/11/06 19:57:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.58 2006/11/09 00:01:36 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1092,7 +1092,7 @@ wcxtomb(char *src, unsigned wc)
 		*s++ = (wc >> 12) | 0xE0;
 	}
 
-	while (__predict_false(count)) {
+	while (count) {
 		*s++ = ((wc >> (6 * --count)) & 0x3F) | 0x80;
 	}
 	return ((char *)s - src);
