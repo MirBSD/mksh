@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.66 2006/11/09 00:11:38 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.67 2006/11/09 00:13:27 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -30,6 +30,7 @@ ac_test()
 	fi
 	if test 0 = "$ft"; then
 		eval HAVE_$fu=0 CPPFLAGS=\"\$CPPFLAGS -DHAVE_$fu=0\"
+		$e "==> $fd... no"
 		return
 	fi
 	$e ... $fd
