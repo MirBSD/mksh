@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.73 2006/11/09 23:04:34 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.74 2006/11/09 23:09:05 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -35,7 +35,8 @@ ac_testn()
 	fi
 	$e ... $fd
 	cat >scn.c
-	$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS 2>&1 | sed 's/^/] /'
+	v "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS" 2>&$v | \
+	    sed 's/^/] /'
 	if test -f a.out || test -f a.exe; then
 		eval HAVE_$fu=1
 		$e "==> $fd... yes"
@@ -72,7 +73,7 @@ curdir=`pwd` srcdir=`dirname "$0"`
 echo | $NROFF -v 2>&1 | grep GNU >&- 2>&- && NROFF="$NROFF -c"
 
 e=echo
-q=0
+v=1
 r=0
 x=0
 LDSTATIC=-static
@@ -85,7 +86,7 @@ do
 		;;
 	-q)
 		e=:
-		q=1
+		v=-
 		;;
 	-r)
 		r=1
@@ -245,7 +246,7 @@ test -f mksh.exe && result=mksh.exe
 test -f $result || exit 1
 test $r = 1 || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
     rm -f mksh.cat1
-test $q = 1 || v size $result
+test $v = 1 && v size $result
 case $curdir in
 *\ *)	echo "#!./mksh" >test.sh ;;
 *)	echo "#!$curdir/mksh" >test.sh ;;
