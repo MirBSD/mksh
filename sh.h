@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.58 2006/11/09 15:02:31 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.59 2006/11/09 15:03:56 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/09"
 
 #if HAVE_SYS_PARAM_H
@@ -111,9 +111,6 @@
 #if !HAVE_SETMODE
 mode_t getmode(const void *, mode_t);
 void *setmode(const char *);
-#endif
-#if !HAVE_STRLCAT
-size_t strlcat(char *, const char *, size_t);
 #endif
 #if !HAVE_STRLCPY
 size_t strlcpy(char *, const char *, size_t);
