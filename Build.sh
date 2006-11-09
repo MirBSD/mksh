@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.61 2006/11/08 23:45:46 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.62 2006/11/09 00:01:04 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -9,10 +9,15 @@ v()
 	eval "$@"
 }
 
+upper()
+{
+	echo "$@" | tr qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM
+}
+
 ac_test()
 {
 	f=$1
-	fu=$(echo $f | tr qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM)
+	fu=$(upper $f)
 	fd=$3
 	test x"$fd" = x"" && fd=$f
 	test 0 = "$HAVE_$fu" && return
@@ -20,15 +25,16 @@ ac_test()
 	if test x"$2" = x""; then
 		ft=1
 	else
-		eval ft=\$$2
+		ft=$(upper $2)
+		eval ft=\$HAVE_$ft
 	fi
 	if test 0 = "$ft"; then
-		eval HAVE_$fu=0
+		eval HAVE_$fu=0 CPPFLAGS=\"\$CPPFLAGS -DHAVE_$fu=0\"
 		return
 	fi
 	$e ... $fd
 	cat >scn.c
-	$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS
+	$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS 2>&1 | sed 's/^/] /'
 	if test -f a.out || test -f a.exe; then
 		eval HAVE_$fu=1
 		$e "==> $fd... yes"
@@ -37,14 +43,7 @@ ac_test()
 		$e "==> $fd... no"
 	fi
 	rm -f scn.c a.out a.exe
-}
-
-addcppf()
-{
-	for i
-	do
-		eval CPPFLAGS=\"\$CPPFLAGS -D$i=\$$i\"
-	done
+	eval CPPFLAGS=\"\$CPPFLAGS -DHAVE_$fu=\$HAVE_$fu\"
 }
 
 addsrcs()
@@ -161,42 +160,40 @@ $e Scanning for functions... please ignore any errors.
 
 ac_test arc4random <<-'EOF'
 	#include <stdlib.h>
-	int main() { arc4random(); return (0); }
+	int main(void) { arc4random(); return (0); }
 EOF
 
 ac_test arc4random_push HAVE_ARC4RANDOM <<-'EOF'
 	#include <stdlib.h>
-	int main() { arc4random_push(1); return (0); }
+	int main(void) { arc4random_push(1); return (0); }
 EOF
 
 ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<'EOF'
 	#include <locale.h>
-	int main() { setlocale(LC_CTYPE, ""); return (0); }
+	int main(void) { setlocale(LC_CTYPE, ""); return (0); }
 EOF
 
 ac_test langinfo_codeset HAVE_SETLOCALE_CTYPE 'nl_langinfo(CODESET)' <<'EOF'
 	#include <langinfo.h>
-	int main() { nl_langinfo(CODESET); return (0); }
+	int main(void) { nl_langinfo(CODESET); return (0); }
 EOF
 
 ac_test setmode <<-'EOF'
 	#include <unistd.h>
-	int main(int ac, char *av[]) { setmode(av[0]); return (0); }
+	int main(int ac, char *av[]) { setmode(av[0]); return (ac); }
 EOF
 
 ac_test strlcat <<-'EOF'
 	#include <string.h>
-	int main(int ac, char *av[]) { strlcat(av[0], av[1], 1); return (0); }
+	int main(int ac, char *av[]) { strlcat(av[0], av[1], 1); return (ac); }
 EOF
 
 ac_test strlcpy <<-'EOF'
 	#include <string.h>
-	int main(int ac, char *av[]) { strlcpy(av[0], av[1], 1); return (0); }
+	int main(int ac, char *av[]) { strlcpy(av[0], av[1], 1); return (ac); }
 EOF
 
 $e ... done.
-addcppf HAVE_ARC4RANDOM HAVE_ARC4RANDOM_PUSH HAVE_SETMODE \
-    HAVE_STRLCAT HAVE_STRLCPY
 addsrcs HAVE_SETMODE setmode.c
 addsrcs HAVE_STRLCAT strlfun.c
 addsrcs HAVE_STRLCPY strlfun.c
