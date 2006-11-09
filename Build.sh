@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.68 2006/11/09 15:02:30 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.69 2006/11/09 22:51:49 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -18,8 +18,6 @@ ac_test()
 {
 	f=$1
 	fu=`upper $f`
-	fd=$3
-	test x"$fd" = x"" && fd=$f
 	test 0 = "$HAVE_$fu" && return
 	test 1 = "$HAVE_$fu" && return
 	if test x"$2" = x""; then
@@ -27,10 +25,14 @@ ac_test()
 	else
 		ft=`upper $2`
 		eval ft=\$HAVE_$ft
+		shift
 	fi
+	fd=$3
+	test x"$fd" = x"" && fd=$f
 	if test 0 = "$ft"; then
-		eval HAVE_$fu=0 CPPFLAGS=\"\$CPPFLAGS -DHAVE_$fu=0\"
-		$e "==> $fd... no"
+		eval HAVE_$fu=$2
+		eval CPPFLAGS=\"\$CPPFLAGS -DHAVE_$fu=$2\"
+		$e "==> $fd... not checked ($2)"
 		return
 	fi
 	$e ... $fd
@@ -157,12 +159,20 @@ fi
 
 $e Scanning for functions... please ignore any errors.
 
+ac_test mksh_full '' "if we're building without MKSH_SMALL" <<-'EOF'
+	#ifdef MKSH_SMALL
+	#error OK, we're building an extra small mksh.
+	#else
+	int main(void) { return (0); }
+	#endif
+EOF
+
 ac_test arc4random <<-'EOF'
 	#include <stdlib.h>
 	int main(void) { arc4random(); return (0); }
 EOF
 
-ac_test arc4random_push arc4random <<-'EOF'
+ac_test arc4random_push arc4random 0 <<-'EOF'
 	#include <stdlib.h>
 	int main(void) { arc4random_push(1); return (0); }
 EOF
@@ -172,12 +182,12 @@ ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<'EOF'
 	int main(void) { setlocale(LC_CTYPE, ""); return (0); }
 EOF
 
-ac_test langinfo_codeset setlocale_ctype 'nl_langinfo(CODESET)' <<'EOF'
+ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<'EOF'
 	#include <langinfo.h>
 	int main(void) { nl_langinfo(CODESET); return (0); }
 EOF
 
-ac_test setmode <<-'EOF'
+ac_test setmode mksh_full 1 <<-'EOF'
 	#include <unistd.h>
 	int main(int ac, char *av[]) { setmode(av[0]); return (ac); }
 EOF

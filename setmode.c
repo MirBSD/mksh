@@ -1,5 +1,4 @@
-/**	$MirOS: src/bin/mksh/setmode.c,v 1.5 2006/11/09 22:18:10 tg Exp $ */
-#ifndef MKSH_SMALL
+/**	$MirOS: src/bin/mksh/setmode.c,v 1.6 2006/11/09 22:51:49 tg Exp $ */
 /**	_MirOS: src/lib/libc/gen/setmode.c,v 1.6 2006/11/08 23:18:04 tg Exp $ */
 /*	$OpenBSD: setmode.c,v 1.17 2005/08/08 08:05:34 espie Exp $	*/
 /*	$NetBSD: setmode.c,v 1.15 1997/02/07 22:21:06 christos Exp $	*/
@@ -59,7 +58,7 @@
 #endif
 
 __SCCSID("@(#)setmode.c	8.2 (Berkeley) 3/25/94");
-__RCSID("$MirOS: src/bin/mksh/setmode.c,v 1.5 2006/11/09 22:18:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/setmode.c,v 1.6 2006/11/09 22:51:49 tg Exp $");
 
 #define	SET_LEN	6		/* initial # of bitcmd struct to malloc */
 #define	SET_LEN_INCR 4		/* # of bitcmd structs to add as needed */
@@ -463,4 +462,3 @@ compress_mode(BITCMD *set)
 		}
 	}
 }
-#endif
