@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.72 2006/11/09 22:56:55 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.73 2006/11/09 23:04:34 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -104,7 +104,6 @@ done
 if test $x = 0; then
 	SRCS=
 	sigseen=
-	NOWARN=-Wno-error
 fi
 SRCS="$SRCS alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
@@ -163,6 +162,18 @@ fi
 
 $e Scanning for functions... please ignore any errors.
 
+ac_testn compiler_works '' 'if the compiler works' <<-'EOF'
+	int main(void) { return (0); }
+EOF
+test 1 = $HAVE_COMPILER_WORKS || exit 1
+if test x"$NOWARN" = x""; then
+	NOWARN=-Wno-error
+	ac_testn can_wnoerror '' 'if -Wno-error can be used' <<-'EOF'
+		int main(void) { return (0); }
+	EOF
+	test 1 = $HAVE_CAN_WNOERROR || NOWARN=
+fi
+
 ac_testn mksh_full '' "if we're building without MKSH_SMALL" <<-'EOF'
 	#ifdef MKSH_SMALL
 	#error OK, we're building an extra small mksh.
@@ -170,6 +181,22 @@ ac_testn mksh_full '' "if we're building without MKSH_SMALL" <<-'EOF'
 	int main(void) { return (0); }
 	#endif
 EOF
+
+if test 0 = $HAVE_MKSH_FULL; then
+	save_CFLAGS=$CFLAGS
+	CFLAGS="$CFLAGS -fno-inline"
+	ac_testn can_fnoinline '' 'if -fno-inline can be used' <<-'EOF'
+		int main(void) { return (0); }
+	EOF
+	test 1 = $HAVE_CAN_FNOINLINE || CFLAGS=$save_CFLAGS
+fi
+
+save_CFLAGS=$CFLAGS
+CFLAGS="$CFLAGS -fwhole-program --combine"
+ac_testn can_fwholepgm '' 'if -fwhole-program --combine can be used' <<-'EOF'
+	int main(void) { return (0); }
+EOF
+test 1 = $HAVE_CAN_FWHOLEPGM || CFLAGS=$save_CFLAGS
 
 ac_test arc4random <<-'EOF'
 	#include <stdlib.h>
