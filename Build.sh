@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.62 2006/11/09 00:01:04 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.63 2006/11/09 00:03:37 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -115,14 +115,12 @@ Interix)
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
 	;;
 Linux)
-	SRCS="$SRCS compat.c strlfun.c"
 	CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=2 -D_BSD_SOURCE -D_GNU_SOURCE"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 	LDSTATIC=
 	sigseen=:
 	;;
 SunOS)
-	SRCS="$SRCS compat.c"
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 	LDSTATIC=
