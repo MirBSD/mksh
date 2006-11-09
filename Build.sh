@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.63 2006/11/09 00:03:37 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.64 2006/11/09 00:06:33 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -17,7 +17,7 @@ upper()
 ac_test()
 {
 	f=$1
-	fu=$(upper $f)
+	fu=`upper $f`
 	fd=$3
 	test x"$fd" = x"" && fd=$f
 	test 0 = "$HAVE_$fu" && return
@@ -25,7 +25,7 @@ ac_test()
 	if test x"$2" = x""; then
 		ft=1
 	else
-		ft=$(upper $2)
+		ft=`upper $2`
 		eval ft=\$HAVE_$ft
 	fi
 	if test 0 = "$ft"; then
