@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.70 2006/11/09 22:53:21 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.71 2006/11/09 22:56:09 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -14,7 +14,7 @@ upper()
 	echo "$@" | tr qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM
 }
 
-ac_test()
+ac_testn()
 {
 	f=$1
 	fu=`upper $f`
@@ -23,15 +23,13 @@ ac_test()
 	if test x"$2" = x""; then
 		ft=1
 	else
-		ft=`upper $2`
-		eval ft=\$HAVE_$ft
+		eval ft=\$HAVE_`upper $2`
 		shift
 	fi
 	fd=$3
 	test x"$fd" = x"" && fd=$f
 	if test 0 = "$ft"; then
 		eval HAVE_$fu=$2
-		eval CPPFLAGS=\"\$CPPFLAGS -DHAVE_$fu=$2\"
 		$e "==> $fd... not checked ($2)"
 		return
 	fi
@@ -46,6 +44,13 @@ ac_test()
 		$e "==> $fd... no"
 	fi
 	rm -f scn.c a.out a.exe
+}
+
+ac_test()
+{
+	f=$1
+	fu=`upper $f`
+	ac_testn "$@"
 	eval CPPFLAGS=\"\$CPPFLAGS -DHAVE_$fu=\$HAVE_$fu\"
 }
 
@@ -160,7 +165,7 @@ fi
 
 $e Scanning for functions... please ignore any errors.
 
-ac_test mksh_full '' "if we're building without MKSH_SMALL" <<-'EOF'
+ac_testn mksh_full '' "if we're building without MKSH_SMALL" <<-'EOF'
 	#ifdef MKSH_SMALL
 	#error OK, we're building an extra small mksh.
 	#else
