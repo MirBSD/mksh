@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.69 2006/11/09 22:51:49 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.70 2006/11/09 22:53:21 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -72,6 +72,7 @@ e=echo
 q=0
 r=0
 x=0
+LDSTATIC=-static
 
 for i
 do
@@ -88,6 +89,7 @@ do
 		;;
 	-x)
 		x=1
+		LDSTATIC=
 		;;
 	*)
 		echo "$0: Unknown option '$i'!" >&2
@@ -97,7 +99,6 @@ do
 done
 
 if test $x = 0; then
-	LDSTATIC=-static
 	SRCS=
 	sigseen=
 	NOWARN=-Wno-error
