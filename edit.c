@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.61 2006/11/09 15:02:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.62 2006/11/09 21:20:49 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -863,7 +863,8 @@ static size_t mbxtowc(unsigned *, const char *);
 static size_t wcxtomb(char *, unsigned);
 static int wcxwidth(unsigned);
 static int x_e_getmbc(char *);
-char *utf_getcpfromcols(char *, int);
+static char *utf_getcpfromcols(char *, int);
+static void utf_ptradj(char *, char **);
 
 /* UTF-8 hack: high-level functions */
 
@@ -880,13 +881,11 @@ char *utf_getcpfromcols(char *, int);
 int
 utf_widthadj(const char *src, const char **dst)
 {
-	size_t len = (size_t)-1;
+	size_t len;
 	unsigned wc;
 
-	if (Flag(FUTFHACK) && *(const unsigned char *)src > 0x7F)
-		len = mbxtowc(&wc, src);
-
-	if (len == (size_t)-1) {
+	if (!Flag(FUTFHACK) || *(const unsigned char *)src <= 0x7F ||
+	    (len = mbxtowc(&wc, src)) == (size_t)-1) {
 		if (dst)
 			*dst = src + 1;
 		return (1);
@@ -897,7 +896,7 @@ utf_widthadj(const char *src, const char **dst)
 	return (wcxwidth(wc));
 }
 
-void
+static void
 utf_ptradj(char *src, char **dst)
 {
 	size_t len;
@@ -921,7 +920,7 @@ utf_ptradj(char *src, char **dst)
 		*dst = src + len;
 }
 
-char *
+static char *
 utf_getcpfromcols(char *p, int cols)
 {
 	int c = 0;
@@ -1018,7 +1017,7 @@ wcxwidth_bisearch(unsigned ucs, const struct wcxwidth_interval *table, size_t ma
 	return (0);
 }
 
-int
+static int
 wcxwidth(unsigned c)
 {
 	/* test for 8-bit control characters */
@@ -1047,7 +1046,7 @@ wcxwidth(unsigned c)
 /* --- begin of mbrtowc.c excerpt --- */
 __RCSID("_MirOS: src/lib/libc/i18n/mbrtowc.c,v 1.13 2006/11/01 20:01:19 tg Exp $");
 
-size_t
+static size_t
 mbxtowc(unsigned *dst, const char *src)
 {
 	const unsigned char *s = (const unsigned char *)src;
