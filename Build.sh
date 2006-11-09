@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.64 2006/11/09 00:06:33 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.65 2006/11/09 00:08:25 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -161,7 +161,7 @@ ac_test arc4random <<-'EOF'
 	int main(void) { arc4random(); return (0); }
 EOF
 
-ac_test arc4random_push HAVE_ARC4RANDOM <<-'EOF'
+ac_test arc4random_push arc4random <<-'EOF'
 	#include <stdlib.h>
 	int main(void) { arc4random_push(1); return (0); }
 EOF
@@ -171,7 +171,7 @@ ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<'EOF'
 	int main(void) { setlocale(LC_CTYPE, ""); return (0); }
 EOF
 
-ac_test langinfo_codeset HAVE_SETLOCALE_CTYPE 'nl_langinfo(CODESET)' <<'EOF'
+ac_test langinfo_codeset setlocale_ctype 'nl_langinfo(CODESET)' <<'EOF'
 	#include <langinfo.h>
 	int main(void) { nl_langinfo(CODESET); return (0); }
 EOF
