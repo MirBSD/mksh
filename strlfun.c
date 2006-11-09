@@ -1,4 +1,4 @@
-/* $MirOS: src/bin/mksh/strlfun.c,v 1.6 2006/11/08 23:23:41 tg Exp $ */
+/* $MirOS: src/bin/mksh/strlfun.c,v 1.7 2006/11/09 15:02:31 tg Exp $ */
 /* _MirOS: src/lib/libc/string/strlfun.c,v 1.10 2006/11/08 23:18:04 tg Exp $ */
 
 /*-
@@ -71,37 +71,9 @@ extern size_t strlen(const char *);
 #define __predict_false(exp)	((exp) != 0)
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/strlfun.c,v 1.6 2006/11/08 23:23:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/strlfun.c,v 1.7 2006/11/09 15:02:31 tg Exp $");
 
-size_t strlcat(char *, const char *, size_t);
 size_t strlcpy(char *, const char *, size_t);
-
-#if !defined(HAVE_STRLCAT) || (HAVE_STRLCAT == 0)
-/*
- * Appends src to string dst of size siz (unlike strncat, siz is the
- * full size of dst, not space left).  At most siz-1 characters
- * will be copied.  Always NUL terminates (unless siz <= strlen(dst)).
- * Returns strlen(src) + MIN(siz, strlen(initial dst)).
- * If retval >= siz, truncation occurred.
- */
-size_t
-strlcat(char *dst, const char *src, size_t dlen)
-{
-	size_t n = 0, slen;
-
-	slen = strlen(src);
-	while (__predict_true(n + 1 < dlen && dst[n] != '\0'))
-		++n;
-	if (__predict_false(dlen == 0 || dst[n] != '\0'))
-		return (dlen + slen);
-	while (__predict_true((slen > 0) && (n < (dlen - 1)))) {
-		dst[n++] = *src++;
-		--slen;
-	}
-	dst[n] = '\0';
-	return (n + slen);
-}
-#endif /* !HAVE_STRLCAT */
 
 /* $OpenBSD: strlcpy.c,v 1.10 2005/08/08 08:05:37 espie Exp $ */
 

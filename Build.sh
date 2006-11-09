@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.67 2006/11/09 00:13:27 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.68 2006/11/09 15:02:30 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -182,11 +182,6 @@ ac_test setmode <<-'EOF'
 	int main(int ac, char *av[]) { setmode(av[0]); return (ac); }
 EOF
 
-ac_test strlcat <<-'EOF'
-	#include <string.h>
-	int main(int ac, char *av[]) { strlcat(av[0], av[1], 1); return (ac); }
-EOF
-
 ac_test strlcpy <<-'EOF'
 	#include <string.h>
 	int main(int ac, char *av[]) { strlcpy(av[0], av[1], 1); return (ac); }
@@ -199,7 +194,6 @@ EOF
 
 $e ... done.
 addsrcs HAVE_SETMODE setmode.c
-addsrcs HAVE_STRLCAT strlfun.c
 addsrcs HAVE_STRLCPY strlfun.c
 
 (v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS" \

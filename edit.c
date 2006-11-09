@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.60 2006/11/09 00:39:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.61 2006/11/09 15:02:30 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1178,13 +1178,13 @@ typedef enum {
 /*
  * The following are used for my horizontal scrolling stuff
  */
-static char   *xbuf;		/* beg input buffer */
-static char   *xend;		/* end input buffer */
-static char    *xcp;		/* current position */
-static char    *xep;		/* current end */
-static char    *xbp;		/* start of visible portion of input buffer */
-static char    *xlp;		/* last char visible on screen */
-static int	x_adj_ok;
+static char *xbuf;		/* beg input buffer */
+static char *xend;		/* end input buffer */
+static char *xcp;		/* current position */
+static char *xep;		/* current end */
+static char *xbp;		/* start of visible portion of input buffer */
+static char *xlp;		/* last char visible on screen */
+static int x_adj_ok;
 /*
  * we use x_adj_done so that functions can tell
  * whether x_adjust() has been called while they are active.
@@ -1199,19 +1199,19 @@ static int	x_arg_defaulted;/* x_arg not explicitly set; defaulted to 1 */
 
 static int	xlp_valid;
 
-static	int	x_prefix1 = MKCTRL('['), x_prefix2 = MKCTRL('X');
-static	char   **x_histp;	/* history position */
-static	int	x_nextcmd;	/* for newline-and-next */
-static	char	*xmp;		/* mark pointer */
-static	u_char	x_last_command;
-static	u_char	(*x_tab)[X_TABSZ];	/* key definition */
-static	char    *(*x_atab)[X_TABSZ];	/* macro definitions */
-static	unsigned char	x_bound[(X_TABSZ * X_NTABS + 7) / 8];
+static int	x_prefix1 = MKCTRL('['), x_prefix2 = MKCTRL('X');
+static char	**x_histp;	/* history position */
+static int	x_nextcmd;	/* for newline-and-next */
+static char	*xmp;		/* mark pointer */
+static u_char	x_last_command;
+static u_char	(*x_tab)[X_TABSZ];	/* key definition */
+static char	*(*x_atab)[X_TABSZ];	/* macro definitions */
+static unsigned char	x_bound[(X_TABSZ * X_NTABS + 7) / 8];
 #define	KILLSIZE	20
-static	char    *killstack[KILLSIZE];
-static	int	killsp, killtp;
-static	int	x_curprefix;
-static	char    *macroptr;
+static char	*killstack[KILLSIZE];
+static int	killsp, killtp;
+static int	x_curprefix;
+static char	*macroptr;
 static int	cur_col;		/* current column on line */
 static int	pwidth;			/* width of prompt */
 static int	prompt_trunc;		/* how much of prompt to truncate */
@@ -1225,11 +1225,11 @@ static int	lastref;		/* argument to last refresh() */
 static char	holdbuf[LINE];		/* place to hold last edit buffer */
 static int	holdlen;		/* length of holdbuf */
 
-static int      x_ins(char *);
-static void     x_delete(int, int);
+static int	x_ins(char *);
+static void	x_delete(int, int);
 static int	x_bword(void);
 static int	x_fword(int);
-static void     x_goto(char *);
+static void	x_goto(char *);
 static void     x_bs2(char *);
 static int      x_size_str(char *);
 static int      x_size2(char *, char **);
@@ -1240,9 +1240,10 @@ static void     x_load_hist(char **);
 static int      x_search(char *, int, int);
 static int      x_match(char *, char *);
 static void	x_redraw(int);
-static void     x_push(int);
-static char *   x_mapin(const char *);
-static char *   x_mapout(int);
+static void	x_push(int);
+static char *	x_mapin(const char *);
+static char *	x_mapout(int);
+static void	x_mapout2(int, char **);
 static void     x_print(int, int);
 static void	x_adjust(void);
 static void	x_e_ungetc(int);
@@ -2626,11 +2627,10 @@ x_mapin(const char *cp)
 	return new;
 }
 
-static char *
-x_mapout(int c)
+static void
+x_mapout2(int c, char **buf)
 {
-	static char buf[8];
-	char *p = buf;
+	char *p = *buf;
 
 	if (c < ' ' || c == 0x7f) {
 		*p++ = '^';
@@ -2638,7 +2638,17 @@ x_mapout(int c)
 	} else
 		*p++ = c;
 	*p = 0;
-	return buf;
+	*buf = p;
+}
+
+static char *
+x_mapout(int c)
+{
+	static char buf[8];
+	char *bp = buf;
+
+	x_mapout2(c, &bp);
+	return (buf);
 }
 
 static void
@@ -2703,10 +2713,11 @@ x_bind(const char *a1, const char *a2,
 			break;
 	}
 	if (*++m1 && ((*m1 != '~') || *(m1+1))) {
-		char msg[256] = "bind: key sequence '";
+		char msg[256] = "key sequence '";
 		const char *c = a1;
-		while (*c)
-			strlcat(msg, x_mapout(*c++), sizeof (msg));
+		m1 = msg + strlen(msg);
+		while (*c && m1 < (msg + sizeof (msg) - 3))
+			x_mapout2(*c++, &m1);
 		bi_errorf("%s' too long", msg);
 		return (1);
 	}
