@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.59 2006/11/09 15:03:56 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.60 2006/11/09 20:53:42 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/09"
 
 #if HAVE_SYS_PARAM_H
@@ -1217,7 +1217,7 @@ struct tbl **ktsort(struct table *);
 void setctypes(const char *, int);
 void initctypes(void);
 char *ulton(unsigned long, int);
-#define str_save(s, a)	str_nsave((s), (s) ? strlen(s) : 0, a)
+char *str_save(const char *, Area *);
 char *str_nsave(const char *, int, Area *);
 int option(const char *);
 char *getoptions(void);

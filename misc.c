@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.19 2006/11/09 14:19:31 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.20 2006/11/09 20:53:41 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 short chtypes[UCHAR_MAX+1];	/* type bits for unsigned char */
@@ -79,6 +79,12 @@ str_nsave(const char *s, int n, Area *ap)
 	if (n >= 0 && s)
 		strlcpy(ns = alloc(n + 1, ap), s, n + 1);
 	return (ns);
+}
+
+char *
+str_save(const char *s, Area *ap)
+{
+	return (str_nsave(s, s ? strlen(s) : 0, ap));
 }
 
 /* called from XcheckN() to grow buffer */
