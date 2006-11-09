@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.31 2006/11/09 22:18:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.32 2006/11/09 23:19:52 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -1135,9 +1135,11 @@ c_kill(char **wp)
 		i = builtin_opt.optind;
 	}
 	if ((lflag && t) || (!wp[i] && !lflag)) {
+#ifndef MKSH_SMALL
 		shf_fprintf(shl_out,
 		    "Usage: kill [ -s signame | -signum | -signame ] {pid|job}...\n"
 		    "       kill -l [exit_status]\n");
+#endif
 		bi_errorf(null);
 		return 1;
 	}
