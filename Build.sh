@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.65 2006/11/09 00:08:25 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.66 2006/11/09 00:11:38 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -189,6 +189,11 @@ EOF
 ac_test strlcpy <<-'EOF'
 	#include <string.h>
 	int main(int ac, char *av[]) { strlcpy(av[0], av[1], 1); return (ac); }
+EOF
+
+ac_test sys_param_h '' '<sys/param.h>' <<'EOF'
+	#include <sys/param.h>
+	int main(void) { return (0); }
 EOF
 
 $e ... done.

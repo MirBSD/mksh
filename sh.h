@@ -8,10 +8,13 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.53 2006/11/08 23:50:47 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.54 2006/11/09 00:11:39 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/08"
 
-#include <sys/cdefs.h>
+#if HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+#include <sys/types.h>
 #if !defined(__RCSID) || !defined(__SCCSID)
 #if !defined(__GNUC__) || defined(lint)
 #define __attribute__(x)		/* deleted */
@@ -30,7 +33,6 @@
 #define	__SCCSID(x)	__IDSTRING(sccsid,x)
 #endif
 
-#include <sys/param.h>
 #include <sys/time.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>
