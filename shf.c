@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.6 2006/08/02 12:50:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.7 2006/11/09 21:00:13 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1000,3 +1000,19 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 
 	return shf_error(shf) ? EOF : nwritten;
 }
+
+#ifdef MKSH_SMALL
+int
+shf_getc(struct shf *shf)
+{
+	return ((shf)->rnleft > 0 ? (shf)->rnleft--, *(shf)->rp++ :
+	    shf_getchar(shf));
+}
+
+int
+shf_putc(int c, struct shf *shf)
+{
+	return ((shf)->wnleft == 0 ? shf_putchar((c), (shf)) :
+	    ((shf)->wnleft--, *(shf)->wp++ = (c)));
+}
+#endif

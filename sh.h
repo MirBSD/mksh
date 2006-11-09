@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.60 2006/11/09 20:53:42 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.61 2006/11/09 21:00:13 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/09"
 
 #if HAVE_SYS_PARAM_H
@@ -492,10 +492,15 @@ EXTERN	int	x_cols I__(80);	/* tty columns */
 
 #define shf_fileno(shf)	((shf)->fd)
 #define shf_setfileno(shf,nfd)	((shf)->fd = (nfd))
+#ifdef MKSH_SMALL
+int shf_getc(struct shf *);
+int shf_putc(int, struct shf *);
+#else
 #define shf_getc(shf) ((shf)->rnleft > 0 ? (shf)->rnleft--, *(shf)->rp++ : \
 			shf_getchar(shf))
 #define shf_putc(c, shf)	((shf)->wnleft == 0 ? shf_putchar((c), (shf)) : \
 				    ((shf)->wnleft--, *(shf)->wp++ = (c)))
+#endif
 #define shf_eof(shf)		((shf)->flags & SHF_EOF)
 #define shf_error(shf)		((shf)->flags & SHF_ERROR)
 #define shf_errno(shf)		((shf)->errno_)
