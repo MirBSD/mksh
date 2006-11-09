@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.59 2006/11/09 00:28:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.60 2006/11/09 00:39:27 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -897,6 +897,30 @@ utf_widthadj(const char *src, const char **dst)
 	return (wcxwidth(wc));
 }
 
+void
+utf_ptradj(char *src, char **dst)
+{
+	size_t len;
+
+	if (!Flag(FUTFHACK) || *(unsigned char *)src < 0xC2)
+		len = 1;
+	else if (*(unsigned char *)src < 0xE0)
+		len = 2;
+	else if (*(unsigned char *)src < 0xF0)
+		len = 3;
+	else
+		len = 1;
+
+	if (len > 1)
+		if ((*(unsigned char *)(src + 1) & 0xC0) != 0x80)
+			len = 1;
+	if (len > 2)
+		if ((*(unsigned char *)(src + 2) & 0xC0) != 0x80)
+			len = 2;
+	if (dst)
+		*dst = src + len;
+}
+
 char *
 utf_getcpfromcols(char *p, int cols)
 {
@@ -1742,7 +1766,7 @@ x_del_char(int c __attribute__((unused)))
 
 	cp = xcp;
 	while (i < x_arg) {
-		utf_widthadj(cp, (const char **)&cp2);
+		utf_ptradj(cp, &cp2);
 		if (cp2 > xep)
 			break;
 		cp = cp2;
@@ -1873,7 +1897,7 @@ x_bword(void)
 	}
 	x_goto(cp);
 	for (cp = xcp; cp < (xcp + nb); ++nc)
-		utf_widthadj(cp, (const char **)&cp);
+		utf_ptradj(cp, &cp);
 	return nc;
 }
 
@@ -1898,7 +1922,7 @@ x_fword(int move)
 		}
 	}
 	for (cp2 = xcp; cp2 < cp; ++nc)
-		utf_widthadj(cp2, (const char **)&cp2);
+		utf_ptradj(cp2, &cp2);
 	if (move)
 		x_goto(cp);
 	return nc;
@@ -2023,7 +2047,7 @@ x_mv_forw(int c __attribute__((unused)))
 		return KSTD;
 	}
 	while (x_arg--) {
-		utf_widthadj(cp, (const char **)&cp2);
+		utf_ptradj(cp, &cp2);
 		if (cp2 > xep)
 			break;
 		cp = cp2;
