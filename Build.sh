@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.71 2006/11/09 22:56:09 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.72 2006/11/09 22:56:55 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -48,8 +48,6 @@ ac_testn()
 
 ac_test()
 {
-	f=$1
-	fu=`upper $f`
 	ac_testn "$@"
 	eval CPPFLAGS=\"\$CPPFLAGS -DHAVE_$fu=\$HAVE_$fu\"
 }
