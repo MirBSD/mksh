@@ -3,10 +3,10 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.20 2006/11/09 20:53:41 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.21 2006/11/09 23:39:16 tg Exp $\t"
 	MKSH_SH_H_ID);
 
-short chtypes[UCHAR_MAX+1];	/* type bits for unsigned char */
+unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
 static int do_gmatch(const unsigned char *, const unsigned char *,
     const unsigned char *, const unsigned char *);
@@ -46,7 +46,6 @@ initctypes(void)
 	setctypes("*@#!$-?", C_VAR1);
 	setctypes(" \t\n", C_IFSWS);
 	setctypes("=-+?", C_SUBOP1);
-	setctypes("#%", C_SUBOP2);
 	setctypes(" \n\t\"#$&'()*;<>?[]\\`|", C_QUOTE);
 }
 

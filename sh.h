@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.65 2006/11/09 22:18:10 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.66 2006/11/09 23:39:16 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/09"
 
 #if HAVE_SYS_PARAM_H
@@ -395,13 +395,15 @@ EXTERN int really_exit;
 #define	C_VAR1	 BIT(3)		/* *@#!$-? */
 #define	C_IFSWS	 BIT(4)		/* \t \n (IFS white space) */
 #define	C_SUBOP1 BIT(5)		/* "=-+?" */
-#define	C_SUBOP2 BIT(6)		/* "#%" */
+#define	C_SUBOP2 BIT(8)		/* "#%" (not realised via chtypes array) */
 #define	C_IFS	 BIT(7)		/* $IFS */
-#define	C_QUOTE	 BIT(8)		/*  \n\t"#$&'()*;<>?[]\`| (needing quoting) */
+#define	C_QUOTE	 BIT(6)		/*  \n\t"#$&'()*;<>?[]\`| (needing quoting) */
 
-extern	short chtypes[];
+extern unsigned char chtypes[];
 
-#define	ctype(c, t)	!!(chtypes[(unsigned char)(c)]&(t))
+#define	ctype(c, t)	!!(((t) == C_SUBOP2) ? \
+			    (((c) == '#' || (c) == '%') ? 1 : 0) : \
+			    (chtypes[(unsigned char)(c)]&(t)))
 #define	letter(c)	ctype(c, C_ALPHA)
 #define	digit(c)	ctype(c, C_DIGIT)
 #define	letnum(c)	ctype(c, C_ALPHA|C_DIGIT)
