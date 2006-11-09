@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.18 2006/11/05 17:01:46 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.19 2006/11/09 14:19:31 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 short chtypes[UCHAR_MAX+1];	/* type bits for unsigned char */
@@ -56,29 +56,15 @@ char *
 ulton(long unsigned int n, int base)
 {
 	char *p;
-	static char buf [20];
+	static char buf[20];
 
-	p = &buf[sizeof(buf)];
+	p = &buf[sizeof (buf)];
 	*--p = '\0';
 	do {
 		*--p = "0123456789ABCDEF"[n%base];
 		n /= base;
 	} while (n != 0);
 	return p;
-}
-
-char *
-str_save(const char *s, Area *ap)
-{
-	size_t len;
-	char *p;
-
-	if (!s)
-		return NULL;
-	len = strlen(s)+1;
-	p = alloc(len, ap);
-	strlcpy(p, s, len+1);
-	return (p);
 }
 
 /* Allocate a string of size n+1 and copy upto n characters from the possibly
@@ -88,13 +74,11 @@ str_save(const char *s, Area *ap)
 char *
 str_nsave(const char *s, int n, Area *ap)
 {
-	char *ns;
+	char *ns = NULL;
 
-	if (n < 0)
-		return 0;
-	ns = alloc(n + 1, ap);
-	ns[0] = '\0';
-	return strncat(ns, s, n);
+	if (n >= 0 && s)
+		strlcpy(ns = alloc(n + 1, ap), s, n + 1);
+	return (ns);
 }
 
 /* called from XcheckN() to grow buffer */

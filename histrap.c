@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.25 2006/08/24 18:57:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.26 2006/11/09 14:19:31 tg Exp $");
 
 #if !defined(__sun__)
 #define DO_HISTORY
@@ -75,9 +75,9 @@ c_fc(char **wp)
 			if (strcmp(p, "-") == 0)
 				sflag++;
 			else {
-				size_t len = strlen(p) + 4;
-				editor = str_nsave(p, len, ATEMP);
-				strlcat(editor, " $_", len);
+				size_t len = strlen(p);
+				editor = str_nsave(p, len + 4, ATEMP);
+				memcpy(editor + len, " $_", 4);
 			}
 			break;
 		case 'g': /* non-at&t ksh */
