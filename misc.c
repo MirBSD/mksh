@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.21 2006/11/09 23:39:16 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.22 2006/11/09 23:55:51 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
@@ -47,23 +47,6 @@ initctypes(void)
 	setctypes(" \t\n", C_IFSWS);
 	setctypes("=-+?", C_SUBOP1);
 	setctypes(" \n\t\"#$&'()*;<>?[]\\`|", C_QUOTE);
-}
-
-/* convert unsigned long to base N string */
-
-char *
-ulton(long unsigned int n, int base)
-{
-	char *p;
-	static char buf[20];
-
-	p = &buf[sizeof (buf)];
-	*--p = '\0';
-	do {
-		*--p = "0123456789ABCDEF"[n%base];
-		n /= base;
-	} while (n != 0);
-	return p;
 }
 
 /* Allocate a string of size n+1 and copy upto n characters from the possibly

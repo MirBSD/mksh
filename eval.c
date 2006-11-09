@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.13 2006/08/01 13:43:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.14 2006/11/09 23:55:51 tg Exp $");
 
 /*
  * string expansion
@@ -717,7 +717,12 @@ varsub(Expand *xp, char *sp, char *word,
 		if (Flag(FNOUNSET) && c == 0 && !zero_ok)
 			errorf("%s: parameter not set", sp);
 		*stypep = 0; /* unqualified variable/string substitution */
-		xp->str = str_save(ulton((unsigned long)c, 10), ATEMP);
+		{
+			char tmpbuf[11];
+
+			shf_snprintf(tmpbuf, 11, "%lu", (unsigned long)c);
+			xp->str = str_save(tmpbuf, ATEMP);
+		}
 		return XSUB;
 	}
 
