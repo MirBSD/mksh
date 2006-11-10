@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.57 2006/11/10 06:27:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.58 2006/11/10 06:31:47 tg Exp $");
 
 extern char **environ;
 
@@ -152,10 +152,10 @@ main(int argc, char *argv[])
 	/* Check if we're in an UTF-8 locale */
 	cc = setlocale(LC_CTYPE, "");
 #if HAVE_LANGINFO_CODESET
-	if (strcasecmp(cc, "UTF-8") && strcasecmp(cc, "utf8"))
+	if (strcasestr(cc, "UTF-8") && strcasestr(cc, "utf8"))
 		cc = nl_langinfo(CODESET);
 #endif
-	if (!strcasecmp(cc, "UTF-8") || !strcasecmp(cc, "utf8"))
+	if (!strcasestr(cc, "UTF-8") || !strcasestr(cc, "utf8"))
 		Flag(FUTFHACK) = 1;
 #endif
 
