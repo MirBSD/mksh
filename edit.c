@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.66 2006/11/10 03:23:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.67 2006/11/10 04:31:04 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -39,7 +39,6 @@ void x_free_words(int, char **);
 int x_escape(const char *, size_t, int (*) (const char *, size_t));
 int x_emacs(char *, size_t);
 void x_init_emacs(void);
-void x_emacs_keys(X_chars *);
 int x_vi(char *, size_t);
 
 #if defined(TIOCGWINSZ) && defined(SIGWINCH)
@@ -171,69 +170,6 @@ x_puts(const u_char *s)
 {
 	while (*s != 0)
 		shf_putc(*s++, shl_out);
-}
-
-bool
-x_mode(bool onoff)
-{
-	static bool x_cur_mode;
-	bool prev;
-
-	if (x_cur_mode == onoff)
-		return x_cur_mode;
-	prev = x_cur_mode;
-	x_cur_mode = onoff;
-
-	if (onoff) {
-		struct termios cb;
-		X_chars oldchars;
-
-		oldchars = edchars;
-		cb = tty_state;
-
-		edchars.erase = cb.c_cc[VERASE];
-		edchars.kill = cb.c_cc[VKILL];
-		edchars.intr = cb.c_cc[VINTR];
-		edchars.quit = cb.c_cc[VQUIT];
-		edchars.eof = cb.c_cc[VEOF];
-#ifdef VWERASE
-		edchars.werase = cb.c_cc[VWERASE];
-#endif
-		cb.c_iflag &= ~(INLCR | ICRNL);
-		cb.c_lflag &= ~(ISIG | ICANON | ECHO);
-#ifdef VLNEXT
-		/* osf/1 processes lnext when ~icanon */
-		cb.c_cc[VLNEXT] = _POSIX_VDISABLE;
-#endif
-		/* sunos 4.1.x & osf/1 processes discard(flush) when ~icanon */
-#ifdef VDISCARD
-		cb.c_cc[VDISCARD] = _POSIX_VDISABLE;
-#endif
-		cb.c_cc[VTIME] = 0;
-		cb.c_cc[VMIN] = 1;
-
-		tcsetattr(tty_fd, TCSADRAIN, &cb);
-
-		/* Convert unset values to internal 'unset' value */
-		if (edchars.erase == _POSIX_VDISABLE)
-			edchars.erase = -1;
-		if (edchars.kill == _POSIX_VDISABLE)
-			edchars.kill = -1;
-		if (edchars.intr == _POSIX_VDISABLE)
-			edchars.intr = -1;
-		if (edchars.quit == _POSIX_VDISABLE)
-			edchars.quit = -1;
-		if (edchars.eof == _POSIX_VDISABLE)
-			edchars.eof = -1;
-		if (edchars.werase == _POSIX_VDISABLE)
-			edchars.werase = -1;
-		if (memcmp(&edchars, &oldchars, sizeof(edchars)) != 0) {
-			x_emacs_keys(&edchars);
-		}
-	} else
-		tcsetattr(tty_fd, TCSADRAIN, &tty_state);
-
-	return prev;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -2705,7 +2641,7 @@ x_bind(const char *a1, const char *a2,
 	x_tab[prefix][key] = f | ((*m1) ? 0x80 : 0);
 	x_atab[prefix][key] = sp;
 
-	/* Track what the user has bound so x_emacs_keys() won't toast things */
+	/* Track what the user has bound so x_mode(true) won't toast things */
 	if (f == XFUNC_insert)
 		x_bound[(prefix * X_TABSZ + key) / 8] &=
 		    ~(1 << ((prefix * X_TABSZ + key) % 8));
@@ -2751,23 +2687,6 @@ bind_if_not_bound(int p, int k, int func)
 		return;
 
 	x_tab[p][k] = func;
-}
-
-void
-x_emacs_keys(X_chars *ec)
-{
-	if (ec->erase >= 0) {
-		bind_if_not_bound(0, ec->erase, XFUNC_del_back);
-		bind_if_not_bound(1, ec->erase, XFUNC_del_bword);
-	}
-	if (ec->kill >= 0)
-		bind_if_not_bound(0, ec->kill, XFUNC_del_line);
-	if (ec->werase >= 0)
-		bind_if_not_bound(0, ec->werase, XFUNC_del_bword);
-	if (ec->intr >= 0)
-		bind_if_not_bound(0, ec->intr, XFUNC_abort);
-	if (ec->quit >= 0)
-		bind_if_not_bound(0, ec->quit, XFUNC_noop);
 }
 
 static int
@@ -3353,6 +3272,77 @@ x_lastcp(void)
 	}
 	xlp_valid = true;
 	return (xlp);
+}
+
+bool
+x_mode(bool onoff)
+{
+	static bool x_cur_mode;
+	bool prev;
+
+	if (x_cur_mode == onoff)
+		return x_cur_mode;
+	prev = x_cur_mode;
+	x_cur_mode = onoff;
+
+	if (onoff) {
+		struct termios cb;
+
+		cb = tty_state;
+
+		edchars.erase = cb.c_cc[VERASE];
+		edchars.kill = cb.c_cc[VKILL];
+		edchars.intr = cb.c_cc[VINTR];
+		edchars.quit = cb.c_cc[VQUIT];
+		edchars.eof = cb.c_cc[VEOF];
+#ifdef VWERASE
+		edchars.werase = cb.c_cc[VWERASE];
+#endif
+		cb.c_iflag &= ~(INLCR | ICRNL);
+		cb.c_lflag &= ~(ISIG | ICANON | ECHO);
+#ifdef VLNEXT
+		/* osf/1 processes lnext when ~icanon */
+		cb.c_cc[VLNEXT] = _POSIX_VDISABLE;
+#endif
+		/* sunos 4.1.x & osf/1 processes discard(flush) when ~icanon */
+#ifdef VDISCARD
+		cb.c_cc[VDISCARD] = _POSIX_VDISABLE;
+#endif
+		cb.c_cc[VTIME] = 0;
+		cb.c_cc[VMIN] = 1;
+
+		tcsetattr(tty_fd, TCSADRAIN, &cb);
+
+		/* Convert unset values to internal 'unset' value */
+		if (edchars.erase == _POSIX_VDISABLE)
+			edchars.erase = -1;
+		if (edchars.kill == _POSIX_VDISABLE)
+			edchars.kill = -1;
+		if (edchars.intr == _POSIX_VDISABLE)
+			edchars.intr = -1;
+		if (edchars.quit == _POSIX_VDISABLE)
+			edchars.quit = -1;
+		if (edchars.eof == _POSIX_VDISABLE)
+			edchars.eof = -1;
+		if (edchars.werase == _POSIX_VDISABLE)
+			edchars.werase = -1;
+
+		if (edchars.erase >= 0) {
+			bind_if_not_bound(0, edchars.erase, XFUNC_del_back);
+			bind_if_not_bound(1, edchars.erase, XFUNC_del_bword);
+		}
+		if (edchars.kill >= 0)
+			bind_if_not_bound(0, edchars.kill, XFUNC_del_line);
+		if (edchars.werase >= 0)
+			bind_if_not_bound(0, edchars.werase, XFUNC_del_bword);
+		if (edchars.intr >= 0)
+			bind_if_not_bound(0, edchars.intr, XFUNC_abort);
+		if (edchars.quit >= 0)
+			bind_if_not_bound(0, edchars.quit, XFUNC_noop);
+	} else
+		tcsetattr(tty_fd, TCSADRAIN, &tty_state);
+
+	return prev;
 }
 
 /* +++ vi editing mode +++ */
