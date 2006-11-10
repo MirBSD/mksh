@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.7 2006/11/09 21:00:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.8 2006/11/10 07:52:04 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -819,9 +819,9 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 				flags |= FL_SHORT;
 				continue;
 			}
-			if (digit(c)) {
+			if (ksh_isdigit(c)) {
 				tmp = c - '0';
-				while (c = *fmt++, digit(c))
+				while (c = *fmt++, ksh_isdigit(c))
 					tmp = tmp * 10 + c - '0';
 				--fmt;
 				if (tmp < 0)		/* overflow? */

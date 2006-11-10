@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.30 2006/11/10 07:18:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.31 2006/11/10 07:52:04 tg Exp $");
 
 /*
  * Variables
@@ -157,7 +157,7 @@ global(const char *n)
 	n = array_index_calc(n, &array, &val);
 	h = hash(n);
 	c = n[0];
-	if (!letter(c)) {
+	if (!ksh_isalphx(c)) {
 		if (array)
 			errorf("bad substitution");
 		vp = &vtemp;
@@ -165,8 +165,8 @@ global(const char *n)
 		vp->type = 0;
 		vp->areap = ATEMP;
 		*vp->name = c;
-		if (digit(c)) {
-			for (c = 0; digit(*n); n++)
+		if (ksh_isdigit(c)) {
+			for (c = 0; ksh_isdigit(*n); n++)
 				c = c*10 + *n-'0';
 			if (c <= l->argc)
 				/* setstr can't fail here */
@@ -237,7 +237,7 @@ local(const char *n, bool copy)
 	/* Check to see if this is an array */
 	n = array_index_calc(n, &array, &val);
 	h = hash(n);
-	if (!letter(*n)) {
+	if (!ksh_isalphx(*n)) {
 		vp = &vtemp;
 		vp->flag = DEFINED|RDONLY;
 		vp->type = 0;
@@ -432,26 +432,25 @@ getint(struct tbl *vp, long int *nump, bool arith)
 	for (c = *s++; c ; c = *s++) {
 		if (c == '-') {
 			neg++;
+			continue;
 		} else if (c == '#') {
 			base = (int) num;
 			if (have_base || base < 2 || base > 36)
 				return -1;
 			num = 0;
 			have_base = 1;
-		} else if (letnum(c)) {
-			if (ksh_isdigit(c))
-				c -= '0';
-			else if (ksh_islower(c))
-				c -= 'a' - 10;
-			else if (ksh_isupper(c))
-				c -= 'A' - 10;
-			else
-				c = -1; /* _: force error */
-			if (c < 0 || c >= base)
-				return -1;
-			num = num * base + c;
-		} else
+			continue;
+		} else if (ksh_isdigit(c))
+			c -= '0';
+		else if (ksh_islower(c))
+			c -= 'a' - 10;
+		else if (ksh_isupper(c))
+			c -= 'A' - 10;
+		else
 			return -1;
+		if (c < 0 || c >= base)
+			return -1;
+		num = num * base + c;
 	}
 	if (neg)
 		num = -num;
@@ -596,7 +595,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 		if (set & IMPORT) {
 			int i;
 			for (i = 1; i < len - 1; i++)
-				if (!digit(val[i]))
+				if (!ksh_isdigit(val[i]))
 					return NULL;
 		}
 		val += len;
@@ -751,8 +750,8 @@ skip_varname(const char *s, int aok)
 {
 	int alen;
 
-	if (s && letter(*s)) {
-		while (*++s && letnum(*s))
+	if (s && ksh_isalphx(*s)) {
+		while (*++s && ksh_isalnux(*s))
 			;
 		if (aok && *s == '[' && (alen = array_ref_len(s)))
 			s += alen;
@@ -765,10 +764,10 @@ char *
 skip_wdvarname(const char *s,
     int aok)				/* skip array de-reference? */
 {
-	if (s[0] == CHAR && letter(s[1])) {
+	if (s[0] == CHAR && ksh_isalphx(s[1])) {
 		do {
 			s += 2;
-		} while (s[0] == CHAR && letnum(s[1]));
+		} while (s[0] == CHAR && ksh_isalnux(s[1]));
 		if (aok && s[0] == CHAR && s[1] == '[') {
 			/* skip possible array de-reference */
 			const char *p = s;

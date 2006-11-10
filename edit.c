@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.71 2006/11/10 07:18:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.72 2006/11/10 07:52:01 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1050,8 +1050,7 @@ struct x_defbindings {
 /* Separator for completion */
 #define	is_cfs(c)	((c) == ' ' || (c) == '\t' || (c) == '"' || (c) == '\'')
 			/* Separator for motion */
-#define	is_mfs(c)	(!(ksh_isdigit(c) || ksh_islower(c) || \
-			    ksh_isupper(c) || (c) == '_' || (c) == '$'))
+#define	is_mfs(c)	(!(ksh_isalnux(c) || (c) == '$'))
 
 #define CHARMASK	0xFF			/* 8-bit character mask */
 #define X_NTABS		3			/* normal, meta1, meta2 */
@@ -3343,7 +3342,6 @@ x_mode(bool onoff)
 /* +++ vi editing mode +++ */
 
 #define Ctrl(c)		(c&0x1f)
-#define	is_wordch(c)	(letnum(c))
 
 struct edstate {
 	int	winleft;
@@ -4841,12 +4839,12 @@ forwword(int argcnt)
 
 	ncursor = es->cursor;
 	while (ncursor < es->linelen && argcnt--) {
-		if (is_wordch(es->cbuf[ncursor]))
-			while (is_wordch(es->cbuf[ncursor]) &&
+		if (ksh_isalnux(es->cbuf[ncursor]))
+			while (ksh_isalnux(es->cbuf[ncursor]) &&
 			    ncursor < es->linelen)
 				ncursor++;
 		else if (!ksh_isspace(es->cbuf[ncursor]))
-			while (!is_wordch(es->cbuf[ncursor]) &&
+			while (!ksh_isalnux(es->cbuf[ncursor]) &&
 			    !ksh_isspace(es->cbuf[ncursor]) &&
 			    ncursor < es->linelen)
 				ncursor++;
@@ -4867,13 +4865,13 @@ backword(int argcnt)
 		while (--ncursor > 0 && ksh_isspace(es->cbuf[ncursor]))
 			;
 		if (ncursor > 0) {
-			if (is_wordch(es->cbuf[ncursor]))
+			if (ksh_isalnux(es->cbuf[ncursor]))
 				while (--ncursor >= 0 &&
-				    is_wordch(es->cbuf[ncursor]))
+				    ksh_isalnux(es->cbuf[ncursor]))
 					;
 			else
 				while (--ncursor >= 0 &&
-				    !is_wordch(es->cbuf[ncursor]) &&
+				    !ksh_isalnux(es->cbuf[ncursor]) &&
 				    !ksh_isspace(es->cbuf[ncursor]))
 					;
 			ncursor++;
@@ -4893,13 +4891,13 @@ endword(int argcnt)
 		    ksh_isspace(es->cbuf[ncursor]))
 			;
 		if (ncursor < es->linelen - 1) {
-			if (is_wordch(es->cbuf[ncursor]))
+			if (ksh_isalnux(es->cbuf[ncursor]))
 				while (++ncursor < es->linelen &&
-				    is_wordch(es->cbuf[ncursor]))
+				    ksh_isalnux(es->cbuf[ncursor]))
 					;
 			else
 				while (++ncursor < es->linelen &&
-				    !is_wordch(es->cbuf[ncursor]) &&
+				    !ksh_isalnux(es->cbuf[ncursor]) &&
 				    !ksh_isspace(es->cbuf[ncursor]))
 					;
 			ncursor--;

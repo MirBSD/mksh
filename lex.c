@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.23 2006/11/10 07:18:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.24 2006/11/10 07:52:03 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -273,19 +273,19 @@ yylex(int cf)
 						ungetsc(c);
 						PUSH_STATE(SBRACE);
 					}
-				} else if (ctype(c, C_ALPHA)) {
+				} else if (ksh_isalphx(c)) {
 					*wp++ = OSUBST;
 					*wp++ = 'X';
 					do {
 						Xcheck(ws, wp);
 						*wp++ = c;
 						c = getsc();
-					} while (ctype(c, C_ALPHA|C_DIGIT));
+					} while (ksh_isalnux(c));
 					*wp++ = '\0';
 					*wp++ = CSUBST;
 					*wp++ = 'X';
 					ungetsc(c);
-				} else if (ctype(c, C_DIGIT|C_VAR1)) {
+				} else if (ctype(c, C_VAR1 | C_DIGIT)) {
 					Xcheck(ws, wp);
 					*wp++ = OSUBST;
 					*wp++ = 'X';
@@ -615,7 +615,7 @@ yylex(int cf)
 	dp = Xstring(ws, wp);
 	if ((c == '<' || c == '>') && state == SBASE &&
 	    ((c2 = Xlength(ws, wp)) == 0 ||
-	    (c2 == 2 && dp[0] == CHAR && digit(dp[1])))) {
+	    (c2 == 2 && dp[0] == CHAR && ksh_isdigit(dp[1])))) {
 		struct ioword *iop = (struct ioword *) alloc(sizeof(*iop), ATEMP);
 
 		if (c2 == 2)
@@ -1174,9 +1174,9 @@ get_brace_var(XString *wsp, char *wp)
 			}
 			/* FALLTHRU */
 		case PS_SAW_HASH:
-			if (letter(c))
+			if (ksh_isalphx(c))
 				state = PS_IDENT;
-			else if (digit(c))
+			else if (ksh_isdigit(c))
 				state = PS_NUMBER;
 			else if (ctype(c, C_VAR1))
 				state = PS_VAR1;
@@ -1184,7 +1184,7 @@ get_brace_var(XString *wsp, char *wp)
 				state = PS_END;
 			break;
 		case PS_IDENT:
-			if (!letnum(c)) {
+			if (!ksh_isalnux(c)) {
 				state = PS_END;
 				if (c == '[') {
 					char *tmp, *p;
@@ -1202,7 +1202,7 @@ get_brace_var(XString *wsp, char *wp)
 			}
 			break;
 		case PS_NUMBER:
-			if (!digit(c))
+			if (!ksh_isdigit(c))
 				state = PS_END;
 			break;
 		case PS_VAR1:

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.17 2006/11/10 06:40:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.18 2006/11/10 07:52:02 tg Exp $");
 
 /*
  * string expansion
@@ -797,7 +797,7 @@ varsub(Expand *xp, char *sp, char *word,
 		} else {
 			/* Can't assign things like $! or $1 */
 			if ((stype & 0x7f) == '=' &&
-			    (ctype(*sp, C_VAR1) || digit(*sp)))
+			    ctype(*sp, C_VAR1 | C_DIGIT))
 				return -1;
 			xp->var = global(sp);
 			xp->str = str_val(xp->var);

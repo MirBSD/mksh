@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.35 2006/11/10 06:53:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.36 2006/11/10 07:52:02 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -1103,8 +1103,8 @@ c_kill(char **wp)
 	int i, n, rv, sig;
 
 	/* assume old style options if -digits or -UPPERCASE */
-	if ((p = wp[1]) && *p == '-' && (digit(p[1]) ||
-	    ksh_isupper((unsigned char)p[1]))) {
+	if ((p = wp[1]) && *p == '-' && (ksh_isdigit(p[1]) ||
+	    ksh_isupper(p[1]))) {
 		if (!(t = gettrap(p + 1, true))) {
 			bi_errorf("bad signal '%s'", p + 1);
 			return 1;
@@ -1450,7 +1450,7 @@ c_umask(char **wp)
 	} else {
 		mode_t new_umask;
 
-		if (digit(*cp)) {
+		if (ksh_isdigit(*cp)) {
 			for (new_umask = 0; *cp >= '0' && *cp <= '7'; cp++)
 				new_umask = new_umask * 8 + (*cp - '0');
 			if (*cp) {
@@ -2962,7 +2962,7 @@ c_ulimit(char **wp)
 			 * add parameter to evaluate() to control
 			 * if unset params are 0 or an error.
 			 */
-			if (!rval && !digit(wp[0][0])) {
+			if (!rval && !ksh_isdigit(wp[0][0])) {
 				bi_errorf("invalid limit: %s", wp[0]);
 				return 1;
 			}

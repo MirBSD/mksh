@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.37 2006/11/10 07:18:57 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.38 2006/11/10 07:52:03 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -873,13 +873,13 @@ ksh_getopt(char **argv, Getopt *go, const char *optionsp)
 		 * argument is missing.
 		 */
 		if (argv[go->optind - 1][go->p]) {
-			if (digit(argv[go->optind - 1][go->p])) {
+			if (ksh_isdigit(argv[go->optind - 1][go->p])) {
 				go->optarg = argv[go->optind - 1] + go->p;
 				go->p = 0;
 			} else
 				go->optarg = NULL;
 		} else {
-			if (argv[go->optind] && digit(argv[go->optind][0])) {
+			if (argv[go->optind] && ksh_isdigit(argv[go->optind][0])) {
 				go->optarg = argv[go->optind++];
 				go->p = 0;
 			} else
