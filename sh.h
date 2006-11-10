@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.71 2006/11/10 01:44:40 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.72 2006/11/10 03:23:50 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/10"
 
 #if HAVE_SYS_PARAM_H
@@ -1231,8 +1231,7 @@ int bi_getn(const char *, int *);
 int gmatchx(const char *, const char *, int);
 int has_globbing(const char *, const char *);
 const unsigned char *pat_scan(const unsigned char *, const unsigned char *, int);
-void qsortp(void **, size_t, int (*)(void *, void *));
-int xstrcmp(void *, void *);
+int xstrcmp(const void *, const void *);
 void ksh_getopt_reset(Getopt *, int);
 int ksh_getopt(char **, Getopt *, const char *);
 void print_value_quoted(const char *);

@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.65 2006/11/10 01:24:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.66 2006/11/10 03:23:48 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -508,8 +508,7 @@ x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 		char **words = (char **)XPptrv(w);
 		int i, j;
 
-		qsortp(XPptrv(w), (size_t)nwords, xstrcmp);
-
+		qsort(words, nwords, sizeof (void *), xstrcmp);
 		for (i = j = 0; i < nwords - 1; i++) {
 			if (strcmp(words[i], words[i + 1]))
 				words[j++] = words[i];

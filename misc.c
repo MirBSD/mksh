@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.28 2006/11/10 02:10:45 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.29 2006/11/10 03:23:50 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
@@ -400,7 +400,7 @@ parse_args(char **argv,
 	if (sortargs) {
 		for (i = go.optind; argv[i]; i++)
 			;
-		qsortp((void **) &argv[go.optind], (size_t) (i - go.optind),
+		qsort(&argv[go.optind], i - go.optind, sizeof (void *),
 		    xstrcmp);
 	}
 	if (arrayset) {
@@ -600,8 +600,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 
 		  /*
 		   * [*+?@!](pattern|pattern|..)
-		   *
-		   * Not ifdef'd KSH as this is needed for ${..%..}, etc.
+		   * This is also needed for ${..%..}, etc.
 		   */
 		case 0x80|'+': /* matches one or more times */
 		case 0x80|'*': /* matches zero or more times */
@@ -742,102 +741,10 @@ pat_scan(const unsigned char *p, const unsigned char *pe, int match_sep)
 	return NULL;
 }
 
-
-/* -------- qsort.c -------- */
-
-/*
- * quick sort of array of generic pointers to objects.
- */
-static void qsort1(void **base, void **lim, int (*f)(void *, void *));
-
-void
-qsortp(void **base,			/* base address */
-    size_t n,				/* elements */
-    int (*f) (void *, void *))		/* compare function */
-{
-	qsort1(base, base + n, f);
-}
-
-#define	swap2(a, b)	{\
-	void *t; t = *(a); *(a) = *(b); *(b) = t;\
-}
-#define	swap3(a, b, c)	{\
-	void *t; t = *(a); *(a) = *(c); *(c) = *(b); *(b) = t;\
-}
-
-static void
-qsort1(void **base, void **lim, int (*f) (void *, void *))
-{
-	void **i, **j;
-	void **lptr, **hptr;
-	size_t n;
-	int c;
-
- top:
-	n = (lim - base) / 2;
-	if (n == 0)
-		return;
-	hptr = lptr = base+n;
-	i = base;
-	j = lim - 1;
-
-	for (;;) {
-		if (i < lptr) {
-			if ((c = (*f)(*i, *lptr)) == 0) {
-				lptr --;
-				swap2(i, lptr);
-				continue;
-			}
-			if (c < 0) {
-				i += 1;
-				continue;
-			}
-		}
-
- begin:
-		if (j > hptr) {
-			if ((c = (*f)(*hptr, *j)) == 0) {
-				hptr ++;
-				swap2(hptr, j);
-				goto begin;
-			}
-			if (c > 0) {
-				if (i == lptr) {
-					hptr ++;
-					swap3(i, hptr, j);
-					i = lptr += 1;
-					goto begin;
-				}
-				swap2(i, j);
-				j -= 1;
-				i += 1;
-				continue;
-			}
-			j -= 1;
-			goto begin;
-		}
-
-		if (i == lptr) {
-			if (lptr-base >= lim-hptr) {
-				qsort1(hptr+1, lim, f);
-				lim = lptr;
-			} else {
-				qsort1(base, lptr, f);
-				base = hptr+1;
-			}
-			goto top;
-		}
-
-		lptr -= 1;
-		swap3(j, lptr, i);
-		j = hptr -= 1;
-	}
-}
-
 int
-xstrcmp(void *p1, void *p2)
+xstrcmp(const void *p1, const void *p2)
 {
-	return (strcmp((char *)p1, (char *)p2));
+	return (strcmp(*(const char **)p1, *(const char **)p2));
 }
 
 /* Initialize a Getopt structure */

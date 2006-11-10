@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.53 2006/11/10 01:13:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.54 2006/11/10 03:23:49 tg Exp $");
 
 extern char **environ;
 
@@ -1098,7 +1098,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 #define	INIT_TBLS	8	/* initial table size (power of 2) */
 
 static void texpand(struct table *, int);
-static int tnamecmp(void *, void *);
+static int tnamecmp(const void *, const void *);
 
 unsigned int
 hash(const char *n)
@@ -1241,26 +1241,28 @@ ktnext(struct tstate *ts)
 }
 
 static int
-tnamecmp(void *p1, void *p2)
+tnamecmp(const void *p1, const void *p2)
 {
-	return strcmp(((struct tbl *)p1)->name, ((struct tbl *)p2)->name);
+	const struct tbl *a = *((const struct tbl **)p1);
+	const struct tbl *b = *((const struct tbl **)p2);
+
+	return (strcmp(a->name, b->name));
 }
 
 struct tbl **
 ktsort(struct table *tp)
 {
-	int i;
+	size_t i;
 	struct tbl **p, **sp, **dp;
 
 	p = (struct tbl **)alloc(sizeofN(struct tbl *, tp->size + 1), ATEMP);
 	sp = tp->tbls;		/* source */
 	dp = p;			/* dest */
-	for (i = 0; i < tp->size; i++)
+	for (i = 0; i < (size_t)tp->size; i++)
 		if ((*dp = *sp++) != NULL && (((*dp)->flag & DEFINED) ||
 		    ((*dp)->flag & ARRAY)))
 			dp++;
-	i = dp - p;
-	qsortp((void **)p, (size_t)i, tnamecmp);
+	qsort(p, (i = dp - p), sizeof (void *), tnamecmp);
 	p[i] = NULL;
 	return p;
 }
