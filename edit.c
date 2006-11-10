@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.64 2006/11/10 01:13:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.65 2006/11/10 01:24:38 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -970,7 +970,7 @@ wcxwidth(unsigned c)
 		{ 0xFE00, 0xFE0F }, { 0xFE20, 0xFE23 }, { 0xFEFF, 0xFEFF },
 		{ 0xFFF9, 0xFFFB }
 	};
-	size_t min = 0, mid, max = sizeof (comb) / sizeof (struct cbset) - 1;
+	size_t min = 0, mid, max = NELEM(comb) - 1;
 
 	/* test for 8-bit control characters */
 	if (c < 32 || (c >= 0x7f && c < 0xa0))
