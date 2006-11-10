@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.67 2006/11/09 23:55:52 tg Exp $"
-#define MKSH_VERSION "R29 2006/11/09"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.68 2006/11/10 01:13:52 tg Exp $"
+#define MKSH_VERSION "R29 2006/11/10"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -1182,13 +1182,13 @@ void cleanup_parents_env(void);
 void cleanup_proc_env(void);
 void errorf(const char *, ...)
     __attribute__((__noreturn__, __format__ (printf, 1, 2)));
-void warningf(int, const char *, ...)
+void warningf(bool, const char *, ...)
     __attribute__((__format__ (printf, 2, 3)));
 void bi_errorf(const char *, ...)
     __attribute__((__format__ (printf, 1, 2)));
 void internal_errorf(int, const char *, ...)
     __attribute__((__format__ (printf, 2, 3)));
-void error_prefix(int);
+void error_prefix(bool);
 void shellf(const char *, ...)
     __attribute__((__format__ (printf, 1, 2)));
 void shprintf(const char *, ...)
@@ -1261,10 +1261,15 @@ int shf_ungetc(int, struct shf *);
 int shf_putchar(int, struct shf *);
 int shf_puts(const char *, struct shf *);
 int shf_write(const char *, int, struct shf *);
-int shf_fprintf(struct shf *, const char *, ...);
-int shf_snprintf(char *, int, const char *, ...);
-char *shf_smprintf(const char *, ...);
-int shf_vfprintf(struct shf *, const char *, va_list);
+int shf_fprintf(struct shf *, const char *, ...)
+    __attribute__((__format__ (printf, 2, 3)));
+int shf_snprintf(char *, int, const char *, ...)
+    __attribute__((__format__ (printf, 3, 4)))
+    __attribute__((__bounded__ (__string__,1,2)));
+char *shf_smprintf(const char *, ...)
+    __attribute__((__format__ (printf, 1, 2)));
+int shf_vfprintf(struct shf *, const char *, va_list)
+    __attribute__((__format__ (printf, 2, 0)));
 /* syn.c */
 void initkeywords(void);
 struct op *compile(Source *);

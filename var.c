@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.23 2006/08/18 18:48:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.24 2006/11/10 01:13:52 tg Exp $");
 
 /*
  * Variables
@@ -510,10 +510,12 @@ formatstr(struct tbl *vp, const char *s)
 				s += slen - vp->u2.field;
 				slen = vp->u2.field;
 			}
-			shf_snprintf(p, nlen + 1,
-				((vp->flag & ZEROFIL) && digit(*s)) ?
-					  "%0*s%.*s" : "%*s%.*s",
-				vp->u2.field - slen, null, slen, s);
+			if (vp->u2.field - slen)
+				memset(p, (vp->flag & ZEROFIL) ? '0' : ' ',
+				    vp->u2.field - slen);
+			shf_snprintf(p + vp->u2.field - slen,
+			    nlen + 1 - (vp->u2.field - slen),
+			    "%.*s", slen, s);
 		} else {
 			/* strip leading spaces/zeros */
 			while (isspace((unsigned char)*s))

@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.52 2006/11/09 22:08:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.53 2006/11/10 01:13:51 tg Exp $");
 
 extern char **environ;
 
@@ -758,7 +758,7 @@ errorf(const char *fmt, ...)
 
 /* like errorf(), but no unwind is done */
 void
-warningf(int fileline, const char *fmt, ...)
+warningf(bool fileline, const char *fmt, ...)
 {
 	va_list va;
 
@@ -820,7 +820,7 @@ internal_errorf(int jump, const char *fmt, ...)
 
 /* used by error reporting functions to print "ksh: .kshrc[25]: " */
 void
-error_prefix(int fileline)
+error_prefix(bool fileline)
 {
 	/* Avoid foo: foo[2]: ... */
 	if (!fileline || !source || !source->file ||

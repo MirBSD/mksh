@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.26 2006/11/09 14:19:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.27 2006/11/10 01:13:51 tg Exp $");
 
 #if !defined(__sun__)
 #define DO_HISTORY
@@ -198,7 +198,8 @@ c_fc(char **wp)
 			    hist_source->line - (int) (histptr - hp));
 			/* print multi-line commands correctly */
 			for (s = *hp; (t = strchr(s, '\n')); s = t)
-				shf_fprintf(shl_stdout, "%.*s\t", ++t - s, s);
+				shf_fprintf(shl_stdout, "%.*s\t",
+				    (int)(++t - s), s);
 			shf_fprintf(shl_stdout, "%s\n", s);
 		}
 		shf_flush(shl_stdout);

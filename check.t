@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.71 2006/11/09 15:02:30 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.72 2006/11/10 01:13:50 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3865,6 +3865,19 @@ expected-stdout-pattern:
 expected-stderr-pattern:
 	/^X*$/
 ---
+name: typeset-padding-1
+description:
+	Check if left/right justification works as per TFM
+stdin:
+	typeset -L10 ln=0hall0
+	typeset -R10 rn=0hall0
+	typeset -ZL10 lz=0hall0
+	typeset -ZR10 rz=0hall0
+	typeset -Z10 rx=" hallo "
+	print "<$ln> <$rn> <$lz> <$rz> <$rx>"
+expected-stdout:
+	<0hall0    > <    0hall0> <hall0     > <00000hall0> <0000 hallo>
+---
 name: version-1
 description:
 	Check version of shell.
@@ -3872,5 +3885,5 @@ category: pdksh
 stdin:
 	echo $KSH_VERSION
 expected-stdout:
-	@(#)MIRBSD KSH R29 2006/11/09
+	@(#)MIRBSD KSH R29 2006/11/10
 ---

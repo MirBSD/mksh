@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.22 2006/11/09 23:55:51 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.23 2006/11/10 01:13:52 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
@@ -11,7 +11,9 @@ unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 static int do_gmatch(const unsigned char *, const unsigned char *,
     const unsigned char *, const unsigned char *);
 static const unsigned char *cclass(const unsigned char *, int);
-static int parse_T(char *);
+#ifdef TIOCSCTTY
+static void parse_T(char *);
+#endif
 static char *do_phys_path(XString *, char *, const char *);
 
 /*
@@ -341,9 +343,13 @@ parse_args(char **argv,
 		case 'T':
 			if (what != OF_FIRSTTIME)
 				break;
-			if (parse_T(go.optarg))
-				return -1;
+#ifndef TIOCSCTTY
+			bi_errorf("no TIOCSCTTY ioctl");
+			return -1;
+#else
 			change_flag(FTALKING, OF_CMDLINE, 1);
+			parse_T(go.optarg);
+#endif
 			break;
 
 		case '?':
@@ -1376,80 +1382,56 @@ do_phys_path(XString *xsp, char *xp, const char *pathl)
 	return xp;
 }
 
-#if !defined(TIOCSCTTY)
-#define NO_CHVT "no TIOCSCTTY ioctl"
-#else
-static const char *
-chvt(char *f)
+#ifdef TIOCSCTTY
+static void
+parse_T(char *fn)
 {
+	char dv[20];
+	struct stat sb;
 	int fd;
 
-	if (chown(f, 0, 0))
-		return "chown";
-	if (chmod(f, 0600))
-		return "chmod";
+	if (stat(fn, &sb)) {
+		memcpy(dv, "/dev/ttyC", 9);
+		strlcpy(dv + 9, fn, 20 - 9);
+		if (stat(dv, &sb)) {
+			memmove(dv + 8, dv + 9, 20 - 9);
+			if (stat(dv, &sb))
+				bi_errorf("chvt: can't find tty %s", fn);
+		}
+		fn = dv;
+	}
+	if (!(sb.st_mode & S_IFCHR))
+		bi_errorf("chvt: not a char device: %s", fn);
+	if ((sb.st_uid != 0) && chown(fn, 0, 0))
+		warningf(false, "chvt: cannot chown root %s", fn);
+	if (((sb.st_mode & 07777) != 0600) && chmod(fn, 0600))
+		warningf(false, "chvt: cannot chmod 0600 %s", fn);
 #if !defined(__sun__) && !defined(__gnu_linux__) && !defined(__INTERIX)
-	if (revoke(f))
-		return "revoke";
+	if (revoke(fn))
+		warningf(false, "chvt: cannot revoke %s", fn);
 #endif
 
-	if ((fd = open(f, O_RDWR)) == -1) {
+	if ((fd = open(fn, O_RDWR)) == -1) {
 		sleep(1);
-		if ((fd = open(f, O_RDWR)) == -1)
-			return "open";
+		if ((fd = open(fn, O_RDWR)) == -1)
+			bi_errorf("chvt: cannot open %s", fn);
 	}
 	switch (fork()) {
 	case -1:
-		return "fork";
+		bi_errorf("fork failed");
 	case 0:
 		break;
 	default:
 		_exit(0);
 	}
 	if (setsid() == -1)
-		return "setsid";
+		bi_errorf("chvt: setsid failed");
 	if (ioctl(fd, TIOCSCTTY, NULL) == -1)
-		return "ioctl";
+		bi_errorf("chvt: TIOCSCTTY failed");
 	dup2(fd, 0);
 	dup2(fd, 1);
 	dup2(fd, 2);
 	if (fd > 2)
 		close(fd);
-
-	return NULL;
 }
 #endif
-
-static int
-parse_T(char *fn __attribute__((unused)))
-{
-#ifdef NO_CHVT
-	warningf(0, "chvt: %s", NO_CHVT);
-	return -1;
-#else
-	const char *rv;
-	char dv[20];
-	struct stat sb;
-
-	strlcpy(dv, fn, 20);
-	if (stat(dv, &sb)) {
-		snprintf(dv, 20, "/dev/ttyC%s", fn);
-		if (stat(dv, &sb)) {
-			snprintf(dv, 20, "/dev/tty%s", fn);
-			if (stat(dv, &sb)) {
-				warningf(0, "chvt: can't find tty %s", fn);
-				return -1;
-			}
-		}
-	}
-	if (!(sb.st_mode & S_IFCHR)) {
-		warningf(0, "chvt: not a char device: %s", fn);
-		return -1;
-	}
-	if ((rv = chvt(dv)) != NULL) {
-		warningf(0, "chvt: failed to %s: %s", rv, strerror(errno));
-		return -1;
-	}
-	return 0;
-#endif
-}
