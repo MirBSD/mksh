@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.16 2006/11/10 03:23:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.17 2006/11/10 06:40:05 tg Exp $");
 
 /*
  * string expansion
@@ -565,7 +565,8 @@ expand(char *cp,	/* input word */
 				    Xlength(ds, dp) == 0) {
 					char *p;
 
-					if ((p = strdup("")) == NULL)
+					if ((p = str_nsave(null, 0, ATEMP))
+					    == NULL)
 						internal_errorf(1, "unable "
 						    "to allocate memory");
 					XPput(*wp, p);

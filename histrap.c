@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.31 2006/11/10 05:23:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.32 2006/11/10 06:40:05 tg Exp $");
 
 #ifndef mksh_siglist
 #if defined(BSD) || defined(__APPLE__)
@@ -1068,8 +1068,10 @@ gettrap(const char *name, int igncase)
 		if (p->name) {
 			if (igncase) {
 				if (p->name && (!strcasecmp(p->name, name) ||
-				    (strlen(name) > 3 && !strncasecmp("SIG",
-				    p->name, 3) &&
+				    (strlen(name) > 3 && 
+				    (p->name[0] == 's' || p->name[0] == 'S') &&
+				    (p->name[1] == 'i' || p->name[1] == 'I') &&
+				    (p->name[2] == 'g' || p->name[2] == 'G') &&
 				    !strcasecmp(p->name, name + 3))))
 					return p;
 			} else {

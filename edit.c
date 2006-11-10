@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.67 2006/11/10 04:31:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.68 2006/11/10 06:40:04 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -3070,7 +3070,7 @@ x_version(int c __attribute__((unused)))
 	char *o_xbuf = xbuf, *o_xend = xend;
 	char *o_xbp = xbp, *o_xep = xep, *o_xcp = xcp;
 	int lim = x_lastcp() - xbp;
-	char *v = strdup(KSH_VERSION);
+	char *v = str_save(KSH_VERSION, ATEMP);
 	int vlen;
 
 	xbuf = xbp = xcp = v;
@@ -3092,7 +3092,7 @@ x_version(int c __attribute__((unused)))
 	if (c != ' ')
 		x_e_ungetc(c);
 
-	free(v);
+	afree(v, ATEMP);
 	return KSTD;
 }
 
