@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.68 2006/11/10 01:13:52 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.69 2006/11/10 01:19:17 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/10"
 
 #if HAVE_SYS_PARAM_H
@@ -1219,7 +1219,11 @@ struct tbl **ktsort(struct table *);
 /* misc.c */
 void setctypes(const char *, int);
 void initctypes(void);
+#ifdef MKSH_SMALL
 char *str_save(const char *, Area *);
+#else
+#define str_save(s,ap) (str_nsave((s), (s) ? strlen(s) : 0, (ap)))
+#endif
 char *str_nsave(const char *, int, Area *);
 int option(const char *);
 char *getoptions(void);
