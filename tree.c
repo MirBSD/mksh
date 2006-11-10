@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.5 2006/11/09 23:55:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.6 2006/11/10 00:09:27 tg Exp $");
 
 #define INDENT	4
 
@@ -369,32 +369,22 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 
 	while ((c = *fmt++)) {
 		if (c == '%') {
-			long n;
-			char *p;
-
 			switch ((c = *fmt++)) {
 			case 'c':
 				tputc(va_arg(va, int), shf);
 				break;
 			case 's':
-				p = va_arg(va, char *);
-				while (*p)
-					tputc(*p++, shf);
+				shf_puts(va_arg(va, char *), shf);
 				break;
 			case 'S':	/* word */
-				p = va_arg(va, char *);
-				tputS(p, shf);
+				tputS(va_arg(va, char *), shf);
 				break;
-			case 'd': case 'u': { /* decimal */
-				char tmpbuf[12];
-
-				n = (c == 'd') ? (long)va_arg(va, int) :
-				    (long)va_arg(va, unsigned int);
-				shf_snprintf((p = tmpbuf), 12,
-				    (c == 'd') ? "%ld" : "%lu", n);
-				while (*p)
-					tputc(*p++, shf);
-				} break;
+			case 'd':	/* decimal */
+				shf_fprintf(shf, "%d", va_arg(va, int));
+				break;
+			case 'u':	/* decimal */
+				shf_fprintf(shf, "%u", va_arg(va, unsigned));
+				break;
 			case 'T':	/* format tree */
 				ptree(va_arg(va, struct op *), indent, shf);
 				break;
