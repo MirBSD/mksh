@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.25 2006/11/10 01:44:39 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.26 2006/11/10 01:52:23 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
@@ -257,7 +257,7 @@ parse_args(char **argv,
     int *setargsp)
 {
 	static char cmd_opts[NELEM(options) + 5]; /* o:T:\0 */
-	static char set_opts[NELEM(options) + 5]; /* Ao;s\0 */
+	static char set_opts[NELEM(options) + 6]; /* A:o;s\0 */
 	char *opts;
 	char *array = NULL;
 	Getopt go;
@@ -266,14 +266,20 @@ parse_args(char **argv,
 
 	/* First call?  Build option strings... */
 	if (cmd_opts[0] == '\0') {
-		char *p, *q;
+		char *p = cmd_opts, *q = set_opts;
 
 		/* see cmd_opts[] declaration */
-		strlcpy(cmd_opts, "o:T:", sizeof cmd_opts);
-		p = cmd_opts + strlen(cmd_opts);
+		*p++ = 'o';
+		*p++ = ':';
+		*p++ = 'T';
+		*p++ = ':';
 		/* see set_opts[] declaration */
-		strlcpy(set_opts, "A:o;s", sizeof set_opts);
-		q = set_opts + strlen(set_opts);
+		*q++ = 'A';
+		*q++ = ':';
+		*q++ = 'o';
+		*q++ = ';';
+		*q++ = 's';
+
 		for (i = 0; i < NELEM(options); i++) {
 			if (options[i].c) {
 				if (options[i].flags & OF_CMDLINE)
