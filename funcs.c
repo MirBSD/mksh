@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.33 2006/11/10 03:45:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.34 2006/11/10 06:16:24 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -176,7 +176,7 @@ c_pwd(char **wp)
 	}
 	p = current_wd[0] ? (physical ? get_phys_path(current_wd) : current_wd) :
 	    NULL;
-	if (p && eaccess(p, R_OK) < 0)
+	if (p && access(p, R_OK) < 0)
 		p = NULL;
 	if (!p && !(p = ksh_get_wd(NULL))) {
 		bi_errorf("can't get current directory - %s", strerror(errno));
@@ -2655,7 +2655,7 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 static int
 test_eaccess(const char *pathl, int mode)
 {
-	int res = eaccess(pathl, mode);
+	int res = access(pathl, mode);
 
 	if (res == 0 && ksheuid == 0 && (mode & X_OK)) {
 		struct stat statb;

@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.74 2006/11/10 05:23:13 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.75 2006/11/10 06:16:25 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/10"
 
 #if HAVE_SYS_PARAM_H
@@ -1310,7 +1310,6 @@ void change_random(void);
 int array_ref_len(const char *);
 char *arrayname(const char *);
 void set_array(const char *, int, char **);
-int eaccess(const char *, int);
 
 enum Test_op {
 	TO_NONOP = 0,	/* non-operator */

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.18 2006/11/10 04:03:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.19 2006/11/10 06:16:24 tg Exp $");
 
 static int	comexec(struct op *, struct tbl *volatile, char **,
 		    int volatile);
@@ -833,7 +833,7 @@ findcom(const char *name, int flags)
 		tp = tbi;
 	if (!tp && (flags & FC_PATH) && !(flags & FC_DEFPATH)) {
 		tp = ktsearch(&taliases, name, h);
-		if (tp && (tp->flag & ISSET) && eaccess(tp->val.s, X_OK) != 0) {
+		if (tp && (tp->flag & ISSET) && access(tp->val.s, X_OK) != 0) {
 			if (tp->flag & ALLOC) {
 				tp->flag &= ~ALLOC;
 				afree(tp->val.s, APERM);
@@ -907,7 +907,7 @@ search_access(const char *lpath, int mode,
 
 	if (stat(lpath, &statb) < 0)
 		return -1;
-	ret = eaccess(lpath, mode);
+	ret = access(lpath, mode);
 	if (ret < 0)
 		err = errno; /* File exists, but we can't access it */
 	else if (mode == X_OK && (!S_ISREG(statb.st_mode) ||

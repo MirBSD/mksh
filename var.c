@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.26 2006/11/10 05:23:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.27 2006/11/10 06:16:25 tg Exp $");
 
 /*
  * Variables
@@ -983,7 +983,7 @@ setspec(struct tbl *vp)
 			struct stat statb;
 
 			s = str_val(vp);
-			if (s[0] == '/' && eaccess(s, W_OK|X_OK) == 0 &&
+			if (s[0] == '/' && access(s, W_OK|X_OK) == 0 &&
 			    stat(s, &statb) == 0 && S_ISDIR(statb.st_mode))
 				tmpdir = str_save(s, APERM);
 		}
@@ -1179,27 +1179,4 @@ set_array(const char *var, int reset, char **vals)
 		/* would be nice to deal with errors here... (see above) */
 		setstr(vq, vals[i], KSH_RETURN_ERROR);
 	}
-}
-
-int
-eaccess(const char *pathname, int mode)
-{
-	bool need_uid, need_gid;
-	int rv, _errno;
-
-	if ((need_gid = (kshgid != kshegid)))
-		setregid(kshegid, kshgid);
-	if ((need_uid = (kshuid != ksheuid)))
-		setreuid(ksheuid, kshuid);
-
-	rv = access(pathname, mode);
-	_errno = errno;
-
-	if (need_gid)
-		setregid(kshgid, kshegid);
-	if (need_uid)
-		setreuid(kshuid, ksheuid);
-
-	errno = _errno;
-	return (rv);
 }
