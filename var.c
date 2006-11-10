@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.28 2006/11/10 06:45:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.29 2006/11/10 06:53:27 tg Exp $");
 
 /*
  * Variables
@@ -439,12 +439,12 @@ getint(struct tbl *vp, long int *nump, bool arith)
 			num = 0;
 			have_base = 1;
 		} else if (letnum(c)) {
-			if (isdigit(c))
+			if (ksh_isdigit(c))
 				c -= '0';
-			else if (islower(c))
-				c -= 'a' - 10; /* todo: assumes ascii */
-			else if (isupper(c))
-				c -= 'A' - 10; /* todo: assumes ascii */
+			else if (ksh_islower(c))
+				c -= 'a' - 10;
+			else if (ksh_isupper(c))
+				c -= 'A' - 10;
 			else
 				c = -1; /* _: force error */
 			if (c < 0 || c >= base)
@@ -533,12 +533,10 @@ formatstr(struct tbl *vp, const char *s)
 
 	if (vp->flag & UCASEV_AL) {
 		for (q = p; *q; q++)
-			if (islower((unsigned char)*q))
-				*q = _toupper((unsigned char)*q);
+			*q = _toupper((unsigned char)*q);
 	} else if (vp->flag & LCASEV) {
 		for (q = p; *q; q++)
-			if (isupper((unsigned char)*q))
-				*q = _tolower((unsigned char)*q);
+			*q = _tolower((unsigned char)*q);
 	}
 
 	return p;

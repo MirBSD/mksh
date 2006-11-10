@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.35 2006/11/10 06:27:09 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.36 2006/11/10 06:53:27 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -437,7 +437,7 @@ getn(const char *s, int *ai)
 		c = *s++;
 	*ai = i = 0;
 	do {
-		if (!isdigit(c))
+		if (!ksh_isdigit(c))
 			goto getn_out;
 		i *= 10;
 		if (i < *ai)

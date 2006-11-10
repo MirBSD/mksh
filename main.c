@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.58 2006/11/10 06:31:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.59 2006/11/10 06:53:26 tg Exp $");
 
 extern char **environ;
 
@@ -954,7 +954,7 @@ check_fd(char *name, int mode, const char **emsgp)
 {
 	int fd, fl;
 
-	if (isdigit((unsigned char)name[0]) && !name[1]) {
+	if (ksh_isdigit(name[0]) && !name[1]) {
 		fd = name[0] - '0';
 		if ((fl = fcntl(fd = name[0] - '0', F_GETFL, 0)) < 0) {
 			if (emsgp)

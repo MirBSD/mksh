@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.69 2006/11/10 06:45:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.70 2006/11/10 06:53:25 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -3029,7 +3029,7 @@ x_set_arg(int c)
 	int first = 1;
 
 	c &= CHARMASK;	/* strip command prefix */
-	for (; c >= 0 && isdigit((unsigned char)c); c = x_e_getc(), first = 0)
+	for (; c >= 0 && ksh_isdigit(c); c = x_e_getc(), first = 0)
 		n = n * 10 + (c - '0');
 	if (c < 0 || first) {
 		x_e_putc2(7);
@@ -3208,26 +3208,20 @@ x_fold_case(int c)
 		 * a different action than for the rest.
 		 */
 		if (cp != xep) {
-			if (c == 'L') {		/* lowercase */
-				if (isupper((unsigned char)*cp))
-					*cp = _tolower((unsigned char)*cp);
-			} else {		/* uppercase, capitalise */
-				if (islower((unsigned char)*cp))
-					*cp = _toupper((unsigned char)*cp);
-			}
+			if (c == 'L')		/* lowercase */
+				*cp = _tolower((unsigned char)*cp);
+			else			/* uppercase, capitalise */
+				*cp = _toupper((unsigned char)*cp);
 			cp++;
 		}
 		/*
 		 * now for the rest of the word
 		 */
 		while (cp != xep && !is_mfs(*cp)) {
-			if (c == 'U') {		/* uppercase */
-				if (islower((unsigned char)*cp))
-					*cp = _toupper((unsigned char)*cp);
-			} else {		/* lowercase, capitalise */
-				if (isupper((unsigned char)*cp))
-					*cp = _tolower((unsigned char)*cp);
-			}
+			if (c == 'U')		/* uppercase */
+				*cp = _toupper((unsigned char)*cp);
+			else			/* lowercase, capitalise */
+				*cp = _tolower((unsigned char)*cp);
 			cp++;
 		}
 	}
@@ -3661,7 +3655,7 @@ vi_hook(int ch)
 		break;
 
 	case VARG1:
-		if (isdigit((unsigned char)ch))
+		if (ksh_isdigit(ch))
 			argc1 = argc1 * 10 + ch - '0';
 		else {
 			curcmd[cmdlen++] = ch;
@@ -3687,7 +3681,7 @@ vi_hook(int ch)
 		break;
 
 	case VARG2:
-		if (isdigit((unsigned char)ch))
+		if (ksh_isdigit(ch))
 			argc2 = argc2 * 10 + ch - '0';
 		else {
 			if (argc1 == 0)
@@ -4431,11 +4425,11 @@ vi_cmd(int argcnt, const char *cmd)
 					return -1;
 				for (i = 0; i < argcnt; i++) {
 					p = &es->cbuf[es->cursor];
-					if (islower((unsigned char)*p)) {
+					if (ksh_islower((unsigned char)*p)) {
 						modified = 1;
 						hnum = hlast;
 						*p = _toupper((unsigned char)*p);
-					} else if (isupper((unsigned char)*p)) {
+					} else if (ksh_isupper((unsigned char)*p)) {
 						modified = 1;
 						hnum = hlast;
 						*p = _tolower((unsigned char)*p);
