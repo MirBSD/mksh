@@ -3,11 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.30 2006/11/10 04:22:13 tg Exp $");
-
-#if !defined(__sun__)
-#define DO_HISTORY
-#endif
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.31 2006/11/10 05:23:12 tg Exp $");
 
 #ifndef mksh_siglist
 #if defined(BSD) || defined(__APPLE__)
@@ -27,7 +23,7 @@ __RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.30 2006/11/10 04:22:13 tg Exp $");
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign, Sigact_trap;
 
-#ifdef DO_HISTORY
+#ifdef V_HISTFILE
 static int hist_count_lines(unsigned char *, int);
 static int hist_shrink(unsigned char *, int);
 static unsigned char *hist_skip_back(unsigned char *,int *,int);
@@ -44,12 +40,14 @@ static char   **hist_get_oldest(void);
 static void	histbackup(void);
 
 static char   **current;	/* current position in history[] */
-static char    *hname;		/* current name of history file */
 static int	hstarted;	/* set after hist_init() called */
 static Source	*hist_source;
 
+#ifdef V_HISTFILE
+static char    *hname;		/* current name of history file */
 static int	histfd;
 static int	hsize;
+#endif
 
 int
 c_fc(char **wp)
@@ -518,6 +516,7 @@ sethistsize(int n)
 	}
 }
 
+#ifdef V_HISTFILE
 /*
  *	set history file
  *	This can mean reloading/resetting/starting history file
@@ -551,6 +550,7 @@ sethistfile(const char *name)
 
 	hist_init(hist_source);
 }
+#endif
 
 /*
  *	initialise the history vector
@@ -589,7 +589,7 @@ histsave(int lno __attribute__((unused)), const char *cmd,
 	if ((cp = strchr(c, '\n')) != NULL)
 		*cp = '\0';
 
-#ifdef DO_HISTORY
+#ifdef V_HISTFILE
 	if (histfd && dowrite)
 		writehistfile(lno, c);
 #endif
@@ -632,7 +632,7 @@ histsave(int lno __attribute__((unused)), const char *cmd,
 void
 hist_init(Source *s)
 {
-#ifdef DO_HISTORY
+#ifdef V_HISTFILE
 	unsigned char	*base;
 	int	lines;
 	int	fd;
@@ -645,7 +645,7 @@ hist_init(Source *s)
 
 	hist_source = s;
 
-#ifdef DO_HISTORY
+#ifdef V_HISTFILE
 	hname = str_val(global("HISTFILE"));
 	if (hname == NULL)
 		return;
@@ -702,12 +702,10 @@ hist_init(Source *s)
 	}
 	(void) flock(histfd, LOCK_UN);
 	hsize = lseek(histfd, 0L, SEEK_END);
-#else
-	hname = NULL;
-	histfd = 0;
 #endif
 }
 
+#ifdef V_HISTFILE
 typedef enum state {
 	shdr,		/* expecting a header */
 	sline,		/* looking for a null byte to end the line */
@@ -715,7 +713,6 @@ typedef enum state {
 	sn2, sn3, sn4
 } State;
 
-#ifdef DO_HISTORY
 static int
 hist_count_lines(unsigned char *base, int bytes)
 {
@@ -947,19 +944,15 @@ writehistfile(int lno, char *cmd)
  bad:
 	hist_finish();
 }
-#endif
 
 void
 hist_finish(void)
 {
-#ifdef DO_HISTORY
 	(void) flock(histfd, LOCK_UN);
 	(void) close(histfd);
-#endif
 	histfd = 0;
 }
 
-#ifdef DO_HISTORY
 /*
  *	add magic to the history file
  */

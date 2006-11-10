@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.25 2006/11/10 04:22:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.26 2006/11/10 05:23:14 tg Exp $");
 
 /*
  * Variables
@@ -88,7 +88,9 @@ initvar(void)
 		{ "OPTIND",		V_OPTIND },
 		{ "PATH",		V_PATH },
 		{ "TMPDIR",		V_TMPDIR },
+#ifdef V_HISTFILE
 		{ "HISTFILE",		V_HISTFILE },
+#endif
 		{ "HISTSIZE",		V_HISTSIZE },
 		{ "RANDOM",		V_RANDOM },
 		{ "SECONDS",		V_SECONDS },
@@ -991,9 +993,11 @@ setspec(struct tbl *vp)
 		sethistsize((int) intval(vp));
 		vp->flag |= SPECIAL;
 		break;
+#ifdef V_HISTFILE
 	case V_HISTFILE:
 		sethistfile(str_val(vp));
 		break;
+#endif
 	case V_COLUMNS:
 		if ((x_cols = intval(vp)) <= MIN_COLS)
 			x_cols = MIN_COLS;
