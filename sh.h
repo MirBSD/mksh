@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.69 2006/11/10 01:19:17 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.70 2006/11/10 01:25:22 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/10"
 
 #if HAVE_SYS_PARAM_H
@@ -138,9 +138,9 @@ extern int __cdecl setegid(gid_t);
 #define EXECSHELL	"/bin/mksh"
 #define EXECSHELL_STR	"EXECSHELL"
 
-#define	NELEM(a)	(sizeof(a) / sizeof((a)[0]))
-#define	sizeofN(type, n) (sizeof(type) * (n))
-#define	BIT(i)		(1<<(i))	/* define bit in flag */
+#define	NELEM(a)	(sizeof (a) / sizeof ((a)[0]))
+#define	sizeofN(typ, n)	(sizeof (typ) * (n))
+#define	BIT(i)		(1 << (i))	/* define bit in flag */
 
 /* Table flag type - needs > 16 and < 32 bits */
 typedef int32_t Tflag;
