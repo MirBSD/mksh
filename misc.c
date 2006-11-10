@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.33 2006/11/10 04:07:59 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.34 2006/11/10 05:21:38 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -450,7 +450,7 @@ getn(const char *s, int *ai)
  getn_out:
 	if (neg)
 		*ai = -*ai;
-	return (1);
+	return (rv);
 }
 
 /* getn() that prints error */
