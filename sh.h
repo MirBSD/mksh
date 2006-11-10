@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.76 2006/11/10 06:27:09 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.77 2006/11/10 06:45:28 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/10"
 
 #if HAVE_SYS_PARAM_H
@@ -97,6 +97,13 @@
 			(vvp)->tv_usec += 1000000;			\
 		}							\
 	} while (0)
+#endif
+
+#ifndef _tolower
+#define _tolower(c)	(((c) >= 'A') && ((c) <= 'Z') ? (c) - 'A' + 'a' : (c))
+#endif
+#ifndef _toupper
+#define _toupper(c)	(((c) >= 'a') && ((c) <= 'z') ? (c) - 'a' + 'A' : (c))
 #endif
 
 #ifndef S_ISTXT

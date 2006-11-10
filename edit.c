@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.68 2006/11/10 06:40:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.69 2006/11/10 06:45:27 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -3183,7 +3183,7 @@ x_fold_capitalize(int c __attribute__((unused)))
  *
  * DESCRIPTION:
  *      This function is used to implement M-U,M-u,M-L,M-l,M-C and M-c
- *      to UPPER case, lower case or Capitalize words.
+ *      to UPPER case, lower case or Capitalise words.
  *
  * RETURN VALUE:
  *      None
@@ -3210,10 +3210,10 @@ x_fold_case(int c)
 		if (cp != xep) {
 			if (c == 'L') {		/* lowercase */
 				if (isupper((unsigned char)*cp))
-					*cp = tolower((unsigned char)*cp);
-			} else {		/* uppercase, capitalize */
+					*cp = _tolower((unsigned char)*cp);
+			} else {		/* uppercase, capitalise */
 				if (islower((unsigned char)*cp))
-					*cp = toupper((unsigned char)*cp);
+					*cp = _toupper((unsigned char)*cp);
 			}
 			cp++;
 		}
@@ -3223,10 +3223,10 @@ x_fold_case(int c)
 		while (cp != xep && !is_mfs(*cp)) {
 			if (c == 'U') {		/* uppercase */
 				if (islower((unsigned char)*cp))
-					*cp = toupper((unsigned char)*cp);
-			} else {		/* lowercase, capitalize */
+					*cp = _toupper((unsigned char)*cp);
+			} else {		/* lowercase, capitalise */
 				if (isupper((unsigned char)*cp))
-					*cp = tolower((unsigned char)*cp);
+					*cp = _tolower((unsigned char)*cp);
 			}
 			cp++;
 		}
@@ -4434,11 +4434,11 @@ vi_cmd(int argcnt, const char *cmd)
 					if (islower((unsigned char)*p)) {
 						modified = 1;
 						hnum = hlast;
-						*p = toupper((unsigned char)*p);
+						*p = _toupper((unsigned char)*p);
 					} else if (isupper((unsigned char)*p)) {
 						modified = 1;
 						hnum = hlast;
-						*p = tolower((unsigned char)*p);
+						*p = _tolower((unsigned char)*p);
 					}
 					if (es->cursor < es->linelen - 1)
 						es->cursor++;

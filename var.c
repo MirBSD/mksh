@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.27 2006/11/10 06:16:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.28 2006/11/10 06:45:28 tg Exp $");
 
 /*
  * Variables
@@ -75,7 +75,7 @@ popblock(void)
 	afree(l, ATEMP);
 }
 
-/* called by main() to initialize variable data structures */
+/* called by main() to initialise variable data structures */
 void
 initvar(void)
 {
@@ -534,11 +534,11 @@ formatstr(struct tbl *vp, const char *s)
 	if (vp->flag & UCASEV_AL) {
 		for (q = p; *q; q++)
 			if (islower((unsigned char)*q))
-				*q = toupper((unsigned char)*q);
+				*q = _toupper((unsigned char)*q);
 	} else if (vp->flag & LCASEV) {
 		for (q = p; *q; q++)
 			if (isupper((unsigned char)*q))
-				*q = tolower((unsigned char)*q);
+				*q = _tolower((unsigned char)*q);
 	}
 
 	return p;
