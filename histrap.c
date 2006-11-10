@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.29 2006/11/10 04:03:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.30 2006/11/10 04:22:13 tg Exp $");
 
 #if !defined(__sun__)
 #define DO_HISTORY
@@ -247,8 +247,7 @@ c_fc(char **wp)
 			return 1;
 		}
 
-		n = fstat(shf_fileno(shf), &statb) < 0 ? 128 :
-		    statb.st_size + 1;
+		n = stat(tf->name, &statb) < 0 ? 128 : statb.st_size + 1;
 		Xinit(xs, xp, n, hist_source->areap);
 		while ((n = shf_read(xp, Xnleft(xs, xp), shf)) > 0) {
 			xp += n;

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.24 2006/11/10 01:13:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.25 2006/11/10 04:22:13 tg Exp $");
 
 /*
  * Variables
@@ -910,8 +910,12 @@ getspec(struct tbl *vp)
 		 * has been set - don't do anything in this case
 		 * (see initcoms[] in main.c).
 		 */
-		if (vp->flag & ISSET)
-			setint(vp, (long) (time(NULL) - seconds));
+		if (vp->flag & ISSET) {
+			struct timeval tv;
+
+			gettimeofday(&tv, NULL);
+			setint(vp, tv.tv_sec - seconds);
+		}
 		vp->flag |= SPECIAL;
 		break;
 	case V_RANDOM:
@@ -1007,7 +1011,12 @@ setspec(struct tbl *vp)
 		break;
 	case V_SECONDS:
 		vp->flag &= ~SPECIAL;
-		seconds = time(NULL) - intval(vp);
+		{
+			struct timeval tv;
+
+			gettimeofday(&tv, NULL);
+			seconds = tv.tv_sec - intval(vp);
+		}
 		vp->flag |= SPECIAL;
 		break;
 	case V_TMOUT:
