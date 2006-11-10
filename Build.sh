@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.74 2006/11/09 23:09:05 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.75 2006/11/10 07:18:56 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -18,8 +18,6 @@ ac_testn()
 {
 	f=$1
 	fu=`upper $f`
-	test 0 = "$HAVE_$fu" && return
-	test 1 = "$HAVE_$fu" && return
 	if test x"$2" = x""; then
 		ft=1
 	else
@@ -28,9 +26,21 @@ ac_testn()
 	fi
 	fd=$3
 	test x"$fd" = x"" && fd=$f
+	eval fv=\$HAVE_$fu
+	if test 0 = "$fv"; then
+		$e "==> $fd... no (cached)"
+		return
+	fi
+	if test 1 = "$fv"; then
+		$e "==> $fd... yes (cached)"
+		return
+	fi
 	if test 0 = "$ft"; then
-		eval HAVE_$fu=$2
-		$e "==> $fd... not checked ($2)"
+		fv=$2
+		eval HAVE_$fu=$fv
+		test 0 = "$fv" && fv=no
+		test 1 = "$fv" && fv=yes
+		$e "==> $fd... $fv (implied)"
 		return
 	fi
 	$e ... $fd
@@ -190,6 +200,8 @@ if test 0 = $HAVE_MKSH_FULL; then
 		int main(void) { return (0); }
 	EOF
 	test 1 = $HAVE_CAN_FNOINLINE || CFLAGS=$save_CFLAGS
+
+	HAVE_LANGINFO_CODESET=0
 fi
 
 save_CFLAGS=$CFLAGS

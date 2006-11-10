@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.70 2006/11/10 06:53:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.71 2006/11/10 07:18:56 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -497,7 +497,7 @@ x_locate_word(const char *buf, int buflen, int pos, int *startp,
 		int iscmd;
 
 		/* Figure out if this is a command */
-		for (p = start - 1; p >= 0 && isspace((unsigned char)buf[p]);
+		for (p = start - 1; p >= 0 && ksh_isspace(buf[p]);
 		    p--)
 			;
 		iscmd = p < 0 || strchr(";|&()`", buf[p]);
@@ -1049,8 +1049,9 @@ struct x_defbindings {
 
 /* Separator for completion */
 #define	is_cfs(c)	((c) == ' ' || (c) == '\t' || (c) == '"' || (c) == '\'')
-#define	is_mfs(c)	(!(isalnum((unsigned char)(c)) || (c) == '_' || \
-			    (c) == '$'))	/* Separator for motion */
+			/* Separator for motion */
+#define	is_mfs(c)	(!(ksh_isdigit(c) || ksh_islower(c) || \
+			    ksh_isupper(c) || (c) == '_' || (c) == '$'))
 
 #define CHARMASK	0xFF			/* 8-bit character mask */
 #define X_NTABS		3			/* normal, meta1, meta2 */
@@ -3209,9 +3210,9 @@ x_fold_case(int c)
 		 */
 		if (cp != xep) {
 			if (c == 'L')		/* lowercase */
-				*cp = _tolower((unsigned char)*cp);
+				*cp = ksh_tolower(*cp);
 			else			/* uppercase, capitalise */
-				*cp = _toupper((unsigned char)*cp);
+				*cp = ksh_toupper(*cp);
 			cp++;
 		}
 		/*
@@ -3219,9 +3220,9 @@ x_fold_case(int c)
 		 */
 		while (cp != xep && !is_mfs(*cp)) {
 			if (c == 'U')		/* uppercase */
-				*cp = _toupper((unsigned char)*cp);
+				*cp = ksh_toupper(*cp);
 			else			/* lowercase, capitalise */
-				*cp = _tolower((unsigned char)*cp);
+				*cp = ksh_tolower(*cp);
 			cp++;
 		}
 	}
@@ -3744,9 +3745,9 @@ vi_hook(int ch)
 			int i;
 			int n = srchlen;
 
-			while (n > 0 && isspace((unsigned char)locpat[n - 1]))
+			while (n > 0 && ksh_isspace(locpat[n - 1]))
 				n--;
-			while (n > 0 && !isspace((unsigned char)locpat[n - 1]))
+			while (n > 0 && !ksh_isspace(locpat[n - 1]))
 				n--;
 			for (i = srchlen; --i >= n; )
 				es->linelen -= char_len((unsigned char)locpat[i]);
@@ -4116,8 +4117,8 @@ vi_cmd(int argcnt, const char *cmd)
 					return -1;
 				if (*cmd == 'c' &&
 				    (cmd[1] == 'w' || cmd[1] == 'W') &&
-				    !isspace((unsigned char)(es->cbuf[es->cursor]))) {
-					while (isspace((unsigned char)(es->cbuf[--ncursor])))
+				    !ksh_isspace(es->cbuf[es->cursor])) {
+					while (ksh_isspace(es->cbuf[--ncursor]))
 						;
 					ncursor++;
 				}
@@ -4368,7 +4369,7 @@ vi_cmd(int argcnt, const char *cmd)
 				if (histnum(-1) < 0)
 					return -1;
 				p = *histpos();
-#define issp(c)		(isspace((unsigned char)(c)) || (c) == '\n')
+#define issp(c)		(ksh_isspace(c) || (c) == '\n')
 				if (argcnt) {
 					while (*p && issp(*p))
 						p++;
@@ -4425,14 +4426,14 @@ vi_cmd(int argcnt, const char *cmd)
 					return -1;
 				for (i = 0; i < argcnt; i++) {
 					p = &es->cbuf[es->cursor];
-					if (ksh_islower((unsigned char)*p)) {
+					if (ksh_islower(*p)) {
 						modified = 1;
 						hnum = hlast;
-						*p = _toupper((unsigned char)*p);
-					} else if (ksh_isupper((unsigned char)*p)) {
+						*p = ksh_toupper(*p);
+					} else if (ksh_isupper(*p)) {
 						modified = 1;
 						hnum = hlast;
-						*p = _tolower((unsigned char)*p);
+						*p = ksh_tolower(*p);
 					}
 					if (es->cursor < es->linelen - 1)
 						es->cursor++;
@@ -4577,7 +4578,7 @@ domove(int argcnt, const char *cmd, int sub)
 	case '^':
 		ncursor = 0;
 		while (ncursor < es->linelen - 1 &&
-		    isspace((unsigned char)(es->cbuf[ncursor])))
+		    ksh_isspace(es->cbuf[ncursor]))
 			ncursor++;
 		break;
 
@@ -4844,12 +4845,12 @@ forwword(int argcnt)
 			while (is_wordch(es->cbuf[ncursor]) &&
 			    ncursor < es->linelen)
 				ncursor++;
-		else if (!isspace((unsigned char)(es->cbuf[ncursor])))
+		else if (!ksh_isspace(es->cbuf[ncursor]))
 			while (!is_wordch(es->cbuf[ncursor]) &&
-			    !isspace((unsigned char)(es->cbuf[ncursor])) &&
+			    !ksh_isspace(es->cbuf[ncursor]) &&
 			    ncursor < es->linelen)
 				ncursor++;
-		while (isspace((unsigned char)(es->cbuf[ncursor])) &&
+		while (ksh_isspace(es->cbuf[ncursor]) &&
 		    ncursor < es->linelen)
 			ncursor++;
 	}
@@ -4863,7 +4864,7 @@ backword(int argcnt)
 
 	ncursor = es->cursor;
 	while (ncursor > 0 && argcnt--) {
-		while (--ncursor > 0 && isspace((unsigned char)(es->cbuf[ncursor])))
+		while (--ncursor > 0 && ksh_isspace(es->cbuf[ncursor]))
 			;
 		if (ncursor > 0) {
 			if (is_wordch(es->cbuf[ncursor]))
@@ -4873,7 +4874,7 @@ backword(int argcnt)
 			else
 				while (--ncursor >= 0 &&
 				    !is_wordch(es->cbuf[ncursor]) &&
-				    !isspace((unsigned char)(es->cbuf[ncursor])))
+				    !ksh_isspace(es->cbuf[ncursor]))
 					;
 			ncursor++;
 		}
@@ -4889,7 +4890,7 @@ endword(int argcnt)
 	ncursor = es->cursor;
 	while (ncursor < es->linelen && argcnt--) {
 		while (++ncursor < es->linelen - 1 &&
-		    isspace((unsigned char)(es->cbuf[ncursor])))
+		    ksh_isspace(es->cbuf[ncursor]))
 			;
 		if (ncursor < es->linelen - 1) {
 			if (is_wordch(es->cbuf[ncursor]))
@@ -4899,7 +4900,7 @@ endword(int argcnt)
 			else
 				while (++ncursor < es->linelen &&
 				    !is_wordch(es->cbuf[ncursor]) &&
-				    !isspace((unsigned char)(es->cbuf[ncursor])))
+				    !ksh_isspace(es->cbuf[ncursor]))
 					;
 			ncursor--;
 		}
@@ -4914,10 +4915,10 @@ Forwword(int argcnt)
 
 	ncursor = es->cursor;
 	while (ncursor < es->linelen && argcnt--) {
-		while (!isspace((unsigned char)(es->cbuf[ncursor])) &&
+		while (!ksh_isspace(es->cbuf[ncursor]) &&
 		    ncursor < es->linelen)
 			ncursor++;
-		while (isspace((unsigned char)(es->cbuf[ncursor])) &&
+		while (ksh_isspace(es->cbuf[ncursor]) &&
 		    ncursor < es->linelen)
 			ncursor++;
 	}
@@ -4932,10 +4933,10 @@ Backword(int argcnt)
 	ncursor = es->cursor;
 	while (ncursor > 0 && argcnt--) {
 		while (--ncursor >= 0 &&
-		    isspace((unsigned char)(es->cbuf[ncursor])))
+		    ksh_isspace(es->cbuf[ncursor]))
 			;
 		while (ncursor >= 0 &&
-		    !isspace((unsigned char)(es->cbuf[ncursor])))
+		    !ksh_isspace(es->cbuf[ncursor]))
 			ncursor--;
 		ncursor++;
 	}
@@ -4950,11 +4951,11 @@ Endword(int argcnt)
 	ncursor = es->cursor;
 	while (ncursor < es->linelen - 1 && argcnt--) {
 		while (++ncursor < es->linelen - 1 &&
-		    isspace((unsigned char)(es->cbuf[ncursor])))
+		    ksh_isspace(es->cbuf[ncursor]))
 			;
 		if (ncursor < es->linelen - 1) {
 			while (++ncursor < es->linelen &&
-			    !isspace((unsigned char)(es->cbuf[ncursor])))
+			    !ksh_isspace(es->cbuf[ncursor]))
 				;
 			ncursor--;
 		}

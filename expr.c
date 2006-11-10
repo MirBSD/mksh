@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.4 2006/05/10 18:54:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.5 2006/11/10 07:18:57 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -448,7 +448,7 @@ token(Expr_state *es)
 	char *tvar;
 
 	/* skip white space */
-	for (cp = es->tokp; (c = *cp), isspace(c); cp++)
+	for (cp = es->tokp; (c = *cp), ksh_isspace(c); cp++)
 		;
 	es->tokp = cp;
 

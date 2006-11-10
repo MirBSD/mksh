@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.36 2006/11/10 06:53:27 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.37 2006/11/10 07:18:57 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -429,7 +429,7 @@ getn(const char *s, int *ai)
 
 	do {
 		c = *s++;
-	} while (isspace(c));
+	} while (ksh_isspace(c));
 	if (c == '-') {
 		neg = true;
 		c = *s++;

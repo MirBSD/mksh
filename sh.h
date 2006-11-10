@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.78 2006/11/10 06:53:27 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.79 2006/11/10 07:18:57 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/10"
 
 #if HAVE_SYS_PARAM_H
@@ -40,7 +40,6 @@
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -104,6 +103,13 @@
 #define ksh_isupper(c)	(((c) >= 'A') && ((c) <= 'Z'))
 #define ksh_tolower(c)	(((c) >= 'A') && ((c) <= 'Z') ? (c) - 'A' + 'a' : (c))
 #define ksh_toupper(c)	(((c) >= 'a') && ((c) <= 'z') ? (c) - 'a' + 'A' : (c))
+
+/* this macro must not evaluate its arguments several times */
+#define ksh_isspace(c)	__extension__({					\
+		unsigned char ksh_isspace_c = (c);			\
+		(ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||	\
+		    (ksh_isspace_c == 0x20);				\
+	})
 
 #ifndef S_ISTXT
 #define S_ISTXT 0001000
