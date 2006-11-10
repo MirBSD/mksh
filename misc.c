@@ -3,15 +3,20 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.32 2006/11/10 04:03:59 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.33 2006/11/10 04:07:59 tg Exp $\t"
 	MKSH_SH_H_ID);
+
+#undef USE_CHVT
+#if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
+#define USE_CHVT
+#endif
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
 static int do_gmatch(const unsigned char *, const unsigned char *,
     const unsigned char *, const unsigned char *);
 static const unsigned char *cclass(const unsigned char *, int);
-#ifdef TIOCSCTTY
+#ifdef USE_CHVT
 static void parse_T(char *);
 #endif
 static char *do_phys_path(XString *, char *, const char *);
@@ -345,13 +350,15 @@ parse_args(char **argv,
 			break;
 
 		case 'T':
+#ifndef MKSH_SMALL
 			if (what != OF_FIRSTTIME)
 				break;
-#ifndef TIOCSCTTY
+#ifndef USE_CHVT
 			errorf("no TIOCSCTTY ioctl");
 #else
 			change_flag(FTALKING, OF_CMDLINE, 1);
 			parse_T(go.optarg);
+#endif
 #endif
 			break;
 
@@ -1297,7 +1304,7 @@ do_phys_path(XString *xsp, char *xp, const char *pathl)
 	return xp;
 }
 
-#ifdef TIOCSCTTY
+#ifdef USE_CHVT
 static void
 parse_T(char *fn)
 {
