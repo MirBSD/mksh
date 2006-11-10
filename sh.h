@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.72 2006/11/10 03:23:50 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.73 2006/11/10 03:45:57 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/10"
 
 #if HAVE_SYS_PARAM_H
@@ -454,7 +454,7 @@ EXTERN Tflag	builtin_flag;	/* flags of called builtin (SPEC_BI, etc.) */
 
 /* current working directory, and size of memory allocated for same */
 EXTERN char	*current_wd;
-EXTERN int	current_wd_size;
+EXTERN size_t	current_wd_size;
 
 /* Minimum required space to work with on a line - if the prompt leaves less
  * space than this on a line, the prompt is truncated.
@@ -1237,10 +1237,10 @@ int ksh_getopt(char **, Getopt *, const char *);
 void print_value_quoted(const char *);
 void print_columns(struct shf *, int, char *(*)(void *, int, char *, int),
     void *, int, int prefcol);
-int strip_nuls(char *, int);
+void strip_nuls(char *, int);
 int blocking_read(int, char *, int);
 int reset_nonblock(int);
-char *ksh_get_wd(char *, int);
+char *ksh_get_wd(size_t *);
 int make_path(const char *, const char *, char **, XString *, int *);
 void simplify_path(char *);
 char *get_phys_path(const char *);

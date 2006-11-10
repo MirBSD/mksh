@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.32 2006/11/09 23:19:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.33 2006/11/10 03:45:56 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -178,13 +178,9 @@ c_pwd(char **wp)
 	    NULL;
 	if (p && eaccess(p, R_OK) < 0)
 		p = NULL;
-	if (!p) {
-		p = ksh_get_wd(NULL, 0);
-		if (!p) {
-			bi_errorf("can't get current directory - %s",
-			    strerror(errno));
-			return 1;
-		}
+	if (!p && !(p = ksh_get_wd(NULL))) {
+		bi_errorf("can't get current directory - %s", strerror(errno));
+		return 1;
 	}
 	shprintf("%s\n", p);
 	return 0;

@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.29 2006/11/10 03:23:50 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.30 2006/11/10 03:45:57 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
@@ -747,7 +747,7 @@ xstrcmp(const void *p1, const void *p2)
 	return (strcmp(*(const char **)p1, *(const char **)p2));
 }
 
-/* Initialize a Getopt structure */
+/* Initialise a Getopt structure */
 void
 ksh_getopt_reset(Getopt *go, int flags)
 {
@@ -962,7 +962,7 @@ print_columns(struct shf *shf, int n, char *(*func) (void *, int, char *, int),
 }
 
 /* Strip any nul bytes from buf - returns new length (nbytes - # of nuls) */
-int
+void
 strip_nuls(char *buf, int nbytes)
 {
 	char *dst;
@@ -985,9 +985,7 @@ strip_nuls(char *buf, int nbytes)
 			dst += q - p;
 		}
 		*dst = '\0';
-		return dst - buf;
 	}
-	return nbytes;
 }
 
 /* Like read(2), but if read fails due to non-blocking flag, resets flag
@@ -1001,12 +999,11 @@ blocking_read(int fd, char *buf, int nbytes)
 
 	while ((ret = read(fd, buf, nbytes)) < 0) {
 		if (!tried_reset && errno == EAGAIN) {
-			int oerrno = errno;
 			if (reset_nonblock(fd) > 0) {
 				tried_reset = 1;
 				continue;
 			}
-			errno = oerrno;
+			errno = EAGAIN;
 		}
 		break;
 	}
@@ -1035,29 +1032,18 @@ reset_nonblock(int fd)
 
 /* Like getcwd(), except bsize is ignored if buf is 0 (PATH_MAX is used) */
 char *
-ksh_get_wd(char *buf, int bsize)
+ksh_get_wd(size_t *dlen)
 {
-	char *b;
-	char *ret;
+	char *ret, *b;
+	size_t len = 0;
 
-	/* Note: we could just use plain getcwd(), but then we'd had to
-	 * inject possibly allocated space into the ATEMP area. */
-	/* Assume getcwd() available */
-	if (!buf) {
-		bsize = PATH_MAX;
-		b = alloc(PATH_MAX + 1, ATEMP);
-	} else
-		b = buf;
+	if ((ret = getcwd((b = alloc(PATH_MAX + 1, ATEMP)), PATH_MAX)))
+		ret = aresize(b, len = (strlen(b) + 1), ATEMP);
+	else
+		afree(b, ATEMP);
 
-	ret = getcwd(b, bsize);
-
-	if (!buf) {
-		if (ret)
-			ret = aresize(b, strlen(b) + 1, ATEMP);
-		else
-			afree(b, ATEMP);
-	}
-
+	if (dlen)
+		*dlen = len;
 	return ret;
 }
 
@@ -1221,13 +1207,14 @@ simplify_path(char *pathl)
 void
 set_current_wd(char *pathl)
 {
-	int len;
+	size_t len = 1;
 	char *p = pathl;
 
-	if (!p && !(p = ksh_get_wd(NULL, 0)))
-		p = null;
-
-	len = strlen(p) + 1;
+	if (p == NULL) {
+		if ((p = ksh_get_wd(&len)) == NULL)
+			p = null;
+	} else
+		len = strlen(p) + 1;
 
 	if (len > current_wd_size)
 		current_wd = aresize(current_wd, current_wd_size = len, APERM);
