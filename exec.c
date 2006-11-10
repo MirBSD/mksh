@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.16 2006/08/01 13:43:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.17 2006/11/10 01:44:39 tg Exp $");
 
 static int	comexec(struct op *, struct tbl *volatile, char **,
 		    int volatile);
@@ -665,13 +665,14 @@ comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
 static void
 scriptexec(struct op *tp, char **ap)
 {
+	static char execshell[] = "/bin/sh";
 	char *sh;
 
-	sh = str_val(global(EXECSHELL_STR));
+	sh = str_val(global("EXECSHELL"));
 	if (sh && *sh)
 		sh = search(sh, path, X_OK, NULL);
 	if (!sh || !*sh)
-		sh = strdup(EXECSHELL);
+		sh = execshell;
 
 	*tp->args-- = tp->str;
 	*tp->args = sh;

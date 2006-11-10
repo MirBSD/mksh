@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.24 2006/11/10 01:19:17 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.25 2006/11/10 01:44:39 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
@@ -149,10 +149,7 @@ option(const char *n)
 
 struct options_info {
 	int opt_width;
-	struct {
-		const char *name;
-		int	flag;
-	} opts[NELEM(options)];
+	int opts[NELEM(options)];
 };
 
 static char *options_fmt_entry(void *arg, int i, char *buf, int buflen);
@@ -165,8 +162,8 @@ options_fmt_entry(void *arg, int i, char *buf, int buflen)
 	struct options_info *oi = (struct options_info *) arg;
 
 	shf_snprintf(buf, buflen, "%-*s %s",
-	    oi->opt_width, oi->opts[i].name,
-	    Flag(oi->opts[i].flag) ? "on" : "off");
+	    oi->opt_width, options[oi->opts[i]].name,
+	    Flag(oi->opts[i]) ? "on" : "off");
 	return buf;
 }
 
@@ -185,8 +182,7 @@ printoptions(int verbose)
 		for (i = n = oi.opt_width = 0; i < NELEM(options); i++)
 			if (options[i].name) {
 				len = strlen(options[i].name);
-				oi.opts[n].name = options[i].name;
-				oi.opts[n++].flag = i;
+				oi.opts[n++] = i;
 				if (len > oi.opt_width)
 					oi.opt_width = len;
 			}
