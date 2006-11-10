@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.30 2006/11/10 03:45:57 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.31 2006/11/10 03:54:38 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
@@ -1334,7 +1334,7 @@ parse_T(char *fn)
 	case 0:
 		break;
 	default:
-		_exit(0);
+		exit(0);
 	}
 	if (setsid() == -1)
 		errorf("chvt: setsid failed");
