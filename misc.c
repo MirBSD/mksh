@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.27 2006/11/10 02:05:06 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.28 2006/11/10 02:10:45 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
@@ -348,8 +348,7 @@ parse_args(char **argv,
 			if (what != OF_FIRSTTIME)
 				break;
 #ifndef TIOCSCTTY
-			bi_errorf("no TIOCSCTTY ioctl");
-			return -1;
+			errorf("no TIOCSCTTY ioctl");
 #else
 			change_flag(FTALKING, OF_CMDLINE, 1);
 			parse_T(go.optarg);
@@ -1415,12 +1414,12 @@ parse_T(char *fn)
 		if (stat(dv, &sb)) {
 			memmove(dv + 8, dv + 9, 20 - 9);
 			if (stat(dv, &sb))
-				bi_errorf("chvt: can't find tty %s", fn);
+				errorf("chvt: can't find tty %s", fn);
 		}
 		fn = dv;
 	}
 	if (!(sb.st_mode & S_IFCHR))
-		bi_errorf("chvt: not a char device: %s", fn);
+		errorf("chvt: not a char device: %s", fn);
 	if ((sb.st_uid != 0) && chown(fn, 0, 0))
 		warningf(false, "chvt: cannot chown root %s", fn);
 	if (((sb.st_mode & 07777) != 0600) && chmod(fn, 0600))
@@ -1433,20 +1432,20 @@ parse_T(char *fn)
 	if ((fd = open(fn, O_RDWR)) == -1) {
 		sleep(1);
 		if ((fd = open(fn, O_RDWR)) == -1)
-			bi_errorf("chvt: cannot open %s", fn);
+			errorf("chvt: cannot open %s", fn);
 	}
 	switch (fork()) {
 	case -1:
-		bi_errorf("fork failed");
+		errorf("fork failed");
 	case 0:
 		break;
 	default:
 		_exit(0);
 	}
 	if (setsid() == -1)
-		bi_errorf("chvt: setsid failed");
+		errorf("chvt: setsid failed");
 	if (ioctl(fd, TIOCSCTTY, NULL) == -1)
-		bi_errorf("chvt: TIOCSCTTY failed");
+		errorf("chvt: TIOCSCTTY failed");
 	dup2(fd, 0);
 	dup2(fd, 1);
 	dup2(fd, 2);
