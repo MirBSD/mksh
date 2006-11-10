@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.27 2006/11/10 01:13:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.28 2006/11/10 03:50:05 tg Exp $");
 
 #if !defined(__sun__)
 #define DO_HISTORY
@@ -769,6 +769,8 @@ hist_shrink(unsigned char *oldbase, int oldbytes)
 	(void) shf_snprintf(nfile, sizeof(nfile), "%s.%d", hname, procpid);
 	if ((fd = open(nfile, O_CREAT | O_TRUNC | O_WRONLY, 0600)) < 0)
 		return 1;
+	if (fstat(histfd, &statb) >= 0)
+		chown(nfile, statb.st_uid, statb.st_gid);
 
 	if (sprinkle(fd)) {
 		close(fd);
@@ -780,11 +782,6 @@ hist_shrink(unsigned char *oldbase, int oldbytes)
 		unlink(nfile);
 		return 1;
 	}
-	/*
-	 *	worry about who owns this file
-	 */
-	if (fstat(histfd, &statb) >= 0)
-		fchown(fd, statb.st_uid, statb.st_gid);
 	close(fd);
 
 	/*
