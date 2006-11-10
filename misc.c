@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.26 2006/11/10 01:52:23 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.27 2006/11/10 02:05:06 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
@@ -415,18 +415,33 @@ parse_args(char **argv,
 
 /* parse a decimal number: returns 0 if string isn't a number, 1 otherwise */
 int
-getn(const char *as, int *ai)
+getn(const char *s, int *ai)
 {
-	char *p;
-	long n;
+	int i, c;
+	bool neg = false;
 
-	n = strtol(as, &p, 10);
+	do {
+		c = *s++;
+	} while (isspace(c));
+	if (c == '-') {
+		neg = true;
+		c = *s++;
+	} else if (c == '+')
+		c = *s++;
+	i = 0;
+	do {
+		*ai = i;
+		if (!isdigit(c))
+			return (0);
+		i *= 10;
+		if (i < *ai)
+			/* overflow */
+			return (0);
+		i += c - '0';
+	} while ((c = *s++));
 
-	if (!*as || *p || INT_MIN >= n || n >= INT_MAX)
-		return 0;
-
-	*ai = (int)n;
-	return 1;
+	*ai = neg ? -i : i;
+	return (1);
 }
 
 /* getn() that prints error */
