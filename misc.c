@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.38 2006/11/10 07:52:03 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.39 2006/11/10 19:11:57 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -1046,7 +1046,7 @@ char *
 ksh_get_wd(size_t *dlen)
 {
 	char *ret, *b;
-	size_t len = 0;
+	size_t len = 1;
 
 	if ((ret = getcwd((b = alloc(PATH_MAX + 1, ATEMP)), PATH_MAX)))
 		ret = aresize(b, len = (strlen(b) + 1), ATEMP);
