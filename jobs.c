@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.12 2006/11/09 22:08:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.13 2006/11/10 04:03:59 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -1302,7 +1302,7 @@ j_lookup(const char *cp, int *ecodep)
 	int		len, job = 0;
 
 	if (digit(*cp)) {
-		job = atoi(cp);
+		getn(cp, &job);
 		/* Look for last_proc->pid (what $! returns) first... */
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->last_proc && j->last_proc->pid == job)
@@ -1336,7 +1336,7 @@ j_lookup(const char *cp, int *ecodep)
 
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
-		job = atoi(cp);
+		getn(cp, &job);
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->job == job)
 				return j;

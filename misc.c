@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.31 2006/11/10 03:54:38 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.32 2006/11/10 04:03:59 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
@@ -416,7 +416,7 @@ parse_args(char **argv,
 int
 getn(const char *s, int *ai)
 {
-	int i, c;
+	int i, c, rv = 0;
 	bool neg = false;
 
 	do {
@@ -427,19 +427,22 @@ getn(const char *s, int *ai)
 		c = *s++;
 	} else if (c == '+')
 		c = *s++;
-	i = 0;
+	*ai = i = 0;
 	do {
-		*ai = i;
 		if (!isdigit(c))
-			return (0);
+			goto getn_out;
 		i *= 10;
 		if (i < *ai)
 			/* overflow */
-			return (0);
+			goto getn_out;
 		i += c - '0';
+		*ai = i;
 	} while ((c = *s++));
+	rv = 1;
 
-	*ai = neg ? -i : i;
+ getn_out:
+	if (neg)
+		*ai = -*ai;
 	return (1);
 }
 

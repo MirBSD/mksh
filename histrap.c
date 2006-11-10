@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.28 2006/11/10 03:50:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.29 2006/11/10 04:03:59 tg Exp $");
 
 #if !defined(__sun__)
 #define DO_HISTORY
@@ -481,8 +481,9 @@ findhistrel(const char *str)
 {
 	int	maxhist = histptr - history;
 	int	start = maxhist - 1;
-	int	rec = atoi(str);
+	int	rec;
 
+	getn(str, &rec);
 	if (rec == 0)
 		return -1;
 	if (rec > 0) {
