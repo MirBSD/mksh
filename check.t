@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.72 2006/11/10 01:13:50 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.73 2006/11/10 06:18:05 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3853,7 +3853,7 @@ name: persist-history-1
 description:
 	Check if persistent history saving works
 # we don't have persistent history on Solaris (no flock)
-category: !os:solaris,!os:plan9
+category: !os:solaris,!os:plan9,pdksh
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
