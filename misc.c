@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.34 2006/11/10 05:21:38 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.35 2006/11/10 06:27:09 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -239,10 +239,11 @@ change_flag(enum sh_flag f,
 		Flag(f) = newval;
 	} else if (f == FPRIVILEGED && oldval && !newval) {
 		/* Turning off -p? */
-		seteuid(ksheuid = kshuid = getuid());
-		setuid(ksheuid);
-		setegid(kshegid = kshgid = getgid());
-		setgid(kshegid);
+		gid_t kshegid = getgid();
+
+		setresgid(kshegid, kshegid, kshegid);
+		setgroups(1, &kshegid);
+		setresuid(ksheuid, ksheuid, ksheuid);
 	} else if (f == FPOSIX && newval) {
 		Flag(FBRACEEXPAND) = 0;
 	}

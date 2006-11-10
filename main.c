@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.56 2006/11/10 05:27:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.57 2006/11/10 06:27:09 tg Exp $");
 
 extern char **environ;
 
@@ -224,12 +224,7 @@ main(int argc, char *argv[])
 			;
 	}
 
-	ksheuid = geteuid();
-	kshuid = getuid();
-	kshegid = getegid();
-	kshgid = getgid();
-
-	safe_prompt = ksheuid ? "$ " : "# ";
+	safe_prompt = (ksheuid = geteuid()) ? "$ " : "# ";
 	vp = global("PS1");
 	/* Set PS1 if unset or we are root and prompt doesn't contain a # */
 	if (!(vp->flag & ISSET) ||
@@ -238,7 +233,7 @@ main(int argc, char *argv[])
 		setstr(vp, safe_prompt, KSH_RETURN_ERROR);
 
 	/* Set this before parsing arguments */
-	Flag(FPRIVILEGED) = kshuid != ksheuid || kshgid != kshegid;
+	Flag(FPRIVILEGED) = getuid() != ksheuid || getgid() != getegid();
 
 	/* this to note if monitor is set on command line (see below) */
 	Flag(FMONITOR) = 127;

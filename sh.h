@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.75 2006/11/10 06:16:25 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.76 2006/11/10 06:27:09 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/10"
 
 #if HAVE_SYS_PARAM_H
@@ -162,9 +162,6 @@ EXTERN	char *kshname;		/* $0 */
 EXTERN	pid_t kshpid;		/* $$, shell pid */
 EXTERN	pid_t procpid;		/* pid of executing process */
 EXTERN	uid_t ksheuid;		/* effective uid of shell */
-EXTERN	uid_t kshuid;		/* real uid of shell */
-EXTERN	gid_t kshegid;		/* effective gid of shell */
-EXTERN	gid_t kshgid;		/* real gid of shell */
 EXTERN	int exstat;		/* exit status */
 EXTERN	int subst_exstat;	/* exit status of last $(..)/`..` */
 EXTERN	const char *safe_prompt; /* safe prompt if PS1 substitution fails */
