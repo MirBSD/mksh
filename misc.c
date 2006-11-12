@@ -2,8 +2,11 @@
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
+#if HAVE_SETGROUPS
+#include <grp.h>
+#endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.40 2006/11/12 12:56:10 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.41 2006/11/12 13:35:29 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT

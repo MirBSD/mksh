@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.79 2006/11/12 13:15:26 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.80 2006/11/12 13:35:29 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -218,7 +218,7 @@ EOF
 
 ac_test arc4random <<-'EOF'
 	#include <stdlib.h>
-	int main(void) { arc4random(); return (0); }
+	int main(void) { return (arc4random()); }
 EOF
 
 ac_test arc4random_push arc4random 0 <<-'EOF'
@@ -228,12 +228,12 @@ EOF
 
 ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<'EOF'
 	#include <locale.h>
-	int main(void) { setlocale(LC_CTYPE, ""); return (0); }
+	int main(void) { return ((int)setlocale(LC_CTYPE, "")); }
 EOF
 
 ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<'EOF'
 	#include <langinfo.h>
-	int main(void) { nl_langinfo(CODESET); return (0); }
+	int main(void) { return ((int)nl_langinfo(CODESET)); }
 EOF
 
 ac_test setmode mksh_full 1 <<-'EOF'
@@ -253,18 +253,19 @@ EOF
 
 ac_test setgroups setresugid 0 <<-'EOF'
 	#include <sys/types.h>
+	#include <grp.h>
 	#include <unistd.h>
 	int main(void) { gid_t gid = 0; return (setgroups(0, &gid)); }
 EOF
 
 ac_test strcasestr <<-'EOF'
 	#include <string.h>
-	int main(int ac, char *av[]) { strcasestr(av[0], av[1]); return (ac); }
+	int main(int ac, char *av[]) { return ((int)strcasestr(*av, av[ac])); }
 EOF
 
 ac_test strlcpy <<-'EOF'
 	#include <string.h>
-	int main(int ac, char *av[]) { strlcpy(av[0], av[1], 1); return (ac); }
+	int main(int ac, char *av[]) { return (strlcpy(*av, av[1], ac)); }
 EOF
 
 $e ... done.
