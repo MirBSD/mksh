@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.18 2006/11/12 12:56:09 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.19 2006/11/12 13:19:06 tg Exp $
 
 PROG=		mksh
 SRCS=		alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c \
@@ -6,7 +6,7 @@ SRCS=		alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c \
 CPPFLAGS+=	-DHAVE_ARC4RANDOM -DHAVE_ARC4RANDOM_PUSH -DHAVE_SYS_PARAM_H
 CPPFLAGS+=	-DHAVE_LANGINFO_CODESET -DHAVE_SETLOCALE_CTYPE
 CPPFLAGS+=	-DHAVE_SETMODE -DHAVE_SETRESUGID -DHAVE_SETGROUPS
-CPPFLAGS+=	-DHAVE_STRLCPY
+CPPFLAGS+=	-DHAVE_STRCASESTR -DHAVE_STRLCPY
 CDIAGFLAGS+=	-Wno-cast-qual
 
 LINKS+=		${BINDIR}/${PROG} ${BINDIR}/sh
