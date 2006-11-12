@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.19 2006/11/10 06:16:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.20 2006/11/12 14:58:14 tg Exp $");
 
 static int	comexec(struct op *, struct tbl *volatile, char **,
 		    int volatile);
@@ -666,7 +666,7 @@ static void
 scriptexec(struct op *tp, char **ap)
 {
 	static char execshell[] = "/bin/sh";
-	char *sh;
+	const char *sh;
 
 	sh = str_val(global("EXECSHELL"));
 	if (sh && *sh)
@@ -675,7 +675,7 @@ scriptexec(struct op *tp, char **ap)
 		sh = execshell;
 
 	*tp->args-- = tp->str;
-	*tp->args = sh;
+	*tp->args = str_save(sh, ATEMP);
 
 	execve(tp->args[0], tp->args, ap);
 
@@ -802,7 +802,7 @@ findcom(const char *name, int flags)
 	struct tbl *tp = NULL, *tbi;
 	int insert = Flag(FTRACKALL);	/* insert if not found */
 	char *fpath;			/* for function autoloading */
-	char *npath;
+	const char *npath;
 
 	if (strchr(name, '/') != NULL) {
 		insert = 0;
@@ -858,7 +858,7 @@ findcom(const char *name, int flags)
 		npath = search(name, flags & FC_DEFPATH ? def_path : path,
 		    X_OK, &tp->u2.errno_);
 		if (npath) {
-			tp->val.s = tp == &temp ? npath : str_save(npath, APERM);
+			tp->val.s = str_save(npath, APERM);
 			tp->flag |= ISSET|ALLOC;
 		} else if ((flags & FC_FUNC) &&
 		    (fpath = str_val(global("FPATH"))) != null &&
@@ -924,7 +924,7 @@ search_access(const char *lpath, int mode,
 /*
  * search for command with PATH
  */
-char *
+const char *
 search(const char *name, const char *lpath,
     int mode,		/* R_OK or X_OK */
     int *errnop)	/* set if candidate found, but not suitable */
@@ -938,7 +938,7 @@ search(const char *name, const char *lpath,
 		*errnop = 0;
 	if (strchr(name, '/')) {
 		if (search_access(name, mode, errnop) == 0)
-			return (char *) name;
+			return (name);
 		return NULL;
 	}
 
@@ -1195,8 +1195,10 @@ herein(const char *content, int sub)
 static char *
 do_selectargs(char **ap, bool print_menu)
 {
-	static const char *const read_args[] = {
-		"read", "-r", "REPLY", NULL
+	static char read_args0[] = "read",
+	    read_args1[] = "-r", read_args2[] = "REPLY",
+	    *read_args[] = {
+		read_args0, read_args1, read_args2, NULL
 	};
 	char *s;
 	int i, argct;
@@ -1212,7 +1214,7 @@ do_selectargs(char **ap, bool print_menu)
 		if (print_menu || !*str_val(global("REPLY")))
 			pr_menu(ap);
 		shellf("%s", str_val(global("PS3")));
-		if (call_builtin(findcom("read", FC_BI), (char **) read_args))
+		if (call_builtin(findcom("read", FC_BI), read_args))
 			return NULL;
 		s = str_val(global("REPLY"));
 		if (*s) {
@@ -1229,13 +1231,14 @@ struct select_menu_info {
 	int	num_width;
 };
 
-static char *select_fmt_entry(void *arg, int i, char *buf, int buflen);
+static char *select_fmt_entry(const void *, int, char *, int);
 
 /* format a single select menu item */
 static char *
-select_fmt_entry(void *arg, int i, char *buf, int buflen)
+select_fmt_entry(const void *arg, int i, char *buf, int buflen)
 {
-	struct select_menu_info *smi = (struct select_menu_info *) arg;
+	const struct select_menu_info *smi =
+	    (const struct select_menu_info *)arg;
 
 	shf_snprintf(buf, buflen, "%*d) %s",
 	    smi->num_width, i + 1, smi->args[i]);
@@ -1286,10 +1289,10 @@ pr_menu(char *const *ap)
 
 /* XXX: horrible kludge to fit within the framework */
 
-static char *plain_fmt_entry(void *arg, int i, char *buf, int buflen);
+static char *plain_fmt_entry(const void *, int, char *, int);
 
 static char *
-plain_fmt_entry(void *arg, int i, char *buf, int buflen)
+plain_fmt_entry(const void *arg, int i, char *buf, int buflen)
 {
 	shf_snprintf(buf, buflen, "%s", ((char *const *)arg)[i]);
 	return buf;
@@ -1306,7 +1309,7 @@ pr_list(char *const *ap)
 		i = strlen(*pp);
 		nwidth = (i > nwidth) ? i : nwidth;
 	}
-	print_columns(shl_out, n, plain_fmt_entry, (void *) ap, nwidth + 1, 0);
+	print_columns(shl_out, n, plain_fmt_entry, (const void *)ap, nwidth + 1, 0);
 
 	return n;
 }

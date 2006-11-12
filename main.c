@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.60 2006/11/12 10:44:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.61 2006/11/12 14:58:15 tg Exp $");
 
 extern char **environ;
 
@@ -77,11 +77,10 @@ main(int argc, char *argv[])
 
 	/* make sure argv[] is sane */
 	if (!*argv) {
-		static const char *empty_argv[] = {
-			"mksh", NULL
-		};
+		static char empty_argv0[] = "mksh",
+		    *empty_argv[] = { empty_argv0, NULL };
 
-		argv = (char **)empty_argv;
+		argv = empty_argv;
 		argc = 1;
 	}
 	kshname = *argv;
@@ -1239,8 +1238,8 @@ ktnext(struct tstate *ts)
 static int
 tnamecmp(const void *p1, const void *p2)
 {
-	const struct tbl *a = *((const struct tbl **)p1);
-	const struct tbl *b = *((const struct tbl **)p2);
+	const struct tbl *a = *((struct tbl * const *)p1);
+	const struct tbl *b = *((struct tbl * const *)p2);
 
 	return (strcmp(a->name, b->name));
 }

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.6 2006/11/10 00:09:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.7 2006/11/12 14:58:16 tg Exp $");
 
 #define INDENT	4
 
@@ -477,7 +477,7 @@ wdcopy(const char *wp, Area *ap)
 }
 
 /* return the position of prefix c in wp plus 1 */
-char *
+const char *
 wdscan(const char *wp, int c)
 {
 	int nest = 0;
@@ -485,7 +485,7 @@ wdscan(const char *wp, int c)
 	while (1)
 		switch (*wp++) {
 		case EOS:
-			return (char *) wp;
+			return (wp);
 		case CHAR:
 		case QCHAR:
 			wp++;
@@ -506,7 +506,7 @@ wdscan(const char *wp, int c)
 		case CSUBST:
 			wp++;
 			if (c == CSUBST && nest == 0)
-				return (char *) wp;
+				return (wp);
 			nest--;
 			break;
 		case OPAT:
@@ -516,7 +516,7 @@ wdscan(const char *wp, int c)
 		case SPAT:
 		case CPAT:
 			if (c == wp[-1] && nest == 0)
-				return (char *) wp;
+				return (wp);
 			if (wp[-1] == CPAT)
 				nest--;
 			break;

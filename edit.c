@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.72 2006/11/10 07:52:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.73 2006/11/12 14:58:13 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -367,8 +367,8 @@ struct path_order_info {
 static int
 path_order_cmp(const void *aa, const void *bb)
 {
-	const struct path_order_info *a = (const struct path_order_info *) aa;
-	const struct path_order_info *b = (const struct path_order_info *) bb;
+	const struct path_order_info *a = (const struct path_order_info *)aa;
+	const struct path_order_info *b = (const struct path_order_info *)bb;
 	int t;
 
 	t = strcmp(a->word + a->base, b->word + b->base);
@@ -5415,7 +5415,7 @@ static void
 x_vi_zotc(int c)
 {
 	if (Flag(FVISHOW8) && (c & 0x80)) {
-		x_puts((u_char *)"M-");
+		x_puts((const u_char *)"M-");
 		c &= 0x7f;
 	}
 	if (c < ' ' || c == 0x7f) {

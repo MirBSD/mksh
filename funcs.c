@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.36 2006/11/10 07:52:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.37 2006/11/12 14:58:14 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -854,9 +854,8 @@ c_alias(char **wp)
 
 	/* "hash -r" means reset all the tracked aliases.. */
 	if (rflag) {
-		static const char *const args[] = {
-			"unalias", "-ta", NULL
-		};
+		static char args0[] = "unalias", args1[] = "-ta",
+		    *args[] = { args0, args1, NULL };
 
 		if (!tflag || *wp) {
 			shprintf("alias: -r flag can only be used with -t"
@@ -864,7 +863,7 @@ c_alias(char **wp)
 			return 1;
 		}
 		ksh_getopt_reset(&builtin_opt, GF_ERROR);
-		return c_unalias((char **) args);
+		return c_unalias(args);
 	}
 
 	if (*wp == NULL) {
@@ -886,7 +885,7 @@ c_alias(char **wp)
 	for (; *wp != NULL; wp++) {
 		char *alias = *wp;
 		char *val = strchr(alias, '=');
-		char *newval;
+		const char *newval;
 		struct tbl *ap;
 		int h;
 
@@ -1071,13 +1070,13 @@ struct kill_info {
 	int num_width;
 	int name_width;
 };
-static char *kill_fmt_entry(void *arg, int i, char *buf, int buflen);
+static char *kill_fmt_entry(const void *, int, char *, int);
 
 /* format a single kill item */
 static char *
-kill_fmt_entry(void *arg, int i, char *buf, int buflen)
+kill_fmt_entry(const void *arg, int i, char *buf, int buflen)
 {
-	struct kill_info *ki = (struct kill_info *) arg;
+	const struct kill_info *ki = (const struct kill_info *)arg;
 
 	i++;
 	if (sigtraps[i].name)
@@ -1538,7 +1537,8 @@ c_umask(char **wp)
 int
 c_dot(char **wp)
 {
-	char *file, *cp;
+	const char *file;
+	char *cp;
 	char **argv;
 	int argc;
 	int i;
@@ -1965,8 +1965,9 @@ c_set(char **wp)
 	char **owp = wp;
 
 	if (wp[1] == NULL) {
-		static const char *const args [] = { "set", "-", NULL };
-		return c_typeset((char **) args);
+		static char args0[] = "set", args1[] = "-",
+		    *args[] = { args0, args1, NULL };
+		return c_typeset(args);
 	}
 
 	argi = parse_args(wp, OF_SET, &setargs);

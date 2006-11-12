@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.18 2006/11/10 07:52:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.19 2006/11/12 14:58:14 tg Exp $");
 
 /*
  * string expansion
@@ -267,7 +267,7 @@ expand(char *cp,	/* input word */
 					char *str, *end;
 
 					sp = varname - 2; /* restore sp */
-					end = (char *) wdscan(sp, CSUBST);
+					end = sp + (wdscan(sp, CSUBST) - sp);
 					/* ({) the } or x is already skipped */
 					endc = *end;
 					*end = EOS;
@@ -345,7 +345,7 @@ expand(char *cp,	/* input word */
 					}
 				} else
 					/* skip word */
-					sp = (char *) wdscan(sp, CSUBST);
+					sp += wdscan(sp, CSUBST) - sp;
 				continue;
 			    }
 			case CSUBST: /* only get here if expanding word */

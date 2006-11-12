@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.31 2006/11/10 07:52:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.32 2006/11/12 14:58:16 tg Exp $");
 
 /*
  * Variables
@@ -32,14 +32,14 @@ void
 newblock(void)
 {
 	struct block *l;
-	static char *const empty[] = {null};
+	static char *empty[] = {null};
 
 	l = (struct block *) alloc(sizeof(struct block), ATEMP);
 	l->flags = 0;
 	ainit(&l->area); /* todo: could use e->area (l->area => l->areap) */
 	if (!e->loc) {
 		l->argc = 0;
-		l->argv = (char **) empty;
+		l->argv = empty;
 	} else {
 		l->argc = e->loc->argc;
 		l->argv = e->loc->argv;
@@ -606,7 +606,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 		/* Importing from original environment: must have an = */
 		if (set & IMPORT)
 			return NULL;
-		tvar = (char *) var;
+		tvar = str_save(var, ATEMP);
 		val = NULL;
 	}
 
@@ -628,8 +628,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	    (val || clr || (set & ~EXPORT)))
 		/* XXX check calls - is error here ok by POSIX? */
 		errorf("%s: is read only", tvar);
-	if (val)
-		afree(tvar, ATEMP);
+	afree(tvar, ATEMP);
 
 	/* most calls are with set/clr == 0 */
 	if (set | clr) {
@@ -745,7 +744,7 @@ unset(struct tbl *vp, int array_ref)
  * argument if there is no legal name, returns * a pointer to the terminating
  * null if whole string is legal).
  */
-char *
+const char *
 skip_varname(const char *s, int aok)
 {
 	int alen;
@@ -756,11 +755,11 @@ skip_varname(const char *s, int aok)
 		if (aok && *s == '[' && (alen = array_ref_len(s)))
 			s += alen;
 	}
-	return (char *) s;
+	return (s);
 }
 
 /* Return a pointer to the first character past any legal variable name.  */
-char *
+const char *
 skip_wdvarname(const char *s,
     int aok)				/* skip array de-reference? */
 {
@@ -788,14 +787,14 @@ skip_wdvarname(const char *s,
 			}
 		}
 	}
-	return (char *) s;
+	return (s);
 }
 
 /* Check if coded string s is a variable name */
 int
 is_wdvarname(const char *s, int aok)
 {
-	char *p = skip_wdvarname(s, aok);
+	const char *p = skip_wdvarname(s, aok);
 
 	return p != s && p[0] == EOS;
 }
@@ -804,7 +803,7 @@ is_wdvarname(const char *s, int aok)
 int
 is_wdvarassign(const char *s)
 {
-	char *p = skip_wdvarname(s, true);
+	const char *p = skip_wdvarname(s, true);
 
 	return p != s && p[0] == CHAR && p[1] == '=';
 }
@@ -1144,7 +1143,7 @@ arrayname(const char *str)
 
 	if ((p = strchr(str, '[')) == 0)
 		/* Shouldn't happen, but why worry? */
-		return (char *) str;
+		return str_save(str, ATEMP);
 
 	return str_nsave(str, p - str, ATEMP);
 }

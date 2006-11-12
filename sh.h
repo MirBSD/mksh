@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.82 2006/11/12 13:15:26 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.83 2006/11/12 14:58:15 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/12"
 
 #if HAVE_SYS_PARAM_H
@@ -576,7 +576,7 @@ struct tbl {			/* table item */
 	} u2;
 	union {
 		struct tbl *array;	/* array values */
-		char *fpath;	/* temporary path to undef function */
+		const char *fpath;	/* temporary path to undef function */
 	} u;
 	char name[4];		/* name -- variable length */
 };
@@ -1086,7 +1086,7 @@ int define(const char *, struct op *);
 void builtin(const char *, int (*)(char **));
 struct tbl *findcom(const char *, int);
 void flushcom(int);
-char *search(const char *, const char *, int, int *);
+const char *search(const char *, const char *, int, int *);
 int search_access(const char *, int, int *);
 int pr_menu(char *const *);
 int pr_list(char *const *);
@@ -1252,8 +1252,9 @@ int xstrcmp(const void *, const void *);
 void ksh_getopt_reset(Getopt *, int);
 int ksh_getopt(char **, Getopt *, const char *);
 void print_value_quoted(const char *);
-void print_columns(struct shf *, int, char *(*)(void *, int, char *, int),
-    void *, int, int prefcol);
+void print_columns(struct shf *, int,
+    char *(*)(const void *, int, char *, int),
+    const void *, int, int prefcol);
 void strip_nuls(char *, int);
 int blocking_read(int, char *, int);
 int reset_nonblock(int);
@@ -1295,7 +1296,7 @@ int fptreef(struct shf *, int, const char *, ...);
 char *snptreef(char *, int, const char *, ...);
 struct op *tcopy(struct op *, Area *);
 char *wdcopy(const char *, Area *);
-char *wdscan(const char *, int);
+const char *wdscan(const char *, int);
 char *wdstrip(const char *);
 void tfree(struct op *, Area *);
 /* var.c */
@@ -1312,8 +1313,8 @@ void setint(struct tbl *, long);
 int getint(struct tbl *, long *, bool);
 struct tbl *typeset(const char *, Tflag, Tflag, int, int);
 void unset(struct tbl *, int);
-char *skip_varname(const char *, int);
-char *skip_wdvarname(const char *, int);
+const char *skip_varname(const char *, int);
+const char *skip_wdvarname(const char *, int);
 int is_wdvarname(const char *, int);
 int is_wdvarassign(const char *);
 char **makenv(void);

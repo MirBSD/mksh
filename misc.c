@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.41 2006/11/12 13:35:29 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.42 2006/11/12 14:58:15 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -160,14 +160,14 @@ struct options_info {
 	int opts[NELEM(options)];
 };
 
-static char *options_fmt_entry(void *arg, int i, char *buf, int buflen);
-static void printoptions(int verbose);
+static char *options_fmt_entry(const void *arg, int, char *, int);
+static void printoptions(int);
 
 /* format a single select menu item */
 static char *
-options_fmt_entry(void *arg, int i, char *buf, int buflen)
+options_fmt_entry(const void *arg, int i, char *buf, int buflen)
 {
-	struct options_info *oi = (struct options_info *) arg;
+	const struct options_info *oi = (const struct options_info *)arg;
 
 	shf_snprintf(buf, buflen, "%-*s %s",
 	    oi->opt_width, options[oi->opts[i]].name,
@@ -764,7 +764,7 @@ pat_scan(const unsigned char *p, const unsigned char *pe, int match_sep)
 int
 xstrcmp(const void *p1, const void *p2)
 {
-	return (strcmp(*(const char **)p1, *(const char **)p2));
+	return (strcmp(*(char * const *)p1, *(char * const *)p2));
 }
 
 /* Initialise a Getopt structure */
@@ -936,8 +936,9 @@ print_value_quoted(const char *s)
  * element
  */
 void
-print_columns(struct shf *shf, int n, char *(*func) (void *, int, char *, int),
-    void *arg, int max_width, int prefcol)
+print_columns(struct shf *shf, int n,
+    char *(*func) (const void *, int, char *, int),
+    const void *arg, int max_width, int prefcol)
 {
 	char *str = (char *) alloc(max_width + 1, ATEMP);
 	int i;
