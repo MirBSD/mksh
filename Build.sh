@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.76 2006/11/12 12:56:09 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.77 2006/11/12 13:08:30 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -232,8 +232,12 @@ ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<'EOF'
 EOF
 
 ac_test setmode mksh_full 1 <<-'EOF'
+	#if defined(__MSVCRT__) || defined(__CYGWIN__)
+	#error Win32 setmode() is different from what we need
+	#else
 	#include <unistd.h>
-	int main(int ac, char *av[]) { setmode(av[0]); return (ac); }
+	int main(int ac, char *av[]) { return (setmode(getmode(av[0], ac))); }
+	#endif
 EOF
 
 ac_test setresugid <<-'EOF'
