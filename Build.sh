@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.77 2006/11/12 13:08:30 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.78 2006/11/12 13:09:09 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -211,6 +211,11 @@ ac_testn can_fwholepgm '' 'if -fwhole-program --combine can be used' <<-'EOF'
 EOF
 test 1 = $HAVE_CAN_FWHOLEPGM || CFLAGS=$save_CFLAGS
 
+ac_test sys_param_h '' '<sys/param.h>' <<'EOF'
+	#include <sys/param.h>
+	int main(void) { return (0); }
+EOF
+
 ac_test arc4random <<-'EOF'
 	#include <stdlib.h>
 	int main(void) { arc4random(); return (0); }
@@ -255,11 +260,6 @@ EOF
 ac_test strlcpy <<-'EOF'
 	#include <string.h>
 	int main(int ac, char *av[]) { strlcpy(av[0], av[1], 1); return (ac); }
-EOF
-
-ac_test sys_param_h '' '<sys/param.h>' <<'EOF'
-	#include <sys/param.h>
-	int main(void) { return (0); }
 EOF
 
 $e ... done.
