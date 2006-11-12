@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.59 2006/11/10 06:53:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.60 2006/11/12 10:44:41 tg Exp $");
 
 extern char **environ;
 
@@ -147,18 +147,6 @@ main(int argc, char *argv[])
 	/* setstr can't fail here */
 	setstr(vp, def_path, KSH_RETURN_ERROR);
 
-
-#if HAVE_SETLOCALE_CTYPE
-	/* Check if we're in an UTF-8 locale */
-	cc = setlocale(LC_CTYPE, "");
-#if HAVE_LANGINFO_CODESET
-	if (strcasestr(cc, "UTF-8") && strcasestr(cc, "utf8"))
-		cc = nl_langinfo(CODESET);
-#endif
-	if (!strcasestr(cc, "UTF-8") || !strcasestr(cc, "utf8"))
-		Flag(FUTFHACK) = 1;
-#endif
-
 	/* Turn on nohup by default for now - will change to off
 	 * by default once people are aware of its existence
 	 * (at&t ksh does not have a nohup option - it always sends
@@ -281,8 +269,21 @@ main(int argc, char *argv[])
 	Flag(FMONITOR) = 0;
 	j_init(i);
 	/* Do this after j_init(), as tty_fd is not initialized 'til then */
-	if (Flag(FTALKING))
+	if (Flag(FTALKING)) {
+#if HAVE_SETLOCALE_CTYPE
+		/* Check if we're in a UTF-8 locale */
+		if (!Flag(FUTFHACK)) {
+			cc = setlocale(LC_CTYPE, "");
+#if HAVE_LANGINFO_CODESET
+			if (strcasestr(cc, "UTF-8") && strcasestr(cc, "utf8"))
+				cc = nl_langinfo(CODESET);
+#endif
+			Flag(FUTFHACK) = !(strcasestr(cc, "UTF-8") &&
+			    strcasestr(cc, "utf8"));
+		}
+#endif
 		x_init();
+	}
 
 	l = e->loc;
 	l->argv = &argv[argi - 1];

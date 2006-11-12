@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.65 2006/11/10 05:23:12 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.66 2006/11/12 10:44:42 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\"
-.Dd November 10, 2006
+.Dd November 12, 2006
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -3266,7 +3266,7 @@ is used).
 .It Fl U \(*Ba Ic utf8-hack
 Enable an experimental UTF-8 hack for the
 .Sx Emacs editing mode .
-This is enabled automatically if your system supports
+This is enabled automatically for interactive shells if your system supports
 .Fn setlocale LC_CTYPE \&""
 and optionally
 .Fn nl_langinfo CODESET ,
