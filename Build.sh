@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.80 2006/11/12 13:35:29 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.81 2006/11/12 13:38:40 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -241,7 +241,7 @@ ac_test setmode mksh_full 1 <<-'EOF'
 	#error Win32 setmode() is different from what we need
 	#else
 	#include <unistd.h>
-	int main(int ac, char *av[]) { return (setmode(getmode(av[0], ac))); }
+	int main(int ac, char *av[]) { return (getmode(setmode(av[0]), ac)); }
 	#endif
 EOF
 
