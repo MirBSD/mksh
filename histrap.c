@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.33 2006/11/10 07:52:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.34 2006/11/12 12:49:25 tg Exp $");
 
 #ifndef mksh_siglist
 #if defined(BSD) || defined(__APPLE__)
@@ -763,7 +763,7 @@ hist_shrink(unsigned char *oldbase, int oldbytes)
 	/*
 	 *	create temp file
 	 */
-	(void) shf_snprintf(nfile, sizeof(nfile), "%s.%d", hname, procpid);
+	shf_snprintf(nfile, sizeof(nfile), "%s.%d", hname, (int)procpid);
 	if ((fd = open(nfile, O_CREAT | O_TRUNC | O_WRONLY, 0600)) < 0)
 		return 1;
 	if (fstat(histfd, &statb) >= 0)

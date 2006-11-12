@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.14 2006/11/10 07:52:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.15 2006/11/12 12:49:25 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -1202,8 +1202,8 @@ j_print(Job *j, int how, struct shf *shf)
 		 * group leader (ie, !FMONITOR).  We arbitrarily return
 		 * last pid (which is what $! returns).
 		 */
-		shf_fprintf(shf, "%d\n", j->pgrp ? j->pgrp :
-		    (j->last_proc ? j->last_proc->pid : 0));
+		shf_fprintf(shf, "%d\n", (int)(j->pgrp ? j->pgrp :
+		    (j->last_proc ? j->last_proc->pid : 0)));
 		return;
 	}
 	j->flags &= ~JF_CHANGED;
@@ -1258,7 +1258,7 @@ j_print(Job *j, int how, struct shf *shf)
 		}
 
 		if (how == JP_LONG)
-			shf_fprintf(shf, "%5d ", p->pid);
+			shf_fprintf(shf, "%5d ", (int)p->pid);
 
 		if (how == JP_SHORT) {
 			if (buf[0]) {
@@ -1278,8 +1278,9 @@ j_print(Job *j, int how, struct shf *shf)
 		p = p->next;
 		while (p && p->state == state && p->status == status) {
 			if (how == JP_LONG)
-				shf_fprintf(shf, "%s%5d %-20s %s%s", filler, p->pid,
-				    space, p->command, p->next ? "|" : null);
+				shf_fprintf(shf, "%s%5d %-20s %s%s", filler,
+				    (int)p->pid, space, p->command,
+				    p->next ? "|" : null);
 			else if (how == JP_MEDIUM)
 				shf_fprintf(shf, " %s%s", p->command,
 				    p->next ? "|" : null);
