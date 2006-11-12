@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.78 2006/11/12 13:09:09 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.79 2006/11/12 13:15:26 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -257,6 +257,11 @@ ac_test setgroups setresugid 0 <<-'EOF'
 	int main(void) { gid_t gid = 0; return (setgroups(0, &gid)); }
 EOF
 
+ac_test strcasestr <<-'EOF'
+	#include <string.h>
+	int main(int ac, char *av[]) { strcasestr(av[0], av[1]); return (ac); }
+EOF
+
 ac_test strlcpy <<-'EOF'
 	#include <string.h>
 	int main(int ac, char *av[]) { strlcpy(av[0], av[1], 1); return (ac); }
@@ -264,6 +269,7 @@ EOF
 
 $e ... done.
 addsrcs HAVE_SETMODE setmode.c
+addsrcs HAVE_STRCASESTR strcasestr.c
 addsrcs HAVE_STRLCPY strlfun.c
 
 (v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS" \
