@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.81 2006/11/12 13:38:40 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.82 2006/11/12 13:49:22 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -228,12 +228,14 @@ EOF
 
 ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<'EOF'
 	#include <locale.h>
-	int main(void) { return ((int)setlocale(LC_CTYPE, "")); }
+	#include <stddef.h>
+	int main(void) { return ((ptrdiff_t)(void *)setlocale(LC_CTYPE, "")); }
 EOF
 
 ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<'EOF'
 	#include <langinfo.h>
-	int main(void) { return ((int)nl_langinfo(CODESET)); }
+	#include <stddef.h>
+	int main(void) { return ((ptrdiff_t)(void *)nl_langinfo(CODESET)); }
 EOF
 
 ac_test setmode mksh_full 1 <<-'EOF'
@@ -259,8 +261,11 @@ ac_test setgroups setresugid 0 <<-'EOF'
 EOF
 
 ac_test strcasestr <<-'EOF'
+	#include <stddef.h>
 	#include <string.h>
-	int main(int ac, char *av[]) { return ((int)strcasestr(*av, av[ac])); }
+	int main(int ac, char *av[]) {
+		return ((ptrdiff_t)(void *)strcasestr(*av, av[ac]));
+	}
 EOF
 
 ac_test strlcpy <<-'EOF'
