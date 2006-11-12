@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.15 2006/11/12 12:49:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.16 2006/11/12 13:20:15 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -449,7 +449,8 @@ exchild(struct op *t, int flags,
 			if (Flag(FTALKING)) {
 				shf_fprintf(shl_out, "[%d]", j->job);
 				for (p = j->proc_list; p; p = p->next)
-					shf_fprintf(shl_out, " %d", p->pid);
+					shf_fprintf(shl_out, " %d",
+					    (int)p->pid);
 				shf_putchar('\n', shl_out);
 				shf_flush(shl_out);
 			}
