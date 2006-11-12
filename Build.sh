@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.75 2006/11/10 07:18:56 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.76 2006/11/12 12:56:09 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -234,6 +234,18 @@ EOF
 ac_test setmode mksh_full 1 <<-'EOF'
 	#include <unistd.h>
 	int main(int ac, char *av[]) { setmode(av[0]); return (ac); }
+EOF
+
+ac_test setresugid <<-'EOF'
+	#include <sys/types.h>
+	#include <unistd.h>
+	int main(void) { setresuid(0,0,0); return (setresgid(0,0,0)); }
+EOF
+
+ac_test setgroups setresugid 0 <<-'EOF'
+	#include <sys/types.h>
+	#include <unistd.h>
+	int main(void) { gid_t gid = 0; return (setgroups(0, &gid)); }
 EOF
 
 ac_test strlcpy <<-'EOF'
