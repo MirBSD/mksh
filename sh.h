@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.83 2006/11/12 14:58:15 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.84 2006/11/16 13:35:00 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/12"
 
 #if HAVE_SYS_PARAM_H
@@ -29,8 +29,8 @@
 #define __IDSTRING(prefix, string)				\
 	static const char __IDSTRING_EXPAND(__LINE__,prefix) []	\
 	    __attribute__((used)) = "@(""#)" #prefix ": " string
-#define	__RCSID(x)	__IDSTRING(rcsid,x)
-#define	__SCCSID(x)	__IDSTRING(sccsid,x)
+#define __RCSID(x)	__IDSTRING(rcsid,x)
+#define __SCCSID(x)	__IDSTRING(sccsid,x)
 #endif
 
 #include <sys/time.h>
@@ -76,7 +76,7 @@
 /* extra macros */
 
 #ifndef timeradd
-#define	timeradd(tvp, uvp, vvp)						\
+#define timeradd(tvp, uvp, vvp)						\
 	do {								\
 		(vvp)->tv_sec = (tvp)->tv_sec + (uvp)->tv_sec;		\
 		(vvp)->tv_usec = (tvp)->tv_usec + (uvp)->tv_usec;	\
@@ -87,7 +87,7 @@
 	} while (0)
 #endif
 #ifndef timersub
-#define	timersub(tvp, uvp, vvp)						\
+#define timersub(tvp, uvp, vvp)						\
 	do {								\
 		(vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec;		\
 		(vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec;	\
@@ -136,7 +136,7 @@ size_t confstr(int, char *, size_t);
 #endif
 
 #ifdef __INTERIX
-#define	makedev(x,y)	mkdev((x),(y))
+#define makedev(x,y)	mkdev((x),(y))
 extern int __cdecl seteuid(uid_t);
 extern int __cdecl setegid(gid_t);
 #endif
@@ -150,27 +150,27 @@ extern int __cdecl setegid(gid_t);
 # define EXTERN_DEFINED
 #endif
 
-#define	NELEM(a)	(sizeof (a) / sizeof ((a)[0]))
-#define	sizeofN(typ, n)	(sizeof (typ) * (n))
-#define	BIT(i)		(1 << (i))	/* define bit in flag */
+#define NELEM(a)	(sizeof (a) / sizeof ((a)[0]))
+#define sizeofN(typ, n)	(sizeof (typ) * (n))
+#define BIT(i)		(1 << (i))	/* define bit in flag */
 
 /* Table flag type - needs > 16 and < 32 bits */
 typedef int32_t Tflag;
 
-#define	NUFILE		32	/* Number of user-accessible files */
-#define	FDBASE		10	/* First file usable by Shell */
+#define NUFILE		32	/* Number of user-accessible files */
+#define FDBASE		10	/* First file usable by Shell */
 
 /* Make MAGIC a char that might be printed to make bugs more obvious, but
  * not a char that is used often. Also, can't use the high bit as it causes
  * portability problems (calling strchr(x, 0x80|'x') is error prone).
  */
-#define	MAGIC		(7)	/* prefix for *?[!{,} during expand */
+#define MAGIC		(7)	/* prefix for *?[!{,} during expand */
 #define ISMAGIC(c)	((unsigned char)(c) == MAGIC)
-#define	NOT		'!'	/* might use ^ (ie, [!...] vs [^..]) */
+#define NOT		'!'	/* might use ^ (ie, [!...] vs [^..]) */
 
-#define	LINE		4096	/* input line size */
+#define LINE		4096	/* input line size */
 #ifndef PATH_MAX
-#define	PATH_MAX	1024	/* pathname size */
+#define PATH_MAX	1024	/* pathname size */
 #endif
 
 EXTERN	char *kshname;		/* $0 */
@@ -193,8 +193,8 @@ typedef struct Area {
 } Area;
 
 EXTERN Area aperm;		/* permanent object space */
-#define	APERM	&aperm
-#define	ATEMP	&e->area
+#define APERM	&aperm
+#define ATEMP	&e->area
 
 /*
  * parsing & execution environment
@@ -211,13 +211,13 @@ EXTERN struct env {
 } *e;
 
 /* struct env.type values */
-#define	E_NONE	0	/* dummy environment */
-#define	E_PARSE	1	/* parsing command # */
-#define	E_FUNC	2	/* executing function # */
-#define	E_INCL	3	/* including a file via . # */
-#define	E_EXEC	4	/* executing command tree */
-#define	E_LOOP	5	/* executing for/while # */
-#define	E_ERRH	6	/* general error handler # */
+#define E_NONE	0	/* dummy environment */
+#define E_PARSE	1	/* parsing command # */
+#define E_FUNC	2	/* executing function # */
+#define E_INCL	3	/* including a file via . # */
+#define E_EXEC	4	/* executing command tree */
+#define E_LOOP	5	/* executing for/while # */
+#define E_ERRH	6	/* general error handler # */
 /* # indicates env has valid jbuf (see unwind()) */
 
 /* struct env.flag values */
@@ -233,12 +233,12 @@ EXTERN struct env {
 
 /* values for siglongjmp(e->jbuf, 0) */
 #define LRETURN	1	/* return statement */
-#define	LEXIT	2	/* exit statement */
+#define LEXIT	2	/* exit statement */
 #define LERROR	3	/* errorf() called */
 #define LLEAVE	4	/* untrappable exit/error */
 #define LINTR	5	/* ^C noticed */
-#define	LBREAK	6	/* break statement */
-#define	LCONTIN	7	/* continue statement */
+#define LBREAK	6	/* break statement */
+#define LCONTIN	7	/* continue statement */
 #define LSHELL	8	/* return to interactive shell() */
 #define LAEXPR	9	/* error in arithmetic expression */
 
@@ -398,19 +398,19 @@ EXTERN int really_exit;
 /*
  * fast character classes
  */
-#define	C_ALPHA	 BIT(0)		/* a-z_A-Z */
-#define	C_DIGIT	 BIT(1)		/* 0-9 */
-#define	C_LEX1	 BIT(2)		/* \0 \t\n|&;<>() */
-#define	C_VAR1	 BIT(3)		/* *@#!$-? */
-#define	C_IFSWS	 BIT(4)		/* \t \n (IFS white space) */
-#define	C_SUBOP1 BIT(5)		/* "=-+?" */
-#define	C_QUOTE	 BIT(6)		/*  \n\t"#$&'()*;<>?[]\`| (needing quoting) */
-#define	C_IFS	 BIT(7)		/* $IFS */
-#define	C_SUBOP2 BIT(8)		/* "#%" (magic, see below) */
+#define C_ALPHA	 BIT(0)		/* a-z_A-Z */
+#define C_DIGIT	 BIT(1)		/* 0-9 */
+#define C_LEX1	 BIT(2)		/* \0 \t\n|&;<>() */
+#define C_VAR1	 BIT(3)		/* *@#!$-? */
+#define C_IFSWS	 BIT(4)		/* \t \n (IFS white space) */
+#define C_SUBOP1 BIT(5)		/* "=-+?" */
+#define C_QUOTE	 BIT(6)		/*  \n\t"#$&'()*;<>?[]\`| (needing quoting) */
+#define C_IFS	 BIT(7)		/* $IFS */
+#define C_SUBOP2 BIT(8)		/* "#%" (magic, see below) */
 
 extern unsigned char chtypes[];
 
-#define	ctype(c, t)	!!( ((t) == C_SUBOP2) ?				\
+#define ctype(c, t)	!!( ((t) == C_SUBOP2) ?				\
 			    (((c) == '#' || (c) == '%') ? 1 : 0) :	\
 			    (chtypes[(unsigned char)(c)]&(t)) )
 #define ksh_isalphx(c)	ctype((c), C_ALPHA)
@@ -582,17 +582,17 @@ struct tbl {			/* table item */
 };
 
 /* common flag bits */
-#define	ALLOC		BIT(0)	/* val.s has been allocated */
-#define	DEFINED		BIT(1)	/* is defined in block */
-#define	ISSET		BIT(2)	/* has value, vp->val.[si] */
-#define	EXPORT		BIT(3)	/* exported variable/function */
-#define	TRACE		BIT(4)	/* var: user flagged, func: execution tracing */
+#define ALLOC		BIT(0)	/* val.s has been allocated */
+#define DEFINED		BIT(1)	/* is defined in block */
+#define ISSET		BIT(2)	/* has value, vp->val.[si] */
+#define EXPORT		BIT(3)	/* exported variable/function */
+#define TRACE		BIT(4)	/* var: user flagged, func: execution tracing */
 /* (start non-common flags at 8) */
 /* flag bits used for variables */
-#define	SPECIAL		BIT(8)	/* PATH, IFS, SECONDS, etc */
-#define	INTEGER		BIT(9)	/* val.i contains integer value */
-#define	RDONLY		BIT(10)	/* read-only variable */
-#define	LOCAL		BIT(11)	/* for local typeset() */
+#define SPECIAL		BIT(8)	/* PATH, IFS, SECONDS, etc */
+#define INTEGER		BIT(9)	/* val.i contains integer value */
+#define RDONLY		BIT(10)	/* read-only variable */
+#define LOCAL		BIT(11)	/* for local typeset() */
 #define ARRAY		BIT(13)	/* array */
 #define LJUST		BIT(14)	/* left justify */
 #define RJUST		BIT(15)	/* right justify */
@@ -619,12 +619,12 @@ struct tbl {			/* table item */
 			 |LCASEV|UCASEV_AL|INT_U|INT_L)
 
 /* command types */
-#define	CNONE	0		/* undefined */
-#define	CSHELL	1		/* built-in */
-#define	CFUNC	2		/* function */
-#define	CEXEC	4		/* executable command */
-#define	CALIAS	5		/* alias */
-#define	CKEYWD	6		/* keyword */
+#define CNONE	0		/* undefined */
+#define CSHELL	1		/* built-in */
+#define CFUNC	2		/* function */
+#define CEXEC	4		/* executable command */
+#define CALIAS	5		/* alias */
+#define CKEYWD	6		/* keyword */
 #define CTALIAS	7		/* tracked alias */
 
 /* Flags for findcom()/comexec() */
@@ -692,12 +692,12 @@ struct builtin {
 extern const struct builtin shbuiltins [], kshbuiltins [];
 
 /* var spec values */
-#define	V_NONE		0
-#define	V_PATH		1
-#define	V_IFS		2
-#define	V_SECONDS	3
-#define	V_OPTIND	4
-#define	V_RANDOM	8
+#define V_NONE		0
+#define V_PATH		1
+#define V_IFS		2
+#define V_SECONDS	3
+#define V_OPTIND	4
+#define V_RANDOM	8
 #define V_HISTSIZE	9
 #if !defined(__sun__) && !defined(MKSH_SMALL)
 #define V_HISTFILE	10
@@ -718,9 +718,9 @@ EXTERN const char *prompt;
 EXTERN int cur_prompt;		/* PS1 or PS2 */
 EXTERN int current_lineno;	/* LINENO value */
 
-#define	NOBLOCK	((struct op *)NULL)
-#define	NOWORD	((char *)NULL)
-#define	NOWORDS	((char **)NULL)
+#define NOBLOCK	((struct op *)NULL)
+#define NOWORD	((char *)NULL)
+#define NOWORDS	((char **)NULL)
 
 /*
  * Description of a command or an operation on commands.
@@ -744,42 +744,42 @@ struct op {
 };
 
 /* Tree.type values */
-#define	TEOF		0
-#define	TCOM		1	/* command */
-#define	TPAREN		2	/* (c-list) */
-#define	TPIPE		3	/* a | b */
-#define	TLIST		4	/* a ; b */
-#define	TOR		5	/* || */
-#define	TAND		6	/* && */
+#define TEOF		0
+#define TCOM		1	/* command */
+#define TPAREN		2	/* (c-list) */
+#define TPIPE		3	/* a | b */
+#define TLIST		4	/* a ; b */
+#define TOR		5	/* || */
+#define TAND		6	/* && */
 #define TBANG		7	/* ! */
 #define TDBRACKET	8	/* [[ .. ]] */
-#define	TFOR		9
+#define TFOR		9
 #define TSELECT		10
-#define	TCASE		11
-#define	TIF		12
-#define	TWHILE		13
-#define	TUNTIL		14
-#define	TELIF		15
-#define	TPAT		16	/* pattern in case */
-#define	TBRACE		17	/* {c-list} */
-#define	TASYNC		18	/* c & */
-#define	TFUNCT		19	/* function name { command; } */
-#define	TTIME		20	/* time pipeline */
-#define	TEXEC		21	/* fork/exec eval'd TCOM */
+#define TCASE		11
+#define TIF		12
+#define TWHILE		13
+#define TUNTIL		14
+#define TELIF		15
+#define TPAT		16	/* pattern in case */
+#define TBRACE		17	/* {c-list} */
+#define TASYNC		18	/* c & */
+#define TFUNCT		19	/* function name { command; } */
+#define TTIME		20	/* time pipeline */
+#define TEXEC		21	/* fork/exec eval'd TCOM */
 #define TCOPROC		22	/* coprocess |& */
 
 /*
  * prefix codes for words in command tree
  */
-#define	EOS	0	/* end of string */
-#define	CHAR	1	/* unquoted character */
-#define	QCHAR	2	/* quoted character */
-#define	COMSUB	3	/* $() substitution (0 terminated) */
+#define EOS	0	/* end of string */
+#define CHAR	1	/* unquoted character */
+#define QCHAR	2	/* quoted character */
+#define COMSUB	3	/* $() substitution (0 terminated) */
 #define EXPRSUB	4	/* $(()) substitution (0 terminated) */
-#define	OQUOTE	5	/* opening " or ' */
-#define	CQUOTE	6	/* closing " or ' */
-#define	OSUBST	7	/* opening ${ subst (followed by { or X) */
-#define	CSUBST	8	/* closing } of above (followed by } or X) */
+#define OQUOTE	5	/* opening " or ' */
+#define CQUOTE	6	/* closing " or ' */
+#define OSUBST	7	/* opening ${ subst (followed by { or X) */
+#define CSUBST	8	/* closing } of above (followed by } or X) */
 #define OPAT	9	/* open pattern: *(, @(, etc. */
 #define SPAT	10	/* separate pattern: | */
 #define CPAT	11	/* close pattern: ) */
@@ -796,29 +796,29 @@ struct ioword {
 };
 
 /* ioword.flag - type of redirection */
-#define	IOTYPE	0xF	/* type: bits 0:3 */
-#define	IOREAD	0x1	/* < */
-#define	IOWRITE	0x2	/* > */
-#define	IORDWR	0x3	/* <>: todo */
-#define	IOHERE	0x4	/* << (here file) */
-#define	IOCAT	0x5	/* >> */
-#define	IODUP	0x6	/* <&/>& */
-#define	IOEVAL	BIT(4)	/* expand in << */
-#define	IOSKIP	BIT(5)	/* <<-, skip ^\t* */
-#define	IOCLOB	BIT(6)	/* >|, override -o noclobber */
+#define IOTYPE	0xF	/* type: bits 0:3 */
+#define IOREAD	0x1	/* < */
+#define IOWRITE	0x2	/* > */
+#define IORDWR	0x3	/* <>: todo */
+#define IOHERE	0x4	/* << (here file) */
+#define IOCAT	0x5	/* >> */
+#define IODUP	0x6	/* <&/>& */
+#define IOEVAL	BIT(4)	/* expand in << */
+#define IOSKIP	BIT(5)	/* <<-, skip ^\t* */
+#define IOCLOB	BIT(6)	/* >|, override -o noclobber */
 #define IORDUP	BIT(7)	/* x<&y (as opposed to x>&y) */
 #define IONAMEXP BIT(8)	/* name has been expanded */
 
 /* execute/exchild flags */
-#define	XEXEC	BIT(0)		/* execute without forking */
-#define	XFORK	BIT(1)		/* fork before executing */
-#define	XBGND	BIT(2)		/* command & */
-#define	XPIPEI	BIT(3)		/* input is pipe */
-#define	XPIPEO	BIT(4)		/* output is pipe */
-#define	XPIPE	(XPIPEI|XPIPEO)	/* member of pipe */
-#define	XXCOM	BIT(5)		/* `...` command */
-#define	XPCLOSE	BIT(6)		/* exchild: close close_fd in parent */
-#define	XCCLOSE	BIT(7)		/* exchild: close close_fd in child */
+#define XEXEC	BIT(0)		/* execute without forking */
+#define XFORK	BIT(1)		/* fork before executing */
+#define XBGND	BIT(2)		/* command & */
+#define XPIPEI	BIT(3)		/* input is pipe */
+#define XPIPEO	BIT(4)		/* output is pipe */
+#define XPIPE	(XPIPEI|XPIPEO)	/* member of pipe */
+#define XXCOM	BIT(5)		/* `...` command */
+#define XPCLOSE	BIT(6)		/* exchild: close close_fd in parent */
+#define XCCLOSE	BIT(7)		/* exchild: close close_fd in child */
 #define XERROK	BIT(8)		/* non-zero exit ok (for set -e) */
 #define XCOPROC BIT(9)		/* starting a co-process */
 #define XTIME	BIT(10)		/* timing TCOM command */
@@ -827,10 +827,10 @@ struct ioword {
  * flags to control expansion of words (assumed by t->evalflags to fit
  * in a short)
  */
-#define	DOBLANK	BIT(0)		/* perform blank interpretation */
-#define	DOGLOB	BIT(1)		/* expand [?* */
-#define	DOPAT	BIT(2)		/* quote *?[ */
-#define	DOTILDE	BIT(3)		/* normal ~ expansion (first char) */
+#define DOBLANK	BIT(0)		/* perform blank interpretation */
+#define DOGLOB	BIT(1)		/* expand [?* */
+#define DOPAT	BIT(2)		/* quote *?[ */
+#define DOTILDE	BIT(3)		/* normal ~ expansion (first char) */
 #define DONTRUNCOMMAND BIT(4)	/* do not run $(command) things */
 #define DOASNTILDE BIT(5)	/* assignment ~ expansion (after =, :) */
 #define DOBRACE_ BIT(6)		/* used by expand(): do brace expansion */
@@ -863,7 +863,7 @@ typedef struct XString {
 typedef char *XStringP;
 
 /* initialize expandable string */
-#define	Xinit(xs, xp, length, area) do { \
+#define Xinit(xs, xp, length, area) do { \
 			(xs).len = length; \
 			(xs).areap = (area); \
 			(xs).beg = alloc((xs).len + X_EXTRA, (xs).areap); \
@@ -872,10 +872,10 @@ typedef char *XStringP;
 		} while (0)
 
 /* stuff char into string */
-#define	Xput(xs, xp, c)	(*xp++ = (c))
+#define Xput(xs, xp, c)	(*xp++ = (c))
 
 /* check if there are at least n bytes left */
-#define	XcheckN(xs, xp, n) do { \
+#define XcheckN(xs, xp, n) do { \
 			int more = ((xp) + (n)) - (xs).end; \
 			if (more > 0) \
 				xp = Xcheck_grow_(&xs, xp, more); \
@@ -885,19 +885,19 @@ typedef char *XStringP;
 #define Xcheck(xs, xp)	XcheckN(xs, xp, 1)
 
 /* free string */
-#define	Xfree(xs, xp)	afree((void*) (xs).beg, (xs).areap)
+#define Xfree(xs, xp)	afree((void*) (xs).beg, (xs).areap)
 
 /* close, return string */
-#define	Xclose(xs, xp)	(char*) aresize((void*)(xs).beg, \
+#define Xclose(xs, xp)	(char*) aresize((void*)(xs).beg, \
 					(size_t)((xp) - (xs).beg), (xs).areap)
 /* begin of string */
-#define	Xstring(xs, xp)	((xs).beg)
+#define Xstring(xs, xp)	((xs).beg)
 
 #define Xnleft(xs, xp) ((xs).end - (xp))	/* may be less than 0 */
-#define	Xlength(xs, xp) ((xp) - (xs).beg)
+#define Xlength(xs, xp) ((xp) - (xs).beg)
 #define Xsize(xs, xp) ((xs).end - (xs).beg)
-#define	Xsavepos(xs, xp) ((xp) - (xs).beg)
-#define	Xrestpos(xs, xp, n) ((xs).beg + (n))
+#define Xsavepos(xs, xp) ((xp) - (xs).beg)
+#define Xrestpos(xs, xp, n) ((xs).beg + (n))
 
 char *Xcheck_grow_(XString *, char *, unsigned);
 
@@ -910,14 +910,14 @@ typedef struct XPtrV {
 	void **beg, **end;	/* begin, end of vector */
 } XPtrV;
 
-#define	XPinit(x, n) do { \
+#define XPinit(x, n) do { \
 			void **vp__; \
 			vp__ = (void**) alloc(sizeofN(void*, n), ATEMP); \
 			(x).cur = (x).beg = vp__; \
 			(x).end = vp__ + n; \
 		} while (0)
 
-#define	XPput(x, p) do { \
+#define XPput(x, p) do { \
 			if ((x).cur >= (x).end) { \
 				int n = XPsize(x); \
 				(x).beg = (void**) aresize((void*) (x).beg, \
@@ -928,15 +928,15 @@ typedef struct XPtrV {
 			*(x).cur++ = (p); \
 		} while (0)
 
-#define	XPptrv(x)	((x).beg)
-#define	XPsize(x)	((x).cur - (x).beg)
+#define XPptrv(x)	((x).beg)
+#define XPsize(x)	((x).cur - (x).beg)
 
-#define	XPclose(x)	(void**) aresize((void*)(x).beg, \
+#define XPclose(x)	(void**) aresize((void*)(x).beg, \
 					 sizeofN(void*, XPsize(x)), ATEMP)
 
-#define	XPfree(x)	afree((void*) (x).beg, ATEMP)
+#define XPfree(x)	afree((void*) (x).beg, ATEMP)
 
-#define	IDENT	64
+#define IDENT	64
 
 typedef struct source Source;
 struct source {
@@ -961,14 +961,14 @@ struct source {
 };
 
 /* Source.type values */
-#define	SEOF		0	/* input EOF */
-#define	SFILE		1	/* file input */
+#define SEOF		0	/* input EOF */
+#define SFILE		1	/* file input */
 #define SSTDIN		2	/* read stdin */
-#define	SSTRING		3	/* string */
-#define	SWSTR		4	/* string without \n */
-#define	SWORDS		5	/* string[] */
-#define	SWORDSEP	6	/* string[] separator */
-#define	SALIAS		7	/* alias expansion */
+#define SSTRING		3	/* string */
+#define SWSTR		4	/* string without \n */
+#define SWORDS		5	/* string[] */
+#define SWORDSEP	6	/* string[] separator */
+#define SALIAS		7	/* alias expansion */
 #define SREREAD		8	/* read ahead to be re-scanned */
 
 /* Source.flags values */
@@ -980,15 +980,15 @@ struct source {
 /*
  * states while lexing word
  */
-#define	SBASE		0	/* outside any lexical constructs */
-#define	SWORD		1	/* implicit quoting for substitute() */
-#define	SLETPAREN	2	/* inside (( )), implicit quoting */
-#define	SSQUOTE		3	/* inside '' */
-#define	SDQUOTE		4	/* inside "" */
-#define	SBRACE		5	/* inside ${} */
-#define	SCSPAREN	6	/* inside $() */
-#define	SBQUOTE		7	/* inside `` */
-#define	SASPAREN	8	/* inside $(( )) */
+#define SBASE		0	/* outside any lexical constructs */
+#define SWORD		1	/* implicit quoting for substitute() */
+#define SLETPAREN	2	/* inside (( )), implicit quoting */
+#define SSQUOTE		3	/* inside '' */
+#define SDQUOTE		4	/* inside "" */
+#define SBRACE		5	/* inside ${} */
+#define SCSPAREN	6	/* inside $() */
+#define SBQUOTE		7	/* inside `` */
+#define SASPAREN	8	/* inside $(( )) */
 #define SHEREDELIM	9	/* parsing <<,<<- delimiter */
 #define SHEREDQUOTE	10	/* parsing " in <<,<<- delimiter */
 #define SPATTERN	11	/* parsing *(...|...) pattern (*+?@!) */
@@ -1003,48 +1003,48 @@ typedef union {
 } YYSTYPE;
 
 /* If something is added here, add it to tokentab[] in syn.c as well */
-#define	LWORD		256
-#define	LOGAND		257	/* && */
-#define	LOGOR		258	/* || */
-#define	BREAK		259	/* ;; */
-#define	IF		260
-#define	THEN		261
-#define	ELSE		262
-#define	ELIF		263
-#define	FI		264
-#define	CASE		265
-#define	ESAC		266
-#define	FOR		267
+#define LWORD		256
+#define LOGAND		257	/* && */
+#define LOGOR		258	/* || */
+#define BREAK		259	/* ;; */
+#define IF		260
+#define THEN		261
+#define ELSE		262
+#define ELIF		263
+#define FI		264
+#define CASE		265
+#define ESAC		266
+#define FOR		267
 #define SELECT		268
-#define	WHILE		269
-#define	UNTIL		270
-#define	DO		271
-#define	DONE		272
-#define	IN		273
-#define	FUNCTION	274
-#define	TIME		275
-#define	REDIR		276
+#define WHILE		269
+#define UNTIL		270
+#define DO		271
+#define DONE		272
+#define IN		273
+#define FUNCTION	274
+#define TIME		275
+#define REDIR		276
 #define MDPAREN		277	/* (( )) */
 #define BANG		278	/* ! */
 #define DBRACKET	279	/* [[ .. ]] */
 #define COPROC		280	/* |& */
-#define	YYERRCODE	300
+#define YYERRCODE	300
 
 /* flags to yylex */
-#define	CONTIN		BIT(0)	/* skip new lines to complete command */
-#define	ONEWORD		BIT(1)	/* single word for substitute() */
-#define	ALIAS		BIT(2)	/* recognize alias */
-#define	KEYWORD		BIT(3)	/* recognize keywords */
+#define CONTIN		BIT(0)	/* skip new lines to complete command */
+#define ONEWORD		BIT(1)	/* single word for substitute() */
+#define ALIAS		BIT(2)	/* recognize alias */
+#define KEYWORD		BIT(3)	/* recognize keywords */
 #define LETEXPR		BIT(4)	/* get expression inside (( )) */
 #define VARASN		BIT(5)	/* check for var=word */
 #define ARRAYVAR	BIT(6)	/* parse x[1 & 2] as one word */
 #define ESACONLY	BIT(7)	/* only accept esac keyword */
 #define CMDWORD		BIT(8)	/* parsing simple command (alias related) */
 #define HEREDELIM	BIT(9)	/* parsing <<,<<- delimiter */
-#define	LQCHAR		BIT(10)	/* source string contains QCHAR */
-#define	HEREDOC		BIT(11)	/* parsing a here document */
+#define LQCHAR		BIT(10)	/* source string contains QCHAR */
+#define HEREDOC		BIT(11)	/* parsing a here document */
 
-#define	HERES	10		/* max << in line */
+#define HERES	10		/* max << in line */
 
 EXTERN	Source *source;		/* yyparse/yylex source */
 EXTERN	YYSTYPE	yylval;		/* result from yylex */
