@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.66 2006/11/12 10:44:42 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.67 2006/11/16 13:05:39 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\"
 .Dd November 12, 2006
@@ -199,7 +199,7 @@ characters (space, tab, and newline) or meta-characters
 .Ql \*(Gt ,
 .Ql \*(Ba ,
 .Ql \&; ,
-.Ql ( ,
+.Ql \&( ,
 .Ql \&) ,
 and
 .Ql &
@@ -262,7 +262,7 @@ shell and must be quoted if they are to represent themselves:
 .Ql * ,
 .Ql \&? ,
 and
-.Ql [ .
+.Ql \&[ .
 The first three of these are the above mentioned quoting characters (see
 .Sx Quoting
 below);
@@ -295,7 +295,7 @@ and finally,
 .Ql * ,
 .Ql \&? ,
 and
-.Ql [
+.Ql \&[
 are used in file name generation (see
 .Sx File name patterns
 below).
@@ -4787,7 +4787,7 @@ follows one of the following characters:
 .Ql \&; ,
 .Ql \*(Ba ,
 .Ql & ,
-.Ql ( ,
+.Ql \&( ,
 or
 .Ql \&)
 and does not contain a slash
