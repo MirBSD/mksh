@@ -13,9 +13,14 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.61 2006/11/12 14:58:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.62 2006/11/16 13:35:07 tg Exp $");
 
 extern char **environ;
+
+#if !HAVE_SETRESUGID
+extern uid_t kshuid;
+extern gid_t kshgid, kshegid;
+#endif
 
 static void reclaim(void);
 static void remove_temps(struct temp *);
@@ -220,7 +225,12 @@ main(int argc, char *argv[])
 		setstr(vp, safe_prompt, KSH_RETURN_ERROR);
 
 	/* Set this before parsing arguments */
+#if HAVE_SETRESUGID
 	Flag(FPRIVILEGED) = getuid() != ksheuid || getgid() != getegid();
+#else
+	Flag(FPRIVILEGED) = (kshuid = getuid()) != ksheuid ||
+	    (kshgid = getgid()) != (kshegid = getegid());
+#endif
 
 	/* this to note if monitor is set on command line (see below) */
 	Flag(FMONITOR) = 127;

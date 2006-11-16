@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.42 2006/11/12 14:58:15 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.43 2006/11/16 13:35:07 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -15,6 +15,11 @@ __RCSID("$MirOS: src/bin/mksh/misc.c,v 1.42 2006/11/12 14:58:15 tg Exp $\t"
 #endif
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
+
+#if !HAVE_SETRESUGID
+uid_t kshuid;
+gid_t kshgid, kshegid;
+#endif
 
 static int do_gmatch(const unsigned char *, const unsigned char *,
     const unsigned char *, const unsigned char *);
@@ -251,7 +256,10 @@ change_flag(enum sh_flag f,
 #endif
 		setresuid(ksheuid, ksheuid, ksheuid);
 #else
-#error setresid/setresgid required at the moment
+		seteuid(ksheuid = kshuid = getuid());
+		setuid(ksheuid);
+		setegid(kshegid = kshgid = getgid());
+		setgid(kshegid);
 #endif
 	} else if (f == FPOSIX && newval) {
 		Flag(FBRACEEXPAND) = 0;
