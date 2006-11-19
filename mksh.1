@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.67 2006/11/16 13:05:39 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.68 2006/11/19 16:43:42 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\"
-.Dd November 12, 2006
+.Dd November 19, 2006
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -1550,14 +1550,13 @@ Every time
 is referenced, it is assigned a pseudo-random number first.
 By default, if available,
 .Xr arc4random 3
-is used to produce unsigned 31\-bit values (0\-2147483647)
+is used to produce unsigned 15\-bit values (0\-32767)
 whose quality depends on the operating environment.
 If
 .Ev RANDOM
 is assigned a value, it is used as the seed to
 .Xr srand 3
-and subsequent references yield a semi-predictable sequence
-of unsigned 15\-bit results (0\-32767) employing
+and subsequent references yield a semi-predictable sequence from
 .Xr rand 3 .
 .It Ev REPLY
 Default parameter for the
@@ -5190,7 +5189,6 @@ Shell database.
 Privileged shell profile.
 .El
 .Sh SEE ALSO
-.Xr arc4random 1 ,
 .Xr awk 1 ,
 .Xr ed 1 ,
 .Xr getopt 1 ,
@@ -5206,6 +5204,7 @@ Privileged shell profile.
 .Xr open 2 ,
 .Xr pipe 2 ,
 .Xr wait 2 ,
+.Xr arc4random 3 ,
 .Xr getopt 3 ,
 .Xr nl_langinfo 3 ,
 .Xr rand 3 ,
