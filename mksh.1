@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.68 2006/11/19 16:43:42 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.69 2006/11/19 17:00:32 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\"
 .Dd November 19, 2006
@@ -3876,8 +3876,7 @@ When functions with the trace attribute are executed, the
 shell option is temporarily turned on.
 .It Fl U
 Unsigned integer attribute.
-Integers are printed as unsigned values (only
-useful when combined with the
+Integers are printed as unsigned values (combine with the
 .Fl i
 option).
 This option is not in the original Korn shell.
@@ -3913,6 +3912,19 @@ this is the same as
 .Fl R ,
 except zero padding is used instead of space padding.
 .El
+.Pp
+If any of the
+.\" long integer ,
+.Fl i ,
+.Fl L ,
+.Fl l ,
+.Fl R ,
+.Fl U ,
+.Fl u ,
+or
+.Fl Z
+options are changed, all others from this set are cleared,
+unless they are also given on the same command line.
 .Pp
 .It Xo
 .Ic ulimit
