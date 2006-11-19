@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.69 2006/11/19 17:00:32 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.70 2006/11/19 20:43:13 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.116 2006/07/26 10:13:25 jmc Exp $
 .\"
 .Dd November 19, 2006
@@ -3301,14 +3301,6 @@ If disabled, tilde expansion after an equals sign is disabled as a side effect.
 .It Ic emacs
 Enable BRL emacs-like command-line editing (interactive shells only); see
 .Sx Emacs editing mode .
-.It Ic emacs-usemeta
-In emacs command-line editing, use the 8th bit as meta (^[) prefix.
-This is disabled by default, so you can use high-bit7 characters in pathnames.
-If this option is not set, characters in the range 128\-160 are printed as is,
-which may cause problems in some locales.
-This option has no effect if the
-.Ic utf8-hack
-option is enabled.
 .It Ic gmacs
 Enable gmacs-like command-line editing (interactive shells only).
 Currently identical to emacs editing except that transpose-chars (^T) acts
@@ -3376,10 +3368,6 @@ mode when turned on, which can be turned back on manually.
 The shell is a restricted shell.
 This option can only be used when the shell is invoked.
 See above for a description of what this means.
-.It Ic sh
-This flag only exists for
-.Nm pdksh
-compatibility and cannot be turned on.
 .It Ic vi
 Enable
 .Xr vi 1 Ns -like
@@ -3387,11 +3375,6 @@ command-line editing (interactive shells only).
 .It Ic vi-esccomplete
 In vi command-line editing, do command and file name completion when escape
 (^[) is entered in command mode.
-.It Ic vi-show8
-Prefix characters with the eighth bit set with
-.Sq M- .
-If this option is not set, characters in the range 128\-160 are printed as is,
-which may cause problems in some locales.
 .It Ic vi-tabcomplete
 In vi command-line editing, do command and file name completion when tab (^I)
 is entered in insert mode.

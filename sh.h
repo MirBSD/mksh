@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.85 2006/11/19 16:43:43 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.86 2006/11/19 20:43:14 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/19"
 
 #if HAVE_SYS_PARAM_H
@@ -266,7 +266,6 @@ enum sh_flag {
 	FBGNICE,	/* bgnice */
 	FCOMMAND,	/* -c: (invocation) execute specified command */
 	FEMACS,		/* emacs command editing */
-	FEMACSUSEMETA,	/* use 8th bit as meta */
 	FERREXIT,	/* -e: quit on error */
 	FGMACS,		/* gmacs command editing */
 	FIGNOREEOF,	/* eof does not exit */
@@ -286,14 +285,12 @@ enum sh_flag {
 	FPOSIX,		/* -o posix (try to be more compatible) */
 	FPRIVILEGED,	/* -p: use suid_profile */
 	FRESTRICTED,	/* -r: restricted shell */
-	FSH,		/* -o sh (dummy, for pdksh compatibility) */
 	FSTDIN,		/* -s: (invocation) parse stdin */
 	FTRACKALL,	/* -h: create tracked aliases for all commands */
 	FUTFHACK,	/* -U: utf-8 hack for command line editing */
 	FVERBOSE,	/* -v: echo input */
 	FVI,		/* vi command editing */
 	FVIRAW,		/* always read in raw mode (ignored) */
-	FVISHOW8,	/* display chars with 8th bit set as is (versus M-) */
 	FVITABCOMPLETE,	/* enable tab as file name completion char */
 	FVIESCCOMPLETE,	/* enable ESC as file name completion in command mode */
 	FXTRACE,	/* -x: execution trace */

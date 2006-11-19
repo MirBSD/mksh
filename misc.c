@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.43 2006/11/16 13:35:07 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.44 2006/11/19 20:43:13 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -108,7 +108,6 @@ const struct option options[] = {
 	{ "bgnice",	  0,		OF_ANY },
 	{ NULL,		'c',	    OF_CMDLINE },
 	{ "emacs",	  0,		OF_ANY },
-	{ "emacs-usemeta",  0,		OF_ANY }, /* non-standard */
 	{ "errexit",	'e',		OF_ANY },
 	{ "gmacs",	  0,		OF_ANY },
 	{ "ignoreeof",	  0,		OF_ANY },
@@ -128,14 +127,12 @@ const struct option options[] = {
 	{ "posix",	  0,		OF_ANY }, /* non-standard */
 	{ "privileged",	'p',		OF_ANY },
 	{ "restricted",	'r',	    OF_CMDLINE },
-	{ "sh",		  0,		OF_ANY }, /* non-standard */
 	{ "stdin",	's',	    OF_CMDLINE }, /* pseudo non-standard */
 	{ "trackall",	'h',		OF_ANY },
 	{ "utf8-hack",	'U',		OF_ANY }, /* non-standard */
 	{ "verbose",	'v',		OF_ANY },
 	{ "vi",		  0,		OF_ANY },
 	{ "viraw",	  0,		OF_ANY }, /* no effect */
-	{ "vi-show8",	  0,		OF_ANY }, /* non-standard */
 	{ "vi-tabcomplete",  0,		OF_ANY }, /* non-standard */
 	{ "vi-esccomplete",  0,		OF_ANY }, /* non-standard */
 	{ "xtrace",	'x',		OF_ANY },
@@ -232,10 +229,6 @@ change_flag(enum sh_flag f,
     int newval)		/* what is changing the flag (command line vs set) */
 {
 	int oldval;
-
-	/* limited pdksh compatibility (FSH stays always off) */
-	if (f == FSH)
-		return;
 
 	oldval = Flag(f);
 	Flag(f) = newval;

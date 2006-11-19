@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.73 2006/11/12 14:58:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.74 2006/11/19 20:43:12 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1022,9 +1022,6 @@ static	Area	aedit;
 
 #define	MKCTRL(x)	((x) == '?' ? 0x7F : (x) & 0x1F)	/* ASCII */
 #define	UNCTRL(x)	((x) ^ 0x40)				/* ASCII */
-#define	META(x)		((x) & 0x7f)
-#define	ISMETA(x)	(!Flag(FUTFHACK) && Flag(FEMACSUSEMETA) && ((x) & 0x80))
-
 
 /* values returned by keyboard functions */
 #define	KSTD	0
@@ -1480,10 +1477,6 @@ x_emacs(char *buf, size_t len)
 		if ((c = x_e_getc()) < 0)
 			return 0;
 
-		if (ISMETA(c)) {
-			c = META(c);
-			x_curprefix = 1;
-		}
 		f = x_curprefix == -1 ? XFUNC_insert :
 		    x_tab[x_curprefix][c & CHARMASK];
 		if (f & 0x80) {
@@ -2674,8 +2667,6 @@ x_init_emacs(void)
 	for (i = 1; i < X_NTABS; i++)
 		for (j = 0; j < X_TABSZ; j++)
 			x_atab[i][j] = NULL;
-
-	Flag(FEMACSUSEMETA) = 0;
 }
 
 static void
@@ -3384,7 +3375,7 @@ static void	ed_mov_opt(int, char *);
 static int	expand_word(int);
 static int	complete_word(int, int);
 static int	print_expansions(struct edstate *, int);
-static int	char_len(int);
+#define char_len(c) ((c) < ' ' || (c) == 0x7F ? 2 : 1)
 static void	x_vi_zotc(int);
 static void	vi_error(void);
 static void	vi_macro_reset(void);
@@ -3758,13 +3749,6 @@ vi_hook(int ch)
 				vi_error();
 			else {
 				locpat[srchlen++] = ch;
-				if ((ch & 0x80) && Flag(FVISHOW8)) {
-					if (es->linelen + 2 > es->cbufsize)
-						vi_error();
-					es->cbuf[es->linelen++] = 'M';
-					es->cbuf[es->linelen++] = '-';
-					ch &= 0x7f;
-				}
 				if (ch < ' ' || ch == 0x7f) {
 					if (es->linelen + 2 > es->cbufsize)
 						vi_error();
@@ -5112,30 +5096,20 @@ display(char *wb1, char *wb2, int leftside)
 	while (col < winwidth && cur < es->linelen) {
 		if (cur == es->cursor && leftside)
 			ncol = col + pwidth;
-		if ((ch = es->cbuf[cur]) == '\t') {
+		if ((ch = es->cbuf[cur]) == '\t')
 			do {
 				*twb1++ = ' ';
 			} while (++col < winwidth && (col & 7) != 0);
-		} else {
-			if ((ch & 0x80) && Flag(FVISHOW8)) {
-				*twb1++ = 'M';
+		else if (col < winwidth) {
+			if (ch < ' ' || ch == 0x7f) {
+				*twb1++ = '^';
 				if (++col < winwidth) {
-					*twb1++ = '-';
+					*twb1++ = ch ^ '@';
 					col++;
 				}
-				ch &= 0x7f;
-			}
-			if (col < winwidth) {
-				if (ch < ' ' || ch == 0x7f) {
-					*twb1++ = '^';
-					if (++col < winwidth) {
-						*twb1++ = ch ^ '@';
-						col++;
-					}
-				} else {
-					*twb1++ = ch;
-					col++;
-				}
+			} else {
+				*twb1++ = ch;
+				col++;
 			}
 		}
 		if (cur == es->cursor && !leftside)
@@ -5395,29 +5369,10 @@ print_expansions(struct edstate *est, int cmd __attribute__((unused)))
 	return 0;
 }
 
-/* How long is char when displayed (not counting tabs) */
-static int
-char_len(int c)
-{
-	int len = 1;
-
-	if ((c & 0x80) && Flag(FVISHOW8)) {
-		len += 2;
-		c &= 0x7f;
-	}
-	if (c < ' ' || c == 0x7f)
-		len++;
-	return len;
-}
-
 /* Similar to x_zotc(emacs.c), but no tab weirdness */
 static void
 x_vi_zotc(int c)
 {
-	if (Flag(FVISHOW8) && (c & 0x80)) {
-		x_puts((const u_char *)"M-");
-		c &= 0x7f;
-	}
 	if (c < ' ' || c == 0x7f) {
 		x_putc('^');
 		c ^= '@';
