@@ -1,4 +1,4 @@
-$MirOS: src/bin/mksh/copyright,v 1.15 2006/08/12 21:49:53 tg Rel $
+[B$MirOS: src/bin/mksh/copyright,v 1.16 2006/11/21 20:58:07 tg Exp $
 
 mksh is a collective work under the following licence:
 
@@ -28,6 +28,7 @@ mksh is a collective work under the following licence:
 The developer of mksh recognises the effort of the pdksh authors who
 have dedicated their work into Public Domain, and all contributors.
 
-The files "alloc.c" (always), "strlfun.c", "setmode.c" (only for the
-portable compilation) are covered by different (BSD-style) licences,
-see the individual files for details.
+A number of files which are either always or conditionally included,
+depending on the operating environment, during compilation are cove-
+red by different (BSD-style) licences; refer to the individual files
+for details: alloc.c (always), setmode.c, strcasestr.c, strlfun.c
