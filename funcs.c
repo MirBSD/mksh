@@ -1,11 +1,11 @@
 /*	$OpenBSD: c_ksh.c,v 1.29 2006/03/12 00:26:58 deraadt Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.35 2006/04/10 14:38:59 jaredy Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
-/*	$OpenBSD: c_ulimit.c,v 1.15 2006/03/12 00:26:58 deraadt Exp $	*/
+/*	$OpenBSD: c_ulimit.c,v 1.16 2006/11/20 21:53:39 miod Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.38 2006/11/19 17:13:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.39 2006/12/06 13:41:23 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -2965,7 +2965,7 @@ c_ulimit(char **wp)
 				bi_errorf("invalid limit: %s", wp[0]);
 				return 1;
 			}
-			val = rval * l->factor;
+			val = (rlim_t)rval * l->factor;
 		}
 	}
 	if (all) {
