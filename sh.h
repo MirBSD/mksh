@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.86 2006/11/19 20:43:14 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.87 2006/12/06 13:46:28 tg Exp $"
 #define MKSH_VERSION "R29 2006/11/19"
 
 #if HAVE_SYS_PARAM_H
@@ -116,6 +116,10 @@
 #endif
 #ifndef DEFFILEMODE
 #define DEFFILEMODE (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
+#endif
+
+#if !defined(RLIMIT_VMEM) && defined(RLIMIT_AS)
+#warning portability warning: RLIMIT_AS support
 #endif
 
 /* OS-dependent additions */
