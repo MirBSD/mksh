@@ -1,7 +1,11 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.83 2006/11/21 21:45:24 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.84 2006/12/11 19:58:37 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
+
+# XXX TODO: check for __attribute__ (Minix 3 ACK probably doesn't)
+# and other gccisms in the code, handle appropriately. Note that I
+# sometimes _want_ gccisms, because of the improved error checks.
 
 v()
 {
