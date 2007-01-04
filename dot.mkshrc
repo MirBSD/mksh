@@ -1,4 +1,6 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.3 2006/08/28 01:34:47 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.4 2007/01/04 23:40:50 tg Exp $
+#-
+# Add user-defined additions at the end, to prevent abortion on failure.
 
 : ${EDITOR:=/bin/ed} ${HOSTNAME:=$(hostname -s 2>/dev/null || hostname)}
 PS1='$(((rv=$?)) && print $rv\|)${USER:=$(id -un)}@${HOSTNAME:=nil}:$(
@@ -15,8 +17,8 @@ PS1='$(((rv=$?)) && print $rv\|)${USER:=$(id -un)}@${HOSTNAME:=nil}:$(
 		fi
 	done
 	print -r -- "$pfx$wd")'" $(if (( $(id -u) )); then
-		print \$; else print \#; fi) "
-export EDITOR HOSTNAME PS1 USER
+		print \$; else print \#; fi) " MKSH=$(whence -p mksh)
+export EDITOR HOSTNAME MKSH PS1 USER
 
 alias l='/bin/ls -F'
 alias la='l -a'
