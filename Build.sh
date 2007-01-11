@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.86 2007/01/11 00:44:08 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.87 2007/01/11 00:47:40 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -152,9 +152,10 @@ esac
 
 if test x"$sigseen" = x:; then
 	$e Generating list of signal names
-	NSIG=`printf %d "\`(echo '#include <signal.h>';echo mksh_cfg: NSIG) | \
+	NSIG=`( echo '#include <signal.h>'; echo "mksh_cfg: NSIG" ) | \
 	    $CC $CPPFLAGS -E - | grep mksh_cfg | \
-	    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1/'\`" 2>&-`
+	    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1/'`
+	NSIG=`printf %d "$NSIG" 2>&-`
 	test $NSIG -gt 1 || exit 1
 	echo '#include <signal.h>' | $CC $CPPFLAGS -E -dD - | \
 	    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
