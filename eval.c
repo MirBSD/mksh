@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.19 2006/11/12 14:58:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.20 2007/01/11 00:32:30 tg Exp $");
 
 /*
  * string expansion
@@ -43,7 +43,11 @@ static void glob(char *, XPtrV *, int);
 static void globit(XString *, char **, char *, XPtrV *, int);
 static char *maybe_expand_tilde(char *, XString *, char **, int);
 static char *tilde(char *);
+#ifndef MKSH_SMALL
 static char *homedir(char *);
+#else
+#define homedir(x) null
+#endif
 static void alt_expand(XPtrV *, char *, char *, char *, int);
 
 /* compile and expand word */
@@ -1171,6 +1175,7 @@ tilde(char *cp)
 	return dp;
 }
 
+#ifndef MKSH_SMALL
 /*
  * map userid to user's home directory.
  * note that 4.3's getpw adds more than 6K to the shell,
@@ -1195,6 +1200,7 @@ homedir(char *name)
 	}
 	return ap->val.s;
 }
+#endif
 
 static void
 alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)

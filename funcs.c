@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.39 2006/12/06 13:41:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.40 2007/01/11 00:32:31 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -815,7 +815,11 @@ c_alias(char **wp)
 		prefix = builtin_opt.info & GI_PLUS ? '+' : '-';
 		switch (optc) {
 		case 'd':
+#ifdef MKSH_SMALL
+			return (0);
+#else
 			t = &homedirs;
+#endif
 			break;
 		case 'p':
 			pflag = 1;
@@ -950,7 +954,11 @@ c_unalias(char **wp)
 			all = 1;
 			break;
 		case 'd':
+#ifdef MKSH_SMALL
+			return (0);
+#else
 			t = &homedirs;
+#endif
 			break;
 		case 't':
 			t = &taliases;
