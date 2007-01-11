@@ -1,7 +1,8 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.87 2007/01/11 00:47:40 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.88 2007/01/11 00:57:56 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
+# With -x: SRCS (extra), sigseen (XXX go away), TARGET_OS
 
 # XXX TODO: check for __attribute__ (Minix 3 ACK probably doesn't)
 # and other gccisms in the code, handle appropriately. Note that I
@@ -119,11 +120,12 @@ done
 if test $x = 0; then
 	SRCS=
 	sigseen=
+	TARGET_OS=`uname -s 2>/dev/null || uname`
 fi
 SRCS="$SRCS alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
-test $x = 1 || case `uname -s 2>/dev/null || uname` in
+case $TARGET_OS in
 CYGWIN*)
 	LDSTATIC=
 	sigseen=:
