@@ -1,8 +1,8 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.90 2007/01/11 02:11:46 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.91 2007/01/11 02:37:40 tg Exp $
 #-
-# Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
-# With -x: SRCS (extra), sigseen (XXX go away), TARGET_OS
+# Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
+# With -x: SRCS (extra), sigseen (XXX go away), TARGET_OS (uname -s)
 
 # XXX TODO: check for __attribute__ (Minix 3 ACK probably doesn't)
 # and other gccisms in the code, handle appropriately. Note that I
@@ -185,13 +185,12 @@ ac_testn compiler_works '' 'if the compiler works' <<-'EOF'
 	int main(void) { return (0); }
 EOF
 test 1 = $HAVE_COMPILER_WORKS || exit 1
-if test x"$NOWARN" = x""; then
-	NOWARN=-Wno-error
-	ac_testn can_wnoerror '' 'if -Wno-error can be used' <<-'EOF'
-		int main(void) { return (0); }
-	EOF
-	test 1 = $HAVE_CAN_WNOERROR || NOWARN=
-fi
+
+test x"$NOWARN" = x"" && NOWARN=-Wno-error
+ac_testn can_wnoerror '' "if '$NOWARN' can be used" <<-'EOF'
+	int main(void) { return (0); }
+EOF
+test 1 = $HAVE_CAN_WNOERROR || NOWARN=
 
 ac_testn mksh_full '' "if we're building without MKSH_SMALL" <<-'EOF'
 	#ifdef MKSH_SMALL
@@ -281,6 +280,28 @@ ac_test strlcpy <<-'EOF'
 	#include <string.h>
 	int main(int ac, char *av[]) { return (strlcpy(*av, av[1], ac)); }
 EOF
+
+if test 0 = $HAVE_SYS_SIGNAME; then
+	$e "... checking how to run the C Preprocessor"
+	rm -f a.out
+	( ( echo '#if (23 * 2 - 2) == (fnord + 2)'
+	    echo mksh_rules: fnord
+	    echo '#endif'
+	  ) | $CC -E - $CPPFLAGS >a.out ) 2>&$v | sed 's/^/] /'
+	if grep '^mksh_rules:.*42' a.out >&- 2>&-; then
+		CPP="$CC -E -"
+	else
+		rm -f a.out
+		( ( echo '#if (23 * 2 - 2) == (fnord + 2)'
+		    echo mksh_rules: fnord
+		    echo '#endif'
+		  ) | $CPP $CPPFLAGS >a.out ) 2>&$v | sed 's/^/] /'
+		grep '^mksh_rules:.*42' a.out >&- 2>&- || CPP=no
+	fi
+	rm -f a.out
+	$e "==> checking how to run the C Preprocessor... $CPP"
+	test x"$CPP" = x"no" && exit 1
+fi
 
 $e ... done.
 addsrcs HAVE_SETMODE setmode.c
