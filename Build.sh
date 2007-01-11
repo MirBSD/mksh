@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.92 2007/01/11 02:41:53 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.93 2007/01/11 03:03:34 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x: SRCS (extra), sigseen (XXX go away), TARGET_OS (uname -s)
@@ -267,7 +267,7 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 	( ( echo '#if (23 * 2 - 2) == (fnord + 2)'
 	    echo mksh_rules: fnord
 	    echo '#endif'
-	  ) | $CC -E - $CPPFLAGS >a.out ) 2>&$v | sed 's/^/] /'
+	  ) | $CC -E - $CPPFLAGS -Dfnord=42 >a.out ) 2>&$v | sed 's/^/] /'
 	if grep '^mksh_rules:.*42' a.out >&- 2>&-; then
 		CPP="$CC -E -"
 	else
@@ -275,7 +275,7 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 		( ( echo '#if (23 * 2 - 2) == (fnord + 2)'
 		    echo mksh_rules: fnord
 		    echo '#endif'
-		  ) | $CPP $CPPFLAGS >a.out ) 2>&$v | sed 's/^/] /'
+		  ) | $CPP $CPPFLAGS -Dfnord=42 >a.out ) 2>&$v | sed 's/^/] /'
 		grep '^mksh_rules:.*42' a.out >&- 2>&- || CPP=no
 	fi
 	rm -f a.out
@@ -286,7 +286,7 @@ fi
 $e ... done.
 
 if test x"$sigseen" = x:; then
-	$e Generating list of signal names
+	$e Generating list of signal names...
 	NSIG=`( echo '#include <signal.h>'; echo "mksh_cfg: NSIG" ) | \
 	    $CPP $CPPFLAGS | grep mksh_cfg: | \
 	    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1/'`
@@ -310,6 +310,7 @@ if test x"$sigseen" = x:; then
 		esac
 	done >signames.inc
 	test -f signames.inc || exit 1
+	$e done.
 fi
 
 addsrcs HAVE_SETMODE setmode.c
