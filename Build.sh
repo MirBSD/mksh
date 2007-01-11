@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.84 2006/12/11 19:58:37 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.85 2007/01/11 00:38:37 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 
@@ -161,7 +161,7 @@ if test x"$sigseen" = x:; then
 	    while read name; do
 		( echo '#include <signal.h>'; echo "mksh_cfg: SIG$name" ) | \
 		    $CC $CPPFLAGS -E - | grep mksh_cfg: | \
-		    sed 's/^mksh_cfg: \([0-9]*\).*$/\1:'$name/
+		    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1:'$name/
 	done | grep -v '^:' | while IFS=: read nr name; do
 		nr=`printf %d "$nr" 2>&-`
 		test $nr -gt 0 && test $nr -lt $NSIG || continue
