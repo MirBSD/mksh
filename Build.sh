@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.91 2007/01/11 02:37:40 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.92 2007/01/11 02:41:53 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x: SRCS (extra), sigseen (XXX go away), TARGET_OS (uname -s)
@@ -7,6 +7,8 @@
 # XXX TODO: check for __attribute__ (Minix 3 ACK probably doesn't)
 # and other gccisms in the code, handle appropriately. Note that I
 # sometimes _want_ gccisms, because of the improved error checks.
+
+# XXX TODO: check for $CPP -dD and if that works
 
 v()
 {
@@ -152,33 +154,6 @@ SunOS)
 	;;
 esac
 
-if test x"$sigseen" = x:; then
-	$e Generating list of signal names
-	NSIG=`( echo '#include <signal.h>'; echo "mksh_cfg: NSIG" ) | \
-	    $CC $CPPFLAGS -E - | grep mksh_cfg | \
-	    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1/'`
-	NSIG=`printf %d "$NSIG" 2>&-`
-	test $NSIG -gt 1 || exit 1
-	echo '#include <signal.h>' | $CC $CPPFLAGS -E -dD - | \
-	    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
-	    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | \
-	    while read name; do
-		( echo '#include <signal.h>'; echo "mksh_cfg: SIG$name" ) | \
-		    $CC $CPPFLAGS -E - | grep mksh_cfg: | \
-		    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1:'$name/
-	done | grep -v '^:' | while IFS=: read nr name; do
-		nr=`printf %d "$nr" 2>&-`
-		test $nr -gt 0 && test $nr -lt $NSIG || continue
-		case $sigseen in
-		*:$nr:*) ;;
-		*)	echo "		{ $nr, \"$name\" },"
-			sigseen=$sigseen$nr:
-			;;
-		esac
-	done >signames.inc
-	test -f signames.inc || exit 1
-fi
-
 $e Scanning for functions... please ignore any errors.
 
 ac_testn compiler_works '' 'if the compiler works' <<-'EOF'
@@ -281,6 +256,11 @@ ac_test strlcpy <<-'EOF'
 	int main(int ac, char *av[]) { return (strlcpy(*av, av[1], ac)); }
 EOF
 
+if test x"$sigseen" = x:; then	# XXX for now
+	HAVE_SYS_SIGNAME=0	# XXX
+else				# XXX
+	HAVE_SYS_SIGNAME=1	# XXX
+fi				# XXX
 if test 0 = $HAVE_SYS_SIGNAME; then
 	$e "... checking how to run the C Preprocessor"
 	rm -f a.out
@@ -304,6 +284,34 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 fi
 
 $e ... done.
+
+if test x"$sigseen" = x:; then
+	$e Generating list of signal names
+	NSIG=`( echo '#include <signal.h>'; echo "mksh_cfg: NSIG" ) | \
+	    $CPP $CPPFLAGS | grep mksh_cfg: | \
+	    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1/'`
+	NSIG=`printf %d "$NSIG" 2>&-`
+	test $NSIG -gt 1 || exit 1
+	echo '#include <signal.h>' | $CPP $CPPFLAGS -dD | \
+	    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
+	    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | \
+	    while read name; do
+		( echo '#include <signal.h>'; echo "mksh_cfg: SIG$name" ) | \
+		    $CPP $CPPFLAGS | grep mksh_cfg: | \
+		    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1:'$name/
+	done | grep -v '^:' | while IFS=: read nr name; do
+		nr=`printf %d "$nr" 2>&-`
+		test $nr -gt 0 && test $nr -lt $NSIG || continue
+		case $sigseen in
+		*:$nr:*) ;;
+		*)	echo "		{ $nr, \"$name\" },"
+			sigseen=$sigseen$nr:
+			;;
+		esac
+	done >signames.inc
+	test -f signames.inc || exit 1
+fi
+
 addsrcs HAVE_SETMODE setmode.c
 addsrcs HAVE_STRCASESTR strcasestr.c
 addsrcs HAVE_STRLCPY strlfun.c
