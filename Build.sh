@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.88 2007/01/11 00:57:56 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.89 2007/01/11 02:08:49 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NROFF
 # With -x: SRCS (extra), sigseen (XXX go away), TARGET_OS
@@ -84,7 +84,7 @@ fi
 
 : ${CFLAGS='-O2 -fno-strict-aliasing -Wall'}
 : ${CC=gcc} ${NROFF=nroff}
-curdir=`pwd` srcdir=`dirname "$0"`
+curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
 echo | $NROFF -v 2>&1 | grep GNU >&- 2>&- && NROFF="$NROFF -c"
 
 e=echo
@@ -210,6 +210,7 @@ if test 0 = $HAVE_MKSH_FULL; then
 	test 1 = $HAVE_CAN_FNOINLINE || CFLAGS=$save_CFLAGS
 
 	HAVE_LANGINFO_CODESET=0
+	check_categories=$check_categories,smksh
 fi
 
 save_CFLAGS=$CFLAGS
@@ -300,7 +301,7 @@ case $curdir in
 *)	echo "#!$curdir/mksh" >test.sh ;;
 esac
 echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t'" \
-    "-p '$curdir/mksh' -C pdksh \$*" >>test.sh
+    "-p '$curdir/mksh' -C $check_categories \$*" >>test.sh
 chmod 755 test.sh
 i=install
 test -f /usr/ucb/$i && i=/usr/ucb/$i
