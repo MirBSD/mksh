@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.103 2007/01/12 02:27:40 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.104 2007/01/12 02:34:46 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -140,10 +140,10 @@ SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 test $x = 0 && TARGET_OS=`uname -s 2>/dev/null || uname`
 case $TARGET_OS in
 CYGWIN*)
-	LDSTATIC=
+	LDSTATIC=@
 	;;
 Darwin)
-	LDSTATIC=
+	LDSTATIC=@
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 	;;
 Interix)
@@ -152,12 +152,12 @@ Interix)
 Linux)
 	CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=2 -D_BSD_SOURCE -D_GNU_SOURCE"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
-	LDSTATIC=
+	LDSTATIC=@
 	;;
 SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
-	LDSTATIC=
+	LDSTATIC=@
 	r=1
 	;;
 esac
@@ -396,6 +396,11 @@ addsrcs HAVE_STRCASESTR strcasestr.c
 addsrcs HAVE_STRLCPY strlfun.c
 CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 
+test x"@" = x"$LDSTATIC" && if test 0 = $HAVE_MKSH_FULL; then
+	LDSTATIC=-static
+else
+	LDSTATIC=
+fi
 (v "cd '$srcdir' && exec $CC $CFLAGS $CPPFLAGS" \
     "$LDFLAGS $LDSTATIC -o '$curdir/mksh' $SRCS $LIBS") || exit 1
 result=mksh
