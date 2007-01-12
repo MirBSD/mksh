@@ -1,8 +1,8 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.102 2007/01/12 02:12:16 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.103 2007/01/12 02:27:40 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
-# With -x: SRCS (extra), TARGET_OS (uname -s)
+# With -x (cross compile): TARGET_OS (default: uname -s)
 
 v()
 {
@@ -134,13 +134,10 @@ do
 	esac
 done
 
-if test $x = 0; then
-	SRCS=
-	TARGET_OS=`uname -s 2>/dev/null || uname`
-fi
-SRCS="$SRCS alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
+SRCS="alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
+test $x = 0 && TARGET_OS=`uname -s 2>/dev/null || uname`
 case $TARGET_OS in
 CYGWIN*)
 	LDSTATIC=
