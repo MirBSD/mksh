@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.99 2007/01/12 01:49:26 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.100 2007/01/12 02:01:48 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x: SRCS (extra), TARGET_OS (uname -s)
@@ -7,6 +7,11 @@
 v()
 {
 	$e "$*"
+	eval "$@"
+}
+
+vq()
+{
 	eval "$@"
 }
 
@@ -97,7 +102,7 @@ fi
 : ${CFLAGS='-O2 -fno-strict-aliasing -Wall'}
 : ${CC=gcc} ${NROFF=nroff}
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
-echo | $NROFF -v 2>&1 | grep GNU >&- 2>&- && NROFF="$NROFF -c"
+echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && NROFF="$NROFF -c"
 
 e=echo
 h=1
@@ -336,22 +341,22 @@ EOF
 
 if test 1 = $NEED_MKSH_SIGNAME; then
 	$e "... checking how to run the C Preprocessor"
-	rm -f a.out
+	rm -f x
 	( ( echo '#if (23 * 2 - 2) == (fnord + 2)'
 	    echo mksh_rules: fnord
 	    echo '#endif'
-	  ) | $CC -E - $CPPFLAGS -Dfnord=42 >a.out ) 2>&$h | sed 's/^/] /'
-	if grep '^mksh_rules:.*42' a.out >&- 2>&-; then
+	  ) | v "$CC -E - $CPPFLAGS -Dfnord=42 >x" ) 2>&$h | sed 's/^/] /'
+	if grep '^mksh_rules:.*42' x >/dev/null 2>&1; then
 		CPP="$CC -E -"
 	else
-		rm -f a.out
+		rm -f x
 		( ( echo '#if (23 * 2 - 2) == (fnord + 2)'
 		    echo mksh_rules: fnord
 		    echo '#endif'
-		  ) | $CPP $CPPFLAGS -Dfnord=42 >a.out ) 2>&$h | sed 's/^/] /'
-		grep '^mksh_rules:.*42' a.out >&- 2>&- || CPP=no
+		  ) | v "$CPP $CPPFLAGS -Dfnord=42 >x" ) 2>&$h | sed 's/^/] /'
+		grep '^mksh_rules:.*42' x >/dev/null 2>&1 || CPP=no
 	fi
-	rm -f a.out
+	rm -f x
 	$e "$bi==> checking how to run the C Preprocessor...$ao $ui$CPP$ao"
 	test x"$CPP" = x"no" && exit 1
 fi
@@ -362,19 +367,19 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 	$e Generating list of signal names...
 	sigseen=:
 	NSIG=`( echo '#include <signal.h>'; echo "mksh_cfg: NSIG" ) | \
-	    $CPP $CPPFLAGS | grep mksh_cfg: | \
+	    vq "$CPP $CPPFLAGS" | grep mksh_cfg: | \
 	    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1/'`
-	NSIG=`printf %d "$NSIG" 2>&-`
+	NSIG=`printf %d "$NSIG" 2>/dev/null`
 	test $NSIG -gt 1 || exit 1
-	echo '#include <signal.h>' | $CPP $CPPFLAGS -dD | \
+	echo '#include <signal.h>' | vq "$CPP $CPPFLAGS -dD" | \
 	    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
 	    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | \
 	    while read name; do
 		( echo '#include <signal.h>'; echo "mksh_cfg: SIG$name" ) | \
-		    $CPP $CPPFLAGS | grep mksh_cfg: | \
+		    vq "$CPP $CPPFLAGS" | grep mksh_cfg: | \
 		    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1:'$name/
 	done | grep -v '^:' | while IFS=: read nr name; do
-		nr=`printf %d "$nr" 2>&-`
+		nr=`printf %d "$nr" 2>/dev/null`
 		test $nr -gt 0 && test $nr -lt $NSIG || continue
 		case $sigseen in
 		*:$nr:*) ;;
@@ -383,7 +388,7 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 			;;
 		esac
 	done >signames.inc
-	grep ', ' signames.inc || exit 1
+	grep ', ' signames.inc >/dev/null 2>&1 || exit 1
 	$e done.
 fi
 
