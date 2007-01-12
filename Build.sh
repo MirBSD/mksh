@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.95 2007/01/12 01:17:10 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.96 2007/01/12 01:27:28 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x: SRCS (extra), TARGET_OS (uname -s)
@@ -66,8 +66,8 @@ ac_testn()
 	fi
 	$e ... $fd
 	cat >scn.c
-	v "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS" 2>&$v | \
-	    sed 's/^/] /'
+	v "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -I'$srcdir' scn.c $LIBS" \
+	    2>&$v | sed 's/^/] /'
 	if test -f a.out || test -f a.exe; then
 		eval HAVE_$fu=1
 		$e "$bi==> $fd...$bo yes"
@@ -164,6 +164,7 @@ SunOS)
 	;;
 esac
 
+CPPFLAGS="$CPPFLAGS -I'$curdir'"
 $e ${bo}Scanning for functions... please ignore any errors.
 
 ac_testn compiler_works '' 'if the compiler works' <<-'EOF'
@@ -213,7 +214,7 @@ ac_test mksh_signame '' 'our own list of signal names' <<-'EOF'
 	#include <stdlib.h>	/* for NULL */
 	#define MKSH_SIGNAMES_CHECK
 	#include "signames.c"
-	int main(void) { return (mksh_sigpair[0].nr); }
+	int main(void) { return (mksh_sigpairs[0].nr); }
 EOF
 
 ac_test sys_signame '!' mksh_signame 0 'the sys_signame[] array' <<-'EOF'
@@ -361,9 +362,9 @@ fi
 addsrcs HAVE_SETMODE setmode.c
 addsrcs HAVE_STRCASESTR strcasestr.c
 addsrcs HAVE_STRLCPY strlfun.c
+CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 
-(v "cd '$srcdir' && exec $CC $CFLAGS -I'$curdir' $CPPFLAGS" \
-    "-DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\"" \
+(v "cd '$srcdir' && exec $CC $CFLAGS $CPPFLAGS" \
     "$LDFLAGS $LDSTATIC -o '$curdir/mksh' $SRCS $LIBS") || exit 1
 result=mksh
 test -f mksh.exe && result=mksh.exe
