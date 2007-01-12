@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.94 2007/01/12 01:49:28 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.95 2007/01/12 02:02:21 tg Exp $"
 #define MKSH_VERSION "R29 2007/01/12"
 
 #if HAVE_SYS_PARAM_H
@@ -111,7 +111,7 @@
 #if HAVE_ATTRIBUTE_BOUNDED
 #define __bound_att__		__attribute__
 #else
-#define __bound_att(x)		/* nothing */
+#define __bound_att__(x)	/* nothing */
 #endif
 #else
 #define __attribute__(x)	/* nothing */
