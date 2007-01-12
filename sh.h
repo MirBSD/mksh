@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.95 2007/01/12 02:02:21 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.96 2007/01/12 10:18:21 tg Exp $"
 #define MKSH_VERSION "R29 2007/01/12"
 
 #if HAVE_SYS_PARAM_H
@@ -882,7 +882,7 @@ typedef struct XString {
 
 typedef char *XStringP;
 
-/* initialize expandable string */
+/* initialise expandable string */
 #define Xinit(xs, xp, length, area) do { \
 			(xs).len = length; \
 			(xs).areap = (area); \
@@ -1053,8 +1053,8 @@ typedef union {
 /* flags to yylex */
 #define CONTIN		BIT(0)	/* skip new lines to complete command */
 #define ONEWORD		BIT(1)	/* single word for substitute() */
-#define ALIAS		BIT(2)	/* recognize alias */
-#define KEYWORD		BIT(3)	/* recognize keywords */
+#define ALIAS		BIT(2)	/* recognise alias */
+#define KEYWORD		BIT(3)	/* recognise keywords */
 #define LETEXPR		BIT(4)	/* get expression inside (( )) */
 #define VARASN		BIT(5)	/* check for var=word */
 #define ARRAYVAR	BIT(6)	/* parse x[1 & 2] as one word */

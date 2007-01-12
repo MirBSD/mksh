@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.66 2007/01/12 02:06:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.67 2007/01/12 10:18:21 tg Exp $");
 
 extern char **environ;
 
@@ -82,15 +82,16 @@ main(int argc, char *argv[])
 
 	/* make sure argv[] is sane */
 	if (!*argv) {
-		static char empty_argv0[] = "mksh",
-		    *empty_argv[] = { empty_argv0, NULL };
+		static const char *empty_argv[] = {
+			"mksh", NULL
+		};
 
 		argv = empty_argv;
 		argc = 1;
 	}
 	kshname = *argv;
 
-	ainit(&aperm);		/* initialize permanent Area */
+	ainit(&aperm);		/* initialise permanent Area */
 
 	/* set up base environment */
 	memset(&env, 0, sizeof(env));
@@ -274,11 +275,11 @@ main(int argc, char *argv[])
 	    Flag(FTALKING))
 		reset_nonblock(0);
 
-	/* initialize job control */
+	/* initialise job control */
 	i = Flag(FMONITOR) != 127;
 	Flag(FMONITOR) = 0;
 	j_init(i);
-	/* Do this after j_init(), as tty_fd is not initialized 'til then */
+	/* Do this after j_init(), as tty_fd is not initialised 'til then */
 	if (Flag(FTALKING)) {
 #if HAVE_SETLOCALE_CTYPE
 #define isuc(x)	(((x) != NULL) && \
@@ -691,7 +692,7 @@ remove_temps(struct temp *tp)
 		}
 }
 
-/* Initialize tty_fd.  Used for saving/reseting tty modes upon
+/* Initialise tty_fd.  Used for saving/reseting tty modes upon
  * foreground job completion and for setting up tty process group.
  */
 void

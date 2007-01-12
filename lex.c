@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.24 2006/11/10 07:52:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.25 2007/01/12 10:18:21 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -63,10 +63,10 @@ static int dopprompt(const char *, int, int);
 static int backslash_skip;
 static int ignore_backslash_newline;
 
-/* optimized getsc_bn() */
+/* optimised getsc_bn() */
 #define getsc()		(*source->str != '\0' && *source->str != '\\' \
 			 && !backslash_skip ? *source->str++ : getsc_bn())
-/* optimized getsc__() */
+/* optimised getsc__() */
 #define	getsc_()	((*source->str != '\0') ? *source->str++ : getsc__())
 
 #define STATE_BSIZE	32

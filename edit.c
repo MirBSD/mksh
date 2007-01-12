@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.75 2007/01/12 01:49:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.76 2007/01/12 10:18:20 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1197,7 +1197,7 @@ static void bind_if_not_bound(int, int, int);
 #define XFUNC_yank 45
 #define XFUNC_comp_list 46
 #define XFUNC_expand 47
-#define XFUNC_fold_capitalize 48
+#define XFUNC_fold_capitalise 48
 #define XFUNC_fold_lower 49
 #define XFUNC_fold_upper 50
 #define XFUNC_set_arg 51
@@ -1254,7 +1254,7 @@ static int x_xchg_point_mark (int);
 static int x_yank (int);
 static int x_comp_list (int);
 static int x_expand (int);
-static int x_fold_capitalize (int);
+static int x_fold_capitalise (int);
 static int x_fold_lower (int);
 static int x_fold_upper (int);
 static int x_set_arg (int);
@@ -1310,7 +1310,7 @@ static const struct x_ftab x_ftab[] = {
 	{ x_yank,		"yank",				0 },
 	{ x_comp_list,		"complete-list",		0 },
 	{ x_expand,		"expand-file",			0 },
-	{ x_fold_capitalize,	"capitalize-word",		XF_ARG },
+	{ x_fold_capitalise,	"capitalize-word",		XF_ARG },
 	{ x_fold_lower,		"downcase-word",		XF_ARG },
 	{ x_fold_upper,		"upcase-word",			XF_ARG },
 	{ x_set_arg,		"set-arg",			XF_NOBIND },
@@ -1385,8 +1385,8 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_fold_upper,		1,	  'u'	},
 	{ XFUNC_fold_lower,		1,	  'L'	},
 	{ XFUNC_fold_lower,		1,	  'l'	},
-	{ XFUNC_fold_capitalize,	1,	  'C'	},
-	{ XFUNC_fold_capitalize,	1,	  'c'	},
+	{ XFUNC_fold_capitalise,	1,	  'C'	},
+	{ XFUNC_fold_capitalise,	1,	  'c'	},
 	/* These for ansi arrow keys: arguablely shouldn't be here by
 	 * default, but its simpler/faster/smaller than using termcap
 	 * entries.
@@ -3163,7 +3163,7 @@ x_fold_lower(int c __unused)
 
 /* Lowercase N(1) words */
 static int
-x_fold_capitalize(int c __unused)
+x_fold_capitalise(int c __unused)
 {
 	return x_fold_case('C');
 }

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.8 2006/11/10 07:52:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.9 2007/01/12 10:18:22 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -715,7 +715,7 @@ shf_smprintf(const char *fmt, ...)
 				 */
 
 /*
- *	What kinda of machine we on?  Hopefully the C compiler will optimize
+ *	What kinda of machine we on?  Hopefully the C compiler will optimise
  *  this out...
  *
  *	For shorts, we want sign extend for %d but not for %[oxu] - on 16 bit

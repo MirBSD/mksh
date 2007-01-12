@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.42 2007/01/12 01:49:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.43 2007/01/12 10:18:20 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -206,10 +206,10 @@ c_print(char **wp)
 
 		/* A compromise between sysV and BSD echo commands:
 		 * escape sequences are enabled by default, and
-		 * -n, -e and -E are recognized if they appear
+		 * -n, -e and -E are recognised if they appear
 		 * in arguments with no illegal options (ie, echo -nq
 		 * will print -nq).
-		 * Different from sysV echo since options are recognized,
+		 * Different from sysV echo since options are recognised,
 		 * different from BSD echo since escape sequences are enabled
 		 * by default.
 		 */
@@ -856,8 +856,9 @@ c_alias(char **wp)
 
 	/* "hash -r" means reset all the tracked aliases.. */
 	if (rflag) {
-		static char args0[] = "unalias", args1[] = "-ta",
-		    *args[] = { args0, args1, NULL };
+		static const char *const args[] = {
+			"unalias", "-ta", NULL
+		};
 
 		if (!tflag || *wp) {
 			shprintf("alias: -r flag can only be used with -t"
@@ -1963,8 +1964,7 @@ c_set(char **wp)
 	char **owp = wp;
 
 	if (wp[1] == NULL) {
-		static char args0[] = "set", args1[] = "-",
-		    *args[] = { args0, args1, NULL };
+		static const char *const args [] = { "set", "-", NULL };
 		return c_typeset(args);
 	}
 

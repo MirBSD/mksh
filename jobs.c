@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.17 2007/01/12 01:49:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.18 2007/01/12 10:18:21 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -119,7 +119,7 @@ static void		put_job(Job *, int);
 static void		remove_job(Job *, const char *);
 static int		kill_job(Job *, int);
 
-/* initialize job control */
+/* initialise job control */
 void
 j_init(int mflagset)
 {

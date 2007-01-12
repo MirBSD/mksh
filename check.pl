@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $MirOS: src/bin/mksh/check.pl,v 1.8 2006/05/08 11:59:41 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.9 2007/01/12 10:18:19 tg Exp $
 # $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
 #-
 # Example test:
@@ -843,14 +843,14 @@ read_test
 	last if /^\s*---\s*$/;
 	$start_lineno = $. if !defined $start_lineno;
 	if (!/^([-\w]+):\s*(|\S|\S.*\S)\s*$/) {
-	    print STDERR "$prog:$file:$.: unrecognized line\n";
+	    print STDERR "$prog:$file:$.: unrecognised line\n";
 	    return undef;
 	}
 	($field, $val) = ($1, $2);
 	$sfield = $field;
 	$flags = $test_fields{$field};
 	if (!defined $flags) {
-	    print STDERR "$prog:$file:$.: unrecognized field \"$field\"\n";
+	    print STDERR "$prog:$file:$.: unrecognised field \"$field\"\n";
 	    return undef;
 	}
 	if ($flags =~ /s/) {

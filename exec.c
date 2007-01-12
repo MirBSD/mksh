@@ -2,11 +2,11 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.21 2007/01/12 01:49:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.22 2007/01/12 10:18:20 tg Exp $");
 
 static int	comexec(struct op *, struct tbl *volatile, char **,
 		    int volatile);
-static void	scriptexec(struct op *, char **) __dead;
+static __dead void scriptexec(struct op *, char **);
 static int	call_builtin(struct tbl *, char **);
 static int	iosetup(struct ioword *, struct tbl *);
 static int	herein(const char *, int);
@@ -81,7 +81,7 @@ execute(struct op *volatile t,
 
 	if (t->ioact != NULL || t->type == TPIPE || t->type == TCOPROC) {
 		e->savefd = (short *) alloc(sizeofN(short, NUFILE), ATEMP);
-		/* initialize to not redirected */
+		/* initialise to not redirected */
 		memset(e->savefd, 0, sizeofN(short, NUFILE));
 	}
 
@@ -206,7 +206,7 @@ execute(struct op *volatile t,
 
 	case TASYNC:
 		/* XXX non-optimal, I think - "(foo &)", forks for (),
-		 * forks again for async...  parent should optimize
+		 * forks again for async...  parent should optimise
 		 * this to "foo &"...
 		 */
 		rv = execute(t->left, (flags&~XEXEC)|XBGND|XFORK);
@@ -665,17 +665,16 @@ comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
 static void
 scriptexec(struct op *tp, char **ap)
 {
-	static char execshell[] = "/bin/sh";
 	const char *sh;
 
 	sh = str_val(global("EXECSHELL"));
 	if (sh && *sh)
 		sh = search(sh, path, X_OK, NULL);
 	if (!sh || !*sh)
-		sh = execshell;
+		sh = "/bin/sh";
 
 	*tp->args-- = tp->str;
-	*tp->args = str_save(sh, ATEMP);
+	*tp->args = sh;
 
 	execve(tp->args[0], tp->args, ap);
 
@@ -1195,10 +1194,8 @@ herein(const char *content, int sub)
 static char *
 do_selectargs(char **ap, bool print_menu)
 {
-	static char read_args0[] = "read",
-	    read_args1[] = "-r", read_args2[] = "REPLY",
-	    *read_args[] = {
-		read_args0, read_args1, read_args2, NULL
+	static const char *const read_args[] = {
+		"read", "-r", "REPLY", NULL
 	};
 	char *s;
 	int i, argct;
