@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.97 2007/01/12 01:32:27 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.98 2007/01/12 01:44:32 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x: SRCS (extra), TARGET_OS (uname -s)
@@ -69,7 +69,7 @@ ac_testn()
 	$e ... $fd
 	cat >scn.c
 	v "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -I'$srcdir' scn.c $LIBS" \
-	    2>&$v | sed 's/^/] /'
+	    2>&$h | sed 's/^/] /'
 	if test -f a.out || test -f a.exe; then
 		eval HAVE_$fu=1
 		$e "$bi==> $fd...$ao ${ui}yes$ao"
@@ -106,7 +106,7 @@ curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
 echo | $NROFF -v 2>&1 | grep GNU >&- 2>&- && NROFF="$NROFF -c"
 
 e=echo
-v=1
+h=1
 r=0
 x=0
 LDSTATIC=-static
@@ -119,7 +119,7 @@ do
 		;;
 	-q)
 		e=:
-		v=-
+		h=-
 		;;
 	-r)
 		r=1
@@ -314,7 +314,7 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 	( ( echo '#if (23 * 2 - 2) == (fnord + 2)'
 	    echo mksh_rules: fnord
 	    echo '#endif'
-	  ) | $CC -E - $CPPFLAGS -Dfnord=42 >a.out ) 2>&$v | sed 's/^/] /'
+	  ) | $CC -E - $CPPFLAGS -Dfnord=42 >a.out ) 2>&$h | sed 's/^/] /'
 	if grep '^mksh_rules:.*42' a.out >&- 2>&-; then
 		CPP="$CC -E -"
 	else
@@ -322,7 +322,7 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 		( ( echo '#if (23 * 2 - 2) == (fnord + 2)'
 		    echo mksh_rules: fnord
 		    echo '#endif'
-		  ) | $CPP $CPPFLAGS -Dfnord=42 >a.out ) 2>&$v | sed 's/^/] /'
+		  ) | $CPP $CPPFLAGS -Dfnord=42 >a.out ) 2>&$h | sed 's/^/] /'
 		grep '^mksh_rules:.*42' a.out >&- 2>&- || CPP=no
 	fi
 	rm -f a.out
@@ -373,7 +373,7 @@ test -f mksh.exe && result=mksh.exe
 test -f $result || exit 1
 test $r = 1 || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
     rm -f mksh.cat1
-test $v = 1 && v size $result
+test $h = 1 && v size $result
 case $curdir in
 *\ *)	echo "#!./mksh" >test.sh ;;
 *)	echo "#!$curdir/mksh" >test.sh ;;
