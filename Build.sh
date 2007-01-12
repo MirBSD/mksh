@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.101 2007/01/12 02:09:10 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.102 2007/01/12 02:12:16 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x: SRCS (extra), TARGET_OS (uname -s)
@@ -386,10 +386,10 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 		*:$nr:*) ;;
 		*)	echo "		{ $nr, \"$name\" },"
 			sigseen=$sigseen$nr:
-			test $h = 1 && printf "$nr "
+			test $h = 1 && printf "$nr " >&2
 			;;
 		esac
-	done >signames.inc
+	done 2>&1 >signames.inc
 	grep ', ' signames.inc >/dev/null 2>&1 || exit 1
 	$e done.
 fi
