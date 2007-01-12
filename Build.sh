@@ -1,7 +1,7 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.109 2007/01/12 03:20:07 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.110 2007/01/12 03:30:40 tg Exp $
 #-
-# Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
+# Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
 
 v()
