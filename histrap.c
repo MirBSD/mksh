@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.36 2007/01/12 00:37:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.37 2007/01/12 01:30:35 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign, Sigact_trap;
@@ -961,7 +961,7 @@ void
 inittraps(void)
 {
 	int i;
-	char *s;
+	const char *cs;
 
 	/* Populate sigtraps based on sys_signame and sys_siglist. */
 	for (i = 0; i <= NSIG; i++) {
@@ -971,19 +971,21 @@ inittraps(void)
 			sigtraps[i].mess = "Error handler";
 		} else {
 #if HAVE_SYS_SIGNAME || HAVE_SYS_SIGNAME
-			s = sys_signame[i];
+			cs = sys_signame[i];
 #else
 			const struct mksh_sigpair *pair = mksh_sigpairs;
 			while ((pair->nr != i) && (pair->name != NULL))
 				++pair;
-			s = pair->name;
+			cs = pair->name;
 #endif
-			if ((s == NULL) ||
-			    (s[0] == '\0'))
+			if ((cs == NULL) ||
+			    (cs[0] == '\0'))
 				sigtraps[i].name = shf_smprintf("%d", i);
 			else {
+				char *s;
+
 				sigtraps[i].name = s = str_save(
-				    !strncasecmp(s, "SIG", 3) ? s + 3 : s,
+				    !strncasecmp(cs, "SIG", 3) ? cs + 3 : cs,
 				    APERM);
 				while (*s = ksh_toupper(*s))
 					++s;
