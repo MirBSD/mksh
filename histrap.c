@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.35 2007/01/12 00:25:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.36 2007/01/12 00:37:09 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign, Sigact_trap;
@@ -960,7 +960,8 @@ sprinkle(int fd)
 void
 inittraps(void)
 {
-	int	i;
+	int i;
+	char *s;
 
 	/* Populate sigtraps based on sys_signame and sys_siglist. */
 	for (i = 0; i <= NSIG; i++) {
@@ -970,13 +971,23 @@ inittraps(void)
 			sigtraps[i].mess = "Error handler";
 		} else {
 #if HAVE_SYS_SIGNAME || HAVE_SYS_SIGNAME
-			sigtraps[i].name = sys_signame[i];
+			s = sys_signame[i];
 #else
 			const struct mksh_sigpair *pair = mksh_sigpairs;
 			while ((pair->nr != i) && (pair->name != NULL))
 				++pair;
-			sigtraps[i].name = pair->name;
+			s = pair->name;
 #endif
+			if ((s == NULL) ||
+			    (s[0] == '\0'))
+				sigtraps[i].name = shf_smprintf("%d", i);
+			else {
+				sigtraps[i].name = s = str_save(
+				    !strncasecmp(s, "SIG", 3) ? s + 3 : s,
+				    APERM);
+				while (*s = ksh_toupper(*s))
+					++s;
+			}
 #if HAVE_SYS_SIGLIST
 			sigtraps[i].mess = sys_siglist[i];
 #elif HAVE__SYS_SIGLIST
@@ -986,14 +997,9 @@ inittraps(void)
 #else
 			sigtraps[i].mess = NULL;
 #endif
-			if ((sigtraps[i].name == NULL) ||
-			    (sigtraps[i].name[0] == '\0'))
-				sigtraps[i].name = shf_smprintf("%d", i);
 			if ((sigtraps[i].mess == NULL) ||
 			    (sigtraps[i].mess[0] == '\0'))
 				sigtraps[i].mess = shf_smprintf("Signal %d", i);
-			if (!strncasecmp(sigtraps[i].name, "SIG", 3))
-				sigtraps[i].name += 3;
 		}
 	}
 	sigtraps[SIGEXIT_].name = "EXIT";	/* our name for signal 0 */
@@ -1048,22 +1054,18 @@ alarm_catcher(int sig __attribute__((unused)))
 Trap *
 gettrap(const char *name, int igncase)
 {
-	int i;
+	int n = NSIG + 1;
 	Trap *p;
 
 	if (ksh_isdigit(*name)) {
-		int n;
-
 		if (getn(name, &n) && 0 <= n && n < NSIG)
-			return &sigtraps[n];
-		return NULL;
-	}
-	for (p = sigtraps, i = NSIG+1; --i >= 0; p++)
+			return (&sigtraps[n]);
+	} else for (p = sigtraps; --n >= 0; p++)
 		if (!(igncase ? strcasecmp : strcmp)(p->name, name) ||
 		   (!strncasecmp(name, "SIG", 3) &&
 		    !(igncase ? strcasecmp : strcmp)(p->name, name + 3)))
 			return (p);
-	return NULL;
+	return (NULL);
 }
 
 /*
