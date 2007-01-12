@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.100 2007/01/12 02:01:48 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.101 2007/01/12 02:09:10 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x: SRCS (extra), TARGET_OS (uname -s)
@@ -370,6 +370,7 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 	    vq "$CPP $CPPFLAGS" | grep mksh_cfg: | \
 	    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1/'`
 	NSIG=`printf %d "$NSIG" 2>/dev/null`
+	test $h = 1 && printf "NSIG=$NSIG ... "
 	test $NSIG -gt 1 || exit 1
 	echo '#include <signal.h>' | vq "$CPP $CPPFLAGS -dD" | \
 	    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
@@ -385,6 +386,7 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 		*:$nr:*) ;;
 		*)	echo "		{ $nr, \"$name\" },"
 			sigseen=$sigseen$nr:
+			test $h = 1 && printf "$nr "
 			;;
 		esac
 	done >signames.inc
