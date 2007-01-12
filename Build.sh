@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.104 2007/01/12 02:34:46 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.105 2007/01/12 02:37:32 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -195,7 +195,7 @@ ac_test attribute_bounded attribute 0 'for __attribute__((bounded))' <<-'EOF'
 	int xcopy(const void *, void *, size_t)
 	    __attribute__((bounded (buffer, 1, 3)))
 	    __attribute__((bounded (buffer, 2, 3)));
-	int main(int ac, char *av[]) { return (xcopy(av[0], av[1], 1)); }
+	int main(int ac, char *av[]) { return (xcopy(av[0], av[--ac], 1)); }
 	int xcopy(const void *s, void *d, size_t n) {
 		memmove(d, s, n); return (n);
 	}
