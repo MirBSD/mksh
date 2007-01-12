@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.65 2007/01/11 00:32:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.66 2007/01/12 02:06:34 tg Exp $");
 
 extern char **environ;
 
@@ -137,10 +137,9 @@ main(int argc, char *argv[])
 	def_path = _PATH_DEFPATH;
 #else
 #ifdef _CS_PATH
-	if ((len = confstr(_CS_PATH, NULL, 0)) != (size_t)-1 &&
-	    len > 0 && confstr(_CS_PATH, new = alloc(len + 1, APERM),
-	    len + 1) == len + 1)
-		def_path = new;
+	if ((k = confstr(_CS_PATH, NULL, 0)) != (size_t)-1 && k > 0 &&
+	    confstr(_CS_PATH, cp = alloc(k + 1, APERM), k + 1) == k + 1)
+		def_path = cp;
 	else
 #endif
 		def_path = "/bin:/usr/bin:/sbin:/usr/sbin";
