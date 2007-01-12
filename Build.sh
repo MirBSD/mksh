@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.105 2007/01/12 02:37:32 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.106 2007/01/12 02:40:18 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -211,9 +211,8 @@ NOWARN=$save_NOWARN
 ac_testn mksh_full '' "if we're building without MKSH_SMALL" <<-'EOF'
 	#ifdef MKSH_SMALL
 	#error OK, we are building an extra small mksh.
-	#else
-	int main(void) { return (0); }
 	#endif
+	int main(void) { return (0); }
 EOF
 
 if test 0 = $HAVE_MKSH_FULL; then
@@ -304,10 +303,9 @@ EOF
 ac_test setmode mksh_full 1 <<-'EOF'
 	#if defined(__MSVCRT__) || defined(__CYGWIN__)
 	#error Win32 setmode() is different from what we need
-	#else
+	#endif
 	#include <unistd.h>
 	int main(int ac, char *av[]) { return (getmode(setmode(av[0]), ac)); }
-	#endif
 EOF
 
 ac_test setresugid <<-'EOF'
