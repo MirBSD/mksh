@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.106 2007/01/12 02:40:18 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.107 2007/01/12 02:46:27 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -223,7 +223,7 @@ if test 0 = $HAVE_MKSH_FULL; then
 	EOF
 	test 1 = $HAVE_CAN_FNOINLINE || CFLAGS=$save_CFLAGS
 
-	HAVE_SETLOCALE_CTYPE=0
+	: ${HAVE_SETLOCALE_CTYPE=0}
 	check_categories=$check_categories,smksh
 fi
 
