@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.96 2007/01/12 01:27:28 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.97 2007/01/12 01:32:27 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x: SRCS (extra), TARGET_OS (uname -s)
@@ -18,10 +18,12 @@ v()
 
 if test -t 1; then
 	bi=`printf '\033[1m'`
-	bo=`printf '\033[0m'`
+	ui=`printf '\033[4m'`
+	ao=`printf '\033[0m'`
 else
 	bi=
-	bo=
+	ui=
+	ao=
 fi
 
 upper()
@@ -49,11 +51,11 @@ ac_testn()
 	test x"$fd" = x"" && fd=$f
 	eval fv=\$HAVE_$fu
 	if test 0 = "$fv"; then
-		$e "$bi==> $fd...$bo no (cached)"
+		$e "$bi==> $fd...$ao ${ui}no$ao (cached)"
 		return
 	fi
 	if test 1 = "$fv"; then
-		$e "$bi==> $fd...$bo yes (cached)"
+		$e "$bi==> $fd...$ao ${ui}yes$ao (cached)"
 		return
 	fi
 	if test $fc = "$ft"; then
@@ -61,7 +63,7 @@ ac_testn()
 		eval HAVE_$fu=$fv
 		test 0 = "$fv" && fv=no
 		test 1 = "$fv" && fv=yes
-		$e "$bi==> $fd...$bo $fv (implied)"
+		$e "$bi==> $fd...$ao $ui$fv$ao (implied)"
 		return
 	fi
 	$e ... $fd
@@ -70,10 +72,10 @@ ac_testn()
 	    2>&$v | sed 's/^/] /'
 	if test -f a.out || test -f a.exe; then
 		eval HAVE_$fu=1
-		$e "$bi==> $fd...$bo yes"
+		$e "$bi==> $fd...$ao ${ui}yes$ao"
 	else
 		eval HAVE_$fu=0
-		$e "$bi==> $fd...$bo no"
+		$e "$bi==> $fd...$ao ${ui}no$ao"
 	fi
 	rm -f scn.c a.out a.exe
 }
@@ -165,7 +167,7 @@ SunOS)
 esac
 
 CPPFLAGS="$CPPFLAGS -I'$curdir'"
-$e ${bo}Scanning for functions... please ignore any errors.
+$e ${ao}Scanning for functions... please ignore any errors.
 
 ac_testn compiler_works '' 'if the compiler works' <<-'EOF'
 	int main(void) { return (0); }
@@ -324,7 +326,7 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 		grep '^mksh_rules:.*42' a.out >&- 2>&- || CPP=no
 	fi
 	rm -f a.out
-	$e "$bi==> checking how to run the C Preprocessor...$bo $CPP"
+	$e "$bi==> checking how to run the C Preprocessor...$ao $ui$CPP$ao"
 	test x"$CPP" = x"no" && exit 1
 fi
 
