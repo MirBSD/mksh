@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.108 2007/01/12 03:17:08 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.109 2007/01/12 03:20:07 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -140,10 +140,10 @@ SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 test $x = 0 && TARGET_OS=`uname -s 2>/dev/null || uname`
 case $TARGET_OS in
 CYGWIN*)
-	LDSTATIC=@
+	test x"@@" = x"$LDSTATIC" || LDSTATIC=@
 	;;
 Darwin)
-	LDSTATIC=@
+	test x"@@" = x"$LDSTATIC" || LDSTATIC=@
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 	;;
 Interix)
@@ -152,12 +152,12 @@ Interix)
 Linux)
 	CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=2 -D_BSD_SOURCE -D_GNU_SOURCE"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
-	LDSTATIC=@
+	test x"@@" = x"$LDSTATIC" || LDSTATIC=@
 	;;
 SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
-	LDSTATIC=@
+	test x"@@" = x"$LDSTATIC" || LDSTATIC=@
 	r=1
 	;;
 esac
