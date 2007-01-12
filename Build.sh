@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.107 2007/01/12 02:46:27 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.108 2007/01/12 03:17:08 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -114,7 +114,7 @@ for i
 do
 	case $i in
 	-d)
-		LDSTATIC=
+		LDSTATIC=@@
 		;;
 	-q)
 		e=:
@@ -125,7 +125,7 @@ do
 		;;
 	-x)
 		x=1
-		LDSTATIC=
+		LDSTATIC=@@
 		;;
 	*)
 		echo "$0: Unknown option '$i'!" >&2
@@ -394,6 +394,7 @@ addsrcs HAVE_STRCASESTR strcasestr.c
 addsrcs HAVE_STRLCPY strlfun.c
 CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 
+test x"@@" = x"$LDSTATIC" && LDSTATIC=
 test x"@" = x"$LDSTATIC" && if test 0 = $HAVE_MKSH_FULL; then
 	LDSTATIC=-static
 else
