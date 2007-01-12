@@ -1,8 +1,8 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.93 2007/01/11 03:03:34 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.94 2007/01/12 00:25:38 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
-# With -x: SRCS (extra), sigseen (XXX go away), TARGET_OS (uname -s)
+# With -x: SRCS (extra), TARGET_OS (uname -s)
 
 # XXX TODO: check for __attribute__ (Minix 3 ACK probably doesn't)
 # and other gccisms in the code, handle appropriately. Note that I
@@ -21,13 +21,19 @@ upper()
 	echo "$@" | tr qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM
 }
 
+# pipe .c | ac_test[n] label [!] checkif[!]0 [setlabelifcheckis[!]0] useroutput
 ac_testn()
 {
 	f=$1
 	fu=`upper $f`
+	fc=0
 	if test x"$2" = x""; then
 		ft=1
 	else
+		if test x"$2" = x"!"; then
+			fc=1
+			shift
+		fi
 		eval ft=\$HAVE_`upper $2`
 		shift
 	fi
@@ -42,7 +48,7 @@ ac_testn()
 		$e "==> $fd... yes (cached)"
 		return
 	fi
-	if test 0 = "$ft"; then
+	if test $fc = "$ft"; then
 		fv=$2
 		eval HAVE_$fu=$fv
 		test 0 = "$fv" && fv=no
@@ -121,7 +127,6 @@ done
 
 if test $x = 0; then
 	SRCS=
-	sigseen=
 	TARGET_OS=`uname -s 2>/dev/null || uname`
 fi
 SRCS="$SRCS alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
@@ -130,7 +135,6 @@ SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 case $TARGET_OS in
 CYGWIN*)
 	LDSTATIC=
-	sigseen=:
 	;;
 Darwin)
 	LDSTATIC=
@@ -143,13 +147,11 @@ Linux)
 	CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=2 -D_BSD_SOURCE -D_GNU_SOURCE"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 	LDSTATIC=
-	sigseen=:
 	;;
 SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 	LDSTATIC=
-	sigseen=:
 	r=1
 	;;
 esac
@@ -199,6 +201,45 @@ ac_test sys_param_h '' '<sys/param.h>' <<'EOF'
 	int main(void) { return (0); }
 EOF
 
+ac_test mksh_signame '' 'our own list of signal names' <<-'EOF'
+	#include <stdlib.h>	/* for NULL */
+	#define MKSH_SIGNAMES_CHECK
+	#include "signames.c"
+	int main(void) { return (mksh_sigpair[0].nr); }
+EOF
+
+ac_test sys_signame '!' mksh_signame 0 'the sys_signame[] array' <<-'EOF'
+	extern const char *const sys_signame[];
+	int main(void) { return (sys_signame[0][0]); }
+EOF
+
+ac_test _sys_signame '!' sys_signame 0 'the _sys_signame[] array' <<-'EOF'
+	extern const char *const _sys_signame[];
+	int main(void) { return (_sys_signame[0][0]); }
+EOF
+
+if test 000 = $HAVE_SYS_SIGNAME$HAVE__SYS_SIGNAME$HAVE_MKSH_SIGNAME; then
+	NEED_MKSH_SIGNAME=1
+else
+	NEED_MKSH_SIGNAME=0
+fi
+
+ac_test sys_siglist '' 'the sys_siglist[] array' <<-'EOF'
+	extern const char *const sys_siglist[];
+	int main(void) { return (sys_siglist[0][0]); }
+EOF
+
+ac_test _sys_siglist '!' sys_siglist 0 'the _sys_siglist[] array' <<-'EOF'
+	extern const char *const _sys_siglist[];
+	int main(void) { return (_sys_siglist[0][0]); }
+EOF
+
+ac_test strsignal '!' _sys_siglist 0 <<-'EOF'
+	#include <string.h>
+	#include <signal.h>
+	int main(void) { return (strsignal(1)[0]); }
+EOF
+
 ac_test arc4random <<-'EOF'
 	#include <stdlib.h>
 	int main(void) { return (arc4random()); }
@@ -209,13 +250,13 @@ ac_test arc4random_push arc4random 0 <<-'EOF'
 	int main(void) { arc4random_push(1); return (0); }
 EOF
 
-ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<'EOF'
+ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<-'EOF'
 	#include <locale.h>
 	#include <stddef.h>
 	int main(void) { return ((ptrdiff_t)(void *)setlocale(LC_CTYPE, "")); }
 EOF
 
-ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<'EOF'
+ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<-'EOF'
 	#include <langinfo.h>
 	#include <stddef.h>
 	int main(void) { return ((ptrdiff_t)(void *)nl_langinfo(CODESET)); }
@@ -256,12 +297,7 @@ ac_test strlcpy <<-'EOF'
 	int main(int ac, char *av[]) { return (strlcpy(*av, av[1], ac)); }
 EOF
 
-if test x"$sigseen" = x:; then	# XXX for now
-	HAVE_SYS_SIGNAME=0	# XXX
-else				# XXX
-	HAVE_SYS_SIGNAME=1	# XXX
-fi				# XXX
-if test 0 = $HAVE_SYS_SIGNAME; then
+if test 1 = $NEED_MKSH_SIGNAME; then
 	$e "... checking how to run the C Preprocessor"
 	rm -f a.out
 	( ( echo '#if (23 * 2 - 2) == (fnord + 2)'
@@ -285,8 +321,9 @@ fi
 
 $e ... done.
 
-if test x"$sigseen" = x:; then
+if test 1 = $NEED_MKSH_SIGNAME; then
 	$e Generating list of signal names...
+	sigseen=:
 	NSIG=`( echo '#include <signal.h>'; echo "mksh_cfg: NSIG" ) | \
 	    $CPP $CPPFLAGS | grep mksh_cfg: | \
 	    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1/'`
@@ -309,7 +346,7 @@ if test x"$sigseen" = x:; then
 			;;
 		esac
 	done >signames.inc
-	test -f signames.inc || exit 1
+	grep ', ' signames.inc || exit 1
 	$e done.
 fi
 

@@ -3,22 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.34 2006/11/12 12:49:25 tg Exp $");
-
-#ifndef mksh_siglist
-#if defined(BSD) || defined(__APPLE__)
-#define	mksh_signame(x)	sys_signame[(x)]
-#define	mksh_siglist(x)	sys_siglist[(x)]
-#elif defined(__INTERIX)
-#define	mksh_signame(x)	_sys_signame[(x)]
-#define	mksh_siglist(x) _sys_siglist[(x)]
-#elif defined(__gnu_linux__) || defined(__sun__) || defined(__CYGWIN__)
-#define	NEED_MKSH_SIGNAME	/* sync the list above with Build.sh */
-#define	mksh_siglist(x)	strsignal(x)
-#else
-# error "Define sys_sig{name,list} for this platform!"
-#endif
-#endif /* ndef mksh_siglist */
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.35 2007/01/12 00:25:40 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign, Sigact_trap;
@@ -965,25 +950,11 @@ sprinkle(int fd)
 }
 #endif
 
-#ifdef NEED_MKSH_SIGNAME
-static const char *
-mksh_signame(int s)
-{
-	int i = 0;
-	static const struct _mksh_sigpair {
-		int nr;
-		const char *name;
-	} mksh_sigpair[] = {
-#include "signames.inc"
-		{ 0, NULL }
-	};
-
- mksh_sigscan:
-	if ((mksh_sigpair[i].nr == s) || !mksh_sigpair[i].name)
-		return (mksh_sigpair[i].name);
-	++i;
-	goto mksh_sigscan;
-}
+#if HAVE_SYS_SIGNAME
+#elif HAVE__SYS_SIGNAME
+#define sys_signame	_sys_signame
+#else
+#include "signames.c"
 #endif
 
 void
@@ -998,8 +969,31 @@ inittraps(void)
 			sigtraps[i].name = "ERR";
 			sigtraps[i].mess = "Error handler";
 		} else {
-			sigtraps[i].name = mksh_signame(i);
-			sigtraps[i].mess = mksh_siglist(i);
+#if HAVE_SYS_SIGNAME || HAVE_SYS_SIGNAME
+			sigtraps[i].name = sys_signame[i];
+#else
+			const struct mksh_sigpair *pair = mksh_sigpairs;
+			while ((pair->nr != i) && (pair->name != NULL))
+				++pair;
+			sigtraps[i].name = pair->name;
+#endif
+#if HAVE_SYS_SIGLIST
+			sigtraps[i].mess = sys_siglist[i];
+#elif HAVE__SYS_SIGLIST
+			sigtraps[i].mess = _sys_siglist[i];
+#elif HAVE_STRSIGNAL
+			sigtraps[i].mess = strsignal(i);
+#else
+			sigtraps[i].mess = NULL;
+#endif
+			if ((sigtraps[i].name == NULL) ||
+			    (sigtraps[i].name[0] == '\0'))
+				sigtraps[i].name = shf_smprintf("%d", i);
+			if ((sigtraps[i].mess == NULL) ||
+			    (sigtraps[i].mess[0] == '\0'))
+				sigtraps[i].mess = shf_smprintf("Signal %d", i);
+			if (!strncasecmp(sigtraps[i].name, "SIG", 3))
+				sigtraps[i].name += 3;
 		}
 	}
 	sigtraps[SIGEXIT_].name = "EXIT";	/* our name for signal 0 */
@@ -1065,22 +1059,10 @@ gettrap(const char *name, int igncase)
 		return NULL;
 	}
 	for (p = sigtraps, i = NSIG+1; --i >= 0; p++)
-		if (p->name) {
-			if (igncase) {
-				if (p->name && (!strcasecmp(p->name, name) ||
-				    (strlen(name) > 3 && 
-				    (p->name[0] == 's' || p->name[0] == 'S') &&
-				    (p->name[1] == 'i' || p->name[1] == 'I') &&
-				    (p->name[2] == 'g' || p->name[2] == 'G') &&
-				    !strcasecmp(p->name, name + 3))))
-					return p;
-			} else {
-				if (p->name && (!strcmp(p->name, name) ||
-				    (strlen(name) > 3 && !strncmp("SIG",
-				    p->name, 3) && !strcmp(p->name, name + 3))))
-					return p;
-			}
-		}
+		if (!(igncase ? strcasecmp : strcmp)(p->name, name) ||
+		   (!strncasecmp(name, "SIG", 3) &&
+		    !(igncase ? strcasecmp : strcmp)(p->name, name + 3)))
+			return (p);
 	return NULL;
 }
 

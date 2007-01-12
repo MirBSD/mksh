@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.40 2007/01/11 00:32:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.41 2007/01/12 00:25:39 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -1085,16 +1085,10 @@ kill_fmt_entry(const void *arg, int i, char *buf, int buflen)
 	const struct kill_info *ki = (const struct kill_info *)arg;
 
 	i++;
-	if (sigtraps[i].name)
-		shf_snprintf(buf, buflen, "%*d %*s %s",
-		    ki->num_width, i,
-		    ki->name_width, sigtraps[i].name,
-		    sigtraps[i].mess);
-	else
-		shf_snprintf(buf, buflen, "%*d %*d %s",
-		    ki->num_width, i,
-		    ki->name_width, sigtraps[i].signal,
-		    sigtraps[i].mess);
+	shf_snprintf(buf, buflen, "%*d %*s %s",
+	    ki->num_width, i,
+	    ki->name_width, sigtraps[i].name,
+	    sigtraps[i].mess);
 	return buf;
 }
 
@@ -1152,7 +1146,7 @@ c_kill(char **wp)
 					return 1;
 				if (n > 128 && n < 128 + NSIG)
 					n -= 128;
-				if (n > 0 && n < NSIG && sigtraps[n].name)
+				if (n > 0 && n < NSIG)
 					shprintf("%s\n", sigtraps[n].name);
 				else
 					shprintf("%d\n", n);
@@ -1166,9 +1160,7 @@ c_kill(char **wp)
 				ki.num_width++;
 			ki.name_width = mess_width = 0;
 			for (j = 0; j < NSIG; j++) {
-				w = sigtraps[j].name ?
-				    (int)strlen(sigtraps[j].name) :
-				    ki.num_width;
+				w = strlen(sigtraps[j].name);
 				if (w > ki.name_width)
 					ki.name_width = w;
 				w = strlen(sigtraps[j].mess);
@@ -1177,7 +1169,7 @@ c_kill(char **wp)
 			}
 
 			print_columns(shl_stdout, NSIG - 1,
-			    kill_fmt_entry, (void *) &ki,
+			    kill_fmt_entry, (void *)&ki,
 			    ki.num_width + ki.name_width + mess_width + 3, 1);
 		}
 		return 0;
