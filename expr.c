@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.6 2006/11/10 07:52:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.7 2007/01/12 01:49:27 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -126,8 +126,7 @@ enum error_type {
 	ET_LVALUE, ET_RDONLY, ET_STR
 };
 
-static void	   evalerr(Expr_state *, enum error_type, const char *)
-    __attribute__((__noreturn__));
+static __dead void evalerr(Expr_state *, enum error_type, const char *);
 static struct tbl *evalexpr(Expr_state *, enum prec);
 static void	   token(Expr_state *);
 static struct tbl *do_ppmm(Expr_state *, enum token, struct tbl *, bool);

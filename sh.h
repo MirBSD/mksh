@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.93 2007/01/12 00:25:40 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.94 2007/01/12 01:49:28 tg Exp $"
 #define MKSH_VERSION "R29 2007/01/12"
 
 #if HAVE_SYS_PARAM_H
@@ -16,19 +16,21 @@
 #endif
 #include <sys/types.h>
 #if !defined(__RCSID) || !defined(__SCCSID)
-#if !defined(__GNUC__) || defined(lint)
-#define __attribute__(x)		/* deleted */
-#endif
 #undef __IDSTRING
 #undef __IDSTRING_CONCAT
 #undef __IDSTRING_EXPAND
 #undef __RCSID
 #undef __SCCSID
+#if HAVE_ATTRIBUTE_USED
+#define __attribute____used__	__attribute__((used))
+#else
+#define __attribute____used__	/* nothing */
+#endif
 #define __IDSTRING_CONCAT(l,p)		__LINTED__ ## l ## _ ## p
 #define __IDSTRING_EXPAND(l,p)		__IDSTRING_CONCAT(l,p)
 #define __IDSTRING(prefix, string)				\
 	static const char __IDSTRING_EXPAND(__LINE__,prefix) []	\
-	    __attribute__((used)) = "@(""#)" #prefix ": " string
+	    __attribute____used__ = "@(""#)" #prefix ": " string
 #define __RCSID(x)	__IDSTRING(rcsid,x)
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 #endif
@@ -103,6 +105,21 @@
 #define ksh_isupper(c)	(((c) >= 'A') && ((c) <= 'Z'))
 #define ksh_tolower(c)	(((c) >= 'A') && ((c) <= 'Z') ? (c) - 'A' + 'a' : (c))
 #define ksh_toupper(c)	(((c) >= 'a') && ((c) <= 'z') ? (c) - 'a' + 'A' : (c))
+
+#if HAVE_ATTRIBUTE
+#undef __attribute__
+#if HAVE_ATTRIBUTE_BOUNDED
+#define __bound_att__		__attribute__
+#else
+#define __bound_att(x)		/* nothing */
+#endif
+#else
+#define __attribute__(x)	/* nothing */
+#endif
+#undef __dead
+#define __dead			__attribute__((noreturn))
+#undef __unused
+#define __unused		__attribute__((unused))
 
 /* this macro must not evaluate its arguments several times */
 #define ksh_isspace(c)	__extension__({					\
@@ -1182,8 +1199,8 @@ pid_t j_async(void);
 int j_stopped_running(void);
 /* lex.c */
 int yylex(int);
-void yyerror(const char *, ...)
-    __attribute__((__noreturn__, __format__ (printf, 1, 2)));
+__dead void yyerror(const char *, ...)
+    __attribute__((format (printf, 1, 2)));
 Source *pushs(int, Area *);
 void set_prompt(int, Source *);
 void pprompt(const char *, int);
@@ -1192,24 +1209,24 @@ int promptlen(const char *);
 int include(const char *, int, char **, int);
 int command(const char *);
 int shell(Source *volatile, int volatile);
-void unwind(int) __attribute__((__noreturn__));
+__dead void unwind(int);
 void newenv(int);
 void quitenv(struct shf *);
 void cleanup_parents_env(void);
 void cleanup_proc_env(void);
-void errorf(const char *, ...)
-    __attribute__((__noreturn__, __format__ (printf, 1, 2)));
+__dead void errorf(const char *, ...)
+    __attribute__((format (printf, 1, 2)));
 void warningf(bool, const char *, ...)
-    __attribute__((__format__ (printf, 2, 3)));
+    __attribute__((format (printf, 2, 3)));
 void bi_errorf(const char *, ...)
-    __attribute__((__format__ (printf, 1, 2)));
+    __attribute__((format (printf, 1, 2)));
 void internal_errorf(int, const char *, ...)
-    __attribute__((__format__ (printf, 2, 3)));
+    __attribute__((format (printf, 2, 3)));
 void error_prefix(bool);
 void shellf(const char *, ...)
-    __attribute__((__format__ (printf, 1, 2)));
+    __attribute__((format (printf, 1, 2)));
 void shprintf(const char *, ...)
-    __attribute__((__format__ (printf, 1, 2)));
+    __attribute__((format (printf, 1, 2)));
 int can_seek(int);
 void initio(void);
 int ksh_dup2(int, int, int);
@@ -1283,14 +1300,14 @@ int shf_putchar(int, struct shf *);
 int shf_puts(const char *, struct shf *);
 int shf_write(const char *, int, struct shf *);
 int shf_fprintf(struct shf *, const char *, ...)
-    __attribute__((__format__ (printf, 2, 3)));
+    __attribute__((format (printf, 2, 3)));
 int shf_snprintf(char *, int, const char *, ...)
-    __attribute__((__format__ (printf, 3, 4)))
-    __attribute__((__bounded__ (__string__,1,2)));
+    __attribute__((format (printf, 3, 4)))
+    __bound_att__((bounded (string, 1, 2)));
 char *shf_smprintf(const char *, ...)
-    __attribute__((__format__ (printf, 1, 2)));
+    __attribute__((format (printf, 1, 2)));
 int shf_vfprintf(struct shf *, const char *, va_list)
-    __attribute__((__format__ (printf, 2, 0)));
+    __attribute__((format (printf, 2, 0)));
 /* syn.c */
 void initkeywords(void);
 struct op *compile(Source *);

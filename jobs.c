@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.16 2006/11/12 13:20:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.17 2007/01/12 01:49:28 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -1012,7 +1012,7 @@ j_waitj(Job *j,
  */
 /* ARGSUSED */
 static void
-j_sigchld(int sig __attribute__((unused)))
+j_sigchld(int sig __unused)
 {
 	int		errno_ = errno;
 	Job		*j;

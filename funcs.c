@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.41 2007/01/12 00:25:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.42 2007/01/12 01:49:28 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -2042,7 +2042,7 @@ p_time(struct shf *shf, int posix, struct timeval *tv, int width,
 }
 
 int
-c_times(char **wp __attribute__((unused)))
+c_times(char **wp __unused)
 {
 	struct rusage usage;
 
@@ -2172,7 +2172,7 @@ timex_hook(struct op *t, char **volatile *app)
 
 /* exec with no args - args case is taken care of in comexec() */
 int
-c_exec(char **wp __attribute__((unused)))
+c_exec(char **wp __unused)
 {
 	int i;
 
@@ -2278,7 +2278,7 @@ c_mknod(char **wp)
 
 /* dummy function, special case in comexec() */
 int
-c_builtin(char **wp __attribute__((unused)))
+c_builtin(char **wp __unused)
 {
 	return 0;
 }
@@ -2803,7 +2803,7 @@ ptest_isa(Test_env *te, Test_meta meta)
 }
 
 static const char *
-ptest_getopnd(Test_env *te, Test_op op, int do_eval __attribute__((unused)))
+ptest_getopnd(Test_env *te, Test_op op, int do_eval __unused)
 {
 	if (te->pos.wp >= te->wp_end)
 		return op == TO_FILTT ? "1" : NULL;

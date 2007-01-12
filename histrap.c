@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.37 2007/01/12 01:30:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.38 2007/01/12 01:49:28 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign, Sigact_trap;
@@ -564,8 +564,7 @@ init_histvec(void)
  * save command in history
  */
 void
-histsave(int lno __attribute__((unused)), const char *cmd,
-    int dowrite __attribute__((unused)))
+histsave(int lno __unused, const char *cmd, int dowrite __unused)
 {
 	char **hp;
 	char *c, *cp;
@@ -1037,7 +1036,7 @@ alarm_init(void)
 
 /* ARGSUSED */
 static void
-alarm_catcher(int sig __attribute__((unused)))
+alarm_catcher(int sig __unused)
 {
 	int errno_ = errno;
 

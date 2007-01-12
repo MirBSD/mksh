@@ -1,14 +1,8 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.98 2007/01/12 01:44:32 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.99 2007/01/12 01:49:26 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x: SRCS (extra), TARGET_OS (uname -s)
-
-# XXX TODO: check for __attribute__ (Minix 3 ACK probably doesn't)
-# and other gccisms in the code, handle appropriately. Note that I
-# sometimes _want_ gccisms, because of the improved error checks.
-
-# XXX TODO: check for $CPP -dD and if that works
 
 v()
 {
@@ -179,6 +173,38 @@ ac_testn can_wnoerror '' "if '$NOWARN' can be used" <<-'EOF'
 	int main(void) { return (0); }
 EOF
 test 1 = $HAVE_CAN_WNOERROR || NOWARN=
+
+save_NOWARN=$NOWARN
+NOWARN=-Werror
+ac_testn can_werror '' "if -Werror can be used" <<-'EOF'
+	int main(void) { return (0); }
+EOF
+test 1 = $HAVE_CAN_WERROR || NOWARN=
+
+ac_test attribute '' 'if we have __attribute__((...)) at all' <<-'EOF'
+	#include <stdlib.h>
+	void fnord(void) __attribute__((noreturn));
+	int main(void) { fnord(); }
+	void fnord(void) { exit(0); }
+EOF
+
+ac_test attribute_bounded attribute 0 'for __attribute__((bounded))' <<-'EOF'
+	#include <string.h>
+	int xcopy(const void *, void *, size_t)
+	    __attribute__((bounded (buffer, 1, 3)))
+	    __attribute__((bounded (buffer, 2, 3)));
+	int main(int ac, char *av[]) { return (xcopy(av[0], av[1], 1)); }
+	int xcopy(const void *s, void *d, size_t n) {
+		memmove(d, s, n); return (n);
+	}
+EOF
+
+ac_test attribute_used attribute 0 'for __attribute__((used))' <<-'EOF'
+	static const char fnord[] __attribute__((used)) = "42";
+	int main(void) { return (0); }
+EOF
+
+NOWARN=$save_NOWARN
 
 ac_testn mksh_full '' "if we're building without MKSH_SMALL" <<-'EOF'
 	#ifdef MKSH_SMALL

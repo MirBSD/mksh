@@ -2,19 +2,19 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.8 2006/08/01 13:43:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.9 2007/01/12 01:49:29 tg Exp $");
 
 struct nesting_state {
 	int	start_token;	/* token than began nesting (eg, FOR) */
 	int	start_line;	/* line nesting began on */
 };
 
-static void	yyparse(void);
+static void yyparse(void);
 static struct op *pipeline(int);
 static struct op *andor(void);
 static struct op *c_list(int);
 static struct ioword *synio(int);
-static void	musthave(int, int);
+static void musthave(int, int);
 static struct op *nested(int, int, int);
 static struct op *get_command(int);
 static struct op *dogroup(void);
@@ -23,34 +23,30 @@ static struct op *elsepart(void);
 static struct op *caselist(void);
 static struct op *casepart(int);
 static struct op *function_body(char *, int);
-static char **	wordlist(void);
+static char **wordlist(void);
 static struct op *block(int, struct op *, struct op *, char **);
 static struct op *newtp(int);
-static void	syntaxerr(const char *) __attribute__((__noreturn__));
-static void	nesting_push(struct nesting_state *, int);
-static void	nesting_pop(struct nesting_state *);
-static int	assign_command(char *);
-static int	inalias(struct source *);
-static int	dbtestp_isa(Test_env *, Test_meta);
+static __dead void syntaxerr(const char *);
+static void nesting_push(struct nesting_state *, int);
+static void nesting_pop(struct nesting_state *);
+static int assign_command(char *);
+static int inalias(struct source *);
+static int dbtestp_isa(Test_env *, Test_meta);
 static const char *dbtestp_getopnd(Test_env *, Test_op, int);
-static int	dbtestp_eval(Test_env *, Test_op, const char *,
+static int dbtestp_eval(Test_env *, Test_op, const char *,
     const char *, int);
-static void dbtestp_error(Test_env *, int, const char *)
-    __attribute__((noreturn));
+static __dead void dbtestp_error(Test_env *, int, const char *);
 
-static	struct	op	*outtree; /* yyparse output */
-
+static struct op *outtree;		/* yyparse output */
 static struct nesting_state nesting;	/* \n changed to ; */
 
-static	int	reject;		/* token(cf) gets symbol again */
-static	int	symbol;		/* yylex value */
+static int reject;		/* token(cf) gets symbol again */
+static int symbol;		/* yylex value */
 
-#define	REJECT	(reject = 1)
-#define	ACCEPT	(reject = 0)
-#define	token(cf) \
-	((reject) ? (ACCEPT, symbol) : (symbol = yylex(cf)))
-#define	tpeek(cf) \
-	((reject) ? (symbol) : (REJECT, symbol = yylex(cf)))
+#define	REJECT		(reject = 1)
+#define	ACCEPT		(reject = 0)
+#define	token(cf)	((reject) ? (ACCEPT, symbol) : (symbol = yylex(cf)))
+#define	tpeek(cf)	((reject) ? (symbol) : (REJECT, symbol = yylex(cf)))
 
 static void
 yyparse(void)
@@ -859,8 +855,7 @@ dbtestp_isa(Test_env *te, Test_meta meta)
 }
 
 static const char *
-dbtestp_getopnd(Test_env *te, Test_op op __attribute__((unused)),
-    int do_eval __attribute__((unused)))
+dbtestp_getopnd(Test_env *te, Test_op op __unused, int do_eval __unused)
 {
 	int c = tpeek(ARRAYVAR);
 
@@ -874,11 +869,9 @@ dbtestp_getopnd(Test_env *te, Test_op op __attribute__((unused)),
 }
 
 static int
-dbtestp_eval(Test_env *te __attribute__((unused)),
-    Test_op op __attribute__((unused)),
-    const char *opnd1 __attribute__((unused)),
-    const char *opnd2 __attribute__((unused)),
-    int do_eval __attribute__((unused)))
+dbtestp_eval(Test_env *te __unused, Test_op op __unused,
+    const char *opnd1 __unused, const char *opnd2 __unused,
+    int do_eval __unused)
 {
 	return 1;
 }

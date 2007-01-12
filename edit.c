@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.74 2006/11/19 20:43:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.75 2007/01/12 01:49:27 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -80,7 +80,7 @@ x_init(void)
 #if defined(TIOCGWINSZ) && defined(SIGWINCH)
 /* ARGSUSED */
 static void
-x_sigwinch(int sig __attribute__((unused)))
+x_sigwinch(int sig __unused)
 {
 	got_sigwinch = 1;
 }
@@ -280,8 +280,7 @@ x_print_expansions(int nwords, char * const *words, int is_command)
  *	- returns number of matching strings
  */
 static int
-x_file_glob(int flags __attribute__((unused)), const char *str,
-    int slen, char ***wordsp)
+x_file_glob(int flags __unused, const char *str, int slen, char ***wordsp)
 {
 	char *toglob;
 	char **words;
@@ -1629,7 +1628,7 @@ x_emacs_putbuf(const char *s, size_t len)
 }
 
 static int
-x_del_back(int c __attribute__((unused)))
+x_del_back(int c __unused)
 {
 	int i = 0;
 
@@ -1645,7 +1644,7 @@ x_del_back(int c __attribute__((unused)))
 }
 
 static int
-x_del_char(int c __attribute__((unused)))
+x_del_char(int c __unused)
 {
 	char *cp, *cp2;
 	int i = 0;
@@ -1734,28 +1733,28 @@ x_delete(int nc, int push)
 }
 
 static int
-x_del_bword(int c __attribute__((unused)))
+x_del_bword(int c __unused)
 {
 	x_delete(x_bword(), true);
 	return KSTD;
 }
 
 static int
-x_mv_bword(int c __attribute__((unused)))
+x_mv_bword(int c __unused)
 {
 	(void)x_bword();
 	return KSTD;
 }
 
 static int
-x_mv_fword(int c __attribute__((unused)))
+x_mv_fword(int c __unused)
 {
 	x_fword(1);
 	return KSTD;
 }
 
 static int
-x_del_fword(int c __attribute__((unused)))
+x_del_fword(int c __unused)
 {
 	x_delete(x_fword(0), true);
 	return KSTD;
@@ -1909,7 +1908,7 @@ x_zotc3(char **cp)
 }
 
 static int
-x_mv_back(int c __attribute__((unused)))
+x_mv_back(int c __unused)
 {
 	if (xcp == xbuf) {
 		x_e_putc2(7);
@@ -1924,7 +1923,7 @@ x_mv_back(int c __attribute__((unused)))
 }
 
 static int
-x_mv_forw(int c __attribute__((unused)))
+x_mv_forw(int c __unused)
 {
 	char *cp = xcp, *cp2;
 
@@ -1943,7 +1942,7 @@ x_mv_forw(int c __attribute__((unused)))
 }
 
 static int
-x_search_char_forw(int c __attribute__((unused)))
+x_search_char_forw(int c __unused)
 {
 	char *cp = xcp;
 	char tmp[4];
@@ -1965,7 +1964,7 @@ x_search_char_forw(int c __attribute__((unused)))
 }
 
 static int
-x_search_char_back(int c __attribute__((unused)))
+x_search_char_back(int c __unused)
 {
 	char *cp = xcp, *p;
 	char tmp[4];
@@ -2001,7 +2000,7 @@ x_search_char_back(int c __attribute__((unused)))
 }
 
 static int
-x_newline(int c __attribute__((unused)))
+x_newline(int c __unused)
 {
 	x_e_putc2('\r');
 	x_e_putc2('\n');
@@ -2011,7 +2010,7 @@ x_newline(int c __attribute__((unused)))
 }
 
 static int
-x_end_of_text(int c __attribute__((unused)))
+x_end_of_text(int c __unused)
 {
 	x_zotc2(edchars.eof);
 	x_putc('\r');
@@ -2021,28 +2020,28 @@ x_end_of_text(int c __attribute__((unused)))
 }
 
 static int
-x_beg_hist(int c __attribute__((unused)))
+x_beg_hist(int c __unused)
 {
 	x_load_hist(history);
 	return KSTD;
 }
 
 static int
-x_end_hist(int c __attribute__((unused)))
+x_end_hist(int c __unused)
 {
 	x_load_hist(histptr);
 	return KSTD;
 }
 
 static int
-x_prev_com(int c __attribute__((unused)))
+x_prev_com(int c __unused)
 {
 	x_load_hist(x_histp - x_arg);
 	return KSTD;
 }
 
 static int
-x_next_com(int c __attribute__((unused)))
+x_next_com(int c __unused)
 {
 	x_load_hist(x_histp + x_arg);
 	return KSTD;
@@ -2053,7 +2052,7 @@ x_next_com(int c __attribute__((unused)))
  * want so we'll simply go to the oldest one.
  */
 static int
-x_goto_hist(int c __attribute__((unused)))
+x_goto_hist(int c __unused)
 {
 	if (x_arg_defaulted)
 		x_load_hist(history);
@@ -2202,7 +2201,7 @@ x_match(char *str, char *pat)
 }
 
 static int
-x_del_line(int c __attribute__((unused)))
+x_del_line(int c __unused)
 {
 	int i, j;
 
@@ -2220,21 +2219,21 @@ x_del_line(int c __attribute__((unused)))
 }
 
 static int
-x_mv_end(int c __attribute__((unused)))
+x_mv_end(int c __unused)
 {
 	x_goto(xep);
 	return KSTD;
 }
 
 static int
-x_mv_begin(int c __attribute__((unused)))
+x_mv_begin(int c __unused)
 {
 	x_goto(xbuf);
 	return KSTD;
 }
 
 static int
-x_draw_line(int c __attribute__((unused)))
+x_draw_line(int c __unused)
 {
 	x_redraw(-1);
 	return KSTD;
@@ -2314,7 +2313,7 @@ x_redraw(int limit)
 }
 
 static int
-x_transpose(int c __attribute__((unused)))
+x_transpose(int c __unused)
 {
 	unsigned tmpa, tmpb;
 
@@ -2378,28 +2377,28 @@ x_transpose(int c __attribute__((unused)))
 }
 
 static int
-x_literal(int c __attribute__((unused)))
+x_literal(int c __unused)
 {
 	x_curprefix = -1;
 	return KSTD;
 }
 
 static int
-x_meta1(int c __attribute__((unused)))
+x_meta1(int c __unused)
 {
 	x_curprefix = 1;
 	return KSTD;
 }
 
 static int
-x_meta2(int c __attribute__((unused)))
+x_meta2(int c __unused)
 {
 	x_curprefix = 2;
 	return KSTD;
 }
 
 static int
-x_kill(int c __attribute__((unused)))
+x_kill(int c __unused)
 {
 	int col = xcp - xbuf;
 	int lastcol = xep - xbuf;
@@ -2429,7 +2428,7 @@ x_push(int nchars)
 }
 
 static int
-x_yank(int c __attribute__((unused)))
+x_yank(int c __unused)
 {
 	if (killsp == 0)
 		killtp = KILLSIZE;
@@ -2447,7 +2446,7 @@ x_yank(int c __attribute__((unused)))
 }
 
 static int
-x_meta_yank(int c __attribute__((unused)))
+x_meta_yank(int c __unused)
 {
 	int len;
 	if ((x_last_command != XFUNC_yank && x_last_command != XFUNC_meta_yank) ||
@@ -2471,7 +2470,7 @@ x_meta_yank(int c __attribute__((unused)))
 }
 
 static int
-x_abort(int c __attribute__((unused)))
+x_abort(int c __unused)
 {
 	/* x_zotc(c); */
 	xlp = xep = xcp = xbp = xbuf;
@@ -2481,7 +2480,7 @@ x_abort(int c __attribute__((unused)))
 }
 
 static int
-x_error(int c __attribute__((unused)))
+x_error(int c __unused)
 {
 	x_e_putc2(7);
 	return KSTD;
@@ -2681,14 +2680,14 @@ bind_if_not_bound(int p, int k, int func)
 }
 
 static int
-x_set_mark(int c __attribute__((unused)))
+x_set_mark(int c __unused)
 {
 	xmp = xcp;
 	return KSTD;
 }
 
 static int
-x_kill_region(int c __attribute__((unused)))
+x_kill_region(int c __unused)
 {
 	int rsize;
 	char *xr;
@@ -2711,7 +2710,7 @@ x_kill_region(int c __attribute__((unused)))
 }
 
 static int
-x_xchg_point_mark(int c __attribute__((unused)))
+x_xchg_point_mark(int c __unused)
 {
 	char *tmp;
 
@@ -2726,7 +2725,7 @@ x_xchg_point_mark(int c __attribute__((unused)))
 }
 
 static int
-x_noop(int c __attribute__((unused)))
+x_noop(int c __unused)
 {
 	return KSTD;
 }
@@ -2735,56 +2734,56 @@ x_noop(int c __attribute__((unused)))
  *	File/command name completion routines
  */
 static int
-x_comp_comm(int c __attribute__((unused)))
+x_comp_comm(int c __unused)
 {
 	do_complete(XCF_COMMAND, CT_COMPLETE);
 	return KSTD;
 }
 
 static int
-x_list_comm(int c __attribute__((unused)))
+x_list_comm(int c __unused)
 {
 	do_complete(XCF_COMMAND, CT_LIST);
 	return KSTD;
 }
 
 static int
-x_complete(int c __attribute__((unused)))
+x_complete(int c __unused)
 {
 	do_complete(XCF_COMMAND_FILE, CT_COMPLETE);
 	return KSTD;
 }
 
 static int
-x_enumerate(int c __attribute__((unused)))
+x_enumerate(int c __unused)
 {
 	do_complete(XCF_COMMAND_FILE, CT_LIST);
 	return KSTD;
 }
 
 static int
-x_comp_file(int c __attribute__((unused)))
+x_comp_file(int c __unused)
 {
 	do_complete(XCF_FILE, CT_COMPLETE);
 	return KSTD;
 }
 
 static int
-x_list_file(int c __attribute__((unused)))
+x_list_file(int c __unused)
 {
 	do_complete(XCF_FILE, CT_LIST);
 	return KSTD;
 }
 
 static int
-x_comp_list(int c __attribute__((unused)))
+x_comp_list(int c __unused)
 {
 	do_complete(XCF_COMMAND_FILE, CT_COMPLIST);
 	return KSTD;
 }
 
 static int
-x_expand(int c __attribute__((unused)))
+x_expand(int c __unused)
 {
 	char **words;
 	int nwords = 0;
@@ -3036,7 +3035,7 @@ x_set_arg(int c)
 
 /* Comment or uncomment the current line. */
 static int
-x_comment(int c __attribute__((unused)))
+x_comment(int c __unused)
 {
 	int oldsize = x_size_str(xbuf);
 	int len = xep - xbuf;
@@ -3056,7 +3055,7 @@ x_comment(int c __attribute__((unused)))
 }
 
 static int
-x_version(int c __attribute__((unused)))
+x_version(int c __unused)
 {
 	char *o_xbuf = xbuf, *o_xend = xend;
 	char *o_xbp = xbp, *o_xep = xep, *o_xcp = xcp;
@@ -3102,7 +3101,7 @@ x_version(int c __attribute__((unused)))
  *      KSTD
  */
 static int
-x_prev_histword(int c __attribute__((unused)))
+x_prev_histword(int c __unused)
 {
 	char *rcp;
 	char *cp;
@@ -3150,21 +3149,21 @@ x_prev_histword(int c __attribute__((unused)))
 
 /* Uppercase N(1) words */
 static int
-x_fold_upper(int c __attribute__((unused)))
+x_fold_upper(int c __unused)
 {
 	return x_fold_case('U');
 }
 
 /* Lowercase N(1) words */
 static int
-x_fold_lower(int c __attribute__((unused)))
+x_fold_lower(int c __unused)
 {
 	return x_fold_case('L');
 }
 
 /* Lowercase N(1) words */
 static int
-x_fold_capitalize(int c __attribute__((unused)))
+x_fold_capitalize(int c __unused)
 {
 	return x_fold_case('C');
 }
@@ -5349,7 +5348,7 @@ complete_word(int cmd, int count)
 }
 
 static int
-print_expansions(struct edstate *est, int cmd __attribute__((unused)))
+print_expansions(struct edstate *est, int cmd __unused)
 {
 	int nwords;
 	int start, end;

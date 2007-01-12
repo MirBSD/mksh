@@ -1,4 +1,4 @@
-/* $MirOS: src/bin/mksh/strlfun.c,v 1.8 2007/01/09 17:34:21 tg Exp $ */
+/* $MirOS: src/bin/mksh/strlfun.c,v 1.9 2007/01/12 01:49:29 tg Exp $ */
 /* $miros: src/lib/libc/string/strlfun.c,v 1.14 2007/01/07 02:11:40 tg Exp $ */
 
 /*-
@@ -45,26 +45,6 @@
 #endif
 #endif
 
-#ifndef __RCSID
-#undef __IDSTRING
-#undef __IDSTRING_CONCAT
-#undef __IDSTRING_EXPAND
-#if defined(__ELF__) && defined(__GNUC__)
-#define __IDSTRING(prefix, string)				\
-	__asm__(".section .comment"				\
-	"\n	.ascii	\"@(\"\"#)" #prefix ": \""		\
-	"\n	.asciz	\"" string "\""				\
-	"\n	.previous")
-#else
-#define __IDSTRING_CONCAT(l,p)		__LINTED__ ## l ## _ ## p
-#define __IDSTRING_EXPAND(l,p)		__IDSTRING_CONCAT(l,p)
-#define __IDSTRING(prefix, string)				\
-	static const char __IDSTRING_EXPAND(__LINE__,prefix) []	\
-	    __attribute__((used)) = "@(""#)" #prefix ": " string
-#endif
-#define __RCSID(x)		__IDSTRING(rcsid,x)
-#endif
-
 #ifndef __predict_true
 #define __predict_true(exp)	((exp) != 0)
 #endif
@@ -73,7 +53,7 @@
 #endif
 
 #if !defined(_KERNEL) && !defined(_STANDALONE)
-__RCSID("$MirOS: src/bin/mksh/strlfun.c,v 1.8 2007/01/09 17:34:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/strlfun.c,v 1.9 2007/01/12 01:49:29 tg Exp $");
 #endif
 
 size_t strlcpy(char *, const char *, size_t);
