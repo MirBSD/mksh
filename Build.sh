@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.110 2007/01/12 03:30:40 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.111 2007/01/14 21:38:25 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -226,6 +226,15 @@ if test 0 = $HAVE_MKSH_FULL; then
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	check_categories=$check_categories,smksh
 fi
+
+# I'd use -std=c99 but this wrecks havoc on glibc and cygwin based
+# systems (at least) because their system headers are so broken...
+save_CFLAGS=$CFLAGS
+CFLAGS="$CFLAGS -std=gnu99"
+ac_testn can_stdg99 '' 'if -std=gnu99 (ISO C99) can be used' <<-'EOF'
+	int main(void) { return (0); }
+EOF
+test 1 = $HAVE_CAN_STDG99 || CFLAGS=$save_CFLAGS
 
 save_CFLAGS=$CFLAGS
 CFLAGS="$CFLAGS -fwhole-program --combine"
