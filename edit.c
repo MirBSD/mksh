@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.77 2007/01/14 01:09:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.78 2007/01/14 01:56:23 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -41,10 +41,8 @@ int x_emacs(char *, size_t);
 void x_init_emacs(void);
 int x_vi(char *, size_t);
 
-#if defined(TIOCGWINSZ) && defined(SIGWINCH)
-static void x_sigwinch(int);
-static volatile sig_atomic_t got_sigwinch;
-static void check_sigwinch(void);
+#ifdef TIOCGWINSZ
+static void chkwinsz(void);
 #endif
 
 static int path_order_cmp(const void *aa, const void *bb);
@@ -66,31 +64,18 @@ x_init(void)
 	    edchars.eof = -2;
 	/* default value for deficient systems */
 	edchars.werase = 027;	/* ^W */
-
-#if defined(TIOCGWINSZ) && defined(SIGWINCH)
-	if (setsig(&sigtraps[SIGWINCH], x_sigwinch,
-	    SS_RESTORE_ORIG | SS_SHTRAP))
-		sigtraps[SIGWINCH].flags |= TF_SHELL_USES;
-	check_sigwinch();	/* force initial check */
+#ifdef TIOCGWINSZ
+	chkwinsz();
 #endif
-
 	x_init_emacs();
 }
 
-#if defined(TIOCGWINSZ) && defined(SIGWINCH)
-/* ARGSUSED */
+#ifdef TIOCGWINSZ
 static void
-x_sigwinch(int sig __unused)
-{
-	got_sigwinch = 1;
-}
-
-static void
-check_sigwinch(void)
+chkwinsz(void)
 {
 	struct winsize ws;
 
-	got_sigwinch = 0;
 	if (procpid == kshpid && ioctl(tty_fd, TIOCGWINSZ, &ws) >= 0) {
 		struct tbl *vp;
 
@@ -128,9 +113,8 @@ x_read(char *buf, size_t len)
 	else
 		i = -1;		/* internal error */
 	x_mode(false);
-#if defined(TIOCGWINSZ) && defined(SIGWINCH)
-	if (got_sigwinch)
-		check_sigwinch();
+#ifdef TIOCGWINSZ
+	chkwinsz();
 #endif
 	return i;
 }
@@ -2236,7 +2220,6 @@ x_mv_begin(int c __unused)
 static int
 x_draw_line(int c __unused)
 {
-	check_sigwinch();
 	x_redraw(-1);
 	return KSTD;
 }

@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.74 2007/01/14 01:09:09 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.75 2007/01/14 01:56:23 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.118 2006/11/30 08:47:58 jmc Exp $
 .\"
 .Dd January 14, 2007
@@ -4553,7 +4553,6 @@ word of the previous command is inserted at the cursor.
 The following character is taken literally rather than as an editing command.
 .It redraw: ^L
 Reprints the last line of the prompt string and the current input line.
-Also checks terminal size (columns and lines) as reported by stty for changes.
 .It Xo search-character-backward:
 .Op Ar n
 .No ^[^]
