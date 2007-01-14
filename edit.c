@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.76 2007/01/12 10:18:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.77 2007/01/14 01:09:08 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -129,7 +129,8 @@ x_read(char *buf, size_t len)
 		i = -1;		/* internal error */
 	x_mode(false);
 #if defined(TIOCGWINSZ) && defined(SIGWINCH)
-	check_sigwinch();
+	if (got_sigwinch)
+		check_sigwinch();
 #endif
 	return i;
 }
@@ -2235,9 +2236,9 @@ x_mv_begin(int c __unused)
 static int
 x_draw_line(int c __unused)
 {
+	check_sigwinch();
 	x_redraw(-1);
 	return KSTD;
-
 }
 
 /* Redraw (part of) the line.  If limit is < 0, the everything is redrawn
