@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.43 2007/01/12 10:18:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.44 2007/01/14 23:57:44 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -2987,7 +2987,7 @@ c_ulimit(char **wp)
 					val = limit.rlim_max;
 			}
 			shprintf("%-20s ", l->name);
-			if (val == RLIM_INFINITY)
+			if (val == (rlim_t)RLIM_INFINITY)
 				shprintf("unlimited\n");
 			else {
 				val /= l->factor;
@@ -3019,7 +3019,7 @@ c_ulimit(char **wp)
 		}
 	}
 	if (!set) {
-		if (val == RLIM_INFINITY)
+		if (val == (rlim_t)RLIM_INFINITY)
 			shprintf("unlimited\n");
 		else {
 			val /= l->factor;
