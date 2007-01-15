@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.97 2007/01/15 00:38:20 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.98 2007/01/15 02:48:27 tg Exp $"
 #define MKSH_VERSION "R29 2007/01/14"
 
 #if HAVE_SYS_PARAM_H
@@ -201,10 +201,8 @@ EXTERN	uid_t ksheuid;		/* effective uid of shell */
 EXTERN	int exstat;		/* exit status */
 EXTERN	int subst_exstat;	/* exit status of last $(..)/`..` */
 EXTERN	const char *safe_prompt; /* safe prompt if PS1 substitution fails */
-#ifndef EXTERN_DEFINED
-static const char initvsn[] = "KSH_VERSION=@(#)MIRBSD KSH " MKSH_VERSION;
-#endif
-EXTERN	const char *KSH_VERSION I__(initvsn + 16);
+EXTERN	const char initvsn[] I__("KSH_VERSION=@(#)MIRBSD KSH " MKSH_VERSION);
+#define KSH_VERSION	(initvsn + 16)
 
 /*
  * Area-based allocation built on malloc/free

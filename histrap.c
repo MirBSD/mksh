@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.39 2007/01/12 02:06:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.40 2007/01/15 02:48:27 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign, Sigact_trap;
@@ -943,7 +943,7 @@ hist_finish(void)
 static int
 sprinkle(int fd)
 {
-	static unsigned char mag[] = { HMAGIC1, HMAGIC2 };
+	static const unsigned char mag[] = { HMAGIC1, HMAGIC2 };
 
 	return(write(fd, mag, 2) != 2);
 }

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.10 2007/01/15 00:37:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.11 2007/01/15 02:48:28 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -727,18 +727,14 @@ shf_smprintf(const char *fmt, ...)
 int
 shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 {
-	char		c, *s;
-	int		tmp = 0;
-	int		field, precision;
-	int		len;
-	int		flags;
-	unsigned long	lnum;
-					/* %#o produces the longest output */
-	char		numbuf[(8 * sizeof(long) + 2) / 3 + 1];
+	const char *s;
+	char c, *cp;
+	int tmp = 0, field, precision, len, flags;
+	unsigned long lnum;
+	/* %#o produces the longest output */
+	char numbuf[(8 * sizeof(long) + 2) / 3 + 1];
 	/* this stuff for dealing with the buffer */
-	int		nwritten = 0;
-
-	static char	nulls[] = "(null %s)";
+	int nwritten = 0;
 
 	if (!fmt)
 		return 0;
@@ -842,7 +838,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		case 'u':
 		case 'x':
 			flags |= FL_NUMBER;
-			s = &numbuf[sizeof(numbuf)];
+			cp = &numbuf[sizeof (numbuf)];
 			/*-
 			 * XXX any better way to do this?
 			 * XXX hopefully the compiler optimises this out
@@ -869,28 +865,28 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 
 			case 'u':
 				do {
-					*--s = lnum % 10 + '0';
+					*--cp = lnum % 10 + '0';
 					lnum /= 10;
 				} while (lnum);
 
 				if (c != 'u') {
 					if (tmp)
-						*--s = '-';
+						*--cp = '-';
 					else if (flags & FL_PLUS)
-						*--s = '+';
+						*--cp = '+';
 					else if (flags & FL_BLANK)
-						*--s = ' ';
+						*--cp = ' ';
 				}
 				break;
 
 			case 'o':
 				do {
-					*--s = (lnum & 0x7) + '0';
+					*--cp = (lnum & 0x7) + '0';
 					lnum >>= 3;
 				} while (lnum);
 
-				if ((flags & FL_HASH) && *s != '0')
-					*--s = '0';
+				if ((flags & FL_HASH) && *cp != '0')
+					*--cp = '0';
 				break;
 
 			case 'p':
@@ -900,17 +896,17 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 				    "0123456789ABCDEF" :
 				    "0123456789abcdef";
 				do {
-					*--s = digits[lnum & 0xf];
+					*--cp = digits[lnum & 0xf];
 					lnum >>= 4;
 				} while (lnum);
 
 				if (flags & FL_HASH) {
-					*--s = (flags & FL_UPPER) ? 'X' : 'x';
-					*--s = '0';
+					*--cp = (flags & FL_UPPER) ? 'X' : 'x';
+					*--cp = '0';
 				}
 			    }
 			}
-			len = &numbuf[sizeof(numbuf)] - s;
+			len = &numbuf[sizeof (numbuf)] - (s = cp);
 			if (flags & FL_DOT) {
 				if (precision > len) {
 					field = precision;
@@ -921,8 +917,8 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 			break;
 
 		case 's':
-			if (!(s = va_arg(args, char *)))
-				s = nulls;
+			if (!(s = va_arg(args, const char *)))
+				s = "(null)";
 			len = strlen(s);
 			break;
 
@@ -942,9 +938,8 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		}
 
 		/*
-		 *	At this point s should point to a string that is
-		 *  to be formatted, and len should be the length of the
-		 *  string.
+		 * At this point s should point to a string that is to be
+		 * formatted, and len should be the length of the string.
 		 */
 		if (!(flags & FL_DOT) || len < precision)
 			precision = len;
@@ -954,7 +949,8 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 				field = -field;
 				/* skip past sign or 0x when padding with 0 */
 				if ((flags & FL_ZERO) && (flags & FL_NUMBER)) {
-					if (*s == '+' || *s == '-' || *s ==' ') {
+					if (*s == '+' || *s == '-' ||
+					    *s == ' ') {
 						shf_putc(*s, shf);
 						s++;
 						precision--;

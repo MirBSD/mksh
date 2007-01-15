@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.33 2006/11/19 16:43:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.34 2007/01/15 02:48:28 tg Exp $");
 
 /*
  * Variables
@@ -32,7 +32,7 @@ void
 newblock(void)
 {
 	struct block *l;
-	static char *empty[] = {null};
+	static char *empty[] = { null };
 
 	l = (struct block *) alloc(sizeof(struct block), ATEMP);
 	l->flags = 0;
