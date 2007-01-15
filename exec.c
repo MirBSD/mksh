@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.22 2007/01/12 10:18:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.23 2007/01/15 00:18:47 tg Exp $");
 
 static int	comexec(struct op *, struct tbl *volatile, char **,
 		    int volatile);
@@ -665,16 +665,17 @@ comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
 static void
 scriptexec(struct op *tp, char **ap)
 {
+	static char execshell[] = "/bin/sh";
 	const char *sh;
 
 	sh = str_val(global("EXECSHELL"));
 	if (sh && *sh)
 		sh = search(sh, path, X_OK, NULL);
 	if (!sh || !*sh)
-		sh = "/bin/sh";
+		sh = execshell;
 
 	*tp->args-- = tp->str;
-	*tp->args = sh;
+	*tp->args = str_save(sh, ATEMP);
 
 	execve(tp->args[0], tp->args, ap);
 
@@ -1194,8 +1195,10 @@ herein(const char *content, int sub)
 static char *
 do_selectargs(char **ap, bool print_menu)
 {
-	static const char *const read_args[] = {
-		"read", "-r", "REPLY", NULL
+	static char read_args0[] = "read",
+	    read_args1[] = "-r", read_args2[] = "REPLY",
+	    *read_args[] = {
+		read_args0, read_args1, read_args2, NULL
 	};
 	char *s;
 	int i, argct;

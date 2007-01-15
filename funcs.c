@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.44 2007/01/14 23:57:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.45 2007/01/15 00:18:47 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -856,9 +856,8 @@ c_alias(char **wp)
 
 	/* "hash -r" means reset all the tracked aliases.. */
 	if (rflag) {
-		static const char *const args[] = {
-			"unalias", "-ta", NULL
-		};
+		static char args0[] = "unalias", args1[] = "-ta",
+		    *args[] = { args0, args1, NULL };
 
 		if (!tflag || *wp) {
 			shprintf("alias: -r flag can only be used with -t"
@@ -1964,7 +1963,8 @@ c_set(char **wp)
 	char **owp = wp;
 
 	if (wp[1] == NULL) {
-		static const char *const args [] = { "set", "-", NULL };
+		static char args0[] = "set", args1[] = "-",
+		    *args[] = { args0, args1, NULL };
 		return c_typeset(args);
 	}
 
