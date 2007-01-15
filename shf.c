@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.9 2007/01/12 10:18:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.10 2007/01/15 00:37:42 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -707,26 +707,10 @@ shf_smprintf(const char *fmt, ...)
 #endif
 
 #define BUF_SIZE	128
-#define FPBUF_SIZE	(DMAXEXP+16)/* this must be >
-				 *	MAX(DMAXEXP, log10(pow(2, DSIGNIF)))
-				 *    + ceil(log10(DMAXEXP)) + 8 (I think).
-				 * Since this is hard to express as a
-				 * constant, just use a large buffer.
-				 */
-
-/*
- *	What kinda of machine we on?  Hopefully the C compiler will optimise
- *  this out...
- *
- *	For shorts, we want sign extend for %d but not for %[oxu] - on 16 bit
- *  machines it don't matter.  Assumes C compiler has converted shorts to
- *  ints before pushing them.
+/* must be > MAX(DMAXEXP, log10(pow(2, DSIGNIF))) + ceil(log10(DMAXEXP)) + 8
+ * (I think); since it's hard to express as a constant, just use a large buffer
  */
-#define POP_INT(f, s, a) \
-	(((f) & FL_LONG) ? va_arg((a), unsigned long) :			\
-	    (sizeof(int) < sizeof(long) ? ((s) ?			\
-	    (long) va_arg((a), int) : va_arg((a), unsigned)) :		\
-	    va_arg((a), unsigned)))
+#define FPBUF_SIZE	(DMAXEXP+16)
 
 #define	FL_HASH		0x001	/* '#' seen */
 #define FL_PLUS		0x002	/* '+' seen */
@@ -859,7 +843,21 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		case 'x':
 			flags |= FL_NUMBER;
 			s = &numbuf[sizeof(numbuf)];
-			lnum = POP_INT(flags, c == 'd', args);
+			/*-
+			 * XXX any better way to do this?
+			 * XXX hopefully the compiler optimises this out
+			 *
+			 * For shorts, we want sign extend for %d but not
+			 * for %[oxu] - on 16 bit machines it doesn't matter.
+			 * Assumes C compiler has converted shorts to ints
+			 * before pushing them.  XXX optimise this -tg
+			 */
+			if (flags & FL_LONG)
+				lnum = va_arg(args, unsigned long);
+			else if ((sizeof (int) < sizeof (long)) && (c == 'd'))
+				lnum = (long) va_arg(args, int);
+			else
+				lnum = va_arg(args, unsigned);
 			switch (c) {
 			case 'd':
 			case 'i':
