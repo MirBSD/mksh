@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.120 2007/01/17 17:12:43 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.121 2007/01/17 17:14:25 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -348,7 +348,7 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 	$e "... checking how to run the C Preprocessor"
 	rm -f x
 	save_CPP=$CPP
-	for i in "$save_CPP" "$CC -E"; do
+	for i in "$save_CPP" "$CC -E" "cpp" "/usr/libexec/cpp" "/lib/cpp"; do
 		CPP=$i
 		test x"$CPP" = x"false" && continue
 		( ( echo '#if (23 * 2 - 2) == (fnord + 2)'
