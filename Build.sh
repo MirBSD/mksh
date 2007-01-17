@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.130 2007/01/17 22:59:25 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.131 2007/01/17 23:04:19 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -291,6 +291,11 @@ fi
 #
 ac_test sys_param_h '' '<sys/param.h>' <<'EOF'
 	#include <sys/param.h>
+	int main(void) { return (0); }
+EOF
+
+ac_test sys_sysmacros_h '' '<sys/sysmacros.h>' <<'EOF'
+	#include <sys/sysmacros.h>
 	int main(void) { return (0); }
 EOF
 
