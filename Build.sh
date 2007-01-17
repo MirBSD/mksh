@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.118 2007/01/17 17:03:59 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.119 2007/01/17 17:08:34 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -116,8 +116,7 @@ if test -d mksh; then
 	exit 1
 fi
 
-# XXX autoconf for gcc:-cc and $CPP
-: ${CC=gcc} ${NROFF=nroff}
+: ${CPP=false} ${CC=gcc} ${NROFF=nroff}
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
 echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && NROFF="$NROFF -c"
 
@@ -348,23 +347,25 @@ EOF
 if test 1 = $NEED_MKSH_SIGNAME; then
 	$e "... checking how to run the C Preprocessor"
 	rm -f x
-	( ( echo '#if (23 * 2 - 2) == (fnord + 2)'
-	    echo mksh_rules: fnord
-	    echo '#endif'
-	  ) | v "$CC -E - $CPPFLAGS -Dfnord=42 >x" ) 2>&$h | sed 's/^/] /'
-	if grep '^mksh_rules:.*42' x >/dev/null 2>&1; then
-		CPP="$CC -E -"
-	else
-		rm -f x
+	if test x"$CPP" != x"false"; then
 		( ( echo '#if (23 * 2 - 2) == (fnord + 2)'
 		    echo mksh_rules: fnord
 		    echo '#endif'
 		  ) | v "$CPP $CPPFLAGS -Dfnord=42 >x" ) 2>&$h | sed 's/^/] /'
-		grep '^mksh_rules:.*42' x >/dev/null 2>&1 || CPP=no
+		grep '^mksh_rules:.*42' x >/dev/null 2>&1 || CPP=false
+		rm -f x
 	fi
-	rm -f x
+	if test x"$CPP" = x"false"; then
+		CPP="$CC -E"
+		( ( echo '#if (23 * 2 - 2) == (fnord + 2)'
+		    echo mksh_rules: fnord
+		    echo '#endif'
+		  ) | v "$CPP $CPPFLAGS -Dfnord=42 >x" ) 2>&$h | sed 's/^/] /'
+		grep '^mksh_rules:.*42' x >/dev/null 2>&1 || CPP=false
+		rm -f x
+	fi
 	$e "$bi==> checking how to run the C Preprocessor...$ao $ui$CPP$ao"
-	test x"$CPP" = x"no" && exit 1
+	test x"$CPP" = x"false" && exit 1
 fi
 
 $e ... done.
