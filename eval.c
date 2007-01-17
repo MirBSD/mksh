@@ -2,7 +2,11 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.21 2007/01/17 17:42:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.22 2007/01/17 18:01:51 tg Exp $");
+
+#ifdef MKSH_SMALL
+#define MKSH_NOPWNAM
+#endif
 
 /*
  * string expansion
@@ -43,10 +47,8 @@ static void glob(char *, XPtrV *, int);
 static void globit(XString *, char **, char *, XPtrV *, int);
 static char *maybe_expand_tilde(char *, XString *, char **, int);
 static char *tilde(char *);
-#ifndef MKSH_SMALL
+#ifndef MKSH_NOPWNAM
 static char *homedir(char *);
-#else
-#define homedir(x) null
 #endif
 static void alt_expand(XPtrV *, char *, char *, char *, int);
 
@@ -1159,7 +1161,7 @@ maybe_expand_tilde(char *p, XString *dsp, char **dpp, int isassign)
 static char *
 tilde(char *cp)
 {
-	char *dp;
+	char *dp = null;
 
 	if (cp[0] == '\0')
 		dp = str_val(global("HOME"));
@@ -1167,15 +1169,17 @@ tilde(char *cp)
 		dp = str_val(global("PWD"));
 	else if (cp[0] == '-' && cp[1] == '\0')
 		dp = str_val(global("OLDPWD"));
+#ifndef MKSH_NOPWNAM
 	else
 		dp = homedir(cp);
+#endif
 	/* If HOME, PWD or OLDPWD are not set, don't expand ~ */
 	if (dp == null)
 		dp = NULL;
 	return dp;
 }
 
-#if !defined(MKSH_SMALL) && !defined(MKSH_NOPWNAM)
+#ifndef MKSH_NOPWNAM
 /*
  * map userid to user's home directory.
  * note that 4.3's getpw adds more than 6K to the shell,
