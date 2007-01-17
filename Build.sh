@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.129 2007/01/17 22:55:47 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.130 2007/01/17 22:59:25 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -131,6 +131,9 @@ do
 	case $i in
 	-d)
 		LDSTATIC=@@
+		;;
+	-nd)
+		LDSTATIC=@@@
 		;;
 	-q)
 		e=:
@@ -476,12 +479,16 @@ addsrcs HAVE_STRCASESTR strcasestr.c
 addsrcs HAVE_STRLCPY strlfun.c
 CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 
-test x"@@" = x"$LDSTATIC" && LDSTATIC=
-test x"@" = x"$LDSTATIC" && if test 1 = $HAVE_MKSH_NOPAM; then
-	LDSTATIC=-static
-else
-	LDSTATIC=
-fi
+case $LDSTATIC in
+@)	if test 1 = $HAVE_MKSH_NOPAM; then
+		LDSTATIC=-static
+	else
+		LDSTATIC=
+	fi
+	;;
+@@)	LDSTATIC=	 ;;
+@@@)	LDSTATIC=-static ;;
+esac
 (v "cd '$srcdir' && exec $CC $CFLAGS $CPPFLAGS" \
     "$LDFLAGS $LDSTATIC -o '$curdir/mksh' $SRCS $LIBS") || exit 1
 result=mksh
