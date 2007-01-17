@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.135 2007/01/17 23:50:26 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.136 2007/01/17 23:54:39 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -320,6 +320,32 @@ ac_test rlim_t <<-'EOF'
 	int main(void) { return ((int)(rlim_t)0); }
 EOF
 
+ac_testn sig_t <<-'EOF'
+	#include <sys/types.h>
+	#include <signal.h>
+	int main(void) { return ((int)(sig_t)0); }
+EOF
+
+ac_testn sighandler_t '!' sig_t 0 <<-'EOF'
+	#include <sys/types.h>
+	#include <signal.h>
+	int main(void) { return ((int)(sighandler_t)0); }
+EOF
+if test 1 = $HAVE_SIGHANDLER_T; then
+	CPPFLAGS="$CPPFLAGS -Dsig_t=sighandler_t"
+	HAVE_SIG_T=1
+fi
+
+ac_testn __sighandler_t '!' sig_t 0 <<-'EOF'
+	#include <sys/types.h>
+	#include <signal.h>
+	int main(void) { return ((int)(__sighandler_t)0); }
+EOF
+if test 1 = $HAVE_SIGHANDLER_T; then
+	CPPFLAGS="$CPPFLAGS -Dsig_t=__sighandler_t"
+	HAVE_SIG_T=1
+fi
+
 #
 # Environment: signals
 #
@@ -356,8 +382,8 @@ ac_testn _sys_siglist '!' sys_siglist 0 'the _sys_siglist[] array' <<-'EOF'
 	int main(void) { return (_sys_siglist[0][0]); }
 EOF
 if test 1 = $HAVE__SYS_SIGLIST; then
-	HAVE_SYS_SIGLIST=1
 	CPPFLAGS="$CPPFLAGS -Dsys_siglist=_sys_siglist"
+	HAVE_SYS_SIGLIST=1
 fi
 CPPFLAGS="$CPPFLAGS -DHAVE_SYS_SIGLIST=$HAVE_SYS_SIGLIST"
 
