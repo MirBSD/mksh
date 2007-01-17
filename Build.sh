@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.114 2007/01/17 16:39:55 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.115 2007/01/17 16:44:19 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -97,7 +97,7 @@ ac_flags()
 	ac_testn can_$vn '' "$ft" <<-'EOF'
 		int main(void) { return (0); }
 	EOF
-	eval fv=\$HAVE_`upper $vn`
+	eval fv=\$HAVE_CAN_`upper $vn`
 	test 1 = $fv || CFLAGS=$save_CFLAGS
 }
 
