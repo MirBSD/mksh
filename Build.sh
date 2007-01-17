@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.115 2007/01/17 16:44:19 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.116 2007/01/17 16:52:00 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -183,23 +183,21 @@ esac
 CPPFLAGS="$CPPFLAGS -I'$curdir'"
 $e ${ao}Scanning for functions... please ignore any errors.
 
-ac_testn compiler_works '' 'if the compiler works' <<-'EOF'
-	int main(void) { return (0); }
-EOF
-test 1 = $HAVE_COMPILER_WORKS || exit 1
-
 test x"$NOWARN" = x"" && NOWARN=-Wno-error
-ac_testn can_wnoerror '' "if '$NOWARN' can be used" <<-'EOF'
-	int main(void) { return (0); }
-EOF
-test 1 = $HAVE_CAN_WNOERROR || NOWARN=
+given_CFLAGS=$CFLAGS
+given_NOWARN=$NOWARN
+NOWARN=
+ac_flags compiler_works '' 'if the compiler works'
+CFLAGS=$given_CFLAGS
+test 1 = $HAVE_CAN_COMPILER_WORKS || exit 1
+ac_flags wnoerror "$given_NOWARN"
+CFLAGS=$given_CFLAGS
+test 1 = $HAVE_CAN_WNOERROR || given_NOWARN=
+ac_flags werror "-Werror"
+CFLAGS=$given_CFLAGS
 
-save_NOWARN=$NOWARN
-NOWARN=-Werror
-ac_testn can_werror '' "if -Werror can be used" <<-'EOF'
-	int main(void) { return (0); }
-EOF
-test 1 = $HAVE_CAN_WERROR || NOWARN=
+# The following tests are run with -Werror if possible
+test 1 = $HAVE_CAN_WERROR && NOWARN=-Werror
 
 ac_test attribute '' 'if we have __attribute__((...)) at all' <<-'EOF'
 	#include <stdlib.h>
@@ -224,7 +222,8 @@ ac_test attribute_used attribute 0 'for __attribute__((used))' <<-'EOF'
 	int main(void) { return (0); }
 EOF
 
-NOWARN=$save_NOWARN
+# End of tests run with -Werror
+NOWARN=$given_NOWARN
 
 ac_testn mksh_full '' "if we're building without MKSH_SMALL" <<-'EOF'
 	#ifdef MKSH_SMALL
