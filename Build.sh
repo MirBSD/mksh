@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.131 2007/01/17 23:04:19 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.132 2007/01/17 23:18:55 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -289,24 +289,35 @@ fi
 #
 # Environment: headers
 #
-ac_test sys_param_h '' '<sys/param.h>' <<'EOF'
+ac_test sys_param_h '' '<sys/param.h>' <<-'EOF'
 	#include <sys/param.h>
 	int main(void) { return (0); }
 EOF
 
-ac_test sys_sysmacros_h '' '<sys/sysmacros.h>' <<'EOF'
+ac_test sys_sysmacros_h '' '<sys/sysmacros.h>' <<-'EOF'
 	#include <sys/sysmacros.h>
 	int main(void) { return (0); }
 EOF
 
-ac_test libgen_h '' '<libgen.h>' <<'EOF'
+ac_test libgen_h '' '<libgen.h>' <<-'EOF'
 	#include <libgen.h>
 	int main(void) { return (0); }
 EOF
 
-ac_test stdbool_h '' '<stdbool.h>' <<'EOF'
+ac_test stdbool_h '' '<stdbool.h>' <<-'EOF'
 	#include <stdbool.h>
 	int main(void) { return (0); }
+EOF
+
+#
+# Environment: types
+#
+ac_test rlim_t <<-'EOF'
+	#include <sys/types.h>
+	#include <sys/time.h>
+	#include <sys/resource.h>
+	#include <unistd.h>
+	int main(void) { return ((int)(rlim_t)0); }
 EOF
 
 #

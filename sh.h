@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.103 2007/01/17 23:10:14 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.104 2007/01/17 23:18:55 tg Exp $"
 #define MKSH_VERSION "R29 2007/01/17"
 
 #if HAVE_SYS_PARAM_H
@@ -83,6 +83,12 @@
 #endif
 #if defined(__sun__) || defined(__gnu_linux__)
 #include <values.h>
+#endif
+
+/* extra types */
+
+#if !HAVE_RLIM_T
+typedef long rlim_t;
 #endif
 
 #if !HAVE_STDBOOL_H
