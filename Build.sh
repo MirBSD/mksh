@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.117 2007/01/17 16:57:41 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.118 2007/01/17 17:03:59 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -116,8 +116,6 @@ if test -d mksh; then
 	exit 1
 fi
 
-# XXX autoconf for these
-: ${CFLAGS='-O2 -fno-strict-aliasing -fwrapv -Wall'}
 # XXX autoconf for gcc:-cc and $CPP
 : ${CC=gcc} ${NROFF=nroff}
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
@@ -192,6 +190,11 @@ test 1 = $HAVE_CAN_COMPILER_WORKS || exit 1
 ac_flags 0 wnoerror "$save_NOWARN"
 test 1 = $HAVE_CAN_WNOERROR || save_NOWARN=
 ac_flags 0 werror "-Werror"
+i=`echo "$CFLAGS" | tr -c -d qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM0123456789-`
+test x"$i" = x"" && ac_flags 1 otwo "-O2"
+ac_flags 1 fnostrictaliasing "-fno-strict-aliasing"
+ac_flags 1 fwrapv "-fwrapv"
+ac_flags 1 wall "-Wall"
 
 # The following tests are run with -Werror if possible
 test 1 = $HAVE_CAN_WERROR && NOWARN=-Werror
