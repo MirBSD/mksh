@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.9 2007/01/12 01:49:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.10 2007/01/17 22:51:47 tg Exp $");
 
 struct nesting_state {
 	int	start_token;	/* token than began nesting (eg, FOR) */
@@ -26,7 +26,8 @@ static struct op *function_body(char *, int);
 static char **wordlist(void);
 static struct op *block(int, struct op *, struct op *, char **);
 static struct op *newtp(int);
-static __dead void syntaxerr(const char *);
+static void syntaxerr(const char *)
+    __attribute__((noreturn));
 static void nesting_push(struct nesting_state *, int);
 static void nesting_pop(struct nesting_state *);
 static int assign_command(char *);
@@ -35,7 +36,8 @@ static int dbtestp_isa(Test_env *, Test_meta);
 static const char *dbtestp_getopnd(Test_env *, Test_op, int);
 static int dbtestp_eval(Test_env *, Test_op, const char *,
     const char *, int);
-static __dead void dbtestp_error(Test_env *, int, const char *);
+static void dbtestp_error(Test_env *, int, const char *)
+    __attribute__((noreturn));
 
 static struct op *outtree;		/* yyparse output */
 static struct nesting_state nesting;	/* \n changed to ; */

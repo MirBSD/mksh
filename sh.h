@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.100 2007/01/17 21:42:23 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.101 2007/01/17 22:51:46 tg Exp $"
 #define MKSH_VERSION "R29 2007/01/17"
 
 #if HAVE_SYS_PARAM_H
@@ -48,7 +48,9 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#if HAVE_LIBGEN_H
 #include <libgen.h>
+#endif
 #include <limits.h>
 #if !defined(__sun__)
 #include <paths.h>
@@ -57,7 +59,9 @@
 #include <setjmp.h>
 #include <signal.h>
 #include <stdarg.h>
+#if HAVE_STDBOOL_H
 #include <stdbool.h>
+#endif
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,6 +80,13 @@
 #endif
 #if defined(__sun__) || defined(__gnu_linux__)
 #include <values.h>
+#endif
+
+#if !HAVE_STDBOOL_H
+/* kludge, but enough for mksh */
+typedef int bool;
+#define false 0
+#define true 1
 #endif
 
 /* extra macros */
@@ -119,8 +130,6 @@
 #else
 #define __attribute__(x)	/* nothing */
 #endif
-#undef __dead
-#define __dead			__attribute__((noreturn))
 #undef __unused
 #define __unused		__attribute__((unused))
 
@@ -1200,7 +1209,8 @@ pid_t j_async(void);
 int j_stopped_running(void);
 /* lex.c */
 int yylex(int);
-__dead void yyerror(const char *, ...)
+void yyerror(const char *, ...)
+    __attribute__((noreturn))
     __attribute__((format (printf, 1, 2)));
 Source *pushs(int, Area *);
 void set_prompt(int, Source *);
@@ -1210,12 +1220,14 @@ int promptlen(const char *);
 int include(const char *, int, char **, int);
 int command(const char *);
 int shell(Source *volatile, int volatile);
-__dead void unwind(int);
+void unwind(int)
+    __attribute__((noreturn));
 void newenv(int);
 void quitenv(struct shf *);
 void cleanup_parents_env(void);
 void cleanup_proc_env(void);
-__dead void errorf(const char *, ...)
+void errorf(const char *, ...)
+    __attribute__((noreturn))
     __attribute__((format (printf, 1, 2)));
 void warningf(bool, const char *, ...)
     __attribute__((format (printf, 2, 3)));

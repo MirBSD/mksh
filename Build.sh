@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.127 2007/01/17 22:35:09 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.128 2007/01/17 22:51:45 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -294,6 +294,16 @@ fi
 #
 ac_test sys_param_h '' '<sys/param.h>' <<'EOF'
 	#include <sys/param.h>
+	int main(void) { return (0); }
+EOF
+
+ac_test libgen_h '' '<libgen.h>' <<'EOF'
+	#include <libgen.h>
+	int main(void) { return (0); }
+EOF
+
+ac_test stdbool_h '' '<stdbool.h>' <<'EOF'
+	#include <stdbool.h>
 	int main(void) { return (0); }
 EOF
 
