@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.116 2007/01/17 16:52:00 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.117 2007/01/17 16:57:41 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -85,12 +85,13 @@ ac_test()
 	eval CPPFLAGS=\"\$CPPFLAGS -DHAVE_$fu=\$HAVE_$fu\"
 }
 
-# ac_flags varname flags [text]
+# ac_flags add varname flags [text]
 ac_flags()
 {
-	vn=$1
-	f=$2
-	ft=$3
+	fa=$1
+	vn=$2
+	f=$3
+	ft=$4
 	test x"$ft" = x"" && ft="if $f can be used"
 	save_CFLAGS=$CFLAGS
 	CFLAGS="$CFLAGS $f"
@@ -98,7 +99,7 @@ ac_flags()
 		int main(void) { return (0); }
 	EOF
 	eval fv=\$HAVE_CAN_`upper $vn`
-	test 1 = $fv || CFLAGS=$save_CFLAGS
+	test 11 = $fa$fv || CFLAGS=$save_CFLAGS
 }
 
 addsrcs()
@@ -184,17 +185,13 @@ CPPFLAGS="$CPPFLAGS -I'$curdir'"
 $e ${ao}Scanning for functions... please ignore any errors.
 
 test x"$NOWARN" = x"" && NOWARN=-Wno-error
-given_CFLAGS=$CFLAGS
-given_NOWARN=$NOWARN
+save_NOWARN=$NOWARN
 NOWARN=
-ac_flags compiler_works '' 'if the compiler works'
-CFLAGS=$given_CFLAGS
+ac_flags 0 compiler_works '' 'if the compiler works'
 test 1 = $HAVE_CAN_COMPILER_WORKS || exit 1
-ac_flags wnoerror "$given_NOWARN"
-CFLAGS=$given_CFLAGS
-test 1 = $HAVE_CAN_WNOERROR || given_NOWARN=
-ac_flags werror "-Werror"
-CFLAGS=$given_CFLAGS
+ac_flags 0 wnoerror "$save_NOWARN"
+test 1 = $HAVE_CAN_WNOERROR || save_NOWARN=
+ac_flags 0 werror "-Werror"
 
 # The following tests are run with -Werror if possible
 test 1 = $HAVE_CAN_WERROR && NOWARN=-Werror
@@ -223,7 +220,7 @@ ac_test attribute_used attribute 0 'for __attribute__((used))' <<-'EOF'
 EOF
 
 # End of tests run with -Werror
-NOWARN=$given_NOWARN
+NOWARN=$save_NOWARN
 
 ac_testn mksh_full '' "if we're building without MKSH_SMALL" <<-'EOF'
 	#ifdef MKSH_SMALL
@@ -233,7 +230,7 @@ ac_testn mksh_full '' "if we're building without MKSH_SMALL" <<-'EOF'
 EOF
 
 if test 0 = $HAVE_MKSH_FULL; then
-	ac_flags fnoinline "-fno-inline"
+	ac_flags 1 fnoinline "-fno-inline"
 
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	check_categories=$check_categories,smksh
@@ -241,9 +238,9 @@ fi
 
 # I'd use -std=c99 but this wrecks havoc on glibc and cygwin based
 # systems (at least) because their system headers are so broken...
-ac_flags stdg99 "-std=gnu99" 'if -std=gnu99 (ISO C99) can be used'
+ac_flags 1 stdg99 "-std=gnu99" 'if -std=gnu99 (ISO C99) can be used'
 
-ac_flags fwholepgm "-fwhole-program --combine"
+ac_flags 1 fwholepgm "-fwhole-program --combine"
 
 ac_test sys_param_h '' '<sys/param.h>' <<'EOF'
 	#include <sys/param.h>
