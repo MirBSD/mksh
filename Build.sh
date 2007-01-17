@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.121 2007/01/17 17:14:25 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.122 2007/01/17 17:31:59 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -27,7 +27,8 @@ fi
 
 upper()
 {
-	echo "$@" | tr qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM
+	echo :"$@" | sed 's/^://' | \
+	    tr qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM
 }
 
 # pipe .c | ac_test[n] label [!] checkif[!]0 [setlabelifcheckis[!]0] useroutput
@@ -116,7 +117,7 @@ if test -d mksh; then
 	exit 1
 fi
 
-: ${CPP=false} ${CC=gcc} ${NROFF=nroff}
+: ${CC=gcc} ${CPP=false} ${NROFF=nroff}
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
 echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && NROFF="$NROFF -c"
 
@@ -189,11 +190,6 @@ test 1 = $HAVE_CAN_COMPILER_WORKS || exit 1
 ac_flags 0 wnoerror "$save_NOWARN"
 test 1 = $HAVE_CAN_WNOERROR || save_NOWARN=
 ac_flags 0 werror "-Werror"
-i=`echo "$CFLAGS" | tr -c -d qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM0123456789-`
-test x"$i" = x"" && ac_flags 1 otwo "-O2"
-ac_flags 1 fnostrictaliasing "-fno-strict-aliasing"
-ac_flags 1 fwrapv "-fwrapv"
-ac_flags 1 wall "-Wall"
 
 # The following tests are run with -Werror if possible
 test 1 = $HAVE_CAN_WERROR && NOWARN=-Werror
@@ -223,6 +219,13 @@ EOF
 
 # End of tests run with -Werror
 NOWARN=$save_NOWARN
+
+i=`echo :"$CFLAGS" | sed 's/^://' | \
+    tr -c -d qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM0123456789-`
+test x"$i" = x"" && ac_flags 1 otwo "-O2"
+ac_flags 1 fnostrictaliasing "-fno-strict-aliasing"
+ac_flags 1 fwrapv "-fwrapv"
+ac_flags 1 wall "-Wall"
 
 ac_testn mksh_full '' "if we're building without MKSH_SMALL" <<-'EOF'
 	#ifdef MKSH_SMALL
@@ -345,7 +348,7 @@ ac_test strlcpy <<-'EOF'
 EOF
 
 if test 1 = $NEED_MKSH_SIGNAME; then
-	$e "... checking how to run the C Preprocessor"
+	$e ... checking how to run the C Preprocessor
 	rm -f x
 	save_CPP=$CPP
 	for i in "$save_CPP" "$CC -E" "cpp" "/usr/libexec/cpp" "/lib/cpp"; do
@@ -368,7 +371,7 @@ $e ... done.
 if test 1 = $NEED_MKSH_SIGNAME; then
 	$e Generating list of signal names...
 	sigseen=:
-	NSIG=`( echo '#include <signal.h>'; echo "mksh_cfg: NSIG" ) | \
+	NSIG=`( echo '#include <signal.h>'; echo mksh_cfg: NSIG ) | \
 	    vq "$CPP $CPPFLAGS" | grep mksh_cfg: | \
 	    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1/'`
 	NSIG=`printf %d "$NSIG" 2>/dev/null`
@@ -378,7 +381,7 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 	    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
 	    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | \
 	    while read name; do
-		( echo '#include <signal.h>'; echo "mksh_cfg: SIG$name" ) | \
+		( echo '#include <signal.h>'; echo mksh_cfg: SIG$name ) | \
 		    vq "$CPP $CPPFLAGS" | grep mksh_cfg: | \
 		    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1:'$name/
 	done | grep -v '^:' | while IFS=: read nr name; do
@@ -427,7 +430,7 @@ test -f /usr/ucb/$i && i=/usr/ucb/$i
 $e
 $e Installing the shell:
 $e "# $i -c -s -o root -g bin -m 555 mksh /bin/mksh"
-$e "# grep -qx /bin/mksh /etc/shells || echo /bin/mksh >>/etc/shells"
+$e "# grep -x /bin/mksh /etc/shells >/dev/null || echo /bin/mksh >>/etc/shells"
 $e "# $i -c -o root -g bin -m 444 dot.mkshrc /usr/share/doc/mksh/examples/"
 $e
 $e Installing the manual:
