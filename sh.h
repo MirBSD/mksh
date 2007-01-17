@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.102 2007/01/17 23:04:19 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.103 2007/01/17 23:10:14 tg Exp $"
 #define MKSH_VERSION "R29 2007/01/17"
 
 #if HAVE_SYS_PARAM_H
@@ -152,6 +152,10 @@ typedef int bool;
 
 #if !defined(RLIMIT_VMEM) && defined(RLIMIT_AS)
 #define RLIMIT_VMEM RLIMIT_AS
+#endif
+
+#if !defined(MAP_FAILED) && defined(__linux)
+#define MAP_FAILED -1
 #endif
 
 /* OS-dependent additions */
