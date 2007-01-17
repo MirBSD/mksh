@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.123 2007/01/17 17:42:22 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.124 2007/01/17 17:46:18 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -166,6 +166,10 @@ Darwin)
 	test x"@@" = x"$LDSTATIC" || LDSTATIC=@
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 	;;
+DragonFly)
+	;;
+FreeBSD)
+	;;
 Interix)
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
 	;;
@@ -174,11 +178,22 @@ Linux)
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 	test x"@@" = x"$LDSTATIC" || LDSTATIC=@
 	;;
+MirBSD)
+	;;
+NetBSD)
+	;;
+OpenBSD)
+	;;
 SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 	test x"@@" = x"$LDSTATIC" || LDSTATIC=@
 	r=1
+	;;
+*)
+	echo Warning: mksh has not yet been tested on your operating >&2
+	echo system "'$TARGET_OS';" it may or may not work. Please drop >&2
+	echo us a notice if it works or not or send diffs to make it work. >&2
 	;;
 esac
 
