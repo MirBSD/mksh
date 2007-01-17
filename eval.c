@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.20 2007/01/11 00:32:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.21 2007/01/17 17:42:22 tg Exp $");
 
 /*
  * string expansion
@@ -1175,14 +1175,13 @@ tilde(char *cp)
 	return dp;
 }
 
-#ifndef MKSH_SMALL
+#if !defined(MKSH_SMALL) && !defined(MKSH_NOPWNAM)
 /*
  * map userid to user's home directory.
  * note that 4.3's getpw adds more than 6K to the shell,
  * and the YP version probably adds much more.
  * we might consider our own version of getpwnam() to keep the size down.
  */
-
 static char *
 homedir(char *name)
 {

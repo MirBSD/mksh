@@ -1,8 +1,9 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.122 2007/01/17 17:31:59 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.123 2007/01/17 17:42:22 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
+# CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
 
 v()
 {
@@ -112,6 +113,7 @@ addsrcs()
 	esac
 }
 
+
 if test -d mksh; then
 	echo "$0: Error: ./mksh is a directory!" >&2
 	exit 1
@@ -154,6 +156,7 @@ done
 SRCS="alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
+
 test $x = 0 && TARGET_OS=`uname -s 2>/dev/null || uname`
 case $TARGET_OS in
 CYGWIN*)
@@ -180,8 +183,16 @@ SunOS)
 esac
 
 CPPFLAGS="$CPPFLAGS -I'$curdir'"
+
+
+#
+# Begin of mirtoconf checks
+#
 $e ${ao}Scanning for functions... please ignore any errors.
 
+#
+# Compiler: works as-is, with -Wno-error and -Werror
+#
 test x"$NOWARN" = x"" && NOWARN=-Wno-error
 save_NOWARN=$NOWARN
 NOWARN=
@@ -194,6 +205,9 @@ ac_flags 0 werror "-Werror"
 # The following tests are run with -Werror if possible
 test 1 = $HAVE_CAN_WERROR && NOWARN=-Werror
 
+#
+# Compiler: check for stuff that only generates warnings
+#
 ac_test attribute '' 'if we have __attribute__((...)) at all' <<-'EOF'
 	#include <stdlib.h>
 	void fnord(void) __attribute__((noreturn));
@@ -220,16 +234,33 @@ EOF
 # End of tests run with -Werror
 NOWARN=$save_NOWARN
 
+#
+# Compiler: extra flags (-O2 -f* -W* etc.)
+#
 i=`echo :"$CFLAGS" | sed 's/^://' | \
     tr -c -d qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM0123456789-`
 test x"$i" = x"" && ac_flags 1 otwo "-O2"
 ac_flags 1 fnostrictaliasing "-fno-strict-aliasing"
+ac_flags 1 fwholepgm "-fwhole-program --combine"
 ac_flags 1 fwrapv "-fwrapv"
+# I'd use -std=c99 but this wrecks havoc on glibc and cygwin based
+# systems (at least) because their system headers are so broken...
+ac_flags 1 stdg99 "-std=gnu99" 'if -std=gnu99 (ISO C99) can be used'
 ac_flags 1 wall "-Wall"
 
+#
+# mksh: flavours (full/small mksh, omit certain stuff)
+#
 ac_testn mksh_full '' "if we're building without MKSH_SMALL" <<-'EOF'
 	#ifdef MKSH_SMALL
 	#error OK, we are building an extra small mksh.
+	#endif
+	int main(void) { return (0); }
+EOF
+
+ac_testn mksh_nopam mksh_full 1 'if the user wants to omit getpwnam()' <<-'EOF'
+	#ifndef MKSH_NOPWNAM
+	#error No, the user wants to pull in getpwnam.
 	#endif
 	int main(void) { return (0); }
 EOF
@@ -241,17 +272,17 @@ if test 0 = $HAVE_MKSH_FULL; then
 	check_categories=$check_categories,smksh
 fi
 
-# I'd use -std=c99 but this wrecks havoc on glibc and cygwin based
-# systems (at least) because their system headers are so broken...
-ac_flags 1 stdg99 "-std=gnu99" 'if -std=gnu99 (ISO C99) can be used'
-
-ac_flags 1 fwholepgm "-fwhole-program --combine"
-
+#
+# Environment: headers
+#
 ac_test sys_param_h '' '<sys/param.h>' <<'EOF'
 	#include <sys/param.h>
 	int main(void) { return (0); }
 EOF
 
+#
+# Environment: signals
+#
 ac_test mksh_signame '' 'our own list of signal names' <<-'EOF'
 	#include <stdlib.h>	/* for NULL */
 	#define MKSH_SIGNAMES_CHECK
@@ -291,6 +322,9 @@ ac_test strsignal '!' _sys_siglist 0 <<-'EOF'
 	int main(void) { return (strsignal(1)[0]); }
 EOF
 
+#
+# Environment: library functions
+#
 ac_test arc4random <<-'EOF'
 	#include <stdlib.h>
 	int main(void) { return (arc4random()); }
@@ -347,6 +381,9 @@ ac_test strlcpy <<-'EOF'
 	int main(int ac, char *av[]) { return (strlcpy(*av, av[1], ac)); }
 EOF
 
+#
+# Compiler: Praeprocessor (only if needed)
+#
 if test 1 = $NEED_MKSH_SIGNAME; then
 	$e ... checking how to run the C Preprocessor
 	rm -f x
@@ -366,7 +403,11 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 	test x"$CPP" = x"false" && exit 1
 fi
 
+#
+# End of mirtoconf checks
+#
 $e ... done.
+
 
 if test 1 = $NEED_MKSH_SIGNAME; then
 	$e Generating list of signal names...
@@ -405,7 +446,7 @@ addsrcs HAVE_STRLCPY strlfun.c
 CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 
 test x"@@" = x"$LDSTATIC" && LDSTATIC=
-test x"@" = x"$LDSTATIC" && if test 0 = $HAVE_MKSH_FULL; then
+test x"@" = x"$LDSTATIC" && if test 1 = $HAVE_MKSH_NOPAM; then
 	LDSTATIC=-static
 else
 	LDSTATIC=
