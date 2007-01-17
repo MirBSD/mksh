@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.112 2007/01/17 01:24:28 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.113 2007/01/17 01:59:38 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -99,7 +99,9 @@ if test -d mksh; then
 	exit 1
 fi
 
+# XXX autoconf for these
 : ${CFLAGS='-O2 -fno-strict-aliasing -fwrapv -Wall'}
+# XXX autoconf for gcc:-cc and $CPP
 : ${CC=gcc} ${NROFF=nroff}
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
 echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && NROFF="$NROFF -c"
