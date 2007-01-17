@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.44 2006/11/19 20:43:13 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.45 2007/01/17 23:27:47 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -1340,7 +1340,7 @@ parse_T(char *fn)
 		warningf(false, "chvt: cannot chown root %s", fn);
 	if (((sb.st_mode & 07777) != 0600) && chmod(fn, 0600))
 		warningf(false, "chvt: cannot chmod 0600 %s", fn);
-#if !defined(__sun__) && !defined(__gnu_linux__) && !defined(__INTERIX)
+#if !HAVE_REVOKE
 	if (revoke(fn))
 		warningf(false, "chvt: cannot revoke %s", fn);
 #endif
