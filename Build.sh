@@ -1,8 +1,7 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.128 2007/01/17 22:51:45 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.129 2007/01/17 22:55:47 tg Exp $
 #-
-# Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
-# With -x (cross compile): TARGET_OS (default: uname -s)
+# Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
 
 v()
@@ -125,7 +124,6 @@ curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
 e=echo
 h=1
 r=0
-x=0
 LDSTATIC=-static
 
 for i
@@ -141,10 +139,6 @@ do
 	-r)
 		r=1
 		;;
-	-x)
-		x=1
-		LDSTATIC=@@
-		;;
 	*)
 		echo "$0: Unknown option '$i'!" >&2
 		exit 1
@@ -159,7 +153,7 @@ test $r = 0 && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
     NROFF="$NROFF -c"
 
 
-test $x = 0 && TARGET_OS=`uname -s 2>/dev/null || uname`
+test x"$TARGET_OS" = x"" && TARGET_OS=`uname -s 2>/dev/null || uname`
 case $TARGET_OS in
 CYGWIN*)
 	test x"@@" = x"$LDSTATIC" || LDSTATIC=@
