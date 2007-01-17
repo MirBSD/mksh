@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.119 2007/01/17 17:08:34 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.120 2007/01/17 17:12:43 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -347,23 +347,18 @@ EOF
 if test 1 = $NEED_MKSH_SIGNAME; then
 	$e "... checking how to run the C Preprocessor"
 	rm -f x
-	if test x"$CPP" != x"false"; then
+	save_CPP=$CPP
+	for i in "$save_CPP" "$CC -E"; do
+		CPP=$i
+		test x"$CPP" = x"false" && continue
 		( ( echo '#if (23 * 2 - 2) == (fnord + 2)'
 		    echo mksh_rules: fnord
 		    echo '#endif'
 		  ) | v "$CPP $CPPFLAGS -Dfnord=42 >x" ) 2>&$h | sed 's/^/] /'
 		grep '^mksh_rules:.*42' x >/dev/null 2>&1 || CPP=false
 		rm -f x
-	fi
-	if test x"$CPP" = x"false"; then
-		CPP="$CC -E"
-		( ( echo '#if (23 * 2 - 2) == (fnord + 2)'
-		    echo mksh_rules: fnord
-		    echo '#endif'
-		  ) | v "$CPP $CPPFLAGS -Dfnord=42 >x" ) 2>&$h | sed 's/^/] /'
-		grep '^mksh_rules:.*42' x >/dev/null 2>&1 || CPP=false
-		rm -f x
-	fi
+		test x"$CPP" = x"false" || break
+	done
 	$e "$bi==> checking how to run the C Preprocessor...$ao $ui$CPP$ao"
 	test x"$CPP" = x"false" && exit 1
 fi
