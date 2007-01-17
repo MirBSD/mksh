@@ -1,4 +1,4 @@
-$MirOS: src/bin/mksh/copyright,v 1.18 2007/01/03 22:43:47 tg Exp $
+$MirOS: src/bin/mksh/copyright,v 1.19 2007/01/17 01:24:29 tg Exp $
 
 The MirBSD Korn Shell (mksh) is
 
@@ -27,7 +27,7 @@ of said person's immediate fault when using the work as intended.
 
 The developer of mksh recognises the efforts of the pdksh authors,
 who had dedicated their work into Public Domain, and all contribu-
-tors. See the documentation and web site for details.
+tors. See the documentation, CVS, and web site for details.
 
 A number of files that are either always or conditionally included
 during compilation, depending on the target operating environment,
