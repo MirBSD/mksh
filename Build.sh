@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.113 2007/01/17 01:59:38 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.114 2007/01/17 16:39:55 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -83,6 +83,22 @@ ac_test()
 {
 	ac_testn "$@"
 	eval CPPFLAGS=\"\$CPPFLAGS -DHAVE_$fu=\$HAVE_$fu\"
+}
+
+# ac_flags varname flags [text]
+ac_flags()
+{
+	vn=$1
+	f=$2
+	ft=$3
+	test x"$ft" = x"" && ft="if $f can be used"
+	save_CFLAGS=$CFLAGS
+	CFLAGS="$CFLAGS $f"
+	ac_testn can_$vn '' "$ft" <<-'EOF'
+		int main(void) { return (0); }
+	EOF
+	eval fv=\$HAVE_`upper $vn`
+	test 1 = $fv || CFLAGS=$save_CFLAGS
 }
 
 addsrcs()
@@ -218,12 +234,7 @@ ac_testn mksh_full '' "if we're building without MKSH_SMALL" <<-'EOF'
 EOF
 
 if test 0 = $HAVE_MKSH_FULL; then
-	save_CFLAGS=$CFLAGS
-	CFLAGS="$CFLAGS -fno-inline"
-	ac_testn can_fnoinline '' 'if -fno-inline can be used' <<-'EOF'
-		int main(void) { return (0); }
-	EOF
-	test 1 = $HAVE_CAN_FNOINLINE || CFLAGS=$save_CFLAGS
+	ac_flags fnoinline "-fno-inline"
 
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	check_categories=$check_categories,smksh
@@ -231,19 +242,9 @@ fi
 
 # I'd use -std=c99 but this wrecks havoc on glibc and cygwin based
 # systems (at least) because their system headers are so broken...
-save_CFLAGS=$CFLAGS
-CFLAGS="$CFLAGS -std=gnu99"
-ac_testn can_stdg99 '' 'if -std=gnu99 (ISO C99) can be used' <<-'EOF'
-	int main(void) { return (0); }
-EOF
-test 1 = $HAVE_CAN_STDG99 || CFLAGS=$save_CFLAGS
+ac_flags stdg99 "-std=gnu99" 'if -std=gnu99 (ISO C99) can be used'
 
-save_CFLAGS=$CFLAGS
-CFLAGS="$CFLAGS -fwhole-program --combine"
-ac_testn can_fwholepgm '' 'if -fwhole-program --combine can be used' <<-'EOF'
-	int main(void) { return (0); }
-EOF
-test 1 = $HAVE_CAN_FWHOLEPGM || CFLAGS=$save_CFLAGS
+ac_flags fwholepgm "-fwhole-program --combine"
 
 ac_test sys_param_h '' '<sys/param.h>' <<'EOF'
 	#include <sys/param.h>
