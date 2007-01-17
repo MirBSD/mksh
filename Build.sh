@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.125 2007/01/17 17:57:31 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.126 2007/01/17 21:42:23 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -396,6 +396,16 @@ EOF
 ac_test strlcpy <<-'EOF'
 	#include <string.h>
 	int main(int ac, char *av[]) { return (strlcpy(*av, av[1], ac)); }
+EOF
+
+#
+# other checks
+#
+ac_test multi_idstring '' 'if we can use __RCSID(x) multiple times' <<-'EOF'
+	#include "sh.h"
+	__RCSID("one");
+	__RCSID("two");
+	int main(void) { return (0); }
 EOF
 
 #

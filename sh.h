@@ -8,13 +8,16 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.99 2007/01/17 01:24:29 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.100 2007/01/17 21:42:23 tg Exp $"
 #define MKSH_VERSION "R29 2007/01/17"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
 #include <sys/types.h>
+#if defined(HAVE_MULTI_IDSTRING) && !HAVE_MULTI_IDSTRING
+#undef __RCSID
+#endif
 #if !defined(__RCSID) || !defined(__SCCSID)
 #undef __IDSTRING
 #undef __IDSTRING_CONCAT
