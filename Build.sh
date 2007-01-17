@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.134 2007/01/17 23:47:14 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.135 2007/01/17 23:50:26 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -346,7 +346,7 @@ else
 	NEED_MKSH_SIGNAME=0
 fi
 
-ac_test sys_siglist '' 'the sys_siglist[] array' <<-'EOF'
+ac_testn sys_siglist '' 'the sys_siglist[] array' <<-'EOF'
 	extern const char *const sys_siglist[];
 	int main(void) { return (sys_siglist[0][0]); }
 EOF
@@ -357,8 +357,9 @@ ac_testn _sys_siglist '!' sys_siglist 0 'the _sys_siglist[] array' <<-'EOF'
 EOF
 if test 1 = $HAVE__SYS_SIGLIST; then
 	HAVE_SYS_SIGLIST=1
-	CPPFLAGS="$CPPFLAGS -DHAVE_SYS_SIGLIST -Dsys_siglist=_sys_siglist"
+	CPPFLAGS="$CPPFLAGS -Dsys_siglist=_sys_siglist"
 fi
+CPPFLAGS="$CPPFLAGS -DHAVE_SYS_SIGLIST=$HAVE_SYS_SIGLIST"
 
 ac_test strsignal '!' sys_siglist 0 <<-'EOF'
 	#include <string.h>
