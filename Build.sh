@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.124 2007/01/17 17:46:18 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.125 2007/01/17 17:57:31 tg Exp $
 #-
 # Environment: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF
 # With -x (cross compile): TARGET_OS (default: uname -s)
@@ -121,7 +121,6 @@ fi
 
 : ${CC=gcc} ${CPP=false} ${NROFF=nroff}
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
-echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && NROFF="$NROFF -c"
 
 e=echo
 h=1
@@ -155,6 +154,9 @@ done
 
 SRCS="alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
+
+test $r = 0 && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
+    NROFF="$NROFF -c"
 
 
 test $x = 0 && TARGET_OS=`uname -s 2>/dev/null || uname`
