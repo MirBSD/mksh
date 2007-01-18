@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.143 2007/01/18 15:50:31 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.144 2007/01/18 16:05:04 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -417,6 +417,12 @@ ac_test arc4random_push arc4random 0 <<-'EOF'
 	#include <stdlib.h>
 	int main(void) { arc4random_push(1); return (0); }
 EOF
+
+ac_test flock_ex '' 'flock and LOCK_EX' <<-'EOF'
+	#include <fcntl.h>
+	int main(void) { return (flock(0, LOCK_EX)); }
+EOF
+test 1 = $HAVE_FLOCK_EX || check_categories=$check_categories,no-histfile
 
 ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<-'EOF'
 	#include <locale.h>

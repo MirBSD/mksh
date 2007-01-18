@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.86 2007/01/18 15:50:32 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.87 2007/01/18 16:05:05 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1961,8 +1961,7 @@ name: history-ed-1
 description:
 	Basic (ed) editing works (assumes you have generic ed editor
 	that prints no prompts). This is for newish ed(1) and stderr.
-# we don't have persistent history on Solaris (no flock)
-category: !os:solaris,!oldish-ed
+category: !no-histfile,!oldish-ed
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -1982,7 +1981,7 @@ expected-stderr-pattern:
 name: history-ed-2
 description:
 	Correct command is edited when number given
-category: !os:solaris,!oldish-ed
+category: !no-histfile,!oldish-ed
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2009,7 +2008,7 @@ name: history-ed-3
 description:
 	Newly created multi line commands show up as single command
 	in history.
-category: !os:solaris,!oldish-ed
+category: !no-histfile,!oldish-ed
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -3860,8 +3859,7 @@ expected-stdout:
 name: persist-history-1
 description:
 	Check if persistent history saving works
-# we don't have persistent history on Solaris (no flock)
-category: !os:solaris,!os:plan9,pdksh,!smksh
+category: !no-histfile,pdksh,!smksh
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
