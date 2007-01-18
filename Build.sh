@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.137 2007/01/18 00:10:16 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.138 2007/01/18 00:16:26 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -320,6 +320,7 @@ ac_test rlim_t <<-'EOF'
 	int main(void) { return ((int)(rlim_t)0); }
 EOF
 
+# only testn: added later below
 ac_testn sig_t <<-'EOF'
 	#include <sys/types.h>
 	#include <signal.h>
@@ -341,7 +342,7 @@ ac_testn __sighandler_t '!' sig_t 0 <<-'EOF'
 	#include <signal.h>
 	int main(void) { return ((int)(__sighandler_t)0); }
 EOF
-if test 1 = $HAVE_SIGHANDLER_T; then
+if test 1 = $HAVE___SIGHANDLER_T; then
 	CPPFLAGS="$CPPFLAGS -Dsig_t=__sighandler_t"
 	HAVE_SIG_T=1
 fi
@@ -374,6 +375,7 @@ else
 	NEED_MKSH_SIGNAME=0
 fi
 
+# only testn: added later below
 ac_testn sys_siglist '' 'the sys_siglist[] array' <<-'EOF'
 	extern const char *const sys_siglist[];
 	int main(void) { return (sys_siglist[0][0]); }
