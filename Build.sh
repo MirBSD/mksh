@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.140 2007/01/18 02:54:19 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.141 2007/01/18 03:31:24 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -124,16 +124,16 @@ curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
 e=echo
 h=1
 r=0
-LDSTATIC=default
+s=def
 
 for i
 do
 	case $i in
 	-d)
-		LDSTATIC=dynamic
+		s=dyn
 		;;
 	-nd)
-		LDSTATIC=static
+		s=sta
 		;;
 	-q)
 		e=:
@@ -159,11 +159,11 @@ test $r = 0 && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
 test x"$TARGET_OS" = x"" && TARGET_OS=`uname -s 2>/dev/null || uname`
 case $TARGET_OS in
 CYGWIN*)
-	test x"default" = x"$LDSTATIC" || LDSTATIC=pwnam
+	test def = $s && s=pam
 	;;
 Darwin)
-	test x"default" = x"$LDSTATIC" || LDSTATIC=pwnam
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
+	test def = $s && s=pam
 	;;
 DragonFly)
 	;;
@@ -175,7 +175,7 @@ Interix)
 Linux)
 	CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=2 -D_BSD_SOURCE -D_GNU_SOURCE"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
-	test x"default" = x"$LDSTATIC" || LDSTATIC=pwnam
+	test def = $s && s=pam
 	;;
 MirBSD)
 	;;
@@ -186,7 +186,7 @@ OpenBSD)
 SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
-	test x"default" = x"$LDSTATIC" || LDSTATIC=pwnam
+	test def = $s && s=pam
 	r=1
 	;;
 *)
@@ -542,14 +542,13 @@ addsrcs HAVE_STRCASESTR strcasestr.c
 addsrcs HAVE_STRLCPY strlfun.c
 CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 
-case $LDSTATIC:$HAVE_MKSH_NOPAM in
-default:*|static:*|pwnam:1)
-	LDSTATIC=-static ;;
-dynamic:*|pwnam:0)
-	LDSTATIC= ;;
+case $s:$HAVE_MKSH_NOPAM in
+def:*|sta:*|pam:1)
+	LDFLAGS="$LDFLAGS -static" ;;
+dyn:*|pam:0)	;;
 esac
 (v "cd '$srcdir' && exec $CC $CFLAGS $CPPFLAGS" \
-    "$LDFLAGS $LDSTATIC -o '$curdir/mksh' $SRCS $LIBS") || exit 1
+    "$LDFLAGS -o '$curdir/mksh' $SRCS $LIBS") || exit 1
 result=mksh
 test -f mksh.exe && result=mksh.exe
 test -f $result || exit 1
