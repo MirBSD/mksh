@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.47 2007/01/18 15:50:32 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.48 2007/01/18 20:48:23 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -1342,8 +1342,9 @@ parse_T(char *fn)
 		warningf(false, "chvt: cannot chmod 0600 %s", fn);
 #if HAVE_REVOKE
 	if (revoke(fn))
-		warningf(false, "chvt: cannot revoke %s", fn);
 #endif
+		warningf(false, "chvt: cannot revoke %s, new shell is"
+		    " potentially insecure", fn);
 
 	if ((fd = open(fn, O_RDWR)) == -1) {
 		sleep(1);
