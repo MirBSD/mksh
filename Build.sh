@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.144 2007/01/18 16:05:04 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.145 2007/01/18 16:06:22 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -422,7 +422,8 @@ ac_test flock_ex '' 'flock and LOCK_EX' <<-'EOF'
 	#include <fcntl.h>
 	int main(void) { return (flock(0, LOCK_EX)); }
 EOF
-test 1 = $HAVE_FLOCK_EX || check_categories=$check_categories,no-histfile
+test 11 = $HAVE_FLOCK_EX$HAVE_MKSH_FULL || \
+    check_categories=$check_categories,no-histfile
 
 ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<-'EOF'
 	#include <locale.h>
