@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.141 2007/01/18 03:31:24 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.142 2007/01/18 03:31:50 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -545,7 +545,6 @@ CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 case $s:$HAVE_MKSH_NOPAM in
 def:*|sta:*|pam:1)
 	LDFLAGS="$LDFLAGS -static" ;;
-dyn:*|pam:0)	;;
 esac
 (v "cd '$srcdir' && exec $CC $CFLAGS $CPPFLAGS" \
     "$LDFLAGS -o '$curdir/mksh' $SRCS $LIBS") || exit 1
