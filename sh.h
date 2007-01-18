@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.106 2007/01/18 00:10:16 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.107 2007/01/18 01:03:10 tg Exp $"
 #define MKSH_VERSION "R29 2007/01/17"
 
 #if HAVE_SYS_PARAM_H
@@ -161,7 +161,7 @@ typedef int bool;
 #endif
 
 #if !defined(MAP_FAILED) && defined(__linux)
-#define MAP_FAILED -1
+#define MAP_FAILED ((void *)-1)
 #endif
 
 /* OS-dependent additions */
