@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.48 2007/01/18 20:48:23 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.49 2007/01/18 20:54:30 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -25,7 +25,7 @@ static int do_gmatch(const unsigned char *, const unsigned char *,
     const unsigned char *, const unsigned char *);
 static const unsigned char *cclass(const unsigned char *, int);
 #ifdef USE_CHVT
-static void parse_T(char *);
+static void chvt(const char *);
 #endif
 static char *do_phys_path(XString *, char *, const char *);
 
@@ -368,7 +368,7 @@ parse_args(char **argv,
 			errorf("no TIOCSCTTY ioctl");
 #else
 			change_flag(FTALKING, OF_CMDLINE, 1);
-			parse_T(go.optarg);
+			chvt(go.optarg);
 #endif
 #endif
 			break;
@@ -1318,7 +1318,7 @@ do_phys_path(XString *xsp, char *xp, const char *pathl)
 
 #ifdef USE_CHVT
 static void
-parse_T(char *fn)
+chvt(const char *fn)
 {
 	char dv[20];
 	struct stat sb;
@@ -1328,7 +1328,7 @@ parse_T(char *fn)
 		memcpy(dv, "/dev/ttyC", 9);
 		strlcpy(dv + 9, fn, 20 - 9);
 		if (stat(dv, &sb)) {
-			memmove(dv + 8, dv + 9, 20 - 9);
+			strlcpy(dv + 8, fn, 20 - 8);
 			if (stat(dv, &sb))
 				errorf("chvt: can't find tty %s", fn);
 		}
