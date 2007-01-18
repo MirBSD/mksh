@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.142 2007/01/18 03:31:50 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.143 2007/01/18 15:50:31 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -25,10 +25,13 @@ else
 	ao=
 fi
 
+allu=QWERTYUIOPASDFGHJKLZXCVBNM
+alll=qwertyuiopasdfghjklzxcvbnm
+alln=0123456789
+
 upper()
 {
-	echo :"$@" | sed 's/^://' | \
-	    tr qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM
+	echo :"$@" | sed 's/^://' | tr $alll $allu
 }
 
 # pipe .c | ac_test[n] label [!] checkif[!]0 [setlabelifcheckis[!]0] useroutput
@@ -101,6 +104,21 @@ ac_flags()
 	EOF
 	eval fv=\$HAVE_CAN_`upper $vn`
 	test 11 = $fa$fv || CFLAGS=$save_CFLAGS
+}
+
+# ac_header header [prereq ...]
+ac_header()
+{
+	hf=$1; shift
+	hv=`echo "$hf" | tr -d '\r\n' | tr -c $alll$allu$alln- _`
+	for i
+	do
+		echo "#include <$i>" >>x
+	done
+	echo "#include <$hf>" >>x
+	echo 'int main(void) { return (0); }' >>x
+	ac_test "$hv" "" "<$hf>" <x
+	rm -f x
 }
 
 addsrcs()
@@ -202,6 +220,7 @@ CPPFLAGS="$CPPFLAGS -I'$curdir'"
 #
 # Begin of mirtoconf checks
 #
+rm -f scn.c a.out a.exe x
 $e ${ao}Scanning for functions... please ignore any errors.
 
 #
@@ -251,8 +270,7 @@ NOWARN=$save_NOWARN
 #
 # Compiler: extra flags (-O2 -f* -W* etc.)
 #
-i=`echo :"$CFLAGS" | sed 's/^://' | \
-    tr -c -d qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM0123456789-`
+i=`echo :"$CFLAGS" | sed 's/^://' | tr -c -d $alll$allu$alln-`
 test x"$i" = x"" && ac_flags 1 otwo "-O2"
 ac_flags 1 fnostrictaliasing "-fno-strict-aliasing"
 ac_flags 1 fwholepgm "-fwhole-program --combine"
@@ -289,25 +307,15 @@ fi
 #
 # Environment: headers
 #
-ac_test sys_param_h '' '<sys/param.h>' <<-'EOF'
-	#include <sys/param.h>
-	int main(void) { return (0); }
-EOF
-
-ac_test sys_sysmacros_h '' '<sys/sysmacros.h>' <<-'EOF'
-	#include <sys/sysmacros.h>
-	int main(void) { return (0); }
-EOF
-
-ac_test libgen_h '' '<libgen.h>' <<-'EOF'
-	#include <libgen.h>
-	int main(void) { return (0); }
-EOF
-
-ac_test stdbool_h '' '<stdbool.h>' <<-'EOF'
-	#include <stdbool.h>
-	int main(void) { return (0); }
-EOF
+ac_header sys/param.h
+ac_header sys/mkdev.h
+ac_header sys/sysmacros.h
+ac_header libgen.h
+ac_header paths.h
+ac_header stdbool.h
+ac_header grp.h sys/types.h
+ac_header ulimit.h
+ac_header values.h
 
 #
 # Environment: types
@@ -443,7 +451,9 @@ EOF
 
 ac_test setgroups setresugid 0 <<-'EOF'
 	#include <sys/types.h>
+	#if HAVE_GRP_H
 	#include <grp.h>
+	#endif
 	#include <unistd.h>
 	int main(void) { gid_t gid = 0; return (setgroups(0, &gid)); }
 EOF
@@ -476,7 +486,6 @@ EOF
 #
 if test 1 = $NEED_MKSH_SIGNAME; then
 	$e ... checking how to run the C Preprocessor
-	rm -f x
 	save_CPP=$CPP
 	for i in "$save_CPP" "$CC -E -" "cpp" "/usr/libexec/cpp" "/lib/cpp"; do
 		CPP=$i
@@ -500,7 +509,6 @@ $e ... done.
 
 # Some operating systems have ancient versions of ed(1) writing
 # the character count to standard output; cope for that
-rm -f x
 echo wq >x
 ed x <x 2>/dev/null | grep 3 >/dev/null 2>&1 && \
     check_categories=$check_categories,oldish-ed

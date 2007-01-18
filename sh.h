@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.107 2007/01/18 01:03:10 tg Exp $"
-#define MKSH_VERSION "R29 2007/01/17"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.108 2007/01/18 15:50:32 tg Exp $"
+#define MKSH_VERSION "R29 2007/01/18"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -41,6 +41,9 @@
 #include <sys/time.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>
+#if HAVE_SYS_MKDEV_H
+#include <sys/mkdev.h>
+#endif
 #include <sys/mman.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
@@ -55,7 +58,7 @@
 #include <libgen.h>
 #endif
 #include <limits.h>
-#if !defined(__sun__)
+#if HAVE_PATHS_H
 #include <paths.h>
 #endif
 #include <pwd.h>
@@ -71,17 +74,11 @@
 #include <string.h>
 #include <termios.h>
 #include <time.h>
-#include <unistd.h>
-
-/* extra headers */
-
-#if defined(__sun__) || defined(__INTERIX)
-#include <sys/mkdev.h>
-#endif
-#if !defined(__OpenBSD__) && !defined(__CYGWIN__)
+#if HAVE_ULIMIT_H
 #include <ulimit.h>
 #endif
-#if defined(__sun__) || defined(__gnu_linux__)
+#include <unistd.h>
+#if HAVE_VALUES_H
 #include <values.h>
 #endif
 
@@ -89,6 +86,10 @@
 
 #if !HAVE_RLIM_T
 typedef long rlim_t;
+#endif
+
+#if !HAVE_SIG_T
+typedef void (*sig_t)(int);
 #endif
 
 #if !HAVE_STDBOOL_H
@@ -166,7 +167,7 @@ typedef int bool;
 
 /* OS-dependent additions */
 
-#if !HAVE_SETMODE && !defined(MKSH_SMALL)
+#if !HAVE_SETMODE
 mode_t getmode(const void *, mode_t);
 void *setmode(const char *);
 #endif
@@ -182,7 +183,7 @@ size_t confstr(int, char *, size_t);
 #endif
 
 #ifdef __INTERIX
-#define makedev(x,y)	mkdev((x),(y))
+#define makedev mkdev
 extern int __cdecl seteuid(uid_t);
 extern int __cdecl setegid(gid_t);
 #endif
@@ -372,10 +373,6 @@ struct temp {
 #define shl_stdout	(&shf_iob[1])
 #define shl_out		(&shf_iob[2])
 EXTERN int shl_stdout_ok;
-
-#if !HAVE_SIG_T
-typedef void (*sig_t)(int);
-#endif
 
 /*
  * trap handlers
@@ -742,6 +739,7 @@ extern const struct builtin shbuiltins [], kshbuiltins [];
 #define V_OPTIND	4
 #define V_RANDOM	8
 #define V_HISTSIZE	9
+/* this is defined when we support persistent history, undefined otherwise */
 #if !defined(__sun__) && !defined(MKSH_SMALL)
 #define V_HISTFILE	10
 #endif
