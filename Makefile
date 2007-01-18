@@ -1,16 +1,21 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.26 2007/01/17 23:27:47 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.27 2007/01/18 01:24:46 tg Exp $
 
 PROG=		mksh
 SRCS=		alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c \
 		jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c
-CPPFLAGS+=	-DHAVE_ATTRIBUTE -DHAVE_ATTRIBUTE_BOUNDED -DHAVE_ATTRIBUTE_USED
-CPPFLAGS+=	-DHAVE_SYS_PARAM_H -DHAVE_SYS_SYSMACROS_H=0 -DHAVE_LIBGEN_H
-CPPFLAGS+=	-DHAVE_STDBOOL_H -DHAVE_RLIM_T
-CPPFLAGS+=	-DHAVE_SYS_SIGNAME -DHAVE_SYS_SIGLIST
-CPPFLAGS+=	-DHAVE_ARC4RANDOM -DHAVE_ARC4RANDOM_PUSH -DHAVE_SETLOCALE_CTYPE
-CPPFLAGS+=	-DHAVE_LANGINFO_CODESET -DHAVE_REVOKE -DHAVE_SETMODE
-CPPFLAGS+=	-DHAVE_SETRESUGID -DHAVE_SETGROUPS -DHAVE_STRCASESTR
-CPPFLAGS+=	-DHAVE_STRLCPY -DHAVE_MULTI_IDSTRING
+.if !make(test-build)
+CPPFLAGS+=	-DHAVE_ATTRIBUTE=1 -DHAVE_ATTRIBUTE_BOUNDED=1 \
+		-DHAVE_ATTRIBUTE_USED=1 -DHAVE_SYS_PARAM_H=1 \
+		-DHAVE_SYS_SYSMACROS_H=0 -DHAVE_LIBGEN_H=1 \
+		-DHAVE_STDBOOL_H=1 -DHAVE_RLIM_T=1 -DHAVE_SIG_T=1 \
+		-DHAVE_MKSH_SIGNAME=0 -DHAVE_SYS_SIGNAME=1 \
+		-DHAVE__SYS_SIGNAME=0 -DHAVE_SYS_SIGLIST=1 \
+		-DHAVE_STRSIGNAL=0 -DHAVE_ARC4RANDOM=1 \
+		-DHAVE_ARC4RANDOM_PUSH=1 -DHAVE_SETLOCALE_CTYPE=1 \
+		-DHAVE_LANGINFO_CODESET=1 -DHAVE_REVOKE=1 -DHAVE_SETMODE=1 \
+		-DHAVE_SETRESUGID=1 -DHAVE_SETGROUPS=1 -DHAVE_STRCASESTR=1 \
+		-DHAVE_STRLCPY=1 -DHAVE_MULTI_IDSTRING=1
+.endif
 CDIAGFLAGS+=	-Wno-cast-qual
 
 LINKS+=		${BINDIR}/${PROG} ${BINDIR}/sh
@@ -23,9 +28,17 @@ regress: ${PROG} check.pl check.t
 	HOME=$$(readlink -nf regress-dir) perl ${.CURDIR}/check.pl \
 	    -s ${.CURDIR}/check.t -v -p ./${PROG} -C pdksh
 
-cleandir: clean-regress
+test-build: .PHONY
+	-rm -rf build-dir
+	mkdir -p build-dir
+	cd build-dir; env CC=${CC:Q} CFLAGS=${CFLAGS:M*:Q} \
+	    CPPFLAGS=${CPPFLAGS:M*:Q} LDFLAGS=${LDFLAGS:M*:Q} \
+	    LIBS= NOWARN=-Wno-error TARGET_OS= CPP= /bin/sh \
+	    ${.CURDIR}/Build.sh -d -r && ./test.sh -v
 
-clean-regress:
-	-rm -rf regress-dir
+cleandir: clean-extra
+
+clean-extra: .PHONY
+	-rm -rf build-dir regress-dir
 
 .include <bsd.prog.mk>
