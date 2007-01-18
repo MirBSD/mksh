@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.105 2007/01/17 23:54:39 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.106 2007/01/18 00:10:16 tg Exp $"
 #define MKSH_VERSION "R29 2007/01/17"
 
 #if HAVE_SYS_PARAM_H
@@ -372,6 +372,10 @@ struct temp {
 #define shl_stdout	(&shf_iob[1])
 #define shl_out		(&shf_iob[2])
 EXTERN int shl_stdout_ok;
+
+#if !HAVE_SIG_T
+typedef void (*sig_t)(int);
+#endif
 
 /*
  * trap handlers

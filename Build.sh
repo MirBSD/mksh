@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.136 2007/01/17 23:54:39 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.137 2007/01/18 00:10:16 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -345,6 +345,8 @@ if test 1 = $HAVE_SIGHANDLER_T; then
 	CPPFLAGS="$CPPFLAGS -Dsig_t=__sighandler_t"
 	HAVE_SIG_T=1
 fi
+
+CPPFLAGS="$CPPFLAGS -DHAVE_SIG_T=$HAVE_SIG_T"
 
 #
 # Environment: signals
