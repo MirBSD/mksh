@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.139 2007/01/18 01:10:55 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.140 2007/01/18 02:54:19 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -124,16 +124,16 @@ curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
 e=echo
 h=1
 r=0
-LDSTATIC=-static
+LDSTATIC=default
 
 for i
 do
 	case $i in
 	-d)
-		LDSTATIC=@@
+		LDSTATIC=dynamic
 		;;
 	-nd)
-		LDSTATIC=@@@
+		LDSTATIC=static
 		;;
 	-q)
 		e=:
@@ -159,10 +159,10 @@ test $r = 0 && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
 test x"$TARGET_OS" = x"" && TARGET_OS=`uname -s 2>/dev/null || uname`
 case $TARGET_OS in
 CYGWIN*)
-	test x"@@" = x"$LDSTATIC" || LDSTATIC=@
+	test x"default" = x"$LDSTATIC" || LDSTATIC=pwnam
 	;;
 Darwin)
-	test x"@@" = x"$LDSTATIC" || LDSTATIC=@
+	test x"default" = x"$LDSTATIC" || LDSTATIC=pwnam
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 	;;
 DragonFly)
@@ -175,7 +175,7 @@ Interix)
 Linux)
 	CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=2 -D_BSD_SOURCE -D_GNU_SOURCE"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
-	test x"@@" = x"$LDSTATIC" || LDSTATIC=@
+	test x"default" = x"$LDSTATIC" || LDSTATIC=pwnam
 	;;
 MirBSD)
 	;;
@@ -186,7 +186,7 @@ OpenBSD)
 SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
-	test x"@@" = x"$LDSTATIC" || LDSTATIC=@
+	test x"default" = x"$LDSTATIC" || LDSTATIC=pwnam
 	r=1
 	;;
 *)
@@ -542,15 +542,11 @@ addsrcs HAVE_STRCASESTR strcasestr.c
 addsrcs HAVE_STRLCPY strlfun.c
 CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 
-case $LDSTATIC in
-@)	if test 1 = $HAVE_MKSH_NOPAM; then
-		LDSTATIC=-static
-	else
-		LDSTATIC=
-	fi
-	;;
-@@)	LDSTATIC=	 ;;
-@@@)	LDSTATIC=-static ;;
+case $LDSTATIC:$HAVE_MKSH_NOPAM in
+default:*|static:*|pwnam:1)
+	LDSTATIC=-static ;;
+dynamic:*|pwnam:0)
+	LDSTATIC= ;;
 esac
 (v "cd '$srcdir' && exec $CC $CFLAGS $CPPFLAGS" \
     "$LDFLAGS $LDSTATIC -o '$curdir/mksh' $SRCS $LIBS") || exit 1
