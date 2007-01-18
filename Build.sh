@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.138 2007/01/18 00:16:26 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.139 2007/01/18 01:10:55 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -498,6 +498,13 @@ fi
 #
 $e ... done.
 
+# Some operating systems have ancient versions of ed(1) writing
+# the character count to standard output; cope for that
+rm -f x
+echo wq >x
+ed x <x 2>/dev/null | grep 3 >/dev/null 2>&1 && \
+    check_categories=$check_categories,oldish-ed
+rm -f x
 
 if test 1 = $NEED_MKSH_SIGNAME; then
 	$e Generating list of signal names...
