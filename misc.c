@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.49 2007/01/18 20:54:30 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.50 2007/01/26 18:27:34 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -287,8 +287,10 @@ parse_args(char **argv,
 		/* see cmd_opts[] declaration */
 		*p++ = 'o';
 		*p++ = ':';
+#ifndef MKSH_SMALL
 		*p++ = 'T';
 		*p++ = ':';
+#endif
 		/* see set_opts[] declaration */
 		*q++ = 'A';
 		*q++ = ':';
@@ -360,8 +362,8 @@ parse_args(char **argv,
 			}
 			break;
 
-		case 'T':
 #ifndef MKSH_SMALL
+		case 'T':
 			if (what != OF_FIRSTTIME)
 				break;
 #ifndef USE_CHVT
@@ -370,8 +372,8 @@ parse_args(char **argv,
 			change_flag(FTALKING, OF_CMDLINE, 1);
 			chvt(go.optarg);
 #endif
-#endif
 			break;
+#endif
 
 		case '?':
 			return -1;
