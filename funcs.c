@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.45 2007/01/15 00:18:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.46 2007/01/26 18:37:26 tg Exp $");
 
 int
 c_cd(char **wp)
@@ -2190,7 +2190,7 @@ c_exec(char **wp __unused)
 	return 0;
 }
 
-#ifndef MKSH_SMALL
+#if !defined(MKSH_SMALL) || defined(MKSH_NEED_MKNOD)
 static int
 c_mknod(char **wp)
 {
@@ -2311,7 +2311,7 @@ const struct builtin shbuiltins [] = {
 	{"ulimit", c_ulimit},
 	{"+umask", c_umask},
 	{"*=unset", c_unset},
-#ifndef MKSH_SMALL
+#if !defined(MKSH_SMALL) || defined(MKSH_NEED_MKNOD)
 	{"mknod", c_mknod},
 #endif
 	{NULL, NULL}
