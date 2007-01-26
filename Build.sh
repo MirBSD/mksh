@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.146 2007/01/18 20:40:39 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.147 2007/01/26 18:25:01 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -439,7 +439,7 @@ ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<-'EOF'
 	int main(void) { return ((ptrdiff_t)(void *)nl_langinfo(CODESET)); }
 EOF
 
-ac_test revoke <<-'EOF'
+ac_test revoke mksh_full 0 <<-'EOF'
 	#include <unistd.h>
 	int main(int ac, char *av[]) { return (ac + revoke(av[0])); }
 EOF
