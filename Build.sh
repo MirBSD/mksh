@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.147 2007/01/26 18:25:01 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.148 2007/01/28 20:05:29 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -187,6 +187,13 @@ DragonFly)
 	;;
 FreeBSD)
 	;;
+GNU/kFreeBSD)
+	# XXX probably the same as Linux?
+	echo Warning: mksh has not yet been ported to $TARGET_OS >&2
+	echo but should work. If you can provide a shell account >&2
+	echo to the developer, the situation may improve. >&2
+	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE"
+	;;
 Interix)
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
 	;;
@@ -194,6 +201,7 @@ Linux)
 	CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=2 -D_BSD_SOURCE -D_GNU_SOURCE"
 	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 	test def = $s && s=pam
+	: ${HAVE_REVOKE=0}
 	;;
 MirBSD)
 	;;
