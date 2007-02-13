@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.149 2007/02/02 10:27:21 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.150 2007/02/13 12:26:46 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
@@ -175,6 +175,7 @@ test $r = 0 && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
 
 
 test x"$TARGET_OS" = x"" && TARGET_OS=`uname -s 2>/dev/null || uname`
+warn=
 case $TARGET_OS in
 CYGWIN*)
 	test def = $s && s=pam
@@ -187,10 +188,12 @@ DragonFly)
 	;;
 FreeBSD)
 	;;
+GNU)
+	warn=' but should work'
+	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64"
+	;;
 GNU/kFreeBSD)
-	echo Warning: mksh has not yet been ported to $TARGET_OS >&2
-	echo but should work. If you can provide a shell account >&2
-	echo to the developer, the situation may improve. >&2
+	warn=' but should work'
 	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64"
 	;;
 Interix)
@@ -214,11 +217,16 @@ SunOS)
 	r=1
 	;;
 *)
-	echo Warning: mksh has not yet been tested on your operating >&2
-	echo system "'$TARGET_OS';" it may or may not work. Please drop >&2
-	echo us a notice if it works or not or send diffs to make it work. >&2
+	warn='; it may or may not work'
 	;;
 esac
+
+if test -n "$warn"; then
+	echo "Warning: mksh has not yet been ported to or tested on your" >&2
+	echo "operating system '$TARGET_OS'$warn. If you can provide" >&2
+	echo "a shell account to the developer, this may improve; please" >&2
+	echo "drop us a success or failure notice or even send in diffs." >&2
+fi
 
 CPPFLAGS="$CPPFLAGS -I'$curdir'"
 
