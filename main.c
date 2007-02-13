@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.69 2007/02/10 21:59:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.70 2007/02/13 13:36:18 tg Exp $");
 
 extern char **environ;
 
@@ -142,6 +142,14 @@ main(int argc, char *argv[])
 		def_path = cp;
 	else
 #endif
+		/*
+		 * this is uniform across all OSes unless it
+		 * breaks somewhere; don't try to optimise,
+		 * e.g. add stuff for Interix or remove /usr
+		 * for HURD, because e.g. Debian GNU/HURD is
+		 * "keeping a regular /usr"; this is supposed
+		 * to be a sane 'basic' default PATH
+		 */
 		def_path = "/bin:/usr/bin:/sbin:/usr/sbin";
 #endif
 
