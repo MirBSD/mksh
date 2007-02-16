@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.81 2007/02/07 02:01:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.82 2007/02/16 17:46:42 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -739,8 +739,10 @@ x_escape(const char *s, size_t len, int (*putbuf_func) (const char *, size_t))
 				rval = -1;
 				break;
 			}
-			putbuf_func("\\", 1);
+			putbuf_func(s[add] == '\n' ? "'" : "\\", 1);
 			putbuf_func(&s[add], 1);
+			if (s[add] == '\n')
+				putbuf_func("'", 1);
 
 			add++;
 			wlen -= add;
