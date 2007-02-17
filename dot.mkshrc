@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.5 2007/02/17 06:04:48 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.6 2007/02/17 06:34:46 tg Exp $
 #-
 # Add user-defined additions at the end, to prevent abortion on failure.
 
@@ -24,9 +24,9 @@ alias l='/bin/ls -F'
 alias la='l -a'
 alias ll='l -l'
 alias lo='la -lo'
-[ -x /usr/bin/hd ] || eval alias hd=\''hexdump -e '\''\'\'''\''"%08.8_ax' \
-	\ '" 8/1 "%02X " " - " 8/1 "%02X "'\''\'\'''\'' -e '\''\'\'''\'\" \
-	\ '|" "%_p"'\''\'\'''\'' -e '\''\'\'''\''"|\n"'\''\'\'''\'' '\'
+[ -x /usr/bin/hd ] || eval alias hd="'hexdump -e '\\''\"%08.8_ax  \" 8/1" \
+	'"%02X " " - " 8/1 "%02X "'"'\\'' -e '\\''"'"  |" "%_p"'"'\\''" \
+	"-e '\\''"'"|\n"'"'\\'' '"
 
 # strip comments (and leading/trailing whitespace if IFS is set) from
 # any file(s) given as argument, or stdin if none, and spew to stdout
