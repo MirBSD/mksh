@@ -1,8 +1,8 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.150 2007/02/13 12:26:46 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.151 2007/02/18 16:24:13 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
-# CPPFLAGS recognised: MKSH_SMALL MKSH_NOPWNAM
+# CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
 
 v()
 {
@@ -304,6 +304,20 @@ ac_testn mksh_full '' "if we're building without MKSH_SMALL" <<-'EOF'
 	int main(void) { return (0); }
 EOF
 
+ac_testn mksh_defutf8 '' "if we assume UTF-8 is enabled" <<-'EOF'
+	#ifndef MKSH_ASSUME_UTF8
+	#error Nope, we shall check with setlocale() and nl_langinfo(CODESET)
+	#endif
+	int main(void) { return (0); }
+EOF
+
+ac_testn mksh_need_mknod '!' mksh_full 1 'if we still want c_mknod()' <<-'EOF'
+	#ifndef MKSH_NEED_MKNOD
+	#error Nope, the user really wants it teensy.
+	#endif
+	int main(void) { return (0); }
+EOF
+
 ac_testn mksh_nopam mksh_full 1 'if the user wants to omit getpwnam()' <<-'EOF'
 	#ifndef MKSH_NOPWNAM
 	#error No, the user wants to pull in getpwnam.
@@ -441,7 +455,7 @@ EOF
 test 11 = $HAVE_FLOCK_EX$HAVE_MKSH_FULL || \
     check_categories=$check_categories,no-histfile
 
-ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<-'EOF'
+ac_test setlocale_ctype '!' mksh_defutf8 0 'setlocale(LC_CTYPE, "")' <<-'EOF'
 	#include <locale.h>
 	#include <stddef.h>
 	int main(void) { return ((ptrdiff_t)(void *)setlocale(LC_CTYPE, "")); }
@@ -458,7 +472,7 @@ ac_test revoke mksh_full 0 <<-'EOF'
 	int main(int ac, char *av[]) { return (ac + revoke(av[0])); }
 EOF
 
-ac_test setmode mksh_full 1 <<-'EOF'
+ac_test setmode mksh_need_mknod 1 <<-'EOF'
 	#if defined(__MSVCRT__) || defined(__CYGWIN__)
 	#error Win32 setmode() is different from what we need
 	#endif
