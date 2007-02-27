@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.152 2007/02/27 00:23:20 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.153 2007/02/27 00:31:17 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -34,6 +34,7 @@ fi
 allu=QWERTYUIOPASDFGHJKLZXCVBNM
 alll=qwertyuiopasdfghjklzxcvbnm
 alln=0123456789
+alls=______________________________________________________________
 
 upper()
 {
@@ -116,7 +117,7 @@ ac_flags()
 ac_header()
 {
 	hf=$1; shift
-	hv=`echo "$hf" | tr -d '\r\n' | tr -c $alll$allu$alln- _`
+	hv=`echo "$hf" | tr -d '\r\n' | tr -c $alll$allu$alln $alls`
 	for i
 	do
 		echo "#include <$i>" >>x
