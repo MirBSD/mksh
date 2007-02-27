@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.151 2007/02/18 16:24:13 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.152 2007/02/27 00:23:20 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -14,6 +14,12 @@ vq()
 {
 	eval "$@"
 }
+
+if test -d /usr/xpg4/bin/. >/dev/null 2>&1; then
+	# Solaris: some of the tools have weird behaviour, use portable ones
+	PATH=/usr/xpg4/bin:$PATH
+	export PATH
+fi
 
 if test -t 1; then
 	bi=`printf '\033[1m'`
