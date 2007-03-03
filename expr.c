@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.8 2007/01/17 22:51:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.9 2007/03/03 21:12:51 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -129,7 +129,7 @@ enum error_type {
 static void evalerr(Expr_state *, enum error_type, const char *)
     __attribute__((noreturn));
 static struct tbl *evalexpr(Expr_state *, enum prec);
-static void	   token(Expr_state *);
+static void	   exprtoken(Expr_state *);
 static struct tbl *do_ppmm(Expr_state *, enum token, struct tbl *, bool);
 static void	   assign_check(Expr_state *, enum token, struct tbl *);
 static struct tbl *tempvar(void);
@@ -185,7 +185,7 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok,
 		/* NOTREACHED */
 	}
 
-	token(es);
+	exprtoken(es);
 	if (es->tok == END) {
 		es->tok = LIT;
 		es->val = tempvar();
@@ -274,7 +274,7 @@ evalexpr(Expr_state *es, enum prec prec)
 		op = es->tok;
 		if (op == O_BNOT || op == O_LNOT || op == O_MINUS ||
 		    op == O_PLUS) {
-			token(es);
+			exprtoken(es);
 			vl = intvar(es, evalexpr(es, P_PRIMARY));
 			if (op == O_BNOT)
 				vl->val.i = ~vl->val.i;
@@ -284,32 +284,32 @@ evalexpr(Expr_state *es, enum prec prec)
 				vl->val.i = -vl->val.i;
 			/* op == O_PLUS is a no-op */
 		} else if (op == OPEN_PAREN) {
-			token(es);
+			exprtoken(es);
 			vl = evalexpr(es, MAX_PREC);
 			if (es->tok != CLOSE_PAREN)
 				evalerr(es, ET_STR, "missing )");
-			token(es);
+			exprtoken(es);
 		} else if (op == O_PLUSPLUS || op == O_MINUSMINUS) {
-			token(es);
+			exprtoken(es);
 			vl = do_ppmm(es, op, es->val, true);
-			token(es);
+			exprtoken(es);
 		} else if (op == VAR || op == LIT) {
 			vl = es->val;
-			token(es);
+			exprtoken(es);
 		} else {
 			evalerr(es, ET_UNEXPECTED, NULL);
 			/* NOTREACHED */
 		}
 		if (es->tok == O_PLUSPLUS || es->tok == O_MINUSMINUS) {
 			vl = do_ppmm(es, es->tok, vl, false);
-			token(es);
+			exprtoken(es);
 		}
 		return vl;
 	}
 	vl = evalexpr(es, ((int) prec) - 1);
 	for (op = es->tok; IS_BINOP(op) && opinfo[(int) op].prec == prec;
 	    op = es->tok) {
-		token(es);
+		exprtoken(es);
 		vasn = vl;
 		if (op != O_ASN) /* vl may not have a value yet */
 			vl = intvar(es, vl);
@@ -411,7 +411,7 @@ evalexpr(Expr_state *es, enum prec prec)
 					es->noassign--;
 				if (es->tok != CTERN)
 					evalerr(es, ET_STR, "missing :");
-				token(es);
+				exprtoken(es);
 				if (ev)
 					es->noassign++;
 				vr = evalexpr(es, P_TERN);
@@ -441,7 +441,7 @@ evalexpr(Expr_state *es, enum prec prec)
 }
 
 static void
-token(Expr_state *es)
+exprtoken(Expr_state *es)
 {
 	const char *cp;
 	int c;
