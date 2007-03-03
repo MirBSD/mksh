@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.70 2007/02/13 13:36:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.71 2007/03/03 21:36:07 tg Exp $");
 
 extern char **environ;
 
@@ -615,7 +615,7 @@ quitenv(struct shf *shf)
 	 */
 	if (ep->oenv == NULL) {
 		if (ep->type == E_NONE) {	/* Main shell exiting? */
-#ifdef V_HISTFILE
+#if HAVE_PERSISTENT_HISTORY
 			if (Flag(FTALKING))
 				hist_finish();
 #endif

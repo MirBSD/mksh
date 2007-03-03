@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.34 2007/01/15 02:48:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.35 2007/03/03 21:36:08 tg Exp $");
 
 /*
  * Variables
@@ -88,7 +88,7 @@ initvar(void)
 		{ "OPTIND",		V_OPTIND },
 		{ "PATH",		V_PATH },
 		{ "TMPDIR",		V_TMPDIR },
-#ifdef V_HISTFILE
+#if HAVE_PERSISTENT_HISTORY
 		{ "HISTFILE",		V_HISTFILE },
 #endif
 		{ "HISTSIZE",		V_HISTSIZE },
@@ -987,7 +987,7 @@ setspec(struct tbl *vp)
 		sethistsize((int) intval(vp));
 		vp->flag |= SPECIAL;
 		break;
-#ifdef V_HISTFILE
+#if HAVE_PERSISTENT_HISTORY
 	case V_HISTFILE:
 		sethistfile(str_val(vp));
 		break;

@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.153 2007/02/27 00:31:17 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.154 2007/03/03 21:36:06 tg Exp $
 #-
 # Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -459,8 +459,6 @@ ac_test flock_ex '' 'flock and LOCK_EX' <<-'EOF'
 	#include <fcntl.h>
 	int main(void) { return (flock(0, LOCK_EX)); }
 EOF
-test 11 = $HAVE_FLOCK_EX$HAVE_MKSH_FULL || \
-    check_categories=$check_categories,no-histfile
 
 ac_test setlocale_ctype '!' mksh_defutf8 0 'setlocale(LC_CTYPE, "")' <<-'EOF'
 	#include <locale.h>
@@ -524,6 +522,15 @@ ac_test multi_idstring '' 'if we can use __RCSID(x) multiple times' <<-'EOF'
 	__RCSID("two");
 	int main(void) { return (0); }
 EOF
+
+ac_test persistent_history mksh_full 0 'if to use persistent history' <<-'EOF'
+	#if !HAVE_FLOCK_EX || defined(MKSH_SMALL)
+	#error No, some prerequisites are missing.
+	#endif
+	int main(void) { return (0); }
+EOF
+test 1 = $HAVE_PERSISTENT_HISTORY || \
+    check_categories=$check_categories,no-histfile
 
 #
 # Compiler: Praeprocessor (only if needed)

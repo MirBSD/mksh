@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.112 2007/02/16 17:46:42 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.113 2007/03/03 21:36:07 tg Exp $"
 #define MKSH_VERSION "R29 2007/02/16"
 
 #if HAVE_SYS_PARAM_H
@@ -739,10 +739,7 @@ extern const struct builtin shbuiltins [], kshbuiltins [];
 #define V_OPTIND	4
 #define V_RANDOM	8
 #define V_HISTSIZE	9
-/* this is defined when we support persistent history, undefined otherwise */
-#if HAVE_FLOCK_EX && !defined(MKSH_SMALL)
 #define V_HISTFILE	10
-#endif
 #define V_COLUMNS	13
 #define V_TMOUT		15
 #define V_TMPDIR	16
@@ -1173,13 +1170,13 @@ int c_test(char **);
 /* histrap.c */
 void init_histvec(void);
 void hist_init(Source *);
-#ifdef V_HISTFILE
+#if HAVE_PERSISTENT_HISTORY
 void hist_finish(void);
 #endif
 void histsave(int, const char *, int);
 int c_fc(char **);
 void sethistsize(int);
-#ifdef V_HISTFILE
+#if HAVE_PERSISTENT_HISTORY
 void sethistfile(const char *);
 #endif
 char **histpos(void);
