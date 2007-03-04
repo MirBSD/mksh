@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.159 2007/03/04 04:45:36 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.160 2007/03/04 04:52:28 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -117,7 +117,9 @@ ac_flags()
 ac_header()
 {
 	hf=$1; shift
-	hv=`echo "$hf" | tr -d '\r\n' | tr -c $alll$allu$alln $alls`
+	n='
+'
+	hv=`echo "$hf" | tr -d $n$(printf '\r') | tr -c $alll$allu$alln $alls`
 	for i
 	do
 		echo "#include <$i>" >>x
