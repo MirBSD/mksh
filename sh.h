@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.117 2007/03/04 05:04:54 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.118 2007/03/04 05:14:10 tg Exp $"
 #define MKSH_VERSION "R29 2007/03/04"
 
 #if HAVE_SYS_PARAM_H
@@ -158,6 +158,9 @@ typedef int bool;
 
 #ifndef S_ISTXT
 #define S_ISTXT		0001000
+#endif
+#ifndef S_ISSOCK
+#define S_ISSOCK(m)	((m & 0170000) == 0140000)
 #endif
 #ifndef DEFFILEMODE
 #define DEFFILEMODE	(S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
