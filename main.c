@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.71 2007/03/03 21:36:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.72 2007/03/04 00:13:16 tg Exp $");
 
 extern char **environ;
 
@@ -60,14 +60,14 @@ static const char *initcoms[] = {
 static int initio_done;
 
 int
-main(int argc, char *argv[])
+main(int argc, const char *argv[])
 {
 	int i;
 	int argi;
 	Source *s;
 	struct block *l;
 	int restricted, errexit;
-	char **wp;
+	const char **wp;
 	struct env env;
 	pid_t ppid;
 	struct tbl *vp;
@@ -82,8 +82,9 @@ main(int argc, char *argv[])
 
 	/* make sure argv[] is sane */
 	if (!*argv) {
-		static char empty_argv0[] = "mksh",
-		    *empty_argv[] = { empty_argv0, NULL };
+		static const char *empty_argv[] = {
+			"mksh", NULL
+		};
 
 		argv = empty_argv;
 		argc = 1;
@@ -180,7 +181,7 @@ main(int argc, char *argv[])
 
 	/* import environment */
 	if (environ != NULL)
-		for (wp = environ; *wp != NULL; wp++)
+		for (wp = (const char **)environ; *wp != NULL; wp++)
 			typeset(*wp, IMPORT | EXPORT, 0, 0, 0);
 
 	kshpid = procpid = getpid();
@@ -219,7 +220,7 @@ main(int argc, char *argv[])
 	setint(global("PPID"), (long)ppid);
 
 	/* execute initialisation statements */
-	for (wp = (char **)initcoms; *wp != NULL; wp++) {
+	for (wp = initcoms; *wp != NULL; wp++) {
 		shcomexec(wp);
 		for (; *wp != NULL; wp++)
 			;
@@ -312,7 +313,7 @@ main(int argc, char *argv[])
 	l = e->loc;
 	l->argv = &argv[argi - 1];
 	l->argc = argc - argi;
-	l->argv[0] = (char *)kshname;
+	l->argv[0] = kshname;
 	getopts_reset(1);
 
 	/* Disable during .profile/ENV reading */
@@ -346,12 +347,12 @@ main(int argc, char *argv[])
 	}
 
 	if (restricted) {
-		static const char *const restr_com[] = {
+		static const char *restr_com[] = {
 			"typeset", "-r", "PATH",
 			"ENV", "SHELL",
 			NULL
 		};
-		shcomexec((char **)restr_com);
+		shcomexec(restr_com);
 		/* After typeset command... */
 		Flag(FRESTRICTED) = 1;
 	}
@@ -369,11 +370,11 @@ main(int argc, char *argv[])
 }
 
 int
-include(const char *name, int argc, char **argv, int intr_ok)
+include(const char *name, int argc, const char **argv, int intr_ok)
 {
 	Source *volatile s = NULL;
 	struct shf *shf;
-	char **volatile old_argv;
+	const char **volatile old_argv;
 	volatile int old_argc;
 	int i;
 
@@ -975,7 +976,7 @@ closepipe(int *pv)
  * a string (the X in 2>&X, read -uX, print -uX) into a file descriptor.
  */
 int
-check_fd(char *name, int mode, const char **emsgp)
+check_fd(const char *name, int mode, const char **emsgp)
 {
 	int fd, fl;
 

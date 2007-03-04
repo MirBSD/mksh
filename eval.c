@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.22 2007/01/17 18:01:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.23 2007/03/04 00:13:15 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -40,12 +40,12 @@ typedef struct Expand {
 #define IFS_WS		1	/* have seen IFS white-space */
 #define IFS_NWS		2	/* have seen IFS non-white-space */
 
-static int varsub(Expand *, char *, char *, int *, int *);
-static int comsub(Expand *, char *);
+static int varsub(Expand *, const char *, const char *, int *, int *);
+static int comsub(Expand *, const char *);
 static char *trimsub(char *, char *, int);
 static void glob(char *, XPtrV *, int);
 static void globit(XString *, char **, char *, XPtrV *, int);
-static char *maybe_expand_tilde(char *, XString *, char **, int);
+static const char *maybe_expand_tilde(const char *, XString *, char **, int);
 static char *tilde(char *);
 #ifndef MKSH_NOPWNAM
 static char *homedir(char *);
@@ -73,12 +73,16 @@ substitute(const char *cp, int f)
  * expand arg-list
  */
 char **
-eval(char **ap, int f)
+eval(const char **ap, int f)
 {
 	XPtrV w;
 
-	if (*ap == NULL)
-		return ap;
+	if (*ap == NULL) {
+		union mksh_ccphack vap;
+
+		vap.ro = ap;
+		return (vap.rw);
+	}
 	XPinit(w, 32);
 	XPput(w, NULL);		/* space for shell name */
 	while (*ap != NULL)
@@ -91,15 +95,16 @@ eval(char **ap, int f)
  * expand string
  */
 char *
-evalstr(char *cp, int f)
+evalstr(const char *cp, int f)
 {
 	XPtrV w;
+	char *dp;
 
 	XPinit(w, 1);
 	expand(cp, &w, f);
-	cp = (XPsize(w) == 0) ? null : (char*) *XPptrv(w);
+	dp = (XPsize(w) == 0) ? null : (char*) *XPptrv(w);
 	XPfree(w);
-	return cp;
+	return (dp);
 }
 
 /*
@@ -107,25 +112,26 @@ evalstr(char *cp, int f)
  * used from iosetup to expand redirection files
  */
 char *
-evalonestr(char *cp, int f)
+evalonestr(const char *cp, int f)
 {
 	XPtrV w;
+	char *rv;
 
 	XPinit(w, 1);
 	expand(cp, &w, f);
 	switch (XPsize(w)) {
 	case 0:
-		cp = null;
+		rv = null;
 		break;
 	case 1:
-		cp = (char*) *XPptrv(w);
+		rv = (char *) *XPptrv(w);
 		break;
 	default:
-		cp = evalstr(cp, f&~DOGLOB);
+		rv = evalstr(cp, f&~DOGLOB);
 		break;
 	}
 	XPfree(w);
-	return cp;
+	return (rv);
 }
 
 /* for nested substitution: ${var:=$var2} */
@@ -140,7 +146,7 @@ typedef struct SubType {
 } SubType;
 
 void
-expand(char *cp,	/* input word */
+expand(const char *cp,	/* input word */
     XPtrV *wp,		/* output words */
     int f)		/* DO* flags */
 {
@@ -148,7 +154,8 @@ expand(char *cp,	/* input word */
 	int type;		/* expansion type */
 	int quote = 0;		/* quoted */
 	XString ds;		/* destination string */
-	char *dp, *sp;		/* dest., source */
+	char *dp;		/* destination */
+	const char *sp;		/* source */
 	int fdo, word;		/* second pass flags; have word */
 	int doblank;		/* field splitting of parameter/command subst */
 	Expand x = {		/* expansion variables */
@@ -262,26 +269,25 @@ expand(char *cp,	/* input word */
 			   * This is where all syntax checking gets done...
 			   */
 			    {
-				char *varname = ++sp; /* skip the { or x (}) */
+				const char *varname = ++sp; /* skip the { or x (}) */
 				int stype;
 				int slen = 0;
 
 				sp = strchr(sp, '\0') + 1; /* skip variable */
 				type = varsub(&x, varname, sp, &stype, &slen);
 				if (type < 0) {
-					char endc;
-					char *str, *end;
+					char *beg, *end, *str;
 
 					sp = varname - 2; /* restore sp */
-					end = sp + (wdscan(sp, CSUBST) - sp);
+					end = (beg = str_save(sp, ATEMP)) +
+					    (wdscan(sp, CSUBST) - sp);
 					/* ({) the } or x is already skipped */
-					endc = *end;
 					*end = EOS;
-					str = snptreef(NULL, 64, "%S", sp);
-					*end = endc;
+					str = snptreef(NULL, 64, "%S", beg);
+					afree(beg, ATEMP);
 					errorf("%s: bad substitution", str);
 				}
-				if (f&DOBLANK)
+				if (f & DOBLANK)
 					doblank++;
 				tilde_ok = 0;
 				if (type == XBASE) {	/* expand? */
@@ -639,7 +645,8 @@ expand(char *cp,	/* input word */
 					if (type == XBASE &&
 					    (f & (DOTILDE|DOASNTILDE)) &&
 					    (tilde_ok & 2)) {
-						char *p, *dp_x;
+						const char *p;
+						char *dp_x;
 
 						dp_x = dp;
 						p = maybe_expand_tilde(sp,
@@ -676,7 +683,7 @@ expand(char *cp,	/* input word */
  * Prepare to generate the string returned by ${} substitution.
  */
 static int
-varsub(Expand *xp, char *sp, char *word,
+varsub(Expand *xp, const char *sp, const char *word,
     int *stypep,	/* becomes qualifier type */
     int *slenp)		/* " " len (=, :=, etc.) valid iff *stypep != 0 */
 {
@@ -684,7 +691,7 @@ varsub(Expand *xp, char *sp, char *word,
 	int state;	/* next state: XBASE, XARG, XSUB, XNULLSUB */
 	int stype;	/* substitution type */
 	int slen;
-	char *p;
+	const char *p;
 	struct tbl *vp;
 
 	if (sp[0] == '\0')	/* Bad variable name */
@@ -701,7 +708,8 @@ varsub(Expand *xp, char *sp, char *word,
 			return -1;
 		sp++;
 		/* Check for size of array */
-		if ((p=strchr(sp,'[')) && (p[1]=='*'||p[1]=='@') && p[2]==']') {
+		if ((p = cstrchr(sp, '[')) && (p[1] == '*' || p[1] == '@') &&
+		    p[2] == ']') {
 			int n = 0;
 			int max = 0;
 
@@ -772,7 +780,8 @@ varsub(Expand *xp, char *sp, char *word,
 			state = XARG;
 		}
 	} else {
-		if ((p=strchr(sp,'[')) && (p[1]=='*'||p[1]=='@') && p[2]==']') {
+		if ((p = cstrchr(sp, '[')) && (p[1] == '*' || p[1] == '@') &&
+		    p[2] == ']') {
 			XPtrV wv;
 
 			switch (stype & 0x7f) {
@@ -827,7 +836,7 @@ varsub(Expand *xp, char *sp, char *word,
  * Run the command in $(...) and read its output.
  */
 static int
-comsub(Expand *xp, char *cp)
+comsub(Expand *xp, const char *cp)
 {
 	Source *s, *sold;
 	struct op *t;
@@ -1120,12 +1129,13 @@ debunk(char *dp, const char *sp, size_t dlen)
  * puts the expanded version in *dcp,dp and returns a pointer in p just
  * past the name, otherwise returns 0.
  */
-static char *
-maybe_expand_tilde(char *p, XString *dsp, char **dpp, int isassign)
+static const char *
+maybe_expand_tilde(const char *p, XString *dsp, char **dpp, int isassign)
 {
 	XString ts;
 	char *dp = *dpp;
-	char *tp, *r;
+	char *tp;
+	const char *r;
 
 	Xinit(ts, tp, 16, ATEMP);
 	/* : only for DOASNTILDE form */

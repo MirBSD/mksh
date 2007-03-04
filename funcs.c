@@ -5,10 +5,10 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.46 2007/01/26 18:37:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.47 2007/03/04 00:13:15 tg Exp $");
 
 int
-c_cd(char **wp)
+c_cd(const char **wp)
 {
 	int optc;
 	int physical = Flag(FPHYSICAL);
@@ -21,6 +21,7 @@ c_cd(char **wp)
 	char *dir, *try, *pwd;
 	int phys_path;
 	char *cdpath;
+	bool dir_ = false;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "LP")) != -1)
 		switch (optc) {
@@ -51,15 +52,17 @@ c_cd(char **wp)
 		}
 	} else if (!wp[1]) {
 		/* One argument: - or dir */
-		dir = wp[0];
+		dir = str_save(wp[0], ATEMP);
 		if (strcmp(dir, "-") == 0) {
+			afree(dir, ATEMP);
 			dir = str_val(oldpwd_s);
 			if (dir == null) {
 				bi_errorf("no OLDPWD");
 				return 1;
 			}
 			printpath++;
-		}
+		} else
+			dir_ = true;
 	} else if (!wp[2]) {
 		/* Two arguments - substitute arg1 in PWD for arg2 */
 		int ilen, olen, nlen, elen;
@@ -83,6 +86,7 @@ c_cd(char **wp)
 		nlen = strlen(wp[1]);
 		elen = strlen(current_wd + ilen + olen) + 1;
 		dir = alloc(ilen + nlen + elen, ATEMP);
+		dir_ = true;
 		memcpy(dir, current_wd, ilen);
 		memcpy(dir + ilen, wp[1], nlen);
 		memcpy(dir + ilen + nlen, current_wd + ilen + olen, elen);
@@ -114,6 +118,7 @@ c_cd(char **wp)
 			bi_errorf("%s: bad directory", dir);
 		else
 			bi_errorf("%s - %s", try, strerror(errno));
+		afreechv(dir_, dir);
 		return 1;
 	}
 
@@ -147,11 +152,12 @@ c_cd(char **wp)
 	if (printpath || cdnode)
 		shprintf("%s\n", pwd);
 
+	afreechv(dir_, dir);
 	return 0;
 }
 
 int
-c_pwd(char **wp)
+c_pwd(const char **wp)
 {
 	int optc;
 	int physical = Flag(FPHYSICAL);
@@ -187,7 +193,7 @@ c_pwd(char **wp)
 }
 
 int
-c_print(char **wp)
+c_print(const char **wp)
 {
 #define PO_NL		BIT(0)	/* print newline */
 #define PO_EXPAND	BIT(1)	/* expand backslash sequences */
@@ -196,7 +202,7 @@ c_print(char **wp)
 #define PO_COPROC	BIT(4)	/* printing to coprocess: block SIGPIPE */
 	int fd = 1;
 	int flags = PO_EXPAND|PO_NL;
-	char *s;
+	const char *s;
 	const char *emsg;
 	XString xs;
 	char *xp;
@@ -375,10 +381,10 @@ c_print(char **wp)
 }
 
 int
-c_whence(char **wp)
+c_whence(const char **wp)
 {
 	struct tbl *tp;
-	char *id;
+	const char *id;
 	int pflag = 0, vflag = 0, Vflag = 0;
 	int ret = 0;
 	int optc;
@@ -495,7 +501,7 @@ c_whence(char **wp)
 
 /* Deal with command -vV - command -p dealt with in comexec() */
 int
-c_command(char **wp)
+c_command(const char **wp)
 {
 	/* Let c_whence do the work.  Note that c_command() must be
 	 * a distinct function from c_whence() (tested in comexec()).
@@ -505,14 +511,14 @@ c_command(char **wp)
 
 /* typeset, export, and readonly */
 int
-c_typeset(char **wp)
+c_typeset(const char **wp)
 {
 	struct block *l = e->loc;
 	struct tbl *vp, **p;
 	Tflag fset = 0, fclr = 0;
 	int thing = 0, func = 0, localv = 0;
 	const char *opts = "L#R#UZ#fi#lprtux";	/* see comment below */
-	char *fieldstr, *basestr;
+	const char *fieldstr, *basestr;
 	int field, base;
 	int optc;
 	Tflag flag;
@@ -802,7 +808,7 @@ c_typeset(char **wp)
 }
 
 int
-c_alias(char **wp)
+c_alias(const char **wp)
 {
 	struct table *t = &aliases;
 	int rv = 0, rflag = 0, tflag, Uflag = 0, pflag = 0;
@@ -856,8 +862,9 @@ c_alias(char **wp)
 
 	/* "hash -r" means reset all the tracked aliases.. */
 	if (rflag) {
-		static char args0[] = "unalias", args1[] = "-ta",
-		    *args[] = { args0, args1, NULL };
+		static const char *args[] = {
+			"unalias", "-ta", NULL
+		};
 
 		if (!tflag || *wp) {
 			shprintf("alias: -r flag can only be used with -t"
@@ -885,14 +892,15 @@ c_alias(char **wp)
 	}
 
 	for (; *wp != NULL; wp++) {
-		char *alias = *wp;
-		char *val = strchr(alias, '=');
+		const char *alias = *wp;
+		char *xalias = NULL;
+		const char *val;
 		const char *newval;
 		struct tbl *ap;
 		int h;
 
-		if (val)
-			alias = str_nsave(alias, val++ - alias, ATEMP);
+		if ((val = cstrchr(alias, '=')))
+			alias = xalias = str_nsave(alias, val++ - alias, ATEMP);
 		h = hash(alias);
 		if (val == NULL && !tflag && !xflag) {
 			ap = ktsearch(t, alias, h);
@@ -933,15 +941,14 @@ c_alias(char **wp)
 			ap->flag &= ~xflag;
 		else
 			ap->flag |= xflag;
-		if (val)
-			afree(alias, ATEMP);
+		afreechk(xalias);
 	}
 
 	return rv;
 }
 
 int
-c_unalias(char **wp)
+c_unalias(const char **wp)
 {
 	struct table *t = &aliases;
 	struct tbl *ap;
@@ -997,7 +1004,7 @@ c_unalias(char **wp)
 }
 
 int
-c_let(char **wp)
+c_let(const char **wp)
 {
 	int rv = 1;
 	long val;
@@ -1015,7 +1022,7 @@ c_let(char **wp)
 }
 
 int
-c_jobs(char **wp)
+c_jobs(const char **wp)
 {
 	int optc;
 	int flag = 0;
@@ -1052,7 +1059,7 @@ c_jobs(char **wp)
 }
 
 int
-c_fgbg(char **wp)
+c_fgbg(const char **wp)
 {
 	int bg = strcmp(*wp, "bg") == 0;
 	int rv = 0;
@@ -1094,10 +1101,10 @@ kill_fmt_entry(const void *arg, int i, char *buf, int buflen)
 
 
 int
-c_kill(char **wp)
+c_kill(const char **wp)
 {
 	Trap *t = NULL;
-	char *p;
+	const char *p;
 	int lflag = 0;
 	int i, n, rv, sig;
 
@@ -1207,7 +1214,7 @@ getopts_reset(int val)
 }
 
 int
-c_getopts(char **wp)
+c_getopts(const char **wp)
 {
 	int	argc;
 	const char *opts;
@@ -1304,7 +1311,7 @@ c_getopts(char **wp)
 }
 
 int
-c_bind(char **wp)
+c_bind(const char **wp)
 {
 	int optc, rv = 0, macro = 0, list = 0;
 	char *cp;
@@ -1369,18 +1376,18 @@ static void p_time(struct shf *, int, struct timeval *, int,
 
 /* :, false and true */
 int
-c_label(char **wp)
+c_label(const char **wp)
 {
 	return wp[0][0] == 'f' ? 1 : 0;
 }
 
 int
-c_shift(char **wp)
+c_shift(const char **wp)
 {
 	struct block *l = e->loc;
 	int n;
 	long val;
-	char *arg;
+	const char *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return 1;
@@ -1406,10 +1413,10 @@ c_shift(char **wp)
 }
 
 int
-c_umask(char **wp)
+c_umask(const char **wp)
 {
 	int i;
-	char *cp;
+	const char *cp;
 	int symbolic = 0;
 	mode_t old_umask;
 	int optc;
@@ -1427,20 +1434,20 @@ c_umask(char **wp)
 		old_umask = umask(0);
 		umask(old_umask);
 		if (symbolic) {
-			char buf[18];
+			char buf[18], *p;
 			int j;
 
 			old_umask = ~old_umask;
-			cp = buf;
+			p = buf;
 			for (i = 0; i < 3; i++) {
-				*cp++ = "ugo"[i];
-				*cp++ = '=';
+				*p++ = "ugo"[i];
+				*p++ = '=';
 				for (j = 0; j < 3; j++)
 					if (old_umask & (1 << (8 - (3*i + j))))
-						*cp++ = "rwx"[j];
-				*cp++ = ',';
+						*p++ = "rwx"[j];
+				*p++ = ',';
 			}
-			cp[-1] = '\0';
+			p[-1] = '\0';
 			shprintf("%s\n", buf);
 		} else
 			shprintf("%#3.3o\n", (unsigned) old_umask);
@@ -1533,11 +1540,11 @@ c_umask(char **wp)
 }
 
 int
-c_dot(char **wp)
+c_dot(const char **wp)
 {
 	const char *file;
-	char *cp;
-	char **argv;
+	const char *cp;
+	const char **argv;
 	int argc;
 	int i;
 	int err;
@@ -1572,7 +1579,7 @@ c_dot(char **wp)
 }
 
 int
-c_wait(char **wp)
+c_wait(const char **wp)
 {
 	int rv = 0;
 	int sig;
@@ -1594,20 +1601,21 @@ c_wait(char **wp)
 }
 
 int
-c_read(char **wp)
+c_read(const char **wp)
 {
 	int c = 0;
 	int expande = 1, historyr = 0;
 	int expanding;
 	int ecode = 0;
-	char *cp;
+	const char *cp;
+	char *ccp;
 	int fd = 0;
 	struct shf *shf;
 	int optc;
 	const char *emsg;
 	XString cs, xs = { NULL, NULL, 0, NULL};
 	struct tbl *vp;
-	char *xp = NULL;
+	char *xp = NULL, *wpalloc = NULL;
 	static char REPLY[] = "REPLY";
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "prsu,")) != -1)
@@ -1645,8 +1653,10 @@ c_read(char **wp)
 	 */
 	shf = shf_reopen(fd, SHF_RD | SHF_INTERRUPT | can_seek(fd), shl_spare);
 
-	if ((cp = strchr(*wp, '?')) != NULL) {
-		*cp = 0;
+	if ((cp = cstrchr(*wp, '?')) != NULL) {
+		wpalloc = str_save(*wp, ATEMP);
+		wpalloc[cp - *wp] = '\0';
+		*wp = wpalloc;
 		if (isatty(fd)) {
 			/* at&t ksh says it prints prompt on fd if it's open
 			 * for writing and is a tty, but it doesn't do it
@@ -1671,9 +1681,9 @@ c_read(char **wp)
 	if (historyr)
 		Xinit(xs, xp, 128, ATEMP);
 	expanding = 0;
-	Xinit(cs, cp, 128, ATEMP);
+	Xinit(cs, ccp, 128, ATEMP);
 	for (; *wp != NULL; wp++) {
-		for (cp = Xstring(cs, cp); ; ) {
+		for (ccp = Xstring(cs, ccp); ; ) {
 			if (c == '\n' || c == EOF)
 				break;
 			while (1) {
@@ -1700,7 +1710,7 @@ c_read(char **wp)
 				Xcheck(xs, xp);
 				Xput(xs, xp, c);
 			}
-			Xcheck(cs, cp);
+			Xcheck(cs, ccp);
 			if (expanding) {
 				expanding = 0;
 				if (c == '\n') {
@@ -1713,7 +1723,7 @@ c_read(char **wp)
 						pprompt(prompt, 0);
 					}
 				} else if (c != EOF)
-					Xput(cs, cp, c);
+					Xput(cs, ccp, c);
 				continue;
 			}
 			if (expande && c == '\\') {
@@ -1723,31 +1733,33 @@ c_read(char **wp)
 			if (c == '\n' || c == EOF)
 				break;
 			if (ctype(c, C_IFS)) {
-				if (Xlength(cs, cp) == 0 && ctype(c, C_IFSWS))
+				if (Xlength(cs, ccp) == 0 && ctype(c, C_IFSWS))
 					continue;
 				if (wp[1])
 					break;
 			}
-			Xput(cs, cp, c);
+			Xput(cs, ccp, c);
 		}
 		/* strip trailing IFS white space from last variable */
 		if (!wp[1])
-			while (Xlength(cs, cp) && ctype(cp[-1], C_IFS) &&
-			    ctype(cp[-1], C_IFSWS))
-				cp--;
-		Xput(cs, cp, '\0');
+			while (Xlength(cs, ccp) && ctype(ccp[-1], C_IFS) &&
+			    ctype(ccp[-1], C_IFSWS))
+				ccp--;
+		Xput(cs, ccp, '\0');
 		vp = global(*wp);
 		/* Must be done before setting export. */
 		if (vp->flag & RDONLY) {
 			shf_flush(shf);
 			bi_errorf("%s is read only", *wp);
+			afreechk(wpalloc);
 			return 1;
 		}
 		if (Flag(FEXPORT))
 			typeset(*wp, EXPORT, 0, 0, 0);
-		if (!setstr(vp, Xstring(cs, cp), KSH_RETURN_ERROR)) {
-		    shf_flush(shf);
-		    return 1;
+		if (!setstr(vp, Xstring(cs, ccp), KSH_RETURN_ERROR)) {
+			shf_flush(shf);
+			afreechk(wpalloc);
+			return 1;
 		}
 	}
 
@@ -1765,11 +1777,12 @@ c_read(char **wp)
 	if (c == EOF && !ecode)
 		coproc_read_close(fd);
 
+	afreechk(wpalloc);
 	return ecode ? ecode : c == EOF;
 }
 
 int
-c_eval(char **wp)
+c_eval(const char **wp)
 {
 	struct source *s, *saves = source;
 	int savef, rv;
@@ -1814,10 +1827,10 @@ c_eval(char **wp)
 }
 
 int
-c_trap(char **wp)
+c_trap(const char **wp)
 {
 	int i;
-	char *s;
+	const char *s;
 	Trap *p;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
@@ -1861,11 +1874,11 @@ c_trap(char **wp)
 }
 
 int
-c_exitreturn(char **wp)
+c_exitreturn(const char **wp)
 {
 	int how = LEXIT;
 	int n;
-	char *arg;
+	const char *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return 1;
@@ -1903,11 +1916,11 @@ c_exitreturn(char **wp)
 }
 
 int
-c_brkcont(char **wp)
+c_brkcont(const char **wp)
 {
 	int n, quit;
 	struct env *ep, *last_ep = NULL;
-	char *arg;
+	const char *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return 1;
@@ -1956,15 +1969,14 @@ c_brkcont(char **wp)
 }
 
 int
-c_set(char **wp)
+c_set(const char **wp)
 {
 	int argi, setargs;
 	struct block *l = e->loc;
-	char **owp = wp;
+	const char **owp = wp;
 
 	if (wp[1] == NULL) {
-		static char args0[] = "set", args1[] = "-",
-		    *args[] = { args0, args1, NULL };
+		static const char *args [] = { "set", "-", NULL };
 		return c_typeset(args);
 	}
 
@@ -1978,7 +1990,8 @@ c_set(char **wp)
 		while (*++wp != NULL)
 			*wp = str_save(*wp, &l->area);
 		l->argc = wp - owp - 1;
-		l->argv = (char **) alloc(sizeofN(char *, l->argc+2), &l->area);
+		l->argv = (const char **) alloc(sizeofN(char *, l->argc+2),
+		     &l->area);
 		for (wp = l->argv; (*wp++ = *owp++) != NULL; )
 			;
 	}
@@ -1992,9 +2005,9 @@ c_set(char **wp)
 }
 
 int
-c_unset(char **wp)
+c_unset(const char **wp)
 {
-	char *id;
+	const char *id;
 	int optc, unset_var = 1;
 	int ret = 0;
 
@@ -2042,7 +2055,7 @@ p_time(struct shf *shf, int posix, struct timeval *tv, int width,
 }
 
 int
-c_times(char **wp __unused)
+c_times(const char **wp __unused)
 {
 	struct rusage usage;
 
@@ -2147,7 +2160,7 @@ timex_hook(struct op *t, char **volatile *app)
 
 	ksh_getopt_reset(&opt, 0);
 	opt.optind = 0;	/* start at the start */
-	while ((optc = ksh_getopt(wp, &opt, ":p")) != -1)
+	while ((optc = ksh_getopt((const char **)wp, &opt, ":p")) != -1)
 		switch (optc) {
 		case 'p':
 			t->str[0] |= TF_POSIX;
@@ -2172,7 +2185,7 @@ timex_hook(struct op *t, char **volatile *app)
 
 /* exec with no args - args case is taken care of in comexec() */
 int
-c_exec(char **wp __unused)
+c_exec(const char **wp __unused)
 {
 	int i;
 
@@ -2192,11 +2205,11 @@ c_exec(char **wp __unused)
 
 #if !defined(MKSH_SMALL) || defined(MKSH_NEED_MKNOD)
 static int
-c_mknod(char **wp)
+c_mknod(const char **wp)
 {
 	int argc, optc, rv = 0;
 	bool ismkfifo = false;
-	char **argv;
+	const char **argv;
 	void *set = NULL;
 	mode_t mode = 0, oldmode = 0;
 
@@ -2278,7 +2291,7 @@ c_mknod(char **wp)
 
 /* dummy function, special case in comexec() */
 int
-c_builtin(char **wp __unused)
+c_builtin(const char **wp __unused)
 {
 	return 0;
 }
@@ -2401,7 +2414,7 @@ static int	ptest_eval(Test_env *, Test_op, const char *,
 static void	ptest_error(Test_env *, int, const char *);
 
 int
-c_test(char **wp)
+c_test(const char **wp)
 {
 	int argc;
 	int res;
@@ -2432,7 +2445,7 @@ c_test(char **wp)
 	 * our parser does the right thing for the omitted steps.
 	 */
 	if (argc <= 5) {
-		char **owp = wp;
+		const char **owp = wp;
 		int invert = 0;
 		Test_op	op;
 		const char *opnd1, *opnd2;
@@ -2834,7 +2847,7 @@ ptest_error(Test_env *te, int offset, const char *msg)
 #define HARD	0x2
 
 int
-c_ulimit(char **wp)
+c_ulimit(const char **wp)
 {
 	static const struct limits {
 		const char	*name;

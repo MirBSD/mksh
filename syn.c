@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.10 2007/01/17 22:51:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.11 2007/03/04 00:13:17 tg Exp $");
 
 struct nesting_state {
 	int	start_token;	/* token than began nesting (eg, FOR) */
@@ -376,7 +376,7 @@ get_command(int cf)
 	}
 
 	if (iopn == 0) {
-		afree((void*) iops, ATEMP);
+		afree((void*)iops, ATEMP);
 		t->ioact = NULL;
 	} else {
 		iops[iopn++] = NULL;
@@ -387,7 +387,7 @@ get_command(int cf)
 
 	if (t->type == TCOM || t->type == TDBRACKET) {
 		XPput(args, NULL);
-		t->args = (char **) XPclose(args);
+		t->args = (const char **)XPclose(args);
 		XPput(vars, NULL);
 		t->vars = (char **) XPclose(vars);
 	} else {
@@ -549,6 +549,7 @@ function_body(char *name,
 	old_func_parse = e->flags & EF_FUNC_PARSE;
 	e->flags |= EF_FUNC_PARSE;
 	if ((t->left = get_command(CONTIN)) == NULL) {
+		char *tv;
 		/*
 		 * Probably something like foo() followed by eof or ;.
 		 * This is accepted by sh and ksh88.
@@ -556,13 +557,13 @@ function_body(char *name,
 		 * be used as input), we pretend there is a colon here.
 		 */
 		t->left = newtp(TCOM);
-		t->left->args = (char **) alloc(sizeof(char *) * 2, ATEMP);
-		t->left->args[0] = alloc(sizeof(char) * 3, ATEMP);
-		t->left->args[0][0] = CHAR;
-		t->left->args[0][1] = ':';
-		t->left->args[0][2] = EOS;
+		t->left->args = (const char **)alloc(sizeof(char *) * 2, ATEMP);
+		t->left->args[0] = tv = alloc(sizeof(char) * 3, ATEMP);
+		tv[0] = CHAR;
+		tv[1] = ':';
+		tv[2] = EOS;
 		t->left->args[1] = NULL;
-		t->left->vars = (char **) alloc(sizeof(char *), ATEMP);
+		t->left->vars = (char **)alloc(sizeof(char *), ATEMP);
 		t->left->vars[0] = NULL;
 		t->left->lineno = 1;
 	}
@@ -739,10 +740,11 @@ newtp(int type)
 {
 	struct op *t;
 
-	t = (struct op *) alloc(sizeof(*t), ATEMP);
+	t = (struct op *)alloc(sizeof(*t), ATEMP);
 	t->type = type;
 	t->u.evalflags = 0;
-	t->args = t->vars = NULL;
+	t->args = NULL;
+	t->vars = NULL;
 	t->ioact = NULL;
 	t->left = t->right = NULL;
 	t->str = NULL;

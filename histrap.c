@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.43 2007/03/03 21:36:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.44 2007/03/04 00:13:16 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign, Sigact_trap;
@@ -35,14 +35,15 @@ static int	hsize;
 #endif
 
 int
-c_fc(char **wp)
+c_fc(const char **wp)
 {
 	struct shf *shf;
 	struct temp *tf = NULL;
-	char *p, *editor = NULL;
+	const char *p;
+	char *editor = NULL;
 	int gflag = 0, lflag = 0, nflag = 0, sflag = 0, rflag = 0;
 	int optc;
-	char *first = NULL, *last = NULL;
+	const char *first = NULL, *last = NULL;
 	char **hfirst, **hlast, **hp;
 
 	if (!Flag(FTALKING_I)) {
@@ -107,11 +108,10 @@ c_fc(char **wp)
 		}
 
 		/* Check for pattern replacement argument */
-		if (*wp && **wp && (p = strchr(*wp + 1, '='))) {
+		if (*wp && **wp && (p = cstrchr(*wp + 1, '='))) {
 			pat = str_save(*wp, ATEMP);
-			p = pat + (p - *wp);
-			*p++ = '\0';
-			rep = p;
+			rep = pat + (p - *wp);
+			*rep++ = '\0';
 			wp++;
 		}
 		/* Check for search prefix */
@@ -1239,7 +1239,7 @@ restoresigs(void)
 }
 
 void
-settrap(Trap *p, char *s)
+settrap(Trap *p, const char *s)
 {
 	sig_t f;
 

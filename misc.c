@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.50 2007/01/26 18:27:34 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.51 2007/03/04 00:13:16 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -88,9 +88,9 @@ str_save(const char *s, Area *ap)
 
 /* called from XcheckN() to grow buffer */
 char *
-Xcheck_grow_(XString *xsp, char *xp, unsigned more)
+Xcheck_grow_(XString *xsp, const char *xp, unsigned more)
 {
-	char *old_beg = xsp->beg;
+	const char *old_beg = xsp->beg;
 
 	xsp->len += more > xsp->len ? more : xsp->len;
 	xsp->beg = aresize(xsp->beg, xsp->len + 8, xsp->areap);
@@ -268,14 +268,14 @@ change_flag(enum sh_flag f,
  * non-option arguments, -1 if there is an error.
  */
 int
-parse_args(char **argv,
+parse_args(const char **argv,
     int what,			/* OF_CMDLINE or OF_SET */
     int *setargsp)
 {
 	static char cmd_opts[NELEM(options) + 5]; /* o:T:\0 */
 	static char set_opts[NELEM(options) + 6]; /* A:o;s\0 */
 	char *opts;
-	char *array = NULL;
+	const char *array = NULL;
 	Getopt go;
 	int optc, set, sortargs = 0, arrayset = 0;
 	unsigned i;
@@ -808,13 +808,13 @@ ksh_getopt_reset(Getopt *go, int flags)
  *	  in go->info.
  */
 int
-ksh_getopt(char **argv, Getopt *go, const char *optionsp)
+ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 {
 	char c;
 	char *o;
 
 	if (go->p == 0 || (c = argv[go->optind - 1][go->p]) == '\0') {
-		char *arg = argv[go->optind], flag = arg ? *arg : '\0';
+		const char *arg = argv[go->optind], flag = arg ? *arg : '\0';
 
 		go->p = 1;
 		if (flag == '-' && arg[1] == '-' && arg[2] == '\0') {

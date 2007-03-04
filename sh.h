@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.113 2007/03/03 21:36:07 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.114 2007/03/04 00:13:16 tg Exp $"
 #define MKSH_VERSION "R29 2007/02/16"
 
 #if HAVE_SYS_PARAM_H
@@ -220,7 +220,7 @@ typedef int32_t Tflag;
 #define PATH_MAX	1024	/* pathname size */
 #endif
 
-EXTERN	char *kshname;		/* $0 */
+EXTERN	const char *kshname;	/* $0 */
 EXTERN	pid_t kshpid;		/* $$, shell pid */
 EXTERN	pid_t procpid;		/* pid of executing process */
 EXTERN	uid_t ksheuid;		/* effective uid of shell */
@@ -229,6 +229,25 @@ EXTERN	int subst_exstat;	/* exit status of last $(..)/`..` */
 EXTERN	const char *safe_prompt; /* safe prompt if PS1 substitution fails */
 EXTERN	const char initvsn[] I__("KSH_VERSION=@(#)MIRBSD KSH " MKSH_VERSION);
 #define KSH_VERSION	(initvsn + 16)
+
+/*
+ * Evil hack for const correctness due to API brokenness
+ */
+union mksh_cchack {
+	char *rw;
+	const char *ro;
+};
+union mksh_ccphack {
+	char **rw;
+	const char **ro;
+};
+#define cstrchr(s,c) __extension__({	\
+	union mksh_cchack in, out;	\
+					\
+	in.ro = (s);			\
+	out.rw = strchr(in.rw, (c));	\
+	(out.ro);			\
+})
 
 /*
  * Area-based allocation built on malloc/free
@@ -471,7 +490,7 @@ EXTERN int ifs0 I__(' ');	/* for "$*" */
 typedef struct {
 	int		optind;
 	int		uoptind;/* what user sees in $OPTIND */
-	char		*optarg;
+	const char	*optarg;
 	int		flags;	/* see GF_* */
 	int		info;	/* see GI_* */
 	unsigned int	p;	/* 0 or index into argv[optind - 1] */
@@ -498,8 +517,8 @@ EXTERN struct coproc coproc;
 EXTERN sigset_t		sm_default, sm_sigchld;
 
 /* name of called builtin function (used by error functions) */
-EXTERN char	*builtin_argv0;
-EXTERN Tflag	builtin_flag;	/* flags of called builtin (SPEC_BI, etc.) */
+EXTERN const char *builtin_argv0;
+EXTERN Tflag builtin_flag;	/* flags of called builtin (SPEC_BI, etc.) */
 
 /* current working directory, and size of memory allocated for same */
 EXTERN char	*current_wd;
@@ -604,7 +623,7 @@ struct tbl {			/* table item */
 	union {
 		char *s;	/* string */
 		long i;		/* integer */
-		int (*f)(char **);	/* int function */
+		int (*f)(const char **);	/* int function */
 		struct op *t;	/* "function" tree */
 	} val;			/* value */
 	int index;		/* index for an array */
@@ -693,7 +712,7 @@ struct arg_info {
  */
 struct block {
 	Area area;		/* area to allocate things */
-	char **argv;
+	const char **argv;
 	int argc;
 	int flags;		/* see BF_* */
 	struct table vars;	/* local variables */
@@ -726,7 +745,7 @@ EXTERN	struct table homedirs;	/* homedir() cache */
 
 struct builtin {
 	const char *name;
-	int (*func)(char **);
+	int (*func)(const char **);
 };
 
 extern const struct builtin shbuiltins [], kshbuiltins [];
@@ -769,7 +788,7 @@ struct op {
 		short evalflags;	/* TCOM: arg expansion eval() flags */
 		short ksh_func;		/* TFUNC: function x (vs x()) */
 	} u;
-	char **args;			/* arguments to a command */
+	const char **args;		/* arguments to a command */
 	char **vars;			/* variable assignments */
 	struct ioword **ioact;		/* IO actions (eg, < > >>) */
 	struct op *left, *right;	/* descendents */
@@ -937,7 +956,7 @@ typedef char *XStringP;
 #define Xsavepos(xs, xp) ((xp) - (xs).beg)
 #define Xrestpos(xs, xp, n) ((xs).beg + (n))
 
-char *Xcheck_grow_(XString *, char *, unsigned);
+char *Xcheck_grow_(XString *, const char *, unsigned);
 
 /*
  * expandable vector of generic pointers
@@ -982,10 +1001,10 @@ struct source {
 	int	type;		/* input type */
 	const char *start;	/* start of current buffer */
 	union {
-		char **strv;	/* string [] */
-		struct shf *shf; /* shell file */
-		struct tbl *tblp; /* alias (SALIAS) */
-		char *freeme;	/* also for SREREAD */
+		const char **strv; /* string [] */
+		struct shf *shf;   /* shell file */
+		struct tbl *tblp;  /* alias (SALIAS) */
+		char *freeme;	   /* also for SREREAD */
 	} u;
 	char	ugbuf[2];	/* buffer for ungetsc() (SREREAD) and
 				 * alias (SALIAS) */
@@ -1101,6 +1120,14 @@ void afreeall(Area *);
 void *alloc(size_t, Area *);
 void *aresize(void *, size_t, Area *);
 void afree(void *, Area *);
+#define afreechk(s)	do {		\
+	if (s)				\
+		afree(s, ATEMP);	\
+} while (0)
+#define afreechv(v,s)	do {		\
+	if (v)				\
+		afree(s, ATEMP);	\
+} while (0)
 /* edit.c */
 void x_init(void);
 int x_read(char *, size_t);
@@ -1110,63 +1137,63 @@ int utf_widthadj(const char *, const char **);
 #define utf_width(x)	utf_widthadj(x, NULL);
 /* eval.c */
 char *substitute(const char *, int);
-char **eval(char **, int);
-char *evalstr(char *cp, int);
-char *evalonestr(char *cp, int);
+char **eval(const char **, int);
+char *evalstr(const char *cp, int);
+char *evalonestr(const char *cp, int);
 char *debunk(char *, const char *, size_t);
-void expand(char *, XPtrV *, int);
+void expand(const char *, XPtrV *, int);
 int glob_str(char *, XPtrV *, int);
 /* exec.c */
 int execute(struct op * volatile, volatile int);
-int shcomexec(char **);
+int shcomexec(const char **);
 struct tbl *findfunc(const char *, unsigned int, int);
 int define(const char *, struct op *);
-void builtin(const char *, int (*)(char **));
+void builtin(const char *, int (*)(const char **));
 struct tbl *findcom(const char *, int);
 void flushcom(int);
 const char *search(const char *, const char *, int, int *);
 int search_access(const char *, int, int *);
-int pr_menu(char *const *);
+int pr_menu(const char *const *);
 int pr_list(char *const *);
 /* expr.c */
 int evaluate(const char *, long *, int, bool);
 int v_evaluate(struct tbl *, const char *, volatile int, bool);
 /* funcs.c */
-int c_hash(char **);
-int c_cd(char **);
-int c_pwd(char **);
-int c_print(char **);
-int c_whence(char **);
-int c_command(char **);
-int c_typeset(char **);
-int c_alias(char **);
-int c_unalias(char **);
-int c_let(char **);
-int c_jobs(char **);
-int c_fgbg(char **);
-int c_kill(char **);
+int c_hash(const char **);
+int c_cd(const char **);
+int c_pwd(const char **);
+int c_print(const char **);
+int c_whence(const char **);
+int c_command(const char **);
+int c_typeset(const char **);
+int c_alias(const char **);
+int c_unalias(const char **);
+int c_let(const char **);
+int c_jobs(const char **);
+int c_fgbg(const char **);
+int c_kill(const char **);
 void getopts_reset(int);
-int c_getopts(char **);
-int c_bind(char **);
-int c_label(char **);
-int c_shift(char **);
-int c_umask(char **);
-int c_dot(char **);
-int c_wait(char **);
-int c_read(char **);
-int c_eval(char **);
-int c_trap(char **);
-int c_brkcont(char **);
-int c_exitreturn(char **);
-int c_set(char **);
-int c_unset(char **);
-int c_ulimit(char **);
-int c_times(char **);
+int c_getopts(const char **);
+int c_bind(const char **);
+int c_label(const char **);
+int c_shift(const char **);
+int c_umask(const char **);
+int c_dot(const char **);
+int c_wait(const char **);
+int c_read(const char **);
+int c_eval(const char **);
+int c_trap(const char **);
+int c_brkcont(const char **);
+int c_exitreturn(const char **);
+int c_set(const char **);
+int c_unset(const char **);
+int c_ulimit(const char **);
+int c_times(const char **);
 int timex(struct op *, int);
 void timex_hook(struct op *, char ** volatile *);
-int c_exec(char **);
-int c_builtin(char **);
-int c_test(char **);
+int c_exec(const char **);
+int c_builtin(const char **);
+int c_test(const char **);
 /* histrap.c */
 void init_histvec(void);
 void hist_init(Source *);
@@ -1174,7 +1201,7 @@ void hist_init(Source *);
 void hist_finish(void);
 #endif
 void histsave(int, const char *, int);
-int c_fc(char **);
+int c_fc(const char **);
 void sethistsize(int);
 #if HAVE_PERSISTENT_HISTORY
 void sethistfile(const char *);
@@ -1195,7 +1222,7 @@ void runtraps(int intr);
 void runtrap(Trap *);
 void cleartraps(void);
 void restoresigs(void);
-void settrap(Trap *, char *);
+void settrap(Trap *, const char *);
 int block_pipe(void);
 void restore_pipe(int);
 int setsig(Trap *, sig_t, int);
@@ -1225,7 +1252,7 @@ void set_prompt(int, Source *);
 void pprompt(const char *, int);
 int promptlen(const char *);
 /* main.c */
-int include(const char *, int, char **, int);
+int include(const char *, int, const char **, int);
 int command(const char *);
 int shell(Source *volatile, int volatile);
 void unwind(int)
@@ -1255,7 +1282,7 @@ int savefd(int);
 void restfd(int, int);
 void openpipe(int *);
 void closepipe(int *);
-int check_fd(char *, int, const char **);
+int check_fd(const char *, int, const char **);
 void coproc_init(void);
 void coproc_read_close(int);
 void coproc_readw_close(int);
@@ -1283,7 +1310,7 @@ char *str_nsave(const char *, int, Area *);
 int option(const char *);
 char *getoptions(void);
 void change_flag(enum sh_flag, int, int);
-int parse_args(char **, int, int *);
+int parse_args(const char **, int, int *);
 int getn(const char *, int *);
 int bi_getn(const char *, int *);
 int gmatchx(const char *, const char *, int);
@@ -1291,7 +1318,7 @@ int has_globbing(const char *, const char *);
 const unsigned char *pat_scan(const unsigned char *, const unsigned char *, int);
 int xstrcmp(const void *, const void *);
 void ksh_getopt_reset(Getopt *, int);
-int ksh_getopt(char **, Getopt *, const char *);
+int ksh_getopt(const char **, Getopt *, const char *);
 void print_value_quoted(const char *);
 void print_columns(struct shf *, int,
     char *(*)(const void *, int, char *, int),
@@ -1362,7 +1389,7 @@ char **makenv(void);
 void change_random(void);
 int array_ref_len(const char *);
 char *arrayname(const char *);
-void set_array(const char *, int, char **);
+void set_array(const char *, int, const char **);
 
 enum Test_op {
 	TO_NONOP = 0,	/* non-operator */
@@ -1399,10 +1426,10 @@ typedef struct test_env Test_env;
 struct test_env {
 	int flags;		/* TEF_* */
 	union {
-		char **wp;	/* used by ptest_* */
+		const char **wp;/* used by ptest_* */
 		XPtrV *av;	/* used by dbtestp_* */
 	} pos;
-	char **wp_end;		/* used by ptest_* */
+	const char **wp_end;	/* used by ptest_* */
 	int (*isa)(Test_env *, Test_meta);
 	const char *(*getopnd) (Test_env *, Test_op, int);
 	int (*eval)(Test_env *, Test_op, const char *, const char *, int);

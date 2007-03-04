@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.32 2007/03/03 21:48:33 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.33 2007/03/04 00:13:14 tg Exp $
 
 .include <bsd.own.mk>
 
@@ -22,7 +22,6 @@ CPPFLAGS+=	-DMKSH_ASSUME_UTF8 \
 		-DHAVE_MULTI_IDSTRING=1 -DHAVE_PERSISTENT_HISTORY=1
 COPTS+=		-std=gnu99 -Wall
 .endif
-CDIAGFLAGS+=	-Wno-cast-qual
 
 LINKS+=		${BINDIR}/${PROG} ${BINDIR}/sh
 MLINKS+=	${PROG}.1 sh.1

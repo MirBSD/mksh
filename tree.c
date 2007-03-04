@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.7 2006/11/12 14:58:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.8 2007/03/04 00:13:17 tg Exp $");
 
 #define INDENT	4
 
@@ -18,11 +18,10 @@ static void     iofree(struct ioword **, Area *);
 /*
  * print a command tree
  */
-
 static void
 ptree(struct op *t, int indent, struct shf *shf)
 {
-	char **w;
+	const char **w;
 	struct ioword **ioact;
 	struct op *t1;
 
@@ -32,7 +31,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 	switch (t->type) {
 	case TCOM:
 		if (t->vars)
-			for (w = t->vars; *w != NULL; )
+			for (w = (const char **)t->vars; *w != NULL; )
 				fptreef(shf, indent, "%S ", *w++);
 		else
 			fptreef(shf, indent, "#no-vars# ");
@@ -83,7 +82,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 			fptreef(shf, indent, "for %s ", t->str);
 		if (t->vars != NULL) {
 			fptreef(shf, indent, "in ");
-			for (w = t->vars; *w; )
+			for (w = (const char **)t->vars; *w; )
 				fptreef(shf, indent, "%S ", *w++);
 			fptreef(shf, indent, "%;");
 		}
@@ -94,7 +93,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		fptreef(shf, indent, "case %S in", t->str);
 		for (t1 = t->left; t1 != NULL; t1 = t1->right) {
 			fptreef(shf, indent, "%N(");
-			for (w = t1->vars; *w != NULL; w++)
+			for (w = (const char **)t1->vars; *w != NULL; w++)
 				fptreef(shf, indent, "%S%c", *w,
 				    (w[1] != NULL) ? '|' : ')');
 			fptreef(shf, indent + INDENT, "%;%T%N;;", t1->left);
@@ -240,7 +239,6 @@ pioact(struct shf *shf, int indent, struct ioword *iop)
 /*
  * variants of fputc, fputs for ptreef and snptreef
  */
-
 static void
 tputC(int c, struct shf *shf)
 {
@@ -419,12 +417,12 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 /*
  * copy tree (for function definition)
  */
-
 struct op *
 tcopy(struct op *t, Area *ap)
 {
 	struct op *r;
-	char **tw, **rw;
+	const char **tw;
+	char **rw;
 
 	if (t == NULL)
 		return NULL;
@@ -439,11 +437,11 @@ tcopy(struct op *t, Area *ap)
 	if (t->vars == NULL)
 		r->vars = NULL;
 	else {
-		for (tw = t->vars; *tw++ != NULL; )
+		for (tw = (const char **)t->vars; *tw++ != NULL; )
 			;
 		rw = r->vars = (char **)
-			alloc((tw - t->vars + 1) * sizeof(*tw), ap);
-		for (tw = t->vars; *tw != NULL; )
+		    alloc((tw - (const char **)t->vars + 1) * sizeof(*tw), ap);
+		for (tw = (const char **)t->vars; *tw != NULL; )
 			*rw++ = wdcopy(*tw++, ap);
 		*rw = NULL;
 	}
@@ -453,8 +451,8 @@ tcopy(struct op *t, Area *ap)
 	else {
 		for (tw = t->args; *tw++ != NULL; )
 			;
-		rw = r->args = (char **)
-			alloc((tw - t->args + 1) * sizeof(*tw), ap);
+		r->args = (const char **)(rw = (char **)
+			alloc((tw - t->args + 1) * sizeof(*tw), ap));
 		for (tw = t->args; *tw != NULL; )
 			*rw++ = wdcopy(*tw++, ap);
 		*rw = NULL;
@@ -596,7 +594,7 @@ wdstrip(const char *wp)
 		}
 }
 
-static	struct ioword **
+static struct ioword **
 iocopy(struct ioword **iow, Area *ap)
 {
 	struct ioword **ior;
@@ -628,7 +626,6 @@ iocopy(struct ioword **iow, Area *ap)
 /*
  * free tree (for function definition)
  */
-
 void
 tfree(struct op *t, Area *ap)
 {
@@ -647,7 +644,10 @@ tfree(struct op *t, Area *ap)
 	}
 
 	if (t->args != NULL) {
-		for (w = t->args; *w != NULL; w++)
+		union mksh_ccphack cw;
+		/* XXX we assume the caller is right */
+		cw.ro = t->args;
+		for (w = cw.rw; *w != NULL; w++)
 			afree((void*)*w, ap);
 		afree((void*)t->args, ap);
 	}
@@ -661,7 +661,7 @@ tfree(struct op *t, Area *ap)
 	afree((void*)t, ap);
 }
 
-static	void
+static void
 iofree(struct ioword **iow, Area *ap)
 {
 	struct ioword **iop;

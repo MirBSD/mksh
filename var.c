@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.35 2007/03/03 21:36:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.36 2007/03/04 00:13:17 tg Exp $");
 
 /*
  * Variables
@@ -32,7 +32,7 @@ void
 newblock(void)
 {
 	struct block *l;
-	static char *empty[] = { null };
+	static const char *empty[] = { null };
 
 	l = (struct block *) alloc(sizeof(struct block), ATEMP);
 	l->flags = 0;
@@ -1149,7 +1149,7 @@ arrayname(const char *str)
 /* Set (or overwrite, if !reset) the array variable var to the values in vals.
  */
 void
-set_array(const char *var, int reset, char **vals)
+set_array(const char *var, int reset, const char **vals)
 {
 	struct tbl *vp, *vq;
 	int i;

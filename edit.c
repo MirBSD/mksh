@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.82 2007/02/16 17:46:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.83 2007/03/04 00:13:14 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -602,8 +602,7 @@ x_free_words(int nwords, char **words)
 	int i;
 
 	for (i = 0; i < nwords; i++)
-		if (words[i])
-			afree(words[i], ATEMP);
+		afreechk(words[i])
 	afree(words, ATEMP);
 }
 

@@ -2,22 +2,20 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.24 2007/01/17 22:51:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.25 2007/03/04 00:13:15 tg Exp $");
 
-static int	comexec(struct op *, struct tbl *volatile, char **,
-		    int volatile);
-static void	scriptexec(struct op *, char **)
+static int comexec(struct op *, struct tbl *volatile, const char **,
+    int volatile);
+static void scriptexec(struct op *, const char **)
     __attribute__((noreturn));
-static int	call_builtin(struct tbl *, char **);
-static int	iosetup(struct ioword *, struct tbl *);
-static int	herein(const char *, int);
-static char	*do_selectargs(char **, bool);
-static int	dbteste_isa(Test_env *, Test_meta);
+static int call_builtin(struct tbl *, const char **);
+static int iosetup(struct ioword *, struct tbl *);
+static int herein(const char *, int);
+static const char *do_selectargs(const char **, bool);
+static int dbteste_isa(Test_env *, Test_meta);
 static const char *dbteste_getopnd(Test_env *, Test_op, int);
-static int	dbteste_eval(Test_env *, Test_op, const char *, const char *,
-		    int);
-static void	dbteste_error(Test_env *, int, const char *);
-
+static int dbteste_eval(Test_env *, Test_op, const char *, const char *, int);
+static void dbteste_error(Test_env *, int, const char *);
 
 /*
  * execute command tree
@@ -29,8 +27,9 @@ execute(struct op *volatile t,
 	int i;
 	volatile int rv = 0;
 	int pv[2];
-	char ** volatile ap;
-	char *s, *cp;
+	const char ** volatile ap;
+	char ** volatile up;
+	const char *s, *cp;
 	struct ioword **iowp;
 	struct tbl *tp = NULL;
 
@@ -63,10 +62,11 @@ execute(struct op *volatile t,
 		/* POSIX says expand command words first, then redirections,
 		 * and assignments last..
 		 */
-		ap = eval(t->args, t->u.evalflags | DOBLANK | DOGLOB | DOTILDE);
+		up = eval(t->args, t->u.evalflags | DOBLANK | DOGLOB | DOTILDE);
 		if (flags & XTIME)
 			/* Allow option parsing (bizarre, but POSIX) */
-			timex_hook(t, &ap);
+			timex_hook(t, &up);
+		ap = (const char **)up;
 		if (Flag(FXTRACE) && ap[0]) {
 			shf_fprintf(shl_out, "%s",
 				substitute(str_val(global("PS4")), 0));
@@ -104,7 +104,7 @@ execute(struct op *volatile t,
 
 	switch (t->type) {
 	case TCOM:
-		rv = comexec(t, tp, ap, flags);
+		rv = comexec(t, tp, (const char **)ap, flags);
 		break;
 
 	case TPAREN:
@@ -245,8 +245,9 @@ execute(struct op *volatile t,
 	case TSELECT:
 	    {
 		volatile bool is_first = true;
-		ap = (t->vars != NULL) ? eval(t->vars, DOBLANK|DOGLOB|DOTILDE) :
-		    e->loc->argv + 1;
+		ap = (t->vars == NULL) ? e->loc->argv + 1 :
+		    (const char **)eval((const char **)t->vars,
+		    DOBLANK | DOGLOB | DOTILDE);
 		e->type = E_LOOP;
 		while (1) {
 			i = sigsetjmp(e->jbuf, 0);
@@ -314,7 +315,7 @@ execute(struct op *volatile t,
 	case TCASE:
 		cp = evalstr(t->str, DOTILDE);
 		for (t = t->left; t != NULL && t->type == TPAT; t = t->right)
-		    for (ap = t->vars; *ap; ap++)
+		    for (ap = (const char **)t->vars; *ap; ap++)
 			if ((s = evalstr(*ap, DOTILDE|DOPAT)) &&
 			    gmatchx(cp, s, false))
 				goto Found;
@@ -340,12 +341,17 @@ execute(struct op *volatile t,
 
 	case TEXEC:		/* an eval'd TCOM */
 		s = t->args[0];
-		ap = makenv();
+		up = makenv();
 		restoresigs();
 		cleanup_proc_env();
-		execve(t->str, t->args, ap);
+		{
+			union mksh_ccphack cargs;
+
+			cargs.ro = t->args;
+			execve(t->str, cargs.rw, up);
+		}
 		if (errno == ENOEXEC)
-			scriptexec(t, ap);
+			scriptexec(t, (const char **)up);
 		else
 			errorf("%s: %s", s, strerror(errno));
 	}
@@ -368,12 +374,13 @@ execute(struct op *volatile t,
  */
 
 static int
-comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
+comexec(struct op *t, struct tbl *volatile tp, const char **ap,
+    volatile int flags)
 {
 	int i;
 	volatile int rv = 0;
-	char *cp;
-	char **lastp;
+	const char *cp;
+	const char **lastp;
 	static struct op texec; /* Must be static (XXX but why?) */
 	int type_flags;
 	int keepasn_ok;
@@ -503,14 +510,14 @@ comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
 
 	switch (tp->type) {
 	case CSHELL:			/* shell built-in */
-		rv = call_builtin(tp, ap);
+		rv = call_builtin(tp, (const char **)ap);
 		break;
 
 	case CFUNC:			/* function call */
 	    {
 		volatile int old_xflag;
 		volatile Tflag old_inuse;
-		char *volatile old_kshname;
+		const char *volatile old_kshname;
 
 		if (!(tp->flag & ISSET)) {
 			struct tbl *ftp;
@@ -555,7 +562,7 @@ comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
 		if (tp->flag & FKSH)
 			kshname = ap[0];
 		else
-			ap[0] = (char *) kshname;
+			ap[0] = kshname;
 		e->loc->argv = ap;
 		for (i = 0; *ap++ != NULL; i++)
 			;
@@ -664,35 +671,37 @@ comexec(struct op *t, struct tbl *volatile tp, char **ap, volatile int flags)
 }
 
 static void
-scriptexec(struct op *tp, char **ap)
+scriptexec(struct op *tp, const char **ap)
 {
-	static char execshell[] = "/bin/sh";
 	const char *sh;
+	union mksh_ccphack args, cap;
 
 	sh = str_val(global("EXECSHELL"));
 	if (sh && *sh)
 		sh = search(sh, path, X_OK, NULL);
 	if (!sh || !*sh)
-		sh = execshell;
+		sh = "/bin/sh";
 
 	*tp->args-- = tp->str;
-	*tp->args = str_save(sh, ATEMP);
+	args.ro = tp->args;
+	*args.ro = sh;
 
-	execve(tp->args[0], tp->args, ap);
+	cap.ro = ap;
+	execve(args.rw[0], args.rw, cap.rw);
 
 	/* report both the program that was run and the bogus shell */
 	errorf("%s: %s: %s", tp->str, sh, strerror(errno));
 }
 
 int
-shcomexec(char **wp)
+shcomexec(const char **wp)
 {
 	struct tbl *tp;
 
 	tp = ktsearch(&builtins, *wp, hash(*wp));
 	if (tp == NULL)
 		internal_errorf(1, "shcomexec: %s", *wp);
-	return call_builtin(tp, wp);
+	return (call_builtin(tp, wp));
 }
 
 /*
@@ -768,7 +777,7 @@ define(const char *name, struct op *t)
  * add builtin
  */
 void
-builtin(const char *name, int (*func) (char **))
+builtin(const char *name, int (*func) (const char **))
 {
 	struct tbl *tp;
 	Tflag flag;
@@ -970,7 +979,7 @@ search(const char *name, const char *lpath,
 }
 
 static int
-call_builtin(struct tbl *tp, char **wp)
+call_builtin(struct tbl *tp, const char **wp)
 {
 	int rv;
 
@@ -1193,13 +1202,11 @@ herein(const char *content, int sub)
  *	ksh special - the select command processing section
  *	print the args in column form - assuming that we can
  */
-static char *
-do_selectargs(char **ap, bool print_menu)
+static const char *
+do_selectargs(const char **ap, bool print_menu)
 {
-	static char read_args0[] = "read",
-	    read_args1[] = "-r", read_args2[] = "REPLY",
-	    *read_args[] = {
-		read_args0, read_args1, read_args2, NULL
+	static const char *read_args[] = {
+		"read", "-r", "REPLY", NULL
 	};
 	char *s;
 	int i, argct;
@@ -1227,9 +1234,9 @@ do_selectargs(char **ap, bool print_menu)
 }
 
 struct select_menu_info {
-	char	*const *args;
-	int	arg_width;
-	int	num_width;
+	const char *const *args;
+	int arg_width;
+	int num_width;
 };
 
 static char *select_fmt_entry(const void *, int, char *, int);
@@ -1250,10 +1257,10 @@ select_fmt_entry(const void *arg, int i, char *buf, int buflen)
  *	print a select style menu
  */
 int
-pr_menu(char *const *ap)
+pr_menu(const char *const *ap)
 {
 	struct select_menu_info smi;
-	char *const *pp;
+	const char *const *pp;
 	int nwidth, dwidth;
 	int i, n;
 
@@ -1331,7 +1338,7 @@ dbteste_isa(Test_env *te, Test_meta meta)
 {
 	int ret = 0;
 	int uqword;
-	char *p;
+	const char *p;
 
 	if (!*te->pos.wp)
 		return meta == TM_END;
@@ -1367,7 +1374,7 @@ dbteste_isa(Test_env *te, Test_meta meta)
 static const char *
 dbteste_getopnd(Test_env *te, Test_op op, int do_eval)
 {
-	char *s = *te->pos.wp;
+	const char *s = *te->pos.wp;
 
 	if (!s)
 		return NULL;
