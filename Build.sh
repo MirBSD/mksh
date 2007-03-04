@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.156 2007/03/04 03:48:50 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.157 2007/03/04 04:28:58 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -78,8 +78,8 @@ ac_testn()
 	fi
 	$e ... $fd
 	cat >scn.c
-	v "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -I'$srcdir' scn.c $LIBS" \
-	    2>&$h | sed 's/^/] /'
+	eval 'v "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -I'\''$srcdir'\' \
+	    'scn.c $LIBS" 2>&'$h | sed 's/^/] /'
 	if test -f a.out || test -f a.exe; then
 		eval HAVE_$fu=1
 		$e "$bi==> $fd...$ao ${ui}yes$ao"
@@ -543,10 +543,11 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 	for i in "$save_CPP" "$CC -E -" "cpp" "/usr/libexec/cpp" "/lib/cpp"; do
 		CPP=$i
 		test x"$CPP" = x"false" && continue
-		( ( echo '#if (23 * 2 - 2) == (fnord + 2)'
+		eval '( ( echo "#if (23 * 2 - 2) == (fnord + 2)"
 		    echo mksh_rules: fnord
-		    echo '#endif'
-		  ) | v "$CPP $CPPFLAGS -Dfnord=42 >x" ) 2>&$h | sed 's/^/] /'
+		    echo "#endif"
+		  ) | v "$CPP $CPPFLAGS -Dfnord=42 >x" ) 2>&'$h | \
+		    sed 's/^/] /'
 		grep '^mksh_rules:.*42' x >/dev/null 2>&1 || CPP=false
 		rm -f x
 		test x"$CPP" = x"false" || break
