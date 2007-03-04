@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.115 2007/03/04 03:04:27 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.116 2007/03/04 04:36:45 tg Exp $"
 #define MKSH_VERSION "R29 2007/03/04"
 
 #if HAVE_SYS_PARAM_H
@@ -44,7 +44,9 @@
 #if HAVE_SYS_MKDEV_H
 #include <sys/mkdev.h>
 #endif
+#if HAVE_SYS_MMAN_H
 #include <sys/mman.h>
+#endif
 #include <sys/resource.h>
 #include <sys/stat.h>
 #if HAVE_SYS_SYSMACROS_H
@@ -69,6 +71,9 @@
 #include <stdbool.h>
 #endif
 #include <stddef.h>
+#if HAVE_STDINT_H
+#include <stdint.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

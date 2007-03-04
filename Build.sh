@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.157 2007/03/04 04:28:58 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.158 2007/03/04 04:36:45 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -344,10 +344,12 @@ fi
 #
 ac_header sys/param.h
 ac_header sys/mkdev.h
+ac_header sys/mman.h sys/types.h
 ac_header sys/sysmacros.h
 ac_header libgen.h
 ac_header paths.h
 ac_header stdbool.h
+ac_header stdint.h
 ac_header grp.h sys/types.h
 ac_header ulimit.h
 ac_header values.h
