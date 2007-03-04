@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.161 2007/03/04 04:53:06 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.162 2007/03/04 05:03:57 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -35,6 +35,8 @@ allu=QWERTYUIOPASDFGHJKLZXCVBNM
 alll=qwertyuiopasdfghjklzxcvbnm
 alln=0123456789
 alls=______________________________________________________________
+nl='
+'
 
 upper()
 {
@@ -117,9 +119,7 @@ ac_flags()
 ac_header()
 {
 	hf=$1; shift
-	n='
-'
-	hv=`echo "$hf" | tr -d $n$(printf '\r') | tr -c $alll$allu$alln $alls`
+	hv=`echo "$hf" | tr -d '\012\015' | tr -c $alll$allu$alln $alls`
 	for i
 	do
 		echo "#include <$i>" >>x
@@ -215,8 +215,8 @@ Linux)
 	;;
 Minix)
 	CPPFLAGS="$CPPFLAGS -D_MINIX -D_POSIX_SOURCE"
-	warn=' but might work with gcc
-	(not with ACK yet)'
+	warn=" but might work with the GNU tools"
+	warn="$warn$nl but not with ACK - /usr/bin/cc - yet)"
 	;;
 MirBSD)
 	;;
