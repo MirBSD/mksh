@@ -1,6 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.7 2007/03/04 03:04:23 tg Exp $
-#-
-# Add user-defined additions at the end, to prevent abortion on failure.
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.8 2007/03/04 06:20:48 tg Exp $
 
 : ${EDITOR:=/bin/ed} ${HOSTNAME:=$(hostname -s 2>/dev/null || hostname)}
 PS1='$(((rv=$?)) && print $rv\|)${USER:=$(id -un)}@${HOSTNAME:=nil}:$(
@@ -37,3 +35,7 @@ function Lstripcom
 		[[ -n $_line ]] && print -r -- $_line
 	done; }
 }
+
+# Your shell code goes below!
+
+: Your shell code goes above!
