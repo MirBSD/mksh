@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.158 2007/03/04 04:36:45 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.159 2007/03/04 04:45:36 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -210,6 +210,11 @@ Linux)
 	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64"
 	test def = $s && s=pam
 	: ${HAVE_REVOKE=0}
+	;;
+Minix)
+	CPPFLAGS="$CPPFLAGS -DNSIG=_NSIG -D_MINIX -D_POSIX_SOURCE"
+	warn=' but might work with gcc
+	(not with ACK yet)'
 	;;
 MirBSD)
 	;;
