@@ -1,5 +1,5 @@
-/**	$MirOS: src/bin/mksh/setmode.c,v 1.7 2006/11/10 06:53:27 tg Exp $ */
-/**	_MirOS: src/lib/libc/gen/setmode.c,v 1.6 2006/11/08 23:18:04 tg Exp $ */
+/**	$MirOS: src/bin/mksh/setmode.c,v 1.8 2007/03/04 03:47:37 tg Exp $ */
+/**	$miros: src/lib/libc/gen/setmode.c,v 1.8 2007/03/04 03:47:14 tg Exp $ */
 /*	$OpenBSD: setmode.c,v 1.17 2005/08/08 08:05:34 espie Exp $	*/
 /*	$NetBSD: setmode.c,v 1.15 1997/02/07 22:21:06 christos Exp $	*/
 
@@ -58,7 +58,13 @@
 #endif
 
 __SCCSID("@(#)setmode.c	8.2 (Berkeley) 3/25/94");
-__RCSID("$MirOS: src/bin/mksh/setmode.c,v 1.7 2006/11/10 06:53:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/setmode.c,v 1.8 2007/03/04 03:47:37 tg Exp $");
+
+/* for mksh */
+#ifdef ksh_isdigit
+#undef isdigit
+#define isdigit ksh_isdigit
+#endif
 
 #define	SET_LEN	6		/* initial # of bitcmd struct to malloc */
 #define	SET_LEN_INCR 4		/* # of bitcmd structs to add as needed */
@@ -179,7 +185,7 @@ setmode(const char *p)
 	int perm, who;
 	char op, *ep;
 	BITCMD *set, *saveset, *endset;
-	sigset_t sigset, sigoset;
+	sigset_t signset, sigoset;
 	mode_t mask;
 	int equalopdone = 0, permXbits, setlen;
 	u_long perml;
@@ -193,8 +199,8 @@ setmode(const char *p)
 	 * the caller is opening files inside a signal handler, protect them
 	 * as best we can.
 	 */
-	sigfillset(&sigset);
-	(void)sigprocmask(SIG_BLOCK, &sigset, &sigoset);
+	sigfillset(&signset);
+	(void)sigprocmask(SIG_BLOCK, &signset, &sigoset);
 	(void)umask(mask = umask(0));
 	mask = ~mask;
 	(void)sigprocmask(SIG_SETMASK, &sigoset, NULL);
@@ -210,7 +216,7 @@ setmode(const char *p)
 	 * If an absolute number, get it and return; disallow non-octal digits
 	 * or illegal bits.
 	 */
-	if (ksh_isdigit((unsigned char)*p)) {
+	if (isdigit((unsigned char)*p)) {
 		perml = strtoul(p, &ep, 8);
 		/* The test on perml will also catch overflow. */
 		if (*ep != '\0' || (perml & ~(STANDARD_BITS|S_ISTXT))) {
