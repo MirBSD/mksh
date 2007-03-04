@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.6 2007/02/17 06:34:46 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.7 2007/03/04 03:04:23 tg Exp $
 #-
 # Add user-defined additions at the end, to prevent abortion on failure.
 
@@ -17,8 +17,8 @@ PS1='$(((rv=$?)) && print $rv\|)${USER:=$(id -un)}@${HOSTNAME:=nil}:$(
 		fi
 	done
 	print -r -- "$pfx$wd")'" $(if (( $(id -u) )); then
-		print \$; else print \#; fi) " MKSH=$(whence -p mksh)
-export EDITOR HOSTNAME MKSH PS1 USER
+		print \$; else print \#; fi) "
+export EDITOR HOSTNAME MKSH=$(whence -p mksh) PS1 USER
 
 alias l='/bin/ls -F'
 alias la='l -a'
@@ -32,9 +32,8 @@ alias lo='la -lo'
 # any file(s) given as argument, or stdin if none, and spew to stdout
 function Lstripcom
 {
-	cat "$@" | while read _line; do
-		set -o noglob
+	cat "$@" | { set -o noglob; while read _line; do
 		_line=${_line%%#*}
 		[[ -n $_line ]] && print -r -- $_line
-	done
+	done; }
 }

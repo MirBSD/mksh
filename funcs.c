@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.47 2007/03/04 00:13:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.48 2007/03/04 03:04:25 tg Exp $");
 
 int
 c_cd(const char **wp)
@@ -53,7 +53,7 @@ c_cd(const char **wp)
 	} else if (!wp[1]) {
 		/* One argument: - or dir */
 		dir = str_save(wp[0], ATEMP);
-		if (strcmp(dir, "-") == 0) {
+		if (ksh_isdash(dir)) {
 			afree(dir, ATEMP);
 			dir = str_val(oldpwd_s);
 			if (dir == null) {
@@ -280,7 +280,7 @@ c_print(const char **wp)
 		if (!(builtin_opt.info & GI_MINUSMINUS)) {
 			/* treat a lone - like -- */
 			if (wp[builtin_opt.optind] &&
-			    strcmp(wp[builtin_opt.optind], "-") == 0)
+			    ksh_isdash(wp[builtin_opt.optind]))
 				builtin_opt.optind++;
 		} else if (flags & PO_PMINUSMINUS)
 			builtin_opt.optind--;
@@ -1314,7 +1314,8 @@ int
 c_bind(const char **wp)
 {
 	int optc, rv = 0, macro = 0, list = 0;
-	char *cp;
+	const char *cp;
+	char *up;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "lm")) != -1)
 		switch (optc) {
@@ -1333,11 +1334,15 @@ c_bind(const char **wp)
 		rv = x_bind((char*)NULL, (char*)NULL, 0, list);
 
 	for (; *wp != NULL; wp++) {
-		cp = strchr(*wp, '=');
-		if (cp != NULL)
-			*cp++ = '\0';
-		if (x_bind(*wp, cp, macro, 0))
+		if ((cp = cstrchr(*wp, '=')) == NULL)
+			up = NULL;
+		else {
+			up = str_save(*wp, ATEMP);
+			up[cp++ - *wp] = '\0';
+		}
+		if (x_bind(up ? up : *wp, cp, macro, 0))
 			rv = 1;
+		afreechk(up);
 	}
 
 	return rv;
@@ -1472,7 +1477,7 @@ c_umask(const char **wp)
 			new_umask = old_umask;
 			positions = 0;
 			while (*cp) {
-				while (*cp && strchr("augo", *cp))
+				while (*cp && vstrchr("augo", *cp))
 					switch (*cp++) {
 					case 'a':
 						positions |= 0111;
@@ -1489,11 +1494,11 @@ c_umask(const char **wp)
 					}
 				if (!positions)
 					positions = 0111; /* default is a */
-				if (!strchr("=+-", op = *cp))
+				if (!vstrchr("=+-", op = *cp))
 					break;
 				cp++;
 				new_val = 0;
-				while (*cp && strchr("rwxugoXs", *cp))
+				while (*cp && vstrchr("rwxugoXs", *cp))
 					switch (*cp++) {
 					case 'r': new_val |= 04; break;
 					case 'w': new_val |= 02; break;
@@ -1525,7 +1530,7 @@ c_umask(const char **wp)
 				if (*cp == ',') {
 					positions = 0;
 					cp++;
-				} else if (!strchr("=+-", *cp))
+				} else if (!vstrchr("=+-", *cp))
 					break;
 			}
 			if (*cp) {
@@ -2033,7 +2038,7 @@ c_unset(const char **wp)
 				bi_errorf("%s is read only", vp->name);
 				return 1;
 			}
-			unset(vp, strchr(id, '[') ? 1 : 0);
+			unset(vp, vstrchr(id, '[') ? 1 : 0);
 		} else {		/* unset function */
 			if (define(id, (struct op *) NULL))
 				ret = 1;

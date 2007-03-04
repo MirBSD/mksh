@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.36 2007/03/04 00:13:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.37 2007/03/04 03:04:28 tg Exp $");
 
 /*
  * Variables
@@ -1139,7 +1139,7 @@ arrayname(const char *str)
 {
 	const char *p;
 
-	if ((p = strchr(str, '[')) == 0)
+	if ((p = cstrchr(str, '[')) == 0)
 		/* Shouldn't happen, but why worry? */
 		return str_save(str, ATEMP);
 

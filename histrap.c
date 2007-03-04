@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.44 2007/03/04 00:13:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.45 2007/03/04 03:04:25 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign, Sigact_trap;
@@ -18,20 +18,20 @@ static void writehistfile(int, char *);
 static int sprinkle(int);
 #endif
 
-static int	hist_execute(char *);
-static int	hist_replace(char **, const char *, const char *, int);
-static char   **hist_get(const char *, int, int);
-static char   **hist_get_oldest(void);
-static void	histbackup(void);
+static int hist_execute(char *);
+static int hist_replace(char **, const char *, const char *, int);
+static char **hist_get(const char *, int, int);
+static char **hist_get_oldest(void);
+static void histbackup(void);
 
-static char   **current;	/* current position in history[] */
-static int	hstarted;	/* set after hist_init() called */
-static Source	*hist_source;
+static char **current;		/* current position in history[] */
+static int hstarted;		/* set after hist_init() called */
+static Source *hist_source;
 
 #if HAVE_PERSISTENT_HISTORY
-static char    *hname;		/* current name of history file */
-static int	histfd;
-static int	hsize;
+static char *hname;		/* current name of history file */
+static int histfd;
+static int hsize;
 #endif
 
 int
@@ -56,7 +56,7 @@ c_fc(const char **wp)
 		switch (optc) {
 		case 'e':
 			p = builtin_opt.optarg;
-			if (strcmp(p, "-") == 0)
+			if (ksh_isdash(p))
 				sflag++;
 			else {
 				size_t len = strlen(p);

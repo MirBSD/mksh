@@ -1,5 +1,5 @@
 #ifndef MKSH_SIGNAMES_CHECK
-__RCSID("$MirOS: src/bin/mksh/signames.c,v 1.1 2007/01/12 00:25:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/signames.c,v 1.2 2007/03/04 03:04:28 tg Exp $");
 #endif
 
 static const struct mksh_sigpair {
@@ -8,7 +8,7 @@ static const struct mksh_sigpair {
 } mksh_sigpairs[] = {
 #ifdef __Plan9__
 ...
-#elif defined(__minix)
+#elif defined(__minix) && !defined(__GNUC__)
 ...
 #elif defined(MKSH_SIGNAMES_CHECK)
 #error no, must be OS supplied

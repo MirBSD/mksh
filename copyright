@@ -1,9 +1,9 @@
-$MirOS: src/bin/mksh/copyright,v 1.19 2007/01/17 01:24:29 tg Exp $
+$MirOS: src/bin/mksh/copyright,v 1.20 2007/03/04 03:04:23 tg Rel $
 
 The MirBSD Korn Shell (mksh) is
 
 Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007
-	Thorsten Glaser <tg@mirbsd.de>
+	Thorsten "mirabilos" Glaser <tg@mirbsd.de>
 
 Provided that these terms and disclaimer and all copyright notices
 are retained or reproduced in an accompanying document, permission
@@ -33,4 +33,4 @@ A number of files that are either always or conditionally included
 during compilation, depending on the target operating environment,
 are covered by different (2/3-clause BSD or similar) licences; re-
 fer to the individual files for details: alloc.c (always included)
-and setmode.c, strcasestr.c, strlfun.c
+and setmode.c, strlcpy.c

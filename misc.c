@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.51 2007/03/04 00:13:16 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.52 2007/03/04 03:04:26 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -311,12 +311,15 @@ parse_args(const char **argv,
 	}
 
 	if (what == OF_CMDLINE) {
-		char *p;
+		const char *p = argv[0], *q;
 		/* Set FLOGIN before parsing options so user can clear
 		 * flag using +l.
 		 */
-		Flag(FLOGIN) = (argv[0][0] == '-' ||
-		    ((p = strrchr(argv[0], '/')) && *++p == '-'));
+		if (*p != '-')
+			for (q = p; *q; )
+				if (*q++ == '/')
+					p = q;
+		Flag(FLOGIN) = (*p == '-');
 		opts = cmd_opts;
 	} else if (what == OF_FIRSTTIME) {
 		opts = cmd_opts;
@@ -558,7 +561,7 @@ has_globbing(const char *xp, const char *xpe)
 					return 0;
 				in_bracket = 0;
 			}
-		} else if ((c & 0x80) && strchr("*+?@! ", c & 0x7f)) {
+		} else if ((c & 0x80) && vstrchr("*+?@! ", c & 0x7f)) {
 			saw_glob = 1;
 			if (in_bracket)
 				bnest++;
@@ -758,7 +761,7 @@ pat_scan(const unsigned char *p, const unsigned char *pe, int match_sep)
 		if ((*++p == /*(*/ ')' && nest-- == 0) ||
 		    (*p == '|' && match_sep && nest == 0))
 			return ++p;
-		if ((*p & 0x80) && strchr("*+?@! ", *p & 0x7f))
+		if ((*p & 0x80) && vstrchr("*+?@! ", *p & 0x7f))
 			nest++;
 	}
 	return NULL;
@@ -811,7 +814,7 @@ int
 ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 {
 	char c;
-	char *o;
+	const char *o;
 
 	if (go->p == 0 || (c = argv[go->optind - 1][go->p]) == '\0') {
 		const char *arg = argv[go->optind], flag = arg ? *arg : '\0';
@@ -836,7 +839,7 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 	}
 	go->p++;
 	if (c == '?' || c == ':' || c == ';' || c == ',' || c == '#' ||
-	    !(o = strchr(optionsp, c))) {
+	    !(o = cstrchr(optionsp, c))) {
 		if (optionsp[0] == ':') {
 			go->buf[0] = c;
 			go->optarg = go->buf;
@@ -921,18 +924,18 @@ print_value_quoted(const char *s)
 	}
 	for (p = s; *p; p++) {
 		if (*p == '\'') {
-			shprintf("'\\'" + 1 - inquote);
+			if (inquote)
+				shf_putc('\'', shl_stdout);
+			shf_putc('\\', shl_stdout);
 			inquote = 0;
-		} else {
-			if (!inquote) {
-				shprintf("'");
-				inquote = 1;
-			}
-			shf_putc(*p, shl_stdout);
+		} else if (!inquote) {
+			shf_putc('\'', shl_stdout);
+			inquote = 1;
 		}
+		shf_putc(*p, shl_stdout);
 	}
 	if (inquote)
-		shprintf("'");
+		shf_putc('\'', shl_stdout);
 }
 
 /* Print things in columns and rows - func() is called to format the ith
@@ -1281,7 +1284,7 @@ do_phys_path(XString *xsp, char *xp, const char *pathl)
 			p++;
 		if (!*p)
 			break;
-		len = (q = strchr(p, '/')) ? q - p : (int)strlen(p);
+		len = (q = cstrchr(p, '/')) ? q - p : (int)strlen(p);
 		if (len == 1 && p[0] == '.')
 			continue;
 		if (len == 2 && p[0] == '.' && p[1] == '.') {
@@ -1370,5 +1373,57 @@ chvt(const char *fn)
 	dup2(fd, 2);
 	if (fd > 2)
 		close(fd);
+}
+#endif
+
+#ifdef DEBUG
+char *
+strchr(char *p, int ch)
+{
+	for (;; ++p) {
+		if (*p == ch)
+			return (p);
+		if (!*p)
+			return (NULL);
+	}
+	/* NOTREACHED */
+}
+
+char *
+strstr(char *b, const char *l)
+{
+	char first, c;
+	size_t n;
+
+	if ((first = *l++) == '\0')
+		return (b);
+	n = strlen(l);
+ strstr_look:
+	while ((c = *b++) != first)
+		if (c == '\0')
+			return (NULL);
+	if (strncmp(b, l, n))
+		goto strstr_look;
+	return (b - 1);
+}
+#endif
+
+#if !HAVE_STRCASESTR
+const char *
+stristr(const char *b, const char *l)
+{
+	char first, c;
+	size_t n;
+
+	if ((first = *l++), ((first = ksh_tolower(first)) == '\0'))
+		return (b);
+	n = strlen(l);
+ stristr_look:
+	while ((c = *b++), ((c = ksh_tolower(c)) != first))
+		if (c == '\0')
+			return (NULL);
+	if (strncasecmp(b, l, n))
+		goto stristr_look;
+	return (b - 1);
 }
 #endif

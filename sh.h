@@ -8,14 +8,14 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.114 2007/03/04 00:13:16 tg Exp $"
-#define MKSH_VERSION "R29 2007/02/16"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.115 2007/03/04 03:04:27 tg Exp $"
+#define MKSH_VERSION "R29 2007/03/04"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
 #include <sys/types.h>
-#if defined(HAVE_MULTI_IDSTRING) && !HAVE_MULTI_IDSTRING
+#if !HAVE_MULTI_IDSTRING
 #undef __RCSID
 #endif
 #if !defined(__RCSID) || !defined(__SCCSID)
@@ -129,6 +129,7 @@ typedef int bool;
 #define ksh_isupper(c)	(((c) >= 'A') && ((c) <= 'Z'))
 #define ksh_tolower(c)	(((c) >= 'A') && ((c) <= 'Z') ? (c) - 'A' + 'a' : (c))
 #define ksh_toupper(c)	(((c) >= 'a') && ((c) <= 'z') ? (c) - 'a' + 'A' : (c))
+#define ksh_isdash(s)	(((s) != NULL) && ((s)[0] == '-') && ((s)[1] == '\0'))
 
 #if HAVE_ATTRIBUTE
 #undef __attribute__
@@ -151,18 +152,18 @@ typedef int bool;
 	})
 
 #ifndef S_ISTXT
-#define S_ISTXT 0001000
+#define S_ISTXT		0001000
 #endif
 #ifndef DEFFILEMODE
-#define DEFFILEMODE (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
+#define DEFFILEMODE	(S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
 #endif
 
 #if !defined(RLIMIT_VMEM) && defined(RLIMIT_AS)
-#define RLIMIT_VMEM RLIMIT_AS
+#define RLIMIT_VMEM	RLIMIT_AS
 #endif
 
 #if !defined(MAP_FAILED) && defined(__linux)
-#define MAP_FAILED ((void *)-1)
+#define MAP_FAILED	((void *)-1)
 #endif
 
 /* OS-dependent additions */
@@ -172,7 +173,7 @@ mode_t getmode(const void *, mode_t);
 void *setmode(const char *);
 #endif
 #if !HAVE_STRCASESTR
-char *strcasestr(const char *, const char *);
+const char *stristr(const char *, const char *);
 #endif
 #if !HAVE_STRLCPY
 size_t strlcpy(char *, const char *, size_t);
@@ -220,15 +221,15 @@ typedef int32_t Tflag;
 #define PATH_MAX	1024	/* pathname size */
 #endif
 
-EXTERN	const char *kshname;	/* $0 */
-EXTERN	pid_t kshpid;		/* $$, shell pid */
-EXTERN	pid_t procpid;		/* pid of executing process */
-EXTERN	uid_t ksheuid;		/* effective uid of shell */
-EXTERN	int exstat;		/* exit status */
-EXTERN	int subst_exstat;	/* exit status of last $(..)/`..` */
-EXTERN	const char *safe_prompt; /* safe prompt if PS1 substitution fails */
-EXTERN	const char initvsn[] I__("KSH_VERSION=@(#)MIRBSD KSH " MKSH_VERSION);
-#define KSH_VERSION	(initvsn + 16)
+EXTERN const char *kshname;	/* $0 */
+EXTERN pid_t kshpid;		/* $$, shell pid */
+EXTERN pid_t procpid;		/* pid of executing process */
+EXTERN uid_t ksheuid;		/* effective uid of shell */
+EXTERN int exstat;		/* exit status */
+EXTERN int subst_exstat;	/* exit status of last $(..)/`..` */
+EXTERN const char *safe_prompt; /* safe prompt if PS1 substitution fails */
+EXTERN const char initvsn[] I__("KSH_VERSION=@(#)MIRBSD KSH " MKSH_VERSION);
+#define KSH_VERSION	(initvsn + /* "KSH_VERSION=@(#)" */ 16)
 
 /*
  * Evil hack for const correctness due to API brokenness
@@ -241,6 +242,13 @@ union mksh_ccphack {
 	char **rw;
 	const char **ro;
 };
+
+/* for const debugging */
+#ifdef DEBUG
+char *ucstrchr(char *, int);
+char *ucstrstr(char *, const char *);
+#define strchr ucstrchr
+#define strstr ucstrstr
 #define cstrchr(s,c) __extension__({	\
 	union mksh_cchack in, out;	\
 					\
@@ -248,6 +256,42 @@ union mksh_ccphack {
 	out.rw = strchr(in.rw, (c));	\
 	(out.ro);			\
 })
+#define cstrstr(b,l) __extension__({	\
+	union mksh_cchack in, out;	\
+					\
+	in.ro = (b);			\
+	out.rw = strstr(in.rw, (l));	\
+	(out.ro);			\
+})
+#define vstrchr(s,c)	(cstrchr((s), (c)) != NULL)
+#define vstrstr(b,l)	(cstrstr((b), (l)) != NULL)
+#if HAVE_STRCASESTR
+#define stristr(b,l) __extension__({	\
+	union mksh_cchack out;		\
+					\
+	out.rw = strcasestr((b), (l));	\
+	(out.ro);			\
+})
+#endif
+#else
+#define cstrchr(s,c) __extension__({	\
+	union mksh_cchack out;		\
+					\
+	out.rw = strchr((s), (c));	\
+	(out.ro);			\
+})
+#define cstrstr(b,l) __extension__({	\
+	union mksh_cchack out;		\
+					\
+	out.rw = strstr((b), (l));	\
+	(out.ro);			\
+})
+#define vstrchr	strchr
+#define vstrstr	strstr
+#if HAVE_STRCASESTR
+#define stristr	strcasestr
+#endif
+#endif
 
 /*
  * Area-based allocation built on malloc/free
@@ -364,11 +408,11 @@ enum sh_flag {
 
 #define Flag(f)	(shell_flags[(int) (f)])
 
-EXTERN	char shell_flags [FNFLAGS];
+EXTERN char shell_flags [FNFLAGS];
 
-EXTERN	char	null [] I__("");	/* null value for variable */
-EXTERN	char	space [] I__(" ");
-EXTERN	char	newline [] I__("\n");
+EXTERN char	null [] I__("");	/* null value for variable */
+EXTERN char	space [] I__(" ");
+EXTERN char	newline [] I__("\n");
 
 enum temp_type {
 	TT_HEREDOC_EXP,	/* expanded heredoc */
@@ -432,9 +476,9 @@ typedef struct trap {
 #define SIGEXIT_	0	/* for trap EXIT */
 #define SIGERR_		NSIG	/* for trap ERR */
 
-EXTERN	volatile sig_atomic_t trap;	/* traps pending? */
-EXTERN	volatile sig_atomic_t intrsig;	/* pending trap interrupts command */
-EXTERN	volatile sig_atomic_t fatal_trap;/* received a fatal signal */
+EXTERN volatile sig_atomic_t trap;	/* traps pending? */
+EXTERN volatile sig_atomic_t intrsig;	/* pending trap interrupts command */
+EXTERN volatile sig_atomic_t fatal_trap;/* received a fatal signal */
 extern	Trap	sigtraps[NSIG+1];
 
 /*
@@ -442,7 +486,7 @@ extern	Trap	sigtraps[NSIG+1];
  */
 /* values for ksh_tmout_state */
 enum tmout_enum {
-	TMOUT_EXECUTING	= 0,	/* executing commands */
+	TMOUT_EXECUTING = 0,	/* executing commands */
 	TMOUT_READING,		/* waiting for input */
 	TMOUT_LEAVING		/* have timed out */
 };
@@ -531,7 +575,7 @@ EXTERN size_t	current_wd_size;
 /* Minimum allowed value for x_cols: 2 for prompt, 3 for " < " at end of line
  */
 #define MIN_COLS	(2 + MIN_EDIT_SPACE + 3)
-EXTERN	int	x_cols I__(80);	/* tty columns */
+EXTERN int	x_cols I__(80);	/* tty columns */
 
 /* These to avoid bracket matching problems */
 #define OPAREN	'('
@@ -621,10 +665,10 @@ struct tbl {			/* table item */
 				 * or offset from val.s of value (if EXPORT) */
 	Area *areap;		/* area to allocate from */
 	union {
-		char *s;	/* string */
-		long i;		/* integer */
-		int (*f)(const char **);	/* int function */
-		struct op *t;	/* "function" tree */
+		char *s;		/* string */
+		long i;			/* integer */
+		int (*f)(const char **);/* int function */
+		struct op *t;		/* "function" tree */
 	} val;			/* value */
 	int index;		/* index for an array */
 	union {
@@ -673,16 +717,16 @@ struct tbl {			/* table item */
  * should be repoted by set/typeset). Does not include ARRAY or LOCAL.
  */
 #define USERATTRIB	(EXPORT|INTEGER|RDONLY|LJUST|RJUST|ZEROFIL\
-			 |LCASEV|UCASEV_AL|INT_U|INT_L)
+			    |LCASEV|UCASEV_AL|INT_U|INT_L)
 
 /* command types */
-#define CNONE	0		/* undefined */
-#define CSHELL	1		/* built-in */
-#define CFUNC	2		/* function */
-#define CEXEC	4		/* executable command */
-#define CALIAS	5		/* alias */
-#define CKEYWD	6		/* keyword */
-#define CTALIAS	7		/* tracked alias */
+#define CNONE		0	/* undefined */
+#define CSHELL		1	/* built-in */
+#define CFUNC		2	/* function */
+#define CEXEC		4	/* executable command */
+#define CALIAS		5	/* alias */
+#define CKEYWD		6	/* keyword */
+#define CTALIAS		7	/* tracked alias */
 
 /* Flags for findcom()/comexec() */
 #define FC_SPECBI	BIT(0)	/* special builtin */
@@ -702,7 +746,7 @@ struct tbl {			/* table item */
 /* Argument info. Used for $#, $* for shell, functions, includes, etc. */
 struct arg_info {
 	int flags;	/* AF_* */
-	char **argv;
+	const char **argv;
 	int argc_;
 	int skip;	/* first arg is argv[0], second is argv[1 + skip] */
 };
@@ -734,13 +778,12 @@ struct tstate {
 	struct tbl **next;
 };
 
-
-EXTERN	struct table taliases;	/* tracked aliases */
-EXTERN	struct table builtins;	/* built-in commands */
-EXTERN	struct table aliases;	/* aliases */
-EXTERN	struct table keywords;	/* keywords */
+EXTERN struct table taliases;	/* tracked aliases */
+EXTERN struct table builtins;	/* built-in commands */
+EXTERN struct table aliases;	/* aliases */
+EXTERN struct table keywords;	/* keywords */
 #ifndef MKSH_SMALL
-EXTERN	struct table homedirs;	/* homedir() cache */
+EXTERN struct table homedirs;	/* homedir() cache */
 #endif
 
 struct builtin {
@@ -1103,16 +1146,16 @@ typedef union {
 
 #define HERES	10		/* max << in line */
 
-EXTERN	Source *source;		/* yyparse/yylex source */
-EXTERN	YYSTYPE	yylval;		/* result from yylex */
-EXTERN	struct ioword *heres [HERES], **herep;
-EXTERN	char	ident [IDENT+1];
+EXTERN Source *source;		/* yyparse/yylex source */
+EXTERN YYSTYPE	yylval;		/* result from yylex */
+EXTERN struct ioword *heres [HERES], **herep;
+EXTERN char	ident [IDENT+1];
 
 #define HISTORYSIZE	500	/* size of saved history */
 
-EXTERN	char **history;	/* saved commands */
-EXTERN	char **histptr;	/* last history item */
-EXTERN	int histsize;	/* history size */
+EXTERN char **history;	/* saved commands */
+EXTERN char **histptr;	/* last history item */
+EXTERN int histsize;	/* history size */
 
 /* alloc.c */
 Area *ainit(Area *);

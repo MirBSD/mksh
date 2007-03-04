@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.18 2007/01/12 10:18:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.19 2007/03/04 03:04:25 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -12,11 +12,11 @@ __RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.18 2007/01/12 10:18:21 tg Exp $");
 
 typedef struct proc	Proc;
 struct proc {
-	Proc	*next;		/* next process in pipeline (if any) */
-	int	state;
-	int	status;		/* wait status */
-	pid_t	pid;		/* process id */
-	char	command[48];	/* process command string */
+	Proc *next;		/* next process in pipeline (if any) */
+	int state;
+	int status;		/* wait status */
+	pid_t pid;		/* process id */
+	char command[48];	/* process command string */
 };
 
 /* Notify/print flag - j_print() argument */
@@ -46,21 +46,21 @@ struct proc {
 
 typedef struct job Job;
 struct job {
-	Job	*next;		/* next job in list */
-	int	job;		/* job number: %n */
-	int	flags;		/* see JF_* */
-	int	state;		/* job state */
-	int	status;		/* exit status of last process */
-	pid_t	pgrp;		/* process group of job */
-	pid_t	ppid;		/* pid of process that forked job */
+	Job *next;		/* next job in list */
+	int job;		/* job number: %n */
+	int flags;		/* see JF_* */
+	int state;		/* job state */
+	int status;		/* exit status of last process */
+	pid_t pgrp;		/* process group of job */
+	pid_t ppid;		/* pid of process that forked job */
 	int32_t	age;		/* number of jobs started */
 	struct timeval systime;	/* system time used by job */
 	struct timeval usrtime;	/* user time used by job */
-	Proc	*proc_list;	/* process list */
-	Proc	*last_proc;	/* last process in list */
+	Proc *proc_list;	/* process list */
+	Proc *last_proc;	/* last process in list */
 	Coproc_id coproc_id;	/* 0 or id of coprocess output pipe */
 	struct termios ttystate;/* saved tty state for stopped jobs */
-	pid_t	saved_ttypgrp;	/* saved tty process group for stopped jobs */
+	pid_t saved_ttypgrp;	/* saved tty process group for stopped jobs */
 };
 
 /* Flags for j_waitj() */
@@ -75,7 +75,7 @@ struct job {
 #define JL_AMBIG	2	/* %foo or %?foo is ambiguous */
 #define JL_INVALID	3	/* non-pid, non-% job id */
 
-static const char	*const lookup_msgs[] = {
+static const char *const lookup_msgs[] = {
 	null,
 	"no such job",
 	"ambiguous",
@@ -83,15 +83,16 @@ static const char	*const lookup_msgs[] = {
 	NULL
 };
 
-struct timeval	j_systime, j_usrtime;	/* user and system time of last j_waitjed job */
+/* user and system time of last j_waitjed job */
+struct timeval j_systime, j_usrtime;
 
-static Job		*job_list;	/* job list */
-static Job		*last_job;
-static Job		*async_job;
-static pid_t		async_pid;
+static Job *job_list;		/* job list */
+static Job *last_job;
+static Job *async_job;
+static pid_t async_pid;
 
-static int		nzombie;	/* # of zombies owned by this process */
-static int32_t		njobs;		/* # of jobs started */
+static int nzombie;		/* # of zombies owned by this process */
+static int32_t njobs;		/* # of jobs started */
 
 #ifndef CHILD_MAX
 #define CHILD_MAX	_POSIX_CHILD_MAX

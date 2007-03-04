@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.23 2007/03/04 00:13:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.24 2007/03/04 03:04:24 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -17,14 +17,14 @@ __RCSID("$MirOS: src/bin/mksh/eval.c,v 1.23 2007/03/04 00:13:15 tg Exp $");
 
 /* expansion generator state */
 typedef struct Expand {
-	/* int  type; */	/* see expand() */
+	/* int type; */		/* see expand() */
 	const char *str;	/* string */
 	union {
 		const char **strv;/* string[] */
-		struct shf *shf;/* file */
+		struct shf *shf;  /* file */
 	} u;			/* source */
 	struct tbl *var;	/* variable in ${var..} */
-	short	split;		/* split "$@" / call waitlast $() */
+	short split;		/* split "$@" / call waitlast $() */
 } Expand;
 
 #define	XBASE		0	/* scanning original */
@@ -232,7 +232,7 @@ expand(const char *cp,	/* input word */
 					type = comsub(&x, sp);
 					if (type == XCOM && (f&DOBLANK))
 						doblank++;
-					sp = strchr(sp, 0) + 1;
+					sp = cstrchr(sp, 0) + 1;
 					newlines = 0;
 				}
 				continue;
@@ -255,7 +255,7 @@ expand(const char *cp,	/* input word */
 					v.name[0] = '\0';
 					v_evaluate(&v, substitute(sp, 0),
 					    KSH_UNWIND_ERROR, true);
-					sp = strchr(sp, 0) + 1;
+					sp = cstrchr(sp, 0) + 1;
 					for (p = str_val(&v); *p; ) {
 						Xcheck(ds, dp);
 						*dp++ = *p++;
@@ -273,7 +273,7 @@ expand(const char *cp,	/* input word */
 				int stype;
 				int slen = 0;
 
-				sp = strchr(sp, '\0') + 1; /* skip variable */
+				sp = cstrchr(sp, '\0') + 1; /* skip variable */
 				type = varsub(&x, varname, sp, &stype, &slen);
 				if (type < 0) {
 					char *beg, *end, *str;
@@ -1102,15 +1102,16 @@ globit(XString *xs,	/* dest string */
 char *
 debunk(char *dp, const char *sp, size_t dlen)
 {
-	char *d, *s;
+	char *d;
+	const char *s;
 
-	if ((s = strchr(sp, MAGIC))) {
+	if ((s = cstrchr(sp, MAGIC))) {
 		if (s - sp >= (ssize_t)dlen)
 			return dp;
 		memcpy(dp, sp, s - sp);
 		for (d = dp + (s - sp); *s && (d - dp < (ssize_t)dlen); s++)
 			if (!ISMAGIC(*s) || !(*++s & 0x80) ||
-			    !strchr("*+?@! ", *s & 0x7f))
+			    !vstrchr("*+?@! ", *s & 0x7f))
 				*d++ = *s;
 			else {
 				/* extended pattern operators: *+?@! */

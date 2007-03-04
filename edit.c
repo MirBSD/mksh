@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.83 2007/03/04 00:13:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.84 2007/03/04 03:04:24 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -36,7 +36,7 @@ int x_cf_glob(int, const char *, int, int, int *, int *, char ***, int *);
 int x_longest_prefix(int, char *const *);
 int x_basename(const char *, const char *);
 void x_free_words(int, char **);
-int x_escape(const char *, size_t, int (*) (const char *, size_t));
+int x_escape(const char *, size_t, int (*)(const char *, size_t));
 int x_emacs(char *, size_t);
 void x_init_emacs(void);
 int x_vi(char *, size_t);
@@ -133,9 +133,7 @@ x_getc(void)
 			runtraps(0);
 			x_mode(true);
 		}
-	if (n != 1)
-		return -1;
-	return (int)(unsigned char)c;
+	return ((n == 1) ? (int)(unsigned char)c : -1);
 }
 
 void
@@ -484,7 +482,7 @@ x_locate_word(const char *buf, int buflen, int pos, int *startp,
 		for (p = start - 1; p >= 0 && ksh_isspace(buf[p]);
 		    p--)
 			;
-		iscmd = p < 0 || strchr(";|&()`", buf[p]);
+		iscmd = p < 0 || vstrchr(";|&()`", buf[p]);
 		if (iscmd) {
 			/* If command has a /, path, etc. is not searched;
 			 * only current directory is searched which is just
@@ -521,7 +519,7 @@ x_cf_glob(int flags, const char *buf, int buflen, int pos, int *startp,
 	if (len == 0 && is_command)
 		return 0;
 
-	nwords = (is_command ? x_command_glob : x_file_glob) (flags,
+	nwords = (is_command ? x_command_glob : x_file_glob)(flags,
 	    buf + *startp, len, &words);
 	if (nwords == 0) {
 		*wordsp = NULL;
@@ -561,7 +559,7 @@ add_glob(const char *str, int slen)
 		if (*s == '\\' && s[1])
 			s++;
 		else if (*s == '*' || *s == '[' || *s == '?' || *s == '$'
-		    || (s[1] == '(' && strchr("*+?@!", *s)))
+		    || (s[1] == '(' && vstrchr("*+?@!", *s)))
 			break;
 		else if (*s == '/')
 			saw_slash = true;
@@ -602,7 +600,7 @@ x_free_words(int nwords, char **words)
 	int i;
 
 	for (i = 0; i < nwords; i++)
-		afreechk(words[i])
+		afreechk(words[i]);
 	afree(words, ATEMP);
 }
 
@@ -672,7 +670,7 @@ glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
 	Xinit(xs, xp, patlen + 128, ATEMP);
 	while (sp) {
 		xp = Xstring(xs, xp);
-		if (!(p = strchr(sp, ':')))
+		if (!(p = cstrchr(sp, ':')))
 			p = sp + strlen(sp);
 		pathlen = p - sp;
 		if (pathlen) {
@@ -726,14 +724,15 @@ glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
  * keybinding-specific function
  */
 int
-x_escape(const char *s, size_t len, int (*putbuf_func) (const char *, size_t))
+x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 {
 	size_t add, wlen;
 	const char *ifs = str_val(local("IFS", 0));
 	int rval = 0;
 
 	for (add = 0, wlen = len; wlen - add > 0; add++) {
-		if (strchr("\\$()[{}*&;#|<>\"'`", s[add]) || strchr(ifs, s[add])) {
+		if (vstrchr("\\$()[{}*&;#|<>\"'`", s[add]) ||
+		    vstrchr(ifs, s[add])) {
 			if (putbuf_func(s, add) != 0) {
 				rval = -1;
 				break;
@@ -3358,7 +3357,7 @@ static void	ed_mov_opt(int, char *);
 static int	expand_word(int);
 static int	complete_word(int, int);
 static int	print_expansions(struct edstate *, int);
-#define char_len(c) ((c) < ' ' || (c) == 0x7F ? 2 : 1)
+#define char_len(c)	((c) < ' ' || (c) == 0x7F ? 2 : 1)
 static void	x_vi_zotc(int);
 static void	vi_error(void);
 static void	vi_macro_reset(void);

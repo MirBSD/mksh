@@ -29,7 +29,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.3 2005/11/22 18:40:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.4 2007/03/04 03:04:23 tg Exp $");
 
 struct link {
 	struct link *prev;
@@ -40,7 +40,7 @@ Area *
 ainit(Area *ap)
 {
 	ap->freelist = NULL;
-	return ap;
+	return (ap);
 }
 
 void
@@ -55,16 +55,15 @@ afreeall(Area *ap)
 	ap->freelist = NULL;
 }
 
-#define L2P(l)	( (void *)(((char *)(l)) + sizeof(struct link)) )
-#define P2L(p)	( (struct link *)(((char *)(p)) - sizeof(struct link)) )
+#define L2P(l)	( (void *)(((char *)(l)) + sizeof (struct link)) )
+#define P2L(p)	( (struct link *)(((char *)(p)) - sizeof (struct link)) )
 
 void *
 alloc(size_t size, Area *ap)
 {
 	struct link *l;
 
-	l = malloc(sizeof(struct link) + size);
-	if (l == NULL)
+	if ((l = malloc(sizeof (struct link) + size)) == NULL)
 		internal_errorf(1, "unable to allocate memory");
 	l->next = ap->freelist;
 	l->prev = NULL;
@@ -72,7 +71,7 @@ alloc(size_t size, Area *ap)
 		ap->freelist->prev = l;
 	ap->freelist = l;
 
-	return L2P(l);
+	return (L2P(l));
 }
 
 void *
@@ -81,14 +80,13 @@ aresize(void *ptr, size_t size, Area *ap)
 	struct link *l, *l2, *lprev, *lnext;
 
 	if (ptr == NULL)
-		return alloc(size, ap);
+		return (alloc(size, ap));
 
 	l = P2L(ptr);
 	lprev = l->prev;
 	lnext = l->next;
 
-	l2 = realloc(l, sizeof(struct link) + size);
-	if (l2 == NULL)
+	if ((l2 = realloc(l, sizeof (struct link) + size)) == NULL)
 		internal_errorf(1, "unable to allocate memory");
 	if (lprev)
 		lprev->next = l2;
@@ -97,7 +95,7 @@ aresize(void *ptr, size_t size, Area *ap)
 	if (lnext)
 		lnext->prev = l2;
 
-	return L2P(l2);
+	return (L2P(l2));
 }
 
 void

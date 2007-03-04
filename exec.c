@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.25 2007/03/04 00:13:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.26 2007/03/04 03:04:24 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -500,7 +500,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 		rv = subst_exstat;
 		goto Leave;
 	} else if (!tp) {
-		if (Flag(FRESTRICTED) && strchr(cp, '/')) {
+		if (Flag(FRESTRICTED) && vstrchr(cp, '/')) {
 			warningf(true, "%s: restricted", cp);
 			rv = 1;
 			goto Leave;
@@ -814,7 +814,7 @@ findcom(const char *name, int flags)
 	char *fpath;			/* for function autoloading */
 	const char *npath;
 
-	if (strchr(name, '/') != NULL) {
+	if (vstrchr(name, '/')) {
 		insert = 0;
 		/* prevent FPATH search below */
 		flags &= ~FC_FUNC;
@@ -946,7 +946,7 @@ search(const char *name, const char *lpath,
 
 	if (errnop)
 		*errnop = 0;
-	if (strchr(name, '/')) {
+	if (vstrchr(name, '/')) {
 		if (search_access(name, mode, errnop) == 0)
 			return (name);
 		return NULL;
@@ -958,7 +958,7 @@ search(const char *name, const char *lpath,
 	sp = lpath;
 	while (sp != NULL) {
 		xp = Xstring(xs, xp);
-		if (!(p = strchr(sp, ':')))
+		if (!(p = cstrchr(sp, ':')))
 			p = sp + strlen(sp);
 		if (p != sp) {
 			XcheckN(xs, xp, p - sp);

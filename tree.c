@@ -2,18 +2,18 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.8 2007/03/04 00:13:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.9 2007/03/04 03:04:28 tg Exp $");
 
 #define INDENT	4
 
 #define tputc(c, shf)	shf_putchar(c, shf);
-static void	ptree(struct op *, int, struct shf *);
-static void	pioact(struct shf *, int, struct ioword *);
-static void	tputC(int, struct shf *);
-static void	tputS(char *, struct shf *);
-static void	vfptreef(struct shf *, int, const char *, va_list);
+static void ptree(struct op *, int, struct shf *);
+static void pioact(struct shf *, int, struct ioword *);
+static void tputC(int, struct shf *);
+static void tputS(char *, struct shf *);
+static void vfptreef(struct shf *, int, const char *, va_list);
 static struct ioword **iocopy(struct ioword **, Area *);
-static void     iofree(struct ioword **, Area *);
+static void iofree(struct ioword **, Area *);
 
 /*
  * print a command tree

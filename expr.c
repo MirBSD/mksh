@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.9 2007/03/03 21:12:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.10 2007/03/04 03:04:25 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -102,17 +102,16 @@ static const struct opinfo opinfo[] = {
 	{ "(",	 1, P_PRIMARY },
 	{ ")",	 1, P_PRIMARY },
 	{ ":",	 1, P_PRIMARY },
-	{ "",	 0, P_PRIMARY } /* end of table */
+	{ "",	 0, P_PRIMARY }
 };
-
 
 typedef struct expr_state Expr_state;
 struct expr_state {
 	const char *expression;		/* expression being evaluated */
 	const char *tokp;		/* lexical position */
-	enum token  tok;		/* token from token() */
-	int	    noassign;		/* don't do assigns (for ?:,&&,||) */
-	bool	    arith;		/* true if evaluating an $(())
+	enum token tok;			/* token from token() */
+	int noassign;			/* don't do assigns (for ?:,&&,||) */
+	bool arith;			/* true if evaluating an $(())
 					 * expression
 					 */
 	struct tbl *val;		/* value from token() */
@@ -129,9 +128,9 @@ enum error_type {
 static void evalerr(Expr_state *, enum error_type, const char *)
     __attribute__((noreturn));
 static struct tbl *evalexpr(Expr_state *, enum prec);
-static void	   exprtoken(Expr_state *);
+static void exprtoken(Expr_state *);
 static struct tbl *do_ppmm(Expr_state *, enum token, struct tbl *, bool);
-static void	   assign_check(Expr_state *, enum token, struct tbl *);
+static void assign_check(Expr_state *, enum token, struct tbl *);
 static struct tbl *tempvar(void);
 static struct tbl *intvar(Expr_state *, struct tbl *);
 
@@ -148,7 +147,7 @@ evaluate(const char *expr, long int *rval, int error_ok, bool arith)
 	v.type = 0;
 	ret = v_evaluate(&v, expr, error_ok, arith);
 	*rval = v.val.i;
-	return ret;
+	return (ret);
 }
 
 /*
@@ -178,7 +177,7 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok,
 		quitenv(NULL);
 		if (i == LAEXPR) {
 			if (error_ok == KSH_RETURN_ERROR)
-				return 0;
+				return (0);
 			errorf(null);
 		}
 		unwind(i);
@@ -203,7 +202,7 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok,
 
 	quitenv(NULL);
 
-	return 1;
+	return (1);
 }
 
 static void
@@ -304,7 +303,7 @@ evalexpr(Expr_state *es, enum prec prec)
 			vl = do_ppmm(es, es->tok, vl, false);
 			exprtoken(es);
 		}
-		return vl;
+		return (vl);
 	}
 	vl = evalexpr(es, ((int) prec) - 1);
 	for (op = es->tok; IS_BINOP(op) && opinfo[(int) op].prec == prec;
@@ -437,7 +436,7 @@ evalexpr(Expr_state *es, enum prec prec)
 		} else if (op != O_TERN)
 			vl->val.i = res;
 	}
-	return vl;
+	return (vl);
 }
 
 static void
@@ -526,7 +525,7 @@ do_ppmm(Expr_state *es, enum token op, struct tbl *vasn, bool is_prefix)
 	if (!is_prefix)		/* undo the inc/dec */
 		vl->val.i = oval;
 
-	return vl;
+	return (vl);
 }
 
 static void
@@ -543,13 +542,13 @@ tempvar(void)
 {
 	struct tbl *vp;
 
-	vp = (struct tbl*) alloc(sizeof(struct tbl), ATEMP);
+	vp = (struct tbl *)alloc(sizeof (struct tbl), ATEMP);
 	vp->flag = ISSET|INTEGER;
 	vp->type = 0;
 	vp->areap = ATEMP;
 	vp->val.i = 0;
 	vp->name[0] = '\0';
-	return vp;
+	return (vp);
 }
 
 /* cast (string) variable to temporary integer variable */
@@ -561,7 +560,7 @@ intvar(Expr_state *es, struct tbl *vp)
 	/* try to avoid replacing a temp var with another temp var */
 	if (vp->name[0] == '\0' &&
 	    (vp->flag & (ISSET|INTEGER|EXPRLVALUE)) == (ISSET|INTEGER))
-		return vp;
+		return (vp);
 
 	vq = tempvar();
 	if (setint_v(vq, vp, es->arith) == NULL) {
@@ -573,5 +572,5 @@ intvar(Expr_state *es, struct tbl *vp)
 		vp->flag &= ~EXPRINEVAL;
 		es->evaling = NULL;
 	}
-	return vq;
+	return (vq);
 }

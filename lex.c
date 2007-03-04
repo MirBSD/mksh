@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.25 2007/01/12 10:18:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.26 2007/03/04 03:04:26 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -42,10 +42,9 @@ struct lex_state {
 
 typedef struct State_info State_info;
 struct State_info {
-	Lex_state	*base;
-	Lex_state	*end;
+	Lex_state *base;
+	Lex_state *end;
 };
-
 
 static void	readhere(struct ioword *);
 static int	getsc__(void);
@@ -83,10 +82,8 @@ static int ignore_backslash_newline;
 			    state = statep->ls_state; \
 			} while (0)
 
-
-
 /*
- * Lexical analyzer
+ * Lexical analyser
  *
  * tokens are not regular expressions, they are LL(1).
  * for example, "${var:-${PWD}}", and "$(size $(whence ksh))".

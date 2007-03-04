@@ -1,7 +1,7 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.154 2007/03/03 21:36:06 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.155 2007/03/04 03:04:22 tg Exp $
 #-
-# Env: CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, LIBS, NOWARN, NROFF, TARGET_OS
+# Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
 
 v()
@@ -597,8 +597,7 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 fi
 
 addsrcs HAVE_SETMODE setmode.c
-addsrcs HAVE_STRCASESTR strcasestr.c
-addsrcs HAVE_STRLCPY strlfun.c
+addsrcs HAVE_STRLCPY strlcpy.c
 CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 
 case $s:$HAVE_MKSH_NOPAM in

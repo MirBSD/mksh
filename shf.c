@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.11 2007/01/15 02:48:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.12 2007/03/04 03:04:27 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -14,8 +14,8 @@ __RCSID("$MirOS: src/bin/mksh/shf.c,v 1.11 2007/01/15 02:48:28 tg Exp $");
  * file descriptors.
  */
 
-static int	shf_fillbuf(struct shf *);
-static int	shf_emptybuf(struct shf *, int);
+static int shf_fillbuf(struct shf *);
+static int shf_emptybuf(struct shf *, int);
 
 /* Open a file.  First three args are for open(), last arg is flags for
  * this package.  Returns NULL if file could not be opened, or if a dup
