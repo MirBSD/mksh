@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.160 2007/03/04 04:52:28 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.161 2007/03/04 04:53:06 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -214,7 +214,7 @@ Linux)
 	: ${HAVE_REVOKE=0}
 	;;
 Minix)
-	CPPFLAGS="$CPPFLAGS -DNSIG=_NSIG -D_MINIX -D_POSIX_SOURCE"
+	CPPFLAGS="$CPPFLAGS -D_MINIX -D_POSIX_SOURCE"
 	warn=' but might work with gcc
 	(not with ACK yet)'
 	;;
@@ -580,7 +580,8 @@ rm -f x
 if test 1 = $NEED_MKSH_SIGNAME; then
 	$e Generating list of signal names...
 	sigseen=:
-	NSIG=`( echo '#include <signal.h>'; echo mksh_cfg: NSIG ) | \
+	NSIG=`( echo '#include <signal.h>'; echo '#ifndef NSIG'; \
+	    echo '#define NSIG _NSIG'; echo '#endif'; echo mksh_cfg: NSIG ) | \
 	    vq "$CPP $CPPFLAGS" | grep mksh_cfg: | \
 	    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1/'`
 	NSIG=`printf %d "$NSIG" 2>/dev/null`
@@ -595,7 +596,7 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 		    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1:'$name/
 	done | grep -v '^:' | while IFS=: read nr name; do
 		nr=`printf %d "$nr" 2>/dev/null`
-		test $nr -gt 0 && test $nr -lt $NSIG || continue
+		test $nr -gt 0 && test $nr -le $NSIG || continue
 		case $sigseen in
 		*:$nr:*) ;;
 		*)	echo "		{ $nr, \"$name\" },"
