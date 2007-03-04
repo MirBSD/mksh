@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.155 2007/03/04 03:04:22 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.156 2007/03/04 03:48:50 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -516,13 +516,6 @@ EOF
 #
 # other checks
 #
-ac_test multi_idstring '' 'if we can use __RCSID(x) multiple times' <<-'EOF'
-	#include "sh.h"
-	__RCSID("one");
-	__RCSID("two");
-	int main(void) { return (0); }
-EOF
-
 ac_test persistent_history mksh_full 0 'if to use persistent history' <<-'EOF'
 	#if !HAVE_FLOCK_EX || defined(MKSH_SMALL)
 	#error No, some prerequisites are missing.
@@ -531,6 +524,15 @@ ac_test persistent_history mksh_full 0 'if to use persistent history' <<-'EOF'
 EOF
 test 1 = $HAVE_PERSISTENT_HISTORY || \
     check_categories=$check_categories,no-histfile
+
+# Should be the _last_ one
+ac_test multi_idstring '' 'if we can use __RCSID(x) multiple times' <<-'EOF'
+	#define HAVE_MULTI_IDSTRING 1
+	#include "sh.h"
+	__RCSID("one");
+	__RCSID("two");
+	int main(void) { return (0); }
+EOF
 
 #
 # Compiler: Praeprocessor (only if needed)
