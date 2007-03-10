@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.165 2007/03/10 18:51:59 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.166 2007/03/10 19:19:12 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -37,7 +37,8 @@ alln=0123456789
 alls=______________________________________________________________
 nl='
 '
-tcbo=0
+tcbo=
+tcfn=no
 
 upper()
 {
@@ -83,15 +84,17 @@ ac_testn()
 	cat >scn.c
 	eval 'v "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -I'\''$srcdir'\' \
 	    'scn.c $LIBS" 2>&'$h | sed 's/^/] /'
+	test x"$tcfn" = x"no" && test -f a.out && tcfn=a.out
+	test x"$tcfn" = x"no" && test -f a.exe && tcfn=a.exe
 	test x"$tcbo" = x"1" && return
-	if test -f a.out || test -f a.exe; then
+	if test -f $tcfn; then
 		eval HAVE_$fu=1
 		$e "$bi==> $fd...$ao ${ui}yes$ao"
 	else
 		eval HAVE_$fu=0
 		$e "$bi==> $fd...$ao ${ui}no$ao"
 	fi
-	rm -f scn.c a.out a.exe
+	rm -f scn.c $tcfn
 }
 
 ac_test()
@@ -251,7 +254,7 @@ CPPFLAGS="$CPPFLAGS -I'$curdir'"
 #
 # Begin of mirtoconf checks
 #
-rm -f scn.c a.out a.exe x
+rm -f scn.c a.out a.exe x no
 $e ${ao}Scanning for functions... please ignore any errors.
 
 #
@@ -306,7 +309,7 @@ test x"$i" = x"" && ac_flags 1 otwo "-O2"
 ac_flags 0 fnotreevrp "-fno-tree-vrp"
 if test 1 = $HAVE_CAN_FNOTREEVRP; then
 	tcbo=1
-	ac_testn need_fnotreevrp '' "if -fno-tree-vrp is needed" <<-'EOF'
+	ac_testn need_fnotreevrp '' "if to use it to prevent a gcc bug" <<-'EOF'
 		typedef unsigned size_t;
 		char *strncpy(char *, const char *, size_t);
 		char *
@@ -327,21 +330,19 @@ if test 1 = $HAVE_CAN_FNOTREEVRP; then
 			return (*a);
 		}
 	EOF
-	tcbo=0
-	f=a.exe
-	test -f $f || f=a.out
-	if test -f $f; then
-		./$f >/dev/null 2>&1
+	tcbo=
+	if test -f $tcfn; then
+		./$tcfn >/dev/null 2>&1
 		rv=$?
 		rs=no
 	else
 		rv=0
-		rs="yes (assumed; cannot run ./$f)"
+		rs="yes (assumed; cannot run ./$tcfn)"
 	fi
 	test 1 = $rv && rs=yes
 	test 2 = $rv || CFLAGS="$CFLAGS -fno-tree-vrp"
 	$e "$bi==> $fd...$ao ${ui}$rs$ao"
-	rm -f scn.c a.out a.exe
+	rm -f scn.c $tcfn
 fi
 ac_flags 1 fnostrictaliasing "-fno-strict-aliasing"
 ac_flags 1 fstackprotectorall "-fstack-protector-all"
