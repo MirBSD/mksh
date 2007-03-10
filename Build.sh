@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.163 2007/03/04 05:14:09 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.164 2007/03/10 17:29:53 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -302,6 +302,7 @@ NOWARN=$save_NOWARN
 i=`echo :"$CFLAGS" | sed 's/^://' | tr -c -d $alll$allu$alln-`
 test x"$i" = x"" && ac_flags 1 otwo "-O2"
 ac_flags 1 fnostrictaliasing "-fno-strict-aliasing"
+ac_flags 1 fstackprotectorall "-fstack-protector-all"
 ac_flags 1 fwholepgm "-fwhole-program --combine"
 ac_flags 1 fwrapv "-fwrapv"
 # I'd use -std=c99 but this wrecks havoc on glibc and cygwin based
