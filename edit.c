@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.84 2007/03/04 03:04:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.85 2007/03/10 00:23:31 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -780,6 +780,7 @@ utf_widthadj(const char *src, const char **dst)
 {
 	size_t len;
 	unsigned wc;
+	int width;
 
 	if (!Flag(FUTFHACK) || *(const unsigned char *)src <= 0x7F ||
 	    (len = mbxtowc(&wc, src)) == (size_t)-1) {
@@ -790,7 +791,8 @@ utf_widthadj(const char *src, const char **dst)
 
 	if (dst)
 		*dst = src + len;
-	return (wcxwidth(wc));
+	width = wcxwidth(wc);
+	return (width == -1 ? 2 : width);
 }
 
 static void
@@ -1877,16 +1879,17 @@ x_zotc2(int c)
 static void
 x_zotc3(char **cp)
 {
-	int c = **(unsigned char **)cp;
+	unsigned c = **(unsigned char **)cp;
 
 	if (c == '\t') {
 		/*  Kludge, tabs are always four spaces.  */
 		x_e_puts("    ");
 		(*cp)++;
-	} else if (c < ' ' || c == 0x7f) {
+	} else if (c < ' ' || c == 0x7f || (Flag(FUTFHACK) && c == 0xC2 &&
+	    ((unsigned char *)*cp)[1] < 0xA0 && mbxtowc(&c, *cp))) {
 		x_e_putc2('^');
 		x_e_putc2(UNCTRL(c));
-		(*cp)++;
+		*cp += c & 0x80 ? 2 : 1;
 	} else
 		x_e_putc3((const char **)cp);
 }
