@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.86 2007/03/10 00:36:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.87 2007/03/10 18:16:26 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1511,11 +1511,11 @@ x_insert(int c)
 	if (Flag(FUTFHACK)) {
 		if (((c & 0xC0) == 0x80) && left) {
 			str[pos++] = c;
-			left--;
-			if (!left) {
+			if (!--left) {
 				str[pos] = '\0';
 				x_arg = save_arg;
-				goto x_insert_write;
+				while (x_arg--)
+					x_ins(str);
 			}
 			return (KSTD);
 		}
@@ -1526,24 +1526,25 @@ x_insert(int c)
 				while (save_arg--)
 					x_ins(str);
 			}
-			left = 0;
 		}
 		if ((c >= 0xC2) && (c < 0xE0))
 			left = 1;
 		else if ((c >= 0xE0) && (c < 0xF0))
 			left = 2;
+		else if (c > 0x7F)
+			goto invmbs;
+		else
+			left = 0;
 		if (left) {
 			save_arg = x_arg;
 			pos = 1;
 			str[0] = c;
 			return (KSTD);
-		} else if (c > 0x7F)
-			goto invmbs;
+		}
 	}
 	left = 0;
 	str[0] = c;
 	str[1] = '\0';
- x_insert_write:
 	while (x_arg--)
 		x_ins(str);
 	return KSTD;

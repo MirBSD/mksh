@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.119 2007/03/10 00:42:00 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.120 2007/03/10 18:16:27 tg Exp $"
 #define MKSH_VERSION "R29 2007/03/10"
 
 #if HAVE_SYS_PARAM_H
@@ -373,7 +373,7 @@ EXTERN struct env {
 struct option {
 	const char *name;	/* long name of option */
 	char c;			/* character flag (if any) */
-	short flags;		/* OF_* */
+	unsigned char flags;	/* OF_* */
 };
 extern const struct option options[];
 
@@ -1061,8 +1061,6 @@ struct source {
 		struct tbl *tblp;  /* alias (SALIAS) */
 		char *freeme;	   /* also for SREREAD */
 	} u;
-	char	ugbuf[2];	/* buffer for ungetsc() (SREREAD) and
-				 * alias (SALIAS) */
 	int	line;		/* line number */
 	int	errline;	/* line the error occurred on (0 if not set) */
 	const char *file;	/* input file name */
@@ -1070,6 +1068,8 @@ struct source {
 	Area	*areap;
 	XString	xs;		/* input buffer */
 	Source *next;		/* stacked source */
+	char	ugbuf[2];	/* buffer for ungetsc() (SREREAD) and
+				 * alias (SALIAS) */
 };
 
 /* Source.type values */
@@ -1168,6 +1168,9 @@ EXTERN char	ident [IDENT+1];
 EXTERN char **history;	/* saved commands */
 EXTERN char **histptr;	/* last history item */
 EXTERN int histsize;	/* history size */
+
+/* user and system time of last j_waitjed job */
+EXTERN struct timeval j_usrtime, j_systime;
 
 /* alloc.c */
 Area *ainit(Area *);

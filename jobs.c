@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.19 2007/03/04 03:04:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.20 2007/03/10 18:16:27 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -82,9 +82,6 @@ static const char *const lookup_msgs[] = {
 	"argument must be %job or process id",
 	NULL
 };
-
-/* user and system time of last j_waitjed job */
-struct timeval j_systime, j_usrtime;
 
 static Job *job_list;		/* job list */
 static Job *last_job;

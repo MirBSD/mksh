@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.48 2007/03/04 03:04:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.49 2007/03/10 18:16:26 tg Exp $");
 
 int
 c_cd(const char **wp)
@@ -1917,7 +1917,6 @@ c_exitreturn(const char **wp)
 	quitenv(NULL);	/* get rid of any i/o redirections */
 	unwind(how);
 	/* NOTREACHED */
-	return 0;
 }
 
 int
@@ -2095,7 +2094,6 @@ timex(struct op *t, int f)
 	struct rusage ru0, ru1, cru0, cru1;
 	struct timeval usrtime, systime, tv0, tv1;
 	int tf = 0;
-	extern struct timeval j_usrtime, j_systime; /* computed by j_wait */
 	char opts[1];
 
 	gettimeofday(&tv0, NULL);

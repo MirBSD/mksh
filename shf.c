@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.12 2007/03/04 03:04:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.13 2007/03/10 18:16:28 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -829,8 +829,8 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		switch (c) {
 		case 'p': /* pointer */
 			flags &= ~(FL_LONG | FL_SHORT);
-			if (sizeof(char *) > sizeof(int))
-				flags |= FL_LONG; /* hope it fits.. */
+			flags |= (sizeof(char *) > sizeof(int)) ?
+			    /* hope it fits.. */ FL_LONG : 0;
 			/* aaahhh... */
 		case 'd':
 		case 'i':
