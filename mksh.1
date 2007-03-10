@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.79 2007/03/04 03:04:26 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.80 2007/03/10 00:34:54 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.118 2006/11/30 08:47:58 jmc Exp $
 .\"
-.Dd March 4, 2007
+.Dd March 10, 2007
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -3270,11 +3270,9 @@ This is enabled automatically for interactive shells if your system supports
 and optionally
 .Fn nl_langinfo CODESET ,
 and at least one of these returns something that matches
-.Dq UTF-8 ,
-.Dq utf8 ,
-.Dq CESU-8 ,
+.Dq UTF-8
 or
-.Dq cesu8 .
+.Dq utf8 .
 .It Fl u \*(Ba Ic nounset
 Referencing of an unset parameter is treated as an error, unless one of the
 .Ql - ,
