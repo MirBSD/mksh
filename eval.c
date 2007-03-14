@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.24 2007/03/04 03:04:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.25 2007/03/14 02:41:08 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -279,10 +279,11 @@ expand(const char *cp,	/* input word */
 					char *beg, *end, *str;
 
 					sp = varname - 2; /* restore sp */
-					end = (beg = str_save(sp, ATEMP)) +
+					end = (beg = wdcopy(sp, ATEMP)) +
 					    (wdscan(sp, CSUBST) - sp);
 					/* ({) the } or x is already skipped */
-					*end = EOS;
+					if (end < wdscan(beg, EOS))
+						*end = EOS;
 					str = snptreef(NULL, 64, "%S", beg);
 					afree(beg, ATEMP);
 					errorf("%s: bad substitution", str);
