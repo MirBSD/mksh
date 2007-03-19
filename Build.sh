@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.166 2007/03/10 19:19:12 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.167 2007/03/19 22:58:19 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -195,7 +195,6 @@ CYGWIN*)
 	test def = $s && s=pam
 	;;
 Darwin)
-	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 	test def = $s && s=pam
 	;;
 DragonFly)
@@ -204,17 +203,17 @@ FreeBSD)
 	;;
 GNU)
 	warn=' but should work'
-	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64"
+	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 	;;
 GNU/kFreeBSD)
 	warn=' but should work'
-	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64"
+	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 	;;
 Interix)
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
 	;;
 Linux)
-	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64"
+	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 	test def = $s && s=pam
 	: ${HAVE_REVOKE=0}
 	;;
@@ -232,7 +231,6 @@ OpenBSD)
 	;;
 SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
-	CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 	test def = $s && s=pam
 	r=1
 	;;
@@ -254,7 +252,7 @@ CPPFLAGS="$CPPFLAGS -I'$curdir'"
 #
 # Begin of mirtoconf checks
 #
-rm -f scn.c a.out a.exe x no
+rm -f scn.c a.out a.exe x no lft
 $e ${ao}Scanning for functions... please ignore any errors.
 
 #
@@ -405,6 +403,31 @@ ac_header stdint.h
 ac_header grp.h sys/types.h
 ac_header ulimit.h
 ac_header values.h
+
+#
+# Environment: definitions
+#
+cat >lft.c <<-'EOF'
+	#include <sys/types.h>
+	/* check that off_t can represent 2^63-1 correctly, thx FSF */
+	#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+	int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721 &&
+	    LARGE_OFF_T % 2147483647 == 1) ? 1 : -1];
+	int main(void) { return (0); }
+EOF
+ac_testn can_lfs '' "if we support large files" <lft.c
+save_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
+ac_testn can_lfs_sus '!' can_lfs 0 "... with -D_FILE_OFFSET_BITS=64" <lft.c
+if test 1 = $HAVE_CAN_LFS_SUS; then
+	HAVE_CAN_LFS=1
+else
+	CPPFLAGS=$save_CPPFLAGS
+fi
+CPPFLAGS="$CPPFLAGS _LARGE_FILES=1"
+ac_testn can_lfs_aix '!' can_lfs 0 "... with -D_LARGE_FILES=1" <lft.c
+test 1 = $HAVE_CAN_LFS_AIX || CPPFLAGS=$save_CPPFLAGS
+rm -f lft.c	# end of large file support test
 
 #
 # Environment: types
