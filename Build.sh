@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.167 2007/03/19 22:58:19 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.168 2007/04/01 01:48:31 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -19,6 +19,11 @@ if test -d /usr/xpg4/bin/. >/dev/null 2>&1; then
 	# Solaris: some of the tools have weird behaviour, use portable ones
 	PATH=/usr/xpg4/bin:$PATH
 	export PATH
+fi
+
+if test -n "${ZSH_VERSION+x}" && (emulate sh) >/dev/null 2>&1; then
+	emulate sh
+	NULLCMD=:
 fi
 
 if test -t 1; then
