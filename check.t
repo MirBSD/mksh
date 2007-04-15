@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.96 2007/04/15 10:58:55 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.97 2007/04/15 12:09:56 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R29 2007/03/14
+	@(#)MIRBSD KSH R29 2007/04/15
 description:
 	Check version of shell.
 category: pdksh
@@ -3931,6 +3931,7 @@ expected-stdout:
 name: utf8bom-2
 description:
 	Check that we can execute BOM-shebangs
+	XXX if the OS can already execute them, we lose
 category: pdksh
 env-setup: !FOO=BAR!
 stdin:
@@ -3939,8 +3940,6 @@ stdin:
 	print '#!/usr/bin/env perl\nprint "a=$ENV{FOO}\n";' >t3
 	print '﻿#!/usr/bin/env perl\nprint "a=$ENV{FOO}\n";' >t4
 	chmod +x t?
-	EXECSHELL=$0
-	export EXECSHELL
 	./t1
 	./t2
 	./t3

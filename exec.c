@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.26 2007/03/04 03:04:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.27 2007/04/15 12:09:57 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -674,6 +674,9 @@ static void
 scriptexec(struct op *tp, const char **ap)
 {
 	const char *sh;
+	unsigned char *cp;
+	char buf[64];		/* 64 == MAXINTERP in MirBSD <sys/param.h> */
+	int fd;
 	union mksh_ccphack args, cap;
 
 	sh = str_val(global("EXECSHELL"));
@@ -683,6 +686,55 @@ scriptexec(struct op *tp, const char **ap)
 		sh = "/bin/sh";
 
 	*tp->args-- = tp->str;
+
+	if ((fd = open(tp->str, O_RDONLY)) >= 0) {
+		/* read first MAXINTERP octets from file */
+		if (read(fd, buf, sizeof (buf)) <= 0)
+			/* read error -> no good */
+			buf[0] = '\0';
+		close(fd);
+		/* scan for newline or NUL _before_ end of buffer */
+		cp = (unsigned char *)buf;
+		while ((char *)cp < (buf + sizeof (buf)))
+			if (*cp == '\0' || *cp == '\n') {
+				*cp = '\0';
+				break;
+			} else
+				++cp;
+		/* if the shebang line is longer than MAXINTERP, bail out */
+		if ((char *)cp >= (buf + sizeof (buf)))
+			goto noshebang;
+		/* skip UTF-8 Byte Order Mark, if present */
+		cp = (unsigned char *)buf;
+		if ((cp[0] == 0xEF) && (cp[1] == 0xBB) && (cp[2] == 0xBF))
+			cp += 3;
+		/* bail out if read error (above) or no shebang */
+		if ((cp[0] != '#') || (cp[1] != '!'))
+			goto noshebang;
+		cp += 2;
+		/* skip whitespace before shell name */
+		while (*cp == ' ' || *cp == '\t')
+			++cp;
+		/* just whitespace on the line? */
+		if (*cp == '\0')
+			goto noshebang;
+		/* no, we actually found an interpreter name */
+		sh = (char *)cp;
+		/* look for end of shell/interpreter name */
+		while (*cp != ' ' && *cp != '\t' && *cp != '\0')
+			++cp;
+		/* any arguments? */
+		if (*cp) {
+			*cp++ = '\0';
+			/* skip spaces before arguments */
+			while (*cp == ' ' || *cp == '\t')
+				++cp;
+			/* pass it all in ONE argument (historic reasons) */
+			if (*cp)
+				*tp->args-- = (char *)cp;
+		}
+	}
+ noshebang:
 	args.ro = tp->args;
 	*args.ro = sh;
 
