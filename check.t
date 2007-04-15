@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.97 2007/04/15 12:09:56 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.98 2007/04/15 12:28:37 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3949,4 +3949,15 @@ expected-stdout:
 	a=/nonexistant{FOO}
 	a=BAR
 	a=BAR
+---
+name: utf8bom-3
+description:
+	Reading the UTF-8 BOM should enable the utf8-hack flag
+category: pdksh
+stdin:
+	$0 -c ':; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'
+	$0 -c '﻿:; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'
+expected-stdout:
+	off
+	on
 ---

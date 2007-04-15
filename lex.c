@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.27 2007/04/15 10:45:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.28 2007/04/15 12:28:38 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -957,6 +957,7 @@ getsc__(void)
 		    (((const unsigned char *)(s->str))[0] == 0xBB) &&
 		    (((const unsigned char *)(s->str))[1] == 0xBF)) {
 			s->str += 2;
+			Flag(FUTFHACK) = 1;
 			goto getsc_again;
 		}
 	}
