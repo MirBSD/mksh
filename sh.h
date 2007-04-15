@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.121 2007/03/14 02:41:09 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.122 2007/04/15 10:45:59 tg Exp $"
 #define MKSH_VERSION "R29 2007/03/14"
 
 #if HAVE_SYS_PARAM_H
@@ -1088,6 +1088,7 @@ struct source {
 #define SF_ALIAS	BIT(1)	/* faking space at end of alias */
 #define SF_ALIASEND	BIT(2)	/* faking space at end of alias */
 #define SF_TTY		BIT(3)	/* type == SSTDIN & it is a tty */
+#define SF_FIRST	BIT(4)	/* initial state (to ignore UTF-8 BOM) */
 
 /*
  * states while lexing word

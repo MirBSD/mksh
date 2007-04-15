@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.26 2007/03/04 03:04:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.27 2007/04/15 10:45:58 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -64,9 +64,11 @@ static int ignore_backslash_newline;
 
 /* optimised getsc_bn() */
 #define getsc()		(*source->str != '\0' && *source->str != '\\' \
-			 && !backslash_skip ? *source->str++ : getsc_bn())
+			 && !backslash_skip && !(source->flags & SF_FIRST) \
+			 ? *source->str++ : getsc_bn())
 /* optimised getsc__() */
-#define	getsc_()	((*source->str != '\0') ? *source->str++ : getsc__())
+#define	getsc_()	((*source->str != '\0') && !(source->flags & SF_FIRST) \
+			 ? *source->str++ : getsc__())
 
 #define STATE_BSIZE	32
 
@@ -856,6 +858,7 @@ getsc__(void)
 	Source *s = source;
 	int c;
 
+ getsc_again:
 	while ((c = *s->str++) == 0) {
 		s->str = NULL;		/* return 0 for EOF by default */
 		switch (s->type) {
@@ -945,6 +948,16 @@ getsc__(void)
 		if (s->flags & SF_ECHO) {
 			shf_puts(s->str, shl_out);
 			shf_flush(shl_out);
+		}
+	}
+	/* check for UTF-8 byte order mark */
+	if (s->flags & SF_FIRST) {
+		s->flags &= ~SF_FIRST;
+		if (((unsigned char)c == 0xEF) &&
+		    (((const unsigned char *)(s->str))[0] == 0xBB) &&
+		    (((const unsigned char *)(s->str))[1] == 0xBF)) {
+			s->str += 2;
+			goto getsc_again;
 		}
 	}
 	return c;

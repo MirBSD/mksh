@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.73 2007/03/04 03:04:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.74 2007/04/15 10:45:59 tg Exp $");
 
 extern char **environ;
 
@@ -456,6 +456,8 @@ shell(Source * volatile s, volatile int toplevel)
 	volatile int interactive = Flag(FTALKING) && toplevel;
 	Source *volatile old_source = source;
 	int i;
+
+	s->flags |= SF_FIRST;	/* enable UTF-8 BOM check */
 
 	newenv(E_PARSE);
 	if (interactive)
