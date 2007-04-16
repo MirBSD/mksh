@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.35 2007/03/04 04:36:45 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.36 2007/04/16 18:54:37 tg Exp $
 #-
 # use CPPFLAGS=-DDEBUG __CRAZY=Yes to check for certain more stuff
 
@@ -47,5 +47,9 @@ cleandir: clean-extra
 
 clean-extra: .PHONY
 	-rm -rf build-dir regress-dir
+
+distribution:
+	${INSTALL} ${INSTALL_COPY} -o ${BINOWN} -g ${CONFGRP} -m 0644 \
+	    ${.CURDIR}/dot.mkshrc ${DESTDIR}/etc/skel/.mkshrc
 
 .include <bsd.prog.mk>
