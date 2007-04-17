@@ -27,16 +27,14 @@ alias la='l -a'
 alias ll='l -l'
 alias lo='la -lo'
 whence -p rot13 >/dev/null || alias rot13='tr [A-Za-z] [N-ZA-Mn-za-m]'
-whence -p hd >/dev/null || function hd
-{
+whence -p hd >/dev/null || function hd {
 	hexdump -e '"%08.8_ax  " 8/1 "%02X " " - " 8/1 "%02X "' \
 	    -e '"  |" "%_p"' -e '"|\n"' "$@"
 }
 
 # strip comments (and leading/trailing whitespace if IFS is set) from
 # any file(s) given as argument, or stdin if none, and spew to stdout
-function Lstripcom
-{
+function Lstripcom {
 	cat "$@" | { set -o noglob; while read _line; do
 		_line=${_line%%#*}
 		[[ -n $_line ]] && print -r -- $_line
@@ -45,4 +43,4 @@ function Lstripcom
 
 # place customisations between this line and the ": RCSID" line below
 
-: $MirOS: src/bin/mksh/dot.mkshrc,v 1.10 2007/04/17 20:00:37 tg Exp $
+: $MirOS: src/bin/mksh/dot.mkshrc,v 1.11 2007/04/17 20:04:08 tg Exp $
