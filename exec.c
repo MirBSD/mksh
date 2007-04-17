@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.27 2007/04/15 12:09:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.28 2007/04/17 21:26:34 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -693,10 +693,10 @@ scriptexec(struct op *tp, const char **ap)
 			/* read error -> no good */
 			buf[0] = '\0';
 		close(fd);
-		/* scan for newline or NUL _before_ end of buffer */
+		/* scan for newline (or CR) or NUL _before_ end of buffer */
 		cp = (unsigned char *)buf;
 		while ((char *)cp < (buf + sizeof (buf)))
-			if (*cp == '\0' || *cp == '\n') {
+			if (*cp == '\0' || *cp == '\n' || *cp == '\r') {
 				*cp = '\0';
 				break;
 			} else
