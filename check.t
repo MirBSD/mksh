@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.98 2007/04/15 12:28:37 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.99 2007/04/17 14:00:00 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3932,7 +3932,8 @@ name: utf8bom-2
 description:
 	Check that we can execute BOM-shebangs
 	XXX if the OS can already execute them, we lose
-category: pdksh
+	note: cygwin execve(2) doesn't return to us with ENOEXEC, we lose
+category: pdksh,!os:cygwin
 env-setup: !FOO=BAR!
 stdin:
 	print '#!'"$0"'\nprint "a=$ENV{FOO}";' >t1
