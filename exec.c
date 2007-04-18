@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.28 2007/04/17 21:26:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.29 2007/04/18 00:59:20 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -674,9 +674,11 @@ static void
 scriptexec(struct op *tp, const char **ap)
 {
 	const char *sh;
+#ifndef MKSH_SMALL
 	unsigned char *cp;
 	char buf[64];		/* 64 == MAXINTERP in MirBSD <sys/param.h> */
 	int fd;
+#endif
 	union mksh_ccphack args, cap;
 
 	sh = str_val(global("EXECSHELL"));
@@ -687,6 +689,7 @@ scriptexec(struct op *tp, const char **ap)
 
 	*tp->args-- = tp->str;
 
+#ifndef MKSH_SMALL
 	if ((fd = open(tp->str, O_RDONLY)) >= 0) {
 		/* read first MAXINTERP octets from file */
 		if (read(fd, buf, sizeof (buf)) <= 0)
@@ -735,13 +738,14 @@ scriptexec(struct op *tp, const char **ap)
 		}
 	}
  noshebang:
+#endif
 	args.ro = tp->args;
 	*args.ro = sh;
 
 	cap.ro = ap;
 	execve(args.rw[0], args.rw, cap.rw);
 
-	/* report both the program that was run and the bogus shell */
+	/* report both the programme that was run and the bogus interpreter */
 	errorf("%s: %s: %s", tp->str, sh, strerror(errno));
 }
 
