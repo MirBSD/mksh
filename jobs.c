@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.20 2007/03/10 18:16:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.21 2007/04/19 12:07:46 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -428,6 +428,10 @@ exchild(struct op *t, int flags,
 		cleartraps();
 		execute(t, (flags & XERROK) | XEXEC); /* no return */
 		internal_errorf(0, "exchild: execute() returned");
+#ifndef MKSH_SMALL
+		fptreef(shl_out, 2, "exchild: tried to execute {\n%T\n}\n", t);
+		shf_flush(shl_out);
+#endif
 		unwind(LLEAVE);
 		/* NOTREACHED */
 	}
