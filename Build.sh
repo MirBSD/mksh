@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.177 2007/04/23 21:36:02 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.178 2007/04/23 22:33:20 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -154,6 +154,8 @@ if test -d mksh; then
 	echo "$0: Error: ./mksh is a directory!" >&2
 	exit 1
 fi
+rm -f a.exe a.out *core crypt.exp lft mksh mksh.cat1 mksh.exe no scn.c \
+    signames.inc test.sh x
 
 : ${CC=gcc} ${CPP=false} ${NROFF=nroff}
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
@@ -200,7 +202,6 @@ AIX)
 	warn=' and is still experimental'
 	if test x"$LDFLAGS" = x""; then
 		LDFLAGS="-Wl,-bI:crypt.exp"
-		rm -f crypt.exp
 		cat >crypt.exp <<-EOF
 			#!
 			__crypt_r
@@ -228,6 +229,10 @@ GNU/kFreeBSD)
 	;;
 HP-UX)
 	warn=' and is still experimental'
+	test def = $s && s=dyn
+	case `uname -m` in
+	ia64) : ${CFLAGS='-O2 -mlp64'} ;;
+	esac
 	;;
 Interix)
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
@@ -273,7 +278,6 @@ CPPFLAGS="$CPPFLAGS -I'$curdir'"
 #
 # Begin of mirtoconf checks
 #
-rm -f a.exe a.out lft mksh mksh.cat1 mksh.exe no scn.c signames.inc test.sh x
 $e ${ao}Scanning for functions... please ignore any errors.
 
 #
@@ -420,7 +424,7 @@ ac_header sys/sysmacros.h
 ac_header libgen.h
 ac_header paths.h
 ac_header stdbool.h
-ac_header stdint.h
+ac_header stdint.h stdarg.h
 ac_header grp.h sys/types.h
 ac_header ulimit.h
 ac_header values.h
