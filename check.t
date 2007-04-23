@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.100 2007/04/17 23:51:32 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.101 2007/04/23 21:46:12 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1055,7 +1055,7 @@ expected-stdout:
 name: glob-range-3
 description:
 	Check that globbing matches the right things...
-# breaks on Mac OSX (probably UTF-8 issue)
+# breaks on Mac OSX (HFS+ non-standard Unicode canonical decomposition)
 category: !os:darwin
 file-setup: file 644 "aÂc"
 stdin:
@@ -3889,7 +3889,8 @@ description:
 	Check that the UTF-8 Byte Order Mark is ignored as the first
 	multibyte character of the shell input (with -c, from standard
 	input, as file, or as eval argument), but nowhere else
-category: pdksh
+# breaks on Mac OSX (HFS+ non-standard Unicode canonical decomposition)
+category: pdksh,!os:darwin
 stdin:
 	mkdir foo
 	print '#!/bin/sh\necho ohne' >foo/fnord
