@@ -1,7 +1,3 @@
-/* $MirOS: src/bin/mksh/strlcpy.c,v 1.1 2007/03/04 03:04:28 tg Exp $ */
-/* $miros: src/lib/libc/string/strlfun.c,v 1.14 2007/01/07 02:11:40 tg Exp $ */
-/* $OpenBSD: strlcpy.c,v 1.10 2005/08/08 08:05:37 espie Exp $ */
-
 /*-
  * Copyright (c) 2006, 2007
  *	Thorsten Glaser <tg@mirbsd.de>
@@ -23,7 +19,8 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/strlcpy.c,v 1.1 2007/03/04 03:04:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/strlcpy.c,v 1.2 2007/04/23 11:33:26 tg Exp $");
+__RCSID("$miros: src/lib/libc/string/strlfun.c,v 1.14 2007/01/07 02:11:40 tg Exp $");
 
 /*
  * Copy src to string dst of size siz.  At most siz-1 characters

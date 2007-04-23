@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.168 2007/04/01 01:48:31 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.169 2007/04/23 11:33:25 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -207,11 +207,9 @@ DragonFly)
 FreeBSD)
 	;;
 GNU)
-	warn=' but should work'
 	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 	;;
 GNU/kFreeBSD)
-	warn=' but should work'
 	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 	;;
 Interix)
@@ -477,6 +475,8 @@ CPPFLAGS="$CPPFLAGS -DHAVE_SIG_T=$HAVE_SIG_T"
 #
 # Environment: signals
 #
+test x"NetBSD" = x"$TARGET_OS" && $e Ignore the compatibility warning.
+
 ac_test mksh_signame '' 'our own list of signal names' <<-'EOF'
 	#include <stdlib.h>	/* for NULL */
 	#define MKSH_SIGNAMES_CHECK
