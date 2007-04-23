@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.171 2007/04/23 14:06:47 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.172 2007/04/23 20:17:58 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -196,6 +196,19 @@ test $r = 0 && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
 test x"$TARGET_OS" = x"" && TARGET_OS=`uname -s 2>/dev/null || uname`
 warn=
 case $TARGET_OS in
+AIX)
+	warn=' and is still experimental'
+	if test x"$LDFLAGS" = x""; then
+		LDFLAGS="-Wl,-bI:crypt.exp"
+		cat >crypt.exp <<-EOF
+			#!
+			__crypt_r
+			__encrypt_r
+			__setkey_r
+		EOF
+	fi
+	: ${LIBS=-lcrypt}
+	;;
 CYGWIN*)
 	test def = $s && s=pam
 	;;
