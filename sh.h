@@ -8,14 +8,14 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.125 2007/04/23 14:04:38 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.126 2007/04/23 20:37:16 tg Exp $"
 #define MKSH_VERSION "R29 2007/04/17"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
 #include <sys/types.h>
-#if !HAVE_MULTI_IDSTRING
+#if defined(MKSH_INCLUDES_ONLY) || !HAVE_MULTI_IDSTRING
 #undef __RCSID
 #endif
 #if !defined(__RCSID) || !defined(__SCCSID)
@@ -86,6 +86,8 @@
 #if HAVE_VALUES_H
 #include <values.h>
 #endif
+
+#ifndef MKSH_INCLUDES_ONLY
 
 /* extra types */
 
@@ -201,6 +203,10 @@ size_t confstr(int, char *, size_t);
 #define makedev mkdev
 extern int __cdecl seteuid(uid_t);
 extern int __cdecl setegid(gid_t);
+#endif
+
+#if !HAVE_SYS_SIGLIST_DEFN
+extern const char *const sys_siglist[];
 #endif
 
 /* some useful #defines */
@@ -1513,3 +1519,5 @@ extern void tty_close(void);
 # undef EXTERN
 #endif
 #undef I__
+
+#endif /* !MKSH_INCLUDES_ONLY */

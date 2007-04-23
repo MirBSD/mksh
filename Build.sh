@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.172 2007/04/23 20:17:58 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.173 2007/04/23 20:37:15 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -614,6 +614,15 @@ ac_test strlcpy <<-'EOF'
 EOF
 
 #
+# checks for function definitions in headers
+#
+ac_test sys_siglist_defn sys_siglist 1 'if sys_siglist[] is defined' <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	int main(void) { return (sys_siglist[0][0]); }
+EOF
+
+#
 # other checks
 #
 ac_test persistent_history mksh_full 0 'if to use persistent history' <<-'EOF'
@@ -627,7 +636,7 @@ test 1 = $HAVE_PERSISTENT_HISTORY || \
 
 # Should be the _last_ one
 ac_test multi_idstring '' 'if we can use __RCSID(x) multiple times' <<-'EOF'
-	#define HAVE_MULTI_IDSTRING 1
+	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	__RCSID("one");
 	__RCSID("two");
