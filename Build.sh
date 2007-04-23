@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.170 2007/04/23 12:13:03 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.171 2007/04/23 14:06:47 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -218,6 +218,7 @@ HP-UX)
 	;;
 Interix)
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
+	: ${LIBS=-lcrypt}
 	;;
 Linux)
 	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
