@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.175 2007/04/23 21:15:44 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.176 2007/04/23 21:31:58 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -685,7 +685,7 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 	    vq "$CPP $CPPFLAGS" | grep mksh_cfg: | \
 	    sed 's/^mksh_cfg: \([0-9x ()+-]*\).*$/\1/'`
 	case $NSIG in
-	*[ ()+-]*) NSIG=`awk "BEGIN { print $NSIG }"` ;;
+	*[\ +-]*) NSIG=`awk "BEGIN { print $NSIG }"` ;;
 	esac
 	NSIG=`printf %d "$NSIG" 2>/dev/null`
 	test $h = 1 && printf "NSIG=$NSIG ... "
