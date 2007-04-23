@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.174 2007/04/23 20:57:50 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.175 2007/04/23 21:15:44 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -200,6 +200,7 @@ AIX)
 	warn=' and is still experimental'
 	if test x"$LDFLAGS" = x""; then
 		LDFLAGS="-Wl,-bI:crypt.exp"
+		rm -f crypt.exp
 		cat >crypt.exp <<-EOF
 			#!
 			__crypt_r
@@ -227,7 +228,6 @@ GNU/kFreeBSD)
 	;;
 HP-UX)
 	warn=' and is still experimental'
-	#XXX FIXME: required CPPFLAGS?
 	;;
 Interix)
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
@@ -273,7 +273,7 @@ CPPFLAGS="$CPPFLAGS -I'$curdir'"
 #
 # Begin of mirtoconf checks
 #
-rm -f scn.c a.out a.exe x no lft
+rm -f a.exe a.out lft mksh mksh.cat1 mksh.exe no scn.c signames.inc test.sh x
 $e ${ao}Scanning for functions... please ignore any errors.
 
 #
