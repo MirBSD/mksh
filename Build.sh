@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.176 2007/04/23 21:31:58 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.177 2007/04/23 21:36:02 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -636,7 +636,7 @@ test 1 = $HAVE_PERSISTENT_HISTORY || \
 
 # Should be the _last_ one
 ac_test multi_idstring '' 'if we can use __RCSID(x) multiple times' <<-'EOF'
-	#define MKSH_INCLUDES_ONLY
+	#define HAVE_MULTI_IDSTRING 1
 	#include "sh.h"
 	__RCSID("one");
 	__RCSID("two");
