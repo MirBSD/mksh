@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.124 2007/04/17 23:51:32 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.125 2007/04/23 14:04:38 tg Exp $"
 #define MKSH_VERSION "R29 2007/04/17"
 
 #if HAVE_SYS_PARAM_H
@@ -177,6 +177,8 @@ typedef int bool;
 #ifndef NSIG
 #define NSIG		_NSIG
 #endif
+
+#undef BAD		/* AIX defines that somewhere */
 
 /* OS-dependent additions */
 
