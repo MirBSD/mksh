@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.178 2007/04/23 22:33:20 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.179 2007/04/24 10:42:02 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -548,12 +548,16 @@ EOF
 # Environment: library functions
 #
 ac_test arc4random <<-'EOF'
-	#include <stdlib.h>
+	#include <sys/types.h>
+	#if HAVE_STDINT_H
+	#include <stdint.h>
+	#endif
+	extern u_int32_t arc4random(void);
 	int main(void) { return (arc4random()); }
 EOF
 
 ac_test arc4random_push arc4random 0 <<-'EOF'
-	#include <stdlib.h>
+	extern void arc4random_push(int);
 	int main(void) { arc4random_push(1); return (0); }
 EOF
 
@@ -620,7 +624,32 @@ EOF
 #
 # checks for function definitions in headers
 #
-ac_test sys_siglist_defn sys_siglist 1 'if sys_siglist[] is defined' <<-'EOF'
+ac_test arc4random_decl arc4random 1 'if arc4random() does not need to be declared' <<-'EOF'
+	#if 0
+	#include <stdlib.h>
+	#else
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	#endif
+	int main(void) { return (arc4random()); }
+EOF
+ac_test arc4random_push_decl arc4random_push 1 'if arc4random_push() does not need to be declared' <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	int main(void) { arc4random_push(1); return (0); }
+EOF
+ac_test confstr_decl '' 'if confstr() does not need to be declared' <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	int main(int ac, char *av[]) {
+	#if !defined(_PATH_DEFPATH) && defined(_CS_PATH)
+		return (confstr(ac, *av, 0));
+	#else
+		return (ac + **av);
+	#endif
+	}
+EOF
+ac_test sys_siglist_decl sys_siglist 1 'if sys_siglist[] does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int main(void) { return (sys_siglist[0][0]); }
