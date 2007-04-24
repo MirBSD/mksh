@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.179 2007/04/24 10:42:02 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.180 2007/04/24 10:44:58 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -622,15 +622,11 @@ ac_test strlcpy <<-'EOF'
 EOF
 
 #
-# checks for function definitions in headers
+# check headers for declarations
 #
 ac_test arc4random_decl arc4random 1 'if arc4random() does not need to be declared' <<-'EOF'
-	#if 0
-	#include <stdlib.h>
-	#else
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
-	#endif
 	int main(void) { return (arc4random()); }
 EOF
 ac_test arc4random_push_decl arc4random_push 1 'if arc4random_push() does not need to be declared' <<-'EOF'
