@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.182 2007/04/30 19:18:37 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.183 2007/04/30 19:50:09 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -163,17 +163,10 @@ curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
 e=echo
 h=1
 r=0
-s=def
 
 for i
 do
 	case $i in
-	-d)
-		s=dyn
-		;;
-	-nd)
-		s=sta
-		;;
 	-q)
 		e=:
 		h=-
@@ -212,10 +205,8 @@ AIX)
 	: ${LIBS=-lcrypt}
 	;;
 CYGWIN*)
-	test def = $s && s=pam
 	;;
 Darwin)
-	test def = $s && s=pam
 	;;
 DragonFly)
 	;;
@@ -229,7 +220,6 @@ GNU/kFreeBSD)
 	;;
 HP-UX)
 	warn=' and is still experimental'
-	test def = $s && s=dyn
 	case `uname -m` in
 	ia64) : ${CFLAGS='-O2 -mlp64'} ;;
 	esac
@@ -240,7 +230,6 @@ Interix)
 	;;
 Linux)
 	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
-	test def = $s && s=pam
 	: ${HAVE_REVOKE=0}
 	;;
 Minix)
@@ -257,7 +246,6 @@ OpenBSD)
 	;;
 SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
-	test def = $s && s=pam
 	r=1
 	;;
 *)
@@ -745,10 +733,6 @@ addsrcs HAVE_SETMODE setmode.c
 addsrcs HAVE_STRLCPY strlcpy.c
 CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 
-case $s:$HAVE_MKSH_NOPAM in
-def:*|sta:*|pam:1)
-	LDFLAGS="$LDFLAGS -static" ;;
-esac
 (v "cd '$srcdir' && exec $CC $CFLAGS $CPPFLAGS" \
     "$LDFLAGS -o '$curdir/mksh' $SRCS $LIBS") || exit 1
 result=mksh
