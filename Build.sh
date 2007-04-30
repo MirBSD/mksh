@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.180 2007/04/24 10:44:58 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.181 2007/04/30 19:12:18 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -369,7 +369,7 @@ if test 1 = $HAVE_CAN_FNOTREEVRP; then
 fi
 ac_flags 1 fnostrictaliasing "-fno-strict-aliasing"
 ac_flags 1 fstackprotectorall "-fstack-protector-all"
-ac_flags 1 fwholepgm "-fwhole-program --combine"
+#ac_flags 1 fwholepgm "-fwhole-program --combine"
 ac_flags 1 fwrapv "-fwrapv"
 # I'd use -std=c99 but this wrecks havoc on glibc and cygwin based
 # systems (at least) because their system headers are so broken...
