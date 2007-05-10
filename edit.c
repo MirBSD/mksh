@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.88 2007/05/10 18:46:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.89 2007/05/10 18:58:31 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1099,7 +1099,7 @@ static int	lastref;		/* argument to last refresh() */
 static char	holdbuf[LINE];		/* place to hold last edit buffer */
 static int	holdlen;		/* length of holdbuf */
 
-static int	x_ins(char *);
+static int	x_ins(const char *);
 static void	x_delete(int, int);
 static int	x_bword(void);
 static int	x_fword(int);
@@ -1579,7 +1579,7 @@ x_do_ins(const char *cp, size_t len)
 }
 
 static int
-x_ins(char *s)
+x_ins(const char *s)
 {
 	char *cp = xcp;
 	int adj = x_adj_done;
