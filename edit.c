@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.87 2007/03/10 18:16:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.88 2007/05/10 18:46:38 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1128,11 +1128,10 @@ static void	x_e_puts(const char *);
 static int	x_fold_case(int);
 static char	*x_lastcp(void);
 static void	do_complete(int, Comp_type);
-static int	x_emacs_putbuf(const char *, size_t);
 
 static int unget_char = -1;
 
-static int x_do_ins(const char *, int);
+static int x_do_ins(const char *, size_t);
 static void bind_if_not_bound(int, int, int);
 
 #define XFUNC_abort 0
@@ -1566,7 +1565,7 @@ x_ins_string(int c)
 }
 
 static int
-x_do_ins(const char *cp, int len)
+x_do_ins(const char *cp, size_t len)
 {
 	if (xep + len >= xend) {
 		x_e_putc2(7);
@@ -1603,19 +1602,6 @@ x_ins(char *s)
 	}
 	x_adj_ok = 1;
 	return 0;
-}
-
-/*
- * this is used for x_escape() in do_complete()
- */
-static int
-x_emacs_putbuf(const char *s, size_t len)
-{
-	int rval;
-
-	if ((rval = x_do_ins(s, len)) != 0)
-		return (rval);
-	return (rval);
 }
 
 static int
@@ -2792,7 +2778,7 @@ x_expand(int c __unused)
 	x_goto(xbuf + start);
 	x_delete(end - start, false);
 	for (i = 0; i < nwords;) {
-		if (x_escape(words[i], strlen(words[i]), x_emacs_putbuf) < 0 ||
+		if (x_escape(words[i], strlen(words[i]), x_do_ins) < 0 ||
 		    (++i < nwords && x_ins(space) < 0)) {
 			x_e_putc2(7);
 			return KSTD;
@@ -2833,7 +2819,7 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
 	if (nwords == 1 || nlen > olen) {
 		x_goto(xbuf + start);
 		x_delete(olen, false);
-		x_escape(words[0], nlen, x_emacs_putbuf);
+		x_escape(words[0], nlen, x_do_ins);
 		x_adjust();
 		completed = 1;
 	}
