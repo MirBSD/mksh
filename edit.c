@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.89 2007/05/10 18:58:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.90 2007/05/10 19:08:48 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -2832,8 +2832,16 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
 		x_print_expansions(nwords, words, is_command);
 		completed = 1;
 	}
-	if (completed)
+	if (completed) {
+		/*
+		 * I don't quite get it: the x_goto(xcp) call is equivalent to
+		 * x_adjust() if we are ASCII-only and "heading off screen",
+		 * but putting x_adjust() here instead of x_goto(xcp) does not
+		 * fix the dramsey horizontal scrolling bug. Weird.
+		 */
+		x_goto(xcp);
 		x_redraw(0);
+	}
 
 	x_free_words(nwords, words);
 }
