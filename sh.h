@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.130 2007/05/13 18:33:29 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.131 2007/05/13 19:14:05 tg Exp $"
 #define MKSH_VERSION "R29 2007/05/10"
 
 #if HAVE_SYS_PARAM_H
@@ -322,6 +322,9 @@ char *ucstrstr(char *, const char *);
 #define stristr	strcasestr
 #endif
 #endif
+
+/* use this ipv strchr(s, 0) but no side effects in s! */
+#define strnul(s)	((s) + strlen(s))
 
 /*
  * Area-based allocation built on malloc/free

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.26 2007/05/13 17:51:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.27 2007/05/13 19:14:04 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -232,7 +232,7 @@ expand(const char *cp,	/* input word */
 					type = comsub(&x, sp);
 					if (type == XCOM && (f&DOBLANK))
 						doblank++;
-					sp = cstrchr(sp, 0) + 1;
+					sp = strnul(sp) + 1;
 					newlines = 0;
 				}
 				continue;
@@ -255,7 +255,7 @@ expand(const char *cp,	/* input word */
 					v.name[0] = '\0';
 					v_evaluate(&v, substitute(sp, 0),
 					    KSH_UNWIND_ERROR, true);
-					sp = cstrchr(sp, 0) + 1;
+					sp = strnul(sp) + 1;
 					for (p = str_val(&v); *p; ) {
 						Xcheck(ds, dp);
 						*dp++ = *p++;
@@ -891,7 +891,7 @@ comsub(Expand *xp, const char *cp)
 static char *
 trimsub(char *str, char *pat, int how)
 {
-	char *end = strchr(str, 0);
+	char *end = strnul(str);
 	char *p, c;
 
 	switch (how&0xff) {	/* UCHAR_MAX maybe? */
