@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.52 2007/03/04 03:04:26 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.52.2.1 2007/05/13 19:29:38 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -145,16 +145,16 @@ const struct option options[] = {
 /*
  * translate -o option into F* constant (also used for test -o option)
  */
-int
+size_t
 option(const char *n)
 {
-	unsigned i;
+	size_t i;
 
 	for (i = 0; i < NELEM(options); i++)
 		if (options[i].name && strcmp(options[i].name, n) == 0)
-			return i;
+			return (i);
 
-	return -1;
+	return ((size_t)-1);
 }
 
 struct options_info {
@@ -277,8 +277,8 @@ parse_args(const char **argv,
 	char *opts;
 	const char *array = NULL;
 	Getopt go;
+	size_t i;
 	int optc, set, sortargs = 0, arrayset = 0;
-	unsigned i;
 
 	/* First call?  Build option strings... */
 	if (cmd_opts[0] == '\0') {
@@ -350,18 +350,18 @@ parse_args(const char **argv,
 				break;
 			}
 			i = option(go.optarg);
-			if (i != (unsigned)-1 && set == Flag(i))
+			if ((i != (size_t)-1) && set == Flag(i))
 				/* Don't check the context if the flag
 				 * isn't changing - makes "set -o interactive"
 				 * work if you're already interactive.  Needed
 				 * if the output of "set +o" is to be used.
 				 */
 				;
-			else if (i != (unsigned)-1 && (options[i].flags & what))
-				change_flag((enum sh_flag) i, what, set);
+			else if ((i != (size_t)-1) && (options[i].flags & what))
+				change_flag((enum sh_flag)i, what, set);
 			else {
 				bi_errorf("%s: bad option", go.optarg);
-				return -1;
+				return (-1);
 			}
 			break;
 
@@ -396,10 +396,8 @@ parse_args(const char **argv,
 					    set);
 					break;
 				}
-			if (i == NELEM(options)) {
-				internal_errorf(1, "parse_args: '%c'", optc);
-				return -1; /* not reached */
-			}
+			if (i == NELEM(options))
+				internal_errorf("parse_args: '%c'", optc);
 		}
 	}
 	if (!(go.info & GI_MINUSMINUS) && argv[go.optind] &&

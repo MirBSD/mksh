@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.21 2007/04/19 12:07:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.21.2.1 2007/05/13 19:29:36 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -319,11 +319,11 @@ exchild(struct op *t, int flags,
 	p->pid = 0;
 
 	/* link process into jobs list */
-	if (flags&XPIPEI) {	/* continuing with a pipe */
+	if (flags & XPIPEI) {	/* continuing with a pipe */
 		if (!last_job)
-			internal_errorf(1,
+			internal_errorf(
 			    "exchild: XPIPEI and no last_job - pid %d",
-			    (int) procpid);
+			    (int)procpid);
 		j = last_job;
 		last_proc->next = p;
 		last_proc = p;
@@ -427,7 +427,7 @@ exchild(struct op *t, int flags,
 		tty_close();
 		cleartraps();
 		execute(t, (flags & XERROK) | XEXEC); /* no return */
-		internal_errorf(0, "exchild: execute() returned");
+		internal_warningf("exchild: execute() returned");
 #ifndef MKSH_SMALL
 		fptreef(shl_out, 2, "exchild: tried to execute {\n%T\n}\n", t);
 		shf_flush(shl_out);
@@ -496,7 +496,7 @@ waitlast(void)
 		if (!j)
 			warningf(true, "waitlast: no last job");
 		else
-			internal_errorf(0, "waitlast: not started");
+			internal_warningf("waitlast: not started");
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		return 125; /* not so arbitrary, non-zero value */
 	}
@@ -838,7 +838,7 @@ j_set_async(Job *j)
 	if (async_job && (async_job->flags & (JF_KNOWN|JF_ZOMBIE)) == JF_ZOMBIE)
 		remove_job(async_job, "async");
 	if (!(j->flags & JF_STARTED)) {
-		internal_errorf(0, "j_async: job not started");
+		internal_warningf("j_async: job not started");
 		return;
 	}
 	async_job = j;
@@ -852,8 +852,8 @@ j_set_async(Job *j)
 		if (!oldest) {
 			/* XXX debugging */
 			if (!(async_job->flags & JF_ZOMBIE) || nzombie != 1) {
-				internal_errorf(0,
-				    "j_async: bad nzombie (%d)", nzombie);
+				internal_warningf("j_async: bad nzombie (%d)",
+				    nzombie);
 				nzombie = 0;
 			}
 			break;
@@ -1094,7 +1094,7 @@ check_job(Job *j)
 
 	/* XXX debugging (nasty - interrupt routine using shl_out) */
 	if (!(j->flags & JF_STARTED)) {
-		internal_errorf(0, "check_job: job started (flags 0x%x)",
+		internal_warningf("check_job: job started (flags 0x%x)",
 		    j->flags);
 		return;
 	}
@@ -1448,7 +1448,7 @@ remove_job(Job *j, const char *where)
 	for (; curr != NULL && curr != j; prev = &curr->next, curr = *prev)
 		;
 	if (curr != j) {
-		internal_errorf(0, "remove_job: job not found (%s)", where);
+		internal_warningf("remove_job: job not found (%s)", where);
 		return;
 	}
 	*prev = curr->next;

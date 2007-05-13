@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.25 2007/03/14 02:41:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.25.2.1 2007/05/13 19:29:34 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -63,7 +63,7 @@ substitute(const char *cp, int f)
 	s->start = s->str = cp;
 	source = s;
 	if (yylex(ONEWORD) != LWORD)
-		internal_errorf(1, "substitute");
+		internal_errorf("substitute");
 	source = sold;
 	afree(s, ATEMP);
 	return evalstr(yylval.cp, f);
@@ -168,7 +168,7 @@ expand(const char *cp,	/* input word */
 	size_t len;
 
 	if (cp == NULL)
-		internal_errorf(1, "expand(NULL)");
+		internal_errorf("expand(NULL)");
 	/* for alias, readonly, set, typeset commands */
 	if ((f & DOVACHECK) && is_wdvarassign(cp)) {
 		f &= ~(DOVACHECK|DOBLANK|DOGLOB|DOTILDE);
@@ -232,7 +232,7 @@ expand(const char *cp,	/* input word */
 					type = comsub(&x, sp);
 					if (type == XCOM && (f&DOBLANK))
 						doblank++;
-					sp = cstrchr(sp, 0) + 1;
+					sp = strnul(sp) + 1;
 					newlines = 0;
 				}
 				continue;
@@ -255,7 +255,7 @@ expand(const char *cp,	/* input word */
 					v.name[0] = '\0';
 					v_evaluate(&v, substitute(sp, 0),
 					    KSH_UNWIND_ERROR, true);
-					sp = cstrchr(sp, 0) + 1;
+					sp = strnul(sp) + 1;
 					for (p = str_val(&v); *p; ) {
 						Xcheck(ds, dp);
 						*dp++ = *p++;
@@ -580,7 +580,7 @@ expand(const char *cp,	/* input word */
 
 					if ((p = str_nsave(null, 0, ATEMP))
 					    == NULL)
-						internal_errorf(1, "unable "
+						internal_errorf("unable "
 						    "to allocate memory");
 					XPput(*wp, p);
 				}
@@ -891,7 +891,7 @@ comsub(Expand *xp, const char *cp)
 static char *
 trimsub(char *str, char *pat, int how)
 {
-	char *end = strchr(str, 0);
+	char *end = strnul(str);
 	char *p, c;
 
 	switch (how&0xff) {	/* UCHAR_MAX maybe? */

@@ -29,7 +29,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.4 2007/03/04 03:04:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.4.2.1 2007/05/13 19:29:31 tg Exp $");
 
 struct link {
 	struct link *prev;
@@ -64,7 +64,7 @@ alloc(size_t size, Area *ap)
 	struct link *l;
 
 	if ((l = malloc(sizeof (struct link) + size)) == NULL)
-		internal_errorf(1, "unable to allocate memory");
+		internal_errorf("unable to allocate memory");
 	l->next = ap->freelist;
 	l->prev = NULL;
 	if (ap->freelist)
@@ -87,7 +87,7 @@ aresize(void *ptr, size_t size, Area *ap)
 	lnext = l->next;
 
 	if ((l2 = realloc(l, sizeof (struct link) + size)) == NULL)
-		internal_errorf(1, "unable to allocate memory");
+		internal_errorf("unable to allocate memory");
 	if (lprev)
 		lprev->next = l2;
 	else

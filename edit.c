@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.87 2007/03/10 18:16:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.87.2.1 2007/05/13 19:29:33 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -303,7 +303,7 @@ x_file_glob(int flags __unused, const char *str, int slen, char ***wordsp)
 	source = s;
 	if (yylex(ONEWORD | LQCHAR) != LWORD) {
 		source = sold;
-		internal_errorf(0, "fileglob: substitute error");
+		internal_warningf("fileglob: substitute error");
 		return 0;
 	}
 	source = sold;
@@ -1099,7 +1099,7 @@ static int	lastref;		/* argument to last refresh() */
 static char	holdbuf[LINE];		/* place to hold last edit buffer */
 static int	holdlen;		/* length of holdbuf */
 
-static int	x_ins(char *);
+static int	x_ins(const char *);
 static void	x_delete(int, int);
 static int	x_bword(void);
 static int	x_fword(int);
@@ -1128,11 +1128,10 @@ static void	x_e_puts(const char *);
 static int	x_fold_case(int);
 static char	*x_lastcp(void);
 static void	do_complete(int, Comp_type);
-static int	x_emacs_putbuf(const char *, size_t);
 
 static int unget_char = -1;
 
-static int x_do_ins(const char *, int);
+static int x_do_ins(const char *, size_t);
 static void bind_if_not_bound(int, int, int);
 
 #define XFUNC_abort 0
@@ -1566,7 +1565,7 @@ x_ins_string(int c)
 }
 
 static int
-x_do_ins(const char *cp, int len)
+x_do_ins(const char *cp, size_t len)
 {
 	if (xep + len >= xend) {
 		x_e_putc2(7);
@@ -1580,7 +1579,7 @@ x_do_ins(const char *cp, int len)
 }
 
 static int
-x_ins(char *s)
+x_ins(const char *s)
 {
 	char *cp = xcp;
 	int adj = x_adj_done;
@@ -1603,19 +1602,6 @@ x_ins(char *s)
 	}
 	x_adj_ok = 1;
 	return 0;
-}
-
-/*
- * this is used for x_escape() in do_complete()
- */
-static int
-x_emacs_putbuf(const char *s, size_t len)
-{
-	int rval;
-
-	if ((rval = x_do_ins(s, len)) != 0)
-		return (rval);
-	return (rval);
 }
 
 static int
@@ -2792,7 +2778,7 @@ x_expand(int c __unused)
 	x_goto(xbuf + start);
 	x_delete(end - start, false);
 	for (i = 0; i < nwords;) {
-		if (x_escape(words[i], strlen(words[i]), x_emacs_putbuf) < 0 ||
+		if (x_escape(words[i], strlen(words[i]), x_do_ins) < 0 ||
 		    (++i < nwords && x_ins(space) < 0)) {
 			x_e_putc2(7);
 			return KSTD;
@@ -2833,7 +2819,7 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
 	if (nwords == 1 || nlen > olen) {
 		x_goto(xbuf + start);
 		x_delete(olen, false);
-		x_escape(words[0], nlen, x_emacs_putbuf);
+		x_escape(words[0], nlen, x_do_ins);
 		x_adjust();
 		completed = 1;
 	}
@@ -2846,8 +2832,16 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
 		x_print_expansions(nwords, words, is_command);
 		completed = 1;
 	}
-	if (completed)
+	if (completed) {
+		/*
+		 * I don't quite get it: the x_goto(xcp) call is equivalent to
+		 * x_adjust() if we are ASCII-only and "heading off screen",
+		 * but putting x_adjust() here instead of x_goto(xcp) does not
+		 * fix the dramsey horizontal scrolling bug. Weird.
+		 */
+		x_goto(xcp);
 		x_redraw(0);
+	}
 
 	x_free_words(nwords, words);
 }
@@ -4949,7 +4943,7 @@ grabhist(int save, int n)
 	}
 	(void)histnum(n);
 	if ((hptr = *histpos()) == NULL) {
-		internal_errorf(0, "grabhist: bad history array");
+		internal_warningf("grabhist: bad history array");
 		return -1;
 	}
 	if (save)

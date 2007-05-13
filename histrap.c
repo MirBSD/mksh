@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.45 2007/03/04 03:04:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.45.2.1 2007/05/13 19:29:36 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign, Sigact_trap;
@@ -1359,7 +1359,7 @@ setexecsig(Trap *p, int restore)
 {
 	/* XXX debugging */
 	if (!(p->flags & (TF_ORIG_IGN|TF_ORIG_DFL)))
-		internal_errorf(1, "setexecsig: unset signal %d(%s)",
+		internal_errorf("setexecsig: unset signal %d(%s)",
 		    p->signal, p->name);
 
 	/* restore original value for exec'd kids */

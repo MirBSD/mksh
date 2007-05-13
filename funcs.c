@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.49 2007/03/10 18:16:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.49.2.1 2007/05/13 19:29:35 tg Exp $");
 
 int
 c_cd(const char **wp)
@@ -1245,7 +1245,7 @@ c_getopts(const char **wp)
 	}
 
 	if (e->loc->next == NULL) {
-		internal_errorf(0, "c_getopts: no argv");
+		internal_warningf("c_getopts: no argv");
 		return 1;
 	}
 	/* Which arguments are we parsing... */
@@ -1963,7 +1963,8 @@ c_brkcont(const char **wp)
 		 * shall be used.  Doesn't say to print an error but we
 		 * do anyway 'cause the user messed up.
 		 */
-		last_ep->flags &= ~EF_BRKCONT_PASS;
+		if (last_ep)
+			last_ep->flags &= ~EF_BRKCONT_PASS;
 		warningf(true, "%s: can only %s %d level(s)",
 		    wp[0], wp[0], n - quit);
 	}
@@ -2412,8 +2413,6 @@ static int	test_nexpr(Test_env *, int);
 static int	test_primary(Test_env *, int);
 static int	ptest_isa(Test_env *, Test_meta);
 static const char *ptest_getopnd(Test_env *, Test_op, int);
-static int	ptest_eval(Test_env *, Test_op, const char *,
-		    const char *, int);
 static void	ptest_error(Test_env *, int, const char *);
 
 int
@@ -2426,7 +2425,7 @@ c_test(const char **wp)
 	te.flags = 0;
 	te.isa = ptest_isa;
 	te.getopnd = ptest_getopnd;
-	te.eval = ptest_eval;
+	te.eval = test_eval;
 	te.error = ptest_error;
 
 	for (argc = 0; wp[argc]; argc++)
@@ -2516,14 +2515,14 @@ int
 test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
     int do_eval)
 {
-	int res;
-	int not;
+	int i;
+	size_t k;
 	struct stat b1, b2;
 
 	if (!do_eval)
 		return 0;
 
-	switch ((int) op) {
+	switch ((int)op) {
 	/*
 	 * Unary Operators
 	 */
@@ -2532,16 +2531,16 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	case TO_STZER: /* -z */
 		return *opnd1 == '\0';
 	case TO_OPTION: /* -o */
-		if ((not = *opnd1 == '!'))
+		if ((i = *opnd1 == '!'))
 			opnd1++;
-		if ((res = option(opnd1)) < 0)
-			res = 0;
+		if ((k = option(opnd1)) == (size_t)-1)
+			k = 0;
 		else {
-			res = Flag(res);
-			if (not)
-				res = !res;
+			k = Flag(k);
+			if (i)
+				k = !k;
 		}
-		return res;
+		return k;
 	case TO_FILRD: /* -r */
 		return test_eaccess(opnd1, R_OK) == 0;
 	case TO_FILWR: /* -w */
@@ -2583,12 +2582,12 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	case TO_FILGZ: /* -s */
 		return stat(opnd1, &b1) == 0 && b1.st_size > 0L;
 	case TO_FILTT: /* -t */
-		if (opnd1 && !bi_getn(opnd1, &res)) {
+		if (opnd1 && !bi_getn(opnd1, &i)) {
 			te->flags |= TEF_ERROR;
-			res = 0;
+			i = 0;
 		} else
-			res = isatty(opnd1 ? res : 0);
-		return res;
+			i = isatty(opnd1 ? i : 0);
+		return (i);
 	case TO_FILUID: /* -O */
 		return stat(opnd1, &b1) == 0 && b1.st_uid == ksheuid;
 	case TO_FILGID: /* -G */
@@ -2826,13 +2825,6 @@ ptest_getopnd(Test_env *te, Test_op op, int do_eval __unused)
 	return *te->pos.wp++;
 }
 
-static int
-ptest_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
-    int do_eval)
-{
-	return test_eval(te, op, opnd1, opnd2, do_eval);
-}
-
 static void
 ptest_error(Test_env *te, int offset, const char *msg)
 {
@@ -2952,7 +2944,7 @@ c_ulimit(const char **wp)
 	for (l = limits; l->name && l->option != what; l++)
 		;
 	if (!l->name) {
-		internal_errorf(0, "ulimit: %c", what);
+		internal_warningf("ulimit: %c", what);
 		return 1;
 	}
 

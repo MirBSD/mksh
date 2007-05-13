@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.101 2007/04/23 21:46:12 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.101.2.1 2007/05/13 19:29:31 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R29 2007/04/17
+	@(#)MIRBSD KSH R29 2007/05/13
 description:
 	Check version of shell.
 category: pdksh
@@ -3955,6 +3955,7 @@ expected-stdout:
 name: utf8bom-3
 description:
 	Reading the UTF-8 BOM should enable the utf8-hack flag
+	(unless both MKSH_ASSUME_UTF8 and MKSH_SMALL are set)
 category: pdksh
 stdin:
 	$0 -c ':; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'

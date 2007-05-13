@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.29 2007/04/26 11:58:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.29.2.1 2007/05/13 19:29:37 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -654,41 +654,28 @@ yylex(int cf)
 	if (wp == dp && state == SBASE) {
 		Xfree(ws, wp);	/* free word */
 		/* no word, process LEX1 character */
-		switch (c) {
-		default:
-			return c;
-
-		case '|':
-		case '&':
-		case ';':
+		if ((c == '|') || (c == '&') || (c == ';') || (c == '('/*)*/)) {
 			if ((c2 = getsc()) == c)
 				c = (c == ';') ? BREAK :
 				    (c == '|') ? LOGOR :
 				    (c == '&') ? LOGAND :
+				    /*
+				     * this is the place where
+				     * ((...); (...))
+				     * and similar is broken
+				     */
+				    (c == '(' /*)*/ ) ? MDPAREN :
 				    YYERRCODE;
 			else if (c == '|' && c2 == '&')
 				c = COPROC;
 			else
 				ungetsc(c2);
-			return c;
-
-		case '\n':
+		} else if (c == '\n') {
 			gethere();
 			if (cf & CONTIN)
 				goto Again;
-			return c;
-
-		case '(':  /*)*/
-			if ((c2 = getsc()) == '(') /*)*/
-				/* XXX need to handle ((...); (...)) */
-				c = MDPAREN;
-			else
-				ungetsc(c2);
-			return c;
-		  /*(*/
-		case ')':
-			return c;
 		}
+		return (c);
 	}
 
 	*wp++ = EOS;		/* terminate word */
@@ -899,7 +886,7 @@ getsc__(void)
 				source->flags |= s->flags & SF_ALIAS;
 				s = source;
 			} else if (*s->u.tblp->val.s &&
-			    ksh_isspace(strchr(s->u.tblp->val.s, 0)[-1])) {
+			    ksh_isspace(strnul(s->u.tblp->val.s)[-1])) {
 				source = s = s->next;	/* pop source stack */
 				/* Note that this alias ended with a space,
 				 * enabling alias expansion on the following
@@ -957,7 +944,7 @@ getsc__(void)
 		    (((const unsigned char *)(s->str))[0] == 0xBB) &&
 		    (((const unsigned char *)(s->str))[1] == 0xBF)) {
 			s->str += 2;
-#ifndef MKSH_ASSUME_UTF8	/* otherwise it's always on */
+#if !defined(MKSH_ASSUME_UTF8) || !defined(MKSH_SMALL)
 			Flag(FUTFHACK) = 1;
 #endif
 			goto getsc_again;

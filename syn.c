@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.12 2007/03/04 03:04:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.12.2.1 2007/05/13 19:29:40 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -849,11 +849,10 @@ dbtestp_isa(Test_env *te, Test_meta meta)
 		ret = uqword && strcmp(yylval.cp, db_close) == 0;
 	if (ret) {
 		ACCEPT;
-		if (meta != TM_END) {
-			if (!save)
-				save = wdcopy(dbtest_tokens[(int) meta], ATEMP);
+		if (meta < NELEM(dbtest_tokens))
+			save = wdcopy(dbtest_tokens[(int)meta], ATEMP);
+		if (save)
 			XPput(*te->pos.av, save);
-		}
 	}
 	return ret;
 }

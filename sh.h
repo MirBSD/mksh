@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.127 2007/04/24 10:42:02 tg Exp $"
-#define MKSH_VERSION "R29 2007/04/17"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.127.2.1 2007/05/13 19:29:38 tg Exp $"
+#define MKSH_VERSION "R29 2007/05/13"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -322,6 +322,9 @@ char *ucstrstr(char *, const char *);
 #define stristr	strcasestr
 #endif
 #endif
+
+/* use this ipv strchr(s, 0) but no side effects in s! */
+#define strnul(s)	((s) + strlen(s))
 
 /*
  * Area-based allocation built on malloc/free
@@ -1344,8 +1347,11 @@ void warningf(bool, const char *, ...)
     __attribute__((format (printf, 2, 3)));
 void bi_errorf(const char *, ...)
     __attribute__((format (printf, 1, 2)));
-void internal_errorf(int, const char *, ...)
-    __attribute__((format (printf, 2, 3)));
+void internal_errorf(const char *, ...)
+    __attribute__((noreturn))
+    __attribute__((format (printf, 1, 2)));
+void internal_warningf(const char *, ...)
+    __attribute__((format (printf, 1, 2)));
 void error_prefix(bool);
 void shellf(const char *, ...)
     __attribute__((format (printf, 1, 2)));
@@ -1383,7 +1389,7 @@ char *str_save(const char *, Area *);
 #define str_save(s,ap) (str_nsave((s), (s) ? strlen(s) : 0, (ap)))
 #endif
 char *str_nsave(const char *, int, Area *);
-int option(const char *);
+size_t option(const char *);
 char *getoptions(void);
 void change_flag(enum sh_flag, int, int);
 int parse_args(const char **, int, int *);

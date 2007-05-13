@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.29 2007/04/18 00:59:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.29.2.1 2007/05/13 19:29:34 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -14,7 +14,6 @@ static int herein(const char *, int);
 static const char *do_selectargs(const char **, bool);
 static int dbteste_isa(Test_env *, Test_meta);
 static const char *dbteste_getopnd(Test_env *, Test_op, int);
-static int dbteste_eval(Test_env *, Test_op, const char *, const char *, int);
 static void dbteste_error(Test_env *, int, const char *);
 
 /*
@@ -234,7 +233,7 @@ execute(struct op *volatile t,
 		te.pos.wp = t->args;
 		te.isa = dbteste_isa;
 		te.getopnd = dbteste_getopnd;
-		te.eval = dbteste_eval;
+		te.eval = test_eval;
 		te.error = dbteste_error;
 
 		rv = test_parse(&te);
@@ -617,7 +616,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 			/* NOTREACHED */
 		default:
 			quitenv(NULL);
-			internal_errorf(1, "CFUNC %d", i);
+			internal_errorf("CFUNC %d", i);
 		}
 		break;
 	    }
@@ -756,7 +755,7 @@ shcomexec(const char **wp)
 
 	tp = ktsearch(&builtins, *wp, hash(*wp));
 	if (tp == NULL)
-		internal_errorf(1, "shcomexec: %s", *wp);
+		internal_errorf("shcomexec: %s", *wp);
 	return (call_builtin(tp, wp));
 }
 
@@ -1236,7 +1235,7 @@ herein(const char *content, int sub)
 		s->start = s->str = content;
 		source = s;
 		if (yylex(ONEWORD|HEREDOC) != LWORD)
-			internal_errorf(1, "herein: yylex");
+			internal_errorf("herein: yylex");
 		source = osource;
 		shf_puts(evalstr(yylval.cp, 0), shf);
 	} else
@@ -1448,16 +1447,9 @@ dbteste_getopnd(Test_env *te, Test_op op, int do_eval)
 	return s;
 }
 
-static int
-dbteste_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
-    int do_eval)
-{
-	return test_eval(te, op, opnd1, opnd2, do_eval);
-}
-
 static void
 dbteste_error(Test_env *te, int offset, const char *msg)
 {
 	te->flags |= TEF_ERROR;
-	internal_errorf(0, "dbteste_error: %s (offset %d)", msg, offset);
+	internal_warningf("dbteste_error: %s (offset %d)", msg, offset);
 }

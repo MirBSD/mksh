@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.9 2007/03/04 03:04:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.9.2.1 2007/05/13 19:29:40 tg Exp $");
 
 #define INDENT	4
 
@@ -519,7 +519,7 @@ wdscan(const char *wp, int c)
 				nest--;
 			break;
 		default:
-			internal_errorf(0,
+			internal_warningf(
 			    "wdscan: unknown char 0x%x (carrying on)",
 			    wp[-1]);
 		}

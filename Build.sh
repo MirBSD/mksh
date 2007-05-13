@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.182 2007/04/30 19:18:37 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.182.2.1 2007/05/13 19:29:31 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -608,7 +608,7 @@ ac_test setgroups setresugid 0 <<-'EOF'
 	int main(void) { gid_t gid = 0; return (setgroups(0, &gid)); }
 EOF
 
-ac_test strcasestr <<-'EOF'
+ac_test strcasestr setlocale_ctype 1 <<-'EOF'
 	#include <stddef.h>
 	#include <string.h>
 	int main(int ac, char *av[]) {

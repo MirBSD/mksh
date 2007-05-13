@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.37 2007/03/04 03:04:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.37.2.1 2007/05/13 19:29:40 tg Exp $");
 
 /*
  * Variables
@@ -349,7 +349,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 			/* debugging */
 			if (s >= vq->val.s &&
 			    s <= vq->val.s + strlen(vq->val.s))
-				internal_errorf(true,
+				internal_errorf(
 				    "setstr: %s=%s: assigning to self",
 				    vq->name, s);
 			afree((void*)vq->val.s, vq->areap);

@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.74 2007/04/15 10:45:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.74.2.1 2007/05/13 19:29:37 tg Exp $");
 
 extern char **environ;
 
@@ -414,7 +414,7 @@ include(const char *name, int argc, const char **argv, int intr_ok)
 			unwind(i);
 			/* NOTREACHED */
 		default:
-			internal_errorf(1, "include: %d", i);
+			internal_errorf("include: %d", i);
 			/* NOTREACHED */
 		}
 	}
@@ -498,7 +498,7 @@ shell(Source * volatile s, volatile int toplevel)
 		default:
 			source = old_source;
 			quitenv(NULL);
-			internal_errorf(1, "shell: %d", i);
+			internal_errorf("shell: %d", i);
 			/* NOTREACHED */
 		}
 	}
@@ -825,20 +825,36 @@ bi_errorf(const char *fmt, ...)
 }
 
 /* Called when something that shouldn't happen does */
+static void internal_verrorf(const char *, va_list)
+    __attribute__((format (printf, 1, 0)));
+static void
+internal_verrorf(const char *fmt, va_list ap)
+{
+	shf_fprintf(shl_out, "internal error: ");
+	shf_vfprintf(shl_out, fmt, ap);
+	shf_putchar('\n', shl_out);
+	shf_flush(shl_out);
+}
+
 void
-internal_errorf(int jump, const char *fmt, ...)
+internal_errorf(const char *fmt, ...)
 {
 	va_list va;
 
-	error_prefix(true);
-	shf_fprintf(shl_out, "internal error: ");
 	va_start(va, fmt);
-	shf_vfprintf(shl_out, fmt, va);
+	internal_verrorf(fmt, va);
 	va_end(va);
-	shf_putchar('\n', shl_out);
-	shf_flush(shl_out);
-	if (jump)
-		unwind(LERROR);
+	unwind(LERROR);
+}
+
+void
+internal_warningf(const char *fmt, ...)
+{
+	va_list va;
+
+	va_start(va, fmt);
+	internal_verrorf(fmt, va);
+	va_end(va);
 }
 
 /* used by error reporting functions to print "ksh: .kshrc[25]: " */
@@ -877,7 +893,7 @@ shprintf(const char *fmt, ...)
 	va_list va;
 
 	if (!shl_stdout_ok)
-		internal_errorf(1, "shl_stdout not valid");
+		internal_errorf("shl_stdout not valid");
 	va_start(va, fmt);
 	shf_vfprintf(shl_stdout, fmt, va);
 	va_end(va);
