@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.52 2007/03/04 03:04:26 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.53 2007/05/13 17:51:23 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -396,10 +396,8 @@ parse_args(const char **argv,
 					    set);
 					break;
 				}
-			if (i == NELEM(options)) {
-				internal_errorf(1, "parse_args: '%c'", optc);
-				return -1; /* not reached */
-			}
+			if (i == NELEM(options))
+				internal_errorf("parse_args: '%c'", optc);
 		}
 	}
 	if (!(go.info & GI_MINUSMINUS) && argv[go.optind] &&

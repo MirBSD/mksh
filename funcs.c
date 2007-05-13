@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.49 2007/03/10 18:16:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.50 2007/05/13 17:51:21 tg Exp $");
 
 int
 c_cd(const char **wp)
@@ -1245,7 +1245,7 @@ c_getopts(const char **wp)
 	}
 
 	if (e->loc->next == NULL) {
-		internal_errorf(0, "c_getopts: no argv");
+		internal_warningf("c_getopts: no argv");
 		return 1;
 	}
 	/* Which arguments are we parsing... */
@@ -2952,7 +2952,7 @@ c_ulimit(const char **wp)
 	for (l = limits; l->name && l->option != what; l++)
 		;
 	if (!l->name) {
-		internal_errorf(0, "ulimit: %c", what);
+		internal_warningf("ulimit: %c", what);
 		return 1;
 	}
 

@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.90 2007/05/10 19:08:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.91 2007/05/13 17:51:20 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -303,7 +303,7 @@ x_file_glob(int flags __unused, const char *str, int slen, char ***wordsp)
 	source = s;
 	if (yylex(ONEWORD | LQCHAR) != LWORD) {
 		source = sold;
-		internal_errorf(0, "fileglob: substitute error");
+		internal_warningf("fileglob: substitute error");
 		return 0;
 	}
 	source = sold;
@@ -4943,7 +4943,7 @@ grabhist(int save, int n)
 	}
 	(void)histnum(n);
 	if ((hptr = *histpos()) == NULL) {
-		internal_errorf(0, "grabhist: bad history array");
+		internal_warningf("grabhist: bad history array");
 		return -1;
 	}
 	if (save)

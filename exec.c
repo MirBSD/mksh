@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.29 2007/04/18 00:59:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.30 2007/05/13 17:51:21 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -617,7 +617,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 			/* NOTREACHED */
 		default:
 			quitenv(NULL);
-			internal_errorf(1, "CFUNC %d", i);
+			internal_errorf("CFUNC %d", i);
 		}
 		break;
 	    }
@@ -756,7 +756,7 @@ shcomexec(const char **wp)
 
 	tp = ktsearch(&builtins, *wp, hash(*wp));
 	if (tp == NULL)
-		internal_errorf(1, "shcomexec: %s", *wp);
+		internal_errorf("shcomexec: %s", *wp);
 	return (call_builtin(tp, wp));
 }
 
@@ -1236,7 +1236,7 @@ herein(const char *content, int sub)
 		s->start = s->str = content;
 		source = s;
 		if (yylex(ONEWORD|HEREDOC) != LWORD)
-			internal_errorf(1, "herein: yylex");
+			internal_errorf("herein: yylex");
 		source = osource;
 		shf_puts(evalstr(yylval.cp, 0), shf);
 	} else
@@ -1459,5 +1459,5 @@ static void
 dbteste_error(Test_env *te, int offset, const char *msg)
 {
 	te->flags |= TEF_ERROR;
-	internal_errorf(0, "dbteste_error: %s (offset %d)", msg, offset);
+	internal_warningf("dbteste_error: %s (offset %d)", msg, offset);
 }
