@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.103 2007/05/10 19:22:10 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.104 2007/05/13 19:18:26 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R29 2007/05/10
+	@(#)MIRBSD KSH R29 2007/05/13
 description:
 	Check version of shell.
 category: pdksh
