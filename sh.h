@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.129 2007/05/13 17:51:23 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.130 2007/05/13 18:33:29 tg Exp $"
 #define MKSH_VERSION "R29 2007/05/10"
 
 #if HAVE_SYS_PARAM_H
@@ -1386,7 +1386,7 @@ char *str_save(const char *, Area *);
 #define str_save(s,ap) (str_nsave((s), (s) ? strlen(s) : 0, (ap)))
 #endif
 char *str_nsave(const char *, int, Area *);
-int option(const char *);
+size_t option(const char *);
 char *getoptions(void);
 void change_flag(enum sh_flag, int, int);
 int parse_args(const char **, int, int *);

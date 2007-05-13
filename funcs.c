@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.51 2007/05/13 18:15:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.52 2007/05/13 18:33:28 tg Exp $");
 
 int
 c_cd(const char **wp)
@@ -2517,14 +2517,14 @@ int
 test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
     int do_eval)
 {
-	int res;
-	int not;
+	int i;
+	size_t k;
 	struct stat b1, b2;
 
 	if (!do_eval)
 		return 0;
 
-	switch ((int) op) {
+	switch ((int)op) {
 	/*
 	 * Unary Operators
 	 */
@@ -2533,16 +2533,16 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	case TO_STZER: /* -z */
 		return *opnd1 == '\0';
 	case TO_OPTION: /* -o */
-		if ((not = *opnd1 == '!'))
+		if ((i = *opnd1 == '!'))
 			opnd1++;
-		if ((res = option(opnd1)) < 0)
-			res = 0;
+		if ((k = option(opnd1)) == (size_t)-1)
+			k = 0;
 		else {
-			res = Flag(res);
-			if (not)
-				res = !res;
+			k = Flag(k);
+			if (i)
+				k = !k;
 		}
-		return res;
+		return k;
 	case TO_FILRD: /* -r */
 		return test_eaccess(opnd1, R_OK) == 0;
 	case TO_FILWR: /* -w */
@@ -2584,12 +2584,12 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	case TO_FILGZ: /* -s */
 		return stat(opnd1, &b1) == 0 && b1.st_size > 0L;
 	case TO_FILTT: /* -t */
-		if (opnd1 && !bi_getn(opnd1, &res)) {
+		if (opnd1 && !bi_getn(opnd1, &i)) {
 			te->flags |= TEF_ERROR;
-			res = 0;
+			i = 0;
 		} else
-			res = isatty(opnd1 ? res : 0);
-		return res;
+			i = isatty(opnd1 ? i : 0);
+		return (i);
 	case TO_FILUID: /* -O */
 		return stat(opnd1, &b1) == 0 && b1.st_uid == ksheuid;
 	case TO_FILGID: /* -G */
