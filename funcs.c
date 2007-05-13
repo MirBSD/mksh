@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.50 2007/05/13 17:51:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.51 2007/05/13 18:15:25 tg Exp $");
 
 int
 c_cd(const char **wp)
@@ -1963,7 +1963,8 @@ c_brkcont(const char **wp)
 		 * shall be used.  Doesn't say to print an error but we
 		 * do anyway 'cause the user messed up.
 		 */
-		last_ep->flags &= ~EF_BRKCONT_PASS;
+		if (last_ep)
+			last_ep->flags &= ~EF_BRKCONT_PASS;
 		warningf(true, "%s: can only %s %d level(s)",
 		    wp[0], wp[0], n - quit);
 	}
