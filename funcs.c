@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.52 2007/05/13 18:33:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.53 2007/05/13 18:49:00 tg Exp $");
 
 int
 c_cd(const char **wp)
@@ -2413,8 +2413,6 @@ static int	test_nexpr(Test_env *, int);
 static int	test_primary(Test_env *, int);
 static int	ptest_isa(Test_env *, Test_meta);
 static const char *ptest_getopnd(Test_env *, Test_op, int);
-static int	ptest_eval(Test_env *, Test_op, const char *,
-		    const char *, int);
 static void	ptest_error(Test_env *, int, const char *);
 
 int
@@ -2427,7 +2425,7 @@ c_test(const char **wp)
 	te.flags = 0;
 	te.isa = ptest_isa;
 	te.getopnd = ptest_getopnd;
-	te.eval = ptest_eval;
+	te.eval = test_eval;
 	te.error = ptest_error;
 
 	for (argc = 0; wp[argc]; argc++)
@@ -2825,13 +2823,6 @@ ptest_getopnd(Test_env *te, Test_op op, int do_eval __unused)
 	if (te->pos.wp >= te->wp_end)
 		return op == TO_FILTT ? "1" : NULL;
 	return *te->pos.wp++;
-}
-
-static int
-ptest_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
-    int do_eval)
-{
-	return test_eval(te, op, opnd1, opnd2, do_eval);
 }
 
 static void
