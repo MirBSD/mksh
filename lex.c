@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.30 2007/05/10 19:22:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.31 2007/05/13 18:07:22 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -654,41 +654,28 @@ yylex(int cf)
 	if (wp == dp && state == SBASE) {
 		Xfree(ws, wp);	/* free word */
 		/* no word, process LEX1 character */
-		switch (c) {
-		default:
-			return c;
-
-		case '|':
-		case '&':
-		case ';':
+		if ((c == '|') || (c == '&') || (c == ';') || (c == '('/*)*/)) {
 			if ((c2 = getsc()) == c)
 				c = (c == ';') ? BREAK :
 				    (c == '|') ? LOGOR :
 				    (c == '&') ? LOGAND :
+				    /*
+				     * this is the place where
+				     * ((...); (...))
+				     * and similar is broken
+				     */
+				    (c == '(' /*)*/ ) ? MDPAREN :
 				    YYERRCODE;
 			else if (c == '|' && c2 == '&')
 				c = COPROC;
 			else
 				ungetsc(c2);
-			return c;
-
-		case '\n':
+		} else if (c == '\n') {
 			gethere();
 			if (cf & CONTIN)
 				goto Again;
-			return c;
-
-		case '(':  /*)*/
-			if ((c2 = getsc()) == '(') /*)*/
-				/* XXX need to handle ((...); (...)) */
-				c = MDPAREN;
-			else
-				ungetsc(c2);
-			return c;
-		  /*(*/
-		case ')':
-			return c;
 		}
+		return (c);
 	}
 
 	*wp++ = EOS;		/* terminate word */
