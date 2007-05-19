@@ -3,7 +3,7 @@
 PS1='# '; [[ "$(ulimit -c 0; id -u 2>&-)" -eq 0 ]] || PS1='$ '
 PS1='$(integer e=$?; ((e)) && print $e\|)${USER:=$(ulimit -c 0; id -un 2>&- || \
     print nobody)}@${HOSTNAME:=nil}:$(local pfx=~ wd=${PWD:-$(builtin pwd)}
-	integer n=${COLUMNS:-80}/3; let n='n < 7 ? 7 : n'
+	integer n=${COLUMNS:-80}/3; let n="n < 7 ? 7 : n"
 	[[ ${wd#$pfx} = $wd || $pfx = ?(/) ]] || wd=\~${wd#$pfx}
 	pfx=; while (( (${#pfx} + ${#wd}) > n )); do
 		if [[ $wd = */* ]]; then
@@ -37,4 +37,4 @@ function Lstripcom {
 
 # place customisations between this line and the “: RCSID” line below
 
-: $MirOS: src/bin/mksh/dot.mkshrc,v 1.13 2007/05/19 16:33:10 tg Exp $
+: $MirOS: src/bin/mksh/dot.mkshrc,v 1.14 2007/05/19 16:35:02 tg Rel $
