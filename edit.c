@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.92 2007/05/20 17:53:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.93 2007/05/21 12:24:44 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1014,16 +1014,16 @@ static	Area	aedit;
 #define	KEOL	1		/* ^M, ^J */
 #define	KINTR	2		/* ^G, ^C */
 
-struct	x_ftab {
-	int		(*xf_func)(int c);
-	const char	*xf_name;
-	short		xf_flags;
+struct x_ftab {
+	int (*xf_func)(int c);
+	const char *xf_name;
+	short xf_flags;
 };
 
 struct x_defbindings {
-	u_char		xdb_func;	/* XFUNC_* */
-	unsigned char	xdb_tab;
-	unsigned char	xdb_char;
+	unsigned char xdb_func;	/* XFUNC_* */
+	unsigned char xdb_tab;
+	unsigned char xdb_char;
 };
 
 #define XF_ARG		1	/* command takes number prefix */
@@ -1489,6 +1489,8 @@ x_emacs(char *buf, size_t len)
 			x_mode(false);
 			unwind(LSHELL);
 		}
+		/* ad-hoc hack for fixing the cursor position */
+		x_goto(xcp);
 	}
 }
 
@@ -1617,7 +1619,6 @@ x_del_back(int c __unused)
 		x_goto(xcp - 1);
 	} while ((++i < x_arg) && (xcp != xbuf));
 	x_delete(i, false);
-	x_goto(xcp);
 	return KSTD;
 }
 
@@ -1714,7 +1715,6 @@ static int
 x_del_bword(int c __unused)
 {
 	x_delete(x_bword(), true);
-	x_goto(xcp);
 	return KSTD;
 }
 
@@ -1722,7 +1722,6 @@ static int
 x_mv_bword(int c __unused)
 {
 	x_bword();
-	x_goto(xcp);
 	return KSTD;
 }
 
@@ -1900,7 +1899,6 @@ x_mv_back(int c __unused)
 		if (xcp == xbuf)
 			break;
 	}
-	x_goto(xcp);
 	return KSTD;
 }
 
@@ -2640,7 +2638,7 @@ x_init_emacs(void)
 		for (j = 0; j < X_TABSZ; j++)
 			x_tab[i][j] = XFUNC_error;
 	for (i = 0; i < (int)NELEM(x_defbindings); i++)
-		x_tab[(unsigned char)x_defbindings[i].xdb_tab][x_defbindings[i].xdb_char]
+		x_tab[x_defbindings[i].xdb_tab][x_defbindings[i].xdb_char]
 		    = x_defbindings[i].xdb_func;
 
 	x_atab = (char *(*)[X_TABSZ])alloc(sizeofN(*x_atab, X_NTABS), AEDIT);
@@ -2836,16 +2834,8 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
 		x_print_expansions(nwords, words, is_command);
 		completed = 1;
 	}
-	if (completed) {
-		/*
-		 * I don't quite get it: the x_goto(xcp) call is equivalent to
-		 * x_adjust() if we are ASCII-only and "heading off screen",
-		 * but putting x_adjust() here instead of x_goto(xcp) does not
-		 * fix the dramsey horizontal scrolling bug. Weird.
-		 */
-		x_goto(xcp);
+	if (completed)
 		x_redraw(0);
-	}
 
 	x_free_words(nwords, words);
 }
