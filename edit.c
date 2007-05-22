@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.95 2007/05/22 19:27:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.96 2007/05/22 21:01:38 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1697,12 +1697,11 @@ x_delete(int nc, int push)
 	 */
 	if ((i = xx_cols - 2 - x_col) > 0 || xep - xlp == 0) {
 		nw = (nw < i) ? nw : i;
-		if (xbp == xbuf)
-			++nw;
 		i = nw;
 		while (i--)
 			x_e_putc2(' ');
-		i = nw;
+		x_e_putc2((xep > xlp) ? '>' : (xbp > xbuf) ? '<' : ' ');
+		i = ++nw;
 		while (i--)
 			x_e_putc2('\b');
 	}
