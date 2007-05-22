@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.87.2.1 2007/05/13 19:29:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.87.2.2 2007/05/22 21:34:29 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1014,16 +1014,16 @@ static	Area	aedit;
 #define	KEOL	1		/* ^M, ^J */
 #define	KINTR	2		/* ^G, ^C */
 
-struct	x_ftab {
-	int		(*xf_func)(int c);
-	const char	*xf_name;
-	short		xf_flags;
+struct x_ftab {
+	int (*xf_func)(int c);
+	const char *xf_name;
+	short xf_flags;
 };
 
 struct x_defbindings {
-	u_char		xdb_func;	/* XFUNC_* */
-	unsigned char	xdb_tab;
-	unsigned char	xdb_char;
+	unsigned char xdb_func;	/* XFUNC_* */
+	unsigned char xdb_tab;
+	unsigned char xdb_char;
 };
 
 #define XF_ARG		1	/* command takes number prefix */
@@ -1489,6 +1489,8 @@ x_emacs(char *buf, size_t len)
 			x_mode(false);
 			unwind(LSHELL);
 		}
+		/* ad-hoc hack for fixing the cursor position */
+		x_goto(xcp);
 	}
 }
 
@@ -1600,6 +1602,8 @@ x_ins(const char *s)
 		while (cp > xcp)
 			x_bs2(cp = utf_backch(cp));
 	}
+	if (xlp == xep - 1)
+		x_redraw(xx_cols);
 	x_adj_ok = 1;
 	return 0;
 }
@@ -1691,13 +1695,12 @@ x_delete(int nc, int push)
 	 * there is no need to ' ','\b'.
 	 * But if we must, make sure we do the minimum.
 	 */
-	if ((i = xx_cols - 2 - x_col) > 0) {
-		nw = (nw < i) ? nw : i;
-		i = nw;
+	if ((i = xx_cols - 2 - x_col) > 0 || xep - xlp == 0) {
+		nw = (i = ((nw < i) ? nw : i)) + 1;
 		while (i--)
 			x_e_putc2(' ');
-		i = nw;
-		while (i--)
+		x_e_putc2((xep > xlp) ? '>' : (xbp > xbuf) ? '<' : ' ');
+		while (nw--)
 			x_e_putc2('\b');
 	}
 	/*x_goto(xcp);*/
@@ -1719,7 +1722,7 @@ x_del_bword(int c __unused)
 static int
 x_mv_bword(int c __unused)
 {
-	(void)x_bword();
+	x_bword();
 	return KSTD;
 }
 
@@ -2636,7 +2639,7 @@ x_init_emacs(void)
 		for (j = 0; j < X_TABSZ; j++)
 			x_tab[i][j] = XFUNC_error;
 	for (i = 0; i < (int)NELEM(x_defbindings); i++)
-		x_tab[(unsigned char)x_defbindings[i].xdb_tab][x_defbindings[i].xdb_char]
+		x_tab[x_defbindings[i].xdb_tab][x_defbindings[i].xdb_char]
 		    = x_defbindings[i].xdb_func;
 
 	x_atab = (char *(*)[X_TABSZ])alloc(sizeofN(*x_atab, X_NTABS), AEDIT);
@@ -2832,16 +2835,8 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
 		x_print_expansions(nwords, words, is_command);
 		completed = 1;
 	}
-	if (completed) {
-		/*
-		 * I don't quite get it: the x_goto(xcp) call is equivalent to
-		 * x_adjust() if we are ASCII-only and "heading off screen",
-		 * but putting x_adjust() here instead of x_goto(xcp) does not
-		 * fix the dramsey horizontal scrolling bug. Weird.
-		 */
-		x_goto(xcp);
+	if (completed)
 		x_redraw(0);
-	}
 
 	x_free_words(nwords, words);
 }
