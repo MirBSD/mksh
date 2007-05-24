@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.185 2007/05/24 09:22:58 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.186 2007/05/24 23:07:18 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -635,18 +635,6 @@ ac_test '!' arc4random_push_decl arc4random_push 1 'if arc4random_push() does no
 	#include "sh.h"
 	void arc4random_push(long);	/* this clashes if defined before */
 	int main(void) { arc4random_push(1); return (0); }
-EOF
-ac_test '!' confstr_decl '' 'if confstr() does not need to be declared' <<-'EOF'
-	#define MKSH_INCLUDES_ONLY
-	#include "sh.h"
-	int confstr(long, void *, int);	/* this clashes if defined before */
-	int main(int ac, char *av[]) {
-	#if !defined(_PATH_DEFPATH) && defined(_CS_PATH)
-		return (confstr(ac, *av, 0));
-	#else
-		return (ac + **av);
-	#endif
-	}
 EOF
 ac_test sys_siglist_decl sys_siglist 1 'if sys_siglist[] does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
