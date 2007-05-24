@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.182.2.1 2007/05/13 19:29:31 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.182.2.2 2007/05/24 10:53:58 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -50,9 +50,15 @@ upper()
 	echo :"$@" | sed 's/^://' | tr $alll $allu
 }
 
-# pipe .c | ac_test[n] label [!] checkif[!]0 [setlabelifcheckis[!]0] useroutput
+# pipe .c | ac_test[n] [!] label [!] checkif[!]0 [setlabelifcheckis[!]0] useroutput
 ac_testn()
 {
+	if test x"$1" = x"!"; then
+		reverse=1
+		shift
+	else
+		reverse=0
+	fi
 	f=$1
 	fu=`upper $f`
 	fc=0
@@ -92,7 +98,13 @@ ac_testn()
 	test x"$tcfn" = x"no" && test -f a.out && tcfn=a.out
 	test x"$tcfn" = x"no" && test -f a.exe && tcfn=a.exe
 	test x"$tcbo" = x"1" && return
+	fr=0
 	if test -f $tcfn; then
+		test $reverse = 1 || fr=1
+	else
+		test $reverse = 0 || fr=1
+	fi
+	if test $fr = 1; then
 		eval HAVE_$fu=1
 		$e "$bi==> $fd...$ao ${ui}yes$ao"
 	else
@@ -624,19 +636,22 @@ EOF
 #
 # check headers for declarations
 #
-ac_test arc4random_decl arc4random 1 'if arc4random() does not need to be declared' <<-'EOF'
+ac_test '!' arc4random_decl arc4random 1 'if arc4random() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
+	long arc4random(void);		/* this clashes if defined before */
 	int main(void) { return (arc4random()); }
 EOF
-ac_test arc4random_push_decl arc4random_push 1 'if arc4random_push() does not need to be declared' <<-'EOF'
+ac_test '!' arc4random_push_decl arc4random_push 1 'if arc4random_push() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
+	void arc4random_push(long);	/* this clashes if defined before */
 	int main(void) { arc4random_push(1); return (0); }
 EOF
-ac_test confstr_decl '' 'if confstr() does not need to be declared' <<-'EOF'
+ac_test '!' confstr_decl '' 'if confstr() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
+	int confstr(long, void *, int);	/* this clashes if defined before */
 	int main(int ac, char *av[]) {
 	#if !defined(_PATH_DEFPATH) && defined(_CS_PATH)
 		return (confstr(ac, *av, 0));
