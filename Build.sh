@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.186 2007/05/24 23:07:18 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.187 2007/05/28 13:47:09 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -175,10 +175,14 @@ curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
 e=echo
 h=1
 r=0
+eq=0
 
 for i
 do
 	case $i in
+	-Q)
+		eq=1
+		;;
 	-q)
 		e=:
 		h=-
@@ -743,7 +747,7 @@ test -f mksh.exe && result=mksh.exe
 test -f $result || exit 1
 test $r = 1 || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
     rm -f mksh.cat1
-test $h = 1 && v size $result
+test $eq = 0 && test $h = 1 && v size $result
 case $curdir in
 *\ *)	echo "#!./mksh" >test.sh ;;
 *)	echo "#!$curdir/mksh" >test.sh ;;
@@ -754,6 +758,7 @@ echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t'" \
 chmod 755 test.sh
 i=install
 test -f /usr/ucb/$i && i=/usr/ucb/$i
+test $eq = 1 && e=:
 $e
 $e Installing the shell:
 $e "# $i -c -s -o root -g bin -m 555 mksh /bin/mksh"
