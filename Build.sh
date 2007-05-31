@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.187 2007/05/28 13:47:09 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.188 2007/05/31 21:25:25 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -287,17 +287,45 @@ $e ${ao}Scanning for functions... please ignore any errors.
 #
 # Compiler: works as-is, with -Wno-error and -Werror
 #
-test x"$NOWARN" = x"" && NOWARN=-Wno-error
 save_NOWARN=$NOWARN
 NOWARN=
 ac_flags 0 compiler_works '' 'if the compiler works'
 test 1 = $HAVE_CAN_COMPILER_WORKS || exit 1
-ac_flags 0 wnoerror "$save_NOWARN"
-test 1 = $HAVE_CAN_WNOERROR || save_NOWARN=
-ac_flags 0 werror "-Werror"
+
+$e ... which compiler we seem to use
+cat >scn.c <<-'EOF'
+	#if defined(__GNUC__)
+	ct=gcc
+	#elif defined(__SUNPRO_C)
+	ct=sunpro
+	#else
+	ct=unknown
+	#endif
+EOF
+ct=unknown
+eval `$CC -E scn.c | grep ct=`
+case $ct in
+gcc|sunpro) ;;
+*) ct=unknown ;;
+esac
+$e "$bi==> which compiler we seem to use...$ao $ui$ct$ao"
+rm -f scn.c
+
+if test $ct = sunpro; then
+	test x"$save_NOWARN" = x"" && save_NOWARN='-errwarn=%none'
+	ac_flags 0 errwarnnone "$save_NOWARN"
+	test 1 = $HAVE_CAN_ERRWARNNONE || save_NOWARN=
+	ac_flags 0 errwarnall "-errwarn=%all"
+else
+	test x"$save_NOWARN" = x"" && save_NOWARN=-Wno-error
+	ac_flags 0 wnoerror "$save_NOWARN"
+	test 1 = $HAVE_CAN_WNOERROR || save_NOWARN=
+	ac_flags 0 werror "-Werror"
+fi
 
 # The following tests are run with -Werror if possible
-test 1 = $HAVE_CAN_WERROR && NOWARN=-Werror
+test $ct != sunpro && test 1 = $HAVE_CAN_WERROR && NOWARN=-Werror
+test $ct = sunpro && test 1 = $HAVE_CAN_ERRWARNALL && NOWARN='-errwarn=%all'
 
 #
 # Compiler: check for stuff that only generates warnings
@@ -332,53 +360,61 @@ NOWARN=$save_NOWARN
 # Compiler: extra flags (-O2 -f* -W* etc.)
 #
 i=`echo :"$CFLAGS" | sed 's/^://' | tr -c -d $alll$allu$alln-`
-test x"$i" = x"" && ac_flags 1 otwo "-O2"
-ac_flags 0 fnotreevrp "-fno-tree-vrp"
-if test 1 = $HAVE_CAN_FNOTREEVRP; then
-	tcbo=1
-	ac_testn need_fnotreevrp '' "if to use it to prevent a gcc bug" <<-'EOF'
-		typedef unsigned size_t;
-		char *strncpy(char *, const char *, size_t);
-		char *
-		strncpy(char *d, const char *s, size_t n)
-		{
-			if (!d || !s) {
-				if (d)
-					*d = n;
-				return (d);
-			}
-			return (*d = 1, d);
-		}
-		int
-		main(void)
-		{
-			char a[] = "t";
-			strncpy(a, (void *)0, 2);
-			return (*a);
-		}
-	EOF
-	tcbo=
-	if test -f $tcfn; then
-		./$tcfn >/dev/null 2>&1
-		rv=$?
-		rs=no
-	else
-		rv=0
-		rs="yes (assumed; cannot run ./$tcfn)"
-	fi
-	test 1 = $rv && rs=yes
-	test 2 = $rv || CFLAGS="$CFLAGS -fno-tree-vrp"
-	$e "$bi==> $fd...$ao ${ui}$rs$ao"
-	rm -f scn.c $tcfn
+if test $ct = sunpro; then
+	test x"$i" = x"" && ac_flags 1 otwo "-xO2"
+else
+	test x"$i" = x"" && ac_flags 1 otwo "-O2"
 fi
-ac_flags 1 fnostrictaliasing "-fno-strict-aliasing"
-ac_flags 1 fstackprotectorall "-fstack-protector-all"
-#ac_flags 1 fwholepgm "-fwhole-program --combine"
-ac_flags 1 fwrapv "-fwrapv"
-# I'd use -std=c99 but this wrecks havoc on glibc and cygwin based
-# systems (at least) because their system headers are so broken...
-ac_flags 1 stdg99 "-std=gnu99" 'if -std=gnu99 (ISO C99) can be used'
-ac_flags 1 wall "-Wall"
+if test $ct = gcc; then
+	ac_flags 0 fnotreevrp "-fno-tree-vrp"
+	if test 1 = $HAVE_CAN_FNOTREEVRP; then
+		tcbo=1
+		ac_testn need_fnotreevrp '' "if to use it to prevent a gcc bug" <<-'EOF'
+			typedef unsigned size_t;
+			char *strncpy(char *, const char *, size_t);
+			char *
+			strncpy(char *d, const char *s, size_t n)
+			{
+				if (!d || !s) {
+					if (d)
+						*d = n;
+					return (d);
+				}
+				return (*d = 1, d);
+			}
+			int
+			main(void)
+			{
+				char a[] = "t";
+				strncpy(a, (void *)0, 2);
+				return (*a);
+			}
+		EOF
+		tcbo=
+		if test -f $tcfn; then
+			./$tcfn >/dev/null 2>&1
+			rv=$?
+			rs=no
+		else
+			rv=0
+			rs="yes (assumed; cannot run ./$tcfn)"
+		fi
+		test 1 = $rv && rs=yes
+		test 2 = $rv || CFLAGS="$CFLAGS -fno-tree-vrp"
+		$e "$bi==> $fd...$ao ${ui}$rs$ao"
+		rm -f scn.c $tcfn
+	fi
+	ac_flags 1 fnostrictaliasing "-fno-strict-aliasing"
+	ac_flags 1 fstackprotectorall "-fstack-protector-all"
+	#ac_flags 1 fwholepgm "-fwhole-program --combine"
+	ac_flags 1 fwrapv "-fwrapv"
+	# I'd use -std=c99 but this wrecks havoc on glibc and cygwin based
+	# systems (at least) because their system headers are so broken...
+	ac_flags 1 stdg99 "-std=gnu99" 'if -std=gnu99 (ISO C99) can be used'
+	ac_flags 1 wall "-Wall"
+elif test $ct = sunpro; then
+	ac_flags 1 v "-v"
+fi
 
 #
 # mksh: flavours (full/small mksh, omit certain stuff)
@@ -670,6 +706,7 @@ EOF
 #
 # Compiler: Praeprocessor (only if needed)
 #
+HAVE_CPP_DD=yes
 if test 1 = $NEED_MKSH_SIGNAME; then
 	$e ... checking how to run the C Preprocessor
 	save_CPP=$CPP
@@ -687,6 +724,13 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 	done
 	$e "$bi==> checking how to run the C Preprocessor...$ao $ui$CPP$ao"
 	test x"$CPP" = x"false" && exit 1
+
+	$e ... checking if the C Preprocessor supports -dD
+	eval '( echo "#define foo bar" | v "$CPP -dD >x" ) 2>&'$h | \
+	    sed 's/^/] /'
+	grep '#define foo bar' x >/dev/null 2>&1 || HAVE_CPP_DD=no
+	$e "$bi==> checking if the C Preprocessor supports -dD...$ao $ui$HAVE_CPP_DD$ao"
+	rm -f x
 fi
 
 #
@@ -701,7 +745,7 @@ ed x <x 2>/dev/null | grep 3 >/dev/null 2>&1 && \
     check_categories=$check_categories,oldish-ed
 rm -f x
 
-if test 1 = $NEED_MKSH_SIGNAME; then
+test 1 = $NEED_MKSH_SIGNAME && if test $HAVE_CPP_DD = yes; then
 	$e Generating list of signal names...
 	sigseen=:
 	NSIG=`( echo '#include <signal.h>'; echo '#ifndef NSIG'; \
@@ -734,6 +778,9 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 	done 2>&1 >signames.inc
 	grep ', ' signames.inc >/dev/null 2>&1 || exit 1
 	$e done.
+else
+	$e No list of signal names available via cpp.
+	echo -n >signames.inc
 fi
 
 addsrcs HAVE_SETMODE setmode.c
