@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.188 2007/05/31 21:25:25 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.189 2007/06/03 17:29:29 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -366,47 +366,8 @@ else
 	test x"$i" = x"" && ac_flags 1 otwo "-O2"
 fi
 if test $ct = gcc; then
-	ac_flags 0 fnotreevrp "-fno-tree-vrp"
-	if test 1 = $HAVE_CAN_FNOTREEVRP; then
-		tcbo=1
-		ac_testn need_fnotreevrp '' "if to use it to prevent a gcc bug" <<-'EOF'
-			typedef unsigned size_t;
-			char *strncpy(char *, const char *, size_t);
-			char *
-			strncpy(char *d, const char *s, size_t n)
-			{
-				if (!d || !s) {
-					if (d)
-						*d = n;
-					return (d);
-				}
-				return (*d = 1, d);
-			}
-			int
-			main(void)
-			{
-				char a[] = "t";
-				strncpy(a, (void *)0, 2);
-				return (*a);
-			}
-		EOF
-		tcbo=
-		if test -f $tcfn; then
-			./$tcfn >/dev/null 2>&1
-			rv=$?
-			rs=no
-		else
-			rv=0
-			rs="yes (assumed; cannot run ./$tcfn)"
-		fi
-		test 1 = $rv && rs=yes
-		test 2 = $rv || CFLAGS="$CFLAGS -fno-tree-vrp"
-		$e "$bi==> $fd...$ao ${ui}$rs$ao"
-		rm -f scn.c $tcfn
-	fi
 	ac_flags 1 fnostrictaliasing "-fno-strict-aliasing"
 	ac_flags 1 fstackprotectorall "-fstack-protector-all"
-	#ac_flags 1 fwholepgm "-fwhole-program --combine"
 	ac_flags 1 fwrapv "-fwrapv"
 	# I'd use -std=c99 but this wrecks havoc on glibc and cygwin based
 	# systems (at least) because their system headers are so broken...
