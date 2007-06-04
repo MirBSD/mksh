@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.189 2007/06/03 17:29:29 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.190 2007/06/04 20:00:50 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -120,9 +120,15 @@ ac_test()
 	eval CPPFLAGS=\"\$CPPFLAGS -DHAVE_$fu=\$HAVE_$fu\"
 }
 
-# ac_flags add varname flags [text]
+# ac_flags [-] add varname flags [text]
 ac_flags()
 {
+	if test x"$1" = x"-"; then
+		shift
+		hf=1
+	else
+		hf=0
+	fi
 	fa=$1
 	vn=$2
 	f=$3
@@ -130,9 +136,13 @@ ac_flags()
 	test x"$ft" = x"" && ft="if $f can be used"
 	save_CFLAGS=$CFLAGS
 	CFLAGS="$CFLAGS $f"
-	ac_testn can_$vn '' "$ft" <<-'EOF'
-		int main(void) { return (0); }
-	EOF
+	if test $hf = 1; then
+		ac_testn can_$vn '' "$ft"
+	else
+		ac_testn can_$vn '' "$ft" <<-'EOF'
+			int main(void) { return (0); }
+		EOF
+	fi
 	eval fv=\$HAVE_CAN_`upper $vn`
 	test 11 = $fa$fv || CFLAGS=$save_CFLAGS
 }
@@ -361,7 +371,15 @@ NOWARN=$save_NOWARN
 #
 i=`echo :"$CFLAGS" | sed 's/^://' | tr -c -d $alll$allu$alln-`
 if test $ct = sunpro; then
-	test x"$i" = x"" && ac_flags 1 otwo "-xO2"
+	test x"$i" = x"" && (
+		cat <<-'EOF'
+			int main(void) { return (0); }
+			#define __IDSTRING_CONCAT(l,p)	__LINTED__ ## l ## _ ## p
+			#define __IDSTRING_EXPAND(l,p)	__IDSTRING_CONCAT(l,p)
+			#define pad			void __IDSTRING_EXPAND(__LINE__,x)(void) { }
+		EOF
+		yes pad | head -n 256
+	) | ac_flags - 1 otwo "-xO2"
 else
 	test x"$i" = x"" && ac_flags 1 otwo "-O2"
 fi
