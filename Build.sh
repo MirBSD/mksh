@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.192 2007/06/04 20:22:08 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.193 2007/06/04 20:26:47 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -345,6 +345,7 @@ test $ct = sunpro && test 1 = $HAVE_CAN_ERRWARNALL && NOWARN='-errwarn=%all'
 #
 ac_test attribute '' 'if we have __attribute__((...)) at all' <<-'EOF'
 	#include <stdlib.h>
+	#undef __attribute__
 	void fnord(void) __attribute__((noreturn));
 	int main(void) { fnord(); }
 	void fnord(void) { exit(0); }
@@ -352,6 +353,7 @@ EOF
 
 ac_test attribute_bounded attribute 0 'for __attribute__((bounded))' <<-'EOF'
 	#include <string.h>
+	#undef __attribute__
 	int xcopy(const void *, void *, size_t)
 	    __attribute__((bounded (buffer, 1, 3)))
 	    __attribute__((bounded (buffer, 2, 3)));
