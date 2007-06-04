@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.193 2007/06/04 20:26:47 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.194 2007/06/04 21:15:27 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -111,7 +111,7 @@ ac_testn()
 		eval HAVE_$fu=0
 		$e "$bi==> $fd...$ao ${ui}no$ao"
 	fi
-	rm -f scn.c $tcfn
+	rm -f scn.c scn.o $tcfn
 }
 
 ac_test()
@@ -176,8 +176,8 @@ if test -d mksh; then
 	echo "$0: Error: ./mksh is a directory!" >&2
 	exit 1
 fi
-rm -f a.exe a.out *core crypt.exp lft mksh mksh.cat1 mksh.exe no scn.c \
-    signames.inc test.sh x
+rm -f a.exe a.out *core crypt.exp lft mksh mksh.cat1 mksh.exe no *.o \
+    scn.c signames.inc test.sh x
 
 : ${CC=gcc} ${CPP=false} ${NROFF=nroff}
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
@@ -322,7 +322,7 @@ gcc|sunpro) ;;
 *) ct=unknown ;;
 esac
 $e "$bi==> which compiler we seem to use...$ao $ui$ct$ao"
-rm -f scn.c
+rm -f scn.c scn.o
 
 if test $ct = sunpro; then
 	test x"$save_NOWARN" = x"" && save_NOWARN='-errwarn=%none'
@@ -476,7 +476,7 @@ fi
 CPPFLAGS="$CPPFLAGS _LARGE_FILES=1"
 ac_testn can_lfs_aix '!' can_lfs 0 "... with -D_LARGE_FILES=1" <lft.c
 test 1 = $HAVE_CAN_LFS_AIX || CPPFLAGS=$save_CPPFLAGS
-rm -f lft.c	# end of large file support test
+rm -f lft.c lft.o	# end of large file support test
 
 #
 # Environment: types
