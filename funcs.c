@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.53 2007/05/13 18:49:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.54 2007/06/04 21:33:27 tg Exp $");
 
 int
 c_cd(const char **wp)
@@ -1373,7 +1373,7 @@ const struct builtin kshbuiltins [] = {
 	{"+bg", c_fgbg},
 	{"+fg", c_fgbg},
 	{"bind", c_bind},
-	{NULL, NULL}
+	{NULL, (int (*)(const char **))NULL}
 };
 
 static void p_time(struct shf *, int, struct timeval *, int,
@@ -2331,7 +2331,7 @@ const struct builtin shbuiltins [] = {
 #if !defined(MKSH_SMALL) || defined(MKSH_NEED_MKNOD)
 	{"mknod", c_mknod},
 #endif
-	{NULL, NULL}
+	{NULL, (int (*)(const char **))NULL}
 };
 
 /* test(1) accepts the following grammar:

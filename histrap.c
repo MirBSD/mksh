@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.46 2007/05/13 17:51:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.47 2007/06/04 21:33:28 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign, Sigact_trap;
@@ -1336,7 +1336,7 @@ setsig(Trap *p, sig_t f, int flags)
 	 * all users of shtrap are lifetime users (SIGCHLD, SIGALRM, SIGWINCH).
 	 */
 	if (!(flags & SS_USER))
-		p->shtrap = NULL;
+		p->shtrap = (sig_t)NULL;
 	if (flags & SS_SHTRAP) {
 		p->shtrap = f;
 		f = trapsig;
