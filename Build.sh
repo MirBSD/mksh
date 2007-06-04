@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.191 2007/06/04 20:14:34 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.192 2007/06/04 20:22:08 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -212,7 +212,11 @@ SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
 test $r = 0 && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
     NROFF="$NROFF -c"
-CPPFLAGS="$CPPFLAGS -I. -I'$srcdir'"
+if test x"$srcdir" = x"."; then
+	CPPFLAGS="-I. $CPPFLAGS"
+else
+	CPPFLAGS="-I. -I'$srcdir' $CPPFLAGS"
+fi
 
 
 test x"$TARGET_OS" = x"" && TARGET_OS=`uname -s 2>/dev/null || uname`
