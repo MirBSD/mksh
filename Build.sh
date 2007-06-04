@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.190 2007/06/04 20:00:50 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.191 2007/06/04 20:14:34 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -93,8 +93,8 @@ ac_testn()
 	fi
 	$e ... $fd
 	cat >scn.c
-	eval 'v "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -I'\''$srcdir'\' \
-	    'scn.c $LIBS" 2>&'$h | sed 's/^/] /'
+	eval 'v "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS" 2>&'$h | \
+	    sed 's/^/] /'
 	test x"$tcfn" = x"no" && test -f a.out && tcfn=a.out
 	test x"$tcfn" = x"no" && test -f a.exe && tcfn=a.exe
 	test x"$tcbo" = x"1" && return
@@ -212,6 +212,7 @@ SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
 test $r = 0 && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
     NROFF="$NROFF -c"
+CPPFLAGS="$CPPFLAGS -I. -I'$srcdir'"
 
 
 test x"$TARGET_OS" = x"" && TARGET_OS=`uname -s 2>/dev/null || uname`
@@ -285,8 +286,6 @@ if test -n "$warn"; then
 	echo "a shell account to the developer, this may improve; please" >&2
 	echo "drop us a success or failure notice or even send in diffs." >&2
 fi
-
-CPPFLAGS="$CPPFLAGS -I'$curdir'"
 
 
 #
@@ -766,8 +765,13 @@ addsrcs HAVE_SETMODE setmode.c
 addsrcs HAVE_STRLCPY strlcpy.c
 CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 
-(v "cd '$srcdir' && exec $CC $CFLAGS $CPPFLAGS" \
-    "$LDFLAGS -o '$curdir/mksh' $SRCS $LIBS") || exit 1
+objs=
+for file in $SRCS; do
+	objs="$objs `echo x"$file" | sed 's/^x\(.*\)\.c$/\1.o/'`"
+	test -f $file || file=$srcdir/$file
+	v "$CC $CFLAGS $CPPFLAGS -c $file" || exit 1
+done
+v "$CC $CFLAGS $LDFLAGS -o mksh $objs $LIBS" || exit 1
 result=mksh
 test -f mksh.exe && result=mksh.exe
 test -f $result || exit 1
