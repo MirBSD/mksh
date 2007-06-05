@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.201 2007/06/05 21:10:52 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.202 2007/06/05 21:17:05 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -699,6 +699,7 @@ case $HAVE_PERSISTENT_HISTORY:$HAVE_FLOCK_EX$HAVE_MKSH_FULL in
 	;;
 esac
 $e "$bi==> if to use persistent history...$ao $ui$fv"
+CPPFLAGS="$CPPFLAGS -DHAVE_PERSISTENT_HISTORY=$HAVE_PERSISTENT_HISTORY"
 test 1 = $HAVE_PERSISTENT_HISTORY || \
     check_categories=$check_categories,no-histfile
 
