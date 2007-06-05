@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.197 2007/06/05 19:48:45 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.198 2007/06/05 20:01:26 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -682,12 +682,23 @@ EOF
 #
 # other checks
 #
-ac_test persistent_history mksh_full 0 'if to use persistent history' <<-'EOF'
-	#if !HAVE_FLOCK_EX || defined(MKSH_SMALL)
-	#error No, some prerequisites are missing.
-	#endif
-	int main(void) { return (0); }
-EOF
+case $HAVE_PERSISTENT_HISTORY:$HAVE_FLOCK_EX$HAVE_MKSH_FULL in
+0:*)
+	fv="yes$ao (cached)"
+	;;
+1:*)
+	fv="no$ao (cached)"
+	;;
+*:11)
+	HAVE_PERSISTENT_HISTORY=1
+	fv=yes$ao
+	;;
+*)
+	HAVE_PERSISTENT_HISTORY=0
+	fv=no$ao
+	;;
+esac
+$e "$bi==> if to use persistent history...$ao $ui$fv"
 test 1 = $HAVE_PERSISTENT_HISTORY || \
     check_categories=$check_categories,no-histfile
 
