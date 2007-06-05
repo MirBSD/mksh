@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.54 2007/06/04 21:33:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.55 2007/06/05 19:18:11 tg Exp $");
 
 int
 c_cd(const char **wp)
@@ -2251,27 +2251,27 @@ c_mknod(const char **wp)
 	    (argv[1][0] == 'c') ? S_IFCHR : 0;
 
 	if (!ismkfifo) {
-		unsigned long major, minor;
+		unsigned long majnum, minnum;
 		dev_t dv;
 		char *c;
 
-		major = strtoul(argv[2], &c, 0);
+		majnum = strtoul(argv[2], &c, 0);
 		if ((c == argv[2]) || (*c != '\0')) {
 			bi_errorf("non-numeric device major '%s'", argv[2]);
 			goto c_mknod_err;
 		}
-		minor = strtoul(argv[3], &c, 0);
+		minnum = strtoul(argv[3], &c, 0);
 		if ((c == argv[3]) || (*c != '\0')) {
 			bi_errorf("non-numeric device minor '%s'", argv[3]);
 			goto c_mknod_err;
 		}
-		dv = makedev(major, minor);
-		if ((unsigned long)major(dv) != major) {
-			bi_errorf("device major too large: %ld", major);
+		dv = makedev(majnum, minnum);
+		if ((unsigned long)major(dv) != majnum) {
+			bi_errorf("device major too large: %ld", majnum);
 			goto c_mknod_err;
 		}
-		if ((unsigned long)minor(dv) != minor) {
-			bi_errorf("device minor too large: %ld", minor);
+		if ((unsigned long)minor(dv) != minnum) {
+			bi_errorf("device minor too large: %ld", minnum);
 			goto c_mknod_err;
 		}
 		if (mknod(argv[0], mode, dv))
