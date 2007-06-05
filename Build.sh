@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.203 2007/06/05 21:47:48 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.204 2007/06/05 23:10:51 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -277,7 +277,6 @@ OpenBSD)
 	;;
 SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
-	r=1
 	;;
 *)
 	warn='; it may or may not work'
