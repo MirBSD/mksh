@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.202 2007/06/05 21:17:05 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.203 2007/06/05 21:47:48 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -536,44 +536,22 @@ CPPFLAGS="$CPPFLAGS -DHAVE_SIG_T=$HAVE_SIG_T"
 #
 test x"NetBSD" = x"$TARGET_OS" && $e Ignore the compatibility warning.
 
-ac_test mksh_signame '' 'our own list of signal names' <<-'EOF'
-	#include <stdlib.h>	/* for NULL */
-	#define MKSH_SIGNAMES_CHECK
-	#include "signames.c"
-	int main(void) { return (mksh_sigpairs[0].nr); }
-EOF
-
-ac_test sys_signame '!' mksh_signame 0 'the sys_signame[] array' <<-'EOF'
-	extern const char *const sys_signame[];
-	int main(void) { return (sys_signame[0][0]); }
-EOF
-
-ac_test _sys_signame '!' sys_signame 0 'the _sys_signame[] array' <<-'EOF'
-	extern const char *const _sys_signame[];
-	int main(void) { return (_sys_signame[0][0]); }
-EOF
-
-if test 000 = $HAVE_SYS_SIGNAME$HAVE__SYS_SIGNAME$HAVE_MKSH_SIGNAME; then
-	NEED_MKSH_SIGNAME=1
-else
-	NEED_MKSH_SIGNAME=0
-fi
-
-# only testn: added later below
-ac_testn sys_siglist '' 'the sys_siglist[] array' <<-'EOF'
-	extern const char *const sys_siglist[];
-	int main(void) { return (sys_siglist[0][0]); }
-EOF
-
-ac_testn _sys_siglist '!' sys_siglist 0 'the _sys_siglist[] array' <<-'EOF'
-	extern const char *const _sys_siglist[];
-	int main(void) { return (_sys_siglist[0][0]); }
-EOF
-if test 1 = $HAVE__SYS_SIGLIST; then
-	CPPFLAGS="$CPPFLAGS -Dsys_siglist=_sys_siglist"
-	HAVE_SYS_SIGLIST=1
-fi
-CPPFLAGS="$CPPFLAGS -DHAVE_SYS_SIGLIST=$HAVE_SYS_SIGLIST"
+for what in name list; do
+	uwhat=`upper $what`
+	ac_testn sys_sig$what '' "the sys_sig${what}[] array" <<-EOF
+		extern const char *const sys_sig${what}[];
+		int main(void) { return (sys_sig${what}[0][0]); }
+	EOF
+	ac_testn _sys_sig$what '!' sys_sig$what 0 "the _sys_sig${what}[] array" <<-EOF
+		extern const char *const _sys_sig${what}[];
+		int main(void) { return (_sys_sig${what}[0][0]); }
+	EOF
+	if eval "test 1 = \$HAVE__SYS_SIG$uwhat"; then
+		CPPFLAGS="$CPPFLAGS -Dsys_sig$what=_sys_sig$what"
+		eval "HAVE_SYS_SIG$uwhat=1"
+	fi
+	eval CPPFLAGS=\"\$CPPFLAGS -DHAVE_SYS_SIG$uwhat=\$HAVE_SYS_SIG$uwhat\"
+done
 
 ac_test strsignal '!' sys_siglist 0 <<-'EOF'
 	#include <string.h>
@@ -707,7 +685,7 @@ test 1 = $HAVE_PERSISTENT_HISTORY || \
 # Compiler: Praeprocessor (only if needed)
 #
 HAVE_CPP_DD=yes
-if test 1 = $NEED_MKSH_SIGNAME; then
+if test 0 = $HAVE_SYS_SIGNAME; then
 	$e ... checking how to run the C Preprocessor
 	save_CPP=$CPP
 	for i in "$save_CPP" "$CC -E -" "cpp" "/usr/libexec/cpp" "/lib/cpp"; do
@@ -745,7 +723,7 @@ ed x <x 2>/dev/null | grep 3 >/dev/null 2>&1 && \
     check_categories=$check_categories,oldish-ed
 rm -f x
 
-if test 1 = $NEED_MKSH_SIGNAME; then
+if test 0 = $HAVE_SYS_SIGNAME; then
 	if test $HAVE_CPP_DD = yes; then
 		$e Generating list of signal names...
 	else
