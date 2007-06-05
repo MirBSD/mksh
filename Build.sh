@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.200 2007/06/05 20:57:46 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.201 2007/06/05 21:10:52 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -744,8 +744,12 @@ ed x <x 2>/dev/null | grep 3 >/dev/null 2>&1 && \
     check_categories=$check_categories,oldish-ed
 rm -f x
 
-test 1 = $NEED_MKSH_SIGNAME && if test $HAVE_CPP_DD = yes; then
-	$e Generating list of signal names...
+if test 1 = $NEED_MKSH_SIGNAME; then
+	if test $HAVE_CPP_DD = yes; then
+		$e Generating list of signal names...
+	else
+		$e No list of signal names available via cpp. Falling back...
+	fi
 	sigseen=:
 	NSIG=`( echo '#include <signal.h>'; echo '#ifndef NSIG'; \
 	    echo '#define NSIG _NSIG'; echo '#endif'; echo mksh_cfg: NSIG ) | \
@@ -756,11 +760,19 @@ test 1 = $NEED_MKSH_SIGNAME && if test $HAVE_CPP_DD = yes; then
 	esac
 	NSIG=`printf %d "$NSIG" 2>/dev/null`
 	test $h = 1 && printf "NSIG=$NSIG ... "
-	test $NSIG -gt 1 || exit 1
-	echo '#include <signal.h>' | vq "$CPP $CPPFLAGS -dD" | \
-	    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
-	    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | \
-	    sort | while read name; do
+	if test $HAVE_CPP_DD = yes && test $NSIG -gt 1; then
+		signames=`echo '#include <signal.h>' | \
+		    vq "$CPP $CPPFLAGS -dD" | \
+		    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
+		    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | \
+		    sort`
+	else
+		signames="ABRT ALRM BUS CHLD CLD CONT EMT FPE HUP ILL INT IO"
+		signames="$signames IOT KILL PIPE PWR QUIT SEGV SYS STOP TERM"
+		signames="$signames TRAP TSTP TTIN TTOU URG USR1 USR2 WINCH"
+	fi
+	test $NSIG -gt 1 || signames=
+	for name in $signames; do
 		( echo '#include <signal.h>'; echo mksh_cfg: SIG$name ) | \
 		    vq "$CPP $CPPFLAGS" | grep mksh_cfg: | \
 		    sed 's/^mksh_cfg:[	 ]*\([0-9x]*\).*$/\1:'$name/
@@ -771,15 +783,11 @@ test 1 = $NEED_MKSH_SIGNAME && if test $HAVE_CPP_DD = yes; then
 		*:$nr:*) ;;
 		*)	echo "		{ $nr, \"$name\" },"
 			sigseen=$sigseen$nr:
-			test $h = 1 && printf "$nr " >&2
+			test $h = 1 && printf "$name=$nr " >&2
 			;;
 		esac
 	done 2>&1 >signames.inc
-	grep ', ' signames.inc >/dev/null 2>&1 || exit 1
 	$e done.
-else
-	$e No list of signal names available via cpp.
-	printf >signames.inc
 fi
 
 addsrcs HAVE_SETMODE setmode.c
