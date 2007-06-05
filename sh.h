@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.140 2007/06/05 19:35:13 tg Exp $"
-#define MKSH_VERSION "R29 2007/06/04"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.141 2007/06/05 19:48:47 tg Exp $"
+#define MKSH_VERSION "R29 2007/06/05"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -146,12 +146,16 @@ typedef int bool;
 #define ksh_toupper(c)	(((c) >= 'a') && ((c) <= 'z') ? (c) - 'a' + 'A' : (c))
 #define ksh_isdash(s)	(((s) != NULL) && ((s)[0] == '-') && ((s)[1] == '\0'))
 
+#if HAVE_EXPSTMT
 /* this macro must not evaluate its arguments several times */
-#define ksh_isspace(c)	__extension__({					\
-		unsigned char ksh_isspace_c = (c);			\
-		(ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||	\
-		    (ksh_isspace_c == 0x20);				\
-	})
+#define ksh_isspace(c)	__extension__({				\
+	unsigned char ksh_isspace_c = (c);			\
+	(ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||	\
+	    (ksh_isspace_c == 0x20);				\
+})
+#else
+#define ksh_isspace(c)	ksh_isspace_((unsigned char)(c))
+#endif
 
 #ifndef S_ISTXT
 #define S_ISTXT		0001000
@@ -295,6 +299,7 @@ char *ucstrstr(char *, const char *);
 })
 #endif
 #else
+#if HAVE_EXPSTMT
 #define cstrchr(s,c) __extension__({	\
 	union mksh_cchack out;		\
 					\
@@ -307,6 +312,10 @@ char *ucstrstr(char *, const char *);
 	out.rw = strstr((b), (l));	\
 	(out.ro);			\
 })
+#else
+#define cstrchr(s,c)	((const char *)strchr((s), (c)))
+#define cstrstr(s,c)	((const char *)strstr((s), (c)))
+#endif
 #define vstrchr	strchr
 #define vstrstr	strstr
 #if HAVE_STRCASESTR
@@ -1404,6 +1413,9 @@ int make_path(const char *, const char *, char **, XString *, int *);
 void simplify_path(char *);
 char *get_phys_path(const char *);
 void set_current_wd(char *);
+#if !HAVE_EXPSTMT
+bool ksh_isspace_(unsigned char);
+#endif
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);
 struct shf *shf_fdopen(int, int, struct shf *);

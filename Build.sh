@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.196 2007/06/05 19:39:20 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.197 2007/06/05 19:48:45 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -316,7 +316,10 @@ cat >scn.c <<-'EOF'
 	#endif
 EOF
 ct=unknown
-eval `$CC -E scn.c | grep ct=`
+eval 'v "$CC -E scn.c | grep ct= >x" 2>&'$h | sed 's/^/] /'
+test $h = 1 && sed 's/^/[ /' x
+eval `cat x`
+rm -f x
 case $ct in
 gcc|sunpro) ;;
 *) ct=unknown ;;
@@ -398,7 +401,16 @@ if test $ct = gcc; then
 	ac_flags 1 wall "-Wall"
 elif test $ct = sunpro; then
 	ac_flags 1 v "-v"
+	ac_flags 1 xc99 "-xc99"
 fi
+ac_test expstmt '' "if the compiler supports statements as expressions" <<-'EOF'
+	#define ksh_isspace(c)	__extension__({				\
+		unsigned char ksh_isspace_c = (c);			\
+		(ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||	\
+		    (ksh_isspace_c == 0x20);				\
+	})
+	int main(int ac, char *av[]) { return (ksh_isspace(ac + **av)); }
+EOF
 
 #
 # mksh: flavours (full/small mksh, omit certain stuff)
@@ -436,6 +448,7 @@ if test 0 = $HAVE_MKSH_FULL; then
 
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	check_categories=$check_categories,smksh
+	test 0 = $HAVE_MKSH_DEFUTF8 || check_categories=$check_categories,dutf
 fi
 
 #

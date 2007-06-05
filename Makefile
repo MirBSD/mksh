@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.41 2007/06/04 21:55:38 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.42 2007/06/05 19:48:45 tg Exp $
 #-
 # use CPPFLAGS=-DDEBUG __CRAZY=Yes to check for certain more stuff
 
@@ -10,8 +10,8 @@ SRCS=		alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c \
 .if !make(test-build)
 CPPFLAGS+=	-DMKSH_ASSUME_UTF8 \
 		-DHAVE_ATTRIBUTE=1 -DHAVE_ATTRIBUTE_BOUNDED=1 \
-		-DHAVE_ATTRIBUTE_USED=1 -DHAVE_SYS_PARAM_H=1 \
-		-DHAVE_SYS_MKDEV_H=0 -DHAVE_SYS_MMAN_H=1 \
+		-DHAVE_ATTRIBUTE_USED=1 -DHAVE_EXPSTMT=1 \
+		-DHAVE_SYS_PARAM_H=1 -DHAVE_SYS_MKDEV_H=0 -DHAVE_SYS_MMAN_H=1 \
 		-DHAVE_SYS_SYSMACROS_H=0 -DHAVE_LIBGEN_H=1 -DHAVE_PATHS_H=1 \
 		-DHAVE_STDBOOL_H=1 -DHAVE_STDINT_H=1 -DHAVE_GRP_H=1 \
 		-DHAVE_ULIMIT_H=0 -DHAVE_VALUES_H=0 -DHAVE_RLIM_T=1 \

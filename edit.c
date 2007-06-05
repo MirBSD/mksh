@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.98 2007/05/24 19:15:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.99 2007/06/05 19:48:46 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -765,6 +765,7 @@ static void utf_ptradj(char *, char **);
 
 /* UTF-8 hack: high-level functions */
 
+#if HAVE_EXPSTMT
 #define utf_backch(c)						\
 	(!Flag(FUTFHACK) ? (c) - 1 : __extension__({		\
 		u_char *utf_backch_cp = (u_char *)(c);		\
@@ -774,6 +775,19 @@ static void utf_ptradj(char *, char **);
 			--utf_backch_cp;			\
 		(__typeof__ (c))utf_backch_cp;			\
 	}))
+#else
+#define utf_backch(c)	(!Flag(FUTFHACK) ? (c) - 1 : \
+	    (c) + (ptrdiff_t)(utf_backch_((u_char *)c) - ((u_char *)(c))))
+static u_char *utf_backch_(u_char *);
+static u_char *
+utf_backch_(u_char *utf_backch_cp)
+{
+	--utf_backch_cp;
+	while ((*utf_backch_cp >= 0x80) && (*utf_backch_cp < 0xC0))
+		--utf_backch_cp;
+	return (utf_backch_cp);
+}
+#endif
 
 int
 utf_widthadj(const char *src, const char **dst)
