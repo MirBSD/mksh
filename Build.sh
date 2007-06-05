@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.198 2007/06/05 20:01:26 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.199 2007/06/05 20:18:54 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -760,7 +760,7 @@ test 1 = $NEED_MKSH_SIGNAME && if test $HAVE_CPP_DD = yes; then
 	echo '#include <signal.h>' | vq "$CPP $CPPFLAGS -dD" | \
 	    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
 	    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | \
-	    while read name; do
+	    sort | while read name; do
 		( echo '#include <signal.h>'; echo mksh_cfg: SIG$name ) | \
 		    vq "$CPP $CPPFLAGS" | grep mksh_cfg: | \
 		    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1:'$name/
