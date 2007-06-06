@@ -3,10 +3,10 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.48 2007/06/05 21:47:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.49 2007/06/06 23:28:15 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
-static struct sigaction Sigact_ign, Sigact_trap;
+static struct sigaction Sigact_ign;
 
 #if HAVE_PERSISTENT_HISTORY
 static int hist_count_lines(unsigned char *, int);
@@ -1009,8 +1009,6 @@ inittraps(void)
 	sigemptyset(&Sigact_ign.sa_mask);
 	Sigact_ign.sa_flags = 0; /* interruptible */
 	Sigact_ign.sa_handler = SIG_IGN;
-	Sigact_trap = Sigact_ign;
-	Sigact_trap.sa_handler = trapsig;
 
 	sigtraps[SIGINT].flags |= TF_DFL_INTR | TF_TTY_INTR;
 	sigtraps[SIGQUIT].flags |= TF_DFL_INTR | TF_TTY_INTR;

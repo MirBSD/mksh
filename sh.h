@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.142 2007/06/06 21:36:29 tg Exp $"
-#define MKSH_VERSION "R29 2007/06/05"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.143 2007/06/06 23:28:16 tg Exp $"
+#define MKSH_VERSION "R29 2007/06/06"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -1360,7 +1360,7 @@ void shprintf(const char *, ...)
 int can_seek(int);
 void initio(void);
 int ksh_dup2(int, int, int);
-int savefd(int);
+short savefd(int);
 void restfd(int, int);
 void openpipe(int *);
 void closepipe(int *);
@@ -1391,7 +1391,7 @@ char *str_save(const char *, Area *);
 char *str_nsave(const char *, int, Area *);
 size_t option(const char *);
 char *getoptions(void);
-void change_flag(enum sh_flag, int, int);
+void change_flag(enum sh_flag, int, char);
 int parse_args(const char **, int, int *);
 int getn(const char *, int *);
 int bi_getn(const char *, int *);
@@ -1520,6 +1520,8 @@ struct test_env {
 	int (*eval)(Test_env *, Test_op, const char *, const char *, int);
 	void (*error)(Test_env *, int, const char *);
 };
+
+extern const char *const dbtest_tokens[];
 
 Test_op	test_isop(Test_meta, const char *);
 int test_eval(Test_env *, Test_op, const char *, const char *, int);

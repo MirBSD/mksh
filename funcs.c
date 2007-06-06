@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.55 2007/06/05 19:18:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.56 2007/06/06 23:28:15 tg Exp $");
 
 int
 c_cd(const char **wp)
@@ -1790,7 +1790,8 @@ int
 c_eval(const char **wp)
 {
 	struct source *s, *saves = source;
-	int savef, rv;
+	char savef;
+	int rv;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return 1;
@@ -1843,17 +1844,12 @@ c_trap(const char **wp)
 	wp += builtin_opt.optind;
 
 	if (*wp == NULL) {
-		int anydfl = 0;
-
-		for (p = sigtraps, i = NSIG+1; --i >= 0; p++) {
-			if (p->trap == NULL)
-				anydfl = 1;
-			else {
+		for (p = sigtraps, i = NSIG+1; --i >= 0; p++)
+			if (p->trap != NULL) {
 				shprintf("trap -- ");
 				print_value_quoted(p->trap);
 				shprintf(" %s\n", p->name);
 			}
-		}
 		return 0;
 	}
 
@@ -2267,11 +2263,11 @@ c_mknod(const char **wp)
 		}
 		dv = makedev(majnum, minnum);
 		if ((unsigned long)major(dv) != majnum) {
-			bi_errorf("device major too large: %ld", majnum);
+			bi_errorf("device major too large: %lu", majnum);
 			goto c_mknod_err;
 		}
 		if ((unsigned long)minor(dv) != minnum) {
-			bi_errorf("device minor too large: %ld", minnum);
+			bi_errorf("device minor too large: %lu", minnum);
 			goto c_mknod_err;
 		}
 		if (mknod(argv[0], mode, dv))

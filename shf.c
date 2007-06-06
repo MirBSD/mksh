@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.14 2007/05/13 17:51:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.15 2007/06/06 23:28:17 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -553,7 +553,7 @@ shf_putchar(int c, struct shf *shf)
 		return EOF;
 
 	if (shf->flags & SHF_UNBUF) {
-		char cc = c;
+		u_char cc = (u_char)c;
 		int n;
 
 		if (shf->fd < 0)
@@ -924,7 +924,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 
 		case 'c':
 			flags &= ~FL_DOT;
-			numbuf[0] = va_arg(args, int);
+			numbuf[0] = (char)(va_arg(args, int));
 			s = numbuf;
 			len = 1;
 			break;

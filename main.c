@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.75 2007/05/13 17:51:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.76 2007/06/06 23:28:16 tg Exp $");
 
 extern char **environ;
 
@@ -936,23 +936,18 @@ ksh_dup2(int ofd, int nfd, int errok)
  * move fd from user space (0<=fd<10) to shell space (fd>=10),
  * set close-on-exec flag.
  */
-int
+short
 savefd(int fd)
 {
-	int nfd;
+	int nfd = fd;
 
-	if (fd < FDBASE) {
-		nfd = fcntl(fd, F_DUPFD, FDBASE);
-		if (nfd < 0) {
-			if (errno == EBADF)
-				return -1;
-			else
-				errorf("too many files open in shell");
-		}
-	} else
-		nfd = fd;
+	if (fd < FDBASE && (nfd = fcntl(fd, F_DUPFD, FDBASE)) < 0 &&
+	    errno == EBADF)
+		return -1;
+	if (nfd < 0 || nfd > SHRT_MAX)
+		errorf("too many files open in shell");
 	fcntl(nfd, F_SETFD, FD_CLOEXEC);
-	return nfd;
+	return ((short)nfd);
 }
 
 void

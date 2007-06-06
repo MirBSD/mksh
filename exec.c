@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.31 2007/05/13 18:49:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.32 2007/06/06 23:28:14 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -348,11 +348,12 @@ execute(struct op *volatile t,
 
 			cargs.ro = t->args;
 			execve(t->str, cargs.rw, up);
+			rv = errno;
 		}
-		if (errno == ENOEXEC)
+		if (rv == ENOEXEC)
 			scriptexec(t, (const char **)up);
 		else
-			errorf("%s: %s", s, strerror(errno));
+			errorf("%s: %s", s, strerror(rv));
 	}
  Break:
 	exstat = rv;
@@ -514,7 +515,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 
 	case CFUNC:			/* function call */
 	    {
-		volatile int old_xflag;
+		volatile char old_xflag;
 		volatile Tflag old_inuse;
 		const char *volatile old_kshname;
 
@@ -537,9 +538,10 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 				break;
 			}
 			if (include(tp->u.fpath, 0, NULL, 0) < 0) {
+				rv = errno;
 				warningf(true,
 				    "%s: can't open function definition file %s - %s",
-				    cp, tp->u.fpath, strerror(errno));
+				    cp, tp->u.fpath, strerror(rv));
 				rv = 127;
 				break;
 			}
@@ -576,7 +578,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 		}
 
 		old_xflag = Flag(FXTRACE);
-		Flag(FXTRACE) = tp->flag & TRACE ? true : false;
+		Flag(FXTRACE) = tp->flag & TRACE ? 1 : 0;
 
 		old_inuse = tp->flag & FINUSE;
 		tp->flag |= FINUSE;
@@ -1137,11 +1139,13 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	}
 	if (u < 0) {
 		/* herein() may already have printed message */
-		if (u == -1)
+		if (u == -1) {
+			u = errno;
 			warningf(true, "cannot %s %s: %s",
 			    iotype == IODUP ? "dup" :
 			    (iotype == IOREAD || iotype == IOHERE) ?
-			    "open" : "create", cp, strerror(errno));
+			    "open" : "create", cp, strerror(u));
+		}
 		return -1;
 	}
 	/* Do not save if it has already been redirected (i.e. "cat >x >y"). */
@@ -1163,10 +1167,13 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		close(iop->unit);
 	else if (u != iop->unit) {
 		if (ksh_dup2(u, iop->unit, true) < 0) {
+			int ev;
+
+			ev = errno;
 			warningf(true,
 			    "could not finish (dup) redirection %s: %s",
 			    snptreef(NULL, 32, "%R", &iotmp),
-			    strerror(errno));
+			    strerror(ev));
 			if (iotype != IODUP)
 				close(u);
 			return -1;
@@ -1212,9 +1219,10 @@ herein(const char *content, int sub)
 	 */
 	h = maketemp(ATEMP, TT_HEREDOC_EXP, &e->temps);
 	if (!(shf = h->shf) || (fd = open(h->name, O_RDONLY, 0)) < 0) {
+		fd = errno;
 		warningf(true, "can't %s temporary file %s: %s",
 		    !shf ? "create" : "open",
-		    h->name, strerror(errno));
+		    h->name, strerror(fd));
 		if (shf)
 			shf_close(shf);
 		return -2 /* special to iosetup(): don't print error */;
@@ -1244,9 +1252,11 @@ herein(const char *content, int sub)
 	quitenv(NULL);
 
 	if (shf_close(shf) == EOF) {
+		i = errno;
 		close(fd);
-		warningf(true, "error writing %s: %s", h->name,
-		    strerror(errno));
+		fd = errno;
+		warningf(true, "error writing %s: %s, %s", h->name,
+		    strerror(i), strerror(fd));
 		return -2; /* special to iosetup(): don't print error */
 	}
 
@@ -1380,9 +1390,6 @@ pr_list(char *const *ap)
 /*
  *	[[ ... ]] evaluation routines
  */
-
-extern const char *const dbtest_tokens[];
-extern const char db_close[];
 
 /* Test if the current token is a whatever.  Accepts the current token if
  * it is.  Returns 0 if it is not, non-zero if it is (in the case of

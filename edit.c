@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.100 2007/06/06 22:26:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.101 2007/06/06 23:28:13 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -25,21 +25,20 @@ X_chars edchars;
 #define XCF_FULLPATH	BIT(2)	/* command completion: store full path */
 #define XCF_COMMAND_FILE (XCF_COMMAND|XCF_FILE)
 
-int x_getc(void);
-void x_flush(void);
-void x_putc(int);
-void x_puts(const u_char *);
-bool x_mode(bool);
-int x_do_comment(char *, int, int *);
-void x_print_expansions(int, char *const *, int);
-int x_cf_glob(int, const char *, int, int, int *, int *, char ***, int *);
-int x_longest_prefix(int, char *const *);
-int x_basename(const char *, const char *);
-void x_free_words(int, char **);
-int x_escape(const char *, size_t, int (*)(const char *, size_t));
-int x_emacs(char *, size_t);
-void x_init_emacs(void);
-int x_vi(char *, size_t);
+static int x_getc(void);
+static void x_flush(void);
+static void x_putc(int);
+static bool x_mode(bool);
+static int x_do_comment(char *, int, int *);
+static void x_print_expansions(int, char *const *, int);
+static int x_cf_glob(int, const char *, int, int, int *, int *, char ***, int *);
+static int x_longest_prefix(int, char *const *);
+static int x_basename(const char *, const char *);
+static void x_free_words(int, char **);
+static int x_escape(const char *, size_t, int (*)(const char *, size_t));
+static int x_emacs(char *, size_t);
+static void x_init_emacs(void);
+static int x_vi(char *, size_t);
 
 #ifdef TIOCGWINSZ
 static void chkwinsz(void);
@@ -121,7 +120,7 @@ x_read(char *buf, size_t len)
 
 /* tty I/O */
 
-int
+static int
 x_getc(void)
 {
 	char c;
@@ -136,23 +135,16 @@ x_getc(void)
 	return ((n == 1) ? (int)(unsigned char)c : -1);
 }
 
-void
+static void
 x_flush(void)
 {
 	shf_flush(shl_out);
 }
 
-void
+static void
 x_putc(int c)
 {
 	shf_putc(c, shl_out);
-}
-
-void
-x_puts(const u_char *s)
-{
-	while (*s != 0)
-		shf_putc(*s++, shl_out);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -166,7 +158,7 @@ x_puts(const u_char *s)
  * If successful, *lenp contains the new length.  Note: cursor should be
  * moved to the start of the line after (un)commenting.
  */
-int
+static int
 x_do_comment(char *buf, int bsize, int *lenp)
 {
 	int i, j;
@@ -211,7 +203,7 @@ x_do_comment(char *buf, int bsize, int *lenp)
 /*           Common file/command completion code for vi/emacs	             */
 
 
-void
+static void
 x_print_expansions(int nwords, char * const *words, int is_command)
 {
 	int use_copy = 0;
@@ -500,7 +492,7 @@ x_locate_word(const char *buf, int buflen, int pos, int *startp,
 	return end - start;
 }
 
-int
+static int
 x_cf_glob(int flags, const char *buf, int buflen, int pos, int *startp,
     int *endp, char ***wordsp, int *is_commandp)
 {
@@ -574,7 +566,7 @@ add_glob(const char *str, int slen)
 /*
  * Find longest common prefix
  */
-int
+static int
 x_longest_prefix(int nwords, char * const * words)
 {
 	int i, j;
@@ -594,7 +586,7 @@ x_longest_prefix(int nwords, char * const * words)
 	return prefix_len;
 }
 
-void
+static void
 x_free_words(int nwords, char **words)
 {
 	int i;
@@ -616,7 +608,7 @@ x_free_words(int nwords, char **words)
  *	///		2
  *			0
  */
-int
+static int
 x_basename(const char *s, const char *se)
 {
 	const char *p;
@@ -723,7 +715,7 @@ glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
  * be escaped and the result will be put into edit buffer by
  * keybinding-specific function
  */
-int
+static int
 x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 {
 	size_t add, wlen;
@@ -1431,7 +1423,7 @@ x_e_getmbc(char *sbuf)
 	return (pos);
 }
 
-int
+static int
 x_emacs(char *buf, size_t len)
 {
 	int c, i;
@@ -2641,7 +2633,7 @@ x_bind(const char *a1, const char *a2,
 	return (0);
 }
 
-void
+static void
 x_init_emacs(void)
 {
 	int i, j;
@@ -3255,7 +3247,7 @@ x_lastcp(void)
 	return (xlp);
 }
 
-bool
+static bool
 x_mode(bool onoff)
 {
 	static bool x_cur_mode;
@@ -3499,7 +3491,7 @@ enum expand_mode {
 };
 static enum expand_mode expanded = NONE;	/* last input was expanded */
 
-int
+static int
 x_vi(char *buf, size_t len)
 {
 	int c;

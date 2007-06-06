@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.27 2007/05/13 19:14:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.28 2007/06/06 23:28:14 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -712,17 +712,14 @@ varsub(Expand *xp, const char *sp, const char *word,
 		if ((p = cstrchr(sp, '[')) && (p[1] == '*' || p[1] == '@') &&
 		    p[2] == ']') {
 			int n = 0;
-			int max = 0;
 
 			vp = global(arrayname(sp));
 			if (vp->flag & (ISSET|ARRAY))
 				zero_ok = 1;
 			for (; vp; vp = vp->u.array)
-				if (vp->flag & ISSET) {
-					max = vp->index + 1;
+				if (vp->flag & ISSET)
 					n++;
-				}
-			c = n; /* ksh88/ksh93 go for number, not max index */
+			c = n;
 		} else if (c == '*' || c == '@')
 			c = e->loc->argc;
 		else {

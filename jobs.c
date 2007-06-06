@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.22 2007/05/13 17:51:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.23 2007/06/06 23:28:15 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -49,7 +49,7 @@ struct job {
 	Job *next;		/* next job in list */
 	int job;		/* job number: %n */
 	int flags;		/* see JF_* */
-	int state;		/* job state */
+	volatile int state;	/* job state */
 	int status;		/* exit status of last process */
 	pid_t pgrp;		/* process group of job */
 	pid_t ppid;		/* pid of process that forked job */
@@ -905,8 +905,8 @@ j_waitj(Job *j,
 	if (!Flag(FMONITOR))
 		flags |= JW_STOPPEDWAIT;
 
-	while ((volatile int) j->state == PRUNNING ||
-	    ((flags & JW_STOPPEDWAIT) && (volatile int) j->state == PSTOPPED)) {
+	while (j->state == PRUNNING ||
+	    ((flags & JW_STOPPEDWAIT) && j->state == PSTOPPED)) {
 		sigsuspend(&sm_default);
 		if (fatal_trap) {
 			int oldf = j->flags & (JF_WAITING|JF_W_ASYNCNOTIFY);

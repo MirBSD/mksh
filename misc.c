@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.56 2007/06/06 21:36:29 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.57 2007/06/06 23:28:16 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -226,9 +226,9 @@ getoptions(void)
 void
 change_flag(enum sh_flag f,
     int what,		/* flag to change */
-    int newval)		/* what is changing the flag (command line vs set) */
+    char newval)	/* what is changing the flag (command line vs set) */
 {
-	int oldval;
+	char oldval;
 
 	oldval = Flag(f);
 	Flag(f) = newval;
@@ -274,11 +274,11 @@ parse_args(const char **argv,
 {
 	static char cmd_opts[NELEM(options) + 5]; /* o:T:\0 */
 	static char set_opts[NELEM(options) + 6]; /* A:o;s\0 */
-	char *opts;
+	char set, *opts;
 	const char *array = NULL;
 	Getopt go;
 	size_t i;
-	int optc, set, sortargs = 0, arrayset = 0;
+	int optc, sortargs = 0, arrayset = 0;
 
 	/* First call?  Build option strings... */
 	if (cmd_opts[0] == '\0') {
@@ -392,8 +392,7 @@ parse_args(const char **argv,
 			for (i = 0; i < NELEM(options); i++)
 				if (optc == options[i].c &&
 				    (what & options[i].flags)) {
-					change_flag((enum sh_flag) i, what,
-					    set);
+					change_flag((enum sh_flag)i, what, set);
 					break;
 				}
 			if (i == NELEM(options))
