@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.207 2007/06/06 21:59:38 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.208 2007/06/06 22:03:24 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -322,7 +322,7 @@ test $h = 1 && sed 's/^/[ /' x
 eval `cat x`
 rm -f x
 case $ct in
-gcc|sunpro) ;;
+icc|gcc|sunpro) ;;
 *) ct=unknown ;;
 esac
 $e "$bi==> which compiler we seem to use...$ao $ui$ct$ao"
