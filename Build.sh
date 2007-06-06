@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.208 2007/06/06 22:03:24 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.209 2007/06/06 23:25:28 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -401,6 +401,7 @@ if test $ct = gcc; then
 	ac_flags 1 stdg99 "-std=gnu99" 'if -std=gnu99 (ISO C99) can be used'
 	ac_flags 1 wall "-Wall"
 elif test $ct = icc; then
+	ac_flags 1 fnobuiltinsetmode "-fno-builtin-setmode"
 	ac_flags 1 fnostrictaliasing "-fno-strict-aliasing"
 	ac_flags 1 fstacksecuritycheck "-fstack-security-check"
 	ac_flags 1 stdg99 "-std=gnu99" 'if -std=gnu99 (ISO C99) can be used'
