@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.204 2007/06/05 23:10:51 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.205 2007/06/06 21:36:29 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -404,7 +404,7 @@ elif test $ct = sunpro; then
 fi
 ac_test expstmt '' "if the compiler supports statements as expressions" <<-'EOF'
 	#define ksh_isspace(c)	__extension__({				\
-		unsigned char ksh_isspace_c = (c);			\
+		unsigned ksh_isspace_c = (c);				\
 		(ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||	\
 		    (ksh_isspace_c == 0x20);				\
 	})

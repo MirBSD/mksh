@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.55 2007/06/05 19:48:47 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.56 2007/06/06 21:36:29 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -1428,7 +1428,7 @@ stristr(const char *b, const char *l)
 
 #if !HAVE_EXPSTMT
 bool
-ksh_isspace_(unsigned char ksh_isspace_c)
+ksh_isspace_(unsigned ksh_isspace_c)
 {
 	return ((ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||
 	    (ksh_isspace_c == 0x20));

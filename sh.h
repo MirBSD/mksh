@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.141 2007/06/05 19:48:47 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.142 2007/06/06 21:36:29 tg Exp $"
 #define MKSH_VERSION "R29 2007/06/05"
 
 #if HAVE_SYS_PARAM_H
@@ -149,12 +149,12 @@ typedef int bool;
 #if HAVE_EXPSTMT
 /* this macro must not evaluate its arguments several times */
 #define ksh_isspace(c)	__extension__({				\
-	unsigned char ksh_isspace_c = (c);			\
+	unsigned ksh_isspace_c = (c);				\
 	(ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||	\
 	    (ksh_isspace_c == 0x20);				\
 })
 #else
-#define ksh_isspace(c)	ksh_isspace_((unsigned char)(c))
+#define ksh_isspace(c)	ksh_isspace_((unsigned)(c))
 #endif
 
 #ifndef S_ISTXT
@@ -1414,7 +1414,7 @@ void simplify_path(char *);
 char *get_phys_path(const char *);
 void set_current_wd(char *);
 #if !HAVE_EXPSTMT
-bool ksh_isspace_(unsigned char);
+bool ksh_isspace_(unsigned);
 #endif
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);
