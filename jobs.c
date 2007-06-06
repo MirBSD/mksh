@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.23 2007/06/06 23:28:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.24 2007/06/06 23:41:24 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -649,6 +649,7 @@ j_resume(const char *cp, int bg)
 			if (ttypgrp_ok &&
 			    tcsetpgrp(tty_fd, (j->flags & JF_SAVEDTTYPGRP) ?
 			    j->saved_ttypgrp : j->pgrp) < 0) {
+				rv = errno;
 				if (j->flags & JF_SAVEDTTY)
 					tcsetattr(tty_fd, TCSADRAIN, &tty_state);
 				sigprocmask(SIG_SETMASK, &omask,
@@ -657,7 +658,7 @@ j_resume(const char *cp, int bg)
 				    tty_fd,
 				    (int) ((j->flags & JF_SAVEDTTYPGRP) ?
 				    j->saved_ttypgrp : j->pgrp),
-				    strerror(errno));
+				    strerror(rv));
 				return 1;
 			}
 		}
@@ -668,7 +669,7 @@ j_resume(const char *cp, int bg)
 	}
 
 	if (j->state == PRUNNING && killpg(j->pgrp, SIGCONT) < 0) {
-		int	err = errno;
+		int err = errno;
 
 		if (!bg) {
 			j->flags &= ~JF_FG;

@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.56 2007/06/06 23:28:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.57 2007/06/06 23:41:23 tg Exp $");
 
 int
 c_cd(const char **wp)
@@ -3008,11 +3008,12 @@ c_ulimit(const char **wp)
 			if (how & HARD)
 				limit.rlim_max = val;
 			if (setrlimit(l->scmd, &limit) < 0) {
-				if (errno == EPERM)
+				how = errno;
+				if (how == EPERM)
 					bi_errorf("exceeds allowable limit");
 				else
 					bi_errorf("bad limit: %s",
-					    strerror(errno));
+					    strerror(how));
 				return 1;
 			}
 		} else {
