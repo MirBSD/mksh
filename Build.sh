@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.205 2007/06/06 21:36:29 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.206 2007/06/06 21:56:12 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -306,7 +306,9 @@ test 1 = $HAVE_CAN_COMPILER_WORKS || exit 1
 
 $e ... which compiler we seem to use
 cat >scn.c <<-'EOF'
-	#if defined(__GNUC__)
+	#if defined(__ICC) || defined(__INTEL_COMPILER)
+	ct=icc
+	#elif defined(__GNUC__)
 	ct=gcc
 	#elif defined(__SUNPRO_C)
 	ct=sunpro
@@ -397,6 +399,13 @@ if test $ct = gcc; then
 	# I'd use -std=c99 but this wrecks havoc on glibc and cygwin based
 	# systems (at least) because their system headers are so broken...
 	ac_flags 1 stdg99 "-std=gnu99" 'if -std=gnu99 (ISO C99) can be used'
+	ac_flags 1 wall "-Wall"
+elif test $ct = icc; then
+	ac_flags 1 fnostrictaliasing "-fno-strict-aliasing"
+	ac_flags 1 fstacksecuritycheck "-fstack-security-check"
+	ac_flags 1 stdg99 "-std=gnu99" 'if -std=gnu99 (ISO C99) can be used'
+	test 1 = $HAVE_CAN_STDG99 || \
+	    ac_flags 1 stdc99 "-std=c99" 'if -std=c99 can be used'
 	ac_flags 1 wall "-Wall"
 elif test $ct = sunpro; then
 	ac_flags 1 v "-v"
