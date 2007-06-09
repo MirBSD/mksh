@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.210 2007/06/09 22:01:40 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.211 2007/06/09 22:06:55 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -380,15 +380,16 @@ NOWARN=$save_NOWARN
 #
 i=`echo :"$CFLAGS" | sed 's/^://' | tr -c -d $alll$allu$alln-`
 if test $ct = sunpro; then
-	test x"$i" = x"" && (
-		cat <<-'EOF'
+	if test x"$i" = x""; then
+		cat >x <<-'EOF'
 			int main(void) { return (0); }
 			#define __IDSTRING_CONCAT(l,p)	__LINTED__ ## l ## _ ## p
 			#define __IDSTRING_EXPAND(l,p)	__IDSTRING_CONCAT(l,p)
 			#define pad			void __IDSTRING_EXPAND(__LINE__,x)(void) { }
 		EOF
-		yes pad | head -n 256
-	) | ac_flags - 1 otwo "-xO2"
+		yes pad | head -n 256 >>x
+		ac_flags - 1 otwo "-xO2" <x
+	fi
 else
 	test x"$i" = x"" && ac_flags 1 otwo "-O2"
 fi
