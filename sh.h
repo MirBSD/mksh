@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.143 2007/06/06 23:28:16 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.144 2007/06/09 21:59:21 tg Exp $"
 #define MKSH_VERSION "R29 2007/06/06"
 
 #if HAVE_SYS_PARAM_H
@@ -269,7 +269,8 @@ union mksh_ccphack {
 };
 
 /* for const debugging */
-#ifdef DEBUG
+#if defined(DEBUG) && defined(__GNUC__) && !defined(__ICC) && \
+    !defined(__INTEL_COMPILER) && !defined(__SUNPRO_C)
 char *ucstrchr(char *, int);
 char *ucstrstr(char *, const char *);
 #define strchr ucstrchr
@@ -278,53 +279,31 @@ char *ucstrstr(char *, const char *);
 	union mksh_cchack in, out;	\
 					\
 	in.ro = (s);			\
-	out.rw = strchr(in.rw, (c));	\
+	out.rw = ucstrchr(in.rw, (c));	\
 	(out.ro);			\
 })
 #define cstrstr(b,l) __extension__({	\
 	union mksh_cchack in, out;	\
 					\
 	in.ro = (b);			\
-	out.rw = strstr(in.rw, (l));	\
+	out.rw = ucstrstr(in.rw, (l));	\
 	(out.ro);			\
 })
 #define vstrchr(s,c)	(cstrchr((s), (c)) != NULL)
 #define vstrstr(b,l)	(cstrstr((b), (l)) != NULL)
-#if HAVE_STRCASESTR
-#define stristr(b,l) __extension__({	\
-	union mksh_cchack out;		\
-					\
-	out.rw = strcasestr((b), (l));	\
-	(out.ro);			\
-})
-#endif
-#else
-#if HAVE_EXPSTMT
-#define cstrchr(s,c) __extension__({	\
-	union mksh_cchack out;		\
-					\
-	out.rw = strchr((s), (c));	\
-	(out.ro);			\
-})
-#define cstrstr(b,l) __extension__({	\
-	union mksh_cchack out;		\
-					\
-	out.rw = strstr((b), (l));	\
-	(out.ro);			\
-})
-#else
+#else /* !DEBUG, !gcc */
 #define cstrchr(s,c)	((const char *)strchr((s), (c)))
 #define cstrstr(s,c)	((const char *)strstr((s), (c)))
-#endif
-#define vstrchr	strchr
-#define vstrstr	strstr
-#if HAVE_STRCASESTR
-#define stristr	strcasestr
-#endif
+#define vstrchr(s,c)	(strchr((s), (c)) != NULL)
+#define vstrstr(b,l)	(strstr((b), (l)) != NULL)
 #endif
 
 /* use this ipv strchr(s, 0) but no side effects in s! */
 #define strnul(s)	((s) + strlen(s))
+
+#if HAVE_STRCASESTR
+#define stristr(b,l)	((const char *)strcasestr((b), (l)))
+#endif
 
 /*
  * Area-based allocation built on malloc/free
