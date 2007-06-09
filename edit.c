@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.101 2007/06/06 23:28:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.102 2007/06/09 22:01:41 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -758,17 +758,16 @@ static void utf_ptradj(char *, char **);
 /* UTF-8 hack: high-level functions */
 
 #if HAVE_EXPSTMT
-#define utf_backch(c)						\
-	(!Flag(FUTFHACK) ? (c) - 1 : __extension__({		\
-		u_char *utf_backch_cp = (u_char *)(c);		\
-		--utf_backch_cp;				\
-		while ((*utf_backch_cp >= 0x80) &&		\
-		    (*utf_backch_cp < 0xC0))			\
-			--utf_backch_cp;			\
-		(__typeof__ (c))utf_backch_cp;			\
-	}))
+#define utf_backch(c)	(!Flag(FUTFHACK) ? (c) - 1 : ({	\
+	u_char *utf_backch_cp = (u_char *)(c);		\
+	--utf_backch_cp;				\
+	while ((*utf_backch_cp >= 0x80) &&		\
+	    (*utf_backch_cp < 0xC0))			\
+		--utf_backch_cp;			\
+	(__typeof__ (c))utf_backch_cp;			\
+}))
 #else
-#define utf_backch(c)	(!Flag(FUTFHACK) ? (c) - 1 : \
+#define utf_backch(c)	(!Flag(FUTFHACK) ? (c) - 1 : 	\
 	    (c) + (ptrdiff_t)(utf_backch_((u_char *)c) - ((u_char *)(c))))
 static u_char *utf_backch_(u_char *);
 static u_char *

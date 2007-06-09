@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.209 2007/06/06 23:25:28 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.210 2007/06/09 22:01:40 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -413,7 +413,7 @@ elif test $ct = sunpro; then
 	ac_flags 1 xc99 "-xc99"
 fi
 ac_test expstmt '' "if the compiler supports statements as expressions" <<-'EOF'
-	#define ksh_isspace(c)	__extension__({				\
+	#define ksh_isspace(c)	({					\
 		unsigned ksh_isspace_c = (c);				\
 		(ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||	\
 		    (ksh_isspace_c == 0x20);				\

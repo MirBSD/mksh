@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.144 2007/06/09 21:59:21 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.145 2007/06/09 22:01:42 tg Exp $"
 #define MKSH_VERSION "R29 2007/06/06"
 
 #if HAVE_SYS_PARAM_H
@@ -148,7 +148,7 @@ typedef int bool;
 
 #if HAVE_EXPSTMT
 /* this macro must not evaluate its arguments several times */
-#define ksh_isspace(c)	__extension__({				\
+#define ksh_isspace(c)	({					\
 	unsigned ksh_isspace_c = (c);				\
 	(ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||	\
 	    (ksh_isspace_c == 0x20);				\
@@ -275,14 +275,14 @@ char *ucstrchr(char *, int);
 char *ucstrstr(char *, const char *);
 #define strchr ucstrchr
 #define strstr ucstrstr
-#define cstrchr(s,c) __extension__({	\
+#define cstrchr(s,c) ({			\
 	union mksh_cchack in, out;	\
 					\
 	in.ro = (s);			\
 	out.rw = ucstrchr(in.rw, (c));	\
 	(out.ro);			\
 })
-#define cstrstr(b,l) __extension__({	\
+#define cstrstr(b,l) ({			\
 	union mksh_cchack in, out;	\
 					\
 	in.ro = (b);			\
