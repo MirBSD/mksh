@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.211 2007/06/09 22:06:55 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.212 2007/06/10 17:06:07 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -572,7 +572,7 @@ EOF
 #
 # Environment: library functions
 #
-ac_test arc4random <<-'EOF'
+ac_testn arc4random <<-'EOF'
 	#include <sys/types.h>
 	#if HAVE_STDINT_H
 	#include <stdint.h>
@@ -580,6 +580,15 @@ ac_test arc4random <<-'EOF'
 	extern u_int32_t arc4random(void);
 	int main(void) { return (arc4random()); }
 EOF
+
+if test $HAVE_ARC4RANDOM = 0 && test -f "$srcdir/arc4random.c"; then
+	ac_header sys/sysctl.h
+	addsrcs HAVE_ARC4RANDOM arc4random.c
+	HAVE_ARC4RANDOM=1
+	HAVE_ARC4RANDOM_DECL=0
+	HAVE_ARC4RANDOM_PUSH=0
+fi
+CPPFLAGS="$CPPFLAGS -DHAVE_ARC4RANDOM=$HAVE_ARC4RANDOM"
 
 ac_test arc4random_push arc4random 0 <<-'EOF'
 	extern void arc4random_push(int);
