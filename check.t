@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.112 2007/06/09 22:02:04 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.113 2007/06/15 21:55:18 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R29 2007/06/09
+	@(#)MIRBSD KSH R29 2007/06/15
 description:
 	Check version of shell.
 category: pdksh
@@ -3901,12 +3901,12 @@ stdin:
 	print got ${#anzahl[*]} files
 	chmod +x foo/*
 	export PATH=$(pwd)/foo:$PATH
-	$0 -c '﻿fnord'
-	$0 -c '﻿fnord; fnord; ﻿fnord; fnord'
-	$0 foo/bar
-	$0 <foo/bar
-	$0 foo/zoo
-	$0 -c 'print ﻿: $(﻿fnord)'
+	"$0" -c '﻿fnord'
+	"$0" -c '﻿fnord; fnord; ﻿fnord; fnord'
+	"$0" foo/bar
+	"$0" <foo/bar
+	"$0" foo/zoo
+	"$0" -c 'print ﻿: $(﻿fnord)'
 	rm -rf foo
 expected-stdout:
 	got 4 files
@@ -3957,9 +3957,49 @@ description:
 	Reading the UTF-8 BOM should enable the utf8-hack flag
 category: pdksh,!dutf
 stdin:
-	$0 -c ':; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'
-	$0 -c '﻿:; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'
+	"$0" -c ':; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'
+	"$0" -c '﻿:; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'
 expected-stdout:
 	off
 	on
+---
+name: aliases-1
+description:
+	Check if built-in shell aliases are okay
+category: pdksh
+stdin:
+	alias
+	typeset -f
+expected-stdout:
+	autoload='typeset -fu'
+	functions='typeset -f'
+	hash='alias -t'
+	history='fc -l'
+	integer='typeset -i'
+	local=typeset
+	login='exec login'
+	nohup='nohup '
+	r='fc -e -'
+	stop='kill -STOP'
+	suspend='kill -STOP $$'
+	type='whence -v'
+---
+name: aliases-2
+description:
+	Check if “set -o posix” disables built-in aliases
+category: pdksh
+arguments: !-o!posix!
+stdin:
+	alias
+	typeset -f
+---
+name: aliases-3
+description:
+	Check if running as sh disables built-in aliases
+category: pdksh,!smksh
+arguments: !-o!posix!
+stdin:
+	cp "$0" sh
+	./sh -c 'alias; typeset -f'
+	rm -f sh
 ---

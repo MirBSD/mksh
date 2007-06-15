@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.33 2007/06/04 19:25:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.34 2007/06/15 21:55:19 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -969,7 +969,11 @@ getsc_line(Source *s)
 		ksh_tmout_state = TMOUT_READING;
 		alarm(ksh_tmout);
 	}
-	if (have_tty && (Flag(FVI) || Flag(FEMACS) || Flag(FGMACS))) {
+	if (have_tty && (
+#ifndef MKSH_NOVI
+	    Flag(FVI) ||
+#endif
+	    Flag(FEMACS) || Flag(FGMACS))) {
 		int nread;
 
 		nread = x_read(xp, LINE);

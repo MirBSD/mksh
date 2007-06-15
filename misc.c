@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.57 2007/06/06 23:28:16 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.58 2007/06/15 21:55:19 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -131,10 +131,12 @@ const struct option options[] = {
 	{ "trackall",	'h',		OF_ANY },
 	{ "utf8-hack",	'U',		OF_ANY }, /* non-standard */
 	{ "verbose",	'v',		OF_ANY },
+#ifndef MKSH_NOVI
 	{ "vi",		  0,		OF_ANY },
 	{ "viraw",	  0,		OF_ANY }, /* no effect */
 	{ "vi-tabcomplete",  0,		OF_ANY }, /* non-standard */
 	{ "vi-esccomplete",  0,		OF_ANY }, /* non-standard */
+#endif
 	{ "xtrace",	'x',		OF_ANY },
 	/* Anonymous flags: used internally by shell only
 	 * (not visible to user)
@@ -235,8 +237,15 @@ change_flag(enum sh_flag f,
 	if (f == FMONITOR) {
 		if (what != OF_CMDLINE && newval != oldval)
 			j_change();
-	} else if ((f == FVI || f == FEMACS || f == FGMACS) && newval) {
-		Flag(FVI) = Flag(FEMACS) = Flag(FGMACS) = 0;
+	} else if ((
+#ifndef MKSH_NOVI
+	    f == FVI ||
+#endif
+	    f == FEMACS || f == FGMACS) && newval) {
+#ifndef MKSH_NOVI
+		Flag(FVI) =
+#endif
+		    Flag(FEMACS) = Flag(FGMACS) = 0;
 		Flag(f) = newval;
 	} else if (f == FPRIVILEGED && oldval && !newval) {
 		/* Turning off -p? */

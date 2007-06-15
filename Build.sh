@@ -1,8 +1,9 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.212 2007/06/10 17:06:07 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.213 2007/06/15 21:55:18 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
-# CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
+# CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
+#			MKSH_NOVI
 
 v()
 {

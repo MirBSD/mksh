@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.146 2007/06/09 22:02:04 tg Exp $"
-#define MKSH_VERSION "R29 2007/06/09"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.147 2007/06/15 21:55:20 tg Exp $"
+#define MKSH_VERSION "R29 2007/06/15"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -305,6 +305,10 @@ char *ucstrstr(char *, const char *);
 #define stristr(b,l)	((const char *)strcasestr((b), (l)))
 #endif
 
+#if defined(MKSH_SMALL) && !defined(MKSH_NOVI)
+#define MKSH_NOVI
+#endif
+
 /*
  * Area-based allocation built on malloc/free
  */
@@ -409,10 +413,12 @@ enum sh_flag {
 	FTRACKALL,	/* -h: create tracked aliases for all commands */
 	FUTFHACK,	/* -U: utf-8 hack for command line editing */
 	FVERBOSE,	/* -v: echo input */
+#ifndef MKSH_NOVI
 	FVI,		/* vi command editing */
 	FVIRAW,		/* always read in raw mode (ignored) */
 	FVITABCOMPLETE,	/* enable tab as file name completion char */
 	FVIESCCOMPLETE,	/* enable ESC as file name completion in command mode */
+#endif
 	FXTRACE,	/* -x: execution trace */
 	FTALKING_I,	/* (internal): initial shell was interactive */
 	FNFLAGS		/* (place holder: how many flags are there) */
