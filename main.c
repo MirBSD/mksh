@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.76 2007/06/06 23:28:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.77 2007/06/15 20:52:19 tg Exp $");
 
 extern char **environ;
 
@@ -34,6 +34,10 @@ static const char *initcoms[] = {
 	"typeset", "-x", "SHELL", "PATH", "HOME", NULL,
 	"typeset", "-i", "PPID", "OPTIND=1", NULL,
 	"eval", "typeset -i RANDOM SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
+	NULL
+};
+
+static const char *initcoms_korn[] = {
 	"alias",
 	 /* Standard ksh aliases */
 	"hash=alias -t",	/* not "alias -t --": hash -r needs to work */
@@ -219,11 +223,10 @@ main(int argc, const char *argv[])
 #endif
 	setint(global("PPID"), (long)ppid);
 
-	/* execute initialisation statements */
 	for (wp = initcoms; *wp != NULL; wp++) {
 		shcomexec(wp);
-		for (; *wp != NULL; wp++)
-			;
+		while (*wp != NULL)
+			wp++;
 	}
 
 	safe_prompt = (ksheuid = geteuid()) ? "$ " : "# ";
@@ -247,6 +250,13 @@ main(int argc, const char *argv[])
 	argi = parse_args(argv, OF_CMDLINE, NULL);
 	if (argi < 0)
 		exit(1);
+
+	if (!Flag(FPOSIX))
+		for (wp = initcoms_korn; *wp != NULL; wp++) {
+			shcomexec(wp);
+			while (*wp != NULL)
+				wp++;
+		}
 
 	if (Flag(FCOMMAND)) {
 		s = pushs(SSTRING, ATEMP);
