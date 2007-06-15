@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.102 2007/06/09 22:01:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.103 2007/06/15 22:00:00 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -38,7 +38,9 @@ static void x_free_words(int, char **);
 static int x_escape(const char *, size_t, int (*)(const char *, size_t));
 static int x_emacs(char *, size_t);
 static void x_init_emacs(void);
+#ifndef MKSH_NOVI
 static int x_vi(char *, size_t);
+#endif
 
 #ifdef TIOCGWINSZ
 static void chkwinsz(void);
@@ -107,8 +109,10 @@ x_read(char *buf, size_t len)
 	x_mode(true);
 	if (Flag(FEMACS) || Flag(FGMACS))
 		i = x_emacs(buf, len);
+#ifndef MKSH_NOVI
 	else if (Flag(FVI))
 		i = x_vi(buf, len);
+#endif
 	else
 		i = -1;		/* internal error */
 	x_mode(false);
@@ -1091,10 +1095,10 @@ static char	*killstack[KILLSIZE];
 static int	killsp, killtp;
 static int	x_curprefix;
 static char	*macroptr;
+#ifndef MKSH_NOVI
 static int	cur_col;		/* current column on line */
 static int	pwidth;			/* width of prompt */
 static int	prompt_trunc;		/* how much of prompt to truncate */
-static int	prompt_redraw;		/* 0 if newline forced after prompt */
 static int	winwidth;		/* width of window */
 static char	*wbuf[2];		/* window buffers */
 static int	wbuf_len;		/* length of window buffers (x_cols-3)*/
@@ -1103,6 +1107,8 @@ static char	morec;			/* more character at right of window */
 static int	lastref;		/* argument to last refresh() */
 static char	holdbuf[LINE];		/* place to hold last edit buffer */
 static int	holdlen;		/* length of holdbuf */
+#endif
+static int	prompt_redraw;		/* 0 if newline forced after prompt */
 
 static int	x_ins(const char *);
 static void	x_delete(int, int);
@@ -3317,6 +3323,7 @@ x_mode(bool onoff)
 	return prev;
 }
 
+#ifndef MKSH_NOVI
 /* +++ vi editing mode +++ */
 
 #define Ctrl(c)		(c&0x1f)
@@ -5384,3 +5391,4 @@ vi_macro_reset(void)
 		memset((char *)&macro, 0, sizeof(macro));
 	}
 }
+#endif /* !MKSH_NOVI */

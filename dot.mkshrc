@@ -1,9 +1,9 @@
 : ${EDITOR:=/bin/ed} ${TERM:=vt100} ${HOSTNAME:=$(ulimit -c 0;hostname -s 2>&-)}
 [[ $HOSTNAME = @(localhost|*([	 ])) ]] && HOSTNAME=$(ulimit -c 0;hostname 2>&-)
 PS1='# '; [[ "$(ulimit -c 0; id -u 2>&-)" -eq 0 ]] || PS1='$ '
-PS1='$(integer e=$?; ((e)) && print $e\|)${USER:=$(ulimit -c 0; id -un 2>&- || \
-    print nobody)}@${HOSTNAME:=nil}:$(local pfx=~ wd=${PWD:-$(builtin pwd)}
-	integer n=${COLUMNS:-80}/3; let n="n < 7 ? 7 : n"
+PS1='$(((e = $?)) && print $e\|)${USER:=$(ulimit -c 0; id -un 2>&- || \
+    print nobody)}@${HOSTNAME:=nil}:$(typeset pfx=~ wd=${PWD:-$(builtin pwd)}
+	typeset -i n=${COLUMNS:-80}/3; let n="n < 7 ? 7 : n"
 	[[ ${wd#$pfx} = $wd || $pfx = ?(/) ]] || wd=\~${wd#$pfx}
 	pfx=; while (( (${#pfx} + ${#wd}) > n )); do
 		if [[ $wd = */* ]]; then
@@ -38,4 +38,4 @@ function Lstripcom {
 
 # place customisations between this line and the “: RCSID” line below
 
-: $MirOS: src/bin/mksh/dot.mkshrc,v 1.15 2007/05/25 13:51:42 tg Rel $
+: $MirOS: src/bin/mksh/dot.mkshrc,v 1.16 2007/06/15 22:00:00 tg Rel $
