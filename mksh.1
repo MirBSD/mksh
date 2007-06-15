@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.84 2007/04/30 19:16:30 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.85 2007/06/15 22:04:06 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.118 2006/11/30 08:47:58 jmc Exp $
 .\"
-.Dd April 30, 2007
+.Dd June 15, 2007
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -809,7 +809,9 @@ The alias expansion process stops when a word that is not an alias is found,
 when a quoted word is found, or when an alias word that is currently being
 expanded is found.
 .Pp
-The following command aliases are defined automatically by the shell:
+The following command aliases are defined automatically by the shell, unless
+.Fl o Ic posix
+is set:
 .Bd -literal -offset indent
 autoload='typeset -fu'
 functions='typeset -f'
@@ -3360,6 +3362,8 @@ and
 commands above for more details.
 .It Ic posix
 Enable POSIX mode.
+Automatically enabled if the basename of the shell invocation begins with
+.Dq sh .
 Currently, this just turns off
 .Ic braceexpand
 mode when turned on, which can be turned back on manually.
@@ -5275,7 +5279,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh R29d
+.Nm mksh R30
 and up,
 compiled without any options impacting functionality.
 Please report bugs in
