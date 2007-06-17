@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.113 2007/06/15 21:55:18 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.114 2007/06/17 00:50:07 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R29 2007/06/15
+	@(#)MIRBSD KSH R29 2007/06/17
 description:
 	Check version of shell.
 category: pdksh
@@ -3986,20 +3986,26 @@ expected-stdout:
 ---
 name: aliases-2
 description:
-	Check if “set -o posix” disables built-in aliases
+	Check if “set -o posix” disables built-in aliases (except a few)
 category: pdksh
 arguments: !-o!posix!
 stdin:
 	alias
 	typeset -f
+expected-stdout:
+	integer='typeset -i'
+	local=typeset
 ---
 name: aliases-3
 description:
-	Check if running as sh disables built-in aliases
+	Check if running as sh disables built-in aliases (except a few)
 category: pdksh,!smksh
 arguments: !-o!posix!
 stdin:
 	cp "$0" sh
 	./sh -c 'alias; typeset -f'
 	rm -f sh
+expected-stdout:
+	integer='typeset -i'
+	local=typeset
 ---

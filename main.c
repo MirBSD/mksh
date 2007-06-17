@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.79 2007/06/16 15:02:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.80 2007/06/17 00:50:07 tg Exp $");
 
 extern char **environ;
 
@@ -34,12 +34,12 @@ static const char *initcoms[] = {
 	"typeset", "-x", "SHELL", "PATH", "HOME", NULL,
 	"typeset", "-i", "PPID", "OPTIND=1", NULL,
 	"eval", "typeset -i RANDOM SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
+	"alias", "integer=typeset -i", "local=typeset", NULL,
 	NULL
 };
 
 static const char *initcoms_korn[] = {
 	"alias",
-	 /* Standard ksh aliases */
 	"hash=alias -t",	/* not "alias -t --": hash -r needs to work */
 	"type=whence -v",
 	"stop=kill -STOP",
@@ -47,11 +47,8 @@ static const char *initcoms_korn[] = {
 	"autoload=typeset -fu",
 	"functions=typeset -f",
 	"history=fc -l",
-	"integer=typeset -i",
 	"nohup=nohup ",
-	"local=typeset",
 	"r=fc -e -",
-	 /* Aliases that are builtin commands in at&t */
 	"login=exec login",
 	NULL,
 	 /* this is what at&t ksh seems to track, with the addition of emacs */

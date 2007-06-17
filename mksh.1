@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.86 2007/06/16 15:02:56 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.87 2007/06/17 00:50:08 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
-.Dd June 15, 2007
+.Dd June 17, 2007
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -811,7 +811,11 @@ expanded is found.
 .Pp
 The following command aliases are defined automatically by the shell, unless
 .Fl o Ic posix
-is set:
+is set, in which case only
+.Dq integer
+and
+.Dq local
+are defined to support existing shell scripts:
 .Bd -literal -offset indent
 autoload='typeset -fu'
 functions='typeset -f'
@@ -848,7 +852,9 @@ or
 the shell tracks all commands.
 This option is set automatically for non-interactive shells.
 For interactive shells, only the following commands are
-automatically tracked:
+automatically tracked, unless
+.Fl o Ic posix
+is set:
 .Xr cat 1 ,
 .Xr cc 1 ,
 .Xr chmod 1 ,
