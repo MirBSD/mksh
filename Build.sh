@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.213 2007/06/15 21:55:18 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.214 2007/06/21 15:43:33 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -251,7 +251,6 @@ GNU/kFreeBSD)
 	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 	;;
 HP-UX)
-	warn=' and is still experimental'
 	case `uname -m` in
 	ia64) : ${CFLAGS='-O2 -mlp64'} ;;
 	esac
@@ -304,7 +303,19 @@ save_NOWARN=$NOWARN
 NOWARN=
 ac_flags 0 compiler_works '' 'if the compiler works'
 test 1 = $HAVE_CAN_COMPILER_WORKS || exit 1
+ac_testn compiler_fails '' 'if the compiler does not fail correctly' <<-EOF
+	int main(void) { return (thiswillneverbedefinedIhope()); }
+EOF
+save_CFLAGS=$CFLAGS
+CFLAGS="$CFLAGS -Wl,+k"
+ac_testn can_plusk compiler_fails 0 'for the +k linker option' <<-EOF
+	int main(void) { return (0); }
+EOF
+test $HAVE_CAN_PLUSK = 1 || CFLAGS=$save_CFLAGS
 
+# notes:
+# – ICC defines __GNUC__ too
+# – GCC defines __hpux too
 $e ... which compiler we seem to use
 cat >scn.c <<-'EOF'
 	#if defined(__ICC) || defined(__INTEL_COMPILER)
@@ -313,6 +324,8 @@ cat >scn.c <<-'EOF'
 	ct=gcc
 	#elif defined(__SUNPRO_C)
 	ct=sunpro
+	#elif defined(__hpux)
+	ct=hpcc
 	#else
 	ct=unknown
 	#endif
@@ -323,7 +336,7 @@ test $h = 1 && sed 's/^/[ /' x
 eval `cat x`
 rm -f x
 case $ct in
-icc|gcc|sunpro) ;;
+icc|gcc|hpcc|sunpro) ;;
 *) ct=unknown ;;
 esac
 $e "$bi==> which compiler we seem to use...$ao $ui$ct$ao"
@@ -334,6 +347,10 @@ if test $ct = sunpro; then
 	ac_flags 0 errwarnnone "$save_NOWARN"
 	test 1 = $HAVE_CAN_ERRWARNNONE || save_NOWARN=
 	ac_flags 0 errwarnall "-errwarn=%all"
+elif test $ct = hpcc; then
+	HAVE_CAN_WERROR=0
+	save_NOWARN=
+	NOWARN=
 else
 	test x"$save_NOWARN" = x"" && save_NOWARN=-Wno-error
 	ac_flags 0 wnoerror "$save_NOWARN"
