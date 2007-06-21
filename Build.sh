@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.215 2007/06/21 15:53:14 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.216 2007/06/21 16:11:37 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -329,7 +329,7 @@ case $TARGET_OS in
 HP-UX)
 	case $ct:`uname -m` in
 	gcc:ia64) : ${CFLAGS='-O2 -mlp64'} ;;
-	hpcc:ia64) : ${CFLAGS='-O2 +DD64'} ;;
+	hpcc:ia64) : ${CFLAGS='+O2 +DD64'} ;;
 	esac
 	;;
 esac
@@ -337,6 +337,7 @@ esac
 #
 # Compiler: works as-is, with -Wno-error and -Werror
 #
+orig_CFLAGS=$CFLAGS
 save_NOWARN=$NOWARN
 NOWARN=
 ac_flags 0 compiler_works '' 'if the compiler works'
@@ -366,45 +367,16 @@ else
 	ac_flags 0 werror "-Werror"
 fi
 
-# The following tests are run with -Werror if possible
 test $ct != sunpro && test 1 = $HAVE_CAN_WERROR && NOWARN=-Werror
 test $ct = sunpro && test 1 = $HAVE_CAN_ERRWARNALL && NOWARN='-errwarn=%all'
-
-#
-# Compiler: check for stuff that only generates warnings
-#
-ac_test attribute '' 'if we have __attribute__((...)) at all' <<-'EOF'
-	#include <stdlib.h>
-	#undef __attribute__
-	void fnord(void) __attribute__((noreturn));
-	int main(void) { fnord(); }
-	void fnord(void) { exit(0); }
-EOF
-
-ac_test attribute_bounded attribute 0 'for __attribute__((bounded))' <<-'EOF'
-	#include <string.h>
-	#undef __attribute__
-	int xcopy(const void *, void *, size_t)
-	    __attribute__((bounded (buffer, 1, 3)))
-	    __attribute__((bounded (buffer, 2, 3)));
-	int main(int ac, char *av[]) { return (xcopy(av[0], av[--ac], 1)); }
-	int xcopy(const void *s, void *d, size_t n) {
-		memmove(d, s, n); return (n);
-	}
-EOF
-
-ac_test attribute_used attribute 0 'for __attribute__((used))' <<-'EOF'
-	static const char fnord[] __attribute__((used)) = "42";
-	int main(void) { return (0); }
-EOF
-
-# End of tests run with -Werror
+test $ct = hpcc && NOWARN=+We
+DOWARN=$NOWARN
 NOWARN=$save_NOWARN
 
 #
 # Compiler: extra flags (-O2 -f* -W* etc.)
 #
-i=`echo :"$CFLAGS" | sed 's/^://' | tr -c -d $alll$allu$alln-`
+i=`echo :"$orig_CFLAGS" | sed 's/^://' | tr -c -d $alll$allu$alln-`
 if test $ct = sunpro; then
 	if test x"$i" = x""; then
 		cat >x <<-'EOF'
@@ -416,6 +388,10 @@ if test $ct = sunpro; then
 		yes pad | head -n 256 >>x
 		ac_flags - 1 otwo "-xO2" <x
 	fi
+elif test $ct = hpcc; then
+	test x"$i" = x"" && ac_flags 1 otwo "+O2"
+	ac_flags 1 agcc "-Agcc"
+	ac_flags 1 ac99 "-AC99"
 else
 	test x"$i" = x"" && ac_flags 1 otwo "-O2"
 fi
@@ -447,6 +423,40 @@ ac_test expstmt '' "if the compiler supports statements as expressions" <<-'EOF'
 	})
 	int main(int ac, char *av[]) { return (ksh_isspace(ac + **av)); }
 EOF
+
+# The following tests are run with -Werror if possible
+NOWARN=$DOWARN
+
+#
+# Compiler: check for stuff that only generates warnings
+#
+ac_test attribute '' 'if we have __attribute__((...)) at all' <<-'EOF'
+	#include <stdlib.h>
+	#undef __attribute__
+	void fnord(void) __attribute__((noreturn));
+	int main(void) { fnord(); }
+	void fnord(void) { exit(0); }
+EOF
+
+ac_test attribute_bounded attribute 0 'for __attribute__((bounded))' <<-'EOF'
+	#include <string.h>
+	#undef __attribute__
+	int xcopy(const void *, void *, size_t)
+	    __attribute__((bounded (buffer, 1, 3)))
+	    __attribute__((bounded (buffer, 2, 3)));
+	int main(int ac, char *av[]) { return (xcopy(av[0], av[--ac], 1)); }
+	int xcopy(const void *s, void *d, size_t n) {
+		memmove(d, s, n); return (n);
+	}
+EOF
+
+ac_test attribute_used attribute 0 'for __attribute__((used))' <<-'EOF'
+	static const char fnord[] __attribute__((used)) = "42";
+	int main(void) { return (0); }
+EOF
+
+# End of tests run with -Werror
+NOWARN=$save_NOWARN
 
 #
 # mksh: flavours (full/small mksh, omit certain stuff)
