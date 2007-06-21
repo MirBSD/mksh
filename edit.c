@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.103 2007/06/15 22:00:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.104 2007/06/21 16:04:46 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -722,11 +722,11 @@ glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
 static int
 x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 {
-	size_t add, wlen;
+	size_t add = 0, wlen = len;
 	const char *ifs = str_val(local("IFS", 0));
 	int rval = 0;
 
-	for (add = 0, wlen = len; wlen - add > 0; add++) {
+	while (wlen - add > 0)
 		if (vstrchr("\\$()[{}*&;#|<>\"'`", s[add]) ||
 		    vstrchr(ifs, s[add])) {
 			if (putbuf_func(s, add) != 0) {
@@ -741,9 +741,9 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 			add++;
 			wlen -= add;
 			s += add;
-			add = -1; /* after the increment it will go to 0 */
-		}
-	}
+			add = 0;
+		} else
+			++add;
 	if (wlen > 0 && rval == 0)
 		rval = putbuf_func(s, wlen);
 
