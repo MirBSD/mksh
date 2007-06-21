@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.214 2007/06/21 15:43:33 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.215 2007/06/21 15:53:14 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -251,9 +251,6 @@ GNU/kFreeBSD)
 	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 	;;
 HP-UX)
-	case `uname -m` in
-	ia64) : ${CFLAGS='-O2 -mlp64'} ;;
-	esac
 	;;
 Interix)
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
@@ -297,22 +294,8 @@ fi
 $e ${ao}Scanning for functions... please ignore any errors.
 
 #
-# Compiler: works as-is, with -Wno-error and -Werror
+# Compiler: which one?
 #
-save_NOWARN=$NOWARN
-NOWARN=
-ac_flags 0 compiler_works '' 'if the compiler works'
-test 1 = $HAVE_CAN_COMPILER_WORKS || exit 1
-ac_testn compiler_fails '' 'if the compiler does not fail correctly' <<-EOF
-	int main(void) { return (thiswillneverbedefinedIhope()); }
-EOF
-save_CFLAGS=$CFLAGS
-CFLAGS="$CFLAGS -Wl,+k"
-ac_testn can_plusk compiler_fails 0 'for the +k linker option' <<-EOF
-	int main(void) { return (0); }
-EOF
-test $HAVE_CAN_PLUSK = 1 || CFLAGS=$save_CFLAGS
-
 # notes:
 # – ICC defines __GNUC__ too
 # – GCC defines __hpux too
@@ -342,6 +325,32 @@ esac
 $e "$bi==> which compiler we seem to use...$ao $ui$ct$ao"
 rm -f scn.c scn.o
 
+case $TARGET_OS in
+HP-UX)
+	case $ct:`uname -m` in
+	gcc:ia64) : ${CFLAGS='-O2 -mlp64'} ;;
+	hpcc:ia64) : ${CFLAGS='-O2 +DD64'} ;;
+	esac
+	;;
+esac
+
+#
+# Compiler: works as-is, with -Wno-error and -Werror
+#
+save_NOWARN=$NOWARN
+NOWARN=
+ac_flags 0 compiler_works '' 'if the compiler works'
+test 1 = $HAVE_CAN_COMPILER_WORKS || exit 1
+ac_testn compiler_fails '' 'if the compiler does not fail correctly' <<-EOF
+	int main(void) { return (thiswillneverbedefinedIhope()); }
+EOF
+save_CFLAGS=$CFLAGS
+CFLAGS="$CFLAGS -Wl,+k"
+ac_testn can_plusk compiler_fails 0 'for the +k linker option' <<-EOF
+	int main(void) { return (0); }
+EOF
+test $HAVE_CAN_PLUSK = 1 || CFLAGS=$save_CFLAGS
+
 if test $ct = sunpro; then
 	test x"$save_NOWARN" = x"" && save_NOWARN='-errwarn=%none'
 	ac_flags 0 errwarnnone "$save_NOWARN"
@@ -350,7 +359,6 @@ if test $ct = sunpro; then
 elif test $ct = hpcc; then
 	HAVE_CAN_WERROR=0
 	save_NOWARN=
-	NOWARN=
 else
 	test x"$save_NOWARN" = x"" && save_NOWARN=-Wno-error
 	ac_flags 0 wnoerror "$save_NOWARN"
