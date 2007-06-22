@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.14 2007/06/06 23:28:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.15 2007/06/22 23:34:42 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -248,6 +248,9 @@ get_command(int cf)
 					ACCEPT;
 					goto Subshell;
 				}
+				if ((XPsize(args) == 0 || Flag(FKEYWORD)) &&
+				    XPsize(vars) == 1 && is_wdvarassign(yylval.cp))
+					goto is_wdarrassign;
 				/* Must be a function */
 				if (iopn != 0 || XPsize(args) != 1 ||
 				    XPsize(vars) != 0)
@@ -257,6 +260,41 @@ get_command(int cf)
 				musthave(')', 0);
 				t = function_body(XPptrv(args)[0], false);
 				goto Leave;
+ is_wdarrassign:
+			  {
+				static const char set_cmd0[] = {
+					CHAR, 'e', CHAR, 'v',
+					CHAR, 'a', CHAR, 'l', EOS
+				};
+				static const char set_cmd1[] = {
+					CHAR, 's', CHAR, 'e',
+					CHAR, 't', CHAR, ' ',
+					CHAR, '-', CHAR, 'A', EOS
+				};
+				static const char set_cmd2[] = {
+					CHAR, '-', CHAR, '-', EOS
+				};
+				char *tcp;
+				XPfree(vars);
+				XPinit(vars, 16);
+				/*
+				 * we know (or rather hope) that yylval.cp
+				 * contains a string "varname="
+				 */
+				tcp = wdcopy(yylval.cp, ATEMP);
+				tcp[wdscan(tcp, EOS) - tcp - 3] = EOS;
+				/* now make an array assignment command */
+				t = newtp(TCOM);
+				t->lineno = source->line;
+				ACCEPT;
+				XPput(args, wdcopy(set_cmd0, ATEMP));
+				XPput(args, wdcopy(set_cmd1, ATEMP));
+				XPput(args, tcp);
+				XPput(args, wdcopy(set_cmd2, ATEMP));
+				musthave(LWORD,LETARRAY);
+				XPput(args, yylval.cp);
+				break;
+			  }
 
 			default:
 				goto Leave;

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.115 2007/06/21 16:04:45 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.116 2007/06/22 23:34:40 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R29 2007/06/21
+	@(#)MIRBSD KSH R29 2007/06/22
 description:
 	Check version of shell.
 category: pdksh
@@ -4008,4 +4008,24 @@ stdin:
 expected-stdout:
 	integer='typeset -i'
 	local=typeset
+---
+name: arrays-1
+description:
+	Check if Korn Shell arrays work as expected
+stdin:
+	v="c d"
+	set -A foo -- a \$v "$v" '$v' b
+	echo "${#foo[*]}|${foo[0]}|${foo[1]}|${foo[2]}|${foo[3]}|${foo[4]}|"
+expected-stdout:
+	5|a|$v|c d|$v|b|
+---
+name: arrays-2
+description:
+	Check if bash-style arrays work as expected
+stdin:
+	v="c d"
+	foo=(a \$v "$v" '$v' b)
+	echo "${#foo[*]}|${foo[0]}|${foo[1]}|${foo[2]}|${foo[3]}|${foo[4]}|"
+expected-stdout:
+	5|a|$v|c d|$v|b|
 ---

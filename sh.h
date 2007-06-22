@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.149 2007/06/21 16:04:46 tg Exp $"
-#define MKSH_VERSION "R29 2007/06/21"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.150 2007/06/22 23:34:41 tg Exp $"
+#define MKSH_VERSION "R29 2007/06/22"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -1112,6 +1112,7 @@ struct source {
 #define SHEREDQUOTE	10	/* parsing " in <<,<<- delimiter */
 #define SPATTERN	11	/* parsing *(...|...) pattern (*+?@!) */
 #define STBRACE		12	/* parsing ${..[#%]..} */
+#define SLETARRAY	13	/* inside =( ), just copy */
 
 typedef union {
 	int i;
@@ -1162,6 +1163,7 @@ typedef union {
 #define HEREDELIM	BIT(9)	/* parsing <<,<<- delimiter */
 #define LQCHAR		BIT(10)	/* source string contains QCHAR */
 #define HEREDOC		BIT(11)	/* parsing a here document */
+#define LETARRAY	BIT(12)	/* copy expression inside =( ) */
 
 #define HERES	10		/* max << in line */
 

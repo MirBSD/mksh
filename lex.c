@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.35 2007/06/16 15:02:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.36 2007/06/22 23:34:40 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -37,6 +37,12 @@ struct lex_state {
 		} u_sbquote;
 
 		Lex_state *base;	/* used to point to next state block */
+
+		/* =(...) */
+		struct sletarray_info {
+			int nparen;	/* count open parentheses */
+#define ls_sletarray ls_info.u_sletarray
+		} u_sletarray;
 	} ls_info;
 };
 
@@ -121,6 +127,9 @@ yylex(int cf)
 		*wp++ = OQUOTE;	 /* enclose arguments in (double) quotes */
 		state = SLETPAREN;
 		statep->ls_sletparen.nparen = 0;
+	} else if (cf&LETARRAY) {
+		state = SLETARRAY;
+		statep->ls_sletarray.nparen = 0;
 	} else {		/* normal lexing */
 		state = (cf & HEREDELIM) ? SHEREDELIM : SBASE;
 		while ((c = getsc()) == ' ' || c == '\t')
@@ -535,6 +544,17 @@ yylex(int cf)
 				++statep->ls_sletparen.nparen;
 			goto Sbase2;
 
+		case SLETARRAY:	/* LETARRAY: =( ... ) */
+			if (c == '('/*)*/)
+				++statep->ls_sletarray.nparen;
+			else if (c == /*(*/')')
+				if (statep->ls_sletarray.nparen-- == 0) {
+					c = 0;
+					goto Done;
+				}
+			*wp++ = CHAR, *wp++ = c;
+			break;
+
 		case SHEREDELIM:	/* <<,<<- delimiter */
 			/* XXX chuck this state (and the next) - use
 			 * the existing states ($ and \`..` should be
@@ -606,6 +626,9 @@ yylex(int cf)
 	if (statep != &states[1])
 		/* XXX figure out what is missing */
 		yyerror("no closing quote\n");
+
+	if (state == SLETARRAY && statep->ls_sletarray.nparen != -1)
+		yyerror("syntax error: ')' missing\n");
 
 	/* This done to avoid tests for SHEREDELIM wherever SBASE tested */
 	if (state == SHEREDELIM)
@@ -680,7 +703,8 @@ yylex(int cf)
 
 	*wp++ = EOS;		/* terminate word */
 	yylval.cp = Xclose(ws, wp);
-	if (state == SWORD || state == SLETPAREN)	/* ONEWORD? */
+	if (state == SWORD || state == SLETPAREN ||
+	    state == SLETARRAY)	/* ONEWORD? */
 		return LWORD;
 	ungetsc(c);		/* unget terminator */
 
