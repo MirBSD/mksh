@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.216 2007/06/21 16:11:37 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.217 2007/06/23 20:51:21 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -370,6 +370,7 @@ fi
 test $ct != sunpro && test 1 = $HAVE_CAN_WERROR && NOWARN=-Werror
 test $ct = sunpro && test 1 = $HAVE_CAN_ERRWARNALL && NOWARN='-errwarn=%all'
 test $ct = hpcc && NOWARN=+We
+test $ct = icc && NOWARN="$NOWARN -wd1419"
 DOWARN=$NOWARN
 NOWARN=$save_NOWARN
 
