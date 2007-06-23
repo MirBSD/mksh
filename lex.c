@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.36 2007/06/22 23:34:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.37 2007/06/23 00:05:04 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -687,8 +687,7 @@ yylex(int cf)
 				     * ((...); (...))
 				     * and similar is broken
 				     */
-				    (c == '(' /*)*/ ) ? MDPAREN :
-				    YYERRCODE;
+				    /* c == '(' ) */ MDPAREN;
 			else if (c == '|' && c2 == '&')
 				c = COPROC;
 			else
