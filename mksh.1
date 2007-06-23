@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.88 2007/06/22 23:34:41 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.89 2007/06/23 19:07:14 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
-.Dd June 22, 2007
+.Dd June 23, 2007
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -173,11 +173,14 @@ substitution and the resulting file
 (if any) is read and executed.
 If the
 .Ev ENV
-variable is unset or empty, but not set to a non-existing filename, the file
+variable is unset or empty, the file
 .Pa $HOME/.mkshrc
 is read and processed like above instead, leaving
 .Ev ENV
 unchanged.
+This processing does not occur if
+.Ev ENV
+is set to a non-existing filename.
 .Pp
 The exit status of the shell is 127 if the command file specified on the
 command line could not be opened, or non-zero if a fatal syntax error
@@ -734,9 +737,10 @@ succeeds).
 .It
 The single argument form of
 .Ic test ,
-.No \&[ Ar str No \&] ,
-which tests if the argument has a non-zero length, is not valid;
-use explicit operators instead, i.e.\&
+which tests if the argument has a non-zero length, is not valid; explicit
+operators must always be used e.g. instead of
+.No \&[ Ar str No \&]
+use
 .No \&[[ -n Ar str No \&]] .
 .It
 Parameter, command, and arithmetic substitutions are performed as expressions
@@ -995,6 +999,7 @@ but it is carried out more efficiently because no process is started.
 .Pf $( Ns Ar command Ns \&)
 expressions are currently parsed by finding matching parentheses,
 regardless of quoting.
+This should be fixed soon.
 .Pp
 Arithmetic substitutions are replaced by the value of the specified expression.
 For example, the command
@@ -3927,7 +3932,7 @@ If any of the
 or
 .Fl Z
 options are changed, all others from this set are cleared,
-unless listed in the same command.
+unless they are also given on the same command line.
 .Pp
 .It Xo
 .Ic ulimit
@@ -4609,8 +4614,8 @@ Set the mark at the cursor position.
 If at the end of line, or if the
 .Ic gmacs
 option is set, this exchanges the two previous characters; otherwise, it
-exchanges the previous and current characters and moves the cursor right
-one character.
+exchanges the previous and current characters and moves the cursor one
+character to the right.
 .It Xo up-history:
 .Op Ar n
 .No ^P , ^XA
@@ -4647,7 +4652,7 @@ editor with the following exceptions:
 .It
 You start out in insert mode.
 .It
-There are file and command completion commands:
+There are file name and command completion commands:
 =, \e, *, ^X, ^E, ^F, and, optionally,
 .Aq tab
 and
@@ -4655,8 +4660,11 @@ and
 .It
 The
 .Ic _
-command is the last argument command instead of
-going to the start of the current line.
+command is different (in
+.Nm mksh ,
+it is the last argument command; in
+.Xr vi 1
+it goes to the start of the current line).
 .It
 The
 .Ic /
@@ -4715,7 +4723,9 @@ Command and file name expansion (see below).
 .It Aq esc
 Puts the editor in command mode (see below).
 .It Aq tab
-Optional file name and command completion, enabled with
+Optional file name and command completion (see
+.Ic ^F
+above), enabled with
 .Ic set -o vi-tabcomplete .
 .El
 .Pp
@@ -4743,7 +4753,11 @@ contains two words) and a
 .Dq big-word
 is a sequence of non-whitespace characters.
 .Pp
-The following special commands are not in, or are different from, the normal vi file
+Special
+.Nm
+vi commands:
+.Pp
+The following commands are not in, or are different from, the normal vi file
 editor:
 .Bl -tag -width 10n
 .It Xo
@@ -5298,15 +5312,16 @@ and many other persons, and is currently maintained by
 This document attempts to describe
 .Nm mksh R30
 and up,
-compiled without any options impacting functionality.
+compiled without any options impacting functionality, such as
+.Dv MKSH_SMALL ,
+for an operating environment supporting all of its advanced needs.
 Please report bugs in
 .Nm
 to the
 .Aq miros-discuss@mirbsd.org
 mailing list or in the
 .Li \&#\&!/bin/mksh
-or
-.Li \&#ksh
+.Pq or Li \&#ksh
 IRC channel at
 .Pa irc.freenode.net:6667 .
 .Pp
