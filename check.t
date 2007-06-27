@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.117 2007/06/23 22:48:47 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.118 2007/06/27 23:12:58 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R29 2007/06/22
+	@(#)MIRBSD KSH R29 2007/06/27
 description:
 	Check version of shell.
 category: pdksh
@@ -4029,4 +4029,46 @@ stdin:
 	echo "${#foo[*]}|${foo[0]}|${foo[1]}|${foo[2]}|${foo[3]}|${foo[4]}|"
 expected-stdout:
 	5|a|$v|c d|$v|b|
+---
+name: varexpand-substr-1
+description:
+	Check if bash-style substring expansion works
+	when using positive numerics
+stdin:
+	x=abcdefghi
+	typeset -i y=123456789
+	typeset -i 16 z=123456789	# 16#75bcd15
+	print a ${x:2:3} ${y:2:3} ${z:2:3} a
+	print b ${x::3} ${y::3} ${z::3} b
+	print c ${x:2:} ${y:2:} ${z:2:} c
+	print d ${x:2} ${y:2} ${z:2} d
+	print e ${x:2:6} ${y:2:6} ${z:2:7} e
+	print f ${x:2:7} ${y:2:7} ${z:2:8} f
+	print g ${x:2:8} ${y:2:8} ${z:2:9} g
+expected-stdout:
+	a cde 345 #75 a
+	b abc 123 16# b
+	c    c
+	d cdefghi 3456789 #75bcd15 d
+	e cdefgh 345678 #75bcd1 e
+	f cdefghi 3456789 #75bcd15 f
+	g cdefghi 3456789 #75bcd15 g
+---
+name: varexpand-substr-2
+description:
+	Check if bash-style substring expansion works
+	when using negative numerics or expressions
+stdin:
+	x=abcdefghi
+	typeset -i y=123456789
+	typeset -i 16 z=123456789	# 16#75bcd15
+	n=2
+	print a ${x:$n:3} ${y:$n:3} ${z:$n:3} a
+	print b ${x:n:3} ${y:n:3} ${z:n:3} b
+	print c ${x:(-2):1} ${y:(-2):1} ${z:(-2):1} c
+expected-fail: yes
+expected-stdout:
+	a cde 345 #75 a
+	b cde 345 #75 b
+	c h 8 1 c
 ---

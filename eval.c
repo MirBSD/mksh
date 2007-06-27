@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.28 2007/06/06 23:28:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.29 2007/06/27 23:12:58 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -311,6 +311,9 @@ expand(const char *cp,	/* input word */
 					if (stype)
 						sp += slen;
 					switch (stype & 0x7f) {
+					case '0':
+						/* XXX begin arithmetic eval. */
+						break;
 					case '#':
 					case '%':
 						/* ! DOBLANK,DOBRACE_,DOTILDE */
@@ -422,6 +425,39 @@ expand(const char *cp,	/* input word */
 					    dp == s ?
 					    "parameter null or not set" :
 					    (debunk(s, s, strlen(s) + 1), s));
+				    }
+				case '0':
+				    {
+					char i, *s = Xrestpos(ds, dp, st->base);
+					int from = 0, num = 0;
+					/* bool fromend = false; */
+
+					/* XXX use evaluate() from expr.c
+					   XXX or directly parse as 2 exprs */
+					/* if (*s == '-') {
+						fromend = true;
+						++s;
+					} */
+					while ((i = *s++) && i != ':')
+						from = from * 10 + i - '0';
+					if (i == ':') while ((i = *s++))
+						num = num * 10 + i - '0';
+					else
+						num = -1;
+					/* if (fromend) {
+						int flen = strlen(x.str);
+
+						if (from < flen)
+							x.str += flen - from;
+					} else */
+						x.str += from;
+					from = strlen(x.str);
+					if (num < 0 || num > from)
+						num = from;
+					dp = Xstring(ds, dp);
+					XcheckN(ds, dp, num);
+					memcpy(dp, x.str, num);
+					dp += num;
 				    }
 				}
 				st = st->prev;
@@ -742,7 +778,26 @@ varsub(Expand *xp, const char *sp, const char *word,
 		stype = 0x80;
 		c = word[slen + 0] == CHAR ? word[slen + 1] : 0;
 	}
-	if (ctype(c, C_SUBOP1)) {
+	if (stype == 0x80 && (ksh_isdigit(c) || c == ':')) {
+		const char *tp = word + slen + 2;
+		bool had_colon = false;
+
+		stype |= '0';
+		/* syntax check: minus, digits, one colon, digits */
+		/* if (*tp == CHAR && tp[1] == '-')
+			tp += 2; */
+		while (*tp != EOS && *tp != CSUBST) {
+			if (*tp != CHAR)
+				return (-1);
+			if (!ksh_isdigit(tp[1])) {
+				if (!had_colon && tp[1] == ':')
+					had_colon = true;
+				else
+					return (-1);
+			}
+			tp += 2;
+		}
+	} else if (ctype(c, C_SUBOP1)) {
 		slen += 2;
 		stype |= c;
 	} else if (ctype(c, C_SUBOP2)) { /* Note: ksh88 allows :%, :%%, etc */
@@ -820,7 +875,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 
 	c = stype&0x7f;
 	/* test the compiler's code generator */
-	if (ctype(c, C_SUBOP2) ||
+	if (ctype(c, C_SUBOP2) || stype == (0x80 | '0') ||
 	    (((stype&0x80) ? *xp->str=='\0' : xp->str==null) ? /* undef? */
 	    c == '=' || c == '-' || c == '?' : c == '+'))
 		state = XBASE;	/* expand word instead of variable value */

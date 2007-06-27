@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.89 2007/06/23 19:07:14 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.90 2007/06/27 23:12:59 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
-.Dd June 23, 2007
+.Dd June 27, 2007
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -1235,6 +1235,35 @@ of them result in the longest match.
 .Xc
 .Sm on
 Like ${..#..} substitution, but it deletes from the end of the value.
+.It Xo
+.Pf ${ Ar name : Ns Ar pos
+.Pf : Ns Ar len Ns }
+.Xc
+The first
+.Ar len
+bytes of
+.Ar name ,
+starting at position
+.Ar pos ,
+are substituted.
+Both
+.Ar pos
+and
+.Pf : Ns Ar len
+are optional.
+If
+.Ar pos
+.\"is negative, counting starts at the end of the string; if it
+is omitted, it defaults to 0.
+If
+.Ar len
+is omitted or greater than the length of the remaining string,
+all of it is substituted.
+.\"Both
+.\".Ar pos
+.\"and
+.\".Ar len
+.\"are evaluated as arithmetic expressions.
 .El
 .Pp
 The following special parameters are implicitly set by the shell and cannot be
