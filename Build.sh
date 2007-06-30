@@ -1,18 +1,16 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.220 2007/06/30 20:04:23 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.221 2007/06/30 20:57:55 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
 #			MKSH_NOVI
 
-v()
-{
+v() {
 	$e "$*"
 	eval "$@"
 }
 
-vq()
-{
+vq() {
 	eval "$@"
 }
 
@@ -27,16 +25,6 @@ if test -n "${ZSH_VERSION+x}" && (emulate sh) >/dev/null 2>&1; then
 	NULLCMD=:
 fi
 
-if test -t 1; then
-	bi='[1m'
-	ui='[4m'
-	ao='[0m'
-else
-	bi=
-	ui=
-	ao=
-fi
-
 allu=QWERTYUIOPASDFGHJKLZXCVBNM
 alll=qwertyuiopasdfghjklzxcvbnm
 alln=0123456789
@@ -44,23 +32,53 @@ alls=______________________________________________________________
 nl='
 '
 tcfn=no
+bi=
+ui=
+ao=
+fx=
+me=`basename "$0"`
 
-upper()
-{
+if test -t 1; then
+	bi='[1m'
+	ui='[4m'
+	ao='[0m'
+fi
+
+upper() {
 	echo :"$@" | sed 's/^://' | tr $alll $allu
 }
 
-# pipe .c | ac_test[n] [!] label [!] checkif[!]0 [setlabelifcheckis[!]0] useroutput
-ac_testn()
-{
-	if test x"$1" = x"!"; then
-		reverse=1
-		shift
-	else
-		reverse=0
-	fi
+# clean up after ac_testrun()
+ac_testdone() {
+	eval HAVE_$fu=$fv
+	fr=no
+	test 0 = $fv || fr=yes
+	$e "$bi==> $fd...$ao $ui$fr$ao$fx"
+	fx=
+}
+
+# ac_cache label: sets f, fu, fv?=0
+ac_cache() {
 	f=$1
 	fu=`upper $f`
+	eval fv=\$HAVE_$fu
+	case $fv in
+	0|1)
+		fx=' (cached)'
+		return 0
+		;;
+	esac
+	fv=0
+	return 1
+}
+
+# ac_testinit label [!] checkif[!]0 [setlabelifcheckis[!]0] useroutput
+# returns 1 if value was cached/implied, 0 otherwise: call ac_testdone
+ac_testinit() {
+	if ac_cache $1; then
+		ac_testdone
+		return 1
+	fi
 	fc=0
 	if test x"$2" = x""; then
 		ft=1
@@ -74,54 +92,46 @@ ac_testn()
 	fi
 	fd=$3
 	test x"$fd" = x"" && fd=$f
-	eval fv=\$HAVE_$fu
-	if test 0 = "$fv"; then
-		$e "$bi==> $fd...$ao ${ui}no$ao (cached)"
-		return
-	fi
-	if test 1 = "$fv"; then
-		$e "$bi==> $fd...$ao ${ui}yes$ao (cached)"
-		return
-	fi
 	if test $fc = "$ft"; then
 		fv=$2
-		eval HAVE_$fu=$fv
-		test 0 = "$fv" && fv=no
-		test 1 = "$fv" && fv=yes
-		$e "$bi==> $fd...$ao $ui$fv$ao (implied)"
-		return
+		fx=' (implied)'
+		ac_testdone
+		return 1
 	fi
 	$e ... $fd
+	return 0
+}
+
+# pipe .c | ac_test[n] [!] label [!] checkif[!]0 [setlabelifcheckis[!]0] useroutput
+ac_testn() {
+	if test x"$1" = x"!"; then
+		reverse=1
+		shift
+	else
+		reverse=0
+	fi
+	ac_testinit "$@" || return
 	cat >scn.c
 	eval 'v "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS" 2>&'$h | \
 	    sed 's/^/] /'
 	test x"$tcfn" = x"no" && test -f a.out && tcfn=a.out
 	test x"$tcfn" = x"no" && test -f a.exe && tcfn=a.exe
-	fr=0
 	if test -f $tcfn; then
-		test $reverse = 1 || fr=1
+		test $reverse = 1 || fv=1
 	else
-		test $reverse = 0 || fr=1
-	fi
-	if test $fr = 1; then
-		eval HAVE_$fu=1
-		$e "$bi==> $fd...$ao ${ui}yes$ao"
-	else
-		eval HAVE_$fu=0
-		$e "$bi==> $fd...$ao ${ui}no$ao"
+		test $reverse = 0 || fv=1
 	fi
 	rm -f scn.c scn.o $tcfn
+	ac_testdone
 }
 
-ac_test()
-{
+ac_test() {
 	ac_testn "$@"
 	eval CPPFLAGS=\"\$CPPFLAGS -DHAVE_$fu=\$HAVE_$fu\"
 }
 
 # ac_flags [-] add varname flags [text]
-ac_flags()
-{
+ac_flags() {
 	if test x"$1" = x"-"; then
 		shift
 		hf=1
@@ -147,8 +157,7 @@ ac_flags()
 }
 
 # ac_header header [prereq ...]
-ac_header()
-{
+ac_header() {
 	hf=$1; shift
 	hv=`echo "$hf" | tr -d '\012\015' | tr -c $alll$allu$alln $alls`
 	for i
@@ -161,8 +170,7 @@ ac_header()
 	rm -f x
 }
 
-addsrcs()
-{
+addsrcs() {
 	eval i=\$$1
 	test 0 = $i && case " $SRCS " in
 	*\ $2\ *)	;;
@@ -171,8 +179,8 @@ addsrcs()
 }
 
 
-if test -d mksh; then
-	echo "$0: Error: ./mksh is a directory!" >&2
+if test -d mksh || test -d mksh.exe; then
+	echo "$me: Error: ./mksh is a directory!" >&2
 	exit 1
 fi
 rm -f a.exe a.out *core crypt.exp lft mksh mksh.cat1 mksh.exe no *.o \
@@ -200,7 +208,7 @@ do
 		r=1
 		;;
 	*)
-		echo "$0: Unknown option '$i'!" >&2
+		echo "$me: Unknown option '$i'!" >&2
 		exit 1
 		;;
 	esac
@@ -289,7 +297,7 @@ fi
 #
 # Begin of mirtoconf checks
 #
-$e ${ao}Scanning for functions... please ignore any errors.
+$e $bi$me: Scanning for functions... please ignore any errors.$ao
 
 #
 # Compiler: which one?
@@ -714,51 +722,22 @@ EOF
 #
 # other checks
 #
-case $HAVE_PERSISTENT_HISTORY:$HAVE_FLOCK_EX$HAVE_MKSH_FULL in
-0:*)
-	fv="yes$ao (cached)"
-	;;
-1:*)
-	fv="no$ao (cached)"
-	;;
-*:11)
-	HAVE_PERSISTENT_HISTORY=1
-	fv=yes$ao
-	;;
-*)
-	HAVE_PERSISTENT_HISTORY=0
-	fv=no$ao
-	;;
-esac
-$e "$bi==> if to use persistent history...$ao $ui$fv"
-CPPFLAGS="$CPPFLAGS -DHAVE_PERSISTENT_HISTORY=$HAVE_PERSISTENT_HISTORY"
-test 1 = $HAVE_PERSISTENT_HISTORY || \
-    check_categories=$check_categories,no-histfile
+fd='if to use persistent history'
+ac_cache PERSISTENT_HISTORY || test 11 != $HAVE_FLOCK_EX$HAVE_MKSH_FULL || fv=1
+CPPFLAGS="$CPPFLAGS -DHAVE_PERSISTENT_HISTORY=$fv"
+test 1 = $fv || check_categories=$check_categories,no-histfile
+ac_testdone
 
 #
 # Compiler: Praeprocessor (only if needed)
 #
-if test 0 = $HAVE_SYS_SIGNAME; then
-	fd='checking if the C Preprocessor supports -dD'
-	if test 0 = "$HAVE_CPP_DD"; then
-		$e "$bi==> $fd...$ao ${ui}no$ao (cached)"
-	elif test 1 = "$HAVE_CPP_DD"; then
-		$e "$bi==> $fd...$ao ${ui}yes$ao (cached)"
-	else
-		$e ... $fd
-		eval '( echo "#define foo bar" | \
-		    v "$CC -dD -E - >x" ) 2>&'$h | \
-		    sed 's/^/] /'
-		if grep '#define foo bar' x >/dev/null 2>&1; then
-			HAVE_CPP_DD=1
-			fv=yes
-		else
-			HAVE_CPP_DD=0
-			fv=no
-		fi
-		rm -f x
-		$e "$bi==> $fd...$ao $ui$fv$ao"
-	fi
+test 0 = $HAVE_SYS_SIGNAME && if ac_testinit cpp_dd '' \
+    'checking if the C Preprocessor supports -dD'; then
+	eval '( echo "#define foo bar" | v "$CC -dD -E - >x" ) 2>&'$h | \
+	    sed 's/^/] /'
+	grep '#define foo bar' x >/dev/null 2>&1 && fv=1
+	rm -f x
+	ac_testdone
 fi
 
 #
