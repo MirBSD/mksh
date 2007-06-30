@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.221 2007/06/30 20:57:55 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.222 2007/06/30 21:01:42 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -468,9 +468,9 @@ NOWARN=$save_NOWARN
 #
 # mksh: flavours (full/small mksh, omit certain stuff)
 #
-ac_testn mksh_full '' "if we're building without MKSH_SMALL" <<-'EOF'
+ac_testn mksh_full '' "if we're building a full-featured mksh" <<-'EOF'
 	#ifdef MKSH_SMALL
-	#error OK, we are building an extra small mksh.
+	#error Nope, MKSH_SMALL is defined.
 	#endif
 	int main(void) { return (0); }
 EOF
@@ -485,13 +485,6 @@ EOF
 ac_testn mksh_need_mknod '!' mksh_full 1 'if we still want c_mknod()' <<-'EOF'
 	#ifndef MKSH_NEED_MKNOD
 	#error Nope, the user really wants it teensy.
-	#endif
-	int main(void) { return (0); }
-EOF
-
-ac_testn mksh_nopam mksh_full 1 'if the user wants to omit getpwnam()' <<-'EOF'
-	#ifndef MKSH_NOPWNAM
-	#error No, the user wants to pull in getpwnam.
 	#endif
 	int main(void) { return (0); }
 EOF
