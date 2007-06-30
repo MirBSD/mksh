@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.219 2007/06/30 19:58:51 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.220 2007/06/30 20:04:23 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -43,7 +43,6 @@ alln=0123456789
 alls=______________________________________________________________
 nl='
 '
-tcbo=
 tcfn=no
 
 upper()
@@ -98,7 +97,6 @@ ac_testn()
 	    sed 's/^/] /'
 	test x"$tcfn" = x"no" && test -f a.out && tcfn=a.out
 	test x"$tcfn" = x"no" && test -f a.exe && tcfn=a.exe
-	test x"$tcbo" = x"1" && return
 	fr=0
 	if test -f $tcfn; then
 		test $reverse = 1 || fr=1
