@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.223 2007/06/30 21:34:23 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.224 2007/06/30 22:02:50 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -414,8 +414,8 @@ if test $ct = gcc; then
 	ac_flags 1 fwrapv -fwrapv
 	i=1
 elif test $ct = icc; then
-	ac_flags 1 fnobuiltinsetmode -fno-builtin-setmode"
-	ac_flags 1 fnostrictaliasing -fno-strict-aliasing"
+	ac_flags 1 fnobuiltinsetmode -fno-builtin-setmode
+	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
 	ac_flags 1 fstacksecuritycheck -fstack-security-check
 	i=1
 elif test $ct = sunpro; then
@@ -500,7 +500,7 @@ ac_testn mksh_need_mknod '!' mksh_full 1 'if we still want c_mknod()' <<-'EOF'
 EOF
 
 if test 0 = $HAVE_MKSH_FULL; then
-	ac_flags 1 fnoinline "-fno-inline"
+	ac_flags 1 fnoinline -fno-inline
 
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	check_categories=$check_categories,smksh
