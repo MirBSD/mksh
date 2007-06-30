@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.222 2007/06/30 21:01:42 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.223 2007/06/30 21:34:23 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -37,6 +37,7 @@ ui=
 ao=
 fx=
 me=`basename "$0"`
+orig_CFLAGS=$CFLAGS
 
 if test -t 1; then
 	bi='[1m'
@@ -105,10 +106,10 @@ ac_testinit() {
 # pipe .c | ac_test[n] [!] label [!] checkif[!]0 [setlabelifcheckis[!]0] useroutput
 ac_testn() {
 	if test x"$1" = x"!"; then
-		reverse=1
+		fr=1
 		shift
 	else
-		reverse=0
+		fr=0
 	fi
 	ac_testinit "$@" || return
 	cat >scn.c
@@ -117,17 +118,24 @@ ac_testn() {
 	test x"$tcfn" = x"no" && test -f a.out && tcfn=a.out
 	test x"$tcfn" = x"no" && test -f a.exe && tcfn=a.exe
 	if test -f $tcfn; then
-		test $reverse = 1 || fv=1
+		test $fr = 1 || fv=1
 	else
-		test $reverse = 0 || fv=1
+		test $fr = 0 || fv=1
 	fi
 	rm -f scn.c scn.o $tcfn
 	ac_testdone
 }
 
+ac_cppflags() {
+	test x"$1" = x"" || fu=$1
+	fv=$2
+	test x"$2" = x"" && eval fv=\$HAVE_$fu
+	CPPFLAGS="$CPPFLAGS -DHAVE_$fu=$fv"
+}
+
 ac_test() {
 	ac_testn "$@"
-	eval CPPFLAGS=\"\$CPPFLAGS -DHAVE_$fu=\$HAVE_$fu\"
+	ac_cppflags
 }
 
 # ac_flags [-] add varname flags [text]
@@ -240,7 +248,7 @@ AIX)
 			__setkey_r
 		EOF
 	fi
-	: ${LIBS=-lcrypt}
+	: ${LIBS='-lcrypt'}
 	;;
 CYGWIN*)
 	;;
@@ -260,7 +268,7 @@ HP-UX)
 	;;
 Interix)
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
-	: ${LIBS=-lcrypt}
+	: ${LIBS='-lcrypt'}
 	;;
 Linux)
 	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
@@ -334,8 +342,8 @@ rm -f scn.c scn.o
 case $TARGET_OS in
 HP-UX)
 	case $ct:`uname -m` in
-	gcc:ia64) : ${CFLAGS='-O2 -mlp64'} ;;
-	hpcc:ia64) : ${CFLAGS='+O2 +DD64'} ;;
+	gcc:ia64) : ${CFLAGS='-mlp64'} ;;
+	hpcc:ia64) : ${CFLAGS='+DD64'} ;;
 	esac
 	;;
 esac
@@ -343,7 +351,6 @@ esac
 #
 # Compiler: works as-is, with -Wno-error and -Werror
 #
-orig_CFLAGS=$CFLAGS
 save_NOWARN=$NOWARN
 NOWARN=
 ac_flags 0 compiler_works '' 'if the compiler works'
@@ -359,23 +366,22 @@ EOF
 test $HAVE_CAN_PLUSK = 1 || CFLAGS=$save_CFLAGS
 
 if test $ct = sunpro; then
-	test x"$save_NOWARN" = x"" && save_NOWARN='-errwarn=%none'
+	: ${save_NOWARN='-errwarn=%none'}
 	ac_flags 0 errwarnnone "$save_NOWARN"
 	test 1 = $HAVE_CAN_ERRWARNNONE || save_NOWARN=
 	ac_flags 0 errwarnall "-errwarn=%all"
+	test 1 = $HAVE_CAN_ERRWARNALL && NOWARN="-errwarn=%all"
 elif test $ct = hpcc; then
-	HAVE_CAN_WERROR=0
 	save_NOWARN=
+	NOWARN=+We
 else
-	test x"$save_NOWARN" = x"" && save_NOWARN=-Wno-error
+	: ${save_NOWARN='-Wno-error'}
 	ac_flags 0 wnoerror "$save_NOWARN"
 	test 1 = $HAVE_CAN_WNOERROR || save_NOWARN=
-	ac_flags 0 werror "-Werror"
+	ac_flags 0 werror -Werror
+	test 1 = $HAVE_CAN_WERROR && NOWARN=-Werror
 fi
 
-test $ct != sunpro && test 1 = $HAVE_CAN_WERROR && NOWARN=-Werror
-test $ct = sunpro && test 1 = $HAVE_CAN_ERRWARNALL && NOWARN='-errwarn=%all'
-test $ct = hpcc && NOWARN=+We
 test $ct = icc && NOWARN="$NOWARN -wd1419"
 DOWARN=$NOWARN
 NOWARN=$save_NOWARN
@@ -383,44 +389,48 @@ NOWARN=$save_NOWARN
 #
 # Compiler: extra flags (-O2 -f* -W* etc.)
 #
-i=`echo :"$orig_CFLAGS" | sed 's/^://' | tr -c -d $alll$allu$alln-`
-if test $ct = sunpro; then
-	if test x"$i" = x""; then
-		cat >x <<-'EOF'
-			int main(void) { return (0); }
-			#define __IDSTRING_CONCAT(l,p)	__LINTED__ ## l ## _ ## p
-			#define __IDSTRING_EXPAND(l,p)	__IDSTRING_CONCAT(l,p)
-			#define pad			void __IDSTRING_EXPAND(__LINE__,x)(void) { }
-		EOF
-		yes pad | head -n 256 >>x
-		ac_flags - 1 otwo "-xO2" <x
-	fi
+i=`echo :"$orig_CFLAGS" | sed 's/^://' | tr -c -d $alll$allu$alln+-`
+# optimisation: only if orig_CFLAGS is empty
+test x"$i" = x"" && if test $ct = sunpro; then
+	cat >x <<-'EOF'
+		int main(void) { return (0); }
+		#define __IDSTRING_CONCAT(l,p)	__LINTED__ ## l ## _ ## p
+		#define __IDSTRING_EXPAND(l,p)	__IDSTRING_CONCAT(l,p)
+		#define pad			void __IDSTRING_EXPAND(__LINE__,x)(void) { }
+	EOF
+	yes pad | head -n 256 >>x
+	ac_flags - 1 otwo -xO2 <x
 elif test $ct = hpcc; then
-	test x"$i" = x"" && ac_flags 1 otwo "+O2"
-	ac_flags 1 agcc "-Agcc"
-	ac_flags 1 ac99 "-AC99"
+	ac_flags 1 otwo +O2
 else
-	test x"$i" = x"" && ac_flags 1 otwo "-O2"
+	ac_flags 1 otwo -O2
+	test 1 = $HAVE_CAN_OTWO || ac_flags 1 optimise -O
 fi
+# other flags: just add them if they are supported
+i=0
 if test $ct = gcc; then
-	ac_flags 1 fnostrictaliasing "-fno-strict-aliasing"
-	ac_flags 1 fstackprotectorall "-fstack-protector-all"
-	ac_flags 1 fwrapv "-fwrapv"
-	# I'd use -std=c99 but this wrecks havoc on glibc and cygwin based
-	# systems (at least) because their system headers are so broken...
-	ac_flags 1 stdg99 "-std=gnu99" 'if -std=gnu99 (ISO C99) can be used'
-	ac_flags 1 wall "-Wall"
+	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
+	ac_flags 1 fstackprotectorall -fstack-protector-all
+	ac_flags 1 fwrapv -fwrapv
+	i=1
 elif test $ct = icc; then
-	ac_flags 1 fnobuiltinsetmode "-fno-builtin-setmode"
-	ac_flags 1 fnostrictaliasing "-fno-strict-aliasing"
-	ac_flags 1 fstacksecuritycheck "-fstack-security-check"
-	ac_flags 1 stdg99 "-std=gnu99" 'if -std=gnu99 (ISO C99) can be used'
-	test 1 = $HAVE_CAN_STDG99 || \
-	    ac_flags 1 stdc99 "-std=c99" 'if -std=c99 can be used'
-	ac_flags 1 wall "-Wall"
+	ac_flags 1 fnobuiltinsetmode -fno-builtin-setmode"
+	ac_flags 1 fnostrictaliasing -fno-strict-aliasing"
+	ac_flags 1 fstacksecuritycheck -fstack-security-check
+	i=1
 elif test $ct = sunpro; then
-	ac_flags 1 v "-v"
-	ac_flags 1 xc99 "-xc99"
+	ac_flags 1 v -v
+	ac_flags 1 xc99 -xc99 'for support of ISO C99'
+elif test $ct = hpcc; then
+	ac_flags 1 agcc -Agcc 'for support of GCC extensions'
+	ac_flags 1 ac99 -AC99 'for support of ISO C99'
+fi
+# flags common to a subset of compilers
+if test 1 = $i; then
+	ac_flags 1 stdg99 -std=gnu99 'for support of ISO C99 + GCC extensions'
+	test 1 = $HAVE_CAN_STDG99 || \
+	    ac_flags 1 stdc99 -std=c99 'for support of ISO C99'
+	ac_flags 1 wall -Wall
 fi
 ac_test expstmt '' "if the compiler supports statements as expressions" <<-'EOF'
 	#define ksh_isspace(c)	({					\
@@ -575,7 +585,7 @@ if test 1 = $HAVE___SIGHANDLER_T; then
 	HAVE_SIG_T=1
 fi
 
-CPPFLAGS="$CPPFLAGS -DHAVE_SIG_T=$HAVE_SIG_T"
+ac_cppflags SIG_T
 
 #
 # Environment: signals
@@ -596,7 +606,7 @@ for what in name list; do
 		CPPFLAGS="$CPPFLAGS -Dsys_sig$what=_sys_sig$what"
 		eval "HAVE_SYS_SIG$uwhat=1"
 	fi
-	eval CPPFLAGS=\"\$CPPFLAGS -DHAVE_SYS_SIG$uwhat=\$HAVE_SYS_SIG$uwhat\"
+	ac_cppflags SYS_SIG$uwhat
 done
 
 ac_test strsignal '!' sys_siglist 0 <<-'EOF'
@@ -624,7 +634,7 @@ if test $HAVE_ARC4RANDOM = 0 && test -f "$srcdir/arc4random.c"; then
 	HAVE_ARC4RANDOM_DECL=0
 	HAVE_ARC4RANDOM_PUSH=0
 fi
-CPPFLAGS="$CPPFLAGS -DHAVE_ARC4RANDOM=$HAVE_ARC4RANDOM"
+ac_cppflags ARC4RANDOM
 
 ac_test arc4random_push arc4random 0 <<-'EOF'
 	extern void arc4random_push(int);
@@ -717,9 +727,9 @@ EOF
 #
 fd='if to use persistent history'
 ac_cache PERSISTENT_HISTORY || test 11 != $HAVE_FLOCK_EX$HAVE_MKSH_FULL || fv=1
-CPPFLAGS="$CPPFLAGS -DHAVE_PERSISTENT_HISTORY=$fv"
 test 1 = $fv || check_categories=$check_categories,no-histfile
 ac_testdone
+ac_cppflags
 
 #
 # Compiler: Praeprocessor (only if needed)
