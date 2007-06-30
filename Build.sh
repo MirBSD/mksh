@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.217 2007/06/23 20:51:21 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.218 2007/06/30 19:48:04 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -28,9 +28,9 @@ if test -n "${ZSH_VERSION+x}" && (emulate sh) >/dev/null 2>&1; then
 fi
 
 if test -t 1; then
-	bi=`printf '\033[1m'`
-	ui=`printf '\033[4m'`
-	ao=`printf '\033[0m'`
+	bi='[1m'
+	ui='[4m'
+	ao='[0m'
 else
 	bi=
 	ui=
@@ -774,7 +774,7 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 	    vq "$CC $CPPFLAGS -E -" | grep mksh_cfg: | \
 	    sed 's/^mksh_cfg:[	 ]*\([0-9x ()+-]*\).*$/\1/'`
 	case $NSIG in
-	*[\ +-]*) NSIG=`awk "BEGIN { print $NSIG }"` ;;
+	*[\ \(\)+-]*) NSIG=`awk "BEGIN { print $NSIG }"` ;;
 	esac
 	NSIG=`printf %d "$NSIG" 2>/dev/null`
 	test $h = 1 && printf "NSIG=$NSIG ... "
