@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.218 2007/06/30 19:48:04 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.219 2007/06/30 19:58:51 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -740,14 +740,27 @@ test 1 = $HAVE_PERSISTENT_HISTORY || \
 #
 # Compiler: Praeprocessor (only if needed)
 #
-HAVE_CPP_DD=yes
 if test 0 = $HAVE_SYS_SIGNAME; then
-	$e ... checking if the C Preprocessor supports -dD
-	eval '( echo "#define foo bar" | v "$CC -dD -E - >x" ) 2>&'$h | \
-	    sed 's/^/] /'
-	grep '#define foo bar' x >/dev/null 2>&1 || HAVE_CPP_DD=no
-	$e "$bi==> checking if the C Preprocessor supports -dD...$ao $ui$HAVE_CPP_DD$ao"
-	rm -f x
+	fd='checking if the C Preprocessor supports -dD'
+	if test 0 = "$HAVE_CPP_DD"; then
+		$e "$bi==> $fd...$ao ${ui}no$ao (cached)"
+	elif test 1 = "$HAVE_CPP_DD"; then
+		$e "$bi==> $fd...$ao ${ui}yes$ao (cached)"
+	else
+		$e ... $fd
+		eval '( echo "#define foo bar" | \
+		    v "$CC -dD -E - >x" ) 2>&'$h | \
+		    sed 's/^/] /'
+		if grep '#define foo bar' x >/dev/null 2>&1; then
+			HAVE_CPP_DD=1
+			fv=yes
+		else
+			HAVE_CPP_DD=0
+			fv=no
+		fi
+		rm -f x
+		$e "$bi==> $fd...$ao $ui$fv$ao"
+	fi
 fi
 
 #
@@ -763,7 +776,7 @@ ed x <x 2>/dev/null | grep 3 >/dev/null 2>&1 && \
 rm -f x
 
 if test 0 = $HAVE_SYS_SIGNAME; then
-	if test $HAVE_CPP_DD = yes; then
+	if test 1 = $HAVE_CPP_DD; then
 		$e Generating list of signal names...
 	else
 		$e No list of signal names available via cpp. Falling back...
@@ -778,7 +791,7 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 	esac
 	NSIG=`printf %d "$NSIG" 2>/dev/null`
 	test $h = 1 && printf "NSIG=$NSIG ... "
-	if test $HAVE_CPP_DD = yes && test $NSIG -gt 1; then
+	if test 1 = $HAVE_CPP_DD && test $NSIG -gt 1; then
 		signames=`echo '#include <signal.h>' | \
 		    vq "$CC $CPPFLAGS -dD -E -" | \
 		    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
