@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.228 2007/07/01 17:19:15 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.229 2007/07/01 17:22:07 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -236,6 +236,7 @@ fi
 
 test x"$TARGET_OS" = x"" && TARGET_OS=`uname -s 2>/dev/null || uname`
 warn=
+mscx=-Wc,
 case $TARGET_OS in
 AIX)
 	warn=' and is still experimental'
@@ -267,10 +268,9 @@ GNU/kFreeBSD)
 HP-UX)
 	;;
 Interix)
+	mscx='-X '
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
 	: ${LIBS='-lcrypt'}
-	# MSC externs that are not library functions
-	: ${HAVE_CAN_SECUCHK=0}
 	;;
 Linux)
 	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
@@ -292,6 +292,7 @@ SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
 	;;
 UWIN*)
+	mscx='-Yc,'
 	;;
 *)
 	warn='; it may or may not work'
@@ -382,17 +383,6 @@ elif test $ct = hpcc; then
 	save_NOWARN=
 	DOWARN=+We
 elif test $ct = msc; then
-	case $TARGET_OS in
-	Interix)
-		mscx="-X "
-		;;
-	UWIN*)
-		mscx="-Yc,"
-		;;
-	*)
-		mscx="-Wc,"
-		;;
-	esac
 	save_NOWARN="${mscx}/w"
 	DOWARN="${mscx}/WX"
 else
@@ -448,7 +438,9 @@ elif test $ct = msc; then
 	ac_flags 1 strpool "${mscx}/GF" 'if we can enable string pooling'
 	ac_flags 1 stackon "${mscx}/GZ" 'if we can enable stack checks'
 	ac_flags 1 stckall "${mscx}/Ge" 'stack checks for all functions'
-	ac_flags 1 secuchk "${mscx}/GS" 'if we can enable security checks'
+	ac_flags - 1 secuchk "${mscx}/GS" 'if security checks work' <<-'EOF'
+		int main(void) { char test[64] = ""; return (*test); }
+	EOF
 	ac_flags 1 wall "${mscx}/Wall" 'to enable all warnings'
 	ac_flags 1 wp64 "${mscx}/Wp64" 'to enable 64-bit warnings'
 fi
