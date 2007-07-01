@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.233 2007/07/01 21:27:02 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.234 2007/07/01 21:47:07 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -77,6 +77,9 @@ ac_cache() {
 # returns 1 if value was cached/implied, 0 otherwise: call ac_testdone
 ac_testinit() {
 	if ac_cache $1; then
+		test x"$2" = x"!" && shift
+		test x"$2" = x"" || shift
+		fd=$3
 		ac_testdone
 		return 1
 	fi
@@ -571,6 +574,7 @@ ac_header sys/mkdev.h
 ac_header sys/mman.h sys/types.h
 ac_header sys/sysmacros.h
 ac_header libgen.h
+ac_header libutil.h
 ac_header paths.h
 ac_header stdbool.h
 ac_header stdint.h stdarg.h
@@ -702,6 +706,7 @@ ac_test flock_ex '' 'flock and mmap' <<-'EOF'
 	#include <sys/file.h>
 	#include <sys/mman.h>
 	#include <fcntl.h>
+	#include <stdlib.h>
 	int main(void) { return (mmap(NULL, flock(0, LOCK_EX), PROT_READ,
 	    MAP_FILE | MAP_PRIVATE, 0, 0) == NULL ? 1 : 0); }
 EOF
@@ -719,6 +724,9 @@ ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<-'EOF'
 EOF
 
 ac_test revoke mksh_full 0 <<-'EOF'
+	#if HAVE_LIBUTIL_H
+	#include <libutil.h>
+	#endif
 	#include <unistd.h>
 	int main(int ac, char *av[]) { return (ac + revoke(av[0])); }
 EOF
