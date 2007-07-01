@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.235 2007/07/01 21:52:20 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.236 2007/07/01 21:59:10 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -444,6 +444,7 @@ test x"$i" = x"" && if test $ct = sunpro; then
 	EOF
 	yes pad | head -n 256 >>x
 	ac_flags - 1 otwo -xO2 <x
+	rm -f x
 elif test $ct = hpcc; then
 	ac_flags 1 otwo +O2
 else
@@ -481,6 +482,7 @@ elif test $ct = msc; then
 	ac_flags - 1 stackon "${ccpc}/GZ" 'if we can enable stack checks' <x
 	ac_flags - 1 stckall "${ccpc}/Ge" 'stack checks for all functions' <x
 	ac_flags - 1 secuchk "${ccpc}/GS" 'for compiler security checks' <x
+	rm -f x
 	ac_flags 1 wall "${ccpc}/Wall" 'to enable all warnings'
 	ac_flags 1 wp64 "${ccpc}/Wp64" 'to enable 64-bit warnings'
 fi
