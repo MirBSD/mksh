@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.29 2007/06/27 23:12:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.30 2007/07/01 15:39:22 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -139,8 +139,8 @@ typedef struct SubType {
 	short	stype;		/* [=+-?%#] action after expanded word */
 	short	base;		/* begin position of expanded word */
 	short	f;		/* saved value of f (DOPAT, etc) */
-	struct tbl *var;	/* variable for ${var..} */
 	short	quote;		/* saved value of quote (for ${..[%#]..}) */
+	struct tbl *var;	/* variable for ${var..} */
 	struct SubType *prev;	/* old type */
 	struct SubType *next;	/* poped type (to avoid re-allocating) */
 } SubType;
