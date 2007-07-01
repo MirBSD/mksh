@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.80 2007/06/17 00:50:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.81 2007/07/01 19:04:53 tg Exp $");
 
 extern char **environ;
 
@@ -746,6 +746,11 @@ tty_init(int init_ttystate)
 	}
 	tty_devtty = 1;
 
+#ifdef _UWIN
+	if (isatty(3))
+		tfd = 3;
+	else
+#endif
 	if ((tfd = open("/dev/tty", O_RDWR, 0)) < 0) {
 		tty_devtty = 0;
 		warningf(false, "No controlling tty (open /dev/tty: %s)",

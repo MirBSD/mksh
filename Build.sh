@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.230 2007/07/01 18:00:18 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.231 2007/07/01 19:04:52 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -237,6 +237,7 @@ fi
 test x"$TARGET_OS" = x"" && TARGET_OS=`uname -s 2>/dev/null || uname`
 warn=
 mscx=-Wc,
+tsts=
 case $TARGET_OS in
 AIX)
 	warn=' and is still experimental'
@@ -293,6 +294,7 @@ SunOS)
 	;;
 UWIN*)
 	mscx='-Yc,'
+	tsts=" 3<>/dev/tty"
 	;;
 *)
 	warn='; it may or may not work'
@@ -853,7 +855,7 @@ case $curdir in
 esac
 echo "export PATH='$PATH'" >>test.sh
 echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t'" \
-    "-p '$curdir/mksh' -C $check_categories \$*" >>test.sh
+    "-p '$curdir/mksh' -C $check_categories \$*$tsts" >>test.sh
 chmod 755 test.sh
 i=install
 test -f /usr/ucb/$i && i=/usr/ucb/$i
