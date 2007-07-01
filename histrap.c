@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.49 2007/06/06 23:28:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.50 2007/07/01 17:13:52 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -658,8 +658,8 @@ hist_init(Source *s)
 		/*
 		 * we have some data
 		 */
-		base = (unsigned char *)mmap(0, hsize, PROT_READ,
-		    MAP_FILE|MAP_PRIVATE, histfd, 0);
+		base = mmap(NULL, hsize, PROT_READ, MAP_FILE | MAP_PRIVATE,
+		    histfd, 0);
 		/*
 		 * check on its validity
 		 */
@@ -890,8 +890,8 @@ writehistfile(int lno, char *cmd)
 		if (sizenow > hsize) {
 			/* someone has added some lines */
 			bytes = sizenow - hsize;
-			base = (unsigned char *)mmap(0, sizenow,
-			    PROT_READ, MAP_FILE|MAP_PRIVATE, histfd, 0);
+			base = mmap(NULL, sizenow, PROT_READ,
+			    MAP_FILE | MAP_PRIVATE, histfd, 0);
 			if (base == MAP_FAILED)
 				goto bad;
 			new = base + hsize;
