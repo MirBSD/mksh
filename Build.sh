@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.232 2007/07/01 19:24:11 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.233 2007/07/01 21:27:02 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -236,13 +236,14 @@ fi
 
 test x"$TARGET_OS" = x"" && TARGET_OS=`uname -s 2>/dev/null || uname`
 warn=
-mscx=-Wc,
+ccpc=-Wc,
+ccpl=-Wl,
 tsts=
 case $TARGET_OS in
 AIX)
 	warn=' and is still experimental'
 	if test x"$LDFLAGS" = x""; then
-		LDFLAGS="-Wl,-bI:crypt.exp"
+		LDFLAGS="${ccpl}-bI:crypt.exp"
 		cat >crypt.exp <<-EOF
 			#!
 			__crypt_r
@@ -269,7 +270,8 @@ GNU/kFreeBSD)
 HP-UX)
 	;;
 Interix)
-	mscx='-X '
+	ccpc='-X '
+	ccpl='-Y '
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
 	: ${LIBS='-lcrypt'}
 	;;
@@ -281,7 +283,7 @@ Minix)
 	CPPFLAGS="$CPPFLAGS -D_MINIX -D_POSIX_SOURCE"
 	warn=' and will currently not work'
 #	warn=" but might work with the GNU tools"
-#	warn="$warn$nl but not with ACK - /usr/bin/cc - yet)"
+#	warn="$warn${nl}but not with ACK - /usr/bin/cc - yet)"
 	;;
 MirBSD)
 	;;
@@ -293,8 +295,11 @@ SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
 	;;
 UWIN*)
-	mscx='-Yc,'
+	ccpc='-Yc,'
+	ccpl='-Yl,'
 	tsts=" 3<>/dev/tty"
+	warn="; it will compile, but the target"
+	warn="$warn${nl}platform itself is very flakey/unreliable"
 	;;
 *)
 	warn='; it may or may not work'
@@ -330,6 +335,10 @@ cat >scn.c <<-'EOF'
 	ct=sunpro
 	#elif defined(__hpux)
 	ct=hpcc
+	#elif defined(__BORLANDC__)
+	ct=bcc
+	#elif defined(__DMC__)
+	ct=dmc
 	#elif defined(_MSC_VER)
 	ct=msc
 	#else
@@ -342,7 +351,7 @@ test $h = 1 && sed 's/^/[ /' x
 eval `cat x`
 rm -f x
 case $ct in
-gcc|hpcc|icc|msc|sunpro) ;;
+bcc|dmc|gcc|hpcc|icc|msc|sunpro) ;;
 *) ct=unknown ;;
 esac
 $e "$bi==> which compiler we seem to use...$ao $ui$ct$ao"
@@ -368,12 +377,26 @@ test 1 = $HAVE_CAN_COMPILER_WORKS || exit 1
 ac_testn compiler_fails '' 'if the compiler does not fail correctly' <<-EOF
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 EOF
-save_CFLAGS=$CFLAGS
-CFLAGS="$CFLAGS -Wl,+k"
-ac_testn can_plusk compiler_fails 0 'for the +k linker option' <<-EOF
-	int main(void) { return (0); }
-EOF
-test $HAVE_CAN_PLUSK = 1 || CFLAGS=$save_CFLAGS
+if test $HAVE_COMPILER_FAILS = 1; then
+	save_CFLAGS=$CFLAGS
+	if test $ct = dmc; then
+		CFLAGS="$CFLAGS ${ccpl}/DELEXECUTABLE"
+		ac_testn can_delexe compiler_fails 0 'for the /DELEXECUTABLE linker option' <<-EOF
+			int main(void) { return (0); }
+		EOF
+		test $HAVE_CAN_DELEXE = 1 || CFLAGS=$save_CFLAGS
+	else
+		CFLAGS="$CFLAGS ${ccpl}+k"
+		ac_testn can_plusk compiler_fails 0 'for the +k linker option' <<-EOF
+			int main(void) { return (0); }
+		EOF
+		test $HAVE_CAN_PLUSK = 1 || CFLAGS=$save_CFLAGS
+	fi
+	ac_testn compiler_still_fails '' 'if the compiler still does not fail correctly' <<-EOF
+		int main(void) { return (thiswillneverbedefinedIhope()); }
+	EOF
+	test $HAVE_COMPILER_STILL_FAILS = 1 && exit 1
+fi
 
 if test $ct = sunpro; then
 	: ${save_NOWARN='-errwarn=%none'}
@@ -385,8 +408,14 @@ elif test $ct = hpcc; then
 	save_NOWARN=
 	DOWARN=+We
 elif test $ct = msc; then
-	save_NOWARN="${mscx}/w"
-	DOWARN="${mscx}/WX"
+	save_NOWARN="${ccpc}/w"
+	DOWARN="${ccpc}/WX"
+elif test $ct = dmc; then
+	save_NOWARN="${ccpc}-w"
+	DOWARN="${ccpc}-wx"
+elif test $ct = bcc; then
+	save_NOWARN="${ccpc}-w"
+	DOWARN="${ccpc}-w!"
 else
 	: ${save_NOWARN='-Wno-error'}
 	ac_flags 0 wnoerror "$save_NOWARN"
@@ -436,16 +465,21 @@ elif test $ct = sunpro; then
 elif test $ct = hpcc; then
 	ac_flags 1 agcc -Agcc 'for support of GCC extensions'
 	ac_flags 1 ac99 -AC99 'for support of ISO C99'
+elif test $ct = dmc; then
+	ac_flags 1 decl "${ccpc}-r" 'for strict prototype checks'
+	ac_flags 1 schk "${ccpc}-s" 'for stack overflow checking'
+elif test $ct = bcc; then
+	ac_flags 1 strpool "${ccpc}-d" 'if we can enable string pooling'
 elif test $ct = msc; then
+	ac_flags 1 strpool "${ccpc}/GF" 'if we can enable string pooling'
 	cat >x <<-'EOF'
 		int main(void) { char test[64] = ""; return (*test); }
 	EOF
-	ac_flags 1 strpool "${mscx}/GF" 'if we can enable string pooling'
-	ac_flags - 1 stackon "${mscx}/GZ" 'if we can enable stack checks' <x
-	ac_flags - 1 stckall "${mscx}/Ge" 'stack checks for all functions' <x
-	ac_flags - 1 secuchk "${mscx}/GS" 'for compiler security checks' <x
-	ac_flags 1 wall "${mscx}/Wall" 'to enable all warnings'
-	ac_flags 1 wp64 "${mscx}/Wp64" 'to enable 64-bit warnings'
+	ac_flags - 1 stackon "${ccpc}/GZ" 'if we can enable stack checks' <x
+	ac_flags - 1 stckall "${ccpc}/Ge" 'stack checks for all functions' <x
+	ac_flags - 1 secuchk "${ccpc}/GS" 'for compiler security checks' <x
+	ac_flags 1 wall "${ccpc}/Wall" 'to enable all warnings'
+	ac_flags 1 wp64 "${ccpc}/Wp64" 'to enable 64-bit warnings'
 fi
 # flags common to a subset of compilers
 if test 1 = $i; then
