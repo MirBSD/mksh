@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.229 2007/07/01 17:22:07 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.230 2007/07/01 18:00:18 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -435,12 +435,13 @@ elif test $ct = hpcc; then
 	ac_flags 1 agcc -Agcc 'for support of GCC extensions'
 	ac_flags 1 ac99 -AC99 'for support of ISO C99'
 elif test $ct = msc; then
-	ac_flags 1 strpool "${mscx}/GF" 'if we can enable string pooling'
-	ac_flags 1 stackon "${mscx}/GZ" 'if we can enable stack checks'
-	ac_flags 1 stckall "${mscx}/Ge" 'stack checks for all functions'
-	ac_flags - 1 secuchk "${mscx}/GS" 'if security checks work' <<-'EOF'
+	cat >y <<-'EOF'
 		int main(void) { char test[64] = ""; return (*test); }
 	EOF
+	ac_flags 1 strpool "${mscx}/GF" 'if we can enable string pooling'
+	ac_flags - 1 stackon "${mscx}/GZ" 'if we can enable stack checks' <y
+	ac_flags - 1 stckall "${mscx}/Ge" 'stack checks for all functions' <y
+	ac_flags - 1 secuchk "${mscx}/GS" 'for compiler security checks' <y
 	ac_flags 1 wall "${mscx}/Wall" 'to enable all warnings'
 	ac_flags 1 wp64 "${mscx}/Wp64" 'to enable 64-bit warnings'
 fi
