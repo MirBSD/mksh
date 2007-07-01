@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.231 2007/07/01 19:04:52 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.232 2007/07/01 19:24:11 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -192,7 +192,7 @@ if test -d mksh || test -d mksh.exe; then
 	exit 1
 fi
 rm -f a.exe a.out *core crypt.exp lft mksh mksh.cat1 mksh.exe no *.o \
-    scn.c signames.inc test.sh x y
+    scn.c signames.inc test.sh x
 
 : ${CC=gcc} ${NROFF=nroff}
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
@@ -437,13 +437,13 @@ elif test $ct = hpcc; then
 	ac_flags 1 agcc -Agcc 'for support of GCC extensions'
 	ac_flags 1 ac99 -AC99 'for support of ISO C99'
 elif test $ct = msc; then
-	cat >y <<-'EOF'
+	cat >x <<-'EOF'
 		int main(void) { char test[64] = ""; return (*test); }
 	EOF
 	ac_flags 1 strpool "${mscx}/GF" 'if we can enable string pooling'
-	ac_flags - 1 stackon "${mscx}/GZ" 'if we can enable stack checks' <y
-	ac_flags - 1 stckall "${mscx}/Ge" 'stack checks for all functions' <y
-	ac_flags - 1 secuchk "${mscx}/GS" 'for compiler security checks' <y
+	ac_flags - 1 stackon "${mscx}/GZ" 'if we can enable stack checks' <x
+	ac_flags - 1 stckall "${mscx}/Ge" 'stack checks for all functions' <x
+	ac_flags - 1 secuchk "${mscx}/GS" 'for compiler security checks' <x
 	ac_flags 1 wall "${mscx}/Wall" 'to enable all warnings'
 	ac_flags 1 wp64 "${mscx}/Wp64" 'to enable 64-bit warnings'
 fi
