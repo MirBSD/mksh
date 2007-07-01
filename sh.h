@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.151 2007/06/27 23:12:59 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.152 2007/07/01 16:49:18 tg Exp $"
 #define MKSH_VERSION "R29 2007/06/27"
 
 #if HAVE_SYS_PARAM_H
@@ -374,12 +374,12 @@ EXTERN struct env {
 #define OF_FIRSTTIME	0x10	/* as early as possible, once */
 #define OF_ANY		(OF_CMDLINE | OF_SET | OF_SPECIAL | OF_INTERNAL)
 
-struct option {
+struct shoption {
 	const char *name;	/* long name of option */
 	char c;			/* character flag (if any) */
 	unsigned char flags;	/* OF_* */
 };
-extern const struct option options[];
+extern const struct shoption options[];
 
 /*
  * flags (the order of these enums MUST match the order in misc.c(options[]))

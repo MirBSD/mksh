@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.58 2007/06/15 21:55:19 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.59 2007/07/01 16:49:17 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -98,7 +98,7 @@ Xcheck_grow_(XString *xsp, const char *xp, unsigned more)
 	return xsp->beg + (xp - old_beg);
 }
 
-const struct option options[] = {
+const struct shoption options[] = {
 	/* Special cases (see parse_args()): -A, -o, -s.
 	 * Options are sorted by their longnames - the order of these
 	 * entries MUST match the order of sh_flag F* enumerations in sh.h.
