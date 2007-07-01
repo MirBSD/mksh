@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.104 2007/06/21 16:04:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.105 2007/07/01 21:10:27 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1681,7 +1681,7 @@ x_delete(int nc, int push)
 		nw += j;
 	}
 	nb = cp - xcp;
-	nc = i;
+	/* nc = i; */
 
 	if (xmp != NULL && xmp > xcp) {
 		if (xcp + nb > xmp)
@@ -1783,7 +1783,7 @@ x_bword(void)
 static int
 x_fword(int move)
 {
-	int nb = 0, nc = 0;
+	int nc = 0;
 	char *cp = xcp, *cp2;
 
 	if (cp == xep) {
@@ -1791,14 +1791,10 @@ x_fword(int move)
 		return 0;
 	}
 	while (x_arg--) {
-		while (cp != xep && is_mfs(*cp)) {
+		while (cp != xep && is_mfs(*cp))
 			cp++;
-			nb++;
-		}
-		while (cp != xep && !is_mfs(*cp)) {
+		while (cp != xep && !is_mfs(*cp))
 			cp++;
-			nb++;
-		}
 	}
 	for (cp2 = xcp; cp2 < cp; ++nc)
 		utf_ptradj(cp2, &cp2);
@@ -2780,7 +2776,7 @@ static int
 x_expand(int c __unused)
 {
 	char **words;
-	int nwords = 0;
+	int nwords;
 	int start, end;
 	int is_command;
 	int i;
@@ -5240,7 +5236,7 @@ static int
 complete_word(int cmd, int count)
 {
 	static struct edstate *buf;
-	int rval = 0;
+	int rval;
 	int nwords;
 	int start, end;
 	char **words;

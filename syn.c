@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.15 2007/06/22 23:34:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.16 2007/07/01 21:10:29 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -858,7 +858,7 @@ static int
 dbtestp_isa(Test_env *te, Test_meta meta)
 {
 	int c = tpeek(ARRAYVAR | (meta == TM_BINOP ? 0 : CONTIN));
-	int uqword = 0;
+	int uqword;
 	char *save = NULL;
 	int ret = 0;
 

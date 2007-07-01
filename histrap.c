@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.50 2007/07/01 17:13:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.51 2007/07/01 21:10:28 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -38,7 +38,7 @@ int
 c_fc(const char **wp)
 {
 	struct shf *shf;
-	struct temp *tf = NULL;
+	struct temp *tf;
 	const char *p;
 	char *editor = NULL;
 	int gflag = 0, lflag = 0, nflag = 0, sflag = 0, rflag = 0;
@@ -360,11 +360,9 @@ hist_get(const char *str, int approx, int allow_cur)
 		int anchored = *str == '?' ? (++str, 0) : 1;
 
 		/* the -1 is to avoid the current fc command */
-		n = findhist(histptr - history - 1, 0, str, anchored);
-		if (n < 0) {
+		if ((n = findhist(histptr - history - 1, 0, str, anchored)) < 0)
 			bi_errorf("%s: not in history", str);
-			hp = NULL;
-		} else
+		else
 			hp = &history[n];
 	}
 	return hp;
