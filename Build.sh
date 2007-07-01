@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.224 2007/06/30 22:02:50 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.225 2007/07/01 15:45:58 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -269,6 +269,8 @@ HP-UX)
 Interix)
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
 	: ${LIBS='-lcrypt'}
+	# MSC externs that are not library functions
+	: ${HAVE_CAN_SECUCHK=0}
 	;;
 Linux)
 	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
@@ -323,17 +325,19 @@ cat >scn.c <<-'EOF'
 	ct=sunpro
 	#elif defined(__hpux)
 	ct=hpcc
+	#elif defined(_MSC_VER)
+	ct=msc
 	#else
 	ct=unknown
 	#endif
 EOF
 ct=unknown
-eval 'v "$CC -E scn.c | grep ct= >x" 2>&'$h | sed 's/^/] /'
+eval 'v "$CC -E scn.c | grep ct= | tr -d \\\\015 >x" 2>&'$h | sed 's/^/] /'
 test $h = 1 && sed 's/^/[ /' x
 eval `cat x`
 rm -f x
 case $ct in
-icc|gcc|hpcc|sunpro) ;;
+gcc|hpcc|icc|msc|sunpro) ;;
 *) ct=unknown ;;
 esac
 $e "$bi==> which compiler we seem to use...$ao $ui$ct$ao"
@@ -353,6 +357,7 @@ esac
 #
 save_NOWARN=$NOWARN
 NOWARN=
+DOWARN=
 ac_flags 0 compiler_works '' 'if the compiler works'
 test 1 = $HAVE_CAN_COMPILER_WORKS || exit 1
 ac_testn compiler_fails '' 'if the compiler does not fail correctly' <<-EOF
@@ -370,20 +375,22 @@ if test $ct = sunpro; then
 	ac_flags 0 errwarnnone "$save_NOWARN"
 	test 1 = $HAVE_CAN_ERRWARNNONE || save_NOWARN=
 	ac_flags 0 errwarnall "-errwarn=%all"
-	test 1 = $HAVE_CAN_ERRWARNALL && NOWARN="-errwarn=%all"
+	test 1 = $HAVE_CAN_ERRWARNALL && DOWARN="-errwarn=%all"
 elif test $ct = hpcc; then
 	save_NOWARN=
-	NOWARN=+We
+	DOWARN=+We
+elif test $ct = msc; then
+	save_NOWARN='-X /w'
+	DOWARN='-X /WX'
 else
 	: ${save_NOWARN='-Wno-error'}
 	ac_flags 0 wnoerror "$save_NOWARN"
 	test 1 = $HAVE_CAN_WNOERROR || save_NOWARN=
 	ac_flags 0 werror -Werror
-	test 1 = $HAVE_CAN_WERROR && NOWARN=-Werror
+	test 1 = $HAVE_CAN_WERROR && DOWARN=-Werror
 fi
 
-test $ct = icc && NOWARN="$NOWARN -wd1419"
-DOWARN=$NOWARN
+test $ct = icc && DOWARN="$DOWARN -wd1419"
 NOWARN=$save_NOWARN
 
 #
@@ -424,6 +431,13 @@ elif test $ct = sunpro; then
 elif test $ct = hpcc; then
 	ac_flags 1 agcc -Agcc 'for support of GCC extensions'
 	ac_flags 1 ac99 -AC99 'for support of ISO C99'
+elif test $ct = msc; then
+	ac_flags 1 strpool '-X /GF' 'if we can enable string pooling'
+	ac_flags 1 stackon '-X /GZ' 'if we can enable stack checks'
+	ac_flags 1 stckall '-X /Ge' 'stack checks for all functions'
+	ac_flags 1 secuchk '-X /GS' 'if we can enable security checks'
+	ac_flags 1 wall '-X /Wall' 'to enable all warnings'
+	ac_flags 1 wp64 '-X /Wp64' 'to enable 64-bit warnings'
 fi
 # flags common to a subset of compilers
 if test 1 = $i; then
@@ -542,7 +556,7 @@ if test 1 = $HAVE_CAN_LFS_SUS; then
 else
 	CPPFLAGS=$save_CPPFLAGS
 fi
-CPPFLAGS="$CPPFLAGS _LARGE_FILES=1"
+CPPFLAGS="$CPPFLAGS -D_LARGE_FILES=1"
 ac_testn can_lfs_aix '!' can_lfs 0 "... with -D_LARGE_FILES=1" <lft.c
 test 1 = $HAVE_CAN_LFS_AIX || CPPFLAGS=$save_CPPFLAGS
 rm -f lft.c lft.o	# end of large file support test
@@ -811,7 +825,8 @@ for file in $SRCS; do
 	test -f $file || file=$srcdir/$file
 	v "$CC $CFLAGS $CPPFLAGS -c $file" || exit 1
 done
-v "$CC $CFLAGS $LDFLAGS -o mksh $objs $LIBS" || exit 1
+v "$CC $CFLAGS $LDFLAGS -o mksh $objs $LIBS"
+rv=$?; test $ct = msc -o $rv = 0 || exit 1
 result=mksh
 test -f mksh.exe && result=mksh.exe
 test -f $result || exit 1
