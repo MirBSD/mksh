@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.226 2007/07/01 16:47:05 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.227 2007/07/01 16:57:00 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -192,7 +192,7 @@ if test -d mksh || test -d mksh.exe; then
 	exit 1
 fi
 rm -f a.exe a.out *core crypt.exp lft mksh mksh.cat1 mksh.exe no *.o \
-    scn.c signames.inc test.sh x
+    scn.c signames.inc test.sh x y
 
 : ${CC=gcc} ${NROFF=nroff}
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
@@ -763,10 +763,10 @@ ac_cppflags
 #
 test 0 = $HAVE_SYS_SIGNAME && if ac_testinit cpp_dd '' \
     'checking if the C Preprocessor supports -dD'; then
-	eval '( echo "#define foo bar" | v "$CC -dD -E - >x" ) 2>&'$h | \
-	    sed 's/^/] /'
+	echo '#define foo bar' >scn.c
+	eval 'v "$CC -dD -E scn.c >x" 2>&'$h | sed 's/^/] /'
 	grep '#define foo bar' x >/dev/null 2>&1 && fv=1
-	rm -f x
+	rm -f scn.c x
 	ac_testdone
 fi
 
@@ -789,9 +789,14 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 		$e No list of signal names available via cpp. Falling back...
 	fi
 	sigseen=:
-	NSIG=`( echo '#include <signal.h>'; echo '#ifndef NSIG'; \
-	    echo '#define NSIG _NSIG'; echo '#endif'; echo mksh_cfg: NSIG ) | \
-	    vq "$CC $CPPFLAGS -E -" | grep mksh_cfg: | \
+	cat >scn.c <<-'EOF'
+		#include <signal.h>
+		#ifndef NSIG
+		#define NSIG _NSIG
+		#endif
+		mksh_cfg: NSIG
+	EOF
+	NSIG=`vq "$CC $CPPFLAGS -E scn.c" | grep mksh_cfg: | \
 	    sed 's/^mksh_cfg:[	 ]*\([0-9x ()+-]*\).*$/\1/'`
 	case $NSIG in
 	*[\ \(\)+-]*) NSIG=`awk "BEGIN { print $NSIG }"` ;;
@@ -799,8 +804,7 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 	NSIG=`printf %d "$NSIG" 2>/dev/null`
 	test $h = 1 && printf "NSIG=$NSIG ... "
 	if test 1 = $HAVE_CPP_DD && test $NSIG -gt 1; then
-		signames=`echo '#include <signal.h>' | \
-		    vq "$CC $CPPFLAGS -dD -E -" | \
+		signames=`vq "$CC $CPPFLAGS -dD -E scn.c" | \
 		    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
 		    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | \
 		    sort`
@@ -811,8 +815,9 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 	fi
 	test $NSIG -gt 1 || signames=
 	for name in $signames; do
-		( echo '#include <signal.h>'; echo mksh_cfg: SIG$name ) | \
-		    vq "$CC $CPPFLAGS -E -" | grep mksh_cfg: | \
+		echo '#include <signal.h>' >scn.c
+		echo mksh_cfg: SIG$name >>scn.c
+		vq "$CC $CPPFLAGS -E scn.c" | grep mksh_cfg: | \
 		    sed 's/^mksh_cfg:[	 ]*\([0-9x]*\).*$/\1:'$name/
 	done | grep -v '^:' | while IFS=: read nr name; do
 		nr=`printf %d "$nr" 2>/dev/null`
@@ -825,6 +830,7 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 			;;
 		esac
 	done 2>&1 >signames.inc
+	rm -f scn.c
 	$e done.
 fi
 
