@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.227 2007/07/01 16:57:00 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.228 2007/07/01 17:19:15 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -668,11 +668,13 @@ ac_test arc4random_push arc4random 0 <<-'EOF'
 	int main(void) { arc4random_push(1); return (0); }
 EOF
 
-ac_test flock_ex '' 'flock and LOCK_EX' <<-'EOF'
+ac_test flock_ex '' 'flock and mmap' <<-'EOF'
 	#include <sys/types.h>
 	#include <sys/file.h>
+	#include <sys/mman.h>
 	#include <fcntl.h>
-	int main(void) { return (flock(0, LOCK_EX)); }
+	int main(void) { return (mmap(NULL, flock(0, LOCK_EX), PROT_READ,
+	    MAP_FILE | MAP_PRIVATE, 0, 0) == NULL ? 1 : 0); }
 EOF
 
 ac_test setlocale_ctype '!' mksh_defutf8 0 'setlocale(LC_CTYPE, "")' <<-'EOF'
