@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.225 2007/07/01 15:45:58 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.226 2007/07/01 16:47:05 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -291,6 +291,8 @@ OpenBSD)
 SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
 	;;
+UWIN*)
+	;;
 *)
 	warn='; it may or may not work'
 	;;
@@ -380,8 +382,19 @@ elif test $ct = hpcc; then
 	save_NOWARN=
 	DOWARN=+We
 elif test $ct = msc; then
-	save_NOWARN='-X /w'
-	DOWARN='-X /WX'
+	case $TARGET_OS in
+	Interix)
+		mscx="-X "
+		;;
+	UWIN*)
+		mscx="-Yc,"
+		;;
+	*)
+		mscx="-Wc,"
+		;;
+	esac
+	save_NOWARN="${mscx}/w"
+	DOWARN="${mscx}/WX"
 else
 	: ${save_NOWARN='-Wno-error'}
 	ac_flags 0 wnoerror "$save_NOWARN"
@@ -396,7 +409,7 @@ NOWARN=$save_NOWARN
 #
 # Compiler: extra flags (-O2 -f* -W* etc.)
 #
-i=`echo :"$orig_CFLAGS" | sed 's/^://' | tr -c -d $alll$allu$alln+-`
+i=`echo :"$orig_CFLAGS" | sed 's/^://' | tr -c -d $alll$allu$alln`
 # optimisation: only if orig_CFLAGS is empty
 test x"$i" = x"" && if test $ct = sunpro; then
 	cat >x <<-'EOF'
@@ -432,12 +445,12 @@ elif test $ct = hpcc; then
 	ac_flags 1 agcc -Agcc 'for support of GCC extensions'
 	ac_flags 1 ac99 -AC99 'for support of ISO C99'
 elif test $ct = msc; then
-	ac_flags 1 strpool '-X /GF' 'if we can enable string pooling'
-	ac_flags 1 stackon '-X /GZ' 'if we can enable stack checks'
-	ac_flags 1 stckall '-X /Ge' 'stack checks for all functions'
-	ac_flags 1 secuchk '-X /GS' 'if we can enable security checks'
-	ac_flags 1 wall '-X /Wall' 'to enable all warnings'
-	ac_flags 1 wp64 '-X /Wp64' 'to enable 64-bit warnings'
+	ac_flags 1 strpool "${mscx}/GF" 'if we can enable string pooling'
+	ac_flags 1 stackon "${mscx}/GZ" 'if we can enable stack checks'
+	ac_flags 1 stckall "${mscx}/Ge" 'stack checks for all functions'
+	ac_flags 1 secuchk "${mscx}/GS" 'if we can enable security checks'
+	ac_flags 1 wall "${mscx}/Wall" 'to enable all warnings'
+	ac_flags 1 wp64 "${mscx}/Wp64" 'to enable 64-bit warnings'
 fi
 # flags common to a subset of compilers
 if test 1 = $i; then
