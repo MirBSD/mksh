@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.234 2007/07/01 21:47:07 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.235 2007/07/01 21:52:20 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -402,7 +402,7 @@ if test $HAVE_COMPILER_FAILS = 1; then
 fi
 
 if test $ct = sunpro; then
-	: ${save_NOWARN='-errwarn=%none'}
+	test x"$save_NOWARN" = x"" && save_NOWARN='-errwarn=%none'
 	ac_flags 0 errwarnnone "$save_NOWARN"
 	test 1 = $HAVE_CAN_ERRWARNNONE || save_NOWARN=
 	ac_flags 0 errwarnall "-errwarn=%all"
@@ -420,7 +420,7 @@ elif test $ct = bcc; then
 	save_NOWARN="${ccpc}-w"
 	DOWARN="${ccpc}-w!"
 else
-	: ${save_NOWARN='-Wno-error'}
+	test x"$save_NOWARN" = x"" && save_NOWARN=-Wno-error
 	ac_flags 0 wnoerror "$save_NOWARN"
 	test 1 = $HAVE_CAN_WNOERROR || save_NOWARN=
 	ac_flags 0 werror -Werror
