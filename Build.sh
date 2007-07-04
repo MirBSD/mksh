@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.236 2007/07/01 21:59:10 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.237 2007/07/04 14:53:19 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -599,11 +599,8 @@ ac_testn can_lfs '' "if we support large files" <lft.c
 save_CPPFLAGS=$CPPFLAGS
 CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 ac_testn can_lfs_sus '!' can_lfs 0 "... with -D_FILE_OFFSET_BITS=64" <lft.c
-if test 1 = $HAVE_CAN_LFS_SUS; then
-	HAVE_CAN_LFS=1
-else
-	CPPFLAGS=$save_CPPFLAGS
-fi
+test 1 = $HAVE_CAN_LFS_SUS || CPPFLAGS=$save_CPPFLAGS
+save_CPPFLAGS=$CPPFLAGS
 CPPFLAGS="$CPPFLAGS -D_LARGE_FILES=1"
 ac_testn can_lfs_aix '!' can_lfs 0 "... with -D_LARGE_FILES=1" <lft.c
 test 1 = $HAVE_CAN_LFS_AIX || CPPFLAGS=$save_CPPFLAGS
