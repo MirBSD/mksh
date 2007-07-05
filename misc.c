@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.52.2.1 2007/05/13 19:29:38 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.52.2.2 2007/07/05 11:49:21 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -218,8 +218,7 @@ getoptions(void)
 	for (i = 0; i < NELEM(options); i++)
 		if (options[i].c && Flag(i))
 			*cp++ = options[i].c;
-	*cp = 0;
-	return str_save(m, ATEMP);
+	return (str_nsave(m, cp - m, ATEMP));
 }
 
 /* change a Flag(*) value; takes care of special actions */

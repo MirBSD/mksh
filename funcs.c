@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.49.2.1 2007/05/13 19:29:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.49.2.2 2007/07/05 11:49:19 tg Exp $");
 
 int
 c_cd(const char **wp)
@@ -513,7 +513,7 @@ c_command(const char **wp)
 int
 c_typeset(const char **wp)
 {
-	struct block *l = e->loc;
+	struct block *l;
 	struct tbl *vp, **p;
 	Tflag fset = 0, fclr = 0;
 	int thing = 0, func = 0, localv = 0;
@@ -1978,7 +1978,7 @@ c_set(const char **wp)
 {
 	int argi, setargs;
 	struct block *l = e->loc;
-	const char **owp = wp;
+	const char **owp;
 
 	if (wp[1] == NULL) {
 		static const char *args [] = { "set", "-", NULL };

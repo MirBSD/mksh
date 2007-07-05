@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.10 2007/02/13 12:59:03 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.10.2.1 2007/07/05 11:49:13 tg Exp $
 # $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
 #-
 # Example test:
@@ -361,6 +361,7 @@ process_test_file
 	print STDERR "$prog: can't open $file - $!\n";
 	return undef;
     }
+    binmode(IN);
     while (1) {
 	$ret = &read_test($file, IN, *test);
 	last if !defined $ret || !$ret;
@@ -474,14 +475,17 @@ run_test
 		print STDERR "$prog: couldn't open $ifile in child - $!\n";
 		kill('TERM', $$);
 	}
+	binmode(STDIN);
 	if (!open(STDOUT, "> $tempo")) {
 		print STDERR "$prog: couldn't open $tempo in child - $!\n";
 		kill('TERM', $$);
 	}
+	binmode(STDOUT);
 	if (!open(STDERR, "> $tempe")) {
 		print STDOUT "$prog: couldn't open $tempe in child - $!\n";
 		kill('TERM', $$);
 	}
+	binmode(STDERR);
 	if ($program_kludge) {
 	    @argv = split(' ', $test_prog);
 	} else {
@@ -661,6 +665,7 @@ write_file
 	print STDERR "$prog: can't open $file - $!\n";
 	return undef;
     }
+    binmode(TEMP);
     print TEMP $str;
     if (!close(TEMP)) {
 	print STDERR "$prog: error writing $file - $!\n";
@@ -681,6 +686,7 @@ check_output
 	print STDERR "$prog:$name($what): couldn't open $file after running program - $!\n";
 	return undef;
     }
+    binmode(TEMP);
     while (<TEMP>) {
 	$got .= $_;
     }

@@ -8,36 +8,13 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.127.2.3 2007/05/26 22:31:21 tg Exp $"
-#define MKSH_VERSION "R29 2007/05/24"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.127.2.4 2007/07/05 11:49:22 tg Exp $"
+#define MKSH_VERSION "R29 2007/07/05"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
 #include <sys/types.h>
-#if defined(MKSH_INCLUDES_ONLY) || !HAVE_MULTI_IDSTRING
-#undef __RCSID
-#endif
-#if !defined(__RCSID) || !defined(__SCCSID)
-#undef __IDSTRING
-#undef __IDSTRING_CONCAT
-#undef __IDSTRING_EXPAND
-#undef __RCSID
-#undef __SCCSID
-#if HAVE_ATTRIBUTE_USED
-#define __attribute____used__	__attribute__((used))
-#else
-#define __attribute____used__	/* nothing */
-#endif
-#define __IDSTRING_CONCAT(l,p)		__LINTED__ ## l ## _ ## p
-#define __IDSTRING_EXPAND(l,p)		__IDSTRING_CONCAT(l,p)
-#define __IDSTRING(prefix, string)				\
-	static const char __IDSTRING_EXPAND(__LINE__,prefix) []	\
-	    __attribute____used__ = "@(""#)" #prefix ": " string
-#define __RCSID(x)	__IDSTRING(rcsid,x)
-#define __SCCSID(x)	__IDSTRING(sccsid,x)
-#endif
-
 #include <sys/time.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>
@@ -86,6 +63,37 @@
 #if HAVE_VALUES_H
 #include <values.h>
 #endif
+
+#if HAVE_ATTRIBUTE
+#undef __attribute__
+#else
+#define __attribute__(x)	/* nothing */
+#endif
+#undef __unused
+#define __unused		__attribute__((unused))
+#if HAVE_ATTRIBUTE_BOUNDED
+#define __bound_att__(x)	__attribute__(x)
+#else
+#define __bound_att__(x)	/* nothing */
+#endif
+#if HAVE_ATTRIBUTE_USED
+#define __attribute____used__	__attribute__((used))
+#else
+#define __attribute____used__	/* nothing */
+#endif
+
+#undef __IDSTRING
+#undef __IDSTRING_CONCAT
+#undef __IDSTRING_EXPAND
+#undef __RCSID
+#undef __SCCSID
+#define __IDSTRING_CONCAT(l,p)		__LINTED__ ## l ## _ ## p
+#define __IDSTRING_EXPAND(l,p)		__IDSTRING_CONCAT(l,p)
+#define __IDSTRING(prefix, string)				\
+	static const char __IDSTRING_EXPAND(__LINE__,prefix) []	\
+	    __attribute____used__ = "@(""#)" #prefix ": " string
+#define __RCSID(x)	__IDSTRING(rcsid,x)
+#define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -138,22 +146,9 @@ typedef int bool;
 #define ksh_toupper(c)	(((c) >= 'a') && ((c) <= 'z') ? (c) - 'a' + 'A' : (c))
 #define ksh_isdash(s)	(((s) != NULL) && ((s)[0] == '-') && ((s)[1] == '\0'))
 
-#if HAVE_ATTRIBUTE
-#undef __attribute__
-#if HAVE_ATTRIBUTE_BOUNDED
-#define __bound_att__		__attribute__
-#else
-#define __bound_att__(x)	/* nothing */
-#endif
-#else
-#define __attribute__(x)	/* nothing */
-#endif
-#undef __unused
-#define __unused		__attribute__((unused))
-
 /* this macro must not evaluate its arguments several times */
 #define ksh_isspace(c)	__extension__({					\
-		unsigned char ksh_isspace_c = (c);			\
+		unsigned ksh_isspace_c = (c);				\
 		(ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||	\
 		    (ksh_isspace_c == 0x20);				\
 	})

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.12.2.1 2007/05/13 19:29:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.12.2.2 2007/07/05 11:49:23 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -315,7 +315,7 @@ get_command(int cf)
 		if (!is_wdvarname(yylval.cp, true))
 			yyerror("%s: bad identifier\n",
 			    c == FOR ? "for" : "select");
-		t->str = str_save(ident, ATEMP);
+		t->str = str_nsave(ident, strlen(ident), ATEMP);
 		nesting_push(&old_nesting, c);
 		t->vars = wordlist();
 		t->left = dogroup();
@@ -820,7 +820,7 @@ static int
 dbtestp_isa(Test_env *te, Test_meta meta)
 {
 	int c = tpeek(ARRAYVAR | (meta == TM_BINOP ? 0 : CONTIN));
-	int uqword = 0;
+	int uqword;
 	char *save = NULL;
 	int ret = 0;
 

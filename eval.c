@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.25.2.1 2007/05/13 19:29:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.25.2.2 2007/07/05 11:49:18 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -139,8 +139,8 @@ typedef struct SubType {
 	short	stype;		/* [=+-?%#] action after expanded word */
 	short	base;		/* begin position of expanded word */
 	short	f;		/* saved value of f (DOPAT, etc) */
-	struct tbl *var;	/* variable for ${var..} */
 	short	quote;		/* saved value of quote (for ${..[%#]..}) */
+	struct tbl *var;	/* variable for ${var..} */
 	struct SubType *prev;	/* old type */
 	struct SubType *next;	/* poped type (to avoid re-allocating) */
 } SubType;
@@ -712,17 +712,14 @@ varsub(Expand *xp, const char *sp, const char *word,
 		if ((p = cstrchr(sp, '[')) && (p[1] == '*' || p[1] == '@') &&
 		    p[2] == ']') {
 			int n = 0;
-			int max = 0;
 
 			vp = global(arrayname(sp));
 			if (vp->flag & (ISSET|ARRAY))
 				zero_ok = 1;
 			for (; vp; vp = vp->u.array)
-				if (vp->flag & ISSET) {
-					max = vp->index + 1;
+				if (vp->flag & ISSET)
 					n++;
-				}
-			c = n; /* ksh88/ksh93 go for number, not max index */
+			c = n;
 		} else if (c == '*' || c == '@')
 			c = e->loc->argc;
 		else {

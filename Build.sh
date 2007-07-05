@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.182.2.2 2007/05/24 10:53:58 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.182.2.3 2007/07/05 11:49:12 tg Exp $
 #-
 # Environment used: CC CFLAGS CPP CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised: MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -27,9 +27,9 @@ if test -n "${ZSH_VERSION+x}" && (emulate sh) >/dev/null 2>&1; then
 fi
 
 if test -t 1; then
-	bi=`printf '\033[1m'`
-	ui=`printf '\033[4m'`
-	ao=`printf '\033[0m'`
+	bi='[1m'
+	ui='[4m'
+	ao='[0m'
 else
 	bi=
 	ui=
@@ -42,8 +42,8 @@ alln=0123456789
 alls=______________________________________________________________
 nl='
 '
-tcbo=
 tcfn=no
+me=`basename "$0"`
 
 upper()
 {
@@ -97,7 +97,6 @@ ac_testn()
 	    'scn.c $LIBS" 2>&'$h | sed 's/^/] /'
 	test x"$tcfn" = x"no" && test -f a.out && tcfn=a.out
 	test x"$tcfn" = x"no" && test -f a.exe && tcfn=a.exe
-	test x"$tcbo" = x"1" && return
 	fr=0
 	if test -f $tcfn; then
 		test $reverse = 1 || fr=1
@@ -163,7 +162,7 @@ addsrcs()
 
 
 if test -d mksh; then
-	echo "$0: Error: ./mksh is a directory!" >&2
+	echo "$me: Error: ./mksh is a directory!" >&2
 	exit 1
 fi
 rm -f a.exe a.out *core crypt.exp lft mksh mksh.cat1 mksh.exe no scn.c \
@@ -194,7 +193,7 @@ do
 		r=1
 		;;
 	*)
-		echo "$0: Unknown option '$i'!" >&2
+		echo "$me: Unknown option '$i'!" >&2
 		exit 1
 		;;
 	esac
@@ -290,7 +289,7 @@ CPPFLAGS="$CPPFLAGS -I'$curdir'"
 #
 # Begin of mirtoconf checks
 #
-$e ${ao}Scanning for functions... please ignore any errors.
+$e $bi$me: Scanning for functions... please ignore any errors.$ao
 
 #
 # Compiler: works as-is, with -Wno-error and -Werror
@@ -312,6 +311,7 @@ test 1 = $HAVE_CAN_WERROR && NOWARN=-Werror
 #
 ac_test attribute '' 'if we have __attribute__((...)) at all' <<-'EOF'
 	#include <stdlib.h>
+	#undef __attribute__
 	void fnord(void) __attribute__((noreturn));
 	int main(void) { fnord(); }
 	void fnord(void) { exit(0); }
@@ -319,6 +319,7 @@ EOF
 
 ac_test attribute_bounded attribute 0 'for __attribute__((bounded))' <<-'EOF'
 	#include <string.h>
+	#undef __attribute__
 	int xcopy(const void *, void *, size_t)
 	    __attribute__((bounded (buffer, 1, 3)))
 	    __attribute__((bounded (buffer, 2, 3)));
@@ -341,47 +342,8 @@ NOWARN=$save_NOWARN
 #
 i=`echo :"$CFLAGS" | sed 's/^://' | tr -c -d $alll$allu$alln-`
 test x"$i" = x"" && ac_flags 1 otwo "-O2"
-ac_flags 0 fnotreevrp "-fno-tree-vrp"
-if test 1 = $HAVE_CAN_FNOTREEVRP; then
-	tcbo=1
-	ac_testn need_fnotreevrp '' "if to use it to prevent a gcc bug" <<-'EOF'
-		typedef unsigned size_t;
-		char *strncpy(char *, const char *, size_t);
-		char *
-		strncpy(char *d, const char *s, size_t n)
-		{
-			if (!d || !s) {
-				if (d)
-					*d = n;
-				return (d);
-			}
-			return (*d = 1, d);
-		}
-		int
-		main(void)
-		{
-			char a[] = "t";
-			strncpy(a, (void *)0, 2);
-			return (*a);
-		}
-	EOF
-	tcbo=
-	if test -f $tcfn; then
-		./$tcfn >/dev/null 2>&1
-		rv=$?
-		rs=no
-	else
-		rv=0
-		rs="yes (assumed; cannot run ./$tcfn)"
-	fi
-	test 1 = $rv && rs=yes
-	test 2 = $rv || CFLAGS="$CFLAGS -fno-tree-vrp"
-	$e "$bi==> $fd...$ao ${ui}$rs$ao"
-	rm -f scn.c $tcfn
-fi
 ac_flags 1 fnostrictaliasing "-fno-strict-aliasing"
 ac_flags 1 fstackprotectorall "-fstack-protector-all"
-#ac_flags 1 fwholepgm "-fwhole-program --combine"
 ac_flags 1 fwrapv "-fwrapv"
 # I'd use -std=c99 but this wrecks havoc on glibc and cygwin based
 # systems (at least) because their system headers are so broken...
@@ -456,12 +418,9 @@ ac_testn can_lfs '' "if we support large files" <lft.c
 save_CPPFLAGS=$CPPFLAGS
 CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 ac_testn can_lfs_sus '!' can_lfs 0 "... with -D_FILE_OFFSET_BITS=64" <lft.c
-if test 1 = $HAVE_CAN_LFS_SUS; then
-	HAVE_CAN_LFS=1
-else
-	CPPFLAGS=$save_CPPFLAGS
-fi
-CPPFLAGS="$CPPFLAGS _LARGE_FILES=1"
+test 1 = $HAVE_CAN_LFS_SUS || CPPFLAGS=$save_CPPFLAGS
+save_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS -D_LARGE_FILES=1"
 ac_testn can_lfs_aix '!' can_lfs 0 "... with -D_LARGE_FILES=1" <lft.c
 test 1 = $HAVE_CAN_LFS_AIX || CPPFLAGS=$save_CPPFLAGS
 rm -f lft.c	# end of large file support test
@@ -559,7 +518,7 @@ EOF
 #
 # Environment: library functions
 #
-ac_test arc4random <<-'EOF'
+ac_testn arc4random <<-'EOF'
 	#include <sys/types.h>
 	#if HAVE_STDINT_H
 	#include <stdint.h>
@@ -568,16 +527,28 @@ ac_test arc4random <<-'EOF'
 	int main(void) { return (arc4random()); }
 EOF
 
+if test $HAVE_ARC4RANDOM = 0 && test -f "$srcdir/arc4random.c"; then
+	ac_header sys/sysctl.h
+	addsrcs HAVE_ARC4RANDOM arc4random.c
+	HAVE_ARC4RANDOM=1
+	HAVE_ARC4RANDOM_DECL=0
+	HAVE_ARC4RANDOM_PUSH=0
+fi
+CPPFLAGS="$CPPFLAGS -DHAVE_ARC4RANDOM=$HAVE_ARC4RANDOM"
+
 ac_test arc4random_push arc4random 0 <<-'EOF'
 	extern void arc4random_push(int);
 	int main(void) { arc4random_push(1); return (0); }
 EOF
 
-ac_test flock_ex '' 'flock and LOCK_EX' <<-'EOF'
+ac_test flock_ex '' 'flock and mmap' <<-'EOF'
 	#include <sys/types.h>
 	#include <sys/file.h>
+	#include <sys/mman.h>
 	#include <fcntl.h>
-	int main(void) { return (flock(0, LOCK_EX)); }
+	#include <stdlib.h>
+	int main(void) { return (mmap(NULL, flock(0, LOCK_EX), PROT_READ,
+	    MAP_FILE | MAP_PRIVATE, 0, 0) == NULL ? 1 : 0); }
 EOF
 
 ac_test setlocale_ctype '!' mksh_defutf8 0 'setlocale(LC_CTYPE, "")' <<-'EOF'
@@ -678,15 +649,6 @@ EOF
 test 1 = $HAVE_PERSISTENT_HISTORY || \
     check_categories=$check_categories,no-histfile
 
-# Should be the _last_ one
-ac_test multi_idstring '' 'if we can use __RCSID(x) multiple times' <<-'EOF'
-	#define HAVE_MULTI_IDSTRING 1
-	#include "sh.h"
-	__RCSID("one");
-	__RCSID("two");
-	int main(void) { return (0); }
-EOF
-
 #
 # Compiler: Praeprocessor (only if needed)
 #
@@ -727,9 +689,9 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 	NSIG=`( echo '#include <signal.h>'; echo '#ifndef NSIG'; \
 	    echo '#define NSIG _NSIG'; echo '#endif'; echo mksh_cfg: NSIG ) | \
 	    vq "$CPP $CPPFLAGS" | grep mksh_cfg: | \
-	    sed 's/^mksh_cfg: \([0-9x ()+-]*\).*$/\1/'`
+	    sed 's/^mksh_cfg:[	 ]*\([0-9x ()+-]*\).*$/\1/'`
 	case $NSIG in
-	*[\ +-]*) NSIG=`awk "BEGIN { print $NSIG }"` ;;
+	*[\ \(\)+-]*) NSIG=`awk "BEGIN { print $NSIG }"` ;;
 	esac
 	NSIG=`printf %d "$NSIG" 2>/dev/null`
 	test $h = 1 && printf "NSIG=$NSIG ... "
@@ -737,10 +699,10 @@ if test 1 = $NEED_MKSH_SIGNAME; then
 	echo '#include <signal.h>' | vq "$CPP $CPPFLAGS -dD" | \
 	    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
 	    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | \
-	    while read name; do
+	    sort | while read name; do
 		( echo '#include <signal.h>'; echo mksh_cfg: SIG$name ) | \
 		    vq "$CPP $CPPFLAGS" | grep mksh_cfg: | \
-		    sed 's/^mksh_cfg: \([0-9x]*\).*$/\1:'$name/
+		    sed 's/^mksh_cfg:[	 ]*\([0-9x]*\).*$/\1:'$name/
 	done | grep -v '^:' | while IFS=: read nr name; do
 		nr=`printf %d "$nr" 2>/dev/null`
 		test $nr -gt 0 && test $nr -le $NSIG || continue

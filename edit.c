@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.87.2.3 2007/05/26 22:31:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.87.2.4 2007/07/05 11:49:16 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -726,11 +726,11 @@ glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
 int
 x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 {
-	size_t add, wlen;
+	size_t add = 0, wlen = len;
 	const char *ifs = str_val(local("IFS", 0));
 	int rval = 0;
 
-	for (add = 0, wlen = len; wlen - add > 0; add++) {
+	while (wlen - add > 0)
 		if (vstrchr("\\$()[{}*&;#|<>\"'`", s[add]) ||
 		    vstrchr(ifs, s[add])) {
 			if (putbuf_func(s, add) != 0) {
@@ -745,9 +745,9 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 			add++;
 			wlen -= add;
 			s += add;
-			add = -1; /* after the increment it will go to 0 */
-		}
-	}
+			add = 0;
+		} else
+			++add;
 	if (wlen > 0 && rval == 0)
 		rval = putbuf_func(s, wlen);
 
@@ -1121,7 +1121,7 @@ static void	x_mapout2(int, char **);
 static void     x_print(int, int);
 static void	x_adjust(void);
 static void	x_e_ungetc(int);
-static int	x_e_getc(void);
+static u_char	x_e_getc(void);
 static void	x_e_putc2(int);
 static void	x_e_putc3(const char **);
 static void	x_e_puts(const char *);
@@ -1670,7 +1670,7 @@ x_delete(int nc, int push)
 		nw += j;
 	}
 	nb = cp - xcp;
-	nc = i;
+	/* nc = i; */
 
 	if (xmp != NULL && xmp > xcp) {
 		if (xcp + nb > xmp)
@@ -1772,7 +1772,7 @@ x_bword(void)
 static int
 x_fword(int move)
 {
-	int nb = 0, nc = 0;
+	int nc = 0;
 	char *cp = xcp, *cp2;
 
 	if (cp == xep) {
@@ -1780,14 +1780,10 @@ x_fword(int move)
 		return 0;
 	}
 	while (x_arg--) {
-		while (cp != xep && is_mfs(*cp)) {
+		while (cp != xep && is_mfs(*cp))
 			cp++;
-			nb++;
-		}
-		while (cp != xep && !is_mfs(*cp)) {
+		while (cp != xep && !is_mfs(*cp))
 			cp++;
-			nb++;
-		}
 	}
 	for (cp2 = xcp; cp2 < cp; ++nc)
 		utf_ptradj(cp2, &cp2);
@@ -2769,7 +2765,7 @@ static int
 x_expand(int c __unused)
 {
 	char **words;
-	int nwords = 0;
+	int nwords;
 	int start, end;
 	int is_command;
 	int i;
@@ -2880,7 +2876,7 @@ x_e_ungetc(int c)
 	unget_char = c;
 }
 
-static int
+static u_char
 x_e_getc(void)
 {
 	int c;
@@ -3105,7 +3101,7 @@ x_prev_histword(int c __unused)
 			rcp++;
 		x_ins(rcp);
 	} else {
-		int ch;
+		char ch;
 
 		rcp = cp;
 		/*
@@ -5228,7 +5224,7 @@ static int
 complete_word(int cmd, int count)
 {
 	static struct edstate *buf;
-	int rval = 0;
+	int rval;
 	int nwords;
 	int start, end;
 	char **words;

@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.74.2.1 2007/05/13 19:29:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.74.2.2 2007/07/05 11:49:21 tg Exp $");
 
 extern char **environ;
 
@@ -999,7 +999,6 @@ check_fd(const char *name, int mode, const char **emsgp)
 	int fd, fl;
 
 	if (ksh_isdigit(name[0]) && !name[1]) {
-		fd = name[0] - '0';
 		if ((fl = fcntl(fd = name[0] - '0', F_GETFL, 0)) < 0) {
 			if (emsgp)
 				*emsgp = "bad file descriptor";

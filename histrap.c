@@ -3,10 +3,10 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.45.2.1 2007/05/13 19:29:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.45.2.2 2007/07/05 11:49:20 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
-static struct sigaction Sigact_ign, Sigact_trap;
+static struct sigaction Sigact_ign;
 
 #if HAVE_PERSISTENT_HISTORY
 static int hist_count_lines(unsigned char *, int);
@@ -38,7 +38,7 @@ int
 c_fc(const char **wp)
 {
 	struct shf *shf;
-	struct temp *tf = NULL;
+	struct temp *tf;
 	const char *p;
 	char *editor = NULL;
 	int gflag = 0, lflag = 0, nflag = 0, sflag = 0, rflag = 0;
@@ -360,11 +360,9 @@ hist_get(const char *str, int approx, int allow_cur)
 		int anchored = *str == '?' ? (++str, 0) : 1;
 
 		/* the -1 is to avoid the current fc command */
-		n = findhist(histptr - history - 1, 0, str, anchored);
-		if (n < 0) {
+		if ((n = findhist(histptr - history - 1, 0, str, anchored)) < 0)
 			bi_errorf("%s: not in history", str);
-			hp = NULL;
-		} else
+		else
 			hp = &history[n];
 	}
 	return hp;
@@ -658,8 +656,8 @@ hist_init(Source *s)
 		/*
 		 * we have some data
 		 */
-		base = (unsigned char *)mmap(0, hsize, PROT_READ,
-		    MAP_FILE|MAP_PRIVATE, histfd, 0);
+		base = mmap(NULL, hsize, PROT_READ, MAP_FILE | MAP_PRIVATE,
+		    histfd, 0);
 		/*
 		 * check on its validity
 		 */
@@ -890,8 +888,8 @@ writehistfile(int lno, char *cmd)
 		if (sizenow > hsize) {
 			/* someone has added some lines */
 			bytes = sizenow - hsize;
-			base = (unsigned char *)mmap(0, sizenow,
-			    PROT_READ, MAP_FILE|MAP_PRIVATE, histfd, 0);
+			base = mmap(NULL, sizenow, PROT_READ,
+			    MAP_FILE | MAP_PRIVATE, histfd, 0);
 			if (base == MAP_FAILED)
 				goto bad;
 			new = base + hsize;
@@ -1006,8 +1004,6 @@ inittraps(void)
 	sigemptyset(&Sigact_ign.sa_mask);
 	Sigact_ign.sa_flags = 0; /* interruptible */
 	Sigact_ign.sa_handler = SIG_IGN;
-	Sigact_trap = Sigact_ign;
-	Sigact_trap.sa_handler = trapsig;
 
 	sigtraps[SIGINT].flags |= TF_DFL_INTR | TF_TTY_INTR;
 	sigtraps[SIGQUIT].flags |= TF_DFL_INTR | TF_TTY_INTR;

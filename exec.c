@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.29.2.1 2007/05/13 19:29:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.29.2.2 2007/07/05 11:49:18 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -735,8 +735,20 @@ scriptexec(struct op *tp, const char **ap)
 			if (*cp)
 				*tp->args-- = (char *)cp;
 		}
-	}
  noshebang:
+		fd = buf[0] << 8 | buf[1];
+		if ((fd == /* OMAGIC */ 0407) ||
+		    (fd == /* NMAGIC */ 0410) ||
+		    (fd == /* ZMAGIC */ 0413) ||
+		    (fd == /* QMAGIC */ 0314) ||
+		    (fd == /* ECOFF_I386 */ 0x4C01) ||
+		    (fd == /* ECOFF_M68K */ 0x0150 || fd == 0x5001) ||
+		    (fd == /* ECOFF_SH */   0x0500 || fd == 0x0005) ||
+		    (fd == 0x7F45 && buf[2] == 'L' && buf[3] == 'F') ||
+		    (fd == /* “MZ” */ 0x4D5A) ||
+		    (fd == /* gzip */ 0x1F8B))
+			errorf("%s: not executable: magic %04X", tp->str, fd);
+	}
 #endif
 	args.ro = tp->args;
 	*args.ro = sh;

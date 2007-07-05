@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.37.2.1 2007/05/13 19:29:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.37.2.2 2007/07/05 11:49:23 tg Exp $");
 
 /*
  * Variables
@@ -814,7 +814,7 @@ is_wdvarassign(const char *s)
 char **
 makenv(void)
 {
-	struct block *l = e->loc;
+	struct block *l;
 	XPtrV env;
 	struct tbl *vp, **vpp;
 	int i;

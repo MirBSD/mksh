@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.101.2.3 2007/05/26 22:31:19 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.101.2.4 2007/07/05 11:49:14 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R29 2007/05/24
+	@(#)MIRBSD KSH R29 2007/07/05
 description:
 	Check version of shell.
 category: pdksh
@@ -3901,12 +3901,12 @@ stdin:
 	print got ${#anzahl[*]} files
 	chmod +x foo/*
 	export PATH=$(pwd)/foo:$PATH
-	$0 -c '﻿fnord'
-	$0 -c '﻿fnord; fnord; ﻿fnord; fnord'
-	$0 foo/bar
-	$0 <foo/bar
-	$0 foo/zoo
-	$0 -c 'print ﻿: $(﻿fnord)'
+	"$0" -c '﻿fnord'
+	"$0" -c '﻿fnord; fnord; ﻿fnord; fnord'
+	"$0" foo/bar
+	"$0" <foo/bar
+	"$0" foo/zoo
+	"$0" -c 'print ﻿: $(﻿fnord)'
 	rm -rf foo
 expected-stdout:
 	got 4 files
@@ -3958,8 +3958,8 @@ description:
 	(unless both MKSH_ASSUME_UTF8 and MKSH_SMALL are set)
 category: pdksh
 stdin:
-	$0 -c ':; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'
-	$0 -c '﻿:; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'
+	"$0" -c ':; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'
+	"$0" -c '﻿:; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'
 expected-stdout:
 	off
 	on
