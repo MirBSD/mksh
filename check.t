@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.120 2007/07/01 21:27:03 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.121 2007/07/05 11:49:07 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -2157,8 +2157,6 @@ expected-stdout:
 name: IFS-subst-1
 description:
 	Simple test, IFS=<white-space>:
-# hangs, no idea why
-category: !os:uwin-nt
 stdin:
 	showargs() { for i; do echo -n " <$i>"; done; echo; }
 	IFS="$IFS:"
@@ -2828,8 +2826,6 @@ expected-stdout:
 	a
 ---
 name: regression-26
-# hangs, no idea why
-category: !os:uwin-nt
 description:
 	Check reading stdin in a while loop.  The read should read both
 	lines, not just the first.
@@ -3342,7 +3338,6 @@ expected-stdout:
 	8 blah
 ---
 name: regression-56
-# note: hangs on UWIN half of the time, no idea why
 description:
 	Check eval vs substitution exit codes
 	(this is what ksh88 does)
@@ -3369,8 +3364,6 @@ expected-stdout:
 	F 1
 ---
 name: regression-57
-# hangs, no idea why
-category: !os:uwin-nt
 description:
 	Check if typeset output is correct for
 	uninitialised array elements.
@@ -3416,8 +3409,6 @@ expected-stdout:
 	2
 ---
 name: regression-60
-# hangs, no idea why
-category: !os:uwin-nt
 description:
 	Check if default exit status is previous command
 stdin:
@@ -3433,8 +3424,6 @@ expected-stdout:
 	C 103
 ---
 name: regression-61
-# hangs, no idea why
-category: !os:uwin-nt
 description:
 	Check if EXIT trap is executed for sub shells.
 stdin:
@@ -3634,8 +3623,6 @@ expected-stdout:
 	loop3=1
 ---
 name: xxx-status-1
-# hangs, no idea why
-category: !os:uwin-nt
 description:
 	Check that blank lines don't clear $?
 arguments: !-i!
@@ -3652,8 +3639,6 @@ expected-stdout:
 expected-stderr-pattern: /.*/
 ---
 name: xxx-status-2
-# hangs, no idea why
-category: !os:uwin-nt
 description:
 	Check that $? is preserved in subshells, includes, traps.
 stdin:
