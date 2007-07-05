@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.37 2007/06/23 00:05:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.38 2007/07/05 23:48:53 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -36,13 +36,13 @@ struct lex_state {
 #define ls_sbquote ls_info.u_sbquote
 		} u_sbquote;
 
-		Lex_state *base;	/* used to point to next state block */
-
 		/* =(...) */
 		struct sletarray_info {
 			int nparen;	/* count open parentheses */
 #define ls_sletarray ls_info.u_sletarray
 		} u_sletarray;
+
+		Lex_state *base;	/* used to point to next state block */
 	} ls_info;
 };
 
