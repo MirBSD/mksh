@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.90 2007/06/27 23:12:59 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.91 2007/07/06 02:22:56 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
-.Dd June 27, 2007
+.Dd July 5, 2007
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -1253,17 +1253,17 @@ and
 are optional.
 If
 .Ar pos
-.\"is negative, counting starts at the end of the string; if it
+is negative, counting starts at the end of the string; if it
 is omitted, it defaults to 0.
 If
 .Ar len
 is omitted or greater than the length of the remaining string,
 all of it is substituted.
-.\"Both
-.\".Ar pos
-.\"and
-.\".Ar len
-.\"are evaluated as arithmetic expressions.
+Both
+.Ar pos
+and
+.Ar len
+are evaluated as arithmetic expressions.
 .El
 .Pp
 The following special parameters are implicitly set by the shell and cannot be

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.31 2007/07/06 01:53:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.32 2007/07/06 02:22:56 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -278,6 +278,7 @@ expand(const char *cp,	/* input word */
 				if (type < 0) {
 					char *beg, *end, *str;
 
+ unwind_substsyn:
 					sp = varname - 2; /* restore sp */
 					end = (beg = wdcopy(sp, ATEMP)) +
 					    (wdscan(sp, CSUBST) - sp);
@@ -321,6 +322,9 @@ expand(const char *cp,	/* input word */
 						quote = 0;
 						beg = wdcopy(sp, ATEMP);
 						mid = beg + (wdscan(sp, ADELIM) - sp);
+						stg = beg + (wdscan(sp, CSUBST) - sp);
+						if (mid >= stg)
+							goto unwind_substsyn;
 						mid[-2] = EOS;
 						if (mid[-1] == /*{*/'}') {
 							sp += mid - beg - 1;
@@ -328,11 +332,13 @@ expand(const char *cp,	/* input word */
 						} else {
 							end = mid +
 							    (wdscan(mid, ADELIM) - mid);
+							if (end >= stg)
+								goto unwind_substsyn;
 							end[-2] = EOS;
 							sp += end - beg - 1;
 						}
-						evaluate(stg = wdstrip(beg), &from,
-						    KSH_UNWIND_ERROR, true);
+						evaluate(substitute(stg = wdstrip(beg), 0),
+						    &from, KSH_UNWIND_ERROR, true);
 						afree(stg, ATEMP);
 						if (end) {
 							evaluate(stg = wdstrip(mid),
@@ -792,8 +798,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		stype = 0x80;
 		c = word[slen + 0] == CHAR ? word[slen + 1] : 0;
 	}
-	if (stype == 0x80 && (ksh_isdigit(c) || c == '('/*)*/ ||
-	    (!c && word[slen] && word[slen] != CHAR))) {
+	if (stype == 0x80 && !c && word[slen] && word[slen] != CHAR) {
 		stype |= '0';
 	} else if (ctype(c, C_SUBOP1)) {
 		slen += 2;

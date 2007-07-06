@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.123 2007/07/06 01:37:39 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.124 2007/07/06 02:22:55 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R29 2007/07/01
+	@(#)MIRBSD KSH R29 2007/07/05
 description:
 	Check version of shell.
 category: pdksh
@@ -4068,11 +4068,30 @@ stdin:
 	typeset -i 16 z=123456789	# 16#75bcd15
 	n=2
 	print a ${x:$n:3} ${y:$n:3} ${z:$n:3} a
-	print b ${x:n:3} ${y:n:3} ${z:n:3} b
+	print b ${x:(n):3} ${y:(n):3} ${z:(n):3} b
 	print c ${x:(-2):1} ${y:(-2):1} ${z:(-2):1} c
-expected-fail: yes
+	print d t${x: n:2} ${y: n:3} ${z: n:3} d
 expected-stdout:
 	a cde 345 #75 a
 	b cde 345 #75 b
 	c h 8 1 c
+	d tcd 345 #75 d
+---
+name: varexpand-substr-3
+description:
+	Check that some things that work in bash fail.
+	This is by design.
+stdin:
+	export x=abcdefghi n=2
+	"$0" -c 'print v${x:(n)}x'
+	"$0" -c 'print w${x: n}x'
+	"$0" -c 'print x${x:n}x'
+	"$0" -c 'print y${x:}x'
+	"$0" -c 'print z${x}x'
+expected-stdout:
+	vcdefghix
+	wcdefghix
+	zabcdefghix
+expected-stderr-pattern:
+	/x:n.*bad substitution.*\n.*bad substitution/
 ---
