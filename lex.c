@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.38 2007/07/05 23:48:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.39 2007/07/06 01:53:36 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -41,6 +41,13 @@ struct lex_state {
 			int nparen;	/* count open parentheses */
 #define ls_sletarray ls_info.u_sletarray
 		} u_sletarray;
+
+		/* ADELIM */
+		struct sadelim_info {
+			unsigned char delimiter;
+			unsigned char num;
+#define ls_sadelim ls_info.u_sadelim
+		} u_sadelim;
 
 		Lex_state *base;	/* used to point to next state block */
 	} ls_info;
@@ -155,6 +162,15 @@ yylex(int cf)
 	    ((state == SBASE || state == SHEREDELIM) && ctype(c, C_LEX1)))) {
 		Xcheck(ws, wp);
 		switch (state) {
+		case SADELIM:
+			if (c == /*{*/ '}' || c == statep->ls_sadelim.delimiter) {
+				*wp++ = ADELIM;
+				*wp++ = c;
+				if (c == /*{*/ '}' || --statep->ls_sadelim.num == 0)
+					POP_STATE();
+				break;
+			}
+			/* FALLTHROUGH */
 		case SBASE:
 			if (c == '[' && (cf & (VARASN|ARRAYVAR))) {
 				*wp = EOS; /* temporary */
@@ -270,6 +286,25 @@ yylex(int cf)
 					if (c == ':') {
 						*wp++ = CHAR, *wp++ = c;
 						c = getsc();
+						if (c == ':') {
+							*wp++ = CHAR;
+							*wp++ = '0';
+							*wp++ = ADELIM;
+							*wp++ = ':';
+							PUSH_STATE(SADELIM);
+							statep->ls_sadelim.delimiter = ':';
+							statep->ls_sadelim.num = 1;
+							break;
+						} else if (ksh_isdigit(c) ||
+						    c == '('/*)*/ ||
+						    c == '$' /* XXX what else? */) {
+							/* substring subst. */
+							ungetsc(c);
+							PUSH_STATE(SADELIM);
+							statep->ls_sadelim.delimiter = ':';
+							statep->ls_sadelim.num = 2;
+							break;
+						}
 					}
 					/* If this is a trim operation,
 					 * treat (,|,) specially in STBRACE.

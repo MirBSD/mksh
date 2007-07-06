@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.154 2007/07/01 21:47:08 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.155 2007/07/06 01:53:36 tg Exp $"
 #define MKSH_VERSION "R29 2007/07/01"
 
 #if HAVE_SYS_PARAM_H
@@ -904,6 +904,7 @@ struct op {
 #define OPAT	9	/* open pattern: *(, @(, etc. */
 #define SPAT	10	/* separate pattern: | */
 #define CPAT	11	/* close pattern: ) */
+#define ADELIM	12	/* arbitrary delimiter: ${foo:2:3} ${foo/bar/baz} */
 
 /*
  * IO redirection
@@ -1116,6 +1117,7 @@ struct source {
 #define SPATTERN	11	/* parsing *(...|...) pattern (*+?@!) */
 #define STBRACE		12	/* parsing ${..[#%]..} */
 #define SLETARRAY	13	/* inside =( ), just copy */
+#define SADELIM		14	/* like SBASE, looking for delimiter */
 
 typedef union {
 	int i;

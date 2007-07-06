@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.10 2007/05/13 17:51:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.11 2007/07/06 01:53:36 tg Exp $");
 
 #define INDENT	4
 
@@ -268,6 +268,7 @@ tputS(char *wp, struct shf *shf)
 		switch ((c = *wp++)) {
 		case EOS:
 			return;
+		case ADELIM:
 		case CHAR:
 			tputC(*wp++, shf);
 			break;
@@ -484,6 +485,10 @@ wdscan(const char *wp, int c)
 		switch (*wp++) {
 		case EOS:
 			return (wp);
+		case ADELIM:
+			if (c == ADELIM)
+				return (wp + 1);
+			/* FALLTHROUGH */
 		case CHAR:
 		case QCHAR:
 			wp++;
@@ -546,6 +551,7 @@ wdstrip(const char *wp)
 		switch ((c = *wp++)) {
 		case EOS:
 			return shf_sclose(&shf); /* null terminates */
+		case ADELIM:
 		case CHAR:
 		case QCHAR:
 			shf_putchar(*wp++, &shf);

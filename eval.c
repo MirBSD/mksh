@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.30 2007/07/01 15:39:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.31 2007/07/06 01:53:35 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -311,9 +311,48 @@ expand(const char *cp,	/* input word */
 					if (stype)
 						sp += slen;
 					switch (stype & 0x7f) {
-					case '0':
-						/* XXX begin arithmetic eval. */
-						break;
+					case '0': {
+						char *beg, *mid, *end, *stg;
+						long from = 0, num = -1, flen;
+
+						/* ! DOBLANK,DOBRACE_,DOTILDE */
+						f = DOPAT | (f&DONTRUNCOMMAND) |
+						    DOTEMP_;
+						quote = 0;
+						beg = wdcopy(sp, ATEMP);
+						mid = beg + (wdscan(sp, ADELIM) - sp);
+						mid[-2] = EOS;
+						if (mid[-1] == /*{*/'}') {
+							sp += mid - beg - 1;
+							end = NULL;
+						} else {
+							end = mid +
+							    (wdscan(mid, ADELIM) - mid);
+							end[-2] = EOS;
+							sp += end - beg - 1;
+						}
+						evaluate(stg = wdstrip(beg), &from,
+						    KSH_UNWIND_ERROR, true);
+						afree(stg, ATEMP);
+						if (end) {
+							evaluate(stg = wdstrip(mid),
+							    &num, KSH_UNWIND_ERROR, true);
+							afree(stg, ATEMP);
+						}
+						afree(beg, ATEMP);
+						beg = str_val(st->var);
+						flen = strlen(beg);
+						if (from < 0) {
+							if (-from < flen)
+								beg += flen + from;
+						} else
+							beg += from < flen ? from : flen;
+						flen = strlen(beg);
+						if (num < 0 || num > flen)
+							num = flen;
+						x.str = str_nsave(beg, num, ATEMP);
+						goto do_CSUBST;
+					}
 					case '#':
 					case '%':
 						/* ! DOBLANK,DOBRACE_,DOTILDE */
@@ -365,6 +404,7 @@ expand(const char *cp,	/* input word */
 				continue;
 			    }
 			case CSUBST: /* only get here if expanding word */
+ do_CSUBST:
 				sp++; /* ({) skip the } or x */
 				tilde_ok = 0;	/* in case of ${unset:-} */
 				*dp = '\0';
@@ -427,38 +467,12 @@ expand(const char *cp,	/* input word */
 					    (debunk(s, s, strlen(s) + 1), s));
 				    }
 				case '0':
-				    {
-					char i, *s = Xrestpos(ds, dp, st->base);
-					int from = 0, num = 0;
-					/* bool fromend = false; */
-
-					/* XXX use evaluate() from expr.c
-					   XXX or directly parse as 2 exprs */
-					/* if (*s == '-') {
-						fromend = true;
-						++s;
-					} */
-					while ((i = *s++) && i != ':')
-						from = from * 10 + i - '0';
-					if (i == ':') while ((i = *s++))
-						num = num * 10 + i - '0';
-					else
-						num = -1;
-					/* if (fromend) {
-						int flen = strlen(x.str);
-
-						if (from < flen)
-							x.str += flen - from;
-					} else */
-						x.str += from;
-					from = strlen(x.str);
-					if (num < 0 || num > from)
-						num = from;
-					dp = Xstring(ds, dp);
-					XcheckN(ds, dp, num);
-					memcpy(dp, x.str, num);
-					dp += num;
-				    }
+					dp = Xrestpos(ds, dp, st->base);
+					type = XSUB;
+					if (f&DOBLANK)
+						doblank++;
+					st = st->prev;
+					continue;
 				}
 				st = st->prev;
 				type = XBASE;
@@ -778,25 +792,9 @@ varsub(Expand *xp, const char *sp, const char *word,
 		stype = 0x80;
 		c = word[slen + 0] == CHAR ? word[slen + 1] : 0;
 	}
-	if (stype == 0x80 && (ksh_isdigit(c) || c == ':')) {
-		const char *tp = word + slen + 2;
-		bool had_colon = false;
-
+	if (stype == 0x80 && (ksh_isdigit(c) || c == '('/*)*/ ||
+	    (!c && word[slen] && word[slen] != CHAR))) {
 		stype |= '0';
-		/* syntax check: minus, digits, one colon, digits */
-		/* if (*tp == CHAR && tp[1] == '-')
-			tp += 2; */
-		while (*tp != EOS && *tp != CSUBST) {
-			if (*tp != CHAR)
-				return (-1);
-			if (!ksh_isdigit(tp[1])) {
-				if (!had_colon && tp[1] == ':')
-					had_colon = true;
-				else
-					return (-1);
-			}
-			tp += 2;
-		}
 	} else if (ctype(c, C_SUBOP1)) {
 		slen += 2;
 		stype |= c;
