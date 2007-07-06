@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.32 2007/07/06 02:22:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.33 2007/07/06 02:39:36 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -798,7 +798,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		stype = 0x80;
 		c = word[slen + 0] == CHAR ? word[slen + 1] : 0;
 	}
-	if (stype == 0x80 && !c && word[slen] && word[slen] != CHAR) {
+	if (stype == 0x80 && (c == ' ' || c == '0')) {
 		stype |= '0';
 	} else if (ctype(c, C_SUBOP1)) {
 		slen += 2;
