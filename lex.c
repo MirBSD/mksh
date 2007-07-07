@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.42 2007/07/06 02:39:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.43 2007/07/07 22:29:36 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -44,8 +44,12 @@ struct lex_state {
 
 		/* ADELIM */
 		struct sadelim_info {
+#define SADELIM_BASH	0
+#define SADELIM_MAKE	1
+			unsigned char style;
 			unsigned char delimiter;
 			unsigned char num;
+			unsigned char flags;	/* ofs. into sadelim_flags[] */
 #define ls_sadelim ls_info.u_sadelim
 		} u_sadelim;
 
@@ -168,6 +172,30 @@ yylex(int cf)
 		switch (state) {
 		case SADELIM:
 			if (c == /*{*/ '}' || c == statep->ls_sadelim.delimiter) {
+#ifdef notyet
+				if (statep->ls_sadelim.style == SADELIM_MAKE &&
+				    statep->ls_sadelim.num == 1) {
+					if (c == /*{*/'}')
+						yyerror("syntax error: expected"
+					/* { */	    " '%c' before '}'\n",
+						    statep->ls_sadelim.delimiter);
+					else {
+						*wp++ = ADELIM;
+						*wp++ = c;	/* .delimiter */
+						while ((c = getsc()) != /*{*/ '}') {
+							if (!c) {
+								yyerror("syntax error: expected"
+							/* { */	    " '}' before end of input\n");
+							} else if (strchr(sadelim_flags[statep->ls_sadelim.flags], c)) {
+								*wp++ = CHAR;
+								*wp++ = c;
+							} else
+								yyerror("syntax error: expected"
+							/* { */	    " '}' instead of '%c'\n", c);
+						}
+					}
+				}
+#endif /* SADELIM_MAKE */
 				*wp++ = ADELIM;
 				*wp++ = c;
 				if (c == /*{*/ '}' || --statep->ls_sadelim.num == 0)
@@ -296,6 +324,7 @@ yylex(int cf)
 							*wp++ = ADELIM;
 							*wp++ = ':';
 							PUSH_STATE(SADELIM);
+							statep->ls_sadelim.style = SADELIM_BASH;
 							statep->ls_sadelim.delimiter = ':';
 							statep->ls_sadelim.num = 1;
 							break;
@@ -309,6 +338,7 @@ yylex(int cf)
 							}
 							ungetsc(c);
 							PUSH_STATE(SADELIM);
+							statep->ls_sadelim.style = SADELIM_BASH;
 							statep->ls_sadelim.delimiter = ':';
 							statep->ls_sadelim.num = 2;
 							break;
