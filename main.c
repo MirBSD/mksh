@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.82 2007/07/01 21:10:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.83 2007/07/17 13:56:51 tg Exp $");
 
 extern char **environ;
 
@@ -63,12 +63,11 @@ static int initio_done;
 int
 main(int argc, const char *argv[])
 {
-	int i;
-	int argi;
+	int argi, i;
 	Source *s;
 	struct block *l;
 	int restricted, errexit;
-	const char **wp;
+	const char **wp, *cc;
 	struct env env;
 	pid_t ppid;
 	struct tbl *vp;
@@ -76,9 +75,6 @@ main(int argc, const char *argv[])
 #if !defined(_PATH_DEFPATH) && defined(_CS_PATH)
 	size_t k;
 	char *cp;
-#endif
-#if !defined(MKSH_SMALL) || HAVE_SETLOCALE_CTYPE
-	const char *cc;
 #endif
 
 	/* make sure argv[] is sane */
@@ -162,21 +158,14 @@ main(int argc, const char *argv[])
 	/* setstr can't fail here */
 	setstr(vp, def_path, KSH_RETURN_ERROR);
 
-#ifndef MKSH_SMALL
+	/* Set FPOSIX if we're called as -sh or /bin/sh or so */
 	cc = kshname;
-	if (*cc == '-')
-		++cc;
-	i = 0;
+	i = 0; argi = 0;
 	while (cc[i] != '\0')
-		if (cc[i] == '/') {
-			cc += i + 1;
-			i = 0;
-		} else
-			++i;
-	if ((cc[0] == 's' || cc[0] == 'S') &&
-	    (cc[1] == 'h' || cc[1] == 'H'))
+		if ((cc[i++] | 2) == '/')
+			argi = i;
+	if (((cc[argi] | 0x20) == 's') && ((cc[argi + 1] | 0x20) == 'h'))
 		Flag(FPOSIX) = 1;
-#endif
 
 	/* Turn on nohup by default for now - will change to off
 	 * by default once people are aware of its existence
