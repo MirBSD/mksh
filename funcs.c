@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.59 2007/07/22 13:34:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.60 2007/07/22 14:01:48 tg Exp $");
 
 int
 c_cd(const char **wp)
@@ -1142,7 +1142,7 @@ c_kill(const char **wp)
 		    "Usage: kill [ -s signame | -signum | -signame ] {pid|job}...\n"
 		    "       kill -l [exit_status]\n");
 #endif
-		bi_errorf("");
+		bi_errorfz();
 		return 1;
 	}
 

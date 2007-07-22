@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.62 2007/07/22 13:38:26 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.63 2007/07/22 14:01:49 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -853,7 +853,7 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 			    (go->flags & GF_NONAME) ? "" : argv[0],
 			    (go->flags & GF_NONAME) ? "" : ": ", c);
 			if (go->flags & GF_ERROR)
-				bi_errorf("");
+				bi_errorfz();
 		}
 		return '?';
 	}
@@ -879,7 +879,7 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 			    (go->flags & GF_NONAME) ? "" : argv[0],
 			    (go->flags & GF_NONAME) ? "" : ": ", c);
 			if (go->flags & GF_ERROR)
-				bi_errorf("");
+				bi_errorfz();
 			return '?';
 		}
 		go->p = 0;

@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.52 2007/07/22 13:34:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.53 2007/07/22 14:01:49 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -173,7 +173,6 @@ c_fc(const char **wp)
 	/* List history */
 	if (lflag) {
 		char *s, *t;
-		const char *nfmt = nflag ? "\t" : "%d\t";
 
 		for (hp = rflag ? hlast : hfirst;
 		    hp >= hfirst && hp <= hlast; hp += rflag ? -1 : 1) {
