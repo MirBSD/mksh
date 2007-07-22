@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.239 2007/07/17 19:41:26 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.240 2007/07/22 13:08:54 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -332,18 +332,18 @@ $e ... which compiler we seem to use
 cat >scn.c <<-'EOF'
 	#if defined(__ICC) || defined(__INTEL_COMPILER)
 	ct=icc
-	#elif defined(__GNUC__)
-	ct=gcc
 	#elif defined(__SUNPRO_C)
 	ct=sunpro
-	#elif defined(__hpux)
-	ct=hpcc
 	#elif defined(__BORLANDC__)
 	ct=bcc
 	#elif defined(__DMC__)
 	ct=dmc
 	#elif defined(_MSC_VER)
 	ct=msc
+	#elif defined(__GNUC__)
+	ct=gcc
+	#elif defined(__hpux)
+	ct=hpcc
 	#else
 	ct=unknown
 	#endif
@@ -877,8 +877,25 @@ addsrcs HAVE_STRLCPY strlcpy.c
 CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 
 objs=
+case $curdir in
+*\ *)	echo "#!./mksh" >test.sh ;;
+*)	echo "#!$curdir/mksh" >test.sh ;;
+esac
+echo "export PATH='$PATH'" >>test.sh
+echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t'" \
+    "-p '$curdir/mksh' -C $check_categories \$*$tsts" >>test.sh
+chmod 755 test.sh
+echo set -x >Rebuild.sh
 for file in $SRCS; do
 	objs="$objs `echo x"$file" | sed 's/^x\(.*\)\.c$/\1.o/'`"
+	test -f $file || file=$srcdir/$file
+	echo "$CC $CFLAGS $CPPFLAGS -c $file || exit 1" >>Rebuild.sh
+done
+echo "$CC $CFLAGS $LDFLAGS -o mksh $objs $LIBS" >>Rebuild.sh
+test $ct = msc || echo 'test $? = 0 || exit 1' >>Rebuild.sh
+echo 'result=mksh; test -f mksh.exe && result=mksh.exe' >>Rebuild.sh
+echo 'test -f $result || exit 1; size $result' >>Rebuild.sh
+for file in $SRCS; do
 	test -f $file || file=$srcdir/$file
 	v "$CC $CFLAGS $CPPFLAGS -c $file" || exit 1
 done
@@ -890,14 +907,6 @@ test -f $result || exit 1
 test $r = 1 || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
     rm -f mksh.cat1
 test $eq = 0 && test $h = 1 && v size $result
-case $curdir in
-*\ *)	echo "#!./mksh" >test.sh ;;
-*)	echo "#!$curdir/mksh" >test.sh ;;
-esac
-echo "export PATH='$PATH'" >>test.sh
-echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t'" \
-    "-p '$curdir/mksh' -C $check_categories \$*$tsts" >>test.sh
-chmod 755 test.sh
 i=install
 test -f /usr/ucb/$i && i=/usr/ucb/$i
 test $eq = 1 && e=:
