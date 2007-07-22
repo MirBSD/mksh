@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.106 2007/07/22 13:34:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.107 2007/07/22 13:38:25 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1697,7 +1697,7 @@ x_delete(int nc, int push)
 
 	xep -= nb;
 	cp = xcp;
-	memmove(xcp, xcp + nb, xep - xcp + 1);	/* Copies the null */
+	memmove(xcp, xcp + nb, xep - xcp + 1);	/* Copies the NUL */
 	x_adj_ok = 0;			/* don't redraw */
 	xlp_valid = false;
 	x_zots(xcp);
@@ -3476,9 +3476,9 @@ static int	modified;		/* buffer has been "modified" */
 static int	state;
 
 /* Information for keeping track of macros that are being expanded.
- * The format of buf is the alias contents followed by a null byte followed
+ * The format of buf is the alias contents followed by a NUL byte followed
  * by the name (letter) of the alias.  The end of the buffer is marked by
- * a double null.  The name of the alias is stored so recursive macros can
+ * a double NUL.  The name of the alias is stored so recursive macros can
  * be detected.
  */
 struct macro_state {

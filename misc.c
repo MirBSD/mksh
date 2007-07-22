@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.61 2007/07/22 13:34:51 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.62 2007/07/22 13:38:26 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -65,7 +65,7 @@ initctypes(void)
 }
 
 /* Allocate a string of size n+1 and copy upto n characters from the possibly
- * null terminated string s into it.  Always returns a null terminated string
+ * NUL terminated string s into it.  Always returns a NUL terminated string
  * (unless n < 0).
  */
 char *

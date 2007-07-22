@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.34 2007/07/22 13:34:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.35 2007/07/22 13:38:26 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -406,9 +406,9 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 	 * before we can do a path search (in case the assignments change
 	 * PATH).
 	 * Odd cases:
-	 *   FOO=bar exec > /dev/null		FOO is kept but not exported
+	 *   FOO=bar exec >/dev/null		FOO is kept but not exported
 	 *   FOO=bar exec foobar		FOO is exported
-	 *   FOO=bar command exec > /dev/null	FOO is neither kept nor exported
+	 *   FOO=bar command exec >/dev/null	FOO is neither kept nor exported
 	 *   FOO=bar command			FOO is neither kept nor exported
 	 *   PATH=... foobar			use new PATH in foobar search
 	 */

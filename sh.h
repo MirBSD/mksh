@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.158 2007/07/22 13:34:51 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.159 2007/07/22 13:38:26 tg Exp $"
 #define MKSH_VERSION "R30 2007/07/17"
 
 #if HAVE_SYS_PARAM_H
@@ -429,9 +429,10 @@ enum sh_flag {
 
 #define Flag(f)	(shell_flags[(int) (f)])
 
-EXTERN char shell_flags [FNFLAGS];
+EXTERN char shell_flags[FNFLAGS];
 
-EXTERN char	null [] I__("");	/* null value for variable */
+/* null value for variable; comparision pointer for unset */
+EXTERN char	null[] I__("");
 
 enum temp_type {
 	TT_HEREDOC_EXP,	/* expanded heredoc */
