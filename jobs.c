@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.24 2007/06/06 23:41:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.25 2007/07/22 13:34:50 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -632,7 +632,7 @@ j_resume(const char *cp, int bg)
 		}
 		shprintf("%s%s", p->command, p->next ? "| " : null);
 	}
-	shprintf(newline);
+	shf_putc('\n', shl_stdout);
 	shf_flush(shl_stdout);
 	if (running)
 		j->state = PRUNNING;
@@ -1283,7 +1283,7 @@ j_print(Job *j, int how, struct shf *shf)
 		while (p && p->state == state && p->status == status) {
 			if (how == JP_LONG)
 				shf_fprintf(shf, "%s%5d %-20s %s%s", filler,
-				    (int)p->pid, space, p->command,
+				    (int)p->pid, " ", p->command,
 				    p->next ? "|" : null);
 			else if (how == JP_MEDIUM)
 				shf_fprintf(shf, " %s%s", p->command,
@@ -1292,7 +1292,7 @@ j_print(Job *j, int how, struct shf *shf)
 		}
 	}
 	if (output)
-		shf_fprintf(shf, newline);
+		shf_putc('\n', shf);
 }
 
 /* Convert % sequence to job

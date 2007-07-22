@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.33 2007/06/15 21:22:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.34 2007/07/22 13:34:49 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -70,8 +70,8 @@ execute(struct op *volatile t,
 			shf_fprintf(shl_out, "%s",
 				substitute(str_val(global("PS4")), 0));
 			for (i = 0; ap[i]; i++)
-				shf_fprintf(shl_out, "%s%s", ap[i],
-				    ap[i + 1] ? space : newline);
+				shf_fprintf(shl_out, "%s%c", ap[i],
+				    ap[i + 1] ? ' ' : '\n');
 			shf_flush(shl_out);
 		}
 		if (ap[0])
@@ -95,7 +95,7 @@ execute(struct op *volatile t,
 				 */
 				if (tp && tp->type == CSHELL &&
 				    (tp->flag & SPEC_BI))
-					errorf(null);
+					errorf("");
 				/* Deal with FERREXIT, quitenv(), etc. */
 				goto Break;
 			}
@@ -486,8 +486,8 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 			if (i == 0)
 				shf_fprintf(shl_out, "%s",
 					substitute(str_val(global("PS4")), 0));
-			shf_fprintf(shl_out, "%s%s", cp,
-			    t->vars[i + 1] ? space : newline);
+			shf_fprintf(shl_out, "%s%c", cp,
+			    t->vars[i + 1] ? ' ' : '\n');
 			if (!t->vars[i + 1])
 				shf_flush(shl_out);
 		}

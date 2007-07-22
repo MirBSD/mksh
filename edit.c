@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.105 2007/07/01 21:10:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.106 2007/07/22 13:34:48 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -2792,7 +2792,7 @@ x_expand(int c __unused)
 	x_delete(end - start, false);
 	for (i = 0; i < nwords;) {
 		if (x_escape(words[i], strlen(words[i]), x_do_ins) < 0 ||
-		    (++i < nwords && x_ins(space) < 0)) {
+		    (++i < nwords && x_ins(" ") < 0)) {
 			x_e_putc2(7);
 			return KSTD;
 		}
@@ -2838,7 +2838,7 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
 	}
 	/* add space if single non-dir match */
 	if (nwords == 1 && words[0][nlen - 1] != '/') {
-		x_ins(space);
+		x_ins(" ");
 		completed = 1;
 	}
 	if (type == CT_COMPLIST && !completed) {
@@ -4255,10 +4255,14 @@ vi_cmd(int argcnt, const char *cmd)
 					argcnt = source->line + 1
 					    - (hlast - hnum);
 			}
-			shf_snprintf(es->cbuf, es->cbufsize,
-			    argcnt ? "%s %d" : "%s",
-			    "fc -e ${VISUAL:-${EDITOR:-vi}} --",
-			    argcnt);
+			if (argcnt)
+				shf_snprintf(es->cbuf, es->cbufsize, "%s %d",
+				    "fc -e ${VISUAL:-${EDITOR:-vi}} --",
+				    argcnt);
+			else
+				strlcpy(es->cbuf,
+				    "fc -e ${VISUAL:-${EDITOR:-vi}} --",
+				    es->cbufsize);
 			es->linelen = strlen(es->cbuf);
 			return 2;
 
@@ -4376,7 +4380,7 @@ vi_cmd(int argcnt, const char *cmd)
 					argcnt++;
 					p++;
 				}
-				if (putbuf(space, 1, 0) != 0)
+				if (putbuf(" ", 1, 0) != 0)
 					argcnt = -1;
 				else if (putbuf(sp, argcnt, 0) != 0)
 					argcnt = -1;
@@ -5216,7 +5220,7 @@ expand_word(int cmd)
 			rval = -1;
 			break;
 		}
-		if (++i < nwords && putbuf(space, 1, 0) != 0) {
+		if (++i < nwords && putbuf(" ", 1, 0) != 0) {
 			rval = -1;
 			break;
 		}
@@ -5325,7 +5329,7 @@ complete_word(int cmd, int count)
 
 		/* If not a directory, add a space to the end... */
 		if (match_len > 0 && match[match_len - 1] != '/')
-			rval = putbuf(space, 1, 0);
+			rval = putbuf(" ", 1, 0);
 	}
 	x_free_words(nwords, words);
 

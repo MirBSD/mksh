@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.43 2007/07/07 22:29:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.44 2007/07/22 13:34:51 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -905,7 +905,7 @@ yyerror(const char *fmt, ...)
 	va_start(va, fmt);
 	shf_vfprintf(shl_out, fmt, va);
 	va_end(va);
-	errorf(null);
+	errorf("");
 }
 
 /*
@@ -967,10 +967,10 @@ getsc__(void)
 
 		case SWORDSEP:
 			if (*s->u.strv == NULL) {
-				s->start = s->str = newline;
+				s->start = s->str = "\n";
 				s->type = SEOF;
 			} else {
-				s->start = s->str = space;
+				s->start = s->str = " ";
 				s->type = SWORDS;
 			}
 			break;

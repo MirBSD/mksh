@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.58 2007/07/01 21:10:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.59 2007/07/22 13:34:49 tg Exp $");
 
 int
 c_cd(const char **wp)
@@ -494,7 +494,7 @@ c_whence(const char **wp)
 			break;
 		}
 		if (vflag || !ret)
-			shprintf(newline);
+			shf_putc('\n', shl_stdout);
 	}
 	return ret;
 }
@@ -793,7 +793,7 @@ c_typeset(const char **wp)
 							else
 								print_value_quoted(s);
 						}
-						shprintf(newline);
+						shf_putc('\n', shl_stdout);
 					}
 					/* Only report first 'element' of an array with
 					* no set elements.
@@ -887,7 +887,7 @@ c_alias(const char **wp)
 					shf_putc('=', shl_stdout);
 					print_value_quoted(ap->val.s);
 				}
-				shprintf(newline);
+				shf_putc('\n', shl_stdout);
 			}
 	}
 
@@ -912,7 +912,7 @@ c_alias(const char **wp)
 					shf_putc('=', shl_stdout);
 					print_value_quoted(ap->val.s);
 				}
-				shprintf(newline);
+				shf_putc('\n', shl_stdout);
 			} else {
 				shprintf("%s alias not found\n", alias);
 				rv = 1;
@@ -1142,7 +1142,7 @@ c_kill(const char **wp)
 		    "Usage: kill [ -s signame | -signum | -signame ] {pid|job}...\n"
 		    "       kill -l [exit_status]\n");
 #endif
-		bi_errorf(null);
+		bi_errorf("");
 		return 1;
 	}
 

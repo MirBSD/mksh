@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.60 2007/07/01 22:17:29 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.61 2007/07/22 13:34:51 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -206,7 +206,7 @@ printoptions(int verbose)
 		for (i = 0; i < NELEM(options); i++)
 			if (Flag(i) && options[i].name)
 				shprintf(" -o %s", options[i].name);
-		shprintf(newline);
+		shf_putc('\n', shl_stdout);
 	}
 }
 
@@ -853,7 +853,7 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 			    (go->flags & GF_NONAME) ? "" : argv[0],
 			    (go->flags & GF_NONAME) ? "" : ": ", c);
 			if (go->flags & GF_ERROR)
-				bi_errorf(null);
+				bi_errorf("");
 		}
 		return '?';
 	}
@@ -879,7 +879,7 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 			    (go->flags & GF_NONAME) ? "" : argv[0],
 			    (go->flags & GF_NONAME) ? "" : ": ", c);
 			if (go->flags & GF_ERROR)
-				bi_errorf(null);
+				bi_errorf("");
 			return '?';
 		}
 		go->p = 0;

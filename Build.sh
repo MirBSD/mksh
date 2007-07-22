@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.240 2007/07/22 13:08:54 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.241 2007/07/22 13:34:48 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -332,6 +332,8 @@ $e ... which compiler we seem to use
 cat >scn.c <<-'EOF'
 	#if defined(__ICC) || defined(__INTEL_COMPILER)
 	ct=icc
+	#elif defined(__xlC__)
+	ct=xlc
 	#elif defined(__SUNPRO_C)
 	ct=sunpro
 	#elif defined(__BORLANDC__)
@@ -354,7 +356,7 @@ test $h = 1 && sed 's/^/[ /' x
 eval `cat x`
 rm -f x
 case $ct in
-bcc|dmc|gcc|hpcc|icc|msc|sunpro) ;;
+bcc|dmc|gcc|hpcc|icc|msc|sunpro|xlc) ;;
 *) ct=unknown ;;
 esac
 $e "$bi==> which compiler we seem to use...$ao $ui$ct$ao"
@@ -419,6 +421,9 @@ elif test $ct = dmc; then
 elif test $ct = bcc; then
 	save_NOWARN="${ccpc}-w"
 	DOWARN="${ccpc}-w!"
+elif test $ct = xlc; then
+	save_NOWARN=-qflag=i:e
+	DOWARN=-qflag=i:i
 else
 	test x"$save_NOWARN" = x"" && save_NOWARN=-Wno-error
 	ac_flags 0 wnoerror "$save_NOWARN"
@@ -447,6 +452,9 @@ test x"$i" = x"" && if test $ct = sunpro; then
 	rm -f x
 elif test $ct = hpcc; then
 	ac_flags 1 otwo +O2
+elif test $ct = xlc; then
+	ac_flags 1 othree "-O3 -qstrict"
+	test 1 = $HAVE_CAN_OTHREE || ac_flags 1 otwo -O2
 else
 	ac_flags 1 otwo -O2
 	test 1 = $HAVE_CAN_OTWO || ac_flags 1 optimise -O
@@ -485,6 +493,14 @@ elif test $ct = msc; then
 	rm -f x
 	ac_flags 1 wall "${ccpc}/Wall" 'to enable all warnings'
 	ac_flags 1 wp64 "${ccpc}/Wp64" 'to enable 64-bit warnings'
+elif test $ct = xlc; then
+	ac_flags 1 x99 -qlanglvl=extc99
+	test 1 = $HAVE_CAN_X99 || ac_flags 1 c99 -qlanglvl=stdc99
+	ac_flags 1 rodata "-qro -qroconst -qroptr"
+	ac_flags 1 rtcheck -qcheck=all
+	ac_flags 1 rtchkc -qextchk
+	ac_flags 1 wformat "-qformat=all -qformat=nozln"
+	#ac_flags 1 wp64 -qwarn64	# too verbose for now
 fi
 # flags common to a subset of compilers
 if test 1 = $i; then
@@ -561,7 +577,11 @@ ac_testn mksh_need_mknod '!' mksh_full 1 'if we still want c_mknod()' <<-'EOF'
 EOF
 
 if test 0 = $HAVE_MKSH_FULL; then
-	ac_flags 1 fnoinline -fno-inline
+	if test $ct = xlc; then
+		ac_flags 1 fnoinline -qnoinline
+	else
+		ac_flags 1 fnoinline -fno-inline
+	fi
 
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	check_categories=$check_categories,smksh

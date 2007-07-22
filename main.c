@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.83 2007/07/17 13:56:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.84 2007/07/22 13:34:51 tg Exp $");
 
 extern char **environ;
 
@@ -484,7 +484,7 @@ shell(Source * volatile s, volatile int toplevel)
 		case LSHELL:
 			if (interactive) {
 				if (i == LINTR)
-					shellf(newline);
+					shellf("\n");
 				/* Reset any eof that was read as part of a
 				 * multiline command.
 				 */

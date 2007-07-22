@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.40 2007/07/01 21:10:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.41 2007/07/22 13:34:52 tg Exp $");
 
 /*
  * Variables
@@ -341,7 +341,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 	if ((vq->flag & RDONLY) && !no_ro_check) {
 		warningf(true, "%s: is read only", vq->name);
 		if (!error_ok)
-			errorf(null);
+			errorf("");
 		return 0;
 	}
 	if (!(vq->flag&INTEGER)) { /* string dest */
@@ -690,7 +690,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 			}
 		}
 		if (!ok)
-		    errorf(null);
+			errorf("");
 	}
 
 	if (val != NULL) {
