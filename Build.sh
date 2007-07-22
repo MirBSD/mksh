@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.242 2007/07/22 13:46:13 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.243 2007/07/22 13:47:10 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -244,7 +244,6 @@ ccpl=-Wl,
 tsts=
 case $TARGET_OS in
 AIX)
-	warn=' and is still experimental'
 	if test x"$LDFLAGS" = x""; then
 		LDFLAGS="${ccpl}-bI:crypt.exp"
 		cat >crypt.exp <<-EOF
