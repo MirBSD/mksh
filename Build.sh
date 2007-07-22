@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.241 2007/07/22 13:34:48 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.242 2007/07/22 13:46:13 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -861,16 +861,12 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 	esac
 	NSIG=`printf %d "$NSIG" 2>/dev/null`
 	test $h = 1 && printf "NSIG=$NSIG ... "
-	if test 1 = $HAVE_CPP_DD && test $NSIG -gt 1; then
-		signames=`vq "$CC $CPPFLAGS -dD -E scn.c" | \
-		    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
-		    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | \
-		    sort`
-	else
-		signames="ABRT ALRM BUS CHLD CLD CONT EMT FPE HUP ILL INT IO"
-		signames="$signames IOT KILL PIPE PWR QUIT SEGV SYS STOP TERM"
-		signames="$signames TRAP TSTP TTIN TTOU URG USR1 USR2 WINCH"
-	fi
+	signames="ABRT ALRM BUS CHLD CLD CONT EMT FPE HUP ILL INFO INT IO IOT"
+	signames="$signames KILL PIPE PROF PWR QUIT SAK SEGV STOP SYS TERM"
+	signames="$signames TRAP TSTP TTIN TTOU URG USR1 USR2 WINCH XCPU XFSZ"
+	test 1 = $HAVE_CPP_DD && test $NSIG -gt 1 && signames="$signames "`vq \
+	    "$CC $CPPFLAGS -dD -E scn.c" | grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
+	    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | sort`
 	test $NSIG -gt 1 || signames=
 	for name in $signames; do
 		echo '#include <signal.h>' >scn.c
