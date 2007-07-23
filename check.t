@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.127 2007/07/22 13:46:14 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.128 2007/07/23 14:10:48 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4096,4 +4096,14 @@ expected-stdout:
 	1
 expected-stderr-pattern:
 	/x:n.*bad substitution.*\n.*bad substitution/
+---
+name: varexpand-substr-4
+description:
+	Check corner cases for substring expansion
+stdin:
+	x=abcdefghi
+	integer y=2
+	print a ${x:(y == 1 ? 2 : 3):4} a
+expected-stdout:
+	a defg a
 ---
