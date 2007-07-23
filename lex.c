@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.45 2007/07/22 14:01:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.46 2007/07/23 14:28:52 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -44,6 +44,7 @@ struct lex_state {
 
 		/* ADELIM */
 		struct sadelim_info {
+			unsigned char nparen;	/* count open parentheses */
 #define SADELIM_BASH	0
 #define SADELIM_MAKE	1
 			unsigned char style;
@@ -171,7 +172,12 @@ yylex(int cf)
 		Xcheck(ws, wp);
 		switch (state) {
 		case SADELIM:
-			if (c == /*{*/ '}' || c == statep->ls_sadelim.delimiter) {
+			if (c == '(')
+				statep->ls_sadelim.nparen++;
+			else if (c == ')')
+				statep->ls_sadelim.nparen--;
+			else if (statep->ls_sadelim.nparen == 0 &&
+			    (c == /*{*/ '}' || c == statep->ls_sadelim.delimiter)) {
 #ifdef notyet
 				if (statep->ls_sadelim.style == SADELIM_MAKE &&
 				    statep->ls_sadelim.num == 1) {
@@ -327,6 +333,7 @@ yylex(int cf)
 							statep->ls_sadelim.style = SADELIM_BASH;
 							statep->ls_sadelim.delimiter = ':';
 							statep->ls_sadelim.num = 1;
+							statep->ls_sadelim.nparen = 0;
 							break;
 						} else if (ksh_isdigit(c) ||
 						    c == '('/*)*/ || c == ' ' ||
@@ -341,6 +348,7 @@ yylex(int cf)
 							statep->ls_sadelim.style = SADELIM_BASH;
 							statep->ls_sadelim.delimiter = ':';
 							statep->ls_sadelim.num = 2;
+							statep->ls_sadelim.nparen = 0;
 							break;
 						}
 					}
