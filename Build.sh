@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.244 2007/07/24 21:47:13 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.245 2007/07/24 21:54:46 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -292,6 +292,11 @@ MirBSD)
 NetBSD)
 	;;
 OpenBSD)
+	;;
+Plan9)
+	CPPFLAGS="$CPPFLAGS -D_POSIX_SOURCE -D_LIMITS_EXTENSION"
+	CPPFLAGS="$CPPFLAGS -D_BSD_EXTENSION -D_SUSV2_SOURCE -D__Plan9__"
+	warn=' and will currently not work'
 	;;
 PW32*)
 	cat >stdint.h <<-'EOF'
