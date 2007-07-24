@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.243 2007/07/22 13:47:10 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.244 2007/07/24 21:47:13 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -292,6 +292,25 @@ MirBSD)
 NetBSD)
 	;;
 OpenBSD)
+	;;
+PW32*)
+	cat >stdint.h <<-'EOF'
+		typedef signed char int8_t;
+		typedef signed short int16_t;
+		typedef signed int int32_t;
+		typedef signed long long int64_t;
+		typedef unsigned char uint8_t;
+		typedef unsigned short uint16_t;
+		typedef unsigned int uint32_t;
+		typedef unsigned long long uint64_t;
+		typedef unsigned char u_char;
+		typedef unsigned int u_int;
+		typedef unsigned long u_long;
+	EOF
+	HAVE_SIG_T=0
+	CPPFLAGS="$CPPFLAGS -Dsig_t=nosig_t"
+	warn=' and will currently not work'
+	# missing: killpg() getrlimit()
 	;;
 SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"

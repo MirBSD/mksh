@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.163 2007/07/24 11:22:04 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.164 2007/07/24 21:47:14 tg Exp $"
 #define MKSH_VERSION "R30 2007/07/24"
 
 #if HAVE_SYS_PARAM_H
@@ -107,6 +107,7 @@ typedef long rlim_t;
 #endif
 
 #if !HAVE_SIG_T
+#undef sig_t
 typedef void (*sig_t)(int);
 #endif
 
@@ -119,6 +120,9 @@ typedef int bool;
 
 /* extra macros */
 
+#ifndef timerclear
+#define timerclear(tvp) do { (tvp)->tv_sec = (tvp)->tv_usec = 0; } while (0)
+#endif
 #ifndef timeradd
 #define timeradd(tvp, uvp, vvp)						\
 	do {								\
