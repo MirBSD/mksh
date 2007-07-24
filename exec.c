@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.36 2007/07/22 14:01:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.37 2007/07/24 11:22:04 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -362,9 +362,9 @@ execute(struct op *volatile t,
 	if ((flags&XEXEC))
 		unwind(LEXIT);	/* exit child */
 	if (rv != 0 && !(flags & XERROK)) {
+		trapsig(SIGERR_);
 		if (Flag(FERREXIT))
 			unwind(LERROR);
-		trapsig(SIGERR_);
 	}
 	return rv;
 }
