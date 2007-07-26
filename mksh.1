@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.91 2007/07/06 02:22:56 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.92 2007/07/26 13:32:16 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
-.Dd July 5, 2007
+.Dd July 26, 2007
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -1264,6 +1264,9 @@ Both
 and
 .Ar len
 are evaluated as arithmetic expressions.
+Currently,
+.Ar pos
+must start with a space, opening parenthesis or digit to be recognised.
 .El
 .Pp
 The following special parameters are implicitly set by the shell and cannot be
