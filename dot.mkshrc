@@ -2,7 +2,7 @@
 [[ $HOSTNAME = @(localhost|*([	 ])) ]] && HOSTNAME=$(ulimit -c 0;hostname 2>&-)
 : ${HOSTNAME:=nil}; PS1='#'; [[ "$(ulimit -c 0; id -u 2>&-)" -eq 0 ]] || PS1='$'
 PS1='$(((e = $?)) && print $e\|)${USER:=$(ulimit -c 0; id -un 2>&- || \
-    print nobody)}@${HOSTNAME%%.*}:$(typeset pfx=~ wd=${PWD:-$(builtin pwd)}
+    print nobody)}@${HOSTNAME%%.*}:$(typeset pfx=~ wd=${PWD:-?}
 	typeset -i n=${COLUMNS:-80}/3; let n="n < 7 ? 7 : n"
 	[[ ${wd#$pfx} = $wd || $pfx = ?(/) ]] || wd=\~${wd#$pfx}
 	pfx=; while (( (${#pfx} + ${#wd}) > n )); do
@@ -38,4 +38,4 @@ function Lstripcom {
 
 # place customisations between this line and the “: RCSID” line below
 
-: $MirOS: src/bin/mksh/dot.mkshrc,v 1.17 2007/06/20 13:38:18 tg Exp $
+: $MirOS: src/bin/mksh/dot.mkshrc,v 1.18 2007/07/26 13:37:21 tg Rel $
