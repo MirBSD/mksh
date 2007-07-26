@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.63 2007/07/22 14:01:49 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.64 2007/07/26 13:23:51 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -382,8 +382,8 @@ parse_args(const char **argv,
 #else
 			change_flag(FTALKING, OF_CMDLINE, 1);
 			chvt(go.optarg);
-#endif
 			break;
+#endif
 #endif
 
 		case '?':
