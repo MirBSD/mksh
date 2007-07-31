@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.249 2007/07/31 10:42:14 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.250 2007/07/31 11:11:23 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -621,13 +621,6 @@ ac_testn mksh_defutf8 '' "if we assume UTF-8 is enabled" <<-'EOF'
 	int main(void) { return (0); }
 EOF
 
-ac_testn mksh_need_mknod '!' mksh_full 1 'if we still want c_mknod()' <<-'EOF'
-	#ifndef MKSH_NEED_MKNOD
-	#error Nope, the user really wants it teensy.
-	#endif
-	int main(void) { return (0); }
-EOF
-
 if test 0 = $HAVE_MKSH_FULL; then
 	if test $ct = xlc; then
 		ac_flags 1 fnoinline -qnoinline
@@ -794,6 +787,19 @@ ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<-'EOF'
 	int main(void) { return ((ptrdiff_t)(void *)nl_langinfo(CODESET)); }
 EOF
 
+ac_test mknod '' 'if we use mknod(), makedev() and friends' <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	#if defined(MKSH_SMALL) && !defined(MKSH_NEED_MKNOD)
+	#error We do not want to include the mknod builtin.
+	#endif
+	int main(int ac, char *av[]) {
+		dev_t dv;
+		dv = makedev(ac, 1);
+		return (mknod(av[0], 0, dv) ? (int)major(dv) : (int)minor(dv));
+	}
+EOF
+
 ac_test revoke mksh_full 0 <<-'EOF'
 	#if HAVE_LIBUTIL_H
 	#include <libutil.h>
@@ -802,7 +808,7 @@ ac_test revoke mksh_full 0 <<-'EOF'
 	int main(int ac, char *av[]) { return (ac + revoke(av[0])); }
 EOF
 
-ac_test setmode mksh_need_mknod 1 <<-'EOF'
+ac_test setmode mknod 1 <<-'EOF'
 	#if defined(__MSVCRT__) || defined(__CYGWIN__)
 	#error Win32 setmode() is different from what we need
 	#endif
