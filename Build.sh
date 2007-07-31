@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.247 2007/07/31 10:04:46 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.248 2007/07/31 10:17:52 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -353,6 +353,7 @@ $e $bi$me: Scanning for functions... please ignore any errors.$ao
 # notes:
 # – ICC defines __GNUC__ too
 # – GCC defines __hpux too
+CPP="$CC -E"
 $e ... which compiler we seem to use
 cat >scn.c <<-'EOF'
 	#if defined(__ICC) || defined(__INTEL_COMPILER)
@@ -380,17 +381,13 @@ cat >scn.c <<-'EOF'
 	#endif
 EOF
 ct=unknown
-eval 'v "$CC -E scn.c | grep ct= | tr -d \\\\015 >x" 2>&'$h | sed 's/^/] /'
+eval 'v "$CPP scn.c | grep ct= | tr -d \\\\015 >x" 2>&'$h | sed 's/^/] /'
 test $h = 1 && sed 's/^/[ /' x
 eval `cat x`
 rm -f x
 case $ct in
 bcc|dmc|gcc|hpcc|icc|msc|sunpro|tcc|tendra|xlc) ;;
 *) ct=unknown ;;
-esac
-# kludge; tcc still isn't really supported though
-case $CC:$ct in
-*tcc:unknown) ct=tcc ;;
 esac
 $e "$bi==> which compiler we seem to use...$ao $ui$ct$ao"
 rm -f scn.c scn.o
@@ -412,6 +409,18 @@ NOWARN=
 DOWARN=
 ac_flags 0 compiler_works '' 'if the compiler works'
 test 1 = $HAVE_CAN_COMPILER_WORKS || exit 1
+HAVE_COMPILER_KNOWN=0
+test $ct = unknown || HAVE_COMPILER_KNOWN=1
+ac_testn couldbe_tcc '!' compiler_known 0 'if this could be tcc' <<-EOF
+	#ifndef __TINYC__
+	#error No, cannot be tcc.
+	#endif
+	int main(void) { return (0); }
+EOF
+if test $HAVE_COULDBE_TCC = 1; then
+	ct=tcc
+	CPP=cpp
+fi
 ac_testn compiler_fails '' 'if the compiler does not fail correctly' <<-EOF
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 EOF
@@ -865,7 +874,7 @@ ac_cppflags
 test 0 = $HAVE_SYS_SIGNAME && if ac_testinit cpp_dd '' \
     'checking if the C Preprocessor supports -dD'; then
 	echo '#define foo bar' >scn.c
-	eval 'v "$CC -dD -E scn.c >x" 2>&'$h | sed 's/^/] /'
+	eval 'v "$CPP -dD scn.c >x" 2>&'$h | sed 's/^/] /'
 	grep '#define foo bar' x >/dev/null 2>&1 && fv=1
 	rm -f scn.c x
 	ac_testdone
@@ -897,7 +906,7 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 		#endif
 		mksh_cfg: NSIG
 	EOF
-	NSIG=`vq "$CC $CPPFLAGS -E scn.c" | grep mksh_cfg: | \
+	NSIG=`vq "$CPP $CPPFLAGS scn.c" | grep mksh_cfg: | \
 	    sed 's/^mksh_cfg:[	 ]*\([0-9x ()+-]*\).*$/\1/'`
 	case $NSIG in
 	*[\ \(\)+-]*) NSIG=`awk "BEGIN { print $NSIG }"` ;;
@@ -908,13 +917,13 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 	signames="$signames KILL PIPE PROF PWR QUIT SAK SEGV STOP SYS TERM"
 	signames="$signames TRAP TSTP TTIN TTOU URG USR1 USR2 WINCH XCPU XFSZ"
 	test 1 = $HAVE_CPP_DD && test $NSIG -gt 1 && signames="$signames "`vq \
-	    "$CC $CPPFLAGS -dD -E scn.c" | grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
+	    "$CPP $CPPFLAGS -dD scn.c" | grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
 	    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | sort`
 	test $NSIG -gt 1 || signames=
 	for name in $signames; do
 		echo '#include <signal.h>' >scn.c
 		echo mksh_cfg: SIG$name >>scn.c
-		vq "$CC $CPPFLAGS -E scn.c" | grep mksh_cfg: | \
+		vq "$CPP $CPPFLAGS scn.c" | grep mksh_cfg: | \
 		    sed 's/^mksh_cfg:[	 ]*\([0-9x]*\).*$/\1:'$name/
 	done | grep -v '^:' | while IFS=: read nr name; do
 		nr=`printf %d "$nr" 2>/dev/null`
