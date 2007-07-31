@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.61 2007/07/31 11:11:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.62 2007/07/31 13:55:26 tg Exp $");
 
 int
 c_cd(const char **wp)
@@ -2904,7 +2904,7 @@ c_ulimit(const char **wp)
 		{ NULL, 0, 0, 0, 0, 0 }
 	};
 	static char	opts[3 + NELEM(limits)];
-	rlim_t		val = 0;
+	rlim_t		val = (rlim_t)0;
 	int		how = SOFT | HARD;
 	const struct limits	*l;
 	int		set, all = 0;
@@ -2952,7 +2952,7 @@ c_ulimit(const char **wp)
 			return 1;
 		}
 		if (strcmp(wp[0], "unlimited") == 0)
-			val = RLIM_INFINITY;
+			val = (rlim_t)RLIM_INFINITY;
 		else {
 			long rval;
 
@@ -2969,7 +2969,7 @@ c_ulimit(const char **wp)
 				bi_errorf("invalid limit: %s", wp[0]);
 				return 1;
 			}
-			val = (rlim_t)rval * l->factor;
+			val = (rlim_t)((rlim_t)rval * l->factor);
 		}
 	}
 	if (all) {
@@ -2994,8 +2994,8 @@ c_ulimit(const char **wp)
 			if (val == (rlim_t)RLIM_INFINITY)
 				shprintf("unlimited\n");
 			else {
-				val /= l->factor;
-				shprintf("%ld\n", (long) val);
+				val = (rlim_t)(val / l->factor);
+				shprintf("%ld\n", (long)val);
 			}
 		}
 		return 0;
@@ -3027,8 +3027,8 @@ c_ulimit(const char **wp)
 		if (val == (rlim_t)RLIM_INFINITY)
 			shprintf("unlimited\n");
 		else {
-			val /= l->factor;
-			shprintf("%ld\n", (long) val);
+			val = (rlim_t)(val / l->factor);
+			shprintf("%ld\n", (long)val);
 		}
 	}
 	return (0);
