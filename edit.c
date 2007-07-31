@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.109 2007/07/31 15:29:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.110 2007/07/31 15:42:50 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -2249,6 +2249,7 @@ x_cls(int c __unused)
 #define MKSH_CLS_STRING	"\033[;H\033[J"
 #endif
 	shf_fprintf(shl_out, MKSH_CLS_STRING);
+	x_putc('\r');
 	x_init_prompt();
 	x_redraw(0);
 	return (KSTD);
