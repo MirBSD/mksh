@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.108 2007/07/31 10:42:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.109 2007/07/31 15:29:39 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -38,6 +38,7 @@ static void x_free_words(int, char **);
 static int x_escape(const char *, size_t, int (*)(const char *, size_t));
 static int x_emacs(char *, size_t);
 static void x_init_emacs(void);
+static void x_init_prompt(void);
 #ifndef MKSH_NOVI
 static int x_vi(char *, size_t);
 #endif
@@ -1148,119 +1149,122 @@ static void bind_if_not_bound(int, int, int);
 
 #define XFUNC_abort 0
 #define XFUNC_beg_hist 1
-#define XFUNC_comp_comm 2
-#define XFUNC_comp_file 3
-#define XFUNC_complete 4
-#define XFUNC_del_back 5
-#define XFUNC_del_bword 6
-#define XFUNC_del_char 7
-#define XFUNC_del_fword 8
-#define XFUNC_del_line 9
-#define XFUNC_draw_line 10
-#define XFUNC_end_hist 11
-#define XFUNC_end_of_text 12
-#define XFUNC_enumerate 13
-#define XFUNC_eot_del 14
-#define XFUNC_error 15
-#define XFUNC_goto_hist 16
-#define XFUNC_ins_string 17
-#define XFUNC_insert 18
-#define XFUNC_kill 19
-#define XFUNC_kill_region 20
-#define XFUNC_list_comm 21
-#define XFUNC_list_file 22
-#define XFUNC_literal 23
-#define XFUNC_meta1 24
-#define XFUNC_meta2 25
-#define XFUNC_meta_yank 26
-#define XFUNC_mv_back 27
-#define XFUNC_mv_begin 28
-#define XFUNC_mv_bword 29
-#define XFUNC_mv_end 30
-#define XFUNC_mv_forw 31
-#define XFUNC_mv_fword 32
-#define XFUNC_newline 33
-#define XFUNC_next_com 34
-#define XFUNC_nl_next_com 35
-#define XFUNC_noop 36
-#define XFUNC_prev_com 37
-#define XFUNC_prev_histword 38
-#define XFUNC_search_char_forw 39
-#define XFUNC_search_char_back 40
-#define XFUNC_search_hist 41
-#define XFUNC_set_mark 42
-#define XFUNC_transpose 43
-#define XFUNC_xchg_point_mark 44
-#define XFUNC_yank 45
-#define XFUNC_comp_list 46
-#define XFUNC_expand 47
-#define XFUNC_fold_capitalise 48
-#define XFUNC_fold_lower 49
-#define XFUNC_fold_upper 50
-#define XFUNC_set_arg 51
-#define XFUNC_comment 52
-#define XFUNC_version 53
+#define XFUNC_cls 2
+#define XFUNC_comp_comm 3
+#define XFUNC_comp_file 4
+#define XFUNC_complete 5
+#define XFUNC_del_back 6
+#define XFUNC_del_bword 7
+#define XFUNC_del_char 8
+#define XFUNC_del_fword 9
+#define XFUNC_del_line 10
+#define XFUNC_draw_line 11
+#define XFUNC_end_hist 12
+#define XFUNC_end_of_text 13
+#define XFUNC_enumerate 14
+#define XFUNC_eot_del 15
+#define XFUNC_error 16
+#define XFUNC_goto_hist 17
+#define XFUNC_ins_string 18
+#define XFUNC_insert 19
+#define XFUNC_kill 20
+#define XFUNC_kill_region 21
+#define XFUNC_list_comm 22
+#define XFUNC_list_file 23
+#define XFUNC_literal 24
+#define XFUNC_meta1 25
+#define XFUNC_meta2 26
+#define XFUNC_meta_yank 27
+#define XFUNC_mv_back 28
+#define XFUNC_mv_begin 29
+#define XFUNC_mv_bword 30
+#define XFUNC_mv_end 31
+#define XFUNC_mv_forw 32
+#define XFUNC_mv_fword 33
+#define XFUNC_newline 34
+#define XFUNC_next_com 35
+#define XFUNC_nl_next_com 36
+#define XFUNC_noop 37
+#define XFUNC_prev_com 38
+#define XFUNC_prev_histword 39
+#define XFUNC_search_char_forw 40
+#define XFUNC_search_char_back 41
+#define XFUNC_search_hist 42
+#define XFUNC_set_mark 43
+#define XFUNC_transpose 44
+#define XFUNC_xchg_point_mark 45
+#define XFUNC_yank 46
+#define XFUNC_comp_list 47
+#define XFUNC_expand 48
+#define XFUNC_fold_capitalise 49
+#define XFUNC_fold_lower 50
+#define XFUNC_fold_upper 51
+#define XFUNC_set_arg 52
+#define XFUNC_comment 53
+#define XFUNC_version 54
 
 /* XFUNC_* must be < 128 */
 
-static int x_abort (int);
-static int x_beg_hist (int);
-static int x_comp_comm (int);
-static int x_comp_file (int);
-static int x_complete (int);
-static int x_del_back (int);
-static int x_del_bword (int);
-static int x_del_char (int);
-static int x_del_fword (int);
-static int x_del_line (int);
-static int x_draw_line (int);
-static int x_end_hist (int);
-static int x_end_of_text (int);
-static int x_enumerate (int);
-static int x_eot_del (int);
-static int x_error (int);
-static int x_goto_hist (int);
-static int x_ins_string (int);
-static int x_insert (int);
-static int x_kill (int);
-static int x_kill_region (int);
-static int x_list_comm (int);
-static int x_list_file (int);
-static int x_literal (int);
-static int x_meta1 (int);
-static int x_meta2 (int);
-static int x_meta_yank (int);
-static int x_mv_back (int);
-static int x_mv_begin (int);
-static int x_mv_bword (int);
-static int x_mv_end (int);
-static int x_mv_forw (int);
-static int x_mv_fword (int);
-static int x_newline (int);
-static int x_next_com (int);
-static int x_nl_next_com (int);
-static int x_noop (int);
-static int x_prev_com (int);
-static int x_prev_histword (int);
-static int x_search_char_forw (int);
-static int x_search_char_back (int);
-static int x_search_hist (int);
-static int x_set_mark (int);
-static int x_transpose (int);
-static int x_xchg_point_mark (int);
-static int x_yank (int);
-static int x_comp_list (int);
-static int x_expand (int);
-static int x_fold_capitalise (int);
-static int x_fold_lower (int);
-static int x_fold_upper (int);
-static int x_set_arg (int);
-static int x_comment (int);
-static int x_version (int);
+static int x_abort(int);
+static int x_beg_hist(int);
+static int x_cls(int);
+static int x_comp_comm(int);
+static int x_comp_file(int);
+static int x_complete(int);
+static int x_del_back(int);
+static int x_del_bword(int);
+static int x_del_char(int);
+static int x_del_fword(int);
+static int x_del_line(int);
+static int x_draw_line(int);
+static int x_end_hist(int);
+static int x_end_of_text(int);
+static int x_enumerate(int);
+static int x_eot_del(int);
+static int x_error(int);
+static int x_goto_hist(int);
+static int x_ins_string(int);
+static int x_insert(int);
+static int x_kill(int);
+static int x_kill_region(int);
+static int x_list_comm(int);
+static int x_list_file(int);
+static int x_literal(int);
+static int x_meta1(int);
+static int x_meta2(int);
+static int x_meta_yank(int);
+static int x_mv_back(int);
+static int x_mv_begin(int);
+static int x_mv_bword(int);
+static int x_mv_end(int);
+static int x_mv_forw(int);
+static int x_mv_fword(int);
+static int x_newline(int);
+static int x_next_com(int);
+static int x_nl_next_com(int);
+static int x_noop(int);
+static int x_prev_com(int);
+static int x_prev_histword(int);
+static int x_search_char_forw(int);
+static int x_search_char_back(int);
+static int x_search_hist(int);
+static int x_set_mark(int);
+static int x_transpose(int);
+static int x_xchg_point_mark(int);
+static int x_yank(int);
+static int x_comp_list(int);
+static int x_expand(int);
+static int x_fold_capitalise(int);
+static int x_fold_lower(int);
+static int x_fold_upper(int);
+static int x_set_arg(int);
+static int x_comment(int);
+static int x_version(int);
 
 static const struct x_ftab x_ftab[] = {
 	{ x_abort,		"abort",			0 },
 	{ x_beg_hist,		"beginning-of-history",		0 },
+	{ x_cls,		"clear-screen",			0 },
 	{ x_comp_comm,		"complete-command",		0 },
 	{ x_comp_file,		"complete-file",		0 },
 	{ x_complete,		"complete",			0 },
@@ -1429,6 +1433,26 @@ x_e_getmbc(char *sbuf)
 	return (pos);
 }
 
+static void
+x_init_prompt(void)
+{
+	x_col = promptlen(prompt);
+	x_adj_ok = 1;
+	prompt_redraw = 1;
+	if (x_col > xx_cols)
+		x_col %= xx_cols;
+	x_displen = xx_cols - 2 - x_col;
+	x_adj_done = 0;
+
+	pprompt(prompt, 0);
+	if (x_displen < 1) {
+		x_col = 0;
+		x_displen = xx_cols - 2;
+		x_e_putc2('\n');
+		prompt_redraw = 0;
+	}
+}
+
 static int
 x_emacs(char *buf, size_t len)
 {
@@ -1446,21 +1470,7 @@ x_emacs(char *buf, size_t len)
 	x_last_command = XFUNC_error;
 
 	xx_cols = x_cols;
-	x_col = promptlen(prompt);
-	x_adj_ok = 1;
-	prompt_redraw = 1;
-	if (x_col > xx_cols)
-		x_col %= xx_cols;
-	x_displen = xx_cols - 2 - x_col;
-	x_adj_done = 0;
-
-	pprompt(prompt, 0);
-	if (x_displen < 1) {
-		x_col = 0;
-		x_displen = xx_cols - 2;
-		x_e_putc2('\n');
-		prompt_redraw = 0;
-	}
+	x_init_prompt();
 
 	if (x_nextcmd >= 0) {
 		int off = source->line - x_nextcmd;
@@ -2229,6 +2239,19 @@ x_draw_line(int c __unused)
 {
 	x_redraw(-1);
 	return KSTD;
+}
+
+static int
+x_cls(int c __unused)
+{
+/* in later versions we might use libtermcap for this */
+#ifndef MKSH_CLS_STRING
+#define MKSH_CLS_STRING	"\033[;H\033[J"
+#endif
+	shf_fprintf(shl_out, MKSH_CLS_STRING);
+	x_init_prompt();
+	x_redraw(0);
+	return (KSTD);
 }
 
 /* Redraw (part of) the line.  If limit is < 0, the everything is redrawn

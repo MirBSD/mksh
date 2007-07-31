@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.92 2007/07/26 13:32:16 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.93 2007/07/31 15:29:40 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
-.Dd July 26, 2007
+.Dd July 31, 2007
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -4430,6 +4430,10 @@ Moves the cursor to the beginning of the edited input line.
 Uppercase the first character in the next
 .Ar n
 words, leaving the cursor past the end of the last word.
+.It clear-screen: (not bound)
+Prints a compile-time configurable sequence to clear the screen and home
+the cursor, redraws the entire prompt and the currently edited input line.
+The default sequence works for almost all standard terminals.
 .It comment: ^[#
 If the current line does not begin with a comment character, one is added at
 the beginning of the line and the line is entered (as if return had been
@@ -4526,7 +4530,7 @@ Acts as
 .Ic eot
 if alone on a line; otherwise acts as
 .Ic delete-char-forward .
-.It error:
+.It error: (not bound)
 Error (ring the bell).
 .It exchange-point-and-mark: ^X^X
 Places the cursor where the mark is and sets the mark to where the cursor was.
@@ -5342,7 +5346,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh R30
+.Nm mksh R30b
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
