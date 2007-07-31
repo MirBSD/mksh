@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.33 2007/07/06 02:39:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.34 2007/07/31 10:42:15 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -98,11 +98,12 @@ char *
 evalstr(const char *cp, int f)
 {
 	XPtrV w;
-	char *dp;
+	char *dp = null;
 
 	XPinit(w, 1);
 	expand(cp, &w, f);
-	dp = (XPsize(w) == 0) ? null : (char*) *XPptrv(w);
+	if (XPsize(w))
+		dp = *XPptrv(w);
 	XPfree(w);
 	return (dp);
 }

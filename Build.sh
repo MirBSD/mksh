@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.248 2007/07/31 10:17:52 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.249 2007/07/31 10:42:14 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -419,7 +419,7 @@ ac_testn couldbe_tcc '!' compiler_known 0 'if this could be tcc' <<-EOF
 EOF
 if test $HAVE_COULDBE_TCC = 1; then
 	ct=tcc
-	CPP=cpp
+	CPP='cpp -D__TINYC__'
 fi
 ac_testn compiler_fails '' 'if the compiler does not fail correctly' <<-EOF
 	int main(void) { return (thiswillneverbedefinedIhope()); }

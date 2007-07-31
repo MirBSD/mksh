@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.53 2007/07/22 14:01:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.54 2007/07/31 10:42:15 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -1055,14 +1055,20 @@ gettrap(const char *name, int igncase)
 {
 	int n = NSIG + 1;
 	Trap *p;
+	const char *n2;
+	int (*cmpfunc)(const char *, const char *);
 
 	if (ksh_isdigit(*name)) {
 		if (getn(name, &n) && 0 <= n && n < NSIG)
 			return (&sigtraps[n]);
-	} else for (p = sigtraps; --n >= 0; p++)
-		if (!(igncase ? strcasecmp : strcmp)(p->name, name) ||
-		   (!strncasecmp(name, "SIG", 3) &&
-		    !(igncase ? strcasecmp : strcmp)(p->name, name + 3)))
+		else
+			return (NULL);
+	}
+
+	n2 = strncasecmp(name, "SIG", 3) ? NULL : name + 3;
+	cmpfunc = igncase ? strcasecmp : strcmp;
+	for (p = sigtraps; --n >= 0; p++)
+		if (!cmpfunc(p->name, name) || (n2 && !cmpfunc(p->name, n2)))
 			return (p);
 	return (NULL);
 }

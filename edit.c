@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.107 2007/07/22 13:38:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.108 2007/07/31 10:42:14 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -515,8 +515,9 @@ x_cf_glob(int flags, const char *buf, int buflen, int pos, int *startp,
 	if (len == 0 && is_command)
 		return 0;
 
-	nwords = (is_command ? x_command_glob : x_file_glob)(flags,
-	    buf + *startp, len, &words);
+	nwords = is_command ?
+	    x_command_glob(flags, buf + *startp, len, &words) :
+	    x_file_glob(flags, buf + *startp, len, &words);
 	if (nwords == 0) {
 		*wordsp = NULL;
 		return 0;
