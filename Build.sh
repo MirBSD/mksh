@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.246 2007/07/26 22:38:31 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.247 2007/07/31 10:04:46 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -367,6 +367,10 @@ cat >scn.c <<-'EOF'
 	ct=dmc
 	#elif defined(_MSC_VER)
 	ct=msc
+	#elif defined(__TenDRA__)
+	ct=tendra
+	#elif defined(__TINYC__)
+	ct=tcc
 	#elif defined(__GNUC__)
 	ct=gcc
 	#elif defined(__hpux)
@@ -381,8 +385,12 @@ test $h = 1 && sed 's/^/[ /' x
 eval `cat x`
 rm -f x
 case $ct in
-bcc|dmc|gcc|hpcc|icc|msc|sunpro|xlc) ;;
+bcc|dmc|gcc|hpcc|icc|msc|sunpro|tcc|tendra|xlc) ;;
 *) ct=unknown ;;
+esac
+# kludge; tcc still isn't really supported though
+case $CC:$ct in
+*tcc:unknown) ct=tcc ;;
 esac
 $e "$bi==> which compiler we seem to use...$ao $ui$ct$ao"
 rm -f scn.c scn.o
@@ -449,6 +457,8 @@ elif test $ct = bcc; then
 elif test $ct = xlc; then
 	save_NOWARN=-qflag=i:e
 	DOWARN=-qflag=i:i
+elif test $ct = tendra; then
+	save_NOWARN=-w
 else
 	test x"$save_NOWARN" = x"" && save_NOWARN=-Wno-error
 	ac_flags 0 wnoerror "$save_NOWARN"
@@ -480,6 +490,8 @@ elif test $ct = hpcc; then
 elif test $ct = xlc; then
 	ac_flags 1 othree "-O3 -qstrict"
 	test 1 = $HAVE_CAN_OTHREE || ac_flags 1 otwo -O2
+elif test $ct = tcc || $ct = tendra; then
+	: no special optimisation
 else
 	ac_flags 1 otwo -O2
 	test 1 = $HAVE_CAN_OTWO || ac_flags 1 optimise -O
@@ -526,6 +538,12 @@ elif test $ct = xlc; then
 	ac_flags 1 rtchkc -qextchk
 	ac_flags 1 wformat "-qformat=all -qformat=nozln"
 	#ac_flags 1 wp64 -qwarn64	# too verbose for now
+elif test $ct = tendra; then
+	ac_flags 0 ysystem -Ysystem
+	test $HAVE_CAN_YSYSTEM = 1 && CPPFLAGS="-Ysystem $CPPFLAGS"
+	ac_flags 1 extansi -Xa
+elif test $ct = tcc; then
+	ac_flags 1 boundschk -b
 fi
 # flags common to a subset of compilers
 if test 1 = $i; then
