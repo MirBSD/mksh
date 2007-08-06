@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.166 2007/07/31 11:11:25 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.167 2007/08/06 12:02:39 tg Exp $"
 #define MKSH_VERSION "R30 2007/07/31"
 
 #if HAVE_SYS_PARAM_H
@@ -1413,7 +1413,8 @@ void print_columns(struct shf *, int,
     char *(*)(const void *, int, char *, int),
     const void *, int, int prefcol);
 void strip_nuls(char *, int);
-int blocking_read(int, char *, int);
+int blocking_read(int, char *, int)
+    __attribute__((bounded (buffer, 2, 3)));
 int reset_nonblock(int);
 char *ksh_get_wd(size_t *);
 int make_path(const char *, const char *, char **, XString *, int *);
