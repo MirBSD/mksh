@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.84 2007/07/22 13:34:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.85 2007/08/12 13:42:21 tg Exp $");
 
 extern char **environ;
 
@@ -222,8 +222,9 @@ main(int argc, const char *argv[])
 			setstr(pwd_v, current_wd, KSH_RETURN_ERROR);
 	}
 	ppid = getppid();
-#if !HAVE_ARC4RANDOM
-	srand(((long)kshname) ^ ((long)time(NULL) * kshpid * ppid));
+	change_random(((u_long)kshname) ^ ((u_long)time(NULL) * kshpid * ppid));
+#if HAVE_ARC4RANDOM
+	Flag(FARC4RANDOM) = 2;	/* use arc4random(3) until $RANDOM is written */
 #endif
 	setint(global("PPID"), (long)ppid);
 

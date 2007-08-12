@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.93 2007/07/31 15:29:40 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.94 2007/08/12 13:42:22 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
-.Dd July 31, 2007
+.Dd August 12, 2007
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -1590,16 +1590,9 @@ if the shell doesn't know where it is.
 Every time
 .Ev RANDOM
 is referenced, it is assigned a pseudo-random number first.
-By default,
-.Xr arc4random 3
-is used to produce unsigned 15\-bit values (0\-32767)
-whose quality depends on the operating environment.
-If
-.Ev RANDOM
-is assigned a value, it is used as the seed to
-.Xr srand 3
-and subsequent references yield a semi-predictable sequence from
-.Xr rand 3 .
+See the description of
+.Ic set -o Ic arc4random
+below for details.
 .It Ev REPLY
 Default parameter for the
 .Ic read
@@ -3344,6 +3337,18 @@ during file name generation.
 Print commands and parameter assignments when they are executed, preceded by
 the value of
 .Ev PS4 .
+.It Ic arc4random
+Use
+.Xr arc4random 3
+high-quality random numbers for the value of
+.Ev RANDOM
+if set (to either 1 or 2), or a semi-predictable sequence from
+.Xr rand 3
+if unset.
+Setting this flag will change its value to 1; the default value is 2,
+which means it automatically switches to 0 if
+.Ev RANDOM
+is written to.
 .It Ic bgnice
 Background jobs are run with lower priority.
 .It Ic braceexpand

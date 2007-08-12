@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.42 2007/07/22 14:01:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.43 2007/08/12 13:42:23 tg Exp $");
 
 /*
  * Variables
@@ -23,6 +23,8 @@ static void	getspec(struct tbl *);
 static void	setspec(struct tbl *);
 static void	unsetspec(struct tbl *);
 static struct tbl *arraysearch(struct tbl *, int);
+static int rnd_get(void);
+static void rnd_set(long);
 
 /*
  * create a new block for function calls and simple commands
@@ -849,12 +851,65 @@ makenv(void)
 }
 
 /*
- * Someone has set the srand() value, therefore from now on
- * we return values from rand() instead of arc4random()
+ * Get us a random number, either from rand(3) or arc4random(3), with
+ * the latter being preferred. If Flag(FARC4RANDOM) is 0, we use rand(3),
+ * otherwise arc4random(3). We have static caches to make change_random
+ * and writes to $RANDOM a cheap operation.
  */
 #if HAVE_ARC4RANDOM
-static int use_rand = 0;
+static uint64_t rnd_cache = 0;
+static char rnd_lastflag = 2;
 #endif
+
+static int
+rnd_get(void)
+{
+#if HAVE_ARC4RANDOM
+#if HAVE_ARC4RANDOM_PUSHB
+	uint32_t rv = 0;
+#endif
+	if (Flag(FARC4RANDOM) != rnd_lastflag) {
+		if (Flag(FARC4RANDOM) == 0) {
+			/* transition to 0 by set: srand */
+			srand(arc4random() & 0x7FFF);
+		} else if (rnd_lastflag == 0) {
+			/* transition from 0: addrandom */
+			rnd_cache ^= rand();
+		}
+		rnd_lastflag = Flag(FARC4RANDOM);
+	}
+	if (Flag(FARC4RANDOM)) {
+		if (rnd_cache)
+#if HAVE_ARC4RANDOM_PUSHB
+			rv = arc4random_pushb(&rnd_cache, sizeof (rnd_cache));
+#else
+			arc4random_addrandom(&rnd_cache, sizeof (rnd_cache));
+#endif
+		rnd_cache = 0;
+		return ((
+#if HAVE_ARC4RANDOM_PUSHB
+		    rv ? rv :
+#endif
+		    arc4random()) & 0x7FFF);
+	}
+#endif
+	return (rand() & 0x7FFF);
+}
+
+static void
+rnd_set(long newval)
+{
+#if HAVE_ARC4RANDOM
+	rnd_cache ^= (((uint64_t)newval) << 15) | rand();
+	if (Flag(FARC4RANDOM) == 1)
+		return;
+	if (Flag(FARC4RANDOM) == 2)
+		Flag(FARC4RANDOM) = 0;
+	/* transition to 0 by write: only srand */
+	rnd_lastflag = 0;
+#endif
+	srand(newval & 0x7FFF);
+}
 
 /*
  * Called after a fork in parent to bump the random number generator.
@@ -862,12 +917,30 @@ static int use_rand = 0;
  * if the parent doesn't use $RANDOM.
  */
 void
-change_random(void)
+change_random(uint64_t newval)
 {
+	int rval = 0;
+
+	newval &= 0x00001FFFFFFFFFFF;
+	newval |= (uint64_t)rand() << 45;
+
 #if HAVE_ARC4RANDOM
-	if (use_rand)
+	if (Flag(FARC4RANDOM)) {
+		rnd_cache ^= newval;
+		return;
+	}
 #endif
-		rand();
+
+	rval += newval & 0x7FFF;
+	newval >>= 15;
+	rval += newval & 0x7FFF;
+	newval >>= 15;
+	rval += newval & 0x7FFF;
+	newval >>= 15;
+	rval += newval;
+	rval = (rval & 0x7FFF) ^ (rval >> 15);
+
+	srand(rval);
 }
 
 /*
@@ -918,12 +991,7 @@ getspec(struct tbl *vp)
 		break;
 	case V_RANDOM:
 		vp->flag &= ~SPECIAL;
-#if HAVE_ARC4RANDOM
-		if (!use_rand)
-			setint(vp, arc4random() & 0x7FFF);
-		else
-#endif
-			setint(vp, rand() & 0x7FFF);
+		setint(vp, rnd_get());
 		vp->flag |= SPECIAL;
 		break;
 	case V_HISTSIZE:
@@ -963,7 +1031,7 @@ setspec(struct tbl *vp)
 		break;
 	case V_OPTIND:
 		vp->flag &= ~SPECIAL;
-		getopts_reset((int) intval(vp));
+		getopts_reset((int)intval(vp));
 		vp->flag |= SPECIAL;
 		break;
 	case V_TMPDIR:
@@ -985,7 +1053,7 @@ setspec(struct tbl *vp)
 		break;
 	case V_HISTSIZE:
 		vp->flag &= ~SPECIAL;
-		sethistsize((int) intval(vp));
+		sethistsize((int)intval(vp));
 		vp->flag |= SPECIAL;
 		break;
 #if HAVE_PERSISTENT_HISTORY
@@ -999,13 +1067,7 @@ setspec(struct tbl *vp)
 		break;
 	case V_RANDOM:
 		vp->flag &= ~SPECIAL;
-		srand((unsigned int)intval(vp));
-#if HAVE_ARC4RANDOM
-		use_rand = 1;
-#if HAVE_ARC4RANDOM_PUSH
-		arc4random_push((unsigned)vp ^ (unsigned)rand());
-#endif
-#endif
+		rnd_set(intval(vp));
 		vp->flag |= SPECIAL;
 		break;
 	case V_SECONDS:
@@ -1026,7 +1088,7 @@ setspec(struct tbl *vp)
 	case V_LINENO:
 		vp->flag &= ~SPECIAL;
 		/* The -1 is because line numbering starts at 1. */
-		user_lineno = (unsigned int) intval(vp) - current_lineno - 1;
+		user_lineno = (unsigned int)intval(vp) - current_lineno - 1;
 		vp->flag |= SPECIAL;
 		break;
 	}

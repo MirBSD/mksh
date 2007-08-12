@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.250 2007/07/31 11:11:23 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.251 2007/08/12 13:42:19 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -760,9 +760,13 @@ if test $HAVE_ARC4RANDOM = 0 && test -f "$srcdir/arc4random.c"; then
 fi
 ac_cppflags ARC4RANDOM
 
-ac_test arc4random_push arc4random 0 <<-'EOF'
-	extern void arc4random_push(int);
-	int main(void) { arc4random_push(1); return (0); }
+ac_test arc4random_pushb arc4random 0 <<-'EOF'
+	#include <sys/types.h>
+	#if HAVE_STDINT_H
+	#include <stdint.h>
+	#endif
+	extern uint32_t arc4random_pushb(void *, size_t);
+	int main(int ac, char *av[]) { return (arc4random_pushb(*av, ac)); }
 EOF
 
 ac_test flock_ex '' 'flock and mmap' <<-'EOF'
@@ -853,11 +857,11 @@ ac_test '!' arc4random_decl arc4random 1 'if arc4random() does not need to be de
 	long arc4random(void);		/* this clashes if defined before */
 	int main(void) { return (arc4random()); }
 EOF
-ac_test '!' arc4random_push_decl arc4random_push 1 'if arc4random_push() does not need to be declared' <<-'EOF'
+ac_test '!' arc4random_pushb_decl arc4random_pushb 1 'if arc4random_pushb() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
-	void arc4random_push(long);	/* this clashes if defined before */
-	int main(void) { arc4random_push(1); return (0); }
+	int arc4random_pushb(char, int); /* this clashes if defined before */
+	int main(int ac, char *av[]) { return (arc4random_pushb(**av, ac)); }
 EOF
 ac_test sys_siglist_decl sys_siglist 1 'if sys_siglist[] does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY

@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.167 2007/08/06 12:02:39 tg Exp $"
-#define MKSH_VERSION "R30 2007/07/31"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.168 2007/08/12 13:42:23 tg Exp $"
+#define MKSH_VERSION "R30 2007/08/12"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -194,8 +194,8 @@ typedef int bool;
 extern u_int32_t arc4random(void);
 #endif
 
-#if !HAVE_ARC4RANDOM_PUSH_DECL
-extern void arc4random_push(int);
+#if !HAVE_ARC4RANDOM_PUSHB_DECL
+extern uint32_t arc4random_pushb(void *, size_t);
 #endif
 
 #if !HAVE_SETMODE
@@ -393,6 +393,9 @@ extern const struct shoption options[];
  */
 enum sh_flag {
 	FEXPORT = 0,	/* -a: export all */
+#if HAVE_ARC4RANDOM
+	FARC4RANDOM,	/* use 0:rand(3) 1:arc4random(3) 2:switch on write */
+#endif
 	FBRACEEXPAND,	/* enable {} globbing */
 	FBGNICE,	/* bgnice */
 	FCOMMAND,	/* -c: (invocation) execute specified command */
@@ -431,7 +434,7 @@ enum sh_flag {
 	FNFLAGS		/* (place holder: how many flags are there) */
 };
 
-#define Flag(f)	(shell_flags[(int) (f)])
+#define Flag(f)	(shell_flags[(int)(f)])
 
 EXTERN char shell_flags[FNFLAGS];
 
@@ -1479,7 +1482,7 @@ const char *skip_wdvarname(const char *, int);
 int is_wdvarname(const char *, int);
 int is_wdvarassign(const char *);
 char **makenv(void);
-void change_random(void);
+void change_random(uint64_t);
 int array_ref_len(const char *);
 char *arrayname(const char *);
 void set_array(const char *, int, const char **);

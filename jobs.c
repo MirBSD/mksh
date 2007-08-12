@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.25 2007/07/22 13:34:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.26 2007/08/12 13:42:21 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -369,6 +369,9 @@ exchild(struct op *t, int flags,
 	else
 		p->pid = i;
 
+	/* Ensure next child gets a (slightly) different $RANDOM sequence */
+	change_random((p->pid << 1) | (ischild ? 1 : 0));
+
 	/* job control set up */
 	if (Flag(FMONITOR) && !(flags&XXCOM)) {
 		int	dotty = 0;
@@ -437,8 +440,6 @@ exchild(struct op *t, int flags,
 	}
 
 	/* shell (parent) stuff */
-	/* Ensure next child gets a (slightly) different $RANDOM sequence */
-	change_random();
 	if (!(flags & XPIPEO)) {	/* last process in a job */
 		j_startjob(j);
 		if (flags & XCOPROC) {
