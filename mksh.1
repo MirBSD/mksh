@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.94 2007/08/12 13:42:22 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.95 2007/08/12 14:01:38 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
 .Dd August 12, 2007
@@ -1589,7 +1589,8 @@ if the shell doesn't know where it is.
 .It Ev RANDOM
 Every time
 .Ev RANDOM
-is referenced, it is assigned a pseudo-random number first.
+is referenced, it is assigned a 15-bit pseudo-random number, i.e. between
+0 and 32767, first.
 See the description of
 .Ic set -o Ic arc4random
 below for details.
