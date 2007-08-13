@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.85 2007/08/12 13:42:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.86 2007/08/13 19:39:19 tg Exp $");
 
 extern char **environ;
 
@@ -49,6 +49,7 @@ static const char *initcoms_korn[] = {
 	"history=fc -l",
 	"nohup=nohup ",
 	"r=fc -e -",
+	"source=PATH=$PATH:. command .",
 	"login=exec login",
 	NULL,
 	 /* this is what at&t ksh seems to track, with the addition of emacs */

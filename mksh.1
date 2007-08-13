@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.95 2007/08/12 14:01:38 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.96 2007/08/13 19:39:20 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
 .Dd August 12, 2007
@@ -2379,6 +2379,9 @@ The following describes the special and regular built-in commands:
 .Pp
 .Bl -tag -width Ds -compact
 .It Ic \&. Ar file Op Ar arg ...
+This is called the
+.Dq dot
+command.
 Execute the commands in
 .Ar file
 in the current environment.
@@ -3486,6 +3489,21 @@ etc. are renamed to
 etc.
 .Ar number
 defaults to 1.
+.Pp
+.It Ic source Ar file Op Ar arg ...
+Like
+.Ic \&. Po Do dot Dc Pc ,
+except that the current working directory is appended to the
+.Ev PATH
+in GNU
+.Nm bash
+and
+.Nm mksh .
+In
+.Nm ksh93
+and
+.Nm mksh ,
+this is implemented as a shell alias instead of a builtin.
 .Pp
 .It Ic test Ar expression
 .It Ic \&[ Ar expression Ic \&]
@@ -5352,7 +5370,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh R30b
+.Nm mksh R31
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
