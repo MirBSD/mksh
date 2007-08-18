@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.97 2007/08/18 00:22:08 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.98 2007/08/18 01:20:28 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
 .Dd August 18, 2007
@@ -4454,7 +4454,7 @@ Moves the cursor to the beginning of the edited input line.
 Uppercase the first character in the next
 .Ar n
 words, leaving the cursor past the end of the last word.
-.It clear-screen: (not bound)
+.It clear-screen: ^[^L
 Prints a compile-time configurable sequence to clear the screen and home
 the cursor, redraws the entire prompt and the currently edited input line.
 The default sequence works for almost all standard terminals.
