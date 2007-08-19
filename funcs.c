@@ -5,7 +5,126 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.62 2007/07/31 13:55:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.63 2007/08/19 22:06:26 tg Exp $");
+
+/* A leading = means assignments before command are kept;
+ * a leading * means a POSIX special builtin;
+ * a leading + means a POSIX regular builtin
+ * (* and + should not be combined).
+ */
+const struct builtin mkshbuiltins[] = {
+	{"*=.", c_dot},
+	{"*=:", c_label},
+	{"[", c_test},
+	{"*=break", c_brkcont},
+	{"=builtin", c_builtin},
+	{"*=continue", c_brkcont},
+	{"*=eval", c_eval},
+	{"*=exec", c_exec},
+	{"*=exit", c_exitreturn},
+	{"+false", c_label},
+	{"*=return", c_exitreturn},
+	{"*=set", c_set},
+	{"*=shift", c_shift},
+	{"=times", c_times},
+	{"*=trap", c_trap},
+	{"+=wait", c_wait},
+	{"+read", c_read},
+	{"test", c_test},
+	{"+true", c_label},
+	{"ulimit", c_ulimit},
+	{"+umask", c_umask},
+	{"*=unset", c_unset},
+	{"+alias", c_alias},	/* no =: at&t manual wrong */
+	{"+cd", c_cd},
+	{"+command", c_command},
+	{"echo", c_print},
+	{"*=export", c_typeset},
+	{"+fc", c_fc},
+	{"+getopts", c_getopts},
+	{"+jobs", c_jobs},
+	{"+kill", c_kill},
+	{"let", c_let},
+	{"print", c_print},
+	{"pwd", c_pwd},
+	{"*=readonly", c_typeset},
+	{"=typeset", c_typeset},
+	{"+unalias", c_unalias},
+	{"whence", c_whence},
+	{"+bg", c_fgbg},
+	{"+fg", c_fgbg},
+	{"bind", c_bind},
+#if HAVE_MKNOD
+	{"mknod", c_mknod},
+#endif
+	{"rename", c_rename},
+	{NULL, (int (*)(const char **))NULL}
+};
+
+struct kill_info {
+	int num_width;
+	int name_width;
+};
+
+static const struct t_op {
+	char	op_text[4];
+	Test_op	op_num;
+} u_ops[] = {
+	{"-a",	TO_FILAXST },
+	{"-b",	TO_FILBDEV },
+	{"-c",	TO_FILCDEV },
+	{"-d",	TO_FILID },
+	{"-e",	TO_FILEXST },
+	{"-f",	TO_FILREG },
+	{"-G",	TO_FILGID },
+	{"-g",	TO_FILSETG },
+	{"-h",	TO_FILSYM },
+	{"-H",	TO_FILCDF },
+	{"-k",	TO_FILSTCK },
+	{"-L",	TO_FILSYM },
+	{"-n",	TO_STNZE },
+	{"-O",	TO_FILUID },
+	{"-o",	TO_OPTION },
+	{"-p",	TO_FILFIFO },
+	{"-r",	TO_FILRD },
+	{"-s",	TO_FILGZ },
+	{"-S",	TO_FILSOCK },
+	{"-t",	TO_FILTT },
+	{"-u",	TO_FILSETU },
+	{"-w",	TO_FILWR },
+	{"-x",	TO_FILEX },
+	{"-z",	TO_STZER },
+	{"",	TO_NONOP }
+};
+static const struct t_op b_ops[] = {
+	{"=",	TO_STEQL },
+	{"==",	TO_STEQL },
+	{"!=",	TO_STNEQ },
+	{"<",	TO_STLT },
+	{">",	TO_STGT },
+	{"-eq",	TO_INTEQ },
+	{"-ne",	TO_INTNE },
+	{"-gt",	TO_INTGT },
+	{"-ge",	TO_INTGE },
+	{"-lt",	TO_INTLT },
+	{"-le",	TO_INTLE },
+	{"-ef",	TO_FILEQ },
+	{"-nt",	TO_FILNT },
+	{"-ot",	TO_FILOT },
+	{"",	TO_NONOP }
+};
+
+static int test_eaccess(const char *, int);
+static int test_oexpr(Test_env *, int);
+static int test_aexpr(Test_env *, int);
+static int test_nexpr(Test_env *, int);
+static int test_primary(Test_env *, int);
+static int ptest_isa(Test_env *, Test_meta);
+static const char *ptest_getopnd(Test_env *, Test_op, int);
+static void ptest_error(Test_env *, int, const char *);
+static char *kill_fmt_entry(const void *, int, char *, int);
+static void p_time(struct shf *, int, struct timeval *, int,
+    const char *, const char *);
 
 int
 c_cd(const char **wp)
@@ -1079,12 +1198,6 @@ c_fgbg(const char **wp)
 	return bg ? 0 : rv;
 }
 
-struct kill_info {
-	int num_width;
-	int name_width;
-};
-static char *kill_fmt_entry(const void *, int, char *, int);
-
 /* format a single kill item */
 static char *
 kill_fmt_entry(const void *arg, int i, char *buf, int buflen)
@@ -1098,7 +1211,6 @@ kill_fmt_entry(const void *arg, int i, char *buf, int buflen)
 	    sigtraps[i].mess);
 	return buf;
 }
-
 
 int
 c_kill(const char **wp)
@@ -1347,37 +1459,6 @@ c_bind(const char **wp)
 
 	return rv;
 }
-
-/* A leading = means assignments before command are kept;
- * a leading * means a POSIX special builtin;
- * a leading + means a POSIX regular builtin
- * (* and + should not be combined).
- */
-const struct builtin kshbuiltins [] = {
-	{"+alias", c_alias},	/* no =: at&t manual wrong */
-	{"+cd", c_cd},
-	{"+command", c_command},
-	{"echo", c_print},
-	{"*=export", c_typeset},
-	{"+fc", c_fc},
-	{"+getopts", c_getopts},
-	{"+jobs", c_jobs},
-	{"+kill", c_kill},
-	{"let", c_let},
-	{"print", c_print},
-	{"pwd", c_pwd},
-	{"*=readonly", c_typeset},
-	{"=typeset", c_typeset},
-	{"+unalias", c_unalias},
-	{"whence", c_whence},
-	{"+bg", c_fgbg},
-	{"+fg", c_fgbg},
-	{"bind", c_bind},
-	{NULL, (int (*)(const char **))NULL}
-};
-
-static void p_time(struct shf *, int, struct timeval *, int,
-    const char *, const char *);
 
 /* :, false and true */
 int
@@ -2204,7 +2285,7 @@ c_exec(const char **wp __unused)
 }
 
 #if HAVE_MKNOD
-static int
+int
 c_mknod(const char **wp)
 {
 	int argc, optc, rv = 0;
@@ -2296,40 +2377,6 @@ c_builtin(const char **wp __unused)
 	return 0;
 }
 
-/* A leading = means assignments before command are kept;
- * a leading * means a POSIX special builtin;
- * a leading + means a POSIX regular builtin
- * (* and + should not be combined).
- */
-const struct builtin shbuiltins [] = {
-	{"*=.", c_dot},
-	{"*=:", c_label},
-	{"[", c_test},
-	{"*=break", c_brkcont},
-	{"=builtin", c_builtin},
-	{"*=continue", c_brkcont},
-	{"*=eval", c_eval},
-	{"*=exec", c_exec},
-	{"*=exit", c_exitreturn},
-	{"+false", c_label},
-	{"*=return", c_exitreturn},
-	{"*=set", c_set},
-	{"*=shift", c_shift},
-	{"=times", c_times},
-	{"*=trap", c_trap},
-	{"+=wait", c_wait},
-	{"+read", c_read},
-	{"test", c_test},
-	{"+true", c_label},
-	{"ulimit", c_ulimit},
-	{"+umask", c_umask},
-	{"*=unset", c_unset},
-#if HAVE_MKNOD
-	{"mknod", c_mknod},
-#endif
-	{NULL, (int (*)(const char **))NULL}
-};
-
 /* test(1) accepts the following grammar:
 	oexpr	::= aexpr | aexpr "-o" oexpr ;
 	aexpr	::= nexpr | nexpr "-a" aexpr ;
@@ -2352,64 +2399,6 @@ const struct builtin shbuiltins [] = {
 */
 
 #define T_ERR_EXIT	2	/* POSIX says > 1 for errors */
-
-struct t_op {
-	char	op_text[4];
-	Test_op	op_num;
-};
-static const struct t_op u_ops [] = {
-	{"-a",	TO_FILAXST },
-	{"-b",	TO_FILBDEV },
-	{"-c",	TO_FILCDEV },
-	{"-d",	TO_FILID },
-	{"-e",	TO_FILEXST },
-	{"-f",	TO_FILREG },
-	{"-G",	TO_FILGID },
-	{"-g",	TO_FILSETG },
-	{"-h",	TO_FILSYM },
-	{"-H",	TO_FILCDF },
-	{"-k",	TO_FILSTCK },
-	{"-L",	TO_FILSYM },
-	{"-n",	TO_STNZE },
-	{"-O",	TO_FILUID },
-	{"-o",	TO_OPTION },
-	{"-p",	TO_FILFIFO },
-	{"-r",	TO_FILRD },
-	{"-s",	TO_FILGZ },
-	{"-S",	TO_FILSOCK },
-	{"-t",	TO_FILTT },
-	{"-u",	TO_FILSETU },
-	{"-w",	TO_FILWR },
-	{"-x",	TO_FILEX },
-	{"-z",	TO_STZER },
-	{"",	TO_NONOP }
-};
-static const struct t_op b_ops [] = {
-	{"=",	TO_STEQL },
-	{"==",	TO_STEQL },
-	{"!=",	TO_STNEQ },
-	{"<",	TO_STLT },
-	{">",	TO_STGT },
-	{"-eq",	TO_INTEQ },
-	{"-ne",	TO_INTNE },
-	{"-gt",	TO_INTGT },
-	{"-ge",	TO_INTGE },
-	{"-lt",	TO_INTLT },
-	{"-le",	TO_INTLE },
-	{"-ef",	TO_FILEQ },
-	{"-nt",	TO_FILNT },
-	{"-ot",	TO_FILOT },
-	{"",	TO_NONOP }
-};
-
-static int	test_eaccess(const char *, int);
-static int	test_oexpr(Test_env *, int);
-static int	test_aexpr(Test_env *, int);
-static int	test_nexpr(Test_env *, int);
-static int	test_primary(Test_env *, int);
-static int	ptest_isa(Test_env *, Test_meta);
-static const char *ptest_getopnd(Test_env *, Test_op, int);
-static void	ptest_error(Test_env *, int, const char *);
 
 int
 c_test(const char **wp)
@@ -3032,4 +3021,23 @@ c_ulimit(const char **wp)
 		}
 	}
 	return (0);
+}
+
+int
+c_rename(const char **wp)
+{
+	int rv = 1;
+
+	if (wp == NULL /* argv */ ||
+	    wp[0] == NULL /* name of builtin */ ||
+	    wp[1] == NULL /* first argument */ ||
+	    wp[2] == NULL /* second argument */ ||
+	    wp[3] != NULL /* no further args please */)
+		bi_errorf("syntax error");
+	else if ((rv = rename(wp[1], wp[2])) != 0) {
+		rv = errno;
+		bi_errorf("failed: %s", strerror(rv));
+	}
+
+	return (rv);
 }

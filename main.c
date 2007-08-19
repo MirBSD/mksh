@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.86 2007/08/13 19:39:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.87 2007/08/19 22:06:26 tg Exp $");
 
 extern char **environ;
 
@@ -125,10 +125,8 @@ main(int argc, const char *argv[])
 
 	/* define built-in commands */
 	ktinit(&builtins, APERM, 64); /* must be 2^n (currently 40 builtins) */
-	for (i = 0; shbuiltins[i].name != NULL; i++)
-		builtin(shbuiltins[i].name, shbuiltins[i].func);
-	for (i = 0; kshbuiltins[i].name != NULL; i++)
-		builtin(kshbuiltins[i].name, kshbuiltins[i].func);
+	for (i = 0; mkshbuiltins[i].name != NULL; i++)
+		builtin(mkshbuiltins[i].name, mkshbuiltins[i].func);
 
 	init_histvec();
 

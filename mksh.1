@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.98 2007/08/18 01:20:28 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.99 2007/08/19 22:06:26 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
-.Dd August 18, 2007
+.Dd August 19, 2007
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -3183,6 +3183,17 @@ option is used, in which case
 commands defining all read-only parameters, including their values, are
 printed.
 .Pp
+.It Ic rename Ar from to
+Renames the file
+.Ar from
+to
+.Ar to .
+Both must be complete pathnames and on the same device.
+This builtin is intended for emergency situations where
+.Pa /bin/mv
+becomes unusable, and directly calls
+.Xr rename 2 .
+.Pp
 .It Ic return Op Ar status
 Returns from a function or
 .Ic .\&
@@ -5283,6 +5294,7 @@ Privileged shell profile.
 .Xr mkfifo 2 ,
 .Xr open 2 ,
 .Xr pipe 2 ,
+.Xr rename 2 ,
 .Xr wait 2 ,
 .Xr arc4random 3 ,
 .Xr getopt 3 ,

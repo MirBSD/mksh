@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.171 2007/08/18 00:22:09 tg Exp $"
-#define MKSH_VERSION "R31 2007/08/18"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.172 2007/08/19 22:06:27 tg Exp $"
+#define MKSH_VERSION "R31 2007/08/19"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -818,7 +818,7 @@ struct builtin {
 	int (*func)(const char **);
 };
 
-extern const struct builtin shbuiltins [], kshbuiltins [];
+extern const struct builtin mkshbuiltins[];
 
 /* var spec values */
 #define V_NONE		0
@@ -1271,6 +1271,10 @@ void timex_hook(struct op *, char ** volatile *);
 int c_exec(const char **);
 int c_builtin(const char **);
 int c_test(const char **);
+#if HAVE_MKNOD
+int c_mknod(const char **);
+#endif
+int c_rename(const char **);
 /* histrap.c */
 void init_histvec(void);
 void hist_init(Source *);
