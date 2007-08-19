@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.16 2007/07/01 21:10:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.17 2007/08/19 23:12:23 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -729,7 +729,7 @@ syntaxerr(const char *what)
 			goto Again;
 		}
 		/* don't quote the EOF */
-		yyerror("syntax error: unexpected EOF\n");
+		yyerror("%s: unexpected EOF\n", T_synerr);
 		/* NOTREACHED */
 
 	case LWORD:
@@ -756,7 +756,7 @@ syntaxerr(const char *what)
 			s = redir;
 		}
 	}
-	yyerror("syntax error: '%s' %s\n", s, what);
+	yyerror("%s: '%s' %s\n", T_synerr, s, what);
 }
 
 static void

@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.63 2007/08/19 22:06:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.64 2007/08/19 23:12:21 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -3033,7 +3033,7 @@ c_rename(const char **wp)
 	    wp[1] == NULL /* first argument */ ||
 	    wp[2] == NULL /* second argument */ ||
 	    wp[3] != NULL /* no further args please */)
-		bi_errorf("syntax error");
+		bi_errorf(T_synerr);
 	else if ((rv = rename(wp[1], wp[2])) != 0) {
 		rv = errno;
 		bi_errorf("failed: %s", strerror(rv));

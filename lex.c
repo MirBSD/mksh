@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.46 2007/07/23 14:28:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.47 2007/08/19 23:12:22 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -182,22 +182,29 @@ yylex(int cf)
 				if (statep->ls_sadelim.style == SADELIM_MAKE &&
 				    statep->ls_sadelim.num == 1) {
 					if (c == /*{*/'}')
-						yyerror("syntax error: expected"
-					/* { */	    " '%c' before '}'\n",
-						    statep->ls_sadelim.delimiter);
+						yyerror("%s: expected '%c' %s\n",
+						    T_synerr,
+						    statep->ls_sadelim.delimiter,
+					/*{*/	    "before '}'");
 					else {
 						*wp++ = ADELIM;
 						*wp++ = c;	/* .delimiter */
 						while ((c = getsc()) != /*{*/ '}') {
 							if (!c) {
-								yyerror("syntax error: expected"
-							/* { */	    " '}' before end of input\n");
+								yyerror("%s: expected '%c' %s\n",
+								    T_synerr,
+							/*{*/	    '}', "at end of input");
 							} else if (strchr(sadelim_flags[statep->ls_sadelim.flags], c)) {
 								*wp++ = CHAR;
 								*wp++ = c;
-							} else
-								yyerror("syntax error: expected"
-							/* { */	    " '}' instead of '%c'\n", c);
+							} else {
+								char Ttmp[15] = "instead of ' '";
+
+								Ttmp[12] = c;
+								yyerror("%s: expected '%c' %s\n",
+								    T_synerr,
+							/*{*/	    '}', Ttmp);
+							}
 						}
 					}
 				}
@@ -709,7 +716,7 @@ yylex(int cf)
 		yyerror("no closing quote\n");
 
 	if (state == SLETARRAY && statep->ls_sletarray.nparen != -1)
-		yyerror("syntax error: ')' missing\n");
+		yyerror("%s: ')' missing\n", T_synerr);
 
 	/* This done to avoid tests for SHEREDELIM wherever SBASE tested */
 	if (state == SHEREDELIM)
