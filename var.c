@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.43 2007/08/12 13:42:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.44 2007/08/20 13:57:47 tg Exp $");
 
 /*
  * Variables
@@ -883,7 +883,8 @@ rnd_get(void)
 #if HAVE_ARC4RANDOM_PUSHB
 			rv = arc4random_pushb(&rnd_cache, sizeof (rnd_cache));
 #else
-			arc4random_addrandom(&rnd_cache, sizeof (rnd_cache));
+			arc4random_addrandom((void *)&rnd_cache,
+			    sizeof (rnd_cache));
 #endif
 		rnd_cache = 0;
 		return ((
