@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.46 2007/08/12 13:42:20 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.47 2007/08/24 14:19:56 tg Exp $
 #-
 # use CPPFLAGS=-DDEBUG __CRAZY=Yes to check for certain more stuff
 
@@ -24,8 +24,8 @@ CPPFLAGS+=	-DMKSH_ASSUME_UTF8 \
 		-DHAVE_STRLCPY=1 -DHAVE_ARC4RANDOM_DECL=1 \
 		-DHAVE_ARC4RANDOM_PUSHB_DECL=1 -DHAVE_SYS_SIGLIST_DECL=1 \
 		-DHAVE_PERSISTENT_HISTORY=1
-COPTS+=		-std=gnu99 -Wall
 .endif
+COPTS+=		-Wall
 
 LINKS+=		${BINDIR}/${PROG} ${BINDIR}/sh
 MLINKS+=	${PROG}.1 sh.1
