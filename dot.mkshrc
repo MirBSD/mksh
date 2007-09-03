@@ -14,8 +14,7 @@ PS1='$(((e = $?)) && print $e\|)${USER:=$(ulimit -c 0; id -un 2>&- || \
 			wd=${wd#?????}
 		fi
 	done; print -r -- "$pfx$wd") '"$PS1 "
-export EDITOR HOSTNAME MKSH=$(whence -p mksh) PS1 TERM USER
-
+export EDITOR HOSTNAME LESSHISTFILE=- MKSH=$(whence -p mksh) PS1 TERM USER
 alias l='/bin/ls -F'
 alias la='l -a'
 alias ll='l -l'
@@ -38,4 +37,4 @@ function Lstripcom {
 
 # place customisations between this line and the “: RCSID” line below
 
-: $MirOS: src/bin/mksh/dot.mkshrc,v 1.18 2007/07/26 13:37:21 tg Rel $
+: $MirOS: src/bin/mksh/dot.mkshrc,v 1.19 2007/09/03 09:25:05 tg Rel $
