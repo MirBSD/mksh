@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.251 2007/08/12 13:42:19 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.252 2007/09/07 21:58:40 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -499,7 +499,7 @@ elif test $ct = hpcc; then
 elif test $ct = xlc; then
 	ac_flags 1 othree "-O3 -qstrict"
 	test 1 = $HAVE_CAN_OTHREE || ac_flags 1 otwo -O2
-elif test $ct = tcc || $ct = tendra; then
+elif test $ct = tcc || test $ct = tendra; then
 	: no special optimisation
 else
 	ac_flags 1 otwo -O2
