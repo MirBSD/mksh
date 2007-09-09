@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.258 2007/09/09 18:30:04 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.259 2007/09/09 18:31:41 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -307,8 +307,7 @@ Plan9)
 	warn=' and will currently not work'
 	;;
 PW32*)
-	HAVE_SIG_T=0
-	CPPFLAGS="$CPPFLAGS -Dsig_t=nosig_t"
+	HAVE_SIG_T=0; CPPFLAGS="$CPPFLAGS -Dsig_t=nosig_t"
 	warn=' and will currently not work'
 	# missing: killpg() getrlimit()
 	;;
