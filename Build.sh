@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.253 2007/09/09 10:49:20 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.254 2007/09/09 11:04:30 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -167,8 +167,14 @@ ac_flags() {
 	test 11 = $fa$fv || CFLAGS=$save_CFLAGS
 }
 
-# ac_header header [prereq ...]
+# ac_header [!] header [prereq ...]
 ac_header() {
+	if test x"$1" = x"!"; then
+		na=1
+		shift
+	else
+		na=0
+	fi
 	hf=$1; shift
 	hv=`echo "$hf" | tr -d '\012\015' | tr -c $alll$allu$alln $alls`
 	for i
@@ -177,8 +183,9 @@ ac_header() {
 	done
 	echo "#include <$hf>" >>x
 	echo 'int main(void) { return (0); }' >>x
-	ac_test "$hv" "" "<$hf>" <x
+	ac_testn "$hv" "" "<$hf>" <x
 	rm -f x
+	test $na = 1 || ac_cppflags
 }
 
 addsrcs() {
@@ -301,19 +308,6 @@ Plan9)
 	warn=' and will currently not work'
 	;;
 PW32*)
-	cat >stdint.h <<-'EOF'
-		typedef signed char int8_t;
-		typedef signed short int16_t;
-		typedef signed int int32_t;
-		typedef signed long long int64_t;
-		typedef unsigned char uint8_t;
-		typedef unsigned short uint16_t;
-		typedef unsigned int uint32_t;
-		typedef unsigned long long uint64_t;
-		typedef unsigned char u_char;
-		typedef unsigned int u_int;
-		typedef unsigned long u_long;
-	EOF
 	HAVE_SIG_T=0
 	CPPFLAGS="$CPPFLAGS -Dsig_t=nosig_t"
 	warn=' and will currently not work'
@@ -646,10 +640,35 @@ ac_header libgen.h
 ac_header libutil.h
 ac_header paths.h
 ac_header stdbool.h
-ac_header stdint.h stdarg.h
+ac_header '!' stdint.h stdarg.h
 ac_header grp.h sys/types.h
 ac_header ulimit.h
 ac_header values.h
+
+ac_testn can_inttypes '!' stdint_h 1 "if we have standard integer types" <<-'EOF'
+	#include <sys/types.h>
+	int main(int ac, char **av) { uint32_t x = (uint32_t)**av;
+		return (x == (u_int32_t)ac);
+	}
+EOF
+if test 0 = $HAVE_CAN_INTTYPES; then
+	cat >stdint.h <<-'EOF'
+		typedef signed char int8_t;
+		typedef signed short int16_t;
+		typedef signed int int32_t;
+		typedef signed long long int64_t;
+		typedef unsigned char uint8_t;
+		typedef unsigned short uint16_t;
+		typedef unsigned int uint32_t;
+		typedef unsigned long long uint64_t;
+		typedef unsigned char u_char;
+		typedef unsigned int u_int;
+		typedef unsigned long u_long;
+		typedef unsigned int u_int32_t;
+	EOF
+	HAVE_STDINT_H=1
+fi
+ac_cppflags STDINT_H
 
 #
 # Environment: definitions
