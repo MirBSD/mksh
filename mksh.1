@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.99 2007/08/19 22:06:26 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.100 2007/09/09 19:18:59 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
-.Dd August 19, 2007
+.Dd September 9, 2007
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -4138,8 +4138,6 @@ the default
 .Pc
 or functions
 .Pq Fl f .
-The exit status is non-zero if any of the parameters were already unset, zero
-otherwise.
 .Pp
 .It Ic wait Op Ar job ...
 Wait for the specified job(s) to finish.
@@ -5382,7 +5380,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh R31
+.Nm mksh R31b
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
