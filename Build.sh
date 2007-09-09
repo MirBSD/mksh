@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.252 2007/09/07 21:58:40 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.253 2007/09/09 10:49:20 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -556,9 +556,11 @@ elif test $ct = tcc; then
 fi
 # flags common to a subset of compilers
 if test 1 = $i; then
+	NOWARN=$DOWARN		# run block with -Werror...
 	ac_flags 1 stdg99 -std=gnu99 'for support of ISO C99 + GCC extensions'
 	test 1 = $HAVE_CAN_STDG99 || \
 	    ac_flags 1 stdc99 -std=c99 'for support of ISO C99'
+	NOWARN=$save_NOWARN	# ... until here
 	ac_flags 1 wall -Wall
 fi
 ac_test expstmt '' "if the compiler supports statements as expressions" <<-'EOF'
