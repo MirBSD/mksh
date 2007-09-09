@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.257 2007/09/09 18:21:52 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.258 2007/09/09 18:30:04 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -79,7 +79,7 @@ ac_testinit() {
 	if ac_cache $1; then
 		test x"$2" = x"!" && shift
 		test x"$2" = x"" || shift
-		fd=$3
+		fd=${3-$f}
 		ac_testdone
 		return 1
 	fi
@@ -94,8 +94,7 @@ ac_testinit() {
 		eval ft=\$HAVE_`upper $2`
 		shift
 	fi
-	fd=$3
-	test x"$fd" = x"" && fd=$f
+	fd=${3-$f}
 	if test $fc = "$ft"; then
 		fv=$2
 		fx=' (implied)'
