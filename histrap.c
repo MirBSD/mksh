@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.55 2007/08/20 14:12:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.56 2007/09/09 19:12:09 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -749,15 +749,12 @@ hist_shrink(unsigned char *oldbase, int oldbytes)
 	shf_snprintf(nfile, sizeof(nfile), "%s.%d", hname, (int)procpid);
 	if ((fd = open(nfile, O_CREAT | O_TRUNC | O_WRONLY, 0600)) < 0)
 		return 1;
-	if (fstat(histfd, &statb) >= 0)
-		chown(nfile, statb.st_uid, statb.st_gid);
+	if (fstat(histfd, &statb) >= 0 &&
+	    chown(nfile, statb.st_uid, statb.st_gid))
+		goto errout;
 
-	if (sprinkle(fd)) {
-		close(fd);
-		unlink(nfile);
-		return 1;
-	}
-	if (write(fd, nbase, nbytes) != nbytes) {
+	if (sprinkle(fd) || write(fd, nbase, nbytes) != nbytes) {
+ errout:
 		close(fd);
 		unlink(nfile);
 		return 1;
@@ -919,8 +916,10 @@ writehistfile(int lno, char *cmd)
 	hdr[2] = (lno>>16)&0xff;
 	hdr[3] = (lno>>8)&0xff;
 	hdr[4] = lno&0xff;
-	(void) write(histfd, hdr, 5);
-	(void) write(histfd, cmd, strlen(cmd)+1);
+	bytes = strlen(cmd) + 1;
+	if ((write(histfd, hdr, 5) != 5) ||
+	    (write(histfd, cmd, bytes) != bytes))
+		goto bad;
 	hsize = lseek(histfd, 0L, SEEK_END);
 	(void) flock(histfd, LOCK_UN);
 	return;
