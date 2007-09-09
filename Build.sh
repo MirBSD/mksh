@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.256 2007/09/09 12:02:38 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.257 2007/09/09 18:21:52 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -202,7 +202,7 @@ if test -d mksh || test -d mksh.exe; then
 	exit 1
 fi
 rm -f a.exe a.out *core crypt.exp lft mksh mksh.cat1 mksh.exe no *.o \
-    scn.c signames.inc test.sh x
+    scn.c signames.inc stdint.h test.sh x
 
 : ${CC=cc} ${NROFF=nroff}
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
