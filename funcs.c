@@ -1,11 +1,11 @@
-/*	$OpenBSD: c_ksh.c,v 1.29 2006/03/12 00:26:58 deraadt Exp $	*/
-/*	$OpenBSD: c_sh.c,v 1.35 2006/04/10 14:38:59 jaredy Exp $	*/
+/*	$OpenBSD: c_ksh.c,v 1.30 2007/08/02 10:50:25 fgsch Exp $	*/
+/*	$OpenBSD: c_sh.c,v 1.37 2007/09/03 13:54:23 otto Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.16 2006/11/20 21:53:39 miod Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.64 2007/08/19 23:12:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.65 2007/09/09 18:06:40 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -281,6 +281,7 @@ c_pwd(const char **wp)
 	int optc;
 	int physical = Flag(FPHYSICAL);
 	char *p;
+	bool p_ = false;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "LP")) != -1)
 		switch (optc) {
@@ -303,11 +304,16 @@ c_pwd(const char **wp)
 	    NULL;
 	if (p && access(p, R_OK) < 0)
 		p = NULL;
-	if (!p && !(p = ksh_get_wd(NULL))) {
-		bi_errorf("can't get current directory - %s", strerror(errno));
-		return 1;
+	if (!p) {
+		if (!(p = ksh_get_wd(NULL))) {
+			bi_errorf("can't get current directory - %s",
+			    strerror(errno));
+			return 1;
+		}
+		p_ = true;
 	}
 	shprintf("%s\n", p);
+	afreechv(p_, p);
 	return 0;
 }
 
@@ -1910,6 +1916,7 @@ c_eval(const char **wp)
 	rv = shell(s, false);
 	Flag(FERREXIT) = savef;
 	source = saves;
+	afree(s, ATEMP);
 	return (rv);
 }
 
@@ -2090,37 +2097,33 @@ int
 c_unset(const char **wp)
 {
 	const char *id;
-	int optc, unset_var = 1;
-	int ret = 0;
+	int optc;
+	bool unset_var = true;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "fv")) != -1)
 		switch (optc) {
 		case 'f':
-			unset_var = 0;
+			unset_var = false;
 			break;
 		case 'v':
-			unset_var = 1;
+			unset_var = true;
 			break;
 		case '?':
-			return 1;
+			return (1);
 		}
 	wp += builtin_opt.optind;
 	for (; (id = *wp) != NULL; wp++)
 		if (unset_var) {	/* unset variable */
 			struct tbl *vp = global(id);
 
-			if (!(vp->flag & ISSET))
-			    ret = 1;
 			if ((vp->flag&RDONLY)) {
 				bi_errorf("%s is read only", vp->name);
-				return 1;
+				return (1);
 			}
 			unset(vp, vstrchr(id, '[') ? 1 : 0);
-		} else {		/* unset function */
-			if (define(id, (struct op *) NULL))
-				ret = 1;
-		}
-	return ret;
+		} else			/* unset function */
+			define(id, NULL);
+	return (0);
 }
 
 static void

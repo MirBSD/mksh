@@ -1,8 +1,8 @@
-/*	$OpenBSD: var.c,v 1.30 2006/05/21 18:40:39 otto Exp $	*/
+/*	$OpenBSD: var.c,v 1.33 2007/08/02 11:05:54 fgsch Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.44 2007/08/20 13:57:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.45 2007/09/09 18:06:42 tg Exp $");
 
 /*
  * Variables
@@ -338,7 +338,9 @@ intval(struct tbl *vp)
 int
 setstr(struct tbl *vq, const char *s, int error_ok)
 {
+	char *salloc = NULL;
 	int no_ro_check = error_ok & 0x4;
+
 	error_ok &= ~0x4;
 	if ((vq->flag & RDONLY) && !no_ro_check) {
 		warningf(true, "%s: is read only", vq->name);
@@ -359,7 +361,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 		vq->flag &= ~(ISSET|ALLOC);
 		vq->type = 0;
 		if (s && (vq->flag & (UCASEV_AL|LCASEV|LJUST|RJUST)))
-			s = formatstr(vq, s);
+			s = salloc = formatstr(vq, s);
 		if ((vq->flag&EXPORT))
 			export(vq, s);
 		else {
@@ -368,12 +370,13 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 		}
 	} else {		/* integer dest */
 		if (!v_evaluate(vq, s, error_ok, true))
-			return 0;
+			return (0);
 	}
 	vq->flag |= ISSET;
 	if ((vq->flag&SPECIAL))
 		setspec(vq);
-	return 1;
+	afreechk(salloc);
+	return (1);
 }
 
 /* set variable to integer */

@@ -1,8 +1,8 @@
-/*	$OpenBSD: eval.c,v 1.30 2006/04/10 14:38:59 jaredy Exp $	*/
+/*	$OpenBSD: eval.c,v 1.33 2007/08/02 11:05:54 fgsch Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.34 2007/07/31 10:42:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.35 2007/09/09 18:06:39 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -903,6 +903,7 @@ comsub(Expand *xp, const char *cp)
 	s->start = s->str = cp;
 	sold = source;
 	t = compile(s);
+	afree(s, ATEMP);
 	source = sold;
 
 	if (t == NULL)

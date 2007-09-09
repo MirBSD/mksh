@@ -1,11 +1,11 @@
-/*	$OpenBSD: edit.c,v 1.31 2005/12/11 20:31:21 otto Exp $	*/
+/*	$OpenBSD: edit.c,v 1.33 2007/08/02 10:50:25 fgsch Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
-/*	$OpenBSD: emacs.c,v 1.40 2006/07/10 17:12:41 beck Exp $	*/
+/*	$OpenBSD: emacs.c,v 1.41 2007/08/02 10:50:25 fgsch Exp $	*/
 /*	$OpenBSD: vi.c,v 1.23 2006/04/10 14:38:59 jaredy Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.111 2007/08/18 01:20:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.112 2007/09/09 18:06:39 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -325,12 +325,14 @@ x_file_glob(int flags __unused, const char *str, int slen, char ***wordsp)
 		    stat(words[0], &statb) < 0) ||
 		    words[0][0] == '\0') {
 			x_free_words(nwords, words);
+			words = NULL;
 			nwords = 0;
 		}
 	}
 	afree(toglob, ATEMP);
 
-	*wordsp = nwords ? words : NULL;
+	if ((*wordsp = nwords ? words : NULL) == NULL && words != NULL)
+		x_free_words(nwords, words);
 
 	return nwords;
 }
@@ -729,7 +731,7 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 	int rval = 0;
 
 	while (wlen - add > 0)
-		if (vstrchr("\\$()[{}*&;#|<>\"'`", s[add]) ||
+		if (vstrchr("\\$()[?{}*&;#|<>\"'`", s[add]) ||
 		    vstrchr(ifs, s[add])) {
 			if (putbuf_func(s, add) != 0) {
 				rval = -1;
@@ -1128,7 +1130,7 @@ static int      x_search(char *, int, int);
 static int      x_match(char *, char *);
 static void	x_redraw(int);
 static void	x_push(int);
-static char *	x_mapin(const char *);
+static char *	x_mapin(const char *, Area *);
 static char *	x_mapout(int);
 static void	x_mapout2(int, char **);
 static void     x_print(int, int);
@@ -2503,11 +2505,11 @@ x_error(int c __unused)
 }
 
 static char *
-x_mapin(const char *cp)
+x_mapin(const char *cp, Area *ap)
 {
 	char *new, *op;
 
-	op = new = str_save(cp, ATEMP);
+	op = new = str_save(cp, ap);
 	while (*cp) {
 		/* XXX -- should handle \^ escape? */
 		if (*cp == '^') {
@@ -2576,6 +2578,7 @@ x_bind(const char *a1, const char *a2,
 	int prefix, key;
 	char *sp = NULL;
 	char *m1, *m2;
+	bool hastilde;
 
 	if (x_tab == NULL) {
 		bi_errorf("cannot bind, not a tty");
@@ -2600,7 +2603,7 @@ x_bind(const char *a1, const char *a2,
 			}
 		return (0);
 	}
-	m1 = x_mapin(a1);
+	m2 = m1 = x_mapin(a1, ATEMP);
 	prefix = key = 0;
 	for (;; m1++) {
 		key = *m1 & CHARMASK;
@@ -2621,6 +2624,8 @@ x_bind(const char *a1, const char *a2,
 		bi_errorf("%s' too long", msg);
 		return (1);
 	}
+	hastilde = *m1;
+	afree(m2, ATEMP);
 
 	if (a2 == NULL) {
 		x_print(prefix, key);
@@ -2639,14 +2644,13 @@ x_bind(const char *a1, const char *a2,
 		}
 	} else {
 		f = XFUNC_ins_string;
-		m2 = x_mapin(a2);
-		sp = str_save(m2, AEDIT);
+		sp = x_mapin(a2, AEDIT);
 	}
 
 	if ((x_tab[prefix][key] & 0x7F) == XFUNC_ins_string &&
 	    x_atab[prefix][key])
 		afree((void *)x_atab[prefix][key], AEDIT);
-	x_tab[prefix][key] = f | ((*m1) ? 0x80 : 0);
+	x_tab[prefix][key] = f | (hastilde ? 0x80 : 0);
 	x_atab[prefix][key] = sp;
 
 	/* Track what the user has bound so x_mode(true) won't toast things */
