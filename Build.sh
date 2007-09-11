@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.263 2007/09/11 17:49:57 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.264 2007/09/11 18:12:16 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -38,6 +38,7 @@ ao=
 fx=
 me=`basename "$0"`
 orig_CFLAGS=$CFLAGS
+NEED_ARC4RANDOM=0
 
 if test -t 1; then
 	bi='[1m'
@@ -650,11 +651,11 @@ ac_header values.h
 ac_testn can_inttypes '!' stdint_h 1 "if we have standard integer types" <<-'EOF'
 	#include <sys/types.h>
 	int main(int ac, char **av) { uint32_t x = (uint32_t)**av;
-		return (x == (u_int32_t)ac);
+		return (x == (uint64_t)ac);
 	}
 EOF
 if test 0 = $HAVE_CAN_INTTYPES; then
-	ac_testn can_inttypes2 '' "if we have u_char, u_int, u_long" <<-'EOF'
+	ac_testn can_uinttypes '' "if we have u_char, u_int, u_long" <<-'EOF'
 		#include <sys/types.h>
 		int main(int ac, char **av) { u_int x = (u_int)**av;
 			return (x == (u_int)(u_long)(u_char)ac);
@@ -669,7 +670,6 @@ if test 0 = $HAVE_CAN_INTTYPES; then
 		typedef unsigned short uint16_t;
 		typedef unsigned int uint32_t;
 		typedef unsigned long long uint64_t;
-		typedef unsigned int u_int32_t;
 	EOF
 	test 1 = $HAVE_CAN_UINTTYPES || cat >>stdint.h <<-'EOF'
 		typedef unsigned char u_char;
@@ -742,6 +742,15 @@ fi
 
 ac_cppflags SIG_T
 
+ac_testn u_int32_t <<-'EOF'
+	#include <sys/types.h>
+	#if HAVE_STDINT_H
+	#include <stdint.h>
+	#endif
+	int main(void) { return ((int)(u_int32_t)0); }
+EOF
+test 1 = $HAVE_U_INT32_T || CPPFLAGS="$CPPFLAGS -Du_int32_t=uint32_t"
+
 #
 # Environment: signals
 #
@@ -782,12 +791,15 @@ ac_testn arc4random <<-'EOF'
 	int main(void) { return (arc4random()); }
 EOF
 
+save_LIBS=$LIBS
 if test 0 = $HAVE_ARC4RANDOM && test -f "$srcdir/arc4random.c"; then
 	ac_header sys/sysctl.h
 	addsrcs HAVE_ARC4RANDOM arc4random.c
 	HAVE_ARC4RANDOM=1
-	HAVE_ARC4RANDOM_DECL=0
-	HAVE_ARC4RANDOM_PUSH=0
+	# ensure isolation of source directory from build directory
+	test -f arc4random.c || cp "$srcdir/arc4random.c" .
+	NEED_ARC4RANDOM=1
+	LIBS="$LIBS arc4random.c"
 fi
 ac_cppflags ARC4RANDOM
 
@@ -799,6 +811,7 @@ ac_test arc4random_pushb arc4random 0 <<-'EOF'
 	extern uint32_t arc4random_pushb(void *, size_t);
 	int main(int ac, char *av[]) { return (arc4random_pushb(*av, ac)); }
 EOF
+LIBS=$save_LIBS
 
 ac_test flock_ex '' 'flock and mmap' <<-'EOF'
 	#include <sys/types.h>
@@ -882,6 +895,8 @@ EOF
 #
 # check headers for declarations
 #
+save_LIBS=$LIBS
+test 1 = $NEED_ARC4RANDOM && LIBS="$LIBS arc4random.c"
 ac_test '!' arc4random_decl arc4random 1 'if arc4random() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
@@ -894,6 +909,7 @@ ac_test '!' arc4random_pushb_decl arc4random_pushb 1 'if arc4random_pushb() does
 	int arc4random_pushb(char, int); /* this clashes if defined before */
 	int main(int ac, char *av[]) { return (arc4random_pushb(**av, ac)); }
 EOF
+LIBS=$save_LIBS
 ac_test sys_siglist_decl sys_siglist 1 'if sys_siglist[] does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
