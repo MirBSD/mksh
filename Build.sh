@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.264 2007/09/11 18:12:16 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.265 2007/09/11 18:38:29 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -651,7 +651,7 @@ ac_header values.h
 ac_testn can_inttypes '!' stdint_h 1 "if we have standard integer types" <<-'EOF'
 	#include <sys/types.h>
 	int main(int ac, char **av) { uint32_t x = (uint32_t)**av;
-		return (x == (uint64_t)ac);
+		return (x == (uint64_t)(int32_t)ac);
 	}
 EOF
 if test 0 = $HAVE_CAN_INTTYPES; then
@@ -662,12 +662,7 @@ if test 0 = $HAVE_CAN_INTTYPES; then
 		}
 	EOF
 	cat >stdint.h <<-'EOF'
-		typedef signed char int8_t;
-		typedef signed short int16_t;
 		typedef signed int int32_t;
-		typedef signed long long int64_t;
-		typedef unsigned char uint8_t;
-		typedef unsigned short uint16_t;
 		typedef unsigned int uint32_t;
 		typedef unsigned long long uint64_t;
 	EOF
