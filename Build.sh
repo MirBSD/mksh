@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.262 2007/09/11 17:47:25 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.263 2007/09/11 17:49:57 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -1009,7 +1009,7 @@ for file in $SRCS; do
 	v "$CC $CFLAGS $CPPFLAGS -c $file" || exit 1
 done
 v "$CC $CFLAGS $LDFLAGS -o mksh $objs $LIBS"
-rv=$?; test $ct = msc -o 0 = $rv || exit 1
+rv=$?; test $ct = msc || test 0 = $rv || exit 1
 result=mksh
 test -f mksh.exe && result=mksh.exe
 test -f $result || exit 1
