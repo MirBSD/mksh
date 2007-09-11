@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.261 2007/09/10 20:16:47 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.262 2007/09/11 17:47:25 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -120,9 +120,9 @@ ac_testn() {
 	test x"$tcfn" = x"no" && test -f a.out && tcfn=a.out
 	test x"$tcfn" = x"no" && test -f a.exe && tcfn=a.exe
 	if test -f $tcfn; then
-		test $fr = 1 || fv=1
+		test 1 = $fr || fv=1
 	else
-		test $fr = 0 || fv=1
+		test 0 = $fr || fv=1
 	fi
 	rm -f scn.c scn.o $tcfn
 	ac_testdone
@@ -155,7 +155,7 @@ ac_flags() {
 	test x"$ft" = x"" && ft="if $f can be used"
 	save_CFLAGS=$CFLAGS
 	CFLAGS="$CFLAGS $f"
-	if test $hf = 1; then
+	if test 1 = $hf; then
 		ac_testn can_$vn '' "$ft"
 	else
 		ac_testn can_$vn '' "$ft" <<-'EOF'
@@ -184,7 +184,7 @@ ac_header() {
 	echo 'int main(void) { return (0); }' >>x
 	ac_testn "$hv" "" "<$hf>" <x
 	rm -f x
-	test $na = 1 || ac_cppflags
+	test 1 = $na || ac_cppflags
 }
 
 addsrcs() {
@@ -234,7 +234,7 @@ done
 SRCS="alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
-test $r = 0 && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
+test 0 = $r && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
     NROFF="$NROFF -c"
 if test x"$srcdir" = x"."; then
 	CPPFLAGS="-I. $CPPFLAGS"
@@ -378,7 +378,7 @@ cat >scn.c <<-'EOF'
 EOF
 ct=unknown
 eval 'v "$CPP scn.c | grep ct= | tr -d \\\\015 >x" 2>&'$h | sed 's/^/] /'
-test $h = 1 && sed 's/^/[ /' x
+test 1 = $h && sed 's/^/[ /' x
 eval `cat x`
 rm -f x
 case $ct in
@@ -413,32 +413,32 @@ ac_testn couldbe_tcc '!' compiler_known 0 'if this could be tcc' <<-EOF
 	#endif
 	int main(void) { return (0); }
 EOF
-if test $HAVE_COULDBE_TCC = 1; then
+if test 1 = $HAVE_COULDBE_TCC; then
 	ct=tcc
 	CPP='cpp -D__TINYC__'
 fi
 ac_testn compiler_fails '' 'if the compiler does not fail correctly' <<-EOF
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 EOF
-if test $HAVE_COMPILER_FAILS = 1; then
+if test 1 = $HAVE_COMPILER_FAILS; then
 	save_CFLAGS=$CFLAGS
 	if test $ct = dmc; then
 		CFLAGS="$CFLAGS ${ccpl}/DELEXECUTABLE"
 		ac_testn can_delexe compiler_fails 0 'for the /DELEXECUTABLE linker option' <<-EOF
 			int main(void) { return (0); }
 		EOF
-		test $HAVE_CAN_DELEXE = 1 || CFLAGS=$save_CFLAGS
+		test 1 = $HAVE_CAN_DELEXE || CFLAGS=$save_CFLAGS
 	else
 		CFLAGS="$CFLAGS ${ccpl}+k"
 		ac_testn can_plusk compiler_fails 0 'for the +k linker option' <<-EOF
 			int main(void) { return (0); }
 		EOF
-		test $HAVE_CAN_PLUSK = 1 || CFLAGS=$save_CFLAGS
+		test 1 = $HAVE_CAN_PLUSK || CFLAGS=$save_CFLAGS
 	fi
 	ac_testn compiler_still_fails '' 'if the compiler still does not fail correctly' <<-EOF
 		int main(void) { return (thiswillneverbedefinedIhope()); }
 	EOF
-	test $HAVE_COMPILER_STILL_FAILS = 1 && exit 1
+	test 1 = $HAVE_COMPILER_STILL_FAILS && exit 1
 fi
 
 if test $ct = sunpro; then
@@ -546,7 +546,7 @@ elif test $ct = xlc; then
 	#ac_flags 1 wp64 -qwarn64	# too verbose for now
 elif test $ct = tendra; then
 	ac_flags 0 ysystem -Ysystem
-	test $HAVE_CAN_YSYSTEM = 1 && CPPFLAGS="-Ysystem $CPPFLAGS"
+	test 1 = $HAVE_CAN_YSYSTEM && CPPFLAGS="-Ysystem $CPPFLAGS"
 	ac_flags 1 extansi -Xa
 elif test $ct = tcc; then
 	ac_flags 1 boundschk -b
@@ -671,7 +671,7 @@ if test 0 = $HAVE_CAN_INTTYPES; then
 		typedef unsigned long long uint64_t;
 		typedef unsigned int u_int32_t;
 	EOF
-	test 1 = $HAVE_CAN_INTTYPES2 || cat >>stdint.h <<-'EOF'
+	test 1 = $HAVE_CAN_UINTTYPES || cat >>stdint.h <<-'EOF'
 		typedef unsigned char u_char;
 		typedef unsigned int u_int;
 		typedef unsigned long u_long;
@@ -782,7 +782,7 @@ ac_testn arc4random <<-'EOF'
 	int main(void) { return (arc4random()); }
 EOF
 
-if test $HAVE_ARC4RANDOM = 0 && test -f "$srcdir/arc4random.c"; then
+if test 0 = $HAVE_ARC4RANDOM && test -f "$srcdir/arc4random.c"; then
 	ac_header sys/sysctl.h
 	addsrcs HAVE_ARC4RANDOM arc4random.c
 	HAVE_ARC4RANDOM=1
@@ -953,7 +953,7 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 	*[\ \(\)+-]*) NSIG=`awk "BEGIN { print $NSIG }"` ;;
 	esac
 	NSIG=`printf %d "$NSIG" 2>/dev/null`
-	test $h = 1 && printf "NSIG=$NSIG ... "
+	test 1 = $h && printf "NSIG=$NSIG ... "
 	signames="ABRT ALRM BUS CHLD CLD CONT EMT FPE HUP ILL INFO INT IO IOT"
 	signames="$signames KILL PIPE PROF PWR QUIT SAK SEGV STOP SYS TERM"
 	signames="$signames TRAP TSTP TTIN TTOU URG USR1 USR2 WINCH XCPU XFSZ"
@@ -973,7 +973,7 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 		*:$nr:*) ;;
 		*)	echo "		{ $nr, \"$name\" },"
 			sigseen=$sigseen$nr:
-			test $h = 1 && printf "$name=$nr " >&2
+			test 1 = $h && printf "$name=$nr " >&2
 			;;
 		esac
 	done 2>&1 >signames.inc
@@ -1001,7 +1001,7 @@ for file in $SRCS; do
 	echo "$CC $CFLAGS $CPPFLAGS -c $file || exit 1" >>Rebuild.sh
 done
 echo "$CC $CFLAGS $LDFLAGS -o mksh $objs $LIBS" >>Rebuild.sh
-test $ct = msc || echo 'test $? = 0 || exit 1' >>Rebuild.sh
+test $ct = msc || echo 'test 0 = $? || exit 1' >>Rebuild.sh
 echo 'result=mksh; test -f mksh.exe && result=mksh.exe' >>Rebuild.sh
 echo 'test -f $result || exit 1; size $result' >>Rebuild.sh
 for file in $SRCS; do
@@ -1009,16 +1009,16 @@ for file in $SRCS; do
 	v "$CC $CFLAGS $CPPFLAGS -c $file" || exit 1
 done
 v "$CC $CFLAGS $LDFLAGS -o mksh $objs $LIBS"
-rv=$?; test $ct = msc -o $rv = 0 || exit 1
+rv=$?; test $ct = msc -o 0 = $rv || exit 1
 result=mksh
 test -f mksh.exe && result=mksh.exe
 test -f $result || exit 1
-test $r = 1 || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
+test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
     rm -f mksh.cat1
-test $eq = 0 && test $h = 1 && v size $result
+test 0 = $eq && test 1 = $h && v size $result
 i=install
 test -f /usr/ucb/$i && i=/usr/ucb/$i
-test $eq = 1 && e=:
+test 1 = $eq && e=:
 $e
 $e Installing the shell:
 $e "# $i -c -s -o root -g bin -m 555 mksh /bin/mksh"
