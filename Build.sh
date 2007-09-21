@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.265 2007/09/11 18:38:29 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.266 2007/09/21 10:46:56 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
@@ -365,6 +365,8 @@ cat >scn.c <<-'EOF'
 	ct=dmc
 	#elif defined(_MSC_VER)
 	ct=msc
+	#elif defined(__PCC__)
+	ct=pcc
 	#elif defined(__TenDRA__)
 	ct=tendra
 	#elif defined(__TINYC__)
@@ -383,7 +385,7 @@ test 1 = $h && sed 's/^/[ /' x
 eval `cat x`
 rm -f x
 case $ct in
-bcc|dmc|gcc|hpcc|icc|msc|sunpro|tcc|tendra|xlc) ;;
+bcc|dmc|gcc|hpcc|icc|msc|pcc|sunpro|tcc|tendra|xlc) ;;
 *) ct=unknown ;;
 esac
 $e "$bi==> which compiler we seem to use...$ao $ui$ct$ao"
