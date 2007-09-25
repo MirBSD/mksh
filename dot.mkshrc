@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.20 2007/09/24 20:30:04 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.21 2007/09/25 15:48:45 tg Stab $
 #-
 # Copyright (c) 2007
 #	Thorsten Glaser <tg@mirbsd.de>
@@ -28,10 +28,12 @@
 [[ $HOSTNAME = @(localhost|*([	 ])) ]] && HOSTNAME=$(ulimit -c 0;hostname 2>&-)
 : ${HOSTNAME:=nil}; PS1='#'; [[ "$(ulimit -c 0; id -u 2>&-)" -eq 0 ]] || PS1='$'
 function precmd {
-	:
+	typeset -i10 e=$?
+
+	(( e )) && print -n -- "$e|"
 }
-PS1='$(e=$?; precmd; ((e)) && print $e\|)${USER:=$(ulimit -c 0; id -un 2>&- || \
-    print nobody)}@${HOSTNAME%%.*}:$(typeset pfx=~ wd=${PWD:-?}
+PS1='$(precmd)${USER:=$(ulimit -c 0;id -un 2>&- || print \?)}@${HOSTNAME%%.*}:$(
+	typeset pfx=~ wd=${PWD:-?}
 	typeset -i n=${COLUMNS:-80}/3; let n="n < 7 ? 7 : n"
 	[[ ${wd#$pfx} = $wd || $pfx = ?(/) ]] || wd=\~${wd#$pfx}
 	pfx=; while (( (${#pfx} + ${#wd}) > n )); do
