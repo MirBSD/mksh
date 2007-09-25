@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.21 2007/09/25 15:48:45 tg Stab $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.22 2007/09/25 22:36:36 tg Stab $
 #-
 # Copyright (c) 2007
 #	Thorsten Glaser <tg@mirbsd.de>
@@ -59,14 +59,13 @@ whence -p hd >&- || function hd {
 
 # Berkeley C shell compatible dirs, popd, and pushd functions
 # Z shell compatible chpwd() hook, used to update DIRSTACK[0]
+DIRSTACKBASE=$(readlink -nf ~/. 2>&- || print -nr -- "$HOME")
+typeset -r DIRSTACKBASE
 set -A DIRSTACK
 function chpwd {
-	typeset d thome
-
-	d=$(readlink -nf .)
-	thome=$(readlink -nf ~/.)
-	DIRSTACK[0]=$d
-	[[ ${d##$thome} = $d ]] || DIRSTACK[0]=\~${d##$thome}
+	DIRSTACK[0]=$(readlink -nf . 2>&- || print -nr -- "$PWD")
+	[[ ${DIRSTACK[0]#$DIRSTACKBASE} = ${DIRSTACK[0]} ]] || \
+	    DIRSTACK[0]=\~${DIRSTACK[0]#$DIRSTACKBASE}
 	:
 }
 chpwd .
@@ -77,7 +76,7 @@ function cd {
 function cd_csh {
 	typeset d t=$1
 
-	[[ $t = ~* ]] && t=$HOME${t#~}
+	[[ $t = ~* ]] && t=$DIRSTACKBASE${t#~}
 	if ! d=$(builtin cd "$t" 2>&1); then
 		print -u2 "${1}: ${d##*$t - }."
 		return 1
@@ -108,9 +107,7 @@ function dirs {
 		fv=0
 		while (( fv < ${#DIRSTACK[*]} )); do
 			d=${DIRSTACK[fv]}
-			if [[ $fl$d = 1~* ]]; then
-				d=$HOME${d#~}
-			fi
+			[[ $fl$d = 1~* ]] && d=$DIRSTACKBASE${d#~}
 			print -r -- "$fv	$d"
 			let fv++
 		done
@@ -118,10 +115,8 @@ function dirs {
 		fv=0
 		while (( fv < ${#DIRSTACK[*]} )); do
 			d=${DIRSTACK[fv]}
-			if [[ $fl$d = 1~* ]]; then
-				d=$HOME${d#~}
-			fi
-			if (( fn && (cpos += ${#d} + 1) >= 79 && ${#d} < 80 )); then
+			[[ $fl$d = 1~* ]] && d=$DIRSTACKBASE${d#~}
+			if (( fn && (cpos+=${#d}+1) >= 79 && ${#d} < 80 )); then
 				print
 				(( cpos = ${#d} + 1 ))
 			fi
@@ -134,7 +129,7 @@ function dirs {
 	return 0
 }
 function popd {
-	typeset d fa=""
+	typeset d fa
 	typeset -i isnoglob=0 n=1
 
 	[[ $(set +o) == *-o\ noglob* ]] && isnoglob=1
@@ -173,7 +168,7 @@ function popd {
 	dirs $fa
 }
 function pushd {
-	typeset d fa=""
+	typeset d fa
 	typeset -i isnoglob=0 n=1
 
 	[[ $(set +o) == *-o\ noglob* ]] && isnoglob=1
