@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.267 2007/10/09 14:21:54 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.268 2007/10/09 14:29:42 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -210,10 +210,14 @@ e=echo
 h=1
 r=0
 eq=0
+pm=0
 
 for i
 do
 	case $i in
+	-j)
+		pm=1
+		;;
 	-Q)
 		eq=1
 		;;
@@ -1013,10 +1017,18 @@ echo "$CC $CFLAGS $LDFLAGS -o mksh $objs $LIBS" >>Rebuild.sh
 test $ct = msc || echo 'test 0 = $? || exit 1' >>Rebuild.sh
 echo 'result=mksh; test -f mksh.exe && result=mksh.exe' >>Rebuild.sh
 echo 'test -f $result || exit 1; size $result' >>Rebuild.sh
-for file in $SRCS; do
-	test -f $file || file=$srcdir/$file
-	v "$CC $CFLAGS $CPPFLAGS -c $file" || exit 1
-done
+if test 1 = $pm; then
+	for file in $SRCS; do
+		test -f $file || file=$srcdir/$file
+		v "$CC $CFLAGS $CPPFLAGS -c $file" &
+	done
+	wait
+else
+	for file in $SRCS; do
+		test -f $file || file=$srcdir/$file
+		v "$CC $CFLAGS $CPPFLAGS -c $file" || exit 1
+	done
+fi
 v "$CC $CFLAGS $LDFLAGS -o mksh $objs $LIBS"
 rv=$?; test $ct = msc || test 0 = $rv || exit 1
 result=mksh
