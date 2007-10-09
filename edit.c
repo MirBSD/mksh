@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.113 2007/09/09 20:03:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.114 2007/10/09 14:50:50 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1136,7 +1136,7 @@ static void	x_mapout2(int, char **);
 static void     x_print(int, int);
 static void	x_adjust(void);
 static void	x_e_ungetc(int);
-static u_char	x_e_getc(void);
+static int	x_e_getc(void);
 static void	x_e_putc2(int);
 static void	x_e_putc3(const char **);
 static void	x_e_puts(const char *);
@@ -2917,7 +2917,7 @@ x_e_ungetc(int c)
 	unget_char = c;
 }
 
-static u_char
+static int
 x_e_getc(void)
 {
 	int c;
