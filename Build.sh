@@ -1,9 +1,8 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.266 2007/09/21 10:46:56 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.267 2007/10/09 14:21:54 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
-# CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NEED_MKNOD MKSH_NOPWNAM
-#			MKSH_NOVI
+# CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
 
 v() {
 	$e "$*"
@@ -629,7 +628,7 @@ if test 0 = $HAVE_MKSH_FULL; then
 		ac_flags 1 fnoinline -fno-inline
 	fi
 
-	: ${HAVE_SETLOCALE_CTYPE=0}
+	: ${HAVE_MKNOD=0} ${HAVE_SETLOCALE_CTYPE=0}
 	check_categories=$check_categories,smksh
 	test 0 = $HAVE_MKSH_DEFUTF8 || check_categories=$check_categories,dutf
 fi
@@ -835,9 +834,6 @@ EOF
 ac_test mknod '' 'if we use mknod(), makedev() and friends' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
-	#if defined(MKSH_SMALL) && !defined(MKSH_NEED_MKNOD)
-	#error We do not want to include the mknod builtin.
-	#endif
 	int main(int ac, char *av[]) {
 		dev_t dv;
 		dv = makedev(ac, 1);
