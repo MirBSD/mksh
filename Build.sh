@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.269 2007/10/10 11:32:49 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.270 2007/10/10 11:42:24 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -663,11 +663,11 @@ ac_testn can_inttyb32 '!' can_inttyp32 1 "if we have UCB 32-bit integer types" <
 EOF
 ac_testn can_inttyp64 '!' stdint_h 1 "if we have standard 64-bit integer types" <<-'EOF'
 	#include <sys/types.h>
-	int main(int ac) { return ((int)((uint64_t)ac)); }
+	int main(void) { return ((int)(uint64_t)0); }
 EOF
 ac_testn can_inttyb64 '!' can_inttyp64 1 "if we have UCB 64-bit integer types" <<-'EOF'
 	#include <sys/types.h>
-	int main(int ac) { return ((int)((u_int64_t)ac)); }
+	int main(void) { return ((int)(u_int64_t)0); }
 EOF
 ac_testn can_uinttypes '!' stdint_h 1 "if we have u_char, u_int, u_long" <<-'EOF'
 	#include <sys/types.h>
@@ -676,7 +676,8 @@ ac_testn can_uinttypes '!' stdint_h 1 "if we have u_char, u_int, u_long" <<-'EOF
 	}
 EOF
 case $HAVE_CAN_INTTYP32$HAVE_CAN_INTTYB32 in
-01)	echo 'typedef u_int32_t uint32_t;' >>stdint.h ;;
+01)	HAVE_U_INT32_T=1
+	echo 'typedef u_int32_t uint32_t;' >>stdint.h ;;
 00)	echo 'typedef signed int int32_t;' >>stdint.h
 	echo 'typedef unsigned int uint32_t;' >>stdint.h ;;
 esac
