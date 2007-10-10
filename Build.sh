@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.268 2007/10/09 14:29:42 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.269 2007/10/10 11:32:49 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -648,36 +648,48 @@ ac_header libgen.h
 ac_header libutil.h
 ac_header paths.h
 ac_header stdbool.h
-ac_header '!' stdint.h stdarg.h
 ac_header grp.h sys/types.h
 ac_header ulimit.h
 ac_header values.h
 
-ac_testn can_inttypes '!' stdint_h 1 "if we have standard integer types" <<-'EOF'
+ac_header '!' stdint.h stdarg.h
+ac_testn can_inttyp32 '!' stdint_h 1 "if we have standard 32-bit integer types" <<-'EOF'
 	#include <sys/types.h>
-	int main(int ac, char **av) { uint32_t x = (uint32_t)**av;
-		return (x == (uint64_t)(int32_t)ac);
+	int main(int ac, char **av) { return ((uint32_t)*av + (int32_t)ac); }
+EOF
+ac_testn can_inttyb32 '!' can_inttyp32 1 "if we have UCB 32-bit integer types" <<-'EOF'
+	#include <sys/types.h>
+	int main(int ac, char **av) { return ((u_int32_t)*av + (int32_t)ac); }
+EOF
+ac_testn can_inttyp64 '!' stdint_h 1 "if we have standard 64-bit integer types" <<-'EOF'
+	#include <sys/types.h>
+	int main(int ac) { return ((int)((uint64_t)ac)); }
+EOF
+ac_testn can_inttyb64 '!' can_inttyp64 1 "if we have UCB 64-bit integer types" <<-'EOF'
+	#include <sys/types.h>
+	int main(int ac) { return ((int)((u_int64_t)ac)); }
+EOF
+ac_testn can_uinttypes '!' stdint_h 1 "if we have u_char, u_int, u_long" <<-'EOF'
+	#include <sys/types.h>
+	int main(int ac, char **av) { u_int x = (u_int)**av;
+		return (x == (u_int)(u_long)(u_char)ac);
 	}
 EOF
-if test 0 = $HAVE_CAN_INTTYPES; then
-	ac_testn can_uinttypes '' "if we have u_char, u_int, u_long" <<-'EOF'
-		#include <sys/types.h>
-		int main(int ac, char **av) { u_int x = (u_int)**av;
-			return (x == (u_int)(u_long)(u_char)ac);
-		}
-	EOF
-	cat >stdint.h <<-'EOF'
-		typedef signed int int32_t;
-		typedef unsigned int uint32_t;
-		typedef unsigned long long uint64_t;
-	EOF
-	test 1 = $HAVE_CAN_UINTTYPES || cat >>stdint.h <<-'EOF'
-		typedef unsigned char u_char;
-		typedef unsigned int u_int;
-		typedef unsigned long u_long;
-	EOF
-	HAVE_STDINT_H=1
-fi
+case $HAVE_CAN_INTTYP32$HAVE_CAN_INTTYB32 in
+01)	echo 'typedef u_int32_t uint32_t;' >>stdint.h ;;
+00)	echo 'typedef signed int int32_t;' >>stdint.h
+	echo 'typedef unsigned int uint32_t;' >>stdint.h ;;
+esac
+case $HAVE_CAN_INTTYP64$HAVE_CAN_INTTYB64 in
+01)	echo 'typedef u_int64_t uint64_t;' >>stdint.h ;;
+00)	echo 'typedef unsigned long long uint64_t;' >>stdint.h ;;
+esac
+test 1 = $HAVE_CAN_UINTTYPES || cat >>stdint.h <<-'EOF'
+	typedef unsigned char u_char;
+	typedef unsigned int u_int;
+	typedef unsigned long u_long;
+EOF
+test -f stdint.h && HAVE_STDINT_H=1
 ac_cppflags STDINT_H
 
 #
