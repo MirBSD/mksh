@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.114 2007/10/09 14:50:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.115 2007/10/14 13:43:41 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1048,9 +1048,8 @@ struct x_defbindings {
 			/* Separator for motion */
 #define	is_mfs(c)	(!(ksh_isalnux(c) || (c) == '$'))
 
-#define CHARMASK	0xFF			/* 8-bit character mask */
 #define X_NTABS		3			/* normal, meta1, meta2 */
-#define X_TABSZ		(CHARMASK+1)		/* size of keydef tables etc */
+#define X_TABSZ		256			/* size of keydef tables etc */
 
 /* Arguments for do_complete()
  * 0 = enumerate  M-= complete as much as possible and then list
@@ -1487,7 +1486,7 @@ x_emacs(char *buf, size_t len)
 			return 0;
 
 		f = x_curprefix == -1 ? XFUNC_insert :
-		    x_tab[x_curprefix][c & CHARMASK];
+		    x_tab[x_curprefix][c];
 		if (f & 0x80) {
 			f &= 0x7F;
 			if ((i = x_e_getc()) != '~')
@@ -1583,7 +1582,7 @@ x_ins_string(int c)
 		x_e_putc2(7);
 		return KSTD;
 	}
-	macroptr = x_atab[c >> 8][c & CHARMASK];
+	macroptr = x_atab[c >> 8][c & 255];
 	if (macroptr && !*macroptr) {
 		/* XXX bell? */
 		macroptr = NULL;
@@ -2121,7 +2120,7 @@ x_search_hist(int c)
 		x_flush();
 		if ((c = x_e_getc()) < 0)
 			return KSTD;
-		f = x_tab[0][c & CHARMASK];
+		f = x_tab[0][c];
 		if (f & 0x80) {
 			f &= 0x7F;
 			if ((c = x_e_getc()) != '~')
@@ -2606,7 +2605,7 @@ x_bind(const char *a1, const char *a2,
 	m2 = m1 = x_mapin(a1, ATEMP);
 	prefix = key = 0;
 	for (;; m1++) {
-		key = *m1 & CHARMASK;
+		key = (u_char)*m1;
 		f = x_tab[prefix][key] & 0x7F;
 		if (f == XFUNC_meta1)
 			prefix = 1;
@@ -2914,7 +2913,7 @@ x_adjust(void)
 static void
 x_e_ungetc(int c)
 {
-	unget_char = c;
+	unget_char = c < 0 ? -1 : (c & 255);
 }
 
 static int
@@ -2925,16 +2924,14 @@ x_e_getc(void)
 	if (unget_char >= 0) {
 		c = unget_char;
 		unget_char = -1;
-	} else {
-		if (macroptr) {
-			c = *macroptr++;
-			if (!*macroptr)
-				macroptr = NULL;
-		} else
-			c = x_getc();
-	}
+	} else if (macroptr) {
+		c = (u_char)*macroptr++;
+		if (!*macroptr)
+			macroptr = NULL;
+	} else
+		c = x_getc();
 
-	return c <= CHARMASK ? c : (c & CHARMASK);
+	return (c);
 }
 
 static void
@@ -3038,7 +3035,7 @@ x_set_arg(int c)
 	int n = 0;
 	int first = 1;
 
-	c &= CHARMASK;	/* strip command prefix */
+	c &= 255;	/* strip command prefix */
 	for (; c >= 0 && ksh_isdigit(c); c = x_e_getc(), first = 0)
 		n = n * 10 + (c - '0');
 	if (c < 0 || first) {
