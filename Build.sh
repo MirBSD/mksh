@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.270 2007/10/10 11:42:24 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.271 2007/10/14 13:31:01 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -311,7 +311,7 @@ OSF1)
 	;;
 Plan9)
 	CPPFLAGS="$CPPFLAGS -D_POSIX_SOURCE -D_LIMITS_EXTENSION"
-	CPPFLAGS="$CPPFLAGS -D_BSD_EXTENSION -D_SUSV2_SOURCE -D__Plan9__"
+	CPPFLAGS="$CPPFLAGS -D_BSD_EXTENSION -D_SUSV2_SOURCE"
 	warn=' and will currently not work'
 	;;
 PW32*)
@@ -1069,3 +1069,4 @@ $e "# $i -c -o root -g bin -m 444 mksh.1 /usr/share/man/man1/mksh.1"
 $e
 $e Run the regression test suite: ./test.sh
 $e Please also read the sample file dot.mkshrc and the fine manual.
+exit 0
