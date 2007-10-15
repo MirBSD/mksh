@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.271 2007/10/14 13:31:01 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.272 2007/10/15 21:09:51 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -37,7 +37,6 @@ ao=
 fx=
 me=`basename "$0"`
 orig_CFLAGS=$CFLAGS
-NEED_ARC4RANDOM=0
 
 if test -t 1; then
 	bi='[1m'
@@ -811,7 +810,6 @@ if test 0 = $HAVE_ARC4RANDOM && test -f "$srcdir/arc4random.c"; then
 	HAVE_ARC4RANDOM=1
 	# ensure isolation of source directory from build directory
 	test -f arc4random.c || cp "$srcdir/arc4random.c" .
-	NEED_ARC4RANDOM=1
 	LIBS="$LIBS arc4random.c"
 fi
 ac_cppflags ARC4RANDOM
@@ -905,8 +903,8 @@ EOF
 #
 # check headers for declarations
 #
-save_LIBS=$LIBS
-test 1 = $NEED_ARC4RANDOM && LIBS="$LIBS arc4random.c"
+save_CC=$CC
+CC="$CC -c -o $tcfn"
 ac_test '!' arc4random_decl arc4random 1 'if arc4random() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
@@ -919,12 +917,12 @@ ac_test '!' arc4random_pushb_decl arc4random_pushb 1 'if arc4random_pushb() does
 	int arc4random_pushb(char, int); /* this clashes if defined before */
 	int main(int ac, char *av[]) { return (arc4random_pushb(**av, ac)); }
 EOF
-LIBS=$save_LIBS
 ac_test sys_siglist_decl sys_siglist 1 'if sys_siglist[] does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int main(void) { return (sys_siglist[0][0]); }
 EOF
+CC=$save_CC
 
 #
 # other checks
