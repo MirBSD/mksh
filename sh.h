@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.177 2007/10/14 13:43:41 tg Exp $"
-#define MKSH_VERSION "R31 2007/10/14"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.178 2007/10/18 20:32:33 tg Exp $"
+#define MKSH_VERSION "R31 2007/10/18"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -701,7 +701,7 @@ struct tbl {			/* table item */
 		int (*f)(const char **);/* int function */
 		struct op *t;		/* "function" tree */
 	} val;			/* value */
-	int index;		/* index for an array */
+	uint32_t index;		/* index for an array */
 	union {
 		int field;	/* field with for -L/-R/-Z */
 		int errno_;	/* CEXEC/CTALIAS */

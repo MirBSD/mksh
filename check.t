@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.140 2007/10/14 13:43:40 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.141 2007/10/18 20:32:31 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R31 2007/10/14
+	@(#)MIRBSD KSH R31 2007/10/18
 description:
 	Check version of shell.
 category: pdksh
@@ -4051,6 +4051,20 @@ stdin:
 	echo "${#foo[*]}|${foo[0]}|${foo[1]}|${foo[2]}|${foo[3]}|${foo[4]}|"
 expected-stdout:
 	5|a|$v|c d|$v|b|
+---
+name: arrays-3
+description:
+	Check if array bounds are uint32_t
+stdin:
+	set -A foo a b c
+	foo[4097]=d
+	foo[2147483637]=e
+	print ${foo[*]}
+	foo[-1]=f
+	print ${foo[4294967295]} g ${foo[*]}
+expected-stdout:
+	a b c d e
+	f g a b c d e f
 ---
 name: varexpand-substr-1
 description:

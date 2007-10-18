@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.45 2007/09/09 18:06:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.46 2007/10/18 20:32:33 tg Exp $");
 
 /*
  * Variables
@@ -22,7 +22,8 @@ static void	unspecial(const char *);
 static void	getspec(struct tbl *);
 static void	setspec(struct tbl *);
 static void	unsetspec(struct tbl *);
-static struct tbl *arraysearch(struct tbl *, int);
+static struct tbl *arraysearch(struct tbl *, uint32_t);
+static const char *array_index_calc(const char *, bool *, uint32_t *);
 static int rnd_get(void);
 static void rnd_set(long);
 
@@ -116,7 +117,7 @@ initvar(void)
  * the basename of the array.
  */
 static const char *
-array_index_calc(const char *n, bool *arrayp, int *valp)
+array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 {
 	const char *p;
 	int len;
@@ -134,9 +135,8 @@ array_index_calc(const char *n, bool *arrayp, int *valp)
 		afree(tmp, ATEMP);
 		n = str_nsave(n, p - n, ATEMP);
 		evaluate(sub, &rval, KSH_UNWIND_ERROR, true);
-		if (rval < 0 || rval > 2147483647)
+		if ((long)(*valp = (uint32_t)rval) != rval)
 			errorf("%s: subscript %ld out of range", n, rval);
-		*valp = rval;
 		afree(sub, ATEMP);
 	}
 	return n;
@@ -152,8 +152,8 @@ global(const char *n)
 	struct tbl *vp;
 	int c;
 	unsigned h;
-	bool	 array;
-	int	 val;
+	bool array;
+	uint32_t val;
 
 	/* Check to see if this is an array */
 	n = array_index_calc(n, &array, &val);
@@ -233,8 +233,8 @@ local(const char *n, bool copy)
 	struct block *l = e->loc;
 	struct tbl *vp;
 	unsigned h;
-	bool	 array;
-	int	 val;
+	bool array;
+	uint32_t val;
 
 	/* Check to see if this is an array */
 	n = array_index_calc(n, &array, &val);
@@ -1142,7 +1142,7 @@ unsetspec(struct tbl *vp)
  * vp, indexed by val.
  */
 static struct tbl *
-arraysearch(struct tbl *vp, int val)
+arraysearch(struct tbl *vp, uint32_t val)
 {
 	struct tbl *prev, *curr, *new;
 	size_t namelen = strlen(vp->name) + 1;
@@ -1219,7 +1219,7 @@ void
 set_array(const char *var, int reset, const char **vals)
 {
 	struct tbl *vp, *vq;
-	int i;
+	uint32_t i;
 
 	/* to get local array, use "typeset foo; set -A foo" */
 	vp = global(var);

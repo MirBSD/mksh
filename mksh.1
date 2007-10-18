@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.102 2007/10/14 13:43:17 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.103 2007/10/18 20:32:32 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
-.Dd October 14, 2007
+.Dd October 18, 2007
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -1029,7 +1029,7 @@ form
 where
 .Ar expr
 is an arithmetic expression.
-Array indices are currently limited to the range 0 through 2147483647 (for
+Array indices are currently limited to the range 0 through 4294967295 (for
 .Nm
 only; portable maximum is 1023), inclusive.
 Parameter substitutions take the form
@@ -5385,7 +5385,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh R31b
+.Nm mksh R32
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
