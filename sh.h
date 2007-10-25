@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.178 2007/10/18 20:32:33 tg Exp $"
-#define MKSH_VERSION "R31 2007/10/18"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.179 2007/10/25 13:51:19 tg Exp $"
+#define MKSH_VERSION "R32 2007/10/25"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>

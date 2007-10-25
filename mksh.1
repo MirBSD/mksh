@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.103 2007/10/18 20:32:32 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.104 2007/10/25 13:51:18 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
-.Dd October 18, 2007
+.Dd October 25, 2007
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -5399,11 +5399,3 @@ mailing list or in the
 .Pq or Li \&#ksh
 IRC channel at
 .Pa irc.freenode.net:6667 .
-.Pp
-By the way, the snippet
-.Bd -literal -offset indent
-$ print hi \*(Ba read a; print $a   # Does not show hi
-.Ed
-.Pp
-does not work, because commands of a pipe sequence are executed in
-a subshell (but you can usually use co-processes instead of pipes).

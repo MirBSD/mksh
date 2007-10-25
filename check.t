@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.141 2007/10/18 20:32:31 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.142 2007/10/25 13:51:18 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R31 2007/10/18
+	@(#)MIRBSD KSH R32 2007/10/25
 description:
 	Check version of shell.
 category: pdksh
@@ -3851,7 +3851,7 @@ expected-stdout:
 	posix
 	brex
 ---
-name: pipeline-subshell-1
+name: pipeline-1
 description:
 	pdksh bug: last command of a pipeline is executed in a
 	subshell - make sure it still is, scripts depend on it
@@ -3876,6 +3876,18 @@ expected-stdout:
 	a*
 	*
 	abcx abcy
+---
+name: pipeline-2
+description:
+	check that co-processes work with TCOMs, TPIPEs and TPARENs
+stdin:
+	"$0" -c 'i=100; print hi |& while read -p line; do print "$((i++)) $line"; done'
+	"$0" -c 'i=200; print hi | cat |& while read -p line; do print "$((i++)) $line"; done'
+	"$0" -c 'i=300; (print hi | cat) |& while read -p line; do print "$((i++)) $line"; done'
+expected-stdout:
+	100 hi
+	200 hi
+	300 hi
 ---
 name: persist-history-1
 description:
