@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.49 2007/10/25 15:23:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.50 2007/10/25 16:10:16 tg Exp $");
 
 /*
  * Variables
@@ -135,8 +135,7 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 		afree(tmp, ATEMP);
 		n = str_nsave(n, p - n, ATEMP);
 		evaluate(sub, &rval, KSH_UNWIND_ERROR, true);
-		if ((long)(*valp = (uint32_t)rval) != rval)
-			errorf("%s: subscript %ld out of range", n, rval);
+		*valp = (uint32_t)rval;
 		afree(sub, ATEMP);
 	}
 	return n;
