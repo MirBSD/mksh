@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.11 2007/07/01 18:00:00 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.12 2007/10/25 14:44:45 tg Exp $
 # $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
 #-
 # Example test:
@@ -252,7 +252,7 @@ $ENV{$k} = $v while ($k,$v) = each %new_env;
 
 die "$prog: couldn't make directory $tempdir - $!\n" if !mkdir($tempdir, 0777);
 
-chop($pwd = `pwd 2> /dev/null`);
+chop($pwd = `pwd 2>/dev/null`);
 die "$prog: couldn't get current working directory\n" if $pwd eq '';
 die "$prog: couldn't cd to $pwd - $!\n" if !chdir($pwd);
 
