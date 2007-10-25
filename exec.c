@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.38 2007/09/09 18:06:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.39 2007/10/25 13:27:00 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -35,14 +35,6 @@ execute(struct op *volatile t,
 	if (t == NULL)
 		return 0;
 
-	/* Is this the end of a pipeline?  If so, we want to evaluate the
-	 * command arguments
-	bool eval_done = false;
-	if ((flags&XFORK) && !(flags&XEXEC) && (flags&XPCLOSE)) {
-		eval_done = true;
-		tp = eval_execute_args(t, &ap);
-	}
-	 */
 	if ((flags&XFORK) && !(flags&XEXEC) && t->type != TPIPE)
 		return exchild(t, flags & ~XTIME, -1); /* run in sub-process */
 

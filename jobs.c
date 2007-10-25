@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.28 2007/09/09 19:12:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.29 2007/10/25 13:27:00 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -293,8 +293,7 @@ j_change(void)
 
 /* execute tree in child subprocess */
 int
-exchild(struct op *t, int flags,
-    int close_fd)	/* used if XPCLOSE or XCCLOSE */
+exchild(struct op *t, int flags, /* used if XPCLOSE or XCCLOSE */ int close_fd)
 {
 	static Proc	*last_proc;	/* for pipelines */
 
