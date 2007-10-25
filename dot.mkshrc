@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.23 2007/10/02 01:03:12 tg Stab $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.24 2007/10/25 14:54:00 tg Exp $
 #-
 # Copyright (c) 2007
 #	Thorsten Glaser <tg@mirbsd.de>
@@ -28,13 +28,13 @@
 [[ $HOSTNAME = @(localhost|*([	 ])) ]] && HOSTNAME=$(ulimit -c 0;hostname 2>&-)
 : ${HOSTNAME:=nil}; PS1='#'; [[ "$(ulimit -c 0; id -u 2>&-)" -eq 0 ]] || PS1='$'
 function precmd {
-	typeset -i10 e=$?
+	typeset -Ui10 e=$?
 
-	(( e )) && print -n -- "$e|"
+	(( e )) && print -n "$e|"
 }
 PS1='$(precmd)${USER:=$(ulimit -c 0;id -un 2>&- || print \?)}@${HOSTNAME%%.*}:$(
 	typeset pfx=~ wd=${PWD:-?}
-	typeset -i n=${COLUMNS:-80}/3; let n="n < 7 ? 7 : n"
+	typeset -Ui n=${COLUMNS:-80}/3; (( n = n < 7 ? 7 : n ))
 	[[ ${wd#$pfx} = $wd || $pfx = ?(/) ]] || wd=\~${wd#$pfx}
 	pfx=; while (( (${#pfx} + ${#wd}) > n )); do
 		if [[ $wd = */* ]]; then
@@ -44,7 +44,7 @@ PS1='$(precmd)${USER:=$(ulimit -c 0;id -un 2>&- || print \?)}@${HOSTNAME%%.*}:$(
 			pfx=...
 			wd=${wd#?????}
 		fi
-	done; print -r -- "$pfx$wd") '"$PS1 "
+	done; print -nr -- "$pfx$wd") '"$PS1 "
 PS1="$(print -n '\001\015')$PS1"	# allow colour codes, framed with ^A
 export EDITOR HOSTNAME LESSHISTFILE=- MKSH=$(whence -p mksh) PS1 TERM USER
 alias l='/bin/ls -F'
