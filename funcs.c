@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.66 2007/10/18 20:32:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.67 2007/10/25 15:23:09 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -903,7 +903,7 @@ c_typeset(const char **wp)
 						if ((vp->flag&ARRAY) && any_set)
 							shprintf("%s[%lu]",
 							    vp->name,
-							    (u_long)vp->index);
+							    (unsigned long)vp->index);
 						else
 							shprintf("%s", vp->name);
 						if (thing == '-' && (vp->flag&ISSET)) {

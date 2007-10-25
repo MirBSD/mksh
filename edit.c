@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.116 2007/10/25 15:19:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.117 2007/10/25 15:23:08 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -762,20 +762,21 @@ static void utf_ptradj(char *, char **);
 /* UTF-8 hack: high-level functions */
 
 #if HAVE_EXPSTMT
-#define utf_backch(c)	(!Flag(FUTFHACK) ? (c) - 1 : ({	\
-	u_char *utf_backch_cp = (u_char *)(c);		\
-	--utf_backch_cp;				\
-	while ((*utf_backch_cp >= 0x80) &&		\
-	    (*utf_backch_cp < 0xC0))			\
-		--utf_backch_cp;			\
-	(__typeof__ (c))utf_backch_cp;			\
+#define utf_backch(c)	(!Flag(FUTFHACK) ? (c) - 1 : ({		\
+	unsigned char *utf_backch_cp = (unsigned char *)(c);	\
+	--utf_backch_cp;					\
+	while ((*utf_backch_cp >= 0x80) &&			\
+	    (*utf_backch_cp < 0xC0))				\
+		--utf_backch_cp;				\
+	(__typeof__ (c))utf_backch_cp;				\
 }))
 #else
-#define utf_backch(c)	(!Flag(FUTFHACK) ? (c) - 1 : 	\
-	    (c) + (ptrdiff_t)(utf_backch_((u_char *)c) - ((u_char *)(c))))
-static u_char *utf_backch_(u_char *);
-static u_char *
-utf_backch_(u_char *utf_backch_cp)
+#define utf_backch(c)	(!Flag(FUTFHACK) ? (c) - 1 : 		\
+	    (c) + (ptrdiff_t)(utf_backch_((unsigned char *)c) - \
+	    ((unsigned char *)(c))))
+static unsigned char *utf_backch_(unsigned char *);
+static unsigned char *
+utf_backch_(unsigned char *utf_backch_cp)
 {
 	--utf_backch_cp;
 	while ((*utf_backch_cp >= 0x80) && (*utf_backch_cp < 0xC0))
@@ -1085,8 +1086,8 @@ static int	xlp_valid;
 static char	**x_histp;	/* history position */
 static int	x_nextcmd;	/* for newline-and-next */
 static char	*xmp;		/* mark pointer */
-static u_char	x_last_command;
-static u_char	(*x_tab)[X_TABSZ];	/* key definition */
+static unsigned char x_last_command;
+static unsigned char (*x_tab)[X_TABSZ];	/* key definition */
 static char	*(*x_atab)[X_TABSZ];	/* macro definitions */
 static unsigned char	x_bound[(X_TABSZ * X_NTABS + 7) / 8];
 #define	KILLSIZE	20
@@ -1455,7 +1456,7 @@ static int
 x_emacs(char *buf, size_t len)
 {
 	int c, i;
-	u_char f;
+	unsigned char f;
 
 	xbp = xbuf = buf; xend = buf + len;
 	xlp = xcp = xep = buf;
@@ -1862,7 +1863,7 @@ x_size2(char *cp, char **dcp)
 	if (c == '\t')
 		return 4;	/* Kludge, tabs are always four spaces. */
 	if (c < ' ' || c == 0x7f)
-		return 2;	/* control u_char */
+		return 2;	/* control unsigned char */
 	return 1;
 }
 
@@ -2105,7 +2106,7 @@ x_search_hist(int c)
 	int offset = -1;	/* offset of match in xbuf, else -1 */
 	char pat[256 + 1];	/* pattern buffer */
 	char *p = pat;
-	u_char f;
+	unsigned char f;
 
 	*p = '\0';
 	while (1) {
@@ -2569,7 +2570,7 @@ x_bind(const char *a1, const char *a2,
     int macro,			/* bind -m */
     int list)			/* bind -l */
 {
-	u_char f;
+	unsigned char f;
 	int prefix, key;
 	char *sp = NULL;
 	char *m1, *m2;
@@ -2601,7 +2602,7 @@ x_bind(const char *a1, const char *a2,
 	m2 = m1 = x_mapin(a1, ATEMP);
 	prefix = key = 0;
 	for (;; m1++) {
-		key = (u_char)*m1;
+		key = (unsigned char)*m1;
 		f = x_tab[prefix][key] & 0x7F;
 		if (f == XFUNC_meta1)
 			prefix = 1;
@@ -2667,7 +2668,7 @@ x_init_emacs(void)
 	ainit(AEDIT);
 	x_nextcmd = -1;
 
-	x_tab = (u_char (*)[X_TABSZ])alloc(sizeofN(*x_tab, X_NTABS), AEDIT);
+	x_tab = (unsigned char (*)[X_TABSZ])alloc(sizeofN(*x_tab, X_NTABS), AEDIT);
 	for (j = 0; j < X_TABSZ; j++)
 		x_tab[0][j] = XFUNC_insert;
 	for (i = 1; i < X_NTABS; i++)
@@ -2921,7 +2922,7 @@ x_e_getc(void)
 		c = unget_char;
 		unget_char = -1;
 	} else if (macroptr) {
-		c = (u_char)*macroptr++;
+		c = (unsigned char)*macroptr++;
 		if (!*macroptr)
 			macroptr = NULL;
 	} else

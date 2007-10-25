@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.274 2007/10/25 14:26:52 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.275 2007/10/25 15:23:08 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -660,23 +660,12 @@ ac_testn can_ucbints '!' can_inttypes 1 "for UCB 32-bit integer types" <<-'EOF'
 	#include <sys/types.h>
 	int main(int ac, char **av) { return ((u_int32_t)*av + (int32_t)ac); }
 EOF
-ac_testn can_uinttypes '!' stdint_h 1 "for u_char, u_int, u_long" <<-'EOF'
-	#include <sys/types.h>
-	int main(int ac, char **av) { u_int x = (u_int)**av;
-		return (x == (u_int)(u_long)(u_char)ac);
-	}
-EOF
 case $HAVE_CAN_INTTYPES$HAVE_CAN_UCBINTS in
 01)	HAVE_U_INT32_T=1
 	echo 'typedef u_int32_t uint32_t;' >>stdint.h ;;
 00)	echo 'typedef signed int int32_t;' >>stdint.h
 	echo 'typedef unsigned int uint32_t;' >>stdint.h ;;
 esac
-test 1 = $HAVE_CAN_UINTTYPES || cat >>stdint.h <<-'EOF'
-	typedef unsigned char u_char;
-	typedef unsigned int u_int;
-	typedef unsigned long u_long;
-EOF
 test -f stdint.h && HAVE_STDINT_H=1
 ac_cppflags STDINT_H
 

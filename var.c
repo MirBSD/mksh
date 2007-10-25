@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.48 2007/10/25 14:26:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.49 2007/10/25 15:23:10 tg Exp $");
 
 /*
  * Variables
@@ -25,7 +25,7 @@ static void	unsetspec(struct tbl *);
 static struct tbl *arraysearch(struct tbl *, uint32_t);
 static const char *array_index_calc(const char *, bool *, uint32_t *);
 static int rnd_get(void);
-static void rnd_set(u_long);
+static void rnd_set(unsigned long);
 
 /*
  * create a new block for function calls and simple commands
@@ -902,7 +902,7 @@ rnd_get(void)
 }
 
 static void
-rnd_set(u_long newval)
+rnd_set(unsigned long newval)
 {
 #if HAVE_ARC4RANDOM
 	rnd_cache[0] ^= (newval << 15) | rand();
@@ -923,7 +923,7 @@ rnd_set(u_long newval)
  * if the parent doesn't use $RANDOM.
  */
 void
-change_random(u_long newval)
+change_random(unsigned long newval)
 {
 	int rval = 0;
 

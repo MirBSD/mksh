@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.31 2007/10/25 14:18:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.32 2007/10/25 15:23:09 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -372,7 +372,7 @@ exchild(struct op *t, int flags, /* used if XPCLOSE or XCCLOSE */ int close_fd)
 		p->pid = i;
 
 	/* Ensure next child gets a (slightly) different $RANDOM sequence */
-	change_random(((u_long)p->pid << 1) | (ischild ? 1 : 0));
+	change_random(((unsigned long)p->pid << 1) | (ischild ? 1 : 0));
 
 	/* job control set up */
 	if (Flag(FMONITOR) && !(flags&XXCOM)) {

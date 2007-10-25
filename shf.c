@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.15 2007/06/06 23:28:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.16 2007/10/25 15:23:10 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -553,7 +553,7 @@ shf_putchar(int c, struct shf *shf)
 		return EOF;
 
 	if (shf->flags & SHF_UNBUF) {
-		u_char cc = (u_char)c;
+		unsigned char cc = (unsigned char)c;
 		int n;
 
 		if (shf->fd < 0)
