@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.17 2007/08/19 23:12:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.18 2007/10/25 15:34:30 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -14,7 +14,6 @@ static struct op *pipeline(int);
 static struct op *andor(void);
 static struct op *c_list(int);
 static struct ioword *synio(int);
-static void musthave(int, int);
 static struct op *nested(int, int, int);
 static struct op *get_command(int);
 static struct op *dogroup(void);
@@ -49,6 +48,7 @@ static int symbol;		/* yylex value */
 #define	ACCEPT		(reject = 0)
 #define	token(cf)	((reject) ? (ACCEPT, symbol) : (symbol = yylex(cf)))
 #define	tpeek(cf)	((reject) ? (symbol) : (REJECT, symbol = yylex(cf)))
+#define musthave(c,cf)	do { if (token(cf) != (c)) syntaxerr(NULL); } while (0)
 
 static void
 yyparse(void)
@@ -162,13 +162,6 @@ synio(int cf)
 	} else
 		iop->name = yylval.cp;
 	return iop;
-}
-
-static void
-musthave(int c, int cf)
-{
-	if ((token(cf)) != c)
-		syntaxerr(NULL);
 }
 
 static struct op *

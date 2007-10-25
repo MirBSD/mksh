@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.35 2007/09/09 18:06:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.36 2007/10/25 15:34:29 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -1243,9 +1243,7 @@ tilde(char *cp)
 		dp = homedir(cp);
 #endif
 	/* If HOME, PWD or OLDPWD are not set, don't expand ~ */
-	if (dp == null)
-		dp = NULL;
-	return dp;
+	return (dp == null ? NULL : dp);
 }
 
 #ifndef MKSH_NOPWNAM

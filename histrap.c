@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.56 2007/09/09 19:12:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.57 2007/10/25 15:34:30 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -377,9 +377,7 @@ hist_get_newest(int allow_cur)
 		bi_errorf("no history (yet)");
 		return NULL;
 	}
-	if (allow_cur)
-		return histptr;
-	return histptr - 1;
+	return (allow_cur ? histptr : histptr - 1);
 }
 
 /* Return a pointer to the newest command in the history */
@@ -421,7 +419,7 @@ histpos(void)
 int
 histnum(int n)
 {
-	int	last = histptr - history;
+	int last = histptr - history;
 
 	if (n < 0 || n >= last) {
 		current = histptr;
