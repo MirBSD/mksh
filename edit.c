@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.115 2007/10/14 13:43:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.116 2007/10/25 15:19:15 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -26,8 +26,7 @@ X_chars edchars;
 #define XCF_COMMAND_FILE (XCF_COMMAND|XCF_FILE)
 
 static int x_getc(void);
-static void x_flush(void);
-static void x_putc(int);
+static void x_putcf(int);
 static bool x_mode(bool);
 static int x_do_comment(char *, int, int *);
 static void x_print_expansions(int, char *const *, int);
@@ -42,6 +41,9 @@ static void x_init_prompt(void);
 #ifndef MKSH_NOVI
 static int x_vi(char *, size_t);
 #endif
+
+#define x_flush()	shf_flush(shl_out)
+#define x_putc(c)	shf_putc((c), shl_out)
 
 #ifdef TIOCGWINSZ
 static void chkwinsz(void);
@@ -141,13 +143,7 @@ x_getc(void)
 }
 
 static void
-x_flush(void)
-{
-	shf_flush(shl_out);
-}
-
-static void
-x_putc(int c)
+x_putcf(int c)
 {
 	shf_putc(c, shl_out);
 }
@@ -443,8 +439,8 @@ x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 	return nwords;
 }
 
-#define IS_WORDC(c)	!( ctype(c, C_LEX1) || (c) == '\'' || (c) == '"' || \
-			    (c) == '`' || (c) == '=' || (c) == ':' )
+#define IS_WORDC(c)	(!ctype(c, C_LEX1) && (c) != '\'' && (c) != '"' && \
+			    (c) != '`' && (c) != '=' && (c) != ':')
 
 static int
 x_locate_word(const char *buf, int buflen, int pos, int *startp,
@@ -2988,7 +2984,7 @@ x_e_putc3(const char **cp)
 
 			width = utf_widthadj(*cp, (const char **)&cp2);
 			while (*cp < cp2)
-				x_putc(*(*cp)++);
+				x_putcf(*(*cp)++);
 		} else {
 			(*cp)++;
 			x_putc(c);
@@ -5193,7 +5189,7 @@ ed_mov_opt(int col, char *wb)
 			pprompt(prompt, prompt_trunc);
 			cur_col = pwidth;
 			while (cur_col++ < col)
-				x_putc(*wb++);
+				x_putcf(*wb++);
 		} else {
 			while (cur_col-- > col)
 				x_putc('\b');
@@ -5201,7 +5197,7 @@ ed_mov_opt(int col, char *wb)
 	} else {
 		wb = &wb[cur_col - pwidth];
 		while (cur_col++ < col)
-			x_putc(*wb++);
+			x_putcf(*wb++);
 	}
 	cur_col = col;
 }

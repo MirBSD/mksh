@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.11 2007/07/06 01:53:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.12 2007/10/25 15:19:16 tg Exp $");
 
 #define INDENT	4
 
@@ -336,29 +336,29 @@ tputS(char *wp, struct shf *shf)
 int
 fptreef(struct shf *shf, int indent, const char *fmt, ...)
 {
-  va_list	va;
+	va_list va;
 
-  va_start(va, fmt);
+	va_start(va, fmt);
 
-  vfptreef(shf, indent, fmt, va);
-  va_end(va);
-  return 0;
+	vfptreef(shf, indent, fmt, va);
+	va_end(va);
+	return (0);
 }
 
 /* VARARGS */
 char *
 snptreef(char *s, int n, const char *fmt, ...)
 {
-  va_list va;
-  struct shf shf;
+	va_list va;
+	struct shf shf;
 
-  shf_sopen(s, n, SHF_WR | (s ? 0 : SHF_DYNAMIC), &shf);
+	shf_sopen(s, n, SHF_WR | (s ? 0 : SHF_DYNAMIC), &shf);
 
-  va_start(va, fmt);
-  vfptreef(&shf, 0, fmt, va);
-  va_end(va);
+	va_start(va, fmt);
+	vfptreef(&shf, 0, fmt, va);
+	va_end(va);
 
-  return shf_sclose(&shf); /* null terminates */
+	return (shf_sclose(&shf)); /* null terminates */
 }
 
 static void

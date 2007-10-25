@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.181 2007/10/25 14:26:53 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.182 2007/10/25 15:19:16 tg Exp $"
 #define MKSH_VERSION "R32 2007/10/25"
 
 #if HAVE_SYS_PARAM_H
@@ -333,14 +333,14 @@ EXTERN Area aperm;		/* permanent object space */
  * parsing & execution environment
  */
 EXTERN struct env {
-	short type;		/* environment type - see below */
-	short flags;		/* EF_* */
 	Area area;		/* temporary allocation area */
 	struct block *loc;	/* local variables and functions */
 	short *savefd;		/* original redirected fds */
 	struct env *oenv;	/* link to previous environment */
-	sigjmp_buf jbuf;	/* long jump back to env creator */
 	struct temp *temps;	/* temp files */
+	sigjmp_buf jbuf;	/* long jump back to env creator */
+	short type;		/* environment type - see below */
+	short flags;		/* EF_* */
 } *e;
 
 /* struct env.type values */
@@ -686,8 +686,8 @@ extern struct shf shf_iob[];
 
 struct table {
 	Area *areap;		/* area to allocate entries */
-	short size, nfree;	/* hash size (always 2^^n), free entries */
 	struct tbl **tbls;	/* hashed table items */
+	short size, nfree;	/* hash size (always 2^^n), free entries */
 };
 
 struct tbl {			/* table item */
@@ -857,11 +857,6 @@ EXTERN int current_lineno;	/* LINENO value */
  * Description of a command or an operation on commands.
  */
 struct op {
-	short type;			/* operation type, see below */
-	union { /* WARNING: newtp(), tcopy() use evalflags = 0 to clear union */
-		short evalflags;	/* TCOM: arg expansion eval() flags */
-		short ksh_func;		/* TFUNC: function x (vs x()) */
-	} u;
 	const char **args;		/* arguments to a command */
 	char **vars;			/* variable assignments */
 	struct ioword **ioact;		/* IO actions (eg, < > >>) */
@@ -872,6 +867,11 @@ struct op {
 					 * time hook for TCOM.
 					 */
 	int lineno;			/* TCOM/TFUNC: LINENO for this */
+	short type;			/* operation type, see below */
+	union { /* WARNING: newtp(), tcopy() use evalflags = 0 to clear union */
+		short evalflags;	/* TCOM: arg expansion eval() flags */
+		short ksh_func;		/* TFUNC: function x (vs x()) */
+	} u;
 };
 
 /* Tree.type values */
@@ -1394,7 +1394,7 @@ unsigned int hash(const char *);
 void ktinit(struct table *, Area *, int);
 struct tbl *ktsearch(struct table *, const char *, unsigned int);
 struct tbl *ktenter(struct table *, const char *, unsigned int);
-void ktdelete(struct tbl *);
+#define ktdelete(p)	do { p->flag = 0 } while (0)
 void ktwalk(struct tstate *, struct table *);
 struct tbl *ktnext(struct tstate *);
 struct tbl **ktsort(struct table *);

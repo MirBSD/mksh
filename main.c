@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.87 2007/08/19 22:06:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.88 2007/10/25 15:19:16 tg Exp $");
 
 extern char **environ;
 
@@ -713,11 +713,9 @@ reclaim(void)
 static void
 remove_temps(struct temp *tp)
 {
-
 	for (; tp != NULL; tp = tp->next)
-		if (tp->pid == procpid) {
+		if (tp->pid == procpid)
 			unlink(tp->name);
-		}
 }
 
 /* Initialise tty_fd.  Used for saving/reseting tty modes upon
@@ -1266,12 +1264,6 @@ ktenter(struct table *tp, const char *n, unsigned int h)
 	tp->nfree--;
 	*pp = p;
 	return p;
-}
-
-void
-ktdelete(struct tbl *p)
-{
-	p->flag = 0;
 }
 
 void

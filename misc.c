@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.66 2007/09/09 18:06:41 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.67 2007/10/25 15:19:16 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -481,11 +481,11 @@ getn(const char *s, int *ai)
 int
 bi_getn(const char *as, int *ai)
 {
-	int rv = getn(as, ai);
+	int rv;
 
-	if (!rv)
+	if (!(rv = getn(as, ai)))
 		bi_errorf("%s: bad number", as);
-	return rv;
+	return (rv);
 }
 
 /* -------- gmatch.c -------- */
