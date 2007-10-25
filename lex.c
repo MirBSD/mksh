@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.47 2007/08/19 23:12:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.48 2007/10/25 15:27:54 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -91,7 +91,7 @@ static int ignore_backslash_newline;
 #ifdef MKSH_SMALL
 #define STATE_BSIZE	32
 #else
-#define STATE_BSIZE	64
+#define STATE_BSIZE	48
 #endif
 
 #define PUSH_STATE(s)	do { \
