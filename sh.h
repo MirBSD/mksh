@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.183 2007/10/25 15:23:10 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.184 2007/10/25 15:34:57 tg Exp $"
 #define MKSH_VERSION "R32 2007/10/25"
 
 #if HAVE_SYS_PARAM_H
@@ -1394,7 +1394,7 @@ unsigned int hash(const char *);
 void ktinit(struct table *, Area *, int);
 struct tbl *ktsearch(struct table *, const char *, unsigned int);
 struct tbl *ktenter(struct table *, const char *, unsigned int);
-#define ktdelete(p)	do { p->flag = 0 } while (0)
+#define ktdelete(p)	do { p->flag = 0; } while (0)
 void ktwalk(struct tstate *, struct table *);
 struct tbl *ktnext(struct tstate *);
 struct tbl **ktsort(struct table *);
