@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.47 2007/10/25 14:18:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.48 2007/10/25 14:26:53 tg Exp $");
 
 /*
  * Variables
@@ -25,7 +25,7 @@ static void	unsetspec(struct tbl *);
 static struct tbl *arraysearch(struct tbl *, uint32_t);
 static const char *array_index_calc(const char *, bool *, uint32_t *);
 static int rnd_get(void);
-static void rnd_set(long);
+static void rnd_set(u_long);
 
 /*
  * create a new block for function calls and simple commands
@@ -860,7 +860,7 @@ makenv(void)
  * and writes to $RANDOM a cheap operation.
  */
 #if HAVE_ARC4RANDOM
-static uint64_t rnd_cache = 0;
+static uint32_t rnd_cache[2];
 static char rnd_lastflag = 2;
 #endif
 
@@ -877,19 +877,20 @@ rnd_get(void)
 			srand(arc4random() & 0x7FFF);
 		} else if (rnd_lastflag == 0) {
 			/* transition from 0: addrandom */
-			rnd_cache ^= rand();
+			rnd_cache[0] ^= rand();
+			rnd_cache[1] ^= rand();
 		}
 		rnd_lastflag = Flag(FARC4RANDOM);
 	}
 	if (Flag(FARC4RANDOM)) {
-		if (rnd_cache)
+		if (rnd_cache[0] || rnd_cache[1])
 #if HAVE_ARC4RANDOM_PUSHB
-			rv = arc4random_pushb(&rnd_cache, sizeof (rnd_cache));
+			rv = arc4random_pushb(rnd_cache, sizeof (rnd_cache));
 #else
-			arc4random_addrandom((void *)&rnd_cache,
+			arc4random_addrandom((void *)rnd_cache,
 			    sizeof (rnd_cache));
 #endif
-		rnd_cache = 0;
+		rnd_cache[0] = rnd_cache[1] = 0;
 		return ((
 #if HAVE_ARC4RANDOM_PUSHB
 		    rv ? rv :
@@ -901,10 +902,11 @@ rnd_get(void)
 }
 
 static void
-rnd_set(long newval)
+rnd_set(u_long newval)
 {
 #if HAVE_ARC4RANDOM
-	rnd_cache ^= (((uint64_t)newval) << 15) | rand();
+	rnd_cache[0] ^= (newval << 15) | rand();
+	rnd_cache[1] ^= newval >> 17;
 	if (Flag(FARC4RANDOM) == 1)
 		return;
 	if (Flag(FARC4RANDOM) == 2)
@@ -927,7 +929,8 @@ change_random(u_long newval)
 
 #if HAVE_ARC4RANDOM
 	if (Flag(FARC4RANDOM)) {
-		rnd_cache ^= ((uint64_t)rand() << 45) ^ (uint64_t)newval;
+		rnd_cache[0] ^= (newval << 15) | rand();
+		rnd_cache[1] ^= newval >> 17;
 		return;
 	}
 #endif

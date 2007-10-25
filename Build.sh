@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.273 2007/10/25 14:18:55 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.274 2007/10/25 14:26:52 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -911,22 +911,6 @@ ac_test sys_siglist_decl sys_siglist 1 'if sys_siglist[] does not need to be dec
 	int main(void) { return (sys_siglist[0][0]); }
 EOF
 CC=$save_CC
-
-if test 10 = $HAVE_ARC4RANDOM$HAVE_STDINT_H; then
-	ac_testn uint64_t <<-'EOF'
-		#include <sys/types.h>
-		int main(void) { return ((int)(uint64_t)0); }
-	EOF
-	ac_testn u_int64_t '!' uint64_t 0 'if u_int64_t can be used instead' <<-'EOF'
-		#include <sys/types.h>
-		int main(void) { return ((int)(u_int64_t)0); }
-	EOF
-	if test 1 = $HAVE_U_INT64_T; then
-		CPPFLAGS="$CPPFLAGS -Duint64_t=u_int64_t"
-		HAVE_UINT64_T=1
-	fi
-	ac_cppflags UINT64_T
-fi
 
 #
 # other checks

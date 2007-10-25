@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.180 2007/10/25 14:18:56 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.181 2007/10/25 14:26:53 tg Exp $"
 #define MKSH_VERSION "R32 2007/10/25"
 
 #if HAVE_SYS_PARAM_H
@@ -116,10 +116,6 @@ typedef void (*sig_t)(int);
 typedef int bool;
 #define false 0
 #define true 1
-#endif
-
-#if HAVE_ARC4RANDOM && !HAVE_STDINT_H && !HAVE_UINT64_T
-typedef unsigned long long uint64_t;
 #endif
 
 /* extra macros */
