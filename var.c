@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.46 2007/10/18 20:32:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.47 2007/10/25 14:18:56 tg Exp $");
 
 /*
  * Variables
@@ -921,16 +921,13 @@ rnd_set(long newval)
  * if the parent doesn't use $RANDOM.
  */
 void
-change_random(uint64_t newval)
+change_random(u_long newval)
 {
 	int rval = 0;
 
-	newval &= 0x00001FFFFFFFFFFF;
-	newval |= (uint64_t)rand() << 45;
-
 #if HAVE_ARC4RANDOM
 	if (Flag(FARC4RANDOM)) {
-		rnd_cache ^= newval;
+		rnd_cache ^= ((uint64_t)rand() << 45) ^ (uint64_t)newval;
 		return;
 	}
 #endif
@@ -939,9 +936,7 @@ change_random(uint64_t newval)
 	newval >>= 15;
 	rval += newval & 0x7FFF;
 	newval >>= 15;
-	rval += newval & 0x7FFF;
-	newval >>= 15;
-	rval += newval;
+	rval += newval + rand();
 	rval = (rval & 0x7FFF) ^ (rval >> 15);
 
 	srand(rval);

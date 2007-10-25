@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.272 2007/10/15 21:09:51 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.273 2007/10/25 14:18:55 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -353,7 +353,7 @@ $e $bi$me: Scanning for functions... please ignore any errors.$ao
 # – ICC defines __GNUC__ too
 # – GCC defines __hpux too
 CPP="$CC -E"
-$e ... which compiler we seem to use
+$e ... which compiler seems to be used
 cat >scn.c <<-'EOF'
 	#if defined(__ICC) || defined(__INTEL_COMPILER)
 	ct=icc
@@ -390,7 +390,7 @@ case $ct in
 bcc|dmc|gcc|hpcc|icc|msc|pcc|sunpro|tcc|tendra|xlc) ;;
 *) ct=unknown ;;
 esac
-$e "$bi==> which compiler we seem to use...$ao $ui$ct$ao"
+$e "$bi==> which compiler seems to be used...$ao $ui$ct$ao"
 rm -f scn.c scn.o
 
 case $TARGET_OS in
@@ -529,13 +529,13 @@ elif test $ct = dmc; then
 	ac_flags 1 decl "${ccpc}-r" 'for strict prototype checks'
 	ac_flags 1 schk "${ccpc}-s" 'for stack overflow checking'
 elif test $ct = bcc; then
-	ac_flags 1 strpool "${ccpc}-d" 'if we can enable string pooling'
+	ac_flags 1 strpool "${ccpc}-d" 'if string pooling can be enabled'
 elif test $ct = msc; then
-	ac_flags 1 strpool "${ccpc}/GF" 'if we can enable string pooling'
+	ac_flags 1 strpool "${ccpc}/GF" 'if string pooling can be enabled'
 	cat >x <<-'EOF'
 		int main(void) { char test[64] = ""; return (*test); }
 	EOF
-	ac_flags - 1 stackon "${ccpc}/GZ" 'if we can enable stack checks' <x
+	ac_flags - 1 stackon "${ccpc}/GZ" 'if stack checks can be enabled' <x
 	ac_flags - 1 stckall "${ccpc}/Ge" 'stack checks for all functions' <x
 	ac_flags - 1 secuchk "${ccpc}/GS" 'for compiler security checks' <x
 	rm -f x
@@ -579,7 +579,7 @@ NOWARN=$DOWARN
 #
 # Compiler: check for stuff that only generates warnings
 #
-ac_test attribute '' 'if we have __attribute__((...)) at all' <<-'EOF'
+ac_test attribute '' 'for basic __attribute__((...)) support' <<-'EOF'
 	#include <stdlib.h>
 	#undef __attribute__
 	void fnord(void) __attribute__((noreturn));
@@ -610,16 +610,16 @@ NOWARN=$save_NOWARN
 #
 # mksh: flavours (full/small mksh, omit certain stuff)
 #
-ac_testn mksh_full '' "if we're building a full-featured mksh" <<-'EOF'
+ac_testn mksh_full '' "if a full-featured mksh is requested" <<-'EOF'
 	#ifdef MKSH_SMALL
 	#error Nope, MKSH_SMALL is defined.
 	#endif
 	int main(void) { return (0); }
 EOF
 
-ac_testn mksh_defutf8 '' "if we assume UTF-8 is enabled" <<-'EOF'
+ac_testn mksh_defutf8 '' "if to assume UTF-8 is enabled" <<-'EOF'
 	#ifndef MKSH_ASSUME_UTF8
-	#error Nope, we shall check with setlocale() and nl_langinfo(CODESET)
+	#error Nope, check with setlocale() and nl_langinfo(CODESET)
 	#endif
 	int main(void) { return (0); }
 EOF
@@ -652,37 +652,25 @@ ac_header ulimit.h
 ac_header values.h
 
 ac_header '!' stdint.h stdarg.h
-ac_testn can_inttyp32 '!' stdint_h 1 "if we have standard 32-bit integer types" <<-'EOF'
+ac_testn can_inttypes '!' stdint_h 1 "for standard 32-bit integer types" <<-'EOF'
 	#include <sys/types.h>
 	int main(int ac, char **av) { return ((uint32_t)*av + (int32_t)ac); }
 EOF
-ac_testn can_inttyb32 '!' can_inttyp32 1 "if we have UCB 32-bit integer types" <<-'EOF'
+ac_testn can_ucbints '!' can_inttypes 1 "for UCB 32-bit integer types" <<-'EOF'
 	#include <sys/types.h>
 	int main(int ac, char **av) { return ((u_int32_t)*av + (int32_t)ac); }
 EOF
-ac_testn can_inttyp64 '!' stdint_h 1 "if we have standard 64-bit integer types" <<-'EOF'
-	#include <sys/types.h>
-	int main(void) { return ((int)(uint64_t)0); }
-EOF
-ac_testn can_inttyb64 '!' can_inttyp64 1 "if we have UCB 64-bit integer types" <<-'EOF'
-	#include <sys/types.h>
-	int main(void) { return ((int)(u_int64_t)0); }
-EOF
-ac_testn can_uinttypes '!' stdint_h 1 "if we have u_char, u_int, u_long" <<-'EOF'
+ac_testn can_uinttypes '!' stdint_h 1 "for u_char, u_int, u_long" <<-'EOF'
 	#include <sys/types.h>
 	int main(int ac, char **av) { u_int x = (u_int)**av;
 		return (x == (u_int)(u_long)(u_char)ac);
 	}
 EOF
-case $HAVE_CAN_INTTYP32$HAVE_CAN_INTTYB32 in
+case $HAVE_CAN_INTTYPES$HAVE_CAN_UCBINTS in
 01)	HAVE_U_INT32_T=1
 	echo 'typedef u_int32_t uint32_t;' >>stdint.h ;;
 00)	echo 'typedef signed int int32_t;' >>stdint.h
 	echo 'typedef unsigned int uint32_t;' >>stdint.h ;;
-esac
-case $HAVE_CAN_INTTYP64$HAVE_CAN_INTTYB64 in
-01)	echo 'typedef u_int64_t uint64_t;' >>stdint.h ;;
-00)	echo 'typedef unsigned long long uint64_t;' >>stdint.h ;;
 esac
 test 1 = $HAVE_CAN_UINTTYPES || cat >>stdint.h <<-'EOF'
 	typedef unsigned char u_char;
@@ -703,7 +691,7 @@ cat >lft.c <<-'EOF'
 	    LARGE_OFF_T % 2147483647 == 1) ? 1 : -1];
 	int main(void) { return (0); }
 EOF
-ac_testn can_lfs '' "if we support large files" <lft.c
+ac_testn can_lfs '' "for large file support" <lft.c
 save_CPPFLAGS=$CPPFLAGS
 CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 ac_testn can_lfs_sus '!' can_lfs 0 "... with -D_FILE_OFFSET_BITS=64" <lft.c
@@ -846,7 +834,7 @@ ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<-'EOF'
 	int main(void) { return ((ptrdiff_t)(void *)nl_langinfo(CODESET)); }
 EOF
 
-ac_test mknod '' 'if we use mknod(), makedev() and friends' <<-'EOF'
+ac_test mknod '' 'if to use mknod(), makedev() and friends' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int main(int ac, char *av[]) {
@@ -866,7 +854,7 @@ EOF
 
 ac_test setmode mknod 1 <<-'EOF'
 	#if defined(__MSVCRT__) || defined(__CYGWIN__)
-	#error Win32 setmode() is different from what we need
+	#error Win32 setmode() is different from what is needed
 	#endif
 	#include <unistd.h>
 	int main(int ac, char *av[]) { return (getmode(setmode(av[0]), ac)); }
@@ -923,6 +911,22 @@ ac_test sys_siglist_decl sys_siglist 1 'if sys_siglist[] does not need to be dec
 	int main(void) { return (sys_siglist[0][0]); }
 EOF
 CC=$save_CC
+
+if test 10 = $HAVE_ARC4RANDOM$HAVE_STDINT_H; then
+	ac_testn uint64_t <<-'EOF'
+		#include <sys/types.h>
+		int main(void) { return ((int)(uint64_t)0); }
+	EOF
+	ac_testn u_int64_t '!' uint64_t 0 'if u_int64_t can be used instead' <<-'EOF'
+		#include <sys/types.h>
+		int main(void) { return ((int)(u_int64_t)0); }
+	EOF
+	if test 1 = $HAVE_U_INT64_T; then
+		CPPFLAGS="$CPPFLAGS -Duint64_t=u_int64_t"
+		HAVE_UINT64_T=1
+	fi
+	ac_cppflags UINT64_T
+fi
 
 #
 # other checks
