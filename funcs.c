@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.67 2007/10/25 15:23:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.68 2008/02/24 15:48:42 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -447,6 +447,57 @@ c_print(const char **wp)
 							c = c*8 + *s++ - '0';
 						else
 							break;
+					}
+					break;
+				case 'x':
+					/* Look for a hexadecimal number of
+					 * up to 2 digits, write raw octet.
+					 */
+					c = 0;
+					for (i = 0; i < 2; i++) {
+						c <<= 4;
+						if (*s >= '0' && *s <= '9')
+							c += *s++ - '0';
+						else if (*s >= 'A' && *s <= 'F')
+							c += *s++ - 'A' + 10;
+						else if (*s >= 'a' && *s <= 'f')
+							c += *s++ - 'a' + 10;
+						else {
+							c >>= 4;
+							break;
+						}
+					}
+					break;
+				case 'u':
+					/* Look for a hexadecimal number of
+					 * up to 4 digits, write Unicode.
+					 */
+					c = 0;
+					for (i = 0; i < 4; i++) {
+						c <<= 4;
+						if (*s >= '0' && *s <= '9')
+							c += *s++ - '0';
+						else if (*s >= 'A' && *s <= 'F')
+							c += *s++ - 'A' + 10;
+						else if (*s >= 'a' && *s <= 'f')
+							c += *s++ - 'a' + 10;
+						else {
+							c >>= 4;
+							break;
+						}
+					}
+					if (c < 0x80)
+						/* Xput below writes ASCII */;
+					else if (c < 0x0800) {
+						Xput(xs, xp, (c >> 6) | 0xC0);
+						c = 0x80 | (c & 0x3F);
+						/* leave 2nd octet to below */
+					} else {
+						Xput(xs, xp, (c >> 12) | 0xE0);
+						Xput(xs, xp,
+						    ((c >> 6) & 0x3F) | 0x80);
+						c = 0x80 | (c & 0x3F);
+						/* leave 3rd octet to below */
 					}
 					break;
 				case '\0': s--; c = '\\'; break;

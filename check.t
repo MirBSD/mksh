@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.142 2007/10/25 13:51:18 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.143 2008/02/24 15:48:42 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R32 2007/10/25
+	@(#)MIRBSD KSH R33 2008/02/24
 description:
 	Check version of shell.
 category: pdksh
@@ -4150,4 +4150,12 @@ stdin:
 	print a ${x:(y == 1 ? 2 : 3):4} a
 expected-stdout:
 	a defg a
+---
+name: print-funny-chars
+description:
+	Check print builtin's capability to output designated characters
+stdin:
+	print '<\0144\0344\xDB\u00DB\u20AC\uDB\x40>'
+expected-stdout:
+	<däÛÃ›â‚¬Ã›@>
 ---

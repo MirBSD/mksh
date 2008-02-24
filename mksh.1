@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.104 2007/10/25 13:51:18 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.105 2008/02/24 15:48:43 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
 .Dd October 25, 2007
@@ -3029,13 +3029,16 @@ These include
 .Ql \en ,
 .Ql \er ,
 .Ql \et ,
+.Ql \eu#### ,
 .Ql \ev ,
+.Ql \ex## ,
 and
-.Ql \e0###
-.Po
+.Ql \e0### ;
 .Ql #
-is an octal digit, of which there may be 0 to 3
-.Pc .
+is, in the case of \e0###, an octal, or, in the case of \eu####
+or \ex##, a hexadecimal digit, of which there may be 0 to 2/3/4.
+The \ex## and \e0### escapes translate to raw 8-bit octets;
+the \eu#### escape translates a Unicode codepoint to UTF-8.
 .Ql \ec
 is equivalent to using the
 .Fl n
