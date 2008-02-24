@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.68 2008/02/24 15:48:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.69 2008/02/24 15:57:20 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -1680,7 +1680,7 @@ c_umask(const char **wp)
 		}
 		umask(new_umask);
 	}
-	return 0;
+	return (0);
 }
 
 int
@@ -1694,14 +1694,16 @@ c_dot(const char **wp)
 	int err;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
-		return 1;
+		return (1);
 
-	if ((cp = wp[builtin_opt.optind]) == NULL)
-		return 0;
+	if ((cp = wp[builtin_opt.optind]) == NULL) {
+		bi_errorf("missing argument");
+		return (1);
+	}
 	file = search(cp, path, R_OK, &err);
 	if (file == NULL) {
 		bi_errorf("%s: %s", cp, err ? strerror(err) : "not found");
-		return 1;
+		return (1);
 	}
 
 	/* Set positional parameters? */
@@ -1717,9 +1719,9 @@ c_dot(const char **wp)
 	i = include(file, argc, argv, 0);
 	if (i < 0) { /* should not happen */
 		bi_errorf("%s: %s", cp, strerror(errno));
-		return 1;
+		return (1);
 	}
-	return i;
+	return (i);
 }
 
 int
