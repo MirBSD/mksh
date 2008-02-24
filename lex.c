@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.48 2007/10/25 15:27:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.49 2008/02/24 22:12:36 tg Exp $");
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -124,6 +124,7 @@ yylex(int cf)
 	char *wp;		/* output word pointer */
 	char *sp, *dp;
 	int c2;
+	bool last_terminal_was_bracket;
 
  Again:
 	states[0].ls_state = -1;
@@ -793,6 +794,8 @@ yylex(int cf)
 	if (state == SWORD || state == SLETPAREN ||
 	    state == SLETARRAY)	/* ONEWORD? */
 		return LWORD;
+
+	last_terminal_was_bracket = c == '(';
 	ungetsc(c);		/* unget terminator */
 
 	/* copy word to unprefixed string ident */
@@ -815,19 +818,24 @@ yylex(int cf)
 		}
 		if ((cf & ALIAS) && (p = ktsearch(&aliases, ident, h)) &&
 		    (p->flag & ISSET)) {
-			Source *s;
+			if (last_terminal_was_bracket)
+				/* prefer functions over aliases */
+				ktdelete(p);
+			else {
+				Source *s;
 
-			for (s = source; s->type == SALIAS; s = s->next)
-				if (s->u.tblp == p)
-					return LWORD;
-			/* push alias expansion */
-			s = pushs(SALIAS, source->areap);
-			s->start = s->str = p->val.s;
-			s->u.tblp = p;
-			s->next = source;
-			source = s;
-			afree(yylval.cp, ATEMP);
-			goto Again;
+				for (s = source; s->type == SALIAS; s = s->next)
+					if (s->u.tblp == p)
+						return LWORD;
+				/* push alias expansion */
+				s = pushs(SALIAS, source->areap);
+				s->start = s->str = p->val.s;
+				s->u.tblp = p;
+				s->next = source;
+				source = s;
+				afree(yylval.cp, ATEMP);
+				goto Again;
+			}
 		}
 	}
 

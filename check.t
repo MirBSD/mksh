@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.144 2008/02/24 15:57:20 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.145 2008/02/24 22:12:36 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4168,4 +4168,27 @@ stdin:
 expected-exit: e != 0
 expected-stderr-pattern:
 	/\.: missing argument.*\n.*\.: missing argument/
+---
+name: alias-function-no-conflict
+description:
+	make aliases not conflict with functions
+	note: for ksh-like functions, the order of preference is
+	different; bash outputs baz instead of bar in line 2 below
+stdin:
+	alias foo='echo bar'
+	foo() {
+		echo baz
+	}
+	alias korn='echo bar'
+	function korn {
+		echo baz
+	}
+	foo
+	korn
+	unset -f foo
+	foo 2>&- || echo rab
+expected-stdout:
+	baz
+	bar
+	rab
 ---
