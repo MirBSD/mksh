@@ -1,8 +1,8 @@
-/*	$OpenBSD: var.c,v 1.33 2007/08/02 11:05:54 fgsch Exp $	*/
+/*	$OpenBSD: var.c,v 1.34 2007/10/15 02:16:35 deraadt Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.50 2007/10/25 16:10:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.51 2008/02/24 15:20:52 tg Exp $");
 
 /*
  * Variables
@@ -150,7 +150,7 @@ global(const char *n)
 	struct block *l = e->loc;
 	struct tbl *vp;
 	int c;
-	unsigned h;
+	unsigned int h;
 	bool array;
 	uint32_t val;
 
@@ -231,7 +231,7 @@ local(const char *n, bool copy)
 {
 	struct block *l = e->loc;
 	struct tbl *vp;
-	unsigned h;
+	unsigned int h;
 	bool array;
 	uint32_t val;
 
@@ -830,7 +830,7 @@ makenv(void)
 			    (vp->flag&(ISSET|EXPORT)) == (ISSET|EXPORT)) {
 				struct block *l2;
 				struct tbl *vp2;
-				unsigned h = hash(vp->name);
+				unsigned int h = hash(vp->name);
 
 				/* unexport any redefined instances */
 				for (l2 = l->next; l2 != NULL; l2 = l2->next) {
