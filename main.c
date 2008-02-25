@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.89 2007/10/25 15:23:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.90 2008/02/25 00:58:26 tg Exp $");
 
 extern char **environ;
 
@@ -35,10 +35,6 @@ static const char *initcoms[] = {
 	"typeset", "-i", "PPID", "OPTIND=1", NULL,
 	"eval", "typeset -i RANDOM SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
 	"alias", "integer=typeset -i", "local=typeset", NULL,
-	NULL
-};
-
-static const char *initcoms_korn[] = {
 	"alias",
 	"hash=alias -t",	/* not "alias -t --": hash -r needs to work */
 	"type=whence -v",
@@ -157,15 +153,6 @@ main(int argc, const char *argv[])
 	/* setstr can't fail here */
 	setstr(vp, def_path, KSH_RETURN_ERROR);
 
-	/* Set FPOSIX if we're called as -sh or /bin/sh or so */
-	cc = kshname;
-	i = 0; argi = 0;
-	while (cc[i] != '\0')
-		if ((cc[i++] | 2) == '/')
-			argi = i;
-	if (((cc[argi] | 0x20) == 's') && ((cc[argi + 1] | 0x20) == 'h'))
-		Flag(FPOSIX) = 1;
-
 	/* Turn on nohup by default for now - will change to off
 	 * by default once people are aware of its existence
 	 * (at&t ksh does not have a nohup option - it always sends
@@ -185,6 +172,15 @@ main(int argc, const char *argv[])
 #ifndef MKSH_NOVI
 	Flag(FVITABCOMPLETE) = 1;
 #endif
+
+	/* Set FPOSIX if we're called as -sh or /bin/sh or so */
+	cc = kshname;
+	i = 0; argi = 0;
+	while (cc[i] != '\0')
+		if ((cc[i++] | 2) == '/')
+			argi = i;
+	if (((cc[argi] | 0x20) == 's') && ((cc[argi + 1] | 0x20) == 'h'))
+		change_flag(FPOSIX, OF_FIRSTTIME, 1);
 
 	/* import environment */
 	if (environ != NULL)
@@ -255,13 +251,6 @@ main(int argc, const char *argv[])
 	argi = parse_args(argv, OF_CMDLINE, NULL);
 	if (argi < 0)
 		exit(1);
-
-	if (!Flag(FPOSIX))
-		for (wp = initcoms_korn; *wp != NULL; wp++) {
-			shcomexec(wp);
-			while (*wp != NULL)
-				wp++;
-		}
 
 	if (Flag(FCOMMAND)) {
 		s = pushs(SSTRING, ATEMP);

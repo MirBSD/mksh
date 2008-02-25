@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.145 2008/02/24 22:12:36 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.146 2008/02/25 00:58:24 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4019,10 +4019,11 @@ expected-stdout:
 	suspend='kill -STOP $$'
 	type='whence -v'
 ---
-name: aliases-2
+name: aliases-2a
 description:
 	Check if “set -o posix” disables built-in aliases (except a few)
-category: pdksh
+#category: pdksh
+category: disabled
 arguments: !-o!posix!
 stdin:
 	alias
@@ -4031,10 +4032,11 @@ expected-stdout:
 	integer='typeset -i'
 	local=typeset
 ---
-name: aliases-3
+name: aliases-3a
 description:
 	Check if running as sh disables built-in aliases (except a few)
-category: pdksh
+#category: pdksh
+category: disabled
 arguments: !-o!posix!
 stdin:
 	cp "$0" sh
@@ -4043,6 +4045,53 @@ stdin:
 expected-stdout:
 	integer='typeset -i'
 	local=typeset
+---
+name: aliases-2b
+description:
+	Check if “set -o posix” does not influence built-in aliases
+category: pdksh
+arguments: !-o!posix!
+stdin:
+	alias
+	typeset -f
+expected-stdout:
+	autoload='typeset -fu'
+	functions='typeset -f'
+	hash='alias -t'
+	history='fc -l'
+	integer='typeset -i'
+	local=typeset
+	login='exec login'
+	nohup='nohup '
+	r='fc -e -'
+	source='PATH=$PATH:. command .'
+	stop='kill -STOP'
+	suspend='kill -STOP $$'
+	type='whence -v'
+---
+name: aliases-3b
+description:
+	Check if running as sh does not influence built-in aliases
+category: pdksh
+arguments: !-o!posix!
+stdin:
+	cp "$0" sh
+	./sh -c 'alias; typeset -f'
+	rm -f sh
+expected-stdout:
+	autoload='typeset -fu'
+	functions='typeset -f'
+	hash='alias -t'
+	history='fc -l'
+	integer='typeset -i'
+	local=typeset
+	login='exec login'
+	nohup='nohup '
+	r='fc -e -'
+	source='PATH=$PATH:. command .'
+	stop='kill -STOP'
+	suspend='kill -STOP $$'
+	type='whence -v'
 ---
 name: arrays-1
 description:

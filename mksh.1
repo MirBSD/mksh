@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.105 2008/02/24 15:48:43 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.106 2008/02/25 00:58:26 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
-.Dd October 25, 2007
+.Dd February 24, 2008
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -818,13 +818,7 @@ The alias expansion process stops when a word that is not an alias is found,
 when a quoted word is found, or when an alias word that is currently being
 expanded is found.
 .Pp
-The following command aliases are defined automatically by the shell, unless
-.Fl o Ic posix
-is set, in which case only
-.Dq integer
-and
-.Dq local
-are defined to support existing shell scripts:
+The following command aliases are defined automatically by the shell:
 .Bd -literal -offset indent
 autoload='typeset -fu'
 functions='typeset -f'
@@ -5388,7 +5382,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh R32
+.Nm mksh R33
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
