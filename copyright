@@ -1,8 +1,8 @@
-$MirOS: src/bin/mksh/copyright,v 1.21 2007/07/26 13:35:58 tg Rel $
+$MirOS: src/bin/mksh/copyright,v 1.22 2008/02/25 02:52:20 tg Rel $
 
 The MirBSD Korn Shell (mksh) is
 
-Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007
+Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008
 	Thorsten "mirabilos" Glaser <tg@mirbsd.de>
 
 Provided that these terms and disclaimer and all copyright notices
