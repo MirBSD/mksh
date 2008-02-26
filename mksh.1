@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.106 2008/02/25 00:58:26 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.107 2008/02/26 20:43:11 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
-.Dd February 24, 2008
+.Dd February 26, 2008
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -216,6 +216,7 @@ The meta-characters are used in building the following
 .Ql \*(Lt ,
 .Ql \*(Lt& ,
 .Ql \*(Lt\*(Lt ,
+.Ql \*(Lt\*(Lt\*(Lt ,
 .Ql \*(Gt ,
 .Ql \*(Gt& ,
 .Ql \*(Gt\*(Gt ,
@@ -1921,6 +1922,14 @@ order.
 Same as
 .Ic \*(Lt\*(Lt ,
 except leading tabs are stripped from lines in the here document.
+.It \*(Lt\*(Lt\*(Lt Ar word
+Same as
+.Ic \*(Lt\*(Lt ,
+except that
+.Ar word
+.Em is
+the here document.
+This is called a here string.
 .It \*(Lt& Ar fd
 Standard input is duplicated from file descriptor
 .Ar fd .

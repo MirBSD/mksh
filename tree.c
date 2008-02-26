@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.12 2007/10/25 15:19:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.13 2008/02/26 20:43:11 tg Exp $");
 
 #define INDENT	4
 
@@ -166,7 +166,8 @@ ptree(struct op *t, int indent, struct shf *shf)
 			struct ioword *iop = *ioact++;
 
 			/* heredoc is 0 when tracing (set -x) */
-			if ((iop->flag & IOTYPE) == IOHERE && iop->heredoc) {
+			if ((iop->flag & IOTYPE) == IOHERE && iop->heredoc &&
+			    (!iop->delim || iop->delim[1] != '<')) {
 				tputc('\n', shf);
 				shf_puts(iop->heredoc, shf);
 				fptreef(shf, indent, "%s",
@@ -203,9 +204,9 @@ pioact(struct shf *shf, int indent, struct ioword *iop)
 		break;
 	case IOHERE:
 		if (flag&IOSKIP)
-			fptreef(shf, indent, "<<- ");
+			fptreef(shf, indent, "<<-");
 		else
-			fptreef(shf, indent, "<< ");
+			fptreef(shf, indent, "<<");
 		break;
 	case IOCAT:
 		fptreef(shf, indent, ">> ");
@@ -228,6 +229,8 @@ pioact(struct shf *shf, int indent, struct ioword *iop)
 	}
 	/* name/delim are 0 when printing syntax errors */
 	if (type == IOHERE) {
+		if ((flag & IOSKIP) || (iop->delim[1] != '<'))
+			tputc(' ', shf);
 		if (iop->delim)
 			fptreef(shf, indent, "%S ", iop->delim);
 	} else if (iop->name)

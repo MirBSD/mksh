@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.146 2008/02/25 00:58:24 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.147 2008/02/26 20:43:10 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R33 2008/02/24
+	@(#)MIRBSD KSH R33 2008/02/26
 description:
 	Check version of shell.
 category: pdksh
@@ -1222,6 +1222,51 @@ expected-stdout:
 	hb
 	h\b
 	done
+---
+name: heredoc-9a
+description:
+	Check that here strings work.
+stdin:
+	bar="bar
+		baz"
+	tr '[A-Za-z]' '[N-ZA-Mn-za-m]' <<<foo
+	$0 -c "tr '[A-Za-z]' '[N-ZA-Mn-za-m]' <<<foo"
+	tr '[A-Za-z]' '[N-ZA-Mn-za-m]' <<<"$bar"
+	tr '[A-Za-z]' '[N-ZA-Mn-za-m]' <<<'$bar'
+	tr '[A-Za-z]' '[N-ZA-Mn-za-m]' <<<\$bar
+	tr '[A-Za-z]' '[N-ZA-Mn-za-m]' <<<-foo
+expected-stdout:
+	sbb
+	sbb
+	one
+		onm
+	$one
+	$one
+	-sbb
+---
+name: heredoc-9b
+description:
+	Check that a corner case of here strings works like bash
+stdin:
+	fnord=42
+	bar="bar
+		 \$fnord baz"
+	tr '[A-Za-z]' '[N-ZA-Mn-za-m]' <<<$bar
+expected-stdout:
+	one $sabeq onm
+category: bash
+---
+name: heredoc-9c
+description:
+	Check that a corner case of here strings works like ksh93, zsh
+stdin:
+	fnord=42
+	bar="bar
+		 \$fnord baz"
+	tr '[A-Za-z]' '[N-ZA-Mn-za-m]' <<<$bar
+expected-stdout:
+	one
+		 $sabeq onm
 ---
 name: heredoc-quoting-unsubst
 description:
