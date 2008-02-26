@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.51 2008/02/26 20:43:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.52 2008/02/26 21:08:33 tg Exp $");
 
 /*
  * states while lexing word
@@ -683,15 +683,18 @@ yylex(int cf)
 					*wp++ = QCHAR;
 					*wp++ = c;
 				}
+				/* invoke quoting mode */
 				Xstring(ws, wp)[0] = QCHAR;
 			} else if (c == '\'') {
 				PUSH_STATE(SSQUOTE);
 				*wp++ = OQUOTE;
 				ignore_backslash_newline++;
+				/* invoke quoting mode */
 				Xstring(ws, wp)[0] = QCHAR;
 			} else if (c == '"') {
 				state = statep->ls_state = SHEREDQUOTE;
 				*wp++ = OQUOTE;
+				/* just don't IFS split; no quoting mode */
 			} else {
 				*wp++ = CHAR;
 				*wp++ = c;
@@ -730,6 +733,7 @@ yylex(int cf)
 			if (c == '"') {
 				*wp++ = CQUOTE;
 				state = statep->ls_state =
+				    /* dp[1] == '<' means here string */
 				    Xstring(ws, wp)[1] == '<' ?
 				    SHERESTRING : SHEREDELIM;
 			} else {
@@ -918,6 +922,7 @@ gethere(bool iseof)
 
 	for (p = heres; p < herep; p++)
 		if (iseof && (*p)->delim[1] != '<')
+			/* only here strings at EOF */
 			return;
 		else
 			readhere(*p);
@@ -940,6 +945,7 @@ readhere(struct ioword *iop)
 	int xpos;
 
 	if (iop->delim[1] == '<') {
+		/* process the here string */
 		xp = iop->heredoc = evalstr(iop->delim, DOBLANK);
 		c = strlen(xp) - 1;
 		memmove(xp, xp + 1, c);

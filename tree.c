@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.13 2008/02/26 20:43:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.14 2008/02/26 21:08:33 tg Exp $");
 
 #define INDENT	4
 
@@ -34,12 +34,12 @@ ptree(struct op *t, int indent, struct shf *shf)
 			for (w = (const char **)t->vars; *w != NULL; )
 				fptreef(shf, indent, "%S ", *w++);
 		else
-			fptreef(shf, indent, "#no-vars# ");
+			shf_puts("#no-vars# ", shf);
 		if (t->args)
 			for (w = t->args; *w != NULL; )
 				fptreef(shf, indent, "%S ", *w++);
 		else
-			fptreef(shf, indent, "#no-args# ");
+			shf_puts("#no-args# ", shf);
 		break;
 	case TEXEC:
 		t = t->left;
@@ -61,17 +61,17 @@ ptree(struct op *t, int indent, struct shf *shf)
 		    t->left, (t->type==TOR) ? "||" : "&&", t->right);
 		break;
 	case TBANG:
-		fptreef(shf, indent, "! ");
+		shf_puts("! ", shf);
 		t = t->right;
 		goto Chain;
 	case TDBRACKET:
 	  {
 		int i;
 
-		fptreef(shf, indent, "[[");
+		shf_puts("[[", shf);
 		for (i = 0; t->args[i]; i++)
 			fptreef(shf, indent, " %S", t->args[i]);
-		fptreef(shf, indent, " ]] ");
+		shf_puts(" ]] ", shf);
 		break;
 	  }
 	case TSELECT:
@@ -81,7 +81,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		if (t->type == TFOR)
 			fptreef(shf, indent, "for %s ", t->str);
 		if (t->vars != NULL) {
-			fptreef(shf, indent, "in ");
+			shf_puts("in ", shf);
 			for (w = (const char **)t->vars; *w; )
 				fptreef(shf, indent, "%S ", *w++);
 			fptreef(shf, indent, "%;");
@@ -153,7 +153,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		fptreef(shf, indent, "time %T", t->left);
 		break;
 	default:
-		fptreef(shf, indent, "<botch>");
+		shf_puts("<botch>", shf);
 		break;
 	}
 	if ((ioact = t->ioact) != NULL) {
@@ -167,6 +167,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 
 			/* heredoc is 0 when tracing (set -x) */
 			if ((iop->flag & IOTYPE) == IOHERE && iop->heredoc &&
+			    /* iop->delim[1] == '<' means here string */
 			    (!iop->delim || iop->delim[1] != '<')) {
 				tputc('\n', shf);
 				shf_puts(iop->heredoc, shf);
@@ -200,39 +201,32 @@ pioact(struct shf *shf, int indent, struct ioword *iop)
 
 	switch (type) {
 	case IOREAD:
-		fptreef(shf, indent, "< ");
+		shf_puts("< ", shf);
 		break;
 	case IOHERE:
-		if (flag&IOSKIP)
-			fptreef(shf, indent, "<<-");
-		else
-			fptreef(shf, indent, "<<");
+		shf_puts(flag & IOSKIP ? "<<-" : "<<", shf);
 		break;
 	case IOCAT:
-		fptreef(shf, indent, ">> ");
+		shf_puts(">> ", shf);
 		break;
 	case IOWRITE:
-		if (flag&IOCLOB)
-			fptreef(shf, indent, ">| ");
-		else
-			fptreef(shf, indent, "> ");
+		shf_puts(flag & IOCLOB ? ">| " : "> ", shf);
 		break;
 	case IORDWR:
-		fptreef(shf, indent, "<> ");
+		shf_puts("<> ", shf);
 		break;
 	case IODUP:
-		if (flag & IORDUP)
-			fptreef(shf, indent, "<&");
-		else
-			fptreef(shf, indent, ">&");
+		shf_puts(flag & IORDUP ? "<&" : ">&", shf);
 		break;
 	}
 	/* name/delim are 0 when printing syntax errors */
 	if (type == IOHERE) {
-		if ((flag & IOSKIP) || (iop->delim[1] != '<'))
-			tputc(' ', shf);
 		if (iop->delim)
-			fptreef(shf, indent, "%S ", iop->delim);
+			fptreef(shf, indent, "%s%S ",
+			    /* here string */ iop->delim[1] == '<' ? "" : " ",
+			    iop->delim);
+		else
+			tputc(' ', shf);
 	} else if (iop->name)
 		fptreef(shf, indent, (iop->flag & IONAMEXP) ? "%s " : "%S ",
 		    iop->name);
@@ -282,21 +276,17 @@ tputS(char *wp, struct shf *shf)
 			tputC(c, shf);
 			break;
 		case COMSUB:
-			tputc('$', shf);
-			tputc('(', shf);
+			shf_puts("$(", shf);
 			while (*wp != 0)
 				tputC(*wp++, shf);
 			tputc(')', shf);
 			wp++;
 			break;
 		case EXPRSUB:
-			tputc('$', shf);
-			tputc('(', shf);
-			tputc('(', shf);
+			shf_puts("$((", shf);
 			while (*wp != 0)
 				tputC(*wp++, shf);
-			tputc(')', shf);
-			tputc(')', shf);
+			shf_puts("))", shf);
 			wp++;
 			break;
 		case OQUOTE:
@@ -560,20 +550,16 @@ wdstrip(const char *wp)
 			shf_putchar(*wp++, &shf);
 			break;
 		case COMSUB:
-			shf_putchar('$', &shf);
-			shf_putchar('(', &shf);
+			shf_puts("$(", &shf);
 			while (*wp != 0)
 				shf_putchar(*wp++, &shf);
 			shf_putchar(')', &shf);
 			break;
 		case EXPRSUB:
-			shf_putchar('$', &shf);
-			shf_putchar('(', &shf);
-			shf_putchar('(', &shf);
+			shf_puts("$((", &shf);
 			while (*wp != 0)
 				shf_putchar(*wp++, &shf);
-			shf_putchar(')', &shf);
-			shf_putchar(')', &shf);
+			shf_puts("))", &shf);
 			break;
 		case OQUOTE:
 			break;
