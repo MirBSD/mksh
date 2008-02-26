@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.185 2008/02/24 15:48:43 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.186 2008/02/26 20:35:25 tg Exp $"
 #define MKSH_VERSION "R33 2008/02/24"
 
 #if HAVE_SYS_PARAM_H
@@ -1109,25 +1109,6 @@ struct source {
 #define SF_ALIASEND	BIT(2)	/* faking space at end of alias */
 #define SF_TTY		BIT(3)	/* type == SSTDIN & it is a tty */
 #define SF_FIRST	BIT(4)	/* initial state (to ignore UTF-8 BOM) */
-
-/*
- * states while lexing word
- */
-#define SBASE		0	/* outside any lexical constructs */
-#define SWORD		1	/* implicit quoting for substitute() */
-#define SLETPAREN	2	/* inside (( )), implicit quoting */
-#define SSQUOTE		3	/* inside '' */
-#define SDQUOTE		4	/* inside "" */
-#define SBRACE		5	/* inside ${} */
-#define SCSPAREN	6	/* inside $() */
-#define SBQUOTE		7	/* inside `` */
-#define SASPAREN	8	/* inside $(( )) */
-#define SHEREDELIM	9	/* parsing <<,<<- delimiter */
-#define SHEREDQUOTE	10	/* parsing " in <<,<<- delimiter */
-#define SPATTERN	11	/* parsing *(...|...) pattern (*+?@!) */
-#define STBRACE		12	/* parsing ${..[#%]..} */
-#define SLETARRAY	13	/* inside =( ), just copy */
-#define SADELIM		14	/* like SBASE, looking for delimiter */
 
 typedef union {
 	int i;

@@ -2,7 +2,26 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.49 2008/02/24 22:12:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.50 2008/02/26 20:35:24 tg Exp $");
+
+/*
+ * states while lexing word
+ */
+#define SBASE		0	/* outside any lexical constructs */
+#define SWORD		1	/* implicit quoting for substitute() */
+#define SLETPAREN	2	/* inside (( )), implicit quoting */
+#define SSQUOTE		3	/* inside '' */
+#define SDQUOTE		4	/* inside "" */
+#define SBRACE		5	/* inside ${} */
+#define SCSPAREN	6	/* inside $() */
+#define SBQUOTE		7	/* inside `` */
+#define SASPAREN	8	/* inside $(( )) */
+#define SHEREDELIM	9	/* parsing <<,<<- delimiter */
+#define SHEREDQUOTE	10	/* parsing " in <<,<<- delimiter */
+#define SPATTERN	11	/* parsing *(...|...) pattern (*+?@!) */
+#define STBRACE		12	/* parsing ${..[#%]..} */
+#define SLETARRAY	13	/* inside =( ), just copy */
+#define SADELIM		14	/* like SBASE, looking for delimiter */
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
