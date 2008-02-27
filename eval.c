@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.36 2007/10/25 15:34:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.37 2008/02/27 01:00:09 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -166,6 +166,7 @@ expand(const char *cp,	/* input word */
 	int newlines = 0; /* For trailing newlines in COMSUB */
 	int saw_eq, tilde_ok;
 	int make_magic;
+	int sqchar = 0;		/* char to keep bksl before (${…/…\/…/…}) */
 	size_t len;
 
 	if (cp == NULL)
@@ -373,6 +374,13 @@ expand(const char *cp,	/* input word */
 						*dp++ = MAGIC;
 						*dp++ = (char)('@' | 0x80);
 						break;
+					case '/':
+						/* ! DOBLANK,DOBRACE_,DOTILDE */
+						f = DOPAT | (f&DONTRUNCOMMAND) |
+						    DOTEMP_;
+						quote = 0;
+						sqchar = '/';
+						break;
 					case '=':
 						/* Enabling tilde expansion
 						 * after :s here is
@@ -416,6 +424,7 @@ expand(const char *cp,	/* input word */
 				tilde_ok = 0;	/* in case of ${unset:-} */
 				*dp = '\0';
 				quote = st->quote;
+				sqchar = 0;
 				f = st->f;
 				if (f&DOBLANK)
 					doblank--;
@@ -423,7 +432,10 @@ expand(const char *cp,	/* input word */
 				case '#':
 				case '%':
 					/* Append end-pattern */
-					*dp++ = MAGIC; *dp++ = ')'; *dp = '\0';
+					*dp++ = MAGIC; *dp++ = ')';
+					/* FALLTHROUGH */
+				case '/':
+					*dp = '\0';
 					dp = Xrestpos(ds, dp, st->base);
 					/* Must use st->var since calling
 					 * global would break things
@@ -587,6 +599,9 @@ expand(const char *cp,	/* input word */
 			}
 			break;
 		}
+
+		if (quote && sqchar == c)
+			*dp++ = '\\';
 
 		/* check for end of word or IFS separation */
 		if (c == 0 || (!quote && (f & DOBLANK) && doblank &&
@@ -823,6 +838,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		switch (stype & 0x7f) {
 		case '=':	/* can't assign to a vector */
 		case '%':	/* can't trim a vector (yet) */
+		case '/':
 		case '#':
 			return -1;
 		}
@@ -845,6 +861,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 			case '=':	/* can't assign to a vector */
 			case '%':	/* can't trim a vector (yet) */
 			case '#':
+			case '/':
 			case '?':
 				return -1;
 			}
@@ -951,7 +968,7 @@ trimsub(char *str, char *pat, int how)
 	char *end = strnul(str);
 	char *p, c;
 
-	switch (how&0xff) {	/* UCHAR_MAX maybe? */
+	switch (how & 0xFF) {
 	case '#':		/* shortest at beginning */
 		for (p = str; p <= end; p++) {
 			c = *p; *p = '\0';
@@ -962,7 +979,7 @@ trimsub(char *str, char *pat, int how)
 			*p = c;
 		}
 		break;
-	case '#'|0x80:	/* longest match at beginning */
+	case '#'|0x80:		/* longest match at beginning */
 		for (p = end; p >= str; p--) {
 			c = *p; *p = '\0';
 			if (gmatchx(str, pat, false)) {
@@ -978,12 +995,77 @@ trimsub(char *str, char *pat, int how)
 				return str_nsave(str, p - str, ATEMP);
 		}
 		break;
-	case '%'|0x80:	/* longest match at end */
+	case '%'|0x80:		/* longest match at end */
 		for (p = str; p <= end; p++) {
 			if (gmatchx(p, pat, false))
 				return str_nsave(str, p - str, ATEMP);
 		}
 		break;
+	case '/':		/* replace once - SLOW! */
+	case '/'|0x80:		/* replace all - SLOWER! */
+	    {
+		char *rpat, *rrep, *tpat1, *tpat2, *sbeg, *s, *d;
+		bool gotmatch = false;
+
+		sbeg = s = str;
+		/* separate search pattern and replacement string */
+		p = d = rpat = str_save(pat, ATEMP);
+ 		while (*p)
+			if (*p == '\\') {
+				p++;
+				if (*p)
+					p++;
+			} else if (*p == '/') {
+				*p++ = '\0';
+				d = p;
+				gotmatch = true;
+				break;
+			} else
+				p++;
+		rrep = gotmatch ? d : null;
+
+		/* first see if we have any match at all */
+		tpat1 = shf_smprintf("%c%c%c*%s%c*%c)", MAGIC, '@' | 0x80,
+		    MAGIC, rpat, MAGIC, MAGIC);
+		tpat2 = shf_smprintf("%c%c%s%c*%c)", MAGIC, '@' | 0x80,
+		    rpat, MAGIC, MAGIC);
+ again_repl:
+		/* this would not be necessary if gmatchx would return
+		 * the start and end values of a match found, like re*
+		 */
+		if (!gmatchx(s, tpat1, false))
+			goto end_repl;
+		/* now anchor the beginning of the match */
+		while (sbeg <= end)
+			if (gmatchx(sbeg, tpat2, false))
+				break;
+			else
+				sbeg++;
+		/* now anchor the end of the match */
+		for (p = end; p >= sbeg; p--) {
+			c = *p; *p = '\0';
+			gotmatch = gmatchx(sbeg, rpat, false);
+			*p = c;
+			if (gotmatch)
+				break;
+		}
+		end = str_nsave(s, sbeg - s, ATEMP);
+		d = shf_smprintf("%s%s%s", end, rrep, p);
+		afree(end, ATEMP);
+		sbeg = d + (sbeg - s) + strlen(rrep);
+		if (s != str)
+			afree(s, ATEMP);
+		s = d;
+		end = strnul(s);
+		if ((how & 0xFF) != '/')
+			goto again_repl;
+ end_repl:
+		afree(rpat, ATEMP);
+		afree(tpat1, ATEMP);
+		afree(tpat2, ATEMP);
+		return (s);
+		break;
+	    }
 	}
 
 	return str;		/* no match, return string */

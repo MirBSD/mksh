@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.187 2008/02/26 20:43:11 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.188 2008/02/27 01:00:10 tg Exp $"
 #define MKSH_VERSION "R33 2008/02/26"
 
 #if HAVE_SYS_PARAM_H
@@ -543,7 +543,8 @@ EXTERN int really_exit;
 extern unsigned char chtypes[];
 
 #define ctype(c, t)	!!( ((t) == C_SUBOP2) ?				\
-			    (((c) == '#' || (c) == '%') ? 1 : 0) :	\
+			    (((c) == '#' || (c) == '%' || 		\
+			      (c) == '/') ? 1 : 0) :			\
 			    (chtypes[(unsigned char)(c)]&(t)) )
 #define ksh_isalphx(c)	ctype((c), C_ALPHA)
 #define ksh_isalnux(c)	ctype((c), C_ALPHA | C_DIGIT)
@@ -1394,7 +1395,7 @@ void change_flag(enum sh_flag, int, char);
 int parse_args(const char **, int, int *);
 int getn(const char *, int *);
 int bi_getn(const char *, int *);
-int gmatchx(const char *, const char *, int);
+int gmatchx(const char *, const char *, bool);
 int has_globbing(const char *, const char *);
 const unsigned char *pat_scan(const unsigned char *, const unsigned char *, int);
 int xstrcmp(const void *, const void *);

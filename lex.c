@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.52 2008/02/26 21:08:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.53 2008/02/27 01:00:09 tg Exp $");
 
 /*
  * states while lexing word
@@ -395,7 +395,7 @@ yylex(int cf)
 					/* If this is a trim operation,
 					 * treat (,|,) specially in STBRACE.
 					 */
-					if (c == '#' || c == '%') {
+					if (ctype(c, C_SUBOP2)) {
 						ungetsc(c);
 						PUSH_STATE(STBRACE);
 					} else {
