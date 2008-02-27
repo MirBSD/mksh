@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.148 2008/02/27 11:24:11 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.149 2008/02/27 12:49:53 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1024,7 +1024,9 @@ stdin:
 	echo 23: ${x//#1/9}
 	echo 24: ${x//%1/9}
 	echo 25: ${x//\%1/9}
-#	echo 26: ${x//\%1/9}
+	echo 26: ${x//\\%1/9}
+	echo 27: ${x//\a/9}
+	echo 28: ${x//\\a/9}
 expected-stdout:
 	1: 122321_ab/cde_b/c_1221
 	2: 131_ab/cde_b/c_11
@@ -1051,7 +1053,9 @@ expected-stdout:
 	23: 9222321_ab/cde_b/c_1221
 	24: 1222321_ab/cde_b/c_1229
 	25: 1222321_ab/cde_b/c_1229
-#	26: 1222321_ab/cde_b/c_1221
+	26: 1222321_ab/cde_b/c_1221
+	27: 1222321_9b/cde_b/c_1221
+	28: 1222321_9b/cde_b/c_1221
 ---
 name: glob-bad-1
 description:

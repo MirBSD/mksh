@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.189 2008/02/27 11:24:12 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.190 2008/02/27 12:49:54 tg Exp $"
 #define MKSH_VERSION "R33 2008/02/27"
 
 #if HAVE_SYS_PARAM_H
@@ -538,7 +538,7 @@ EXTERN int really_exit;
 #define C_SUBOP1 BIT(5)		/* "=-+?" */
 #define C_QUOTE	 BIT(6)		/*  \n\t"#$&'()*;<>?[]\`| (needing quoting) */
 #define C_IFS	 BIT(7)		/* $IFS */
-#define C_SUBOP2 BIT(8)		/* "#%" (magic, see below) */
+#define C_SUBOP2 BIT(8)		/* "#%/" (magic, see below) */
 
 extern unsigned char chtypes[];
 

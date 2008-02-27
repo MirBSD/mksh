@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.38 2008/02/27 11:24:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.39 2008/02/27 12:49:53 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -166,7 +166,7 @@ expand(const char *cp,	/* input word */
 	int newlines = 0; /* For trailing newlines in COMSUB */
 	int saw_eq, tilde_ok;
 	int make_magic;
-	int sqchar = 0;		/* char to keep bksl before (${…/…\/…/…}) */
+	int sqmode = 0;		/* keep backslashes before [\\/%#] */
 	size_t len;
 
 	if (cp == NULL)
@@ -379,7 +379,7 @@ expand(const char *cp,	/* input word */
 						f = DOPAT | (f&DONTRUNCOMMAND) |
 						    DOTEMP_;
 						quote = 0;
-						sqchar = 0x100 | '/';
+						sqmode = 2;
 						break;
 					case '=':
 						/* Enabling tilde expansion
@@ -424,7 +424,7 @@ expand(const char *cp,	/* input word */
 				tilde_ok = 0;	/* in case of ${unset:-} */
 				*dp = '\0';
 				quote = st->quote;
-				sqchar = 0;
+				sqmode = 0;
 				f = st->f;
 				if (f&DOBLANK)
 					doblank--;
@@ -600,15 +600,17 @@ expand(const char *cp,	/* input word */
 			break;
 		}
 
-		if (sqchar) {
-			/* keep backslash before backslash or sqchar */
-			if (quote || c == '\\')
+		if (sqmode) {
+			/* keep backslash before backslash or C_SUBOP2 char */
+			if ((c == '\\') ||
+			    (quote && c == '/') ||
+			    (quote && sqmode == 2 && ctype(c, C_SUBOP2)))
 				*dp++ = '\\';
-			if (sqchar & 0x100 && (quote || (sqchar & 0xFF) != c)) {
-				/* beginning of string, ign. leading sqchars */
-				sqchar &= 0xFF;
-			} else if ((sqchar & 0xFF) == c && !quote)
-				sqchar = 0;
+			if (sqmode == 2 && (quote || c != '/'))
+				/* beginning of string, ign. leading chars */
+				sqmode = 1;
+			else if (!quote && c == '/')
+				sqmode = 0;
 		}
 
 		/* check for end of word or IFS separation */
@@ -1019,6 +1021,8 @@ trimsub(char *str, char *pat, int how)
 		s = d = rpat = str_save(pat, ATEMP);
  		while ((c = *s++))
 			if (c == '\\') {
+				if (s[0] == '\\' && s[1] != '/')
+					++s;
 				if (!(*d++ = *s++))
 					break;
 			} else if (c == '/') {
@@ -1040,17 +1044,16 @@ trimsub(char *str, char *pat, int how)
 
 		/* first see if we have any match at all */
 		tpat0 = rpat;
-		if (*rpat == '\\' && (rpat[1] == '#' || rpat[1] == '%'))
-			tpat0++;
-		if (*tpat0 == '#') {
+		d = pat;
+		if (*d == '\\')
+			++d;
+		if (*d == '#') {
 			/* anchor at the beginning */
-			tpat0++;
-			tpat1 = shf_smprintf("%s%c*", tpat0, MAGIC);
+			tpat1 = shf_smprintf("%s%c*", ++tpat0, MAGIC);
 			tpat2 = tpat1;
-		} else if (*tpat0 == '%') {
+		} else if (*d == '%') {
 			/* anchor at the end */
-			tpat0++;
-			tpat1 = shf_smprintf("%c*%s", MAGIC, tpat0);
+			tpat1 = shf_smprintf("%c*%s", MAGIC, ++tpat0);
 			tpat2 = tpat0;
 		} else {
 			/* float */
