@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.37 2008/02/27 01:00:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.38 2008/02/27 11:24:11 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -379,7 +379,7 @@ expand(const char *cp,	/* input word */
 						f = DOPAT | (f&DONTRUNCOMMAND) |
 						    DOTEMP_;
 						quote = 0;
-						sqchar = '/';
+						sqchar = 0x100 | '/';
 						break;
 					case '=':
 						/* Enabling tilde expansion
@@ -600,8 +600,16 @@ expand(const char *cp,	/* input word */
 			break;
 		}
 
-		if (quote && sqchar == c)
-			*dp++ = '\\';
+		if (sqchar) {
+			/* keep backslash before backslash or sqchar */
+			if (quote || c == '\\')
+				*dp++ = '\\';
+			if (sqchar & 0x100 && (quote || (sqchar & 0xFF) != c)) {
+				/* beginning of string, ign. leading sqchars */
+				sqchar &= 0xFF;
+			} else if ((sqchar & 0xFF) == c && !quote)
+				sqchar = 0;
+		}
 
 		/* check for end of word or IFS separation */
 		if (c == 0 || (!quote && (f & DOBLANK) && doblank &&
@@ -1004,51 +1012,76 @@ trimsub(char *str, char *pat, int how)
 	case '/':		/* replace once - SLOW! */
 	case '/'|0x80:		/* replace all - SLOWER! */
 	    {
-		char *rpat, *rrep, *tpat1, *tpat2, *sbeg, *s, *d;
+		char *rpat, *rrep, *tpat1, *tpat2, *tpat0, *sbeg, *s, *d;
 		bool gotmatch = false;
 
-		sbeg = s = str;
 		/* separate search pattern and replacement string */
-		p = d = rpat = str_save(pat, ATEMP);
- 		while (*p)
-			if (*p == '\\') {
-				p++;
-				if (*p)
-					p++;
-			} else if (*p == '/') {
-				*p++ = '\0';
-				d = p;
+		s = d = rpat = str_save(pat, ATEMP);
+ 		while ((c = *s++))
+			if (c == '\\') {
+				if (!(*d++ = *s++))
+					break;
+			} else if (c == '/') {
+				*d++ = '\0';
+				p = s;
 				gotmatch = true;
 				break;
 			} else
-				p++;
-		rrep = gotmatch ? d : null;
+				*d++ = c;
+		rrep = gotmatch ? p : null;
+		/* do not accept empty pattern */
+		if (!*rpat) {
+			afree(rpat, ATEMP);
+			return (str);
+		}
+
+		/* prepare string on which to work */
+		sbeg = s = str;
 
 		/* first see if we have any match at all */
-		tpat1 = shf_smprintf("%c%c%c*%s%c*%c)", MAGIC, '@' | 0x80,
-		    MAGIC, rpat, MAGIC, MAGIC);
-		tpat2 = shf_smprintf("%c%c%s%c*%c)", MAGIC, '@' | 0x80,
-		    rpat, MAGIC, MAGIC);
+		tpat0 = rpat;
+		if (*rpat == '\\' && (rpat[1] == '#' || rpat[1] == '%'))
+			tpat0++;
+		if (*tpat0 == '#') {
+			/* anchor at the beginning */
+			tpat0++;
+			tpat1 = shf_smprintf("%s%c*", tpat0, MAGIC);
+			tpat2 = tpat1;
+		} else if (*tpat0 == '%') {
+			/* anchor at the end */
+			tpat0++;
+			tpat1 = shf_smprintf("%c*%s", MAGIC, tpat0);
+			tpat2 = tpat0;
+		} else {
+			/* float */
+			tpat1 = shf_smprintf("%c*%s%c*", MAGIC, rpat, MAGIC);
+			tpat2 = tpat1 + 2;
+		}
  again_repl:
 		/* this would not be necessary if gmatchx would return
 		 * the start and end values of a match found, like re*
 		 */
-		if (!gmatchx(s, tpat1, false))
+		if (!gmatchx(sbeg, tpat1, false))
 			goto end_repl;
 		/* now anchor the beginning of the match */
-		while (sbeg <= end)
-			if (gmatchx(sbeg, tpat2, false))
-				break;
-			else
-				sbeg++;
+		if (*pat != '#')
+			while (sbeg <= end) {
+				if (gmatchx(sbeg, tpat2, false))
+					break;
+				else
+					sbeg++;
+			}
 		/* now anchor the end of the match */
-		for (p = end; p >= sbeg; p--) {
-			c = *p; *p = '\0';
-			gotmatch = gmatchx(sbeg, rpat, false);
-			*p = c;
-			if (gotmatch)
-				break;
-		}
+		p = end;
+		if (*pat != '%')
+			while (p >= sbeg) {
+				c = *p; *p = '\0';
+				gotmatch = gmatchx(sbeg, tpat0, false);
+				*p = c;
+				if (gotmatch)
+					break;
+				p--;
+			}
 		end = str_nsave(s, sbeg - s, ATEMP);
 		d = shf_smprintf("%s%s%s", end, rrep, p);
 		afree(end, ATEMP);
@@ -1062,7 +1095,6 @@ trimsub(char *str, char *pat, int how)
  end_repl:
 		afree(rpat, ATEMP);
 		afree(tpat1, ATEMP);
-		afree(tpat2, ATEMP);
 		return (s);
 		break;
 	    }

@@ -1,7 +1,7 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.107 2008/02/26 20:43:11 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.108 2008/02/27 11:24:12 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
-.Dd February 26, 2008
+.Dd February 27, 2008
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -1235,6 +1235,40 @@ of them result in the longest match.
 .Xc
 .Sm on
 Like ${..#..} substitution, but it deletes from the end of the value.
+.Pp
+.Sm off
+.It Xo
+.Pf ${ Ar name
+.Pf / Ar pattern / Ar string No }
+.Xc
+.It Xo
+.Pf ${ Ar name
+.Pf // Ar pattern / Ar string No }
+.Xc
+.Sm on
+Like ${..#..} substitution, but it replaces the longest match of
+.Ar pattern ,
+anchored anywhere in the value, with
+.Ar string .
+If
+.Ar pattern
+begins with
+.Ql # ,
+it is anchored at the beginning of the value; if it begins with
+.Ql % ,
+it is anchored at the end.
+A single
+.Ql /
+replaces the first occurence of the search
+.Ar pattern ,
+and two of them replace all occurences.
+If
+.Pf / Ar string
+is omitted, the
+.Ar pattern
+is replaced by the empty string, i.e. deleted.
+.Pp
+.Sm off
 .It Xo
 .Pf ${ Ar name : Ns Ar pos
 .Pf : Ns Ar len Ns }

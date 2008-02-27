@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.147 2008/02/26 20:43:10 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.148 2008/02/27 11:24:11 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R33 2008/02/26
+	@(#)MIRBSD KSH R33 2008/02/27
 description:
 	Check version of shell.
 category: pdksh
@@ -964,7 +964,7 @@ expected-stdout:
 ---
 name: eglob-trim-1
 description:
-	Eglobing in trim expressions...
+	Eglobbing in trim expressions...
 	(at&t ksh fails this - docs say # matches shortest string, ## matches
 	longest...)
 stdin:
@@ -981,7 +981,7 @@ expected-stdout:
 ---
 name: eglob-trim-2
 description:
-	Check eglobing works in trims...
+	Check eglobbing works in trims...
 stdin:
 	x=abcdef
 	echo 1: ${x#*(a|b)cd}
@@ -993,6 +993,65 @@ expected-stdout:
 	2: ef
 	3: abcdef
 	4: cdef
+---
+name: eglob-substrpl-1
+description:
+	Check eglobbing works in substs... and they work at all
+stdin:
+	x=1222321_ab/cde_b/c_1221
+	echo 1: ${x/2}
+	echo 2: ${x//2}
+	echo 3: ${x/+(2)}
+	echo 4: ${x//+(2)}
+	echo 5: ${x/2/4}
+	echo 6: ${x//2/4}
+	echo 7: ${x/+(2)/4}
+	echo 8: ${x//+(2)/4}
+	echo 9: ${x/b/c/e/f}
+	echo 10: ${x/b\/c/e/f}
+	echo 11: ${x/b\/c/e\/f}
+	echo 12: ${x/b\/c/e\\/f}
+	echo 13: ${x/b\\/c/e\\/f}
+	echo 14: ${x//b/c/e/f}
+	echo 15: ${x//b\/c/e/f}
+	echo 16: ${x//b\/c/e\/f}
+	echo 17: ${x//b\/c/e\\/f}
+	echo 18: ${x//b\\/c/e\\/f}
+	echo 19: ${x/b\/*\/c/x}
+	echo 20: ${x/\//.}
+	echo 21: ${x//\//.}
+	echo 22: ${x///.}
+	echo 23: ${x//#1/9}
+	echo 24: ${x//%1/9}
+	echo 25: ${x//\%1/9}
+#	echo 26: ${x//\%1/9}
+expected-stdout:
+	1: 122321_ab/cde_b/c_1221
+	2: 131_ab/cde_b/c_11
+	3: 1321_ab/cde_b/c_1221
+	4: 131_ab/cde_b/c_11
+	5: 1422321_ab/cde_b/c_1221
+	6: 1444341_ab/cde_b/c_1441
+	7: 14321_ab/cde_b/c_1221
+	8: 14341_ab/cde_b/c_141
+	9: 1222321_ac/e/f/cde_b/c_1221
+	10: 1222321_ae/fde_b/c_1221
+	11: 1222321_ae/fde_b/c_1221
+	12: 1222321_ae\/fde_b/c_1221
+	13: 1222321_ab/cde_b/c_1221
+	14: 1222321_ac/e/f/cde_c/e/f/c_1221
+	15: 1222321_ae/fde_e/f_1221
+	16: 1222321_ae/fde_e/f_1221
+	17: 1222321_ae\/fde_e\/f_1221
+	18: 1222321_ab/cde_b/c_1221
+	19: 1222321_ax_1221
+	20: 1222321_ab.cde_b/c_1221
+	21: 1222321_ab.cde_b.c_1221
+	22: 1222321_ab/cde_b/c_1221
+	23: 9222321_ab/cde_b/c_1221
+	24: 1222321_ab/cde_b/c_1229
+	25: 1222321_ab/cde_b/c_1229
+#	26: 1222321_ab/cde_b/c_1221
 ---
 name: glob-bad-1
 description:
@@ -3231,7 +3290,7 @@ expected-stdout:
 ---
 name: regression-52
 description:
-	Check that globing works in pipelined commands
+	Check that globbing works in pipelined commands
 file-setup: file 644 "env"
 	PS1=P
 file-setup: file 644 "abc"
