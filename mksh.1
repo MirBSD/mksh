@@ -1,10 +1,12 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.109 2008/02/29 11:03:55 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.110 2008/02/29 18:20:16 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
 .\" Implement .Dd with the Mdocdate RCS keyword
 .rn Dd xD
 .de Dd
-.ie \\$1$Mdocdate: February 29 2008 $2 \\$3, \\$4
+.ie \\$1$Mdocdate: \{\
+.	xD \\$2 \\$3, \\$4
+.\}
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
@@ -5432,7 +5434,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh R33
+.Nm mksh\ R33
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
