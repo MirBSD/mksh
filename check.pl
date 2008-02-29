@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.12 2007/10/25 14:44:45 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.13 2008/02/29 12:47:03 tg Exp $
 # $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
 #-
 # Example test:
@@ -52,7 +52,8 @@
 #					missing, NAME is removed from the
 #					environment.  Programs are run with
 #					the following minimal environment:
-#					    USER, LOGNAME, HOME, PATH, SHELL
+#					    USER, LOGNAME, HOME,
+#					    LD_LIBRARY_PATH, PATH, SHELL
 #					(values taken from the environment of
 #					the test harness).
 #					ENV is set to /nonexistant.
