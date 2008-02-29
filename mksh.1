@@ -1,7 +1,14 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.108 2008/02/27 11:24:12 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.109 2008/02/29 11:03:55 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
-.Dd February 27, 2008
+.\" Implement .Dd with the Mdocdate RCS keyword
+.rn Dd xD
+.de Dd
+.ie \\$1$Mdocdate: February 29 2008 $2 \\$3, \\$4
+.el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
+..
+.\"-
+.Dd $Mdocdate: February 29 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
