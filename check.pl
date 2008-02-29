@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.13 2008/02/29 12:47:03 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.14 2008/02/29 12:48:09 tg Exp $
 # $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
 #-
 # Example test:
@@ -147,6 +147,7 @@ Usage: $prog [-s test-set] [-C category] [-p prog] [-v] [-e e=v] name ...
 	-v	Verbose mode: print reason test failed.
 	-e e=v	Set the environment variable e to v for all tests
 		(if no =v is given, the current value is used)
+		Only one -e option can be given at the moment, sadly.
 	name	specifies the name of the test(s) to run; if none are
 		specified, all tests are run.
 EOF
