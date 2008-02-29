@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.277 2008/02/29 11:57:30 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.278 2008/02/29 16:38:40 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -18,8 +18,6 @@ if test -d /usr/xpg4/bin/. >/dev/null 2>&1; then
 	PATH=/usr/xpg4/bin:$PATH
 	export PATH
 fi
-tr=/usr/ucb/tr	# Solaris: /usr/xpg4/bin/tr fails the rot13 tr command
-test -f $tr || tr=tr
 
 if test -n "${ZSH_VERSION+x}" && (emulate sh) >/dev/null 2>&1; then
 	emulate sh
@@ -47,7 +45,7 @@ if test -t 1; then
 fi
 
 upper() {
-	echo :"$@" | sed 's/^://' | $tr $alll $allu
+	echo :"$@" | sed 's/^://' | tr $alll $allu
 }
 
 # clean up after ac_testrun()
@@ -176,7 +174,7 @@ ac_header() {
 		na=0
 	fi
 	hf=$1; shift
-	hv=`echo "$hf" | $tr -d '\012\015' | $tr -c $alll$allu$alln $alls`
+	hv=`echo "$hf" | tr -d '\012\015' | tr -c $alll$allu$alln $alls`
 	for i
 	do
 		echo "#include <$i>" >>x
@@ -384,7 +382,7 @@ cat >scn.c <<-'EOF'
 	#endif
 EOF
 ct=unknown
-eval 'v "$CPP scn.c | grep ct= | $tr -d \\\\015 >x" 2>&'$h | sed 's/^/] /'
+eval 'v "$CPP scn.c | grep ct= | tr -d \\\\015 >x" 2>&'$h | sed 's/^/] /'
 test 1 = $h && sed 's/^/[ /' x
 eval `cat x`
 rm -f x
@@ -485,7 +483,7 @@ NOWARN=$save_NOWARN
 #
 # Compiler: extra flags (-O2 -f* -W* etc.)
 #
-i=`echo :"$orig_CFLAGS" | sed 's/^://' | $tr -c -d $alll$allu$alln`
+i=`echo :"$orig_CFLAGS" | sed 's/^://' | tr -c -d $alll$allu$alln`
 # optimisation: only if orig_CFLAGS is empty
 test x"$i" = x"" && if test $ct = sunpro; then
 	cat >x <<-'EOF'
@@ -994,7 +992,7 @@ case $curdir in
 *)	echo "#!$curdir/mksh" >test.sh ;;
 esac
 echo "export PATH='$PATH'" >>test.sh
-echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t' -e 'tr=$tr'" \
+echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t'" \
     "-p '$curdir/mksh' -C $check_categories \$*$tsts" >>test.sh
 chmod 755 test.sh
 echo set -x >Rebuild.sh

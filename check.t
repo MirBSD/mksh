@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.150 2008/02/29 11:48:32 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.151 2008/02/29 16:38:40 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1292,12 +1292,12 @@ description:
 stdin:
 	bar="bar
 		baz"
-	$tr '[A-Za-z]' '[N-ZA-Mn-za-m]' <<<foo
-	$0 -c "$tr '[A-Za-z]' '[N-ZA-Mn-za-m]' <<<foo"
-	$tr '[A-Za-z]' '[N-ZA-Mn-za-m]' <<<"$bar"
-	$tr '[A-Za-z]' '[N-ZA-Mn-za-m]' <<<'$bar'
-	$tr '[A-Za-z]' '[N-ZA-Mn-za-m]' <<<\$bar
-	$tr '[A-Za-z]' '[N-ZA-Mn-za-m]' <<<-foo
+	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<foo
+	$0 -c "tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<foo"
+	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<"$bar"
+	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<'$bar'
+	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<\$bar
+	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<-foo
 expected-stdout:
 	sbb
 	sbb
@@ -1314,7 +1314,7 @@ stdin:
 	fnord=42
 	bar="bar
 		 \$fnord baz"
-	$tr '[A-Za-z]' '[N-ZA-Mn-za-m]' <<<$bar
+	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<$bar
 expected-stdout:
 	one $sabeq onm
 category: bash
@@ -1326,7 +1326,7 @@ stdin:
 	fnord=42
 	bar="bar
 		 \$fnord baz"
-	$tr '[A-Za-z]' '[N-ZA-Mn-za-m]' <<<$bar
+	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<$bar
 expected-stdout:
 	one
 		 $sabeq onm

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.51 2008/02/29 11:57:30 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.52 2008/02/29 16:38:40 tg Exp $
 #-
 # use CPPFLAGS=-DDEBUG __CRAZY=Yes to check for certain more stuff
 
@@ -35,7 +35,7 @@ regress: ${PROG} check.pl check.t
 	mkdir -p regress-dir
 	echo export FNORD=666 >regress-dir/.mkshrc
 	HOME=$$(readlink -nf regress-dir) perl ${.CURDIR}/check.pl \
-	    -e tr=tr -s ${.CURDIR}/check.t -v -p ./${PROG} -C pdksh
+	    -s ${.CURDIR}/check.t -v -p ./${PROG} -C pdksh
 
 test-build: .PHONY
 	-rm -rf build-dir
