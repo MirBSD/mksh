@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.39 2008/02/27 12:49:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.40 2008/02/29 11:41:01 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -1015,10 +1015,10 @@ trimsub(char *str, char *pat, int how)
 	case '/'|0x80:		/* replace all - SLOWER! */
 	    {
 		char *rpat, *rrep, *tpat1, *tpat2, *tpat0, *sbeg, *s, *d;
-		bool gotmatch = false;
 
 		/* separate search pattern and replacement string */
 		s = d = rpat = str_save(pat, ATEMP);
+		rrep = null;
  		while ((c = *s++))
 			if (c == '\\') {
 				if (s[0] == '\\' && s[1] != '/')
@@ -1027,12 +1027,10 @@ trimsub(char *str, char *pat, int how)
 					break;
 			} else if (c == '/') {
 				*d++ = '\0';
-				p = s;
-				gotmatch = true;
+				rrep = s;
 				break;
 			} else
 				*d++ = c;
-		rrep = gotmatch ? p : null;
 		/* do not accept empty pattern */
 		if (!*rpat) {
 			afree(rpat, ATEMP);
@@ -1078,6 +1076,8 @@ trimsub(char *str, char *pat, int how)
 		p = end;
 		if (*pat != '%')
 			while (p >= sbeg) {
+				bool gotmatch;
+
 				c = *p; *p = '\0';
 				gotmatch = gmatchx(sbeg, tpat0, false);
 				*p = c;
