@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.276 2008/02/29 11:48:31 tg Exp $
+# $MirOS: src/bin/mksh/Build.sh,v 1.277 2008/02/29 11:57:30 tg Exp $
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -993,9 +993,8 @@ case $curdir in
 *\ *)	echo "#!./mksh" >test.sh ;;
 *)	echo "#!$curdir/mksh" >test.sh ;;
 esac
-echo "export tr=$tr" >>test.sh
 echo "export PATH='$PATH'" >>test.sh
-echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t'" \
+echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t' -e 'tr=$tr'" \
     "-p '$curdir/mksh' -C $check_categories \$*$tsts" >>test.sh
 chmod 755 test.sh
 echo set -x >Rebuild.sh
