@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.40 2008/02/29 11:41:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.41 2008/02/29 11:51:21 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -1099,7 +1099,6 @@ trimsub(char *str, char *pat, int how)
 		afree(rpat, ATEMP);
 		afree(tpat1, ATEMP);
 		return (s);
-		break;
 	    }
 	}
 
