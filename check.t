@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.156 2008/03/01 21:24:58 tg Rel $
+# $MirOS: src/bin/mksh/check.t,v 1.157 2008/03/01 22:58:22 tg Rel $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1120,19 +1120,77 @@ description:
 stdin:
 	pfx=/home/user
 	wd='$pfx/tmp'
-	echo ${wd/#$pfx/~}
-	echo ${wd/#\$pfx/~}
-	echo ${wd/#"$pfx"/~}
-	echo ${wd/#'$pfx'/~}
-	echo ${wd/#"\$pfx"/~}
-	echo ${wd/#'\$pfx'/~}
+	echo 1: ${wd/#$pfx/~}
+	echo 2: ${wd/#\$pfx/~}
+	echo 3: ${wd/#"$pfx"/~}
+	echo 4: ${wd/#'$pfx'/~}
+	echo 5: ${wd/#"\$pfx"/~}
+	echo 6: ${wd/#'\$pfx'/~}
+	ts='a/ba/b$tp$tp_a/b$tp_*(a/b)_*($tp)'
+	tp=a/b
+	tr=c/d
+	[[ -n $BASH_VERSION ]] && shopt -s extglob
+	echo 7: ${ts/a\/b/$tr}
+	echo 8: ${ts/a\/b/\$tr}
+	echo 9: ${ts/$tp/$tr}
+	echo 10: ${ts/\$tp/$tr}
+	echo 11: ${ts/\\$tp/$tr}
+	echo 12: ${ts/$tp/c/d}
+	echo 13: ${ts/$tp/c\/d}
+	echo 14: ${ts/$tp/c\\/d}
+	echo 15: ${ts/+(a\/b)/$tr}
+	echo 16: ${ts/+(a\/b)/\$tr}
+	echo 17: ${ts/+($tp)/$tr}
+	echo 18: ${ts/+($tp)/c/d}
+	echo 19: ${ts/+($tp)/c\/d}
+	echo 25: ${ts//a\/b/$tr}
+	echo 26: ${ts//a\/b/\$tr}
+	echo 27: ${ts//$tp/$tr}
+	echo 28: ${ts//$tp/c/d}
+	echo 29: ${ts//$tp/c\/d}
+	echo 30: ${ts//+(a\/b)/$tr}
+	echo 31: ${ts//+(a\/b)/\$tr}
+	echo 32: ${ts//+($tp)/$tr}
+	echo 33: ${ts//+($tp)/c/d}
+	echo 34: ${ts//+($tp)/c\/d}
+	tp="+($tp)"
+	echo 40: ${ts/$tp/$tr}
+	echo 41: ${ts//$tp/$tr}
 expected-stdout:
-	$pfx/tmp
-	~/tmp
-	$pfx/tmp
-	~/tmp
-	~/tmp
-	~/tmp
+	1: $pfx/tmp
+	2: ~/tmp
+	3: $pfx/tmp
+	4: ~/tmp
+	5: ~/tmp
+	6: ~/tmp
+	7: c/da/b$tp$tp_a/b$tp_*(a/b)_*($tp)
+	8: $tra/b$tp$tp_a/b$tp_*(a/b)_*($tp)
+	9: c/da/b$tp$tp_a/b$tp_*(a/b)_*($tp)
+	10: a/ba/bc/d$tp_a/b$tp_*(a/b)_*($tp)
+	11: c/da/b$tp$tp_a/b$tp_*(a/b)_*($tp)
+	12: c/da/b$tp$tp_a/b$tp_*(a/b)_*($tp)
+	13: c/da/b$tp$tp_a/b$tp_*(a/b)_*($tp)
+	14: c\/da/b$tp$tp_a/b$tp_*(a/b)_*($tp)
+	15: c/d$tp$tp_a/b$tp_*(a/b)_*($tp)
+	16: $tr$tp$tp_a/b$tp_*(a/b)_*($tp)
+	17: c/d$tp$tp_a/b$tp_*(a/b)_*($tp)
+	18: c/d$tp$tp_a/b$tp_*(a/b)_*($tp)
+	19: c/d$tp$tp_a/b$tp_*(a/b)_*($tp)
+	25: c/dc/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+	26: $tr$tr$tp$tp_$tr$tp_*($tr)_*($tp)
+	27: c/dc/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+	28: c/dc/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+	29: c/dc/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+	30: c/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+	31: $tr$tp$tp_$tr$tp_*($tr)_*($tp)
+	32: c/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+	33: c/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+	34: c/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+	40: a/ba/b$tp$tp_a/b$tp_*(a/b)_*($tp)
+	41: a/ba/b$tp$tp_a/b$tp_*(a/b)_*($tp)
+#	This is what GNU bash does:
+#	40: c/d$tp$tp_a/b$tp_*(a/b)_*($tp)
+#	41: c/d$tp$tp_c/d$tp_*(c/d)_*($tp)
 ---
 name: glob-bad-1
 description:
