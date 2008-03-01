@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.90 2008/02/25 00:58:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.91 2008/03/01 02:21:37 tg Exp $");
 
 extern char **environ;
 
@@ -64,7 +64,7 @@ main(int argc, const char *argv[])
 	Source *s;
 	struct block *l;
 	int restricted, errexit;
-	const char **wp, *cc;
+	const char **wp;
 	struct env env;
 	pid_t ppid;
 	struct tbl *vp;
@@ -172,15 +172,6 @@ main(int argc, const char *argv[])
 #ifndef MKSH_NOVI
 	Flag(FVITABCOMPLETE) = 1;
 #endif
-
-	/* Set FPOSIX if we're called as -sh or /bin/sh or so */
-	cc = kshname;
-	i = 0; argi = 0;
-	while (cc[i] != '\0')
-		if ((cc[i++] | 2) == '/')
-			argi = i;
-	if (((cc[argi] | 0x20) == 's') && ((cc[argi + 1] | 0x20) == 'h'))
-		change_flag(FPOSIX, OF_FIRSTTIME, 1);
 
 	/* import environment */
 	if (environ != NULL)

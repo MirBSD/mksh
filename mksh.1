@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.110 2008/02/29 18:20:16 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.111 2008/03/01 02:21:37 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"
 .\" Implement .Dd with the Mdocdate RCS keyword
@@ -10,7 +10,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: February 29 2008 $
+.Dd $Mdocdate: March 1 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -3490,8 +3490,6 @@ and
 commands above for more details.
 .It Ic posix
 Enable POSIX mode.
-Automatically enabled if the basename of the shell invocation begins with
-.Dq sh .
 Currently, this just turns off
 .Ic braceexpand
 mode when turned on, which can be turned back on manually.
