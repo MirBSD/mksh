@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.154 2008/03/01 17:14:17 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.155 2008/03/01 21:10:25 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1076,19 +1076,59 @@ expected-stdout:
 	5: 123
 	6: 123
 ---
-name: eglob-substrpl-3
+name: eglob-substrpl-3a
 description:
 	Check substring replacement works with variables and slashes, too
 stdin:
 	pfx=/home/user
 	wd=/home/user/tmp
 	echo ${wd/#$pfx/~}
+	echo ${wd/#\$pfx/~}
 	echo ${wd/#"$pfx"/~}
 	echo ${wd/#'$pfx'/~}
+	echo ${wd/#"\$pfx"/~}
+	echo ${wd/#'\$pfx'/~}
+expected-stdout:
+	~/tmp
+	/home/user/tmp
+	~/tmp
+	/home/user/tmp
+	/home/user/tmp
+	/home/user/tmp
+---
+name: eglob-substrpl-3b
+description:
+	More of this, bash fails it
+stdin:
+	pfx=/home/user
+	wd=/home/user/tmp
+	echo ${wd/#$(echo /home/user)/~}
+	echo ${wd/#"$(echo /home/user)"/~}
+	echo ${wd/#'$(echo /home/user)'/~}
 expected-stdout:
 	~/tmp
 	~/tmp
 	/home/user/tmp
+---
+name: eglob-substrpl-3c
+description:
+	Even more weird cases
+stdin:
+	pfx=/home/user
+	wd='$pfx/tmp'
+	echo ${wd/#$pfx/~}
+	echo ${wd/#\$pfx/~}
+	echo ${wd/#"$pfx"/~}
+	echo ${wd/#'$pfx'/~}
+	echo ${wd/#"\$pfx"/~}
+	echo ${wd/#'\$pfx'/~}
+expected-stdout:
+	$pfx/tmp
+	~/tmp
+	$pfx/tmp
+	~/tmp
+	~/tmp
+	~/tmp
 ---
 name: glob-bad-1
 description:

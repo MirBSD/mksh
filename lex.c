@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.53 2008/02/27 01:00:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.54 2008/03/01 21:10:25 tg Exp $");
 
 /*
  * states while lexing word
@@ -211,40 +211,11 @@ yylex(int cf)
 				statep->ls_sadelim.nparen--;
 			else if (statep->ls_sadelim.nparen == 0 &&
 			    (c == /*{*/ '}' || c == statep->ls_sadelim.delimiter)) {
-#ifdef notyet
-				if (statep->ls_sadelim.style == SADELIM_MAKE &&
-				    statep->ls_sadelim.num == 1) {
-					if (c == /*{*/'}')
-						yyerror("%s: expected '%c' %s\n",
-						    T_synerr,
-						    statep->ls_sadelim.delimiter,
-					/*{*/	    "before '}'");
-					else {
-						*wp++ = ADELIM;
-						*wp++ = c;	/* .delimiter */
-						while ((c = getsc()) != /*{*/ '}') {
-							if (!c) {
-								yyerror("%s: expected '%c' %s\n",
-								    T_synerr,
-							/*{*/	    '}', "at end of input");
-							} else if (strchr(sadelim_flags[statep->ls_sadelim.flags], c)) {
-								*wp++ = CHAR;
-								*wp++ = c;
-							} else {
-								char Ttmp[15] = "instead of ' '";
-
-								Ttmp[12] = c;
-								yyerror("%s: expected '%c' %s\n",
-								    T_synerr,
-							/*{*/	    '}', Ttmp);
-							}
-						}
-					}
-				}
-#endif /* SADELIM_MAKE */
 				*wp++ = ADELIM;
 				*wp++ = c;
 				if (c == /*{*/ '}' || --statep->ls_sadelim.num == 0)
+					POP_STATE();
+				if (c == /*{*/ '}')
 					POP_STATE();
 				break;
 			}
@@ -369,6 +340,7 @@ yylex(int cf)
 							*wp++ = '0';
 							*wp++ = ADELIM;
 							*wp++ = ':';
+							PUSH_STATE(SBRACE);
 							PUSH_STATE(SADELIM);
 							statep->ls_sadelim.style = SADELIM_BASH;
 							statep->ls_sadelim.delimiter = ':';
@@ -384,6 +356,7 @@ yylex(int cf)
 								*wp++ = ' ';
 							}
 							ungetsc(c);
+							PUSH_STATE(SBRACE);
 							PUSH_STATE(SADELIM);
 							statep->ls_sadelim.style = SADELIM_BASH;
 							statep->ls_sadelim.delimiter = ':';
@@ -391,6 +364,20 @@ yylex(int cf)
 							statep->ls_sadelim.nparen = 0;
 							break;
 						}
+					} else if (c == '/') {
+						*wp++ = CHAR, *wp++ = c;
+						if ((c = getsc()) == '/') {
+							*wp++ = ADELIM;
+							*wp++ = c;
+						} else
+							ungetsc(c);
+						PUSH_STATE(SBRACE);
+						PUSH_STATE(SADELIM);
+						statep->ls_sadelim.style = SADELIM_BASH;
+						statep->ls_sadelim.delimiter = '/';
+						statep->ls_sadelim.num = 1;
+						statep->ls_sadelim.nparen = 0;
+						break;
 					}
 					/* If this is a trim operation,
 					 * treat (,|,) specially in STBRACE.

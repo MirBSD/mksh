@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.42 2008/03/01 17:14:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.43 2008/03/01 21:10:25 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -166,7 +166,6 @@ expand(const char *cp,	/* input word */
 	int newlines = 0; /* For trailing newlines in COMSUB */
 	int saw_eq, tilde_ok;
 	int make_magic;
-	int sqmode = 0;		/* keep backslashes before [\\/%#] */
 	size_t len;
 
 	if (cp == NULL)
@@ -339,11 +338,11 @@ expand(const char *cp,	/* input word */
 							end[-2] = EOS;
 							sp += end - beg - 1;
 						}
-						evaluate(substitute(stg = wdstrip(beg), 0),
+						evaluate(substitute(stg = wdstrip(beg, false, false), 0),
 						    &from, KSH_UNWIND_ERROR, true);
 						afree(stg, ATEMP);
 						if (end) {
-							evaluate(stg = wdstrip(mid),
+							evaluate(stg = wdstrip(mid, false, false),
 							    &num, KSH_UNWIND_ERROR, true);
 							afree(stg, ATEMP);
 						}
@@ -361,6 +360,134 @@ expand(const char *cp,	/* input word */
 						x.str = str_nsave(beg, num, ATEMP);
 						goto do_CSUBST;
 					}
+					case '/': {
+						char *s, *p, *d, *sbeg, *end;
+						char *pat, *rrep;
+						char *tpat0, *tpat1, *tpat2;
+
+						/* ! DOBLANK,DOBRACE_,DOTILDE */
+						f = DOPAT | (f&DONTRUNCOMMAND) |
+						    DOTEMP_;
+						quote = 0;
+
+						s = wdcopy(sp, ATEMP);
+						p = s + (wdscan(sp, ADELIM) - sp);
+						d = s + (wdscan(sp, CSUBST) - sp);
+#if 0
+						fprintf(stderr,
+						    "D: s=%p 〈%s〉\n"
+						    "   p=%p 〈%s〉\n"
+						    "   d=%p 〈%s〉\n",
+						    s, wdstrip(s, true, false),
+						    p, wdstrip(p, true, false),
+						    d, wdstrip(d, true, false));
+						fflush(stderr);
+#endif
+						if (p >= d)
+							goto unwind_substsyn;
+						p[-2] = EOS;
+						if (p[-1] == /*{*/'}')
+							d = NULL;
+						else
+							d[-2] = EOS;
+						sp += (d ? d : p) - s - 1;
+						tpat0 = wdstrip(s, true, true);
+						pat = substitute(tpat0, 0);
+						rrep = d ? wdstrip(p, true, false) : null;
+						afree(s, ATEMP);
+						s = d = pat;
+						while (*s)
+							if (*s != '\\' ||
+							    s[1] == '%' ||
+							    s[1] == '#' ||
+							    s[1] == '\0' ||
+				/* XXX really? */	    s[1] == '\\' ||
+							    s[1] == '/')
+								*d++ = *s++;
+							else
+								s++;
+						*d = '\0';
+#if 0
+						fprintf(stderr,
+						    "D: 〔%s｜%s〕→〔%s〕\n",
+						    tpat0, pat, rrep);
+						fflush(stderr);
+#endif
+						afree(tpat0, ATEMP);
+
+						/* reject empty pattern */
+						if (!*pat)
+							goto no_repl;
+
+						/* prepare string on which to work */
+						sbeg = s = str_save(str_val(st->var), ATEMP);
+
+						/* first see if we have any match at all */
+						tpat0 = pat;
+						if (*pat == '#') {
+							/* anchor at the beginning */
+							tpat1 = shf_smprintf("%s%c*", ++tpat0, MAGIC);
+							tpat2 = tpat1;
+						} else if (*pat == '%') {
+							/* anchor at the end */
+							tpat1 = shf_smprintf("%c*%s", MAGIC, ++tpat0);
+							tpat2 = tpat0;
+						} else {
+							/* float */
+							tpat1 = shf_smprintf("%c*%s%c*", MAGIC, pat, MAGIC);
+							tpat2 = tpat1 + 2;
+						}
+ again_repl:
+#if 0
+						fprintf(stderr,
+						    "D: 「%s」 ← 〔%s｜%s〕\n",
+						    s, tpat0, rrep);
+						fflush(stderr);
+#endif
+						/* this would not be necessary if gmatchx would return
+						 * the start and end values of a match found, like re*
+						 */
+						if (!gmatchx(sbeg, tpat1, false))
+							goto end_repl;
+						end = strnul(s);
+						/* now anchor the beginning of the match */
+						if (*pat != '#')
+							while (sbeg <= end) {
+								if (gmatchx(sbeg, tpat2, false))
+									break;
+								else
+									sbeg++;
+							}
+						/* now anchor the end of the match */
+						p = end;
+						if (*pat != '%')
+							while (p >= sbeg) {
+								bool gotmatch;
+
+								c = *p; *p = '\0';
+								gotmatch = gmatchx(sbeg, tpat0, false);
+								*p = c;
+								if (gotmatch)
+									break;
+								p--;
+							}
+						end = str_nsave(s, sbeg - s, ATEMP);
+						d = shf_smprintf("%s%s%s", end, rrep, p);
+						afree(end, ATEMP);
+						sbeg = d + (sbeg - s) + strlen(rrep);
+						afree(s, ATEMP);
+						s = d;
+						if (stype & 0x80)
+							goto again_repl;
+ end_repl:
+						afree(tpat1, ATEMP);
+						x.str = s;
+ no_repl:
+						afree(pat, ATEMP);
+						if (rrep != null)
+							afree(rrep, ATEMP);
+						goto do_CSUBST;
+					}
 					case '#':
 					case '%':
 						/* ! DOBLANK,DOBRACE_,DOTILDE */
@@ -373,13 +500,6 @@ expand(const char *cp,	/* input word */
 						 */
 						*dp++ = MAGIC;
 						*dp++ = (char)('@' | 0x80);
-						break;
-					case '/':
-						/* ! DOBLANK,DOBRACE_,DOTILDE */
-						f = DOPAT | (f&DONTRUNCOMMAND) |
-						    DOTEMP_;
-						quote = 0;
-						sqmode = 2;
 						break;
 					case '=':
 						/* Enabling tilde expansion
@@ -424,7 +544,6 @@ expand(const char *cp,	/* input word */
 				tilde_ok = 0;	/* in case of ${unset:-} */
 				*dp = '\0';
 				quote = st->quote;
-				sqmode = 0;
 				f = st->f;
 				if (f&DOBLANK)
 					doblank--;
@@ -432,10 +551,7 @@ expand(const char *cp,	/* input word */
 				case '#':
 				case '%':
 					/* Append end-pattern */
-					*dp++ = MAGIC; *dp++ = ')';
-					/* FALLTHROUGH */
-				case '/':
-					*dp = '\0';
+					*dp++ = MAGIC; *dp++ = ')'; *dp = '\0';
 					dp = Xrestpos(ds, dp, st->base);
 					/* Must use st->var since calling
 					 * global would break things
@@ -486,6 +602,7 @@ expand(const char *cp,	/* input word */
 					    (debunk(s, s, strlen(s) + 1), s));
 				    }
 				case '0':
+				case '/':
 					dp = Xrestpos(ds, dp, st->base);
 					type = XSUB;
 					if (f&DOBLANK)
@@ -598,19 +715,6 @@ expand(const char *cp,	/* input word */
 				continue;
 			}
 			break;
-		}
-
-		if (sqmode) {
-			/* keep backslash before backslash or C_SUBOP2 char */
-			if ((c == '\\') ||
-			    (quote && c == '/') ||
-			    (quote && sqmode == 2 && ctype(c, C_SUBOP2)))
-				*dp++ = '\\';
-			if (sqmode == 2 && (quote || c != '/'))
-				/* beginning of string, ign. leading chars */
-				sqmode = 1;
-			else if (!quote && c == '/')
-				sqmode = 0;
 		}
 
 		/* check for end of word or IFS separation */
@@ -824,7 +928,14 @@ varsub(Expand *xp, const char *sp, const char *word,
 		stype = 0x80;
 		c = word[slen + 0] == CHAR ? word[slen + 1] : 0;
 	}
-	if (stype == 0x80 && (c == ' ' || c == '0')) {
+	if (!stype && c == '/') {
+		slen += 2;
+		stype = c;
+		if (word[slen] == ADELIM) {
+			slen += 2;
+			stype |= 0x80;
+		}
+	} else if (stype == 0x80 && (c == ' ' || c == '0')) {
 		stype |= '0';
 	} else if (ctype(c, C_SUBOP1)) {
 		slen += 2;
@@ -848,7 +959,6 @@ varsub(Expand *xp, const char *sp, const char *word,
 		switch (stype & 0x7f) {
 		case '=':	/* can't assign to a vector */
 		case '%':	/* can't trim a vector (yet) */
-		case '/':
 		case '#':
 			return -1;
 		}
@@ -871,7 +981,6 @@ varsub(Expand *xp, const char *sp, const char *word,
 			case '=':	/* can't assign to a vector */
 			case '%':	/* can't trim a vector (yet) */
 			case '#':
-			case '/':
 			case '?':
 				return -1;
 			}
@@ -906,7 +1015,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 
 	c = stype&0x7f;
 	/* test the compiler's code generator */
-	if (ctype(c, C_SUBOP2) || stype == (0x80 | '0') ||
+	if (ctype(c, C_SUBOP2) || stype == (0x80 | '0') || c == '/' ||
 	    (((stype&0x80) ? *xp->str=='\0' : xp->str==null) ? /* undef? */
 	    c == '=' || c == '-' || c == '?' : c == '+'))
 		state = XBASE;	/* expand word instead of variable value */
@@ -1011,99 +1120,6 @@ trimsub(char *str, char *pat, int how)
 				return str_nsave(str, p - str, ATEMP);
 		}
 		break;
-	case '/':		/* replace once - SLOW! */
-	case '/'|0x80:		/* replace all - SLOWER! */
-	    {
-		char *rpat, *rrep, *tpat1, *tpat2, *tpat0, *sbeg, *s, *d;
-
-		/* separate search pattern and replacement string */
-		s = d = rpat = str_save(pat, ATEMP);
-		rrep = null;
- 		while ((c = *s++))
-			if (c == '\\') {
-				if (s[0] == '\\' && s[1] != '/')
-					++s;
-				if (!(*d++ = *s++))
-					break;
-			} else if (c == '/') {
-				rrep = s;
-				break;
-			} else
-				*d++ = c;
-		*d++ = '\0';
-		/* do not accept empty pattern */
-		if (!*rpat) {
-			afree(rpat, ATEMP);
-			return (str);
-		}
-
-		/* prepare string on which to work */
-		sbeg = s = str;
-
-		/* first see if we have any match at all */
-		tpat0 = rpat;
-		d = pat;
-		if (*d == '\\')
-			++d;
-		if (*d == '#') {
-			/* anchor at the beginning */
-			tpat1 = shf_smprintf("%s%c*", ++tpat0, MAGIC);
-			tpat2 = tpat1;
-		} else if (*d == '%') {
-			/* anchor at the end */
-			tpat1 = shf_smprintf("%c*%s", MAGIC, ++tpat0);
-			tpat2 = tpat0;
-		} else {
-			/* float */
-			tpat1 = shf_smprintf("%c*%s%c*", MAGIC, rpat, MAGIC);
-			tpat2 = tpat1 + 2;
-		}
-#if 0
-		fprintf(stderr, "D: 「%s」 → 〔%s｜%s〕\n", pat, tpat0, rrep);
-		fflush(stderr);
-#endif
- again_repl:
-		/* this would not be necessary if gmatchx would return
-		 * the start and end values of a match found, like re*
-		 */
-		if (!gmatchx(sbeg, tpat1, false))
-			goto end_repl;
-		/* now anchor the beginning of the match */
-		if (*pat != '#')
-			while (sbeg <= end) {
-				if (gmatchx(sbeg, tpat2, false))
-					break;
-				else
-					sbeg++;
-			}
-		/* now anchor the end of the match */
-		p = end;
-		if (*pat != '%')
-			while (p >= sbeg) {
-				bool gotmatch;
-
-				c = *p; *p = '\0';
-				gotmatch = gmatchx(sbeg, tpat0, false);
-				*p = c;
-				if (gotmatch)
-					break;
-				p--;
-			}
-		end = str_nsave(s, sbeg - s, ATEMP);
-		d = shf_smprintf("%s%s%s", end, rrep, p);
-		afree(end, ATEMP);
-		sbeg = d + (sbeg - s) + strlen(rrep);
-		if (s != str)
-			afree(s, ATEMP);
-		s = d;
-		end = strnul(s);
-		if ((how & 0xFF) != '/')
-			goto again_repl;
- end_repl:
-		afree(rpat, ATEMP);
-		afree(tpat1, ATEMP);
-		return (s);
-	    }
 	}
 
 	return str;		/* no match, return string */

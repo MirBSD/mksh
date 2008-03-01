@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.18 2007/10/25 15:34:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.19 2008/03/01 21:10:26 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -551,7 +551,7 @@ function_body(char *name,
 	struct op *t;
 	int old_func_parse;
 
-	sname = wdstrip(name);
+	sname = wdstrip(name, false, false);
 	/* Check for valid characters in name.  posix and ksh93 say only
 	 * allow [a-zA-Z_0-9] but this allows more as old pdkshs have
 	 * allowed more (the following were never allowed:

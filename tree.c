@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.14 2008/02/26 21:08:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.15 2008/03/01 21:10:26 tg Exp $");
 
 #define INDENT	4
 
@@ -528,7 +528,7 @@ wdscan(const char *wp, int c)
  * (string is allocated from ATEMP)
  */
 char *
-wdstrip(const char *wp)
+wdstrip(const char *wp, bool keepq, bool make_magic)
 {
 	struct shf shf;
 	int c;
@@ -538,7 +538,7 @@ wdstrip(const char *wp)
 	/* problems:
 	 *	`...` -> $(...)
 	 *	x${foo:-"hi"} -> x${foo:-hi}
-	 *	x${foo:-'hi'} -> x${foo:-hi}
+	 *	x${foo:-'hi'} -> x${foo:-hi} unless keepq
 	 */
 	while (1)
 		switch ((c = *wp++)) {
@@ -546,8 +546,17 @@ wdstrip(const char *wp)
 			return shf_sclose(&shf); /* null terminates */
 		case ADELIM:
 		case CHAR:
+			c = *wp++;
+			if (make_magic && (ISMAGIC(c) || c == '[' || c == NOT ||
+			    c == '-' || c == ']' || c == '*' || c == '?'))
+				shf_putchar(MAGIC, &shf);
+			shf_putchar(c, &shf);
+			break;
 		case QCHAR:
-			shf_putchar(*wp++, &shf);
+			c = *wp++;
+			if (keepq && (c == '"' || c == '`' || c == '$' || c == '\\'))
+				shf_putchar('\\', &shf);
+			shf_putchar(c, &shf);
 			break;
 		case COMSUB:
 			shf_puts("$(", &shf);
@@ -577,13 +586,22 @@ wdstrip(const char *wp)
 				shf_putchar('}', &shf);
 			break;
 		case OPAT:
-			shf_putchar(*wp++, &shf);
-			shf_putchar('(', &shf);
+			if (make_magic) {
+				shf_putchar(MAGIC, &shf);
+				shf_putchar(*wp++ | 0x80, &shf);
+			} else {
+				shf_putchar(*wp++, &shf);
+				shf_putchar('(', &shf);
+			}
 			break;
 		case SPAT:
+			if (make_magic)
+				shf_putchar(MAGIC, &shf);
 			shf_putchar('|', &shf);
 			break;
 		case CPAT:
+			if (make_magic)
+				shf_putchar(MAGIC, &shf);
 			shf_putchar(')', &shf);
 			break;
 		}
