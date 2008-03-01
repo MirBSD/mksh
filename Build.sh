@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/Build.sh,v 1.278 2008/02/29 16:38:40 tg Exp $
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.279 2008/03/01 15:07:50 tg Rel $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -340,6 +340,11 @@ if test -n "$warn"; then
 	echo "drop us a success or failure notice or even send in diffs." >&2
 fi
 
+
+# this aids me in tracing FTBFSen without access to the buildd
+dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\(.*\)".*$/\1/p' $srcdir/sh.h`
+$e "Hello from$ao $bi$srcversion$ao"
+$e "$bi$me: Building the MirBSD Korn Shell$ao $ui$dstversion$ao"
 
 #
 # Begin of mirtoconf checks
@@ -992,6 +997,10 @@ case $curdir in
 *)	echo "#!$curdir/mksh" >test.sh ;;
 esac
 echo "export PATH='$PATH'" >>test.sh
+echo "print Testing mksh for conformance:" >>test.sh
+echo "fgrep -e MirOS: -e MIRBSD '$srcdir/check.t'" >>test.sh
+echo 'print "This shell is actually:\n\t$KSH_VERSION"' >>test.sh
+echo "print 'test.sh built for mksh $dstversion'" >>test.sh
 echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t'" \
     "-p '$curdir/mksh' -C $check_categories \$*$tsts" >>test.sh
 chmod 755 test.sh
