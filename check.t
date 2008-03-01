@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.152 2008/03/01 02:21:36 tg Stab $
+# $MirOS: src/bin/mksh/check.t,v 1.153 2008/03/01 16:40:57 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1056,6 +1056,35 @@ expected-stdout:
 	26: 1222321_ab/cde_b/c_1221
 	27: 1222321_9b/cde_b/c_1221
 	28: 1222321_9b/cde_b/c_1221
+---
+name: eglob-substrpl-2
+description:
+	Check anchored substring replacement works, corner cases
+stdin:
+	foo=123
+	echo 1: ${foo/#/x}
+	echo 2: ${foo/%/x}
+	echo 3: ${foo/#/}
+	echo 4: ${foo/#}
+	echo 5: ${foo/%/}
+	echo 6: ${foo/%}
+expected-stdout:
+	1: x123
+	2: 123x
+	3: 123
+	4: 123
+	5: 123
+	6: 123
+---
+name: eglob-substrpl-3
+description:
+	Check substring replacement works with variables and slashes, too
+stdin:
+	pfx=/home/user
+	wd=/home/user/tmp
+	echo ${wd/#$pfx/~}
+expected-stdout:
+	~/tmp
 ---
 name: glob-bad-1
 description:
