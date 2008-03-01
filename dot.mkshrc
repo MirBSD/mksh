@@ -1,7 +1,7 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.26 2008/02/29 16:38:41 tg Stab $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.27 2008/03/01 16:35:30 tg Exp $
 #-
-# Copyright (c) 2007
-#	Thorsten Glaser <tg@mirbsd.de>
+# Copyright (c) 2007, 2008
+#	Thorsten “mirabilos” Glaser <tg@mirbsd.de>
 #
 # Provided that these terms and disclaimer and all copyright notices
 # are retained or reproduced in an accompanying document, permission
@@ -22,7 +22,8 @@
 # damage or existence of a defect, except proven that it results out
 # of said person's immediate fault when using the work as intended.
 #-
-# sample mksh initialisation file for interactive shells
+# sample mksh initialisation file for interactive shells; install as
+# /etc/skel/.mkshrc (as root, for new accounts) or copy to ~/.mkshrc
 
 : ${EDITOR:=/bin/ed} ${TERM:=vt100} ${HOSTNAME:=$(ulimit -c 0;hostname -s 2>&-)}
 [[ $HOSTNAME = @(localhost|*([	 ])) ]] && HOSTNAME=$(ulimit -c 0;hostname 2>&-)
@@ -45,7 +46,7 @@ PS1='$(precmd)${USER:=$(ulimit -c 0;id -un 2>&- || print \?)}@${HOSTNAME%%.*}:$(
 			wd=${wd#?????}
 		fi
 	done; print -nr -- "$pfx$wd") '"$PS1 "
-PS1="$(print -n '\001\015')$PS1"	# allow colour codes, framed with ^A
+PS1="$(print -n '\x1\r')$PS1"		# allow colour codes, framed with ^A
 export EDITOR HOSTNAME LESSHISTFILE=- MKSH=$(whence -p mksh) PS1 TERM USER
 alias l='/bin/ls -F'
 alias la='l -a'
@@ -66,7 +67,7 @@ DIRSTACKBASE=$(readlink -nf ~/. 2>&- || print -nr -- "$HOME")
 typeset -r DIRSTACKBASE
 set -A DIRSTACK
 function chpwd {
-	DIRSTACK[0]=$(readlink -nf . 2>&- || print -nr -- "$PWD")
+	DIRSTACK[0]=$(readlink -nf . 2>&- || print -r -- "$PWD")
 	[[ ${DIRSTACK[0]#$DIRSTACKBASE} = ${DIRSTACK[0]} ]] || \
 	    DIRSTACK[0]=\~${DIRSTACK[0]#$DIRSTACKBASE}
 	:
