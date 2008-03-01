@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.41 2008/02/29 11:51:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.42 2008/03/01 17:14:17 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -1026,11 +1026,11 @@ trimsub(char *str, char *pat, int how)
 				if (!(*d++ = *s++))
 					break;
 			} else if (c == '/') {
-				*d++ = '\0';
 				rrep = s;
 				break;
 			} else
 				*d++ = c;
+		*d++ = '\0';
 		/* do not accept empty pattern */
 		if (!*rpat) {
 			afree(rpat, ATEMP);
@@ -1058,6 +1058,10 @@ trimsub(char *str, char *pat, int how)
 			tpat1 = shf_smprintf("%c*%s%c*", MAGIC, rpat, MAGIC);
 			tpat2 = tpat1 + 2;
 		}
+#if 0
+		fprintf(stderr, "D: 「%s」 → 〔%s｜%s〕\n", pat, tpat0, rrep);
+		fflush(stderr);
+#endif
  again_repl:
 		/* this would not be necessary if gmatchx would return
 		 * the start and end values of a match found, like re*

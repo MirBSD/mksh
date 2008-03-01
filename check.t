@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.153 2008/03/01 16:40:57 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.154 2008/03/01 17:14:17 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1083,8 +1083,12 @@ stdin:
 	pfx=/home/user
 	wd=/home/user/tmp
 	echo ${wd/#$pfx/~}
+	echo ${wd/#"$pfx"/~}
+	echo ${wd/#'$pfx'/~}
 expected-stdout:
 	~/tmp
+	~/tmp
+	/home/user/tmp
 ---
 name: glob-bad-1
 description:
