@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.155 2008/03/01 21:10:25 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.156 2008/03/01 21:24:58 tg Rel $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -998,7 +998,9 @@ name: eglob-substrpl-1
 description:
 	Check eglobbing works in substs... and they work at all
 stdin:
+	[[ -n $BASH_VERSION ]] && shopt -s extglob
 	x=1222321_ab/cde_b/c_1221
+	y=xyz
 	echo 1: ${x/2}
 	echo 2: ${x//2}
 	echo 3: ${x/+(2)}
@@ -1027,6 +1029,7 @@ stdin:
 	echo 26: ${x//\\%1/9}
 	echo 27: ${x//\a/9}
 	echo 28: ${x//\\a/9}
+	echo 29: ${x/2/$y}
 expected-stdout:
 	1: 122321_ab/cde_b/c_1221
 	2: 131_ab/cde_b/c_11
@@ -1056,6 +1059,7 @@ expected-stdout:
 	26: 1222321_ab/cde_b/c_1221
 	27: 1222321_9b/cde_b/c_1221
 	28: 1222321_9b/cde_b/c_1221
+	29: 1xyz22321_ab/cde_b/c_1221
 ---
 name: eglob-substrpl-2
 description:

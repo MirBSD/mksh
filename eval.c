@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.43 2008/03/01 21:10:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.44 2008/03/01 21:24:58 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -393,7 +393,12 @@ expand(const char *cp,	/* input word */
 						sp += (d ? d : p) - s - 1;
 						tpat0 = wdstrip(s, true, true);
 						pat = substitute(tpat0, 0);
-						rrep = d ? wdstrip(p, true, false) : null;
+						if (d) {
+							d = wdstrip(p, true, false);
+							rrep = substitute(d, 0);
+							afree(d, ATEMP);
+						} else
+							rrep = null;
 						afree(s, ATEMP);
 						s = d = pat;
 						while (*s)

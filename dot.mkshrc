@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.27 2008/03/01 16:35:30 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.28 2008/03/01 21:24:58 tg Rel $
 #-
 # Copyright (c) 2007, 2008
 #	Thorsten “mirabilos” Glaser <tg@mirbsd.de>
@@ -36,7 +36,7 @@ function precmd {
 PS1='$(precmd)${USER:=$(ulimit -c 0;id -un 2>&- || print \?)}@${HOSTNAME%%.*}:$(
 	typeset pfx=~ wd=${PWD:-?}
 	typeset -Ui n=${COLUMNS:-80}/3; (( n = n < 7 ? 7 : n ))
-	[[ ${wd#$pfx} = $wd || $pfx = ?(/) ]] || wd=\~${wd#$pfx}
+	wd=${wd/#$pfx/~}
 	pfx=; while (( (${#pfx} + ${#wd}) > n )); do
 		if [[ $wd = */* ]]; then
 			pfx=.../
@@ -68,8 +68,7 @@ typeset -r DIRSTACKBASE
 set -A DIRSTACK
 function chpwd {
 	DIRSTACK[0]=$(readlink -nf . 2>&- || print -r -- "$PWD")
-	[[ ${DIRSTACK[0]#$DIRSTACKBASE} = ${DIRSTACK[0]} ]] || \
-	    DIRSTACK[0]=\~${DIRSTACK[0]#$DIRSTACKBASE}
+	DIRSTACK[0]=${DIRSTACK[0]/#$DIRSTACKBASE/~}
 	:
 }
 chpwd .
@@ -78,9 +77,8 @@ function cd {
 	chpwd "$@"
 }
 function cd_csh {
-	typeset d t=$1
+	typeset d t=${1/#~/$DIRSTACKBASE}
 
-	[[ $t = ~* ]] && t=$DIRSTACKBASE${t#~}
 	if ! d=$(builtin cd "$t" 2>&1); then
 		print -u2 "${1}: ${d##*$t - }."
 		return 1
@@ -111,7 +109,7 @@ function dirs {
 		fv=0
 		while (( fv < ${#DIRSTACK[*]} )); do
 			d=${DIRSTACK[fv]}
-			[[ $fl$d = 1~* ]] && d=$DIRSTACKBASE${d#~}
+			(( fl )) && d=${d/#~/$DIRSTACKBASE}
 			print -r -- "$fv	$d"
 			let fv++
 		done
@@ -119,7 +117,7 @@ function dirs {
 		fv=0
 		while (( fv < ${#DIRSTACK[*]} )); do
 			d=${DIRSTACK[fv]}
-			[[ $fl$d = 1~* ]] && d=$DIRSTACKBASE${d#~}
+			(( fl )) && d=${d/#~/$DIRSTACKBASE}
 			if (( fn && (cpos+=${#d}+1) >= 79 && ${#d} < 80 )); then
 				print
 				(( cpos = ${#d} + 1 ))
