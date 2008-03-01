@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.44 2008/03/01 21:24:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.45 2008/03/01 22:49:37 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -421,7 +421,7 @@ expand(const char *cp,	/* input word */
 						afree(tpat0, ATEMP);
 
 						/* reject empty pattern */
-						if (!*pat)
+						if (!*pat || gmatchx("", pat, false))
 							goto no_repl;
 
 						/* prepare string on which to work */
