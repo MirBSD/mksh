@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.279 2008/03/01 15:07:50 tg Rel $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.280 2008/03/03 19:40:08 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -7,6 +7,13 @@ srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.279 2008/03/01 15:07:50 tg Rel $'
 v() {
 	$e "$*"
 	eval "$@"
+}
+
+vv() {
+	_c=$1
+	shift
+	eval '$e "\$ $*" 2>&'$h
+	eval 'eval "$@" 2>&'$h | sed "s^${_c} "
 }
 
 vq() {
@@ -114,8 +121,7 @@ ac_testn() {
 	fi
 	ac_testinit "$@" || return
 	cat >scn.c
-	eval 'v "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS" 2>&'$h | \
-	    sed 's/^/] /'
+	vv ']' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS"
 	test x"$tcfn" = x"no" && test -f a.out && tcfn=a.out
 	test x"$tcfn" = x"no" && test -f a.exe && tcfn=a.exe
 	if test -f $tcfn; then
@@ -343,7 +349,16 @@ fi
 
 # this aids me in tracing FTBFSen without access to the buildd
 dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\(.*\)".*$/\1/p' $srcdir/sh.h`
-$e "Hello from$ao $bi$srcversion$ao"
+$e "Hi from$ao $bi$srcversion$ao on:"
+case $TARGET_OS in
+Darwin)
+	vv '|' "hwprefs os_type >&2"
+	vv '|' "uname -a >&2"
+	;;
+*)
+	vv '|' "uname -a >&2"
+	;;
+esac
 $e "$bi$me: Building the MirBSD Korn Shell$ao $ui$dstversion$ao"
 
 #
@@ -387,16 +402,39 @@ cat >scn.c <<-'EOF'
 	#endif
 EOF
 ct=unknown
-eval 'v "$CPP scn.c | grep ct= | tr -d \\\\015 >x" 2>&'$h | sed 's/^/] /'
+vv ']' "$CPP scn.c | grep ct= | tr -d \\\\015 >x"
 test 1 = $h && sed 's/^/[ /' x
 eval `cat x`
 rm -f x
+cat >scn.c <<-'EOF'
+	int main(void) { return (0); }
+EOF
 case $ct in
-bcc|dmc|gcc|hpcc|icc|msc|pcc|sunpro|tcc|tendra|xlc) ;;
-*) ct=unknown ;;
+bcc|dmc)
+	;;
+gcc)
+	vv '|' "$CC -v"
+	;;
+hpcc|icc)
+	vv '|' "$CC -V"
+	;;
+msc)
+	;;
+pcc|sunpro|tcc)
+	vv '|' "$CC -v"
+	;;
+tendra)
+	vv '|' "$CC -V 2>&1 | fgrep -i -e version -e release"
+	;;
+xlc)
+	vv '|' "$CC -qversion=verbose"
+	;;
+*)
+	ct=unknown
+	;;
 esac
 $e "$bi==> which compiler seems to be used...$ao $ui$ct$ao"
-rm -f scn.c scn.o
+rm -f scn.c scn.o scn a.out a.exe
 
 case $TARGET_OS in
 HP-UX)
@@ -921,7 +959,7 @@ ac_cppflags
 test 0 = $HAVE_SYS_SIGNAME && if ac_testinit cpp_dd '' \
     'checking if the C Preprocessor supports -dD'; then
 	echo '#define foo bar' >scn.c
-	eval 'v "$CPP -dD scn.c >x" 2>&'$h | sed 's/^/] /'
+	vv ']' "$CPP -dD scn.c >x"
 	grep '#define foo bar' x >/dev/null 2>&1 && fv=1
 	rm -f scn.c x
 	ac_testdone
