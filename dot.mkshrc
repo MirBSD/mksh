@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.29 2008/03/03 18:44:32 tg Stab $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.30 2008/03/03 20:22:37 tg Stab $
 #-
 # Copyright (c) 2007, 2008
 #	Thorsten “mirabilos” Glaser <tg@mirbsd.de>
@@ -64,7 +64,6 @@ whence -p hd >&- || function hd {
 # Berkeley C shell compatible dirs, popd, and pushd functions
 # Z shell compatible chpwd() hook, used to update DIRSTACK[0]
 DIRSTACKBASE=$(readlink -nf ~/. 2>&- || print -nr -- "$HOME")
-typeset -r DIRSTACKBASE
 set -A DIRSTACK
 function chpwd {
 	DIRSTACK[0]=$(readlink -nf . 2>&- || print -r -- "$PWD")
