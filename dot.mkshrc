@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.28 2008/03/01 21:24:58 tg Rel $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.29 2008/03/03 18:44:32 tg Stab $
 #-
 # Copyright (c) 2007, 2008
 #	Thorsten “mirabilos” Glaser <tg@mirbsd.de>
@@ -51,7 +51,7 @@ export EDITOR HOSTNAME LESSHISTFILE=- MKSH=$(whence -p mksh) PS1 TERM USER
 alias l='/bin/ls -F'
 alias la='l -a'
 alias ll='l -l'
-alias lo='la -lo'
+alias lo='l -alo'
 alias which='whence -p'
 whence -p rot13 >&- || alias rot13='tr \
     abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \
