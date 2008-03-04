@@ -1,6 +1,26 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.112 2008/03/03 22:38:41 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.113 2008/03/04 00:09:34 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
-.\"
+.\"-
+.\" Try to make GNU groff and AT&T nroff more compatible
+.\" * ` generates ‘ in groff, so use \`
+.\" * ' generates ’ in groff, \' generates ´, so use \*(aq
+.\" * - generates ‐ in groff, \- generates −, fixed in tmac/mdoc/doc-groff
+.\"   thus use - for hyphens and \- for minus signs and option dashes
+.\" * ~ is size-reduced and placed atop in groff, so use \*(TI
+.\" * ^ is size-reduced and placed atop in groff, so use \*(ha
+.\" * \(en does not work in nroff, so use \*(en
+.ie \n(.g \{\
+.	ds aq \(aq
+.	ds TI \(ti
+.	ds ha \(ha
+.	ds en \(en
+.\}
+.el \{\
+.	ds aq '
+.	ds TI ~
+.	ds ha ^
+.	ds en \(em
+.\}
 .\" Implement .Dd with the Mdocdate RCS keyword
 .rn Dd xD
 .de Dd
@@ -10,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: March 3 2008 $
+.Dd $Mdocdate: March 4 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -182,7 +202,7 @@ If the
 parameter is set when an interactive shell starts (or, in the case of login
 shells, after any profiles are processed), its value is subjected to
 parameter, command, arithmetic, and tilde
-.Pq Sq ~
+.Pq Sq \*(TI
 substitution and the resulting file
 (if any) is read and executed.
 If the
@@ -261,17 +281,17 @@ Whitespace and meta-characters can be quoted individually using a backslash
 or in groups using double
 .Pq Sq \&"
 or single
-.Pq Sq '
+.Pq Sq \*(aq
 quotes.
 Note that the following characters are also treated specially by the
 shell and must be quoted if they are to represent themselves:
 .Ql \e ,
 .Ql \&" ,
-.Ql ' ,
+.Ql \*(aq ,
 .Ql # ,
 .Ql $ ,
-.Ql ` ,
-.Ql ~ ,
+.Ql \` ,
+.Ql \*(TI ,
 .Ql { ,
 .Ql } ,
 .Ql * ,
@@ -282,7 +302,7 @@ The first three of these are the above mentioned quoting characters (see
 .Sx Quoting
 below);
 .Ql # ,
-if used at the beginning of a word, introduces a comment \(em everything after
+if used at the beginning of a word, introduces a comment \*(en everything after
 the
 .Ql #
 up to the nearest newline is ignored;
@@ -290,11 +310,11 @@ up to the nearest newline is ignored;
 is used to introduce parameter, command, and arithmetic substitutions (see
 .Sx Substitution
 below);
-.Ql `
+.Ql \`
 introduces an old-style command substitution (see
 .Sx Substitution
 below);
-.Ql ~
+.Ql \*(TI
 begins a directory expansion (see
 .Sx Tilde expansion
 below);
@@ -386,7 +406,7 @@ only if the exit status of
 .Ar cmd1
 is zero;
 .Ql \*(Ba\*(Ba
-is the opposite \(em
+is the opposite \*(en
 .Ar cmd2
 is executed only if the exit status of
 .Ar cmd1
@@ -785,19 +805,19 @@ case both the
 .Ql \e
 and the newline are stripped.
 Second, a single quote
-.Pq Sq '
+.Pq Sq \*(aq
 quotes everything up to the next single quote (this may span lines).
 Third, a double quote
 .Pq Sq \&"
 quotes all characters, except
 .Ql $ ,
-.Ql `
+.Ql \`
 and
 .Ql \e ,
 up to the next unquoted double quote.
 .Ql $
 and
-.Ql `
+.Ql \`
 inside double quotes have their usual meaning (i.e. parameter, command, or
 arithmetic substitution) except no field splitting is carried out on the
 results of double-quoted substitutions.
@@ -806,7 +826,7 @@ If a
 inside a double-quoted string is followed by
 .Ql \e ,
 .Ql $ ,
-.Ql ` ,
+.Ql \` ,
 or
 .Ql \&" ,
 it is replaced by the second character; if it is followed by a newline, both
@@ -830,18 +850,18 @@ expanded is found.
 .Pp
 The following command aliases are defined automatically by the shell:
 .Bd -literal -offset indent
-autoload='typeset \-fu'
-functions='typeset \-f'
-hash='alias \-t'
-history='fc \-l'
-integer='typeset \-i'
-local='typeset'
-login='exec login'
-nohup='nohup '
-r='fc \-e \-'
-stop='kill \-STOP'
-suspend='kill \-STOP $$'
-type='whence \-v'
+autoload=\*(aqtypeset \-fu\*(aq
+functions=\*(aqtypeset \-f\*(aq
+hash=\*(aqalias \-t\*(aq
+history=\*(aqfc \-l\*(aq
+integer=\*(aqtypeset \-i\*(aq
+local=\*(aqtypeset\*(aq
+login=\*(aqexec login\*(aq
+nohup=\*(aqnohup \*(aq
+r=\*(aqfc \-e \-\*(aq
+stop=\*(aqkill \-STOP\*(aq
+suspend=\*(aqkill \-STOP $$\*(aq
+type=\*(aqwhence \-v\*(aq
 .Ed
 .Pp
 Tracked aliases allow the shell to remember where it found a particular
@@ -899,7 +919,7 @@ or
 command substitutions take the form
 .Pf $( Ns Ar command Ns \&)
 or (deprecated)
-.Pf ` Ns Ar command Ns ` ;
+.Pf \` Ns Ar command Ns \` ;
 and arithmetic substitutions take the form
 .Pf $(( Ns Ar expression Ns )) .
 .Pp
@@ -983,12 +1003,12 @@ For
 substitutions, normal quoting rules are used when
 .Ar command
 is parsed; however, for the deprecated
-.Pf ` Ns Ar command Ns `
+.Pf \` Ns Ar command Ns \`
 form, a
 .Ql \e
 followed by any of
 .Ql $ ,
-.Ql ` ,
+.Ql \` ,
 or
 .Ql \e
 is stripped (a
@@ -1475,7 +1495,7 @@ The default is 500.
 The default directory for the
 .Ic cd
 command and the value substituted for an unqualified
-.Ic ~
+.Ic \*(TI
 (see
 .Sx Tilde expansion
 below).
@@ -1571,7 +1591,7 @@ root-vs-user distinguishing clause are (in this example) executed at
 assignment time, while the $USER and $PWD are escaped
 and thus will be evaluated each time a prompt is displayed):
 .Bd -literal
-PS1='${USER:=$(id \-un)}'"@${HOSTNAME:=$(hostname \-s)}:\e$PWD $(
+PS1=\*(aq${USER:=$(id \-un)}\*(aq"@${HOSTNAME:=$(hostname \-s)}:\e$PWD $(
 	if (( $(id \-u) )); then print \e$; else print \e#; fi) "
 .Ed
 .Pp
@@ -1597,7 +1617,7 @@ or use double quotes.
 The latter is more practical.
 This is a more complex example,
 avoiding to directly enter special characters (for example with
-.Ic ^V
+.Ic \*(haV
 in the emacs editing mode),
 which embeds the current working directory,
 in reverse video,
@@ -1664,7 +1684,7 @@ files are created in
 .Ss Tilde expansion
 Tilde expansion which is done in parallel with parameter substitution, is done
 on words starting with an unquoted
-.Ql ~ .
+.Ql \*(TI .
 The characters following the tilde, up to the first
 .Ql / ,
 if any, are assumed to be a login name.
@@ -1703,7 +1723,7 @@ The home directory of previously expanded login names are cached and re-used.
 The
 .Ic alias \-d
 command may be used to list, change, and add to this cache (e.g.\&
-.Ic alias \-d fac=/usr/local/facilities; cd ~fac/bin ) .
+.Ic alias \-d fac=/usr/local/facilities; cd \*(TIfac/bin ) .
 .Ss Brace expansion (alteration)
 Brace expressions take the following form:
 .Bd -unfilled -offset indent
@@ -1953,7 +1973,7 @@ backslash
 .Pq Sq \e
 escapes for
 .Ql $ ,
-.Ql ` ,
+.Ql \` ,
 .Ql \e ,
 and
 .Ql \enewline ,
@@ -2035,17 +2055,17 @@ and integer constants and may be combined with the following C operators
 .Pp
 Unary operators:
 .Bd -literal -offset indent
-+ \- ! ~ ++ \-\-
++ \- ! \*(TI ++ \-\-
 .Ed
 .Pp
 Binary operators:
 .Bd -literal -offset indent
 ,
-= *= /= %= += \-= \*(Lt\*(Lt= \*(Gt\*(Gt= &= ^= \*(Ba=
+= *= /= %= += \-= \*(Lt\*(Lt= \*(Gt\*(Gt= &= \*(ha= \*(Ba=
 \*(Ba\*(Ba
 &&
 \*(Ba
-^
+\*(ha
 &
 == !=
 \*(Lt \*(Lt= \*(Gt= \*(Gt
@@ -2097,7 +2117,7 @@ Negation.
 .It \&!
 Logical NOT;
 the result is 1 if argument is zero, 0 if not.
-.It ~
+.It \*(TI
 Arithmetic (bit-wise) NOT.
 .It ++
 Increment; must be applied to a parameter (not a literal or other expression).
@@ -2117,7 +2137,7 @@ The result is the value of the expression on the right-hand side.
 Assignment; the variable on the left is set to the value on the right.
 .It Xo
 .No *= /= += \-= \*(Lt\*(Lt=
-.No \*(Gt\*(Gt= &= ^= \*(Ba=
+.No \*(Gt\*(Gt= &= \*(ha= \*(Ba=
 .Xc
 Assignment operators.
 .Sm off
@@ -2151,7 +2171,7 @@ the result is 1 if both arguments are non-zero, 0 if not.
 The right argument is evaluated only if the left argument is non-zero.
 .It \*(Ba
 Arithmetic (bit-wise) OR.
-.It ^
+.It \*(ha
 Arithmetic (bit-wise) XOR
 (exclusive-OR).
 .It &
@@ -2555,26 +2575,26 @@ two prefices and the control character is ignored, any
 other trailing character will be processed afterwards.
 .Pp
 Control characters may be written using caret notation
-i.e. ^X represents Control-X.
-Note that although only two prefix characters (usually ESC and ^X)
+i.e. \*(haX represents Control-X.
+Note that although only two prefix characters (usually ESC and \*(haX)
 are supported, some multi-character sequences can be supported.
 .Pp
 The following default bindings show how the arrow keys, the home, end and
 delete key on a BSD wsvt25, xterm-xfree86 or GNU screen terminal are bound
 (of course some escape sequences won't work out quite this nicely):
 .Bd -literal -offset indent
-bind '^[['=prefix\-2
-bind '^XA'=up\-history
-bind '^XB'=down\-history
-bind '^XC'=forward\-char
-bind '^XD'=backward\-char
-bind '^X1~'=beginning\-of\-line
-bind '^X7~'=beginning\-of\-line
-bind '^XH'=beginning\-of\-line
-bind '^X4~'=end\-of\-line
-bind '^X8~'=end\-of\-line
-bind '^XF'=end\-of\-line
-bind '^X3~'=delete\-char\-forward
+bind \*(aq\*(ha[[\*(aq=prefix\-2
+bind \*(aq\*(haXA\*(aq=up\-history
+bind \*(aq\*(haXB\*(aq=down\-history
+bind \*(aq\*(haXC\*(aq=forward\-char
+bind \*(aq\*(haXD\*(aq=backward\-char
+bind \*(aq\*(haX1\*(TI\*(aq=beginning\-of\-line
+bind \*(aq\*(haX7\*(TI\*(aq=beginning\-of\-line
+bind \*(aq\*(haXH\*(aq=beginning\-of\-line
+bind \*(aq\*(haX4\*(TI\*(aq=end\-of\-line
+bind \*(aq\*(haX8\*(TI\*(aq=end\-of\-line
+bind \*(aq\*(haXF\*(aq=end\-of\-line
+bind \*(aq\*(haX3\*(TI\*(aq=delete\-char\-forward
 .Ed
 .Pp
 .It Ic break Op Ar level
@@ -2856,7 +2876,7 @@ and
 .Fl s
 is identical: re-execute the selected command without invoking an editor.
 This command is usually accessed with the predefined
-.Ic alias r='fc \-e \-' .
+.Ic alias r=\*(aqfc \-e \-\*(aq .
 .Pp
 .It Ic fg Op Ar job ...
 Resume the specified job(s) in the foreground.
@@ -3173,7 +3193,7 @@ which case the string is used as a prompt (printed to standard error before
 any input is read) if the input is a
 .Xr tty 4
 (e.g.\&
-.Ic read nfoo?'number of foos: ' ) .
+.Ic read nfoo?\*(aqnumber of foos: \*(aq ) .
 .Pp
 The
 .Fl u Ns Ar n
@@ -3429,7 +3449,7 @@ Enable BRL emacs-like command-line editing (interactive shells only); see
 .Sx Emacs editing mode .
 .It Ic gmacs
 Enable gmacs-like command-line editing (interactive shells only).
-Currently identical to emacs editing except that transpose\-chars (^T) acts
+Currently identical to emacs editing except that transpose\-chars (\*(haT) acts
 slightly differently.
 .It Ic ignoreeof
 The shell will not (easily) exit when end-of-file is read;
@@ -3503,9 +3523,9 @@ Enable
 command-line editing (interactive shells only).
 .It Ic vi\-esccomplete
 In vi command-line editing, do command and file name completion when escape
-(^[) is entered in command mode.
+(\*(ha[) is entered in command mode.
 .It Ic vi\-tabcomplete
-In vi command-line editing, do command and file name completion when tab (^I)
+In vi command-line editing, do command and file name completion when tab (\*(haI)
 is entered in insert mode.
 This is the default.
 .It Ic viraw
@@ -3514,7 +3534,7 @@ In the original Korn shell, unless
 .Ic viraw
 was set, the vi command-line mode would let the
 .Xr tty 4
-driver do the work until ESC (^[) was entered.
+driver do the work until ESC (\*(ha[) was entered.
 .Nm
 is always in viraw mode.
 .El
@@ -3536,7 +3556,7 @@ and there are no remaining arguments, all positional parameters are cleared.
 If no options or arguments are given, the values of all names are printed.
 For unknown historical reasons, a lone
 .Ql \-
-option is treated specially \(em it clears both the
+option is treated specially \*(en it clears both the
 .Fl x
 and
 .Fl v
@@ -3857,7 +3877,7 @@ the shell to exit if the
 .Fl e
 or
 .Ic errexit
-option were set \(em see the
+option were set \*(en see the
 .Ic set
 command above).
 .Dv EXIT
@@ -4070,7 +4090,7 @@ limit is imposed.
 Note that some systems may not allow limits to be increased
 once they are set.
 Also note that the types of limits available are system
-dependent \(em some systems have only the
+dependent \*(en some systems have only the
 .Fl f
 limit.
 .Bl -tag -width 5n
@@ -4274,7 +4294,7 @@ or
 as it is for interactive shells, the processes of a job are placed in their
 own process group.
 Foreground jobs can be stopped by typing the suspend
-character from the terminal (normally ^Z), jobs can be restarted in either the
+character from the terminal (normally \*(haZ), jobs can be restarted in either the
 foreground or background using the
 .Ic fg
 and
@@ -4356,7 +4376,7 @@ The job exited.
 is the exit status of the job which is omitted if the status is zero.
 .It Running
 The job has neither stopped nor exited (note that running does not necessarily
-mean consuming CPU time \(em
+mean consuming CPU time \*(en
 the process could be blocked waiting for some event).
 .It Stopped Op Ar signal
 The job was stopped by the indicated
@@ -4457,10 +4477,10 @@ an
 .Op Ar n
 (if the command can be prefixed with a count); and any keys the command is
 bound to by default, written using caret notation
-e.g. the ASCII ESC character is written as ^[.
+e.g. the ASCII ESC character is written as \*(ha[.
 These control sequences are not case sensitive.
 A count prefix for a command is entered using the sequence
-.Pf ^[ Ns Ar n ,
+.Pf \*(ha[ Ns Ar n ,
 where
 .Ar n
 is a sequence of 1 or more digits.
@@ -4481,7 +4501,7 @@ characters (e.g.\&
 are bound to
 reasonable substitutes and override the default bindings.
 .Bl -tag -width Ds
-.It abort: ^C, ^G
+.It abort: \*(haC, \*(haG
 Abort the current command, empty the line buffer and
 set the exit state to interrupted.
 .It auto\-insert: Op Ar n
@@ -4489,14 +4509,14 @@ Simply causes the character to appear as literal input.
 Most ordinary characters are bound to this.
 .It Xo backward\-char:
 .Op Ar n
-.No ^B , ^XD
+.No \*(haB , \*(haXD
 .Xc
 Moves the cursor backward
 .Ar n
 characters.
 .It Xo backward\-word:
 .Op Ar n
-.No ^[b
+.No \*(ha[b
 .Xc
 Moves the cursor backward to the beginning of the word; words consist of
 alphanumerics, underscore
@@ -4504,27 +4524,27 @@ alphanumerics, underscore
 and dollar sign
 .Pq Sq $
 characters.
-.It beginning\-of\-history: ^[\*(Lt
+.It beginning\-of\-history: \*(ha[\*(Lt
 Moves to the beginning of the history.
-.It beginning\-of\-line: ^A
+.It beginning\-of\-line: \*(haA
 Moves the cursor to the beginning of the edited input line.
 .It Xo capitalise\-word:
 .Op Ar n
-.No ^[C , ^[c
+.No \*(ha[C , \*(ha[c
 .Xc
 Uppercase the first character in the next
 .Ar n
 words, leaving the cursor past the end of the last word.
-.It clear\-screen: ^[^L
+.It clear\-screen: \*(ha[\*(haL
 Prints a compile-time configurable sequence to clear the screen and home
 the cursor, redraws the entire prompt and the currently edited input line.
 The default sequence works for almost all standard terminals.
-.It comment: ^[#
+.It comment: \*(ha[#
 If the current line does not begin with a comment character, one is added at
 the beginning of the line and the line is entered (as if return had been
 pressed); otherwise, the existing comment characters are removed and the cursor
 is placed at the beginning of the line.
-.It complete: ^[^[
+.It complete: \*(ha[\*(ha[
 Automatically completes as much as is unique of the command name or the file
 name containing the cursor.
 If the entire remaining command or file name is
@@ -4535,27 +4555,27 @@ is appended.
 If there is no command or file name with the current partial word
 as its prefix, a bell character is output (usually causing a beep to be
 sounded).
-.It complete\-command: ^X^[
+.It complete\-command: \*(haX\*(ha[
 Automatically completes as much as is unique of the command name having the
 partial word up to the cursor as its prefix, as in the
 .Ic complete
 command above.
-.It complete\-file: ^[^X
+.It complete\-file: \*(ha[\*(haX
 Automatically completes as much as is unique of the file name having the
 partial word up to the cursor as its prefix, as in the
 .Ic complete
 command described above.
-.It complete\-list: ^I, ^[=
+.It complete\-list: \*(haI, \*(ha[=
 Complete as much as is possible of the current word,
 and list the possible completions for it.
 If only one completion is possible,
 match as in the
 .Ic complete
 command above.
-Note that ^I is usually generated by the TAB (tabulator) key.
+Note that \*(haI is usually generated by the TAB (tabulator) key.
 .It Xo delete\-char\-backward:
 .Op Ar n
-.No ERASE , ^? , ^H
+.No ERASE , \*(ha? , \*(haH
 .Xc
 Deletes
 .Ar n
@@ -4566,21 +4586,21 @@ Deletes
 characters after the cursor.
 .It Xo delete\-word\-backward:
 .Op Ar n
-.No ERASE , ^[^? , ^[^H , ^[h
+.No ERASE , \*(ha[\*(ha? , \*(ha[\*(haH , \*(ha[h
 .Xc
 Deletes
 .Ar n
 words before the cursor.
 .It Xo delete\-word\-forward:
 .Op Ar n
-.No ^[d
+.No \*(ha[d
 .Xc
 Deletes characters after the cursor up to the end of
 .Ar n
 words.
 .It Xo down\-history:
 .Op Ar n
-.No ^N , ^XB
+.No \*(haN , \*(haXB
 .Xc
 Scrolls the history buffer forward
 .Ar n
@@ -4595,21 +4615,21 @@ or
 has been performed.
 .It Xo downcase\-word:
 .Op Ar n
-.No ^[L , ^[l
+.No \*(ha[L , \*(ha[l
 .Xc
 Lowercases the next
 .Ar n
 words.
-.It end\-of\-history: ^[\*(Gt
+.It end\-of\-history: \*(ha[\*(Gt
 Moves to the end of the history.
-.It end\-of\-line: ^E
+.It end\-of\-line: \*(haE
 Moves the cursor to the end of the input line.
-.It eot: ^_
+.It eot: \*(ha_
 Acts as an end-of-file; this is useful because edit-mode input disables
 normal terminal input canonicalization.
 .It Xo eot\-or\-delete:
 .Op Ar n
-.No ^D
+.No \*(haD
 .Xc
 Acts as
 .Ic eot
@@ -4617,9 +4637,9 @@ if alone on a line; otherwise acts as
 .Ic delete\-char\-forward .
 .It error: (not bound)
 Error (ring the bell).
-.It exchange\-point\-and\-mark: ^X^X
+.It exchange\-point\-and\-mark: \*(haX\*(haX
 Places the cursor where the mark is and sets the mark to where the cursor was.
-.It expand\-file: ^[*
+.It expand\-file: \*(ha[*
 Appends a
 .Ql *
 to the current word and replaces the word with the result of performing file
@@ -4627,55 +4647,55 @@ globbing on the word.
 If no files match the pattern, the bell is rung.
 .It Xo forward\-char:
 .Op Ar n
-.No ^F , ^XC
+.No \*(haF , \*(haXC
 .Xc
 Moves the cursor forward
 .Ar n
 characters.
 .It Xo forward\-word:
 .Op Ar n
-.No ^[f
+.No \*(ha[f
 .Xc
 Moves the cursor forward to the end of the
 .Ar n Ns th
 word.
 .It Xo goto\-history:
 .Op Ar n
-.No ^[g
+.No \*(ha[g
 .Xc
 Goes to history number
 .Ar n .
 .It kill\-line: KILL
 Deletes the entire input line.
-.It kill\-region: ^W
+.It kill\-region: \*(haW
 Deletes the input between the cursor and the mark.
 .It Xo kill\-to\-eol:
 .Op Ar n
-.No ^K
+.No \*(haK
 .Xc
 Deletes the input from the cursor to the end of the line if
 .Ar n
 is not specified; otherwise deletes characters between the cursor and column
 .Ar n .
-.It list: ^[?
+.It list: \*(ha[?
 Prints a sorted, columnated list of command names or file names (if any) that
 can complete the partial word containing the cursor.
 Directory names have
 .Ql /
 appended to them.
-.It list\-command: ^X?
+.It list\-command: \*(haX?
 Prints a sorted, columnated list of command names (if any) that can complete
 the partial word containing the cursor.
-.It list\-file: ^X^Y
+.It list\-file: \*(haX\*(haY
 Prints a sorted, columnated list of file names (if any) that can complete the
 partial word containing the cursor.
 File type indicators are appended as described under
 .Ic list
 above.
-.It newline: ^J , ^M
+.It newline: \*(haJ , \*(haM
 Causes the current input line to be processed by the shell.
 The current cursor position may be anywhere on the line.
-.It newline\-and\-next: ^O
+.It newline\-and\-next: \*(haO
 Causes the current input line to be processed by the shell, and the next line
 from history becomes the current line.
 This is only useful after an
@@ -4684,42 +4704,42 @@ or
 .Ic search\-history .
 .It no\-op: QUIT
 This does nothing.
-.It prefix\-1: ^[
+.It prefix\-1: \*(ha[
 Introduces a 2-character command sequence.
-.It prefix\-2: ^X , ^[[ , ^[O
+.It prefix\-2: \*(haX , \*(ha[[ , \*(ha[O
 Introduces a 2-character command sequence.
 .It Xo prev\-hist\-word:
 .Op Ar n
-.No ^[. , ^[_
+.No \*(ha[. , \*(ha[_
 .Xc
 The last
 .Pq Ar n Ns th
 word of the previous command is inserted at the cursor.
-.It quote: ^^ , ^V
+.It quote: \*(ha\*(ha , \*(haV
 The following character is taken literally rather than as an editing command.
-.It redraw: ^L
+.It redraw: \*(haL
 Reprints the last line of the prompt string and the current input line
 on a new line.
 .It Xo search\-character\-backward:
 .Op Ar n
-.No ^[^]
+.No \*(ha[\*(ha]
 .Xc
 Search backward in the current line for the
 .Ar n Ns th
 occurrence of the next character typed.
 .It Xo search\-character\-forward:
 .Op Ar n
-.No ^]
+.No \*(ha]
 .Xc
 Search forward in the current line for the
 .Ar n Ns th
 occurrence of the next character typed.
-.It search\-history: ^R
+.It search\-history: \*(haR
 Enter incremental search mode.
 The internal history list is searched
 backwards for commands matching the input.
 An initial
-.Ql ^
+.Ql \*(ha
 in the search string anchors the search.
 The escape key will leave search mode.
 Other commands will be executed after leaving search mode.
@@ -4729,9 +4749,9 @@ commands continue searching backward to the next previous occurrence of the
 pattern.
 The history buffer retains only a finite number of lines; the oldest
 are discarded as necessary.
-.It set\-mark\-command: ^[ Ns Aq space
+.It set\-mark\-command: \*(ha[ Ns Aq space
 Set the mark at the cursor position.
-.It transpose\-chars: ^T
+.It transpose\-chars: \*(haT
 If at the end of line, or if the
 .Ic gmacs
 option is set, this exchanges the two previous characters; otherwise, it
@@ -4739,26 +4759,26 @@ exchanges the previous and current characters and moves the cursor one
 character to the right.
 .It Xo up\-history:
 .Op Ar n
-.No ^P , ^XA
+.No \*(haP , \*(haXA
 .Xc
 Scrolls the history buffer backward
 .Ar n
 lines (earlier).
 .It Xo upcase\-word:
 .Op Ar n
-.No ^[U , ^[u
+.No \*(ha[U , \*(ha[u
 .Xc
 Uppercase the next
 .Ar n
 words.
-.It version: ^[^V
+.It version: \*(ha[\*(haV
 Display the version of
 .Nm mksh .
 The current edit buffer is restored as soon as a key is pressed.
 The restoring keypress is processed, unless it is a space.
-.It yank: ^Y
+.It yank: \*(haY
 Inserts the most recently killed text string at the current cursor position.
-.It yank\-pop: ^[y
+.It yank\-pop: \*(ha[y
 Immediately after a
 .Ic yank ,
 replaces the inserted text string with the next previously killed text string.
@@ -4774,7 +4794,7 @@ editor with the following exceptions:
 You start out in insert mode.
 .It
 There are file name and command completion commands:
-=, \e, *, ^X, ^E, ^F, and, optionally,
+=, \e, *, \*(haX, \*(haE, \*(haF, and, optionally,
 .Aq tab
 and
 .Aq esc .
@@ -4818,34 +4838,34 @@ In particular, the following characters are taken from current
 settings
 (see
 .Xr stty 1 )
-and have their usual meaning (normal values are in parentheses): kill (^U),
-erase (^?), werase (^W), eof (^D), intr (^C), and quit (^\e).
+and have their usual meaning (normal values are in parentheses): kill (\*(haU),
+erase (\*(ha?), werase (\*(haW), eof (\*(haD), intr (\*(haC), and quit (\*(ha\e).
 In addition to
 the above, the following characters are also treated specially in insert mode:
 .Bl -tag -width 10n
-.It ^E
+.It \*(haE
 Command and file name enumeration (see below).
-.It ^F
+.It \*(haF
 Command and file name completion (see below).
 If used twice in a row, the
 list of possible completions is displayed; if used a third time, the completion
 is undone.
-.It ^H
+.It \*(haH
 Erases previous character.
-.It ^J \*(Ba ^M
+.It \*(haJ \*(Ba \*(haM
 End of line.
 The current line is read, parsed, and executed by the shell.
-.It ^V
+.It \*(haV
 Literal next.
 The next character typed is not treated specially (can be used
 to insert the characters being described here).
-.It ^X
+.It \*(haX
 Command and file name expansion (see below).
 .It Aq esc
 Puts the editor in command mode (see below).
 .It Aq tab
 Optional file name and command completion (see
-.Ic ^F
+.Ic \*(haF
 above), enabled with
 .Ic set \-o vi\-tabcomplete .
 .El
@@ -4869,7 +4889,7 @@ A
 .Dq word
 is a sequence of letters, digits, and underscore characters or a sequence of
 non-letter, non-digit, non-underscore, and non-whitespace characters (e.g.\&
-.Dq ab2*&^
+.Dq ab2*&\*(ha
 contains two words) and a
 .Dq big-word
 is a sequence of non-whitespace characters.
@@ -4895,7 +4915,7 @@ Insert the comment character
 .Pq Sq #
 at the start of the current line and return the line to the shell (equivalent
 to
-.Ic I#^J ) .
+.Ic I#\*(haJ ) .
 .It Xo
 .Oo Ar n Oc Ns g
 .Xc
@@ -4916,11 +4936,11 @@ editor; if
 is not specified, the current line is edited.
 The actual command executed is
 .Ic fc \-e ${VISUAL:\-${EDITOR:\-vi}} Ar n .
-.It * and ^X
+.It * and \*(haX
 Command or file name expansion is applied to the current big-word (with an
 appended
 .Ql *
-if the word contains no file globbing characters) \(em the big-word is replaced
+if the word contains no file globbing characters) \*(en the big-word is replaced
 with the resulting words.
 If the current big-word is the first on the line (or
 follows one of the following characters:
@@ -4944,7 +4964,7 @@ After expansion, the cursor is placed just past the last
 word and the editor is in insert mode.
 .It Xo
 .Oo Ar n Oc Ns \e ,
-.Oo Ar n Oc Ns ^F ,
+.Oo Ar n Oc Ns \*(haF ,
 .Oo Ar n Oc Ns Aq tab ,
 .No and
 .Oo Ar n Oc Ns Aq esc
@@ -4967,10 +4987,10 @@ is specified, the
 .Ar n Ns th
 possible completion is selected (as reported by the command/file name
 enumeration command).
-.It = and ^E
+.It = and \*(haE
 Command/file name enumeration.
 List all the commands or files that match the current big-word.
-.It ^V
+.It \*(haV
 Display the version of
 .Nm mksh .
 The current edit buffer is restored as soon as a key is pressed.
@@ -4985,7 +5005,7 @@ Intra-line movement commands:
 .Bl -tag -width Ds
 .It Xo
 .Oo Ar n Oc Ns h and
-.Oo Ar n Oc Ns ^H
+.Oo Ar n Oc Ns \*(haH
 .Xc
 Move left
 .Ar n
@@ -4999,7 +5019,7 @@ Move right
 characters.
 .It 0
 Move to column 0.
-.It ^
+.It \*(ha
 Move to the first non-whitespace character.
 .It Xo
 .Oo Ar n Oc Ns \*(Ba
@@ -5100,7 +5120,7 @@ Inter-line movement commands:
 .Oo Ar n Oc Ns j ,
 .Oo Ar n Oc Ns + ,
 .No and
-.Oo Ar n Oc Ns ^N
+.Oo Ar n Oc Ns \*(haN
 .Xc
 Move to the
 .Ar n Ns th
@@ -5109,7 +5129,7 @@ next line in the history.
 .Oo Ar n Oc Ns k ,
 .Oo Ar n Oc Ns \- ,
 .No and
-.Oo Ar n Oc Ns ^P
+.Oo Ar n Oc Ns \*(haP
 .Xc
 Move to the
 .Ar n Ns th
@@ -5140,7 +5160,7 @@ line containing
 if
 .Ar string
 starts with
-.Ql ^ ,
+.Ql \*(ha ,
 the remainder of the string must appear at the start of the history line for
 it to match.
 .It Xo
@@ -5262,7 +5282,7 @@ The replacement is repeated
 .Ar n
 times.
 .It Xo
-.Oo Ar n Oc Ns ~
+.Oo Ar n Oc Ns \*(TI
 .Xc
 Change the case of the next
 .Ar n
@@ -5295,9 +5315,9 @@ except the buffer is pasted at the current position.
 .Pp
 Miscellaneous vi commands
 .Bl -tag -width Ds
-.It ^J and ^M
+.It \*(haJ and \*(haM
 The current line is read, parsed, and executed by the shell.
-.It ^L and ^R
+.It \*(haL and \*(haR
 Redraw the current line.
 .It Xo
 .Oo Ar n Oc Ns \&.
@@ -5315,12 +5335,12 @@ deleted and a new prompt to be printed.
 .El
 .Sh FILES
 .Bl -tag -width "/etc/suid_profileXX" -compact
-.It Pa ~/.mkshrc
+.It Pa \*(TI/.mkshrc
 User's startup script (interactive shells).
 Used only if
 .Ev ENV
 is unset or empty.
-.It Pa ~/.profile
+.It Pa \*(TI/.profile
 User's login profile.
 .It Pa /etc/profile
 System login profile.
@@ -5391,7 +5411,7 @@ Privileged shell profile.
 .Re
 .Rs
 .%A "IEEE Inc."
-.%B "IEEE Standard for Information Technology \(em Portable Operating System Interface (POSIX)"
+.%B "IEEE Standard for Information Technology \*(en Portable Operating System Interface (POSIX)"
 .%V "Part 2: Shell and Utilities"
 .%D 1993
 .%I "IEEE Press"
@@ -5440,7 +5460,7 @@ for an operating environment supporting all of its advanced needs.
 Please report bugs in
 .Nm
 to the
-.Aq miros-discuss@mirbsd.org
+.Aq miros\-discuss@mirbsd.org
 mailing list or in the
 .Li \&#\&!/bin/mksh
 .Pq or Li \&#ksh
