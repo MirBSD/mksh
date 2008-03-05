@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.289 2008/03/05 19:14:19 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.290 2008/03/05 19:59:27 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -44,6 +44,7 @@ ao=
 fx=
 me=`basename "$0"`
 orig_CFLAGS=$CFLAGS
+phase=x
 
 if test -t 1; then
 	bi='[1m'
@@ -129,6 +130,8 @@ ac_testn() {
 	else
 		test 0 = $fr || fv=1
 	fi
+	test ugcc=$phase$ct && $CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c \
+	    $LIBS 2>&1 | grep 'unrecogni[sz]ed' >/dev/null 2>&1 && fv=$fr
 	rm -f scn.c scn.o $tcfn
 	ac_testdone
 }
@@ -559,6 +562,7 @@ else
 fi
 # other flags: just add them if they are supported
 i=0
+phase=u
 if test $ct = gcc; then
 	NOWARN=$DOWARN		# scan for flags with -Werror
 	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
@@ -617,6 +621,7 @@ if test 1 = $i; then
 	    ac_flags 1 stdc99 -std=c99 'for support of ISO C99'
 	ac_flags 1 wall -Wall
 fi
+phase=x
 NOWARN=$save_NOWARN	# gcc runs with -Werror until here
 ac_test expstmt '' "if the compiler supports statements as expressions" <<-'EOF'
 	#define ksh_isspace(c)	({					\
