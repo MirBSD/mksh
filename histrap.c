@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.57 2007/10/25 15:34:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.58 2008/03/05 16:54:21 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -614,9 +614,9 @@ void
 hist_init(Source *s)
 {
 #if HAVE_PERSISTENT_HISTORY
-	unsigned char	*base;
-	int	lines;
-	int	fd;
+	unsigned char *base;
+	int lines;
+	int fd;
 #endif
 
 	if (Flag(FTALKING) == 0)
@@ -660,8 +660,9 @@ hist_init(Source *s)
 		/*
 		 * check on its validity
 		 */
-		if (base == MAP_FAILED || *base != HMAGIC1 || base[1] != HMAGIC2) {
-			if (base != MAP_FAILED)
+		if (base == (unsigned char *)MAP_FAILED ||
+		    *base != HMAGIC1 || base[1] != HMAGIC2) {
+			if (base != (unsigned char *)MAP_FAILED)
 				munmap((caddr_t)base, hsize);
 			hist_finish();
 			unlink(hname);
@@ -886,7 +887,7 @@ writehistfile(int lno, char *cmd)
 			bytes = sizenow - hsize;
 			base = mmap(NULL, sizenow, PROT_READ,
 			    MAP_FILE | MAP_PRIVATE, histfd, 0);
-			if (base == MAP_FAILED)
+			if (base == (unsigned char *)MAP_FAILED)
 				goto bad;
 			new = base + hsize;
 			if (*new != COMMAND) {
