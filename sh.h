@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.193 2008/03/05 17:06:50 tg Exp $"
-#define MKSH_VERSION "R33 2008/03/01"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.194 2008/03/05 18:21:45 tg Exp $"
+#define MKSH_VERSION "R33 2008/03/05"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -183,7 +183,11 @@ typedef int bool;
 #endif
 
 #ifndef NSIG
+#if defined(_NSIG)
 #define NSIG		_NSIG
+#elif defined(SIGMAX)
+#define NSIG		(SIGMAX+1)
+#endif
 #endif
 
 #undef BAD		/* AIX defines that somewhere */

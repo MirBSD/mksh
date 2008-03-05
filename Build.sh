@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.285 2008/03/05 17:52:43 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.286 2008/03/05 18:21:44 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -312,8 +312,9 @@ NetBSD)
 OpenBSD)
 	;;
 OSF1)
-	HAVE_SIG_T=0; HAVE_SIGHANDLER_T=0; HAVE___SIGHANDLER_T=0
-	CPPFLAGS="$CPPFLAGS -Dsig_t=nosig_t -D_XOPEN_SOURCE_EXTENDED"
+	HAVE_SIG_T=0	# incompatible
+	CPPFLAGS="$CPPFLAGS -D_OSF_SOURCE -D_POSIX_C_SOURCE=200112L"
+	CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=600 -D_XOPEN_SOURCE_EXTENDED"
 	warn=' and is still experimental'
 	;;
 Plan9)
@@ -322,8 +323,7 @@ Plan9)
 	warn=' and will currently not work'
 	;;
 PW32*)
-	HAVE_SIG_T=0; HAVE_SIGHANDLER_T=0; HAVE___SIGHANDLER_T=0
-	CPPFLAGS="$CPPFLAGS -Dsig_t=nosig_t"
+	HAVE_SIG_T=0	# incompatible
 	warn=' and will currently not work'
 	# missing: killpg() getrlimit()
 	;;
@@ -429,7 +429,7 @@ hpcc|icc)
 	vv '|' "$CC -V"
 	;;
 msc)
-	ccpr=
+	ccpr=		# errorlevels are not reliable
 	;;
 pcc|sunpro|tcc)
 	vv '|' "$CC -v"
@@ -582,7 +582,7 @@ elif test $ct = hpcc; then
 	ac_flags 1 agcc -Agcc 'for support of GCC extensions'
 	ac_flags 1 ac99 -AC99 'for support of ISO C99'
 elif test $ct = dec; then
-	ac_flags 1 verb -verbose
+	ac_flags 0 verb -verbose
 	ac_flags 1 rodata -readonly_strings
 elif test $ct = dmc; then
 	ac_flags 1 decl "${ccpc}-r" 'for strict prototype checks'
@@ -788,6 +788,7 @@ if test 1 = $HAVE___SIGHANDLER_T; then
 	HAVE_SIG_T=1
 fi
 
+test 1 = $HAVE_SIG_T || CPPFLAGS="$CPPFLAGS -Dsig_t=nosig_t"
 ac_cppflags SIG_T
 
 ac_testn u_int32_t <<-'EOF'
@@ -1009,7 +1010,11 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 	cat >scn.c <<-'EOF'
 		#include <signal.h>
 		#ifndef NSIG
+		#if defined(_NSIG)
 		#define NSIG _NSIG
+		#elif defined(SIGMAX)
+		#define NSIG (SIGMAX+1)
+		#endif
 		#endif
 		mksh_cfg: NSIG
 	EOF
@@ -1049,6 +1054,7 @@ fi
 
 addsrcs HAVE_SETMODE setmode.c
 addsrcs HAVE_STRLCPY strlcpy.c
+test $HAVE_CAN_VERB=1 && CFLAGS="$CFLAGS -verbose"
 CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 
 objs=
@@ -1093,7 +1099,7 @@ a.exe)	tcfn=mksh.exe ;;
 *)	tcfn=mksh ;;
 esac
 v "$CC $CFLAGS $LDFLAGS -o $tcfn $objs $LIBS $ccpr"
-test -f $ccpr || exit 1
+test -f $tcfn || exit 1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
     rm -f mksh.cat1
 test 0 = $eq && test 1 = $h && v size $tcfn
