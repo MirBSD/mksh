@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.280 2008/03/03 19:40:08 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.281 2008/03/05 17:00:33 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -122,6 +122,7 @@ ac_testn() {
 	ac_testinit "$@" || return
 	cat >scn.c
 	vv ']' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS"
+	rv=$?; test $ct = msc || test 0 = $rv || rm -f a.out a.exe
 	test x"$tcfn" = x"no" && test -f a.out && tcfn=a.out
 	test x"$tcfn" = x"no" && test -f a.exe && tcfn=a.exe
 	if test -f $tcfn; then
@@ -383,6 +384,8 @@ cat >scn.c <<-'EOF'
 	ct=sunpro
 	#elif defined(__BORLANDC__)
 	ct=bcc
+	#elif defined(__DECC)
+	ct=dec
 	#elif defined(__DMC__)
 	ct=dmc
 	#elif defined(_MSC_VER)
@@ -410,7 +413,12 @@ cat >scn.c <<-'EOF'
 	int main(void) { return (0); }
 EOF
 case $ct in
-bcc|dmc)
+bcc)
+	;;
+dec)
+	vv '|' "$CC -V | fgrep 'DEC C'"
+	;;
+dmc)
 	;;
 gcc)
 	vv '|' "$CC -v"
@@ -507,6 +515,8 @@ elif test $ct = dmc; then
 elif test $ct = bcc; then
 	save_NOWARN="${ccpc}-w"
 	DOWARN="${ccpc}-w!"
+elif test $ct = dec; then
+	: -msg_* flags not used yet, or is -w2 correct?
 elif test $ct = xlc; then
 	save_NOWARN=-qflag=i:e
 	DOWARN=-qflag=i:i
@@ -568,6 +578,9 @@ elif test $ct = sunpro; then
 elif test $ct = hpcc; then
 	ac_flags 1 agcc -Agcc 'for support of GCC extensions'
 	ac_flags 1 ac99 -AC99 'for support of ISO C99'
+elif test $ct = dec; then
+	ac_flags 1 verb -verbose
+	ac_flags 1 rodata -readonly_strings
 elif test $ct = dmc; then
 	ac_flags 1 decl "${ccpc}-r" 'for strict prototype checks'
 	ac_flags 1 schk "${ccpc}-s" 'for stack overflow checking'
