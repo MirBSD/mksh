@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.284 2008/03/05 17:30:10 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.285 2008/03/05 17:52:43 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -121,10 +121,9 @@ ac_testn() {
 	fi
 	ac_testinit "$@" || return
 	cat >scn.c
-	vv ']' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS"
-	rv=$?; test $ct = msc || test 0 = $rv || rm -f a.out a.exe
-	test x"$tcfn" = x"no" && test -f a.out && tcfn=a.out
-	test x"$tcfn" = x"no" && test -f a.exe && tcfn=a.exe
+	vv ']' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS $ccpr"
+	test $tcfn = no && test -f a.out && tcfn=a.out
+	test $tcfn = no && test -f a.exe && tcfn=a.exe
 	if test -f $tcfn; then
 		test 1 = $fr || fv=1
 	else
@@ -258,6 +257,7 @@ warn=
 ccpc=-Wc,
 ccpl=-Wl,
 tsts=
+ccpr='|| rm -f $tcfn'
 case $TARGET_OS in
 AIX)
 	if test x"$LDFLAGS" = x""; then
@@ -429,6 +429,7 @@ hpcc|icc)
 	vv '|' "$CC -V"
 	;;
 msc)
+	ccpr=
 	;;
 pcc|sunpro|tcc)
 	vv '|' "$CC -v"
@@ -1069,10 +1070,12 @@ for file in $SRCS; do
 	test -f $file || file=$srcdir/$file
 	echo "$CC $CFLAGS $CPPFLAGS -c $file || exit 1" >>Rebuild.sh
 done
-echo "$CC $CFLAGS $LDFLAGS -o mksh $objs $LIBS" >>Rebuild.sh
-test $ct = msc || echo 'test 0 = $? || exit 1' >>Rebuild.sh
-echo 'result=mksh; test -f mksh.exe && result=mksh.exe' >>Rebuild.sh
-echo 'test -f $result || exit 1; size $result' >>Rebuild.sh
+case $tcfn in
+a.exe)	echo tcfn=mksh.exe >>Rebuild.sh ;;
+*)	echo tcfn=mksh >>Rebuild.sh ;;
+esac
+echo "$CC $CFLAGS $LDFLAGS -o \$tcfn $objs $LIBS $ccpr" >>Rebuild.sh
+echo 'test -f \$tcfn || exit 1; size \$tcfn' >>Rebuild.sh
 if test 1 = $pm; then
 	for file in $SRCS; do
 		test -f $file || file=$srcdir/$file
@@ -1085,14 +1088,15 @@ else
 		v "$CC $CFLAGS $CPPFLAGS -c $file" || exit 1
 	done
 fi
-v "$CC $CFLAGS $LDFLAGS -o mksh $objs $LIBS"
-rv=$?; test $ct = msc || test 0 = $rv || exit 1
-result=mksh
-test -f mksh.exe && result=mksh.exe
-test -f $result || exit 1
+case $tcfn in
+a.exe)	tcfn=mksh.exe ;;
+*)	tcfn=mksh ;;
+esac
+v "$CC $CFLAGS $LDFLAGS -o $tcfn $objs $LIBS $ccpr"
+test -f $ccpr || exit 1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
     rm -f mksh.cat1
-test 0 = $eq && test 1 = $h && v size $result
+test 0 = $eq && test 1 = $h && v size $tcfn
 i=install
 test -f /usr/ucb/$i && i=/usr/ucb/$i
 test 1 = $eq && e=:
