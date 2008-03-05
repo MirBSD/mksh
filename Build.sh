@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.283 2008/03/05 17:12:08 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.284 2008/03/05 17:30:10 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -418,7 +418,7 @@ case $ct in
 bcc)
 	;;
 dec)
-	vv '|' "$CC -V | fgrep 'DEC C'"
+	vv '|' "$CC -V"
 	;;
 dmc)
 	;;
