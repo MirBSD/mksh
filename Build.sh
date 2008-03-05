@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.281 2008/03/05 17:00:33 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.282 2008/03/05 17:06:49 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -949,6 +949,12 @@ ac_test '!' arc4random_pushb_decl arc4random_pushb 1 'if arc4random_pushb() does
 	#include "sh.h"
 	int arc4random_pushb(char, int); /* this clashes if defined before */
 	int main(int ac, char *av[]) { return (arc4random_pushb(**av, ac)); }
+EOF
+ac_test '!' revoke_decl revoke 1 'if revoke() does not need to be declared' <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	long revoke(void);		/* this clashes if defined before */
+	int main(void) { return (revoke()); }
 EOF
 ac_test sys_siglist_decl sys_siglist 1 'if sys_siglist[] does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
