@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.288 2008/03/05 18:49:14 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.289 2008/03/05 19:14:19 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -487,11 +487,7 @@ if test 1 = $HAVE_COMPILER_FAILS; then
 		EOF
 		test 1 = $HAVE_CAN_DELEXE || CFLAGS=$save_CFLAGS
 	else
-		CFLAGS="$CFLAGS ${ccpl}+k"
-		ac_testn can_plusk compiler_fails 0 'for the +k linker option' <<-EOF
-			int main(void) { return (0); }
-		EOF
-		test 1 = $HAVE_CAN_PLUSK || CFLAGS=$save_CFLAGS
+		exit 1
 	fi
 	ac_testn compiler_still_fails '' 'if the compiler still does not fail correctly' <<-EOF
 		int main(void) { return (thiswillneverbedefinedIhope()); }
