@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.282 2008/03/05 17:06:49 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.283 2008/03/05 17:12:08 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -312,7 +312,8 @@ NetBSD)
 OpenBSD)
 	;;
 OSF1)
-	HAVE_SIG_T=0; CPPFLAGS="$CPPFLAGS -Dsig_t=nosig_t"
+	HAVE_SIG_T=0; HAVE_SIGHANDLER_T=0; HAVE___SIGHANDLER_T=0
+	CPPFLAGS="$CPPFLAGS -Dsig_t=nosig_t -D_XOPEN_SOURCE_EXTENDED"
 	warn=' and is still experimental'
 	;;
 Plan9)
@@ -321,7 +322,8 @@ Plan9)
 	warn=' and will currently not work'
 	;;
 PW32*)
-	HAVE_SIG_T=0; CPPFLAGS="$CPPFLAGS -Dsig_t=nosig_t"
+	HAVE_SIG_T=0; HAVE_SIGHANDLER_T=0; HAVE___SIGHANDLER_T=0
+	CPPFLAGS="$CPPFLAGS -Dsig_t=nosig_t"
 	warn=' and will currently not work'
 	# missing: killpg() getrlimit()
 	;;
