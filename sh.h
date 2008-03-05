@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.194 2008/03/05 18:21:45 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.195 2008/03/05 18:49:15 tg Exp $"
 #define MKSH_VERSION "R33 2008/03/05"
 
 #if HAVE_SYS_PARAM_H
@@ -202,6 +202,10 @@ extern void arc4random_addrandom(unsigned char *, int)
 
 #if !HAVE_ARC4RANDOM_PUSHB_DECL
 extern uint32_t arc4random_pushb(void *, size_t);
+#endif
+
+#if !HAVE_FLOCK_DECL
+extern int flock(int, int);
 #endif
 
 #if !HAVE_REVOKE_DECL

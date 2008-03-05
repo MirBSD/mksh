@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.287 2008/03/05 18:25:57 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.288 2008/03/05 18:49:14 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -315,7 +315,6 @@ OSF1)
 	HAVE_SIG_T=0	# incompatible
 	CPPFLAGS="$CPPFLAGS -D_OSF_SOURCE -D_POSIX_C_SOURCE=200112L"
 	CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=600 -D_XOPEN_SOURCE_EXTENDED"
-	warn=' and is still experimental'
 	;;
 Plan9)
 	CPPFLAGS="$CPPFLAGS -D_POSIX_SOURCE -D_LIMITS_EXTENSION"
@@ -953,6 +952,12 @@ ac_test '!' arc4random_pushb_decl arc4random_pushb 1 'if arc4random_pushb() does
 	#include "sh.h"
 	int arc4random_pushb(char, int); /* this clashes if defined before */
 	int main(int ac, char *av[]) { return (arc4random_pushb(**av, ac)); }
+EOF
+ac_test '!' flock_decl flock_ex 1 'if flock() does not need to be declared' <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	long flock(void);		/* this clashes if defined before */
+	int main(void) { return (flock()); }
 EOF
 ac_test '!' revoke_decl revoke 1 'if revoke() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
