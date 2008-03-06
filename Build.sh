@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.291 2008/03/06 18:02:33 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.292 2008/03/06 18:12:58 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -436,6 +436,22 @@ hpcc|icc)
 	;;
 msc)
 	ccpr=		# errorlevels are not reliable
+	case $TARGET_OS in
+	Interix)
+		if [[ -n $C89_COMPILER ]]; then
+			C89_COMPILER=$(ntpath2posix -c "$C89_COMPILER")
+		else
+			C89_COMPILER=CL.EXE
+		fi
+		if [[ -n $C89_LINKER ]]; then
+			C89_LINKER=$(ntpath2posix -c "$C89_LINKER")
+		else
+			C89_LINKER=LINK.EXE
+		fi
+		vv '|' "$C89_COMPILER /HELP >&2"
+		vv '|' "$C89_LINKER /LINK >&2"
+		;;
+	esac
 	;;
 pcc|sunpro|tcc)
 	vv '|' "$CC -v"
