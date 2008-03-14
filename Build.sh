@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.292 2008/03/06 18:12:58 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.293 2008/03/14 21:34:55 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -331,6 +331,10 @@ PW32*)
 	;;
 SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
+	;;
+syllable)
+	: ${HAVE_FLOCK_EX=0}
+	warn=' and will currently not work'
 	;;
 UWIN*)
 	ccpc='-Yc,'
