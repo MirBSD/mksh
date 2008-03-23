@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.14 2008/02/29 12:48:09 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.15 2008/03/23 20:54:29 tg Exp $
 # $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
 #-
 # Example test:
@@ -245,13 +245,6 @@ if (defined $opt_e) {
 }
 %old_env = %ENV;
 
-# The following doesn't work with perl5...  Need to do it explicitly - yuck.
-#%ENV = %new_env;
-foreach $k (keys(%ENV)) {
-    delete $ENV{$k};
-}
-$ENV{$k} = $v while ($k,$v) = each %new_env;
-
 die "$prog: couldn't make directory $tempdir - $!\n" if !mkdir($tempdir, 0777);
 
 chop($pwd = `pwd 2>/dev/null`);
@@ -467,9 +460,9 @@ run_test
 		$i = index($var, '=');
 		next if $i == 0 || $var eq '';
 		if ($i < 0) {
-		    delete $ENV{$var};
+		    delete $new_env{$var};
 		} else {
-		    $ENV{substr($var, 0, $i)} = substr($var, $i + 1);
+		    $new_env{substr($var, 0, $i)} = substr($var, $i + 1);
 		}
 	    }
 	}
@@ -499,6 +492,14 @@ run_test
 			   substr($test{'arguments'}, 1)));
 	}
 	push(@argv, $temps) if defined $test{'script'};
+
+	# The following doesn't work with perl5...  Need to do it explicitly - yuck.
+	#%ENV = %new_env;
+	foreach $k (keys(%ENV)) {
+	    delete $ENV{$k};
+	}
+	$ENV{$k} = $v while ($k,$v) = each %new_env;
+
 	exec { $argv[0] } @argv;
 	print STDERR "$prog: couldn't execute $test_prog - $!\n";
 	kill('TERM', $$);
