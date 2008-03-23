@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.294 2008/03/23 20:19:26 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.295 2008/03/23 20:21:24 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1097,7 +1097,9 @@ echo "print Testing mksh for conformance:" >>test.sh
 echo "fgrep -e MirOS: -e MIRBSD '$srcdir/check.t'" >>test.sh
 echo 'print "This shell is actually:\n\t$KSH_VERSION"' >>test.sh
 echo "print 'test.sh built for mksh $dstversion'" >>test.sh
-echo "exec perl '$srcdir/check.pl' -s '$srcdir/check.t'" \
+echo "perl=perl5" >>test.sh
+echo "\$perl -e print >/dev/null 2>&1 || perl=perl" >>test.sh
+echo "exec \$perl '$srcdir/check.pl' -s '$srcdir/check.t'" \
     "-p '$curdir/mksh' -C $check_categories \$*$tsts" >>test.sh
 chmod 755 test.sh
 echo set -x >Rebuild.sh
