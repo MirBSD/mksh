@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.293 2008/03/14 21:34:55 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.294 2008/03/23 20:19:26 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1111,7 +1111,7 @@ a.exe)	echo tcfn=mksh.exe >>Rebuild.sh ;;
 *)	echo tcfn=mksh >>Rebuild.sh ;;
 esac
 echo "$CC $CFLAGS $LDFLAGS -o \$tcfn $objs $LIBS $ccpr" >>Rebuild.sh
-echo 'test -f \$tcfn || exit 1; size \$tcfn' >>Rebuild.sh
+echo 'test -f $tcfn || exit 1; size $tcfn' >>Rebuild.sh
 if test 1 = $pm; then
 	for file in $SRCS; do
 		test -f $file || file=$srcdir/$file
