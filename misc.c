@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.68 2008/02/27 01:00:09 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.69 2008/03/23 22:09:58 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -1337,28 +1337,32 @@ chvt(const char *fn)
 	struct stat sb;
 	int fd;
 
-	if (stat(fn, &sb)) {
-		memcpy(dv, "/dev/ttyC", 9);
-		strlcpy(dv + 9, fn, 20 - 9);
-		if (stat(dv, &sb)) {
-			strlcpy(dv + 8, fn, 20 - 8);
-			if (stat(dv, &sb))
-				errorf("chvt: can't find tty %s", fn);
+	if (*fn == '-') {
+		memcpy(dv, "-/dev/null", sizeof ("-/dev/null"));
+		fn = dv + 1;
+	} else {
+		if (stat(fn, &sb)) {
+			memcpy(dv, "/dev/ttyC", 9);
+			strlcpy(dv + 9, fn, 20 - 9);
+			if (stat(dv, &sb)) {
+				strlcpy(dv + 8, fn, 20 - 8);
+				if (stat(dv, &sb))
+					errorf("chvt: can't find tty %s", fn);
+			}
+			fn = dv;
 		}
-		fn = dv;
-	}
-	if (!(sb.st_mode & S_IFCHR))
-		errorf("chvt: not a char device: %s", fn);
-	if ((sb.st_uid != 0) && chown(fn, 0, 0))
-		warningf(false, "chvt: cannot chown root %s", fn);
-	if (((sb.st_mode & 07777) != 0600) && chmod(fn, 0600))
-		warningf(false, "chvt: cannot chmod 0600 %s", fn);
+		if (!(sb.st_mode & S_IFCHR))
+			errorf("chvt: not a char device: %s", fn);
+		if ((sb.st_uid != 0) && chown(fn, 0, 0))
+			warningf(false, "chvt: cannot chown root %s", fn);
+		if (((sb.st_mode & 07777) != 0600) && chmod(fn, 0600))
+			warningf(false, "chvt: cannot chmod 0600 %s", fn);
 #if HAVE_REVOKE
-	if (revoke(fn))
+		if (revoke(fn))
 #endif
-		warningf(false, "chvt: cannot revoke %s, new shell is"
-		    " potentially insecure", fn);
-
+			warningf(false, "chvt: cannot revoke %s, new shell is"
+			    " potentially insecure", fn);
+	}
 	if ((fd = open(fn, O_RDWR)) == -1) {
 		sleep(1);
 		if ((fd = open(fn, O_RDWR)) == -1)
@@ -1374,7 +1378,7 @@ chvt(const char *fn)
 	}
 	if (setsid() == -1)
 		errorf("chvt: setsid failed");
-	if (ioctl(fd, TIOCSCTTY, NULL) == -1)
+	if ((fn != dv + 1) && ioctl(fd, TIOCSCTTY, NULL) == -1)
 		errorf("chvt: TIOCSCTTY failed");
 	dup2(fd, 0);
 	dup2(fd, 1);

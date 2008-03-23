@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.113 2008/03/04 00:09:34 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.114 2008/03/23 22:09:58 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: March 4 2008 $
+.Dd $Mdocdate: March 23 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -41,7 +41,7 @@
 .Nm
 .Bk -words
 .Op Fl +abCefhiklmnprUuvXx
-.Op Fl T Ar /dev/ttyCn
+.Op Fl T Ar /dev/ttyCn | \-
 .Op Fl +o Ar option
 .Oo Fl c Ar string \*(Ba Fl s \*(Ba
 .Ar \ file\ \&
@@ -171,6 +171,9 @@ on the
 .Xr tty 4
 device given.
 Superuser only.
+If
+.Ar tty
+is a dash, detach from controlling terminal (daemonise) instead.
 .El
 .Pp
 In addition to the above, the options described in the
@@ -5452,7 +5455,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh\ R33
+.Nm mksh\ R33b
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
