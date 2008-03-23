@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.296 2008/03/23 20:55:17 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.297 2008/03/23 21:53:36 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -665,6 +665,9 @@ NOWARN=$DOWARN
 # Compiler: check for stuff that only generates warnings
 #
 ac_test attribute '' 'for basic __attribute__((...)) support' <<-'EOF'
+	#if defined(__GNUC__) && (__GNUC__ < 2)
+	#error gcc 1.42 has no -Werror, disabling
+	#endif
 	#include <stdlib.h>
 	#undef __attribute__
 	void fnord(void) __attribute__((noreturn));
