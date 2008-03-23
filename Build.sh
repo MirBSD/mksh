@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.295 2008/03/23 20:21:24 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.296 2008/03/23 20:55:17 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -273,6 +273,8 @@ AIX)
 		EOF
 	fi
 	: ${LIBS='-lcrypt'}
+	;;
+BSD/OS)
 	;;
 CYGWIN*)
 	;;
