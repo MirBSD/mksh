@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.197 2008/03/23 22:09:59 tg Exp $"
-#define MKSH_VERSION "R33 2008/03/23"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.198 2008/03/25 21:34:45 tg Exp $"
+#define MKSH_VERSION "R33 2008/03/25"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -167,6 +167,9 @@ typedef int bool;
 #ifndef S_ISTXT
 #define S_ISTXT		0001000
 #endif
+#ifndef S_ISLNK
+#define S_ISLNK(m)	((m & 0170000) == 0120000)
+#endif
 #ifndef S_ISSOCK
 #define S_ISSOCK(m)	((m & 0170000) == 0140000)
 #endif
@@ -219,6 +222,10 @@ extern int revoke(const char *);
 #if !HAVE_SETMODE
 mode_t getmode(const void *, mode_t);
 void *setmode(const char *);
+#endif
+
+#ifdef __ultrix
+int strcasecmp(const char *, const char *);
 #endif
 
 #if !HAVE_STRCASESTR

@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.298 2008/03/25 20:25:27 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.299 2008/03/25 21:34:42 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -337,6 +337,12 @@ syllable)
 	: ${HAVE_FLOCK_EX=0}
 	warn=' and will currently not work'
 	;;
+ULTRIX)
+	: ${CC=cc -YPOSIX}
+	CPPFLAGS="$CPPFLAGS -Dssize_t=int"
+	warn=' but might work. I think that I/O'
+	warn="$warn${nl}redirs are kaput: child affects parent"
+	;;
 UWIN*)
 	ccpc='-Yc,'
 	ccpl='-Yl,'
@@ -415,6 +421,8 @@ cat >scn.c <<-'EOF'
 	ct=gcc
 	#elif defined(__hpux)
 	ct=hpcc
+	#elif defined(__ultrix)
+	ct=ucode
 	#else
 	ct=unknown
 	#endif
@@ -446,12 +454,12 @@ msc)
 	case $TARGET_OS in
 	Interix)
 		if [[ -n $C89_COMPILER ]]; then
-			C89_COMPILER=$(ntpath2posix -c "$C89_COMPILER")
+			C89_COMPILER=`ntpath2posix -c "$C89_COMPILER"`
 		else
 			C89_COMPILER=CL.EXE
 		fi
 		if [[ -n $C89_LINKER ]]; then
-			C89_LINKER=$(ntpath2posix -c "$C89_LINKER")
+			C89_LINKER=`ntpath2posix -c "$C89_LINKER"`
 		else
 			C89_LINKER=LINK.EXE
 		fi
@@ -465,6 +473,9 @@ pcc|sunpro|tcc)
 	;;
 tendra)
 	vv '|' "$CC -V 2>&1 | fgrep -i -e version -e release"
+	;;
+ucode)
+	vv '|' "$CC -V"
 	;;
 xlc)
 	vv '|' "$CC -qversion=verbose"
@@ -550,6 +561,9 @@ elif test $ct = xlc; then
 	DOWARN=-qflag=i:i
 elif test $ct = tendra; then
 	save_NOWARN=-w
+elif test $ct = ucode; then
+	save_NOWARN=
+	DOWARN=-w2
 else
 	test x"$save_NOWARN" = x"" && save_NOWARN=-Wno-error
 	ac_flags 0 wnoerror "$save_NOWARN"
@@ -901,6 +915,11 @@ ac_test flock_ex '' 'flock and mmap' <<-'EOF'
 	    MAP_FILE | MAP_PRIVATE, 0, 0) == NULL ? 1 : 0); }
 EOF
 
+ac_test mkstemp <<-'EOF'
+	#include <stdlib.h>
+	int main(void) { char tmpl[] = "X"; return (mkstemp(tmpl)); }
+EOF
+
 ac_test setlocale_ctype '!' mksh_defutf8 0 'setlocale(LC_CTYPE, "")' <<-'EOF'
 	#include <locale.h>
 	#include <stddef.h>
@@ -1059,28 +1078,30 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 	case $NSIG in
 	*[\ \(\)+-]*) NSIG=`awk "BEGIN { print $NSIG }"` ;;
 	esac
-	NSIG=`printf %d "$NSIG" 2>/dev/null`
-	test 1 = $h && printf "NSIG=$NSIG ... "
-	signames="ABRT ALRM BUS CHLD CLD CONT EMT FPE HUP ILL INFO INT IO IOT"
-	signames="$signames KILL PIPE PROF PWR QUIT SAK SEGV STOP SYS TERM"
-	signames="$signames TRAP TSTP TTIN TTOU URG USR1 USR2 WINCH XCPU XFSZ"
-	test 1 = $HAVE_CPP_DD && test $NSIG -gt 1 && signames="$signames "`vq \
+	printf=printf
+	printf hallo >/dev/null 2>&1 || printf=echo
+	test $printf = echo || NSIG=`printf %d "$NSIG" 2>/dev/null`
+	test 1 = $h && $printf "NSIG=$NSIG ... "
+	sigs="ABRT ALRM BUS CHLD CLD CONT DIL EMT FPE HUP ILL INFO INT IO IOT"
+	sigs="$sigs KILL LOST PIPE PROF PWR QUIT RESV SAK SEGV STOP SYS TERM"
+	sigs="$sigs TRAP TSTP TTIN TTOU URG USR1 USR2 VTALRM WINCH XCPU XFSZ"
+	test 1 = $HAVE_CPP_DD && test $NSIG -gt 1 && sigs="$sigs "`vq \
 	    "$CPP $CPPFLAGS -dD scn.c" | grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
 	    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | sort`
-	test $NSIG -gt 1 || signames=
-	for name in $signames; do
+	test $NSIG -gt 1 || sigs=
+	for name in $sigs; do
 		echo '#include <signal.h>' >scn.c
 		echo mksh_cfg: SIG$name >>scn.c
 		vq "$CPP $CPPFLAGS scn.c" | grep mksh_cfg: | \
 		    sed 's/^mksh_cfg:[	 ]*\([0-9x]*\).*$/\1:'$name/
 	done | grep -v '^:' | while IFS=: read nr name; do
-		nr=`printf %d "$nr" 2>/dev/null`
+		test $printf = echo || nr=`printf %d "$nr" 2>/dev/null`
 		test $nr -gt 0 && test $nr -le $NSIG || continue
 		case $sigseen in
 		*:$nr:*) ;;
 		*)	echo "		{ $nr, \"$name\" },"
 			sigseen=$sigseen$nr:
-			test 1 = $h && printf "$name=$nr " >&2
+			test 1 = $h && $printf "$name=$nr " >&2
 			;;
 		esac
 	done 2>&1 >signames.inc
@@ -1100,7 +1121,8 @@ case $curdir in
 esac
 echo "export PATH='$PATH'" >>test.sh
 echo "print Testing mksh for conformance:" >>test.sh
-echo "fgrep -e MirOS: -e MIRBSD '$srcdir/check.t'" >>test.sh
+echo "fgrep MirOS: '$srcdir/check.t'" >>test.sh
+echo "fgrep MIRBSD '$srcdir/check.t'" >>test.sh
 echo 'print "This shell is actually:\n\t$KSH_VERSION"' >>test.sh
 echo "print 'test.sh built for mksh $dstversion'" >>test.sh
 echo "perl=perl5" >>test.sh

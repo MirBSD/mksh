@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.92 2008/03/01 13:57:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.93 2008/03/25 21:34:44 tg Exp $");
 
 extern char **environ;
 
@@ -1113,13 +1113,31 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	const char *dir;
 
 	dir = tmpdir ? tmpdir : "/tmp";
+#if HAVE_MKSTEMP
 	len = strlen(dir) + 6 + 10 + 1;
+#else
+	pathname = tempnam(dir, "mksh.");
+	len = ((pathname == NULL) ? 0 : strlen(pathname)) + 1;
+#endif
 	tp = (struct temp *) alloc(sizeof(struct temp) + len, ap);
-	tp->name = pathname = (char *)&tp[1];
+	tp->name = (char *)&tp[1];
+#if !HAVE_MKSTEMP
+	if (pathname == NULL)
+		tp->name[0] = '\0';
+	else {
+		memcpy(tp->name, pathname, len);
+		free(pathname);
+	}
+#endif
+	pathname = tp->name;
 	tp->shf = NULL;
 	tp->type = type;
+#if HAVE_MKSTEMP
 	shf_snprintf(pathname, len, "%s/mksh.XXXXXXXXXX", dir);
 	if ((fd = mkstemp(pathname)) >= 0)
+#else
+	if (tp->name[0] && (fd = open(tp->name, O_CREAT | O_RDWR, 0600)) >= 0)
+#endif
 		tp->shf = shf_fdopen(fd, SHF_WR, NULL);
 	tp->pid = procpid;
 
