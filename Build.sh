@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.297 2008/03/23 21:53:36 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.298 2008/03/25 20:25:27 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -211,7 +211,6 @@ fi
 rm -f a.exe a.out *core crypt.exp lft mksh mksh.cat1 mksh.exe no *.o \
     scn.c signames.inc stdint.h test.sh x
 
-: ${CC=cc} ${NROFF=nroff}
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
 
 e=echo
@@ -356,6 +355,8 @@ if test -n "$warn"; then
 	echo "a shell account to the developer, this may improve; please" >&2
 	echo "drop us a success or failure notice or even send in diffs." >&2
 fi
+
+: ${CC=cc} ${NROFF=nroff}
 
 
 # this aids me in tracing FTBFSen without access to the buildd
