@@ -3,7 +3,15 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.58 2008/03/05 16:54:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.59 2008/03/27 17:59:28 tg Exp $");
+
+/*-
+ * MirOS: This is the default mapping type, and need not be specified.
+ * IRIX doesn’t have this constant.
+ */
+#ifndef MAP_FILE
+#define MAP_FILE	0
+#endif
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
