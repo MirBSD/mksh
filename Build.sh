@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.300 2008/03/27 13:08:37 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.301 2008/03/27 17:55:31 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -745,7 +745,7 @@ fi
 # Environment: headers
 #
 ac_header sys/param.h
-ac_header sys/mkdev.h
+ac_header sys/mkdev.h sys/types.h
 ac_header sys/mman.h sys/types.h
 ac_header sys/sysmacros.h
 ac_header libgen.h
