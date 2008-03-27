@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.303 2008/03/27 22:17:01 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.304 2008/03/27 22:44:16 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -413,6 +413,8 @@ cat >scn.c <<-'EOF'
 	ct=bcc
 	#elif defined(__WATCOMC__)
 	ct=watcom
+	#elif defined(__MWERKS__)
+	ct=metrowerks
 	#elif defined(__HP_cc)
 	ct=hpcc
 	#elif defined(__DECC)
@@ -460,12 +462,27 @@ cat >scn.c <<-'EOF'
 	int main(void) { return (0); }
 EOF
 case $ct in
-adsp|bcc)
+adsp)
+	cat >&2 <<-'EOF'
+		Warning: Analog Devices C++ compiler for Blackfin, TigerSHARC
+		    and SHARC (21000) DSPs detected. This compiler has not yet
+		    been tested for compatibility with mksh. Continue at your
+		    own risk, please report success/failure to the developers.
+	EOF
+	;;
+bcc)
+	echo >&2 "Warning: Borland C++ Builder detected. This compiler might"
+	echo >&2 "    produce broken executables. Continue at your own risk,"
+	echo >&2 "    please report success/failure to the developers."
 	;;
 dec)
 	vv '|' "$CC -V"
 	;;
 dmc)
+	echo >&2 "Warning: Digital Mars Compiler detected. When running under"
+	echo >&2 "    UWIN, mksh tends to be unstable due to the limitations"
+	echo >&2 "    of this platform. Continue at your own risk,"
+	echo >&2 "    please report success/failure to the developers."
 	;;
 gcc)
 	vv '|' "$CC -v"
@@ -474,9 +491,22 @@ hpcc)
 	vv '|' "$CC -V"
 	;;
 iar)
+	cat >&2 <<-'EOF'
+		Warning: IAR Systems (http://www.iar.com) compiler for embedded
+		    systems detected. This unsupported compiler has not yet
+		    been tested for compatibility with mksh. Continue at your
+		    own risk, please report success/failure to the developers.
+	EOF
 	;;
 icc)
 	vv '|' "$CC -V"
+	;;
+metrowerks)
+	cat >&2 <<-'EOF'
+		Warning: Metrowerks C compiler detected. This has not yet
+		    been tested for compatibility with mksh. Continue at your
+		    own risk, please report success/failure to the developers.
+	EOF
 	;;
 mipspro)
 	vv '|' "$CC -version"
@@ -503,9 +533,25 @@ msc)
 pcc)
 	vv '|' "$CC -v"
 	;;
-pgi|sdcc)
+pgi)
+	cat >&2 <<-'EOF'
+		Warning: PGI detected. This unknown compiler has not yet
+		    been tested for compatibility with mksh. Continue at your
+		    own risk, please report success/failure to the developers.
+	EOF
 	;;
-sunpro|tcc)
+sdcc)
+	cat >&2 <<-'EOF'
+		Warning: sdcc (http://sdcc.sourceforge.net), the small devices
+		    C compiler for embedded systems detected. This has not yet
+		    been tested for compatibility with mksh. Continue at your
+		    own risk, please report success/failure to the developers.
+	EOF
+	;;
+sunpro)
+	vv '|' "$CC -v"
+	;;
+tcc)
 	vv '|' "$CC -v"
 	;;
 tendra)
@@ -514,7 +560,19 @@ tendra)
 ucode)
 	vv '|' "$CC -V"
 	;;
-visualage|watcom)
+visualage)
+	cat >&2 <<-'EOF'
+		Warning: IBM VisualAge detected. This compiler has not yet
+		    been tested for compatibility with mksh. Continue at your
+		    own risk, please report success/failure to the developers.
+	EOF
+	;;
+watcom)
+	cat >&2 <<-'EOF'
+		Warning: Watcom C Compiler detected. This compiler has not yet
+		    been tested for compatibility with mksh. Continue at your
+		    own risk, please report success/failure to the developers.
+	EOF
 	;;
 xlc)
 	vv '|' "$CC -qversion=verbose"
