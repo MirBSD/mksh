@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.299 2008/03/25 21:34:42 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.300 2008/03/27 13:08:37 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -296,6 +296,8 @@ Interix)
 	ccpl='-Y '
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
 	: ${LIBS='-lcrypt'}
+	;;
+IRIX*)
 	;;
 Linux)
 	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
