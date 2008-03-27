@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.302 2008/03/27 17:59:27 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.303 2008/03/27 22:17:01 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -375,6 +375,10 @@ Darwin)
 	vv '|' "hwprefs os_type >&2"
 	vv '|' "uname -a >&2"
 	;;
+IRIX*)
+	vv '|' "uname -a >&2"
+	vv '|' "hinv -v >&2"
+	;;
 OSF1)
 	vv '|' "uname -a >&2"
 	vv '|' "sizer -v >&2"
@@ -407,12 +411,26 @@ cat >scn.c <<-'EOF'
 	ct=sunpro
 	#elif defined(__BORLANDC__)
 	ct=bcc
+	#elif defined(__WATCOMC__)
+	ct=watcom
+	#elif defined(__HP_cc)
+	ct=hpcc
 	#elif defined(__DECC)
 	ct=dec
+	#elif defined(__IBMC__)
+	ct=visualage
+	#elif defined(__PGI)
+	ct=pgi
 	#elif defined(__DMC__)
 	ct=dmc
 	#elif defined(_MSC_VER)
 	ct=msc
+	#elif defined(__ADSPBLACKFIN__) || defined(__ADSPTS__) || defined(__ADSP21000__)
+	ct=adsp
+	#elif defined(__IAR_SYSTEMS_ICC__)
+	ct=iar
+	#elif defined(SDCC)
+	ct=sdcc
 	#elif defined(__PCC__)
 	ct=pcc
 	#elif defined(__TenDRA__)
@@ -421,7 +439,11 @@ cat >scn.c <<-'EOF'
 	ct=tcc
 	#elif defined(__GNUC__)
 	ct=gcc
-	#elif defined(__hpux)
+	#elif defined(_COMPILER_VERSION)
+	ct=mipspro
+	#elif defined(__sgi)
+	ct=mipspro
+	#elif defined(__hpux) || defined(__hpua)
 	ct=hpcc
 	#elif defined(__ultrix)
 	ct=ucode
@@ -438,7 +460,7 @@ cat >scn.c <<-'EOF'
 	int main(void) { return (0); }
 EOF
 case $ct in
-bcc)
+adsp|bcc)
 	;;
 dec)
 	vv '|' "$CC -V"
@@ -448,8 +470,16 @@ dmc)
 gcc)
 	vv '|' "$CC -v"
 	;;
-hpcc|icc)
+hpcc)
 	vv '|' "$CC -V"
+	;;
+iar)
+	;;
+icc)
+	vv '|' "$CC -V"
+	;;
+mipspro)
+	vv '|' "$CC -version"
 	;;
 msc)
 	ccpr=		# errorlevels are not reliable
@@ -470,7 +500,12 @@ msc)
 		;;
 	esac
 	;;
-pcc|sunpro|tcc)
+pcc)
+	vv '|' "$CC -v"
+	;;
+pgi|sdcc)
+	;;
+sunpro|tcc)
 	vv '|' "$CC -v"
 	;;
 tendra)
@@ -478,6 +513,8 @@ tendra)
 	;;
 ucode)
 	vv '|' "$CC -V"
+	;;
+visualage|watcom)
 	;;
 xlc)
 	vv '|' "$CC -qversion=verbose"
@@ -547,6 +584,9 @@ if test $ct = sunpro; then
 elif test $ct = hpcc; then
 	save_NOWARN=
 	DOWARN=+We
+elif test $ct = mipspro; then
+	save_NOWARN=
+	DOWARN="-diag_error 1-10000"
 elif test $ct = msc; then
 	save_NOWARN="${ccpc}/w"
 	DOWARN="${ccpc}/WX"
@@ -631,6 +671,9 @@ elif test $ct = dmc; then
 	ac_flags 1 schk "${ccpc}-s" 'for stack overflow checking'
 elif test $ct = bcc; then
 	ac_flags 1 strpool "${ccpc}-d" 'if string pooling can be enabled'
+elif test $ct = mipspro; then
+	ac_flags 1 xc99 -c99 'for support of ISO C99'
+	ac_flags 1 fullwarn -fullwarn 'for remark output support'
 elif test $ct = msc; then
 	ac_flags 1 strpool "${ccpc}/GF" 'if string pooling can be enabled'
 	cat >x <<-'EOF'
