@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.198 2008/03/25 21:34:45 tg Exp $"
-#define MKSH_VERSION "R33 2008/03/25"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.199 2008/03/28 13:46:53 tg Exp $"
+#define MKSH_VERSION "R33 2008/03/28"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -1018,33 +1018,36 @@ typedef struct XString {
 typedef char *XStringP;
 
 /* initialise expandable string */
-#define Xinit(xs, xp, length, area) do { \
-			(xs).len = length; \
-			(xs).areap = (area); \
-			(xs).beg = alloc((xs).len + X_EXTRA, (xs).areap); \
-			(xs).end = (xs).beg + (xs).len; \
-			xp = (xs).beg; \
-		} while (0)
+#define XinitN(xs, length, area) do {				\
+	(xs).len = (length);					\
+	(xs).areap = (area);					\
+	(xs).beg = alloc((xs).len + X_EXTRA, (xs).areap);	\
+	(xs).end = (xs).beg + (xs).len;				\
+} while (0)
+#define Xinit(xs, xp, length, area) do {			\
+	XinitN((xs), (length), (area));				\
+	(xp) = (xs).beg;					\
+} while (0)
 
 /* stuff char into string */
 #define Xput(xs, xp, c)	(*xp++ = (c))
 
 /* check if there are at least n bytes left */
-#define XcheckN(xs, xp, n) do { \
-			int more = ((xp) + (n)) - (xs).end; \
-			if (more > 0) \
-				xp = Xcheck_grow_(&xs, xp, more); \
-		} while (0)
+#define XcheckN(xs, xp, n) do {					\
+	int more = ((xp) + (n)) - (xs).end;			\
+	if (more > 0)						\
+		(xp) = Xcheck_grow_(&(xs), (xp), more);		\
+} while (0)
 
 /* check for overflow, expand string */
-#define Xcheck(xs, xp)	XcheckN(xs, xp, 1)
+#define Xcheck(xs, xp)	XcheckN((xs), (xp), 1)
 
 /* free string */
-#define Xfree(xs, xp)	afree((void*) (xs).beg, (xs).areap)
+#define Xfree(xs, xp)	afree((void*)(xs).beg, (xs).areap)
 
 /* close, return string */
-#define Xclose(xs, xp)	(char*) aresize((void*)(xs).beg, \
-					(size_t)((xp) - (xs).beg), (xs).areap)
+#define Xclose(xs, xp)	(char*)aresize((void*)(xs).beg, \
+			    (size_t)((xp) - (xs).beg), (xs).areap)
 /* begin of string */
 #define Xstring(xs, xp)	((xs).beg)
 
@@ -1065,31 +1068,31 @@ typedef struct XPtrV {
 	void **beg, **end;	/* begin, end of vector */
 } XPtrV;
 
-#define XPinit(x, n) do { \
-			void **vp__; \
-			vp__ = (void**) alloc(sizeofN(void*, n), ATEMP); \
-			(x).cur = (x).beg = vp__; \
-			(x).end = vp__ + n; \
-		} while (0)
+#define XPinit(x, n) do {					\
+	void **vp__;						\
+	vp__ = (void**) alloc(sizeofN(void*, (n)), ATEMP);	\
+	(x).cur = (x).beg = vp__;				\
+	(x).end = vp__ + (n);					\
+} while (0)
 
-#define XPput(x, p) do { \
-			if ((x).cur >= (x).end) { \
-				int n = XPsize(x); \
-				(x).beg = (void**) aresize((void*) (x).beg, \
-				    sizeofN(void*, n*2), ATEMP); \
-				(x).cur = (x).beg + n; \
-				(x).end = (x).cur + n; \
-			} \
-			*(x).cur++ = (p); \
-		} while (0)
+#define XPput(x, p) do {					\
+	if ((x).cur >= (x).end) {				\
+		int n = XPsize(x);				\
+		(x).beg = (void**) aresize((void*) (x).beg,	\
+		    sizeofN(void *, n * 2), ATEMP);		\
+		(x).cur = (x).beg + n;				\
+		(x).end = (x).cur + n;				\
+	}							\
+	*(x).cur++ = (p);					\
+} while (0)
 
 #define XPptrv(x)	((x).beg)
 #define XPsize(x)	((x).cur - (x).beg)
 
-#define XPclose(x)	(void**) aresize((void*)(x).beg, \
-					 sizeofN(void*, XPsize(x)), ATEMP)
+#define XPclose(x)	(void**)aresize((void*)(x).beg, \
+			    sizeofN(void *, XPsize(x)), ATEMP)
 
-#define XPfree(x)	afree((void*) (x).beg, ATEMP)
+#define XPfree(x)	afree((void *)(x).beg, ATEMP)
 
 #define IDENT	64
 

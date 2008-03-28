@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.70 2008/03/28 13:28:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.71 2008/03/28 13:46:52 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -136,7 +136,6 @@ c_cd(const char **wp)
 	int rval;
 	struct tbl *pwd_s, *oldpwd_s;
 	XString xs;
-	char *xp;
 	char *dir, *try, *pwd;
 	int phys_path;
 	char *cdpath;
@@ -215,11 +214,7 @@ c_cd(const char **wp)
 		return 1;
 	}
 
-	Xinit(xs, xp, PATH_MAX, ATEMP);
-	/* xp will have a bogus value after make_path() - set it to 0
-	 * so that if it's used, it will cause a dump
-	 */
-	xp = NULL;
+	XinitN(xs, PATH_MAX, ATEMP);
 
 	cdpath = str_val(global("CDPATH"));
 	do {
@@ -2808,7 +2803,7 @@ test_primary(Test_env *te, int do_eval)
 		(*te->error)(te, 0, "expression expected");
 		return 0;
 	}
-	if ((op = (*te->isa)(te, TM_BINOP))) {
+	if ((op = (*te->isa)(te, TM_BINOP)) != TO_NONOP) {
 		/* binary expression */
 		opnd2 = (*te->getopnd)(te, op, do_eval);
 		if (!opnd2) {
