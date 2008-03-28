@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.304 2008/03/27 22:44:16 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.305 2008/03/28 13:55:11 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -603,16 +603,6 @@ ac_flags 0 compiler_works '' 'if the compiler works'
 test 1 = $HAVE_CAN_COMPILER_WORKS || exit 1
 HAVE_COMPILER_KNOWN=0
 test $ct = unknown || HAVE_COMPILER_KNOWN=1
-ac_testn couldbe_tcc '!' compiler_known 0 'if this could be tcc' <<-EOF
-	#ifndef __TINYC__
-	#error No, cannot be tcc.
-	#endif
-	int main(void) { return (0); }
-EOF
-if test 1 = $HAVE_COULDBE_TCC; then
-	ct=tcc
-	CPP='cpp -D__TINYC__'
-fi
 ac_testn compiler_fails '' 'if the compiler does not fail correctly' <<-EOF
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 EOF
@@ -628,9 +618,20 @@ if test 1 = $HAVE_COMPILER_FAILS; then
 		exit 1
 	fi
 	ac_testn compiler_still_fails '' 'if the compiler still does not fail correctly' <<-EOF
-		int main(void) { return (thiswillneverbedefinedIhope()); }
 	EOF
 	test 1 = $HAVE_COMPILER_STILL_FAILS && exit 1
+fi
+ac_testn couldbe_tcc '!' compiler_known 0 'if this could be tcc' <<-EOF
+	#ifdef __TINYC__
+	int main(void) { return (0); }
+	#else
+	/* force a failure: __TINYC__ not defined */
+	int main(void) { return (thiswillneverbedefinedIhope()); }
+	#endif
+EOF
+if test 1 = $HAVE_COULDBE_TCC; then
+	ct=tcc
+	CPP='cpp -D__TINYC__'
 fi
 
 if test $ct = sunpro; then
@@ -784,13 +785,15 @@ NOWARN=$DOWARN
 #
 ac_test attribute '' 'for basic __attribute__((...)) support' <<-'EOF'
 	#if defined(__GNUC__) && (__GNUC__ < 2)
-	#error gcc 1.42 has no -Werror, disabling
-	#endif
+	/* force a failure: gcc 1.42 has a false positive here */
+	int main(void) { return (thiswillneverbedefinedIhope()); }
+	#else
 	#include <stdlib.h>
 	#undef __attribute__
 	void fnord(void) __attribute__((noreturn));
 	int main(void) { fnord(); }
 	void fnord(void) { exit(0); }
+	#endif
 EOF
 
 ac_test attribute_bounded attribute 0 'for __attribute__((bounded))' <<-'EOF'
@@ -818,16 +821,22 @@ NOWARN=$save_NOWARN
 #
 ac_testn mksh_full '' "if a full-featured mksh is requested" <<-'EOF'
 	#ifdef MKSH_SMALL
-	#error Nope, MKSH_SMALL is defined.
-	#endif
+	/* force a failure: we want a small mksh */
+	int main(void) { return (thiswillneverbedefinedIhope()); }
+	#else
+	/* force a success: we want a full mksh */
 	int main(void) { return (0); }
+	#endif
 EOF
 
 ac_testn mksh_defutf8 '' "if to assume UTF-8 is enabled" <<-'EOF'
-	#ifndef MKSH_ASSUME_UTF8
-	#error Nope, check with setlocale() and nl_langinfo(CODESET)
-	#endif
+	#ifdef MKSH_ASSUME_UTF8
+	/* force a success: we assume UTF-8 by default */
 	int main(void) { return (0); }
+	#else
+	/* force a failure: use setlocale() and nl_langinfo(CODESET) */
+	int main(void) { return (thiswillneverbedefinedIhope()); }
+	#endif
 EOF
 
 if test 0 = $HAVE_MKSH_FULL; then
@@ -1055,10 +1064,12 @@ EOF
 
 ac_test setmode mknod 1 <<-'EOF'
 	#if defined(__MSVCRT__) || defined(__CYGWIN__)
-	#error Win32 setmode() is different from what is needed
-	#endif
+	/* force a failure: Win32 setmode() is not what we want… */
+	int main(void) { return (thiswillneverbedefinedIhope()); }
+	#else
 	#include <unistd.h>
 	int main(int ac, char *av[]) { return (getmode(setmode(av[0]), ac)); }
+	#endif
 EOF
 
 ac_test setresugid <<-'EOF'
