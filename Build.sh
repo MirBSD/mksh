@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.306 2008/03/28 14:04:23 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.307 2008/03/28 22:56:15 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -405,7 +405,7 @@ $e ... which compiler seems to be used
 cat >scn.c <<-'EOF'
 	#if defined(__ICC) || defined(__INTEL_COMPILER)
 	ct=icc
-	#elif defined(__xlC__)
+	#elif defined(__xlC__) || defined(__IBMC__)
 	ct=xlc
 	#elif defined(__SUNPRO_C)
 	ct=sunpro
@@ -419,8 +419,6 @@ cat >scn.c <<-'EOF'
 	ct=hpcc
 	#elif defined(__DECC)
 	ct=dec
-	#elif defined(__IBMC__)
-	ct=visualage
 	#elif defined(__PGI)
 	ct=pgi
 	#elif defined(__DMC__)
@@ -560,13 +558,6 @@ tendra)
 	;;
 ucode)
 	vv '|' "$CC -V"
-	;;
-visualage)
-	cat >&2 <<-'EOF'
-		Warning: IBM VisualAge detected. This compiler has not yet
-		    been tested for compatibility with mksh. Continue at your
-		    own risk, please report success/failure to the developers.
-	EOF
 	;;
 watcom)
 	cat >&2 <<-'EOF'
