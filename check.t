@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.170 2008/04/01 20:40:21 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.171 2008/04/01 21:07:20 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3741,8 +3741,13 @@ stdin:
 		FNORD_B=2
 		FNORD_C=3
 		FNORD_D=4
-		export FNORD_C FNORD_D
-		readonly FNORD_B FNORD_D
+		FNORD_E=1
+		FNORD_F=2
+		FNORD_G=3
+		FNORD_H=4
+		integer FNORD_E FNORD_F FNORD_G FNORD_H
+		export FNORD_C FNORD_D FNORD_G FNORD_H
+		readonly FNORD_B FNORD_D FNORD_F FNORD_H
 		print FNORD-1
 		export
 		print FNORD-2
@@ -3754,27 +3759,59 @@ stdin:
 		print FNORD-5
 		typeset
 		print FNORD-6
+		typeset -p
+		print FNORD-7
 	} | fgrep FNORD
 expected-stdout:
 	FNORD-0
 	FNORD-1
 	FNORD_C
 	FNORD_D
+	FNORD_G
+	FNORD_H
 	FNORD-2
 	export FNORD_C=3
 	export FNORD_D=4
+	export FNORD_G=3
+	export FNORD_H=4
 	FNORD-3
 	FNORD_B
 	FNORD_D
+	FNORD_F
+	FNORD_H
 	FNORD-4
 	readonly FNORD_B=2
 	readonly FNORD_D=4
+	readonly FNORD_F=2
+	readonly FNORD_H=4
 	FNORD-5
 	typeset FNORD_A
 	typeset -r FNORD_B
 	typeset -x FNORD_C
 	typeset -x -r FNORD_D
+	typeset -i FNORD_E
+	typeset -i -r FNORD_F
+	typeset -i -x FNORD_G
+	typeset -i -x -r FNORD_H
 	FNORD-6
+	typeset FNORD_A=1
+	typeset -r FNORD_B=2
+	typeset -x FNORD_C=3
+	typeset -x -r FNORD_D=4
+	typeset -i FNORD_E=5
+	typeset -i -r FNORD_F=6
+	typeset -i -x FNORD_G=7
+	typeset -i -x -r FNORD_H=8
+	FNORD-7
+	FNORD_A=1
+	FNORD_B=2
+	FNORD_C=3
+	FNORD_D=4
+	FNORD_E=1
+	FNORD_F=2
+	FNORD_G=3
+	FNORD_H=4
+	FNORD-8
 ---
 name: syntax-1
 description:

@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.114 2008/03/23 22:09:58 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.115 2008/04/01 21:07:20 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: March 23 2008 $
+.Dd $Mdocdate: April 1 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -3995,9 +3995,8 @@ option.)
 .It Fl p
 Print complete
 .Ic typeset
-commands that can be used to re-create the attributes (but not the values) of
+commands that can be used to re-create the attributes and values of
 parameters.
-This is the default action (option exists for ksh93 compatibility).
 .It Fl R Ns Op Ar n
 Right justify attribute.
 .Ar n
@@ -5455,7 +5454,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh\ R33b
+.Nm mksh\ R33c
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
