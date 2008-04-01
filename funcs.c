@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.74 2008/04/01 21:50:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.75 2008/04/01 22:20:19 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -115,12 +115,12 @@ static const struct t_op b_ops[] = {
 };
 
 static int test_eaccess(const char *, int);
-static int test_oexpr(Test_env *, int);
-static int test_aexpr(Test_env *, int);
-static int test_nexpr(Test_env *, int);
-static int test_primary(Test_env *, int);
+static int test_oexpr(Test_env *, bool);
+static int test_aexpr(Test_env *, bool);
+static int test_nexpr(Test_env *, bool);
+static int test_primary(Test_env *, bool);
 static int ptest_isa(Test_env *, Test_meta);
-static const char *ptest_getopnd(Test_env *, Test_op, int);
+static const char *ptest_getopnd(Test_env *, Test_op, bool);
 static void ptest_error(Test_env *, int, const char *);
 static char *kill_fmt_entry(const void *, int, char *, int);
 static void p_time(struct shf *, int, struct timeval *, int,
@@ -129,16 +129,13 @@ static void p_time(struct shf *, int, struct timeval *, int,
 int
 c_cd(const char **wp)
 {
-	int optc;
+	int optc, rv, phys_path;
 	bool physical = Flag(FPHYSICAL) ? true : false;
 	int cdnode;			/* was a node from cdpath added in? */
 	bool printpath = false;		/* print where we cd'd? */
-	int rval;
 	struct tbl *pwd_s, *oldpwd_s;
 	XString xs;
-	char *dir, *try, *pwd;
-	int phys_path;
-	char *cdpath;
+	char *dir, *try, *pwd, *cdpath;
 	bool dir_ = false;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "LP")) != -1)
@@ -220,14 +217,14 @@ c_cd(const char **wp)
 	do {
 		cdnode = make_path(current_wd, dir, &cdpath, &xs, &phys_path);
 		if (physical)
-			rval = chdir(try = Xstring(xs, xp) + phys_path);
+			rv = chdir(try = Xstring(xs, xp) + phys_path);
 		else {
 			simplify_path(Xstring(xs, xp));
-			rval = chdir(try = Xstring(xs, xp));
+			rv = chdir(try = Xstring(xs, xp));
 		}
-	} while (rval < 0 && cdpath != NULL);
+	} while (rv < 0 && cdpath != NULL);
 
-	if (rval < 0) {
+	if (rv < 0) {
 		if (cdnode)
 			bi_errorf("%s: bad directory", dir);
 		else
@@ -274,7 +271,7 @@ int
 c_pwd(const char **wp)
 {
 	int optc;
-	int physical = Flag(FPHYSICAL) ? true : false;
+	bool physical = Flag(FPHYSICAL) ? true : false;
 	char *p;
 	bool p_ = false;
 
@@ -322,8 +319,7 @@ c_print(const char **wp)
 #define PO_COPROC	BIT(4)	/* printing to coprocess: block SIGPIPE */
 	int fd = 1;
 	int flags = PO_EXPAND|PO_NL;
-	const char *s;
-	const char *emsg;
+	const char *s, *emsg;
 	XString xs;
 	char *xp;
 
@@ -557,10 +553,8 @@ c_whence(const char **wp)
 	struct tbl *tp;
 	const char *id;
 	bool pflag = false, vflag = false, Vflag = false;
-	int ret = 0;
-	int optc;
-	int iam_whence = wp[0][0] == 'w';
-	int fcflags;
+	int rv = 0, optc, fcflags;
+	bool iam_whence = wp[0][0] == 'w';
 	const char *opts = iam_whence ? "pv" : "pvV";
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, opts)) != -1)
@@ -579,7 +573,6 @@ c_whence(const char **wp)
 		}
 	wp += builtin_opt.optind;
 
-
 	fcflags = FC_BI | FC_PATH | FC_FUNC;
 	if (!iam_whence) {
 		/* Note that -p on its own is deal with in comexec() */
@@ -594,7 +587,7 @@ c_whence(const char **wp)
 	if (pflag)
 		fcflags &= ~(FC_BI | FC_FUNC);
 
-	while ((vflag || ret == 0) && (id = *wp++) != NULL) {
+	while ((vflag || rv == 0) && (id = *wp++) != NULL) {
 		tp = NULL;
 		if ((iam_whence || vflag) && !pflag)
 			tp = ktsearch(&keywords, id, hash(id));
@@ -656,17 +649,17 @@ c_whence(const char **wp)
 			} else {
 				if (vflag)
 					shf_puts(" not found", shl_stdout);
-				ret = 1;
+				rv = 1;
 			}
 			break;
 		default:
 			shprintf("%s is *GOK*", id);
 			break;
 		}
-		if (vflag || !ret)
+		if (vflag || !rv)
 			shf_putc('\n', shl_stdout);
 	}
-	return ret;
+	return rv;
 }
 
 /* Deal with command -vV - command -p dealt with in comexec() */
@@ -829,8 +822,7 @@ c_typeset(const char **wp)
 
 	/* set variables and attributes */
 	if (wp[builtin_opt.optind]) {
-		int i;
-		int rval = 0;
+		int i, rv = 0;
 		struct tbl *f;
 
 		if (localv && !func)
@@ -840,8 +832,8 @@ c_typeset(const char **wp)
 				f = findfunc(wp[i], hash(wp[i]),
 				    (fset&UCASEV_AL) ? true : false);
 				if (!f) {
-					/* at&t ksh does ++rval: bogus */
-					rval = 1;
+					/* at&t ksh does ++rv: bogus */
+					rv = 1;
 					continue;
 				}
 				if (fset | fclr) {
@@ -857,7 +849,7 @@ c_typeset(const char **wp)
 				return 1;
 			}
 		}
-		return rval;
+		return rv;
 	}
 
 	/* list variables and attributes */
@@ -879,14 +871,14 @@ c_typeset(const char **wp)
 		for (l = e->loc; l; l = l->next) {
 			for (p = ktsort(&l->vars); (vp = *p++); ) {
 				struct tbl *tvp;
-				int any_set = 0;
+				bool any_set = false;
 				/*
 				 * See if the parameter is set (for arrays, if any
 				 * element is set).
 				 */
 				for (tvp = vp; tvp; tvp = tvp->u.array)
 					if (tvp->flag & ISSET) {
-						any_set = 1;
+						any_set = true;
 						break;
 					}
 
@@ -1082,10 +1074,8 @@ c_alias(const char **wp)
 	}
 
 	for (; *wp != NULL; wp++) {
-		const char *alias = *wp;
+		const char *alias = *wp, *val, *newval;
 		char *xalias = NULL;
-		const char *val;
-		const char *newval;
 		struct tbl *ap;
 		int h;
 
@@ -1396,12 +1386,9 @@ getopts_reset(int val)
 int
 c_getopts(const char **wp)
 {
-	int	argc;
-	const char *opts;
-	const char *var;
-	int	optc;
-	int	ret;
-	char	buf[3];
+	int argc, optc, rv;
+	const char *opts, *var;
+	char buf[3];
 	struct tbl *vq, *voptarg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
@@ -1478,16 +1465,16 @@ c_getopts(const char **wp)
 		/* This can't fail (have cleared readonly/integer) */
 		setstr(voptarg, user_opt.optarg, KSH_RETURN_ERROR);
 
-	ret = 0;
+	rv = 0;
 
 	vq = global(var);
 	/* Error message already printed (integer, readonly) */
 	if (!setstr(vq, buf, KSH_RETURN_ERROR))
-	    ret = 1;
+		rv = 1;
 	if (Flag(FEXPORT))
 		typeset(var, EXPORT, 0, 0, 0);
 
-	return optc < 0 ? 1 : ret;
+	return optc < 0 ? 1 : rv;
 }
 
 int
@@ -1570,11 +1557,10 @@ c_shift(const char **wp)
 int
 c_umask(const char **wp)
 {
-	int i;
+	int i, optc;
 	const char *cp;
-	bool symbolic = 0;
+	bool symbolic = false;
 	mode_t old_umask;
-	int optc;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "S")) != -1)
 		switch (optc) {
@@ -1697,12 +1683,8 @@ c_umask(const char **wp)
 int
 c_dot(const char **wp)
 {
-	const char *file;
-	const char *cp;
-	const char **argv;
-	int argc;
-	int i;
-	int err;
+	const char *file, *cp, **argv;
+	int argc, i, errcode;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return (1);
@@ -1711,9 +1693,9 @@ c_dot(const char **wp)
 		bi_errorf("missing argument");
 		return (1);
 	}
-	file = search(cp, path, R_OK, &err);
-	if (file == NULL) {
-		bi_errorf("%s: %s", cp, err ? strerror(err) : "not found");
+	if ((file = search(cp, path, R_OK, &errcode)) == NULL) {
+		bi_errorf("%s: %s", cp,
+		    errcode ? strerror(errcode) : "not found");
 		return (1);
 	}
 
@@ -1727,8 +1709,8 @@ c_dot(const char **wp)
 		argc = 0;
 		argv = NULL;
 	}
-	i = include(file, argc, argv, 0);
-	if (i < 0) { /* should not happen */
+	if ((i = include(file, argc, argv, 0)) < 0) {
+		/* should not happen */
 		bi_errorf("%s: %s", cp, strerror(errno));
 		return (1);
 	}
@@ -1738,8 +1720,7 @@ c_dot(const char **wp)
 int
 c_wait(const char **wp)
 {
-	int rv = 0;
-	int sig;
+	int rv = 0, sig;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return 1;
@@ -1760,19 +1741,13 @@ c_wait(const char **wp)
 int
 c_read(const char **wp)
 {
-	int c = 0;
-	int expande = 1, historyr = 0;
-	int expanding;
-	int ecode = 0;
-	const char *cp;
-	char *ccp;
-	int fd = 0;
+	int c = 0, ecode = 0, fd = 0, optc;
+	bool expande = true, historyr = false, expanding;
+	const char *cp, *emsg;
 	struct shf *shf;
-	int optc;
-	const char *emsg;
 	XString cs, xs = { NULL, NULL, 0, NULL};
 	struct tbl *vp;
-	char *xp = NULL, *wpalloc = NULL;
+	char *ccp, *xp = NULL, *wpalloc = NULL;
 	static char REPLY[] = "REPLY";
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "prsu,")) != -1)
@@ -1784,10 +1759,10 @@ c_read(const char **wp)
 			}
 			break;
 		case 'r':
-			expande = 0;
+			expande = false;
 			break;
 		case 's':
-			historyr = 1;
+			historyr = true;
 			break;
 		case 'u':
 			if (!*(cp = builtin_opt.optarg))
@@ -1837,7 +1812,7 @@ c_read(const char **wp)
 
 	if (historyr)
 		Xinit(xs, xp, 128, ATEMP);
-	expanding = 0;
+	expanding = false;
 	Xinit(cs, ccp, 128, ATEMP);
 	for (; *wp != NULL; wp++) {
 		for (ccp = Xstring(cs, ccp); ; ) {
@@ -1869,7 +1844,7 @@ c_read(const char **wp)
 			}
 			Xcheck(cs, ccp);
 			if (expanding) {
-				expanding = 0;
+				expanding = false;
 				if (c == '\n') {
 					c = 0;
 					if (Flag(FTALKING_I) && isatty(fd)) {
@@ -1884,7 +1859,7 @@ c_read(const char **wp)
 				continue;
 			}
 			if (expande && c == '\\') {
-				expanding = 1;
+				expanding = true;
 				continue;
 			}
 			if (c == '\n' || c == EOF)
@@ -2030,8 +2005,7 @@ c_trap(const char **wp)
 int
 c_exitreturn(const char **wp)
 {
-	int how = LEXIT;
-	int n;
+	int n, how = LEXIT;
 	const char *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
@@ -2236,10 +2210,9 @@ timex(struct op *t, int f)
 #if !defined(RUSAGE_SELF) || !defined(RUSAGE_CHILDREN)
 	return (0);
 #else
-	int rv = 0;
+	int rv = 0, tf = 0;
 	struct rusage ru0, ru1, cru0, cru1;
 	struct timeval usrtime, systime, tv0, tv1;
-	int tf = 0;
 	char opts[1];
 
 	gettimeofday(&tv0, NULL);
@@ -2303,8 +2276,7 @@ void
 timex_hook(struct op *t, char **volatile *app)
 {
 	char **wp = *app;
-	int optc;
-	int i, j;
+	int optc, i, j;
 	Getopt opt;
 
 	ksh_getopt_reset(&opt, 0);
@@ -2471,8 +2443,7 @@ c_builtin(const char **wp __unused)
 int
 c_test(const char **wp)
 {
-	int argc;
-	int res;
+	int argc, res;
 	Test_env te;
 
 	te.flags = 0;
@@ -2566,11 +2537,12 @@ test_isop(Test_meta meta, const char *s)
 
 int
 test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
-    int do_eval)
+    bool do_eval)
 {
-	int i;
+	int i, s;
 	size_t k;
 	struct stat b1, b2;
+	long v1, v2;
 
 	if (!do_eval)
 		return 0;
@@ -2666,50 +2638,40 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	case TO_INTGT: /* -gt */
 	case TO_INTLE: /* -le */
 	case TO_INTLT: /* -lt */
-		{
-			long v1, v2;
-
-			if (!evaluate(opnd1, &v1, KSH_RETURN_ERROR, false) ||
-			    !evaluate(opnd2, &v2, KSH_RETURN_ERROR, false)) {
-				/* error already printed.. */
-				te->flags |= TEF_ERROR;
-				return 1;
-			}
-			switch ((int) op) {
-			case TO_INTEQ:
-				return v1 == v2;
-			case TO_INTNE:
-				return v1 != v2;
-			case TO_INTGE:
-				return v1 >= v2;
-			case TO_INTGT:
-				return v1 > v2;
-			case TO_INTLE:
-				return v1 <= v2;
-			case TO_INTLT:
-				return v1 < v2;
-			}
+		if (!evaluate(opnd1, &v1, KSH_RETURN_ERROR, false) ||
+		    !evaluate(opnd2, &v2, KSH_RETURN_ERROR, false)) {
+			/* error already printed.. */
+			te->flags |= TEF_ERROR;
+			return 1;
+		}
+		switch ((int)op) {
+		case TO_INTEQ:
+			return (v1 == v2);
+		case TO_INTNE:
+			return (v1 != v2);
+		case TO_INTGE:
+			return (v1 >= v2);
+		case TO_INTGT:
+			return (v1 > v2);
+		case TO_INTLE:
+			return (v1 <= v2);
+		case TO_INTLT:
+			return (v1 < v2);
 		}
 	case TO_FILNT: /* -nt */
-		{
-			int s2;
-			/* ksh88/ksh93 succeed if file2 can't be stated
-			 * (subtly different from 'does not exist').
-			 */
-			return stat(opnd1, &b1) == 0 &&
-			    (((s2 = stat(opnd2, &b2)) == 0 &&
-			    b1.st_mtime > b2.st_mtime) || s2 < 0);
-		}
+		/* ksh88/ksh93 succeed if file2 can't be stated
+		 * (subtly different from 'does not exist').
+		 */
+		return stat(opnd1, &b1) == 0 &&
+		    (((s = stat(opnd2, &b2)) == 0 &&
+		    b1.st_mtime > b2.st_mtime) || s < 0);
 	case TO_FILOT: /* -ot */
-		{
-			int s1;
-			/* ksh88/ksh93 succeed if file1 can't be stated
-			 * (subtly different from 'does not exist').
-			 */
-			return stat(opnd2, &b2) == 0 &&
-			    (((s1 = stat(opnd1, &b1)) == 0 &&
-			    b1.st_mtime < b2.st_mtime) || s1 < 0);
-		}
+		/* ksh88/ksh93 succeed if file1 can't be stated
+		 * (subtly different from 'does not exist').
+		 */
+		return stat(opnd2, &b2) == 0 &&
+		    (((s = stat(opnd1, &b1)) == 0 &&
+		    b1.st_mtime < b2.st_mtime) || s < 0);
 	case TO_FILEQ: /* -ef */
 		return stat (opnd1, &b1) == 0 && stat (opnd2, &b2) == 0 &&
 		    b1.st_dev == b2.st_dev && b1.st_ino == b2.st_ino;
@@ -2722,63 +2684,61 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 static int
 test_eaccess(const char *pathl, int mode)
 {
-	int res = access(pathl, mode);
+	int rv;
 
-	if (res == 0 && ksheuid == 0 && (mode & X_OK)) {
+	if ((rv = access(pathl, mode)) == 0 && ksheuid == 0 && (mode & X_OK)) {
 		struct stat statb;
 
 		if (stat(pathl, &statb) < 0)
-			res = -1;
+			rv = -1;
 		else if (S_ISDIR(statb.st_mode))
-			res = 0;
+			rv = 0;
 		else
-			res = (statb.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH)) ?
+			rv = (statb.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH)) ?
 			    0 : -1;
 	}
-	return res;
+	return rv;
 }
 
 int
 test_parse(Test_env *te)
 {
-	int res;
+	int rv;
 
-	res = test_oexpr(te, 1);
+	rv = test_oexpr(te, 1);
 
 	if (!(te->flags & TEF_ERROR) && !(*te->isa)(te, TM_END))
 		(*te->error)(te, 0, "unexpected operator/operand");
 
-	return (te->flags & TEF_ERROR) ? T_ERR_EXIT : !res;
+	return (te->flags & TEF_ERROR) ? T_ERR_EXIT : !rv;
 }
 
 static int
-test_oexpr(Test_env *te, int do_eval)
+test_oexpr(Test_env *te, bool do_eval)
 {
-	int res;
+	int rv;
 
-	res = test_aexpr(te, do_eval);
-	if (res)
-		do_eval = 0;
+	if ((rv = test_aexpr(te, do_eval)))
+		do_eval = false;
 	if (!(te->flags & TEF_ERROR) && (*te->isa)(te, TM_OR))
-		return test_oexpr(te, do_eval) || res;
-	return res;
+		return test_oexpr(te, do_eval) || rv;
+	return rv;
 }
 
 static int
-test_aexpr(Test_env *te, int do_eval)
+test_aexpr(Test_env *te, bool do_eval)
 {
-	int res;
+	int rv;
 
-	res = test_nexpr(te, do_eval);
-	if (!res)
-		do_eval = 0;
+	if (!(rv = test_nexpr(te, do_eval)))
+		do_eval = false;
 	if (!(te->flags & TEF_ERROR) && (*te->isa)(te, TM_AND))
-		return test_aexpr(te, do_eval) && res;
-	return res;
+		return test_aexpr(te, do_eval) && rv;
+	return rv;
 }
 
 static int
-test_nexpr(Test_env *te, int do_eval)
+test_nexpr(Test_env *te, bool do_eval)
 {
 	if (!(te->flags & TEF_ERROR) && (*te->isa)(te, TM_NOT))
 		return !test_nexpr(te, do_eval);
@@ -2786,23 +2746,23 @@ test_nexpr(Test_env *te, int do_eval)
 }
 
 static int
-test_primary(Test_env *te, int do_eval)
+test_primary(Test_env *te, bool do_eval)
 {
 	const char *opnd1, *opnd2;
-	int res;
+	int rv;
 	Test_op op;
 
 	if (te->flags & TEF_ERROR)
 		return 0;
 	if ((*te->isa)(te, TM_OPAREN)) {
-		res = test_oexpr(te, do_eval);
+		rv = test_oexpr(te, do_eval);
 		if (te->flags & TEF_ERROR)
 			return 0;
 		if (!(*te->isa)(te, TM_CPAREN)) {
 			(*te->error)(te, 0, "missing closing paren");
 			return 0;
 		}
-		return res;
+		return rv;
 	}
 	if ((op = (*te->isa)(te, TM_UNOP))) {
 		/* unary expression */
@@ -2851,27 +2811,27 @@ ptest_isa(Test_env *te, Test_meta meta)
 	static const char *const tokens[] = {
 		"-o", "-a", "!", "(", ")"
 	};
-	int ret;
+	int rv;
 
 	if (te->pos.wp >= te->wp_end)
 		return meta == TM_END;
 
 	if (meta == TM_UNOP || meta == TM_BINOP)
-		ret = test_isop(meta, *te->pos.wp);
+		rv = test_isop(meta, *te->pos.wp);
 	else if (meta == TM_END)
-		ret = 0;
+		rv = 0;
 	else
-		ret = strcmp(*te->pos.wp, tokens[(int) meta]) == 0;
+		rv = strcmp(*te->pos.wp, tokens[(int) meta]) == 0;
 
 	/* Accept the token? */
-	if (ret)
+	if (rv)
 		te->pos.wp++;
 
-	return ret;
+	return rv;
 }
 
 static const char *
-ptest_getopnd(Test_env *te, Test_op op, int do_eval __unused)
+ptest_getopnd(Test_env *te, Test_op op, bool do_eval __unused)
 {
 	if (te->pos.wp >= te->wp_end)
 		return op == TO_FILTT ? "1" : NULL;
@@ -2879,13 +2839,12 @@ ptest_getopnd(Test_env *te, Test_op op, int do_eval __unused)
 }
 
 static void
-ptest_error(Test_env *te, int offset, const char *msg)
+ptest_error(Test_env *te, int ofs, const char *msg)
 {
-	const char *op = te->pos.wp + offset >= te->wp_end ?
-	    NULL : te->pos.wp[offset];
+	const char *op;
 
 	te->flags |= TEF_ERROR;
-	if (op)
+	if ((op = te->pos.wp + ofs >= te->wp_end ? NULL : te->pos.wp[ofs]))
 		bi_errorf("%s: %s", op, msg);
 	else
 		bi_errorf("%s", msg);
@@ -2960,13 +2919,13 @@ c_ulimit(const char **wp)
 #endif
 		{ NULL, RLIMIT, 0, 0, 0, 0 }
 	};
-	static char	opts[3 + NELEM(limits)];
-	rlim_t		val = (rlim_t)0;
-	int		how = SOFT | HARD;
-	const struct limits	*l;
-	int		set, all = 0;
-	int		optc, what;
-	struct rlimit	limit;
+	static char opts[3 + NELEM(limits)];
+	rlim_t val = (rlim_t)0;
+	int how = SOFT | HARD, optc, what;
+	bool all = false, set;
+	const struct limits *l;
+	struct rlimit limit;
+
 	if (!opts[0]) {
 		/* build options string on first call - yuck */
 		char *p = opts;
@@ -2986,7 +2945,7 @@ c_ulimit(const char **wp)
 			how = SOFT;
 			break;
 		case 'a':
-			all = 1;
+			all = true;
 			break;
 		case '?':
 			return 1;
@@ -3002,8 +2961,7 @@ c_ulimit(const char **wp)
 	}
 
 	wp += builtin_opt.optind;
-	set = *wp ? 1 : 0;
-	if (set) {
+	if ((set = *wp ? true : false)) {
 		if (all || wp[1]) {
 			bi_errorf("too many arguments");
 			return 1;

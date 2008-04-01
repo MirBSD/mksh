@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.40 2008/04/01 20:40:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.41 2008/04/01 22:20:18 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -13,7 +13,7 @@ static int iosetup(struct ioword *, struct tbl *);
 static int herein(const char *, int);
 static const char *do_selectargs(const char **, bool);
 static int dbteste_isa(Test_env *, Test_meta);
-static const char *dbteste_getopnd(Test_env *, Test_op, int);
+static const char *dbteste_getopnd(Test_env *, Test_op, bool);
 static void dbteste_error(Test_env *, int, const char *);
 
 /*
@@ -1445,7 +1445,7 @@ dbteste_isa(Test_env *te, Test_meta meta)
 }
 
 static const char *
-dbteste_getopnd(Test_env *te, Test_op op, int do_eval)
+dbteste_getopnd(Test_env *te, Test_op op, bool do_eval)
 {
 	const char *s = *te->pos.wp;
 

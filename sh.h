@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.200 2008/04/01 20:40:22 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.201 2008/04/01 22:20:19 tg Exp $"
 #define MKSH_VERSION "R33 2008/04/01"
 
 #if HAVE_SYS_PARAM_H
@@ -1542,15 +1542,15 @@ struct test_env {
 	} pos;
 	const char **wp_end;	/* used by ptest_* */
 	int (*isa)(Test_env *, Test_meta);
-	const char *(*getopnd) (Test_env *, Test_op, int);
-	int (*eval)(Test_env *, Test_op, const char *, const char *, int);
+	const char *(*getopnd) (Test_env *, Test_op, bool);
+	int (*eval)(Test_env *, Test_op, const char *, const char *, bool);
 	void (*error)(Test_env *, int, const char *);
 };
 
 extern const char *const dbtest_tokens[];
 
 Test_op	test_isop(Test_meta, const char *);
-int test_eval(Test_env *, Test_op, const char *, const char *, int);
+int test_eval(Test_env *, Test_op, const char *, const char *, bool);
 int test_parse(Test_env *);
 
 EXTERN int tty_fd I__(-1);	/* dup'd tty file descriptor */
