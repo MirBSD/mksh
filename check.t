@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.165 2008/04/01 16:04:58 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.166 2008/04/01 16:12:18 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3723,6 +3723,51 @@ stdin:
 expected-stdout:
 	nt OK
 	ot OK
+---
+name: regression-63
+description:
+	Check if typeset, export, and readonly work
+stdin:
+	{
+		print FNORD-0
+		FNORD_A=1
+		FNORD_B=2
+		FNORD_C=3
+		FNORD_D=4
+		export FNORD_C FNORD_D
+		readonly FNORD_B FNORD_D
+		print FNORD-1
+		export
+		print FNORD-2
+		export -p
+		print FNORD-3
+		readonly
+		print FNORD-4
+		readonly -p
+		print FNORD-5
+		typeset
+		print FNORD-6
+	} | fgrep FNORD
+expected-stdout:
+	FNORD-0
+	FNORD-1
+	FNORD_C
+	FNORD_D
+	FNORD-2
+	export FNORD_C=3
+	export FNORD_D=4
+	FNORD-3
+	FNORD_B
+	FNORD_D
+	FNORD-4
+	readonly FNORD_B=2
+	readonly FNORD_D=4
+	FNORD-5
+	typeset FNORD_A
+	typeset -r FNORD_B
+	typeset -x FNORD_C
+	typeset -x -r FNORD_D
+	FNORD-6
 ---
 name: syntax-1
 description:
