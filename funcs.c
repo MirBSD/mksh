@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.73 2008/04/01 21:39:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.74 2008/04/01 21:50:57 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -130,9 +130,9 @@ int
 c_cd(const char **wp)
 {
 	int optc;
-	int physical = Flag(FPHYSICAL);
+	bool physical = Flag(FPHYSICAL) ? true : false;
 	int cdnode;			/* was a node from cdpath added in? */
-	int printpath = 0;		/* print where we cd'd? */
+	bool printpath = false;		/* print where we cd'd? */
 	int rval;
 	struct tbl *pwd_s, *oldpwd_s;
 	XString xs;
@@ -144,10 +144,10 @@ c_cd(const char **wp)
 	while ((optc = ksh_getopt(wp, &builtin_opt, "LP")) != -1)
 		switch (optc) {
 		case 'L':
-			physical = 0;
+			physical = false;
 			break;
 		case 'P':
-			physical = 1;
+			physical = true;
 			break;
 		case '?':
 			return 1;
@@ -178,7 +178,7 @@ c_cd(const char **wp)
 				bi_errorf("no OLDPWD");
 				return 1;
 			}
-			printpath++;
+			printpath = true;
 		} else
 			dir_ = true;
 	} else if (!wp[2]) {
@@ -208,7 +208,7 @@ c_cd(const char **wp)
 		memcpy(dir, current_wd, ilen);
 		memcpy(dir + ilen, wp[1], nlen);
 		memcpy(dir + ilen + nlen, current_wd + ilen + olen, elen);
-		printpath++;
+		printpath = true;
 	} else {
 		bi_errorf("too many arguments");
 		return 1;
@@ -274,17 +274,17 @@ int
 c_pwd(const char **wp)
 {
 	int optc;
-	int physical = Flag(FPHYSICAL);
+	int physical = Flag(FPHYSICAL) ? true : false;
 	char *p;
 	bool p_ = false;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "LP")) != -1)
 		switch (optc) {
 		case 'L':
-			physical = 0;
+			physical = false;
 			break;
 		case 'P':
-			physical = 1;
+			physical = true;
 			break;
 		case '?':
 			return 1;
@@ -556,7 +556,7 @@ c_whence(const char **wp)
 {
 	struct tbl *tp;
 	const char *id;
-	int pflag = 0, vflag = 0, Vflag = 0;
+	bool pflag = false, vflag = false, Vflag = false;
 	int ret = 0;
 	int optc;
 	int iam_whence = wp[0][0] == 'w';
@@ -566,13 +566,13 @@ c_whence(const char **wp)
 	while ((optc = ksh_getopt(wp, &builtin_opt, opts)) != -1)
 		switch (optc) {
 		case 'p':
-			pflag = 1;
+			pflag = true;
 			break;
 		case 'v':
-			vflag = 1;
+			vflag = true;
 			break;
 		case 'V':
-			Vflag = 1;
+			Vflag = true;
 			break;
 		case '?':
 			return 1;
@@ -607,35 +607,34 @@ c_whence(const char **wp)
 			tp = findcom(id, fcflags);
 		if (vflag || (tp->type != CALIAS && tp->type != CEXEC &&
 		    tp->type != CTALIAS))
-			shprintf("%s", id);
+			shf_puts(id, shl_stdout);
 		switch (tp->type) {
 		case CKEYWD:
 			if (vflag)
-				shprintf(" is a reserved word");
+				shf_puts(" is a reserved word", shl_stdout);
 			break;
 		case CALIAS:
 			if (vflag)
 				shprintf(" is an %salias for ",
-				    (tp->flag & EXPORT) ? "exported " :
-				    null);
+				    (tp->flag & EXPORT) ? "exported " : null);
 			if (!iam_whence && !vflag)
 				shprintf("alias %s=", id);
 			print_value_quoted(tp->val.s);
 			break;
 		case CFUNC:
 			if (vflag) {
-				shprintf(" is a");
+				shf_puts(" is a", shl_stdout);
 				if (tp->flag & EXPORT)
-					shprintf("n exported");
+					shf_puts("n exported", shl_stdout);
 				if (tp->flag & TRACE)
-					shprintf(" traced");
+					shf_puts(" traced", shl_stdout);
 				if (!(tp->flag & ISSET)) {
-					shprintf(" undefined");
+					shf_puts(" undefined", shl_stdout);
 					if (tp->u.fpath)
 						shprintf(" (autoload from %s)",
 						    tp->u.fpath);
 				}
-				shprintf(" function");
+				shf_puts(" function", shl_stdout);
 			}
 			break;
 		case CSHELL:
@@ -647,16 +646,16 @@ c_whence(const char **wp)
 		case CEXEC:
 			if (tp->flag & ISSET) {
 				if (vflag) {
-					shprintf(" is ");
+					shf_puts(" is ", shl_stdout);
 					if (tp->type == CTALIAS)
 						shprintf("a tracked %salias for ",
 						    (tp->flag & EXPORT) ?
 						    "exported " : null);
 				}
-				shprintf("%s", tp->val.s);
+				shf_puts(tp->val.s, shl_stdout);
 			} else {
 				if (vflag)
-					shprintf(" not found");
+					shf_puts(" not found", shl_stdout);
 				ret = 1;
 			}
 			break;
@@ -919,25 +918,25 @@ c_typeset(const char **wp)
 						 * but POSIX says must
 						 * be suitable for re-entry...
 						 */
-						shprintf("typeset ");
+						shf_puts("typeset ", shl_stdout);
 						if ((vp->flag&INTEGER))
-							shprintf("-i ");
+							shf_puts("-i ", shl_stdout);
 						if ((vp->flag&EXPORT))
-							shprintf("-x ");
+							shf_puts("-x ", shl_stdout);
 						if ((vp->flag&RDONLY))
-							shprintf("-r ");
+							shf_puts("-r ", shl_stdout);
 						if ((vp->flag&TRACE))
-							shprintf("-t ");
+							shf_puts("-t ", shl_stdout);
 						if ((vp->flag&LJUST))
 							shprintf("-L%d ", vp->u2.field);
 						if ((vp->flag&RJUST))
 							shprintf("-R%d ", vp->u2.field);
 						if ((vp->flag&ZEROFIL))
-							shprintf("-Z ");
+							shf_puts("-Z ", shl_stdout);
 						if ((vp->flag&LCASEV))
-							shprintf("-l ");
+							shf_puts("-l ", shl_stdout);
 						if ((vp->flag&UCASEV_AL))
-							shprintf("-u ");
+							shf_puts("-u ", shl_stdout);
 						if ((vp->flag&INT_U))
 							shf_puts("-U ", shl_stdout);
 						shf_puts(vp->name, shl_stdout);
@@ -970,25 +969,25 @@ c_typeset(const char **wp)
 							    vp->name,
 							    (unsigned long)vp->index);
 						else
-							shprintf("%s", vp->name);
+							shf_puts(vp->name, shl_stdout);
 						if (thing == '-' && (vp->flag&ISSET)) {
 							char *s = str_val(vp);
 
-							shprintf("=");
+							shf_putc('=', shl_stdout);
 							/* at&t ksh can't have
 							 * justified integers.. */
 							if ((vp->flag &
 							    (INTEGER|LJUST|RJUST)) ==
 							    INTEGER)
-								shprintf("%s", s);
+								shf_puts(s, shl_stdout);
 							else
 								print_value_quoted(s);
 						}
 						shf_putc('\n', shl_stdout);
 					}
 					/* Only report first 'element' of an array with
-					* no set elements.
-					*/
+					 * no set elements.
+					 */
 					if (!any_set)
 						break;
 				}
@@ -1002,8 +1001,8 @@ int
 c_alias(const char **wp)
 {
 	struct table *t = &aliases;
-	int rv = 0, rflag = 0, tflag, Uflag = 0, pflag = 0;
-	int prefix = 0;
+	int rv = 0, prefix = 0;
+	bool rflag = false, tflag, Uflag = false, pflag = false;
 	Tflag xflag = 0;
 	int optc;
 
@@ -1019,10 +1018,10 @@ c_alias(const char **wp)
 #endif
 			break;
 		case 'p':
-			pflag = 1;
+			pflag = true;
 			break;
 		case 'r':
-			rflag = 1;
+			rflag = true;
 			break;
 		case 't':
 			t = &taliases;
@@ -1032,7 +1031,7 @@ c_alias(const char **wp)
 			 * kludge for tracked alias initialization
 			 * (don't do a path search, just make an entry)
 			 */
-			Uflag = 1;
+			Uflag = true;
 			break;
 		case 'x':
 			xflag = EXPORT;
@@ -1058,8 +1057,8 @@ c_alias(const char **wp)
 		};
 
 		if (!tflag || *wp) {
-			shprintf("alias: -r flag can only be used with -t"
-			    " and without arguments\n");
+			shf_puts("alias: -r flag can only be used with -t"
+			    " and without arguments\n", shl_stdout);
 			return 1;
 		}
 		ksh_getopt_reset(&builtin_opt, GF_ERROR);
@@ -1143,13 +1142,13 @@ c_unalias(const char **wp)
 {
 	struct table *t = &aliases;
 	struct tbl *ap;
-	int rv = 0, all = 0;
-	int optc;
+	int optc, rv = 0;
+	bool all = false;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "adt")) != -1)
 		switch (optc) {
 		case 'a':
-			all = 1;
+			all = true;
 			break;
 		case 'd':
 #ifdef MKSH_SMALL
@@ -1215,10 +1214,7 @@ c_let(const char **wp)
 int
 c_jobs(const char **wp)
 {
-	int optc;
-	int flag = 0;
-	int nflag = 0;
-	int rv = 0;
+	int optc, flag = 0, nflag = 0, rv = 0;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "lpnz")) != -1)
 		switch (optc) {
@@ -1252,7 +1248,7 @@ c_jobs(const char **wp)
 int
 c_fgbg(const char **wp)
 {
-	int bg = strcmp(*wp, "bg") == 0;
+	bool bg = strcmp(*wp, "bg") == 0;
 	int rv = 0;
 
 	if (!Flag(FMONITOR)) {
@@ -1289,7 +1285,7 @@ c_kill(const char **wp)
 {
 	Trap *t = NULL;
 	const char *p;
-	int lflag = 0;
+	bool lflag = false;
 	int i, n, rv, sig;
 
 	/* assume old style options if -digits or -UPPERCASE */
@@ -1306,7 +1302,7 @@ c_kill(const char **wp)
 		while ((optc = ksh_getopt(wp, &builtin_opt, "ls:")) != -1)
 			switch (optc) {
 			case 'l':
-				lflag = 1;
+				lflag = true;
 				break;
 			case 's':
 				if (!(t = gettrap(builtin_opt.optarg, true))) {
@@ -1497,17 +1493,18 @@ c_getopts(const char **wp)
 int
 c_bind(const char **wp)
 {
-	int optc, rv = 0, macro = 0, list = 0;
+	int optc, rv = 0;
+	bool macro = false, list = false;
 	const char *cp;
 	char *up;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "lm")) != -1)
 		switch (optc) {
 		case 'l':
-			list = 1;
+			list = true;
 			break;
 		case 'm':
-			macro = 1;
+			macro = true;
 			break;
 		case '?':
 			return 1;
@@ -1575,14 +1572,14 @@ c_umask(const char **wp)
 {
 	int i;
 	const char *cp;
-	int symbolic = 0;
+	bool symbolic = 0;
 	mode_t old_umask;
 	int optc;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "S")) != -1)
 		switch (optc) {
 		case 'S':
-			symbolic = 1;
+			symbolic = true;
 			break;
 		case '?':
 			return 1;
@@ -2002,7 +1999,7 @@ c_trap(const char **wp)
 	if (*wp == NULL) {
 		for (p = sigtraps, i = NSIG+1; --i >= 0; p++)
 			if (p->trap != NULL) {
-				shprintf("trap -- ");
+				shf_puts("trap -- ", shl_stdout);
 				print_value_quoted(p->trap);
 				shprintf(" %s\n", p->name);
 			}
@@ -3052,7 +3049,7 @@ c_ulimit(const char **wp)
 			}
 			shprintf("%-20s ", l->name);
 			if (val == (rlim_t)RLIM_INFINITY)
-				shprintf("unlimited\n");
+				shf_puts("unlimited\n", shl_stdout);
 			else {
 				val = (rlim_t)(val / l->factor);
 				shprintf("%ld\n", (long)val);
@@ -3085,7 +3082,7 @@ c_ulimit(const char **wp)
 	}
 	if (!set) {
 		if (val == (rlim_t)RLIM_INFINITY)
-			shprintf("unlimited\n");
+			shf_puts("unlimited\n", shl_stdout);
 		else {
 			val = (rlim_t)(val / l->factor);
 			shprintf("%ld\n", (long)val);

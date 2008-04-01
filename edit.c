@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.118 2008/03/23 21:31:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.119 2008/04/01 21:50:57 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -2556,8 +2556,8 @@ x_print(int prefix, int key)
 
 	if (prefix)
 		/* prefix == 1 || prefix == 2 */
-		shprintf("%s", x_mapout(prefix == 1 ?
-		    MKCTRL('[') : MKCTRL('X')));
+		shf_puts(x_mapout(prefix == 1 ?
+		    MKCTRL('[') : MKCTRL('X')), shl_stdout);
 	shprintf("%s%s = ", x_mapout(key), (f & 0x80) ? "~" : "");
 	if ((f & 0x7F) != XFUNC_ins_string)
 		shprintf("%s\n", x_ftab[f & 0x7F].xf_name);

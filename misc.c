@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.70 2008/04/01 20:40:22 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.71 2008/04/01 21:50:58 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -192,7 +192,7 @@ printoptions(int verbose)
 		int n, len;
 
 		/* verbose version */
-		shprintf("Current option settings\n");
+		shf_puts("Current option settings\n", shl_stdout);
 
 		for (i = n = oi.opt_width = 0; i < NELEM(options); i++)
 			if (options[i].name) {
@@ -205,7 +205,7 @@ printoptions(int verbose)
 		    oi.opt_width + 5, 1);
 	} else {
 		/* short version ala ksh93 */
-		shprintf("set");
+		shf_puts("set", shl_stdout);
 		for (i = 0; i < NELEM(options); i++)
 			if (Flag(i) && options[i].name)
 				shprintf(" -o %s", options[i].name);
@@ -927,7 +927,7 @@ print_value_quoted(const char *s)
 		if (ctype(*p, C_QUOTE))
 			break;
 	if (!*p) {
-		shprintf("%s", s);
+		shf_puts(s, shl_stdout);
 		return;
 	}
 	for (p = s; *p; p++) {
