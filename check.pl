@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.16 2008/04/01 16:01:45 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.17 2008/04/01 16:26:42 tg Exp $
 # $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
 #-
 # Example test:
@@ -58,6 +58,7 @@
 #					the test harness).
 #					ENV is set to /nonexistant.
 #					__progname is set to the -p argument.
+#					__perlname is set to $^X (perlexe).
 #	file-setup		    mps Used to create files, directories
 #					and symlinks.  First word is either
 #					file, dir or symlink; second word is
@@ -130,6 +131,7 @@
 
 use POSIX qw(EINTR);
 use Getopt::Std;
+use Config;
 
 $os = defined $^O ? $^O : 'unknown';
 
@@ -236,6 +238,11 @@ foreach $env (('USER', 'LOGNAME', 'HOME', 'PATH', 'SHELL')) {
     $new_env{$env} = $ENV{$env} if defined $ENV{$env};
 }
 $new_env{'ENV'} = '/nonexistant';
+if (($^O eq 'VMS') || ($Config{perlpath} =~ m/$Config{_exe}$/i)) {
+	$new_env{'__perlname'} = $Config{perlpath};
+} else {
+	$new_env{'__perlname'} = $Config{perlpath} . $Config{_exe};
+}
 if (defined $opt_e) {
     # XXX need a way to allow many -e arguments...
     if ($opt_e =~ /^([a-zA-Z_]\w*)(|=(.*))$/) {
