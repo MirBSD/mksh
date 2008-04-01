@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.39 2007/10/25 13:27:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.40 2008/04/01 20:40:21 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -109,14 +109,14 @@ execute(struct op *volatile t,
 		e->savefd[1] = savefd(1);
 		while (t->type == TPIPE) {
 			openpipe(pv);
-			(void) ksh_dup2(pv[1], 1, false); /* stdout of curr */
+			ksh_dup2(pv[1], 1, false); /* stdout of curr */
 			/* Let exchild() close pv[0] in child
 			 * (if this isn't done, commands like
 			 *    (: ; cat /etc/termcap) | sleep 1
 			 *  will hang forever).
 			 */
 			exchild(t->left, flags|XPIPEO|XCCLOSE, pv[0]);
-			(void) ksh_dup2(pv[0], 0, false); /* stdin of next */
+			ksh_dup2(pv[0], 0, false); /* stdin of next */
 			closepipe(pv);
 			flags |= XPIPEI;
 			t = t->right;

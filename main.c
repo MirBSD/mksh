@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.94 2008/03/28 18:47:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.95 2008/04/01 20:40:21 tg Exp $");
 
 extern char **environ;
 
@@ -922,14 +922,19 @@ initio(void)
 
 /* A dup2() with error checking */
 int
-ksh_dup2(int ofd, int nfd, int errok)
+ksh_dup2(int ofd, int nfd, bool errok)
 {
-	int ret = dup2(ofd, nfd);
+	int rv;
 
-	if (ret < 0 && errno != EBADF && !errok)
+	if (((rv = dup2(ofd, nfd)) < 0) && !errok && (errno != EBADF))
 		errorf("too many files open in shell");
 
-	return ret;
+#ifdef __ultrix
+	if (rv >= 0)
+		fcntl(nfd, F_SETFD, 0);
+#endif
+
+	return (rv);
 }
 
 /*

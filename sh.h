@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.199 2008/03/28 13:46:53 tg Exp $"
-#define MKSH_VERSION "R33 2008/03/28"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.200 2008/04/01 20:40:22 tg Exp $"
+#define MKSH_VERSION "R33 2008/04/01"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -1384,7 +1384,7 @@ void shprintf(const char *, ...)
     __attribute__((format (printf, 1, 2)));
 int can_seek(int);
 void initio(void);
-int ksh_dup2(int, int, int);
+int ksh_dup2(int, int, bool);
 short savefd(int);
 void restfd(int, int);
 void openpipe(int *);
