@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.308 2008/04/01 17:13:49 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.309 2008/04/01 17:14:31 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1234,6 +1234,7 @@ cat >>test.sh <<-EOF
 	print 'test.sh built for mksh $dstversion'
 	perl=perl5
 	\$perl -e print >/dev/null 2>&1 || perl=perl
+	\$perl -e print >/dev/null 2>&1 || exit 1
 	exec \$perl '$srcdir/check.pl' -s '$srcdir/check.t' \\
 	    -p '$curdir/mksh' -C $check_categories \$*$tsts
 EOF
