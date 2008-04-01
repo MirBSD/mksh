@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.307 2008/03/28 22:56:15 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.308 2008/04/01 17:13:49 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1225,16 +1225,18 @@ case $curdir in
 *\ *)	echo "#!./mksh" >test.sh ;;
 *)	echo "#!$curdir/mksh" >test.sh ;;
 esac
-echo "export PATH='$PATH'" >>test.sh
-echo "print Testing mksh for conformance:" >>test.sh
-echo "fgrep MirOS: '$srcdir/check.t'" >>test.sh
-echo "fgrep MIRBSD '$srcdir/check.t'" >>test.sh
-echo 'print "This shell is actually:\n\t$KSH_VERSION"' >>test.sh
-echo "print 'test.sh built for mksh $dstversion'" >>test.sh
-echo "perl=perl5" >>test.sh
-echo "\$perl -e print >/dev/null 2>&1 || perl=perl" >>test.sh
-echo "exec \$perl '$srcdir/check.pl' -s '$srcdir/check.t'" \
-    "-p '$curdir/mksh' -C $check_categories \$*$tsts" >>test.sh
+cat >>test.sh <<-EOF
+	export PATH='$PATH'
+	print Testing mksh for conformance:
+	fgrep MirOS: '$srcdir/check.t'
+	fgrep MIRBSD '$srcdir/check.t'
+	print "This shell is actually:\\n\\t\$KSH_VERSION"
+	print 'test.sh built for mksh $dstversion'
+	perl=perl5
+	\$perl -e print >/dev/null 2>&1 || perl=perl
+	exec \$perl '$srcdir/check.pl' -s '$srcdir/check.t' \\
+	    -p '$curdir/mksh' -C $check_categories \$*$tsts
+EOF
 chmod 755 test.sh
 echo set -x >Rebuild.sh
 for file in $SRCS; do
