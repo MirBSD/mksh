@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.15 2008/03/23 20:54:29 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.16 2008/04/01 16:01:45 tg Exp $
 # $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
 #-
 # Example test:
@@ -57,6 +57,7 @@
 #					(values taken from the environment of
 #					the test harness).
 #					ENV is set to /nonexistant.
+#					__progname is set to the -p argument.
 #	file-setup		    mps Used to create files, directories
 #					and symlinks.  First word is either
 #					file, dir or symlink; second word is
@@ -492,6 +493,10 @@ run_test
 			   substr($test{'arguments'}, 1)));
 	}
 	push(@argv, $temps) if defined $test{'script'};
+
+	#XXX realpathise, use which/whence -p, or sth. like that
+	#XXX if !$program_kludge, we get by with not doing it for now tho
+	$new_env{'__progname'} = $argv[0];
 
 	# The following doesn't work with perl5...  Need to do it explicitly - yuck.
 	#%ENV = %new_env;

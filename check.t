@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.163 2008/03/28 13:46:51 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.164 2008/04/01 16:01:45 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1454,7 +1454,7 @@ stdin:
 	bar="bar
 		baz"
 	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<foo
-	$0 -c "tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<foo"
+	$__progname -c "tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<foo"
 	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<"$bar"
 	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<'$bar'
 	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<\$bar
@@ -3375,7 +3375,7 @@ description:
 	Check that (here doc) temp files are not left behind after an exec.
 stdin:
 	mkdir foo || exit 1
-	TMPDIR=$PWD/foo "$0" <<- 'EOF'
+	TMPDIR=$PWD/foo "$__progname" <<- 'EOF'
 		x() {
 			sed 's/^/X /' << E_O_F
 			hi
@@ -3388,7 +3388,7 @@ stdin:
 		exec $echo subtest-1 hi
 	EOF
 	echo subtest-1 foo/*
-	TMPDIR=$PWD/foo "$0" <<- 'EOF'
+	TMPDIR=$PWD/foo "$__progname" <<- 'EOF'
 		echo=echo; [ -x /bin/echo ] && echo=/bin/echo
 		sed 's/^/X /' << E_O_F; exec $echo subtest-2 hi
 		a
@@ -4150,9 +4150,9 @@ name: pipeline-2
 description:
 	check that co-processes work with TCOMs, TPIPEs and TPARENs
 stdin:
-	"$0" -c 'i=100; print hi |& while read -p line; do print "$((i++)) $line"; done'
-	"$0" -c 'i=200; print hi | cat |& while read -p line; do print "$((i++)) $line"; done'
-	"$0" -c 'i=300; (print hi | cat) |& while read -p line; do print "$((i++)) $line"; done'
+	"$__progname" -c 'i=100; print hi |& while read -p line; do print "$((i++)) $line"; done'
+	"$__progname" -c 'i=200; print hi | cat |& while read -p line; do print "$((i++)) $line"; done'
+	"$__progname" -c 'i=300; (print hi | cat) |& while read -p line; do print "$((i++)) $line"; done'
 expected-stdout:
 	100 hi
 	200 hi
@@ -4203,12 +4203,12 @@ stdin:
 	print got ${#anzahl[*]} files
 	chmod +x foo/*
 	export PATH=$(pwd)/foo:$PATH
-	"$0" -c '﻿fnord'
-	"$0" -c '﻿fnord; fnord; ﻿fnord; fnord'
-	"$0" foo/bar
-	"$0" <foo/bar
-	"$0" foo/zoo
-	"$0" -c 'print ﻿: $(﻿fnord)'
+	"$__progname" -c '﻿fnord'
+	"$__progname" -c '﻿fnord; fnord; ﻿fnord; fnord'
+	"$__progname" foo/bar
+	"$__progname" <foo/bar
+	"$__progname" foo/zoo
+	"$__progname" -c 'print ﻿: $(﻿fnord)'
 	rm -rf foo
 expected-stdout:
 	got 4 files
@@ -4241,8 +4241,8 @@ description:
 category: pdksh,!os:cygwin,!os:uwin-nt
 env-setup: !FOO=BAR!
 stdin:
-	print '#!'"$0"'\nprint "a=$ENV{FOO}";' >t1
-	print '﻿#!'"$0"'\nprint "a=$ENV{FOO}";' >t2
+	print '#!'"$__progname"'\nprint "a=$ENV{FOO}";' >t1
+	print '﻿#!'"$__progname"'\nprint "a=$ENV{FOO}";' >t2
 	print '#!/usr/bin/env perl\nprint "a=$ENV{FOO}\n";' >t3
 	print '﻿#!/usr/bin/env perl\nprint "a=$ENV{FOO}\n";' >t4
 	chmod +x t?
@@ -4261,8 +4261,8 @@ description:
 	Reading the UTF-8 BOM should enable the utf8-hack flag
 category: pdksh,!dutf
 stdin:
-	"$0" -c ':; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'
-	"$0" -c '﻿:; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'
+	"$__progname" -c ':; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'
+	"$__progname" -c '﻿:; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'
 expected-stdout:
 	off
 	on
@@ -4309,7 +4309,7 @@ description:
 category: disabled
 arguments: !-o!posix!
 stdin:
-	cp "$0" sh
+	cp "$__progname" sh
 	./sh -c 'alias; typeset -f'
 	rm -f sh
 expected-stdout:
@@ -4345,7 +4345,7 @@ description:
 category: pdksh
 arguments: !-o!posix!
 stdin:
-	cp "$0" sh
+	cp "$__progname" sh
 	./sh -c 'alias; typeset -f'
 	rm -f sh
 expected-stdout:
@@ -4446,12 +4446,12 @@ description:
 	This is by design. And that some things fail in both.
 stdin:
 	export x=abcdefghi n=2
-	"$0" -c 'print v${x:(n)}x'
-	"$0" -c 'print w${x: n}x'
-	"$0" -c 'print x${x:n}x'
-	"$0" -c 'print y${x:}x'
-	"$0" -c 'print z${x}x'
-	"$0" -c 'x=abcdef;y=123;echo ${x:${y:2:1}:2}' >/dev/null 2>&1; print $?
+	"$__progname" -c 'print v${x:(n)}x'
+	"$__progname" -c 'print w${x: n}x'
+	"$__progname" -c 'print x${x:n}x'
+	"$__progname" -c 'print y${x:}x'
+	"$__progname" -c 'print z${x}x'
+	"$__progname" -c 'x=abcdef;y=123;echo ${x:${y:2:1}:2}' >/dev/null 2>&1; print $?
 expected-stdout:
 	vcdefghix
 	wcdefghix
@@ -4482,8 +4482,8 @@ name: dot-needs-argument
 description:
 	check Debian #415167 solution: '.' without arguments should fail
 stdin:
-	"$0" -c .
-	"$0" -c source
+	"$__progname" -c .
+	"$__progname" -c source
 expected-exit: e != 0
 expected-stderr-pattern:
 	/\.: missing argument.*\n.*\.: missing argument/
