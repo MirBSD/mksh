@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.72 2008/03/28 18:46:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.73 2008/04/01 21:39:45 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -686,31 +686,31 @@ c_typeset(const char **wp)
 {
 	struct block *l;
 	struct tbl *vp, **p;
-	Tflag fset = 0, fclr = 0;
-	int thing = 0, func = 0, localv = 0;
-	const char *opts = "L#R#UZ#fi#lprtux";	/* see comment below */
+	Tflag fset = 0, fclr = 0, flag;
+	int thing = 0, field, base, optc;
+	const char *opts;
 	const char *fieldstr, *basestr;
-	int field, base;
-	int optc;
-	Tflag flag;
-	int pflag = 0;
+	bool localv = false, func = false, pflag = false, istset = true;
 
 	switch (**wp) {
 	case 'e':		/* export */
 		fset |= EXPORT;
-		opts = "p";
+		istset = false;
 		break;
 	case 'r':		/* readonly */
 		fset |= RDONLY;
-		opts = "p";
+		istset = false;
 		break;
 	case 's':		/* set */
 		/* called with 'typeset -' */
 		break;
 	case 't':		/* typeset */
-		localv = 1;
+		localv = true;
 		break;
 	}
+
+	/* see comment below regarding possible opions */
+	opts = istset ? "L#R#UZ#fi#lprtux" : "p";
 
 	fieldstr = basestr = NULL;
 	builtin_opt.flags |= GF_PLUSOPT;
@@ -745,7 +745,7 @@ c_typeset(const char **wp)
 			fieldstr = builtin_opt.optarg;
 			break;
 		case 'f':
-			func = 1;
+			func = true;
 			break;
 		case 'i':
 			flag = INTEGER;
@@ -755,12 +755,12 @@ c_typeset(const char **wp)
 			flag = LCASEV;
 			break;
 		case 'p':
-			/* posix export/readonly -p flag.
-			 * typeset -p is the same as typeset (in pdksh);
-			 * here for compatibility with ksh93.
-			 */
-			pflag = 1;
-			continue;
+			/* export, readonly: POSIX -p flag */
+			/* typeset: show values as well */
+			pflag = true;
+			if (istset)
+				continue;
+			break;
 		case 'r':
 			flag = RDONLY;
 			break;
@@ -939,13 +939,32 @@ c_typeset(const char **wp)
 						if ((vp->flag&UCASEV_AL))
 							shprintf("-u ");
 						if ((vp->flag&INT_U))
-							shprintf("-U ");
-						shprintf("%s\n", vp->name);
-						    if (vp->flag&ARRAY)
-						break;
+							shf_puts("-U ", shl_stdout);
+						shf_puts(vp->name, shl_stdout);
+						if (pflag) {
+							char *s = str_val(vp);
+
+							shf_putc('=', shl_stdout);
+							/* at&t ksh can't have
+							 * justified integers.. */
+							if ((vp->flag &
+							    (INTEGER|LJUST|RJUST)) ==
+							    INTEGER)
+								shf_puts(s, shl_stdout);
+							else
+								print_value_quoted(s);
+						}
+						shf_putc('\n', shl_stdout);
+						if (vp->flag & ARRAY)
+							break;
 					} else {
 						if (pflag)
-							shprintf("typeset ");
+							shf_puts(istset ?
+							    "typeset " :
+							    (flag & EXPORT) ?
+							    "export " :
+							    "readonly ",
+							    shl_stdout);
 						if ((vp->flag&ARRAY) && any_set)
 							shprintf("%s[%lu]",
 							    vp->name,
