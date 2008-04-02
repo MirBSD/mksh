@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.59 2008/03/27 17:59:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.60 2008/04/02 16:55:06 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -663,8 +663,8 @@ hist_init(Source *s)
 		/*
 		 * we have some data
 		 */
-		base = mmap(NULL, hsize, PROT_READ, MAP_FILE | MAP_PRIVATE,
-		    histfd, 0);
+		base = (void *)mmap(NULL, hsize, PROT_READ,
+		    MAP_FILE | MAP_PRIVATE, histfd, 0);
 		/*
 		 * check on its validity
 		 */
@@ -893,7 +893,7 @@ writehistfile(int lno, char *cmd)
 		if (sizenow > hsize) {
 			/* someone has added some lines */
 			bytes = sizenow - hsize;
-			base = mmap(NULL, sizenow, PROT_READ,
+			base = (void *)mmap(NULL, sizenow, PROT_READ,
 			    MAP_FILE | MAP_PRIVATE, histfd, 0);
 			if (base == (unsigned char *)MAP_FAILED)
 				goto bad;
