@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.202 2008/04/02 16:55:06 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.203 2008/04/06 23:27:19 tg Exp $"
 #define MKSH_VERSION "R33 2008/04/01"
 
 #if HAVE_SYS_PARAM_H
@@ -164,9 +164,6 @@ typedef int bool;
 #define ksh_isspace(c)	ksh_isspace_((unsigned)(c))
 #endif
 
-#ifndef S_ISTXT
-#define S_ISTXT		0001000
-#endif
 #ifndef S_ISLNK
 #define S_ISLNK(m)	((m & 0170000) == 0120000)
 #endif
