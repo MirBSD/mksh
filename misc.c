@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.71 2008/04/01 21:50:58 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.72 2008/04/11 19:55:23 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -1370,16 +1370,20 @@ chvt(const char *fn)
 	}
 	switch (fork()) {
 	case -1:
-		errorf("fork failed");
+		errorf("chvt: %s failed", "fork");
 	case 0:
 		break;
 	default:
 		exit(0);
 	}
 	if (setsid() == -1)
-		errorf("chvt: setsid failed");
-	if ((fn != dv + 1) && ioctl(fd, TIOCSCTTY, NULL) == -1)
-		errorf("chvt: TIOCSCTTY failed");
+		errorf("chvt: %s failed", "setsid");
+	if (fn != dv + 1) {
+		if (ioctl(fd, TIOCSCTTY, NULL) == -1)
+			errorf("chvt: %s failed", "TIOCSCTTY");
+		if (tcflush(fd, TCIOFLUSH))
+			errorf("chvt: %s failed", "TCIOFLUSH");
+	}
 	ksh_dup2(fd, 0, false);
 	ksh_dup2(fd, 1, false);
 	ksh_dup2(fd, 2, false);
