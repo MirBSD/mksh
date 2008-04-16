@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.115 2008/04/01 21:07:20 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.116 2008/04/16 21:56:02 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.121 2008/03/21 12:51:19 millert Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
 .\" * ` generates ‘ in groff, so use \`
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: April 1 2008 $
+.Dd $Mdocdate: April 16 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -4077,15 +4077,16 @@ unless they are also given on the same command line.
 .Pp
 .It Xo
 .Ic ulimit
-.Op Fl acdfHLlmnpSsTtvw
-.Op Ar value
+.Op Fl acdfHLlmnpSsTtvw Op Ar value
+.Ar ...
 .Xc
 Display or set process limits.
 If no options are used, the file size limit
 .Pq Fl f
 is assumed.
 .Ar value ,
-if specified, may be either an arithmetic expression or the word
+if specified, may be either an arithmetic expression starting with a
+number or the word
 .Dq unlimited .
 The limits affect the shell and any processes created by the shell after a
 limit is imposed.
@@ -5454,7 +5455,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh\ R33c
+.Nm mksh\ R34
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

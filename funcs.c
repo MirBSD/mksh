@@ -1,11 +1,11 @@
 /*	$OpenBSD: c_ksh.c,v 1.30 2007/08/02 10:50:25 fgsch Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.37 2007/09/03 13:54:23 otto Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
-/*	$OpenBSD: c_ulimit.c,v 1.16 2006/11/20 21:53:39 miod Exp $	*/
+/*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.75 2008/04/01 22:20:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.76 2008/04/16 21:56:01 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -2853,89 +2853,79 @@ ptest_error(Test_env *te, int ofs, const char *msg)
 #define SOFT	0x1
 #define HARD	0x2
 
+struct limits {
+	const char *name;
+	int resource;		/* resource to get/set */
+	int factor;		/* multiply by to get rlim_{cur,max} values */
+	char option;
+};
+
+static void print_ulimit(const struct limits *, int);
+static int set_ulimit(const struct limits *, const char *, int);
+
 int
 c_ulimit(const char **wp)
 {
-	static const struct limits {
-		const char	*name;
-		enum { RLIMIT, ULIMIT } which;
-		int	gcmd;	/* get command */
-		int	scmd;	/* set command (or -1, if no set command) */
-		int	factor;	/* multiply by to get rlim_{cur,max} values */
-		char	option;
-	} limits[] = {
-		/* Do not use options -H, -S or -a */
-#ifdef RLIMIT_CORE
-		{ "coredump(blocks)", RLIMIT, RLIMIT_CORE, RLIMIT_CORE,
-		    512, 'c' },
-#endif
-#ifdef RLIMIT_DATA
-		{ "data(KiB)", RLIMIT, RLIMIT_DATA, RLIMIT_DATA,
-		    1024, 'd' },
+	static const struct limits limits[] = {
+		/* do not use options -H, -S or -a or change the order */
+#ifdef RLIMIT_CPU
+		{ "time(cpu-seconds)", RLIMIT_CPU, 1, 't' },
 #endif
 #ifdef RLIMIT_FSIZE
-		{ "file(blocks)", RLIMIT, RLIMIT_FSIZE, RLIMIT_FSIZE,
-		    512, 'f' },
+		{ "file(blocks)", RLIMIT_FSIZE, 512, 'f' },
 #endif
-#ifdef RLIMIT_LOCKS
-		{ "flocks", RLIMIT, RLIMIT_LOCKS, RLIMIT_LOCKS,
-		    -1, 'L' },
+#ifdef RLIMIT_CORE
+		{ "coredump(blocks)", RLIMIT_CORE, 512, 'c' },
 #endif
-#ifdef RLIMIT_MEMLOCK
-		{ "lockedmem(KiB)", RLIMIT, RLIMIT_MEMLOCK, RLIMIT_MEMLOCK,
-		    1024, 'l' },
-#endif
-#ifdef RLIMIT_RSS
-		{ "memory(KiB)", RLIMIT, RLIMIT_RSS, RLIMIT_RSS,
-		    1024, 'm' },
-#endif
-#ifdef RLIMIT_NOFILE
-		{ "nofiles(descriptors)", RLIMIT, RLIMIT_NOFILE, RLIMIT_NOFILE,
-		    1, 'n' },
-#endif
-#ifdef RLIMIT_NPROC
-		{ "processes", RLIMIT, RLIMIT_NPROC, RLIMIT_NPROC,
-		    1, 'p' },
+#ifdef RLIMIT_DATA
+		{ "data(KiB)", RLIMIT_DATA, 1024, 'd' },
 #endif
 #ifdef RLIMIT_STACK
-		{ "stack(KiB)", RLIMIT, RLIMIT_STACK, RLIMIT_STACK,
-		    1024, 's' },
+		{ "stack(KiB)", RLIMIT_STACK, 1024, 's' },
 #endif
-#ifdef RLIMIT_TIME
-		{ "humantime(seconds)", RLIMIT, RLIMIT_TIME, RLIMIT_TIME,
-		    1, 'T' },
+#ifdef RLIMIT_MEMLOCK
+		{ "lockedmem(KiB)", RLIMIT_MEMLOCK, 1024, 'l' },
 #endif
-#ifdef RLIMIT_CPU
-		{ "time(cpu-seconds)", RLIMIT, RLIMIT_CPU, RLIMIT_CPU,
-		    1, 't' },
+#ifdef RLIMIT_RSS
+		{ "memory(KiB)", RLIMIT_RSS, 1024, 'm' },
+#endif
+#ifdef RLIMIT_NOFILE
+		{ "nofiles(descriptors)", RLIMIT_NOFILE, 1, 'n' },
+#endif
+#ifdef RLIMIT_NPROC
+		{ "processes", RLIMIT_NPROC, 1, 'p' },
 #endif
 #ifdef RLIMIT_VMEM
-		{ "vmemory(KiB)", RLIMIT, RLIMIT_VMEM, RLIMIT_VMEM,
-		    1024, 'v' },
+		{ "vmemory(KiB)", RLIMIT_VMEM, 1024, 'v' },
 #endif
 #ifdef RLIMIT_SWAP
-		{ "swap(KiB)", RLIMIT, RLIMIT_SWAP, RLIMIT_SWAP,
-		    1024, 'w' },
+		{ "swap(KiB)", RLIMIT_SWAP, 1024, 'w' },
 #endif
-		{ NULL, RLIMIT, 0, 0, 0, 0 }
+#ifdef RLIMIT_LOCKS
+		{ "flocks", RLIMIT_LOCKS, -1, 'L' },
+#endif
+#ifdef RLIMIT_TIME
+		{ "humantime(seconds)", RLIMIT_TIME, 1, 'T' },
+#endif
+		{ NULL, 0, 0, 0 }
 	};
-	static char opts[3 + NELEM(limits)];
-	rlim_t val = (rlim_t)0;
-	int how = SOFT | HARD, optc, what;
-	bool all = false, set;
+	static char opts[4 + NELEM(limits) * 2];
+	int how = SOFT | HARD, optc;
+	bool all = false;
 	const struct limits *l;
-	struct rlimit limit;
 
 	if (!opts[0]) {
 		/* build options string on first call - yuck */
 		char *p = opts;
 
 		*p++ = 'H'; *p++ = 'S'; *p++ = 'a';
-		for (l = limits; l->name; l++)
+		for (l = limits; l->name; l++) {
 			*p++ = l->option;
+			*p++ = '#';
+		}
 		*p = '\0';
 	}
-	what = 'f';
+	/* first check for -a, -H and -S */
 	while ((optc = ksh_getopt(wp, &builtin_opt, opts)) != -1)
 		switch (optc) {
 		case 'H':
@@ -2948,105 +2938,132 @@ c_ulimit(const char **wp)
 			all = true;
 			break;
 		case '?':
-			return 1;
+			return (1);
 		default:
-			what = optc;
+			break;
 		}
 
-	for (l = limits; l->name && l->option != what; l++)
-		;
-	if (!l->name) {
-		internal_warningf("ulimit: %c", what);
-		return 1;
+	if (wp[builtin_opt.optind] != NULL) {
+		bi_errorf("usage: ulimit [-acdfHLlmnpSsTtvw] [value]");
+		return (1);
 	}
+
+	/* then parse and act on the actual limits, one at a time */
+	ksh_getopt_reset(&builtin_opt, GF_ERROR);
+	while ((optc = ksh_getopt(wp, &builtin_opt, opts)) != -1)
+		switch (optc) {
+		case 'a':
+		case 'H':
+		case 'S':
+			break;
+		case '?':
+			return (1);
+		default:
+			for (l = limits; l->name && l->option != optc; l++)
+				;
+			if (!l->name) {
+				internal_warningf("ulimit: %c", optc);
+				return (1);
+			}
+			if (!builtin_opt.optarg)
+				print_ulimit(l, how);
+			else if (set_ulimit(l, builtin_opt.optarg, how))
+				return (1);
+			break;
+		}
 
 	wp += builtin_opt.optind;
-	if ((set = *wp ? true : false)) {
-		if (all || wp[1]) {
-			bi_errorf("too many arguments");
-			return 1;
-		}
-		if (strcmp(wp[0], "unlimited") == 0)
-			val = (rlim_t)RLIM_INFINITY;
-		else {
-			long rval;
 
-			if (!evaluate(wp[0], &rval, KSH_RETURN_ERROR, false))
-				return 1;
-			/* Avoid problems caused by typos that
-			 * evaluate misses due to evaluating unset
-			 * parameters to 0...
-			 * If this causes problems, will have to
-			 * add parameter to evaluate() to control
-			 * if unset params are 0 or an error.
-			 */
-			if (!rval && !ksh_isdigit(wp[0][0])) {
-				bi_errorf("invalid limit: %s", wp[0]);
-				return 1;
-			}
-			val = (rlim_t)((rlim_t)rval * l->factor);
-		}
-	}
-	if (all) {
+	if (all)
 		for (l = limits; l->name; l++) {
-			if (l->which == RLIMIT) {
-#ifdef RLIMIT_LOCKS
-				if (getrlimit(l->gcmd, &limit) < 0)
-					if ((errno == EINVAL) &&
-					    (l->gcmd == RLIMIT_LOCKS)) {
-						limit.rlim_cur = RLIM_INFINITY;
-						limit.rlim_max = RLIM_INFINITY;
-					}
-#else
-				getrlimit(l->gcmd, &limit);
-#endif
-				if (how & SOFT)
-					val = limit.rlim_cur;
-				else if (how & HARD)
-					val = limit.rlim_max;
-			}
 			shprintf("%-20s ", l->name);
-			if (val == (rlim_t)RLIM_INFINITY)
-				shf_puts("unlimited\n", shl_stdout);
-			else {
-				val = (rlim_t)(val / l->factor);
-				shprintf("%ld\n", (long)val);
-			}
+			print_ulimit(l, how);
 		}
-		return 0;
-	}
-	if (l->which == RLIMIT) {
-		getrlimit(l->gcmd, &limit);
-		if (set) {
-			if (how & SOFT)
-				limit.rlim_cur = val;
-			if (how & HARD)
-				limit.rlim_max = val;
-			if (setrlimit(l->scmd, &limit) < 0) {
-				how = errno;
-				if (how == EPERM)
-					bi_errorf("exceeds allowable limit");
-				else
-					bi_errorf("bad limit: %s",
-					    strerror(how));
-				return 1;
-			}
-		} else {
-			if (how & SOFT)
-				val = limit.rlim_cur;
-			else if (how & HARD)
-				val = limit.rlim_max;
-		}
-	}
-	if (!set) {
-		if (val == (rlim_t)RLIM_INFINITY)
-			shf_puts("unlimited\n", shl_stdout);
-		else {
-			val = (rlim_t)(val / l->factor);
-			shprintf("%ld\n", (long)val);
-		}
+	else if (builtin_opt.optind == 1) {
+		/* no limit specified, use file size as default */
+#ifndef RLIMIT_FSIZE
+		internal_warningf("ulimit: need argument");
+		return (1);
+#else
+#ifdef RLIMIT_CPU
+		l = &limits[1];
+#else
+		l = &limits[0];
+#endif
+		if (!wp[0])
+			print_ulimit(l, how);
+		else if (set_ulimit(l, wp[0], how))
+			return(1);
+#endif
 	}
 	return (0);
+}
+
+static int
+set_ulimit(const struct limits *l, const char *v, int how)
+{
+	rlim_t val = (rlim_t)0;
+	struct rlimit limit;
+
+	if (strcmp(v, "unlimited") == 0)
+		val = (rlim_t)RLIM_INFINITY;
+	else {
+		long rval;
+
+		if (!evaluate(v, &rval, KSH_RETURN_ERROR, false))
+			return (1);
+		/*
+		 * Avoid problems caused by typos that evaluate misses due
+		 * to evaluating unset parameters to 0...
+		 * If this causes problems, will have to add parameter to
+		 * evaluate() to control if unset params are 0 or an error.
+		 */
+		if (!rval && !ksh_isdigit(v[0])) {
+			bi_errorf("invalid limit: %s", v);
+			return (1);
+		}
+		val = (rlim_t)rval * l->factor;
+	}
+
+	if (getrlimit(l->resource, &limit) < 0) {
+		/* some cannot be read, e.g. Linux RLIMIT_LOCKS */
+		limit.rlim_cur = RLIM_INFINITY;
+		limit.rlim_max = RLIM_INFINITY;
+	}
+	if (how & SOFT)
+		limit.rlim_cur = val;
+	if (how & HARD)
+		limit.rlim_max = val;
+	if (setrlimit(l->resource, &limit) < 0) {
+		if (errno == EPERM)
+			bi_errorf("%s exceeds allowable limit", l->name);
+		else
+			bi_errorf("bad %s limit: %s", l->name, strerror(errno));
+		return (1);
+	}
+	return (0);
+}
+
+static void
+print_ulimit(const struct limits *l, int how)
+{
+	rlim_t val = (rlim_t)0;
+	struct rlimit limit;
+
+	if (getrlimit(l->resource, &limit)) {
+		shf_puts("unknown\n", shl_stdout);
+		return;
+	}
+	if (how & SOFT)
+		val = limit.rlim_cur;
+	else if (how & HARD)
+		val = limit.rlim_max;
+	if (val == RLIM_INFINITY)
+		shf_puts("unlimited\n", shl_stdout);
+	else {
+		val /= l->factor;
+		shprintf("%ld\n", (long)val);
+	}
 }
 
 int
