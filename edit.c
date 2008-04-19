@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.120 2008/04/19 17:21:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.121 2008/04/19 17:25:49 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -827,7 +827,7 @@ utf_cptradj(const char *src, const char **dst)
 			len = 1;
 	if (len > 2)
 		if ((*(const unsigned char *)(src + 2) & 0xC0) != 0x80)
-			len = 2;
+			len = 1;
 	if (dst)
 		*dst = src + len;
 	return (len);
