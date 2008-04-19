@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.116 2008/04/16 21:56:02 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.117 2008/04/19 21:18:52 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.121 2008/03/21 12:51:19 millert Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: April 16 2008 $
+.Dd $Mdocdate: April 19 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -4060,6 +4060,7 @@ If not combined with
 this is the same as
 .Fl R ,
 except zero padding is used instead of space padding.
+For integers, the number instead of the base is padded.
 .El
 .Pp
 If any of the
