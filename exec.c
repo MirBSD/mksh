@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.42 2008/04/19 17:21:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.43 2008/04/19 22:15:02 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -1349,7 +1349,7 @@ pr_menu(const char *const *ap)
 	 * get dimensions of the list
 	 */
 	for (n = 0, nwidth = 0, pp = ap; *pp; n++, pp++) {
-		i = ksh_mbswidth(*pp);
+		i = utf_mbswidth(*pp);
 		nwidth = (i > nwidth) ? i : nwidth;
 	}
 	/*
@@ -1388,7 +1388,7 @@ pr_list(char *const *ap)
 	int nwidth, i, n;
 
 	for (n = 0, nwidth = 0, pp = ap; *pp; n++, pp++) {
-		i = ksh_mbswidth(*pp);
+		i = utf_mbswidth(*pp);
 		nwidth = (i > nwidth) ? i : nwidth;
 	}
 	print_columns(shl_out, n, plain_fmt_entry, (const void *)ap,

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.57 2008/03/28 13:46:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.58 2008/04/19 22:15:03 tg Exp $");
 
 /*
  * states while lexing word
@@ -1310,7 +1310,7 @@ dopprompt(const char *cp, int ntruncate, int doprint)
 				columns--;
 		} else if (*cp == delimiter)
 			indelimit = !indelimit;
-		else if (Flag(FUTFHACK) && ((unsigned)*cp > 0x7F)) {
+		else if (Flag(FUTFHACK) && ((unsigned char)*cp > 0x7F)) {
 			const char *cp2;
 			columns += utf_widthadj(cp, &cp2);
 			if (doprint && (indelimit ||

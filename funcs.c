@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.76 2008/04/16 21:56:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.77 2008/04/19 22:15:03 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -1591,7 +1591,7 @@ c_umask(const char **wp)
 			p[-1] = '\0';
 			shprintf("%s\n", buf);
 		} else
-			shprintf("%#3.3o\n", (unsigned) old_umask);
+			shprintf("%#3.3o\n", (unsigned int)old_umask);
 	} else {
 		mode_t new_umask;
 

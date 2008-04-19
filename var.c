@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.53 2008/04/19 21:04:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.54 2008/04/19 22:15:06 tg Exp $");
 
 /*
  * Variables
@@ -298,19 +298,31 @@ str_val(struct tbl *vp)
 			n = (vp->val.i < 0) ? -vp->val.i : vp->val.i;
 		base = (vp->type == 0) ? 10 : vp->type;
 
-		*--s = '\0';
-		do {
-			*--s = digits[n % base];
-			n /= base;
-		} while (n != 0);
-		if (base != 10) {
-			*--s = '#';
-			*--s = digits[base % 10];
-			if (base >= 10)
-				*--s = digits[base / 10];
+		if (base == 1) {
+			size_t sz = 1;
+
+			*(s = strbuf) = '1';
+			s[1] = '#';
+			if (!Flag(FUTFHACK) || ((n & 0xFF80) == 0xEF80))
+				s[2] = n & 0xFF;
+			else
+				sz = utf_wctomb(s + 2, n);
+			s[2 + sz] = '\0';
+		} else {
+			*--s = '\0';
+			do {
+				*--s = digits[n % base];
+				n /= base;
+			} while (n != 0);
+			if (base != 10) {
+				*--s = '#';
+				*--s = digits[base % 10];
+				if (base >= 10)
+					*--s = digits[base / 10];
+			}
+			if (!(vp->flag & INT_U) && vp->val.i < 0)
+				*--s = '-';
 		}
-		if (!(vp->flag & INT_U) && vp->val.i < 0)
-			*--s = '-';
 		if (vp->flag & (RJUST|LJUST)) /* case already dealt with */
 			s = formatstr(vp, s);
 		else
@@ -401,9 +413,8 @@ int
 getint(struct tbl *vp, long int *nump, bool arith)
 {
 	char *s;
-	int c;
-	int base, neg;
-	int have_base = 0;
+	int c, base, neg;
+	bool have_base = false;
 	long num;
 
 	if (vp->flag&SPECIAL)
@@ -431,18 +442,28 @@ getint(struct tbl *vp, long int *nump, bool arith)
 				s++;
 		} else
 			base = 8;
-		have_base++;
+		have_base = true;
 	}
 	for (c = *s++; c ; c = *s++) {
 		if (c == '-') {
 			neg++;
 			continue;
 		} else if (c == '#') {
-			base = (int) num;
-			if (have_base || base < 2 || base > 36)
-				return -1;
+			base = (int)num;
+			if (have_base || base < 1 || base > 36)
+				return (-1);
+			if (base == 1) {
+				unsigned int wc;
+
+				if (!Flag(FUTFHACK))
+					wc = *(unsigned char *)s;
+				else if (utf_mbtowc(&wc, s) == (size_t)-1)
+					wc = 0xEF00 + *(unsigned char *)s;
+				*nump = (long)wc;
+				return (1);
+			}
 			num = 0;
-			have_base = 1;
+			have_base = true;
 			continue;
 		} else if (ksh_isdigit(c))
 			c -= '0';
@@ -493,7 +514,7 @@ formatstr(struct tbl *vp, const char *s)
 	char *p, *q;
 	size_t psiz;
 
-	olen = ksh_mbswidth(s);
+	olen = utf_mbswidth(s);
 
 	if (vp->flag & (RJUST|LJUST)) {
 		if (!vp->u2.field)	/* default field width */

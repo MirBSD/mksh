@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.313 2008/04/02 16:55:05 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.314 2008/04/19 22:15:00 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -760,7 +760,7 @@ phase=x
 NOWARN=$save_NOWARN	# gcc runs with -Werror until here
 ac_test expstmt '' "if the compiler supports statements as expressions" <<-'EOF'
 	#define ksh_isspace(c)	({					\
-		unsigned ksh_isspace_c = (c);				\
+		unsigned int ksh_isspace_c = (c);			\
 		(ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||	\
 		    (ksh_isspace_c == 0x20);				\
 	})

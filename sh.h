@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.206 2008/04/19 17:21:54 tg Exp $"
-#define MKSH_VERSION "R33 2008/04/16"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.207 2008/04/19 22:15:05 tg Exp $"
+#define MKSH_VERSION "R33 2008/04/19"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -156,12 +156,12 @@ typedef int bool;
 #if HAVE_EXPSTMT
 /* this macro must not evaluate its arguments several times */
 #define ksh_isspace(c)	({					\
-	unsigned ksh_isspace_c = (c);				\
+	unsigned int ksh_isspace_c = (c);			\
 	(ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||	\
 	    (ksh_isspace_c == 0x20);				\
 })
 #else
-#define ksh_isspace(c)	ksh_isspace_((unsigned)(c))
+#define ksh_isspace(c)	ksh_isspace_((unsigned int)(c))
 #endif
 
 #ifndef S_ISLNK
@@ -1054,7 +1054,7 @@ typedef char *XStringP;
 #define Xsavepos(xs, xp) ((xp) - (xs).beg)
 #define Xrestpos(xs, xp, n) ((xs).beg + (n))
 
-char *Xcheck_grow_(XString *, const char *, unsigned);
+char *Xcheck_grow_(XString *, const char *, unsigned int);
 
 /*
  * expandable vector of generic pointers
@@ -1219,9 +1219,12 @@ void x_init(void);
 int x_read(char *, size_t);
 int x_bind(const char *, const char *, int, int);
 /* UTF-8 hack stuff */
+size_t utf_mbtowc(unsigned int *, const char *);
+size_t utf_wctomb(char *, unsigned int);
 size_t utf_cptradj(const char *, const char **);
-int ksh_mbswidth(const char *);
 int utf_widthadj(const char *, const char **);
+int utf_mbswidth(const char *);
+int utf_wcwidth(unsigned int);
 /* eval.c */
 char *substitute(const char *, int);
 char **eval(const char **, int);
@@ -1439,7 +1442,7 @@ void simplify_path(char *);
 char *get_phys_path(const char *);
 void set_current_wd(char *);
 #if !HAVE_EXPSTMT
-bool ksh_isspace_(unsigned);
+bool ksh_isspace_(unsigned int);
 #endif
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);

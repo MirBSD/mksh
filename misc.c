@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.74 2008/04/19 17:21:54 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.75 2008/04/19 22:15:03 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -35,7 +35,7 @@ static char *do_phys_path(XString *, char *, const char *);
 void
 setctypes(const char *s, int t)
 {
-	unsigned i;
+	unsigned int i;
 
 	if (t & C_IFS) {
 		for (i = 0; i < UCHAR_MAX + 1; i++)
@@ -88,7 +88,7 @@ str_save(const char *s, Area *ap)
 
 /* called from XcheckN() to grow buffer */
 char *
-Xcheck_grow_(XString *xsp, const char *xp, unsigned more)
+Xcheck_grow_(XString *xsp, const char *xp, unsigned int more)
 {
 	const char *old_beg = xsp->beg;
 
@@ -185,7 +185,7 @@ options_fmt_entry(const void *arg, int i, char *buf, int buflen)
 static void
 printoptions(int verbose)
 {
-	unsigned i;
+	unsigned int i;
 
 	if (verbose) {
 		struct options_info oi;
@@ -216,7 +216,7 @@ printoptions(int verbose)
 char *
 getoptions(void)
 {
-	unsigned i;
+	unsigned int i;
 	char m[(int) FNFLAGS + 1];
 	char *cp = m;
 
@@ -1446,7 +1446,7 @@ stristr(const char *b, const char *l)
 
 #if !HAVE_EXPSTMT
 bool
-ksh_isspace_(unsigned ksh_isspace_c)
+ksh_isspace_(unsigned int ksh_isspace_c)
 {
 	return ((ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||
 	    (ksh_isspace_c == 0x20));

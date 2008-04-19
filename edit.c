@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.121 2008/04/19 17:25:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.122 2008/04/19 22:15:01 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -58,9 +58,6 @@ static int x_file_glob(int, const char *, int, char ***);
 static int x_command_glob(int, const char *, int, char ***);
 static int x_locate_word(const char *, int, int, int *, bool *);
 
-static size_t mbxtowc(unsigned *, const char *);
-static size_t wcxtomb(char *, unsigned);
-static int wcxwidth(unsigned);
 static int x_e_getmbc(char *);
 static char *utf_getcpfromcols(char *, int);
 
@@ -770,24 +767,21 @@ int
 utf_widthadj(const char *src, const char **dst)
 {
 	size_t len;
-	unsigned wc;
+	unsigned int wc;
 	int width;
 
-	if (!Flag(FUTFHACK) || *(const unsigned char *)src <= 0x7F ||
-	    (len = mbxtowc(&wc, src)) == (size_t)-1) {
-		if (dst)
-			*dst = src + 1;
-		return (1);
-	}
+	if (!Flag(FUTFHACK) || (len = utf_mbtowc(&wc, src)) == (size_t)-1)
+		len = width = 1;
+	else
+		width = utf_wcwidth(wc);
 
 	if (dst)
 		*dst = src + len;
-	width = wcxwidth(wc);
 	return (width == -1 ? 2 : width);
 }
 
 int
-ksh_mbswidth(const char *s)
+utf_mbswidth(const char *s)
 {
 	size_t len;
 	unsigned int wc;
@@ -797,8 +791,8 @@ ksh_mbswidth(const char *s)
 		return (strlen(s));
 
 	while (*s)
-		if (((len = mbxtowc(&wc, s)) == (size_t)-1) ||
-		    ((cw = wcxwidth(wc)) == -1)) {
+		if (((len = utf_mbtowc(&wc, s)) == (size_t)-1) ||
+		    ((cw = utf_wcwidth(wc)) == -1)) {
 			s++;
 			width += 1;
 		} else {
@@ -870,8 +864,8 @@ utf_getcpfromcols(char *p, int cols)
 
 __RCSID("$miros: src/lib/libc/i18n/wcwidth.c,v 1.4 2006/11/01 20:01:20 tg Exp $");
 
-static int
-wcxwidth(unsigned c)
+int
+utf_wcwidth(unsigned int c)
 {
 	static const struct cbset {
 		unsigned short first;
@@ -953,8 +947,8 @@ wcxwidth(unsigned c)
 /* --- begin of mbrtowc.c excerpt --- */
 __RCSID("$miros: src/lib/libc/i18n/mbrtowc.c,v 1.13 2006/11/01 20:01:19 tg Exp $");
 
-static size_t
-mbxtowc(unsigned *dst, const char *src)
+size_t
+utf_mbtowc(unsigned int *dst, const char *src)
 {
 	const unsigned char *s = (const unsigned char *)src;
 	unsigned int c, wc, count;
@@ -1002,29 +996,28 @@ mbxtowc(unsigned *dst, const char *src)
 /* --- begin of wcrtomb.c excerpt --- */
 __RCSID("$miros: src/lib/libc/i18n/wcrtomb.c,v 1.14 2006/11/01 20:12:44 tg Exp $");
 
-static size_t
-wcxtomb(char *src, unsigned wc)
+size_t
+utf_wctomb(char *dst, unsigned int wc)
 {
-	unsigned char *s = (unsigned char *)src;
-	unsigned int count;
+	unsigned char count, *d = (unsigned char *)dst;
 
 	if (wc > 0xFFFD)
 		wc = 0xFFFD;
 	if (wc < 0x80) {
 		count = 0;
-		*s++ = wc;
+		*d++ = wc;
 	} else if (wc < 0x0800) {
 		count = 1;
-		*s++ = (wc >> 6) | 0xC0;
+		*d++ = (wc >> 6) | 0xC0;
 	} else {
 		count = 2;
-		*s++ = (wc >> 12) | 0xE0;
+		*d++ = (wc >> 12) | 0xE0;
 	}
 
 	while (count) {
-		*s++ = ((wc >> (6 * --count)) & 0x3F) | 0x80;
+		*d++ = ((wc >> (6 * --count)) & 0x3F) | 0x80;
 	}
-	return ((char *)s - src);
+	return ((char *)d - dst);
 }
 /* --- end of wcrtomb.c excerpt --- */
 
@@ -1435,17 +1428,22 @@ x_e_getmbc(char *sbuf)
 		return (-1);
 	if (Flag(FUTFHACK)) {
 		if ((buf[0] >= 0xC2) && (buf[0] < 0xF0)) {
-			buf[pos++] = c = x_e_getc();
+			c = x_e_getc();
 			if (c == -1)
 				return (-1);
+			if ((c & 0xC0) != 0x80) {
+				x_e_ungetc(c);
+				return (1);
+			}
+			buf[pos++] = c;
 		}
 		if ((buf[0] >= 0xE0) && (buf[0] < 0xF0)) {
+			/* XXX x_e_ungetc is one-octet only */
 			buf[pos++] = c = x_e_getc();
 			if (c == -1)
 				return (-1);
 		}
 	}
-	buf[pos] = '\0';
 	return (pos);
 }
 
@@ -1910,17 +1908,24 @@ x_zotc2(int c)
 static void
 x_zotc3(char **cp)
 {
-	unsigned c = **(unsigned char **)cp;
+	unsigned char c = **(unsigned char **)cp;
 
+	if (c == 0xC2 && Flag(FUTFHACK)) {
+		unsigned char c2 = ((unsigned char *)*cp)[1];
+
+		if (c2 >= 0x80 && c2 < 0xA0) {
+			c = c2;
+			(*cp)++;
+		}
+	}
 	if (c == '\t') {
 		/*  Kludge, tabs are always four spaces.  */
 		x_e_puts("    ");
 		(*cp)++;
-	} else if (c < ' ' || c == 0x7f || (Flag(FUTFHACK) && c == 0xC2 &&
-	    ((unsigned char *)*cp)[1] < 0xA0 && mbxtowc(&c, *cp))) {
+	} else if (c < ' ' || (c >= 0x7F && c < 0xA0)) {
 		x_e_putc2('^');
 		x_e_putc2(UNCTRL(c));
-		*cp += c & 0x80 ? 2 : 1;
+		(*cp)++;
 	} else
 		x_e_putc3((const char **)cp);
 }
@@ -2372,35 +2377,35 @@ x_transpose(int c __unused)
 		 * cursor, do not change cursor position
 		 */
 		x_bs2(xcp = utf_backch(xcp));
-		if (mbxtowc(&tmpa, xcp) == (size_t)-1) {
+		if (utf_mbtowc(&tmpa, xcp) == (size_t)-1) {
 			x_e_putc2(7);
 			return KSTD;
 		}
 		x_bs2(xcp = utf_backch(xcp));
-		if (mbxtowc(&tmpb, xcp) == (size_t)-1) {
+		if (utf_mbtowc(&tmpb, xcp) == (size_t)-1) {
 			x_e_putc2(7);
 			return KSTD;
 		}
-		wcxtomb(xcp, tmpa);
+		utf_wctomb(xcp, tmpa);
 		x_zotc3(&xcp);
-		wcxtomb(xcp, tmpb);
+		utf_wctomb(xcp, tmpb);
 		x_zotc3(&xcp);
 	} else {
 		/* GNU emacs style: Swap the characters before and under the
 		 * cursor, move cursor position along one.
 		 */
-		if (mbxtowc(&tmpa, xcp) == (size_t)-1) {
+		if (utf_mbtowc(&tmpa, xcp) == (size_t)-1) {
 			x_e_putc2(7);
 			return KSTD;
 		}
 		x_bs2(xcp = utf_backch(xcp));
-		if (mbxtowc(&tmpb, xcp) == (size_t)-1) {
+		if (utf_mbtowc(&tmpb, xcp) == (size_t)-1) {
 			x_e_putc2(7);
 			return KSTD;
 		}
-		wcxtomb(xcp, tmpa);
+		utf_wctomb(xcp, tmpa);
 		x_zotc3(&xcp);
-		wcxtomb(xcp, tmpb);
+		utf_wctomb(xcp, tmpb);
 		x_zotc3(&xcp);
 	}
 	return KSTD;
@@ -2957,13 +2962,13 @@ x_e_putc2(int c)
 
 			if (c < 0xA0)
 				c = 0xFFFD;
-			x = wcxtomb(utf_tmp, c);
+			x = utf_wctomb(utf_tmp, c);
 			x_putc(utf_tmp[0]);
 			if (x > 1)
 				x_putc(utf_tmp[1]);
 			if (x > 2)
 				x_putc(utf_tmp[2]);
-			width = wcxwidth(c);
+			width = utf_wcwidth(c);
 		} else
 			x_putc(c);
 		switch (c) {

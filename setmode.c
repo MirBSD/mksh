@@ -1,5 +1,4 @@
-/**	$MirOS: src/bin/mksh/setmode.c,v 1.10 2008/04/06 23:27:19 tg Exp $ */
-/**	$miros: src/lib/libc/gen/setmode.c,v 1.9 2007/10/25 15:13:39 tg Exp $ */
+/**	$MirOS: src/bin/mksh/setmode.c,v 1.11 2008/04/19 22:15:05 tg Exp $ */
 /*	$OpenBSD: setmode.c,v 1.17 2005/08/08 08:05:34 espie Exp $	*/
 /*	$NetBSD: setmode.c,v 1.15 1997/02/07 22:21:06 christos Exp $	*/
 
@@ -58,23 +57,21 @@
 #endif
 
 __SCCSID("@(#)setmode.c	8.2 (Berkeley) 3/25/94");
-__RCSID("$MirOS: src/bin/mksh/setmode.c,v 1.10 2008/04/06 23:27:19 tg Exp $");
-__RCSID("$miros: src/lib/libc/gen/setmode.c,v 1.9 2007/10/25 15:13:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/setmode.c,v 1.11 2008/04/19 22:15:05 tg Exp $");
+__RCSID("$miros: src/lib/libc/gen/setmode.c,v 1.10 2008/04/19 16:27:23 tg Exp $");
 
 /* for mksh */
 #ifdef ksh_isdigit
 #undef isdigit
-#define isdigit ksh_isdigit
+#define isdigit 	ksh_isdigit
 #endif
 
-/* for portability */
 #ifndef S_ISTXT
 #define S_ISTXT		0001000
 #endif
 
-
-#define	SET_LEN	6		/* initial # of bitcmd struct to malloc */
-#define	SET_LEN_INCR 4		/* # of bitcmd structs to add as needed */
+#define	SET_LEN		6	/* initial # of bitcmd struct to malloc */
+#define	SET_LEN_INCR	4	/* # of bitcmd structs to add as needed */
 
 typedef struct bitcmd {
 	char	cmd;
@@ -88,7 +85,7 @@ typedef struct bitcmd {
 #define	CMD2_OBITS	0x08
 #define	CMD2_UBITS	0x10
 
-static BITCMD	*addcmd(BITCMD *, int, int, int, unsigned);
+static BITCMD	*addcmd(BITCMD *, int, int, int, unsigned int);
 static void	 compress_mode(BITCMD *);
 #ifdef SETMODE_DEBUG
 static void	 dumpmode(BITCMD *);
@@ -364,7 +361,7 @@ setmode(const char *p)
 }
 
 static BITCMD *
-addcmd(BITCMD *set, int op, int who, int oparg, unsigned mask)
+addcmd(BITCMD *set, int op, int who, int oparg, unsigned int mask)
 {
 	switch (op) {
 	case '=':

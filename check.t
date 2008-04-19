@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.177 2008/04/19 22:03:18 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.178 2008/04/19 22:15:01 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R33 2008/04/16
+	@(#)MIRBSD KSH R33 2008/04/19
 description:
 	Check version of shell.
 category: pdksh
@@ -4373,6 +4373,35 @@ expected-stdout:
 	off
 	on
 ---
+name: utf8opt-1
+description:
+	Check that the utf8-hack flag is not set at non-interactive startup
+category: pdksh
+env-setup: !PS1=!PS2=!LC_CTYPE=en_US.UTF-8!
+stdin:
+	if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then
+		print is set
+	else
+		print is not set
+	fi
+expected-stdout:
+	is not set
+---
+name: utf8opt-2
+description:
+	Check that the utf8-hack flag is set at interactive startup
+category: pdksh
+arguments: !-i!
+env-setup: !PS1=!PS2=!LC_CTYPE=en_US.UTF-8!
+stdin:
+	if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then
+		print is set
+	else
+		print is not set
+	fi
+expected-stdout:
+	is set
+---
 name: aliases-1
 description:
 	Check if built-in shell aliases are okay
@@ -4616,4 +4645,176 @@ expected-stdout:
 	baz
 	bar
 	rab
+---
+name: integer-base-one-1
+description:
+	check if the use of fake integer base 1 works
+stdin:
+	set -o utf8-hack
+	typeset -Uui16 i0=1#� i1=1#€
+	typeset -i1 o0a=64
+	typeset -i1 o1a=0x263A
+	typeset -Uui1 o0b=0x7E
+	typeset -Uui1 o1b=0xFDD0
+	integer px=0xCAFE 'p0=1# ' p1=1#… pl=1#f
+	print "in <$i0> <$i1>"
+	print "out <${o0a#1#}|${o0b#1#}> <${o1a#1#}|${o1b#1#}>"
+	typeset -Uui1 i0 i1
+	print "pass <$px> <$p0> <$p1> <$pl> <${i0#1#}|${i1#1#}>"
+	typeset -Uui16 tv1=1#~ tv2=1# tv3=1#� tv4=1#� tv5=1#� tv6=1#� tv7=1#  tv8=1#
+	print "specX <${tv1#16#}> <${tv2#16#}> <${tv3#16#}> <${tv4#16#}> <${tv5#16#}> <${tv6#16#}> <${tv7#16#}> <${tv8#16#}>"
+	typeset -i1 tv1 tv2 tv3 tv4 tv5 tv6 tv7 tv8
+	print "specW <${tv1#1#}> <${tv2#1#}> <${tv3#1#}> <${tv4#1#}> <${tv5#1#}> <${tv6#1#}> <${tv7#1#}> <${tv8#1#}>"
+	typeset -i1 xs1=0xEF7F xs2=0xEF80 xs3=0xFDD0
+	print "specU <${xs1#1#}> <${xs2#1#}> <${xs3#1#}>"
+expected-stdout:
+	in <16#EFEF> <16#20AC>
+	out <@|~> <☺|﷐>
+	pass <16#cafe> <1# > <1#…> <1#f> <�|€>
+	specX <7E> <7F> <EF80> <EF81> <EFC0> <EFC1> <A0> <80>
+	specW <~> <> <�> <�> <�> <�> < > <>
+	specU <> <�> <﷐>
+---
+name: integer-base-one-2a
+description:
+	check if the use of fake integer base 1 stops at correct characters
+stdin:
+	set -o utf8-hack
+	integer x=1#foo
+	print /$x/
+expected-stderr-pattern:
+	/1#foo: unexpected 'oo'/
+expected-exit: e != 0
+---
+name: integer-base-one-2b
+description:
+	check if the use of fake integer base 1 stops at correct characters
+stdin:
+	set -o utf8-hack
+	integer x=1#��
+	print /$x/
+expected-stderr-pattern:
+	/1#��: unexpected '�'/
+expected-exit: e != 0
+---
+name: integer-base-one-2c1
+description:
+	check if the use of fake integer base 1 stops at correct characters
+stdin:
+	set -o utf8-hack
+	integer x=1#…
+	print /$x/
+expected-stdout:
+	/1#…/
+---
+name: integer-base-one-2c2
+description:
+	check if the use of fake integer base 1 stops at correct characters
+stdin:
+	set +o utf8-hack
+	integer x=1#…
+	print /$x/
+expected-stderr-pattern:
+	/1#…: unexpected '�'/
+expected-exit: e != 0
+---
+name: integer-base-one-3a
+description:
+	some sample code for hexdumping
+stdin:
+	print 'Hello, World!\\\nこんにちは！' | {
+		typeset -Uui16 -Z11 pos=0
+		typeset -Uui16 -Z5 hv
+		typeset -i1 wc=0x0A
+		dasc=
+		nl=${wc#1#}
+		while IFS= read -r line; do
+			line=$line$nl
+			while [[ -n $line ]]; do
+				hv=1#${line::1}
+				if (( (pos & 15) == 0 )); then
+					(( pos )) && print "$dasc|"
+					print -n "${pos#16#}  "
+					dasc=' |'
+				fi
+				print -n "${hv#16#} "
+				if (( (hv < 32) || (hv > 126) )); then
+					dasc=$dasc.
+				else
+					dasc=$dasc${line::1}
+				fi
+				(( (pos++ & 15) == 7 )) && print -n -- '- '
+				line=${line:1}
+			done
+		done
+		if (( (pos & 15) != 1 )); then
+			while (( pos & 15 )); do
+				print -n '   '
+				(( (pos++ & 15) == 7 )) && print -n -- '- '
+			done
+			print "$dasc|"
+		fi
+	}
+expected-stdout:
+	00000000  48 65 6C 6C 6F 2C 20 57 - 6F 72 6C 64 21 5C 0A E3  |Hello, World!\..|
+	00000010  81 93 E3 82 93 E3 81 AB - E3 81 A1 E3 81 AF EF BC  |................|
+	00000020  81 0A                   -                          |..|
+---
+name: integer-base-one-3b
+description:
+	some sample code for hexdumping Unicode
+	as of now, doesn't work because illicit assignments break
+expected-fail: yes
+stdin:
+	set -o utf8-hack
+	print 'Hello, World!\\\nこんにちは！' | {
+		typeset -Uui16 -Z11 pos=0
+		typeset -Uui16 -Z5 hv
+		typeset -i1 wc=0x0A
+		dasc=
+		nl=${wc#1#}
+		integer n
+		while IFS= read -r line; do
+			line=$line$nl
+			while [[ -n $line ]]; do
+				if (( ${#line} > 2 )) && wc=1#${line::3}; then
+					n=3
+				elif (( ${#line} > 1 )) && wc=1#${line::2}; then
+					n=2
+				else
+					wc=1#${line::1}
+					n=3
+				fi
+				if (( (wc < 32) || \
+				    ((wc > 126) && (wc < 160)) )); then
+					dasc=$dasc.
+				elif (( wc < 0x0800 )); then
+					dasc=$dasc${wc#1#}
+				fi
+				while (( n-- )); do
+					if (( (pos & 15) == 0 )); then
+						(( pos )) && print "$dasc|"
+						print -n "${pos#16#}  "
+						dasc=' |'
+					fi
+					hv=1#${line::1}
+					print -n "${hv#16#} "
+					(( (pos++ & 15) == 7 )) && print -- '- '
+					line=${line:1}
+				done
+				(( wc >= 0x0800 )) && dasc=$dasc${wc#1#}
+			done
+		done
+		if (( pos & 15 )); then
+			while (( pos & 15 )); do
+				print -n '   '
+				(( (pos++ & 15) == 7 )) && print -- '- '
+			done
+			print "$dasc|"
+		fi
+	}
+expected-stdout:
+	00000000  48 65 6C 6C 6F 2C 20 57 - 6F 72 6C 64 21 5C 0A E3  |Hello, World!\.|
+	00000010  81 93 E3 82 93 E3 81 AB - E3 81 A1 E3 81 AF EF BC  |こんにちは|
+	00000020  81 0A                   -                          |！.|
 ---
