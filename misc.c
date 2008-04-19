@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.73 2008/04/16 21:56:02 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.74 2008/04/19 17:21:54 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -958,10 +958,7 @@ print_columns(struct shf *shf, int n,
     const void *arg, int max_width, int prefcol)
 {
 	char *str = (char *) alloc(max_width + 1, ATEMP);
-	int i;
-	int r, c;
-	int rows, cols;
-	int nspace;
+	int i, r, c, rows, cols, nspace;
 
 	/* max_width + 1 for the space.  Note that no space
 	 * is printed after the last column to avoid problems

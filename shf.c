@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.17 2008/03/28 13:28:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.18 2008/04/19 17:21:55 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -598,9 +598,7 @@ shf_puts(const char *s, struct shf *shf)
 int
 shf_write(const char *buf, int nbytes, struct shf *shf)
 {
-	int orig_nbytes = nbytes;
-	int n;
-	int ncopy;
+	int n, ncopy, orig_nbytes = nbytes;
 
 	if (!(shf->flags & SHF_WR))
 		internal_errorf("shf_write: flags %x", shf->flags);
@@ -918,7 +916,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		case 's':
 			if (!(s = va_arg(args, const char *)))
 				s = "(null)";
-			len = strlen(s);
+			len = ksh_mbswidth(s);
 			break;
 
 		case 'c':
@@ -981,8 +979,17 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 
 		if (precision > 0) {
 			nwritten += precision;
-			for ( ; precision-- > 0 ; s++)
+			if (Flag(FUTFHACK)) {
+				const char *q = s;
+				while (precision-- > 0)
+					utf_cptradj(q, &q);
+				do {
+					shf_putc(*s, shf);
+				} while (++s < q);
+			} else while (precision-- > 0) {
 				shf_putc(*s, shf);
+				s++;
+			}
 		}
 		if (field > 0) {
 			nwritten += field;

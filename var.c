@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.51 2008/02/24 15:20:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.52 2008/04/19 17:21:55 tg Exp $");
 
 /*
  * Variables
@@ -491,8 +491,9 @@ formatstr(struct tbl *vp, const char *s)
 {
 	int olen, nlen;
 	char *p, *q;
+	size_t psiz;
 
-	olen = strlen(s);
+	olen = ksh_mbswidth(s);
 
 	if (vp->flag & (RJUST|LJUST)) {
 		if (!vp->u2.field)	/* default field width */
@@ -501,25 +502,29 @@ formatstr(struct tbl *vp, const char *s)
 	} else
 		nlen = olen;
 
-	p = (char *) alloc(nlen + 1, ATEMP);
+	p = (char *)alloc((psiz = nlen * /* MB_LEN_MAX */ 3 + 1), ATEMP);
 	if (vp->flag & (RJUST|LJUST)) {
-		int slen;
+		int slen = olen, i;
 
 		if (vp->flag & RJUST) {
-			const char *qq = s + olen;
+			const char *qq = s;
+
+			for (i = 0; i < slen; ++i)
+				utf_widthadj(qq, &qq);
 			/* strip trailing spaces (at&t uses qq[-1] == ' ') */
-			while (qq > s && ksh_isspace(qq[-1]))
+			while (qq > s && ksh_isspace(qq[-1])) {
 				--qq;
-			slen = qq - s;
-			if (slen > vp->u2.field) {
-				s += slen - vp->u2.field;
-				slen = vp->u2.field;
+				--slen;
+			}
+			while (slen > vp->u2.field) {
+				utf_widthadj(s, &s);
+				--slen;
 			}
 			if (vp->u2.field - slen)
 				memset(p, (vp->flag & ZEROFIL) ? '0' : ' ',
 				    vp->u2.field - slen);
 			shf_snprintf(p + vp->u2.field - slen,
-			    nlen + 1 - (vp->u2.field - slen),
+			    psiz - (vp->u2.field - slen),
 			    "%.*s", slen, s);
 		} else {
 			/* strip leading spaces/zeros */
@@ -532,7 +537,7 @@ formatstr(struct tbl *vp, const char *s)
 				vp->u2.field, vp->u2.field, s);
 		}
 	} else
-		memcpy(p, s, olen + 1);
+		memcpy(p, s, strlen(s) + 1);
 
 	if (vp->flag & UCASEV_AL) {
 		for (q = p; *q; q++)

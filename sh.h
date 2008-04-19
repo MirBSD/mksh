@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.205 2008/04/16 21:56:03 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.206 2008/04/19 17:21:54 tg Exp $"
 #define MKSH_VERSION "R33 2008/04/16"
 
 #if HAVE_SYS_PARAM_H
@@ -1219,6 +1219,8 @@ void x_init(void);
 int x_read(char *, size_t);
 int x_bind(const char *, const char *, int, int);
 /* UTF-8 hack stuff */
+size_t utf_cptradj(const char *, const char **);
+int ksh_mbswidth(const char *);
 int utf_widthadj(const char *, const char **);
 /* eval.c */
 char *substitute(const char *, int);

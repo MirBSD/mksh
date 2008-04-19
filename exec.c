@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.41 2008/04/01 22:20:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.42 2008/04/19 17:21:53 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -1337,8 +1337,7 @@ pr_menu(const char *const *ap)
 {
 	struct select_menu_info smi;
 	const char *const *pp;
-	int nwidth, dwidth;
-	int i, n;
+	int nwidth, dwidth, i, n;
 
 	/* Width/column calculations were done once and saved, but this
 	 * means select can't be used recursively so we re-calculate each
@@ -1350,7 +1349,7 @@ pr_menu(const char *const *ap)
 	 * get dimensions of the list
 	 */
 	for (n = 0, nwidth = 0, pp = ap; *pp; n++, pp++) {
-		i = strlen(*pp);
+		i = ksh_mbswidth(*pp);
 		nwidth = (i > nwidth) ? i : nwidth;
 	}
 	/*
@@ -1365,7 +1364,7 @@ pr_menu(const char *const *ap)
 	smi.args = ap;
 	smi.arg_width = nwidth;
 	smi.num_width = dwidth;
-	print_columns(shl_out, n, select_fmt_entry, (void *) &smi,
+	print_columns(shl_out, n, select_fmt_entry, (void *)&smi,
 	    dwidth + nwidth + 2, 1);
 
 	return n;
@@ -1386,14 +1385,14 @@ int
 pr_list(char *const *ap)
 {
 	char *const *pp;
-	int nwidth;
-	int i, n;
+	int nwidth, i, n;
 
 	for (n = 0, nwidth = 0, pp = ap; *pp; n++, pp++) {
-		i = strlen(*pp);
+		i = ksh_mbswidth(*pp);
 		nwidth = (i > nwidth) ? i : nwidth;
 	}
-	print_columns(shl_out, n, plain_fmt_entry, (const void *)ap, nwidth + 1, 0);
+	print_columns(shl_out, n, plain_fmt_entry, (const void *)ap,
+	    nwidth + 1, 0);
 
 	return n;
 }
