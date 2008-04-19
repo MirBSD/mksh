@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.52 2008/04/19 17:21:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.53 2008/04/19 21:04:09 tg Exp $");
 
 /*
  * Variables
@@ -508,6 +508,7 @@ formatstr(struct tbl *vp, const char *s)
 
 		if (vp->flag & RJUST) {
 			const char *qq = s;
+			int n = 0;
 
 			for (i = 0; i < slen; ++i)
 				utf_widthadj(qq, &qq);
@@ -516,13 +517,26 @@ formatstr(struct tbl *vp, const char *s)
 				--qq;
 				--slen;
 			}
+			if (vp->flag & ZEROFIL && vp->flag & INTEGER) {
+				if (s[1] == '#')
+					n = 2;
+				else if (s[2] == '#')
+					n = 3;
+				if (vp->u2.field <= n)
+					n = 0;
+			}
+			if (n) {
+				memcpy(p, s, n);
+				s += n;
+			}
 			while (slen > vp->u2.field) {
 				utf_widthadj(s, &s);
 				--slen;
 			}
 			if (vp->u2.field - slen)
-				memset(p, (vp->flag & ZEROFIL) ? '0' : ' ',
+				memset(p + n, (vp->flag & ZEROFIL) ? '0' : ' ',
 				    vp->u2.field - slen);
+			slen -= n;
 			shf_snprintf(p + vp->u2.field - slen,
 			    psiz - (vp->u2.field - slen),
 			    "%.*s", slen, s);
