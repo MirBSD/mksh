@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.176 2008/04/19 21:04:08 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.177 2008/04/19 22:03:18 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4183,8 +4183,8 @@ description:
 stdin:
 	set -o braceexpand
 	set +o posix
-	set +o | fgrep posix >/dev/null && echo posix || echo noposix
-	set +o | fgrep braceexpand >/dev/null && echo brex || echo nobrex
+	[[ $(set +o) == *@(-o posix)@(| *) ]] && echo posix || echo noposix
+	[[ $(set +o) == *@(-o braceexpand)@(| *) ]] && echo brex || echo nobrex
 	echo {a,b,c}
 	set +o braceexpand
 	echo {a,b,c}
@@ -4192,12 +4192,12 @@ stdin:
 	echo {a,b,c}
 	set -o posix
 	echo {a,b,c}
-	set +o | fgrep posix >/dev/null && echo posix || echo noposix
-	set +o | fgrep braceexpand >/dev/null && echo brex || echo nobrex
+	[[ $(set +o) == *@(-o posix)@(| *) ]] && echo posix || echo noposix
+	[[ $(set +o) == *@(-o braceexpand)@(| *) ]] && echo brex || echo nobrex
 	set -o braceexpand
 	echo {a,b,c}
-	set +o | fgrep posix >/dev/null && echo posix || echo noposix
-	set +o | fgrep braceexpand >/dev/null && echo brex || echo nobrex
+	[[ $(set +o) == *@(-o posix)@(| *) ]] && echo posix || echo noposix
+	[[ $(set +o) == *@(-o braceexpand)@(| *) ]] && echo brex || echo nobrex
 expected-stdout:
 	noposix
 	brex
@@ -4367,8 +4367,8 @@ description:
 	Reading the UTF-8 BOM should enable the utf8-hack flag
 category: pdksh,!dutf
 stdin:
-	"$__progname" -c ':; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'
-	"$__progname" -c '﻿:; x=$(set +o); if [[ $x = *utf8* ]]; then print on; else print off; fi'
+	"$__progname" -c ':; if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then print on; else print off; fi'
+	"$__progname" -c '﻿:; if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then print on; else print off; fi'
 expected-stdout:
 	off
 	on

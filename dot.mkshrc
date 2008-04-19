@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.31 2008/04/11 20:14:02 tg Rel $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.32 2008/04/19 22:03:19 tg Stab $
 #-
 # Copyright (c) 2007, 2008
 #	Thorsten “mirabilos” Glaser <tg@mirbsd.de>
@@ -90,7 +90,7 @@ function dirs {
 	typeset d
 	typeset -i isnoglob=0 fl=0 fv=0 fn=0 cpos=0
 
-	[[ $(set +o) == *-o\ noglob* ]] && isnoglob=1
+	[[ $(set +o) == *@(-o noglob)@(| *) ]] && isnoglob=1
 	set -o noglob
 	while getopts ":lvn" d; do
 		case $d {
@@ -135,7 +135,7 @@ function popd {
 	typeset d fa
 	typeset -i isnoglob=0 n=1
 
-	[[ $(set +o) == *-o\ noglob* ]] && isnoglob=1
+	[[ $(set +o) == *@(-o noglob)@(| *) ]] && isnoglob=1
 	set -o noglob
 	while getopts ":0123456789lvn" d; do
 		case $d {
@@ -174,7 +174,7 @@ function pushd {
 	typeset d fa
 	typeset -i isnoglob=0 n=1
 
-	[[ $(set +o) == *-o\ noglob* ]] && isnoglob=1
+	[[ $(set +o) == *@(-o noglob)@(| *) ]] && isnoglob=1
 	set -o noglob
 	while getopts ":0123456789lvn" d; do
 		case $d {
