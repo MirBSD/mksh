@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.179 2008/04/19 23:49:58 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.180 2008/04/20 00:11:29 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4613,6 +4613,19 @@ stdin:
 expected-stdout:
 	<d��Û€Û@>
 ---
+name: print-nul-chars
+description:
+	Check handling of NUL characters for print and read
+	note: second line should output “4 3” but we cannot
+	handle NUL characters in strings yet
+stdin:
+	print $(($(print '<\0>' | wc -c)))
+	x=$(print '<\0>')
+	print $(($(print "$x" | wc -c))) ${#x}
+expected-stdout:
+	4
+	3 2
+---
 name: dot-needs-argument
 description:
 	check Debian #415167 solution: '.' without arguments should fail
@@ -4725,6 +4738,8 @@ stdin:
 	{
 		print 'Hello, World!\\\nこんにちは！'
 		typeset -Uui16 i=0x100
+		# change that to 0xFF once we can handle embedded
+		# NUL characters in strings / here documents
 		while (( i++ < 0x1FF )); do
 			print -n "\x${i#16#1}"
 		done
@@ -4791,6 +4806,8 @@ stdin:
 	{
 		print 'Hello, World!\\\nこんにちは！'
 		typeset -Uui16 i=0x100
+		# change that to 0xFF once we can handle embedded
+		# NUL characters in strings / here documents
 		while (( i++ < 0x1FF )); do
 			print -n "\u${i#16#1}"
 		done
