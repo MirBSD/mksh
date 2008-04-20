@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.123 2008/04/19 22:50:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.124 2008/04/20 00:03:50 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -59,7 +59,7 @@ static int x_command_glob(int, const char *, int, char ***);
 static int x_locate_word(const char *, int, int, int *, bool *);
 
 static int x_e_getmbc(char *);
-static char *utf_getcpfromcols(char *, int);
+static inline char *utf_getcpfromcols(char *, int);
 
 /* +++ generic editing functions +++ */
 
@@ -803,46 +803,32 @@ utf_mbswidth(const char *s)
 	return (width);
 }
 
-size_t
+void
 utf_cptradj(const char *src, const char **dst)
 {
 	size_t len;
 
-	if (!Flag(FUTFHACK) || *(const unsigned char *)src < 0xC2)
+	if (!Flag(FUTFHACK) || *(const unsigned char *)src < 0xC2 ||
+	    (len = utf_mbtowc(NULL, src)) == (size_t)-1)
 		len = 1;
-	else if (*(const unsigned char *)src < 0xE0)
-		len = 2;
-	else if (*(const unsigned char *)src < 0xF0)
-		len = 3;
-	else
-		len = 1;
-
-	if (len > 1)
-		if ((*(const unsigned char *)(src + 1) & 0xC0) != 0x80)
-			len = 1;
-	if (len > 2)
-		if ((*(const unsigned char *)(src + 2) & 0xC0) != 0x80)
-			len = 1;
 	if (dst)
 		*dst = src + len;
-	return (len);
+	/* return (len); */
 }
 
 #if HAVE_EXPSTMT
-#define utf_ptradj(s,d) ({		\
-	union mksh_cchack out;		\
-	char **dst = (d);		\
-	size_t rv;			\
-					\
-	rv = utf_cptradj((s), &out.ro);	\
-	if (dst)			\
-		*dst = out.rw;		\
+#define utf_ptradj(s,d) ({			\
+	union mksh_cchack utf_ptradj_o;		\
+	char **utf_ptradj_d = (d);		\
+						\
+	utf_cptradj((s), &utf_ptradj_o.ro);	\
+	*utf_ptradj_d = utf_ptradj_o.rw;	\
 })
 #else
 #define utf_ptradj(s,d) utf_cptradj((s), (const char **)(d))
 #endif
 
-static char *
+static inline char *
 utf_getcpfromcols(char *p, int cols)
 {
 	int c = 0;
