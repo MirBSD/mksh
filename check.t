@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.183 2008/04/20 00:45:49 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.184 2008/04/20 00:56:17 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4814,8 +4814,9 @@ stdin:
 		print
 		print \\xff		# invalid utf-8
 		print \\xc2		# invalid 2-byte
-		print \\xef\\xbf\\x80	# invalid 3-byte
-		print \\xc2\\x80	# non-minimalistic
+		print \\xef\\xbf\\xc0	# invalid 3-byte
+		print \\xc0\\x80	# non-minimalistic
+		print \\xe0\\x80\\x80	# non-minimalistic
 	} | {
 		typeset -Uui16 -Z11 pos=0
 		typeset -Uui16 -Z5 hv
@@ -4834,10 +4835,21 @@ stdin:
 				else
 					n=3
 				fi
-	(( n == 1 )) || eval integer 'x=1#${line::n}' 2>/dev/null || print -u2 on 1#${line::n}
-				(( n == 1 )) || \
-				    (integer x=1#${line::n}) 2>/dev/null || n=1
+				if (( n > 1 )); then
+					(( hv = 1#${line:1:1} & 0xFF ))
+					(( (hv & 0xC0) == 0x80 )) || n=1
+				fi
+				if (( n > 2 )); then
+					(( hv = 1#${line:2:1} & 0xFF ))
+					(( (hv & 0xC0) == 0x80 )) || n=1
+				fi
 				wc=1#${line::n}
+				if (( (wc & 0xFF80) == 0xEF80 )); then
+				#if (( ((n == 2) && ((wc < 0x80)) || \
+				#      ((n == 3) && (wc < 0x800)) )); then
+					n=1
+					wc=1#${line::n}
+				fi
 				if (( (wc < 32) || \
 				    ((wc > 126) && (wc < 160)) )); then
 					dch=.
@@ -4900,5 +4912,6 @@ expected-stdout:
 	00000170  A7 C3 A8 C3 A9 C3 AA C3 - AB C3 AC C3 AD C3 AE C3  |èéêëìíîï|
 	00000180  AF C3 B0 C3 B1 C3 B2 C3 - B3 C3 B4 C3 B5 C3 B6 C3  |ðñòóôõö÷|
 	00000190  B7 C3 B8 C3 B9 C3 BA C3 - BB C3 BC C3 BD C3 BE C3  |øùúûüýþÿ|
-	000001A0  BF 0A FF 0A C2 0A EF BF - 80 0A C2 80 0A           |.�.�.��.��.|
+	000001A0  BF 0A FF 0A C2 0A EF BF - C0 0A C0 80 0A E0 80 80  |.�.�.���.��.���|
+	000001B0  0A                      -                          |.|
 ---
