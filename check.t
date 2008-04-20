@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.185 2008/04/20 01:12:52 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.186 2008/04/20 01:23:49 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4794,7 +4794,7 @@ expected-stderr-pattern:
 	/1#���: unexpected '�'/
 expected-exit: e != 0
 ---
-name: integer-base-one-3
+name: integer-base-one-3a
 description:
 	some sample code for hexdumping
 stdin:
@@ -4860,4 +4860,120 @@ expected-stdout:
 	00000100  DF E0 E1 E2 E3 E4 E5 E6 - E7 E8 E9 EA EB EC ED EE  |................|
 	00000110  EF F0 F1 F2 F3 F4 F5 F6 - F7 F8 F9 FA FB FC FD FE  |................|
 	00000120  FF 0A                   -                          |..|
+---
+name: integer-base-one-3b
+description:
+	some sample code for hexdumping Unicode
+stdin:
+	set -o utf8-hack
+	{
+		print 'Hello, World!\\\nこんにちは！'
+		typeset -Uui16 i=0x100
+		# change that to 0xFF once we can handle embedded
+		# NUL characters in strings / here documents
+		while (( i++ < 0x1FF )); do
+			print -n "\u${i#16#1}"
+		done
+		print
+		print \\xff		# invalid utf-8
+		print \\xc2		# invalid 2-byte
+		print \\xef\\xbf\\xc0	# invalid 3-byte
+		print \\xc0\\x80	# non-minimalistic
+		print \\xe0\\x80\\x80	# non-minimalistic
+		print '�￾￿'	# end of range
+	} | {
+		typeset -Uui16 -Z11 pos=0
+		typeset -Uui16 -Z5 hv
+		typeset -i1 wc=0x0A
+		dasc=
+		nl=${wc#1#}
+		integer n
+		while IFS= read -r line; do
+			line=$line$nl
+			while [[ -n $line ]]; do
+				(( hv = 1#${line::1} & 0xFF ))
+				if (( (hv < 0xC2) || (hv >= 0xF0) )); then
+					n=1
+				elif (( hv < 0xE0 )); then
+					n=2
+				else
+					n=3
+				fi
+				if (( n > 1 )); then
+					(( (1#${line:1:1} & 0xC0) == 0x80 )) || n=1
+					(( hv == 0xE0 )) && \
+					    (( (1#${line:1:1} & 0xFF) < 0xA0 )) && n=1
+				fi
+				if (( n > 2 )); then
+					(( hv = 1#${line:2:1} & 0xFF ))
+					(( (hv & 0xC0) == 0x80 )) || n=1
+					(( (((1#${line::1} & 0xFF) == 0xEF) && \
+					    ((1#${line:1:1} & 0xFF) == 0xBF) && \
+					    (hv > 0xBD)) )) && n=1
+				fi
+				wc=1#${line::n}
+				if (( (wc < 32) || \
+				    ((wc > 126) && (wc < 160)) )); then
+					dch=.
+				elif (( (wc & 0xFF80) == 0xEF80 )); then
+					dch=�
+				else
+					dch=${wc#1#}
+				fi
+				if (( (pos & 15) >= (n == 3 ? 14 : 15) )); then
+					dasc=$dasc$dch
+					dch=
+				fi
+				while (( n-- )); do
+					if (( (pos & 15) == 0 )); then
+						(( pos )) && print "$dasc|"
+						print -n "${pos#16#}  "
+						dasc=' |'
+					fi
+					hv=1#${line::1}
+					print -n "${hv#16#} "
+					(( (pos++ & 15) == 7 )) && \
+					    print -n -- '- '
+					line=${line:1}
+				done
+				dasc=$dasc$dch
+			done
+		done
+		if (( pos & 15 )); then
+			while (( pos & 15 )); do
+				print -n '   '
+				(( (pos++ & 15) == 7 )) && print -n -- '- '
+			done
+			print "$dasc|"
+		fi
+	}
+expected-stdout:
+	00000000  48 65 6C 6C 6F 2C 20 57 - 6F 72 6C 64 21 5C 0A E3  |Hello, World!\.こ|
+	00000010  81 93 E3 82 93 E3 81 AB - E3 81 A1 E3 81 AF EF BC  |んにちは！|
+	00000020  81 0A 01 02 03 04 05 06 - 07 08 09 0A 0B 0C 0D 0E  |...............|
+	00000030  0F 10 11 12 13 14 15 16 - 17 18 19 1A 1B 1C 1D 1E  |................|
+	00000040  1F 20 21 22 23 24 25 26 - 27 28 29 2A 2B 2C 2D 2E  |. !"#$%&'()*+,-.|
+	00000050  2F 30 31 32 33 34 35 36 - 37 38 39 3A 3B 3C 3D 3E  |/0123456789:;<=>|
+	00000060  3F 40 41 42 43 44 45 46 - 47 48 49 4A 4B 4C 4D 4E  |?@ABCDEFGHIJKLMN|
+	00000070  4F 50 51 52 53 54 55 56 - 57 58 59 5A 5B 5C 5D 5E  |OPQRSTUVWXYZ[\]^|
+	00000080  5F 60 61 62 63 64 65 66 - 67 68 69 6A 6B 6C 6D 6E  |_`abcdefghijklmn|
+	00000090  6F 70 71 72 73 74 75 76 - 77 78 79 7A 7B 7C 7D 7E  |opqrstuvwxyz{|}~|
+	000000A0  7F C2 80 C2 81 C2 82 C2 - 83 C2 84 C2 85 C2 86 C2  |.........|
+	000000B0  87 C2 88 C2 89 C2 8A C2 - 8B C2 8C C2 8D C2 8E C2  |........|
+	000000C0  8F C2 90 C2 91 C2 92 C2 - 93 C2 94 C2 95 C2 96 C2  |........|
+	000000D0  97 C2 98 C2 99 C2 9A C2 - 9B C2 9C C2 9D C2 9E C2  |........|
+	000000E0  9F C2 A0 C2 A1 C2 A2 C2 - A3 C2 A4 C2 A5 C2 A6 C2  | ¡¢£¤¥¦§|
+	000000F0  A7 C2 A8 C2 A9 C2 AA C2 - AB C2 AC C2 AD C2 AE C2  |¨©ª«¬­®¯|
+	00000100  AF C2 B0 C2 B1 C2 B2 C2 - B3 C2 B4 C2 B5 C2 B6 C2  |°±²³´µ¶·|
+	00000110  B7 C2 B8 C2 B9 C2 BA C2 - BB C2 BC C2 BD C2 BE C2  |¸¹º»¼½¾¿|
+	00000120  BF C3 80 C3 81 C3 82 C3 - 83 C3 84 C3 85 C3 86 C3  |ÀÁÂÃÄÅÆÇ|
+	00000130  87 C3 88 C3 89 C3 8A C3 - 8B C3 8C C3 8D C3 8E C3  |ÈÉÊËÌÍÎÏ|
+	00000140  8F C3 90 C3 91 C3 92 C3 - 93 C3 94 C3 95 C3 96 C3  |ÐÑÒÓÔÕÖ×|
+	00000150  97 C3 98 C3 99 C3 9A C3 - 9B C3 9C C3 9D C3 9E C3  |ØÙÚÛÜÝÞß|
+	00000160  9F C3 A0 C3 A1 C3 A2 C3 - A3 C3 A4 C3 A5 C3 A6 C3  |àáâãäåæç|
+	00000170  A7 C3 A8 C3 A9 C3 AA C3 - AB C3 AC C3 AD C3 AE C3  |èéêëìíîï|
+	00000180  AF C3 B0 C3 B1 C3 B2 C3 - B3 C3 B4 C3 B5 C3 B6 C3  |ðñòóôõö÷|
+	00000190  B7 C3 B8 C3 B9 C3 BA C3 - BB C3 BC C3 BD C3 BE C3  |øùúûüýþÿ|
+	000001A0  BF 0A FF 0A C2 0A EF BF - C0 0A C0 80 0A E0 80 80  |.�.�.���.��.���|
+	000001B0  0A EF BF BD EF BF BE EF - BF BF 0A                 |.�������.|
 ---
