@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.119 2008/04/19 23:49:59 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.120 2008/04/20 00:24:25 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.121 2008/03/21 12:51:19 millert Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: April 19 2008 $
+.Dd $Mdocdate: April 20 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -2118,7 +2118,6 @@ transparent) ASCII or Unicode codepoints, depending on the shell's
 flag (current setting).
 In Unicode mode, raw octets are mapped into the range EF80..EFFF,
 which is in the PUA and has been assigned by CSUR for this use.
-Base 1 integers can only be the last part of an assignment.
 .Pp
 The operators are evaluated as follows:
 .Bl -tag -width Ds -offset indent

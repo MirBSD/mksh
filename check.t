@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.180 2008/04/20 00:11:29 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.181 2008/04/20 00:24:25 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R33 2008/04/19
+	@(#)MIRBSD KSH R33 2008/04/20
 description:
 	Check version of shell.
 category: pdksh
@@ -4822,14 +4822,15 @@ stdin:
 		while IFS= read -r line; do
 			line=$line$nl
 			while [[ -n $line ]]; do
-				if (( ${#line} > 2 )) && let wc="1#${line::3}"; then
-					n=3
-				elif (( ${#line} > 1 )) && let wc="1#${line::2}"; then
+				(( hv = 1#${line::1} & 0xFF ))
+				if (( hv < 0xC2 )); then
+					n=1
+				elif (( hv < 0xE0 )); then
 					n=2
 				else
-					wc=1#${line::1}
-					n=1
+					n=3
 				fi
+				wc=1#${line::n}
 				if (( (wc < 32) || \
 				    ((wc > 126) && (wc < 160)) )); then
 					dch=.
