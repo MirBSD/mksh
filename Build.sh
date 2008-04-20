@@ -1,8 +1,9 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.314 2008/04/19 22:15:00 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.315 2008/04/20 02:15:12 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
+#			MKSH_CLS_STRING
 
 v() {
 	$e "$*"
@@ -1007,7 +1008,7 @@ ac_test arc4random_pushb arc4random 0 <<-'EOF'
 EOF
 LIBS=$save_LIBS
 
-ac_test flock_ex '' 'flock and mmap' <<-'EOF'
+ac_testn flock_ex '' 'flock and mmap' <<-'EOF'
 	#include <sys/types.h>
 	#include <sys/file.h>
 	#include <sys/mman.h>
