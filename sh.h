@@ -8,7 +8,7 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.209 2008/04/20 00:24:26 tg Exp $"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.210 2008/04/20 01:41:57 tg Exp $"
 #define MKSH_VERSION "R33 2008/04/20"
 
 #if HAVE_SYS_PARAM_H
@@ -1207,8 +1207,9 @@ void *alloc(size_t, Area *);
 void *aresize(void *, size_t, Area *);
 void afree(void *, Area *);
 #define afreechk(s)	do {		\
-	if (s)				\
-		afree(s, ATEMP);	\
+	void *afree_t = (s);		\
+	if (afree_t)			\
+		afree(afree_t, ATEMP);	\
 } while (0)
 #define afreechv(v,s)	do {		\
 	if (v)				\
