@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.121 2008/04/20 01:12:52 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.122 2008/04/20 01:47:59 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.121 2008/03/21 12:51:19 millert Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -2123,7 +2123,7 @@ octet not forming a valid and minimal CESU-8 sequence is passed, the
 behaviour is undefined (usually, the shell aborts with a parse error,
 but rarely, it succeeds, e.g. on the sequence C2 20).
 That's why you should always use ASCII mode unless you know that the
-input is well-formed CESU-8 (UTF-8 BMP, 0000..FFFD) Unicode.
+input is well-formed UTF-8 in the range of 0000..FFFD.
 .Pp
 The operators are evaluated as follows:
 .Bl -tag -width Ds -offset indent
