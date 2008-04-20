@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.186 2008/04/20 01:23:49 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.187 2008/04/20 21:30:28 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4977,3 +4977,16 @@ expected-stdout:
 	000001A0  BF 0A FF 0A C2 0A EF BF - C0 0A C0 80 0A E0 80 80  |.�.�.���.��.���|
 	000001B0  0A EF BF BD EF BF BE EF - BF BF 0A                 |.�������.|
 ---
+name: ulimit-1
+description:
+	Check if we can use a specific syntax idiom for ulimit
+stdin:
+	if ! x=$(ulimit -d); then
+		print expected to fail on this OS
+	else
+		ulimit -dS $x && print okay
+	fi
+expected-stdout:
+	okay
+---
+

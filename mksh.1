@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.122 2008/04/20 01:47:59 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.123 2008/04/20 21:30:29 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.121 2008/03/21 12:51:19 millert Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -4092,16 +4092,15 @@ unless they are also given on the same command line.
 .Pp
 .It Xo
 .Ic ulimit
-.Op Fl acdfHLlmnpSsTtvw Op Ar value
-.Ar ...
+.Op Fl acdfHLlmnpSsTtvw
+.Op Ar value
 .Xc
 Display or set process limits.
 If no options are used, the file size limit
 .Pq Fl f
 is assumed.
 .Ar value ,
-if specified, may be either an arithmetic expression starting with a
-number or the word
+if specified, may be either an arithmetic expression or the word
 .Dq unlimited .
 The limits affect the shell and any processes created by the shell after a
 limit is imposed.
