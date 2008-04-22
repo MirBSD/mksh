@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.c,v 1.33 2008/03/21 12:51:19 millert Exp $	*/
+/*	$OpenBSD: misc.c,v 1.32 2007/08/02 11:05:54 fgsch Exp $	*/
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.76 2008/04/22 18:57:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.77 2008/04/22 19:00:01 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -809,10 +809,10 @@ ksh_getopt_reset(Getopt *go, int flags)
  *	  the option is missing).
  *	  Used for 'read -u2', 'print -u2' and fc -40.
  *	- '#' is like ':' in options, expect that the argument is optional
- *	  and must start with a digit or be the string "unlimited".  If the
- *	  argument doesn't match, it is assumed to be missing and normal option
- *	  processing continues (optarg is set to 0 if the option is missing).
- *	  Used for 'typeset -LZ4' and 'ulimit -adunlimited'.
+ *	  and must start with a digit.  If the argument doesn't start with a
+ *	  digit, it is assumed to be missing and normal option processing
+ *	  continues (optarg is set to 0 if the option is missing).
+ *	  Used for 'typeset -LZ4'.
  *	- accepts +c as well as -c IF the GF_PLUSOPT flag is present.  If an
  *	  option starting with + is accepted, the GI_PLUS flag will be set
  *	  in go->info.
@@ -895,16 +895,13 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 		 * argument is missing.
 		 */
 		if (argv[go->optind - 1][go->p]) {
-			if (ksh_isdigit(argv[go->optind - 1][go->p]) ||
-			    !strcmp(&argv[go->optind - 1][go->p], "unlimited")) {
+			if (ksh_isdigit(argv[go->optind - 1][go->p])) {
 				go->optarg = argv[go->optind - 1] + go->p;
 				go->p = 0;
 			} else
 				go->optarg = NULL;
 		} else {
-			if (argv[go->optind] &&
-			    (ksh_isdigit(argv[go->optind][0]) ||
-			    !strcmp(argv[go->optind], "unlimited"))) {
+			if (argv[go->optind] && ksh_isdigit(argv[go->optind][0])) {
 				go->optarg = argv[go->optind++];
 				go->p = 0;
 			} else
