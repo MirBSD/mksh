@@ -3,7 +3,15 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.58 2008/03/05 16:54:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.58.2.1 2008/04/22 13:29:27 tg Exp $");
+
+/*-
+ * MirOS: This is the default mapping type, and need not be specified.
+ * IRIX doesn’t have this constant.
+ */
+#ifndef MAP_FILE
+#define MAP_FILE	0
+#endif
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -655,8 +663,8 @@ hist_init(Source *s)
 		/*
 		 * we have some data
 		 */
-		base = mmap(NULL, hsize, PROT_READ, MAP_FILE | MAP_PRIVATE,
-		    histfd, 0);
+		base = (void *)mmap(NULL, hsize, PROT_READ,
+		    MAP_FILE | MAP_PRIVATE, histfd, 0);
 		/*
 		 * check on its validity
 		 */
@@ -885,7 +893,7 @@ writehistfile(int lno, char *cmd)
 		if (sizenow > hsize) {
 			/* someone has added some lines */
 			bytes = sizenow - hsize;
-			base = mmap(NULL, sizenow, PROT_READ,
+			base = (void *)mmap(NULL, sizenow, PROT_READ,
 			    MAP_FILE | MAP_PRIVATE, histfd, 0);
 			if (base == (unsigned char *)MAP_FAILED)
 				goto bad;

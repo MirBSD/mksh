@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.39 2007/10/25 13:27:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.39.2.1 2008/04/22 13:29:24 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -13,7 +13,7 @@ static int iosetup(struct ioword *, struct tbl *);
 static int herein(const char *, int);
 static const char *do_selectargs(const char **, bool);
 static int dbteste_isa(Test_env *, Test_meta);
-static const char *dbteste_getopnd(Test_env *, Test_op, int);
+static const char *dbteste_getopnd(Test_env *, Test_op, bool);
 static void dbteste_error(Test_env *, int, const char *);
 
 /*
@@ -109,14 +109,14 @@ execute(struct op *volatile t,
 		e->savefd[1] = savefd(1);
 		while (t->type == TPIPE) {
 			openpipe(pv);
-			(void) ksh_dup2(pv[1], 1, false); /* stdout of curr */
+			ksh_dup2(pv[1], 1, false); /* stdout of curr */
 			/* Let exchild() close pv[0] in child
 			 * (if this isn't done, commands like
 			 *    (: ; cat /etc/termcap) | sleep 1
 			 *  will hang forever).
 			 */
 			exchild(t->left, flags|XPIPEO|XCCLOSE, pv[0]);
-			(void) ksh_dup2(pv[0], 0, false); /* stdin of next */
+			ksh_dup2(pv[0], 0, false); /* stdin of next */
 			closepipe(pv);
 			flags |= XPIPEI;
 			t = t->right;
@@ -1445,7 +1445,7 @@ dbteste_isa(Test_env *te, Test_meta meta)
 }
 
 static const char *
-dbteste_getopnd(Test_env *te, Test_op op, int do_eval)
+dbteste_getopnd(Test_env *te, Test_op op, bool do_eval)
 {
 	const char *s = *te->pos.wp;
 

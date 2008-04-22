@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.13 2007/10/25 15:19:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.13.2.1 2008/04/22 13:29:25 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -35,28 +35,27 @@ enum token {
 #define IS_BINOP(op) (((int)op) >= (int)O_EQ && ((int)op) <= (int)O_COMMA)
 #define IS_ASSIGNOP(op)	((int)(op) >= (int)O_ASN && (int)(op) <= (int)O_BORASN)
 
-enum prec {
-	P_PRIMARY = 0,		/* VAR, LIT, (), ~ ! - + */
-	P_MULT,			/* * / % */
-	P_ADD,			/* + - */
-	P_SHIFT,		/* << >> */
-	P_RELATION,		/* < <= > >= */
-	P_EQUALITY,		/* == != */
-	P_BAND,			/* & */
-	P_BXOR,			/* ^ */
-	P_BOR,			/* | */
-	P_LAND,			/* && */
-	P_LOR,			/* || */
-	P_TERN,			/* ?: */
-	P_ASSIGN,		/* = *= /= %= += -= <<= >>= &= ^= |= */
-	P_COMMA			/* , */
-};
+/* precisions; used to be enum prec but we do arithmetics on it */
+#define P_PRIMARY	0	/* VAR, LIT, (), ~ ! - + */
+#define P_MULT		1	/* * / % */
+#define P_ADD		2	/* + - */
+#define P_SHIFT		3	/* << >> */
+#define P_RELATION	4	/* < <= > >= */
+#define P_EQUALITY	5	/* == != */
+#define P_BAND		6	/* & */
+#define P_BXOR		7	/* ^ */
+#define P_BOR		8	/* | */
+#define P_LAND		9	/* && */
+#define P_LOR		10	/* || */
+#define P_TERN		11	/* ?: */
+#define P_ASSIGN	12	/* = *= /= %= += -= <<= >>= &= ^= |= */
+#define P_COMMA		13	/* , */
 #define MAX_PREC	P_COMMA
 
 struct opinfo {
 	char		name[4];
 	int		len;	/* name length */
-	enum prec	prec;	/* precedence: lower is higher */
+	int		prec;	/* precedence: lower is higher */
 };
 
 /* Tokens in this table must be ordered so the longest are first
@@ -124,7 +123,7 @@ enum error_type {
 
 static void evalerr(Expr_state *, enum error_type, const char *)
     __attribute__((noreturn));
-static struct tbl *evalexpr(Expr_state *, enum prec);
+static struct tbl *evalexpr(Expr_state *, int);
 static void exprtoken(Expr_state *);
 static struct tbl *do_ppmm(Expr_state *, enum token, struct tbl *, bool);
 static void assign_check(Expr_state *, enum token, struct tbl *);
@@ -260,7 +259,7 @@ evalerr(Expr_state *es, enum error_type type, const char *str)
 }
 
 static struct tbl *
-evalexpr(Expr_state *es, enum prec prec)
+evalexpr(Expr_state *es, int prec)
 {
 	struct tbl *vl, *vr = NULL, *vasn;
 	enum token op;
@@ -302,7 +301,7 @@ evalexpr(Expr_state *es, enum prec prec)
 		}
 		return (vl);
 	}
-	vl = evalexpr(es, ((int) prec) - 1);
+	vl = evalexpr(es, prec - 1);
 	for (op = es->tok; IS_BINOP(op) && opinfo[(int) op].prec == prec;
 	    op = es->tok) {
 		exprtoken(es);
@@ -313,7 +312,7 @@ evalexpr(Expr_state *es, enum prec prec)
 			assign_check(es, op, vasn);
 			vr = intvar(es, evalexpr(es, P_ASSIGN));
 		} else if (op != O_TERN && op != O_LAND && op != O_LOR)
-			vr = intvar(es, evalexpr(es, ((int) prec) - 1));
+			vr = intvar(es, evalexpr(es, prec - 1));
 		if ((op == O_DIV || op == O_MOD || op == O_DIVASN ||
 		    op == O_MODASN) && vr->val.i == 0) {
 			if (es->noassign)
@@ -383,7 +382,7 @@ evalexpr(Expr_state *es, enum prec prec)
 		case O_LAND:
 			if (!vl->val.i)
 				es->noassign++;
-			vr = intvar(es, evalexpr(es, ((int) prec) - 1));
+			vr = intvar(es, evalexpr(es, prec - 1));
 			res = vl->val.i && vr->val.i;
 			if (!vl->val.i)
 				es->noassign--;
@@ -391,7 +390,7 @@ evalexpr(Expr_state *es, enum prec prec)
 		case O_LOR:
 			if (vl->val.i)
 				es->noassign++;
-			vr = intvar(es, evalexpr(es, ((int) prec) - 1));
+			vr = intvar(es, evalexpr(es, prec - 1));
 			res = vl->val.i || vr->val.i;
 			if (vl->val.i)
 				es->noassign--;

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.30 2008/03/03 20:22:37 tg Stab $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.30.2.1 2008/04/22 13:29:23 tg Exp $
 #-
 # Copyright (c) 2007, 2008
 #	Thorsten “mirabilos” Glaser <tg@mirbsd.de>
@@ -48,7 +48,9 @@ PS1='$(precmd)${USER:=$(ulimit -c 0;id -un 2>&- || print \?)}@${HOSTNAME%%.*}:$(
 	done; print -nr -- "$pfx$wd") '"$PS1 "
 PS1="$(print -n '\x1\r')$PS1"		# allow colour codes, framed with ^A
 export EDITOR HOSTNAME LESSHISTFILE=- MKSH=$(whence -p mksh) PS1 TERM USER
-alias l='/bin/ls -F'
+alias ls=ls
+unalias ls
+alias l='ls -F'
 alias la='l -a'
 alias ll='l -l'
 alias lo='l -alo'
@@ -88,7 +90,7 @@ function dirs {
 	typeset d
 	typeset -i isnoglob=0 fl=0 fv=0 fn=0 cpos=0
 
-	[[ $(set +o) == *-o\ noglob* ]] && isnoglob=1
+	[[ $(set +o) == *@(-o noglob)@(| *) ]] && isnoglob=1
 	set -o noglob
 	while getopts ":lvn" d; do
 		case $d {
@@ -133,7 +135,7 @@ function popd {
 	typeset d fa
 	typeset -i isnoglob=0 n=1
 
-	[[ $(set +o) == *-o\ noglob* ]] && isnoglob=1
+	[[ $(set +o) == *@(-o noglob)@(| *) ]] && isnoglob=1
 	set -o noglob
 	while getopts ":0123456789lvn" d; do
 		case $d {
@@ -172,7 +174,7 @@ function pushd {
 	typeset d fa
 	typeset -i isnoglob=0 n=1
 
-	[[ $(set +o) == *-o\ noglob* ]] && isnoglob=1
+	[[ $(set +o) == *@(-o noglob)@(| *) ]] && isnoglob=1
 	set -o noglob
 	while getopts ":0123456789lvn" d; do
 		case $d {

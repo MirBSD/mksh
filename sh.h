@@ -8,8 +8,8 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.195 2008/03/05 18:49:15 tg Exp $"
-#define MKSH_VERSION "R33 2008/03/05"
+#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.195.2.1 2008/04/22 13:29:32 tg Exp $"
+#define MKSH_VERSION "R33 2008/04/11"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -164,8 +164,8 @@ typedef int bool;
 #define ksh_isspace(c)	ksh_isspace_((unsigned)(c))
 #endif
 
-#ifndef S_ISTXT
-#define S_ISTXT		0001000
+#ifndef S_ISLNK
+#define S_ISLNK(m)	((m & 0170000) == 0120000)
 #endif
 #ifndef S_ISSOCK
 #define S_ISSOCK(m)	((m & 0170000) == 0140000)
@@ -178,8 +178,12 @@ typedef int bool;
 #define RLIMIT_VMEM	RLIMIT_AS
 #endif
 
-#if !defined(MAP_FAILED) && defined(__linux)
+#if !defined(MAP_FAILED)
+#  if defined(__linux)
 #define MAP_FAILED	((void *)-1)
+#  elif defined(__bsdi__) || defined(__ultrix)
+#define MAP_FAILED	((caddr_t)-1)
+#  endif
 #endif
 
 #ifndef NSIG
@@ -215,6 +219,10 @@ extern int revoke(const char *);
 #if !HAVE_SETMODE
 mode_t getmode(const void *, mode_t);
 void *setmode(const char *);
+#endif
+
+#ifdef __ultrix
+int strcasecmp(const char *, const char *);
 #endif
 
 #if !HAVE_STRCASESTR
@@ -1007,33 +1015,36 @@ typedef struct XString {
 typedef char *XStringP;
 
 /* initialise expandable string */
-#define Xinit(xs, xp, length, area) do { \
-			(xs).len = length; \
-			(xs).areap = (area); \
-			(xs).beg = alloc((xs).len + X_EXTRA, (xs).areap); \
-			(xs).end = (xs).beg + (xs).len; \
-			xp = (xs).beg; \
-		} while (0)
+#define XinitN(xs, length, area) do {				\
+	(xs).len = (length);					\
+	(xs).areap = (area);					\
+	(xs).beg = alloc((xs).len + X_EXTRA, (xs).areap);	\
+	(xs).end = (xs).beg + (xs).len;				\
+} while (0)
+#define Xinit(xs, xp, length, area) do {			\
+	XinitN((xs), (length), (area));				\
+	(xp) = (xs).beg;					\
+} while (0)
 
 /* stuff char into string */
 #define Xput(xs, xp, c)	(*xp++ = (c))
 
 /* check if there are at least n bytes left */
-#define XcheckN(xs, xp, n) do { \
-			int more = ((xp) + (n)) - (xs).end; \
-			if (more > 0) \
-				xp = Xcheck_grow_(&xs, xp, more); \
-		} while (0)
+#define XcheckN(xs, xp, n) do {					\
+	int more = ((xp) + (n)) - (xs).end;			\
+	if (more > 0)						\
+		(xp) = Xcheck_grow_(&(xs), (xp), more);		\
+} while (0)
 
 /* check for overflow, expand string */
-#define Xcheck(xs, xp)	XcheckN(xs, xp, 1)
+#define Xcheck(xs, xp)	XcheckN((xs), (xp), 1)
 
 /* free string */
-#define Xfree(xs, xp)	afree((void*) (xs).beg, (xs).areap)
+#define Xfree(xs, xp)	afree((void*)(xs).beg, (xs).areap)
 
 /* close, return string */
-#define Xclose(xs, xp)	(char*) aresize((void*)(xs).beg, \
-					(size_t)((xp) - (xs).beg), (xs).areap)
+#define Xclose(xs, xp)	(char*)aresize((void*)(xs).beg, \
+			    (size_t)((xp) - (xs).beg), (xs).areap)
 /* begin of string */
 #define Xstring(xs, xp)	((xs).beg)
 
@@ -1054,31 +1065,31 @@ typedef struct XPtrV {
 	void **beg, **end;	/* begin, end of vector */
 } XPtrV;
 
-#define XPinit(x, n) do { \
-			void **vp__; \
-			vp__ = (void**) alloc(sizeofN(void*, n), ATEMP); \
-			(x).cur = (x).beg = vp__; \
-			(x).end = vp__ + n; \
-		} while (0)
+#define XPinit(x, n) do {					\
+	void **vp__;						\
+	vp__ = (void**) alloc(sizeofN(void*, (n)), ATEMP);	\
+	(x).cur = (x).beg = vp__;				\
+	(x).end = vp__ + (n);					\
+} while (0)
 
-#define XPput(x, p) do { \
-			if ((x).cur >= (x).end) { \
-				int n = XPsize(x); \
-				(x).beg = (void**) aresize((void*) (x).beg, \
-				    sizeofN(void*, n*2), ATEMP); \
-				(x).cur = (x).beg + n; \
-				(x).end = (x).cur + n; \
-			} \
-			*(x).cur++ = (p); \
-		} while (0)
+#define XPput(x, p) do {					\
+	if ((x).cur >= (x).end) {				\
+		int n = XPsize(x);				\
+		(x).beg = (void**) aresize((void*) (x).beg,	\
+		    sizeofN(void *, n * 2), ATEMP);		\
+		(x).cur = (x).beg + n;				\
+		(x).end = (x).cur + n;				\
+	}							\
+	*(x).cur++ = (p);					\
+} while (0)
 
 #define XPptrv(x)	((x).beg)
 #define XPsize(x)	((x).cur - (x).beg)
 
-#define XPclose(x)	(void**) aresize((void*)(x).beg, \
-					 sizeofN(void*, XPsize(x)), ATEMP)
+#define XPclose(x)	(void**)aresize((void*)(x).beg, \
+			    sizeofN(void *, XPsize(x)), ATEMP)
 
-#define XPfree(x)	afree((void*) (x).beg, ATEMP)
+#define XPfree(x)	afree((void *)(x).beg, ATEMP)
 
 #define IDENT	64
 
@@ -1370,7 +1381,7 @@ void shprintf(const char *, ...)
     __attribute__((format (printf, 1, 2)));
 int can_seek(int);
 void initio(void);
-int ksh_dup2(int, int, int);
+int ksh_dup2(int, int, bool);
 short savefd(int);
 void restfd(int, int);
 void openpipe(int *);
@@ -1528,15 +1539,15 @@ struct test_env {
 	} pos;
 	const char **wp_end;	/* used by ptest_* */
 	int (*isa)(Test_env *, Test_meta);
-	const char *(*getopnd) (Test_env *, Test_op, int);
-	int (*eval)(Test_env *, Test_op, const char *, const char *, int);
+	const char *(*getopnd) (Test_env *, Test_op, bool);
+	int (*eval)(Test_env *, Test_op, const char *, const char *, bool);
 	void (*error)(Test_env *, int, const char *);
 };
 
 extern const char *const dbtest_tokens[];
 
 Test_op	test_isop(Test_meta, const char *);
-int test_eval(Test_env *, Test_op, const char *, const char *, int);
+int test_eval(Test_env *, Test_op, const char *, const char *, bool);
 int test_parse(Test_env *);
 
 EXTERN int tty_fd I__(-1);	/* dup'd tty file descriptor */

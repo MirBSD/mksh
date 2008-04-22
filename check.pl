@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.14 2008/02/29 12:48:09 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.14.2.1 2008/04/22 13:29:21 tg Exp $
 # $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
 #-
 # Example test:
@@ -57,6 +57,8 @@
 #					(values taken from the environment of
 #					the test harness).
 #					ENV is set to /nonexistant.
+#					__progname is set to the -p argument.
+#					__perlname is set to $^X (perlexe).
 #	file-setup		    mps Used to create files, directories
 #					and symlinks.  First word is either
 #					file, dir or symlink; second word is
@@ -129,6 +131,7 @@
 
 use POSIX qw(EINTR);
 use Getopt::Std;
+use Config;
 
 $os = defined $^O ? $^O : 'unknown';
 
@@ -235,6 +238,11 @@ foreach $env (('USER', 'LOGNAME', 'HOME', 'PATH', 'SHELL')) {
     $new_env{$env} = $ENV{$env} if defined $ENV{$env};
 }
 $new_env{'ENV'} = '/nonexistant';
+if (($^O eq 'VMS') || ($Config{perlpath} =~ m/$Config{_exe}$/i)) {
+	$new_env{'__perlname'} = $Config{perlpath};
+} else {
+	$new_env{'__perlname'} = $Config{perlpath} . $Config{_exe};
+}
 if (defined $opt_e) {
     # XXX need a way to allow many -e arguments...
     if ($opt_e =~ /^([a-zA-Z_]\w*)(|=(.*))$/) {
@@ -244,13 +252,6 @@ if (defined $opt_e) {
     }
 }
 %old_env = %ENV;
-
-# The following doesn't work with perl5...  Need to do it explicitly - yuck.
-#%ENV = %new_env;
-foreach $k (keys(%ENV)) {
-    delete $ENV{$k};
-}
-$ENV{$k} = $v while ($k,$v) = each %new_env;
 
 die "$prog: couldn't make directory $tempdir - $!\n" if !mkdir($tempdir, 0777);
 
@@ -467,9 +468,9 @@ run_test
 		$i = index($var, '=');
 		next if $i == 0 || $var eq '';
 		if ($i < 0) {
-		    delete $ENV{$var};
+		    delete $new_env{$var};
 		} else {
-		    $ENV{substr($var, 0, $i)} = substr($var, $i + 1);
+		    $new_env{substr($var, 0, $i)} = substr($var, $i + 1);
 		}
 	    }
 	}
@@ -499,6 +500,18 @@ run_test
 			   substr($test{'arguments'}, 1)));
 	}
 	push(@argv, $temps) if defined $test{'script'};
+
+	#XXX realpathise, use which/whence -p, or sth. like that
+	#XXX if !$program_kludge, we get by with not doing it for now tho
+	$new_env{'__progname'} = $argv[0];
+
+	# The following doesn't work with perl5...  Need to do it explicitly - yuck.
+	#%ENV = %new_env;
+	foreach $k (keys(%ENV)) {
+	    delete $ENV{$k};
+	}
+	$ENV{$k} = $v while ($k,$v) = each %new_env;
+
 	exec { $argv[0] } @argv;
 	print STDERR "$prog: couldn't execute $test_prog - $!\n";
 	kill('TERM', $$);

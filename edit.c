@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.117 2007/10/25 15:23:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.117.2.1 2008/04/22 13:29:23 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -850,7 +850,7 @@ utf_getcpfromcols(char *p, int cols)
  * disclaims all warranties with regard to this software.
  */
 
-__RCSID("_MirOS: src/lib/libc/i18n/wcwidth.c,v 1.4 2006/11/01 20:01:20 tg Exp $");
+__RCSID("$miros: src/lib/libc/i18n/wcwidth.c,v 1.4 2006/11/01 20:01:20 tg Exp $");
 
 static int
 wcxwidth(unsigned c)
@@ -933,7 +933,7 @@ wcxwidth(unsigned c)
 /* --- end of wcwidth.c excerpt --- */
 
 /* --- begin of mbrtowc.c excerpt --- */
-__RCSID("_MirOS: src/lib/libc/i18n/mbrtowc.c,v 1.13 2006/11/01 20:01:19 tg Exp $");
+__RCSID("$miros: src/lib/libc/i18n/mbrtowc.c,v 1.13 2006/11/01 20:01:19 tg Exp $");
 
 static size_t
 mbxtowc(unsigned *dst, const char *src)
@@ -983,7 +983,7 @@ mbxtowc(unsigned *dst, const char *src)
 /* --- end of mbrtowc.c excerpt --- */
 
 /* --- begin of wcrtomb.c excerpt --- */
-__RCSID("_MirOS: src/lib/libc/i18n/wcrtomb.c,v 1.14 2006/11/01 20:12:44 tg Exp $");
+__RCSID("$miros: src/lib/libc/i18n/wcrtomb.c,v 1.14 2006/11/01 20:12:44 tg Exp $");
 
 static size_t
 wcxtomb(char *src, unsigned wc)
@@ -2556,8 +2556,8 @@ x_print(int prefix, int key)
 
 	if (prefix)
 		/* prefix == 1 || prefix == 2 */
-		shprintf("%s", x_mapout(prefix == 1 ?
-		    MKCTRL('[') : MKCTRL('X')));
+		shf_puts(x_mapout(prefix == 1 ?
+		    MKCTRL('[') : MKCTRL('X')), shl_stdout);
 	shprintf("%s%s = ", x_mapout(key), (f & 0x80) ? "~" : "");
 	if ((f & 0x7F) != XFUNC_ins_string)
 		shprintf("%s\n", x_ftab[f & 0x7F].xf_name);

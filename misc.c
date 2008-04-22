@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.68 2008/02/27 01:00:09 tg Exp $\t"
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.68.2.1 2008/04/22 13:29:30 tg Exp $\t"
 	MKSH_SH_H_ID);
 
 #undef USE_CHVT
@@ -192,7 +192,7 @@ printoptions(int verbose)
 		int n, len;
 
 		/* verbose version */
-		shprintf("Current option settings\n");
+		shf_puts("Current option settings\n", shl_stdout);
 
 		for (i = n = oi.opt_width = 0; i < NELEM(options); i++)
 			if (options[i].name) {
@@ -205,7 +205,7 @@ printoptions(int verbose)
 		    oi.opt_width + 5, 1);
 	} else {
 		/* short version ala ksh93 */
-		shprintf("set");
+		shf_puts("set", shl_stdout);
 		for (i = 0; i < NELEM(options); i++)
 			if (Flag(i) && options[i].name)
 				shprintf(" -o %s", options[i].name);
@@ -927,7 +927,7 @@ print_value_quoted(const char *s)
 		if (ctype(*p, C_QUOTE))
 			break;
 	if (!*p) {
-		shprintf("%s", s);
+		shf_puts(s, shl_stdout);
 		return;
 	}
 	for (p = s; *p; p++) {
@@ -1337,28 +1337,32 @@ chvt(const char *fn)
 	struct stat sb;
 	int fd;
 
-	if (stat(fn, &sb)) {
-		memcpy(dv, "/dev/ttyC", 9);
-		strlcpy(dv + 9, fn, 20 - 9);
-		if (stat(dv, &sb)) {
-			strlcpy(dv + 8, fn, 20 - 8);
-			if (stat(dv, &sb))
-				errorf("chvt: can't find tty %s", fn);
+	if (*fn == '-') {
+		memcpy(dv, "-/dev/null", sizeof ("-/dev/null"));
+		fn = dv + 1;
+	} else {
+		if (stat(fn, &sb)) {
+			memcpy(dv, "/dev/ttyC", 9);
+			strlcpy(dv + 9, fn, 20 - 9);
+			if (stat(dv, &sb)) {
+				strlcpy(dv + 8, fn, 20 - 8);
+				if (stat(dv, &sb))
+					errorf("chvt: can't find tty %s", fn);
+			}
+			fn = dv;
 		}
-		fn = dv;
-	}
-	if (!(sb.st_mode & S_IFCHR))
-		errorf("chvt: not a char device: %s", fn);
-	if ((sb.st_uid != 0) && chown(fn, 0, 0))
-		warningf(false, "chvt: cannot chown root %s", fn);
-	if (((sb.st_mode & 07777) != 0600) && chmod(fn, 0600))
-		warningf(false, "chvt: cannot chmod 0600 %s", fn);
+		if (!(sb.st_mode & S_IFCHR))
+			errorf("chvt: not a char device: %s", fn);
+		if ((sb.st_uid != 0) && chown(fn, 0, 0))
+			warningf(false, "chvt: cannot chown root %s", fn);
+		if (((sb.st_mode & 07777) != 0600) && chmod(fn, 0600))
+			warningf(false, "chvt: cannot chmod 0600 %s", fn);
 #if HAVE_REVOKE
-	if (revoke(fn))
+		if (revoke(fn))
 #endif
-		warningf(false, "chvt: cannot revoke %s, new shell is"
-		    " potentially insecure", fn);
-
+			warningf(false, "chvt: cannot revoke %s, new shell is"
+			    " potentially insecure", fn);
+	}
 	if ((fd = open(fn, O_RDWR)) == -1) {
 		sleep(1);
 		if ((fd = open(fn, O_RDWR)) == -1)
@@ -1366,19 +1370,23 @@ chvt(const char *fn)
 	}
 	switch (fork()) {
 	case -1:
-		errorf("fork failed");
+		errorf("chvt: %s failed", "fork");
 	case 0:
 		break;
 	default:
 		exit(0);
 	}
 	if (setsid() == -1)
-		errorf("chvt: setsid failed");
-	if (ioctl(fd, TIOCSCTTY, NULL) == -1)
-		errorf("chvt: TIOCSCTTY failed");
-	dup2(fd, 0);
-	dup2(fd, 1);
-	dup2(fd, 2);
+		errorf("chvt: %s failed", "setsid");
+	if (fn != dv + 1) {
+		if (ioctl(fd, TIOCSCTTY, NULL) == -1)
+			errorf("chvt: %s failed", "TIOCSCTTY");
+		if (tcflush(fd, TCIOFLUSH))
+			errorf("chvt: %s failed", "TCIOFLUSH");
+	}
+	ksh_dup2(fd, 0, false);
+	ksh_dup2(fd, 1, false);
+	ksh_dup2(fd, 2, false);
 	if (fd > 2)
 		close(fd);
 }

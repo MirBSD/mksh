@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.92 2008/03/01 13:57:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.92.2.1 2008/04/22 13:29:29 tg Exp $");
 
 extern char **environ;
 
@@ -290,14 +290,14 @@ main(int argc, const char *argv[])
 		    (stristr((x), "UTF-8") || stristr((x), "utf8")))
 		/* Check if we're in a UTF-8 locale */
 		if (!Flag(FUTFHACK)) {
-			const char *cp;
+			const char *ccp;
 
-			cp = setlocale(LC_CTYPE, "");
+			ccp = setlocale(LC_CTYPE, "");
 #if HAVE_LANGINFO_CODESET
-			if (!isuc(cp))
-				cp = nl_langinfo(CODESET);
+			if (!isuc(ccp))
+				ccp = nl_langinfo(CODESET);
 #endif
-			Flag(FUTFHACK) = isuc(cp);
+			Flag(FUTFHACK) = isuc(ccp);
 		}
 #undef isuc
 #endif
@@ -922,14 +922,19 @@ initio(void)
 
 /* A dup2() with error checking */
 int
-ksh_dup2(int ofd, int nfd, int errok)
+ksh_dup2(int ofd, int nfd, bool errok)
 {
-	int ret = dup2(ofd, nfd);
+	int rv;
 
-	if (ret < 0 && errno != EBADF && !errok)
+	if (((rv = dup2(ofd, nfd)) < 0) && !errok && (errno != EBADF))
 		errorf("too many files open in shell");
 
-	return ret;
+#ifdef __ultrix
+	if (rv >= 0)
+		fcntl(nfd, F_SETFD, 0);
+#endif
+
+	return (rv);
 }
 
 /*
@@ -1113,13 +1118,31 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	const char *dir;
 
 	dir = tmpdir ? tmpdir : "/tmp";
+#if HAVE_MKSTEMP
 	len = strlen(dir) + 6 + 10 + 1;
+#else
+	pathname = tempnam(dir, "mksh.");
+	len = ((pathname == NULL) ? 0 : strlen(pathname)) + 1;
+#endif
 	tp = (struct temp *) alloc(sizeof(struct temp) + len, ap);
-	tp->name = pathname = (char *)&tp[1];
+	tp->name = (char *)&tp[1];
+#if !HAVE_MKSTEMP
+	if (pathname == NULL)
+		tp->name[0] = '\0';
+	else {
+		memcpy(tp->name, pathname, len);
+		free(pathname);
+	}
+#endif
+	pathname = tp->name;
 	tp->shf = NULL;
 	tp->type = type;
+#if HAVE_MKSTEMP
 	shf_snprintf(pathname, len, "%s/mksh.XXXXXXXXXX", dir);
 	if ((fd = mkstemp(pathname)) >= 0)
+#else
+	if (tp->name[0] && (fd = open(tp->name, O_CREAT | O_RDWR, 0600)) >= 0)
+#endif
 		tp->shf = shf_fdopen(fd, SHF_WR, NULL);
 	tp->pid = procpid;
 

@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.113 2008/03/04 00:09:34 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.113.2.1 2008/04/22 13:29:31 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: March 4 2008 $
+.Dd $Mdocdate: April 22 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -41,7 +41,7 @@
 .Nm
 .Bk -words
 .Op Fl +abCefhiklmnprUuvXx
-.Op Fl T Ar /dev/ttyCn
+.Op Fl T Ar /dev/ttyCn | \-
 .Op Fl +o Ar option
 .Oo Fl c Ar string \*(Ba Fl s \*(Ba
 .Ar \ file\ \&
@@ -171,6 +171,9 @@ on the
 .Xr tty 4
 device given.
 Superuser only.
+If
+.Ar tty
+is a dash, detach from controlling terminal (daemonise) instead.
 .El
 .Pp
 In addition to the above, the options described in the
@@ -3992,9 +3995,8 @@ option.)
 .It Fl p
 Print complete
 .Ic typeset
-commands that can be used to re-create the attributes (but not the values) of
+commands that can be used to re-create the attributes and values of
 parameters.
-This is the default action (option exists for ksh93 compatibility).
 .It Fl R Ns Op Ar n
 Right justify attribute.
 .Ar n
@@ -5452,7 +5454,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh\ R33
+.Nm mksh\ R33c
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

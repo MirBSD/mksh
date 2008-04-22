@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.32 2007/10/25 15:23:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.32.2.1 2008/04/22 13:29:28 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -635,7 +635,9 @@ j_resume(const char *cp, int bg)
 			p->status = 0;
 			running = 1;
 		}
-		shprintf("%s%s", p->command, p->next ? "| " : null);
+		shf_puts(p->command, shl_stdout);
+		if (p->next)
+			shf_puts("| ", shl_stdout);
 	}
 	shf_putc('\n', shl_stdout);
 	shf_flush(shl_stdout);

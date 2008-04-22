@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.16 2007/10/25 15:23:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.16.2.1 2008/04/22 13:29:33 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -676,8 +676,7 @@ shf_snprintf(char *buf, int bsize, const char *fmt, ...)
 	int n;
 
 	if (!buf || bsize <= 0)
-		internal_errorf("shf_snprintf: buf %lx, bsize %d",
-			(long)buf, bsize);
+		internal_errorf("shf_snprintf: buf %p, bsize %d", buf, bsize);
 
 	shf_sopen(buf, bsize, SHF_WR, &shf);
 	va_start(args, fmt);
