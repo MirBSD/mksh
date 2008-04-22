@@ -6,8 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.75 2008/04/19 22:15:03 tg Exp $\t"
-	MKSH_SH_H_ID);
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.76 2008/04/22 18:57:26 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)

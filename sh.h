@@ -8,9 +8,6 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.210 2008/04/20 01:41:57 tg Exp $"
-#define MKSH_VERSION "R33 2008/04/20"
-
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
@@ -97,6 +94,11 @@
 	    __attribute____used__ = "@(""#)" #prefix ": " string
 #define __RCSID(x)	__IDSTRING(rcsid,x)
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
+
+#ifdef EXTERN
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.211 2008/04/22 18:57:25 tg Exp $");
+#endif
+#define MKSH_VERSION "R33 2008/04/20"
 
 #ifndef MKSH_INCLUDES_ONLY
 
