@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.54 2008/04/19 22:15:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.55 2008/05/02 18:55:37 tg Exp $");
 
 /*
  * Variables
@@ -525,14 +525,14 @@ formatstr(struct tbl *vp, const char *s)
 
 	p = (char *)alloc((psiz = nlen * /* MB_LEN_MAX */ 3 + 1), ATEMP);
 	if (vp->flag & (RJUST|LJUST)) {
-		int slen = olen, i;
+		int slen = olen, i = 0;
 
 		if (vp->flag & RJUST) {
 			const char *qq = s;
 			int n = 0;
 
-			for (i = 0; i < slen; ++i)
-				utf_widthadj(qq, &qq);
+			while (i < slen)
+				i += utf_widthadj(qq, &qq);
 			/* strip trailing spaces (at&t uses qq[-1] == ' ') */
 			while (qq > s && ksh_isspace(qq[-1])) {
 				--qq;
@@ -550,10 +550,8 @@ formatstr(struct tbl *vp, const char *s)
 				memcpy(p, s, n);
 				s += n;
 			}
-			while (slen > vp->u2.field) {
-				utf_widthadj(s, &s);
-				--slen;
-			}
+			while (slen > vp->u2.field)
+				slen -= utf_widthadj(s, &s);
 			if (vp->u2.field - slen)
 				memset(p + n, (vp->flag & ZEROFIL) ? '0' : ' ',
 				    vp->u2.field - slen);

@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.125 2008/04/20 02:01:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.126 2008/05/02 18:55:35 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -59,7 +59,6 @@ static int x_command_glob(int, const char *, int, char ***);
 static int x_locate_word(const char *, int, int, int *, bool *);
 
 static int x_e_getmbc(char *);
-static inline char *utf_getcpfromcols(char *, int);
 
 /* +++ generic editing functions +++ */
 
@@ -828,13 +827,13 @@ utf_cptradj(const char *src, const char **dst)
 #define utf_ptradj(s,d) utf_cptradj((s), (const char **)(d))
 #endif
 
-static inline char *
-utf_getcpfromcols(char *p, int cols)
+const char *
+utf_skipcols(const char *p, int cols)
 {
 	int c = 0;
 
 	while (c < cols)
-		c += utf_widthadj(p, (const char **)&p);
+		c += utf_widthadj(p, &p);
 	return (p);
 }
 
@@ -1823,7 +1822,7 @@ x_goto(char *cp)
 	if (Flag(FUTFHACK))
 		while ((cp > xbuf) && ((*cp & 0xC0) == 0x80))
 			--cp;
-	if (cp < xbp || cp >= utf_getcpfromcols(xbp, x_displen)) {
+	if (cp < xbp || cp >= utf_skipcols(xbp, x_displen)) {
 		/* we are heading off screen */
 		xcp = cp;
 		x_adjust();
