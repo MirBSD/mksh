@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.124 2008/05/04 01:51:30 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.125 2008/05/04 01:58:15 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.121 2008/03/21 12:51:19 millert Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -3422,6 +3422,12 @@ This is enabled automatically for interactive shells if your system supports
 .Fn setlocale LC_CTYPE \&""
 and optionally
 .Fn nl_langinfo CODESET ,
+or the
+.Ev LC_ALL ,
+.Ev LC_CTYPE ,
+or
+.Ev LANG
+environment variables,
 and at least one of these returns something that matches
 .Dq UTF\-8
 or

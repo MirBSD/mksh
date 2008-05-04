@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.317 2008/05/04 01:51:28 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.318 2008/05/04 01:58:14 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -830,7 +830,7 @@ if test 0 = $HAVE_MKSH_FULL; then
 		ac_flags 1 fnoinline -fno-inline
 	fi
 
-	: ${HAVE_MKNOD=0} ${HAVE_SETLOCALE_CTYPE=0}
+	: ${HAVE_MKNOD=0}
 	check_categories=$check_categories,smksh
 fi
 
@@ -1070,7 +1070,7 @@ ac_test setgroups setresugid 0 <<-'EOF'
 	int main(void) { gid_t gid = 0; return (setgroups(0, &gid)); }
 EOF
 
-ac_test strcasestr setlocale_ctype 1 <<-'EOF'
+ac_test strcasestr <<-'EOF'
 	#include <stddef.h>
 	#include <string.h>
 	int main(int ac, char *av[]) {
