@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.192 2008/05/04 01:51:29 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.193 2008/05/04 01:59:46 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4252,7 +4252,7 @@ expected-stdout:
 name: persist-history-1
 description:
 	Check if persistent history saving works
-category: !no-histfile,pdksh,!smksh
+category: pdksh,!no-histfile
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"

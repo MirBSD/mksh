@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.318 2008/05/04 01:58:14 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.319 2008/05/04 01:59:44 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -831,7 +831,6 @@ if test 0 = $HAVE_MKSH_FULL; then
 	fi
 
 	: ${HAVE_MKNOD=0}
-	check_categories=$check_categories,smksh
 fi
 
 #
