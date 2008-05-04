@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.123 2008/04/20 21:30:29 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.124 2008/05/04 01:51:30 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.121 2008/03/21 12:51:19 millert Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: April 20 2008 $
+.Dd $Mdocdate: May 4 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -3416,7 +3416,8 @@ if
 is used).
 .It Fl U \*(Ba Ic utf8\-hack
 Enable UTF-8 support in the
-.Sx Emacs editing mode .
+.Sx Emacs editing mode
+and internal string handling functions.
 This is enabled automatically for interactive shells if your system supports
 .Fn setlocale LC_CTYPE \&""
 and optionally

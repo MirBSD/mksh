@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.58 2008/04/19 22:15:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.59 2008/05/04 01:51:30 tg Exp $");
 
 /*
  * states while lexing word
@@ -1134,9 +1134,7 @@ getsc__(void)
 		    (((const unsigned char *)(s->str))[0] == 0xBB) &&
 		    (((const unsigned char *)(s->str))[1] == 0xBF)) {
 			s->str += 2;
-#if !defined(MKSH_ASSUME_UTF8) || !defined(MKSH_SMALL)
 			Flag(FUTFHACK) = 1;
-#endif
 			goto getsc_again;
 		}
 	}

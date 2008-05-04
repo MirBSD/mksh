@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.316 2008/05/04 00:55:18 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.317 2008/05/04 01:51:28 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -823,16 +823,6 @@ ac_testn mksh_full '' "if a full-featured mksh is requested" <<-'EOF'
 	#endif
 EOF
 
-ac_testn mksh_defutf8 '' "if to assume UTF-8 is enabled" <<-'EOF'
-	#ifdef MKSH_ASSUME_UTF8
-	/* force a success: we assume UTF-8 by default */
-	int main(void) { return (0); }
-	#else
-	/* force a failure: use setlocale() and nl_langinfo(CODESET) */
-	int main(void) { return (thiswillneverbedefinedIhope()); }
-	#endif
-EOF
-
 if test 0 = $HAVE_MKSH_FULL; then
 	if test $ct = xlc; then
 		ac_flags 1 fnoinline -qnoinline
@@ -842,7 +832,6 @@ if test 0 = $HAVE_MKSH_FULL; then
 
 	: ${HAVE_MKNOD=0} ${HAVE_SETLOCALE_CTYPE=0}
 	check_categories=$check_categories,smksh
-	test 0 = $HAVE_MKSH_DEFUTF8 || check_categories=$check_categories,dutf
 fi
 
 #
@@ -1026,7 +1015,7 @@ ac_test mkstemp <<-'EOF'
 	int main(void) { char tmpl[] = "X"; return (mkstemp(tmpl)); }
 EOF
 
-ac_test setlocale_ctype '!' mksh_defutf8 0 'setlocale(LC_CTYPE, "")' <<-'EOF'
+ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<-'EOF'
 	#include <locale.h>
 	#include <stddef.h>
 	int main(void) { return ((ptrdiff_t)(void *)setlocale(LC_CTYPE, "")); }
