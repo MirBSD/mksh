@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.77 2008/04/22 19:00:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.78 2008/05/04 02:02:32 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -1420,6 +1420,7 @@ strstr(char *b, const char *l)
 }
 #endif
 
+#ifndef MKSH_ASSUME_UTF8
 #if !HAVE_STRCASESTR
 const char *
 stristr(const char *b, const char *l)
@@ -1438,6 +1439,7 @@ stristr(const char *b, const char *l)
 		goto stristr_look;
 	return (b - 1);
 }
+#endif
 #endif
 
 #if !HAVE_EXPSTMT
