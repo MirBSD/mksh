@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.319 2008/05/04 01:59:44 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.320 2008/05/10 03:16:07 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -320,6 +320,7 @@ MirBSD)
 NetBSD)
 	;;
 OpenBSD)
+	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 OSF1)
 	HAVE_SIG_T=0	# incompatible
