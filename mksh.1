@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.125 2008/05/04 01:58:15 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.126 2008/05/10 18:10:02 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.121 2008/03/21 12:51:19 millert Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: May 4 2008 $
+.Dd $Mdocdate: May 10 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -2116,6 +2116,7 @@ extension, numbers to the base of one are treated as either (8-bit
 transparent) ASCII or Unicode codepoints, depending on the shell's
 .Ic utf8\-hack
 flag (current setting).
+Note that NUL bytes (integral value of zero) cannot be used.
 In Unicode mode, raw octets are mapped into the range EF80..EFFF,
 which is in the PUA and has been assigned by CSUR for this use.
 If more than one octet in ASCII mode, or a sequence of more than one
