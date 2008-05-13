@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.321 2008/05/11 14:47:04 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.322 2008/05/13 00:08:12 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -278,6 +278,7 @@ AIX)
 	: ${LIBS='-lcrypt'}
 	;;
 BSD/OS)
+	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 CYGWIN*)
 	: ${HAVE_SETLOCALE_CTYPE=0}
@@ -301,6 +302,7 @@ Interix)
 	ccpl='-Y '
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
 	: ${LIBS='-lcrypt'}
+	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 IRIX*)
 	;;
@@ -315,6 +317,7 @@ Minix)
 	warn=' and will currently not work'
 #	warn=" but might work with the GNU tools"
 #	warn="$warn${nl}but not with ACK - /usr/bin/cc - yet)"
+	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 MirBSD)
 	;;
@@ -332,11 +335,13 @@ Plan9)
 	CPPFLAGS="$CPPFLAGS -D_POSIX_SOURCE -D_LIMITS_EXTENSION"
 	CPPFLAGS="$CPPFLAGS -D_BSD_EXTENSION -D_SUSV2_SOURCE"
 	warn=' and will currently not work'
+	CPPFLAGS="$CPPFLAGS -DMKSH_ASSUME_UTF8"
 	;;
 PW32*)
 	HAVE_SIG_T=0	# incompatible
 	warn=' and will currently not work'
 	# missing: killpg() getrlimit()
+	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
@@ -348,6 +353,7 @@ syllable)
 ULTRIX)
 	: ${CC=cc -YPOSIX}
 	CPPFLAGS="$CPPFLAGS -Dssize_t=int"
+	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 UWIN*)
 	ccpc='-Yc,'
@@ -355,6 +361,7 @@ UWIN*)
 	tsts=" 3<>/dev/tty"
 	warn="; it will compile, but the target"
 	warn="$warn${nl}platform itself is very flakey/unreliable"
+	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 *)
 	warn='; it may or may not work'
