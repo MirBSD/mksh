@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.126 2008/05/10 18:10:02 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.127 2008/05/15 15:24:10 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.121 2008/03/21 12:51:19 millert Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: May 10 2008 $
+.Dd $Mdocdate: May 15 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -1551,8 +1551,10 @@ An empty string resulting from a leading or trailing
 colon, or two adjacent colons, is treated as a
 .Sq \&.
 (the current directory).
+.It Ev PGRP
+The process ID of the shell's process group leader.
 .It Ev PPID
-The process ID of the shell's parent (read-only).
+The process ID of the shell's parent.
 .It Ev PS1
 The primary prompt for interactive shells.
 Parameter, command, and arithmetic
@@ -1683,6 +1685,8 @@ If this parameter is not
 set, or does not contain the absolute path of a writable directory, temporary
 files are created in
 .Pa /tmp .
+.It Ev USER_ID
+The effective user id of the shell.
 .El
 .Ss Tilde expansion
 Tilde expansion which is done in parallel with parameter substitution, is done

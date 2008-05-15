@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.33 2008/04/01 21:50:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.34 2008/05/15 15:24:09 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -99,7 +99,7 @@ static int32_t njobs;		/* # of jobs started */
 static volatile sig_atomic_t held_sigchld;
 
 static struct shf	*shl_j;
-static int		ttypgrp_ok;	/* set if can use tty pgrps */
+static bool		ttypgrp_ok;	/* set if can use tty pgrps */
 static pid_t		restore_ttypgrp = -1;
 static pid_t		our_pgrp;
 static int const	tt_sigs[] = { SIGTSTP, SIGTTIN, SIGTTOU };
@@ -221,14 +221,8 @@ j_change(void)
 			tty_init(false);
 
 		/* no controlling tty, no SIGT* */
-		ttypgrp_ok = use_tty && tty_fd >= 0 && tty_devtty;
-
-		if (ttypgrp_ok && (our_pgrp = getpgrp()) < 0) {
-			warningf(false, "j_init: getpgrp() failed: %s",
-			    strerror(errno));
-			ttypgrp_ok = 0;
-		}
-		if (ttypgrp_ok) {
+		if ((ttypgrp_ok = use_tty && tty_fd >= 0 && tty_devtty)) {
+			our_pgrp = kshpgrp;
 			setsig(&sigtraps[SIGTTIN], SIG_DFL,
 			    SS_RESTORE_ORIG|SS_FORCE);
 			/* wait to be given tty (POSIX.1, B.2, job control) */
@@ -239,7 +233,7 @@ j_change(void)
 					warningf(false,
 					    "j_init: tcgetpgrp() failed: %s",
 					    strerror(errno));
-					ttypgrp_ok = 0;
+					ttypgrp_ok = false;
 					break;
 				}
 				if (ttypgrp == our_pgrp)
@@ -255,13 +249,13 @@ j_change(void)
 				warningf(false,
 				    "j_init: setpgid() failed: %s",
 				    strerror(errno));
-				ttypgrp_ok = 0;
+				ttypgrp_ok = false;
 			} else {
 				if (tcsetpgrp(tty_fd, kshpid) < 0) {
 					warningf(false,
 					    "j_init: tcsetpgrp() failed: %s",
 					    strerror(errno));
-					ttypgrp_ok = 0;
+					ttypgrp_ok = false;
 				} else
 					restore_ttypgrp = our_pgrp;
 				our_pgrp = kshpid;
@@ -272,7 +266,7 @@ j_change(void)
 		if (tty_fd >= 0)
 			tcgetattr(tty_fd, &tty_state);
 	} else {
-		ttypgrp_ok = 0;
+		ttypgrp_ok = false;
 		if (Flag(FTALKING))
 			for (i = NELEM(tt_sigs); --i >= 0; )
 				setsig(&sigtraps[tt_sigs[i]], SIG_IGN,
@@ -426,7 +420,7 @@ exchild(struct op *t, int flags, /* used if XPCLOSE or XCCLOSE */ int close_fd)
 		}
 		remove_job(j, "child");	/* in case of $(jobs) command */
 		nzombie = 0;
-		ttypgrp_ok = 0;
+		ttypgrp_ok = false;
 		Flag(FMONITOR) = 0;
 		Flag(FTALKING) = 0;
 		tty_close();
@@ -685,7 +679,7 @@ j_resume(const char *cp, int bg)
 			if (ttypgrp_ok && tcsetpgrp(tty_fd, our_pgrp) < 0) {
 				warningf(true,
 				    "fg: 2nd tcsetpgrp(%d, %d) failed: %s",
-				    tty_fd, (int) our_pgrp,
+				    tty_fd, (int)our_pgrp,
 				    strerror(errno));
 			}
 		}
@@ -951,7 +945,7 @@ j_waitj(Job *j,
 			if (tcsetpgrp(tty_fd, our_pgrp) < 0) {
 				warningf(true,
 				    "j_waitj: tcsetpgrp(%d, %d) failed: %s",
-				    tty_fd, (int) our_pgrp,
+				    tty_fd, (int)our_pgrp,
 					strerror(errno));
 			}
 			if (j->state == PSTOPPED) {

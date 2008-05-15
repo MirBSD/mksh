@@ -96,9 +96,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.214 2008/05/04 01:51:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.215 2008/05/15 15:24:11 tg Exp $");
 #endif
-#define MKSH_VERSION "R33 2008/05/04"
+#define MKSH_VERSION "R34 2008/05/15"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -280,6 +280,7 @@ typedef int32_t Tflag;
 EXTERN const char *kshname;	/* $0 */
 EXTERN pid_t kshpid;		/* $$, shell pid */
 EXTERN pid_t procpid;		/* pid of executing process */
+EXTERN pid_t kshpgrp;		/* process group of shell */
 EXTERN uid_t ksheuid;		/* effective uid of shell */
 EXTERN int exstat;		/* exit status */
 EXTERN int subst_exstat;	/* exit status of last $(..)/`..` */

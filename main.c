@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.96 2008/05/04 01:58:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.97 2008/05/15 15:24:10 tg Exp $");
 
 extern char **environ;
 
@@ -32,8 +32,8 @@ static const char initsubs[] = "${PS2=> } ${PS3=#? } ${PS4=+ }";
 static const char *initcoms[] = {
 	"typeset", "-r", initvsn, NULL,
 	"typeset", "-x", "SHELL", "PATH", "HOME", NULL,
-	"typeset", "-i", "PPID", "OPTIND=1", NULL,
-	"eval", "typeset -i RANDOM SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
+	"typeset", "-i10", "OPTIND=1", "PGRP", "PPID", "USER_ID", NULL,
+	"eval", "typeset -i10 RANDOM SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
 	"alias", "integer=typeset -i", "local=typeset", NULL,
 	"alias",
 	"hash=alias -t",	/* not "alias -t --": hash -r needs to work */
@@ -213,7 +213,6 @@ main(int argc, const char *argv[])
 #if HAVE_ARC4RANDOM
 	Flag(FARC4RANDOM) = 2;	/* use arc4random(3) until $RANDOM is written */
 #endif
-	setint(global("PPID"), (long)ppid);
 
 	for (wp = initcoms; *wp != NULL; wp++) {
 		shcomexec(wp);
@@ -228,6 +227,9 @@ main(int argc, const char *argv[])
 	    (!ksheuid && !strchr(str_val(vp), '#')))
 		/* setstr can't fail here */
 		setstr(vp, safe_prompt, KSH_RETURN_ERROR);
+	setint(global("PGRP"), (long)(kshpgrp = getpgrp()));
+	setint(global("PPID"), (long)ppid);
+	setint(global("USER_ID"), (long)ksheuid);
 
 	/* Set this before parsing arguments */
 #if HAVE_SETRESUGID
@@ -636,7 +638,7 @@ quitenv(struct shf *shf)
 				 * dump a core..
 				 */
 				if ((sig == SIGINT || sig == SIGTERM) &&
-				    getpgrp() == kshpid) {
+				    (kshpgrp == kshpid)) {
 					setsig(&sigtraps[sig], SIG_DFL,
 					    SS_RESTORE_CURR | SS_FORCE);
 					kill(0, sig);
