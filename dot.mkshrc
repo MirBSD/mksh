@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.34 2008/05/15 15:24:09 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.35 2008/05/16 22:19:11 tg Exp $
 #-
 # ~/.mkshrc: mksh initialisation file for interactive shells
 
@@ -13,7 +13,7 @@ function precmd {
 PS1='$(precmd)${USER:=$(ulimit -c 0;id -un 2>&- || print \?)}@${HOSTNAME%%.*}:$(
 	typeset pfx=~ wd=${PWD:-?}
 	typeset -i n=${COLUMNS:-80}/3; (( n = n < 7 ? 7 : n ))
-	wd=${wd/#$pfx/~}
+	[[ $pfx = ?(/) ]] || wd=${wd/#$pfx/~}
 	pfx=; while (( (${#pfx} + ${#wd}) > n )); do
 		if [[ $wd = */* ]]; then
 			pfx=.../
@@ -46,7 +46,8 @@ DIRSTACKBASE=$(readlink -nf ~/. 2>&- || print -nr -- "$HOME")
 set -A DIRSTACK
 function chpwd {
 	DIRSTACK[0]=$(readlink -nf . 2>&- || print -r -- "$PWD")
-	DIRSTACK[0]=${DIRSTACK[0]/#$DIRSTACKBASE/~}
+	[[ $DIRSTACKBASE = ?(/) ]] || \
+	    DIRSTACK[0]=${DIRSTACK[0]/#$DIRSTACKBASE/~}
 	:
 }
 chpwd .
