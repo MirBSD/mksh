@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.35 2008/05/17 18:46:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.36 2008/05/17 19:03:25 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -101,7 +101,6 @@ static volatile sig_atomic_t held_sigchld;
 static struct shf	*shl_j;
 static bool		ttypgrp_ok;	/* set if can use tty pgrps */
 static pid_t		restore_ttypgrp = -1;
-static pid_t		our_pgrp;
 static int const	tt_sigs[] = { SIGTSTP, SIGTTIN, SIGTTOU };
 
 static void		j_set_async(Job *);
@@ -222,7 +221,6 @@ j_change(void)
 
 		/* no controlling tty, no SIGT* */
 		if ((ttypgrp_ok = use_tty && tty_fd >= 0 && tty_devtty)) {
-			our_pgrp = kshpgrp;
 			setsig(&sigtraps[SIGTTIN], SIG_DFL,
 			    SS_RESTORE_ORIG|SS_FORCE);
 			/* wait to be given tty (POSIX.1, B.2, job control) */
@@ -236,7 +234,7 @@ j_change(void)
 					ttypgrp_ok = false;
 					break;
 				}
-				if (ttypgrp == our_pgrp)
+				if (ttypgrp == kshpgrp)
 					break;
 				kill(0, SIGTTIN);
 			}
@@ -244,7 +242,7 @@ j_change(void)
 		for (i = NELEM(tt_sigs); --i >= 0; )
 			setsig(&sigtraps[tt_sigs[i]], SIG_IGN,
 			    SS_RESTORE_DFL|SS_FORCE);
-		if (ttypgrp_ok && our_pgrp != kshpid) {
+		if (ttypgrp_ok && kshpgrp != kshpid) {
 			if (setpgid(0, kshpid) < 0) {
 				warningf(false,
 				    "j_init: setpgid() failed: %s",
@@ -257,8 +255,8 @@ j_change(void)
 					    strerror(errno));
 					ttypgrp_ok = false;
 				} else
-					restore_ttypgrp = our_pgrp;
-				our_pgrp = kshpid;
+					restore_ttypgrp = kshpgrp;
+				kshpgrp = kshpid;
 			}
 		}
 		if (use_tty && !ttypgrp_ok)
@@ -676,12 +674,10 @@ j_resume(const char *cp, int bg)
 			j->flags &= ~JF_FG;
 			if (ttypgrp_ok && (j->flags & JF_SAVEDTTY))
 				tcsetattr(tty_fd, TCSADRAIN, &tty_state);
-			if (ttypgrp_ok && tcsetpgrp(tty_fd, our_pgrp) < 0) {
+			if (ttypgrp_ok && tcsetpgrp(tty_fd, kshpgrp) < 0)
 				warningf(true,
-				    "fg: 2nd tcsetpgrp(%d, %d) failed: %s",
-				    tty_fd, (int)our_pgrp,
-				    strerror(errno));
-			}
+				    "fg: 2nd tcsetpgrp(%d, %ld) failed: %s",
+				    tty_fd, (long)kshpgrp, strerror(errno));
 		}
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		bi_errorf("cannot continue job %s: %s",
@@ -942,12 +938,10 @@ j_waitj(Job *j,
 			if (j->state == PSTOPPED &&
 			    (j->saved_ttypgrp = tcgetpgrp(tty_fd)) >= 0)
 				j->flags |= JF_SAVEDTTYPGRP;
-			if (tcsetpgrp(tty_fd, our_pgrp) < 0) {
+			if (tcsetpgrp(tty_fd, kshpgrp) < 0)
 				warningf(true,
-				    "j_waitj: tcsetpgrp(%d, %d) failed: %s",
-				    tty_fd, (int)our_pgrp,
-					strerror(errno));
-			}
+				    "j_waitj: tcsetpgrp(%d, %ld) failed: %s",
+				    tty_fd, (long)kshpgrp, strerror(errno));
 			if (j->state == PSTOPPED) {
 				j->flags |= JF_SAVEDTTY;
 				tcgetattr(tty_fd, &j->ttystate);
