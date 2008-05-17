@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.127 2008/05/15 15:24:10 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.128 2008/05/17 18:27:56 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.121 2008/03/21 12:51:19 millert Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: May 15 2008 $
+.Dd $Mdocdate: May 17 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -3278,6 +3278,14 @@ option is used, in which case
 .Ic readonly
 commands defining all read-only parameters, including their values, are
 printed.
+.Pp
+.It Xo
+.Ic realpath
+.Op Fl \-
+.Ar name
+.Xc
+Prints the resolved absolute pathname corresponding to
+.Ar name .
 .Pp
 .It Ic rename Ar from to
 Renames the file

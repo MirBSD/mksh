@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.323 2008/05/17 18:19:11 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.324 2008/05/17 18:27:53 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1042,6 +1042,22 @@ ac_test mknod '' 'if to use mknod(), makedev() and friends' <<-'EOF'
 		dev_t dv;
 		dv = makedev(ac, 1);
 		return (mknod(av[0], 0, dv) ? (int)major(dv) : (int)minor(dv));
+	}
+EOF
+
+ac_test realpath mksh_full 0 <<-'EOF'
+	#if HAVE_SYS_PARAM_H
+	#include <sys/param.h>
+	#endif
+	#include <stdlib.h>
+	#ifndef PATH_MAX
+	#define PATH_MAX 1024
+	#endif
+	char *res, dst[PATH_MAX];
+	const char src[] = ".";
+	int main(void) {
+		res = realpath(src, dst);
+		return (res == NULL ? 1 : 0);
 	}
 EOF
 

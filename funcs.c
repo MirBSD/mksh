@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.79 2008/04/22 18:58:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.80 2008/05/17 18:27:55 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -56,6 +56,9 @@ const struct builtin mkshbuiltins[] = {
 	{"bind", c_bind},
 #if HAVE_MKNOD
 	{"mknod", c_mknod},
+#endif
+#if HAVE_REALPATH
+	{"realpath", c_realpath},
 #endif
 	{"rename", c_rename},
 	{NULL, (int (*)(const char **))NULL}
@@ -3047,3 +3050,41 @@ c_rename(const char **wp)
 
 	return (rv);
 }
+
+#if HAVE_REALPATH
+int
+c_realpath(const char **wp)
+{
+	int rv = 1;
+
+	if (wp != NULL && wp[0] != NULL && wp[1] != NULL) {
+		if (strcmp(wp[1], "--")) {
+			if (wp[2] == NULL) {
+				wp += 1;
+				rv = 0;
+			}
+		} else {
+			if (wp[2] != NULL && wp[3] == NULL) {
+				wp += 2;
+				rv = 0;
+			}
+		}
+	}
+
+	if (rv)
+		bi_errorf(T_synerr);
+	else {
+		char *buf;
+
+		buf = alloc(PATH_MAX, ATEMP);
+		if (realpath(*wp, buf) == NULL) {
+			rv = errno;
+			bi_errorf("%s: %s", *wp, strerror(rv));
+		} else
+			shprintf("%s\n", buf);
+		afree(buf, ATEMP);
+	}
+
+	return (rv);
+}
+#endif

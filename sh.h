@@ -96,9 +96,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.215 2008/05/15 15:24:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.216 2008/05/17 18:27:57 tg Exp $");
 #endif
-#define MKSH_VERSION "R34 2008/05/15"
+#define MKSH_VERSION "R34 2008/05/17"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -166,6 +166,9 @@ typedef int bool;
 #define ksh_isspace(c)	ksh_isspace_((unsigned int)(c))
 #endif
 
+#ifndef PATH_MAX
+#define PATH_MAX	1024
+#endif
 #ifndef S_ISLNK
 #define S_ISLNK(m)	((m & 0170000) == 0120000)
 #endif
@@ -1291,6 +1294,9 @@ int c_builtin(const char **);
 int c_test(const char **);
 #if HAVE_MKNOD
 int c_mknod(const char **);
+#endif
+#if HAVE_REALPATH
+int c_realpath(const char **);
 #endif
 int c_rename(const char **);
 /* histrap.c */
