@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.55 2008/05/02 18:55:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.56 2008/05/17 18:47:03 tg Exp $");
 
 /*
  * Variables
@@ -37,7 +37,7 @@ newblock(void)
 	struct block *l;
 	static const char *empty[] = { null };
 
-	l = (struct block *) alloc(sizeof(struct block), ATEMP);
+	l = (struct block *)alloc(sizeof (struct block), ATEMP);
 	l->flags = 0;
 	ainit(&l->area); /* todo: could use e->area (l->area => l->areap) */
 	if (!e->loc) {
@@ -386,7 +386,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 	vq->flag |= ISSET;
 	if ((vq->flag&SPECIAL))
 		setspec(vq);
-	afreechk(salloc);
+	afree(salloc, ATEMP);
 	return (1);
 }
 
@@ -1199,7 +1199,7 @@ arraysearch(struct tbl *vp, uint32_t val)
 		else
 			new = curr;
 	} else
-		new = (struct tbl *)alloc(sizeof(struct tbl) + namelen,
+		new = (struct tbl *)alloc(sizeof (struct tbl) + namelen,
 		    vp->areap);
 	strlcpy(new->name, vp->name, namelen);
 	new->flag = vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL);

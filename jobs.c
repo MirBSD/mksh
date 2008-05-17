@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.34 2008/05/15 15:24:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.35 2008/05/17 18:46:59 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -1402,7 +1402,7 @@ new_job(void)
 		newj = free_jobs;
 		free_jobs = free_jobs->next;
 	} else
-		newj = (Job *) alloc(sizeof(Job), APERM);
+		newj = (Job *)alloc(sizeof (Job), APERM);
 
 	/* brute force method */
 	for (i = 1; ; i++) {
@@ -1429,7 +1429,7 @@ new_proc(void)
 		p = free_procs;
 		free_procs = free_procs->next;
 	} else
-		p = (Proc *) alloc(sizeof(Proc), APERM);
+		p = (Proc *)alloc(sizeof (Proc), APERM);
 
 	return p;
 }

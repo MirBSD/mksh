@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.61 2008/04/19 17:21:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.62 2008/05/17 18:46:59 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -554,7 +554,7 @@ init_histvec(void)
 {
 	if (history == (char **)NULL) {
 		histsize = HISTORYSIZE;
-		history = (char **)alloc(histsize*sizeof (char *), APERM);
+		history = (char **)alloc(histsize * sizeof (char *), APERM);
 		histptr = history - 1;
 	}
 }

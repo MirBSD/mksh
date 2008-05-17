@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.20 2008/05/02 18:55:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.21 2008/05/17 18:47:02 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -29,7 +29,7 @@ shf_open(const char *name, int oflags, int mode, int sflags)
 	int fd;
 
 	/* Done before open so if alloca fails, fd won't be lost. */
-	shf = (struct shf *) alloc(sizeof(struct shf) + bsize, ATEMP);
+	shf = (struct shf *)alloc(sizeof (struct shf) + bsize, ATEMP);
 	shf->areap = ATEMP;
 	shf->buf = (unsigned char *)&shf[1];
 	shf->bsize = bsize;
@@ -97,7 +97,7 @@ shf_fdopen(int fd, int sflags, struct shf *shf)
 		} else
 			shf->buf = NULL;
 	} else {
-		shf = (struct shf *)alloc(sizeof(struct shf) + bsize, ATEMP);
+		shf = (struct shf *)alloc(sizeof (struct shf) + bsize, ATEMP);
 		shf->buf = (unsigned char *)&shf[1];
 		sflags |= SHF_ALLOCS;
 	}
@@ -180,7 +180,7 @@ shf_sopen(char *buf, int bsize, int sflags, struct shf *shf)
 		internal_errorf("shf_sopen: flags 0x%x", sflags);
 
 	if (!shf) {
-		shf = (struct shf *) alloc(sizeof(struct shf), ATEMP);
+		shf = (struct shf *)alloc(sizeof (struct shf), ATEMP);
 		sflags |= SHF_ALLOCS;
 	}
 	shf->areap = ATEMP;

@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.78 2008/05/04 02:02:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.79 2008/05/17 18:47:00 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -513,7 +513,7 @@ gmatchx(const char *s, const char *p, bool isfile)
 		size_t len = pe - p + 1;
 		char tbuf[64];
 		char *t = len <= sizeof(tbuf) ? tbuf :
-		    (char *) alloc(len, ATEMP);
+		    (char *)alloc(len, ATEMP);
 		debunk(t, p, len);
 		return !strcmp(t, s);
 	}
@@ -953,7 +953,7 @@ print_columns(struct shf *shf, int n,
     char *(*func) (const void *, int, char *, int),
     const void *arg, int max_width, int prefcol)
 {
-	char *str = (char *) alloc(max_width + 1, ATEMP);
+	char *str = (char *)alloc(max_width + 1, ATEMP);
 	int i, r, c, rows, cols, nspace;
 
 	/* max_width + 1 for the space.  Note that no space

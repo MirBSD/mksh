@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.97 2008/05/15 15:24:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.98 2008/05/17 18:47:00 tg Exp $");
 
 extern char **environ;
 
@@ -592,7 +592,7 @@ newenv(int type)
 {
 	struct env *ep;
 
-	ep = (struct env *) alloc(sizeof(*ep), ATEMP);
+	ep = (struct env *)alloc(sizeof (*ep), ATEMP);
 	ep->type = type;
 	ep->flags = 0;
 	ainit(&ep->area);
@@ -1133,7 +1133,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	pathname = tempnam(dir, "mksh.");
 	len = ((pathname == NULL) ? 0 : strlen(pathname)) + 1;
 #endif
-	tp = (struct temp *) alloc(sizeof(struct temp) + len, ap);
+	tp = (struct temp *)alloc(sizeof (struct temp) + len, ap);
 	tp->name = (char *)&tp[1];
 #if !HAVE_MKSTEMP
 	if (pathname == NULL)

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.16 2008/04/19 22:15:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.17 2008/05/17 18:47:02 tg Exp $");
 
 #define INDENT	4
 
@@ -421,7 +421,7 @@ tcopy(struct op *t, Area *ap)
 	if (t == NULL)
 		return NULL;
 
-	r = (struct op *) alloc(sizeof(struct op), ap);
+	r = (struct op *)alloc(sizeof (struct op), ap);
 
 	r->type = t->type;
 	r->u.evalflags = t->u.evalflags;
@@ -433,8 +433,8 @@ tcopy(struct op *t, Area *ap)
 	else {
 		for (tw = (const char **)t->vars; *tw++ != NULL; )
 			;
-		rw = r->vars = (char **)
-		    alloc((tw - (const char **)t->vars + 1) * sizeof(*tw), ap);
+		rw = r->vars = (char **)alloc((tw -
+		    (const char **)t->vars + 1) * sizeof (*tw), ap);
 		for (tw = (const char **)t->vars; *tw != NULL; )
 			*rw++ = wdcopy(*tw++, ap);
 		*rw = NULL;
@@ -445,8 +445,8 @@ tcopy(struct op *t, Area *ap)
 	else {
 		for (tw = t->args; *tw++ != NULL; )
 			;
-		r->args = (const char **)(rw = (char **)
-			alloc((tw - t->args + 1) * sizeof(*tw), ap));
+		r->args = (const char **)(rw = (char **)alloc((tw -
+		    t->args + 1) * sizeof (*tw), ap));
 		for (tw = t->args; *tw != NULL; )
 			*rw++ = wdcopy(*tw++, ap);
 		*rw = NULL;
@@ -615,13 +615,13 @@ iocopy(struct ioword **iow, Area *ap)
 
 	for (ior = iow; *ior++ != NULL; )
 		;
-	ior = (struct ioword **) alloc((ior - iow + 1) * sizeof(*ior), ap);
+	ior = (struct ioword **)alloc((ior - iow + 1) * sizeof (*ior), ap);
 
 	for (i = 0; iow[i] != NULL; i++) {
 		struct ioword *p, *q;
 
 		p = iow[i];
-		q = (struct ioword *) alloc(sizeof(*p), ap);
+		q = (struct ioword *)alloc(sizeof (*p), ap);
 		ior[i] = q;
 		*q = *p;
 		if (p->name != NULL)

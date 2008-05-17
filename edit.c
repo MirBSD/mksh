@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.126 2008/05/02 18:55:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.127 2008/05/17 18:46:57 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -396,7 +396,7 @@ x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 		int i, path_order = 0;
 
 		info = (struct path_order_info *)
-		    alloc(sizeof(struct path_order_info) * nwords, ATEMP);
+		    alloc(sizeof (struct path_order_info) * nwords, ATEMP);
 		for (i = 0; i < nwords; i++) {
 			info[i].word = words[i];
 			info[i].base = x_basename(words[i], NULL);
@@ -586,7 +586,7 @@ static void
 x_free_words(int nwords, char **words)
 {
 	while (nwords)
-		afreechk(words[--nwords]);
+		afree(words[--nwords], ATEMP);
 	afree(words, ATEMP);
 }
 
@@ -4705,7 +4705,7 @@ save_edstate(struct edstate *old)
 {
 	struct edstate *new;
 
-	new = (struct edstate *)alloc(sizeof(struct edstate), APERM);
+	new = (struct edstate *)alloc(sizeof (struct edstate), APERM);
 	new->cbuf = alloc(old->cbufsize, APERM);
 	memcpy(new->cbuf, old->cbuf, old->linelen);
 	new->cbufsize = old->cbufsize;

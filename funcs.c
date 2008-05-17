@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.80 2008/05/17 18:27:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.81 2008/05/17 18:46:58 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -138,8 +138,7 @@ c_cd(const char **wp)
 	bool printpath = false;		/* print where we cd'd? */
 	struct tbl *pwd_s, *oldpwd_s;
 	XString xs;
-	char *dir, *try, *pwd, *cdpath;
-	bool dir_ = false;
+	char *dir, *allocd = NULL, *try, *pwd, *cdpath;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "LP")) != -1)
 		switch (optc) {
@@ -170,17 +169,16 @@ c_cd(const char **wp)
 		}
 	} else if (!wp[1]) {
 		/* One argument: - or dir */
-		dir = str_save(wp[0], ATEMP);
-		if (ksh_isdash(dir)) {
-			afree(dir, ATEMP);
+		if (ksh_isdash((dir = allocd = str_save(wp[0], ATEMP)))) {
+			afree(allocd, ATEMP);
+			allocd = NULL;
 			dir = str_val(oldpwd_s);
 			if (dir == null) {
 				bi_errorf("no OLDPWD");
 				return 1;
 			}
 			printpath = true;
-		} else
-			dir_ = true;
+		}
 	} else if (!wp[2]) {
 		/* Two arguments - substitute arg1 in PWD for arg2 */
 		int ilen, olen, nlen, elen;
@@ -203,8 +201,7 @@ c_cd(const char **wp)
 		olen = strlen(wp[0]);
 		nlen = strlen(wp[1]);
 		elen = strlen(current_wd + ilen + olen) + 1;
-		dir = alloc(ilen + nlen + elen, ATEMP);
-		dir_ = true;
+		dir = allocd = alloc(ilen + nlen + elen, ATEMP);
 		memcpy(dir, current_wd, ilen);
 		memcpy(dir + ilen, wp[1], nlen);
 		memcpy(dir + ilen + nlen, current_wd + ilen + olen, elen);
@@ -232,7 +229,7 @@ c_cd(const char **wp)
 			bi_errorf("%s: bad directory", dir);
 		else
 			bi_errorf("%s - %s", try, strerror(errno));
-		afreechv(dir_, dir);
+		afree(allocd, ATEMP);
 		return 1;
 	}
 
@@ -266,7 +263,7 @@ c_cd(const char **wp)
 	if (printpath || cdnode)
 		shprintf("%s\n", pwd);
 
-	afreechv(dir_, dir);
+	afree(allocd, ATEMP);
 	return 0;
 }
 
@@ -275,8 +272,7 @@ c_pwd(const char **wp)
 {
 	int optc;
 	bool physical = Flag(FPHYSICAL) ? true : false;
-	char *p;
-	bool p_ = false;
+	char *p, *allocd = NULL;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "LP")) != -1)
 		switch (optc) {
@@ -295,20 +291,16 @@ c_pwd(const char **wp)
 		bi_errorf("too many arguments");
 		return 1;
 	}
-	p = current_wd[0] ? (physical ? get_phys_path(current_wd) : current_wd) :
-	    NULL;
+	p = current_wd[0] ? (physical ? get_phys_path(current_wd) :
+	    current_wd) : NULL;
 	if (p && access(p, R_OK) < 0)
 		p = NULL;
-	if (!p) {
-		if (!(p = ksh_get_wd(NULL))) {
-			bi_errorf("can't get current directory - %s",
-			    strerror(errno));
-			return 1;
-		}
-		p_ = true;
+	if (!p && !(p = allocd = ksh_get_wd(NULL))) {
+		bi_errorf("can't get current directory - %s", strerror(errno));
+		return (1);
 	}
 	shprintf("%s\n", p);
-	afreechv(p_, p);
+	afree(allocd, ATEMP);
 	return 0;
 }
 
@@ -1124,7 +1116,7 @@ c_alias(const char **wp)
 			ap->flag &= ~xflag;
 		else
 			ap->flag |= xflag;
-		afreechk(xalias);
+		afree(xalias, ATEMP);
 	}
 
 	return rv;
@@ -1513,7 +1505,7 @@ c_bind(const char **wp)
 		}
 		if (x_bind(up ? up : *wp, cp, macro, 0))
 			rv = 1;
-		afreechk(up);
+		afree(up, ATEMP);
 	}
 
 	return rv;
@@ -1886,14 +1878,14 @@ c_read(const char **wp)
 		if (vp->flag & RDONLY) {
 			shf_flush(shf);
 			bi_errorf("%s is read only", *wp);
-			afreechk(wpalloc);
+			afree(wpalloc, ATEMP);
 			return 1;
 		}
 		if (Flag(FEXPORT))
 			typeset(*wp, EXPORT, 0, 0, 0);
 		if (!setstr(vp, Xstring(cs, ccp), KSH_RETURN_ERROR)) {
 			shf_flush(shf);
-			afreechk(wpalloc);
+			afree(wpalloc, ATEMP);
 			return 1;
 		}
 	}
@@ -1912,7 +1904,7 @@ c_read(const char **wp)
 	if (c == EOF && !ecode)
 		coproc_read_close(fd);
 
-	afreechk(wpalloc);
+	afree(wpalloc, ATEMP);
 	return ecode ? ecode : c == EOF;
 }
 
@@ -2121,7 +2113,7 @@ c_set(const char **wp)
 		while (*++wp != NULL)
 			*wp = str_save(*wp, &l->area);
 		l->argc = wp - owp - 1;
-		l->argv = (const char **) alloc(sizeofN(char *, l->argc+2),
+		l->argv = (const char **)alloc(sizeofN(char *, l->argc+2),
 		     &l->area);
 		for (wp = l->argv; (*wp++ = *owp++) != NULL; )
 			;
@@ -3076,8 +3068,7 @@ c_realpath(const char **wp)
 	else {
 		char *buf;
 
-		buf = alloc(PATH_MAX, ATEMP);
-		if (realpath(*wp, buf) == NULL) {
+		if (realpath(*wp, (buf = alloc(PATH_MAX, ATEMP))) == NULL) {
 			rv = errno;
 			bi_errorf("%s: %s", *wp, strerror(rv));
 		} else

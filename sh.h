@@ -96,7 +96,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.216 2008/05/17 18:27:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.217 2008/05/17 18:47:01 tg Exp $");
 #endif
 #define MKSH_VERSION "R34 2008/05/17"
 
@@ -1073,7 +1073,7 @@ typedef struct XPtrV {
 
 #define XPinit(x, n) do {					\
 	void **vp__;						\
-	vp__ = (void**) alloc(sizeofN(void*, (n)), ATEMP);	\
+	vp__ = (void**)alloc(sizeofN(void*, (n)), ATEMP);	\
 	(x).cur = (x).beg = vp__;				\
 	(x).end = vp__ + (n);					\
 } while (0)
@@ -1209,18 +1209,9 @@ EXTERN struct timeval j_usrtime, j_systime;
 /* alloc.c */
 Area *ainit(Area *);
 void afreeall(Area *);
-void *alloc(size_t, Area *);
+void *alloc(size_t, Area *);	/* cannot fail */
 void *aresize(void *, size_t, Area *);
-void afree(void *, Area *);
-#define afreechk(s)	do {		\
-	void *afree_t = (s);		\
-	if (afree_t)			\
-		afree(afree_t, ATEMP);	\
-} while (0)
-#define afreechv(v,s)	do {		\
-	if (v)				\
-		afree(s, ATEMP);	\
-} while (0)
+void afree(void *, Area *);	/* can take NULL */
 /* edit.c */
 void x_init(void);
 int x_read(char *, size_t);
