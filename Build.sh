@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.322 2008/05/13 00:08:12 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.323 2008/05/17 18:19:11 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1094,8 +1094,8 @@ EOF
 #
 # check headers for declarations
 #
-save_CC=$CC
-CC="$CC -c -o $tcfn"
+save_CC=$CC; save_LDFLAGS=$LDFLAGS; save_LIBS=$LIBS
+CC="$CC -c -o $tcfn"; LDFLAGS=; LIBS=
 ac_test '!' arc4random_decl arc4random 1 'if arc4random() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
@@ -1125,7 +1125,7 @@ ac_test sys_siglist_decl sys_siglist 1 'if sys_siglist[] does not need to be dec
 	#include "sh.h"
 	int main(void) { return (sys_siglist[0][0]); }
 EOF
-CC=$save_CC
+CC=$save_CC; LDFLAGS=$save_LDFLAGS; LIBS=$save_LIBS
 
 #
 # other checks
