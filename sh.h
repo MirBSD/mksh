@@ -8,6 +8,10 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
+#ifdef __dietlibc__
+#define _BSD_SOURCE	/* live, BSD, live! */
+#endif
+
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
@@ -96,7 +100,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.217 2008/05/17 18:47:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.218 2008/05/17 20:10:52 tg Exp $");
 #endif
 #define MKSH_VERSION "R34 2008/05/17"
 
