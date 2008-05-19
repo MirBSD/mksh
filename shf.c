@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.16.2.1 2008/04/22 13:29:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.16.2.2 2008/05/19 18:41:31 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -29,9 +29,9 @@ shf_open(const char *name, int oflags, int mode, int sflags)
 	int fd;
 
 	/* Done before open so if alloca fails, fd won't be lost. */
-	shf = (struct shf *) alloc(sizeof(struct shf) + bsize, ATEMP);
+	shf = (struct shf *)alloc(sizeof (struct shf) + bsize, ATEMP);
 	shf->areap = ATEMP;
-	shf->buf = (unsigned char *) &shf[1];
+	shf->buf = (unsigned char *)&shf[1];
 	shf->bsize = bsize;
 	shf->flags = SHF_ALLOCS;
 	/* Rest filled in by reopen. */
@@ -92,13 +92,13 @@ shf_fdopen(int fd, int sflags, struct shf *shf)
 
 	if (shf) {
 		if (bsize) {
-			shf->buf = (unsigned char *) alloc(bsize, ATEMP);
+			shf->buf = (unsigned char *)alloc(bsize, ATEMP);
 			sflags |= SHF_ALLOCB;
 		} else
 			shf->buf = NULL;
 	} else {
-		shf = (struct shf *) alloc(sizeof(struct shf) + bsize, ATEMP);
-		shf->buf = (unsigned char *) &shf[1];
+		shf = (struct shf *)alloc(sizeof (struct shf) + bsize, ATEMP);
+		shf->buf = (unsigned char *)&shf[1];
 		sflags |= SHF_ALLOCS;
 	}
 	shf->areap = ATEMP;
@@ -180,7 +180,7 @@ shf_sopen(char *buf, int bsize, int sflags, struct shf *shf)
 		internal_errorf("shf_sopen: flags 0x%x", sflags);
 
 	if (!shf) {
-		shf = (struct shf *) alloc(sizeof(struct shf), ATEMP);
+		shf = (struct shf *)alloc(sizeof (struct shf), ATEMP);
 		sflags |= SHF_ALLOCS;
 	}
 	shf->areap = ATEMP;
@@ -191,7 +191,7 @@ shf_sopen(char *buf, int bsize, int sflags, struct shf *shf)
 		buf = alloc(bsize, shf->areap);
 	}
 	shf->fd = -1;
-	shf->buf = shf->rp = shf->wp = (unsigned char *) buf;
+	shf->buf = shf->rp = shf->wp = (unsigned char *)buf;
 	shf->rnleft = bsize;
 	shf->rbsize = bsize;
 	shf->wnleft = bsize - 1;	/* space for a '\0' */
@@ -314,7 +314,7 @@ shf_emptybuf(struct shf *shf, int flags)
 		shf->flags &= ~SHF_READING;
 	}
 	if (shf->flags & SHF_STRING) {
-		unsigned char	*nbuf;
+		unsigned char *nbuf;
 
 		/* Note that we assume SHF_ALLOCS is not set if SHF_ALLOCB
 		 * is set... (changing the shf pointer could cause problems)
@@ -323,7 +323,7 @@ shf_emptybuf(struct shf *shf, int flags)
 		    !(shf->flags & SHF_ALLOCB))
 			return EOF;
 		/* allocate more space for buffer */
-		nbuf = (unsigned char *) aresize(shf->buf, shf->wbsize * 2,
+		nbuf = (unsigned char *)aresize(shf->buf, shf->wbsize * 2,
 		    shf->areap);
 		shf->rp = nbuf + (shf->rp - shf->buf);
 		shf->wp = nbuf + (shf->wp - shf->buf);
@@ -477,7 +477,7 @@ shf_getse(char *buf, int bsize, struct shf *shf)
 				return buf == orig_buf ? NULL : buf;
 			}
 		}
-		end = (unsigned char *) memchr((char *) shf->rp, '\n',
+		end = (unsigned char *)memchr((char *) shf->rp, '\n',
 		    shf->rnleft);
 		ncopy = end ? end - shf->rp + 1 : shf->rnleft;
 		if (ncopy > bsize)
@@ -598,9 +598,7 @@ shf_puts(const char *s, struct shf *shf)
 int
 shf_write(const char *buf, int nbytes, struct shf *shf)
 {
-	int orig_nbytes = nbytes;
-	int n;
-	int ncopy;
+	int n, ncopy, orig_nbytes = nbytes;
 
 	if (!(shf->flags & SHF_WR))
 		internal_errorf("shf_write: flags %x", shf->flags);
@@ -852,7 +850,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 			else if ((sizeof (int) < sizeof (long)) && (c == 'd'))
 				lnum = (long) va_arg(args, int);
 			else
-				lnum = va_arg(args, unsigned);
+				lnum = va_arg(args, unsigned int);
 			switch (c) {
 			case 'd':
 			case 'i':
@@ -918,7 +916,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		case 's':
 			if (!(s = va_arg(args, const char *)))
 				s = "(null)";
-			len = strlen(s);
+			len = utf_mbswidth(s);
 			break;
 
 		case 'c':
@@ -980,9 +978,13 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 			field = 0;
 
 		if (precision > 0) {
+			const char *q;
+
 			nwritten += precision;
-			for ( ; precision-- > 0 ; s++)
+			q = utf_skipcols(s, precision);
+			do {
 				shf_putc(*s, shf);
+			} while (++s < q);
 		}
 		if (field > 0) {
 			nwritten += field;

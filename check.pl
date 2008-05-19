@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.14.2.1 2008/04/22 13:29:21 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.14.2.2 2008/05/19 18:41:16 tg Exp $
 # $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
 #-
 # Example test:

@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.113.2.1 2008/04/22 13:29:31 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.120 2007/05/31 20:47:44 otto Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.113.2.2 2008/05/19 18:41:28 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.121 2008/03/21 12:51:19 millert Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
 .\" * ` generates ‘ in groff, so use \`
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: April 22 2008 $
+.Dd $Mdocdate: May 19 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -1551,8 +1551,10 @@ An empty string resulting from a leading or trailing
 colon, or two adjacent colons, is treated as a
 .Sq \&.
 (the current directory).
+.It Ev PGRP
+The process ID of the shell's process group leader.
 .It Ev PPID
-The process ID of the shell's parent (read-only).
+The process ID of the shell's parent.
 .It Ev PS1
 The primary prompt for interactive shells.
 Parameter, command, and arithmetic
@@ -1683,6 +1685,8 @@ If this parameter is not
 set, or does not contain the absolute path of a writable directory, temporary
 files are created in
 .Pa /tmp .
+.It Ev USER_ID
+The effective user id of the shell.
 .El
 .Ss Tilde expansion
 Tilde expansion which is done in parallel with parameter substitution, is done
@@ -2110,6 +2114,21 @@ extension, in all forms of arithmetic expressions,
 except as numeric arguments to the
 .Ic test
 command.
+As a special
+.Nm mksh
+extension, numbers to the base of one are treated as either (8-bit
+transparent) ASCII or Unicode codepoints, depending on the shell's
+.Ic utf8\-hack
+flag (current setting).
+Note that NUL bytes (integral value of zero) cannot be used.
+In Unicode mode, raw octets are mapped into the range EF80..EFFF,
+which is in the PUA and has been assigned by CSUR for this use.
+If more than one octet in ASCII mode, or a sequence of more than one
+octet not forming a valid and minimal CESU-8 sequence is passed, the
+behaviour is undefined (usually, the shell aborts with a parse error,
+but rarely, it succeeds, e.g. on the sequence C2 20).
+That's why you should always use ASCII mode unless you know that the
+input is well-formed UTF-8 in the range of 0000..FFFD.
 .Pp
 The operators are evaluated as follows:
 .Bl -tag -width Ds -offset indent
@@ -3260,6 +3279,14 @@ option is used, in which case
 commands defining all read-only parameters, including their values, are
 printed.
 .Pp
+.It Xo
+.Ic realpath
+.Op Fl \-
+.Ar name
+.Xc
+Prints the resolved absolute pathname corresponding to
+.Ar name .
+.Pp
 .It Ic rename Ar from to
 Renames the file
 .Ar from
@@ -3402,11 +3429,18 @@ if
 is used).
 .It Fl U \*(Ba Ic utf8\-hack
 Enable UTF-8 support in the
-.Sx Emacs editing mode .
+.Sx Emacs editing mode
+and internal string handling functions.
 This is enabled automatically for interactive shells if your system supports
 .Fn setlocale LC_CTYPE \&""
 and optionally
 .Fn nl_langinfo CODESET ,
+or the
+.Ev LC_ALL ,
+.Ev LC_CTYPE ,
+or
+.Ev LANG
+environment variables,
 and at least one of these returns something that matches
 .Dq UTF\-8
 or
@@ -4060,6 +4094,7 @@ If not combined with
 this is the same as
 .Fl R ,
 except zero padding is used instead of space padding.
+For integers, the number instead of the base is padded.
 .El
 .Pp
 If any of the
@@ -5454,7 +5489,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh\ R33c
+.Nm mksh\ R34
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

@@ -1,11 +1,11 @@
 /*	$OpenBSD: c_ksh.c,v 1.30 2007/08/02 10:50:25 fgsch Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.37 2007/09/03 13:54:23 otto Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
-/*	$OpenBSD: c_ulimit.c,v 1.16 2006/11/20 21:53:39 miod Exp $	*/
+/*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.69.2.1 2008/04/22 13:29:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.69.2.2 2008/05/19 18:41:23 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -56,6 +56,9 @@ const struct builtin mkshbuiltins[] = {
 	{"bind", c_bind},
 #if HAVE_MKNOD
 	{"mknod", c_mknod},
+#endif
+#if HAVE_REALPATH
+	{"realpath", c_realpath},
 #endif
 	{"rename", c_rename},
 	{NULL, (int (*)(const char **))NULL}
@@ -135,8 +138,7 @@ c_cd(const char **wp)
 	bool printpath = false;		/* print where we cd'd? */
 	struct tbl *pwd_s, *oldpwd_s;
 	XString xs;
-	char *dir, *try, *pwd, *cdpath;
-	bool dir_ = false;
+	char *dir, *allocd = NULL, *try, *pwd, *cdpath;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "LP")) != -1)
 		switch (optc) {
@@ -167,17 +169,16 @@ c_cd(const char **wp)
 		}
 	} else if (!wp[1]) {
 		/* One argument: - or dir */
-		dir = str_save(wp[0], ATEMP);
-		if (ksh_isdash(dir)) {
-			afree(dir, ATEMP);
+		if (ksh_isdash((dir = allocd = str_save(wp[0], ATEMP)))) {
+			afree(allocd, ATEMP);
+			allocd = NULL;
 			dir = str_val(oldpwd_s);
 			if (dir == null) {
 				bi_errorf("no OLDPWD");
 				return 1;
 			}
 			printpath = true;
-		} else
-			dir_ = true;
+		}
 	} else if (!wp[2]) {
 		/* Two arguments - substitute arg1 in PWD for arg2 */
 		int ilen, olen, nlen, elen;
@@ -200,8 +201,7 @@ c_cd(const char **wp)
 		olen = strlen(wp[0]);
 		nlen = strlen(wp[1]);
 		elen = strlen(current_wd + ilen + olen) + 1;
-		dir = alloc(ilen + nlen + elen, ATEMP);
-		dir_ = true;
+		dir = allocd = alloc(ilen + nlen + elen, ATEMP);
 		memcpy(dir, current_wd, ilen);
 		memcpy(dir + ilen, wp[1], nlen);
 		memcpy(dir + ilen + nlen, current_wd + ilen + olen, elen);
@@ -229,7 +229,7 @@ c_cd(const char **wp)
 			bi_errorf("%s: bad directory", dir);
 		else
 			bi_errorf("%s - %s", try, strerror(errno));
-		afreechv(dir_, dir);
+		afree(allocd, ATEMP);
 		return 1;
 	}
 
@@ -263,7 +263,7 @@ c_cd(const char **wp)
 	if (printpath || cdnode)
 		shprintf("%s\n", pwd);
 
-	afreechv(dir_, dir);
+	afree(allocd, ATEMP);
 	return 0;
 }
 
@@ -272,8 +272,7 @@ c_pwd(const char **wp)
 {
 	int optc;
 	bool physical = Flag(FPHYSICAL) ? true : false;
-	char *p;
-	bool p_ = false;
+	char *p, *allocd = NULL;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "LP")) != -1)
 		switch (optc) {
@@ -292,20 +291,16 @@ c_pwd(const char **wp)
 		bi_errorf("too many arguments");
 		return 1;
 	}
-	p = current_wd[0] ? (physical ? get_phys_path(current_wd) : current_wd) :
-	    NULL;
+	p = current_wd[0] ? (physical ? get_phys_path(current_wd) :
+	    current_wd) : NULL;
 	if (p && access(p, R_OK) < 0)
 		p = NULL;
-	if (!p) {
-		if (!(p = ksh_get_wd(NULL))) {
-			bi_errorf("can't get current directory - %s",
-			    strerror(errno));
-			return 1;
-		}
-		p_ = true;
+	if (!p && !(p = allocd = ksh_get_wd(NULL))) {
+		bi_errorf("can't get current directory - %s", strerror(errno));
+		return (1);
 	}
 	shprintf("%s\n", p);
-	afreechv(p_, p);
+	afree(allocd, ATEMP);
 	return 0;
 }
 
@@ -1121,7 +1116,7 @@ c_alias(const char **wp)
 			ap->flag &= ~xflag;
 		else
 			ap->flag |= xflag;
-		afreechk(xalias);
+		afree(xalias, ATEMP);
 	}
 
 	return rv;
@@ -1510,7 +1505,7 @@ c_bind(const char **wp)
 		}
 		if (x_bind(up ? up : *wp, cp, macro, 0))
 			rv = 1;
-		afreechk(up);
+		afree(up, ATEMP);
 	}
 
 	return rv;
@@ -1591,7 +1586,7 @@ c_umask(const char **wp)
 			p[-1] = '\0';
 			shprintf("%s\n", buf);
 		} else
-			shprintf("%#3.3o\n", (unsigned) old_umask);
+			shprintf("%#3.3o\n", (unsigned int)old_umask);
 	} else {
 		mode_t new_umask;
 
@@ -1883,14 +1878,14 @@ c_read(const char **wp)
 		if (vp->flag & RDONLY) {
 			shf_flush(shf);
 			bi_errorf("%s is read only", *wp);
-			afreechk(wpalloc);
+			afree(wpalloc, ATEMP);
 			return 1;
 		}
 		if (Flag(FEXPORT))
 			typeset(*wp, EXPORT, 0, 0, 0);
 		if (!setstr(vp, Xstring(cs, ccp), KSH_RETURN_ERROR)) {
 			shf_flush(shf);
-			afreechk(wpalloc);
+			afree(wpalloc, ATEMP);
 			return 1;
 		}
 	}
@@ -1909,7 +1904,7 @@ c_read(const char **wp)
 	if (c == EOF && !ecode)
 		coproc_read_close(fd);
 
-	afreechk(wpalloc);
+	afree(wpalloc, ATEMP);
 	return ecode ? ecode : c == EOF;
 }
 
@@ -2118,7 +2113,7 @@ c_set(const char **wp)
 		while (*++wp != NULL)
 			*wp = str_save(*wp, &l->area);
 		l->argc = wp - owp - 1;
-		l->argv = (const char **) alloc(sizeofN(char *, l->argc+2),
+		l->argv = (const char **)alloc(sizeofN(char *, l->argc+2),
 		     &l->area);
 		for (wp = l->argv; (*wp++ = *owp++) != NULL; )
 			;
@@ -2853,78 +2848,66 @@ ptest_error(Test_env *te, int ofs, const char *msg)
 #define SOFT	0x1
 #define HARD	0x2
 
+struct limits {
+	const char *name;
+	int resource;		/* resource to get/set */
+	int factor;		/* multiply by to get rlim_{cur,max} values */
+	char option;
+};
+
+static void print_ulimit(const struct limits *, int);
+static int set_ulimit(const struct limits *, const char *, int);
+
 int
 c_ulimit(const char **wp)
 {
-	static const struct limits {
-		const char	*name;
-		enum { RLIMIT, ULIMIT } which;
-		int	gcmd;	/* get command */
-		int	scmd;	/* set command (or -1, if no set command) */
-		int	factor;	/* multiply by to get rlim_{cur,max} values */
-		char	option;
-	} limits[] = {
-		/* Do not use options -H, -S or -a */
-#ifdef RLIMIT_CORE
-		{ "coredump(blocks)", RLIMIT, RLIMIT_CORE, RLIMIT_CORE,
-		    512, 'c' },
-#endif
-#ifdef RLIMIT_DATA
-		{ "data(KiB)", RLIMIT, RLIMIT_DATA, RLIMIT_DATA,
-		    1024, 'd' },
+	static const struct limits limits[] = {
+		/* do not use options -H, -S or -a or change the order */
+#ifdef RLIMIT_CPU
+		{ "time(cpu-seconds)", RLIMIT_CPU, 1, 't' },
 #endif
 #ifdef RLIMIT_FSIZE
-		{ "file(blocks)", RLIMIT, RLIMIT_FSIZE, RLIMIT_FSIZE,
-		    512, 'f' },
+		{ "file(blocks)", RLIMIT_FSIZE, 512, 'f' },
 #endif
-#ifdef RLIMIT_LOCKS
-		{ "flocks", RLIMIT, RLIMIT_LOCKS, RLIMIT_LOCKS,
-		    -1, 'L' },
+#ifdef RLIMIT_CORE
+		{ "coredump(blocks)", RLIMIT_CORE, 512, 'c' },
 #endif
-#ifdef RLIMIT_MEMLOCK
-		{ "lockedmem(KiB)", RLIMIT, RLIMIT_MEMLOCK, RLIMIT_MEMLOCK,
-		    1024, 'l' },
-#endif
-#ifdef RLIMIT_RSS
-		{ "memory(KiB)", RLIMIT, RLIMIT_RSS, RLIMIT_RSS,
-		    1024, 'm' },
-#endif
-#ifdef RLIMIT_NOFILE
-		{ "nofiles(descriptors)", RLIMIT, RLIMIT_NOFILE, RLIMIT_NOFILE,
-		    1, 'n' },
-#endif
-#ifdef RLIMIT_NPROC
-		{ "processes", RLIMIT, RLIMIT_NPROC, RLIMIT_NPROC,
-		    1, 'p' },
+#ifdef RLIMIT_DATA
+		{ "data(KiB)", RLIMIT_DATA, 1024, 'd' },
 #endif
 #ifdef RLIMIT_STACK
-		{ "stack(KiB)", RLIMIT, RLIMIT_STACK, RLIMIT_STACK,
-		    1024, 's' },
+		{ "stack(KiB)", RLIMIT_STACK, 1024, 's' },
 #endif
-#ifdef RLIMIT_TIME
-		{ "humantime(seconds)", RLIMIT, RLIMIT_TIME, RLIMIT_TIME,
-		    1, 'T' },
+#ifdef RLIMIT_MEMLOCK
+		{ "lockedmem(KiB)", RLIMIT_MEMLOCK, 1024, 'l' },
 #endif
-#ifdef RLIMIT_CPU
-		{ "time(cpu-seconds)", RLIMIT, RLIMIT_CPU, RLIMIT_CPU,
-		    1, 't' },
+#ifdef RLIMIT_RSS
+		{ "memory(KiB)", RLIMIT_RSS, 1024, 'm' },
+#endif
+#ifdef RLIMIT_NOFILE
+		{ "nofiles(descriptors)", RLIMIT_NOFILE, 1, 'n' },
+#endif
+#ifdef RLIMIT_NPROC
+		{ "processes", RLIMIT_NPROC, 1, 'p' },
 #endif
 #ifdef RLIMIT_VMEM
-		{ "vmemory(KiB)", RLIMIT, RLIMIT_VMEM, RLIMIT_VMEM,
-		    1024, 'v' },
+		{ "vmemory(KiB)", RLIMIT_VMEM, 1024, 'v' },
 #endif
 #ifdef RLIMIT_SWAP
-		{ "swap(KiB)", RLIMIT, RLIMIT_SWAP, RLIMIT_SWAP,
-		    1024, 'w' },
+		{ "swap(KiB)", RLIMIT_SWAP, 1024, 'w' },
 #endif
-		{ NULL, RLIMIT, 0, 0, 0, 0 }
+#ifdef RLIMIT_LOCKS
+		{ "flocks", RLIMIT_LOCKS, -1, 'L' },
+#endif
+#ifdef RLIMIT_TIME
+		{ "humantime(seconds)", RLIMIT_TIME, 1, 'T' },
+#endif
+		{ NULL, 0, 0, 0 }
 	};
 	static char opts[3 + NELEM(limits)];
-	rlim_t val = (rlim_t)0;
-	int how = SOFT | HARD, optc, what;
-	bool all = false, set;
+	int how = SOFT | HARD, optc, what = 'f';
+	bool all = false;
 	const struct limits *l;
-	struct rlimit limit;
 
 	if (!opts[0]) {
 		/* build options string on first call - yuck */
@@ -2935,7 +2918,7 @@ c_ulimit(const char **wp)
 			*p++ = l->option;
 		*p = '\0';
 	}
-	what = 'f';
+
 	while ((optc = ksh_getopt(wp, &builtin_opt, opts)) != -1)
 		switch (optc) {
 		case 'H':
@@ -2948,7 +2931,8 @@ c_ulimit(const char **wp)
 			all = true;
 			break;
 		case '?':
-			return 1;
+			bi_errorf("usage: ulimit [-acdfHLlmnpSsTtvw] [value]");
+			return (1);
 		default:
 			what = optc;
 		}
@@ -2957,96 +2941,87 @@ c_ulimit(const char **wp)
 		;
 	if (!l->name) {
 		internal_warningf("ulimit: %c", what);
-		return 1;
+		return (1);
 	}
 
-	wp += builtin_opt.optind;
-	if ((set = *wp ? true : false)) {
-		if (all || wp[1]) {
+	if (wp[builtin_opt.optind]) {
+		if (all || wp[builtin_opt.optind + 1]) {
 			bi_errorf("too many arguments");
-			return 1;
+			return (1);
 		}
-		if (strcmp(wp[0], "unlimited") == 0)
-			val = (rlim_t)RLIM_INFINITY;
-		else {
-			long rval;
-
-			if (!evaluate(wp[0], &rval, KSH_RETURN_ERROR, false))
-				return 1;
-			/* Avoid problems caused by typos that
-			 * evaluate misses due to evaluating unset
-			 * parameters to 0...
-			 * If this causes problems, will have to
-			 * add parameter to evaluate() to control
-			 * if unset params are 0 or an error.
-			 */
-			if (!rval && !ksh_isdigit(wp[0][0])) {
-				bi_errorf("invalid limit: %s", wp[0]);
-				return 1;
-			}
-			val = (rlim_t)((rlim_t)rval * l->factor);
-		}
+		return (set_ulimit(l, wp[builtin_opt.optind], how));
 	}
-	if (all) {
-		for (l = limits; l->name; l++) {
-			if (l->which == RLIMIT) {
-#ifdef RLIMIT_LOCKS
-				if (getrlimit(l->gcmd, &limit) < 0)
-					if ((errno == EINVAL) &&
-					    (l->gcmd == RLIMIT_LOCKS)) {
-						limit.rlim_cur = RLIM_INFINITY;
-						limit.rlim_max = RLIM_INFINITY;
-					}
-#else
-				getrlimit(l->gcmd, &limit);
-#endif
-				if (how & SOFT)
-					val = limit.rlim_cur;
-				else if (how & HARD)
-					val = limit.rlim_max;
-			}
-			shprintf("%-20s ", l->name);
-			if (val == (rlim_t)RLIM_INFINITY)
-				shf_puts("unlimited\n", shl_stdout);
-			else {
-				val = (rlim_t)(val / l->factor);
-				shprintf("%ld\n", (long)val);
-			}
-		}
-		return 0;
-	}
-	if (l->which == RLIMIT) {
-		getrlimit(l->gcmd, &limit);
-		if (set) {
-			if (how & SOFT)
-				limit.rlim_cur = val;
-			if (how & HARD)
-				limit.rlim_max = val;
-			if (setrlimit(l->scmd, &limit) < 0) {
-				how = errno;
-				if (how == EPERM)
-					bi_errorf("exceeds allowable limit");
-				else
-					bi_errorf("bad limit: %s",
-					    strerror(how));
-				return 1;
-			}
-		} else {
-			if (how & SOFT)
-				val = limit.rlim_cur;
-			else if (how & HARD)
-				val = limit.rlim_max;
-		}
-	}
-	if (!set) {
-		if (val == (rlim_t)RLIM_INFINITY)
-			shf_puts("unlimited\n", shl_stdout);
-		else {
-			val = (rlim_t)(val / l->factor);
-			shprintf("%ld\n", (long)val);
-		}
+	if (!all)
+		print_ulimit(l, how);
+	else for (l = limits; l->name; l++) {
+		shprintf("%-20s ", l->name);
+		print_ulimit(l, how);
 	}
 	return (0);
+}
+
+static int
+set_ulimit(const struct limits *l, const char *v, int how)
+{
+	rlim_t val = (rlim_t)0;
+	struct rlimit limit;
+
+	if (strcmp(v, "unlimited") == 0)
+		val = (rlim_t)RLIM_INFINITY;
+	else {
+		long rval;
+
+		if (!evaluate(v, &rval, KSH_RETURN_ERROR, false))
+			return (1);
+		/*
+		 * Avoid problems caused by typos that evaluate misses due
+		 * to evaluating unset parameters to 0...
+		 * If this causes problems, will have to add parameter to
+		 * evaluate() to control if unset params are 0 or an error.
+		 */
+		if (!rval && !ksh_isdigit(v[0])) {
+			bi_errorf("invalid %s limit: %s", l->name, v);
+			return (1);
+		}
+		val = (rlim_t)((rlim_t)rval * l->factor);
+	}
+
+	if (getrlimit(l->resource, &limit) < 0) {
+		/* some cannot be read, e.g. Linux RLIMIT_LOCKS */
+		limit.rlim_cur = RLIM_INFINITY;
+		limit.rlim_max = RLIM_INFINITY;
+	}
+	if (how & SOFT)
+		limit.rlim_cur = val;
+	if (how & HARD)
+		limit.rlim_max = val;
+	if (!setrlimit(l->resource, &limit))
+		return (0);
+	if (errno == EPERM)
+		bi_errorf("%s exceeds allowable %s limit", v, l->name);
+	else
+		bi_errorf("bad %s limit: %s", l->name, strerror(errno));
+	return (1);
+}
+
+static void
+print_ulimit(const struct limits *l, int how)
+{
+	rlim_t val = (rlim_t)0;
+	struct rlimit limit;
+
+	if (getrlimit(l->resource, &limit)) {
+		shf_puts("unknown\n", shl_stdout);
+		return;
+	}
+	if (how & SOFT)
+		val = limit.rlim_cur;
+	else if (how & HARD)
+		val = limit.rlim_max;
+	if (val == RLIM_INFINITY)
+		shf_puts("unlimited\n", shl_stdout);
+	else
+		shprintf("%ld\n", (long)(val / l->factor));
 }
 
 int
@@ -3067,3 +3042,40 @@ c_rename(const char **wp)
 
 	return (rv);
 }
+
+#if HAVE_REALPATH
+int
+c_realpath(const char **wp)
+{
+	int rv = 1;
+
+	if (wp != NULL && wp[0] != NULL && wp[1] != NULL) {
+		if (strcmp(wp[1], "--")) {
+			if (wp[2] == NULL) {
+				wp += 1;
+				rv = 0;
+			}
+		} else {
+			if (wp[2] != NULL && wp[3] == NULL) {
+				wp += 2;
+				rv = 0;
+			}
+		}
+	}
+
+	if (rv)
+		bi_errorf(T_synerr);
+	else {
+		char *buf;
+
+		if (realpath(*wp, (buf = alloc(PATH_MAX, ATEMP))) == NULL) {
+			rv = errno;
+			bi_errorf("%s: %s", *wp, strerror(rv));
+		} else
+			shprintf("%s\n", buf);
+		afree(buf, ATEMP);
+	}
+
+	return (rv);
+}
+#endif

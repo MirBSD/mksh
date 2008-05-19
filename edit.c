@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.117.2.1 2008/04/22 13:29:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.117.2.2 2008/05/19 18:41:18 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -29,8 +29,9 @@ static int x_getc(void);
 static void x_putcf(int);
 static bool x_mode(bool);
 static int x_do_comment(char *, int, int *);
-static void x_print_expansions(int, char *const *, int);
-static int x_cf_glob(int, const char *, int, int, int *, int *, char ***, int *);
+static void x_print_expansions(int, char *const *, bool);
+static int x_cf_glob(int, const char *, int, int, int *, int *, char ***,
+    bool *);
 static int x_longest_prefix(int, char *const *);
 static int x_basename(const char *, const char *);
 static void x_free_words(int, char **);
@@ -55,7 +56,9 @@ static void glob_table(const char *, XPtrV *, struct table *);
 static void glob_path(int flags, const char *, XPtrV *, const char *);
 static int x_file_glob(int, const char *, int, char ***);
 static int x_command_glob(int, const char *, int, char ***);
-static int x_locate_word(const char *, int, int, int *, int *);
+static int x_locate_word(const char *, int, int, int *, bool *);
+
+static int x_e_getmbc(char *);
 
 /* +++ generic editing functions +++ */
 
@@ -162,15 +165,14 @@ x_putcf(int c)
 static int
 x_do_comment(char *buf, int bsize, int *lenp)
 {
-	int i, j;
-	int len = *lenp;
+	int i, j, len = *lenp;
 
 	if (len == 0)
 		return 1; /* somewhat arbitrary - it's what at&t ksh does */
 
 	/* Already commented? */
 	if (buf[0] == '#') {
-		int saw_nl = 0;
+		bool saw_nl = false;
 
 		for (j = 0, i = 1; i < len; i++) {
 			if (!saw_nl || buf[i] != '#')
@@ -203,11 +205,10 @@ x_do_comment(char *buf, int bsize, int *lenp)
 /* ------------------------------------------------------------------------- */
 /*           Common file/command completion code for vi/emacs	             */
 
-
 static void
-x_print_expansions(int nwords, char * const *words, int is_command)
+x_print_expansions(int nwords, char * const *words, bool is_command)
 {
-	int use_copy = 0;
+	bool use_copy = false;
 	int prefix_len;
 	XPtrV l = { NULL, NULL, NULL };
 
@@ -230,7 +231,7 @@ x_print_expansions(int nwords, char * const *words, int is_command)
 		if (i == nwords) {
 			while (prefix_len > 0 && words[0][prefix_len - 1] != '/')
 				prefix_len--;
-			use_copy = 1;
+			use_copy = true;
 			XPinit(l, nwords + 1);
 			for (i = 0; i < nwords; i++)
 				XPput(l, words[i] + prefix_len);
@@ -258,8 +259,7 @@ x_print_expansions(int nwords, char * const *words, int is_command)
 static int
 x_file_glob(int flags __unused, const char *str, int slen, char ***wordsp)
 {
-	char *toglob;
-	char **words;
+	char *toglob, **words;
 	int nwords, i, idx, escaping;
 	XPtrV w;
 	struct source *s, *sold;
@@ -355,9 +355,7 @@ path_order_cmp(const void *aa, const void *bb)
 static int
 x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 {
-	char *toglob;
-	char *pat;
-	char *fpath;
+	char *toglob, *pat, *fpath;
 	int nwords;
 	XPtrV w;
 	struct block *l;
@@ -393,14 +391,12 @@ x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 	/* Sort entries */
 	if (flags & XCF_FULLPATH) {
 		/* Sort by basename, then path order */
-		struct path_order_info *info;
-		struct path_order_info *last_info = 0;
+		struct path_order_info *info, *last_info = NULL;
 		char **words = (char **)XPptrv(w);
-		int path_order = 0;
-		int i;
+		int i, path_order = 0;
 
 		info = (struct path_order_info *)
-		    alloc(sizeof(struct path_order_info) * nwords, ATEMP);
+		    alloc(sizeof (struct path_order_info) * nwords, ATEMP);
 		for (i = 0; i < nwords; i++) {
 			info[i].word = words[i];
 			info[i].base = x_basename(words[i], NULL);
@@ -444,15 +440,14 @@ x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 
 static int
 x_locate_word(const char *buf, int buflen, int pos, int *startp,
-    int *is_commandp)
+    bool *is_commandp)
 {
-	int p;
 	int start, end;
 
 	/* Bad call?  Probably should report error */
 	if (pos < 0 || pos > buflen) {
 		*startp = pos;
-		*is_commandp = 0;
+		*is_commandp = false;
 		return 0;
 	}
 	/* The case where pos == buflen happens to take care of itself... */
@@ -471,12 +466,12 @@ x_locate_word(const char *buf, int buflen, int pos, int *startp,
 	}
 
 	if (is_commandp) {
-		int iscmd;
+		bool iscmd;
+		int p = start - 1;
 
 		/* Figure out if this is a command */
-		for (p = start - 1; p >= 0 && ksh_isspace(buf[p]);
-		    p--)
-			;
+		while (p >= 0 && ksh_isspace(buf[p]))
+			p--;
 		iscmd = p < 0 || vstrchr(";|&()`", buf[p]);
 		if (iscmd) {
 			/* If command has a /, path, etc. is not searched;
@@ -497,16 +492,15 @@ x_locate_word(const char *buf, int buflen, int pos, int *startp,
 
 static int
 x_cf_glob(int flags, const char *buf, int buflen, int pos, int *startp,
-    int *endp, char ***wordsp, int *is_commandp)
+    int *endp, char ***wordsp, bool *is_commandp)
 {
-	int len;
-	int nwords;
+	int len, nwords;
 	char **words = NULL;
-	int is_command;
+	bool is_command;
 
 	len = x_locate_word(buf, buflen, pos, startp, &is_command);
 	if (!(flags & XCF_COMMAND))
-		is_command = 0;
+		is_command = false;
 	/* Don't do command globing on zero length strings - it takes too
 	 * long and isn't very useful.  File globs are more likely to be
 	 * useful, so allow these.
@@ -535,8 +529,7 @@ x_cf_glob(int flags, const char *buf, int buflen, int pos, int *startp,
 static char *
 add_glob(const char *str, int slen)
 {
-	char *toglob;
-	char *s;
+	char *toglob, *s;
 	bool saw_slash = false;
 
 	if (slen < 0)
@@ -573,8 +566,7 @@ add_glob(const char *str, int slen)
 static int
 x_longest_prefix(int nwords, char * const * words)
 {
-	int i, j;
-	int prefix_len;
+	int i, j, prefix_len;
 	char *p;
 
 	if (nwords <= 0)
@@ -593,10 +585,8 @@ x_longest_prefix(int nwords, char * const * words)
 static void
 x_free_words(int nwords, char **words)
 {
-	int i;
-
-	for (i = 0; i < nwords; i++)
-		afreechk(words[i]);
+	while (nwords)
+		afree(words[--nwords], ATEMP);
 	afree(words, ATEMP);
 }
 
@@ -653,12 +643,8 @@ static void
 glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
 {
 	const char *sp, *p;
-	char *xp;
-	int staterr;
-	int pathlen;
-	int patlen;
-	int oldsize, newsize, i, j;
-	char **words;
+	char *xp, **words;
+	int staterr, pathlen, patlen, oldsize, newsize, i, j;
 	XString xs;
 
 	patlen = strlen(pat) + 1;
@@ -750,15 +736,6 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 	return (rval);
 }
 
-/* +++ UTF-8 hack +++ */
-
-static size_t mbxtowc(unsigned *, const char *);
-static size_t wcxtomb(char *, unsigned);
-static int wcxwidth(unsigned);
-static int x_e_getmbc(char *);
-static char *utf_getcpfromcols(char *, int);
-static void utf_ptradj(char *, char **);
-
 /* UTF-8 hack: high-level functions */
 
 #if HAVE_EXPSTMT
@@ -789,53 +766,74 @@ int
 utf_widthadj(const char *src, const char **dst)
 {
 	size_t len;
-	unsigned wc;
+	unsigned int wc;
 	int width;
 
-	if (!Flag(FUTFHACK) || *(const unsigned char *)src <= 0x7F ||
-	    (len = mbxtowc(&wc, src)) == (size_t)-1) {
-		if (dst)
-			*dst = src + 1;
-		return (1);
-	}
+	if (!Flag(FUTFHACK) || (len = utf_mbtowc(&wc, src)) == (size_t)-1 ||
+	    wc == 0)
+		len = width = 1;
+	else
+		width = utf_wcwidth(wc);
 
 	if (dst)
 		*dst = src + len;
-	width = wcxwidth(wc);
 	return (width == -1 ? 2 : width);
 }
 
-static void
-utf_ptradj(char *src, char **dst)
+int
+utf_mbswidth(const char *s)
+{
+	size_t len;
+	unsigned int wc;
+	int width = 0, cw;
+
+	if (!Flag(FUTFHACK))
+		return (strlen(s));
+
+	while (*s)
+		if (((len = utf_mbtowc(&wc, s)) == (size_t)-1) ||
+		    ((cw = utf_wcwidth(wc)) == -1)) {
+			s++;
+			width += 1;
+		} else {
+			s += len;
+			width += cw;
+		}
+	return (width);
+}
+
+void
+utf_cptradj(const char *src, const char **dst)
 {
 	size_t len;
 
-	if (!Flag(FUTFHACK) || *(unsigned char *)src < 0xC2)
+	if (!Flag(FUTFHACK) || *(const unsigned char *)src < 0xC2 ||
+	    (len = utf_mbtowc(NULL, src)) == (size_t)-1)
 		len = 1;
-	else if (*(unsigned char *)src < 0xE0)
-		len = 2;
-	else if (*(unsigned char *)src < 0xF0)
-		len = 3;
-	else
-		len = 1;
-
-	if (len > 1)
-		if ((*(unsigned char *)(src + 1) & 0xC0) != 0x80)
-			len = 1;
-	if (len > 2)
-		if ((*(unsigned char *)(src + 2) & 0xC0) != 0x80)
-			len = 2;
 	if (dst)
 		*dst = src + len;
+	/* return (len); */
 }
 
-static char *
-utf_getcpfromcols(char *p, int cols)
+#if HAVE_EXPSTMT
+#define utf_ptradj(s,d) ({			\
+	union mksh_cchack utf_ptradj_o;		\
+	char **utf_ptradj_d = (d);		\
+						\
+	utf_cptradj((s), &utf_ptradj_o.ro);	\
+	*utf_ptradj_d = utf_ptradj_o.rw;	\
+})
+#else
+#define utf_ptradj(s,d) utf_cptradj((s), (const char **)(d))
+#endif
+
+const char *
+utf_skipcols(const char *p, int cols)
 {
 	int c = 0;
 
 	while (c < cols)
-		c += utf_widthadj(p, (const char **)&p);
+		c += utf_widthadj(p, &p);
 	return (p);
 }
 
@@ -843,29 +841,29 @@ utf_getcpfromcols(char *p, int cols)
 
 /* --- begin of wcwidth.c excerpt --- */
 /*
- * Markus Kuhn -- 2003-05-20 (Unicode 4.0)
+ * Markus Kuhn -- 2007-05-25 (Unicode 5.0)
  *
  * Permission to use, copy, modify, and distribute this software
  * for any purpose and without fee is hereby granted. The author
  * disclaims all warranties with regard to this software.
  */
 
-__RCSID("$miros: src/lib/libc/i18n/wcwidth.c,v 1.4 2006/11/01 20:01:20 tg Exp $");
+__RCSID("$miros: src/lib/libc/i18n/wcwidth.c,v 1.7 2007/07/31 23:52:23 tg Exp $");
 
-static int
-wcxwidth(unsigned c)
+int
+utf_wcwidth(unsigned int c)
 {
 	static const struct cbset {
 		unsigned short first;
 		unsigned short last;
 	} comb[] = {
 		{ 0x0300, 0x036F }, { 0x0483, 0x0486 }, { 0x0488, 0x0489 },
-		{ 0x0591, 0x05B9 }, { 0x05BB, 0x05BD }, { 0x05BF, 0x05BF },
-		{ 0x05C1, 0x05C2 }, { 0x05C4, 0x05C5 }, { 0x05C7, 0x05C7 },
-		{ 0x0600, 0x0603 }, { 0x0610, 0x0615 }, { 0x064B, 0x065E },
-		{ 0x0670, 0x0670 }, { 0x06D6, 0x06E4 }, { 0x06E7, 0x06E8 },
-		{ 0x06EA, 0x06ED }, { 0x070F, 0x070F }, { 0x0711, 0x0711 },
-		{ 0x0730, 0x074A }, { 0x07A6, 0x07B0 }, { 0x0901, 0x0902 },
+		{ 0x0591, 0x05BD }, { 0x05BF, 0x05BF }, { 0x05C1, 0x05C2 },
+		{ 0x05C4, 0x05C5 }, { 0x05C7, 0x05C7 }, { 0x0600, 0x0603 },
+		{ 0x0610, 0x0615 }, { 0x064B, 0x065E }, { 0x0670, 0x0670 },
+		{ 0x06D6, 0x06E4 }, { 0x06E7, 0x06E8 }, { 0x06EA, 0x06ED },
+		{ 0x070F, 0x070F }, { 0x0711, 0x0711 }, { 0x0730, 0x074A },
+		{ 0x07A6, 0x07B0 }, { 0x07EB, 0x07F3 }, { 0x0901, 0x0902 },
 		{ 0x093C, 0x093C }, { 0x0941, 0x0948 }, { 0x094D, 0x094D },
 		{ 0x0951, 0x0954 }, { 0x0962, 0x0963 }, { 0x0981, 0x0981 },
 		{ 0x09BC, 0x09BC }, { 0x09C1, 0x09C4 }, { 0x09CD, 0x09CD },
@@ -879,27 +877,29 @@ wcxwidth(unsigned c)
 		{ 0x0BCD, 0x0BCD }, { 0x0C3E, 0x0C40 }, { 0x0C46, 0x0C48 },
 		{ 0x0C4A, 0x0C4D }, { 0x0C55, 0x0C56 }, { 0x0CBC, 0x0CBC },
 		{ 0x0CBF, 0x0CBF }, { 0x0CC6, 0x0CC6 }, { 0x0CCC, 0x0CCD },
-		{ 0x0D41, 0x0D43 }, { 0x0D4D, 0x0D4D }, { 0x0DCA, 0x0DCA },
-		{ 0x0DD2, 0x0DD4 }, { 0x0DD6, 0x0DD6 }, { 0x0E31, 0x0E31 },
-		{ 0x0E34, 0x0E3A }, { 0x0E47, 0x0E4E }, { 0x0EB1, 0x0EB1 },
-		{ 0x0EB4, 0x0EB9 }, { 0x0EBB, 0x0EBC }, { 0x0EC8, 0x0ECD },
-		{ 0x0F18, 0x0F19 }, { 0x0F35, 0x0F35 }, { 0x0F37, 0x0F37 },
-		{ 0x0F39, 0x0F39 }, { 0x0F71, 0x0F7E }, { 0x0F80, 0x0F84 },
-		{ 0x0F86, 0x0F87 }, { 0x0F90, 0x0F97 }, { 0x0F99, 0x0FBC },
-		{ 0x0FC6, 0x0FC6 }, { 0x102D, 0x1030 }, { 0x1032, 0x1032 },
-		{ 0x1036, 0x1037 }, { 0x1039, 0x1039 }, { 0x1058, 0x1059 },
-		{ 0x1160, 0x11FF }, { 0x135F, 0x135F }, { 0x1712, 0x1714 },
-		{ 0x1732, 0x1734 }, { 0x1752, 0x1753 }, { 0x1772, 0x1773 },
-		{ 0x17B4, 0x17B5 }, { 0x17B7, 0x17BD }, { 0x17C6, 0x17C6 },
-		{ 0x17C9, 0x17D3 }, { 0x17DD, 0x17DD }, { 0x180B, 0x180D },
-		{ 0x18A9, 0x18A9 }, { 0x1920, 0x1922 }, { 0x1927, 0x1928 },
-		{ 0x1932, 0x1932 }, { 0x1939, 0x193B }, { 0x1A17, 0x1A18 },
-		{ 0x1DC0, 0x1DC3 }, { 0x200B, 0x200F }, { 0x202A, 0x202E },
-		{ 0x2060, 0x2063 }, { 0x206A, 0x206F }, { 0x20D0, 0x20EB },
-		{ 0x302A, 0x302F }, { 0x3099, 0x309A }, { 0xA806, 0xA806 },
-		{ 0xA80B, 0xA80B }, { 0xA825, 0xA826 }, { 0xFB1E, 0xFB1E },
-		{ 0xFE00, 0xFE0F }, { 0xFE20, 0xFE23 }, { 0xFEFF, 0xFEFF },
-		{ 0xFFF9, 0xFFFB }
+		{ 0x0CE2, 0x0CE3 }, { 0x0D41, 0x0D43 }, { 0x0D4D, 0x0D4D },
+		{ 0x0DCA, 0x0DCA }, { 0x0DD2, 0x0DD4 }, { 0x0DD6, 0x0DD6 },
+		{ 0x0E31, 0x0E31 }, { 0x0E34, 0x0E3A }, { 0x0E47, 0x0E4E },
+		{ 0x0EB1, 0x0EB1 }, { 0x0EB4, 0x0EB9 }, { 0x0EBB, 0x0EBC },
+		{ 0x0EC8, 0x0ECD }, { 0x0F18, 0x0F19 }, { 0x0F35, 0x0F35 },
+		{ 0x0F37, 0x0F37 }, { 0x0F39, 0x0F39 }, { 0x0F71, 0x0F7E },
+		{ 0x0F80, 0x0F84 }, { 0x0F86, 0x0F87 }, { 0x0F90, 0x0F97 },
+		{ 0x0F99, 0x0FBC }, { 0x0FC6, 0x0FC6 }, { 0x102D, 0x1030 },
+		{ 0x1032, 0x1032 }, { 0x1036, 0x1037 }, { 0x1039, 0x1039 },
+		{ 0x1058, 0x1059 }, { 0x1160, 0x11FF }, { 0x135F, 0x135F },
+		{ 0x1712, 0x1714 }, { 0x1732, 0x1734 }, { 0x1752, 0x1753 },
+		{ 0x1772, 0x1773 }, { 0x17B4, 0x17B5 }, { 0x17B7, 0x17BD },
+		{ 0x17C6, 0x17C6 }, { 0x17C9, 0x17D3 }, { 0x17DD, 0x17DD },
+		{ 0x180B, 0x180D }, { 0x18A9, 0x18A9 }, { 0x1920, 0x1922 },
+		{ 0x1927, 0x1928 }, { 0x1932, 0x1932 }, { 0x1939, 0x193B },
+		{ 0x1A17, 0x1A18 }, { 0x1B00, 0x1B03 }, { 0x1B34, 0x1B34 },
+		{ 0x1B36, 0x1B3A }, { 0x1B3C, 0x1B3C }, { 0x1B42, 0x1B42 },
+		{ 0x1B6B, 0x1B73 }, { 0x1DC0, 0x1DCA }, { 0x1DFE, 0x1DFF },
+		{ 0x200B, 0x200F }, { 0x202A, 0x202E }, { 0x2060, 0x2063 },
+		{ 0x206A, 0x206F }, { 0x20D0, 0x20EF }, { 0x302A, 0x302F },
+		{ 0x3099, 0x309A }, { 0xA806, 0xA806 }, { 0xA80B, 0xA80B },
+		{ 0xA825, 0xA826 }, { 0xFB1E, 0xFB1E }, { 0xFE00, 0xFE0F },
+		{ 0xFE20, 0xFE23 }, { 0xFEFF, 0xFEFF }, { 0xFFF9, 0xFFFB }
 	};
 	size_t min = 0, mid, max = NELEM(comb) - 1;
 
@@ -933,14 +933,13 @@ wcxwidth(unsigned c)
 /* --- end of wcwidth.c excerpt --- */
 
 /* --- begin of mbrtowc.c excerpt --- */
-__RCSID("$miros: src/lib/libc/i18n/mbrtowc.c,v 1.13 2006/11/01 20:01:19 tg Exp $");
+__RCSID("$miros: src/lib/libc/i18n/mbrtowc.c,v 1.15 2007/02/02 21:06:21 tg Exp $");
 
-static size_t
-mbxtowc(unsigned *dst, const char *src)
+size_t
+utf_mbtowc(unsigned int *dst, const char *src)
 {
 	const unsigned char *s = (const unsigned char *)src;
-	unsigned c, wc;
-	unsigned count;
+	unsigned int c, wc, count;
 
 	wc = *s++;
 	if (wc < 0x80) {
@@ -983,31 +982,30 @@ mbxtowc(unsigned *dst, const char *src)
 /* --- end of mbrtowc.c excerpt --- */
 
 /* --- begin of wcrtomb.c excerpt --- */
-__RCSID("$miros: src/lib/libc/i18n/wcrtomb.c,v 1.14 2006/11/01 20:12:44 tg Exp $");
+__RCSID("$miros: src/lib/libc/i18n/wcrtomb.c,v 1.17 2007/02/02 21:06:22 tg Exp $");
 
-static size_t
-wcxtomb(char *src, unsigned wc)
+size_t
+utf_wctomb(char *dst, unsigned int wc)
 {
-	unsigned char *s = (unsigned char *)src;
-	unsigned count;
+	unsigned char count, *d = (unsigned char *)dst;
 
 	if (wc > 0xFFFD)
 		wc = 0xFFFD;
 	if (wc < 0x80) {
 		count = 0;
-		*s++ = wc;
+		*d++ = wc;
 	} else if (wc < 0x0800) {
 		count = 1;
-		*s++ = (wc >> 6) | 0xC0;
+		*d++ = (wc >> 6) | 0xC0;
 	} else {
 		count = 2;
-		*s++ = (wc >> 12) | 0xE0;
+		*d++ = (wc >> 12) | 0xE0;
 	}
 
 	while (count) {
-		*s++ = ((wc >> (6 * --count)) & 0x3F) | 0x80;
+		*d++ = ((wc >> (6 * --count)) & 0x3F) | 0x80;
 	}
-	return ((char *)s - src);
+	return ((char *)d - dst);
 }
 /* --- end of wcrtomb.c excerpt --- */
 
@@ -1418,17 +1416,22 @@ x_e_getmbc(char *sbuf)
 		return (-1);
 	if (Flag(FUTFHACK)) {
 		if ((buf[0] >= 0xC2) && (buf[0] < 0xF0)) {
-			buf[pos++] = c = x_e_getc();
+			c = x_e_getc();
 			if (c == -1)
 				return (-1);
+			if ((c & 0xC0) != 0x80) {
+				x_e_ungetc(c);
+				return (1);
+			}
+			buf[pos++] = c;
 		}
 		if ((buf[0] >= 0xE0) && (buf[0] < 0xF0)) {
+			/* XXX x_e_ungetc is one-octet only */
 			buf[pos++] = c = x_e_getc();
 			if (c == -1)
 				return (-1);
 		}
 	}
-	buf[pos] = '\0';
 	return (pos);
 }
 
@@ -1819,7 +1822,7 @@ x_goto(char *cp)
 	if (Flag(FUTFHACK))
 		while ((cp > xbuf) && ((*cp & 0xC0) == 0x80))
 			--cp;
-	if (cp < xbp || cp >= utf_getcpfromcols(xbp, x_displen)) {
+	if (cp < xbp || cp >= utf_skipcols(xbp, x_displen)) {
 		/* we are heading off screen */
 		xcp = cp;
 		x_adjust();
@@ -1893,17 +1896,24 @@ x_zotc2(int c)
 static void
 x_zotc3(char **cp)
 {
-	unsigned c = **(unsigned char **)cp;
+	unsigned char c = **(unsigned char **)cp;
 
+	if (c == 0xC2 && Flag(FUTFHACK)) {
+		unsigned char c2 = ((unsigned char *)*cp)[1];
+
+		if (c2 >= 0x80 && c2 < 0xA0) {
+			c = c2;
+			(*cp)++;
+		}
+	}
 	if (c == '\t') {
 		/*  Kludge, tabs are always four spaces.  */
 		x_e_puts("    ");
 		(*cp)++;
-	} else if (c < ' ' || c == 0x7f || (Flag(FUTFHACK) && c == 0xC2 &&
-	    ((unsigned char *)*cp)[1] < 0xA0 && mbxtowc(&c, *cp))) {
+	} else if (c < ' ' || (c >= 0x7F && c < 0xA0)) {
 		x_e_putc2('^');
 		x_e_putc2(UNCTRL(c));
-		*cp += c & 0x80 ? 2 : 1;
+		(*cp)++;
 	} else
 		x_e_putc3((const char **)cp);
 }
@@ -1967,9 +1977,8 @@ x_search_char_forw(int c __unused)
 static int
 x_search_char_back(int c __unused)
 {
-	char *cp = xcp, *p;
-	char tmp[4];
-	int b;
+	char *cp = xcp, *p, tmp[4];
+	bool b;
 
 	if (x_e_getmbc(tmp) < 0) {
 		x_e_putc2(7);
@@ -1986,13 +1995,13 @@ x_search_char_back(int c __unused)
 			if ((tmp[1] && ((p+1) > xep)) ||
 			    (tmp[2] && ((p+2) > xep)))
 				continue;
-			b = 1;
+			b = true;
 			if (*p != tmp[0])
-				b = 0;
+				b = false;
 			if (b && tmp[1] && p[1] != tmp[1])
-				b = 0;
+				b = false;
 			if (b && tmp[2] && p[2] != tmp[2])
-				b = 0;
+				b = false;
 			if (b)
 				break;
 		}
@@ -2329,7 +2338,7 @@ x_redraw(int limit)
 static int
 x_transpose(int c __unused)
 {
-	unsigned tmpa, tmpb;
+	unsigned int tmpa, tmpb;
 
 	/* What transpose is meant to do seems to be up for debate. This
 	 * is a general summary of the options; the text is abcd with the
@@ -2356,35 +2365,35 @@ x_transpose(int c __unused)
 		 * cursor, do not change cursor position
 		 */
 		x_bs2(xcp = utf_backch(xcp));
-		if (mbxtowc(&tmpa, xcp) == (size_t)-1) {
+		if (utf_mbtowc(&tmpa, xcp) == (size_t)-1) {
 			x_e_putc2(7);
 			return KSTD;
 		}
 		x_bs2(xcp = utf_backch(xcp));
-		if (mbxtowc(&tmpb, xcp) == (size_t)-1) {
+		if (utf_mbtowc(&tmpb, xcp) == (size_t)-1) {
 			x_e_putc2(7);
 			return KSTD;
 		}
-		wcxtomb(xcp, tmpa);
+		utf_wctomb(xcp, tmpa);
 		x_zotc3(&xcp);
-		wcxtomb(xcp, tmpb);
+		utf_wctomb(xcp, tmpb);
 		x_zotc3(&xcp);
 	} else {
 		/* GNU emacs style: Swap the characters before and under the
 		 * cursor, move cursor position along one.
 		 */
-		if (mbxtowc(&tmpa, xcp) == (size_t)-1) {
+		if (utf_mbtowc(&tmpa, xcp) == (size_t)-1) {
 			x_e_putc2(7);
 			return KSTD;
 		}
 		x_bs2(xcp = utf_backch(xcp));
-		if (mbxtowc(&tmpb, xcp) == (size_t)-1) {
+		if (utf_mbtowc(&tmpb, xcp) == (size_t)-1) {
 			x_e_putc2(7);
 			return KSTD;
 		}
-		wcxtomb(xcp, tmpa);
+		utf_wctomb(xcp, tmpa);
 		x_zotc3(&xcp);
-		wcxtomb(xcp, tmpb);
+		utf_wctomb(xcp, tmpb);
 		x_zotc3(&xcp);
 	}
 	return KSTD;
@@ -2463,6 +2472,7 @@ static int
 x_meta_yank(int c __unused)
 {
 	int len;
+
 	if ((x_last_command != XFUNC_yank && x_last_command != XFUNC_meta_yank) ||
 	    killstack[killtp] == 0) {
 		killtp = killsp;
@@ -2572,8 +2582,7 @@ x_bind(const char *a1, const char *a2,
 {
 	unsigned char f;
 	int prefix, key;
-	char *sp = NULL;
-	char *m1, *m2;
+	char *sp = NULL, *m1, *m2;
 	bool hastilde;
 
 	if (x_tab == NULL) {
@@ -2802,10 +2811,8 @@ static int
 x_expand(int c __unused)
 {
 	char **words;
-	int nwords;
-	int start, end;
-	int is_command;
-	int i;
+	int start, end, nwords, i;
+	bool is_command;
 
 	nwords = x_cf_glob(XCF_FILE, xbuf, xep - xbuf, xcp - xbuf,
 	    &start, &end, &words, &is_command);
@@ -2834,10 +2841,8 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
     Comp_type type)
 {
 	char **words;
-	int nwords;
-	int start, end, nlen, olen;
-	int is_command;
-	int completed = 0;
+	int start, end, nlen, olen, nwords;
+	bool is_command, completed = false;
 
 	nwords = x_cf_glob(flags, xbuf, xep - xbuf, xcp - xbuf,
 	    &start, &end, &words, &is_command);
@@ -2860,16 +2865,16 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
 		x_delete(olen, false);
 		x_escape(words[0], nlen, x_do_ins);
 		x_adjust();
-		completed = 1;
+		completed = true;
 	}
 	/* add space if single non-dir match */
 	if (nwords == 1 && words[0][nlen - 1] != '/') {
 		x_ins(" ");
-		completed = 1;
+		completed = true;
 	}
 	if (type == CT_COMPLIST && !completed) {
 		x_print_expansions(nwords, words, is_command);
-		completed = 1;
+		completed = true;
 	}
 	if (completed)
 		x_redraw(0);
@@ -2945,13 +2950,13 @@ x_e_putc2(int c)
 
 			if (c < 0xA0)
 				c = 0xFFFD;
-			x = wcxtomb(utf_tmp, c);
+			x = utf_wctomb(utf_tmp, c);
 			x_putc(utf_tmp[0]);
 			if (x > 1)
 				x_putc(utf_tmp[1]);
 			if (x > 2)
 				x_putc(utf_tmp[2]);
-			width = wcxwidth(c);
+			width = utf_wcwidth(c);
 		} else
 			x_putc(c);
 		switch (c) {
@@ -3029,8 +3034,7 @@ x_e_puts(const char *s)
 static int
 x_set_arg(int c)
 {
-	int n = 0;
-	int first = 1;
+	int n = 0, first = 1;
 
 	c &= 255;	/* strip command prefix */
 	for (; c >= 0 && ksh_isdigit(c); c = x_e_getc(), first = 0)
@@ -3073,9 +3077,8 @@ x_version(int c __unused)
 {
 	char *o_xbuf = xbuf, *o_xend = xend;
 	char *o_xbp = xbp, *o_xep = xep, *o_xcp = xcp;
-	int lim = x_lastcp() - xbp;
+	int vlen, lim = x_lastcp() - xbp;
 	char *v = str_save(KSH_VERSION, ATEMP);
-	int vlen;
 
 	xbuf = xbp = xcp = v;
 	xend = xep = v + (vlen = strlen(v));
@@ -3117,8 +3120,7 @@ x_version(int c __unused)
 static int
 x_prev_histword(int c __unused)
 {
-	char *rcp;
-	char *cp;
+	char *rcp, *cp;
 
 	cp = *histptr;
 	if (!cp)
@@ -4703,7 +4705,7 @@ save_edstate(struct edstate *old)
 {
 	struct edstate *new;
 
-	new = (struct edstate *)alloc(sizeof(struct edstate), APERM);
+	new = (struct edstate *)alloc(sizeof (struct edstate), APERM);
 	new->cbuf = alloc(old->cbufsize, APERM);
 	memcpy(new->cbuf, old->cbuf, old->linelen);
 	new->cbufsize = old->cbufsize;
@@ -5264,14 +5266,10 @@ static int
 complete_word(int cmd, int count)
 {
 	static struct edstate *buf;
-	int rval;
-	int nwords;
-	int start, end;
+	int rval, nwords, start, end, match_len;
 	char **words;
 	char *match;
-	int match_len;
-	int is_unique;
-	int is_command;
+	bool is_command, is_unique;
 
 	/* Undo previous completion */
 	if (cmd == 0 && expanded == COMPLETE && buf) {
@@ -5328,7 +5326,7 @@ complete_word(int cmd, int count)
 		} else
 			match = words[count];
 		match_len = strlen(match);
-		is_unique = 1;
+		is_unique = true;
 		/* expanded = PRINT;	next call undo */
 	} else {
 		match = words[0];
@@ -5369,10 +5367,9 @@ complete_word(int cmd, int count)
 static int
 print_expansions(struct edstate *est, int cmd __unused)
 {
-	int nwords;
-	int start, end;
+	int start, end, nwords;
 	char **words;
-	int is_command;
+	bool is_command;
 
 	nwords = x_cf_glob(XCF_COMMAND_FILE | XCF_FULLPATH,
 	    est->cbuf, est->linelen, est->cursor,

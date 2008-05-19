@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.56.2.1 2008/04/22 13:29:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.56.2.2 2008/05/19 18:41:26 tg Exp $");
 
 /*
  * states while lexing word
@@ -774,7 +774,8 @@ yylex(int cf)
 	if ((c == '<' || c == '>') && state == SBASE &&
 	    ((c2 = Xlength(ws, wp)) == 0 ||
 	    (c2 == 2 && dp[0] == CHAR && ksh_isdigit(dp[1])))) {
-		struct ioword *iop = (struct ioword *) alloc(sizeof(*iop), ATEMP);
+		struct ioword *iop = (struct ioword *)alloc(sizeof (*iop),
+		    ATEMP);
 
 		if (c2 == 2)
 			iop->unit = dp[1] - '0';
@@ -1012,7 +1013,7 @@ pushs(int type, Area *areap)
 {
 	Source *s;
 
-	s = (Source *)alloc(sizeof(Source), areap);
+	s = (Source *)alloc(sizeof (Source), areap);
 	s->type = type;
 	s->str = null;
 	s->start = NULL;
@@ -1134,9 +1135,7 @@ getsc__(void)
 		    (((const unsigned char *)(s->str))[0] == 0xBB) &&
 		    (((const unsigned char *)(s->str))[1] == 0xBF)) {
 			s->str += 2;
-#if !defined(MKSH_ASSUME_UTF8) || !defined(MKSH_SMALL)
 			Flag(FUTFHACK) = 1;
-#endif
 			goto getsc_again;
 		}
 	}
@@ -1310,7 +1309,7 @@ dopprompt(const char *cp, int ntruncate, int doprint)
 				columns--;
 		} else if (*cp == delimiter)
 			indelimit = !indelimit;
-		else if (Flag(FUTFHACK) && ((unsigned)*cp > 0x7F)) {
+		else if (Flag(FUTFHACK) && ((unsigned char)*cp > 0x7F)) {
 			const char *cp2;
 			columns += utf_widthadj(cp, &cp2);
 			if (doprint && (indelimit ||
@@ -1503,7 +1502,7 @@ getsc_bn(void)
 static Lex_state *
 push_state_(State_info *si, Lex_state *old_end)
 {
-	Lex_state	*new = alloc(sizeof(Lex_state) * STATE_BSIZE, ATEMP);
+	Lex_state *new = alloc(sizeof (Lex_state) * STATE_BSIZE, ATEMP);
 
 	new[0].ls_info.base = old_end;
 	si->base = &new[0];

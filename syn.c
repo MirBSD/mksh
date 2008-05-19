@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.19.2.1 2008/04/22 13:29:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.19.2.2 2008/05/19 18:41:32 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -186,7 +186,7 @@ get_command(int cf)
 	XPtrV args, vars;
 	struct nesting_state old_nesting;
 
-	iops = (struct ioword **) alloc(sizeofN(struct ioword *, NUFILE+1),
+	iops = (struct ioword **)alloc(sizeofN(struct ioword *, NUFILE+1),
 	    ATEMP);
 	XPinit(args, 16);
 	XPinit(vars, 16);
@@ -588,13 +588,14 @@ function_body(char *name,
 		 * be used as input), we pretend there is a colon here.
 		 */
 		t->left = newtp(TCOM);
-		t->left->args = (const char **)alloc(sizeof(char *) * 2, ATEMP);
-		t->left->args[0] = tv = alloc(sizeof(char) * 3, ATEMP);
+		t->left->args = (const char **)alloc(sizeof (char *) * 2,
+		    ATEMP);
+		t->left->args[0] = tv = alloc(sizeof (char) * 3, ATEMP);
 		tv[0] = CHAR;
 		tv[1] = ':';
 		tv[2] = EOS;
 		t->left->args[1] = NULL;
-		t->left->vars = (char **)alloc(sizeof(char *), ATEMP);
+		t->left->vars = (char **)alloc(sizeof (char *), ATEMP);
 		t->left->vars[0] = NULL;
 		t->left->lineno = 1;
 	}
@@ -771,7 +772,7 @@ newtp(int type)
 {
 	struct op *t;
 
-	t = (struct op *)alloc(sizeof(*t), ATEMP);
+	t = (struct op *)alloc(sizeof (*t), ATEMP);
 	t->type = type;
 	t->u.evalflags = 0;
 	t->args = NULL;

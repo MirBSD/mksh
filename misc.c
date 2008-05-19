@@ -6,8 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.68.2.1 2008/04/22 13:29:30 tg Exp $\t"
-	MKSH_SH_H_ID);
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.68.2.2 2008/05/19 18:41:27 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -35,7 +34,7 @@ static char *do_phys_path(XString *, char *, const char *);
 void
 setctypes(const char *s, int t)
 {
-	unsigned i;
+	unsigned int i;
 
 	if (t & C_IFS) {
 		for (i = 0; i < UCHAR_MAX + 1; i++)
@@ -88,7 +87,7 @@ str_save(const char *s, Area *ap)
 
 /* called from XcheckN() to grow buffer */
 char *
-Xcheck_grow_(XString *xsp, const char *xp, unsigned more)
+Xcheck_grow_(XString *xsp, const char *xp, unsigned int more)
 {
 	const char *old_beg = xsp->beg;
 
@@ -185,7 +184,7 @@ options_fmt_entry(const void *arg, int i, char *buf, int buflen)
 static void
 printoptions(int verbose)
 {
-	unsigned i;
+	unsigned int i;
 
 	if (verbose) {
 		struct options_info oi;
@@ -216,7 +215,7 @@ printoptions(int verbose)
 char *
 getoptions(void)
 {
-	unsigned i;
+	unsigned int i;
 	char m[(int) FNFLAGS + 1];
 	char *cp = m;
 
@@ -514,7 +513,7 @@ gmatchx(const char *s, const char *p, bool isfile)
 		size_t len = pe - p + 1;
 		char tbuf[64];
 		char *t = len <= sizeof(tbuf) ? tbuf :
-		    (char *) alloc(len, ATEMP);
+		    (char *)alloc(len, ATEMP);
 		debunk(t, p, len);
 		return !strcmp(t, s);
 	}
@@ -954,11 +953,8 @@ print_columns(struct shf *shf, int n,
     char *(*func) (const void *, int, char *, int),
     const void *arg, int max_width, int prefcol)
 {
-	char *str = (char *) alloc(max_width + 1, ATEMP);
-	int i;
-	int r, c;
-	int rows, cols;
-	int nspace;
+	char *str = (char *)alloc(max_width + 1, ATEMP);
+	int i, r, c, rows, cols, nspace;
 
 	/* max_width + 1 for the space.  Note that no space
 	 * is printed after the last column to avoid problems
@@ -1424,6 +1420,7 @@ strstr(char *b, const char *l)
 }
 #endif
 
+#ifndef MKSH_ASSUME_UTF8
 #if !HAVE_STRCASESTR
 const char *
 stristr(const char *b, const char *l)
@@ -1443,10 +1440,11 @@ stristr(const char *b, const char *l)
 	return (b - 1);
 }
 #endif
+#endif
 
 #if !HAVE_EXPSTMT
 bool
-ksh_isspace_(unsigned ksh_isspace_c)
+ksh_isspace_(unsigned int ksh_isspace_c)
 {
 	return ((ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||
 	    (ksh_isspace_c == 0x20));

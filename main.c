@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.92.2.1 2008/04/22 13:29:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.92.2.2 2008/05/19 18:41:27 tg Exp $");
 
 extern char **environ;
 
@@ -32,8 +32,8 @@ static const char initsubs[] = "${PS2=> } ${PS3=#? } ${PS4=+ }";
 static const char *initcoms[] = {
 	"typeset", "-r", initvsn, NULL,
 	"typeset", "-x", "SHELL", "PATH", "HOME", NULL,
-	"typeset", "-i", "PPID", "OPTIND=1", NULL,
-	"eval", "typeset -i RANDOM SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
+	"typeset", "-i10", "OPTIND=1", "PGRP", "PPID", "USER_ID", NULL,
+	"eval", "typeset -i10 RANDOM SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
 	"alias", "integer=typeset -i", "local=typeset", NULL,
 	"alias",
 	"hash=alias -t",	/* not "alias -t --": hash -r needs to work */
@@ -213,7 +213,6 @@ main(int argc, const char *argv[])
 #if HAVE_ARC4RANDOM
 	Flag(FARC4RANDOM) = 2;	/* use arc4random(3) until $RANDOM is written */
 #endif
-	setint(global("PPID"), (long)ppid);
 
 	for (wp = initcoms; *wp != NULL; wp++) {
 		shcomexec(wp);
@@ -228,6 +227,9 @@ main(int argc, const char *argv[])
 	    (!ksheuid && !strchr(str_val(vp), '#')))
 		/* setstr can't fail here */
 		setstr(vp, safe_prompt, KSH_RETURN_ERROR);
+	setint(global("PGRP"), (long)(kshpgrp = getpgrp()));
+	setint(global("PPID"), (long)ppid);
+	setint(global("USER_ID"), (long)ksheuid);
 
 	/* Set this before parsing arguments */
 #if HAVE_SETRESUGID
@@ -285,22 +287,29 @@ main(int argc, const char *argv[])
 	/* Do this after j_init(), as tty_fd is not initialised 'til then */
 	if (Flag(FTALKING)) {
 #ifndef MKSH_ASSUME_UTF8
-#if HAVE_SETLOCALE_CTYPE
 #define isuc(x)	(((x) != NULL) && \
 		    (stristr((x), "UTF-8") || stristr((x), "utf8")))
 		/* Check if we're in a UTF-8 locale */
 		if (!Flag(FUTFHACK)) {
 			const char *ccp;
 
+#if HAVE_SETLOCALE_CTYPE
 			ccp = setlocale(LC_CTYPE, "");
 #if HAVE_LANGINFO_CODESET
 			if (!isuc(ccp))
 				ccp = nl_langinfo(CODESET);
 #endif
+#else
+			ccp = getenv("LC_ALL");
+			if (!ccp || !*ccp) {
+				ccp = getenv("LC_CTYPE");
+				if (!ccp || !*ccp)
+					ccp = getenv("LANG");
+			}
+#endif
 			Flag(FUTFHACK) = isuc(ccp);
 		}
 #undef isuc
-#endif
 #else
 		Flag(FUTFHACK) = 1;
 #endif
@@ -583,7 +592,7 @@ newenv(int type)
 {
 	struct env *ep;
 
-	ep = (struct env *) alloc(sizeof(*ep), ATEMP);
+	ep = (struct env *)alloc(sizeof (*ep), ATEMP);
 	ep->type = type;
 	ep->flags = 0;
 	ainit(&ep->area);
@@ -629,7 +638,7 @@ quitenv(struct shf *shf)
 				 * dump a core..
 				 */
 				if ((sig == SIGINT || sig == SIGTERM) &&
-				    getpgrp() == kshpid) {
+				    (kshpgrp == kshpid)) {
 					setsig(&sigtraps[sig], SIG_DFL,
 					    SS_RESTORE_CURR | SS_FORCE);
 					kill(0, sig);
@@ -1124,7 +1133,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	pathname = tempnam(dir, "mksh.");
 	len = ((pathname == NULL) ? 0 : strlen(pathname)) + 1;
 #endif
-	tp = (struct temp *) alloc(sizeof(struct temp) + len, ap);
+	tp = (struct temp *)alloc(sizeof (struct temp) + len, ap);
 	tp->name = (char *)&tp[1];
 #if !HAVE_MKSTEMP
 	if (pathname == NULL)

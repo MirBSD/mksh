@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.58.2.1 2008/04/22 13:29:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.58.2.2 2008/05/19 18:41:24 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -189,9 +189,13 @@ c_fc(const char **wp)
 				    hist_source->line - (int)(histptr - hp));
 			shf_putc('\t', shl_stdout);
 			/* print multi-line commands correctly */
-			for (s = *hp; (t = strchr(s, '\n')); s = t)
-				shf_fprintf(shl_stdout, "%.*s\t",
-				    (int)(++t - s), s);
+			s = *hp;
+			while ((t = strchr(s, '\n'))) {
+				*t = '\0';
+				shf_fprintf(shl_stdout, "%s\n\t", s);
+				*t++ = '\n';
+				s = t;
+			}
 			shf_fprintf(shl_stdout, "%s\n", s);
 		}
 		shf_flush(shl_stdout);
@@ -550,7 +554,7 @@ init_histvec(void)
 {
 	if (history == (char **)NULL) {
 		histsize = HISTORYSIZE;
-		history = (char **)alloc(histsize*sizeof (char *), APERM);
+		history = (char **)alloc(histsize * sizeof (char *), APERM);
 		histptr = history - 1;
 	}
 }

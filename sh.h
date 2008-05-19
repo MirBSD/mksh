@@ -8,8 +8,9 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
-#define MKSH_SH_H_ID "$MirOS: src/bin/mksh/sh.h,v 1.195.2.1 2008/04/22 13:29:32 tg Exp $"
-#define MKSH_VERSION "R33 2008/04/11"
+#ifdef __dietlibc__
+#define _BSD_SOURCE	/* live, BSD, live! */
+#endif
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -98,6 +99,11 @@
 #define __RCSID(x)	__IDSTRING(rcsid,x)
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
+#ifdef EXTERN
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.195.2.2 2008/05/19 18:41:30 tg Exp $");
+#endif
+#define MKSH_VERSION "R34 2008/05/17"
+
 #ifndef MKSH_INCLUDES_ONLY
 
 /* extra types */
@@ -156,14 +162,17 @@ typedef int bool;
 #if HAVE_EXPSTMT
 /* this macro must not evaluate its arguments several times */
 #define ksh_isspace(c)	({					\
-	unsigned ksh_isspace_c = (c);				\
+	unsigned int ksh_isspace_c = (c);			\
 	(ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||	\
 	    (ksh_isspace_c == 0x20);				\
 })
 #else
-#define ksh_isspace(c)	ksh_isspace_((unsigned)(c))
+#define ksh_isspace(c)	ksh_isspace_((unsigned int)(c))
 #endif
 
+#ifndef PATH_MAX
+#define PATH_MAX	1024
+#endif
 #ifndef S_ISLNK
 #define S_ISLNK(m)	((m & 0170000) == 0120000)
 #endif
@@ -278,6 +287,7 @@ typedef int32_t Tflag;
 EXTERN const char *kshname;	/* $0 */
 EXTERN pid_t kshpid;		/* $$, shell pid */
 EXTERN pid_t procpid;		/* pid of executing process */
+EXTERN pid_t kshpgrp;		/* process group of shell */
 EXTERN uid_t ksheuid;		/* effective uid of shell */
 EXTERN int exstat;		/* exit status */
 EXTERN int subst_exstat;	/* exit status of last $(..)/`..` */
@@ -1054,7 +1064,7 @@ typedef char *XStringP;
 #define Xsavepos(xs, xp) ((xp) - (xs).beg)
 #define Xrestpos(xs, xp, n) ((xs).beg + (n))
 
-char *Xcheck_grow_(XString *, const char *, unsigned);
+char *Xcheck_grow_(XString *, const char *, unsigned int);
 
 /*
  * expandable vector of generic pointers
@@ -1067,7 +1077,7 @@ typedef struct XPtrV {
 
 #define XPinit(x, n) do {					\
 	void **vp__;						\
-	vp__ = (void**) alloc(sizeofN(void*, (n)), ATEMP);	\
+	vp__ = (void**)alloc(sizeofN(void*, (n)), ATEMP);	\
 	(x).cur = (x).beg = vp__;				\
 	(x).end = vp__ + (n);					\
 } while (0)
@@ -1203,23 +1213,21 @@ EXTERN struct timeval j_usrtime, j_systime;
 /* alloc.c */
 Area *ainit(Area *);
 void afreeall(Area *);
-void *alloc(size_t, Area *);
+void *alloc(size_t, Area *);	/* cannot fail */
 void *aresize(void *, size_t, Area *);
-void afree(void *, Area *);
-#define afreechk(s)	do {		\
-	if (s)				\
-		afree(s, ATEMP);	\
-} while (0)
-#define afreechv(v,s)	do {		\
-	if (v)				\
-		afree(s, ATEMP);	\
-} while (0)
+void afree(void *, Area *);	/* can take NULL */
 /* edit.c */
 void x_init(void);
 int x_read(char *, size_t);
 int x_bind(const char *, const char *, int, int);
 /* UTF-8 hack stuff */
+size_t utf_mbtowc(unsigned int *, const char *);
+size_t utf_wctomb(char *, unsigned int);
+void utf_cptradj(const char *, const char **);
 int utf_widthadj(const char *, const char **);
+int utf_mbswidth(const char *);
+int utf_wcwidth(unsigned int);
+const char *utf_skipcols(const char *, int);
 /* eval.c */
 char *substitute(const char *, int);
 char **eval(const char **, int);
@@ -1281,6 +1289,9 @@ int c_builtin(const char **);
 int c_test(const char **);
 #if HAVE_MKNOD
 int c_mknod(const char **);
+#endif
+#if HAVE_REALPATH
+int c_realpath(const char **);
 #endif
 int c_rename(const char **);
 /* histrap.c */
@@ -1437,7 +1448,7 @@ void simplify_path(char *);
 char *get_phys_path(const char *);
 void set_current_wd(char *);
 #if !HAVE_EXPSTMT
-bool ksh_isspace_(unsigned);
+bool ksh_isspace_(unsigned int);
 #endif
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);
