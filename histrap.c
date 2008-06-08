@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.62 2008/05/17 18:46:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.63 2008/06/08 17:14:31 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -351,14 +351,14 @@ hist_get(const char *str, int approx, int allow_cur)
 
 	if (getn(str, &n)) {
 		hp = histptr + (n < 0 ? n : (n - hist_source->line));
-		if (hp < history) {
+		if ((ptrdiff_t)hp < (ptrdiff_t)history) {
 			if (approx)
 				hp = hist_get_oldest();
 			else {
 				bi_errorf("%s: not in history", str);
 				hp = NULL;
 			}
-		} else if (hp > histptr) {
+		} else if ((ptrdiff_t)hp > (ptrdiff_t)histptr) {
 			if (approx)
 				hp = hist_get_newest(allow_cur);
 			else {
