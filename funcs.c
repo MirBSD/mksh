@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.81 2008/05/17 18:46:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.82 2008/06/08 17:15:29 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -1303,9 +1303,9 @@ c_kill(const char **wp)
 	}
 	if ((lflag && t) || (!wp[i] && !lflag)) {
 #ifndef MKSH_SMALL
-		shf_fprintf(shl_out,
-		    "Usage: kill [ -s signame | -signum | -signame ] {pid|job}...\n"
-		    "       kill -l [exit_status]\n");
+		shf_puts("usage:\tkill [-s signame | -signum | -signame]"
+		    " { job | pid | pgrp } ...\n"
+		    "\tkill -l [exit_status ...]\n", shl_out);
 #endif
 		bi_errorfz();
 		return 1;
