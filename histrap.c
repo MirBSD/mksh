@@ -1,9 +1,9 @@
-/*	$OpenBSD: history.c,v 1.35 2006/05/29 18:22:24 otto Exp $	*/
+/*	$OpenBSD: history.c,v 1.36 2008/05/20 00:30:30 fgsch Exp $	*/
 /*	$OpenBSD: trap.c,v 1.22 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.63 2008/06/08 17:14:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.64 2008/06/08 17:16:25 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.

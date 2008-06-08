@@ -1,11 +1,11 @@
-/*	$OpenBSD: c_ksh.c,v 1.30 2007/08/02 10:50:25 fgsch Exp $	*/
+/*	$OpenBSD: c_ksh.c,v 1.31 2008/05/17 23:31:52 sobrado Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.37 2007/09/03 13:54:23 otto Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.82 2008/06/08 17:15:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.83 2008/06/08 17:16:25 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
