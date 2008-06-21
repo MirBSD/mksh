@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.325 2008/05/20 18:47:06 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.326 2008/06/21 19:20:14 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -215,7 +215,7 @@ fi
 rm -f a.exe a.out *core crypt.exp lft mksh mksh.cat1 mksh.exe no *.o \
     scn.c signames.inc stdint.h test.sh x
 
-curdir=`pwd` srcdir=`dirname "$0"` check_categories=pdksh
+curdir=`pwd` srcdir=`dirname "$0"` check_categories=
 
 e=echo
 h=1
@@ -1252,7 +1252,7 @@ cat >>test.sh <<-EOF
 	\$perl -e print >/dev/null 2>&1 || perl=perl
 	\$perl -e print >/dev/null 2>&1 || exit 1
 	exec \$perl '$srcdir/check.pl' -s '$srcdir/check.t' \\
-	    -p '$curdir/mksh' -C \$check_categories \$*$tsts
+	    -p '$curdir/mksh' -C \${check_categories#,} \$*$tsts
 EOF
 chmod 755 test.sh
 echo set -x >Rebuild.sh

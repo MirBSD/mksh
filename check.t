@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.198 2008/06/08 17:15:29 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.199 2008/06/21 19:20:15 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -10,7 +10,6 @@ expected-stdout:
 	@(#)MIRBSD KSH R34 2008/06/08
 description:
 	Check version of shell.
-category: pdksh
 stdin:
 	echo $KSH_VERSION
 name: KSH_VERSION
@@ -4252,7 +4251,7 @@ expected-stdout:
 name: persist-history-1
 description:
 	Check if persistent history saving works
-category: pdksh,!no-histfile
+category: !no-histfile
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -4297,7 +4296,7 @@ description:
 	multibyte character of the shell input (with -c, from standard
 	input, as file, or as eval argument), but nowhere else
 # breaks on Mac OSX (HFS+ non-standard Unicode canonical decomposition)
-category: pdksh,!os:darwin
+category: !os:darwin
 stdin:
 	mkdir foo
 	print '#!/bin/sh\necho ohne' >foo/fnord
@@ -4342,7 +4341,7 @@ description:
 	XXX if the OS can already execute them, we lose
 	note: cygwin execve(2) doesn't return to us with ENOEXEC, we lose
 	note: Ultrix perl5 t4 returns 65280 (exit-code 255) and no text
-category: pdksh,!os:cygwin,!os:uwin-nt,!os:ultrix
+category: !os:cygwin,!os:uwin-nt,!os:ultrix
 env-setup: !FOO=BAR!
 stdin:
 	print '#!'"$__progname"'\nprint "a=$ENV{FOO}";' >t1
@@ -4365,7 +4364,6 @@ expected-stderr-pattern:
 name: utf8bom-3
 description:
 	Reading the UTF-8 BOM should enable the utf8-hack flag
-category: pdksh
 stdin:
 	"$__progname" -c ':; if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then print on; else print off; fi'
 	"$__progname" -c '﻿:; if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then print on; else print off; fi'
@@ -4376,7 +4374,6 @@ expected-stdout:
 name: utf8opt-1
 description:
 	Check that the utf8-hack flag is not set at non-interactive startup
-category: pdksh
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.utf8!
 stdin:
 	if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then
@@ -4390,7 +4387,7 @@ expected-stdout:
 name: utf8opt-2a
 description:
 	Check that the utf8-hack flag is set at interactive startup
-category: pdksh,os:solaris
+category: os:solaris
 arguments: !-i!
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.UTF-8!
 stdin:
@@ -4407,7 +4404,7 @@ expected-stderr-pattern:
 name: utf8opt-2b
 description:
 	Check that the utf8-hack flag is set at interactive startup
-category: pdksh,!os:solaris
+category: !os:solaris
 arguments: !-i!
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.utf8!
 stdin:
@@ -4424,7 +4421,6 @@ expected-stderr-pattern:
 name: aliases-1
 description:
 	Check if built-in shell aliases are okay
-category: pdksh
 stdin:
 	alias
 	typeset -f
@@ -4446,7 +4442,6 @@ expected-stdout:
 name: aliases-2a
 description:
 	Check if “set -o posix” disables built-in aliases (except a few)
-#category: pdksh
 category: disabled
 arguments: !-o!posix!
 stdin:
@@ -4459,7 +4454,6 @@ expected-stdout:
 name: aliases-3a
 description:
 	Check if running as sh disables built-in aliases (except a few)
-#category: pdksh
 category: disabled
 arguments: !-o!posix!
 stdin:
@@ -4473,7 +4467,6 @@ expected-stdout:
 name: aliases-2b
 description:
 	Check if “set -o posix” does not influence built-in aliases
-category: pdksh
 arguments: !-o!posix!
 stdin:
 	alias
@@ -4496,7 +4489,6 @@ expected-stdout:
 name: aliases-3b
 description:
 	Check if running as sh does not influence built-in aliases
-category: pdksh
 arguments: !-o!posix!
 stdin:
 	cp "$__progname" sh
