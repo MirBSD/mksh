@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.326 2008/06/21 19:20:14 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.327 2008/06/21 19:38:41 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -559,7 +559,7 @@ sdcc)
 	EOF
 	;;
 sunpro)
-	vv '|' "$CC -v"
+	vv '|' "$CC -V scn.c"
 	;;
 tcc)
 	vv '|' "$CC -v"
