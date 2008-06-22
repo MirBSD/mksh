@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.327 2008/06/21 19:38:41 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.328 2008/06/22 20:51:31 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -383,7 +383,7 @@ dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\(.*\)".*$/\1/p' $srcdir/sh.h`
 $e "Hi from$ao $bi$srcversion$ao on:"
 case $TARGET_OS in
 Darwin)
-	vv '|' "hwprefs os_type >&2"
+	vv '|' "hwprefs machine_type os_type os_class >&2"
 	vv '|' "uname -a >&2"
 	;;
 IRIX*)
