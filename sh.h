@@ -100,9 +100,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.219 2008/06/08 17:15:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.220 2008/06/28 22:51:55 tg Exp $");
 #endif
-#define MKSH_VERSION "R34 2008/06/08"
+#define MKSH_VERSION "R34 2008/06/28"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -970,6 +970,7 @@ struct ioword {
 #define IOCLOB	BIT(6)	/* >|, override -o noclobber */
 #define IORDUP	BIT(7)	/* x<&y (as opposed to x>&y) */
 #define IONAMEXP BIT(8)	/* name has been expanded */
+#define IOBASH	BIT(9)	/* &> etc. */
 
 /* execute/exchild flags */
 #define XEXEC	BIT(0)		/* execute without forking */

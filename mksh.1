@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.129 2008/06/08 16:57:52 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.130 2008/06/28 22:51:55 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.122 2008/05/17 23:31:52 sobrado Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: June 8 2008 $
+.Dd $Mdocdate: June 28 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -252,6 +252,7 @@ The meta-characters are used in building the following
 .Ql \*(Gt ,
 .Ql \*(Gt& ,
 .Ql \*(Gt\*(Gt ,
+.Ql &\*(Gt ,
 etc. are used to specify redirections (see
 .Sx Input/output redirection
 below);
@@ -2015,6 +2016,37 @@ indicating standard input is to be closed.
 Same as
 .Ic \*(Lt& ,
 except the operation is done on standard output.
+.It &\*(Gt Ar file
+Same as
+.Ic \*(Gt Ar file 2\*(Gt&1 .
+This is a GNU
+.Nm bash
+extension supported by
+.Nm
+which also supports the preceding explicit fd digit, for example,
+.Ic 3&\*(Gt Ar file
+is the same as
+.Ic 3\*(Gt Ar file 2\*(Gt&3
+in
+.Nm
+but a syntax error in GNU
+.Nm bash .
+.It Xo
+.No &\*(Gt| Ar file ,
+.No &\*(Gt\*(Gt Ar file ,
+.No &\*(Gt& Ar fd
+.Xc
+Same as
+.Ic \*(Gt| Ar file ,
+.Ic \*(Gt\*(Gt Ar file ,
+or
+.Ic \*(Gt& Ar fd ,
+followed by
+.Ic 2\*(Gt&1 ,
+as above.
+These are
+.Nm
+extensions.
 .El
 .Pp
 In any of the above redirections, the file descriptor that is redirected
@@ -5489,7 +5521,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh\ R34
+.Nm mksh\ R35
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

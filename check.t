@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.200 2008/06/21 19:30:49 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.201 2008/06/28 22:51:54 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R34 2008/06/08
+	@(#)MIRBSD KSH R34 2008/06/28
 description:
 	Check version of shell.
 stdin:
@@ -5000,4 +5000,129 @@ stdin:
 expected-stdout:
 	okay
 ---
-
+name: bashiop-1
+description:
+	Check if GNU bash-like I/O redirection works
+	Part 1: this is also supported by GNU bash
+stdin:
+	exec 3>&1
+	function threeout {
+		echo ras
+		echo dwa >&2
+		echo tri >&3
+	}
+	threeout &>foo
+	echo ===
+	cat foo
+expected-stdout:
+	tri
+	===
+	ras
+	dwa
+---
+name: bashiop-2a
+description:
+	Check if GNU bash-like I/O redirection works
+	Part 2: this is *not* supported by GNU bash
+stdin:
+	exec 3>&1
+	function threeout {
+		echo ras
+		echo dwa >&2
+		echo tri >&3
+	}
+	threeout 3&>foo
+	echo ===
+	cat foo
+expected-stdout:
+	ras
+	===
+	dwa
+	tri
+---
+name: bashiop-2b
+description:
+	Check if GNU bash-like I/O redirection works
+	Part 2: this is *not* supported by GNU bash
+stdin:
+	exec 3>&1
+	function threeout {
+		echo ras
+		echo dwa >&2
+		echo tri >&3
+	}
+	threeout 3>foo &>&3
+	echo ===
+	cat foo
+expected-stdout:
+	===
+	ras
+	dwa
+	tri
+---
+name: bashiop-2c
+description:
+	Check if GNU bash-like I/O redirection works
+	Part 2: this is *not* supported by GNU bash
+stdin:
+	echo mir >foo
+	set -o noclobber
+	exec 3>&1
+	function threeout {
+		echo ras
+		echo dwa >&2
+		echo tri >&3
+	}
+	threeout &>>foo
+	echo ===
+	cat foo
+expected-stdout:
+	tri
+	===
+	mir
+	ras
+	dwa
+---
+name: bashiop-3a
+description:
+	Check if GNU bash-like I/O redirection fails correctly
+	Part 1: this is also supported by GNU bash
+stdin:
+	echo mir >foo
+	set -o noclobber
+	exec 3>&1
+	function threeout {
+		echo ras
+		echo dwa >&2
+		echo tri >&3
+	}
+	threeout &>foo
+	echo ===
+	cat foo
+expected-stdout:
+	===
+	mir
+expected-stderr-pattern: /.*: cannot (create|overwrite) .*/
+---
+name: bashiop-3b
+description:
+	Check if GNU bash-like I/O redirection fails correctly
+	Part 2: this is *not* supported by GNU bash
+stdin:
+	echo mir >foo
+	set -o noclobber
+	exec 3>&1
+	function threeout {
+		echo ras
+		echo dwa >&2
+		echo tri >&3
+	}
+	threeout &>|foo
+	echo ===
+	cat foo
+expected-stdout:
+	tri
+	===
+	ras
+	dwa
+---

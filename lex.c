@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.61 2008/06/28 22:01:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.62 2008/06/28 22:51:54 tg Exp $");
 
 /*
  * states while lexing word
@@ -771,7 +771,7 @@ yylex(int cf)
 		state = SBASE;
 
 	dp = Xstring(ws, wp);
-	if ((c == '<' || c == '>') && state == SBASE &&
+	if ((c == '<' || c == '>' || c == '&') && state == SBASE &&
 	    ((c2 = Xlength(ws, wp)) == 0 ||
 	    (c2 == 2 && dp[0] == CHAR && ksh_isdigit(dp[1])))) {
 		struct ioword *iop = (struct ioword *)alloc(sizeof (*iop),
@@ -780,12 +780,22 @@ yylex(int cf)
 		if (c2 == 2)
 			iop->unit = dp[1] - '0';
 		else
-			iop->unit = c == '>' ? 1 : 0;
+			iop->unit = c == '<' ? 0 : 1;
+
+		if (c == '&') {
+			if ((c2 = getsc()) != '>') {
+				ungetsc(c2);
+				goto no_iop;
+			}
+			c = c2;
+			iop->flag = IOBASH;
+		} else
+			iop->flag = 0;
 
 		c2 = getsc();
 		/* <<, >>, <> are ok, >< is not */
 		if (c == c2 || (c == '<' && c2 == '>')) {
-			iop->flag = c == c2 ?
+			iop->flag |= c == c2 ?
 			    (c == '>' ? IOCAT : IOHERE) : IORDWR;
 			if (iop->flag == IOHERE) {
 				if ((c2 = getsc()) == '-')
@@ -794,9 +804,9 @@ yylex(int cf)
 					ungetsc(c2);
 			}
 		} else if (c2 == '&')
-			iop->flag = IODUP | (c == '<' ? IORDUP : 0);
+			iop->flag |= IODUP | (c == '<' ? IORDUP : 0);
 		else {
-			iop->flag = c == '>' ? IOWRITE : IOREAD;
+			iop->flag |= c == '>' ? IOWRITE : IOREAD;
 			if (c == '>' && c2 == '|')
 				iop->flag |= IOCLOB;
 			else
@@ -809,6 +819,8 @@ yylex(int cf)
 		Xfree(ws, wp);	/* free word */
 		yylval.iop = iop;
 		return REDIR;
+ no_iop:
+		;
 	}
 
 	if (wp == dp && state == SBASE) {
