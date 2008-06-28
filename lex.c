@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.60 2008/05/17 18:46:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.61 2008/06/28 22:01:44 tg Exp $");
 
 /*
  * states while lexing word
@@ -780,7 +780,7 @@ yylex(int cf)
 		if (c2 == 2)
 			iop->unit = dp[1] - '0';
 		else
-			iop->unit = c == '>'; /* 0 for <, 1 for > */
+			iop->unit = c == '>' ? 1 : 0;
 
 		c2 = getsc();
 		/* <<, >>, <> are ok, >< is not */
