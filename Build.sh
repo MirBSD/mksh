@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.328 2008/06/22 20:51:31 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.329 2008/06/28 23:00:43 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -212,7 +212,7 @@ if test -d mksh || test -d mksh.exe; then
 	echo "$me: Error: ./mksh is a directory!" >&2
 	exit 1
 fi
-rm -f a.exe a.out *core crypt.exp lft mksh mksh.cat1 mksh.exe no *.o \
+rm -f a.exe a.out* *core crypt.exp lft mksh mksh.cat1 mksh.exe no *.o \
     scn.c signames.inc stdint.h test.sh x
 
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=
