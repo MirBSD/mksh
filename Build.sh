@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.330 2008/06/29 18:08:55 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.331 2008/06/29 18:18:56 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -411,6 +411,7 @@ $e $bi$me: Scanning for functions... please ignore any errors.$ao
 # notes:
 # – ICC defines __GNUC__ too
 # – GCC defines __hpux too
+# - LLVM+clang defines __GNUC__ too
 CPP="$CC -E"
 $e ... which compiler seems to be used
 cat >scn.c <<-'EOF'
@@ -448,6 +449,8 @@ cat >scn.c <<-'EOF'
 	ct=tendra
 	#elif defined(__TINYC__)
 	ct=tcc
+	#elif defined(__llvm__) && defined(__clang__)
+	ct=clang
 	#elif defined(__GNUC__)
 	ct=gcc
 	#elif defined(_COMPILER_VERSION)
@@ -483,6 +486,10 @@ bcc)
 	echo >&2 "Warning: Borland C++ Builder detected. This compiler might"
 	echo >&2 "    produce broken executables. Continue at your own risk,"
 	echo >&2 "    please report success/failure to the developers."
+	;;
+clang)
+	# does not work with current "ccc" compiler driver
+	vv '|' "$CC -version"
 	;;
 dec)
 	vv '|' "$CC -V"
@@ -761,6 +768,8 @@ elif test $ct = tendra; then
 	ac_flags 1 extansi -Xa
 elif test $ct = tcc; then
 	ac_flags 1 boundschk -b
+elif test $ct = clang; then
+	i=1
 fi
 # flags common to a subset of compilers
 if test 1 = $i; then
