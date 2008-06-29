@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.329 2008/06/28 23:00:43 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.330 2008/06/29 18:08:55 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -136,7 +136,7 @@ ac_testn() {
 	fi
 	test ugcc=$phase$ct && $CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c \
 	    $LIBS 2>&1 | grep 'unrecogni[sz]ed' >/dev/null 2>&1 && fv=$fr
-	rm -f scn.c scn.o $tcfn
+	rm -f scn.c scn.o ${tcfn}*
 	ac_testdone
 }
 
@@ -212,7 +212,7 @@ if test -d mksh || test -d mksh.exe; then
 	echo "$me: Error: ./mksh is a directory!" >&2
 	exit 1
 fi
-rm -f a.exe a.out* *core crypt.exp lft mksh mksh.cat1 mksh.exe no *.o \
+rm -f a.exe* a.out* *core crypt.exp lft mksh mksh.cat1 mksh.exe no *.o \
     scn.c signames.inc stdint.h test.sh x
 
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=
@@ -263,7 +263,7 @@ warn=
 ccpc=-Wc,
 ccpl=-Wl,
 tsts=
-ccpr='|| rm -f $tcfn'
+ccpr='|| rm -f ${tcfn}*'
 case $TARGET_OS in
 AIX)
 	if test x"$LDFLAGS" = x""; then
@@ -585,7 +585,7 @@ xlc)
 	;;
 esac
 $e "$bi==> which compiler seems to be used...$ao $ui$ct$ao"
-rm -f scn.c scn.o scn a.out a.exe
+rm -f scn.c scn.o scn a.out* a.exe*
 
 case $TARGET_OS in
 HP-UX)
