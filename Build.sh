@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.331 2008/06/29 18:18:56 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.332 2008/06/29 19:46:56 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -997,13 +997,17 @@ ac_testn arc4random <<-'EOF'
 EOF
 
 save_LIBS=$LIBS
-if test 0 = $HAVE_ARC4RANDOM && test -f "$srcdir/arc4random.c"; then
-	ac_header sys/sysctl.h
-	addsrcs HAVE_ARC4RANDOM arc4random.c
-	HAVE_ARC4RANDOM=1
-	# ensure isolation of source directory from build directory
-	test -f arc4random.c || cp "$srcdir/arc4random.c" .
-	LIBS="$LIBS arc4random.c"
+if test 0 = $HAVE_ARC4RANDOM; then
+	test -f arc4random.c || if test -f "$srcdir/arc4random.c"; then
+		# ensure isolation of source directory from build directory
+		cp "$srcdir/arc4random.c" .
+	fi
+	if test -f arc4random.c; then
+		ac_header sys/sysctl.h
+		addsrcs HAVE_ARC4RANDOM arc4random.c
+		HAVE_ARC4RANDOM=1
+		LIBS="$LIBS arc4random.c"
+	fi
 fi
 ac_cppflags ARC4RANDOM
 
