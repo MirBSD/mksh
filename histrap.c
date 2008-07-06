@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.64 2008/06/08 17:16:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.65 2008/07/06 22:41:08 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -677,17 +677,27 @@ hist_init(Source *s)
 			if (base != (unsigned char *)MAP_FAILED)
 				munmap((caddr_t)base, hsize);
 			hist_finish();
-			unlink(hname);
+			if (unlink(hname) /* fails */)
+				goto hiniterr;
 			goto retry;
 		}
 		if (hsize > 2) {
+			int rv = 0;
+
 			lines = hist_count_lines(base+2, hsize-2);
 			if (lines > histsize) {
 				/* we need to make the file smaller */
 				if (hist_shrink(base, hsize))
-					unlink(hname);
+					rv = unlink(hname);
 				munmap((caddr_t)base, hsize);
 				hist_finish();
+				if (rv) {
+ hiniterr:
+					bi_errorf("cannot unlink HISTFILE %s"
+					    " - %s", hname, strerror(errno));
+					hsize = 0;
+					return;
+				}
 				goto retry;
 			}
 		}

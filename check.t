@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.201 2008/06/28 22:51:54 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.202 2008/07/06 22:41:07 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R34 2008/06/28
+	@(#)MIRBSD KSH R34 2008/07/06
 description:
 	Check version of shell.
 stdin:
@@ -1717,6 +1717,28 @@ expected-stdout:
 	1	echo hi
 expected-stderr-pattern:
 	/^X*$/
+---
+name: history-unlink
+description:
+	Check if broken HISTFILEs do not cause trouble
+arguments: !-i!
+env-setup: !ENV=./Env!HISTFILE=foo/hist.file!
+file-setup: file 644 "Env"
+	PS1=X
+file-setup: dir 755 "foo"
+file-setup: file 644 "foo/hist.file"
+	sometext
+time-limit: 5
+perl-setup: chmod(0555, "foo");
+stdin:
+	echo hi
+	fc -l
+	chmod 0755 foo
+expected-stdout:
+	hi
+	1	echo hi
+expected-stderr-pattern:
+	/.*cannot unlink HISTFILE.*\nX*$/
 ---
 name: history-e-minus-1
 description:
