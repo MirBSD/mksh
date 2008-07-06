@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.332 2008/06/29 19:46:56 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.333 2008/07/06 23:19:31 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -505,7 +505,7 @@ gcc)
 	vv '|' 'echo `$CC -dumpmachine` gcc`$CC -dumpversion`'
 	;;
 hpcc)
-	vv '|' "$CC -V"
+	vv '|' "$CC -V scn.c"
 	;;
 iar)
 	cat >&2 <<-'EOF'
