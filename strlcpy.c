@@ -1,6 +1,6 @@
 /*-
- * Copyright (c) 2006, 2007
- *	Thorsten Glaser <tg@mirbsd.de>
+ * Copyright (c) 2006, 2008
+ *	Thorsten Glaser <tg@mirbsd.org>
  * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -19,8 +19,21 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/strlcpy.c,v 1.2 2007/04/23 11:33:26 tg Exp $");
-__RCSID("$miros: src/lib/libc/string/strlfun.c,v 1.14 2007/01/07 02:11:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/strlcpy.c,v 1.3 2008/07/07 12:59:54 tg Stab $");
+__RCSID("$miros: src/lib/libc/string/strlfun.c,v 1.16 2008/07/07 12:59:51 tg Stab $");
+
+#ifndef __predict_true
+#define __predict_true(exp)	((exp) != 0)
+#endif
+#ifndef __predict_false
+#define __predict_false(exp)	((exp) != 0)
+#endif
+
+/* (multibyte) string functions */
+#undef NUL
+#undef char_t
+#define NUL		'\0'
+#define char_t		char
 
 /*
  * Copy src to string dst of size siz.  At most siz-1 characters
@@ -28,11 +41,11 @@ __RCSID("$miros: src/lib/libc/string/strlfun.c,v 1.14 2007/01/07 02:11:40 tg Exp
  * Returns strlen(src); if retval >= siz, truncation occurred.
  */
 size_t
-strlcpy(char *dst, const char *src, size_t siz)
+strlcpy(char_t *dst, const char_t *src, size_t siz)
 {
-	const char *s = src;
+	const char_t *s = src;
 
-	if (siz == 0)
+	if (__predict_false(siz == 0))
 		goto traverse_src;
 
 	/* copy as many chars as will fit */
@@ -40,15 +53,15 @@ strlcpy(char *dst, const char *src, size_t siz)
 		;
 
 	/* not enough room in dst */
-	if (siz == 0) {
+	if (__predict_false(siz == 0)) {
 		/* safe to NUL-terminate dst since we copied <= siz-1 chars */
-		*dst = '\0';
+		*dst = NUL;
  traverse_src:
 		/* traverse rest of src */
 		while (*s++)
 			;
 	}
 
-	/* count doesn't include NUL */
+	/* count does not include NUL */
 	return (s - src - 1);
 }
