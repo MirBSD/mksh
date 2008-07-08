@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.334 2008/07/08 21:05:01 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.335 2008/07/08 21:14:42 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -501,7 +501,7 @@ dmc)
 	echo >&2 "    please report success/failure to the developers."
 	;;
 gcc)
-	vv '|' "$CC -v"
+	vv '|' "$CC -v scn.c"
 	vv '|' 'echo `$CC -dumpmachine` gcc`$CC -dumpversion`'
 	;;
 hpcc)
