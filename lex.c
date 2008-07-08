@@ -1,8 +1,8 @@
-/*	$OpenBSD: lex.c,v 1.43 2007/06/02 16:40:59 moritz Exp $	*/
+/*	$OpenBSD: lex.c,v 1.44 2008/07/03 17:52:08 otto Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.62 2008/06/28 22:51:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.63 2008/07/08 22:28:25 tg Exp $");
 
 /*
  * states while lexing word

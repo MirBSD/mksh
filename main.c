@@ -1,4 +1,4 @@
-/*	$OpenBSD: main.c,v 1.43 2007/05/31 20:47:44 otto Exp $	*/
+/*	$OpenBSD: main.c,v 1.44 2008/07/05 07:25:18 djm Exp $	*/
 /*	$OpenBSD: tty.c,v 1.9 2006/03/14 22:08:01 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.22 2006/03/17 16:30:13 millert Exp $	*/
 /*	$OpenBSD: table.c,v 1.12 2005/12/11 20:31:21 otto Exp $	*/
@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.98 2008/05/17 18:47:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.99 2008/07/08 22:28:26 tg Exp $");
 
 extern char **environ;
 
