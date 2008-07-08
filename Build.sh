@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.333 2008/07/06 23:19:31 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.334 2008/07/08 21:05:01 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1263,7 +1263,9 @@ cat >>test.sh <<-EOF
 	print 'test.sh built for mksh $dstversion'
 	perl=perl5
 	\$perl -e print >/dev/null 2>&1 || perl=perl
-	\$perl -e print >/dev/null 2>&1 || exit 1
+	perlos=\$(\$perl -e 'print "\$^O";') || exit 1
+	print "Perl interpreter '\$perl' running on '\$perlos'"
+	[[ -n \$perlos ]] || exit 1
 	exec \$perl '$srcdir/check.pl' -s '$srcdir/check.t' \\
 	    -p '$curdir/mksh' -C \${check_categories#,} \$*$tsts
 EOF
