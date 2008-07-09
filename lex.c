@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.63 2008/07/08 22:28:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.64 2008/07/09 20:41:23 tg Exp $");
 
 /*
  * states while lexing word
@@ -192,6 +192,10 @@ yylex(int cf)
 		c = getsc();
 		if (c == '<') {
 			state = SHERESTRING;
+			while ((c = getsc()) == ' ' || c == '\t')
+				;
+			ungetsc(c);
+			c = '<';
 			goto accept_nonword;
 		}
 		ungetsc(c);
