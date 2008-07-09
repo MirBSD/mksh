@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.130 2008/06/28 22:51:55 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.131 2008/07/09 21:32:43 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.122 2008/05/17 23:31:52 sobrado Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: June 28 2008 $
+.Dd $Mdocdate: July 9 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -2005,13 +2005,16 @@ This is called a here string.
 Standard input is duplicated from file descriptor
 .Ar fd .
 .Ar fd
-can be a single digit, indicating the number of an existing file descriptor;
+can be a number, indicating the number of an existing file descriptor;
 the letter
 .Ql p ,
 indicating the file descriptor associated with the output of the current
 co-process; or the character
 .Ql \- ,
 indicating standard input is to be closed.
+Note that
+.Ar fd
+is limited to a single digit in most shell implementations.
 .It \*(Gt& Ar fd
 Same as
 .Ic \*(Lt& ,
@@ -2023,7 +2026,7 @@ This is a GNU
 .Nm bash
 extension supported by
 .Nm
-which also supports the preceding explicit fd digit, for example,
+which also supports the preceding explicit fd number, for example,
 .Ic 3&\*(Gt Ar file
 is the same as
 .Ic 3\*(Gt Ar file 2\*(Gt&3
@@ -2052,7 +2055,7 @@ extensions.
 In any of the above redirections, the file descriptor that is redirected
 (i.e. standard input or standard output)
 can be explicitly given by preceding the
-redirection with a single digit.
+redirection with a number (portably, only a single digit).
 Parameter, command, and arithmetic
 substitutions, tilde substitutions, and (if the shell is interactive)
 file name generation are all performed on the

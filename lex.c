@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.64 2008/07/09 20:41:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.65 2008/07/09 21:32:43 tg Exp $");
 
 /*
  * states while lexing word
@@ -775,16 +775,22 @@ yylex(int cf)
 		state = SBASE;
 
 	dp = Xstring(ws, wp);
-	if ((c == '<' || c == '>' || c == '&') && state == SBASE &&
-	    ((c2 = Xlength(ws, wp)) == 0 ||
-	    (c2 == 2 && dp[0] == CHAR && ksh_isdigit(dp[1])))) {
+	if ((c == '<' || c == '>' || c == '&') && state == SBASE) {
 		struct ioword *iop = (struct ioword *)alloc(sizeof (*iop),
 		    ATEMP);
 
-		if (c2 == 2)
-			iop->unit = dp[1] - '0';
-		else
+		if (Xlength(ws, wp) == 0)
 			iop->unit = c == '<' ? 0 : 1;
+		else for (iop->unit = 0, c2 = 0; c2 < Xlength(ws, wp); c2 += 2) {
+			if (dp[c2] != CHAR)
+				goto no_iop;
+			if (!ksh_isdigit(dp[c2 + 1]))
+				goto no_iop;
+			iop->unit = (iop->unit * 10) + dp[c2 + 1] - '0';
+		}
+
+		if (iop->unit >= FDBASE)
+			goto no_iop;
 
 		if (c == '&') {
 			if ((c2 = getsc()) != '>') {

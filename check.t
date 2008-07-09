@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.206 2008/07/09 20:31:19 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.207 2008/07/09 21:32:42 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R34 2008/07/06
+	@(#)MIRBSD KSH R34 2008/07/09
 description:
 	Check version of shell.
 stdin:
@@ -5170,4 +5170,25 @@ expected-stdout:
 	===
 	ras
 	dwa
+---
+name: mkshiop-1
+description:
+	Check for support of more than 9 file descriptors
+stdin:
+	read -u10 foo 10<<< bar
+	print x$foo
+expected-stdout:
+	xbar
+---
+name: mkshiop-2
+description:
+	Check for support of more than 9 file descriptors
+stdin:
+	exec 12>foo
+	print -u12 bar
+	print baz >&12
+	cat foo
+expected-stdout:
+	bar
+	baz
 ---

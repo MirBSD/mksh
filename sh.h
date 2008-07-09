@@ -100,9 +100,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.221 2008/07/06 22:41:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.222 2008/07/09 21:32:44 tg Exp $");
 #endif
-#define MKSH_VERSION "R34 2008/07/06"
+#define MKSH_VERSION "R34 2008/07/09"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -268,8 +268,13 @@ extern int __cdecl setegid(gid_t);
 /* Table flag type - needs > 16 and < 32 bits */
 typedef int32_t Tflag;
 
+#ifdef MKSH_SMALL
 #define NUFILE		32	/* Number of user-accessible files */
 #define FDBASE		10	/* First file usable by Shell */
+#else
+#define NUFILE		256	/* Number of user-accessible files */
+#define FDBASE		100	/* First file usable by Shell */
+#endif
 
 /* Make MAGIC a char that might be printed to make bugs more obvious, but
  * not a char that is used often. Also, can't use the high bit as it causes
