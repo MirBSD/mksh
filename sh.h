@@ -100,7 +100,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.222 2008/07/09 21:32:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.223 2008/07/10 18:48:02 tg Exp $");
 #endif
 #define MKSH_VERSION "R34 2008/07/09"
 
@@ -272,8 +272,8 @@ typedef int32_t Tflag;
 #define NUFILE		32	/* Number of user-accessible files */
 #define FDBASE		10	/* First file usable by Shell */
 #else
-#define NUFILE		256	/* Number of user-accessible files */
-#define FDBASE		100	/* First file usable by Shell */
+#define NUFILE		56	/* Number of user-accessible files */
+#define FDBASE		24	/* First file usable by Shell */
 #endif
 
 /* Make MAGIC a char that might be printed to make bugs more obvious, but
