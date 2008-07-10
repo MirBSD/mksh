@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.335 2008/07/08 21:14:42 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.336 2008/07/10 18:49:22 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -392,7 +392,7 @@ IRIX*)
 	;;
 OSF1)
 	vv '|' "uname -a >&2"
-	vv '|' "sizer -v >&2"
+	vv '|' "/usr/sbin/sizer -v >&2"
 	;;
 *)
 	vv '|' "uname -a >&2"
