@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.207 2008/07/09 21:32:42 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.208 2008/07/10 19:06:15 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -2965,8 +2965,6 @@ expected-stdout:
 	foo	bar
 ---
 name: regression-13
-# no /etc/termcap on UWIN
-category: !os:uwin-nt
 description:
 	The following command hangs forever:
 		$ (: ; cat /etc/termcap) | sleep 2
@@ -2983,7 +2981,7 @@ stdin:
 	cat t1 t1 t1 t1  t1 t1 t1 t1  t1 t1 t1 t1  t1 t1 t1 t1  > t2
 	cat t2 t2 t2 t2  t2 t2 t2 t2  t2 t2 t2 t2  t2 t2 t2 t2  > t1
 	cat t1 t1 t1 t1 > t2
-	(: ; cat t2) | sleep 1
+	(: ; cat t2 2>&-) | sleep 1
 ---
 name: regression-14
 description:
