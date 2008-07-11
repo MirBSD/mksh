@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.213 2008/07/11 00:23:59 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.214 2008/07/11 19:51:23 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4370,7 +4370,7 @@ description:
 	XXX if the OS can already execute them, we lose
 	note: cygwin execve(2) doesn't return to us with ENOEXEC, we lose
 	note: Ultrix perl5 t4 returns 65280 (exit-code 255) and no text
-category: !os:cygwin,!os:uwin-nt,!os:ultrix
+category: !os:cygwin,!os:uwin-nt,!os:ultrix,!smksh
 env-setup: !FOO=BAR!
 stdin:
 	print '#!'"$__progname"'\nprint "a=$ENV{FOO}";' >t1
@@ -5173,6 +5173,7 @@ expected-stdout:
 name: mkshiop-1
 description:
 	Check for support of more than 9 file descriptors
+category: !smksh
 stdin:
 	read -u10 foo 10<<< bar
 	print x$foo
@@ -5182,6 +5183,7 @@ expected-stdout:
 name: mkshiop-2
 description:
 	Check for support of more than 9 file descriptors
+category: !smksh
 stdin:
 	exec 12>foo
 	print -u12 bar
