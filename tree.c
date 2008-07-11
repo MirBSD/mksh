@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.15.2.1 2008/05/19 18:41:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.15.2.2 2008/07/11 11:49:32 tg Exp $");
 
 #define INDENT	4
 
@@ -197,7 +197,7 @@ pioact(struct shf *shf, int indent, struct ioword *iop)
 	    (type == IODUP && (iop->unit == !(flag & IORDUP))) ? iop->unit :
 	    iop->unit + 1;
 	if (iop->unit != expected)
-		tputc('0' + iop->unit, shf);
+		shf_fprintf(shf, "%d", iop->unit);
 
 	switch (type) {
 	case IOREAD:

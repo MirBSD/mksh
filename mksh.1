@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.113.2.2 2008/05/19 18:41:28 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.121 2008/03/21 12:51:19 millert Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.113.2.3 2008/07/11 11:49:28 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.122 2008/05/17 23:31:52 sobrado Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
 .\" * ` generates ‘ in groff, so use \`
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: May 19 2008 $
+.Dd $Mdocdate: July 11 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -252,6 +252,7 @@ The meta-characters are used in building the following
 .Ql \*(Gt ,
 .Ql \*(Gt& ,
 .Ql \*(Gt\*(Gt ,
+.Ql &\*(Gt ,
 etc. are used to specify redirections (see
 .Sx Input/output redirection
 below);
@@ -2004,23 +2005,57 @@ This is called a here string.
 Standard input is duplicated from file descriptor
 .Ar fd .
 .Ar fd
-can be a single digit, indicating the number of an existing file descriptor;
+can be a number, indicating the number of an existing file descriptor;
 the letter
 .Ql p ,
 indicating the file descriptor associated with the output of the current
 co-process; or the character
 .Ql \- ,
 indicating standard input is to be closed.
+Note that
+.Ar fd
+is limited to a single digit in most shell implementations.
 .It \*(Gt& Ar fd
 Same as
 .Ic \*(Lt& ,
 except the operation is done on standard output.
+.It &\*(Gt Ar file
+Same as
+.Ic \*(Gt Ar file 2\*(Gt&1 .
+This is a GNU
+.Nm bash
+extension supported by
+.Nm
+which also supports the preceding explicit fd number, for example,
+.Ic 3&\*(Gt Ar file
+is the same as
+.Ic 3\*(Gt Ar file 2\*(Gt&3
+in
+.Nm
+but a syntax error in GNU
+.Nm bash .
+.It Xo
+.No &\*(Gt| Ar file ,
+.No &\*(Gt\*(Gt Ar file ,
+.No &\*(Gt& Ar fd
+.Xc
+Same as
+.Ic \*(Gt| Ar file ,
+.Ic \*(Gt\*(Gt Ar file ,
+or
+.Ic \*(Gt& Ar fd ,
+followed by
+.Ic 2\*(Gt&1 ,
+as above.
+These are
+.Nm
+extensions.
 .El
 .Pp
 In any of the above redirections, the file descriptor that is redirected
 (i.e. standard input or standard output)
 can be explicitly given by preceding the
-redirection with a single digit.
+redirection with a number (portably, only a single digit).
 Parameter, command, and arithmetic
 substitutions, tilde substitutions, and (if the shell is interactive)
 file name generation are all performed on the
@@ -3065,7 +3100,7 @@ is syntactic sugar for
 .Ic mknod
 .Op Fl m Ar mode
 .Ar name
-.Op Cm c \*(Ba Cm b
+.Op Cm b \*(Ba Cm c
 .Ar major minor
 .Xc
 .It Xo
@@ -5489,7 +5524,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh\ R34
+.Nm mksh\ R35
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

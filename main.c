@@ -1,4 +1,4 @@
-/*	$OpenBSD: main.c,v 1.43 2007/05/31 20:47:44 otto Exp $	*/
+/*	$OpenBSD: main.c,v 1.44 2008/07/05 07:25:18 djm Exp $	*/
 /*	$OpenBSD: tty.c,v 1.9 2006/03/14 22:08:01 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.22 2006/03/17 16:30:13 millert Exp $	*/
 /*	$OpenBSD: table.c,v 1.12 2005/12/11 20:31:21 otto Exp $	*/
@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.92.2.2 2008/05/19 18:41:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.92.2.3 2008/07/11 11:49:28 tg Exp $");
 
 extern char **environ;
 
@@ -1007,32 +1007,35 @@ check_fd(const char *name, int mode, const char **emsgp)
 {
 	int fd, fl;
 
-	if (ksh_isdigit(name[0]) && !name[1]) {
-		if ((fl = fcntl(fd = name[0] - '0', F_GETFL, 0)) < 0) {
-			if (emsgp)
-				*emsgp = "bad file descriptor";
-			return -1;
-		}
-		fl &= O_ACCMODE;
-		/* X_OK is a kludge to disable this check for dups (x<&1):
-		 * historical shells never did this check (XXX don't know what
-		 * posix has to say).
-		 */
-		if (!(mode & X_OK) && fl != O_RDWR &&
-		    (((mode & R_OK) && fl != O_RDONLY) ||
-		    ((mode & W_OK) && fl != O_WRONLY))) {
-			if (emsgp)
-				*emsgp = (fl == O_WRONLY) ?
-				    "fd not open for reading" :
-				    "fd not open for writing";
-			return -1;
-		}
-		return fd;
-	} else if (name[0] == 'p' && !name[1])
-		return coproc_getfd(mode, emsgp);
-	if (emsgp)
-		*emsgp = "illegal file descriptor name";
-	return -1;
+	if (name[0] == 'p' && !name[1])
+		return (coproc_getfd(mode, emsgp));
+	for (fd = 0; ksh_isdigit(*name); ++name)
+		fd = (fd * 10) + *name - '0';
+	if (*name || fd >= FDBASE) {
+		if (emsgp)
+			*emsgp = "illegal file descriptor name";
+		return (-1);
+	}
+	if ((fl = fcntl(fd, F_GETFL, 0)) < 0) {
+		if (emsgp)
+			*emsgp = "bad file descriptor";
+		return (-1);
+	}
+	fl &= O_ACCMODE;
+	/* X_OK is a kludge to disable this check for dups (x<&1):
+	 * historical shells never did this check (XXX don't know what
+	 * posix has to say).
+	 */
+	if (!(mode & X_OK) && fl != O_RDWR && (
+	    ((mode & R_OK) && fl != O_RDONLY) ||
+	    ((mode & W_OK) && fl != O_WRONLY))) {
+		if (emsgp)
+			*emsgp = (fl == O_WRONLY) ?
+			    "fd not open for reading" :
+			    "fd not open for writing";
+		return (-1);
+	}
+	return (fd);
 }
 
 /* Called once from main */

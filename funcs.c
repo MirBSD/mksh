@@ -1,11 +1,11 @@
-/*	$OpenBSD: c_ksh.c,v 1.30 2007/08/02 10:50:25 fgsch Exp $	*/
+/*	$OpenBSD: c_ksh.c,v 1.31 2008/05/17 23:31:52 sobrado Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.37 2007/09/03 13:54:23 otto Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.69.2.2 2008/05/19 18:41:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.69.2.3 2008/07/11 11:49:25 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -1303,9 +1303,9 @@ c_kill(const char **wp)
 	}
 	if ((lflag && t) || (!wp[i] && !lflag)) {
 #ifndef MKSH_SMALL
-		shf_fprintf(shl_out,
-		    "Usage: kill [ -s signame | -signum | -signame ] {pid|job}...\n"
-		    "       kill -l [exit_status]\n");
+		shf_puts("usage:\tkill [-s signame | -signum | -signame]"
+		    " { job | pid | pgrp } ...\n"
+		    "\tkill -l [exit_status ...]\n", shl_out);
 #endif
 		bi_errorfz();
 		return 1;

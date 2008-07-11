@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.19.2.2 2008/05/19 18:41:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.19.2.3 2008/07/11 11:49:32 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -144,10 +144,17 @@ static struct ioword *
 synio(int cf)
 {
 	struct ioword *iop;
+	static struct ioword *nextiop = NULL;
 	int ishere;
 
+	if (nextiop != NULL) {
+		iop = nextiop;
+		nextiop = NULL;
+		return (iop);
+	}
+
 	if (tpeek(cf) != REDIR)
-		return NULL;
+		return (NULL);
 	ACCEPT;
 	iop = yylval.iop;
 	ishere = (iop->flag&IOTYPE) == IOHERE;
@@ -161,7 +168,18 @@ synio(int cf)
 		*herep++ = iop;
 	} else
 		iop->name = yylval.cp;
-	return iop;
+
+	if (iop->flag & IOBASH) {
+		nextiop = (struct ioword *)alloc(sizeof (*iop), ATEMP);
+
+		iop->flag &= ~IOBASH;
+		nextiop->unit = 2;
+		nextiop->flag = IODUP;
+		nextiop->name = shf_smprintf("%d", iop->unit);
+		nextiop->delim = NULL;
+		nextiop->heredoc = NULL;
+	}
+	return (iop);
 }
 
 static struct op *
@@ -211,9 +229,11 @@ get_command(int cf)
 			    (XPsize(args) == 0 ? ALIAS|VARASN : CMDWORD);
 			switch (tpeek(cf)) {
 			case REDIR:
-				if (iopn >= NUFILE)
-					yyerror("too many redirections\n");
-				iops[iopn++] = synio(cf);
+				while ((iop = synio(cf)) != NULL) {
+					if (iopn >= NUFILE)
+						yyerror("too many redirections\n");
+					iops[iopn++] = iop;
+				}
 				break;
 
 			case LWORD:

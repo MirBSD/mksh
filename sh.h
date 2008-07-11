@@ -100,9 +100,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.195.2.2 2008/05/19 18:41:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.195.2.3 2008/07/11 11:49:30 tg Exp $");
 #endif
-#define MKSH_VERSION "R34 2008/05/17"
+#define MKSH_VERSION "R35 2008/07/10"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -268,8 +268,13 @@ extern int __cdecl setegid(gid_t);
 /* Table flag type - needs > 16 and < 32 bits */
 typedef int32_t Tflag;
 
+#ifdef MKSH_SMALL
 #define NUFILE		32	/* Number of user-accessible files */
 #define FDBASE		10	/* First file usable by Shell */
+#else
+#define NUFILE		56	/* Number of user-accessible files */
+#define FDBASE		24	/* First file usable by Shell */
+#endif
 
 /* Make MAGIC a char that might be printed to make bugs more obvious, but
  * not a char that is used often. Also, can't use the high bit as it causes
@@ -970,6 +975,7 @@ struct ioword {
 #define IOCLOB	BIT(6)	/* >|, override -o noclobber */
 #define IORDUP	BIT(7)	/* x<&y (as opposed to x>&y) */
 #define IONAMEXP BIT(8)	/* name has been expanded */
+#define IOBASH	BIT(9)	/* &> etc. */
 
 /* execute/exchild flags */
 #define XEXEC	BIT(0)		/* execute without forking */

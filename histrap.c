@@ -1,9 +1,9 @@
-/*	$OpenBSD: history.c,v 1.35 2006/05/29 18:22:24 otto Exp $	*/
+/*	$OpenBSD: history.c,v 1.36 2008/05/20 00:30:30 fgsch Exp $	*/
 /*	$OpenBSD: trap.c,v 1.22 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.58.2.2 2008/05/19 18:41:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.58.2.3 2008/07/11 11:49:26 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -351,14 +351,14 @@ hist_get(const char *str, int approx, int allow_cur)
 
 	if (getn(str, &n)) {
 		hp = histptr + (n < 0 ? n : (n - hist_source->line));
-		if (hp < history) {
+		if ((ptrdiff_t)hp < (ptrdiff_t)history) {
 			if (approx)
 				hp = hist_get_oldest();
 			else {
 				bi_errorf("%s: not in history", str);
 				hp = NULL;
 			}
-		} else if (hp > histptr) {
+		} else if ((ptrdiff_t)hp > (ptrdiff_t)histptr) {
 			if (approx)
 				hp = hist_get_newest(allow_cur);
 			else {
@@ -677,17 +677,27 @@ hist_init(Source *s)
 			if (base != (unsigned char *)MAP_FAILED)
 				munmap((caddr_t)base, hsize);
 			hist_finish();
-			unlink(hname);
+			if (unlink(hname) /* fails */)
+				goto hiniterr;
 			goto retry;
 		}
 		if (hsize > 2) {
+			int rv = 0;
+
 			lines = hist_count_lines(base+2, hsize-2);
 			if (lines > histsize) {
 				/* we need to make the file smaller */
 				if (hist_shrink(base, hsize))
-					unlink(hname);
+					rv = unlink(hname);
 				munmap((caddr_t)base, hsize);
 				hist_finish();
+				if (rv) {
+ hiniterr:
+					bi_errorf("cannot unlink HISTFILE %s"
+					    " - %s", hname, strerror(errno));
+					hsize = 0;
+					return;
+				}
 				goto retry;
 			}
 		}

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.158.2.2 2008/05/19 18:41:16 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.158.2.3 2008/07/11 11:49:23 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,10 +7,9 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R34 2008/05/17
+	@(#)MIRBSD KSH R35 2008/07/10
 description:
 	Check version of shell.
-category: pdksh
 stdin:
 	echo $KSH_VERSION
 name: KSH_VERSION
@@ -1499,6 +1498,14 @@ expected-stdout:
 	one
 		 $sabeq onm
 ---
+name: heredoc-9d
+description:
+	Check another corner case of here strings
+stdin:
+	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<< bar
+expected-stdout:
+	one
+---
 name: heredoc-quoting-unsubst
 description:
 	Check for correct handling of quoted characters in
@@ -1718,6 +1725,29 @@ expected-stdout:
 	1	echo hi
 expected-stderr-pattern:
 	/^X*$/
+---
+name: history-unlink
+description:
+	Check if broken HISTFILEs do not cause trouble
+category: !os:cygwin
+arguments: !-i!
+env-setup: !ENV=./Env!HISTFILE=foo/hist.file!
+file-setup: file 644 "Env"
+	PS1=X
+file-setup: dir 755 "foo"
+file-setup: file 644 "foo/hist.file"
+	sometext
+time-limit: 5
+perl-setup: chmod(0555, "foo");
+stdin:
+	echo hi
+	fc -l
+	chmod 0755 foo
+expected-stdout:
+	hi
+	1	echo hi
+expected-stderr-pattern:
+	/(.*cannot unlink HISTFILE.*\n)?X*$/
 ---
 name: history-e-minus-1
 description:
@@ -2936,8 +2966,6 @@ expected-stdout:
 	foo	bar
 ---
 name: regression-13
-# no /etc/termcap on UWIN
-category: !os:uwin-nt
 description:
 	The following command hangs forever:
 		$ (: ; cat /etc/termcap) | sleep 2
@@ -2954,7 +2982,7 @@ stdin:
 	cat t1 t1 t1 t1  t1 t1 t1 t1  t1 t1 t1 t1  t1 t1 t1 t1  > t2
 	cat t2 t2 t2 t2  t2 t2 t2 t2  t2 t2 t2 t2  t2 t2 t2 t2  > t1
 	cat t1 t1 t1 t1 > t2
-	(: ; cat t2) | sleep 1
+	(: ; cat t2 2>&-) | sleep 1
 ---
 name: regression-14
 description:
@@ -4252,7 +4280,7 @@ expected-stdout:
 name: persist-history-1
 description:
 	Check if persistent history saving works
-category: pdksh,!no-histfile
+category: !no-histfile
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -4297,7 +4325,7 @@ description:
 	multibyte character of the shell input (with -c, from standard
 	input, as file, or as eval argument), but nowhere else
 # breaks on Mac OSX (HFS+ non-standard Unicode canonical decomposition)
-category: pdksh,!os:darwin
+category: !os:darwin
 stdin:
 	mkdir foo
 	print '#!/bin/sh\necho ohne' >foo/fnord
@@ -4342,7 +4370,7 @@ description:
 	XXX if the OS can already execute them, we lose
 	note: cygwin execve(2) doesn't return to us with ENOEXEC, we lose
 	note: Ultrix perl5 t4 returns 65280 (exit-code 255) and no text
-category: pdksh,!os:cygwin,!os:uwin-nt,!os:ultrix
+category: !os:cygwin,!os:uwin-nt,!os:ultrix
 env-setup: !FOO=BAR!
 stdin:
 	print '#!'"$__progname"'\nprint "a=$ENV{FOO}";' >t1
@@ -4365,7 +4393,6 @@ expected-stderr-pattern:
 name: utf8bom-3
 description:
 	Reading the UTF-8 BOM should enable the utf8-hack flag
-category: pdksh
 stdin:
 	"$__progname" -c ':; if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then print on; else print off; fi'
 	"$__progname" -c '﻿:; if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then print on; else print off; fi'
@@ -4373,10 +4400,24 @@ expected-stdout:
 	off
 	on
 ---
-name: utf8opt-1
+name: utf8opt-1a
 description:
 	Check that the utf8-hack flag is not set at non-interactive startup
-category: pdksh
+category: !os:hpux
+env-setup: !PS1=!PS2=!LC_CTYPE=en_US.UTF-8!
+stdin:
+	if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then
+		print is set
+	else
+		print is not set
+	fi
+expected-stdout:
+	is not set
+---
+name: utf8opt-1b
+description:
+	Check that the utf8-hack flag is not set at non-interactive startup
+category: os:hpux
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.utf8!
 stdin:
 	if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then
@@ -4387,10 +4428,27 @@ stdin:
 expected-stdout:
 	is not set
 ---
-name: utf8opt-2
+name: utf8opt-2a
 description:
 	Check that the utf8-hack flag is set at interactive startup
-category: pdksh
+category: !os:hpux
+arguments: !-i!
+env-setup: !PS1=!PS2=!LC_CTYPE=en_US.UTF-8!
+stdin:
+	if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then
+		print is set
+	else
+		print is not set
+	fi
+expected-stdout:
+	is set
+expected-stderr-pattern:
+	/(# )*/
+---
+name: utf8opt-2b
+description:
+	Check that the utf8-hack flag is set at interactive startup
+category: os:hpux
 arguments: !-i!
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.utf8!
 stdin:
@@ -4407,7 +4465,6 @@ expected-stderr-pattern:
 name: aliases-1
 description:
 	Check if built-in shell aliases are okay
-category: pdksh
 stdin:
 	alias
 	typeset -f
@@ -4429,7 +4486,6 @@ expected-stdout:
 name: aliases-2a
 description:
 	Check if “set -o posix” disables built-in aliases (except a few)
-#category: pdksh
 category: disabled
 arguments: !-o!posix!
 stdin:
@@ -4442,7 +4498,6 @@ expected-stdout:
 name: aliases-3a
 description:
 	Check if running as sh disables built-in aliases (except a few)
-#category: pdksh
 category: disabled
 arguments: !-o!posix!
 stdin:
@@ -4456,7 +4511,6 @@ expected-stdout:
 name: aliases-2b
 description:
 	Check if “set -o posix” does not influence built-in aliases
-category: pdksh
 arguments: !-o!posix!
 stdin:
 	alias
@@ -4479,7 +4533,6 @@ expected-stdout:
 name: aliases-3b
 description:
 	Check if running as sh does not influence built-in aliases
-category: pdksh
 arguments: !-o!posix!
 stdin:
 	cp "$__progname" sh
@@ -4991,4 +5044,150 @@ stdin:
 expected-stdout:
 	okay
 ---
-
+name: bashiop-1
+description:
+	Check if GNU bash-like I/O redirection works
+	Part 1: this is also supported by GNU bash
+stdin:
+	exec 3>&1
+	function threeout {
+		echo ras
+		echo dwa >&2
+		echo tri >&3
+	}
+	threeout &>foo
+	echo ===
+	cat foo
+expected-stdout:
+	tri
+	===
+	ras
+	dwa
+---
+name: bashiop-2a
+description:
+	Check if GNU bash-like I/O redirection works
+	Part 2: this is *not* supported by GNU bash
+stdin:
+	exec 3>&1
+	function threeout {
+		echo ras
+		echo dwa >&2
+		echo tri >&3
+	}
+	threeout 3&>foo
+	echo ===
+	cat foo
+expected-stdout:
+	ras
+	===
+	dwa
+	tri
+---
+name: bashiop-2b
+description:
+	Check if GNU bash-like I/O redirection works
+	Part 2: this is *not* supported by GNU bash
+stdin:
+	exec 3>&1
+	function threeout {
+		echo ras
+		echo dwa >&2
+		echo tri >&3
+	}
+	threeout 3>foo &>&3
+	echo ===
+	cat foo
+expected-stdout:
+	===
+	ras
+	dwa
+	tri
+---
+name: bashiop-2c
+description:
+	Check if GNU bash-like I/O redirection works
+	Part 2: this is *not* supported by GNU bash
+stdin:
+	echo mir >foo
+	set -o noclobber
+	exec 3>&1
+	function threeout {
+		echo ras
+		echo dwa >&2
+		echo tri >&3
+	}
+	threeout &>>foo
+	echo ===
+	cat foo
+expected-stdout:
+	tri
+	===
+	mir
+	ras
+	dwa
+---
+name: bashiop-3a
+description:
+	Check if GNU bash-like I/O redirection fails correctly
+	Part 1: this is also supported by GNU bash
+stdin:
+	echo mir >foo
+	set -o noclobber
+	exec 3>&1
+	function threeout {
+		echo ras
+		echo dwa >&2
+		echo tri >&3
+	}
+	threeout &>foo
+	echo ===
+	cat foo
+expected-stdout:
+	===
+	mir
+expected-stderr-pattern: /.*: cannot (create|overwrite) .*/
+---
+name: bashiop-3b
+description:
+	Check if GNU bash-like I/O redirection fails correctly
+	Part 2: this is *not* supported by GNU bash
+stdin:
+	echo mir >foo
+	set -o noclobber
+	exec 3>&1
+	function threeout {
+		echo ras
+		echo dwa >&2
+		echo tri >&3
+	}
+	threeout &>|foo
+	echo ===
+	cat foo
+expected-stdout:
+	tri
+	===
+	ras
+	dwa
+---
+name: mkshiop-1
+description:
+	Check for support of more than 9 file descriptors
+stdin:
+	read -u10 foo 10<<< bar
+	print x$foo
+expected-stdout:
+	xbar
+---
+name: mkshiop-2
+description:
+	Check for support of more than 9 file descriptors
+stdin:
+	exec 12>foo
+	print -u12 bar
+	print baz >&12
+	cat foo
+expected-stdout:
+	bar
+	baz
+---

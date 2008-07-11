@@ -1,8 +1,8 @@
-/*	$OpenBSD: lex.c,v 1.43 2007/06/02 16:40:59 moritz Exp $	*/
+/*	$OpenBSD: lex.c,v 1.44 2008/07/03 17:52:08 otto Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.56.2.2 2008/05/19 18:41:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.56.2.3 2008/07/11 11:49:27 tg Exp $");
 
 /*
  * states while lexing word
@@ -192,6 +192,10 @@ yylex(int cf)
 		c = getsc();
 		if (c == '<') {
 			state = SHERESTRING;
+			while ((c = getsc()) == ' ' || c == '\t')
+				;
+			ungetsc(c);
+			c = '<';
 			goto accept_nonword;
 		}
 		ungetsc(c);
@@ -771,21 +775,37 @@ yylex(int cf)
 		state = SBASE;
 
 	dp = Xstring(ws, wp);
-	if ((c == '<' || c == '>') && state == SBASE &&
-	    ((c2 = Xlength(ws, wp)) == 0 ||
-	    (c2 == 2 && dp[0] == CHAR && ksh_isdigit(dp[1])))) {
+	if ((c == '<' || c == '>' || c == '&') && state == SBASE) {
 		struct ioword *iop = (struct ioword *)alloc(sizeof (*iop),
 		    ATEMP);
 
-		if (c2 == 2)
-			iop->unit = dp[1] - '0';
-		else
-			iop->unit = c == '>'; /* 0 for <, 1 for > */
+		if (Xlength(ws, wp) == 0)
+			iop->unit = c == '<' ? 0 : 1;
+		else for (iop->unit = 0, c2 = 0; c2 < Xlength(ws, wp); c2 += 2) {
+			if (dp[c2] != CHAR)
+				goto no_iop;
+			if (!ksh_isdigit(dp[c2 + 1]))
+				goto no_iop;
+			iop->unit = (iop->unit * 10) + dp[c2 + 1] - '0';
+		}
+
+		if (iop->unit >= FDBASE)
+			goto no_iop;
+
+		if (c == '&') {
+			if ((c2 = getsc()) != '>') {
+				ungetsc(c2);
+				goto no_iop;
+			}
+			c = c2;
+			iop->flag = IOBASH;
+		} else
+			iop->flag = 0;
 
 		c2 = getsc();
 		/* <<, >>, <> are ok, >< is not */
 		if (c == c2 || (c == '<' && c2 == '>')) {
-			iop->flag = c == c2 ?
+			iop->flag |= c == c2 ?
 			    (c == '>' ? IOCAT : IOHERE) : IORDWR;
 			if (iop->flag == IOHERE) {
 				if ((c2 = getsc()) == '-')
@@ -794,9 +814,9 @@ yylex(int cf)
 					ungetsc(c2);
 			}
 		} else if (c2 == '&')
-			iop->flag = IODUP | (c == '<' ? IORDUP : 0);
+			iop->flag |= IODUP | (c == '<' ? IORDUP : 0);
 		else {
-			iop->flag = c == '>' ? IOWRITE : IOREAD;
+			iop->flag |= c == '>' ? IOWRITE : IOREAD;
 			if (c == '>' && c2 == '|')
 				iop->flag |= IOCLOB;
 			else
@@ -809,6 +829,8 @@ yylex(int cf)
 		Xfree(ws, wp);	/* free word */
 		yylval.iop = iop;
 		return REDIR;
+ no_iop:
+		;
 	}
 
 	if (wp == dp && state == SBASE) {
