@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.81 2008/07/12 17:23:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.82 2008/07/12 17:47:21 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -63,34 +63,26 @@ initctypes(void)
 	setctypes(" \n\t\"#$&'()*;<>?[]\\`|", C_QUOTE);
 }
 
-#ifdef MKSH_SMALL
+#if defined(MKSH_SMALL) || !HAVE_EXPSTMT
 char *
-str_save_s(const char *s, Area *ap)
-{
-	char *rv;
-	size_t sz;
-
-	sz = strlen(s) + 1;
-	strlcpy(rv = alloc(sz, ap), s, sz);
-	return (rv);
-}
-
-char *
-str_nsave_s(const char *s, int n, Area *ap)
+str_save(const char *s, Area *ap)
 {
 	char *rv = NULL;
 
-	if (n >= 0)
-		strlcpy(rv = alloc(n + 1, ap), s, n + 1);
+	if (s != NULL) {
+		size_t sz = strlen(s) + 1;
+		strlcpy(rv = alloc(sz, ap), s, sz);
+	}
 	return (rv);
 }
-#elif !HAVE_EXPSTMT
-char *
-str_nsave_ns(const char *s, unsigned int sz, Area *ap)
-{
-	char *rv;
 
-	strlcpy(rv = alloc(sz, ap), s, sz);
+char *
+str_nsave(const char *s, int n, Area *ap)
+{
+	char *rv = NULL;
+
+	if ((n >= 0) && (s != NULL))
+		strlcpy(rv = alloc(n + 1, ap), s, n + 1);
 	return (rv);
 }
 #endif
