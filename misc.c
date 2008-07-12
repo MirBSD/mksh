@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.c,v 1.32 2007/08/02 11:05:54 fgsch Exp $	*/
+/*	$OpenBSD: misc.c,v 1.34 2008/07/12 12:33:42 miod Exp $	*/
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.79 2008/05/17 18:47:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.80 2008/07/12 16:26:58 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -81,7 +81,7 @@ str_nsave(const char *s, int n, Area *ap)
 char *
 str_save(const char *s, Area *ap)
 {
-	return (str_nsave(s, s ? strlen(s) : 0, ap));
+	return (s ? str_nsave(s, strlen(s), ap) : NULL);
 }
 #endif
 
