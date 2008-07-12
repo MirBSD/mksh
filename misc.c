@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.82 2008/07/12 17:47:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.83 2008/07/12 17:56:37 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -65,18 +65,6 @@ initctypes(void)
 
 #if defined(MKSH_SMALL) || !HAVE_EXPSTMT
 char *
-str_save(const char *s, Area *ap)
-{
-	char *rv = NULL;
-
-	if (s != NULL) {
-		size_t sz = strlen(s) + 1;
-		strlcpy(rv = alloc(sz, ap), s, sz);
-	}
-	return (rv);
-}
-
-char *
 str_nsave(const char *s, int n, Area *ap)
 {
 	char *rv = NULL;
@@ -84,6 +72,22 @@ str_nsave(const char *s, int n, Area *ap)
 	if ((n >= 0) && (s != NULL))
 		strlcpy(rv = alloc(n + 1, ap), s, n + 1);
 	return (rv);
+}
+
+char *
+str_save(const char *s, Area *ap)
+{
+#ifdef MKSH_SMALL
+	return (str_nsave(s, strlen(s), ap));
+#else
+	char *rv = NULL;
+
+	if (s != NULL) {
+		size_t sz = strlen(s) + 1;
+		strlcpy(rv = alloc(sz, ap), s, sz);
+	}
+	return (rv);
+#endif
 }
 #endif
 
