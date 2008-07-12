@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.80 2008/07/12 16:26:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.81 2008/07/12 17:23:00 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -63,25 +63,35 @@ initctypes(void)
 	setctypes(" \n\t\"#$&'()*;<>?[]\\`|", C_QUOTE);
 }
 
-/* Allocate a string of size n+1 and copy upto n characters from the possibly
- * NUL terminated string s into it.  Always returns a NUL terminated string
- * (unless n < 0).
- */
-char *
-str_nsave(const char *s, int n, Area *ap)
-{
-	char *ns = NULL;
-
-	if (n >= 0 && s)
-		strlcpy(ns = alloc(n + 1, ap), s, n + 1);
-	return (ns);
-}
-
 #ifdef MKSH_SMALL
 char *
-str_save(const char *s, Area *ap)
+str_save_s(const char *s, Area *ap)
 {
-	return (s ? str_nsave(s, strlen(s), ap) : NULL);
+	char *rv;
+	size_t sz;
+
+	sz = strlen(s) + 1;
+	strlcpy(rv = alloc(sz, ap), s, sz);
+	return (rv);
+}
+
+char *
+str_nsave_s(const char *s, int n, Area *ap)
+{
+	char *rv = NULL;
+
+	if (n >= 0)
+		strlcpy(rv = alloc(n + 1, ap), s, n + 1);
+	return (rv);
+}
+#elif !HAVE_EXPSTMT
+char *
+str_nsave_ns(const char *s, unsigned int sz, Area *ap)
+{
+	char *rv;
+
+	strlcpy(rv = alloc(sz, ap), s, sz);
+	return (rv);
 }
 #endif
 
