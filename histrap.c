@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.66 2008/07/12 16:56:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.67 2008/07/12 17:16:03 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -1005,8 +1005,9 @@ inittraps(void)
 			else {
 				char *s;
 
-				s = !strncasecmp(cs, "SIG", 3) ? cs + 3 : cs;
-				sigtraps[i].name = s = str_save(s, APERM);
+				if (!strncasecmp(cs, "SIG", 3))
+					cs += 3;
+				sigtraps[i].name = s = str_save(cs, APERM);
 				while ((*s = ksh_toupper(*s)))
 					++s;
 			}
