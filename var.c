@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.56 2008/05/17 18:47:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.57 2008/07/12 16:56:40 tg Exp $");
 
 /*
  * Variables
@@ -130,7 +130,7 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 
 		/* Calculate the value of the subscript */
 		*arrayp = true;
-		tmp = str_nsave(p+1, len-2, ATEMP);
+		tmp = str_nsave(p + 1, len - 2, ATEMP);
 		sub = substitute(tmp, 0);
 		afree(tmp, ATEMP);
 		n = str_nsave(n, p - n, ATEMP);
@@ -642,9 +642,10 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 		}
 		val += len;
 	}
-	if (*val == '=')
-		tvar = str_nsave(var, val++ - var, ATEMP);
-	else {
+	if (*val == '=') {
+		int i = val++ - var;
+		tvar = str_nsave(var, i, ATEMP);
+	} else {
 		/* Importing from original environment: must have an = */
 		if (set & IMPORT)
 			return NULL;

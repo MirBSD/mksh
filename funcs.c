@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.83 2008/06/08 17:16:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.84 2008/07/12 16:56:39 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -1074,8 +1074,10 @@ c_alias(const char **wp)
 		struct tbl *ap;
 		int h;
 
-		if ((val = cstrchr(alias, '=')))
-			alias = xalias = str_nsave(alias, val++ - alias, ATEMP);
+		if ((val = cstrchr(alias, '='))) {
+			h = val++ - alias;
+			alias = xalias = str_nsave(alias, h, ATEMP);
+		}
 		h = hash(alias);
 		if (val == NULL && !tflag && !xflag) {
 			ap = ktsearch(t, alias, h);
@@ -1103,8 +1105,7 @@ c_alias(const char **wp)
 				afree((void*)ap->val.s, APERM);
 			}
 			/* ignore values for -t (at&t ksh does this) */
-			newval = tflag ? search(alias, path, X_OK, NULL) :
-			    val;
+			newval = tflag ? search(alias, path, X_OK, NULL) : val;
 			if (newval) {
 				ap->val.s = str_save(newval, APERM);
 				ap->flag |= ALLOC|ISSET;
