@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.83 2008/07/12 17:56:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.84 2008/07/12 18:24:58 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -78,7 +78,7 @@ char *
 str_save(const char *s, Area *ap)
 {
 #ifdef MKSH_SMALL
-	return (str_nsave(s, strlen(s), ap));
+	return (s ? str_nsave(s, strlen(s), ap) : NULL);
 #else
 	char *rv = NULL;
 
