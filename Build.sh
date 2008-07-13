@@ -1,9 +1,9 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.339 2008/07/11 19:51:22 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.340 2008/07/13 16:43:54 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
-#			MKSH_CLS_STRING
+#			MKSH_CLS_STRING MKSH_AFREE_DEBUG
 
 LC_ALL=C
 export LC_ALL
