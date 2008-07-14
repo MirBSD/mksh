@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.342 2008/07/14 14:59:20 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.343 2008/07/14 15:06:02 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1265,10 +1265,11 @@ cat >>test.sh <<-EOF
 	fgrep MIRBSD '$srcdir/check.t'
 	print "This shell is actually:\\n\\t\$KSH_VERSION"
 	print 'test.sh built for mksh $dstversion'
-	cstr='\$os = defined \$^O ? \$^O : "unknown"; print \$os;'
+	cstr='\$os = defined \$^O ? \$^O : "unknown";'
+	cstr="\$cstr"'print \$os . ", Perl version " . \$];'
 	for perli in \$PERL perl5 perl no; do
 		[[ \$perli = no ]] && exit 1
-		perlos=\$(\$perli -e "\$cstr") || continue
+		perlos=\$(\$perli -e "\$cstr") 2>&- || continue
 		print "Perl interpreter '\$perli' running on '\$perlos'"
 		[[ -n \$perlos ]] && break
 	done
