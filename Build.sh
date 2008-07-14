@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.341 2008/07/14 14:40:47 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.342 2008/07/14 14:59:20 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1265,12 +1265,14 @@ cat >>test.sh <<-EOF
 	fgrep MIRBSD '$srcdir/check.t'
 	print "This shell is actually:\\n\\t\$KSH_VERSION"
 	print 'test.sh built for mksh $dstversion'
-	perl=perl5
-	\$perl -e print >/dev/null 2>&1 || perl=perl
-	perlos=\$(\$perl -e 'print "\$^O";') || exit 1
-	print "Perl interpreter '\$perl' running on '\$perlos'"
-	[[ -n \$perlos ]] || exit 1
-	exec \$perl '$srcdir/check.pl' -s '$srcdir/check.t' \\
+	cstr='\$os = defined \$^O ? \$^O : "unknown"; print \$os;'
+	for perli in \$PERL perl5 perl no; do
+		[[ \$perli = no ]] && exit 1
+		perlos=\$(\$perli -e "\$cstr") || continue
+		print "Perl interpreter '\$perli' running on '\$perlos'"
+		[[ -n \$perlos ]] && break
+	done
+	exec \$perli '$srcdir/check.pl' -s '$srcdir/check.t' \\
 	    -p '$curdir/mksh' -C \${check_categories#,} \$*$tsts
 EOF
 chmod 755 test.sh
