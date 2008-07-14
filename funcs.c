@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.84 2008/07/12 16:56:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.85 2008/07/14 12:29:05 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -2209,7 +2209,6 @@ timex(struct op *t, int f)
 	int rv = 0, tf = 0;
 	struct rusage ru0, ru1, cru0, cru1;
 	struct timeval usrtime, systime, tv0, tv1;
-	char opts[1];
 
 	gettimeofday(&tv0, NULL);
 	getrusage(RUSAGE_SELF, &ru0);
@@ -2225,11 +2224,8 @@ timex(struct op *t, int f)
 		 */
 		timerclear(&j_usrtime);
 		timerclear(&j_systime);
-		if (t->left->type == TCOM)
-			t->left->str = opts;
-		opts[0] = 0;
 		rv = execute(t->left, f | XTIME);
-		tf |= opts[0];
+		tf |= t->left->str[0];
 		gettimeofday(&tv1, NULL);
 		getrusage(RUSAGE_SELF, &ru1);
 		getrusage(RUSAGE_CHILDREN, &cru1);
