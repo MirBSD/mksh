@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.340 2008/07/13 16:43:54 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.341 2008/07/14 14:40:47 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1257,7 +1257,8 @@ case $curdir in
 *)	echo "#!$curdir/mksh" >test.sh ;;
 esac
 cat >>test.sh <<-EOF
-	export LC_ALL=C PATH='$PATH'
+	LC_ALL=C PATH='$PATH'; export LC_ALL PATH
+	test -n "\$KSH_VERSION" || exit 1
 	check_categories=$check_categories
 	print Testing mksh for conformance:
 	fgrep MirOS: '$srcdir/check.t'
