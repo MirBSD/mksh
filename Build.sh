@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.344 2008/07/15 20:54:47 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.345 2008/07/15 23:44:51 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1273,8 +1273,7 @@ cat >>test.sh <<-EOF
 		print "Perl interpreter '\$perli' running on '\$perlos'"
 		[[ -n \$perlos ]] && break
 	done
-	exec \$perli '$srcdir/check.pl' -s '$srcdir/check.t' \\
-	    -p '$curdir/mksh' -C \${check_categories#,} \$*$tsts
+	exec \$perli '$srcdir/check.pl' -s '$srcdir/check.t' -p '$curdir/mksh' -C \${check_categories#,} \$*$tsts
 EOF
 chmod 755 test.sh
 echo set -x >Rebuild.sh
