@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.346 2008/07/17 14:50:24 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.347 2008/07/17 15:17:46 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -315,7 +315,7 @@ Linux)
 MidnightBSD)
 	;;
 Minix)
-	CPPFLAGS="$CPPFLAGS -D_MINIX -D_POSIX_SOURCE -D_POSIX_1_SOURCE=2"
+	CPPFLAGS="$CPPFLAGS -D_POSIX_SOURCE -D_POSIX_1_SOURCE=2"
 	warn=' and will currently not work'
 #	warn=" but might work with the GNU tools"
 #	warn="$warn${nl}but not with ACK - /usr/bin/cc - yet)"
