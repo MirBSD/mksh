@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.345 2008/07/15 23:44:51 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.346 2008/07/17 14:50:24 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -266,6 +266,7 @@ tsts=
 ccpr='|| rm -f ${tcfn}*'
 case $TARGET_OS in
 AIX)
+	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
 	if test x"$LDFLAGS" = x""; then
 		LDFLAGS="${ccpl}-bI:crypt.exp"
 		cat >crypt.exp <<-EOF
@@ -314,7 +315,7 @@ Linux)
 MidnightBSD)
 	;;
 Minix)
-	CPPFLAGS="$CPPFLAGS -D_MINIX -D_POSIX_SOURCE"
+	CPPFLAGS="$CPPFLAGS -D_MINIX -D_POSIX_SOURCE -D_POSIX_1_SOURCE=2"
 	warn=' and will currently not work'
 #	warn=" but might work with the GNU tools"
 #	warn="$warn${nl}but not with ACK - /usr/bin/cc - yet)"
