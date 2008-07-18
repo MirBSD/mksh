@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.24 2008/07/14 12:29:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.25 2008/07/18 11:33:13 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -366,7 +366,7 @@ get_command(int cf)
 		if (!is_wdvarname(yylval.cp, true))
 			yyerror("%s: bad identifier\n",
 			    c == FOR ? "for" : "select");
-		t->str = str_save(ident, ATEMP);
+		t->str = str_save_(ident, ATEMP);
 		nesting_push(&old_nesting, c);
 		t->vars = wordlist();
 		t->left = dogroup();

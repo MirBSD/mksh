@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.84 2008/07/12 18:24:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.85 2008/07/18 11:33:12 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -228,7 +228,7 @@ getoptions(void)
 	for (i = 0; i < NELEM(options); i++)
 		if (options[i].c && Flag(i))
 			*cp++ = options[i].c;
-	return (str_nsave(m, cp - m, ATEMP));
+	return (str_nsave_(m, cp - m, ATEMP));
 }
 
 /* change a Flag(*) value; takes care of special actions */
