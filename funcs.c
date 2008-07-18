@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.69.2.3 2008/07/11 11:49:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.69.2.4 2008/07/18 13:29:43 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -1074,8 +1074,10 @@ c_alias(const char **wp)
 		struct tbl *ap;
 		int h;
 
-		if ((val = cstrchr(alias, '=')))
-			alias = xalias = str_nsave(alias, val++ - alias, ATEMP);
+		if ((val = cstrchr(alias, '='))) {
+			h = val++ - alias;
+			alias = xalias = str_nsave(alias, h, ATEMP);
+		}
 		h = hash(alias);
 		if (val == NULL && !tflag && !xflag) {
 			ap = ktsearch(t, alias, h);
@@ -1103,8 +1105,7 @@ c_alias(const char **wp)
 				afree((void*)ap->val.s, APERM);
 			}
 			/* ignore values for -t (at&t ksh does this) */
-			newval = tflag ? search(alias, path, X_OK, NULL) :
-			    val;
+			newval = tflag ? search(alias, path, X_OK, NULL) : val;
 			if (newval) {
 				ap->val.s = str_save(newval, APERM);
 				ap->flag |= ALLOC|ISSET;
@@ -2208,7 +2209,6 @@ timex(struct op *t, int f)
 	int rv = 0, tf = 0;
 	struct rusage ru0, ru1, cru0, cru1;
 	struct timeval usrtime, systime, tv0, tv1;
-	char opts[1];
 
 	gettimeofday(&tv0, NULL);
 	getrusage(RUSAGE_SELF, &ru0);
@@ -2224,11 +2224,8 @@ timex(struct op *t, int f)
 		 */
 		timerclear(&j_usrtime);
 		timerclear(&j_systime);
-		if (t->left->type == TCOM)
-			t->left->str = opts;
-		opts[0] = 0;
 		rv = execute(t->left, f | XTIME);
-		tf |= opts[0];
+		tf |= t->left->str[0];
 		gettimeofday(&tv1, NULL);
 		getrusage(RUSAGE_SELF, &ru1);
 		getrusage(RUSAGE_CHILDREN, &cru1);

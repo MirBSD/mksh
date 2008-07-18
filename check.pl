@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.14.2.2 2008/05/19 18:41:16 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.14.2.3 2008/07/18 13:29:40 tg Exp $
 # $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
 #-
 # Example test:
@@ -238,7 +238,7 @@ foreach $env (('USER', 'LOGNAME', 'HOME', 'PATH', 'SHELL')) {
     $new_env{$env} = $ENV{$env} if defined $ENV{$env};
 }
 $new_env{'ENV'} = '/nonexistant';
-if (($^O eq 'VMS') || ($Config{perlpath} =~ m/$Config{_exe}$/i)) {
+if (($os eq 'VMS') || ($Config{perlpath} =~ m/$Config{_exe}$/i)) {
 	$new_env{'__perlname'} = $Config{perlpath};
 } else {
 	$new_env{'__perlname'} = $Config{perlpath} . $Config{_exe};

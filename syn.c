@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.19.2.3 2008/07/11 11:49:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.19.2.4 2008/07/18 13:29:48 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -366,7 +366,7 @@ get_command(int cf)
 		if (!is_wdvarname(yylval.cp, true))
 			yyerror("%s: bad identifier\n",
 			    c == FOR ? "for" : "select");
-		t->str = str_nsave(ident, strlen(ident), ATEMP);
+		t->str = str_save_(ident, ATEMP);
 		nesting_push(&old_nesting, c);
 		t->vars = wordlist();
 		t->left = dogroup();
@@ -411,6 +411,11 @@ get_command(int cf)
 	case TIME:
 		syniocf &= ~(KEYWORD|ALIAS);
 		t = pipeline(0);
+		if (t) {
+			t->str = alloc(2, ATEMP);
+			t->str[0] = 0;	/* TF_* flags */
+			t->str[1] = '\0';
+		}
 		t = block(TTIME, t, NOBLOCK, NOWORDS);
 		break;
 

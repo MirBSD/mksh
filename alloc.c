@@ -29,7 +29,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.6 2007/06/05 18:59:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.6.2.1 2008/07/18 13:29:40 tg Exp $");
 
 struct link {
 	struct link *prev;
@@ -102,11 +102,24 @@ void
 afree(void *ptr, Area *ap)
 {
 	struct link *l;
+#ifdef MKSH_AFREE_DEBUG
+	struct link *lp;
+#endif
 
 	if (!ptr)
 		return;
 
 	l = P2L(ptr);
+
+#ifdef MKSH_AFREE_DEBUG
+	for (lp = ap->freelist; lp != NULL; lp = lp->next)
+		if (l == lp)
+			break;
+	if (lp == NULL) {
+		internal_warningf("afree: pointer %p not allocated", ptr);
+		exit(255);
+	}
+#endif
 
 	if (l->prev)
 		l->prev->next = l->next;

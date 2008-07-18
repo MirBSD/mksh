@@ -100,9 +100,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.195.2.3 2008/07/11 11:49:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.195.2.4 2008/07/18 13:29:46 tg Exp $");
 #endif
-#define MKSH_VERSION "R35 2008/07/10"
+#define MKSH_VERSION "R35 2008/07/18"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1422,12 +1422,23 @@ struct tbl **ktsort(struct table *);
 /* misc.c */
 void setctypes(const char *, int);
 void initctypes(void);
-#ifdef MKSH_SMALL
+#if defined(MKSH_SMALL) || !HAVE_EXPSTMT
+#define str_save_		str_save
+#define str_nsave_		str_nsave
 char *str_save(const char *, Area *);
-#else
-#define str_save(s,ap) (str_nsave((s), (s) ? strlen(s) : 0, (ap)))
-#endif
 char *str_nsave(const char *, int, Area *);
+#else
+#define str_save_(s,ap)		str_nsave_((s), strlen(s), (ap))
+#define str_nsave_(s,n,ap)	({				\
+	size_t str_save_sz = (n) + 1;				\
+	char *str_save_rv = alloc(str_save_sz, (ap));		\
+	strlcpy(str_save_rv, (s), str_save_sz);			\
+	(str_save_rv);						\
+})
+#define str_save(s,ap)		(!(s) ? NULL : str_save_((s), (ap)))
+#define str_nsave(s,n,ap)	\
+	(!(s) || (n) < 0 ? NULL : str_nsave_((s), (n), (ap)))
+#endif
 size_t option(const char *);
 char *getoptions(void);
 void change_flag(enum sh_flag, int, char);

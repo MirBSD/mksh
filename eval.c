@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.45.2.1 2008/05/19 18:41:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.45.2.2 2008/07/18 13:29:42 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -425,7 +425,8 @@ expand(const char *cp,	/* input word */
 							goto no_repl;
 
 						/* prepare string on which to work */
-						sbeg = s = str_save(str_val(st->var), ATEMP);
+						tpat0 = str_val(st->var);
+						sbeg = s = str_save(tpat0, ATEMP);
 
 						/* first see if we have any match at all */
 						tpat0 = pat;
@@ -769,10 +770,7 @@ expand(const char *cp,	/* input word */
 				    Xlength(ds, dp) == 0) {
 					char *p;
 
-					if ((p = str_nsave(null, 0, ATEMP))
-					    == NULL)
-						internal_errorf("unable "
-						    "to allocate memory");
+					*(p = alloc(1, ATEMP)) = '\0';
 					XPput(*wp, p);
 				}
 				type = XSUBMID;

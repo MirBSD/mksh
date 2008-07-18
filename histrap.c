@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.58.2.3 2008/07/11 11:49:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.58.2.4 2008/07/18 13:29:44 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -21,7 +21,7 @@ static int hist_count_lines(unsigned char *, int);
 static int hist_shrink(unsigned char *, int);
 static unsigned char *hist_skip_back(unsigned char *,int *,int);
 static void histload(Source *, unsigned char *, int);
-static void histinsert(Source *, int, unsigned char *);
+static void histinsert(Source *, int, const char *);
 static void writehistfile(int, char *);
 static int sprinkle(int);
 #endif
@@ -68,7 +68,8 @@ c_fc(const char **wp)
 				sflag++;
 			else {
 				size_t len = strlen(p);
-				editor = str_nsave(p, len + 4, ATEMP);
+				editor = alloc(len + 4, ATEMP);
+				memcpy(editor, p, len);
 				memcpy(editor + len, " $_", 4);
 			}
 			break;
@@ -639,8 +640,7 @@ hist_init(Source *s)
 	hist_source = s;
 
 #if HAVE_PERSISTENT_HISTORY
-	hname = str_val(global("HISTFILE"));
-	if (hname == NULL)
+	if ((hname = str_val(global("HISTFILE"))) == NULL)
 		return;
 	hname = str_save(hname, APERM);
 
@@ -855,7 +855,7 @@ histload(Source *s, unsigned char *base, int bytes)
 				/* worry about line numbers */
 				if (histptr >= history && lno-1 != s->line) {
 					/* a replacement ? */
-					histinsert(s, lno, line);
+					histinsert(s, lno, (char *)line);
 				} else {
 					s->line = lno;
 					histsave(lno, (char *)line, 0);
@@ -870,15 +870,15 @@ histload(Source *s, unsigned char *base, int bytes)
  *	Insert a line into the history at a specified number
  */
 static void
-histinsert(Source *s, int lno, unsigned char *line)
+histinsert(Source *s, int lno, const char *line)
 {
 	char **hp;
 
-	if (lno >= s->line-(histptr-history) && lno <= s->line) {
-		hp = &histptr[lno-s->line];
+	if (lno >= s->line - (histptr - history) && lno <= s->line) {
+		hp = &histptr[lno - s->line];
 		if (*hp)
 			afree((void*)*hp, APERM);
-		*hp = str_save((char *)line, APERM);
+		*hp = str_save(line, APERM);
 	}
 }
 
@@ -1005,9 +1005,9 @@ inittraps(void)
 			else {
 				char *s;
 
-				sigtraps[i].name = s = str_save(
-				    !strncasecmp(cs, "SIG", 3) ? cs + 3 : cs,
-				    APERM);
+				if (!strncasecmp(cs, "SIG", 3))
+					cs += 3;
+				sigtraps[i].name = s = str_save(cs, APERM);
 				while ((*s = ksh_toupper(*s)))
 					++s;
 			}

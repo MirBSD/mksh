@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.c,v 1.32 2007/08/02 11:05:54 fgsch Exp $	*/
+/*	$OpenBSD: misc.c,v 1.34 2008/07/12 12:33:42 miod Exp $	*/
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.68.2.2 2008/05/19 18:41:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.68.2.3 2008/07/18 13:29:46 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -63,25 +63,31 @@ initctypes(void)
 	setctypes(" \n\t\"#$&'()*;<>?[]\\`|", C_QUOTE);
 }
 
-/* Allocate a string of size n+1 and copy upto n characters from the possibly
- * NUL terminated string s into it.  Always returns a NUL terminated string
- * (unless n < 0).
- */
+#if defined(MKSH_SMALL) || !HAVE_EXPSTMT
 char *
 str_nsave(const char *s, int n, Area *ap)
 {
-	char *ns = NULL;
+	char *rv = NULL;
 
-	if (n >= 0 && s)
-		strlcpy(ns = alloc(n + 1, ap), s, n + 1);
-	return (ns);
+	if ((n >= 0) && (s != NULL))
+		strlcpy(rv = alloc(n + 1, ap), s, n + 1);
+	return (rv);
 }
 
-#ifdef MKSH_SMALL
 char *
 str_save(const char *s, Area *ap)
 {
-	return (str_nsave(s, s ? strlen(s) : 0, ap));
+#ifdef MKSH_SMALL
+	return (s ? str_nsave(s, strlen(s), ap) : NULL);
+#else
+	char *rv = NULL;
+
+	if (s != NULL) {
+		size_t sz = strlen(s) + 1;
+		strlcpy(rv = alloc(sz, ap), s, sz);
+	}
+	return (rv);
+#endif
 }
 #endif
 
@@ -222,7 +228,7 @@ getoptions(void)
 	for (i = 0; i < NELEM(options); i++)
 		if (options[i].c && Flag(i))
 			*cp++ = options[i].c;
-	return (str_nsave(m, cp - m, ATEMP));
+	return (str_nsave_(m, cp - m, ATEMP));
 }
 
 /* change a Flag(*) value; takes care of special actions */

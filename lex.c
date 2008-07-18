@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.56.2.3 2008/07/11 11:49:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.56.2.4 2008/07/18 13:29:45 tg Exp $");
 
 /*
  * states while lexing word
@@ -1290,9 +1290,10 @@ set_prompt(int to, Source *s)
 				 * unwinding its stack through this code as it
 				 * exits.
 				 */
-			} else
-				prompt = str_save(substitute(ps1, 0),
-				    saved_atemp);
+			} else {
+				char *cp = substitute(ps1, 0);
+				prompt = str_save(cp, saved_atemp);
+			}
 			quitenv(NULL);
 		}
 		break;

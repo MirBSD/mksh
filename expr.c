@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.13.2.2 2008/05/19 18:41:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.13.2.3 2008/07/18 13:29:43 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -480,9 +480,12 @@ exprtoken(Expr_state *es)
 		tvar = str_nsave(es->tokp, cp - es->tokp, ATEMP);
 		goto process_tvar;
 	} else if (ksh_isdigit(c)) {
+		int i;
+
 		while (c != '_' && (ksh_isalnux(c) || c == '#'))
 			c = *cp++;
-		tvar = str_nsave(es->tokp, --cp - es->tokp, ATEMP);
+		i = --cp - es->tokp;
+		tvar = str_nsave(es->tokp, i, ATEMP);
  process_tvar:
 		es->val = tempvar();
 		es->val->flag &= ~INTEGER;
