@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.348 2008/07/18 11:34:20 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.349 2008/07/18 11:42:52 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -925,12 +925,14 @@ EOF
 ac_testn sig_t <<-'EOF'
 	#include <sys/types.h>
 	#include <signal.h>
+	#include <stddef.h>
 	int main(void) { return ((ptrdiff_t)(sig_t)0); }
 EOF
 
 ac_testn sighandler_t '!' sig_t 0 <<-'EOF'
 	#include <sys/types.h>
 	#include <signal.h>
+	#include <stddef.h>
 	int main(void) { return ((ptrdiff_t)(sighandler_t)0); }
 EOF
 if test 1 = $HAVE_SIGHANDLER_T; then
@@ -941,6 +943,7 @@ fi
 ac_testn __sighandler_t '!' sig_t 0 <<-'EOF'
 	#include <sys/types.h>
 	#include <signal.h>
+	#include <stddef.h>
 	int main(void) { return ((ptrdiff_t)(__sighandler_t)0); }
 EOF
 if test 1 = $HAVE___SIGHANDLER_T; then
