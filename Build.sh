@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.349 2008/07/18 11:42:52 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.350 2008/07/21 21:00:25 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -249,14 +249,11 @@ done
 SRCS="alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
-test 0 = $r && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
-    NROFF="$NROFF -c"
 if test x"$srcdir" = x"."; then
 	CPPFLAGS="-I. $CPPFLAGS"
 else
 	CPPFLAGS="-I. -I'$srcdir' $CPPFLAGS"
 fi
-
 
 test x"$TARGET_OS" = x"" && TARGET_OS=`uname -s 2>/dev/null || uname`
 warn=
@@ -379,7 +376,8 @@ if test -n "$warn"; then
 fi
 
 : ${CC=cc} ${NROFF=nroff}
-
+test 0 = $r && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
+    NROFF="$NROFF -c"
 
 # this aids me in tracing FTBFSen without access to the buildd
 dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\(.*\)".*$/\1/p' $srcdir/sh.h`
