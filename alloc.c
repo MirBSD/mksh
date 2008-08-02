@@ -1,4 +1,4 @@
-/*	$OpenBSD: alloc.c,v 1.7 2004/02/19 18:51:17 deraadt Exp $	*/
+/*	$OpenBSD: alloc.c,v 1.8 2008/07/21 17:30:08 millert Exp $	*/
 
 /*-
  * Copyright (c) 2002 Marc Espie.
@@ -29,7 +29,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.7 2008/07/13 16:43:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.8 2008/08/02 17:45:09 tg Exp $");
 
 struct link {
 	struct link *prev;

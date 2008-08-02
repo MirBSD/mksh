@@ -1,8 +1,8 @@
-/*	$OpenBSD: syn.c,v 1.27 2006/04/10 14:38:59 jaredy Exp $	*/
+/*	$OpenBSD: syn.c,v 1.28 2008/07/23 16:34:38 jaredy Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.25 2008/07/18 11:33:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.26 2008/08/02 17:45:12 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -413,7 +413,7 @@ get_command(int cf)
 		t = pipeline(0);
 		if (t) {
 			t->str = alloc(2, ATEMP);
-			t->str[0] = 0;	/* TF_* flags */
+			t->str[0] = '\0';	/* TF_* flags */
 			t->str[1] = '\0';
 		}
 		t = block(TTIME, t, NOBLOCK, NOWORDS);

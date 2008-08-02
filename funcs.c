@@ -1,11 +1,11 @@
 /*	$OpenBSD: c_ksh.c,v 1.31 2008/05/17 23:31:52 sobrado Exp $	*/
-/*	$OpenBSD: c_sh.c,v 1.37 2007/09/03 13:54:23 otto Exp $	*/
+/*	$OpenBSD: c_sh.c,v 1.38 2008/07/23 16:34:38 jaredy Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.85 2008/07/14 12:29:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.86 2008/08/02 17:45:11 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -2225,7 +2225,8 @@ timex(struct op *t, int f)
 		timerclear(&j_usrtime);
 		timerclear(&j_systime);
 		rv = execute(t->left, f | XTIME);
-		tf |= t->left->str[0];
+		if (t->left->type == TCOM)
+			tf |= t->left->str[0];
 		gettimeofday(&tv1, NULL);
 		getrusage(RUSAGE_SELF, &ru1);
 		getrusage(RUSAGE_CHILDREN, &cru1);
