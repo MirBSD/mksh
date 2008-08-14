@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.132 2008/08/02 00:57:28 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.133 2008/08/14 17:39:30 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.122 2008/05/17 23:31:52 sobrado Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: August 2 2008 $
+.Dd $Mdocdate: August 14 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -1598,7 +1598,7 @@ assignment time, while the $USER and $PWD are escaped
 and thus will be evaluated each time a prompt is displayed):
 .Bd -literal
 PS1=\*(aq${USER:=$(id \-un)}\*(aq"@${HOSTNAME:=$(hostname \-s)}:\e$PWD $(
-	if (( $(id \-u) )); then print \e$; else print \e#; fi) "
+	if (( USER_ID )); then print \e$; else print \e#; fi) "
 .Ed
 .Pp
 Note that since the command-line editors try to figure out how long the prompt
