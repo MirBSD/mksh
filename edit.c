@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.127 2008/05/17 18:46:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.128 2008/09/14 20:24:58 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -3359,7 +3359,6 @@ struct edstate {
 };
 
 static int	vi_hook(int);
-static void	vi_reset(char *, size_t);
 static int	nextstate(int);
 static int	vi_insert(int);
 static int	vi_cmd(int, const char *);
@@ -3369,7 +3368,6 @@ static void	yank_range(int, int);
 static int	bracktype(int);
 static void	save_cbuf(void);
 static void	restore_cbuf(void);
-static void	edit_reset(char *, size_t);
 static int	putbuf(const char *, int, int);
 static void	del_range(int, int);
 static int	findch(int, int, int, int);
@@ -3524,8 +3522,49 @@ x_vi(char *buf, size_t len)
 {
 	int c;
 
-	vi_reset(buf, len > LINE ? LINE : len);
-	pprompt(prompt, prompt_trunc);
+	state = VNORMAL;
+	ohnum = hnum = hlast = histnum(-1) + 1;
+	insert = INSERT;
+	saved_inslen = inslen;
+	first_insert = 1;
+	inslen = 0;
+	modified = 1;
+	vi_macro_reset();
+
+	es = &ebuf;
+	es->cbuf = buf;
+	undo = &undobuf;
+	undo->cbufsize = es->cbufsize = len > LINE ? LINE : len;
+
+	es->linelen = undo->linelen = 0;
+	es->cursor = undo->cursor = 0;
+	es->winleft = undo->winleft = 0;
+
+	cur_col = promptlen(prompt);
+	prompt_trunc = (cur_col / x_cols) * x_cols;
+	cur_col -= prompt_trunc;
+
+	pprompt(prompt, 0);
+	if (cur_col > x_cols - 3 - MIN_EDIT_SPACE) {
+		prompt_redraw = cur_col = 0;
+		x_putc('\n');
+	} else
+		prompt_redraw = 1;
+	pwidth = cur_col;
+
+	if (!wbuf_len || wbuf_len != x_cols - 3) {
+		wbuf_len = x_cols - 3;
+		wbuf[0] = aresize(wbuf[0], wbuf_len, APERM);
+		wbuf[1] = aresize(wbuf[1], wbuf_len, APERM);
+	}
+	(void)memset(wbuf[0], ' ', wbuf_len);
+	(void)memset(wbuf[1], ' ', wbuf_len);
+	winwidth = x_cols - pwidth - 3;
+	win = 0;
+	morec = ' ';
+	lastref = 1;
+	holdlen = 0;
+
 	x_flush();
 	while (1) {
 		if (macro.p) {
@@ -3842,20 +3881,6 @@ vi_hook(int ch)
 		break;
 	}
 	return 0;
-}
-
-static void
-vi_reset(char *buf, size_t len)
-{
-	state = VNORMAL;
-	ohnum = hnum = hlast = histnum(-1) + 1;
-	insert = INSERT;
-	saved_inslen = inslen;
-	first_insert = 1;
-	inslen = 0;
-	modified = 1;
-	vi_macro_reset();
-	edit_reset(buf, len);
 }
 
 static int
@@ -4732,43 +4757,6 @@ free_edstate(struct edstate *old)
 	afree((char *)old, APERM);
 }
 
-
-
-static void
-edit_reset(char *buf, size_t len)
-{
-
-	es = &ebuf;
-	es->cbuf = buf;
-	es->cbufsize = len;
-	undo = &undobuf;
-	undo->cbufsize = len;
-
-	es->linelen = undo->linelen = 0;
-	es->cursor = undo->cursor = 0;
-	es->winleft = undo->winleft = 0;
-
-	cur_col = pwidth = promptlen(prompt);
-	if (pwidth > x_cols - 3 - MIN_EDIT_SPACE) {
-		cur_col = x_cols - 3 - MIN_EDIT_SPACE;
-		prompt_trunc = pwidth - cur_col;
-		pwidth -= prompt_trunc;
-	} else
-		prompt_trunc = 0;
-	if (!wbuf_len || wbuf_len != x_cols - 3) {
-		wbuf_len = x_cols - 3;
-		wbuf[0] = aresize(wbuf[0], wbuf_len, APERM);
-		wbuf[1] = aresize(wbuf[1], wbuf_len, APERM);
-	}
-	(void)memset(wbuf[0], ' ', wbuf_len);
-	(void)memset(wbuf[1], ' ', wbuf_len);
-	winwidth = x_cols - pwidth - 3;
-	win = 0;
-	morec = ' ';
-	lastref = 1;
-	holdlen = 0;
-}
-
 /*
  * this is used for calling x_escape() in complete_word()
  */
@@ -5034,7 +5022,8 @@ redraw_line(int newl)
 		x_putc('\r');
 		x_putc('\n');
 	}
-	pprompt(prompt, prompt_trunc);
+	if (prompt_redraw)
+		pprompt(prompt, prompt_trunc);
 	cur_col = pwidth;
 	morec = ' ';
 }
@@ -5189,7 +5178,8 @@ ed_mov_opt(int col, char *wb)
 	if (col < cur_col) {
 		if (col + 1 < cur_col - col) {
 			x_putc('\r');
-			pprompt(prompt, prompt_trunc);
+			if (prompt_redraw)
+				pprompt(prompt, prompt_trunc);
 			cur_col = pwidth;
 			while (cur_col++ < col)
 				x_putcf(*wb++);
