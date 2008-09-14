@@ -1,8 +1,8 @@
-/*	$OpenBSD: tree.c,v 1.18 2006/04/10 14:38:59 jaredy Exp $	*/
+/*	$OpenBSD: tree.c,v 1.19 2008/08/11 21:50:35 jaredy Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.18 2008/07/09 21:32:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.19 2008/09/14 20:29:13 tg Exp $");
 
 #define INDENT	4
 
@@ -689,4 +689,5 @@ iofree(struct ioword **iow, Area *ap)
 			afree((void*)p->heredoc, ap);
 		afree((void*)p, ap);
 	}
+	afree(iow, ap);
 }
