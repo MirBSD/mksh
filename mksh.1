@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.135 2008/09/17 19:27:16 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.136 2008/09/17 19:31:30 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.122 2008/05/17 23:31:52 sobrado Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -2080,6 +2080,11 @@ pipelines are created and in the order they are given, so the following
 will print an error with a line number prepended to it:
 .Pp
 .D1 $ cat /foo/bar 2\*(Gt&1 \*(Gt /dev/null \*(Ba cat \-n
+.Pp
+File descriptors created by input/output redirections are private to the
+Korn shell, but passed to sub-processes if
+.Fl o Ic posix
+is set.
 .Ss Arithmetic expressions
 Integer arithmetic expressions can be used with the
 .Ic let
@@ -3580,9 +3585,11 @@ and
 commands above for more details.
 .It Ic posix
 Enable POSIX mode.
-Currently, this just turns off
+Automatically enabled if the basename of the shell invocation begins with
+.Dq sh .
+As a side effect, setting this flag turns off
 .Ic braceexpand
-mode when turned on, which can be turned back on manually.
+mode, which can be turned back on manually.
 .It Ic restricted
 The shell is a restricted shell.
 This option can only be used when the shell is invoked.
@@ -5525,7 +5532,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh\ R35
+.Nm mksh\ R35c
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

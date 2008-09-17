@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.86 2008/08/02 17:45:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.87 2008/09/17 19:31:29 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -2308,8 +2308,8 @@ c_exec(const char **wp __unused)
 		for (i = 0; i < NUFILE; i++) {
 			if (e->savefd[i] > 0)
 				close(e->savefd[i]);
-			/* For ksh keep anything > 2 private */
-			if (i > 2 && e->savefd[i])
+			/* For ksh (but not sh), keep anything > 2 private */
+			if (!Flag(FPOSIX) && i > 2 && e->savefd[i])
 				fcntl(i, F_SETFD, FD_CLOEXEC);
 		}
 		e->savefd = NULL;
