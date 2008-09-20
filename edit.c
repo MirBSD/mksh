@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.129 2008/09/20 12:29:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.130 2008/09/20 14:10:23 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -24,6 +24,28 @@ X_chars edchars;
 #define XCF_FILE	BIT(1)	/* Do file completion */
 #define XCF_FULLPATH	BIT(2)	/* command completion: store full path */
 #define XCF_COMMAND_FILE (XCF_COMMAND|XCF_FILE)
+
+static int modified;			/* buffer has been "modified" */
+static char holdbuf[LINE];		/* place to hold last edit buffer */
+
+#ifdef MKSH_SMALL
+static void x_modified(void);
+static void
+x_modified(void)
+{
+	if (!modified) {
+		x_histp = histptr + 1;
+		modified = 1;
+	}
+}
+#else
+#define x_modified() do {			\
+	if (!modified) {			\
+		x_histp = histptr + 1;		\
+		modified = 1;			\
+	}					\
+} while (/* CONSTCOND */ 0)
+#endif
 
 static int x_getc(void);
 static void x_putcf(int);
@@ -113,6 +135,7 @@ x_read(char *buf, size_t len)
 	int i;
 
 	x_mode(true);
+	modified = 1;
 	if (Flag(FEMACS) || Flag(FGMACS))
 		i = x_emacs(buf, len);
 #ifndef MKSH_NOVI
@@ -1093,7 +1116,6 @@ static int	wbuf_len;		/* length of window buffers (x_cols-3)*/
 static int	win;			/* window buffer in use */
 static char	morec;			/* more character at right of window */
 static int	lastref;		/* argument to last refresh() */
-static char	holdbuf[LINE];		/* place to hold last edit buffer */
 static int	holdlen;		/* length of holdbuf */
 #endif
 static int	prompt_redraw;		/* 0 if newline forced after prompt */
@@ -1591,6 +1613,7 @@ x_do_ins(const char *cp, size_t len)
 	memmove(xcp, cp, len);
 	xcp += len;
 	xep += len;
+	x_modified();
 	return 0;
 }
 
@@ -1726,6 +1749,7 @@ x_delete(int nc, int push)
 	for (cp = x_lastcp(); cp > xcp; )
 		x_bs2(cp = utf_backch(cp));
 
+	x_modified();
 	return;
 }
 
@@ -2065,14 +2089,22 @@ static void
 x_load_hist(char **hp)
 {
 	int oldsize;
+	char *sp = NULL;
 
-	if (hp < history || hp > histptr) {
+	if (hp == histptr + 1) {
+		sp = holdbuf;
+		modified = 0;
+	} else if (hp < history || hp > histptr) {
 		x_e_putc2(7);
 		return;
 	}
+	if (sp == NULL)
+		sp = *hp;
 	x_histp = hp;
 	oldsize = x_size_str(xbuf);
-	strlcpy(xbuf, *hp, xend - xbuf);
+	if (modified)
+		strlcpy(holdbuf, xbuf, sizeof (holdbuf));
+	strlcpy(xbuf, sp, xend - xbuf);
 	xbp = xbuf;
 	xep = xcp = xbuf + strlen(xbuf);
 	xlp_valid = false;
@@ -2080,6 +2112,7 @@ x_load_hist(char **hp)
 		x_redraw(oldsize);
 	}
 	x_goto(xep);
+	modified = 0;
 }
 
 static int
@@ -2215,6 +2248,7 @@ x_del_line(int c __unused)
 	*xcp = 0;
 	xmp = NULL;
 	x_redraw(j);
+	x_modified();
 	return KSTD;
 }
 
@@ -2386,6 +2420,7 @@ x_transpose(int c __unused)
 		utf_wctomb(xcp, tmpb);
 		x_zotc3(&xcp);
 	}
+	x_modified();
 	return KSTD;
 }
 
@@ -2490,6 +2525,7 @@ x_abort(int c __unused)
 	xlp = xep = xcp = xbp = xbuf;
 	xlp_valid = true;
 	*xcp = 0;
+	x_modified();
 	return KINTR;
 }
 
@@ -3052,6 +3088,7 @@ x_comment(int c __unused)
 	if (ret < 0)
 		x_e_putc2(7);
 	else {
+		x_modified();
 		xep = xbuf + len;
 		*xep = '\0';
 		xcp = xbp = xbuf;
@@ -3222,6 +3259,7 @@ x_fold_case(int c)
 		}
 	}
 	x_goto(cp);
+	x_modified();
 	return KSTD;
 }
 
@@ -3486,7 +3524,6 @@ static int	insert;			/* non-zero in insert mode */
 static int	hnum;			/* position in history */
 static int	ohnum;			/* history line copied (after mod) */
 static int	hlast;			/* 1 past last position in history */
-static int	modified;		/* buffer has been "modified" */
 static int	state;
 
 /* Information for keeping track of macros that are being expanded.
@@ -3518,7 +3555,6 @@ x_vi(char *buf, size_t len)
 	saved_inslen = inslen;
 	first_insert = 1;
 	inslen = 0;
-	modified = 1;
 	vi_macro_reset();
 
 	es = &ebuf;
