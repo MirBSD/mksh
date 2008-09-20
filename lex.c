@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.66 2008/07/12 16:56:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.67 2008/09/20 14:17:30 tg Exp $");
 
 /*
  * states while lexing word
@@ -1241,10 +1241,7 @@ getsc_line(Source *s)
 		s->str = NULL;
 	} else if (interactive) {
 		char *p = Xstring(s->xs, xp);
-		if (cur_prompt == PS1)
-			while (*p && ctype(*p, C_IFS) && ctype(*p, C_IFSWS))
-				p++;
-		if (*p) {
+		if (*p && (cur_prompt != PS1 || !ctype(*p, C_IFS | C_IFSWS))) {
 			s->line++;
 			histsave(s->line, s->str, 1);
 		}
