@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.128 2008/09/14 20:24:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.129 2008/09/20 12:29:31 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -840,15 +840,15 @@ utf_skipcols(const char *p, int cols)
 /* UTF-8 hack: low-level functions */
 
 /* --- begin of wcwidth.c excerpt --- */
-/*
- * Markus Kuhn -- 2007-05-25 (Unicode 5.0)
+/*-
+ * Markus Kuhn -- 2007-05-26 (Unicode 5.0)
  *
  * Permission to use, copy, modify, and distribute this software
  * for any purpose and without fee is hereby granted. The author
  * disclaims all warranties with regard to this software.
  */
 
-__RCSID("$miros: src/lib/libc/i18n/wcwidth.c,v 1.7 2007/07/31 23:52:23 tg Exp $");
+__RCSID("$miros: src/lib/libc/i18n/wcwidth.c,v 1.8 2008/09/20 12:01:18 tg Exp $");
 
 int
 utf_wcwidth(unsigned int c)
@@ -926,88 +926,78 @@ utf_wcwidth(unsigned int c)
 	    (c >= 0x2e80 && c <= 0xa4cf && c != 0x303f) || /* CJK ... Yi */
 	    (c >= 0xac00 && c <= 0xd7a3) || /* Hangul Syllables */
 	    (c >= 0xf900 && c <= 0xfaff) || /* CJK Compatibility Ideographs */
+	    (c >= 0xfe10 && c <= 0xfe19) || /* Vertical forms */
 	    (c >= 0xfe30 && c <= 0xfe6f) || /* CJK Compatibility Forms */
 	    (c >= 0xff00 && c <= 0xff60) || /* Fullwidth Forms */
 	    (c >= 0xffe0 && c <= 0xffe6))) ? 2 : 1);
 }
 /* --- end of wcwidth.c excerpt --- */
 
-/* --- begin of mbrtowc.c excerpt --- */
-__RCSID("$miros: src/lib/libc/i18n/mbrtowc.c,v 1.15 2007/02/02 21:06:21 tg Exp $");
+/* +++ CESU-8 multibyte and wide character conversion crafted for mksh +++ */
 
 size_t
 utf_mbtowc(unsigned int *dst, const char *src)
 {
 	const unsigned char *s = (const unsigned char *)src;
-	unsigned int c, wc, count;
+	unsigned int c, wc;
 
-	wc = *s++;
-	if (wc < 0x80) {
-		count = 0;
-	} else if (wc < 0xC2) {
+	if ((wc = *s++) < 0x80) {
+ out:
+		if (dst != NULL)
+			*dst = wc;
+		return (wc ? ((const char *)s - src) : 0);
+	}
+	if (wc < 0xC2 || wc >= 0xF0)
 		/* < 0xC0: spurious second byte */
 		/* < 0xC2: non-minimalistic mapping error in 2-byte seqs */
+		/* > 0xEF: beyond BMP */
 		goto ilseq;
-	} else if (wc < 0xE0) {
-		count = 1; /* one byte follows */
-		wc = (wc & 0x1F) << 6;
-	} else if (wc < 0xF0) {
-		count = 2; /* two bytes follow */
-		wc = (wc & 0x0F) << 12;
-	} else {
-		/* we don't support more than UCS-2 */
-		goto ilseq;
-	}
 
-	while (count) {
+	if (wc < 0xE0) {
+		wc = (wc & 0x1F) << 6;
 		if (((c = *s++) & 0xC0) != 0x80)
 			goto ilseq;
-		c &= 0x3F;
-		wc |= c << (6 * --count);
-
-		/* Check for non-minimalistic mapping error in 3-byte seqs */
-		if (count && (wc < 0x0800))
-			goto ilseq;
+		wc |= c & 0x3F;
+		goto out;
 	}
 
-	if (wc > 0xFFFD) {
+	wc = (wc & 0x0F) << 12;
+
+	if (((c = *s++) & 0xC0) != 0x80)
+		goto ilseq;
+	wc |= (c & 0x3F) << 6;
+
+	if (((c = *s++) & 0xC0) != 0x80)
+		goto ilseq;
+	wc |= c & 0x3F;
+
+	/* Check for non-minimalistic mapping error in 3-byte seqs */
+	if (wc >= 0x0800 && wc <= 0xFFFD)
+		goto out;
  ilseq:
-		return ((size_t)(-1));
-	}
-
-	if (dst != NULL)
-		*dst = wc;
-	return (wc ? ((const char *)s - src) : 0);
+	return ((size_t)(-1));
 }
-/* --- end of mbrtowc.c excerpt --- */
-
-/* --- begin of wcrtomb.c excerpt --- */
-__RCSID("$miros: src/lib/libc/i18n/wcrtomb.c,v 1.17 2007/02/02 21:06:22 tg Exp $");
 
 size_t
 utf_wctomb(char *dst, unsigned int wc)
 {
-	unsigned char count, *d = (unsigned char *)dst;
+	unsigned char *d;
 
-	if (wc > 0xFFFD)
-		wc = 0xFFFD;
 	if (wc < 0x80) {
-		count = 0;
-		*d++ = wc;
-	} else if (wc < 0x0800) {
-		count = 1;
-		*d++ = (wc >> 6) | 0xC0;
-	} else {
-		count = 2;
-		*d++ = (wc >> 12) | 0xE0;
+		*dst = wc;
+		return (1);
 	}
 
-	while (count) {
-		*d++ = ((wc >> (6 * --count)) & 0x3F) | 0x80;
+	d = (unsigned char *)dst;
+	if (wc < 0x0800)
+		*d++ = (wc >> 6) | 0xC0;
+	else {
+		*d++ = ((wc = wc > 0xFFFD ? 0xFFFD : wc) >> 12) | 0xE0;
+		*d++ = ((wc >> 6) & 0x3F) | 0x80;
 	}
+	*d++ = (wc & 0x3F) | 0x80;
 	return ((char *)d - dst);
 }
-/* --- end of wcrtomb.c excerpt --- */
 
 /* +++ emacs editing mode +++ */
 
