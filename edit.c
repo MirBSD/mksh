@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.130 2008/09/20 14:10:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.131 2008/09/20 15:59:23 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -2150,14 +2150,23 @@ x_search_hist(int c)
 		if ((c = x_e_getc()) < 0)
 			return KSTD;
 		f = x_tab[0][c];
+		if (c == MKCTRL('[')) {
+			if ((f & 0x7F) == XFUNC_meta1) {
+				if ((c = x_e_getc()) < 0)
+					return KSTD;
+				f = x_tab[1][c] & 0x7F;
+				if (f == XFUNC_meta1 || f == XFUNC_meta2)
+					x_meta1(MKCTRL('['));
+				x_e_ungetc(c);
+			}
+			break;
+		}
 		if (f & 0x80) {
 			f &= 0x7F;
 			if ((c = x_e_getc()) != '~')
 				x_e_ungetc(c);
 		}
-		if (c == MKCTRL('['))
-			break;
-		else if (f == XFUNC_search_hist)
+		if (f == XFUNC_search_hist)
 			offset = x_search(pat, 0, offset);
 		else if (f == XFUNC_del_back) {
 			if (p == pat) {
