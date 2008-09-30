@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.67 2008/07/12 17:16:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.68 2008/09/30 17:49:26 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -280,7 +280,7 @@ hist_execute(char *cmd)
 			if (!*q) /* ignore trailing newline */
 				q = NULL;
 		}
-		histsave(++(hist_source->line), p, 1);
+		histsave(++(hist_source->line), p, true);
 
 		shellf("%s\n", p); /* POSIX doesn't say this is done... */
 		if ((p = q)) /* restore \n (trailing \n not restored) */
@@ -574,7 +574,7 @@ init_histvec(void)
  * save command in history
  */
 void
-histsave(int lno __unused, const char *cmd, int dowrite __unused)
+histsave(int lno __unused, const char *cmd, bool dowrite __unused)
 {
 	char **hp;
 	char *c, *cp;
@@ -858,7 +858,7 @@ histload(Source *s, unsigned char *base, int bytes)
 					histinsert(s, lno, (char *)line);
 				} else {
 					s->line = lno;
-					histsave(lno, (char *)line, 0);
+					histsave(lno, (char *)line, false);
 				}
 				state = shdr;
 			}
