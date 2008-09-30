@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.69 2008/09/30 19:25:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.70 2008/09/30 19:36:16 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -280,8 +280,7 @@ hist_execute(char *cmd)
 			if (!*q) /* ignore trailing newline */
 				q = NULL;
 		}
-		/* setting ignoredups to true breaks history-e-minus-5 */
-		histsave(&hist_source->line, p, true, false);
+		histsave(&hist_source->line, p, true, true);
 
 		shellf("%s\n", p); /* POSIX doesn't say this is done... */
 		if ((p = q)) /* restore \n (trailing \n not restored) */

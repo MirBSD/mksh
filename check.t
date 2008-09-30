@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.225 2008/09/30 18:43:06 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.226 2008/09/30 19:36:15 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1850,15 +1850,17 @@ file-setup: file 644 "Env"
 stdin:
 	echo abc def
 	echo ghi jkl
+	:
 	fc -e - echo
-	fc -l 2 4
+	fc -l 2 5
 expected-stdout:
 	abc def
 	ghi jkl
 	ghi jkl
 	2	echo ghi jkl
-	3	echo ghi jkl
-	4	fc -l 2 4
+	3	:
+	4	echo ghi jkl
+	5	fc -l 2 5
 expected-stderr-pattern:
 	/^X*echo ghi jkl\nX*$/
 ---
