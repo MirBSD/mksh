@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.88 2008/09/30 17:49:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.89 2008/09/30 19:25:50 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -502,8 +502,7 @@ c_print(const char **wp)
 
 	if (flags & PO_HIST) {
 		Xput(xs, xp, '\0');
-		source->line++;
-		histsave(source->line, Xstring(xs, xp), true);
+		histsave(&source->line, Xstring(xs, xp), true, false);
 		Xfree(xs, xp);
 	} else {
 		int n, len = Xlength(xs, xp);
@@ -1894,8 +1893,7 @@ c_read(const char **wp)
 	shf_flush(shf);
 	if (historyr) {
 		Xput(xs, xp, '\0');
-		source->line++;
-		histsave(source->line, Xstring(xs, xp), true);
+		histsave(&source->line, Xstring(xs, xp), true, false);
 		Xfree(xs, xp);
 	}
 	/* if this is the co-process fd, close the file descriptor

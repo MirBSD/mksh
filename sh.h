@@ -100,7 +100,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.235 2008/09/30 18:43:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.236 2008/09/30 19:25:51 tg Exp $");
 #endif
 #define MKSH_VERSION "R35 2008/09/30"
 
@@ -1306,7 +1306,7 @@ void hist_init(Source *);
 #if HAVE_PERSISTENT_HISTORY
 void hist_finish(void);
 #endif
-void histsave(int, const char *, bool);
+void histsave(int *, const char *, bool, bool);
 int c_fc(const char **);
 void sethistsize(int);
 #if HAVE_PERSISTENT_HISTORY

@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.68 2008/09/30 17:49:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.69 2008/09/30 19:25:51 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -280,7 +280,8 @@ hist_execute(char *cmd)
 			if (!*q) /* ignore trailing newline */
 				q = NULL;
 		}
-		histsave(++(hist_source->line), p, true);
+		/* setting ignoredups to true breaks history-e-minus-5 */
+		histsave(&hist_source->line, p, true, false);
 
 		shellf("%s\n", p); /* POSIX doesn't say this is done... */
 		if ((p = q)) /* restore \n (trailing \n not restored) */
@@ -574,7 +575,7 @@ init_histvec(void)
  * save command in history
  */
 void
-histsave(int lno __unused, const char *cmd, bool dowrite __unused)
+histsave(int *lnp, const char *cmd, bool dowrite __unused, bool ignoredups)
 {
 	char **hp;
 	char *c, *cp;
@@ -583,9 +584,15 @@ histsave(int lno __unused, const char *cmd, bool dowrite __unused)
 	if ((cp = strchr(c, '\n')) != NULL)
 		*cp = '\0';
 
+	if (ignoredups && !strcmp(c, *histptr)) {
+		afree(c, APERM);
+		return;
+	}
+	++*lnp;
+
 #if HAVE_PERSISTENT_HISTORY
 	if (histfd && dowrite)
-		writehistfile(lno, c);
+		writehistfile(*lnp, c);
 #endif
 
 	hp = histptr;
@@ -824,8 +831,8 @@ static void
 histload(Source *s, unsigned char *base, int bytes)
 {
 	State state;
-	int	lno = 0;
-	unsigned char	*line = NULL;
+	int lno = 0;
+	unsigned char *line = NULL;
 
 	for (state = shdr; bytes-- > 0; base++) {
 		switch (state) {
@@ -857,8 +864,8 @@ histload(Source *s, unsigned char *base, int bytes)
 					/* a replacement ? */
 					histinsert(s, lno, (char *)line);
 				} else {
-					s->line = lno;
-					histsave(lno, (char *)line, false);
+					s->line = lno--;
+					histsave(&lno, line, false, false);
 				}
 				state = shdr;
 			}
