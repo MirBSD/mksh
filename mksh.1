@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.136 2008/09/17 19:31:30 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.137 2008/09/30 18:43:07 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.122 2008/05/17 23:31:52 sobrado Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: September 17 2008 $
+.Dd $Mdocdate: September 30 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -4532,6 +4532,9 @@ character is displayed in the last column indicating that there are more
 characters after, before and after, or before the current position,
 respectively.
 The line is scrolled horizontally as necessary.
+.Pp
+Completed lines are pushed into the history, unless they begin with an IFS
+character of IFS white space, or are the same as the previous history line.
 .Ss Emacs editing mode
 When the
 .Ic emacs
@@ -4697,6 +4700,15 @@ has been performed.
 Lowercases the next
 .Ar n
 words.
+.It Xo edit\-line:
+.Op Ar n 
+.No \*(haXe
+.Xc
+Edit line
+.Ar n
+or the current line, if not specified, interactively.
+The actual command executed is
+.Ic fc \-e ${VISUAL:\-${EDITOR:\-vi}} Ar n .
 .It end\-of\-history: \*(ha[\*(Gt
 Moves to the end of the history.
 .It end\-of\-line: \*(haE
@@ -4819,7 +4831,8 @@ An initial
 .Ql \*(ha
 in the search string anchors the search.
 The escape key will leave search mode.
-Other commands will be executed after leaving search mode.
+Other commands, including sequences of escape as prefix-1 followed by a
+prefix-1 or prefix-2 key will be executed after leaving search mode.
 Successive
 .Ic search\-history
 commands continue searching backward to the next previous occurrence of the
@@ -5532,7 +5545,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh\ R35c
+.Nm mksh\ R36
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

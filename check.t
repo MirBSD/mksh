@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.224 2008/09/20 19:17:59 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.225 2008/09/30 18:43:06 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R35 2008/09/20
+	@(#)MIRBSD KSH R35 2008/09/30
 description:
 	Check version of shell.
 stdin:
@@ -1721,6 +1721,26 @@ stdin:
 	echo hi
 	fc -l
 expected-stdout:
+	hi
+	1	echo hi
+expected-stderr-pattern:
+	/^X*$/
+---
+name: history-dups
+description:
+	Verify duplicates and spaces are not entered
+arguments: !-i!
+env-setup: !ENV=./Env!HISTFILE=hist.file!
+file-setup: file 644 "Env"
+	PS1=X
+stdin:
+	echo hi
+	 echo yo
+	echo hi
+	fc -l
+expected-stdout:
+	hi
+	yo
 	hi
 	1	echo hi
 expected-stderr-pattern:
