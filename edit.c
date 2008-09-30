@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.134 2008/09/30 19:25:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.135 2008/09/30 19:28:12 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -4359,9 +4359,9 @@ vi_cmd(int argcnt, const char *cmd)
 			break;
 
 		case 'v':
-			if (es->linelen == 0 && argcnt == 0)
-				return -1;
 			if (!argcnt) {
+				if (es->linelen == 0)
+					return -1;
 				if (modified) {
 					es->cbuf[es->linelen] = '\0';
 					histsave(&source->line, es->cbuf, true,
