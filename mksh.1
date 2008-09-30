@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.137 2008/09/30 18:43:07 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.138 2008/09/30 18:48:01 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.122 2008/05/17 23:31:52 sobrado Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -4533,8 +4533,8 @@ characters after, before and after, or before the current position,
 respectively.
 The line is scrolled horizontally as necessary.
 .Pp
-Completed lines are pushed into the history, unless they begin with an IFS
-character of IFS white space, or are the same as the previous history line.
+Completed lines are pushed into the history, unless they begin with an
+IFS character or IFS white space, or are the same as the previous line.
 .Ss Emacs editing mode
 When the
 .Ic emacs
@@ -4831,8 +4831,13 @@ An initial
 .Ql \*(ha
 in the search string anchors the search.
 The escape key will leave search mode.
-Other commands, including sequences of escape as prefix-1 followed by a
-prefix-1 or prefix-2 key will be executed after leaving search mode.
+Other commands, including sequences of escape as
+.Ic prefix\-1
+followed by a
+.Ic prefix\-1
+or
+.Ic prefix\-2
+key will be executed after leaving search mode.
 Successive
 .Ic search\-history
 commands continue searching backward to the next previous occurrence of the
