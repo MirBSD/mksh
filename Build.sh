@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.350 2008/07/21 21:00:25 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.351 2008/09/30 17:34:25 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -16,8 +16,8 @@ v() {
 vv() {
 	_c=$1
 	shift
-	eval '$e "\$ $*" 2>&'$h
-	eval 'eval "$@" 2>&'$h | sed "s^${_c} "
+	$e "\$ $*" 2>&1
+	eval "$@" 2>&1 | sed "s^${_c} "
 }
 
 vq() {
@@ -218,7 +218,6 @@ rm -f a.exe* a.out* *core crypt.exp lft mksh mksh.cat1 mksh.exe no *.o \
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=
 
 e=echo
-h=1
 r=0
 eq=0
 pm=0
@@ -231,10 +230,6 @@ do
 		;;
 	-Q)
 		eq=1
-		;;
-	-q)
-		e=:
-		h=-
 		;;
 	-r)
 		r=1
@@ -468,7 +463,7 @@ cat >scn.c <<-'EOF'
 EOF
 ct=unknown
 vv ']' "$CPP scn.c | grep ct= | tr -d \\\\015 >x"
-test 1 = $h && sed 's/^/[ /' x
+sed 's/^/[ /' x
 eval `cat x`
 rm -f x
 cat >scn.c <<-'EOF'
@@ -1220,7 +1215,7 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 	printf=printf
 	printf hallo >/dev/null 2>&1 || printf=echo
 	test $printf = echo || NSIG=`printf %d "$NSIG" 2>/dev/null`
-	test 1 = $h && $printf "NSIG=$NSIG ... "
+	$printf "NSIG=$NSIG ... "
 	sigs="ABRT ALRM BUS CHLD CLD CONT DIL EMT FPE HUP ILL INFO INT IO IOT"
 	sigs="$sigs KILL LOST PIPE PROF PWR QUIT RESV SAK SEGV STOP SYS TERM"
 	sigs="$sigs TRAP TSTP TTIN TTOU URG USR1 USR2 VTALRM WINCH XCPU XFSZ"
@@ -1240,7 +1235,7 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 		*:$nr:*) ;;
 		*)	echo "		{ $nr, \"$name\" },"
 			sigseen=$sigseen$nr:
-			test 1 = $h && $printf "$name=$nr " >&2
+			$printf "$name=$nr " >&2
 			;;
 		esac
 	done 2>&1 >signames.inc
@@ -1310,7 +1305,7 @@ v "$CC $CFLAGS $LDFLAGS -o $tcfn $objs $LIBS $ccpr"
 test -f $tcfn || exit 1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
     rm -f mksh.cat1
-test 0 = $eq && test 1 = $h && v size $tcfn
+test 0 = $eq && v size $tcfn
 i=install
 test -f /usr/ucb/$i && i=/usr/ucb/$i
 test 1 = $eq && e=:
