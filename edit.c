@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.131 2008/09/20 15:59:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.132 2008/09/30 17:23:00 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1210,6 +1210,7 @@ static void bind_if_not_bound(int, int, int);
 #define XFUNC_set_arg 52
 #define XFUNC_comment 53
 #define XFUNC_version 54
+#define XFUNC_edit_line 55
 
 /* XFUNC_* must be < 128 */
 
@@ -1268,6 +1269,7 @@ static int x_fold_upper(int);
 static int x_set_arg(int);
 static int x_comment(int);
 static int x_version(int);
+static int x_edit_line(int);
 
 static const struct x_ftab x_ftab[] = {
 	{ x_abort,		"abort",			0 },
@@ -1325,6 +1327,7 @@ static const struct x_ftab x_ftab[] = {
 	{ x_set_arg,		"set-arg",			XF_NOBIND },
 	{ x_comment,		"comment",			0 },
 	{ x_version,		"version",			0 },
+	{ x_edit_line,		"edit-line",			XF_ARG },
 	{ 0,			NULL,				0 }
 };
 
@@ -1414,6 +1417,8 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_mv_end | 0x80,		2,	  '8'	},
 	{ XFUNC_mv_end,			2,	  'F'	},
 	{ XFUNC_del_char | 0x80,	2,	  '3'	},
+	/* more non-standard ones */
+	{ XFUNC_edit_line,		2,	  'e'	}
 };
 
 static int
@@ -2116,10 +2121,10 @@ x_load_hist(char **hp)
 }
 
 static int
-x_nl_next_com(int c)
+x_nl_next_com(int c __unused)
 {
 	x_nextcmd = source->line - (histptr - x_histp) + 1;
-	return (x_newline(c));
+	return (x_newline('\n'));
 }
 
 static int
@@ -3137,6 +3142,31 @@ x_version(int c __unused)
 
 	afree(v, ATEMP);
 	return KSTD;
+}
+
+static int
+x_edit_line(int c __unused)
+{
+	if (x_arg_defaulted) {
+		if (xep == xbuf) {
+			x_e_putc2(7);
+			return (KSTD);
+		}
+		if (modified) {
+			*xep = '\0';
+			source->line++;
+			histsave(source->line, xbuf, 1);
+			x_arg = 0;
+		} else
+			x_arg = source->line - (histptr - x_histp);
+	}
+	if (x_arg)
+		shf_snprintf(xbuf, xend - xbuf, "%s %d",
+		    "fc -e ${VISUAL:-${EDITOR:-vi}} --", x_arg);
+	else
+		strlcpy(xbuf, "fc -e ${VISUAL:-${EDITOR:-vi}} --", xend - xbuf);
+	xep = xbuf + strlen(xbuf);
+	return (x_newline('\n'));
 }
 
 /* NAME:
