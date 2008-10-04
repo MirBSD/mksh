@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.135 2008/09/30 19:28:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.136 2008/10/04 23:08:03 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -3176,6 +3176,8 @@ x_edit_line(int c __unused)
  *      command and inserts it into the current edit line.  If a
  *      numeric arg is supplied then the n'th word from the
  *      start of the previous command is used.
+ *      As a side effect, trashes the mark in order to achieve
+ *      being called in a repeatable fashion.
  *
  *      Bound to M-.
  *
@@ -3186,11 +3188,20 @@ static int
 x_prev_histword(int c __unused)
 {
 	char *rcp, *cp;
+	char **xhp;
+	int m;
 
-	cp = *histptr;
-	if (!cp)
+	if (xmp && modified > 1)
+		x_kill_region(0);
+	m = modified ? modified : 1;
+	xhp = histptr - (m - 1);
+	if ((xhp < history) || !(cp = *xhp)) {
 		x_e_putc2(7);
-	else if (x_arg_defaulted) {
+		x_modified();
+		return (KSTD);
+	}
+	x_set_mark(0);
+	if (x_arg_defaulted) {
 		rcp = &cp[strlen(cp) - 1];
 		/*
 		 * ignore white-space after the last word
@@ -3225,6 +3236,7 @@ x_prev_histword(int c __unused)
 		x_ins(cp);
 		*rcp = ch;
 	}
+	modified = m + 1;
 	return KSTD;
 }
 
