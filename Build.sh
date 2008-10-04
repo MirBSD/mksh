@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.351 2008/09/30 17:34:25 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.352 2008/10/04 19:13:22 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -856,7 +856,7 @@ ac_header sys/mkdev.h sys/types.h
 ac_header sys/mman.h sys/types.h
 ac_header sys/sysmacros.h
 ac_header libgen.h
-ac_header libutil.h
+ac_header libutil.h sys/types.h
 ac_header paths.h
 ac_header stdbool.h
 ac_header grp.h sys/types.h
