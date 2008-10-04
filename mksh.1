@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.139 2008/10/04 23:08:03 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.140 2008/10/04 23:22:13 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.122 2008/05/17 23:31:52 sobrado Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -4803,10 +4803,9 @@ Introduces a 2-character command sequence.
 .Xc
 The last
 .Pq Ar n Ns th
-word of the previous command is inserted at the cursor.
-On repeated execution, goes back the history.
+word of the previous (on repeated execution, second-last, third-last, etc.)
+command is inserted at the cursor.
 Use of this editing command trashes the mark.
-If this 
 .It quote: \*(ha\*(ha , \*(haV
 The following character is taken literally rather than as an editing command.
 .It redraw: \*(haL
