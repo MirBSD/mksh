@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.136 2008/10/04 23:08:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.137 2008/10/05 16:06:43 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -27,25 +27,6 @@ X_chars edchars;
 
 static int modified;			/* buffer has been "modified" */
 static char holdbuf[LINE];		/* place to hold last edit buffer */
-
-#ifdef MKSH_SMALL
-static void x_modified(void);
-static void
-x_modified(void)
-{
-	if (!modified) {
-		x_histp = histptr + 1;
-		modified = 1;
-	}
-}
-#else
-#define x_modified() do {			\
-	if (!modified) {			\
-		x_histp = histptr + 1;		\
-		modified = 1;			\
-	}					\
-} while (/* CONSTCOND */ 0)
-#endif
 
 static int x_getc(void);
 static void x_putcf(int);
@@ -1420,6 +1401,25 @@ static struct x_defbindings const x_defbindings[] = {
 	/* more non-standard ones */
 	{ XFUNC_edit_line,		2,	  'e'	}
 };
+
+#ifdef MKSH_SMALL
+static void x_modified(void);
+static void
+x_modified(void)
+{
+	if (!modified) {
+		x_histp = histptr + 1;
+		modified = 1;
+	}
+}
+#else
+#define x_modified() do {			\
+	if (!modified) {			\
+		x_histp = histptr + 1;		\
+		modified = 1;			\
+	}					\
+} while (/* CONSTCOND */ 0)
+#endif
 
 static int
 x_e_getmbc(char *sbuf)
