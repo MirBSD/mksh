@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.353 2008/10/10 21:36:04 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.354 2008/10/10 21:57:16 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -583,6 +583,7 @@ watcom)
 	;;
 xlc)
 	vv '|' "$CC -qversion=verbose"
+	vv '|' "ld -V"
 	;;
 *)
 	ct=unknown
