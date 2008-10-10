@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.21 2008/05/17 18:47:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.22 2008/10/10 21:30:43 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -835,7 +835,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		case 'u':
 		case 'x':
 			flags |= FL_NUMBER;
-			cp = &numbuf[sizeof (numbuf)];
+			cp = numbuf + sizeof (numbuf);
 			/*-
 			 * XXX any better way to do this?
 			 * XXX hopefully the compiler optimises this out
@@ -903,7 +903,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 				}
 			    }
 			}
-			len = &numbuf[sizeof (numbuf)] - (s = cp);
+			len = numbuf + sizeof (numbuf) - (s = cp);
 			if (flags & FL_DOT) {
 				if (precision > len) {
 					field = precision;

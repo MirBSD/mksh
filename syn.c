@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.26 2008/08/02 17:45:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.27 2008/10/10 21:30:43 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -163,7 +163,7 @@ synio(int cf)
 		iop->delim = yylval.cp;
 		if (*ident != 0) /* unquoted */
 			iop->flag |= IOEVAL;
-		if (herep >= &heres[HERES])
+		if (herep > &heres[HERES - 1])
 			yyerror("too many <<s\n");
 		*herep++ = iop;
 	} else

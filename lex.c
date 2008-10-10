@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.72 2008/09/30 19:35:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.73 2008/10/10 21:30:42 tg Exp $");
 
 /*
  * states while lexing word
@@ -151,7 +151,7 @@ yylex(int cf)
 	states[0].ls_info.base = NULL;
 	statep = &states[1];
 	state_info.base = states;
-	state_info.end = &states[STATE_BSIZE];
+	state_info.end = &state_info.base[STATE_BSIZE];
 
 	Xinit(ws, wp, 64, ATEMP);
 
