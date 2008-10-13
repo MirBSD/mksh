@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.36 2008/05/17 19:03:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.37 2008/10/13 23:06:03 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -319,7 +319,8 @@ exchild(struct op *t, int flags, /* used if XPCLOSE or XCCLOSE */ int close_fd)
 			    "exchild: XPIPEI and no last_job - pid %d",
 			    (int)procpid);
 		j = last_job;
-		last_proc->next = p;
+		if (last_proc)
+			last_proc->next = p;
 		last_proc = p;
 	} else {
 		j = new_job(); /* fills in j->job */
@@ -402,18 +403,16 @@ exchild(struct op *t, int flags, /* used if XPCLOSE or XCCLOSE */ int close_fd)
 				    SS_RESTORE_DFL|SS_FORCE);
 		}
 		if (Flag(FBGNICE) && (flags & XBGND))
-			i = nice(4);
+			(void)nice(4);
 		if ((flags & XBGND) && !Flag(FMONITOR)) {
 			setsig(&sigtraps[SIGINT], SIG_IGN,
 			    SS_RESTORE_IGN|SS_FORCE);
 			setsig(&sigtraps[SIGQUIT], SIG_IGN,
 			    SS_RESTORE_IGN|SS_FORCE);
-			if (!(flags & (XPIPEI | XCOPROC))) {
-				int fd = open("/dev/null", 0);
-				if (fd != 0) {
-					(void) ksh_dup2(fd, 0, true);
-					close(fd);
-				}
+			if ((!(flags & (XPIPEI | XCOPROC))) &&
+			    ((i = open("/dev/null", 0)) > 0)) {
+				(void)ksh_dup2(i, 0, true);
+				close(i);
 			}
 		}
 		remove_job(j, "child");	/* in case of $(jobs) command */

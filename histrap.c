@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.70 2008/09/30 19:36:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.71 2008/10/13 23:06:02 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -283,7 +283,7 @@ hist_execute(char *cmd)
 		histsave(&hist_source->line, p, true, true);
 
 		shellf("%s\n", p); /* POSIX doesn't say this is done... */
-		if ((p = q)) /* restore \n (trailing \n not restored) */
+		if (q)		/* restore \n (trailing \n not restored) */
 			q[-1] = '\n';
 	}
 

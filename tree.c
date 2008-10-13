@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.19 2008/09/14 20:29:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.20 2008/10/13 23:06:04 tg Exp $");
 
 #define INDENT	4
 
@@ -262,7 +262,7 @@ tputS(char *wp, struct shf *shf)
 	 *	COMSUB [(`] ...\0	(handle $ ` \ and maybe " in `...` case)
 	 */
 	while (1)
-		switch ((c = *wp++)) {
+		switch (*wp++) {
 		case EOS:
 			return;
 		case ADELIM:
@@ -541,7 +541,7 @@ wdstrip(const char *wp, bool keepq, bool make_magic)
 	 *	x${foo:-'hi'} -> x${foo:-hi} unless keepq
 	 */
 	while (1)
-		switch ((c = *wp++)) {
+		switch (*wp++) {
 		case EOS:
 			return shf_sclose(&shf); /* null terminates */
 		case ADELIM:

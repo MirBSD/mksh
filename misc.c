@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.85 2008/07/18 11:33:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.86 2008/10/13 23:06:03 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -773,11 +773,11 @@ pat_scan(const unsigned char *p, const unsigned char *pe, int match_sep)
 			continue;
 		if ((*++p == /*(*/ ')' && nest-- == 0) ||
 		    (*p == '|' && match_sep && nest == 0))
-			return ++p;
+			return (p + 1);
 		if ((*p & 0x80) && vstrchr("*+?@! ", *p & 0x7f))
 			nest++;
 	}
-	return NULL;
+	return (NULL);
 }
 
 int
@@ -1137,7 +1137,7 @@ make_path(const char *cwd, const char *file,
 			for (pend = plist; *pend && *pend != ':'; pend++)
 				;
 			plen = pend - plist;
-			*cdpathp = *pend ? ++pend : NULL;
+			*cdpathp = *pend ? pend + 1 : NULL;
 		}
 
 		if ((use_cdpath == 0 || !plen || plist[0] != '/') &&

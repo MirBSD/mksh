@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.137 2008/10/05 16:06:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.138 2008/10/13 23:06:02 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1517,7 +1517,7 @@ x_emacs(char *buf, size_t len)
 		}
 		i = c | (x_curprefix << 8);
 		x_curprefix = 0;
-		switch (i = (*x_ftab[f].xf_func)(i)) {
+		switch ((*x_ftab[f].xf_func)(i)) {
 		case KSTD:
 			if (!(x_ftab[f].xf_flags & XF_PREFIX))
 				x_last_command = f;
@@ -1727,7 +1727,6 @@ x_delete(int nc, int push)
 		x_push(nb);
 
 	xep -= nb;
-	cp = xcp;
 	memmove(xcp, xcp + nb, xep - xcp + 1);	/* Copies the NUL */
 	x_adj_ok = 0;			/* don't redraw */
 	xlp_valid = false;
@@ -2332,7 +2331,7 @@ x_redraw(int limit)
 		x_displen = xx_cols - 2;
 	}
 	xlp_valid = false;
-	cp = x_lastcp();
+	x_lastcp();
 	x_zots(xbp);
 	if (xbp != xbuf || xep > xlp)
 		limit = xx_cols;
