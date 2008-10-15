@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.102 2008/09/17 19:31:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.103 2008/10/15 10:25:01 tg Exp $");
 
 extern char **environ;
 
@@ -57,6 +57,9 @@ static const char *initcoms[] = {
 
 static int initio_done;
 
+static struct env env;
+struct env *e = &env;
+
 int
 main(int argc, const char *argv[])
 {
@@ -65,7 +68,6 @@ main(int argc, const char *argv[])
 	struct block *l;
 	int restricted, errexit;
 	const char **wp;
-	struct env env;
 	pid_t ppid;
 	struct tbl *vp;
 	struct stat s_stdin;
@@ -88,10 +90,8 @@ main(int argc, const char *argv[])
 	ainit(&aperm);		/* initialise permanent Area */
 
 	/* set up base environment */
-	memset(&env, 0, sizeof(env));
 	env.type = E_NONE;
 	ainit(&env.area);
-	e = &env;
 	newblock();		/* set up global l->vars and l->funs */
 
 	/* Do this first so output routines (eg, errorf, shellf) can work */

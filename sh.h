@@ -100,9 +100,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.240 2008/10/13 23:06:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.241 2008/10/15 10:25:01 tg Exp $");
 #endif
-#define MKSH_VERSION "R35 2008/10/13"
+#define MKSH_VERSION "R35 2008/10/15"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -367,7 +367,7 @@ EXTERN Area aperm;		/* permanent object space */
 /*
  * parsing & execution environment
  */
-EXTERN struct env {
+extern struct env {
 	Area area;		/* temporary allocation area */
 	struct block *loc;	/* local variables and functions */
 	short *savefd;		/* original redirected fds */
