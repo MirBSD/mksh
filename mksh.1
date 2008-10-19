@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.140 2008/10/04 23:22:13 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.141 2008/10/19 20:15:44 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.122 2008/05/17 23:31:52 sobrado Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: October 4 2008 $
+.Dd $Mdocdate: October 19 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -4840,6 +4840,9 @@ followed by a
 or
 .Ic prefix\-2
 key will be executed after leaving search mode.
+The
+.Ic abort Pq \*(haG
+command will restore the input line before search started.
 Successive
 .Ic search\-history
 commands continue searching backward to the next previous occurrence of the

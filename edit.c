@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.138 2008/10/13 23:06:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.139 2008/10/19 20:15:43 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -2202,6 +2202,10 @@ x_search_hist(int c)
 				}
 			}
 			offset = x_search(pat, 0, offset);
+		} else if (f == XFUNC_abort) {
+			if (offset >= 0)
+				x_load_hist(histptr + 1);
+			break;
 		} else { /* other command */
 			x_e_ungetc(c);
 			break;
