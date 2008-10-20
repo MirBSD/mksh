@@ -1,9 +1,9 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.354 2008/10/10 21:57:16 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.355 2008/10/20 19:29:22 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
-#			MKSH_CLS_STRING MKSH_AFREE_DEBUG
+#			MKSH_CLS_STRING MKSH_AFREE_DEBUG MKSH_BINSHREDUCED
 
 LC_ALL=C
 export LC_ALL
@@ -838,6 +838,15 @@ ac_testn mksh_full '' "if a full-featured mksh is requested" <<-'EOF'
 	int main(void) { return (0); }
 	#endif
 EOF
+ac_testn mksh_reduced mksh_full 0 "if a reduced-feature sh is requested" <<-'EOF'
+	#ifdef MKSH_BINSHREDUCED
+	/* force a success: we want a reduced mksh-as-bin-sh */
+	int main(void) { return (0); }
+	#else
+	/* force a failure: we want a full mksh, always */
+	int main(void) { return (thiswillneverbedefinedIhope()); }
+	#endif
+EOF
 
 if test 0 = $HAVE_MKSH_FULL; then
 	if test $ct = xlc; then
@@ -848,6 +857,9 @@ if test 0 = $HAVE_MKSH_FULL; then
 
 	: ${HAVE_MKNOD=0}
 	check_categories=$check_categories,smksh
+fi
+if test 1 = $HAVE_MKSH_REDUCED; then
+	check_categories=$check_categories,binsh
 fi
 
 #

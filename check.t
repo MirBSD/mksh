@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.232 2008/10/19 20:15:42 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.233 2008/10/20 19:29:23 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R35 2008/10/19
+	@(#)MIRBSD KSH R35 2008/10/20
 description:
 	Check version of shell.
 stdin:
@@ -4273,10 +4273,29 @@ expected-stdout:
 	posix
 	brex
 ---
-name: posix-mode-2
+name: posix-mode-2a
+description:
+	Check that posix mode is *not* automatically turned on
+category: !binsh
+stdin:
+	ln -s "$__progname" ksh
+	ln -s "$__progname" sh
+	ln -s "$__progname" ./-ksh
+	ln -s "$__progname" ./-sh
+	for shell in {,-}{,k}sh; do
+		print -- $shell $(./$shell +l -c \
+		    '[[ $(set +o) == *@(-o posix)@(| *) ]] && echo posix || echo noposix')
+	done
+expected-stdout:
+	sh noposix
+	ksh noposix
+	-sh noposix
+	-ksh noposix
+---
+name: posix-mode-2b
 description:
 	Check that posix mode is automatically turned on
-category: !smksh
+category: binsh
 stdin:
 	ln -s "$__progname" ksh
 	ln -s "$__progname" sh

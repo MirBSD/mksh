@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.103 2008/10/15 10:25:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.104 2008/10/20 19:29:23 tg Exp $");
 
 extern char **environ;
 
@@ -173,7 +173,7 @@ main(int argc, const char *argv[])
 	Flag(FVITABCOMPLETE) = 1;
 #endif
 
-#ifndef MKSH_SMALL
+#ifdef MKSH_BINSHREDUCED
 	/* Set FPOSIX if we're called as -sh or /bin/sh or so */
 	{
 		const char *cc;
