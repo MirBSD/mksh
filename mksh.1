@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.142 2008/10/20 19:29:24 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.143 2008/10/20 19:52:07 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.122 2008/05/17 23:31:52 sobrado Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -777,7 +777,7 @@ succeeds).
 The single argument form of
 .Ic test ,
 which tests if the argument has a non-zero length, is not valid; explicit
-operators must always be used e.g. instead of
+operators must always be used, e.g. instead of
 .No \&[ Ar str No \&]
 use
 .No \&[[ \-n Ar str No \&]] .
@@ -1536,7 +1536,7 @@ When using
 .Ic getopts ,
 it contains the argument for a parsed option, if it requires one.
 .It Ev OPTIND
-The index of the next argument to be processed by
+The index of the next argument to be processed when using
 .Ic getopts .
 Assigning 1 to this parameter causes
 .Ic getopts
