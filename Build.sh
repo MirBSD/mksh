@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.359 2008/10/24 20:01:42 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.360 2008/10/24 21:35:21 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -261,12 +261,10 @@ AIX)
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
 	if test x"$LDFLAGS" = x""; then
 		LDFLAGS="${ccpl}-bI:crypt.exp"
-		cat >crypt.exp <<-EOF
-			#!
-			__crypt_r
-			__encrypt_r
-			__setkey_r
-		EOF
+		echo '#!
+__crypt_r
+__encrypt_r
+__setkey_r' >crypt.exp
 	fi
 	: ${LIBS='-lcrypt'}
 	: ${HAVE_SETLOCALE_CTYPE=0}
@@ -411,78 +409,72 @@ $e $bi$me: Scanning for functions... please ignore any errors.$ao
 # - LLVM+clang defines __GNUC__ too
 CPP="$CC -E"
 $e ... which compiler seems to be used
-cat >scn.c <<-'EOF'
-	#if defined(__ICC) || defined(__INTEL_COMPILER)
-	ct=icc
-	#elif defined(__xlC__) || defined(__IBMC__)
-	ct=xlc
-	#elif defined(__SUNPRO_C)
-	ct=sunpro
-	#elif defined(__BORLANDC__)
-	ct=bcc
-	#elif defined(__WATCOMC__)
-	ct=watcom
-	#elif defined(__MWERKS__)
-	ct=metrowerks
-	#elif defined(__HP_cc)
-	ct=hpcc
-	#elif defined(__DECC) || (defined(__osf__) && !defined(__GNUC__))
-	ct=dec
-	#elif defined(__PGI)
-	ct=pgi
-	#elif defined(__DMC__)
-	ct=dmc
-	#elif defined(_MSC_VER)
-	ct=msc
-	#elif defined(__ADSPBLACKFIN__) || defined(__ADSPTS__) || defined(__ADSP21000__)
-	ct=adsp
-	#elif defined(__IAR_SYSTEMS_ICC__)
-	ct=iar
-	#elif defined(SDCC)
-	ct=sdcc
-	#elif defined(__PCC__)
-	ct=pcc
-	#elif defined(__TenDRA__)
-	ct=tendra
-	#elif defined(__TINYC__)
-	ct=tcc
-	#elif defined(__llvm__) && defined(__clang__)
-	ct=clang
-	#elif defined(__GNUC__)
-	ct=gcc
-	#elif defined(_COMPILER_VERSION)
-	ct=mipspro
-	#elif defined(__sgi)
-	ct=mipspro
-	#elif defined(__hpux) || defined(__hpua)
-	ct=hpcc
-	#elif defined(__ultrix)
-	ct=ucode
-	#else
-	ct=unknown
-	#endif
-EOF
+echo '#if defined(__ICC) || defined(__INTEL_COMPILER)
+ct=icc
+#elif defined(__xlC__) || defined(__IBMC__)
+ct=xlc
+#elif defined(__SUNPRO_C)
+ct=sunpro
+#elif defined(__BORLANDC__)
+ct=bcc
+#elif defined(__WATCOMC__)
+ct=watcom
+#elif defined(__MWERKS__)
+ct=metrowerks
+#elif defined(__HP_cc)
+ct=hpcc
+#elif defined(__DECC) || (defined(__osf__) && !defined(__GNUC__))
+ct=dec
+#elif defined(__PGI)
+ct=pgi
+#elif defined(__DMC__)
+ct=dmc
+#elif defined(_MSC_VER)
+ct=msc
+#elif defined(__ADSPBLACKFIN__) || defined(__ADSPTS__) || defined(__ADSP21000__)
+ct=adsp
+#elif defined(__IAR_SYSTEMS_ICC__)
+ct=iar
+#elif defined(SDCC)
+ct=sdcc
+#elif defined(__PCC__)
+ct=pcc
+#elif defined(__TenDRA__)
+ct=tendra
+#elif defined(__TINYC__)
+ct=tcc
+#elif defined(__llvm__) && defined(__clang__)
+ct=clang
+#elif defined(__GNUC__)
+ct=gcc
+#elif defined(_COMPILER_VERSION)
+ct=mipspro
+#elif defined(__sgi)
+ct=mipspro
+#elif defined(__hpux) || defined(__hpua)
+ct=hpcc
+#elif defined(__ultrix)
+ct=ucode
+#else
+ct=unknown
+#endif' >scn.c
 ct=unknown
 vv ']' "$CPP scn.c | grep ct= | tr -d \\\\015 >x"
 sed 's/^/[ /' x
 eval `cat x`
 rm -f x
-cat >scn.c <<-'EOF'
-	int main(void) { return (0); }
-EOF
+echo 'int main(void) { return (0); }' >scn.c
 case $ct in
 adsp)
-	cat >&2 <<-'EOF'
-		Warning: Analog Devices C++ compiler for Blackfin, TigerSHARC
-		    and SHARC (21000) DSPs detected. This compiler has not yet
-		    been tested for compatibility with mksh. Continue at your
-		    own risk, please report success/failure to the developers.
-	EOF
+	echo >&2 'Warning: Analog Devices C++ compiler for Blackfin, TigerSHARC
+    and SHARC (21000) DSPs detected. This compiler has not yet
+    been tested for compatibility with mksh. Continue at your
+    own risk, please report success/failure to the developers.'
 	;;
 bcc)
-	echo >&2 "Warning: Borland C++ Builder detected. This compiler might"
-	echo >&2 "    produce broken executables. Continue at your own risk,"
-	echo >&2 "    please report success/failure to the developers."
+	echo >&2 "Warning: Borland C++ Builder detected. This compiler might
+    produce broken executables. Continue at your own risk,
+    please report success/failure to the developers."
 	;;
 clang)
 	# does not work with current "ccc" compiler driver
@@ -506,22 +498,18 @@ hpcc)
 	vv '|' "$CC -V scn.c"
 	;;
 iar)
-	cat >&2 <<-'EOF'
-		Warning: IAR Systems (http://www.iar.com) compiler for embedded
-		    systems detected. This unsupported compiler has not yet
-		    been tested for compatibility with mksh. Continue at your
-		    own risk, please report success/failure to the developers.
-	EOF
+	echo >&2 'Warning: IAR Systems (http://www.iar.com) compiler for embedded
+    systems detected. This unsupported compiler has not yet
+    been tested for compatibility with mksh. Continue at your
+    own risk, please report success/failure to the developers.'
 	;;
 icc)
 	vv '|' "$CC -V"
 	;;
 metrowerks)
-	cat >&2 <<-'EOF'
-		Warning: Metrowerks C compiler detected. This has not yet
-		    been tested for compatibility with mksh. Continue at your
-		    own risk, please report success/failure to the developers.
-	EOF
+	echo >&2 'Warning: Metrowerks C compiler detected. This has not yet
+    been tested for compatibility with mksh. Continue at your
+    own risk, please report success/failure to the developers.'
 	;;
 mipspro)
 	vv '|' "$CC -version"
@@ -549,19 +537,15 @@ pcc)
 	vv '|' "$CC -v"
 	;;
 pgi)
-	cat >&2 <<-'EOF'
-		Warning: PGI detected. This unknown compiler has not yet
-		    been tested for compatibility with mksh. Continue at your
-		    own risk, please report success/failure to the developers.
-	EOF
+	echo >&2 'Warning: PGI detected. This unknown compiler has not yet
+    been tested for compatibility with mksh. Continue at your
+    own risk, please report success/failure to the developers.'
 	;;
 sdcc)
-	cat >&2 <<-'EOF'
-		Warning: sdcc (http://sdcc.sourceforge.net), the small devices
-		    C compiler for embedded systems detected. This has not yet
-		    been tested for compatibility with mksh. Continue at your
-		    own risk, please report success/failure to the developers.
-	EOF
+	echo >&2 'Warning: sdcc (http://sdcc.sourceforge.net), the small devices
+    C compiler for embedded systems detected. This has not yet
+    been tested for compatibility with mksh. Continue at your
+    own risk, please report success/failure to the developers.'
 	;;
 sunpro)
 	vv '|' "$CC -V scn.c"
@@ -577,11 +561,9 @@ ucode)
 	vv '|' "$CC -Wl,-V scn.c"
 	;;
 watcom)
-	cat >&2 <<-'EOF'
-		Warning: Watcom C Compiler detected. This compiler has not yet
-		    been tested for compatibility with mksh. Continue at your
-		    own risk, please report success/failure to the developers.
-	EOF
+	echo >&2 'Warning: Watcom C Compiler detected. This compiler has not yet
+    been tested for compatibility with mksh. Continue at your
+    own risk, please report success/failure to the developers.'
 	;;
 xlc)
 	vv '|' "$CC -qversion=verbose"
@@ -751,9 +733,7 @@ elif test $ct = mipspro; then
 	ac_flags 1 fullwarn -fullwarn 'for remark output support'
 elif test $ct = msc; then
 	ac_flags 1 strpool "${ccpc}/GF" 'if string pooling can be enabled'
-	cat >x <<-'EOF'
-		int main(void) { char test[64] = ""; return (*test); }
-	EOF
+	echo 'int main(void) { char test[64] = ""; return (*test); }' >x
 	ac_flags - 1 stackon "${ccpc}/GZ" 'if stack checks can be enabled' <x
 	ac_flags - 1 stckall "${ccpc}/Ge" 'stack checks for all functions' <x
 	ac_flags - 1 secuchk "${ccpc}/GS" 'for compiler security checks' <x
@@ -906,14 +886,12 @@ ac_cppflags STDINT_H
 #
 # Environment: definitions
 #
-cat >lft.c <<-'EOF'
-	#include <sys/types.h>
-	/* check that off_t can represent 2^63-1 correctly, thx FSF */
-	#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
-	int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721 &&
-	    LARGE_OFF_T % 2147483647 == 1) ? 1 : -1];
-	int main(void) { return (0); }
-EOF
+echo '#include <sys/types.h>
+/* check that off_t can represent 2^63-1 correctly, thx FSF */
+#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721 &&
+    LARGE_OFF_T % 2147483647 == 1) ? 1 : -1];
+int main(void) { return (0); }' >lft.c
 ac_testn can_lfs '' "for large file support" <lft.c
 save_CPPFLAGS=$CPPFLAGS
 CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
@@ -1218,17 +1196,15 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 		$e No list of signal names available via cpp. Falling back...
 	fi
 	sigseen=:
-	cat >scn.c <<-'EOF'
-		#include <signal.h>
-		#ifndef NSIG
-		#if defined(_NSIG)
-		#define NSIG _NSIG
-		#elif defined(SIGMAX)
-		#define NSIG (SIGMAX+1)
-		#endif
-		#endif
-		mksh_cfg: NSIG
-	EOF
+	echo '#include <signal.h>
+#ifndef NSIG
+#if defined(_NSIG)
+#define NSIG _NSIG
+#elif defined(SIGMAX)
+#define NSIG (SIGMAX+1)
+#endif
+#endif
+mksh_cfg: NSIG' >scn.c
 	NSIG=`vq "$CPP $CPPFLAGS scn.c" | grep mksh_cfg: | \
 	    sed 's/^mksh_cfg:[	 ]*\([0-9x ()+-]*\).*$/\1/'`
 	case $NSIG in
