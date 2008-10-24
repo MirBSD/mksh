@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.47 2008/07/12 16:56:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.48 2008/10/24 20:52:22 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -477,7 +477,7 @@ expand(const char *cp,	/* input word */
 									break;
 								p--;
 							}
-						end = str_nsave(s, sbeg - s, ATEMP);
+						end = str_nsave_(s, sbeg - s, ATEMP);
 						d = shf_smprintf("%s%s%s", end, rrep, p);
 						afree(end, ATEMP);
 						sbeg = d + (sbeg - s) + strlen(rrep);
