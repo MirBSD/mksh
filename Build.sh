@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.357 2008/10/24 19:55:35 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.358 2008/10/24 19:59:54 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -574,6 +574,7 @@ tendra)
 	;;
 ucode)
 	vv '|' "$CC -V"
+	vv '|' "$CC -Wl,-V scn.c"
 	;;
 watcom)
 	cat >&2 <<-'EOF'
