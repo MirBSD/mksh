@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.355 2008/10/20 19:29:22 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.356 2008/10/24 19:55:06 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1227,7 +1227,7 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 	*[\ \(\)+-]*) NSIG=`awk "BEGIN { print $NSIG }"` ;;
 	esac
 	printf=printf
-	printf hallo >/dev/null 2>&1 || printf=echo
+	(printf hallo) >/dev/null 2>&1 || printf=echo
 	test $printf = echo || NSIG=`printf %d "$NSIG" 2>/dev/null`
 	$printf "NSIG=$NSIG ... "
 	sigs="ABRT ALRM BUS CHLD CLD CONT DIL EMT FPE HUP ILL INFO INT IO IOT"
