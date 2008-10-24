@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.358 2008/10/24 19:59:54 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.359 2008/10/24 20:01:42 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -426,7 +426,7 @@ cat >scn.c <<-'EOF'
 	ct=metrowerks
 	#elif defined(__HP_cc)
 	ct=hpcc
-	#elif defined(__DECC) || defined(__osf__)
+	#elif defined(__DECC) || (defined(__osf__) && !defined(__GNUC__))
 	ct=dec
 	#elif defined(__PGI)
 	ct=pgi
