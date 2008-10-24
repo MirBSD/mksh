@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.356 2008/10/24 19:55:06 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.357 2008/10/24 19:55:35 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -426,7 +426,7 @@ cat >scn.c <<-'EOF'
 	ct=metrowerks
 	#elif defined(__HP_cc)
 	ct=hpcc
-	#elif defined(__DECC)
+	#elif defined(__DECC) || defined(__osf__)
 	ct=dec
 	#elif defined(__PGI)
 	ct=pgi
@@ -490,6 +490,7 @@ clang)
 	;;
 dec)
 	vv '|' "$CC -V"
+	vv '|' "$CC -Wl,-V scn.c"
 	;;
 dmc)
 	echo >&2 "Warning: Digital Mars Compiler detected. When running under"
@@ -616,15 +617,21 @@ ac_testn compiler_fails '' 'if the compiler does not fail correctly' <<-EOF
 EOF
 if test 1 = $HAVE_COMPILER_FAILS; then
 	save_CFLAGS=$CFLAGS
+	: ${HAVE_CAN_DELEXE=x}
 	if test $ct = dmc; then
 		CFLAGS="$CFLAGS ${ccpl}/DELEXECUTABLE"
 		ac_testn can_delexe compiler_fails 0 'for the /DELEXECUTABLE linker option' <<-EOF
 			int main(void) { return (0); }
 		EOF
-		test 1 = $HAVE_CAN_DELEXE || CFLAGS=$save_CFLAGS
+	elif test $ct = dec; then
+		CFLAGS="$CFLAGS ${ccpl}-non_shared"
+		ac_testn can_delexe compiler_fails 0 'for the -non_shared linker option' <<-EOF
+			int main(void) { return (0); }
+		EOF
 	else
 		exit 1
 	fi
+	test 1 = $HAVE_CAN_DELEXE || CFLAGS=$save_CFLAGS
 	ac_testn compiler_still_fails '' 'if the compiler still does not fail correctly' <<-EOF
 	EOF
 	test 1 = $HAVE_COMPILER_STILL_FAILS && exit 1
