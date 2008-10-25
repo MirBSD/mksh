@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.360 2008/10/24 21:35:21 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.361 2008/10/25 12:58:41 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -129,6 +129,7 @@ ac_testn() {
 	vv ']' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS $ccpr"
 	test $tcfn = no && test -f a.out && tcfn=a.out
 	test $tcfn = no && test -f a.exe && tcfn=a.exe
+	test $tcfn = no && test -f scn && tcfn=scn
 	if test -f $tcfn; then
 		test 1 = $fr || fv=1
 	else
