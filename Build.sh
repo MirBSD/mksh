@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.361 2008/10/25 12:58:41 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.362 2008/10/26 21:51:25 ahoka Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1035,6 +1035,11 @@ EOF
 ac_test mkstemp <<-'EOF'
 	#include <stdlib.h>
 	int main(void) { char tmpl[] = "X"; return (mkstemp(tmpl)); }
+EOF
+
+ac_test nice <<-'EOF'
+	#include <unistd.h>
+	int main(void) { return (nice(4)); }
 EOF
 
 ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<-'EOF'

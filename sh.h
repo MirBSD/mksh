@@ -100,7 +100,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.246 2008/10/26 20:59:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.247 2008/10/26 21:51:27 ahoka Exp $");
 #endif
 #define MKSH_VERSION "R36 2008/10/26"
 
@@ -434,7 +434,9 @@ enum sh_flag {
 	FARC4RANDOM,	/* use 0:rand(3) 1:arc4random(3) 2:switch on write */
 #endif
 	FBRACEEXPAND,	/* enable {} globbing */
+#if HAVE_NICE
 	FBGNICE,	/* bgnice */
+#endif
 	FCOMMAND,	/* -c: (invocation) execute specified command */
 	FEMACS,		/* emacs command editing */
 	FERREXIT,	/* -e: quit on error */

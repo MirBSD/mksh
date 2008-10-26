@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.37 2008/10/13 23:06:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.38 2008/10/26 21:51:26 ahoka Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -402,8 +402,10 @@ exchild(struct op *t, int flags, /* used if XPCLOSE or XCCLOSE */ int close_fd)
 				setsig(&sigtraps[tt_sigs[i]], SIG_DFL,
 				    SS_RESTORE_DFL|SS_FORCE);
 		}
+#if HAVE_NICE
 		if (Flag(FBGNICE) && (flags & XBGND))
 			(void)nice(4);
+#endif
 		if ((flags & XBGND) && !Flag(FMONITOR)) {
 			setsig(&sigtraps[SIGINT], SIG_IGN,
 			    SS_RESTORE_IGN|SS_FORCE);

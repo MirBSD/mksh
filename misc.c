@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.86 2008/10/13 23:06:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.87 2008/10/26 21:51:26 ahoka Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -113,7 +113,9 @@ const struct shoption options[] = {
 	{ "arc4random",	  0,		OF_ANY },
 #endif
 	{ "braceexpand",  0,		OF_ANY }, /* non-standard */
+#if HAVE_NICE
 	{ "bgnice",	  0,		OF_ANY },
+#endif
 	{ NULL,		'c',	    OF_CMDLINE },
 	{ "emacs",	  0,		OF_ANY },
 	{ "errexit",	'e',		OF_ANY },
