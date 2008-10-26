@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.139 2008/10/19 20:15:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.140 2008/10/26 20:59:39 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -742,30 +742,6 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 
 /* UTF-8 hack: high-level functions */
 
-#if HAVE_EXPSTMT
-#define utf_backch(c)	(!Flag(FUTFHACK) ? (c) - 1 : ({		\
-	unsigned char *utf_backch_cp = (unsigned char *)(c);	\
-	--utf_backch_cp;					\
-	while ((*utf_backch_cp >= 0x80) &&			\
-	    (*utf_backch_cp < 0xC0))				\
-		--utf_backch_cp;				\
-	(__typeof__ (c))utf_backch_cp;				\
-}))
-#else
-#define utf_backch(c)	(!Flag(FUTFHACK) ? (c) - 1 : 		\
-	    (c) + (ptrdiff_t)(utf_backch_((unsigned char *)c) - \
-	    ((unsigned char *)(c))))
-static unsigned char *utf_backch_(unsigned char *);
-static unsigned char *
-utf_backch_(unsigned char *utf_backch_cp)
-{
-	--utf_backch_cp;
-	while ((*utf_backch_cp >= 0x80) && (*utf_backch_cp < 0xC0))
-		--utf_backch_cp;
-	return (utf_backch_cp);
-}
-#endif
-
 int
 utf_widthadj(const char *src, const char **dst)
 {
@@ -1065,71 +1041,71 @@ static int x_adj_ok;
  * we use x_adj_done so that functions can tell
  * whether x_adjust() has been called while they are active.
  */
-static int	x_adj_done;
+static int x_adj_done;
 
-static int	xx_cols;
-static int	x_col;
-static int	x_displen;
-static int	x_arg;		/* general purpose arg */
-static int	x_arg_defaulted;/* x_arg not explicitly set; defaulted to 1 */
+static int xx_cols;
+static int x_col;
+static int x_displen;
+static int x_arg;		/* general purpose arg */
+static int x_arg_defaulted;	/* x_arg not explicitly set; defaulted to 1 */
 
-static int	xlp_valid;
+static int xlp_valid;
 
-static char	**x_histp;	/* history position */
-static int	x_nextcmd;	/* for newline-and-next */
-static char	*xmp;		/* mark pointer */
+static char **x_histp;		/* history position */
+static int x_nextcmd;		/* for newline-and-next */
+static char *xmp;		/* mark pointer */
 static unsigned char x_last_command;
 static unsigned char (*x_tab)[X_TABSZ];	/* key definition */
-static char	*(*x_atab)[X_TABSZ];	/* macro definitions */
-static unsigned char	x_bound[(X_TABSZ * X_NTABS + 7) / 8];
-#define	KILLSIZE	20
-static char	*killstack[KILLSIZE];
-static int	killsp, killtp;
-static int	x_curprefix;
-static char	*macroptr;
+static char *(*x_atab)[X_TABSZ];	/* macro definitions */
+static unsigned char x_bound[(X_TABSZ * X_NTABS + 7) / 8];
+#define KILLSIZE	20
+static char *killstack[KILLSIZE];
+static int killsp, killtp;
+static int x_curprefix;
+static char *macroptr;
 #ifndef MKSH_NOVI
-static int	cur_col;		/* current column on line */
-static int	pwidth;			/* width of prompt */
-static int	prompt_trunc;		/* how much of prompt to truncate */
-static int	winwidth;		/* width of window */
-static char	*wbuf[2];		/* window buffers */
-static int	wbuf_len;		/* length of window buffers (x_cols-3)*/
-static int	win;			/* window buffer in use */
-static char	morec;			/* more character at right of window */
-static int	lastref;		/* argument to last refresh() */
-static int	holdlen;		/* length of holdbuf */
+static int cur_col;		/* current column on line */
+static int pwidth;		/* width of prompt */
+static int prompt_trunc;	/* how much of prompt to truncate */
+static int winwidth;		/* width of window */
+static char *wbuf[2];		/* window buffers */
+static int wbuf_len;		/* length of window buffers (x_cols - 3) */
+static int win;			/* window buffer in use */
+static char morec;		/* more character at right of window */
+static int lastref;		/* argument to last refresh() */
+static int holdlen;		/* length of holdbuf */
 #endif
-static int	prompt_redraw;		/* 0 if newline forced after prompt */
+static int prompt_redraw;	/* 0 if newline forced after prompt */
 
-static int	x_ins(const char *);
-static void	x_delete(int, int);
-static int	x_bword(void);
-static int	x_fword(int);
-static void	x_goto(char *);
-static void     x_bs2(char *);
-static int      x_size_str(char *);
-static int      x_size2(char *, char **);
-static void     x_zots(char *);
-static void     x_zotc2(int);
-static void     x_zotc3(char **);
-static void     x_load_hist(char **);
-static int      x_search(char *, int, int);
-static int      x_match(char *, char *);
-static void	x_redraw(int);
-static void	x_push(int);
-static char *	x_mapin(const char *, Area *);
-static char *	x_mapout(int);
-static void	x_mapout2(int, char **);
-static void     x_print(int, int);
-static void	x_adjust(void);
-static void	x_e_ungetc(int);
-static int	x_e_getc(void);
-static void	x_e_putc2(int);
-static void	x_e_putc3(const char **);
-static void	x_e_puts(const char *);
-static int	x_fold_case(int);
-static char	*x_lastcp(void);
-static void	do_complete(int, Comp_type);
+static int x_ins(const char *);
+static void x_delete(int, int);
+static int x_bword(void);
+static int x_fword(int);
+static void x_goto(char *);
+static void x_bs3(char **);
+static int x_size_str(char *);
+static int x_size2(char *, char **);
+static void x_zots(char *);
+static void x_zotc2(int);
+static void x_zotc3(char **);
+static void x_load_hist(char **);
+static int x_search(char *, int, int);
+static int x_match(char *, char *);
+static void x_redraw(int);
+static void x_push(int);
+static char *x_mapin(const char *, Area *);
+static char *x_mapout(int);
+static void x_mapout2(int, char **);
+static void x_print(int, int);
+static void x_adjust(void);
+static void x_e_ungetc(int);
+static int x_e_getc(void);
+static void x_e_putc2(int);
+static void x_e_putc3(const char **);
+static void x_e_puts(const char *);
+static int x_fold_case(int);
+static char *x_lastcp(void);
+static void do_complete(int, Comp_type);
 
 static int unget_char = -1;
 
@@ -1642,7 +1618,7 @@ x_ins(const char *s)
 		/* no */
 		cp = xlp;
 		while (cp > xcp)
-			x_bs2(cp = utf_backch(cp));
+			x_bs3(&cp);
 	}
 	if (xlp == xep - 1)
 		x_redraw(xx_cols);
@@ -1750,8 +1726,9 @@ x_delete(int nc, int push)
 	/*x_goto(xcp);*/
 	x_adj_ok = 1;
 	xlp_valid = false;
-	for (cp = x_lastcp(); cp > xcp; )
-		x_bs2(cp = utf_backch(cp));
+	cp = x_lastcp();
+	while (cp > xcp)
+		x_bs3(&cp);
 
 	x_modified();
 	return;
@@ -1846,7 +1823,7 @@ x_goto(char *cp)
 		x_adjust();
 	} else if (cp < xcp) {		/* move back */
 		while (cp < xcp)
-			x_bs2(xcp = utf_backch(xcp));
+			x_bs3(&xcp);
 	} else if (cp > xcp) {		/* move forward */
 		while (cp > xcp)
 			x_zotc3(&xcp);
@@ -1854,11 +1831,16 @@ x_goto(char *cp)
 }
 
 static void
-x_bs2(char *cp)
+x_bs3(char **p)
 {
 	int i;
 
-	i = x_size2(cp, NULL);
+	(*p)--;
+	if (Flag(FUTFHACK))
+		while (((unsigned char)**p & 0xC0) == 0x80)
+			(*p)--;
+
+	i = x_size2(*p, NULL);
 	while (i--)
 		x_e_putc2('\b');
 }
@@ -2370,8 +2352,9 @@ x_redraw(int limit)
 		while (j--)
 			x_e_putc2('\b');
 	}
-	for (cp = xlp; cp > xcp; )
-		x_bs2(cp = utf_backch(cp));
+	cp = xlp;
+	while (cp > xcp)
+		x_bs3(&cp);
 	x_adj_ok = 1;
 	return;
 }
@@ -2405,12 +2388,12 @@ x_transpose(int c __unused)
 		/* Gosling/Unipress emacs style: Swap two characters before the
 		 * cursor, do not change cursor position
 		 */
-		x_bs2(xcp = utf_backch(xcp));
+		x_bs3(&xcp);
 		if (utf_mbtowc(&tmpa, xcp) == (size_t)-1) {
 			x_e_putc2(7);
 			return KSTD;
 		}
-		x_bs2(xcp = utf_backch(xcp));
+		x_bs3(&xcp);
 		if (utf_mbtowc(&tmpb, xcp) == (size_t)-1) {
 			x_e_putc2(7);
 			return KSTD;
@@ -2427,7 +2410,7 @@ x_transpose(int c __unused)
 			x_e_putc2(7);
 			return KSTD;
 		}
-		x_bs2(xcp = utf_backch(xcp));
+		x_bs3(&xcp);
 		if (utf_mbtowc(&tmpb, xcp) == (size_t)-1) {
 			x_e_putc2(7);
 			return KSTD;
@@ -2926,17 +2909,17 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
 }
 
 /* NAME:
- *      x_adjust - redraw the line adjusting starting point etc.
+ *	x_adjust - redraw the line adjusting starting point etc.
  *
  * DESCRIPTION:
- *      This function is called when we have exceeded the bounds
- *      of the edit window.  It increments x_adj_done so that
- *      functions like x_ins and x_delete know that we have been
- *      called and can skip the x_bs() stuff which has already
- *      been done by x_redraw.
+ *	This function is called when we have exceeded the bounds
+ *	of the edit window.  It increments x_adj_done so that
+ *	functions like x_ins and x_delete know that we have been
+ *	called and can skip the x_bs() stuff which has already
+ *	been done by x_redraw.
  *
  * RETURN VALUE:
- *      None
+ *	None
  */
 static void
 x_adjust(void)
@@ -3066,13 +3049,13 @@ x_e_puts(const char *s)
 }
 
 /* NAME:
- *      x_set_arg - set an arg value for next function
+ *	x_set_arg - set an arg value for next function
  *
  * DESCRIPTION:
- *      This is a simple implementation of M-[0-9].
+ *	This is a simple implementation of M-[0-9].
  *
  * RETURN VALUE:
- *      KSTD
+ *	KSTD
  */
 static int
 x_set_arg(int c)
@@ -3172,20 +3155,20 @@ x_edit_line(int c __unused)
 }
 
 /* NAME:
- *      x_prev_histword - recover word from prev command
+ *	x_prev_histword - recover word from prev command
  *
  * DESCRIPTION:
- *      This function recovers the last word from the previous
- *      command and inserts it into the current edit line.  If a
- *      numeric arg is supplied then the n'th word from the
- *      start of the previous command is used.
- *      As a side effect, trashes the mark in order to achieve
- *      being called in a repeatable fashion.
+ *	This function recovers the last word from the previous
+ *	command and inserts it into the current edit line.  If a
+ *	numeric arg is supplied then the n'th word from the
+ *	start of the previous command is used.
+ *	As a side effect, trashes the mark in order to achieve
+ *	being called in a repeatable fashion.
  *
- *      Bound to M-.
+ *	Bound to M-.
  *
  * RETURN VALUE:
- *      KSTD
+ *	KSTD
  */
 static int
 x_prev_histword(int c __unused)
@@ -3265,14 +3248,14 @@ x_fold_capitalise(int c __unused)
 }
 
 /* NAME:
- *      x_fold_case - convert word to UPPER/lower/Capital case
+ *	x_fold_case - convert word to UPPER/lower/Capital case
  *
  * DESCRIPTION:
- *      This function is used to implement M-U,M-u,M-L,M-l,M-C and M-c
- *      to UPPER case, lower case or Capitalise words.
+ *	This function is used to implement M-U,M-u,M-L,M-l,M-C and M-c
+ *	to UPPER case, lower case or Capitalise words.
  *
  * RETURN VALUE:
- *      None
+ *	None
  */
 static int
 x_fold_case(int c)
@@ -3317,23 +3300,24 @@ x_fold_case(int c)
 }
 
 /* NAME:
- *      x_lastcp - last visible char
+ *	x_lastcp - last visible char
  *
  * SYNOPSIS:
- *      x_lastcp()
+ *	x_lastcp()
  *
  * DESCRIPTION:
- *      This function returns a pointer to that  char in the
- *      edit buffer that will be the last displayed on the
- *      screen.  The sequence:
+ *	This function returns a pointer to that  char in the
+ *	edit buffer that will be the last displayed on the
+ *	screen.  The sequence:
  *
- *      for (cp = x_lastcp(); cp > xcp; )
- *        x_bs2(cp = utf_backch(cp));
+ *	cp = x_lastcp();
+ *	while (cp > xcp)
+ *		x_bs3(&cp);
  *
- *      Will position the cursor correctly on the screen.
+ *	Will position the cursor correctly on the screen.
  *
  * RETURN VALUE:
- *      cp or NULL
+ *	cp or NULL
  */
 static char *
 x_lastcp(void)
