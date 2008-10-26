@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.362 2008/10/26 21:51:25 ahoka Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.363 2008/10/26 21:57:47 ahoka Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -272,6 +272,9 @@ __setkey_r' >crypt.exp
 	;;
 BSD/OS)
 	: ${HAVE_SETLOCALE_CTYPE=0}
+	;;
+BeOS|Haiku)
+	warn=' and will currently not work'
 	;;
 CYGWIN*)
 	: ${HAVE_SETLOCALE_CTYPE=0}
