@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.104 2008/10/20 19:29:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.105 2008/10/28 14:32:41 tg Exp $");
 
 extern char **environ;
 
@@ -445,7 +445,7 @@ include(const char *name, int argc, const char **argv, int intr_ok)
 	}
 	s = pushs(SFILE, ATEMP);
 	s->u.shf = shf;
-	s->file = str_save(name, ATEMP);
+	strdupx(s->file, name, ATEMP);
 	i = shell(s, false);
 	quitenv(s->u.shf);
 	if (old_argv) {

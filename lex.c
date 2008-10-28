@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.73 2008/10/10 21:30:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.74 2008/10/28 14:32:41 tg Exp $");
 
 /*
  * states while lexing word
@@ -1099,7 +1099,7 @@ getsc__(void)
 				source->flags |= s->flags & SF_ALIAS;
 				s = source;
 			} else if (*s->u.tblp->val.s &&
-			    ksh_isspace(strnul(s->u.tblp->val.s)[-1])) {
+			    (c = strnul(s->u.tblp->val.s)[-1], ksh_isspace(c))) {
 				source = s = s->next;	/* pop source stack */
 				/* Note that this alias ended with a space,
 				 * enabling alias expansion on the following
@@ -1285,7 +1285,7 @@ set_prompt(int to, Source *s)
 				 */
 			} else {
 				char *cp = substitute(ps1, 0);
-				prompt = str_save(cp, saved_atemp);
+				strdupx(prompt, cp, saved_atemp);
 			}
 			quitenv(NULL);
 		}

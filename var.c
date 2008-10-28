@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.57 2008/07/12 16:56:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.58 2008/10/28 14:32:43 tg Exp $");
 
 /*
  * Variables
@@ -130,10 +130,10 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 
 		/* Calculate the value of the subscript */
 		*arrayp = true;
-		tmp = str_nsave(p + 1, len - 2, ATEMP);
+		strndupx(tmp, p + 1, len - 2, ATEMP);
 		sub = substitute(tmp, 0);
 		afree(tmp, ATEMP);
-		n = str_nsave(n, p - n, ATEMP);
+		strndupx(n, n, p - n, ATEMP);
 		evaluate(sub, &rval, KSH_UNWIND_ERROR, true);
 		*valp = (uint32_t)rval;
 		afree(sub, ATEMP);
@@ -326,7 +326,7 @@ str_val(struct tbl *vp)
 		if (vp->flag & (RJUST|LJUST)) /* case already dealt with */
 			s = formatstr(vp, s);
 		else
-			s = str_save(s, ATEMP);
+			strdupx(s, s, ATEMP);
 	}
 	return s;
 }
@@ -376,7 +376,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 		if ((vq->flag&EXPORT))
 			export(vq, s);
 		else {
-			vq->val.s = str_save(s, vq->areap);
+			strdupx(vq->val.s, s, vq->areap);
 			vq->flag |= ALLOC;
 		}
 	} else {		/* integer dest */
@@ -642,14 +642,13 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 		}
 		val += len;
 	}
-	if (*val == '=') {
-		int i = val++ - var;
-		tvar = str_nsave(var, i, ATEMP);
-	} else {
+	if (*val == '=')
+		strndupx(tvar, var, val++ - var, ATEMP);
+	else {
 		/* Importing from original environment: must have an = */
 		if (set & IMPORT)
 			return NULL;
-		tvar = str_save(var, ATEMP);
+		strdupx(tvar, var, ATEMP);
 		val = NULL;
 	}
 
@@ -1062,7 +1061,7 @@ setspec(struct tbl *vp)
 		if (path)
 			afree(path, APERM);
 		s = str_val(vp);
-		path = str_save(s, APERM);
+		strdupx(path, s, APERM);
 		flushcom(1);	/* clear tracked aliases */
 		break;
 	case V_IFS:
@@ -1088,7 +1087,7 @@ setspec(struct tbl *vp)
 			s = str_val(vp);
 			if (s[0] == '/' && access(s, W_OK|X_OK) == 0 &&
 			    stat(s, &statb) == 0 && S_ISDIR(statb.st_mode))
-				tmpdir = str_save(s, APERM);
+				strdupx(tmpdir, s, APERM);
 		}
 		break;
 	case V_HISTSIZE:
@@ -1141,7 +1140,7 @@ unsetspec(struct tbl *vp)
 	case V_PATH:
 		if (path)
 			afree(path, APERM);
-		path = str_save(def_path, APERM);
+		strdupx(path, def_path, APERM);
 		flushcom(1);	/* clear tracked aliases */
 		break;
 	case V_IFS:
@@ -1241,12 +1240,15 @@ char *
 arrayname(const char *str)
 {
 	const char *p;
+	char *rv;
 
 	if ((p = cstrchr(str, '[')) == 0)
 		/* Shouldn't happen, but why worry? */
-		return str_save(str, ATEMP);
+		strdupx(rv, str, ATEMP);
+	else
+		strndupx(rv, str, p - str, ATEMP);
 
-	return str_nsave(str, p - str, ATEMP);
+	return (rv);
 }
 
 /* Set (or overwrite, if !reset) the array variable var to the values in vals.

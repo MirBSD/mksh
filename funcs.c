@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.89 2008/09/30 19:25:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.90 2008/10/28 14:32:40 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -169,7 +169,8 @@ c_cd(const char **wp)
 		}
 	} else if (!wp[1]) {
 		/* One argument: - or dir */
-		if (ksh_isdash((dir = allocd = str_save(wp[0], ATEMP)))) {
+		strdupx(allocd, wp[0], ATEMP);
+		if (ksh_isdash((dir = allocd))) {
 			afree(allocd, ATEMP);
 			allocd = NULL;
 			dir = str_val(oldpwd_s);
@@ -1074,8 +1075,8 @@ c_alias(const char **wp)
 		int h;
 
 		if ((val = cstrchr(alias, '='))) {
-			h = val++ - alias;
-			alias = xalias = str_nsave(alias, h, ATEMP);
+			strndupx(xalias, alias, val++ - alias, ATEMP);
+			alias = xalias;
 		}
 		h = hash(alias);
 		if (val == NULL && !tflag && !xflag) {
@@ -1106,7 +1107,7 @@ c_alias(const char **wp)
 			/* ignore values for -t (at&t ksh does this) */
 			newval = tflag ? search(alias, path, X_OK, NULL) : val;
 			if (newval) {
-				ap->val.s = str_save(newval, APERM);
+				strdupx(ap->val.s, newval, APERM);
 				ap->flag |= ALLOC|ISSET;
 			} else
 				ap->flag &= ~ISSET;
@@ -1500,7 +1501,7 @@ c_bind(const char **wp)
 		if ((cp = cstrchr(*wp, '=')) == NULL)
 			up = NULL;
 		else {
-			up = str_save(*wp, ATEMP);
+			strdupx(up, *wp, ATEMP);
 			up[cp++ - *wp] = '\0';
 		}
 		if (x_bind(up ? up : *wp, cp, macro, 0))
@@ -1781,7 +1782,7 @@ c_read(const char **wp)
 	shf = shf_reopen(fd, SHF_RD | SHF_INTERRUPT | can_seek(fd), shl_spare);
 
 	if ((cp = cstrchr(*wp, '?')) != NULL) {
-		wpalloc = str_save(*wp, ATEMP);
+		strdupx(wpalloc, *wp, ATEMP);
 		wpalloc[cp - *wp] = '\0';
 		*wp = wpalloc;
 		if (isatty(fd)) {
@@ -2110,7 +2111,7 @@ c_set(const char **wp)
 		owp = wp += argi - 1;
 		wp[0] = l->argv[0]; /* save $0 */
 		while (*++wp != NULL)
-			*wp = str_save(*wp, &l->area);
+			strdupx(*wp, *wp, &l->area);
 		l->argc = wp - owp - 1;
 		l->argv = (const char **)alloc(sizeofN(char *, l->argc+2),
 		     &l->area);

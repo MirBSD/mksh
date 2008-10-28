@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.363 2008/10/26 21:57:47 ahoka Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.364 2008/10/28 14:32:36 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -706,9 +706,9 @@ else
 fi
 # other flags: just add them if they are supported
 i=0
-phase=u
 if test $ct = gcc; then
-	NOWARN=$DOWARN		# scan for flags with -Werror
+	# The following tests run with -Werror (gcc only) if possible
+	NOWARN=$DOWARN; phase=u
 	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
 	ac_flags 1 fstackprotectorall -fstack-protector-all
 	ac_flags 1 fwrapv -fwrapv
@@ -761,7 +761,7 @@ elif test $ct = tcc; then
 elif test $ct = clang; then
 	i=1
 fi
-# flags common to a subset of compilers
+# flags common to a subset of compilers (run with -Werror on gcc)
 if test 1 = $i; then
 	ac_flags 1 stdg99 -std=gnu99 'for support of ISO C99 + GCC extensions'
 	test 1 = $HAVE_CAN_STDG99 || \
@@ -769,17 +769,8 @@ if test 1 = $i; then
 	ac_flags 1 wall -Wall
 fi
 phase=x
-NOWARN=$save_NOWARN	# gcc runs with -Werror until here
-ac_test expstmt '' "if the compiler supports statements as expressions" <<-'EOF'
-	#define ksh_isspace(c)	({					\
-		unsigned int ksh_isspace_c = (c);			\
-		(ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||	\
-		    (ksh_isspace_c == 0x20);				\
-	})
-	int main(int ac, char *av[]) { return (ksh_isspace(ac + **av)); }
-EOF
 
-# The following tests are run with -Werror if possible
+# The following tests run with -Werror or similar (all compilers) if possible
 NOWARN=$DOWARN
 
 #
@@ -1035,28 +1026,6 @@ ac_testn flock_ex '' 'flock and mmap' <<-'EOF'
 	    PROT_READ, MAP_PRIVATE, 0, 0) == (void *)NULL ? 1 : 0); }
 EOF
 
-ac_test mkstemp <<-'EOF'
-	#include <stdlib.h>
-	int main(void) { char tmpl[] = "X"; return (mkstemp(tmpl)); }
-EOF
-
-ac_test nice <<-'EOF'
-	#include <unistd.h>
-	int main(void) { return (nice(4)); }
-EOF
-
-ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<-'EOF'
-	#include <locale.h>
-	#include <stddef.h>
-	int main(void) { return ((ptrdiff_t)(void *)setlocale(LC_CTYPE, "")); }
-EOF
-
-ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<-'EOF'
-	#include <langinfo.h>
-	#include <stddef.h>
-	int main(void) { return ((ptrdiff_t)(void *)nl_langinfo(CODESET)); }
-EOF
-
 ac_test mknod '' 'if to use mknod(), makedev() and friends' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
@@ -1065,6 +1034,16 @@ ac_test mknod '' 'if to use mknod(), makedev() and friends' <<-'EOF'
 		dv = makedev(ac, 1);
 		return (mknod(av[0], 0, dv) ? (int)major(dv) : (int)minor(dv));
 	}
+EOF
+
+ac_test mkstemp <<-'EOF'
+	#include <stdlib.h>
+	int main(void) { char tmpl[] = "X"; return (mkstemp(tmpl)); }
+EOF
+
+ac_test nice <<-'EOF'
+	#include <unistd.h>
+	int main(void) { return (nice(4)); }
 EOF
 
 ac_test realpath mksh_full 0 <<-'EOF'
@@ -1089,6 +1068,18 @@ ac_test revoke mksh_full 0 <<-'EOF'
 	#endif
 	#include <unistd.h>
 	int main(int ac, char *av[]) { return (ac + revoke(av[0])); }
+EOF
+
+ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<-'EOF'
+	#include <locale.h>
+	#include <stddef.h>
+	int main(void) { return ((ptrdiff_t)(void *)setlocale(LC_CTYPE, "")); }
+EOF
+
+ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<-'EOF'
+	#include <langinfo.h>
+	#include <stddef.h>
+	int main(void) { return ((ptrdiff_t)(void *)nl_langinfo(CODESET)); }
 EOF
 
 ac_test setmode mknod 1 <<-'EOF'

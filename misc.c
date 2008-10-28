@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.87 2008/10/26 21:51:26 ahoka Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.88 2008/10/28 14:32:42 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -62,34 +62,6 @@ initctypes(void)
 	setctypes("=-+?", C_SUBOP1);
 	setctypes(" \n\t\"#$&'()*;<>?[]\\`|", C_QUOTE);
 }
-
-#if defined(MKSH_SMALL) || !HAVE_EXPSTMT
-char *
-str_nsave(const char *s, int n, Area *ap)
-{
-	char *rv = NULL;
-
-	if ((n >= 0) && (s != NULL))
-		strlcpy(rv = alloc(n + 1, ap), s, n + 1);
-	return (rv);
-}
-
-char *
-str_save(const char *s, Area *ap)
-{
-#ifdef MKSH_SMALL
-	return (s ? str_nsave(s, strlen(s), ap) : NULL);
-#else
-	char *rv = NULL;
-
-	if (s != NULL) {
-		size_t sz = strlen(s) + 1;
-		strlcpy(rv = alloc(sz, ap), s, sz);
-	}
-	return (rv);
-#endif
-}
-#endif
 
 /* called from XcheckN() to grow buffer */
 char *
@@ -230,7 +202,8 @@ getoptions(void)
 	for (i = 0; i < NELEM(options); i++)
 		if (options[i].c && Flag(i))
 			*cp++ = options[i].c;
-	return (str_nsave_(m, cp - m, ATEMP));
+	strndupx(cp, m, cp - m, ATEMP);
+	return (cp);
 }
 
 /* change a Flag(*) value; takes care of special actions */
@@ -1448,13 +1421,4 @@ stristr(const char *b, const char *l)
 	return (b - 1);
 }
 #endif
-#endif
-
-#if !HAVE_EXPSTMT
-bool
-ksh_isspace_(unsigned int ksh_isspace_c)
-{
-	return ((ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||
-	    (ksh_isspace_c == 0x20));
-}
 #endif

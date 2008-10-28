@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.44 2008/05/17 18:46:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.45 2008/10/28 14:32:39 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -929,14 +929,9 @@ findcom(const char *name, int flags)
 		npath.ro = search(name, flags & FC_DEFPATH ? def_path : path,
 		    X_OK, &tp->u2.errno_);
 		if (npath.ro) {
-			/* XXX unsure about this, oksh does that
-			if (tp == &temp)
-				tp->val.s = npath.ro;
-			else */ {
-				tp->val.s = str_save(npath.ro, APERM);
-				if (npath.ro != name)
-					afree(npath.rw, ATEMP);
-			}
+			strdupx(tp->val.s, npath.ro, APERM);
+			if (npath.ro != name)
+				afree(npath.rw, ATEMP);
 			tp->flag |= ISSET|ALLOC;
 		} else if ((flags & FC_FUNC) &&
 		    (fpath = str_val(global("FPATH"))) != null &&

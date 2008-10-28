@@ -100,9 +100,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.247 2008/10/26 21:51:27 ahoka Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.248 2008/10/28 14:32:42 tg Exp $");
 #endif
-#define MKSH_VERSION "R36 2008/10/26"
+#define MKSH_VERSION "R36 2008/10/28"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -158,17 +158,7 @@ typedef int bool;
 #define ksh_tolower(c)	(((c) >= 'A') && ((c) <= 'Z') ? (c) - 'A' + 'a' : (c))
 #define ksh_toupper(c)	(((c) >= 'a') && ((c) <= 'z') ? (c) - 'a' + 'A' : (c))
 #define ksh_isdash(s)	(((s) != NULL) && ((s)[0] == '-') && ((s)[1] == '\0'))
-
-#if HAVE_EXPSTMT
-/* this macro must not evaluate its arguments several times */
-#define ksh_isspace(c)	({					\
-	unsigned int ksh_isspace_c = (c);			\
-	(ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||	\
-	    (ksh_isspace_c == 0x20);				\
-})
-#else
-#define ksh_isspace(c)	ksh_isspace_((unsigned int)(c))
-#endif
+#define ksh_isspace(c)	((((c) >= 0x09) && ((c) <= 0x0D)) || ((c) == 0x20))
 
 #ifndef PATH_MAX
 #define PATH_MAX	1024
@@ -344,6 +334,40 @@ char *ucstrstr(char *, const char *);
 
 /* use this ipv strchr(s, 0) but no side effects in s! */
 #define strnul(s)	((s) + strlen(s))
+
+#define utf_ptradjx(src, dst) do {					\
+	size_t utf_ptradjx_len;						\
+									\
+	if (!Flag(FUTFHACK) ||						\
+	    *(const unsigned char *)(src) < 0xC2 ||			\
+	    (utf_ptradjx_len = utf_mbtowc(NULL, (src))) == (size_t)-1)	\
+		utf_ptradjx_len = 1;					\
+	(dst) = (src) + utf_ptradjx_len;				\
+} while (/* CONSTCOND */ 0)
+
+/* be careful to evaluate arguments only once! */
+#define strdupx(d, s, ap) do {						\
+	const char *strdup_src = (s);					\
+	char *strdup_dst = NULL;					\
+									\
+	if (strdup_src != NULL) {					\
+		size_t strdup_len = strlen(strdup_src) + 1;		\
+		strdup_dst = alloc(strdup_len, (ap));			\
+		strlcpy(strdup_dst, strdup_src, strdup_len);		\
+	}								\
+	(d) = strdup_dst;						\
+} while (/* CONSTCOND */ 0)
+#define strndupx(d, s, n, ap) do {					\
+	const char *strdup_src = (s);					\
+	char *strdup_dst = NULL;					\
+									\
+	if (strdup_src != NULL) {					\
+		size_t strdup_len = (n) + 1;				\
+		strdup_dst = alloc(strdup_len, (ap));			\
+		strlcpy(strdup_dst, strdup_src, strdup_len);		\
+	}								\
+	(d) = strdup_dst;						\
+} while (/* CONSTCOND */ 0)
 
 #if HAVE_STRCASESTR
 #define stristr(b,l)	((const char *)strcasestr((b), (l)))
@@ -1231,7 +1255,6 @@ int x_bind(const char *, const char *, int, int);
 /* UTF-8 hack stuff */
 size_t utf_mbtowc(unsigned int *, const char *);
 size_t utf_wctomb(char *, unsigned int);
-void utf_cptradj(const char *, const char **);
 int utf_widthadj(const char *, const char **);
 int utf_mbswidth(const char *);
 int utf_wcwidth(unsigned int);
@@ -1424,23 +1447,6 @@ struct tbl **ktsort(struct table *);
 /* misc.c */
 void setctypes(const char *, int);
 void initctypes(void);
-#if defined(MKSH_SMALL) || !HAVE_EXPSTMT
-#define str_save_		str_save
-#define str_nsave_		str_nsave
-char *str_save(const char *, Area *);
-char *str_nsave(const char *, int, Area *);
-#else
-#define str_save_(s,ap)		str_nsave_((s), strlen(s), (ap))
-#define str_nsave_(s,n,ap)	({				\
-	size_t str_save_sz = (n) + 1;				\
-	char *str_save_rv = alloc(str_save_sz, (ap));		\
-	strlcpy(str_save_rv, (s), str_save_sz);			\
-	(str_save_rv);						\
-})
-#define str_save(s,ap)		(!(s) ? NULL : str_save_((s), (ap)))
-#define str_nsave(s,n,ap)	\
-	(!(s) || (n) < 0 ? NULL : str_nsave_((s), (n), (ap)))
-#endif
 size_t option(const char *);
 char *getoptions(void);
 void change_flag(enum sh_flag, int, char);
@@ -1466,9 +1472,6 @@ int make_path(const char *, const char *, char **, XString *, int *);
 void simplify_path(char *);
 char *get_phys_path(const char *);
 void set_current_wd(char *);
-#if !HAVE_EXPSTMT
-bool ksh_isspace_(unsigned int);
-#endif
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);
 struct shf *shf_fdopen(int, int, struct shf *);

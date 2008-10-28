@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.72 2008/10/14 19:48:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.73 2008/10/28 14:32:41 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -118,7 +118,7 @@ c_fc(const char **wp)
 
 		/* Check for pattern replacement argument */
 		if (*wp && **wp && (p = cstrchr(*wp + 1, '='))) {
-			pat = str_save(*wp, ATEMP);
+			strdupx(pat, *wp, ATEMP);
 			rep = pat + (p - *wp);
 			*rep++ = '\0';
 			wp++;
@@ -306,7 +306,7 @@ hist_replace(char **hp, const char *pat, const char *rep, int globr)
 	char *line;
 
 	if (!pat)
-		line = str_save(*hp, ATEMP);
+		strdupx(line, *hp, ATEMP);
 	else {
 		char *s, *s1;
 		int pat_len = strlen(pat);
@@ -579,7 +579,7 @@ histsave(int *lnp, const char *cmd, bool dowrite __unused, bool ignoredups)
 	char **hp;
 	char *c, *cp;
 
-	c = str_save(cmd, APERM);
+	strdupx(c, cmd, APERM);
 	if ((cp = strchr(c, '\n')) != NULL)
 		*cp = '\0';
 
@@ -648,7 +648,7 @@ hist_init(Source *s)
 #if HAVE_PERSISTENT_HISTORY
 	if ((hname = str_val(global("HISTFILE"))) == NULL)
 		return;
-	hname = str_save(hname, APERM);
+	strdupx(hname, hname, APERM);
 
  retry:
 	/* we have a file and are interactive */
@@ -885,7 +885,7 @@ histinsert(Source *s, int lno, const char *line)
 		hp = &histptr[lno - s->line];
 		if (*hp)
 			afree((void*)*hp, APERM);
-		*hp = str_save(line, APERM);
+		strdupx(*hp, line, APERM);
 	}
 }
 
@@ -1014,7 +1014,8 @@ inittraps(void)
 
 				if (!strncasecmp(cs, "SIG", 3))
 					cs += 3;
-				sigtraps[i].name = s = str_save(cs, APERM);
+				strdupx(s, cs, APERM);
+				sigtraps[i].name = s;
 				while ((*s = ksh_toupper(*s)))
 					++s;
 			}
@@ -1279,7 +1280,7 @@ settrap(Trap *p, const char *s)
 
 	if (p->trap)
 		afree(p->trap, APERM);
-	p->trap = str_save(s, APERM); /* handles s == 0 */
+	strdupx(p->trap, s, APERM); /* handles s == 0 */
 	p->flags |= TF_CHANGED;
 	f = !s ? SIG_DFL : s[0] ? trapsig : SIG_IGN;
 

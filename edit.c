@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.140 2008/10/26 20:59:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.141 2008/10/28 14:32:38 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -539,7 +539,7 @@ add_glob(const char *str, int slen)
 	if (slen < 0)
 		return NULL;
 
-	toglob = str_nsave(str, slen + 1, ATEMP); /* + 1 for "*" */
+	strndupx(toglob, str, slen + 1, ATEMP); /* + 1 for "*" */
 	toglob[slen] = '\0';
 
 	/*
@@ -637,10 +637,14 @@ glob_table(const char *pat, XPtrV *wp, struct table *tp)
 	struct tstate ts;
 	struct tbl *te;
 
-	for (ktwalk(&ts, tp); (te = ktnext(&ts)); ) {
-		if (gmatchx(te->name, pat, false))
-			XPput(*wp, str_save(te->name, ATEMP));
-	}
+	ktwalk(&ts, tp);
+	while ((te = ktnext(&ts)))
+		if (gmatchx(te->name, pat, false)) {
+			char *cp;
+
+			strdupx(cp, te->name, ATEMP);
+			XPput(*wp, cp);
+		}
 }
 
 static void
@@ -781,31 +785,6 @@ utf_mbswidth(const char *s)
 		}
 	return (width);
 }
-
-void
-utf_cptradj(const char *src, const char **dst)
-{
-	size_t len;
-
-	if (!Flag(FUTFHACK) || *(const unsigned char *)src < 0xC2 ||
-	    (len = utf_mbtowc(NULL, src)) == (size_t)-1)
-		len = 1;
-	if (dst)
-		*dst = src + len;
-	/* return (len); */
-}
-
-#if HAVE_EXPSTMT
-#define utf_ptradj(s,d) ({			\
-	union mksh_cchack utf_ptradj_o;		\
-	char **utf_ptradj_d = (d);		\
-						\
-	utf_cptradj((s), &utf_ptradj_o.ro);	\
-	*utf_ptradj_d = utf_ptradj_o.rw;	\
-})
-#else
-#define utf_ptradj(s,d) utf_cptradj((s), (const char **)(d))
-#endif
 
 const char *
 utf_skipcols(const char *p, int cols)
@@ -1650,7 +1629,7 @@ x_del_char(int c __unused)
 
 	cp = xcp;
 	while (i < x_arg) {
-		utf_ptradj(cp, &cp2);
+		utf_ptradjx(cp, cp2);
 		if (cp2 > xep)
 			break;
 		cp = cp2;
@@ -1784,7 +1763,7 @@ x_bword(void)
 	}
 	x_goto(cp);
 	for (cp = xcp; cp < (xcp + nb); ++nc)
-		utf_ptradj(cp, &cp);
+		utf_ptradjx(cp, cp);
 	return nc;
 }
 
@@ -1805,7 +1784,7 @@ x_fword(int move)
 			cp++;
 	}
 	for (cp2 = xcp; cp2 < cp; ++nc)
-		utf_ptradj(cp2, &cp2);
+		utf_ptradjx(cp2, cp2);
 	if (move)
 		x_goto(cp);
 	return nc;
@@ -1943,7 +1922,7 @@ x_mv_forw(int c __unused)
 		return KSTD;
 	}
 	while (x_arg--) {
-		utf_ptradj(cp, &cp2);
+		utf_ptradjx(cp, cp2);
 		if (cp2 > xep)
 			break;
 		cp = cp2;
@@ -2468,7 +2447,9 @@ x_kill(int c __unused)
 static void
 x_push(int nchars)
 {
-	char *cp = str_nsave(xcp, nchars, AEDIT);
+	char *cp;
+
+	strndupx(cp, xcp, nchars, AEDIT);
 	if (killstack[killsp])
 		afree((void *)killstack[killsp], AEDIT);
 	killstack[killsp] = cp;
@@ -2541,7 +2522,8 @@ x_mapin(const char *cp, Area *ap)
 {
 	char *new, *op;
 
-	op = new = str_save(cp, ap);
+	strdupx(new, cp, ap);
+	op = new;
 	while (*cp) {
 		/* XXX -- should handle \^ escape? */
 		if (*cp == '^') {
@@ -3105,7 +3087,9 @@ x_version(int c __unused)
 	char *o_xbuf = xbuf, *o_xend = xend;
 	char *o_xbp = xbp, *o_xep = xep, *o_xcp = xcp;
 	int vlen, lim = x_lastcp() - xbp;
-	char *v = str_save(KSH_VERSION, ATEMP);
+	char *v;
+
+	strdupx(v, KSH_VERSION, ATEMP);
 
 	xbuf = xbp = xcp = v;
 	xend = xep = v + (vlen = strlen(v));
@@ -4204,8 +4188,9 @@ vi_cmd(int argcnt, const char *cmd)
 				if (*cmd == 'c' &&
 				    (cmd[1] == 'w' || cmd[1] == 'W') &&
 				    !ksh_isspace(es->cbuf[es->cursor])) {
-					while (ksh_isspace(es->cbuf[--ncursor]))
-						;
+					do {
+						--ncursor;
+					} while (ksh_isspace(es->cbuf[ncursor]));
 					ncursor++;
 				}
 				if (ncursor > es->cursor) {

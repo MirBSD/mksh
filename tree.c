@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.20 2008/10/13 23:06:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.21 2008/10/28 14:32:43 tg Exp $");
 
 #define INDENT	4
 
@@ -426,7 +426,10 @@ tcopy(struct op *t, Area *ap)
 	r->type = t->type;
 	r->u.evalflags = t->u.evalflags;
 
-	r->str = t->type == TCASE ? wdcopy(t->str, ap) : str_save(t->str, ap);
+	if (t->type == TCASE)
+		r->str = wdcopy(t->str, ap);
+	else
+		strdupx(r->str, t->str, ap);
 
 	if (t->vars == NULL)
 		r->vars = NULL;
@@ -629,7 +632,7 @@ iocopy(struct ioword **iow, Area *ap)
 		if (p->delim != NULL)
 			q->delim = wdcopy(p->delim, ap);
 		if (p->heredoc != NULL)
-			q->heredoc = str_save(p->heredoc, ap);
+			strdupx(q->heredoc, p->heredoc, ap);
 	}
 	ior[i] = NULL;
 

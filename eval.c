@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.48 2008/10/24 20:52:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.49 2008/10/28 14:32:39 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -357,7 +357,7 @@ expand(const char *cp,	/* input word */
 						flen = strlen(beg);
 						if (num < 0 || num > flen)
 							num = flen;
-						x.str = str_nsave(beg, num, ATEMP);
+						strndupx(x.str, beg, num, ATEMP);
 						goto do_CSUBST;
 					}
 					case '/': {
@@ -425,8 +425,8 @@ expand(const char *cp,	/* input word */
 							goto no_repl;
 
 						/* prepare string on which to work */
-						tpat0 = str_val(st->var);
-						sbeg = s = str_save(tpat0, ATEMP);
+						strdupx(s, str_val(st->var), ATEMP);
+						sbeg = s;
 
 						/* first see if we have any match at all */
 						tpat0 = pat;
@@ -477,7 +477,7 @@ expand(const char *cp,	/* input word */
 									break;
 								p--;
 							}
-						end = str_nsave_(s, sbeg - s, ATEMP);
+						strndupx(end, s, sbeg - s, ATEMP);
 						d = shf_smprintf("%s%s%s", end, rrep, p);
 						afree(end, ATEMP);
 						sbeg = d + (sbeg - s) + strlen(rrep);
@@ -1112,16 +1112,17 @@ trimsub(char *str, char *pat, int how)
 		}
 		break;
 	case '%':		/* shortest match at end */
-		for (p = end; p >= str; p--) {
-			if (gmatchx(p, pat, false))
-				return str_nsave(str, p - str, ATEMP);
-		}
+		for (p = end; p >= str; p--)
+			if (gmatchx(p, pat, false)) {
+ trimsub_match:
+				strndupx(end, str, p - str, ATEMP);
+				return (end);
+			}
 		break;
 	case '%'|0x80:		/* longest match at end */
-		for (p = str; p <= end; p++) {
+		for (p = str; p <= end; p++)
 			if (gmatchx(p, pat, false))
-				return str_nsave(str, p - str, ATEMP);
-		}
+				goto trimsub_match;
 		break;
 	}
 
@@ -1222,7 +1223,8 @@ globit(XString *xs,	/* dest string */
 				*xp = '\0';
 			}
 		}
-		XPput(*wp, str_nsave(Xstring(*xs, xp), Xlength(*xs, xp), ATEMP));
+		strndupx(np, Xstring(*xs, xp), Xlength(*xs, xp), ATEMP);
+		XPput(*wp, np);
 		return;
 	}
 
@@ -1404,7 +1406,7 @@ homedir(char *name)
 		pw = getpwnam(name);
 		if (pw == NULL)
 			return NULL;
-		ap->val.s = str_save(pw->pw_dir, APERM);
+		strdupx(ap->val.s, pw->pw_dir, APERM);
 		ap->flag |= DEFINED|ISSET|ALLOC;
 	}
 	return ap->val.s;
