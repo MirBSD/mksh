@@ -100,7 +100,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.248 2008/10/28 14:32:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.249 2008/10/28 14:51:06 tg Exp $");
 #endif
 #define MKSH_VERSION "R36 2008/10/28"
 
@@ -345,6 +345,14 @@ char *ucstrstr(char *, const char *);
 	(dst) = (src) + utf_ptradjx_len;				\
 } while (/* CONSTCOND */ 0)
 
+#ifdef MKSH_SMALL
+#define strdupx(d, s, ap) do { \
+	(d) = strdup_((s), (ap)); \
+} while (/* CONSTCOND */ 0)
+#define strndupx(d, s, n, ap) do { \
+	(d) = strndup_((s), (n), (ap)); \
+} while (/* CONSTCOND */ 0)
+#else
 /* be careful to evaluate arguments only once! */
 #define strdupx(d, s, ap) do {						\
 	const char *strdup_src = (s);					\
@@ -368,6 +376,7 @@ char *ucstrstr(char *, const char *);
 	}								\
 	(d) = strdup_dst;						\
 } while (/* CONSTCOND */ 0)
+#endif
 
 #if HAVE_STRCASESTR
 #define stristr(b,l)	((const char *)strcasestr((b), (l)))
@@ -1472,6 +1481,10 @@ int make_path(const char *, const char *, char **, XString *, int *);
 void simplify_path(char *);
 char *get_phys_path(const char *);
 void set_current_wd(char *);
+#ifdef MKSH_SMALL
+char *strdup_(const char *, Area *);
+char *strndup_(const char *, size_t, Area *);
+#endif
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);
 struct shf *shf_fdopen(int, int, struct shf *);

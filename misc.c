@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.88 2008/10/28 14:32:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.89 2008/10/28 14:51:06 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -1421,4 +1421,24 @@ stristr(const char *b, const char *l)
 	return (b - 1);
 }
 #endif
+#endif
+
+#ifdef MKSH_SMALL
+char *
+strndup_(const char *src, size_t len, Area *ap)
+{
+	char *dst = NULL;
+
+	if (src != NULL) {
+		dst = alloc(++len, ap);
+		strlcpy(dst, src, len);
+	}
+	return (dst);
+}
+
+char *
+strdup_(const char *src, Area *ap)
+{
+	return (src == NULL ? NULL : strndup_(src, strlen(src), ap));
+}
 #endif
