@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.364 2008/10/28 14:32:36 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.365 2008/10/30 17:11:14 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -411,6 +411,7 @@ $e $bi$me: Scanning for functions... please ignore any errors.$ao
 # – ICC defines __GNUC__ too
 # – GCC defines __hpux too
 # - LLVM+clang defines __GNUC__ too
+# - nwcc defines __GNUC__ too
 CPP="$CC -E"
 $e ... which compiler seems to be used
 echo '#if defined(__ICC) || defined(__INTEL_COMPILER)
@@ -449,6 +450,8 @@ ct=tendra
 ct=tcc
 #elif defined(__llvm__) && defined(__clang__)
 ct=clang
+#elif defined(__NWCC__)
+ct=nwcc
 #elif defined(__GNUC__)
 ct=gcc
 #elif defined(_COMPILER_VERSION)
@@ -536,6 +539,9 @@ msc)
 		vv '|' "$C89_LINKER /LINK >&2"
 		;;
 	esac
+	;;
+nwcc)
+	vv '|' "$CC -version"
 	;;
 pcc)
 	vv '|' "$CC -v"
@@ -760,6 +766,8 @@ elif test $ct = tcc; then
 	ac_flags 1 boundschk -b
 elif test $ct = clang; then
 	i=1
+elif test $ct = nwcc; then
+	ac_flags 1 ssp -stackprotect
 fi
 # flags common to a subset of compilers (run with -Werror on gcc)
 if test 1 = $i; then
