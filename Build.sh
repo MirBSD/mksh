@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.366 2008/11/02 22:29:34 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.367 2008/11/02 23:06:36 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -339,6 +339,9 @@ PW32*)
 	HAVE_SIG_T=0	# incompatible
 	warn=' and will currently not work'
 	# missing: killpg() getrlimit()
+	: ${HAVE_SETLOCALE_CTYPE=0}
+	;;
+QNX)
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 SunOS)
