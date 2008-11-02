@@ -58,6 +58,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if HAVE_STRINGS_H
+#include <strings.h>
+#endif
 #include <termios.h>
 #include <time.h>
 #if HAVE_ULIMIT_H
@@ -100,9 +103,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.249 2008/10/28 14:51:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.250 2008/11/02 22:29:36 tg Exp $");
 #endif
-#define MKSH_VERSION "R36 2008/10/28"
+#define MKSH_VERSION "R36 2008/11/02"
 
 #ifndef MKSH_INCLUDES_ONLY
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.365 2008/10/30 17:11:14 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.366 2008/11/02 22:29:34 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -864,6 +864,7 @@ ac_header libgen.h
 ac_header libutil.h sys/types.h
 ac_header paths.h
 ac_header stdbool.h
+ac_header strings.h
 ac_header grp.h sys/types.h
 ac_header ulimit.h sys/types.h
 ac_header values.h
@@ -1118,6 +1119,9 @@ EOF
 ac_test strcasestr <<-'EOF'
 	#include <stddef.h>
 	#include <string.h>
+	#if HAVE_STRINGS_H
+	#include <strings.h>
+	#endif
 	int main(int ac, char *av[]) {
 		return ((ptrdiff_t)(void *)strcasestr(*av, av[ac]));
 	}
