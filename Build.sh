@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.367 2008/11/02 23:06:36 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.368 2008/11/08 17:36:35 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -49,6 +49,7 @@ fx=
 me=`basename "$0"`
 orig_CFLAGS=$CFLAGS
 phase=x
+oldish_ed=stdout-ed,no-stderr-ed
 
 if test -t 1; then
 	bi='[1m'
@@ -342,6 +343,7 @@ PW32*)
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 QNX)
+	oldish_ed=no-stderr-ed		# oldish /bin/ed is broken
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 SunOS)
@@ -1201,7 +1203,7 @@ $e ... done.
 # the character count to standard output; cope for that
 echo wq >x
 ed x <x 2>/dev/null | grep 3 >/dev/null 2>&1 && \
-    check_categories=$check_categories,oldish-ed
+    check_categories=$check_categories,$oldish_ed
 rm -f x
 
 if test 0 = $HAVE_SYS_SIGNAME; then
