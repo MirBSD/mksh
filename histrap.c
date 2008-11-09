@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.73 2008/10/28 14:32:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.74 2008/11/09 20:32:17 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -1033,7 +1033,7 @@ inittraps(void)
 	}
 	sigtraps[SIGEXIT_].name = "EXIT";	/* our name for signal 0 */
 
-	sigemptyset(&Sigact_ign.sa_mask);
+	(void)sigemptyset(&Sigact_ign.sa_mask);
 	Sigact_ign.sa_flags = 0; /* interruptible */
 	Sigact_ign.sa_handler = SIG_IGN;
 
@@ -1379,7 +1379,7 @@ setsig(Trap *p, sig_t f, int flags)
 
 	if (p->cursig != f) {
 		p->cursig = f;
-		sigemptyset(&sigact.sa_mask);
+		(void)sigemptyset(&sigact.sa_mask);
 		sigact.sa_flags = 0 /* interruptible */;
 		sigact.sa_handler = f;
 		sigaction(p->signal, &sigact, NULL);
