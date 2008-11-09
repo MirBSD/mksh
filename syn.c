@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.28 2008/10/28 14:32:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.29 2008/11/09 19:48:02 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -544,18 +544,17 @@ static struct op *
 casepart(int endtok)
 {
 	struct op *t;
-	int c;
 	XPtrV ptns;
 
 	XPinit(ptns, 16);
 	t = newtp(TPAT);
-	c = token(CONTIN|KEYWORD); /* no ALIAS here */
-	if (c != '(')
+	/* no ALIAS here */
+	if (token(CONTIN | KEYWORD) != '(')
 		REJECT;
 	do {
 		musthave(LWORD, 0);
 		XPput(ptns, yylval.cp);
-	} while ((c = token(0)) == '|');
+	} while (token(0) == '|');
 	REJECT;
 	XPput(ptns, NULL);
 	t->vars = (char **) XPclose(ptns);
