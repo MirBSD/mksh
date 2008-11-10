@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.105 2008/10/28 14:32:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.106 2008/11/10 19:33:07 tg Exp $");
 
 extern char **environ;
 
@@ -792,7 +792,7 @@ errorf(const char *fmt, ...)
 
 	shl_stdout_ok = 0;	/* debugging: note that stdout not valid */
 	exstat = 1;
-	if (*fmt) {
+	if (*fmt != 1) {
 		error_prefix(true);
 		va_start(va, fmt);
 		shf_vfprintf(shl_out, fmt, va);
@@ -827,7 +827,7 @@ bi_errorf(const char *fmt, ...)
 
 	shl_stdout_ok = 0;	/* debugging: note that stdout not valid */
 	exstat = 1;
-	if (*fmt) {
+	if (*fmt != 1) {
 		error_prefix(true);
 		/* not set when main() calls parse_args() */
 		if (builtin_argv0)

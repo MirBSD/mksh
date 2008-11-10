@@ -103,9 +103,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.251 2008/11/09 20:32:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.252 2008/11/10 19:33:08 tg Exp $");
 #endif
-#define MKSH_VERSION "R36 2008/11/09"
+#define MKSH_VERSION "R36 2008/11/10"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -516,7 +516,7 @@ EXTERN char shell_flags[FNFLAGS];
 /* null value for variable; comparision pointer for unset */
 EXTERN char null[] I__("");
 /* helpers for string pooling */
-EXTERN const char T_synerr[] I__("syntax error");
+#define T_synerr "syntax error"
 
 enum temp_type {
 	TT_HEREDOC_EXP,	/* expanded heredoc */
@@ -1411,18 +1411,8 @@ void warningf(bool, const char *, ...)
     __attribute__((format (printf, 2, 3)));
 void bi_errorf(const char *, ...)
     __attribute__((format (printf, 1, 2)));
-/*
- * circumvent compiler format string nonnull checking
- * we teach xlC to not bitch about zero-lengths, want
- * gcc to do it, and so gain double-checking benefits
- */
-#if defined(__xlC__)
-#define errorfz()	errorf("")
-#define bi_errorfz()	bi_errorf("")
-#else
-#define errorfz()	errorf(null)
-#define bi_errorfz()	bi_errorf(null)
-#endif
+#define errorfz()	errorf("\1")
+#define bi_errorfz()	bi_errorf("\1")
 void internal_errorf(const char *, ...)
     __attribute__((noreturn))
     __attribute__((format (printf, 1, 2)));
