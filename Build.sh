@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.368 2008/11/08 17:36:35 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.369 2008/11/10 20:25:04 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -214,8 +214,8 @@ if test -d mksh || test -d mksh.exe; then
 	echo "$me: Error: ./mksh is a directory!" >&2
 	exit 1
 fi
-rm -f a.exe* a.out* *core crypt.exp lft mksh mksh.cat1 mksh.exe no *.o \
-    scn.c signames.inc stdint.h test.sh x
+rm -f a.exe* a.out* *core crypt.exp lft mksh mksh.cat1 mksh.exe mksh.s \
+    no *.o scn.c signames.inc stdint.h test.sh x
 
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=
 
@@ -223,12 +223,19 @@ e=echo
 r=0
 eq=0
 pm=0
+llvm=NO
 
 for i
 do
 	case $i in
 	-j)
 		pm=1
+		;;
+	-llvm)
+		llvm=-std-compile-opts
+		;;
+	-llvm=*)
+		llvm=`echo "x$i" | sed 's/^x-llvm=//'`
 		;;
 	-Q)
 		eq=1
@@ -491,6 +498,13 @@ bcc)
 clang)
 	# does not work with current "ccc" compiler driver
 	vv '|' "$CC -version"
+	# this works, for now
+	vv '|' "${CLANG-clang} -version"
+	# ensure compiler and linker are in sync unless overridden
+	case $CCC_CC:$CCC_LD in
+	:*)	;;
+	*:)	CCC_LD=$CCC_CC; export CCC_LD ;;
+	esac
 	;;
 dec)
 	vv '|' "$CC -V"
@@ -588,6 +602,7 @@ xlc)
 	ct=unknown
 	;;
 esac
+test x"$llvm" = x"NO" || vv '|' "llc -version"
 $e "$bi==> which compiler seems to be used...$ao $ui$ct$ao"
 rm -f scn.c scn.o scn a.out* a.exe*
 
@@ -1288,35 +1303,51 @@ cat >>test.sh <<-EOF
 	exec \$perli '$srcdir/check.pl' -s '$srcdir/check.t' -p '$curdir/mksh' -C \${check_categories#,} \$*$tsts
 EOF
 chmod 755 test.sh
+if test x"$llvm" = x"NO"; then
+	emitbc=-c
+else
+	emitbc="-emit-llvm -c"
+fi
 echo set -x >Rebuild.sh
 for file in $SRCS; do
 	objs="$objs `echo x"$file" | sed 's/^x\(.*\)\.c$/\1.o/'`"
 	test -f $file || file=$srcdir/$file
-	echo "$CC $CFLAGS $CPPFLAGS -c $file || exit 1" >>Rebuild.sh
+	echo "$CC $CFLAGS $CPPFLAGS $emitbc $file || exit 1" >>Rebuild.sh
 done
+if test x"$llvm" = x"NO"; then
+	lobjs=$objs
+else
+	echo "rm -f mksh.s" >>Rebuild.sh
+	echo "llvm-link -o - $objs | opt $llvm | llc -o mksh.s" >>Rebuild.sh
+	lobjs=mksh.s
+fi
 case $tcfn in
 a.exe)	echo tcfn=mksh.exe >>Rebuild.sh ;;
 *)	echo tcfn=mksh >>Rebuild.sh ;;
 esac
-echo "$CC $CFLAGS $LDFLAGS -o \$tcfn $objs $LIBS $ccpr" >>Rebuild.sh
+echo "$CC $CFLAGS $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
 echo 'test -f $tcfn || exit 1; size $tcfn' >>Rebuild.sh
 if test 1 = $pm; then
 	for file in $SRCS; do
 		test -f $file || file=$srcdir/$file
-		v "$CC $CFLAGS $CPPFLAGS -c $file" &
+		v "$CC $CFLAGS $CPPFLAGS $emitbc $file" &
 	done
 	wait
 else
 	for file in $SRCS; do
 		test -f $file || file=$srcdir/$file
-		v "$CC $CFLAGS $CPPFLAGS -c $file" || exit 1
+		v "$CC $CFLAGS $CPPFLAGS $emitbc $file" || exit 1
 	done
+fi
+if test x"$emitbc" = x"-emit-llvm -c"; then
+	rm -f mksh.s
+	v "llvm-link -o - $objs | opt $llvm | llc -o mksh.s"
 fi
 case $tcfn in
 a.exe)	tcfn=mksh.exe ;;
 *)	tcfn=mksh ;;
 esac
-v "$CC $CFLAGS $LDFLAGS -o $tcfn $objs $LIBS $ccpr"
+v "$CC $CFLAGS $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
 test -f $tcfn || exit 1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
     rm -f mksh.cat1
