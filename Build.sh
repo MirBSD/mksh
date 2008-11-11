@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.369 2008/11/10 20:25:04 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.370 2008/11/11 21:52:51 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -375,6 +375,14 @@ UWIN*)
 	;;
 *)
 	warn='; it may or may not work'
+	;;
+esac
+
+case " $CPPFLAGS " in
+*\ -DMKSH_ASSUME_UTF8=0\ *)
+	;;
+*\ -DMKSH_ASSUME_UTF8*)
+	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 esac
 
