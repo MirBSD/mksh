@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.141 2008/10/28 14:32:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.142 2008/11/11 23:50:28 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -960,7 +960,7 @@ utf_wctomb(char *dst, unsigned int wc)
 
 /* +++ emacs editing mode +++ */
 
-static	Area	aedit;
+static struct TArea aedit;
 #define	AEDIT	&aedit		/* area for kill ring and macro defns */
 
 #define	MKCTRL(x)	((x) == '?' ? 0x7F : (x) & 0x1F)	/* ASCII */
@@ -1072,7 +1072,7 @@ static int x_search(char *, int, int);
 static int x_match(char *, char *);
 static void x_redraw(int);
 static void x_push(int);
-static char *x_mapin(const char *, Area *);
+static char *x_mapin(const char *, PArea);
 static char *x_mapout(int);
 static void x_mapout2(int, char **);
 static void x_print(int, int);
@@ -2518,7 +2518,7 @@ x_error(int c __unused)
 }
 
 static char *
-x_mapin(const char *cp, Area *ap)
+x_mapin(const char *cp, PArea ap)
 {
 	char *new, *op;
 

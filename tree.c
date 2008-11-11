@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.21 2008/10/28 14:32:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.22 2008/11/11 23:50:31 tg Exp $");
 
 #define INDENT	4
 
@@ -12,8 +12,8 @@ static void pioact(struct shf *, int, struct ioword *);
 static void tputC(int, struct shf *);
 static void tputS(char *, struct shf *);
 static void vfptreef(struct shf *, int, const char *, va_list);
-static struct ioword **iocopy(struct ioword **, Area *);
-static void iofree(struct ioword **, Area *);
+static struct ioword **iocopy(struct ioword **, PArea);
+static void iofree(struct ioword **, PArea);
 
 /*
  * print a command tree
@@ -412,7 +412,7 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
  * copy tree (for function definition)
  */
 struct op *
-tcopy(struct op *t, Area *ap)
+tcopy(struct op *t, PArea ap)
 {
 	struct op *r;
 	const char **tw;
@@ -465,7 +465,7 @@ tcopy(struct op *t, Area *ap)
 }
 
 char *
-wdcopy(const char *wp, Area *ap)
+wdcopy(const char *wp, PArea ap)
 {
 	size_t len = wdscan(wp, EOS) - wp;
 	return memcpy(alloc(len, ap), wp, len);
@@ -611,7 +611,7 @@ wdstrip(const char *wp, bool keepq, bool make_magic)
 }
 
 static struct ioword **
-iocopy(struct ioword **iow, Area *ap)
+iocopy(struct ioword **iow, PArea ap)
 {
 	struct ioword **ior;
 	int i;
@@ -643,7 +643,7 @@ iocopy(struct ioword **iow, Area *ap)
  * free tree (for function definition)
  */
 void
-tfree(struct op *t, Area *ap)
+tfree(struct op *t, PArea ap)
 {
 	char **w;
 
@@ -678,7 +678,7 @@ tfree(struct op *t, Area *ap)
 }
 
 static void
-iofree(struct ioword **iow, Area *ap)
+iofree(struct ioword **iow, PArea ap)
 {
 	struct ioword **iop;
 	struct ioword *p;

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.74 2008/10/28 14:32:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.75 2008/11/11 23:50:29 tg Exp $");
 
 /*
  * states while lexing word
@@ -1031,7 +1031,7 @@ yyerror(const char *fmt, ...)
  */
 
 Source *
-pushs(int type, Area *areap)
+pushs(int type, PArea areap)
 {
 	Source *s;
 
@@ -1261,7 +1261,7 @@ set_prompt(int to, Source *s)
 		{
 			struct shf *shf;
 			char * volatile ps1;
-			Area *saved_atemp;
+			PArea saved_atemp;
 
 			ps1 = str_val(global("PS1"));
 			shf = shf_sopen(NULL, strlen(ps1) * 2,

@@ -29,22 +29,24 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.8 2008/08/02 17:45:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.9 2008/11/11 23:50:28 tg Exp $");
 
 struct link {
 	struct link *prev;
 	struct link *next;
 };
 
-Area *
-ainit(Area *ap)
+struct TArea aperm;
+
+PArea
+ainit(PArea ap)
 {
 	ap->freelist = NULL;
 	return (ap);
 }
 
 void
-afreeall(Area *ap)
+afreeall(PArea ap)
 {
 	struct link *l, *l2;
 
@@ -59,7 +61,7 @@ afreeall(Area *ap)
 #define P2L(p)	( (struct link *)(((ptrdiff_t)(p)) - sizeof (struct link)) )
 
 void *
-alloc(size_t size, Area *ap)
+alloc(size_t size, PArea ap)
 {
 	struct link *l;
 
@@ -75,7 +77,7 @@ alloc(size_t size, Area *ap)
 }
 
 void *
-aresize(void *ptr, size_t size, Area *ap)
+aresize(void *ptr, size_t size, PArea ap)
 {
 	struct link *l, *l2, *lprev, *lnext;
 
@@ -99,7 +101,7 @@ aresize(void *ptr, size_t size, Area *ap)
 }
 
 void
-afree(void *ptr, Area *ap)
+afree(void *ptr, PArea ap)
 {
 	struct link *l;
 #ifdef MKSH_AFREE_DEBUG

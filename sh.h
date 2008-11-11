@@ -103,7 +103,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.252 2008/11/10 19:33:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.253 2008/11/11 23:50:30 tg Exp $");
 #endif
 #define MKSH_VERSION "R36 2008/11/10"
 
@@ -389,14 +389,12 @@ char *ucstrstr(char *, const char *);
 #define MKSH_NOVI
 #endif
 
-/*
- * Area-based allocation built on malloc/free
- */
-typedef struct Area {
+struct TArea {
 	struct link *freelist;	/* free list */
-} Area;
+};
+typedef struct TArea *PArea;
 
-EXTERN Area aperm;		/* permanent object space */
+extern struct TArea aperm;		/* permanent object space */
 #define APERM	&aperm
 #define ATEMP	&e->area
 
@@ -404,7 +402,7 @@ EXTERN Area aperm;		/* permanent object space */
  * parsing & execution environment
  */
 extern struct env {
-	Area area;		/* temporary allocation area */
+	struct TArea area;	/* temporary allocation area */
 	struct block *loc;	/* local variables and functions */
 	short *savefd;		/* original redirected fds */
 	struct env *oenv;	/* link to previous environment */
@@ -752,13 +750,13 @@ struct shf {
 	int fd;			/* file descriptor */
 	int errno_;		/* saved value of errno after error */
 	int bsize;		/* actual size of buf */
-	Area *areap;		/* area shf/buf were allocated in */
+	PArea areap;		/* area shf/buf were allocated in */
 };
 
 extern struct shf shf_iob[];
 
 struct table {
-	Area *areap;		/* area to allocate entries */
+	PArea areap;		/* area to allocate entries */
 	struct tbl **tbls;	/* hashed table items */
 	short size, nfree;	/* hash size (always 2^^n), free entries */
 };
@@ -767,7 +765,7 @@ struct tbl {			/* table item */
 	Tflag flag;		/* flags */
 	int type;		/* command type (see below), base (if INTEGER),
 				 * or offset from val.s of value (if EXPORT) */
-	Area *areap;		/* area to allocate from */
+	PArea areap;		/* area to allocate from */
 	union {
 		char *s;		/* string */
 		long i;			/* integer */
@@ -859,7 +857,7 @@ struct arg_info {
  * activation record for function blocks
  */
 struct block {
-	Area area;		/* area to allocate things */
+	struct TArea area;	/* area to allocate things */
 	const char **argv;
 	int argc;
 	int flags;		/* see BF_* */
@@ -1063,7 +1061,7 @@ struct ioword {
 typedef struct XString {
 	char *end, *beg;	/* end, begin of string */
 	size_t len;		/* length */
-	Area *areap;		/* area to allocate/free from */
+	PArea areap;		/* area to allocate/free from */
 } XString;
 
 typedef char *XStringP;
@@ -1162,7 +1160,7 @@ struct source {
 	int	errline;	/* line the error occurred on (0 if not set) */
 	const char *file;	/* input file name */
 	int	flags;		/* SF_* */
-	Area	*areap;
+	PArea	areap;
 	XString	xs;		/* input buffer */
 	Source *next;		/* stacked source */
 	char	ugbuf[2];	/* buffer for ungetsc() (SREREAD) and
@@ -1255,11 +1253,11 @@ EXTERN int histsize;	/* history size */
 EXTERN struct timeval j_usrtime, j_systime;
 
 /* alloc.c */
-Area *ainit(Area *);
-void afreeall(Area *);
-void *alloc(size_t, Area *);	/* cannot fail */
-void *aresize(void *, size_t, Area *);
-void afree(void *, Area *);	/* can take NULL */
+PArea ainit(PArea);
+void afreeall(PArea);
+void *alloc(size_t, PArea);	/* cannot fail */
+void *aresize(void *, size_t, PArea);
+void afree(void *, PArea);	/* can take NULL */
 /* edit.c */
 void x_init(void);
 int x_read(char *, size_t);
@@ -1390,7 +1388,7 @@ int yylex(int);
 void yyerror(const char *, ...)
     __attribute__((noreturn))
     __attribute__((format (printf, 1, 2)));
-Source *pushs(int, Area *);
+Source *pushs(int, PArea);
 void set_prompt(int, Source *);
 void pprompt(const char *, int);
 int promptlen(const char *);
@@ -1437,9 +1435,9 @@ void coproc_readw_close(int);
 void coproc_write_close(int);
 int coproc_getfd(int, const char **);
 void coproc_cleanup(int);
-struct temp *maketemp(Area *, Temp_type, struct temp **);
+struct temp *maketemp(PArea, Temp_type, struct temp **);
 unsigned int hash(const char *);
-void ktinit(struct table *, Area *, int);
+void ktinit(struct table *, PArea, int);
 struct tbl *ktsearch(struct table *, const char *, unsigned int);
 struct tbl *ktenter(struct table *, const char *, unsigned int);
 #define ktdelete(p)	do { p->flag = 0; } while (0)
@@ -1475,8 +1473,8 @@ void simplify_path(char *);
 char *get_phys_path(const char *);
 void set_current_wd(char *);
 #ifdef MKSH_SMALL
-char *strdup_(const char *, Area *);
-char *strndup_(const char *, size_t, Area *);
+char *strdup_(const char *, PArea);
+char *strndup_(const char *, size_t, PArea);
 #endif
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);
@@ -1509,11 +1507,11 @@ struct op *compile(Source *);
 /* tree.c */
 int fptreef(struct shf *, int, const char *, ...);
 char *snptreef(char *, int, const char *, ...);
-struct op *tcopy(struct op *, Area *);
-char *wdcopy(const char *, Area *);
+struct op *tcopy(struct op *, PArea);
+char *wdcopy(const char *, PArea);
 const char *wdscan(const char *, int);
 char *wdstrip(const char *, bool, bool);
-void tfree(struct op *, Area *);
+void tfree(struct op *, PArea);
 /* var.c */
 void newblock(void);
 void popblock(void);

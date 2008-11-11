@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.89 2008/10/28 14:51:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.90 2008/11/11 23:50:30 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -1425,7 +1425,7 @@ stristr(const char *b, const char *l)
 
 #ifdef MKSH_SMALL
 char *
-strndup_(const char *src, size_t len, Area *ap)
+strndup_(const char *src, size_t len, PArea ap)
 {
 	char *dst = NULL;
 
@@ -1437,7 +1437,7 @@ strndup_(const char *src, size_t len, Area *ap)
 }
 
 char *
-strdup_(const char *src, Area *ap)
+strdup_(const char *src, PArea ap)
 {
 	return (src == NULL ? NULL : strndup_(src, strlen(src), ap));
 }

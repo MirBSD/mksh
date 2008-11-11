@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.106 2008/11/10 19:33:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.107 2008/11/11 23:50:30 tg Exp $");
 
 extern char **environ;
 
@@ -1136,7 +1136,7 @@ coproc_cleanup(int reuse)
 }
 
 struct temp *
-maketemp(Area *ap, Temp_type type, struct temp **tlist)
+maketemp(PArea ap, Temp_type type, struct temp **tlist)
 {
 	struct temp *tp;
 	int len;
@@ -1194,7 +1194,7 @@ hash(const char *n)
 }
 
 void
-ktinit(struct table *tp, Area *ap, int tsize)
+ktinit(struct table *tp, PArea ap, int tsize)
 {
 	tp->areap = ap;
 	tp->tbls = NULL;
