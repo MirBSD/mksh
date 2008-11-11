@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.370 2008/11/11 21:52:51 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.371 2008/11/11 23:20:08 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -127,7 +127,8 @@ ac_testn() {
 	fi
 	ac_testinit "$@" || return
 	cat >scn.c
-	vv ']' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS $ccpr"
+	vv ']' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS $ccpr" | \
+	    sed 's^\] scn.c:\([0-9]*\):\] mirtoconf(\1):'
 	test $tcfn = no && test -f a.out && tcfn=a.out
 	test $tcfn = no && test -f a.exe && tcfn=a.exe
 	test $tcfn = no && test -f scn && tcfn=scn
