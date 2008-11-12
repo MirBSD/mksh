@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.90 2008/10/28 14:32:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.91 2008/11/12 00:27:55 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -2111,10 +2111,10 @@ c_set(const char **wp)
 		owp = wp += argi - 1;
 		wp[0] = l->argv[0]; /* save $0 */
 		while (*++wp != NULL)
-			strdupx(*wp, *wp, &l->area);
+			strdupx(*wp, *wp, l->areap);
 		l->argc = wp - owp - 1;
 		l->argv = (const char **)alloc(sizeofN(char *, l->argc+2),
-		     &l->area);
+		     l->areap);
 		for (wp = l->argv; (*wp++ = *owp++) != NULL; )
 			;
 	}

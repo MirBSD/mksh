@@ -29,32 +29,39 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.9 2008/11/11 23:50:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.10 2008/11/12 00:27:54 tg Exp $");
 
 struct link {
 	struct link *prev;
 	struct link *next;
 };
 
-struct TArea aperm;
+struct TArea {
+	struct link *freelist;	/* free list */
+};
 
 PArea
-ainit(PArea ap)
+anew(void)
 {
+	PArea ap;
+
+	if ((ap = malloc(sizeof (struct TArea))) == NULL)
+		internal_errorf("unable to allocate memory");
 	ap->freelist = NULL;
 	return (ap);
 }
 
 void
-afreeall(PArea ap)
+adelete(PArea *pap)
 {
 	struct link *l, *l2;
 
-	for (l = ap->freelist; l != NULL; l = l2) {
+	for (l = (*pap)->freelist; l != NULL; l = l2) {
 		l2 = l->next;
 		free(l);
 	}
-	ap->freelist = NULL;
+	free(*pap);
+	*pap = NULL;
 }
 
 #define L2P(l)	( (void *)(((char *)(l)) + sizeof (struct link)) )

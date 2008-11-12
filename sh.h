@@ -103,7 +103,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.253 2008/11/11 23:50:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.254 2008/11/12 00:27:56 tg Exp $");
 #endif
 #define MKSH_VERSION "R36 2008/11/10"
 
@@ -389,20 +389,15 @@ char *ucstrstr(char *, const char *);
 #define MKSH_NOVI
 #endif
 
-struct TArea {
-	struct link *freelist;	/* free list */
-};
 typedef struct TArea *PArea;
-
-extern struct TArea aperm;		/* permanent object space */
-#define APERM	&aperm
-#define ATEMP	&e->area
+EXTERN PArea APERM;			/* permanent object space */
+#define ATEMP	e->areap
 
 /*
  * parsing & execution environment
  */
 extern struct env {
-	struct TArea area;	/* temporary allocation area */
+	PArea areap;		/* temporary allocation area */
 	struct block *loc;	/* local variables and functions */
 	short *savefd;		/* original redirected fds */
 	struct env *oenv;	/* link to previous environment */
@@ -857,7 +852,7 @@ struct arg_info {
  * activation record for function blocks
  */
 struct block {
-	struct TArea area;	/* area to allocate things */
+	PArea areap;		/* area to allocate things */
 	const char **argv;
 	int argc;
 	int flags;		/* see BF_* */
@@ -1253,8 +1248,8 @@ EXTERN int histsize;	/* history size */
 EXTERN struct timeval j_usrtime, j_systime;
 
 /* alloc.c */
-PArea ainit(PArea);
-void afreeall(PArea);
+PArea anew(void);		/* cannot fail */
+void adelete(PArea *);
 void *alloc(size_t, PArea);	/* cannot fail */
 void *aresize(void *, size_t, PArea);
 void afree(void *, PArea);	/* can take NULL */

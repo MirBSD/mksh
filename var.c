@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.58 2008/10/28 14:32:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.59 2008/11/12 00:27:57 tg Exp $");
 
 /*
  * Variables
@@ -39,7 +39,7 @@ newblock(void)
 
 	l = (struct block *)alloc(sizeof (struct block), ATEMP);
 	l->flags = 0;
-	ainit(&l->area); /* todo: could use e->area (l->area => l->areap) */
+	l->areap = anew();	/* TODO: could use e->area */
 	if (!e->loc) {
 		l->argc = 0;
 		l->argv = empty;
@@ -48,8 +48,8 @@ newblock(void)
 		l->argv = e->loc->argv;
 	}
 	l->exit = l->error = NULL;
-	ktinit(&l->vars, &l->area, 0);
-	ktinit(&l->funs, &l->area, 0);
+	ktinit(&l->vars, l->areap, 0);
+	ktinit(&l->funs, l->areap, 0);
 	l->next = e->loc;
 	e->loc = l;
 }
@@ -74,7 +74,7 @@ popblock(void)
 		}
 	if (l->flags & BF_DOGETOPTS)
 		user_opt = l->getopts_state;
-	afreeall(&l->area);
+	adelete(&l->areap);
 	afree(l, ATEMP);
 }
 

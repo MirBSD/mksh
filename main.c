@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.107 2008/11/11 23:50:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.108 2008/11/12 00:27:56 tg Exp $");
 
 extern char **environ;
 
@@ -22,7 +22,7 @@ extern uid_t kshuid;
 extern gid_t kshgid, kshegid;
 #endif
 
-static void reclaim(void);
+static void reclaim(bool);
 static void remove_temps(struct temp *);
 
 static const char initifs[] = "IFS= \t\n";
@@ -87,11 +87,11 @@ main(int argc, const char *argv[])
 	}
 	kshname = *argv;
 
-	ainit(&aperm);		/* initialise permanent Area */
+	APERM = anew();		/* initialise permanent Area */
 
 	/* set up base environment */
 	env.type = E_NONE;
-	ainit(&env.area);
+	env.areap = anew();
 	newblock();		/* set up global l->vars and l->funs */
 
 	/* Do this first so output routines (eg, errorf, shellf) can work */
@@ -563,7 +563,7 @@ shell(Source * volatile s, volatile int toplevel)
 		if (t != NULL && t->type != TEOF && interactive && really_exit)
 			really_exit = 0;
 
-		reclaim();
+		reclaim(false);
 	}
 	quitenv(NULL);
 	source = old_source;
@@ -610,7 +610,7 @@ newenv(int type)
 	ep = (struct env *)alloc(sizeof (*ep), ATEMP);
 	ep->type = type;
 	ep->flags = 0;
-	ainit(&ep->area);
+	ep->areap = anew();
 	ep->loc = e->loc;
 	ep->savefd = NULL;
 	ep->oenv = e;
@@ -662,12 +662,12 @@ quitenv(struct shf *shf)
 		}
 		if (shf)
 			shf_close(shf);
-		reclaim();
+		reclaim(true);
 		exit(exstat);
 	}
 	if (shf)
 		shf_close(shf);
-	reclaim();
+	reclaim(true);
 
 	e = e->oenv;
 	afree(ep, ATEMP);
@@ -691,7 +691,7 @@ cleanup_parents_env(void)
 			for (fd = 0; fd < NUFILE; fd++)
 				if (ep->savefd[fd] > 0)
 					close(ep->savefd[fd]);
-			afree(ep->savefd, &ep->area);
+			afree(ep->savefd, ep->areap);
 			ep->savefd = NULL;
 		}
 	}
@@ -710,11 +710,13 @@ cleanup_proc_env(void)
 
 /* remove temp files and free ATEMP Area */
 static void
-reclaim(void)
+reclaim(bool finish)
 {
 	remove_temps(e->temps);
 	e->temps = NULL;
-	afreeall(&e->area);
+	adelete(&e->areap);
+	if (!finish)
+		e->areap = anew();
 }
 
 static void
