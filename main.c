@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.109 2008/11/12 00:54:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.110 2008/11/12 04:55:18 tg Exp $");
 
 extern char **environ;
 
@@ -74,6 +74,10 @@ main(int argc, const char *argv[])
 #if !defined(_PATH_DEFPATH) && defined(_CS_PATH)
 	size_t k;
 	char *cp;
+#endif
+
+#if !HAVE_ARC4RANDOM
+	change_random((unsigned long)time(NULL) * getpid());
 #endif
 
 	/* make sure argv[] is sane */
