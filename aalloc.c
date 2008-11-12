@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.24 2008/11/12 19:23:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.25 2008/11/12 23:34:02 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -11,6 +11,8 @@ __RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.24 2008/11/12 19:23:09 tg Exp $");
 #ifndef AALLOC_WARN
 #define AALLOC_WARN		internal_warningf
 #endif
+
+#define AALLOC_LEAK_SILENT	/* the code does not yet clean up at exit */
 
 #ifndef AALLOC_RANDOM
 #if HAVE_ARC4RANDOM
@@ -283,7 +285,7 @@ track_check(void)
 		if (!(bp = check_bp(tp, "atexit:track_check", tp->ocookie)))
 			goto track_next;
 		if (bp->last != (char *)&bp->storage)
-#ifdef MKSH_VERSION	/* allowed to leak silently */
+#ifdef AALLOC_LEAK_SILENT
 			adelete_leak(tp, bp, false, "at exit");
 #else
 			adelete_leak(tp, bp, true, "at exit");
