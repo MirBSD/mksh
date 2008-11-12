@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.2 2008/11/12 04:59:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.3 2008/11/12 05:05:17 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -118,6 +118,7 @@ static size_t pagesz;
 		    size, "value plus extra too big");			\
 } while (/* CONSTCOND */ 0)
 
+static void adelete_leak(PArea, PBlock);
 static PBlock check_bp(PArea, const char *, TCookie);
 static TPtr *check_ptr(void *, PArea, PBlock *, const char *, const char *);
 
@@ -259,20 +260,8 @@ track_check(void)
 		if (bp->last == &bp->storage) {
 			AALLOC_WARN("leaking empty area %p (%p %tu)", ap,
 			    bp, bp->endp - bp);
-			goto track_freebp;
-		}
-		while (bp->last > &bp->storage) {
-			TPtr *cp;
-
-			bp->last -= PVALIGN;
-			cp = *((void **)bp->last);
-			cp->iv ^= bp->cookie;
-			AALLOC_WARN("leaking %s pointer %p in area %p (%p %tu)",
-			    cp->pv == bp->last ? "valid" : "underflown",
-			    (char *)cp + PVALIGN, ap, bp, bp->endp - bp);
-			free(cp);
-		}
- track_freebp:
+		} else
+			adelete_leak(ap, bp);
 		free(bp);
  track_next:
 		track = ap->prev.pv;
@@ -280,6 +269,22 @@ track_check(void)
 	}
 }
 #endif
+
+static void
+adelete_leak(PArea ap, PBlock bp)
+{
+	TPtr *cp;
+
+	while (bp->last > (void *)&bp->storage) {
+		bp->last -= PVALIGN;
+		cp = *((void **)bp->last);
+		cp->iv ^= bp->cookie;
+		AALLOC_WARN("leaking %s pointer %p in area %p (%p %tu)",
+		    cp->pv == bp->last ? "valid" : "underflown",
+		    (char *)cp + PVALIGN, ap, bp, bp->endp - (void *)bp);
+		free(cp);
+	}
+}
 
 void
 adelete(PArea *pap)
@@ -289,13 +294,13 @@ adelete(PArea *pap)
 #endif
 	PBlock bp;
 
-	if ((bp = check_bp(*pap, "adelete", 0)) == NULL)
-		goto adelete_freeap;	/* ignore invalid areas */
+	/* ignore invalid areas */
+	if ((bp = check_bp(*pap, "adelete", 0)) == NULL) {
+		if (bp->last != &bp->storage)
+			adelete_leak(*pap, bp);
+		free(bp);
+	}
 
-	if (bp->last != &bp->storage)
-		adelete_leak(bp);
-	free(bp);
- adelete_freeap:
 #ifdef AALLOC_TRACK
 	if (track == *pap) {
 		(*pap)->prev.iv ^= gcookie;
