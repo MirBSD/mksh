@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.19 2008/11/12 06:42:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.20 2008/11/12 06:44:04 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -275,14 +275,14 @@ track_check(void)
 		}
 		if (!(bp = check_bp(ap, "atexit:track_check", ap->ocookie)))
 			goto track_next;
-		if (bp->last == (char *)&bp->storage) {
-			AALLOC_WARN("leaking empty area %p (%p %lu)", ap,
-			    bp, (unsigned long)(bp->endp - (char *)bp));
-		} else
+		if (bp->last != (char *)&bp->storage)
 #ifdef MKSH_VERSION	/* allowed to leak silently */
 			adelete_leak(ap, bp, false, "at exit");
 #else
 			adelete_leak(ap, bp, true, "at exit");
+		else
+			AALLOC_WARN("leaking empty area %p (%p %lu)", ap,
+			    bp, (unsigned long)(bp->endp - (char *)bp));
 #endif
 		free(bp);
  track_next:
