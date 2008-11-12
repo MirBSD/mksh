@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.16 2008/11/12 06:14:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.17 2008/11/12 06:35:27 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -492,9 +492,9 @@ afree(void *vp, PArea ap)
 	bp->last -= PVALIGN;	/* mark the last forward pointer as free */
 	/* if our forward pointer was not the last one, relocate the latter */
 	if (ptr->pv < bp->last) {
-		TPtr *tmp;
+		TPtr *tmp = *((TPtr **)bp->last);
 
-		tmp = (TPtr *)bp->last;	/* former last forward pointer */
+		/* tmp is the former last forward pointer */
 		tmp->pv = ptr->pv;	/* its backpointer to former our … */
 		tmp->iv ^= bp->cookie;	/* … forward pointer, and cookie it */
 
