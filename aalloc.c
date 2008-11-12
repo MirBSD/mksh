@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.14 2008/11/12 06:10:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.15 2008/11/12 06:12:56 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -314,7 +314,7 @@ adelete(PArea *pap)
 	PBlock bp;
 
 	/* ignore invalid areas */
-	if ((bp = check_bp(*pap, "adelete", 0)) == NULL) {
+	if ((bp = check_bp(*pap, "adelete", 0)) != NULL) {
 		if (bp->last != (char *)&bp->storage)
 			adelete_leak(*pap, bp);
 		free(bp);
