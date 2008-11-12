@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.22 2008/11/12 07:02:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.23 2008/11/12 07:36:19 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -68,9 +68,11 @@ struct TArea {
 #endif
 };
 
-static TCookie gcookie;
+static TCookie global_cookie;
 #ifdef AALLOC_NO_COOKIES
-static TCookie fake_cookie;
+#define gcookie 0
+#else
+#define gcookie global_cookie
 #endif
 
 #ifdef AALLOC_TRACK
@@ -154,17 +156,14 @@ anew(void)
 		    (unsigned long)sizeof (struct TBlock));
 #endif
 
-#ifdef AALLOC_NO_COOKIES
-#define gcookie fake_cookie
-#endif
-	if (!gcookie) {
+	if (!global_cookie) {
 		size_t v;
 
 		/* ensure unaligned cookie */
 		do {
-			gcookie = AALLOC_RANDOM();
+			global_cookie = AALLOC_RANDOM();
 			v = AALLOC_RANDOM() & 7;
-		} while (!(gcookie & PVMASK) || !v);
+		} while (!(global_cookie & PVMASK) || !v);
 		/* randomise seed afterwards */
 		while (v--)
 			AALLOC_RANDOM();
@@ -172,7 +171,6 @@ anew(void)
 		atexit(track_check);
 #endif
 	}
-#undef gcookie
 
 	ap = NULL; safe_realloc(ap, sizeof (struct TArea));
 	bp = NULL; safe_realloc(bp, AALLOC_INITSZ);
@@ -255,35 +253,40 @@ check_bp(PArea ap, const char *funcname, TCookie ocookie)
 static void
 track_check(void)
 {
-	PArea ap;
+	PArea tp;
+	TPtr lp;
 	PBlock bp;
 
 	while (track) {
-		ap = track;
-		ap->ocookie ^= gcookie;
-		ap->prev.iv ^= gcookie;
-		if ((ap->prev.iv & PVMASK) || (ap->ocookie & PVMASK)) {
+		tp = track;
+		tp->ocookie ^= gcookie;
+		lp.iv = tp->prev.iv ^ gcookie;
+		if ((lp.iv & PVMASK)
+#ifndef AALLOC_NO_COOKIES
+		    || !(tp->ocookie & PVMASK)
+#endif
+		    ) {
 			/* buffer overflow or something? */
 			AALLOC_WARN("AALLOC_TRACK data structure %p destroyed:"
-			    " %p, %p, %p; exiting", ap, ap->prev.pv,
-			    ap->bp.pv, (void *)ap->ocookie);
+			    " %p, %p, %p; exiting", tp, lp.pv, tp->bp.pv,
+			    (void *)tp->ocookie);
 			return;
 		}
-		if (!(bp = check_bp(ap, "atexit:track_check", ap->ocookie)))
+		if (!(bp = check_bp(tp, "atexit:track_check", tp->ocookie)))
 			goto track_next;
 		if (bp->last != (char *)&bp->storage)
 #ifdef MKSH_VERSION	/* allowed to leak silently */
-			adelete_leak(ap, bp, false, "at exit");
+			adelete_leak(tp, bp, false, "at exit");
 #else
-			adelete_leak(ap, bp, true, "at exit");
+			adelete_leak(tp, bp, true, "at exit");
 		else
-			AALLOC_WARN("leaking empty area %p (%p %lu)", ap,
+			AALLOC_WARN("leaking empty area %p (%p %lu)", tp,
 			    bp, (unsigned long)(bp->endp - (char *)bp));
 #endif
 		free(bp);
  track_next:
-		track = (PArea)ap->prev.pv;
-		free(ap);
+		track = (PArea)lp.pv;
+		free(tp);
 	}
 }
 #endif
@@ -311,6 +314,7 @@ adelete(PArea *pap)
 {
 #ifdef AALLOC_TRACK
 	PArea tp;
+	TPtr lp;
 #endif
 	PBlock bp;
 
@@ -330,12 +334,16 @@ adelete(PArea *pap)
 	/* find the TArea whose prev is *pap */
 	tp = track;
 	while (tp) {
-		TPtr lp;
 		lp.iv = tp->prev.iv ^ gcookie;
-		if ((lp.iv & PVMASK) || (tp->ocookie & PVMASK)) {
+		if ((lp.iv & PVMASK)
+#ifndef AALLOC_NO_COOKIES
+		    || !((tp->ocookie ^ gcookie) & PVMASK)
+#endif
+		    ) {
+			/* buffer overflow or something? */
 			AALLOC_WARN("AALLOC_TRACK data structure %p destroyed:"
-			    " %p, %p, %p", tp, tp->prev.pv, tp->bp.pv,
-			    (void *)tp->ocookie);
+			    " %p, %p, %p; exiting", tp, lp.pv, tp->bp.pv,
+			    (void *)(tp->ocookie ^ gcookie));
 			tp = NULL;
 			break;
 		}
