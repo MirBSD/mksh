@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.5 2008/11/12 05:27:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.6 2008/11/12 05:32:34 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -79,13 +79,12 @@ static void track_check(void);
 #undef AALLOC_INITSZ
 #define AALLOC_INITSZ		pagesz
 static size_t pagesz;
-#define AALLOC_ACCESS(bp, n, p)	mprotect((bp), (bp)->endp - (bp), (p))
-#define AALLOC_ALLOW(bp)	\
-	AALLOC_ACCESS((bp), (bp)->endp - (bp), PROT_READ | PROT_WRITE);
-#define AALLOC_DENY(bp)		\
-	AALLOC_ACCESS((bp), (bp)->endp - (bp), PROT_NONE)
-#define AALLOC_PEEK(bp)		\
-	AALLOC_ACCESS((bp), sizeof (struct TArea), PROT_READ | PROT_WRITE)
+#define AALLOC_ALLOW(bp)	mprotect((bp), (bp)->endp - (char *)(bp), \
+				    PROT_READ | PROT_WRITE)
+#define AALLOC_DENY(bp)		mprotect((bp), (bp)->endp - (char *)(bp), \
+				    PROT_NONE)
+#define AALLOC_PEEK(bp)		mprotect((bp), sizeof (struct TArea), \
+				    PROT_READ | PROT_WRITE)
 #else
 #define AALLOC_ALLOW(bp)	/* nothing */
 #define AALLOC_DENY(bp)		/* nothing */
@@ -179,8 +178,8 @@ anew(void)
 	ap->bp.pv = (char *)bp;
 	ap->bp.iv ^= gcookie;
 #ifdef AALLOC_TRACK
-	ap->prev.pv = track;
-	ap->prev.iv ^= track_cookie;
+	ap->prev.pv = (char *)track;
+	ap->prev.iv ^= gcookie;
 	ap->ocookie = bp->cookie ^ gcookie;
 	track = ap;
 #endif
@@ -246,25 +245,25 @@ track_check(void)
 
 	while (track) {
 		ap = track;
-		ap->ocookie ^= track_cookie;
-		ap->prev.iv ^= track_cookie;
+		ap->ocookie ^= gcookie;
+		ap->prev.iv ^= gcookie;
 		if ((ap->prev.iv & PVMASK) || !ap->ocookie) {
 			/* buffer overflow or something? */
 			AALLOC_WARN("AALLOC_TRACK data structure %p destroyed:"
-			    " %p, %08X, %08X", ap, ap->prev.pv,
+			    " %p, %08tX, %08tX", ap, ap->prev.pv,
 			    ap->bp.iv, ap->ocookie);
 			return;
 		}
-		if (!(bp = check_bp(ap, "atexit:track_check", tp->ocookie)))
+		if (!(bp = check_bp(ap, "atexit:track_check", ap->ocookie)))
 			goto track_next;
-		if (bp->last == &bp->storage) {
+		if (bp->last == (char *)&bp->storage) {
 			AALLOC_WARN("leaking empty area %p (%p %tu)", ap,
-			    bp, bp->endp - bp);
+			    bp, bp->endp - (char *)bp);
 		} else
 			adelete_leak(ap, bp);
 		free(bp);
  track_next:
-		track = ap->prev.pv;
+		track = (PArea)ap->prev.pv;
 		free(ap);
 	}
 }
@@ -304,7 +303,7 @@ adelete(PArea *pap)
 #ifdef AALLOC_TRACK
 	if (track == *pap) {
 		(*pap)->prev.iv ^= gcookie;
-		track = (*pap)->prev.pv;
+		track = (PArea)((*pap)->prev.pv);
 		goto adelete_tracked;
 	}
 	/* find the TArea whose prev is *pap */
@@ -312,16 +311,16 @@ adelete(PArea *pap)
 	while (tp) {
 		TPtr lp;
 		lp.iv = tp->prev.iv ^ gcookie;
-		if ((lp.iv & PVMASK) || !lp->ocookie) {
+		if ((lp.iv & PVMASK) || !tp->ocookie) {
 			AALLOC_WARN("AALLOC_TRACK data structure %p destroyed:"
-			    " %p, %08X, %08X", tp, tp->prev.pv,
+			    " %p, %08tX, %08tX", tp, tp->prev.pv,
 			    tp->bp.iv, tp->ocookie);
 			tp = NULL;
 			break;
 		}
-		if (lp.pv == *pap)
+		if (lp.pv == (char *)*pap)
 			break;
-		tp = lp.pv;
+		tp = (PArea)lp.pv;
 	}
 	if (tp)
 		tp->prev.iv = (*pap)->prev.iv;	/* decouple *pap */
