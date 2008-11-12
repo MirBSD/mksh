@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.23 2008/11/12 07:36:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.24 2008/11/12 19:23:09 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -102,8 +102,16 @@ static long pagesz;
  * pointers, the AALLOC_TRACK prev pointer, etc.
  */
 
+#define safe_malloc(dest, len) do {					\
+	(dest) = malloc((len));						\
+	safe_xalloc_common((dest), (len));				\
+} while (/* CONSTCOND */ 0)
 #define safe_realloc(dest, len) do {					\
-	if (((dest) = realloc((dest), (len))) == NULL)			\
+	(dest) = realloc((dest), (len));				\
+	safe_xalloc_common((dest), (len));				\
+} while (/* CONSTCOND */ 0)
+#define safe_xalloc_common(dest, len) do {				\
+	if ((dest) == NULL)						\
 		AALLOC_ABORT("unable to allocate %lu bytes: %s",	\
 		    (unsigned long)(len), strerror(errno));		\
 	if ((ptrdiff_t)(dest) & PVMASK)					\
@@ -172,8 +180,8 @@ anew(void)
 #endif
 	}
 
-	ap = NULL; safe_realloc(ap, sizeof (struct TArea));
-	bp = NULL; safe_realloc(bp, AALLOC_INITSZ);
+	safe_malloc(ap, sizeof (struct TArea));
+	safe_malloc(bp, AALLOC_INITSZ);
 	/* ensure unaligned cookie */
 #ifdef AALLOC_NO_COOKIES
 	bp->cookie = 0;
@@ -370,7 +378,7 @@ alloc(size_t nmemb, size_t size, PArea ap)
 
 	/* obtain the memory region requested, retaining guards */
 	safe_muladd(nmemb, size, sizeof (TPtr));
-	ptr = NULL; safe_realloc(ptr, size);
+	safe_malloc(ptr, size);
 
 	/* chain into area */
 	if ((bp = check_bp(ap, "alloc", 0)) == NULL)
