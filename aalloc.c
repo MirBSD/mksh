@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.10 2008/11/12 05:46:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.11 2008/11/12 05:46:45 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -116,6 +116,7 @@ static size_t pagesz;
 	if (size >= SIZE_MAX - extra)					\
 		AALLOC_ABORT("unable to allocate %zu bytes: %s",	\
 		    size, "value plus extra too big");			\
+	size += extra;							\
 } while (/* CONSTCOND */ 0)
 
 static void adelete_leak(PArea, PBlock);
