@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.7 2008/11/12 05:34:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.8 2008/11/12 05:40:23 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -69,6 +69,7 @@ struct TArea {
 };
 
 static TCookie gcookie;
+static TCookie gcookie_;
 
 #ifdef AALLOC_TRACK
 static PArea track;
@@ -147,14 +148,14 @@ anew(void)
 	}
 #endif
 
-	if (!gcookie) {
+	if (!gcookie_) {
 		size_t v;
 
 		/* ensure unaligned cookie */
 		do {
-			gcookie = AALLOC_RANDOM();
+			gcookie_ = AALLOC_RANDOM();
 			v = AALLOC_RANDOM() & 7;
-		} while (!(gcookie & PVMASK) || !v);
+		} while (!(gcookie_ & PVMASK) || !v);
 		/* randomise seed afterwards */
 		while (v--)
 			AALLOC_RANDOM();
@@ -166,9 +167,10 @@ anew(void)
 	ap = NULL; safe_realloc(ap, sizeof (struct TArea));
 	bp = NULL; safe_realloc(bp, (size_t)AALLOC_INITSZ);
 	/* ensure unaligned cookie */
-	do {
-		bp->cookie = AALLOC_RANDOM();
-	} while (!(bp->cookie & PVMASK));
+	bp->cookie = 0;
+//	do {
+//		bp->cookie = AALLOC_RANDOM();
+//	} while (!(bp->cookie & PVMASK));
 
 	/* first byte after block */
 	bp->endp = (char *)bp + AALLOC_INITSZ;	/* bp + size of the block */
