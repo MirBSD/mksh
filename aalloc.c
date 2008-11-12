@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.21 2008/11/12 06:58:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.22 2008/11/12 07:02:47 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -262,11 +262,7 @@ track_check(void)
 		ap = track;
 		ap->ocookie ^= gcookie;
 		ap->prev.iv ^= gcookie;
-		if ((ap->prev.iv & PVMASK)
-#ifndef AALLOC_NO_COOKIES
-		    || !(ap->ocookie & PVMASK)
-#endif
-		    ) {
+		if ((ap->prev.iv & PVMASK) || (ap->ocookie & PVMASK)) {
 			/* buffer overflow or something? */
 			AALLOC_WARN("AALLOC_TRACK data structure %p destroyed:"
 			    " %p, %p, %p; exiting", ap, ap->prev.pv,
@@ -336,11 +332,7 @@ adelete(PArea *pap)
 	while (tp) {
 		TPtr lp;
 		lp.iv = tp->prev.iv ^ gcookie;
-		if ((lp.iv & PVMASK)
-#ifndef AALLOC_NO_COOKIES
-		    || !(tp->ocookie & PVMASK)
-#endif
-		    ) {
+		if ((lp.iv & PVMASK) || (tp->ocookie & PVMASK)) {
 			AALLOC_WARN("AALLOC_TRACK data structure %p destroyed:"
 			    " %p, %p, %p", tp, tp->prev.pv, tp->bp.pv,
 			    (void *)tp->ocookie);
