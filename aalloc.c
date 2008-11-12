@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.20 2008/11/12 06:44:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.21 2008/11/12 06:58:49 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -376,7 +376,7 @@ alloc(size_t nmemb, size_t size, PArea ap)
 	if ((bp = check_bp(ap, "alloc", 0)) == NULL)
 		AALLOC_ABORT("cannot continue");
 	if (bp->last == bp->endp) {
-		TPtr *tp;
+		TPtr **tp;
 		size_t bsz;
 
 		/* make room for more forward ptrs in the block allocation */
@@ -387,9 +387,9 @@ alloc(size_t nmemb, size_t size, PArea ap)
 		bp->endp = (char *)bp + bsz;
 
 		/* all backpointers have to be adjusted */
-		for (tp = (TPtr *)&bp->storage; tp < (TPtr *)bp->last; ++tp) {
-			tp->pv = (char *)tp;
-			tp->iv ^= bp->cookie;
+		for (tp = (TPtr **)&bp->storage; tp < (TPtr **)bp->last; ++tp) {
+			(*tp)->pv = (char *)tp;
+			(*tp)->iv ^= bp->cookie;
 		}
 
 		/* “bp” has possibly changed, enter its new value into ap */
