@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.12 2008/11/12 05:55:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.13 2008/11/12 06:05:54 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -129,6 +129,15 @@ anew(void)
 	PArea ap;
 	PBlock bp;
 
+#ifdef AALLOC_MPROTECT
+	if (!pagesz) {
+		if ((pagesz = sysconf(_SC_PAGESIZE)) == -1 ||
+		    (size_t)pagesz < (size_t)PVALIGN)
+			AALLOC_ABORT("sysconf(_SC_PAGESIZE) failed: %ld %s",
+			    pagesz, strerror(errno));
+	}
+#endif
+
 #ifdef AALLOC_DEBUG
 	if (PVALIGN != 2 && PVALIGN != 4 && PVALIGN != 8 && PVALIGN != 16)
 		AALLOC_ABORT("PVALIGN not a power of two: %lu",
@@ -137,18 +146,10 @@ anew(void)
 		AALLOC_ABORT("TPtr sizes do not match: %lu, %lu, %lu",
 		    (unsigned long)sizeof (TPtr),
 		    (unsigned long)sizeof (TCookie), (unsigned long)PVALIGN);
-	if (AALLOC_INITSZ < sizeof (struct TBlock))
+	if ((size_t)AALLOC_INITSZ < sizeof (struct TBlock))
 		AALLOC_ABORT("AALLOC_INITSZ constant too small: %lu < %lu",
 		    (unsigned long)AALLOC_INITSZ,
 		    (unsigned long)sizeof (struct TBlock));
-#endif
-
-#ifdef AALLOC_MPROTECT
-	if (!pagesz) {
-		if ((pagesz = sysconf(_SC_PAGESIZE)) == -1 || pagesz < PVALIGN)
-			AALLOC_ABORT("sysconf(_SC_PAGESIZE) failed: %ld %s",
-			    pagesz, strerror(errno));
-	}
 #endif
 
 	if (!gcookie_) {
