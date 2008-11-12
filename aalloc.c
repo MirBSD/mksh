@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.1 2008/11/12 04:55:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.2 2008/11/12 04:59:42 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -102,7 +102,7 @@ static size_t pagesz;
 	if (((dest) = realloc((dest), (len))) == NULL)			\
 		AALLOC_ABORT("unable to allocate %zu bytes: %s",	\
 		    (len), strerror(errno));				\
-	if ((dest) & PVMASK)						\
+	if ((ptrdiff_t)(dest) & PVMASK)					\
 		AALLOC_ABORT("unaligned malloc result: %p", (dest));	\
 } while (/* CONSTCOND */ 0)
 
@@ -164,7 +164,7 @@ anew(void)
 	}
 
 	ap = NULL; safe_realloc(ap, sizeof (struct TArea));
-	bp = NULL; safe_realloc(bp, AALLOC_INITSZ);
+	bp = NULL; safe_realloc(bp, (size_t)AALLOC_INITSZ);
 	/* ensure unaligned cookie */
 	do {
 		bp->cookie = AALLOC_RANDOM();
@@ -202,28 +202,28 @@ check_bp(PArea ap, const char *funcname, TCookie ocookie)
 		return (NULL);
 	}
 	p.iv = ap->bp.iv ^ gcookie;
-	if ((bp = p.pv) & PVMASK) {
-		AALLOC_WARN("%s: area %p block pointer destroyed: %08X",
+	if ((ptrdiff_t)(bp = p.pv) & PVMASK) {
+		AALLOC_WARN("%s: area %p block pointer destroyed: %08tX",
 		    funcname, ap, p.iv);
 		return (NULL);
 	}
 	AALLOC_PEEK(bp);
 	if (ocookie && bp->cookie != ocookie) {
-		AALLOC_WARN("%s: block %p cookie destroyed: %08X, %08X",
+		AALLOC_WARN("%s: block %p cookie destroyed: %08tX, %08tX",
 		    funcname, bp, ocookie, bp->cookie);
 		return (NULL);
 	}
-	if ((bp->endp & PVMASK) || (bp->last & PVMASK)) {
+	if (((ptrdiff_t)bp->endp & PVMASK) || ((ptrdiff_t)bp->last & PVMASK)) {
 		AALLOC_WARN("%s: block %p data structure destroyed: %p, %p",
 		    funcname, bp, bp->endp, bp->last);
 		return (NULL);
 	}
-	if (bp->endp < bp) {
+	if (bp->endp < (void *)bp) {
 		AALLOC_WARN("%s: block %p end pointer out of bounds: %p",
 		    funcname, bp, bp->endp);
 		return (NULL);
 	}
-	if ((bp->last < &bp->storage) || (bp->last >= bp->endp)) {
+	if ((bp->last < (void *)&bp->storage) || (bp->last >= bp->endp)) {
 		AALLOC_WARN("%s: block %p last pointer out of bounds: "
 		    "%p < %p < %p", funcname, bp, &bp->storage, bp->last,
 		    bp->endp);
@@ -346,8 +346,8 @@ alloc(size_t nmemb, size_t size, PArea ap)
 		size_t bsz;
 
 		/* make room for more forward ptrs in the block allocation */
-		bsz = bp->endp - bp;
-		safe_muladd(2, bsz, 0);
+		bsz = bp->endp - (void *)bp;
+		safe_muladd((size_t)2, bsz, 0);
 		safe_realloc(bp, bsz);
 
 		/* “bp” has possibly changed, enter its new value into ap */
@@ -403,7 +403,7 @@ check_ptr(void *vp, PArea ap, PBlock *bpp, const char *what, const char *extra)
 	PBlock bp;
 	TPtr *ptr;
 
-	if (vp & PVMASK) {
+	if ((ptrdiff_t)vp & PVMASK) {
 		AALLOC_WARN("trying to %s rogue unaligned pointer %p from "
 		    "area %p%s", what + 1, vp, ap, extra);
 		return (NULL);
@@ -419,7 +419,7 @@ check_ptr(void *vp, PArea ap, PBlock *bpp, const char *what, const char *extra)
 	if ((bp = check_bp(ap, what, 0)) == NULL)
 		AALLOC_ABORT("cannot continue");
 	ptr->iv ^= bp->cookie;
-	if (ptr->pv < &bp->storage || ptr->pv >= bp->last) {
+	if (ptr->pv < (void *)&bp->storage || ptr->pv >= bp->last) {
 		AALLOC_WARN("trying to %s rogue pointer %p from area %p "
 		    "(block %p..%p), backpointer %p out of bounds%s",
 		    what + 1, vp, ap, bp, bp->last, ptr->pv, extra);
