@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.4 2008/11/12 05:11:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.5 2008/11/12 05:27:01 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -224,7 +224,7 @@ check_bp(PArea ap, const char *funcname, TCookie ocookie)
 		    funcname, bp, bp->endp);
 		return (NULL);
 	}
-	if ((bp->last < (char *)&bp->storage) || (bp->last >= bp->endp)) {
+	if ((bp->last < (char *)&bp->storage) || (bp->last > bp->endp)) {
 		AALLOC_WARN("%s: block %p last pointer out of bounds: "
 		    "%p < %p < %p", funcname, bp, &bp->storage, bp->last,
 		    bp->endp);
@@ -354,6 +354,8 @@ alloc(size_t nmemb, size_t size, PArea ap)
 		bsz = bp->endp - (char *)bp;
 		safe_muladd((size_t)2, bsz, 0);
 		safe_realloc(bp, bsz);
+		bp->last = (char *)bp + (bsz / 2);
+		bp->endp = (char *)bp + bsz;
 
 		/* “bp” has possibly changed, enter its new value into ap */
 		ap->bp.pv = (char *)bp;
