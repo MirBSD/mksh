@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.3 2008/11/12 05:05:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.4 2008/11/12 05:11:05 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -37,7 +37,7 @@ typedef /* unsigned */ ptrdiff_t TCookie;
 
 typedef union {
 	TCookie iv;
-	void *pv;
+	char *pv;
 } TPtr;
 
 /*
@@ -54,8 +54,8 @@ typedef union {
 
 struct TBlock {
 	TCookie cookie;
-	void *endp;
-	void *last;
+	char *endp;
+	char *last;
 	void *storage;
 };
 typedef struct TBlock *PBlock;
@@ -172,11 +172,11 @@ anew(void)
 	} while (!(bp->cookie & PVMASK));
 
 	/* first byte after block */
-	bp->endp = bp + AALLOC_INITSZ;		/* bp + size of the block */
+	bp->endp = (char *)bp + AALLOC_INITSZ;	/* bp + size of the block */
 	/* next entry (forward pointer) available for new allocation */
-	bp->last = &bp->storage;		/* first entry */
+	bp->last = (char *)&bp->storage;	/* first entry */
 
-	ap->bp.pv = bp;
+	ap->bp.pv = (char *)bp;
 	ap->bp.iv ^= gcookie;
 #ifdef AALLOC_TRACK
 	ap->prev.pv = track;
@@ -203,7 +203,7 @@ check_bp(PArea ap, const char *funcname, TCookie ocookie)
 		return (NULL);
 	}
 	p.iv = ap->bp.iv ^ gcookie;
-	if ((ptrdiff_t)(bp = p.pv) & PVMASK) {
+	if ((ptrdiff_t)(bp = (PBlock)p.pv) & PVMASK) {
 		AALLOC_WARN("%s: area %p block pointer destroyed: %08tX",
 		    funcname, ap, p.iv);
 		return (NULL);
@@ -219,12 +219,12 @@ check_bp(PArea ap, const char *funcname, TCookie ocookie)
 		    funcname, bp, bp->endp, bp->last);
 		return (NULL);
 	}
-	if (bp->endp < (void *)bp) {
+	if (bp->endp < (char *)bp) {
 		AALLOC_WARN("%s: block %p end pointer out of bounds: %p",
 		    funcname, bp, bp->endp);
 		return (NULL);
 	}
-	if ((bp->last < (void *)&bp->storage) || (bp->last >= bp->endp)) {
+	if ((bp->last < (char *)&bp->storage) || (bp->last >= bp->endp)) {
 		AALLOC_WARN("%s: block %p last pointer out of bounds: "
 		    "%p < %p < %p", funcname, bp, &bp->storage, bp->last,
 		    bp->endp);
@@ -275,13 +275,13 @@ adelete_leak(PArea ap, PBlock bp)
 {
 	TPtr *cp;
 
-	while (bp->last > (void *)&bp->storage) {
+	while (bp->last > (char *)&bp->storage) {
 		bp->last -= PVALIGN;
 		cp = *((void **)bp->last);
 		cp->iv ^= bp->cookie;
 		AALLOC_WARN("leaking %s pointer %p in area %p (%p %tu)",
 		    cp->pv == bp->last ? "valid" : "underflown",
-		    (char *)cp + PVALIGN, ap, bp, bp->endp - (void *)bp);
+		    (char *)cp + PVALIGN, ap, bp, bp->endp - (char *)bp);
 		free(cp);
 	}
 }
@@ -296,7 +296,7 @@ adelete(PArea *pap)
 
 	/* ignore invalid areas */
 	if ((bp = check_bp(*pap, "adelete", 0)) == NULL) {
-		if (bp->last != &bp->storage)
+		if (bp->last != (char *)&bp->storage)
 			adelete_leak(*pap, bp);
 		free(bp);
 	}
@@ -351,12 +351,12 @@ alloc(size_t nmemb, size_t size, PArea ap)
 		size_t bsz;
 
 		/* make room for more forward ptrs in the block allocation */
-		bsz = bp->endp - (void *)bp;
+		bsz = bp->endp - (char *)bp;
 		safe_muladd((size_t)2, bsz, 0);
 		safe_realloc(bp, bsz);
 
 		/* “bp” has possibly changed, enter its new value into ap */
-		ap->bp.pv = bp;
+		ap->bp.pv = (char *)bp;
 		ap->bp.iv ^= gcookie;
 	}
 	*((void **)bp->last) = ptr;	/* next available forward ptr */
@@ -424,7 +424,7 @@ check_ptr(void *vp, PArea ap, PBlock *bpp, const char *what, const char *extra)
 	if ((bp = check_bp(ap, what, 0)) == NULL)
 		AALLOC_ABORT("cannot continue");
 	ptr->iv ^= bp->cookie;
-	if (ptr->pv < (void *)&bp->storage || ptr->pv >= bp->last) {
+	if (ptr->pv < (char *)&bp->storage || ptr->pv >= bp->last) {
 		AALLOC_WARN("trying to %s rogue pointer %p from area %p "
 		    "(block %p..%p), backpointer %p out of bounds%s",
 		    what + 1, vp, ap, bp, bp->last, ptr->pv, extra);
@@ -460,8 +460,9 @@ afree(void *vp, PArea ap)
 	bp->last -= PVALIGN;	/* mark the last forward pointer as free */
 	/* if our forward pointer was not the last one, relocate the latter */
 	if (ptr->pv < bp->last) {
-		TPtr *tmp = bp->last;	/* former last forward pointer */
+		TPtr *tmp;
 
+		tmp = (TPtr *)bp->last;	/* former last forward pointer */
 		tmp->pv = ptr->pv;	/* its backpointer to former our … */
 		tmp->iv ^= bp->cookie;	/* … forward pointer, and cookie it */
 
