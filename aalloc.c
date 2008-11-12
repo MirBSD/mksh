@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.6 2008/11/12 05:32:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.7 2008/11/12 05:34:20 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -135,7 +135,7 @@ anew(void)
 		    sizeof (TPtr), sizeof (TCookie), PVALIGN);
 	if (AALLOC_INITSZ < sizeof (struct TBlock))
 		AALLOC_ABORT("AALLOC_INITSZ constant too small: %zu < %zu",
-		    AALLOC_INITSZ, sizeof (struct TBlock));
+		    (size_t)AALLOC_INITSZ, sizeof (struct TBlock));
 #endif
 
 #ifdef AALLOC_MPROTECT
