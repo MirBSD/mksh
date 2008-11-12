@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.11 2008/11/12 05:46:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.12 2008/11/12 05:55:43 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -79,7 +79,7 @@ static void track_check(void);
 #ifdef AALLOC_MPROTECT
 #undef AALLOC_INITSZ
 #define AALLOC_INITSZ		pagesz
-static size_t pagesz;
+static long pagesz;
 #define AALLOC_ALLOW(bp)	mprotect((bp), (bp)->endp - (char *)(bp), \
 				    PROT_READ | PROT_WRITE)
 #define AALLOC_DENY(bp)		mprotect((bp), (bp)->endp - (char *)(bp), \
@@ -100,8 +100,8 @@ static size_t pagesz;
 
 #define safe_realloc(dest, len) do {					\
 	if (((dest) = realloc((dest), (len))) == NULL)			\
-		AALLOC_ABORT("unable to allocate %zu bytes: %s",	\
-		    (len), strerror(errno));				\
+		AALLOC_ABORT("unable to allocate %lu bytes: %s",	\
+		    (unsigned long)(len), strerror(errno));		\
 	if ((ptrdiff_t)(dest) & PVMASK)					\
 		AALLOC_ABORT("unaligned malloc result: %p", (dest));	\
 } while (/* CONSTCOND */ 0)
@@ -110,12 +110,12 @@ static size_t pagesz;
 #define safe_muladd(nmemb, size, extra) do {				\
 	if ((nmemb >= MUL_NO_OVERFLOW || size >= MUL_NO_OVERFLOW) &&	\
 	    nmemb > 0 && SIZE_MAX / nmemb < size)			\
-		AALLOC_ABORT("attempted integer overflow:"		\
-		    " %zu * %zu", nmemb, size);				\
+		AALLOC_ABORT("attempted integer overflow: %lu * %lu",	\
+		    (unsigned long)nmemb, (unsigned long)size);		\
 	size *= nmemb;							\
 	if (size >= SIZE_MAX - extra)					\
-		AALLOC_ABORT("unable to allocate %zu bytes: %s",	\
-		    size, "value plus extra too big");			\
+		AALLOC_ABORT("unable to allocate %lu bytes: %s",	\
+		    (unsigned long)size, "value plus extra too big");	\
 	size += extra;							\
 } while (/* CONSTCOND */ 0)
 
@@ -131,20 +131,22 @@ anew(void)
 
 #ifdef AALLOC_DEBUG
 	if (PVALIGN != 2 && PVALIGN != 4 && PVALIGN != 8 && PVALIGN != 16)
-		AALLOC_ABORT("PVALIGN not a power of two: %zu", PVALIGN);
+		AALLOC_ABORT("PVALIGN not a power of two: %lu",
+		    (unsigned long)PVALIGN);
 	if (sizeof (TPtr) != sizeof (TCookie) || sizeof (TPtr) != PVALIGN)
-		AALLOC_ABORT("TPtr sizes do not match: %zu, %zu, %zu",
-		    sizeof (TPtr), sizeof (TCookie), PVALIGN);
+		AALLOC_ABORT("TPtr sizes do not match: %lu, %lu, %lu",
+		    (unsigned long)sizeof (TPtr),
+		    (unsigned long)sizeof (TCookie), (unsigned long)PVALIGN);
 	if (AALLOC_INITSZ < sizeof (struct TBlock))
-		AALLOC_ABORT("AALLOC_INITSZ constant too small: %zu < %zu",
-		    (size_t)AALLOC_INITSZ, sizeof (struct TBlock));
+		AALLOC_ABORT("AALLOC_INITSZ constant too small: %lu < %lu",
+		    (unsigned long)AALLOC_INITSZ,
+		    (unsigned long)sizeof (struct TBlock));
 #endif
 
 #ifdef AALLOC_MPROTECT
 	if (!pagesz) {
-		if ((pagesz = sysconf(_SC_PAGESIZE)) == (size_t)-1 ||
-		    pagesz < PVALIGN)
-			AALLOC_ABORT("sysconf(_SC_PAGESIZE) failed: %zd %s",
+		if ((pagesz = sysconf(_SC_PAGESIZE)) == -1 || pagesz < PVALIGN)
+			AALLOC_ABORT("sysconf(_SC_PAGESIZE) failed: %ld %s",
 			    pagesz, strerror(errno));
 	}
 #endif
@@ -166,7 +168,7 @@ anew(void)
 	}
 
 	ap = NULL; safe_realloc(ap, sizeof (struct TArea));
-	bp = NULL; safe_realloc(bp, (size_t)AALLOC_INITSZ);
+	bp = NULL; safe_realloc(bp, AALLOC_INITSZ);
 	/* ensure unaligned cookie */
 	bp->cookie = 0;
 //	do {
@@ -206,14 +208,14 @@ check_bp(PArea ap, const char *funcname, TCookie ocookie)
 	}
 	p.iv = ap->bp.iv ^ gcookie;
 	if ((ptrdiff_t)(bp = (PBlock)p.pv) & PVMASK) {
-		AALLOC_WARN("%s: area %p block pointer destroyed: %08tX",
-		    funcname, ap, p.iv);
+		AALLOC_WARN("%s: area %p block pointer destroyed: %p",
+		    funcname, ap, p.pv);
 		return (NULL);
 	}
 	AALLOC_PEEK(bp);
 	if (ocookie && bp->cookie != ocookie) {
-		AALLOC_WARN("%s: block %p cookie destroyed: %08tX, %08tX",
-		    funcname, bp, ocookie, bp->cookie);
+		AALLOC_WARN("%s: block %p cookie destroyed: %p, %p",
+		    funcname, bp, (void *)ocookie, (void *)bp->cookie);
 		return (NULL);
 	}
 	if (((ptrdiff_t)bp->endp & PVMASK) || ((ptrdiff_t)bp->last & PVMASK)) {
@@ -253,15 +255,15 @@ track_check(void)
 		if ((ap->prev.iv & PVMASK) || !ap->ocookie) {
 			/* buffer overflow or something? */
 			AALLOC_WARN("AALLOC_TRACK data structure %p destroyed:"
-			    " %p, %08tX, %08tX", ap, ap->prev.pv,
-			    ap->bp.iv, ap->ocookie);
+			    " %p, %p, %p; exiting", ap, ap->prev.pv,
+			    ap->bp.pv, (void *)ap->ocookie);
 			return;
 		}
 		if (!(bp = check_bp(ap, "atexit:track_check", ap->ocookie)))
 			goto track_next;
 		if (bp->last == (char *)&bp->storage) {
-			AALLOC_WARN("leaking empty area %p (%p %tu)", ap,
-			    bp, bp->endp - (char *)bp);
+			AALLOC_WARN("leaking empty area %p (%p %lu)", ap,
+			    bp, (unsigned long)(bp->endp - (char *)bp));
 		} else
 			adelete_leak(ap, bp);
 		free(bp);
@@ -281,9 +283,10 @@ adelete_leak(PArea ap, PBlock bp)
 		bp->last -= PVALIGN;
 		cp = *((void **)bp->last);
 		cp->iv ^= bp->cookie;
-		AALLOC_WARN("leaking %s pointer %p in area %p (%p %tu)",
+		AALLOC_WARN("leaking %s pointer %p in area %p (%p %lu)",
 		    cp->pv == bp->last ? "valid" : "underflown",
-		    (char *)cp + PVALIGN, ap, bp, bp->endp - (char *)bp);
+		    (char *)cp + PVALIGN, ap, bp,
+		    (unsigned long)(bp->endp - (char *)bp));
 		free(cp);
 	}
 }
@@ -316,8 +319,8 @@ adelete(PArea *pap)
 		lp.iv = tp->prev.iv ^ gcookie;
 		if ((lp.iv & PVMASK) || !tp->ocookie) {
 			AALLOC_WARN("AALLOC_TRACK data structure %p destroyed:"
-			    " %p, %08tX, %08tX", tp, tp->prev.pv,
-			    tp->bp.iv, tp->ocookie);
+			    " %p, %p, %p", tp, tp->prev.pv, tp->bp.pv,
+			    (void *)tp->ocookie);
 			tp = NULL;
 			break;
 		}
@@ -355,7 +358,7 @@ alloc(size_t nmemb, size_t size, PArea ap)
 
 		/* make room for more forward ptrs in the block allocation */
 		bsz = bp->endp - (char *)bp;
-		safe_muladd((size_t)2, bsz, 0);
+		safe_muladd(2, bsz, 0);
 		safe_realloc(bp, bsz);
 		bp->last = (char *)bp + (bsz / 2);
 		bp->endp = (char *)bp + bsz;
