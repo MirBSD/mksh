@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.13 2008/11/12 06:05:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.14 2008/11/12 06:10:51 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -69,7 +69,9 @@ struct TArea {
 };
 
 static TCookie gcookie;
-static TCookie gcookie_;
+#ifdef AALLOC_NO_COOKIES
+static TCookie fake_cookie;
+#endif
 
 #ifdef AALLOC_TRACK
 static PArea track;
@@ -152,14 +154,17 @@ anew(void)
 		    (unsigned long)sizeof (struct TBlock));
 #endif
 
-	if (!gcookie_) {
+#ifdef AALLOC_NO_COOKIES
+#define gcookie fake_cookie
+#endif
+	if (!gcookie) {
 		size_t v;
 
 		/* ensure unaligned cookie */
 		do {
-			gcookie_ = AALLOC_RANDOM();
+			gcookie = AALLOC_RANDOM();
 			v = AALLOC_RANDOM() & 7;
-		} while (!(gcookie_ & PVMASK) || !v);
+		} while (!(gcookie & PVMASK) || !v);
 		/* randomise seed afterwards */
 		while (v--)
 			AALLOC_RANDOM();
@@ -167,14 +172,18 @@ anew(void)
 		atexit(track_check);
 #endif
 	}
+#undef gcookie
 
 	ap = NULL; safe_realloc(ap, sizeof (struct TArea));
 	bp = NULL; safe_realloc(bp, AALLOC_INITSZ);
 	/* ensure unaligned cookie */
+#ifdef AALLOC_NO_COOKIES
 	bp->cookie = 0;
-//	do {
-//		bp->cookie = AALLOC_RANDOM();
-//	} while (!(bp->cookie & PVMASK));
+#else
+	do {
+		bp->cookie = AALLOC_RANDOM();
+	} while (!(bp->cookie & PVMASK));
+#endif
 
 	/* first byte after block */
 	bp->endp = (char *)bp + AALLOC_INITSZ;	/* bp + size of the block */
@@ -253,7 +262,11 @@ track_check(void)
 		ap = track;
 		ap->ocookie ^= gcookie;
 		ap->prev.iv ^= gcookie;
-		if ((ap->prev.iv & PVMASK) || !ap->ocookie) {
+		if ((ap->prev.iv & PVMASK)
+#ifndef AALLOC_NO_COOKIES
+		    || !(ap->ocookie & PVMASK)
+#endif
+		    ) {
 			/* buffer overflow or something? */
 			AALLOC_WARN("AALLOC_TRACK data structure %p destroyed:"
 			    " %p, %p, %p; exiting", ap, ap->prev.pv,
@@ -318,7 +331,11 @@ adelete(PArea *pap)
 	while (tp) {
 		TPtr lp;
 		lp.iv = tp->prev.iv ^ gcookie;
-		if ((lp.iv & PVMASK) || !tp->ocookie) {
+		if ((lp.iv & PVMASK)
+#ifndef AALLOC_NO_COOKIES
+		    || !(tp->ocookie & PVMASK)
+#endif
+		    ) {
 			AALLOC_WARN("AALLOC_TRACK data structure %p destroyed:"
 			    " %p, %p, %p", tp, tp->prev.pv, tp->bp.pv,
 			    (void *)tp->ocookie);
