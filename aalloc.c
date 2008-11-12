@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.9 2008/11/12 05:45:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.10 2008/11/12 05:46:14 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -30,7 +30,7 @@ __RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.9 2008/11/12 05:45:28 tg Exp $");
 #define PVMASK			(sizeof (void *) - 1)
 
 #ifndef AALLOC_INITSZ
-#define AALLOC_INITSZ		64	/* must hold at least 4 pointers */
+#define AALLOC_INITSZ		(64 * PVALIGN)	/* at least 4 pointers */
 #endif
 
 typedef /* unsigned */ ptrdiff_t TCookie;
