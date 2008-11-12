@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.18 2008/11/12 06:38:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.19 2008/11/12 06:42:22 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -279,7 +279,11 @@ track_check(void)
 			AALLOC_WARN("leaking empty area %p (%p %lu)", ap,
 			    bp, (unsigned long)(bp->endp - (char *)bp));
 		} else
+#ifdef MKSH_VERSION	/* allowed to leak silently */
+			adelete_leak(ap, bp, false, "at exit");
+#else
 			adelete_leak(ap, bp, true, "at exit");
+#endif
 		free(bp);
  track_next:
 		track = (PArea)ap->prev.pv;
