@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.108 2008/11/12 00:27:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.109 2008/11/12 00:54:49 tg Exp $");
 
 extern char **environ;
 
@@ -131,7 +131,7 @@ main(int argc, const char *argv[])
 #else
 #ifdef _CS_PATH
 	if ((k = confstr(_CS_PATH, NULL, 0)) != (size_t)-1 && k > 0 &&
-	    confstr(_CS_PATH, cp = alloc(k + 1, APERM), k + 1) == k + 1)
+	    confstr(_CS_PATH, cp = alloc(1, k + 1, APERM), k + 1) == k + 1)
 		def_path = cp;
 	else
 #endif
@@ -607,7 +607,7 @@ newenv(int type)
 {
 	struct env *ep;
 
-	ep = (struct env *)alloc(sizeof (*ep), ATEMP);
+	ep = alloc(1, sizeof (struct env), ATEMP);
 	ep->type = type;
 	ep->flags = 0;
 	ep->areap = anew();
@@ -1153,7 +1153,7 @@ maketemp(PArea ap, Temp_type type, struct temp **tlist)
 	pathname = tempnam(dir, "mksh.");
 	len = ((pathname == NULL) ? 0 : strlen(pathname)) + 1;
 #endif
-	tp = (struct temp *)alloc(sizeof (struct temp) + len, ap);
+	tp = alloc(1, sizeof (struct temp) + len, ap);
 	tp->name = (char *)&tp[1];
 #if !HAVE_MKSTEMP
 	if (pathname == NULL)
@@ -1213,7 +1213,7 @@ texpand(struct table *tp, int nsize)
 	struct tbl **ntblp, **otblp = tp->tbls;
 	int osize = tp->size;
 
-	ntblp = (struct tbl **)alloc(sizeofN(struct tbl *, nsize), tp->areap);
+	ntblp = alloc(nsize, sizeof (struct tbl *), tp->areap);
 	for (i = 0; i < nsize; i++)
 		ntblp[i] = NULL;
 	tp->size = nsize;
@@ -1231,10 +1231,10 @@ texpand(struct table *tp, int nsize)
 				*p = tblp;
 				tp->nfree--;
 			} else if (!(tblp->flag & FINUSE)) {
-				afree((void *)tblp, tp->areap);
+				afree(tblp, tp->areap);
 			}
 		}
-	afree((void *)otblp, tp->areap);
+	afree(otblp, tp->areap);
 }
 
 /* table */
@@ -1286,8 +1286,7 @@ ktenter(struct table *tp, const char *n, unsigned int h)
 	}
 	/* create new tbl entry */
 	len = strlen(n) + 1;
-	p = (struct tbl *)alloc(offsetof(struct tbl, name[0])+len,
-	    tp->areap);
+	p = alloc(1, offsetof(struct tbl, name[0]) + len, tp->areap);
 	p->flag = 0;
 	p->type = 0;
 	p->areap = tp->areap;
@@ -1334,7 +1333,7 @@ ktsort(struct table *tp)
 	size_t i;
 	struct tbl **p, **sp, **dp;
 
-	p = (struct tbl **)alloc(sizeofN(struct tbl *, tp->size + 1), ATEMP);
+	p = alloc(tp->size + 1, sizeof (struct tbl *), ATEMP);
 	sp = tp->tbls;		/* source */
 	dp = p;			/* dest */
 	for (i = 0; i < (size_t)tp->size; i++)

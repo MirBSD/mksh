@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.29 2008/11/09 19:48:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.30 2008/11/12 00:54:51 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -170,7 +170,7 @@ synio(int cf)
 		iop->name = yylval.cp;
 
 	if (iop->flag & IOBASH) {
-		nextiop = (struct ioword *)alloc(sizeof (*iop), ATEMP);
+		nextiop = alloc(1, sizeof (*iop), ATEMP);
 
 		iop->flag &= ~IOBASH;
 		nextiop->unit = 2;
@@ -204,8 +204,7 @@ get_command(int cf)
 	XPtrV args, vars;
 	struct nesting_state old_nesting;
 
-	iops = (struct ioword **)alloc(sizeofN(struct ioword *, NUFILE+1),
-	    ATEMP);
+	iops = alloc(NUFILE + 1, sizeof (struct ioword *), ATEMP);
 	XPinit(args, 16);
 	XPinit(vars, 16);
 
@@ -213,7 +212,7 @@ get_command(int cf)
 	switch (c = token(cf|KEYWORD|ALIAS|VARASN)) {
 	default:
 		REJECT;
-		afree((void*) iops, ATEMP);
+		afree(iops, ATEMP);
 		XPfree(args);
 		XPfree(vars);
 		return NULL; /* empty line */
@@ -412,7 +411,7 @@ get_command(int cf)
 		syniocf &= ~(KEYWORD|ALIAS);
 		t = pipeline(0);
 		if (t) {
-			t->str = alloc(2, ATEMP);
+			t->str = alloc(1, 2, ATEMP);
 			t->str[0] = '\0';	/* TF_* flags */
 			t->str[1] = '\0';
 		}
@@ -432,12 +431,11 @@ get_command(int cf)
 	}
 
 	if (iopn == 0) {
-		afree((void*)iops, ATEMP);
+		afree(iops, ATEMP);
 		t->ioact = NULL;
 	} else {
 		iops[iopn++] = NULL;
-		iops = (struct ioword **) aresize((void*) iops,
-		    sizeofN(struct ioword *, iopn), ATEMP);
+		iops = aresize(iops, iopn, sizeof (struct ioword *), ATEMP);
 		t->ioact = iops;
 	}
 
@@ -612,14 +610,13 @@ function_body(char *name,
 		 * be used as input), we pretend there is a colon here.
 		 */
 		t->left = newtp(TCOM);
-		t->left->args = (const char **)alloc(sizeof (char *) * 2,
-		    ATEMP);
-		t->left->args[0] = tv = alloc(sizeof (char) * 3, ATEMP);
+		t->left->args = alloc(2, sizeof (char *), ATEMP);
+		t->left->args[0] = tv = alloc(3, sizeof (char), ATEMP);
 		tv[0] = CHAR;
 		tv[1] = ':';
 		tv[2] = EOS;
 		t->left->args[1] = NULL;
-		t->left->vars = (char **)alloc(sizeof (char *), ATEMP);
+		t->left->vars = alloc(1, sizeof (char *), ATEMP);
 		t->left->vars[0] = NULL;
 		t->left->lineno = 1;
 	}
@@ -796,7 +793,7 @@ newtp(int type)
 {
 	struct op *t;
 
-	t = (struct op *)alloc(sizeof (*t), ATEMP);
+	t = alloc(1, sizeof (struct op), ATEMP);
 	t->type = type;
 	t->u.evalflags = 0;
 	t->args = NULL;

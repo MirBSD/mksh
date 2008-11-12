@@ -29,7 +29,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.10 2008/11/12 00:27:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.11 2008/11/12 00:54:46 tg Exp $");
 
 struct link {
 	struct link *prev;
@@ -68,9 +68,11 @@ adelete(PArea *pap)
 #define P2L(p)	( (struct link *)(((ptrdiff_t)(p)) - sizeof (struct link)) )
 
 void *
-alloc(size_t size, PArea ap)
+alloc(size_t nmemb, size_t size, PArea ap)
 {
 	struct link *l;
+
+	size *= nmemb;
 
 	if ((l = malloc(sizeof (struct link) + size)) == NULL)
 		internal_errorf("unable to allocate memory");
@@ -84,12 +86,14 @@ alloc(size_t size, PArea ap)
 }
 
 void *
-aresize(void *ptr, size_t size, PArea ap)
+aresize(void *ptr, size_t nmemb, size_t size, PArea ap)
 {
 	struct link *l, *l2, *lprev, *lnext;
 
 	if (ptr == NULL)
-		return (alloc(size, ap));
+		return (alloc(nmemb, size, ap));
+
+	size *= nmemb;
 
 	l = P2L(ptr);
 	lprev = l->prev;

@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.74 2008/11/09 20:32:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.75 2008/11/12 00:54:48 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -68,7 +68,7 @@ c_fc(const char **wp)
 				sflag++;
 			else {
 				size_t len = strlen(p);
-				editor = alloc(len + 4, ATEMP);
+				editor = alloc(1, len + 4, ATEMP);
 				memcpy(editor, p, len);
 				memcpy(editor + len, " $_", 4);
 			}
@@ -414,7 +414,7 @@ histbackup(void)
 
 	if (histptr >= history && last_line != hist_source->line) {
 		hist_source->line--;
-		afree((void*)*histptr, APERM);
+		afree(*histptr, APERM);
 		histptr--;
 		last_line = hist_source->line;
 	}
@@ -504,7 +504,7 @@ sethistsize(int n)
 			cursize = n;
 		}
 
-		history = (char **)aresize(history, n*sizeof(char *), APERM);
+		history = aresize(history, n, sizeof (char *), APERM);
 
 		histsize = n;
 		histptr = history + cursize;
@@ -555,7 +555,7 @@ init_histvec(void)
 {
 	if (history == (char **)NULL) {
 		histsize = HISTORYSIZE;
-		history = (char **)alloc(histsize * sizeof (char *), APERM);
+		history = alloc(histsize, sizeof (char *), APERM);
 		histptr = history - 1;
 	}
 }
@@ -597,7 +597,7 @@ histsave(int *lnp, const char *cmd, bool dowrite __unused, bool ignoredups)
 	hp = histptr;
 
 	if (++hp >= history + histsize) { /* remove oldest command */
-		afree((void*)*history, APERM);
+		afree(*history, APERM);
 		for (hp = history; hp < history + histsize - 1; hp++)
 			hp[0] = hp[1];
 	}
@@ -884,7 +884,7 @@ histinsert(Source *s, int lno, const char *line)
 	if (lno >= s->line - (histptr - history) && lno <= s->line) {
 		hp = &histptr[lno - s->line];
 		if (*hp)
-			afree((void*)*hp, APERM);
+			afree(*hp, APERM);
 		strdupx(*hp, line, APERM);
 	}
 }

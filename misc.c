@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.90 2008/11/11 23:50:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.91 2008/11/12 00:54:50 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -70,7 +70,7 @@ Xcheck_grow_(XString *xsp, const char *xp, unsigned int more)
 	const char *old_beg = xsp->beg;
 
 	xsp->len += more > xsp->len ? more : xsp->len;
-	xsp->beg = aresize(xsp->beg, xsp->len + 8, xsp->areap);
+	xsp->beg = aresize(xsp->beg, 1, xsp->len + 8, xsp->areap);
 	xsp->end = xsp->beg + xsp->len;
 	return xsp->beg + (xp - old_beg);
 }
@@ -493,8 +493,7 @@ gmatchx(const char *s, const char *p, bool isfile)
 	if (!isfile && !has_globbing(p, pe)) {
 		size_t len = pe - p + 1;
 		char tbuf[64];
-		char *t = len <= sizeof(tbuf) ? tbuf :
-		    (char *)alloc(len, ATEMP);
+		char *t = len <= sizeof(tbuf) ? tbuf : alloc(1, len, ATEMP);
 		debunk(t, p, len);
 		return !strcmp(t, s);
 	}
@@ -934,7 +933,7 @@ print_columns(struct shf *shf, int n,
     char *(*func) (const void *, int, char *, int),
     const void *arg, int max_width, int prefcol)
 {
-	char *str = (char *)alloc(max_width + 1, ATEMP);
+	char *str = alloc(1, max_width + 1, ATEMP);
 	int i, r, c, rows, cols, nspace;
 
 	/* max_width + 1 for the space.  Note that no space
@@ -1049,8 +1048,8 @@ ksh_get_wd(size_t *dlen)
 	char *ret, *b;
 	size_t len = 1;
 
-	if ((ret = getcwd((b = alloc(PATH_MAX + 1, ATEMP)), PATH_MAX)))
-		ret = aresize(b, len = (strlen(b) + 1), ATEMP);
+	if ((ret = getcwd((b = alloc(1, PATH_MAX + 1, ATEMP)), PATH_MAX)))
+		ret = aresize(b, 1, len = (strlen(b) + 1), ATEMP);
 	else
 		afree(b, ATEMP);
 
@@ -1228,8 +1227,10 @@ set_current_wd(char *pathl)
 	} else
 		len = strlen(p) + 1;
 
-	if (len > current_wd_size)
-		current_wd = aresize(current_wd, current_wd_size = len, APERM);
+	if (len > current_wd_size) {
+		afree(current_wd, APERM);
+		current_wd = alloc(1, current_wd_size = len, APERM);
+	}
 	memcpy(current_wd, p, len);
 	if (p != pathl && p != null)
 		afree(p, ATEMP);
@@ -1430,7 +1431,7 @@ strndup_(const char *src, size_t len, PArea ap)
 	char *dst = NULL;
 
 	if (src != NULL) {
-		dst = alloc(++len, ap);
+		dst = alloc(1, ++len, ap);
 		strlcpy(dst, src, len);
 	}
 	return (dst);

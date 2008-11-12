@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.91 2008/11/12 00:27:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.92 2008/11/12 00:54:48 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -202,7 +202,7 @@ c_cd(const char **wp)
 		olen = strlen(wp[0]);
 		nlen = strlen(wp[1]);
 		elen = strlen(current_wd + ilen + olen) + 1;
-		dir = allocd = alloc(ilen + nlen + elen, ATEMP);
+		dir = allocd = alloc(1, ilen + nlen + elen, ATEMP);
 		memcpy(dir, current_wd, ilen);
 		memcpy(dir + ilen, wp[1], nlen);
 		memcpy(dir + ilen + nlen, current_wd + ilen + olen, elen);
@@ -1102,7 +1102,7 @@ c_alias(const char **wp)
 		if ((val && !tflag) || (!val && tflag && !Uflag)) {
 			if (ap->flag&ALLOC) {
 				ap->flag &= ~(ALLOC|ISSET);
-				afree((void*)ap->val.s, APERM);
+				afree(ap->val.s, APERM);
 			}
 			/* ignore values for -t (at&t ksh does this) */
 			newval = tflag ? search(alias, path, X_OK, NULL) : val;
@@ -1159,7 +1159,7 @@ c_unalias(const char **wp)
 		}
 		if (ap->flag&ALLOC) {
 			ap->flag &= ~(ALLOC|ISSET);
-			afree((void*)ap->val.s, APERM);
+			afree(ap->val.s, APERM);
 		}
 		ap->flag &= ~(DEFINED|ISSET|EXPORT);
 	}
@@ -1170,7 +1170,7 @@ c_unalias(const char **wp)
 		for (ktwalk(&ts, t); (ap = ktnext(&ts)); ) {
 			if (ap->flag&ALLOC) {
 				ap->flag &= ~(ALLOC|ISSET);
-				afree((void*)ap->val.s, APERM);
+				afree(ap->val.s, APERM);
 			}
 			ap->flag &= ~(DEFINED|ISSET|EXPORT);
 		}
@@ -2113,8 +2113,7 @@ c_set(const char **wp)
 		while (*++wp != NULL)
 			strdupx(*wp, *wp, l->areap);
 		l->argc = wp - owp - 1;
-		l->argv = (const char **)alloc(sizeofN(char *, l->argc+2),
-		     l->areap);
+		l->argv = alloc(l->argc + 2, sizeof (char *), l->areap);
 		for (wp = l->argv; (*wp++ = *owp++) != NULL; )
 			;
 	}
@@ -3065,7 +3064,7 @@ c_realpath(const char **wp)
 	else {
 		char *buf;
 
-		if (realpath(*wp, (buf = alloc(PATH_MAX, ATEMP))) == NULL) {
+		if (realpath(*wp, (buf = alloc(1, PATH_MAX, ATEMP))) == NULL) {
 			rv = errno;
 			bi_errorf("%s: %s", *wp, strerror(rv));
 		} else

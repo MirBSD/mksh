@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.22 2008/10/10 21:30:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.23 2008/11/12 00:54:51 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -29,7 +29,7 @@ shf_open(const char *name, int oflags, int mode, int sflags)
 	int fd;
 
 	/* Done before open so if alloca fails, fd won't be lost. */
-	shf = (struct shf *)alloc(sizeof (struct shf) + bsize, ATEMP);
+	shf = alloc(1, sizeof (struct shf) + bsize, ATEMP);
 	shf->areap = ATEMP;
 	shf->buf = (unsigned char *)&shf[1];
 	shf->bsize = bsize;
@@ -92,12 +92,12 @@ shf_fdopen(int fd, int sflags, struct shf *shf)
 
 	if (shf) {
 		if (bsize) {
-			shf->buf = (unsigned char *)alloc(bsize, ATEMP);
+			shf->buf = alloc(1, bsize, ATEMP);
 			sflags |= SHF_ALLOCB;
 		} else
 			shf->buf = NULL;
 	} else {
-		shf = (struct shf *)alloc(sizeof (struct shf) + bsize, ATEMP);
+		shf = alloc(1, sizeof (struct shf) + bsize, ATEMP);
 		shf->buf = (unsigned char *)&shf[1];
 		sflags |= SHF_ALLOCS;
 	}
@@ -180,7 +180,7 @@ shf_sopen(char *buf, int bsize, int sflags, struct shf *shf)
 		internal_errorf("shf_sopen: flags 0x%x", sflags);
 
 	if (!shf) {
-		shf = (struct shf *)alloc(sizeof (struct shf), ATEMP);
+		shf = alloc(1, sizeof (struct shf), ATEMP);
 		sflags |= SHF_ALLOCS;
 	}
 	shf->areap = ATEMP;
@@ -188,7 +188,7 @@ shf_sopen(char *buf, int bsize, int sflags, struct shf *shf)
 		if (bsize <= 0)
 			bsize = 64;
 		sflags |= SHF_ALLOCB;
-		buf = alloc(bsize, shf->areap);
+		buf = alloc(1, bsize, shf->areap);
 	}
 	shf->fd = -1;
 	shf->buf = shf->rp = shf->wp = (unsigned char *)buf;
@@ -323,8 +323,7 @@ shf_emptybuf(struct shf *shf, int flags)
 		    !(shf->flags & SHF_ALLOCB))
 			return EOF;
 		/* allocate more space for buffer */
-		nbuf = (unsigned char *)aresize(shf->buf, shf->wbsize * 2,
-		    shf->areap);
+		nbuf = aresize(shf->buf, 2, shf->wbsize, shf->areap);
 		shf->rp = nbuf + (shf->rp - shf->buf);
 		shf->wp = nbuf + (shf->wp - shf->buf);
 		shf->rbsize += shf->wbsize;

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.59 2008/11/12 00:27:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.60 2008/11/12 00:54:52 tg Exp $");
 
 /*
  * Variables
@@ -37,7 +37,7 @@ newblock(void)
 	struct block *l;
 	static const char *empty[] = { null };
 
-	l = (struct block *)alloc(sizeof (struct block), ATEMP);
+	l = alloc(1, sizeof (struct block), ATEMP);
 	l->flags = 0;
 	l->areap = anew();	/* TODO: could use e->area */
 	if (!e->loc) {
@@ -367,7 +367,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 				internal_errorf(
 				    "setstr: %s=%s: assigning to self",
 				    vq->name, s);
-			afree((void*)vq->val.s, vq->areap);
+			afree(vq->val.s, vq->areap);
 		}
 		vq->flag &= ~(ISSET|ALLOC);
 		vq->type = 0;
@@ -523,7 +523,7 @@ formatstr(struct tbl *vp, const char *s)
 	} else
 		nlen = olen;
 
-	p = (char *)alloc((psiz = nlen * /* MB_LEN_MAX */ 3 + 1), ATEMP);
+	p = alloc(1, (psiz = nlen * /* MB_LEN_MAX */ 3 + 1), ATEMP);
 	if (vp->flag & (RJUST|LJUST)) {
 		int slen = olen, i = 0;
 
@@ -595,14 +595,14 @@ export(struct tbl *vp, const char *val)
 	int vallen = strlen(val) + 1;
 
 	vp->flag |= ALLOC;
-	xp = (char*)alloc(namelen + 1 + vallen, vp->areap);
+	xp = alloc(1, namelen + 1 + vallen, vp->areap);
 	memcpy(vp->val.s = xp, vp->name, namelen);
 	xp += namelen;
 	*xp++ = '=';
 	vp->type = xp - vp->val.s; /* offset to value */
 	memcpy(xp, val, vallen);
 	if (op != NULL)
-		afree((void*)op, vp->areap);
+		afree(op, vp->areap);
 }
 
 /*
@@ -721,14 +721,13 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 						t->flag &= ~ISSET;
 					else {
 						if (t->flag & ALLOC)
-							afree((void*) t->val.s,
-							    t->areap);
+							afree(t->val.s, t->areap);
 						t->flag &= ~(ISSET|ALLOC);
 						t->type = 0;
 					}
 				}
 				if (free_me)
-					afree((void *) free_me, t->areap);
+					afree(free_me, t->areap);
 			}
 		}
 		if (!ok)
@@ -762,7 +761,7 @@ void
 unset(struct tbl *vp, int array_ref)
 {
 	if (vp->flag & ALLOC)
-		afree((void*)vp->val.s, vp->areap);
+		afree(vp->val.s, vp->areap);
 	if ((vp->flag & ARRAY) && !array_ref) {
 		struct tbl *a, *tmp;
 
@@ -771,7 +770,7 @@ unset(struct tbl *vp, int array_ref)
 			tmp = a;
 			a = a->u.array;
 			if (tmp->flag & ALLOC)
-				afree((void *) tmp->val.s, tmp->areap);
+				afree(tmp->val.s, tmp->areap);
 			afree(tmp, tmp->areap);
 		}
 		vp->u.array = NULL;
@@ -1199,8 +1198,7 @@ arraysearch(struct tbl *vp, uint32_t val)
 		else
 			new = curr;
 	} else
-		new = (struct tbl *)alloc(sizeof (struct tbl) + namelen,
-		    vp->areap);
+		new = alloc(1, sizeof (struct tbl) + namelen, vp->areap);
 	strlcpy(new->name, vp->name, namelen);
 	new->flag = vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL);
 	new->type = vp->type;

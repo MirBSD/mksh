@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.143 2008/11/12 00:27:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.144 2008/11/12 00:54:46 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -400,7 +400,7 @@ x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 		int i, path_order = 0;
 
 		info = (struct path_order_info *)
-		    alloc(sizeof (struct path_order_info) * nwords, ATEMP);
+		    alloc(nwords, sizeof (struct path_order_info), ATEMP);
 		for (i = 0; i < nwords; i++) {
 			info[i].word = words[i];
 			info[i].base = x_basename(words[i], NULL);
@@ -415,7 +415,7 @@ x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 		    path_order_cmp);
 		for (i = 0; i < nwords; i++)
 			words[i] = info[i].word;
-		afree((void *)info, ATEMP);
+		afree(info, ATEMP);
 	} else {
 		/* Sort and remove duplicate entries */
 		char **words = (char **)XPptrv(w);
@@ -2450,7 +2450,7 @@ x_push(int nchars)
 
 	strndupx(cp, xcp, nchars, AEDIT);
 	if (killstack[killsp])
-		afree((void *)killstack[killsp], AEDIT);
+		afree(killstack[killsp], AEDIT);
 	killstack[killsp] = cp;
 	killsp = (killsp + 1) % KILLSIZE;
 }
@@ -2661,7 +2661,7 @@ x_bind(const char *a1, const char *a2,
 
 	if ((x_tab[prefix][key] & 0x7F) == XFUNC_ins_string &&
 	    x_atab[prefix][key])
-		afree((void *)x_atab[prefix][key], AEDIT);
+		afree(x_atab[prefix][key], AEDIT);
 	x_tab[prefix][key] = f | (hastilde ? 0x80 : 0);
 	x_atab[prefix][key] = sp;
 
@@ -2684,7 +2684,7 @@ x_init_emacs(void)
 	AEDIT = anew();
 	x_nextcmd = -1;
 
-	x_tab = (unsigned char (*)[X_TABSZ])alloc(sizeofN(*x_tab, X_NTABS), AEDIT);
+	x_tab = alloc(X_NTABS, sizeof (*x_tab), AEDIT);
 	for (j = 0; j < X_TABSZ; j++)
 		x_tab[0][j] = XFUNC_insert;
 	for (i = 1; i < X_NTABS; i++)
@@ -2694,7 +2694,7 @@ x_init_emacs(void)
 		x_tab[x_defbindings[i].xdb_tab][x_defbindings[i].xdb_char]
 		    = x_defbindings[i].xdb_func;
 
-	x_atab = (char *(*)[X_TABSZ])alloc(sizeofN(*x_atab, X_NTABS), AEDIT);
+	x_atab = alloc(X_NTABS, sizeof (*x_atab), AEDIT);
 	for (i = 1; i < X_NTABS; i++)
 		for (j = 0; j < X_TABSZ; j++)
 			x_atab[i][j] = NULL;
@@ -3600,8 +3600,8 @@ x_vi(char *buf, size_t len)
 
 	if (!wbuf_len || wbuf_len != x_cols - 3) {
 		wbuf_len = x_cols - 3;
-		wbuf[0] = aresize(wbuf[0], wbuf_len, APERM);
-		wbuf[1] = aresize(wbuf[1], wbuf_len, APERM);
+		wbuf[0] = aresize(wbuf[0], 1, wbuf_len, APERM);
+		wbuf[1] = aresize(wbuf[1], 1, wbuf_len, APERM);
 	}
 	(void)memset(wbuf[0], ' ', wbuf_len);
 	(void)memset(wbuf[1], ' ', wbuf_len);
@@ -4130,7 +4130,7 @@ vi_cmd(int argcnt, const char *cmd)
 				nlen = strlen(ap->val.s) + 1;
 				olen = !macro.p ? 2 :
 				    macro.len - (macro.p - macro.buf);
-				nbuf = alloc(nlen + 1 + olen, APERM);
+				nbuf = alloc(1, nlen + 1 + olen, APERM);
 				memcpy(nbuf, ap->val.s, nlen);
 				nbuf[nlen++] = cmd[1];
 				if (macro.p) {
@@ -4777,8 +4777,8 @@ save_edstate(struct edstate *old)
 {
 	struct edstate *new;
 
-	new = (struct edstate *)alloc(sizeof (struct edstate), APERM);
-	new->cbuf = alloc(old->cbufsize, APERM);
+	new = alloc(1, sizeof (struct edstate), APERM);
+	new->cbuf = alloc(1, old->cbufsize, APERM);
 	memcpy(new->cbuf, old->cbuf, old->linelen);
 	new->cbufsize = old->cbufsize;
 	new->linelen = old->linelen;
@@ -4801,7 +4801,7 @@ static void
 free_edstate(struct edstate *old)
 {
 	afree(old->cbuf, APERM);
-	afree((char *)old, APERM);
+	afree(old, APERM);
 }
 
 /*

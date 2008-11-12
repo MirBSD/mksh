@@ -103,7 +103,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.254 2008/11/12 00:27:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.255 2008/11/12 00:54:50 tg Exp $");
 #endif
 #define MKSH_VERSION "R36 2008/11/10"
 
@@ -363,7 +363,7 @@ char *ucstrstr(char *, const char *);
 									\
 	if (strdup_src != NULL) {					\
 		size_t strdup_len = strlen(strdup_src) + 1;		\
-		strdup_dst = alloc(strdup_len, (ap));			\
+		strdup_dst = alloc(1, strdup_len, (ap));		\
 		strlcpy(strdup_dst, strdup_src, strdup_len);		\
 	}								\
 	(d) = strdup_dst;						\
@@ -374,7 +374,7 @@ char *ucstrstr(char *, const char *);
 									\
 	if (strdup_src != NULL) {					\
 		size_t strdup_len = (n) + 1;				\
-		strdup_dst = alloc(strdup_len, (ap));			\
+		strdup_dst = alloc(1, strdup_len, (ap));		\
 		strlcpy(strdup_dst, strdup_src, strdup_len);		\
 	}								\
 	(d) = strdup_dst;						\
@@ -1065,7 +1065,7 @@ typedef char *XStringP;
 #define XinitN(xs, length, area) do {				\
 	(xs).len = (length);					\
 	(xs).areap = (area);					\
-	(xs).beg = alloc((xs).len + X_EXTRA, (xs).areap);	\
+	(xs).beg = alloc(1, (xs).len + X_EXTRA, (xs).areap);	\
 	(xs).end = (xs).beg + (xs).len;				\
 } while (0)
 #define Xinit(xs, xp, length, area) do {			\
@@ -1087,10 +1087,10 @@ typedef char *XStringP;
 #define Xcheck(xs, xp)	XcheckN((xs), (xp), 1)
 
 /* free string */
-#define Xfree(xs, xp)	afree((void*)(xs).beg, (xs).areap)
+#define Xfree(xs, xp)	afree((xs).beg, (xs).areap)
 
 /* close, return string */
-#define Xclose(xs, xp)	(char*)aresize((void*)(xs).beg, \
+#define Xclose(xs, xp)	aresize((void*)(xs).beg, 1, \
 			    (size_t)((xp) - (xs).beg), (xs).areap)
 /* begin of string */
 #define Xstring(xs, xp)	((xs).beg)
@@ -1114,16 +1114,16 @@ typedef struct XPtrV {
 
 #define XPinit(x, n) do {					\
 	void **vp__;						\
-	vp__ = (void**)alloc(sizeofN(void*, (n)), ATEMP);	\
+	vp__ = alloc((n), sizeof (void *), ATEMP);		\
 	(x).cur = (x).beg = vp__;				\
 	(x).end = vp__ + (n);					\
 } while (0)
 
 #define XPput(x, p) do {					\
 	if ((x).cur >= (x).end) {				\
-		int n = XPsize(x);				\
-		(x).beg = (void**) aresize((void*) (x).beg,	\
-		    sizeofN(void *, n * 2), ATEMP);		\
+		size_t n = XPsize(x);				\
+		(x).beg = aresize((void*)(x).beg,		\
+		    n * 2, sizeof (void *), ATEMP);		\
 		(x).cur = (x).beg + n;				\
 		(x).end = (x).cur + n;				\
 	}							\
@@ -1133,10 +1133,10 @@ typedef struct XPtrV {
 #define XPptrv(x)	((x).beg)
 #define XPsize(x)	((x).cur - (x).beg)
 
-#define XPclose(x)	(void**)aresize((void*)(x).beg, \
-			    sizeofN(void *, XPsize(x)), ATEMP)
+#define XPclose(x)	aresize((void*)(x).beg, \
+			    XPsize(x), sizeof (void *), ATEMP)
 
-#define XPfree(x)	afree((void *)(x).beg, ATEMP)
+#define XPfree(x)	afree((x).beg, ATEMP)
 
 #define IDENT	64
 
@@ -1248,11 +1248,11 @@ EXTERN int histsize;	/* history size */
 EXTERN struct timeval j_usrtime, j_systime;
 
 /* alloc.c */
-PArea anew(void);		/* cannot fail */
+PArea anew(void);			/* cannot fail */
 void adelete(PArea *);
-void *alloc(size_t, PArea);	/* cannot fail */
-void *aresize(void *, size_t, PArea);
-void afree(void *, PArea);	/* can take NULL */
+void *alloc(size_t, size_t, PArea);	/* cannot fail */
+void *aresize(void *, size_t, size_t, PArea);
+void afree(void *, PArea);		/* can take NULL */
 /* edit.c */
 void x_init(void);
 int x_read(char *, size_t);

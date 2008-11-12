@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.75 2008/11/11 23:50:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.76 2008/11/12 00:54:49 tg Exp $");
 
 /*
  * states while lexing word
@@ -776,8 +776,7 @@ yylex(int cf)
 
 	dp = Xstring(ws, wp);
 	if ((c == '<' || c == '>' || c == '&') && state == SBASE) {
-		struct ioword *iop = (struct ioword *)alloc(sizeof (*iop),
-		    ATEMP);
+		struct ioword *iop = alloc(1, sizeof (struct ioword), ATEMP);
 
 		if (Xlength(ws, wp) == 0)
 			iop->unit = c == '<' ? 0 : 1;
@@ -1035,7 +1034,7 @@ pushs(int type, PArea areap)
 {
 	Source *s;
 
-	s = (Source *)alloc(sizeof (Source), areap);
+	s = alloc(1, sizeof (Source), areap);
 	s->type = type;
 	s->str = null;
 	s->start = NULL;
@@ -1518,7 +1517,7 @@ getsc_bn(void)
 static Lex_state *
 push_state_(State_info *si, Lex_state *old_end)
 {
-	Lex_state *new = alloc(sizeof (Lex_state) * STATE_BSIZE, ATEMP);
+	Lex_state *new = alloc(STATE_BSIZE, sizeof (Lex_state), ATEMP);
 
 	new[0].ls_info.base = old_end;
 	si->base = &new[0];
