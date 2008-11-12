@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.17 2008/11/12 06:35:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.18 2008/11/12 06:38:08 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -121,7 +121,7 @@ static long pagesz;
 	size += extra;							\
 } while (/* CONSTCOND */ 0)
 
-static void adelete_leak(PArea, PBlock, const char *);
+static void adelete_leak(PArea, PBlock, bool, const char *);
 static PBlock check_bp(PArea, const char *, TCookie);
 static TPtr *check_ptr(void *, PArea, PBlock *, const char *, const char *);
 
@@ -279,7 +279,7 @@ track_check(void)
 			AALLOC_WARN("leaking empty area %p (%p %lu)", ap,
 			    bp, (unsigned long)(bp->endp - (char *)bp));
 		} else
-			adelete_leak(ap, bp, "at exit");
+			adelete_leak(ap, bp, true, "at exit");
 		free(bp);
  track_next:
 		track = (PArea)ap->prev.pv;
@@ -289,7 +289,7 @@ track_check(void)
 #endif
 
 static void
-adelete_leak(PArea ap, PBlock bp, const char *when)
+adelete_leak(PArea ap, PBlock bp, bool always_warn, const char *when)
 {
 	TPtr *cp;
 
@@ -297,6 +297,7 @@ adelete_leak(PArea ap, PBlock bp, const char *when)
 		bp->last -= PVALIGN;
 		cp = *((void **)bp->last);
 		cp->iv ^= bp->cookie;
+		if (always_warn || cp->pv != bp->last)
 		AALLOC_WARN("leaking %s pointer %p in area %p (%p %lu) %s",
 		    cp->pv == bp->last ? "valid" : "underflown",
 		    (char *)cp + PVALIGN, ap, bp,
@@ -316,7 +317,7 @@ adelete(PArea *pap)
 	/* ignore invalid areas */
 	if ((bp = check_bp(*pap, "adelete", 0)) != NULL) {
 		if (bp->last != (char *)&bp->storage)
-			adelete_leak(*pap, bp, "in adelete");
+			adelete_leak(*pap, bp, false, "in adelete");
 		free(bp);
 	}
 
