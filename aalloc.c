@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.25 2008/11/12 23:34:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.26 2008/11/15 07:35:23 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -138,7 +138,7 @@ static PBlock check_bp(PArea, const char *, TCookie);
 static TPtr *check_ptr(void *, PArea, PBlock *, const char *, const char *);
 
 PArea
-anew(void)
+anew(size_t hint)
 {
 	PArea ap;
 	PBlock bp;
@@ -164,6 +164,9 @@ anew(void)
 		AALLOC_ABORT("AALLOC_INITSZ constant too small: %lu < %lu",
 		    (unsigned long)AALLOC_INITSZ,
 		    (unsigned long)sizeof (struct TBlock));
+	if (hint != (1UL << (ffs(hint) - 1)))
+		AALLOC_ABORT("anew hint %lu not a power of two or too big",
+		    (unsigned long)hint);
 #endif
 
 	if (!global_cookie) {
@@ -182,8 +185,12 @@ anew(void)
 #endif
 	}
 
+	safe_muladd(sizeof (void *), hint, 0);
+	if (hint < sizeof (struct TBlock))
+		hint = AALLOC_INITSZ;
+
 	safe_malloc(ap, sizeof (struct TArea));
-	safe_malloc(bp, AALLOC_INITSZ);
+	safe_malloc(bp, hint);
 	/* ensure unaligned cookie */
 #ifdef AALLOC_NO_COOKIES
 	bp->cookie = 0;

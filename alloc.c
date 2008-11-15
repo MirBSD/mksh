@@ -29,7 +29,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.11 2008/11/12 00:54:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.12 2008/11/15 07:35:23 tg Exp $");
 
 struct link {
 	struct link *prev;
@@ -41,7 +41,7 @@ struct TArea {
 };
 
 PArea
-anew(void)
+anew(size_t hint __unused)
 {
 	PArea ap;
 
