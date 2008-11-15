@@ -1,8 +1,30 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.28 2008/11/15 07:59:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.29 2008/11/15 08:52:00 tg Exp $");
 
 /* mksh integration of aalloc */
+
+#if defined(AALLOC_STATS) && !defined(AALLOC_WARN)
+#define AALLOC_WARN		aalloc_warn
+static void aalloc_warn(const char *, ...)
+    __attribute__((format (printf, 1, 2)));
+static void
+aalloc_warn(const char *fmt, ...)
+{
+	va_list va;
+	FILE *of;
+
+	va_start(va, fmt);
+	if ((of = fopen("/tmp/aalloc.out", "ab+"))) {
+		fprintf(of, "%08X %5d: ", (unsigned int)time(NULL),
+		    (int)getpid());
+		vfprintf(of, fmt, va);
+		putc('\n', of);
+		fclose(of);
+	} else
+		internal_verrorf(fmt, va);
+}
+#endif
 
 #ifndef AALLOC_ABORT
 #define AALLOC_ABORT		internal_errorf
@@ -17,7 +39,9 @@ __RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.28 2008/11/15 07:59:46 tg Exp $");
 #define AALLOC_THREAD_LEAVE(ap)	/* nothing */
 #endif
 
+#ifndef AALLOC_LEAK_SILENT
 #define AALLOC_LEAK_SILENT	/* the code does not yet clean up at exit */
+#endif
 
 #ifndef AALLOC_RANDOM
 #if HAVE_ARC4RANDOM
@@ -27,11 +51,24 @@ __RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.28 2008/11/15 07:59:46 tg Exp $");
 #endif
 #endif
 
-#ifdef DEBUG
-#define AALLOC_DEBUG
+#undef AALLOC_SMALL
+#ifdef MKSH_SMALL
+#define AALLOC_SMALL		/* skip sanity checks */
+#endif
+
+#if defined(DEBUG) && !defined(AALLOC_DEBUG)
+#define AALLOC_DEBUG		/* add extra sanity checks */
 #endif
 
 /* generic area-based allocator built for mmap malloc or omalloc */
+
+#if defined(AALLOC_SMALL)
+#undef AALLOC_DEBUG
+#undef AALLOC_STATS
+#undef AALLOC_TRACE
+#elif defined(AALLOC_STATS) && !defined(AALLOC_TRACE)
+#define AALLOC_TRACE
+#endif
 
 #define PVALIGN			(sizeof (void *))
 #define PVMASK			(sizeof (void *) - 1)
@@ -72,6 +109,12 @@ struct TArea {
 #ifdef AALLOC_TRACK
 	TPtr prev;
 	TCookie ocookie;
+#ifdef AALLOC_STATS
+	const char *name;
+	unsigned long numalloc;
+	unsigned long maxalloc;
+	bool isfree;
+#endif
 #endif
 };
 
@@ -143,7 +186,11 @@ static PBlock check_bp(PArea, const char *, TCookie);
 static TPtr *check_ptr(void *, PArea, PBlock *, const char *, const char *);
 
 PArea
+#ifdef AALLOC_STATS
+anewEx(size_t hint, const char *friendly_name)
+#else
 anew(size_t hint)
+#endif
 {
 	PArea ap;
 	PBlock bp;
@@ -218,6 +265,12 @@ anew(size_t hint)
 	ap->prev.pv = (char *)track;
 	ap->prev.iv ^= gcookie;
 	ap->ocookie = bp->cookie ^ gcookie;
+#ifdef AALLOC_STATS
+	ap->name = friendly_name ? friendly_name : "(no name)";
+	ap->numalloc = 0;
+	ap->maxalloc = 0;
+	ap->isfree = false;
+#endif
 	track = ap;
 #endif
 	AALLOC_DENY(bp);
@@ -235,7 +288,11 @@ check_bp(PArea ap, const char *funcname, TCookie ocookie)
 	TPtr p;
 	PBlock bp;
 
-	if (ap->bp.pv == NULL) {
+	if (ap->bp.pv == NULL
+#ifdef AALLOC_STATS
+	    || ap->isfree
+#endif
+	    ) {
 		AALLOC_WARN("%s: area %p already freed", funcname, ap);
 		return (NULL);
 	}
@@ -285,6 +342,13 @@ track_check(void)
 	AALLOC_THREAD_ENTER(NULL)
 	while (track) {
 		tp = track;
+#ifdef AALLOC_STATS
+		AALLOC_WARN("AALLOC_STATS for %s(%p): %lu allocated, %lu at "
+		    "once, %sfree", tp->name, tp, tp->numalloc, tp->maxalloc,
+		    tp->isfree ? "" : "not ");
+		if (tp->isfree)
+			goto track_next;
+#endif
 		tp->ocookie ^= gcookie;
 		lp.iv = tp->prev.iv ^ gcookie;
 		if ((lp.iv & PVMASK)
@@ -433,6 +497,16 @@ alloc(size_t nmemb, size_t size, PArea ap)
 	ptr->pv = bp->last;		/* backpointer to fwdptr storage */
 	ptr->iv ^= bp->cookie;		/* apply block cookie */
 	bp->last += PVALIGN;		/* advance next-avail pointer */
+#ifdef AALLOC_STATS
+	ap->numalloc++;
+	{
+		unsigned long curalloc;
+
+		curalloc = (bp->last - (char *)&bp->storage) / PVALIGN;
+		if (curalloc > ap->maxalloc)
+			ap->maxalloc = curalloc;
+	}
+#endif
 	AALLOC_DENY(bp);
 	AALLOC_THREAD_LEAVE(ap)
 
