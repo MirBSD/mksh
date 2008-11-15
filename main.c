@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.112 2008/11/15 08:42:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.113 2008/11/15 09:00:19 tg Exp $");
 
 extern char **environ;
 
@@ -91,11 +91,11 @@ main(int argc, const char *argv[])
 	}
 	kshname = *argv;
 
-	APERM = anew(0);	/* initialise permanent Area */
+	APERM = anew(256);	/* initialise permanent Area */
 
 	/* set up base environment */
 	env.type = E_NONE;
-	env.areap = anew(0);
+	env.areap = anew(32);
 	newblock();		/* set up global l->vars and l->funs */
 
 	/* Do this first so output routines (eg, errorf, shellf) can work */
@@ -614,7 +614,7 @@ newenv(int type)
 	ep = alloc(1, sizeof (struct env), ATEMP);
 	ep->type = type;
 	ep->flags = 0;
-	ep->areap = anew(0);
+	ep->areap = anew(16);
 	ep->loc = e->loc;
 	ep->savefd = NULL;
 	ep->oenv = e;
@@ -720,7 +720,7 @@ reclaim(bool finish)
 	e->temps = NULL;
 	adelete(&e->areap);
 	if (!finish)
-		e->areap = anew(0);
+		e->areap = anew(16);
 }
 
 static void

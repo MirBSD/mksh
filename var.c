@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.61 2008/11/15 07:35:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.62 2008/11/15 09:00:19 tg Exp $");
 
 /*
  * Variables
@@ -39,7 +39,7 @@ newblock(void)
 
 	l = alloc(1, sizeof (struct block), ATEMP);
 	l->flags = 0;
-	l->areap = anew(0);	/* TODO: could use e->area */
+	l->areap = anew(Flag(FTALKING) ? 1024 : 64);
 	if (!e->loc) {
 		l->argc = 0;
 		l->argv = empty;
