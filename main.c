@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.111 2008/11/15 07:35:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.112 2008/11/15 08:42:35 tg Exp $");
 
 extern char **environ;
 
@@ -855,9 +855,7 @@ bi_errorf(const char *fmt, ...)
 }
 
 /* Called when something that shouldn't happen does */
-static void internal_verrorf(const char *, va_list)
-    __attribute__((format (printf, 1, 0)));
-static void
+void
 internal_verrorf(const char *fmt, va_list ap)
 {
 	shf_fprintf(shl_out, "internal error: ");

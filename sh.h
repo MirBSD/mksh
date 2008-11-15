@@ -103,7 +103,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.259 2008/11/15 08:03:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.260 2008/11/15 08:42:36 tg Exp $");
 #endif
 #define MKSH_VERSION "R36 2008/11/11"
 
@@ -1410,6 +1410,8 @@ void bi_errorf(const char *, ...)
     __attribute__((format (printf, 1, 2)));
 #define errorfz()	errorf("\1")
 #define bi_errorfz()	bi_errorf("\1")
+void internal_verrorf(const char *, va_list)
+    __attribute__((format (printf, 1, 0)));
 void internal_errorf(const char *, ...)
     __attribute__((noreturn))
     __attribute__((format (printf, 1, 2)));
