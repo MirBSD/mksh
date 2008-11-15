@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.26 2008/11/15 07:35:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.27 2008/11/15 07:51:53 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -10,6 +10,11 @@ __RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.26 2008/11/15 07:35:23 tg Exp $");
 
 #ifndef AALLOC_WARN
 #define AALLOC_WARN		internal_warningf
+#endif
+
+#ifndef AALLOC_THREAD_ENTER
+#define AALLOC_THREAD_ENTER(ap)	/* nothing */
+#define AALLOC_THREAD_LEAVE(ap)	/* nothing */
 #endif
 
 #define AALLOC_LEAK_SILENT	/* the code does not yet clean up at exit */
@@ -143,6 +148,8 @@ anew(size_t hint)
 	PArea ap;
 	PBlock bp;
 
+	AALLOC_THREAD_ENTER(NULL)
+
 #ifdef AALLOC_MPROTECT
 	if (!pagesz) {
 		if ((pagesz = sysconf(_SC_PAGESIZE)) == -1 ||
@@ -214,6 +221,7 @@ anew(size_t hint)
 	track = ap;
 #endif
 	AALLOC_DENY(bp);
+	AALLOC_THREAD_LEAVE(NULL)
 	return (ap);
 }
 
@@ -335,6 +343,8 @@ adelete(PArea *pap)
 #endif
 	PBlock bp;
 
+	AALLOC_THREAD_ENTER(*pap)
+
 	/* ignore invalid areas */
 	if ((bp = check_bp(*pap, "adelete", 0)) != NULL) {
 		if (bp->last != (char *)&bp->storage)
@@ -375,6 +385,7 @@ adelete(PArea *pap)
 		    *pap);
  adelete_tracked:
 #endif
+	AALLOC_THREAD_LEAVE(*pap)
 	free(*pap);
 	*pap = NULL;
 }
@@ -388,6 +399,8 @@ alloc(size_t nmemb, size_t size, PArea ap)
 	/* obtain the memory region requested, retaining guards */
 	safe_muladd(nmemb, size, sizeof (TPtr));
 	safe_malloc(ptr, size);
+
+	AALLOC_THREAD_ENTER(ap)
 
 	/* chain into area */
 	if ((bp = check_bp(ap, "alloc", 0)) == NULL)
@@ -418,6 +431,7 @@ alloc(size_t nmemb, size_t size, PArea ap)
 	ptr->iv ^= bp->cookie;		/* apply block cookie */
 	bp->last += PVALIGN;		/* advance next-avail pointer */
 	AALLOC_DENY(bp);
+	AALLOC_THREAD_LEAVE(ap)
 
 	/* return aligned storage just after the cookied backpointer */
 	return ((char *)ptr + PVALIGN);
@@ -432,6 +446,8 @@ aresize(void *vp, size_t nmemb, size_t size, PArea ap)
 	if (vp == NULL)
 		return (alloc(nmemb, size, ap));
 
+	AALLOC_THREAD_ENTER(ap)
+
 	/* validate allocation and backpointer against forward pointer */
 	if ((ptr = check_ptr(vp, ap, &bp, "aresize", "")) == NULL)
 		AALLOC_ABORT("cannot continue");
@@ -445,6 +461,7 @@ aresize(void *vp, size_t nmemb, size_t size, PArea ap)
 	/* apply the cookie on the backpointer again */
 	ptr->iv ^= bp->cookie;
 	AALLOC_DENY(bp);
+	AALLOC_THREAD_LEAVE(ap)
 
 	return ((char *)ptr + PVALIGN);
 }
@@ -506,9 +523,11 @@ afree(void *vp, PArea ap)
 	if (vp == NULL)
 		return;
 
+	AALLOC_THREAD_ENTER(ap)
+
 	/* validate allocation and backpointer, ignore rogues */
 	if ((ptr = check_ptr(vp, ap, &bp, "afree", ", ignoring")) == NULL)
-		return;
+		goto afree_done;
 
 	/* note: the block allocation does not ever shrink */
 	bp->last -= PVALIGN;	/* mark the last forward pointer as free */
@@ -526,5 +545,7 @@ afree(void *vp, PArea ap)
 	free(ptr);
 
 	AALLOC_DENY(bp);
+ afree_done:
+	AALLOC_THREAD_LEAVE(ap)
 	return;
 }
