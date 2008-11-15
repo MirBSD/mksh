@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.68 2008/11/12 07:38:42 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.69 2008/11/15 11:42:18 tg Exp $
 #-
 # use CPPFLAGS=-DDEBUG __CRAZY=Yes to check for certain more stuff
 
@@ -10,7 +10,7 @@ SRCS=		aalloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c \
 .if !make(test-build)
 .  if ${DEBUGLIBS:L} == "yes"
 CPPFLAGS+=	-DMKSH_AFREE_DEBUG	# MirOS development version
-CPPFLAGS+=	-DAALLOC_TRACK		# MirOS development version
+#CPPFLAGS+=	-DAALLOC_TRACK		# MirOS development version
 .  endif
 CPPFLAGS+=	-DAALLOC_NO_COOKIES	# for now… aalloc cookies are broken
 CPPFLAGS+=	-DMKSH_ASSUME_UTF8 \

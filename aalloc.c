@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.30 2008/11/15 09:05:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.31 2008/11/15 11:42:18 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -66,23 +66,44 @@ aalloc_warn(const char *fmt, ...)
 #undef AALLOC_DEBUG
 #undef AALLOC_STATS
 #undef AALLOC_TRACK
+#ifndef AALLOC_NO_COOKIES
+#define AALLOC_NO_COOKIES
+#endif
 #elif defined(AALLOC_STATS) && !defined(AALLOC_TRACK)
 #define AALLOC_TRACK
 #endif
 
 #define PVALIGN			(sizeof (void *))
 #define PVMASK			(sizeof (void *) - 1)
+#define isunaligned(p)		(((ptrdiff_t)(p) & PVMASK) != 0)
 
 #ifndef AALLOC_INITSZ
 #define AALLOC_INITSZ		(64 * PVALIGN)	/* at least 4 pointers */
 #endif
 
 typedef /* unsigned */ ptrdiff_t TCookie;
+typedef union {
+	/* unsigned */ ptrdiff_t xv;
+} TCooked;
 
 typedef union {
-	TCookie iv;
-	char *pv;
+	ptrdiff_t nv;
+	char *cp;
 } TPtr;
+
+#ifdef AALLOC_NO_COOKIES
+#define ldcook(p, cv, c)	((p).nv = (cv).xv, (p).nv)
+#define stcook(cv, p, c)	((cv).xv = (p).nv, (p).nv)
+#define stcookp(cv, p, c)	(xp.cp = (char *)(p), (cv).xv = xp.nv, xp.nv)
+#define stcooki(cv, i, c)	((cv).xv = (xp.nv = (i)), xp.nv)
+#define iscook(c)		true
+#else
+#define ldcook(p, cv, c)	((p).nv = (cv).xv ^ (c), (p).nv)
+#define stcook(cv, p, c)	((cv).xv = (p).nv ^ (c), (p).nv)
+#define stcookp(cv, p, c)	(xp.cp = (char *)(p), (cv).xv = xp.nv ^ (c), xp.nv)
+#define stcooki(cv, i, c)	((cv).xv = (xp.nv = (i)) ^ (c), xp.nv)
+#define iscook(c)		isunaligned(c)
+#endif
 
 /*
  * The separation between TBlock and TArea does not seem to make
@@ -97,7 +118,9 @@ typedef union {
  */
 
 struct TBlock {
-	TCookie cookie;
+#ifndef AALLOC_NO_COOKIES
+	TCookie bcookie;
+#endif
 	char *endp;
 	char *last;
 	void *storage;
@@ -105,10 +128,12 @@ struct TBlock {
 typedef struct TBlock *PBlock;
 
 struct TArea {
-	TPtr bp;
+	TCooked bp;
 #ifdef AALLOC_TRACK
-	TPtr prev;
-	TCookie ocookie;
+	TCooked prev;
+#ifndef AALLOC_NO_COOKIES
+	TCookie scookie;
+#endif
 #ifdef AALLOC_STATS
 	const char *name;
 	unsigned long numalloc;
@@ -118,12 +143,7 @@ struct TArea {
 #endif
 };
 
-static TCookie global_cookie;
-#ifdef AALLOC_NO_COOKIES
-#define gcookie 0
-#else
-#define gcookie global_cookie
-#endif
+static TCookie fcookie;
 
 #ifdef AALLOC_TRACK
 static PArea track;
@@ -164,7 +184,7 @@ static long pagesz;
 	if ((dest) == NULL)						\
 		AALLOC_ABORT("unable to allocate %lu bytes: %s",	\
 		    (unsigned long)(len), strerror(errno));		\
-	if ((ptrdiff_t)(dest) & PVMASK)					\
+	if (isunaligned(dest))						\
 		AALLOC_ABORT("unaligned malloc result: %p", (dest));	\
 } while (/* CONSTCOND */ 0)
 
@@ -183,7 +203,8 @@ static long pagesz;
 
 static void adelete_leak(PArea, PBlock, bool, const char *);
 static PBlock check_bp(PArea, const char *, TCookie);
-static TPtr *check_ptr(void *, PArea, PBlock *, const char *, const char *);
+static TCooked *check_ptr(void *, PArea, PBlock *, TPtr *, const char *,
+    const char *);
 
 PArea
 #ifdef AALLOC_STATS
@@ -194,6 +215,7 @@ anew(size_t hint)
 {
 	PArea ap;
 	PBlock bp;
+	TPtr xp;
 
 	AALLOC_THREAD_ENTER(NULL)
 
@@ -210,10 +232,12 @@ anew(size_t hint)
 	if (PVALIGN != 2 && PVALIGN != 4 && PVALIGN != 8 && PVALIGN != 16)
 		AALLOC_ABORT("PVALIGN not a power of two: %lu",
 		    (unsigned long)PVALIGN);
-	if (sizeof (TPtr) != sizeof (TCookie) || sizeof (TPtr) != PVALIGN)
-		AALLOC_ABORT("TPtr sizes do not match: %lu, %lu, %lu",
+	if (sizeof (TPtr) != sizeof (TCookie) || sizeof (TPtr) != PVALIGN ||
+	    sizeof (TPtr) != sizeof (TCooked))
+		AALLOC_ABORT("TPtr sizes do not match: %lu, %lu, %lu, %lu",
 		    (unsigned long)sizeof (TPtr),
-		    (unsigned long)sizeof (TCookie), (unsigned long)PVALIGN);
+		    (unsigned long)sizeof (TCookie), (unsigned long)PVALIGN,
+		    (unsigned long)sizeof (TCooked));
 	if ((size_t)AALLOC_INITSZ < sizeof (struct TBlock))
 		AALLOC_ABORT("AALLOC_INITSZ constant too small: %lu < %lu",
 		    (unsigned long)AALLOC_INITSZ,
@@ -223,17 +247,22 @@ anew(size_t hint)
 		    (unsigned long)hint);
 #endif
 
-	if (!global_cookie) {
-		size_t v;
+	if (!fcookie) {
+#ifdef AALLOC_NO_COOKIES
+		fcookie++;
+#else
+		size_t v = 0;
 
 		/* ensure unaligned cookie */
 		do {
-			global_cookie = AALLOC_RANDOM();
-			v = AALLOC_RANDOM() & 7;
-		} while (!(global_cookie & PVMASK) || !v);
+			fcookie = AALLOC_RANDOM();
+			if (AALLOC_RANDOM() & 1)
+				v = AALLOC_RANDOM() & 7;
+		} while (!iscook(fcookie) || !v);
 		/* randomise seed afterwards */
 		while (v--)
 			AALLOC_RANDOM();
+#endif
 #ifdef AALLOC_TRACK
 		atexit(track_check);
 #endif
@@ -246,25 +275,23 @@ anew(size_t hint)
 	safe_malloc(ap, sizeof (struct TArea));
 	safe_malloc(bp, hint);
 	/* ensure unaligned cookie */
-#ifdef AALLOC_NO_COOKIES
-	bp->cookie = 0;
-#else
+#ifndef AALLOC_NO_COOKIES
 	do {
-		bp->cookie = AALLOC_RANDOM();
-	} while (!(bp->cookie & PVMASK));
+		bp->bcookie = AALLOC_RANDOM();
+	} while (!iscook(bp->bcookie));
 #endif
 
 	/* first byte after block */
-	bp->endp = (char *)bp + AALLOC_INITSZ;	/* bp + size of the block */
+	bp->endp = (char *)bp + hint;		/* bp + size of the block */
 	/* next entry (forward pointer) available for new allocation */
 	bp->last = (char *)&bp->storage;	/* first entry */
 
-	ap->bp.pv = (char *)bp;
-	ap->bp.iv ^= gcookie;
+	(void)stcookp(ap->bp, bp, fcookie);
 #ifdef AALLOC_TRACK
-	ap->prev.pv = (char *)track;
-	ap->prev.iv ^= gcookie;
-	ap->ocookie = bp->cookie ^ gcookie;
+	(void)stcookp(ap->prev, track, fcookie);
+#ifndef AALLOC_NO_COOKIES
+	(void)stcooki(ap->scookie, bp->bcookie, fcookie);
+#endif
 #ifdef AALLOC_STATS
 	ap->name = friendly_name ? friendly_name : "(no name)";
 	ap->numalloc = 0;
@@ -283,12 +310,14 @@ anew(size_t hint)
  * If “ocookie” is not 0, make sure block cookie is equal.
  */
 static PBlock
-check_bp(PArea ap, const char *funcname, TCookie ocookie)
+check_bp(PArea ap, const char *funcname, TCookie ocookie __unused)
 {
 	TPtr p;
 	PBlock bp;
 
-	if (ap->bp.pv == NULL
+	(void)ldcook(p, ap->bp, fcookie);
+#ifndef AALLOC_SMALL
+	if (!p.nv
 #ifdef AALLOC_STATS
 	    || ap->isfree
 #endif
@@ -296,19 +325,23 @@ check_bp(PArea ap, const char *funcname, TCookie ocookie)
 		AALLOC_WARN("%s: area %p already freed", funcname, ap);
 		return (NULL);
 	}
-	p.iv = ap->bp.iv ^ gcookie;
-	if ((ptrdiff_t)(bp = (PBlock)p.pv) & PVMASK) {
+	if (isunaligned(p.nv)) {
 		AALLOC_WARN("%s: area %p block pointer destroyed: %p",
-		    funcname, ap, p.pv);
+		    funcname, ap, p.cp);
 		return (NULL);
 	}
+#endif
+	bp = (PBlock)p.cp;
 	AALLOC_PEEK(bp);
+#ifndef AALLOC_NO_COOKIES
 	if (ocookie && bp->cookie != ocookie) {
 		AALLOC_WARN("%s: block %p cookie destroyed: %p, %p",
 		    funcname, bp, (void *)ocookie, (void *)bp->cookie);
 		return (NULL);
 	}
-	if (((ptrdiff_t)bp->endp & PVMASK) || ((ptrdiff_t)bp->last & PVMASK)) {
+#endif
+#ifndef AALLOC_SMALL
+	if (isunaligned(bp->endp) || isunaligned(bp->last)) {
 		AALLOC_WARN("%s: block %p data structure destroyed: %p, %p",
 		    funcname, bp, bp->endp, bp->last);
 		return (NULL);
@@ -324,6 +357,7 @@ check_bp(PArea ap, const char *funcname, TCookie ocookie)
 		    bp->endp);
 		return (NULL);
 	}
+#endif
 	AALLOC_ALLOW(bp);
 	return (bp);
 }
@@ -336,34 +370,32 @@ static void
 track_check(void)
 {
 	PArea tp;
-	TPtr lp;
 	PBlock bp;
+	TCookie xc = 0;
+	TPtr xp;
 
 	AALLOC_THREAD_ENTER(NULL)
-	while (track) {
-		tp = track;
+	tp = track;
+	while (tp) {
+#ifndef AALLOC_NO_COOKIES
+		xc = ldcook(xp, tp->scookie, fcookie);
+#endif
+		(void)ldcook(xp, tp->prev, fcookie);
 #ifdef AALLOC_STATS
 		AALLOC_WARN("AALLOC_STATS for %s(%p): %lu allocated, %lu at "
 		    "once, %sfree", tp->name, tp, tp->numalloc, tp->maxalloc,
 		    tp->isfree ? "" : "not ");
 		if (tp->isfree)
-			goto track_next;
+			goto track_check_next;
 #endif
-		tp->ocookie ^= gcookie;
-		lp.iv = tp->prev.iv ^ gcookie;
-		if ((lp.iv & PVMASK)
-#ifndef AALLOC_NO_COOKIES
-		    || !(tp->ocookie & PVMASK)
-#endif
-		    ) {
+		if (isunaligned(xp.nv) || !iscook(xc)) {
 			/* buffer overflow or something? */
 			AALLOC_WARN("AALLOC_TRACK data structure %p destroyed:"
-			    " %p, %p, %p; exiting", tp, lp.pv, tp->bp.pv,
-			    (void *)tp->ocookie);
+			    " %p, %p; exiting", tp, xp.cp, (void *)xc);
 			break;
 		}
-		if (!(bp = check_bp(tp, "atexit:track_check", tp->ocookie)))
-			goto track_next;
+		if (!(bp = check_bp(tp, "atexit:track_check", xc)))
+			goto track_check_next;
 		if (bp->last != (char *)&bp->storage)
 #ifdef AALLOC_LEAK_SILENT
 			adelete_leak(tp, bp, false, "at exit");
@@ -374,9 +406,9 @@ track_check(void)
 			    bp, (unsigned long)(bp->endp - (char *)bp));
 #endif
 		free(bp);
- track_next:
-		track = (PArea)lp.pv;
+ track_check_next:
 		free(tp);
+		tp = (PArea)xp.cp;
 	}
 	track = NULL;
 	AALLOC_THREAD_LEAVE(NULL)
@@ -386,29 +418,31 @@ track_check(void)
 static void
 adelete_leak(PArea ap, PBlock bp, bool always_warn, const char *when)
 {
-	TPtr *cp;
+	TPtr xp;
 
 	while (bp->last > (char *)&bp->storage) {
 		bp->last -= PVALIGN;
-		cp = *((void **)bp->last);
-		cp->iv ^= bp->cookie;
-		if (always_warn || cp->pv != bp->last)
-		AALLOC_WARN("leaking %s pointer %p in area %p (%p %lu) %s",
-		    cp->pv == bp->last ? "valid" : "underflown",
-		    (char *)cp + PVALIGN, ap, bp,
-		    (unsigned long)(bp->endp - (char *)bp), when);
-		free(cp);
+		(void)ldcook(xp, **((TCooked **)bp->last), bp->bcookie);
+#ifndef AALLOC_SMALL
+		if (always_warn || xp.cp != bp->last)
+			AALLOC_WARN("leaking %s pointer %p in area %p (ofs %p "
+			    "len %lu) %s", xp.cp != bp->last ? "underflown" :
+			    "valid", *((char **)bp->last) + PVALIGN, ap, bp,
+			    (unsigned long)(bp->endp - (char *)bp), when);
+#endif
+		free(xp.cp);
 	}
 }
 
 void
 adelete(PArea *pap)
 {
-#ifdef AALLOC_TRACK
-	PArea tp;
-	TPtr lp;
-#endif
 	PBlock bp;
+#if defined(AALLOC_TRACK) && !defined(AALLOC_STATS)
+	PArea tp;
+	TCookie xc = 0;
+	TPtr xp;
+#endif
 
 	AALLOC_THREAD_ENTER(*pap)
 
@@ -419,41 +453,48 @@ adelete(PArea *pap)
 		free(bp);
 	}
 
-#ifdef AALLOC_TRACK
+#if defined(AALLOC_TRACK) && !defined(AALLOC_STATS)
+	/* if we are the last TArea allocated */
 	if (track == *pap) {
-		(*pap)->prev.iv ^= gcookie;
-		track = (PArea)((*pap)->prev.pv);
+		if (isunaligned(ldcook(xp, (*pap)->prev, fcookie))) {
+			AALLOC_WARN("AALLOC_TRACK data structure %p destroyed:"
+			    " %p", *pap, xp.cp);
+			track = NULL;
+		} else
+			track = (PArea)xp.cp;
 		goto adelete_tracked;
 	}
 	/* find the TArea whose prev is *pap */
 	tp = track;
 	while (tp) {
-		lp.iv = tp->prev.iv ^ gcookie;
-		if ((lp.iv & PVMASK)
 #ifndef AALLOC_NO_COOKIES
-		    || !((tp->ocookie ^ gcookie) & PVMASK)
+		xc = ldcook(xp, tp->scookie, fcookie);
 #endif
-		    ) {
+		(void)ldcook(xp, tp->prev, fcookie);
+		if (isunaligned(xp.nv) || !iscook(xc)) {
 			/* buffer overflow or something? */
 			AALLOC_WARN("AALLOC_TRACK data structure %p destroyed:"
-			    " %p, %p, %p; exiting", tp, lp.pv, tp->bp.pv,
-			    (void *)(tp->ocookie ^ gcookie));
+			    " %p, %p; ignoring", tp, xp.cp, (void *)xc);
 			tp = NULL;
 			break;
 		}
-		if (lp.pv == (char *)*pap)
+		if (xp.cp == (char *)*pap)
 			break;
-		tp = (PArea)lp.pv;
+		tp = (PArea)xp.cp;
 	}
 	if (tp)
-		tp->prev.iv = (*pap)->prev.iv;	/* decouple *pap */
+		tp->prev.xv = (*pap)->prev.xv;	/* decouple *pap */
 	else
 		AALLOC_WARN("area %p not in found AALLOC_TRACK data structure",
 		    *pap);
  adelete_tracked:
 #endif
 	AALLOC_THREAD_LEAVE(*pap)
+#ifdef AALLOC_STATS
+	(*pap)->isfree = true;
+#else
 	free(*pap);
+#endif
 	*pap = NULL;
 }
 
@@ -461,11 +502,12 @@ void *
 alloc(size_t nmemb, size_t size, PArea ap)
 {
 	PBlock bp;
-	TPtr *ptr;
+	TCooked *rp;
+	TPtr xp;
 
 	/* obtain the memory region requested, retaining guards */
 	safe_muladd(nmemb, size, sizeof (TPtr));
-	safe_malloc(ptr, size);
+	safe_malloc(rp, size);
 
 	AALLOC_THREAD_ENTER(ap)
 
@@ -473,7 +515,7 @@ alloc(size_t nmemb, size_t size, PArea ap)
 	if ((bp = check_bp(ap, "alloc", 0)) == NULL)
 		AALLOC_ABORT("cannot continue");
 	if (bp->last == bp->endp) {
-		TPtr **tp;
+		TCooked **pp;
 		size_t bsz;
 
 		/* make room for more forward ptrs in the block allocation */
@@ -484,18 +526,18 @@ alloc(size_t nmemb, size_t size, PArea ap)
 		bp->endp = (char *)bp + bsz;
 
 		/* all backpointers have to be adjusted */
-		for (tp = (TPtr **)&bp->storage; tp < (TPtr **)bp->last; ++tp) {
-			(*tp)->pv = (char *)tp;
-			(*tp)->iv ^= bp->cookie;
+		pp = (TCooked **)&bp->storage;
+		while (pp < (TCooked **)bp->last) {
+			(void)stcookp(**pp, pp, bp->bcookie);
+			++pp;
 		}
 
 		/* “bp” has possibly changed, enter its new value into ap */
-		ap->bp.pv = (char *)bp;
-		ap->bp.iv ^= gcookie;
+		(void)stcookp(ap->bp, bp, fcookie);
 	}
-	*((void **)bp->last) = ptr;	/* next available forward ptr */
-	ptr->pv = bp->last;		/* backpointer to fwdptr storage */
-	ptr->iv ^= bp->cookie;		/* apply block cookie */
+	memcpy(bp->last, &rp, PVALIGN);	/* next available forward ptr */
+	/* store cooked backpointer to address of forward pointer */
+	(void)stcookp(*rp, bp->last, bp->bcookie);
 	bp->last += PVALIGN;		/* advance next-avail pointer */
 #ifdef AALLOC_STATS
 	ap->numalloc++;
@@ -511,14 +553,15 @@ alloc(size_t nmemb, size_t size, PArea ap)
 	AALLOC_THREAD_LEAVE(ap)
 
 	/* return aligned storage just after the cookied backpointer */
-	return ((char *)ptr + PVALIGN);
+	return ((char *)rp + PVALIGN);
 }
 
 void *
 aresize(void *vp, size_t nmemb, size_t size, PArea ap)
 {
 	PBlock bp;
-	TPtr *ptr;
+	TCooked *rp;
+	TPtr xp;
 
 	if (vp == NULL)
 		return (alloc(nmemb, size, ap));
@@ -526,76 +569,86 @@ aresize(void *vp, size_t nmemb, size_t size, PArea ap)
 	AALLOC_THREAD_ENTER(ap)
 
 	/* validate allocation and backpointer against forward pointer */
-	if ((ptr = check_ptr(vp, ap, &bp, "aresize", "")) == NULL)
+	if ((rp = check_ptr(vp, ap, &bp, &xp, "aresize", "")) == NULL)
 		AALLOC_ABORT("cannot continue");
 
 	/* move allocation to size and possibly new location */
 	safe_muladd(nmemb, size, sizeof (TPtr));
-	safe_realloc(ptr, size);
+	safe_realloc(rp, size);
 
 	/* write new address of allocation into the block forward pointer */
-	memcpy(ptr->pv, &ptr, PVALIGN);
-	/* apply the cookie on the backpointer again */
-	ptr->iv ^= bp->cookie;
+	memcpy(xp.cp, &rp, PVALIGN);
+
 	AALLOC_DENY(bp);
 	AALLOC_THREAD_LEAVE(ap)
 
-	return ((char *)ptr + PVALIGN);
+	return ((char *)rp + PVALIGN);
 }
 
 /*
  * Try to find “vp” inside Area “ap”, use “what” and “extra” for error msgs.
  *
  * If an error occurs, returns NULL with no side effects.
- * Otherwise, returns address of the allocation, with the cookie on the
- * backpointer unapplied; *bpp contains the unlocked block pointer.
+ * Otherwise, returns address of the allocation, *bpp contains the unlocked
+ * block pointer, *xpp the uncookied backpointer.
  */
-static TPtr *
-check_ptr(void *vp, PArea ap, PBlock *bpp, const char *what, const char *extra)
+static TCooked *
+check_ptr(void *vp, PArea ap, PBlock *bpp, TPtr *xpp, const char *what,
+    const char *extra)
 {
-	PBlock bp;
-	TPtr *ptr;
+	TCooked *rp;
 
-	if ((ptrdiff_t)vp & PVMASK) {
+#ifndef AALLOC_SMALL
+	if (isunaligned(vp)) {
 		AALLOC_WARN("trying to %s rogue unaligned pointer %p from "
 		    "area %p%s", what + 1, vp, ap, extra);
 		return (NULL);
 	}
+#endif
 
-	ptr = (TPtr *)((char *)vp - PVALIGN);
-	if (!ptr->iv) {
+	rp = (TCooked *)(((char *)vp) - PVALIGN);
+#ifndef AALLOC_SMALL
+	if (!rp->xv) {
 		AALLOC_WARN("trying to %s already freed pointer %p from "
 		    "area %p%s", what + 1, vp, ap, extra);
 		return (NULL);
 	}
+#endif
 
-	if ((bp = check_bp(ap, what, 0)) == NULL)
+	if ((*bpp = check_bp(ap, what, 0)) == NULL)
 		AALLOC_ABORT("cannot continue");
-	ptr->iv ^= bp->cookie;
-	if (ptr->pv < (char *)&bp->storage || ptr->pv >= bp->last) {
+#ifndef AALLOC_SMALL
+	if (isunaligned(ldcook(*xpp, *rp, (*bpp)->bcookie))) {
+		AALLOC_WARN("trying to %s rogue pointer %p from area %p "
+		    "(block %p..%p), backpointer %p unaligned%s",
+		    what + 1, vp, ap, *bpp, (*bpp)->last, xpp->cp, extra);
+	} else if (xpp->cp < (char *)&(*bpp)->storage ||
+	    xpp->cp >= (*bpp)->last) {
 		AALLOC_WARN("trying to %s rogue pointer %p from area %p "
 		    "(block %p..%p), backpointer %p out of bounds%s",
-		    what + 1, vp, ap, bp, bp->last, ptr->pv, extra);
-		AALLOC_DENY(bp);
-		return (NULL);
-	}
-	if (*((void **)ptr->pv) != ptr) {
+		    what + 1, vp, ap, *bpp, (*bpp)->last, xpp->cp, extra);
+	} else if (*((TCooked **)xpp->cp) != rp) {
 		AALLOC_WARN("trying to %s rogue pointer %p from area %p "
 		    "(block %p..%p), backpointer %p, forward pointer to "
-		    "%p instead%s", what + 1, vp, ap, bp, bp->last,
-		    ptr->pv, *((void **)ptr->pv), extra);
-		AALLOC_DENY(bp);
-		return (NULL);
-	}
-	*bpp = bp;
-	return (ptr);
+		    "%p instead%s", what + 1, vp, ap, *bpp, (*bpp)->last,
+		    xpp->cp, *((TCooked **)xpp->cp), extra);
+	} else
+#endif
+		return (rp);
+
+#ifndef AALLOC_SMALL
+	/* error case fall-through */
+	AALLOC_DENY(*bpp);
+	return (NULL);
+#endif
 }
 
 void
 afree(void *vp, PArea ap)
 {
 	PBlock bp;
-	TPtr *ptr;
+	TCooked *rp;
+	TPtr xp;
 
 	if (vp == NULL)
 		return;
@@ -603,23 +656,20 @@ afree(void *vp, PArea ap)
 	AALLOC_THREAD_ENTER(ap)
 
 	/* validate allocation and backpointer, ignore rogues */
-	if ((ptr = check_ptr(vp, ap, &bp, "afree", ", ignoring")) == NULL)
+	if ((rp = check_ptr(vp, ap, &bp, &xp, "afree", ", ignoring")) == NULL)
 		goto afree_done;
 
 	/* note: the block allocation does not ever shrink */
 	bp->last -= PVALIGN;	/* mark the last forward pointer as free */
 	/* if our forward pointer was not the last one, relocate the latter */
-	if (ptr->pv < bp->last) {
-		TPtr *tmp = *((TPtr **)bp->last);
+	if (xp.cp < bp->last) {
+		TCooked *tmp = *((TCooked **)bp->last);
 
-		/* tmp is the former last forward pointer */
-		tmp->pv = ptr->pv;	/* its backpointer to former our … */
-		tmp->iv ^= bp->cookie;	/* … forward pointer, and cookie it */
-
-		memcpy(ptr->pv, bp->last, PVALIGN);	/* relocate fwd ptr */
+		(void)stcook(*tmp, xp, bp->bcookie);	/* write new backptr */
+		memcpy(xp.cp, bp->last, PVALIGN);	/* relocate fwd ptr */
 	}
-	ptr->iv = 0;	/* our backpointer, just in case, for double frees */
-	free(ptr);
+	rp->xv = 0;	/* our backpointer, just in case, for double frees */
+	free(rp);
 
 	AALLOC_DENY(bp);
  afree_done:
