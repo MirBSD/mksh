@@ -103,7 +103,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.258 2008/11/15 07:35:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.259 2008/11/15 08:03:24 tg Exp $");
 #endif
 #define MKSH_VERSION "R36 2008/11/11"
 
@@ -1247,7 +1247,12 @@ EXTERN int histsize;	/* history size */
 EXTERN struct timeval j_usrtime, j_systime;
 
 /* alloc.c */
+#ifdef AALLOC_STATS
+#define anew(hint)	anewEx((hint), __FILE__ ":" __LINE__ ":" #hint)
+PArea anewEx(size_t, const char *);	/* cannot fail */
+#else
 PArea anew(size_t);			/* cannot fail */
+#endif
 void adelete(PArea *);
 void *alloc(size_t, size_t, PArea);	/* cannot fail */
 void *aresize(void *, size_t, size_t, PArea);
