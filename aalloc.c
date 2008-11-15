@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.29 2008/11/15 08:52:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/aalloc.c,v 1.30 2008/11/15 09:05:29 tg Exp $");
 
 /* mksh integration of aalloc */
 
@@ -65,9 +65,9 @@ aalloc_warn(const char *fmt, ...)
 #if defined(AALLOC_SMALL)
 #undef AALLOC_DEBUG
 #undef AALLOC_STATS
-#undef AALLOC_TRACE
-#elif defined(AALLOC_STATS) && !defined(AALLOC_TRACE)
-#define AALLOC_TRACE
+#undef AALLOC_TRACK
+#elif defined(AALLOC_STATS) && !defined(AALLOC_TRACK)
+#define AALLOC_TRACK
 #endif
 
 #define PVALIGN			(sizeof (void *))
