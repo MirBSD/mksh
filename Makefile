@@ -1,11 +1,16 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.69 2008/11/15 11:42:18 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.70 2008/11/17 01:14:57 tg Exp $
 #-
 # use CPPFLAGS=-DDEBUG __CRAZY=Yes to check for certain more stuff
 
 .include <bsd.own.mk>
 
 PROG=		mksh
-SRCS=		aalloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c \
+.ifdef TEST
+SRCS=		aalloc.c
+.else
+SRCS=		alloc.c
+.endif
+SRCS+=		edit.c eval.c exec.c expr.c funcs.c histrap.c \
 		jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c
 .if !make(test-build)
 .  if ${DEBUGLIBS:L} == "yes"
