@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.243 2008/11/12 04:55:17 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.243.2.1 2008/11/19 21:08:25 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -6,14 +6,6 @@
 # You may also want to test IFS with the script at
 # http://www.research.att.com/~gsf/public/ifs.sh
 
-expected-stdout:
-	@(#)MIRBSD KSH R36 2008/11/11
-description:
-	Check version of shell.
-stdin:
-	echo $KSH_VERSION
-name: KSH_VERSION
----
 name: selftest-1
 description:
 	Regression test self-testing
