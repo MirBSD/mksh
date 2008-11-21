@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.70.2.2 2008/11/19 21:10:13 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.70.2.3 2008/11/21 08:53:10 tg Exp $
 #-
 # use CPPFLAGS=-DDEBUG __CRAZY=Yes to check for certain more stuff
 
@@ -33,6 +33,9 @@ CPPFLAGS+=	-DMKSH_ASSUME_UTF8 \
 		-DHAVE_ARC4RANDOM_PUSHB_DECL=1 -DHAVE_FLOCK_DECL=1 \
 		-DHAVE_REVOKE_DECL=1 -DHAVE_SYS_SIGLIST_DECL=1 \
 		-DHAVE_PERSISTENT_HISTORY=1
+.if ${CC} == "llvm-gcc"
+CPPFLAGS+=	-UHAVE_ATTRIBUTE_BOUNDED -DHAVE_ATTRIBUTE_BOUNDED=0
+.endif
 COPTS+=		-std=gnu99 -Wall
 .endif
 
