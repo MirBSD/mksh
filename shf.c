@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.23 2008/11/12 00:54:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.23.2.1 2008/11/22 13:20:36 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -29,8 +29,8 @@ shf_open(const char *name, int oflags, int mode, int sflags)
 	int fd;
 
 	/* Done before open so if alloca fails, fd won't be lost. */
-	shf = alloc(1, sizeof (struct shf) + bsize, ATEMP);
-	shf->areap = ATEMP;
+	shf = galloc(1, sizeof (struct shf) + bsize, ATEMP);
+	shf->gp_shf = ATEMP;
 	shf->buf = (unsigned char *)&shf[1];
 	shf->bsize = bsize;
 	shf->flags = SHF_ALLOCS;
@@ -38,7 +38,7 @@ shf_open(const char *name, int oflags, int mode, int sflags)
 
 	fd = open(name, oflags, mode);
 	if (fd < 0) {
-		afree(shf, shf->areap);
+		gfree(shf, shf->gp_shf);
 		return NULL;
 	}
 	if ((sflags & SHF_MAPHI) && fd < FDBASE) {
@@ -47,7 +47,7 @@ shf_open(const char *name, int oflags, int mode, int sflags)
 		nfd = fcntl(fd, F_DUPFD, FDBASE);
 		close(fd);
 		if (nfd < 0) {
-			afree(shf, shf->areap);
+			gfree(shf, shf->gp_shf);
 			return NULL;
 		}
 		fd = nfd;
@@ -92,16 +92,16 @@ shf_fdopen(int fd, int sflags, struct shf *shf)
 
 	if (shf) {
 		if (bsize) {
-			shf->buf = alloc(1, bsize, ATEMP);
+			shf->buf = galloc(1, bsize, ATEMP);
 			sflags |= SHF_ALLOCB;
 		} else
 			shf->buf = NULL;
 	} else {
-		shf = alloc(1, sizeof (struct shf) + bsize, ATEMP);
+		shf = galloc(1, sizeof (struct shf) + bsize, ATEMP);
 		shf->buf = (unsigned char *)&shf[1];
 		sflags |= SHF_ALLOCS;
 	}
-	shf->areap = ATEMP;
+	shf->gp_shf = ATEMP;
 	shf->fd = fd;
 	shf->rp = shf->wp = shf->buf;
 	shf->rnleft = 0;
@@ -180,15 +180,15 @@ shf_sopen(char *buf, int bsize, int sflags, struct shf *shf)
 		internal_errorf("shf_sopen: flags 0x%x", sflags);
 
 	if (!shf) {
-		shf = alloc(1, sizeof (struct shf), ATEMP);
+		shf = galloc(1, sizeof (struct shf), ATEMP);
 		sflags |= SHF_ALLOCS;
 	}
-	shf->areap = ATEMP;
+	shf->gp_shf = ATEMP;
 	if (!buf && (sflags & SHF_WR) && (sflags & SHF_DYNAMIC)) {
 		if (bsize <= 0)
 			bsize = 64;
 		sflags |= SHF_ALLOCB;
-		buf = alloc(1, bsize, shf->areap);
+		buf = galloc(1, bsize, shf->gp_shf);
 	}
 	shf->fd = -1;
 	shf->buf = shf->rp = shf->wp = (unsigned char *)buf;
@@ -215,9 +215,9 @@ shf_close(struct shf *shf)
 			ret = EOF;
 	}
 	if (shf->flags & SHF_ALLOCS)
-		afree(shf, shf->areap);
+		gfree(shf, shf->gp_shf);
 	else if (shf->flags & SHF_ALLOCB)
-		afree(shf->buf, shf->areap);
+		gfree(shf->buf, shf->gp_shf);
 
 	return ret;
 }
@@ -256,7 +256,7 @@ shf_sclose(struct shf *shf)
 		shf_putc('\0', shf);
 	}
 	if (shf->flags & SHF_ALLOCS)
-		afree(shf, shf->areap);
+		gfree(shf, shf->gp_shf);
 	return (char *) s;
 }
 
@@ -323,7 +323,7 @@ shf_emptybuf(struct shf *shf, int flags)
 		    !(shf->flags & SHF_ALLOCB))
 			return EOF;
 		/* allocate more space for buffer */
-		nbuf = aresize(shf->buf, 2, shf->wbsize, shf->areap);
+		nbuf = grealloc(shf->buf, 2, shf->wbsize, shf->gp_shf);
 		shf->rp = nbuf + (shf->rp - shf->buf);
 		shf->wp = nbuf + (shf->wp - shf->buf);
 		shf->rbsize += shf->wbsize;

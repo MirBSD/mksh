@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.75 2008/11/12 00:54:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.75.2.1 2008/11/22 13:20:31 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -68,7 +68,7 @@ c_fc(const char **wp)
 				sflag++;
 			else {
 				size_t len = strlen(p);
-				editor = alloc(1, len + 4, ATEMP);
+				editor = galloc(1, len + 4, ATEMP);
 				memcpy(editor, p, len);
 				memcpy(editor + len, " $_", 4);
 			}
@@ -245,7 +245,7 @@ c_fc(const char **wp)
 		}
 
 		n = stat(tf->name, &statb) < 0 ? 128 : statb.st_size + 1;
-		Xinit(xs, xp, n, hist_source->areap);
+		Xinit(xs, xp, n, hist_source->gp_source);
 		while ((n = shf_read(xp, Xnleft(xs, xp), shf)) > 0) {
 			xp += n;
 			if (Xnleft(xs, xp) <= 0)
@@ -414,7 +414,7 @@ histbackup(void)
 
 	if (histptr >= history && last_line != hist_source->line) {
 		hist_source->line--;
-		afree(*histptr, APERM);
+		gfree(*histptr, APERM);
 		histptr--;
 		last_line = hist_source->line;
 	}
@@ -504,7 +504,7 @@ sethistsize(int n)
 			cursize = n;
 		}
 
-		history = aresize(history, n, sizeof (char *), APERM);
+		history = grealloc(history, n, sizeof (char *), APERM);
 
 		histsize = n;
 		histptr = history + cursize;
@@ -536,7 +536,7 @@ sethistfile(const char *name)
 		(void) close(histfd);
 		histfd = 0;
 		hsize = 0;
-		afree(hname, APERM);
+		gfree(hname, APERM);
 		hname = NULL;
 		/* let's reset the history */
 		histptr = history - 1;
@@ -555,7 +555,7 @@ init_histvec(void)
 {
 	if (history == (char **)NULL) {
 		histsize = HISTORYSIZE;
-		history = alloc(histsize, sizeof (char *), APERM);
+		history = galloc(histsize, sizeof (char *), APERM);
 		histptr = history - 1;
 	}
 }
@@ -584,7 +584,7 @@ histsave(int *lnp, const char *cmd, bool dowrite __unused, bool ignoredups)
 		*cp = '\0';
 
 	if (ignoredups && !strcmp(c, *histptr)) {
-		afree(c, APERM);
+		gfree(c, APERM);
 		return;
 	}
 	++*lnp;
@@ -597,7 +597,7 @@ histsave(int *lnp, const char *cmd, bool dowrite __unused, bool ignoredups)
 	hp = histptr;
 
 	if (++hp >= history + histsize) { /* remove oldest command */
-		afree(*history, APERM);
+		gfree(*history, APERM);
 		for (hp = history; hp < history + histsize - 1; hp++)
 			hp[0] = hp[1];
 	}
@@ -884,7 +884,7 @@ histinsert(Source *s, int lno, const char *line)
 	if (lno >= s->line - (histptr - history) && lno <= s->line) {
 		hp = &histptr[lno - s->line];
 		if (*hp)
-			afree(*hp, APERM);
+			gfree(*hp, APERM);
 		strdupx(*hp, line, APERM);
 	}
 }
@@ -1229,14 +1229,14 @@ runtrap(Trap *p)
 	}
 	oexstat = exstat;
 	/* Note: trapstr is fully parsed before anything is executed, thus
-	 * no problem with afree(p->trap) in settrap() while still in use.
+	 * no problem with gfree(p->trap) in settrap() while still in use.
 	 */
 	command(trapstr);
 	exstat = oexstat;
 	if (i == SIGEXIT_ || i == SIGERR_) {
 		if (p->flags & TF_CHANGED)
 			/* don't clear TF_CHANGED */
-			afree(trapstr, APERM);
+			gfree(trapstr, APERM);
 		else
 			p->trap = trapstr;
 		p->flags |= old_changed;
@@ -1279,7 +1279,7 @@ settrap(Trap *p, const char *s)
 	sig_t f;
 
 	if (p->trap)
-		afree(p->trap, APERM);
+		gfree(p->trap, APERM);
 	strdupx(p->trap, s, APERM); /* handles s == 0 */
 	p->flags |= TF_CHANGED;
 	f = !s ? SIG_DFL : s[0] ? trapsig : SIG_IGN;

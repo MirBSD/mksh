@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.92 2008/11/12 00:54:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.92.2.1 2008/11/22 13:20:28 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -171,7 +171,7 @@ c_cd(const char **wp)
 		/* One argument: - or dir */
 		strdupx(allocd, wp[0], ATEMP);
 		if (ksh_isdash((dir = allocd))) {
-			afree(allocd, ATEMP);
+			gfree(allocd, ATEMP);
 			allocd = NULL;
 			dir = str_val(oldpwd_s);
 			if (dir == null) {
@@ -202,7 +202,7 @@ c_cd(const char **wp)
 		olen = strlen(wp[0]);
 		nlen = strlen(wp[1]);
 		elen = strlen(current_wd + ilen + olen) + 1;
-		dir = allocd = alloc(1, ilen + nlen + elen, ATEMP);
+		dir = allocd = galloc(1, ilen + nlen + elen, ATEMP);
 		memcpy(dir, current_wd, ilen);
 		memcpy(dir + ilen, wp[1], nlen);
 		memcpy(dir + ilen + nlen, current_wd + ilen + olen, elen);
@@ -230,7 +230,7 @@ c_cd(const char **wp)
 			bi_errorf("%s: bad directory", dir);
 		else
 			bi_errorf("%s - %s", try, strerror(errno));
-		afree(allocd, ATEMP);
+		gfree(allocd, ATEMP);
 		return 1;
 	}
 
@@ -264,7 +264,7 @@ c_cd(const char **wp)
 	if (printpath || cdnode)
 		shprintf("%s\n", pwd);
 
-	afree(allocd, ATEMP);
+	gfree(allocd, ATEMP);
 	return 0;
 }
 
@@ -301,7 +301,7 @@ c_pwd(const char **wp)
 		return (1);
 	}
 	shprintf("%s\n", p);
-	afree(allocd, ATEMP);
+	gfree(allocd, ATEMP);
 	return 0;
 }
 
@@ -1102,7 +1102,7 @@ c_alias(const char **wp)
 		if ((val && !tflag) || (!val && tflag && !Uflag)) {
 			if (ap->flag&ALLOC) {
 				ap->flag &= ~(ALLOC|ISSET);
-				afree(ap->val.s, APERM);
+				gfree(ap->val.s, APERM);
 			}
 			/* ignore values for -t (at&t ksh does this) */
 			newval = tflag ? search(alias, path, X_OK, NULL) : val;
@@ -1117,7 +1117,7 @@ c_alias(const char **wp)
 			ap->flag &= ~xflag;
 		else
 			ap->flag |= xflag;
-		afree(xalias, ATEMP);
+		gfree(xalias, ATEMP);
 	}
 
 	return rv;
@@ -1159,7 +1159,7 @@ c_unalias(const char **wp)
 		}
 		if (ap->flag&ALLOC) {
 			ap->flag &= ~(ALLOC|ISSET);
-			afree(ap->val.s, APERM);
+			gfree(ap->val.s, APERM);
 		}
 		ap->flag &= ~(DEFINED|ISSET|EXPORT);
 	}
@@ -1170,7 +1170,7 @@ c_unalias(const char **wp)
 		for (ktwalk(&ts, t); (ap = ktnext(&ts)); ) {
 			if (ap->flag&ALLOC) {
 				ap->flag &= ~(ALLOC|ISSET);
-				afree(ap->val.s, APERM);
+				gfree(ap->val.s, APERM);
 			}
 			ap->flag &= ~(DEFINED|ISSET|EXPORT);
 		}
@@ -1506,7 +1506,7 @@ c_bind(const char **wp)
 		}
 		if (x_bind(up ? up : *wp, cp, macro, 0))
 			rv = 1;
-		afree(up, ATEMP);
+		gfree(up, ATEMP);
 	}
 
 	return rv;
@@ -1879,14 +1879,14 @@ c_read(const char **wp)
 		if (vp->flag & RDONLY) {
 			shf_flush(shf);
 			bi_errorf("%s is read only", *wp);
-			afree(wpalloc, ATEMP);
+			gfree(wpalloc, ATEMP);
 			return 1;
 		}
 		if (Flag(FEXPORT))
 			typeset(*wp, EXPORT, 0, 0, 0);
 		if (!setstr(vp, Xstring(cs, ccp), KSH_RETURN_ERROR)) {
 			shf_flush(shf);
-			afree(wpalloc, ATEMP);
+			gfree(wpalloc, ATEMP);
 			return 1;
 		}
 	}
@@ -1904,7 +1904,7 @@ c_read(const char **wp)
 	if (c == EOF && !ecode)
 		coproc_read_close(fd);
 
-	afree(wpalloc, ATEMP);
+	gfree(wpalloc, ATEMP);
 	return ecode ? ecode : c == EOF;
 }
 
@@ -1951,7 +1951,7 @@ c_eval(const char **wp)
 	rv = shell(s, false);
 	Flag(FERREXIT) = savef;
 	source = saves;
-	afree(s, ATEMP);
+	gfree(s, ATEMP);
 	return (rv);
 }
 
@@ -2111,9 +2111,9 @@ c_set(const char **wp)
 		owp = wp += argi - 1;
 		wp[0] = l->argv[0]; /* save $0 */
 		while (*++wp != NULL)
-			strdupx(*wp, *wp, l->areap);
+			strdupx(*wp, *wp, l->gp_block);
 		l->argc = wp - owp - 1;
-		l->argv = alloc(l->argc + 2, sizeof (char *), l->areap);
+		l->argv = galloc(l->argc + 2, sizeof (char *), l->gp_block);
 		for (wp = l->argv; (*wp++ = *owp++) != NULL; )
 			;
 	}
@@ -2286,7 +2286,7 @@ timex_hook(struct op *t, char **volatile *app)
 	/* Copy command words down over options. */
 	if (opt.optind != 0) {
 		for (i = 0; i < opt.optind; i++)
-			afree(wp[i], ATEMP);
+			gfree(wp[i], ATEMP);
 		for (i = 0, j = opt.optind; (wp[i] = wp[j]); i++, j++)
 			;
 	}
@@ -3064,12 +3064,12 @@ c_realpath(const char **wp)
 	else {
 		char *buf;
 
-		if (realpath(*wp, (buf = alloc(1, PATH_MAX, ATEMP))) == NULL) {
+		if (realpath(*wp, (buf = galloc(1, PATH_MAX, ATEMP))) == NULL) {
 			rv = errno;
 			bi_errorf("%s: %s", *wp, strerror(rv));
 		} else
 			shprintf("%s\n", buf);
-		afree(buf, ATEMP);
+		gfree(buf, ATEMP);
 	}
 
 	return (rv);

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.70.2.3 2008/11/21 08:53:10 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.70.2.4 2008/11/22 13:20:24 tg Exp $
 #-
 # use CPPFLAGS=-DDEBUG __CRAZY=Yes to check for certain more stuff
 
@@ -6,15 +6,15 @@ NOMAN=		Yes	# temporary
 
 .include <bsd.own.mk>
 
+.ifdef TEST
+PROG=		_
+SRCS=		_.c galloc.c
+.else
 PROG=		mksh
-SRCS=		aalloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c \
+SRCS=		edit.c eval.c exec.c expr.c funcs.c galloc.c histrap.c \
 		jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c
+.endif
 .if !make(test-build)
-.  if ${DEBUGLIBS:L} == "yes"
-CPPFLAGS+=	-DMKSH_AFREE_DEBUG	# MirOS development version
-#CPPFLAGS+=	-DAALLOC_TRACK		# MirOS development version
-.  endif
-CPPFLAGS+=	-DAALLOC_NO_COOKIES	# for now… aalloc cookies are broken
 CPPFLAGS+=	-DMKSH_ASSUME_UTF8 \
 		-DHAVE_ATTRIBUTE=1 -DHAVE_ATTRIBUTE_BOUNDED=1 \
 		-DHAVE_ATTRIBUTE_USED=1 -DHAVE_SYS_PARAM_H=1 \

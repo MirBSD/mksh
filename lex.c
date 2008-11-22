@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.76 2008/11/12 00:54:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.76.2.1 2008/11/22 13:20:32 tg Exp $");
 
 /*
  * states while lexing word
@@ -238,15 +238,13 @@ yylex(int cf)
 							*wp++ = CHAR;
 							*wp++ = *p++;
 						}
-						afree(tmp, ATEMP);
+						gfree(tmp, ATEMP);
 						break;
 					} else {
 						Source *s;
 
-						s = pushs(SREREAD,
-							  source->areap);
-						s->start = s->str
-							= s->u.freeme = tmp;
+						s = pushs(SREREAD, source->gp_source);
+						s->start = s->str = s->u.freeme = tmp;
 						s->next = source;
 						source = s;
 					}
@@ -776,7 +774,7 @@ yylex(int cf)
 
 	dp = Xstring(ws, wp);
 	if ((c == '<' || c == '>' || c == '&') && state == SBASE) {
-		struct ioword *iop = alloc(1, sizeof (struct ioword), ATEMP);
+		struct ioword *iop = galloc(1, sizeof (struct ioword), ATEMP);
 
 		if (Xlength(ws, wp) == 0)
 			iop->unit = c == '<' ? 0 : 1;
@@ -894,7 +892,7 @@ yylex(int cf)
 		/* { */
 		if ((cf & KEYWORD) && (p = ktsearch(&keywords, ident, h)) &&
 		    (!(cf & ESACONLY) || p->val.i == ESAC || p->val.i == '}')) {
-			afree(yylval.cp, ATEMP);
+			gfree(yylval.cp, ATEMP);
 			return p->val.i;
 		}
 		if ((cf & ALIAS) && (p = ktsearch(&aliases, ident, h)) &&
@@ -909,12 +907,12 @@ yylex(int cf)
 					if (s->u.tblp == p)
 						return LWORD;
 				/* push alias expansion */
-				s = pushs(SALIAS, source->areap);
+				s = pushs(SALIAS, source->gp_source);
 				s->start = s->str = p->val.s;
 				s->u.tblp = p;
 				s->next = source;
 				source = s;
-				afree(yylval.cp, ATEMP);
+				gfree(yylval.cp, ATEMP);
 				goto Again;
 			}
 		}
@@ -1030,11 +1028,11 @@ yyerror(const char *fmt, ...)
  */
 
 Source *
-pushs(int type, PArea areap)
+pushs(int type, PGroup areap)
 {
 	Source *s;
 
-	s = alloc(1, sizeof (Source), areap);
+	s = galloc(1, sizeof (Source), areap);
 	s->type = type;
 	s->str = null;
 	s->start = NULL;
@@ -1043,9 +1041,9 @@ pushs(int type, PArea areap)
 	s->file = NULL;
 	s->flags = 0;
 	s->next = NULL;
-	s->areap = areap;
+	s->gp_source = areap;
 	if (type == SFILE || type == SSTDIN)
-		XinitN(s->xs, 256, s->areap);
+		XinitN(s->xs, 256, s->gp_source);
 	else
 		memset(&s->xs, 0, sizeof(s->xs));
 	return s;
@@ -1135,7 +1133,7 @@ getsc__(void)
 
 		case SREREAD:
 			if (s->start != s->ugbuf) /* yuck */
-				afree(s->u.freeme, ATEMP);
+				gfree(s->u.freeme, ATEMP);
 			source = s = s->next;
 			continue;
 		}
@@ -1260,7 +1258,7 @@ set_prompt(int to, Source *s)
 		{
 			struct shf *shf;
 			char * volatile ps1;
-			PArea saved_atemp;
+			PGroup saved_atemp;
 
 			ps1 = str_val(global("PS1"));
 			shf = shf_sopen(NULL, strlen(ps1) * 2,
@@ -1404,7 +1402,7 @@ get_brace_var(XString *wsp, char *wp)
 						Xcheck(*wsp, wp);
 						*wp++ = *p++;
 					}
-					afree(tmp, ATEMP);
+					gfree(tmp, ATEMP);
 					c = getsc(); /* the ] */
 				}
 			}
@@ -1475,7 +1473,7 @@ ungetsc(int c)
 	else {
 		Source *s;
 
-		s = pushs(SREREAD, source->areap);
+		s = pushs(SREREAD, source->gp_source);
 		s->ugbuf[0] = c; s->ugbuf[1] = '\0';
 		s->start = s->str = s->ugbuf;
 		s->next = source;
@@ -1517,7 +1515,7 @@ getsc_bn(void)
 static Lex_state *
 push_state_(State_info *si, Lex_state *old_end)
 {
-	Lex_state *new = alloc(STATE_BSIZE, sizeof (Lex_state), ATEMP);
+	Lex_state *new = galloc(STATE_BSIZE, sizeof (Lex_state), ATEMP);
 
 	new[0].ls_info.base = old_end;
 	si->base = &new[0];
@@ -1533,7 +1531,7 @@ pop_state_(State_info *si, Lex_state *old_end)
 	si->base = old_end->ls_info.base - STATE_BSIZE;
 	si->end = old_end->ls_info.base;
 
-	afree(old_base, ATEMP);
+	gfree(old_base, ATEMP);
 
 	return si->base + STATE_BSIZE - 1;
 }

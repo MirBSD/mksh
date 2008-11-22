@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.62 2008/11/15 09:00:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.62.2.1 2008/11/22 13:20:37 tg Exp $");
 
 /*
  * Variables
@@ -37,9 +37,10 @@ newblock(void)
 	struct block *l;
 	static const char *empty[] = { null };
 
-	l = alloc(1, sizeof (struct block), ATEMP);
+	l = galloc(1, sizeof (struct block), ATEMP);
 	l->flags = 0;
-	l->areap = anew(Flag(FTALKING) ? 1024 : 64);
+	l->gp_block = galloc_new(NULL, ATEMP, Flag(FTALKING) ? 1024 : 64
+	    GALLOC_VST("newblock"));
 	if (!e->loc) {
 		l->argc = 0;
 		l->argv = empty;
@@ -48,8 +49,8 @@ newblock(void)
 		l->argv = e->loc->argv;
 	}
 	l->exit = l->error = NULL;
-	ktinit(&l->vars, l->areap, 0);
-	ktinit(&l->funs, l->areap, 0);
+	ktinit(&l->vars, l->gp_block, 0);
+	ktinit(&l->funs, l->gp_block, 0);
 	l->next = e->loc;
 	e->loc = l;
 }
@@ -74,8 +75,8 @@ popblock(void)
 		}
 	if (l->flags & BF_DOGETOPTS)
 		user_opt = l->getopts_state;
-	adelete(&l->areap);
-	afree(l, ATEMP);
+	galloc_del(l->gp_block);
+	gfree(l, ATEMP);
 }
 
 /* called by main() to initialise variable data structures */
@@ -132,11 +133,11 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 		*arrayp = true;
 		strndupx(tmp, p + 1, len - 2, ATEMP);
 		sub = substitute(tmp, 0);
-		afree(tmp, ATEMP);
+		gfree(tmp, ATEMP);
 		strndupx(n, n, p - n, ATEMP);
 		evaluate(sub, &rval, KSH_UNWIND_ERROR, true);
 		*valp = (uint32_t)rval;
-		afree(sub, ATEMP);
+		gfree(sub, ATEMP);
 	}
 	return n;
 }
@@ -164,7 +165,7 @@ global(const char *n)
 		vp = &vtemp;
 		vp->flag = DEFINED;
 		vp->type = 0;
-		vp->areap = ATEMP;
+		vp->gp_tbl = ATEMP;
 		*vp->name = c;
 		if (ksh_isdigit(c)) {
 			for (c = 0; ksh_isdigit(*n); n++)
@@ -242,7 +243,7 @@ local(const char *n, bool copy)
 		vp = &vtemp;
 		vp->flag = DEFINED|RDONLY;
 		vp->type = 0;
-		vp->areap = ATEMP;
+		vp->gp_tbl = ATEMP;
 		return vp;
 	}
 	vp = ktenter(&l->vars, n, h);
@@ -367,7 +368,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 				internal_errorf(
 				    "setstr: %s=%s: assigning to self",
 				    vq->name, s);
-			afree(vq->val.s, vq->areap);
+			gfree(vq->val.s, vq->gp_tbl);
 		}
 		vq->flag &= ~(ISSET|ALLOC);
 		vq->type = 0;
@@ -376,7 +377,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 		if ((vq->flag&EXPORT))
 			export(vq, s);
 		else {
-			strdupx(vq->val.s, s, vq->areap);
+			strdupx(vq->val.s, s, vq->gp_tbl);
 			vq->flag |= ALLOC;
 		}
 	} else {		/* integer dest */
@@ -386,7 +387,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 	vq->flag |= ISSET;
 	if ((vq->flag&SPECIAL))
 		setspec(vq);
-	afree(salloc, ATEMP);
+	gfree(salloc, ATEMP);
 	return (1);
 }
 
@@ -398,7 +399,7 @@ setint(struct tbl *vq, long int n)
 		struct tbl *vp = &vtemp;
 		vp->flag = (ISSET|INTEGER);
 		vp->type = 0;
-		vp->areap = ATEMP;
+		vp->gp_tbl = ATEMP;
 		vp->val.i = n;
 		/* setstr can't fail here */
 		setstr(vq, str_val(vp), KSH_RETURN_ERROR);
@@ -496,7 +497,7 @@ setint_v(struct tbl *vq, struct tbl *vp, bool arith)
 		return NULL;
 	if (!(vq->flag & INTEGER) && (vq->flag & ALLOC)) {
 		vq->flag &= ~ALLOC;
-		afree(vq->val.s, vq->areap);
+		gfree(vq->val.s, vq->gp_tbl);
 	}
 	vq->val.i = num;
 	if (vq->type == 0) /* default base */
@@ -523,7 +524,7 @@ formatstr(struct tbl *vp, const char *s)
 	} else
 		nlen = olen;
 
-	p = alloc(1, (psiz = nlen * /* MB_LEN_MAX */ 3 + 1), ATEMP);
+	p = galloc(1, (psiz = nlen * /* MB_LEN_MAX */ 3 + 1), ATEMP);
 	if (vp->flag & (RJUST|LJUST)) {
 		int slen = olen, i = 0;
 
@@ -595,14 +596,14 @@ export(struct tbl *vp, const char *val)
 	int vallen = strlen(val) + 1;
 
 	vp->flag |= ALLOC;
-	xp = alloc(1, namelen + 1 + vallen, vp->areap);
+	xp = galloc(1, namelen + 1 + vallen, vp->gp_tbl);
 	memcpy(vp->val.s = xp, vp->name, namelen);
 	xp += namelen;
 	*xp++ = '=';
 	vp->type = xp - vp->val.s; /* offset to value */
 	memcpy(xp, val, vallen);
 	if (op != NULL)
-		afree(op, vp->areap);
+		gfree(op, vp->gp_tbl);
 }
 
 /*
@@ -670,7 +671,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	    (val || clr || (set & ~EXPORT)))
 		/* XXX check calls - is error here ok by POSIX? */
 		errorf("%s: is read only", tvar);
-	afree(tvar, ATEMP);
+	gfree(tvar, ATEMP);
 
 	/* most calls are with set/clr == 0 */
 	if (set | clr) {
@@ -721,13 +722,13 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 						t->flag &= ~ISSET;
 					else {
 						if (t->flag & ALLOC)
-							afree(t->val.s, t->areap);
+							gfree(t->val.s, t->gp_tbl);
 						t->flag &= ~(ISSET|ALLOC);
 						t->type = 0;
 					}
 				}
 				if (free_me)
-					afree(free_me, t->areap);
+					gfree(free_me, t->gp_tbl);
 			}
 		}
 		if (!ok)
@@ -761,7 +762,7 @@ void
 unset(struct tbl *vp, int array_ref)
 {
 	if (vp->flag & ALLOC)
-		afree(vp->val.s, vp->areap);
+		gfree(vp->val.s, vp->gp_tbl);
 	if ((vp->flag & ARRAY) && !array_ref) {
 		struct tbl *a, *tmp;
 
@@ -770,8 +771,8 @@ unset(struct tbl *vp, int array_ref)
 			tmp = a;
 			a = a->u.array;
 			if (tmp->flag & ALLOC)
-				afree(tmp->val.s, tmp->areap);
-			afree(tmp, tmp->areap);
+				gfree(tmp->val.s, tmp->gp_tbl);
+			gfree(tmp, tmp->gp_tbl);
 		}
 		vp->u.array = NULL;
 	}
@@ -1058,7 +1059,7 @@ setspec(struct tbl *vp)
 	switch (special(vp->name)) {
 	case V_PATH:
 		if (path)
-			afree(path, APERM);
+			gfree(path, APERM);
 		s = str_val(vp);
 		strdupx(path, s, APERM);
 		flushcom(1);	/* clear tracked aliases */
@@ -1074,7 +1075,7 @@ setspec(struct tbl *vp)
 		break;
 	case V_TMPDIR:
 		if (tmpdir) {
-			afree(tmpdir, APERM);
+			gfree(tmpdir, APERM);
 			tmpdir = NULL;
 		}
 		/* Use tmpdir iff it is an absolute path, is writable and
@@ -1138,7 +1139,7 @@ unsetspec(struct tbl *vp)
 	switch (special(vp->name)) {
 	case V_PATH:
 		if (path)
-			afree(path, APERM);
+			gfree(path, APERM);
 		strdupx(path, def_path, APERM);
 		flushcom(1);	/* clear tracked aliases */
 		break;
@@ -1149,7 +1150,7 @@ unsetspec(struct tbl *vp)
 	case V_TMPDIR:
 		/* should not become unspecial */
 		if (tmpdir) {
-			afree(tmpdir, APERM);
+			gfree(tmpdir, APERM);
 			tmpdir = NULL;
 		}
 		break;
@@ -1198,11 +1199,11 @@ arraysearch(struct tbl *vp, uint32_t val)
 		else
 			new = curr;
 	} else
-		new = alloc(1, sizeof (struct tbl) + namelen, vp->areap);
+		new = galloc(1, sizeof (struct tbl) + namelen, vp->gp_tbl);
 	strlcpy(new->name, vp->name, namelen);
 	new->flag = vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL);
 	new->type = vp->type;
-	new->areap = vp->areap;
+	new->gp_tbl = vp->gp_tbl;
 	new->u2.field = vp->u2.field;
 	new->index = val;
 	if (curr != new) {		/* not reusing old array entry */

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.50 2008/11/12 00:54:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.50.2.1 2008/11/22 13:20:27 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -65,7 +65,7 @@ substitute(const char *cp, int f)
 	if (yylex(ONEWORD) != LWORD)
 		internal_errorf("substitute");
 	source = sold;
-	afree(s, ATEMP);
+	gfree(s, ATEMP);
 	return evalstr(yylval.cp, f);
 }
 
@@ -287,7 +287,7 @@ expand(const char *cp,	/* input word */
 					if (end < wdscan(beg, EOS))
 						*end = EOS;
 					str = snptreef(NULL, 64, "%S", beg);
-					afree(beg, ATEMP);
+					gfree(beg, ATEMP);
 					errorf("%s: bad substitution", str);
 				}
 				if (f & DOBLANK)
@@ -297,8 +297,7 @@ expand(const char *cp,	/* input word */
 					if (!st->next) {
 						SubType *newst;
 
-						newst = alloc(1,
-						    sizeof (SubType), ATEMP);
+						newst = galloc(1, sizeof (SubType), ATEMP);
 						newst->next = NULL;
 						newst->prev = st;
 						st->next = newst;
@@ -340,13 +339,13 @@ expand(const char *cp,	/* input word */
 						}
 						evaluate(substitute(stg = wdstrip(beg, false, false), 0),
 						    &from, KSH_UNWIND_ERROR, true);
-						afree(stg, ATEMP);
+						gfree(stg, ATEMP);
 						if (end) {
 							evaluate(stg = wdstrip(mid, false, false),
 							    &num, KSH_UNWIND_ERROR, true);
-							afree(stg, ATEMP);
+							gfree(stg, ATEMP);
 						}
-						afree(beg, ATEMP);
+						gfree(beg, ATEMP);
 						beg = str_val(st->var);
 						flen = strlen(beg);
 						if (from < 0) {
@@ -396,10 +395,10 @@ expand(const char *cp,	/* input word */
 						if (d) {
 							d = wdstrip(p, true, false);
 							rrep = substitute(d, 0);
-							afree(d, ATEMP);
+							gfree(d, ATEMP);
 						} else
 							rrep = null;
-						afree(s, ATEMP);
+						gfree(s, ATEMP);
 						s = d = pat;
 						while (*s)
 							if (*s != '\\' ||
@@ -418,7 +417,7 @@ expand(const char *cp,	/* input word */
 						    tpat0, pat, rrep);
 						fflush(stderr);
 #endif
-						afree(tpat0, ATEMP);
+						gfree(tpat0, ATEMP);
 
 						/* reject empty pattern */
 						if (!*pat || gmatchx("", pat, false))
@@ -479,19 +478,19 @@ expand(const char *cp,	/* input word */
 							}
 						strndupx(end, s, sbeg - s, ATEMP);
 						d = shf_smprintf("%s%s%s", end, rrep, p);
-						afree(end, ATEMP);
+						gfree(end, ATEMP);
 						sbeg = d + (sbeg - s) + strlen(rrep);
-						afree(s, ATEMP);
+						gfree(s, ATEMP);
 						s = d;
 						if (stype & 0x80)
 							goto again_repl;
  end_repl:
-						afree(tpat1, ATEMP);
+						gfree(tpat1, ATEMP);
 						x.str = s;
  no_repl:
-						afree(pat, ATEMP);
+						gfree(pat, ATEMP);
 						if (rrep != null)
-							afree(rrep, ATEMP);
+							gfree(rrep, ATEMP);
 						goto do_CSUBST;
 					}
 					case '#':
@@ -590,7 +589,7 @@ expand(const char *cp,	/* input word */
 					 */
 					len = strlen(dp) + 1;
 					setstr(st->var,
-					    debunk(alloc(1, len, ATEMP),
+					    debunk(galloc(1, len, ATEMP),
 					    dp, len), KSH_UNWIND_ERROR);
 					x.str = str_val(st->var);
 					type = XSUB;
@@ -770,7 +769,7 @@ expand(const char *cp,	/* input word */
 				    Xlength(ds, dp) == 0) {
 					char *p;
 
-					*(p = alloc(1, 1, ATEMP)) = '\0';
+					*(p = galloc(1, 1, ATEMP)) = '\0';
 					XPput(*wp, p);
 				}
 				type = XSUBMID;
@@ -1042,7 +1041,7 @@ comsub(Expand *xp, const char *cp)
 	s->start = s->str = cp;
 	sold = source;
 	t = compile(s);
-	afree(s, ATEMP);
+	gfree(s, ATEMP);
 	source = sold;
 
 	if (t == NULL)
@@ -1474,7 +1473,7 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 				l1 = brace_start - start;
 				l2 = (p - 1) - field_start;
 				l3 = end - brace_end;
-				new = alloc(1, l1 + l2 + l3 + 1, ATEMP);
+				new = galloc(1, l1 + l2 + l3 + 1, ATEMP);
 				memcpy(new, start, l1);
 				memcpy(new + l1, field_start, l2);
 				memcpy(new + l1 + l2, brace_end, l3);

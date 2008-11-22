@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.20 2008/11/12 00:54:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.20.2.1 2008/11/22 13:20:28 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -472,7 +472,7 @@ exprtoken(Expr_state *es)
 		} else {
 			strndupx(tvar, es->tokp, cp - es->tokp, ATEMP);
 			es->val = global(tvar);
-			afree(tvar, ATEMP);
+			gfree(tvar, ATEMP);
 		}
 		es->tok = VAR;
 	} else if (c == '1' && cp[1] == '#') {
@@ -491,7 +491,7 @@ exprtoken(Expr_state *es)
 		es->val->val.s = tvar;
 		if (setint_v(es->val, es->val, es->arith) == NULL)
 			evalerr(es, ET_BADLIT, tvar);
-		afree(tvar, ATEMP);
+		gfree(tvar, ATEMP);
 		es->tok = LIT;
 	} else {
 		int i, n0;
@@ -544,10 +544,10 @@ tempvar(void)
 {
 	struct tbl *vp;
 
-	vp = alloc(1, sizeof (struct tbl), ATEMP);
+	vp = galloc(1, sizeof (struct tbl), ATEMP);
 	vp->flag = ISSET|INTEGER;
 	vp->type = 0;
-	vp->areap = ATEMP;
+	vp->gp_tbl = ATEMP;
 	vp->val.i = 0;
 	vp->name[0] = '\0';
 	return (vp);

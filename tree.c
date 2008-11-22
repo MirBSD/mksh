@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.23 2008/11/12 00:54:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.23.2.1 2008/11/22 13:20:37 tg Exp $");
 
 #define INDENT	4
 
@@ -12,8 +12,8 @@ static void pioact(struct shf *, int, struct ioword *);
 static void tputC(int, struct shf *);
 static void tputS(char *, struct shf *);
 static void vfptreef(struct shf *, int, const char *, va_list);
-static struct ioword **iocopy(struct ioword **, PArea);
-static void iofree(struct ioword **, PArea);
+static struct ioword **iocopy(struct ioword **, PGroup);
+static void iofree(struct ioword **, PGroup);
 
 /*
  * print a command tree
@@ -412,7 +412,7 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
  * copy tree (for function definition)
  */
 struct op *
-tcopy(struct op *t, PArea ap)
+tcopy(struct op *t, PGroup ap)
 {
 	struct op *r;
 	const char **tw;
@@ -421,7 +421,7 @@ tcopy(struct op *t, PArea ap)
 	if (t == NULL)
 		return NULL;
 
-	r = alloc(1, sizeof (struct op), ap);
+	r = galloc(1, sizeof (struct op), ap);
 
 	r->type = t->type;
 	r->u.evalflags = t->u.evalflags;
@@ -436,7 +436,7 @@ tcopy(struct op *t, PArea ap)
 	else {
 		for (tw = (const char **)t->vars; *tw++ != NULL; )
 			;
-		rw = r->vars = alloc((tw - (const char **)t->vars + 1),
+		rw = r->vars = galloc((tw - (const char **)t->vars + 1),
 		    sizeof (*tw), ap);
 		for (tw = (const char **)t->vars; *tw != NULL; )
 			*rw++ = wdcopy(*tw++, ap);
@@ -448,7 +448,7 @@ tcopy(struct op *t, PArea ap)
 	else {
 		for (tw = t->args; *tw++ != NULL; )
 			;
-		r->args = (const char **)(rw = alloc((tw - t->args + 1),
+		r->args = (const char **)(rw = galloc((tw - t->args + 1),
 		    sizeof (*tw), ap));
 		for (tw = t->args; *tw != NULL; )
 			*rw++ = wdcopy(*tw++, ap);
@@ -465,10 +465,10 @@ tcopy(struct op *t, PArea ap)
 }
 
 char *
-wdcopy(const char *wp, PArea ap)
+wdcopy(const char *wp, PGroup ap)
 {
 	size_t len = wdscan(wp, EOS) - wp;
-	return memcpy(alloc(1, len, ap), wp, len);
+	return memcpy(galloc(1, len, ap), wp, len);
 }
 
 /* return the position of prefix c in wp plus 1 */
@@ -611,20 +611,20 @@ wdstrip(const char *wp, bool keepq, bool make_magic)
 }
 
 static struct ioword **
-iocopy(struct ioword **iow, PArea ap)
+iocopy(struct ioword **iow, PGroup ap)
 {
 	struct ioword **ior;
 	int i;
 
 	for (ior = iow; *ior++ != NULL; )
 		;
-	ior = alloc((ior - iow + 1), sizeof (struct ioword *), ap);
+	ior = galloc((ior - iow + 1), sizeof (struct ioword *), ap);
 
 	for (i = 0; iow[i] != NULL; i++) {
 		struct ioword *p, *q;
 
 		p = iow[i];
-		q = alloc(1, sizeof (struct ioword), ap);
+		q = galloc(1, sizeof (struct ioword), ap);
 		ior[i] = q;
 		*q = *p;
 		if (p->name != NULL)
@@ -643,7 +643,7 @@ iocopy(struct ioword **iow, PArea ap)
  * free tree (for function definition)
  */
 void
-tfree(struct op *t, PArea ap)
+tfree(struct op *t, PGroup ap)
 {
 	char **w;
 
@@ -651,12 +651,12 @@ tfree(struct op *t, PArea ap)
 		return;
 
 	if (t->str != NULL)
-		afree(t->str, ap);
+		gfree(t->str, ap);
 
 	if (t->vars != NULL) {
 		for (w = t->vars; *w != NULL; w++)
-			afree(*w, ap);
-		afree(t->vars, ap);
+			gfree(*w, ap);
+		gfree(t->vars, ap);
 	}
 
 	if (t->args != NULL) {
@@ -664,8 +664,8 @@ tfree(struct op *t, PArea ap)
 		/* XXX we assume the caller is right */
 		cw.ro = t->args;
 		for (w = cw.rw; *w != NULL; w++)
-			afree(*w, ap);
-		afree(t->args, ap);
+			gfree(*w, ap);
+		gfree(t->args, ap);
 	}
 
 	if (t->ioact != NULL)
@@ -674,23 +674,23 @@ tfree(struct op *t, PArea ap)
 	tfree(t->left, ap);
 	tfree(t->right, ap);
 
-	afree(t, ap);
+	gfree(t, ap);
 }
 
 static void
-iofree(struct ioword **iow, PArea ap)
+iofree(struct ioword **iow, PGroup ap)
 {
 	struct ioword **iop;
 	struct ioword *p;
 
 	for (iop = iow; (p = *iop++) != NULL; ) {
 		if (p->name != NULL)
-			afree(p->name, ap);
+			gfree(p->name, ap);
 		if (p->delim != NULL)
-			afree(p->delim, ap);
+			gfree(p->delim, ap);
 		if (p->heredoc != NULL)
-			afree(p->heredoc, ap);
-		afree(p, ap);
+			gfree(p->heredoc, ap);
+		gfree(p, ap);
 	}
-	afree(iow, ap);
+	gfree(iow, ap);
 }

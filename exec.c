@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.47 2008/11/12 00:55:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.47.2.1 2008/11/22 13:20:27 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -72,7 +72,7 @@ execute(struct op *volatile t,
 	flags &= ~XTIME;
 
 	if (t->ioact != NULL || t->type == TPIPE || t->type == TCOPROC) {
-		e->savefd = alloc(NUFILE, sizeof (short), ATEMP);
+		e->savefd = galloc(NUFILE, sizeof (short), ATEMP);
 		/* initialise to not redirected */
 		memset(e->savefd, 0, NUFILE * sizeof (short));
 	}
@@ -592,7 +592,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 		if ((tp->flag & (FDELETE|FINUSE)) == FDELETE) {
 			if (tp->flag & ALLOC) {
 				tp->flag &= ~ALLOC;
-				tfree(tp->val.t, tp->areap);
+				tfree(tp->val.t, tp->gp_tbl);
 			}
 			tp->flag = 0;
 		}
@@ -818,7 +818,7 @@ define(const char *name, struct op *t)
 
 	if (tp->flag & ALLOC) {
 		tp->flag &= ~(ISSET|ALLOC);
-		tfree(tp->val.t, tp->areap);
+		tfree(tp->val.t, tp->gp_tbl);
 	}
 
 	if (t == NULL) {		/* undefine */
@@ -826,7 +826,7 @@ define(const char *name, struct op *t)
 		return was_set ? 0 : 1;
 	}
 
-	tp->val.t = tcopy(t->left, tp->areap);
+	tp->val.t = tcopy(t->left, tp->gp_tbl);
 	tp->flag |= (ISSET|ALLOC);
 	if (t->u.ksh_func)
 		tp->flag |= FKSH;
@@ -907,7 +907,7 @@ findcom(const char *name, int flags)
 		if (tp && (tp->flag & ISSET) && access(tp->val.s, X_OK) != 0) {
 			if (tp->flag & ALLOC) {
 				tp->flag &= ~ALLOC;
-				afree(tp->val.s, APERM);
+				gfree(tp->val.s, APERM);
 			}
 			tp->flag &= ~ISSET;
 		}
@@ -931,7 +931,7 @@ findcom(const char *name, int flags)
 		if (npath.ro) {
 			strdupx(tp->val.s, npath.ro, APERM);
 			if (npath.ro != name)
-				afree(npath.rw, ATEMP);
+				gfree(npath.rw, ATEMP);
 			tp->flag |= ISSET|ALLOC;
 		} else if ((flags & FC_FUNC) &&
 		    (fpath = str_val(global("FPATH"))) != null &&
@@ -964,7 +964,7 @@ flushcom(int all)	/* just relative or all */
 		if ((tp->flag&ISSET) && (all || tp->val.s[0] != '/')) {
 			if (tp->flag&ALLOC) {
 				tp->flag &= ~(ALLOC|ISSET);
-				afree(tp->val.s, APERM);
+				gfree(tp->val.s, APERM);
 			}
 			tp->flag &= ~ISSET;
 		}

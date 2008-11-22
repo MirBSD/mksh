@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.91 2008/11/12 00:54:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.91.2.1 2008/11/22 13:20:34 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -70,7 +70,8 @@ Xcheck_grow_(XString *xsp, const char *xp, unsigned int more)
 	const char *old_beg = xsp->beg;
 
 	xsp->len += more > xsp->len ? more : xsp->len;
-	xsp->beg = aresize(xsp->beg, 1, xsp->len + 8, xsp->areap);
+	/* XXX why + 8 ? */
+	xsp->beg = grealloc(xsp->beg, 1, xsp->len + 8, xsp->gp_XS);
 	xsp->end = xsp->beg + xsp->len;
 	return xsp->beg + (xp - old_beg);
 }
@@ -492,10 +493,14 @@ gmatchx(const char *s, const char *p, bool isfile)
 	 */
 	if (!isfile && !has_globbing(p, pe)) {
 		size_t len = pe - p + 1;
+		int res;
 		char tbuf[64];
-		char *t = len <= sizeof(tbuf) ? tbuf : alloc(1, len, ATEMP);
+		char *t = len <= sizeof(tbuf) ? tbuf : galloc(1, len, ATEMP);
 		debunk(t, p, len);
-		return !strcmp(t, s);
+		res = !strcmp(t, s);
+		if (t != tbuf)
+			gfree(t, ATEMP);
+		return (res);
 	}
 	return do_gmatch((const unsigned char *) s, (const unsigned char *) se,
 	    (const unsigned char *) p, (const unsigned char *) pe);
@@ -933,7 +938,7 @@ print_columns(struct shf *shf, int n,
     char *(*func) (const void *, int, char *, int),
     const void *arg, int max_width, int prefcol)
 {
-	char *str = alloc(1, max_width + 1, ATEMP);
+	char *str = galloc(1, max_width + 1, ATEMP);
 	int i, r, c, rows, cols, nspace;
 
 	/* max_width + 1 for the space.  Note that no space
@@ -969,7 +974,7 @@ print_columns(struct shf *shf, int n,
 		}
 		shf_putchar('\n', shf);
 	}
-	afree(str, ATEMP);
+	gfree(str, ATEMP);
 }
 
 /* Strip any nul bytes from buf - returns new length (nbytes - # of nuls) */
@@ -1048,10 +1053,10 @@ ksh_get_wd(size_t *dlen)
 	char *ret, *b;
 	size_t len = 1;
 
-	if ((ret = getcwd((b = alloc(1, PATH_MAX + 1, ATEMP)), PATH_MAX)))
-		ret = aresize(b, 1, len = (strlen(b) + 1), ATEMP);
+	if ((ret = getcwd((b = galloc(1, PATH_MAX + 1, ATEMP)), PATH_MAX)))
+		ret = grealloc(b, 1, len = (strlen(b) + 1), ATEMP);
 	else
-		afree(b, ATEMP);
+		gfree(b, ATEMP);
 
 	if (dlen)
 		*dlen = len;
@@ -1228,12 +1233,12 @@ set_current_wd(char *pathl)
 		len = strlen(p) + 1;
 
 	if (len > current_wd_size) {
-		afree(current_wd, APERM);
-		current_wd = alloc(1, current_wd_size = len, APERM);
+		gfree(current_wd, APERM);
+		current_wd = galloc(1, current_wd_size = len, APERM);
 	}
 	memcpy(current_wd, p, len);
 	if (p != pathl && p != null)
-		afree(p, ATEMP);
+		gfree(p, ATEMP);
 }
 
 char *
@@ -1426,19 +1431,20 @@ stristr(const char *b, const char *l)
 
 #ifdef MKSH_SMALL
 char *
-strndup_(const char *src, size_t len, PArea ap)
+strndup_(const char *src, size_t len, PGroup ap)
 {
 	char *dst = NULL;
 
 	if (src != NULL) {
-		dst = alloc(1, ++len, ap);
-		strlcpy(dst, src, len);
+		dst = galloc(1, len + 1, ap);
+		memcpy(dst, src, len);
+		dst[len] = '\0';
 	}
 	return (dst);
 }
 
 char *
-strdup_(const char *src, PArea ap)
+strdup_(const char *src, PGroup ap)
 {
 	return (src == NULL ? NULL : strndup_(src, strlen(src), ap));
 }
