@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.244 2008/11/30 10:45:42 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.245 2008/11/30 16:53:15 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -5234,6 +5234,29 @@ stdin:
 		echo tri >&3
 	}
 	threeout &>|foo
+	echo ===
+	cat foo
+expected-stdout:
+	tri
+	===
+	ras
+	dwa
+---
+name: bashiop-4
+description:
+	Check if GNU bash-like I/O redirection works
+	Part 4: this is also supported by GNU bash,
+	but failed in some mksh versions
+stdin:
+	exec 3>&1
+	function threeout {
+		echo ras
+		echo dwa >&2
+		echo tri >&3
+	}
+	[[ -e bar ]] && threeout &>foo
+	echo -n >bar
+	[[ -e bar ]] && threeout &>foo
 	echo ===
 	cat foo
 expected-stdout:
