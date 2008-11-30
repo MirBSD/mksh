@@ -103,9 +103,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.261 2008/11/15 08:52:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.262 2008/11/30 10:33:39 tg Exp $");
 #endif
-#define MKSH_VERSION "R36 2008/11/11"
+#define MKSH_VERSION "R36 2008/11/30"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1533,7 +1533,9 @@ const char *skip_wdvarname(const char *, int);
 int is_wdvarname(const char *, int);
 int is_wdvarassign(const char *);
 char **makenv(void);
+#if !HAVE_ARC4RANDOM || !defined(MKSH_SMALL)
 void change_random(unsigned long);
+#endif
 int array_ref_len(const char *);
 char *arrayname(const char *);
 void set_array(const char *, int, const char **);

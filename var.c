@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.62 2008/11/15 09:00:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.63 2008/11/30 10:33:40 tg Exp $");
 
 /*
  * Variables
@@ -895,7 +895,7 @@ makenv(void)
  * otherwise arc4random(3). We have static caches to make change_random
  * and writes to $RANDOM a cheap operation.
  */
-#if HAVE_ARC4RANDOM
+#if HAVE_ARC4RANDOM && !defined(MKSH_SMALL)
 static uint32_t rnd_cache[2];
 static char rnd_lastflag = 2;
 #endif
@@ -903,6 +903,9 @@ static char rnd_lastflag = 2;
 static int
 rnd_get(void)
 {
+#if HAVE_ARC4RANDOM && defined(MKSH_SMALL)
+	return (arc4random() & 0x7FFF);
+#else
 #if HAVE_ARC4RANDOM
 #if HAVE_ARC4RANDOM_PUSHB
 	uint32_t rv = 0;
@@ -935,11 +938,19 @@ rnd_get(void)
 	}
 #endif
 	return (rand() & 0x7FFF);
+#endif
 }
 
 static void
 rnd_set(unsigned long newval)
 {
+#if HAVE_ARC4RANDOM && defined(MKSH_SMALL)
+#if HAVE_ARC4RANDOM_PUSHB
+	arc4random_pushb(&newval, sizeof (newval));
+#else
+	arc4random_addrandom((void *)&newval, sizeof (newval));
+#endif
+#else
 #if HAVE_ARC4RANDOM
 	rnd_cache[0] ^= (newval << 15) | rand();
 	rnd_cache[1] ^= newval >> 17;
@@ -951,8 +962,10 @@ rnd_set(unsigned long newval)
 	rnd_lastflag = 0;
 #endif
 	srand(newval & 0x7FFF);
+#endif
 }
 
+#if !HAVE_ARC4RANDOM || !defined(MKSH_SMALL)
 /*
  * Called after a fork in parent to bump the random number generator.
  * Done to ensure children will not get the same random number sequence
@@ -980,6 +993,7 @@ change_random(unsigned long newval)
 
 	srand(rval);
 }
+#endif
 
 /*
  * handle special variables with side effects - PATH, SECONDS.
