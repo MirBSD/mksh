@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.30 2008/11/12 00:54:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.31 2008/12/02 13:20:40 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -170,12 +170,22 @@ synio(int cf)
 		iop->name = yylval.cp;
 
 	if (iop->flag & IOBASH) {
+		char *cp;
+
 		nextiop = alloc(1, sizeof (*iop), ATEMP);
+		nextiop->name = cp = alloc(5, 1, ATEMP);
+
+		if (iop->unit > 9) {
+			*cp++ = CHAR;
+			*cp++ = '0' + (iop->unit / 10);
+		}
+		*cp++ = CHAR;
+		*cp++ = '0' + (iop->unit % 10);
+		*cp = EOS;
 
 		iop->flag &= ~IOBASH;
 		nextiop->unit = 2;
 		nextiop->flag = IODUP;
-		nextiop->name = shf_smprintf("%d", iop->unit);
 		nextiop->delim = NULL;
 		nextiop->heredoc = NULL;
 	}

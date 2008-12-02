@@ -103,7 +103,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.263 2008/12/02 12:39:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.264 2008/12/02 13:20:39 tg Exp $");
 #endif
 #define MKSH_VERSION "R36 2008/12/02"
 
@@ -260,6 +260,7 @@ extern int __cdecl setegid(gid_t);
 /* Table flag type - needs > 16 and < 32 bits */
 typedef int32_t Tflag;
 
+/* these shall be smaller than 100 */
 #ifdef MKSH_SMALL
 #define NUFILE		32	/* Number of user-accessible files */
 #define FDBASE		10	/* First file usable by Shell */
