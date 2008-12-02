@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.247 2008/12/02 12:39:36 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.248 2008/12/02 12:48:16 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -150,6 +150,22 @@ stdin:
 expected-stdout:
 	hi
 	there
+---
+name: alias-9
+description:
+	Check that recursion is detected/avoided in aliases.
+stdin:
+	echo -n >tf
+	ls			# pre-fetch ls(1) binary
+	(sleep 3; kill -9 $$) &	# may need to adjust for slow machines
+	alias ls=ls
+	ls
+	echo $(ls)
+	exit 0
+expected-stdout:
+	tf
+	tf
+	tf
 ---
 name: arith-lazy-1
 description:
