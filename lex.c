@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.76 2008/11/12 00:54:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.77 2008/12/02 12:39:37 tg Exp $");
 
 /*
  * states while lexing word
@@ -903,16 +903,24 @@ yylex(int cf)
 				/* prefer functions over aliases */
 				ktdelete(p);
 			else {
-				Source *s;
+				Source *s = source;
 
-				for (s = source; s->type == SALIAS; s = s->next)
+				while (s->flags & SF_HASALIAS)
 					if (s->u.tblp == p)
 						return LWORD;
+					else
+						s = s->next;
 				/* push alias expansion */
 				s = pushs(SALIAS, source->areap);
 				s->start = s->str = p->val.s;
 				s->u.tblp = p;
+				s->flags |= SF_HASALIAS;
 				s->next = source;
+				if (source->type == SEOF) {
+					/* prevent infinite recursion at EOS */
+					source->u.tblp = p;
+					source->flags |= SF_HASALIAS;
+				}
 				source = s;
 				afree(yylval.cp, ATEMP);
 				goto Again;

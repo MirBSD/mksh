@@ -103,9 +103,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.262 2008/11/30 10:33:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.263 2008/12/02 12:39:38 tg Exp $");
 #endif
-#define MKSH_VERSION "R36 2008/11/30"
+#define MKSH_VERSION "R36 2008/12/02"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1147,7 +1147,7 @@ struct source {
 	union {
 		const char **strv; /* string [] */
 		struct shf *shf;   /* shell file */
-		struct tbl *tblp;  /* alias (SALIAS) */
+		struct tbl *tblp;  /* alias (SF_HASALIAS) */
 		char *freeme;	   /* also for SREREAD */
 	} u;
 	int	line;		/* line number */
@@ -1178,6 +1178,7 @@ struct source {
 #define SF_ALIASEND	BIT(2)	/* faking space at end of alias */
 #define SF_TTY		BIT(3)	/* type == SSTDIN & it is a tty */
 #define SF_FIRST	BIT(4)	/* initial state (to ignore UTF-8 BOM) */
+#define SF_HASALIAS	BIT(5)	/* u.tblp valid (SALIAS, SEOF) */
 
 typedef union {
 	int i;
