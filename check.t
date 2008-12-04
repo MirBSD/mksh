@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.249 2008/12/02 13:19:28 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.250 2008/12/04 18:11:03 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R36 2008/12/02
+	@(#)MIRBSD KSH R36 2008/12/04
 description:
 	Check version of shell.
 stdin:
@@ -4478,21 +4478,21 @@ expected-stderr-pattern:
 ---
 name: utf8bom-3
 description:
-	Reading the UTF-8 BOM should enable the utf8-hack flag
+	Reading the UTF-8 BOM should enable the utf8-mode flag
 stdin:
-	"$__progname" -c ':; if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then print on; else print off; fi'
-	"$__progname" -c 'Ôªø:; if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then print on; else print off; fi'
+	"$__progname" -c ':; if [[ $(set +o) = *@(-o utf8-mode)@(| *) ]]; then print on; else print off; fi'
+	"$__progname" -c 'Ôªø:; if [[ $(set +o) = *@(-o utf8-mode)@(| *) ]]; then print on; else print off; fi'
 expected-stdout:
 	off
 	on
 ---
 name: utf8opt-1a
 description:
-	Check that the utf8-hack flag is not set at non-interactive startup
+	Check that the utf8-mode flag is not set at non-interactive startup
 category: !os:hpux
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.UTF-8!
 stdin:
-	if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then
+	if [[ $(set +o) = *@(-o utf8-mode)@(| *) ]]; then
 		print is set
 	else
 		print is not set
@@ -4502,11 +4502,11 @@ expected-stdout:
 ---
 name: utf8opt-1b
 description:
-	Check that the utf8-hack flag is not set at non-interactive startup
+	Check that the utf8-mode flag is not set at non-interactive startup
 category: os:hpux
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.utf8!
 stdin:
-	if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then
+	if [[ $(set +o) = *@(-o utf8-mode)@(| *) ]]; then
 		print is set
 	else
 		print is not set
@@ -4516,12 +4516,12 @@ expected-stdout:
 ---
 name: utf8opt-2a
 description:
-	Check that the utf8-hack flag is set at interactive startup
+	Check that the utf8-mode flag is set at interactive startup
 category: !os:hpux
 arguments: !-i!
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.UTF-8!
 stdin:
-	if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then
+	if [[ $(set +o) = *@(-o utf8-mode)@(| *) ]]; then
 		print is set
 	else
 		print is not set
@@ -4533,12 +4533,12 @@ expected-stderr-pattern:
 ---
 name: utf8opt-2b
 description:
-	Check that the utf8-hack flag is set at interactive startup
+	Check that the utf8-mode flag is set at interactive startup
 category: os:hpux
 arguments: !-i!
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.utf8!
 stdin:
-	if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then
+	if [[ $(set +o) = *@(-o utf8-mode)@(| *) ]]; then
 		print is set
 	else
 		print is not set
@@ -4804,7 +4804,7 @@ name: integer-base-one-1
 description:
 	check if the use of fake integer base 1 works
 stdin:
-	set -o utf8-hack
+	set -U
 	typeset -Uui16 i0=1#Ô i1=1#‚Ç¨
 	typeset -i1 o0a=64
 	typeset -i1 o1a=0x263A
@@ -4833,7 +4833,7 @@ name: integer-base-one-2a
 description:
 	check if the use of fake integer base 1 stops at correct characters
 stdin:
-	set -o utf8-hack
+	set -U
 	integer x=1#foo
 	print /$x/
 expected-stderr-pattern:
@@ -4844,7 +4844,7 @@ name: integer-base-one-2b
 description:
 	check if the use of fake integer base 1 stops at correct characters
 stdin:
-	set -o utf8-hack
+	set -U
 	integer x=1#¿Ä
 	print /$x/
 expected-stderr-pattern:
@@ -4855,7 +4855,7 @@ name: integer-base-one-2c1
 description:
 	check if the use of fake integer base 1 stops at correct characters
 stdin:
-	set -o utf8-hack
+	set -U
 	integer x=1#‚Ä¶
 	print /$x/
 expected-stdout:
@@ -4865,7 +4865,7 @@ name: integer-base-one-2c2
 description:
 	check if the use of fake integer base 1 stops at correct characters
 stdin:
-	set +o utf8-hack
+	set +U
 	integer x=1#‚Ä¶
 	print /$x/
 expected-stderr-pattern:
@@ -4876,7 +4876,7 @@ name: integer-base-one-2d1
 description:
 	check if the use of fake integer base 1 handles octets okay
 stdin:
-	set -o utf8-hack
+	set -U
 	typeset -i16 x=1#ˇ
 	print /$x/	# invalid utf-8
 expected-stdout:
@@ -4886,7 +4886,7 @@ name: integer-base-one-2d2
 description:
 	check if the use of fake integer base 1 handles octets
 stdin:
-	set -o utf8-hack
+	set -U
 	typeset -i16 x=1#¬
 	print /$x/	# invalid 2-byte
 expected-stdout:
@@ -4896,7 +4896,7 @@ name: integer-base-one-2d3
 description:
 	check if the use of fake integer base 1 handles octets
 stdin:
-	set -o utf8-hack
+	set -U
 	typeset -i16 x=1#Ô
 	print /$x/	# invalid 2-byte
 expected-stdout:
@@ -4906,7 +4906,7 @@ name: integer-base-one-2d4
 description:
 	check if the use of fake integer base 1 stops at invalid input
 stdin:
-	set -o utf8-hack
+	set -U
 	typeset -i16 x=1#Ôø¿
 	print /$x/	# invalid 3-byte
 expected-stderr-pattern:
@@ -4917,7 +4917,7 @@ name: integer-base-one-2d5
 description:
 	check if the use of fake integer base 1 stops at invalid input
 stdin:
-	set -o utf8-hack
+	set -U
 	typeset -i16 x=1#¿Ä
 	print /$x/	# non-minimalistic
 expected-stderr-pattern:
@@ -4928,7 +4928,7 @@ name: integer-base-one-2d6
 description:
 	check if the use of fake integer base 1 stops at invalid input
 stdin:
-	set -o utf8-hack
+	set -U
 	typeset -i16 x=1#‡ÄÄ
 	print /$x/	# non-minimalistic
 expected-stderr-pattern:
@@ -5006,7 +5006,7 @@ name: integer-base-one-3b
 description:
 	some sample code for hexdumping Unicode
 stdin:
-	set -o utf8-hack
+	set -U
 	{
 		print 'Hello, World!\\\n„Åì„Çì„Å´„Å°„ÅØÔºÅ'
 		typeset -Uui16 i=0x100

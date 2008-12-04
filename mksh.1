@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.144 2008/10/24 21:27:20 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.145 2008/12/04 18:11:07 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.122 2008/05/17 23:31:52 sobrado Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: October 24 2008 $
+.Dd $Mdocdate: December 4 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -2159,7 +2159,7 @@ As a special
 .Nm mksh
 extension, numbers to the base of one are treated as either (8-bit
 transparent) ASCII or Unicode codepoints, depending on the shell's
-.Ic utf8\-hack
+.Ic utf8\-mode
 flag (current setting).
 Note that NUL bytes (integral value of zero) cannot be used.
 In Unicode mode, raw octets are mapped into the range EF80..EFFF as in
@@ -3468,7 +3468,7 @@ the positional parameters (or to array
 if
 .Fl A
 is used).
-.It Fl U \*(Ba Ic utf8\-hack
+.It Fl U \*(Ba Ic utf8\-mode
 Enable UTF-8 support in the
 .Sx Emacs editing mode
 and internal string handling functions.
@@ -3486,7 +3486,7 @@ and at least one of these returns something that matches
 .Dq UTF\-8
 or
 .Dq utf8 ,
-or if the input begins with a Byte Order Mark.
+or if the input begins with a UTF-8 Byte Order Mark.
 .It Fl u \*(Ba Ic nounset
 Referencing of an unset parameter is treated as an error, unless one of the
 .Ql \- ,
@@ -5559,7 +5559,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh\ R36
+.Nm mksh\ R37
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

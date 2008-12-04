@@ -103,9 +103,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.264 2008/12/02 13:20:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.265 2008/12/04 18:11:08 tg Exp $");
 #endif
-#define MKSH_VERSION "R36 2008/12/02"
+#define MKSH_VERSION "R36 2008/12/04"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -341,7 +341,7 @@ char *ucstrstr(char *, const char *);
 #define utf_ptradjx(src, dst) do {					\
 	size_t utf_ptradjx_len;						\
 									\
-	if (!Flag(FUTFHACK) ||						\
+	if (!UTFMODE ||							\
 	    *(const unsigned char *)(src) < 0xC2 ||			\
 	    (utf_ptradjx_len = utf_mbtowc(NULL, (src))) == (size_t)-1)	\
 		utf_ptradjx_len = 1;					\
@@ -489,7 +489,7 @@ enum sh_flag {
 	FRESTRICTED,	/* -r: restricted shell */
 	FSTDIN,		/* -s: (invocation) parse stdin */
 	FTRACKALL,	/* -h: create tracked aliases for all commands */
-	FUTFHACK,	/* -U: utf-8 hack for command line editing */
+	FUTFMODE,	/* -U: enable utf-8 processing */
 	FVERBOSE,	/* -v: echo input */
 #ifndef MKSH_NOVI
 	FVI,		/* vi command editing */
@@ -503,6 +503,7 @@ enum sh_flag {
 };
 
 #define Flag(f)	(shell_flags[(int)(f)])
+#define UTFMODE	Flag(FUTFMODE)
 
 EXTERN char shell_flags[FNFLAGS];
 
@@ -1264,7 +1265,7 @@ void afree(void *, PArea);		/* can take NULL */
 void x_init(void);
 int x_read(char *, size_t);
 int x_bind(const char *, const char *, int, int);
-/* UTF-8 hack stuff */
+/* UTF-8 stuff */
 size_t utf_mbtowc(unsigned int *, const char *);
 size_t utf_wctomb(char *, unsigned int);
 int utf_widthadj(const char *, const char **);

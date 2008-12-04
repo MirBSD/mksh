@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.91 2008/11/12 00:54:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.92 2008/12/04 18:11:06 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -111,7 +111,7 @@ const struct shoption options[] = {
 	{ "restricted",	'r',	    OF_CMDLINE },
 	{ "stdin",	's',	    OF_CMDLINE }, /* pseudo non-standard */
 	{ "trackall",	'h',		OF_ANY },
-	{ "utf8-hack",	'U',		OF_ANY }, /* non-standard */
+	{ "utf8-mode",	'U',		OF_ANY }, /* non-standard */
 	{ "verbose",	'v',		OF_ANY },
 #ifndef MKSH_NOVI
 	{ "vi",		  0,		OF_ANY },

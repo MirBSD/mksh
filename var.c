@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.63 2008/11/30 10:33:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.64 2008/12/04 18:11:08 tg Exp $");
 
 /*
  * Variables
@@ -303,7 +303,7 @@ str_val(struct tbl *vp)
 
 			*(s = strbuf) = '1';
 			s[1] = '#';
-			if (!Flag(FUTFHACK) || ((n & 0xFF80) == 0xEF80))
+			if (!UTFMODE || ((n & 0xFF80) == 0xEF80))
 				s[2] = n & 0xFF;
 			else
 				sz = utf_wctomb(s + 2, n);
@@ -455,7 +455,7 @@ getint(struct tbl *vp, long int *nump, bool arith)
 			if (base == 1) {
 				unsigned int wc;
 
-				if (!Flag(FUTFHACK))
+				if (!UTFMODE)
 					wc = *(unsigned char *)s;
 				else if (utf_mbtowc(&wc, s) == (size_t)-1)
 					wc = 0xEF00 + *(unsigned char *)s;

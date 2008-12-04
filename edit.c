@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.146 2008/11/15 09:00:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.147 2008/12/04 18:11:04 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -753,7 +753,7 @@ utf_widthadj(const char *src, const char **dst)
 	unsigned int wc;
 	int width;
 
-	if (!Flag(FUTFHACK) || (len = utf_mbtowc(&wc, src)) == (size_t)-1 ||
+	if (!UTFMODE || (len = utf_mbtowc(&wc, src)) == (size_t)-1 ||
 	    wc == 0)
 		len = width = 1;
 	else
@@ -771,7 +771,7 @@ utf_mbswidth(const char *s)
 	unsigned int wc;
 	int width = 0, cw;
 
-	if (!Flag(FUTFHACK))
+	if (!UTFMODE)
 		return (strlen(s));
 
 	while (*s)
@@ -1385,7 +1385,7 @@ x_e_getmbc(char *sbuf)
 	buf[pos++] = c = x_e_getc();
 	if (c == -1)
 		return (-1);
-	if (Flag(FUTFHACK)) {
+	if (UTFMODE) {
 		if ((buf[0] >= 0xC2) && (buf[0] < 0xF0)) {
 			c = x_e_getc();
 			if (c == -1)
@@ -1504,7 +1504,7 @@ x_insert(int c)
 		x_e_putc2(7);
 		return KSTD;
 	}
-	if (Flag(FUTFHACK)) {
+	if (UTFMODE) {
 		if (((c & 0xC0) == 0x80) && left) {
 			str[pos++] = c;
 			if (!--left) {
@@ -1792,7 +1792,7 @@ x_fword(int move)
 static void
 x_goto(char *cp)
 {
-	if (Flag(FUTFHACK))
+	if (UTFMODE)
 		while ((cp > xbuf) && ((*cp & 0xC0) == 0x80))
 			--cp;
 	if (cp < xbp || cp >= utf_skipcols(xbp, x_displen)) {
@@ -1814,7 +1814,7 @@ x_bs3(char **p)
 	int i;
 
 	(*p)--;
-	if (Flag(FUTFHACK))
+	if (UTFMODE)
 		while (((unsigned char)**p & 0xC0) == 0x80)
 			(*p)--;
 
@@ -1837,7 +1837,7 @@ x_size2(char *cp, char **dcp)
 {
 	int c = *(unsigned char *)cp;
 
-	if (Flag(FUTFHACK) && (c > 0x7F))
+	if (UTFMODE && (c > 0x7F))
 		return (utf_widthadj(cp, (const char **)dcp));
 	if (dcp)
 		*dcp = cp + 1;
@@ -1876,7 +1876,7 @@ x_zotc3(char **cp)
 {
 	unsigned char c = **(unsigned char **)cp;
 
-	if (c == 0xC2 && Flag(FUTFHACK)) {
+	if (c == 0xC2 && UTFMODE) {
 		unsigned char c2 = ((unsigned char *)*cp)[1];
 
 		if (c2 >= 0x80 && c2 < 0xA0) {
@@ -2911,7 +2911,7 @@ x_adjust(void)
 	 */
 	if ((xbp = xcp - (x_displen / 2)) < xbuf)
 		xbp = xbuf;
-	if (Flag(FUTFHACK))
+	if (UTFMODE)
 		while ((xbp > xbuf) && ((*xbp & 0xC0) == 0x80))
 			--xbp;
 	xlp_valid = false;
@@ -2951,7 +2951,7 @@ x_e_putc2(int c)
 	if (c == '\r' || c == '\n')
 		x_col = 0;
 	if (x_col < xx_cols) {
-		if (Flag(FUTFHACK) && (c > 0x7F)) {
+		if (UTFMODE && (c > 0x7F)) {
 			char utf_tmp[3];
 			size_t x;
 
@@ -2992,7 +2992,7 @@ x_e_putc3(const char **cp)
 	if (c == '\r' || c == '\n')
 		x_col = 0;
 	if (x_col < xx_cols) {
-		if (Flag(FUTFHACK) && (c > 0x7F)) {
+		if (UTFMODE && (c > 0x7F)) {
 			char *cp2;
 
 			width = utf_widthadj(*cp, (const char **)&cp2);
