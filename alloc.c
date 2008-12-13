@@ -29,7 +29,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.13 2008/12/13 17:02:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.8 2008/08/02 17:45:09 tg Exp $");
 
 struct link {
 	struct link *prev;

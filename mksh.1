@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.145 2008/12/04 18:11:07 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.145.2.1 2008/12/13 17:44:42 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.122 2008/05/17 23:31:52 sobrado Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: December 4 2008 $
+.Dd $Mdocdate: December 13 2008 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -2159,7 +2159,7 @@ As a special
 .Nm mksh
 extension, numbers to the base of one are treated as either (8-bit
 transparent) ASCII or Unicode codepoints, depending on the shell's
-.Ic utf8\-mode
+.Ic utf8\-hack
 flag (current setting).
 Note that NUL bytes (integral value of zero) cannot be used.
 In Unicode mode, raw octets are mapped into the range EF80..EFFF as in
@@ -3468,7 +3468,7 @@ the positional parameters (or to array
 if
 .Fl A
 is used).
-.It Fl U \*(Ba Ic utf8\-mode
+.It Fl U \*(Ba Ic utf8\-hack
 Enable UTF-8 support in the
 .Sx Emacs editing mode
 and internal string handling functions.
@@ -5559,7 +5559,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh\ R37
+.Nm mksh\ R36
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
