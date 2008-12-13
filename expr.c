@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.20 2008/11/12 00:54:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.21 2008/12/13 17:02:13 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -544,7 +544,7 @@ tempvar(void)
 {
 	struct tbl *vp;
 
-	vp = alloc(1, sizeof (struct tbl), ATEMP);
+	vp = alloc(sizeof (struct tbl), ATEMP);
 	vp->flag = ISSET|INTEGER;
 	vp->type = 0;
 	vp->areap = ATEMP;

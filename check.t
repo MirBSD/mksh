@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.251 2008/12/08 13:57:35 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.252 2008/12/13 17:02:11 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R36 2008/12/04
+	@(#)MIRBSD KSH R36 2008/12/13
 description:
 	Check version of shell.
 stdin:
@@ -4483,8 +4483,8 @@ name: utf8bom-3
 description:
 	Reading the UTF-8 BOM should enable the utf8-mode flag
 stdin:
-	"$__progname" -c ':; if [[ $(set +o) = *@(-o utf8-mode)@(| *) ]]; then print on; else print off; fi'
-	"$__progname" -c '﻿:; if [[ $(set +o) = *@(-o utf8-mode)@(| *) ]]; then print on; else print off; fi'
+	"$__progname" -c ':; if [[ $- = *U* ]]; then print on; else print off; fi'
+	"$__progname" -c '﻿:; if [[ $- = *U* ]]; then print on; else print off; fi'
 expected-stdout:
 	off
 	on
@@ -4495,7 +4495,7 @@ description:
 category: !os:hpux
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.UTF-8!
 stdin:
-	if [[ $(set +o) = *@(-o utf8-mode)@(| *) ]]; then
+	if [[ $- = *U* ]]; then
 		print is set
 	else
 		print is not set
@@ -4509,7 +4509,7 @@ description:
 category: os:hpux
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.utf8!
 stdin:
-	if [[ $(set +o) = *@(-o utf8-mode)@(| *) ]]; then
+	if [[ $- = *U* ]]; then
 		print is set
 	else
 		print is not set
@@ -4524,7 +4524,7 @@ category: !os:hpux
 arguments: !-i!
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.UTF-8!
 stdin:
-	if [[ $(set +o) = *@(-o utf8-mode)@(| *) ]]; then
+	if [[ $- = *U* ]]; then
 		print is set
 	else
 		print is not set
@@ -4541,7 +4541,7 @@ category: os:hpux
 arguments: !-i!
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.utf8!
 stdin:
-	if [[ $(set +o) = *@(-o utf8-mode)@(| *) ]]; then
+	if [[ $- = *U* ]]; then
 		print is set
 	else
 		print is not set

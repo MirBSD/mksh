@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.64 2008/12/04 18:11:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.65 2008/12/13 17:02:18 tg Exp $");
 
 /*
  * Variables
@@ -37,9 +37,9 @@ newblock(void)
 	struct block *l;
 	static const char *empty[] = { null };
 
-	l = alloc(1, sizeof (struct block), ATEMP);
+	l = alloc(sizeof (struct block), ATEMP);
 	l->flags = 0;
-	l->areap = anew(Flag(FTALKING) ? 1024 : 64);
+	ainit(&l->area); /* todo: could use e->area (l->area => l->areap) */
 	if (!e->loc) {
 		l->argc = 0;
 		l->argv = empty;
@@ -48,8 +48,8 @@ newblock(void)
 		l->argv = e->loc->argv;
 	}
 	l->exit = l->error = NULL;
-	ktinit(&l->vars, l->areap, 0);
-	ktinit(&l->funs, l->areap, 0);
+	ktinit(&l->vars, &l->area, 0);
+	ktinit(&l->funs, &l->area, 0);
 	l->next = e->loc;
 	e->loc = l;
 }
@@ -74,7 +74,7 @@ popblock(void)
 		}
 	if (l->flags & BF_DOGETOPTS)
 		user_opt = l->getopts_state;
-	adelete(&l->areap);
+	afreeall(&l->area);
 	afree(l, ATEMP);
 }
 
@@ -523,7 +523,7 @@ formatstr(struct tbl *vp, const char *s)
 	} else
 		nlen = olen;
 
-	p = alloc(1, (psiz = nlen * /* MB_LEN_MAX */ 3 + 1), ATEMP);
+	p = alloc((psiz = nlen * /* MB_LEN_MAX */ 3 + 1), ATEMP);
 	if (vp->flag & (RJUST|LJUST)) {
 		int slen = olen, i = 0;
 
@@ -595,7 +595,7 @@ export(struct tbl *vp, const char *val)
 	int vallen = strlen(val) + 1;
 
 	vp->flag |= ALLOC;
-	xp = alloc(1, namelen + 1 + vallen, vp->areap);
+	xp = alloc(namelen + 1 + vallen, vp->areap);
 	memcpy(vp->val.s = xp, vp->name, namelen);
 	xp += namelen;
 	*xp++ = '=';
@@ -1212,7 +1212,7 @@ arraysearch(struct tbl *vp, uint32_t val)
 		else
 			new = curr;
 	} else
-		new = alloc(1, sizeof (struct tbl) + namelen, vp->areap);
+		new = alloc(sizeof (struct tbl) + namelen, vp->areap);
 	strlcpy(new->name, vp->name, namelen);
 	new->flag = vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL);
 	new->type = vp->type;

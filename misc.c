@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.92 2008/12/04 18:11:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.93 2008/12/13 17:02:16 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -70,7 +70,7 @@ Xcheck_grow_(XString *xsp, const char *xp, unsigned int more)
 	const char *old_beg = xsp->beg;
 
 	xsp->len += more > xsp->len ? more : xsp->len;
-	xsp->beg = aresize(xsp->beg, 1, xsp->len + 8, xsp->areap);
+	xsp->beg = aresize(xsp->beg, xsp->len + 8, xsp->areap);
 	xsp->end = xsp->beg + xsp->len;
 	return xsp->beg + (xp - old_beg);
 }
@@ -493,7 +493,7 @@ gmatchx(const char *s, const char *p, bool isfile)
 	if (!isfile && !has_globbing(p, pe)) {
 		size_t len = pe - p + 1;
 		char tbuf[64];
-		char *t = len <= sizeof(tbuf) ? tbuf : alloc(1, len, ATEMP);
+		char *t = len <= sizeof(tbuf) ? tbuf : alloc(len, ATEMP);
 		debunk(t, p, len);
 		return !strcmp(t, s);
 	}
@@ -933,7 +933,7 @@ print_columns(struct shf *shf, int n,
     char *(*func) (const void *, int, char *, int),
     const void *arg, int max_width, int prefcol)
 {
-	char *str = alloc(1, max_width + 1, ATEMP);
+	char *str = alloc(max_width + 1, ATEMP);
 	int i, r, c, rows, cols, nspace;
 
 	/* max_width + 1 for the space.  Note that no space
@@ -1048,8 +1048,8 @@ ksh_get_wd(size_t *dlen)
 	char *ret, *b;
 	size_t len = 1;
 
-	if ((ret = getcwd((b = alloc(1, PATH_MAX + 1, ATEMP)), PATH_MAX)))
-		ret = aresize(b, 1, len = (strlen(b) + 1), ATEMP);
+	if ((ret = getcwd((b = alloc(PATH_MAX + 1, ATEMP)), PATH_MAX)))
+		ret = aresize(b, len = (strlen(b) + 1), ATEMP);
 	else
 		afree(b, ATEMP);
 
@@ -1229,7 +1229,7 @@ set_current_wd(char *pathl)
 
 	if (len > current_wd_size) {
 		afree(current_wd, APERM);
-		current_wd = alloc(1, current_wd_size = len, APERM);
+		current_wd = alloc(current_wd_size = len, APERM);
 	}
 	memcpy(current_wd, p, len);
 	if (p != pathl && p != null)
@@ -1426,19 +1426,19 @@ stristr(const char *b, const char *l)
 
 #ifdef MKSH_SMALL
 char *
-strndup_(const char *src, size_t len, PArea ap)
+strndup_(const char *src, size_t len, Area *ap)
 {
 	char *dst = NULL;
 
 	if (src != NULL) {
-		dst = alloc(1, ++len, ap);
+		dst = alloc(++len, ap);
 		strlcpy(dst, src, len);
 	}
 	return (dst);
 }
 
 char *
-strdup_(const char *src, PArea ap)
+strdup_(const char *src, Area *ap)
 {
 	return (src == NULL ? NULL : strndup_(src, strlen(src), ap));
 }

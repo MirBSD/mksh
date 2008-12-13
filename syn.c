@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.31 2008/12/02 13:20:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.32 2008/12/13 17:02:17 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -172,8 +172,8 @@ synio(int cf)
 	if (iop->flag & IOBASH) {
 		char *cp;
 
-		nextiop = alloc(1, sizeof (*iop), ATEMP);
-		nextiop->name = cp = alloc(5, 1, ATEMP);
+		nextiop = alloc(sizeof (*iop), ATEMP);
+		nextiop->name = cp = alloc(5, ATEMP);
 
 		if (iop->unit > 9) {
 			*cp++ = CHAR;
@@ -214,7 +214,7 @@ get_command(int cf)
 	XPtrV args, vars;
 	struct nesting_state old_nesting;
 
-	iops = alloc(NUFILE + 1, sizeof (struct ioword *), ATEMP);
+	iops = alloc((NUFILE + 1) * sizeof (struct ioword *), ATEMP);
 	XPinit(args, 16);
 	XPinit(vars, 16);
 
@@ -421,7 +421,7 @@ get_command(int cf)
 		syniocf &= ~(KEYWORD|ALIAS);
 		t = pipeline(0);
 		if (t) {
-			t->str = alloc(1, 2, ATEMP);
+			t->str = alloc(2, ATEMP);
 			t->str[0] = '\0';	/* TF_* flags */
 			t->str[1] = '\0';
 		}
@@ -445,7 +445,7 @@ get_command(int cf)
 		t->ioact = NULL;
 	} else {
 		iops[iopn++] = NULL;
-		iops = aresize(iops, iopn, sizeof (struct ioword *), ATEMP);
+		iops = aresize(iops, iopn * sizeof (struct ioword *), ATEMP);
 		t->ioact = iops;
 	}
 
@@ -620,13 +620,13 @@ function_body(char *name,
 		 * be used as input), we pretend there is a colon here.
 		 */
 		t->left = newtp(TCOM);
-		t->left->args = alloc(2, sizeof (char *), ATEMP);
-		t->left->args[0] = tv = alloc(3, sizeof (char), ATEMP);
+		t->left->args = alloc(2 * sizeof (char *), ATEMP);
+		t->left->args[0] = tv = alloc(3, ATEMP);
 		tv[0] = CHAR;
 		tv[1] = ':';
 		tv[2] = EOS;
 		t->left->args[1] = NULL;
-		t->left->vars = alloc(1, sizeof (char *), ATEMP);
+		t->left->vars = alloc(sizeof (char *), ATEMP);
 		t->left->vars[0] = NULL;
 		t->left->lineno = 1;
 	}
@@ -803,7 +803,7 @@ newtp(int type)
 {
 	struct op *t;
 
-	t = alloc(1, sizeof (struct op), ATEMP);
+	t = alloc(sizeof (struct op), ATEMP);
 	t->type = type;
 	t->u.evalflags = 0;
 	t->args = NULL;

@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.147 2008/12/04 18:11:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.148 2008/12/13 17:02:12 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -400,7 +400,7 @@ x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 		int i, path_order = 0;
 
 		info = (struct path_order_info *)
-		    alloc(nwords, sizeof (struct path_order_info), ATEMP);
+		    alloc(nwords * sizeof (struct path_order_info), ATEMP);
 		for (i = 0; i < nwords; i++) {
 			info[i].word = words[i];
 			info[i].base = x_basename(words[i], NULL);
@@ -960,7 +960,8 @@ utf_wctomb(char *dst, unsigned int wc)
 
 /* +++ emacs editing mode +++ */
 
-static PArea AEDIT;		/* area for kill ring and macro defns */
+static	Area	aedit;
+#define	AEDIT	&aedit		/* area for kill ring and macro defns */
 
 #define	MKCTRL(x)	((x) == '?' ? 0x7F : (x) & 0x1F)	/* ASCII */
 #define	UNCTRL(x)	((x) ^ 0x40)				/* ASCII */
@@ -1071,7 +1072,7 @@ static int x_search(char *, int, int);
 static int x_match(char *, char *);
 static void x_redraw(int);
 static void x_push(int);
-static char *x_mapin(const char *, PArea);
+static char *x_mapin(const char *, Area *);
 static char *x_mapout(int);
 static void x_mapout2(int, char **);
 static void x_print(int, int);
@@ -2517,7 +2518,7 @@ x_error(int c __unused)
 }
 
 static char *
-x_mapin(const char *cp, PArea ap)
+x_mapin(const char *cp, Area *ap)
 {
 	char *new, *op;
 
@@ -2681,10 +2682,10 @@ x_init_emacs(void)
 {
 	int i, j;
 
-	AEDIT = anew(8);
+	ainit(AEDIT);
 	x_nextcmd = -1;
 
-	x_tab = alloc(X_NTABS, sizeof (*x_tab), AEDIT);
+	x_tab = alloc(X_NTABS * sizeof (*x_tab), AEDIT);
 	for (j = 0; j < X_TABSZ; j++)
 		x_tab[0][j] = XFUNC_insert;
 	for (i = 1; i < X_NTABS; i++)
@@ -2694,7 +2695,7 @@ x_init_emacs(void)
 		x_tab[x_defbindings[i].xdb_tab][x_defbindings[i].xdb_char]
 		    = x_defbindings[i].xdb_func;
 
-	x_atab = alloc(X_NTABS, sizeof (*x_atab), AEDIT);
+	x_atab = alloc(X_NTABS * sizeof (*x_atab), AEDIT);
 	for (i = 1; i < X_NTABS; i++)
 		for (j = 0; j < X_TABSZ; j++)
 			x_atab[i][j] = NULL;
@@ -3600,8 +3601,8 @@ x_vi(char *buf, size_t len)
 
 	if (!wbuf_len || wbuf_len != x_cols - 3) {
 		wbuf_len = x_cols - 3;
-		wbuf[0] = aresize(wbuf[0], 1, wbuf_len, APERM);
-		wbuf[1] = aresize(wbuf[1], 1, wbuf_len, APERM);
+		wbuf[0] = aresize(wbuf[0], wbuf_len, APERM);
+		wbuf[1] = aresize(wbuf[1], wbuf_len, APERM);
 	}
 	(void)memset(wbuf[0], ' ', wbuf_len);
 	(void)memset(wbuf[1], ' ', wbuf_len);
@@ -4130,7 +4131,7 @@ vi_cmd(int argcnt, const char *cmd)
 				nlen = strlen(ap->val.s) + 1;
 				olen = !macro.p ? 2 :
 				    macro.len - (macro.p - macro.buf);
-				nbuf = alloc(1, nlen + 1 + olen, APERM);
+				nbuf = alloc(nlen + 1 + olen, APERM);
 				memcpy(nbuf, ap->val.s, nlen);
 				nbuf[nlen++] = cmd[1];
 				if (macro.p) {
@@ -4777,8 +4778,8 @@ save_edstate(struct edstate *old)
 {
 	struct edstate *new;
 
-	new = alloc(1, sizeof (struct edstate), APERM);
-	new->cbuf = alloc(1, old->cbufsize, APERM);
+	new = alloc(sizeof (struct edstate), APERM);
+	new->cbuf = alloc(old->cbufsize, APERM);
 	memcpy(new->cbuf, old->cbuf, old->linelen);
 	new->cbufsize = old->cbufsize;
 	new->linelen = old->linelen;

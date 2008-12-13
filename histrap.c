@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.75 2008/11/12 00:54:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.76 2008/12/13 17:02:14 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -68,7 +68,7 @@ c_fc(const char **wp)
 				sflag++;
 			else {
 				size_t len = strlen(p);
-				editor = alloc(1, len + 4, ATEMP);
+				editor = alloc(len + 4, ATEMP);
 				memcpy(editor, p, len);
 				memcpy(editor + len, " $_", 4);
 			}
@@ -504,7 +504,7 @@ sethistsize(int n)
 			cursize = n;
 		}
 
-		history = aresize(history, n, sizeof (char *), APERM);
+		history = aresize(history, n * sizeof (char *), APERM);
 
 		histsize = n;
 		histptr = history + cursize;
@@ -555,7 +555,7 @@ init_histvec(void)
 {
 	if (history == (char **)NULL) {
 		histsize = HISTORYSIZE;
-		history = alloc(histsize, sizeof (char *), APERM);
+		history = alloc(histsize * sizeof (char *), APERM);
 		histptr = history - 1;
 	}
 }

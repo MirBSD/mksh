@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.50 2008/11/12 00:54:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.51 2008/12/13 17:02:13 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -297,8 +297,7 @@ expand(const char *cp,	/* input word */
 					if (!st->next) {
 						SubType *newst;
 
-						newst = alloc(1,
-						    sizeof (SubType), ATEMP);
+						newst = alloc(sizeof (SubType), ATEMP);
 						newst->next = NULL;
 						newst->prev = st;
 						st->next = newst;
@@ -590,7 +589,7 @@ expand(const char *cp,	/* input word */
 					 */
 					len = strlen(dp) + 1;
 					setstr(st->var,
-					    debunk(alloc(1, len, ATEMP),
+					    debunk(alloc(len, ATEMP),
 					    dp, len), KSH_UNWIND_ERROR);
 					x.str = str_val(st->var);
 					type = XSUB;
@@ -770,7 +769,7 @@ expand(const char *cp,	/* input word */
 				    Xlength(ds, dp) == 0) {
 					char *p;
 
-					*(p = alloc(1, 1, ATEMP)) = '\0';
+					*(p = alloc(1, ATEMP)) = '\0';
 					XPput(*wp, p);
 				}
 				type = XSUBMID;
@@ -1474,7 +1473,7 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 				l1 = brace_start - start;
 				l2 = (p - 1) - field_start;
 				l3 = end - brace_end;
-				new = alloc(1, l1 + l2 + l3 + 1, ATEMP);
+				new = alloc(l1 + l2 + l3 + 1, ATEMP);
 				memcpy(new, start, l1);
 				memcpy(new + l1, field_start, l2);
 				memcpy(new + l1 + l2, brace_end, l3);

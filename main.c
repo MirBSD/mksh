@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.115 2008/12/04 18:11:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.116 2008/12/13 17:02:15 tg Exp $");
 
 extern char **environ;
 
@@ -22,7 +22,7 @@ extern uid_t kshuid;
 extern gid_t kshgid, kshegid;
 #endif
 
-static void reclaim(bool);
+static void reclaim(void);
 static void remove_temps(struct temp *);
 
 static const char initifs[] = "IFS= \t\n";
@@ -91,11 +91,11 @@ main(int argc, const char *argv[])
 	}
 	kshname = *argv;
 
-	APERM = anew(256);	/* initialise permanent Area */
+	ainit(&aperm);		/* initialise permanent Area */
 
 	/* set up base environment */
 	env.type = E_NONE;
-	env.areap = anew(32);
+	ainit(&env.area);
 	newblock();		/* set up global l->vars and l->funs */
 
 	/* Do this first so output routines (eg, errorf, shellf) can work */
@@ -135,7 +135,7 @@ main(int argc, const char *argv[])
 #else
 #ifdef _CS_PATH
 	if ((k = confstr(_CS_PATH, NULL, 0)) != (size_t)-1 && k > 0 &&
-	    confstr(_CS_PATH, cp = alloc(1, k + 1, APERM), k + 1) == k + 1)
+	    confstr(_CS_PATH, cp = alloc(k + 1, APERM), k + 1) == k + 1)
 		def_path = cp;
 	else
 #endif
@@ -569,7 +569,7 @@ shell(Source * volatile s, volatile int toplevel)
 		if (t != NULL && t->type != TEOF && interactive && really_exit)
 			really_exit = 0;
 
-		reclaim(false);
+		reclaim();
 	}
 	quitenv(NULL);
 	source = old_source;
@@ -613,10 +613,10 @@ newenv(int type)
 {
 	struct env *ep;
 
-	ep = alloc(1, sizeof (struct env), ATEMP);
+	ep = alloc(sizeof (struct env), ATEMP);
 	ep->type = type;
 	ep->flags = 0;
-	ep->areap = anew(16);
+	ainit(&ep->area);
 	ep->loc = e->loc;
 	ep->savefd = NULL;
 	ep->oenv = e;
@@ -668,12 +668,12 @@ quitenv(struct shf *shf)
 		}
 		if (shf)
 			shf_close(shf);
-		reclaim(true);
+		reclaim();
 		exit(exstat);
 	}
 	if (shf)
 		shf_close(shf);
-	reclaim(true);
+	reclaim();
 
 	e = e->oenv;
 	afree(ep, ATEMP);
@@ -697,7 +697,7 @@ cleanup_parents_env(void)
 			for (fd = 0; fd < NUFILE; fd++)
 				if (ep->savefd[fd] > 0)
 					close(ep->savefd[fd]);
-			afree(ep->savefd, ep->areap);
+			afree(ep->savefd, &ep->area);
 			ep->savefd = NULL;
 		}
 	}
@@ -716,13 +716,11 @@ cleanup_proc_env(void)
 
 /* remove temp files and free ATEMP Area */
 static void
-reclaim(bool finish)
+reclaim(void)
 {
 	remove_temps(e->temps);
 	e->temps = NULL;
-	adelete(&e->areap);
-	if (!finish)
-		e->areap = anew(16);
+	afreeall(&e->area);
 }
 
 static void
@@ -1142,7 +1140,7 @@ coproc_cleanup(int reuse)
 }
 
 struct temp *
-maketemp(PArea ap, Temp_type type, struct temp **tlist)
+maketemp(Area *ap, Temp_type type, struct temp **tlist)
 {
 	struct temp *tp;
 	int len;
@@ -1157,7 +1155,7 @@ maketemp(PArea ap, Temp_type type, struct temp **tlist)
 	pathname = tempnam(dir, "mksh.");
 	len = ((pathname == NULL) ? 0 : strlen(pathname)) + 1;
 #endif
-	tp = alloc(1, sizeof (struct temp) + len, ap);
+	tp = alloc(sizeof (struct temp) + len, ap);
 	tp->name = (char *)&tp[1];
 #if !HAVE_MKSTEMP
 	if (pathname == NULL)
@@ -1200,7 +1198,7 @@ hash(const char *n)
 }
 
 void
-ktinit(struct table *tp, PArea ap, int tsize)
+ktinit(struct table *tp, Area *ap, int tsize)
 {
 	tp->areap = ap;
 	tp->tbls = NULL;
@@ -1217,7 +1215,7 @@ texpand(struct table *tp, int nsize)
 	struct tbl **ntblp, **otblp = tp->tbls;
 	int osize = tp->size;
 
-	ntblp = alloc(nsize, sizeof (struct tbl *), tp->areap);
+	ntblp = alloc(nsize * sizeof (struct tbl *), tp->areap);
 	for (i = 0; i < nsize; i++)
 		ntblp[i] = NULL;
 	tp->size = nsize;
@@ -1290,7 +1288,7 @@ ktenter(struct table *tp, const char *n, unsigned int h)
 	}
 	/* create new tbl entry */
 	len = strlen(n) + 1;
-	p = alloc(1, offsetof(struct tbl, name[0]) + len, tp->areap);
+	p = alloc(offsetof(struct tbl, name[0]) + len, tp->areap);
 	p->flag = 0;
 	p->type = 0;
 	p->areap = tp->areap;
@@ -1337,7 +1335,7 @@ ktsort(struct table *tp)
 	size_t i;
 	struct tbl **p, **sp, **dp;
 
-	p = alloc(tp->size + 1, sizeof (struct tbl *), ATEMP);
+	p = alloc((tp->size + 1) * sizeof (struct tbl *), ATEMP);
 	sp = tp->tbls;		/* source */
 	dp = p;			/* dest */
 	for (i = 0; i < (size_t)tp->size; i++)

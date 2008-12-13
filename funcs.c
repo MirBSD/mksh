@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.92 2008/11/12 00:54:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.93 2008/12/13 17:02:14 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -202,7 +202,7 @@ c_cd(const char **wp)
 		olen = strlen(wp[0]);
 		nlen = strlen(wp[1]);
 		elen = strlen(current_wd + ilen + olen) + 1;
-		dir = allocd = alloc(1, ilen + nlen + elen, ATEMP);
+		dir = allocd = alloc(ilen + nlen + elen, ATEMP);
 		memcpy(dir, current_wd, ilen);
 		memcpy(dir + ilen, wp[1], nlen);
 		memcpy(dir + ilen + nlen, current_wd + ilen + olen, elen);
@@ -2111,9 +2111,9 @@ c_set(const char **wp)
 		owp = wp += argi - 1;
 		wp[0] = l->argv[0]; /* save $0 */
 		while (*++wp != NULL)
-			strdupx(*wp, *wp, l->areap);
+			strdupx(*wp, *wp, &l->area);
 		l->argc = wp - owp - 1;
-		l->argv = alloc(l->argc + 2, sizeof (char *), l->areap);
+		l->argv = alloc((l->argc + 2) * sizeof (char *), &l->area);
 		for (wp = l->argv; (*wp++ = *owp++) != NULL; )
 			;
 	}
@@ -3064,7 +3064,7 @@ c_realpath(const char **wp)
 	else {
 		char *buf;
 
-		if (realpath(*wp, (buf = alloc(1, PATH_MAX, ATEMP))) == NULL) {
+		if (realpath(*wp, (buf = alloc(PATH_MAX, ATEMP))) == NULL) {
 			rv = errno;
 			bi_errorf("%s: %s", *wp, strerror(rv));
 		} else

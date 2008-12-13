@@ -29,50 +29,39 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.12 2008/11/15 07:35:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/alloc.c,v 1.13 2008/12/13 17:02:11 tg Exp $");
 
 struct link {
 	struct link *prev;
 	struct link *next;
 };
 
-struct TArea {
-	struct link *freelist;	/* free list */
-};
-
-PArea
-anew(size_t hint __unused)
+Area *
+ainit(Area *ap)
 {
-	PArea ap;
-
-	if ((ap = malloc(sizeof (struct TArea))) == NULL)
-		internal_errorf("unable to allocate memory");
 	ap->freelist = NULL;
 	return (ap);
 }
 
 void
-adelete(PArea *pap)
+afreeall(Area *ap)
 {
 	struct link *l, *l2;
 
-	for (l = (*pap)->freelist; l != NULL; l = l2) {
+	for (l = ap->freelist; l != NULL; l = l2) {
 		l2 = l->next;
 		free(l);
 	}
-	free(*pap);
-	*pap = NULL;
+	ap->freelist = NULL;
 }
 
 #define L2P(l)	( (void *)(((char *)(l)) + sizeof (struct link)) )
 #define P2L(p)	( (struct link *)(((ptrdiff_t)(p)) - sizeof (struct link)) )
 
 void *
-alloc(size_t nmemb, size_t size, PArea ap)
+alloc(size_t size, Area *ap)
 {
 	struct link *l;
-
-	size *= nmemb;
 
 	if ((l = malloc(sizeof (struct link) + size)) == NULL)
 		internal_errorf("unable to allocate memory");
@@ -86,14 +75,12 @@ alloc(size_t nmemb, size_t size, PArea ap)
 }
 
 void *
-aresize(void *ptr, size_t nmemb, size_t size, PArea ap)
+aresize(void *ptr, size_t size, Area *ap)
 {
 	struct link *l, *l2, *lprev, *lnext;
 
 	if (ptr == NULL)
-		return (alloc(nmemb, size, ap));
-
-	size *= nmemb;
+		return (alloc(size, ap));
 
 	l = P2L(ptr);
 	lprev = l->prev;
@@ -112,7 +99,7 @@ aresize(void *ptr, size_t nmemb, size_t size, PArea ap)
 }
 
 void
-afree(void *ptr, PArea ap)
+afree(void *ptr, Area *ap)
 {
 	struct link *l;
 #ifdef MKSH_AFREE_DEBUG

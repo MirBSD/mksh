@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.78 2008/12/04 18:11:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.79 2008/12/13 17:02:15 tg Exp $");
 
 /*
  * states while lexing word
@@ -776,7 +776,7 @@ yylex(int cf)
 
 	dp = Xstring(ws, wp);
 	if ((c == '<' || c == '>' || c == '&') && state == SBASE) {
-		struct ioword *iop = alloc(1, sizeof (struct ioword), ATEMP);
+		struct ioword *iop = alloc(sizeof (struct ioword), ATEMP);
 
 		if (Xlength(ws, wp) == 0)
 			iop->unit = c == '<' ? 0 : 1;
@@ -1038,11 +1038,11 @@ yyerror(const char *fmt, ...)
  */
 
 Source *
-pushs(int type, PArea areap)
+pushs(int type, Area *areap)
 {
 	Source *s;
 
-	s = alloc(1, sizeof (Source), areap);
+	s = alloc(sizeof (Source), areap);
 	s->type = type;
 	s->str = null;
 	s->start = NULL;
@@ -1268,7 +1268,7 @@ set_prompt(int to, Source *s)
 		{
 			struct shf *shf;
 			char * volatile ps1;
-			PArea saved_atemp;
+			Area *saved_atemp;
 
 			ps1 = str_val(global("PS1"));
 			shf = shf_sopen(NULL, strlen(ps1) * 2,
@@ -1525,7 +1525,7 @@ getsc_bn(void)
 static Lex_state *
 push_state_(State_info *si, Lex_state *old_end)
 {
-	Lex_state *new = alloc(STATE_BSIZE, sizeof (Lex_state), ATEMP);
+	Lex_state *new = alloc(STATE_BSIZE * sizeof (Lex_state), ATEMP);
 
 	new[0].ls_info.base = old_end;
 	si->base = &new[0];

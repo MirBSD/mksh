@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.23 2008/11/12 00:54:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.24 2008/12/13 17:02:17 tg Exp $");
 
 #define INDENT	4
 
@@ -12,8 +12,8 @@ static void pioact(struct shf *, int, struct ioword *);
 static void tputC(int, struct shf *);
 static void tputS(char *, struct shf *);
 static void vfptreef(struct shf *, int, const char *, va_list);
-static struct ioword **iocopy(struct ioword **, PArea);
-static void iofree(struct ioword **, PArea);
+static struct ioword **iocopy(struct ioword **, Area *);
+static void iofree(struct ioword **, Area *);
 
 /*
  * print a command tree
@@ -412,7 +412,7 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
  * copy tree (for function definition)
  */
 struct op *
-tcopy(struct op *t, PArea ap)
+tcopy(struct op *t, Area *ap)
 {
 	struct op *r;
 	const char **tw;
@@ -421,7 +421,7 @@ tcopy(struct op *t, PArea ap)
 	if (t == NULL)
 		return NULL;
 
-	r = alloc(1, sizeof (struct op), ap);
+	r = alloc(sizeof (struct op), ap);
 
 	r->type = t->type;
 	r->u.evalflags = t->u.evalflags;
@@ -436,7 +436,7 @@ tcopy(struct op *t, PArea ap)
 	else {
 		for (tw = (const char **)t->vars; *tw++ != NULL; )
 			;
-		rw = r->vars = alloc((tw - (const char **)t->vars + 1),
+		rw = r->vars = alloc((tw - (const char **)t->vars + 1) *
 		    sizeof (*tw), ap);
 		for (tw = (const char **)t->vars; *tw != NULL; )
 			*rw++ = wdcopy(*tw++, ap);
@@ -448,7 +448,7 @@ tcopy(struct op *t, PArea ap)
 	else {
 		for (tw = t->args; *tw++ != NULL; )
 			;
-		r->args = (const char **)(rw = alloc((tw - t->args + 1),
+		r->args = (const char **)(rw = alloc((tw - t->args + 1) *
 		    sizeof (*tw), ap));
 		for (tw = t->args; *tw != NULL; )
 			*rw++ = wdcopy(*tw++, ap);
@@ -465,10 +465,10 @@ tcopy(struct op *t, PArea ap)
 }
 
 char *
-wdcopy(const char *wp, PArea ap)
+wdcopy(const char *wp, Area *ap)
 {
 	size_t len = wdscan(wp, EOS) - wp;
-	return memcpy(alloc(1, len, ap), wp, len);
+	return memcpy(alloc(len, ap), wp, len);
 }
 
 /* return the position of prefix c in wp plus 1 */
@@ -611,20 +611,20 @@ wdstrip(const char *wp, bool keepq, bool make_magic)
 }
 
 static struct ioword **
-iocopy(struct ioword **iow, PArea ap)
+iocopy(struct ioword **iow, Area *ap)
 {
 	struct ioword **ior;
 	int i;
 
 	for (ior = iow; *ior++ != NULL; )
 		;
-	ior = alloc((ior - iow + 1), sizeof (struct ioword *), ap);
+	ior = alloc((ior - iow + 1) * sizeof (struct ioword *), ap);
 
 	for (i = 0; iow[i] != NULL; i++) {
 		struct ioword *p, *q;
 
 		p = iow[i];
-		q = alloc(1, sizeof (struct ioword), ap);
+		q = alloc(sizeof (struct ioword), ap);
 		ior[i] = q;
 		*q = *p;
 		if (p->name != NULL)
@@ -643,7 +643,7 @@ iocopy(struct ioword **iow, PArea ap)
  * free tree (for function definition)
  */
 void
-tfree(struct op *t, PArea ap)
+tfree(struct op *t, Area *ap)
 {
 	char **w;
 
@@ -678,7 +678,7 @@ tfree(struct op *t, PArea ap)
 }
 
 static void
-iofree(struct ioword **iow, PArea ap)
+iofree(struct ioword **iow, Area *ap)
 {
 	struct ioword **iop;
 	struct ioword *p;

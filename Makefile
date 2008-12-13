@@ -1,23 +1,16 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.70 2008/11/17 01:14:57 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.71 2008/12/13 17:02:10 tg Exp $
 #-
 # use CPPFLAGS=-DDEBUG __CRAZY=Yes to check for certain more stuff
 
 .include <bsd.own.mk>
 
 PROG=		mksh
-.ifdef TEST
-SRCS=		aalloc.c
-.else
-SRCS=		alloc.c
-.endif
-SRCS+=		edit.c eval.c exec.c expr.c funcs.c histrap.c \
+SRCS=		alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c \
 		jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c
 .if !make(test-build)
 .  if ${DEBUGLIBS:L} == "yes"
 CPPFLAGS+=	-DMKSH_AFREE_DEBUG	# MirOS development version
-#CPPFLAGS+=	-DAALLOC_TRACK		# MirOS development version
 .  endif
-CPPFLAGS+=	-DAALLOC_NO_COOKIES	# for now… aalloc cookies are broken
 CPPFLAGS+=	-DMKSH_ASSUME_UTF8 \
 		-DHAVE_ATTRIBUTE=1 -DHAVE_ATTRIBUTE_BOUNDED=1 \
 		-DHAVE_ATTRIBUTE_USED=1 -DHAVE_SYS_PARAM_H=1 \
@@ -29,8 +22,8 @@ CPPFLAGS+=	-DMKSH_ASSUME_UTF8 \
 		-DHAVE_SYS_SIGNAME=1 -DHAVE_SYS_SIGLIST=1 -DHAVE_STRSIGNAL=0 \
 		-DHAVE_ARC4RANDOM=1 -DHAVE_ARC4RANDOM_PUSHB=1 -DHAVE_MKNOD=1 \
 		-DHAVE_MKSTEMP=1 -DHAVE_NICE=1 -DHAVE_REALPATH=1 \
-		-DHAVE_REVOKE=1 -DHAVE_SETLOCALE_CTYPE=1 \
-		-DHAVE_LANGINFO_CODESET=1 -DHAVE_SETMODE=1 \
+		-DHAVE_REVOKE=1 -DHAVE_SETLOCALE_CTYPE=0 \
+		-DHAVE_LANGINFO_CODESET=0 -DHAVE_SETMODE=1 \
 		-DHAVE_SETRESUGID=1 -DHAVE_SETGROUPS=1 -DHAVE_STRCASESTR=1 \
 		-DHAVE_STRLCPY=1 -DHAVE_ARC4RANDOM_DECL=1 \
 		-DHAVE_ARC4RANDOM_PUSHB_DECL=1 -DHAVE_FLOCK_DECL=1 \

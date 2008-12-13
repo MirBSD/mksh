@@ -103,9 +103,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.265 2008/12/04 18:11:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.266 2008/12/13 17:02:16 tg Exp $");
 #endif
-#define MKSH_VERSION "R36 2008/12/04"
+#define MKSH_VERSION "R36 2008/12/13"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -130,7 +130,10 @@ typedef int bool;
 /* extra macros */
 
 #ifndef timerclear
-#define timerclear(tvp) do { (tvp)->tv_sec = (tvp)->tv_usec = 0; } while (0)
+#define timerclear(tvp)							\
+	do {								\
+		(tvp)->tv_sec = (tvp)->tv_usec = 0;			\
+	} while (/* CONSTCOND */ 0)
 #endif
 #ifndef timeradd
 #define timeradd(tvp, uvp, vvp)						\
@@ -141,7 +144,7 @@ typedef int bool;
 			(vvp)->tv_sec++;				\
 			(vvp)->tv_usec -= 1000000;			\
 		}							\
-	} while (0)
+	} while (/* CONSTCOND */ 0)
 #endif
 #ifndef timersub
 #define timersub(tvp, uvp, vvp)						\
@@ -152,7 +155,7 @@ typedef int bool;
 			(vvp)->tv_sec--;				\
 			(vvp)->tv_usec += 1000000;			\
 		}							\
-	} while (0)
+	} while (/* CONSTCOND */ 0)
 #endif
 
 #define ksh_isdigit(c)	(((c) >= '0') && ((c) <= '9'))
@@ -363,7 +366,7 @@ char *ucstrstr(char *, const char *);
 									\
 	if (strdup_src != NULL) {					\
 		size_t strdup_len = strlen(strdup_src) + 1;		\
-		strdup_dst = alloc(1, strdup_len, (ap));		\
+		strdup_dst = alloc(strdup_len, (ap));			\
 		strlcpy(strdup_dst, strdup_src, strdup_len);		\
 	}								\
 	(d) = strdup_dst;						\
@@ -374,7 +377,7 @@ char *ucstrstr(char *, const char *);
 									\
 	if (strdup_src != NULL) {					\
 		size_t strdup_len = (n) + 1;				\
-		strdup_dst = alloc(1, strdup_len, (ap));		\
+		strdup_dst = alloc(strdup_len, (ap));			\
 		strlcpy(strdup_dst, strdup_src, strdup_len);		\
 	}								\
 	(d) = strdup_dst;						\
@@ -389,15 +392,22 @@ char *ucstrstr(char *, const char *);
 #define MKSH_NOVI
 #endif
 
-typedef struct TArea *PArea;
-EXTERN PArea APERM;			/* permanent object space */
-#define ATEMP	e->areap
+/*
+ * Area-based allocation built on malloc/free
+ */
+typedef struct Area {
+	struct link *freelist;	/* free list */
+} Area;
+
+EXTERN Area aperm;		/* permanent object space */
+#define APERM	&aperm
+#define ATEMP	&e->area
 
 /*
  * parsing & execution environment
  */
 extern struct env {
-	PArea areap;		/* temporary allocation area */
+	Area area;		/* temporary allocation area */
 	struct block *loc;	/* local variables and functions */
 	short *savefd;		/* original redirected fds */
 	struct env *oenv;	/* link to previous environment */
@@ -746,13 +756,13 @@ struct shf {
 	int fd;			/* file descriptor */
 	int errno_;		/* saved value of errno after error */
 	int bsize;		/* actual size of buf */
-	PArea areap;		/* area shf/buf were allocated in */
+	Area *areap;		/* area shf/buf were allocated in */
 };
 
 extern struct shf shf_iob[];
 
 struct table {
-	PArea areap;		/* area to allocate entries */
+	Area *areap;		/* area to allocate entries */
 	struct tbl **tbls;	/* hashed table items */
 	short size, nfree;	/* hash size (always 2^^n), free entries */
 };
@@ -761,7 +771,7 @@ struct tbl {			/* table item */
 	Tflag flag;		/* flags */
 	int type;		/* command type (see below), base (if INTEGER),
 				 * or offset from val.s of value (if EXPORT) */
-	PArea areap;		/* area to allocate from */
+	Area *areap;		/* area to allocate from */
 	union {
 		char *s;		/* string */
 		long i;			/* integer */
@@ -853,7 +863,7 @@ struct arg_info {
  * activation record for function blocks
  */
 struct block {
-	PArea areap;		/* area to allocate things */
+	Area area;		/* area to allocate things */
 	const char **argv;
 	int argc;
 	int flags;		/* see BF_* */
@@ -1057,7 +1067,7 @@ struct ioword {
 typedef struct XString {
 	char *end, *beg;	/* end, begin of string */
 	size_t len;		/* length */
-	PArea areap;		/* area to allocate/free from */
+	Area *areap;		/* area to allocate/free from */
 } XString;
 
 typedef char *XStringP;
@@ -1066,23 +1076,23 @@ typedef char *XStringP;
 #define XinitN(xs, length, area) do {				\
 	(xs).len = (length);					\
 	(xs).areap = (area);					\
-	(xs).beg = alloc(1, (xs).len + X_EXTRA, (xs).areap);	\
+	(xs).beg = alloc((xs).len + X_EXTRA, (xs).areap);	\
 	(xs).end = (xs).beg + (xs).len;				\
-} while (0)
+} while (/* CONSTCOND */ 0)
 #define Xinit(xs, xp, length, area) do {			\
 	XinitN((xs), (length), (area));				\
 	(xp) = (xs).beg;					\
-} while (0)
+} while (/* CONSTCOND */ 0)
 
 /* stuff char into string */
 #define Xput(xs, xp, c)	(*xp++ = (c))
 
 /* check if there are at least n bytes left */
 #define XcheckN(xs, xp, n) do {					\
-	int more = ((xp) + (n)) - (xs).end;			\
+	size_t more = ((xp) + (n)) - (xs).end;			\
 	if (more > 0)						\
 		(xp) = Xcheck_grow_(&(xs), (xp), more);		\
-} while (0)
+} while (/* CONSTCOND */ 0)
 
 /* check for overflow, expand string */
 #define Xcheck(xs, xp)	XcheckN((xs), (xp), 1)
@@ -1091,16 +1101,16 @@ typedef char *XStringP;
 #define Xfree(xs, xp)	afree((xs).beg, (xs).areap)
 
 /* close, return string */
-#define Xclose(xs, xp)	aresize((void*)(xs).beg, 1, \
-			    (size_t)((xp) - (xs).beg), (xs).areap)
+#define Xclose(xs, xp)	aresize((xs).beg, (xp) - (xs).beg, (xs).areap)
+
 /* begin of string */
 #define Xstring(xs, xp)	((xs).beg)
 
-#define Xnleft(xs, xp) ((xs).end - (xp))	/* may be less than 0 */
-#define Xlength(xs, xp) ((xp) - (xs).beg)
-#define Xsize(xs, xp) ((xs).end - (xs).beg)
-#define Xsavepos(xs, xp) ((xp) - (xs).beg)
-#define Xrestpos(xs, xp, n) ((xs).beg + (n))
+#define Xnleft(xs, xp)	((xs).end - (xp))	/* may be less than 0 */
+#define Xlength(xs, xp)	((xp) - (xs).beg)
+#define Xsize(xs, xp)	((xs).end - (xs).beg)
+#define Xsavepos(xs, xp)	((xp) - (xs).beg)
+#define Xrestpos(xs, xp, n)	((xs).beg + (n))
 
 char *Xcheck_grow_(XString *, const char *, unsigned int);
 
@@ -1115,28 +1125,25 @@ typedef struct XPtrV {
 
 #define XPinit(x, n) do {					\
 	void **vp__;						\
-	vp__ = alloc((n), sizeof (void *), ATEMP);		\
+	vp__ = alloc((n) * sizeof (void *), ATEMP);		\
 	(x).cur = (x).beg = vp__;				\
 	(x).end = vp__ + (n);					\
-} while (0)
+} while (/* CONSTCOND */ 0)
 
 #define XPput(x, p) do {					\
 	if ((x).cur >= (x).end) {				\
 		size_t n = XPsize(x);				\
-		(x).beg = aresize((void*)(x).beg,		\
-		    n * 2, sizeof (void *), ATEMP);		\
+		(x).beg = aresize((x).beg,			\
+		    n * 2 * sizeof (void *), ATEMP);		\
 		(x).cur = (x).beg + n;				\
 		(x).end = (x).cur + n;				\
 	}							\
 	*(x).cur++ = (p);					\
-} while (0)
+} while (/* CONSTCOND */ 0)
 
 #define XPptrv(x)	((x).beg)
 #define XPsize(x)	((x).cur - (x).beg)
-
-#define XPclose(x)	aresize((void*)(x).beg, \
-			    XPsize(x), sizeof (void *), ATEMP)
-
+#define XPclose(x)	aresize((x).beg, XPsize(x) * sizeof (void *), ATEMP)
 #define XPfree(x)	afree((x).beg, ATEMP)
 
 #define IDENT	64
@@ -1156,7 +1163,7 @@ struct source {
 	int	errline;	/* line the error occurred on (0 if not set) */
 	const char *file;	/* input file name */
 	int	flags;		/* SF_* */
-	PArea	areap;
+	Area	*areap;
 	XString	xs;		/* input buffer */
 	Source *next;		/* stacked source */
 	char	ugbuf[2];	/* buffer for ungetsc() (SREREAD) and
@@ -1250,17 +1257,11 @@ EXTERN int histsize;	/* history size */
 EXTERN struct timeval j_usrtime, j_systime;
 
 /* alloc.c */
-#ifdef AALLOC_STATS
-#define AALLOC_STRINGIFY(x) __STRING(x)
-#define anew(hint)	anewEx((hint), __FILE__ ":" AALLOC_STRINGIFY(__LINE__))
-PArea anewEx(size_t, const char *);	/* cannot fail */
-#else
-PArea anew(size_t);			/* cannot fail */
-#endif
-void adelete(PArea *);
-void *alloc(size_t, size_t, PArea);	/* cannot fail */
-void *aresize(void *, size_t, size_t, PArea);
-void afree(void *, PArea);		/* can take NULL */
+Area *ainit(Area *);
+void afreeall(Area *);
+void *alloc(size_t, Area *);	/* cannot fail */
+void *aresize(void *, size_t, Area *);
+void afree(void *, Area *);	/* can take NULL */
 /* edit.c */
 void x_init(void);
 int x_read(char *, size_t);
@@ -1391,7 +1392,7 @@ int yylex(int);
 void yyerror(const char *, ...)
     __attribute__((noreturn))
     __attribute__((format (printf, 1, 2)));
-Source *pushs(int, PArea);
+Source *pushs(int, Area *);
 void set_prompt(int, Source *);
 void pprompt(const char *, int);
 int promptlen(const char *);
@@ -1440,12 +1441,12 @@ void coproc_readw_close(int);
 void coproc_write_close(int);
 int coproc_getfd(int, const char **);
 void coproc_cleanup(int);
-struct temp *maketemp(PArea, Temp_type, struct temp **);
+struct temp *maketemp(Area *, Temp_type, struct temp **);
 unsigned int hash(const char *);
-void ktinit(struct table *, PArea, int);
+void ktinit(struct table *, Area *, int);
 struct tbl *ktsearch(struct table *, const char *, unsigned int);
 struct tbl *ktenter(struct table *, const char *, unsigned int);
-#define ktdelete(p)	do { p->flag = 0; } while (0)
+#define ktdelete(p)	do { p->flag = 0; } while (/* CONSTCOND */ 0)
 void ktwalk(struct tstate *, struct table *);
 struct tbl *ktnext(struct tstate *);
 struct tbl **ktsort(struct table *);
@@ -1478,8 +1479,8 @@ void simplify_path(char *);
 char *get_phys_path(const char *);
 void set_current_wd(char *);
 #ifdef MKSH_SMALL
-char *strdup_(const char *, PArea);
-char *strndup_(const char *, size_t, PArea);
+char *strdup_(const char *, Area *);
+char *strndup_(const char *, size_t, Area *);
 #endif
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);
@@ -1512,11 +1513,11 @@ struct op *compile(Source *);
 /* tree.c */
 int fptreef(struct shf *, int, const char *, ...);
 char *snptreef(char *, int, const char *, ...);
-struct op *tcopy(struct op *, PArea);
-char *wdcopy(const char *, PArea);
+struct op *tcopy(struct op *, Area *);
+char *wdcopy(const char *, Area *);
 const char *wdscan(const char *, int);
 char *wdstrip(const char *, bool, bool);
-void tfree(struct op *, PArea);
+void tfree(struct op *, Area *);
 /* var.c */
 void newblock(void);
 void popblock(void);

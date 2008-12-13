@@ -1,4 +1,4 @@
-$MirOS: src/bin/mksh/copyright,v 1.25 2008/11/12 05:00:40 tg Exp $
+$MirOS: src/bin/mksh/copyright,v 1.26 2008/12/13 17:02:12 tg Exp $
 
 The MirBSD Korn Shell (mksh) is
 
@@ -28,5 +28,5 @@ tors. See the documentation, CVS, and web site for details.
 A number of files that are either always or conditionally included
 during compilation, depending on the target operating environment,
 are covered by different (2/3-clause BSD or similar) licences; re-
-fer to the individual files for details: alloc.c (included by user
-request) and setmode.c, strlcpy.c (included when required)
+fer to the individual files for details: alloc.c (always included)
+and setmode.c, strlcpy.c (included when required)
