@@ -103,7 +103,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.266 2008/12/13 17:02:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.267 2008/12/13 18:32:27 tg Exp $");
 #endif
 #define MKSH_VERSION "R36 2008/12/13"
 
@@ -1089,7 +1089,7 @@ typedef char *XStringP;
 
 /* check if there are at least n bytes left */
 #define XcheckN(xs, xp, n) do {					\
-	size_t more = ((xp) + (n)) - (xs).end;			\
+	int more = ((xp) + (n)) - (xs).end;			\
 	if (more > 0)						\
 		(xp) = Xcheck_grow_(&(xs), (xp), more);		\
 } while (/* CONSTCOND */ 0)
