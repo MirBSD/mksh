@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.68.2.3 2008/07/18 13:29:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.68.2.4 2008/12/14 00:07:45 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -63,34 +63,6 @@ initctypes(void)
 	setctypes(" \n\t\"#$&'()*;<>?[]\\`|", C_QUOTE);
 }
 
-#if defined(MKSH_SMALL) || !HAVE_EXPSTMT
-char *
-str_nsave(const char *s, int n, Area *ap)
-{
-	char *rv = NULL;
-
-	if ((n >= 0) && (s != NULL))
-		strlcpy(rv = alloc(n + 1, ap), s, n + 1);
-	return (rv);
-}
-
-char *
-str_save(const char *s, Area *ap)
-{
-#ifdef MKSH_SMALL
-	return (s ? str_nsave(s, strlen(s), ap) : NULL);
-#else
-	char *rv = NULL;
-
-	if (s != NULL) {
-		size_t sz = strlen(s) + 1;
-		strlcpy(rv = alloc(sz, ap), s, sz);
-	}
-	return (rv);
-#endif
-}
-#endif
-
 /* called from XcheckN() to grow buffer */
 char *
 Xcheck_grow_(XString *xsp, const char *xp, unsigned int more)
@@ -113,7 +85,9 @@ const struct shoption options[] = {
 	{ "arc4random",	  0,		OF_ANY },
 #endif
 	{ "braceexpand",  0,		OF_ANY }, /* non-standard */
+#if HAVE_NICE
 	{ "bgnice",	  0,		OF_ANY },
+#endif
 	{ NULL,		'c',	    OF_CMDLINE },
 	{ "emacs",	  0,		OF_ANY },
 	{ "errexit",	'e',		OF_ANY },
@@ -228,7 +202,8 @@ getoptions(void)
 	for (i = 0; i < NELEM(options); i++)
 		if (options[i].c && Flag(i))
 			*cp++ = options[i].c;
-	return (str_nsave_(m, cp - m, ATEMP));
+	strndupx(cp, m, cp - m, ATEMP);
+	return (cp);
 }
 
 /* change a Flag(*) value; takes care of special actions */
@@ -518,8 +493,7 @@ gmatchx(const char *s, const char *p, bool isfile)
 	if (!isfile && !has_globbing(p, pe)) {
 		size_t len = pe - p + 1;
 		char tbuf[64];
-		char *t = len <= sizeof(tbuf) ? tbuf :
-		    (char *)alloc(len, ATEMP);
+		char *t = len <= sizeof(tbuf) ? tbuf : alloc(len, ATEMP);
 		debunk(t, p, len);
 		return !strcmp(t, s);
 	}
@@ -773,11 +747,11 @@ pat_scan(const unsigned char *p, const unsigned char *pe, int match_sep)
 			continue;
 		if ((*++p == /*(*/ ')' && nest-- == 0) ||
 		    (*p == '|' && match_sep && nest == 0))
-			return ++p;
+			return (p + 1);
 		if ((*p & 0x80) && vstrchr("*+?@! ", *p & 0x7f))
 			nest++;
 	}
-	return NULL;
+	return (NULL);
 }
 
 int
@@ -959,7 +933,7 @@ print_columns(struct shf *shf, int n,
     char *(*func) (const void *, int, char *, int),
     const void *arg, int max_width, int prefcol)
 {
-	char *str = (char *)alloc(max_width + 1, ATEMP);
+	char *str = alloc(max_width + 1, ATEMP);
 	int i, r, c, rows, cols, nspace;
 
 	/* max_width + 1 for the space.  Note that no space
@@ -1137,7 +1111,7 @@ make_path(const char *cwd, const char *file,
 			for (pend = plist; *pend && *pend != ':'; pend++)
 				;
 			plen = pend - plist;
-			*cdpathp = *pend ? ++pend : NULL;
+			*cdpathp = *pend ? pend + 1 : NULL;
 		}
 
 		if ((use_cdpath == 0 || !plen || plist[0] != '/') &&
@@ -1253,8 +1227,10 @@ set_current_wd(char *pathl)
 	} else
 		len = strlen(p) + 1;
 
-	if (len > current_wd_size)
-		current_wd = aresize(current_wd, current_wd_size = len, APERM);
+	if (len > current_wd_size) {
+		afree(current_wd, APERM);
+		current_wd = alloc(current_wd_size = len, APERM);
+	}
 	memcpy(current_wd, p, len);
 	if (p != pathl && p != null)
 		afree(p, ATEMP);
@@ -1448,11 +1424,22 @@ stristr(const char *b, const char *l)
 #endif
 #endif
 
-#if !HAVE_EXPSTMT
-bool
-ksh_isspace_(unsigned int ksh_isspace_c)
+#ifdef MKSH_SMALL
+char *
+strndup_(const char *src, size_t len, Area *ap)
 {
-	return ((ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||
-	    (ksh_isspace_c == 0x20));
+	char *dst = NULL;
+
+	if (src != NULL) {
+		dst = alloc(++len, ap);
+		strlcpy(dst, src, len);
+	}
+	return (dst);
+}
+
+char *
+strdup_(const char *src, Area *ap)
+{
+	return (src == NULL ? NULL : strndup_(src, strlen(src), ap));
 }
 #endif

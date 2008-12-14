@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.39.2.2 2008/05/19 18:41:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.39.2.3 2008/12/14 00:07:39 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile);
@@ -72,9 +72,9 @@ execute(struct op *volatile t,
 	flags &= ~XTIME;
 
 	if (t->ioact != NULL || t->type == TPIPE || t->type == TCOPROC) {
-		e->savefd = (short *)alloc(sizeofN(short, NUFILE), ATEMP);
+		e->savefd = alloc(NUFILE * sizeof (short), ATEMP);
 		/* initialise to not redirected */
-		memset(e->savefd, 0, sizeofN(short, NUFILE));
+		memset(e->savefd, 0, NUFILE * sizeof (short));
 	}
 
 	/* do redirection, to be restored in quitenv() */
@@ -929,14 +929,9 @@ findcom(const char *name, int flags)
 		npath.ro = search(name, flags & FC_DEFPATH ? def_path : path,
 		    X_OK, &tp->u2.errno_);
 		if (npath.ro) {
-			/* XXX unsure about this, oksh does that
-			if (tp == &temp)
-				tp->val.s = npath.ro;
-			else */ {
-				tp->val.s = str_save(npath.ro, APERM);
-				if (npath.ro != name)
-					afree(npath.rw, ATEMP);
-			}
+			strdupx(tp->val.s, npath.ro, APERM);
+			if (npath.ro != name)
+				afree(npath.rw, ATEMP);
 			tp->flag |= ISSET|ALLOC;
 		} else if ((flags & FC_FUNC) &&
 		    (fpath = str_val(global("FPATH"))) != null &&

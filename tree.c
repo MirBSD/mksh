@@ -1,8 +1,8 @@
-/*	$OpenBSD: tree.c,v 1.18 2006/04/10 14:38:59 jaredy Exp $	*/
+/*	$OpenBSD: tree.c,v 1.19 2008/08/11 21:50:35 jaredy Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.15.2.2 2008/07/11 11:49:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.15.2.3 2008/12/14 00:07:51 tg Exp $");
 
 #define INDENT	4
 
@@ -262,7 +262,7 @@ tputS(char *wp, struct shf *shf)
 	 *	COMSUB [(`] ...\0	(handle $ ` \ and maybe " in `...` case)
 	 */
 	while (1)
-		switch ((c = *wp++)) {
+		switch (*wp++) {
 		case EOS:
 			return;
 		case ADELIM:
@@ -421,20 +421,23 @@ tcopy(struct op *t, Area *ap)
 	if (t == NULL)
 		return NULL;
 
-	r = (struct op *)alloc(sizeof (struct op), ap);
+	r = alloc(sizeof (struct op), ap);
 
 	r->type = t->type;
 	r->u.evalflags = t->u.evalflags;
 
-	r->str = t->type == TCASE ? wdcopy(t->str, ap) : str_save(t->str, ap);
+	if (t->type == TCASE)
+		r->str = wdcopy(t->str, ap);
+	else
+		strdupx(r->str, t->str, ap);
 
 	if (t->vars == NULL)
 		r->vars = NULL;
 	else {
 		for (tw = (const char **)t->vars; *tw++ != NULL; )
 			;
-		rw = r->vars = (char **)alloc((tw -
-		    (const char **)t->vars + 1) * sizeof (*tw), ap);
+		rw = r->vars = alloc((tw - (const char **)t->vars + 1) *
+		    sizeof (*tw), ap);
 		for (tw = (const char **)t->vars; *tw != NULL; )
 			*rw++ = wdcopy(*tw++, ap);
 		*rw = NULL;
@@ -445,8 +448,8 @@ tcopy(struct op *t, Area *ap)
 	else {
 		for (tw = t->args; *tw++ != NULL; )
 			;
-		r->args = (const char **)(rw = (char **)alloc((tw -
-		    t->args + 1) * sizeof (*tw), ap));
+		r->args = (const char **)(rw = alloc((tw - t->args + 1) *
+		    sizeof (*tw), ap));
 		for (tw = t->args; *tw != NULL; )
 			*rw++ = wdcopy(*tw++, ap);
 		*rw = NULL;
@@ -541,7 +544,7 @@ wdstrip(const char *wp, bool keepq, bool make_magic)
 	 *	x${foo:-'hi'} -> x${foo:-hi} unless keepq
 	 */
 	while (1)
-		switch ((c = *wp++)) {
+		switch (*wp++) {
 		case EOS:
 			return shf_sclose(&shf); /* null terminates */
 		case ADELIM:
@@ -615,13 +618,13 @@ iocopy(struct ioword **iow, Area *ap)
 
 	for (ior = iow; *ior++ != NULL; )
 		;
-	ior = (struct ioword **)alloc((ior - iow + 1) * sizeof (*ior), ap);
+	ior = alloc((ior - iow + 1) * sizeof (struct ioword *), ap);
 
 	for (i = 0; iow[i] != NULL; i++) {
 		struct ioword *p, *q;
 
 		p = iow[i];
-		q = (struct ioword *)alloc(sizeof (*p), ap);
+		q = alloc(sizeof (struct ioword), ap);
 		ior[i] = q;
 		*q = *p;
 		if (p->name != NULL)
@@ -629,7 +632,7 @@ iocopy(struct ioword **iow, Area *ap)
 		if (p->delim != NULL)
 			q->delim = wdcopy(p->delim, ap);
 		if (p->heredoc != NULL)
-			q->heredoc = str_save(p->heredoc, ap);
+			strdupx(q->heredoc, p->heredoc, ap);
 	}
 	ior[i] = NULL;
 
@@ -648,12 +651,12 @@ tfree(struct op *t, Area *ap)
 		return;
 
 	if (t->str != NULL)
-		afree((void*)t->str, ap);
+		afree(t->str, ap);
 
 	if (t->vars != NULL) {
 		for (w = t->vars; *w != NULL; w++)
-			afree((void*)*w, ap);
-		afree((void*)t->vars, ap);
+			afree(*w, ap);
+		afree(t->vars, ap);
 	}
 
 	if (t->args != NULL) {
@@ -661,8 +664,8 @@ tfree(struct op *t, Area *ap)
 		/* XXX we assume the caller is right */
 		cw.ro = t->args;
 		for (w = cw.rw; *w != NULL; w++)
-			afree((void*)*w, ap);
-		afree((void*)t->args, ap);
+			afree(*w, ap);
+		afree(t->args, ap);
 	}
 
 	if (t->ioact != NULL)
@@ -671,7 +674,7 @@ tfree(struct op *t, Area *ap)
 	tfree(t->left, ap);
 	tfree(t->right, ap);
 
-	afree((void*)t, ap);
+	afree(t, ap);
 }
 
 static void
@@ -682,11 +685,12 @@ iofree(struct ioword **iow, Area *ap)
 
 	for (iop = iow; (p = *iop++) != NULL; ) {
 		if (p->name != NULL)
-			afree((void*)p->name, ap);
+			afree(p->name, ap);
 		if (p->delim != NULL)
-			afree((void*)p->delim, ap);
+			afree(p->delim, ap);
 		if (p->heredoc != NULL)
-			afree((void*)p->heredoc, ap);
-		afree((void*)p, ap);
+			afree(p->heredoc, ap);
+		afree(p, ap);
 	}
+	afree(iow, ap);
 }

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.32.2.2 2008/05/19 18:41:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.32.2.3 2008/12/14 00:07:43 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -120,10 +120,10 @@ static int		kill_job(Job *, int);
 void
 j_init(int mflagset)
 {
-	sigemptyset(&sm_default);
+	(void)sigemptyset(&sm_default);
 	sigprocmask(SIG_SETMASK, &sm_default, NULL);
 
-	sigemptyset(&sm_sigchld);
+	(void)sigemptyset(&sm_sigchld);
 	sigaddset(&sm_sigchld, SIGCHLD);
 
 	setsig(&sigtraps[SIGCHLD], j_sigchld,
@@ -319,7 +319,8 @@ exchild(struct op *t, int flags, /* used if XPCLOSE or XCCLOSE */ int close_fd)
 			    "exchild: XPIPEI and no last_job - pid %d",
 			    (int)procpid);
 		j = last_job;
-		last_proc->next = p;
+		if (last_proc)
+			last_proc->next = p;
 		last_proc = p;
 	} else {
 		j = new_job(); /* fills in j->job */
@@ -363,8 +364,10 @@ exchild(struct op *t, int flags, /* used if XPCLOSE or XCCLOSE */ int close_fd)
 	else
 		p->pid = i;
 
+#if !HAVE_ARC4RANDOM || !defined(MKSH_SMALL)
 	/* Ensure next child gets a (slightly) different $RANDOM sequence */
 	change_random(((unsigned long)p->pid << 1) | (ischild ? 1 : 0));
+#endif
 
 	/* job control set up */
 	if (Flag(FMONITOR) && !(flags&XXCOM)) {
@@ -401,19 +404,19 @@ exchild(struct op *t, int flags, /* used if XPCLOSE or XCCLOSE */ int close_fd)
 				setsig(&sigtraps[tt_sigs[i]], SIG_DFL,
 				    SS_RESTORE_DFL|SS_FORCE);
 		}
+#if HAVE_NICE
 		if (Flag(FBGNICE) && (flags & XBGND))
-			i = nice(4);
+			(void)nice(4);
+#endif
 		if ((flags & XBGND) && !Flag(FMONITOR)) {
 			setsig(&sigtraps[SIGINT], SIG_IGN,
 			    SS_RESTORE_IGN|SS_FORCE);
 			setsig(&sigtraps[SIGQUIT], SIG_IGN,
 			    SS_RESTORE_IGN|SS_FORCE);
-			if (!(flags & (XPIPEI | XCOPROC))) {
-				int fd = open("/dev/null", 0);
-				if (fd != 0) {
-					(void) ksh_dup2(fd, 0, true);
-					close(fd);
-				}
+			if ((!(flags & (XPIPEI | XCOPROC))) &&
+			    ((i = open("/dev/null", 0)) > 0)) {
+				(void)ksh_dup2(i, 0, true);
+				close(i);
 			}
 		}
 		remove_job(j, "child");	/* in case of $(jobs) command */
@@ -1396,7 +1399,7 @@ new_job(void)
 		newj = free_jobs;
 		free_jobs = free_jobs->next;
 	} else
-		newj = (Job *)alloc(sizeof (Job), APERM);
+		newj = alloc(sizeof (Job), APERM);
 
 	/* brute force method */
 	for (i = 1; ; i++) {
@@ -1423,7 +1426,7 @@ new_proc(void)
 		p = free_procs;
 		free_procs = free_procs->next;
 	} else
-		p = (Proc *)alloc(sizeof (Proc), APERM);
+		p = alloc(sizeof (Proc), APERM);
 
 	return p;
 }

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.16.2.2 2008/05/19 18:41:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.16.2.3 2008/12/14 00:07:50 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -29,7 +29,7 @@ shf_open(const char *name, int oflags, int mode, int sflags)
 	int fd;
 
 	/* Done before open so if alloca fails, fd won't be lost. */
-	shf = (struct shf *)alloc(sizeof (struct shf) + bsize, ATEMP);
+	shf = alloc(sizeof (struct shf) + bsize, ATEMP);
 	shf->areap = ATEMP;
 	shf->buf = (unsigned char *)&shf[1];
 	shf->bsize = bsize;
@@ -92,12 +92,12 @@ shf_fdopen(int fd, int sflags, struct shf *shf)
 
 	if (shf) {
 		if (bsize) {
-			shf->buf = (unsigned char *)alloc(bsize, ATEMP);
+			shf->buf = alloc(bsize, ATEMP);
 			sflags |= SHF_ALLOCB;
 		} else
 			shf->buf = NULL;
 	} else {
-		shf = (struct shf *)alloc(sizeof (struct shf) + bsize, ATEMP);
+		shf = alloc(sizeof (struct shf) + bsize, ATEMP);
 		shf->buf = (unsigned char *)&shf[1];
 		sflags |= SHF_ALLOCS;
 	}
@@ -180,7 +180,7 @@ shf_sopen(char *buf, int bsize, int sflags, struct shf *shf)
 		internal_errorf("shf_sopen: flags 0x%x", sflags);
 
 	if (!shf) {
-		shf = (struct shf *)alloc(sizeof (struct shf), ATEMP);
+		shf = alloc(sizeof (struct shf), ATEMP);
 		sflags |= SHF_ALLOCS;
 	}
 	shf->areap = ATEMP;
@@ -323,8 +323,7 @@ shf_emptybuf(struct shf *shf, int flags)
 		    !(shf->flags & SHF_ALLOCB))
 			return EOF;
 		/* allocate more space for buffer */
-		nbuf = (unsigned char *)aresize(shf->buf, shf->wbsize * 2,
-		    shf->areap);
+		nbuf = aresize(shf->buf, 2 * shf->wbsize, shf->areap);
 		shf->rp = nbuf + (shf->rp - shf->buf);
 		shf->wp = nbuf + (shf->wp - shf->buf);
 		shf->rbsize += shf->wbsize;
@@ -835,7 +834,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		case 'u':
 		case 'x':
 			flags |= FL_NUMBER;
-			cp = &numbuf[sizeof (numbuf)];
+			cp = numbuf + sizeof (numbuf);
 			/*-
 			 * XXX any better way to do this?
 			 * XXX hopefully the compiler optimises this out
@@ -903,7 +902,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 				}
 			    }
 			}
-			len = &numbuf[sizeof (numbuf)] - (s = cp);
+			len = numbuf + sizeof (numbuf) - (s = cp);
 			if (flags & FL_DOT) {
 				if (precision > len) {
 					field = precision;

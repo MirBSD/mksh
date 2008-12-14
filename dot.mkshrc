@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.30.2.2 2008/05/19 18:41:18 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.30.2.3 2008/12/14 00:07:36 tg Exp $
 #-
 # ~/.mkshrc: mksh initialisation file for interactive shells
 
@@ -10,20 +10,10 @@ function precmd {
 
 	(( e )) && print -n "$e|"
 }
-PS1='$(precmd)${USER:=$(ulimit -c 0;id -un 2>&- || print \?)}@${HOSTNAME%%.*}:$(
-	typeset pfx=~ wd=${PWD:-?}
-	typeset -i n=${COLUMNS:-80}/3; (( n = n < 7 ? 7 : n ))
-	[[ $pfx = ?(*/) ]] || wd=${wd/#$pfx/~}
-	pfx=; while (( (${#pfx} + ${#wd}) > n )); do
-		if [[ $wd = */* ]]; then
-			pfx=.../
-			wd=${wd#*/}
-		else
-			pfx=...
-			wd=${wd#?????}
-		fi
-	done; print -nr -- "$pfx$wd") '"$PS1 "
-PS1="$(print -n '\x1\r')$PS1"		# allow colour codes, framed with ^A
+PS1='$(precmd)${USER:=$(ulimit -c 0;id -un 2>&-||print \?)}@${HOSTNAME%%.*}:$(
+	typeset p=~ d=${PWD:-?}; typeset -i n=${COLUMNS:-80}/3
+	[[ $p = ?(*/) ]] || d=${d/#$p/~}; (( n=n<7?7:n )); (( ${#d}>n )) && {
+	p=...; d=${d:(-n)}; } || p=; print -nr -- "$p$d") '"$PS1 "
 export EDITOR HOSTNAME LESSHISTFILE=- MKSH=$(whence -p mksh) PS1 TERM USER
 alias ls=ls
 unalias ls

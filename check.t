@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.158.2.4 2008/07/18 13:29:41 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.158.2.5 2008/12/14 00:07:34 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R35 2008/07/18
+	@(#)MIRBSD KSH R36 2008/12/13
 description:
 	Check version of shell.
 stdin:
@@ -150,6 +150,22 @@ stdin:
 expected-stdout:
 	hi
 	there
+---
+name: alias-9
+description:
+	Check that recursion is detected/avoided in aliases.
+	This check fails for slow machines or Cygwin, raise
+	the time-limit clause (e.g. to 7) if this occurs.
+time-limit: 3
+stdin:
+	echo -n >tf
+	alias ls=ls
+	ls
+	echo $(ls)
+	exit 0
+expected-stdout:
+	tf
+	tf
 ---
 name: arith-lazy-1
 description:
@@ -1683,9 +1699,10 @@ expected-stdout:
 ---
 name: heredoc-tmpfile-8
 description:
-	Check that heredoc temp files aren't removed too soon or too late.
-	Heredoc in function, backgrounded call to function.
-	This check can fail on slow machines (<100 MHz), that's normal.
+	Check that heredoc temp files aren't removed too soon or too
+	late. Heredoc in function, backgrounded call to function.
+	This check can fail on slow machines (<100 MHz), or Cygwin,
+	that's normal.
 stdin:
 	TMPDIR=$PWD
 	# Background eval so main shell doesn't do parsing
@@ -1721,6 +1738,26 @@ stdin:
 	echo hi
 	fc -l
 expected-stdout:
+	hi
+	1	echo hi
+expected-stderr-pattern:
+	/^X*$/
+---
+name: history-dups
+description:
+	Verify duplicates and spaces are not entered
+arguments: !-i!
+env-setup: !ENV=./Env!HISTFILE=hist.file!
+file-setup: file 644 "Env"
+	PS1=X
+stdin:
+	echo hi
+	 echo yo
+	echo hi
+	fc -l
+expected-stdout:
+	hi
+	yo
 	hi
 	1	echo hi
 expected-stderr-pattern:
@@ -1830,15 +1867,17 @@ file-setup: file 644 "Env"
 stdin:
 	echo abc def
 	echo ghi jkl
+	:
 	fc -e - echo
-	fc -l 2 4
+	fc -l 2 5
 expected-stdout:
 	abc def
 	ghi jkl
 	ghi jkl
 	2	echo ghi jkl
-	3	echo ghi jkl
-	4	fc -l 2 4
+	3	:
+	4	echo ghi jkl
+	5	fc -l 2 5
 expected-stderr-pattern:
 	/^X*echo ghi jkl\nX*$/
 ---
@@ -2183,7 +2222,7 @@ description:
 	Basic (ed) editing works (assumes you have generic ed editor
 	that prints no prompts). This is for oldish ed(1) which write
 	the character count to stdout.
-category: oldish-ed
+category: stdout-ed
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2205,7 +2244,7 @@ expected-stderr-pattern:
 name: history-ed-2-old
 description:
 	Correct command is edited when number given
-category: oldish-ed
+category: stdout-ed
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2236,7 +2275,7 @@ description:
 	in history.
 	(NOTE: adjusted for COMPLEX HISTORY compile time option)
 	(ksh88 fails 'cause it lists the fc command)
-category: oldish-ed
+category: stdout-ed
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2267,7 +2306,7 @@ name: history-ed-1
 description:
 	Basic (ed) editing works (assumes you have generic ed editor
 	that prints no prompts). This is for newish ed(1) and stderr.
-category: !oldish-ed
+category: !no-stderr-ed
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2287,7 +2326,7 @@ expected-stderr-pattern:
 name: history-ed-2
 description:
 	Correct command is edited when number given
-category: !oldish-ed
+category: !no-stderr-ed
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2314,7 +2353,7 @@ name: history-ed-3
 description:
 	Newly created multi line commands show up as single command
 	in history.
-category: !oldish-ed
+category: !no-stderr-ed
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -4251,6 +4290,44 @@ expected-stdout:
 	posix
 	brex
 ---
+name: posix-mode-2a
+description:
+	Check that posix mode is *not* automatically turned on
+category: !binsh
+stdin:
+	ln -s "$__progname" ksh
+	ln -s "$__progname" sh
+	ln -s "$__progname" ./-ksh
+	ln -s "$__progname" ./-sh
+	for shell in {,-}{,k}sh; do
+		print -- $shell $(./$shell +l -c \
+		    '[[ $(set +o) == *@(-o posix)@(| *) ]] && echo posix || echo noposix')
+	done
+expected-stdout:
+	sh noposix
+	ksh noposix
+	-sh noposix
+	-ksh noposix
+---
+name: posix-mode-2b
+description:
+	Check that posix mode is automatically turned on
+category: binsh
+stdin:
+	ln -s "$__progname" ksh
+	ln -s "$__progname" sh
+	ln -s "$__progname" ./-ksh
+	ln -s "$__progname" ./-sh
+	for shell in {,-}{,k}sh; do
+		print -- $shell $(./$shell +l -c \
+		    '[[ $(set +o) == *@(-o posix)@(| *) ]] && echo posix || echo noposix')
+	done
+expected-stdout:
+	sh posix
+	ksh noposix
+	-sh posix
+	-ksh noposix
+---
 name: pipeline-1
 description:
 	pdksh bug: last command of a pipeline is executed in a
@@ -4404,21 +4481,21 @@ expected-stderr-pattern:
 ---
 name: utf8bom-3
 description:
-	Reading the UTF-8 BOM should enable the utf8-hack flag
+	Reading the UTF-8 BOM should enable the utf8-mode flag
 stdin:
-	"$__progname" -c ':; if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then print on; else print off; fi'
-	"$__progname" -c 'ï»¿:; if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then print on; else print off; fi'
+	"$__progname" -c ':; if [[ $- = *U* ]]; then print on; else print off; fi'
+	"$__progname" -c 'ï»¿:; if [[ $- = *U* ]]; then print on; else print off; fi'
 expected-stdout:
 	off
 	on
 ---
 name: utf8opt-1a
 description:
-	Check that the utf8-hack flag is not set at non-interactive startup
+	Check that the utf8-mode flag is not set at non-interactive startup
 category: !os:hpux
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.UTF-8!
 stdin:
-	if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then
+	if [[ $- = *U* ]]; then
 		print is set
 	else
 		print is not set
@@ -4428,11 +4505,11 @@ expected-stdout:
 ---
 name: utf8opt-1b
 description:
-	Check that the utf8-hack flag is not set at non-interactive startup
+	Check that the utf8-mode flag is not set at non-interactive startup
 category: os:hpux
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.utf8!
 stdin:
-	if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then
+	if [[ $- = *U* ]]; then
 		print is set
 	else
 		print is not set
@@ -4442,12 +4519,12 @@ expected-stdout:
 ---
 name: utf8opt-2a
 description:
-	Check that the utf8-hack flag is set at interactive startup
+	Check that the utf8-mode flag is set at interactive startup
 category: !os:hpux
 arguments: !-i!
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.UTF-8!
 stdin:
-	if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then
+	if [[ $- = *U* ]]; then
 		print is set
 	else
 		print is not set
@@ -4459,12 +4536,12 @@ expected-stderr-pattern:
 ---
 name: utf8opt-2b
 description:
-	Check that the utf8-hack flag is set at interactive startup
+	Check that the utf8-mode flag is set at interactive startup
 category: os:hpux
 arguments: !-i!
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.utf8!
 stdin:
-	if [[ $(set +o) = *@(-o utf8-hack)@(| *) ]]; then
+	if [[ $- = *U* ]]; then
 		print is set
 	else
 		print is not set
@@ -4730,7 +4807,7 @@ name: integer-base-one-1
 description:
 	check if the use of fake integer base 1 works
 stdin:
-	set -o utf8-hack
+	set -U
 	typeset -Uui16 i0=1#ï i1=1#â‚¬
 	typeset -i1 o0a=64
 	typeset -i1 o1a=0x263A
@@ -4759,7 +4836,7 @@ name: integer-base-one-2a
 description:
 	check if the use of fake integer base 1 stops at correct characters
 stdin:
-	set -o utf8-hack
+	set -U
 	integer x=1#foo
 	print /$x/
 expected-stderr-pattern:
@@ -4770,7 +4847,7 @@ name: integer-base-one-2b
 description:
 	check if the use of fake integer base 1 stops at correct characters
 stdin:
-	set -o utf8-hack
+	set -U
 	integer x=1#À€
 	print /$x/
 expected-stderr-pattern:
@@ -4781,7 +4858,7 @@ name: integer-base-one-2c1
 description:
 	check if the use of fake integer base 1 stops at correct characters
 stdin:
-	set -o utf8-hack
+	set -U
 	integer x=1#â€¦
 	print /$x/
 expected-stdout:
@@ -4791,7 +4868,7 @@ name: integer-base-one-2c2
 description:
 	check if the use of fake integer base 1 stops at correct characters
 stdin:
-	set +o utf8-hack
+	set +U
 	integer x=1#â€¦
 	print /$x/
 expected-stderr-pattern:
@@ -4802,7 +4879,7 @@ name: integer-base-one-2d1
 description:
 	check if the use of fake integer base 1 handles octets okay
 stdin:
-	set -o utf8-hack
+	set -U
 	typeset -i16 x=1#ÿ
 	print /$x/	# invalid utf-8
 expected-stdout:
@@ -4812,7 +4889,7 @@ name: integer-base-one-2d2
 description:
 	check if the use of fake integer base 1 handles octets
 stdin:
-	set -o utf8-hack
+	set -U
 	typeset -i16 x=1#Â
 	print /$x/	# invalid 2-byte
 expected-stdout:
@@ -4822,7 +4899,7 @@ name: integer-base-one-2d3
 description:
 	check if the use of fake integer base 1 handles octets
 stdin:
-	set -o utf8-hack
+	set -U
 	typeset -i16 x=1#ï
 	print /$x/	# invalid 2-byte
 expected-stdout:
@@ -4832,7 +4909,7 @@ name: integer-base-one-2d4
 description:
 	check if the use of fake integer base 1 stops at invalid input
 stdin:
-	set -o utf8-hack
+	set -U
 	typeset -i16 x=1#ï¿À
 	print /$x/	# invalid 3-byte
 expected-stderr-pattern:
@@ -4843,7 +4920,7 @@ name: integer-base-one-2d5
 description:
 	check if the use of fake integer base 1 stops at invalid input
 stdin:
-	set -o utf8-hack
+	set -U
 	typeset -i16 x=1#À€
 	print /$x/	# non-minimalistic
 expected-stderr-pattern:
@@ -4854,7 +4931,7 @@ name: integer-base-one-2d6
 description:
 	check if the use of fake integer base 1 stops at invalid input
 stdin:
-	set -o utf8-hack
+	set -U
 	typeset -i16 x=1#à€€
 	print /$x/	# non-minimalistic
 expected-stderr-pattern:
@@ -4932,7 +5009,7 @@ name: integer-base-one-3b
 description:
 	some sample code for hexdumping Unicode
 stdin:
-	set -o utf8-hack
+	set -U
 	{
 		print 'Hello, World!\\\nã“ã‚“ã«ã¡ã¯ï¼'
 		typeset -Uui16 i=0x100
@@ -5182,6 +5259,32 @@ expected-stdout:
 	ras
 	dwa
 ---
+name: bashiop-4
+description:
+	Check if GNU bash-like I/O redirection works
+	Part 4: this is also supported by GNU bash,
+	but failed in some mksh versions
+stdin:
+	exec 3>&1
+	function threeout {
+		echo ras
+		echo dwa >&2
+		echo tri >&3
+	}
+	function blubb {
+		[[ -e bar ]] && threeout "$bf" &>foo
+	}
+	blubb
+	echo -n >bar
+	blubb
+	echo ===
+	cat foo
+expected-stdout:
+	tri
+	===
+	ras
+	dwa
+---
 name: mkshiop-1
 description:
 	Check for support of more than 9 file descriptors
@@ -5306,4 +5409,29 @@ stdin:
 	if [ x$FOO != xbar ]; then
 		exit 1
 	fi
+---
+name: fd-cloexec-1
+description:
+	Verify that file descriptors > 2 are private for Korn shells
+file-setup: file 644 "test.sh"
+	print -u3 Fowl
+stdin:
+	exec 3>&1
+	"$__progname" test.sh
+expected-exit: e != 0
+expected-stderr:
+	test.sh[1]: print: -u: 3: bad file descriptor
+---
+name: fd-cloexec-2
+description:
+	Verify that file descriptors > 2 are not private for POSIX shells
+	See Debian Bug #154540, Closes: #499139
+file-setup: file 644 "test.sh"
+	print -u3 Fowl
+stdin:
+	set -o posix
+	exec 3>&1
+	"$__progname" test.sh
+expected-stdout:
+	Fowl
 ---

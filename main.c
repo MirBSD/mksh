@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.92.2.3 2008/07/11 11:49:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.92.2.4 2008/12/14 00:07:44 tg Exp $");
 
 extern char **environ;
 
@@ -57,6 +57,9 @@ static const char *initcoms[] = {
 
 static int initio_done;
 
+static struct env env;
+struct env *e = &env;
+
 int
 main(int argc, const char *argv[])
 {
@@ -65,13 +68,16 @@ main(int argc, const char *argv[])
 	struct block *l;
 	int restricted, errexit;
 	const char **wp;
-	struct env env;
 	pid_t ppid;
 	struct tbl *vp;
 	struct stat s_stdin;
 #if !defined(_PATH_DEFPATH) && defined(_CS_PATH)
 	size_t k;
 	char *cp;
+#endif
+
+#if !HAVE_ARC4RANDOM
+	change_random((unsigned long)time(NULL) * getpid());
 #endif
 
 	/* make sure argv[] is sane */
@@ -88,10 +94,8 @@ main(int argc, const char *argv[])
 	ainit(&aperm);		/* initialise permanent Area */
 
 	/* set up base environment */
-	memset(&env, 0, sizeof(env));
 	env.type = E_NONE;
 	ainit(&env.area);
-	e = &env;
 	newblock();		/* set up global l->vars and l->funs */
 
 	/* Do this first so output routines (eg, errorf, shellf) can work */
@@ -173,6 +177,21 @@ main(int argc, const char *argv[])
 	Flag(FVITABCOMPLETE) = 1;
 #endif
 
+#ifdef MKSH_BINSHREDUCED
+	/* Set FPOSIX if we're called as -sh or /bin/sh or so */
+	{
+		const char *cc;
+
+		cc = kshname;
+		i = 0; argi = 0;
+		while (cc[i] != '\0')
+			if ((cc[i++] | 2) == '/')
+				argi = i;
+		if (((cc[argi] | 0x20) == 's') && ((cc[argi + 1] | 0x20) == 'h'))
+			change_flag(FPOSIX, OF_FIRSTTIME, 1);
+	}
+#endif
+
 	/* import environment */
 	if (environ != NULL)
 		for (wp = (const char **)environ; *wp != NULL; wp++)
@@ -208,8 +227,10 @@ main(int argc, const char *argv[])
 			setstr(pwd_v, current_wd, KSH_RETURN_ERROR);
 	}
 	ppid = getppid();
+#if !HAVE_ARC4RANDOM || !defined(MKSH_SMALL)
 	change_random(((unsigned long)kshname) ^
 	    ((unsigned long)time(NULL) * kshpid * ppid));
+#endif
 #if HAVE_ARC4RANDOM
 	Flag(FARC4RANDOM) = 2;	/* use arc4random(3) until $RANDOM is written */
 #endif
@@ -290,7 +311,7 @@ main(int argc, const char *argv[])
 #define isuc(x)	(((x) != NULL) && \
 		    (stristr((x), "UTF-8") || stristr((x), "utf8")))
 		/* Check if we're in a UTF-8 locale */
-		if (!Flag(FUTFHACK)) {
+		if (!UTFMODE) {
 			const char *ccp;
 
 #if HAVE_SETLOCALE_CTYPE
@@ -307,11 +328,11 @@ main(int argc, const char *argv[])
 					ccp = getenv("LANG");
 			}
 #endif
-			Flag(FUTFHACK) = isuc(ccp);
+			UTFMODE = isuc(ccp);
 		}
 #undef isuc
 #else
-		Flag(FUTFHACK) = 1;
+		UTFMODE = 1;
 #endif
 		x_init();
 	}
@@ -430,7 +451,7 @@ include(const char *name, int argc, const char **argv, int intr_ok)
 	}
 	s = pushs(SFILE, ATEMP);
 	s->u.shf = shf;
-	s->file = str_save(name, ATEMP);
+	strdupx(s->file, name, ATEMP);
 	i = shell(s, false);
 	quitenv(s->u.shf);
 	if (old_argv) {
@@ -592,7 +613,7 @@ newenv(int type)
 {
 	struct env *ep;
 
-	ep = (struct env *)alloc(sizeof (*ep), ATEMP);
+	ep = alloc(sizeof (struct env), ATEMP);
 	ep->type = type;
 	ep->flags = 0;
 	ainit(&ep->area);
@@ -777,7 +798,7 @@ errorf(const char *fmt, ...)
 
 	shl_stdout_ok = 0;	/* debugging: note that stdout not valid */
 	exstat = 1;
-	if (*fmt) {
+	if (*fmt != 1) {
 		error_prefix(true);
 		va_start(va, fmt);
 		shf_vfprintf(shl_out, fmt, va);
@@ -812,7 +833,7 @@ bi_errorf(const char *fmt, ...)
 
 	shl_stdout_ok = 0;	/* debugging: note that stdout not valid */
 	exstat = 1;
-	if (*fmt) {
+	if (*fmt != 1) {
 		error_prefix(true);
 		/* not set when main() calls parse_args() */
 		if (builtin_argv0)
@@ -834,9 +855,7 @@ bi_errorf(const char *fmt, ...)
 }
 
 /* Called when something that shouldn't happen does */
-static void internal_verrorf(const char *, va_list)
-    __attribute__((format (printf, 1, 0)));
-static void
+void
 internal_verrorf(const char *fmt, va_list ap)
 {
 	shf_fprintf(shl_out, "internal error: ");
@@ -1136,7 +1155,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	pathname = tempnam(dir, "mksh.");
 	len = ((pathname == NULL) ? 0 : strlen(pathname)) + 1;
 #endif
-	tp = (struct temp *)alloc(sizeof (struct temp) + len, ap);
+	tp = alloc(sizeof (struct temp) + len, ap);
 	tp->name = (char *)&tp[1];
 #if !HAVE_MKSTEMP
 	if (pathname == NULL)
@@ -1196,7 +1215,7 @@ texpand(struct table *tp, int nsize)
 	struct tbl **ntblp, **otblp = tp->tbls;
 	int osize = tp->size;
 
-	ntblp = (struct tbl **)alloc(sizeofN(struct tbl *, nsize), tp->areap);
+	ntblp = alloc(nsize * sizeof (struct tbl *), tp->areap);
 	for (i = 0; i < nsize; i++)
 		ntblp[i] = NULL;
 	tp->size = nsize;
@@ -1214,10 +1233,10 @@ texpand(struct table *tp, int nsize)
 				*p = tblp;
 				tp->nfree--;
 			} else if (!(tblp->flag & FINUSE)) {
-				afree((void *)tblp, tp->areap);
+				afree(tblp, tp->areap);
 			}
 		}
-	afree((void *)otblp, tp->areap);
+	afree(otblp, tp->areap);
 }
 
 /* table */
@@ -1269,8 +1288,7 @@ ktenter(struct table *tp, const char *n, unsigned int h)
 	}
 	/* create new tbl entry */
 	len = strlen(n) + 1;
-	p = (struct tbl *)alloc(offsetof(struct tbl, name[0])+len,
-	    tp->areap);
+	p = alloc(offsetof(struct tbl, name[0]) + len, tp->areap);
 	p->flag = 0;
 	p->type = 0;
 	p->areap = tp->areap;
@@ -1317,7 +1335,7 @@ ktsort(struct table *tp)
 	size_t i;
 	struct tbl **p, **sp, **dp;
 
-	p = (struct tbl **)alloc(sizeofN(struct tbl *, tp->size + 1), ATEMP);
+	p = alloc((tp->size + 1) * sizeof (struct tbl *), ATEMP);
 	sp = tp->tbls;		/* source */
 	dp = p;			/* dest */
 	for (i = 0; i < (size_t)tp->size; i++)

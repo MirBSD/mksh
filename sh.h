@@ -58,6 +58,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if HAVE_STRINGS_H
+#include <strings.h>
+#endif
 #include <termios.h>
 #include <time.h>
 #if HAVE_ULIMIT_H
@@ -100,9 +103,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.195.2.4 2008/07/18 13:29:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.195.2.5 2008/12/14 00:07:48 tg Exp $");
 #endif
-#define MKSH_VERSION "R35 2008/07/18"
+#define MKSH_VERSION "R36 2008/12/13"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -127,7 +130,10 @@ typedef int bool;
 /* extra macros */
 
 #ifndef timerclear
-#define timerclear(tvp) do { (tvp)->tv_sec = (tvp)->tv_usec = 0; } while (0)
+#define timerclear(tvp)							\
+	do {								\
+		(tvp)->tv_sec = (tvp)->tv_usec = 0;			\
+	} while (/* CONSTCOND */ 0)
 #endif
 #ifndef timeradd
 #define timeradd(tvp, uvp, vvp)						\
@@ -138,7 +144,7 @@ typedef int bool;
 			(vvp)->tv_sec++;				\
 			(vvp)->tv_usec -= 1000000;			\
 		}							\
-	} while (0)
+	} while (/* CONSTCOND */ 0)
 #endif
 #ifndef timersub
 #define timersub(tvp, uvp, vvp)						\
@@ -149,7 +155,7 @@ typedef int bool;
 			(vvp)->tv_sec--;				\
 			(vvp)->tv_usec += 1000000;			\
 		}							\
-	} while (0)
+	} while (/* CONSTCOND */ 0)
 #endif
 
 #define ksh_isdigit(c)	(((c) >= '0') && ((c) <= '9'))
@@ -158,17 +164,7 @@ typedef int bool;
 #define ksh_tolower(c)	(((c) >= 'A') && ((c) <= 'Z') ? (c) - 'A' + 'a' : (c))
 #define ksh_toupper(c)	(((c) >= 'a') && ((c) <= 'z') ? (c) - 'a' + 'A' : (c))
 #define ksh_isdash(s)	(((s) != NULL) && ((s)[0] == '-') && ((s)[1] == '\0'))
-
-#if HAVE_EXPSTMT
-/* this macro must not evaluate its arguments several times */
-#define ksh_isspace(c)	({					\
-	unsigned int ksh_isspace_c = (c);			\
-	(ksh_isspace_c >= 0x09 && ksh_isspace_c <= 0x0D) ||	\
-	    (ksh_isspace_c == 0x20);				\
-})
-#else
-#define ksh_isspace(c)	ksh_isspace_((unsigned int)(c))
-#endif
+#define ksh_isspace(c)	((((c) >= 0x09) && ((c) <= 0x0D)) || ((c) == 0x20))
 
 #ifndef PATH_MAX
 #define PATH_MAX	1024
@@ -190,7 +186,7 @@ typedef int bool;
 #if !defined(MAP_FAILED)
 #  if defined(__linux)
 #define MAP_FAILED	((void *)-1)
-#  elif defined(__bsdi__) || defined(__ultrix)
+#  elif defined(__bsdi__) || defined(__osf__) || defined(__ultrix)
 #define MAP_FAILED	((caddr_t)-1)
 #  endif
 #endif
@@ -262,12 +258,12 @@ extern int __cdecl setegid(gid_t);
 #endif
 
 #define NELEM(a)	(sizeof (a) / sizeof ((a)[0]))
-#define sizeofN(typ, n)	(sizeof (typ) * (n))
 #define BIT(i)		(1 << (i))	/* define bit in flag */
 
 /* Table flag type - needs > 16 and < 32 bits */
 typedef int32_t Tflag;
 
+/* these shall be smaller than 100 */
 #ifdef MKSH_SMALL
 #define NUFILE		32	/* Number of user-accessible files */
 #define FDBASE		10	/* First file usable by Shell */
@@ -345,6 +341,49 @@ char *ucstrstr(char *, const char *);
 /* use this ipv strchr(s, 0) but no side effects in s! */
 #define strnul(s)	((s) + strlen(s))
 
+#define utf_ptradjx(src, dst) do {					\
+	size_t utf_ptradjx_len;						\
+									\
+	if (!UTFMODE ||							\
+	    *(const unsigned char *)(src) < 0xC2 ||			\
+	    (utf_ptradjx_len = utf_mbtowc(NULL, (src))) == (size_t)-1)	\
+		utf_ptradjx_len = 1;					\
+	(dst) = (src) + utf_ptradjx_len;				\
+} while (/* CONSTCOND */ 0)
+
+#ifdef MKSH_SMALL
+#define strdupx(d, s, ap) do { \
+	(d) = strdup_((s), (ap)); \
+} while (/* CONSTCOND */ 0)
+#define strndupx(d, s, n, ap) do { \
+	(d) = strndup_((s), (n), (ap)); \
+} while (/* CONSTCOND */ 0)
+#else
+/* be careful to evaluate arguments only once! */
+#define strdupx(d, s, ap) do {						\
+	const char *strdup_src = (s);					\
+	char *strdup_dst = NULL;					\
+									\
+	if (strdup_src != NULL) {					\
+		size_t strdup_len = strlen(strdup_src) + 1;		\
+		strdup_dst = alloc(strdup_len, (ap));			\
+		strlcpy(strdup_dst, strdup_src, strdup_len);		\
+	}								\
+	(d) = strdup_dst;						\
+} while (/* CONSTCOND */ 0)
+#define strndupx(d, s, n, ap) do {					\
+	const char *strdup_src = (s);					\
+	char *strdup_dst = NULL;					\
+									\
+	if (strdup_src != NULL) {					\
+		size_t strdup_len = (n) + 1;				\
+		strdup_dst = alloc(strdup_len, (ap));			\
+		strlcpy(strdup_dst, strdup_src, strdup_len);		\
+	}								\
+	(d) = strdup_dst;						\
+} while (/* CONSTCOND */ 0)
+#endif
+
 #if HAVE_STRCASESTR
 #define stristr(b,l)	((const char *)strcasestr((b), (l)))
 #endif
@@ -367,7 +406,7 @@ EXTERN Area aperm;		/* permanent object space */
 /*
  * parsing & execution environment
  */
-EXTERN struct env {
+extern struct env {
 	Area area;		/* temporary allocation area */
 	struct block *loc;	/* local variables and functions */
 	short *savefd;		/* original redirected fds */
@@ -434,7 +473,9 @@ enum sh_flag {
 	FARC4RANDOM,	/* use 0:rand(3) 1:arc4random(3) 2:switch on write */
 #endif
 	FBRACEEXPAND,	/* enable {} globbing */
+#if HAVE_NICE
 	FBGNICE,	/* bgnice */
+#endif
 	FCOMMAND,	/* -c: (invocation) execute specified command */
 	FEMACS,		/* emacs command editing */
 	FERREXIT,	/* -e: quit on error */
@@ -458,7 +499,7 @@ enum sh_flag {
 	FRESTRICTED,	/* -r: restricted shell */
 	FSTDIN,		/* -s: (invocation) parse stdin */
 	FTRACKALL,	/* -h: create tracked aliases for all commands */
-	FUTFHACK,	/* -U: utf-8 hack for command line editing */
+	FUTFMODE,	/* -U: enable utf-8 processing */
 	FVERBOSE,	/* -v: echo input */
 #ifndef MKSH_NOVI
 	FVI,		/* vi command editing */
@@ -472,13 +513,14 @@ enum sh_flag {
 };
 
 #define Flag(f)	(shell_flags[(int)(f)])
+#define UTFMODE	Flag(FUTFMODE)
 
 EXTERN char shell_flags[FNFLAGS];
 
 /* null value for variable; comparision pointer for unset */
 EXTERN char null[] I__("");
 /* helpers for string pooling */
-EXTERN const char T_synerr[] I__("syntax error");
+#define T_synerr "syntax error"
 
 enum temp_type {
 	TT_HEREDOC_EXP,	/* expanded heredoc */
@@ -1036,11 +1078,11 @@ typedef char *XStringP;
 	(xs).areap = (area);					\
 	(xs).beg = alloc((xs).len + X_EXTRA, (xs).areap);	\
 	(xs).end = (xs).beg + (xs).len;				\
-} while (0)
+} while (/* CONSTCOND */ 0)
 #define Xinit(xs, xp, length, area) do {			\
 	XinitN((xs), (length), (area));				\
 	(xp) = (xs).beg;					\
-} while (0)
+} while (/* CONSTCOND */ 0)
 
 /* stuff char into string */
 #define Xput(xs, xp, c)	(*xp++ = (c))
@@ -1050,25 +1092,25 @@ typedef char *XStringP;
 	int more = ((xp) + (n)) - (xs).end;			\
 	if (more > 0)						\
 		(xp) = Xcheck_grow_(&(xs), (xp), more);		\
-} while (0)
+} while (/* CONSTCOND */ 0)
 
 /* check for overflow, expand string */
 #define Xcheck(xs, xp)	XcheckN((xs), (xp), 1)
 
 /* free string */
-#define Xfree(xs, xp)	afree((void*)(xs).beg, (xs).areap)
+#define Xfree(xs, xp)	afree((xs).beg, (xs).areap)
 
 /* close, return string */
-#define Xclose(xs, xp)	(char*)aresize((void*)(xs).beg, \
-			    (size_t)((xp) - (xs).beg), (xs).areap)
+#define Xclose(xs, xp)	aresize((xs).beg, (xp) - (xs).beg, (xs).areap)
+
 /* begin of string */
 #define Xstring(xs, xp)	((xs).beg)
 
-#define Xnleft(xs, xp) ((xs).end - (xp))	/* may be less than 0 */
-#define Xlength(xs, xp) ((xp) - (xs).beg)
-#define Xsize(xs, xp) ((xs).end - (xs).beg)
-#define Xsavepos(xs, xp) ((xp) - (xs).beg)
-#define Xrestpos(xs, xp, n) ((xs).beg + (n))
+#define Xnleft(xs, xp)	((xs).end - (xp))	/* may be less than 0 */
+#define Xlength(xs, xp)	((xp) - (xs).beg)
+#define Xsize(xs, xp)	((xs).end - (xs).beg)
+#define Xsavepos(xs, xp)	((xp) - (xs).beg)
+#define Xrestpos(xs, xp, n)	((xs).beg + (n))
 
 char *Xcheck_grow_(XString *, const char *, unsigned int);
 
@@ -1083,29 +1125,26 @@ typedef struct XPtrV {
 
 #define XPinit(x, n) do {					\
 	void **vp__;						\
-	vp__ = (void**)alloc(sizeofN(void*, (n)), ATEMP);	\
+	vp__ = alloc((n) * sizeof (void *), ATEMP);		\
 	(x).cur = (x).beg = vp__;				\
 	(x).end = vp__ + (n);					\
-} while (0)
+} while (/* CONSTCOND */ 0)
 
 #define XPput(x, p) do {					\
 	if ((x).cur >= (x).end) {				\
-		int n = XPsize(x);				\
-		(x).beg = (void**) aresize((void*) (x).beg,	\
-		    sizeofN(void *, n * 2), ATEMP);		\
+		size_t n = XPsize(x);				\
+		(x).beg = aresize((x).beg,			\
+		    n * 2 * sizeof (void *), ATEMP);		\
 		(x).cur = (x).beg + n;				\
 		(x).end = (x).cur + n;				\
 	}							\
 	*(x).cur++ = (p);					\
-} while (0)
+} while (/* CONSTCOND */ 0)
 
 #define XPptrv(x)	((x).beg)
 #define XPsize(x)	((x).cur - (x).beg)
-
-#define XPclose(x)	(void**)aresize((void*)(x).beg, \
-			    sizeofN(void *, XPsize(x)), ATEMP)
-
-#define XPfree(x)	afree((void *)(x).beg, ATEMP)
+#define XPclose(x)	aresize((x).beg, XPsize(x) * sizeof (void *), ATEMP)
+#define XPfree(x)	afree((x).beg, ATEMP)
 
 #define IDENT	64
 
@@ -1117,7 +1156,7 @@ struct source {
 	union {
 		const char **strv; /* string [] */
 		struct shf *shf;   /* shell file */
-		struct tbl *tblp;  /* alias (SALIAS) */
+		struct tbl *tblp;  /* alias (SF_HASALIAS) */
 		char *freeme;	   /* also for SREREAD */
 	} u;
 	int	line;		/* line number */
@@ -1148,6 +1187,7 @@ struct source {
 #define SF_ALIASEND	BIT(2)	/* faking space at end of alias */
 #define SF_TTY		BIT(3)	/* type == SSTDIN & it is a tty */
 #define SF_FIRST	BIT(4)	/* initial state (to ignore UTF-8 BOM) */
+#define SF_HASALIAS	BIT(5)	/* u.tblp valid (SALIAS, SEOF) */
 
 typedef union {
 	int i;
@@ -1226,10 +1266,9 @@ void afree(void *, Area *);	/* can take NULL */
 void x_init(void);
 int x_read(char *, size_t);
 int x_bind(const char *, const char *, int, int);
-/* UTF-8 hack stuff */
+/* UTF-8 stuff */
 size_t utf_mbtowc(unsigned int *, const char *);
 size_t utf_wctomb(char *, unsigned int);
-void utf_cptradj(const char *, const char **);
 int utf_widthadj(const char *, const char **);
 int utf_mbswidth(const char *);
 int utf_wcwidth(unsigned int);
@@ -1306,7 +1345,7 @@ void hist_init(Source *);
 #if HAVE_PERSISTENT_HISTORY
 void hist_finish(void);
 #endif
-void histsave(int, const char *, int);
+void histsave(int *, const char *, bool, bool);
 int c_fc(const char **);
 void sethistsize(int);
 #if HAVE_PERSISTENT_HISTORY
@@ -1374,18 +1413,10 @@ void warningf(bool, const char *, ...)
     __attribute__((format (printf, 2, 3)));
 void bi_errorf(const char *, ...)
     __attribute__((format (printf, 1, 2)));
-/*
- * circumvent compiler format string nonnull checking
- * we teach xlC to not bitch about zero-lengths, want
- * gcc to do it, and so gain double-checking benefits
- */
-#if defined(__xlC__)
-#define errorfz()	errorf("")
-#define bi_errorfz()	bi_errorf("")
-#else
-#define errorfz()	errorf(null)
-#define bi_errorfz()	bi_errorf(null)
-#endif
+#define errorfz()	errorf("\1")
+#define bi_errorfz()	bi_errorf("\1")
+void internal_verrorf(const char *, va_list)
+    __attribute__((format (printf, 1, 0)));
 void internal_errorf(const char *, ...)
     __attribute__((noreturn))
     __attribute__((format (printf, 1, 2)));
@@ -1415,30 +1446,13 @@ unsigned int hash(const char *);
 void ktinit(struct table *, Area *, int);
 struct tbl *ktsearch(struct table *, const char *, unsigned int);
 struct tbl *ktenter(struct table *, const char *, unsigned int);
-#define ktdelete(p)	do { p->flag = 0; } while (0)
+#define ktdelete(p)	do { p->flag = 0; } while (/* CONSTCOND */ 0)
 void ktwalk(struct tstate *, struct table *);
 struct tbl *ktnext(struct tstate *);
 struct tbl **ktsort(struct table *);
 /* misc.c */
 void setctypes(const char *, int);
 void initctypes(void);
-#if defined(MKSH_SMALL) || !HAVE_EXPSTMT
-#define str_save_		str_save
-#define str_nsave_		str_nsave
-char *str_save(const char *, Area *);
-char *str_nsave(const char *, int, Area *);
-#else
-#define str_save_(s,ap)		str_nsave_((s), strlen(s), (ap))
-#define str_nsave_(s,n,ap)	({				\
-	size_t str_save_sz = (n) + 1;				\
-	char *str_save_rv = alloc(str_save_sz, (ap));		\
-	strlcpy(str_save_rv, (s), str_save_sz);			\
-	(str_save_rv);						\
-})
-#define str_save(s,ap)		(!(s) ? NULL : str_save_((s), (ap)))
-#define str_nsave(s,n,ap)	\
-	(!(s) || (n) < 0 ? NULL : str_nsave_((s), (n), (ap)))
-#endif
 size_t option(const char *);
 char *getoptions(void);
 void change_flag(enum sh_flag, int, char);
@@ -1464,8 +1478,9 @@ int make_path(const char *, const char *, char **, XString *, int *);
 void simplify_path(char *);
 char *get_phys_path(const char *);
 void set_current_wd(char *);
-#if !HAVE_EXPSTMT
-bool ksh_isspace_(unsigned int);
+#ifdef MKSH_SMALL
+char *strdup_(const char *, Area *);
+char *strndup_(const char *, size_t, Area *);
 #endif
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);
@@ -1522,7 +1537,9 @@ const char *skip_wdvarname(const char *, int);
 int is_wdvarname(const char *, int);
 int is_wdvarassign(const char *);
 char **makenv(void);
+#if !HAVE_ARC4RANDOM || !defined(MKSH_SMALL)
 void change_random(unsigned long);
+#endif
 int array_ref_len(const char *);
 char *arrayname(const char *);
 void set_array(const char *, int, const char **);

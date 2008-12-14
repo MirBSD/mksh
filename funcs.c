@@ -1,11 +1,11 @@
 /*	$OpenBSD: c_ksh.c,v 1.31 2008/05/17 23:31:52 sobrado Exp $	*/
-/*	$OpenBSD: c_sh.c,v 1.37 2007/09/03 13:54:23 otto Exp $	*/
+/*	$OpenBSD: c_sh.c,v 1.38 2008/07/23 16:34:38 jaredy Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.69.2.4 2008/07/18 13:29:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.69.2.5 2008/12/14 00:07:40 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -169,7 +169,8 @@ c_cd(const char **wp)
 		}
 	} else if (!wp[1]) {
 		/* One argument: - or dir */
-		if (ksh_isdash((dir = allocd = str_save(wp[0], ATEMP)))) {
+		strdupx(allocd, wp[0], ATEMP);
+		if (ksh_isdash((dir = allocd))) {
 			afree(allocd, ATEMP);
 			allocd = NULL;
 			dir = str_val(oldpwd_s);
@@ -502,8 +503,7 @@ c_print(const char **wp)
 
 	if (flags & PO_HIST) {
 		Xput(xs, xp, '\0');
-		source->line++;
-		histsave(source->line, Xstring(xs, xp), 1);
+		histsave(&source->line, Xstring(xs, xp), true, false);
 		Xfree(xs, xp);
 	} else {
 		int n, len = Xlength(xs, xp);
@@ -1075,8 +1075,8 @@ c_alias(const char **wp)
 		int h;
 
 		if ((val = cstrchr(alias, '='))) {
-			h = val++ - alias;
-			alias = xalias = str_nsave(alias, h, ATEMP);
+			strndupx(xalias, alias, val++ - alias, ATEMP);
+			alias = xalias;
 		}
 		h = hash(alias);
 		if (val == NULL && !tflag && !xflag) {
@@ -1102,12 +1102,12 @@ c_alias(const char **wp)
 		if ((val && !tflag) || (!val && tflag && !Uflag)) {
 			if (ap->flag&ALLOC) {
 				ap->flag &= ~(ALLOC|ISSET);
-				afree((void*)ap->val.s, APERM);
+				afree(ap->val.s, APERM);
 			}
 			/* ignore values for -t (at&t ksh does this) */
 			newval = tflag ? search(alias, path, X_OK, NULL) : val;
 			if (newval) {
-				ap->val.s = str_save(newval, APERM);
+				strdupx(ap->val.s, newval, APERM);
 				ap->flag |= ALLOC|ISSET;
 			} else
 				ap->flag &= ~ISSET;
@@ -1159,7 +1159,7 @@ c_unalias(const char **wp)
 		}
 		if (ap->flag&ALLOC) {
 			ap->flag &= ~(ALLOC|ISSET);
-			afree((void*)ap->val.s, APERM);
+			afree(ap->val.s, APERM);
 		}
 		ap->flag &= ~(DEFINED|ISSET|EXPORT);
 	}
@@ -1170,7 +1170,7 @@ c_unalias(const char **wp)
 		for (ktwalk(&ts, t); (ap = ktnext(&ts)); ) {
 			if (ap->flag&ALLOC) {
 				ap->flag &= ~(ALLOC|ISSET);
-				afree((void*)ap->val.s, APERM);
+				afree(ap->val.s, APERM);
 			}
 			ap->flag &= ~(DEFINED|ISSET|EXPORT);
 		}
@@ -1501,7 +1501,7 @@ c_bind(const char **wp)
 		if ((cp = cstrchr(*wp, '=')) == NULL)
 			up = NULL;
 		else {
-			up = str_save(*wp, ATEMP);
+			strdupx(up, *wp, ATEMP);
 			up[cp++ - *wp] = '\0';
 		}
 		if (x_bind(up ? up : *wp, cp, macro, 0))
@@ -1782,7 +1782,7 @@ c_read(const char **wp)
 	shf = shf_reopen(fd, SHF_RD | SHF_INTERRUPT | can_seek(fd), shl_spare);
 
 	if ((cp = cstrchr(*wp, '?')) != NULL) {
-		wpalloc = str_save(*wp, ATEMP);
+		strdupx(wpalloc, *wp, ATEMP);
 		wpalloc[cp - *wp] = '\0';
 		*wp = wpalloc;
 		if (isatty(fd)) {
@@ -1894,8 +1894,7 @@ c_read(const char **wp)
 	shf_flush(shf);
 	if (historyr) {
 		Xput(xs, xp, '\0');
-		source->line++;
-		histsave(source->line, Xstring(xs, xp), 1);
+		histsave(&source->line, Xstring(xs, xp), true, false);
 		Xfree(xs, xp);
 	}
 	/* if this is the co-process fd, close the file descriptor
@@ -2112,10 +2111,9 @@ c_set(const char **wp)
 		owp = wp += argi - 1;
 		wp[0] = l->argv[0]; /* save $0 */
 		while (*++wp != NULL)
-			*wp = str_save(*wp, &l->area);
+			strdupx(*wp, *wp, &l->area);
 		l->argc = wp - owp - 1;
-		l->argv = (const char **)alloc(sizeofN(char *, l->argc+2),
-		     &l->area);
+		l->argv = alloc((l->argc + 2) * sizeof (char *), &l->area);
 		for (wp = l->argv; (*wp++ = *owp++) != NULL; )
 			;
 	}
@@ -2225,7 +2223,8 @@ timex(struct op *t, int f)
 		timerclear(&j_usrtime);
 		timerclear(&j_systime);
 		rv = execute(t->left, f | XTIME);
-		tf |= t->left->str[0];
+		if (t->left->type == TCOM)
+			tf |= t->left->str[0];
 		gettimeofday(&tv1, NULL);
 		getrusage(RUSAGE_SELF, &ru1);
 		getrusage(RUSAGE_CHILDREN, &cru1);
@@ -2307,8 +2306,8 @@ c_exec(const char **wp __unused)
 		for (i = 0; i < NUFILE; i++) {
 			if (e->savefd[i] > 0)
 				close(e->savefd[i]);
-			/* For ksh keep anything > 2 private */
-			if (i > 2 && e->savefd[i])
+			/* For ksh (but not sh), keep anything > 2 private */
+			if (!Flag(FPOSIX) && i > 2 && e->savefd[i])
 				fcntl(i, F_SETFD, FD_CLOEXEC);
 		}
 		e->savefd = NULL;

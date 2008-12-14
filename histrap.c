@@ -3,7 +3,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.58.2.4 2008/07/18 13:29:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.58.2.5 2008/12/14 00:07:42 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -118,7 +118,7 @@ c_fc(const char **wp)
 
 		/* Check for pattern replacement argument */
 		if (*wp && **wp && (p = cstrchr(*wp + 1, '='))) {
-			pat = str_save(*wp, ATEMP);
+			strdupx(pat, *wp, ATEMP);
 			rep = pat + (p - *wp);
 			*rep++ = '\0';
 			wp++;
@@ -280,10 +280,10 @@ hist_execute(char *cmd)
 			if (!*q) /* ignore trailing newline */
 				q = NULL;
 		}
-		histsave(++(hist_source->line), p, 1);
+		histsave(&hist_source->line, p, true, true);
 
 		shellf("%s\n", p); /* POSIX doesn't say this is done... */
-		if ((p = q)) /* restore \n (trailing \n not restored) */
+		if (q)		/* restore \n (trailing \n not restored) */
 			q[-1] = '\n';
 	}
 
@@ -306,7 +306,7 @@ hist_replace(char **hp, const char *pat, const char *rep, int globr)
 	char *line;
 
 	if (!pat)
-		line = str_save(*hp, ATEMP);
+		strdupx(line, *hp, ATEMP);
 	else {
 		char *s, *s1;
 		int pat_len = strlen(pat);
@@ -414,7 +414,7 @@ histbackup(void)
 
 	if (histptr >= history && last_line != hist_source->line) {
 		hist_source->line--;
-		afree((void*)*histptr, APERM);
+		afree(*histptr, APERM);
 		histptr--;
 		last_line = hist_source->line;
 	}
@@ -504,7 +504,7 @@ sethistsize(int n)
 			cursize = n;
 		}
 
-		history = (char **)aresize(history, n*sizeof(char *), APERM);
+		history = aresize(history, n * sizeof (char *), APERM);
 
 		histsize = n;
 		histptr = history + cursize;
@@ -555,7 +555,7 @@ init_histvec(void)
 {
 	if (history == (char **)NULL) {
 		histsize = HISTORYSIZE;
-		history = (char **)alloc(histsize * sizeof (char *), APERM);
+		history = alloc(histsize * sizeof (char *), APERM);
 		histptr = history - 1;
 	}
 }
@@ -574,24 +574,30 @@ init_histvec(void)
  * save command in history
  */
 void
-histsave(int lno __unused, const char *cmd, int dowrite __unused)
+histsave(int *lnp, const char *cmd, bool dowrite __unused, bool ignoredups)
 {
 	char **hp;
 	char *c, *cp;
 
-	c = str_save(cmd, APERM);
+	strdupx(c, cmd, APERM);
 	if ((cp = strchr(c, '\n')) != NULL)
 		*cp = '\0';
 
+	if (ignoredups && !strcmp(c, *histptr)) {
+		afree(c, APERM);
+		return;
+	}
+	++*lnp;
+
 #if HAVE_PERSISTENT_HISTORY
 	if (histfd && dowrite)
-		writehistfile(lno, c);
+		writehistfile(*lnp, c);
 #endif
 
 	hp = histptr;
 
 	if (++hp >= history + histsize) { /* remove oldest command */
-		afree((void*)*history, APERM);
+		afree(*history, APERM);
 		for (hp = history; hp < history + histsize - 1; hp++)
 			hp[0] = hp[1];
 	}
@@ -642,7 +648,7 @@ hist_init(Source *s)
 #if HAVE_PERSISTENT_HISTORY
 	if ((hname = str_val(global("HISTFILE"))) == NULL)
 		return;
-	hname = str_save(hname, APERM);
+	strdupx(hname, hname, APERM);
 
  retry:
 	/* we have a file and are interactive */
@@ -824,8 +830,8 @@ static void
 histload(Source *s, unsigned char *base, int bytes)
 {
 	State state;
-	int	lno = 0;
-	unsigned char	*line = NULL;
+	int lno = 0;
+	unsigned char *line = NULL;
 
 	for (state = shdr; bytes-- > 0; base++) {
 		switch (state) {
@@ -857,8 +863,9 @@ histload(Source *s, unsigned char *base, int bytes)
 					/* a replacement ? */
 					histinsert(s, lno, (char *)line);
 				} else {
-					s->line = lno;
-					histsave(lno, (char *)line, 0);
+					s->line = lno--;
+					histsave(&lno, (char *)line, false,
+					    false);
 				}
 				state = shdr;
 			}
@@ -877,8 +884,8 @@ histinsert(Source *s, int lno, const char *line)
 	if (lno >= s->line - (histptr - history) && lno <= s->line) {
 		hp = &histptr[lno - s->line];
 		if (*hp)
-			afree((void*)*hp, APERM);
-		*hp = str_save(line, APERM);
+			afree(*hp, APERM);
+		strdupx(*hp, line, APERM);
 	}
 }
 
@@ -1007,7 +1014,8 @@ inittraps(void)
 
 				if (!strncasecmp(cs, "SIG", 3))
 					cs += 3;
-				sigtraps[i].name = s = str_save(cs, APERM);
+				strdupx(s, cs, APERM);
+				sigtraps[i].name = s;
 				while ((*s = ksh_toupper(*s)))
 					++s;
 			}
@@ -1025,7 +1033,7 @@ inittraps(void)
 	}
 	sigtraps[SIGEXIT_].name = "EXIT";	/* our name for signal 0 */
 
-	sigemptyset(&Sigact_ign.sa_mask);
+	(void)sigemptyset(&Sigact_ign.sa_mask);
 	Sigact_ign.sa_flags = 0; /* interruptible */
 	Sigact_ign.sa_handler = SIG_IGN;
 
@@ -1272,7 +1280,7 @@ settrap(Trap *p, const char *s)
 
 	if (p->trap)
 		afree(p->trap, APERM);
-	p->trap = str_save(s, APERM); /* handles s == 0 */
+	strdupx(p->trap, s, APERM); /* handles s == 0 */
 	p->flags |= TF_CHANGED;
 	f = !s ? SIG_DFL : s[0] ? trapsig : SIG_IGN;
 
@@ -1371,7 +1379,7 @@ setsig(Trap *p, sig_t f, int flags)
 
 	if (p->cursig != f) {
 		p->cursig = f;
-		sigemptyset(&sigact.sa_mask);
+		(void)sigemptyset(&sigact.sa_mask);
 		sigact.sa_flags = 0 /* interruptible */;
 		sigact.sa_handler = f;
 		sigaction(p->signal, &sigact, NULL);
