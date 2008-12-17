@@ -103,9 +103,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.267 2008/12/13 18:32:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.268 2008/12/17 19:39:23 tg Exp $");
 #endif
-#define MKSH_VERSION "R36 2008/12/13"
+#define MKSH_VERSION "R36 2008/12/17"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -775,6 +775,7 @@ struct tbl {			/* table item */
 	union {
 		char *s;		/* string */
 		long i;			/* integer */
+		unsigned long u;	/* unsigned integer */
 		int (*f)(const char **);/* int function */
 		struct op *t;		/* "function" tree */
 	} val;			/* value */

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.21 2008/12/13 17:02:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.22 2008/12/17 19:39:21 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -114,7 +114,25 @@ struct expr_state {
 	struct tbl *evaling;		/* variable that is being recursively
 					 * expanded (EXPRINEVAL flag set) */
 	bool arith;			/* evaluating an $(()) expression? */
+	bool natural;			/* unsigned arithmetic calculation */
 };
+
+#define bivui(x, op, y)	(es->natural ?		\
+	    (long)((x)->val.u op (y)->val.u) :	\
+	    (long)((x)->val.i op (y)->val.i)	\
+	)
+#define chvui(x, op)	do {			\
+	if (es->natural)			\
+		(x)->val.u = op (x)->val.u;	\
+	else					\
+		(x)->val.i = op (x)->val.i;	\
+} while (/* CONSTCOND */ 0)
+#define stvui(x, n)	do {			\
+	if (es->natural)			\
+		(x)->val.u = (n);		\
+	else					\
+		(x)->val.i = (n);		\
+} while (/* CONSTCOND */ 0)
 
 enum error_type {
 	ET_UNEXPECTED, ET_BADLIT, ET_RECURSIVE,
@@ -163,6 +181,7 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok,
 	curstate.noassign = 0;
 	curstate.arith = arith;
 	curstate.evaling = NULL;
+	curstate.natural = false;
 
 	newenv(E_ERRH);
 	i = sigsetjmp(e->jbuf, 0);
@@ -190,6 +209,8 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok,
 	if (es->tok != END)
 		evalerr(es, ET_UNEXPECTED, NULL);
 
+	if (es->arith && es->natural)
+		vp->flag |= INT_U;
 	if (vp->flag & INTEGER)
 		setint_v(vp, v, es->arith);
 	else
@@ -272,11 +293,11 @@ evalexpr(Expr_state *es, int prec)
 			exprtoken(es);
 			vl = intvar(es, evalexpr(es, P_PRIMARY));
 			if (op == O_BNOT)
-				vl->val.i = ~vl->val.i;
+				chvui(vl, ~);
 			else if (op == O_LNOT)
-				vl->val.i = !vl->val.i;
+				chvui(vl, !);
 			else if (op == O_MINUS)
-				vl->val.i = -vl->val.i;
+				chvui(vl, -);
 			/* op == O_PLUS is a no-op */
 		} else if (op == OPEN_PAREN) {
 			exprtoken(es);
@@ -302,7 +323,7 @@ evalexpr(Expr_state *es, int prec)
 		return (vl);
 	}
 	vl = evalexpr(es, prec - 1);
-	for (op = es->tok; IS_BINOP(op) && opinfo[(int) op].prec == prec;
+	for (op = es->tok; IS_BINOP(op) && opinfo[(int)op].prec == prec;
 	    op = es->tok) {
 		exprtoken(es);
 		vasn = vl;
@@ -320,70 +341,70 @@ evalexpr(Expr_state *es, int prec)
 			else
 				evalerr(es, ET_STR, "zero divisor");
 		}
-		switch ((int) op) {
+		switch ((int)op) {
 		case O_TIMES:
 		case O_TIMESASN:
-			res = vl->val.i * vr->val.i;
+			res = bivui(vl, *, vr);
 			break;
 		case O_DIV:
 		case O_DIVASN:
-			res = vl->val.i / vr->val.i;
+			res = bivui(vl, /, vr);
 			break;
 		case O_MOD:
 		case O_MODASN:
-			res = vl->val.i % vr->val.i;
+			res = bivui(vl, %, vr);
 			break;
 		case O_PLUS:
 		case O_PLUSASN:
-			res = vl->val.i + vr->val.i;
+			res = bivui(vl, +, vr);
 			break;
 		case O_MINUS:
 		case O_MINUSASN:
-			res = vl->val.i - vr->val.i;
+			res = bivui(vl, -, vr);
 			break;
 		case O_LSHIFT:
 		case O_LSHIFTASN:
-			res = vl->val.i << vr->val.i;
+			res = bivui(vl, <<, vr);
 			break;
 		case O_RSHIFT:
 		case O_RSHIFTASN:
-			res = vl->val.i >> vr->val.i;
+			res = bivui(vl, >>, vr);
 			break;
 		case O_LT:
-			res = vl->val.i < vr->val.i;
+			res = bivui(vl, <, vr);
 			break;
 		case O_LE:
-			res = vl->val.i <= vr->val.i;
+			res = bivui(vl, <=, vr);
 			break;
 		case O_GT:
-			res = vl->val.i > vr->val.i;
+			res = bivui(vl, >, vr);
 			break;
 		case O_GE:
-			res = vl->val.i >= vr->val.i;
+			res = bivui(vl, >=, vr);
 			break;
 		case O_EQ:
-			res = vl->val.i == vr->val.i;
+			res = bivui(vl, ==, vr);
 			break;
 		case O_NE:
-			res = vl->val.i != vr->val.i;
+			res = bivui(vl, !=, vr);
 			break;
 		case O_BAND:
 		case O_BANDASN:
-			res = vl->val.i & vr->val.i;
+			res = bivui(vl, &, vr);
 			break;
 		case O_BXOR:
 		case O_BXORASN:
-			res = vl->val.i ^ vr->val.i;
+			res = bivui(vl, ^, vr);
 			break;
 		case O_BOR:
 		case O_BORASN:
-			res = vl->val.i | vr->val.i;
+			res = bivui(vl, |, vr);
 			break;
 		case O_LAND:
 			if (!vl->val.i)
 				es->noassign++;
 			vr = intvar(es, evalexpr(es, prec - 1));
-			res = vl->val.i && vr->val.i;
+			res = bivui(vl, &&, vr);
 			if (!vl->val.i)
 				es->noassign--;
 			break;
@@ -391,13 +412,13 @@ evalexpr(Expr_state *es, int prec)
 			if (vl->val.i)
 				es->noassign++;
 			vr = intvar(es, evalexpr(es, prec - 1));
-			res = vl->val.i || vr->val.i;
+			res = bivui(vl, ||, vr);
 			if (vl->val.i)
 				es->noassign--;
 			break;
 		case O_TERN:
 			{
-				int ev = vl->val.i != 0;
+				bool ev = vl->val.i != 0;
 
 				if (!ev)
 					es->noassign++;
@@ -423,14 +444,14 @@ evalexpr(Expr_state *es, int prec)
 			break;
 		}
 		if (IS_ASSIGNOP(op)) {
-			vr->val.i = res;
+			stvui(vr, res);
 			if (vasn->flag & INTEGER)
 				setint_v(vasn, vr, es->arith);
 			else
 				setint(vasn, res);
 			vl = vr;
 		} else if (op != O_TERN)
-			vl->val.i = res;
+			stvui(vl, res);
 	}
 	return (vl);
 }
@@ -438,13 +459,20 @@ evalexpr(Expr_state *es, int prec)
 static void
 exprtoken(Expr_state *es)
 {
-	const char *cp;
+	const char *cp = es->tokp;
 	int c;
 	char *tvar;
 
 	/* skip white space */
-	for (cp = es->tokp; (c = *cp), ksh_isspace(c); cp++)
-		;
+ skip_spaces:
+	while ((c = *cp), ksh_isspace(c))
+		++cp;
+	if (es->tokp == es->expression && c == '#') {
+		/* expression begins with # */
+		es->natural = true;	/* switch to unsigned */
+		++cp;
+		goto skip_spaces;
+	}
 	es->tokp = cp;
 
 	if (c == '\0')
@@ -499,7 +527,7 @@ exprtoken(Expr_state *es)
 		for (i = 0; (n0 = opinfo[i].name[0]); i++)
 			if (c == n0 &&
 			    strncmp(cp, opinfo[i].name, opinfo[i].len) == 0) {
-				es->tok = (enum token) i;
+				es->tok = (enum token)i;
 				cp += opinfo[i].len;
 				break;
 			}
@@ -514,12 +542,23 @@ static struct tbl *
 do_ppmm(Expr_state *es, enum token op, struct tbl *vasn, bool is_prefix)
 {
 	struct tbl *vl;
-	int oval;
+	long oval;
 
 	assign_check(es, op, vasn);
 
 	vl = intvar(es, vasn);
-	oval = op == O_PLUSPLUS ? vl->val.i++ : vl->val.i--;
+	oval = vl->val.i;
+	if (op == O_PLUSPLUS) {
+		if (es->natural)
+			++vl->val.u;
+		else
+			++vl->val.i;
+	} else {
+		if (es->natural)
+			--vl->val.u;
+		else
+			--vl->val.i;
+	}
 	if (vasn->flag & INTEGER)
 		setint_v(vasn, vl, es->arith);
 	else
@@ -534,9 +573,9 @@ static void
 assign_check(Expr_state *es, enum token op, struct tbl *vasn)
 {
 	if (vasn->name[0] == '\0' && !(vasn->flag & EXPRLVALUE))
-		evalerr(es, ET_LVALUE, opinfo[(int) op].name);
+		evalerr(es, ET_LVALUE, opinfo[(int)op].name);
 	else if (vasn->flag & RDONLY)
-		evalerr(es, ET_RDONLY, opinfo[(int) op].name);
+		evalerr(es, ET_RDONLY, opinfo[(int)op].name);
 }
 
 static struct tbl *

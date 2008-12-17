@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.147 2008/12/17 19:32:47 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.148 2008/12/17 19:39:22 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.122 2008/05/17 23:31:52 sobrado Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -2095,6 +2095,13 @@ command, inside $((..)) expressions, inside array references (e.g.\&
 as numeric arguments to the
 .Ic test
 command, and as the value of an assignment to an integer parameter.
+.Pp
+Expressions are calculated using signed arithmetic and the
+.Vt long
+host type, unless they begin with a sole
+.Sq #
+character, in which case they use
+.Vt unsigned long .
 .Pp
 Expressions may contain alpha-numeric parameter identifiers, array references,
 and integer constants and may be combined with the following C operators

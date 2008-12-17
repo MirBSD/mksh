@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.252 2008/12/13 17:02:11 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.253 2008/12/17 19:39:21 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R36 2008/12/13
+	@(#)MIRBSD KSH R36 2008/12/17
 description:
 	Check version of shell.
 stdin:
@@ -239,6 +239,43 @@ stdin:
 expected-stdout:
 	6
 	6,5,3
+---
+name: arith-unsigned-1
+description:
+	Check if unsigned arithmetics work
+stdin:
+	# signed vs unsigned
+	print x1 $((-1)) $((#-1))
+	# calculating
+	typeset -i vs
+	typeset -Ui vu
+	vs=4123456789; vu=4123456789
+	print x2 $vs $vu
+	(( vs %= 2147483647 ))
+	(( vu %= 2147483647 ))
+	print x3 $vs $vu
+	vs=4123456789; vu=4123456789
+	(( # vs %= 2147483647 ))
+	(( # vu %= 2147483647 ))
+	print x4 $vs $vu
+	# make sure the calculation does not change unsigned flag
+	vs=4123456789; vu=4123456789
+	print x5 $vs $vu
+	# short form
+	print x6 $((# vs % 2147483647)) $((# vu % 2147483647))
+	# array refs
+	set -A va
+	va[1975973142]=right
+	va[4123456789]=wrong
+	print x7 ${va[#4123456789%2147483647]}
+expected-stdout:
+	x1 -1 4294967295
+	x2 -171510507 4123456789
+	x3 -171510507 4123456789
+	x4 1975973142 1975973142
+	x5 -171510507 4123456789
+	x6 1975973142 1975973142
+	x7 right
 ---
 name: bksl-nl-ign-1
 description:
