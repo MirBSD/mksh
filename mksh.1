@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.146 2008/12/17 19:25:54 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.147 2008/12/17 19:32:47 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.122 2008/05/17 23:31:52 sobrado Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -2131,7 +2131,10 @@ Grouping operators:
 ( )
 .Ed
 .Pp
-Integer constants are currently limited to 32-bit, signed or unsigned.
+Currently, integer constants and expressions are calculated using the host
+.Vt long
+type, although some places, such as array indices, may limit them to 32 bits.
+They can be signed or unsigned.
 Overflows wrap silently.
 Integer constants may be specified with arbitrary bases using the notation
 .Ar base Ns # Ns Ar number ,
