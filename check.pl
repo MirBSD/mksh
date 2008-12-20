@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.18 2008/07/14 14:53:23 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.19 2008/12/20 20:21:19 tg Exp $
 # $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
 #-
 # Example test:
@@ -52,8 +52,8 @@
 #					missing, NAME is removed from the
 #					environment.  Programs are run with
 #					the following minimal environment:
-#					    USER, LOGNAME, HOME,
-#					    LD_LIBRARY_PATH, PATH, SHELL
+#					    HOME, LD_LIBRARY_PATH, LOGNAME,
+#					    PATH, SHELL, USER
 #					(values taken from the environment of
 #					the test harness).
 #					ENV is set to /nonexistant.
@@ -234,7 +234,7 @@ $all_tests = @ARGV == 0;
 
 # Set up a very minimal environment
 %new_env = ();
-foreach $env (('USER', 'LOGNAME', 'HOME', 'PATH', 'SHELL')) {
+foreach $env (('HOME', 'LD_LIBRARY_PATH', 'LOGNAME', 'PATH', 'SHELL', 'USER')) {
     $new_env{$env} = $ENV{$env} if defined $ENV{$env};
 }
 $new_env{'ENV'} = '/nonexistant';
