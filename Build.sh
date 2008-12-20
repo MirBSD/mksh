@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.373 2008/11/13 00:36:07 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.374 2008/12/20 20:39:05 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -231,6 +231,9 @@ do
 	case $i in
 	-j)
 		pm=1
+		;;
+	-combine)
+		llvm=COMBINE
 		;;
 	-llvm)
 		llvm=-std-compile-opts
@@ -611,7 +614,7 @@ xlc)
 	ct=unknown
 	;;
 esac
-test x"$llvm" = x"NO" || vv '|' "llc -version"
+test x"$llvm" = x"NO" || test x"$llvm" = x"COMBINE" || vv '|' "llc -version"
 $e "$bi==> which compiler seems to be used...$ao $ui$ct$ao"
 rm -f scn.c scn.o scn a.out* a.exe*
 
@@ -1314,6 +1317,8 @@ EOF
 chmod 755 test.sh
 if test x"$llvm" = x"NO"; then
 	emitbc=-c
+elif test x"$llvm" = x"COMBINE"; then
+	emitbc="-fwhole-program --combine"
 else
 	emitbc="-emit-llvm -c"
 fi
@@ -1323,7 +1328,7 @@ for file in $SRCS; do
 	test -f $file || file=$srcdir/$file
 	echo "$CC $CFLAGS $CPPFLAGS $emitbc $file || exit 1" >>Rebuild.sh
 done
-if test x"$llvm" = x"NO"; then
+if test x"$llvm" = x"NO" || test x"$llvm" = x"COMBINE"; then
 	lobjs=$objs
 else
 	echo "rm -f mksh.s" >>Rebuild.sh
@@ -1336,7 +1341,17 @@ a.exe)	echo tcfn=mksh.exe >>Rebuild.sh ;;
 esac
 echo "$CC $CFLAGS $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
 echo 'test -f $tcfn || exit 1; size $tcfn' >>Rebuild.sh
-if test 1 = $pm; then
+if test x"$llvm" = x"COMBINE"; then
+	case $tcfn in
+	a.exe)	objs="-o mksh.exe" ;;
+	*)	objs="-o mksh" ;;
+	esac
+	for file in $SRCS; do
+		test -f $file || file=$srcdir/$file
+		objs="$objs $file"
+	done
+	v "$CC $CFLAGS $CPPFLAGS $LDFLAGS $emitbc $objs $LIBS $ccpr"
+elif test 1 = $pm; then
 	for file in $SRCS; do
 		test -f $file || file=$srcdir/$file
 		v "$CC $CFLAGS $CPPFLAGS $emitbc $file" &
@@ -1356,7 +1371,8 @@ case $tcfn in
 a.exe)	tcfn=mksh.exe ;;
 *)	tcfn=mksh ;;
 esac
-v "$CC $CFLAGS $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
+test x"$llvm" = x"COMBINE" || \
+    v "$CC $CFLAGS $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
 test -f $tcfn || exit 1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
     rm -f mksh.cat1
