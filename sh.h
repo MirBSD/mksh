@@ -103,9 +103,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.271 2008/12/29 21:05:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.272 2008/12/29 21:34:21 tg Exp $");
 #endif
-#define MKSH_VERSION "R36 2008/12/17"
+#define MKSH_VERSION "R36 2008/12/29"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -906,17 +906,18 @@ extern const struct builtin mkshbuiltins[];
 
 /* var spec values */
 #define V_NONE		0
-#define V_PATH		1
-#define V_IFS		2
-#define V_SECONDS	3
-#define V_OPTIND	4
-#define V_RANDOM	8
-#define V_HISTSIZE	9
-#define V_HISTFILE	10
-#define V_COLUMNS	13
-#define V_TMOUT		15
-#define V_TMPDIR	16
-#define V_LINENO	17
+#define V_COLUMNS	1
+#define V_HISTFILE	2
+#define V_HISTSIZE	3
+#define V_IFS		4
+#define V_LINENO	5
+#define V_LINES		6
+#define V_OPTIND	7
+#define V_PATH		8
+#define V_RANDOM	9
+#define V_SECONDS	10
+#define V_TMOUT		11
+#define V_TMPDIR	12
 
 /* values for set_prompt() */
 #define PS1	0	/* command */

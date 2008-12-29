@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.118 2008/12/29 20:52:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.119 2008/12/29 21:34:20 tg Exp $");
 
 extern char **environ;
 
@@ -32,8 +32,10 @@ static const char initsubs[] = "${PS2=> } ${PS3=#? } ${PS4=+ }";
 static const char *initcoms[] = {
 	"typeset", "-r", initvsn, NULL,
 	"typeset", "-x", "SHELL", "PATH", "HOME", NULL,
-	"typeset", "-i10", "OPTIND=1", "PGRP", "PPID", "USER_ID", NULL,
-	"eval", "typeset -i10 RANDOM SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
+	"typeset", "-i10", "COLUMNS=0", "LINES=0", "OPTIND=1", "PGRP", "PPID",
+	    "RANDOM", "USER_ID", NULL,
+	"eval", "typeset -i10 SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"",
+	NULL,
 	"alias", "integer=typeset -i", "local=typeset", NULL,
 	"alias",
 	"hash=alias -t",	/* not "alias -t --": hash -r needs to work */

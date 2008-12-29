@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.67 2008/12/29 21:05:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.68 2008/12/29 21:34:22 tg Exp $");
 
 /*
  * Variables
@@ -87,24 +87,25 @@ initvar(void)
 		int v;
 	} names[] = {
 		{ "COLUMNS",		V_COLUMNS },
-		{ "IFS",		V_IFS },
-		{ "OPTIND",		V_OPTIND },
-		{ "PATH",		V_PATH },
-		{ "TMPDIR",		V_TMPDIR },
 #if HAVE_PERSISTENT_HISTORY
 		{ "HISTFILE",		V_HISTFILE },
 #endif
 		{ "HISTSIZE",		V_HISTSIZE },
+		{ "IFS",		V_IFS },
+		{ "LINENO",		V_LINENO },
+		{ "LINES",		V_LINES },
+		{ "OPTIND",		V_OPTIND },
+		{ "PATH",		V_PATH },
 		{ "RANDOM",		V_RANDOM },
 		{ "SECONDS",		V_SECONDS },
 		{ "TMOUT",		V_TMOUT },
-		{ "LINENO",		V_LINENO },
-		{ NULL,	0 }
+		{ "TMPDIR",		V_TMPDIR },
+		{ NULL,			0 }
 	};
 	int i;
 	struct tbl *tp;
 
-	ktinit(&specials, APERM, 16); /* must be 2^n (currently 11 specials) */
+	ktinit(&specials, APERM, 16); /* must be 2^n (currently 12 specials) */
 	for (i = 0; names[i].name; i++) {
 		tp = ktenter(&specials, names[i].name, hash(names[i].name));
 		tp->flag = DEFINED|ISSET;
@@ -1026,7 +1027,9 @@ static	int	user_lineno;		/* what user set $LINENO to */
 static void
 getspec(struct tbl *vp)
 {
-	switch (special(vp->name)) {
+	int i;
+
+	switch ((i = special(vp->name))) {
 	case V_SECONDS:
 		vp->flag &= ~SPECIAL;
 		/* On start up the value of SECONDS is used before seconds
@@ -1048,17 +1051,30 @@ getspec(struct tbl *vp)
 		break;
 	case V_HISTSIZE:
 		vp->flag &= ~SPECIAL;
-		setint(vp, (long) histsize);
+		setint(vp, (long)histsize);
 		vp->flag |= SPECIAL;
 		break;
 	case V_OPTIND:
 		vp->flag &= ~SPECIAL;
-		setint(vp, (long) user_opt.uoptind);
+		setint(vp, (long)user_opt.uoptind);
 		vp->flag |= SPECIAL;
 		break;
 	case V_LINENO:
 		vp->flag &= ~SPECIAL;
-		setint(vp, (long) current_lineno + user_lineno);
+		setint(vp, (long)current_lineno + user_lineno);
+		vp->flag |= SPECIAL;
+		break;
+	case V_COLUMNS:
+	case V_LINES:
+		/* Do NOT export COLUMNS/LINES.  Many applications
+		 * check COLUMNS/LINES before checking ws.ws_col/row,
+		 * so if the app is started with C/L in the environ
+		 * and the window is then resized, the app won't
+		 * see the change cause the environ doesn't change.
+		 */
+		vp->flag &= ~SPECIAL;
+		change_winsz();
+		setint(vp, i == V_COLUMNS ? x_cols : x_lins);
 		vp->flag |= SPECIAL;
 		break;
 	}
@@ -1067,6 +1083,7 @@ getspec(struct tbl *vp)
 static void
 setspec(struct tbl *vp)
 {
+	int i;
 	char *s;
 
 	switch (special(vp->name)) {
@@ -1114,8 +1131,16 @@ setspec(struct tbl *vp)
 		break;
 #endif
 	case V_COLUMNS:
-		if ((x_cols = intval(vp)) <= MIN_COLS)
-			x_cols = MIN_COLS;
+		vp->flag &= ~SPECIAL;
+		if ((i = intval(vp)) >= MIN_COLS)
+			x_cols = i;
+		vp->flag |= SPECIAL;
+		break;
+	case V_LINES:
+		vp->flag &= ~SPECIAL;
+		if ((i = intval(vp)) >= MIN_LINS)
+			x_lins = i;
+		vp->flag |= SPECIAL;
 		break;
 	case V_RANDOM:
 		vp->flag &= ~SPECIAL;
