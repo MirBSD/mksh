@@ -103,7 +103,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.269 2008/12/29 20:47:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.270 2008/12/29 20:53:48 tg Exp $");
 #endif
 #define MKSH_VERSION "R36 2008/12/17"
 
@@ -683,7 +683,9 @@ EXTERN size_t	current_wd_size;
 /* Minimum allowed value for x_cols: 2 for prompt, 3 for " < " at end of line
  */
 #define MIN_COLS	(2 + MIN_EDIT_SPACE + 3)
-EXTERN int	x_cols I__(80);	/* tty columns */
+#define MIN_LINS	3
+EXTERN int x_cols I__(80);	/* tty columns */
+EXTERN int x_lins I__(24);	/* tty lines */
 
 /* These to avoid bracket matching problems */
 #define OPAREN	'('
