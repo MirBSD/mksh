@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.148 2008/12/13 17:02:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.149 2008/12/29 21:05:13 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -49,10 +49,6 @@ static int x_vi(char *, size_t);
 #define x_flush()	shf_flush(shl_out)
 #define x_putc(c)	shf_putc((c), shl_out)
 
-#ifdef TIOCGWINSZ
-static void chkwinsz(void);
-#endif
-
 static int path_order_cmp(const void *aa, const void *bb);
 static char *add_glob(const char *, int);
 static void glob_table(const char *, XPtrV *, struct table *);
@@ -74,38 +70,9 @@ x_init(void)
 	    edchars.eof = -2;
 	/* default value for deficient systems */
 	edchars.werase = 027;	/* ^W */
-#ifdef TIOCGWINSZ
-	chkwinsz();
-#endif
+	change_winsz();
 	x_init_emacs();
 }
-
-#ifdef TIOCGWINSZ
-static void
-chkwinsz(void)
-{
-	struct winsize ws;
-
-	if (procpid == kshpid && ioctl(tty_fd, TIOCGWINSZ, &ws) >= 0) {
-		struct tbl *vp;
-
-		/* Do NOT export COLUMNS/LINES.  Many applications
-		 * check COLUMNS/LINES before checking ws.ws_col/row,
-		 * so if the app is started with C/L in the environ
-		 * and the window is then resized, the app won't
-		 * see the change cause the environ doesn't change.
-		 */
-		if (ws.ws_col) {
-			x_cols = ws.ws_col < MIN_COLS ? MIN_COLS : ws.ws_col;
-
-			if ((vp = typeset("COLUMNS", 0, 0, 0, 0)))
-				setint(vp, (long)ws.ws_col);
-		}
-		if (ws.ws_row && (vp = typeset("LINES", 0, 0, 0, 0)))
-			setint(vp, (long)ws.ws_row);
-	}
-}
-#endif
 
 /*
  * read an edited command line
@@ -126,9 +93,7 @@ x_read(char *buf, size_t len)
 	else
 		i = -1;		/* internal error */
 	x_mode(false);
-#ifdef TIOCGWINSZ
-	chkwinsz();
-#endif
+	change_winsz();
 	return i;
 }
 

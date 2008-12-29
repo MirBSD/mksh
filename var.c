@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.66 2008/12/29 20:52:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.67 2008/12/29 21:05:15 tg Exp $");
 
 /*
  * Variables
@@ -1290,4 +1290,38 @@ set_array(const char *var, int reset, const char **vals)
 		/* would be nice to deal with errors here... (see above) */
 		setstr(vq, vals[i], KSH_RETURN_ERROR);
 	}
+}
+
+void
+change_winsz(void)
+{
+	if (x_lins < 0) {
+		/* first time initialisation */
+#ifdef TIOCGWINSZ
+		if (tty_fd < 0)
+			/* non-FTALKING, try to get an fd anyway */
+			tty_init(false, false);
+#endif
+		x_cols = -1;
+	}
+
+#ifdef TIOCGWINSZ
+	/* check if window size has changed since first time */
+	if (tty_fd >= 0) {
+		struct winsize ws;
+
+		if (ioctl(tty_fd, TIOCGWINSZ, &ws) >= 0) {
+			if (ws.ws_col)
+				x_cols = ws.ws_col;
+			if (ws.ws_row)
+				x_lins = ws.ws_row;
+		}
+	}
+#endif
+
+	/* bounds check for sane values, use defaults otherwise */
+	if (x_cols < MIN_COLS)
+		x_cols = 80;
+	if (x_lins < MIN_LINS)
+		x_lins = 24;
 }

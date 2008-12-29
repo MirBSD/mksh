@@ -103,7 +103,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.270 2008/12/29 20:53:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.271 2008/12/29 21:05:15 tg Exp $");
 #endif
 #define MKSH_VERSION "R36 2008/12/17"
 
@@ -685,7 +685,7 @@ EXTERN size_t	current_wd_size;
 #define MIN_COLS	(2 + MIN_EDIT_SPACE + 3)
 #define MIN_LINS	3
 EXTERN int x_cols I__(80);	/* tty columns */
-EXTERN int x_lins I__(24);	/* tty lines */
+EXTERN int x_lins I__(-1);	/* tty lines */
 
 /* These to avoid bracket matching problems */
 #define OPAREN	'('
@@ -1543,6 +1543,7 @@ char **makenv(void);
 #if !HAVE_ARC4RANDOM || !defined(MKSH_SMALL)
 void change_random(unsigned long);
 #endif
+void change_winsz(void);
 int array_ref_len(const char *);
 char *arrayname(const char *);
 void set_array(const char *, int, const char **);
