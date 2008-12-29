@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.65 2008/12/13 17:02:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.66 2008/12/29 20:52:10 tg Exp $");
 
 /*
  * Variables
@@ -104,7 +104,7 @@ initvar(void)
 	int i;
 	struct tbl *tp;
 
-	ktinit(&specials, APERM, 32); /* must be 2^n (currently 17 specials) */
+	ktinit(&specials, APERM, 16); /* must be 2^n (currently 11 specials) */
 	for (i = 0; names[i].name; i++) {
 		tp = ktenter(&specials, names[i].name, hash(names[i].name));
 		tp->flag = DEFINED|ISSET;

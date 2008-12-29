@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.117 2008/12/29 20:47:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.118 2008/12/29 20:52:09 tg Exp $");
 
 extern char **environ;
 
@@ -124,7 +124,7 @@ main(int argc, const char *argv[])
 	initkeywords();
 
 	/* define built-in commands */
-	ktinit(&builtins, APERM, 64); /* must be 2^n (currently 40 builtins) */
+	ktinit(&builtins, APERM, 64); /* must be 2^n (currently 44 builtins) */
 	for (i = 0; mkshbuiltins[i].name != NULL; i++)
 		builtin(mkshbuiltins[i].name, mkshbuiltins[i].func);
 
