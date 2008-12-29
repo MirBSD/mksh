@@ -103,7 +103,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.268 2008/12/17 19:39:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.269 2008/12/29 20:47:16 tg Exp $");
 #endif
 #define MKSH_VERSION "R36 2008/12/17"
 
@@ -1600,7 +1600,7 @@ EXTERN int tty_fd I__(-1);	/* dup'd tty file descriptor */
 EXTERN int tty_devtty;		/* true if tty_fd is from /dev/tty */
 EXTERN struct termios tty_state;	/* saved tty state */
 
-extern void tty_init(int);
+extern void tty_init(bool, bool);
 extern void tty_close(void);
 
 /* be sure not to interfere with anyone else's idea about EXTERN */

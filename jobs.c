@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.42 2008/12/13 17:02:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.43 2008/12/29 20:47:15 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -155,7 +155,7 @@ j_init(int mflagset)
 	if (Flag(FMONITOR))
 		j_change();
 	else if (Flag(FTALKING))
-		tty_init(true);
+		tty_init(true, true);
 }
 
 /* job cleanup before shell exit */
@@ -217,7 +217,7 @@ j_change(void)
 
 		/* Don't call tcgetattr() 'til we own the tty process group */
 		if (use_tty)
-			tty_init(false);
+			tty_init(false, true);
 
 		/* no controlling tty, no SIGT* */
 		if ((ttypgrp_ok = use_tty && tty_fd >= 0 && tty_devtty)) {

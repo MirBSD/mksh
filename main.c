@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.116 2008/12/13 17:02:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.117 2008/12/29 20:47:15 tg Exp $");
 
 extern char **environ;
 
@@ -735,9 +735,9 @@ remove_temps(struct temp *tp)
  * foreground job completion and for setting up tty process group.
  */
 void
-tty_init(int init_ttystate)
+tty_init(bool init_ttystate, bool need_tty)
 {
-	int do_close = 1;
+	bool do_close = true;
 	int tfd;
 
 	if (tty_fd >= 0) {
@@ -753,26 +753,33 @@ tty_init(int init_ttystate)
 #endif
 	if ((tfd = open("/dev/tty", O_RDWR, 0)) < 0) {
 		tty_devtty = 0;
-		warningf(false, "No controlling tty (open /dev/tty: %s)",
-		    strerror(errno));
+		if (need_tty)
+			warningf(false,
+			    "No controlling tty (open /dev/tty: %s)",
+			    strerror(errno));
 	}
 	if (tfd < 0) {
-		do_close = 0;
+		do_close = false;
 		if (isatty(0))
 			tfd = 0;
 		else if (isatty(2))
 			tfd = 2;
 		else {
-			warningf(false, "Can't find tty file descriptor");
+			if (need_tty)
+				warningf(false,
+				    "Can't find tty file descriptor");
 			return;
 		}
 	}
 	if ((tty_fd = fcntl(tfd, F_DUPFD, FDBASE)) < 0) {
-		warningf(false, "j_ttyinit: dup of tty fd failed: %s",
-		    strerror(errno));
+		if (need_tty)
+			warningf(false, "j_ttyinit: dup of tty fd failed: %s",
+			    strerror(errno));
 	} else if (fcntl(tty_fd, F_SETFD, FD_CLOEXEC) < 0) {
-		warningf(false, "j_ttyinit: can't set close-on-exec flag: %s",
-		    strerror(errno));
+		if (need_tty)
+			warningf(false,
+			    "j_ttyinit: can't set close-on-exec flag: %s",
+			    strerror(errno));
 		close(tty_fd);
 		tty_fd = -1;
 	} else if (init_ttystate)
