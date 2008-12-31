@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.374 2008/12/20 20:39:05 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.375 2008/12/31 16:09:51 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -750,6 +750,9 @@ if test $ct = gcc; then
 	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
 	ac_flags 1 fstackprotectorall -fstack-protector-all
 	ac_flags 1 fwrapv -fwrapv
+	test x"$llvm" = x"COMBINE" && ac_flags 0 combine \
+	    '-fwhole-program --combine' \
+	    'if gcc supports -fwhole-program --combine'
 	i=1
 elif test $ct = icc; then
 	ac_flags 1 fnobuiltinsetmode -fno-builtin-setmode
@@ -1315,6 +1318,7 @@ cat >>test.sh <<-EOF
 	exec \$perli '$srcdir/check.pl' -s '$srcdir/check.t' -p '$curdir/mksh' -C \${check_categories#,} \$*$tsts
 EOF
 chmod 755 test.sh
+test "$HAVE_CAN_COMBINE$llvm" = "0COMBINE" && llvm=NO
 if test x"$llvm" = x"NO"; then
 	emitbc=-c
 elif test x"$llvm" = x"COMBINE"; then
