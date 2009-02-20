@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.149 2008/12/29 21:05:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.150 2009/02/20 13:19:04 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -3314,12 +3314,12 @@ x_mode(bool onoff)
 #endif
 		cb.c_iflag &= ~(INLCR | ICRNL);
 		cb.c_lflag &= ~(ISIG | ICANON | ECHO);
-#ifdef VLNEXT
+#if defined(VLNEXT) && defined(_POSIX_VDISABLE)
 		/* osf/1 processes lnext when ~icanon */
 		cb.c_cc[VLNEXT] = _POSIX_VDISABLE;
 #endif
 		/* sunos 4.1.x & osf/1 processes discard(flush) when ~icanon */
-#ifdef VDISCARD
+#if defined(VDISCARD) && defined(_POSIX_VDISABLE)
 		cb.c_cc[VDISCARD] = _POSIX_VDISABLE;
 #endif
 		cb.c_cc[VTIME] = 0;
@@ -3327,6 +3327,7 @@ x_mode(bool onoff)
 
 		tcsetattr(tty_fd, TCSADRAIN, &cb);
 
+#ifdef _POSIX_VDISABLE
 		/* Convert unset values to internal 'unset' value */
 		if (edchars.erase == _POSIX_VDISABLE)
 			edchars.erase = -1;
@@ -3340,6 +3341,7 @@ x_mode(bool onoff)
 			edchars.eof = -1;
 		if (edchars.werase == _POSIX_VDISABLE)
 			edchars.werase = -1;
+#endif
 
 		if (edchars.erase >= 0) {
 			bind_if_not_bound(0, edchars.erase, XFUNC_del_back);
