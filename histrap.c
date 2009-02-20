@@ -2,8 +2,11 @@
 /*	$OpenBSD: trap.c,v 1.22 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
+#if HAVE_PERSISTENT_HISTORY
+#include <sys/file.h>
+#endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.76 2008/12/13 17:02:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.77 2009/02/20 13:25:09 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
