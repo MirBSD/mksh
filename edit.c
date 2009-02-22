@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.151 2009/02/22 18:57:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.152 2009/02/22 19:02:27 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -721,13 +721,13 @@ utf_widthadj(const char *src, const char **dst)
 	if (!UTFMODE || (len = utf_mbtowc(&wc, src)) == (size_t)-1 ||
 	    wc == 0)
 		len = width = 1;
-	else
-		width = utf_wcwidth(wc);
+	else if ((width = utf_wcwidth(wc)) < 0)
+		/* XXX use 2 for x_zotc3 here? */
+		width = 1;
 
 	if (dst)
 		*dst = src + len;
-	/* XXX (width == -1 ? 2 : width) for x_zotc3 but appar. noth. else */
-	return (width == -1 ? 1 : width);
+	return (width);
 }
 
 int
