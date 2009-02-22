@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.94 2008/12/17 19:37:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.95 2009/02/22 18:02:31 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -936,13 +936,22 @@ print_columns(struct shf *shf, int n,
 	char *str = alloc(max_width + 1, ATEMP);
 	int i, r, c, rows, cols, nspace;
 
+	/* ensure x_cols is valid first */
+	if (x_cols < MIN_COLS)
+		change_winsz();
+
 	/* max_width + 1 for the space.  Note that no space
 	 * is printed after the last column to avoid problems
 	 * with terminals that have auto-wrap.
 	 */
 	cols = x_cols / (max_width + 1);
-	if (!cols)
-		cols = 1;
+	/* if we can only print one column anyway, skip the goo */
+	if (cols < 2) {
+		for (i = 0; i < n; ++i)
+			shf_fprintf(shf, "%s \n",
+			    (*func)(arg, i, str, max_width + 1));
+		goto out;
+	}
 	rows = (n + cols - 1) / cols;
 	if (prefcol && n && cols > rows) {
 		int tmp = rows;
@@ -969,6 +978,7 @@ print_columns(struct shf *shf, int n,
 		}
 		shf_putchar('\n', shf);
 	}
+ out:
 	afree(str, ATEMP);
 }
 
