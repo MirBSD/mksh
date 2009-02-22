@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.95 2009/02/22 18:02:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.96 2009/02/22 18:53:03 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -485,6 +485,13 @@ gmatchx(const char *s, const char *p, bool isfile)
 
 	if (s == NULL || p == NULL)
 		return 0;
+
+#if 0
+	/* debugging output */
+	fprintf(stderr, "gmatchx:\n\tstring =`%s`\n\tpattern=`%s`\n", s, p);
+	fflush(stderr);
+#endif
+
 	se = s + strlen(s);
 	pe = p + strlen(p);
 	/* isfile is false iff no syntax check has been done on
