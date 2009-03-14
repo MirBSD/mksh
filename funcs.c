@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.93 2008/12/13 17:02:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.94 2009/03/14 18:12:52 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -1183,7 +1183,7 @@ int
 c_let(const char **wp)
 {
 	int rv = 1;
-	long val;
+	mksh_ari_t val;
 
 	if (wp[1] == NULL) /* at&t ksh does this */
 		bi_errorf("no arguments");
@@ -1524,7 +1524,7 @@ c_shift(const char **wp)
 {
 	struct block *l = e->loc;
 	int n;
-	long val;
+	mksh_ari_t val;
 	const char *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
@@ -2533,7 +2533,7 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	int i, s;
 	size_t k;
 	struct stat b1, b2;
-	long v1, v2;
+	mksh_ari_t v1, v2;
 
 	if (!do_eval)
 		return 0;
@@ -2965,7 +2965,7 @@ set_ulimit(const struct limits *l, const char *v, int how)
 	if (strcmp(v, "unlimited") == 0)
 		val = (rlim_t)RLIM_INFINITY;
 	else {
-		long rval;
+		mksh_ari_t rval;
 
 		if (!evaluate(v, &rval, KSH_RETURN_ERROR, false))
 			return (1);

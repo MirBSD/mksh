@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.119 2008/12/29 21:34:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.120 2009/03/14 18:12:53 tg Exp $");
 
 extern char **environ;
 
@@ -32,8 +32,8 @@ static const char initsubs[] = "${PS2=> } ${PS3=#? } ${PS4=+ }";
 static const char *initcoms[] = {
 	"typeset", "-r", initvsn, NULL,
 	"typeset", "-x", "SHELL", "PATH", "HOME", NULL,
-	"typeset", "-i10", "COLUMNS=0", "LINES=0", "OPTIND=1", "PGRP", "PPID",
-	    "RANDOM", "USER_ID", NULL,
+	"typeset", "-i10", "COLUMNS=0", "LINES=0", "OPTIND=1", NULL,
+	"typeset", "-Ui10", "PGRP", "PPID", "RANDOM", "USER_ID", NULL,
 	"eval", "typeset -i10 SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"",
 	NULL,
 	"alias", "integer=typeset -i", "local=typeset", NULL,
@@ -250,9 +250,9 @@ main(int argc, const char *argv[])
 	    (!ksheuid && !strchr(str_val(vp), '#')))
 		/* setstr can't fail here */
 		setstr(vp, safe_prompt, KSH_RETURN_ERROR);
-	setint(global("PGRP"), (long)(kshpgrp = getpgrp()));
-	setint(global("PPID"), (long)ppid);
-	setint(global("USER_ID"), (long)ksheuid);
+	setint(global("PGRP"), (mksh_uari_t)(kshpgrp = getpgrp()));
+	setint(global("PPID"), (mksh_uari_t)ppid);
+	setint(global("USER_ID"), (mksh_uari_t)ksheuid);
 
 	/* Set this before parsing arguments */
 #if HAVE_SETRESUGID

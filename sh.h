@@ -102,9 +102,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.274 2009/02/22 18:02:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.275 2009/03/14 18:12:54 tg Exp $");
 #endif
-#define MKSH_VERSION "R36 2009/02/22"
+#define MKSH_VERSION "R36 2009/03/14"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -261,6 +261,10 @@ extern int __cdecl setegid(gid_t);
 
 /* Table flag type - needs > 16 and < 32 bits */
 typedef int32_t Tflag;
+
+/* arithmetics types */
+typedef int32_t mksh_ari_t;
+typedef uint32_t mksh_uari_t;
 
 /* these shall be smaller than 100 */
 #ifdef MKSH_SMALL
@@ -775,8 +779,8 @@ struct tbl {			/* table item */
 	Area *areap;		/* area to allocate from */
 	union {
 		char *s;		/* string */
-		long i;			/* integer */
-		unsigned long u;	/* unsigned integer */
+		mksh_ari_t i;		/* integer */
+		mksh_uari_t u;		/* unsigned integer */
 		int (*f)(const char **);/* int function */
 		struct op *t;		/* "function" tree */
 	} val;			/* value */
@@ -1297,7 +1301,7 @@ int search_access(const char *, int, int *);
 int pr_menu(const char *const *);
 int pr_list(char *const *);
 /* expr.c */
-int evaluate(const char *, long *, int, bool);
+int evaluate(const char *, mksh_ari_t *, int, bool);
 int v_evaluate(struct tbl *, const char *, volatile int, bool);
 /* funcs.c */
 int c_hash(const char **);
@@ -1528,11 +1532,11 @@ void initvar(void);
 struct tbl *global(const char *);
 struct tbl *local(const char *, bool);
 char *str_val(struct tbl *);
-long intval(struct tbl *);
+mksh_ari_t intval(struct tbl *);
 int setstr(struct tbl *, const char *, int);
 struct tbl *setint_v(struct tbl *, struct tbl *, bool);
-void setint(struct tbl *, long);
-int getint(struct tbl *, long *, bool);
+void setint(struct tbl *, mksh_ari_t);
+int getint(struct tbl *, mksh_ari_t *, bool);
 struct tbl *typeset(const char *, Tflag, Tflag, int, int);
 void unset(struct tbl *, int);
 const char *skip_varname(const char *, int);

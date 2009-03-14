@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.149 2008/12/29 21:34:20 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.150 2009/03/14 18:12:53 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.122 2008/05/17 23:31:52 sobrado Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: December 29 2008 $
+.Dd $Mdocdate: March 14 2009 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -2098,11 +2098,12 @@ as numeric arguments to the
 command, and as the value of an assignment to an integer parameter.
 .Pp
 Expressions are calculated using signed arithmetic and the
-.Vt long
-host type, unless they begin with a sole
+.Vt mksh_ari_t
+type (a 32-bit signed integer), unless they begin with a sole
 .Sq #
 character, in which case they use
-.Vt unsigned long .
+.Vt mksh_uari_t
+.Po a 32-bit unsigned integer Pc .
 .Pp
 Expressions may contain alpha-numeric parameter identifiers, array references,
 and integer constants and may be combined with the following C operators
@@ -2139,10 +2140,13 @@ Grouping operators:
 ( )
 .Ed
 .Pp
-Currently, integer constants and expressions are calculated using the host
-.Vt long
-type, although some places, such as array indices, may limit them to 32 bits.
-They can be signed or unsigned.
+Integer constants and expressions are calculated using the
+.Vt mksh_ari_t
+.Po if signed Pc
+or
+.Vt mksh_uari_t
+.Po if unsigned Pc
+type, and are limited to 32 bits.
 Overflows wrap silently.
 Integer constants may be specified with arbitrary bases using the notation
 .Ar base Ns # Ns Ar number ,

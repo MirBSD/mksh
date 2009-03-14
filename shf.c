@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.24 2008/12/13 17:02:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.25 2009/03/14 18:12:55 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -728,7 +728,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 	int tmp = 0, field, precision, len, flags;
 	unsigned long lnum;
 	/* %#o produces the longest output */
-	char numbuf[(8 * sizeof(long) + 2) / 3 + 1];
+	char numbuf[(8 * sizeof (long) + 2) / 3 + 1];
 	/* this stuff for dealing with the buffer */
 	int nwritten = 0;
 
@@ -847,18 +847,18 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 			if (flags & FL_LONG)
 				lnum = va_arg(args, unsigned long);
 			else if ((sizeof (int) < sizeof (long)) && (c == 'd'))
-				lnum = (long) va_arg(args, int);
+				lnum = (long)va_arg(args, int);
 			else
 				lnum = va_arg(args, unsigned int);
 			switch (c) {
 			case 'd':
 			case 'i':
-				if (0 > (long) lnum)
-					lnum = - (long) lnum, tmp = 1;
-				else
+				if (0 > (long)lnum) {
+					lnum = -(long)lnum;
+					tmp = 1;
+				} else
 					tmp = 0;
-				/* aaahhhh..... */
-
+				/* FALLTHROUGH */
 			case 'u':
 				do {
 					*--cp = lnum % 10 + '0';

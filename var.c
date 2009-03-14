@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.68 2008/12/29 21:34:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.69 2009/03/14 18:12:55 tg Exp $");
 
 /*
  * Variables
@@ -127,7 +127,7 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 	p = skip_varname(n, false);
 	if (p != n && *p == '[' && (len = array_ref_len(p))) {
 		char *sub, *tmp;
-		long rval;
+		mksh_ari_t rval;
 
 		/* Calculate the value of the subscript */
 		*arrayp = true;
@@ -284,17 +284,17 @@ str_val(struct tbl *vp)
 		s = vp->val.s + vp->type;
 	else {				/* integer source */
 		/* worst case number length is when base=2, so use BITS(long) */
-		/* minus base #     number    null */
-		char strbuf[1 + 2 + 1 + 8 * sizeof(long) + 1];
+		/*      minus  base #   number                     NUL */
+		char strbuf[1 + 2 + 1 + 8 * sizeof (mksh_uari_t) + 1];
 		const char *digits = (vp->flag & UCASEV_AL) ?
 		    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" :
 		    "0123456789abcdefghijklmnopqrstuvwxyz";
-		unsigned long n;
+		mksh_uari_t n;
 		int base;
 
 		s = strbuf + sizeof(strbuf);
 		if (vp->flag & INT_U)
-			n = (unsigned long) vp->val.i;
+			n = vp->val.u;
 		else
 			n = (vp->val.i < 0) ? -vp->val.i : vp->val.i;
 		base = (vp->type == 0) ? 10 : vp->type;
@@ -333,17 +333,17 @@ str_val(struct tbl *vp)
 }
 
 /* get variable integer value, with error checking */
-long
+mksh_ari_t
 intval(struct tbl *vp)
 {
-	long num;
+	mksh_ari_t num;
 	int base;
 
 	base = getint(vp, &num, false);
 	if (base == -1)
 		/* XXX check calls - is error here ok by POSIX? */
 		errorf("%s: bad number", str_val(vp));
-	return num;
+	return (num);
 }
 
 /* set variable to string value */
@@ -393,7 +393,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 
 /* set variable to integer */
 void
-setint(struct tbl *vq, long int n)
+setint(struct tbl *vq, mksh_ari_t n)
 {
 	if (!(vq->flag&INTEGER)) {
 		struct tbl *vp = &vtemp;
@@ -411,12 +411,12 @@ setint(struct tbl *vq, long int n)
 }
 
 int
-getint(struct tbl *vp, long int *nump, bool arith)
+getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 {
 	char *s;
 	int c, base, neg;
 	bool have_base = false;
-	long num;
+	mksh_ari_t num;
 
 	if (vp->flag&SPECIAL)
 		getspec(vp);
@@ -460,7 +460,7 @@ getint(struct tbl *vp, long int *nump, bool arith)
 					wc = *(unsigned char *)s;
 				else if (utf_mbtowc(&wc, s) == (size_t)-1)
 					wc = 0xEF00 + *(unsigned char *)s;
-				*nump = (long)wc;
+				*nump = (mksh_ari_t)wc;
 				return (1);
 			}
 			num = 0;
@@ -491,7 +491,7 @@ struct tbl *
 setint_v(struct tbl *vq, struct tbl *vp, bool arith)
 {
 	int base;
-	long num;
+	mksh_ari_t num;
 
 	if ((base = getint(vp, &num, arith)) == -1)
 		return NULL;
@@ -1051,17 +1051,17 @@ getspec(struct tbl *vp)
 		break;
 	case V_HISTSIZE:
 		vp->flag &= ~SPECIAL;
-		setint(vp, (long)histsize);
+		setint(vp, (mksh_ari_t)histsize);
 		vp->flag |= SPECIAL;
 		break;
 	case V_OPTIND:
 		vp->flag &= ~SPECIAL;
-		setint(vp, (long)user_opt.uoptind);
+		setint(vp, (mksh_ari_t)user_opt.uoptind);
 		vp->flag |= SPECIAL;
 		break;
 	case V_LINENO:
 		vp->flag &= ~SPECIAL;
-		setint(vp, (long)current_lineno + user_lineno);
+		setint(vp, (mksh_ari_t)current_lineno + user_lineno);
 		vp->flag |= SPECIAL;
 		break;
 	case V_COLUMNS:

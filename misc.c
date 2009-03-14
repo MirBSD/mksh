@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.96 2009/02/22 18:53:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.97 2009/03/14 18:12:53 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -1390,6 +1390,8 @@ chvt(const char *fn)
 #ifdef DEBUG
 
 char longsizes_are_okay[sizeof (long) == sizeof (unsigned long) ? 1 : -1];
+char arisize_is_okay[sizeof (mksh_ari_t) == 4 ? 1 : -1];
+char uarisize_is_okay[sizeof (mksh_uari_t) == 4 ? 1 : -1];
 
 char *
 strchr(char *p, int ch)

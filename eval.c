@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.51 2008/12/13 17:02:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.52 2009/03/14 18:12:51 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -314,7 +314,7 @@ expand(const char *cp,	/* input word */
 					switch (stype & 0x7f) {
 					case '0': {
 						char *beg, *mid, *end, *stg;
-						long from = 0, num = -1, flen;
+						mksh_ari_t from = 0, num = -1, flen;
 
 						/* ! DOBLANK,DOBRACE_,DOTILDE */
 						f = DOPAT | (f&DONTRUNCOMMAND) |

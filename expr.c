@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.22 2008/12/17 19:39:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.23 2009/03/14 18:12:52 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -117,9 +117,9 @@ struct expr_state {
 	bool natural;			/* unsigned arithmetic calculation */
 };
 
-#define bivui(x, op, y)	(es->natural ?		\
-	    (long)((x)->val.u op (y)->val.u) :	\
-	    (long)((x)->val.i op (y)->val.i)	\
+#define bivui(x, op, y)	(es->natural ?			\
+	    (mksh_ari_t)((x)->val.u op (y)->val.u) :	\
+	    (mksh_ari_t)((x)->val.i op (y)->val.i)	\
 	)
 #define chvui(x, op)	do {			\
 	if (es->natural)			\
@@ -152,7 +152,7 @@ static struct tbl *intvar(Expr_state *, struct tbl *);
  * parse and evaluate expression
  */
 int
-evaluate(const char *expr, long int *rval, int error_ok, bool arith)
+evaluate(const char *expr, mksh_ari_t *rval, int error_ok, bool arith)
 {
 	struct tbl v;
 	int ret;
@@ -284,7 +284,7 @@ evalexpr(Expr_state *es, int prec)
 {
 	struct tbl *vl, *vr = NULL, *vasn;
 	enum token op;
-	long res = 0;
+	mksh_ari_t res = 0;
 
 	if (prec == P_PRIMARY) {
 		op = es->tok;
@@ -542,7 +542,7 @@ static struct tbl *
 do_ppmm(Expr_state *es, enum token op, struct tbl *vasn, bool is_prefix)
 {
 	struct tbl *vl;
-	long oval;
+	mksh_ari_t oval;
 
 	assign_check(es, op, vasn);
 

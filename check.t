@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.256 2009/02/22 18:02:30 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.257 2009/03/14 18:12:50 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R36 2009/02/22
+	@(#)MIRBSD KSH R36 2009/03/14
 description:
 	Check version of shell.
 stdin:
@@ -276,6 +276,33 @@ expected-stdout:
 	x5 -171510507 4123456789
 	x6 1975973142 1975973142
 	x7 right
+---
+name: arith-limit32-1
+description:
+	Check if arithmetics are 32 bit
+stdin:
+	# signed vs unsigned
+	print x1 $((-1)) $((#-1))
+	# calculating
+	typeset -i vs
+	typeset -Ui vu
+	vs=2147483647; vu=2147483647
+	print x2 $vs $vu
+	let vs++ vu++
+	print x3 $vs $vu
+	vs=4294967295; vu=4294967295
+	print x4 $vs $vu
+	let vs++ vu++
+	print x5 $vs $vu
+	let vs++ vu++
+	print x6 $vs $vu
+expected-stdout:
+	x1 -1 4294967295
+	x2 2147483647 2147483647
+	x3 -2147483648 2147483648
+	x4 -1 4294967295
+	x5 0 0
+	x6 1 1
 ---
 name: bksl-nl-ign-1
 description:
