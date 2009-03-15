@@ -102,9 +102,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.275 2009/03/14 18:12:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.276 2009/03/15 16:13:40 tg Exp $");
 #endif
-#define MKSH_VERSION "R36 2009/03/14"
+#define MKSH_VERSION "R36 2009/03/15"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1272,13 +1272,12 @@ void afree(void *, Area *);	/* can take NULL */
 /* edit.c */
 void x_init(void);
 int x_read(char *, size_t);
-int x_bind(const char *, const char *, int, int);
+int x_bind(const char *, const char *, bool, bool);
 /* UTF-8 stuff */
 size_t utf_mbtowc(unsigned int *, const char *);
 size_t utf_wctomb(char *, unsigned int);
 int utf_widthadj(const char *, const char **);
 int utf_mbswidth(const char *);
-int utf_wcwidth(unsigned int);
 const char *utf_skipcols(const char *, int);
 /* eval.c */
 char *substitute(const char *, int);

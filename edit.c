@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.152 2009/02/22 19:02:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.153 2009/03/15 16:13:38 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -17,7 +17,7 @@ typedef struct {
 	int eof;
 } X_chars;
 
-X_chars edchars;
+static X_chars edchars;
 
 /* x_fc_glob() flags */
 #define XCF_COMMAND	BIT(0)	/* Do command completion */
@@ -58,6 +58,7 @@ static int x_command_glob(int, const char *, int, char ***);
 static int x_locate_word(const char *, int, int, int *, bool *);
 
 static int x_e_getmbc(char *);
+static int utf_wcwidth(unsigned int);
 
 /* +++ generic editing functions +++ */
 
@@ -775,7 +776,7 @@ utf_skipcols(const char *p, int cols)
 
 __RCSID("$miros: src/lib/libc/i18n/wcwidth.c,v 1.8 2008/09/20 12:01:18 tg Exp $");
 
-int
+static int
 utf_wcwidth(unsigned int c)
 {
 	static const struct cbset {
@@ -2551,8 +2552,8 @@ x_print(int prefix, int key)
 
 int
 x_bind(const char *a1, const char *a2,
-    int macro,			/* bind -m */
-    int list)			/* bind -l */
+    bool macro,			/* bind -m */
+    bool list)			/* bind -l */
 {
 	unsigned char f;
 	int prefix, key;
@@ -3430,7 +3431,7 @@ static int	x_vi_putbuf(const char *, size_t);
 #define is_srch(c)	(classify[(c)&0x7f]&S_)
 #define is_zerocount(c)	(classify[(c)&0x7f]&Z_)
 
-const unsigned char	classify[128] = {
+static const unsigned char classify[128] = {
    /*       0       1       2       3       4       5       6       7        */
    /*   0   ^@     ^A      ^B      ^C      ^D      ^E      ^F      ^G        */
 	    B_,     0,      0,      0,      0,      C_|U_,  C_|Z_,  0,

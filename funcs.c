@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.94 2009/03/14 18:12:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.95 2009/03/15 16:13:39 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -1495,7 +1495,7 @@ c_bind(const char **wp)
 	wp += builtin_opt.optind;
 
 	if (*wp == NULL)	/* list all */
-		rv = x_bind((char*)NULL, (char*)NULL, 0, list);
+		rv = x_bind(NULL, NULL, 0, list);
 
 	for (; *wp != NULL; wp++) {
 		if ((cp = cstrchr(*wp, '=')) == NULL)
