@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.79 2008/12/13 17:02:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.80 2009/03/15 18:30:40 tg Exp $");
 
 /*
  * states while lexing word
@@ -95,7 +95,7 @@ static void	gethere(bool);
 static Lex_state *push_state_(State_info *, Lex_state *);
 static Lex_state *pop_state_(State_info *, Lex_state *);
 
-static int dopprompt(const char *, int, int);
+static int dopprompt(const char *, int, bool);
 
 static int backslash_skip;
 static int ignore_backslash_newline;
@@ -1304,7 +1304,7 @@ set_prompt(int to, Source *s)
 }
 
 static int
-dopprompt(const char *cp, int ntruncate, int doprint)
+dopprompt(const char *cp, int ntruncate, bool doprint)
 {
 	int columns = 0, lines = 0, indelimit = 0;
 	char delimiter = 0;
@@ -1348,21 +1348,20 @@ dopprompt(const char *cp, int ntruncate, int doprint)
 	}
 	if (doprint)
 		shf_flush(shl_out);
-	indelimit = (x_cols * lines + columns);
-	return indelimit;
+	return (x_cols * lines + columns);
 }
 
 
 void
 pprompt(const char *cp, int ntruncate)
 {
-	dopprompt(cp, ntruncate, 1);
+	dopprompt(cp, ntruncate, true);
 }
 
 int
 promptlen(const char *cp)
 {
-	return (dopprompt(cp, 0, 0));
+	return (dopprompt(cp, 0, false));
 }
 
 /* Read the variable part of a ${...} expression (ie, up to but not including
