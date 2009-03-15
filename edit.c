@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.154 2009/03/15 18:30:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.155 2009/03/15 18:48:43 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1830,7 +1830,7 @@ static void
 x_zotc2(int c)
 {
 	if (c == '\t') {
-		/*  Kludge, tabs are always four spaces.  */
+		/* Kludge, tabs are always four spaces. */
 		x_e_puts("    ");
 	} else if (c < ' ' || c == 0x7f) {
 		x_e_putc2('^');
@@ -1844,19 +1844,11 @@ x_zotc3(char **cp)
 {
 	unsigned char c = **(unsigned char **)cp;
 
-	if (c == 0xC2 && UTFMODE) {
-		unsigned char c2 = ((unsigned char *)*cp)[1];
-
-		if (c2 >= 0x80 && c2 < 0xA0) {
-			c = c2;
-			(*cp)++;
-		}
-	}
 	if (c == '\t') {
-		/*  Kludge, tabs are always four spaces.  */
+		/* Kludge, tabs are always four spaces. */
 		x_e_puts("    ");
 		(*cp)++;
-	} else if (c < ' ' || (c >= 0x7F && c < 0xA0)) {
+	} else if (c < ' ' || c == 0x7f) {
 		x_e_putc2('^');
 		x_e_putc2(UNCTRL(c));
 		(*cp)++;
