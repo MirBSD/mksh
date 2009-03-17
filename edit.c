@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.155 2009/03/15 18:48:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.156 2009/03/17 13:56:47 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -2242,12 +2242,12 @@ x_redraw(int limit)
 	x_flush();
 	if (xbp == xbuf) {
 		x_col = promptlen(prompt);
-		if (x_col > xx_cols)
+		if (x_col >= xx_cols)
 			x_trunc = (x_col / xx_cols) * xx_cols;
 		if (prompt_redraw)
 			pprompt(prompt, x_trunc);
 	}
-	if (x_col > xx_cols)
+	if (x_col >= xx_cols)
 		x_col %= xx_cols;
 	x_displen = xx_cols - 2 - x_col;
 	if (x_displen < 1) {
