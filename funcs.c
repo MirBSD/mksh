@@ -1,11 +1,11 @@
 /*	$OpenBSD: c_ksh.c,v 1.33 2009/02/07 14:03:24 kili Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.39 2009/01/29 23:27:26 jaredy Exp $	*/
-/*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
+/*	$OpenBSD: c_test.c,v 1.18 2009/03/01 20:11:06 otto Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.98 2009/03/22 17:53:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.99 2009/03/22 17:58:58 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -2762,15 +2762,22 @@ test_primary(Test_env *te, bool do_eval)
 		}
 		return rv;
 	}
-	if ((op = (*te->isa)(te, TM_UNOP))) {
-		/* unary expression */
-		opnd1 = (*te->getopnd)(te, op, do_eval);
-		if (!opnd1) {
-			(*te->error)(te, -1, "missing argument");
-			return 0;
-		}
+	/*
+	 * Binary should have precedence over unary in this case
+	 * so that something like test \( -f = -f \) is accepted
+	 */
+	if ((te->flags & TEF_DBRACKET) || (&te->pos.wp[1] < te->wp_end &&
+	    !test_isop(te, TM_BINOP, te->pos.wp[1]))) {
+		if ((op = (*te->isa)(te, TM_UNOP))) {
+			/* unary expression */
+			opnd1 = (*te->getopnd)(te, op, do_eval);
+			if (!opnd1) {
+				(*te->error)(te, -1, "missing argument");
+				return 0;
+			}
 
-		return (*te->eval)(te, op, opnd1, NULL, do_eval);
+			return (*te->eval)(te, op, opnd1, NULL, do_eval);
+		}
 	}
 	opnd1 = (*te->getopnd)(te, TO_NONOP, do_eval);
 	if (!opnd1) {
