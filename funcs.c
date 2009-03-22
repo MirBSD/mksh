@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.99 2009/03/22 17:58:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.100 2009/03/22 18:28:34 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -2767,7 +2767,7 @@ test_primary(Test_env *te, bool do_eval)
 	 * so that something like test \( -f = -f \) is accepted
 	 */
 	if ((te->flags & TEF_DBRACKET) || (&te->pos.wp[1] < te->wp_end &&
-	    !test_isop(te, TM_BINOP, te->pos.wp[1]))) {
+	    !test_isop(TM_BINOP, te->pos.wp[1]))) {
 		if ((op = (*te->isa)(te, TM_UNOP))) {
 			/* unary expression */
 			opnd1 = (*te->getopnd)(te, op, do_eval);

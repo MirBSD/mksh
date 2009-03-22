@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.52 2009/03/22 18:20:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.53 2009/03/22 18:28:34 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile, volatile int *);
@@ -22,7 +22,7 @@ static void dbteste_error(Test_env *, int, const char *);
 int
 execute(struct op *volatile t,
     volatile int flags,		/* if XEXEC don't fork */
-    volatile int *xerrok)
+    volatile int * volatile xerrok)
 {
 	int i;
 	volatile int rv = 0, dummy = 0;
