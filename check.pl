@@ -1,5 +1,5 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.19 2008/12/20 20:21:19 tg Exp $
-# $OpenBSD: th,v 1.12 2005/05/28 04:53:47 millert Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.20 2009/03/22 16:59:18 tg Exp $
+# $OpenBSD: th,v 1.13 2006/05/18 21:27:23 miod Exp $
 #-
 # Example test:
 #		name: a-test
@@ -921,7 +921,7 @@ read_test
 		    # format is: type perm "name"
 		    if ($val !~ /^[ \t]*(\S+)[ \t]+(\S+)[ \t]+([^ \t].*)/) {
 			print STDERR
-		    "$prog:$file:$.: bad paramter line for file-setup field\n";
+		    "$prog:$file:$.: bad parameter line for file-setup field\n";
 			return undef;
 		    }
 		    ($type, $perm, $rest) = ($1, $2, $3);
@@ -958,7 +958,7 @@ read_test
 		    # format is: type perm uid gid matchType "name"
 		    if ($val !~ /^\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*)/) {
 			print STDERR
-		    "$prog:$file:$.: bad paramter line for file-result field\n";
+		    "$prog:$file:$.: bad parameter line for file-result field\n";
 			return undef;
 		    }
 		    ($type, $perm, $uid, $gid, $matchType, $rest)
