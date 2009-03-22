@@ -1,11 +1,11 @@
-/*	$OpenBSD: c_ksh.c,v 1.31 2008/05/17 23:31:52 sobrado Exp $	*/
+/*	$OpenBSD: c_ksh.c,v 1.32 2009/02/07 07:24:37 guenther Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.39 2009/01/29 23:27:26 jaredy Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.96 2009/03/22 17:47:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.97 2009/03/22 17:52:48 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -332,24 +332,31 @@ c_print(const char **wp)
 		 * by default.
 		 */
 		wp += 1;
-		while ((s = *wp) && *s == '-' && s[1]) {
-			while (*++s)
-				if (*s == 'n')
-					nflags &= ~PO_NL;
-				else if (*s == 'e')
-					nflags |= PO_EXPAND;
-				else if (*s == 'E')
-					nflags &= ~PO_EXPAND;
-				else
-					/* bad option: don't use nflags, print
-					 * argument
-					 */
+		if (Flag(FPOSIX)) {
+			if (strcmp(*wp, "-n") == 0) {
+				flags &= ~PO_NL;
+				wp++;
+			}
+		} else
+			while ((s = *wp) && *s == '-' && s[1]) {
+				while (*++s)
+					if (*s == 'n')
+						nflags &= ~PO_NL;
+					else if (*s == 'e')
+						nflags |= PO_EXPAND;
+					else if (*s == 'E')
+						nflags &= ~PO_EXPAND;
+					else
+						/*
+						 * bad option: don't use
+						 * nflags, print argument
+						 */
+						break;
+				if (*s)
 					break;
-			if (*s)
-				break;
-			wp++;
-			flags = nflags;
-		}
+				wp++;
+				flags = nflags;
+			}
 	} else {
 		int optc;
 		const char *opts = "Rnprsu,";
