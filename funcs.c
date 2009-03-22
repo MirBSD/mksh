@@ -1,11 +1,11 @@
-/*	$OpenBSD: c_ksh.c,v 1.32 2009/02/07 07:24:37 guenther Exp $	*/
+/*	$OpenBSD: c_ksh.c,v 1.33 2009/02/07 14:03:24 kili Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.39 2009/01/29 23:27:26 jaredy Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.97 2009/03/22 17:52:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.98 2009/03/22 17:53:50 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -333,7 +333,7 @@ c_print(const char **wp)
 		 */
 		wp += 1;
 		if (Flag(FPOSIX)) {
-			if (strcmp(*wp, "-n") == 0) {
+			if (*wp && strcmp(*wp, "-n") == 0) {
 				flags &= ~PO_NL;
 				wp++;
 			}
