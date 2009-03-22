@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.51 2009/03/22 17:47:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.52 2009/03/22 18:20:36 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile, volatile int *);
@@ -25,7 +25,7 @@ execute(struct op *volatile t,
     volatile int *xerrok)
 {
 	int i;
-	volatile int rv = 0;
+	volatile int rv = 0, dummy = 0;
 	int pv[2];
 	const char ** volatile ap;
 	char ** volatile up;
@@ -35,6 +35,10 @@ execute(struct op *volatile t,
 
 	if (t == NULL)
 		return 0;
+
+	/* Caller doesn't care if XERROK should propagate. */
+	if (xerrok == NULL)
+		xerrok = &dummy;
 
 	if ((flags&XFORK) && !(flags&XEXEC) && t->type != TPIPE)
 		/* run in sub-process */
