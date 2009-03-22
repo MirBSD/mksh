@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.150 2009/03/14 18:12:53 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.122 2008/05/17 23:31:52 sobrado Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.151 2009/03/22 18:09:17 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.128 2009/03/06 12:28:36 jmc Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
 .\" * ` generates ‘ in groff, so use \`
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: March 14 2009 $
+.Dd $Mdocdate: March 22 2009 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -2851,6 +2851,11 @@ enables backslash interpretation (a no-op, since this is normally done), and
 .Fl E
 suppresses backslash interpretation.
 .Pp
+If the
+.Ic posix
+option is set, only the first argument is treated as an option, and only
+if it is exactly
+.Dq Fl n .
 .It Ic eval Ar command ...
 The arguments are concatenated (with spaces between them) to form a single
 string which the shell then parses and executes in the current environment.
@@ -3446,8 +3451,9 @@ explicitly tested by a shell construct such as
 .Ic until ,
 .Ic while ,
 .Ic && ,
+.Ic \*(Ba\*(Ba ,
 or
-.Ic \*(Ba\*(Ba
+.Ic !\&
 statements.
 .It Fl f \*(Ba Ic noglob
 Do not expand file name patterns.
@@ -4721,7 +4727,7 @@ Lowercases the next
 .Ar n
 words.
 .It Xo edit\-line:
-.Op Ar n 
+.Op Ar n
 .No \*(haXe
 .Xc
 Edit line
