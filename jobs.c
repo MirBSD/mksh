@@ -1,8 +1,8 @@
-/*	$OpenBSD: jobs.c,v 1.36 2007/09/06 19:57:47 otto Exp $	*/
+/*	$OpenBSD: jobs.c,v 1.37 2009/01/29 23:27:26 jaredy Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.44 2009/02/23 16:17:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.45 2009/03/22 17:47:37 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -289,7 +289,9 @@ j_change(void)
 
 /* execute tree in child subprocess */
 int
-exchild(struct op *t, int flags, /* used if XPCLOSE or XCCLOSE */ int close_fd)
+exchild(struct op *t, int flags,
+    volatile int *xerrok,
+    /* used if XPCLOSE or XCCLOSE */ int close_fd)
 {
 	static Proc	*last_proc;	/* for pipelines */
 
@@ -305,7 +307,7 @@ exchild(struct op *t, int flags, /* used if XPCLOSE or XCCLOSE */ int close_fd)
 		/* Clear XFORK|XPCLOSE|XCCLOSE|XCOPROC|XPIPEO|XPIPEI|XXCOM|XBGND
 		 * (also done in another execute() below)
 		 */
-		return execute(t, flags & (XEXEC | XERROK));
+		return execute(t, flags & (XEXEC | XERROK), xerrok);
 
 	/* no SIGCHLDs while messing with job and process lists */
 	sigprocmask(SIG_BLOCK, &sm_sigchld, &omask);
@@ -430,7 +432,8 @@ exchild(struct op *t, int flags, /* used if XPCLOSE or XCCLOSE */ int close_fd)
 		Flag(FTALKING) = 0;
 		tty_close();
 		cleartraps();
-		execute(t, (flags & XERROK) | XEXEC); /* no return */
+		/* no return */
+		execute(t, (flags & XERROK) | XEXEC, NULL);
 #ifndef MKSH_SMALL
 		if (t->type == TPIPE)
 			unwind(LLEAVE);

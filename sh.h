@@ -4,7 +4,7 @@
 /*	$OpenBSD: tree.h,v 1.10 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: expand.h,v 1.6 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: lex.h,v 1.11 2006/05/29 18:22:24 otto Exp $	*/
-/*	$OpenBSD: proto.h,v 1.31 2009/01/17 22:06:44 millert Exp $	*/
+/*	$OpenBSD: proto.h,v 1.32 2009/01/29 23:27:26 jaredy Exp $	*/
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
@@ -102,7 +102,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.281 2009/03/22 17:31:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.282 2009/03/22 17:47:38 tg Exp $");
 #endif
 #define MKSH_VERSION "R36 2009/03/17"
 
@@ -1289,7 +1289,7 @@ char *debunk(char *, const char *, size_t);
 void expand(const char *, XPtrV *, int);
 int glob_str(char *, XPtrV *, int);
 /* exec.c */
-int execute(struct op * volatile, volatile int);
+int execute(struct op * volatile, volatile int, volatile int *);
 int shcomexec(const char **);
 struct tbl *findfunc(const char *, unsigned int, int);
 int define(const char *, struct op *);
@@ -1334,7 +1334,7 @@ int c_set(const char **);
 int c_unset(const char **);
 int c_ulimit(const char **);
 int c_times(const char **);
-int timex(struct op *, int);
+int timex(struct op *, int, volatile int *);
 void timex_hook(struct op *, char ** volatile *);
 int c_exec(const char **);
 int c_builtin(const char **);
@@ -1383,7 +1383,7 @@ void setexecsig(Trap *, int);
 void j_init(int);
 void j_exit(void);
 void j_change(void);
-int exchild(struct op *, int, int);
+int exchild(struct op *, int, volatile int *, int);
 void startlast(void);
 int waitlast(void);
 int waitfor(const char *, int *);

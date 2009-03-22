@@ -1,4 +1,4 @@
-/*	$OpenBSD: main.c,v 1.44 2008/07/05 07:25:18 djm Exp $	*/
+/*	$OpenBSD: main.c,v 1.45 2009/01/29 23:27:26 jaredy Exp $	*/
 /*	$OpenBSD: tty.c,v 1.9 2006/03/14 22:08:01 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.22 2006/03/17 16:30:13 millert Exp $	*/
 /*	$OpenBSD: table.c,v 1.13 2009/01/17 22:06:44 millert Exp $	*/
@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.121 2009/03/22 17:31:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.122 2009/03/22 17:47:37 tg Exp $");
 
 extern char **environ;
 
@@ -566,7 +566,7 @@ shell(Source * volatile s, volatile int toplevel)
 			}
 		}
 		if (t && (!Flag(FNOEXEC) || (s->flags & SF_TTY)))
-			exstat = execute(t, 0);
+			exstat = execute(t, 0, NULL);
 
 		if (t != NULL && t->type != TEOF && interactive && really_exit)
 			really_exit = 0;

@@ -1,11 +1,11 @@
 /*	$OpenBSD: c_ksh.c,v 1.31 2008/05/17 23:31:52 sobrado Exp $	*/
-/*	$OpenBSD: c_sh.c,v 1.38 2008/07/23 16:34:38 jaredy Exp $	*/
+/*	$OpenBSD: c_sh.c,v 1.39 2009/01/29 23:27:26 jaredy Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.17 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.95 2009/03/15 16:13:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.96 2009/03/22 17:47:36 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -2196,7 +2196,7 @@ c_times(const char **wp __unused)
  * time pipeline (really a statement, not a built-in command)
  */
 int
-timex(struct op *t, int f)
+timex(struct op *t, int f, volatile int *xerrok)
 {
 #define TF_NOARGS	BIT(0)
 #define TF_NOREAL	BIT(1)		/* don't report real time */
@@ -2222,7 +2222,7 @@ timex(struct op *t, int f)
 		 */
 		timerclear(&j_usrtime);
 		timerclear(&j_systime);
-		rv = execute(t->left, f | XTIME);
+		rv = execute(t->left, f | XTIME, xerrok);
 		if (t->left->type == TCOM)
 			tf |= t->left->str[0];
 		gettimeofday(&tv1, NULL);
