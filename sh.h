@@ -4,7 +4,7 @@
 /*	$OpenBSD: tree.h,v 1.10 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: expand.h,v 1.6 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: lex.h,v 1.11 2006/05/29 18:22:24 otto Exp $	*/
-/*	$OpenBSD: proto.h,v 1.30 2006/03/17 16:30:13 millert Exp $	*/
+/*	$OpenBSD: proto.h,v 1.31 2009/01/17 22:06:44 millert Exp $	*/
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
@@ -102,7 +102,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.280 2009/03/22 16:55:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.281 2009/03/22 17:31:17 tg Exp $");
 #endif
 #define MKSH_VERSION "R36 2009/03/17"
 

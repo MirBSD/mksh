@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.c,v 1.34 2008/07/12 12:33:42 miod Exp $	*/
+/*	$OpenBSD: misc.c,v 1.35 2009/01/17 22:06:44 millert Exp $	*/
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
@@ -6,7 +6,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.97 2009/03/14 18:12:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.98 2009/03/22 17:31:17 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
