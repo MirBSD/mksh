@@ -102,7 +102,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.279 2009/03/17 13:56:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.280 2009/03/22 16:55:38 tg Exp $");
 #endif
 #define MKSH_VERSION "R36 2009/03/17"
 
@@ -396,10 +396,10 @@ char *ucstrstr(char *, const char *);
 #endif
 
 /*
- * Area-based allocation built on malloc/free
+ * simple grouping allocator
  */
-typedef struct Area {
-	struct link *freelist;	/* free list */
+typedef struct {
+	void *ent;		/* entry pointer, must be first */
 } Area;
 
 EXTERN Area aperm;		/* permanent object space */
@@ -1263,10 +1263,11 @@ EXTERN int histsize;	/* history size */
 /* user and system time of last j_waitjed job */
 EXTERN struct timeval j_usrtime, j_systime;
 
-/* alloc.c */
-Area *ainit(Area *);
+/* lalloc.c */
+void ainit(Area *);
 void afreeall(Area *);
-void *alloc(size_t, Area *);	/* cannot fail */
+/* these cannot fail and can take NULL (not for ap) */
+#define alloc(n, ap)	aresize(NULL, (n), (ap))
 void *aresize(void *, size_t, Area *);
 void afree(void *, Area *);	/* can take NULL */
 /* edit.c */

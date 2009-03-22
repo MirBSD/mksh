@@ -1,16 +1,13 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.71 2008/12/13 17:02:10 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.72 2009/03/22 16:55:37 tg Exp $
 #-
 # use CPPFLAGS=-DDEBUG __CRAZY=Yes to check for certain more stuff
 
 .include <bsd.own.mk>
 
 PROG=		mksh
-SRCS=		alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c \
-		jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c
+SRCS=		edit.c eval.c exec.c expr.c funcs.c histrap.c jobs.c \
+		lalloc.c lex.c main.c misc.c shf.c syn.c tree.c var.c
 .if !make(test-build)
-.  if ${DEBUGLIBS:L} == "yes"
-CPPFLAGS+=	-DMKSH_AFREE_DEBUG	# MirOS development version
-.  endif
 CPPFLAGS+=	-DMKSH_ASSUME_UTF8 \
 		-DHAVE_ATTRIBUTE=1 -DHAVE_ATTRIBUTE_BOUNDED=1 \
 		-DHAVE_ATTRIBUTE_USED=1 -DHAVE_SYS_PARAM_H=1 \

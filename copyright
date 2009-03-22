@@ -1,4 +1,4 @@
-$MirOS: src/bin/mksh/copyright,v 1.27 2009/02/20 13:21:06 tg Exp $
+$MirOS: src/bin/mksh/copyright,v 1.28 2009/03/22 16:55:38 tg Rel $
 
 The MirBSD Korn Shell (mksh) is
 
@@ -25,8 +25,6 @@ The developer of mksh recognises the efforts of the pdksh authors,
 who had dedicated their work into Public Domain, and all contribu-
 tors. See the documentation, CVS, and web site for details.
 
-A number of files that are either always or conditionally included
-during compilation, depending on the target operating environment,
-are covered by different (2/3-clause BSD or similar) licences; re-
-fer to the individual files for details: alloc.c (always included)
-and setmode.c, strlcpy.c (included when required)
+Depending on the target operating environment, setmode.c (3-clause
+BSD licence) or strlcpy.c (ISC licence) may be added during compi-
+lation; refer to these files for details.
