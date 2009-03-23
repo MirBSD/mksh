@@ -1,6 +1,14 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.2 2009/03/23 09:08:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.3 2009/03/23 10:31:15 tg Exp $");
+
+#ifndef SIZE_MAX
+#ifdef SIZE_T_MAX
+#define SIZE_MAX	SIZE_T_MAX
+#else
+#define SIZE_MAX	((size_t)-1)
+#endif
+#endif
 
 struct lalloc {
 	struct lalloc *next;	/* entry pointer, must be first */
@@ -33,10 +41,8 @@ aresize(void *ptr, size_t numb, Area *ap)
 {
 	struct lalloc *lp, *pp;
 
-#ifdef SIZE_MAX
 	if (numb >= SIZE_MAX - sizeof (struct lalloc))
 		goto failure;
-#endif
 
 	if (ptr == NULL) {
 		pp = (struct lalloc *)ap;
@@ -46,9 +52,7 @@ aresize(void *ptr, size_t numb, Area *ap)
 		lp = realloc(lp, numb + sizeof (struct lalloc));
 	}
 	if (lp == NULL) {
-#ifdef SIZE_MAX
  failure:
-#endif
 		internal_errorf("cannot allocate %lu data bytes",
 		    (unsigned long)numb);
 	}
