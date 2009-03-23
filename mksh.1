@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.153 2009/03/23 12:16:58 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.154 2009/03/23 12:21:02 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.128 2009/03/06 12:28:36 jmc Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -3862,7 +3862,7 @@ expr \-a expr		Logical AND.
 Note that a number actually may be an arithmetic expression, such as
 a mathematical term or the name of an integer variable:
 .Bd -literal -offset indent
-x=1; [ x -eq 1 ]	evaluates to true
+x=1; [ "x" \-eq 1 ]	evaluates to true
 .Ed
 .Pp
 Note that some special rules are applied (courtesy of POSIX)
