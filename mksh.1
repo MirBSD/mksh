@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.151 2009/03/22 18:09:17 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.152 2009/03/23 12:15:33 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.128 2009/03/06 12:28:36 jmc Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: March 22 2009 $
+.Dd $Mdocdate: March 23 2009 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -3858,6 +3858,9 @@ expr \-a expr		Logical AND.
 ! expr			Logical NOT.
 ( expr )		Grouping.
 .Ed
+.Pp
+Note that a number actually may be an arithmetic expression, such as
+a mathematical term or the name of an integer variable.
 .Pp
 Note that some special rules are applied (courtesy of POSIX)
 if the number of
