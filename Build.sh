@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.376 2009/03/22 16:55:37 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.377 2009/03/23 08:54:12 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -254,7 +254,7 @@ do
 	esac
 done
 
-SRCS="alloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
+SRCS="lalloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
 if test x"$srcdir" = x"."; then
