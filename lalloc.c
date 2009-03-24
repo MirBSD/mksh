@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.5 2009/03/24 08:53:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.6 2009/03/24 14:07:41 tg Exp $");
 
 #ifndef SIZE_MAX
 #ifdef SIZE_T_MAX
@@ -31,7 +31,7 @@ findptr(struct lalloc **lpp, char *ptr, Area *ap)
 void *
 aresize(void *ptr, size_t numb, Area *ap)
 {
-	struct lalloc *lp;
+	struct lalloc *lp = NULL;
 
 	if (ptr != NULL) {
 		struct lalloc *pp;
