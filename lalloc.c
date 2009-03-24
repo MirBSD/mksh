@@ -1,6 +1,6 @@
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.6 2009/03/24 14:07:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.7 2009/03/24 18:34:39 tg Exp $");
 
 #ifndef SIZE_MAX
 #ifdef SIZE_T_MAX
@@ -8,6 +8,13 @@ __RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.6 2009/03/24 14:07:41 tg Exp $");
 #else
 #define SIZE_MAX	((size_t)-1)
 #endif
+#endif
+
+/* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
+#if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
+#define remalloc(p,n)	((p) == NULL ? malloc(n) : realloc((p), (n)))
+#else
+#define remalloc(p,n)	realloc((p), (n))
 #endif
 
 static struct lalloc *findptr(struct lalloc **, char *, Area *);
@@ -41,9 +48,7 @@ aresize(void *ptr, size_t numb, Area *ap)
 	}
 
 	if ((numb >= SIZE_MAX - sizeof (struct lalloc)) ||
-	    /* here I wish all realloc(3)s would take NULL */
-	    (lp = ptr ? realloc(lp, numb + sizeof (struct lalloc)) :
-	    malloc(numb + sizeof (struct lalloc))) == NULL)
+	    (lp = remalloc(lp, numb + sizeof (struct lalloc))) == NULL)
 		internal_errorf("cannot allocate %lu data bytes",
 		    (unsigned long)numb);
 	lp->next = ap->next;
