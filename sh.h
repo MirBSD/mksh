@@ -102,9 +102,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.285 2009/03/24 08:53:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.286 2009/03/25 21:45:28 tg Exp $");
 #endif
-#define MKSH_VERSION "R37 2009/03/22"
+#define MKSH_VERSION "R37 2009/03/25"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1289,7 +1289,7 @@ char *debunk(char *, const char *, size_t);
 void expand(const char *, XPtrV *, int);
 int glob_str(char *, XPtrV *, int);
 /* exec.c */
-int execute(struct op * volatile, volatile int, volatile int *);
+int execute(struct op * volatile, volatile int, volatile int * volatile);
 int shcomexec(const char **);
 struct tbl *findfunc(const char *, unsigned int, int);
 int define(const char *, struct op *);
