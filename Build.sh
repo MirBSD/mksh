@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.377 2009/03/23 08:54:12 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.378 2009/03/29 17:50:45 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1290,8 +1290,8 @@ fi
 
 addsrcs HAVE_SETMODE setmode.c
 addsrcs HAVE_STRLCPY strlcpy.c
+test 0 = "$HAVE_SETMODE" && CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
-CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 
 objs=
 case $curdir in
