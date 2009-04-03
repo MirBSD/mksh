@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.101 2009/04/03 09:39:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.102 2009/04/03 09:45:23 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -2847,6 +2847,7 @@ ptest_error(Test_env *te, int ofs, const char *msg)
 		bi_errorf("%s", msg);
 }
 
+#ifdef RLIM_INFINITY
 #define SOFT	0x1
 #define HARD	0x2
 
@@ -2859,10 +2860,12 @@ struct limits {
 
 static void print_ulimit(const struct limits *, int);
 static int set_ulimit(const struct limits *, const char *, int);
+#endif
 
 int
 c_ulimit(const char **wp)
 {
+#ifdef RLIM_INFINITY
 	static const struct limits limits[] = {
 		/* do not use options -H, -S or -a or change the order */
 #ifdef RLIMIT_CPU
@@ -2959,9 +2962,11 @@ c_ulimit(const char **wp)
 		shprintf("%-20s ", l->name);
 		print_ulimit(l, how);
 	}
+#endif
 	return (0);
 }
 
+#ifdef RLIM_INFINITY
 static int
 set_ulimit(const struct limits *l, const char *v, int how)
 {
@@ -3025,6 +3030,7 @@ print_ulimit(const struct limits *l, int how)
 	else
 		shprintf("%ld\n", (long)(val / l->factor));
 }
+#endif
 
 int
 c_rename(const char **wp)
