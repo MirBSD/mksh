@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.46 2009/03/26 11:22:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.47 2009/04/03 09:42:25 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -133,8 +133,10 @@ j_init(int mflagset)
 	setsig(&sigtraps[SIGCHLD], j_sigchld,
 	    SS_RESTORE_ORIG|SS_FORCE|SS_SHTRAP);
 
+#ifndef MKSH_UNEMPLOYED
 	if (!mflagset && Flag(FTALKING))
 		Flag(FMONITOR) = 1;
+#endif
 
 	/* shl_j is used to do asynchronous notification (used in
 	 * an interrupt handler, so need a distinct shf)
