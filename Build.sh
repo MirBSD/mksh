@@ -1,9 +1,9 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.379 2009/04/03 09:39:01 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.380 2009/04/03 09:42:37 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
-#			MKSH_CLS_STRING MKSH_BINSHREDUCED
+#			MKSH_CLS_STRING MKSH_BINSHREDUCED MKSH_UNEMPLOYED
 
 LC_ALL=C
 export LC_ALL
@@ -323,6 +323,7 @@ MidnightBSD)
 	;;
 Minix)
 	CPPFLAGS="$CPPFLAGS -D_POSIX_SOURCE -D_POSIX_1_SOURCE=2"
+	CPPFLAGS="$CPPFLAGS -DMKSH_UNEMPLOYED -D_MINIX"
 	warn=' and will currently not work'
 #	warn=" but might work with the GNU tools"
 #	warn="$warn${nl}but not with ACK - /usr/bin/cc - yet)"
@@ -444,6 +445,8 @@ ct=icc
 ct=xlc
 #elif defined(__SUNPRO_C)
 ct=sunpro
+#elif defined(__ACK__)
+ct=ack
 #elif defined(__BORLANDC__)
 ct=bcc
 #elif defined(__WATCOMC__)
@@ -496,6 +499,9 @@ eval `cat x`
 rm -f x
 echo 'int main(void) { return (0); }' >scn.c
 case $ct in
+ack)
+	echo >&2 'Warning: the Amsterdam Compiler Kit is buggy.'
+	;;
 adsp)
 	echo >&2 'Warning: Analog Devices C++ compiler for Blackfin, TigerSHARC
     and SHARC (21000) DSPs detected. This compiler has not yet
