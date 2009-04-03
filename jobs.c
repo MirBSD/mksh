@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.47 2009/04/03 09:42:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.48 2009/04/03 09:48:10 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -995,7 +995,7 @@ j_waitj(Job *j,
 		 */
 		status = j->last_proc->status;
 		if (Flag(FMONITOR) && j->state == PSIGNALLED &&
-		    WIFSIGNALED(status) &&
+		    (WIFSIGNALED(status)) &&
 		    (sigtraps[WTERMSIG(status)].flags & TF_TTY_INTR))
 			trapsig(WTERMSIG(status));
 	}
