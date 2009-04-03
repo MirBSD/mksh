@@ -9,7 +9,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.100 2009/04/03 09:39:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.101 2009/04/03 10:54:58 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -1497,8 +1497,8 @@ getrusage(int what, struct rusage *ru)
 		errno = EINVAL;
 		return (-1);
 	}
-	INVTCK(r->ru_utime, u);
-	INVTCK(r->ru_stime, s);
+	INVTCK(ru->ru_utime, u);
+	INVTCK(ru->ru_stime, s);
 	return (0);
 }
 #endif
