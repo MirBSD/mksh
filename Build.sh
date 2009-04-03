@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.378 2009/03/29 17:50:45 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.379 2009/04/03 09:39:01 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1068,6 +1068,15 @@ ac_testn flock_ex '' 'flock and mmap' <<-'EOF'
 	#include <stdlib.h>
 	int main(void) { return ((void *)mmap(NULL, flock(0, LOCK_EX),
 	    PROT_READ, MAP_PRIVATE, 0, 0) == (void *)NULL ? 1 : 0); }
+EOF
+
+ac_test getrusage <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	int main(void) {
+		struct rusage ru;
+		return (getrusage(RUSAGE_SELF + RUSAGE_CHILDREN, &ru));
+	}
 EOF
 
 ac_test mknod '' 'if to use mknod(), makedev() and friends' <<-'EOF'

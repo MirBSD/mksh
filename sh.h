@@ -102,13 +102,27 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.286 2009/03/25 21:45:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.287 2009/04/03 09:39:07 tg Exp $");
 #endif
-#define MKSH_VERSION "R37 2009/03/25"
+#define MKSH_VERSION "R37 2009/04/03"
 
 #ifndef MKSH_INCLUDES_ONLY
 
 /* extra types */
+
+#if !HAVE_GETRUSAGE
+#undef rusage
+#undef RUSAGE_SELF
+#undef RUSAGE_CHILDREN
+#define rusage mksh_rusage
+#define RUSAGE_SELF	0
+#define RUSAGE_CHILDREN	-1
+
+struct rusage {
+	struct timeval ru_utime;
+	struct timeval ru_stime;
+};
+#endif
 
 #if !HAVE_RLIM_T
 typedef long rlim_t;
@@ -214,6 +228,10 @@ extern uint32_t arc4random_pushb(void *, size_t);
 
 #if !HAVE_FLOCK_DECL
 extern int flock(int, int);
+#endif
+
+#if !HAVE_GETRUSAGE
+extern int getrusage(int, struct rusage *);
 #endif
 
 #if !HAVE_REVOKE_DECL

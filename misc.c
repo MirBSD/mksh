@@ -2,11 +2,14 @@
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
 #include "sh.h"
+#if !HAVE_GETRUSAGE
+#include <sys/times.h>
+#endif
 #if HAVE_GRP_H
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.99 2009/03/22 18:09:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.100 2009/04/03 09:39:06 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -1463,5 +1466,39 @@ char *
 strdup_(const char *src, Area *ap)
 {
 	return (src == NULL ? NULL : strndup_(src, strlen(src), ap));
+}
+#endif
+
+#if !HAVE_GETRUSAGE
+#define INVTCK(r,t)	do {						\
+	r.tv_usec = ((t) % (1000000 / CLK_TCK)) * (1000000 / CLK_TCK);	\
+	r.tv_sec = (t) / CLK_TCK;					\
+} while (/* CONSTCOND */ 0)
+
+int
+getrusage(int what, struct rusage *ru)
+{
+	struct tms tms;
+	clock_t u, s;
+
+	if (/* ru == NULL || */ times(&tms) == (clock_t)-1)
+		return (-1);
+
+	switch (what) {
+	case RUSAGE_SELF:
+		u = tms.tms_utime;
+		s = tms.tms_stime;
+		break;
+	case RUSAGE_CHILDREN:
+		u = tms.tms_cutime;
+		s = tms.tms_cstime;
+		break;
+	default:
+		errno = EINVAL;
+		return (-1);
+	}
+	INVTCK(r->ru_utime, u);
+	INVTCK(r->ru_stime, s);
+	return (0);
 }
 #endif

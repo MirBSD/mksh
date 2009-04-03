@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.100 2009/03/22 18:28:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.101 2009/04/03 09:39:05 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -2184,17 +2184,13 @@ c_times(const char **wp __unused)
 {
 	struct rusage usage;
 
-#ifdef RUSAGE_SELF
-	(void) getrusage(RUSAGE_SELF, &usage);
+	getrusage(RUSAGE_SELF, &usage);
 	p_time(shl_stdout, 0, &usage.ru_utime, 0, NULL, " ");
 	p_time(shl_stdout, 0, &usage.ru_stime, 0, NULL, "\n");
-#endif
 
-#ifdef RUSAGE_CHILDREN
-	(void) getrusage(RUSAGE_CHILDREN, &usage);
+	getrusage(RUSAGE_CHILDREN, &usage);
 	p_time(shl_stdout, 0, &usage.ru_utime, 0, NULL, " ");
 	p_time(shl_stdout, 0, &usage.ru_stime, 0, NULL, "\n");
-#endif
 
 	return 0;
 }
@@ -2208,9 +2204,6 @@ timex(struct op *t, int f, volatile int *xerrok)
 #define TF_NOARGS	BIT(0)
 #define TF_NOREAL	BIT(1)		/* don't report real time */
 #define TF_POSIX	BIT(2)		/* report in posix format */
-#if !defined(RUSAGE_SELF) || !defined(RUSAGE_CHILDREN)
-	return (0);
-#else
 	int rv = 0, tf = 0;
 	struct rusage ru0, ru1, cru0, cru1;
 	struct timeval usrtime, systime, tv0, tv1;
@@ -2267,7 +2260,6 @@ timex(struct op *t, int f, volatile int *xerrok)
 	shf_flush(shl_out);
 
 	return (rv);
-#endif
 }
 
 void
