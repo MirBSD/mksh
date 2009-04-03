@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.381 2009/04/03 09:45:22 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.382 2009/04/03 10:56:32 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1073,7 +1073,8 @@ ac_testn flock_ex '' 'flock and mmap' <<-'EOF'
 	#include <fcntl.h>
 	#include <stdlib.h>
 	int main(void) { return ((void *)mmap(NULL, flock(0, LOCK_EX),
-	    PROT_READ, MAP_PRIVATE, 0, 0) == (void *)NULL ? 1 : 0); }
+	    PROT_READ, MAP_PRIVATE, 0, 0) == (void *)NULL ? 1 :
+	    munmap(NULL, 0)); }
 EOF
 
 ac_test getrusage <<-'EOF'
