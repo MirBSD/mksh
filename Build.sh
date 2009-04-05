@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.382 2009/04/03 10:56:32 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.383 2009/04/05 12:21:14 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -346,7 +346,7 @@ Plan9)
 	CPPFLAGS="$CPPFLAGS -D_POSIX_SOURCE -D_LIMITS_EXTENSION"
 	CPPFLAGS="$CPPFLAGS -D_BSD_EXTENSION -D_SUSV2_SOURCE"
 	warn=' and will currently not work'
-	CPPFLAGS="$CPPFLAGS -DMKSH_ASSUME_UTF8"
+	CPPFLAGS="$CPPFLAGS -DMKSH_ASSUME_UTF8 -DMKSH_UNEMPLOYED"
 	;;
 PW32*)
 	HAVE_SIG_T=0	# incompatible
