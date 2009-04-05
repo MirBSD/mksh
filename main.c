@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.123 2009/04/05 11:44:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.124 2009/04/05 12:35:31 tg Exp $");
 
 extern char **environ;
 
@@ -40,8 +40,11 @@ static const char *initcoms[] = {
 	"alias",
 	"hash=alias -t",	/* not "alias -t --": hash -r needs to work */
 	"type=whence -v",
+#ifndef notyet_MKSH_UNEMPLOYED
+	/* the alias list must be constant, for the regression test suite */
 	"stop=kill -STOP",
 	"suspend=kill -STOP $$",
+#endif
 	"autoload=typeset -fu",
 	"functions=typeset -f",
 	"history=fc -l",
@@ -309,10 +312,8 @@ main(int argc, const char *argv[])
 		reset_nonblock(0);
 
 	/* initialise job control */
-	i = Flag(FMONITOR) != 127;
-	Flag(FMONITOR) = 0;
-	j_init(i);
-	/* Do this after j_init(), as tty_fd is not initialised 'til then */
+	j_init();
+	/* Do this after j_init(), as tty_fd is not initialised until then */
 	if (Flag(FTALKING)) {
 #ifndef MKSH_ASSUME_UTF8
 #define isuc(x)	(((x) != NULL) && \

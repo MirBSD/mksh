@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.383 2009/04/05 12:21:14 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.384 2009/04/05 12:35:28 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -324,9 +324,9 @@ MidnightBSD)
 Minix)
 	CPPFLAGS="$CPPFLAGS -D_POSIX_SOURCE -D_POSIX_1_SOURCE=2"
 	CPPFLAGS="$CPPFLAGS -DMKSH_UNEMPLOYED -D_MINIX"
-	warn=' and will currently not work'
-#	warn=" but might work with the GNU tools"
-#	warn="$warn${nl}but not with ACK - /usr/bin/cc - yet)"
+	warn=" but will probably work with GCC"
+	warn="$warn${nl}but not with ACK - /usr/bin/cc - yet)"
+	oldish_ed=no-stderr-ed		# /usr/bin/ed(!) is broken
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 MirBSD)

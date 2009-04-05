@@ -9,7 +9,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.101 2009/04/03 10:54:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.102 2009/04/05 12:35:32 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -100,13 +100,19 @@ const struct shoption options[] = {
 	{ "keyword",	'k',		OF_ANY },
 	{ "login",	'l',	    OF_CMDLINE },
 	{ "markdirs",	'X',		OF_ANY },
+#ifndef MKSH_UNEMPLOYED
 	{ "monitor",	'm',		OF_ANY },
+#else
+	{ NULL,		'm',		0      }, /* needed */
+#endif
 	{ "noclobber",	'C',		OF_ANY },
 	{ "noexec",	'n',		OF_ANY },
 	{ "noglob",	'f',		OF_ANY },
 	{ "nohup",	  0,		OF_ANY },
 	{ "nolog",	  0,		OF_ANY }, /* no effect */
+#ifndef MKSH_UNEMPLOYED
 	{ "notify",	'b',		OF_ANY },
+#endif
 	{ "nounset",	'u',		OF_ANY },
 	{ "physical",	  0,		OF_ANY }, /* non-standard */
 	{ "posix",	  0,		OF_ANY }, /* non-standard */
@@ -219,10 +225,13 @@ change_flag(enum sh_flag f,
 
 	oldval = Flag(f);
 	Flag(f) = newval ? 1 : 0;	/* needed for tristates */
+#ifndef MKSH_UNEMPLOYED
 	if (f == FMONITOR) {
 		if (what != OF_CMDLINE && newval != oldval)
 			j_change();
-	} else if ((
+	} else
+#endif
+	  if ((
 #ifndef MKSH_NOVI
 	    f == FVI ||
 #endif

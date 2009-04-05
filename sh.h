@@ -102,9 +102,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.287 2009/04/03 09:39:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.288 2009/04/05 12:35:32 tg Exp $");
 #endif
-#define MKSH_VERSION "R37 2009/04/03"
+#define MKSH_VERSION "R37 2009/04/05"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -512,7 +512,9 @@ enum sh_flag {
 	FNOGLOB,	/* -f: don't do file globbing */
 	FNOHUP,		/* -H: don't kill running jobs when login shell exits */
 	FNOLOG,		/* don't save functions in history (ignored) */
+#ifndef MKSH_UNEMPLOYED
 	FNOTIFY,	/* -b: asynchronous job completion notification */
+#endif
 	FNOUNSET,	/* -u: using an unset var is an error */
 	FPHYSICAL,	/* -o physical: don't do logical cds/pwds */
 	FPOSIX,		/* -o posix (try to be more compatible) */
@@ -1333,7 +1335,9 @@ int c_alias(const char **);
 int c_unalias(const char **);
 int c_let(const char **);
 int c_jobs(const char **);
+#ifndef MKSH_UNEMPLOYED
 int c_fgbg(const char **);
+#endif
 int c_kill(const char **);
 void getopts_reset(int);
 int c_getopts(const char **);
@@ -1398,15 +1402,19 @@ void restore_pipe(int);
 int setsig(Trap *, sig_t, int);
 void setexecsig(Trap *, int);
 /* jobs.c */
-void j_init(int);
+void j_init(void);
 void j_exit(void);
+#ifndef MKSH_UNEMPLOYED
 void j_change(void);
+#endif
 int exchild(struct op *, int, volatile int *, int);
 void startlast(void);
 int waitlast(void);
 int waitfor(const char *, int *);
 int j_kill(const char *, int);
+#ifndef MKSH_UNEMPLOYED
 int j_resume(const char *, int);
+#endif
 int j_jobs(const char *, int, int);
 int j_njobs(void);
 void j_notify(void);

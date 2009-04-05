@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.102 2009/04/03 09:45:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.103 2009/04/05 12:35:30 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -51,8 +51,10 @@ const struct builtin mkshbuiltins[] = {
 	{"=typeset", c_typeset},
 	{"+unalias", c_unalias},
 	{"whence", c_whence},
+#ifndef MKSH_UNEMPLOYED
 	{"+bg", c_fgbg},
 	{"+fg", c_fgbg},
+#endif
 	{"bind", c_bind},
 #if HAVE_MKNOD
 	{"mknod", c_mknod},
@@ -1238,6 +1240,7 @@ c_jobs(const char **wp)
 	return rv;
 }
 
+#ifndef MKSH_UNEMPLOYED
 int
 c_fgbg(const char **wp)
 {
@@ -1258,6 +1261,7 @@ c_fgbg(const char **wp)
 		rv = j_resume("%%", bg);
 	return bg ? 0 : rv;
 }
+#endif
 
 /* format a single kill item */
 static char *
