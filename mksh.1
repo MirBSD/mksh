@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.154 2009/03/23 12:21:02 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.155 2009/04/05 12:45:25 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.128 2009/03/06 12:28:36 jmc Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -30,7 +30,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: March 23 2009 $
+.Dd $Mdocdate: April 5 2009 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -2648,7 +2648,7 @@ flag is given, the specified input
 .Ar string
 will afterwards be immediately replaced by the given
 .Ar substitute
-string which may contain editing commands.
+string which may contain editing commands but not other macros.
 If a tilde postfix is given, a tilde trailing the one or
 two prefices and the control character is ignored, any
 other trailing character will be processed afterwards.
@@ -2662,6 +2662,7 @@ The following default bindings show how the arrow keys, the home, end and
 delete key on a BSD wsvt25, xterm-xfree86 or GNU screen terminal are bound
 (of course some escape sequences won't work out quite this nicely):
 .Bd -literal -offset indent
+bind \*(aq\*(haX\*(aq=prefix\-2
 bind \*(aq\*(ha[[\*(aq=prefix\-2
 bind \*(aq\*(haXA\*(aq=up\-history
 bind \*(aq\*(haXB\*(aq=down\-history
@@ -5587,7 +5588,7 @@ and many other persons, and is currently maintained by
 .An Thorsten Glaser Aq tg@mirbsd.de .
 .Sh BUGS
 This document attempts to describe
-.Nm mksh\ R37
+.Nm mksh\ R37b
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
