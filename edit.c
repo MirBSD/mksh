@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.157 2009/04/05 11:18:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.158 2009/04/05 12:28:55 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1430,6 +1430,10 @@ x_emacs(char *buf, size_t len)
 			if ((i = x_e_getc()) != '~')
 				x_e_ungetc(i);
 		}
+
+		/* avoid bind key macro recursion */
+		if (macroptr && f == XFUNC_ins_string)
+			f = XFUNC_insert;
 
 		if (!(x_ftab[f].xf_flags & XF_PREFIX) &&
 		    x_last_command != XFUNC_set_arg) {
@@ -2892,14 +2896,16 @@ x_e_getc(void)
 	if (unget_char >= 0) {
 		c = unget_char;
 		unget_char = -1;
-	} else if (macroptr) {
-		c = (unsigned char)*macroptr++;
-		if (!*macroptr)
-			macroptr = NULL;
-	} else
-		c = x_getc();
+		return (c);
+	}
 
-	return (c);
+	if (macroptr) {
+		if ((c = (unsigned char)*macroptr++))
+			return (c);
+		macroptr = NULL;
+	}
+
+	return (x_getc());
 }
 
 static void
