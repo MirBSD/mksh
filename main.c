@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.122 2009/03/22 17:47:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.123 2009/04/05 11:44:56 tg Exp $");
 
 extern char **environ;
 
@@ -272,6 +272,11 @@ main(int argc, const char *argv[])
 		s = pushs(SSTRING, ATEMP);
 		if (!(s->start = s->str = argv[argi++]))
 			errorf("-c requires an argument");
+#if 0
+		/* compatibility to MidnightBSD 0.1 /bin/sh (not desired) */
+		if (argv[argi] && !strcmp(argv[argi], "--"))
+			++argi;
+#endif
 		if (argv[argi])
 			kshname = argv[argi++];
 	} else if (argi < argc && !Flag(FSTDIN)) {
