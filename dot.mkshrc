@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.40 2008/12/29 21:34:19 tg Rel $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.41 2009/04/05 12:42:34 tg Rel $
 #-
 # ~/.mkshrc: mksh initialisation file for interactive shells
 
@@ -6,7 +6,7 @@
 [[ $HOSTNAME = @(localhost|*([	 ])) ]] && HOSTNAME=$(ulimit -c 0;hostname 2>&-)
 : ${HOSTNAME:=nil}; if (( USER_ID )); then PS1='$'; else PS1='#'; fi
 function precmd {
-	typeset -i e=$?
+	typeset e=$?
 
 	(( e )) && print -n "$e|"
 }
@@ -193,4 +193,4 @@ function Lstripcom {
 	done; }
 }
 
-: place customsations above this line!
+: place customsations above this line
