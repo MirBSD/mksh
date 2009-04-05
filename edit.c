@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.156 2009/03/17 13:56:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.157 2009/04/05 11:18:34 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1008,7 +1008,7 @@ static unsigned char x_bound[(X_TABSZ * X_NTABS + 7) / 8];
 static char *killstack[KILLSIZE];
 static int killsp, killtp;
 static int x_curprefix;
-static char *macroptr;
+static char *macroptr = NULL;
 #ifndef MKSH_NOVI
 static int cur_col;		/* current column on line */
 static int pwidth;		/* width of prompt */
@@ -1406,7 +1406,6 @@ x_emacs(char *buf, size_t len)
 	xlp_valid = true;
 	xmp = NULL;
 	x_curprefix = 0;
-	macroptr = NULL;
 	x_histp = histptr + 1;
 	x_last_command = XFUNC_error;
 
