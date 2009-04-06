@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.268 2009/04/05 12:35:29 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.269 2009/04/06 08:33:36 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -5420,7 +5420,7 @@ expected-stdout:
 name: mkshiop-1
 description:
 	Check for support of more than 9 file descriptors
-category: !smksh
+category: !convfds
 stdin:
 	read -u10 foo 10<<< bar
 	print x$foo
@@ -5430,7 +5430,7 @@ expected-stdout:
 name: mkshiop-2
 description:
 	Check for support of more than 9 file descriptors
-category: !smksh
+category: !convfds
 stdin:
 	exec 12>foo
 	print -u12 bar

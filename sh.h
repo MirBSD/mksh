@@ -102,7 +102,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.288 2009/04/05 12:35:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.289 2009/04/06 08:33:37 tg Exp $");
 #endif
 #define MKSH_VERSION "R37 2009/04/05"
 
@@ -285,7 +285,7 @@ typedef int32_t mksh_ari_t;
 typedef uint32_t mksh_uari_t;
 
 /* these shall be smaller than 100 */
-#ifdef MKSH_SMALL
+#if defined(MKSH_SMALL) || defined(MKSH_CONSERVATIVE_FDS)
 #define NUFILE		32	/* Number of user-accessible files */
 #define FDBASE		10	/* First file usable by Shell */
 #else

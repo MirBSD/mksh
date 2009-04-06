@@ -1,9 +1,10 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.387 2009/04/06 08:29:21 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.388 2009/04/06 08:33:36 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
 #			MKSH_CLS_STRING MKSH_BINSHREDUCED MKSH_UNEMPLOYED
+#			MKSH_CONSERVATIVE_FDS
 
 LC_ALL=C
 export LC_ALL
@@ -322,8 +323,8 @@ Linux)
 MidnightBSD)
 	;;
 Minix)
-	CPPFLAGS="$CPPFLAGS -D_POSIX_SOURCE -D_POSIX_1_SOURCE=2"
-	CPPFLAGS="$CPPFLAGS -DMKSH_UNEMPLOYED -D_MINIX"
+	CPPFLAGS="$CPPFLAGS -DMKSH_UNEMPLOYED -DMKSH_CONSERVATIVE_FDS"
+	CPPFLAGS="$CPPFLAGS -D_POSIX_SOURCE -D_POSIX_1_SOURCE=2 -D_MINIX"
 	warn=" but will probably work with GCC"
 	warn="$warn${nl}but not with ACK - /usr/bin/cc - yet)"
 	oldish_ed=no-stderr-ed		# /usr/bin/ed(!) is broken
@@ -386,6 +387,11 @@ esac
 case " $CPPFLAGS " in
 *\ -DMKSH_ASSUME_UTF8\ *|*\ -DMKSH_ASSUME_UTF8=*)
 	: ${HAVE_SETLOCALE_CTYPE=0}
+	;;
+esac
+case " $CPPFLAGS " in
+*\ -DMKSH_CONSERVATIVE_FDS\ *|*\ -DMKSH_CONSERVATIVE_FDS=*)
+	check_categories=$check_categories,convfds
 	;;
 esac
 
@@ -887,6 +893,7 @@ if test 0 = $HAVE_MKSH_FULL; then
 
 	: ${HAVE_MKNOD=0}
 	check_categories=$check_categories,smksh
+	check_categories=$check_categories,convfds
 fi
 if test 1 = $HAVE_MKSH_REDUCED; then
 	check_categories=$check_categories,binsh
