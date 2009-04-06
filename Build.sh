@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.388 2009/04/06 08:33:36 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.389 2009/04/06 08:37:42 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -325,8 +325,6 @@ MidnightBSD)
 Minix)
 	CPPFLAGS="$CPPFLAGS -DMKSH_UNEMPLOYED -DMKSH_CONSERVATIVE_FDS"
 	CPPFLAGS="$CPPFLAGS -D_POSIX_SOURCE -D_POSIX_1_SOURCE=2 -D_MINIX"
-	warn=" but will probably work with GCC"
-	warn="$warn${nl}but not with ACK - /usr/bin/cc - yet)"
 	oldish_ed=no-stderr-ed		# /usr/bin/ed(!) is broken
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
@@ -504,7 +502,8 @@ rm -f x
 echo 'int main(void) { return (0); }' >scn.c
 case $ct in
 ack)
-	echo >&2 'Warning: the Amsterdam Compiler Kit is buggy.'
+	# work around “the famous ACK const bug”
+	CPPFLAGS="-Dconst= $CPPFLAGS"
 	;;
 adsp)
 	echo >&2 'Warning: Analog Devices C++ compiler for Blackfin, TigerSHARC
