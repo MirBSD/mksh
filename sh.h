@@ -102,7 +102,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.291 2009/04/07 18:46:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.292 2009/04/07 18:56:51 tg Exp $");
 #endif
 #define MKSH_VERSION "R37 2009/04/05"
 
@@ -423,9 +423,19 @@ char *ucstrstr(char *, const char *);
 /*
  * simple grouping allocator
  */
-typedef struct lalloc {
+
+/* 1. internal structure */
+struct lalloc {
 	struct lalloc *next;
-} Area;
+};
+
+/* 2. sizes */
+#define ALLOC_ITEM	struct lalloc
+#define ALLOC_SIZE	(sizeof (ALLOC_ITEM))
+
+/* 3. group structure (only the same for lalloc.c) */
+typedef struct lalloc Area;
+
 
 EXTERN Area aperm;		/* permanent object space */
 #define APERM	&aperm
