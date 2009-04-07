@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.80 2009/03/15 18:30:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.81 2009/04/07 19:06:43 tg Exp $");
 
 /*
  * states while lexing word
@@ -84,14 +84,14 @@ struct State_info {
 	Lex_state *end;
 };
 
-static void	readhere(struct ioword *);
-static int	getsc__(void);
-static void	getsc_line(Source *);
-static int	getsc_bn(void);
-static char	*get_brace_var(XString *, char *);
-static int	arraysub(char **);
+static void readhere(struct ioword *);
+static int getsc__(void);
+static void getsc_line(Source *);
+static int getsc_bn(void);
+static char *get_brace_var(XString *, char *);
+static int arraysub(char **);
 static const char *ungetsc(int);
-static void	gethere(bool);
+static void gethere(bool);
 static Lex_state *push_state_(State_info *, Lex_state *);
 static Lex_state *pop_state_(State_info *, Lex_state *);
 

@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.32 2008/12/13 17:02:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.33 2009/04/07 19:06:43 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -44,10 +44,10 @@ static struct nesting_state nesting;	/* \n changed to ; */
 static int reject;		/* token(cf) gets symbol again */
 static int symbol;		/* yylex value */
 
-#define	REJECT		(reject = 1)
-#define	ACCEPT		(reject = 0)
-#define	token(cf)	((reject) ? (ACCEPT, symbol) : (symbol = yylex(cf)))
-#define	tpeek(cf)	((reject) ? (symbol) : (REJECT, symbol = yylex(cf)))
+#define REJECT		(reject = 1)
+#define ACCEPT		(reject = 0)
+#define token(cf)	((reject) ? (ACCEPT, symbol) : (symbol = yylex(cf)))
+#define tpeek(cf)	((reject) ? (symbol) : (REJECT, symbol = yylex(cf)))
 #define musthave(c,cf)	do { if (token(cf) != (c)) syntaxerr(NULL); } while (0)
 
 static void

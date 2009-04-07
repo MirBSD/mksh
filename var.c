@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.69 2009/03/14 18:12:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.70 2009/04/07 19:06:44 tg Exp $");
 
 /*
  * Variables
@@ -15,13 +15,13 @@ __RCSID("$MirOS: src/bin/mksh/var.c,v 1.69 2009/03/14 18:12:55 tg Exp $");
  */
 static struct tbl vtemp;
 static struct table specials;
-static char	*formatstr(struct tbl *, const char *);
-static void	export(struct tbl *, const char *);
-static int	special(const char *);
-static void	unspecial(const char *);
-static void	getspec(struct tbl *);
-static void	setspec(struct tbl *);
-static void	unsetspec(struct tbl *);
+static char *formatstr(struct tbl *, const char *);
+static void export(struct tbl *, const char *);
+static int special(const char *);
+static void unspecial(const char *);
+static void getspec(struct tbl *);
+static void setspec(struct tbl *);
+static void unsetspec(struct tbl *);
 static struct tbl *arraysearch(struct tbl *, uint32_t);
 static const char *array_index_calc(const char *, bool *, uint32_t *);
 static int rnd_get(void);
