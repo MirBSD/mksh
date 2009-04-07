@@ -19,21 +19,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/strlcpy.c,v 1.3 2008/07/07 12:59:54 tg Stab $");
-__RCSID("$miros: src/lib/libc/string/strlfun.c,v 1.16 2008/07/07 12:59:51 tg Stab $");
-
-#ifndef __predict_true
-#define __predict_true(exp)	((exp) != 0)
-#endif
-#ifndef __predict_false
-#define __predict_false(exp)	((exp) != 0)
-#endif
-
-/* (multibyte) string functions */
-#undef NUL
-#undef char_t
-#define NUL		'\0'
-#define char_t		char
+__RCSID("$MirOS: src/bin/mksh/strlcpy.c,v 1.4 2009/04/07 19:15:48 tg Stab $");
 
 /*
  * Copy src to string dst of size siz.  At most siz-1 characters
@@ -41,11 +27,11 @@ __RCSID("$miros: src/lib/libc/string/strlfun.c,v 1.16 2008/07/07 12:59:51 tg Sta
  * Returns strlen(src); if retval >= siz, truncation occurred.
  */
 size_t
-strlcpy(char_t *dst, const char_t *src, size_t siz)
+strlcpy(char *dst, const char *src, size_t siz)
 {
-	const char_t *s = src;
+	const char *s = src;
 
-	if (__predict_false(siz == 0))
+	if (siz == 0)
 		goto traverse_src;
 
 	/* copy as many chars as will fit */
@@ -53,9 +39,9 @@ strlcpy(char_t *dst, const char_t *src, size_t siz)
 		;
 
 	/* not enough room in dst */
-	if (__predict_false(siz == 0)) {
+	if (siz == 0) {
 		/* safe to NUL-terminate dst since we copied <= siz-1 chars */
-		*dst = NUL;
+		*dst = '\0';
  traverse_src:
 		/* traverse rest of src */
 		while (*s++)
