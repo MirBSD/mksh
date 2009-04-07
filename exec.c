@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.53 2009/03/22 18:28:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.54 2009/04/07 19:13:09 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile, volatile int *);
@@ -811,13 +811,13 @@ int
 define(const char *name, struct op *t)
 {
 	struct tbl *tp;
-	int was_set = 0;
+	bool was_set = false;
 
 	while (1) {
 		tp = findfunc(name, hash(name), true);
 
 		if (tp->flag & ISSET)
-			was_set = 1;
+			was_set = true;
 		/* If this function is currently being executed, we zap this
 		 * table entry so findfunc() won't see it
 		 */
@@ -836,7 +836,7 @@ define(const char *name, struct op *t)
 
 	if (t == NULL) {		/* undefine */
 		ktdelete(tp);
-		return was_set ? 0 : 1;
+		return (was_set ? 0 : 1);
 	}
 
 	tp->val.t = tcopy(t->left, tp->areap);

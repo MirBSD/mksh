@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.81 2009/04/07 19:06:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.82 2009/04/07 19:13:10 tg Exp $");
 
 /*
  * states while lexing word
@@ -78,11 +78,10 @@ struct lex_state {
 	} ls_info;
 };
 
-typedef struct State_info State_info;
-struct State_info {
+typedef struct {
 	Lex_state *base;
 	Lex_state *end;
-};
+} State_info;
 
 static void readhere(struct ioword *);
 static int getsc__(void);

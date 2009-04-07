@@ -2,11 +2,11 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.24 2008/12/13 17:02:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.25 2009/04/07 19:13:11 tg Exp $");
 
 #define INDENT	4
 
-#define tputc(c, shf)	shf_putchar(c, shf);
+#define tputc(c, shf) shf_putchar(c, shf);
 static void ptree(struct op *, int, struct shf *);
 static void pioact(struct shf *, int, struct ioword *);
 static void tputC(int, struct shf *);
@@ -252,7 +252,8 @@ tputC(int c, struct shf *shf)
 static void
 tputS(char *wp, struct shf *shf)
 {
-	int c, quoted=0;
+	int c;
+	bool quoted = false;
 
 	/* problems:
 	 *	`...` -> $(...)
@@ -290,11 +291,11 @@ tputS(char *wp, struct shf *shf)
 			wp++;
 			break;
 		case OQUOTE:
-			quoted = 1;
+			quoted = true;
 			tputc('"', shf);
 			break;
 		case CQUOTE:
-			quoted = 0;
+			quoted = false;
 			tputc('"', shf);
 			break;
 		case OSUBST:

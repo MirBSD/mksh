@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.33 2009/04/07 19:06:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.34 2009/04/07 19:13:11 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -107,8 +107,7 @@ static struct op *
 c_list(int multi)
 {
 	struct op *t = NULL, *p, *tl = NULL;
-	int c;
-	int have_sep;
+	int c, have_sep;
 
 	while (1) {
 		p = andor();
@@ -145,7 +144,7 @@ synio(int cf)
 {
 	struct ioword *iop;
 	static struct ioword *nextiop = NULL;
-	int ishere;
+	bool ishere;
 
 	if (nextiop != NULL) {
 		iop = nextiop;
@@ -581,7 +580,7 @@ function_body(char *name,
 {
 	char *sname, *p;
 	struct op *t;
-	int old_func_parse;
+	bool old_func_parse;
 
 	sname = wdstrip(name, false, false);
 	/* Check for valid characters in name.  posix and ksh93 say only
