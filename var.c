@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.70 2009/04/07 19:06:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.71 2009/04/07 19:27:49 tg Exp $");
 
 /*
  * Variables
@@ -857,11 +857,11 @@ char **
 makenv(void)
 {
 	struct block *l;
-	XPtrV env;
+	XPtrV denv;
 	struct tbl *vp, **vpp;
 	int i;
 
-	XPinit(env, 64);
+	XPinit(denv, 64);
 	for (l = e->loc; l != NULL; l = l->next)
 		for (vpp = l->vars.tbls, i = l->vars.size; --i >= 0; )
 			if ((vp = *vpp++) != NULL &&
@@ -884,10 +884,10 @@ makenv(void)
 					/* setstr can't fail here */
 					setstr(vp, val, KSH_RETURN_ERROR);
 				}
-				XPput(env, vp->val.s);
+				XPput(denv, vp->val.s);
 			}
-	XPput(env, NULL);
-	return (char **) XPclose(env);
+	XPput(denv, NULL);
+	return ((char **)XPclose(denv));
 }
 
 /*
