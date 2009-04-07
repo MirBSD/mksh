@@ -9,7 +9,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.102 2009/04/05 12:35:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.103 2009/04/07 19:51:47 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -1108,19 +1108,18 @@ make_path(const char *cwd, const char *file,
     XString *xsp,
     int *phys_pathp)
 {
-	int	rval = 0;
-	int	use_cdpath = 1;
-	char	*plist;
-	int	len;
-	int	plen = 0;
-	char	*xp = Xstring(*xsp, xp);
+	int rval = 0;
+	bool use_cdpath = true;
+	char *plist;
+	int len, plen = 0;
+	char *xp = Xstring(*xsp, xp);
 
 	if (!file)
 		file = null;
 
 	if (file[0] == '/') {
 		*phys_pathp = 0;
-		use_cdpath = 0;
+		use_cdpath = false;
 	} else {
 		if (file[0] == '.') {
 			char c = file[1];
@@ -1128,12 +1127,12 @@ make_path(const char *cwd, const char *file,
 			if (c == '.')
 				c = file[2];
 			if (c == '/' || c == '\0')
-				use_cdpath = 0;
+				use_cdpath = false;
 		}
 
 		plist = *cdpathp;
 		if (!plist)
-			use_cdpath = 0;
+			use_cdpath = false;
 		else if (use_cdpath) {
 			char *pend;
 
@@ -1143,7 +1142,7 @@ make_path(const char *cwd, const char *file,
 			*cdpathp = *pend ? pend + 1 : NULL;
 		}
 
-		if ((use_cdpath == 0 || !plen || plist[0] != '/') &&
+		if ((!use_cdpath || !plen || plist[0] != '/') &&
 		    (cwd && *cwd)) {
 			len = strlen(cwd);
 			XcheckN(*xsp, xp, len);
@@ -1180,11 +1179,9 @@ make_path(const char *cwd, const char *file,
 void
 simplify_path(char *pathl)
 {
-	char	*cur;
-	char	*t;
-	int	isrooted;
-	char	*very_start = pathl;
-	char	*start;
+	char *cur, *t;
+	bool isrooted;
+	char *very_start = pathl, *start;
 
 	if (!*pathl)
 		return;

@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.103 2009/04/05 12:35:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.104 2009/04/07 19:51:46 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -72,8 +72,8 @@ struct kill_info {
 };
 
 static const struct t_op {
-	char	op_text[4];
-	Test_op	op_num;
+	char op_text[4];
+	Test_op op_num;
 } u_ops[] = {
 	{"-a",	TO_FILAXST },
 	{"-b",	TO_FILBDEV },
@@ -2467,7 +2467,7 @@ c_test(const char **wp)
 	if (argc <= 5) {
 		const char **owp = wp;
 		int invert = 0;
-		Test_op	op;
+		Test_op op;
 		const char *opnd1, *opnd2;
 
 		while (--argc >= 0) {
