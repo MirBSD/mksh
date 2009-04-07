@@ -6,7 +6,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.77 2009/02/20 13:25:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.78 2009/04/07 18:41:35 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -980,8 +980,8 @@ sprinkle(int fd)
 
 #if !HAVE_SYS_SIGNAME
 static const struct mksh_sigpair {
-	int nr;
 	const char *const name;
+	int nr;
 } mksh_sigpairs[] = {
 #include "signames.inc"
 	{ 0, NULL }

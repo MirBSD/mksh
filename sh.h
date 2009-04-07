@@ -102,7 +102,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.289 2009/04/06 08:33:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.290 2009/04/07 18:41:37 tg Exp $");
 #endif
 #define MKSH_VERSION "R37 2009/04/05"
 
@@ -554,9 +554,9 @@ typedef enum temp_type Temp_type;
 struct temp {
 	struct temp *next;
 	struct shf *shf;
+	char *name;
 	int pid;	/* pid of process parsed here-doc */
 	Temp_type type;
-	char *name;
 };
 
 /*
@@ -572,14 +572,14 @@ EXTERN int shl_stdout_ok;
  * trap handlers
  */
 typedef struct trap {
-	int signal;		/* signal number */
 	const char *name;	/* short name */
 	const char *mess;	/* descriptive name */
 	char *trap;		/* trap command */
-	volatile sig_atomic_t set; /* trap pending */
-	int flags;		/* TF_* */
 	sig_t cursig;		/* current handler (valid if TF_ORIG_* set) */
 	sig_t shtrap;		/* shell signal handler */
+	int signal;		/* signal number */
+	int flags;		/* TF_* */
+	volatile sig_atomic_t set; /* trap pending */
 } Trap;
 
 /* values for Trap.flags */
@@ -663,9 +663,9 @@ EXTERN int ifs0 I__(' ');	/* for "$*" */
 #define GI_MINUSMINUS	BIT(2)	/* arguments were ended with -- */
 
 typedef struct {
+	const char	*optarg;
 	int		optind;
 	int		uoptind;/* what user sees in $OPTIND */
-	const char	*optarg;
 	int		flags;	/* see GF_* */
 	int		info;	/* see GI_* */
 	unsigned int	p;	/* 0 or index into argv[optind - 1] */
@@ -679,12 +679,12 @@ EXTERN Getopt user_opt;		/* parsing state for getopts builtin command */
 
 typedef int32_t Coproc_id; /* something that won't (realisticly) wrap */
 struct coproc {
+	void *job;	/* 0 or job of co-process using input pipe */
 	int read;	/* pipe from co-process's stdout */
 	int readw;	/* other side of read (saved temporarily) */
 	int write;	/* pipe to co-process's stdin */
-	Coproc_id id;	/* id of current output pipe */
 	int njobs;	/* number of live jobs using output pipe */
-	void *job;	/* 0 or job of co-process using input pipe */
+	Coproc_id id;	/* id of current output pipe */
 };
 EXTERN struct coproc coproc;
 
@@ -770,18 +770,18 @@ int shf_putc(int, struct shf *);
 
 
 struct shf {
-	int flags;		/* see SHF_* */
+	Area *areap;		/* area shf/buf were allocated in */
 	unsigned char *rp;	/* read: current position in buffer */
+	unsigned char *wp;	/* write: current position in buffer */
+	unsigned char *buf;	/* buffer */
+	int flags;		/* see SHF_* */
 	int rbsize;		/* size of buffer (1 if SHF_UNBUF) */
 	int rnleft;		/* read: how much data left in buffer */
-	unsigned char *wp;	/* write: current position in buffer */
 	int wbsize;		/* size of buffer (0 if SHF_UNBUF) */
 	int wnleft;		/* write: how much space left in buffer */
-	unsigned char *buf;	/* buffer */
 	int fd;			/* file descriptor */
 	int errno_;		/* saved value of errno after error */
 	int bsize;		/* actual size of buf */
-	Area *areap;		/* area shf/buf were allocated in */
 };
 
 extern struct shf shf_iob[];
@@ -879,8 +879,8 @@ struct tbl {			/* table item */
 
 /* Argument info. Used for $#, $* for shell, functions, includes, etc. */
 struct arg_info {
-	int flags;	/* AF_* */
 	const char **argv;
+	int flags;	/* AF_* */
 	int argc_;
 	int skip;	/* first arg is argv[0], second is argv[1 + skip] */
 };
@@ -891,14 +891,14 @@ struct arg_info {
 struct block {
 	Area area;		/* area to allocate things */
 	const char **argv;
-	int argc;
-	int flags;		/* see BF_* */
-	struct table vars;	/* local variables */
-	struct table funs;	/* local functions */
-	Getopt getopts_state;
 	char *error;		/* error handler */
 	char *exit;		/* exit handler */
 	struct block *next;	/* enclosing block */
+	struct table vars;	/* local variables */
+	struct table funs;	/* local functions */
+	Getopt getopts_state;
+	int argc;
+	int flags;		/* see BF_* */
 };
 
 /* Values for struct block.flags */
@@ -908,8 +908,8 @@ struct block {
  * Used by ktwalk() and ktnext() routines.
  */
 struct tstate {
-	int left;
 	struct tbl **next;
+	int left;
 };
 
 EXTERN struct table taliases;	/* tracked aliases */
@@ -1178,7 +1178,6 @@ typedef struct XPtrV {
 typedef struct source Source;
 struct source {
 	const char *str;	/* input pointer */
-	int	type;		/* input type */
 	const char *start;	/* start of current buffer */
 	union {
 		const char **strv; /* string [] */
@@ -1186,13 +1185,14 @@ struct source {
 		struct tbl *tblp;  /* alias (SF_HASALIAS) */
 		char *freeme;	   /* also for SREREAD */
 	} u;
+	const char *file;	/* input file name */
+	int	type;		/* input type */
 	int	line;		/* line number */
 	int	errline;	/* line the error occurred on (0 if not set) */
-	const char *file;	/* input file name */
 	int	flags;		/* SF_* */
 	Area	*areap;
-	XString	xs;		/* input buffer */
 	Source *next;		/* stacked source */
+	XString	xs;		/* input buffer */
 	char	ugbuf[2];	/* buffer for ungetsc() (SREREAD) and
 				 * alias (SALIAS) */
 };
@@ -1611,7 +1611,6 @@ typedef enum Test_meta Test_meta;
 
 typedef struct test_env Test_env;
 struct test_env {
-	int flags;		/* TEF_* */
 	union {
 		const char **wp;/* used by ptest_* */
 		XPtrV *av;	/* used by dbtestp_* */
@@ -1621,6 +1620,7 @@ struct test_env {
 	const char *(*getopnd) (Test_env *, Test_op, bool);
 	int (*eval)(Test_env *, Test_op, const char *, const char *, bool);
 	void (*error)(Test_env *, int, const char *);
+	int flags;		/* TEF_* */
 };
 
 extern const char *const dbtest_tokens[];

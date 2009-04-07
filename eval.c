@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.53 2009/03/22 17:47:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.54 2009/04/07 18:41:35 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -137,13 +137,13 @@ evalonestr(const char *cp, int f)
 
 /* for nested substitution: ${var:=$var2} */
 typedef struct SubType {
+	struct tbl *var;	/* variable for ${var..} */
+	struct SubType *prev;	/* old type */
+	struct SubType *next;	/* poped type (to avoid re-allocating) */
 	short	stype;		/* [=+-?%#] action after expanded word */
 	short	base;		/* begin position of expanded word */
 	short	f;		/* saved value of f (DOPAT, etc) */
 	short	quote;		/* saved value of quote (for ${..[%#]..}) */
-	struct tbl *var;	/* variable for ${var..} */
-	struct SubType *prev;	/* old type */
-	struct SubType *next;	/* poped type (to avoid re-allocating) */
 } SubType;
 
 void

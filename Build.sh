@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.389 2009/04/06 08:37:42 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.390 2009/04/07 18:41:32 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1298,7 +1298,7 @@ mksh_cfg: NSIG' >scn.c
 		test $nr -gt 0 && test $nr -le $NSIG || continue
 		case $sigseen in
 		*:$nr:*) ;;
-		*)	echo "		{ $nr, \"$name\" },"
+		*)	echo "		{ \"$name\", $nr },"
 			sigseen=$sigseen$nr:
 			$printf "$name=$nr " >&2
 			;;

@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.159 2009/04/05 12:35:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.160 2009/04/07 18:41:33 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -3362,8 +3362,8 @@ x_mode(bool onoff)
 #define Ctrl(c)		(c&0x1f)
 
 struct edstate {
-	int	winleft;
 	char	*cbuf;
+	int	winleft;
 	int	cbufsize;
 	int	linelen;
 	int	cursor;
@@ -3485,7 +3485,7 @@ static void		restore_edstate(struct edstate *old, struct edstate *new);
 static void		free_edstate(struct edstate *old);
 
 static struct edstate	ebuf;
-static struct edstate	undobuf = { 0, undocbuf, LINE, 0, 0 };
+static struct edstate	undobuf = { undocbuf, 0, LINE, 0, 0 };
 
 static struct edstate	*es;			/* current editor state */
 static struct edstate	*undo;

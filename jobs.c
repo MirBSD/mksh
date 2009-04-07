@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.51 2009/04/05 13:37:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.52 2009/04/07 18:41:36 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -13,9 +13,9 @@ __RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.51 2009/04/05 13:37:37 tg Exp $");
 typedef struct proc	Proc;
 struct proc {
 	Proc *next;		/* next process in pipeline (if any) */
+	pid_t pid;		/* process id */
 	int state;
 	int status;		/* wait status */
-	pid_t pid;		/* process id */
 	char command[48];	/* process command string */
 };
 
@@ -47,17 +47,17 @@ struct proc {
 typedef struct job Job;
 struct job {
 	Job *next;		/* next job in list */
+	Proc *proc_list;	/* process list */
+	Proc *last_proc;	/* last process in list */
+	struct timeval systime;	/* system time used by job */
+	struct timeval usrtime;	/* user time used by job */
+	pid_t pgrp;		/* process group of job */
+	pid_t ppid;		/* pid of process that forked job */
 	int job;		/* job number: %n */
 	int flags;		/* see JF_* */
 	volatile int state;	/* job state */
 	int status;		/* exit status of last process */
-	pid_t pgrp;		/* process group of job */
-	pid_t ppid;		/* pid of process that forked job */
 	int32_t	age;		/* number of jobs started */
-	struct timeval systime;	/* system time used by job */
-	struct timeval usrtime;	/* user time used by job */
-	Proc *proc_list;	/* process list */
-	Proc *last_proc;	/* last process in list */
 	Coproc_id coproc_id;	/* 0 or id of coprocess output pipe */
 #ifndef MKSH_UNEMPLOYED
 	struct termios ttystate;/* saved tty state for stopped jobs */

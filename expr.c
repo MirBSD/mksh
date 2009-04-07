@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.23 2009/03/14 18:12:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.24 2009/04/07 18:41:35 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -108,11 +108,11 @@ typedef struct expr_state Expr_state;
 struct expr_state {
 	const char *expression;		/* expression being evaluated */
 	const char *tokp;		/* lexical position */
-	enum token tok;			/* token from token() */
-	int noassign;			/* don't do assigns (for ?:,&&,||) */
 	struct tbl *val;		/* value from token() */
 	struct tbl *evaling;		/* variable that is being recursively
 					 * expanded (EXPRINEVAL flag set) */
+	int noassign;			/* don't do assigns (for ?:,&&,||) */
+	enum token tok;			/* token from token() */
 	bool arith;			/* evaluating an $(()) expression? */
 	bool natural;			/* unsigned arithmetic calculation */
 };
