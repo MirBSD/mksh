@@ -13,7 +13,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.124 2009/04/05 12:35:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.125 2009/04/07 19:43:27 tg Exp $");
 
 extern char **environ;
 
@@ -620,15 +620,23 @@ void
 newenv(int type)
 {
 	struct env *ep;
+	char *cp;
 
-	ep = alloc(sizeof (struct env), ATEMP);
-	ep->type = type;
-	ep->flags = 0;
+	/*
+	 * struct env includes ALLOC_ITEM for alignment constraints
+	 * so first get the actually used memory, then assign it
+	 */
+	cp = alloc(sizeof (struct env) - ALLOC_SIZE, ATEMP);
+	ep = (void *)(cp - ALLOC_SIZE);	/* undo what alloc() did */
+	/* initialise public members of struct env (not the ALLOC_ITEM) */
 	ainit(&ep->area);
+	ep->oenv = e;
 	ep->loc = e->loc;
 	ep->savefd = NULL;
-	ep->oenv = e;
 	ep->temps = NULL;
+	ep->type = type;
+	ep->flags = 0;
+	/* jump buffer is invalid because flags == 0 */
 	e = ep;
 }
 
@@ -636,6 +644,7 @@ void
 quitenv(struct shf *shf)
 {
 	struct env *ep = e;
+	char *cp;
 	int fd;
 
 	if (ep->oenv && ep->oenv->loc != ep->loc)
@@ -684,7 +693,10 @@ quitenv(struct shf *shf)
 	reclaim();
 
 	e = e->oenv;
-	afree(ep, ATEMP);
+
+	/* free the struct env - tricky due to the ALLOC_ITEM inside */
+	cp = (void *)ep;
+	afree(cp + ALLOC_SIZE, ATEMP);
 }
 
 /* Called after a fork to cleanup stuff left over from parents environment */
