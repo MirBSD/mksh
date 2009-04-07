@@ -102,7 +102,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.290 2009/04/07 18:41:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.291 2009/04/07 18:46:07 tg Exp $");
 #endif
 #define MKSH_VERSION "R37 2009/04/05"
 
@@ -181,6 +181,13 @@ typedef int bool;
 
 #ifndef PATH_MAX
 #define PATH_MAX	1024
+#endif
+#ifndef SIZE_MAX
+#ifdef SIZE_T_MAX
+#define SIZE_MAX	SIZE_T_MAX
+#else
+#define SIZE_MAX	((size_t)-1)
+#endif
 #endif
 #ifndef S_ISLNK
 #define S_ISLNK(m)	((m & 0170000) == 0120000)
