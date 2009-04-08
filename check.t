@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.270 2009/04/07 19:43:26 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.271 2009/04/08 18:00:53 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4558,56 +4558,66 @@ stdin:
 	chmod +x foo/*
 	export PATH=$(pwd)/foo:$PATH
 	"$__progname" -c '﻿fnord'
+	echo =
 	"$__progname" -c '﻿fnord; fnord; ﻿fnord; fnord'
+	echo =
 	"$__progname" foo/bar
+	echo =
 	"$__progname" <foo/bar
+	echo =
 	"$__progname" foo/zoo
+	echo =
 	"$__progname" -c 'print ﻿: $(﻿fnord)'
 	rm -rf foo
 expected-stdout:
 	got 4 files
 	ohne
+	=
 	ohne
 	ohne
 	mit
 	ohne
+	=
 	ohne
 	ohne
 	mit
 	ohne
+	=
 	ohne
 	ohne
 	mit
 	ohne
+	=
 	ohne
 	ohne
 	mit
 	ohne
+	=
 	﻿: mit
 ---
 name: utf8bom-2
 description:
-	Check that we can execute BOM-shebangs
+	Check that we can execute BOM-shebangs (failures not fatal)
 	XXX if the OS can already execute them, we lose
 	note: cygwin execve(2) doesn't return to us with ENOEXEC, we lose
 	note: Ultrix perl5 t4 returns 65280 (exit-code 255) and no text
 category: !os:cygwin,!os:uwin-nt,!os:ultrix,!smksh
 env-setup: !FOO=BAR!
 stdin:
-	print '#!'"$__progname"'\nprint "a=$ENV{FOO}";' >t1
-	print '﻿#!'"$__progname"'\nprint "a=$ENV{FOO}";' >t2
-	print '#!'"$__perlname"'\nprint "a=$ENV{FOO}\n";' >t3
-	print '﻿#!'"$__perlname"'\nprint "a=$ENV{FOO}\n";' >t4
+	print '#!'"$__progname"'\nprint "1 a=$ENV{FOO}";' >t1
+	print '﻿#!'"$__progname"'\nprint "2 a=$ENV{FOO}";' >t2
+	print '#!'"$__perlname"'\nprint "3 a=$ENV{FOO}\n";' >t3
+	print '﻿#!'"$__perlname"'\nprint "4 a=$ENV{FOO}\n";' >t4
 	chmod +x t?
 	./t1
 	./t2
 	./t3
 	./t4
 expected-stdout:
-	a=/nonexistant{FOO}
-	a=/nonexistant{FOO}
-	a=BAR
-	a=BAR
+	1 a=/nonexistant{FOO}
+	2 a=/nonexistant{FOO}
+	3 a=BAR
+	4 a=BAR
 expected-stderr-pattern:
 	/(Unrecognized character .... ignored at \..t4 line 1)*/
 ---
@@ -4615,11 +4625,11 @@ name: utf8bom-3
 description:
 	Reading the UTF-8 BOM should enable the utf8-mode flag
 stdin:
-	"$__progname" -c ':; if [[ $- = *U* ]]; then print on; else print off; fi'
-	"$__progname" -c '﻿:; if [[ $- = *U* ]]; then print on; else print off; fi'
+	"$__progname" -c ':; if [[ $- = *U* ]]; then print 1 on; else print 1 off; fi'
+	"$__progname" -c '﻿:; if [[ $- = *U* ]]; then print 2 on; else print 2 off; fi'
 expected-stdout:
-	off
-	on
+	1 off
+	2 on
 ---
 name: utf8opt-1a
 description:
