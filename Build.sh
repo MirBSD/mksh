@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.390 2009/04/07 18:41:32 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.391 2009/04/10 16:09:53 tg Exp $'
 #-
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
@@ -1127,6 +1127,7 @@ ac_test realpath mksh_full 0 <<-'EOF'
 EOF
 
 ac_test revoke mksh_full 0 <<-'EOF'
+	#include <sys/types.h>
 	#if HAVE_LIBUTIL_H
 	#include <libutil.h>
 	#endif
@@ -1172,6 +1173,7 @@ ac_test setgroups setresugid 0 <<-'EOF'
 EOF
 
 ac_test strcasestr <<-'EOF'
+	#include <sys/types.h>
 	#include <stddef.h>
 	#include <string.h>
 	#if HAVE_STRINGS_H
