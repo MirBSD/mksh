@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.271 2009/04/08 18:00:53 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.272 2009/04/22 16:43:18 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -5562,4 +5562,36 @@ stdin:
 	"$__progname" test.sh
 expected-stdout:
 	Fowl
+---
+name: comsub-1
+description:
+	COMSUB are currently parsed by hacking lex.c instead of
+	recursively (see regression-6): matching parenthesēs bug
+	Fails on: pdksh mksh bash2 bash3 zsh
+	Passes on: ksh93
+expected-fail: yes
+stdin:
+	echo $(case 1 in (1) echo yes;; (2) echo no;; esac)
+	echo $(case 1 in 1) echo yes;; 2) echo no;; esac)
+expected-stdout:
+	yes
+	yes
+---
+name: comsub-2
+description:
+	RedHat BZ#496791 – another case of missing recursion
+	in parsing COMSUB expressions
+	Fails on: pdksh mksh bash2 bash3¹ zsh
+	Passes on: ksh93
+	① bash seems to choke on comment ending with backslash-newline
+expected-fail: yes
+stdin:
+	# a comment with " ' \
+	x=$(
+	echo yes
+	# a comment with " ' \
+	)
+	echo $x
+expected-stdout:
+	yes
 ---
