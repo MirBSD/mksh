@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.106 2009/05/16 17:33:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.107 2009/05/16 18:40:06 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -2419,7 +2419,7 @@ c_mknod(const char **wp)
 	return (rv);
  c_mknod_usage:
 #if 0
-	/* XXX doesn’t help */
+	/* XXX doesn't help */
 	builtin_argv0 = NULL;
 #endif
 	bi_errorf("usage: mknod [-m mode] name [b | c] major minor");

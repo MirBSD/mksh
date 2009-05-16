@@ -122,7 +122,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.297 2009/05/16 16:59:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.298 2009/05/16 18:40:09 tg Exp $");
 #endif
 #define MKSH_VERSION "R38 2009/05/16"
 
@@ -341,7 +341,12 @@ EXTERN uid_t ksheuid;		/* effective uid of shell */
 EXTERN int exstat;		/* exit status */
 EXTERN int subst_exstat;	/* exit status of last $(..)/`..` */
 EXTERN const char *safe_prompt; /* safe prompt if PS1 substitution fails */
-EXTERN const char initvsn[] I__("KSH_VERSION=@(#)MIRBSD KSH " MKSH_VERSION);
+EXTERN const char initvsn[] I__("KSH_VERSION=@(#)MIRBSD KSH "
+    MKSH_VERSION
+#ifdef MKSH_MIDNIGHTBSD01ASH_COMPAT
+    "MidnightBSD-0.1-ash-compat"
+#endif
+    );
 #define KSH_VERSION	(initvsn + /* "KSH_VERSION=@(#)" */ 16)
 
 /*

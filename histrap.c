@@ -26,11 +26,11 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.80 2009/05/16 16:59:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.81 2009/05/16 18:40:06 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
- * IRIX doesn’t have this constant.
+ * IRIX doesn't have this constant.
  */
 #ifndef MAP_FILE
 #define MAP_FILE	0

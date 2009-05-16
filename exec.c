@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.55 2009/05/16 16:59:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.56 2009/05/16 18:40:05 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile, volatile int *);
@@ -772,7 +772,7 @@ scriptexec(struct op *tp, const char **ap)
 		    (fd == /* ECOFF_M68K */ 0x0150 || fd == 0x5001) ||
 		    (fd == /* ECOFF_SH */   0x0500 || fd == 0x0005) ||
 		    (fd == 0x7F45 && buf[2] == 'L' && buf[3] == 'F') ||
-		    (fd == /* “MZ” */ 0x4D5A) ||
+		    (fd == /* "MZ" */ 0x4D5A) ||
 		    (fd == /* gzip */ 0x1F8B))
 			errorf("%s: not executable: magic %04X", tp->str, fd);
 	}

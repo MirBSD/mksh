@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.392 2009/05/16 16:59:31 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.393 2009/05/16 18:40:03 tg Stab $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -22,7 +22,7 @@ srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.392 2009/05/16 16:59:31 tg Exp $'
 # Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
 #			MKSH_CLS_STRING MKSH_BINSHREDUCED MKSH_UNEMPLOYED
-#			MKSH_CONSERVATIVE_FDS
+#			MKSH_CONSERVATIVE_FDS MKSH_MIDNIGHTBSD01ASH_COMPAT
 
 LC_ALL=C
 export LC_ALL
@@ -453,8 +453,8 @@ $e $bi$me: Scanning for functions... please ignore any errors.$ao
 # Compiler: which one?
 #
 # notes:
-# – ICC defines __GNUC__ too
-# – GCC defines __hpux too
+# - ICC defines __GNUC__ too
+# - GCC defines __hpux too
 # - LLVM+clang defines __GNUC__ too
 # - nwcc defines __GNUC__ too
 CPP="$CC -E"
@@ -520,7 +520,7 @@ rm -f x
 echo 'int main(void) { return (0); }' >scn.c
 case $ct in
 ack)
-	# work around “the famous ACK const bug”
+	# work around "the famous ACK const bug"
 	CPPFLAGS="-Dconst= $CPPFLAGS"
 	;;
 adsp)
@@ -1167,7 +1167,7 @@ EOF
 
 ac_test setmode mknod 1 <<-'EOF'
 	#if defined(__MSVCRT__) || defined(__CYGWIN__)
-	/* force a failure: Win32 setmode() is not what we want… */
+	/* force a failure: Win32 setmode() is not what we want... */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
 	#include <unistd.h>

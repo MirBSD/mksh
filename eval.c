@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.56 2009/05/16 16:59:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.57 2009/05/16 18:40:05 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -426,16 +426,6 @@ expand(const char *cp,	/* input word */
 						s = wdcopy(sp, ATEMP);
 						p = s + (wdscan(sp, ADELIM) - sp);
 						d = s + (wdscan(sp, CSUBST) - sp);
-#if 0
-						fprintf(stderr,
-						    "D: s=%p 〈%s〉\n"
-						    "   p=%p 〈%s〉\n"
-						    "   d=%p 〈%s〉\n",
-						    s, wdstrip(s, true, false),
-						    p, wdstrip(p, true, false),
-						    d, wdstrip(d, true, false));
-						fflush(stderr);
-#endif
 						if (p >= d)
 							goto unwind_substsyn;
 						p[-2] = EOS;
@@ -465,12 +455,6 @@ expand(const char *cp,	/* input word */
 							else
 								s++;
 						*d = '\0';
-#if 0
-						fprintf(stderr,
-						    "D: 〔%s｜%s〕→〔%s〕\n",
-						    tpat0, pat, rrep);
-						fflush(stderr);
-#endif
 						afree(tpat0, ATEMP);
 
 						/* reject empty pattern */
@@ -497,12 +481,6 @@ expand(const char *cp,	/* input word */
 							tpat2 = tpat1 + 2;
 						}
  again_repl:
-#if 0
-						fprintf(stderr,
-						    "D: 「%s」 ← 〔%s｜%s〕\n",
-						    s, tpat0, rrep);
-						fflush(stderr);
-#endif
 						/* this would not be necessary if gmatchx would return
 						 * the start and end values of a match found, like re*
 						 */

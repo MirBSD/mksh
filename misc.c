@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.105 2009/05/16 16:59:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.106 2009/05/16 18:40:07 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -517,12 +517,6 @@ gmatchx(const char *s, const char *p, bool isfile)
 
 	if (s == NULL || p == NULL)
 		return 0;
-
-#if 0
-	/* debugging output */
-	fprintf(stderr, "gmatchx:\n\tstring =`%s`\n\tpattern=`%s`\n", s, p);
-	fflush(stderr);
-#endif
 
 	se = s + strlen(s);
 	pe = p + strlen(p);
