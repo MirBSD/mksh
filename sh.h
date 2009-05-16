@@ -8,6 +8,26 @@
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
+/*-
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ *	Thorsten Glaser <tg@mirbsd.org>
+ *
+ * Provided that these terms and disclaimer and all copyright notices
+ * are retained or reproduced in an accompanying document, permission
+ * is granted to deal in this work without restriction, including un-
+ * limited rights to use, publicly perform, distribute, sell, modify,
+ * merge, give away, or sublicence.
+ *
+ * This work is provided "AS IS" and WITHOUT WARRANTY of any kind, to
+ * the utmost extent permitted by applicable law, neither express nor
+ * implied; without malicious intent or gross negligence. In no event
+ * may a licensor, author or contributor be held liable for indirect,
+ * direct, other damage, loss, or other issues arising in any way out
+ * of dealing in the work, even if advised of the possibility of such
+ * damage or existence of a defect, except proven that it results out
+ * of said person's immediate fault when using the work as intended.
+ */
+
 #ifdef __dietlibc__
 #define _BSD_SOURCE	/* live, BSD, live! */
 #endif
@@ -102,7 +122,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.296 2009/05/16 15:53:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.297 2009/05/16 16:59:39 tg Exp $");
 #endif
 #define MKSH_VERSION "R38 2009/05/16"
 
