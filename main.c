@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.127 2009/05/16 18:40:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.128 2009/05/16 21:00:51 tg Exp $");
 
 extern char **environ;
 
@@ -297,7 +297,7 @@ main(int argc, const char *argv[])
 			errorf("-c requires an argument");
 #ifdef MKSH_MIDNIGHTBSD01ASH_COMPAT
 		/* compatibility to MidnightBSD 0.1 /bin/sh (not desired) */
-		if (argv[argi] && !strcmp(argv[argi], "--"))
+		if (Flag(FPOSIX) && argv[argi] && !strcmp(argv[argi], "--"))
 			++argi;
 #endif
 		if (argv[argi])
