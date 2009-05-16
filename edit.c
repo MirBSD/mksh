@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.161 2009/05/16 14:19:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.162 2009/05/16 14:34:57 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1116,7 +1116,7 @@ static void bind_if_not_bound(int, int, int);
 #define XFUNC_version 54
 #define XFUNC_edit_line 55
 #define XFUNC_search_hist_up 56
-#define XFUNC_search_hist_down 57
+#define XFUNC_search_hist_dn 57
 
 /* XFUNC_* must be < 128 */
 
@@ -1327,6 +1327,8 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_mv_end | 0x80,		2,	  '8'	},
 	{ XFUNC_mv_end,			2,	  'F'	},
 	{ XFUNC_del_char | 0x80,	2,	  '3'	},
+	{ XFUNC_search_hist_up | 0x80,	2,	  '5'	},
+	{ XFUNC_search_hist_dn | 0x80,	2,	  '6'	},
 	/* more non-standard ones */
 	{ XFUNC_edit_line,		2,	  'e'	}
 };
