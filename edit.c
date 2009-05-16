@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.160 2009/04/07 18:41:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.161 2009/05/16 14:19:21 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1036,6 +1036,7 @@ static void x_zotc2(int);
 static void x_zotc3(char **);
 static void x_load_hist(char **);
 static int x_search(char *, int, int);
+static int x_search_dir(int);
 static int x_match(char *, char *);
 static void x_redraw(int);
 static void x_push(int);
@@ -1114,6 +1115,8 @@ static void bind_if_not_bound(int, int, int);
 #define XFUNC_comment 53
 #define XFUNC_version 54
 #define XFUNC_edit_line 55
+#define XFUNC_search_hist_up 56
+#define XFUNC_search_hist_down 57
 
 /* XFUNC_* must be < 128 */
 
@@ -1173,6 +1176,8 @@ static int x_set_arg(int);
 static int x_comment(int);
 static int x_version(int);
 static int x_edit_line(int);
+static int x_search_hist_up(int);
+static int x_search_hist_down(int);
 
 static const struct x_ftab x_ftab[] = {
 	{ x_abort,		"abort",			0 },
@@ -1231,6 +1236,8 @@ static const struct x_ftab x_ftab[] = {
 	{ x_comment,		"comment",			0 },
 	{ x_version,		"version",			0 },
 	{ x_edit_line,		"edit-line",			XF_ARG },
+	{ x_search_hist_up,	"search-history-up",		0 },
+	{ x_search_hist_down,	"search-history-down",		0 },
 	{ 0,			NULL,				0 }
 };
 
@@ -2155,6 +2162,38 @@ x_search(char *pat, int sameline, int offset)
 	x_e_putc2(7);
 	x_histp = histptr;
 	return -1;
+}
+
+/* anchored search up from current line */
+static int
+x_search_hist_up(int c __unused)
+{
+	return (x_search_dir(-1));
+}
+
+/* anchored search down from current line */
+static int
+x_search_hist_down(int c __unused)
+{
+	return (x_search_dir(1));
+}
+
+/* anchored search in the indicated direction */
+static int
+x_search_dir(int search_dir /* should've been bool */)
+{
+	char **hp = x_histp + search_dir;
+	size_t curs = xcp - xbuf;
+
+	while (histptr >= hp && hp >= history) {
+		if (strncmp(xbuf, *hp, curs) == 0) {
+			x_load_hist(hp);
+			x_goto(xbuf + curs);
+			break;
+		}
+		hp += search_dir;
+	}
+	return (KSTD);
 }
 
 /* return position of first match of pattern in string, else -1 */

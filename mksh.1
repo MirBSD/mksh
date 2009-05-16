@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.159 2009/05/16 14:17:39 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.160 2009/05/16 14:19:22 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.128 2009/03/06 12:28:36 jmc Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -4723,7 +4723,8 @@ Each input line originally starts just after the last entry
 in the history buffer, so
 .Ic down\-history
 is not useful until either
-.Ic search\-history
+.Ic search\-history ,
+.Ic search\-history\-up
 or
 .Ic up\-history
 has been performed.
@@ -4822,9 +4823,10 @@ The current cursor position may be anywhere on the line.
 Causes the current input line to be processed by the shell, and the next line
 from history becomes the current line.
 This is only useful after an
-.Ic up\-history
+.Ic up\-history ,
+.Ic search\-history
 or
-.Ic search\-history .
+.Ic search\-history\-up .
 .It no\-op: QUIT
 This does nothing.
 .It prefix\-1: \*(ha[
@@ -4883,6 +4885,21 @@ commands continue searching backward to the next previous occurrence of the
 pattern.
 The history buffer retains only a finite number of lines; the oldest
 are discarded as necessary.
+.It search\-history\-up: (not bound)
+Search backwards through the history buffer for commands whose beginning match
+the portion of the input line before the cursor.
+When used on an empty line, this has the same effect as
+.Ic up\-history .
+.It search\-history\-down: (not bound)
+Search forwards through the history buffer for commands whose beginning match
+the portion of the input line before the cursor.
+When used on an empty line, this has the same effect as
+.Ic down\-history .
+This is only useful after an
+.Ic up\-history ,
+.Ic search\-history
+or
+.Ic search\-history\-up .
 .It set\-mark\-command: \*(ha[ Ns Aq space
 Set the mark at the cursor position.
 .It transpose\-chars: \*(haT
