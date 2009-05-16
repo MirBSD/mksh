@@ -1,5 +1,5 @@
 /*	$OpenBSD: c_ksh.c,v 1.33 2009/02/07 14:03:24 kili Exp $	*/
-/*	$OpenBSD: c_sh.c,v 1.39 2009/01/29 23:27:26 jaredy Exp $	*/
+/*	$OpenBSD: c_sh.c,v 1.40 2009/05/05 17:59:55 millert Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.18 2009/03/01 20:11:06 otto Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.105 2009/05/16 16:59:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.106 2009/05/16 17:33:10 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -2364,7 +2364,7 @@ c_mknod(const char **wp)
 		}
 	}
 	argv = &wp[builtin_opt.optind];
-	if (argv[0] == '\0')
+	if (argv[0] == NULL)
 		goto c_mknod_usage;
 	for (argc = 0; argv[argc]; argc++)
 		;
@@ -2418,6 +2418,10 @@ c_mknod(const char **wp)
 		umask(oldmode);
 	return (rv);
  c_mknod_usage:
+#if 0
+	/* XXX doesn’t help */
+	builtin_argv0 = NULL;
+#endif
 	bi_errorf("usage: mknod [-m mode] name [b | c] major minor");
 	bi_errorf("usage: mknod [-m mode] name p");
 	return (1);
