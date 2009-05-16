@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.162 2009/05/16 14:44:37 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.163 2009/05/16 14:45:40 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.128 2009/03/06 12:28:36 jmc Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -4888,12 +4888,12 @@ commands continue searching backward to the next previous occurrence of the
 pattern.
 The history buffer retains only a finite number of lines; the oldest
 are discarded as necessary.
-.It search\-history\-up: (not bound)
+.It search\-history\-up: ANSI-PgUp
 Search backwards through the history buffer for commands whose beginning match
 the portion of the input line before the cursor.
 When used on an empty line, this has the same effect as
 .Ic up\-history .
-.It search\-history\-down: (not bound)
+.It search\-history\-down: ANSI-PgDn
 Search forwards through the history buffer for commands whose beginning match
 the portion of the input line before the cursor.
 When used on an empty line, this has the same effect as
