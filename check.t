@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.273 2009/05/16 14:19:20 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.274 2009/05/16 15:53:00 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7,7 +7,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R37 2009/05/16
+	@(#)MIRBSD KSH R38 2009/05/16
 description:
 	Check version of shell.
 stdin:
@@ -4891,6 +4891,38 @@ stdin:
 expected-stdout:
 	a defg a
 ---
+name: varexpand-substr-5A
+description:
+	Check that substring expansions work on characters
+stdin:
+	set +U
+	x=mäh
+	print a ${x::1} ${x: -1} a
+	print b ${x::3} ${x: -3} b
+	print c ${x:1:2} ${x: -3:2} c
+	print d ${#x} d
+expected-stdout:
+	a m h a
+	b mä äh b
+	c ä ä c
+	d 4 d
+---
+name: varexpand-substr-5W
+description:
+	Check that substring expansions work on characters
+stdin:
+	set -U
+	x=mäh
+	print a ${x::1} ${x: -1} a
+	print b ${x::2} ${x: -2} b
+	print c ${x:1:1} ${x: -2:1} c
+	print d ${#x} d
+expected-stdout:
+	a m h a
+	b mä äh b
+	c ä ä c
+	d 3 d
+---
 name: print-funny-chars
 description:
 	Check print builtin's capability to output designated characters
@@ -5080,7 +5112,7 @@ expected-stderr-pattern:
 	/1#���: unexpected '�'/
 expected-exit: e != 0
 ---
-name: integer-base-one-3a
+name: integer-base-one-3A
 description:
 	some sample code for hexdumping
 stdin:
@@ -5147,7 +5179,7 @@ expected-stdout:
 	00000110  EF F0 F1 F2 F3 F4 F5 F6 - F7 F8 F9 FA FB FC FD FE  |................|
 	00000120  FF 0A                   -                          |..|
 ---
-name: integer-base-one-3b
+name: integer-base-one-3W
 description:
 	some sample code for hexdumping Unicode
 stdin:
@@ -5169,7 +5201,7 @@ stdin:
 		print '�￾￿'	# end of range
 	} | {
 		typeset -Uui16 -Z11 pos=0
-		typeset -Uui16 -Z5 hv
+		typeset -Uui16 -Z7 hv
 		typeset -i1 wc=0x0A
 		dasc=
 		nl=${wc#1#}
@@ -5177,27 +5209,7 @@ stdin:
 		while IFS= read -r line; do
 			line=$line$nl
 			while [[ -n $line ]]; do
-				(( hv = 1#${line::1} & 0xFF ))
-				if (( (hv < 0xC2) || (hv >= 0xF0) )); then
-					n=1
-				elif (( hv < 0xE0 )); then
-					n=2
-				else
-					n=3
-				fi
-				if (( n > 1 )); then
-					(( (1#${line:1:1} & 0xC0) == 0x80 )) || n=1
-					(( hv == 0xE0 )) && \
-					    (( (1#${line:1:1} & 0xFF) < 0xA0 )) && n=1
-				fi
-				if (( n > 2 )); then
-					(( hv = 1#${line:2:1} & 0xFF ))
-					(( (hv & 0xC0) == 0x80 )) || n=1
-					(( (((1#${line::1} & 0xFF) == 0xEF) && \
-					    ((1#${line:1:1} & 0xFF) == 0xBF) && \
-					    (hv > 0xBD)) )) && n=1
-				fi
-				wc=1#${line::n}
+				wc=1#${line::1}
 				if (( (wc < 32) || \
 				    ((wc > 126) && (wc < 160)) )); then
 					dch=.
@@ -5206,62 +5218,70 @@ stdin:
 				else
 					dch=${wc#1#}
 				fi
-				if (( (pos & 15) >= (n == 3 ? 14 : 15) )); then
+				if (( (pos & 7) >= 7 )); then
 					dasc=$dasc$dch
 					dch=
 				fi
-				while (( n-- )); do
-					if (( (pos & 15) == 0 )); then
-						(( pos )) && print "$dasc|"
-						print -n "${pos#16#}  "
-						dasc=' |'
-					fi
-					hv=1#${line::1}
-					print -n "${hv#16#} "
-					(( (pos++ & 15) == 7 )) && \
-					    print -n -- '- '
-					line=${line:1}
-				done
+				if (( (pos & 7) == 0 )); then
+					(( pos )) && print "$dasc|"
+					print -n "${pos#16#}  "
+					dasc=' |'
+				fi
+				let hv=wc
+				print -n "${hv#16#} "
+				(( (pos++ & 7) == 3 )) && \
+				    print -n -- '- '
+				line=${line:1}
 				dasc=$dasc$dch
 			done
 		done
-		if (( pos & 15 )); then
-			while (( pos & 15 )); do
-				print -n '   '
-				(( (pos++ & 15) == 7 )) && print -n -- '- '
+		if (( pos & 7 )); then
+			while (( pos & 7 )); do
+				print -n '     '
+				(( (pos++ & 7) == 3 )) && print -n -- '- '
 			done
 			print "$dasc|"
 		fi
 	}
 expected-stdout:
-	00000000  48 65 6C 6C 6F 2C 20 57 - 6F 72 6C 64 21 5C 0A E3  |Hello, World!\.こ|
-	00000010  81 93 E3 82 93 E3 81 AB - E3 81 A1 E3 81 AF EF BC  |んにちは！|
-	00000020  81 0A 01 02 03 04 05 06 - 07 08 09 0A 0B 0C 0D 0E  |...............|
-	00000030  0F 10 11 12 13 14 15 16 - 17 18 19 1A 1B 1C 1D 1E  |................|
-	00000040  1F 20 21 22 23 24 25 26 - 27 28 29 2A 2B 2C 2D 2E  |. !"#$%&'()*+,-.|
-	00000050  2F 30 31 32 33 34 35 36 - 37 38 39 3A 3B 3C 3D 3E  |/0123456789:;<=>|
-	00000060  3F 40 41 42 43 44 45 46 - 47 48 49 4A 4B 4C 4D 4E  |?@ABCDEFGHIJKLMN|
-	00000070  4F 50 51 52 53 54 55 56 - 57 58 59 5A 5B 5C 5D 5E  |OPQRSTUVWXYZ[\]^|
-	00000080  5F 60 61 62 63 64 65 66 - 67 68 69 6A 6B 6C 6D 6E  |_`abcdefghijklmn|
-	00000090  6F 70 71 72 73 74 75 76 - 77 78 79 7A 7B 7C 7D 7E  |opqrstuvwxyz{|}~|
-	000000A0  7F C2 80 C2 81 C2 82 C2 - 83 C2 84 C2 85 C2 86 C2  |.........|
-	000000B0  87 C2 88 C2 89 C2 8A C2 - 8B C2 8C C2 8D C2 8E C2  |........|
-	000000C0  8F C2 90 C2 91 C2 92 C2 - 93 C2 94 C2 95 C2 96 C2  |........|
-	000000D0  97 C2 98 C2 99 C2 9A C2 - 9B C2 9C C2 9D C2 9E C2  |........|
-	000000E0  9F C2 A0 C2 A1 C2 A2 C2 - A3 C2 A4 C2 A5 C2 A6 C2  | ¡¢£¤¥¦§|
-	000000F0  A7 C2 A8 C2 A9 C2 AA C2 - AB C2 AC C2 AD C2 AE C2  |¨©ª«¬­®¯|
-	00000100  AF C2 B0 C2 B1 C2 B2 C2 - B3 C2 B4 C2 B5 C2 B6 C2  |°±²³´µ¶·|
-	00000110  B7 C2 B8 C2 B9 C2 BA C2 - BB C2 BC C2 BD C2 BE C2  |¸¹º»¼½¾¿|
-	00000120  BF C3 80 C3 81 C3 82 C3 - 83 C3 84 C3 85 C3 86 C3  |ÀÁÂÃÄÅÆÇ|
-	00000130  87 C3 88 C3 89 C3 8A C3 - 8B C3 8C C3 8D C3 8E C3  |ÈÉÊËÌÍÎÏ|
-	00000140  8F C3 90 C3 91 C3 92 C3 - 93 C3 94 C3 95 C3 96 C3  |ÐÑÒÓÔÕÖ×|
-	00000150  97 C3 98 C3 99 C3 9A C3 - 9B C3 9C C3 9D C3 9E C3  |ØÙÚÛÜÝÞß|
-	00000160  9F C3 A0 C3 A1 C3 A2 C3 - A3 C3 A4 C3 A5 C3 A6 C3  |àáâãäåæç|
-	00000170  A7 C3 A8 C3 A9 C3 AA C3 - AB C3 AC C3 AD C3 AE C3  |èéêëìíîï|
-	00000180  AF C3 B0 C3 B1 C3 B2 C3 - B3 C3 B4 C3 B5 C3 B6 C3  |ðñòóôõö÷|
-	00000190  B7 C3 B8 C3 B9 C3 BA C3 - BB C3 BC C3 BD C3 BE C3  |øùúûüýþÿ|
-	000001A0  BF 0A FF 0A C2 0A EF BF - C0 0A C0 80 0A E0 80 80  |.�.�.���.��.���|
-	000001B0  0A EF BF BD EF BF BE EF - BF BF 0A                 |.�������.|
+	00000000  0048 0065 006C 006C - 006F 002C 0020 0057  |Hello, W|
+	00000008  006F 0072 006C 0064 - 0021 005C 000A 3053  |orld!\.こ|
+	00000010  3093 306B 3061 306F - FF01 000A 0001 0002  |んにちは！...|
+	00000018  0003 0004 0005 0006 - 0007 0008 0009 000A  |........|
+	00000020  000B 000C 000D 000E - 000F 0010 0011 0012  |........|
+	00000028  0013 0014 0015 0016 - 0017 0018 0019 001A  |........|
+	00000030  001B 001C 001D 001E - 001F 0020 0021 0022  |..... !"|
+	00000038  0023 0024 0025 0026 - 0027 0028 0029 002A  |#$%&'()*|
+	00000040  002B 002C 002D 002E - 002F 0030 0031 0032  |+,-./012|
+	00000048  0033 0034 0035 0036 - 0037 0038 0039 003A  |3456789:|
+	00000050  003B 003C 003D 003E - 003F 0040 0041 0042  |;<=>?@AB|
+	00000058  0043 0044 0045 0046 - 0047 0048 0049 004A  |CDEFGHIJ|
+	00000060  004B 004C 004D 004E - 004F 0050 0051 0052  |KLMNOPQR|
+	00000068  0053 0054 0055 0056 - 0057 0058 0059 005A  |STUVWXYZ|
+	00000070  005B 005C 005D 005E - 005F 0060 0061 0062  |[\]^_`ab|
+	00000078  0063 0064 0065 0066 - 0067 0068 0069 006A  |cdefghij|
+	00000080  006B 006C 006D 006E - 006F 0070 0071 0072  |klmnopqr|
+	00000088  0073 0074 0075 0076 - 0077 0078 0079 007A  |stuvwxyz|
+	00000090  007B 007C 007D 007E - 007F 0080 0081 0082  |{|}~....|
+	00000098  0083 0084 0085 0086 - 0087 0088 0089 008A  |........|
+	000000A0  008B 008C 008D 008E - 008F 0090 0091 0092  |........|
+	000000A8  0093 0094 0095 0096 - 0097 0098 0099 009A  |........|
+	000000B0  009B 009C 009D 009E - 009F 00A0 00A1 00A2  |..... ¡¢|
+	000000B8  00A3 00A4 00A5 00A6 - 00A7 00A8 00A9 00AA  |£¤¥¦§¨©ª|
+	000000C0  00AB 00AC 00AD 00AE - 00AF 00B0 00B1 00B2  |«¬­®¯°±²|
+	000000C8  00B3 00B4 00B5 00B6 - 00B7 00B8 00B9 00BA  |³´µ¶·¸¹º|
+	000000D0  00BB 00BC 00BD 00BE - 00BF 00C0 00C1 00C2  |»¼½¾¿ÀÁÂ|
+	000000D8  00C3 00C4 00C5 00C6 - 00C7 00C8 00C9 00CA  |ÃÄÅÆÇÈÉÊ|
+	000000E0  00CB 00CC 00CD 00CE - 00CF 00D0 00D1 00D2  |ËÌÍÎÏÐÑÒ|
+	000000E8  00D3 00D4 00D5 00D6 - 00D7 00D8 00D9 00DA  |ÓÔÕÖ×ØÙÚ|
+	000000F0  00DB 00DC 00DD 00DE - 00DF 00E0 00E1 00E2  |ÛÜÝÞßàáâ|
+	000000F8  00E3 00E4 00E5 00E6 - 00E7 00E8 00E9 00EA  |ãäåæçèéê|
+	00000100  00EB 00EC 00ED 00EE - 00EF 00F0 00F1 00F2  |ëìíîïðñò|
+	00000108  00F3 00F4 00F5 00F6 - 00F7 00F8 00F9 00FA  |óôõö÷øùú|
+	00000110  00FB 00FC 00FD 00FE - 00FF 000A EFFF 000A  |ûüýþÿ.�.|
+	00000118  EFC2 000A EFEF EFBF - EFC0 000A EFC0 EF80  |�.���.��|
+	00000120  000A EFE0 EF80 EF80 - 000A FFFD EFEF EFBF  |.���.���|
+	00000128  EFBE EFEF EFBF EFBF - 000A                 |����.|
 ---
 name: ulimit-1
 description:

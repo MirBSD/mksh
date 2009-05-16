@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.163 2009/05/16 14:45:40 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.164 2009/05/16 15:53:01 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.128 2009/03/06 12:28:36 jmc Exp $
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -1229,7 +1229,9 @@ The number of positional parameters if
 is
 .Ql * ,
 .Ql @ ,
-or not specified; otherwise the length of the string value of parameter
+or not specified; otherwise the length
+.Pq in characters
+of the string value of parameter
 .Ar name .
 .Pp
 .It Pf ${# Ns Ar name Ns [*]}
@@ -1309,7 +1311,7 @@ is replaced by the empty string, i.e. deleted.
 .Sm on
 The first
 .Ar len
-bytes of
+characters of
 .Ar name ,
 starting at position
 .Ar pos ,
@@ -5612,7 +5614,7 @@ all contributors, such as the Debian and OpenBSD projects.
 See the documentation, CVS, and web site for details.
 .Sh BUGS
 This document attempts to describe
-.Nm mksh\ R37c
+.Nm mksh\ R38
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

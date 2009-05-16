@@ -2,7 +2,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.54 2009/04/07 18:41:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.55 2009/05/16 15:53:01 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -51,6 +51,35 @@ static char *tilde(char *);
 static char *homedir(char *);
 #endif
 static void alt_expand(XPtrV *, char *, char *, char *, int);
+static size_t utflen(const char *);
+static void utfincptr(const char *, mksh_ari_t *);
+
+/* UTFMODE functions */
+static size_t
+utflen(const char *s)
+{
+	size_t n;
+
+	if (UTFMODE) {
+		n = 0;
+		while (*s) {
+			s += utf_ptradj(s);
+			++n;
+		}
+	} else
+		n = strlen(s);
+	return (n);
+}
+
+static void
+utfincptr(const char *s, mksh_ari_t *lp)
+{
+	const char *cp = s;
+
+	while ((*lp)--)
+		cp += utf_ptradj(cp);
+	*lp = cp - s;
+}
 
 /* compile and expand word */
 char *
@@ -314,7 +343,7 @@ expand(const char *cp,	/* input word */
 					switch (stype & 0x7f) {
 					case '0': {
 						char *beg, *mid, *end, *stg;
-						mksh_ari_t from = 0, num = -1, flen;
+						mksh_ari_t from = 0, num = -1, flen, finc = 0;
 
 						/* ! DOBLANK,DOBRACE_,DOTILDE */
 						f = DOPAT | (f&DONTRUNCOMMAND) |
@@ -347,15 +376,20 @@ expand(const char *cp,	/* input word */
 						}
 						afree(beg, ATEMP);
 						beg = str_val(st->var);
-						flen = strlen(beg);
+						flen = utflen(beg);
 						if (from < 0) {
 							if (-from < flen)
-								beg += flen + from;
+								finc = flen + from;
 						} else
-							beg += from < flen ? from : flen;
-						flen = strlen(beg);
+							finc = from < flen ? from : flen;
+//						if (UTFMODE)
+							utfincptr(beg, &finc);
+						beg += finc;
+						flen = utflen(beg);
 						if (num < 0 || num > flen)
 							num = flen;
+//						if (UTFMODE)
+							utfincptr(beg, &num);
 						strndupx(x.str, beg, num, ATEMP);
 						goto do_CSUBST;
 					}
@@ -913,7 +947,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		else {
 			p = str_val(global(sp));
 			zero_ok = p != null;
-			c = strlen(p);
+			c = utflen(p);
 		}
 		if (Flag(FNOUNSET) && c == 0 && !zero_ok)
 			errorf("%s: parameter not set", sp);
