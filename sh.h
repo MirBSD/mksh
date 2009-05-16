@@ -102,7 +102,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.294 2009/05/16 14:19:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.295 2009/05/16 15:09:07 tg Exp $");
 #endif
 #define MKSH_VERSION "R37 2009/05/16"
 
@@ -370,13 +370,7 @@ char *ucstrstr(char *, const char *);
 #define strnul(s)	((s) + strlen(s))
 
 #define utf_ptradjx(src, dst) do {					\
-	size_t utf_ptradjx_len;						\
-									\
-	if (!UTFMODE ||							\
-	    *(const unsigned char *)(src) < 0xC2 ||			\
-	    (utf_ptradjx_len = utf_mbtowc(NULL, (src))) == (size_t)-1)	\
-		utf_ptradjx_len = 1;					\
-	(dst) = (src) + utf_ptradjx_len;				\
+	(dst) = (src) + utf_ptradj(src);				\
 } while (/* CONSTCOND */ 0)
 
 #ifdef MKSH_SMALL
@@ -1318,6 +1312,7 @@ size_t utf_wctomb(char *, unsigned int);
 int utf_widthadj(const char *, const char **);
 int utf_mbswidth(const char *);
 const char *utf_skipcols(const char *, int);
+size_t utf_ptradj(const char *);
 /* eval.c */
 char *substitute(const char *, int);
 char **eval(const char **, int);

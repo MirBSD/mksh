@@ -5,7 +5,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.162 2009/05/16 14:34:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.163 2009/05/16 15:09:06 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -761,6 +761,18 @@ utf_skipcols(const char *p, int cols)
 	while (c < cols)
 		c += utf_widthadj(p, &p);
 	return (p);
+}
+
+size_t
+utf_ptradj(const char *src)
+{
+	register size_t n;
+
+	if (!UTFMODE ||
+	    *(const unsigned char *)(src) < 0xC2 ||
+	    (n = utf_mbtowc(NULL, src)) == (size_t)-1)
+		n = 1;
+	return (n);
 }
 
 /* UTF-8 hack: low-level functions */
@@ -1738,7 +1750,7 @@ x_bword(void)
 	}
 	x_goto(cp);
 	for (cp = xcp; cp < (xcp + nb); ++nc)
-		utf_ptradjx(cp, cp);
+		cp += utf_ptradj(cp);
 	return nc;
 }
 
@@ -1759,7 +1771,7 @@ x_fword(int move)
 			cp++;
 	}
 	for (cp2 = xcp; cp2 < cp; ++nc)
-		utf_ptradjx(cp2, cp2);
+		cp2 += utf_ptradj(cp2);
 	if (move)
 		x_goto(cp);
 	return nc;
