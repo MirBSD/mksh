@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.393 2009/05/16 18:40:03 tg Stab $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.394 2009/05/20 10:10:35 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -379,7 +379,7 @@ SunOS)
 	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
 	;;
 syllable)
-	: ${HAVE_FLOCK_EX=0}
+	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 	warn=' and will currently not work'
 	;;
 ULTRIX)
