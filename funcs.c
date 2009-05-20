@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.107 2009/05/16 18:40:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.108 2009/05/20 10:10:01 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -148,8 +148,9 @@ static int ptest_isa(Test_env *, Test_meta);
 static const char *ptest_getopnd(Test_env *, Test_op, bool);
 static void ptest_error(Test_env *, int, const char *);
 static char *kill_fmt_entry(const void *, int, char *, int);
-static void p_time(struct shf *, int, struct timeval *, int,
-    const char *, const char *);
+static void p_time(struct shf *, bool, long, int, int,
+    const char *, const char *)
+    __attribute__((nonnull (6, 7)));
 
 int
 c_cd(const char **wp)
@@ -2191,16 +2192,16 @@ c_unset(const char **wp)
 }
 
 static void
-p_time(struct shf *shf, int posix, struct timeval *tv, int width,
+p_time(struct shf *shf, bool posix, long tv_sec, int tv_usec, int width,
     const char *prefix, const char *suffix)
 {
+	tv_usec /= 10000;
 	if (posix)
-		shf_fprintf(shf, "%s%*ld.%02d%s", prefix ? prefix : "",
-		    width, (long)tv->tv_sec, (int)tv->tv_usec / 10000, suffix);
+		shf_fprintf(shf, "%s%*ld.%02d%s", prefix, width,
+		    tv_sec, tv_usec, suffix);
 	else
-		shf_fprintf(shf, "%s%*ldm%d.%02ds%s", prefix ? prefix : "",
-		    width, (long)tv->tv_sec / 60, (int)tv->tv_sec % 60,
-		    (int)tv->tv_usec / 10000, suffix);
+		shf_fprintf(shf, "%s%*ldm%d.%02ds%s", prefix, width,
+		    tv_sec / 60, (int)(tv_sec % 60), tv_usec, suffix);
 }
 
 int
@@ -2209,12 +2210,16 @@ c_times(const char **wp __unused)
 	struct rusage usage;
 
 	getrusage(RUSAGE_SELF, &usage);
-	p_time(shl_stdout, 0, &usage.ru_utime, 0, NULL, " ");
-	p_time(shl_stdout, 0, &usage.ru_stime, 0, NULL, "\n");
+	p_time(shl_stdout, false, usage.ru_utime.tv_sec,
+	    usage.ru_utime.tv_usec, 0, null, " ");
+	p_time(shl_stdout, false, usage.ru_stime.tv_sec,
+	    usage.ru_stime.tv_usec, 0, null, "\n");
 
 	getrusage(RUSAGE_CHILDREN, &usage);
-	p_time(shl_stdout, 0, &usage.ru_utime, 0, NULL, " ");
-	p_time(shl_stdout, 0, &usage.ru_stime, 0, NULL, "\n");
+	p_time(shl_stdout, false, usage.ru_utime.tv_sec,
+	    usage.ru_utime.tv_usec, 0, null, " ");
+	p_time(shl_stdout, false, usage.ru_stime.tv_sec,
+	    usage.ru_stime.tv_usec, 0, null, "\n");
 
 	return 0;
 }
@@ -2269,18 +2274,24 @@ timex(struct op *t, int f, volatile int *xerrok)
 	if (!(tf & TF_NOREAL)) {
 		timersub(&tv1, &tv0, &tv1);
 		if (tf & TF_POSIX)
-			p_time(shl_out, 1, &tv1, 5, "real ", "\n");
+			p_time(shl_out, true, tv1.tv_sec, tv1.tv_usec,
+			    5, "real ", "\n");
 		else
-			p_time(shl_out, 0, &tv1, 5, NULL, " real ");
+			p_time(shl_out, false, tv1.tv_sec, tv1.tv_usec,
+			    5, null, " real ");
 	}
 	if (tf & TF_POSIX)
-		p_time(shl_out, 1, &usrtime, 5, "user ", "\n");
+		p_time(shl_out, true, usrtime.tv_sec, usrtime.tv_usec,
+		    5, "user ", "\n");
 	else
-		p_time(shl_out, 0, &usrtime, 5, NULL, " user ");
+		p_time(shl_out, false, usrtime.tv_sec, usrtime.tv_usec,
+		    5, null, " user ");
 	if (tf & TF_POSIX)
-		p_time(shl_out, 1, &systime, 5, "sys  ", "\n");
+		p_time(shl_out, true, systime.tv_sec, systime.tv_usec,
+		    5, "sys  ", "\n");
 	else
-		p_time(shl_out, 0, &systime, 5, NULL, " system\n");
+		p_time(shl_out, false, systime.tv_sec, systime.tv_usec,
+		    5, null, " system\n");
 	shf_flush(shl_out);
 
 	return (rv);
