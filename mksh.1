@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.166 2009/05/16 18:40:08 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.167 2009/05/21 14:28:34 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.128 2009/03/06 12:28:36 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -48,7 +48,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: May 16 2009 $
+.Dd $Mdocdate: May 21 2009 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -794,8 +794,8 @@ succeeds).
 .It
 The single argument form of
 .Ic test ,
-which tests if the argument has a non-zero length, is not valid; explicit
-operators must always be used, e.g. instead of
+which tests if the argument has a non-zero length, is not portable,
+e.g. instead of
 .No \&[ Ar str No \&]
 use
 .No \&[[ \-n Ar str No \&]] .

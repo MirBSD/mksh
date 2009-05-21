@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.278 2009/05/20 10:10:00 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.279 2009/05/21 14:28:32 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R38 2009/05/19
+	@(#)MIRBSD KSH R38 2009/05/21
 description:
 	Check version of shell.
 stdin:
@@ -5631,4 +5631,94 @@ stdin:
 	echo $x
 expected-stdout:
 	yes
+---
+name: test-stnze-1
+description:
+	Check that the short form [ $x ] works
+stdin:
+	i=0
+	[ -n $x ]
+	rv=$?; echo $((++i)) $rv
+	[ $x ]
+	rv=$?; echo $((++i)) $rv
+	[ -n "$x" ]
+	rv=$?; echo $((++i)) $rv
+	[ "$x" ]
+	rv=$?; echo $((++i)) $rv
+	x=0
+	[ -n $x ]
+	rv=$?; echo $((++i)) $rv
+	[ $x ]
+	rv=$?; echo $((++i)) $rv
+	[ -n "$x" ]
+	rv=$?; echo $((++i)) $rv
+	[ "$x" ]
+	rv=$?; echo $((++i)) $rv
+	x='1 -a 1 = 2'
+	[ -n $x ]
+	rv=$?; echo $((++i)) $rv
+	[ $x ]
+	rv=$?; echo $((++i)) $rv
+	[ -n "$x" ]
+	rv=$?; echo $((++i)) $rv
+	[ "$x" ]
+	rv=$?; echo $((++i)) $rv
+expected-stdout:
+	1 0
+	2 1
+	3 1
+	4 1
+	5 0
+	6 0
+	7 0
+	8 0
+	9 1
+	10 1
+	11 0
+	12 0
+---
+name: test-stnze-2
+description:
+	Check that the short form [[ $x ]] works (ksh93 extension)
+stdin:
+	i=0
+	[[ -n $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ -n "$x" ]]
+	rv=$?; echo $((++i)) $rv
+	[[ "$x" ]]
+	rv=$?; echo $((++i)) $rv
+	x=0
+	[[ -n $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ -n "$x" ]]
+	rv=$?; echo $((++i)) $rv
+	[[ "$x" ]]
+	rv=$?; echo $((++i)) $rv
+	x='1 -a 1 = 2'
+	[[ -n $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ -n "$x" ]]
+	rv=$?; echo $((++i)) $rv
+	[[ "$x" ]]
+	rv=$?; echo $((++i)) $rv
+expected-stdout:
+	1 1
+	2 1
+	3 1
+	4 1
+	5 0
+	6 0
+	7 0
+	8 0
+	9 0
+	10 0
+	11 0
+	12 0
 ---
