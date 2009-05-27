@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.106 2009/05/16 18:40:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.107 2009/05/27 09:58:23 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -1300,10 +1300,10 @@ static char *
 do_phys_path(XString *xsp, char *xp, const char *pathl)
 {
 	const char *p, *q;
-	int len, llen;
-	int savepos;
-	char lbuf[PATH_MAX];
+	int len, llen, savepos;
+	char *lbuf;
 
+	lbuf = alloc(PATH_MAX, ATEMP);
 	Xcheck(*xsp, xp);
 	for (p = pathl; p; p = q) {
 		while (*p == '/')
@@ -1329,22 +1329,25 @@ do_phys_path(XString *xsp, char *xp, const char *pathl)
 		xp += len;
 		*xp = '\0';
 
-		llen = readlink(Xstring(*xsp, xp), lbuf, sizeof(lbuf) - 1);
+		llen = readlink(Xstring(*xsp, xp), lbuf, PATH_MAX - 1);
 		if (llen < 0) {
 			/* EINVAL means it wasn't a symlink... */
-			if (errno != EINVAL)
-				return NULL;
-			continue;
+			if (errno != EINVAL) {
+				xp = NULL;
+				goto out;
+			}
 		}
 		lbuf[llen] = '\0';
 
 		/* If absolute path, start from scratch.. */
 		xp = lbuf[0] == '/' ? Xstring(*xsp, xp) :
 		    Xrestpos(*xsp, xp, savepos);
-		if (!(xp = do_phys_path(xsp, xp, lbuf)))
-			return NULL;
+		if ((xp = do_phys_path(xsp, xp, lbuf)) == NULL)
+			break;
 	}
-	return xp;
+ out:
+	afree(lbuf, ATEMP);
+	return (xp);
 }
 
 #ifdef USE_CHVT

@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.83 2009/05/16 16:59:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.84 2009/05/27 09:58:22 tg Exp $");
 
 /*
  * states while lexing word
@@ -127,11 +127,7 @@ static int ignore_backslash_newline;
 #define	getsc_()	((*source->str != '\0') && !(source->flags & SF_FIRST) \
 			 ? *source->str++ : getsc__())
 
-#ifdef MKSH_SMALL
 #define STATE_BSIZE	32
-#else
-#define STATE_BSIZE	48
-#endif
 
 #define PUSH_STATE(s)	do { \
 			    if (++statep == state_info.end) \

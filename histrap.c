@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.81 2009/05/16 18:40:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.82 2009/05/27 09:58:22 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -781,8 +781,8 @@ hist_count_lines(unsigned char *base, int bytes)
 static int
 hist_shrink(unsigned char *oldbase, int oldbytes)
 {
-	int fd;
-	char	nfile[PATH_MAX];
+	int fd, rv = 0;
+	char *nfile = NULL;
 	struct	stat statb;
 	unsigned char *nbase = oldbase;
 	int nbytes = oldbytes;
@@ -796,27 +796,32 @@ hist_shrink(unsigned char *oldbase, int oldbytes)
 	/*
 	 *	create temp file
 	 */
-	shf_snprintf(nfile, sizeof(nfile), "%s.%d", hname, (int)procpid);
+	nfile = shf_smprintf("%s.%d", hname, (int)procpid);
 	if ((fd = open(nfile, O_CREAT | O_TRUNC | O_WRONLY, 0600)) < 0)
-		return 1;
+		goto errout;
 	if (fstat(histfd, &statb) >= 0 &&
 	    chown(nfile, statb.st_uid, statb.st_gid))
 		goto errout;
 
-	if (sprinkle(fd) || write(fd, nbase, nbytes) != nbytes) {
- errout:
-		close(fd);
-		unlink(nfile);
-		return 1;
-	}
+	if (sprinkle(fd) || write(fd, nbase, nbytes) != nbytes)
+		goto errout;
 	close(fd);
+	fd = -1;
 
 	/*
 	 *	rename
 	 */
-	if (rename(nfile, hname) < 0)
-		return 1;
-	return 0;
+	if (rename(nfile, hname) < 0) {
+ errout:
+		if (fd >= 0) {
+			close(fd);
+			if (nfile)
+				unlink(nfile);
+		}
+		rv = 1;
+	}
+	afree(nfile, ATEMP);
+	return (rv);
 }
 
 /*

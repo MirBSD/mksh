@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.394 2009/05/20 10:10:35 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.395 2009/05/27 09:58:20 tg Stab $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -867,7 +867,7 @@ ac_test attribute_bounded attribute 0 'for __attribute__((bounded))' <<-'EOF'
 	    __attribute__((bounded (buffer, 2, 3)));
 	int main(int ac, char *av[]) { return (xcopy(av[0], av[--ac], 1)); }
 	int xcopy(const void *s, void *d, size_t n) {
-		memmove(d, s, n); return (n);
+		memmove(d, s, n); return ((int)n);
 	}
 EOF
 
@@ -1060,7 +1060,7 @@ ac_testn arc4random <<-'EOF'
 	#include <stdint.h>
 	#endif
 	extern u_int32_t arc4random(void);
-	int main(void) { return (arc4random()); }
+	int main(void) { return ((int)(arc4random() & 0xFF)); }
 EOF
 
 save_LIBS=$LIBS
@@ -1084,7 +1084,8 @@ ac_test arc4random_pushb arc4random 0 <<-'EOF'
 	#include <stdint.h>
 	#endif
 	extern uint32_t arc4random_pushb(void *, size_t);
-	int main(int ac, char *av[]) { return (arc4random_pushb(*av, ac)); }
+	int main(int ac, char *av[]) { return ((int)(arc4random_pushb(*av,
+	    (size_t)ac)) & 0xFF); }
 EOF
 LIBS=$save_LIBS
 
@@ -1094,7 +1095,7 @@ ac_testn flock_ex '' 'flock and mmap' <<-'EOF'
 	#include <sys/mman.h>
 	#include <fcntl.h>
 	#include <stdlib.h>
-	int main(void) { return ((void *)mmap(NULL, flock(0, LOCK_EX),
+	int main(void) { return ((void *)mmap(NULL, (size_t)flock(0, LOCK_EX),
 	    PROT_READ, MAP_PRIVATE, 0, 0) == (void *)NULL ? 1 :
 	    munmap(NULL, 0)); }
 EOF
@@ -1104,7 +1105,8 @@ ac_test getrusage <<-'EOF'
 	#include "sh.h"
 	int main(void) {
 		struct rusage ru;
-		return (getrusage(RUSAGE_SELF + RUSAGE_CHILDREN, &ru));
+		return (getrusage(RUSAGE_SELF, &ru) +
+		    getrusage(RUSAGE_CHILDREN, &ru));
 	}
 EOF
 
@@ -1113,7 +1115,7 @@ ac_test mknod '' 'if to use mknod(), makedev() and friends' <<-'EOF'
 	#include "sh.h"
 	int main(int ac, char *av[]) {
 		dev_t dv;
-		dv = makedev(ac, 1);
+		dv = makedev((unsigned int)ac, 1);
 		return (mknod(av[0], 0, dv) ? (int)major(dv) : (int)minor(dv));
 	}
 EOF
@@ -1156,13 +1158,13 @@ EOF
 ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<-'EOF'
 	#include <locale.h>
 	#include <stddef.h>
-	int main(void) { return ((ptrdiff_t)(void *)setlocale(LC_CTYPE, "")); }
+	int main(void) { return ((int)(ptrdiff_t)(void *)setlocale(LC_CTYPE, "")); }
 EOF
 
 ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<-'EOF'
 	#include <langinfo.h>
 	#include <stddef.h>
-	int main(void) { return ((ptrdiff_t)(void *)nl_langinfo(CODESET)); }
+	int main(void) { return ((int)(ptrdiff_t)(void *)nl_langinfo(CODESET)); }
 EOF
 
 ac_test setmode mknod 1 <<-'EOF'
@@ -1198,7 +1200,7 @@ ac_test strcasestr <<-'EOF'
 	#include <strings.h>
 	#endif
 	int main(int ac, char *av[]) {
-		return ((ptrdiff_t)(void *)strcasestr(*av, av[ac]));
+		return ((int)(ptrdiff_t)(void *)strcasestr(*av, av[ac]));
 	}
 EOF
 
@@ -1216,25 +1218,25 @@ ac_test '!' arc4random_decl arc4random 1 'if arc4random() does not need to be de
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	long arc4random(void);		/* this clashes if defined before */
-	int main(void) { return (arc4random()); }
+	int main(void) { return ((int)arc4random()); }
 EOF
 ac_test '!' arc4random_pushb_decl arc4random_pushb 1 'if arc4random_pushb() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int arc4random_pushb(char, int); /* this clashes if defined before */
-	int main(int ac, char *av[]) { return (arc4random_pushb(**av, ac)); }
+	int main(int ac, char *av[]) { return ((int)arc4random_pushb(**av, ac)); }
 EOF
 ac_test '!' flock_decl flock_ex 1 'if flock() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	long flock(void);		/* this clashes if defined before */
-	int main(void) { return (flock()); }
+	int main(void) { return ((int)flock()); }
 EOF
 ac_test '!' revoke_decl revoke 1 'if revoke() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	long revoke(void);		/* this clashes if defined before */
-	int main(void) { return (revoke()); }
+	int main(void) { return ((int)revoke()); }
 EOF
 ac_test sys_siglist_decl sys_siglist 1 'if sys_siglist[] does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
