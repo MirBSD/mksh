@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.84 2009/05/27 09:58:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.85 2009/05/27 19:52:36 tg Exp $");
 
 /*
  * states while lexing word
@@ -1189,7 +1189,7 @@ getsc__(void)
 static void
 getsc_line(Source *s)
 {
-	char *xp = Xstring(s->xs, xp);
+	char *xp = Xstring(s->xs, xp), *cp;
 	int interactive = Flag(FTALKING) && s->type == SSTDIN;
 	int have_tty = interactive && (s->flags & SF_TTY);
 
@@ -1254,7 +1254,25 @@ getsc_line(Source *s)
 		ksh_tmout_state = TMOUT_EXECUTING;
 		alarm(0);
 	}
-	s->start = s->str = Xstring(s->xs, xp);
+	cp = Xstring(s->xs, xp);
+	if (interactive && *cp == '!' && cur_prompt == PS1) {
+		int linelen;
+
+		linelen = Xlength(s->xs, xp);
+		XcheckN(s->xs, xp, fc_e_n + /* NUL */ 1);
+		/* reload after potential realloc */
+		cp = Xstring(s->xs, xp);
+		/* change initial '!' into space */
+		*cp = ' ';
+		/* NUL terminate the current string */
+		*xp = '\0';
+		/* move the actual string forward */
+		memmove(cp + fc_e_n, cp, linelen + /* NUL */ 1);
+		xp += fc_e_n;
+		/* prepend it with "fc -e -" */
+		memcpy(cp, fc_e_, fc_e_n);
+	}
+	s->start = s->str = cp;
 	strip_nuls(Xstring(s->xs, xp), Xlength(s->xs, xp));
 	/* Note: if input is all nulls, this is not eof */
 	if (Xlength(s->xs, xp) == 0) { /* EOF */

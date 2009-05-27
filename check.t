@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.280 2009/05/27 09:58:21 tg Stab $
+# $MirOS: src/bin/mksh/check.t,v 1.281 2009/05/27 19:52:35 tg Stab $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -5721,4 +5721,111 @@ expected-stdout:
 	10 0
 	11 0
 	12 0
+---
+name: event-subst-1a
+description:
+	Check that '!' substitution in interactive mode works
+file-setup: file 755 "falsetto"
+	echo molto bene
+	exit 42
+file-setup: file 755 "!false"
+	echo si
+arguments: !-i!
+stdin:
+	export PATH=.:$PATH
+	falsetto
+	echo yeap
+	!false
+expected-exit: 42
+expected-stdout:
+	molto bene
+	yeap
+	molto bene
+expected-stderr-pattern:
+	/.*/
+---
+name: event-subst-1b
+description:
+	Check that '!' substitution in interactive mode works
+	even when a space separates it from the search command,
+	which is not what GNU bash provides but required for the
+	other regression tests below to check
+file-setup: file 755 "falsetto"
+	echo molto bene
+	exit 42
+file-setup: file 755 "!"
+	echo si
+arguments: !-i!
+stdin:
+	export PATH=.:$PATH
+	falsetto
+	echo yeap
+	! false
+expected-exit: 42
+expected-stdout:
+	molto bene
+	yeap
+	molto bene
+expected-stderr-pattern:
+	/.*/
+---
+name: event-subst-2
+description:
+	Check that '!' substitution in interactive mode
+	does not break things
+file-setup: file 755 "falsetto"
+	echo molto bene
+	exit 42
+file-setup: file 755 "!"
+	echo si
+arguments: !-i!
+env-setup: !ENV=./Env!
+file-setup: file 644 "Env"
+	PS1=X
+stdin:
+	export PATH=.:$PATH
+	falsetto
+	echo yeap
+	!false
+	echo meow
+	! false
+	echo = $?
+	if
+	! false; then echo foo; else echo bar; fi
+expected-stdout:
+	molto bene
+	yeap
+	molto bene
+	meow
+	molto bene
+	= 42
+	foo
+expected-stderr-pattern:
+	/.*/
+---
+name: event-subst-3
+description:
+	Check that '!' substitution in noninteractive mode is ignored
+file-setup: file 755 "falsetto"
+	echo molto bene
+	exit 42
+file-setup: file 755 "!false"
+	echo si
+stdin:
+	export PATH=.:$PATH
+	falsetto
+	echo yeap
+	!false
+	echo meow
+	! false
+	echo = $?
+	if
+	! false; then echo foo; else echo bar; fi
+expected-stdout:
+	molto bene
+	yeap
+	si
+	meow
+	= 0
+	foo
 ---

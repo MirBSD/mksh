@@ -122,7 +122,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.303 2009/05/27 09:58:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.304 2009/05/27 19:52:38 tg Exp $");
 #endif
 #define MKSH_VERSION "R38 2009/05/27"
 
@@ -576,6 +576,9 @@ EXTERN char shell_flags[FNFLAGS];
 EXTERN char null[] I__("");
 /* helpers for string pooling */
 #define T_synerr "syntax error"
+EXTERN const char r_fc_e_[] I__("r=fc -e -");
+#define fc_e_	(r_fc_e_ + 2)		/* "fc -e -" */
+#define fc_e_n	7			/* strlen(fc_e_) */
 
 enum temp_type {
 	TT_HEREDOC_EXP,	/* expanded heredoc */
