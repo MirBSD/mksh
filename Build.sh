@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.395 2009/05/27 09:58:20 tg Stab $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.396 2009/05/29 14:41:37 tg Stab $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -372,6 +372,7 @@ PW32*)
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 QNX)
+	CPPFLAGS="$CPPFLAGS -D__NO_EXT_QNX"
 	oldish_ed=no-stderr-ed		# oldish /bin/ed is broken
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
