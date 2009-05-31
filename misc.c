@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.107 2009/05/27 09:58:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.108 2009/05/31 15:10:07 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -1331,11 +1331,11 @@ do_phys_path(XString *xsp, char *xp, const char *pathl)
 
 		llen = readlink(Xstring(*xsp, xp), lbuf, PATH_MAX - 1);
 		if (llen < 0) {
-			/* EINVAL means it wasn't a symlink... */
-			if (errno != EINVAL) {
-				xp = NULL;
-				goto out;
-			}
+			if (errno == EINVAL)
+				/* not a symbolic link */
+				continue;
+			xp = NULL;
+			goto out;
 		}
 		lbuf[llen] = '\0';
 
