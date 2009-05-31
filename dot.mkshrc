@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.42 2009/05/16 16:59:33 tg Rel $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.43 2009/05/31 17:17:33 tg Rel $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -200,6 +200,78 @@ function pushd {
 	fi
 	(( isnoglob )) || set +o noglob
 	dirs $fa
+}
+
+# base64 encoder (not NUL safe) and decoder (NUL safe), RFC compliant
+function Lb64decode {
+	typeset u=$-
+	set +U
+	typeset c s="$*" t=
+	[[ -n $s ]] || { s=$(cat;print x); s=${s%x}; }
+	typeset -i i=0 n=${#s} p=0 v x
+	typeset -i16 o
+
+	while (( i < n )); do
+		c=${s:(i++):1}
+		case $c {
+		(=)	break ;;
+		([A-Z])	(( v = 1#$c - 65 )) ;;
+		([a-z])	(( v = 1#$c - 71 )) ;;
+		([0-9])	(( v = 1#$c + 4 )) ;;
+		(+)	v=62 ;;
+		(/)	v=63 ;;
+		(*)	continue ;;
+		}
+		(( x = (x << 6) | v ))
+		case $((p++)) {
+		(0)	continue ;;
+		(1)	(( o = (x >> 4) & 255 )) ;;
+		(2)	(( o = (x >> 2) & 255 )) ;;
+		(3)	(( o = x & 255 ))
+			p=0
+			;;
+		}
+		t=$t\\x${o#16#}
+	done
+	print -n $t
+	[[ $u = *U* ]] && set -U
+	:
+}
+
+set -A Lb64encode_code -- A B C D E F G H I J K L M N O P Q R S T U V W X Y Z \
+    a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9 + /
+function Lb64encode {
+	typeset u=$-
+	set +U
+	typeset c s="$@" t
+	[[ -n $s ]] || { s=$(cat;print x); s=${s%x}; }
+	typeset -i i=0 n=${#s} j v
+
+	while (( i < n )); do
+		c=${s:(i++):1}
+		(( v = 1#$c << 16 ))
+		c=${s:(i++):1}
+		(( j = ${#c} ? 1#$c : 0 ))
+		(( v |= j << 8 ))
+		c=${s:(i++):1}
+		(( j = ${#c} ? 1#$c : 0 ))
+		(( v |= j ))
+		t=$t${Lb64encode_code[v >> 18]}${Lb64encode_code[v >> 12 & 63]}
+		c=${Lb64encode_code[v >> 6 & 63]}
+		if (( i <= n )); then
+			t=$t$c${Lb64encode_code[v & 63]}
+		elif (( i == n + 1 )); then
+			t=$t$c=
+		else
+			t=$t==
+		fi
+		if (( ${#t} == 76 || i >= n )); then
+			print $t
+			t=
+		fi
+	done
+	[[ $u = *U* ]] && set -U
+	:
 }
 
 # strip comments (and leading/trailing whitespace if IFS is set) from
