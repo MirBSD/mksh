@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.282 2009/05/31 15:10:06 tg Stab $
+# $MirOS: src/bin/mksh/check.t,v 1.283 2009/06/06 14:23:17 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -5726,9 +5726,11 @@ name: event-subst-1a
 description:
 	Check that '!' substitution in interactive mode works
 file-setup: file 755 "falsetto"
+	#! /bin/sh
 	echo molto bene
 	exit 42
 file-setup: file 755 "!false"
+	#! /bin/sh
 	echo si
 arguments: !-i!
 stdin:
@@ -5751,9 +5753,11 @@ description:
 	which is not what GNU bash provides but required for the
 	other regression tests below to check
 file-setup: file 755 "falsetto"
+	#! /bin/sh
 	echo molto bene
 	exit 42
 file-setup: file 755 "!"
+	#! /bin/sh
 	echo si
 arguments: !-i!
 stdin:
@@ -5774,9 +5778,11 @@ description:
 	Check that '!' substitution in interactive mode
 	does not break things
 file-setup: file 755 "falsetto"
+	#! /bin/sh
 	echo molto bene
 	exit 42
 file-setup: file 755 "!"
+	#! /bin/sh
 	echo si
 arguments: !-i!
 env-setup: !ENV=./Env!
@@ -5807,9 +5813,11 @@ name: event-subst-3
 description:
 	Check that '!' substitution in noninteractive mode is ignored
 file-setup: file 755 "falsetto"
+	#! /bin/sh
 	echo molto bene
 	exit 42
 file-setup: file 755 "!false"
+	#! /bin/sh
 	echo si
 stdin:
 	export PATH=.:$PATH
