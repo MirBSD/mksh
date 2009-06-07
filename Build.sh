@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.397 2009/06/07 14:50:58 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.398 2009/06/07 22:21:39 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -906,7 +906,7 @@ ac_testn mksh_full '' "if a full-featured mksh is requested" <<-'EOF'
 	int main(void) { return (0); }
 	#endif
 EOF
-ac_testn mksh_reduced mksh_full 0 "if a reduced-feature sh is requested" <<-'EOF'
+ac_testn mksh_reduced '' "if a reduced-feature sh is requested" <<-'EOF'
 	#ifdef MKSH_BINSHREDUCED
 	/* force a success: we want a reduced mksh-as-bin-sh */
 	int main(void) { return (0); }
