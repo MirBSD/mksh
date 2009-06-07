@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.129 2009/05/27 19:52:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.130 2009/06/07 22:28:04 tg Exp $");
 
 extern char **environ;
 
@@ -359,8 +359,10 @@ main(int argc, const char *argv[])
 			UTFMODE = isuc(ccp);
 		}
 #undef isuc
-#else
+#elif MKSH_ASSUME_UTF8
 		UTFMODE = 1;
+#else
+		UTFMODE = 0;
 #endif
 		x_init();
 	}
