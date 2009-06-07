@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.396 2009/05/29 14:41:37 tg Stab $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.397 2009/06/07 14:50:58 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -19,7 +19,8 @@ srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.396 2009/05/29 14:41:37 tg Stab $'
 # damage or existence of a defect, except proven that it results out
 # of said person's immediate fault when using the work as intended.
 #-
-# Environment used: CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF TARGET_OS
+# Environment used:	CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF
+#			TARGET_OS TARGET_OSREV
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
 #			MKSH_CLS_STRING MKSH_BINSHREDUCED MKSH_UNEMPLOYED
 #			MKSH_CONSERVATIVE_FDS MKSH_MIDNIGHTBSD01ASH_COMPAT
@@ -288,6 +289,15 @@ ccpc=-Wc,
 ccpl=-Wl,
 tsts=
 ccpr='|| rm -f ${tcfn}*'
+
+# Configuration depending on OS revision, on OSes that need them
+case $TARGET_OS in
+QNX)
+	test x"$TARGET_OSREV" = x"" && TARGET_OSREV=`uname -r`
+	;;
+esac
+
+# Configuration depending on OS name
 case $TARGET_OS in
 AIX)
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
@@ -373,7 +383,11 @@ PW32*)
 	;;
 QNX)
 	CPPFLAGS="$CPPFLAGS -D__NO_EXT_QNX"
-	oldish_ed=no-stderr-ed		# oldish /bin/ed is broken
+	case $TARGET_OSREV in
+	[012345].*|6.[0123].*|6.4.[01])
+		oldish_ed=no-stderr-ed		# oldish /bin/ed is broken
+		;;
+	esac
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 SunOS)
