@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.398 2009/06/07 22:21:39 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.399 2009/06/07 22:26:00 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -924,6 +924,8 @@ if test 0 = $HAVE_MKSH_FULL; then
 	fi
 
 	: ${HAVE_MKNOD=0}
+	: ${HAVE_REALPATH=0}
+	: ${HAVE_REVOKE=0}
 	check_categories=$check_categories,smksh
 	check_categories=$check_categories,convfds
 fi
@@ -1145,7 +1147,7 @@ ac_test nice <<-'EOF'
 	int main(void) { return (nice(4)); }
 EOF
 
-ac_test realpath mksh_full 0 <<-'EOF'
+ac_test realpath <<-'EOF'
 	#if HAVE_SYS_PARAM_H
 	#include <sys/param.h>
 	#endif
@@ -1161,7 +1163,7 @@ ac_test realpath mksh_full 0 <<-'EOF'
 	}
 EOF
 
-ac_test revoke mksh_full 0 <<-'EOF'
+ac_test revoke <<-'EOF'
 	#include <sys/types.h>
 	#if HAVE_LIBUTIL_H
 	#include <libutil.h>
