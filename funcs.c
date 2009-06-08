@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.111 2009/06/08 20:34:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.112 2009/06/08 20:52:27 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -36,6 +36,10 @@ __RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.111 2009/06/08 20:34:39 tg Exp $");
 #else
 /* cross fingers and hope kill is killpg-endowed */
 #define mksh_kill	kill
+#endif
+
+#ifndef RLIM_INFINITY
+#define MKSH_NO_LIMITS
 #endif
 
 /* A leading = means assignments before command are kept;
@@ -2890,7 +2894,7 @@ ptest_error(Test_env *te, int ofs, const char *msg)
 		bi_errorf("%s", msg);
 }
 
-#ifdef RLIM_INFINITY
+#ifndef MKSH_NO_LIMITS
 #define SOFT	0x1
 #define HARD	0x2
 
@@ -2908,7 +2912,7 @@ static int set_ulimit(const struct limits *, const char *, int);
 int
 c_ulimit(const char **wp)
 {
-#ifdef RLIM_INFINITY
+#ifndef MKSH_NO_LIMITS
 	static const struct limits limits[] = {
 		/* do not use options -H, -S or -a or change the order */
 #ifdef RLIMIT_CPU
@@ -3009,7 +3013,7 @@ c_ulimit(const char **wp)
 	return (0);
 }
 
-#ifdef RLIM_INFINITY
+#ifndef MKSH_NO_LIMITS
 static int
 set_ulimit(const struct limits *l, const char *v, int how)
 {
