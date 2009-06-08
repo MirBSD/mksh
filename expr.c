@@ -1,4 +1,4 @@
-/*	$OpenBSD: expr.c,v 1.19 2006/04/10 14:38:59 jaredy Exp $	*/
+/*	$OpenBSD: expr.c,v 1.21 2009/06/01 19:00:57 deraadt Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.27 2009/06/08 20:06:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.28 2009/06/08 20:13:07 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -592,7 +592,8 @@ do_ppmm(Expr_state *es, enum token op, struct tbl *vasn, bool is_prefix)
 static void
 assign_check(Expr_state *es, enum token op, struct tbl *vasn)
 {
-	if (vasn->name[0] == '\0' && !(vasn->flag & EXPRLVALUE))
+	if (es->tok == END ||
+	    (vasn->name[0] == '\0' && !(vasn->flag & EXPRLVALUE)))
 		evalerr(es, ET_LVALUE, opinfo[(int)op].name);
 	else if (vasn->flag & RDONLY)
 		evalerr(es, ET_RDONLY, opinfo[(int)op].name);
