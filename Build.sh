@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.399 2009/06/07 22:26:00 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.400 2009/06/08 20:34:37 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -378,7 +378,6 @@ Plan9)
 PW32*)
 	HAVE_SIG_T=0	# incompatible
 	warn=' and will currently not work'
-	# missing: killpg()
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 QNX)
@@ -1125,6 +1124,11 @@ ac_test getrusage <<-'EOF'
 		return (getrusage(RUSAGE_SELF, &ru) +
 		    getrusage(RUSAGE_CHILDREN, &ru));
 	}
+EOF
+
+ac_test killpg <<-'EOF'
+	#include <signal.h>
+	int main(int ac) { return (killpg(123, ac)); }
 EOF
 
 ac_test mknod '' 'if to use mknod(), makedev() and friends' <<-'EOF'

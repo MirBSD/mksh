@@ -25,7 +25,18 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.110 2009/06/08 20:06:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.111 2009/06/08 20:34:39 tg Exp $");
+
+#if HAVE_KILLPG
+/*
+ * use killpg if < -1 since -1 does special things
+ * for some non-killpg-endowed kills
+ */
+#define mksh_kill(p,s)	((p) < -1 ? killpg(-(p), (s)) : kill((p), (s)))
+#else
+/* cross fingers and hope kill is killpg-endowed */
+#define mksh_kill	kill
+#endif
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -1390,10 +1401,7 @@ c_kill(const char **wp)
 			    p);
 			rv = 1;
 		} else {
-			/* use killpg if < -1 since -1 does special things for
-			 * some non-killpg-endowed kills
-			 */
-			if ((n < -1 ? killpg(-n, sig) : kill(n, sig)) < 0) {
+			if (mksh_kill(n, sig) < 0) {
 				bi_errorf("%s: %s", p, strerror(errno));
 				rv = 1;
 			}

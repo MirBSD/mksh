@@ -22,7 +22,14 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.54 2009/06/08 20:06:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.55 2009/06/08 20:34:40 tg Exp $");
+
+#if HAVE_KILLPG
+#define mksh_killpg		killpg
+#else
+/* cross fingers and hope kill is killpg-endowed */
+#define mksh_killpg(p,s)	kill(-(p), (s))
+#endif
 
 /* Order important! */
 #define PRUNNING	0
@@ -213,13 +220,13 @@ j_exit(void)
 			if (j->pgrp == 0)
 				kill_job(j, SIGHUP);
 			else
-				killpg(j->pgrp, SIGHUP);
+				mksh_killpg(j->pgrp, SIGHUP);
 #ifndef MKSH_UNEMPLOYED
 			if (j->state == PSTOPPED) {
 				if (j->pgrp == 0)
 					kill_job(j, SIGCONT);
 				else
-					killpg(j->pgrp, SIGCONT);
+					mksh_killpg(j->pgrp, SIGCONT);
 			}
 #endif
 		}
@@ -636,9 +643,9 @@ j_kill(const char *cp, int sig)
 	} else {
 #ifndef MKSH_UNEMPLOYED
 		if (j->state == PSTOPPED && (sig == SIGTERM || sig == SIGHUP))
-			(void)killpg(j->pgrp, SIGCONT);
+			mksh_killpg(j->pgrp, SIGCONT);
 #endif
-		if (killpg(j->pgrp, sig) < 0) {
+		if (mksh_killpg(j->pgrp, sig) < 0) {
 			bi_errorf("%s: %s", cp, strerror(errno));
 			rv = 1;
 		}
@@ -725,7 +732,7 @@ j_resume(const char *cp, int bg)
 			async_job = NULL;
 	}
 
-	if (j->state == PRUNNING && killpg(j->pgrp, SIGCONT) < 0) {
+	if (j->state == PRUNNING && mksh_killpg(j->pgrp, SIGCONT) < 0) {
 		int err = errno;
 
 		if (!bg) {
