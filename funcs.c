@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.109 2009/05/21 14:28:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.110 2009/06/08 20:06:46 tg Exp $");
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -172,13 +172,13 @@ c_cd(const char **wp)
 			physical = true;
 			break;
 		case '?':
-			return 1;
+			return (1);
 		}
 	wp += builtin_opt.optind;
 
 	if (Flag(FRESTRICTED)) {
 		bi_errorf("restricted shell - can't cd");
-		return 1;
+		return (1);
 	}
 
 	pwd_s = global("PWD");
@@ -188,7 +188,7 @@ c_cd(const char **wp)
 		/* No arguments - go home */
 		if ((dir = str_val(global("HOME"))) == null) {
 			bi_errorf("no home directory (HOME not set)");
-			return 1;
+			return (1);
 		}
 	} else if (!wp[1]) {
 		/* One argument: - or dir */
@@ -199,7 +199,7 @@ c_cd(const char **wp)
 			dir = str_val(oldpwd_s);
 			if (dir == null) {
 				bi_errorf("no OLDPWD");
-				return 1;
+				return (1);
 			}
 			printpath = true;
 		}
@@ -210,7 +210,7 @@ c_cd(const char **wp)
 
 		if (!current_wd[0]) {
 			bi_errorf("don't know current directory");
-			return 1;
+			return (1);
 		}
 		/* substitute arg1 for arg2 in current path.
 		 * if the first substitution fails because the cd fails
@@ -219,7 +219,7 @@ c_cd(const char **wp)
 		 */
 		if ((cp = strstr(current_wd, wp[0])) == NULL) {
 			bi_errorf("bad substitution");
-			return 1;
+			return (1);
 		}
 		ilen = cp - current_wd;
 		olen = strlen(wp[0]);
@@ -232,7 +232,7 @@ c_cd(const char **wp)
 		printpath = true;
 	} else {
 		bi_errorf("too many arguments");
-		return 1;
+		return (1);
 	}
 
 	XinitN(xs, PATH_MAX, ATEMP);
@@ -254,7 +254,7 @@ c_cd(const char **wp)
 		else
 			bi_errorf("%s - %s", try, strerror(errno));
 		afree(allocd, ATEMP);
-		return 1;
+		return (1);
 	}
 
 	/* Clear out tracked aliases with relative paths */
@@ -288,7 +288,7 @@ c_cd(const char **wp)
 		shprintf("%s\n", pwd);
 
 	afree(allocd, ATEMP);
-	return 0;
+	return (0);
 }
 
 int
@@ -307,13 +307,13 @@ c_pwd(const char **wp)
 			physical = true;
 			break;
 		case '?':
-			return 1;
+			return (1);
 		}
 	wp += builtin_opt.optind;
 
 	if (wp[0]) {
 		bi_errorf("too many arguments");
-		return 1;
+		return (1);
 	}
 	p = current_wd[0] ? (physical ? get_phys_path(current_wd) :
 	    current_wd) : NULL;
@@ -325,7 +325,7 @@ c_pwd(const char **wp)
 	}
 	shprintf("%s\n", p);
 	afree(allocd, ATEMP);
-	return 0;
+	return (0);
 }
 
 int
@@ -399,7 +399,7 @@ c_print(const char **wp)
 			case 'p':
 				if ((fd = coproc_getfd(W_OK, &emsg)) < 0) {
 					bi_errorf("-p: %s", emsg);
-					return 1;
+					return (1);
 				}
 				break;
 			case 'r':
@@ -413,11 +413,11 @@ c_print(const char **wp)
 					fd = 0;
 				else if ((fd = check_fd(s, W_OK, &emsg)) < 0) {
 					bi_errorf("-u: %s: %s", s, emsg);
-					return 1;
+					return (1);
 				}
 				break;
 			case '?':
-				return 1;
+				return (1);
 			}
 		if (!(builtin_opt.info & GI_MINUSMINUS)) {
 			/* treat a lone - like -- */
@@ -560,7 +560,7 @@ c_print(const char **wp)
 						opipe = block_pipe();
 					continue;
 				}
-				return 1;
+				return (1);
 			}
 			s += n;
 			len -= n;
@@ -569,7 +569,7 @@ c_print(const char **wp)
 			restore_pipe(opipe);
 	}
 
-	return 0;
+	return (0);
 }
 
 int
@@ -594,7 +594,7 @@ c_whence(const char **wp)
 			Vflag = true;
 			break;
 		case '?':
-			return 1;
+			return (1);
 		}
 	wp += builtin_opt.optind;
 
@@ -684,7 +684,7 @@ c_whence(const char **wp)
 		if (vflag || !rv)
 			shf_putc('\n', shl_stdout);
 	}
-	return rv;
+	return (rv);
 }
 
 /* Deal with command -vV - command -p dealt with in comexec() */
@@ -694,7 +694,7 @@ c_command(const char **wp)
 	/* Let c_whence do the work.  Note that c_command() must be
 	 * a distinct function from c_whence() (tested in comexec()).
 	 */
-	return c_whence(wp);
+	return (c_whence(wp));
 }
 
 /* typeset, export, and readonly */
@@ -791,7 +791,7 @@ c_typeset(const char **wp)
 			flag = EXPORT;
 			break;
 		case '?':
-			return 1;
+			return (1);
 		}
 		if (builtin_opt.info & GI_PLUS) {
 			fclr |= flag;
@@ -806,10 +806,10 @@ c_typeset(const char **wp)
 
 	field = 0;
 	if (fieldstr && !bi_getn(fieldstr, &field))
-		return 1;
+		return (1);
 	base = 0;
 	if (basestr && !bi_getn(basestr, &base))
-		return 1;
+		return (1);
 
 	if (!(builtin_opt.info & GI_MINUSMINUS) && wp[builtin_opt.optind] &&
 	    (wp[builtin_opt.optind][0] == '-' ||
@@ -821,7 +821,7 @@ c_typeset(const char **wp)
 
 	if (func && ((fset|fclr) & ~(TRACE|UCASEV_AL|EXPORT))) {
 		bi_errorf("only -t, -u and -x options may be used with -f");
-		return 1;
+		return (1);
 	}
 	if (wp[builtin_opt.optind]) {
 		/* Take care of exclusions.
@@ -871,10 +871,10 @@ c_typeset(const char **wp)
 					    "%s() %T\n", wp[i], f->val.t);
 			} else if (!typeset(wp[i], fset, fclr, field, base)) {
 				bi_errorf("%s: not identifier", wp[i]);
-				return 1;
+				return (1);
 			}
 		}
-		return rv;
+		return (rv);
 	}
 
 	/* list variables and attributes */
@@ -1011,7 +1011,7 @@ c_typeset(const char **wp)
 			}
 		}
 	}
-	return 0;
+	return (0);
 }
 
 int
@@ -1054,7 +1054,7 @@ c_alias(const char **wp)
 			xflag = EXPORT;
 			break;
 		case '?':
-			return 1;
+			return (1);
 		}
 	}
 	wp += builtin_opt.optind;
@@ -1076,10 +1076,10 @@ c_alias(const char **wp)
 		if (!tflag || *wp) {
 			shf_puts("alias: -r flag can only be used with -t"
 			    " and without arguments\n", shl_stdout);
-			return 1;
+			return (1);
 		}
 		ksh_getopt_reset(&builtin_opt, GF_ERROR);
-		return c_unalias(args);
+		return (c_unalias(args));
 	}
 
 	if (*wp == NULL) {
@@ -1150,7 +1150,7 @@ c_alias(const char **wp)
 		afree(xalias, ATEMP);
 	}
 
-	return rv;
+	return (rv);
 }
 
 int
@@ -1177,7 +1177,7 @@ c_unalias(const char **wp)
 			t = &taliases;
 			break;
 		case '?':
-			return 1;
+			return (1);
 		}
 	wp += builtin_opt.optind;
 
@@ -1206,7 +1206,7 @@ c_unalias(const char **wp)
 		}
 	}
 
-	return rv;
+	return (rv);
 }
 
 int
@@ -1224,7 +1224,7 @@ c_let(const char **wp)
 				break;
 			} else
 				rv = val == 0;
-	return rv;
+	return (rv);
 }
 
 int
@@ -1247,7 +1247,7 @@ c_jobs(const char **wp)
 			nflag = -1;
 			break;
 		case '?':
-			return 1;
+			return (1);
 		}
 	wp += builtin_opt.optind;
 	if (!*wp) {
@@ -1258,7 +1258,7 @@ c_jobs(const char **wp)
 			if (j_jobs(*wp, flag, nflag))
 				rv = 1;
 	}
-	return rv;
+	return (rv);
 }
 
 #ifndef MKSH_UNEMPLOYED
@@ -1270,17 +1270,17 @@ c_fgbg(const char **wp)
 
 	if (!Flag(FMONITOR)) {
 		bi_errorf("job control not enabled");
-		return 1;
+		return (1);
 	}
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
-		return 1;
+		return (1);
 	wp += builtin_opt.optind;
 	if (*wp)
 		for (; *wp; wp++)
 			rv = j_resume(*wp, bg);
 	else
 		rv = j_resume("%%", bg);
-	return bg ? 0 : rv;
+	return (bg ? 0 : rv);
 }
 #endif
 
@@ -1295,7 +1295,7 @@ kill_fmt_entry(const void *arg, int i, char *buf, int buflen)
 	    ki->num_width, i,
 	    ki->name_width, sigtraps[i].name,
 	    sigtraps[i].mess);
-	return buf;
+	return (buf);
 }
 
 int
@@ -1311,7 +1311,7 @@ c_kill(const char **wp)
 	    ksh_isupper(p[1]))) {
 		if (!(t = gettrap(p + 1, true))) {
 			bi_errorf("bad signal '%s'", p + 1);
-			return 1;
+			return (1);
 		}
 		i = (wp[2] && strcmp(wp[2], "--") == 0) ? 3 : 2;
 	} else {
@@ -1326,11 +1326,11 @@ c_kill(const char **wp)
 				if (!(t = gettrap(builtin_opt.optarg, true))) {
 					bi_errorf("bad signal '%s'",
 					    builtin_opt.optarg);
-					return 1;
+					return (1);
 				}
 				break;
 			case '?':
-				return 1;
+				return (1);
 			}
 		i = builtin_opt.optind;
 	}
@@ -1341,14 +1341,14 @@ c_kill(const char **wp)
 		    "\tkill -l [exit_status ...]\n", shl_out);
 #endif
 		bi_errorfz();
-		return 1;
+		return (1);
 	}
 
 	if (lflag) {
 		if (wp[i]) {
 			for (; wp[i]; i++) {
 				if (!bi_getn(wp[i], &n))
-					return 1;
+					return (1);
 				if (n > 128 && n < 128 + NSIG)
 					n -= 128;
 				if (n > 0 && n < NSIG)
@@ -1377,7 +1377,7 @@ c_kill(const char **wp)
 			    kill_fmt_entry, (void *)&ki,
 			    ki.num_width + ki.name_width + mess_width + 3, 1);
 		}
-		return 0;
+		return (0);
 	}
 	rv = 0;
 	sig = t ? t->signal : SIGTERM;
@@ -1399,7 +1399,7 @@ c_kill(const char **wp)
 			}
 		}
 	}
-	return rv;
+	return (rv);
 }
 
 void
@@ -1420,28 +1420,28 @@ c_getopts(const char **wp)
 	struct tbl *vq, *voptarg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
-		return 1;
+		return (1);
 	wp += builtin_opt.optind;
 
 	opts = *wp++;
 	if (!opts) {
 		bi_errorf("missing options argument");
-		return 1;
+		return (1);
 	}
 
 	var = *wp++;
 	if (!var) {
 		bi_errorf("missing name argument");
-		return 1;
+		return (1);
 	}
 	if (!*var || *skip_varname(var, true)) {
 		bi_errorf("%s: is not an identifier", var);
-		return 1;
+		return (1);
 	}
 
 	if (e->loc->next == NULL) {
 		internal_warningf("c_getopts: no argv");
-		return 1;
+		return (1);
 	}
 	/* Which arguments are we parsing... */
 	if (*wp == NULL)
@@ -1456,7 +1456,7 @@ c_getopts(const char **wp)
 	    (user_opt.p != 0 &&
 	    user_opt.p > strlen(wp[user_opt.optind - 1]))) {
 		bi_errorf("arguments changed since last call");
-		return 1;
+		return (1);
 	}
 
 	user_opt.optarg = NULL;
@@ -1502,7 +1502,7 @@ c_getopts(const char **wp)
 	if (Flag(FEXPORT))
 		typeset(var, EXPORT, 0, 0, 0);
 
-	return optc < 0 ? 1 : rv;
+	return (optc < 0 ? 1 : rv);
 }
 
 int
@@ -1522,7 +1522,7 @@ c_bind(const char **wp)
 			macro = true;
 			break;
 		case '?':
-			return 1;
+			return (1);
 		}
 	wp += builtin_opt.optind;
 
@@ -1541,14 +1541,14 @@ c_bind(const char **wp)
 		afree(up, ATEMP);
 	}
 
-	return rv;
+	return (rv);
 }
 
 /* :, false and true */
 int
 c_label(const char **wp)
 {
-	return wp[0][0] == 'f' ? 1 : 0;
+	return (wp[0][0] == 'f' ? 1 : 0);
 }
 
 int
@@ -1560,7 +1560,7 @@ c_shift(const char **wp)
 	const char *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
-		return 1;
+		return (1);
 	arg = wp[builtin_opt.optind];
 
 	if (arg) {
@@ -1579,7 +1579,7 @@ c_shift(const char **wp)
 	l->argv[n] = l->argv[0];
 	l->argv += n;
 	l->argc -= n;
-	return 0;
+	return (0);
 }
 
 int
@@ -1596,7 +1596,7 @@ c_umask(const char **wp)
 			symbolic = true;
 			break;
 		case '?':
-			return 1;
+			return (1);
 		}
 	cp = wp[builtin_opt.optind];
 	if (cp == NULL) {
@@ -1628,7 +1628,7 @@ c_umask(const char **wp)
 				new_umask = new_umask * 8 + (*cp - '0');
 			if (*cp) {
 				bi_errorf("bad number");
-				return 1;
+				return (1);
 			}
 		} else {
 			/* symbolic format */
@@ -1699,7 +1699,7 @@ c_umask(const char **wp)
 			}
 			if (*cp) {
 				bi_errorf("bad mask");
-				return 1;
+				return (1);
 			}
 			new_umask = ~new_umask;
 		}
@@ -1751,7 +1751,7 @@ c_wait(const char **wp)
 	int rv = 0, sig;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
-		return 1;
+		return (1);
 	wp += builtin_opt.optind;
 	if (*wp == NULL) {
 		while (waitfor(NULL, &sig) >= 0)
@@ -1763,7 +1763,7 @@ c_wait(const char **wp)
 		if (rv < 0)
 			rv = sig ? sig : 127; /* magic exit code: bad job-id */
 	}
-	return rv;
+	return (rv);
 }
 
 int
@@ -1783,7 +1783,7 @@ c_read(const char **wp)
 		case 'p':
 			if ((fd = coproc_getfd(R_OK, &emsg)) < 0) {
 				bi_errorf("-p: %s", emsg);
-				return 1;
+				return (1);
 			}
 			break;
 		case 'r':
@@ -1797,11 +1797,11 @@ c_read(const char **wp)
 				fd = 0;
 			else if ((fd = check_fd(cp, R_OK, &emsg)) < 0) {
 				bi_errorf("-u: %s: %s", cp, emsg);
-				return 1;
+				return (1);
 			}
 			break;
 		case '?':
-			return 1;
+			return (1);
 		}
 	wp += builtin_opt.optind;
 
@@ -1912,14 +1912,14 @@ c_read(const char **wp)
 			shf_flush(shf);
 			bi_errorf("%s is read only", *wp);
 			afree(wpalloc, ATEMP);
-			return 1;
+			return (1);
 		}
 		if (Flag(FEXPORT))
 			typeset(*wp, EXPORT, 0, 0, 0);
 		if (!setstr(vp, Xstring(cs, ccp), KSH_RETURN_ERROR)) {
 			shf_flush(shf);
 			afree(wpalloc, ATEMP);
-			return 1;
+			return (1);
 		}
 	}
 
@@ -1937,7 +1937,7 @@ c_read(const char **wp)
 		coproc_read_close(fd);
 
 	afree(wpalloc, ATEMP);
-	return ecode ? ecode : c == EOF;
+	return (ecode ? ecode : c == EOF);
 }
 
 int
@@ -1948,7 +1948,7 @@ c_eval(const char **wp)
 	int rv;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
-		return 1;
+		return (1);
 	s = pushs(SWORDS, ATEMP);
 	s->u.strv = wp + builtin_opt.optind;
 
@@ -1995,7 +1995,7 @@ c_trap(const char **wp)
 	Trap *p;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
-		return 1;
+		return (1);
 	wp += builtin_opt.optind;
 
 	if (*wp == NULL) {
@@ -2005,7 +2005,7 @@ c_trap(const char **wp)
 				print_value_quoted(p->trap);
 				shprintf(" %s\n", p->name);
 			}
-		return 0;
+		return (0);
 	}
 
 	/*
@@ -2022,11 +2022,11 @@ c_trap(const char **wp)
 		p = gettrap(*wp++, true);
 		if (p == NULL) {
 			bi_errorf("bad signal %s", wp[-1]);
-			return 1;
+			return (1);
 		}
 		settrap(p, s);
 	}
-	return 0;
+	return (0);
 }
 
 int
@@ -2036,7 +2036,7 @@ c_exitreturn(const char **wp)
 	const char *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
-		return 1;
+		return (1);
 	arg = wp[builtin_opt.optind];
 
 	if (arg) {
@@ -2077,18 +2077,18 @@ c_brkcont(const char **wp)
 	const char *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
-		return 1;
+		return (1);
 	arg = wp[builtin_opt.optind];
 
 	if (!arg)
 		n = 1;
 	else if (!bi_getn(arg, &n))
-		return 1;
+		return (1);
 	quit = n;
 	if (quit <= 0) {
 		/* at&t ksh does this for non-interactive shells only - weird */
 		bi_errorf("%s: bad value", arg);
-		return 1;
+		return (1);
 	}
 
 	/* Stop at E_NONE, E_PARSE, E_FUNC, or E_INCL */
@@ -2107,7 +2107,7 @@ c_brkcont(const char **wp)
 		 */
 		if (n == quit) {
 			warningf(true, "%s: cannot %s", wp[0], wp[0]);
-			return 0;
+			return (0);
 		}
 		/* POSIX says if n is too big, the last enclosing loop
 		 * shall be used.  Doesn't say to print an error but we
@@ -2132,12 +2132,12 @@ c_set(const char **wp)
 
 	if (wp[1] == NULL) {
 		static const char *args [] = { "set", "-", NULL };
-		return c_typeset(args);
+		return (c_typeset(args));
 	}
 
 	argi = parse_args(wp, OF_SET, &setargs);
 	if (argi < 0)
-		return 1;
+		return (1);
 	/* set $# and $* */
 	if (setargs) {
 		owp = wp += argi - 1;
@@ -2145,7 +2145,7 @@ c_set(const char **wp)
 		while (*++wp != NULL)
 			strdupx(*wp, *wp, &l->area);
 		l->argc = wp - owp - 1;
-		l->argv = alloc((l->argc + 2) * sizeof (char *), &l->area);
+		l->argv = alloc((l->argc + 2) * sizeof(char *), &l->area);
 		for (wp = l->argv; (*wp++ = *owp++) != NULL; )
 			;
 	}
@@ -2155,7 +2155,7 @@ c_set(const char **wp)
 	 * (subst_exstat is cleared in execute() so that it will be 0
 	 * if there are no command substitutions).
 	 */
-	return subst_exstat;
+	return (subst_exstat);
 }
 
 int
@@ -2221,7 +2221,7 @@ c_times(const char **wp __unused)
 	p_time(shl_stdout, false, usage.ru_stime.tv_sec,
 	    usage.ru_stime.tv_usec, 0, null, "\n");
 
-	return 0;
+	return (0);
 }
 
 /*
@@ -2346,7 +2346,7 @@ c_exec(const char **wp __unused)
 		}
 		e->savefd = NULL;
 	}
-	return 0;
+	return (0);
 }
 
 #if HAVE_MKNOD
@@ -2443,7 +2443,7 @@ c_mknod(const char **wp)
 int
 c_builtin(const char **wp __unused)
 {
-	return 0;
+	return (0);
 }
 
 /* test(1) accepts the following grammar:
@@ -2487,7 +2487,7 @@ c_test(const char **wp)
 	if (strcmp(wp[0], "[") == 0) {
 		if (strcmp(wp[--argc], "]") != 0) {
 			bi_errorf("missing ]");
-			return T_ERR_EXIT;
+			return (T_ERR_EXIT);
 		}
 	}
 
@@ -2507,7 +2507,7 @@ c_test(const char **wp)
 
 		while (--argc >= 0) {
 			if ((*te.isa)(&te, TM_END))
-				return !0;
+				return (!0);
 			if (argc == 3) {
 				opnd1 = (*te.getopnd)(&te, TO_NONOP, 1);
 				if ((op = (*te.isa)(&te, TM_BINOP))) {
@@ -2515,10 +2515,10 @@ c_test(const char **wp)
 					res = (*te.eval)(&te, op, opnd1,
 					    opnd2, 1);
 					if (te.flags & TEF_ERROR)
-						return T_ERR_EXIT;
+						return (T_ERR_EXIT);
 					if (invert & 1)
 						res = !res;
-					return !res;
+					return (!res);
 				}
 				/* back up to opnd1 */
 				te.pos.wp--;
@@ -2531,7 +2531,7 @@ c_test(const char **wp)
 				    NULL, 1);
 				if (invert & 1)
 					res = !res;
-				return !res;
+				return (!res);
 			}
 			if ((*te.isa)(&te, TM_NOT)) {
 				invert++;
@@ -2541,7 +2541,7 @@ c_test(const char **wp)
 		te.pos.wp = owp + 1;
 	}
 
-	return test_parse(&te);
+	return (test_parse(&te));
 }
 
 /*
@@ -2559,9 +2559,9 @@ test_isop(Test_meta meta, const char *s)
 		sc1 = s[1];
 		for (; tbl->op_text[0]; tbl++)
 			if (sc1 == tbl->op_text[1] && !strcmp(s, tbl->op_text))
-				return tbl->op_num;
+				return (tbl->op_num);
 	}
-	return TO_NONOP;
+	return (TO_NONOP);
 }
 
 int
@@ -2574,16 +2574,16 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	mksh_ari_t v1, v2;
 
 	if (!do_eval)
-		return 0;
+		return (0);
 
 	switch ((int)op) {
 	/*
 	 * Unary Operators
 	 */
 	case TO_STNZE: /* -n */
-		return *opnd1 != '\0';
+		return (*opnd1 != '\0');
 	case TO_STZER: /* -z */
-		return *opnd1 == '\0';
+		return (*opnd1 == '\0');
 	case TO_OPTION: /* -o */
 		if ((i = *opnd1 == '!'))
 			opnd1++;
@@ -2594,47 +2594,47 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 			if (i)
 				k = !k;
 		}
-		return k;
+		return (k);
 	case TO_FILRD: /* -r */
-		return test_eaccess(opnd1, R_OK) == 0;
+		return (test_eaccess(opnd1, R_OK) == 0);
 	case TO_FILWR: /* -w */
-		return test_eaccess(opnd1, W_OK) == 0;
+		return (test_eaccess(opnd1, W_OK) == 0);
 	case TO_FILEX: /* -x */
-		return test_eaccess(opnd1, X_OK) == 0;
+		return (test_eaccess(opnd1, X_OK) == 0);
 	case TO_FILAXST: /* -a */
 	case TO_FILEXST: /* -e */
-		return stat(opnd1, &b1) == 0;
+		return (stat(opnd1, &b1) == 0);
 	case TO_FILREG: /* -r */
-		return stat(opnd1, &b1) == 0 && S_ISREG(b1.st_mode);
+		return (stat(opnd1, &b1) == 0 && S_ISREG(b1.st_mode));
 	case TO_FILID: /* -d */
-		return stat(opnd1, &b1) == 0 && S_ISDIR(b1.st_mode);
+		return (stat(opnd1, &b1) == 0 && S_ISDIR(b1.st_mode));
 	case TO_FILCDEV: /* -c */
-		return stat(opnd1, &b1) == 0 && S_ISCHR(b1.st_mode);
+		return (stat(opnd1, &b1) == 0 && S_ISCHR(b1.st_mode));
 	case TO_FILBDEV: /* -b */
-		return stat(opnd1, &b1) == 0 && S_ISBLK(b1.st_mode);
+		return (stat(opnd1, &b1) == 0 && S_ISBLK(b1.st_mode));
 	case TO_FILFIFO: /* -p */
-		return stat(opnd1, &b1) == 0 && S_ISFIFO(b1.st_mode);
+		return (stat(opnd1, &b1) == 0 && S_ISFIFO(b1.st_mode));
 	case TO_FILSYM: /* -h -L */
-		return lstat(opnd1, &b1) == 0 && S_ISLNK(b1.st_mode);
+		return (lstat(opnd1, &b1) == 0 && S_ISLNK(b1.st_mode));
 	case TO_FILSOCK: /* -S */
-		return stat(opnd1, &b1) == 0 && S_ISSOCK(b1.st_mode);
+		return (stat(opnd1, &b1) == 0 && S_ISSOCK(b1.st_mode));
 	case TO_FILCDF:/* -H HP context dependent files (directories) */
-		return 0;
+		return (0);
 	case TO_FILSETU: /* -u */
-		return stat(opnd1, &b1) == 0 &&
-		    (b1.st_mode & S_ISUID) == S_ISUID;
+		return (stat(opnd1, &b1) == 0 &&
+		    (b1.st_mode & S_ISUID) == S_ISUID);
 	case TO_FILSETG: /* -g */
-		return stat(opnd1, &b1) == 0 &&
-		    (b1.st_mode & S_ISGID) == S_ISGID;
+		return (stat(opnd1, &b1) == 0 &&
+		    (b1.st_mode & S_ISGID) == S_ISGID);
 	case TO_FILSTCK: /* -k */
 #ifdef S_ISVTX
-		return stat(opnd1, &b1) == 0 &&
-		    (b1.st_mode & S_ISVTX) == S_ISVTX;
+		return (stat(opnd1, &b1) == 0 &&
+		    (b1.st_mode & S_ISVTX) == S_ISVTX);
 #else
 		return (0);
 #endif
 	case TO_FILGZ: /* -s */
-		return stat(opnd1, &b1) == 0 && b1.st_size > 0L;
+		return (stat(opnd1, &b1) == 0 && b1.st_size > 0L);
 	case TO_FILTT: /* -t */
 		if (opnd1 && !bi_getn(opnd1, &i)) {
 			te->flags |= TEF_ERROR;
@@ -2643,24 +2643,24 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 			i = isatty(opnd1 ? i : 0);
 		return (i);
 	case TO_FILUID: /* -O */
-		return stat(opnd1, &b1) == 0 && b1.st_uid == ksheuid;
+		return (stat(opnd1, &b1) == 0 && b1.st_uid == ksheuid);
 	case TO_FILGID: /* -G */
-		return stat(opnd1, &b1) == 0 && b1.st_gid == getegid();
+		return (stat(opnd1, &b1) == 0 && b1.st_gid == getegid());
 	/*
 	 * Binary Operators
 	 */
 	case TO_STEQL: /* = */
 		if (te->flags & TEF_DBRACKET)
-			return gmatchx(opnd1, opnd2, false);
-		return strcmp(opnd1, opnd2) == 0;
+			return (gmatchx(opnd1, opnd2, false));
+		return (strcmp(opnd1, opnd2) == 0);
 	case TO_STNEQ: /* != */
 		if (te->flags & TEF_DBRACKET)
-			return !gmatchx(opnd1, opnd2, false);
-		return strcmp(opnd1, opnd2) != 0;
+			return (!gmatchx(opnd1, opnd2, false));
+		return (strcmp(opnd1, opnd2) != 0);
 	case TO_STLT: /* < */
-		return strcmp(opnd1, opnd2) < 0;
+		return (strcmp(opnd1, opnd2) < 0);
 	case TO_STGT: /* > */
-		return strcmp(opnd1, opnd2) > 0;
+		return (strcmp(opnd1, opnd2) > 0);
 	case TO_INTEQ: /* -eq */
 	case TO_INTNE: /* -ne */
 	case TO_INTGE: /* -ge */
@@ -2671,7 +2671,7 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 		    !evaluate(opnd2, &v2, KSH_RETURN_ERROR, false)) {
 			/* error already printed.. */
 			te->flags |= TEF_ERROR;
-			return 1;
+			return (1);
 		}
 		switch ((int)op) {
 		case TO_INTEQ:
@@ -2691,22 +2691,22 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 		/* ksh88/ksh93 succeed if file2 can't be stated
 		 * (subtly different from 'does not exist').
 		 */
-		return stat(opnd1, &b1) == 0 &&
+		return (stat(opnd1, &b1) == 0 &&
 		    (((s = stat(opnd2, &b2)) == 0 &&
-		    b1.st_mtime > b2.st_mtime) || s < 0);
+		    b1.st_mtime > b2.st_mtime) || s < 0));
 	case TO_FILOT: /* -ot */
 		/* ksh88/ksh93 succeed if file1 can't be stated
 		 * (subtly different from 'does not exist').
 		 */
-		return stat(opnd2, &b2) == 0 &&
+		return (stat(opnd2, &b2) == 0 &&
 		    (((s = stat(opnd1, &b1)) == 0 &&
-		    b1.st_mtime < b2.st_mtime) || s < 0);
+		    b1.st_mtime < b2.st_mtime) || s < 0));
 	case TO_FILEQ: /* -ef */
-		return stat (opnd1, &b1) == 0 && stat (opnd2, &b2) == 0 &&
-		    b1.st_dev == b2.st_dev && b1.st_ino == b2.st_ino;
+		return (stat (opnd1, &b1) == 0 && stat (opnd2, &b2) == 0 &&
+		    b1.st_dev == b2.st_dev && b1.st_ino == b2.st_ino);
 	}
 	(*te->error)(te, 0, "internal error: unknown op");
-	return 1;
+	return (1);
 }
 
 /* On most/all unixen, access() says everything is executable for root... */
@@ -2726,7 +2726,7 @@ test_eaccess(const char *pathl, int mode)
 			rv = (statb.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH)) ?
 			    0 : -1;
 	}
-	return rv;
+	return (rv);
 }
 
 int
@@ -2739,7 +2739,7 @@ test_parse(Test_env *te)
 	if (!(te->flags & TEF_ERROR) && !(*te->isa)(te, TM_END))
 		(*te->error)(te, 0, "unexpected operator/operand");
 
-	return (te->flags & TEF_ERROR) ? T_ERR_EXIT : !rv;
+	return ((te->flags & TEF_ERROR) ? T_ERR_EXIT : !rv);
 }
 
 static int
@@ -2750,8 +2750,8 @@ test_oexpr(Test_env *te, bool do_eval)
 	if ((rv = test_aexpr(te, do_eval)))
 		do_eval = false;
 	if (!(te->flags & TEF_ERROR) && (*te->isa)(te, TM_OR))
-		return test_oexpr(te, do_eval) || rv;
-	return rv;
+		return (test_oexpr(te, do_eval) || rv);
+	return (rv);
 }
 
 static int
@@ -2762,16 +2762,16 @@ test_aexpr(Test_env *te, bool do_eval)
 	if (!(rv = test_nexpr(te, do_eval)))
 		do_eval = false;
 	if (!(te->flags & TEF_ERROR) && (*te->isa)(te, TM_AND))
-		return test_aexpr(te, do_eval) && rv;
-	return rv;
+		return (test_aexpr(te, do_eval) && rv);
+	return (rv);
 }
 
 static int
 test_nexpr(Test_env *te, bool do_eval)
 {
 	if (!(te->flags & TEF_ERROR) && (*te->isa)(te, TM_NOT))
-		return !test_nexpr(te, do_eval);
-	return test_primary(te, do_eval);
+		return (!test_nexpr(te, do_eval));
+	return (test_primary(te, do_eval));
 }
 
 static int
@@ -2782,16 +2782,16 @@ test_primary(Test_env *te, bool do_eval)
 	Test_op op;
 
 	if (te->flags & TEF_ERROR)
-		return 0;
+		return (0);
 	if ((*te->isa)(te, TM_OPAREN)) {
 		rv = test_oexpr(te, do_eval);
 		if (te->flags & TEF_ERROR)
-			return 0;
+			return (0);
 		if (!(*te->isa)(te, TM_CPAREN)) {
 			(*te->error)(te, 0, "missing closing paren");
-			return 0;
+			return (0);
 		}
-		return rv;
+		return (rv);
 	}
 	/*
 	 * Binary should have precedence over unary in this case
@@ -2804,28 +2804,28 @@ test_primary(Test_env *te, bool do_eval)
 			opnd1 = (*te->getopnd)(te, op, do_eval);
 			if (!opnd1) {
 				(*te->error)(te, -1, "missing argument");
-				return 0;
+				return (0);
 			}
 
-			return (*te->eval)(te, op, opnd1, NULL, do_eval);
+			return ((*te->eval)(te, op, opnd1, NULL, do_eval));
 		}
 	}
 	opnd1 = (*te->getopnd)(te, TO_NONOP, do_eval);
 	if (!opnd1) {
 		(*te->error)(te, 0, "expression expected");
-		return 0;
+		return (0);
 	}
 	if ((op = (*te->isa)(te, TM_BINOP))) {
 		/* binary expression */
 		opnd2 = (*te->getopnd)(te, op, do_eval);
 		if (!opnd2) {
 			(*te->error)(te, -1, "missing second argument");
-			return 0;
+			return (0);
 		}
 
-		return (*te->eval)(te, op, opnd1, opnd2, do_eval);
+		return ((*te->eval)(te, op, opnd1, opnd2, do_eval));
 	}
-	return (*te->eval)(te, TO_STNZE, opnd1, NULL, do_eval);
+	return ((*te->eval)(te, TO_STNZE, opnd1, NULL, do_eval));
 }
 
 /*
@@ -2846,7 +2846,7 @@ ptest_isa(Test_env *te, Test_meta meta)
 	int rv;
 
 	if (te->pos.wp >= te->wp_end)
-		return meta == TM_END;
+		return (meta == TM_END);
 
 	if (meta == TM_UNOP || meta == TM_BINOP)
 		rv = test_isop(meta, *te->pos.wp);
@@ -2859,15 +2859,15 @@ ptest_isa(Test_env *te, Test_meta meta)
 	if (rv)
 		te->pos.wp++;
 
-	return rv;
+	return (rv);
 }
 
 static const char *
 ptest_getopnd(Test_env *te, Test_op op, bool do_eval __unused)
 {
 	if (te->pos.wp >= te->wp_end)
-		return op == TO_FILTT ? "1" : NULL;
-	return *te->pos.wp++;
+		return (op == TO_FILTT ? "1" : NULL);
+	return (*te->pos.wp++);
 }
 
 static void

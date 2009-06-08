@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.85 2009/05/27 19:52:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.86 2009/06/08 20:06:47 tg Exp $");
 
 /*
  * states while lexing word
@@ -791,7 +791,7 @@ yylex(int cf)
 
 	dp = Xstring(ws, wp);
 	if ((c == '<' || c == '>' || c == '&') && state == SBASE) {
-		struct ioword *iop = alloc(sizeof (struct ioword), ATEMP);
+		struct ioword *iop = alloc(sizeof(struct ioword), ATEMP);
 
 		if (Xlength(ws, wp) == 0)
 			iop->unit = c == '<' ? 0 : 1;
@@ -842,7 +842,7 @@ yylex(int cf)
 		iop->heredoc = NULL;
 		Xfree(ws, wp);	/* free word */
 		yylval.iop = iop;
-		return REDIR;
+		return (REDIR);
  no_iop:
 		;
 	}
@@ -879,7 +879,7 @@ yylex(int cf)
 	yylval.cp = Xclose(ws, wp);
 	if (state == SWORD || state == SLETPAREN ||
 	    state == SLETARRAY)	/* ONEWORD? */
-		return LWORD;
+		return (LWORD);
 
 	last_terminal_was_bracket = c == '(';
 	ungetsc(c);		/* unget terminator */
@@ -910,7 +910,7 @@ yylex(int cf)
 		if ((cf & KEYWORD) && (p = ktsearch(&keywords, ident, h)) &&
 		    (!(cf & ESACONLY) || p->val.i == ESAC || p->val.i == '}')) {
 			afree(yylval.cp, ATEMP);
-			return p->val.i;
+			return (p->val.i);
 		}
 		if ((cf & ALIAS) && (p = ktsearch(&aliases, ident, h)) &&
 		    (p->flag & ISSET)) {
@@ -922,7 +922,7 @@ yylex(int cf)
 
 				while (s->flags & SF_HASALIAS)
 					if (s->u.tblp == p)
-						return LWORD;
+						return (LWORD);
 					else
 						s = s->next;
 				/* push alias expansion */
@@ -943,7 +943,7 @@ yylex(int cf)
 		}
 	}
 
-	return LWORD;
+	return (LWORD);
 }
 
 static void
@@ -1057,7 +1057,7 @@ pushs(int type, Area *areap)
 {
 	Source *s;
 
-	s = alloc(sizeof (Source), areap);
+	s = alloc(sizeof(Source), areap);
 	s->type = type;
 	s->str = null;
 	s->start = NULL;
@@ -1071,7 +1071,7 @@ pushs(int type, Area *areap)
 		XinitN(s->xs, 256, s->areap);
 	else
 		memset(&s->xs, 0, sizeof(s->xs));
-	return s;
+	return (s);
 }
 
 static int
@@ -1086,7 +1086,7 @@ getsc__(void)
 		switch (s->type) {
 		case SEOF:
 			s->str = null;
-			return 0;
+			return (0);
 
 		case SSTDIN:
 		case SFILE:
@@ -1165,7 +1165,7 @@ getsc__(void)
 		if (s->str == NULL) {
 			s->type = SEOF;
 			s->start = s->str = null;
-			return '\0';
+			return ('\0');
 		}
 		if (s->flags & SF_ECHO) {
 			shf_puts(s->str, shl_out);
@@ -1183,7 +1183,7 @@ getsc__(void)
 			goto getsc_again;
 		}
 	}
-	return c;
+	return (c);
 }
 
 static void
@@ -1467,7 +1467,7 @@ get_brace_var(XString *wsp, char *wp)
 		Xcheck(*wsp, wp);
 		*wp++ = c;
 	}
-	return wp;
+	return (wp);
 }
 
 /*
@@ -1498,7 +1498,7 @@ arraysub(char **strp)
 	*wp++ = '\0';
 	*strp = Xclose(ws, wp);
 
-	return depth == 0 ? 1 : 0;
+	return (depth == 0 ? 1 : 0);
 }
 
 /* Unget a char: handles case when we are already at the start of the buffer */
@@ -1509,7 +1509,7 @@ ungetsc(int c)
 		backslash_skip--;
 	/* Don't unget eof... */
 	if (source->str == null && c == '\0')
-		return source->str;
+		return (source->str);
 	if (source->str > source->start)
 		source->str--;
 	else {
@@ -1521,7 +1521,7 @@ ungetsc(int c)
 		s->next = source;
 		source = s;
 	}
-	return source->str;
+	return (source->str);
 }
 
 
@@ -1532,11 +1532,11 @@ getsc_bn(void)
 	int c, c2;
 
 	if (ignore_backslash_newline)
-		return getsc_();
+		return (getsc_());
 
 	if (backslash_skip == 1) {
 		backslash_skip = 2;
-		return getsc_();
+		return (getsc_());
 	}
 
 	backslash_skip = 0;
@@ -1550,19 +1550,19 @@ getsc_bn(void)
 			ungetsc(c2);
 			backslash_skip = 1;
 		}
-		return c;
+		return (c);
 	}
 }
 
 static Lex_state *
 push_state_(State_info *si, Lex_state *old_end)
 {
-	Lex_state *new = alloc(STATE_BSIZE * sizeof (Lex_state), ATEMP);
+	Lex_state *new = alloc(STATE_BSIZE * sizeof(Lex_state), ATEMP);
 
 	new[0].ls_info.base = old_end;
 	si->base = &new[0];
 	si->end = &new[STATE_BSIZE];
-	return &new[1];
+	return (&new[1]);
 }
 
 static Lex_state *
@@ -1575,5 +1575,5 @@ pop_state_(State_info *si, Lex_state *old_end)
 
 	afree(old_base, ATEMP);
 
-	return si->base + STATE_BSIZE - 1;
+	return (si->base + STATE_BSIZE - 1);
 }

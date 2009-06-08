@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.53 2009/05/16 16:59:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.54 2009/06/08 20:06:47 tg Exp $");
 
 /* Order important! */
 #define PRUNNING	0
@@ -346,7 +346,7 @@ exchild(struct op *t, int flags,
 		/* Clear XFORK|XPCLOSE|XCCLOSE|XCOPROC|XPIPEO|XPIPEI|XXCOM|XBGND
 		 * (also done in another execute() below)
 		 */
-		return execute(t, flags & (XEXEC | XERROK), xerrok);
+		return (execute(t, flags & (XEXEC | XERROK), xerrok));
 
 	/* no SIGCHLDs while messing with job and process lists */
 	sigprocmask(SIG_BLOCK, &sm_sigchld, &omask);
@@ -514,7 +514,7 @@ exchild(struct op *t, int flags,
 
 	sigprocmask(SIG_SETMASK, &omask, NULL);
 
-	return rv;
+	return (rv);
 }
 
 /* start the last job: only used for $(command) jobs */
@@ -550,14 +550,14 @@ waitlast(void)
 		else
 			internal_warningf("waitlast: not started");
 		sigprocmask(SIG_SETMASK, &omask, NULL);
-		return 125; /* not so arbitrary, non-zero value */
+		return (125); /* not so arbitrary, non-zero value */
 	}
 
 	rv = j_waitj(j, JW_NONE, "jw:waitlast");
 
 	sigprocmask(SIG_SETMASK, &omask, NULL);
 
-	return rv;
+	return (rv);
 }
 
 /* wait for child, interruptable. */
@@ -584,20 +584,20 @@ waitfor(const char *cp, int *sigp)
 				break;
 		if (!j) {
 			sigprocmask(SIG_SETMASK, &omask, NULL);
-			return -1;
+			return (-1);
 		}
 	} else if ((j = j_lookup(cp, &ecode))) {
 		/* don't report normal job completion */
 		flags &= ~JW_ASYNCNOTIFY;
 		if (j->ppid != procpid) {
 			sigprocmask(SIG_SETMASK, &omask, NULL);
-			return -1;
+			return (-1);
 		}
 	} else {
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		if (ecode != JL_NOSUCH)
 			bi_errorf("%s: %s", cp, lookup_msgs[ecode]);
-		return -1;
+		return (-1);
 	}
 
 	/* at&t ksh will wait for stopped jobs - we don't */
@@ -608,7 +608,7 @@ waitfor(const char *cp, int *sigp)
 	if (rv < 0) /* we were interrupted */
 		*sigp = 128 + -rv;
 
-	return rv;
+	return (rv);
 }
 
 /* kill (built-in) a job */
@@ -625,7 +625,7 @@ j_kill(const char *cp, int sig)
 	if ((j = j_lookup(cp, &ecode)) == NULL) {
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		bi_errorf("%s: %s", cp, lookup_msgs[ecode]);
-		return 1;
+		return (1);
 	}
 
 	if (j->pgrp == 0) {	/* started when !Flag(FMONITOR) */
@@ -646,7 +646,7 @@ j_kill(const char *cp, int sig)
 
 	sigprocmask(SIG_SETMASK, &omask, NULL);
 
-	return rv;
+	return (rv);
 }
 
 #ifndef MKSH_UNEMPLOYED
@@ -666,13 +666,13 @@ j_resume(const char *cp, int bg)
 	if ((j = j_lookup(cp, &ecode)) == NULL) {
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		bi_errorf("%s: %s", cp, lookup_msgs[ecode]);
-		return 1;
+		return (1);
 	}
 
 	if (j->pgrp == 0) {
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		bi_errorf("job not job-controlled");
-		return 1;
+		return (1);
 	}
 
 	if (bg)
@@ -716,7 +716,7 @@ j_resume(const char *cp, int bg)
 				    (int) ((j->flags & JF_SAVEDTTYPGRP) ?
 				    j->saved_ttypgrp : j->pgrp),
 				    strerror(rv));
-				return 1;
+				return (1);
 			}
 		}
 		j->flags |= JF_FG;
@@ -740,7 +740,7 @@ j_resume(const char *cp, int bg)
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		bi_errorf("cannot continue job %s: %s",
 		    cp, strerror(err));
-		return 1;
+		return (1);
 	}
 	if (!bg) {
 		if (ttypgrp_ok) {
@@ -749,7 +749,7 @@ j_resume(const char *cp, int bg)
 		rv = j_waitj(j, JW_NONE, "jw:resume");
 	}
 	sigprocmask(SIG_SETMASK, &omask, NULL);
-	return rv;
+	return (rv);
 }
 #endif
 
@@ -774,10 +774,10 @@ j_stopped_running(void)
 		    which & 1 ? "stopped" : "",
 		    which == 3 ? " and " : "",
 		    which & 2 ? "running" : "");
-		return 1;
+		return (1);
 	}
 
-	return 0;
+	return (0);
 }
 
 int
@@ -792,7 +792,7 @@ j_njobs(void)
 		nj++;
 
 	sigprocmask(SIG_SETMASK, &omask, NULL);
-	return nj;
+	return (nj);
 }
 
 
@@ -818,7 +818,7 @@ j_jobs(const char *cp, int slp,
 		if ((j = j_lookup(cp, &ecode)) == NULL) {
 			sigprocmask(SIG_SETMASK, &omask, NULL);
 			bi_errorf("%s: %s", cp, lookup_msgs[ecode]);
-			return 1;
+			return (1);
 		}
 	} else
 		j = job_list;
@@ -840,7 +840,7 @@ j_jobs(const char *cp, int slp,
 			remove_job(j, "jobs");
 	}
 	sigprocmask(SIG_SETMASK, &omask, NULL);
-	return 0;
+	return (0);
 }
 
 /* list jobs for top-level notification */
@@ -884,7 +884,7 @@ j_async(void)
 
 	sigprocmask(SIG_SETMASK, &omask, NULL);
 
-	return async_pid;
+	return (async_pid);
 }
 
 /* Make j the last async process
@@ -977,7 +977,7 @@ j_waitj(Job *j,
 		}
 		if ((flags & JW_INTERRUPT) && (rv = trap_pending())) {
 			j->flags &= ~(JF_WAITING|JF_W_ASYNCNOTIFY);
-			return -rv;
+			return (-rv);
 		}
 	}
 	j->flags &= ~(JF_WAITING|JF_W_ASYNCNOTIFY);
@@ -1070,7 +1070,7 @@ j_waitj(Job *j,
 	    (!Flag(FMONITOR) || !(flags & JW_ASYNCNOTIFY)))
 		remove_job(j, where);
 
-	return rv;
+	return (rv);
 }
 
 /* SIGCHLD handler to reap children and update job states
@@ -1290,17 +1290,17 @@ j_print(Job *j, int how, struct shf *shf)
 		coredumped = 0;
 		switch (p->state) {
 		case PRUNNING:
-			strlcpy(buf, "Running", sizeof buf);
+			strlcpy(buf, "Running", sizeof(buf));
 			break;
 		case PSTOPPED:
 			strlcpy(buf, sigtraps[WSTOPSIG(p->status)].mess,
-			    sizeof buf);
+			    sizeof(buf));
 			break;
 		case PEXITED:
 			if (how == JP_SHORT)
 				buf[0] = '\0';
 			else if (WEXITSTATUS(p->status) == 0)
-				strlcpy(buf, "Done", sizeof buf);
+				strlcpy(buf, "Done", sizeof(buf));
 			else
 				shf_snprintf(buf, sizeof(buf), "Done (%d)",
 				    WEXITSTATUS(p->status));
@@ -1319,7 +1319,7 @@ j_print(Job *j, int how, struct shf *shf)
 				buf[0] = '\0';
 			} else
 				strlcpy(buf, sigtraps[WTERMSIG(p->status)].mess,
-				    sizeof buf);
+				    sizeof(buf));
 			break;
 		}
 
@@ -1380,32 +1380,32 @@ j_lookup(const char *cp, int *ecodep)
 		/* Look for last_proc->pid (what $! returns) first... */
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->last_proc && j->last_proc->pid == job)
-				return j;
+				return (j);
 		/* ...then look for process group (this is non-POSIX,
 		 * but should not break anything */
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->pgrp && j->pgrp == job)
-				return j;
+				return (j);
 		if (ecodep)
 			*ecodep = JL_NOSUCH;
-		return NULL;
+		return (NULL);
 	}
 	if (*cp != '%') {
 		if (ecodep)
 			*ecodep = JL_INVALID;
-		return NULL;
+		return (NULL);
 	}
 	switch (*++cp) {
 	case '\0': /* non-standard */
 	case '+':
 	case '%':
 		if (job_list != NULL)
-			return job_list;
+			return (job_list);
 		break;
 
 	case '-':
 		if (job_list != NULL && job_list->next)
-			return job_list->next;
+			return (job_list->next);
 		break;
 
 	case '0': case '1': case '2': case '3': case '4':
@@ -1413,7 +1413,7 @@ j_lookup(const char *cp, int *ecodep)
 		getn(cp, &job);
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->job == job)
-				return j;
+				return (j);
 		break;
 
 	case '?':		/* %?string */
@@ -1424,12 +1424,12 @@ j_lookup(const char *cp, int *ecodep)
 					if (last_match) {
 						if (ecodep)
 							*ecodep = JL_AMBIG;
-						return NULL;
+						return (NULL);
 					}
 					last_match = j;
 				}
 		if (last_match)
-			return last_match;
+			return (last_match);
 		break;
 
 	default:		/* %string */
@@ -1440,17 +1440,17 @@ j_lookup(const char *cp, int *ecodep)
 				if (last_match) {
 					if (ecodep)
 						*ecodep = JL_AMBIG;
-					return NULL;
+					return (NULL);
 				}
 				last_match = j;
 			}
 		if (last_match)
-			return last_match;
+			return (last_match);
 		break;
 	}
 	if (ecodep)
 		*ecodep = JL_NOSUCH;
-	return NULL;
+	return (NULL);
 }
 
 static Job	*free_jobs;
@@ -1470,7 +1470,7 @@ new_job(void)
 		newj = free_jobs;
 		free_jobs = free_jobs->next;
 	} else
-		newj = alloc(sizeof (Job), APERM);
+		newj = alloc(sizeof(Job), APERM);
 
 	/* brute force method */
 	for (i = 1; ; i++) {
@@ -1481,7 +1481,7 @@ new_job(void)
 	}
 	newj->job = i;
 
-	return newj;
+	return (newj);
 }
 
 /* Allocate new process struct
@@ -1497,9 +1497,9 @@ new_proc(void)
 		p = free_procs;
 		free_procs = free_procs->next;
 	} else
-		p = alloc(sizeof (Proc), APERM);
+		p = alloc(sizeof(Proc), APERM);
 
-	return p;
+	return (p);
 }
 
 /* Take job out of job_list and put old structures into free list.
@@ -1592,5 +1592,5 @@ kill_job(Job *j, int sig)
 		if (p->pid != 0)
 			if (kill(p->pid, sig) < 0)
 				rval = -1;
-	return rval;
+	return (rval);
 }

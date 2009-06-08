@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.130 2009/06/07 22:28:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.131 2009/06/08 20:06:47 tg Exp $");
 
 extern char **environ;
 
@@ -423,7 +423,7 @@ main(int argc, const char *argv[])
 		Flag(FTRACKALL) = 1;	/* set after ENV */
 
 	shell(s, true);	/* doesn't return */
-	return 0;
+	return (0);
 }
 
 int
@@ -437,7 +437,7 @@ include(const char *name, int argc, const char **argv, int intr_ok)
 
 	shf = shf_open(name, O_RDONLY, 0, SHF_MAPHI | SHF_CLEXEC);
 	if (shf == NULL)
-		return -1;
+		return (-1);
 
 	if (argv) {
 		old_argv = e->loc->argv;
@@ -457,13 +457,13 @@ include(const char *name, int argc, const char **argv, int intr_ok)
 		switch (i) {
 		case LRETURN:
 		case LERROR:
-			return exstat & 0xff; /* see below */
+			return (exstat & 0xff); /* see below */
 		case LINTR:
 			/* intr_ok is set if we are including .profile or $ENV.
 			 * If user ^Cs out, we don't want to kill the shell...
 			 */
 			if (intr_ok && (exstat - 128) != SIGTERM)
-				return 1;
+				return (1);
 			/* FALLTHRU */
 		case LEXIT:
 		case LLEAVE:
@@ -488,7 +488,7 @@ include(const char *name, int argc, const char **argv, int intr_ok)
 		e->loc->argv = old_argv;
 		e->loc->argc = old_argc;
 	}
-	return i & 0xff;	/* & 0xff to ensure value not -1 */
+	return (i & 0xff);	/* & 0xff to ensure value not -1 */
 }
 
 int
@@ -498,7 +498,7 @@ command(const char *comm)
 
 	s = pushs(SSTRING, ATEMP);
 	s->start = s->str = comm;
-	return shell(s, false);
+	return (shell(s, false));
 }
 
 /*
@@ -603,7 +603,7 @@ shell(Source * volatile s, volatile int toplevel)
 	}
 	quitenv(NULL);
 	source = old_source;
-	return exstat;
+	return (exstat);
 }
 
 /* return to closest error handler or shell(), exit if none found */
@@ -648,7 +648,7 @@ newenv(int type)
 	 * struct env includes ALLOC_ITEM for alignment constraints
 	 * so first get the actually used memory, then assign it
 	 */
-	cp = alloc(sizeof (struct env) - ALLOC_SIZE, ATEMP);
+	cp = alloc(sizeof(struct env) - ALLOC_SIZE, ATEMP);
 	ep = (void *)(cp - ALLOC_SIZE);	/* undo what alloc() did */
 	/* initialise public members of struct env (not the ALLOC_ITEM) */
 	ainit(&ep->area);
@@ -982,8 +982,8 @@ can_seek(int fd)
 {
 	struct stat statb;
 
-	return fstat(fd, &statb) == 0 && !S_ISREG(statb.st_mode) ?
-	    SHF_UNBUF : 0;
+	return (fstat(fd, &statb) == 0 && !S_ISREG(statb.st_mode) ?
+	    SHF_UNBUF : 0);
 }
 
 struct shf shf_iob[3];
@@ -1025,7 +1025,7 @@ savefd(int fd)
 
 	if (fd < FDBASE && (nfd = fcntl(fd, F_DUPFD, FDBASE)) < 0 &&
 	    errno == EBADF)
-		return -1;
+		return (-1);
 	if (nfd < 0 || nfd > SHRT_MAX)
 		errorf("too many files open in shell");
 	fcntl(nfd, F_SETFD, FD_CLOEXEC);
@@ -1159,10 +1159,10 @@ coproc_getfd(int mode, const char **emsgp)
 	int fd = (mode & R_OK) ? coproc.read : coproc.write;
 
 	if (fd >= 0)
-		return fd;
+		return (fd);
 	if (emsgp)
 		*emsgp = "no coprocess";
-	return -1;
+	return (-1);
 }
 
 /* called to close file descriptors related to the coprocess (if any)
@@ -1204,7 +1204,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	pathname = tempnam(dir, "mksh.");
 	len = ((pathname == NULL) ? 0 : strlen(pathname)) + 1;
 #endif
-	tp = alloc(sizeof (struct temp) + len, ap);
+	tp = alloc(sizeof(struct temp) + len, ap);
 	tp->name = (char *)&tp[1];
 #if !HAVE_MKSTEMP
 	if (pathname == NULL)
@@ -1228,7 +1228,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 
 	tp->next = *tlist;
 	*tlist = tp;
-	return tp;
+	return (tp);
 }
 
 #define	INIT_TBLS	8	/* initial table size (power of 2) */
@@ -1243,7 +1243,7 @@ hash(const char *n)
 
 	while (*n != '\0')
 		h = 2*h + *n++;
-	return h * 32821;	/* scatter bits */
+	return (h * 32821);	/* scatter bits */
 }
 
 void
@@ -1264,7 +1264,7 @@ texpand(struct table *tp, int nsize)
 	struct tbl **ntblp, **otblp = tp->tbls;
 	int osize = tp->size;
 
-	ntblp = alloc(nsize * sizeof (struct tbl *), tp->areap);
+	ntblp = alloc(nsize * sizeof(struct tbl *), tp->areap);
 	for (i = 0; i < nsize; i++)
 		ntblp[i] = NULL;
 	tp->size = nsize;
@@ -1297,18 +1297,18 @@ ktsearch(struct table *tp, const char *n, unsigned int h)
 	struct tbl **pp, *p;
 
 	if (tp->size == 0)
-		return NULL;
+		return (NULL);
 
 	/* search for name in hashed table */
 	for (pp = &tp->tbls[h & (tp->size - 1)]; (p = *pp) != NULL; pp--) {
 		if (*p->name == *n && strcmp(p->name, n) == 0 &&
 		    (p->flag & DEFINED))
-			return p;
+			return (p);
 		if (pp == tp->tbls)	/* wrap */
 			pp += tp->size;
 	}
 
-	return NULL;
+	return (NULL);
 }
 
 /* table */
@@ -1326,7 +1326,7 @@ ktenter(struct table *tp, const char *n, unsigned int h)
 	/* search for name in hashed table */
 	for (pp = &tp->tbls[h & (tp->size - 1)]; (p = *pp) != NULL; pp--) {
 		if (*p->name == *n && strcmp(p->name, n) == 0)
-			return p;	/* found */
+			return (p);	/* found */
 		if (pp == tp->tbls)	/* wrap */
 			pp += tp->size;
 	}
@@ -1348,7 +1348,7 @@ ktenter(struct table *tp, const char *n, unsigned int h)
 	/* enter in tp->tbls */
 	tp->nfree--;
 	*pp = p;
-	return p;
+	return (p);
 }
 
 void
@@ -1364,9 +1364,9 @@ ktnext(struct tstate *ts)
 	while (--ts->left >= 0) {
 		struct tbl *p = *ts->next++;
 		if (p != NULL && (p->flag & DEFINED))
-			return p;
+			return (p);
 	}
-	return NULL;
+	return (NULL);
 }
 
 static int
@@ -1384,14 +1384,14 @@ ktsort(struct table *tp)
 	size_t i;
 	struct tbl **p, **sp, **dp;
 
-	p = alloc((tp->size + 1) * sizeof (struct tbl *), ATEMP);
+	p = alloc((tp->size + 1) * sizeof(struct tbl *), ATEMP);
 	sp = tp->tbls;		/* source */
 	dp = p;			/* dest */
 	for (i = 0; i < (size_t)tp->size; i++)
 		if ((*dp = *sp++) != NULL && (((*dp)->flag & DEFINED) ||
 		    ((*dp)->flag & ARRAY)))
 			dp++;
-	qsort(p, (i = dp - p), sizeof (void *), tnamecmp);
+	qsort(p, (i = dp - p), sizeof(void *), tnamecmp);
 	p[i] = NULL;
-	return p;
+	return (p);
 }

@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.82 2009/05/27 09:58:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.83 2009/06/08 20:06:46 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -79,7 +79,7 @@ c_fc(const char **wp)
 
 	if (!Flag(FTALKING_I)) {
 		bi_errorf("history functions not available");
-		return 1;
+		return (1);
 	}
 
 	while ((optc = ksh_getopt(wp, &builtin_opt,
@@ -122,11 +122,11 @@ c_fc(const char **wp)
 				last = p;
 			else {
 				bi_errorf("too many arguments");
-				return 1;
+				return (1);
 			}
 			break;
 		case '?':
-			return 1;
+			return (1);
 		}
 	wp += builtin_opt.optind;
 
@@ -136,7 +136,7 @@ c_fc(const char **wp)
 
 		if (editor || lflag || nflag || rflag) {
 			bi_errorf("can't use -e, -l, -n, -r with -s (-e -)");
-			return 1;
+			return (1);
 		}
 
 		/* Check for pattern replacement argument */
@@ -151,19 +151,19 @@ c_fc(const char **wp)
 			wp++;
 		if (last || *wp) {
 			bi_errorf("too many arguments");
-			return 1;
+			return (1);
 		}
 
 		hp = first ? hist_get(first, false, false) :
 		    hist_get_newest(false);
 		if (!hp)
-			return 1;
-		return hist_replace(hp, pat, rep, gflag);
+			return (1);
+		return (hist_replace(hp, pat, rep, gflag));
 	}
 
 	if (editor && (lflag || nflag)) {
 		bi_errorf("can't use -l, -n with -e");
-		return 1;
+		return (1);
 	}
 
 	if (!first && (first = *wp))
@@ -172,13 +172,13 @@ c_fc(const char **wp)
 		wp++;
 	if (*wp) {
 		bi_errorf("too many arguments");
-		return 1;
+		return (1);
 	}
 	if (!first) {
 		hfirst = lflag ? hist_get("-16", true, true) :
 		    hist_get_newest(false);
 		if (!hfirst)
-			return 1;
+			return (1);
 		/* can't fail if hfirst didn't fail */
 		hlast = hist_get_newest(false);
 	} else {
@@ -189,11 +189,11 @@ c_fc(const char **wp)
 		hfirst = hist_get(first, (lflag || last) ? true : false,
 		    lflag ? true : false);
 		if (!hfirst)
-			return 1;
+			return (1);
 		hlast = last ? hist_get(last, true, lflag ? true : false) :
 		    (lflag ? hist_get_newest(false) : hfirst);
 		if (!hlast)
-			return 1;
+			return (1);
 	}
 	if (hfirst > hlast) {
 		char **temp;
@@ -223,7 +223,7 @@ c_fc(const char **wp)
 			shf_fprintf(shl_stdout, "%s\n", s);
 		}
 		shf_flush(shl_stdout);
-		return 0;
+		return (0);
 	}
 
 	/* Run editor on selected lines, then run resulting commands */
@@ -232,14 +232,14 @@ c_fc(const char **wp)
 	if (!(shf = tf->shf)) {
 		bi_errorf("cannot create temp file %s - %s",
 		    tf->name, strerror(errno));
-		return 1;
+		return (1);
 	}
 	for (hp = rflag ? hlast : hfirst;
 	    hp >= hfirst && hp <= hlast; hp += rflag ? -1 : 1)
 		shf_fprintf(shf, "%s\n", *hp);
 	if (shf_close(shf) == EOF) {
 		bi_errorf("error writing temporary file - %s", strerror(errno));
-		return 1;
+		return (1);
 	}
 
 	/* Ignore setstr errors here (arbitrary) */
@@ -253,7 +253,7 @@ c_fc(const char **wp)
 		ret = command(editor ? editor : "${FCEDIT:-/bin/ed} $_");
 		source = sold;
 		if (ret)
-			return ret;
+			return (ret);
 	}
 
 	{
@@ -264,7 +264,7 @@ c_fc(const char **wp)
 
 		if (!(shf = shf_open(tf->name, O_RDONLY, 0, 0))) {
 			bi_errorf("cannot open temp file %s", tf->name);
-			return 1;
+			return (1);
 		}
 
 		n = stat(tf->name, &statb) < 0 ? 128 : statb.st_size + 1;
@@ -278,12 +278,12 @@ c_fc(const char **wp)
 			bi_errorf("error reading temp file %s - %s",
 			    tf->name, strerror(shf_errno(shf)));
 			shf_close(shf);
-			return 1;
+			return (1);
 		}
 		shf_close(shf);
 		*xp = '\0';
 		strip_nuls(Xstring(xs, xp), Xlength(xs, xp));
-		return hist_execute(Xstring(xs, xp));
+		return (hist_execute(Xstring(xs, xp)));
 	}
 }
 
@@ -320,7 +320,7 @@ hist_execute(char *cmd)
 	sold = source;
 	ret = command(cmd);
 	source = sold;
-	return ret;
+	return (ret);
 }
 
 static int
@@ -352,7 +352,7 @@ hist_replace(char **hp, const char *pat, const char *rep, int globr)
 		}
 		if (!any_subst) {
 			bi_errorf("substitution failed");
-			return 1;
+			return (1);
 		}
 		len = strlen(s) + 1;
 		XcheckN(xs, xp, len);
@@ -360,7 +360,7 @@ hist_replace(char **hp, const char *pat, const char *rep, int globr)
 		xp += len;
 		line = Xclose(xs, xp);
 	}
-	return hist_execute(line);
+	return (hist_execute(line));
 }
 
 /*
@@ -402,7 +402,7 @@ hist_get(const char *str, int approx, int allow_cur)
 		else
 			hp = &history[n];
 	}
-	return hp;
+	return (hp);
 }
 
 /* Return a pointer to the newest command in the history */
@@ -411,7 +411,7 @@ hist_get_newest(int allow_cur)
 {
 	if (histptr < history || (!allow_cur && histptr == history)) {
 		bi_errorf("no history (yet)");
-		return NULL;
+		return (NULL);
 	}
 	return (allow_cur ? histptr : histptr - 1);
 }
@@ -422,9 +422,9 @@ hist_get_oldest(void)
 {
 	if (histptr <= history) {
 		bi_errorf("no history (yet)");
-		return NULL;
+		return (NULL);
 	}
-	return history;
+	return (history);
 }
 
 /******************************/
@@ -449,7 +449,7 @@ histbackup(void)
 char **
 histpos(void)
 {
-	return current;
+	return (current);
 }
 
 int
@@ -459,10 +459,10 @@ histnum(int n)
 
 	if (n < 0 || n >= last) {
 		current = histptr;
-		return last;
+		return (last);
 	} else {
 		current = &history[n];
-		return n;
+		return (n);
 	}
 }
 
@@ -486,9 +486,9 @@ findhist(int start, int fwd, const char *str, int anchored)
 	for (; hp >= history && hp <= histptr; hp += incr)
 		if ((anchored && strncmp(*hp, str, len) == 0) ||
 		    (!anchored && strstr(*hp, str)))
-			return hp - history;
+			return (hp - history);
 
-	return -1;
+	return (-1);
 }
 
 int
@@ -500,15 +500,15 @@ findhistrel(const char *str)
 
 	getn(str, &rec);
 	if (rec == 0)
-		return -1;
+		return (-1);
 	if (rec > 0) {
 		if (rec > maxhist)
-			return -1;
-		return rec - 1;
+			return (-1);
+		return (rec - 1);
 	}
 	if (rec > maxhist)
-		return -1;
-	return start + rec + 1;
+		return (-1);
+	return (start + rec + 1);
 }
 
 /*
@@ -527,7 +527,7 @@ sethistsize(int n)
 			cursize = n;
 		}
 
-		history = aresize(history, n * sizeof (char *), APERM);
+		history = aresize(history, n * sizeof(char *), APERM);
 
 		histsize = n;
 		histptr = history + cursize;
@@ -578,7 +578,7 @@ init_histvec(void)
 {
 	if (history == (char **)NULL) {
 		histsize = HISTORYSIZE;
-		history = alloc(histsize * sizeof (char *), APERM);
+		history = alloc(histsize * sizeof(char *), APERM);
 		histptr = history - 1;
 	}
 }
@@ -772,7 +772,7 @@ hist_count_lines(unsigned char *base, int bytes)
 		}
 		base++;
 	}
-	return lines;
+	return (lines);
 }
 
 /*
@@ -789,9 +789,9 @@ hist_shrink(unsigned char *oldbase, int oldbytes)
 
 	nbase = hist_skip_back(nbase, &nbytes, histsize);
 	if (nbase == NULL)
-		return 1;
+		return (1);
 	if (nbase == oldbase)
-		return 0;
+		return (0);
 
 	/*
 	 *	create temp file
@@ -845,10 +845,10 @@ hist_skip_back(unsigned char *base, int *bytes, int no)
 			break;
 		if (++lines == no) {
 			*bytes = *bytes - ((char *)ep - (char *)base);
-			return ep;
+			return (ep);
 		}
 	}
-	return NULL;
+	return (NULL);
 }
 
 /*
@@ -999,7 +999,7 @@ sprinkle(int fd)
 {
 	static const unsigned char mag[] = { HMAGIC1, HMAGIC2 };
 
-	return(write(fd, mag, 2) != 2);
+	return (write(fd, mag, 2) != 2);
 }
 #endif
 
@@ -1174,8 +1174,8 @@ fatal_trap_check(void)
 	for (p = sigtraps, i = NSIG+1; --i >= 0; p++)
 		if (p->set && (p->flags & (TF_DFL_INTR|TF_FATAL)))
 			/* return value is used as an exit code */
-			return 128 + p->signal;
-	return 0;
+			return (128 + p->signal);
+	return (0);
 }
 
 /* Returns the signal number of any pending traps: ie, a signal which has
@@ -1191,8 +1191,8 @@ trap_pending(void)
 	for (p = sigtraps, i = NSIG+1; --i >= 0; p++)
 		if (p->set && ((p->trap && p->trap[0]) ||
 		    ((p->flags & (TF_DFL_INTR|TF_FATAL)) && !p->trap)))
-			return p->signal;
-	return 0;
+			return (p->signal);
+	return (0);
 }
 
 /*
@@ -1352,7 +1352,7 @@ block_pipe(void)
 		setsig(p, SIG_IGN, SS_RESTORE_CURR);
 		restore_dfl = 1; /* restore to SIG_DFL */
 	}
-	return restore_dfl;
+	return (restore_dfl);
 }
 
 /* Called by c_print() to undo whatever block_pipe() did */
@@ -1372,7 +1372,7 @@ setsig(Trap *p, sig_t f, int flags)
 	struct sigaction sigact;
 
 	if (p->signal == SIGEXIT_ || p->signal == SIGERR_)
-		return 1;
+		return (1);
 
 	/* First time setting this signal?  If so, get and note the current
 	 * setting.
@@ -1390,7 +1390,7 @@ setsig(Trap *p, sig_t f, int flags)
 	 */
 	if ((p->flags & TF_ORIG_IGN) && !(flags & SS_FORCE) &&
 	    (!(flags & SS_USER) || !Flag(FTALKING)))
-		return 0;
+		return (0);
 
 	setexecsig(p, flags & SS_RESTORE_MASK);
 
@@ -1413,7 +1413,7 @@ setsig(Trap *p, sig_t f, int flags)
 		sigaction(p->signal, &sigact, NULL);
 	}
 
-	return 1;
+	return (1);
 }
 
 /* control what signal is set to before an exec() */

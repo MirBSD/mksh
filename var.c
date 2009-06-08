@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.72 2009/05/16 16:59:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.73 2009/06/08 20:06:50 tg Exp $");
 
 /*
  * Variables
@@ -57,7 +57,7 @@ newblock(void)
 	struct block *l;
 	static const char *empty[] = { null };
 
-	l = alloc(sizeof (struct block), ATEMP);
+	l = alloc(sizeof(struct block), ATEMP);
 	l->flags = 0;
 	ainit(&l->area); /* todo: could use e->area (l->area => l->areap) */
 	if (!e->loc) {
@@ -159,7 +159,7 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 		*valp = (uint32_t)rval;
 		afree(sub, ATEMP);
 	}
-	return n;
+	return (n);
 }
 
 /*
@@ -194,11 +194,11 @@ global(const char *n)
 				/* setstr can't fail here */
 				setstr(vp, l->argv[c], KSH_RETURN_ERROR);
 			vp->flag |= RDONLY;
-			return vp;
+			return (vp);
 		}
 		vp->flag |= RDONLY;
 		if (n[1] != '\0')
-			return vp;
+			return (vp);
 		vp->flag |= ISSET|INTEGER;
 		switch (c) {
 		case '$':
@@ -222,15 +222,15 @@ global(const char *n)
 		default:
 			vp->flag &= ~(ISSET|INTEGER);
 		}
-		return vp;
+		return (vp);
 	}
 	for (l = e->loc; ; l = l->next) {
 		vp = ktsearch(&l->vars, n, h);
 		if (vp != NULL) {
 			if (array)
-				return arraysearch(vp, val);
+				return (arraysearch(vp, val));
 			else
-				return vp;
+				return (vp);
 		}
 		if (l->next == NULL)
 			break;
@@ -241,7 +241,7 @@ global(const char *n)
 	vp->flag |= DEFINED;
 	if (special(n))
 		vp->flag |= SPECIAL;
-	return vp;
+	return (vp);
 }
 
 /*
@@ -264,7 +264,7 @@ local(const char *n, bool copy)
 		vp->flag = DEFINED|RDONLY;
 		vp->type = 0;
 		vp->areap = ATEMP;
-		return vp;
+		return (vp);
 	}
 	vp = ktenter(&l->vars, n, h);
 	if (copy && !(vp->flag & DEFINED)) {
@@ -287,7 +287,7 @@ local(const char *n, bool copy)
 	vp->flag |= DEFINED;
 	if (special(n))
 		vp->flag |= SPECIAL;
-	return vp;
+	return (vp);
 }
 
 /* get variable string value */
@@ -305,7 +305,7 @@ str_val(struct tbl *vp)
 	else {				/* integer source */
 		/* worst case number length is when base=2, so use BITS(long) */
 		/*      minus  base #   number                     NUL */
-		char strbuf[1 + 2 + 1 + 8 * sizeof (mksh_uari_t) + 1];
+		char strbuf[1 + 2 + 1 + 8 * sizeof(mksh_uari_t) + 1];
 		const char *digits = (vp->flag & UCASEV_AL) ?
 		    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" :
 		    "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -349,7 +349,7 @@ str_val(struct tbl *vp)
 		else
 			strdupx(s, s, ATEMP);
 	}
-	return s;
+	return (s);
 }
 
 /* get variable integer value, with error checking */
@@ -378,7 +378,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 		warningf(true, "%s: is read only", vq->name);
 		if (!error_ok)
 			errorfz();
-		return 0;
+		return (0);
 	}
 	if (!(vq->flag&INTEGER)) { /* string dest */
 		if ((vq->flag&ALLOC)) {
@@ -442,10 +442,10 @@ getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 		getspec(vp);
 	/* XXX is it possible for ISSET to be set and val.s to be 0? */
 	if (!(vp->flag&ISSET) || (!(vp->flag&INTEGER) && vp->val.s == NULL))
-		return -1;
+		return (-1);
 	if (vp->flag&INTEGER) {
 		*nump = vp->val.i;
-		return vp->type;
+		return (vp->type);
 	}
 	s = vp->val.s + vp->type;
 	if (s == NULL)	/* redundant given initial test */
@@ -493,15 +493,15 @@ getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 		else if (ksh_isupper(c))
 			c -= 'A' - 10;
 		else
-			return -1;
+			return (-1);
 		if (c < 0 || c >= base)
-			return -1;
+			return (-1);
 		num = num * base + c;
 	}
 	if (neg)
 		num = -num;
 	*nump = num;
-	return base;
+	return (base);
 }
 
 /* convert variable vq to integer variable, setting its value from vp
@@ -514,7 +514,7 @@ setint_v(struct tbl *vq, struct tbl *vp, bool arith)
 	mksh_ari_t num;
 
 	if ((base = getint(vp, &num, arith)) == -1)
-		return NULL;
+		return (NULL);
 	if (!(vq->flag & INTEGER) && (vq->flag & ALLOC)) {
 		vq->flag &= ~ALLOC;
 		afree(vq->val.s, vq->areap);
@@ -525,7 +525,7 @@ setint_v(struct tbl *vq, struct tbl *vp, bool arith)
 	vq->flag |= ISSET|INTEGER;
 	if (vq->flag&SPECIAL)
 		setspec(vq);
-	return vq;
+	return (vq);
 }
 
 static char *
@@ -601,7 +601,7 @@ formatstr(struct tbl *vp, const char *s)
 			*q = ksh_tolower(*q);
 	}
 
-	return p;
+	return (p);
 }
 
 /*
@@ -642,13 +642,13 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	/* check for valid variable name, search for value */
 	val = skip_varname(var, false);
 	if (val == var)
-		return NULL;
+		return (NULL);
 	if (*val == '[') {
 		int len;
 
 		len = array_ref_len(val);
 		if (len == 0)
-			return NULL;
+			return (NULL);
 		/* IMPORT is only used when the shell starts up and is
 		 * setting up its environment.  Allow only simple array
 		 * references at this time since parameter/command substitution
@@ -659,7 +659,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 			int i;
 			for (i = 1; i < len - 1; i++)
 				if (!ksh_isdigit(val[i]))
-					return NULL;
+					return (NULL);
 		}
 		val += len;
 	}
@@ -668,7 +668,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	else {
 		/* Importing from original environment: must have an = */
 		if (set & IMPORT)
-			return NULL;
+			return (NULL);
 		strdupx(tvar, var, ATEMP);
 		val = NULL;
 	}
@@ -772,7 +772,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	    vpbase->type == 0)
 		export(vpbase, (vpbase->flag&ISSET) ? vpbase->val.s : null);
 
-	return vp;
+	return (vp);
 }
 
 /* Unset a variable.  array_ref is set if there was an array reference in
@@ -858,7 +858,7 @@ is_wdvarname(const char *s, int aok)
 {
 	const char *p = skip_wdvarname(s, aok);
 
-	return p != s && p[0] == EOS;
+	return (p != s && p[0] == EOS);
 }
 
 /* Check if coded string s is a variable assignment */
@@ -867,7 +867,7 @@ is_wdvarassign(const char *s)
 {
 	const char *p = skip_wdvarname(s, true);
 
-	return p != s && p[0] == CHAR && p[1] == '=';
+	return (p != s && p[0] == CHAR && p[1] == '=');
 }
 
 /*
@@ -945,10 +945,10 @@ rnd_get(void)
 	if (Flag(FARC4RANDOM)) {
 		if (rnd_cache[0] || rnd_cache[1])
 #if HAVE_ARC4RANDOM_PUSHB
-			rv = arc4random_pushb(rnd_cache, sizeof (rnd_cache));
+			rv = arc4random_pushb(rnd_cache, sizeof(rnd_cache));
 #else
 			arc4random_addrandom((void *)rnd_cache,
-			    sizeof (rnd_cache));
+			    sizeof(rnd_cache));
 #endif
 		rnd_cache[0] = rnd_cache[1] = 0;
 		return ((
@@ -967,9 +967,9 @@ rnd_set(unsigned long newval)
 {
 #if HAVE_ARC4RANDOM && defined(MKSH_SMALL)
 #if HAVE_ARC4RANDOM_PUSHB
-	arc4random_pushb(&newval, sizeof (newval));
+	arc4random_pushb(&newval, sizeof(newval));
 #else
-	arc4random_addrandom((void *)&newval, sizeof (newval));
+	arc4random_addrandom((void *)&newval, sizeof(newval));
 #endif
 #else
 #if HAVE_ARC4RANDOM
@@ -1027,7 +1027,7 @@ special(const char *name)
 	struct tbl *tp;
 
 	tp = ktsearch(&specials, name, hash(name));
-	return tp && (tp->flag & ISSET) ? tp->type : V_NONE;
+	return (tp && (tp->flag & ISSET) ? tp->type : V_NONE);
 }
 
 /* Make a variable non-special */
@@ -1244,7 +1244,7 @@ arraysearch(struct tbl *vp, uint32_t val)
 	vp->index = 0;
 	/* The table entry is always [0] */
 	if (val == 0)
-		return vp;
+		return (vp);
 	prev = vp;
 	curr = vp->u.array;
 	while (curr && curr->index < val) {
@@ -1253,11 +1253,11 @@ arraysearch(struct tbl *vp, uint32_t val)
 	}
 	if (curr && curr->index == val) {
 		if (curr->flag&ISSET)
-			return curr;
+			return (curr);
 		else
 			new = curr;
 	} else
-		new = alloc(sizeof (struct tbl) + namelen, vp->areap);
+		new = alloc(sizeof(struct tbl) + namelen, vp->areap);
 	strlcpy(new->name, vp->name, namelen);
 	new->flag = vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL);
 	new->type = vp->type;
@@ -1268,7 +1268,7 @@ arraysearch(struct tbl *vp, uint32_t val)
 		prev->u.array = new;
 		new->u.array = curr;
 	}
-	return new;
+	return (new);
 }
 
 /* Return the length of an array reference (eg, [1+2]) - cp is assumed
@@ -1286,8 +1286,8 @@ array_ref_len(const char *cp)
 		if (c == '[')
 			depth++;
 	if (!c)
-		return 0;
-	return s - cp;
+		return (0);
+	return (s - cp);
 }
 
 /*

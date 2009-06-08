@@ -122,7 +122,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.306 2009/06/07 22:28:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.307 2009/06/08 20:06:48 tg Exp $");
 #endif
 #define MKSH_VERSION "R38 2009/06/07"
 
@@ -301,7 +301,7 @@ extern int __cdecl setegid(gid_t);
 # define EXTERN_DEFINED
 #endif
 
-#define NELEM(a)	(sizeof (a) / sizeof ((a)[0]))
+#define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
 #define BIT(i)		(1 << (i))	/* define bit in flag */
 
 /* Table flag type - needs > 16 and < 32 bits */
@@ -445,7 +445,7 @@ struct lalloc {
 
 /* 2. sizes */
 #define ALLOC_ITEM	struct lalloc
-#define ALLOC_SIZE	(sizeof (ALLOC_ITEM))
+#define ALLOC_SIZE	(sizeof(ALLOC_ITEM))
 
 /* 3. group structure (only the same for lalloc.c) */
 typedef struct lalloc Area;
@@ -1187,7 +1187,7 @@ typedef struct XPtrV {
 
 #define XPinit(x, n) do {					\
 	void **vp__;						\
-	vp__ = alloc((n) * sizeof (void *), ATEMP);		\
+	vp__ = alloc((n) * sizeof(void *), ATEMP);		\
 	(x).cur = (x).beg = vp__;				\
 	(x).end = vp__ + (n);					\
 } while (/* CONSTCOND */ 0)
@@ -1196,7 +1196,7 @@ typedef struct XPtrV {
 	if ((x).cur >= (x).end) {				\
 		size_t n = XPsize(x);				\
 		(x).beg = aresize((x).beg,			\
-		    n * 2 * sizeof (void *), ATEMP);		\
+		    n * 2 * sizeof(void *), ATEMP);		\
 		(x).cur = (x).beg + n;				\
 		(x).end = (x).cur + n;				\
 	}							\
@@ -1205,7 +1205,7 @@ typedef struct XPtrV {
 
 #define XPptrv(x)	((x).beg)
 #define XPsize(x)	((x).cur - (x).beg)
-#define XPclose(x)	aresize((x).beg, XPsize(x) * sizeof (void *), ATEMP)
+#define XPclose(x)	aresize((x).beg, XPsize(x) * sizeof(void *), ATEMP)
 #define XPfree(x)	afree((x).beg, ATEMP)
 
 #define IDENT	64

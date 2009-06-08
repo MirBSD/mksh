@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.108 2009/05/31 15:10:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.109 2009/06/08 20:06:48 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -95,7 +95,7 @@ Xcheck_grow_(XString *xsp, const char *xp, unsigned int more)
 	xsp->len += more > xsp->len ? more : xsp->len;
 	xsp->beg = aresize(xsp->beg, xsp->len + 8, xsp->areap);
 	xsp->end = xsp->beg + xsp->len;
-	return xsp->beg + (xp - old_beg);
+	return (xsp->beg + (xp - old_beg));
 }
 
 const struct shoption options[] = {
@@ -187,7 +187,7 @@ options_fmt_entry(const void *arg, int i, char *buf, int buflen)
 	shf_snprintf(buf, buflen, "%-*s %s",
 	    oi->opt_width, options[oi->opts[i]].name,
 	    Flag(oi->opts[i]) ? "on" : "off");
-	return buf;
+	return (buf);
 }
 
 static void
@@ -402,7 +402,7 @@ parse_args(const char **argv,
 #endif
 
 		case '?':
-			return -1;
+			return (-1);
 
 		default:
 			if (what == OF_FIRSTTIME)
@@ -438,12 +438,12 @@ parse_args(const char **argv,
 
 	if (arrayset && (!*array || *skip_varname(array, false))) {
 		bi_errorf("%s: is not an identifier", array);
-		return -1;
+		return (-1);
 	}
 	if (sortargs) {
 		for (i = go.optind; argv[i]; i++)
 			;
-		qsort(&argv[go.optind], i - go.optind, sizeof (void *),
+		qsort(&argv[go.optind], i - go.optind, sizeof(void *),
 		    xstrcmp);
 	}
 	if (arrayset) {
@@ -452,7 +452,7 @@ parse_args(const char **argv,
 			;
 	}
 
-	return go.optind;
+	return (go.optind);
 }
 
 /* parse a decimal number: returns 0 if string isn't a number, 1 otherwise */
@@ -516,7 +516,7 @@ gmatchx(const char *s, const char *p, bool isfile)
 	const char *se, *pe;
 
 	if (s == NULL || p == NULL)
-		return 0;
+		return (0);
 
 	se = s + strlen(s);
 	pe = p + strlen(p);
@@ -528,10 +528,10 @@ gmatchx(const char *s, const char *p, bool isfile)
 		char tbuf[64];
 		char *t = len <= sizeof(tbuf) ? tbuf : alloc(len, ATEMP);
 		debunk(t, p, len);
-		return !strcmp(t, s);
+		return (!strcmp(t, s));
 	}
-	return do_gmatch((const unsigned char *) s, (const unsigned char *) se,
-	    (const unsigned char *) p, (const unsigned char *) pe);
+	return (do_gmatch((const unsigned char *) s, (const unsigned char *) se,
+	    (const unsigned char *) p, (const unsigned char *) pe));
 }
 
 /* Returns if p is a syntacticly correct globbing pattern, false
@@ -578,7 +578,7 @@ has_globbing(const char *xp, const char *xpe)
 		} else if (c == ']') {
 			if (in_bracket) {
 				if (bnest)		/* [a*(b]) */
-					return 0;
+					return (0);
 				in_bracket = 0;
 			}
 		} else if ((c & 0x80) && vstrchr("*+?@! ", c & 0x7f)) {
@@ -589,18 +589,18 @@ has_globbing(const char *xp, const char *xpe)
 				nest++;
 		} else if (c == '|') {
 			if (in_bracket && !bnest)	/* *(a[foo|bar]) */
-				return 0;
+				return (0);
 		} else if (c == /*(*/ ')') {
 			if (in_bracket) {
 				if (!bnest--)		/* *(a[b)c] */
-					return 0;
+					return (0);
 			} else if (nest)
 				nest--;
 		}
 		/* else must be a MAGIC-MAGIC, or MAGIC-!, MAGIC--, MAGIC-]
 			 MAGIC-{, MAGIC-,, MAGIC-} */
 	}
-	return saw_glob && !in_bracket && !nest;
+	return (saw_glob && !in_bracket && !nest);
 }
 
 /* Function must return either 0 or 1 (assumed by code for 0x80|'!') */
@@ -613,36 +613,36 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 	const unsigned char *srest;
 
 	if (s == NULL || p == NULL)
-		return 0;
+		return (0);
 	while (p < pe) {
 		pc = *p++;
 		sc = s < se ? *s : '\0';
 		s++;
 		if (!ISMAGIC(pc)) {
 			if (sc != pc)
-				return 0;
+				return (0);
 			continue;
 		}
 		switch (*p++) {
 		case '[':
 			if (sc == 0 || (p = cclass(p, sc)) == NULL)
-				return 0;
+				return (0);
 			break;
 
 		case '?':
 			if (sc == 0)
-				return 0;
+				return (0);
 			break;
 
 		case '*':
 			if (p == pe)
-				return 1;
+				return (1);
 			s--;
 			do {
 				if (do_gmatch(s, se, p, pe))
-					return 1;
+					return (1);
 			} while (s++ < se);
-			return 0;
+			return (0);
 
 		  /*
 		   * [*+?@!](pattern|pattern|..)
@@ -651,12 +651,12 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 		case 0x80|'+': /* matches one or more times */
 		case 0x80|'*': /* matches zero or more times */
 			if (!(prest = pat_scan(p, pe, 0)))
-				return 0;
+				return (0);
 			s--;
 			/* take care of zero matches */
 			if (p[-1] == (0x80 | '*') &&
 			    do_gmatch(s, se, prest, pe))
-				return 1;
+				return (1);
 			for (psub = p; ; psub = pnext) {
 				pnext = pat_scan(psub, pe, 1);
 				for (srest = s; srest <= se; srest++) {
@@ -664,39 +664,39 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 					    (do_gmatch(srest, se, prest, pe) ||
 					    (s != srest && do_gmatch(srest,
 					    se, p - 2, pe))))
-						return 1;
+						return (1);
 				}
 				if (pnext == prest)
 					break;
 			}
-			return 0;
+			return (0);
 
 		case 0x80|'?': /* matches zero or once */
 		case 0x80|'@': /* matches one of the patterns */
 		case 0x80|' ': /* simile for @ */
 			if (!(prest = pat_scan(p, pe, 0)))
-				return 0;
+				return (0);
 			s--;
 			/* Take care of zero matches */
 			if (p[-1] == (0x80 | '?') &&
 			    do_gmatch(s, se, prest, pe))
-				return 1;
+				return (1);
 			for (psub = p; ; psub = pnext) {
 				pnext = pat_scan(psub, pe, 1);
 				srest = prest == pe ? se : s;
 				for (; srest <= se; srest++) {
 					if (do_gmatch(s, srest, psub, pnext - 2) &&
 					    do_gmatch(srest, se, prest, pe))
-						return 1;
+						return (1);
 				}
 				if (pnext == prest)
 					break;
 			}
-			return 0;
+			return (0);
 
 		case 0x80|'!': /* matches none of the patterns */
 			if (!(prest = pat_scan(p, pe, 0)))
-				return 0;
+				return (0);
 			s--;
 			for (srest = s; srest <= se; srest++) {
 				int matched = 0;
@@ -713,17 +713,17 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 				}
 				if (!matched &&
 				    do_gmatch(srest, se, prest, pe))
-					return 1;
+					return (1);
 			}
-			return 0;
+			return (0);
 
 		default:
 			if (sc != p[-1])
-				return 0;
+				return (0);
 			break;
 		}
 	}
-	return s == se;
+	return (s == se);
 }
 
 static const unsigned char *
@@ -747,7 +747,7 @@ cclass(const unsigned char *p, int sub)
 		}
 		if (c == '\0')
 			/* No closing ] - act as if the opening [ was quoted */
-			return sub == '[' ? orig_p : NULL;
+			return (sub == '[' ? orig_p : NULL);
 		if (ISMAGIC(p[0]) && p[1] == '-' &&
 		    (!ISMAGIC(p[2]) || p[3] != ']')) {
 			p += 2; /* MAGIC- */
@@ -759,14 +759,14 @@ cclass(const unsigned char *p, int sub)
 			}
 			/* POSIX says this is an invalid expression */
 			if (c > d)
-				return NULL;
+				return (NULL);
 		} else
 			d = c;
 		if (c == sub || (c <= sub && sub <= d))
 			found = 1;
 	} while (!(ISMAGIC(p[0]) && p[1] == ']'));
 
-	return (found != not) ? p+2 : NULL;
+	return ((found != not) ? p+2 : NULL);
 }
 
 /* Look for next ) or | (if match_sep) in *(foo|bar) pattern */
@@ -844,14 +844,14 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 			go->optind++;
 			go->p = 0;
 			go->info |= GI_MINUSMINUS;
-			return -1;
+			return (-1);
 		}
 		if (arg == NULL ||
 		    ((flag != '-' ) && /* neither a - nor a + (if + allowed) */
 		    (!(go->flags & GF_PLUSOPT) || flag != '+')) ||
 		    (c = arg[1]) == '\0') {
 			go->p = 0;
-			return -1;
+			return (-1);
 		}
 		go->optind++;
 		go->info &= ~(GI_MINUS|GI_PLUS);
@@ -870,7 +870,7 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 			if (go->flags & GF_ERROR)
 				bi_errorfz();
 		}
-		return '?';
+		return ('?');
 	}
 	/* : means argument must be present, may be part of option argument
 	 *   or the next argument
@@ -888,14 +888,14 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 			if (optionsp[0] == ':') {
 				go->buf[0] = c;
 				go->optarg = go->buf;
-				return ':';
+				return (':');
 			}
 			warningf(true, "%s%s-'%c' requires argument",
 			    (go->flags & GF_NONAME) ? "" : argv[0],
 			    (go->flags & GF_NONAME) ? "" : ": ", c);
 			if (go->flags & GF_ERROR)
 				bi_errorfz();
-			return '?';
+			return ('?');
 		}
 		go->p = 0;
 	} else if (*o == ',') {
@@ -921,7 +921,7 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 				go->optarg = NULL;
 		}
 	}
-	return c;
+	return (c);
 }
 
 /* print variable/alias value using necessary quotes
@@ -1061,7 +1061,7 @@ blocking_read(int fd, char *buf, int nbytes)
 		}
 		break;
 	}
-	return ret;
+	return (ret);
 }
 
 /* Reset the non-blocking flag on the specified file descriptor.
@@ -1074,13 +1074,13 @@ reset_nonblock(int fd)
 	int flags;
 
 	if ((flags = fcntl(fd, F_GETFL, 0)) < 0)
-		return -1;
+		return (-1);
 	if (!(flags & O_NONBLOCK))
-		return 0;
+		return (0);
 	flags &= ~O_NONBLOCK;
 	if (fcntl(fd, F_SETFL, flags) < 0)
-		return -1;
-	return 1;
+		return (-1);
+	return (1);
 }
 
 
@@ -1098,7 +1098,7 @@ ksh_get_wd(size_t *dlen)
 
 	if (dlen)
 		*dlen = len;
-	return ret;
+	return (ret);
 }
 
 /*
@@ -1183,7 +1183,7 @@ make_path(const char *cwd, const char *file,
 	if (!use_cdpath)
 		*cdpathp = NULL;
 
-	return rval;
+	return (rval);
 }
 
 /*
@@ -1287,13 +1287,13 @@ get_phys_path(const char *pathl)
 	xp = do_phys_path(&xs, xp, pathl);
 
 	if (!xp)
-		return NULL;
+		return (NULL);
 
 	if (Xlength(xs, xp) == 0)
 		Xput(xs, xp, '/');
 	Xput(xs, xp, '\0');
 
-	return Xclose(xs, xp);
+	return (Xclose(xs, xp));
 }
 
 static char *
@@ -1359,7 +1359,7 @@ chvt(const char *fn)
 	int fd;
 
 	if (*fn == '-') {
-		memcpy(dv, "-/dev/null", sizeof ("-/dev/null"));
+		memcpy(dv, "-/dev/null", sizeof("-/dev/null"));
 		fn = dv + 1;
 	} else {
 		if (stat(fn, &sb)) {
@@ -1415,9 +1415,9 @@ chvt(const char *fn)
 
 #ifdef DEBUG
 
-char longsizes_are_okay[sizeof (long) == sizeof (unsigned long) ? 1 : -1];
-char arisize_is_okay[sizeof (mksh_ari_t) == 4 ? 1 : -1];
-char uarisize_is_okay[sizeof (mksh_uari_t) == 4 ? 1 : -1];
+char longsizes_are_okay[sizeof(long) == sizeof(unsigned long) ? 1 : -1];
+char arisize_is_okay[sizeof(mksh_ari_t) == 4 ? 1 : -1];
+char uarisize_is_okay[sizeof(mksh_uari_t) == 4 ? 1 : -1];
 
 char *
 strchr(char *p, int ch)
