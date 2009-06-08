@@ -1,7 +1,7 @@
 /*	$OpenBSD: edit.c,v 1.33 2007/08/02 10:50:25 fgsch Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.42 2009/06/02 06:47:47 halex Exp $	*/
-/*	$OpenBSD: vi.c,v 1.23 2006/04/10 14:38:59 jaredy Exp $	*/
+/*	$OpenBSD: vi.c,v 1.24 2009/06/04 04:03:22 merdely Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.166 2009/06/08 20:16:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.167 2009/06/08 20:22:19 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -3871,9 +3871,9 @@ vi_hook(int ch)
 			int i;
 			int n = srchlen;
 
-			while (n > 0 && ksh_isspace(locpat[n - 1]))
+			while (n > 0 && !ksh_isalnux(locpat[n - 1]))
 				n--;
-			while (n > 0 && !ksh_isspace(locpat[n - 1]))
+			while (n > 0 && ksh_isalnux(locpat[n - 1]))
 				n--;
 			for (i = srchlen; --i >= n; )
 				es->linelen -= char_len((unsigned char)locpat[i]);
@@ -5006,10 +5006,10 @@ Backword(int argcnt)
 	ncursor = es->cursor;
 	while (ncursor > 0 && argcnt--) {
 		while (--ncursor >= 0 &&
-		    ksh_isspace(es->cbuf[ncursor]))
+		    !ksh_isalnux(es->cbuf[ncursor]))
 			;
 		while (ncursor >= 0 &&
-		    !ksh_isspace(es->cbuf[ncursor]))
+		    ksh_isalnux(es->cbuf[ncursor]))
 			ncursor--;
 		ncursor++;
 	}
