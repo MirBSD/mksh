@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.112 2009/06/08 20:52:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.113 2009/06/10 18:11:26 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -40,6 +40,10 @@ __RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.112 2009/06/08 20:52:27 tg Exp $");
 
 #ifndef RLIM_INFINITY
 #define MKSH_NO_LIMITS
+#endif
+
+#ifdef MKSH_NO_LIMITS
+#define c_ulimit c_label
 #endif
 
 /* A leading = means assignments before command are kept;
@@ -1556,7 +1560,7 @@ c_bind(const char **wp)
 	return (rv);
 }
 
-/* :, false and true */
+/* :, false and true (and ulimit if MKSH_NO_LIMITS) */
 int
 c_label(const char **wp)
 {
@@ -2907,12 +2911,10 @@ struct limits {
 
 static void print_ulimit(const struct limits *, int);
 static int set_ulimit(const struct limits *, const char *, int);
-#endif
 
 int
 c_ulimit(const char **wp)
 {
-#ifndef MKSH_NO_LIMITS
 	static const struct limits limits[] = {
 		/* do not use options -H, -S or -a or change the order */
 #ifdef RLIMIT_CPU
@@ -3009,11 +3011,9 @@ c_ulimit(const char **wp)
 		shprintf("%-20s ", l->name);
 		print_ulimit(l, how);
 	}
-#endif
 	return (0);
 }
 
-#ifndef MKSH_NO_LIMITS
 static int
 set_ulimit(const struct limits *l, const char *v, int how)
 {
