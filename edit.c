@@ -1,7 +1,7 @@
 /*	$OpenBSD: edit.c,v 1.33 2007/08/02 10:50:25 fgsch Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.42 2009/06/02 06:47:47 halex Exp $	*/
-/*	$OpenBSD: vi.c,v 1.24 2009/06/04 04:03:22 merdely Exp $	*/
+/*	$OpenBSD: vi.c,v 1.25 2009/06/10 15:08:46 merdely Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.168 2009/06/10 18:12:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.169 2009/06/10 19:33:16 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -3437,49 +3437,49 @@ x_mode(bool onoff)
 #define Ctrl(c)		(c&0x1f)
 
 struct edstate {
-	char	*cbuf;
-	int	winleft;
-	int	cbufsize;
-	int	linelen;
-	int	cursor;
+	char *cbuf;
+	int winleft;
+	int cbufsize;
+	int linelen;
+	int cursor;
 };
 
-static int	vi_hook(int);
-static int	nextstate(int);
-static int	vi_insert(int);
-static int	vi_cmd(int, const char *);
-static int	domove(int, const char *, int);
-static int	redo_insert(int);
-static void	yank_range(int, int);
-static int	bracktype(int);
-static void	save_cbuf(void);
-static void	restore_cbuf(void);
-static int	putbuf(const char *, int, int);
-static void	del_range(int, int);
-static int	findch(int, int, int, int);
-static int	forwword(int);
-static int	backword(int);
-static int	endword(int);
-static int	Forwword(int);
-static int	Backword(int);
-static int	Endword(int);
-static int	grabhist(int, int);
-static int	grabsearch(int, int, int, char *);
-static void	redraw_line(int);
-static void	refresh(int);
-static int	outofwin(void);
-static void	rewindow(void);
-static int	newcol(int, int);
-static void	display(char *, char *, int);
-static void	ed_mov_opt(int, char *);
-static int	expand_word(int);
-static int	complete_word(int, int);
-static int	print_expansions(struct edstate *, int);
+static int vi_hook(int);
+static int nextstate(int);
+static int vi_insert(int);
+static int vi_cmd(int, const char *);
+static int domove(int, const char *, int);
+static int redo_insert(int);
+static void yank_range(int, int);
+static int bracktype(int);
+static void save_cbuf(void);
+static void restore_cbuf(void);
+static int putbuf(const char *, int, int);
+static void del_range(int, int);
+static int findch(int, int, int, int);
+static int forwword(int);
+static int backword(int);
+static int endword(int);
+static int Forwword(int);
+static int Backword(int);
+static int Endword(int);
+static int grabhist(int, int);
+static int grabsearch(int, int, int, char *);
+static void redraw_line(int);
+static void refresh(int);
+static int outofwin(void);
+static void rewindow(void);
+static int newcol(int, int);
+static void display(char *, char *, int);
+static void ed_mov_opt(int, char *);
+static int expand_word(int);
+static int complete_word(int, int);
+static int print_expansions(struct edstate *, int);
 #define char_len(c)	((c) < ' ' || (c) == 0x7F ? 2 : 1)
-static void	x_vi_zotc(int);
-static void	vi_error(void);
-static void	vi_macro_reset(void);
-static int	x_vi_putbuf(const char *, size_t);
+static void x_vi_zotc(int);
+static void vi_error(void);
+static void vi_macro_reset(void);
+static int x_vi_putbuf(const char *, size_t);
 
 #define C_	0x1		/* a valid command that isn't a M_, E_, U_ */
 #define M_	0x2		/* movement command (h, l, etc.) */
@@ -3565,24 +3565,24 @@ static struct edstate	undobuf = { undocbuf, 0, LINE, 0, 0 };
 static struct edstate	*es;			/* current editor state */
 static struct edstate	*undo;
 
-static char	ibuf[LINE];		/* input buffer */
-static int	first_insert;		/* set when starting in insert mode */
-static int	saved_inslen;		/* saved inslen for first insert */
-static int	inslen;			/* length of input buffer */
-static int	srchlen;		/* length of current search pattern */
-static char	ybuf[LINE];		/* yank buffer */
-static int	yanklen;		/* length of yank buffer */
-static int	fsavecmd = ' ';		/* last find command */
-static int	fsavech;		/* character to find */
-static char	lastcmd[MAXVICMD];	/* last non-move command */
-static int	lastac;			/* argcnt for lastcmd */
-static int	lastsearch = ' ';	/* last search command */
-static char	srchpat[SRCHLEN];	/* last search pattern */
-static int	insert;			/* non-zero in insert mode */
-static int	hnum;			/* position in history */
-static int	ohnum;			/* history line copied (after mod) */
-static int	hlast;			/* 1 past last position in history */
-static int	state;
+static char ibuf[LINE];			/* input buffer */
+static int first_insert;		/* set when starting in insert mode */
+static int saved_inslen;		/* saved inslen for first insert */
+static int inslen;			/* length of input buffer */
+static int srchlen;			/* length of current search pattern */
+static char ybuf[LINE];			/* yank buffer */
+static int yanklen;			/* length of yank buffer */
+static int fsavecmd = ' ';		/* last find command */
+static int fsavech;			/* character to find */
+static char lastcmd[MAXVICMD];		/* last non-move command */
+static int lastac;			/* argcnt for lastcmd */
+static int lastsearch = ' ';		/* last search command */
+static char srchpat[SRCHLEN];		/* last search pattern */
+static int insert;			/* non-zero in insert mode */
+static int hnum;			/* position in history */
+static int ohnum;			/* history line copied (after mod) */
+static int hlast;			/* 1 past last position in history */
+static int state;
 
 /* Information for keeping track of macros that are being expanded.
  * The format of buf is the alias contents followed by a NUL byte followed
@@ -4030,7 +4030,7 @@ vi_insert(int ch)
 	}
 	if (ch == edchars.werase) {
 		if (es->cursor != 0) {
-			tcursor = Backword(1);
+			tcursor = backword(1);
 			memmove(&es->cbuf[tcursor], &es->cbuf[es->cursor],
 			    es->linelen - es->cursor);
 			es->linelen -= es->cursor - tcursor;
@@ -4935,7 +4935,7 @@ forwword(int argcnt)
 static int
 backword(int argcnt)
 {
-	int	ncursor;
+	int ncursor;
 
 	ncursor = es->cursor;
 	while (ncursor > 0 && argcnt--) {
@@ -4960,7 +4960,7 @@ backword(int argcnt)
 static int
 endword(int argcnt)
 {
-	int	ncursor;
+	int ncursor;
 
 	ncursor = es->cursor;
 	while (ncursor < es->linelen && argcnt--) {
@@ -5003,15 +5003,13 @@ Forwword(int argcnt)
 static int
 Backword(int argcnt)
 {
-	int	ncursor;
+	int ncursor;
 
 	ncursor = es->cursor;
 	while (ncursor > 0 && argcnt--) {
-		while (--ncursor >= 0 &&
-		    !ksh_isalnux(es->cbuf[ncursor]))
+		while (--ncursor >= 0 && ksh_isspace(es->cbuf[ncursor]))
 			;
-		while (ncursor >= 0 &&
-		    ksh_isalnux(es->cbuf[ncursor]))
+		while (ncursor >= 0 && !ksh_isspace(es->cbuf[ncursor]))
 			ncursor--;
 		ncursor++;
 	}
@@ -5021,7 +5019,7 @@ Backword(int argcnt)
 static int
 Endword(int argcnt)
 {
-	int	ncursor;
+	int ncursor;
 
 	ncursor = es->cursor;
 	while (ncursor < es->linelen - 1 && argcnt--) {
