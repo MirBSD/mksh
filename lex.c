@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.86 2009/06/08 20:06:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.87 2009/06/10 18:12:47 tg Exp $");
 
 /*
  * states while lexing word
@@ -129,19 +129,19 @@ static int ignore_backslash_newline;
 
 #define STATE_BSIZE	32
 
-#define PUSH_STATE(s)	do { \
-			    if (++statep == state_info.end) \
-				statep = push_state_(&state_info, statep); \
-			    state = statep->ls_state = (s); \
-			} while (0)
+#define PUSH_STATE(s)	do {					\
+	if (++statep == state_info.end)				\
+		statep = push_state_(&state_info, statep);	\
+	state = statep->ls_state = (s);				\
+} while (0)
 
-#define POP_STATE()	do { \
-			    if (--statep == state_info.base) \
-				statep = pop_state_(&state_info, statep); \
-			    state = statep->ls_state; \
-			} while (0)
+#define POP_STATE()	do {					\
+	if (--statep == state_info.base)			\
+		statep = pop_state_(&state_info, statep);	\
+	state = statep->ls_state;				\
+} while (0)
 
-/*
+/**
  * Lexical analyser
  *
  * tokens are not regular expressions, they are LL(1).
@@ -259,9 +259,9 @@ yylex(int cf)
 						Source *s;
 
 						s = pushs(SREREAD,
-							  source->areap);
-						s->start = s->str
-							= s->u.freeme = tmp;
+						    source->areap);
+						s->start = s->str =
+						    s->u.freeme = tmp;
 						s->next = source;
 						source = s;
 					}
@@ -655,7 +655,7 @@ yylex(int cf)
 			/*(*/
 			if (c == ')') {
 				if (statep->ls_sletparen.nparen > 0)
-				    --statep->ls_sletparen.nparen;
+					--statep->ls_sletparen.nparen;
 				/*(*/
 				else if ((c2 = getsc()) == ')') {
 					c = 0;
@@ -855,11 +855,11 @@ yylex(int cf)
 				c = (c == ';') ? BREAK :
 				    (c == '|') ? LOGOR :
 				    (c == '&') ? LOGAND :
-				    /*
-				     * this is the place where
-				     * ((...); (...))
-				     * and similar is broken
-				     */
+				/*
+				 * this is the place where
+				 * ((...); (...))
+				 * and similar is broken
+				 */
 				    /* c == '(' ) */ MDPAREN;
 			else if (c == '|' && c2 == '&')
 				c = COPROC;
@@ -1132,7 +1132,7 @@ getsc__(void)
 				/* At this point, we need to keep the current
 				 * alias in the source list so recursive
 				 * aliases can be detected and we also need
-				 * to return the next character.  Do this
+				 * to return the next character. Do this
 				 * by temporarily popping the alias to get
 				 * the next character and then put it back
 				 * in the source list with the SF_ALIASEND
@@ -1238,7 +1238,7 @@ getsc_line(Source *s)
 			xp--; /* ...and move back again */
 		}
 		/* flush any unwanted input so other programs/builtins
-		 * can read it.  Not very optimal, but less error prone
+		 * can read it. Not very optimal, but less error prone
 		 * than flushing else where, dealing with redirections,
 		 * etc..
 		 * todo: reduce size of shf buffer (~128?) if SSTDIN
@@ -1318,7 +1318,7 @@ set_prompt(int to, Source *s)
 			if (sigsetjmp(e->jbuf, 0)) {
 				prompt = safe_prompt;
 				/* Don't print an error - assume it has already
-				 * been printed.  Reason is we may have forked
+				 * been printed. Reason is we may have forked
 				 * to run a command and the child may be
 				 * unwinding its stack through this code as it
 				 * exits.
@@ -1404,10 +1404,9 @@ static char *
 get_brace_var(XString *wsp, char *wp)
 {
 	enum parse_state {
-			   PS_INITIAL, PS_SAW_HASH, PS_IDENT,
-			   PS_NUMBER, PS_VAR1, PS_END
-			 }
-		state;
+		PS_INITIAL, PS_SAW_HASH, PS_IDENT,
+		PS_NUMBER, PS_VAR1, PS_END
+	} state;
 	char c;
 
 	state = PS_INITIAL;

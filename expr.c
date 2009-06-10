@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.28 2009/06/08 20:13:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.29 2009/06/10 18:12:45 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -79,7 +79,7 @@ struct opinfo {
 };
 
 /* Tokens in this table must be ordered so the longest are first
- * (eg, += before +).  If you change something, change the order
+ * (eg, += before +). If you change something, change the order
  * of enum token too.
  */
 static const struct opinfo opinfo[] = {
@@ -138,9 +138,9 @@ struct expr_state {
 };
 
 #define bivui(x, op, y)	(es->natural ?			\
-	    (mksh_ari_t)((x)->val.u op (y)->val.u) :	\
-	    (mksh_ari_t)((x)->val.i op (y)->val.i)	\
-	)
+	(mksh_ari_t)((x)->val.u op (y)->val.u) :	\
+	(mksh_ari_t)((x)->val.i op (y)->val.i)		\
+)
 #define chvui(x, op)	do {			\
 	if (es->natural)			\
 		(x)->val.u = op (x)->val.u;	\

@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.73 2009/06/08 20:06:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.74 2009/06/10 18:12:51 tg Exp $");
 
 /*
  * Variables
@@ -133,7 +133,7 @@ initvar(void)
 	}
 }
 
-/* Used to calculate an array index for global()/local().  Sets *arrayp to
+/* Used to calculate an array index for global()/local(). Sets *arrayp to
  * non-zero if this is an array, sets *valp to the array index, returns
  * the basename of the array.
  */
@@ -303,8 +303,9 @@ str_val(struct tbl *vp)
 	else if (!(vp->flag&INTEGER))	/* string source */
 		s = vp->val.s + vp->type;
 	else {				/* integer source */
-		/* worst case number length is when base=2, so use BITS(long) */
-		/*      minus  base #   number                     NUL */
+		/* worst case number length is when base=2 */
+		/* 1 (minus) + 2 (base, up to 36) + 1 ('#') + number of bits
+		 * in the mksh_uari_t + 1 (NUL) */
 		char strbuf[1 + 2 + 1 + 8 * sizeof(mksh_uari_t) + 1];
 		const char *digits = (vp->flag & UCASEV_AL) ?
 		    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" :
@@ -650,7 +651,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 		if (len == 0)
 			return (NULL);
 		/* IMPORT is only used when the shell starts up and is
-		 * setting up its environment.  Allow only simple array
+		 * setting up its environment. Allow only simple array
 		 * references at this time since parameter/command substitution
 		 * is preformed on the [expression] which would be a major
 		 * security hole.
@@ -684,7 +685,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 
 	vpbase = (vp->flag & ARRAY) ? global(arrayname(var)) : vp;
 
-	/* only allow export flag to be set.  at&t ksh allows any attribute to
+	/* only allow export flag to be set. at&t ksh allows any attribute to
 	 * be changed which means it can be truncated or modified (-L/-R/-Z/-i)
 	 */
 	if ((vpbase->flag&RDONLY) &&
@@ -775,7 +776,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	return (vp);
 }
 
-/* Unset a variable.  array_ref is set if there was an array reference in
+/* Unset a variable. array_ref is set if there was an array reference in
  * the name lookup (eg, x[2]).
  */
 void
@@ -820,7 +821,7 @@ skip_varname(const char *s, int aok)
 	return (s);
 }
 
-/* Return a pointer to the first character past any legal variable name.  */
+/* Return a pointer to the first character past any legal variable name */
 const char *
 skip_wdvarname(const char *s,
     int aok)				/* skip array de-reference? */
@@ -1086,7 +1087,7 @@ getspec(struct tbl *vp)
 		break;
 	case V_COLUMNS:
 	case V_LINES:
-		/* Do NOT export COLUMNS/LINES.  Many applications
+		/* Do NOT export COLUMNS/LINES. Many applications
 		 * check COLUMNS/LINES before checking ws.ws_col/row,
 		 * so if the app is started with C/L in the environ
 		 * and the window is then resized, the app won't
@@ -1219,14 +1220,14 @@ unsetspec(struct tbl *vp)
 		unspecial(vp->name);
 		break;
 
-	  /* at&t ksh man page says OPTIND, OPTARG and _ lose special meaning,
-	   * but OPTARG does not (still set by getopts) and _ is also still
-	   * set in various places.
-	   * Don't know what at&t does for:
-	   *		HISTSIZE, HISTFILE,
-	   * Unsetting these in at&t ksh does not loose the 'specialness':
-	   *    no effect: IFS, COLUMNS, PATH, TMPDIR
-	   */
+	/* at&t ksh man page says OPTIND, OPTARG and _ lose special meaning,
+	 * but OPTARG does not (still set by getopts) and _ is also still
+	 * set in various places.
+	 * Don't know what at&t does for:
+	 *		HISTSIZE, HISTFILE,
+	 * Unsetting these in at&t ksh does not loose the 'specialness':
+	 * no effect: IFS, COLUMNS, PATH, TMPDIR
+	 */
 	}
 }
 
@@ -1272,7 +1273,7 @@ arraysearch(struct tbl *vp, uint32_t val)
 }
 
 /* Return the length of an array reference (eg, [1+2]) - cp is assumed
- * to point to the open bracket.  Returns 0 if there is no matching closing
+ * to point to the open bracket. Returns 0 if there is no matching closing
  * bracket.
  */
 int
@@ -1327,7 +1328,7 @@ set_array(const char *var, int reset, const char **vals)
 		/* trash existing values and attributes */
 		unset(vp, 0);
 	/* todo: would be nice for assignment to completely succeed or
-	 * completely fail.  Only really effects integer arrays:
+	 * completely fail. Only really effects integer arrays:
 	 * evaluation of some of vals[] may fail...
 	 */
 	for (i = 0; vals[i]; i++) {

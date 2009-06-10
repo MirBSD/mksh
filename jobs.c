@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.55 2009/06/08 20:34:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.56 2009/06/10 18:12:47 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -720,7 +720,7 @@ j_resume(const char *cp, int bg)
 				    NULL);
 				bi_errorf("1st tcsetpgrp(%d, %d) failed: %s",
 				    tty_fd,
-				    (int) ((j->flags & JF_SAVEDTTYPGRP) ?
+				    (int)((j->flags & JF_SAVEDTTYPGRP) ?
 				    j->saved_ttypgrp : j->pgrp),
 				    strerror(rv));
 				return (1);
@@ -995,7 +995,7 @@ j_waitj(Job *j,
 		if (Flag(FMONITOR) && ttypgrp_ok && j->pgrp) {
 			/*
 			 * Save the tty's current pgrp so it can be restored
-			 * when the job is foregrounded.  This is to
+			 * when the job is foregrounded. This is to
 			 * deal with things like the GNU su which does
 			 * a fork/exec instead of an exec (the fork means
 			 * the execed shell gets a different pid from its
@@ -1019,7 +1019,7 @@ j_waitj(Job *j,
 #endif
 		if (tty_fd >= 0) {
 			/* Only restore tty settings if job was originally
-			 * started in the foreground.  Problems can be
+			 * started in the foreground. Problems can be
 			 * caused by things like 'more foobar &' which will
 			 * typically get and save the shell's vi/emacs tty
 			 * settings before setting up the tty for itself;
@@ -1032,7 +1032,7 @@ j_waitj(Job *j,
 			} else {
 				tcsetattr(tty_fd, TCSADRAIN, &tty_state);
 				/* Don't use tty mode if job is stopped and
-				 * later restarted and exits.  Consider
+				 * later restarted and exits. Consider
 				 * the sequence:
 				 *	vi foo (stopped)
 				 *	...
@@ -1048,7 +1048,7 @@ j_waitj(Job *j,
 		}
 #ifndef MKSH_UNEMPLOYED
 		/* If it looks like user hit ^C to kill a job, pretend we got
-		 * one too to break out of for loops, etc.  (at&t ksh does this
+		 * one too to break out of for loops, etc. (at&t ksh does this
 		 * even when not monitoring, but this doesn't make sense since
 		 * a tty generated ^C goes to the whole process group)
 		 */
@@ -1155,7 +1155,7 @@ j_sigchld(int sig __unused)
 
 /*
  * Called only when a process in j has exited/stopped (ie, called only
- * from j_sigchld()).  If no processes are running, the job status
+ * from j_sigchld()). If no processes are running, the job status
  * and state are updated, asynchronous job notification is done and,
  * if unneeded, the job is removed.
  *
@@ -1238,7 +1238,7 @@ check_job(Job *j)
 						fd = ep->savefd[2];
 				shf_reopen(fd, SHF_WR, shl_j);
 			}
-			/* Can't call j_notify() as it removes jobs.  The job
+			/* Can't call j_notify() as it removes jobs. The job
 			 * must stay in the job list as j_waitj() may be
 			 * running with this job.
 			 */
@@ -1279,7 +1279,7 @@ j_print(Job *j, int how, struct shf *shf)
 
 	if (how == JP_PGRP) {
 		/* POSIX doesn't say what to do it there is no process
-		 * group leader (ie, !FMONITOR).  We arbitrarily return
+		 * group leader (ie, !FMONITOR). We arbitrarily return
 		 * last pid (which is what $! returns).
 		 */
 		shf_fprintf(shf, "%d\n", (int)(j->pgrp ? j->pgrp :
@@ -1287,7 +1287,7 @@ j_print(Job *j, int how, struct shf *shf)
 		return;
 	}
 	j->flags &= ~JF_CHANGED;
-	filler = j->job > 10 ?  "\n       " : "\n      ";
+	filler = j->job > 10 ? "\n       " : "\n      ";
 	if (j == job_list)
 		jobchar = '+';
 	else if (j == job_list->next)

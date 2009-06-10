@@ -122,7 +122,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.309 2009/06/10 18:11:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.310 2009/06/10 18:12:48 tg Rel $");
 #endif
 #define MKSH_VERSION "R38 2009/06/10"
 
@@ -667,11 +667,11 @@ EXTERN int really_exit;
  */
 #define C_ALPHA	 BIT(0)		/* a-z_A-Z */
 #define C_DIGIT	 BIT(1)		/* 0-9 */
-#define C_LEX1	 BIT(2)		/* \0 \t\n|&;<>() */
+#define C_LEX1	 BIT(2)		/* \t \n\0|&;<>() */
 #define C_VAR1	 BIT(3)		/* *@#!$-? */
 #define C_IFSWS	 BIT(4)		/* \t \n (IFS white space) */
 #define C_SUBOP1 BIT(5)		/* "=-+?" */
-#define C_QUOTE	 BIT(6)		/*  \n\t"#$&'()*;<>?[]\`| (needing quoting) */
+#define C_QUOTE	 BIT(6)		/* \t \n"#$&'()*;<>?[]\`| (needing quoting) */
 #define C_IFS	 BIT(7)		/* $IFS */
 #define C_SUBOP2 BIT(8)		/* "#%" (magic, see below) */
 
@@ -885,8 +885,8 @@ struct tbl {			/* table item */
 /* Attributes that can be set by the user (used to decide if an unset param
  * should be repoted by set/typeset). Does not include ARRAY or LOCAL.
  */
-#define USERATTRIB	(EXPORT|INTEGER|RDONLY|LJUST|RJUST|ZEROFIL\
-			    |LCASEV|UCASEV_AL|INT_U|INT_L)
+#define USERATTRIB	(EXPORT|INTEGER|RDONLY|LJUST|RJUST|ZEROFIL|\
+			    LCASEV|UCASEV_AL|INT_U|INT_L)
 
 /* command types */
 #define CNONE		0	/* undefined */
@@ -1215,10 +1215,10 @@ struct source {
 	const char *str;	/* input pointer */
 	const char *start;	/* start of current buffer */
 	union {
-		const char **strv; /* string [] */
-		struct shf *shf;   /* shell file */
-		struct tbl *tblp;  /* alias (SF_HASALIAS) */
-		char *freeme;	   /* also for SREREAD */
+		const char **strv;	/* string [] */
+		struct shf *shf;	/* shell file */
+		struct tbl *tblp;	/* alias (SF_HASALIAS) */
+		char *freeme;		/* also for SREREAD */
 	} u;
 	const char *file;	/* input file name */
 	int	type;		/* input type */

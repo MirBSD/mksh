@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.83 2009/06/08 20:06:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.84 2009/06/10 18:12:46 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -111,7 +111,7 @@ c_fc(const char **wp)
 		case 's':	/* posix version of -e - */
 			sflag++;
 			break;
-		  /* kludge city - accept -num as -- -num (kind of) */
+		/* kludge city - accept -num as -- -num (kind of) */
 		case '0': case '1': case '2': case '3': case '4':
 		case '5': case '6': case '7': case '8': case '9':
 			p = shf_smprintf("-%c%s",
@@ -642,8 +642,9 @@ histsave(int *lnp, const char *cmd, bool dowrite __unused, bool ignoredups)
 /*
  *	Open a history file
  *	Format is:
- *	Bytes 1, 2: HMAGIC - just to check that we are dealing with
- *		    the correct object
+ *	Bytes 1, 2:
+ *		HMAGIC - just to check that we are dealing with
+ *		the correct object
  *	Then follows a number of stored commands
  *	Each command is
  *	<command byte><command number(4 bytes)><bytes><null>
@@ -1196,7 +1197,7 @@ trap_pending(void)
 }
 
 /*
- * run any pending traps.  If intr is set, only run traps that
+ * run any pending traps. If intr is set, only run traps that
  * can interrupt commands.
  */
 void
@@ -1363,7 +1364,7 @@ restore_pipe(int restore_dfl)
 		setsig(&sigtraps[SIGPIPE], SIG_DFL, SS_RESTORE_CURR);
 }
 
-/* Set action for a signal.  Action may not be set if original
+/* Set action for a signal. Action may not be set if original
  * action was SIG_IGN, depending on the value of flags and FTALKING.
  */
 int
@@ -1374,7 +1375,7 @@ setsig(Trap *p, sig_t f, int flags)
 	if (p->signal == SIGEXIT_ || p->signal == SIGERR_)
 		return (1);
 
-	/* First time setting this signal?  If so, get and note the current
+	/* First time setting this signal? If so, get and note the current
 	 * setting.
 	 */
 	if (!(p->flags & (TF_ORIG_IGN|TF_ORIG_DFL))) {
@@ -1395,7 +1396,7 @@ setsig(Trap *p, sig_t f, int flags)
 	setexecsig(p, flags & SS_RESTORE_MASK);
 
 	/* This is here 'cause there should be a way of clearing shtraps, but
-	 * don't know if this is a sane way of doing it.  At the moment,
+	 * don't know if this is a sane way of doing it. At the moment,
 	 * all users of shtrap are lifetime users (SIGCHLD, SIGALRM, SIGWINCH).
 	 */
 	if (!(flags & SS_USER))

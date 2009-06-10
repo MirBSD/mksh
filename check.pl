@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.22 2009/05/16 16:59:32 tg Rel $
+# $MirOS: src/bin/mksh/check.pl,v 1.23 2009/06/10 18:12:43 tg Rel $
 # $OpenBSD: th,v 1.13 2006/05/18 21:27:23 miod Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -35,40 +35,40 @@
 #		expected-exit: 1
 #		---
 #	This runs the test-program (eg, mksh) with the arguments -x and -f,
-#	standard input is a file containing "echo hi*\nfalse\n".  The program
+#	standard input is a file containing "echo hi*\nfalse\n". The program
 #	is expected to produce "hi*" (no trailing newline) on standard output,
 #	"+ echo hi*\n+false\n" on standard error, and an exit code of 1.
 #
 #
 # Format of test files:
-#   - blank lines and lines starting with # are ignored
-#   - a test file contains a series of tests
-#   - a test is a series of tag:value pairs ended with a "---" line
-#     (leading/trailing spaces are stripped from the first line of value)
-#   - test tags are:
-#	Tag			  Flag	Description
-#	-----			  ----	-----------
-#	name			    r	The name of the test; should be unique
-#	description		    m	What test does
-#	arguments		    M	Arguments to pass to the program;
+# - blank lines and lines starting with # are ignored
+# - a test file contains a series of tests
+# - a test is a series of tag:value pairs ended with a "---" line
+#   (leading/trailing spaces are stripped from the first line of value)
+# - test tags are:
+#	Tag			Flag	Description
+#	-----			----	-----------
+#	name			r	The name of the test; should be unique
+#	description		m	What test does
+#	arguments		M	Arguments to pass to the program;
 #					default is no arguments.
-#	script			    m	Value is written to a file which
+#	script			m	Value is written to a file which
 #					is passed as an argument to the program
 #					(after the arguments arguments)
-#	stdin			    m	Value is written to a file which is
+#	stdin			m	Value is written to a file which is
 #					used as standard-input for the program;
 #					default is to use /dev/null.
-#	perl-setup		    m	Value is a perl script which is executed
-#					just before the test is run.  Try to
+#	perl-setup		m	Value is a perl script which is executed
+#					just before the test is run. Try to
 #					avoid using this...
-#	perl-cleanup		    m	Value is a perl script which is executed
-#					just after the test is run.  Try to
+#	perl-cleanup		m	Value is a perl script which is executed
+#					just after the test is run. Try to
 #					avoid using this...
-#	env-setup		    M	Value is a list of NAME=VALUE elements
+#	env-setup		M	Value is a list of NAME=VALUE elements
 #					which are put in the environment before
-#					the test is run.  If the =VALUE is
+#					the test is run. If the =VALUE is
 #					missing, NAME is removed from the
-#					environment.  Programs are run with
+#					environment. Programs are run with
 #					the following minimal environment:
 #					    HOME, LD_LIBRARY_PATH, LOCPATH,
 #					    LOGNAME, PATH, SHELL, USER
@@ -77,17 +77,17 @@
 #					ENV is set to /nonexistant.
 #					__progname is set to the -p argument.
 #					__perlname is set to $^X (perlexe).
-#	file-setup		    mps Used to create files, directories
-#					and symlinks.  First word is either
+#	file-setup		mps	Used to create files, directories
+#					and symlinks. First word is either
 #					file, dir or symlink; second word is
 #					permissions; this is followed by a
 #					quoted word that is the name of the
 #					file; the end-quote should be followed
 #					by a newline, then the file data
-#					(if any).  The first word may be
+#					(if any). The first word may be
 #					preceded by a ! to strip the trailing
 #					newline in a symlink.
-#	file-result		    mps Used to verify a file, symlink or
+#	file-result		mps	Used to verify a file, symlink or
 #					directory is created correctly.
 #					The first word is either
 #					file, dir or symlink; second word is
@@ -101,35 +101,35 @@
 #					of the file that should be created.
 #					The end-quote should be followed
 #					by a newline, then the file data
-#					(if any).  The first word may be
+#					(if any). The first word may be
 #					preceded by a ! to strip the trailing
 #					newline in the file contents.
 #					The permissions, user and group fields
 #					may be * meaning accept any value.
 #	time-limit			Time limit - the program is sent a
-#					SIGKILL N seconds.  Default is no
+#					SIGKILL N seconds. Default is no
 #					limit.
 #	expected-fail			'yes' if the test is expected to fail.
-#	expected-exit			expected exit code.  Can be a number,
+#	expected-exit			expected exit code. Can be a number,
 #					or a C expression using the variables
 #					e, s and w (exit code, termination
 #					signal, and status code).
-#	expected-stdout		    m	What the test should generate on stdout;
+#	expected-stdout		m	What the test should generate on stdout;
 #					default is to expect no output.
-#	expected-stdout-pattern	    m	A perl pattern which matches the
+#	expected-stdout-pattern	m	A perl pattern which matches the
 #					expected output.
-#	expected-stderr		    m	What the test should generate on stderr;
+#	expected-stderr		m	What the test should generate on stderr;
 #					default is to expect no output.
-#	expected-stderr-pattern	    m	A perl pattern which matches the
+#	expected-stderr-pattern	m	A perl pattern which matches the
 #					expected standard error.
-#	category		    m	Specify a comma separated list of
+#	category		m	Specify a comma separated list of
 #					'categories' of program that the test
-#					is to be run for.  A category can be
+#					is to be run for. A category can be
 #					negated by prefixing the name with a !.
 #					The idea is that some tests in a
 #					test suite may apply to a particular
 #					program version and shouldn't be run
-#					on other versions.  The category(s) of
+#					on other versions. The category(s) of
 #					the program being tested can be
 #					specified on the command line.
 #					One category os:XXX is predefined
@@ -137,8 +137,8 @@
 #					eg, linux, dec_osf).
 # Flag meanings:
 #	r	tag is required (eg, a test must have a name tag).
-#	m	value can be multiple lines.  Lines must be prefixed with
-#		a tab.  If the value part of the initial tag:value line is
+#	m	value can be multiple lines. Lines must be prefixed with
+#		a tab. If the value part of the initial tag:value line is
 #			- empty: the initial blank line is stripped.
 #			- a lone !: the last newline in the value is stripped;
 #	M	value can be multiple lines (prefixed by a tab) and consists
@@ -175,35 +175,35 @@ EOF
 
 # See comment above for flag meanings
 %test_fields = (
-	    'name',			'r',
-	    'description',		'm',
-	    'arguments',		'M',
-	    'script',			'm',
-	    'stdin',			'm',
-	    'perl-setup',		'm',
-	    'perl-cleanup',		'm',
-	    'env-setup',		'M',
-	    'file-setup',		'mps',
-	    'file-result',		'mps',
-	    'time-limit',		'',
-	    'expected-fail',		'',
-	    'expected-exit',		'',
-	    'expected-stdout',		'm',
-	    'expected-stdout-pattern',	'm',
-	    'expected-stderr',		'm',
-	    'expected-stderr-pattern',	'm',
-	    'category',			'm',
+	'name',				'r',
+	'description',			'm',
+	'arguments',			'M',
+	'script',			'm',
+	'stdin',			'm',
+	'perl-setup',			'm',
+	'perl-cleanup',			'm',
+	'env-setup',			'M',
+	'file-setup',			'mps',
+	'file-result',			'mps',
+	'time-limit',			'',
+	'expected-fail',		'',
+	'expected-exit',		'',
+	'expected-stdout',		'm',
+	'expected-stdout-pattern',	'm',
+	'expected-stderr',		'm',
+	'expected-stderr-pattern',	'm',
+	'category',			'm',
 	);
 # Filled in by read_test()
 %internal_test_fields = (
-	    ':full-name', 1,		# file:name
-	    ':long-name', 1,		# dir/file:lineno:name
+	':full-name', 1,		# file:name
+	':long-name', 1,		# dir/file:lineno:name
 	);
 
-# Categories of the program under test.  Provide the current
+# Categories of the program under test. Provide the current
 # os by default.
 %categories = (
-	    "os:$os", '1'
+	"os:$os", '1'
 	);
 
 $temps = "/tmp/rts$$";

@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.167 2009/06/08 20:22:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.168 2009/06/10 18:12:44 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -141,15 +141,16 @@ x_putcf(int c)
 	shf_putc(c, shl_out);
 }
 
-/* ------------------------------------------------------------------------- */
-/*           Misc common code for vi/emacs				     */
+/*********************************
+ * Misc common code for vi/emacs *
+ *********************************/
 
 /* Handle the commenting/uncommenting of a line.
  * Returns:
  *	1 if a carriage return is indicated (comment added)
  *	0 if no return (comment removed)
  *	-1 if there is an error (not enough room for comment chars)
- * If successful, *lenp contains the new length.  Note: cursor should be
+ * If successful, *lenp contains the new length. Note: cursor should be
  * moved to the start of the line after (un)commenting.
  */
 static int
@@ -192,8 +193,9 @@ x_do_comment(char *buf, int bsize, int *lenp)
 	}
 }
 
-/* ------------------------------------------------------------------------- */
-/*           Common file/command completion code for vi/emacs	             */
+/****************************************************
+ * Common file/command completion code for vi/emacs *
+ ****************************************************/
 
 static void
 x_print_expansions(int nwords, char * const *words, bool is_command)
@@ -239,8 +241,8 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
 		XPfree(l); /* not x_free_words() */
 }
 
-/*
- *  Do file globbing:
+/**
+ * Do file globbing:
  *	- appends * to (copy of) str if no globbing chars found
  *	- does expansion, checks for no match, etc.
  *	- sets *wordsp to array of matching strings
@@ -434,7 +436,7 @@ x_locate_word(const char *buf, int buflen, int pos, int *startp,
 {
 	int start, end;
 
-	/* Bad call?  Probably should report error */
+	/* Bad call? Probably should report error */
 	if (pos < 0 || pos > buflen) {
 		*startp = pos;
 		*is_commandp = false;
@@ -492,7 +494,7 @@ x_cf_glob(int flags, const char *buf, int buflen, int pos, int *startp,
 	if (!(flags & XCF_COMMAND))
 		is_command = false;
 	/* Don't do command globing on zero length strings - it takes too
-	 * long and isn't very useful.  File globs are more likely to be
+	 * long and isn't very useful. File globs are more likely to be
 	 * useful, so allow these.
 	 */
 	if (len == 0 && is_command)
@@ -513,8 +515,8 @@ x_cf_glob(int flags, const char *buf, int buflen, int pos, int *startp,
 	return (nwords);
 }
 
-/* Given a string, copy it and possibly add a '*' to the end.  The
- * new string is returned.
+/* Given a string, copy it and possibly add a '*' to the end.
+ * The new string is returned.
  */
 static char *
 add_glob(const char *str, int slen)
@@ -537,8 +539,8 @@ add_glob(const char *str, int slen)
 	for (s = toglob; *s; s++) {
 		if (*s == '\\' && s[1])
 			s++;
-		else if (*s == '*' || *s == '[' || *s == '?' || *s == '$'
-		    || (s[1] == '(' && vstrchr("*+?@!", *s)))
+		else if (*s == '*' || *s == '[' || *s == '?' || *s == '$' ||
+		    (s[1] == '(' && vstrchr("*+?@!", *s)))
 			break;
 		else if (*s == '/')
 			saw_slash = true;
@@ -581,7 +583,7 @@ x_free_words(int nwords, char **words)
 }
 
 /* Return the offset of the basename of string s (which ends at se - need not
- * be null terminated).  Trailing slashes are ignored.  If s is just a slash,
+ * be null terminated). Trailing slashes are ignored. If s is just a slash,
  * then the offset is 0 (actually, length - 1).
  *	s		Return
  *	/etc		1
@@ -614,7 +616,7 @@ x_basename(const char *s, const char *se)
 }
 
 /*
- *  Apply pattern matching to a table: all table entries that match a pattern
+ * Apply pattern matching to a table: all table entries that match a pattern
  * are added to wp.
  */
 static void
@@ -962,7 +964,7 @@ utf_wctomb(char *dst, unsigned int wc)
 static	Area	aedit;
 #define	AEDIT	&aedit		/* area for kill ring and macro defns */
 
-#define	MKCTRL(x)	((x) == '?' ? 0x7F : (x) & 0x1F)	/* ASCII */
+#define	CTRL(x)		((x) == '?' ? 0x7F : (x) & 0x1F)	/* ASCII */
 #define	UNCTRL(x)	((x) ^ 0x40)				/* ASCII */
 
 /* values returned by keyboard functions */
@@ -995,9 +997,9 @@ struct x_defbindings {
 #define X_TABSZ		256			/* size of keydef tables etc */
 
 /* Arguments for do_complete()
- * 0 = enumerate  M-= complete as much as possible and then list
- * 1 = complete   M-Esc
- * 2 = list       M-?
+ * 0 = enumerate	M-=	complete as much as possible and then list
+ * 1 = complete		M-Esc
+ * 2 = list		M-?
  */
 typedef enum {
 	CT_LIST,	/* list the possible completions */
@@ -1274,95 +1276,95 @@ static const struct x_ftab x_ftab[] = {
 };
 
 static struct x_defbindings const x_defbindings[] = {
-	{ XFUNC_del_back,		0, MKCTRL('?')	},
-	{ XFUNC_del_bword,		1, MKCTRL('?')	},
-	{ XFUNC_eot_del,		0, MKCTRL('D')	},
-	{ XFUNC_del_back,		0, MKCTRL('H')	},
-	{ XFUNC_del_bword,		1, MKCTRL('H')	},
-	{ XFUNC_del_bword,		1,	  'h'	},
-	{ XFUNC_mv_bword,		1,	  'b'	},
-	{ XFUNC_mv_fword,		1,	  'f'	},
-	{ XFUNC_del_fword,		1,	  'd'	},
-	{ XFUNC_mv_back,		0, MKCTRL('B')	},
-	{ XFUNC_mv_forw,		0, MKCTRL('F')	},
-	{ XFUNC_search_char_forw,	0, MKCTRL(']')	},
-	{ XFUNC_search_char_back,	1, MKCTRL(']')	},
-	{ XFUNC_newline,		0, MKCTRL('M')	},
-	{ XFUNC_newline,		0, MKCTRL('J')	},
-	{ XFUNC_end_of_text,		0, MKCTRL('_')	},
-	{ XFUNC_abort,			0, MKCTRL('G')	},
-	{ XFUNC_prev_com,		0, MKCTRL('P')	},
-	{ XFUNC_next_com,		0, MKCTRL('N')	},
-	{ XFUNC_nl_next_com,		0, MKCTRL('O')	},
-	{ XFUNC_search_hist,		0, MKCTRL('R')	},
-	{ XFUNC_beg_hist,		1,	  '<'	},
-	{ XFUNC_end_hist,		1,	  '>'	},
-	{ XFUNC_goto_hist,		1,	  'g'	},
-	{ XFUNC_mv_end,			0, MKCTRL('E')	},
-	{ XFUNC_mv_begin,		0, MKCTRL('A')	},
-	{ XFUNC_draw_line,		0, MKCTRL('L')	},
-	{ XFUNC_cls,			1, MKCTRL('L')	},
-	{ XFUNC_meta1,			0, MKCTRL('[')	},
-	{ XFUNC_meta2,			0, MKCTRL('X')	},
-	{ XFUNC_kill,			0, MKCTRL('K')	},
-	{ XFUNC_yank,			0, MKCTRL('Y')	},
-	{ XFUNC_meta_yank,		1,	  'y'	},
-	{ XFUNC_literal,		0, MKCTRL('^')	},
-	{ XFUNC_comment,		1,	  '#'	},
-	{ XFUNC_transpose,		0, MKCTRL('T')	},
-	{ XFUNC_complete,		1, MKCTRL('[')	},
-	{ XFUNC_comp_list,		0, MKCTRL('I')	},
-	{ XFUNC_comp_list,		1,	  '='	},
-	{ XFUNC_enumerate,		1,	  '?'	},
-	{ XFUNC_expand,			1,	  '*'	},
-	{ XFUNC_comp_file,		1, MKCTRL('X')	},
-	{ XFUNC_comp_comm,		2, MKCTRL('[')	},
-	{ XFUNC_list_comm,		2,	  '?'	},
-	{ XFUNC_list_file,		2, MKCTRL('Y')	},
-	{ XFUNC_set_mark,		1,	  ' '	},
-	{ XFUNC_kill_region,		0, MKCTRL('W')	},
-	{ XFUNC_xchg_point_mark,	2, MKCTRL('X')	},
-	{ XFUNC_literal,		0, MKCTRL('V')	},
-	{ XFUNC_version,		1, MKCTRL('V')	},
-	{ XFUNC_prev_histword,		1,	  '.'	},
-	{ XFUNC_prev_histword,		1,	  '_'	},
-	{ XFUNC_set_arg,		1,	  '0'	},
-	{ XFUNC_set_arg,		1,	  '1'	},
-	{ XFUNC_set_arg,		1,	  '2'	},
-	{ XFUNC_set_arg,		1,	  '3'	},
-	{ XFUNC_set_arg,		1,	  '4'	},
-	{ XFUNC_set_arg,		1,	  '5'	},
-	{ XFUNC_set_arg,		1,	  '6'	},
-	{ XFUNC_set_arg,		1,	  '7'	},
-	{ XFUNC_set_arg,		1,	  '8'	},
-	{ XFUNC_set_arg,		1,	  '9'	},
-	{ XFUNC_fold_upper,		1,	  'U'	},
-	{ XFUNC_fold_upper,		1,	  'u'	},
-	{ XFUNC_fold_lower,		1,	  'L'	},
-	{ XFUNC_fold_lower,		1,	  'l'	},
-	{ XFUNC_fold_capitalise,	1,	  'C'	},
-	{ XFUNC_fold_capitalise,	1,	  'c'	},
+	{ XFUNC_del_back,		0, CTRL('?')	},
+	{ XFUNC_del_bword,		1, CTRL('?')	},
+	{ XFUNC_eot_del,		0, CTRL('D')	},
+	{ XFUNC_del_back,		0, CTRL('H')	},
+	{ XFUNC_del_bword,		1, CTRL('H')	},
+	{ XFUNC_del_bword,		1,	'h'	},
+	{ XFUNC_mv_bword,		1,	'b'	},
+	{ XFUNC_mv_fword,		1,	'f'	},
+	{ XFUNC_del_fword,		1,	'd'	},
+	{ XFUNC_mv_back,		0, CTRL('B')	},
+	{ XFUNC_mv_forw,		0, CTRL('F')	},
+	{ XFUNC_search_char_forw,	0, CTRL(']')	},
+	{ XFUNC_search_char_back,	1, CTRL(']')	},
+	{ XFUNC_newline,		0, CTRL('M')	},
+	{ XFUNC_newline,		0, CTRL('J')	},
+	{ XFUNC_end_of_text,		0, CTRL('_')	},
+	{ XFUNC_abort,			0, CTRL('G')	},
+	{ XFUNC_prev_com,		0, CTRL('P')	},
+	{ XFUNC_next_com,		0, CTRL('N')	},
+	{ XFUNC_nl_next_com,		0, CTRL('O')	},
+	{ XFUNC_search_hist,		0, CTRL('R')	},
+	{ XFUNC_beg_hist,		1,	'<'	},
+	{ XFUNC_end_hist,		1,	'>'	},
+	{ XFUNC_goto_hist,		1,	'g'	},
+	{ XFUNC_mv_end,			0, CTRL('E')	},
+	{ XFUNC_mv_begin,		0, CTRL('A')	},
+	{ XFUNC_draw_line,		0, CTRL('L')	},
+	{ XFUNC_cls,			1, CTRL('L')	},
+	{ XFUNC_meta1,			0, CTRL('[')	},
+	{ XFUNC_meta2,			0, CTRL('X')	},
+	{ XFUNC_kill,			0, CTRL('K')	},
+	{ XFUNC_yank,			0, CTRL('Y')	},
+	{ XFUNC_meta_yank,		1,	'y'	},
+	{ XFUNC_literal,		0, CTRL('^')	},
+	{ XFUNC_comment,		1,	'#'	},
+	{ XFUNC_transpose,		0, CTRL('T')	},
+	{ XFUNC_complete,		1, CTRL('[')	},
+	{ XFUNC_comp_list,		0, CTRL('I')	},
+	{ XFUNC_comp_list,		1,	'='	},
+	{ XFUNC_enumerate,		1,	'?'	},
+	{ XFUNC_expand,			1,	'*'	},
+	{ XFUNC_comp_file,		1, CTRL('X')	},
+	{ XFUNC_comp_comm,		2, CTRL('[')	},
+	{ XFUNC_list_comm,		2,	'?'	},
+	{ XFUNC_list_file,		2, CTRL('Y')	},
+	{ XFUNC_set_mark,		1,	' '	},
+	{ XFUNC_kill_region,		0, CTRL('W')	},
+	{ XFUNC_xchg_point_mark,	2, CTRL('X')	},
+	{ XFUNC_literal,		0, CTRL('V')	},
+	{ XFUNC_version,		1, CTRL('V')	},
+	{ XFUNC_prev_histword,		1,	'.'	},
+	{ XFUNC_prev_histword,		1,	'_'	},
+	{ XFUNC_set_arg,		1,	'0'	},
+	{ XFUNC_set_arg,		1,	'1'	},
+	{ XFUNC_set_arg,		1,	'2'	},
+	{ XFUNC_set_arg,		1,	'3'	},
+	{ XFUNC_set_arg,		1,	'4'	},
+	{ XFUNC_set_arg,		1,	'5'	},
+	{ XFUNC_set_arg,		1,	'6'	},
+	{ XFUNC_set_arg,		1,	'7'	},
+	{ XFUNC_set_arg,		1,	'8'	},
+	{ XFUNC_set_arg,		1,	'9'	},
+	{ XFUNC_fold_upper,		1,	'U'	},
+	{ XFUNC_fold_upper,		1,	'u'	},
+	{ XFUNC_fold_lower,		1,	'L'	},
+	{ XFUNC_fold_lower,		1,	'l'	},
+	{ XFUNC_fold_capitalise,	1,	'C'	},
+	{ XFUNC_fold_capitalise,	1,	'c'	},
 	/* These for ansi arrow keys: arguablely shouldn't be here by
 	 * default, but its simpler/faster/smaller than using termcap
 	 * entries.
 	 */
-	{ XFUNC_meta2,			1,	  '['	},
-	{ XFUNC_meta2,			1,	  'O'	},
-	{ XFUNC_prev_com,		2,	  'A'	},
-	{ XFUNC_next_com,		2,	  'B'	},
-	{ XFUNC_mv_forw,		2,	  'C'	},
-	{ XFUNC_mv_back,		2,	  'D'	},
-	{ XFUNC_mv_begin | 0x80,	2,	  '1'	},
-	{ XFUNC_mv_begin | 0x80,	2,	  '7'	},
-	{ XFUNC_mv_begin,		2,	  'H'	},
-	{ XFUNC_mv_end | 0x80,		2,	  '4'	},
-	{ XFUNC_mv_end | 0x80,		2,	  '8'	},
-	{ XFUNC_mv_end,			2,	  'F'	},
-	{ XFUNC_del_char | 0x80,	2,	  '3'	},
-	{ XFUNC_search_hist_up | 0x80,	2,	  '5'	},
-	{ XFUNC_search_hist_dn | 0x80,	2,	  '6'	},
+	{ XFUNC_meta2,			1,	'['	},
+	{ XFUNC_meta2,			1,	'O'	},
+	{ XFUNC_prev_com,		2,	'A'	},
+	{ XFUNC_next_com,		2,	'B'	},
+	{ XFUNC_mv_forw,		2,	'C'	},
+	{ XFUNC_mv_back,		2,	'D'	},
+	{ XFUNC_mv_begin | 0x80,	2,	'1'	},
+	{ XFUNC_mv_begin | 0x80,	2,	'7'	},
+	{ XFUNC_mv_begin,		2,	'H'	},
+	{ XFUNC_mv_end | 0x80,		2,	'4'	},
+	{ XFUNC_mv_end | 0x80,		2,	'8'	},
+	{ XFUNC_mv_end,			2,	'F'	},
+	{ XFUNC_del_char | 0x80,	2,	'3'	},
+	{ XFUNC_search_hist_up | 0x80,	2,	'5'	},
+	{ XFUNC_search_hist_dn | 0x80,	2,	'6'	},
 	/* more non-standard ones */
-	{ XFUNC_edit_line,		2,	  'e'	}
+	{ XFUNC_edit_line,		2,	'e'	}
 };
 
 #ifdef MKSH_SMALL
@@ -1508,7 +1510,7 @@ x_insert(int c)
 	static char str[4];
 
 	/*
-	 *  Should allow tab and control chars.
+	 * Should allow tab and control chars.
 	 */
 	if (c == 0) {
  invmbs:
@@ -2114,13 +2116,13 @@ x_search_hist(int c)
 		if ((c = x_e_getc()) < 0)
 			return (KSTD);
 		f = x_tab[0][c];
-		if (c == MKCTRL('[')) {
+		if (c == CTRL('[')) {
 			if ((f & 0x7F) == XFUNC_meta1) {
 				if ((c = x_e_getc()) < 0)
 					return (KSTD);
 				f = x_tab[1][c] & 0x7F;
 				if (f == XFUNC_meta1 || f == XFUNC_meta2)
-					x_meta1(MKCTRL('['));
+					x_meta1(CTRL('['));
 				x_e_ungetc(c);
 			}
 			break;
@@ -2296,7 +2298,7 @@ x_cls(int c __unused)
 	return (KSTD);
 }
 
-/* Redraw (part of) the line.  If limit is < 0, the everything is redrawn
+/* Redraw (part of) the line. If limit is < 0, the everything is redrawn
  * on a NEW line, otherwise limit is the screen column up to which needs
  * redrawing.
  */
@@ -2377,10 +2379,10 @@ x_transpose(int c __unused)
 	/* What transpose is meant to do seems to be up for debate. This
 	 * is a general summary of the options; the text is abcd with the
 	 * upper case character or underscore indicating the cursor position:
-	 *     Who			Before	After  Before	After
-	 *     at&t ksh in emacs mode:	abCd	abdC   abcd_	(bell)
-	 *     at&t ksh in gmacs mode:	abCd	baCd   abcd_	abdc_
-	 *     gnu emacs:		abCd	acbD   abcd_	abdc_
+	 *	Who			Before	After	Before	After
+	 *	at&t ksh in emacs mode:	abCd	abdC	abcd_	(bell)
+	 *	at&t ksh in gmacs mode:	abCd	baCd	abcd_	abdc_
+	 *	gnu emacs:		abCd	acbD	abcd_	abdc_
 	 * Pdksh currently goes with GNU behavior since I believe this is the
 	 * most common version of emacs, unless in gmacs mode, in which case
 	 * it does the at&t ksh gmacs mode.
@@ -2560,7 +2562,7 @@ x_mapin(const char *cp, Area *ap)
 		if (*cp == '^') {
 			cp++;
 			if (*cp >= '?')	/* includes '?'; ASCII */
-				*op++ = MKCTRL(*cp);
+				*op++ = CTRL(*cp);
 			else {
 				*op++ = '^';
 				cp--;
@@ -2606,7 +2608,7 @@ x_print(int prefix, int key)
 	if (prefix)
 		/* prefix == 1 || prefix == 2 */
 		shf_puts(x_mapout(prefix == 1 ?
-		    MKCTRL('[') : MKCTRL('X')), shl_stdout);
+		    CTRL('[') : CTRL('X')), shl_stdout);
 	shprintf("%s%s = ", x_mapout(key), (f & 0x80) ? "~" : "");
 	if ((f & 0x7F) != XFUNC_ins_string)
 		shprintf("%s\n", x_ftab[f & 0x7F].xf_name);
@@ -2735,7 +2737,7 @@ x_init_emacs(void)
 static void
 bind_if_not_bound(int p, int k, int func)
 {
-	/* Has user already bound this key?  If so, don't override it */
+	/* Has user already bound this key? If so, don't override it */
 	if (x_bound[((p) * X_TABSZ + (k)) / 8] &
 	    (1 << (((p) * X_TABSZ + (k)) % 8)))
 		return;
@@ -2926,7 +2928,7 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
  *
  * DESCRIPTION:
  *	This function is called when we have exceeded the bounds
- *	of the edit window.  It increments x_adj_done so that
+ *	of the edit window. It increments x_adj_done so that
  *	functions like x_ins and x_delete know that we have been
  *	called and can skip the x_bs() stuff which has already
  *	been done by x_redraw.
@@ -3139,7 +3141,7 @@ x_version(int c __unused)
 
 	if (c < 0)
 		return (KSTD);
-	/* This is what at&t ksh seems to do...  Very bizarre */
+	/* This is what at&t ksh seems to do... Very bizarre */
 	if (c != ' ')
 		x_e_ungetc(c);
 
@@ -3176,7 +3178,7 @@ x_edit_line(int c __unused)
  *
  * DESCRIPTION:
  *	This function recovers the last word from the previous
- *	command and inserts it into the current edit line.  If a
+ *	command and inserts it into the current edit line. If a
  *	numeric arg is supplied then the n'th word from the
  *	start of the previous command is used.
  *	As a side effect, trashes the mark in order to achieve
@@ -3323,9 +3325,9 @@ x_fold_case(int c)
  *	x_lastcp()
  *
  * DESCRIPTION:
- *	This function returns a pointer to that  char in the
+ *	This function returns a pointer to that char in the
  *	edit buffer that will be the last displayed on the
- *	screen.  The sequence:
+ *	screen. The sequence:
  *
  *	cp = x_lastcp();
  *	while (cp > xcp)
@@ -3498,39 +3500,39 @@ static int	x_vi_putbuf(const char *, size_t);
 #define is_zerocount(c)	(classify[(c)&0x7f]&Z_)
 
 static const unsigned char classify[128] = {
-   /*       0       1       2       3       4       5       6       7        */
-   /*   0   ^@     ^A      ^B      ^C      ^D      ^E      ^F      ^G        */
-	    B_,     0,      0,      0,      0,      C_|U_,  C_|Z_,  0,
-   /*  01   ^H     ^I      ^J      ^K      ^L      ^M      ^N      ^O        */
-	    M_,     C_|Z_,  0,      0,      C_|U_,  0,      C_,     0,
-   /*  02   ^P     ^Q      ^R      ^S      ^T      ^U      ^V      ^W        */
-	    C_,     0,      C_|U_,  0,      0,      0,      C_,     0,
-   /*  03   ^X     ^Y      ^Z      ^[      ^\      ^]      ^^      ^_        */
-	    C_,     0,      0,      C_|Z_,  0,      0,      0,      0,
-   /*  04  <space>  !       "       #       $       %       &       '        */
-	    M_,     0,      0,      C_,     M_,     M_,     0,      0,
-   /*  05   (       )       *       +       ,       -       .       /        */
-	    0,      0,      C_,     C_,     M_,     C_,     0,      C_|S_,
-   /*  06   0       1       2       3       4       5       6       7        */
-	    M_,     0,      0,      0,      0,      0,      0,      0,
-   /*  07   8       9       :       ;       <       =       >       ?        */
-	    0,      0,      0,      M_,     0,      C_,     0,      C_|S_,
-   /* 010   @       A       B       C       D       E       F       G        */
-	    C_|X_,  C_,     M_,     C_,     C_,     M_,     M_|X_,  C_|U_|Z_,
-   /* 011   H       I       J       K       L       M       N       O        */
-	    0,      C_,     0,      0,      0,      0,      C_|U_,  0,
-   /* 012   P       Q       R       S       T       U       V       W        */
-	    C_,     0,      C_,     C_,     M_|X_,  C_,     0,      M_,
-   /* 013   X       Y       Z       [       \       ]       ^       _        */
-	    C_,     C_|U_,  0,      0,      C_|Z_,  0,      M_,     C_|Z_,
-   /* 014   `       a       b       c       d       e       f       g        */
-	    0,      C_,     M_,     E_,     E_,     M_,     M_|X_,  C_|Z_,
-   /* 015   h       i       j       k       l       m       n       o        */
-	    M_,     C_,     C_|U_,  C_|U_,  M_,     0,      C_|U_,  0,
-   /* 016   p       q       r       s       t       u       v       w        */
-	    C_,     0,      X_,     C_,     M_|X_,  C_|U_,  C_|U_|Z_,M_,
-   /* 017   x       y       z       {       |       }       ~      ^?        */
-	    C_,     E_|U_,  0,      0,      M_|Z_,  0,      C_,     0
+/*	 0	1	2	3	4	5	6	7	*/
+/* 0	^@	^A	^B	^C	^D	^E	^F	^G	*/
+	B_,	0,	0,	0,	0,	C_|U_,	C_|Z_,	0,
+/* 1	^H	^I	^J	^K	^L	^M	^N	^O	*/
+	M_,	C_|Z_,	0,	0,	C_|U_,	0,	C_,	0,
+/* 2	^P	^Q	^R	^S	^T	^U	^V	^W	*/
+	C_,	0,	C_|U_,	0,	0,	0,	C_,	0,
+/* 3	^X	^Y	^Z	^[	^\	^]	^^	^_	*/
+	C_,	0,	0,	C_|Z_,	0,	0,	0,	0,
+/* 4	<space>	!	"	#	$	%	&	'	*/
+	M_,	0,	0,	C_,	M_,	M_,	0,	0,
+/* 5	(	)	*	+	,	-	.	/	*/
+	0,	0,	C_,	C_,	M_,	C_,	0,	C_|S_,
+/* 6	0	1	2	3	4	5	6	7	*/
+	M_,	0,	0,	0,	0,	0,	0,	0,
+/* 7	8	9	:	;	<	=	>	?	*/
+	0,	0,	0,	M_,	0,	C_,	0,	C_|S_,
+/* 8	@	A	B	C	D	E	F	G	*/
+	C_|X_,	C_,	M_,	C_,	C_,	M_,	M_|X_,	C_|U_|Z_,
+/* 9	H	I	J	K	L	M	N	O	*/
+	0,	C_,	0,	0,	0,	0,	C_|U_,	0,
+/* A	P	Q	R	S	T	U	V	W	*/
+	C_,	0,	C_,	C_,	M_|X_,	C_,	0,	M_,
+/* B	X	Y	Z	[	\	]	^	_	*/
+	C_,	C_|U_,	0,	0,	C_|Z_,	0,	M_,	C_|Z_,
+/* C	`	a	b	c	d	e	f	g	*/
+	0,	C_,	M_,	E_,	E_,	M_,	M_|X_,	C_|Z_,
+/* D	h	i	j	k	l	m	n	o	*/
+	M_,	C_,	C_|U_,	C_|U_,	M_,	0,	C_|U_,	0,
+/* E	p	q	r	s	t	u	v	w	*/
+	C_,	0,	X_,	C_,	M_|X_,	C_|U_,	C_|U_|Z_, M_,
+/* F	x	y	z	{	|	}	~	^?	*/
+	C_,	E_|U_,	0,	0,	M_|Z_,	0,	C_,	0
 };
 
 #define MAXVICMD	3
@@ -3584,8 +3586,8 @@ static int	state;
 
 /* Information for keeping track of macros that are being expanded.
  * The format of buf is the alias contents followed by a NUL byte followed
- * by the name (letter) of the alias.  The end of the buffer is marked by
- * a double NUL.  The name of the alias is stored so recursive macros can
+ * by the name (letter) of the alias. The end of the buffer is marked by
+ * a double NUL. The name of the alias is stored so recursive macros can
  * be detected.
  */
 struct macro_state {
@@ -3758,7 +3760,7 @@ vi_hook(int ch)
 					es->cursor = 0;
 					es->linelen = 0;
 					putbuf(KSH_VERSION,
-					     strlen(KSH_VERSION), 0);
+					    strlen(KSH_VERSION), 0);
 					refresh(0);
 				}
 			}
@@ -4386,8 +4388,8 @@ vi_cmd(int argcnt, const char *cmd)
 					histsave(&source->line, es->cbuf, true,
 					    true);
 				} else
-					argcnt = source->line + 1
-					    - (hlast - hnum);
+					argcnt = source->line + 1 -
+					    (hlast - hnum);
 			}
 			if (argcnt)
 				shf_snprintf(es->cbuf, es->cbufsize, "%s %d",
@@ -5417,7 +5419,7 @@ complete_word(int cmd, int count)
 	rval = x_escape(match, match_len, x_vi_putbuf);
 
 	if (rval == 0 && is_unique) {
-		/* If exact match, don't undo.  Allows directory completions
+		/* If exact match, don't undo. Allows directory completions
 		 * to be used (ie, complete the next portion of the path).
 		 */
 		expanded = NONE;

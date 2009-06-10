@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.109 2009/06/08 20:06:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.110 2009/06/10 18:12:48 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -103,56 +103,56 @@ const struct shoption options[] = {
 	 * Options are sorted by their longnames - the order of these
 	 * entries MUST match the order of sh_flag F* enumerations in sh.h.
 	 */
-	{ "allexport",	'a',		OF_ANY },
+	{ "allexport",		'a',	OF_ANY },
 #if HAVE_ARC4RANDOM
-	{ "arc4random",	  0,		OF_ANY },
+	{ "arc4random",		0,	OF_ANY },
 #endif
-	{ "braceexpand",  0,		OF_ANY }, /* non-standard */
+	{ "braceexpand",	0,	OF_ANY },	/* non-standard */
 #if HAVE_NICE
-	{ "bgnice",	  0,		OF_ANY },
+	{ "bgnice",		0,	OF_ANY },
 #endif
-	{ NULL,		'c',	    OF_CMDLINE },
-	{ "emacs",	  0,		OF_ANY },
-	{ "errexit",	'e',		OF_ANY },
-	{ "gmacs",	  0,		OF_ANY },
-	{ "ignoreeof",	  0,		OF_ANY },
-	{ "interactive",'i',	    OF_CMDLINE },
-	{ "keyword",	'k',		OF_ANY },
-	{ "login",	'l',	    OF_CMDLINE },
-	{ "markdirs",	'X',		OF_ANY },
+	{ NULL,			'c',	OF_CMDLINE },
+	{ "emacs",		0,	OF_ANY },
+	{ "errexit",		'e',	OF_ANY },
+	{ "gmacs",		0,	OF_ANY },
+	{ "ignoreeof",		0,	OF_ANY },
+	{ "interactive",	'i',	OF_CMDLINE },
+	{ "keyword",		'k',	OF_ANY },
+	{ "login",		'l',	OF_CMDLINE },
+	{ "markdirs",		'X',	OF_ANY },
 #ifndef MKSH_UNEMPLOYED
-	{ "monitor",	'm',		OF_ANY },
+	{ "monitor",		'm',	OF_ANY },
 #else
-	{ NULL,		'm',		0      }, /* needed */
+	{ NULL,			'm',	0 },		/* needed */
 #endif
-	{ "noclobber",	'C',		OF_ANY },
-	{ "noexec",	'n',		OF_ANY },
-	{ "noglob",	'f',		OF_ANY },
-	{ "nohup",	  0,		OF_ANY },
-	{ "nolog",	  0,		OF_ANY }, /* no effect */
+	{ "noclobber",		'C',	OF_ANY },
+	{ "noexec",		'n',	OF_ANY },
+	{ "noglob",		'f',	OF_ANY },
+	{ "nohup",		0,	OF_ANY },
+	{ "nolog",		0,	OF_ANY },	/* no effect */
 #ifndef MKSH_UNEMPLOYED
-	{ "notify",	'b',		OF_ANY },
+	{ "notify",		'b',	OF_ANY },
 #endif
-	{ "nounset",	'u',		OF_ANY },
-	{ "physical",	  0,		OF_ANY }, /* non-standard */
-	{ "posix",	  0,		OF_ANY }, /* non-standard */
-	{ "privileged",	'p',		OF_ANY },
-	{ "restricted",	'r',	    OF_CMDLINE },
-	{ "stdin",	's',	    OF_CMDLINE }, /* pseudo non-standard */
-	{ "trackall",	'h',		OF_ANY },
-	{ "utf8-mode",	'U',		OF_ANY }, /* non-standard */
-	{ "verbose",	'v',		OF_ANY },
+	{ "nounset",		'u',	OF_ANY },
+	{ "physical",		0,	OF_ANY },	/* non-standard */
+	{ "posix",		0,	OF_ANY },	/* non-standard */
+	{ "privileged",		'p',	OF_ANY },
+	{ "restricted",		'r',	OF_CMDLINE },
+	{ "stdin",		's',	OF_CMDLINE },	/* pseudo non-st.. */
+	{ "trackall",		'h',	OF_ANY },
+	{ "utf8-mode",		'U',	OF_ANY },	/* non-standard */
+	{ "verbose",		'v',	OF_ANY },
 #ifndef MKSH_NOVI
-	{ "vi",		  0,		OF_ANY },
-	{ "viraw",	  0,		OF_ANY }, /* no effect */
-	{ "vi-tabcomplete",  0,		OF_ANY }, /* non-standard */
-	{ "vi-esccomplete",  0,		OF_ANY }, /* non-standard */
+	{ "vi",			0,	OF_ANY },
+	{ "viraw",		0,	OF_ANY },	/* no effect */
+	{ "vi-tabcomplete",	0,	OF_ANY },	/* non-standard */
+	{ "vi-esccomplete",	0,	OF_ANY },	/* non-standard */
 #endif
-	{ "xtrace",	'x',		OF_ANY },
+	{ "xtrace",		'x',	OF_ANY },
 	/* Anonymous flags: used internally by shell only
 	 * (not visible to user)
 	 */
-	{ NULL,		 0,	   OF_INTERNAL }, /* FTALKING_I */
+	{ NULL,			0,	OF_INTERNAL }, /* FTALKING_I */
 };
 
 /*
@@ -287,7 +287,7 @@ change_flag(enum sh_flag f,
 	}
 }
 
-/* parse command line & set command arguments.  returns the index of
+/* Parse command line & set command arguments. Returns the index of
  * non-option arguments, -1 if there is an error.
  */
 int
@@ -303,7 +303,7 @@ parse_args(const char **argv,
 	size_t i;
 	int optc, sortargs = 0, arrayset = 0;
 
-	/* First call?  Build option strings... */
+	/* First call? Build option strings... */
 	if (cmd_opts[0] == '\0') {
 		char *p = cmd_opts, *q = set_opts;
 
@@ -376,7 +376,7 @@ parse_args(const char **argv,
 			if ((i != (size_t)-1) && set == Flag(i))
 				/* Don't check the context if the flag
 				 * isn't changing - makes "set -o interactive"
-				 * work if you're already interactive.  Needed
+				 * work if you're already interactive. Needed
 				 * if the output of "set +o" is to be used.
 				 */
 				;
@@ -521,7 +521,7 @@ gmatchx(const char *s, const char *p, bool isfile)
 	se = s + strlen(s);
 	pe = p + strlen(p);
 	/* isfile is false iff no syntax check has been done on
-	 * the pattern.  If check fails, just to a strcmp().
+	 * the pattern. If check fails, just to a strcmp().
 	 */
 	if (!isfile && !has_globbing(p, pe)) {
 		size_t len = pe - p + 1;
@@ -644,10 +644,10 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 			} while (s++ < se);
 			return (0);
 
-		  /*
-		   * [*+?@!](pattern|pattern|..)
-		   * This is also needed for ${..%..}, etc.
-		   */
+		/**
+		 * [*+?@!](pattern|pattern|..)
+		 * This is also needed for ${..%..}, etc.
+		 */
 		case 0x80|'+': /* matches one or more times */
 		case 0x80|'*': /* matches zero or more times */
 			if (!(prest = pat_scan(p, pe, 0)))
@@ -822,11 +822,11 @@ ksh_getopt_reset(Getopt *go, int flags)
  *	  the option is missing).
  *	  Used for 'read -u2', 'print -u2' and fc -40.
  *	- '#' is like ':' in options, expect that the argument is optional
- *	  and must start with a digit.  If the argument doesn't start with a
+ *	  and must start with a digit. If the argument doesn't start with a
  *	  digit, it is assumed to be missing and normal option processing
  *	  continues (optarg is set to 0 if the option is missing).
  *	  Used for 'typeset -LZ4'.
- *	- accepts +c as well as -c IF the GF_PLUSOPT flag is present.  If an
+ *	- accepts +c as well as -c IF the GF_PLUSOPT flag is present. If an
  *	  option starting with + is accepted, the GI_PLUS flag will be set
  *	  in go->info.
  */
@@ -904,7 +904,7 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 		go->p = 0;
 	} else if (*o == '#') {
 		/* argument is optional and may be attached or unattached
-		 * but must start with a digit.  optarg is set to 0 if the
+		 * but must start with a digit. optarg is set to 0 if the
 		 * argument is missing.
 		 */
 		if (argv[go->optind - 1][go->p]) {
@@ -973,7 +973,7 @@ print_columns(struct shf *shf, int n,
 	if (x_cols < MIN_COLS)
 		change_winsz();
 
-	/* max_width + 1 for the space.  Note that no space
+	/* max_width + 1 for the space. Note that no space
 	 * is printed after the last column to avoid problems
 	 * with terminals that have auto-wrap.
 	 */
@@ -1204,13 +1204,13 @@ simplify_path(char *pathl)
 		very_start++;
 
 	/* Before			After
-	 *  /foo/			/foo
-	 *  /foo/../../bar		/bar
-	 *  /foo/./blah/..		/foo
-	 *  .				.
-	 *  ..				..
-	 *  ./foo			foo
-	 *  foo/../../../bar		../../bar
+	 * /foo/			/foo
+	 * /foo/../../bar		/bar
+	 * /foo/./blah/..		/foo
+	 * .				.
+	 * ..				..
+	 * ./foo			foo
+	 * foo/../../../bar		../../bar
 	 */
 
 	for (cur = t = start = very_start; ; ) {

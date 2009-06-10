@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.131 2009/06/08 20:06:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.132 2009/06/10 18:12:47 tg Exp $");
 
 extern char **environ;
 
@@ -189,13 +189,13 @@ main(int argc, const char *argv[])
 	 */
 	Flag(FNOHUP) = 1;
 
-	/* Turn on brace expansion by default.  AT&T kshs that have
+	/* Turn on brace expansion by default. AT&T kshs that have
 	 * alternation always have it on.
 	 */
 	Flag(FBRACEEXPAND) = 1;
 
 	/* Set edit mode to emacs by default, may be overridden
-	 * by the environment or the user.  Also, we want tab completion
+	 * by the environment or the user. Also, we want tab completion
 	 * on in vi by default. */
 	change_flag(FEMACS, OF_SPECIAL, 1);
 #ifndef MKSH_NOVI
@@ -535,7 +535,7 @@ shell(Source * volatile s, volatile int toplevel)
 				    wastty)
 					s->type = SSTDIN;
 				/* Used by exit command to get back to
-				 * top level shell.  Kind of strange since
+				 * top level shell. Kind of strange since
 				 * interactive is set if we are reading from
 				 * a tty, but to have stopped jobs, one only
 				 * needs FMONITOR set (not FTALKING/SF_TTY)...
@@ -773,7 +773,7 @@ remove_temps(struct temp *tp)
 			unlink(tp->name);
 }
 
-/* Initialise tty_fd.  Used for saving/reseting tty modes upon
+/* Initialise tty_fd. Used for saving/reseting tty modes upon
  * foreground job completion and for setting up tty process group.
  */
 void

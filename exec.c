@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.57 2009/06/08 20:06:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.58 2009/06/10 18:12:45 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile, volatile int *);
@@ -69,7 +69,7 @@ execute(struct op *volatile t,
 		runtraps(0);
 
 	if (t->type == TCOM) {
-		/* Clear subst_exstat before argument expansion.  Used by
+		/* Clear subst_exstat before argument expansion. Used by
 		 * null commands (see comexec() and c_eval()) and by c_set().
 		 */
 		subst_exstat = 0;
@@ -136,10 +136,11 @@ execute(struct op *volatile t,
 		while (t->type == TPIPE) {
 			openpipe(pv);
 			ksh_dup2(pv[1], 1, false); /* stdout of curr */
-			/* Let exchild() close pv[0] in child
+			/**
+			 * Let exchild() close pv[0] in child
 			 * (if this isn't done, commands like
-			 *    (: ; cat /etc/termcap) | sleep 1
-			 *  will hang forever).
+			 *	(: ; cat /etc/termcap) | sleep 1
+			 * will hang forever).
 			 */
 			exchild(t->left, flags | XPIPEO | XCCLOSE,
 			    NULL, pv[0]);
@@ -164,9 +165,8 @@ execute(struct op *volatile t,
 		rv = execute(t, flags & XERROK, xerrok);
 		break;
 
-	case TCOPROC:
-	    {
-		sigset_t	omask;
+	case TCOPROC: {
+		sigset_t omask;
 
 		/* Block sigchild as we are using things changed in the
 		 * signal handler
@@ -221,11 +221,11 @@ execute(struct op *volatile t,
 		exchild(t->left, flags | XBGND | XFORK | XCOPROC | XCCLOSE,
 		    NULL, coproc.readw);
 		break;
-	    }
+	}
 
 	case TASYNC:
 		/* XXX non-optimal, I think - "(foo &)", forks for (),
-		 * forks again for async...  parent should optimise
+		 * forks again for async... parent should optimise
 		 * this to "foo &"...
 		 */
 		rv = execute(t->left, (flags&~XEXEC)|XBGND|XFORK, xerrok);
@@ -248,8 +248,7 @@ execute(struct op *volatile t,
 			*xerrok = 1;
 		break;
 
-	case TDBRACKET:
-	    {
+	case TDBRACKET: {
 		Test_env te;
 
 		te.flags = TEF_DBRACKET;
@@ -261,11 +260,10 @@ execute(struct op *volatile t,
 
 		rv = test_parse(&te);
 		break;
-	    }
+	}
 
 	case TFOR:
-	case TSELECT:
-	    {
+	case TSELECT: {
 		volatile bool is_first = true;
 		ap = (t->vars == NULL) ? e->loc->argv + 1 :
 		    (const char **)eval((const char **)t->vars,
@@ -301,8 +299,8 @@ execute(struct op *volatile t,
 				rv = execute(t->left, flags & XERROK, xerrok);
 			}
 		}
-	    }
 		break;
+	}
 
 	case TWHILE:
 	case TUNTIL:
@@ -426,16 +424,16 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 	}
 
 	/* Deal with the shell builtins builtin, exec and command since
-	 * they can be followed by other commands.  This must be done before
+	 * they can be followed by other commands. This must be done before
 	 * we know if we should create a local block which must be done
 	 * before we can do a path search (in case the assignments change
 	 * PATH).
 	 * Odd cases:
-	 *   FOO=bar exec >/dev/null		FOO is kept but not exported
-	 *   FOO=bar exec foobar		FOO is exported
-	 *   FOO=bar command exec >/dev/null	FOO is neither kept nor exported
-	 *   FOO=bar command			FOO is neither kept nor exported
-	 *   PATH=... foobar			use new PATH in foobar search
+	 *	FOO=bar exec >/dev/null		FOO is kept but not exported
+	 *	FOO=bar exec foobar		FOO is exported
+	 *	FOO=bar command exec >/dev/null	FOO is neither kept nor exported
+	 *	FOO=bar command			FOO is neither kept nor exported
+	 *	PATH=... foobar			use new PATH in foobar search
 	 */
 	keepasn_ok = 1;
 	while (tp && tp->type == CSHELL) {
@@ -538,8 +536,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 		rv = call_builtin(tp, (const char **)ap);
 		break;
 
-	case CFUNC:			/* function call */
-	    {
+	case CFUNC: {			/* function call */
 		volatile char old_xflag;
 		volatile Tflag old_inuse;
 		const char *volatile old_kshname;
@@ -618,8 +615,8 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 		kshname = old_kshname;
 		Flag(FXTRACE) = old_xflag;
 		tp->flag = (tp->flag & ~FINUSE) | old_inuse;
-		/* Were we deleted while executing?  If so, free the execution
-		 * tree.  todo: Unfortunately, the table entry is never re-used
+		/* Were we deleted while executing? If so, free the execution
+		 * tree. todo: Unfortunately, the table entry is never re-used
 		 * until the lookup table is expanded.
 		 */
 		if ((tp->flag & (FDELETE|FINUSE)) == FDELETE) {
@@ -646,14 +643,14 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 			internal_errorf("CFUNC %d", i);
 		}
 		break;
-	    }
+	}
 
 	case CEXEC:		/* executable command */
 	case CTALIAS:		/* tracked alias */
 		if (!(tp->flag&ISSET)) {
 			/* errno_ will be set if the named command was found
 			 * but could not be executed (permissions, no execute
-			 * bit, directory, etc).  Print out a (hopefully)
+			 * bit, directory, etc). Print out a (hopefully)
 			 * useful error message and set the exit status to 126.
 			 */
 			if (tp->u2.errno_) {
@@ -799,7 +796,7 @@ shcomexec(const char **wp)
 }
 
 /*
- * Search function tables for a function.  If create set, a table entry
+ * Search function tables for a function. If create set, a table entry
  * is created if none is found.
  */
 struct tbl *
@@ -824,7 +821,7 @@ findfunc(const char *name, unsigned int h, int create)
 }
 
 /*
- * define function.  Returns 1 if function is being undefined (t == 0) and
+ * define function. Returns 1 if function is being undefined (t == 0) and
  * function did not exist, returns 0 otherwise.
  */
 int
@@ -1003,7 +1000,7 @@ flushcom(int all)	/* just relative or all */
 		}
 }
 
-/* Check if path is something we want to find.  Returns -1 for failure. */
+/* Check if path is something we want to find. Returns -1 for failure. */
 int
 search_access(const char *lpath, int mode,
     int *errnop)	/* set if candidate found, but not suitable */
@@ -1018,7 +1015,7 @@ search_access(const char *lpath, int mode,
 		err = errno; /* File exists, but we can't access it */
 	else if (mode == X_OK && (!S_ISREG(statb.st_mode) ||
 	    !(statb.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH)))) {
-	    /* This 'cause access() says root can execute everything */
+		/* This 'cause access() says root can execute everything */
 		ret = -1;
 		err = S_ISDIR(statb.st_mode) ? EISDIR : EACCES;
 	}
@@ -1148,8 +1145,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		/* cp may have wrong name */
 		break;
 
-	case IODUP:
-	    {
+	case IODUP: {
 		const char *emsg;
 
 		do_open = 0;
@@ -1166,7 +1162,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		if (u == iop->unit)
 			return (0);		/* "dup from" == "dup to" */
 		break;
-	    }
+	}
 	}
 
 	if (do_open) {
@@ -1194,7 +1190,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			e->savefd[iop->unit] = -1;
 		else
 			/* c_exec() assumes e->savefd[fd] set for any
-			 * redirections.  Ask savefd() not to close iop->unit;
+			 * redirections. Ask savefd() not to close iop->unit;
 			 * this allows error messages to be seen if iop->unit
 			 * is 2; also means we can't lose the fd (eg, both
 			 * dup2 below and dup2 in restfd() failing).
@@ -1296,7 +1292,7 @@ herein(const char *content, int sub)
 		fd = errno;
 		warningf(true, "error writing %s: %s, %s", h->name,
 		    strerror(i), strerror(fd));
-		return (-2); /* special to iosetup(): don't print error */
+		return (-2);	/* special to iosetup(): don't print error */
 	}
 
 	return (fd);
@@ -1429,8 +1425,8 @@ pr_list(char *const *ap)
  *	[[ ... ]] evaluation routines
  */
 
-/* Test if the current token is a whatever.  Accepts the current token if
- * it is.  Returns 0 if it is not, non-zero if it is (in the case of
+/* Test if the current token is a whatever. Accepts the current token if
+ * it is. Returns 0 if it is not, non-zero if it is (in the case of
  * TM_UNOP and TM_BINOP, the returned value is a Test_op).
  */
 static int

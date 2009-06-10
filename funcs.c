@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.113 2009/06/10 18:11:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.114 2009/06/10 18:12:46 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -168,8 +168,7 @@ static const char *ptest_getopnd(Test_env *, Test_op, bool);
 static void ptest_error(Test_env *, int, const char *);
 static char *kill_fmt_entry(const void *, int, char *, int);
 static void p_time(struct shf *, bool, long, int, int,
-    const char *, const char *)
-    __attribute__((nonnull (6, 7)));
+    const char *, const char *) __attribute__((nonnull (6, 7)));
 
 int
 c_cd(const char **wp)
@@ -465,8 +464,10 @@ c_print(const char **wp)
 				 */
 				case 'a': c = '\007'; break;
 				case 'b': c = '\b'; break;
-				case 'c': flags &= ~PO_NL;
-					  continue; /* AT&T brain damage */
+				case 'c':
+					flags &= ~PO_NL;
+					/* AT&T brain damage */
+					continue;
 				case 'f': c = '\f'; break;
 				case 'n': c = '\n'; break;
 				case 'r': c = '\r'; break;
@@ -475,7 +476,7 @@ c_print(const char **wp)
 				case '0':
 					/* Look for an octal number: can have
 					 * three digits (not counting the
-					 * leading 0).  Truly burnt.
+					 * leading 0). Truly burnt.
 					 */
 					c = 0;
 					for (i = 0; i < 3; i++) {
@@ -559,7 +560,7 @@ c_print(const char **wp)
 		int opipe = 0;
 
 		/* Ensure we aren't killed by a SIGPIPE while writing to
-		 * a coprocess.  at&t ksh doesn't seem to do this (seems
+		 * a coprocess. AT&T ksh doesn't seem to do this (seems
 		 * to just check that the co-process is alive which is
 		 * not enough).
 		 */
@@ -624,7 +625,7 @@ c_whence(const char **wp)
 			fcflags |= FC_DEFPATH;
 		/* Convert command options to whence options - note that
 		 * command -pV uses a different path search than whence -v
-		 * or whence -pv.  This should be considered a feature.
+		 * or whence -pv. This should be considered a feature.
 		 */
 		vflag = Vflag;
 	}
@@ -710,7 +711,7 @@ c_whence(const char **wp)
 int
 c_command(const char **wp)
 {
-	/* Let c_whence do the work.  Note that c_command() must be
+	/* Let c_whence do the work. Note that c_command() must be
 	 * a distinct function from c_whence() (tested in comexec()).
 	 */
 	return (c_whence(wp));
@@ -752,7 +753,7 @@ c_typeset(const char **wp)
 	builtin_opt.flags |= GF_PLUSOPT;
 	/* at&t ksh seems to have 0-9 as options which are multiplied
 	 * to get a number that is used with -L, -R, -Z or -i (eg, -1R2
-	 * sets right justify in a field of 12).  This allows options
+	 * sets right justify in a field of 12). This allows options
 	 * to be grouped in an order (eg, -Lu12), but disallows -i8 -L3 and
 	 * does not allow the number to be specified as a separate argument
 	 * Here, the number must follow the RLZi option, but is optional
@@ -771,7 +772,7 @@ c_typeset(const char **wp)
 			break;
 		case 'U':
 			/* at&t ksh uses u, but this conflicts with
-			 * upper/lower case.  If this option is changed,
+			 * upper/lower case. If this option is changed,
 			 * need to change the -U below as well
 			 */
 			flag = INT_U;
@@ -845,7 +846,7 @@ c_typeset(const char **wp)
 	if (wp[builtin_opt.optind]) {
 		/* Take care of exclusions.
 		 * At this point, flags in fset are cleared in fclr and vise
-		 * versa.  This property should be preserved.
+		 * versa. This property should be preserved.
 		 */
 		if (fset & LCASEV)	/* LCASEV has priority over UCASEV_AL */
 			fset &= ~UCASEV_AL;
@@ -1683,17 +1684,22 @@ c_umask(const char **wp)
 					case 'r': new_val |= 04; break;
 					case 'w': new_val |= 02; break;
 					case 'x': new_val |= 01; break;
-					case 'u': new_val |= old_umask >> 6;
-						  break;
-					case 'g': new_val |= old_umask >> 3;
-						  break;
-					case 'o': new_val |= old_umask >> 0;
-						  break;
-					case 'X': if (old_umask & 0111)
+					case 'u':
+						new_val |= old_umask >> 6;
+						break;
+					case 'g':
+						new_val |= old_umask >> 3;
+						break;
+					case 'o':
+						new_val |= old_umask >> 0;
+						break;
+					case 'X':
+						if (old_umask & 0111)
 							new_val |= 01;
-						  break;
-					case 's': /* ignored */
-						  break;
+						break;
+					case 's':
+						/* ignored */
+						break;
 					}
 				new_val = (new_val & 07) * positions;
 				switch (op) {
@@ -1844,12 +1850,12 @@ c_read(const char **wp)
 	}
 
 	/* If we are reading from the co-process for the first time,
-	 * make sure the other side of the pipe is closed first.  This allows
+	 * make sure the other side of the pipe is closed first. This allows
 	 * the detection of eof.
 	 *
 	 * This is not compatible with at&t ksh... the fd is kept so another
 	 * coproc can be started with same output, however, this means eof
-	 * can't be detected...  This is why it is closed here.
+	 * can't be detected... This is why it is closed here.
 	 * If this call is removed, remove the eof check below, too.
 	 * coproc_readw_close(fd);
 	 */
@@ -1978,13 +1984,14 @@ c_eval(const char **wp)
 	 *
 	 * A strict reading of POSIX says we don't do this (though
 	 * it is traditionally done). [from 1003.2-1992]
-	 *    3.9.1: Simple Commands
+	 *
+	 * 3.9.1: Simple Commands
 	 *	... If there is a command name, execution shall
-	 *	continue as described in 3.9.1.1.  If there
+	 *	continue as described in 3.9.1.1. If there
 	 *	is no command name, but the command contained a command
 	 *	substitution, the command shall complete with the exit
 	 *	status of the last command substitution
-	 *    3.9.1.1: Command Search and Execution
+	 * 3.9.1.1: Command Search and Execution
 	 *	...(1)...(a) If the command name matches the name of
 	 *	a special built-in utility, that special built-in
 	 *	utility shall be invoked.
@@ -2118,7 +2125,7 @@ c_brkcont(const char **wp)
 
 	if (quit) {
 		/* at&t ksh doesn't print a message - just does what it
-		 * can.  We print a message 'cause it helps in debugging
+		 * can. We print a message 'cause it helps in debugging
 		 * scripts, but don't generate an error (ie, keep going).
 		 */
 		if (n == quit) {
@@ -2126,7 +2133,7 @@ c_brkcont(const char **wp)
 			return (0);
 		}
 		/* POSIX says if n is too big, the last enclosing loop
-		 * shall be used.  Doesn't say to print an error but we
+		 * shall be used. Doesn't say to print an error but we
 		 * do anyway 'cause the user messed up.
 		 */
 		if (last_ep)
@@ -2848,8 +2855,8 @@ test_primary(Test_env *te, bool do_eval)
  * Plain test (test and [ .. ]) specific routines.
  */
 
-/* Test if the current token is a whatever.  Accepts the current token if
- * it is.  Returns 0 if it is not, non-zero if it is (in the case of
+/* Test if the current token is a whatever. Accepts the current token if
+ * it is. Returns 0 if it is not, non-zero if it is (in the case of
  * TM_UNOP and TM_BINOP, the returned value is a Test_op).
  */
 static int
@@ -3084,11 +3091,11 @@ c_rename(const char **wp)
 {
 	int rv = 1;
 
-	if (wp == NULL /* argv */ ||
-	    wp[0] == NULL /* name of builtin */ ||
-	    wp[1] == NULL /* first argument */ ||
-	    wp[2] == NULL /* second argument */ ||
-	    wp[3] != NULL /* no further args please */)
+	if (wp == NULL		/* argv */ ||
+	    wp[0] == NULL	/* name of builtin */ ||
+	    wp[1] == NULL	/* first argument */ ||
+	    wp[2] == NULL	/* second argument */ ||
+	    wp[3] != NULL	/* no further args please */)
 		bi_errorf(T_synerr);
 	else if ((rv = rename(wp[1], wp[2])) != 0) {
 		rv = errno;

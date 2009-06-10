@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.36 2009/06/08 20:06:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.37 2009/06/10 18:12:50 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -143,7 +143,7 @@ c_list(int multi)
 			break;
 		else if (c == '&' || c == COPROC)
 			p = block(c == '&' ? TASYNC : TCOPROC,
-				  p, NOBLOCK, NOWORDS);
+			    p, NOBLOCK, NOWORDS);
 		else if (c != ';')
 			have_sep = 0;
 		if (!t)
@@ -302,7 +302,7 @@ get_command(int cf)
 				t = function_body(XPptrv(args)[0], false);
 				goto Leave;
  is_wdarrassign:
-			  {
+			{
 				static const char set_cmd0[] = {
 					CHAR, 'e', CHAR, 'v',
 					CHAR, 'a', CHAR, 'l', EOS
@@ -335,7 +335,7 @@ get_command(int cf)
 				musthave(LWORD,LETARRAY);
 				XPput(args, yylval.cp);
 				break;
-			  }
+			}
 
 			default:
 				goto Leave;
@@ -353,8 +353,7 @@ get_command(int cf)
 		t = nested(TBRACE, '{', '}');
 		break;
 
-	case MDPAREN:
-	  {
+	case MDPAREN: {
 		static const char let_cmd[] = {
 			CHAR, 'l', CHAR, 'e',
 			CHAR, 't', EOS
@@ -367,7 +366,7 @@ get_command(int cf)
 		musthave(LWORD,LETEXPR);
 		XPput(args, yylval.cp);
 		break;
-	  }
+	}
 
 	case DBRACKET: /* [[ .. ]] */
 		/* Leave KEYWORD in syniocf (allow if [[ -n 1 ]] then ...) */
@@ -603,11 +602,11 @@ function_body(char *name,
 	bool old_func_parse;
 
 	sname = wdstrip(name, false, false);
-	/* Check for valid characters in name.  posix and ksh93 say only
+	/* Check for valid characters in name. posix and ksh93 say only
 	 * allow [a-zA-Z_0-9] but this allows more as old pdkshs have
 	 * allowed more (the following were never allowed:
 	 *	nul space nl tab $ ' " \ ` ( ) & | ; = < >
-	 *  C_QUOTE covers all but = and adds # [ ] ? *)
+	 * C_QUOTE covers all but = and adds # [ ] ? *)
 	 */
 	for (p = sname; *p; p++)
 		if (ctype(*p, C_QUOTE) || *p == '=')
@@ -620,7 +619,7 @@ function_body(char *name,
 
 	/* Note that POSIX allows only compound statements after foo(), sh and
 	 * at&t ksh allow any command, go with the later since it shouldn't
-	 * break anything.  However, for function foo, at&t ksh only accepts
+	 * break anything. However, for function foo, at&t ksh only accepts
 	 * an open-brace.
 	 */
 	if (ksh_func) {
@@ -894,8 +893,8 @@ const char db_close[] = { CHAR, ']', CHAR, ']', EOS };
 const char db_lthan[] = { CHAR, '<', EOS };
 const char db_gthan[] = { CHAR, '>', EOS };
 
-/* Test if the current token is a whatever.  Accepts the current token if
- * it is.  Returns 0 if it is not, non-zero if it is (in the case of
+/* Test if the current token is a whatever. Accepts the current token if
+ * it is. Returns 0 if it is not, non-zero if it is (in the case of
  * TM_UNOP and TM_BINOP, the returned value is a Test_op).
  */
 static int
