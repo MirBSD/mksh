@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.59 2009/06/10 18:12:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.60 2009/06/11 12:42:17 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -612,7 +612,7 @@ expand(const char *cp,	/* input word */
 					 * like x[i+=1] to be evaluated twice.
 					 */
 					/* Note: not exported by FEXPORT
-					 * in at&t ksh.
+					 * in AT&T ksh.
 					 */
 					/* XXX POSIX says readonly is only
 					 * fatal for special builtins (setstr
@@ -764,7 +764,7 @@ expand(const char *cp,	/* input word */
 			 *	IFS_WS			-/WS	w/NWS	-
 			 *	IFS_NWS			-/NWS	w/NWS	w
 			 * (w means generate a word)
-			 * Note that IFS_NWS/0 generates a word (at&t ksh
+			 * Note that IFS_NWS/0 generates a word (AT&T ksh
 			 * doesn't do this, but POSIX does).
 			 */
 			if (word == IFS_WORD ||
@@ -1474,7 +1474,7 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 	/* no valid expansions... */
 	if (!p || count != 0) {
 		/* Note that given a{{b,c} we do not expand anything (this is
-		 * what at&t ksh does. This may be changed to do the {b,c}
+		 * what AT&T ksh does. This may be changed to do the {b,c}
 		 * expansion. }
 		 */
 		if (fdo & DOGLOB)

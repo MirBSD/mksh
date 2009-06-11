@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.56 2009/06/10 18:12:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.57 2009/06/11 12:42:19 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -586,7 +586,7 @@ waitfor(const char *cp, int *sigp)
 		 * don't have to worry about exited/signaled jobs
 		 */
 		for (j = job_list; j; j = j->next)
-			/* at&t ksh will wait for stopped jobs - we don't */
+			/* AT&T ksh will wait for stopped jobs - we don't */
 			if (j->ppid == procpid && j->state == PRUNNING)
 				break;
 		if (!j) {
@@ -607,7 +607,7 @@ waitfor(const char *cp, int *sigp)
 		return (-1);
 	}
 
-	/* at&t ksh will wait for stopped jobs - we don't */
+	/* AT&T ksh will wait for stopped jobs - we don't */
 	rv = j_waitj(j, flags, "jw:waitfor");
 
 	sigprocmask(SIG_SETMASK, &omask, NULL);
@@ -1048,7 +1048,7 @@ j_waitj(Job *j,
 		}
 #ifndef MKSH_UNEMPLOYED
 		/* If it looks like user hit ^C to kill a job, pretend we got
-		 * one too to break out of for loops, etc. (at&t ksh does this
+		 * one too to break out of for loops, etc. (AT&T ksh does this
 		 * even when not monitoring, but this doesn't make sense since
 		 * a tty generated ^C goes to the whole process group)
 		 */

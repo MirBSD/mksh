@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.84 2009/06/10 18:12:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.85 2009/06/11 12:42:18 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -96,7 +96,7 @@ c_fc(const char **wp)
 				memcpy(editor + len, " $_", 4);
 			}
 			break;
-		case 'g': /* non-at&t ksh */
+		case 'g': /* non-AT&T ksh */
 			gflag++;
 			break;
 		case 'l':
@@ -183,7 +183,7 @@ c_fc(const char **wp)
 		hlast = hist_get_newest(false);
 	} else {
 		/* POSIX says not an error if first/last out of bounds
-		 * when range is specified; at&t ksh and pdksh allow out of
+		 * when range is specified; AT&T ksh and pdksh allow out of
 		 * bounds for -l as well.
 		 */
 		hfirst = hist_get(first, (lflag || last) ? true : false,

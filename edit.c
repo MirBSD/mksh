@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.170 2009/06/10 19:34:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.171 2009/06/11 12:42:16 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -159,7 +159,7 @@ x_do_comment(char *buf, int bsize, int *lenp)
 	int i, j, len = *lenp;
 
 	if (len == 0)
-		return (1); /* somewhat arbitrary - it's what at&t ksh does */
+		return (1); /* somewhat arbitrary - it's what AT&T ksh does */
 
 	/* Already commented? */
 	if (buf[0] == '#') {
@@ -2381,12 +2381,12 @@ x_transpose(int c __unused)
 	 * is a general summary of the options; the text is abcd with the
 	 * upper case character or underscore indicating the cursor position:
 	 *	Who			Before	After	Before	After
-	 *	at&t ksh in emacs mode:	abCd	abdC	abcd_	(bell)
-	 *	at&t ksh in gmacs mode:	abCd	baCd	abcd_	abdc_
+	 *	AT&T ksh in emacs mode:	abCd	abdC	abcd_	(bell)
+	 *	AT&T ksh in gmacs mode:	abCd	baCd	abcd_	abdc_
 	 *	gnu emacs:		abCd	acbD	abcd_	abdc_
 	 * Pdksh currently goes with GNU behavior since I believe this is the
 	 * most common version of emacs, unless in gmacs mode, in which case
-	 * it does the at&t ksh gmacs mode.
+	 * it does the AT&T ksh gmacs mode.
 	 * This should really be broken up into 3 functions so users can bind
 	 * to the one they want.
 	 */
@@ -3142,7 +3142,7 @@ x_version(int c __unused)
 
 	if (c < 0)
 		return (KSTD);
-	/* This is what at&t ksh seems to do... Very bizarre */
+	/* This is what AT&T ksh seems to do... Very bizarre */
 	if (c != ' ')
 		x_e_ungetc(c);
 
@@ -4563,7 +4563,7 @@ vi_cmd(int argcnt, const char *cmd)
 				return (ret);
 			}
 
-		case '=':			/* at&t ksh */
+		case '=':			/* AT&T ksh */
 		case Ctrl('e'):			/* Nonstandard vi/ksh */
 			print_expansions(es, 1);
 			break;
@@ -4575,16 +4575,16 @@ vi_cmd(int argcnt, const char *cmd)
 			complete_word(1, argcnt);
 			break;
 
-		case Ctrl('['):			/* some annoying at&t kshs */
+		case Ctrl('['):			/* some annoying AT&T kshs */
 			if (!Flag(FVIESCCOMPLETE))
 				return (-1);
-		case '\\':			/* at&t ksh */
+		case '\\':			/* AT&T ksh */
 		case Ctrl('f'):			/* Nonstandard vi/ksh */
 			complete_word(1, argcnt);
 			break;
 
 
-		case '*':			/* at&t ksh */
+		case '*':			/* AT&T ksh */
 		case Ctrl('x'):			/* Nonstandard vi/ksh */
 			expand_word(1);
 			break;

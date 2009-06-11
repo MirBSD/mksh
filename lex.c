@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.87 2009/06/10 18:12:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.88 2009/06/11 12:42:19 tg Exp $");
 
 /*
  * states while lexing word
@@ -437,7 +437,7 @@ yylex(int cf)
 				PUSH_STATE(SBQUOTE);
 				*wp++ = COMSUB;
 				/* Need to know if we are inside double quotes
-				 * since sh/at&t-ksh translate the \" to " in
+				 * since sh/AT&T-ksh translate the \" to " in
 				 * "`..\"..`".
 				 * This is not done in posix mode (section
 				 * 3.2.3, Double Quotes: "The backquote shall
@@ -665,7 +665,7 @@ yylex(int cf)
 					ungetsc(c2);
 			} else if (c == '(')
 				/* parenthesis inside quotes and backslashes
-				 * are lost, but at&t ksh doesn't count them
+				 * are lost, but AT&T ksh doesn't count them
 				 * either
 				 */
 				++statep->ls_sletparen.nparen;
@@ -1295,7 +1295,7 @@ set_prompt(int to, Source *s)
 	case PS1: /* command */
 		/* Substitute ! and !! here, before substitutions are done
 		 * so ! in expanded variables are not expanded.
-		 * NOTE: this is not what at&t ksh does (it does it after
+		 * NOTE: this is not what AT&T ksh does (it does it after
 		 * substitutions, POSIX doesn't say which is to be done.
 		 */
 		{

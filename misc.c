@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.110 2009/06/10 18:12:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.111 2009/06/11 12:42:20 tg Exp $");
 
 #undef USE_CHVT
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
@@ -407,7 +407,7 @@ parse_args(const char **argv,
 		default:
 			if (what == OF_FIRSTTIME)
 				break;
-			/* -s: sort positional params (at&t ksh stupidity) */
+			/* -s: sort positional params (AT&T ksh stupidity) */
 			if (what == OF_SET && optc == 's') {
 				sortargs = 1;
 				break;

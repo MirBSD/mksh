@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.114 2009/06/10 18:12:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.115 2009/06/11 12:42:18 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -74,7 +74,7 @@ const struct builtin mkshbuiltins[] = {
 	{"ulimit", c_ulimit},
 	{"+umask", c_umask},
 	{"*=unset", c_unset},
-	{"+alias", c_alias},	/* no =: at&t manual wrong */
+	{"+alias", c_alias},	/* no =: AT&T manual wrong */
 	{"+cd", c_cd},
 	{"+command", c_command},
 	{"echo", c_print},
@@ -279,7 +279,7 @@ c_cd(const char **wp)
 	flushcom(0);
 
 	/* Set OLDPWD (note: unsetting OLDPWD does not disable this
-	 * setting in at&t ksh)
+	 * setting in AT&T ksh)
 	 */
 	if (current_wd[0])
 		/* Ignore failure (happens if readonly or integer) */
@@ -751,7 +751,7 @@ c_typeset(const char **wp)
 
 	fieldstr = basestr = NULL;
 	builtin_opt.flags |= GF_PLUSOPT;
-	/* at&t ksh seems to have 0-9 as options which are multiplied
+	/* AT&T ksh seems to have 0-9 as options which are multiplied
 	 * to get a number that is used with -L, -R, -Z or -i (eg, -1R2
 	 * sets right justify in a field of 12). This allows options
 	 * to be grouped in an order (eg, -Lu12), but disallows -i8 -L3 and
@@ -771,7 +771,7 @@ c_typeset(const char **wp)
 			fieldstr = builtin_opt.optarg;
 			break;
 		case 'U':
-			/* at&t ksh uses u, but this conflicts with
+			/* AT&T ksh uses u, but this conflicts with
 			 * upper/lower case. If this option is changed,
 			 * need to change the -U below as well
 			 */
@@ -877,7 +877,7 @@ c_typeset(const char **wp)
 				f = findfunc(wp[i], hash(wp[i]),
 				    (fset&UCASEV_AL) ? true : false);
 				if (!f) {
-					/* at&t ksh does ++rv: bogus */
+					/* AT&T ksh does ++rv: bogus */
 					rv = 1;
 					continue;
 				}
@@ -949,7 +949,7 @@ c_typeset(const char **wp)
 						continue;
 					/* no arguments */
 					if (thing == 0 && flag == 0) {
-						/* at&t ksh prints things
+						/* AT&T ksh prints things
 						 * like export, integer,
 						 * leftadj, zerofill, etc.,
 						 * but POSIX says must
@@ -981,7 +981,7 @@ c_typeset(const char **wp)
 							char *s = str_val(vp);
 
 							shf_putc('=', shl_stdout);
-							/* at&t ksh can't have
+							/* AT&T ksh can't have
 							 * justified integers.. */
 							if ((vp->flag &
 							    (INTEGER|LJUST|RJUST)) ==
@@ -1011,7 +1011,7 @@ c_typeset(const char **wp)
 							char *s = str_val(vp);
 
 							shf_putc('=', shl_stdout);
-							/* at&t ksh can't have
+							/* AT&T ksh can't have
 							 * justified integers.. */
 							if ((vp->flag &
 							    (INTEGER|LJUST|RJUST)) ==
@@ -1154,7 +1154,7 @@ c_alias(const char **wp)
 				ap->flag &= ~(ALLOC|ISSET);
 				afree(ap->val.s, APERM);
 			}
-			/* ignore values for -t (at&t ksh does this) */
+			/* ignore values for -t (AT&T ksh does this) */
 			newval = tflag ? search(alias, path, X_OK, NULL) : val;
 			if (newval) {
 				strdupx(ap->val.s, newval, APERM);
@@ -1235,7 +1235,7 @@ c_let(const char **wp)
 	int rv = 1;
 	mksh_ari_t val;
 
-	if (wp[1] == NULL) /* at&t ksh does this */
+	if (wp[1] == NULL) /* AT&T ksh does this */
 		bi_errorf("no arguments");
 	else
 		for (wp++; *wp; wp++)
@@ -1484,14 +1484,14 @@ c_getopts(const char **wp)
 		buf[1] = optc;
 		buf[2] = '\0';
 	} else {
-		/* POSIX says var is set to ? at end-of-options, at&t ksh
+		/* POSIX says var is set to ? at end-of-options, AT&T ksh
 		 * sets it to null - we go with POSIX...
 		 */
 		buf[0] = optc < 0 ? '?' : optc;
 		buf[1] = '\0';
 	}
 
-	/* at&t ksh does not change OPTIND if it was an unknown option.
+	/* AT&T ksh does not change OPTIND if it was an unknown option.
 	 * Scripts counting on this are prone to break... (ie, don't count
 	 * on this staying).
 	 */
@@ -1500,7 +1500,7 @@ c_getopts(const char **wp)
 	}
 
 	voptarg = global("OPTARG");
-	voptarg->flag &= ~RDONLY;	/* at&t ksh clears ro and int */
+	voptarg->flag &= ~RDONLY;	/* AT&T ksh clears ro and int */
 	/* Paranoia: ensure no bizarre results. */
 	if (voptarg->flag & INTEGER)
 	    typeset("OPTARG", 0, INTEGER, 0, 0);
@@ -1840,7 +1840,7 @@ c_read(const char **wp)
 		wpalloc[cp - *wp] = '\0';
 		*wp = wpalloc;
 		if (isatty(fd)) {
-			/* at&t ksh says it prints prompt on fd if it's open
+			/* AT&T ksh says it prints prompt on fd if it's open
 			 * for writing and is a tty, but it doesn't do it
 			 * (it also doesn't check the interactive flag,
 			 * as is indicated in the Kornshell book).
@@ -1853,7 +1853,7 @@ c_read(const char **wp)
 	 * make sure the other side of the pipe is closed first. This allows
 	 * the detection of eof.
 	 *
-	 * This is not compatible with at&t ksh... the fd is kept so another
+	 * This is not compatible with AT&T ksh... the fd is kept so another
 	 * coproc can be started with same output, however, this means eof
 	 * can't be detected... This is why it is closed here.
 	 * If this call is removed, remove the eof check below, too.
@@ -2109,7 +2109,7 @@ c_brkcont(const char **wp)
 		return (1);
 	quit = n;
 	if (quit <= 0) {
-		/* at&t ksh does this for non-interactive shells only - weird */
+		/* AT&T ksh does this for non-interactive shells only - weird */
 		bi_errorf("%s: bad value", arg);
 		return (1);
 	}
@@ -2124,7 +2124,7 @@ c_brkcont(const char **wp)
 		}
 
 	if (quit) {
-		/* at&t ksh doesn't print a message - just does what it
+		/* AT&T ksh doesn't print a message - just does what it
 		 * can. We print a message 'cause it helps in debugging
 		 * scripts, but don't generate an error (ie, keep going).
 		 */
@@ -2268,7 +2268,7 @@ timex(struct op *t, int f, volatile int *xerrok)
 		 * Two ways of getting cpu usage of a command: just use t0
 		 * and t1 (which will get cpu usage from other jobs that
 		 * finish while we are executing t->left), or get the
-		 * cpu usage of t->left. at&t ksh does the former, while
+		 * cpu usage of t->left. AT&T ksh does the former, while
 		 * pdksh tries to do the later (the j_usrtime hack doesn't
 		 * really work as it only counts the last job).
 		 */

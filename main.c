@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.132 2009/06/10 18:12:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.133 2009/06/11 12:42:19 tg Exp $");
 
 extern char **environ;
 
@@ -73,7 +73,7 @@ static const char *initcoms[] = {
 	"source=PATH=$PATH:. command .",
 	"login=exec login",
 	NULL,
-	 /* this is what at&t ksh seems to track, with the addition of emacs */
+	 /* this is what AT&T ksh seems to track, with the addition of emacs */
 	"alias", "-tU",
 	"cat", "cc", "chmod", "cp", "date", "ed", "emacs", "grep", "ls",
 	"make", "mv", "pr", "rm", "sed", "sh", "vi", "who", NULL,
@@ -184,7 +184,7 @@ main(int argc, const char *argv[])
 
 	/* Turn on nohup by default for now - will change to off
 	 * by default once people are aware of its existence
-	 * (at&t ksh does not have a nohup option - it always sends
+	 * (AT&T ksh does not have a nohup option - it always sends
 	 * the hup).
 	 */
 	Flag(FNOHUP) = 1;
@@ -610,7 +610,7 @@ shell(Source * volatile s, volatile int toplevel)
 void
 unwind(int i)
 {
-	/* ordering for EXIT vs ERR is a bit odd (this is what at&t ksh does) */
+	/* ordering for EXIT vs ERR is a bit odd (this is what AT&T ksh does) */
 	if (i == LEXIT || (Flag(FERREXIT) && (i == LERROR || i == LINTR) &&
 	    sigtraps[SIGEXIT_].trap)) {
 		runtrap(&sigtraps[SIGEXIT_]);
@@ -692,7 +692,7 @@ quitenv(struct shf *shf)
 			if (ep->flags & EF_FAKE_SIGDIE) {
 				int sig = exstat - 128;
 
-				/* ham up our death a bit (at&t ksh
+				/* ham up our death a bit (AT&T ksh
 				 * only seems to do this for SIGTERM)
 				 * Don't do it for SIGQUIT, since we'd
 				 * dump a core..

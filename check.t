@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.287 2009/06/10 18:11:25 tg Stab $
+# $MirOS: src/bin/mksh/check.t,v 1.288 2009/06/11 12:42:15 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1005,7 +1005,7 @@ expected-stdout:
 name: eglob-bad-2
 description:
 	Check that globbing isn't done when glob has syntax error
-	(at&t ksh fails this test)
+	(AT&T ksh fails this test)
 file-setup: file 644 "abcx"
 file-setup: file 644 "abcz"
 file-setup: file 644 "bbc"
@@ -1095,7 +1095,7 @@ expected-stdout:
 name: eglob-trim-1
 description:
 	Eglobbing in trim expressions...
-	(at&t ksh fails this - docs say # matches shortest string, ## matches
+	(AT&T ksh fails this - docs say # matches shortest string, ## matches
 	longest...)
 stdin:
 	x=abcdef
@@ -1373,7 +1373,7 @@ expected-stdout:
 name: glob-range-2
 description:
 	Test range matching
-	(at&t ksh fails this; POSIX says invalid)
+	(AT&T ksh fails this; POSIX says invalid)
 file-setup: file 644 "abc"
 stdin:
 	echo [a--]*
@@ -1403,7 +1403,7 @@ expected-stdout:
 name: glob-range-5
 description:
 	Results unspecified according to POSIX
-	(at&t ksh treats this like [a-cc-e]*)
+	(AT&T ksh treats this like [a-cc-e]*)
 file-setup: file 644 "abc"
 file-setup: file 644 "bbc"
 file-setup: file 644 "cbc"
@@ -2532,7 +2532,7 @@ expected-stdout:
 name: IFS-space-colon-2
 description:
 	Simple test, IFS=<white-space>:
-	At&t ksh fails this, POSIX says the test is correct.
+	AT&T ksh fails this, POSIX says the test is correct.
 stdin:
 	showargs() { for i; do echo -n " <$i>"; done; echo; }
 	IFS="$IFS:"
@@ -2572,7 +2572,7 @@ expected-stdout:
 name: IFS-space-colon-5
 description:
 	Simple test, IFS=<white-space>:
-	Don't know what POSIX thinks of this.  at&t ksh does not do this.
+	Don't know what POSIX thinks of this.  AT&T ksh does not do this.
 stdin:
 	showargs() { for i; do echo -n " <$i>"; done; echo; }
 	IFS="$IFS:"
@@ -3050,7 +3050,7 @@ description:
 	The following:
 		set -- `false`
 		echo $?
-	shoud not print 0. (according to /bin/sh, at&t ksh88, and the
+	shoud not print 0. (according to /bin/sh, AT&T ksh88, and the
 	getopt(1) man page - not according to POSIX)
 stdin:
 	set -- `false`
@@ -3113,7 +3113,7 @@ description:
 		foobar: not found
 	Also, the command
 		$ foobar 2> /dev/null
-	generates an error under /bin/sh and pdksh, but at&t ksh88 produces
+	generates an error under /bin/sh and pdksh, but AT&T ksh88 produces
 	no error (redirected to /dev/null).
 stdin:
 	(you/should/not/see/this/error/1) 2> /dev/null
@@ -3125,10 +3125,10 @@ description:
 	The command
 		$ whence foobar
 	generates a blank line under pdksh and sets the exit status to 0.
-	at&t ksh88 generates no output and sets the exit status to 1.  Also,
+	AT&T ksh88 generates no output and sets the exit status to 1.  Also,
 	the command
 		$ whence foobar cat
-	generates no output under at&t ksh88 (pdksh generates a blank line
+	generates no output under AT&T ksh88 (pdksh generates a blank line
 	and /bin/cat).
 stdin:
 	whence does/not/exist > /dev/null
@@ -3169,7 +3169,7 @@ name: regression-17
 description:
 	The command
 		. /foo/bar
-	should set the exit status to non-zero (sh and at&t ksh88 do).
+	should set the exit status to non-zero (sh and AT&T ksh88 do).
 	XXX doting a non existent file is a fatal error for a script
 stdin:
 	. does/not/exist
@@ -3213,7 +3213,7 @@ name: regression-22
 description:
 	Quoting backquotes inside backquotes doesn't work:
 	$ echo `echo hi \`echo there\` folks`
-	asks for more info.  sh and at&t ksh88 both echo
+	asks for more info.  sh and AT&T ksh88 both echo
 	hi there folks
 stdin:
 	echo `echo hi \`echo there\` folks`
@@ -3290,7 +3290,7 @@ expected-stderr-pattern: /a\.x=1/
 ---
 name: regression-29
 description:
-	alias expansion different from at&t ksh88
+	alias expansion different from AT&T ksh88
 stdin:
 	alias a='for ' b='i in'
 	a b hi ; do echo $i ; done

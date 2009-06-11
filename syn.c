@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.37 2009/06/10 18:12:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.38 2009/06/11 12:42:20 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -267,7 +267,7 @@ get_command(int cf)
 			case LWORD:
 				ACCEPT;
 				/* the iopn == 0 and XPsize(vars) == 0 are
-				 * dubious but at&t ksh acts this way
+				 * dubious but AT&T ksh acts this way
 				 */
 				if (iopn == 0 && XPsize(vars) == 0 &&
 				    XPsize(args) == 0 &&
@@ -281,7 +281,7 @@ get_command(int cf)
 				break;
 
 			case '(':
-				/* Check for "> foo (echo hi)" which at&t ksh
+				/* Check for "> foo (echo hi)" which AT&T ksh
 				 * allows (not POSIX, but not disallowed)
 				 */
 				afree(t, ATEMP);
@@ -618,8 +618,8 @@ function_body(char *name,
 	t->lineno = source->line;
 
 	/* Note that POSIX allows only compound statements after foo(), sh and
-	 * at&t ksh allow any command, go with the later since it shouldn't
-	 * break anything. However, for function foo, at&t ksh only accepts
+	 * AT&T ksh allow any command, go with the later since it shouldn't
+	 * break anything. However, for function foo, AT&T ksh only accepts
 	 * an open-brace.
 	 */
 	if (ksh_func) {
@@ -663,7 +663,7 @@ wordlist(void)
 	XPinit(args, 16);
 	/* Posix does not do alias expansion here... */
 	if ((c = token(CONTIN|KEYWORD|ALIAS)) != IN) {
-		if (c != ';') /* non-POSIX, but at&t ksh accepts a ; here */
+		if (c != ';') /* non-POSIX, but AT&T ksh accepts a ; here */
 			REJECT;
 		return (NULL);
 	}
@@ -843,10 +843,10 @@ compile(Source *s)
 	return (outtree);
 }
 
-/* This kludge exists to take care of sh/at&t ksh oddity in which
+/* This kludge exists to take care of sh/AT&T ksh oddity in which
  * the arguments of alias/export/readonly/typeset have no field
  * splitting, file globbing, or (normal) tilde expansion done.
- * at&t ksh seems to do something similar to this since
+ * AT&T ksh seems to do something similar to this since
  *	$ touch a=a; typeset a=[ab]; echo "$a"
  *	a=[ab]
  *	$ x=typeset; $x a=[ab]; echo "$a"

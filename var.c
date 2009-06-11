@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.74 2009/06/10 18:12:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.75 2009/06/11 12:42:21 tg Exp $");
 
 /*
  * Variables
@@ -555,7 +555,7 @@ formatstr(struct tbl *vp, const char *s)
 
 			while (i < slen)
 				i += utf_widthadj(qq, &qq);
-			/* strip trailing spaces (at&t uses qq[-1] == ' ') */
+			/* strip trailing spaces (AT&T uses qq[-1] == ' ') */
 			while (qq > s && ksh_isspace(qq[-1])) {
 				--qq;
 				--slen;
@@ -685,7 +685,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 
 	vpbase = (vp->flag & ARRAY) ? global(arrayname(var)) : vp;
 
-	/* only allow export flag to be set. at&t ksh allows any attribute to
+	/* only allow export flag to be set. AT&T ksh allows any attribute to
 	 * be changed which means it can be truncated or modified (-L/-R/-Z/-i)
 	 */
 	if ((vpbase->flag&RDONLY) &&
@@ -1179,7 +1179,7 @@ setspec(struct tbl *vp)
 		vp->flag |= SPECIAL;
 		break;
 	case V_TMOUT:
-		/* at&t ksh seems to do this (only listen if integer) */
+		/* AT&T ksh seems to do this (only listen if integer) */
 		if (vp->flag & INTEGER)
 			ksh_tmout = vp->val.i >= 0 ? vp->val.i : 0;
 		break;
@@ -1216,16 +1216,16 @@ unsetspec(struct tbl *vp)
 	case V_LINENO:
 	case V_RANDOM:
 	case V_SECONDS:
-	case V_TMOUT:		/* at&t ksh leaves previous value in place */
+	case V_TMOUT:		/* AT&T ksh leaves previous value in place */
 		unspecial(vp->name);
 		break;
 
-	/* at&t ksh man page says OPTIND, OPTARG and _ lose special meaning,
+	/* AT&T ksh man page says OPTIND, OPTARG and _ lose special meaning,
 	 * but OPTARG does not (still set by getopts) and _ is also still
 	 * set in various places.
-	 * Don't know what at&t does for:
+	 * Don't know what AT&T does for:
 	 *		HISTSIZE, HISTFILE,
-	 * Unsetting these in at&t ksh does not loose the 'specialness':
+	 * Unsetting these in AT&T ksh does not loose the 'specialness':
 	 * no effect: IFS, COLUMNS, PATH, TMPDIR
 	 */
 	}
@@ -1320,7 +1320,7 @@ set_array(const char *var, int reset, const char **vals)
 	/* to get local array, use "typeset foo; set -A foo" */
 	vp = global(var);
 
-	/* Note: at&t ksh allows set -A but not set +A of a read-only var */
+	/* Note: AT&T ksh allows set -A but not set +A of a read-only var */
 	if ((vp->flag&RDONLY))
 		errorf("%s: is read only", var);
 	/* This code is quite non-optimal */

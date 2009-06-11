@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.58 2009/06/10 18:12:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.59 2009/06/11 12:42:17 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile, volatile int *);
@@ -410,7 +410,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 	int fcflags = FC_BI|FC_FUNC|FC_PATH;
 	int bourne_function_call = 0;
 
-	/* snag the last argument for $_ XXX not the same as at&t ksh,
+	/* snag the last argument for $_ XXX not the same as AT&T ksh,
 	 * which only seems to set $_ after a newline (but not in
 	 * functions/dot scripts, but in interactive and script) -
 	 * perhaps save last arg here and set it in shell()?.
@@ -608,7 +608,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 		e->type = E_FUNC;
 		i = sigsetjmp(e->jbuf, 0);
 		if (i == 0) {
-			/* seems odd to pass XERROK here, but at&t ksh does */
+			/* seems odd to pass XERROK here, but AT&T ksh does */
 			exstat = execute(tp->val.t, flags & XERROK, xerrok);
 			i = LRETURN;
 		}
@@ -967,7 +967,7 @@ findcom(const char *name, int flags)
 		    (fpath = str_val(global("FPATH"))) != null &&
 		    (npath.ro = search(name, fpath, R_OK,
 		    &tp->u2.errno_)) != NULL) {
-			/* An undocumented feature of at&t ksh is that it
+			/* An undocumented feature of AT&T ksh is that it
 			 * searches FPATH if a command is not found, even
 			 * if the command hasn't been set up as an autoloaded
 			 * function (ie, no typeset -uf).
