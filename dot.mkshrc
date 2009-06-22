@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.44 2009/06/22 17:27:22 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.45 2009/06/22 17:38:39 tg Rel $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -272,6 +272,27 @@ function Lb64encode {
 	done
 	[[ $u = *U* ]] && set -U
 	:
+}
+
+# DJB cdb hash (not via stdio, for speed)
+typeset -Z11 -Uui16 Lcdbhash_result
+function Lcdbhash_add {
+	typeset u=$-
+	set +U
+	typeset s="$*"
+	typeset -i i=0 n=${#s}
+
+	while (( i < n )); do
+		(( Lcdbhash_result = ((Lcdbhash_result << 5) + \
+		    Lcdbhash_result) ^ 1#${s:(i++):1} ))
+	done
+
+	[[ $u = *U* ]] && set -U
+	:
+}
+function Lcdbhash {
+	Lcdbhash_result=5381
+	Lcdbhash_add "$@"
 }
 
 # strip comments (and leading/trailing whitespace if IFS is set) from
