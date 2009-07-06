@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.88 2009/06/11 12:42:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.89 2009/07/06 15:06:23 tg Exp $");
 
 /*
  * states while lexing word
@@ -159,7 +159,6 @@ yylex(int cf)
 	char *wp;		/* output word pointer */
 	char *sp, *dp;
 	int c2;
-	bool last_terminal_was_bracket;
 
  Again:
 	states[0].ls_state = -1;
@@ -881,8 +880,14 @@ yylex(int cf)
 	    state == SLETARRAY)	/* ONEWORD? */
 		return (LWORD);
 
-	last_terminal_was_bracket = c == '(';
-	ungetsc(c);		/* unget terminator */
+	/* unget terminator */
+	ungetsc(c);
+
+	/*
+	 * note: the alias-vs-function code below depends on several
+	 * interna: starting from here, source->str is not modified;
+	 * the way getsc() and ungetsc() operate; etc.
+	 */
 
 	/* copy word to unprefixed string ident */
 	sp = yylval.cp;
@@ -914,8 +919,31 @@ yylex(int cf)
 		}
 		if ((cf & ALIAS) && (p = ktsearch(&aliases, ident, h)) &&
 		    (p->flag & ISSET)) {
-			if (last_terminal_was_bracket)
-				/* prefer functions over aliases */
+			/*
+			 * this still points to the same character as the
+			 * ungetsc'd terminator from above
+			 */
+			const char *cp = source->str;
+
+			/* prefer POSIX but not Korn functions over aliases */
+			while (*cp == ' ' || *cp == '\t')
+				/*
+				 * this is like getsc() without skipping
+				 * over Source boundaries (including not
+				 * parsing ungetsc'd characters that got
+				 * pushed into an SREREAD) which is what
+				 * we want here anyway: find out whether
+				 * the alias name is followed by a POSIX
+				 * function definition (only the opening
+				 * parenthesis is checked though)
+				 */
+				++cp;
+			/* prefer functions over aliases */
+			if (*cp == '(' /*)*/)
+				/*
+				 * delete alias upon encountering function
+				 * definition
+				 */
 				ktdelete(p);
 			else {
 				Source *s = source;
