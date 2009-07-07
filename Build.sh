@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.406 2009/07/07 18:42:47 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.407 2009/07/07 20:36:58 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -845,7 +845,7 @@ elif test $ct = clang; then
 	i=1
 elif test $ct = nwcc; then
 	i=1
-	ac_flags 1 ssp -stackprotect
+	#broken# ac_flags 1 ssp -stackprotect
 fi
 # flags common to a subset of compilers (run with -Werror on gcc)
 if test 1 = $i; then
