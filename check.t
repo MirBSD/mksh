@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.290 2009/07/06 15:06:23 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.291 2009/07/16 15:06:42 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R38 2009/07/06
+	@(#)MIRBSD KSH R39 2009/07/16
 description:
 	Check version of shell.
 stdin:
@@ -5874,4 +5874,80 @@ expected-stdout:
 	meow
 	= 0
 	foo
+---
+name: nounset-1
+description:
+	Check that "set -u" matches (future) POSIX requirement
+stdin:
+	(set -u
+	try() {
+		local v
+		eval v=\$$1
+		if [[ -n $v ]]; then
+			echo $1=nz
+		else
+			echo $1=zf
+		fi
+	}
+	x=y
+	(echo $x)
+	echo =1
+	(echo $y)
+	echo =2
+	(try x)
+	echo =3
+	(try y)
+	echo =4
+	(try 0)
+	echo =5
+	(try 2)
+	echo =6
+	(try)
+	echo =7
+	(echo at=$@)
+	echo =8
+	(echo asterisk=$*)
+	echo =9
+	(echo $?)
+	echo =10
+	(echo $!)
+	echo =11
+	(echo $-)
+	echo =12
+	#(echo $_)
+	#echo =13
+	(echo $#)
+	echo =14
+	(mypid=$$; try mypid)
+	echo =15
+	) 2>&1 | sed -e 's/^[^]]*]//' -e 's/^[^:]*: *//'
+expected-stdout:
+	y
+	=1
+	y: parameter not set
+	=2
+	x=nz
+	=3
+	y: parameter not set
+	=4
+	0=nz
+	=5
+	2: parameter not set
+	=6
+	1: parameter not set
+	=7
+	at=
+	=8
+	asterisk=
+	=9
+	0
+	=10
+	!: parameter not set
+	=11
+	ush
+	=12
+	0
+	=14
+	mypid=nz
+	=15
 ---

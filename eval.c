@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.60 2009/06/11 12:42:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.61 2009/07/16 15:06:43 tg Exp $");
 
 #ifdef MKSH_SMALL
 #define MKSH_NOPWNAM
@@ -913,6 +913,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 	int slen;
 	const char *p;
 	struct tbl *vp;
+	bool zero_ok = false;
 
 	if (sp[0] == '\0')	/* Bad variable name */
 		return (-1);
@@ -921,8 +922,6 @@ varsub(Expand *xp, const char *sp, const char *word,
 
 	/* ${#var}, string length or array size */
 	if (sp[0] == '#' && (c = sp[1]) != '\0') {
-		int zero_ok = 0;
-
 		/* Can't have any modifiers for ${#...} */
 		if (*word != CSUBST)
 			return (-1);
@@ -934,7 +933,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 
 			vp = global(arrayname(sp));
 			if (vp->flag & (ISSET|ARRAY))
-				zero_ok = 1;
+				zero_ok = true;
 			for (; vp; vp = vp->u.array)
 				if (vp->flag & ISSET)
 					n++;
@@ -1005,6 +1004,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 			xp->split = c == '@'; /* $@ */
 			state = XARG;
 		}
+		zero_ok = true;	/* POSIX 2009? */
 	} else {
 		if ((p = cstrchr(sp, '[')) && (p[1] == '*' || p[1] == '@') &&
 		    p[2] == ']') {
@@ -1052,7 +1052,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 	    (((stype&0x80) ? *xp->str=='\0' : xp->str==null) ? /* undef? */
 	    c == '=' || c == '-' || c == '?' : c == '+'))
 		state = XBASE;	/* expand word instead of variable value */
-	if (Flag(FNOUNSET) && xp->str == null &&
+	if (Flag(FNOUNSET) && xp->str == null && !zero_ok &&
 	    (ctype(c, C_SUBOP2) || (state != XBASE && c != '+')))
 		errorf("%s: parameter not set", sp);
 	return (state);
