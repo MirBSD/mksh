@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.291 2009/07/16 15:06:42 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.292 2009/07/19 11:03:18 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1216,12 +1216,12 @@ description:
 stdin:
 	pfx=/home/user
 	wd=/home/user/tmp
-	echo ${wd/#$pfx/~}
-	echo ${wd/#\$pfx/~}
-	echo ${wd/#"$pfx"/~}
-	echo ${wd/#'$pfx'/~}
-	echo ${wd/#"\$pfx"/~}
-	echo ${wd/#'\$pfx'/~}
+	echo "${wd/#$pfx/~}"
+	echo "${wd/#\$pfx/~}"
+	echo "${wd/#"$pfx"/~}"
+	echo "${wd/#'$pfx'/~}"
+	echo "${wd/#"\$pfx"/~}"
+	echo "${wd/#'\$pfx'/~}"
 expected-stdout:
 	~/tmp
 	/home/user/tmp
@@ -1232,13 +1232,13 @@ expected-stdout:
 ---
 name: eglob-substrpl-3b
 description:
-	More of this, bash fails it
+	More of this, bash fails it (bash4 passes)
 stdin:
 	pfx=/home/user
 	wd=/home/user/tmp
-	echo ${wd/#$(echo /home/user)/~}
-	echo ${wd/#"$(echo /home/user)"/~}
-	echo ${wd/#'$(echo /home/user)'/~}
+	echo "${wd/#$(echo /home/user)/~}"
+	echo "${wd/#"$(echo /home/user)"/~}"
+	echo "${wd/#'$(echo /home/user)'/~}"
 expected-stdout:
 	~/tmp
 	~/tmp
