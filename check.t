@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.292 2009/07/19 11:03:18 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.293 2009/07/19 11:14:28 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4923,12 +4923,12 @@ description:
 	This is by design. And that some things fail in both.
 stdin:
 	export x=abcdefghi n=2
-	"$__progname" -c 'print v${x:(n)}x'
-	"$__progname" -c 'print w${x: n}x'
-	"$__progname" -c 'print x${x:n}x'
-	"$__progname" -c 'print y${x:}x'
-	"$__progname" -c 'print z${x}x'
-	"$__progname" -c 'x=abcdef;y=123;echo ${x:${y:2:1}:2}' >/dev/null 2>&1; print $?
+	"$__progname" -c 'echo v${x:(n)}x'
+	"$__progname" -c 'echo w${x: n}x'
+	"$__progname" -c 'echo x${x:n}x'
+	"$__progname" -c 'echo y${x:}x'
+	"$__progname" -c 'echo z${x}x'
+	"$__progname" -c 'x=abcdef;y=123;echo ${x:${y:2:1}:2}' >/dev/null 2>&1; echo $?
 expected-stdout:
 	vcdefghix
 	wcdefghix
@@ -5413,7 +5413,7 @@ expected-stdout:
 name: bashiop-2c
 description:
 	Check if GNU bash-like I/O redirection works
-	Part 2: this is *not* supported by GNU bash
+	Part 2: this is supported by GNU bash 4 only
 stdin:
 	echo mir >foo
 	set -o noclobber
@@ -5643,7 +5643,7 @@ description:
 	COMSUB are currently parsed by hacking lex.c instead of
 	recursively (see regression-6): matching parenthesēs bug
 	Fails on: pdksh mksh bash2 bash3 zsh
-	Passes on: ksh93
+	Passes on: bash4 ksh93
 expected-fail: yes
 stdin:
 	echo $(case 1 in (1) echo yes;; (2) echo no;; esac)
@@ -5656,9 +5656,9 @@ name: comsub-2
 description:
 	RedHat BZ#496791 – another case of missing recursion
 	in parsing COMSUB expressions
-	Fails on: pdksh mksh bash2 bash3¹ zsh
+	Fails on: pdksh mksh bash2 bash3¹ bash4¹ zsh
 	Passes on: ksh93
-	① bash seems to choke on comment ending with backslash-newline
+	① bash[34] seem to choke on comment ending with backslash-newline
 expected-fail: yes
 stdin:
 	# a comment with " ' \
