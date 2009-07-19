@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.407 2009/07/07 20:36:58 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.408 2009/07/19 14:59:40 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -164,6 +164,26 @@ ac_testn() {
 	ac_testdone
 }
 
+# ac_ifcpp cppexpr [!] label [!] checkif[!]0 [setlabelifcheckis[!]0] useroutput
+ac_ifcpp() {
+	expr=$1; shift
+	ac_testn "$@" <<-EOF
+		int main(void) { return (
+		#$expr
+		    0
+		#else
+		/* force a failure: expr is false */
+		    thiswillneverbedefinedIhope()
+		#endif
+		    ); }
+EOF
+	test x"$1" = x"!" && shift
+	f=$1
+	fu=`upper $f`
+	eval fv=\$HAVE_$fu
+	test x"$fv" = x"1"
+}
+
 ac_cppflags() {
 	test x"$1" = x"" || fu=$1
 	fv=$2
@@ -285,7 +305,7 @@ else
 fi
 
 test x"$TARGET_OS" = x"" && TARGET_OS=`uname -s 2>/dev/null || uname`
-warn=
+oswarn=
 ccpc=-Wc,
 ccpl=-Wl,
 tsts=
@@ -313,7 +333,7 @@ __setkey_r' >crypt.exp
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 BeOS|Haiku)
-	warn=' and will currently not work'
+	oswarn=' and will currently not work'
 	;;
 BSD/OS)
 	: ${HAVE_SETLOCALE_CTYPE=0}
@@ -373,12 +393,12 @@ OSF1)
 Plan9)
 	CPPFLAGS="$CPPFLAGS -D_POSIX_SOURCE -D_LIMITS_EXTENSION"
 	CPPFLAGS="$CPPFLAGS -D_BSD_EXTENSION -D_SUSV2_SOURCE"
-	warn=' and will currently not work'
+	oswarn=' and will currently not work'
 	CPPFLAGS="$CPPFLAGS -DMKSH_ASSUME_UTF8 -DMKSH_UNEMPLOYED"
 	;;
 PW32*)
 	HAVE_SIG_T=0	# incompatible
-	warn=' and will currently not work'
+	oswarn=' and will currently not work'
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 QNX)
@@ -395,7 +415,7 @@ SunOS)
 	;;
 syllable)
 	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
-	warn=' and will currently not work'
+	oswarn=' and will currently not work'
 	;;
 ULTRIX)
 	: ${CC=cc -YPOSIX}
@@ -406,32 +426,14 @@ UWIN*)
 	ccpc='-Yc,'
 	ccpl='-Yl,'
 	tsts=" 3<>/dev/tty"
-	warn="; it will compile, but the target"
-	warn="$warn${nl}platform itself is very flakey/unreliable"
+	oswarn="; it will compile, but the target"
+	oswarn="$oswarn${nl}platform itself is very flakey/unreliable"
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 *)
-	warn='; it may or may not work'
+	oswarn='; it may or may not work'
 	;;
 esac
-
-case " $CPPFLAGS " in
-*\ -DMKSH_ASSUME_UTF8\ *|*\ -DMKSH_ASSUME_UTF8=*)
-	: ${HAVE_SETLOCALE_CTYPE=0}
-	;;
-esac
-case " $CPPFLAGS " in
-*\ -DMKSH_CONSERVATIVE_FDS\ *|*\ -DMKSH_CONSERVATIVE_FDS=*)
-	check_categories=$check_categories,convfds
-	;;
-esac
-
-if test -n "$warn"; then
-	echo "Warning: mksh has not yet been ported to or tested on your" >&2
-	echo "operating system '$TARGET_OS'$warn. If you can provide" >&2
-	echo "a shell account to the developer, this may improve; please" >&2
-	echo "drop us a success or failure notice or even send in diffs." >&2
-fi
 
 : ${CC=cc} ${NROFF=nroff}
 test 0 = $r && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
@@ -457,6 +459,12 @@ OSF1)
 	vv '|' "uname -a >&2"
 	;;
 esac
+test -z "$oswarn" || echo >&2 "
+Warning: mksh has not yet been ported to or tested on your
+operating system '$TARGET_OS'$oswarn. If you can provide
+a shell account to the developer, this may improve; please
+drop us a success or failure notice or even send in diffs.
+"
 $e "$bi$me: Building the MirBSD Korn Shell$ao $ui$dstversion$ao"
 
 #
@@ -679,10 +687,8 @@ ac_flags 0 compiler_works '' 'if the compiler works'
 test 1 = $HAVE_CAN_COMPILER_WORKS || exit 1
 HAVE_COMPILER_KNOWN=0
 test $ct = unknown || HAVE_COMPILER_KNOWN=1
-ac_testn compiler_fails '' 'if the compiler does not fail correctly' <<-EOF
-	int main(void) { return (thiswillneverbedefinedIhope()); }
-EOF
-if test 1 = $HAVE_COMPILER_FAILS; then
+if ac_ifcpp 'if 0' compiler_fails '' \
+    'if the compiler does not fail correctly'; then
 	save_CFLAGS=$CFLAGS
 	: ${HAVE_CAN_DELEXE=x}
 	if test $ct = dmc; then
@@ -703,15 +709,8 @@ if test 1 = $HAVE_COMPILER_FAILS; then
 	EOF
 	test 1 = $HAVE_COMPILER_STILL_FAILS && exit 1
 fi
-ac_testn couldbe_tcc '!' compiler_known 0 'if this could be tcc' <<-EOF
-	#ifdef __TINYC__
-	int main(void) { return (0); }
-	#else
-	/* force a failure: __TINYC__ not defined */
-	int main(void) { return (thiswillneverbedefinedIhope()); }
-	#endif
-EOF
-if test 1 = $HAVE_COULDBE_TCC; then
+if ac_ifcpp 'ifdef __TINYC__' couldbe_tcc '!' compiler_known 0 \
+    'if this could be tcc'; then
 	ct=tcc
 	CPP='cpp -D__TINYC__'
 fi
@@ -757,6 +756,15 @@ fi
 
 test $ct = icc && DOWARN="$DOWARN -wd1419"
 NOWARN=$save_NOWARN
+
+#
+# CPPFLAGS: which ones are (pre-)set?
+#
+ac_ifcpp 'ifdef MKSH_ASSUME_UTF8' isset_MKSH_ASSUME_UTF8 '' \
+    'if MKSH_ASSUME_UTF8 is set' && : ${HAVE_SETLOCALE_CTYPE=0}
+ac_ifcpp 'ifdef MKSH_CONSERVATIVE_FDS' isset_MKSH_CONSERVATIVE_FDS '' \
+    'if MKSH_CONSERVATIVE_FDS is set' && \
+    check_categories=$check_categories,convfds
 
 #
 # Compiler: extra flags (-O2 -f* -W* etc.)
@@ -898,26 +906,8 @@ NOWARN=$save_NOWARN
 #
 # mksh: flavours (full/small mksh, omit certain stuff)
 #
-ac_testn mksh_full '' "if a full-featured mksh is requested" <<-'EOF'
-	#ifdef MKSH_SMALL
-	/* force a failure: we want a small mksh */
-	int main(void) { return (thiswillneverbedefinedIhope()); }
-	#else
-	/* force a success: we want a full mksh */
-	int main(void) { return (0); }
-	#endif
-EOF
-ac_testn mksh_reduced '' "if a reduced-feature sh is requested" <<-'EOF'
-	#ifdef MKSH_BINSHREDUCED
-	/* force a success: we want a reduced mksh-as-bin-sh */
-	int main(void) { return (0); }
-	#else
-	/* force a failure: we want a full mksh, always */
-	int main(void) { return (thiswillneverbedefinedIhope()); }
-	#endif
-EOF
-
-if test 0 = $HAVE_MKSH_FULL; then
+if ac_ifcpp 'ifdef MKSH_SMALL' isset_MKSH_SMALL '' \
+    "if a reduced-feature mksh is requested"; then
 	if test $ct = xlc; then
 		ac_flags 1 fnoinline -qnoinline
 	else
@@ -930,9 +920,9 @@ if test 0 = $HAVE_MKSH_FULL; then
 	check_categories=$check_categories,smksh
 	check_categories=$check_categories,convfds
 fi
-if test 1 = $HAVE_MKSH_REDUCED; then
-	check_categories=$check_categories,binsh
-fi
+ac_ifcpp 'ifdef MKSH_BINSHREDUCED' isset_MKSH_BINSHREDUCED '' \
+    "if a reduced-feature sh is requested" && \
+    check_categories=$check_categories,binsh
 
 #
 # Environment: headers
@@ -1272,7 +1262,8 @@ CC=$save_CC; LDFLAGS=$save_LDFLAGS; LIBS=$save_LIBS
 # other checks
 #
 fd='if to use persistent history'
-ac_cache PERSISTENT_HISTORY || test 11 != $HAVE_FLOCK_EX$HAVE_MKSH_FULL || fv=1
+ac_cache PERSISTENT_HISTORY || \
+    test 10 != $HAVE_FLOCK_EX$HAVE_ISSET_MKSH_SMALL || fv=1
 test 1 = $fv || check_categories=$check_categories,no-histfile
 ac_testdone
 ac_cppflags
