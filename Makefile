@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.75 2009/06/08 20:34:38 tg Stab $
+# $MirOS: src/bin/mksh/Makefile,v 1.75.2.1 2009/07/25 18:27:53 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -46,6 +46,12 @@ CPPFLAGS+=	-DMKSH_ASSUME_UTF8 \
 		-DHAVE_REVOKE_DECL=1 -DHAVE_SYS_SIGLIST_DECL=1 \
 		-DHAVE_PERSISTENT_HISTORY=1
 COPTS+=		-std=gnu99 -Wall
+.endif
+
+.ifndef NO_PRINTF_BUILTIN
+.PATH: ${BSDSRCDIR}/usr.bin/printf
+SRCS+=		printf.c
+CPPFLAGS+=	-DMKSH_PRINTF_BUILTIN
 .endif
 
 LINKS+=		${BINDIR}/${PROG} ${BINDIR}/sh

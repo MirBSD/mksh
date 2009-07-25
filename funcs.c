@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.115 2009/06/11 12:42:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.115.2.1 2009/07/25 18:27:53 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -44,6 +44,18 @@ __RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.115 2009/06/11 12:42:18 tg Exp $");
 
 #ifdef MKSH_NO_LIMITS
 #define c_ulimit c_label
+#endif
+
+#ifdef MKSH_PRINTF_BUILTIN
+extern int c_printf(const char **);
+
+void mksh_flush(void);
+void
+mksh_flush(void)
+{
+	shf_flush(shl_stdout);
+	shf_flush(shl_out);
+}
 #endif
 
 /* A leading = means assignments before command are kept;
@@ -85,6 +97,9 @@ const struct builtin mkshbuiltins[] = {
 	{"+kill", c_kill},
 	{"let", c_let},
 	{"print", c_print},
+#ifdef MKSH_PRINTF_BUILTIN
+	{"printf", c_printf},
+#endif
 	{"pwd", c_pwd},
 	{"*=readonly", c_typeset},
 	{"=typeset", c_typeset},
