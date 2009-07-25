@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.408 2009/07/19 14:59:40 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.409 2009/07/25 20:04:09 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -917,6 +917,7 @@ if ac_ifcpp 'ifdef MKSH_SMALL' isset_MKSH_SMALL '' \
 	: ${HAVE_MKNOD=0}
 	: ${HAVE_REALPATH=0}
 	: ${HAVE_REVOKE=0}
+	: ${HAVE_PERSISTENT_HISTORY=0}
 	check_categories=$check_categories,smksh
 	check_categories=$check_categories,convfds
 fi
@@ -1262,8 +1263,7 @@ CC=$save_CC; LDFLAGS=$save_LDFLAGS; LIBS=$save_LIBS
 # other checks
 #
 fd='if to use persistent history'
-ac_cache PERSISTENT_HISTORY || \
-    test 10 != $HAVE_FLOCK_EX$HAVE_ISSET_MKSH_SMALL || fv=1
+ac_cache PERSISTENT_HISTORY || test 0 = $HAVE_FLOCK_EX || fv=1
 test 1 = $fv || check_categories=$check_categories,no-histfile
 ac_testdone
 ac_cppflags
