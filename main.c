@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.134 2009/07/25 20:26:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.135 2009/07/25 20:52:41 tg Exp $");
 
 extern char **environ;
 
@@ -60,8 +60,7 @@ static const char *initcoms[] = {
 	"alias",
 	"hash=alias -t",	/* not "alias -t --": hash -r needs to work */
 	"type=whence -v",
-#ifndef notyet_MKSH_UNEMPLOYED
-	/* the alias list must be constant, for the regression test suite */
+#ifndef MKSH_UNEMPLOYED
 	"stop=kill -STOP",
 	"suspend=kill -STOP $$",
 #endif

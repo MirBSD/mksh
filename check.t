@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.293 2009/07/19 11:14:28 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.294 2009/07/25 20:52:40 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4716,6 +4716,7 @@ expected-stderr-pattern:
 name: aliases-1
 description:
 	Check if built-in shell aliases are okay
+category: !arge
 stdin:
 	alias
 	typeset -f
@@ -4732,6 +4733,26 @@ expected-stdout:
 	source='PATH=$PATH:. command .'
 	stop='kill -STOP'
 	suspend='kill -STOP $$'
+	type='whence -v'
+---
+name: aliases-1-hartz4
+description:
+	Check if built-in shell aliases are okay
+category: arge
+stdin:
+	alias
+	typeset -f
+expected-stdout:
+	autoload='typeset -fu'
+	functions='typeset -f'
+	hash='alias -t'
+	history='fc -l'
+	integer='typeset -i'
+	local=typeset
+	login='exec login'
+	nohup='nohup '
+	r='fc -e -'
+	source='PATH=$PATH:. command .'
 	type='whence -v'
 ---
 name: aliases-2a
@@ -4762,6 +4783,7 @@ expected-stdout:
 name: aliases-2b
 description:
 	Check if “set -o posix” does not influence built-in aliases
+category: !arge
 arguments: !-o!posix!
 stdin:
 	alias
@@ -4784,6 +4806,7 @@ expected-stdout:
 name: aliases-3b
 description:
 	Check if running as sh does not influence built-in aliases
+category: !arge
 arguments: !-o!posix!
 stdin:
 	cp "$__progname" sh
@@ -4802,6 +4825,49 @@ expected-stdout:
 	source='PATH=$PATH:. command .'
 	stop='kill -STOP'
 	suspend='kill -STOP $$'
+	type='whence -v'
+---
+name: aliases-2b-hartz4
+description:
+	Check if “set -o posix” does not influence built-in aliases
+category: arge
+arguments: !-o!posix!
+stdin:
+	alias
+	typeset -f
+expected-stdout:
+	autoload='typeset -fu'
+	functions='typeset -f'
+	hash='alias -t'
+	history='fc -l'
+	integer='typeset -i'
+	local=typeset
+	login='exec login'
+	nohup='nohup '
+	r='fc -e -'
+	source='PATH=$PATH:. command .'
+	type='whence -v'
+---
+name: aliases-3b-hartz4
+description:
+	Check if running as sh does not influence built-in aliases
+category: arge
+arguments: !-o!posix!
+stdin:
+	cp "$__progname" sh
+	./sh -c 'alias; typeset -f'
+	rm -f sh
+expected-stdout:
+	autoload='typeset -fu'
+	functions='typeset -f'
+	hash='alias -t'
+	history='fc -l'
+	integer='typeset -i'
+	local=typeset
+	login='exec login'
+	nohup='nohup '
+	r='fc -e -'
+	source='PATH=$PATH:. command .'
 	type='whence -v'
 ---
 name: aliases-funcdef-1

@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.410 2009/07/25 20:18:13 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.411 2009/07/25 20:52:39 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -915,6 +915,9 @@ fi
 ac_ifcpp 'ifdef MKSH_BINSHREDUCED' isset_MKSH_BINSHREDUCED '' \
     "if a reduced-feature sh is requested" && \
     check_categories=$check_categories,binsh
+ac_ifcpp 'ifdef MKSH_UNEMPLOYED' isset_MKSH_UNEMPLOYED '' \
+    "if mksh will be built without job control" && \
+    check_categories=$check_categories,arge
 ac_ifcpp 'ifdef MKSH_ASSUME_UTF8' isset_MKSH_ASSUME_UTF8 '' \
     'if the default UTF-8 mode is specified' && : ${HAVE_SETLOCALE_CTYPE=0}
 ac_ifcpp 'ifdef MKSH_CONSERVATIVE_FDS' isset_MKSH_CONSERVATIVE_FDS '' \
