@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.409 2009/07/25 20:04:09 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.410 2009/07/25 20:18:13 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -758,15 +758,6 @@ test $ct = icc && DOWARN="$DOWARN -wd1419"
 NOWARN=$save_NOWARN
 
 #
-# CPPFLAGS: which ones are (pre-)set?
-#
-ac_ifcpp 'ifdef MKSH_ASSUME_UTF8' isset_MKSH_ASSUME_UTF8 '' \
-    'if MKSH_ASSUME_UTF8 is set' && : ${HAVE_SETLOCALE_CTYPE=0}
-ac_ifcpp 'ifdef MKSH_CONSERVATIVE_FDS' isset_MKSH_CONSERVATIVE_FDS '' \
-    'if MKSH_CONSERVATIVE_FDS is set' && \
-    check_categories=$check_categories,convfds
-
-#
 # Compiler: extra flags (-O2 -f* -W* etc.)
 #
 i=`echo :"$orig_CFLAGS" | sed 's/^://' | tr -c -d $alll$allu$alln`
@@ -919,11 +910,16 @@ if ac_ifcpp 'ifdef MKSH_SMALL' isset_MKSH_SMALL '' \
 	: ${HAVE_REVOKE=0}
 	: ${HAVE_PERSISTENT_HISTORY=0}
 	check_categories=$check_categories,smksh
-	check_categories=$check_categories,convfds
+	CPPFLAGS="$CPPFLAGS -DMKSH_CONSERVATIVE_FDS"
 fi
 ac_ifcpp 'ifdef MKSH_BINSHREDUCED' isset_MKSH_BINSHREDUCED '' \
     "if a reduced-feature sh is requested" && \
     check_categories=$check_categories,binsh
+ac_ifcpp 'ifdef MKSH_ASSUME_UTF8' isset_MKSH_ASSUME_UTF8 '' \
+    'if the default UTF-8 mode is specified' && : ${HAVE_SETLOCALE_CTYPE=0}
+ac_ifcpp 'ifdef MKSH_CONSERVATIVE_FDS' isset_MKSH_CONSERVATIVE_FDS '' \
+    'if traditional/conservative fd use is requested' && \
+    check_categories=$check_categories,convfds
 
 #
 # Environment: headers
