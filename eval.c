@@ -22,9 +22,9 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.61 2009/07/16 15:06:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.62 2009/07/25 20:17:47 tg Exp $");
 
-#ifdef MKSH_SMALL
+#if defined(MKSH_SMALL) && !defined(MKSH_NOPWNAM)
 #define MKSH_NOPWNAM
 #endif
 
