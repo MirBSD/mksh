@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.57 2009/06/11 12:42:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.58 2009/07/25 21:31:25 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -123,7 +123,7 @@ static int32_t njobs;		/* # of jobs started */
 #ifndef CHILD_MAX
 #ifdef _POSIX_CHILD_MAX
 #define CHILD_MAX	_POSIX_CHILD_MAX
-#elif defined(__KLIBC__)
+#elif defined(__KLIBC__)	/* XXX imake style */
 #define CHILD_MAX	999	/* no limit :-) */
 #endif
 #endif

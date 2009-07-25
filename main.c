@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.135 2009/07/25 20:52:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.136 2009/07/25 21:31:26 tg Exp $");
 
 extern char **environ;
 
@@ -788,6 +788,7 @@ tty_init(bool init_ttystate, bool need_tty)
 	tty_devtty = 1;
 
 #ifdef _UWIN
+	/* XXX imake style */
 	if (isatty(3))
 		tfd = 3;
 	else
@@ -1006,6 +1007,7 @@ ksh_dup2(int ofd, int nfd, bool errok)
 		errorf("too many files open in shell");
 
 #ifdef __ultrix
+	/* XXX imake style */
 	if (rv >= 0)
 		fcntl(nfd, F_SETFD, 0);
 #endif

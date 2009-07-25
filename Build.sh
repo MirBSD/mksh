@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.411 2009/07/25 20:52:39 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.412 2009/07/25 21:31:23 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -910,7 +910,7 @@ if ac_ifcpp 'ifdef MKSH_SMALL' isset_MKSH_SMALL '' \
 	: ${HAVE_REVOKE=0}
 	: ${HAVE_PERSISTENT_HISTORY=0}
 	check_categories=$check_categories,smksh
-	CPPFLAGS="$CPPFLAGS -DMKSH_CONSERVATIVE_FDS"
+	HAVE_ISSET_MKSH_CONSERVATIVE_FDS=1	# from sh.h
 fi
 ac_ifcpp 'ifdef MKSH_BINSHREDUCED' isset_MKSH_BINSHREDUCED '' \
     "if a reduced-feature sh is requested" && \
@@ -1181,6 +1181,8 @@ ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<-'EOF'
 EOF
 
 ac_test setmode mknod 1 <<-'EOF'
+	/* XXX imake style */
+	/* XXX conditions correct? */
 	#if defined(__MSVCRT__) || defined(__CYGWIN__)
 	/* force a failure: Win32 setmode() is not what we want... */
 	int main(void) { return (thiswillneverbedefinedIhope()); }

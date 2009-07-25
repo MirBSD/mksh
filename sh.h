@@ -29,6 +29,7 @@
  */
 
 #ifdef __dietlibc__
+/* XXX imake style */
 #define _BSD_SOURCE	/* live, BSD, live! */
 #endif
 
@@ -122,9 +123,9 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.315 2009/07/25 20:26:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.316 2009/07/25 21:31:27 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2009/07/16"
+#define MKSH_VERSION "R39 2009/07/25"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -224,6 +225,7 @@ typedef int bool;
 #endif
 
 #if !defined(MAP_FAILED)
+/* XXX imake style */
 #  if defined(__linux)
 #define MAP_FAILED	((void *)-1)
 #  elif defined(__bsdi__) || defined(__osf__) || defined(__ultrix)
@@ -271,6 +273,7 @@ void *setmode(const char *);
 #endif
 
 #ifdef __ultrix
+/* XXX imake style */
 int strcasecmp(const char *, const char *);
 #endif
 
@@ -287,6 +290,7 @@ extern const char *const sys_siglist[];
 #endif
 
 #ifdef __INTERIX
+/* XXX imake style */
 #define makedev mkdev
 extern int __cdecl seteuid(uid_t);
 extern int __cdecl setegid(gid_t);
@@ -312,7 +316,7 @@ typedef int32_t mksh_ari_t;
 typedef uint32_t mksh_uari_t;
 
 /* these shall be smaller than 100 */
-#ifdef MKSH_CONSERVATIVE_FDS)
+#ifdef MKSH_CONSERVATIVE_FDS
 #define NUFILE		32	/* Number of user-accessible files */
 #define FDBASE		10	/* First file usable by Shell */
 #else
@@ -431,6 +435,9 @@ char *ucstrstr(char *, const char *);
 #endif
 
 #ifdef MKSH_SMALL
+#ifndef MKSH_CONSERVATIVE_FDS
+#define MKSH_CONSERVATIVE_FDS
+#endif
 #ifndef MKSH_NOPWNAM
 #define MKSH_NOPWNAM
 #endif

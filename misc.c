@@ -29,9 +29,10 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.111 2009/06/11 12:42:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.112 2009/07/25 21:31:26 tg Exp $");
 
 #undef USE_CHVT
+/* XXX conditions correct? */
 #if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
 #define USE_CHVT
 #endif
@@ -1414,7 +1415,6 @@ chvt(const char *fn)
 #endif
 
 #ifdef DEBUG
-
 char longsizes_are_okay[sizeof(long) == sizeof(unsigned long) ? 1 : -1];
 char arisize_is_okay[sizeof(mksh_ari_t) == 4 ? 1 : -1];
 char uarisize_is_okay[sizeof(mksh_uari_t) == 4 ? 1 : -1];
