@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.116 2009/07/25 20:26:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.117 2009/07/25 20:35:22 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -38,7 +38,7 @@ __RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.116 2009/07/25 20:26:32 tg Exp $");
 #define mksh_kill	kill
 #endif
 
-#ifndef RLIM_INFINITY
+#if !defined(RLIM_INFINITY) && !defined(MKSH_NO_LIMITS)
 #define MKSH_NO_LIMITS
 #endif
 
