@@ -122,7 +122,7 @@
 #define __SCCSID(x)	__IDSTRING(sccsid,x)
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.314 2009/07/25 20:18:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.315 2009/07/25 20:26:33 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/07/16"
 
@@ -430,8 +430,13 @@ char *ucstrstr(char *, const char *);
 #define stristr(b,l)	((const char *)strcasestr((b), (l)))
 #endif
 
-#if defined(MKSH_SMALL) && !defined(MKSH_NOVI)
+#ifdef MKSH_SMALL
+#ifndef MKSH_NOPWNAM
+#define MKSH_NOPWNAM
+#endif
+#ifndef MKSH_NOVI
 #define MKSH_NOVI
+#endif
 #endif
 
 /*
@@ -951,7 +956,7 @@ EXTERN struct table taliases;	/* tracked aliases */
 EXTERN struct table builtins;	/* built-in commands */
 EXTERN struct table aliases;	/* aliases */
 EXTERN struct table keywords;	/* keywords */
-#ifndef MKSH_SMALL
+#ifndef MKSH_NOPWNAM
 EXTERN struct table homedirs;	/* homedir() cache */
 #endif
 

@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.115 2009/06/11 12:42:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.116 2009/07/25 20:26:32 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1048,8 +1048,8 @@ c_alias(const char **wp)
 		prefix = builtin_opt.info & GI_PLUS ? '+' : '-';
 		switch (optc) {
 		case 'd':
-#ifdef MKSH_SMALL
-			return (0);
+#ifdef MKSH_NOPWNAM
+			t = NULL;	/* fix "alias -dt" */
 #else
 			t = &homedirs;
 #endif
@@ -1077,6 +1077,10 @@ c_alias(const char **wp)
 			return (1);
 		}
 	}
+#ifdef MKSH_NOPWNAM
+	if (t == NULL)
+		return (0);
+#endif
 	wp += builtin_opt.optind;
 
 	if (!(builtin_opt.info & GI_MINUSMINUS) && *wp &&
@@ -1187,8 +1191,8 @@ c_unalias(const char **wp)
 			all = true;
 			break;
 		case 'd':
-#ifdef MKSH_SMALL
-			return (0);
+#ifdef MKSH_NOPWNAM
+			t = NULL;	/* fix "unalias -dt" */
 #else
 			t = &homedirs;
 #endif
@@ -1199,6 +1203,10 @@ c_unalias(const char **wp)
 		case '?':
 			return (1);
 		}
+#ifdef MKSH_NOPWNAM
+	if (t == NULL)
+		return (0);
+#endif
 	wp += builtin_opt.optind;
 
 	for (; *wp != NULL; wp++) {
