@@ -109,9 +109,18 @@
 #define __attribute____used__	/* nothing */
 #endif
 
+#if (defined(MirBSD) && (MirBSD >= 0x09A1))
+/*
+ * We got usable __IDSTRING __COPYRIGHT __RCSID __SCCSID macros
+ * which work for all cases; no need to redefine them using the
+ * "portable" macros from below when we might have the "better"
+ * gcc+ELF specific macros or other system dependent ones.
+ */
+#else
 #undef __IDSTRING
 #undef __IDSTRING_CONCAT
 #undef __IDSTRING_EXPAND
+#undef __COPYRIGHT
 #undef __RCSID
 #undef __SCCSID
 #define __IDSTRING_CONCAT(l,p)		__LINTED__ ## l ## _ ## p
@@ -119,11 +128,13 @@
 #define __IDSTRING(prefix, string)				\
 	static const char __IDSTRING_EXPAND(__LINE__,prefix) []	\
 	    __attribute____used__ = "@(""#)" #prefix ": " string
-#define __RCSID(x)	__IDSTRING(rcsid,x)
-#define __SCCSID(x)	__IDSTRING(sccsid,x)
+#define __COPYRIGHT(x)		__IDSTRING(copyright,x)
+#define __RCSID(x)		__IDSTRING(rcsid,x)
+#define __SCCSID(x)		__IDSTRING(sccsid,x)
+#endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.316 2009/07/25 21:31:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.317 2009/07/30 18:42:31 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/07/25"
 
