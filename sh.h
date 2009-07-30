@@ -134,9 +134,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.317 2009/07/30 18:42:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.318 2009/07/30 19:11:12 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2009/07/25"
+#define MKSH_VERSION "R39 2009/07/30"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1387,6 +1387,9 @@ int c_hash(const char **);
 int c_cd(const char **);
 int c_pwd(const char **);
 int c_print(const char **);
+#ifdef MKSH_PRINTF_BUILTIN
+int c_printf(const char **);
+#endif
 int c_whence(const char **);
 int c_command(const char **);
 int c_typeset(const char **);

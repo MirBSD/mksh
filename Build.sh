@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.412 2009/07/25 21:31:23 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.413 2009/07/30 19:11:09 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -21,6 +21,7 @@ srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.412 2009/07/25 21:31:23 tg Exp $'
 #-
 # Environment used:	CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF
 #			TARGET_OS TARGET_OSREV
+# Feature selectors:	USE_PRINTF_BUILTIN
 # CPPFLAGS recognised:	MKSH_SMALL MKSH_ASSUME_UTF8 MKSH_NOPWNAM MKSH_NOVI
 #			MKSH_CLS_STRING MKSH_BINSHREDUCED MKSH_UNEMPLOYED
 #			MKSH_CONSERVATIVE_FDS MKSH_MIDNIGHTBSD01ASH_COMPAT
@@ -244,8 +245,14 @@ ac_header() {
 }
 
 addsrcs() {
+	if test x"$1" = x"!"; then
+		fr=0
+		shift
+	else
+		fr=1
+	fi
 	eval i=\$$1
-	test 0 = $i && case " $SRCS " in
+	test $fr = "$i" && case " $SRCS " in
 	*\ $2\ *)	;;
 	*)		SRCS="$SRCS $2" ;;
 	esac
@@ -1345,8 +1352,10 @@ mksh_cfg: NSIG' >scn.c
 	$e done.
 fi
 
-addsrcs HAVE_SETMODE setmode.c
-addsrcs HAVE_STRLCPY strlcpy.c
+addsrcs ! HAVE_SETMODE setmode.c
+addsrcs ! HAVE_STRLCPY strlcpy.c
+addsrcs USE_PRINTF_BUILTIN printf.c
+test 1 = "$USE_PRINTF_BUILTIN" && CPPFLAGS="$CPPFLAGS -DMKSH_PRINTF_BUILTIN"
 test 0 = "$HAVE_SETMODE" && CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
 

@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.118 2009/07/25 21:31:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.119 2009/07/30 19:11:11 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -86,6 +86,9 @@ const struct builtin mkshbuiltins[] = {
 	{"+kill", c_kill},
 	{"let", c_let},
 	{"print", c_print},
+#ifdef MKSH_PRINTF_BUILTIN
+	{"printf", c_printf},
+#endif
 	{"pwd", c_pwd},
 	{"*=readonly", c_typeset},
 	{"=typeset", c_typeset},
