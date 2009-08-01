@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.63 2009/07/25 20:26:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.64 2009/08/01 19:31:02 tg Exp $");
 
 /*
  * string expansion
@@ -397,13 +397,13 @@ expand(const char *cp,	/* input word */
 								finc = flen + from;
 						} else
 							finc = from < flen ? from : flen;
-//						if (UTFMODE)
+						if (UTFMODE)
 							utfincptr(beg, &finc);
 						beg += finc;
 						flen = utflen(beg);
 						if (num < 0 || num > flen)
 							num = flen;
-//						if (UTFMODE)
+						if (UTFMODE)
 							utfincptr(beg, &num);
 						strndupx(x.str, beg, num, ATEMP);
 						goto do_CSUBST;
