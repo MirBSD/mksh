@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.58 2009/07/25 21:31:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.59 2009/08/01 20:32:44 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1297,7 +1297,7 @@ j_print(Job *j, int how, struct shf *shf)
 		coredumped = 0;
 		switch (p->state) {
 		case PRUNNING:
-			strlcpy(buf, "Running", sizeof(buf));
+			memcpy(buf, "Running", 8);
 			break;
 		case PSTOPPED:
 			strlcpy(buf, sigtraps[WSTOPSIG(p->status)].mess,
@@ -1307,7 +1307,7 @@ j_print(Job *j, int how, struct shf *shf)
 			if (how == JP_SHORT)
 				buf[0] = '\0';
 			else if (WEXITSTATUS(p->status) == 0)
-				strlcpy(buf, "Done", sizeof(buf));
+				memcpy(buf, "Done", 5);
 			else
 				shf_snprintf(buf, sizeof(buf), "Done (%d)",
 				    WEXITSTATUS(p->status));

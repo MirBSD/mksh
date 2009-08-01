@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.75 2009/06/11 12:42:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.76 2009/08/01 20:32:45 tg Exp $");
 
 /*
  * Variables
@@ -1239,7 +1239,7 @@ static struct tbl *
 arraysearch(struct tbl *vp, uint32_t val)
 {
 	struct tbl *prev, *curr, *new;
-	size_t namelen = strlen(vp->name) + 1;
+	size_t len;
 
 	vp->flag |= ARRAY|DEFINED;
 	vp->index = 0;
@@ -1255,11 +1255,13 @@ arraysearch(struct tbl *vp, uint32_t val)
 	if (curr && curr->index == val) {
 		if (curr->flag&ISSET)
 			return (curr);
-		else
-			new = curr;
+		new = curr;
 	} else
-		new = alloc(sizeof(struct tbl) + namelen, vp->areap);
-	strlcpy(new->name, vp->name, namelen);
+		new = NULL;
+	len = strlen(vp->name) + 1;
+	if (!new)
+		new = alloc(offsetof(struct tbl, name[0]) + len, vp->areap);
+	memcpy(new->name, vp->name, len);
 	new->flag = vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL);
 	new->type = vp->type;
 	new->areap = vp->areap;

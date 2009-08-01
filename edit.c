@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.172 2009/07/05 13:56:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.173 2009/08/01 20:32:43 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -3850,7 +3850,7 @@ vi_hook(int ch)
 				}
 			} else {
 				locpat[srchlen] = '\0';
-				(void)strlcpy(srchpat, locpat, sizeof(srchpat));
+				memcpy(srchpat, locpat, srchlen + 1);
 			}
 			state = VCMD;
 		} else if (ch == edchars.erase || ch == Ctrl('h')) {

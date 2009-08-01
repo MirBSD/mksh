@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.320 2009/08/01 20:29:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.321 2009/08/01 20:32:45 tg Rel $");
 #endif
 #define MKSH_VERSION "R39 2009/08/01"
 
@@ -422,10 +422,9 @@ char *ucstrstr(char *, const char *);
 	char *strdup_dst = NULL;					\
 									\
 	if (strdup_src != NULL) {					\
-		size_t strdup_len = strlen(strdup_src);			\
-		strdup_dst = alloc(strdup_len + 1, (ap));		\
+		size_t strdup_len = strlen(strdup_src) + 1;		\
+		strdup_dst = alloc(strdup_len, (ap));			\
 		memcpy(strdup_dst, strdup_src, strdup_len);		\
-		strdup_dst[strdup_len] = '\0';				\
 	}								\
 	(d) = strdup_dst;						\
 } while (/* CONSTCOND */ 0)
@@ -434,10 +433,10 @@ char *ucstrstr(char *, const char *);
 	char *strdup_dst = NULL;					\
 									\
 	if (strdup_src != NULL) {					\
-		size_t strdup_len = (n);				\
-		strdup_dst = alloc(strdup_len + 1, (ap));		\
-		memcpy(strdup_dst, strdup_src, strdup_len);		\
-		strdup_dst[strdup_len] = '\0';				\
+		size_t strndup_len = (n);				\
+		strdup_dst = alloc(strndup_len + 1, (ap));		\
+		memcpy(strdup_dst, strdup_src, strndup_len);		\
+		strdup_dst[strndup_len] = '\0';				\
 	}								\
 	(d) = strdup_dst;						\
 } while (/* CONSTCOND */ 0)
