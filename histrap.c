@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.86 2009/07/05 13:51:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.87 2009/08/01 14:07:42 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -658,8 +658,7 @@ hist_init(Source *s)
 {
 #if HAVE_PERSISTENT_HISTORY
 	unsigned char *base;
-	int lines;
-	int fd;
+	int lines, fd, rv = 0;
 #endif
 
 	if (Flag(FTALKING) == 0)
@@ -712,8 +711,6 @@ hist_init(Source *s)
 			goto retry;
 		}
 		if (hsize > 2) {
-			int rv = 0;
-
 			lines = hist_count_lines(base+2, hsize-2);
 			if (lines > histsize) {
 				/* we need to make the file smaller */
