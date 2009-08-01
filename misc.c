@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.113 2009/08/01 20:29:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.114 2009/08/01 20:31:47 tg Exp $");
 
 #undef USE_CHVT
 /* XXX conditions correct? */
@@ -1365,9 +1365,9 @@ chvt(const char *fn)
 	} else {
 		if (stat(fn, &sb)) {
 			memcpy(dv, "/dev/ttyC", 9);
-			strlcpy(dv + 9, fn, 20 - 9);
+			strlcpy(dv + 9, fn, sizeof(dv) - 9);
 			if (stat(dv, &sb)) {
-				strlcpy(dv + 8, fn, 20 - 8);
+				strlcpy(dv + 8, fn, sizeof(dv) - 8);
 				if (stat(dv, &sb))
 					errorf("chvt: can't find tty %s", fn);
 			}
