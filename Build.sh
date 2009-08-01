@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.418 2009/08/01 21:52:02 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.419 2009/08/01 21:58:06 tg Stab $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1154,6 +1154,7 @@ EOF
 
 ac_test mkstemp <<-'EOF'
 	#include <stdlib.h>
+	#include <unistd.h>
 	int main(void) { char tmpl[] = "X"; return (mkstemp(tmpl)); }
 EOF
 
@@ -1167,6 +1168,7 @@ ac_test realpath <<-'EOF'
 	#include <sys/param.h>
 	#endif
 	#include <stdlib.h>
+	#include <unistd.h>
 	#ifndef PATH_MAX
 	#define PATH_MAX 1024
 	#endif
