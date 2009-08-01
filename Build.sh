@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.413 2009/07/30 19:11:09 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.414 2009/08/01 14:12:13 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1086,7 +1086,7 @@ if test 0 = $HAVE_ARC4RANDOM; then
 	fi
 	if test -f arc4random.c; then
 		ac_header sys/sysctl.h
-		addsrcs HAVE_ARC4RANDOM arc4random.c
+		addsrcs ! HAVE_ARC4RANDOM arc4random.c
 		HAVE_ARC4RANDOM=1
 		LIBS="$LIBS arc4random.c"
 	fi
