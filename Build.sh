@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.416 2009/08/01 20:58:07 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.417 2009/08/01 21:51:24 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -489,7 +489,8 @@ $e $bi$me: Scanning for functions... please ignore any errors.$ao
 # - nwcc defines __GNUC__ too
 CPP="$CC -E"
 $e ... which compiler seems to be used
-echo '#if defined(__ICC) || defined(__INTEL_COMPILER)
+cat >scn.c <<'EOF'
+#if defined(__ICC) || defined(__INTEL_COMPILER)
 ct=icc
 #elif defined(__xlC__) || defined(__IBMC__)
 ct=xlc
@@ -541,7 +542,8 @@ ct=hpcc
 ct=ucode
 #else
 ct=unknown
-#endif' >scn.c
+#endif
+EOF
 ct=unknown
 vv ']' "$CPP scn.c | grep ct= | tr -d \\\\015 >x"
 sed 's/^/[ /' x
