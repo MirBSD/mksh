@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.415 2009/08/01 20:29:02 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.416 2009/08/01 20:58:07 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1086,7 +1086,7 @@ if test 0 = $HAVE_ARC4RANDOM; then
 	fi
 	if test -f arc4random.c; then
 		ac_header sys/sysctl.h
-		addsrcs ! HAVE_ARC4RANDOM arc4random.c
+		addsrcs '!' HAVE_ARC4RANDOM arc4random.c
 		HAVE_ARC4RANDOM=1
 		LIBS="$LIBS arc4random.c"
 
@@ -1362,8 +1362,8 @@ mksh_cfg: NSIG' >scn.c
 	$e done.
 fi
 
-addsrcs ! HAVE_SETMODE setmode.c
-addsrcs ! HAVE_STRLCPY strlcpy.c
+addsrcs '!' HAVE_SETMODE setmode.c
+addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && CPPFLAGS="$CPPFLAGS -DMKSH_PRINTF_BUILTIN"
 test 0 = "$HAVE_SETMODE" && CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
