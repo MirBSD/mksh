@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.417 2009/08/01 21:51:24 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.418 2009/08/01 21:52:02 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1087,11 +1087,6 @@ if test 0 = $HAVE_ARC4RANDOM; then
 		cp "$srcdir/arc4random.c" .
 	fi
 	if test -f arc4random.c; then
-		ac_header sys/sysctl.h
-		addsrcs '!' HAVE_ARC4RANDOM arc4random.c
-		HAVE_ARC4RANDOM=1
-		LIBS="$LIBS arc4random.c"
-
 		ac_testn can_uint8t '' "for uint8_t" <<-'EOF'
 			#include <sys/types.h>
 			#if HAVE_STDINT_H
@@ -1101,6 +1096,11 @@ if test 0 = $HAVE_ARC4RANDOM; then
 		EOF
 		test $HAVE_CAN_UINT8T = 1 || \
 		    CPPFLAGS="$CPPFLAGS -D\"uint8_t=unsigned char\""
+
+		ac_header sys/sysctl.h
+		addsrcs '!' HAVE_ARC4RANDOM arc4random.c
+		HAVE_ARC4RANDOM=1
+		LIBS="$LIBS arc4random.c"
 	fi
 fi
 ac_cppflags ARC4RANDOM
