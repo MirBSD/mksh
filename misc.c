@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.112 2009/07/25 21:31:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.113 2009/08/01 20:29:24 tg Exp $");
 
 #undef USE_CHVT
 /* XXX conditions correct? */
@@ -1479,8 +1479,9 @@ strndup_(const char *src, size_t len, Area *ap)
 	char *dst = NULL;
 
 	if (src != NULL) {
-		dst = alloc(++len, ap);
-		strlcpy(dst, src, len);
+		dst = alloc(len + 1, ap);
+		memcpy(dst, src, len);
+		dst[len] = '\0';
 	}
 	return (dst);
 }
