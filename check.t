@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.297 2009/08/01 14:21:29 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.298 2009/08/01 21:57:52 tg Stab $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4679,8 +4679,11 @@ expected-stdout:
 ---
 name: utf8opt-2a
 description:
-	Check that the utf8-mode flag is set at interactive startup
-	Expected failure if -DMKSH_ASSUME_UTF8=0
+	Check that the utf8-mode flag is set at interactive startup.
+	-DMKSH_ASSUME_UTF8=0 => expected failure, please ignore
+	-DMKSH_ASSUME_UTF8=1 => not expected, please investigate
+	-UMKSH_ASSUME_UTF8 => not expected, but if your OS is old,
+	 try passing HAVE_SETLOCALE_CTYPE=0 to Build.sh
 category: !os:hpux
 arguments: !-i!
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.UTF-8!
