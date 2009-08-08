@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.420 2009/08/08 13:08:48 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.421 2009/08/08 13:52:35 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1209,6 +1209,7 @@ ac_test setmode mknod 1 <<-'EOF'
 	/* force a failure: Win32 setmode() is not what we want... */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
+	#include <sys/types.h>
 	#include <unistd.h>
 	int main(int ac, char *av[]) { return (getmode(setmode(av[0]),
 	    (mode_t)ac)); }
