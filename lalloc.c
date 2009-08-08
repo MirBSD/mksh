@@ -20,7 +20,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.10 2009/05/16 16:59:37 tg Stab $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.11 2009/08/08 13:08:51 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -28,6 +28,8 @@ __RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.10 2009/05/16 16:59:37 tg Stab $");
 #else
 #define remalloc(p,n)	realloc((p), (n))
 #endif
+
+#define ALLOC_ISUNALIGNED(p) (((ptrdiff_t)(p)) % ALLOC_SIZE)
 
 static ALLOC_ITEM *findptr(ALLOC_ITEM **, char *, Area *);
 
@@ -41,12 +43,26 @@ ainit(Area *ap)
 static ALLOC_ITEM *
 findptr(ALLOC_ITEM **lpp, char *ptr, Area *ap)
 {
+	void *lp;
+
+#ifndef MKSH_SMALL
+	if (ALLOC_ISUNALIGNED(ptr))
+		goto fail;
+#endif
 	/* get address of ALLOC_ITEM from user item */
-	*lpp = (ALLOC_ITEM *)(ptr - ALLOC_SIZE);
+	/*
+	 * note: the alignment of "ptr" to ALLOC_SIZE is checked
+	 * above; the "void *" gets us rid of a gcc 2.95 warning
+	 */
+	*lpp = (lp = ptr - ALLOC_SIZE);
 	/* search for allocation item in group list */
-	while (ap->next != *lpp)
-		if ((ap = ap->next) == NULL)
+	while (ap->next != lp)
+		if ((ap = ap->next) == NULL) {
+#ifndef MKSH_SMALL
+ fail:
+#endif
 			internal_errorf("rogue pointer %p", ptr);
+		}
 	return (ap);
 }
 
@@ -64,7 +80,11 @@ aresize(void *ptr, size_t numb, Area *ap)
 	}
 
 	if ((numb >= SIZE_MAX - ALLOC_SIZE) ||
-	    (lp = remalloc(lp, numb + ALLOC_SIZE)) == NULL)
+	    (lp = remalloc(lp, numb + ALLOC_SIZE)) == NULL
+#ifndef MKSH_SMALL
+	    || ALLOC_ISUNALIGNED(lp)
+#endif
+	    )
 		internal_errorf("cannot allocate %lu data bytes",
 		    (unsigned long)numb);
 	/* this only works because Area is an ALLOC_ITEM */

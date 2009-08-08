@@ -134,9 +134,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.321 2009/08/01 20:32:45 tg Rel $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.322 2009/08/08 13:08:52 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2009/08/01"
+#define MKSH_VERSION "R39 2009/08/08"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -594,7 +594,7 @@ enum sh_flag {
 #define Flag(f)	(shell_flags[(int)(f)])
 #define UTFMODE	Flag(FUTFMODE)
 
-EXTERN char shell_flags[FNFLAGS];
+EXTERN unsigned char shell_flags[FNFLAGS];
 
 /* null value for variable; comparision pointer for unset */
 EXTERN char null[] I__("");
@@ -1551,7 +1551,7 @@ void setctypes(const char *, int);
 void initctypes(void);
 size_t option(const char *);
 char *getoptions(void);
-void change_flag(enum sh_flag, int, char);
+void change_flag(enum sh_flag, int, unsigned int);
 int parse_args(const char **, int, int *);
 int getn(const char *, int *);
 int bi_getn(const char *, int *);

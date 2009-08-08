@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.29 2009/06/10 18:12:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.30 2009/08/08 13:08:50 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -545,8 +545,8 @@ exprtoken(Expr_state *es)
 		int i, n0;
 
 		for (i = 0; (n0 = opinfo[i].name[0]); i++)
-			if (c == n0 &&
-			    strncmp(cp, opinfo[i].name, opinfo[i].len) == 0) {
+			if (c == n0 && strncmp(cp, opinfo[i].name,
+			    (size_t)opinfo[i].len) == 0) {
 				es->tok = (enum token)i;
 				cp += opinfo[i].len;
 				break;

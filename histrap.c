@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.87 2009/08/01 14:07:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.88 2009/08/08 13:08:51 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -556,7 +556,7 @@ sethistfile(const char *name)
 	 */
 	if (histfd) {
 		/* yes the file is open */
-		(void) close(histfd);
+		(void)close(histfd);
 		histfd = 0;
 		hsize = 0;
 		afree(hname, APERM);
@@ -682,9 +682,9 @@ hist_init(Source *s)
 	if (histfd != fd)
 		close(fd);
 
-	(void) flock(histfd, LOCK_EX);
+	(void)flock(histfd, LOCK_EX);
 
-	hsize = lseek(histfd, 0L, SEEK_END);
+	hsize = lseek(histfd, (off_t)0, SEEK_END);
 
 	if (hsize == 0) {
 		/* add magic */
@@ -697,7 +697,7 @@ hist_init(Source *s)
 		 * we have some data
 		 */
 		base = (void *)mmap(NULL, hsize, PROT_READ,
-		    MAP_FILE | MAP_PRIVATE, histfd, 0);
+		    MAP_FILE | MAP_PRIVATE, histfd, (off_t)0);
 		/*
 		 * check on its validity
 		 */
@@ -731,8 +731,8 @@ hist_init(Source *s)
 		histload(hist_source, base+2, hsize-2);
 		munmap((caddr_t)base, hsize);
 	}
-	(void) flock(histfd, LOCK_UN);
-	hsize = lseek(histfd, 0L, SEEK_END);
+	(void)flock(histfd, LOCK_UN);
+	hsize = lseek(histfd, (off_t)0, SEEK_END);
 #endif
 }
 
@@ -931,8 +931,8 @@ writehistfile(int lno, char *cmd)
 	int	bytes;
 	unsigned char	hdr[5];
 
-	(void) flock(histfd, LOCK_EX);
-	sizenow = lseek(histfd, 0L, SEEK_END);
+	(void)flock(histfd, LOCK_EX);
+	sizenow = lseek(histfd, (off_t)0, SEEK_END);
 	if (sizenow != hsize) {
 		/*
 		 *	Things have changed
@@ -941,7 +941,7 @@ writehistfile(int lno, char *cmd)
 			/* someone has added some lines */
 			bytes = sizenow - hsize;
 			base = (void *)mmap(NULL, sizenow, PROT_READ,
-			    MAP_FILE | MAP_PRIVATE, histfd, 0);
+			    MAP_FILE | MAP_PRIVATE, histfd, (off_t)0);
 			if (base == (unsigned char *)MAP_FAILED)
 				goto bad;
 			new = base + hsize;
@@ -974,8 +974,8 @@ writehistfile(int lno, char *cmd)
 	if ((write(histfd, hdr, 5) != 5) ||
 	    (write(histfd, cmd, bytes) != bytes))
 		goto bad;
-	hsize = lseek(histfd, 0L, SEEK_END);
-	(void) flock(histfd, LOCK_UN);
+	hsize = lseek(histfd, (off_t)0, SEEK_END);
+	(void)flock(histfd, LOCK_UN);
 	return;
  bad:
 	hist_finish();
@@ -984,8 +984,8 @@ writehistfile(int lno, char *cmd)
 void
 hist_finish(void)
 {
-	(void) flock(histfd, LOCK_UN);
-	(void) close(histfd);
+	(void)flock(histfd, LOCK_UN);
+	(void)close(histfd);
 	histfd = 0;
 }
 

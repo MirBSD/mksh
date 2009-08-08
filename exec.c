@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.59 2009/06/11 12:42:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.60 2009/08/08 13:08:49 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile, volatile int *);
@@ -537,7 +537,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 		break;
 
 	case CFUNC: {			/* function call */
-		volatile char old_xflag;
+		volatile unsigned char old_xflag;
 		volatile Tflag old_inuse;
 		const char *volatile old_kshname;
 
@@ -901,7 +901,7 @@ findcom(const char *name, int flags)
 	static struct tbl temp;
 	unsigned int h = hash(name);
 	struct tbl *tp = NULL, *tbi;
-	int insert = Flag(FTRACKALL);	/* insert if not found */
+	unsigned char insert = Flag(FTRACKALL);	/* insert if not found */
 	char *fpath;			/* for function autoloading */
 	union mksh_cchack npath;
 
@@ -1401,7 +1401,7 @@ static char *plain_fmt_entry(const void *, int, char *, int);
 static char *
 plain_fmt_entry(const void *arg, int i, char *buf, int buflen)
 {
-	shf_snprintf(buf, buflen, "%s", ((char *const *)arg)[i]);
+	shf_snprintf(buf, buflen, "%s", ((const char * const *)arg)[i]);
 	return (buf);
 }
 

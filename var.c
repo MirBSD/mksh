@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.76 2009/08/01 20:32:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.77 2009/08/08 13:08:53 tg Exp $");
 
 /*
  * Variables
@@ -919,7 +919,7 @@ makenv(void)
  */
 #if HAVE_ARC4RANDOM && !defined(MKSH_SMALL)
 static uint32_t rnd_cache[2];
-static char rnd_lastflag = 2;
+static unsigned char rnd_lastflag = 2;
 #endif
 
 static int

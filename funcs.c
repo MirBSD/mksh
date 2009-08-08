@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.119 2009/07/30 19:11:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.120 2009/08/08 13:08:50 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1629,7 +1629,7 @@ c_umask(const char **wp)
 		}
 	cp = wp[builtin_opt.optind];
 	if (cp == NULL) {
-		old_umask = umask(0);
+		old_umask = umask((mode_t)0);
 		umask(old_umask);
 		if (symbolic) {
 			char buf[18], *p;
@@ -1664,7 +1664,7 @@ c_umask(const char **wp)
 			int positions, new_val;
 			char op;
 
-			old_umask = umask(0);
+			old_umask = umask((mode_t)0);
 			umask(old_umask); /* in case of error */
 			old_umask = ~old_umask;
 			new_umask = old_umask;
@@ -1978,7 +1978,7 @@ int
 c_eval(const char **wp)
 {
 	struct source *s, *saves = source;
-	char savef;
+	unsigned char savef;
 	int rv;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
@@ -2402,7 +2402,7 @@ c_mknod(const char **wp)
 				bi_errorf("invalid file mode");
 				return (1);
 			}
-			mode = getmode(set, DEFFILEMODE);
+			mode = getmode(set, (mode_t)(DEFFILEMODE));
 			free(set);
 			break;
 		default:
@@ -2420,7 +2420,7 @@ c_mknod(const char **wp)
 		goto c_mknod_usage;
 
 	if (set != NULL)
-		oldmode = umask(0);
+		oldmode = umask((mode_t)0);
 	else
 		mode = DEFFILEMODE;
 
@@ -2623,13 +2623,9 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 		if ((i = *opnd1 == '!'))
 			opnd1++;
 		if ((k = option(opnd1)) == (size_t)-1)
-			k = 0;
-		else {
-			k = Flag(k);
-			if (i)
-				k = !k;
-		}
-		return (k);
+			return (0);
+		s = Flag(k);
+		return (i ? !s : s);
 	case TO_FILRD: /* -r */
 		return (test_eaccess(opnd1, R_OK) == 0);
 	case TO_FILWR: /* -w */

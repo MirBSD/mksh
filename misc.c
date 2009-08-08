@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.114 2009/08/01 20:31:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.115 2009/08/08 13:08:52 tg Exp $");
 
 #undef USE_CHVT
 /* XXX conditions correct? */
@@ -238,11 +238,9 @@ getoptions(void)
 
 /* change a Flag(*) value; takes care of special actions */
 void
-change_flag(enum sh_flag f,
-    int what,		/* flag to change */
-    char newval)	/* what is changing the flag (command line vs set) */
+change_flag(enum sh_flag f, int what, unsigned int newval)
 {
-	char oldval;
+	unsigned char oldval;
 
 	oldval = Flag(f);
 	Flag(f) = newval ? 1 : 0;	/* needed for tristates */
@@ -261,7 +259,7 @@ change_flag(enum sh_flag f,
 		Flag(FVI) =
 #endif
 		    Flag(FEMACS) = Flag(FGMACS) = 0;
-		Flag(f) = newval;
+		Flag(f) = (unsigned char)newval;
 	} else if (f == FPRIVILEGED && oldval && !newval) {
 		/* Turning off -p? */
 #if HAVE_SETRESUGID
@@ -284,7 +282,7 @@ change_flag(enum sh_flag f,
 	/* Changing interactive flag? */
 	if (f == FTALKING) {
 		if ((what == OF_CMDLINE || what == OF_SET) && procpid == kshpid)
-			Flag(FTALKING_I) = newval;
+			Flag(FTALKING_I) = (unsigned char)newval;
 	}
 }
 
@@ -791,7 +789,7 @@ pat_scan(const unsigned char *p, const unsigned char *pe, int match_sep)
 int
 xstrcmp(const void *p1, const void *p2)
 {
-	return (strcmp(*(char * const *)p1, *(char * const *)p2));
+	return (strcmp(*(const char * const *)p1, *(const char * const *)p2));
 }
 
 /* Initialise a Getopt structure */
@@ -1377,7 +1375,7 @@ chvt(const char *fn)
 			errorf("chvt: not a char device: %s", fn);
 		if ((sb.st_uid != 0) && chown(fn, 0, 0))
 			warningf(false, "chvt: cannot chown root %s", fn);
-		if (((sb.st_mode & 07777) != 0600) && chmod(fn, 0600))
+		if (((sb.st_mode & 07777) != 0600) && chmod(fn, (mode_t)0600))
 			warningf(false, "chvt: cannot chmod 0600 %s", fn);
 #if HAVE_REVOKE
 		if (revoke(fn))

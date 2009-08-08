@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.419 2009/08/01 21:58:06 tg Stab $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.420 2009/08/08 13:08:48 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -972,7 +972,7 @@ ac_cppflags STDINT_H
 #
 echo '#include <sys/types.h>
 /* check that off_t can represent 2^63-1 correctly, thx FSF */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T (((off_t)1 << 62) - 1 + ((off_t)1 << 62))
 int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721 &&
     LARGE_OFF_T % 2147483647 == 1) ? 1 : -1];
 int main(void) { return (0); }' >lft.c
@@ -1123,7 +1123,7 @@ ac_testn flock_ex '' 'flock and mmap' <<-'EOF'
 	#include <fcntl.h>
 	#include <stdlib.h>
 	int main(void) { return ((void *)mmap(NULL, (size_t)flock(0, LOCK_EX),
-	    PROT_READ, MAP_PRIVATE, 0, 0) == (void *)NULL ? 1 :
+	    PROT_READ, MAP_PRIVATE, 0, (off_t)0) == (void *)NULL ? 1 :
 	    munmap(NULL, 0)); }
 EOF
 
@@ -1147,8 +1147,9 @@ ac_test mknod '' 'if to use mknod(), makedev() and friends' <<-'EOF'
 	#include "sh.h"
 	int main(int ac, char *av[]) {
 		dev_t dv;
-		dv = makedev((unsigned int)ac, 1);
-		return (mknod(av[0], 0, dv) ? (int)major(dv) : (int)minor(dv));
+		dv = makedev((unsigned int)ac, (unsigned int)av[0][0]);
+		return (mknod(av[0], (mode_t)0, dv) ? (int)major(dv) :
+		    (int)minor(dv));
 	}
 EOF
 
@@ -1209,7 +1210,8 @@ ac_test setmode mknod 1 <<-'EOF'
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
 	#include <unistd.h>
-	int main(int ac, char *av[]) { return (getmode(setmode(av[0]), ac)); }
+	int main(int ac, char *av[]) { return (getmode(setmode(av[0]),
+	    (mode_t)ac)); }
 	#endif
 EOF
 
@@ -1242,7 +1244,8 @@ EOF
 
 ac_test strlcpy <<-'EOF'
 	#include <string.h>
-	int main(int ac, char *av[]) { return (strlcpy(*av, av[1], ac)); }
+	int main(int ac, char *av[]) { return (strlcpy(*av, av[1],
+	    (size_t)ac)); }
 EOF
 
 #

@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.136 2009/07/25 21:31:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.137 2009/08/08 13:08:51 tg Exp $");
 
 extern char **environ;
 
@@ -90,7 +90,7 @@ main(int argc, const char *argv[])
 	int argi, i;
 	Source *s;
 	struct block *l;
-	int restricted, errexit;
+	unsigned char restricted, errexit;
 	const char **wp;
 	pid_t ppid;
 	struct tbl *vp;
@@ -412,8 +412,7 @@ main(int argc, const char *argv[])
 		/* After typeset command... */
 		Flag(FRESTRICTED) = 1;
 	}
-	if (errexit)
-		Flag(FERREXIT) = 1;
+	Flag(FERREXIT) = errexit;
 
 	if (Flag(FTALKING)) {
 		hist_init(s);
@@ -1373,8 +1372,8 @@ ktnext(struct tstate *ts)
 static int
 tnamecmp(const void *p1, const void *p2)
 {
-	const struct tbl *a = *((struct tbl * const *)p1);
-	const struct tbl *b = *((struct tbl * const *)p2);
+	const struct tbl *a = *((const struct tbl * const *)p1);
+	const struct tbl *b = *((const struct tbl * const *)p2);
 
 	return (strcmp(a->name, b->name));
 }
