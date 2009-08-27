@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.46 2009/08/27 16:03:52 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.47 2009/08/27 16:29:21 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -292,6 +292,31 @@ function Lcdbhash_add {
 function Lcdbhash {
 	Lcdbhash_result=5381
 	Lcdbhash_add "$@"
+}
+
+# Jenkins one-at-a-time hash (not via stdio, for speed)
+typeset -Z11 -Uui16 Loaathash_result
+function Loaathash_add {
+	typeset u=$-
+	set +U
+	typeset s="$*"
+	typeset -i i=0 n=${#s}
+
+	while (( i < n )); do
+		((# Loaathash_result += 1#${s:(i++):1} ))
+		((# Loaathash_result += Loaathash_result << 10 ))
+		((# Loaathash_result ^= Loaathash_result >> 6 ))
+	done
+
+	[[ $u = *U* ]] && set -U
+	:
+}
+function Loaathash {
+	Loaathash_result=0	# hmm...
+	Loaathash_add "$@"
+	((# Loaathash_result += Loaathash_result << 3 ))
+	((# Loaathash_result ^= Loaathash_result >> 11 ))
+	((# Loaathash_result += Loaathash_result << 15 ))
 }
 
 # strip comments (and leading/trailing whitespace if IFS is set) from
