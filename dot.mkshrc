@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.45 2009/06/22 17:38:39 tg Rel $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.46 2009/08/27 16:03:52 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -283,8 +283,7 @@ function Lcdbhash_add {
 	typeset -i i=0 n=${#s}
 
 	while (( i < n )); do
-		(( Lcdbhash_result = ((Lcdbhash_result << 5) + \
-		    Lcdbhash_result) ^ 1#${s:(i++):1} ))
+		(( Lcdbhash_result = (Lcdbhash_result * 33) ^ 1#${s:(i++):1} ))
 	done
 
 	[[ $u = *U* ]] && set -U
