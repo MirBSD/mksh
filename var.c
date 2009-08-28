@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.83 2009/08/28 21:04:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.84 2009/08/28 21:07:27 tg Exp $");
 
 /*
  * Variables
@@ -1315,9 +1315,8 @@ arrayname(const char *str)
 	return (rv);
 }
 
-/* Set (or overwrite, if reset) the array variable var to the values in vals.
- */
-void
+/* set (or overwrite, if reset) the array variable var to the values in vals */
+uint32_t
 set_array(const char *var, bool reset, const char **vals)
 {
 	struct tbl *vp, *vq;
@@ -1342,6 +1341,8 @@ set_array(const char *var, bool reset, const char **vals)
 		/* would be nice to deal with errors here... (see above) */
 		setstr(vq, vals[i], KSH_RETURN_ERROR);
 	}
+
+	return (i);
 }
 
 void
