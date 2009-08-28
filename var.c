@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.85 2009/08/28 22:23:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.86 2009/08/28 22:44:47 tg Exp $");
 
 /*
  * Variables
@@ -1320,7 +1320,9 @@ mksh_uari_t
 set_array(const char *var, bool reset, const char **vals)
 {
 	struct tbl *vp, *vq;
-	mksh_uari_t i;
+	mksh_uari_t i, n;
+	const char *ccp;
+	char *cp;
 
 	/* to get local array, use "typeset foo; set -A foo" */
 	vp = global(var);
@@ -1336,10 +1338,34 @@ set_array(const char *var, bool reset, const char **vals)
 	 * completely fail. Only really effects integer arrays:
 	 * evaluation of some of vals[] may fail...
 	 */
-	for (i = 0; vals[i]; i++) {
-		vq = arraysearch(vp, i);
+	for (n = i = 0; (ccp = vals[i]); n = ++i) {
+		if (*ccp == '[') {
+			int level = 0;
+
+			while (*ccp) {
+				if (*ccp == ']' && --level == 0)
+					break;
+				if (*ccp == '[')
+					++level;
+				++ccp;
+			}
+			if (*ccp == ']' && level == 0 && ccp[1] == '=') {
+				strndupx(cp, vals[i] + 1, ccp - (vals[i] + 1),
+				    ATEMP);
+				evaluate(substitute(cp, 0), &n,
+				    KSH_UNWIND_ERROR, true);
+				ccp += 2;
+			} else
+				ccp = vals[i];
+		}
+
+		vq = arraysearch(vp, n);
 		/* would be nice to deal with errors here... (see above) */
-		setstr(vq, vals[i], KSH_RETURN_ERROR);
+#if 0
+		shprintf("setting '%s'[%lu]='%s'  <- '%s'\n",
+		    vp->name, (unsigned long)n, ccp, vals[i]);
+#endif
+		setstr(vq, ccp, KSH_RETURN_ERROR);
 	}
 
 	return (i);
