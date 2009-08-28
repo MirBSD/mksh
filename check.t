@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.300 2009/08/28 21:35:42 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.301 2009/08/28 22:46:19 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2009/08/08
+	@(#)MIRBSD KSH R39 2009/08/28
 description:
 	Check version of shell.
 stdin:
@@ -4942,6 +4942,69 @@ stdin:
 expected-stdout:
 	a b c d e
 	f g a b c d e f
+---
+name: arrays-4
+description:
+	Check if Korn Shell arrays with specified indices work as expected
+stdin:
+	v="c d"
+	set -A foo -- [1]=\$v [2]="$v" [4]='$v' [0]=a [5]=b
+	echo "${#foo[*]}|${foo[0]}|${foo[1]}|${foo[2]}|${foo[3]}|${foo[4]}|${foo[5]}|"
+expected-stdout:
+	5|a|$v|c d||$v|b|
+---
+name: arrays-5
+description:
+	Check if bash-style arrays with specified indices work as expected
+stdin:
+	v="c d"
+	foo=([1]=\$v [2]="$v" [4]='$v' [0]=a [5]=b)
+	echo "${#foo[*]}|${foo[0]}|${foo[1]}|${foo[2]}|${foo[3]}|${foo[4]}|${foo[5]}|"
+expected-stdout:
+	5|a|$v|c d||$v|b|
+---
+name: arrays-6
+description:
+	Check if we can get the array keys (indices) for indexed arrays,
+	Korn shell style
+stdin:
+	of() {
+		i=0
+		for x in "$@"; do
+			echo -n "$((i++))<$x>"
+		done
+		echo
+	}
+	foo[1]=eins
+	set | grep '^foo'
+	echo =
+	foo[0]=zwei
+	foo[4]=drei
+	set | grep '^foo'
+	echo =
+	echo a $(of ${foo[*]}) = $(of ${bar[*]}) a
+	echo b $(of "${foo[*]}") = $(of "${bar[*]}") b
+	echo c $(of ${foo[@]}) = $(of ${bar[@]}) c
+	echo d $(of "${foo[@]}") = $(of "${bar[@]}") d
+	echo e $(of ${!foo[*]}) = $(of ${!bar[*]}) e
+	echo f $(of "${!foo[*]}") = $(of "${!bar[*]}") f
+	echo g $(of ${!foo[@]}) = $(of ${!bar[@]}) g
+	echo h $(of "${!foo[@]}") = $(of "${!bar[@]}") h
+expected-stdout:
+	foo[1]=eins
+	=
+	foo[0]=zwei
+	foo[1]=eins
+	foo[4]=drei
+	=
+	a 0<zwei>1<eins>2<drei> = a
+	b 0<zwei eins drei> = 0<> b
+	c 0<zwei>1<eins>2<drei> = c
+	d 0<zwei>1<eins>2<drei> = d
+	e 0<0>1<1>2<4> = e
+	f 0<0 1 4> = 0<> f
+	g 0<0>1<1>2<4> = g
+	h 0<0>1<1>2<4> = h
 ---
 name: varexpand-substr-1
 description:
