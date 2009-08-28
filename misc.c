@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.115 2009/08/08 13:08:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.116 2009/08/28 21:04:16 tg Exp $");
 
 #undef USE_CHVT
 /* XXX conditions correct? */
@@ -446,7 +446,7 @@ parse_args(const char **argv,
 		    xstrcmp);
 	}
 	if (arrayset) {
-		set_array(array, arrayset, argv + go.optind);
+		set_array(array, arrayset > 0 ? true : false, argv + go.optind);
 		for (; argv[go.optind]; go.optind++)
 			;
 	}

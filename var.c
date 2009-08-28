@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.82 2009/08/28 21:01:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.83 2009/08/28 21:04:18 tg Exp $");
 
 /*
  * Variables
@@ -1315,10 +1315,10 @@ arrayname(const char *str)
 	return (rv);
 }
 
-/* Set (or overwrite, if !reset) the array variable var to the values in vals.
+/* Set (or overwrite, if reset) the array variable var to the values in vals.
  */
 void
-set_array(const char *var, int reset, const char **vals)
+set_array(const char *var, bool reset, const char **vals)
 {
 	struct tbl *vp, *vq;
 	uint32_t i;
@@ -1330,7 +1330,7 @@ set_array(const char *var, int reset, const char **vals)
 	if ((vp->flag&RDONLY))
 		errorf("%s: is read only", var);
 	/* This code is quite non-optimal */
-	if (reset > 0)
+	if (reset)
 		/* trash existing values and attributes */
 		unset(vp, 0);
 	/* todo: would be nice for assignment to completely succeed or
