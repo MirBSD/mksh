@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.324 2009/08/28 18:53:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.325 2009/08/28 18:59:01 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/08/08"
 
@@ -968,7 +968,7 @@ struct block {
  */
 struct tstate {
 	struct tbl **next;
-	int left;
+	ssize_t left;
 };
 
 EXTERN struct table taliases;	/* tracked aliases */
