@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.77 2009/08/08 13:08:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.78 2009/08/28 18:54:01 tg Exp $");
 
 /*
  * Variables
@@ -125,7 +125,8 @@ initvar(void)
 	int i;
 	struct tbl *tp;
 
-	ktinit(&specials, APERM, 16); /* must be 2^n (currently 12 specials) */
+	ktinit(&specials, APERM,
+	    /* must be 80% of 2^n (currently 12 specials) */ 16);
 	for (i = 0; names[i].name; i++) {
 		tp = ktenter(&specials, names[i].name, hash(names[i].name));
 		tp->flag = DEFINED|ISSET;
@@ -171,9 +172,8 @@ global(const char *n)
 	struct block *l = e->loc;
 	struct tbl *vp;
 	int c;
-	unsigned int h;
 	bool array;
-	uint32_t val;
+	uint32_t h, val;
 
 	/* Check to see if this is an array */
 	n = array_index_calc(n, &array, &val);
@@ -252,9 +252,8 @@ local(const char *n, bool copy)
 {
 	struct block *l = e->loc;
 	struct tbl *vp;
-	unsigned int h;
 	bool array;
-	uint32_t val;
+	uint32_t h, val;
 
 	/* Check to see if this is an array */
 	n = array_index_calc(n, &array, &val);
@@ -889,7 +888,7 @@ makenv(void)
 			    (vp->flag&(ISSET|EXPORT)) == (ISSET|EXPORT)) {
 				struct block *l2;
 				struct tbl *vp2;
-				unsigned int h = hash(vp->name);
+				uint32_t h = hash(vp->name);
 
 				/* unexport any redefined instances */
 				for (l2 = l->next; l2 != NULL; l2 = l2->next) {

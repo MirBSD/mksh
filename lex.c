@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.89 2009/07/06 15:06:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.90 2009/08/28 18:53:58 tg Exp $");
 
 /*
  * states while lexing word
@@ -909,7 +909,7 @@ yylex(int cf)
 
 	if (*ident != '\0' && (cf&(KEYWORD|ALIAS))) {
 		struct tbl *p;
-		int h = hash(ident);
+		uint32_t h = hash(ident);
 
 		/* { */
 		if ((cf & KEYWORD) && (p = ktsearch(&keywords, ident, h)) &&

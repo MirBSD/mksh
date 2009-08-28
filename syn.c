@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.38 2009/06/11 12:42:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.39 2009/08/28 18:54:00 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -696,10 +696,10 @@ block(int type, struct op *t1, struct op *t2, char **wp)
 	return (t);
 }
 
-const	struct tokeninfo {
+const struct tokeninfo {
 	const char *name;
-	short	val;
-	short	reserved;
+	short val;
+	short reserved;
 } tokentab[] = {
 	/* Reserved words */
 	{ "if",		IF,	true },
@@ -739,7 +739,8 @@ initkeywords(void)
 	struct tokeninfo const *tt;
 	struct tbl *p;
 
-	ktinit(&keywords, APERM, 32); /* must be 2^n (currently 20 keywords) */
+	ktinit(&keywords, APERM,
+	    /* must be 80% of 2^n (currently 20 keywords) */ 32);
 	for (tt = tokentab; tt->name; tt++) {
 		if (tt->reserved) {
 			p = ktenter(&keywords, tt->name, hash(tt->name));

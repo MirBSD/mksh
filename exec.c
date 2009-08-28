@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.60 2009/08/08 13:08:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.61 2009/08/28 18:53:57 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile, volatile int *);
@@ -800,7 +800,7 @@ shcomexec(const char **wp)
  * is created if none is found.
  */
 struct tbl *
-findfunc(const char *name, unsigned int h, int create)
+findfunc(const char *name, uint32_t h, int create)
 {
 	struct block *l;
 	struct tbl *tp = NULL;
@@ -899,7 +899,7 @@ struct tbl *
 findcom(const char *name, int flags)
 {
 	static struct tbl temp;
-	unsigned int h = hash(name);
+	uint32_t h = hash(name);
 	struct tbl *tp = NULL, *tbi;
 	unsigned char insert = Flag(FTRACKALL);	/* insert if not found */
 	char *fpath;			/* for function autoloading */

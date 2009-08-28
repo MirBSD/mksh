@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.137 2009/08/08 13:08:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.138 2009/08/28 18:53:59 tg Exp $");
 
 extern char **environ;
 
@@ -148,7 +148,8 @@ main(int argc, const char *argv[])
 	initkeywords();
 
 	/* define built-in commands */
-	ktinit(&builtins, APERM, 64); /* must be 2^n (currently 44 builtins) */
+	ktinit(&builtins, APERM,
+	    /* must be 80% of 2^n (currently 44 builtins) */ 64);
 	for (i = 0; mkshbuiltins[i].name != NULL; i++)
 		builtin(mkshbuiltins[i].name, mkshbuiltins[i].func);
 
@@ -1233,36 +1234,36 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 
 #define	INIT_TBLS	8	/* initial table size (power of 2) */
 
-static void texpand(struct table *, int);
+static void texpand(struct table *, size_t);
 static int tnamecmp(const void *, const void *);
 
-unsigned int
-hash(const char *n)
+/* Bob Jenkins' one-at-a-time hash */
+uint32_t
+hash(const char *cp)
 {
-	unsigned int h = 0;
+	register uint32_t h = 0;
+	register uint8_t c;
+	register const uint8_t *bp = (const uint8_t *)cp;
 
-	while (*n != '\0')
-		h = 2*h + *n++;
-	return (h * 32821);	/* scatter bits */
-}
+	while ((c = *bp++)) {
+		h += c;
+		h += h << 10;
+		h ^= h >> 6;
+	}
 
-void
-ktinit(struct table *tp, Area *ap, int tsize)
-{
-	tp->areap = ap;
-	tp->tbls = NULL;
-	tp->size = tp->nfree = 0;
-	if (tsize)
-		texpand(tp, tsize);
+	h += h << 3;
+	h ^= h >> 11;
+	h += h << 15;
+
+	return (h);
 }
 
 static void
-texpand(struct table *tp, int nsize)
+texpand(struct table *tp, size_t nsize)
 {
-	int i;
+	size_t i, osize = tp->size;
 	struct tbl *tblp, **p;
 	struct tbl **ntblp, **otblp = tp->tbls;
-	int osize = tp->size;
 
 	ntblp = alloc(nsize * sizeof(struct tbl *), tp->areap);
 	for (i = 0; i < nsize; i++)
@@ -1288,11 +1289,19 @@ texpand(struct table *tp, int nsize)
 	afree(otblp, tp->areap);
 }
 
-/* table */
-/* name to enter */
-/* hash(n) */
+void
+ktinit(struct table *tp, Area *ap, size_t tsize)
+{
+	tp->areap = ap;
+	tp->tbls = NULL;
+	tp->size = tp->nfree = 0;
+	if (tsize)
+		texpand(tp, tsize);
+}
+
+/* table, name (key) to search for, hash(n) */
 struct tbl *
-ktsearch(struct table *tp, const char *n, unsigned int h)
+ktsearch(struct table *tp, const char *n, uint32_t h)
 {
 	struct tbl **pp, *p;
 
@@ -1311,11 +1320,9 @@ ktsearch(struct table *tp, const char *n, unsigned int h)
 	return (NULL);
 }
 
-/* table */
-/* name to enter */
-/* hash(n) */
+/* table, name (key) to enter, hash(n) */
 struct tbl *
-ktenter(struct table *tp, const char *n, unsigned int h)
+ktenter(struct table *tp, const char *n, uint32_t h)
 {
 	struct tbl **pp, *p;
 	int len;
@@ -1387,7 +1394,8 @@ ktsort(struct table *tp)
 	p = alloc((tp->size + 1) * sizeof(struct tbl *), ATEMP);
 	sp = tp->tbls;		/* source */
 	dp = p;			/* dest */
-	for (i = 0; i < (size_t)tp->size; i++)
+	i = (size_t)tp->size;
+	while (i--)
 		if ((*dp = *sp++) != NULL && (((*dp)->flag & DEFINED) ||
 		    ((*dp)->flag & ARRAY)))
 			dp++;

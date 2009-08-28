@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.323 2009/08/28 18:33:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.324 2009/08/28 18:53:59 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/08/08"
 
@@ -1371,7 +1371,7 @@ int glob_str(char *, XPtrV *, int);
 /* exec.c */
 int execute(struct op * volatile, volatile int, volatile int * volatile);
 int shcomexec(const char **);
-struct tbl *findfunc(const char *, unsigned int, int);
+struct tbl *findfunc(const char *, uint32_t, int);
 int define(const char *, struct op *);
 void builtin(const char *, int (*)(const char **));
 struct tbl *findcom(const char *, int);
@@ -1538,10 +1538,10 @@ void coproc_write_close(int);
 int coproc_getfd(int, const char **);
 void coproc_cleanup(int);
 struct temp *maketemp(Area *, Temp_type, struct temp **);
-unsigned int hash(const char *);
-void ktinit(struct table *, Area *, int);
-struct tbl *ktsearch(struct table *, const char *, unsigned int);
-struct tbl *ktenter(struct table *, const char *, unsigned int);
+uint32_t hash(const char *);
+void ktinit(struct table *, Area *, size_t);
+struct tbl *ktsearch(struct table *, const char *, uint32_t);
+struct tbl *ktenter(struct table *, const char *, uint32_t);
 #define ktdelete(p)	do { p->flag = 0; } while (/* CONSTCOND */ 0)
 void ktwalk(struct tstate *, struct table *);
 struct tbl *ktnext(struct tstate *);
