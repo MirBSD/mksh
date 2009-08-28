@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.175 2009/08/14 09:00:30 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.176 2009/08/28 21:51:52 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -48,7 +48,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: August 14 2009 $
+.Dd $Mdocdate: August 28 2009 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -4065,7 +4065,7 @@ A command that exits with a zero value.
 .Pp
 .It Xo
 .Ic typeset
-.Oo Op Ic +\-lprtUux
+.Oo Op Ic +\-alprtUux
 .Op Fl L Ns Op Ar n
 .Op Fl R Ns Op Ar n
 .Op Fl Z Ns Op Ar n
@@ -4113,6 +4113,8 @@ options are introduced with
 .Ql + ,
 in which case only the function names are reported.
 .Bl -tag -width Ds
+.It Fl a
+Indexed array attribute.
 .It Fl f
 Function mode.
 Display or set functions and their attributes, instead of parameters.
@@ -5656,7 +5658,7 @@ all contributors, such as the Debian and OpenBSD projects.
 See the documentation, CVS, and web site for details.
 .Sh BUGS
 This document attempts to describe
-.Nm mksh\ R39
+.Nm mksh\ R39+devel
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

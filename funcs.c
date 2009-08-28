@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.124 2009/08/28 21:01:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.125 2009/08/28 21:51:51 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -753,7 +753,7 @@ c_typeset(const char **wp)
 	}
 
 	/* see comment below regarding possible opions */
-	opts = istset ? "L#R#UZ#fi#lprtux" : "p";
+	opts = istset ? "L#R#UZ#afi#lprtux" : "p";
 
 	fieldstr = basestr = NULL;
 	builtin_opt.flags |= GF_PLUSOPT;
@@ -786,6 +786,13 @@ c_typeset(const char **wp)
 		case 'Z':
 			flag = ZEROFIL;
 			fieldstr = builtin_opt.optarg;
+			break;
+		case 'a':
+			/*
+			 * this is supposed to set (-a) or unset (+a) the
+			 * indexed array attribute; it does nothing on an
+			 * existing regular string or indexed array though
+			 */
 			break;
 		case 'f':
 			func = true;
