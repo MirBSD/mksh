@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.322 2009/08/08 13:08:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.323 2009/08/28 18:33:05 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/08/08"
 
@@ -852,9 +852,6 @@ struct table {
 };
 
 struct tbl {			/* table item */
-	Tflag flag;		/* flags */
-	int type;		/* command type (see below), base (if INTEGER),
-				 * or offset from val.s of value (if EXPORT) */
 	Area *areap;		/* area to allocate from */
 	union {
 		char *s;		/* string */
@@ -863,15 +860,18 @@ struct tbl {			/* table item */
 		int (*f)(const char **);/* int function */
 		struct op *t;		/* "function" tree */
 	} val;			/* value */
-	uint32_t index;		/* index for an array */
-	union {
-		int field;	/* field with for -L/-R/-Z */
-		int errno_;	/* CEXEC/CTALIAS */
-	} u2;
 	union {
 		struct tbl *array;	/* array values */
 		const char *fpath;	/* temporary path to undef function */
 	} u;
+	union {
+		int field;	/* field with for -L/-R/-Z */
+		int errno_;	/* CEXEC/CTALIAS */
+	} u2;
+	int type;		/* command type (see below), base (if INTEGER),
+				 * or offset from val.s of value (if EXPORT) */
+	Tflag flag;		/* flags */
+	uint32_t index;		/* index for an array */
 	char name[4];		/* name -- variable length */
 };
 
@@ -892,7 +892,7 @@ struct tbl {			/* table item */
 #define RJUST		BIT(15)	/* right justify */
 #define ZEROFIL		BIT(16)	/* 0 filled if RJUSTIFY, strip 0s if LJUSTIFY */
 #define LCASEV		BIT(17)	/* convert to lower case */
-#define UCASEV_AL	BIT(18)/* convert to upper case / autoload function */
+#define UCASEV_AL	BIT(18) /* convert to upper case / autoload function */
 #define INT_U		BIT(19)	/* unsigned integer */
 #define INT_L		BIT(20)	/* long integer (no-op) */
 #define IMPORT		BIT(21)	/* flag to typeset(): no arrays, must have = */
