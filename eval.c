@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.67 2009/08/28 21:35:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.68 2009/08/28 22:39:09 tg Exp $");
 
 /*
  * string expansion
@@ -995,7 +995,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 			xp->var = global(sp);
 			state = c == '@' ? XNULLSUB : XSUB;
 		} else {
-			xp->u.strv = (const char **) e->loc->argv + 1;
+			xp->u.strv = (const char **)e->loc->argv + 1;
 			xp->str = *xp->u.strv++;
 			xp->split = c == '@'; /* $@ */
 			state = XARG;
@@ -1014,11 +1014,16 @@ varsub(Expand *xp, const char *sp, const char *word,
 				return (-1);
 			}
 			XPinit(wv, 32);
+			if ((c = sp[0]) == '!')
+				++sp;
 			vp = global(arrayname(sp));
 			for (; vp; vp = vp->u.array) {
 				if (!(vp->flag&ISSET))
 					continue;
-				XPput(wv, str_val(vp));
+				XPput(wv, c == '!' ? shf_smprintf("%lu",
+				    vp->flag & AINDEX ?
+				    (unsigned long)vp->ua.index : 0) :
+				    str_val(vp));
 			}
 			if (XPsize(wv) == 0) {
 				xp->str = null;
@@ -1026,12 +1031,14 @@ varsub(Expand *xp, const char *sp, const char *word,
 				XPfree(wv);
 			} else {
 				XPput(wv, 0);
-				xp->u.strv = (const char **) XPptrv(wv);
+				xp->u.strv = (const char **)XPptrv(wv);
 				xp->str = *xp->u.strv++;
 				xp->split = p[1] == '@'; /* ${foo[@]} */
 				state = XARG;
 			}
 		} else {
+			if (*sp == '!' && sp[1])
+				return (-1);
 			/* Can't assign things like $! or $1 */
 			if ((stype & 0x7f) == '=' &&
 			    ctype(*sp, C_VAR1 | C_DIGIT))

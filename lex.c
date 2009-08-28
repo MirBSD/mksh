@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.92 2009/08/28 20:30:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.93 2009/08/28 22:39:09 tg Exp $");
 
 /*
  * states while lexing word
@@ -1443,7 +1443,7 @@ get_brace_var(XString *wsp, char *wp)
 		/* State machine to figure out where the variable part ends. */
 		switch (state) {
 		case PS_INITIAL:
-			if (c == '#') {
+			if (c == '#' || c == '!') {
 				state = PS_SAW_HASH;
 				break;
 			}
