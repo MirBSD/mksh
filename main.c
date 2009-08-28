@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.141 2009/08/28 20:38:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.142 2009/08/28 21:01:26 tg Exp $");
 
 extern char **environ;
 
@@ -1278,13 +1278,8 @@ texpand(struct table *tp, size_t nsize)
 	for (i = 0; i < osize; i++)
 		if ((tblp = otblp[i]) != NULL) {
 			if ((tblp->flag & DEFINED)) {
-#ifdef notyet_ktremove
-				for (p = &ntblp[tblp->hval &
+				for (p = &ntblp[tblp->ua.hval &
 				    (tp->size - 1)]; *p != NULL; p--)
-#else
-				for (p = &ntblp[hash(tblp->name) &
-				    (tp->size - 1)]; *p != NULL; p--)
-#endif
 					if (p == ntblp)	/* wrap */
 						p += tp->size;
 				*p = tblp;
@@ -1314,12 +1309,8 @@ ktscan(struct table *tp, const char *n, uint32_t h, struct tbl ***ppp)
 
 	/* search for name in hashed table */
 	for (pp = &tp->tbls[h & (tp->size - 1)]; (p = *pp) != NULL; pp--) {
-#ifdef notyet_ktremove
-		if (p->hval == h && !strcmp(p->name, n) && (p->flag & DEFINED))
-#else
-		if (*p->name == *n && !strcmp(p->name, n) &&
+		if (p->ua.hval == h && !strcmp(p->name, n) &&
 		    (p->flag & DEFINED))
-#endif
 			goto found;
 		if (pp == tp->tbls)
 			/* wrap */
@@ -1368,8 +1359,8 @@ ktenter(struct table *tp, const char *n, uint32_t h)
 	p->areap = tp->areap;
 #ifdef notyet_ktremove
 	p->tablep = tp;
-	p->hval = h;
 #endif
+	p->ua.hval = h;
 	p->u2.field = 0;
 	p->u.array = NULL;
 	memcpy(p->name, n, len);
@@ -1387,7 +1378,7 @@ ktremove(struct tbl *p)
 	struct tbl **pp;
 
 	if (p->tablep && p->tablep->size && ktscan(p->tablep, p->name,
-	    p->hval, &pp) == p) {
+	    p->ua.hval, &pp) == p) {
 		/* ktremove p */
 		*pp = NULL;
 		p->tablep->nfree++;

@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.329 2009/08/28 20:38:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.330 2009/08/28 21:01:26 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/08/08"
 
@@ -874,10 +874,10 @@ struct tbl {			/* table item */
 	int type;		/* command type (see below), base (if INTEGER),
 				 * or offset from val.s of value (if EXPORT) */
 	Tflag flag;		/* flags */
-#ifdef notyet_ktremove
-	uint32_t hval;		/* hash(name) */
-#endif
-	uint32_t index;		/* index for an array */
+	union {
+		uint32_t hval;		/* hash(name) */
+		uint32_t index;		/* index for an array */
+	} ua;
 	char name[4];		/* name -- variable length */
 };
 
@@ -905,6 +905,7 @@ struct tbl {			/* table item */
 #define LOCAL_COPY	BIT(22)	/* with LOCAL - copy attrs from existing var */
 #define EXPRINEVAL	BIT(23)	/* contents currently being evaluated */
 #define EXPRLVALUE	BIT(24)	/* useable as lvalue (temp flag) */
+#define AINDEX		BIT(25) /* array index >0 = ua.index filled in */
 /* flag bits used for taliases/builtins/aliases/keywords/functions */
 #define KEEPASN		BIT(8)	/* keep command assignments (eg, var=x cmd) */
 #define FINUSE		BIT(9)	/* function being executed */

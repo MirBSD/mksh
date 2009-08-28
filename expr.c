@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.32 2009/08/28 20:38:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.33 2009/08/28 21:01:25 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -610,8 +610,8 @@ tempvar(void)
 	vp->areap = ATEMP;
 #ifdef notyet_ktremove
 	vp->tablep = NULL;
-	vp->hval = 0;
 #endif
+	vp->ua.hval = 0;
 	vp->val.i = 0;
 	vp->name[0] = '\0';
 	return (vp);

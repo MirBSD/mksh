@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.81 2009/08/28 20:38:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.82 2009/08/28 21:01:27 tg Exp $");
 
 /*
  * Variables
@@ -1241,35 +1241,34 @@ arraysearch(struct tbl *vp, uint32_t val)
 	size_t len;
 
 	vp->flag |= ARRAY|DEFINED;
-	vp->index = 0;
 	/* The table entry is always [0] */
 	if (val == 0)
 		return (vp);
 	prev = vp;
 	curr = vp->u.array;
-	while (curr && curr->index < val) {
+	while (curr && curr->ua.index < val) {
 		prev = curr;
 		curr = curr->u.array;
 	}
-	if (curr && curr->index == val) {
+	if (curr && curr->ua.index == val) {
 		if (curr->flag&ISSET)
 			return (curr);
 		new = curr;
 	} else
 		new = NULL;
 	len = strlen(vp->name) + 1;
-	if (!new)
+	if (!new) {
 		new = alloc(offsetof(struct tbl, name[0]) + len, vp->areap);
-	memcpy(new->name, vp->name, len);
-	new->flag = vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL);
+		memcpy(new->name, vp->name, len);
+	}
+	new->flag = (vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL)) | AINDEX;
 	new->type = vp->type;
 	new->areap = vp->areap;
 	new->u2.field = vp->u2.field;
-	new->index = val;
+	new->ua.index = val;
 #ifdef notyet_ktremove
 	/* XXX array indices must not be ktdelete'd, for now */
 	new->tablep = NULL;
-	new->hval = vp->hval;
 #endif
 
 	if (curr != new) {		/* not reusing old array entry */

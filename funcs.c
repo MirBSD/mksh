@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.123 2009/08/28 20:30:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.124 2009/08/28 21:01:25 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1010,7 +1010,9 @@ c_typeset(const char **wp)
 						if ((vp->flag&ARRAY) && any_set)
 							shprintf("%s[%lu]",
 							    vp->name,
-							    (unsigned long)vp->index);
+							    vp->flag & AINDEX ?
+							    (unsigned long)vp->ua.index :
+							    0);
 						else
 							shf_puts(vp->name, shl_stdout);
 						if (thing == '-' && (vp->flag&ISSET)) {
