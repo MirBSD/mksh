@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.84 2009/08/28 21:07:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.85 2009/08/28 22:23:33 tg Exp $");
 
 /*
  * Variables
@@ -1316,11 +1316,11 @@ arrayname(const char *str)
 }
 
 /* set (or overwrite, if reset) the array variable var to the values in vals */
-uint32_t
+mksh_uari_t
 set_array(const char *var, bool reset, const char **vals)
 {
 	struct tbl *vp, *vq;
-	uint32_t i;
+	mksh_uari_t i;
 
 	/* to get local array, use "typeset foo; set -A foo" */
 	vp = global(var);

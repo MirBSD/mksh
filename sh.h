@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.332 2009/08/28 21:07:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.333 2009/08/28 22:23:34 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/08/08"
 
@@ -1647,7 +1647,7 @@ void change_random(unsigned long);
 void change_winsz(void);
 int array_ref_len(const char *);
 char *arrayname(const char *);
-uint32_t set_array(const char *, bool, const char **);
+mksh_uari_t set_array(const char *, bool, const char **);
 
 enum Test_op {
 	TO_NONOP = 0,	/* non-operator */
