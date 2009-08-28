@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.326 2009/08/28 19:16:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.327 2009/08/28 19:57:42 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/08/08"
 
@@ -851,6 +851,11 @@ struct table {
 	short size, nfree;	/* hash size (always 2^^n), free entries */
 };
 
+struct table_entry {
+	struct table *tp;	/* table this entry is in */
+	struct tbl **ep;	/* entry pointer (&tp->tbls[i]) */
+};
+
 struct tbl {			/* table item */
 	Area *areap;		/* area to allocate from */
 	union {
@@ -1371,7 +1376,7 @@ int glob_str(char *, XPtrV *, int);
 /* exec.c */
 int execute(struct op * volatile, volatile int, volatile int * volatile);
 int shcomexec(const char **);
-struct tbl *findfunc(const char *, uint32_t, bool);
+struct tbl *findfunc(const char *, uint32_t, bool, struct table_entry *);
 int define(const char *, struct op *);
 void builtin(const char *, int (*)(const char **));
 struct tbl *findcom(const char *, int);
@@ -1540,9 +1545,9 @@ void coproc_cleanup(int);
 struct temp *maketemp(Area *, Temp_type, struct temp **);
 uint32_t hash(const char *);
 void ktinit(struct table *, Area *, size_t);
-struct tbl *ktsearch(struct table *, const char *, uint32_t);
-struct tbl *ktenter(struct table *, const char *, uint32_t);
-#define ktdelete(p)	do { p->flag = 0; } while (/* CONSTCOND */ 0)
+struct tbl *ktsearch(struct table *, const char *, uint32_t, struct table_entry *);
+struct tbl *ktenter(struct table *, const char *, uint32_t, struct table_entry *);
+void ktremove(struct table_entry *);
 void ktwalk(struct tstate *, struct table *);
 struct tbl *ktnext(struct tstate *);
 struct tbl **ktsort(struct table *);

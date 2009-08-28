@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.62 2009/08/28 19:16:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.63 2009/08/28 19:57:40 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile, volatile int *);
@@ -567,7 +567,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 				rv = 127;
 				break;
 			}
-			if (!(ftp = findfunc(cp, hash(cp), false)) ||
+			if (!(ftp = findfunc(cp, hash(cp), false, NULL)) ||
 			    !(ftp->flag & ISSET)) {
 				warningf(true,
 				    "%s: function not defined by %s",
@@ -789,7 +789,7 @@ shcomexec(const char **wp)
 {
 	struct tbl *tp;
 
-	tp = ktsearch(&builtins, *wp, hash(*wp));
+	tp = ktsearch(&builtins, *wp, hash(*wp), NULL);
 	if (tp == NULL)
 		internal_errorf("shcomexec: %s", *wp);
 	return (call_builtin(tp, wp));
@@ -800,17 +800,17 @@ shcomexec(const char **wp)
  * is created if none is found.
  */
 struct tbl *
-findfunc(const char *name, uint32_t h, bool create)
+findfunc(const char *name, uint32_t h, bool create, struct table_entry *pte)
 {
 	struct block *l;
 	struct tbl *tp = NULL;
 
 	for (l = e->loc; l; l = l->next) {
-		tp = ktsearch(&l->funs, name, h);
+		tp = ktsearch(&l->funs, name, h, pte);
 		if (tp)
 			break;
 		if (!l->next && create) {
-			tp = ktenter(&l->funs, name, h);
+			tp = ktenter(&l->funs, name, h, pte);
 			tp->flag = DEFINED;
 			tp->type = CFUNC;
 			tp->val.t = NULL;
@@ -828,10 +828,11 @@ int
 define(const char *name, struct op *t)
 {
 	struct tbl *tp;
+	struct table_entry te;
 	bool was_set = false;
 
 	while (1) {
-		tp = findfunc(name, hash(name), true);
+		tp = findfunc(name, hash(name), true, &te);
 
 		if (tp->flag & ISSET)
 			was_set = true;
@@ -852,7 +853,7 @@ define(const char *name, struct op *t)
 	}
 
 	if (t == NULL) {		/* undefine */
-		ktdelete(tp);
+		ktremove(&te);
 		return (was_set ? 0 : 1);
 	}
 
@@ -885,7 +886,7 @@ builtin(const char *name, int (*func) (const char **))
 			break;
 	}
 
-	tp = ktenter(&builtins, name, hash(name));
+	tp = ktenter(&builtins, name, hash(name), NULL);
 	tp->flag = DEFINED | flag;
 	tp->type = CSHELL;
 	tp->val.f = func;
@@ -911,14 +912,14 @@ findcom(const char *name, int flags)
 		flags &= ~FC_FUNC;
 		goto Search;
 	}
-	tbi = (flags & FC_BI) ? ktsearch(&builtins, name, h) : NULL;
+	tbi = (flags & FC_BI) ? ktsearch(&builtins, name, h, NULL) : NULL;
 	/* POSIX says special builtins first, then functions, then
 	 * POSIX regular builtins, then search path...
 	 */
 	if ((flags & FC_SPECBI) && tbi && (tbi->flag & SPEC_BI))
 		tp = tbi;
 	if (!tp && (flags & FC_FUNC)) {
-		tp = findfunc(name, h, false);
+		tp = findfunc(name, h, false, NULL);
 		if (tp && !(tp->flag & ISSET)) {
 			if ((fpath = str_val(global("FPATH"))) == null) {
 				tp->u.fpath = NULL;
@@ -933,7 +934,7 @@ findcom(const char *name, int flags)
 	if (!tp && (flags & FC_UNREGBI) && tbi)
 		tp = tbi;
 	if (!tp && (flags & FC_PATH) && !(flags & FC_DEFPATH)) {
-		tp = ktsearch(&taliases, name, h);
+		tp = ktsearch(&taliases, name, h, NULL);
 		if (tp && (tp->flag & ISSET) && access(tp->val.s, X_OK) != 0) {
 			if (tp->flag & ALLOC) {
 				tp->flag &= ~ALLOC;
@@ -948,7 +949,7 @@ findcom(const char *name, int flags)
 	    (flags & FC_PATH)) {
 		if (!tp) {
 			if (insert && !(flags & FC_DEFPATH)) {
-				tp = ktenter(&taliases, name, h);
+				tp = ktenter(&taliases, name, h, NULL);
 				tp->type = CTALIAS;
 			} else {
 				tp = &temp;

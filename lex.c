@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.90 2009/08/28 18:53:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.91 2009/08/28 19:57:41 tg Exp $");
 
 /*
  * states while lexing word
@@ -909,15 +909,17 @@ yylex(int cf)
 
 	if (*ident != '\0' && (cf&(KEYWORD|ALIAS))) {
 		struct tbl *p;
+		struct table_entry te;
 		uint32_t h = hash(ident);
 
 		/* { */
-		if ((cf & KEYWORD) && (p = ktsearch(&keywords, ident, h)) &&
+		if ((cf & KEYWORD) &&
+		    (p = ktsearch(&keywords, ident, h, NULL)) &&
 		    (!(cf & ESACONLY) || p->val.i == ESAC || p->val.i == '}')) {
 			afree(yylval.cp, ATEMP);
 			return (p->val.i);
 		}
-		if ((cf & ALIAS) && (p = ktsearch(&aliases, ident, h)) &&
+		if ((cf & ALIAS) && (p = ktsearch(&aliases, ident, h, &te)) &&
 		    (p->flag & ISSET)) {
 			/*
 			 * this still points to the same character as the
@@ -944,7 +946,7 @@ yylex(int cf)
 				 * delete alias upon encountering function
 				 * definition
 				 */
-				ktdelete(p);
+				ktremove(&te);
 			else {
 				Source *s = source;
 

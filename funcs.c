@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.121 2009/08/28 18:53:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.122 2009/08/28 19:57:40 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -639,9 +639,9 @@ c_whence(const char **wp)
 	while ((vflag || rv == 0) && (id = *wp++) != NULL) {
 		tp = NULL;
 		if ((iam_whence || vflag) && !pflag)
-			tp = ktsearch(&keywords, id, hash(id));
+			tp = ktsearch(&keywords, id, hash(id), NULL);
 		if (!tp && !pflag) {
-			tp = ktsearch(&aliases, id, hash(id));
+			tp = ktsearch(&aliases, id, hash(id), NULL);
 			if (tp && !(tp->flag & ISSET))
 				tp = NULL;
 		}
@@ -879,7 +879,7 @@ c_typeset(const char **wp)
 		for (i = builtin_opt.optind; wp[i]; i++) {
 			if (func) {
 				f = findfunc(wp[i], hash(wp[i]),
-				    (fset&UCASEV_AL) ? true : false);
+				    (fset&UCASEV_AL) ? true : false, NULL);
 				if (!f) {
 					/* AT&T ksh does ++rv: bogus */
 					rv = 1;
@@ -1138,7 +1138,7 @@ c_alias(const char **wp)
 		}
 		h = hash(alias);
 		if (val == NULL && !tflag && !xflag) {
-			ap = ktsearch(t, alias, h);
+			ap = ktsearch(t, alias, h, NULL);
 			if (ap != NULL && (ap->flag&ISSET)) {
 				if (pflag)
 					shf_puts("alias ", shl_stdout);
@@ -1154,7 +1154,7 @@ c_alias(const char **wp)
 			}
 			continue;
 		}
-		ap = ktenter(t, alias, h);
+		ap = ktenter(t, alias, h, NULL);
 		ap->type = tflag ? CTALIAS : CALIAS;
 		/* Are we setting the value or just some flags? */
 		if ((val && !tflag) || (!val && tflag && !Uflag)) {
@@ -1214,7 +1214,7 @@ c_unalias(const char **wp)
 	wp += builtin_opt.optind;
 
 	for (; *wp != NULL; wp++) {
-		ap = ktsearch(t, *wp, hash(*wp));
+		ap = ktsearch(t, *wp, hash(*wp), NULL);
 		if (ap == NULL) {
 			rv = 1;	/* POSIX */
 			continue;

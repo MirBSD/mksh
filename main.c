@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.138 2009/08/28 18:53:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.139 2009/08/28 19:57:42 tg Exp $");
 
 extern char **environ;
 
@@ -1299,9 +1299,21 @@ ktinit(struct table *tp, Area *ap, size_t tsize)
 		texpand(tp, tsize);
 }
 
+void
+ktremove(struct table_entry *pte)
+{
+	struct tbl *p;
+
+	p = *(pte->ep);
+	*(pte->ep) = NULL;
+	++(pte->tp->nfree);
+
+	afree(p, p->areap);
+}
+
 /* table, name (key) to search for, hash(n) */
 struct tbl *
-ktsearch(struct table *tp, const char *n, uint32_t h)
+ktsearch(struct table *tp, const char *n, uint32_t h, struct table_entry *pte)
 {
 	struct tbl **pp, *p;
 
@@ -1311,8 +1323,14 @@ ktsearch(struct table *tp, const char *n, uint32_t h)
 	/* search for name in hashed table */
 	for (pp = &tp->tbls[h & (tp->size - 1)]; (p = *pp) != NULL; pp--) {
 		if (*p->name == *n && strcmp(p->name, n) == 0 &&
-		    (p->flag & DEFINED))
+		    (p->flag & DEFINED)) {
+			/* found */
+			if (pte) {
+				pte->tp = tp;
+				pte->ep = pp;
+			}
 			return (p);
+		}
 		if (pp == tp->tbls)	/* wrap */
 			pp += tp->size;
 	}
@@ -1322,7 +1340,7 @@ ktsearch(struct table *tp, const char *n, uint32_t h)
 
 /* table, name (key) to enter, hash(n) */
 struct tbl *
-ktenter(struct table *tp, const char *n, uint32_t h)
+ktenter(struct table *tp, const char *n, uint32_t h, struct table_entry *pte)
 {
 	struct tbl **pp, *p;
 	int len;
@@ -1332,8 +1350,14 @@ ktenter(struct table *tp, const char *n, uint32_t h)
  Search:
 	/* search for name in hashed table */
 	for (pp = &tp->tbls[h & (tp->size - 1)]; (p = *pp) != NULL; pp--) {
-		if (*p->name == *n && strcmp(p->name, n) == 0)
-			return (p);	/* found */
+		if (*p->name == *n && strcmp(p->name, n) == 0) {
+			/* found */
+			if (pte) {
+				pte->tp = tp;
+				pte->ep = pp;
+			}
+			return (p);
+		}
 		if (pp == tp->tbls)	/* wrap */
 			pp += tp->size;
 	}
@@ -1355,6 +1379,10 @@ ktenter(struct table *tp, const char *n, uint32_t h)
 	/* enter in tp->tbls */
 	tp->nfree--;
 	*pp = p;
+	if (pte) {
+		pte->tp = tp;
+		pte->ep = pp;
+	}
 	return (p);
 }
 
