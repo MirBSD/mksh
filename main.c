@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.139 2009/08/28 19:57:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.140 2009/08/28 20:30:57 tg Exp $");
 
 extern char **environ;
 
@@ -1236,6 +1236,8 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 
 static void texpand(struct table *, size_t);
 static int tnamecmp(const void *, const void *);
+static struct tbl *ktscan(struct table *, const char *, uint32_t,
+    struct tbl ***);
 
 /* Bob Jenkins' one-at-a-time hash */
 uint32_t
@@ -1276,7 +1278,7 @@ texpand(struct table *tp, size_t nsize)
 	for (i = 0; i < osize; i++)
 		if ((tblp = otblp[i]) != NULL) {
 			if ((tblp->flag & DEFINED)) {
-				for (p = &ntblp[hash(tblp->name) &
+				for (p = &ntblp[tblp->hval &
 				    (tp->size - 1)]; *p != NULL; p--)
 					if (p == ntblp)	/* wrap */
 						p += tp->size;
@@ -1299,48 +1301,39 @@ ktinit(struct table *tp, Area *ap, size_t tsize)
 		texpand(tp, tsize);
 }
 
-void
-ktremove(struct table_entry *pte)
+/* table, name (key) to search for, hash(n) */
+static struct tbl *
+ktscan(struct table *tp, const char *n, uint32_t h, struct tbl ***ppp)
 {
-	struct tbl *p;
+	struct tbl **pp, *p;
 
-	p = *(pte->ep);
-	*(pte->ep) = NULL;
-	++(pte->tp->nfree);
+	/* search for name in hashed table */
+	for (pp = &tp->tbls[h & (tp->size - 1)]; (p = *pp) != NULL; pp--) {
+		if (p->hval == h && !strcmp(p->name, n) && (p->flag & DEFINED))
+			goto found;
+		if (pp == tp->tbls)
+			/* wrap */
+			pp += tp->size;
+	}
+	/* not found */
+	p = NULL;
 
-	afree(p, p->areap);
+ found:
+	if (ppp)
+		*ppp = pp;
+	return (p);
 }
 
 /* table, name (key) to search for, hash(n) */
 struct tbl *
-ktsearch(struct table *tp, const char *n, uint32_t h, struct table_entry *pte)
+ktsearch(struct table *tp, const char *n, uint32_t h)
 {
-	struct tbl **pp, *p;
-
-	if (tp->size == 0)
-		return (NULL);
-
-	/* search for name in hashed table */
-	for (pp = &tp->tbls[h & (tp->size - 1)]; (p = *pp) != NULL; pp--) {
-		if (*p->name == *n && strcmp(p->name, n) == 0 &&
-		    (p->flag & DEFINED)) {
-			/* found */
-			if (pte) {
-				pte->tp = tp;
-				pte->ep = pp;
-			}
-			return (p);
-		}
-		if (pp == tp->tbls)	/* wrap */
-			pp += tp->size;
-	}
-
-	return (NULL);
+	return (tp->size ? ktscan(tp, n, h, NULL) : NULL);
 }
 
 /* table, name (key) to enter, hash(n) */
 struct tbl *
-ktenter(struct table *tp, const char *n, uint32_t h, struct table_entry *pte)
+ktenter(struct table *tp, const char *n, uint32_t h)
 {
 	struct tbl **pp, *p;
 	int len;
@@ -1348,30 +1341,23 @@ ktenter(struct table *tp, const char *n, uint32_t h, struct table_entry *pte)
 	if (tp->size == 0)
 		texpand(tp, INIT_TBLS);
  Search:
-	/* search for name in hashed table */
-	for (pp = &tp->tbls[h & (tp->size - 1)]; (p = *pp) != NULL; pp--) {
-		if (*p->name == *n && strcmp(p->name, n) == 0) {
-			/* found */
-			if (pte) {
-				pte->tp = tp;
-				pte->ep = pp;
-			}
-			return (p);
-		}
-		if (pp == tp->tbls)	/* wrap */
-			pp += tp->size;
-	}
+	if ((p = ktscan(tp, n, h, &pp)))
+		return (p);
 
-	if (tp->nfree <= 0) {	/* too full */
+	if (tp->nfree <= 0) {
+		/* too full */
 		texpand(tp, 2 * tp->size);
 		goto Search;
 	}
+
 	/* create new tbl entry */
 	len = strlen(n) + 1;
 	p = alloc(offsetof(struct tbl, name[0]) + len, tp->areap);
 	p->flag = 0;
 	p->type = 0;
 	p->areap = tp->areap;
+	p->tablep = tp;
+	p->hval = h;
 	p->u2.field = 0;
 	p->u.array = NULL;
 	memcpy(p->name, n, len);
@@ -1379,11 +1365,25 @@ ktenter(struct table *tp, const char *n, uint32_t h, struct table_entry *pte)
 	/* enter in tp->tbls */
 	tp->nfree--;
 	*pp = p;
-	if (pte) {
-		pte->tp = tp;
-		pte->ep = pp;
-	}
 	return (p);
+}
+
+void
+ktdelete(struct tbl *p)
+{
+	struct tbl **pp;
+
+	if (p->tablep && p->tablep->size && ktscan(p->tablep, p->name,
+	    p->hval, &pp) == p) {
+		/* ktremove p */
+		*pp = NULL;
+		p->tablep->nfree++;
+		/* get rid of p */
+		afree(p, p->areap);
+	} else {
+		/* mark p as free for garbage collection via texpand */
+		p->flag = 0;
+	}
 }
 
 void

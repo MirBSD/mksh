@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.327 2009/08/28 19:57:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.328 2009/08/28 20:30:58 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/08/08"
 
@@ -851,11 +851,6 @@ struct table {
 	short size, nfree;	/* hash size (always 2^^n), free entries */
 };
 
-struct table_entry {
-	struct table *tp;	/* table this entry is in */
-	struct tbl **ep;	/* entry pointer (&tp->tbls[i]) */
-};
-
 struct tbl {			/* table item */
 	Area *areap;		/* area to allocate from */
 	union {
@@ -869,6 +864,7 @@ struct tbl {			/* table item */
 		struct tbl *array;	/* array values */
 		const char *fpath;	/* temporary path to undef function */
 	} u;
+	struct table *tablep;	/* table we're ktenter'd in */
 	union {
 		int field;	/* field with for -L/-R/-Z */
 		int errno_;	/* CEXEC/CTALIAS */
@@ -876,6 +872,7 @@ struct tbl {			/* table item */
 	int type;		/* command type (see below), base (if INTEGER),
 				 * or offset from val.s of value (if EXPORT) */
 	Tflag flag;		/* flags */
+	uint32_t hval;		/* hash(name) */
 	uint32_t index;		/* index for an array */
 	char name[4];		/* name -- variable length */
 };
@@ -1376,7 +1373,7 @@ int glob_str(char *, XPtrV *, int);
 /* exec.c */
 int execute(struct op * volatile, volatile int, volatile int * volatile);
 int shcomexec(const char **);
-struct tbl *findfunc(const char *, uint32_t, bool, struct table_entry *);
+struct tbl *findfunc(const char *, uint32_t, bool);
 int define(const char *, struct op *);
 void builtin(const char *, int (*)(const char **));
 struct tbl *findcom(const char *, int);
@@ -1545,9 +1542,9 @@ void coproc_cleanup(int);
 struct temp *maketemp(Area *, Temp_type, struct temp **);
 uint32_t hash(const char *);
 void ktinit(struct table *, Area *, size_t);
-struct tbl *ktsearch(struct table *, const char *, uint32_t, struct table_entry *);
-struct tbl *ktenter(struct table *, const char *, uint32_t, struct table_entry *);
-void ktremove(struct table_entry *);
+struct tbl *ktsearch(struct table *, const char *, uint32_t);
+struct tbl *ktenter(struct table *, const char *, uint32_t);
+void ktdelete(struct tbl *);
 void ktwalk(struct tstate *, struct table *);
 struct tbl *ktnext(struct tstate *);
 struct tbl **ktsort(struct table *);

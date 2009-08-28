@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.79 2009/08/28 19:57:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.80 2009/08/28 20:30:59 tg Exp $");
 
 /*
  * Variables
@@ -128,8 +128,7 @@ initvar(void)
 	ktinit(&specials, APERM,
 	    /* must be 80% of 2^n (currently 12 specials) */ 16);
 	for (i = 0; names[i].name; i++) {
-		tp = ktenter(&specials, names[i].name, hash(names[i].name),
-		    NULL);
+		tp = ktenter(&specials, names[i].name, hash(names[i].name));
 		tp->flag = DEFINED|ISSET;
 		tp->type = names[i].v;
 	}
@@ -226,7 +225,7 @@ global(const char *n)
 		return (vp);
 	}
 	for (l = e->loc; ; l = l->next) {
-		vp = ktsearch(&l->vars, n, h, NULL);
+		vp = ktsearch(&l->vars, n, h);
 		if (vp != NULL) {
 			if (array)
 				return (arraysearch(vp, val));
@@ -236,7 +235,7 @@ global(const char *n)
 		if (l->next == NULL)
 			break;
 	}
-	vp = ktenter(&l->vars, n, h, NULL);
+	vp = ktenter(&l->vars, n, h);
 	if (array)
 		vp = arraysearch(vp, val);
 	vp->flag |= DEFINED;
@@ -266,13 +265,12 @@ local(const char *n, bool copy)
 		vp->areap = ATEMP;
 		return (vp);
 	}
-	vp = ktenter(&l->vars, n, h, NULL);
+	vp = ktenter(&l->vars, n, h);
 	if (copy && !(vp->flag & DEFINED)) {
 		struct block *ll = l;
 		struct tbl *vq = NULL;
 
-		while ((ll = ll->next) && !(vq = ktsearch(&ll->vars, n, h,
-		    NULL)))
+		while ((ll = ll->next) && !(vq = ktsearch(&ll->vars, n, h)))
 			;
 		if (vq) {
 			vp->flag |= vq->flag &
@@ -894,8 +892,7 @@ makenv(void)
 
 				/* unexport any redefined instances */
 				for (l2 = l->next; l2 != NULL; l2 = l2->next) {
-					vp2 = ktsearch(&l2->vars, vp->name, h,
-					    NULL);
+					vp2 = ktsearch(&l2->vars, vp->name, h);
 					if (vp2 != NULL)
 						vp2->flag &= ~EXPORT;
 				}
@@ -1029,7 +1026,7 @@ special(const char *name)
 {
 	struct tbl *tp;
 
-	tp = ktsearch(&specials, name, hash(name), NULL);
+	tp = ktsearch(&specials, name, hash(name));
 	return (tp && (tp->flag & ISSET) ? tp->type : V_NONE);
 }
 
@@ -1037,11 +1034,11 @@ special(const char *name)
 static void
 unspecial(const char *name)
 {
-	struct table_entry te = { NULL, NULL };
+	struct tbl *tp;
 
-	ktsearch(&specials, name, hash(name), &te);
-	if (te.ep)
-		ktremove(&te);
+	tp = ktsearch(&specials, name, hash(name));
+	if (tp)
+		ktdelete(tp);
 }
 
 static time_t seconds;		/* time SECONDS last set */
@@ -1269,6 +1266,10 @@ arraysearch(struct tbl *vp, uint32_t val)
 	new->areap = vp->areap;
 	new->u2.field = vp->u2.field;
 	new->index = val;
+	/* XXX array indices must not be ktdelete'd, for now */
+	new->tablep = NULL;
+	new->hval = vp->hval;
+
 	if (curr != new) {		/* not reusing old array entry */
 		prev->u.array = new;
 		new->u.array = curr;

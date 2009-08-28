@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.30 2009/08/08 13:08:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.31 2009/08/28 20:30:55 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -608,6 +608,8 @@ tempvar(void)
 	vp->flag = ISSET|INTEGER;
 	vp->type = 0;
 	vp->areap = ATEMP;
+	vp->tablep = NULL;
+	vp->hval = 0;
 	vp->val.i = 0;
 	vp->name[0] = '\0';
 	return (vp);
