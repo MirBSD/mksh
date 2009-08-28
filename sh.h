@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.328 2009/08/28 20:30:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.329 2009/08/28 20:38:42 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/08/08"
 
@@ -864,7 +864,9 @@ struct tbl {			/* table item */
 		struct tbl *array;	/* array values */
 		const char *fpath;	/* temporary path to undef function */
 	} u;
+#ifdef notyet_ktremove
 	struct table *tablep;	/* table we're ktenter'd in */
+#endif
 	union {
 		int field;	/* field with for -L/-R/-Z */
 		int errno_;	/* CEXEC/CTALIAS */
@@ -872,7 +874,9 @@ struct tbl {			/* table item */
 	int type;		/* command type (see below), base (if INTEGER),
 				 * or offset from val.s of value (if EXPORT) */
 	Tflag flag;		/* flags */
+#ifdef notyet_ktremove
 	uint32_t hval;		/* hash(name) */
+#endif
 	uint32_t index;		/* index for an array */
 	char name[4];		/* name -- variable length */
 };
@@ -1544,7 +1548,8 @@ uint32_t hash(const char *);
 void ktinit(struct table *, Area *, size_t);
 struct tbl *ktsearch(struct table *, const char *, uint32_t);
 struct tbl *ktenter(struct table *, const char *, uint32_t);
-void ktdelete(struct tbl *);
+#define ktdelete(p)	do { p->flag = 0; } while (/* CONSTCOND */ 0)
+void ktremove(struct tbl *);
 void ktwalk(struct tstate *, struct table *);
 struct tbl *ktnext(struct tstate *);
 struct tbl **ktsort(struct table *);
