@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.421 2009/08/08 13:52:35 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.422 2009/08/28 17:37:47 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -545,7 +545,8 @@ ct=unknown
 #endif
 EOF
 ct=unknown
-vv ']' "$CPP scn.c | grep ct= | tr -d \\\\015 >x"
+vv ']' "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS | \
+    grep ct= | tr -d \\\\015 >x"
 sed 's/^/[ /' x
 eval `cat x`
 rm -f x
@@ -568,7 +569,7 @@ bcc)
 	;;
 clang)
 	# does not work with current "ccc" compiler driver
-	vv '|' "$CC -version"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -version"
 	# this works, for now
 	vv '|' "${CLANG-clang} -version"
 	# ensure compiler and linker are in sync unless overridden
@@ -578,8 +579,8 @@ clang)
 	esac
 	;;
 dec)
-	vv '|' "$CC -V"
-	vv '|' "$CC -Wl,-V scn.c"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -Wl,-V scn.c $LIBS"
 	;;
 dmc)
 	echo >&2 "Warning: Digital Mars Compiler detected. When running under"
@@ -588,11 +589,13 @@ dmc)
 	echo >&2 "    please report success/failure to the developers."
 	;;
 gcc)
-	vv '|' "$CC -v scn.c"
-	vv '|' 'echo `$CC -dumpmachine` gcc`$CC -dumpversion`'
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v scn.c $LIBS"
+	vv '|' 'echo `$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS \
+	    -dumpmachine` gcc`$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN \
+	    $LIBS -dumpversion`'
 	;;
 hpcc)
-	vv '|' "$CC -V scn.c"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V scn.c $LIBS"
 	;;
 iar)
 	echo >&2 'Warning: IAR Systems (http://www.iar.com) compiler for embedded
@@ -601,7 +604,7 @@ iar)
     own risk, please report success/failure to the developers.'
 	;;
 icc)
-	vv '|' "$CC -V"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
 	;;
 metrowerks)
 	echo >&2 'Warning: Metrowerks C compiler detected. This has not yet
@@ -609,7 +612,7 @@ metrowerks)
     own risk, please report success/failure to the developers.'
 	;;
 mipspro)
-	vv '|' "$CC -version"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -version"
 	;;
 msc)
 	ccpr=		# errorlevels are not reliable
@@ -631,10 +634,10 @@ msc)
 	esac
 	;;
 nwcc)
-	vv '|' "$CC -version"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -version"
 	;;
 pcc)
-	vv '|' "$CC -v"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -v"
 	;;
 pgi)
 	echo >&2 'Warning: PGI detected. This unknown compiler has not yet
@@ -648,17 +651,18 @@ sdcc)
     own risk, please report success/failure to the developers.'
 	;;
 sunpro)
-	vv '|' "$CC -V scn.c"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V scn.c $LIBS"
 	;;
 tcc)
-	vv '|' "$CC -v"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -v"
 	;;
 tendra)
-	vv '|' "$CC -V 2>&1 | fgrep -i -e version -e release"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V 2>&1 | \
+	    fgrep -i -e version -e release"
 	;;
 ucode)
-	vv '|' "$CC -V"
-	vv '|' "$CC -Wl,-V scn.c"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -Wl,-V scn.c $LIBS"
 	;;
 watcom)
 	echo >&2 'Warning: Watcom C Compiler detected. This compiler has not yet
@@ -666,7 +670,7 @@ watcom)
     own risk, please report success/failure to the developers.'
 	;;
 xlc)
-	vv '|' "$CC -qversion=verbose"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -qversion=verbose"
 	vv '|' "ld -V"
 	;;
 *)
@@ -1300,7 +1304,7 @@ ac_cppflags
 test 0 = $HAVE_SYS_SIGNAME && if ac_testinit cpp_dd '' \
     'checking if the C Preprocessor supports -dD'; then
 	echo '#define foo bar' >scn.c
-	vv ']' "$CPP -dD scn.c >x"
+	vv ']' "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -dD scn.c $LIBS >x"
 	grep '#define foo bar' x >/dev/null 2>&1 && fv=1
 	rm -f scn.c x
 	ac_testdone
@@ -1334,8 +1338,8 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 #endif
 #endif
 mksh_cfg: NSIG' >scn.c
-	NSIG=`vq "$CPP $CPPFLAGS scn.c" | grep mksh_cfg: | \
-	    sed 's/^mksh_cfg:[	 ]*\([0-9x ()+-]*\).*$/\1/'`
+	NSIG=`vq "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS" | \
+	    grep mksh_cfg: | sed 's/^mksh_cfg:[	 ]*\([0-9x ()+-]*\).*$/\1/'`
 	case $NSIG in
 	*[\ \(\)+-]*) NSIG=`awk "BEGIN { print $NSIG }"` ;;
 	esac
@@ -1347,13 +1351,15 @@ mksh_cfg: NSIG' >scn.c
 	sigs="$sigs KILL LOST PIPE PROF PWR QUIT RESV SAK SEGV STOP SYS TERM"
 	sigs="$sigs TRAP TSTP TTIN TTOU URG USR1 USR2 VTALRM WINCH XCPU XFSZ"
 	test 1 = $HAVE_CPP_DD && test $NSIG -gt 1 && sigs="$sigs "`vq \
-	    "$CPP $CPPFLAGS -dD scn.c" | grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
+	    "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -dD scn.c $LIBS" | \
+	    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
 	    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | sort`
 	test $NSIG -gt 1 || sigs=
 	for name in $sigs; do
 		echo '#include <signal.h>' >scn.c
 		echo mksh_cfg: SIG$name >>scn.c
-		vq "$CPP $CPPFLAGS scn.c" | grep mksh_cfg: | \
+		vq "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS" | \
+		    grep mksh_cfg: | \
 		    sed 's/^mksh_cfg:[	 ]*\([0-9x]*\).*$/\1:'$name/
 	done | grep -v '^:' | while IFS=: read nr name; do
 		test $printf = echo || nr=`printf %d "$nr" 2>/dev/null`
