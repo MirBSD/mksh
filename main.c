@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.142 2009/08/28 21:01:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.143 2009/08/29 11:26:44 tg Exp $");
 
 extern char **environ;
 
@@ -1380,9 +1380,11 @@ ktremove(struct tbl *p)
 	if (p->tablep && p->tablep->size && ktscan(p->tablep, p->name,
 	    p->ua.hval, &pp) == p) {
 		/* ktremove p */
+wontwork("cannot use NULL here, see r1.143 commit message");
 		*pp = NULL;
 		p->tablep->nfree++;
 		/* get rid of p */
+wontwork("need to check FINUSE, see texpand");
 		afree(p, p->areap);
 	} else {
 		/* mark p as free for garbage collection via texpand */
