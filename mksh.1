@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.178 2009/08/30 11:38:44 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.179 2009/08/30 21:02:00 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -156,6 +156,7 @@ files:
 .It
 The
 .Ic cd
+.Po and Ic chdir Pc
 command is disabled.
 .It
 The
@@ -2556,10 +2557,10 @@ Additional
 .Nm
 regular commands
 .Pp
-.Ic \&[ , bind , echo , let ,
-.Ic mknod , print , printf , pwd ,
-.Ic realpath , rename , test , ulimit ,
-.Ic whence
+.Ic \&[ , chdir , bind , echo ,
+.Ic let , mknod , print , printf ,
+.Ic pwd , realpath , rename , test ,
+.Ic ulimit , whence
 .Pp
 In the future, the additional
 .Nm
@@ -2743,6 +2744,11 @@ Execute the built-in command
 .Op Fl LP
 .Op Ar dir
 .Xc
+.It Xo
+.Ic chdir
+.Op Fl LP
+.Op Ar dir
+.Xc
 Set the working directory to
 .Ar dir .
 If the parameter
@@ -2799,6 +2805,11 @@ respectively.
 .Pp
 .It Xo
 .Ic cd
+.Op Fl LP
+.Ar old new
+.Xc
+.It Xo
+.Ic chdir
 .Op Fl LP
 .Ar old new
 .Xc

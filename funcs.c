@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.127 2009/08/30 13:30:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.128 2009/08/30 21:02:00 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -77,6 +77,7 @@ const struct builtin mkshbuiltins[] = {
 	{"*=unset", c_unset},
 	{"+alias", c_alias},	/* no =: AT&T manual wrong */
 	{"+cd", c_cd},
+	{"chdir", c_cd},	/* dash compatibility hack */
 	{"+command", c_command},
 	{"echo", c_print},
 	{"*=export", c_typeset},
