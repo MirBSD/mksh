@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.177 2009/08/28 22:46:20 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.178 2009/08/30 11:38:44 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -48,7 +48,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: August 28 2009 $
+.Dd $Mdocdate: August 30 2009 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -2557,8 +2557,9 @@ Additional
 regular commands
 .Pp
 .Ic \&[ , bind , echo , let ,
-.Ic mknod , print , pwd , realpath ,
-.Ic rename , test , ulimit , whence
+.Ic mknod , print , printf , pwd ,
+.Ic realpath , rename , test , ulimit ,
+.Ic whence
 .Pp
 In the future, the additional
 .Nm
@@ -3273,6 +3274,14 @@ option is given.
 As above, the
 .Fl n
 option suppresses the trailing newline.
+.Pp
+.It Ic printf Ar format Op Ar arguments ...
+Formatted output.
+The same as the utility
+.Xr printf 1 .
+This is not normally part of
+.Nm mksh ,
+however, distributors may have added this as builtin as a speed hack.
 .Pp
 .It Ic pwd Op Fl LP
 Print the present working directory.
