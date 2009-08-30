@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.68 2009/08/28 22:39:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.68.2.1 2009/08/30 20:56:05 tg Exp $");
 
 /*
  * string expansion
@@ -1021,8 +1021,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 				if (!(vp->flag&ISSET))
 					continue;
 				XPput(wv, c == '!' ? shf_smprintf("%lu",
-				    vp->flag & AINDEX ?
-				    (unsigned long)vp->ua.index : 0) :
+				    arrayindex(vp)) :
 				    str_val(vp));
 			}
 			if (XPsize(wv) == 0) {
@@ -1037,14 +1036,27 @@ varsub(Expand *xp, const char *sp, const char *word,
 				state = XARG;
 			}
 		} else {
-			if (*sp == '!' && sp[1])
-				return (-1);
 			/* Can't assign things like $! or $1 */
 			if ((stype & 0x7f) == '=' &&
 			    ctype(*sp, C_VAR1 | C_DIGIT))
 				return (-1);
-			xp->var = global(sp);
-			xp->str = str_val(xp->var);
+			if (*sp == '!' && sp[1]) {
+				++sp;
+				xp->var = global(sp);
+				if (cstrchr(sp, '[')) {
+					if (xp->var->flag & ISSET)
+						xp->str = shf_smprintf("%lu",
+						    arrayindex(xp->var));
+					else
+						xp->str = null;
+				} else if (xp->var->flag & ISSET)
+					xp->str = xp->var->name;
+				else
+					xp->str = "0";	/* ksh93 compat */
+			} else {
+				xp->var = global(sp);
+				xp->str = str_val(xp->var);
+			}
 			state = XSUB;
 		}
 	}

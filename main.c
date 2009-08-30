@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.143 2009/08/29 11:26:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.143.2.1 2009/08/30 20:56:07 tg Exp $");
 
 extern char **environ;
 
@@ -67,6 +67,7 @@ static const char *initcoms[] = {
 	"autoload=typeset -fu",
 	"functions=typeset -f",
 	"history=fc -l",
+	"nameref=typeset -n",
 	"nohup=nohup ",
 	r_fc_e_,
 	"source=PATH=$PATH:. command .",

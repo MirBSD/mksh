@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.301 2009/08/28 22:46:19 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.301.2.1 2009/08/30 20:56:03 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4731,6 +4731,7 @@ expected-stdout:
 	integer='typeset -i'
 	local=typeset
 	login='exec login'
+	nameref='typeset -n'
 	nohup='nohup '
 	r='fc -e -'
 	source='PATH=$PATH:. command .'
@@ -4753,6 +4754,7 @@ expected-stdout:
 	integer='typeset -i'
 	local=typeset
 	login='exec login'
+	nameref='typeset -n'
 	nohup='nohup '
 	r='fc -e -'
 	source='PATH=$PATH:. command .'
@@ -4799,6 +4801,7 @@ expected-stdout:
 	integer='typeset -i'
 	local=typeset
 	login='exec login'
+	nameref='typeset -n'
 	nohup='nohup '
 	r='fc -e -'
 	source='PATH=$PATH:. command .'
@@ -4823,6 +4826,7 @@ expected-stdout:
 	integer='typeset -i'
 	local=typeset
 	login='exec login'
+	nameref='typeset -n'
 	nohup='nohup '
 	r='fc -e -'
 	source='PATH=$PATH:. command .'
@@ -4846,6 +4850,7 @@ expected-stdout:
 	integer='typeset -i'
 	local=typeset
 	login='exec login'
+	nameref='typeset -n'
 	nohup='nohup '
 	r='fc -e -'
 	source='PATH=$PATH:. command .'
@@ -4868,6 +4873,7 @@ expected-stdout:
 	integer='typeset -i'
 	local=typeset
 	login='exec login'
+	nameref='typeset -n'
 	nohup='nohup '
 	r='fc -e -'
 	source='PATH=$PATH:. command .'
@@ -5005,6 +5011,44 @@ expected-stdout:
 	f 0<0 1 4> = 0<> f
 	g 0<0>1<1>2<4> = g
 	h 0<0>1<1>2<4> = h
+---
+name: arrays-6a
+description:
+	Check if we can get the array keys (indices) for indexed arrays,
+	Korn shell style, in some corner cases
+stdin:
+	print !arz: ${!arz}
+	print !arz[0]: ${!arz[0]}
+	print !arz[1]: ${!arz[1]}
+	arz=foo
+	print !arz: ${!arz}
+	print !arz[0]: ${!arz[0]}
+	print !arz[1]: ${!arz[1]}
+expected-stdout:
+	!arz: 0
+	!arz[0]:
+	!arz[1]:
+	!arz: arz
+	!arz[0]: 0
+	!arz[1]:
+---
+name: arrays-6b
+description:
+	Check if we can get the array keys (indices) for indexed arrays,
+	Korn shell style, in some corner cases
+expected-fail: yes
+stdin:
+	arz=foo
+	print !arz: ${!arz}
+	unset arz
+	print !arz: ${!arz}
+	print !arz[0]: ${!arz[0]}
+	print !arz[1]: ${!arz[1]}
+expected-stdout:
+	!arz: arz
+	!arz: arz
+	!arz[0]:
+	!arz[1]:
 ---
 name: varexpand-substr-1
 description:
@@ -6099,4 +6143,74 @@ expected-stdout:
 	=14
 	mypid=nz
 	=15
+---
+name: nameref-1
+description:
+	Testsuite for nameref (bound variables)
+stdin:
+	function foo {
+		typeset bar=lokal baz=auch
+		typeset -n v=bar
+		print entering
+		print !v: ${!v}
+		print !bar: ${!bar}
+		print !baz: ${!baz}
+		print bar: $bar
+		print v: $v
+		v=123
+		print bar: $bar
+		print v: $v
+		print exiting
+	}
+	bar=global
+	print bar: $bar
+	foo bar
+	print bar: $bar
+	typeset -n ir2=bar
+	typeset -n ind=ir2
+	print !ind: ${!ind}
+	print ind: $ind
+	print !ir2: ${!ir2}
+	print ir2: $ir2
+	typeset +n ind
+	print !ind: ${!ind}
+	print ind: $ind
+	typeset -n ir2=ind
+	print !ir2: ${!ir2}
+	print ir2: $ir2
+	set|grep ^ir2|sed 's/^/s1: /'
+	typeset|grep ' ir2'|sed -e 's/^/s2: /' -e 's/nameref/typeset -n/'
+	blub=(e1 e2 e3)
+	typeset -n ind=blub
+	typeset -n ir2=blub[2]
+	print !ind[1]: ${!ind[1]}
+	print !ir2: $!ir2
+	print ind[1]: ${ind[1]}
+	print ir2: $ir2
+expected-stdout:
+	bar: global
+	entering
+	!v: bar
+	!bar: bar
+	!baz: baz
+	bar: lokal
+	v: lokal
+	bar: 123
+	v: 123
+	exiting
+	bar: global
+	!ind: bar
+	ind: global
+	!ir2: bar
+	ir2: global
+	!ind: ind
+	ind: ir2
+	!ir2: ind
+	ir2: ir2
+	s1: ir2=ind
+	s2: typeset -n ir2
+	!ind[1]: 1
+	!ir2: ir2
+	ind[1]: e2
+	ir2: e3
 ---

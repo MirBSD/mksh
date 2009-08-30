@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.178 2009/08/30 11:38:44 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.178.2.1 2009/08/30 20:56:07 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -882,6 +882,7 @@ history=\*(aqfc \-l\*(aq
 integer=\*(aqtypeset \-i\*(aq
 local=\*(aqtypeset\*(aq
 login=\*(aqexec login\*(aq
+nameref=\*(aqtypeset -n\*(aq
 nohup=\*(aqnohup \*(aq
 r=\*(aqfc \-e \-\*(aq
 stop=\*(aqkill \-STOP\*(aq
@@ -1259,6 +1260,18 @@ of the string value of parameter
 .It Pf ${# Ns Ar name Ns [@]}
 The number of elements in the array
 .Ar name .
+.Pp
+.It Pf ${! Ns Ar name Ns }
+The name of the variable referred to by
+.Ar name .
+This will be
+.Ar name
+except when
+.Ar name
+is a name reference (bound variable), created by the
+.Ic nameref
+command (which is an alias for
+.Ic typeset Fl n ) .
 .Pp
 .It Pf ${! Ns Ar name Ns [*]}
 .It Pf ${! Ns Ar name Ns [@]}
@@ -4093,7 +4106,7 @@ A command that exits with a zero value.
 .Pp
 .It Xo
 .Ic typeset
-.Oo Op Ic +\-alprtUux
+.Oo Op Ic +\-alpnrtUux
 .Op Fl L Ns Op Ar n
 .Op Fl R Ns Op Ar n
 .Op Fl Z Ns Op Ar n
@@ -4174,6 +4187,15 @@ All upper case characters in values are converted to lower case.
 when used with the
 .Fl i
 option.)
+.It Fl n
+Create a bound variable (name reference): any access to the variable
+.Ar name
+will access the variable
+.Ar value
+instead.
+This can be used by functions to access variables whose names are
+passed as parametres, instead of using
+.Ic eval .
 .It Fl p
 Print complete
 .Ic typeset
