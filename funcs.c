@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.125 2009/08/28 21:51:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.126 2009/08/30 13:22:38 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -102,9 +102,7 @@ const struct builtin mkshbuiltins[] = {
 #if HAVE_MKNOD
 	{"mknod", c_mknod},
 #endif
-#if HAVE_REALPATH
 	{"realpath", c_realpath},
-#endif
 	{"rename", c_rename},
 	{NULL, (int (*)(const char **))NULL}
 };
@@ -173,6 +171,146 @@ static void ptest_error(Test_env *, int, const char *);
 static char *kill_fmt_entry(const void *, int, char *, int);
 static void p_time(struct shf *, bool, long, int, int,
     const char *, const char *) __attribute__((nonnull (6, 7)));
+static char *do_realpath(const char *);
+
+static char *
+do_realpath(const char *upath)
+{
+	char *xp, *ip, *tp, *ipath, *ldest = NULL;
+	XString xs;
+	ptrdiff_t pos;
+	size_t len;
+	int symlinks = 32;	/* max. recursion depth */
+	int llen;
+	struct stat sb;
+
+	if (upath[0] == '/') {
+		/* upath is an absolute pathname */
+		strdupx(ipath, upath, ATEMP);
+	} else {
+		/* upath is a relative pathname, prepend cwd */
+		if ((tp = ksh_get_wd(NULL)) == NULL || tp[0] != '/')
+			return (NULL);
+		ipath = shf_smprintf("%s/%s", tp, upath);
+		afree(tp, ATEMP);
+	}
+
+	Xinit(xs, xp, strlen(ip = ipath) + 1, ATEMP);
+
+	while (*ip) {
+		/* skip slashes in input */
+		while (*ip == '/')
+			++ip;
+		if (!*ip)
+			break;
+
+		/* get next pathname component from input */
+		tp = ip;
+		while (*ip && *ip != '/')
+			++ip;
+		len = ip - tp;
+
+		/* check input for "." and ".." */
+		if (tp[0] == '.') {
+			if (len == 1)
+				/* just continue with the next one */
+				continue;
+			else if (len == 2 && tp[1] == '.') {
+				/* strip off last pathname component */
+				while (xp > Xstring(xs, xp))
+					if (*--xp == '/')
+						break;
+				/* then continue with the next one */
+				continue;
+			}
+		}
+
+		/* store output position away, then append slash to output */
+		pos = Xsavepos(xs, xp);
+		Xcheck(xs, xp);
+		Xput(xs, xp, '/');
+
+		/* append next pathname component to output */
+		XcheckN(xs, xp, len + 1);
+		memcpy(xp, tp, len);
+		xp += len;
+		*xp = '\0';
+
+		/* lstat the current output, see if it's a symlink */
+		if (lstat(Xstring(xs, xp), &sb)) {
+			/* lstat failed */
+			if (errno == ENOENT) {
+				/* because the pathname does not exist */
+				while (*ip == '/')
+					/* skip any trailing slashes */
+					++ip;
+				/* no more components left? */
+				if (!*ip)
+					/* we can still return successfully */
+					break;
+				/* more components left? fall through */
+			}
+			/* not ENOENT or not at the end of ipath */
+			goto notfound;
+		}
+
+		/* check if we encountered a symlink? */
+		if (S_ISLNK(sb.st_mode)) {
+			/* reached maximum recursion depth? */
+			if (!symlinks--) {
+				/* yep, prevent infinite loops */
+				errno = ELOOP;
+				goto notfound;
+			}
+
+			/* get symlink(7) target */
+			if (!ldest)
+				ldest = alloc(PATH_MAX + 1, ATEMP);
+			if ((llen = readlink(Xstring(xs, xp), ldest,
+			    PATH_MAX)) < 0)
+				/* oops... */
+				goto notfound;
+			ldest[llen] = '\0';
+
+			/*
+			 * restart if symlink target is an absolute path,
+			 * otherwise continue with currently resolved prefix
+			 */
+			xp = (ldest[0] == '/') ? Xstring(xs, xp) :
+			    Xrestpos(xs, xp, pos);
+			tp = shf_smprintf("%s/%s", ldest, ip);
+			afree(ipath, ATEMP);
+			ip = ipath = tp;
+		}
+		/* otherwise (no symlink) merely go on */
+	}
+
+	/*
+	 * either found the target and successfully resolved it,
+	 * or found its parent directory and may create it
+	 */
+	if (Xlength(xs, xp) == 0)
+		/*
+		 * if the resolved pathname is "", make it "/",
+		 * otherwise do not add a trailing slash
+		 */
+		Xput(xs, xp, '/');
+	Xput(xs, xp, '\0');
+
+	if (ldest != NULL)
+		afree(ldest, ATEMP);
+	afree(ipath, ATEMP);
+	return (Xclose(xs, xp));
+
+ notfound:
+	llen = errno;	/* save; free(3) might trash it */
+	if (ldest != NULL)
+		afree(ldest, ATEMP);
+	afree(ipath, ATEMP);
+	Xfree(xs, xp);
+	errno = llen;
+	return (NULL);
+}
 
 int
 c_cd(const char **wp)
@@ -3124,11 +3262,11 @@ c_rename(const char **wp)
 	return (rv);
 }
 
-#if HAVE_REALPATH
 int
 c_realpath(const char **wp)
 {
 	int rv = 1;
+	char *buf;
 
 	if (wp != NULL && wp[0] != NULL && wp[1] != NULL) {
 		if (strcmp(wp[1], "--")) {
@@ -3146,17 +3284,15 @@ c_realpath(const char **wp)
 
 	if (rv)
 		bi_errorf(T_synerr);
-	else {
-		char *buf;
-
-		if (realpath(*wp, (buf = alloc(PATH_MAX, ATEMP))) == NULL) {
-			rv = errno;
-			bi_errorf("%s: %s", *wp, strerror(rv));
-		} else
-			shprintf("%s\n", buf);
+	else if ((buf = do_realpath(*wp)) == NULL) {
+		rv = errno;
+		bi_errorf("%s: %s", *wp, strerror(rv));
+		if ((unsigned int)rv > 255)
+			rv = 255;
+	} else {
+		shprintf("%s\n", buf);
 		afree(buf, ATEMP);
 	}
 
 	return (rv);
 }
-#endif

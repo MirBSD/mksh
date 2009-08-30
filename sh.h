@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.334 2009/08/28 22:46:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.335 2009/08/30 13:22:39 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/08/28"
 
@@ -1434,9 +1434,7 @@ int c_test(const char **);
 #if HAVE_MKNOD
 int c_mknod(const char **);
 #endif
-#if HAVE_REALPATH
 int c_realpath(const char **);
-#endif
 int c_rename(const char **);
 /* histrap.c */
 void init_histvec(void);

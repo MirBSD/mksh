@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.422 2009/08/28 17:37:47 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.423 2009/08/30 13:22:37 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -919,7 +919,6 @@ if ac_ifcpp 'ifdef MKSH_SMALL' isset_MKSH_SMALL '' \
 	fi
 
 	: ${HAVE_MKNOD=0}
-	: ${HAVE_REALPATH=0}
 	: ${HAVE_REVOKE=0}
 	: ${HAVE_PERSISTENT_HISTORY=0}
 	check_categories=$check_categories,smksh
@@ -1166,23 +1165,6 @@ EOF
 ac_test nice <<-'EOF'
 	#include <unistd.h>
 	int main(void) { return (nice(4)); }
-EOF
-
-ac_test realpath <<-'EOF'
-	#if HAVE_SYS_PARAM_H
-	#include <sys/param.h>
-	#endif
-	#include <stdlib.h>
-	#include <unistd.h>
-	#ifndef PATH_MAX
-	#define PATH_MAX 1024
-	#endif
-	char *res, dst[PATH_MAX];
-	const char src[] = ".";
-	int main(void) {
-		res = realpath(src, dst);
-		return (res == NULL ? 1 : 0);
-	}
 EOF
 
 ac_test revoke <<-'EOF'
