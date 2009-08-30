@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.126 2009/08/30 13:22:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.127 2009/08/30 13:30:07 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -417,6 +417,10 @@ c_cd(const char **wp)
 		return (1);
 	}
 
+	/* allocd (above) => dir, which is no longer used */
+	afree(allocd, ATEMP);
+	allocd = NULL;
+
 	/* Clear out tracked aliases with relative paths */
 	flushcom(0);
 
@@ -429,13 +433,13 @@ c_cd(const char **wp)
 
 	if (Xstring(xs, xp)[0] != '/') {
 		pwd = NULL;
-	} else
-	if (!physical || !(pwd = get_phys_path(Xstring(xs, xp))))
+	} else if (!physical || !(pwd = allocd = do_realpath(Xstring(xs, xp))))
 		pwd = Xstring(xs, xp);
 
 	/* Set PWD */
 	if (pwd) {
 		char *ptmp = pwd;
+
 		set_current_wd(ptmp);
 		/* Ignore failure (happens if readonly or integer) */
 		setstr(pwd_s, ptmp, KSH_RETURN_ERROR);
@@ -475,7 +479,7 @@ c_pwd(const char **wp)
 		bi_errorf("too many arguments");
 		return (1);
 	}
-	p = current_wd[0] ? (physical ? get_phys_path(current_wd) :
+	p = current_wd[0] ? (physical ? allocd = do_realpath(current_wd) :
 	    current_wd) : NULL;
 	if (p && access(p, R_OK) < 0)
 		p = NULL;

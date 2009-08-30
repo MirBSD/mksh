@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.117 2009/08/28 21:07:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.118 2009/08/30 13:30:07 tg Exp $");
 
 #undef USE_CHVT
 /* XXX conditions correct? */
@@ -50,7 +50,6 @@ static const unsigned char *cclass(const unsigned char *, int);
 #ifdef USE_CHVT
 static void chvt(const char *);
 #endif
-static char *do_phys_path(XString *, char *, const char *);
 
 /*
  * Fast character classes
@@ -1271,80 +1270,6 @@ set_current_wd(char *pathl)
 	memcpy(current_wd, p, len);
 	if (p != pathl && p != null)
 		afree(p, ATEMP);
-}
-
-char *
-get_phys_path(const char *pathl)
-{
-	XString xs;
-	char *xp;
-
-	Xinit(xs, xp, strlen(pathl) + 1, ATEMP);
-
-	xp = do_phys_path(&xs, xp, pathl);
-
-	if (!xp)
-		return (NULL);
-
-	if (Xlength(xs, xp) == 0)
-		Xput(xs, xp, '/');
-	Xput(xs, xp, '\0');
-
-	return (Xclose(xs, xp));
-}
-
-static char *
-do_phys_path(XString *xsp, char *xp, const char *pathl)
-{
-	const char *p, *q;
-	int len, llen, savepos;
-	char *lbuf;
-
-	lbuf = alloc(PATH_MAX, ATEMP);
-	Xcheck(*xsp, xp);
-	for (p = pathl; p; p = q) {
-		while (*p == '/')
-			p++;
-		if (!*p)
-			break;
-		len = (q = cstrchr(p, '/')) ? q - p : (int)strlen(p);
-		if (len == 1 && p[0] == '.')
-			continue;
-		if (len == 2 && p[0] == '.' && p[1] == '.') {
-			while (xp > Xstring(*xsp, xp)) {
-				xp--;
-				if (*xp == '/')
-					break;
-			}
-			continue;
-		}
-
-		savepos = Xsavepos(*xsp, xp);
-		Xput(*xsp, xp, '/');
-		XcheckN(*xsp, xp, len + 1);
-		memcpy(xp, p, len);
-		xp += len;
-		*xp = '\0';
-
-		llen = readlink(Xstring(*xsp, xp), lbuf, PATH_MAX - 1);
-		if (llen < 0) {
-			if (errno == EINVAL)
-				/* not a symbolic link */
-				continue;
-			xp = NULL;
-			goto out;
-		}
-		lbuf[llen] = '\0';
-
-		/* If absolute path, start from scratch.. */
-		xp = lbuf[0] == '/' ? Xstring(*xsp, xp) :
-		    Xrestpos(*xsp, xp, savepos);
-		if ((xp = do_phys_path(xsp, xp, lbuf)) == NULL)
-			break;
-	}
- out:
-	afree(lbuf, ATEMP);
-	return (xp);
 }
 
 #ifdef USE_CHVT

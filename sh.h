@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.335 2009/08/30 13:22:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.336 2009/08/30 13:30:08 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/08/28"
 
@@ -1578,7 +1578,6 @@ int reset_nonblock(int);
 char *ksh_get_wd(size_t *);
 int make_path(const char *, const char *, char **, XString *, int *);
 void simplify_path(char *);
-char *get_phys_path(const char *);
 void set_current_wd(char *);
 #ifdef MKSH_SMALL
 char *strdup_(const char *, Area *);
