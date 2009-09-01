@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.301.2.1 2009/08/30 20:56:03 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.301.2.2 2009/09/01 16:19:47 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4197,7 +4197,7 @@ name: xxx-param-subst-qmark-1
 description:
 	Check suppresion of error message with null string.  According to
 	POSIX, it shouldn't print the error as 'word' isn't ommitted.
-	ksh88, Solaris /bin/sh and /usr/xpg4/bin/sh all print the error,
+	ksh88/93, Solaris /bin/sh and /usr/xpg4/bin/sh all print the error,
 	that's why the condition is reversed.
 stdin:
 	unset foo
@@ -5012,7 +5012,7 @@ expected-stdout:
 	g 0<0>1<1>2<4> = g
 	h 0<0>1<1>2<4> = h
 ---
-name: arrays-6a
+name: arrays-7
 description:
 	Check if we can get the array keys (indices) for indexed arrays,
 	Korn shell style, in some corner cases
@@ -5021,6 +5021,10 @@ stdin:
 	print !arz[0]: ${!arz[0]}
 	print !arz[1]: ${!arz[1]}
 	arz=foo
+	print !arz: ${!arz}
+	print !arz[0]: ${!arz[0]}
+	print !arz[1]: ${!arz[1]}
+	unset arz
 	print !arz: ${!arz}
 	print !arz[0]: ${!arz[0]}
 	print !arz[1]: ${!arz[1]}
@@ -5031,22 +5035,7 @@ expected-stdout:
 	!arz: arz
 	!arz[0]: 0
 	!arz[1]:
----
-name: arrays-6b
-description:
-	Check if we can get the array keys (indices) for indexed arrays,
-	Korn shell style, in some corner cases
-expected-fail: yes
-stdin:
-	arz=foo
-	print !arz: ${!arz}
-	unset arz
-	print !arz: ${!arz}
-	print !arz[0]: ${!arz[0]}
-	print !arz[1]: ${!arz[1]}
-expected-stdout:
-	!arz: arz
-	!arz: arz
+	!arz: 0
 	!arz[0]:
 	!arz[1]:
 ---
