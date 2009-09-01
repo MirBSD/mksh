@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.301.2.2 2009/09/01 16:19:47 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.301.2.3 2009/09/01 16:32:51 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -6137,24 +6137,6 @@ name: nameref-1
 description:
 	Testsuite for nameref (bound variables)
 stdin:
-	function foo {
-		typeset bar=lokal baz=auch
-		typeset -n v=bar
-		print entering
-		print !v: ${!v}
-		print !bar: ${!bar}
-		print !baz: ${!baz}
-		print bar: $bar
-		print v: $v
-		v=123
-		print bar: $bar
-		print v: $v
-		print exiting
-	}
-	bar=global
-	print bar: $bar
-	foo bar
-	print bar: $bar
 	typeset -n ir2=bar
 	typeset -n ind=ir2
 	print !ind: ${!ind}
@@ -6177,17 +6159,6 @@ stdin:
 	print ind[1]: ${ind[1]}
 	print ir2: $ir2
 expected-stdout:
-	bar: global
-	entering
-	!v: bar
-	!bar: bar
-	!baz: baz
-	bar: lokal
-	v: lokal
-	bar: 123
-	v: 123
-	exiting
-	bar: global
 	!ind: bar
 	ind: global
 	!ir2: bar
@@ -6202,4 +6173,148 @@ expected-stdout:
 	!ir2: ir2
 	ind[1]: e2
 	ir2: e3
+---
+name: nameref-2da
+description:
+	Testsuite for nameref (bound variables)
+	Functions, argument given directly, after local
+stdin:
+	function foo {
+		typeset bar=lokal baz=auch
+		typeset -n v=bar
+		print entering
+		print !v: ${!v}
+		print !bar: ${!bar}
+		print !baz: ${!baz}
+		print bar: $bar
+		print v: $v
+		v=123
+		print bar: $bar
+		print v: $v
+		print exiting
+	}
+	bar=global
+	print bar: $bar
+	foo bar
+	print bar: $bar
+expected-stdout:
+	bar: global
+	entering
+	!v: bar
+	!bar: bar
+	!baz: baz
+	bar: lokal
+	v: lokal
+	bar: 123
+	v: 123
+	exiting
+	bar: global
+---
+name: nameref-2db
+description:
+	Testsuite for nameref (bound variables)
+	Functions, argument given directly, before local
+stdin:
+	function foo {
+		typeset -n v=bar
+		typeset bar=lokal baz=auch
+		print entering
+		print !v: ${!v}
+		print !bar: ${!bar}
+		print !baz: ${!baz}
+		print bar: $bar
+		print v: $v
+		v=123
+		print bar: $bar
+		print v: $v
+		print exiting
+	}
+	bar=global
+	print bar: $bar
+	foo bar
+	print bar: $bar
+expected-stdout:
+	bar: global
+	entering
+	!v: bar
+	!bar: bar
+	!baz: baz
+	bar: lokal
+	v: global
+	bar: lokal
+	v: 123
+	exiting
+	bar: 123
+---
+name: nameref-2ia
+description:
+	Testsuite for nameref (bound variables)
+	Functions, argument given indirectly, after local
+stdin:
+	function foo {
+		typeset bar=lokal baz=auch
+		typeset -n v=$1
+		print entering
+		print !v: ${!v}
+		print !bar: ${!bar}
+		print !baz: ${!baz}
+		print bar: $bar
+		print v: $v
+		v=123
+		print bar: $bar
+		print v: $v
+		print exiting
+	}
+	bar=global
+	print bar: $bar
+	foo bar
+	print bar: $bar
+expected-stdout:
+	bar: global
+	entering
+	!v: bar
+	!bar: bar
+	!baz: baz
+	bar: lokal
+	v: global
+	bar: lokal
+	v: 123
+	exiting
+	bar: 123
+---
+name: nameref-2ib
+description:
+	Testsuite for nameref (bound variables)
+	Functions, argument given indirectly, before local
+stdin:
+	function foo {
+		typeset -n v=$1
+		typeset bar=lokal baz=auch
+		print entering
+		print !v: ${!v}
+		print !bar: ${!bar}
+		print !baz: ${!baz}
+		print bar: $bar
+		print v: $v
+		v=123
+		print bar: $bar
+		print v: $v
+		print exiting
+	}
+	bar=global
+	print bar: $bar
+	foo bar
+	print bar: $bar
+expected-stdout:
+	bar: global
+	entering
+	!v: bar
+	!bar: bar
+	!baz: baz
+	bar: lokal
+	v: global
+	bar: lokal
+	v: 123
+	exiting
+	bar: 123
 ---
