@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.179 2009/08/30 21:02:00 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.180 2009/09/05 17:12:49 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -48,7 +48,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: August 30 2009 $
+.Dd $Mdocdate: September 5 2009 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -2454,6 +2454,12 @@ assignments made inside functions are visible after the function completes.
 If this is not the desired effect, the
 .Ic typeset
 command can be used inside a function to create a local parameter.
+Note that
+.At
+.Nm ksh93
+uses static scoping (one global scope, one local scope per function), whereas
+.Nm mksh
+uses dynamic scoping (nested scopes of varying locality).
 Note that special parameters (e.g.\&
 .Ic \&$$ , $! )
 can't be scoped in this way.
