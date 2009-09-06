@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.303 2009/09/06 17:42:11 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.304 2009/09/06 17:55:53 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2009/08/30
+	@(#)MIRBSD KSH R39 2009/09/06
 description:
 	Check version of shell.
 stdin:
@@ -5519,6 +5519,26 @@ expected-stdout:
 	00000118  EFC2 000A EFEF EFBF - EFC0 000A EFC0 EF80  |�.���.��|
 	00000120  000A EFE0 EF80 EF80 - 000A FFFD EFEF EFBF  |.���.���|
 	00000128  EFBE EFEF EFBF EFBF - 000A                 |����.|
+---
+name: integer-base-one-4
+description:
+	Check if ksh93-style base-one integers work
+stdin:
+	set -U
+	print 1 $(('a'))
+	(print 2f $(('aa'))) 2>&1 | sed "s/^[^']*'/2p '/"
+	print 3 $(('…'))
+	x="'a'"
+	print "4 <$x>"
+	print 5 $(($x))
+	print 6 $((x))
+expected-stdout:
+	1 97
+	2p 'aa': multi-character character constant
+	3 8230
+	4 <'a'>
+	5 97
+	6 97
 ---
 name: ulimit-1
 description:

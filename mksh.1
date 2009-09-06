@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.181 2009/09/06 17:42:13 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.182 2009/09/06 17:55:54 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -2230,6 +2230,14 @@ extension, numbers to the base of one are treated as either (8-bit
 transparent) ASCII or Unicode codepoints, depending on the shell's
 .Ic utf8\-mode
 flag (current setting).
+The
+.At
+.Nm ksh93
+syntax of
+.Dq \*(aqx\*(aq
+instead of
+.Dq 1#x
+is also supported.
 Note that NUL bytes (integral value of zero) cannot be used.
 In Unicode mode, raw octets are mapped into the range EF80..EFFF as in
 OPTU-8, which is in the PUA and has been assigned by CSUR for this use.
