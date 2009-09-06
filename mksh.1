@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.182 2009/09/06 17:55:54 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.183 2009/09/06 18:17:51 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -406,6 +406,13 @@ last is piped (see
 .Xr pipe 2 )
 to the standard input of the following command.
 The exit status of a pipeline is that of its last command.
+All commands of a pipeline are executed in separate subshells;
+this is allowed by POSIX but differs from both variants of
+.At
+.Nm ksh ,
+where all but the last command were executed in subshells; see the
+.Ic read
+builtin's description for implications and workarounds.
 A pipeline may be prefixed by the
 .Ql \&!
 reserved word which causes the exit status of the pipeline to be logically
@@ -1987,7 +1994,7 @@ does not exist, it is created; if it does exist, is a regular file, and the
 .Ic noclobber
 option is set, an error occurs; otherwise, the file is truncated.
 Note that this means the command
-.Ic cmd \*(Lt foo \*(Gt foo
+.Ic cmd \*(Ltfoo \*(Gtfoo
 will open
 .Ar foo
 for reading and then truncate it when it opens it for writing, before
@@ -2135,7 +2142,7 @@ Redirections are processed after
 pipelines are created and in the order they are given, so the following
 will print an error with a line number prepended to it:
 .Pp
-.D1 $ cat /foo/bar 2\*(Gt&1 \*(Gt /dev/null \*(Ba cat \-n
+.D1 $ cat /foo/bar 2\*(Gt&1 \*(Gt/dev/null \*(Ba cat \-n
 .Pp
 File descriptors created by input/output redirections are private to the
 Korn shell, but passed to sub-processes if
@@ -4049,8 +4056,8 @@ Simple redirections of standard error do not affect the output of the
 .Ic time
 command:
 .Pp
-.Dl $ time sleep 1 2\*(Gt afile
-.Dl $ { time sleep 1; } 2\*(Gt afile
+.Dl $ time sleep 1 2\*(Gtafile
+.Dl $ { time sleep 1; } 2\*(Gtafile
 .Pp
 Times for the first command do not go to
 .Dq afile ,
