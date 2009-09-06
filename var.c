@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.86 2009/08/28 22:44:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.87 2009/09/06 17:42:15 tg Exp $");
 
 /*
  * Variables
@@ -46,6 +46,8 @@ static struct tbl *arraysearch(struct tbl *, uint32_t);
 static const char *array_index_calc(const char *, bool *, uint32_t *);
 static int rnd_get(void);
 static void rnd_set(unsigned long);
+
+uint8_t set_refflag = 0;
 
 /*
  * create a new block for function calls and simple commands
@@ -135,7 +137,7 @@ initvar(void)
 }
 
 /* Used to calculate an array index for global()/local(). Sets *arrayp to
- * non-zero if this is an array, sets *valp to the array index, returns
+ * true if this is an array, sets *valp to the array index, returns
  * the basename of the array.
  */
 static const char *
@@ -143,9 +145,39 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 {
 	const char *p;
 	int len;
+	char *ap = NULL;
 
 	*arrayp = false;
+ redo_from_ref:
 	p = skip_varname(n, false);
+	if (!set_refflag && (p != n) && ksh_isalphx(n[0])) {
+		struct block *l = e->loc;
+		struct tbl *vp;
+		char *vn;
+		uint32_t h;
+
+		strndupx(vn, n, p - n, ATEMP);
+		h = hash(vn);
+		/* check if this is a reference */
+		for (l = e->loc; ; l = l->next) {
+			if ((vp = ktsearch(&l->vars, vn, h)) != NULL)
+				break;
+			if (l->next == NULL)
+				break;
+		}
+		afree(vn, ATEMP);
+		if (vp && (vp->flag & (DEFINED|ASSOC|ARRAY)) ==
+		    (DEFINED|ASSOC)) {
+			char *cp;
+
+			/* gotcha! */
+			cp = shf_smprintf("%s%s", str_val(vp), p);
+			afree(ap, ATEMP);
+			n = ap = cp;
+			goto redo_from_ref;
+		}
+	}
+
 	if (p != n && *p == '[' && (len = array_ref_len(p))) {
 		char *sub, *tmp;
 		mksh_ari_t rval;
@@ -646,6 +678,9 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	if (*val == '[') {
 		int len;
 
+		if (set_refflag)
+			errorf("%s: reference variable cannot be an array",
+			    var);
 		len = array_ref_len(val);
 		if (len == 0)
 			return (NULL);
@@ -680,6 +715,26 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 
 	vp = (set&LOCAL) ? local(tvar, (set & LOCAL_COPY) ? true : false) :
 	    global(tvar);
+	if (set_refflag == 2 && (vp->flag & (ARRAY|ASSOC)) == ASSOC)
+		vp->flag &= ~ASSOC;
+	else if (set_refflag == 1) {
+		if (vp->flag & ARRAY) {
+			struct tbl *a, *tmp;
+
+			/* Free up entire array */
+			for (a = vp->u.array; a; ) {
+				tmp = a;
+				a = a->u.array;
+				if (tmp->flag & ALLOC)
+					afree(tmp->val.s, tmp->areap);
+				afree(tmp, tmp->areap);
+			}
+			vp->u.array = NULL;
+			vp->flag &= ~ARRAY;
+		}
+		vp->flag |= ASSOC;
+	}
+
 	set &= ~(LOCAL|LOCAL_COPY);
 
 	vpbase = (vp->flag & ARRAY) ? global(arrayname(var)) : vp;
@@ -803,8 +858,8 @@ unset(struct tbl *vp, int array_ref)
 }
 
 /* return a pointer to the first char past a legal variable name (returns the
- * argument if there is no legal name, returns * a pointer to the terminating
- * null if whole string is legal).
+ * argument if there is no legal name, returns a pointer to the terminating
+ * NUL if whole string is legal).
  */
 const char *
 skip_varname(const char *s, int aok)
@@ -1240,7 +1295,7 @@ arraysearch(struct tbl *vp, uint32_t val)
 	struct tbl *prev, *curr, *new;
 	size_t len;
 
-	vp->flag |= ARRAY|DEFINED;
+	vp->flag = (vp->flag | (ARRAY|DEFINED)) & ~ASSOC;
 	/* The table entry is always [0] */
 	if (val == 0)
 		return (vp);

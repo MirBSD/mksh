@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.128 2009/08/30 21:02:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.129 2009/09/06 17:42:12 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -46,6 +46,8 @@ __RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.128 2009/08/30 21:02:00 tg Exp $");
 #ifdef MKSH_NO_LIMITS
 #define c_ulimit c_label
 #endif
+
+extern uint8_t set_refflag;
 
 /* A leading = means assignments before command are kept;
  * a leading * means a POSIX special builtin;
@@ -896,7 +898,7 @@ c_typeset(const char **wp)
 	}
 
 	/* see comment below regarding possible opions */
-	opts = istset ? "L#R#UZ#afi#lprtux" : "p";
+	opts = istset ? "L#R#UZ#afi#lnprtux" : "p";
 
 	fieldstr = basestr = NULL;
 	builtin_opt.flags |= GF_PLUSOPT;
@@ -947,6 +949,9 @@ c_typeset(const char **wp)
 		case 'l':
 			flag = LCASEV;
 			break;
+		case 'n':
+			set_refflag = (builtin_opt.info & GI_PLUS) ? 2 : 1;
+			break;
 		case 'p':
 			/* export, readonly: POSIX -p flag */
 			/* typeset: show values as well */
@@ -995,13 +1000,14 @@ c_typeset(const char **wp)
 		builtin_opt.optind++;
 	}
 
-	if (func && ((fset|fclr) & ~(TRACE|UCASEV_AL|EXPORT))) {
+	if (func && (((fset|fclr) & ~(TRACE|UCASEV_AL|EXPORT)) || set_refflag)) {
 		bi_errorf("only -t, -u and -x options may be used with -f");
+		set_refflag = 0;
 		return (1);
 	}
 	if (wp[builtin_opt.optind]) {
 		/* Take care of exclusions.
-		 * At this point, flags in fset are cleared in fclr and vise
+		 * At this point, flags in fset are cleared in fclr and vice
 		 * versa. This property should be preserved.
 		 */
 		if (fset & LCASEV)	/* LCASEV has priority over UCASEV_AL */
@@ -1015,8 +1021,8 @@ c_typeset(const char **wp)
 		/* Setting these attributes clears the others, unless they
 		 * are also set in this command
 		 */
-		if (fset & (LJUST | RJUST | ZEROFIL | UCASEV_AL | LCASEV |
-		    INTEGER | INT_U | INT_L))
+		if ((fset & (LJUST | RJUST | ZEROFIL | UCASEV_AL | LCASEV |
+		    INTEGER | INT_U | INT_L)) || set_refflag)
 			fclr |= ~fset & (LJUST | RJUST | ZEROFIL | UCASEV_AL |
 			    LCASEV | INTEGER | INT_U | INT_L);
 	}
@@ -1047,9 +1053,11 @@ c_typeset(const char **wp)
 					    "%s() %T\n", wp[i], f->val.t);
 			} else if (!typeset(wp[i], fset, fclr, field, base)) {
 				bi_errorf("%s: not identifier", wp[i]);
+				set_refflag = 0;
 				return (1);
 			}
 		}
+		set_refflag = 0;
 		return (rv);
 	}
 
@@ -1112,6 +1120,8 @@ c_typeset(const char **wp)
 						 * be suitable for re-entry...
 						 */
 						shf_puts("typeset ", shl_stdout);
+						if (((vp->flag&(ARRAY|ASSOC))==ASSOC))
+							shf_puts("-n ", shl_stdout);
 						if ((vp->flag&INTEGER))
 							shf_puts("-i ", shl_stdout);
 						if ((vp->flag&EXPORT))
@@ -1160,9 +1170,7 @@ c_typeset(const char **wp)
 						if ((vp->flag&ARRAY) && any_set)
 							shprintf("%s[%lu]",
 							    vp->name,
-							    vp->flag & AINDEX ?
-							    (unsigned long)vp->ua.index :
-							    0);
+							    arrayindex(vp));
 						else
 							shf_puts(vp->name, shl_stdout);
 						if (thing == '-' && (vp->flag&ISSET)) {

@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.337 2009/08/30 21:02:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.338 2009/09/06 17:42:14 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/08/30"
 
@@ -906,6 +906,7 @@ struct tbl {			/* table item */
 #define EXPRINEVAL	BIT(23)	/* contents currently being evaluated */
 #define EXPRLVALUE	BIT(24)	/* useable as lvalue (temp flag) */
 #define AINDEX		BIT(25) /* array index >0 = ua.index filled in */
+#define ASSOC		BIT(26) /* ARRAY ? associative : reference */
 /* flag bits used for taliases/builtins/aliases/keywords/functions */
 #define KEEPASN		BIT(8)	/* keep command assignments (eg, var=x cmd) */
 #define FINUSE		BIT(9)	/* function being executed */
@@ -918,6 +919,9 @@ struct tbl {			/* table item */
  */
 #define USERATTRIB	(EXPORT|INTEGER|RDONLY|LJUST|RJUST|ZEROFIL|\
 			    LCASEV|UCASEV_AL|INT_U|INT_L)
+
+#define arrayindex(vp)	((unsigned long)((vp)->flag & AINDEX ? \
+			    (vp)->ua.index : 0))
 
 /* command types */
 #define CNONE		0	/* undefined */
