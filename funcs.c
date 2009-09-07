@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.129 2009/09/06 17:42:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.130 2009/09/07 17:24:48 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2782,12 +2782,11 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	case TO_STZER: /* -z */
 		return (*opnd1 == '\0');
 	case TO_OPTION: /* -o */
-		if ((i = *opnd1 == '!'))
+		if ((i = *opnd1) == '!' || i == '?')
 			opnd1++;
 		if ((k = option(opnd1)) == (size_t)-1)
 			return (0);
-		s = Flag(k);
-		return (i ? !s : s);
+		return (i == '?' ? 1 : i == '!' ? !Flag(k) : Flag(k));
 	case TO_FILRD: /* -r */
 		return (test_eaccess(opnd1, R_OK) == 0);
 	case TO_FILWR: /* -w */

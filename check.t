@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.304 2009/09/06 17:55:53 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.305 2009/09/07 17:24:47 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2009/09/06
+	@(#)MIRBSD KSH R39 2009/09/07
 description:
 	Check version of shell.
 stdin:
@@ -4356,6 +4356,47 @@ stdin:
 	echo -e $rv
 expected-stdout:
 	-e 0
+---
+name: test-option-1
+description:
+	Test the test -o operator
+stdin:
+	runtest() {
+		test -o $1; echo $?
+		[ -o $1 ]; echo $?
+		[[ -o $1 ]]; echo $?
+	}
+	if_test() {
+		test -o $1 -o -o !$1; echo $?
+		[ -o $1 -o -o !$1 ]; echo $?
+		[[ -o $1 || -o !$1 ]]; echo $?
+		test -o ?$1; echo $?
+	}
+	echo 0y $(if_test utf8-mode) =
+	echo 0n $(if_test utf8-hack) =
+	echo 1= $(runtest utf8-hack) =
+	echo 2= $(runtest !utf8-hack) =
+	echo 3= $(runtest ?utf8-hack) =
+	set +U
+	echo 1+ $(runtest utf8-mode) =
+	echo 2+ $(runtest !utf8-mode) =
+	echo 3+ $(runtest ?utf8-mode) =
+	set -U
+	echo 1- $(runtest utf8-mode) =
+	echo 2- $(runtest !utf8-mode) =
+	echo 3- $(runtest ?utf8-mode) =
+expected-stdout:
+	0y 0 0 0 0 =
+	0n 1 1 1 1 =
+	1= 1 1 1 =
+	2= 1 1 1 =
+	3= 1 1 1 =
+	1+ 1 1 1 =
+	2+ 0 0 0 =
+	3+ 0 0 0 =
+	1- 0 0 0 =
+	2- 1 1 1 =
+	3- 0 0 0 =
 ---
 name: mkshrc-1
 description:
