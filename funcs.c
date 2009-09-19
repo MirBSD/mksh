@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.131 2009/09/19 15:16:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.132 2009/09/19 19:08:46 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -604,7 +604,7 @@ c_print(const char **wp)
 		while ((c = *s++) != '\0') {
 			Xcheck(xs, xp);
 			if ((flags & PO_EXPAND) && c == '\\') {
-				if ((c = unbksl(&s)) == -1) {
+				if ((c = unbksl(&s, false)) == -1) {
 					/* rejected by generic function */
 					switch ((c = *s++)) {
 					case 'c':

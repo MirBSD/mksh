@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.119 2009/09/19 15:16:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.120 2009/09/19 19:08:47 tg Exp $");
 
 #undef USE_CHVT
 /* XXX conditions correct? */
@@ -1456,7 +1456,7 @@ getrusage(int what, struct rusage *ru)
  * unprocessed character (unchanged if rv=-1)
  */
 int
-unbksl(const char **sp)
+unbksl(const char **sp, bool cstyle)
 {
 	int wc, i;
 	const char *cp = (*sp);
@@ -1490,7 +1490,21 @@ unbksl(const char **sp)
 		/* assume ASCII here as well */
 		wc = 11;
 		break;
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+		if (!cstyle)
+			return (-1);
+		/* FALLTHROUGH */
 	case '0':
+		if (cstyle)
+			--cp;
 		/*
 		 * look for an octal number with up to three
 		 * digits, not counting the leading zero;
@@ -1510,12 +1524,13 @@ unbksl(const char **sp)
 		if (0)
 		/* FALLTHROUGH */
 	case 'x':
-		i = 2;
+		i = cstyle ? -1 : 2;
 		/*
-		 * x: look for a hexadecimal number with up to
-		 *    two digits; convert to raw octet
-		 * u: look for a hexadecimal number with up to
-		 *    four (U: eight) digits; convert to Unicode
+		 * x:	look for a hexadecimal number with up to
+		 *	two (C style: arbitrary) digits; convert
+		 *	to raw octet (C style: Unicode)
+		 * u/U:	look for a hexadecimal number with up to
+		 *	four (U: eight) digits; convert to Unicode
 		 */
 		wc = 0;
 		while (i--) {
@@ -1531,7 +1546,7 @@ unbksl(const char **sp)
 				break;
 			}
 		}
-		if (**sp != 'x')
+		if (cstyle || **sp != 'x')
 			/* Unicode marker */
 			wc += 0x100;
 		break;
