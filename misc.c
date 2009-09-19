@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.121 2009/09/19 21:54:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.122 2009/09/19 22:32:23 tg Exp $");
 
 #undef USE_CHVT
 /* XXX conditions correct? */
@@ -1542,7 +1542,7 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		/*
 		 * x:	look for a hexadecimal number with up to
 		 *	two (C style: arbitrary) digits; convert
-		 *	to raw octet (C style: Unicode)
+		 *	to raw octet (C style: Unicode if >0xFF)
 		 * u/U:	look for a hexadecimal number with up to
 		 *	four (U: eight) digits; convert to Unicode
 		 */
@@ -1561,7 +1561,7 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 				break;
 			}
 		}
-		if (cstyle || fc != 'x')
+		if ((cstyle && wc > 0xFF) || fc != 'x')
 			/* Unicode marker */
 			wc += 0x100;
 		break;
