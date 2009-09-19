@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.94 2009/09/19 21:54:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.95 2009/09/19 22:33:10 tg Exp $");
 
 /*
  * states while lexing word
@@ -506,7 +506,7 @@ yylex(int cf)
 			} else if (c == '\\') {
 				if ((c2 = unbksl(true, s_get, s_put)) == -1)
 					c2 = s_get();
-				if (c2 == 0 || c2 == 0x100)
+				if (c2 == 0)
 					statep->ls_sequote.got_NUL = true;
 				if (!statep->ls_sequote.got_NUL) {
 					char ts[4];
