@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.185 2009/09/19 15:16:04 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.186 2009/09/19 18:36:58 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -749,6 +749,15 @@ below).
 Whitespace (space or tab) after
 .Ar name
 will be ignored most of the time.
+.It Xo function Ar name Ns ()
+.No { Ar list ; No }
+.Xc
+The same as
+.Ar name Ns ()
+.Pq Nm bash Ns ism .
+The
+.Ic function
+keyword is ignored.
 .It Xo Ic time Op Fl p
 .Op Ar pipeline
 .Xc

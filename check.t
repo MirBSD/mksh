@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.305 2009/09/07 17:24:47 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.306 2009/09/19 18:36:57 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -5255,6 +5255,33 @@ expected-stdout:
 	baz
 	bar
 	rab
+---
+name: bash-function-parens
+description:
+	ensure the keyword function is ignored when preceding
+	POSIX style function declarations (bashism)
+stdin:
+	mk() {
+		echo '#!'"$__progname"
+		echo "$1 {"
+		echo '	echo "bar='\''$0'\'\"
+		echo '}'
+		echo ${2:-foo}
+	}
+	mk 'function foo' >f-korn
+	mk 'foo ()' >f-dash
+	mk 'function foo ()' >f-bash
+	mk 'function stop ()' stop >f-stop
+	chmod +x f-*
+	echo "korn: $(./f-korn)"
+	echo "dash: $(./f-dash)"
+	echo "bash: $(./f-bash)"
+	echo "stop: $(./f-stop)"
+expected-stdout:
+	korn: bar='foo'
+	dash: bar='./f-dash'
+	bash: bar='./f-bash'
+	stop: bar='./f-stop'
 ---
 name: integer-base-one-1
 description:

@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.41 2009/08/28 20:30:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.42 2009/09/19 18:36:59 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -41,7 +41,7 @@ static struct op *thenpart(void);
 static struct op *elsepart(void);
 static struct op *caselist(void);
 static struct op *casepart(int);
-static struct op *function_body(char *, int);
+static struct op *function_body(char *, bool);
 static char **wordlist(void);
 static struct op *block(int, struct op *, struct op *, char **);
 static struct op *newtp(int);
@@ -595,7 +595,7 @@ casepart(int endtok)
 
 static struct op *
 function_body(char *name,
-    int ksh_func)		/* function foo { ... } vs foo() { .. } */
+    bool ksh_func)		/* function foo { ... } vs foo() { .. } */
 {
 	char *sname, *p;
 	struct op *t;
@@ -612,20 +612,31 @@ function_body(char *name,
 		if (ctype(*p, C_QUOTE) || *p == '=')
 			yyerror("%s: invalid function name\n", sname);
 
-	t = newtp(TFUNCT);
-	t->str = sname;
-	t->u.ksh_func = ksh_func;
-	t->lineno = source->line;
-
 	/* Note that POSIX allows only compound statements after foo(), sh and
 	 * AT&T ksh allow any command, go with the later since it shouldn't
 	 * break anything. However, for function foo, AT&T ksh only accepts
 	 * an open-brace.
 	 */
 	if (ksh_func) {
+		if (tpeek(CONTIN|KEYWORD|ALIAS) == '(' /* ) */) {
+			struct tbl *tp;
+
+			/* function foo () { */
+			ACCEPT;
+			musthave(')', 0);
+			/* degrade to POSIX function */
+			ksh_func = false;
+			if ((tp = ktsearch(&aliases, sname, hash(sname))))
+				ktdelete(tp);
+		}
 		musthave('{', CONTIN|KEYWORD|ALIAS); /* } */
 		REJECT;
 	}
+
+	t = newtp(TFUNCT);
+	t->str = sname;
+	t->u.ksh_func = ksh_func;
+	t->lineno = source->line;
 
 	old_func_parse = e->flags & EF_FUNC_PARSE;
 	e->flags |= EF_FUNC_PARSE;
