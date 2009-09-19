@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.93 2009/08/28 22:39:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.94 2009/09/19 21:54:45 tg Exp $");
 
 /*
  * states while lexing word
@@ -43,6 +43,7 @@ __RCSID("$MirOS: src/bin/mksh/lex.c,v 1.93 2009/08/28 22:39:09 tg Exp $");
 #define SLETARRAY	13	/* inside =( ), just copy */
 #define SADELIM		14	/* like SBASE, looking for delimiter */
 #define SHERESTRING	15	/* parsing <<< string */
+#define SEQUOTE		16	/* inside $'' */
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -94,6 +95,12 @@ struct lex_state {
 #define ls_sadelim ls_info.u_sadelim
 		} u_sadelim;
 
+		/* $'...' */
+		struct sequote_info {
+			bool got_NUL;	/* ignore rest of string */
+#define ls_sequote ls_info.u_sequote
+		} u_sequote;
+
 		Lex_state *base;	/* used to point to next state block */
 	} ls_info;
 };
@@ -107,6 +114,8 @@ static void readhere(struct ioword *);
 static int getsc__(void);
 static void getsc_line(Source *);
 static int getsc_bn(void);
+static int s_get(void);
+static void s_put(int);
 static char *get_brace_var(XString *, char *);
 static int arraysub(char **);
 static const char *ungetsc(int);
@@ -154,11 +163,10 @@ yylex(int cf)
 {
 	Lex_state states[STATE_BSIZE], *statep, *s2, *base;
 	State_info state_info;
-	int c, state;
+	int c, c2, state;
 	XString ws;		/* expandable output word */
 	char *wp;		/* output word pointer */
 	char *sp, *dp;
-	int c2;
 
  Again:
 	states[0].ls_state = -1;
@@ -427,6 +435,12 @@ yylex(int cf)
 					*wp++ = '\0';
 					*wp++ = CSUBST;
 					*wp++ = 'X';
+				} else if (c == '\'') {
+					*wp++ = OQUOTE;
+					ignore_backslash_newline++;
+					PUSH_STATE(SEQUOTE);
+					statep->ls_sequote.got_NUL = false;
+					break;
 				} else {
 					*wp++ = CHAR, *wp++ = '$';
 					ungetsc(c);
@@ -482,6 +496,33 @@ yylex(int cf)
 			default:
 				*wp++ = CHAR, *wp++ = c;
 			}
+			break;
+
+		case SEQUOTE:
+			if (c == '\'') {
+				POP_STATE();
+				*wp++ = CQUOTE;
+				ignore_backslash_newline--;
+			} else if (c == '\\') {
+				if ((c2 = unbksl(true, s_get, s_put)) == -1)
+					c2 = s_get();
+				if (c2 == 0 || c2 == 0x100)
+					statep->ls_sequote.got_NUL = true;
+				if (!statep->ls_sequote.got_NUL) {
+					char ts[4];
+
+					if ((unsigned int)c2 < 0x100)
+						*wp++ = QCHAR, *wp++ = c2;
+					else {
+						c = utf_wctomb(ts, c2 - 0x100);
+						ts[c] = 0;
+						for (c = 0; ts[c]; ++c)
+							*wp++ = QCHAR, \
+							*wp++ = ts[c];
+					}
+				}
+			} else if (!statep->ls_sequote.got_NUL)
+				*wp++ = QCHAR, *wp++ = c;
 			break;
 
 		case SSQUOTE:
@@ -690,8 +731,17 @@ yylex(int cf)
 				}
 				/* invoke quoting mode */
 				Xstring(ws, wp)[0] = QCHAR;
+			} else if (c == '$') {
+				if ((c2 = getsc()) == '\'') {
+					PUSH_STATE(SEQUOTE);
+					statep->ls_sequote.got_NUL = false;
+					goto sherestring_quoted;
+				}
+				ungetsc(c2);
+				goto sherestring_regular;
 			} else if (c == '\'') {
 				PUSH_STATE(SSQUOTE);
+ sherestring_quoted:
 				*wp++ = OQUOTE;
 				ignore_backslash_newline++;
 				/* invoke quoting mode */
@@ -701,6 +751,7 @@ yylex(int cf)
 				*wp++ = OQUOTE;
 				/* just don't IFS split; no quoting mode */
 			} else {
+ sherestring_regular:
 				*wp++ = CHAR;
 				*wp++ = c;
 			}
@@ -721,14 +772,24 @@ yylex(int cf)
 					*wp++ = QCHAR;
 					*wp++ = c;
 				}
+			} else if (c == '$') {
+				if ((c2 = getsc()) == '\'') {
+					PUSH_STATE(SEQUOTE);
+					statep->ls_sequote.got_NUL = false;
+					goto sheredelim_quoted;
+				}
+				ungetsc(c2);
+				goto sheredelim_regular;
 			} else if (c == '\'') {
 				PUSH_STATE(SSQUOTE);
+ sheredelim_quoted:
 				*wp++ = OQUOTE;
 				ignore_backslash_newline++;
 			} else if (c == '"') {
 				state = statep->ls_state = SHEREDQUOTE;
 				*wp++ = OQUOTE;
 			} else {
+ sheredelim_regular:
 				*wp++ = CHAR;
 				*wp++ = c;
 			}
@@ -1603,4 +1664,16 @@ pop_state_(State_info *si, Lex_state *old_end)
 	afree(old_base, ATEMP);
 
 	return (si->base + STATE_BSIZE - 1);
+}
+
+static int
+s_get(void)
+{
+	return (getsc());
+}
+
+static void
+s_put(int c)
+{
+	ungetsc(c);
 }

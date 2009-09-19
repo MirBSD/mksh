@@ -134,9 +134,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.342 2009/09/19 19:08:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.343 2009/09/19 21:54:46 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2009/09/07"
+#define MKSH_VERSION "R39 2009/09/19"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1339,6 +1339,10 @@ typedef union {
 
 #define HERES	10		/* max << in line */
 
+#undef CTRL
+#define	CTRL(x)		((x) == '?' ? 0x7F : (x) & 0x1F)	/* ASCII */
+#define	UNCTRL(x)	((x) ^ 0x40)				/* ASCII */
+
 EXTERN Source *source;		/* yyparse/yylex source */
 EXTERN YYSTYPE	yylval;		/* result from yylex */
 EXTERN struct ioword *heres [HERES], **herep;
@@ -1587,7 +1591,7 @@ void set_current_wd(char *);
 char *strdup_(const char *, Area *);
 char *strndup_(const char *, size_t, Area *);
 #endif
-int unbksl(const char **, bool);
+int unbksl(bool, int (*)(void), void (*)(int));
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);
 struct shf *shf_fdopen(int, int, struct shf *);

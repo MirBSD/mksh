@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.132 2009/09/19 19:08:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.133 2009/09/19 21:54:44 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -495,6 +495,10 @@ c_pwd(const char **wp)
 	return (0);
 }
 
+static const char *s_ptr;
+static int s_get(void);
+static void s_put(int);
+
 int
 c_print(const char **wp)
 {
@@ -604,7 +608,10 @@ c_print(const char **wp)
 		while ((c = *s++) != '\0') {
 			Xcheck(xs, xp);
 			if ((flags & PO_EXPAND) && c == '\\') {
-				if ((c = unbksl(&s, false)) == -1) {
+				s_ptr = s;
+				c = unbksl(false, s_get, s_put);
+				s = s_ptr;
+				if (c == -1) {
 					/* rejected by generic function */
 					switch ((c = *s++)) {
 					case 'c':
@@ -618,7 +625,7 @@ c_print(const char **wp)
 					default:
 						Xput(xs, xp, '\\');
 					}
-				} else if (c > 0xFF) {
+				} else if ((unsigned int)c > 0xFF) {
 					/* generic function returned Unicode */
 					char ts[4];
 
@@ -676,6 +683,18 @@ c_print(const char **wp)
 	}
 
 	return (0);
+}
+
+static int
+s_get(void)
+{
+	return (*s_ptr++);
+}
+
+static void
+s_put(int c __unused)
+{
+	--s_ptr;
 }
 
 int

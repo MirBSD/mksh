@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.175 2009/08/28 20:30:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.176 2009/09/19 21:54:43 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -963,10 +963,6 @@ utf_wctomb(char *dst, unsigned int wc)
 
 static	Area	aedit;
 #define	AEDIT	&aedit		/* area for kill ring and macro defns */
-
-#undef CTRL
-#define	CTRL(x)		((x) == '?' ? 0x7F : (x) & 0x1F)	/* ASCII */
-#define	UNCTRL(x)	((x) ^ 0x40)				/* ASCII */
 
 /* values returned by keyboard functions */
 #define	KSTD	0

@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.120 2009/09/19 19:08:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.121 2009/09/19 21:54:45 tg Exp $");
 
 #undef USE_CHVT
 /* XXX conditions correct? */
@@ -1449,19 +1449,20 @@ getrusage(int what, struct rusage *ru)
 #endif
 
 /*
- * process the string at *sp for backslash escapes,
- * assuming (*sp)[-1] was the backslash; return the
- * character ([0;0xFF]), Unicode (wc+0x100), or -1
- * if none found; *sp afterwards points to the first
- * unprocessed character (unchanged if rv=-1)
+ * process the string available via fg (get a char)
+ * and fp (put back a char) for backslash escapes,
+ * assuming the first call to *fg gets the char di-
+ * rectly after the backslash; return the character
+ * (0..0xFF), Unicode (wc + 0x100), or -1 if no known
+ * escape sequence was found
  */
 int
-unbksl(const char **sp, bool cstyle)
+unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 {
-	int wc, i;
-	const char *cp = (*sp);
+	int wc, i, c, fc;
 
-	switch (*cp++) {
+	fc = (*fg)();
+	switch (fc) {
 	case 'a':
 		/*
 		 * according to the comments in pdksh, \007 seems
@@ -1473,6 +1474,16 @@ unbksl(const char **sp, bool cstyle)
 		break;
 	case 'b':
 		wc = '\b';
+		break;
+	case 'c':
+		if (!cstyle)
+			goto unknown_escape;
+		c = (*fg)();
+		wc = CTRL(c);
+		break;
+	case 'E':
+	case 'e':
+		wc = 033;
 		break;
 	case 'f':
 		wc = '\f';
@@ -1497,14 +1508,12 @@ unbksl(const char **sp, bool cstyle)
 	case '5':
 	case '6':
 	case '7':
-	case '8':
-	case '9':
 		if (!cstyle)
-			return (-1);
+			goto unknown_escape;
 		/* FALLTHROUGH */
 	case '0':
 		if (cstyle)
-			--cp;
+			(*fp)(fc);
 		/*
 		 * look for an octal number with up to three
 		 * digits, not counting the leading zero;
@@ -1512,8 +1521,13 @@ unbksl(const char **sp, bool cstyle)
 		 */
 		wc = 0;
 		i = 3;
-		while (i-- && *cp >= '0' && *cp <= '7')
-			wc = (wc << 3) + (*cp++ - '0');
+		while (i--)
+			if ((c = (*fg)()) >= '0' && c <= '7')
+				wc = (wc << 3) + (c - '0');
+			else {
+				(*fp)(c);
+				break;
+			}
 		break;
 	case 'U':
 		i = 8;
@@ -1535,28 +1549,35 @@ unbksl(const char **sp, bool cstyle)
 		wc = 0;
 		while (i--) {
 			wc <<= 4;
-			if (*cp >= '0' && *cp <= '9')
-				wc += *cp++ - '0';
-			else if (*cp >= 'A' && *cp <= 'F')
-				wc += *cp++ - 'A' + 10;
-			else if (*cp >= 'a' && *cp <= 'f')
-				wc += *cp++ - 'a' + 10;
+			if ((c = (*fg)()) >= '0' && c <= '9')
+				wc += c - '0';
+			else if (c >= 'A' && c <= 'F')
+				wc += c - 'A' + 10;
+			else if (c >= 'a' && c <= 'f')
+				wc += c - 'a' + 10;
 			else {
 				wc >>= 4;
+				(*fp)(c);
 				break;
 			}
 		}
-		if (cstyle || **sp != 'x')
+		if (cstyle || fc != 'x')
 			/* Unicode marker */
 			wc += 0x100;
+		break;
+	case '\'':
+		if (!cstyle)
+			goto unknown_escape;
+		wc = '\'';
 		break;
 	case '\\':
 		wc = '\\';
 		break;
 	default:
+ unknown_escape:
+		(*fp)(fc);
 		return (-1);
 	}
 
-	(*sp) = cp;
 	return (wc);
 }

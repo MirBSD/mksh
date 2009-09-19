@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.187 2009/09/19 19:08:47 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.188 2009/09/19 21:54:45 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -877,6 +877,12 @@ the
 and the newline are stripped; otherwise, both the
 .Ql \e
 and the character following are unchanged.
+.Pp
+If a single-quoted string is preceded by an unquoted
+.Ql $ ,
+C style backslash expansion (see below) is applied (even single quote
+characters inside can be escaped and do not terminate the string then);
+the expanded result is treated as any other single-quoted string.
 .Ss Backslash expansion
 In places where backslashes are expanded, certain C and
 .At
@@ -884,11 +890,6 @@ In places where backslashes are expanded, certain C and
 or GNU
 .Nm bash
 style escapes are translated.
-Explicitly excluded are
-.Ql \e" ,
-.Ql \e' ,
-and
-.Ql \e? .
 These include
 .Ql \ea ,
 .Ql \eb ,
@@ -898,16 +899,62 @@ These include
 .Ql \et ,
 .Ql \eU######## ,
 .Ql \eu#### ,
-.Ql \ev ,
-.Ql \ex## ,
 and
-.Ql \e0### ;
-.Ql #
-is, in the case of \e0###, an octal, or, in the case of \ex##,
-\eu#### or \eU########, a hexadecimal digit, of which there may
-be none up to two (x), three (0), four (u), or eight (U).
-The \ex## and \e0### escapes translate to raw 8-bit octets;
-the \eu#### and \eU######## escapes translate a Unicode codepoint to UTF-8.
+.Ql \ev .
+For
+.Ql \eU########
+and
+.Ql \eu#### ,
+.Dq #
+means a hexadecimal digit, of thich there may be none up to four or eight;
+these escapes translate a Unicode codepoint to UTF-8.
+Furthermore,
+.Ql \eE
+and
+.Ql \ee
+expand to the escape character.
+.Pp
+In the
+.Ic print
+builtin mode,
+.Ql \e" ,
+.Ql \e\*(aq ,
+and
+.Ql \e?
+are explicitly excluded;
+octal sequences must have the none up to three octal digits
+.Dq #
+prefixed with the digit zero
+.Pq Ql \e0### ;
+hexadecimal sequences
+.Ql \ex##
+are limited to none up to two hexadecimal digits
+.Dq # ;
+both octal and hexadecimal sequences convert to raw octets;
+.Ql \e# ,
+where # is none of the above, translates to \e# (backslashes are retained).
+.Pp
+Backslash expansion in the C style mode slightly differs: octal sequences
+.Ql \e###
+must have no digit zero prefixing the one up to three octal digits
+.Dq #
+and yield raw octets; hexadecimal sequences
+.Ql \ex#*
+greedily eat up as many hexadecimal digits
+.Dq #
+as they can and terminate with the first non-hexadecimal digit;
+these translate a Unicode codepoint to UTF-8.
+The sequence
+.Ql \ec# ,
+where
+.Dq #
+is any octet, translates to Ctrl-# (which basically means,
+.Ql \ec\*(TI
+becomes DEL, everything else is bitwise ANDed with 0x1F).
+Finally,
+.Ql \e# ,
+where # is none of the above, translates to # (has the backslash trimmed),
+even if it is a newline.
 .Ss Aliases
 There are two types of aliases: normal command aliases and tracked aliases.
 Command aliases are normally used as a short hand for a long or often used
@@ -1431,7 +1478,7 @@ Note that
 may need to be escaped as an extended globbing pattern
 .Pq @(...) ,
 with single quotes
-.Pq \&'...\&'
+.Pq \&\*(aq...\&\*(aq
 or double quotes
 .Pq \&"...\&" .
 .Pp
@@ -1706,7 +1753,7 @@ is (so they know how far it is to the edge of the screen), escape codes in
 the prompt tend to mess things up.
 You can tell the shell not to count certain
 sequences (such as escape codes) by prefixing your prompt with a
-character (such as control-A) followed by a carriage return and then delimiting
+character (such as Ctrl-A) followed by a carriage return and then delimiting
 the escape codes with this character.
 Any occurences of that character in the prompt are not printed.
 By the way, don't blame me for
@@ -2773,12 +2820,12 @@ two prefices and the control character is ignored, any
 other trailing character will be processed afterwards.
 .Pp
 Control characters may be written using caret notation
-i.e. \*(haX represents Control-X.
+i.e. \*(haX represents Ctrl-X.
 Note that although only two prefix characters (usually ESC and \*(haX)
 are supported, some multi-character sequences can be supported.
 .Pp
 The following default bindings show how the arrow keys, the home, end and
-delete key on a BSD wsvt25, xterm-xfree86 or GNU screen terminal are bound
+delete key on a BSD wsvt25, xterm\-xfree86 or GNU screen terminal are bound
 (of course some escape sequences won't work out quite this nicely):
 .Bd -literal -offset indent
 bind \*(aq\*(haX\*(aq=prefix\-2
@@ -3306,18 +3353,14 @@ The
 .Fl n
 option suppresses the newline.
 By default, certain C escapes are translated.
-These include at least these mentioned in
+These include these mentioned in
 .Sx Backslash expansion
 above, as well as
 .Ql \ec ,
 which is equivalent to using the
 .Fl n
 option.
-Contrary to C escapes, the backslash is retained if followed by an
-unsupported escape character; octal sequences must be preceded by a
-.Sq 0 .
-.Ql \e
-expansion may be inhibited with the
+Backslash expansion may be inhibited with the
 .Fl r
 option.
 The
@@ -5774,6 +5817,14 @@ The developer of mksh recognises the efforts of the pdksh authors,
 who had dedicated their work into Public Domain, our users, and
 all contributors, such as the Debian and OpenBSD projects.
 See the documentation, CVS, and web site for details.
+.Sh CAVEATS
+.Nm
+only supports the Unicode BMP (Basic Multilingual Plane).
+Pipelines are executed in subshells.
+It has a different scope model from
+.At
+.Nm ksh ,
+which leads to subtile differences in semantics for identical builtins.
 .Sh BUGS
 This document attempts to describe
 .Nm mksh\ R39+devel
