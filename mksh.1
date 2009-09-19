@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.184 2009/09/07 17:24:49 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.185 2009/09/19 15:16:04 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -48,7 +48,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: September 7 2009 $
+.Dd $Mdocdate: September 19 2009 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -868,6 +868,32 @@ the
 and the newline are stripped; otherwise, both the
 .Ql \e
 and the character following are unchanged.
+.Ss Backslash expansion
+In places where backslashes are expanded, certain C and
+.At
+.Nm ksh
+or GNU
+.Nm bash
+style escapes are translated.
+These include
+.Ql \ea ,
+.Ql \eb ,
+.Ql \ef ,
+.Ql \en ,
+.Ql \er ,
+.Ql \et ,
+.Ql \eU######## ,
+.Ql \eu#### ,
+.Ql \ev ,
+.Ql \ex## ,
+and
+.Ql \e0### ;
+.Ql #
+is, in the case of \e0###, an octal, or, in the case of \ex##,
+\eu#### or \eU########, a hexadecimal digit, of which there may
+be none up to two (x), three (0), four (u), or eight (U).
+The \ex## and \e0### escapes translate to raw 8-bit octets;
+the \eu#### and \eU######## escapes translate a Unicode codepoint to UTF-8.
 .Ss Aliases
 There are two types of aliases: normal command aliases and tracked aliases.
 Command aliases are normally used as a short hand for a long or often used
@@ -3266,24 +3292,11 @@ The
 .Fl n
 option suppresses the newline.
 By default, certain C escapes are translated.
-These include
-.Ql \eb ,
-.Ql \ef ,
-.Ql \en ,
-.Ql \er ,
-.Ql \et ,
-.Ql \eu#### ,
-.Ql \ev ,
-.Ql \ex## ,
-and
-.Ql \e0### ;
-.Ql #
-is, in the case of \e0###, an octal, or, in the case of \eu####
-or \ex##, a hexadecimal digit, of which there may be 0 to 2/3/4.
-The \ex## and \e0### escapes translate to raw 8-bit octets;
-the \eu#### escape translates a Unicode codepoint to UTF-8.
-.Ql \ec
-is equivalent to using the
+These include at least these mentioned in
+.Sx Backslash expansion
+above, as well as
+.Ql \ec ,
+which is equivalent to using the
 .Fl n
 option.
 .Ql \e

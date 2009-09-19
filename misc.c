@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.118 2009/08/30 13:30:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.119 2009/09/19 15:16:03 tg Exp $");
 
 #undef USE_CHVT
 /* XXX conditions correct? */
@@ -1447,3 +1447,101 @@ getrusage(int what, struct rusage *ru)
 	return (0);
 }
 #endif
+
+/*
+ * process the string at *sp for backslash escapes,
+ * assuming (*sp)[-1] was the backslash; return the
+ * character ([0;0xFF]), Unicode (wc+0x100), or -1
+ * if none found; *sp afterwards points to the first
+ * unprocessed character (unchanged if rv=-1)
+ */
+int
+unbksl(const char **sp)
+{
+	int wc, i;
+	const char *cp = (*sp);
+
+	switch (*cp++) {
+	case 'a':
+		/*
+		 * according to the comments in pdksh, \007 seems
+		 * to be more portable than \a (due to HP-UX cc,
+		 * Ultrix cc, old pcc, etc.) so we avoid the escape
+		 * sequence altogether in mksh and assume ASCII
+		 */
+		wc = 7;
+		break;
+	case 'b':
+		wc = '\b';
+		break;
+	case 'f':
+		wc = '\f';
+		break;
+	case 'n':
+		wc = '\n';
+		break;
+	case 'r':
+		wc = '\r';
+		break;
+	case 't':
+		wc = '\t';
+		break;
+	case 'v':
+		/* assume ASCII here as well */
+		wc = 11;
+		break;
+	case '0':
+		/*
+		 * look for an octal number with up to three
+		 * digits, not counting the leading zero;
+		 * convert it to a raw octet
+		 */
+		wc = 0;
+		i = 3;
+		while (i-- && *cp >= '0' && *cp <= '7')
+			wc = (wc << 3) + (*cp++ - '0');
+		break;
+	case 'U':
+		i = 8;
+		if (0)
+		/* FALLTHROUGH */
+	case 'u':
+		i = 4;
+		if (0)
+		/* FALLTHROUGH */
+	case 'x':
+		i = 2;
+		/*
+		 * x: look for a hexadecimal number with up to
+		 *    two digits; convert to raw octet
+		 * u: look for a hexadecimal number with up to
+		 *    four (U: eight) digits; convert to Unicode
+		 */
+		wc = 0;
+		while (i--) {
+			wc <<= 4;
+			if (*cp >= '0' && *cp <= '9')
+				wc += *cp++ - '0';
+			else if (*cp >= 'A' && *cp <= 'F')
+				wc += *cp++ - 'A' + 10;
+			else if (*cp >= 'a' && *cp <= 'f')
+				wc += *cp++ - 'a' + 10;
+			else {
+				wc >>= 4;
+				break;
+			}
+		}
+		if (**sp != 'x')
+			/* Unicode marker */
+			wc += 0x100;
+		break;
+	case '\\':
+		wc = '\\';
+		break;
+	default:
+		return (-1);
+	}
+
+	(*sp) = cp;
+	return (wc);
+}

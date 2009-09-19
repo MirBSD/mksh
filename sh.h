@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.340 2009/09/07 17:24:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.341 2009/09/19 15:16:05 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/09/07"
 
@@ -1587,6 +1587,7 @@ void set_current_wd(char *);
 char *strdup_(const char *, Area *);
 char *strndup_(const char *, size_t, Area *);
 #endif
+int unbksl(const char **);
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);
 struct shf *shf_fdopen(int, int, struct shf *);

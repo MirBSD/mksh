@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.130 2009/09/07 17:24:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.131 2009/09/19 15:16:02 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -604,93 +604,30 @@ c_print(const char **wp)
 		while ((c = *s++) != '\0') {
 			Xcheck(xs, xp);
 			if ((flags & PO_EXPAND) && c == '\\') {
-				int i;
+				if ((c = unbksl(&s)) == -1) {
+					/* rejected by generic function */
+					switch ((c = *s++)) {
+					case 'c':
+						flags &= ~PO_NL;
+						/* AT&T brain damage */
+						continue;
+					case '\0':
+						s--;
+						c = '\\';
+						break;
+					default:
+						Xput(xs, xp, '\\');
+					}
+				} else if (c > 0xFF) {
+					/* generic function returned Unicode */
+					char ts[4];
 
-				switch ((c = *s++)) {
-				/* Oddly enough, \007 seems more portable than
-				 * \a (due to HP-UX cc, Ultrix cc, old PCCs,
-				 * etc.).
-				 */
-				case 'a': c = '\007'; break;
-				case 'b': c = '\b'; break;
-				case 'c':
-					flags &= ~PO_NL;
-					/* AT&T brain damage */
+					c = utf_wctomb(ts, c - 0x100);
+					ts[c] = 0;
+					for (c = 0; ts[c]; ++c)
+						Xput(xs, xp, ts[c]);
 					continue;
-				case 'f': c = '\f'; break;
-				case 'n': c = '\n'; break;
-				case 'r': c = '\r'; break;
-				case 't': c = '\t'; break;
-				case 'v': c = 0x0B; break;
-				case '0':
-					/* Look for an octal number: can have
-					 * three digits (not counting the
-					 * leading 0). Truly burnt.
-					 */
-					c = 0;
-					for (i = 0; i < 3; i++) {
-						if (*s >= '0' && *s <= '7')
-							c = c*8 + *s++ - '0';
-						else
-							break;
-					}
-					break;
-				case 'x':
-					/* Look for a hexadecimal number of
-					 * up to 2 digits, write raw octet.
-					 */
-					c = 0;
-					for (i = 0; i < 2; i++) {
-						c <<= 4;
-						if (*s >= '0' && *s <= '9')
-							c += *s++ - '0';
-						else if (*s >= 'A' && *s <= 'F')
-							c += *s++ - 'A' + 10;
-						else if (*s >= 'a' && *s <= 'f')
-							c += *s++ - 'a' + 10;
-						else {
-							c >>= 4;
-							break;
-						}
-					}
-					break;
-				case 'u':
-					/* Look for a hexadecimal number of
-					 * up to 4 digits, write Unicode.
-					 */
-					c = 0;
-					for (i = 0; i < 4; i++) {
-						c <<= 4;
-						if (*s >= '0' && *s <= '9')
-							c += *s++ - '0';
-						else if (*s >= 'A' && *s <= 'F')
-							c += *s++ - 'A' + 10;
-						else if (*s >= 'a' && *s <= 'f')
-							c += *s++ - 'a' + 10;
-						else {
-							c >>= 4;
-							break;
-						}
-					}
-					if (c < 0x80)
-						/* Xput below writes ASCII */;
-					else if (c < 0x0800) {
-						Xput(xs, xp, (c >> 6) | 0xC0);
-						c = 0x80 | (c & 0x3F);
-						/* leave 2nd octet to below */
-					} else {
-						Xput(xs, xp, (c >> 12) | 0xE0);
-						Xput(xs, xp,
-						    ((c >> 6) & 0x3F) | 0x80);
-						c = 0x80 | (c & 0x3F);
-						/* leave 3rd octet to below */
-					}
-					break;
-				case '\0': s--; c = '\\'; break;
-				case '\\': break;
-				default:
-					Xput(xs, xp, '\\');
-				}
+				}			
 			}
 			Xput(xs, xp, c);
 		}
