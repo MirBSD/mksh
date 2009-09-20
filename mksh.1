@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.188 2009/09/19 21:54:45 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.189 2009/09/20 12:12:00 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -48,7 +48,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: September 19 2009 $
+.Dd $Mdocdate: September 20 2009 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -3396,7 +3396,11 @@ option suppresses the trailing newline.
 .It Ic printf Ar format Op Ar arguments ...
 Formatted output.
 The same as the utility
-.Xr printf 1 .
+.Xr printf 1 ,
+except that it may use the same
+.Sx Backslash expansion
+code as the rest of
+.Nm mksh .
 This is not normally part of
 .Nm mksh ,
 however, distributors may have added this as builtin as a speed hack.
