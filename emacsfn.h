@@ -1,5 +1,5 @@
 #if defined(EMACSFN_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/emacsfn.h,v 1.1 2009/09/20 15:38:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/emacsfn.h,v 1.2 2009/09/20 17:00:53 tg Exp $");
 #define FN(cname,sname,flags)	static int x_##cname(int);
 #elif defined(EMACSFN_ENUMS)
 #define FN(cname,sname,flags)	XFUNC_##cname,
@@ -26,16 +26,20 @@ FN(del_char, delete-char-forward, XF_ARG)
 FN(del_fword, delete-word-forward, XF_ARG)
 FN(del_line, kill-line, 0)
 FN(draw_line, redraw, 0)
+#ifndef MKSH_SMALL
 FN(edit_line, edit-line, XF_ARG)
+#endif
 FN(end_hist, end-of-history, 0)
 FN(end_of_text, eot, 0)
 FN(enumerate, list, 0)
 FN(eot_del, eot-or-delete, XF_ARG)
 FN(error, error, 0)
 FN(expand, expand-file, 0)
+#ifndef MKSH_SMALL
 FN(fold_capitalise, capitalize-word, XF_ARG)
 FN(fold_lower, downcase-word, XF_ARG)
 FN(fold_upper, upcase-word, XF_ARG)
+#endif
 FN(goto_hist, goto-history, XF_ARG)
 FN(ins_string, macro-string, XF_NOBIND)
 FN(insert, auto-insert, XF_ARG)
@@ -62,8 +66,10 @@ FN(prev_histword, prev-hist-word, XF_ARG)
 FN(search_char_back, search-character-backward, XF_ARG)
 FN(search_char_forw, search-character-forward, XF_ARG)
 FN(search_hist, search-history, 0)
+#ifndef MKSH_SMALL
 FN(search_hist_dn, search-history-down, 0)
 FN(search_hist_up, search-history-up, 0)
+#endif
 FN(set_arg, set-arg, XF_NOBIND)
 FN(set_mark, set-mark-command, 0)
 FN(transpose, transpose-chars, 0)

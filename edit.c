@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.177 2009/09/20 15:38:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.178 2009/09/20 17:00:52 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1067,7 +1067,9 @@ static void x_zotc2(int);
 static void x_zotc3(char **);
 static void x_load_hist(char **);
 static int x_search(char *, int, int);
+#ifndef MKSH_SMALL
 static int x_search_dir(int);
+#endif
 static int x_match(char *, char *);
 static void x_redraw(int);
 static void x_push(int);
@@ -1081,7 +1083,9 @@ static int x_e_getc(void);
 static void x_e_putc2(int);
 static void x_e_putc3(const char **);
 static void x_e_puts(const char *);
+#ifndef MKSH_SMALL
 static int x_fold_case(int);
+#endif
 static char *x_lastcp(void);
 static void do_complete(int, Comp_type);
 
@@ -1168,12 +1172,14 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_set_arg,		1,	'7'	},
 	{ XFUNC_set_arg,		1,	'8'	},
 	{ XFUNC_set_arg,		1,	'9'	},
+#ifndef MKSH_SMALL
 	{ XFUNC_fold_upper,		1,	'U'	},
 	{ XFUNC_fold_upper,		1,	'u'	},
 	{ XFUNC_fold_lower,		1,	'L'	},
 	{ XFUNC_fold_lower,		1,	'l'	},
 	{ XFUNC_fold_capitalise,	1,	'C'	},
 	{ XFUNC_fold_capitalise,	1,	'c'	},
+#endif
 	/* These for ansi arrow keys: arguablely shouldn't be here by
 	 * default, but its simpler/faster/smaller than using termcap
 	 * entries.
@@ -1184,6 +1190,7 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_next_com,		2,	'B'	},
 	{ XFUNC_mv_forw,		2,	'C'	},
 	{ XFUNC_mv_back,		2,	'D'	},
+#ifndef MKSH_SMALL
 	{ XFUNC_mv_begin | 0x80,	2,	'1'	},
 	{ XFUNC_mv_begin | 0x80,	2,	'7'	},
 	{ XFUNC_mv_begin,		2,	'H'	},
@@ -1195,6 +1202,7 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_search_hist_dn | 0x80,	2,	'6'	},
 	/* more non-standard ones */
 	{ XFUNC_edit_line,		2,	'e'	}
+#endif
 };
 
 #ifdef MKSH_SMALL
@@ -1207,6 +1215,7 @@ x_modified(void)
 		modified = 1;
 	}
 }
+#define XFUNC_VALUE(f) (f & 0x7F)
 #else
 #define x_modified() do {			\
 	if (!modified) {			\
@@ -1214,6 +1223,7 @@ x_modified(void)
 		modified = 1;			\
 	}					\
 } while (/* CONSTCOND */ 0)
+#define XFUNC_VALUE(f) (f)
 #endif
 
 static int
@@ -1298,11 +1308,13 @@ x_emacs(char *buf, size_t len)
 
 		f = x_curprefix == -1 ? XFUNC_insert :
 		    x_tab[x_curprefix][c];
+#ifndef MKSH_SMALL
 		if (f & 0x80) {
 			f &= 0x7F;
 			if ((i = x_e_getc()) != '~')
 				x_e_ungetc(i);
 		}
+#endif
 
 		/* avoid bind key macro recursion */
 		if (macroptr && f == XFUNC_ins_string)
@@ -1957,11 +1969,13 @@ x_search_hist(int c)
 			}
 			break;
 		}
+#ifndef MKSH_SMALL
 		if (f & 0x80) {
 			f &= 0x7F;
 			if ((c = x_e_getc()) != '~')
 				x_e_ungetc(c);
 		}
+#endif
 		if (f == XFUNC_search_hist)
 			offset = x_search(pat, 0, offset);
 		else if (f == XFUNC_del_back) {
@@ -2030,6 +2044,7 @@ x_search(char *pat, int sameline, int offset)
 	return (-1);
 }
 
+#ifndef MKSH_SMALL
 /* anchored search up from current line */
 static int
 x_search_hist_up(int c __unused)
@@ -2061,6 +2076,7 @@ x_search_dir(int search_dir /* should've been bool */)
 	}
 	return (KSTD);
 }
+#endif
 
 /* return position of first match of pattern in string, else -1 */
 static int
@@ -2117,7 +2133,12 @@ x_draw_line(int c __unused)
 static int
 x_cls(int c __unused)
 {
-/* in later versions we might use libtermcap for this */
+/*
+ * in later versions we might use libtermcap for this, but since external
+ * dependencies are problematic, this has not yet been decided on; another
+ * good string is "\033c" except on hardware terminals like the DEC VT420
+ * which do a full power cycle then...
+ */
 #ifndef MKSH_CLS_STRING
 #define MKSH_CLS_STRING	"\033[;H\033[J"
 #endif
@@ -2439,9 +2460,13 @@ x_print(int prefix, int key)
 		/* prefix == 1 || prefix == 2 */
 		shf_puts(x_mapout(prefix == 1 ?
 		    CTRL('[') : CTRL('X')), shl_stdout);
+#ifdef MKSH_SMALL
+	shprintf("%s = ", x_mapout(key));
+#else
 	shprintf("%s%s = ", x_mapout(key), (f & 0x80) ? "~" : "");
-	if ((f & 0x7F) != XFUNC_ins_string)
-		shprintf("%s\n", x_ftab[f & 0x7F].xf_name);
+#endif
+	if (XFUNC_VALUE(f) != XFUNC_ins_string)
+		shprintf("%s\n", x_ftab[XFUNC_VALUE(f)].xf_name);
 	else
 		shprintf("'%s'\n", x_atab[prefix][key]);
 }
@@ -2454,7 +2479,9 @@ x_bind(const char *a1, const char *a2,
 	unsigned char f;
 	int prefix, key;
 	char *sp = NULL, *m1, *m2;
+#ifndef MKSH_SMALL
 	bool hastilde;
+#endif
 
 	if (x_tab == NULL) {
 		bi_errorf("cannot bind, not a tty");
@@ -2471,7 +2498,7 @@ x_bind(const char *a1, const char *a2,
 	if (a1 == NULL) {
 		for (prefix = 0; prefix < X_NTABS; prefix++)
 			for (key = 0; key < X_TABSZ; key++) {
-				f = x_tab[prefix][key] & 0x7F;
+				f = XFUNC_VALUE(x_tab[prefix][key]);
 				if (f == XFUNC_insert || f == XFUNC_error ||
 				    (macro && f != XFUNC_ins_string))
 					continue;
@@ -2483,7 +2510,7 @@ x_bind(const char *a1, const char *a2,
 	prefix = key = 0;
 	for (;; m1++) {
 		key = (unsigned char)*m1;
-		f = x_tab[prefix][key] & 0x7F;
+		f = XFUNC_VALUE(x_tab[prefix][key]);
 		if (f == XFUNC_meta1)
 			prefix = 1;
 		else if (f == XFUNC_meta2)
@@ -2491,7 +2518,11 @@ x_bind(const char *a1, const char *a2,
 		else
 			break;
 	}
-	if (*++m1 && ((*m1 != '~') || *(m1+1))) {
+	if (*++m1
+#ifndef MKSH_SMALL
+	    && ((*m1 != '~') || *(m1 + 1))
+#endif
+	    ) {
 		char msg[256] = "key sequence '";
 		const char *c = a1;
 		m1 = msg + strlen(msg);
@@ -2500,7 +2531,9 @@ x_bind(const char *a1, const char *a2,
 		bi_errorf("%s' too long", msg);
 		return (1);
 	}
+#ifndef MKSH_SMALL
 	hastilde = *m1;
+#endif
 	afree(m2, ATEMP);
 
 	if (a2 == NULL) {
@@ -2523,10 +2556,14 @@ x_bind(const char *a1, const char *a2,
 		sp = x_mapin(a2, AEDIT);
 	}
 
-	if ((x_tab[prefix][key] & 0x7F) == XFUNC_ins_string &&
+	if (XFUNC_VALUE(x_tab[prefix][key]) == XFUNC_ins_string &&
 	    x_atab[prefix][key])
 		afree(x_atab[prefix][key], AEDIT);
-	x_tab[prefix][key] = f | (hastilde ? 0x80 : 0);
+	x_tab[prefix][key] = f
+#ifndef MKSH_SMALL
+	    | (hastilde ? 0x80 : 0)
+#endif
+	    ;
 	x_atab[prefix][key] = sp;
 
 	/* Track what the user has bound so x_mode(true) won't toast things */
@@ -2979,6 +3016,7 @@ x_version(int c __unused)
 	return (KSTD);
 }
 
+#ifndef MKSH_SMALL
 static int
 x_edit_line(int c __unused)
 {
@@ -3002,6 +3040,7 @@ x_edit_line(int c __unused)
 	xep = xbuf + strlen(xbuf);
 	return (x_newline('\n'));
 }
+#endif
 
 /* NAME:
  *	x_prev_histword - recover word from prev command
@@ -3075,6 +3114,7 @@ x_prev_histword(int c __unused)
 	return (KSTD);
 }
 
+#ifndef MKSH_SMALL
 /* Uppercase N(1) words */
 static int
 x_fold_upper(int c __unused)
@@ -3147,6 +3187,7 @@ x_fold_case(int c)
 	x_modified();
 	return (KSTD);
 }
+#endif
 
 /* NAME:
  *	x_lastcp - last visible char
