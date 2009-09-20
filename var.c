@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.87 2009/09/06 17:42:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.88 2009/09/20 13:08:12 tg Exp $");
 
 /*
  * Variables
@@ -339,8 +339,7 @@ str_val(struct tbl *vp)
 		 * in the mksh_uari_t + 1 (NUL) */
 		char strbuf[1 + 2 + 1 + 8 * sizeof(mksh_uari_t) + 1];
 		const char *digits = (vp->flag & UCASEV_AL) ?
-		    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" :
-		    "0123456789abcdefghijklmnopqrstuvwxyz";
+		    digits_uc : digits_lc;
 		mksh_uari_t n;
 		int base;
 

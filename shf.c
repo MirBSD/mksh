@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.31 2009/08/08 13:08:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.32 2009/09/20 13:08:12 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -907,8 +907,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 			case 'p':
 			case 'x': {
 				const char *digits = (flags & FL_UPPER) ?
-				    "0123456789ABCDEF" :
-				    "0123456789abcdef";
+				    digits_uc : digits_lc;
 				do {
 					*--cp = digits[lnum & 0xf];
 					lnum >>= 4;

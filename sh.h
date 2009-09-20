@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.343 2009/09/19 21:54:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.344 2009/09/20 13:08:11 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/09/19"
 
@@ -358,6 +358,9 @@ EXTERN int subst_exstat;	/* exit status of last $(..)/`..` */
 EXTERN const char *safe_prompt; /* safe prompt if PS1 substitution fails */
 EXTERN const char initvsn[] I__("KSH_VERSION=@(#)MIRBSD KSH " MKSH_VERSION);
 #define KSH_VERSION	(initvsn + /* "KSH_VERSION=@(#)" */ 16)
+
+EXTERN const char digits_uc[] I__("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+EXTERN const char digits_lc[] I__("0123456789abcdefghijklmnopqrstuvwxyz");
 
 /*
  * Evil hack for const correctness due to API brokenness
