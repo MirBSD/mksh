@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.32 2009/09/20 13:08:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.33 2009/09/20 13:33:48 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -838,7 +838,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 
 		if (c >= 'A' && c <= 'Z') {
 			flags |= FL_UPPER;
-			c = c - 'A' + 'a';
+			c = ksh_tolower(c);
 		}
 
 		switch (c) {
