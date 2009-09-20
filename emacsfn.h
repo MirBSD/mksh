@@ -1,5 +1,5 @@
 #if defined(EMACSFN_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/emacsfn.h,v 1.2 2009/09/20 17:00:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/emacsfn.h,v 1.3 2009/09/20 17:23:51 tg Exp $");
 #define FN(cname,sname,flags)	static int x_##cname(int);
 #elif defined(EMACSFN_ENUMS)
 #define FN(cname,sname,flags)	XFUNC_##cname,
@@ -74,6 +74,9 @@ FN(set_arg, set-arg, XF_NOBIND)
 FN(set_mark, set-mark-command, 0)
 FN(transpose, transpose-chars, 0)
 FN(version, version, 0)
+#ifndef MKSH_SMALL
+FN(vt_hack, vt100-hack, XF_ARG)
+#endif
 FN(xchg_point_mark, exchange-point-and-mark, 0)
 FN(yank, yank, 0)
 

@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.179 2009/09/20 17:18:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.180 2009/09/20 17:23:50 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1191,7 +1191,7 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_mv_forw,		2,	'C'	},
 	{ XFUNC_mv_back,		2,	'D'	},
 #ifndef MKSH_SMALL
-	{ XFUNC_mv_begin | 0x80,	2,	'1'	},
+	{ XFUNC_vt_hack,		2,	'1'	},
 	{ XFUNC_mv_begin | 0x80,	2,	'7'	},
 	{ XFUNC_mv_begin,		2,	'H'	},
 	{ XFUNC_mv_end | 0x80,		2,	'4'	},
@@ -2400,6 +2400,45 @@ x_error(int c __unused)
 	x_e_putc2(7);
 	return (KSTD);
 }
+
+#ifndef MKSH_SMALL
+/* special VT100 style key sequence hack */
+static int
+x_vt_hack(int c)
+{
+	/* we only support PF2-'1' for now */
+	if (c != (2 << 8 | '1'))
+		return (x_error(c));
+
+	/* what's the next character? */
+	switch ((c = x_e_getc())) {
+	case '~':
+		x_arg = 1;
+		x_arg_defaulted = 1;
+		return (x_mv_begin(0));
+	case ';':
+		/* "interesting" sequence detected */
+		break;
+	default:
+		goto unwind_err;
+	}
+
+	/* XXX x_e_ungetc is one-octet only */
+	if ((c = x_e_getc()) != '5')
+		goto unwind_err;
+
+	switch ((c = x_e_getc())) {
+	case 'C':
+		return (x_mv_fword(c));
+	case 'D':
+		return (x_mv_bword(c));
+	}
+
+ unwind_err:
+	x_e_ungetc(c);
+	return (x_error(c));
+}
+#endif
 
 static char *
 x_mapin(const char *cp, Area *ap)
