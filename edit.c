@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.176 2009/09/19 21:54:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.177 2009/09/20 15:38:05 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1090,186 +1090,19 @@ static int unget_char = -1;
 static int x_do_ins(const char *, size_t);
 static void bind_if_not_bound(int, int, int);
 
-#define XFUNC_abort 0
-#define XFUNC_beg_hist 1
-#define XFUNC_cls 2
-#define XFUNC_comp_comm 3
-#define XFUNC_comp_file 4
-#define XFUNC_complete 5
-#define XFUNC_del_back 6
-#define XFUNC_del_bword 7
-#define XFUNC_del_char 8
-#define XFUNC_del_fword 9
-#define XFUNC_del_line 10
-#define XFUNC_draw_line 11
-#define XFUNC_end_hist 12
-#define XFUNC_end_of_text 13
-#define XFUNC_enumerate 14
-#define XFUNC_eot_del 15
-#define XFUNC_error 16
-#define XFUNC_goto_hist 17
-#define XFUNC_ins_string 18
-#define XFUNC_insert 19
-#define XFUNC_kill 20
-#define XFUNC_kill_region 21
-#define XFUNC_list_comm 22
-#define XFUNC_list_file 23
-#define XFUNC_literal 24
-#define XFUNC_meta1 25
-#define XFUNC_meta2 26
-#define XFUNC_meta_yank 27
-#define XFUNC_mv_back 28
-#define XFUNC_mv_begin 29
-#define XFUNC_mv_bword 30
-#define XFUNC_mv_end 31
-#define XFUNC_mv_forw 32
-#define XFUNC_mv_fword 33
-#define XFUNC_newline 34
-#define XFUNC_next_com 35
-#define XFUNC_nl_next_com 36
-#define XFUNC_noop 37
-#define XFUNC_prev_com 38
-#define XFUNC_prev_histword 39
-#define XFUNC_search_char_forw 40
-#define XFUNC_search_char_back 41
-#define XFUNC_search_hist 42
-#define XFUNC_set_mark 43
-#define XFUNC_transpose 44
-#define XFUNC_xchg_point_mark 45
-#define XFUNC_yank 46
-#define XFUNC_comp_list 47
-#define XFUNC_expand 48
-#define XFUNC_fold_capitalise 49
-#define XFUNC_fold_lower 50
-#define XFUNC_fold_upper 51
-#define XFUNC_set_arg 52
-#define XFUNC_comment 53
-#define XFUNC_version 54
-#define XFUNC_edit_line 55
-#define XFUNC_search_hist_up 56
-#define XFUNC_search_hist_dn 57
+enum emacs_funcs {
+#define EMACSFN_ENUMS
+#include "emacsfn.h"
+	XFUNC_MAX
+};
 
-/* XFUNC_* must be < 128 */
-
-static int x_abort(int);
-static int x_beg_hist(int);
-static int x_cls(int);
-static int x_comp_comm(int);
-static int x_comp_file(int);
-static int x_complete(int);
-static int x_del_back(int);
-static int x_del_bword(int);
-static int x_del_char(int);
-static int x_del_fword(int);
-static int x_del_line(int);
-static int x_draw_line(int);
-static int x_end_hist(int);
-static int x_end_of_text(int);
-static int x_enumerate(int);
-static int x_eot_del(int);
-static int x_error(int);
-static int x_goto_hist(int);
-static int x_ins_string(int);
-static int x_insert(int);
-static int x_kill(int);
-static int x_kill_region(int);
-static int x_list_comm(int);
-static int x_list_file(int);
-static int x_literal(int);
-static int x_meta1(int);
-static int x_meta2(int);
-static int x_meta_yank(int);
-static int x_mv_back(int);
-static int x_mv_begin(int);
-static int x_mv_bword(int);
-static int x_mv_end(int);
-static int x_mv_forw(int);
-static int x_mv_fword(int);
-static int x_newline(int);
-static int x_next_com(int);
-static int x_nl_next_com(int);
-static int x_noop(int);
-static int x_prev_com(int);
-static int x_prev_histword(int);
-static int x_search_char_forw(int);
-static int x_search_char_back(int);
-static int x_search_hist(int);
-static int x_set_mark(int);
-static int x_transpose(int);
-static int x_xchg_point_mark(int);
-static int x_yank(int);
-static int x_comp_list(int);
-static int x_expand(int);
-static int x_fold_capitalise(int);
-static int x_fold_lower(int);
-static int x_fold_upper(int);
-static int x_set_arg(int);
-static int x_comment(int);
-static int x_version(int);
-static int x_edit_line(int);
-static int x_search_hist_up(int);
-static int x_search_hist_down(int);
+#define EMACSFN_DEFNS
+#include "emacsfn.h"
 
 static const struct x_ftab x_ftab[] = {
-	{ x_abort,		"abort",			0 },
-	{ x_beg_hist,		"beginning-of-history",		0 },
-	{ x_cls,		"clear-screen",			0 },
-	{ x_comp_comm,		"complete-command",		0 },
-	{ x_comp_file,		"complete-file",		0 },
-	{ x_complete,		"complete",			0 },
-	{ x_del_back,		"delete-char-backward",		XF_ARG },
-	{ x_del_bword,		"delete-word-backward",		XF_ARG },
-	{ x_del_char,		"delete-char-forward",		XF_ARG },
-	{ x_del_fword,		"delete-word-forward",		XF_ARG },
-	{ x_del_line,		"kill-line",			0 },
-	{ x_draw_line,		"redraw",			0 },
-	{ x_end_hist,		"end-of-history",		0 },
-	{ x_end_of_text,	"eot",				0 },
-	{ x_enumerate,		"list",				0 },
-	{ x_eot_del,		"eot-or-delete",		XF_ARG },
-	{ x_error,		"error",			0 },
-	{ x_goto_hist,		"goto-history",			XF_ARG },
-	{ x_ins_string,		"macro-string",			XF_NOBIND },
-	{ x_insert,		"auto-insert",			XF_ARG },
-	{ x_kill,		"kill-to-eol",			XF_ARG },
-	{ x_kill_region,	"kill-region",			0 },
-	{ x_list_comm,		"list-command",			0 },
-	{ x_list_file,		"list-file",			0 },
-	{ x_literal,		"quote",			0 },
-	{ x_meta1,		"prefix-1",			XF_PREFIX },
-	{ x_meta2,		"prefix-2",			XF_PREFIX },
-	{ x_meta_yank,		"yank-pop",			0 },
-	{ x_mv_back,		"backward-char",		XF_ARG },
-	{ x_mv_begin,		"beginning-of-line",		0 },
-	{ x_mv_bword,		"backward-word",		XF_ARG },
-	{ x_mv_end,		"end-of-line",			0 },
-	{ x_mv_forw,		"forward-char",			XF_ARG },
-	{ x_mv_fword,		"forward-word",			XF_ARG },
-	{ x_newline,		"newline",			0 },
-	{ x_next_com,		"down-history",			XF_ARG },
-	{ x_nl_next_com,	"newline-and-next",		0 },
-	{ x_noop,		"no-op",			0 },
-	{ x_prev_com,		"up-history",			XF_ARG },
-	{ x_prev_histword,	"prev-hist-word",		XF_ARG },
-	{ x_search_char_forw,	"search-character-forward",	XF_ARG },
-	{ x_search_char_back,	"search-character-backward",	XF_ARG },
-	{ x_search_hist,	"search-history",		0 },
-	{ x_set_mark,		"set-mark-command",		0 },
-	{ x_transpose,		"transpose-chars",		0 },
-	{ x_xchg_point_mark,	"exchange-point-and-mark",	0 },
-	{ x_yank,		"yank",				0 },
-	{ x_comp_list,		"complete-list",		0 },
-	{ x_expand,		"expand-file",			0 },
-	{ x_fold_capitalise,	"capitalize-word",		XF_ARG },
-	{ x_fold_lower,		"downcase-word",		XF_ARG },
-	{ x_fold_upper,		"upcase-word",			XF_ARG },
-	{ x_set_arg,		"set-arg",			XF_NOBIND },
-	{ x_comment,		"comment",			0 },
-	{ x_version,		"version",			0 },
-	{ x_edit_line,		"edit-line",			XF_ARG },
-	{ x_search_hist_up,	"search-history-up",		0 },
-	{ x_search_hist_down,	"search-history-down",		0 },
-	{ 0,			NULL,				0 }
+#define EMACSFN_ITEMS
+#include "emacsfn.h"
+	{ 0, NULL, 0 }
 };
 
 static struct x_defbindings const x_defbindings[] = {
@@ -2206,7 +2039,7 @@ x_search_hist_up(int c __unused)
 
 /* anchored search down from current line */
 static int
-x_search_hist_down(int c __unused)
+x_search_hist_dn(int c __unused)
 {
 	return (x_search_dir(1));
 }
