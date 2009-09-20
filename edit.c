@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.178 2009/09/20 17:00:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.179 2009/09/20 17:18:53 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1215,7 +1215,7 @@ x_modified(void)
 		modified = 1;
 	}
 }
-#define XFUNC_VALUE(f) (f & 0x7F)
+#define XFUNC_VALUE(f) (f)
 #else
 #define x_modified() do {			\
 	if (!modified) {			\
@@ -1223,7 +1223,7 @@ x_modified(void)
 		modified = 1;			\
 	}					\
 } while (/* CONSTCOND */ 0)
-#define XFUNC_VALUE(f) (f)
+#define XFUNC_VALUE(f) (f & 0x7F)
 #endif
 
 static int
