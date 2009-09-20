@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.344 2009/09/20 13:08:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.345 2009/09/20 16:40:57 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/09/19"
 
@@ -548,54 +548,13 @@ extern const struct shoption options[];
  * flags (the order of these enums MUST match the order in misc.c(options[]))
  */
 enum sh_flag {
-	FEXPORT = 0,	/* -a: export all */
-#if HAVE_ARC4RANDOM
-	FARC4RANDOM,	/* use 0:rand(3) 1:arc4random(3) 2:switch on write */
-#endif
-	FBRACEEXPAND,	/* enable {} globbing */
-#if HAVE_NICE
-	FBGNICE,	/* bgnice */
-#endif
-	FCOMMAND,	/* -c: (invocation) execute specified command */
-	FEMACS,		/* emacs command editing */
-	FERREXIT,	/* -e: quit on error */
-	FGMACS,		/* gmacs command editing */
-	FIGNOREEOF,	/* eof does not exit */
-	FTALKING,	/* -i: interactive */
-	FKEYWORD,	/* -k: name=value anywhere */
-	FLOGIN,		/* -l: a login shell */
-	FMARKDIRS,	/* mark dirs with / in file name completion */
-	FMONITOR,	/* -m: job control monitoring */
-	FNOCLOBBER,	/* -C: don't overwrite existing files */
-	FNOEXEC,	/* -n: don't execute any commands */
-	FNOGLOB,	/* -f: don't do file globbing */
-	FNOHUP,		/* -H: don't kill running jobs when login shell exits */
-	FNOLOG,		/* don't save functions in history (ignored) */
-#ifndef MKSH_UNEMPLOYED
-	FNOTIFY,	/* -b: asynchronous job completion notification */
-#endif
-	FNOUNSET,	/* -u: using an unset var is an error */
-	FPHYSICAL,	/* -o physical: don't do logical cds/pwds */
-	FPOSIX,		/* -o posix (try to be more compatible) */
-	FPRIVILEGED,	/* -p: use suid_profile */
-	FRESTRICTED,	/* -r: restricted shell */
-	FSTDIN,		/* -s: (invocation) parse stdin */
-	FTRACKALL,	/* -h: create tracked aliases for all commands */
-	FUTFMODE,	/* -U: enable utf-8 processing */
-	FVERBOSE,	/* -v: echo input */
-#ifndef MKSH_NOVI
-	FVI,		/* vi command editing */
-	FVIRAW,		/* always read in raw mode (ignored) */
-	FVITABCOMPLETE,	/* enable tab as file name completion char */
-	FVIESCCOMPLETE,	/* enable ESC as file name completion in command mode */
-#endif
-	FXTRACE,	/* -x: execution trace */
-	FTALKING_I,	/* (internal): initial shell was interactive */
+#define SHFLAGS_ENUMS
+#include "sh_flags.h"
 	FNFLAGS		/* (place holder: how many flags are there) */
 };
 
 #define Flag(f)	(shell_flags[(int)(f)])
-#define UTFMODE	Flag(FUTFMODE)
+#define UTFMODE	Flag(FUNICODE)
 
 EXTERN unsigned char shell_flags[FNFLAGS];
 

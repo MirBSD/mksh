@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.59 2009/08/01 20:32:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.60 2009/09/20 16:40:55 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -157,9 +157,9 @@ j_init(void)
 {
 #ifndef MKSH_UNEMPLOYED
 	bool mflagset = Flag(FMONITOR) != 127;
-#endif
 
 	Flag(FMONITOR) = 0;
+#endif
 
 	(void)sigemptyset(&sm_default);
 	sigprocmask(SIG_SETMASK, &sm_default, NULL);
@@ -464,7 +464,11 @@ exchild(struct op *t, int flags,
 		if (Flag(FBGNICE) && (flags & XBGND))
 			(void)nice(4);
 #endif
-		if ((flags & XBGND) && !Flag(FMONITOR)) {
+		if ((flags & XBGND)
+#ifndef MKSH_UNEMPLOYED
+		    && !Flag(FMONITOR)
+#endif
+		    ) {
 			setsig(&sigtraps[SIGINT], SIG_IGN,
 			    SS_RESTORE_IGN|SS_FORCE);
 			setsig(&sigtraps[SIGQUIT], SIG_IGN,
@@ -970,7 +974,9 @@ j_waitj(Job *j,
 	if (flags & JW_ASYNCNOTIFY)
 		j->flags |= JF_W_ASYNCNOTIFY;
 
+#ifndef MKSH_UNEMPLOYED
 	if (!Flag(FMONITOR))
+#endif
 		flags |= JW_STOPPEDWAIT;
 
 	while (j->state == PRUNNING ||
@@ -1068,13 +1074,19 @@ j_waitj(Job *j,
 	j_systime = j->systime;
 	rv = j->status;
 
-	if (!(flags & JW_ASYNCNOTIFY) &&
-	    (!Flag(FMONITOR) || j->state != PSTOPPED)) {
+	if (!(flags & JW_ASYNCNOTIFY)
+#ifndef MKSH_UNEMPLOYED
+	    && (!Flag(FMONITOR) || j->state != PSTOPPED)
+#endif
+	    ) {
 		j_print(j, JP_SHORT, shl_out);
 		shf_flush(shl_out);
 	}
-	if (j->state != PSTOPPED &&
-	    (!Flag(FMONITOR) || !(flags & JW_ASYNCNOTIFY)))
+	if (j->state != PSTOPPED
+#ifndef MKSH_UNEMPLOYED
+	    && (!Flag(FMONITOR) || !(flags & JW_ASYNCNOTIFY))
+#endif
+	    )
 		remove_job(j, where);
 
 	return (rv);
@@ -1249,7 +1261,11 @@ check_job(Job *j)
 		}
 	}
 #endif
-	if (!Flag(FMONITOR) && !(j->flags & (JF_WAITING|JF_FG)) &&
+	if (
+#ifndef MKSH_UNEMPLOYED
+	    !Flag(FMONITOR) &&
+#endif
+	    !(j->flags & (JF_WAITING|JF_FG)) &&
 	    j->state != PSTOPPED) {
 		if (j == async_job || (j->flags & JF_KNOWN)) {
 			j->flags |= JF_ZOMBIE;

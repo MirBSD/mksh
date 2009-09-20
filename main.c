@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.144 2009/09/06 17:42:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.145 2009/09/20 16:40:55 tg Exp $");
 
 extern char **environ;
 
@@ -287,7 +287,9 @@ main(int argc, const char *argv[])
 #endif
 
 	/* this to note if monitor is set on command line (see below) */
+#ifndef MKSH_UNEMPLOYED
 	Flag(FMONITOR) = 127;
+#endif
 	argi = parse_args(argv, OF_CMDLINE, NULL);
 	if (argi < 0)
 		exit(1);

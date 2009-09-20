@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.189 2009/09/20 12:12:00 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.190 2009/09/20 16:40:56 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -3561,7 +3561,7 @@ scripts, while the original Korn shell only treats profiles as
 scripts.
 .Pp
 .It Xo
-.Ic set Op Ic +\-abCefhkmnpsuvXx
+.Ic set Op Ic +\-abCefhiklmnprsUuvXx
 .Op Ic +\-o Ar option
 .Op Ic +\-A Ar name
 .Op Fl \-
@@ -3654,8 +3654,16 @@ Create tracked aliases for all executed commands (see
 .Sx Aliases
 above).
 Enabled by default for non-interactive shells.
+.It Fl i \*(Ba Ic interactive
+The shell is an interactive shell.
+This option can only be used when the shell is invoked.
+See above for a description of what this means.
 .It Fl k \*(Ba Ic keyword
 Parameter assignments are recognised anywhere in a command.
+.It Fl l \*(Ba Ic login
+The shell is a login shell.
+This option can only be used when the shell is invoked.
+See above for a description of what this means.
 .It Fl m \*(Ba Ic monitor
 Enable job control (default for interactive shells).
 .It Fl n \*(Ba Ic noexec
@@ -3667,6 +3675,10 @@ The shell is a privileged shell.
 It is set automatically if, when the shell starts,
 the real UID or GID does not match
 the effective UID (EUID) or GID (EGID), respectively.
+See above for a description of what this means.
+.It Fl r \*(Ba Ic restricted
+The shell is a restricted shell.
+This option can only be used when the shell is invoked.
 See above for a description of what this means.
 .It Fl s \*(Ba Ic stdin
 If used when the shell is invoked, commands are read from standard input.
@@ -3754,19 +3766,11 @@ must be used.
 To avoid infinite loops, the shell will exit if
 .Dv EOF
 is read 13 times in a row.
-.It Ic interactive
-The shell is an interactive shell.
-This option can only be used when the shell is invoked.
-See above for a description of what this means.
-.It Ic login
-The shell is a login shell.
-This option can only be used when the shell is invoked.
-See above for a description of what this means.
 .It Ic nohup
 Do not kill running jobs with a
 .Dv SIGHUP
 signal when a login shell exits.
-Currently set by default, but this will
+Currently set by default, but this may
 change in the future to be compatible with
 .At
 .Nm ksh ,
@@ -3812,10 +3816,6 @@ and this autodetection feature was requested at compilation time.
 As a side effect, setting this flag turns off
 .Ic braceexpand
 mode, which can be turned back on manually.
-.It Ic restricted
-The shell is a restricted shell.
-This option can only be used when the shell is invoked.
-See above for a description of what this means.
 .It Ic vi
 Enable
 .Xr vi 1 Ns -like
@@ -3856,9 +3856,9 @@ If no options or arguments are given, the values of all names are printed.
 For unknown historical reasons, a lone
 .Ql \-
 option is treated specially \*(en it clears both the
-.Fl x
-and
 .Fl v
+and
+.Fl x
 options.
 .Pp
 .It Ic shift Op Ar number

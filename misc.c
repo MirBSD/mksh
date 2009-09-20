@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.122 2009/09/19 22:32:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.123 2009/09/20 16:40:56 tg Exp $");
 
 #undef USE_CHVT
 /* XXX conditions correct? */
@@ -98,61 +98,12 @@ Xcheck_grow_(XString *xsp, const char *xp, unsigned int more)
 	return (xsp->beg + (xp - old_beg));
 }
 
+#define SHFLAGS_DEFNS
+#include "sh_flags.h"
+
 const struct shoption options[] = {
-	/* Special cases (see parse_args()): -A, -o, -s.
-	 * Options are sorted by their longnames - the order of these
-	 * entries MUST match the order of sh_flag F* enumerations in sh.h.
-	 */
-	{ "allexport",		'a',	OF_ANY },
-#if HAVE_ARC4RANDOM
-	{ "arc4random",		0,	OF_ANY },
-#endif
-	{ "braceexpand",	0,	OF_ANY },	/* non-standard */
-#if HAVE_NICE
-	{ "bgnice",		0,	OF_ANY },
-#endif
-	{ NULL,			'c',	OF_CMDLINE },
-	{ "emacs",		0,	OF_ANY },
-	{ "errexit",		'e',	OF_ANY },
-	{ "gmacs",		0,	OF_ANY },
-	{ "ignoreeof",		0,	OF_ANY },
-	{ "interactive",	'i',	OF_CMDLINE },
-	{ "keyword",		'k',	OF_ANY },
-	{ "login",		'l',	OF_CMDLINE },
-	{ "markdirs",		'X',	OF_ANY },
-#ifndef MKSH_UNEMPLOYED
-	{ "monitor",		'm',	OF_ANY },
-#else
-	{ NULL,			'm',	0 },		/* needed */
-#endif
-	{ "noclobber",		'C',	OF_ANY },
-	{ "noexec",		'n',	OF_ANY },
-	{ "noglob",		'f',	OF_ANY },
-	{ "nohup",		0,	OF_ANY },
-	{ "nolog",		0,	OF_ANY },	/* no effect */
-#ifndef MKSH_UNEMPLOYED
-	{ "notify",		'b',	OF_ANY },
-#endif
-	{ "nounset",		'u',	OF_ANY },
-	{ "physical",		0,	OF_ANY },	/* non-standard */
-	{ "posix",		0,	OF_ANY },	/* non-standard */
-	{ "privileged",		'p',	OF_ANY },
-	{ "restricted",		'r',	OF_CMDLINE },
-	{ "stdin",		's',	OF_CMDLINE },	/* pseudo non-st.. */
-	{ "trackall",		'h',	OF_ANY },
-	{ "utf8-mode",		'U',	OF_ANY },	/* non-standard */
-	{ "verbose",		'v',	OF_ANY },
-#ifndef MKSH_NOVI
-	{ "vi",			0,	OF_ANY },
-	{ "viraw",		0,	OF_ANY },	/* no effect */
-	{ "vi-tabcomplete",	0,	OF_ANY },	/* non-standard */
-	{ "vi-esccomplete",	0,	OF_ANY },	/* non-standard */
-#endif
-	{ "xtrace",		'x',	OF_ANY },
-	/* Anonymous flags: used internally by shell only
-	 * (not visible to user)
-	 */
-	{ NULL,			0,	OF_INTERNAL }, /* FTALKING_I */
+#define SHFLAGS_ITEMS
+#include "sh_flags.h"
 };
 
 /*

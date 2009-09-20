@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.64 2009/08/28 20:30:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.65 2009/09/20 16:40:55 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile, volatile int *);
@@ -671,7 +671,11 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 
 		if (flags&XEXEC) {
 			j_exit();
-			if (!(flags&XBGND) || Flag(FMONITOR)) {
+			if (!(flags&XBGND)
+#ifndef MKSH_UNEMPLOYED
+			    || Flag(FMONITOR)
+#endif
+			    ) {
 				setexecsig(&sigtraps[SIGINT], SS_RESTORE_ORIG);
 				setexecsig(&sigtraps[SIGQUIT], SS_RESTORE_ORIG);
 			}
