@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.88 2009/09/20 13:08:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.89 2009/09/20 13:29:18 tg Exp $");
 
 /*
  * Variables
@@ -973,6 +973,47 @@ makenv(void)
 #if HAVE_ARC4RANDOM && !defined(MKSH_SMALL)
 static uint32_t rnd_cache[2];
 static unsigned char rnd_lastflag = 2;
+
+static void rnd_cachemix(unsigned long);
+
+static void
+rnd_cachemix(unsigned long newval)
+{
+	size_t i;
+	struct {
+		union {
+			int rval;
+			uint32_t arval;
+		} v0;
+		uint32_t v1;
+		uint32_t v2;
+		unsigned long v3;
+	} v;
+	unsigned char buf[sizeof(v) * 2 + 1], *cp, num;
+
+	v.v0.rval = rand();
+	v.v1 = rnd_cache[0];
+	v.v2 = rnd_cache[1];
+	v.v3 = newval;
+
+	num = 0;
+ loop:
+	cp = (void *)&v;
+	i = 0;
+	while (i < 2 * sizeof(v)) {
+		buf[i++] = digits_uc[*cp >> 4];
+		buf[i++] = digits_lc[*cp & 0x0F];
+		++cp;
+	}
+	buf[i] = 0;
+
+	rnd_cache[num] = hash(buf);
+	if (num == 0) {
+		++num;
+		v.v0.arval = arc4random();
+		goto loop;
+	}
+}
 #endif
 
 static int
@@ -986,14 +1027,12 @@ rnd_get(void)
 	uint32_t rv = 0;
 #endif
 	if (Flag(FARC4RANDOM) != rnd_lastflag) {
-		if (Flag(FARC4RANDOM) == 0) {
+		if (Flag(FARC4RANDOM) == 0)
 			/* transition to 0 by set: srand */
 			srand(arc4random() & 0x7FFF);
-		} else if (rnd_lastflag == 0) {
+		else if (rnd_lastflag == 0)
 			/* transition from 0: addrandom */
-			rnd_cache[0] ^= rand();
-			rnd_cache[1] ^= rand();
-		}
+			rnd_cachemix(rand());
 		rnd_lastflag = Flag(FARC4RANDOM);
 	}
 	if (Flag(FARC4RANDOM)) {
@@ -1027,8 +1066,7 @@ rnd_set(unsigned long newval)
 #endif
 #else
 #if HAVE_ARC4RANDOM
-	rnd_cache[0] ^= (newval << 15) | rand();
-	rnd_cache[1] ^= newval >> 17;
+	rnd_cachemix(newval);
 	if (Flag(FARC4RANDOM) == 1)
 		return;
 	if (Flag(FARC4RANDOM) == 2)
@@ -1053,8 +1091,7 @@ change_random(unsigned long newval)
 
 #if HAVE_ARC4RANDOM
 	if (Flag(FARC4RANDOM)) {
-		rnd_cache[0] ^= (newval << 15) | rand();
-		rnd_cache[1] ^= newval >> 17;
+		rnd_cachemix(newval);
 		return;
 	}
 #endif
