@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.423 2009/08/30 13:22:37 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.424 2009/09/23 18:22:37 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -912,11 +912,23 @@ NOWARN=$save_NOWARN
 #
 if ac_ifcpp 'ifdef MKSH_SMALL' isset_MKSH_SMALL '' \
     "if a reduced-feature mksh is requested"; then
-	if test $ct = xlc; then
-		ac_flags 1 fnoinline -qnoinline
-	else
+	#XXX this sucks; fix it for *all* compilers
+	case $ct in
+	clang|icc|nwcc)
 		ac_flags 1 fnoinline -fno-inline
-	fi
+		;;
+	gcc)
+		NOWARN=$DOWARN; phase=u
+		ac_flags 1 fnoinline -fno-inline
+		NOWARN=$save_NOWARN; phase=x
+		;;
+	sunpro)
+		ac_flags 1 fnoinline -xinline=
+		;;
+	xlc)
+		ac_flags 1 fnoinline -qnoinline
+		;;
+	esac
 
 	: ${HAVE_MKNOD=0}
 	: ${HAVE_REVOKE=0}

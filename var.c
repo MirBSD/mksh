@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.90 2009/09/23 18:04:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.91 2009/09/23 18:22:38 tg Exp $");
 
 /*
  * Variables
@@ -1450,7 +1450,7 @@ set_array(const char *var, bool reset, const char **vals)
 			if (*ccp == ']' && level == 0 && ccp[1] == '=') {
 				strndupx(cp, vals[i] + 1, ccp - (vals[i] + 1),
 				    ATEMP);
-				evaluate(substitute(cp, 0), &n,
+				evaluate(substitute(cp, 0), (mksh_ari_t *)&n,
 				    KSH_UNWIND_ERROR, true);
 				ccp += 2;
 			} else
