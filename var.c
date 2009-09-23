@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.90 2009/09/23 18:04:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.90.2.1 2009/09/23 18:05:47 tg Exp $");
 
 /*
  * Variables
@@ -1004,6 +1004,13 @@ rnd_mix(unsigned long newval, bool wantpush)
 	v.wantingpush = wantpush;
 	rnd_wpush = v.neededpush || v.wantingpush;
 #endif
+fprintf(stderr, "{%lu|rnd_cachemix(%lu,%s),wpush=%s->%s",(u_long)getpid(),newval,
+#if HAVE_ARC4RANDOM_PUSHB
+wantpush ? "true" : "false", v.neededpush ? "true" : "false", rnd_wpush ? "true" : "false"
+#else
+"unknown", "unknown", "unknown"
+#endif
+);
 
 	v.v0.rval = rand();
 	v.v1 = rnd_cache[0];
@@ -1013,6 +1020,9 @@ rnd_mix(unsigned long newval, bool wantpush)
 	rnd_cache[0] = hashmem(&v, sizeof(v));
 	v.v0.arval = arc4random();
 	rnd_cache[1] = hashmem(&v, sizeof(v));
+
+fprintf(stderr, ":[%X,%X]->[%X,%X]}\n",v.v1,v.v2,rnd_cache[0],
+rnd_cache[1]);fflush(stderr);
 }
 #endif
 
@@ -1020,13 +1030,16 @@ static int
 rnd_get(void)
 {
 #if HAVE_ARC4RANDOM && defined(MKSH_SMALL)
+fprintf(stderr, "{%lu|rnd_get}\n",(u_long)getpid());fflush(stderr);
 	return (arc4random() & 0x7FFF);
 #else
 #if HAVE_ARC4RANDOM
 #if HAVE_ARC4RANDOM_PUSHB
 	uint32_t rv = 0;
 #endif
+fprintf(stderr, "{%lu|rnd_get",(u_long)getpid());
 	if (Flag(FARC4RANDOM) != rnd_lastflag) {
+fprintf(stderr, ":trans(%d->%d)", rnd_lastflag, Flag(FARC4RANDOM));
 		if (Flag(FARC4RANDOM) == 0)
 			/* transition to 0 by set: srand */
 			srand(arc4random() & 0x7FFF);
@@ -1037,7 +1050,9 @@ rnd_get(void)
 	}
 	if (Flag(FARC4RANDOM)) {
 		if (rnd_cache[0] || rnd_cache[1]) {
+fprintf(stderr, ":cache(%X,%X)", rnd_cache[0],rnd_cache[1]);
 #if HAVE_ARC4RANDOM_PUSHB
+fprintf(stderr, ":push(%s)", rnd_wpush ? "true" : "false");
 			if (rnd_wpush) {
 				rv = arc4random_pushb(rnd_cache,
 				    sizeof(rnd_cache));
@@ -1048,6 +1063,7 @@ rnd_get(void)
 			    sizeof(rnd_cache));
 		}
 		rnd_cache[0] = rnd_cache[1] = 0;
+fprintf(stderr, "|rnd_get}\n");fflush(stderr);
 		return ((
 #if HAVE_ARC4RANDOM_PUSHB
 		    rv ? rv :
@@ -1062,6 +1078,7 @@ rnd_get(void)
 static void
 rnd_set(unsigned long newval)
 {
+fprintf(stderr, "{%lu|rnd_set(%lu)}\n",(u_long)getpid(),newval);fflush(stderr);
 #if HAVE_ARC4RANDOM && defined(MKSH_SMALL)
 #if HAVE_ARC4RANDOM_PUSHB
 	arc4random_pushb(&newval, sizeof(newval));
@@ -1093,6 +1110,7 @@ change_random(unsigned long newval)
 {
 	int rval = 0;
 
+fprintf(stderr, "{%lu|change_random(%lu)}\n",(u_long)getpid(),newval);fflush(stderr);
 #if HAVE_ARC4RANDOM
 	if (Flag(FARC4RANDOM)) {
 		rnd_mix(newval, false);
