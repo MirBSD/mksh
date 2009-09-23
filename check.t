@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.308 2009/09/20 17:23:49 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.309 2009/09/23 18:04:53 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2009/09/20
+	@(#)MIRBSD KSH R39 2009/09/23
 description:
 	Check version of shell.
 stdin:
@@ -4969,6 +4969,7 @@ expected-stdout:
 name: arrays-2
 description:
 	Check if bash-style arrays work as expected
+category: !smksh
 stdin:
 	v="c d"
 	foo=(a \$v "$v" '$v' b)
@@ -4993,6 +4994,7 @@ expected-stdout:
 name: arrays-4
 description:
 	Check if Korn Shell arrays with specified indices work as expected
+category: !smksh
 stdin:
 	v="c d"
 	set -A foo -- [1]=\$v [2]="$v" [4]='$v' [0]=a [5]=b
@@ -5003,6 +5005,7 @@ expected-stdout:
 name: arrays-5
 description:
 	Check if bash-style arrays with specified indices work as expected
+category: !smksh
 stdin:
 	v="c d"
 	foo=([1]=\$v [2]="$v" [4]='$v' [0]=a [5]=b)
@@ -5709,6 +5712,7 @@ expected-stdout:
 name: integer-base-one-4
 description:
 	Check if ksh93-style base-one integers work
+category: !smksh
 stdin:
 	set -U
 	print 1 $(('a'))
@@ -6151,6 +6155,7 @@ expected-stdout:
 name: event-subst-1a
 description:
 	Check that '!' substitution in interactive mode works
+category: !smksh
 file-setup: file 755 "falsetto"
 	#! /bin/sh
 	echo molto bene
@@ -6178,6 +6183,7 @@ description:
 	even when a space separates it from the search command,
 	which is not what GNU bash provides but required for the
 	other regression tests below to check
+category: !smksh
 file-setup: file 755 "falsetto"
 	#! /bin/sh
 	echo molto bene
@@ -6203,6 +6209,7 @@ name: event-subst-2
 description:
 	Check that '!' substitution in interactive mode
 	does not break things
+category: !smksh
 file-setup: file 755 "falsetto"
 	#! /bin/sh
 	echo molto bene
@@ -6238,6 +6245,7 @@ expected-stderr-pattern:
 name: event-subst-3
 description:
 	Check that '!' substitution in noninteractive mode is ignored
+category: !smksh
 file-setup: file 755 "falsetto"
 	#! /bin/sh
 	echo molto bene
@@ -6358,7 +6366,7 @@ stdin:
 	print ir2: $ir2
 	set|grep ^ir2|sed 's/^/s1: /'
 	typeset|grep ' ir2'|sed -e 's/^/s2: /' -e 's/nameref/typeset -n/'
-	blub=(e1 e2 e3)
+	set -A blub -- e1 e2 e3
 	typeset -n ind=blub
 	typeset -n ir2=blub[2]
 	print !ind[1]: ${!ind[1]}

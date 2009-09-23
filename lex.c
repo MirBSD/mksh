@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.95 2009/09/19 22:33:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.96 2009/09/23 18:04:56 tg Exp $");
 
 /*
  * states while lexing word
@@ -77,11 +77,13 @@ struct lex_state {
 #define ls_sbquote ls_info.u_sbquote
 		} u_sbquote;
 
+#ifndef MKSH_SMALL
 		/* =(...) */
 		struct sletarray_info {
 			int nparen;	/* count open parentheses */
 #define ls_sletarray ls_info.u_sletarray
 		} u_sletarray;
+#endif
 
 		/* ADELIM */
 		struct sadelim_info {
@@ -129,12 +131,33 @@ static int backslash_skip;
 static int ignore_backslash_newline;
 
 /* optimised getsc_bn() */
-#define getsc()		(*source->str != '\0' && *source->str != '\\' \
+#define _getsc()	(*source->str != '\0' && *source->str != '\\' \
 			 && !backslash_skip && !(source->flags & SF_FIRST) \
 			 ? *source->str++ : getsc_bn())
 /* optimised getsc__() */
-#define	getsc_()	((*source->str != '\0') && !(source->flags & SF_FIRST) \
+#define	_getsc_()	((*source->str != '\0') && !(source->flags & SF_FIRST) \
 			 ? *source->str++ : getsc__())
+
+#ifdef MKSH_SMALL
+static int getsc(void);
+static int getsc_(void);
+
+static int
+getsc(void)
+{
+	return (_getsc());
+}
+
+static int
+getsc_(void)
+{
+	return (_getsc_());
+}
+#else
+/* !MKSH_SMALL: use them inline */
+#define getsc()		_getsc()
+#define getsc_()	_getsc_()
+#endif
 
 #define STATE_BSIZE	32
 
@@ -186,9 +209,11 @@ yylex(int cf)
 		*wp++ = OQUOTE;	 /* enclose arguments in (double) quotes */
 		state = SLETPAREN;
 		statep->ls_sletparen.nparen = 0;
+#ifndef MKSH_SMALL
 	} else if (cf&LETARRAY) {
 		state = SLETARRAY;
 		statep->ls_sletarray.nparen = 0;
+#endif
 	} else {		/* normal lexing */
 		state = (cf & HEREDELIM) ? SHEREDELIM : SBASE;
 		while ((c = getsc()) == ' ' || c == '\t')
@@ -711,6 +736,7 @@ yylex(int cf)
 				++statep->ls_sletparen.nparen;
 			goto Sbase2;
 
+#ifndef MKSH_SMALL
 		case SLETARRAY:	/* LETARRAY: =( ... ) */
 			if (c == '('/*)*/)
 				++statep->ls_sletarray.nparen;
@@ -721,6 +747,7 @@ yylex(int cf)
 				}
 			*wp++ = CHAR, *wp++ = c;
 			break;
+#endif
 
 		case SHERESTRING:	/* <<< delimiter */
 			if (c == '\\') {
@@ -842,8 +869,10 @@ yylex(int cf)
 		/* XXX figure out what is missing */
 		yyerror("no closing quote\n");
 
+#ifndef MKSH_SMALL
 	if (state == SLETARRAY && statep->ls_sletarray.nparen != -1)
 		yyerror("%s: ')' missing\n", T_synerr);
+#endif
 
 	/* This done to avoid tests for SHEREDELIM wherever SBASE tested */
 	if (state == SHEREDELIM || state == SHERESTRING)
@@ -937,8 +966,12 @@ yylex(int cf)
 
 	*wp++ = EOS;		/* terminate word */
 	yylval.cp = Xclose(ws, wp);
-	if (state == SWORD || state == SLETPAREN ||
-	    state == SLETARRAY)	/* ONEWORD? */
+	if (state == SWORD || state == SLETPAREN
+	    /* XXX ONEWORD? */
+#ifndef MKSH_SMALL
+	    || state == SLETARRAY
+#endif
+	    )
 		return (LWORD);
 
 	/* unget terminator */
@@ -1344,6 +1377,7 @@ getsc_line(Source *s)
 		alarm(0);
 	}
 	cp = Xstring(s->xs, xp);
+#ifndef MKSH_SMALL
 	if (interactive && *cp == '!' && cur_prompt == PS1) {
 		int linelen;
 
@@ -1361,6 +1395,7 @@ getsc_line(Source *s)
 		/* prepend it with "fc -e -" */
 		memcpy(cp, fc_e_, fc_e_n);
 	}
+#endif
 	s->start = s->str = cp;
 	strip_nuls(Xstring(s->xs, xp), Xlength(s->xs, xp));
 	/* Note: if input is all nulls, this is not eof */

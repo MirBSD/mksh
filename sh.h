@@ -134,9 +134,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.346 2009/09/20 17:23:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.347 2009/09/23 18:04:57 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2009/09/20"
+#define MKSH_VERSION "R39 2009/09/23"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1329,7 +1329,6 @@ void afree(void *, Area *);	/* can take NULL */
 /* edit.c */
 void x_init(void);
 int x_read(char *, size_t);
-int x_bind(const char *, const char *, bool, bool);
 /* UTF-8 stuff */
 size_t utf_mbtowc(unsigned int *, const char *);
 size_t utf_wctomb(char *, unsigned int);
@@ -1514,6 +1513,7 @@ int coproc_getfd(int, const char **);
 void coproc_cleanup(int);
 struct temp *maketemp(Area *, Temp_type, struct temp **);
 uint32_t hash(const char *);
+uint32_t hashmem(const void *, size_t);
 void ktinit(struct table *, Area *, size_t);
 struct tbl *ktsearch(struct table *, const char *, uint32_t);
 struct tbl *ktenter(struct table *, const char *, uint32_t);

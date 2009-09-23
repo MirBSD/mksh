@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.145 2009/09/20 16:40:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.146 2009/09/23 18:04:57 tg Exp $");
 
 extern char **environ;
 
@@ -1262,6 +1262,27 @@ hash(const char *cp)
 
 	return (h);
 }
+
+#if !HAVE_ARC4RANDOM || !defined(MKSH_SMALL)
+uint32_t
+hashmem(const void *cp, size_t len)
+{
+	register uint32_t h = 0;
+	register const uint8_t *bp = (const uint8_t *)cp;
+
+	while (len--) {
+		h += *bp++;
+		h += h << 10;
+		h ^= h >> 6;
+	}
+
+	h += h << 3;
+	h ^= h >> 11;
+	h += h << 15;
+
+	return (h);
+}
+#endif
 
 static void
 texpand(struct table *tp, size_t nsize)

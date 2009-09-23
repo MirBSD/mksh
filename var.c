@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.89 2009/09/20 13:29:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.90 2009/09/23 18:04:58 tg Exp $");
 
 /*
  * Variables
@@ -973,13 +973,18 @@ makenv(void)
 #if HAVE_ARC4RANDOM && !defined(MKSH_SMALL)
 static uint32_t rnd_cache[2];
 static unsigned char rnd_lastflag = 2;
+#if HAVE_ARC4RANDOM_PUSHB
+static bool rnd_wpush = false;
+#define rnd_mix(v,w) rnd_cmix(v,w)
+#else
+#define rnd_mix(v,w) rnd_cmix(v)
+#endif
 
-static void rnd_cachemix(unsigned long);
+static void rnd_mix(unsigned long, bool);
 
 static void
-rnd_cachemix(unsigned long newval)
+rnd_mix(unsigned long newval, bool wantpush)
 {
-	size_t i;
 	struct {
 		union {
 			int rval;
@@ -988,31 +993,26 @@ rnd_cachemix(unsigned long newval)
 		uint32_t v1;
 		uint32_t v2;
 		unsigned long v3;
+#if HAVE_ARC4RANDOM_PUSHB
+		bool neededpush;
+		bool wantingpush;
+#endif
 	} v;
-	unsigned char buf[sizeof(v) * 2 + 1], *cp, num;
+
+#if HAVE_ARC4RANDOM_PUSHB
+	v.neededpush = rnd_wpush;
+	v.wantingpush = wantpush;
+	rnd_wpush = v.neededpush || v.wantingpush;
+#endif
 
 	v.v0.rval = rand();
 	v.v1 = rnd_cache[0];
 	v.v2 = rnd_cache[1];
 	v.v3 = newval;
 
-	num = 0;
- loop:
-	cp = (void *)&v;
-	i = 0;
-	while (i < 2 * sizeof(v)) {
-		buf[i++] = digits_uc[*cp >> 4];
-		buf[i++] = digits_lc[*cp & 0x0F];
-		++cp;
-	}
-	buf[i] = 0;
-
-	rnd_cache[num] = hash(buf);
-	if (num == 0) {
-		++num;
-		v.v0.arval = arc4random();
-		goto loop;
-	}
+	rnd_cache[0] = hashmem(&v, sizeof(v));
+	v.v0.arval = arc4random();
+	rnd_cache[1] = hashmem(&v, sizeof(v));
 }
 #endif
 
@@ -1032,17 +1032,21 @@ rnd_get(void)
 			srand(arc4random() & 0x7FFF);
 		else if (rnd_lastflag == 0)
 			/* transition from 0: addrandom */
-			rnd_cachemix(rand());
+			rnd_mix(rand(), true);
 		rnd_lastflag = Flag(FARC4RANDOM);
 	}
 	if (Flag(FARC4RANDOM)) {
-		if (rnd_cache[0] || rnd_cache[1])
+		if (rnd_cache[0] || rnd_cache[1]) {
 #if HAVE_ARC4RANDOM_PUSHB
-			rv = arc4random_pushb(rnd_cache, sizeof(rnd_cache));
-#else
+			if (rnd_wpush) {
+				rv = arc4random_pushb(rnd_cache,
+				    sizeof(rnd_cache));
+				rnd_wpush = false;
+			} else
+#endif
 			arc4random_addrandom((void *)rnd_cache,
 			    sizeof(rnd_cache));
-#endif
+		}
 		rnd_cache[0] = rnd_cache[1] = 0;
 		return ((
 #if HAVE_ARC4RANDOM_PUSHB
@@ -1066,7 +1070,7 @@ rnd_set(unsigned long newval)
 #endif
 #else
 #if HAVE_ARC4RANDOM
-	rnd_cachemix(newval);
+	rnd_mix(newval, true);
 	if (Flag(FARC4RANDOM) == 1)
 		return;
 	if (Flag(FARC4RANDOM) == 2)
@@ -1080,9 +1084,9 @@ rnd_set(unsigned long newval)
 
 #if !HAVE_ARC4RANDOM || !defined(MKSH_SMALL)
 /*
- * Called after a fork in parent to bump the random number generator.
+ * Called after a fork to bump the random number generator.
  * Done to ensure children will not get the same random number sequence
- * if the parent doesn't use $RANDOM.
+ * as the parent processes.
  */
 void
 change_random(unsigned long newval)
@@ -1091,7 +1095,7 @@ change_random(unsigned long newval)
 
 #if HAVE_ARC4RANDOM
 	if (Flag(FARC4RANDOM)) {
-		rnd_cachemix(newval);
+		rnd_mix(newval, false);
 		return;
 	}
 #endif
@@ -1413,7 +1417,9 @@ set_array(const char *var, bool reset, const char **vals)
 	struct tbl *vp, *vq;
 	mksh_uari_t i, n;
 	const char *ccp;
+#ifndef MKSH_SMALL
 	char *cp;
+#endif
 
 	/* to get local array, use "typeset foo; set -A foo" */
 	vp = global(var);
@@ -1430,6 +1436,7 @@ set_array(const char *var, bool reset, const char **vals)
 	 * evaluation of some of vals[] may fail...
 	 */
 	for (n = i = 0; (ccp = vals[i]); n = ++i) {
+#ifndef MKSH_SMALL
 		if (*ccp == '[') {
 			int level = 0;
 
@@ -1449,6 +1456,7 @@ set_array(const char *var, bool reset, const char **vals)
 			} else
 				ccp = vals[i];
 		}
+#endif
 
 		vq = arraysearch(vp, n);
 		/* would be nice to deal with errors here... (see above) */

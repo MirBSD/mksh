@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.42 2009/09/19 18:36:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.43 2009/09/23 18:04:58 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -289,9 +289,11 @@ get_command(int cf)
 					ACCEPT;
 					goto Subshell;
 				}
+#ifndef MKSH_SMALL
 				if ((XPsize(args) == 0 || Flag(FKEYWORD)) &&
 				    XPsize(vars) == 1 && is_wdvarassign(yylval.cp))
 					goto is_wdarrassign;
+#endif
 				/* Must be a function */
 				if (iopn != 0 || XPsize(args) != 1 ||
 				    XPsize(vars) != 0)
@@ -301,6 +303,7 @@ get_command(int cf)
 				musthave(')', 0);
 				t = function_body(XPptrv(args)[0], false);
 				goto Leave;
+#ifndef MKSH_SMALL
  is_wdarrassign:
 			{
 				static const char set_cmd0[] = {
@@ -336,6 +339,7 @@ get_command(int cf)
 				XPput(args, yylval.cp);
 				break;
 			}
+#endif
 
 			default:
 				goto Leave;

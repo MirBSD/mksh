@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.180 2009/09/20 17:23:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.181 2009/09/23 18:04:54 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -1033,13 +1033,17 @@ static int x_nextcmd;		/* for newline-and-next */
 static char *xmp;		/* mark pointer */
 static unsigned char x_last_command;
 static unsigned char (*x_tab)[X_TABSZ];	/* key definition */
+#ifndef MKSH_SMALL
 static char *(*x_atab)[X_TABSZ];	/* macro definitions */
+#endif
 static unsigned char x_bound[(X_TABSZ * X_NTABS + 7) / 8];
 #define KILLSIZE	20
 static char *killstack[KILLSIZE];
 static int killsp, killtp;
 static int x_curprefix;
+#ifndef MKSH_SMALL
 static char *macroptr = NULL;	/* bind key macro active? */
+#endif
 #ifndef MKSH_NOVI
 static int cur_col;		/* current column on line */
 static int pwidth;		/* width of prompt */
@@ -1069,6 +1073,9 @@ static void x_load_hist(char **);
 static int x_search(char *, int, int);
 #ifndef MKSH_SMALL
 static int x_search_dir(int);
+int x_bind(const char *, const char *, bool, bool);
+#else
+int x_bind(const char *, const char *, bool);
 #endif
 static int x_match(char *, char *);
 static void x_redraw(int);
@@ -1314,11 +1321,11 @@ x_emacs(char *buf, size_t len)
 			if ((i = x_e_getc()) != '~')
 				x_e_ungetc(i);
 		}
-#endif
 
 		/* avoid bind key macro recursion */
 		if (macroptr && f == XFUNC_ins_string)
 			f = XFUNC_insert;
+#endif
 
 		if (!(x_ftab[f].xf_flags & XF_PREFIX) &&
 		    x_last_command != XFUNC_set_arg) {
@@ -1402,6 +1409,7 @@ x_insert(int c)
 	return (KSTD);
 }
 
+#ifndef MKSH_SMALL
 static int
 x_ins_string(int c)
 {
@@ -1412,6 +1420,7 @@ x_ins_string(int c)
 	 */
 	return (KSTD);
 }
+#endif
 
 static int
 x_do_ins(const char *cp, size_t len)
@@ -2503,22 +2512,27 @@ x_print(int prefix, int key)
 	shprintf("%s = ", x_mapout(key));
 #else
 	shprintf("%s%s = ", x_mapout(key), (f & 0x80) ? "~" : "");
-#endif
 	if (XFUNC_VALUE(f) != XFUNC_ins_string)
+#endif
 		shprintf("%s\n", x_ftab[XFUNC_VALUE(f)].xf_name);
+#ifndef MKSH_SMALL
 	else
 		shprintf("'%s'\n", x_atab[prefix][key]);
+#endif
 }
 
 int
 x_bind(const char *a1, const char *a2,
+#ifndef MKSH_SMALL
     bool macro,			/* bind -m */
+#endif
     bool list)			/* bind -l */
 {
 	unsigned char f;
 	int prefix, key;
-	char *sp = NULL, *m1, *m2;
+	char *m1, *m2;
 #ifndef MKSH_SMALL
+	char *sp = NULL;
 	bool hastilde;
 #endif
 
@@ -2538,8 +2552,11 @@ x_bind(const char *a1, const char *a2,
 		for (prefix = 0; prefix < X_NTABS; prefix++)
 			for (key = 0; key < X_TABSZ; key++) {
 				f = XFUNC_VALUE(x_tab[prefix][key]);
-				if (f == XFUNC_insert || f == XFUNC_error ||
-				    (macro && f != XFUNC_ins_string))
+				if (f == XFUNC_insert || f == XFUNC_error
+#ifndef MKSH_SMALL
+				    || (macro && f != XFUNC_ins_string)
+#endif
+				    )
 					continue;
 				x_print(prefix, key);
 			}
@@ -2579,9 +2596,14 @@ x_bind(const char *a1, const char *a2,
 		x_print(prefix, key);
 		return (0);
 	}
-	if (*a2 == 0)
+	if (*a2 == 0) {
 		f = XFUNC_insert;
-	else if (!macro) {
+#ifndef MKSH_SMALL
+	} else if (macro) {
+		f = XFUNC_ins_string;
+		sp = x_mapin(a2, AEDIT);
+#endif
+	} else {
 		for (f = 0; f < NELEM(x_ftab); f++)
 			if (x_ftab[f].xf_name &&
 			    strcmp(x_ftab[f].xf_name, a2) == 0)
@@ -2590,20 +2612,21 @@ x_bind(const char *a1, const char *a2,
 			bi_errorf("%s: no such function", a2);
 			return (1);
 		}
-	} else {
-		f = XFUNC_ins_string;
-		sp = x_mapin(a2, AEDIT);
 	}
 
+#ifndef MKSH_SMALL
 	if (XFUNC_VALUE(x_tab[prefix][key]) == XFUNC_ins_string &&
 	    x_atab[prefix][key])
 		afree(x_atab[prefix][key], AEDIT);
+#endif
 	x_tab[prefix][key] = f
 #ifndef MKSH_SMALL
 	    | (hastilde ? 0x80 : 0)
 #endif
 	    ;
+#ifndef MKSH_SMALL
 	x_atab[prefix][key] = sp;
+#endif
 
 	/* Track what the user has bound so x_mode(true) won't toast things */
 	if (f == XFUNC_insert)
@@ -2634,10 +2657,12 @@ x_init_emacs(void)
 		x_tab[x_defbindings[i].xdb_tab][x_defbindings[i].xdb_char]
 		    = x_defbindings[i].xdb_func;
 
+#ifndef MKSH_SMALL
 	x_atab = alloc(X_NTABS * sizeof(*x_atab), AEDIT);
 	for (i = 1; i < X_NTABS; i++)
 		for (j = 0; j < X_TABSZ; j++)
 			x_atab[i][j] = NULL;
+#endif
 }
 
 static void
@@ -2876,11 +2901,13 @@ x_e_getc(void)
 		return (c);
 	}
 
+#ifndef MKSH_SMALL
 	if (macroptr) {
 		if ((c = (unsigned char)*macroptr++))
 			return (c);
 		macroptr = NULL;
 	}
+#endif
 
 	return (x_getc());
 }

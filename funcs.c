@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.133 2009/09/19 21:54:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.134 2009/09/23 18:04:56 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1652,29 +1652,50 @@ c_getopts(const char **wp)
 	return (optc < 0 ? 1 : rv);
 }
 
+#ifndef MKSH_SMALL
+extern int x_bind(const char *, const char *, bool, bool);
+#else
+extern int x_bind(const char *, const char *, bool);
+#endif
+
 int
 c_bind(const char **wp)
 {
 	int optc, rv = 0;
-	bool macro = false, list = false;
+#ifndef MKSH_SMALL
+	bool macro = false;
+#endif
+	bool list = false;
 	const char *cp;
 	char *up;
 
-	while ((optc = ksh_getopt(wp, &builtin_opt, "lm")) != -1)
+	while ((optc = ksh_getopt(wp, &builtin_opt,
+#ifndef MKSH_SMALL
+	    "lm"
+#else
+	    "l"
+#endif
+	    )) != -1)
 		switch (optc) {
 		case 'l':
 			list = true;
 			break;
+#ifndef MKSH_SMALL
 		case 'm':
 			macro = true;
 			break;
+#endif
 		case '?':
 			return (1);
 		}
 	wp += builtin_opt.optind;
 
 	if (*wp == NULL)	/* list all */
-		rv = x_bind(NULL, NULL, 0, list);
+		rv = x_bind(NULL, NULL,
+#ifndef MKSH_SMALL
+		    false,
+#endif
+		    list);
 
 	for (; *wp != NULL; wp++) {
 		if ((cp = cstrchr(*wp, '=')) == NULL)
@@ -1683,7 +1704,11 @@ c_bind(const char **wp)
 			strdupx(up, *wp, ATEMP);
 			up[cp++ - *wp] = '\0';
 		}
-		if (x_bind(up ? up : *wp, cp, macro, 0))
+		if (x_bind(up ? up : *wp, cp,
+#ifndef MKSH_SMALL
+		    macro,
+#endif
+		    false))
 			rv = 1;
 		afree(up, ATEMP);
 	}
