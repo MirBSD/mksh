@@ -134,9 +134,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.347 2009/09/23 18:04:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.348 2009/09/24 17:15:32 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2009/09/23"
+#define MKSH_VERSION "R39 2009/09/24"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -451,14 +451,18 @@ char *ucstrstr(char *, const char *);
 
 #ifdef MKSH_SMALL
 #ifndef MKSH_CONSERVATIVE_FDS
-#define MKSH_CONSERVATIVE_FDS
+#define MKSH_CONSERVATIVE_FDS	/* defined */
 #endif
 #ifndef MKSH_NOPWNAM
-#define MKSH_NOPWNAM
+#define MKSH_NOPWNAM		/* defined */
 #endif
-#ifndef MKSH_NOVI
-#define MKSH_NOVI
+#ifndef MKSH_S_NOVI
+#define MKSH_S_NOVI		1
 #endif
+#endif
+
+#ifndef MKSH_S_NOVI
+#define MKSH_S_NOVI		0
 #endif
 
 /*

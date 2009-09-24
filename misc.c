@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.123 2009/09/20 16:40:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.124 2009/09/24 17:15:32 tg Exp $");
 
 #undef USE_CHVT
 /* XXX conditions correct? */
@@ -201,11 +201,11 @@ change_flag(enum sh_flag f, int what, unsigned int newval)
 	} else
 #endif
 	  if ((
-#ifndef MKSH_NOVI
+#if !MKSH_S_NOVI
 	    f == FVI ||
 #endif
 	    f == FEMACS || f == FGMACS) && newval) {
-#ifndef MKSH_NOVI
+#if !MKSH_S_NOVI
 		Flag(FVI) =
 #endif
 		    Flag(FEMACS) = Flag(FGMACS) = 0;

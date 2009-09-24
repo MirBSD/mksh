@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.96 2009/09/23 18:04:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.97 2009/09/24 17:15:31 tg Exp $");
 
 /*
  * states while lexing word
@@ -1325,7 +1325,7 @@ getsc_line(Source *s)
 		alarm(ksh_tmout);
 	}
 	if (have_tty && (
-#ifndef MKSH_NOVI
+#if !MKSH_S_NOVI
 	    Flag(FVI) ||
 #endif
 	    Flag(FEMACS) || Flag(FGMACS))) {

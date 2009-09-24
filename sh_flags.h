@@ -1,5 +1,5 @@
 #if defined(SHFLAGS_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.1 2009/09/20 16:40:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.2 2009/09/24 17:15:33 tg Exp $");
 #define FN(sname,cname,ochar,flags)	/* nothing */
 #elif defined(SHFLAGS_ENUMS)
 #define FN(sname,cname,ochar,flags)	cname,
@@ -111,7 +111,7 @@ FN("utf8-mode", FUNICODE, 'U', OF_ANY)
 /* -v	echo input */
 FN("verbose", FVERBOSE, 'v', OF_ANY)
 
-#ifndef MKSH_NOVI
+#if !MKSH_S_NOVI
 /* ./.	Vi command line editing mode */
 FN("vi", FVI, 0, OF_ANY)
 

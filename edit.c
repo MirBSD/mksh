@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.181 2009/09/23 18:04:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.182 2009/09/24 17:15:30 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -62,7 +62,7 @@ static int x_escape(const char *, size_t, int (*)(const char *, size_t));
 static int x_emacs(char *, size_t);
 static void x_init_emacs(void);
 static void x_init_prompt(void);
-#ifndef MKSH_NOVI
+#if !MKSH_S_NOVI
 static int x_vi(char *, size_t);
 #endif
 
@@ -107,7 +107,7 @@ x_read(char *buf, size_t len)
 	modified = 1;
 	if (Flag(FEMACS) || Flag(FGMACS))
 		i = x_emacs(buf, len);
-#ifndef MKSH_NOVI
+#if !MKSH_S_NOVI
 	else if (Flag(FVI))
 		i = x_vi(buf, len);
 #endif
@@ -1044,7 +1044,7 @@ static int x_curprefix;
 #ifndef MKSH_SMALL
 static char *macroptr = NULL;	/* bind key macro active? */
 #endif
-#ifndef MKSH_NOVI
+#if !MKSH_S_NOVI
 static int cur_col;		/* current column on line */
 static int pwidth;		/* width of prompt */
 static int prompt_trunc;	/* how much of prompt to truncate */
@@ -3368,7 +3368,7 @@ x_mode(bool onoff)
 	return (prev);
 }
 
-#ifndef MKSH_NOVI
+#if !MKSH_S_NOVI
 /* +++ vi editing mode +++ */
 
 #define Ctrl(c)		(c&0x1f)
@@ -5426,4 +5426,4 @@ vi_macro_reset(void)
 		memset((char *)&macro, 0, sizeof(macro));
 	}
 }
-#endif /* !MKSH_NOVI */
+#endif /* !MKSH_S_NOVI */

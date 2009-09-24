@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.146 2009/09/23 18:04:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.147 2009/09/24 17:15:31 tg Exp $");
 
 extern char **environ;
 
@@ -199,7 +199,7 @@ main(int argc, const char *argv[])
 	 * by the environment or the user. Also, we want tab completion
 	 * on in vi by default. */
 	change_flag(FEMACS, OF_SPECIAL, 1);
-#ifndef MKSH_NOVI
+#if !MKSH_S_NOVI
 	Flag(FVITABCOMPLETE) = 1;
 #endif
 
