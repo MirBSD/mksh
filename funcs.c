@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.134 2009/09/23 18:04:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.135 2009/09/26 03:39:58 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -94,7 +94,7 @@ const struct builtin mkshbuiltins[] = {
 #endif
 	{"pwd", c_pwd},
 	{"*=readonly", c_typeset},
-	{"=typeset", c_typeset},
+	{T__typeset, c_typeset},
 	{"+unalias", c_unalias},
 	{"whence", c_whence},
 #ifndef MKSH_UNEMPLOYED
@@ -2309,7 +2309,7 @@ c_set(const char **wp)
 	const char **owp;
 
 	if (wp[1] == NULL) {
-		static const char *args [] = { "set", "-", NULL };
+		static const char *args[] = { "set", "-", NULL };
 		return (c_typeset(args));
 	}
 

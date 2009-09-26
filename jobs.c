@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.60 2009/09/20 16:40:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.61 2009/09/26 03:39:59 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -416,8 +416,8 @@ exchild(struct op *t, int flags,
 	else
 		p->pid = i;
 
-#if !HAVE_ARC4RANDOM || !defined(MKSH_SMALL)
-	/* Ensure next child gets a (slightly) different $RANDOM sequence */
+#if !HAVE_ARC4RANDOM
+	/* ensure next child gets a (slightly) different $RANDOM sequence */
 	change_random(((unsigned long)p->pid << 1) | (ischild ? 1 : 0));
 #endif
 

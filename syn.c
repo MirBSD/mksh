@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.43 2009/09/23 18:04:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.44 2009/09/26 03:40:02 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -877,7 +877,7 @@ assign_command(char *s)
 	return ((strcmp(s, "alias") == 0) ||
 	    (strcmp(s, "export") == 0) ||
 	    (strcmp(s, "readonly") == 0) ||
-	    (strcmp(s, "typeset") == 0));
+	    (strcmp(s, T_typeset) == 0));
 }
 
 /* Check if we are in the middle of reading an alias */

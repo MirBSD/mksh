@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.91 2009/09/23 18:22:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.92 2009/09/26 03:40:02 tg Exp $");
 
 /*
  * Variables
@@ -42,10 +42,16 @@ static void unspecial(const char *);
 static void getspec(struct tbl *);
 static void setspec(struct tbl *);
 static void unsetspec(struct tbl *);
+static int getint(struct tbl *, mksh_ari_t *, bool);
+static mksh_ari_t intval(struct tbl *);
 static struct tbl *arraysearch(struct tbl *, uint32_t);
 static const char *array_index_calc(const char *, bool *, uint32_t *);
 static int rnd_get(void);
+#if HAVE_ARC4RANDOM
 static void rnd_set(unsigned long);
+#else
+#define rnd_set change_random
+#endif
 
 uint8_t set_refflag = 0;
 
@@ -101,38 +107,33 @@ popblock(void)
 }
 
 /* called by main() to initialise variable data structures */
+#define VARSPEC_DEFNS
+#include "var_spec.h"
+
+enum var_specs {
+#define VARSPEC_ENUMS
+#include "var_spec.h"
+	V_MAX
+};
+
+static const char * const initvar_names[] = {
+#define VARSPEC_ITEMS
+#include "var_spec.h"
+};
+
 void
 initvar(void)
 {
-	static const struct {
-		const char *name;
-		int v;
-	} names[] = {
-		{ "COLUMNS",		V_COLUMNS },
-#if HAVE_PERSISTENT_HISTORY
-		{ "HISTFILE",		V_HISTFILE },
-#endif
-		{ "HISTSIZE",		V_HISTSIZE },
-		{ "IFS",		V_IFS },
-		{ "LINENO",		V_LINENO },
-		{ "LINES",		V_LINES },
-		{ "OPTIND",		V_OPTIND },
-		{ "PATH",		V_PATH },
-		{ "RANDOM",		V_RANDOM },
-		{ "SECONDS",		V_SECONDS },
-		{ "TMOUT",		V_TMOUT },
-		{ "TMPDIR",		V_TMPDIR },
-		{ NULL,			0 }
-	};
-	int i;
+	int i = 0;
 	struct tbl *tp;
 
 	ktinit(&specials, APERM,
 	    /* must be 80% of 2^n (currently 12 specials) */ 16);
-	for (i = 0; names[i].name; i++) {
-		tp = ktenter(&specials, names[i].name, hash(names[i].name));
+	while (i < V_MAX - 1) {
+		tp = ktenter(&specials, initvar_names[i],
+		    hash(initvar_names[i]));
 		tp->flag = DEFINED|ISSET;
-		tp->type = names[i].v;
+		tp->type = ++i;
 	}
 }
 
@@ -384,7 +385,7 @@ str_val(struct tbl *vp)
 }
 
 /* get variable integer value, with error checking */
-mksh_ari_t
+static mksh_ari_t
 intval(struct tbl *vp)
 {
 	mksh_ari_t num;
@@ -461,7 +462,7 @@ setint(struct tbl *vq, mksh_ari_t n)
 		setspec(vq);
 }
 
-int
+static int
 getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 {
 	char *s;
@@ -964,150 +965,55 @@ makenv(void)
 	return ((char **)XPclose(denv));
 }
 
-/*
- * Get us a random number, either from rand(3) or arc4random(3), with
- * the latter being preferred. If Flag(FARC4RANDOM) is 0, we use rand(3),
- * otherwise arc4random(3). We have static caches to make change_random
- * and writes to $RANDOM a cheap operation.
- */
-#if HAVE_ARC4RANDOM && !defined(MKSH_SMALL)
-static uint32_t rnd_cache[2];
-static unsigned char rnd_lastflag = 2;
-#if HAVE_ARC4RANDOM_PUSHB
-static bool rnd_wpush = false;
-#define rnd_mix(v,w) rnd_cmix(v,w)
-#else
-#define rnd_mix(v,w) rnd_cmix(v)
-#endif
-
-static void rnd_mix(unsigned long, bool);
-
-static void
-rnd_mix(unsigned long newval, bool wantpush)
-{
-	struct {
-		union {
-			int rval;
-			uint32_t arval;
-		} v0;
-		uint32_t v1;
-		uint32_t v2;
-		unsigned long v3;
-#if HAVE_ARC4RANDOM_PUSHB
-		bool neededpush;
-		bool wantingpush;
-#endif
-	} v;
-
-#if HAVE_ARC4RANDOM_PUSHB
-	v.neededpush = rnd_wpush;
-	v.wantingpush = wantpush;
-	rnd_wpush = v.neededpush || v.wantingpush;
-#endif
-
-	v.v0.rval = rand();
-	v.v1 = rnd_cache[0];
-	v.v2 = rnd_cache[1];
-	v.v3 = newval;
-
-	rnd_cache[0] = hashmem(&v, sizeof(v));
-	v.v0.arval = arc4random();
-	rnd_cache[1] = hashmem(&v, sizeof(v));
-}
-#endif
-
+#if HAVE_ARC4RANDOM
 static int
 rnd_get(void)
 {
-#if HAVE_ARC4RANDOM && defined(MKSH_SMALL)
 	return (arc4random() & 0x7FFF);
-#else
-#if HAVE_ARC4RANDOM
-#if HAVE_ARC4RANDOM_PUSHB
-	uint32_t rv = 0;
-#endif
-	if (Flag(FARC4RANDOM) != rnd_lastflag) {
-		if (Flag(FARC4RANDOM) == 0)
-			/* transition to 0 by set: srand */
-			srand(arc4random() & 0x7FFF);
-		else if (rnd_lastflag == 0)
-			/* transition from 0: addrandom */
-			rnd_mix(rand(), true);
-		rnd_lastflag = Flag(FARC4RANDOM);
-	}
-	if (Flag(FARC4RANDOM)) {
-		if (rnd_cache[0] || rnd_cache[1]) {
-#if HAVE_ARC4RANDOM_PUSHB
-			if (rnd_wpush) {
-				rv = arc4random_pushb(rnd_cache,
-				    sizeof(rnd_cache));
-				rnd_wpush = false;
-			} else
-#endif
-			arc4random_addrandom((void *)rnd_cache,
-			    sizeof(rnd_cache));
-		}
-		rnd_cache[0] = rnd_cache[1] = 0;
-		return ((
-#if HAVE_ARC4RANDOM_PUSHB
-		    rv ? rv :
-#endif
-		    arc4random()) & 0x7FFF);
-	}
-#endif
-	return (rand() & 0x7FFF);
-#endif
 }
 
 static void
 rnd_set(unsigned long newval)
 {
-#if HAVE_ARC4RANDOM && defined(MKSH_SMALL)
 #if HAVE_ARC4RANDOM_PUSHB
 	arc4random_pushb(&newval, sizeof(newval));
 #else
 	arc4random_addrandom((void *)&newval, sizeof(newval));
 #endif
+}
 #else
-#if HAVE_ARC4RANDOM
-	rnd_mix(newval, true);
-	if (Flag(FARC4RANDOM) == 1)
-		return;
-	if (Flag(FARC4RANDOM) == 2)
-		Flag(FARC4RANDOM) = 0;
-	/* transition to 0 by write: only srand */
-	rnd_lastflag = 0;
-#endif
-	srand(newval & 0x7FFF);
-#endif
+static int
+rnd_get(void)
+{
+	return (rand() & 0x7FFF);
 }
 
-#if !HAVE_ARC4RANDOM || !defined(MKSH_SMALL)
 /*
  * Called after a fork to bump the random number generator.
  * Done to ensure children will not get the same random number sequence
  * as the parent processes.
+ * Also called as rnd_set - mksh R40+ no longer has the traditional
+ * repeatability of randomness sequences, state is always retained.
  */
 void
 change_random(unsigned long newval)
 {
-	int rval = 0;
+	register unsigned int h;
 
-#if HAVE_ARC4RANDOM
-	if (Flag(FARC4RANDOM)) {
-		rnd_mix(newval, false);
-		return;
+	h = rand();
+	while (newval) {
+		h += (newval & 0xFF);
+		h += h << 10;
+		h ^= h >> 6;
+		newval >>= 8;
 	}
-#endif
 
-	rval += newval & 0x7FFF;
-	newval >>= 15;
-	rval += newval & 0x7FFF;
-	newval >>= 15;
-	rval += newval + rand();
-	rval = (rval & 0x7FFF) ^ (rval >> 15);
+	h += h << 3;
+	h ^= h >> 11;
+	h += h << 15;
 
-	srand(rval);
+	/* pass all of it, in case RAND_MAX is large */
+	srand(h);
 }
 #endif
 

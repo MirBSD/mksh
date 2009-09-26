@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.148 2009/09/26 01:08:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.149 2009/09/26 03:40:00 tg Exp $");
 
 extern char **environ;
 
@@ -47,17 +47,17 @@ static void remove_temps(struct temp *);
 
 static const char initifs[] = "IFS= \t\n";
 
-static const char initsubs[] = "${PS2=> } ${PS3=#? } ${PS4=+ }";
+static const char initsubs[] =
+    "${PS2=> } ${PS3=#? } ${PS4=+ } ${SECONDS=0} ${TMOUT=0}";
 
 static const char *initcoms[] = {
-	"typeset", "-r", initvsn, NULL,
-	"typeset", "-x", "SHELL", "PATH", "HOME", NULL,
-	"typeset", "-i10", "COLUMNS=0", "LINES=0", "OPTIND=1", NULL,
-	"typeset", "-Ui10", "PGRP", "PPID", "RANDOM", "USER_ID", NULL,
-	"eval", "typeset -i10 SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"",
-	NULL,
-	"alias", "integer=typeset -i", "local=typeset", NULL,
+	T_typeset, "-r", initvsn, NULL,
+	T_typeset, "-x", "HOME", "PATH", "RANDOM", "SHELL", NULL,
+	T_typeset, "-i10", "COLUMNS", "LINES", "OPTIND", "PGRP", "PPID",
+	    "RANDOM", "SECONDS", "TMOUT", "USER_ID", NULL,
 	"alias",
+	"integer=typeset -i",
+	T_local_typeset,
 	"hash=alias -t",	/* not "alias -t --": hash -r needs to work */
 	"type=whence -v",
 #ifndef MKSH_UNEMPLOYED
@@ -101,8 +101,14 @@ main(int argc, const char *argv[])
 	char *cp;
 #endif
 
+	kshpid = procpid = getpid();
+	ksheuid = geteuid();
+	kshpgrp = getpgrp();
+	ppid = getppid();
+
 #if !HAVE_ARC4RANDOM
-	change_random((unsigned long)time(NULL) * getpid());
+	change_random((unsigned long)time(NULL));
+	change_random(((unsigned long)ksheuid << 16) | kshpid);
 #endif
 
 	/* make sure argv[] is sane */
@@ -204,13 +210,14 @@ main(int argc, const char *argv[])
 #endif
 
 #ifdef MKSH_BINSHREDUCED
-	/* Set FPOSIX if we're called as -sh or /bin/sh or so */
+	/* set FPOSIX if we're called as -sh or /bin/sh or so */
 	{
 		const char *cc;
 
 		cc = kshname;
 		i = 0; argi = 0;
 		while (cc[i] != '\0')
+			/* the following line matches '-' and '/' ;-) */
 			if ((cc[i++] | 2) == '/')
 				argi = i;
 		if (((cc[argi] | 0x20) == 's') && ((cc[argi + 1] | 0x20) == 'h'))
@@ -223,7 +230,6 @@ main(int argc, const char *argv[])
 		for (wp = (const char **)environ; *wp != NULL; wp++)
 			typeset(*wp, IMPORT | EXPORT, 0, 0, 0);
 
-	kshpid = procpid = getpid();
 	typeset(initifs, 0, 0, 0, 0);	/* for security */
 
 	/* assign default shell variable values */
@@ -252,31 +258,38 @@ main(int argc, const char *argv[])
 			/* setstr can't fail here */
 			setstr(pwd_v, current_wd, KSH_RETURN_ERROR);
 	}
-	ppid = getppid();
-#if !HAVE_ARC4RANDOM || !defined(MKSH_SMALL)
-	change_random(((unsigned long)kshname) ^
-	    ((unsigned long)time(NULL) * kshpid * ppid));
-#endif
-#if HAVE_ARC4RANDOM
-	Flag(FARC4RANDOM) = 2;	/* use arc4random(3) until $RANDOM is written */
-#endif
 
 	for (wp = initcoms; *wp != NULL; wp++) {
 		shcomexec(wp);
 		while (*wp != NULL)
 			wp++;
 	}
+	setint(global("COLUMNS"), 0);
+	setint(global("LINES"), 0);
+	setint(global("OPTIND"), 1);
+	vp = global("RANDOM");
+#if HAVE_ARC4RANDOM
+	/* avoid calling setspec */
+	Flag(FARC4RANDOM) = 1;
+	vp->flag |= ISSET | INT_U;
+#else
+	vp->flag |= INT_U;
+	setint(vp, (mksh_ari_t)((unsigned long)kshname + 33 * ppid));
+#endif
 
-	safe_prompt = (ksheuid = geteuid()) ? "$ " : "# ";
+	safe_prompt = ksheuid ? "$ " : "# ";
 	vp = global("PS1");
 	/* Set PS1 if unset or we are root and prompt doesn't contain a # */
 	if (!(vp->flag & ISSET) ||
 	    (!ksheuid && !strchr(str_val(vp), '#')))
 		/* setstr can't fail here */
 		setstr(vp, safe_prompt, KSH_RETURN_ERROR);
-	setint(global("PGRP"), (mksh_uari_t)(kshpgrp = getpgrp()));
-	setint(global("PPID"), (mksh_uari_t)ppid);
-	setint(global("USER_ID"), (mksh_uari_t)ksheuid);
+	setint((vp = global("PGRP")), (mksh_uari_t)kshpgrp);
+	vp->flag |= INT_U;
+	setint((vp = global("PPID")), (mksh_uari_t)ppid);
+	vp->flag |= INT_U;
+	setint((vp = global("USER_ID")), (mksh_uari_t)ksheuid);
+	vp->flag |= INT_U;
 
 	/* Set this before parsing arguments */
 #if HAVE_SETRESUGID
@@ -408,7 +421,7 @@ main(int argc, const char *argv[])
 
 	if (restricted) {
 		static const char *restr_com[] = {
-			"typeset", "-r", "PATH",
+			T_typeset, "-r", "PATH",
 			"ENV", "SHELL",
 			NULL
 		};
@@ -1262,27 +1275,6 @@ hash(const char *cp)
 
 	return (h);
 }
-
-#if !HAVE_ARC4RANDOM || !defined(MKSH_SMALL)
-uint32_t
-hashmem(const void *cp, size_t len)
-{
-	register uint32_t h = 0;
-	register const uint8_t *bp = (const uint8_t *)cp;
-
-	while (len--) {
-		h += *bp++;
-		h += h << 10;
-		h ^= h >> 6;
-	}
-
-	h += h << 3;
-	h ^= h >> 11;
-	h += h << 15;
-
-	return (h);
-}
-#endif
 
 static void
 texpand(struct table *tp, size_t nsize)

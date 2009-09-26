@@ -134,9 +134,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.348 2009/09/24 17:15:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.349 2009/09/26 03:40:01 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2009/09/24"
+#define MKSH_VERSION "R39 2009/09/25"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -567,8 +567,11 @@ EXTERN char null[] I__("");
 /* helpers for string pooling */
 #define T_synerr "syntax error"
 EXTERN const char r_fc_e_[] I__("r=fc -e -");
-#define fc_e_	(r_fc_e_ + 2)		/* "fc -e -" */
-#define fc_e_n	7			/* strlen(fc_e_) */
+#define fc_e_		(r_fc_e_ + 2)		/* "fc -e -" */
+#define fc_e_n		7			/* strlen(fc_e_) */
+EXTERN const char T_local_typeset[] I__("local=typeset");
+#define T__typeset	(T_local_typeset + 5)	/* "=typeset" */
+#define T_typeset	(T_local_typeset + 6)	/* "typeset" */
 
 enum temp_type {
 	TT_HEREDOC_EXP,	/* expanded heredoc */
@@ -962,21 +965,6 @@ struct builtin {
 };
 
 extern const struct builtin mkshbuiltins[];
-
-/* var spec values */
-#define V_NONE		0
-#define V_COLUMNS	1
-#define V_HISTFILE	2
-#define V_HISTSIZE	3
-#define V_IFS		4
-#define V_LINENO	5
-#define V_LINES		6
-#define V_OPTIND	7
-#define V_PATH		8
-#define V_RANDOM	9
-#define V_SECONDS	10
-#define V_TMOUT		11
-#define V_TMPDIR	12
 
 /* values for set_prompt() */
 #define PS1	0	/* command */
@@ -1601,11 +1589,9 @@ void initvar(void);
 struct tbl *global(const char *);
 struct tbl *local(const char *, bool);
 char *str_val(struct tbl *);
-mksh_ari_t intval(struct tbl *);
 int setstr(struct tbl *, const char *, int);
 struct tbl *setint_v(struct tbl *, struct tbl *, bool);
 void setint(struct tbl *, mksh_ari_t);
-int getint(struct tbl *, mksh_ari_t *, bool);
 struct tbl *typeset(const char *, Tflag, Tflag, int, int);
 void unset(struct tbl *, int);
 const char *skip_varname(const char *, int);
@@ -1613,7 +1599,7 @@ const char *skip_wdvarname(const char *, int);
 int is_wdvarname(const char *, int);
 int is_wdvarassign(const char *);
 char **makenv(void);
-#if !HAVE_ARC4RANDOM || !defined(MKSH_SMALL)
+#if !HAVE_ARC4RANDOM
 void change_random(unsigned long);
 #endif
 void change_winsz(void);

@@ -1,5 +1,5 @@
 #if defined(SHFLAGS_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.2 2009/09/24 17:15:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.3 2009/09/26 03:40:02 tg Exp $");
 #define FN(sname,cname,ochar,flags)	/* nothing */
 #elif defined(SHFLAGS_ENUMS)
 #define FN(sname,cname,ochar,flags)	cname,
@@ -22,9 +22,8 @@ __RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.2 2009/09/24 17:15:33 tg Exp $");
 F0("allexport", FEXPORT, 'a', OF_ANY)
 
 #if HAVE_ARC4RANDOM
-/* ./.	for $RANDOM (non-standard), use the following function scheme: */
-/*	  0:rand(3)  1:arc4random(3)  2:switch from 1 to 0 on write */
-FN("arc4random", FARC4RANDOM, 0, OF_ANY)
+/* ./.	backwards compat: available if arc4random(3) is used for $RANDOM */
+FN("arc4random", FARC4RANDOM, 0, OF_INTERNAL)
 #endif
 
 #if HAVE_NICE
