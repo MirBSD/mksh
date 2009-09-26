@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.92 2009/09/26 03:40:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.93 2009/09/26 04:01:34 tg Exp $");
 
 /*
  * Variables
@@ -357,6 +357,7 @@ str_val(struct tbl *vp)
 			*(s = strbuf) = '1';
 			s[1] = '#';
 			if (!UTFMODE || ((n & 0xFF80) == 0xEF80))
+				/* OPTU-16 -> raw octet */
 				s[2] = n & 0xFF;
 			else
 				sz = utf_wctomb(s + 2, n);
@@ -511,6 +512,12 @@ getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 				if (!UTFMODE)
 					wc = *(unsigned char *)s;
 				else if (utf_mbtowc(&wc, s) == (size_t)-1)
+					/* OPTU-8 -> OPTU-16 */
+					/*
+					 * (with a twist: 1#\uEF80 converts
+					 * the same as 1#\x80 does, thus is
+					 * not round-tripping correctly XXX)
+					 */
 					wc = 0xEF00 + *(unsigned char *)s;
 				*nump = (mksh_ari_t)wc;
 				return (1);

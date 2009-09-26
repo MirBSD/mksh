@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.349 2009/09/26 03:40:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.350 2009/09/26 04:01:33 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/09/25"
 
@@ -1321,13 +1321,6 @@ void afree(void *, Area *);	/* can take NULL */
 /* edit.c */
 void x_init(void);
 int x_read(char *, size_t);
-/* UTF-8 stuff */
-size_t utf_mbtowc(unsigned int *, const char *);
-size_t utf_wctomb(char *, unsigned int);
-int utf_widthadj(const char *, const char **);
-int utf_mbswidth(const char *);
-const char *utf_skipcols(const char *, int);
-size_t utf_ptradj(const char *);
 /* eval.c */
 char *substitute(const char *, int);
 char **eval(const char **, int);
@@ -1351,6 +1344,14 @@ int pr_list(char *const *);
 /* expr.c */
 int evaluate(const char *, mksh_ari_t *, int, bool);
 int v_evaluate(struct tbl *, const char *, volatile int, bool);
+/* UTF-8 stuff */
+size_t utf_mbtowc(unsigned int *, const char *);
+size_t utf_wctomb(char *, unsigned int);
+int utf_widthadj(const char *, const char **);
+int utf_mbswidth(const char *);
+const char *utf_skipcols(const char *, int);
+size_t utf_ptradj(const char *);
+int utf_wcwidth(unsigned int);
 /* funcs.c */
 int c_hash(const char **);
 int c_cd(const char **);
