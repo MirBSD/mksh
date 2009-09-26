@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.147 2009/09/24 17:15:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.148 2009/09/26 01:08:27 tg Exp $");
 
 extern char **environ;
 
@@ -352,12 +352,12 @@ main(int argc, const char *argv[])
 				ccp = nl_langinfo(CODESET);
 #endif
 #else
-			ccp = getenv("LC_ALL");
-			if (!ccp || !*ccp) {
-				ccp = getenv("LC_CTYPE");
-				if (!ccp || !*ccp)
-					ccp = getenv("LANG");
-			}
+			/* these were imported from environ earlier */
+			ccp = str_val(global("LC_ALL"));
+			if (ccp == null)
+				ccp = str_val(global("LC_CTYPE"));
+			if (ccp == null)
+				ccp = str_val(global("LANG"));
 #endif
 			UTFMODE = isuc(ccp);
 		}
