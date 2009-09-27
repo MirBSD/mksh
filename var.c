@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.93 2009/09/26 04:01:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.94 2009/09/27 10:31:06 tg Exp $");
 
 /*
  * Variables
@@ -962,7 +962,7 @@ makenv(void)
 					/* integer to string */
 					char *val;
 					val = str_val(vp);
-					vp->flag &= ~(INTEGER|RDONLY);
+					vp->flag &= ~(INTEGER|RDONLY|SPECIAL);
 					/* setstr can't fail here */
 					setstr(vp, val, KSH_RETURN_ERROR);
 				}
@@ -983,10 +983,13 @@ static void
 rnd_set(unsigned long newval)
 {
 #if HAVE_ARC4RANDOM_PUSHB
-	arc4random_pushb(&newval, sizeof(newval));
-#else
-	arc4random_addrandom((void *)&newval, sizeof(newval));
+	if (Flag(FARC4RANDOM))
+		/* initialisation, environment import, etc. already done */
+		arc4random_pushb(&newval, sizeof(newval));
+	else
+		/* during start-up phase or somesuch */
 #endif
+	arc4random_addrandom((void *)&newval, sizeof(newval));
 }
 #else
 static int

@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.149 2009/09/26 03:40:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.150 2009/09/27 10:31:06 tg Exp $");
 
 extern char **environ;
 
@@ -269,8 +269,8 @@ main(int argc, const char *argv[])
 	setint(global("OPTIND"), 1);
 	vp = global("RANDOM");
 #if HAVE_ARC4RANDOM
-	/* avoid calling setspec */
 	Flag(FARC4RANDOM) = 1;
+	/* avoid calling setspec */
 	vp->flag |= ISSET | INT_U;
 #else
 	vp->flag |= INT_U;
