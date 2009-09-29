@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.150 2009/09/27 10:31:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.151 2009/09/29 12:28:13 tg Exp $");
 
 extern char **environ;
 
@@ -320,13 +320,17 @@ main(int argc, const char *argv[])
 			kshname = argv[argi++];
 	} else if (argi < argc && !Flag(FSTDIN)) {
 		s = pushs(SFILE, ATEMP);
-		s->file = kshname = argv[argi++];
+		s->file = argv[argi++];
 		s->u.shf = shf_open(s->file, O_RDONLY, 0,
 		    SHF_MAPHI | SHF_CLEXEC);
 		if (s->u.shf == NULL) {
-			exstat = 127; /* POSIX */
-			errorf("%s: %s", s->file, strerror(errno));
+			shl_stdout_ok = 0;
+			warningf(true, "%s: %s", s->file, strerror(errno));
+			/* mandated by SUSv4 */
+			exstat = 127;
+			unwind(LERROR);
 		}
+		kshname = s->file;
 	} else {
 		Flag(FSTDIN) = 1;
 		s = pushs(SSTDIN, ATEMP);

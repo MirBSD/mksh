@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.311 2009/09/26 03:39:57 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.312 2009/09/29 12:28:12 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2009/09/25
+	@(#)MIRBSD KSH R39 2009/09/29
 description:
 	Check version of shell.
 stdin:
@@ -6424,4 +6424,26 @@ expected-stdout:
 	v: 123
 	exiting
 	bar: global
+---
+name: susv4-exit-enoent-1
+description:
+	SUSv4 says that the shell should exit with 126/127 in some situations
+stdin:
+	i=0
+	echo : >x
+	"$__progname" ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
+	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
+	echo exit 42 >x
+	"$__progname" ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
+	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
+	rm -f x
+	"$__progname" ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
+	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
+expected-stdout:
+	0 0 .
+	1 126 .
+	2 42 .
+	3 126 .
+	4 127 .
+	5 127 .
 ---
