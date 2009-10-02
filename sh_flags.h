@@ -1,5 +1,5 @@
 #if defined(SHFLAGS_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.3 2009/09/26 03:40:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.4 2009/10/02 18:08:37 tg Exp $");
 #define FN(sname,cname,ochar,flags)	/* nothing */
 #elif defined(SHFLAGS_ENUMS)
 #define FN(sname,cname,ochar,flags)	cname,
@@ -89,14 +89,14 @@ FN("nounset", FNOUNSET, 'u', OF_ANY)
 /* ./.	don't do logical cds/pwds (non-standard) */
 FN("physical", FPHYSICAL, 0, OF_ANY)
 
-/* ./.	mock POSIX mode (try to be more compatible; non-standard) */
-FN("posix", FPOSIX, 0, OF_ANY)
-
 /* -p	use suid_profile; privileged shell */
 FN("privileged", FPRIVILEGED, 'p', OF_ANY)
 
 /* -r	restricted shell */
 FN("restricted", FRESTRICTED, 'r', OF_CMDLINE)
+
+/* ./.	called as sh (some POSIX, some kludgy) not mksh (non-standard) */
+FN("sh", FSH, 0, OF_ANY)
 
 /* -s	(invocation) parse stdin (pseudo non-standard) */
 FN("stdin", FSTDIN, 's', OF_CMDLINE)

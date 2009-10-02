@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.151 2009/09/29 12:28:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.152 2009/10/02 18:08:34 tg Exp $");
 
 extern char **environ;
 
@@ -210,7 +210,7 @@ main(int argc, const char *argv[])
 #endif
 
 #ifdef MKSH_BINSHREDUCED
-	/* set FPOSIX if we're called as -sh or /bin/sh or so */
+	/* set FSH if we're called as -sh or /bin/sh or so */
 	{
 		const char *cc;
 
@@ -221,7 +221,7 @@ main(int argc, const char *argv[])
 			if ((cc[i++] | 2) == '/')
 				argi = i;
 		if (((cc[argi] | 0x20) == 's') && ((cc[argi + 1] | 0x20) == 'h'))
-			change_flag(FPOSIX, OF_FIRSTTIME, 1);
+			change_flag(FSH, OF_FIRSTTIME, 1);
 	}
 #endif
 
@@ -313,7 +313,7 @@ main(int argc, const char *argv[])
 			errorf("-c requires an argument");
 #ifdef MKSH_MIDNIGHTBSD01ASH_COMPAT
 		/* compatibility to MidnightBSD 0.1 /bin/sh (not desired) */
-		if (Flag(FPOSIX) && argv[argi] && !strcmp(argv[argi], "--"))
+		if (Flag(FSH) && argv[argi] && !strcmp(argv[argi], "--"))
 			++argi;
 #endif
 		if (argv[argi])
@@ -346,7 +346,7 @@ main(int argc, const char *argv[])
 		}
 	}
 
-	/* This bizarreness is mandated by POSIX */
+	/* this bizarreness is mandated by POSIX */
 	if (fstat(0, &s_stdin) >= 0 && S_ISCHR(s_stdin.st_mode) &&
 	    Flag(FTALKING))
 		reset_nonblock(0);
@@ -1113,7 +1113,7 @@ check_fd(const char *name, int mode, const char **emsgp)
 	fl &= O_ACCMODE;
 	/* X_OK is a kludge to disable this check for dups (x<&1):
 	 * historical shells never did this check (XXX don't know what
-	 * posix has to say).
+	 * POSIX has to say).
 	 */
 	if (!(mode & X_OK) && fl != O_RDWR && (
 	    ((mode & R_OK) && fl != O_RDONLY) ||

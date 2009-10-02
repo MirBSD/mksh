@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.314 2009/10/02 17:05:01 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.315 2009/10/02 18:08:31 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2009/09/29
+	@(#)MIRBSD KSH R39 2009/10/02
 description:
 	Check version of shell.
 stdin:
@@ -36,7 +36,7 @@ name: selftest-1
 description:
 	Regression test self-testing
 stdin:
-	print ${foo:-baz}
+	echo ${foo:-baz}
 expected-stdout:
 	baz
 ---
@@ -45,7 +45,7 @@ description:
 	Regression test self-testing
 env-setup: !foo=bar!
 stdin:
-	print ${foo:-baz}
+	echo ${foo:-baz}
 expected-stdout:
 	bar
 ---
@@ -54,7 +54,7 @@ description:
 	Regression test self-testing
 env-setup: !ENV=fnord!
 stdin:
-	print "<$ENV>"
+	echo "<$ENV>"
 expected-stdout:
 	<fnord>
 ---
@@ -275,29 +275,29 @@ description:
 	Check if unsigned arithmetics work
 stdin:
 	# signed vs unsigned
-	print x1 $((-1)) $((#-1))
+	echo x1 $((-1)) $((#-1))
 	# calculating
 	typeset -i vs
 	typeset -Ui vu
 	vs=4123456789; vu=4123456789
-	print x2 $vs $vu
+	echo x2 $vs $vu
 	(( vs %= 2147483647 ))
 	(( vu %= 2147483647 ))
-	print x3 $vs $vu
+	echo x3 $vs $vu
 	vs=4123456789; vu=4123456789
 	(( # vs %= 2147483647 ))
 	(( # vu %= 2147483647 ))
-	print x4 $vs $vu
+	echo x4 $vs $vu
 	# make sure the calculation does not change unsigned flag
 	vs=4123456789; vu=4123456789
-	print x5 $vs $vu
+	echo x5 $vs $vu
 	# short form
-	print x6 $((# vs % 2147483647)) $((# vu % 2147483647))
+	echo x6 $((# vs % 2147483647)) $((# vu % 2147483647))
 	# array refs
 	set -A va
 	va[1975973142]=right
 	va[4123456789]=wrong
-	print x7 ${va[#4123456789%2147483647]}
+	echo x7 ${va[#4123456789%2147483647]}
 expected-stdout:
 	x1 -1 4294967295
 	x2 -171510507 4123456789
@@ -312,20 +312,20 @@ description:
 	Check if arithmetics are 32 bit
 stdin:
 	# signed vs unsigned
-	print x1 $((-1)) $((#-1))
+	echo x1 $((-1)) $((#-1))
 	# calculating
 	typeset -i vs
 	typeset -Ui vu
 	vs=2147483647; vu=2147483647
-	print x2 $vs $vu
+	echo x2 $vs $vu
 	let vs++ vu++
-	print x3 $vs $vu
+	echo x3 $vs $vu
 	vs=4294967295; vu=4294967295
-	print x4 $vs $vu
+	echo x4 $vs $vu
 	let vs++ vu++
-	print x5 $vs $vu
+	echo x5 $vs $vu
 	let vs++ vu++
-	print x6 $vs $vu
+	echo x6 $vs $vu
 expected-stdout:
 	x1 -1 4294967295
 	x2 2147483647 2147483647
@@ -372,7 +372,7 @@ name: bksl-nl-ign-4
 description:
 	Check interaction of aliases, single quotes and here-documents
 	with backslash-newline
-	(don't know what posix has to say about this)
+	(don't know what POSIX has to say about this)
 stdin:
 	a=2
 	alias x='echo hi
@@ -395,7 +395,7 @@ expected-stdout:
 name: bksl-nl-ign-5
 description:
 	Check what happens with backslash at end of input
-	(the old bourne shell trashes them; so do we)
+	(the old Bourne shell trashes them; so do we)
 stdin: !
 	echo `echo foo\\`bar
 	echo hi\
@@ -595,7 +595,7 @@ name: bksl-nl-9
 description:
 	Check that \ at the end of an alias is collapsed when followed
 	by a newline
-	(don't know what posix has to say about this)
+	(don't know what POSIX has to say about this)
 stdin:
 	alias x='echo hi\'
 	x
@@ -3897,7 +3897,7 @@ description:
 	Check if typeset, export, and readonly work
 stdin:
 	{
-		print FNORD-0
+		echo FNORD-0
 		FNORD_A=1
 		FNORD_B=2
 		FNORD_C=3
@@ -3909,21 +3909,21 @@ stdin:
 		integer FNORD_E FNORD_F FNORD_G FNORD_H
 		export FNORD_C FNORD_D FNORD_G FNORD_H
 		readonly FNORD_B FNORD_D FNORD_F FNORD_H
-		print FNORD-1
+		echo FNORD-1
 		export
-		print FNORD-2
+		echo FNORD-2
 		export -p
-		print FNORD-3
+		echo FNORD-3
 		readonly
-		print FNORD-4
+		echo FNORD-4
 		readonly -p
-		print FNORD-5
+		echo FNORD-5
 		typeset
-		print FNORD-6
+		echo FNORD-6
 		typeset -p
-		print FNORD-7
+		echo FNORD-7
 		typeset -
-		print FNORD-8
+		echo FNORD-8
 	} | fgrep FNORD
 expected-stdout:
 	FNORD-0
@@ -4114,7 +4114,7 @@ description:
 	Check that exec exits for built-ins
 arguments: !-i!
 stdin:
-	exec print hi
+	exec echo hi
 	echo still herre
 expected-stdout:
 	hi
@@ -4364,7 +4364,7 @@ description:
 stdin:
 	test \( -f = -f \)
 	rv=$?
-	set -o posix
+	set -o sh
 	echo -e $rv
 expected-stdout:
 	-e 0
@@ -4458,44 +4458,44 @@ stdin:
 expected-stdout:
 	x
 ---
-name: posix-mode-1
+name: sh-mode-1
 description:
-	Check that posix mode turns braceexpand off
+	Check that sh mode turns braceexpand off
 	and that that works correctly
 stdin:
 	set -o braceexpand
-	set +o posix
-	[[ $(set +o) == *@(-o posix)@(| *) ]] && echo posix || echo noposix
+	set +o sh
+	[[ $(set +o) == *@(-o sh)@(| *) ]] && echo sh || echo nosh
 	[[ $(set +o) == *@(-o braceexpand)@(| *) ]] && echo brex || echo nobrex
 	echo {a,b,c}
 	set +o braceexpand
 	echo {a,b,c}
 	set -o braceexpand
 	echo {a,b,c}
-	set -o posix
+	set -o sh
 	echo {a,b,c}
-	[[ $(set +o) == *@(-o posix)@(| *) ]] && echo posix || echo noposix
+	[[ $(set +o) == *@(-o sh)@(| *) ]] && echo sh || echo nosh
 	[[ $(set +o) == *@(-o braceexpand)@(| *) ]] && echo brex || echo nobrex
 	set -o braceexpand
 	echo {a,b,c}
-	[[ $(set +o) == *@(-o posix)@(| *) ]] && echo posix || echo noposix
+	[[ $(set +o) == *@(-o sh)@(| *) ]] && echo sh || echo nosh
 	[[ $(set +o) == *@(-o braceexpand)@(| *) ]] && echo brex || echo nobrex
 expected-stdout:
-	noposix
+	nosh
 	brex
 	a b c
 	{a,b,c}
 	a b c
 	{a,b,c}
-	posix
+	sh
 	nobrex
 	a b c
-	posix
+	sh
 	brex
 ---
-name: posix-mode-2a
+name: sh-mode-2a
 description:
-	Check that posix mode is *not* automatically turned on
+	Check that sh mode is *not* automatically turned on
 category: !binsh
 stdin:
 	ln -s "$__progname" ksh
@@ -4504,17 +4504,17 @@ stdin:
 	ln -s "$__progname" ./-sh
 	for shell in {,-}{,k}sh; do
 		print -- $shell $(./$shell +l -c \
-		    '[[ $(set +o) == *@(-o posix)@(| *) ]] && echo posix || echo noposix')
+		    '[[ $(set +o) == *@(-o sh)@(| *) ]] && echo sh || echo nosh')
 	done
 expected-stdout:
-	sh noposix
-	ksh noposix
-	-sh noposix
-	-ksh noposix
+	sh nosh
+	ksh nosh
+	-sh nosh
+	-ksh nosh
 ---
-name: posix-mode-2b
+name: sh-mode-2b
 description:
-	Check that posix mode is automatically turned on
+	Check that sh mode *is* automatically turned on
 category: binsh
 stdin:
 	ln -s "$__progname" ksh
@@ -4523,13 +4523,13 @@ stdin:
 	ln -s "$__progname" ./-sh
 	for shell in {,-}{,k}sh; do
 		print -- $shell $(./$shell +l -c \
-		    '[[ $(set +o) == *@(-o posix)@(| *) ]] && echo posix || echo noposix')
+		    '[[ $(set +o) == *@(-o sh)@(| *) ]] && echo sh || echo nosh')
 	done
 expected-stdout:
-	sh posix
-	ksh noposix
-	-sh posix
-	-ksh noposix
+	sh sh
+	ksh nosh
+	-sh sh
+	-ksh nosh
 ---
 name: pipeline-1
 description:
@@ -4561,9 +4561,9 @@ name: pipeline-2
 description:
 	check that co-processes work with TCOMs, TPIPEs and TPARENs
 stdin:
-	"$__progname" -c 'i=100; print hi |& while read -p line; do print "$((i++)) $line"; done'
-	"$__progname" -c 'i=200; print hi | cat |& while read -p line; do print "$((i++)) $line"; done'
-	"$__progname" -c 'i=300; (print hi | cat) |& while read -p line; do print "$((i++)) $line"; done'
+	"$__progname" -c 'i=100; echo hi |& while read -p line; do echo "$((i++)) $line"; done'
+	"$__progname" -c 'i=200; echo hi | cat |& while read -p line; do echo "$((i++)) $line"; done'
+	"$__progname" -c 'i=300; (echo hi | cat) |& while read -p line; do echo "$((i++)) $line"; done'
 expected-stdout:
 	100 hi
 	200 hi
@@ -4593,7 +4593,7 @@ stdin:
 	typeset -ZL10 lz=0hall0
 	typeset -ZR10 rz=0hall0
 	typeset -Z10 rx=" hallo "
-	print "<$ln> <$rn> <$lz> <$rz> <$rx>"
+	echo "<$ln> <$rn> <$lz> <$rz> <$rx>"
 expected-stdout:
 	<0hall0    > <    0hall0> <hall0     > <00000hall0> <0000 hallo>
 ---
@@ -4607,7 +4607,7 @@ stdin:
 	typeset -L9 ls=16#1
 	typeset -R9 rs=16#1
 	typeset -Z9 zs=16#1
-	print "<$ln> <$rn> <$zn> <$ls> <$rs> <$zs>"
+	echo "<$ln> <$rn> <$zn> <$ls> <$rs> <$zs>"
 expected-stdout:
 	<16#1     > <     16#1> <16#000001> <16#1     > <     16#1> <0000016#1>
 ---
@@ -4625,7 +4625,7 @@ stdin:
 	print 'Ôªøfnord\nfnord\nÔªøfnord\nfnord' >foo/bar
 	print eval \''Ôªøfnord\nfnord\nÔªøfnord\nfnord'\' >foo/zoo
 	set -A anzahl -- foo/*
-	print got ${#anzahl[*]} files
+	echo got ${#anzahl[*]} files
 	chmod +x foo/*
 	export PATH=$(pwd)/foo:$PATH
 	"$__progname" -c 'Ôªøfnord'
@@ -4638,7 +4638,7 @@ stdin:
 	echo =
 	"$__progname" foo/zoo
 	echo =
-	"$__progname" -c 'print Ôªø: $(Ôªøfnord)'
+	"$__progname" -c 'echo Ôªø: $(Ôªøfnord)'
 	rm -rf foo
 expected-stdout:
 	got 4 files
@@ -4696,8 +4696,8 @@ name: utf8bom-3
 description:
 	Reading the UTF-8 BOM should enable the utf8-mode flag
 stdin:
-	"$__progname" -c ':; if [[ $- = *U* ]]; then print 1 on; else print 1 off; fi'
-	"$__progname" -c 'Ôªø:; if [[ $- = *U* ]]; then print 2 on; else print 2 off; fi'
+	"$__progname" -c ':; if [[ $- = *U* ]]; then echo 1 on; else echo 1 off; fi'
+	"$__progname" -c 'Ôªø:; if [[ $- = *U* ]]; then echo 2 on; else echo 2 off; fi'
 expected-stdout:
 	1 off
 	2 on
@@ -4709,9 +4709,9 @@ category: !os:hpux
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.UTF-8!
 stdin:
 	if [[ $- = *U* ]]; then
-		print is set
+		echo is set
 	else
-		print is not set
+		echo is not set
 	fi
 expected-stdout:
 	is not set
@@ -4723,9 +4723,9 @@ category: os:hpux
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.utf8!
 stdin:
 	if [[ $- = *U* ]]; then
-		print is set
+		echo is set
 	else
-		print is not set
+		echo is not set
 	fi
 expected-stdout:
 	is not set
@@ -4742,9 +4742,9 @@ arguments: !-i!
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.UTF-8!
 stdin:
 	if [[ $- = *U* ]]; then
-		print is set
+		echo is set
 	else
-		print is not set
+		echo is not set
 	fi
 expected-stdout:
 	is set
@@ -4760,9 +4760,9 @@ arguments: !-i!
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.utf8!
 stdin:
 	if [[ $- = *U* ]]; then
-		print is set
+		echo is set
 	else
-		print is not set
+		echo is not set
 	fi
 expected-stdout:
 	is set
@@ -4815,9 +4815,9 @@ expected-stdout:
 ---
 name: aliases-2a
 description:
-	Check if ‚Äúset -o posix‚Äù disables built-in aliases (except a few)
+	Check if ‚Äúset -o sh‚Äù disables built-in aliases (except a few)
 category: disabled
-arguments: !-o!posix!
+arguments: !-o!sh!
 stdin:
 	alias
 	typeset -f
@@ -4829,7 +4829,7 @@ name: aliases-3a
 description:
 	Check if running as sh disables built-in aliases (except a few)
 category: disabled
-arguments: !-o!posix!
+arguments: !-o!sh!
 stdin:
 	cp "$__progname" sh
 	./sh -c 'alias; typeset -f'
@@ -4840,9 +4840,9 @@ expected-stdout:
 ---
 name: aliases-2b
 description:
-	Check if ‚Äúset -o posix‚Äù does not influence built-in aliases
+	Check if ‚Äúset -o sh‚Äù does not influence built-in aliases
 category: !arge
-arguments: !-o!posix!
+arguments: !-o!sh!
 stdin:
 	alias
 	typeset -f
@@ -4866,7 +4866,7 @@ name: aliases-3b
 description:
 	Check if running as sh does not influence built-in aliases
 category: !arge
-arguments: !-o!posix!
+arguments: !-o!sh!
 stdin:
 	cp "$__progname" sh
 	./sh -c 'alias; typeset -f'
@@ -4889,9 +4889,9 @@ expected-stdout:
 ---
 name: aliases-2b-hartz4
 description:
-	Check if ‚Äúset -o posix‚Äù does not influence built-in aliases
+	Check if ‚Äúset -o sh‚Äù does not influence built-in aliases
 category: arge
-arguments: !-o!posix!
+arguments: !-o!sh!
 stdin:
 	alias
 	typeset -f
@@ -4913,7 +4913,7 @@ name: aliases-3b-hartz4
 description:
 	Check if running as sh does not influence built-in aliases
 category: arge
-arguments: !-o!posix!
+arguments: !-o!sh!
 stdin:
 	cp "$__progname" sh
 	./sh -c 'alias; typeset -f'
@@ -4996,9 +4996,9 @@ stdin:
 	set -A foo a b c
 	foo[4097]=d
 	foo[2147483637]=e
-	print ${foo[*]}
+	echo ${foo[*]}
 	foo[-1]=f
-	print ${foo[4294967295]} g ${foo[*]}
+	echo ${foo[4294967295]} g ${foo[*]}
 expected-stdout:
 	a b c d e
 	f g a b c d e f
@@ -5073,17 +5073,17 @@ description:
 	Check if we can get the array keys (indices) for indexed arrays,
 	Korn shell style, in some corner cases
 stdin:
-	print !arz: ${!arz}
-	print !arz[0]: ${!arz[0]}
-	print !arz[1]: ${!arz[1]}
+	echo !arz: ${!arz}
+	echo !arz[0]: ${!arz[0]}
+	echo !arz[1]: ${!arz[1]}
 	arz=foo
-	print !arz: ${!arz}
-	print !arz[0]: ${!arz[0]}
-	print !arz[1]: ${!arz[1]}
+	echo !arz: ${!arz}
+	echo !arz[0]: ${!arz[0]}
+	echo !arz[1]: ${!arz[1]}
 	unset arz
-	print !arz: ${!arz}
-	print !arz[0]: ${!arz[0]}
-	print !arz[1]: ${!arz[1]}
+	echo !arz: ${!arz}
+	echo !arz[0]: ${!arz[0]}
+	echo !arz[1]: ${!arz[1]}
 expected-stdout:
 	!arz: 0
 	!arz[0]:
@@ -5103,13 +5103,13 @@ stdin:
 	x=abcdefghi
 	typeset -i y=123456789
 	typeset -i 16 z=123456789	# 16#75bcd15
-	print a t${x:2:2} ${y:2:3} ${z:2:3} a
-	print b ${x::3} ${y::3} ${z::3} b
-	print c ${x:2:} ${y:2:} ${z:2:} c
-	print d ${x:2} ${y:2} ${z:2} d
-	print e ${x:2:6} ${y:2:6} ${z:2:7} e
-	print f ${x:2:7} ${y:2:7} ${z:2:8} f
-	print g ${x:2:8} ${y:2:8} ${z:2:9} g
+	echo a t${x:2:2} ${y:2:3} ${z:2:3} a
+	echo b ${x::3} ${y::3} ${z::3} b
+	echo c ${x:2:} ${y:2:} ${z:2:} c
+	echo d ${x:2} ${y:2} ${z:2} d
+	echo e ${x:2:6} ${y:2:6} ${z:2:7} e
+	echo f ${x:2:7} ${y:2:7} ${z:2:8} f
+	echo g ${x:2:8} ${y:2:8} ${z:2:9} g
 expected-stdout:
 	a tcd 345 #75 a
 	b abc 123 16# b
@@ -5128,10 +5128,10 @@ stdin:
 	typeset -i y=123456789
 	typeset -i 16 z=123456789	# 16#75bcd15
 	n=2
-	print a ${x:$n:3} ${y:$n:3} ${z:$n:3} a
-	print b ${x:(n):3} ${y:(n):3} ${z:(n):3} b
-	print c ${x:(-2):1} ${y:(-2):1} ${z:(-2):1} c
-	print d t${x: n:2} ${y: n:3} ${z: n:3} d
+	echo a ${x:$n:3} ${y:$n:3} ${z:$n:3} a
+	echo b ${x:(n):3} ${y:(n):3} ${z:(n):3} b
+	echo c ${x:(-2):1} ${y:(-2):1} ${z:(-2):1} c
+	echo d t${x: n:2} ${y: n:3} ${z: n:3} d
 expected-stdout:
 	a cde 345 #75 a
 	b cde 345 #75 b
@@ -5164,7 +5164,7 @@ description:
 stdin:
 	x=abcdefghi
 	integer y=2
-	print a ${x:(y == 1 ? 2 : 3):4} a
+	echo a ${x:(y == 1 ? 2 : 3):4} a
 expected-stdout:
 	a defg a
 ---
@@ -5174,10 +5174,10 @@ description:
 stdin:
 	set +U
 	x=m√§h
-	print a ${x::1} ${x: -1} a
-	print b ${x::3} ${x: -3} b
-	print c ${x:1:2} ${x: -3:2} c
-	print d ${#x} d
+	echo a ${x::1} ${x: -1} a
+	echo b ${x::3} ${x: -3} b
+	echo c ${x:1:2} ${x: -3:2} c
+	echo d ${#x} d
 expected-stdout:
 	a m h a
 	b m√§ √§h b
@@ -5190,10 +5190,10 @@ description:
 stdin:
 	set -U
 	x=m√§h
-	print a ${x::1} ${x: -1} a
-	print b ${x::2} ${x: -2} b
-	print c ${x:1:1} ${x: -2:1} c
-	print d ${#x} d
+	echo a ${x::1} ${x: -1} a
+	echo b ${x::2} ${x: -2} b
+	echo c ${x:1:1} ${x: -2:1} c
+	echo d ${#x} d
 expected-stdout:
 	a m h a
 	b m√§ √§h b
@@ -5427,16 +5427,16 @@ stdin:
 	typeset -Uui1 o0b=0x7E
 	typeset -Uui1 o1b=0xFDD0
 	integer px=0xCAFE 'p0=1# ' p1=1#‚Ä¶ pl=1#f
-	print "in <$i0> <$i1>"
-	print "out <${o0a#1#}|${o0b#1#}> <${o1a#1#}|${o1b#1#}>"
+	echo "in <$i0> <$i1>"
+	echo "out <${o0a#1#}|${o0b#1#}> <${o1a#1#}|${o1b#1#}>"
 	typeset -Uui1 i0 i1
-	print "pass <$px> <$p0> <$p1> <$pl> <${i0#1#}|${i1#1#}>"
+	echo "pass <$px> <$p0> <$p1> <$pl> <${i0#1#}|${i1#1#}>"
 	typeset -Uui16 tv1=1#~ tv2=1# tv3=1#Ä tv4=1#Å tv5=1#¿ tv6=1#¡ tv7=1#¬† tv8=1#¬Ä
-	print "specX <${tv1#16#}> <${tv2#16#}> <${tv3#16#}> <${tv4#16#}> <${tv5#16#}> <${tv6#16#}> <${tv7#16#}> <${tv8#16#}>"
+	echo "specX <${tv1#16#}> <${tv2#16#}> <${tv3#16#}> <${tv4#16#}> <${tv5#16#}> <${tv6#16#}> <${tv7#16#}> <${tv8#16#}>"
 	typeset -i1 tv1 tv2 tv3 tv4 tv5 tv6 tv7 tv8
-	print "specW <${tv1#1#}> <${tv2#1#}> <${tv3#1#}> <${tv4#1#}> <${tv5#1#}> <${tv6#1#}> <${tv7#1#}> <${tv8#1#}>"
+	echo "specW <${tv1#1#}> <${tv2#1#}> <${tv3#1#}> <${tv4#1#}> <${tv5#1#}> <${tv6#1#}> <${tv7#1#}> <${tv8#1#}>"
 	typeset -i1 xs1=0xEF7F xs2=0xEF80 xs3=0xFDD0
-	print "specU <${xs1#1#}> <${xs2#1#}> <${xs3#1#}>"
+	echo "specU <${xs1#1#}> <${xs2#1#}> <${xs3#1#}>"
 expected-stdout:
 	in <16#EFEF> <16#20AC>
 	out <@|~> <‚ò∫|Ô∑ê>
@@ -5451,7 +5451,7 @@ description:
 stdin:
 	set -U
 	integer x=1#foo
-	print /$x/
+	echo /$x/
 expected-stderr-pattern:
 	/1#foo: unexpected 'oo'/
 expected-exit: e != 0
@@ -5462,7 +5462,7 @@ description:
 stdin:
 	set -U
 	integer x=1#¿Ä
-	print /$x/
+	echo /$x/
 expected-stderr-pattern:
 	/1#¿Ä: unexpected 'Ä'/
 expected-exit: e != 0
@@ -5473,7 +5473,7 @@ description:
 stdin:
 	set -U
 	integer x=1#‚Ä¶
-	print /$x/
+	echo /$x/
 expected-stdout:
 	/1#‚Ä¶/
 ---
@@ -5483,7 +5483,7 @@ description:
 stdin:
 	set +U
 	integer x=1#‚Ä¶
-	print /$x/
+	echo /$x/
 expected-stderr-pattern:
 	/1#‚Ä¶: unexpected 'Ä'/
 expected-exit: e != 0
@@ -5494,7 +5494,7 @@ description:
 stdin:
 	set -U
 	typeset -i16 x=1#ˇ
-	print /$x/	# invalid utf-8
+	echo /$x/	# invalid utf-8
 expected-stdout:
 	/16#efff/
 ---
@@ -5504,7 +5504,7 @@ description:
 stdin:
 	set -U
 	typeset -i16 x=1#¬
-	print /$x/	# invalid 2-byte
+	echo /$x/	# invalid 2-byte
 expected-stdout:
 	/16#efc2/
 ---
@@ -5514,7 +5514,7 @@ description:
 stdin:
 	set -U
 	typeset -i16 x=1#Ô
-	print /$x/	# invalid 2-byte
+	echo /$x/	# invalid 2-byte
 expected-stdout:
 	/16#efef/
 ---
@@ -5524,7 +5524,7 @@ description:
 stdin:
 	set -U
 	typeset -i16 x=1#Ôø¿
-	print /$x/	# invalid 3-byte
+	echo /$x/	# invalid 3-byte
 expected-stderr-pattern:
 	/1#Ôø¿: unexpected 'ø'/
 expected-exit: e != 0
@@ -5535,7 +5535,7 @@ description:
 stdin:
 	set -U
 	typeset -i16 x=1#¿Ä
-	print /$x/	# non-minimalistic
+	echo /$x/	# non-minimalistic
 expected-stderr-pattern:
 	/1#¿Ä: unexpected 'Ä'/
 expected-exit: e != 0
@@ -5546,7 +5546,7 @@ description:
 stdin:
 	set -U
 	typeset -i16 x=1#‡ÄÄ
-	print /$x/	# non-minimalistic
+	echo /$x/	# non-minimalistic
 expected-stderr-pattern:
 	/1#‡ÄÄ: unexpected 'Ä'/
 expected-exit: e != 0
@@ -5727,13 +5727,13 @@ description:
 category: !smksh
 stdin:
 	set -U
-	print 1 $(('a'))
-	(print 2f $(('aa'))) 2>&1 | sed "s/^[^']*'/2p '/"
-	print 3 $(('‚Ä¶'))
+	echo 1 $(('a'))
+	(echo 2f $(('aa'))) 2>&1 | sed "s/^[^']*'/2p '/"
+	echo 3 $(('‚Ä¶'))
 	x="'a'"
-	print "4 <$x>"
-	print 5 $(($x))
-	print 6 $((x))
+	echo "4 <$x>"
+	echo 5 $(($x))
+	echo 6 $((x))
 expected-stdout:
 	1 97
 	2p 'aa': multi-character character constant
@@ -5747,9 +5747,9 @@ description:
 	Check if we can use a specific syntax idiom for ulimit
 stdin:
 	if ! x=$(ulimit -d); then
-		print expected to fail on this OS
+		echo expected to fail on this OS
 	else
-		ulimit -dS $x && print okay
+		ulimit -dS $x && echo okay
 	fi
 expected-stdout:
 	okay
@@ -5912,7 +5912,7 @@ description:
 category: !convfds
 stdin:
 	read -u10 foo 10<<< bar
-	print x$foo
+	echo x$foo
 expected-stdout:
 	xbar
 ---
@@ -5923,7 +5923,7 @@ category: !convfds
 stdin:
 	exec 12>foo
 	print -u12 bar
-	print baz >&12
+	echo baz >&12
 	cat foo
 expected-stdout:
 	bar
@@ -5955,7 +5955,7 @@ description:
 	Calling
 		FOO=bar f
 	where f is a ksh style function, should not set FOO in the current
-	env. If f is a bourne style function, FOO should be set. Furthermore,
+	env. If f is a Bourne style function, FOO should be set. Furthermore,
 	the function should receive a correct value of FOO. Additionally,
 	setting FOO in the function itself should not change the value in
 	global environment.
@@ -6036,7 +6036,7 @@ description:
 file-setup: file 644 "test.sh"
 	print -u3 Fowl
 stdin:
-	set -o posix
+	set -o sh
 	exec 3>&1
 	"$__progname" test.sh
 expected-stdout:
@@ -6285,7 +6285,7 @@ expected-stdout:
 ---
 name: nounset-1
 description:
-	Check that "set -u" matches (future) POSIX requirement
+	Check that "set -u" matches (future) SUSv4 requirement
 stdin:
 	(set -u
 	try() {
@@ -6366,25 +6366,25 @@ stdin:
 	bar=global
 	typeset -n ir2=bar
 	typeset -n ind=ir2
-	print !ind: ${!ind}
-	print ind: $ind
-	print !ir2: ${!ir2}
-	print ir2: $ir2
+	echo !ind: ${!ind}
+	echo ind: $ind
+	echo !ir2: ${!ir2}
+	echo ir2: $ir2
 	typeset +n ind
-	print !ind: ${!ind}
-	print ind: $ind
+	echo !ind: ${!ind}
+	echo ind: $ind
 	typeset -n ir2=ind
-	print !ir2: ${!ir2}
-	print ir2: $ir2
+	echo !ir2: ${!ir2}
+	echo ir2: $ir2
 	set|grep ^ir2|sed 's/^/s1: /'
 	typeset|grep ' ir2'|sed -e 's/^/s2: /' -e 's/nameref/typeset -n/'
 	set -A blub -- e1 e2 e3
 	typeset -n ind=blub
 	typeset -n ir2=blub[2]
-	print !ind[1]: ${!ind[1]}
-	print !ir2: $!ir2
-	print ind[1]: ${ind[1]}
-	print ir2: $ir2
+	echo !ind[1]: ${!ind[1]}
+	echo !ir2: $!ir2
+	echo ind[1]: ${ind[1]}
+	echo ir2: $ir2
 expected-stdout:
 	!ind: bar
 	ind: global
@@ -6409,21 +6409,21 @@ stdin:
 	function foo {
 		typeset bar=lokal baz=auch
 		typeset -n v=bar
-		print entering
-		print !v: ${!v}
-		print !bar: ${!bar}
-		print !baz: ${!baz}
-		print bar: $bar
-		print v: $v
+		echo entering
+		echo !v: ${!v}
+		echo !bar: ${!bar}
+		echo !baz: ${!baz}
+		echo bar: $bar
+		echo v: $v
 		v=123
-		print bar: $bar
-		print v: $v
-		print exiting
+		echo bar: $bar
+		echo v: $v
+		echo exiting
 	}
 	bar=global
-	print bar: $bar
+	echo bar: $bar
 	foo bar
-	print bar: $bar
+	echo bar: $bar
 expected-stdout:
 	bar: global
 	entering

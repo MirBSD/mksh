@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.97 2009/09/24 17:15:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.98 2009/10/02 18:08:34 tg Exp $");
 
 /*
  * states while lexing word
@@ -477,7 +477,7 @@ yylex(int cf)
 				/* Need to know if we are inside double quotes
 				 * since sh/AT&T-ksh translate the \" to " in
 				 * "`..\"..`".
-				 * This is not done in posix mode (section
+				 * This is not done in POSIX mode (section
 				 * 3.2.3, Double Quotes: "The backquote shall
 				 * retain its special meaning introducing the
 				 * other form of command substitution (see

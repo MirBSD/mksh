@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.88 2009/08/08 13:08:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.89 2009/10/02 18:08:33 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -108,7 +108,7 @@ c_fc(const char **wp)
 		case 'r':
 			rflag++;
 			break;
-		case 's':	/* posix version of -e - */
+		case 's':	/* POSIX version of -e - */
 			sflag++;
 			break;
 		/* kludge city - accept -num as -- -num (kind of) */
@@ -311,7 +311,7 @@ hist_execute(char *cmd)
 	}
 
 	/* Commands are executed here instead of pushing them onto the
-	 * input 'cause posix says the redirection and variable assignments
+	 * input 'cause POSIX says the redirection and variable assignments
 	 * in
 	 *	X=y fc -e - 42 2> /dev/null
 	 * are to effect the repeated commands environment.

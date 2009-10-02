@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.44 2009/09/26 03:40:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.45 2009/10/02 18:08:37 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -591,7 +591,7 @@ casepart(int endtok)
 	musthave(')', 0);
 
 	t->left = c_list(true);
-	/* Note: Posix requires the ;; */
+	/* Note: POSIX requires the ;; */
 	if ((tpeek(CONTIN|KEYWORD|ALIAS)) != endtok)
 		musthave(BREAK, CONTIN|KEYWORD|ALIAS);
 	return (t);
@@ -606,7 +606,7 @@ function_body(char *name,
 	bool old_func_parse;
 
 	sname = wdstrip(name, false, false);
-	/* Check for valid characters in name. posix and ksh93 say only
+	/* Check for valid characters in name. POSIX and AT&T ksh93 say only
 	 * allow [a-zA-Z_0-9] but this allows more as old pdkshs have
 	 * allowed more (the following were never allowed:
 	 *	nul space nl tab $ ' " \ ` ( ) & | ; = < >
@@ -676,7 +676,7 @@ wordlist(void)
 	XPtrV args;
 
 	XPinit(args, 16);
-	/* Posix does not do alias expansion here... */
+	/* POSIX does not do alias expansion here... */
 	if ((c = token(CONTIN|KEYWORD|ALIAS)) != IN) {
 		if (c != ';') /* non-POSIX, but AT&T ksh accepts a ; here */
 			REJECT;

@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.124 2009/09/24 17:15:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.125 2009/10/02 18:08:35 tg Exp $");
 
 #undef USE_CHVT
 /* XXX conditions correct? */
@@ -226,7 +226,7 @@ change_flag(enum sh_flag f, int what, unsigned int newval)
 		setegid(kshegid = kshgid = getgid());
 		setgid(kshegid);
 #endif
-	} else if (f == FPOSIX && newval) {
+	} else if (f == FSH && newval) {
 		Flag(FBRACEEXPAND) = 0;
 	}
 	/* Changing interactive flag? */

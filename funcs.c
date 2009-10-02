@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.135 2009/09/26 03:39:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.136 2009/10/02 18:08:33 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -526,7 +526,7 @@ c_print(const char **wp)
 		 * by default.
 		 */
 		wp += 1;
-		if (Flag(FPOSIX)) {
+		if (Flag(FSH)) {
 			if (*wp && strcmp(*wp, "-n") == 0) {
 				flags &= ~PO_NL;
 				wp++;
@@ -2410,7 +2410,7 @@ timex(struct op *t, int f, volatile int *xerrok)
 {
 #define TF_NOARGS	BIT(0)
 #define TF_NOREAL	BIT(1)		/* don't report real time */
-#define TF_POSIX	BIT(2)		/* report in posix format */
+#define TF_POSIX	BIT(2)		/* report in POSIX format */
 	int rv = 0, tf = 0;
 	struct rusage ru0, ru1, cru0, cru1;
 	struct timeval usrtime, systime, tv0, tv1;
@@ -2519,7 +2519,7 @@ c_exec(const char **wp __unused)
 			if (e->savefd[i] > 0)
 				close(e->savefd[i]);
 			/* For ksh (but not sh), keep anything > 2 private */
-			if (!Flag(FPOSIX) && i > 2 && e->savefd[i])
+			if (!Flag(FSH) && i > 2 && e->savefd[i])
 				fcntl(i, F_SETFD, FD_CLOEXEC);
 		}
 		e->savefd = NULL;

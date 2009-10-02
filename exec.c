@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.65 2009/09/20 16:40:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.66 2009/10/02 18:08:32 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile, volatile int *);
@@ -408,7 +408,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 	int type_flags;
 	int keepasn_ok;
 	int fcflags = FC_BI|FC_FUNC|FC_PATH;
-	int bourne_function_call = 0;
+	bool bourne_function_call = false;
 
 	/* snag the last argument for $_ XXX not the same as AT&T ksh,
 	 * which only seems to set $_ after a newline (but not in
@@ -496,7 +496,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 		/* ksh functions don't keep assignments, POSIX functions do. */
 		if (keepasn_ok && tp && tp->type == CFUNC &&
 		    !(tp->flag & FKSH)) {
-			bourne_function_call = 1;
+			bourne_function_call = true;
 			type_flags = 0;
 		} else
 			type_flags = LOCAL|LOCAL_COPY|EXPORT;
@@ -591,7 +591,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 			;
 		e->loc->argc = i - 1;
 		/* ksh-style functions handle getopts sanely,
-		 * bourne/posix functions are insane...
+		 * Bourne/POSIX functions are insane...
 		 */
 		if (tp->flag & FKSH) {
 			e->loc->flags |= BF_DOGETOPTS;
