@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.45 2009/10/02 18:08:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.46 2009/10/04 12:45:23 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -348,8 +348,8 @@ get_command(int cf)
  Leave:
 		break;
 
- Subshell:
 	case '(':
+ Subshell:
 		t = nested(TPAREN, '(', ')');
 		break;
 
@@ -358,16 +358,26 @@ get_command(int cf)
 		break;
 
 	case MDPAREN: {
+		int lno;
 		static const char let_cmd[] = {
 			CHAR, 'l', CHAR, 'e',
 			CHAR, 't', EOS
 		};
+
 		/* Leave KEYWORD in syniocf (allow if (( 1 )) then ...) */
-		t = newtp(TCOM);
-		t->lineno = source->line;
+		lno = source->line;
 		ACCEPT;
+		switch (token(LETEXPR)) {
+		case LWORD:
+			break;
+		case '(':	/* ) */
+			goto Subshell;
+		default:
+			syntaxerr(NULL);
+		}
+		t = newtp(TCOM);
+		t->lineno = lno;
 		XPput(args, wdcopy(let_cmd, ATEMP));
-		musthave(LWORD,LETEXPR);
 		XPput(args, yylval.cp);
 		break;
 	}

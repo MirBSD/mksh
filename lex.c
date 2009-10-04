@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.99 2009/10/04 12:44:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.100 2009/10/04 12:45:22 tg Exp $");
 
 /*
  * states while lexing word
@@ -39,7 +39,7 @@ __RCSID("$MirOS: src/bin/mksh/lex.c,v 1.99 2009/10/04 12:44:19 tg Exp $");
 #define SHEREDELIM	9	/* parsing <<,<<- delimiter */
 #define SHEREDQUOTE	10	/* parsing " in <<,<<- delimiter */
 #define SPATTERN	11	/* parsing *(...|...) pattern (*+?@!) */
-#define STBRACE		12	/* parsing ${..[#%]..} */
+#define STBRACE		12	/* parsing ${...[#%]...} */
 #define SLETARRAY	13	/* inside =( ), just copy */
 #define SADELIM		14	/* like SBASE, looking for delimiter */
 #define SHERESTRING	15	/* parsing <<< string */
@@ -477,7 +477,7 @@ yylex(int cf)
 				*wp++ = COMSUB;
 				/* Need to know if we are inside double quotes
 				 * since sh/AT&T-ksh translate the \" to " in
-				 * "`..\"..`".
+				 * "`...\"...`".
 				 * This is not done in POSIX mode (section
 				 * 3.2.3, Double Quotes: "The backquote shall
 				 * retain its special meaning introducing the
@@ -568,10 +568,10 @@ yylex(int cf)
 				goto Subst;
 			break;
 
-		case SCSPAREN: /* $( .. ) */
+		case SCSPAREN: /* $( ... ) */
 			/* todo: deal with $(...) quoting properly
-			 * kludge to partly fake quoting inside $(..): doesn't
-			 * really work because nested $(..) or ${..} inside
+			 * kludge to partly fake quoting inside $(...): doesn't
+			 * really work because nested $(...) or ${...} inside
 			 * double quotes aren't dealt with.
 			 */
 			switch (statep->ls_scsparen.csstate) {
@@ -622,10 +622,9 @@ yylex(int cf)
 				*wp++ = c;
 			break;
 
-		case SASPAREN: /* $(( .. )) */
-			/* todo: deal with $((...); (...)) properly */
+		case SASPAREN: /* $(( ... )) */
 			/* XXX should nest using existing state machine
-			 * (embed "..", $(...), etc.) */
+			 * (embed "...", $(...), etc.) */
 			if (c == '(')
 				statep->ls_sasparen.nparen++;
 			else if (c == ')') {
@@ -642,7 +641,7 @@ yylex(int cf)
 						ungetsc(c2);
 						/* mismatched parenthesis -
 						 * assume we were really
-						 * parsing a $(..) expression
+						 * parsing a $(...) expression
 						 */
 						s = Xrestpos(ws, wp,
 						    statep->ls_sasparen.start);
@@ -722,13 +721,27 @@ yylex(int cf)
 			if (c == ')') {
 				if (statep->ls_sletparen.nparen > 0)
 					--statep->ls_sletparen.nparen;
-				/*(*/
-				else if ((c2 = getsc()) == ')') {
+				else if ((c2 = getsc()) == /*(*/ ')') {
 					c = 0;
 					*wp++ = CQUOTE;
 					goto Done;
-				} else
+				} else {
+					Source *s;
+
 					ungetsc(c2);
+					/* mismatched parenthesis -
+					 * assume we were really
+					 * parsing a $(...) expression
+					 */
+					*wp = EOS;
+					sp = Xstring(ws, wp);
+					dp = wdstrip(sp, true, false);
+					s = pushs(SREREAD, source->areap);
+					s->start = s->str = s->u.freeme = dp;
+					s->next = source;
+					source = s;
+					return ('('/*)*/);
+				}
 			} else if (c == '(')
 				/* parenthesis inside quotes and backslashes
 				 * are lost, but AT&T ksh doesn't count them
@@ -787,12 +800,12 @@ yylex(int cf)
 
 		case SHEREDELIM:	/* <<,<<- delimiter */
 			/* XXX chuck this state (and the next) - use
-			 * the existing states ($ and \`..` should be
+			 * the existing states ($ and \`...` should be
 			 * stripped of their specialness after the
 			 * fact).
 			 */
 			/* here delimiters need a special case since
-			 * $ and `..` are not to be treated specially
+			 * $ and `...` are not to be treated specially
 			 */
 			if (c == '\\') {
 				c = getsc();
@@ -945,11 +958,6 @@ yylex(int cf)
 				c = (c == ';') ? BREAK :
 				    (c == '|') ? LOGOR :
 				    (c == '&') ? LOGAND :
-				/*
-				 * this is the place where
-				 * ((...); (...))
-				 * and similar is broken
-				 */
 				    /* c == '(' ) */ MDPAREN;
 			else if (c == '|' && c2 == '&')
 				c = COPROC;
@@ -1363,7 +1371,7 @@ getsc_line(Source *s)
 		/* flush any unwanted input so other programs/builtins
 		 * can read it. Not very optimal, but less error prone
 		 * than flushing else where, dealing with redirections,
-		 * etc..
+		 * etc.
 		 * todo: reduce size of shf buffer (~128?) if SSTDIN
 		 */
 		if (s->type == SSTDIN)

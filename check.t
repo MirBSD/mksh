@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.317 2009/10/04 12:44:18 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.318 2009/10/04 12:45:21 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -6487,4 +6487,88 @@ expected-stdout:
 	3 126 .
 	4 127 .
 	5 127 .
+---
+name: better-parens-1a
+description:
+	Check support for ((…)) and $((…)) vs (…) and $(…)
+stdin:
+	if ( (echo fubar) | tr u x); then
+		echo ja
+	else
+		echo nein
+	fi
+expected-stdout:
+	fxbar
+	ja
+---
+name: better-parens-1b
+description:
+	Check support for ((…)) and $((…)) vs (…) and $(…)
+stdin:
+	echo $( (echo fubar) | tr u x) $?
+expected-stdout:
+	fxbar 0
+---
+name: better-parens-2a
+description:
+	Check support for ((…)) and $((…)) vs (…) and $(…)
+stdin:
+	if ((echo fubar) | tr u x); then
+		echo ja
+	else
+		echo nein
+	fi
+expected-stdout:
+	fxbar
+	ja
+---
+name: better-parens-2b
+description:
+	Check support for ((…)) and $((…)) vs (…) and $(…)
+stdin:
+	echo $((echo fubar) | tr u x) $?
+expected-stdout:
+	fxbar 0
+---
+name: better-parens-3a
+description:
+	Check support for ((…)) and $((…)) vs (…) and $(…)
+stdin:
+	if ( (echo fubar) | (tr u x)); then
+		echo ja
+	else
+		echo nein
+	fi
+expected-stdout:
+	fxbar
+	ja
+---
+name: better-parens-3b
+description:
+	Check support for ((…)) and $((…)) vs (…) and $(…)
+stdin:
+	echo $( (echo fubar) | (tr u x)) $?
+expected-stdout:
+	fxbar 0
+---
+name: better-parens-4a
+description:
+	Check support for ((…)) and $((…)) vs (…) and $(…)
+stdin:
+	if ((echo fubar) | (tr u x)); then
+		echo ja
+	else
+		echo nein
+	fi
+expected-stdout:
+	fxbar
+	ja
+---
+name: better-parens-4b
+description:
+	Check support for ((…)) and $((…)) vs (…) and $(…)
+stdin:
+	echo $((echo fubar) | (tr u x)) $?
+expected-stdout:
+	fxbar 0
 ---
