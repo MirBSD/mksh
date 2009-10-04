@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.36 2009/09/26 04:01:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.37 2009/10/04 13:19:33 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -465,10 +465,12 @@ evalexpr(Expr_state *es, int prec)
 		}
 		if (IS_ASSIGNOP(op)) {
 			stvui(vr, res);
-			if (vasn->flag & INTEGER)
-				setint_v(vasn, vr, es->arith);
-			else
-				setint(vasn, res);
+			if (!es->noassign) {
+				if (vasn->flag & INTEGER)
+					setint_v(vasn, vr, es->arith);
+				else
+					setint(vasn, res);
+			}
 			vl = vr;
 		} else if (op != O_TERN)
 			stvui(vl, res);
