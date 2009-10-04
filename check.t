@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.315 2009/10/02 18:08:31 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.316 2009/10/04 03:13:06 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -5355,6 +5355,16 @@ expected-stdout:
 	00000060  01 79 7A 7B 7C 7D 7E 20 - 24 78 0A E2 82 AC 64 0A  |.yz{|}~ $x....d.|
 	00000070  EF BF BD 0A C4 A3 0A 66 - 6E 0A 13 34 0A 9C 0A 9C  |.......fn..4....|
 	00000080  35 0A 01 0A 01 0A 7F 0A - 02 82 AC 0A 61 0A 62 0A  |5...........a.b.|
+---
+name: dollar-quotes-in-heredocs
+description:
+	They are, however, not parsed in here documents
+stdin:
+	cat <<EOF
+		dollar = strchr(s, '$');	/* ' */
+	EOF
+expected-stdout:
+		dollar = strchr(s, '$');	/* ' */
 ---
 name: dot-needs-argument
 description:
