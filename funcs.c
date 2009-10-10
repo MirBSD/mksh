@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.136 2009/10/02 18:08:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.137 2009/10/10 21:17:29 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -507,31 +507,38 @@ c_print(const char **wp)
 #define PO_PMINUSMINUS	BIT(2)	/* print a -- argument */
 #define PO_HIST		BIT(3)	/* print to history instead of stdout */
 #define PO_COPROC	BIT(4)	/* printing to coprocess: block SIGPIPE */
-	int fd = 1;
+	int fd = 1, c;
 	int flags = PO_EXPAND|PO_NL;
 	const char *s, *emsg;
 	XString xs;
 	char *xp;
 
-	if (wp[0][0] == 'e') {	/* echo command */
-		int nflags = flags;
-
-		/* A compromise between sysV and BSD echo commands:
-		 * escape sequences are enabled by default, and
-		 * -n, -e and -E are recognised if they appear
-		 * in arguments with no illegal options (ie, echo -nq
-		 * will print -nq).
-		 * Different from sysV echo since options are recognised,
-		 * different from BSD echo since escape sequences are enabled
-		 * by default.
-		 */
-		wp += 1;
+	if (wp[0][0] == 'e') {
+		/* echo builtin */
+		wp++;
 		if (Flag(FSH)) {
-			if (*wp && strcmp(*wp, "-n") == 0) {
-				flags &= ~PO_NL;
+			/* Debian Policy 10.4 compliant "echo" builtin */
+			if (*wp && !strcmp(*wp, "-n")) {
+				/* we recognise "-n" only as the first arg */
+				flags = 0;
 				wp++;
-			}
-		} else
+			} else
+				/* otherwise, we print everything as-is */
+				flags = PO_NL;
+		} else {
+			int nflags = flags;
+
+			/**
+			 * a compromise between sysV and BSD echo commands:
+			 * escape sequences are enabled by default, and -n,
+			 * -e and -E are recognised if they appear in argu-
+			 * ments with no illegal options (ie, echo -nq will
+			 * print -nq).
+			 * Different from sysV echo since options are reco-
+			 * gnised, different from BSD echo since escape se-
+			 * quences are enabled by default.
+			 */
+
 			while ((s = *wp) && *s == '-' && s[1]) {
 				while (*++s)
 					if (*s == 'n')
@@ -546,14 +553,17 @@ c_print(const char **wp)
 						 * nflags, print argument
 						 */
 						break;
+
 				if (*s)
 					break;
 				wp++;
 				flags = nflags;
 			}
+		}
 	} else {
 		int optc;
 		const char *opts = "Rnprsu,";
+
 		while ((optc = ksh_getopt(wp, &builtin_opt, opts)) != -1)
 			switch (optc) {
 			case 'R': /* fake BSD echo command */
@@ -590,6 +600,7 @@ c_print(const char **wp)
 			case '?':
 				return (1);
 			}
+
 		if (!(builtin_opt.info & GI_MINUSMINUS)) {
 			/* treat a lone - like -- */
 			if (wp[builtin_opt.optind] &&
@@ -603,7 +614,6 @@ c_print(const char **wp)
 	Xinit(xs, xp, 128, ATEMP);
 
 	while (*wp != NULL) {
-		int c;
 		s = *wp;
 		while ((c = *s++) != '\0') {
 			Xcheck(xs, xp);
@@ -649,7 +659,7 @@ c_print(const char **wp)
 		histsave(&source->line, Xstring(xs, xp), true, false);
 		Xfree(xs, xp);
 	} else {
-		int n, len = Xlength(xs, xp);
+		int len = Xlength(xs, xp);
 		int opipe = 0;
 
 		/* Ensure we aren't killed by a SIGPIPE while writing to
@@ -662,8 +672,7 @@ c_print(const char **wp)
 			opipe = block_pipe();
 		}
 		for (s = Xstring(xs, xp); len > 0; ) {
-			n = write(fd, s, len);
-			if (n < 0) {
+			if ((c = write(fd, s, len)) < 0) {
 				if (flags & PO_COPROC)
 					restore_pipe(opipe);
 				if (errno == EINTR) {
@@ -675,8 +684,8 @@ c_print(const char **wp)
 				}
 				return (1);
 			}
-			s += n;
-			len -= n;
+			s += c;
+			len -= c;
 		}
 		if (flags & PO_COPROC)
 			restore_pipe(opipe);
