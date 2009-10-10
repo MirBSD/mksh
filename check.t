@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.319 2009/10/04 13:19:32 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.320 2009/10/10 17:39:48 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -6470,7 +6470,7 @@ description:
 	SUSv4 says that the shell should exit with 126/127 in some situations
 stdin:
 	i=0
-	echo : >x
+	(echo; echo :) >x
 	"$__progname" ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
 	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
 	echo exit 42 >x
