@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.322 2009/10/14 18:04:52 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.323 2009/10/14 18:06:57 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3773,32 +3773,6 @@ expected-stdout:
 	7 blah
 	8 blah
 ---
-name: regression-56
-description:
-	Check eval vs substitution exit codes
-	(this is what ksh88 does)
-stdin:
-	eval $(false)
-	echo A $?
-	eval ' $(false)'
-	echo B $?
-	eval " $(false)"
-	echo C $?
-	eval "eval $(false)"
-	echo D $?
-	eval 'eval '"$(false)"
-	echo E $?
-	IFS="$IFS:"
-	eval $(echo :; false)
-	echo F $?
-expected-stdout:
-	A 1
-	B 1
-	C 1
-	D 0
-	E 0
-	F 1
----
 name: regression-57
 description:
 	Check if typeset output is correct for
@@ -4363,6 +4337,31 @@ expected-stdout:
 	3 126 .
 	4 127 .
 	5 127 .
+---
+name: exit-eval-1
+description:
+	Check eval vs substitution exit codes (ksh93 alike)
+stdin:
+	eval $(false)
+	echo A $?
+	eval ' $(false)'
+	echo B $?
+	eval " $(false)"
+	echo C $?
+	eval "eval $(false)"
+	echo D $?
+	eval 'eval '"$(false)"
+	echo E $?
+	IFS="$IFS:"
+	eval $(echo :; false)
+	echo F $?
+expected-stdout:
+	A 0
+	B 1
+	C 0
+	D 0
+	E 0
+	F 0
 ---
 name: test-stlt-1
 description:
