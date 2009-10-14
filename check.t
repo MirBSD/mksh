@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.321 2009/10/10 21:17:28 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.322 2009/10/14 18:04:52 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4241,7 +4241,7 @@ expected-stdout:
 	a=/sweet b=/sweet c=d~ /sweet
 	a=~ b=~ c=d~ /sweet
 ---
-name: errexit-1
+name: exit-err-1
 description:
 	Check some "exit on error" conditions
 stdin:
@@ -4254,7 +4254,7 @@ expected-stderr:
 	+ /usr/bin/env false
 	+ echo END
 ---
-name: errexit-2
+name: exit-err-2
 description:
 	Check some "exit on error" edge conditions (POSIXly)
 stdin:
@@ -4270,7 +4270,7 @@ expected-stderr:
 	+ /usr/bin/env false
 	+ echo END
 ---
-name: errexit-3
+name: exit-err-3
 description:
 	pdksh regression which AT&T ksh does right
 	TFM says: [set] -e | errexit
@@ -4287,7 +4287,7 @@ expected-stdout:
 	EXIT
 expected-exit: e != 0
 ---
-name: errexit-4
+name: exit-err-4
 description:
 	"set -e" test suite (POSIX)
 stdin:
@@ -4301,7 +4301,7 @@ expected-stdout:
 	pre
 	bar
 ---
-name: errexit-5
+name: exit-err-5
 description:
 	"set -e" test suite (POSIX)
 stdin:
@@ -4324,7 +4324,7 @@ expected-stdout:
 	a b c
 	post
 ---
-name: errexit-6
+name: exit-err-6
 description:
 	"set -e" test suite (BSD make)
 category: os:mirbsd
@@ -4341,6 +4341,28 @@ expected-stdout:
 	*** Error code 42
 	
 	Stop in WD/zd/a (line 2 of Makefile).
+---
+name: exit-enoent-1
+description:
+	SUSv4 says that the shell should exit with 126/127 in some situations
+stdin:
+	i=0
+	(echo; echo :) >x
+	"$__progname" ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
+	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
+	echo exit 42 >x
+	"$__progname" ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
+	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
+	rm -f x
+	"$__progname" ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
+	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
+expected-stdout:
+	0 0 .
+	1 126 .
+	2 42 .
+	3 126 .
+	4 127 .
+	5 127 .
 ---
 name: test-stlt-1
 description:
@@ -6464,28 +6486,6 @@ expected-stdout:
 	v: 123
 	exiting
 	bar: global
----
-name: susv4-exit-enoent-1
-description:
-	SUSv4 says that the shell should exit with 126/127 in some situations
-stdin:
-	i=0
-	(echo; echo :) >x
-	"$__progname" ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
-	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
-	echo exit 42 >x
-	"$__progname" ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
-	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
-	rm -f x
-	"$__progname" ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
-	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
-expected-stdout:
-	0 0 .
-	1 126 .
-	2 42 .
-	3 126 .
-	4 127 .
-	5 127 .
 ---
 name: better-parens-1a
 description:
