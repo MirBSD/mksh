@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.426 2009/10/15 12:58:34 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.427 2009/10/15 16:50:21 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -216,6 +216,7 @@ ac_flags() {
 		ac_testn can_$vn '' "$ft"
 	else
 		ac_testn can_$vn '' "$ft" <<-'EOF'
+			/* evil apo'stroph in comment test */
 			int main(void) { return (0); }
 		EOF
 	fi
