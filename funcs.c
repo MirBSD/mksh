@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.137 2009/10/10 21:17:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.138 2009/10/15 14:58:51 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2336,13 +2336,14 @@ c_set(const char **wp)
 		for (wp = l->argv; (*wp++ = *owp++) != NULL; )
 			;
 	}
-	/* POSIX says set exit status is 0, but old scripts that use
-	 * getopt(1), use the construct: set -- $(getopt ab:c "$@")
+	/*
+	 * POSIX says set exit status is 0, but old scripts that use
+	 * getopt(1) use the construct: set -- $(getopt ab:c "$@")
 	 * which assumes the exit value set will be that of the $()
 	 * (subst_exstat is cleared in execute() so that it will be 0
 	 * if there are no command substitutions).
 	 */
-	return (subst_exstat);
+	return (Flag(FSH) ? 0 : subst_exstat);
 }
 
 int

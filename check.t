@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.325 2009/10/15 14:12:46 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.326 2009/10/15 14:58:50 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3056,19 +3056,6 @@ stdin:
 expected-stdout:
 	bye
 ---
-name: regression-10
-description:
-	The following:
-		set -- `false`
-		echo $?
-	shoud not print 0. (according to /bin/sh, AT&T ksh88, and the
-	getopt(1) man page - not according to POSIX)
-stdin:
-	set -- `false`
-	echo $?
-expected-stdout:
-	1
----
 name: regression-11
 description:
 	The following:
@@ -4364,6 +4351,35 @@ expected-stdout:
 	D 0
 	E 0
 	F 0
+---
+name: exit-subst-1
+description:
+	Used to be regression-10 but was split into two tests.
+	The following:
+		set -- `false`
+		echo $?
+	should print 0 according to POSIX, but not 0 according to /bin/sh
+	(XXX on which system?), AT&T ksh88, and the getopt(1) manual page
+stdin:
+	set -- `false`
+	echo $?
+expected-stdout:
+	1
+---
+name: exit-subst-2
+description:
+	Used to be regression-10 but was split into two tests.
+	The following:
+		set -- `false`
+		echo $?
+	should print 0 according to POSIX, but not 0 according to /bin/sh
+	(XXX on which system?), AT&T ksh88, and the getopt(1) manual page
+stdin:
+	test -n "$POSH_VERSION" || set -o sh
+	set -- `false`
+	echo $?
+expected-stdout:
+	0
 ---
 name: test-stlt-1
 description:
