@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.327 2009/10/15 15:23:41 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.328 2009/10/15 15:32:34 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -6600,6 +6600,10 @@ expected-stdout:
 name: echo-test-2
 description:
 	Test what the echo builtin does (POSIX)
+	Note: this follows Debian Policy 10.4 which mandates
+	that -n shall be treated as an option, not XSI which
+	mandates it shall be treated as string but escapes
+	shall be expanded.
 stdin:
 	test -n "$POSH_VERSION" || set -o sh
 	echo -n 'foo\x40bar'
