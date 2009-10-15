@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.329 2009/10/15 16:15:03 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.330 2009/10/15 16:24:49 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -6027,14 +6027,15 @@ stdin:
 		esac
 	done
 ---
-name: oksh-varfunction
+name: oksh-varfunction-mod1
 description:
 	$OpenBSD: varfunction.sh,v 1.1 2003/12/15 05:28:40 otto Exp $
 	Calling
 		FOO=bar f
 	where f is a ksh style function, should not set FOO in the current
 	env. If f is a Bourne style function, FOO should be set. Furthermore,
-	the function should receive a correct value of FOO. Additionally,
+	the function should receive a correct value of FOO. However, differing
+	from oksh, setting FOO in the function itself must change the value in
 	setting FOO in the function itself should not change the value in
 	global environment.
 	Inspired by PR 2450.
@@ -6076,7 +6077,7 @@ stdin:
 	if [ $? != 0 ]; then
 		exit 1
 	fi
-	if [ x$FOO != xbar ]; then
+	if [ x$FOO != xfoo ]; then
 		exit 1
 	fi
 	FOO=barbar
@@ -6091,7 +6092,7 @@ stdin:
 	if [ $? != 0 ]; then
 		exit 1
 	fi
-	if [ x$FOO != xbar ]; then
+	if [ x$FOO != xfoo ]; then
 		exit 1
 	fi
 ---
