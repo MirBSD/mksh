@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.425 2009/09/24 17:15:28 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.426 2009/10/15 12:58:34 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1412,7 +1412,8 @@ else
 fi
 echo set -x >Rebuild.sh
 for file in $SRCS; do
-	objs="$objs `echo x"$file" | sed 's/^x\(.*\)\.c$/\1.o/'`"
+	of=`echo x"$file" | sed 's/^x\(.*\)\.c$/\1.o/'`
+	objs="$objs $of"
 	test -f $file || file=$srcdir/$file
 	echo "$CC $CFLAGS $CPPFLAGS $emitbc $file || exit 1" >>Rebuild.sh
 done
