@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.138 2009/10/15 14:58:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.139 2009/10/15 16:32:50 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1630,13 +1630,8 @@ c_getopts(const char **wp)
 		buf[1] = '\0';
 	}
 
-	/* AT&T ksh does not change OPTIND if it was an unknown option.
-	 * Scripts counting on this are prone to break... (ie, don't count
-	 * on this staying).
-	 */
-	if (optc != '?') {
-		user_opt.uoptind = user_opt.optind;
-	}
+	/* AT&T ksh93 in fact does change OPTIND for unknown options too */
+	user_opt.uoptind = user_opt.optind;
 
 	voptarg = global("OPTARG");
 	voptarg->flag &= ~RDONLY;	/* AT&T ksh clears ro and int */
