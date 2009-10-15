@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.139 2009/10/15 16:32:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.140 2009/10/15 16:36:26 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -644,7 +644,7 @@ c_print(const char **wp)
 					for (c = 0; ts[c]; ++c)
 						Xput(xs, xp, ts[c]);
 					continue;
-				}			
+				}
 			}
 			Xput(xs, xp, c);
 		}
@@ -2133,32 +2133,37 @@ c_eval(const char **wp)
 	s = pushs(SWORDS, ATEMP);
 	s->u.strv = wp + builtin_opt.optind;
 
-	/*
-	 * Handle case where the command is empty due to failed
-	 * command substitution, eg, eval "$(false)".
-	 * In this case, shell() will not set/change exstat (because
-	 * compiled tree is empty), so will use this value.
-	 * subst_exstat is cleared in execute(), so should be 0 if
-	 * there were no substitutions.
+	/*-
+	 * The following code handles the case where the command is
+	 * empty due to failed command substitution, for example by
+	 *	eval "$(false)"
+	 * This has historically returned 1 by AT&T ksh88. In this
+	 * case, shell() will not set or change exstat because the
+	 * compiled tree is empty, so it will use the value we pass
+	 * from subst_exstat, which is cleared in execute(), so it
+	 * should have been 0 if there were no substitutions.
 	 *
-	 * A strict reading of POSIX says we don't do this (though
-	 * it is traditionally done). [from 1003.2-1992]
+	 * POSIX however says we don't do this, even though it is
+	 * traditionally done. AT&T ksh93 agrees with POSIX, so we
+	 * do. The following is an excerpt from SUSv4 [1003.2-2008]:
 	 *
-	 * 3.9.1: Simple Commands
+	 * 2.9.1: Simple Commands
 	 *	... If there is a command name, execution shall
-	 *	continue as described in 3.9.1.1. If there
-	 *	is no command name, but the command contained a command
-	 *	substitution, the command shall complete with the exit
-	 *	status of the last command substitution
-	 * 3.9.1.1: Command Search and Execution
-	 *	...(1)...(a) If the command name matches the name of
-	 *	a special built-in utility, that special built-in
+	 *	continue as described in 2.9.1.1 [Command Search
+	 *	and Execution]. If there is no command name, but
+	 *	the command contained a command substitution, the
+	 *	command shall complete with the exit status of the
+	 *	last command substitution performed.
+	 * 2.9.1.1: Command Search and Execution
+	 *	(1) a. If the command name matches the name of a
+	 *	special built-in utility, that special built-in
 	 *	utility shall be invoked.
-	 * 3.14.5: Eval
-	 *	... If there are no arguments, or only null arguments,
-	 *	eval shall return an exit status of zero.
+	 * 2.14.5: eval
+	 *	If there are no arguments, or only null arguments,
+	 *	eval shall return a zero exit status; ...
 	 */
-	exstat = subst_exstat;
+	/* exstat = subst_exstat; */	/* AT&T ksh88 */
+	exstat = 0;			/* SUSv4 */
 
 	savef = Flag(FERREXIT);
 	Flag(FERREXIT) = 0;
@@ -2331,9 +2336,10 @@ c_set(const char **wp)
 		for (wp = l->argv; (*wp++ = *owp++) != NULL; )
 			;
 	}
-	/*
+	/*-
 	 * POSIX says set exit status is 0, but old scripts that use
-	 * getopt(1) use the construct: set -- $(getopt ab:c "$@")
+	 * getopt(1) use the construct
+	 *	set -- $(getopt ab:c "$@")
 	 * which assumes the exit value set will be that of the $()
 	 * (subst_exstat is cleared in execute() so that it will be 0
 	 * if there are no command substitutions).
