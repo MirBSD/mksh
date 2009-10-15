@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.328 2009/10/15 15:32:34 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.329 2009/10/15 16:15:03 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4017,6 +4017,17 @@ stdin:
 	env | $sortprog | grep -v '^RANDOM=' >bar1
 	FOO=bar exec; env | $sortprog | grep -v '^RANDOM=' >bar2
 	cmp -s bar1 bar2
+---
+name: exec-function-environment-1
+description:
+	Check assignments in function calls and whether they affect
+	the current execution environment (ksh93, SUSv4)
+stdin:
+	f() { a=2; }; g() { b=3; echo y$c-; }; a=1 f; b=2; c=1 g
+	echo x$a-$b- z$c-
+expected-stdout:
+	y1-
+	x2-3- z1-
 ---
 name: xxx-what-do-you-call-this-1
 stdin:
