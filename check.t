@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.326 2009/10/15 14:58:50 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.327 2009/10/15 15:23:41 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -6606,4 +6606,34 @@ stdin:
 	echo -e '\tbaz'
 expected-stdout:
 	foo\x40bar-e \tbaz
+---
+name: utilities-getopts-1
+description:
+	getopts sets OPTIND correctly for unparsed option
+stdin:
+	set -- -a -a -x
+	while getopts :a optc; do
+	    echo "OPTARG=$OPTARG, OPTIND=$OPTIND, optc=$optc."
+	done
+	echo done
+expected-stdout:
+	OPTARG=, OPTIND=2, optc=a.
+	OPTARG=, OPTIND=3, optc=a.
+	OPTARG=x, OPTIND=4, optc=?.
+	done
+---
+name: utilities-getopts-2
+description:
+	Check OPTARG
+stdin:
+	set -- -a Mary -x
+	while getopts a: optc; do
+	    echo "OPTARG=$OPTARG, OPTIND=$OPTIND, optc=$optc."
+	done
+	echo done
+expected-stdout:
+	OPTARG=Mary, OPTIND=3, optc=a.
+	OPTARG=, OPTIND=4, optc=?.
+	done
+expected-stderr-pattern: /.*-x.*option/
 ---
