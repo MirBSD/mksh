@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.427 2009/10/15 16:50:21 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.428 2009/10/16 18:45:31 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -273,7 +273,8 @@ e=echo
 r=0
 eq=0
 pm=0
-llvm=NO
+cm=normal
+llvm=
 
 for i
 do
@@ -282,13 +283,18 @@ do
 		pm=1
 		;;
 	-combine)
-		llvm=COMBINE
+		cm=combine
 		;;
 	-llvm)
+		cm=llvm
 		llvm=-std-compile-opts
 		;;
 	-llvm=*)
+		cm=llvm
 		llvm=`echo "x$i" | sed 's/^x-llvm=//'`
+		;;
+	-M)
+		cm=makefile
 		;;
 	-Q)
 		eq=1
@@ -678,7 +684,7 @@ xlc)
 	ct=unknown
 	;;
 esac
-test x"$llvm" = x"NO" || test x"$llvm" = x"COMBINE" || vv '|' "llc -version"
+test $cm = llvm && vv '|' "llc -version"
 $e "$bi==> which compiler seems to be used...$ao $ui$ct$ao"
 rm -f scn.c scn.o scn a.out* a.exe*
 
@@ -805,7 +811,7 @@ if test $ct = gcc; then
 	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
 	ac_flags 1 fstackprotectorall -fstack-protector-all
 	ac_flags 1 fwrapv -fwrapv
-	test x"$llvm" = x"COMBINE" && ac_flags 0 combine \
+	test $cm = combine && ac_flags 0 combine \
 	    '-fwhole-program --combine' \
 	    'if gcc supports -fwhole-program --combine'
 	i=1
@@ -1378,7 +1384,9 @@ test 1 = "$USE_PRINTF_BUILTIN" && CPPFLAGS="$CPPFLAGS -DMKSH_PRINTF_BUILTIN"
 test 0 = "$HAVE_SETMODE" && CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
 
+files=
 objs=
+sp=
 case $curdir in
 *\ *)	echo "#!./mksh" >test.sh ;;
 *)	echo "#!$curdir/mksh" >test.sh ;;
@@ -1403,43 +1411,88 @@ cat >>test.sh <<-EOF
 	exec \$perli '$srcdir/check.pl' -s '$srcdir/check.t' -p '$curdir/mksh' -C \${check_categories#,} \$*$tsts
 EOF
 chmod 755 test.sh
-test "$HAVE_CAN_COMBINE$llvm" = "0COMBINE" && llvm=NO
-if test x"$llvm" = x"NO"; then
-	emitbc=-c
-elif test x"$llvm" = x"COMBINE"; then
-	emitbc="-fwhole-program --combine"
-else
+test $HAVE_CAN_COMBINE$cm = 0combine && cm=normal
+if test $cm = llvm; then
 	emitbc="-emit-llvm -c"
+else
+	emitbc=-c
 fi
 echo set -x >Rebuild.sh
 for file in $SRCS; do
 	of=`echo x"$file" | sed 's/^x\(.*\)\.c$/\1.o/'`
-	objs="$objs $of"
+	objs="$objs$sp$of"
 	test -f $file || file=$srcdir/$file
+	files="$files$sp$file"
+	sp=' '
 	echo "$CC $CFLAGS $CPPFLAGS $emitbc $file || exit 1" >>Rebuild.sh
 done
-if test x"$llvm" = x"NO" || test x"$llvm" = x"COMBINE"; then
-	lobjs=$objs
-else
+if test $cm = llvm; then
 	echo "rm -f mksh.s" >>Rebuild.sh
 	echo "llvm-link -o - $objs | opt $llvm | llc -o mksh.s" >>Rebuild.sh
 	lobjs=mksh.s
+else
+	lobjs=$objs
 fi
 case $tcfn in
-a.exe)	echo tcfn=mksh.exe >>Rebuild.sh ;;
-*)	echo tcfn=mksh >>Rebuild.sh ;;
+a.exe)	mkshexe=mksh.exe ;;
+*)	mkshexe=mksh ;;
 esac
+echo tcfn=$mkshexe >>Rebuild.sh
 echo "$CC $CFLAGS $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
 echo 'test -f $tcfn || exit 1; size $tcfn' >>Rebuild.sh
-if test x"$llvm" = x"COMBINE"; then
-	case $tcfn in
-	a.exe)	objs="-o mksh.exe" ;;
-	*)	objs="-o mksh" ;;
-	esac
+if test $cm = makefile; then
+	of=Makefrag.inc
+	extras='emacsfn.h sh.h sh_flags.h var_spec.h'
+	test 0 = $HAVE_SYS_SIGNAME && extras="$extras signames.inc"
+	cat >$of <<EOF
+# Makefile fragment for building mksh $dstversion
+
+PROG=		$mkshexe
+MAN=		mksh.1
+SRCS=		$SRCS
+SRCS_FP=	$files
+OBJS_BP=	$objs
+INDSRCS=	$extras
+NONSRCS_INST=	dot.mkshrc \$(MAN)
+NONSRCS_NOINST=	Build.sh Makefile Rebuild.sh check.pl check.t test.sh
+CC=		$CC
+CFLAGS=		$CFLAGS
+CPPFLAGS=	$CPPFLAGS
+LDFLAGS=	$LDFLAGS
+LIBS=		$LIBS
+
+EOF
+	cat >>$of <<'EOF'
+# not BSD make only:
+#all: $(PROG)
+#$(PROG): $(OBJS_BP)
+#	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS_BP) $(LIBS)
+#$(OBJS_BP): $(SRCS_FP) $(NONSRCS)
+#.c.o:
+#	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
+
+# for all make variants:
+#REGRESS_FLAGS=	-v
+#regress:
+#	./test.sh $(REGRESS_FLAGS)
+
+EOF
+	cat >>$of <<EOF
+# for BSD make only:
+#.PATH: $srcdir
+#.include <bsd.prog.mk>
+EOF
+	$e
+	$e Generated $of successfully.
+	exit 0
+fi
+if test $cm = combine; then
+	objs="-o $mkshexe"
 	for file in $SRCS; do
 		test -f $file || file=$srcdir/$file
 		objs="$objs $file"
 	done
+	emitbc="-fwhole-program --combine"
 	v "$CC $CFLAGS $CPPFLAGS $LDFLAGS $emitbc $objs $LIBS $ccpr"
 elif test 1 = $pm; then
 	for file in $SRCS; do
@@ -1453,16 +1506,12 @@ else
 		v "$CC $CFLAGS $CPPFLAGS $emitbc $file" || exit 1
 	done
 fi
-if test x"$emitbc" = x"-emit-llvm -c"; then
+if test $cm = llvm; then
 	rm -f mksh.s
 	v "llvm-link -o - $objs | opt $llvm | llc -o mksh.s"
 fi
-case $tcfn in
-a.exe)	tcfn=mksh.exe ;;
-*)	tcfn=mksh ;;
-esac
-test x"$llvm" = x"COMBINE" || \
-    v "$CC $CFLAGS $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
+tcfn=$mkshexe
+test $cm = combine || v "$CC $CFLAGS $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
 test -f $tcfn || exit 1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
     rm -f mksh.cat1
