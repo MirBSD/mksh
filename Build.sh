@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.428 2009/10/16 18:45:31 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.429 2009/10/16 18:51:30 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1441,10 +1441,9 @@ echo tcfn=$mkshexe >>Rebuild.sh
 echo "$CC $CFLAGS $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
 echo 'test -f $tcfn || exit 1; size $tcfn' >>Rebuild.sh
 if test $cm = makefile; then
-	of=Makefrag.inc
 	extras='emacsfn.h sh.h sh_flags.h var_spec.h'
 	test 0 = $HAVE_SYS_SIGNAME && extras="$extras signames.inc"
-	cat >$of <<EOF
+	cat >Makefrag.inc <<EOF
 # Makefile fragment for building mksh $dstversion
 
 PROG=		$mkshexe
@@ -1461,29 +1460,26 @@ CPPFLAGS=	$CPPFLAGS
 LDFLAGS=	$LDFLAGS
 LIBS=		$LIBS
 
-EOF
-	cat >>$of <<'EOF'
 # not BSD make only:
-#all: $(PROG)
-#$(PROG): $(OBJS_BP)
-#	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS_BP) $(LIBS)
-#$(OBJS_BP): $(SRCS_FP) $(NONSRCS)
+#VPATH=		$srcdir
+#all: \$(PROG)
+#\$(PROG): \$(OBJS_BP)
+#	\$(CC) \$(CFLAGS) \$(LDFLAGS) -o \$@ \$(OBJS_BP) \$(LIBS)
+#\$(OBJS_BP): \$(SRCS_FP) \$(NONSRCS)
 #.c.o:
-#	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
+#	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -c \$<
 
 # for all make variants:
 #REGRESS_FLAGS=	-v
 #regress:
-#	./test.sh $(REGRESS_FLAGS)
+#	./test.sh \$(REGRESS_FLAGS)
 
-EOF
-	cat >>$of <<EOF
 # for BSD make only:
 #.PATH: $srcdir
 #.include <bsd.prog.mk>
 EOF
 	$e
-	$e Generated $of successfully.
+	$e Generated Makefrag.inc successfully.
 	exit 0
 fi
 if test $cm = combine; then
