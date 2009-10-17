@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.194 2009/10/10 21:17:30 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.195 2009/10/17 21:16:03 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -48,7 +48,7 @@
 .el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
 ..
 .\"-
-.Dd $Mdocdate: October 10 2009 $
+.Dd $Mdocdate: October 17 2009 $
 .Dt MKSH 1
 .Os MirBSD
 .Sh NAME
@@ -1810,7 +1810,7 @@ is referenced, it is assigned a 15-bit pseudo-random number, i.e. between
 0 and 32767, first, which is taken from
 .Xr arc4random 3
 if available,
-.Xr rand 3
+a Linear Congruential PRNG
 otherwise.
 .It Ev REPLY
 Default parameter for the
@@ -5736,10 +5736,8 @@ Privileged shell profile.
 .Xr arc4random 3 ,
 .Xr getopt 3 ,
 .Xr nl_langinfo 3 ,
-.Xr rand 3 ,
 .Xr setlocale 3 ,
 .Xr signal 3 ,
-.Xr srand 3 ,
 .Xr system 3 ,
 .Xr tty 4 ,
 .Xr shells 5 ,

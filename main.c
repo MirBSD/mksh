@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.152 2009/10/02 18:08:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.153 2009/10/17 21:16:02 tg Exp $");
 
 extern char **environ;
 
@@ -93,7 +93,6 @@ main(int argc, const char *argv[])
 	struct block *l;
 	unsigned char restricted, errexit;
 	const char **wp;
-	pid_t ppid;
 	struct tbl *vp;
 	struct stat s_stdin;
 #if !defined(_PATH_DEFPATH) && defined(_CS_PATH)
@@ -104,11 +103,10 @@ main(int argc, const char *argv[])
 	kshpid = procpid = getpid();
 	ksheuid = geteuid();
 	kshpgrp = getpgrp();
-	ppid = getppid();
+	kshppid = getppid();
 
 #if !HAVE_ARC4RANDOM
-	change_random((unsigned long)time(NULL));
-	change_random(((unsigned long)ksheuid << 16) | kshpid);
+	change_random(&kshstate_, sizeof(kshstate_));
 #endif
 
 	/* make sure argv[] is sane */
@@ -267,15 +265,6 @@ main(int argc, const char *argv[])
 	setint(global("COLUMNS"), 0);
 	setint(global("LINES"), 0);
 	setint(global("OPTIND"), 1);
-	vp = global("RANDOM");
-#if HAVE_ARC4RANDOM
-	Flag(FARC4RANDOM) = 1;
-	/* avoid calling setspec */
-	vp->flag |= ISSET | INT_U;
-#else
-	vp->flag |= INT_U;
-	setint(vp, (mksh_ari_t)((unsigned long)kshname + 33 * ppid));
-#endif
 
 	safe_prompt = ksheuid ? "$ " : "# ";
 	vp = global("PS1");
@@ -286,10 +275,15 @@ main(int argc, const char *argv[])
 		setstr(vp, safe_prompt, KSH_RETURN_ERROR);
 	setint((vp = global("PGRP")), (mksh_uari_t)kshpgrp);
 	vp->flag |= INT_U;
-	setint((vp = global("PPID")), (mksh_uari_t)ppid);
+	setint((vp = global("PPID")), (mksh_uari_t)kshppid);
+	vp->flag |= INT_U;
+	setint((vp = global("RANDOM")), (mksh_uari_t)hash(kshname));
 	vp->flag |= INT_U;
 	setint((vp = global("USER_ID")), (mksh_uari_t)ksheuid);
 	vp->flag |= INT_U;
+#if HAVE_ARC4RANDOM
+	Flag(FARC4RANDOM) = 1;		/* initialised */
+#endif
 
 	/* Set this before parsing arguments */
 #if HAVE_SETRESUGID
@@ -1261,11 +1255,10 @@ static struct tbl *ktscan(struct table *, const char *, uint32_t,
 
 /* Bob Jenkins' one-at-a-time hash */
 uint32_t
-hash(const char *cp)
+oaathash_full(register const uint8_t *bp)
 {
 	register uint32_t h = 0;
 	register uint8_t c;
-	register const uint8_t *bp = (const uint8_t *)cp;
 
 	while ((c = *bp++)) {
 		h += c;

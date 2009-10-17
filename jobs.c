@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.61 2009/09/26 03:39:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.62 2009/10/17 21:16:02 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -339,15 +339,18 @@ exchild(struct op *t, int flags,
     volatile int *xerrok,
     /* used if XPCLOSE or XCCLOSE */ int close_fd)
 {
-	static Proc	*last_proc;	/* for pipelines */
+	static Proc *last_proc;		/* for pipelines */
 
-	int		i;
-	sigset_t	omask;
-	Proc		*p;
-	Job		*j;
-	int		rv = 0;
-	int		forksleep;
-	int		ischild;
+	int i, rv = 0, forksleep;
+	sigset_t omask;
+	Proc *p;
+	Job *j;
+	struct {
+#if !HAVE_ARC4RANDOM
+		pid_t thepid;
+#endif
+		unsigned char ischild;
+	} pi;
 
 	if (flags & XEXEC)
 		/* Clear XFORK|XPCLOSE|XCCLOSE|XCOPROC|XPIPEO|XPIPEI|XXCOM|XBGND
@@ -410,15 +413,17 @@ exchild(struct op *t, int flags,
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		errorf("cannot fork - try again");
 	}
-	ischild = i == 0;
-	if (ischild)
-		p->pid = procpid = getpid();
-	else
-		p->pid = i;
+#if !HAVE_ARC4RANDOM
+	pi.thepid =
+#endif
+	    p->pid = (pi.ischild = i == 0) ? (procpid = getpid()) : i;
 
 #if !HAVE_ARC4RANDOM
-	/* ensure next child gets a (slightly) different $RANDOM sequence */
-	change_random(((unsigned long)p->pid << 1) | (ischild ? 1 : 0));
+	/*
+	 * ensure next child gets a (slightly) different $RANDOM sequence
+	 * from its parent process and other child processes
+	 */
+	change_random(&pi, sizeof(pi));
 #endif
 
 #ifndef MKSH_UNEMPLOYED
@@ -440,10 +445,10 @@ exchild(struct op *t, int flags,
 #endif
 
 	/* used to close pipe input fd */
-	if (close_fd >= 0 && (((flags & XPCLOSE) && !ischild) ||
-	    ((flags & XCCLOSE) && ischild)))
+	if (close_fd >= 0 && (((flags & XPCLOSE) && !pi.ischild) ||
+	    ((flags & XCCLOSE) && pi.ischild)))
 		close(close_fd);
-	if (ischild) {		/* child */
+	if (pi.ischild) {		/* child */
 		/* Do this before restoring signal */
 		if (flags & XCOPROC)
 			coproc_cleanup(false);

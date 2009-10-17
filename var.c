@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.94 2009/09/27 10:31:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.95 2009/10/17 21:16:05 tg Exp $");
 
 /*
  * Variables
@@ -46,11 +46,11 @@ static int getint(struct tbl *, mksh_ari_t *, bool);
 static mksh_ari_t intval(struct tbl *);
 static struct tbl *arraysearch(struct tbl *, uint32_t);
 static const char *array_index_calc(const char *, bool *, uint32_t *);
-static int rnd_get(void);
-#if HAVE_ARC4RANDOM
-static void rnd_set(unsigned long);
-#else
-#define rnd_set change_random
+#if !HAVE_ARC4RANDOM
+static uint32_t oaathash_update(register uint32_t, register const uint8_t *,
+    register size_t);
+
+static uint32_t lcg_seed = 5381;
 #endif
 
 uint8_t set_refflag = 0;
@@ -972,58 +972,45 @@ makenv(void)
 	return ((char **)XPclose(denv));
 }
 
-#if HAVE_ARC4RANDOM
-static int
-rnd_get(void)
+#if !HAVE_ARC4RANDOM
+static uint32_t
+oaathash_update(register uint32_t h, register const uint8_t *cp,
+    register size_t n)
 {
-	return (arc4random() & 0x7FFF);
-}
-
-static void
-rnd_set(unsigned long newval)
-{
-#if HAVE_ARC4RANDOM_PUSHB
-	if (Flag(FARC4RANDOM))
-		/* initialisation, environment import, etc. already done */
-		arc4random_pushb(&newval, sizeof(newval));
-	else
-		/* during start-up phase or somesuch */
-#endif
-	arc4random_addrandom((void *)&newval, sizeof(newval));
-}
-#else
-static int
-rnd_get(void)
-{
-	return (rand() & 0x7FFF);
-}
-
-/*
- * Called after a fork to bump the random number generator.
- * Done to ensure children will not get the same random number sequence
- * as the parent processes.
- * Also called as rnd_set - mksh R40+ no longer has the traditional
- * repeatability of randomness sequences, state is always retained.
- */
-void
-change_random(unsigned long newval)
-{
-	register unsigned int h;
-
-	h = rand();
-	while (newval) {
-		h += (newval & 0xFF);
+	while (n--) {
+		h += *cp++;
 		h += h << 10;
 		h ^= h >> 6;
-		newval >>= 8;
 	}
 
+	return (h);
+}
+
+void
+change_random(const void *vp, size_t n)
+{
+	register uint32_t h;
+	struct {
+		const void *sp, *bp, *dp;
+		size_t dsz;
+		struct timeval tv;
+		uint32_t s;
+	} i;
+
+	i.dp = vp;
+	i.dsz = n;
+	i.s = lcg_seed;
+	i.bp = &lcg_seed;
+	i.sp = &i;
+	gettimeofday(&i.tv, NULL);
+	h = oaathash_update(oaathash_update(1, (void *)&i, sizeof(i)), vp, n);
+
+	/* oaathash_finalise */
 	h += h << 3;
 	h ^= h >> 11;
 	h += h << 15;
 
-	/* pass all of it, in case RAND_MAX is large */
-	srand(h);
+	lcg_seed = h;
 }
 #endif
 
@@ -1058,82 +1045,84 @@ static int user_lineno;		/* what user set $LINENO to */
 static void
 getspec(struct tbl *vp)
 {
-	int i;
+	register mksh_ari_t i;
+	int st;
 
-	switch ((i = special(vp->name))) {
+	switch ((st = special(vp->name))) {
 	case V_SECONDS:
-		vp->flag &= ~SPECIAL;
-		/* On start up the value of SECONDS is used before seconds
-		 * has been set - don't do anything in this case
+		/*
+		 * On start up the value of SECONDS is used before
+		 * it has been set - don't do anything in this case
 		 * (see initcoms[] in main.c).
 		 */
 		if (vp->flag & ISSET) {
 			struct timeval tv;
 
 			gettimeofday(&tv, NULL);
-			setint(vp, tv.tv_sec - seconds);
-		}
-		vp->flag |= SPECIAL;
+			i = tv.tv_sec - seconds;
+		} else
+			return;
 		break;
 	case V_RANDOM:
-		vp->flag &= ~SPECIAL;
-		setint(vp, rnd_get());
-		vp->flag |= SPECIAL;
+#if HAVE_ARC4RANDOM
+		i = arc4random() & 0x7FFF;
+#else
+		/*
+		 * this is the same Linear Congruential PRNG as Borland
+		 * C/C++ allegedly uses in its built-in rand() function
+		 */
+		i = ((lcg_seed = 22695477 * lcg_seed + 1) >> 16) & 0x7FFF;
+#endif
 		break;
 	case V_HISTSIZE:
-		vp->flag &= ~SPECIAL;
-		setint(vp, (mksh_ari_t)histsize);
-		vp->flag |= SPECIAL;
+		i = histsize;
 		break;
 	case V_OPTIND:
-		vp->flag &= ~SPECIAL;
-		setint(vp, (mksh_ari_t)user_opt.uoptind);
-		vp->flag |= SPECIAL;
+		i = user_opt.uoptind;
 		break;
 	case V_LINENO:
-		vp->flag &= ~SPECIAL;
-		setint(vp, (mksh_ari_t)current_lineno + user_lineno);
-		vp->flag |= SPECIAL;
+		i = current_lineno + user_lineno;
 		break;
 	case V_COLUMNS:
 	case V_LINES:
-		/* Do NOT export COLUMNS/LINES. Many applications
+		/*
+		 * Do NOT export COLUMNS/LINES. Many applications
 		 * check COLUMNS/LINES before checking ws.ws_col/row,
 		 * so if the app is started with C/L in the environ
 		 * and the window is then resized, the app won't
 		 * see the change cause the environ doesn't change.
 		 */
-		vp->flag &= ~SPECIAL;
 		change_winsz();
-		setint(vp, i == V_COLUMNS ? x_cols : x_lins);
-		vp->flag |= SPECIAL;
+		i = st == V_COLUMNS ? x_cols : x_lins;
 		break;
+	default:
+		/* do nothing, do not touch vp at all */
+		return;
 	}
+	vp->flag &= ~SPECIAL;
+	setint(vp, i);
+	vp->flag |= SPECIAL;
 }
 
 static void
 setspec(struct tbl *vp)
 {
-	int i;
+	mksh_ari_t i;
 	char *s;
+	int st;
 
-	switch (special(vp->name)) {
+	switch ((st = special(vp->name))) {
 	case V_PATH:
 		if (path)
 			afree(path, APERM);
 		s = str_val(vp);
 		strdupx(path, s, APERM);
 		flushcom(1);	/* clear tracked aliases */
-		break;
+		return;
 	case V_IFS:
 		setctypes(s = str_val(vp), C_IFS);
 		ifs0 = *s;
-		break;
-	case V_OPTIND:
-		vp->flag &= ~SPECIAL;
-		getopts_reset((int)intval(vp));
-		vp->flag |= SPECIAL;
-		break;
+		return;
 	case V_TMPDIR:
 		if (tmpdir) {
 			afree(tmpdir, APERM);
@@ -1151,53 +1140,83 @@ setspec(struct tbl *vp)
 				strdupx(tmpdir, s, APERM);
 		}
 		break;
-	case V_HISTSIZE:
-		vp->flag &= ~SPECIAL;
-		sethistsize((int)intval(vp));
-		vp->flag |= SPECIAL;
-		break;
 #if HAVE_PERSISTENT_HISTORY
 	case V_HISTFILE:
 		sethistfile(str_val(vp));
 		break;
 #endif
-	case V_COLUMNS:
-		vp->flag &= ~SPECIAL;
-		if ((i = intval(vp)) >= MIN_COLS)
-			x_cols = i;
-		vp->flag |= SPECIAL;
-		break;
-	case V_LINES:
-		vp->flag &= ~SPECIAL;
-		if ((i = intval(vp)) >= MIN_LINS)
-			x_lins = i;
-		vp->flag |= SPECIAL;
-		break;
-	case V_RANDOM:
-		vp->flag &= ~SPECIAL;
-		rnd_set(intval(vp));
-		vp->flag |= SPECIAL;
-		break;
-	case V_SECONDS:
-		vp->flag &= ~SPECIAL;
-		{
-			struct timeval tv;
-
-			gettimeofday(&tv, NULL);
-			seconds = tv.tv_sec - intval(vp);
-		}
-		vp->flag |= SPECIAL;
-		break;
 	case V_TMOUT:
 		/* AT&T ksh seems to do this (only listen if integer) */
 		if (vp->flag & INTEGER)
 			ksh_tmout = vp->val.i >= 0 ? vp->val.i : 0;
 		break;
+
+	/* common sub-cases */
+	case V_OPTIND:
+	case V_HISTSIZE:
+	case V_COLUMNS:
+	case V_LINES:
+	case V_RANDOM:
+	case V_SECONDS:
 	case V_LINENO:
 		vp->flag &= ~SPECIAL;
-		/* The -1 is because line numbering starts at 1. */
-		user_lineno = (unsigned int)intval(vp) - current_lineno - 1;
+		i = intval(vp);
 		vp->flag |= SPECIAL;
+		break;
+	default:
+		/* do nothing, do not touch vp at all */
+		return;
+	}
+
+	/* process the singular parts of the common cases */
+
+	switch (st) {
+	case V_OPTIND:
+		getopts_reset((int)i);
+		break;
+	case V_HISTSIZE:
+		sethistsize((int)i);
+		break;
+	case V_COLUMNS:
+		if (i >= MIN_COLS)
+			x_cols = i;
+		break;
+	case V_LINES:
+		if (i >= MIN_LINS)
+			x_lins = i;
+		break;
+	case V_RANDOM:
+#if HAVE_ARC4RANDOM
+#if HAVE_ARC4RANDOM_PUSHB
+		if (Flag(FARC4RANDOM))
+			/*
+			 * things like initialisation, environment import,
+			 * etc. are already done
+			 */
+			arc4random_pushb(&i, sizeof(i));
+		else
+			/* during start-up phase or somesuch */
+#endif	/* HAVE_ARC4RANDOM_PUSHB */
+			arc4random_addrandom((void *)&i, sizeof(i));
+#else	/* !HAVE_ARC4RANDOM */
+		/*
+		 * mksh R40+ no longer has the traditional repeatability
+		 * of $RANDOM sequences, but always retains state
+		 */
+		change_random(&i, sizeof(i));
+#endif	/* !HAVE_ARC4RANDOM */
+		break;
+	case V_SECONDS:
+		{
+			struct timeval tv;
+
+			gettimeofday(&tv, NULL);
+			seconds = tv.tv_sec - i;
+		}
+		break;
+	case V_LINENO:
+		/* The -1 is because line numbering starts at 1. */
+		user_lineno = (unsigned int)i - current_lineno - 1;
 		break;
 	}
 }

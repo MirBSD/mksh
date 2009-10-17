@@ -134,9 +134,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.355 2009/10/15 16:36:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.356 2009/10/17 21:16:04 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2009/10/15"
+#define MKSH_VERSION "R39 2009/10/17"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -348,13 +348,25 @@ typedef uint32_t mksh_uari_t;
 #define PATH_MAX	1024	/* pathname size */
 #endif
 
-EXTERN const char *kshname;	/* $0 */
-EXTERN pid_t kshpid;		/* $$, shell pid */
-EXTERN pid_t procpid;		/* pid of executing process */
-EXTERN pid_t kshpgrp;		/* process group of shell */
-EXTERN uid_t ksheuid;		/* effective uid of shell */
-EXTERN int exstat;		/* exit status */
-EXTERN int subst_exstat;	/* exit status of last $(..)/`..` */
+EXTERN struct {
+	const char *kshname_;	/* $0 */
+	pid_t kshpid_;		/* $$, shell PID */
+	pid_t procpid_;		/* PID of executing process */
+	pid_t kshpgrp_;		/* process group of shell */
+	uid_t ksheuid_;		/* effective UID of shell */
+	pid_t kshppid_;		/* PID of parent of shell */
+	int exstat_;		/* exit status */
+	int subst_exstat_;	/* exit status of last $(..)/`..` */
+} kshstate_;
+#define kshname		kshstate_.kshname_
+#define kshpid		kshstate_.kshpid_
+#define procpid		kshstate_.procpid_
+#define kshpgrp		kshstate_.kshpgrp_
+#define ksheuid		kshstate_.ksheuid_
+#define kshppid		kshstate_.kshppid_
+#define exstat		kshstate_.exstat_
+#define subst_exstat	kshstate_.subst_exstat_
+
 EXTERN const char *safe_prompt; /* safe prompt if PS1 substitution fails */
 EXTERN const char initvsn[] I__("KSH_VERSION=@(#)MIRBSD KSH " MKSH_VERSION);
 #define KSH_VERSION	(initvsn + /* "KSH_VERSION=@(#)" */ 16)
@@ -735,8 +747,8 @@ EXTERN size_t	current_wd_size;
  */
 #define MIN_COLS	(2 + MIN_EDIT_SPACE + 3)
 #define MIN_LINS	3
-EXTERN int x_cols I__(80);	/* tty columns */
-EXTERN int x_lins I__(-1);	/* tty lines */
+EXTERN mksh_ari_t x_cols I__(80);	/* tty columns */
+EXTERN mksh_ari_t x_lins I__(-1);	/* tty lines */
 
 /* These to avoid bracket matching problems */
 #define OPAREN	'('
@@ -1505,7 +1517,8 @@ void coproc_write_close(int);
 int coproc_getfd(int, const char **);
 void coproc_cleanup(int);
 struct temp *maketemp(Area *, Temp_type, struct temp **);
-uint32_t hash(const char *);
+#define hash(s) oaathash_full((const uint8_t *)(s))
+uint32_t oaathash_full(register const uint8_t *);
 uint32_t hashmem(const void *, size_t);
 void ktinit(struct table *, Area *, size_t);
 struct tbl *ktsearch(struct table *, const char *, uint32_t);
@@ -1601,7 +1614,7 @@ int is_wdvarname(const char *, int);
 int is_wdvarassign(const char *);
 char **makenv(void);
 #if !HAVE_ARC4RANDOM
-void change_random(unsigned long);
+void change_random(const void *, size_t);
 #endif
 void change_winsz(void);
 int array_ref_len(const char *);
