@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.95 2009/10/17 21:16:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.96 2009/10/18 12:30:06 tg Exp $");
 
 /*
  * Variables
@@ -50,7 +50,7 @@ static const char *array_index_calc(const char *, bool *, uint32_t *);
 static uint32_t oaathash_update(register uint32_t, register const uint8_t *,
     register size_t);
 
-static uint32_t lcg_seed = 5381;
+static uint32_t lcg_state = 5381;
 #endif
 
 uint8_t set_refflag = 0;
@@ -989,7 +989,7 @@ oaathash_update(register uint32_t h, register const uint8_t *cp,
 void
 change_random(const void *vp, size_t n)
 {
-	register uint32_t h;
+	register uint32_t h = 0x100;
 	struct {
 		const void *sp, *bp, *dp;
 		size_t dsz;
@@ -999,18 +999,18 @@ change_random(const void *vp, size_t n)
 
 	i.dp = vp;
 	i.dsz = n;
-	i.s = lcg_seed;
-	i.bp = &lcg_seed;
+	i.s = lcg_state;
+	i.bp = &lcg_state;
 	i.sp = &i;
 	gettimeofday(&i.tv, NULL);
-	h = oaathash_update(oaathash_update(1, (void *)&i, sizeof(i)), vp, n);
+	h = oaathash_update(oaathash_update(h, (void *)&i, sizeof(i)), vp, n);
 
 	/* oaathash_finalise */
 	h += h << 3;
 	h ^= h >> 11;
 	h += h << 15;
 
-	lcg_seed = h;
+	lcg_state = h;
 }
 #endif
 
@@ -1071,7 +1071,7 @@ getspec(struct tbl *vp)
 		 * this is the same Linear Congruential PRNG as Borland
 		 * C/C++ allegedly uses in its built-in rand() function
 		 */
-		i = ((lcg_seed = 22695477 * lcg_seed + 1) >> 16) & 0x7FFF;
+		i = ((lcg_state = 22695477 * lcg_state + 1) >> 16) & 0x7FFF;
 #endif
 		break;
 	case V_HISTSIZE:
