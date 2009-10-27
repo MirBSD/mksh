@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.125 2009/10/02 18:08:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.126 2009/10/27 17:00:02 tg Exp $");
 
 #undef USE_CHVT
 /* XXX conditions correct? */
@@ -1038,10 +1038,19 @@ ksh_get_wd(size_t *dlen)
 	char *ret, *b;
 	size_t len = 1;
 
+#ifdef NO_PATH_MAX
+	if ((b = get_current_dir_name())) {
+		len = strlen(b) + 1;
+		strndupx(ret, b, len - 1, ATEMP);
+		free(b);
+	} else
+		ret = NULL;
+#else
 	if ((ret = getcwd((b = alloc(PATH_MAX + 1, ATEMP)), PATH_MAX)))
 		ret = aresize(b, len = (strlen(b) + 1), ATEMP);
 	else
 		afree(b, ATEMP);
+#endif
 
 	if (dlen)
 		*dlen = len;

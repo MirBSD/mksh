@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.429 2009/10/16 18:51:30 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.430 2009/10/27 16:59:59 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -362,7 +362,8 @@ DragonFly)
 FreeBSD)
 	;;
 GNU)
-	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
+	# define NO_PATH_MAX to use Hurd-only functions
+	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE -DNO_PATH_MAX"
 	;;
 GNU/kFreeBSD)
 	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"

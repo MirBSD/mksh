@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.140 2009/10/15 16:36:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.141 2009/10/27 17:00:01 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -267,12 +267,29 @@ do_realpath(const char *upath)
 			}
 
 			/* get symlink(7) target */
+#ifdef NO_PATH_MAX
+			if (ldest) {
+				afree(ldest, ATEMP);
+				ldest = NULL;
+			}
+			{
+				struct stat hurd_sb;
+
+				if (lstat(Xstring(xs, xp), &hurd_sb))
+					goto notfound;
+				ldest = alloc(hurd_sb.st_size + 1, ATEMP);
+				if ((llen = readlink(Xstring(xs, xp), ldest,
+				    hurd_sb.st_size)) < 0)
+					goto notfound;
+			}
+#else
 			if (!ldest)
 				ldest = alloc(PATH_MAX + 1, ATEMP);
 			if ((llen = readlink(Xstring(xs, xp), ldest,
 			    PATH_MAX)) < 0)
 				/* oops... */
 				goto notfound;
+#endif
 			ldest[llen] = '\0';
 
 			/*
@@ -398,7 +415,12 @@ c_cd(const char **wp)
 		return (1);
 	}
 
+#ifdef NO_PATH_MAX
+	/* only a first guess; make_path will enlarge xs if necessary */
+	XinitN(xs, 1024, ATEMP);
+#else
 	XinitN(xs, PATH_MAX, ATEMP);
+#endif
 
 	cdpath = str_val(global("CDPATH"));
 	do {

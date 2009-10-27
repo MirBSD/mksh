@@ -134,9 +134,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.357 2009/10/18 12:30:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.358 2009/10/27 17:00:02 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2009/10/18"
+#define MKSH_VERSION "R39 2009/10/27"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -211,8 +211,12 @@ typedef int bool;
 #define ksh_isdash(s)	(((s) != NULL) && ((s)[0] == '-') && ((s)[1] == '\0'))
 #define ksh_isspace(c)	((((c) >= 0x09) && ((c) <= 0x0D)) || ((c) == 0x20))
 
+#ifdef NO_PATH_MAX
+#undef PATH_MAX
+#else
 #ifndef PATH_MAX
 #define PATH_MAX	1024
+#endif
 #endif
 #ifndef SIZE_MAX
 #ifdef SIZE_T_MAX
@@ -344,9 +348,6 @@ typedef uint32_t mksh_uari_t;
 #define NOT		'!'	/* might use ^ (ie, [!...] vs [^..]) */
 
 #define LINE		4096	/* input line size */
-#ifndef PATH_MAX
-#define PATH_MAX	1024	/* pathname size */
-#endif
 
 EXTERN struct {
 	const char *kshname_;	/* $0 */
