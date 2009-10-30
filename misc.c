@@ -29,13 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.127 2009/10/30 00:57:38 tg Exp $");
-
-#undef USE_CHVT
-/* XXX conditions correct? */
-#if defined(TIOCSCTTY) && !defined(MKSH_SMALL)
-#define USE_CHVT
-#endif
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.128 2009/10/30 14:37:43 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
@@ -47,7 +41,7 @@ gid_t kshgid, kshegid;
 static int do_gmatch(const unsigned char *, const unsigned char *,
     const unsigned char *, const unsigned char *);
 static const unsigned char *cclass(const unsigned char *, int);
-#ifdef USE_CHVT
+#ifdef TIOCSCTTY
 static void chvt(const char *);
 #endif
 
@@ -259,7 +253,7 @@ parse_args(const char **argv,
 		/* see cmd_opts[] declaration */
 		*p++ = 'o';
 		*p++ = ':';
-#ifndef MKSH_SMALL
+#if !defined(MKSH_SMALL) || defined(TIOCSCTTY)
 		*p++ = 'T';
 		*p++ = ':';
 #endif
@@ -337,11 +331,11 @@ parse_args(const char **argv,
 			}
 			break;
 
-#ifndef MKSH_SMALL
+#if !defined(MKSH_SMALL) || defined(TIOCSCTTY)
 		case 'T':
 			if (what != OF_FIRSTTIME)
 				break;
-#ifndef USE_CHVT
+#ifndef TIOCSCTTY
 			errorf("no TIOCSCTTY ioctl");
 #else
 			change_flag(FTALKING, OF_CMDLINE, 1);
@@ -1232,7 +1226,9 @@ set_current_wd(char *pathl)
 		afree(p, ATEMP);
 }
 
-#ifdef USE_CHVT
+#ifdef TIOCSCTTY
+extern void chvt_reinit(void);
+
 static void
 chvt(const char *fn)
 {
@@ -1292,6 +1288,7 @@ chvt(const char *fn)
 	ksh_dup2(fd, 2, false);
 	if (fd > 2)
 		close(fd);
+	chvt_reinit();
 }
 #endif
 

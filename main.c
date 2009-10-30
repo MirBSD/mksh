@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.153 2009/10/17 21:16:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.154 2009/10/30 14:37:42 tg Exp $");
 
 extern char **environ;
 
@@ -44,6 +44,7 @@ extern gid_t kshgid, kshegid;
 
 static void reclaim(void);
 static void remove_temps(struct temp *);
+void chvt_reinit(void);
 
 static const char initifs[] = "IFS= \t\n";
 
@@ -85,6 +86,19 @@ static int initio_done;
 static struct env env;
 struct env *e = &env;
 
+void
+chvt_reinit(void)
+{
+	kshpid = procpid = getpid();
+	ksheuid = geteuid();
+	kshpgrp = getpgrp();
+	kshppid = getppid();
+
+#if !HAVE_ARC4RANDOM
+	change_random(&kshstate_, sizeof(kshstate_));
+#endif
+}
+
 int
 main(int argc, const char *argv[])
 {
@@ -100,14 +114,8 @@ main(int argc, const char *argv[])
 	char *cp;
 #endif
 
-	kshpid = procpid = getpid();
-	ksheuid = geteuid();
-	kshpgrp = getpgrp();
-	kshppid = getppid();
-
-#if !HAVE_ARC4RANDOM
-	change_random(&kshstate_, sizeof(kshstate_));
-#endif
+	/* do things like getpgrp() et al. */
+	chvt_reinit();
 
 	/* make sure argv[] is sane */
 	if (!*argv) {
