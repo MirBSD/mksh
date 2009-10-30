@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.69 2009/09/06 17:42:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.70 2009/10/30 00:57:37 tg Exp $");
 
 /*
  * string expansion
@@ -1179,7 +1179,7 @@ trimsub(char *str, char *pat, int how)
  * Name derived from V6's /etc/glob, the program that expanded filenames.
  */
 
-/* XXX cp not const 'cause slashes are temporarily replaced with nulls... */
+/* XXX cp not const 'cause slashes are temporarily replaced with NULs... */
 static void
 glob(char *cp, XPtrV *wp, int markdirs)
 {

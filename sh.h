@@ -134,9 +134,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.358 2009/10/27 17:00:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.359 2009/10/30 00:57:38 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2009/10/27"
+#define MKSH_VERSION "R39 2009/10/30"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -677,7 +677,7 @@ EXTERN int really_exit;
 #define C_VAR1	 BIT(3)		/* *@#!$-? */
 #define C_IFSWS	 BIT(4)		/* \t \n (IFS white space) */
 #define C_SUBOP1 BIT(5)		/* "=-+?" */
-#define C_QUOTE	 BIT(6)		/* \t \n"#$&'()*;<>?[]\`| (needing quoting) */
+#define C_QUOTE	 BIT(6)		/* \t\n "#$&'()*;<=>?[\]`| (needing quoting) */
 #define C_IFS	 BIT(7)		/* $IFS */
 #define C_SUBOP2 BIT(8)		/* "#%" (magic, see below) */
 

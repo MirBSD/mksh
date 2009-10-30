@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.126 2009/10/27 17:00:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.127 2009/10/30 00:57:38 tg Exp $");
 
 #undef USE_CHVT
 /* XXX conditions correct? */
@@ -83,7 +83,7 @@ initctypes(void)
 	setctypes("*@#!$-?", C_VAR1);
 	setctypes(" \t\n", C_IFSWS);
 	setctypes("=-+?", C_SUBOP1);
-	setctypes(" \n\t\"#$&'()*;<>?[]\\`|", C_QUOTE);
+	setctypes("\t\n \"#$&'()*;<=>?[\\]`|", C_QUOTE);
 }
 
 /* called from XcheckN() to grow buffer */

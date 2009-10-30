@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.46 2009/10/04 12:45:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.47 2009/10/30 00:57:39 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -619,11 +619,11 @@ function_body(char *name,
 	/* Check for valid characters in name. POSIX and AT&T ksh93 say only
 	 * allow [a-zA-Z_0-9] but this allows more as old pdkshs have
 	 * allowed more (the following were never allowed:
-	 *	nul space nl tab $ ' " \ ` ( ) & | ; = < >
-	 * C_QUOTE covers all but = and adds # [ ] ? *)
+	 *	NUL TAB NL SP " $ & ' ( ) ; < = > \ ` |
+	 * C_QUOTE covers all but adds # * ? [ ]
 	 */
 	for (p = sname; *p; p++)
-		if (ctype(*p, C_QUOTE) || *p == '=')
+		if (ctype(*p, C_QUOTE))
 			yyerror("%s: invalid function name\n", sname);
 
 	/* Note that POSIX allows only compound statements after foo(), sh and

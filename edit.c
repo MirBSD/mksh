@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.183 2009/09/26 04:01:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.184 2009/10/30 00:57:36 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -251,7 +251,8 @@ static int
 x_file_glob(int flags __unused, const char *str, int slen, char ***wordsp)
 {
 	char *toglob, **words;
-	int nwords, i, idx, escaping;
+	int nwords, i, idx;
+	bool escaping;
 	XPtrV w;
 	struct source *s, *sold;
 
@@ -261,20 +262,21 @@ x_file_glob(int flags __unused, const char *str, int slen, char ***wordsp)
 	toglob = add_glob(str, slen);
 
 	/* remove all escaping backward slashes */
-	escaping = 0;
+	escaping = false;
 	for (i = 0, idx = 0; toglob[i]; i++) {
 		if (toglob[i] == '\\' && !escaping) {
-			escaping = 1;
+			escaping = true;
 			continue;
 		}
-		/* specially escape escaped [ for globbing */
-		if (escaping && toglob[i] == '[')
+		/* specially escape escaped [ or $ or ` for globbing */
+		if (escaping && (toglob[i] == '[' ||
+		    toglob[i] == '$' || toglob[i] == '`'))
 			toglob[idx++] = QCHAR;
 
 		toglob[idx] = toglob[i];
 		idx++;
 		if (escaping)
-			escaping = 0;
+			escaping = false;
 	}
 	toglob[idx] = '\0';
 
@@ -708,7 +710,7 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 	int rval = 0;
 
 	while (wlen - add > 0)
-		if (vstrchr("\\$()[?{}*&;#|<>\"'`", s[add]) ||
+		if (vstrchr("\"#$&'()*:;<=>?[\\`{|}", s[add]) ||
 		    vstrchr(ifs, s[add])) {
 			if (putbuf_func(s, add) != 0) {
 				rval = -1;
