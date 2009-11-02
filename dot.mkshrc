@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.49 2009/08/27 16:52:12 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.50 2009/11/02 18:47:02 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -40,7 +40,6 @@ alias l='ls -F'
 alias la='l -a'
 alias ll='l -l'
 alias lo='l -alo'
-alias which='whence -p'
 whence -p rot13 >&- || alias rot13='tr \
     abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \
     nopqrstuvwxyzabcdefghijklmNOPQRSTUVWXYZABCDEFGHIJKLM'
