@@ -134,9 +134,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.359 2009/10/30 00:57:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.360 2009/11/09 23:35:11 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2009/10/30"
+#define MKSH_VERSION "R39 2009/11/09"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1352,8 +1352,8 @@ struct tbl *findcom(const char *, int);
 void flushcom(int);
 const char *search(const char *, const char *, int, int *);
 int search_access(const char *, int, int *);
-int pr_menu(const char *const *);
-int pr_list(char *const *);
+int pr_menu(const char * const *);
+int pr_list(char * const *);
 /* expr.c */
 int evaluate(const char *, mksh_ari_t *, int, bool);
 int v_evaluate(struct tbl *, const char *, volatile int, bool);
@@ -1546,8 +1546,8 @@ void ksh_getopt_reset(Getopt *, int);
 int ksh_getopt(const char **, Getopt *, const char *);
 void print_value_quoted(const char *);
 void print_columns(struct shf *, int,
-    char *(*)(const void *, int, char *, int),
-    const void *, int, int prefcol);
+    char *(*)(char *, int, int, const void *),
+    const void *, int, int, bool);
 void strip_nuls(char *, int);
 int blocking_read(int, char *, int)
     __bound_att__((bounded (buffer, 2, 3)));

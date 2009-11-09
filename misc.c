@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.128 2009/10/30 14:37:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.129 2009/11/09 23:35:10 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
@@ -120,12 +120,12 @@ struct options_info {
 	int opts[NELEM(options)];
 };
 
-static char *options_fmt_entry(const void *arg, int, char *, int);
-static void printoptions(int);
+static char *options_fmt_entry(char *, int, int, const void *);
+static void printoptions(bool);
 
 /* format a single select menu item */
 static char *
-options_fmt_entry(const void *arg, int i, char *buf, int buflen)
+options_fmt_entry(char *buf, int buflen, int i, const void *arg)
 {
 	const struct options_info *oi = (const struct options_info *)arg;
 
@@ -136,32 +136,40 @@ options_fmt_entry(const void *arg, int i, char *buf, int buflen)
 }
 
 static void
-printoptions(int verbose)
+printoptions(bool verbose)
 {
-	unsigned int i;
+	int i = 0;
 
 	if (verbose) {
+		int n = 0, len, octs = 0;
 		struct options_info oi;
-		int n, len;
 
 		/* verbose version */
 		shf_puts("Current option settings\n", shl_stdout);
 
-		for (i = n = oi.opt_width = 0; i < NELEM(options); i++)
+		oi.opt_width = 0;
+		while (i < (int)NELEM(options)) {
 			if (options[i].name) {
-				len = strlen(options[i].name);
 				oi.opts[n++] = i;
+				len = strlen(options[i].name);
+				if (len > octs)
+					octs = len;
+				len = utf_mbswidth(options[i].name);
 				if (len > oi.opt_width)
 					oi.opt_width = len;
 			}
+			++i;
+		}
 		print_columns(shl_stdout, n, options_fmt_entry, &oi,
-		    oi.opt_width + 5, 1);
+		    octs + 4, oi.opt_width + 4, true);
 	} else {
-		/* short version ala ksh93 */
+		/* short version á la AT&T ksh93 */
 		shf_puts("set", shl_stdout);
-		for (i = 0; i < NELEM(options); i++)
+		while (i < (int)NELEM(options)) {
 			if (Flag(i) && options[i].name)
 				shprintf(" -o %s", options[i].name);
+			++i;
+		}
 		shf_putc('\n', shl_stdout);
 	}
 }
@@ -899,53 +907,64 @@ print_value_quoted(const char *s)
 		shf_putc('\'', shl_stdout);
 }
 
-/* Print things in columns and rows - func() is called to format the ith
- * element
+/*
+ * Print things in columns and rows - func() is called to format
+ * the i-th element
  */
 void
 print_columns(struct shf *shf, int n,
-    char *(*func) (const void *, int, char *, int),
-    const void *arg, int max_width, int prefcol)
+    char *(*func)(char *, int, int, const void *),
+    const void *arg, int max_oct, int max_col, bool prefcol)
 {
-	char *str = alloc(max_width + 1, ATEMP);
 	int i, r, c, rows, cols, nspace;
+	char *str;
+
+	if (n <= 0) {
+#ifndef MKSH_SMALL
+		internal_warningf("print_columns called with n=%d <= 0", n);
+#endif
+		return;
+	}
+
+	++max_oct;
+	str = alloc(max_oct, ATEMP);
 
 	/* ensure x_cols is valid first */
 	if (x_cols < MIN_COLS)
 		change_winsz();
 
-	/* max_width + 1 for the space. Note that no space
-	 * is printed after the last column to avoid problems
-	 * with terminals that have auto-wrap.
+	/*
+	 * We use (max_col + 1) to consider the space separator.
+	 * Note that no space is printed after the last column
+	 * to avoid problems with terminals that have auto-wrap.
 	 */
-	cols = x_cols / (max_width + 1);
+	cols = x_cols / (max_col + 1);
+
 	/* if we can only print one column anyway, skip the goo */
 	if (cols < 2) {
 		for (i = 0; i < n; ++i)
 			shf_fprintf(shf, "%s \n",
-			    (*func)(arg, i, str, max_width + 1));
+			    (*func)(str, max_oct, i, arg));
 		goto out;
 	}
-	rows = (n + cols - 1) / cols;
-	if (prefcol && n && cols > rows) {
-		int tmp = rows;
 
-		rows = cols;
-		cols = tmp;
-		if (rows > n)
-			rows = n;
+	rows = (n + cols - 1) / cols;
+	if (prefcol && cols > rows) {
+		i = rows;
+		rows = cols > n ? n : cols;
+		cols = i;
 	}
 
-	nspace = (x_cols - max_width * cols) / cols;
+	max_col = -max_col;
+	nspace = (x_cols + max_col * cols) / cols;
 	if (nspace <= 0)
 		nspace = 1;
 	for (r = 0; r < rows; r++) {
 		for (c = 0; c < cols; c++) {
 			i = c * rows + r;
 			if (i < n) {
-				shf_fprintf(shf, "%-*s",
-				    max_width,
-				    (*func)(arg, i, str, max_width + 1));
+				shf_fprintf(shf, "%*s", max_col,
+				    (*func)(str, max_oct, i, arg));
 				if (c + 1 < cols)
 					shf_fprintf(shf, "%*s", nspace, null);
 			}

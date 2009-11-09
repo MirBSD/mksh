@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.67 2009/10/15 16:25:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.68 2009/11/09 23:35:09 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile, volatile int *);
@@ -1338,16 +1338,15 @@ do_selectargs(const char **ap, bool print_menu)
 }
 
 struct select_menu_info {
-	const char *const *args;
-	int arg_width;
+	const char * const *args;
 	int num_width;
 };
 
-static char *select_fmt_entry(const void *, int, char *, int);
+static char *select_fmt_entry(char *, int, int, const void *);
 
 /* format a single select menu item */
 static char *
-select_fmt_entry(const void *arg, int i, char *buf, int buflen)
+select_fmt_entry(char *buf, int buflen, int i, const void *arg)
 {
 	const struct select_menu_info *smi =
 	    (const struct select_menu_info *)arg;
@@ -1361,66 +1360,73 @@ select_fmt_entry(const void *arg, int i, char *buf, int buflen)
  *	print a select style menu
  */
 int
-pr_menu(const char *const *ap)
+pr_menu(const char * const *ap)
 {
 	struct select_menu_info smi;
-	const char *const *pp;
-	int nwidth, dwidth, i, n;
+	const char * const *pp;
+	int acols = 0, aocts = 0, i, n;
 
-	/* Width/column calculations were done once and saved, but this
-	 * means select can't be used recursively so we re-calculate each
-	 * time (could save in a structure that is returned, but its probably
-	 * not worth the bother).
+	/*
+	 * width/column calculations were done once and saved, but this
+	 * means select can't be used recursively so we re-calculate
+	 * each time (could save in a structure that is returned, but
+	 * it's probably not worth the bother)
 	 */
 
 	/*
 	 * get dimensions of the list
 	 */
-	for (n = 0, nwidth = 0, pp = ap; *pp; n++, pp++) {
+	for (n = 0, pp = ap; *pp; n++, pp++) {
+		i = strlen(*pp);
+		if (i > aocts)
+			aocts = i;
 		i = utf_mbswidth(*pp);
-		nwidth = (i > nwidth) ? i : nwidth;
+		if (i > acols)
+			acols = i;
 	}
+
 	/*
-	 * we will print an index of the form
-	 *	%d)
-	 * in front of each entry
-	 * get the max width of this
+	 * we will print an index of the form "%d) " in front of
+	 * each entry, so get the maximum width of this
 	 */
-	for (i = n, dwidth = 1; i >= 10; i /= 10)
-		dwidth++;
+	for (i = n, smi.num_width = 1; i >= 10; i /= 10)
+		smi.num_width++;
 
 	smi.args = ap;
-	smi.arg_width = nwidth;
-	smi.num_width = dwidth;
 	print_columns(shl_out, n, select_fmt_entry, (void *)&smi,
-	    dwidth + nwidth + 2, 1);
+	    smi.num_width + 2 + aocts, smi.num_width + 2 + acols,
+	    true);
 
 	return (n);
 }
 
 /* XXX: horrible kludge to fit within the framework */
-
-static char *plain_fmt_entry(const void *, int, char *, int);
+static char *plain_fmt_entry(char *, int, int, const void *);
 
 static char *
-plain_fmt_entry(const void *arg, int i, char *buf, int buflen)
+plain_fmt_entry(char *buf, int buflen, int i, const void *arg)
 {
 	shf_snprintf(buf, buflen, "%s", ((const char * const *)arg)[i]);
 	return (buf);
 }
 
 int
-pr_list(char *const *ap)
+pr_list(char * const *ap)
 {
-	char *const *pp;
-	int nwidth, i, n;
+	int acols = 0, aocts = 0, i, n;
+	char * const *pp;
 
-	for (n = 0, nwidth = 0, pp = ap; *pp; n++, pp++) {
+	for (n = 0, pp = ap; *pp; n++, pp++) {
+		i = strlen(*pp);
+		if (i > aocts)
+			aocts = i;
 		i = utf_mbswidth(*pp);
-		nwidth = (i > nwidth) ? i : nwidth;
+		if (i > acols)
+			acols = i;
 	}
+
 	print_columns(shl_out, n, plain_fmt_entry, (const void *)ap,
-	    nwidth + 1, 0);
+	    aocts, acols, false);
 
 	return (n);
 }

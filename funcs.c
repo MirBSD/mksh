@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.141 2009/10/27 17:00:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.142 2009/11/09 23:35:09 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -171,7 +171,7 @@ static int test_primary(Test_env *, bool);
 static int ptest_isa(Test_env *, Test_meta);
 static const char *ptest_getopnd(Test_env *, Test_op, bool);
 static void ptest_error(Test_env *, int, const char *);
-static char *kill_fmt_entry(const void *, int, char *, int);
+static char *kill_fmt_entry(char *, int, int, const void *);
 static void p_time(struct shf *, bool, long, int, int,
     const char *, const char *) __attribute__((nonnull (6, 7)));
 static char *do_realpath(const char *);
@@ -1467,7 +1467,7 @@ c_fgbg(const char **wp)
 
 /* format a single kill item */
 static char *
-kill_fmt_entry(const void *arg, int i, char *buf, int buflen)
+kill_fmt_entry(char *buf, int buflen, int i, const void *arg)
 {
 	const struct kill_info *ki = (const struct kill_info *)arg;
 
@@ -1538,25 +1538,29 @@ c_kill(const char **wp)
 					shprintf("%d\n", n);
 			}
 		} else {
-			int w, j;
-			int mess_width;
+			int w, j, mess_cols, mess_octs;
 			struct kill_info ki;
 
 			for (j = NSIG, ki.num_width = 1; j >= 10; j /= 10)
 				ki.num_width++;
-			ki.name_width = mess_width = 0;
+			ki.name_width = mess_cols = mess_octs = 0;
 			for (j = 0; j < NSIG; j++) {
 				w = strlen(sigtraps[j].name);
 				if (w > ki.name_width)
 					ki.name_width = w;
 				w = strlen(sigtraps[j].mess);
-				if (w > mess_width)
-					mess_width = w;
+				if (w > mess_octs)
+					mess_octs = w;
+				w = utf_mbswidth(sigtraps[j].mess);
+				if (w > mess_cols)
+					mess_cols = w;
 			}
 
 			print_columns(shl_stdout, NSIG - 1,
 			    kill_fmt_entry, (void *)&ki,
-			    ki.num_width + ki.name_width + mess_width + 3, 1);
+			    ki.num_width + 1 + ki.name_width + 1 + mess_octs,
+			    ki.num_width + 1 + ki.name_width + 1 + mess_cols,
+			    true);
 		}
 		return (0);
 	}
