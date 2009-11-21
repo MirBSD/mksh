@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.338 2009/11/21 22:29:12 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.339 2009/11/21 22:30:34 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1332,6 +1332,38 @@ expected-stdout:
 #	This is what GNU bash does:
 #	40: c/d$tp$tp_a/b$tp_*(a/b)_*($tp)
 #	41: c/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+---
+name: eglob-utf8-1
+description:
+	UTF-8 mode differences for eglobbing
+stdin:
+	s=bl√∂d
+	set +U
+	print 1: ${s%???} .
+	print 2: ${s/b???d/x} .
+	set -U
+	print 3: ${s%???} .
+	print 4: ${s/b??d/x} .
+	x=n√∂
+	print 5: ${x%?} ${x%%?} .
+	x=√§h
+	print 6: ${x#?} ${x##?} .
+	x=ÅÇ
+	print 7: ${x%?} ${x%%?} .
+	x=m√§Ä
+	print 8: ${x%?} ${x%%?} .
+	x=‰Ωï
+	print 9: ${x%?} ${x%%?} .
+expected-stdout:
+	1: bl .
+	2: x .
+	3: b .
+	4: x .
+	5: n n .
+	6: h h .
+	7: Ä Ä .
+	8: m√§ m√§ .
+	9: .
 ---
 name: glob-bad-1
 description:
