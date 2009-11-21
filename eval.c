@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.71 2009/11/21 22:29:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.72 2009/11/21 22:32:08 tg Exp $");
 
 /*
  * string expansion
@@ -1137,7 +1137,7 @@ trimsub(char *str, char *pat, int how)
 
 	switch (how & 0xFF) {
 	case '#':		/* shortest at beginning */
-		for (p = str; p <= end; p++) {
+		for (p = str; p <= end; p += utf_ptradj(p)) {
 			c = *p; *p = '\0';
 			if (gmatchx(str, pat, false)) {
 				*p = c;
@@ -1157,17 +1157,27 @@ trimsub(char *str, char *pat, int how)
 		}
 		break;
 	case '%':		/* shortest match at end */
-		for (p = end; p >= str; p--)
+		p = end;
+		while (p >= str) {
+			if (gmatchx(p, pat, false))
+				goto trimsub_match;
+			if (UTFMODE) {
+				char *op = p;
+				while ((*--p & 0xC0) == 0x80)
+					;
+				if ((p < str) || (p + utf_ptradj(p) != op))
+					p = op - 1;
+			} else
+				--p;
+		}
+		break;
+	case '%'|0x80:		/* longest match at end */
+		for (p = str; p <= end; p++)
 			if (gmatchx(p, pat, false)) {
  trimsub_match:
 				strndupx(end, str, p - str, ATEMP);
 				return (end);
 			}
-		break;
-	case '%'|0x80:		/* longest match at end */
-		for (p = str; p <= end; p++)
-			if (gmatchx(p, pat, false))
-				goto trimsub_match;
 		break;
 	}
 
