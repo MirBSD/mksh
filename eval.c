@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.70 2009/10/30 00:57:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.71 2009/11/21 22:29:11 tg Exp $");
 
 /*
  * string expansion
@@ -591,7 +591,7 @@ expand(const char *cp,	/* input word */
 					 */
 					x.str = trimsub(str_val(st->var),
 						dp, st->stype);
-					type = XSUB;
+					type = strlen(x.str) ? XSUB : XNULLSUB;
 					if (f&DOBLANK)
 						doblank++;
 					st = st->prev;
