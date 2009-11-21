@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.196 2009/11/17 21:49:42 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.197 2009/11/21 23:21:23 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -71,7 +71,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: November 17 2009 $
+.Dd $Mdocdate: November 21 2009 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -2030,11 +2030,10 @@ The pattern elements have the following meaning:
 .It \&?
 Matches any single character.
 .It \&*
-Matches any sequence of characters.
+Matches any sequence of octets.
 .It [..]
-Matches any of the characters inside the brackets.
-Ranges of characters can be
-specified by separating two characters by a
+Matches any of the octets inside the brackets.
+Ranges of octets can be specified by separating two octets by a
 .Ql \-
 (e.g.\&
 .Dq [a0\-9]
@@ -2043,10 +2042,10 @@ matches the letter
 or any digit).
 In order to represent itself, a
 .Ql \-
-must either be quoted or the first or last character in the character list.
+must either be quoted or the first or last octet in the octet list.
 Similarly, a
 .Ql \&]
-must be quoted or the first character in the list if it is to represent itself
+must be quoted or the first octet in the list if it is to represent itself
 instead of the end of the list.
 Also, a
 .Ql \&!
@@ -2054,11 +2053,11 @@ appearing at the start of the list has special meaning (see below), so to
 represent itself it must be quoted or appear later in the list.
 .It [!..]
 Like [..],
-except it matches any character not inside the brackets.
+except it matches any octet not inside the brackets.
 .Sm off
 .It *( Ar pattern\*(Ba No ...\*(Ba Ar pattern )
 .Sm on
-Matches any string of characters that matches zero or more occurrences of the
+Matches any string of octets that matches zero or more occurrences of the
 specified patterns.
 Example: The pattern
 .Ic *(foo\*(Babar)
@@ -2071,7 +2070,7 @@ etc.
 .Sm off
 .It +( Ar pattern\*(Ba No ...\*(Ba Ar pattern )
 .Sm on
-Matches any string of characters that matches one or more occurrences of the
+Matches any string of octets that matches one or more occurrences of the
 specified patterns.
 Example: The pattern
 .Ic +(foo\*(Babar)
@@ -2154,7 +2153,7 @@ with a trailing
 .Pp
 The POSIX character classes (i.e.\&
 .Pf [: Ns Ar class-name Ns :]
-inside a [..] expression) are not yet implemented.
+inside a [..] expression) are not implemented.
 .Ss Input/output redirection
 When a command is executed, its standard input, standard output, and standard
 error (file descriptors 0, 1, and 2, respectively) are normally inherited from
