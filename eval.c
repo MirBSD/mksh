@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.72 2009/11/21 22:32:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.73 2009/11/21 23:23:17 tg Exp $");
 
 /*
  * string expansion
@@ -911,14 +911,20 @@ varsub(Expand *xp, const char *sp, const char *word,
 	struct tbl *vp;
 	bool zero_ok = false;
 
-	if (sp[0] == '\0')	/* Bad variable name */
+	if ((stype = sp[0]) == '\0')	/* Bad variable name */
 		return (-1);
 
 	xp->var = NULL;
 
-	/* ${#var}, string length or array size */
-	if (sp[0] == '#' && (c = sp[1]) != '\0') {
-		/* Can't have any modifiers for ${#...} */
+	/*-
+	 * ${#var}, string length (-U: characters, +U: octets) or array size
+	 * ${%var}, string width (-U: screen columns, +U: octets)
+	 */
+	c = sp[1];
+	if (stype == '%' && c == '\0')
+		return (-1);
+	if ((stype == '#' || stype == '%') && c != '\0') {
+		/* Can't have any modifiers for ${#...} or ${%...} */
 		if (*word != CSUBST)
 			return (-1);
 		sp++;
@@ -927,6 +933,8 @@ varsub(Expand *xp, const char *sp, const char *word,
 		    p[2] == ']') {
 			int n = 0;
 
+			if (stype != '#')
+				return (-1);
 			vp = global(arrayname(sp));
 			if (vp->flag & (ISSET|ARRAY))
 				zero_ok = true;
@@ -934,17 +942,19 @@ varsub(Expand *xp, const char *sp, const char *word,
 				if (vp->flag & ISSET)
 					n++;
 			c = n;
-		} else if (c == '*' || c == '@')
+		} else if (c == '*' || c == '@') {
+			if (stype != '#')
+				return (-1);
 			c = e->loc->argc;
-		else {
+		} else {
 			p = str_val(global(sp));
 			zero_ok = p != null;
-			c = utflen(p);
+			c = stype == '#' ? (int)utflen(p) : utf_mbswidth(p);
 		}
 		if (Flag(FNOUNSET) && c == 0 && !zero_ok)
 			errorf("%s: parameter not set", sp);
 		*stypep = 0; /* unqualified variable/string substitution */
-		xp->str = shf_smprintf("%lu", (unsigned long)c);
+		xp->str = shf_smprintf("%u", (unsigned int)c);
 		return (XSUB);
 	}
 

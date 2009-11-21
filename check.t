@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.340 2009/11/21 22:32:05 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.341 2009/11/21 23:23:16 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2009/11/09
+	@(#)MIRBSD KSH R39 2009/11/21
 description:
 	Check version of shell.
 stdin:
@@ -6679,4 +6679,63 @@ expected-stdout:
 	OPTARG=, OPTIND=4, optc=?.
 	done
 expected-stderr-pattern: /.*-x.*option/
+---
+name: wcswidth-1
+description:
+	Check the new wcswidth feature
+stdin:
+	s=何
+	set +U
+	print octets: ${#s} ${%s} .
+	set -U
+	print characters: ${#s} .
+	print columns: ${%s} .
+expected-stdout:
+	octets: 3 3 .
+	characters: 1 .
+	columns: 2 .
+---
+name: wcswidth-2
+description:
+	Check some corner cases
+stdin:
+	print % $% .
+expected-stdout:
+	% $% .
+---
+name: wcswidth-3
+description:
+	Check some corner cases
+stdin:
+	print ${%} .
+expected-stderr-pattern:
+	/bad substitution/
+expected-exit: 1
+---
+name: wcswidth-4a
+description:
+	Check some corner cases
+stdin:
+	print ${%*} .
+expected-stderr-pattern:
+	/bad substitution/
+expected-exit: 1
+---
+name: wcswidth-4b
+description:
+	Check some corner cases
+stdin:
+	print ${%@} .
+expected-stderr-pattern:
+	/bad substitution/
+expected-exit: 1
+---
+name: wcswidth-4c
+description:
+	Check some corner cases
+stdin:
+	:
+	print ${%?} .
+expected-stdout:
+	1 .
 ---
