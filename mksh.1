@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.198 2009/11/21 23:23:18 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.199 2009/11/22 14:23:21 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -71,7 +71,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: November 21 2009 $
+.Dd $Mdocdate: November 22 2009 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -769,7 +769,7 @@ is set to what was read (leading/trailing space is stripped), and
 is executed.
 If a blank line (i.e. zero or more
 .Ev IFS
-characters) is entered, the menu is reprinted without executing
+octets) is entered, the menu is reprinted without executing
 .Ar list .
 .Pp
 When
@@ -1142,18 +1142,17 @@ the current value of the
 parameter.
 The
 .Ev IFS
-parameter specifies a list of characters which are used to break a string up
-into several words; any characters from the set space, tab, and newline that
+parameter specifies a list of octets which are used to break a string up
+into several words; any octets from the set space, tab, and newline that
 appear in the
 .Ev IFS
-characters are called
+octets are called
 .Dq IFS whitespace .
 Sequences of one or more
 .Ev IFS
-whitespace characters, in combination with zero or one
+whitespace octets, in combination with zero or one
 .Pf non- Ev IFS
-whitespace
-characters, delimit a field.
+whitespace octets, delimit a field.
 As a special case, leading and trailing
 .Ev IFS
 whitespace and trailing
@@ -3578,13 +3577,10 @@ If
 .Ic read
 is run in a loop such as
 .Ic while read foo; do ...; done
-then leading whitespace will be removed (IFS) and backslashes processed
-.Pf ( Fl r ) .
+then leading whitespace will be removed (IFS) and backslashes processed.
 You might want to use
 .Ic while IFS= read \-r foo; do ...; done
-for pristine I/O (variable splitting, as in
-.Ic while IFS= read foo bar; do ...; done
-is not possible though).
+for pristine I/O.
 .Pp
 The inner loop will be executed in a subshell and variable changes
 cannot be propagated if executed in a pipeline:
@@ -4187,7 +4183,7 @@ is
 .Dv NULL
 or unset, if it has embedded spaces (i.e.\&
 .Ev IFS
-characters), or if it is a unary operator like
+octets), or if it is a unary operator like
 .Sq \&!
 or
 .Sq Fl n .
@@ -4876,7 +4872,7 @@ respectively.
 The line is scrolled horizontally as necessary.
 .Pp
 Completed lines are pushed into the history, unless they begin with an
-IFS character or IFS white space, or are the same as the previous line.
+IFS octet or IFS white space, or are the same as the previous line.
 .Ss Emacs editing mode
 When the
 .Ic emacs
