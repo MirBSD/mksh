@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.341 2009/11/21 23:23:16 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.342 2009/11/22 14:13:38 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4355,7 +4355,6 @@ expected-stdout:
 name: exit-eval-1
 description:
 	Check eval vs substitution exit codes (ksh93 alike)
-	(current implementation fails coz it's ksh88 alike)
 stdin:
 	eval $(false)
 	echo A $?
