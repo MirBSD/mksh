@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.62 2009/10/17 21:16:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.63 2009/11/22 14:14:42 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -121,11 +121,7 @@ static int nzombie;		/* # of zombies owned by this process */
 static int32_t njobs;		/* # of jobs started */
 
 #ifndef CHILD_MAX
-#ifdef _POSIX_CHILD_MAX
-#define CHILD_MAX	_POSIX_CHILD_MAX
-#elif defined(__KLIBC__)	/* XXX imake style */
-#define CHILD_MAX	999	/* no limit :-) */
-#endif
+#define CHILD_MAX	25
 #endif
 
 /* held_sigchld is set if sigchld occurs before a job is completely started */
