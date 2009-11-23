@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.130 2009/11/21 22:30:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.131 2009/11/23 12:48:19 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
@@ -583,7 +583,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 				return (0);
 			if (UTFMODE) {
 				--s;
-				s += utf_ptradj(s);
+				s += utf_ptradj((const void *)s);
 			}
 			break;
 
