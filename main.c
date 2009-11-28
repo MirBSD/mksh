@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.154 2009/10/30 14:37:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.155 2009/11/28 15:38:29 tg Exp $");
 
 extern char **environ;
 
@@ -45,6 +45,7 @@ extern gid_t kshgid, kshegid;
 static void reclaim(void);
 static void remove_temps(struct temp *);
 void chvt_reinit(void);
+Source *mksh_init(int, const char *[]);
 
 static const char initifs[] = "IFS= \t\n";
 
@@ -99,13 +100,13 @@ chvt_reinit(void)
 #endif
 }
 
-int
-main(int argc, const char *argv[])
+Source *
+mksh_init(int argc, const char *argv[])
 {
 	int argi, i;
 	Source *s;
 	struct block *l;
-	unsigned char restricted, errexit;
+	unsigned char restricted, errexit, utf_flag;
 	const char **wp;
 	struct tbl *vp;
 	struct stat s_stdin;
@@ -140,7 +141,7 @@ main(int argc, const char *argv[])
 
 	argi = parse_args(argv, OF_FIRSTTIME, NULL);
 	if (argi < 0)
-		exit(1);
+		return (NULL);
 
 	initvar();
 
@@ -305,9 +306,16 @@ main(int argc, const char *argv[])
 #ifndef MKSH_UNEMPLOYED
 	Flag(FMONITOR) = 127;
 #endif
+	/* this to note if utf-8 mode is set on command line (see below) */
+	UTFMODE = 2;
+
 	argi = parse_args(argv, OF_CMDLINE, NULL);
 	if (argi < 0)
-		exit(1);
+		return (NULL);
+
+	/* process this later only, default to off (hysterical raisins) */
+	utf_flag = UTFMODE;
+	UTFMODE = 0;
 
 	if (Flag(FCOMMAND)) {
 		s = pushs(SSTRING, ATEMP);
@@ -355,13 +363,15 @@ main(int argc, const char *argv[])
 
 	/* initialise job control */
 	j_init();
+	/* set: 0/1; unset: 2->0 */
+	UTFMODE = utf_flag & 1;
 	/* Do this after j_init(), as tty_fd is not initialised until then */
 	if (Flag(FTALKING)) {
+		if (utf_flag == 2) {
 #ifndef MKSH_ASSUME_UTF8
 #define isuc(x)	(((x) != NULL) && \
 		    (stristr((x), "UTF-8") || stristr((x), "utf8")))
 		/* Check if we're in a UTF-8 locale */
-		if (!UTFMODE) {
 			const char *ccp;
 
 #if HAVE_SETLOCALE_CTYPE
@@ -379,13 +389,13 @@ main(int argc, const char *argv[])
 				ccp = str_val(global("LANG"));
 #endif
 			UTFMODE = isuc(ccp);
-		}
 #undef isuc
 #elif MKSH_ASSUME_UTF8
-		UTFMODE = 1;
+			UTFMODE = 1;
 #else
-		UTFMODE = 0;
+			UTFMODE = 0;
 #endif
+		}
 		x_init();
 	}
 
@@ -443,8 +453,18 @@ main(int argc, const char *argv[])
 	} else
 		Flag(FTRACKALL) = 1;	/* set after ENV */
 
-	shell(s, true);	/* doesn't return */
-	return (0);
+	return (s);
+}
+
+int
+main(int argc, const char *argv[])
+{
+	Source *s;
+
+	if ((s = mksh_init(argc, argv)))
+		/* doesn’t return */
+		shell(s, true);
+	return (1);
 }
 
 int

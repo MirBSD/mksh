@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.345 2009/11/28 14:27:58 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.346 2009/11/28 15:38:28 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2009/11/22
+	@(#)MIRBSD KSH R39 2009/11/28
 description:
 	Check version of shell.
 stdin:
@@ -4831,6 +4831,25 @@ expected-stdout:
 	is set
 expected-stderr-pattern:
 	/(# )*/
+---
+name: utf8opt-3
+description:
+	Ensure ±U on the command line is honoured
+	(this test may pass falsely depending on CPPFLAGS)
+stdin:
+	export i=0
+	code='if [[ $- = *U* ]]; then echo $i on; else echo $i off; fi'
+	let i++; "$__progname" -U -c "$code"
+	let i++; "$__progname" +U -c "$code"
+	let i++; "$__progname" -U -ic "$code"
+	let i++; "$__progname" +U -ic "$code"
+	echo $((++i)) done
+expected-stdout:
+	1 on
+	2 off
+	3 on
+	4 off
+	5 done
 ---
 name: aliases-1
 description:
