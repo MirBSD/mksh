@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.69 2009/11/28 14:21:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.70 2009/11/28 14:28:00 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile, volatile int *);
@@ -1380,7 +1380,7 @@ pr_menu(const char * const *ap)
 		i = strlen(*pp);
 		if (i > aocts)
 			aocts = i;
-		i = utf_mbswidth(*pp, true);
+		i = utf_mbswidth(*pp);
 		if (i > acols)
 			acols = i;
 	}
@@ -1420,7 +1420,7 @@ pr_list(char * const *ap)
 		i = strlen(*pp);
 		if (i > aocts)
 			aocts = i;
-		i = utf_mbswidth(*pp, true);
+		i = utf_mbswidth(*pp);
 		if (i > acols)
 			acols = i;
 	}

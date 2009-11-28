@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.97 2009/11/28 14:21:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.98 2009/11/28 14:28:03 tg Exp $");
 
 /*
  * Variables
@@ -574,7 +574,7 @@ formatstr(struct tbl *vp, const char *s)
 	char *p, *q;
 	size_t psiz;
 
-	olen = utf_mbswidth(s, true);
+	olen = utf_mbswidth(s);
 
 	if (vp->flag & (RJUST|LJUST)) {
 		if (!vp->u2.field)	/* default field width */

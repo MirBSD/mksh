@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.38 2009/11/28 14:21:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.39 2009/11/28 14:28:00 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -683,15 +683,8 @@ utf_widthadj(const char *src, const char **dst)
 	return (width);
 }
 
-/**
- * In lenient mode, characters of width -1 are handled as one column
- * per octet (kind of as a strlen replacement). Users of lenient mo-
- * de should reconsider the code.
- * In strict mode, this behaves like wcswidth(3) and returns -1 upon
- * encounter of a control multibyte character.
- */
 int
-utf_mbswidth(const char *s, bool lenient)
+utf_mbswidth(const char *s)
 {
 	size_t len;
 	unsigned int wc;
@@ -701,14 +694,10 @@ utf_mbswidth(const char *s, bool lenient)
 		return (strlen(s));
 
 	while (*s)
-		if ((len = utf_mbtowc(&wc, s)) == (size_t)-1) {
- by_octet:
+		if (((len = utf_mbtowc(&wc, s)) == (size_t)-1) ||
+		    ((cw = utf_wcwidth(wc)) == -1)) {
 			s++;
 			width += 1;
-		} else if ((cw = utf_wcwidth(wc)) == -1) {
-			if (lenient)
-				goto by_octet;
-			return (-1);
 		} else {
 			s += len;
 			width += cw;

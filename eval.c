@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.75 2009/11/28 14:21:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.76 2009/11/28 14:27:59 tg Exp $");
 
 /*
  * string expansion
@@ -949,13 +949,12 @@ varsub(Expand *xp, const char *sp, const char *word,
 		} else {
 			p = str_val(global(sp));
 			zero_ok = p != null;
-			c = stype == '#' ? (int)utflen(p) :
-			    utf_mbswidth(p, false);
+			c = stype == '#' ? (int)utflen(p) : utf_mbswidth(p);
 		}
 		if (Flag(FNOUNSET) && c == 0 && !zero_ok)
 			errorf("%s: parameter not set", sp);
 		*stypep = 0; /* unqualified variable/string substitution */
-		xp->str = shf_smprintf("%d", c);
+		xp->str = shf_smprintf("%u", (unsigned int)c);
 		return (XSUB);
 	}
 

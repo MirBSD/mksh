@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.143 2009/11/28 14:21:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.144 2009/11/28 14:28:01 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1551,7 +1551,7 @@ c_kill(const char **wp)
 				w = strlen(sigtraps[j].mess);
 				if (w > mess_octs)
 					mess_octs = w;
-				w = utf_mbswidth(sigtraps[j].mess, true);
+				w = utf_mbswidth(sigtraps[j].mess);
 				if (w > mess_cols)
 					mess_cols = w;
 			}
