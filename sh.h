@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.362 2009/11/22 14:25:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.362.2.1 2009/11/28 14:27:54 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/11/22"
 
@@ -1361,7 +1361,7 @@ int v_evaluate(struct tbl *, const char *, volatile int, bool);
 size_t utf_mbtowc(unsigned int *, const char *);
 size_t utf_wctomb(char *, unsigned int);
 int utf_widthadj(const char *, const char **);
-int utf_mbswidth(const char *);
+int utf_mbswidth(const char *, bool);
 const char *utf_skipcols(const char *, int);
 size_t utf_ptradj(const char *);
 int utf_wcwidth(unsigned int);
