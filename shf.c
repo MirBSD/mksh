@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.33 2009/09/20 13:33:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.34 2009/11/28 14:21:46 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -932,7 +932,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		case 's':
 			if (!(s = va_arg(args, const char *)))
 				s = "(null)";
-			len = utf_mbswidth(s);
+			len = utf_mbswidth(s, true);
 			break;
 
 		case 'c':
