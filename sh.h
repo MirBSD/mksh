@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.365 2009/11/28 15:38:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.366 2009/11/29 17:37:22 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/11/28"
 
@@ -267,7 +267,7 @@ extern void arc4random_addrandom(unsigned char *, int)
 #endif
 
 #if !HAVE_ARC4RANDOM_PUSHB_DECL
-extern uint32_t arc4random_pushb(void *, size_t);
+extern uint32_t arc4random_pushb(const void *, size_t);
 #endif
 
 #if !HAVE_FLOCK_DECL
