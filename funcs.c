@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.144 2009/11/28 14:28:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.145 2009/12/01 13:12:30 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3266,7 +3266,7 @@ print_ulimit(const struct limits *l, int how)
 		val = limit.rlim_cur;
 	else if (how & HARD)
 		val = limit.rlim_max;
-	if (val == RLIM_INFINITY)
+	if (val == (rlim_t)RLIM_INFINITY)
 		shf_puts("unlimited\n", shl_stdout);
 	else
 		shprintf("%ld\n", (long)(val / l->factor));
