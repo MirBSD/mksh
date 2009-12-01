@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.346 2009/11/28 15:38:28 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.347 2009/12/01 19:15:31 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2009/11/28
+	@(#)MIRBSD KSH R39 2009/12/01
 description:
 	Check version of shell.
 stdin:
@@ -5104,8 +5104,13 @@ stdin:
 	v="c d"
 	foo=([1]=\$v [2]="$v" [4]='$v' [0]=a [5]=b)
 	echo "${#foo[*]}|${foo[0]}|${foo[1]}|${foo[2]}|${foo[3]}|${foo[4]}|${foo[5]}|"
+	x=([128]=foo bar baz)
+	echo k= ${!x[*]} .
+	echo v= ${x[*]} .
 expected-stdout:
 	5|a|$v|c d||$v|b|
+	k= 128 129 130 .
+	v= foo bar baz .
 ---
 name: arrays-6
 description:
