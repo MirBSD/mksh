@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.430 2009/10/27 16:59:59 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.431 2009/12/05 16:19:59 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1409,7 +1409,7 @@ cat >>test.sh <<-EOF
 		print "Perl interpreter '\$perli' running on '\$perlos'"
 		[[ -n \$perlos ]] && break
 	done
-	exec \$perli '$srcdir/check.pl' -s '$srcdir/check.t' -p '$curdir/mksh' -C \${check_categories#,} \$*$tsts
+	exec \$perli '$srcdir/check.pl' -s '$srcdir/check.t' -p '$curdir/mksh' \${check_categories:+-C} \${check_categories#,} \$*$tsts
 EOF
 chmod 755 test.sh
 test $HAVE_CAN_COMBINE$cm = 0combine && cm=normal
