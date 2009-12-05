@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.76 2009/11/28 14:27:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.77 2009/12/05 17:02:25 tg Exp $");
 
 /*
  * string expansion
@@ -360,10 +360,6 @@ expand(const char *cp,	/* input word */
 						char *beg, *mid, *end, *stg;
 						mksh_ari_t from = 0, num = -1, flen, finc = 0;
 
-						/* ! DOBLANK,DOBRACE_,DOTILDE */
-						f = DOPAT | (f&DONTRUNCOMMAND) |
-						    DOTEMP_;
-						quote = 0;
 						beg = wdcopy(sp, ATEMP);
 						mid = beg + (wdscan(sp, ADELIM) - sp);
 						stg = beg + (wdscan(sp, CSUBST) - sp);
@@ -412,11 +408,6 @@ expand(const char *cp,	/* input word */
 						char *s, *p, *d, *sbeg, *end;
 						char *pat, *rrep;
 						char *tpat0, *tpat1, *tpat2;
-
-						/* ! DOBLANK,DOBRACE_,DOTILDE */
-						f = DOPAT | (f&DONTRUNCOMMAND) |
-						    DOTEMP_;
-						quote = 0;
 
 						s = wdcopy(sp, ATEMP);
 						p = s + (wdscan(sp, ADELIM) - sp);
