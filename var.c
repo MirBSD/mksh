@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.99 2009/12/01 19:15:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.100 2009/12/05 17:43:50 tg Exp $");
 
 /*
  * Variables
@@ -160,12 +160,9 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 		strndupx(vn, n, p - n, ATEMP);
 		h = hash(vn);
 		/* check if this is a reference */
-		for (l = e->loc; ; l = l->next) {
-			if ((vp = ktsearch(&l->vars, vn, h)) != NULL)
-				break;
-			if (l->next == NULL)
-				break;
-		}
+		do {
+			vp = ktsearch(&l->vars, vn, h);
+		} while (!vp && (l = l->next));
 		afree(vn, ATEMP);
 		if (vp && (vp->flag & (DEFINED|ASSOC|ARRAY)) ==
 		    (DEFINED|ASSOC)) {

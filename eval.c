@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.77 2009/12/05 17:02:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.78 2009/12/05 17:43:45 tg Exp $");
 
 /*
  * string expansion
@@ -236,7 +236,8 @@ expand(const char *cp,	/* input word */
 	doblank = 0;
 	make_magic = 0;
 	word = (f&DOBLANK) ? IFS_WS : IFS_WORD;
-	st_head.next = NULL;
+	/* clang doesn't know OSUBST comes before CSUBST */
+	memset(&st_head, 0, sizeof(st_head));
 	st = &st_head;
 
 	while (1) {

@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.184 2009/10/30 00:57:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.185 2009/12/05 17:43:44 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -70,11 +70,17 @@ static int x_vi(char *, size_t);
 #define x_putc(c)	shf_putc((c), shl_out)
 
 static int path_order_cmp(const void *aa, const void *bb);
-static char *add_glob(const char *, int);
+static char *add_glob(const char *, int)
+    __attribute__((nonnull (1)))
+    __bound_att__((bounded (string, 1, 2)));
 static void glob_table(const char *, XPtrV *, struct table *);
 static void glob_path(int flags, const char *, XPtrV *, const char *);
-static int x_file_glob(int, const char *, int, char ***);
-static int x_command_glob(int, const char *, int, char ***);
+static int x_file_glob(int, const char *, int, char ***)
+    __attribute__((nonnull (2)))
+    __bound_att__((bounded (string, 2, 3)));
+static int x_command_glob(int, const char *, int, char ***)
+    __attribute__((nonnull (2)))
+    __bound_att__((bounded (string, 2, 3)));
 static int x_locate_word(const char *, int, int, int *, bool *);
 
 static int x_e_getmbc(char *);
@@ -528,6 +534,9 @@ add_glob(const char *str, int slen)
 	if (slen < 0)
 		return (NULL);
 
+	/* for clang's static analyser, the nonnull attribute isn't enough */
+	mkssert(str != NULL);
+
 	strndupx(toglob, str, slen + 1, ATEMP); /* + 1 for "*" */
 	toglob[slen] = '\0';
 
@@ -848,14 +857,16 @@ static void x_load_hist(char **);
 static int x_search(char *, int, int);
 #ifndef MKSH_SMALL
 static int x_search_dir(int);
-int x_bind(const char *, const char *, bool, bool);
+int x_bind(const char *, const char *, bool, bool)
 #else
-int x_bind(const char *, const char *, bool);
+int x_bind(const char *, const char *, bool)
 #endif
+    __attribute__((nonnull (1, 2)));
 static int x_match(char *, char *);
 static void x_redraw(int);
 static void x_push(int);
-static char *x_mapin(const char *, Area *);
+static char *x_mapin(const char *, Area *)
+    __attribute__((nonnull (1)));
 static char *x_mapout(int);
 static void x_mapout2(int, char **);
 static void x_print(int, int);
@@ -2229,6 +2240,9 @@ x_mapin(const char *cp, Area *ap)
 {
 	char *new, *op;
 
+	/* for clang's static analyser, the nonnull attribute isn't enough */
+	mkssert(cp != NULL);
+
 	strdupx(new, cp, ap);
 	op = new;
 	while (*cp) {
@@ -2338,7 +2352,7 @@ x_bind(const char *a1, const char *a2,
 		return (0);
 	}
 	m2 = m1 = x_mapin(a1, ATEMP);
-	prefix = key = 0;
+	prefix = 0;
 	for (;; m1++) {
 		key = (unsigned char)*m1;
 		f = XFUNC_VALUE(x_tab[prefix][key]);

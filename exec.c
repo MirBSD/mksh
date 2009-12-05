@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.70 2009/11/28 14:28:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.71 2009/12/05 17:43:46 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile, volatile int *);
@@ -296,7 +296,7 @@ execute(struct op *volatile t,
 				}
 				is_first = false;
 				setstr(global(t->str), cp, KSH_UNWIND_ERROR);
-				rv = execute(t->left, flags & XERROK, xerrok);
+				execute(t->left, flags & XERROK, xerrok);
 			}
 		}
 		break;

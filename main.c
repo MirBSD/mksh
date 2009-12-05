@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.156 2009/12/05 13:02:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.157 2009/12/05 17:43:47 tg Exp $");
 
 extern char **environ;
 
@@ -769,7 +769,10 @@ cleanup_parents_env(void)
 	struct env *ep;
 	int fd;
 
-	/* Don't clean up temporary files - parent will probably need them.
+	mkssert(e != NULL);
+
+	/*
+	 * Don't clean up temporary files - parent will probably need them.
 	 * Also, can't easily reclaim memory since variables, etc. could be
 	 * anywhere.
 	 */

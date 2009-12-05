@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.145 2009/12/01 13:12:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.146 2009/12/05 17:43:46 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2339,7 +2339,8 @@ c_brkcont(const char **wp)
 int
 c_set(const char **wp)
 {
-	int argi, setargs;
+	int argi;
+	bool setargs;
 	struct block *l = e->loc;
 	const char **owp;
 
@@ -2353,7 +2354,8 @@ c_set(const char **wp)
 		return (1);
 	/* set $# and $* */
 	if (setargs) {
-		owp = wp += argi - 1;
+		wp += argi - 1;
+		owp = wp;
 		wp[0] = l->argv[0]; /* save $0 */
 		while (*++wp != NULL)
 			strdupx(*wp, *wp, &l->area);

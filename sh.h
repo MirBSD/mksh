@@ -134,9 +134,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.367 2009/12/01 19:15:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.368 2009/12/05 17:43:49 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2009/12/01"
+#define MKSH_VERSION "R39 2009/12/05"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -410,11 +410,13 @@ char *ucstrstr(char *, const char *);
 })
 #define vstrchr(s,c)	(cstrchr((s), (c)) != NULL)
 #define vstrstr(b,l)	(cstrstr((b), (l)) != NULL)
+#define mkssert(e)	((e) ? (void)0 : exit(255))
 #else /* !DEBUG, !gcc */
 #define cstrchr(s,c)	((const char *)strchr((s), (c)))
 #define cstrstr(s,c)	((const char *)strstr((s), (c)))
 #define vstrchr(s,c)	(strchr((s), (c)) != NULL)
 #define vstrstr(b,l)	(strstr((b), (l)) != NULL)
+#define mkssert(e)	((void)0)
 #endif
 
 /* use this ipv strchr(s, 0) but no side effects in s! */
@@ -1535,7 +1537,7 @@ void initctypes(void);
 size_t option(const char *);
 char *getoptions(void);
 void change_flag(enum sh_flag, int, unsigned int);
-int parse_args(const char **, int, int *);
+int parse_args(const char **, int, bool *);
 int getn(const char *, int *);
 int bi_getn(const char *, int *);
 int gmatchx(const char *, const char *, bool);
