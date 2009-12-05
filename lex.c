@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.101 2009/11/21 23:23:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.102 2009/12/05 19:44:09 tg Exp $");
 
 /*
  * states while lexing word
@@ -1326,7 +1326,7 @@ getsc_line(Source *s)
 
 	/* Done here to ensure nothing odd happens when a timeout occurs */
 	XcheckN(s->xs, xp, LINE);
-	*xp = '\0';
+	memset(xp, 0, LINE);
 	s->start = s->str = xp;
 
 	if (have_tty && ksh_tmout) {
