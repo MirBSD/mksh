@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.78 2009/12/05 17:43:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.79 2009/12/05 22:24:35 tg Exp $");
 
 /*
  * string expansion
@@ -1364,7 +1364,7 @@ debunk(char *dp, const char *sp, size_t dlen)
 	if ((s = cstrchr(sp, MAGIC))) {
 		if (s - sp >= (ssize_t)dlen)
 			return (dp);
-		memcpy(dp, sp, s - sp);
+		memmove(dp, sp, s - sp);
 		for (d = dp + (s - sp); *s && (d - dp < (ssize_t)dlen); s++)
 			if (!ISMAGIC(*s) || !(*++s & 0x80) ||
 			    !vstrchr("*+?@! ", *s & 0x7f))
