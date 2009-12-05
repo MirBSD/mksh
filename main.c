@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.155 2009/11/28 15:38:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.156 2009/12/05 13:02:26 tg Exp $");
 
 extern char **environ;
 
@@ -1312,7 +1312,7 @@ texpand(struct table *tp, size_t nsize)
 	for (i = 0; i < nsize; i++)
 		ntblp[i] = NULL;
 	tp->size = nsize;
-	tp->nfree = 8 * nsize / 10;	/* table can get 80% full */
+	tp->nfree = (nsize * 4) / 5;	/* table can get 80% full */
 	tp->tbls = ntblp;
 	if (otblp == NULL)
 		return;
