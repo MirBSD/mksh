@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.185 2009/12/05 17:43:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.186 2009/12/05 22:19:41 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -3891,7 +3891,7 @@ vi_cmd(int argcnt, const char *cmd)
 					return (-1);
 				/* check if this is a recursive call... */
 				if ((p = (char *)macro.p))
-					while ((p = strchr(p, '\0')) && p[1])
+					while ((p = strnul(p)) && p[1])
 						if (*++p == cmd[1])
 							return (-1);
 				/* insert alias into macro buffer */

@@ -134,7 +134,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.368 2009/12/05 17:43:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.369 2009/12/05 22:19:42 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2009/12/05"
 
@@ -392,6 +392,7 @@ union mksh_ccphack {
     !defined(__INTEL_COMPILER) && !defined(__SUNPRO_C)
 char *ucstrchr(char *, int);
 char *ucstrstr(char *, const char *);
+#undef strchr
 #define strchr ucstrchr
 #define strstr ucstrstr
 #define cstrchr(s,c) ({			\
