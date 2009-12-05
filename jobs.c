@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.63 2009/11/22 14:14:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.64 2009/12/05 22:03:39 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -410,6 +410,10 @@ exchild(struct op *t, int flags,
 		errorf("cannot fork - try again");
 	}
 #if !HAVE_ARC4RANDOM
+#ifdef DEBUG
+	/* reduce extra 3 bytes of entropy, for Valgrind */
+	memset(&pi, 0, sizeof(pi));
+#endif
 	pi.thepid =
 #endif
 	    p->pid = (pi.ischild = i == 0) ? (procpid = getpid()) : i;
