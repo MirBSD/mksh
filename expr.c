@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.40 2009/12/05 20:17:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.41 2009/12/08 19:23:34 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -818,7 +818,7 @@ utf_wcwidth(unsigned int c)
 	static const struct cbset {
 		unsigned short first;
 		unsigned short last;
-	} const comb[] = {
+	} comb[] = {
 		{ 0x0300, 0x036F }, { 0x0483, 0x0486 }, { 0x0488, 0x0489 },
 		{ 0x0591, 0x05BD }, { 0x05BF, 0x05BF }, { 0x05C1, 0x05C2 },
 		{ 0x05C4, 0x05C5 }, { 0x05C7, 0x05C7 }, { 0x0600, 0x0603 },
