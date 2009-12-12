@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.65 2009/12/12 17:45:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.66 2009/12/12 22:27:08 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1103,7 +1103,7 @@ j_waitj(Job *j,
  */
 /* ARGSUSED */
 static void
-j_sigchld(int sig __unused)
+j_sigchld(int sig MKSH_A_UNUSED)
 {
 	int		errno_ = errno;
 	Job		*j;

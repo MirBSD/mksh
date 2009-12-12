@@ -91,22 +91,36 @@
 #include <values.h>
 #endif
 
-#if HAVE_ATTRIBUTE
 #undef __attribute__
-#else
-#define __attribute__(x)	/* nothing */
-#endif
-#undef __unused
-#define __unused		__attribute__((unused))
 #if HAVE_ATTRIBUTE_BOUNDED
-#define __bound_att__(x)	__attribute__(x)
+#define MKSH_A_BOUNDED(x,y,z)	__attribute__((bounded (x, y, z)))
 #else
-#define __bound_att__(x)	/* nothing */
+#define MKSH_A_BOUNDED(x,y,z)	/* nothing */
+#endif
+#if HAVE_ATTRIBUTE_FORMAT
+#define MKSH_A_FORMAT(x,y,z)	__attribute__((format (x, y, z)))
+#else
+#define MKSH_A_FORMAT(x,y,z)	/* nothing */
+#endif
+#if HAVE_ATTRIBUTE_NONNULL
+#define MKSH_A_NONNULL(a)	__attribute__(a)
+#else
+#define MKSH_A_NONNULL(a)	/* nothing */
+#endif
+#if HAVE_ATTRIBUTE_NORETURN
+#define MKSH_A_NORETURN		__attribute__((noreturn))
+#else
+#define MKSH_A_NORETURN		/* nothing */
+#endif
+#if HAVE_ATTRIBUTE_UNUSED
+#define MKSH_A_UNUSED		__attribute__((unused))
+#else
+#define MKSH_A_UNUSED		/* nothing */
 #endif
 #if HAVE_ATTRIBUTE_USED
-#define __attribute____used__	__attribute__((used))
+#define MKSH_A_USED		__attribute__((used))
 #else
-#define __attribute____used__	/* nothing */
+#define MKSH_A_USED		/* nothing */
 #endif
 
 #if (defined(MirBSD) && (MirBSD >= 0x09A1))
@@ -127,16 +141,16 @@
 #define __IDSTRING_EXPAND(l,p)		__IDSTRING_CONCAT(l,p)
 #define __IDSTRING(prefix, string)				\
 	static const char __IDSTRING_EXPAND(__LINE__,prefix) []	\
-	    __attribute____used__ = "@(""#)" #prefix ": " string
+	    MKSH_A_USED = "@(""#)" #prefix ": " string
 #define __COPYRIGHT(x)		__IDSTRING(copyright,x)
 #define __RCSID(x)		__IDSTRING(rcsid,x)
 #define __SCCSID(x)		__IDSTRING(sccsid,x)
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.369 2009/12/05 22:19:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.370 2009/12/12 22:27:09 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2009/12/05"
+#define MKSH_VERSION "R39 2009/12/12"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -263,7 +277,7 @@ typedef int bool;
 #if !HAVE_ARC4RANDOM_DECL
 extern u_int32_t arc4random(void);
 extern void arc4random_addrandom(unsigned char *, int)
-    __bound_att__((bounded (string, 1, 2)));
+    MKSH_A_BOUNDED(string, 1, 2);
 #endif
 
 #if !HAVE_ARC4RANDOM_PUSHB_DECL
@@ -1469,8 +1483,8 @@ int j_stopped_running(void);
 /* lex.c */
 int yylex(int);
 void yyerror(const char *, ...)
-    __attribute__((noreturn))
-    __attribute__((format (printf, 1, 2)));
+    MKSH_A_NORETURN
+    MKSH_A_FORMAT(printf, 1, 2);
 Source *pushs(int, Area *);
 void set_prompt(int, Source *);
 void pprompt(const char *, int);
@@ -1479,33 +1493,32 @@ int promptlen(const char *);
 int include(const char *, int, const char **, int);
 int command(const char *);
 int shell(Source *volatile, int volatile);
-void unwind(int)
-    __attribute__((noreturn));
+void unwind(int) MKSH_A_NORETURN;
 void newenv(int);
 void quitenv(struct shf *);
 void cleanup_parents_env(void);
 void cleanup_proc_env(void);
 void errorf(const char *, ...)
-    __attribute__((noreturn))
-    __attribute__((format (printf, 1, 2)));
+    MKSH_A_NORETURN
+    MKSH_A_FORMAT(printf, 1, 2);
 void warningf(bool, const char *, ...)
-    __attribute__((format (printf, 2, 3)));
+    MKSH_A_FORMAT(printf, 2, 3);
 void bi_errorf(const char *, ...)
-    __attribute__((format (printf, 1, 2)));
+    MKSH_A_FORMAT(printf, 1, 2);
 #define errorfz()	errorf("\1")
 #define bi_errorfz()	bi_errorf("\1")
 void internal_verrorf(const char *, va_list)
-    __attribute__((format (printf, 1, 0)));
+    MKSH_A_FORMAT(printf, 1, 0);
 void internal_errorf(const char *, ...)
-    __attribute__((noreturn))
-    __attribute__((format (printf, 1, 2)));
+    MKSH_A_NORETURN
+    MKSH_A_FORMAT(printf, 1, 2);
 void internal_warningf(const char *, ...)
-    __attribute__((format (printf, 1, 2)));
+    MKSH_A_FORMAT(printf, 1, 2);
 void error_prefix(bool);
 void shellf(const char *, ...)
-    __attribute__((format (printf, 1, 2)));
+    MKSH_A_FORMAT(printf, 1, 2);
 void shprintf(const char *, ...)
-    __attribute__((format (printf, 1, 2)));
+    MKSH_A_FORMAT(printf, 1, 2);
 int can_seek(int);
 void initio(void);
 int ksh_dup2(int, int, bool);
@@ -1553,7 +1566,7 @@ void print_columns(struct shf *, int,
     const void *, int, int, bool);
 void strip_nuls(char *, int);
 int blocking_read(int, char *, int)
-    __bound_att__((bounded (buffer, 2, 3)));
+    MKSH_A_BOUNDED(buffer, 2, 3);
 int reset_nonblock(int);
 char *ksh_get_wd(size_t *);
 int make_path(const char *, const char *, char **, XString *, int *);
@@ -1581,14 +1594,14 @@ int shf_putchar(int, struct shf *);
 int shf_puts(const char *, struct shf *);
 int shf_write(const char *, int, struct shf *);
 int shf_fprintf(struct shf *, const char *, ...)
-    __attribute__((format (printf, 2, 3)));
+    MKSH_A_FORMAT(printf, 2, 3);
 int shf_snprintf(char *, int, const char *, ...)
-    __attribute__((format (printf, 3, 4)))
-    __bound_att__((bounded (string, 1, 2)));
+    MKSH_A_FORMAT(printf, 3, 4)
+    MKSH_A_BOUNDED(string, 1, 2);
 char *shf_smprintf(const char *, ...)
-    __attribute__((format (printf, 1, 2)));
+    MKSH_A_FORMAT(printf, 1, 2);
 int shf_vfprintf(struct shf *, const char *, va_list)
-    __attribute__((format (printf, 2, 0)));
+    MKSH_A_FORMAT(printf, 2, 0);
 /* syn.c */
 void initkeywords(void);
 struct op *compile(Source *);

@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.89 2009/10/02 18:08:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.90 2009/12/12 22:27:08 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -597,7 +597,7 @@ init_histvec(void)
  * save command in history
  */
 void
-histsave(int *lnp, const char *cmd, bool dowrite __unused, bool ignoredups)
+histsave(int *lnp, const char *cmd, bool dowrite MKSH_A_UNUSED, bool ignoredups)
 {
 	char **hp;
 	char *c, *cp;
@@ -1088,7 +1088,7 @@ alarm_init(void)
 
 /* ARGSUSED */
 static void
-alarm_catcher(int sig __unused)
+alarm_catcher(int sig MKSH_A_UNUSED)
 {
 	int errno_ = errno;
 

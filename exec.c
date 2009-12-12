@@ -22,12 +22,11 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.71 2009/12/05 17:43:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.72 2009/12/12 22:27:06 tg Exp $");
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile, volatile int *);
-static void scriptexec(struct op *, const char **)
-    __attribute__((noreturn));
+static void scriptexec(struct op *, const char **) MKSH_A_NORETURN;
 static int call_builtin(struct tbl *, const char **);
 static int iosetup(struct ioword *, struct tbl *);
 static int herein(const char *, int);

@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.47 2009/10/30 00:57:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.48 2009/12/12 22:27:10 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -45,8 +45,7 @@ static struct op *function_body(char *, bool);
 static char **wordlist(void);
 static struct op *block(int, struct op *, struct op *, char **);
 static struct op *newtp(int);
-static void syntaxerr(const char *)
-    __attribute__((noreturn));
+static void syntaxerr(const char *) MKSH_A_NORETURN;
 static void nesting_push(struct nesting_state *, int);
 static void nesting_pop(struct nesting_state *);
 static int assign_command(char *);
@@ -55,8 +54,7 @@ static int dbtestp_isa(Test_env *, Test_meta);
 static const char *dbtestp_getopnd(Test_env *, Test_op, bool);
 static int dbtestp_eval(Test_env *, Test_op, const char *,
     const char *, bool);
-static void dbtestp_error(Test_env *, int, const char *)
-    __attribute__((noreturn));
+static void dbtestp_error(Test_env *, int, const char *) MKSH_A_NORETURN;
 
 static struct op *outtree;		/* yyparse output */
 static struct nesting_state nesting;	/* \n changed to ; */
@@ -965,7 +963,8 @@ dbtestp_isa(Test_env *te, Test_meta meta)
 }
 
 static const char *
-dbtestp_getopnd(Test_env *te, Test_op op __unused, bool do_eval __unused)
+dbtestp_getopnd(Test_env *te, Test_op op MKSH_A_UNUSED,
+    bool do_eval MKSH_A_UNUSED)
 {
 	int c = tpeek(ARRAYVAR);
 
@@ -979,9 +978,9 @@ dbtestp_getopnd(Test_env *te, Test_op op __unused, bool do_eval __unused)
 }
 
 static int
-dbtestp_eval(Test_env *te __unused, Test_op op __unused,
-    const char *opnd1 __unused, const char *opnd2 __unused,
-    bool do_eval __unused)
+dbtestp_eval(Test_env *te MKSH_A_UNUSED, Test_op op MKSH_A_UNUSED,
+    const char *opnd1 MKSH_A_UNUSED, const char *opnd2 MKSH_A_UNUSED,
+    bool do_eval MKSH_A_UNUSED)
 {
 	return (1);
 }

@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.186 2009/12/05 22:19:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.187 2009/12/12 22:27:05 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -71,16 +71,16 @@ static int x_vi(char *, size_t);
 
 static int path_order_cmp(const void *aa, const void *bb);
 static char *add_glob(const char *, int)
-    __attribute__((nonnull (1)))
-    __bound_att__((bounded (string, 1, 2)));
+    MKSH_A_NONNULL((nonnull (1)))
+    MKSH_A_BOUNDED(string, 1, 2);
 static void glob_table(const char *, XPtrV *, struct table *);
 static void glob_path(int flags, const char *, XPtrV *, const char *);
 static int x_file_glob(int, const char *, int, char ***)
-    __attribute__((nonnull (2)))
-    __bound_att__((bounded (string, 2, 3)));
+    MKSH_A_NONNULL((nonnull (2)))
+    MKSH_A_BOUNDED(string, 2, 3);
 static int x_command_glob(int, const char *, int, char ***)
-    __attribute__((nonnull (2)))
-    __bound_att__((bounded (string, 2, 3)));
+    MKSH_A_NONNULL((nonnull (2)))
+    MKSH_A_BOUNDED(string, 2, 3);
 static int x_locate_word(const char *, int, int, int *, bool *);
 
 static int x_e_getmbc(char *);
@@ -254,7 +254,7 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
  *	- returns number of matching strings
  */
 static int
-x_file_glob(int flags __unused, const char *str, int slen, char ***wordsp)
+x_file_glob(int flags MKSH_A_UNUSED, const char *str, int slen, char ***wordsp)
 {
 	char *toglob, **words;
 	int nwords, i, idx;
@@ -861,12 +861,12 @@ int x_bind(const char *, const char *, bool, bool)
 #else
 int x_bind(const char *, const char *, bool)
 #endif
-    __attribute__((nonnull (1, 2)));
+    MKSH_A_NONNULL((nonnull (1, 2)));
 static int x_match(char *, char *);
 static void x_redraw(int);
 static void x_push(int);
 static char *x_mapin(const char *, Area *)
-    __attribute__((nonnull (1)));
+    MKSH_A_NONNULL((nonnull (1)));
 static char *x_mapout(int);
 static void x_mapout2(int, char **);
 static void x_print(int, int);
@@ -1252,7 +1252,7 @@ x_ins(const char *s)
 }
 
 static int
-x_del_back(int c __unused)
+x_del_back(int c MKSH_A_UNUSED)
 {
 	int i = 0;
 
@@ -1268,7 +1268,7 @@ x_del_back(int c __unused)
 }
 
 static int
-x_del_char(int c __unused)
+x_del_char(int c MKSH_A_UNUSED)
 {
 	char *cp, *cp2;
 	int i = 0;
@@ -1360,28 +1360,28 @@ x_delete(int nc, int push)
 }
 
 static int
-x_del_bword(int c __unused)
+x_del_bword(int c MKSH_A_UNUSED)
 {
 	x_delete(x_bword(), true);
 	return (KSTD);
 }
 
 static int
-x_mv_bword(int c __unused)
+x_mv_bword(int c MKSH_A_UNUSED)
 {
 	x_bword();
 	return (KSTD);
 }
 
 static int
-x_mv_fword(int c __unused)
+x_mv_fword(int c MKSH_A_UNUSED)
 {
 	x_fword(1);
 	return (KSTD);
 }
 
 static int
-x_del_fword(int c __unused)
+x_del_fword(int c MKSH_A_UNUSED)
 {
 	x_delete(x_fword(0), true);
 	return (KSTD);
@@ -1536,7 +1536,7 @@ x_zotc3(char **cp)
 }
 
 static int
-x_mv_back(int c __unused)
+x_mv_back(int c MKSH_A_UNUSED)
 {
 	if (xcp == xbuf) {
 		x_e_putc2(7);
@@ -1551,7 +1551,7 @@ x_mv_back(int c __unused)
 }
 
 static int
-x_mv_forw(int c __unused)
+x_mv_forw(int c MKSH_A_UNUSED)
 {
 	char *cp = xcp, *cp2;
 
@@ -1570,7 +1570,7 @@ x_mv_forw(int c __unused)
 }
 
 static int
-x_search_char_forw(int c __unused)
+x_search_char_forw(int c MKSH_A_UNUSED)
 {
 	char *cp = xcp;
 	char tmp[4];
@@ -1592,7 +1592,7 @@ x_search_char_forw(int c __unused)
 }
 
 static int
-x_search_char_back(int c __unused)
+x_search_char_back(int c MKSH_A_UNUSED)
 {
 	char *cp = xcp, *p, tmp[4];
 	bool b;
@@ -1627,7 +1627,7 @@ x_search_char_back(int c __unused)
 }
 
 static int
-x_newline(int c __unused)
+x_newline(int c MKSH_A_UNUSED)
 {
 	x_e_putc2('\r');
 	x_e_putc2('\n');
@@ -1637,7 +1637,7 @@ x_newline(int c __unused)
 }
 
 static int
-x_end_of_text(int c __unused)
+x_end_of_text(int c MKSH_A_UNUSED)
 {
 	x_zotc2(edchars.eof);
 	x_putc('\r');
@@ -1647,28 +1647,28 @@ x_end_of_text(int c __unused)
 }
 
 static int
-x_beg_hist(int c __unused)
+x_beg_hist(int c MKSH_A_UNUSED)
 {
 	x_load_hist(history);
 	return (KSTD);
 }
 
 static int
-x_end_hist(int c __unused)
+x_end_hist(int c MKSH_A_UNUSED)
 {
 	x_load_hist(histptr);
 	return (KSTD);
 }
 
 static int
-x_prev_com(int c __unused)
+x_prev_com(int c MKSH_A_UNUSED)
 {
 	x_load_hist(x_histp - x_arg);
 	return (KSTD);
 }
 
 static int
-x_next_com(int c __unused)
+x_next_com(int c MKSH_A_UNUSED)
 {
 	x_load_hist(x_histp + x_arg);
 	return (KSTD);
@@ -1679,7 +1679,7 @@ x_next_com(int c __unused)
  * want so we'll simply go to the oldest one.
  */
 static int
-x_goto_hist(int c __unused)
+x_goto_hist(int c MKSH_A_UNUSED)
 {
 	if (x_arg_defaulted)
 		x_load_hist(history);
@@ -1719,7 +1719,7 @@ x_load_hist(char **hp)
 }
 
 static int
-x_nl_next_com(int c __unused)
+x_nl_next_com(int c MKSH_A_UNUSED)
 {
 	x_nextcmd = source->line - (histptr - x_histp) + 1;
 	return (x_newline('\n'));
@@ -1842,14 +1842,14 @@ x_search(char *pat, int sameline, int offset)
 #ifndef MKSH_SMALL
 /* anchored search up from current line */
 static int
-x_search_hist_up(int c __unused)
+x_search_hist_up(int c MKSH_A_UNUSED)
 {
 	return (x_search_dir(-1));
 }
 
 /* anchored search down from current line */
 static int
-x_search_hist_dn(int c __unused)
+x_search_hist_dn(int c MKSH_A_UNUSED)
 {
 	return (x_search_dir(1));
 }
@@ -1886,7 +1886,7 @@ x_match(char *str, char *pat)
 }
 
 static int
-x_del_line(int c __unused)
+x_del_line(int c MKSH_A_UNUSED)
 {
 	int i, j;
 
@@ -1905,28 +1905,28 @@ x_del_line(int c __unused)
 }
 
 static int
-x_mv_end(int c __unused)
+x_mv_end(int c MKSH_A_UNUSED)
 {
 	x_goto(xep);
 	return (KSTD);
 }
 
 static int
-x_mv_begin(int c __unused)
+x_mv_begin(int c MKSH_A_UNUSED)
 {
 	x_goto(xbuf);
 	return (KSTD);
 }
 
 static int
-x_draw_line(int c __unused)
+x_draw_line(int c MKSH_A_UNUSED)
 {
 	x_redraw(-1);
 	return (KSTD);
 }
 
 static int
-x_cls(int c __unused)
+x_cls(int c MKSH_A_UNUSED)
 {
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2018,7 +2018,7 @@ x_redraw(int limit)
 }
 
 static int
-x_transpose(int c __unused)
+x_transpose(int c MKSH_A_UNUSED)
 {
 	unsigned int tmpa, tmpb;
 
@@ -2083,28 +2083,28 @@ x_transpose(int c __unused)
 }
 
 static int
-x_literal(int c __unused)
+x_literal(int c MKSH_A_UNUSED)
 {
 	x_curprefix = -1;
 	return (KSTD);
 }
 
 static int
-x_meta1(int c __unused)
+x_meta1(int c MKSH_A_UNUSED)
 {
 	x_curprefix = 1;
 	return (KSTD);
 }
 
 static int
-x_meta2(int c __unused)
+x_meta2(int c MKSH_A_UNUSED)
 {
 	x_curprefix = 2;
 	return (KSTD);
 }
 
 static int
-x_kill(int c __unused)
+x_kill(int c MKSH_A_UNUSED)
 {
 	int col = xcp - xbuf;
 	int lastcol = xep - xbuf;
@@ -2136,7 +2136,7 @@ x_push(int nchars)
 }
 
 static int
-x_yank(int c __unused)
+x_yank(int c MKSH_A_UNUSED)
 {
 	if (killsp == 0)
 		killtp = KILLSIZE;
@@ -2154,7 +2154,7 @@ x_yank(int c __unused)
 }
 
 static int
-x_meta_yank(int c __unused)
+x_meta_yank(int c MKSH_A_UNUSED)
 {
 	int len;
 
@@ -2179,7 +2179,7 @@ x_meta_yank(int c __unused)
 }
 
 static int
-x_abort(int c __unused)
+x_abort(int c MKSH_A_UNUSED)
 {
 	/* x_zotc(c); */
 	xlp = xep = xcp = xbp = xbuf;
@@ -2190,7 +2190,7 @@ x_abort(int c __unused)
 }
 
 static int
-x_error(int c __unused)
+x_error(int c MKSH_A_UNUSED)
 {
 	x_e_putc2(7);
 	return (KSTD);
@@ -2466,14 +2466,14 @@ bind_if_not_bound(int p, int k, int func)
 }
 
 static int
-x_set_mark(int c __unused)
+x_set_mark(int c MKSH_A_UNUSED)
 {
 	xmp = xcp;
 	return (KSTD);
 }
 
 static int
-x_kill_region(int c __unused)
+x_kill_region(int c MKSH_A_UNUSED)
 {
 	int rsize;
 	char *xr;
@@ -2496,7 +2496,7 @@ x_kill_region(int c __unused)
 }
 
 static int
-x_xchg_point_mark(int c __unused)
+x_xchg_point_mark(int c MKSH_A_UNUSED)
 {
 	char *tmp;
 
@@ -2511,7 +2511,7 @@ x_xchg_point_mark(int c __unused)
 }
 
 static int
-x_noop(int c __unused)
+x_noop(int c MKSH_A_UNUSED)
 {
 	return (KSTD);
 }
@@ -2520,56 +2520,56 @@ x_noop(int c __unused)
  *	File/command name completion routines
  */
 static int
-x_comp_comm(int c __unused)
+x_comp_comm(int c MKSH_A_UNUSED)
 {
 	do_complete(XCF_COMMAND, CT_COMPLETE);
 	return (KSTD);
 }
 
 static int
-x_list_comm(int c __unused)
+x_list_comm(int c MKSH_A_UNUSED)
 {
 	do_complete(XCF_COMMAND, CT_LIST);
 	return (KSTD);
 }
 
 static int
-x_complete(int c __unused)
+x_complete(int c MKSH_A_UNUSED)
 {
 	do_complete(XCF_COMMAND_FILE, CT_COMPLETE);
 	return (KSTD);
 }
 
 static int
-x_enumerate(int c __unused)
+x_enumerate(int c MKSH_A_UNUSED)
 {
 	do_complete(XCF_COMMAND_FILE, CT_LIST);
 	return (KSTD);
 }
 
 static int
-x_comp_file(int c __unused)
+x_comp_file(int c MKSH_A_UNUSED)
 {
 	do_complete(XCF_FILE, CT_COMPLETE);
 	return (KSTD);
 }
 
 static int
-x_list_file(int c __unused)
+x_list_file(int c MKSH_A_UNUSED)
 {
 	do_complete(XCF_FILE, CT_LIST);
 	return (KSTD);
 }
 
 static int
-x_comp_list(int c __unused)
+x_comp_list(int c MKSH_A_UNUSED)
 {
 	do_complete(XCF_COMMAND_FILE, CT_COMPLIST);
 	return (KSTD);
 }
 
 static int
-x_expand(int c __unused)
+x_expand(int c MKSH_A_UNUSED)
 {
 	char **words;
 	int start, end, nwords, i;
@@ -2818,7 +2818,7 @@ x_set_arg(int c)
 
 /* Comment or uncomment the current line. */
 static int
-x_comment(int c __unused)
+x_comment(int c MKSH_A_UNUSED)
 {
 	int oldsize = x_size_str(xbuf);
 	int len = xep - xbuf;
@@ -2839,7 +2839,7 @@ x_comment(int c __unused)
 }
 
 static int
-x_version(int c __unused)
+x_version(int c MKSH_A_UNUSED)
 {
 	char *o_xbuf = xbuf, *o_xend = xend;
 	char *o_xbp = xbp, *o_xep = xep, *o_xcp = xcp;
@@ -2873,7 +2873,7 @@ x_version(int c __unused)
 
 #ifndef MKSH_SMALL
 static int
-x_edit_line(int c __unused)
+x_edit_line(int c MKSH_A_UNUSED)
 {
 	if (x_arg_defaulted) {
 		if (xep == xbuf) {
@@ -2914,7 +2914,7 @@ x_edit_line(int c __unused)
  *	KSTD
  */
 static int
-x_prev_histword(int c __unused)
+x_prev_histword(int c MKSH_A_UNUSED)
 {
 	char *rcp, *cp;
 	char **xhp;
@@ -2972,21 +2972,21 @@ x_prev_histword(int c __unused)
 #ifndef MKSH_SMALL
 /* Uppercase N(1) words */
 static int
-x_fold_upper(int c __unused)
+x_fold_upper(int c MKSH_A_UNUSED)
 {
 	return (x_fold_case('U'));
 }
 
 /* Lowercase N(1) words */
 static int
-x_fold_lower(int c __unused)
+x_fold_lower(int c MKSH_A_UNUSED)
 {
 	return (x_fold_case('L'));
 }
 
 /* Lowercase N(1) words */
 static int
-x_fold_capitalise(int c __unused)
+x_fold_capitalise(int c MKSH_A_UNUSED)
 {
 	return (x_fold_case('C'));
 }
@@ -5168,7 +5168,7 @@ complete_word(int cmd, int count)
 }
 
 static int
-print_expansions(struct edstate *est, int cmd __unused)
+print_expansions(struct edstate *est, int cmd MKSH_A_UNUSED)
 {
 	int start, end, nwords;
 	char **words;

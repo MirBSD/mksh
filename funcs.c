@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.146 2009/12/05 17:43:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.147 2009/12/12 22:27:07 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -173,7 +173,8 @@ static const char *ptest_getopnd(Test_env *, Test_op, bool);
 static void ptest_error(Test_env *, int, const char *);
 static char *kill_fmt_entry(char *, int, int, const void *);
 static void p_time(struct shf *, bool, long, int, int,
-    const char *, const char *) __attribute__((nonnull (6, 7)));
+    const char *, const char *)
+    MKSH_A_NONNULL((nonnull (6, 7)));
 static char *do_realpath(const char *);
 
 static char *
@@ -723,7 +724,7 @@ s_get(void)
 }
 
 static void
-s_put(int c __unused)
+s_put(int c MKSH_A_UNUSED)
 {
 	--s_ptr;
 }
@@ -2422,7 +2423,7 @@ p_time(struct shf *shf, bool posix, long tv_sec, int tv_usec, int width,
 }
 
 int
-c_times(const char **wp __unused)
+c_times(const char **wp MKSH_A_UNUSED)
 {
 	struct rusage usage;
 
@@ -2548,7 +2549,7 @@ timex_hook(struct op *t, char **volatile *app)
 
 /* exec with no args - args case is taken care of in comexec() */
 int
-c_exec(const char **wp __unused)
+c_exec(const char **wp MKSH_A_UNUSED)
 {
 	int i;
 
@@ -2658,7 +2659,7 @@ c_mknod(const char **wp)
 
 /* dummy function, special case in comexec() */
 int
-c_builtin(const char **wp __unused)
+c_builtin(const char **wp MKSH_A_UNUSED)
 {
 	return (0);
 }
@@ -3075,7 +3076,7 @@ ptest_isa(Test_env *te, Test_meta meta)
 }
 
 static const char *
-ptest_getopnd(Test_env *te, Test_op op, bool do_eval __unused)
+ptest_getopnd(Test_env *te, Test_op op, bool do_eval MKSH_A_UNUSED)
 {
 	if (te->pos.wp >= te->wp_end)
 		return (op == TO_FILTT ? "1" : NULL);
