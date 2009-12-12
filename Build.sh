@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.431 2009/12/05 16:19:59 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.432 2009/12/12 21:17:25 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -688,15 +688,6 @@ esac
 test $cm = llvm && vv '|' "llc -version"
 $e "$bi==> which compiler seems to be used...$ao $ui$ct$ao"
 rm -f scn.c scn.o scn a.out* a.exe*
-
-case $TARGET_OS in
-HP-UX)
-	case $ct:`uname -m` in
-	gcc:ia64) : ${CFLAGS='-mlp64'} ;;
-	hpcc:ia64) : ${CFLAGS='+DD64'} ;;
-	esac
-	;;
-esac
 
 #
 # Compiler: works as-is, with -Wno-error and -Werror
