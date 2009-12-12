@@ -1,4 +1,4 @@
-/*	$OpenBSD: jobs.c,v 1.37 2009/01/29 23:27:26 jaredy Exp $	*/
+/*	$OpenBSD: jobs.c,v 1.38 2009/12/12 04:28:44 deraadt Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.64 2009/12/05 22:03:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.65 2009/12/12 17:45:42 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1164,8 +1164,7 @@ j_sigchld(int sig __unused)
 			p->state = PEXITED;
 
 		check_job(j);	/* check to see if entire job is done */
-	}
-	while (1);
+	} while (1);
 
 	errno = errno_;
 }
