@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.66 2009/12/12 22:27:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.67 2009/12/31 14:05:43 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1120,7 +1120,7 @@ j_sigchld(int sig MKSH_A_UNUSED)
 	for (j = job_list; j; j = j->next)
 		if (j->ppid == procpid && !(j->flags & JF_STARTED)) {
 			held_sigchld = 1;
-			return;
+			goto finished;
 		}
 
 	getrusage(RUSAGE_CHILDREN, &ru0);
@@ -1166,6 +1166,7 @@ j_sigchld(int sig MKSH_A_UNUSED)
 		check_job(j);	/* check to see if entire job is done */
 	} while (1);
 
+ finished:
 	errno = errno_;
 }
 
