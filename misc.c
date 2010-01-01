@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.134 2009/12/05 17:43:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.135 2010/01/01 18:02:00 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
@@ -108,7 +108,11 @@ option(const char *n)
 {
 	size_t i;
 
-	for (i = 0; i < NELEM(options); i++)
+	if ((n[0] == '-' || n[0] == '+') && n[1] && !n[2]) {
+		for (i = 0; i < NELEM(options); i++)
+			if (options[i].c == n[1])
+				return (i);
+	} else for (i = 0; i < NELEM(options); i++)
 		if (options[i].name && strcmp(options[i].name, n) == 0)
 			return (i);
 

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.351 2010/01/01 17:44:06 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.352 2010/01/01 18:01:59 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4460,6 +4460,28 @@ stdin:
 	echo 1- $(runtest utf8-mode) =
 	echo 2- $(runtest !utf8-mode) =
 	echo 3- $(runtest ?utf8-mode) =
+	echo = short flags =
+	echo 0y $(if_test -U) =
+	echo 0y $(if_test +U) =
+	echo 0n $(if_test -_) =
+	echo 0n $(if_test -U-) =
+	echo 1= $(runtest -_) =
+	echo 2= $(runtest !-_) =
+	echo 3= $(runtest ?-_) =
+	set +U
+	echo 1+ $(runtest -U) =
+	echo 2+ $(runtest !-U) =
+	echo 3+ $(runtest ?-U) =
+	echo 1+ $(runtest +U) =
+	echo 2+ $(runtest !+U) =
+	echo 3+ $(runtest ?+U) =
+	set -U
+	echo 1- $(runtest -U) =
+	echo 2- $(runtest !-U) =
+	echo 3- $(runtest ?-U) =
+	echo 1- $(runtest +U) =
+	echo 2- $(runtest !+U) =
+	echo 3- $(runtest ?+U) =
 expected-stdout:
 	0y 0 0 0 0 =
 	0n 1 1 1 1 =
@@ -4469,6 +4491,26 @@ expected-stdout:
 	1+ 1 1 1 =
 	2+ 0 0 0 =
 	3+ 0 0 0 =
+	1- 0 0 0 =
+	2- 1 1 1 =
+	3- 0 0 0 =
+	= short flags =
+	0y 0 0 0 0 =
+	0y 0 0 0 0 =
+	0n 1 1 1 1 =
+	0n 1 1 1 1 =
+	1= 1 1 1 =
+	2= 1 1 1 =
+	3= 1 1 1 =
+	1+ 1 1 1 =
+	2+ 0 0 0 =
+	3+ 0 0 0 =
+	1+ 1 1 1 =
+	2+ 0 0 0 =
+	3+ 0 0 0 =
+	1- 0 0 0 =
+	2- 1 1 1 =
+	3- 0 0 0 =
 	1- 0 0 0 =
 	2- 1 1 1 =
 	3- 0 0 0 =
