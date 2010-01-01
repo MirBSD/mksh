@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.433 2009/12/12 22:27:02 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.434 2010/01/01 18:27:42 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -39,7 +39,8 @@ vv() {
 	_c=$1
 	shift
 	$e "\$ $*" 2>&1
-	eval "$@" 2>&1 | sed "s^${_c} "
+	eval "$@" >vv.out 2>&1
+	sed "s^${_c} " <vv.out
 }
 
 vq() {
@@ -159,11 +160,14 @@ ac_testn() {
 	else
 		test 0 = $fr || fv=1
 	fi
-	test ugcc=$phase$ct && $CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c \
-	    $LIBS 2>&1 | grep 'unrecogni[sz]ed' >/dev/null 2>&1 && fv=$fr
-	test uhpcc=$phase$ct && $CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c \
-	    $LIBS 2>&1 | grep 'unsupported' >/dev/null 2>&1 && fv=$fr
-	rm -f scn.c scn.o ${tcfn}*
+	vscan=
+	if test $phase = u; then
+		test $ct = gcc && vscan='unrecogni[sz]ed'
+		test $ct = hpcc && vscan='unsupported'
+		test $ct = pcc && vscan='unsupported'
+	fi
+	test -n "$vscan" && grep "$vscan" vv.out >/dev/null 2>&1 && fv=$fr
+	rm -f scn.c scn.o ${tcfn}* vv.out
 	ac_testdone
 }
 
@@ -267,7 +271,7 @@ if test -d mksh || test -d mksh.exe; then
 	exit 1
 fi
 rm -f a.exe* a.out* *core crypt.exp lft mksh mksh.cat1 mksh.exe mksh.s \
-    no *.o scn.c signames.inc stdint.h test.sh x
+    no *.o scn.c signames.inc stdint.h test.sh x vv.out
 
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=
 
@@ -559,7 +563,7 @@ vv ']' "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS | \
     grep ct= | tr -d \\\\015 >x"
 sed 's/^/[ /' x
 eval `cat x`
-rm -f x
+rm -f x vv.out
 echo 'int main(void) { return (0); }' >scn.c
 case $ct in
 ack)
@@ -689,7 +693,7 @@ xlc)
 esac
 test $cm = llvm && vv '|' "llc -version"
 $e "$bi==> which compiler seems to be used...$ao $ui$ct$ao"
-rm -f scn.c scn.o scn a.out* a.exe*
+rm -f scn.c scn.o scn a.out* a.exe* vv.out
 
 #
 # Compiler: works as-is, with -Wno-error and -Werror
@@ -875,6 +879,7 @@ phase=x
 
 # The following tests run with -Werror or similar (all compilers) if possible
 NOWARN=$DOWARN
+test $ct = pcc && phase=u
 
 #
 # Compiler: check for stuff that only generates warnings
@@ -955,6 +960,7 @@ EOF
 
 # End of tests run with -Werror
 NOWARN=$save_NOWARN
+phase=x
 
 #
 # mksh: flavours (full/small mksh, omit certain stuff)
@@ -1349,7 +1355,7 @@ test 0 = $HAVE_SYS_SIGNAME && if ac_testinit cpp_dd '' \
 	echo '#define foo bar' >scn.c
 	vv ']' "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -dD scn.c $LIBS >x"
 	grep '#define foo bar' x >/dev/null 2>&1 && fv=1
-	rm -f scn.c x
+	rm -f scn.c x vv.out
 	ac_testdone
 fi
 
@@ -1363,7 +1369,7 @@ $e ... done.
 echo wq >x
 ed x <x 2>/dev/null | grep 3 >/dev/null 2>&1 && \
     check_categories=$check_categories,$oldish_ed
-rm -f x
+rm -f x vv.out
 
 if test 0 = $HAVE_SYS_SIGNAME; then
 	if test 1 = $HAVE_CPP_DD; then
