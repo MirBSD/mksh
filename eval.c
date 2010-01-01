@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.79 2009/12/05 22:24:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.80 2010/01/01 17:44:07 tg Exp $");
 
 /*
  * string expansion
@@ -941,12 +941,38 @@ varsub(Expand *xp, const char *sp, const char *word,
 		} else {
 			p = str_val(global(sp));
 			zero_ok = p != null;
-			c = stype == '#' ? (int)utflen(p) : utf_mbswidth(p);
+			if (stype == '#')
+				c = utflen(p);
+			else {
+				/* partial utf_mbswidth reimplementation */
+				const char *s = p;
+				unsigned int wc;
+				size_t len;
+				int cw;
+
+				c = 0;
+				while (*s) {
+					if (!UTFMODE || (len = utf_mbtowc(&wc,
+					    s)) == (size_t)-1)
+						/* not UTFMODE or not UTF-8 */
+						wc = (unsigned char)(*s++);
+					else
+						/* UTFMODE and UTF-8 */
+						s += len;
+					/* wc == char or wchar at s++ */
+					if ((cw = utf_wcwidth(wc)) == -1) {
+						/* 646, 8859-1, 10646 C0/C1 */
+						c = -1;
+						break;
+					}
+					c += cw;
+				}
+			}
 		}
 		if (Flag(FNOUNSET) && c == 0 && !zero_ok)
 			errorf("%s: parameter not set", sp);
 		*stypep = 0; /* unqualified variable/string substitution */
-		xp->str = shf_smprintf("%u", (unsigned int)c);
+		xp->str = shf_smprintf("%d", c);
 		return (XSUB);
 	}
 

@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.157 2009/12/05 17:43:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.158 2010/01/01 17:44:08 tg Exp $");
 
 extern char **environ;
 
@@ -1277,7 +1277,13 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	return (tp);
 }
 
+/*
+ * We use a similar collision resolution algorithm as Python 2.5.4
+ * but with a slightly tweaked implementation written from scratch.
+ */
+
 #define	INIT_TBLS	8	/* initial table size (power of 2) */
+#define PERTURB_SHIFT	5	/* see Python 2.5.4 Objects/dictobject.c */
 
 static void texpand(struct table *, size_t);
 static int tnamecmp(const void *, const void *);
@@ -1307,8 +1313,8 @@ oaathash_full(register const uint8_t *bp)
 static void
 texpand(struct table *tp, size_t nsize)
 {
-	size_t i, osize = tp->size;
-	struct tbl *tblp, **p;
+	size_t i, j, osize = tp->size, perturb;
+	struct tbl *tblp, **pp;
 	struct tbl **ntblp, **otblp = tp->tbls;
 
 	ntblp = alloc(nsize * sizeof(struct tbl *), tp->areap);
@@ -1319,14 +1325,22 @@ texpand(struct table *tp, size_t nsize)
 	tp->tbls = ntblp;
 	if (otblp == NULL)
 		return;
+	nsize--;			/* from here on nsize := mask */
 	for (i = 0; i < osize; i++)
 		if ((tblp = otblp[i]) != NULL) {
 			if ((tblp->flag & DEFINED)) {
-				for (p = &ntblp[tblp->ua.hval &
-				    (tp->size - 1)]; *p != NULL; p--)
-					if (p == ntblp)	/* wrap */
-						p += tp->size;
-				*p = tblp;
+				/* search for free hash table slot */
+				j = (perturb = tblp->ua.hval) & nsize;
+				goto find_first_empty_slot;
+ find_next_empty_slot:
+				j = (j << 2) + j + perturb + 1;
+				perturb >>= PERTURB_SHIFT;
+ find_first_empty_slot:
+				pp = &ntblp[j & nsize];
+				if (*pp != NULL)
+					goto find_next_empty_slot;
+				/* found an empty hash table slot */
+				*pp = tblp;
 				tp->nfree--;
 			} else if (!(tblp->flag & FINUSE)) {
 				afree(tblp, tp->areap);
@@ -1345,25 +1359,26 @@ ktinit(struct table *tp, Area *ap, size_t tsize)
 		texpand(tp, tsize);
 }
 
-/* table, name (key) to search for, hash(n) */
+/* table, name (key) to search for, hash(name), rv pointer to tbl ptr */
 static struct tbl *
-ktscan(struct table *tp, const char *n, uint32_t h, struct tbl ***ppp)
+ktscan(struct table *tp, const char *name, uint32_t h, struct tbl ***ppp)
 {
+	size_t j, perturb, mask;
 	struct tbl **pp, *p;
 
-	/* search for name in hashed table */
-	for (pp = &tp->tbls[h & (tp->size - 1)]; (p = *pp) != NULL; pp--) {
-		if (p->ua.hval == h && !strcmp(p->name, n) &&
-		    (p->flag & DEFINED))
-			goto found;
-		if (pp == tp->tbls)
-			/* wrap */
-			pp += tp->size;
-	}
-	/* not found */
-	p = NULL;
-
- found:
+	mask = tp->size - 1;
+	/* search for hash table slot matching name */
+	j = (perturb = h) & mask;
+	goto find_first_slot;
+ find_next_slot:
+	j = (j << 2) + j + perturb + 1;
+	perturb >>= PERTURB_SHIFT;
+ find_first_slot:
+	pp = &tp->tbls[j & mask];
+	if ((p = *pp) != NULL && (p->ua.hval != h || !(p->flag & DEFINED) ||
+	    strcmp(p->name, name)))
+		goto find_next_slot;
+	/* p == NULL if not found, correct found entry otherwise */
 	if (ppp)
 		*ppp = pp;
 	return (p);
