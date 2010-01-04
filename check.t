@@ -1,9 +1,9 @@
-# $MirOS: src/bin/mksh/check.t,v 1.352 2010/01/01 18:01:59 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.353 2010/01/04 21:08:00 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
 #-
-# Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009
+# Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -6607,6 +6607,21 @@ expected-stdout:
 	v: 123
 	exiting
 	bar: global
+---
+name: nameref-3
+description:
+	Advanced testsuite for bound variables (ksh93 fails this)
+stdin:
+	typeset -n foo=bar[i]
+	bar=(b c a)
+	for i in 0 1 2 3; do
+		print $i $foo .
+	done
+expected-stdout:
+	0 b .
+	1 c .
+	2 a .
+	3 .
 ---
 name: better-parens-1a
 description:
