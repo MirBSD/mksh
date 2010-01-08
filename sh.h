@@ -9,7 +9,7 @@
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -148,9 +148,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.372 2010/01/01 17:44:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.373 2010/01/08 22:21:06 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2010/01/01"
+#define MKSH_VERSION "R39 2010/01/08"
 
 #ifndef MKSH_INCLUDES_ONLY
 

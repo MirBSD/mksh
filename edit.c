@@ -4,7 +4,7 @@
 /*	$OpenBSD: vi.c,v 1.26 2009/06/29 22:50:19 martynas Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.187 2009/12/12 22:27:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.188 2010/01/08 22:21:04 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -2219,8 +2219,17 @@ x_vt_hack(int c)
 	}
 
 	/* XXX x_e_ungetc is one-octet only */
-	if ((c = x_e_getc()) != '5')
+	if ((c = x_e_getc()) != '5' && c != '3')
 		goto unwind_err;
+
+	/*-
+	 * At this point, we have read the following octets so far:
+	 * - ESC+[ or ESC+O or Ctrl-X (Præfix 2)
+	 * - 1 (vt_hack)
+	 * - ;
+	 * - 5 (Ctrl key combiner) or 3 (Alt key combiner)
+	 * We can now accept one more octet designating the key.
+	 */
 
 	switch ((c = x_e_getc())) {
 	case 'C':
