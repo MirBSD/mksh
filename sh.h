@@ -1,4 +1,4 @@
-/*	$OpenBSD: sh.h,v 1.29 2005/12/11 18:53:51 deraadt Exp $	*/
+/*	$OpenBSD: sh.h,v 1.30 2010/01/04 18:07:11 deraadt Exp $	*/
 /*	$OpenBSD: shf.h,v 1.6 2005/12/11 18:53:51 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.7 2005/12/11 20:31:21 otto Exp $	*/
 /*	$OpenBSD: tree.h,v 1.10 2005/03/28 21:28:22 deraadt Exp $	*/
@@ -148,7 +148,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.373 2010/01/08 22:21:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.374 2010/01/16 19:08:05 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2010/01/08"
 
