@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.434 2010/01/01 18:27:42 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.435 2010/01/19 14:26:24 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1431,6 +1431,8 @@ addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && CPPFLAGS="$CPPFLAGS -DMKSH_PRINTF_BUILTIN"
 test 0 = "$HAVE_SETMODE" && CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
+
+$e $bi$me: Finished configuration, now producing output.$ao
 
 files=
 objs=
