@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.102 2010/01/25 14:25:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.103 2010/01/25 14:38:04 tg Exp $");
 
 /*
  * Variables
@@ -1304,10 +1304,6 @@ arraysearch(struct tbl *vp, uint32_t val)
 	new->areap = vp->areap;
 	new->u2.field = vp->u2.field;
 	new->ua.index = val;
-#ifdef notyet_ktremove
-	/* XXX array indices must not be ktdelete'd, for now */
-	new->tablep = NULL;
-#endif
 
 	if (curr != new) {		/* not reusing old array entry */
 		prev->u.array = new;
@@ -1411,10 +1407,6 @@ set_array(const char *var, bool reset, const char **vals)
 
 		vq = arraysearch(vp, j);
 		/* would be nice to deal with errors here... (see above) */
-#if 0
-		shprintf("setting '%s'[%lu]='%s'  <- '%s'\n",
-		    vp->name, (unsigned long)j, ccp, vals[i]);
-#endif
 		setstr(vq, ccp, KSH_RETURN_ERROR);
 		i++;
 #ifndef MKSH_SMALL

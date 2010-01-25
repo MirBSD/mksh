@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.159 2010/01/25 14:07:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.160 2010/01/25 14:38:02 tg Exp $");
 
 extern char **environ;
 
@@ -1416,9 +1416,6 @@ ktenter(struct table *tp, const char *n, uint32_t h)
 	p->flag = 0;
 	p->type = 0;
 	p->areap = tp->areap;
-#ifdef notyet_ktremove
-	p->tablep = tp;
-#endif
 	p->ua.hval = h;
 	p->u2.field = 0;
 	p->u.array = NULL;
@@ -1429,28 +1426,6 @@ ktenter(struct table *tp, const char *n, uint32_t h)
 	*pp = p;
 	return (p);
 }
-
-#ifdef notyet_ktremove
-void
-ktremove(struct tbl *p)
-{
-	struct tbl **pp;
-
-	if (p->tablep && p->tablep->size && ktscan(p->tablep, p->name,
-	    p->ua.hval, &pp) == p) {
-		/* ktremove p */
-wontwork("cannot use NULL here, see r1.143 commit message");
-		*pp = NULL;
-		p->tablep->nfree++;
-		/* get rid of p */
-wontwork("need to check FINUSE, see texpand");
-		afree(p, p->areap);
-	} else {
-		/* mark p as free for garbage collection via texpand */
-		p->flag = 0;
-	}
-}
-#endif
 
 void
 ktwalk(struct tstate *ts, struct table *tp)

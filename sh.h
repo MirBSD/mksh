@@ -148,7 +148,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.374 2010/01/16 19:08:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.375 2010/01/25 14:38:03 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2010/01/08"
 
@@ -863,9 +863,6 @@ struct tbl {			/* table item */
 		struct tbl *array;	/* array values */
 		const char *fpath;	/* temporary path to undef function */
 	} u;
-#ifdef notyet_ktremove
-	struct table *tablep;	/* table we're ktenter'd in */
-#endif
 	union {
 		int field;	/* field with for -L/-R/-Z */
 		int errno_;	/* CEXEC/CTALIAS */
@@ -1541,7 +1538,6 @@ void ktinit(struct table *, Area *, size_t);
 struct tbl *ktsearch(struct table *, const char *, uint32_t);
 struct tbl *ktenter(struct table *, const char *, uint32_t);
 #define ktdelete(p)	do { p->flag = 0; } while (/* CONSTCOND */ 0)
-void ktremove(struct tbl *);
 void ktwalk(struct tstate *, struct table *);
 struct tbl *ktnext(struct tstate *);
 struct tbl **ktsort(struct table *);

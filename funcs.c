@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.148 2010/01/25 14:11:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.149 2010/01/25 14:38:01 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2661,10 +2661,6 @@ c_mknod(const char **wp)
 		umask(oldmode);
 	return (rv);
  c_mknod_usage:
-#if 0
-	/* XXX doesn't help */
-	builtin_argv0 = NULL;
-#endif
 	bi_errorf("usage: mknod [-m mode] name [b | c] major minor");
 	bi_errorf("usage: mknod [-m mode] name p");
 	return (1);

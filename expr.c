@@ -1,7 +1,7 @@
 /*	$OpenBSD: expr.c,v 1.21 2009/06/01 19:00:57 deraadt Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.42 2009/12/12 22:27:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.43 2010/01/25 14:38:00 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -626,9 +626,6 @@ tempvar(void)
 	vp->flag = ISSET|INTEGER;
 	vp->type = 0;
 	vp->areap = ATEMP;
-#ifdef notyet_ktremove
-	vp->tablep = NULL;
-#endif
 	vp->ua.hval = 0;
 	vp->val.i = 0;
 	vp->name[0] = '\0';
