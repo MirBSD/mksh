@@ -4,7 +4,7 @@
 /*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
 /*-
- * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.147 2009/12/12 22:27:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.148 2010/01/25 14:11:26 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1666,7 +1666,7 @@ c_getopts(const char **wp)
 	if (voptarg->flag & INTEGER)
 	    typeset("OPTARG", 0, INTEGER, 0, 0);
 	if (user_opt.optarg == NULL)
-		unset(voptarg, 0);
+		unset(voptarg, 1);
 	else
 		/* This can't fail (have cleared readonly/integer) */
 		setstr(voptarg, user_opt.optarg, KSH_RETURN_ERROR);
@@ -2397,13 +2397,27 @@ c_unset(const char **wp)
 	wp += builtin_opt.optind;
 	for (; (id = *wp) != NULL; wp++)
 		if (unset_var) {	/* unset variable */
-			struct tbl *vp = global(id);
+			struct tbl *vp;
+			char *cp = NULL;
+			size_t n;
+
+			n = strlen(id);
+			if (n > 3 && id[n-3] == '[' && id[n-2] == '*' &&
+			    id[n-1] == ']') {
+				strndupx(cp, id, n - 3, ATEMP);
+				id = cp;
+				optc = 3;
+			} else
+				optc = vstrchr(id, '[') ? 0 : 1;
+
+			vp = global(id);
+			afree(cp, ATEMP);
 
 			if ((vp->flag&RDONLY)) {
 				bi_errorf("%s is read only", vp->name);
 				return (1);
 			}
-			unset(vp, vstrchr(id, '[') ? 1 : 0);
+			unset(vp, optc);
 		} else			/* unset function */
 			define(id, NULL);
 	return (0);

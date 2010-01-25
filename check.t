@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.354 2010/01/08 22:21:03 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.355 2010/01/25 14:11:25 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -5223,6 +5223,83 @@ expected-stdout:
 	!arz: 0
 	!arz[0]:
 	!arz[1]:
+---
+name: arrays-8
+description:
+	Check some behavioural rules for arrays.
+stdin:
+	fna() {
+		set -A aa 9
+	}
+	fnb() {
+		typeset ab
+		set -A ab 9
+	}
+	fnc() {
+		typeset ac
+		set -A ac 91
+		unset ac
+		set -A ac 92
+	}
+	fnd() {
+		set +A ad 9
+	}
+	fne() {
+		unset ae
+		set +A ae 9
+	}
+	fnf() {
+		unset af[0]
+		set +A af 9
+	}
+	fng() {
+		unset ag[*]
+		set +A ag 9
+	}
+	set -A aa 1 2
+	set -A ab 1 2
+	set -A ac 1 2
+	set -A ad 1 2
+	set -A ae 1 2
+	set -A af 1 2
+	set -A ag 1 2
+	typeset -Z3 aa ab ac ad ae af ag
+	print 1a ${aa[*]} .
+	print 1b ${ab[*]} .
+	print 1c ${ac[*]} .
+	print 1d ${ad[*]} .
+	print 1e ${ae[*]} .
+	print 1f ${af[*]} .
+	print 1g ${ag[*]} .
+	fna
+	fnb
+	fnc
+	fnd
+	fne
+	fnf
+	fng
+	print 2a ${aa[*]} .
+	print 2b ${ab[*]} .
+	print 2c ${ac[*]} .
+	print 2d ${ad[*]} .
+	print 2e ${ae[*]} .
+	print 2f ${af[*]} .
+	print 2g ${ag[*]} .
+expected-stdout:
+	1a 001 002 .
+	1b 001 002 .
+	1c 001 002 .
+	1d 001 002 .
+	1e 001 002 .
+	1f 001 002 .
+	1g 001 002 .
+	2a 9 .
+	2b 001 002 .
+	2c 92 .
+	2d 009 002 .
+	2e 9 .
+	2f 9 002 .
+	2g 009 .
 ---
 name: varexpand-substr-1
 description:
