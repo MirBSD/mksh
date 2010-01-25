@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.355 2010/01/25 14:11:25 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.356 2010/01/25 14:25:13 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -5263,6 +5263,7 @@ stdin:
 	set -A ae 1 2
 	set -A af 1 2
 	set -A ag 1 2
+	set -A ah 1 2
 	typeset -Z3 aa ab ac ad ae af ag
 	print 1a ${aa[*]} .
 	print 1b ${ab[*]} .
@@ -5271,6 +5272,7 @@ stdin:
 	print 1e ${ae[*]} .
 	print 1f ${af[*]} .
 	print 1g ${ag[*]} .
+	print 1h ${ah[*]} .
 	fna
 	fnb
 	fnc
@@ -5278,6 +5280,7 @@ stdin:
 	fne
 	fnf
 	fng
+	typeset -Z5 ah[*]
 	print 2a ${aa[*]} .
 	print 2b ${ab[*]} .
 	print 2c ${ac[*]} .
@@ -5285,6 +5288,7 @@ stdin:
 	print 2e ${ae[*]} .
 	print 2f ${af[*]} .
 	print 2g ${ag[*]} .
+	print 2h ${ah[*]} .
 expected-stdout:
 	1a 001 002 .
 	1b 001 002 .
@@ -5293,6 +5297,7 @@ expected-stdout:
 	1e 001 002 .
 	1f 001 002 .
 	1g 001 002 .
+	1h 1 2 .
 	2a 9 .
 	2b 001 002 .
 	2c 92 .
@@ -5300,6 +5305,7 @@ expected-stdout:
 	2e 9 .
 	2f 9 002 .
 	2g 009 .
+	2h 00001 00002 .
 ---
 name: varexpand-substr-1
 description:

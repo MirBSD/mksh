@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.101 2010/01/25 14:11:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.102 2010/01/25 14:25:16 tg Exp $");
 
 /*
  * Variables
@@ -674,14 +674,13 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	struct tbl *vpbase, *t;
 	char *tvar;
 	const char *val;
+	int len;
 
 	/* check for valid variable name, search for value */
 	val = skip_varname(var, false);
 	if (val == var)
 		return (NULL);
 	if (*val == '[') {
-		int len;
-
 		if (set_refflag)
 			errorf("%s: reference variable cannot be an array",
 			    var);
@@ -710,6 +709,11 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 			return (NULL);
 		strdupx(tvar, var, ATEMP);
 		val = NULL;
+		/* handle foo[*] ⇒ foo (whole array) mapping for R39b */
+		len = strlen(tvar);
+		if (len > 3 && tvar[len-3] == '[' && tvar[len-2] == '*' &&
+		    tvar[len-1] == ']')
+			tvar[len-3] = '\0';
 	}
 
 	/* Prevent typeset from creating a local PATH/ENV/SHELL */
@@ -754,12 +758,13 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 
 	/* most calls are with set/clr == 0 */
 	if (set | clr) {
-		int ok = 1;
+		bool ok = true;
+
 		/* XXX if x[0] isn't set, there will be problems: need to have
 		 * one copy of attributes for arrays...
 		 */
 		for (t = vpbase; t; t = t->u.array) {
-			int fake_assign;
+			bool fake_assign;
 			char *s = NULL;
 			char *free_me = NULL;
 
@@ -796,7 +801,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 					 * zap contents of variable, but keep
 					 * the flag settings.
 					 */
-					ok = 0;
+					ok = false;
 					if (t->flag & INTEGER)
 						t->flag &= ~ISSET;
 					else {
