@@ -1,7 +1,7 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.435 2010/01/19 14:26:24 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.436 2010/01/25 12:16:04 tg Exp $'
 #-
-# Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
+# Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -149,12 +149,13 @@ ac_testn() {
 		fr=0
 	fi
 	ac_testinit "$@" || return
-	cat >scn.c
-	vv ']' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS $ccpr" | \
-	    sed 's^\] scn.c:\([0-9]*\):\] mirtoconf(\1):'
+	cat >conftest.c
+	vv ']' \
+	    "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS $ccpr" | \
+	    sed 's^\] conftest.c:\([0-9]*\):\] mirtoconf(\1):'
 	test $tcfn = no && test -f a.out && tcfn=a.out
 	test $tcfn = no && test -f a.exe && tcfn=a.exe
-	test $tcfn = no && test -f scn && tcfn=scn
+	test $tcfn = no && test -f conftest && tcfn=conftest
 	if test -f $tcfn; then
 		test 1 = $fr || fv=1
 	else
@@ -167,7 +168,7 @@ ac_testn() {
 		test $ct = pcc && vscan='unsupported'
 	fi
 	test -n "$vscan" && grep "$vscan" vv.out >/dev/null 2>&1 && fv=$fr
-	rm -f scn.c scn.o ${tcfn}* vv.out
+	rm -f conftest.c conftest.o ${tcfn}* vv.out
 	ac_testdone
 }
 
@@ -271,7 +272,7 @@ if test -d mksh || test -d mksh.exe; then
 	exit 1
 fi
 rm -f a.exe* a.out* *core crypt.exp lft mksh mksh.cat1 mksh.exe mksh.s \
-    no *.o scn.c signames.inc stdint.h test.sh x vv.out
+    no *.o conftest.c signames.inc stdint.h test.sh x vv.out
 
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=
 
@@ -503,7 +504,7 @@ $e $bi$me: Scanning for functions... please ignore any errors.$ao
 # - nwcc defines __GNUC__ too
 CPP="$CC -E"
 $e ... which compiler seems to be used
-cat >scn.c <<'EOF'
+cat >conftest.c <<'EOF'
 #if defined(__ICC) || defined(__INTEL_COMPILER)
 ct=icc
 #elif defined(__xlC__) || defined(__IBMC__)
@@ -559,12 +560,12 @@ ct=unknown
 #endif
 EOF
 ct=unknown
-vv ']' "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS | \
+vv ']' "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS | \
     grep ct= | tr -d \\\\015 >x"
 sed 's/^/[ /' x
 eval `cat x`
 rm -f x vv.out
-echo 'int main(void) { return (0); }' >scn.c
+echo 'int main(void) { return (0); }' >conftest.c
 case $ct in
 ack)
 	# work around "the famous ACK const bug"
@@ -594,7 +595,7 @@ clang)
 	;;
 dec)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -Wl,-V scn.c $LIBS"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -Wl,-V conftest.c $LIBS"
 	;;
 dmc)
 	echo >&2 "Warning: Digital Mars Compiler detected. When running under"
@@ -603,13 +604,13 @@ dmc)
 	echo >&2 "    please report success/failure to the developers."
 	;;
 gcc)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v scn.c $LIBS"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
 	vv '|' 'echo `$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS \
 	    -dumpmachine` gcc`$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN \
 	    $LIBS -dumpversion`'
 	;;
 hpcc)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V scn.c $LIBS"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
 	;;
 iar)
 	echo >&2 'Warning: IAR Systems (http://www.iar.com) compiler for embedded
@@ -665,7 +666,7 @@ sdcc)
     own risk, please report success/failure to the developers.'
 	;;
 sunpro)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V scn.c $LIBS"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
 	;;
 tcc)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -v"
@@ -676,7 +677,7 @@ tendra)
 	;;
 ucode)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -Wl,-V scn.c $LIBS"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -Wl,-V conftest.c $LIBS"
 	;;
 watcom)
 	echo >&2 'Warning: Watcom C Compiler detected. This compiler has not yet
@@ -693,7 +694,7 @@ xlc)
 esac
 test $cm = llvm && vv '|' "llc -version"
 $e "$bi==> which compiler seems to be used...$ao $ui$ct$ao"
-rm -f scn.c scn.o scn a.out* a.exe* vv.out
+rm -f conftest.c conftest.o conftest a.out* a.exe* vv.out
 
 #
 # Compiler: works as-is, with -Wno-error and -Werror
@@ -1352,10 +1353,10 @@ ac_cppflags
 #
 test 0 = $HAVE_SYS_SIGNAME && if ac_testinit cpp_dd '' \
     'checking if the C Preprocessor supports -dD'; then
-	echo '#define foo bar' >scn.c
-	vv ']' "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -dD scn.c $LIBS >x"
+	echo '#define foo bar' >conftest.c
+	vv ']' "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -dD conftest.c $LIBS >x"
 	grep '#define foo bar' x >/dev/null 2>&1 && fv=1
-	rm -f scn.c x vv.out
+	rm -f conftest.c x vv.out
 	ac_testdone
 fi
 
@@ -1386,8 +1387,8 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 #define NSIG (SIGMAX+1)
 #endif
 #endif
-mksh_cfg: NSIG' >scn.c
-	NSIG=`vq "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS" | \
+mksh_cfg: NSIG' >conftest.c
+	NSIG=`vq "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS" | \
 	    grep mksh_cfg: | sed 's/^mksh_cfg:[	 ]*\([0-9x ()+-]*\).*$/\1/'`
 	case $NSIG in
 	*[\ \(\)+-]*) NSIG=`awk "BEGIN { print $NSIG }"` ;;
@@ -1400,14 +1401,14 @@ mksh_cfg: NSIG' >scn.c
 	sigs="$sigs KILL LOST PIPE PROF PWR QUIT RESV SAK SEGV STOP SYS TERM"
 	sigs="$sigs TRAP TSTP TTIN TTOU URG USR1 USR2 VTALRM WINCH XCPU XFSZ"
 	test 1 = $HAVE_CPP_DD && test $NSIG -gt 1 && sigs="$sigs "`vq \
-	    "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -dD scn.c $LIBS" | \
+	    "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -dD conftest.c $LIBS" | \
 	    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
 	    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | sort`
 	test $NSIG -gt 1 || sigs=
 	for name in $sigs; do
-		echo '#include <signal.h>' >scn.c
-		echo mksh_cfg: SIG$name >>scn.c
-		vq "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN scn.c $LIBS" | \
+		echo '#include <signal.h>' >conftest.c
+		echo mksh_cfg: SIG$name >>conftest.c
+		vq "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS" | \
 		    grep mksh_cfg: | \
 		    sed 's/^mksh_cfg:[	 ]*\([0-9x]*\).*$/\1:'$name/
 	done | grep -v '^:' | while IFS=: read nr name; do
@@ -1421,7 +1422,7 @@ mksh_cfg: NSIG' >scn.c
 			;;
 		esac
 	done 2>&1 >signames.inc
-	rm -f scn.c
+	rm -f conftest.c
 	$e done.
 fi
 
@@ -1432,7 +1433,7 @@ test 1 = "$USE_PRINTF_BUILTIN" && CPPFLAGS="$CPPFLAGS -DMKSH_PRINTF_BUILTIN"
 test 0 = "$HAVE_SETMODE" && CPPFLAGS="$CPPFLAGS -DHAVE_CONFIG_H -DCONFIG_H_FILENAME=\\\"sh.h\\\""
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
 
-$e $bi$me: Finished configuration, now producing output.$ao
+$e $bi$me: Finished configuration testing, now producing output.$ao
 
 files=
 objs=
