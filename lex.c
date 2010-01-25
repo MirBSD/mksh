@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.103 2009/12/05 20:17:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.104 2010/01/25 16:12:56 tg Exp $");
 
 /*
  * states while lexing word
@@ -1321,7 +1321,7 @@ static void
 getsc_line(Source *s)
 {
 	char *xp = Xstring(s->xs, xp), *cp;
-	int interactive = Flag(FTALKING) && s->type == SSTDIN;
+	bool interactive = Flag(FTALKING) && s->type == SSTDIN;
 	int have_tty = interactive && (s->flags & SF_TTY);
 
 	/* Done here to ensure nothing odd happens when a timeout occurs */
@@ -1413,8 +1413,17 @@ getsc_line(Source *s)
 			shf_fdclose(s->u.shf);
 		s->str = NULL;
 	} else if (interactive && *s->str &&
-	    (cur_prompt != PS1 || !ctype(*s->str, C_IFS | C_IFSWS)))
+	    (cur_prompt != PS1 || !ctype(*s->str, C_IFS | C_IFSWS))) {
 		histsave(&s->line, s->str, true, true);
+#if !defined(MKSH_SMALL) && HAVE_PERSISTENT_HISTORY
+	} else if (interactive && cur_prompt == PS1) {
+		cp = Xstring(s->xs, xp);
+		while (*cp && ctype(*cp, C_IFSWS))
+			++cp;
+		if (!*cp)
+			histsync();
+#endif
+	}
 	if (interactive)
 		set_prompt(PS2, NULL);
 }

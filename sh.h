@@ -148,7 +148,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.375 2010/01/25 14:38:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.376 2010/01/25 16:12:57 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2010/01/08"
 
@@ -1432,6 +1432,9 @@ void hist_init(Source *);
 void hist_finish(void);
 #endif
 void histsave(int *, const char *, bool, bool);
+#if !defined(MKSH_SMALL) && HAVE_PERSISTENT_HISTORY
+bool histsync(void);
+#endif
 int c_fc(const char **);
 void sethistsize(int);
 #if HAVE_PERSISTENT_HISTORY
@@ -1441,7 +1444,7 @@ char **histpos(void);
 int histnum(int);
 int findhist(int, int, const char *, int);
 int findhistrel(const char *);
-char **hist_get_newest(int);
+char **hist_get_newest(bool);
 void inittraps(void);
 void alarm_init(void);
 Trap *gettrap(const char *, int);
