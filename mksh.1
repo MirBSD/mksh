@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.209 2010/01/25 16:12:56 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.210 2010/01/27 18:16:14 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -71,7 +71,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 25 2010 $
+.Dd $Mdocdate: January 27 2010 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -5953,6 +5953,15 @@ It has a different scope model from
 .Nm ksh ,
 which leads to subtile differences in semantics for identical builtins.
 .Sh BUGS
+Suspending (using \*(haZ) pipelines like
+.Bd -literal -offset indent
+$ sleep 666 && echo fubar
+.Ed
+will only suspend the currently running part of the pipeline; in this example,
+.Dq fubar
+is immediately printed on suspension (but not later).
+Patches welcome.
+.Pp
 This document attempts to describe
 .Nm mksh\ R39+devel
 and up,
