@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.436 2010/01/25 12:16:04 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.437 2010/01/28 15:12:34 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -166,6 +166,7 @@ ac_testn() {
 		test $ct = gcc && vscan='unrecogni[sz]ed'
 		test $ct = hpcc && vscan='unsupported'
 		test $ct = pcc && vscan='unsupported'
+		test $ct = sunpro && vscan='ignored'
 	fi
 	test -n "$vscan" && grep "$vscan" vv.out >/dev/null 2>&1 && fv=$fr
 	rm -f conftest.c conftest.o ${tcfn}* vv.out
@@ -791,6 +792,9 @@ test x"$i" = x"" && if test $ct = sunpro; then
 	yes pad | head -n 256 >>x
 	ac_flags - 1 otwo -xO2 <x
 	rm -f x
+	phase=u
+	ac_flags 1 ipo -xipo 'for cross-module optimisation'
+	phase=x
 elif test $ct = hpcc; then
 	phase=u
 	ac_flags 1 otwo +O2
