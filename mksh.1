@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.211 2010/01/27 18:36:19 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.212 2010/01/28 15:18:50 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -71,7 +71,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 27 2010 $
+.Dd $Mdocdate: January 28 2010 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -2333,6 +2333,8 @@ will print an error with a line number prepended to it:
 .Pp
 File descriptors created by input/output redirections are private to the
 Korn shell, but passed to sub-processes if
+.Fl o Ic posix
+or
 .Fl o Ic sh
 is set.
 .Ss Arithmetic expressions
@@ -3129,6 +3131,8 @@ enables backslash interpretation (a no-op, since this is normally done), and
 suppresses backslash interpretation.
 .Pp
 If the
+.Ic posix
+or
 .Ic sh
 option is set, only the first argument is treated as an option, and only
 if it is exactly
@@ -3903,10 +3907,17 @@ See the
 and
 .Ic pwd
 commands above for more details.
+.It Ic posix
+Enable a somewhat more
+.Px
+like mode.
+As a side effect, setting this flag turns off
+.Ic braceexpand
+mode, which can be turned back on manually.
 .It Ic sh
 Enable
 .Pa /bin/sh
-.Pq POSIX/kludge
+.Pq kludge
 mode.
 Automatically enabled if the basename of the shell invocation begins with
 .Dq sh

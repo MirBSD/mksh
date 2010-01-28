@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.136 2010/01/25 14:07:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.137 2010/01/28 15:18:49 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
@@ -232,8 +232,9 @@ change_flag(enum sh_flag f, int what, unsigned int newval)
 		setegid(kshegid = kshgid = getgid());
 		setgid(kshegid);
 #endif
-	} else if (f == FSH && newval) {
-		Flag(FBRACEEXPAND) = 0;
+	} else if ((f == FPOSIX || f == FSH) && newval) {
+		Flag(FPOSIX) = Flag(FSH) = Flag(FBRACEEXPAND) = 0;
+		Flag(f) = (unsigned char)newval;
 	}
 	/* Changing interactive flag? */
 	if (f == FTALKING) {

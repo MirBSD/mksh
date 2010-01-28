@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.149 2010/01/25 14:38:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.150 2010/01/28 15:18:48 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -539,7 +539,7 @@ c_print(const char **wp)
 	if (wp[0][0] == 'e') {
 		/* echo builtin */
 		wp++;
-		if (Flag(FSH)) {
+		if (Flag(FPOSIX) || Flag(FSH)) {
 			/* Debian Policy 10.4 compliant "echo" builtin */
 			if (*wp && !strcmp(*wp, "-n")) {
 				/* we recognise "-n" only as the first arg */
@@ -2372,8 +2372,9 @@ c_set(const char **wp)
 	 * which assumes the exit value set will be that of the $()
 	 * (subst_exstat is cleared in execute() so that it will be 0
 	 * if there are no command substitutions).
+	 * Switched ksh (!posix !sh) to POSIX in mksh R39b.
 	 */
-	return (Flag(FSH) ? 0 : subst_exstat);
+	return (Flag(FSH) ? subst_exstat : 0);
 }
 
 int
@@ -2572,8 +2573,12 @@ c_exec(const char **wp MKSH_A_UNUSED)
 		for (i = 0; i < NUFILE; i++) {
 			if (e->savefd[i] > 0)
 				close(e->savefd[i]);
-			/* For ksh (but not sh), keep anything > 2 private */
-			if (!Flag(FSH) && i > 2 && e->savefd[i])
+			/*
+			 * keep all file descriptors > 2 private for ksh,
+			 * but not for POSIX or legacy/kludge sh
+			 */
+			if (!Flag(FPOSIX) && !Flag(FSH) && i > 2 &&
+			    e->savefd[i])
 				fcntl(i, F_SETFD, FD_CLOEXEC);
 		}
 		e->savefd = NULL;
