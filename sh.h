@@ -123,7 +123,9 @@
 #define MKSH_A_USED		/* nothing */
 #endif
 
-#if (defined(MirBSD) && (MirBSD >= 0x09A1))
+#if defined(MirBSD) && (MirBSD >= 0x09A1) && \
+    defined(__ELF__) && defined(__GNUC__) && \
+    !defined(__llvm__) && !defined(__NWCC__)
 /*
  * We got usable __IDSTRING __COPYRIGHT __RCSID __SCCSID macros
  * which work for all cases; no need to redefine them using the
@@ -148,7 +150,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.376 2010/01/25 16:12:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.377 2010/01/28 15:13:25 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2010/01/08"
 
