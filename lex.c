@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.104 2010/01/25 16:12:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.105 2010/01/28 20:52:08 tg Exp $");
 
 /*
  * states while lexing word
@@ -542,9 +542,10 @@ yylex(int cf)
 					else {
 						c = utf_wctomb(ts, c2 - 0x100);
 						ts[c] = 0;
-						for (c = 0; ts[c]; ++c)
-							*wp++ = QCHAR, \
+						for (c = 0; ts[c]; ++c) {
+							*wp++ = QCHAR;
 							*wp++ = ts[c];
+						}
 					}
 				}
 			} else if (!statep->ls_sequote.got_NUL)
