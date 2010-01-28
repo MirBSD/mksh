@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.357 2010/01/28 15:18:46 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.358 2010/01/28 20:58:30 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2010/01/08
+	@(#)MIRBSD KSH R39 2010/01/28
 description:
 	Check version of shell.
 stdin:
@@ -6699,7 +6699,7 @@ description:
 	Advanced testsuite for bound variables (ksh93 fails this)
 stdin:
 	typeset -n foo=bar[i]
-	bar=(b c a)
+	set -A bar -- b c a
 	for i in 0 1 2 3; do
 		print $i $foo .
 	done

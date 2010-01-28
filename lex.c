@@ -1,7 +1,7 @@
 /*	$OpenBSD: lex.c,v 1.44 2008/07/03 17:52:08 otto Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.105 2010/01/28 20:52:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.106 2010/01/28 20:58:32 tg Exp $");
 
 /*
  * states while lexing word
