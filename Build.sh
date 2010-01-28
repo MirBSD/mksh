@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.437 2010/01/28 15:12:34 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.438 2010/01/28 17:03:22 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -309,6 +309,10 @@ do
 		;;
 	-r)
 		r=1
+		;;
+	-valgrind)
+		CPPFLAGS="$CPPFLAGS -DDEBUG"
+		CFLAGS="$CFLAGS -g3 -fno-builtin"
 		;;
 	*)
 		echo "$me: Unknown option '$i'!" >&2
