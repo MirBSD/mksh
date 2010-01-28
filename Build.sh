@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.438 2010/01/28 17:03:22 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.439 2010/01/28 19:46:53 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -796,9 +796,6 @@ test x"$i" = x"" && if test $ct = sunpro; then
 	yes pad | head -n 256 >>x
 	ac_flags - 1 otwo -xO2 <x
 	rm -f x
-	phase=u
-	ac_flags 1 ipo -xipo 'for cross-module optimisation'
-	phase=x
 elif test $ct = hpcc; then
 	phase=u
 	ac_flags 1 otwo +O2
@@ -830,8 +827,11 @@ elif test $ct = icc; then
 	ac_flags 1 fstacksecuritycheck -fstack-security-check
 	i=1
 elif test $ct = sunpro; then
+	phase=u
 	ac_flags 1 v -v
 	ac_flags 1 xc99 -xc99 'for support of ISO C99'
+	ac_flags 1 ipo -xipo 'for cross-module optimisation'
+	phase=x
 elif test $ct = hpcc; then
 	phase=u
 	ac_flags 1 agcc -Agcc 'for support of GCC extensions'
