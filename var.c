@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.103 2010/01/25 14:38:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.104 2010/01/28 20:26:52 tg Exp $");
 
 /*
  * Variables
@@ -680,6 +680,8 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	val = skip_varname(var, false);
 	if (val == var)
 		return (NULL);
+	mkssert(var != NULL);
+	mkssert(*var != 0);
 	if (*val == '[') {
 		if (set_refflag)
 			errorf("%s: reference variable cannot be an array",
