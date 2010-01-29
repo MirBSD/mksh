@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.137 2010/01/28 15:18:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.138 2010/01/29 09:34:29 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
@@ -551,8 +551,10 @@ has_globbing(const char *xp, const char *xpe)
 			} else if (nest)
 				nest--;
 		}
-		/* else must be a MAGIC-MAGIC, or MAGIC-!, MAGIC--, MAGIC-]
-			 MAGIC-{, MAGIC-,, MAGIC-} */
+		/*
+		 * else must be a MAGIC-MAGIC, or MAGIC-!,
+		 * MAGIC--, MAGIC-], MAGIC-{, MAGIC-, MAGIC-}
+		 */
 	}
 	return (saw_glob && !in_bracket && !nest);
 }

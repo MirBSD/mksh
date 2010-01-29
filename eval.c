@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.81 2010/01/25 14:07:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.82 2010/01/29 09:34:27 tg Exp $");
 
 /*
  * string expansion
@@ -551,7 +551,7 @@ expand(const char *cp,	/* input word */
 					case '?':
 						f &= ~DOBLANK;
 						f |= DOTEMP_;
-						/* FALLTHRU */
+						/* FALLTHROUGH */
 					default:
 						/* Enable tilde expansion */
 						tilde_ok = 1;

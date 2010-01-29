@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.161 2010/01/28 15:18:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.162 2010/01/29 09:34:29 tg Exp $");
 
 extern char **environ;
 
@@ -505,7 +505,7 @@ include(const char *name, int argc, const char **argv, int intr_ok)
 			 */
 			if (intr_ok && (exstat - 128) != SIGTERM)
 				return (1);
-			/* FALLTHRU */
+			/* FALLTHROUGH */
 		case LEXIT:
 		case LLEAVE:
 		case LSHELL:
@@ -585,7 +585,7 @@ shell(Source * volatile s, volatile int toplevel)
 				s->start = s->str = null;
 				break;
 			}
-			/* FALLTHRU */
+			/* FALLTHROUGH */
 		case LEXIT:
 		case LLEAVE:
 		case LRETURN:
@@ -672,7 +672,7 @@ unwind(int i)
 		case E_NONE:
 			if (i == LINTR)
 				e->flags |= EF_FAKE_SIGDIE;
-			/* FALLTHRU */
+			/* FALLTHROUGH */
 		default:
 			quitenv(NULL);
 		}

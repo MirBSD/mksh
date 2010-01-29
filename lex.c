@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.106 2010/01/28 20:58:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.107 2010/01/29 09:34:28 tg Exp $");
 
 /*
  * states while lexing word
@@ -206,7 +206,8 @@ yylex(int cf)
 	if (cf&ONEWORD)
 		state = SWORD;
 	else if (cf&LETEXPR) {
-		*wp++ = OQUOTE;	 /* enclose arguments in (double) quotes */
+		/* enclose arguments in (double) quotes */
+		*wp++ = OQUOTE;
 		state = SLETPAREN;
 		statep->ls_sletparen.nparen = 0;
 #ifndef MKSH_SMALL
@@ -273,7 +274,7 @@ yylex(int cf)
 			/* FALLTHROUGH */
 		case SBASE:
 			if (c == '[' && (cf & (VARASN|ARRAYVAR))) {
-				*wp = EOS; /* temporary */
+				*wp = EOS;	/* temporary */
 				if (is_wdvarname(Xstring(ws, wp), false)) {
 					char *p, *tmp;
 
@@ -302,7 +303,7 @@ yylex(int cf)
 				*wp++ = c;
 				break;
 			}
-			/* FALLTHRU */
+			/* FALLTHROUGH */
  Sbase1:		/* includes *(...|...) pattern (*+?@!) */
 			if (c == '*' || c == '@' || c == '+' || c == '?' ||
 			    c == '!') {
@@ -315,13 +316,16 @@ yylex(int cf)
 				}
 				ungetsc(c2);
 			}
-			/* FALLTHRU */
+			/* FALLTHROUGH */
  Sbase2:		/* doesn't include *(...|...) pattern (*+?@!) */
 			switch (c) {
 			case '\\':
 				c = getsc();
-				if (c) /* trailing \ is lost */
-					*wp++ = QCHAR, *wp++ = c;
+				if (c) {
+					/* trailing \ is lost */
+					*wp++ = QCHAR;
+					*wp++ = c;
+				}
 				break;
 			case '\'':
 				*wp++ = OQUOTE;
@@ -348,14 +352,18 @@ yylex(int cf)
 					/* FALLTHROUGH */
 				case '\\':
 				case '$': case '`':
-					*wp++ = QCHAR, *wp++ = c;
+					*wp++ = QCHAR;
+					*wp++ = c;
 					break;
 				default:
  heredocquote:
 					Xcheck(ws, wp);
-					if (c) { /* trailing \ is lost */
-						*wp++ = CHAR, *wp++ = '\\';
-						*wp++ = CHAR, *wp++ = c;
+					if (c) {
+						/* trailing \ is lost */
+						*wp++ = CHAR;
+						*wp++ = '\\';
+						*wp++ = CHAR;
+						*wp++ = c;
 					}
 					break;
 				}
@@ -384,7 +392,8 @@ yylex(int cf)
 					c = getsc();
 					/* allow :# and :% (ksh88 compat) */
 					if (c == ':') {
-						*wp++ = CHAR, *wp++ = c;
+						*wp++ = CHAR;
+						*wp++ = c;
 						c = getsc();
 						if (c == ':') {
 							*wp++ = CHAR;
@@ -416,7 +425,8 @@ yylex(int cf)
 							break;
 						}
 					} else if (c == '/') {
-						*wp++ = CHAR, *wp++ = c;
+						*wp++ = CHAR;
+						*wp++ = c;
 						if ((c = getsc()) == '/') {
 							*wp++ = ADELIM;
 							*wp++ = c;
@@ -468,7 +478,8 @@ yylex(int cf)
 					statep->ls_sequote.got_NUL = false;
 					break;
 				} else {
-					*wp++ = CHAR, *wp++ = '$';
+					*wp++ = CHAR;
+					*wp++ = '$';
 					ungetsc(c);
 				}
 				break;
@@ -518,9 +529,10 @@ yylex(int cf)
 					*wp++ = getsc();
 					break;
 				}
-				/* FALLTHRU */
+				/* FALLTHROUGH */
 			default:
-				*wp++ = CHAR, *wp++ = c;
+				*wp++ = CHAR;
+				*wp++ = c;
 			}
 			break;
 
@@ -537,9 +549,10 @@ yylex(int cf)
 				if (!statep->ls_sequote.got_NUL) {
 					char ts[4];
 
-					if ((unsigned int)c2 < 0x100)
-						*wp++ = QCHAR, *wp++ = c2;
-					else {
+					if ((unsigned int)c2 < 0x100) {
+						*wp++ = QCHAR;
+						*wp++ = c2;
+					} else {
 						c = utf_wctomb(ts, c2 - 0x100);
 						ts[c] = 0;
 						for (c = 0; ts[c]; ++c) {
@@ -548,8 +561,10 @@ yylex(int cf)
 						}
 					}
 				}
-			} else if (!statep->ls_sequote.got_NUL)
-				*wp++ = QCHAR, *wp++ = c;
+			} else if (!statep->ls_sequote.got_NUL) {
+				*wp++ = QCHAR;
+				*wp++ = c;
+			}
 			break;
 
 		case SSQUOTE:
@@ -557,8 +572,10 @@ yylex(int cf)
 				POP_STATE();
 				*wp++ = CQUOTE;
 				ignore_backslash_newline--;
-			} else
-				*wp++ = QCHAR, *wp++ = c;
+			} else {
+				*wp++ = QCHAR;
+				*wp++ = c;
+			}
 			break;
 
 		case SDQUOTE:
@@ -569,14 +586,14 @@ yylex(int cf)
 				goto Subst;
 			break;
 
-		case SCSPAREN: /* $( ... ) */
+		case SCSPAREN:	/* $( ... ) */
 			/* todo: deal with $(...) quoting properly
 			 * kludge to partly fake quoting inside $(...): doesn't
 			 * really work because nested $(...) or ${...} inside
 			 * double quotes aren't dealt with.
 			 */
 			switch (statep->ls_scsparen.csstate) {
-			case 0: /* normal */
+			case 0:	/* normal */
 				switch (c) {
 				case '(':
 					statep->ls_scsparen.nparen++;
@@ -597,19 +614,19 @@ yylex(int cf)
 				}
 				break;
 
-			case 1: /* backslash in normal mode */
-			case 3: /* backslash in double quotes */
+			case 1:	/* backslash in normal mode */
+			case 3:	/* backslash in double quotes */
 				--statep->ls_scsparen.csstate;
 				break;
 
-			case 2: /* double quotes */
+			case 2:	/* double quotes */
 				if (c == '"')
 					statep->ls_scsparen.csstate = 0;
 				else if (c == '\\')
 					statep->ls_scsparen.csstate = 3;
 				break;
 
-			case 4: /* single quotes */
+			case 4:	/* single quotes */
 				if (c == '\'') {
 					statep->ls_scsparen.csstate = 0;
 					ignore_backslash_newline--;
@@ -618,12 +635,12 @@ yylex(int cf)
 			}
 			if (statep->ls_scsparen.nparen == 0) {
 				POP_STATE();
-				*wp++ = 0; /* end of COMSUB */
+				*wp++ = 0;	/* end of COMSUB */
 			} else
 				*wp++ = c;
 			break;
 
-		case SASPAREN: /* $(( ... )) */
+		case SASPAREN:	/* $(( ... )) */
 			/* XXX should nest using existing state machine
 			 * (embed "...", $(...), etc.) */
 			if (c == '(')
@@ -634,7 +651,8 @@ yylex(int cf)
 					/*(*/
 					if ((c2 = getsc()) == ')') {
 						POP_STATE();
-						*wp++ = 0; /* end of EXPRSUB */
+						/* end of EXPRSUB */
+						*wp++ = 0;
 						break;
 					} else {
 						char *s;
@@ -702,9 +720,10 @@ yylex(int cf)
 						*wp++ = c;
 						break;
 					}
-					/* FALLTHRU */
+					/* FALLTHROUGH */
 				default:
-					if (c) { /* trailing \ is lost */
+					if (c) {
+						/* trailing \ is lost */
 						*wp++ = '\\';
 						*wp++ = c;
 					}
@@ -760,14 +779,16 @@ yylex(int cf)
 					c = 0;
 					goto Done;
 				}
-			*wp++ = CHAR, *wp++ = c;
+			*wp++ = CHAR;
+			*wp++ = c;
 			break;
 #endif
 
 		case SHERESTRING:	/* <<< delimiter */
 			if (c == '\\') {
 				c = getsc();
-				if (c) { /* trailing \ is lost */
+				if (c) {
+					/* trailing \ is lost */
 					*wp++ = QCHAR;
 					*wp++ = c;
 				}
@@ -810,7 +831,8 @@ yylex(int cf)
 			 */
 			if (c == '\\') {
 				c = getsc();
-				if (c) { /* trailing \ is lost */
+				if (c) {
+					/* trailing \ is lost */
 					*wp++ = QCHAR;
 					*wp++ = c;
 				}
@@ -851,7 +873,8 @@ yylex(int cf)
 					case '$': case '`':
 						break;
 					default:
-						if (c) { /* trailing \ lost */
+						if (c) {
+							/* trailing \ lost */
 							*wp++ = CHAR;
 							*wp++ = '\\';
 						}
@@ -1289,7 +1312,7 @@ getsc__(void)
 			continue;
 
 		case SREREAD:
-			if (s->start != s->ugbuf) /* yuck */
+			if (s->start != s->ugbuf)	/* yuck */
 				afree(s->u.freeme, ATEMP);
 			source = s = s->next;
 			continue;
@@ -1365,9 +1388,9 @@ getsc_line(Source *s)
 			if (!p || (xp = p, xp[-1] == '\n'))
 				break;
 			/* double buffer size */
-			xp++; /* move past null so doubling works... */
+			xp++;	/* move past NUL so doubling works... */
 			XcheckN(s->xs, xp, Xlength(s->xs, xp));
-			xp--; /* ...and move back again */
+			xp--;	/* ...and move back again */
 		}
 		/* flush any unwanted input so other programs/builtins
 		 * can read it. Not very optimal, but less error prone
@@ -1409,7 +1432,8 @@ getsc_line(Source *s)
 	s->start = s->str = cp;
 	strip_nuls(Xstring(s->xs, xp), Xlength(s->xs, xp));
 	/* Note: if input is all nulls, this is not eof */
-	if (Xlength(s->xs, xp) == 0) { /* EOF */
+	if (Xlength(s->xs, xp) == 0) {
+		/* EOF */
 		if (s->type == SFILE)
 			shf_fdclose(s->u.shf);
 		s->str = NULL;
@@ -1435,7 +1459,7 @@ set_prompt(int to, Source *s)
 	cur_prompt = to;
 
 	switch (to) {
-	case PS1: /* command */
+	case PS1:	/* command */
 		/* Substitute ! and !! here, before substitutions are done
 		 * so ! in expanded variables are not expanded.
 		 * NOTE: this is not what AT&T ksh does (it does it after
@@ -1473,7 +1497,7 @@ set_prompt(int to, Source *s)
 			quitenv(NULL);
 		}
 		break;
-	case PS2: /* command continuation */
+	case PS2:	/* command continuation */
 		prompt = str_val(global("PS2"));
 		break;
 	}
@@ -1548,7 +1572,7 @@ get_brace_var(XString *wsp, char *wp)
 {
 	enum parse_state {
 		PS_INITIAL, PS_SAW_HASH, PS_IDENT,
-		PS_NUMBER, PS_VAR1, PS_END
+		PS_NUMBER, PS_VAR1
 	} state;
 	char c;
 
@@ -1562,7 +1586,7 @@ get_brace_var(XString *wsp, char *wp)
 				state = PS_SAW_HASH;
 				break;
 			}
-			/* FALLTHRU */
+			/* FALLTHROUGH */
 		case PS_SAW_HASH:
 			if (ksh_isalphx(c))
 				state = PS_IDENT;
@@ -1571,11 +1595,10 @@ get_brace_var(XString *wsp, char *wp)
 			else if (ctype(c, C_VAR1))
 				state = PS_VAR1;
 			else
-				state = PS_END;
+				goto out;
 			break;
 		case PS_IDENT:
 			if (!ksh_isalnux(c)) {
-				state = PS_END;
 				if (c == '[') {
 					char *tmp, *p;
 
@@ -1587,28 +1610,24 @@ get_brace_var(XString *wsp, char *wp)
 						*wp++ = *p++;
 					}
 					afree(tmp, ATEMP);
-					c = getsc(); /* the ] */
+					c = getsc();	/* the ] */
 				}
+				goto out;
 			}
 			break;
 		case PS_NUMBER:
 			if (!ksh_isdigit(c))
-				state = PS_END;
+				goto out;
 			break;
 		case PS_VAR1:
-			state = PS_END;
-			break;
-		case PS_END: /* keep gcc happy */
-			break;
-		}
-		if (state == PS_END) {
-			*wp++ = '\0';	/* end of variable part */
-			ungetsc(c);
-			break;
+			goto out;
 		}
 		Xcheck(*wsp, wp);
 		*wp++ = c;
 	}
+ out:
+	*wp++ = '\0';	/* end of variable part */
+	ungetsc(c);
 	return (wp);
 }
 

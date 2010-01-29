@@ -1,7 +1,7 @@
 /*	$OpenBSD: tree.c,v 1.19 2008/08/11 21:50:35 jaredy Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.28 2009/06/10 18:12:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.29 2010/01/29 09:34:31 tg Exp $");
 
 #define INDENT	4
 
@@ -95,7 +95,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 	}
 	case TSELECT:
 		fptreef(shf, indent, "select %s ", t->str);
-		/* FALLTHRU */
+		/* FALLTHROUGH */
 	case TFOR:
 		if (t->type == TFOR)
 			fptreef(shf, indent, "for %s ", t->str);

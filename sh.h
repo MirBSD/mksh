@@ -150,9 +150,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.379 2010/01/28 20:58:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.380 2010/01/29 09:34:30 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2010/01/28"
+#define MKSH_VERSION "R39 2010/01/29"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -797,9 +797,11 @@ EXTERN mksh_ari_t x_lins I__(-1);	/* tty lines */
 int shf_getc(struct shf *);
 int shf_putc(int, struct shf *);
 #else
-#define shf_getc(shf) ((shf)->rnleft > 0 ? (shf)->rnleft--, *(shf)->rp++ : \
-			shf_getchar(shf))
-#define shf_putc(c, shf)	((shf)->wnleft == 0 ? shf_putchar((c), (shf)) : \
+#define shf_getc(shf)		((shf)->rnleft > 0 ? \
+				    (shf)->rnleft--, *(shf)->rp++ : \
+				    shf_getchar(shf))
+#define shf_putc(c, shf)	((shf)->wnleft == 0 ? \
+				    shf_putchar((c), (shf)) : \
 				    ((shf)->wnleft--, *(shf)->wp++ = (c)))
 #endif
 #define shf_eof(shf)		((shf)->flags & SHF_EOF)
