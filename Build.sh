@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.439 2010/01/28 19:46:53 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.440 2010/02/16 23:53:28 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -19,6 +19,9 @@ srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.439 2010/01/28 19:46:53 tg Exp $'
 # damage or existence of a defect, except proven that it results out
 # of said person's immediate fault when using the work as intended.
 #-
+# People analysing the output must whitelist conftest.c for any kind
+# of compiler warning checks (mirtoconf is by design not quiet).
+#
 # Environment used:	CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF
 #			TARGET_OS TARGET_OSREV
 # Feature selectors:	USE_PRINTF_BUILTIN
@@ -150,9 +153,7 @@ ac_testn() {
 	fi
 	ac_testinit "$@" || return
 	cat >conftest.c
-	vv ']' \
-	    "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS $ccpr" | \
-	    sed 's^\] conftest.c:\([0-9]*\):\] mirtoconf(\1):'
+	vv ']' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS $ccpr"
 	test $tcfn = no && test -f a.out && tcfn=a.out
 	test $tcfn = no && test -f a.exe && tcfn=a.exe
 	test $tcfn = no && test -f conftest && tcfn=conftest
