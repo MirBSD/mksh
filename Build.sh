@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.440 2010/02/16 23:53:28 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.441 2010/02/18 17:21:19 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -273,7 +273,7 @@ if test -d mksh || test -d mksh.exe; then
 	echo "$me: Error: ./mksh is a directory!" >&2
 	exit 1
 fi
-rm -f a.exe* a.out* *core crypt.exp lft mksh mksh.cat1 mksh.exe mksh.s \
+rm -f a.exe* a.out* *core lft mksh mksh.cat1 mksh.exe mksh.s \
     no *.o conftest.c signames.inc stdint.h test.sh x vv.out
 
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=
@@ -349,14 +349,6 @@ esac
 case $TARGET_OS in
 AIX)
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
-	if test x"$LDFLAGS" = x""; then
-		LDFLAGS="${ccpl}-bI:crypt.exp"
-		echo '#!
-__crypt_r
-__encrypt_r
-__setkey_r' >crypt.exp
-	fi
-	: ${LIBS='-lcrypt'}
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 BeOS|Haiku)
