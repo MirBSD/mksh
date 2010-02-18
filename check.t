@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.360 2010/02/18 17:30:19 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.361 2010/02/18 17:31:22 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2010/01/29
+	@(#)MIRBSD KSH R39 2010/02/18
 description:
 	Check version of shell.
 stdin:
@@ -999,6 +999,95 @@ expected-stdout:
 	hi_there
 expected-stderr: !
 	XX
+---
+name: expand-unglob
+description:
+	Check that ${foo+bar} constructs are parsed correctly
+	XXX this output differs from bash/dash/ksh93/zsh but
+	XXX the exact interpretation of “word” in the construct
+	XXX ${var+word} is still open and to be solved…
+stdin:
+	tl_norm() {
+		v=$2
+		(echo "$1 plus norm foo ${v+'bar'} baz")
+		(echo "$1 dash norm foo ${v-'bar'} baz")
+		(echo "$1 eqal norm foo ${v='bar'} baz")
+		(echo "$1 qstn norm foo ${v?'bar'} baz") 2>&- || \
+		    echo "$1 qstn norm -> error"
+		(echo "$1 PLUS norm foo ${v:+'bar'} baz")
+		(echo "$1 DASH norm foo ${v:-'bar'} baz")
+		(echo "$1 EQAL norm foo ${v:='bar'} baz")
+		(echo "$1 QSTN norm foo ${v:?'bar'} baz") 2>&- || \
+		    echo "$1 QSTN norm -> error"
+	}
+	tl_paren() {
+		v=$2
+		(echo "$1 plus parn foo ${v+(bar)} baz")
+		(echo "$1 dash parn foo ${v-(bar)} baz")
+		(echo "$1 eqal parn foo ${v=(bar)} baz")
+		(echo "$1 qstn parn foo ${v?(bar)} baz") 2>&- || \
+		    echo "$1 qstn parn -> error"
+		(echo "$1 PLUS parn foo ${v:+(bar)} baz")
+		(echo "$1 DASH parn foo ${v:-(bar)} baz")
+		(echo "$1 EQAL parn foo ${v:=(bar)} baz")
+		(echo "$1 QSTN parn foo ${v:?(bar)} baz") 2>&- || \
+		    echo "$1 QSTN parn -> error"
+	}
+	tl_norm 1
+	tl_norm 2 ''
+	tl_norm 3 x
+	tl_paren 4
+	tl_paren 5 ''
+	tl_paren 6 x
+expected-stdout:
+	1 plus norm foo bar baz
+	1 dash norm foo  baz
+	1 eqal norm foo  baz
+	1 qstn norm foo  baz
+	1 PLUS norm foo  baz
+	1 DASH norm foo bar baz
+	1 EQAL norm foo bar baz
+	1 QSTN norm -> error
+	2 plus norm foo bar baz
+	2 dash norm foo  baz
+	2 eqal norm foo  baz
+	2 qstn norm foo  baz
+	2 PLUS norm foo  baz
+	2 DASH norm foo bar baz
+	2 EQAL norm foo bar baz
+	2 QSTN norm -> error
+	3 plus norm foo bar baz
+	3 dash norm foo x baz
+	3 eqal norm foo x baz
+	3 qstn norm foo x baz
+	3 PLUS norm foo bar baz
+	3 DASH norm foo x baz
+	3 EQAL norm foo x baz
+	3 QSTN norm foo x baz
+	4 plus parn foo (bar) baz
+	4 dash parn foo  baz
+	4 eqal parn foo  baz
+	4 qstn parn foo  baz
+	4 PLUS parn foo  baz
+	4 DASH parn foo (bar) baz
+	4 EQAL parn foo (bar) baz
+	4 QSTN parn -> error
+	5 plus parn foo (bar) baz
+	5 dash parn foo  baz
+	5 eqal parn foo  baz
+	5 qstn parn foo  baz
+	5 PLUS parn foo  baz
+	5 DASH parn foo (bar) baz
+	5 EQAL parn foo (bar) baz
+	5 QSTN parn -> error
+	6 plus parn foo (bar) baz
+	6 dash parn foo x baz
+	6 eqal parn foo x baz
+	6 qstn parn foo x baz
+	6 PLUS parn foo (bar) baz
+	6 DASH parn foo x baz
+	6 EQAL parn foo x baz
+	6 QSTN parn foo x baz
 ---
 name: eglob-bad-1
 description:
