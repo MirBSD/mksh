@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.442 2010/02/23 22:02:19 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.443 2010/02/23 22:02:35 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -567,8 +567,7 @@ ct=unknown
 #endif
 EOF
 ct=unknown
-vv ']' "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS | \
-    grep ct= | tr -d \\\\015 >x"
+vv ']' "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c | grep ct= | tr -d \\\\015 >x"
 sed 's/^/[ /' x
 eval `cat x`
 rmf x vv.out
