@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.150 2010/01/28 15:18:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.151 2010/02/23 18:13:03 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1682,12 +1682,6 @@ c_getopts(const char **wp)
 
 	return (optc < 0 ? 1 : rv);
 }
-
-#ifndef MKSH_SMALL
-extern int x_bind(const char *, const char *, bool, bool);
-#else
-extern int x_bind(const char *, const char *, bool);
-#endif
 
 int
 c_bind(const char **wp)

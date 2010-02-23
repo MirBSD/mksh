@@ -150,9 +150,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.381 2010/02/18 17:31:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.382 2010/02/23 18:13:04 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2010/02/18"
+#define MKSH_VERSION "R39 2010/02/23"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1350,6 +1350,11 @@ void afreeall(Area *);
 void *aresize(void *, size_t, Area *);
 void afree(void *, Area *);	/* can take NULL */
 /* edit.c */
+#ifndef MKSH_SMALL
+int x_bind(const char *, const char *, bool, bool);
+#else
+int x_bind(const char *, const char *, bool);
+#endif
 void x_init(void);
 int x_read(char *, size_t);
 /* eval.c */

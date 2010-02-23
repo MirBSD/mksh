@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.189 2010/01/29 09:34:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.190 2010/02/23 18:13:02 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -857,11 +857,7 @@ static void x_load_hist(char **);
 static int x_search(char *, int, int);
 #ifndef MKSH_SMALL
 static int x_search_dir(int);
-int x_bind(const char *, const char *, bool, bool)
-#else
-int x_bind(const char *, const char *, bool)
 #endif
-    MKSH_A_NONNULL((nonnull (1, 2)));
 static int x_match(char *, char *);
 static void x_redraw(int);
 static void x_push(int);
