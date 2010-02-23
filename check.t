@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.362 2010/02/23 18:13:00 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.363 2010/02/23 21:51:49 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2010/02/23
+	@(#)MIRBSD KSH R39 2010/02/24
 description:
 	Check version of shell.
 stdin:
@@ -1000,15 +1000,71 @@ expected-stdout:
 expected-stderr: !
 	XX
 ---
-name: expand-unglob
+name: expand-ugly
 description:
 	Check that ${foo+bar} constructs are parsed correctly
-	XXX this output differs from bash/dash/ksh93/zsh but
-	XXX the exact interpretation of “word” in the construct
-	XXX ${var+word} is still open and to be solved…
+	XXX omitted (for my own sanity) for now:
+	4 foo b
+	c baz
+	XXX actually, ksh93 is the *only* one doing that...
 stdin:
+	(echo 1 ${IFS+'}'z}) 2>&- || echo failed in 1
+	(echo 2 "${IFS+'}'z}") 2>&- || echo failed in 2
+	(echo 3 "foo ${IFS+'bar} baz") 2>&- || echo failed in 3
+	(exit 1; echo -n '4 '; printf '%s\n' "foo ${IFS+"b   c"} baz") 2>&- || (echo failed in 4; echo failed in 5)
+	(echo -n '6 '; printf '%s\n' "foo ${IFS+b   c} baz") 2>&- || echo failed in 6
+	(echo 7 ${IFS+"}"z}) 2>&- || echo failed in 7
+	(echo 8 "${IFS+"}"z}") 2>&- || echo failed in 8
+	(echo 9 "${IFS+\"}\"z}") 2>&- || echo failed in 9
+	(echo 10 "${IFS+\"\}\"z}") 2>&- || echo failed in 10
+	(echo 11 foo ${IFS+'bar} baz'}) 2>&- || echo failed in 11
+	(echo 12 "$(echo "${IFS+'}'z}")") 2>&- || echo failed in 12
+	(echo 13 "$(echo ${IFS+'}'z})") 2>&- || echo failed in 13
+	(echo 14 ${IFS+\}z}) 2>&- || echo failed in 14
+	(echo 15 "${IFS+\}z}") 2>&- || echo failed in 15
+	(echo -n '16 '; printf '%s\n' "foo ${IFS+"b   c"} baz") 2>&- || echo failed in 16
+	l=t; (echo 17 ${IFS+h`echo -n i ${IFS+$l}h`ere}) 2>&- || echo failed in 17
+	l=t; (echo 18 ${IFS+h$(echo -n i ${IFS+$l}h)ere}) 2>&- || echo failed in 18
+	l=t; (echo 19 "${IFS+h`echo -n i ${IFS+$l}h`ere}") 2>&- || echo failed in 19
+	l=t; (echo 20 "${IFS+h$(echo -n i ${IFS+$l}h)ere}") 2>&- || echo failed in 20
+	l=t; (echo 21 ${IFS+h`echo -n i "${IFS+$l}"h`ere}) 2>&- || echo failed in 21
+	l=t; (echo 22 ${IFS+h$(echo -n i "${IFS+$l}"h)ere}) 2>&- || echo failed in 22
+	l=t; (echo 23 "${IFS+h`echo -n i "${IFS+$l}"h`ere}") 2>&- || echo failed in 23
+	l=t; (echo 24 "${IFS+h$(echo -n i "${IFS+$l}"h)ere}") 2>&- || echo failed in 24
+expected-stdout:
+	1 }z
+	2 ''z}
+	3 foo 'bar baz
+	failed in 4
+	failed in 5
+	6 foo b   c baz
+	7 }z
+	8 }z
+	9 ""z}
+	10 "}"z
+	11 foo bar} baz
+	12 ''z}
+	13 }z
+	14 }z
+	15 }z
+	16 foo b   c baz
+	17 hi there
+	18 hi there
+	19 hi there
+	20 hi there
+	21 hi there
+	22 hi there
+	23 hi there
+	24 hi there
+---
+name: expand-unglob-dblq
+description:
+	Check that ${foo+bar} constructs are parsed correctly
+stdin:
+	u=x
 	tl_norm() {
 		v=$2
+		test x"$v" = x"-" && unset v
 		(echo "$1 plus norm foo ${v+'bar'} baz")
 		(echo "$1 dash norm foo ${v-'bar'} baz")
 		(echo "$1 eqal norm foo ${v='bar'} baz")
@@ -1022,6 +1078,7 @@ stdin:
 	}
 	tl_paren() {
 		v=$2
+		test x"$v" = x"-" && unset v
 		(echo "$1 plus parn foo ${v+(bar)} baz")
 		(echo "$1 dash parn foo ${v-(bar)} baz")
 		(echo "$1 eqal parn foo ${v=(bar)} baz")
@@ -1033,41 +1090,58 @@ stdin:
 		(echo "$1 QSTN parn foo ${v:?(bar)} baz") 2>&- || \
 		    echo "$1 QSTN parn -> error"
 	}
-	tl_norm 1
+	tl_brace() {
+		v=$2
+		test x"$v" = x"-" && unset v
+		(echo "$1 plus brac foo ${v+a$u{{{\}b} c ${v+d{}} baz")
+		(echo "$1 dash brac foo ${v-a$u{{{\}b} c ${v-d{}} baz")
+		(echo "$1 eqal brac foo ${v=a$u{{{\}b} c ${v=d{}} baz")
+		(echo "$1 qstn brac foo ${v?a$u{{{\}b} c ${v?d{}} baz") 2>&- || \
+		    echo "$1 qstn brac -> error"
+		(echo "$1 PLUS brac foo ${v:+a$u{{{\}b} c ${v:+d{}} baz")
+		(echo "$1 DASH brac foo ${v:-a$u{{{\}b} c ${v:-d{}} baz")
+		(echo "$1 EQAL brac foo ${v:=a$u{{{\}b} c ${v:=d{}} baz")
+		(echo "$1 QSTN brac foo ${v:?a$u{{{\}b} c ${v:?d{}} baz") 2>&- || \
+		    echo "$1 QSTN brac -> error"
+	}
+	tl_norm 1 -
 	tl_norm 2 ''
 	tl_norm 3 x
-	tl_paren 4
+	tl_paren 4 -
 	tl_paren 5 ''
 	tl_paren 6 x
+	tl_brace 7 -
+	tl_brace 8 ''
+	tl_brace 9 x
 expected-stdout:
-	1 plus norm foo bar baz
-	1 dash norm foo  baz
-	1 eqal norm foo  baz
-	1 qstn norm foo  baz
+	1 plus norm foo  baz
+	1 dash norm foo 'bar' baz
+	1 eqal norm foo 'bar' baz
+	1 qstn norm -> error
 	1 PLUS norm foo  baz
-	1 DASH norm foo bar baz
-	1 EQAL norm foo bar baz
+	1 DASH norm foo 'bar' baz
+	1 EQAL norm foo 'bar' baz
 	1 QSTN norm -> error
-	2 plus norm foo bar baz
+	2 plus norm foo 'bar' baz
 	2 dash norm foo  baz
 	2 eqal norm foo  baz
 	2 qstn norm foo  baz
 	2 PLUS norm foo  baz
-	2 DASH norm foo bar baz
-	2 EQAL norm foo bar baz
+	2 DASH norm foo 'bar' baz
+	2 EQAL norm foo 'bar' baz
 	2 QSTN norm -> error
-	3 plus norm foo bar baz
+	3 plus norm foo 'bar' baz
 	3 dash norm foo x baz
 	3 eqal norm foo x baz
 	3 qstn norm foo x baz
-	3 PLUS norm foo bar baz
+	3 PLUS norm foo 'bar' baz
 	3 DASH norm foo x baz
 	3 EQAL norm foo x baz
 	3 QSTN norm foo x baz
-	4 plus parn foo (bar) baz
-	4 dash parn foo  baz
-	4 eqal parn foo  baz
-	4 qstn parn foo  baz
+	4 plus parn foo  baz
+	4 dash parn foo (bar) baz
+	4 eqal parn foo (bar) baz
+	4 qstn parn -> error
 	4 PLUS parn foo  baz
 	4 DASH parn foo (bar) baz
 	4 EQAL parn foo (bar) baz
@@ -1088,6 +1162,161 @@ expected-stdout:
 	6 DASH parn foo x baz
 	6 EQAL parn foo x baz
 	6 QSTN parn foo x baz
+	7 plus brac foo  c } baz
+	7 dash brac foo ax{{{}b c d{} baz
+	7 eqal brac foo ax{{{}b c ax{{{}b} baz
+	7 qstn brac -> error
+	7 PLUS brac foo  c } baz
+	7 DASH brac foo ax{{{}b c d{} baz
+	7 EQAL brac foo ax{{{}b c ax{{{}b} baz
+	7 QSTN brac -> error
+	8 plus brac foo ax{{{}b c d{} baz
+	8 dash brac foo  c } baz
+	8 eqal brac foo  c } baz
+	8 qstn brac foo  c } baz
+	8 PLUS brac foo  c } baz
+	8 DASH brac foo ax{{{}b c d{} baz
+	8 EQAL brac foo ax{{{}b c ax{{{}b} baz
+	8 QSTN brac -> error
+	9 plus brac foo ax{{{}b c d{} baz
+	9 dash brac foo x c x} baz
+	9 eqal brac foo x c x} baz
+	9 qstn brac foo x c x} baz
+	9 PLUS brac foo ax{{{}b c d{} baz
+	9 DASH brac foo x c x} baz
+	9 EQAL brac foo x c x} baz
+	9 QSTN brac foo x c x} baz
+---
+name: expand-unglob-unq
+description:
+	Check that ${foo+bar} constructs are parsed correctly
+	AT&T ksh93 slightly fails this
+stdin:
+	u=x
+	tl_norm() {
+		v=$2
+		test x"$v" = x"-" && unset v
+		(echo $1 plus norm foo ${v+'bar'} baz)
+		(echo $1 dash norm foo ${v-'bar'} baz)
+		(echo $1 eqal norm foo ${v='bar'} baz)
+		(echo $1 qstn norm foo ${v?'bar'} baz) 2>&- || \
+		    echo "$1 qstn norm -> error"
+		(echo $1 PLUS norm foo ${v:+'bar'} baz)
+		(echo $1 DASH norm foo ${v:-'bar'} baz)
+		(echo $1 EQAL norm foo ${v:='bar'} baz)
+		(echo $1 QSTN norm foo ${v:?'bar'} baz) 2>&- || \
+		    echo "$1 QSTN norm -> error"
+	}
+	tl_paren() {
+		v=$2
+		test x"$v" = x"-" && unset v
+		(echo $1 plus parn foo ${v+\(bar')'} baz)
+		(echo $1 dash parn foo ${v-\(bar')'} baz)
+		(echo $1 eqal parn foo ${v=\(bar')'} baz)
+		(echo $1 qstn parn foo ${v?\(bar')'} baz) 2>&- || \
+		    echo "$1 qstn parn -> error"
+		(echo $1 PLUS parn foo ${v:+\(bar')'} baz)
+		(echo $1 DASH parn foo ${v:-\(bar')'} baz)
+		(echo $1 EQAL parn foo ${v:=\(bar')'} baz)
+		(echo $1 QSTN parn foo ${v:?\(bar')'} baz) 2>&- || \
+		    echo "$1 QSTN parn -> error"
+	}
+	tl_brace() {
+		v=$2
+		test x"$v" = x"-" && unset v
+		(echo $1 plus brac foo ${v+a$u{{{\}b} c ${v+d{}} baz)
+		(echo $1 dash brac foo ${v-a$u{{{\}b} c ${v-d{}} baz)
+		(echo $1 eqal brac foo ${v=a$u{{{\}b} c ${v=d{}} baz)
+		(echo $1 qstn brac foo ${v?a$u{{{\}b} c ${v?d{}} baz) 2>&- || \
+		    echo "$1 qstn brac -> error"
+		(echo $1 PLUS brac foo ${v:+a$u{{{\}b} c ${v:+d{}} baz)
+		(echo $1 DASH brac foo ${v:-a$u{{{\}b} c ${v:-d{}} baz)
+		(echo $1 EQAL brac foo ${v:=a$u{{{\}b} c ${v:=d{}} baz)
+		(echo $1 QSTN brac foo ${v:?a$u{{{\}b} c ${v:?d{}} baz) 2>&- || \
+		    echo "$1 QSTN brac -> error"
+	}
+	tl_norm 1 -
+	tl_norm 2 ''
+	tl_norm 3 x
+	tl_paren 4 -
+	tl_paren 5 ''
+	tl_paren 6 x
+	tl_brace 7 -
+	tl_brace 8 ''
+	tl_brace 9 x
+expected-stdout:
+	1 plus norm foo baz
+	1 dash norm foo bar baz
+	1 eqal norm foo bar baz
+	1 qstn norm -> error
+	1 PLUS norm foo baz
+	1 DASH norm foo bar baz
+	1 EQAL norm foo bar baz
+	1 QSTN norm -> error
+	2 plus norm foo bar baz
+	2 dash norm foo baz
+	2 eqal norm foo baz
+	2 qstn norm foo baz
+	2 PLUS norm foo baz
+	2 DASH norm foo bar baz
+	2 EQAL norm foo bar baz
+	2 QSTN norm -> error
+	3 plus norm foo bar baz
+	3 dash norm foo x baz
+	3 eqal norm foo x baz
+	3 qstn norm foo x baz
+	3 PLUS norm foo bar baz
+	3 DASH norm foo x baz
+	3 EQAL norm foo x baz
+	3 QSTN norm foo x baz
+	4 plus parn foo baz
+	4 dash parn foo (bar) baz
+	4 eqal parn foo (bar) baz
+	4 qstn parn -> error
+	4 PLUS parn foo baz
+	4 DASH parn foo (bar) baz
+	4 EQAL parn foo (bar) baz
+	4 QSTN parn -> error
+	5 plus parn foo (bar) baz
+	5 dash parn foo baz
+	5 eqal parn foo baz
+	5 qstn parn foo baz
+	5 PLUS parn foo baz
+	5 DASH parn foo (bar) baz
+	5 EQAL parn foo (bar) baz
+	5 QSTN parn -> error
+	6 plus parn foo (bar) baz
+	6 dash parn foo x baz
+	6 eqal parn foo x baz
+	6 qstn parn foo x baz
+	6 PLUS parn foo (bar) baz
+	6 DASH parn foo x baz
+	6 EQAL parn foo x baz
+	6 QSTN parn foo x baz
+	7 plus brac foo c } baz
+	7 dash brac foo ax{{{}b c d{} baz
+	7 eqal brac foo ax{{{}b c ax{{{}b} baz
+	7 qstn brac -> error
+	7 PLUS brac foo c } baz
+	7 DASH brac foo ax{{{}b c d{} baz
+	7 EQAL brac foo ax{{{}b c ax{{{}b} baz
+	7 QSTN brac -> error
+	8 plus brac foo ax{{{}b c d{} baz
+	8 dash brac foo c } baz
+	8 eqal brac foo c } baz
+	8 qstn brac foo c } baz
+	8 PLUS brac foo c } baz
+	8 DASH brac foo ax{{{}b c d{} baz
+	8 EQAL brac foo ax{{{}b c ax{{{}b} baz
+	8 QSTN brac -> error
+	9 plus brac foo ax{{{}b c d{} baz
+	9 dash brac foo x c x} baz
+	9 eqal brac foo x c x} baz
+	9 qstn brac foo x c x} baz
+	9 PLUS brac foo ax{{{}b c d{} baz
+	9 DASH brac foo x c x} baz
+	9 EQAL brac foo x c x} baz
+	9 QSTN brac foo x c x} baz
 ---
 name: eglob-bad-1
 description:

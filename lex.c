@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.108 2010/02/18 17:31:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.109 2010/02/23 21:51:49 tg Exp $");
 
 /*
  * states while lexing word
@@ -32,18 +32,19 @@ __RCSID("$MirOS: src/bin/mksh/lex.c,v 1.108 2010/02/18 17:31:23 tg Exp $");
 #define SLETPAREN	2	/* inside (( )), implicit quoting */
 #define SSQUOTE		3	/* inside '' */
 #define SDQUOTE		4	/* inside "" */
-#define SBRACE		5	/* inside ${} */
-#define SCSPAREN	6	/* inside $() */
-#define SBQUOTE		7	/* inside `` */
-#define SASPAREN	8	/* inside $(( )) */
-#define SHEREDELIM	9	/* parsing <<,<<- delimiter */
-#define SHEREDQUOTE	10	/* parsing " in <<,<<- delimiter */
-#define SPATTERN	11	/* parsing *(...|...) pattern (*+?@!) */
-#define STBRACE		12	/* parsing ${...[#%]...} */
-#define SLETARRAY	13	/* inside =( ), just copy */
-#define SADELIM		14	/* like SBASE, looking for delimiter */
-#define SHERESTRING	15	/* parsing <<< string */
-#define SEQUOTE		16	/* inside $'' */
+#define SEQUOTE		5	/* inside $'' */
+#define SBRACE		6	/* inside ${} */
+#define SQBRACE		7	/* inside "${}" */
+#define SCSPAREN	8	/* inside $() */
+#define SBQUOTE		9	/* inside `` */
+#define SASPAREN	10	/* inside $(( )) */
+#define SHEREDELIM	11	/* parsing <<,<<- delimiter */
+#define SHEREDQUOTE	12	/* parsing " in <<,<<- delimiter */
+#define SPATTERN	13	/* parsing *(...|...) pattern (*+?@!) */
+#define STBRACE		14	/* parsing ${...[#%]...} */
+#define SLETARRAY	15	/* inside =( ), just copy */
+#define SADELIM		16	/* like SBASE, looking for delimiter */
+#define SHERESTRING	17	/* parsing <<< string */
 
 /* Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state. */
@@ -333,6 +334,7 @@ yylex(int cf)
 				PUSH_STATE(SSQUOTE);
 				break;
 			case '"':
+ open_dquote:
 				*wp++ = OQUOTE;
 				PUSH_STATE(SDQUOTE);
 				break;
@@ -448,7 +450,10 @@ yylex(int cf)
 						PUSH_STATE(STBRACE);
 					} else {
 						ungetsc(c);
-						PUSH_STATE(SBRACE);
+						if (state == SDQUOTE)
+							PUSH_STATE(SQBRACE);
+						else
+							PUSH_STATE(SBRACE);
 					}
 				} else if (ksh_isalphx(c)) {
 					*wp++ = OSUBST;
@@ -679,13 +684,37 @@ yylex(int cf)
 			break;
 
 		case SBRACE:
-			/*{*/
-			if (c == '}') {
+		case SQBRACE:
+			if (c == /*{*/ '}') {
 				POP_STATE();
 				*wp++ = CSUBST;
 				*wp++ = /*{*/ '}';
-			} else
-				goto Sbase2;
+			} else if (c == '\\') {
+				if ((c = getsc())) {
+					*wp++ = QCHAR;
+					*wp++ = c;
+				}
+			} else if (c == '"') {
+				if (state == SQBRACE)
+					goto open_dquote;
+ sbrace_quote:
+				c2 = c;
+				for (;;) {
+					if (!(c = getsc()))
+						goto Done;
+					if (c == c2)
+						break;
+					*wp++ = QCHAR;
+					*wp++ = c;
+				}
+			} else if (state == SBRACE && c == '\'') {
+				goto sbrace_quote;
+			} else if (c == '$' || c == '`') {
+				goto Subst;
+			} else {
+				*wp++ = CHAR;
+				*wp++ = c;
+			}
 			break;
 
 		case STBRACE:
