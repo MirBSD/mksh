@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.441 2010/02/18 17:21:19 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.442 2010/02/23 22:02:19 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -48,6 +48,15 @@ vv() {
 
 vq() {
 	eval "$@"
+}
+
+rmf() {
+	for _f in "$@"; do
+		case ${_f} in
+		mksh.1) ;;
+		*) rm -f "${_f}" ;;
+		esac
+	done
 }
 
 if test -d /usr/xpg4/bin/. >/dev/null 2>&1; then
@@ -170,7 +179,7 @@ ac_testn() {
 		test $ct = sunpro && vscan='ignored'
 	fi
 	test -n "$vscan" && grep "$vscan" vv.out >/dev/null 2>&1 && fv=$fr
-	rm -f conftest.c conftest.o ${tcfn}* vv.out
+	rmf conftest.c conftest.o ${tcfn}* vv.out
 	ac_testdone
 }
 
@@ -250,7 +259,7 @@ ac_header() {
 	echo "#include <$hf>" >>x
 	echo 'int main(void) { return (0); }' >>x
 	ac_testn "$hv" "" "<$hf>" <x
-	rm -f x
+	rmf x
 	test 1 = $na || ac_cppflags
 }
 
@@ -273,8 +282,8 @@ if test -d mksh || test -d mksh.exe; then
 	echo "$me: Error: ./mksh is a directory!" >&2
 	exit 1
 fi
-rm -f a.exe* a.out* *core lft mksh mksh.cat1 mksh.exe mksh.s \
-    no *.o conftest.c signames.inc stdint.h test.sh x vv.out
+rmf a.exe* a.out* conftest.c *core lft mksh* no *.o \
+    signames.inc stdint.h test.sh x vv.out
 
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=
 
@@ -336,7 +345,7 @@ oswarn=
 ccpc=-Wc,
 ccpl=-Wl,
 tsts=
-ccpr='|| rm -f ${tcfn}*'
+ccpr='|| for _f in ${tcfn}*; do test x"${_f}" = x"mksh.1" || rm -f "${_f}"; done'
 
 # Configuration depending on OS revision, on OSes that need them
 case $TARGET_OS in
@@ -562,7 +571,7 @@ vv ']' "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS | \
     grep ct= | tr -d \\\\015 >x"
 sed 's/^/[ /' x
 eval `cat x`
-rm -f x vv.out
+rmf x vv.out
 echo 'int main(void) { return (0); }' >conftest.c
 case $ct in
 ack)
@@ -692,7 +701,7 @@ xlc)
 esac
 test $cm = llvm && vv '|' "llc -version"
 $e "$bi==> which compiler seems to be used...$ao $ui$ct$ao"
-rm -f conftest.c conftest.o conftest a.out* a.exe* vv.out
+rmf conftest.c conftest.o conftest a.out* a.exe* vv.out
 
 #
 # Compiler: works as-is, with -Wno-error and -Werror
@@ -788,7 +797,7 @@ test x"$i" = x"" && if test $ct = sunpro; then
 	EOF
 	yes pad | head -n 256 >>x
 	ac_flags - 1 otwo -xO2 <x
-	rm -f x
+	rmf x
 elif test $ct = hpcc; then
 	phase=u
 	ac_flags 1 otwo +O2
@@ -847,7 +856,7 @@ elif test $ct = msc; then
 	ac_flags - 1 stackon "${ccpc}/GZ" 'if stack checks can be enabled' <x
 	ac_flags - 1 stckall "${ccpc}/Ge" 'stack checks for all functions' <x
 	ac_flags - 1 secuchk "${ccpc}/GS" 'for compiler security checks' <x
-	rm -f x
+	rmf x
 	ac_flags 1 wall "${ccpc}/Wall" 'to enable all warnings'
 	ac_flags 1 wp64 "${ccpc}/Wp64" 'to enable 64-bit warnings'
 elif test $ct = xlc; then
@@ -1057,7 +1066,7 @@ if test 0 = $HAVE_CAN_LFS_SUS; then
 	ac_testn can_lfs_aix '!' can_lfs 0 "... with -D_LARGE_FILES=1" <lft.c
 	test 1 = $HAVE_CAN_LFS_AIX || CPPFLAGS=$save_CPPFLAGS
 fi
-rm -f lft.c lft.o	# end of large file support test
+rmf lft*	# end of large file support test
 
 #
 # Environment: types
@@ -1357,7 +1366,7 @@ test 0 = $HAVE_SYS_SIGNAME && if ac_testinit cpp_dd '' \
 	echo '#define foo bar' >conftest.c
 	vv ']' "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -dD conftest.c $LIBS >x"
 	grep '#define foo bar' x >/dev/null 2>&1 && fv=1
-	rm -f conftest.c x vv.out
+	rmf conftest.c x vv.out
 	ac_testdone
 fi
 
@@ -1371,7 +1380,7 @@ $e ... done.
 echo wq >x
 ed x <x 2>/dev/null | grep 3 >/dev/null 2>&1 && \
     check_categories=$check_categories,$oldish_ed
-rm -f x vv.out
+rmf x vv.out
 
 if test 0 = $HAVE_SYS_SIGNAME; then
 	if test 1 = $HAVE_CPP_DD; then
@@ -1423,7 +1432,7 @@ mksh_cfg: NSIG' >conftest.c
 			;;
 		esac
 	done 2>&1 >signames.inc
-	rm -f conftest.c
+	rmf conftest.c
 	$e done.
 fi
 
@@ -1555,14 +1564,14 @@ else
 	done
 fi
 if test $cm = llvm; then
-	rm -f mksh.s
+	rmf mksh.s
 	v "llvm-link -o - $objs | opt $llvm | llc -o mksh.s"
 fi
 tcfn=$mkshexe
 test $cm = combine || v "$CC $CFLAGS $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
 test -f $tcfn || exit 1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
-    rm -f mksh.cat1
+    rmf mksh.cat1
 test 0 = $eq && v size $tcfn
 i=install
 test -f /usr/ucb/$i && i=/usr/ucb/$i
