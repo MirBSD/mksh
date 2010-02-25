@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.364 2010/02/25 11:47:33 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.365 2010/02/25 20:18:14 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2010/02/24
+	@(#)MIRBSD KSH R39 2010/02/25
 description:
 	Check version of shell.
 stdin:
@@ -1002,8 +1002,7 @@ expected-stderr: !
 ---
 name: expand-ugly
 description:
-	Check that ${foo+bar} constructs are parsed correctly
-	XXX pretty sure that 28 is wrong, but still under discussion
+	Check that weird ${foo+bar} constructs are parsed correctly
 stdin:
 	(echo 1 ${IFS+'}'z}) 2>&- || echo failed in 1
 	(echo 2 "${IFS+'}'z}") 2>&- || echo failed in 2
@@ -1019,7 +1018,7 @@ stdin:
 	(echo 12 "$(echo ${IFS+'}'z})") 2>&- || echo failed in 12
 	(echo 13 ${IFS+\}z}) 2>&- || echo failed in 13
 	(echo 14 "${IFS+\}z}") 2>&- || echo failed in 14
-	u=x; (echo 15 "foo ${IFS+a$u{{{\}b} c ${IFS+d{}} bar" ${IFS-e{}} baz) 2>&- || echo failed in 15
+	u=x; (echo -n '15 '; printf '<%s> ' "foo ${IFS+a"b$u{ {"{{\}b} c ${IFS+d{}} bar" ${IFS-e{}} baz; echo .) 2>&- || echo failed in 15
 	l=t; (echo 16 ${IFS+h`echo -n i ${IFS+$l}h`ere}) 2>&- || echo failed in 16
 	l=t; (echo 17 ${IFS+h$(echo -n i ${IFS+$l}h)ere}) 2>&- || echo failed in 17
 	l=t; (echo 18 "${IFS+h`echo -n i ${IFS+$l}h`ere}") 2>&- || echo failed in 18
@@ -1033,6 +1032,15 @@ stdin:
 	key=value; (echo -n '26 '; printf '%s\n' ${IFS+'$key'}) 2>&- || echo failed in 26
 	key=value; (echo -n '27 '; printf '%s\n' ${IFS+"'$key'"}) 2>&- || echo failed in 27
 	(echo -n '28 '; printf '%s\n' "${IFS+"'"x ~ x'}'x"'}"x}" #') 2>&- || echo failed in 28
+	u=x; (echo -n '29 '; printf '<%s> ' foo ${IFS+a"b$u{ {"{ {\}b} c ${IFS+d{}} bar ${IFS-e{}} baz; echo .) 2>&- || echo failed in 29
+	(echo -n '30 '; printf '<%s> ' ${IFS+foo 'b\
+	ar' baz}; echo .) 2>&- || (echo failed in 30; echo failed in 31)
+	(echo -n '32 '; printf '<%s> ' ${IFS+foo "b\
+	ar" baz}; echo .) 2>&- || (echo failed in 32; echo failed in 33)
+	(echo -n '34 '; printf '<%s> ' "${IFS+foo 'b\
+	ar' baz}"; echo .) 2>&- || (echo failed in 34; echo failed in 35)
+	(echo -n '36 '; printf '<%s> ' "${IFS+foo "b\
+	ar" baz}"; echo .) 2>&- || (echo failed in 36; echo failed in 37)
 expected-stdout:
 	1 }z
 	2 ''z}
@@ -1048,7 +1056,7 @@ expected-stdout:
 	12 }z
 	13 }z
 	14 }z
-	15 foo ax{{{}b c d{} bar } baz
+	15 <foo abx{ {{{}b c d{} bar> <}> <baz> .
 	16 hi there
 	17 hi there
 	18 hi there
@@ -1060,14 +1068,18 @@ expected-stdout:
 	24 'value'
 	25 'value'
 	26 $key
-	27 '$key'
-	28 'x
-	~
-	x''x}"x}" #
+	27 'value'
+	28 'x ~ x''x}"x}" #
+	29 <foo> <abx{ {{> <{}b> <c> <d{}> <bar> <}> <baz> .
+	30 <foo> <b\
+	ar> <baz> .
+	32 <foo> <bar> <baz> .
+	34 <foo 'bar' baz> .
+	36 <foo bar baz> .
 ---
 name: expand-unglob-dblq
 description:
-	Check that ${foo+bar} constructs are parsed correctly
+	Check that regular "${foo+bar}" constructs are parsed correctly
 stdin:
 	u=x
 	tl_norm() {
@@ -1197,8 +1209,7 @@ expected-stdout:
 ---
 name: expand-unglob-unq
 description:
-	Check that ${foo+bar} constructs are parsed correctly
-	AT&T ksh93 slightly fails this
+	Check that regular ${foo+bar} constructs are parsed correctly
 stdin:
 	u=x
 	tl_norm() {

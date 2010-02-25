@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.109 2010/02/23 21:51:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.110 2010/02/25 20:18:16 tg Exp $");
 
 /*
  * states while lexing word
@@ -321,20 +321,21 @@ yylex(int cf)
  Sbase2:		/* doesn't include *(...|...) pattern (*+?@!) */
 			switch (c) {
 			case '\\':
-				c = getsc();
-				if (c) {
+ getsc_qchar:
+				if ((c = getsc())) {
 					/* trailing \ is lost */
 					*wp++ = QCHAR;
 					*wp++ = c;
 				}
 				break;
 			case '\'':
+ open_ssquote:
 				*wp++ = OQUOTE;
 				ignore_backslash_newline++;
 				PUSH_STATE(SSQUOTE);
 				break;
 			case '"':
- open_dquote:
+ open_sdquote:
 				*wp++ = OQUOTE;
 				PUSH_STATE(SDQUOTE);
 				break;
@@ -371,6 +372,7 @@ yylex(int cf)
 				}
 				break;
 			case '$':
+ subst_dollar:
 				c = getsc();
 				if (c == '(') /*)*/ {
 					c = getsc();
@@ -489,6 +491,7 @@ yylex(int cf)
 				}
 				break;
 			case '`':
+ subst_gravis:
 				PUSH_STATE(SBQUOTE);
 				*wp++ = COMSUB;
 				/* Need to know if we are inside double quotes
@@ -536,6 +539,7 @@ yylex(int cf)
 				}
 				/* FALLTHROUGH */
 			default:
+ store_char:
 				*wp++ = CHAR;
 				*wp++ = c;
 			}
@@ -684,37 +688,23 @@ yylex(int cf)
 			break;
 
 		case SBRACE:
+			if (c == '\'')
+				goto open_ssquote;
+			/* FALLTHROUGH */
 		case SQBRACE:
-			if (c == /*{*/ '}') {
-				POP_STATE();
-				*wp++ = CSUBST;
-				*wp++ = /*{*/ '}';
-			} else if (c == '\\') {
-				if ((c = getsc())) {
-					*wp++ = QCHAR;
-					*wp++ = c;
-				}
-			} else if (c == '"') {
-				if (state == SQBRACE)
-					goto open_dquote;
- sbrace_quote:
-				c2 = c;
-				for (;;) {
-					if (!(c = getsc()))
-						goto Done;
-					if (c == c2)
-						break;
-					*wp++ = QCHAR;
-					*wp++ = c;
-				}
-			} else if (state == SBRACE && c == '\'') {
-				goto sbrace_quote;
-			} else if (c == '$' || c == '`') {
-				goto Subst;
-			} else {
-				*wp++ = CHAR;
-				*wp++ = c;
-			}
+			if (c == '"')
+				goto open_sdquote;
+			else if (c == '\\')
+				goto getsc_qchar;
+			else if (c == '$')
+				goto subst_dollar;
+			else if (c == '`')
+				goto subst_gravis;
+			else if (c != /*{*/ '}')
+				goto store_char;
+			POP_STATE();
+			*wp++ = CSUBST;
+			*wp++ = /*{*/ '}';
 			break;
 
 		case STBRACE:

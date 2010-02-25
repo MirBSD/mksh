@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.29 2010/01/29 09:34:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.30 2010/02/25 20:18:19 tg Exp $");
 
 #define INDENT	4
 
@@ -271,8 +271,7 @@ tputC(int c, struct shf *shf)
 static void
 tputS(char *wp, struct shf *shf)
 {
-	int c;
-	bool quoted = false;
+	int c, quotelevel = 0;
 
 	/* problems:
 	 *	`...` -> $(...)
@@ -291,7 +290,7 @@ tputS(char *wp, struct shf *shf)
 			break;
 		case QCHAR:
 			c = *wp++;
-			if (!quoted || (c == '"' || c == '`' || c == '$'))
+			if (!quotelevel || (c == '"' || c == '`' || c == '$'))
 				tputc('\\', shf);
 			tputC(c, shf);
 			break;
@@ -310,11 +309,12 @@ tputS(char *wp, struct shf *shf)
 			wp++;
 			break;
 		case OQUOTE:
-			quoted = true;
+			quotelevel++;
 			tputc('"', shf);
 			break;
 		case CQUOTE:
-			quoted = false;
+			if (quotelevel)
+				quotelevel--;
 			tputc('"', shf);
 			break;
 		case OSUBST:

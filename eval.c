@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.82 2010/01/29 09:34:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.83 2010/02/25 20:18:15 tg Exp $");
 
 /*
  * string expansion
@@ -263,7 +263,7 @@ expand(const char *cp,	/* input word */
 				quote = 1;
 				continue;
 			case CQUOTE:
-				quote = 0;
+				quote = st->quote;	/* XXX correct? */
 				continue;
 			case COMSUB:
 				tilde_ok = 0;

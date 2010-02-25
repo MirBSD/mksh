@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.215 2010/01/28 20:58:33 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.216 2010/02/25 20:18:16 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -71,7 +71,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 28 2010 $
+.Dd $Mdocdate: February 25 2010 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -1415,6 +1415,13 @@ Currently a bug, if
 is a variable which expands to the null string, the
 error message is also printed.
 .El
+.Pp
+Note that, for all of the above,
+.Ar word
+is actually considered quoted, and special parsing rules apply.
+The parsing rules also differ on whether the expression is
+double-quoted with respect to the single quote
+.Pq Dq \*(aq .
 .Pp
 In the above modifiers, the
 .Ql \&:
@@ -5992,7 +5999,7 @@ foo \*(Ba bar \*(Ba read baz    # will not change $baz
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R39b
+.Nm mksh\ R39c
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
