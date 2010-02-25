@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.216 2010/02/25 20:18:16 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.129 2009/05/28 06:09:06 jmc Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.217 2010/02/25 21:05:00 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.130 2010/02/25 13:45:54 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 .\"	Thorsten Glaser <tg@mirbsd.org>
@@ -2484,14 +2484,14 @@ Assignment; the variable on the left is set to the value on the right.
 .Xc
 Assignment operators.
 .Sm off
-.Aq Xo Ar var
+.Ao Ar var Ac Xo
 .Aq Ar op
 .No = Aq Ar expr
 .Xc
 .Sm on
 is the same as
 .Sm off
-.Aq Xo Ar var
+.Ao Ar var Ac Xo
 .No = Aq Ar var
 .Aq Ar op
 .Aq Ar expr ,
