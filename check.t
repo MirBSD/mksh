@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.363 2010/02/23 21:51:49 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.364 2010/02/25 11:47:33 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1003,51 +1003,53 @@ expected-stderr: !
 name: expand-ugly
 description:
 	Check that ${foo+bar} constructs are parsed correctly
-	XXX omitted (for my own sanity) for now:
-	4 foo b
-	c baz
-	XXX actually, ksh93 is the *only* one doing that...
+	XXX pretty sure that 28 is wrong, but still under discussion
 stdin:
 	(echo 1 ${IFS+'}'z}) 2>&- || echo failed in 1
 	(echo 2 "${IFS+'}'z}") 2>&- || echo failed in 2
 	(echo 3 "foo ${IFS+'bar} baz") 2>&- || echo failed in 3
-	(exit 1; echo -n '4 '; printf '%s\n' "foo ${IFS+"b   c"} baz") 2>&- || (echo failed in 4; echo failed in 5)
-	(echo -n '6 '; printf '%s\n' "foo ${IFS+b   c} baz") 2>&- || echo failed in 6
-	(echo 7 ${IFS+"}"z}) 2>&- || echo failed in 7
-	(echo 8 "${IFS+"}"z}") 2>&- || echo failed in 8
-	(echo 9 "${IFS+\"}\"z}") 2>&- || echo failed in 9
-	(echo 10 "${IFS+\"\}\"z}") 2>&- || echo failed in 10
-	(echo 11 foo ${IFS+'bar} baz'}) 2>&- || echo failed in 11
-	(echo 12 "$(echo "${IFS+'}'z}")") 2>&- || echo failed in 12
-	(echo 13 "$(echo ${IFS+'}'z})") 2>&- || echo failed in 13
-	(echo 14 ${IFS+\}z}) 2>&- || echo failed in 14
-	(echo 15 "${IFS+\}z}") 2>&- || echo failed in 15
-	(echo -n '16 '; printf '%s\n' "foo ${IFS+"b   c"} baz") 2>&- || echo failed in 16
-	l=t; (echo 17 ${IFS+h`echo -n i ${IFS+$l}h`ere}) 2>&- || echo failed in 17
-	l=t; (echo 18 ${IFS+h$(echo -n i ${IFS+$l}h)ere}) 2>&- || echo failed in 18
-	l=t; (echo 19 "${IFS+h`echo -n i ${IFS+$l}h`ere}") 2>&- || echo failed in 19
-	l=t; (echo 20 "${IFS+h$(echo -n i ${IFS+$l}h)ere}") 2>&- || echo failed in 20
-	l=t; (echo 21 ${IFS+h`echo -n i "${IFS+$l}"h`ere}) 2>&- || echo failed in 21
-	l=t; (echo 22 ${IFS+h$(echo -n i "${IFS+$l}"h)ere}) 2>&- || echo failed in 22
-	l=t; (echo 23 "${IFS+h`echo -n i "${IFS+$l}"h`ere}") 2>&- || echo failed in 23
-	l=t; (echo 24 "${IFS+h$(echo -n i "${IFS+$l}"h)ere}") 2>&- || echo failed in 24
+	(echo -n '4 '; printf '%s\n' "foo ${IFS+"b   c"} baz") 2>&- || echo failed in 4
+	(echo -n '5 '; printf '%s\n' "foo ${IFS+b   c} baz") 2>&- || echo failed in 5
+	(echo 6 ${IFS+"}"z}) 2>&- || echo failed in 6
+	(echo 7 "${IFS+"}"z}") 2>&- || echo failed in 7
+	(echo 8 "${IFS+\"}\"z}") 2>&- || echo failed in 8
+	(echo 9 "${IFS+\"\}\"z}") 2>&- || echo failed in 9
+	(echo 10 foo ${IFS+'bar} baz'}) 2>&- || echo failed in 10
+	(echo 11 "$(echo "${IFS+'}'z}")") 2>&- || echo failed in 11
+	(echo 12 "$(echo ${IFS+'}'z})") 2>&- || echo failed in 12
+	(echo 13 ${IFS+\}z}) 2>&- || echo failed in 13
+	(echo 14 "${IFS+\}z}") 2>&- || echo failed in 14
+	u=x; (echo 15 "foo ${IFS+a$u{{{\}b} c ${IFS+d{}} bar" ${IFS-e{}} baz) 2>&- || echo failed in 15
+	l=t; (echo 16 ${IFS+h`echo -n i ${IFS+$l}h`ere}) 2>&- || echo failed in 16
+	l=t; (echo 17 ${IFS+h$(echo -n i ${IFS+$l}h)ere}) 2>&- || echo failed in 17
+	l=t; (echo 18 "${IFS+h`echo -n i ${IFS+$l}h`ere}") 2>&- || echo failed in 18
+	l=t; (echo 19 "${IFS+h$(echo -n i ${IFS+$l}h)ere}") 2>&- || echo failed in 19
+	l=t; (echo 20 ${IFS+h`echo -n i "${IFS+$l}"h`ere}) 2>&- || echo failed in 20
+	l=t; (echo 21 ${IFS+h$(echo -n i "${IFS+$l}"h)ere}) 2>&- || echo failed in 21
+	l=t; (echo 22 "${IFS+h`echo -n i "${IFS+$l}"h`ere}") 2>&- || echo failed in 22
+	l=t; (echo 23 "${IFS+h$(echo -n i "${IFS+$l}"h)ere}") 2>&- || echo failed in 23
+	key=value; (echo -n '24 '; printf '%s\n' "${IFS+'$key'}") 2>&- || echo failed in 24
+	key=value; (echo -n '25 '; printf '%s\n' "${IFS+"'$key'"}") 2>&- || echo failed in 25	# ksh93: “'$key'”
+	key=value; (echo -n '26 '; printf '%s\n' ${IFS+'$key'}) 2>&- || echo failed in 26
+	key=value; (echo -n '27 '; printf '%s\n' ${IFS+"'$key'"}) 2>&- || echo failed in 27
+	(echo -n '28 '; printf '%s\n' "${IFS+"'"x ~ x'}'x"'}"x}" #') 2>&- || echo failed in 28
 expected-stdout:
 	1 }z
 	2 ''z}
 	3 foo 'bar baz
-	failed in 4
-	failed in 5
-	6 foo b   c baz
+	4 foo b   c baz
+	5 foo b   c baz
+	6 }z
 	7 }z
-	8 }z
-	9 ""z}
-	10 "}"z
-	11 foo bar} baz
-	12 ''z}
+	8 ""z}
+	9 "}"z
+	10 foo bar} baz
+	11 ''z}
+	12 }z
 	13 }z
 	14 }z
-	15 }z
-	16 foo b   c baz
+	15 foo ax{{{}b c d{} bar } baz
+	16 hi there
 	17 hi there
 	18 hi there
 	19 hi there
@@ -1055,7 +1057,13 @@ expected-stdout:
 	21 hi there
 	22 hi there
 	23 hi there
-	24 hi there
+	24 'value'
+	25 'value'
+	26 $key
+	27 '$key'
+	28 'x
+	~
+	x''x}"x}" #
 ---
 name: expand-unglob-dblq
 description:
