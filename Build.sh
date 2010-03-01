@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.443 2010/02/23 22:02:35 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.444 2010/03/01 08:57:45 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1363,7 +1363,7 @@ ac_cppflags
 test 0 = $HAVE_SYS_SIGNAME && if ac_testinit cpp_dd '' \
     'checking if the C Preprocessor supports -dD'; then
 	echo '#define foo bar' >conftest.c
-	vv ']' "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -dD conftest.c $LIBS >x"
+	vv ']' "$CPP $CFLAGS $CPPFLAGS $NOWARN -dD conftest.c >x"
 	grep '#define foo bar' x >/dev/null 2>&1 && fv=1
 	rmf conftest.c x vv.out
 	ac_testdone
@@ -1397,7 +1397,7 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 #endif
 #endif
 mksh_cfg: NSIG' >conftest.c
-	NSIG=`vq "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS" | \
+	NSIG=`vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
 	    grep mksh_cfg: | sed 's/^mksh_cfg:[	 ]*\([0-9x ()+-]*\).*$/\1/'`
 	case $NSIG in
 	*[\ \(\)+-]*) NSIG=`awk "BEGIN { print $NSIG }"` ;;
@@ -1410,14 +1410,14 @@ mksh_cfg: NSIG' >conftest.c
 	sigs="$sigs KILL LOST PIPE PROF PWR QUIT RESV SAK SEGV STOP SYS TERM"
 	sigs="$sigs TRAP TSTP TTIN TTOU URG USR1 USR2 VTALRM WINCH XCPU XFSZ"
 	test 1 = $HAVE_CPP_DD && test $NSIG -gt 1 && sigs="$sigs "`vq \
-	    "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -dD conftest.c $LIBS" | \
+	    "$CPP $CFLAGS $CPPFLAGS $NOWARN -dD conftest.c" | \
 	    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
 	    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | sort`
 	test $NSIG -gt 1 || sigs=
 	for name in $sigs; do
 		echo '#include <signal.h>' >conftest.c
 		echo mksh_cfg: SIG$name >>conftest.c
-		vq "$CPP $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS" | \
+		vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
 		    grep mksh_cfg: | \
 		    sed 's/^mksh_cfg:[	 ]*\([0-9x]*\).*$/\1:'$name/
 	done | grep -v '^:' | while IFS=: read nr name; do
