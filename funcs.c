@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.151 2010/02/23 18:13:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.152 2010/03/14 11:58:32 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3161,6 +3161,9 @@ c_ulimit(const char **wp)
 #endif
 #ifdef RLIMIT_TIME
 		{ "humantime(seconds)", RLIMIT_TIME, 1, 'T' },
+#endif
+#ifdef RLIMIT_NOVMON
+		{ "vnodemonitors", RLIMIT_NOVMON, 1, 'V' },
 #endif
 		{ NULL, 0, 0, 0 }
 	};

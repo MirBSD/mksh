@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.445 2010/03/14 11:56:07 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.446 2010/03/14 11:58:29 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -361,7 +361,7 @@ AIX)
 	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
-BeOS|Haiku)
+BeOS)
 	oswarn=' and will currently not work'
 	;;
 BSD/OS)
@@ -382,6 +382,9 @@ GNU)
 	;;
 GNU/kFreeBSD)
 	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
+	;;
+Haiku)
+	CPPFLAGS="$CPPFLAGS -DMKSH_ASSUME_UTF8"
 	;;
 HP-UX)
 	;;

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.366 2010/03/01 17:28:05 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.367 2010/03/14 11:58:30 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2010/02/25
+	@(#)MIRBSD KSH R39 2010/03/14
 description:
 	Check version of shell.
 stdin:
@@ -6342,8 +6342,9 @@ name: ulimit-1
 description:
 	Check if we can use a specific syntax idiom for ulimit
 stdin:
-	if ! x=$(ulimit -d); then
-		echo expected to fail on this OS
+	if ! x=$(ulimit -d) || [[ $x = unknown ]]; then
+		#echo expected to fail on this OS
+		echo okay
 	else
 		ulimit -dS $x && echo okay
 	fi
