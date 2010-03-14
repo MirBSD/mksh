@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.444 2010/03/01 08:57:45 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.445 2010/03/14 11:56:07 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -286,6 +286,7 @@ rmf a.exe* a.out* conftest.c *core lft mksh* no *.o \
     signames.inc stdint.h test.sh x vv.out
 
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=
+test -n "$dirname" || dirname=.
 
 e=echo
 r=0
