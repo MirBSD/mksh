@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.219 2010/03/06 20:08:18 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.220 2010/03/15 18:14:40 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.131 2010/02/26 03:32:39 william Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -71,7 +71,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 6 2010 $
+.Dd $Mdocdate: March 15 2010 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -4541,7 +4541,7 @@ unless they are also given on the same command line.
 .Pp
 .It Xo
 .Ic ulimit
-.Op Fl acdfHLlmnpSsTtvw
+.Op Fl acdfHLlmnpSsTtVvw
 .Op Ar value
 .Xc
 Display or set process limits.
@@ -4611,6 +4611,9 @@ real seconds to be used by each process.
 Impose a time limit of
 .Ar n
 CPU seconds spent in user mode to be used by each process.
+.It Fl V Ar n
+Set the number of vnode monitors on Haiku to
+.Ar n .
 .It Fl v Ar n
 Impose a limit of
 .Ar n
@@ -5999,7 +6002,7 @@ foo \*(Ba bar \*(Ba read baz    # will not change $baz
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R39c
+.Nm mksh\ R39d
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
