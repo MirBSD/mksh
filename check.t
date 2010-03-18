@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.368 2010/03/16 21:32:47 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.369 2010/03/18 19:45:39 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1036,13 +1036,14 @@ stdin:
 	(echo -n '30 '; printf '<%s> ' ${IFS+foo 'b\
 	ar' baz}; echo .) 2>&- || (echo failed in 30; echo failed in 31)
 	(echo -n '32 '; printf '<%s> ' ${IFS+foo "b\
-	ar" baz}; echo .) 2>&- || (echo failed in 32; echo failed in 33)
-	(echo -n '34 '; printf '<%s> ' "${IFS+foo 'b\
-	ar' baz}"; echo .) 2>&- || (echo failed in 34; echo failed in 35)
-	(echo -n '36 '; printf '<%s> ' "${IFS+foo "b\
-	ar" baz}"; echo .) 2>&- || (echo failed in 36; echo failed in 37)
-	(echo -n '38 '; printf '<%s> ' ${v=a\ b} x ${v=c\ d}; echo .) 2>&- || echo failed in 38
-	(echo -n '39 '; printf '<%s> ' "${v=a\ b}" x "${v=c\ d}"; echo .) 2>&- || echo failed in 39
+	ar" baz}; echo .) 2>&- || echo failed in 32
+	(echo -n '33 '; printf '<%s> ' "${IFS+foo 'b\
+	ar' baz}"; echo .) 2>&- || echo failed in 33
+	(echo -n '34 '; printf '<%s> ' "${IFS+foo "b\
+	ar" baz}"; echo .) 2>&- || echo failed in 34
+	(echo -n '35 '; printf '<%s> ' ${v=a\ b} x ${v=c\ d}; echo .) 2>&- || echo failed in 35
+	(echo -n '36 '; printf '<%s> ' "${v=a\ b}" x "${v=c\ d}"; echo .) 2>&- || echo failed in 36
+	(echo -n '37 '; printf '<%s> ' ${v-a\ b} x ${v-c\ d}; echo .) 2>&- || echo failed in 37
 expected-stdout:
 	1 }z
 	2 ''z}
@@ -1076,10 +1077,11 @@ expected-stdout:
 	30 <foo> <b\
 	ar> <baz> .
 	32 <foo> <bar> <baz> .
-	34 <foo 'bar' baz> .
-	36 <foo bar baz> .
-	38 <a> <b> <x> <a> <b> .
-	39 <a\ b> <x> <a\ b> .
+	33 <foo 'bar' baz> .
+	34 <foo bar baz> .
+	35 <a> <b> <x> <a> <b> .
+	36 <a\ b> <x> <a\ b> .
+	37 <a b> <x> <c d> .
 ---
 name: expand-unglob-dblq
 description:
