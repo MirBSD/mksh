@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.190 2010/02/23 18:13:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.191 2010/03/27 15:26:19 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -771,8 +771,8 @@ struct x_defbindings {
 
 /* Separator for completion */
 #define	is_cfs(c)	((c) == ' ' || (c) == '\t' || (c) == '"' || (c) == '\'')
-			/* Separator for motion */
-#define	is_mfs(c)	(!(ksh_isalnux(c) || (c) == '$'))
+/* Separator for motion */
+#define	is_mfs(c)	(!(ksh_isalnux(c) || (c) == '$' || ((c) & 0x80)))
 
 #define X_NTABS		3			/* normal, meta1, meta2 */
 #define X_TABSZ		256			/* size of keydef tables etc */
