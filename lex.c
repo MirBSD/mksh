@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.110 2010/02/25 20:18:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.111 2010/03/27 16:53:16 tg Exp $");
 
 /*
  * states while lexing word
@@ -324,6 +324,7 @@ yylex(int cf)
  getsc_qchar:
 				if ((c = getsc())) {
 					/* trailing \ is lost */
+ store_qchar:
 					*wp++ = QCHAR;
 					*wp++ = c;
 				}
@@ -687,15 +688,31 @@ yylex(int cf)
 			*wp++ = c;
 			break;
 
+		case SQBRACE:
+			if (c == '\\') {
+				/*
+				 * perform POSIX "quote removal" if the back-
+				 * slash is "special", i.e. same cases as the
+				 * {case '\\':} in Subst: plus closing brace;
+				 * in mksh code "quote removal" on '\c' means
+				 * write QCHAR+c, otherwise CHAR+\+CHAR+c are
+				 * emitted (in heredocquote:)
+				 */
+				if ((c = getsc()) == '"' || c == '\\' ||
+				    c == '$' || c == '`' || c == /*{*/'}')
+					goto store_qchar;
+				goto heredocquote;
+			}
+			goto common_SQBRACE;
+
 		case SBRACE:
 			if (c == '\'')
 				goto open_ssquote;
-			/* FALLTHROUGH */
-		case SQBRACE:
-			if (c == '"')
-				goto open_sdquote;
 			else if (c == '\\')
 				goto getsc_qchar;
+ common_SQBRACE:
+			if (c == '"')
+				goto open_sdquote;
 			else if (c == '$')
 				goto subst_dollar;
 			else if (c == '`')
