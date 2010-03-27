@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.152 2010/03/14 11:58:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.153 2010/03/27 16:51:37 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3118,6 +3118,49 @@ struct limits {
 static void print_ulimit(const struct limits *, int);
 static int set_ulimit(const struct limits *, const char *, int);
 
+/* Magic to divine the 'm' and 'v' limits */
+
+#ifdef RLIMIT_AS
+#if !defined(RLIMIT_VMEM) || (RLIMIT_VMEM == RLIMIT_AS) || \
+    !defined(RLIMIT_RSS) || (RLIMIT_VMEM == RLIMIT_RSS)
+#define ULIMIT_V_IS_AS
+#elif defined(RLIMIT_VMEM)
+#if !defined(RLIMIT_RSS) || (RLIMIT_RSS == RLIMIT_AS)
+#define ULIMIT_V_IS_AS
+#else
+#define ULIMIT_V_IS_VMEM
+#endif
+#endif
+#endif
+
+#ifdef RLIMIT_RSS
+#ifdef ULIMIT_V_IS_VMEM
+#define ULIMIT_M_IS_RSS
+#elif defined(RLIMIT_VMEM) && (RLIMIT_VMEM == RLIMIT_RSS)
+#define ULIMIT_M_IS_VMEM
+#else
+#define ULIMIT_M_IS_RSS
+#endif
+#if defined(ULIMIT_M_IS_RSS) && defined(RLIMIT_AS) && (RLIMIT_RSS == RLIMIT_AS)
+#undef ULIMIT_M_IS_RSS
+#endif
+#endif
+
+#if !defined(RLIMIT_AS) && !defined(ULIMIT_M_IS_VMEM) && defined(RLIMIT_VMEM)
+#define ULIMIT_V_IS_VMEM
+#endif
+
+#if !defined(ULIMIT_V_IS_VMEM) && defined(RLIMIT_VMEM) && \
+    (!defined(RLIMIT_RSS) || (defined(RLIMIT_AS) && (RLIMIT_RSS == RLIMIT_AS)))
+#define ULIMIT_M_IS_VMEM
+#endif
+
+#if defined(ULIMIT_M_IS_VMEM) && defined(RLIMIT_AS) && \
+    (RLIMIT_VMEM == RLIMIT_AS)
+#undef ULIMIT_M_IS_VMEM
+#endif
+
+
 int
 c_ulimit(const char **wp)
 {
@@ -3141,17 +3184,11 @@ c_ulimit(const char **wp)
 #ifdef RLIMIT_MEMLOCK
 		{ "lockedmem(KiB)", RLIMIT_MEMLOCK, 1024, 'l' },
 #endif
-#ifdef RLIMIT_RSS
-		{ "memory(KiB)", RLIMIT_RSS, 1024, 'm' },
-#endif
 #ifdef RLIMIT_NOFILE
 		{ "nofiles(descriptors)", RLIMIT_NOFILE, 1, 'n' },
 #endif
 #ifdef RLIMIT_NPROC
 		{ "processes", RLIMIT_NPROC, 1, 'p' },
-#endif
-#ifdef RLIMIT_VMEM
-		{ "vmemory(KiB)", RLIMIT_VMEM, 1024, 'v' },
 #endif
 #ifdef RLIMIT_SWAP
 		{ "swap(KiB)", RLIMIT_SWAP, 1024, 'w' },
@@ -3164,6 +3201,43 @@ c_ulimit(const char **wp)
 #endif
 #ifdef RLIMIT_NOVMON
 		{ "vnodemonitors", RLIMIT_NOVMON, 1, 'V' },
+#endif
+#ifdef RLIMIT_SIGPENDING
+		{ "sigpending", RLIMIT_SIGPENDING, 1, 'i' },
+#endif
+#ifdef RLIMIT_MSGQUEUE
+		{ "msgqueue(bytes)", RLIMIT_MSGQUEUE, 1, 'q' },
+#endif
+#ifdef RLIMIT_AIO_MEM
+		{ "AIOlockedmem(KiB)", RLIMIT_AIO_MEM, 1024, 'M' },
+#endif
+#ifdef RLIMIT_AIO_OPS
+		{ "AIOoperations", RLIMIT_AIO_OPS, 1, 'O' },
+#endif
+#ifdef RLIMIT_TCACHE
+		{ "cachedthreads", RLIMIT_TCACHE, 1, 'C' },
+#endif
+#ifdef RLIMIT_SBSIZE
+		{ "sockbufsiz(KiB)", RLIMIT_SBSIZE, 1024, 'B' },
+#endif
+#ifdef RLIMIT_PTHREAD
+		{ "threadsperprocess", RLIMIT_PTHREAD, 1, 'P' },
+#endif
+#ifdef RLIMIT_NICE
+		{ "maxnice", RLIMIT_NICE, 1, 'e' },
+#endif
+#ifdef RLIMIT_RTPRIO
+		{ "maxrtprio", RLIMIT_RTPRIO, 1, 'r' },
+#endif
+#if defined(ULIMIT_M_IS_RSS)
+		{ "resident-set(KiB)", RLIMIT_RSS, 1024, 'm' },
+#elif defined(ULIMIT_M_IS_VMEM)
+		{ "memory(KiB)", RLIMIT_VMEM, 1024, 'm' },
+#endif
+#if defined(ULIMIT_V_IS_VMEM)
+		{ "virtual-memory(KiB)", RLIMIT_VMEM, 1024, 'v' },
+#elif defined(ULIMIT_V_IS_AS)
+		{ "address-space(KiB)", RLIMIT_AS, 1024, 'v' },
 #endif
 		{ NULL, 0, 0, 0 }
 	};
