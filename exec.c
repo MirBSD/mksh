@@ -1,7 +1,7 @@
 /*	$OpenBSD: exec.c,v 1.49 2009/01/29 23:27:26 jaredy Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,7 +22,11 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.72 2009/12/12 22:27:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.73 2010/03/27 15:29:00 tg Exp $");
+
+#ifndef MKSH_DEFAULT_EXECSHELL
+#define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
+#endif
 
 static int comexec(struct op *, struct tbl *volatile, const char **,
     int volatile, volatile int *);
@@ -711,7 +715,7 @@ scriptexec(struct op *tp, const char **ap)
 	if (sh && *sh)
 		sh = search(sh, path, X_OK, NULL);
 	if (!sh || !*sh)
-		sh = "/bin/sh";
+		sh = MKSH_DEFAULT_EXECSHELL;
 
 	*tp->args-- = tp->str;
 
