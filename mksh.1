@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.221 2010/03/27 16:51:38 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.222 2010/03/27 20:36:26 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.131 2010/02/26 03:32:39 william Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -5890,6 +5890,7 @@ User's startup script (interactive shells).
 Used only if
 .Ev ENV
 is unset or empty.
+The location can be changed at compile time (for embedded systems).
 .It Pa \*(TI/.profile
 User's login profile.
 .It Pa /etc/profile

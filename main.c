@@ -33,13 +33,17 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.162 2010/01/29 09:34:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.163 2010/03/27 20:36:26 tg Exp $");
 
 extern char **environ;
 
 #if !HAVE_SETRESUGID
 extern uid_t kshuid;
 extern gid_t kshgid, kshegid;
+#endif
+
+#ifndef MKSHRC_PATH
+#define MKSHRC_PATH	"~/.mkshrc"
 #endif
 
 static void reclaim(void);
@@ -429,7 +433,7 @@ mksh_init(int argc, const char *argv[])
 		char *env_file;
 
 		/* include $ENV */
-		env_file = substitute(substitute("${ENV:-~/.mkshrc}", 0),
+		env_file = substitute(substitute("${ENV:-" MKSHRC_PATH "}", 0),
 		    DOTILDE);
 		if (*env_file != '\0')
 			include(env_file, 0, NULL, 1);
