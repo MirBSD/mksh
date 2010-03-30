@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.449 2010/03/27 20:36:25 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.450 2010/03/30 13:29:03 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -176,9 +176,9 @@ ac_testn() {
 		test $ct = gcc && vscan='unrecogni[sz]ed'
 		test $ct = hpcc && vscan='unsupported'
 		test $ct = pcc && vscan='unsupported'
-		test $ct = sunpro && vscan='ignored'
+		test $ct = sunpro && vscan='-e ignored -e turned.off'
 	fi
-	test -n "$vscan" && grep "$vscan" vv.out >/dev/null 2>&1 && fv=$fr
+	test -n "$vscan" && grep $vscan vv.out >/dev/null 2>&1 && fv=$fr
 	rmf conftest.c conftest.o ${tcfn}* vv.out
 	ac_testdone
 }
