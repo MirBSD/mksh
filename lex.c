@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.111 2010/03/27 16:53:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.112 2010/03/31 12:20:04 tg Exp $");
 
 /*
  * states while lexing word
@@ -324,7 +324,6 @@ yylex(int cf)
  getsc_qchar:
 				if ((c = getsc())) {
 					/* trailing \ is lost */
- store_qchar:
 					*wp++ = QCHAR;
 					*wp++ = c;
 				}
@@ -356,6 +355,7 @@ yylex(int cf)
 					/* FALLTHROUGH */
 				case '\\':
 				case '$': case '`':
+ store_qchar:
 					*wp++ = QCHAR;
 					*wp++ = c;
 					break;
