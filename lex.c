@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.112 2010/03/31 12:20:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.113 2010/04/08 13:21:06 tg Exp $");
 
 /*
  * states while lexing word
@@ -725,9 +725,8 @@ yylex(int cf)
 			break;
 
 		case STBRACE:
-			/* Same as SBRACE, except (,|,) treated specially */
-			/*{*/
-			if (c == '}') {
+			/* Same as SBASE, except (,|,) treated specially */
+			if (c == /*{*/ '}') {
 				POP_STATE();
 				*wp++ = CSUBST;
 				*wp++ = /*{*/ '}';

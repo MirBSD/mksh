@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.370 2010/03/27 16:53:15 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.371 2010/04/08 13:21:03 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2010/03/27
+	@(#)MIRBSD KSH R39 2010/04/08
 description:
 	Check version of shell.
 stdin:
@@ -1044,6 +1044,8 @@ stdin:
 	(echo -n '35 '; printf '<%s> ' ${v=a\ b} x ${v=c\ d}; echo .) 2>&- || echo failed in 35
 	(echo -n '36 '; printf '<%s> ' "${v=a\ b}" x "${v=c\ d}"; echo .) 2>&- || echo failed in 36
 	(echo -n '37 '; printf '<%s> ' ${v-a\ b} x ${v-c\ d}; echo .) 2>&- || echo failed in 37
+	(echo 38 ${IFS+x'a'y} / "${IFS+x'a'y}" .) 2>&- || echo failed in 38
+	foo="x'a'y"; (echo 39 ${foo%*'a'*} / "${foo%*'a'*}" .) 2>&- || echo failed in 39
 expected-stdout:
 	1 }z
 	2 ''z}
@@ -1082,6 +1084,8 @@ expected-stdout:
 	35 <a> <b> <x> <a> <b> .
 	36 <a\ b> <x> <a\ b> .
 	37 <a b> <x> <c d> .
+	38 xay / x'a'y .
+	39 x' / x' .
 ---
 name: expand-unglob-dblq
 description:
@@ -4389,6 +4393,47 @@ stdin:
 	echo $BAR
 expected-stdout:
 	123
+---
+name: xxx-multi-assignment-posix-cmd
+description:
+	Check that the behaviour for multiple assignments with a
+	command name matches POSIX. See:
+	http://thread.gmane.org/gmane.comp.standards.posix.austin.general/1925
+stdin:
+	X=a Y=b; X=$Y Y=$X "$__progname" -c 'echo 1 $X $Y .'; echo 2 $X $Y .
+expected-stdout:
+	1 b a .
+	2 a b .
+---
+name: xxx-multi-assignment-posix-nocmd
+description:
+	Check that the behaviour for multiple assignments with no
+	command name matches POSIX (Debian #334182). See:
+	http://thread.gmane.org/gmane.comp.standards.posix.austin.general/1925
+stdin:
+	X=a Y=b; X=$Y Y=$X; echo 1 $X $Y .
+expected-stdout:
+	1 b b .
+---
+name: xxx-multi-assignment-posix-subassign
+description:
+	Check that the behaviour for multiple assignments matches POSIX:
+	- The assignment words shall be expanded in the current execution
+	  environment.
+	- The assignments happen in the temporary execution environment.
+stdin:
+	unset X Y Z
+	Z=a Y=${X:=b} sh -c 'echo +$X+ +$Y+ +$Z+'
+	echo /$X/
+	# Now for the special case:
+	unset X Y Z
+	X= Y=${X:=b} sh -c 'echo +$X+ +$Y+'
+	echo /$X/
+expected-stdout:
+	++ +b+ +a+
+	/b/
+	++ +b+
+	/b/
 ---
 name: xxx-exec-environment-1
 description:

@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.83 2010/02/25 20:18:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.84 2010/04/08 13:21:04 tg Exp $");
 
 /*
  * string expansion
@@ -517,7 +517,7 @@ expand(const char *cp,	/* input word */
 						/* ! DOBLANK,DOBRACE_,DOTILDE */
 						f = DOPAT | (f&DONTRUNCOMMAND) |
 						    DOTEMP_;
-						quote = 0;
+						st->quote = quote = 0;
 						/* Prepend open pattern (so |
 						 * in a trim will work as
 						 * expected)

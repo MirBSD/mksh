@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.222 2010/03/27 20:36:26 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.223 2010/04/08 13:21:06 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.131 2010/02/26 03:32:39 william Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -71,7 +71,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 27 2010 $
+.Dd $Mdocdate: April 8 2010 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -1419,9 +1419,11 @@ error message is also printed.
 Note that, for all of the above,
 .Ar word
 is actually considered quoted, and special parsing rules apply.
-The parsing rules also differ on whether the expression is
-double-quoted with respect to the single quote
-.Pq Dq \*(aq .
+The parsing rules also differ on whether the expression is double-quoted:
+.Ar word
+then uses double-quoting rules, except for the double quote itself
+.Pq Sq \&"
+and the closing brace, which, if backslash escaped, gets quote removal applied.
 .Pp
 In the above modifiers, the
 .Ql \&:

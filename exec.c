@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.73 2010/03/27 15:29:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.74 2010/04/08 13:21:05 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -412,6 +412,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 	int keepasn_ok;
 	int fcflags = FC_BI|FC_FUNC|FC_PATH;
 	bool bourne_function_call = false;
+	struct block *l_expand, *l_assign;
 
 	/* snag the last argument for $_ XXX not the same as AT&T ksh,
 	 * which only seems to set $_ after a newline (but not in
@@ -491,6 +492,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 			break;
 		tp = findcom(ap[0], fcflags & (FC_BI|FC_FUNC));
 	}
+	l_expand = e->loc;
 	if (keepasn_ok && (!ap[0] || (tp && (tp->flag & KEEPASN))))
 		type_flags = 0;
 	else {
@@ -504,10 +506,16 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 		} else
 			type_flags = LOCAL|LOCAL_COPY|EXPORT;
 	}
+	l_assign = e->loc;
 	if (Flag(FEXPORT))
 		type_flags |= EXPORT;
 	for (i = 0; t->vars[i]; i++) {
+		/* do NOT lookup in the new var/fn block just created */
+		e->loc = l_expand;
 		cp = evalstr(t->vars[i], DOASNTILDE);
+		e->loc = l_assign;
+		/* but assign in there as usual */
+
 		if (Flag(FXTRACE)) {
 			if (i == 0)
 				shf_fprintf(shl_out, "%s",
