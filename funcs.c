@@ -1,5 +1,5 @@
 /*	$OpenBSD: c_ksh.c,v 1.33 2009/02/07 14:03:24 kili Exp $	*/
-/*	$OpenBSD: c_sh.c,v 1.40 2009/05/05 17:59:55 millert Exp $	*/
+/*	$OpenBSD: c_sh.c,v 1.41 2010/03/27 09:10:01 jmc Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.18 2009/03/01 20:11:06 otto Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.153 2010/03/27 16:51:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.154 2010/04/09 18:59:29 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2660,7 +2660,7 @@ c_mknod(const char **wp)
 		umask(oldmode);
 	return (rv);
  c_mknod_usage:
-	bi_errorf("usage: mknod [-m mode] name [b | c] major minor");
+	bi_errorf("usage: mknod [-m mode] name b|c major minor");
 	bi_errorf("usage: mknod [-m mode] name p");
 	return (1);
 }
