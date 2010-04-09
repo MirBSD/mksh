@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.85 2010/04/09 18:53:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.86 2010/04/09 19:16:30 tg Exp $");
 
 /*
  * string expansion
@@ -188,7 +188,8 @@ typedef struct SubType {
 	short	stype;		/* [=+-?%#] action after expanded word */
 	short	base;		/* begin position of expanded word */
 	short	f;		/* saved value of f (DOPAT, etc) */
-	short	quote;		/* saved value of quote (for ${..[%#]..}) */
+	uint8_t	quotep;		/* saved value of quote (for ${..[%#]..}) */
+	uint8_t	quotew;		/* saved value of quote (for ${..[+-=]..}) */
 } SubType;
 
 void
@@ -263,7 +264,7 @@ expand(const char *cp,	/* input word */
 				quote = 1;
 				continue;
 			case CQUOTE:
-				quote = st->quote;	/* XXX correct? */
+				quote = st->quotew;
 				continue;
 			case COMSUB:
 				tilde_ok = 0;
@@ -352,7 +353,7 @@ expand(const char *cp,	/* input word */
 					st->base = Xsavepos(ds, dp);
 					st->f = f;
 					st->var = x.var;
-					st->quote = quote;
+					st->quotew = st->quotep = quote;
 					/* skip qualifier(s) */
 					if (stype)
 						sp += slen;
@@ -517,7 +518,7 @@ expand(const char *cp,	/* input word */
 						/* ! DOBLANK,DOBRACE_,DOTILDE */
 						f = DOPAT | (f&DONTRUNCOMMAND) |
 						    DOTEMP_;
-						st->quote = quote = 0;
+						st->quotew = quote = 0;
 						/* Prepend open pattern (so |
 						 * in a trim will work as
 						 * expected)
@@ -567,7 +568,7 @@ expand(const char *cp,	/* input word */
 				sp++; /* ({) skip the } or x */
 				tilde_ok = 0;	/* in case of ${unset:-} */
 				*dp = '\0';
-				quote = st->quote;
+				quote = st->quotew;
 				f = st->f;
 				if (f&DOBLANK)
 					doblank--;
@@ -583,7 +584,7 @@ expand(const char *cp,	/* input word */
 					 */
 					x.str = trimsub(str_val(st->var),
 						dp, st->stype);
-					if (x.str[0] != '\0' || st->quote)
+					if (x.str[0] != '\0' || st->quotep)
 						type = XSUB;
 					else
 						type = XNULLSUB;
