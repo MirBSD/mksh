@@ -1,4 +1,4 @@
-/*	$OpenBSD: eval.c,v 1.34 2009/01/29 23:27:26 jaredy Exp $	*/
+/*	$OpenBSD: eval.c,v 1.35 2010/03/24 08:27:26 fgsch Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.84 2010/04/08 13:21:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.85 2010/04/09 18:53:29 tg Exp $");
 
 /*
  * string expansion
@@ -583,7 +583,10 @@ expand(const char *cp,	/* input word */
 					 */
 					x.str = trimsub(str_val(st->var),
 						dp, st->stype);
-					type = strlen(x.str) ? XSUB : XNULLSUB;
+					if (x.str[0] != '\0' || st->quote)
+						type = XSUB;
+					else
+						type = XNULLSUB;
 					if (f&DOBLANK)
 						doblank++;
 					st = st->prev;
