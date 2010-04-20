@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.86 2010/04/09 19:16:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.87 2010/04/20 09:10:07 tg Exp $");
 
 /*
  * string expansion
@@ -568,7 +568,7 @@ expand(const char *cp,	/* input word */
 				sp++; /* ({) skip the } or x */
 				tilde_ok = 0;	/* in case of ${unset:-} */
 				*dp = '\0';
-				quote = st->quotew;
+				quote = st->quotep;
 				f = st->f;
 				if (f&DOBLANK)
 					doblank--;

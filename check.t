@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.373 2010/04/09 19:16:29 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.374 2010/04/20 09:10:05 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2010/04/09
+	@(#)MIRBSD KSH R39 2010/04/20
 description:
 	Check version of shell.
 stdin:
@@ -1046,6 +1046,7 @@ stdin:
 	(echo -n '37 '; printf '<%s> ' ${v-a\ b} x ${v-c\ d}; echo .) 2>&- || echo failed in 37
 	(echo 38 ${IFS+x'a'y} / "${IFS+x'a'y}" .) 2>&- || echo failed in 38
 	foo="x'a'y"; (echo 39 ${foo%*'a'*} / "${foo%*'a'*}" .) 2>&- || echo failed in 39
+	foo="a b c"; (echo -n '40 '; printf '<%s> ' "${foo#a}"; echo .) 2>&- || echo failed in 40
 expected-stdout:
 	1 }z
 	2 ''z}
@@ -1086,6 +1087,7 @@ expected-stdout:
 	37 <a b> <x> <c d> .
 	38 xay / x'a'y .
 	39 x' / x' .
+	40 < b c> .
 ---
 name: expand-unglob-dblq
 description:
