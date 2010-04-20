@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.163 2010/03/27 20:36:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.164 2010/04/20 17:28:20 tg Exp $");
 
 extern char **environ;
 
@@ -44,6 +44,10 @@ extern gid_t kshgid, kshegid;
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
+#endif
+
+#ifndef MKSH_DEFAULT_TMPDIR
+#define MKSH_DEFAULT_TMPDIR	"/tmp"
 #endif
 
 static void reclaim(void);
@@ -1247,7 +1251,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	char *pathname;
 	const char *dir;
 
-	dir = tmpdir ? tmpdir : "/tmp";
+	dir = tmpdir ? tmpdir : MKSH_DEFAULT_TMPDIR;
 #if HAVE_MKSTEMP
 	len = strlen(dir) + 6 + 10 + 1;
 #else
