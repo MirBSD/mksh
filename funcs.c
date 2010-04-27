@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.154 2010/04/09 18:59:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.155 2010/04/27 21:39:08 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -187,6 +187,14 @@ do_realpath(const char *upath)
 	int symlinks = 32;	/* max. recursion depth */
 	int llen;
 	struct stat sb;
+#ifdef NO_PATH_MAX
+	size_t ldestlen = 0;
+#define pathlen sb.st_size
+#define pathcnd (ldestlen < (pathlen + 1))
+#else
+#define pathlen PATH_MAX
+#define pathcnd (!ldest)
+#endif
 
 	if (upath[0] == '/') {
 		/* upath is an absolute pathname */
@@ -231,11 +239,11 @@ do_realpath(const char *upath)
 
 		/* store output position away, then append slash to output */
 		pos = Xsavepos(xs, xp);
-		Xcheck(xs, xp);
+		/* 1 for the '/' and len + 1 for tp and the NUL from below */
+		XcheckN(xs, xp, 1 + len + 1);
 		Xput(xs, xp, '/');
 
 		/* append next pathname component to output */
-		XcheckN(xs, xp, len + 1);
 		memcpy(xp, tp, len);
 		xp += len;
 		*xp = '\0';
@@ -268,29 +276,12 @@ do_realpath(const char *upath)
 			}
 
 			/* get symlink(7) target */
-#ifdef NO_PATH_MAX
-			if (ldest) {
-				afree(ldest, ATEMP);
-				ldest = NULL;
-			}
-			{
-				struct stat hurd_sb;
-
-				if (lstat(Xstring(xs, xp), &hurd_sb))
-					goto notfound;
-				ldest = alloc(hurd_sb.st_size + 1, ATEMP);
-				if ((llen = readlink(Xstring(xs, xp), ldest,
-				    hurd_sb.st_size)) < 0)
-					goto notfound;
-			}
-#else
-			if (!ldest)
-				ldest = alloc(PATH_MAX + 1, ATEMP);
-			if ((llen = readlink(Xstring(xs, xp), ldest,
-			    PATH_MAX)) < 0)
+			if (pathcnd)
+				ldest = aresize(ldest, pathlen + 1, ATEMP);
+			llen = readlink(Xstring(xs, xp), ldest, pathlen);
+			if (llen < 0)
 				/* oops... */
 				goto notfound;
-#endif
 			ldest[llen] = '\0';
 
 			/*
@@ -331,6 +322,9 @@ do_realpath(const char *upath)
 	Xfree(xs, xp);
 	errno = llen;
 	return (NULL);
+
+#undef pathlen
+#undef pathcnd
 }
 
 int
