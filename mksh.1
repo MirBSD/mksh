@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.225 2010/05/13 18:44:10 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.226 2010/05/13 18:47:50 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.134 2010/05/10 21:04:54 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -1888,6 +1888,13 @@ in the prompt string:
 .Bd -literal -offset indent
 x=$(print \e\e001)
 PS1="$x$(print \e\er)$x$(tput smso)$x\e$PWD$x$(tput rmso)$x\*(Gt "
+.Ed
+.Pp
+Due to pressure from David G. Korn,
+.Nm
+now also supports the following form:
+.Bd -literal -offset indent
+PS1=$'\e1\er\e1\ee[7m\e1$PWD\e1\ee[0m\e1\*(Gt '
 .Ed
 .It Ev PS2
 Secondary prompt string, by default
