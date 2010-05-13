@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.224 2010/04/09 18:59:30 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.132 2010/03/27 09:10:01 jmc Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.225 2010/05/13 18:44:10 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.134 2010/05/10 21:04:54 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 .\"	Thorsten Glaser <tg@mirbsd.org>
@@ -71,7 +71,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 9 2010 $
+.Dd $Mdocdate: May 13 2010 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -4716,6 +4716,9 @@ or functions
 With
 .Ar parameter Ns [*] ,
 attributes are kept, only values are unset.
+.Pp
+The exit status is non-zero if any of the parameters have the read-only
+attribute set, zero otherwise.
 .Pp
 .It Ic wait Op Ar job ...
 Wait for the specified job(s) to finish.

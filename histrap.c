@@ -1,4 +1,4 @@
-/*	$OpenBSD: history.c,v 1.37 2009/07/02 16:29:15 martynas Exp $	*/
+/*	$OpenBSD: history.c,v 1.38 2010/05/01 21:09:23 guenther Exp $	*/
 /*	$OpenBSD: trap.c,v 1.22 2005/03/30 17:16:37 deraadt Exp $	*/
 
 /*-
@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.92 2010/01/29 09:34:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.93 2010/05/13 18:44:09 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -416,7 +416,7 @@ hist_get_newest(bool allow_cur)
 	return (allow_cur ? histptr : histptr - 1);
 }
 
-/* Return a pointer to the newest command in the history */
+/* Return a pointer to the oldest command in the history */
 static char **
 hist_get_oldest(void)
 {
