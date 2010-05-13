@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.451 2010/04/20 17:28:20 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.452 2010/05/13 18:41:13 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -283,55 +283,95 @@ if test -d mksh || test -d mksh.exe; then
 	echo "$me: Error: ./mksh is a directory!" >&2
 	exit 1
 fi
-rmf a.exe* a.out* conftest.c *core lft mksh* no *.o \
-    signames.inc stdint.h test.sh x vv.out
+rmf a.exe* a.out* conftest.c *core lft mksh* no *.bc *.ll *.o \
+    Rebuild.sh signames.inc stdint.h test.sh x vv.out
 
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=
 test -n "$dirname" || dirname=.
+dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\(.*\)".*$/\1/p' $srcdir/sh.h`
 
 e=echo
 r=0
 eq=0
 pm=0
 cm=normal
-llvm=
+optflags=-std-compile-opts
+last=
 
 for i
 do
-	case $i in
-	-j)
-		pm=1
+	case $last:$i in
+	c:combine|c:dragonegg|c:llvm)
+		cm=$i
+		last=
 		;;
-	-combine)
+	c:*)
+		echo "$me: Unknown option -c '$i'!" >&2
+		exit 1
+		;;
+	o:*)
+		optflags=$i
+		last=
+		;;
+	:-c)
+		last=c
+		;;
+	:-combine)
 		cm=combine
+		echo "$me: Warning: '$i' is deprecated, use '-c combine' instead!" >&2
 		;;
-	-llvm)
-		cm=llvm
-		llvm=-std-compile-opts
-		;;
-	-llvm=*)
-		cm=llvm
-		llvm=`echo "x$i" | sed 's/^x-llvm=//'`
-		;;
-	-M)
-		cm=makefile
-		;;
-	-Q)
-		eq=1
-		;;
-	-r)
-		r=1
-		;;
-	-valgrind)
+	:-g)
+		# checker, debug, valgrind build
 		CPPFLAGS="$CPPFLAGS -DDEBUG"
 		CFLAGS="$CFLAGS -g3 -fno-builtin"
 		;;
-	*)
+	:-j)
+		pm=1
+		;;
+	:-llvm)
+		cm=llvm
+		optflags=-std-compile-opts
+		echo "$me: Warning: '$i' is deprecated, use '-c llvm -O' instead!" >&2
+		;;
+	:-llvm=*)
+		cm=llvm
+		optflags=`echo "x$i" | sed 's/^x-llvm=//'`
+		echo "$me: Warning: '$i' is deprecated, use '-c llvm -o $llvm' instead!" >&2
+		;;
+	:-M)
+		cm=makefile
+		;;
+	:-O)
+		optflags=-std-compile-opts
+		;;
+	:-o)
+		last=o
+		;;
+	:-Q)
+		eq=1
+		;;
+	:-r)
+		r=1
+		;;
+	:-v)
+		echo "Build.sh $srcversion"
+		echo "for mksh $dstversion"
+		exit 0
+		;;
+	:*)
 		echo "$me: Unknown option '$i'!" >&2
+		exit 1
+		;;
+	*)
+		echo "$me: Unknown option -'$last' '$i'!" >&2
 		exit 1
 		;;
 	esac
 done
+if test -n "$last"; then
+	echo "$me: Option -'$last' not followed by argument!" >&2
+	exit 1
+fi
 
 SRCS="lalloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
@@ -474,7 +514,6 @@ test 0 = $r && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
     NROFF="$NROFF -c"
 
 # this aids me in tracing FTBFSen without access to the buildd
-dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\(.*\)".*$/\1/p' $srcdir/sh.h`
 $e "Hi from$ao $bi$srcversion$ao on:"
 case $TARGET_OS in
 Darwin)
@@ -703,7 +742,11 @@ xlc)
 	ct=unknown
 	;;
 esac
-test $cm = llvm && vv '|' "llc -version"
+case $cm in
+dragonegg|llvm)
+	vv '|' "llc -version"
+	;;
+esac
 $e "$bi==> which compiler seems to be used...$ao $ui$ct$ao"
 rmf conftest.c conftest.o conftest a.out* a.exe* vv.out
 
@@ -1480,25 +1523,36 @@ chmod 755 test.sh
 test $HAVE_CAN_COMBINE$cm = 0combine && cm=normal
 if test $cm = llvm; then
 	emitbc="-emit-llvm -c"
+elif test $cm = dragonegg; then
+	emitbc="-S -flto"
 else
 	emitbc=-c
 fi
 echo set -x >Rebuild.sh
 for file in $SRCS; do
-	of=`echo x"$file" | sed 's/^x\(.*\)\.c$/\1.o/'`
-	objs="$objs$sp$of"
+	op=`echo x"$file" | sed 's/^x\(.*\)\.c$/\1./'`
 	test -f $file || file=$srcdir/$file
 	files="$files$sp$file"
 	sp=' '
 	echo "$CC $CFLAGS $CPPFLAGS $emitbc $file || exit 1" >>Rebuild.sh
+	if test $cm = dragonegg; then
+		echo "mv ${op}s ${op}ll" >>Rebuild.sh
+		echo "llvm-as ${op}ll || exit 1" >>Rebuild.sh
+		objs="$objs$sp${op}bc"
+	else
+		objs="$objs$sp${op}o"
+	fi
 done
-if test $cm = llvm; then
+case $cm in
+dragonegg|llvm)
 	echo "rm -f mksh.s" >>Rebuild.sh
-	echo "llvm-link -o - $objs | opt $llvm | llc -o mksh.s" >>Rebuild.sh
+	echo "llvm-link -o - $objs | opt $optflags | llc -o mksh.s" >>Rebuild.sh
 	lobjs=mksh.s
-else
+	;;
+*)
 	lobjs=$objs
-fi
+	;;
+esac
 case $tcfn in
 a.exe)	mkshexe=mksh.exe ;;
 *)	mkshexe=mksh ;;
@@ -1564,14 +1618,22 @@ elif test 1 = $pm; then
 	wait
 else
 	for file in $SRCS; do
+		test $cm = dragonegg && \
+		    op=`echo x"$file" | sed 's/^x\(.*\)\.c$/\1./'`
 		test -f $file || file=$srcdir/$file
 		v "$CC $CFLAGS $CPPFLAGS $emitbc $file" || exit 1
+		if test $cm = dragonegg; then
+			v "mv ${op}s ${op}ll"
+			v "llvm-as ${op}ll" || exit 1
+		fi
 	done
 fi
-if test $cm = llvm; then
+case $cm in
+dragonegg|llvm)
 	rmf mksh.s
-	v "llvm-link -o - $objs | opt $llvm | llc -o mksh.s"
-fi
+	v "llvm-link -o - $objs | opt $optflags | llc -o mksh.s"
+	;;
+esac
 tcfn=$mkshexe
 test $cm = combine || v "$CC $CFLAGS $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
 test -f $tcfn || exit 1
