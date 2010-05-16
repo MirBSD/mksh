@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.87 2010/04/20 09:10:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.88 2010/05/16 19:04:41 tg Exp $");
 
 /*
  * string expansion
@@ -1020,6 +1020,8 @@ varsub(Expand *xp, const char *sp, const char *word,
 		case '=':	/* can't assign to a vector */
 		case '%':	/* can't trim a vector (yet) */
 		case '#':
+		case '0':
+		case '/':
 			return (-1);
 		}
 		if (e->loc->argc == 0) {
