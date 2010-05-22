@@ -1,4 +1,4 @@
-/*	$OpenBSD: edit.c,v 1.33 2007/08/02 10:50:25 fgsch Exp $	*/
+/*	$OpenBSD: edit.c,v 1.34 2010/05/20 01:13:07 fgsch Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.42 2009/06/02 06:47:47 halex Exp $	*/
 /*	$OpenBSD: vi.c,v 1.26 2009/06/29 22:50:19 martynas Exp $	*/
@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.191 2010/03/27 15:26:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.192 2010/05/22 12:37:49 tg Exp $");
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -550,7 +550,8 @@ add_glob(const char *str, int slen)
 		if (*s == '\\' && s[1])
 			s++;
 		else if (*s == '*' || *s == '[' || *s == '?' || *s == '$' ||
-		    (s[1] == '(' && vstrchr("*+?@!", *s)))
+		    (s[1] == '(' /*)*/ && /* *s in '*','?' already checked */
+		    (*s == '+' || *s == '@' || *s == '!')))
 			break;
 		else if (*s == '/')
 			saw_slash = true;
