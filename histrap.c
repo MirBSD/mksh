@@ -1,5 +1,5 @@
-/*	$OpenBSD: history.c,v 1.38 2010/05/01 21:09:23 guenther Exp $	*/
-/*	$OpenBSD: trap.c,v 1.22 2005/03/30 17:16:37 deraadt Exp $	*/
+/*	$OpenBSD: history.c,v 1.39 2010/05/19 17:36:08 jasper Exp $	*/
+/*	$OpenBSD: trap.c,v 1.23 2010/05/19 17:36:08 jasper Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.93 2010/05/13 18:44:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.94 2010/05/22 12:49:14 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -250,7 +250,7 @@ c_fc(const char **wp)
 		Source *sold = source;
 		int ret;
 
-		ret = command(editor ? editor : "${FCEDIT:-/bin/ed} $_");
+		ret = command(editor ? editor : "${FCEDIT:-/bin/ed} $_", 0);
 		source = sold;
 		if (ret)
 			return (ret);
@@ -318,7 +318,7 @@ hist_execute(char *cmd)
 	 */
 	/* XXX: source should not get trashed by this.. */
 	sold = source;
-	ret = command(cmd);
+	ret = command(cmd, 0);
 	source = sold;
 	return (ret);
 }
@@ -1286,7 +1286,7 @@ runtrap(Trap *p)
 	/* Note: trapstr is fully parsed before anything is executed, thus
 	 * no problem with afree(p->trap) in settrap() while still in use.
 	 */
-	command(trapstr);
+	command(trapstr, current_lineno);
 	exstat = oexstat;
 	if (i == SIGEXIT_ || i == SIGERR_) {
 		if (p->flags & TF_CHANGED)

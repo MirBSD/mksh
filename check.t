@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.377 2010/05/16 19:17:41 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.378 2010/05/22 12:49:13 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2010/05/16
+	@(#)MIRBSD KSH R39 2010/05/22
 description:
 	Check version of shell.
 stdin:
@@ -3320,6 +3320,20 @@ expected-stdout:
 	dot A 3
 	dot B 3
 	C 3
+---
+name: lineno-trap
+description:
+	Check if LINENO is tracked in traps
+stdin:
+	fail() {
+		echo "line <$1>"
+		exit 1
+	}
+	trap 'fail $LINENO' INT ERR
+	false
+expected-stdout:
+	line <6>
+expected-exit: 1
 ---
 name: read-IFS-1
 description:

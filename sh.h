@@ -4,7 +4,7 @@
 /*	$OpenBSD: tree.h,v 1.10 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: expand.h,v 1.6 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: lex.h,v 1.11 2006/05/29 18:22:24 otto Exp $	*/
-/*	$OpenBSD: proto.h,v 1.32 2009/01/29 23:27:26 jaredy Exp $	*/
+/*	$OpenBSD: proto.h,v 1.33 2010/05/19 17:36:08 jasper Exp $	*/
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
@@ -150,9 +150,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.391 2010/05/16 19:04:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.392 2010/05/22 12:49:16 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2010/05/16"
+#define MKSH_VERSION "R39 2010/05/22"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1496,7 +1496,7 @@ void pprompt(const char *, int);
 int promptlen(const char *);
 /* main.c */
 int include(const char *, int, const char **, int);
-int command(const char *);
+int command(const char *, int);
 int shell(Source *volatile, int volatile);
 void unwind(int) MKSH_A_NORETURN;
 void newenv(int);

@@ -1,4 +1,4 @@
-/*	$OpenBSD: main.c,v 1.45 2009/01/29 23:27:26 jaredy Exp $	*/
+/*	$OpenBSD: main.c,v 1.46 2010/05/19 17:36:08 jasper Exp $	*/
 /*	$OpenBSD: tty.c,v 1.9 2006/03/14 22:08:01 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.22 2006/03/17 16:30:13 millert Exp $	*/
 /*	$OpenBSD: table.c,v 1.13 2009/01/17 22:06:44 millert Exp $	*/
@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.164 2010/04/20 17:28:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.165 2010/05/22 12:49:15 tg Exp $");
 
 extern char **environ;
 
@@ -540,13 +540,15 @@ include(const char *name, int argc, const char **argv, int intr_ok)
 	return (i & 0xff);	/* & 0xff to ensure value not -1 */
 }
 
+/* spawn a command into a shell optionally keeping track of the line number */
 int
-command(const char *comm)
+command(const char *comm, int line)
 {
 	Source *s;
 
 	s = pushs(SSTRING, ATEMP);
 	s->start = s->str = comm;
+	s->line = line;
 	return (shell(s, false));
 }
 
