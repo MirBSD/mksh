@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.54 2010/02/25 20:48:10 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.55 2010/07/04 17:35:16 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -335,7 +335,7 @@ function Lstripcom {
 	done; }
 }
 
-: place customsations below this line
+: place customisations below this line
 
 for p in ~/.etc/bin ~/bin; do
 	[[ -d $p/. ]] || continue
@@ -352,4 +352,4 @@ alias cls='print -n \\033c'
 
 unset p
 
-: place customsations above this line
+: place customisations above this line
