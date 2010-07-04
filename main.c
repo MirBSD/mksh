@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.165 2010/05/22 12:49:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.166 2010/07/04 17:33:55 tg Exp $");
 
 extern char **environ;
 
@@ -92,8 +92,7 @@ static const char *initcoms[] = {
 
 static int initio_done;
 
-static struct env env;
-struct env *e = &env;
+struct env *e = &kshstate_v.env_;
 
 void
 chvt_reinit(void)
@@ -102,10 +101,6 @@ chvt_reinit(void)
 	ksheuid = geteuid();
 	kshpgrp = getpgrp();
 	kshppid = getppid();
-
-#if !HAVE_ARC4RANDOM
-	change_random(&kshstate_, sizeof(kshstate_));
-#endif
 }
 
 Source *
@@ -140,8 +135,8 @@ mksh_init(int argc, const char *argv[])
 	ainit(&aperm);		/* initialise permanent Area */
 
 	/* set up base environment */
-	env.type = E_NONE;
-	ainit(&env.area);
+	kshstate_v.env_.type = E_NONE;
+	ainit(&kshstate_v.env_.area);
 	newblock();		/* set up global l->vars and l->funs */
 
 	/* Do this first so output routines (eg, errorf, shellf) can work */
@@ -294,13 +289,10 @@ mksh_init(int argc, const char *argv[])
 	vp->flag |= INT_U;
 	setint((vp = global("PPID")), (mksh_uari_t)kshppid);
 	vp->flag |= INT_U;
-	setint((vp = global("RANDOM")), (mksh_uari_t)hash(kshname));
+	setint((vp = global("RANDOM")), (mksh_uari_t)evilhash(kshname));
 	vp->flag |= INT_U;
 	setint((vp = global("USER_ID")), (mksh_uari_t)ksheuid);
 	vp->flag |= INT_U;
-#if HAVE_ARC4RANDOM
-	Flag(FARC4RANDOM) = 1;		/* initialised */
-#endif
 
 	/* Set this before parsing arguments */
 #if HAVE_SETRESUGID
@@ -469,9 +461,14 @@ main(int argc, const char *argv[])
 {
 	Source *s;
 
-	if ((s = mksh_init(argc, argv)))
+	kshstate_v.lcg_state_ = 5381;
+
+	if ((s = mksh_init(argc, argv))) {
+		/* put more entropy into the LCG */
+		change_random(s, sizeof(*s));
 		/* doesn’t return */
 		shell(s, true);
+	}
 	return (1);
 }
 
@@ -1299,26 +1296,6 @@ static void texpand(struct table *, size_t);
 static int tnamecmp(const void *, const void *);
 static struct tbl *ktscan(struct table *, const char *, uint32_t,
     struct tbl ***);
-
-/* Bob Jenkins' one-at-a-time hash */
-uint32_t
-oaathash_full(register const uint8_t *bp)
-{
-	register uint32_t h = 0;
-	register uint8_t c;
-
-	while ((c = *bp++)) {
-		h += c;
-		h += h << 10;
-		h ^= h >> 6;
-	}
-
-	h += h << 3;
-	h ^= h >> 11;
-	h += h << 15;
-
-	return (h);
-}
 
 static void
 texpand(struct table *tp, size_t nsize)

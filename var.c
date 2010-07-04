@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.104 2010/01/28 20:26:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.105 2010/07/04 17:33:58 tg Exp $");
 
 /*
  * Variables
@@ -46,12 +46,9 @@ static int getint(struct tbl *, mksh_ari_t *, bool);
 static mksh_ari_t intval(struct tbl *);
 static struct tbl *arraysearch(struct tbl *, uint32_t);
 static const char *array_index_calc(const char *, bool *, uint32_t *);
-#if !HAVE_ARC4RANDOM
 static uint32_t oaathash_update(register uint32_t, register const uint8_t *,
     register size_t);
-
-static uint32_t lcg_state = 5381;
-#endif
+static uint32_t oaathash_finalise(register uint32_t);
 
 uint8_t set_refflag = 0;
 
@@ -982,7 +979,7 @@ makenv(void)
 	return ((char **)XPclose(denv));
 }
 
-#if !HAVE_ARC4RANDOM
+/* Bob Jenkins' one-at-a-time hash */
 static uint32_t
 oaathash_update(register uint32_t h, register const uint8_t *cp,
     register size_t n)
@@ -996,33 +993,43 @@ oaathash_update(register uint32_t h, register const uint8_t *cp,
 	return (h);
 }
 
-void
-change_random(const void *vp, size_t n)
+static uint32_t
+oaathash_finalise(register uint32_t h)
 {
-	register uint32_t h = 0x100;
-	struct {
-		const void *sp, *bp, *dp;
-		size_t dsz;
-		struct timeval tv;
-		uint32_t s;
-	} i;
-
-	i.dp = vp;
-	i.dsz = n;
-	i.s = lcg_state;
-	i.bp = &lcg_state;
-	i.sp = &i;
-	gettimeofday(&i.tv, NULL);
-	h = oaathash_update(oaathash_update(h, (void *)&i, sizeof(i)), vp, n);
-
-	/* oaathash_finalise */
 	h += h << 3;
 	h ^= h >> 11;
 	h += h << 15;
 
-	lcg_state = h;
+	return (h);
 }
-#endif
+
+uint32_t
+oaathash_full(register const uint8_t *bp)
+{
+	register uint32_t h = 0;
+	register uint8_t c;
+
+	while ((c = *bp++)) {
+		h += c;
+		h += h << 10;
+		h ^= h >> 6;
+	}
+
+	return (oaathash_finalise(h));
+}
+
+void
+change_random(const void *vp, size_t n)
+{
+	register uint32_t h = 0x100;
+
+	kshstate_v.cr_dp = vp;
+	kshstate_v.cr_dsz = n;
+	gettimeofday(&kshstate_v.cr_tv, NULL);
+	h = oaathash_update(oaathash_update(h, (void *)&kshstate_v,
+	    sizeof(kshstate_v)), vp, n);
+	kshstate_v.lcg_state_ = oaathash_finalise(h);
+}
 
 /*
  * handle special variables with side effects - PATH, SECONDS.
@@ -1074,15 +1081,12 @@ getspec(struct tbl *vp)
 			return;
 		break;
 	case V_RANDOM:
-#if HAVE_ARC4RANDOM
-		i = arc4random() & 0x7FFF;
-#else
 		/*
 		 * this is the same Linear Congruential PRNG as Borland
 		 * C/C++ allegedly uses in its built-in rand() function
 		 */
-		i = ((lcg_state = 22695477 * lcg_state + 1) >> 16) & 0x7FFF;
-#endif
+		i = ((kshstate_v.lcg_state_ =
+		    22695477 * kshstate_v.lcg_state_ + 1) >> 16) & 0x7FFF;
 		break;
 	case V_HISTSIZE:
 		i = histsize;
@@ -1196,25 +1200,11 @@ setspec(struct tbl *vp)
 			x_lins = i;
 		break;
 	case V_RANDOM:
-#if HAVE_ARC4RANDOM
-#if HAVE_ARC4RANDOM_PUSHB
-		if (Flag(FARC4RANDOM))
-			/*
-			 * things like initialisation, environment import,
-			 * etc. are already done
-			 */
-			arc4random_pushb(&i, sizeof(i));
-		else
-			/* during start-up phase or somesuch */
-#endif	/* HAVE_ARC4RANDOM_PUSHB */
-			arc4random_addrandom((void *)&i, sizeof(i));
-#else	/* !HAVE_ARC4RANDOM */
 		/*
-		 * mksh R40+ no longer has the traditional repeatability
+		 * mksh R39d+ no longer has the traditional repeatability
 		 * of $RANDOM sequences, but always retains state
 		 */
 		change_random(&i, sizeof(i));
-#endif	/* !HAVE_ARC4RANDOM */
 		break;
 	case V_SECONDS:
 		{
@@ -1259,13 +1249,12 @@ unsetspec(struct tbl *vp)
 		unspecial(vp->name);
 		break;
 
-	/* AT&T ksh man page says OPTIND, OPTARG and _ lose special meaning,
-	 * but OPTARG does not (still set by getopts) and _ is also still
-	 * set in various places.
-	 * Don't know what AT&T does for:
-	 *		HISTSIZE, HISTFILE,
-	 * Unsetting these in AT&T ksh does not loose the 'specialness':
-	 * no effect: IFS, COLUMNS, PATH, TMPDIR
+	/*
+	 * AT&T ksh man page says OPTIND, OPTARG and _ lose special
+	 * meaning, but OPTARG does not (still set by getopts) and _ is
+	 * also still set in various places. Don't know what AT&T does
+	 * for HISTSIZE, HISTFILE. Unsetting these in AT&T ksh does not
+	 * loose the 'specialness': IFS, COLUMNS, PATH, TMPDIR
 	 */
 	}
 }
@@ -1451,4 +1440,15 @@ change_winsz(void)
 		x_cols = 80;
 	if (x_lins < MIN_LINS)
 		x_lins = 24;
+}
+
+uint32_t
+evilhash(const char *s)
+{
+	register uint32_t h = 0x100;
+
+	h = oaathash_update(h, (void *)&kshstate_f, sizeof(kshstate_f));
+	kshstate_f.h = oaathash_full((const uint8_t *)s);
+	return (oaathash_finalise(oaathash_update(h,
+	    (void *)&kshstate_f.h, sizeof(kshstate_f.h))));
 }

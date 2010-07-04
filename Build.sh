@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.452 2010/05/13 18:41:13 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.453 2010/07/04 17:33:53 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1200,51 +1200,6 @@ EOF
 #
 # Environment: library functions
 #
-ac_testn arc4random <<-'EOF'
-	#include <sys/types.h>
-	#if HAVE_STDINT_H
-	#include <stdint.h>
-	#endif
-	extern u_int32_t arc4random(void);
-	int main(void) { return ((int)(arc4random() & 0xFF)); }
-EOF
-
-save_LIBS=$LIBS
-if test 0 = $HAVE_ARC4RANDOM; then
-	test -f arc4random.c || if test -f "$srcdir/arc4random.c"; then
-		# ensure isolation of source directory from build directory
-		cp "$srcdir/arc4random.c" .
-	fi
-	if test -f arc4random.c; then
-		ac_testn can_uint8t '' "for uint8_t" <<-'EOF'
-			#include <sys/types.h>
-			#if HAVE_STDINT_H
-			#include <stdint.h>
-			#endif
-			int main(void) { return (1 - (uint8_t)1); }
-		EOF
-		test $HAVE_CAN_UINT8T = 1 || \
-		    CPPFLAGS="$CPPFLAGS -D\"uint8_t=unsigned char\""
-
-		ac_header sys/sysctl.h
-		addsrcs '!' HAVE_ARC4RANDOM arc4random.c
-		HAVE_ARC4RANDOM=1
-		LIBS="$LIBS arc4random.c"
-	fi
-fi
-ac_cppflags ARC4RANDOM
-
-ac_test arc4random_pushb arc4random 0 <<-'EOF'
-	#include <sys/types.h>
-	#if HAVE_STDINT_H
-	#include <stdint.h>
-	#endif
-	extern uint32_t arc4random_pushb(void *, size_t);
-	int main(int ac, char *av[]) { return ((int)(arc4random_pushb(*av,
-	    (size_t)ac)) & 0xFF); }
-EOF
-LIBS=$save_LIBS
-
 ac_testn flock_ex '' 'flock and mmap' <<-'EOF'
 	#include <sys/types.h>
 	#include <sys/file.h>
@@ -1366,18 +1321,6 @@ EOF
 #
 save_CC=$CC; save_LDFLAGS=$LDFLAGS; save_LIBS=$LIBS
 CC="$CC -c -o $tcfn"; LDFLAGS=; LIBS=
-ac_test '!' arc4random_decl arc4random 1 'if arc4random() does not need to be declared' <<-'EOF'
-	#define MKSH_INCLUDES_ONLY
-	#include "sh.h"
-	long arc4random(void);		/* this clashes if defined before */
-	int main(void) { return ((int)arc4random()); }
-EOF
-ac_test '!' arc4random_pushb_decl arc4random_pushb 1 'if arc4random_pushb() does not need to be declared' <<-'EOF'
-	#define MKSH_INCLUDES_ONLY
-	#include "sh.h"
-	int arc4random_pushb(char, int); /* this clashes if defined before */
-	int main(int ac, char *av[]) { return ((int)arc4random_pushb(**av, ac)); }
-EOF
 ac_test '!' flock_decl flock_ex 1 'if flock() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"

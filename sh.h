@@ -150,7 +150,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.393 2010/07/04 13:36:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.394 2010/07/04 17:33:57 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2010/05/22"
 
@@ -272,16 +272,6 @@ typedef int bool;
 
 /* OS-dependent additions (functions, variables, by OS) */
 
-#if !HAVE_ARC4RANDOM_DECL
-extern u_int32_t arc4random(void);
-extern void arc4random_addrandom(unsigned char *, int)
-    MKSH_A_BOUNDED(string, 1, 2);
-#endif
-
-#if !HAVE_ARC4RANDOM_PUSHB_DECL
-extern uint32_t arc4random_pushb(const void *, size_t);
-#endif
-
 #if !HAVE_FLOCK_DECL
 extern int flock(int, int);
 #endif
@@ -360,25 +350,6 @@ typedef uint32_t mksh_uari_t;
 #define NOT		'!'	/* might use ^ (ie, [!...] vs [^..]) */
 
 #define LINE		4096	/* input line size */
-
-EXTERN struct {
-	const char *kshname_;	/* $0 */
-	pid_t kshpid_;		/* $$, shell PID */
-	pid_t procpid_;		/* PID of executing process */
-	pid_t kshpgrp_;		/* process group of shell */
-	uid_t ksheuid_;		/* effective UID of shell */
-	pid_t kshppid_;		/* PID of parent of shell */
-	int exstat_;		/* exit status */
-	int subst_exstat_;	/* exit status of last $(..)/`..` */
-} kshstate_;
-#define kshname		kshstate_.kshname_
-#define kshpid		kshstate_.kshpid_
-#define procpid		kshstate_.procpid_
-#define kshpgrp		kshstate_.kshpgrp_
-#define ksheuid		kshstate_.ksheuid_
-#define kshppid		kshstate_.kshppid_
-#define exstat		kshstate_.exstat_
-#define subst_exstat	kshstate_.subst_exstat_
 
 EXTERN const char *safe_prompt; /* safe prompt if PS1 substitution fails */
 EXTERN const char initvsn[] I__("KSH_VERSION=@(#)MIRBSD KSH " MKSH_VERSION);
@@ -515,6 +486,18 @@ EXTERN Area aperm;		/* permanent object space */
 #define ATEMP	&e->area
 
 /*
+ * flags (the order of these enums MUST match the order in misc.c(options[]))
+ */
+enum sh_flag {
+#define SHFLAGS_ENUMS
+#include "sh_flags.h"
+	FNFLAGS		/* (place holder: how many flags are there) */
+};
+
+#define Flag(f)	(kshstate_v.shell_flags_[(int)(f)])
+#define UTFMODE	Flag(FUNICODE)
+
+/*
  * parsing & execution environment
  */
 extern struct env {
@@ -561,6 +544,44 @@ extern struct env {
 #define LSHELL	8	/* return to interactive shell() */
 #define LAEXPR	9	/* error in arithmetic expression */
 
+/*
+ * some kind of global shell state, for change_random() mostly
+ */
+
+EXTERN struct {
+	/* for change_random */
+	struct timeval cr_tv;	/* timestamp */
+	const void *cr_dp;	/* argument address */
+	size_t cr_dsz;		/* argument length */
+	uint32_t lcg_state_;	/* previous LCG state */
+	/* global state */
+	pid_t procpid_;		/* PID of executing process */
+	int exstat_;		/* exit status */
+	int subst_exstat_;	/* exit status of last $(..)/`..` */
+	struct env env_;	/* top-level parsing & execution env. */
+	uint8_t shell_flags_[FNFLAGS];
+} kshstate_v;
+EXTERN struct {
+	const char *kshname_;	/* $0 */
+	pid_t kshpid_;		/* $$, shell PID */
+	pid_t kshpgrp_;		/* process group of shell */
+	uid_t ksheuid_;		/* effective UID of shell */
+	pid_t kshppid_;		/* PID of parent of shell */
+	uint32_t h;		/* some kind of hash */
+} kshstate_f;
+#define kshname		kshstate_f.kshname_
+#define kshpid		kshstate_f.kshpid_
+#define procpid		kshstate_v.procpid_
+#define kshpgrp		kshstate_f.kshpgrp_
+#define ksheuid		kshstate_f.ksheuid_
+#define kshppid		kshstate_f.kshppid_
+#define exstat		kshstate_v.exstat_
+#define subst_exstat	kshstate_v.subst_exstat_
+
+/* evil hack: return hash(kshstate_f concat (kshstate_f'.h:=hash(arg))) */
+uint32_t evilhash(const char *);
+
+
 /* option processing */
 #define OF_CMDLINE	0x01	/* command line */
 #define OF_SET		0x02	/* set builtin */
@@ -575,20 +596,6 @@ struct shoption {
 	unsigned char flags;	/* OF_* */
 };
 extern const struct shoption options[];
-
-/*
- * flags (the order of these enums MUST match the order in misc.c(options[]))
- */
-enum sh_flag {
-#define SHFLAGS_ENUMS
-#include "sh_flags.h"
-	FNFLAGS		/* (place holder: how many flags are there) */
-};
-
-#define Flag(f)	(shell_flags[(int)(f)])
-#define UTFMODE	Flag(FUNICODE)
-
-EXTERN unsigned char shell_flags[FNFLAGS];
 
 /* null value for variable; comparision pointer for unset */
 EXTERN char null[] I__("");
@@ -1635,9 +1642,7 @@ const char *skip_wdvarname(const char *, int);
 int is_wdvarname(const char *, int);
 int is_wdvarassign(const char *);
 char **makenv(void);
-#if !HAVE_ARC4RANDOM
 void change_random(const void *, size_t);
-#endif
 void change_winsz(void);
 int array_ref_len(const char *);
 char *arrayname(const char *);

@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.138 2010/01/29 09:34:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.139 2010/07/04 17:33:55 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
@@ -1265,6 +1265,9 @@ chvt(const char *fn)
 	char dv[20];
 	struct stat sb;
 	int fd;
+
+	/* for entropy */
+	kshstate_f.h = evilhash(fn);
 
 	if (*fn == '-') {
 		memcpy(dv, "-/dev/null", sizeof("-/dev/null"));
