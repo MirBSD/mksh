@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.67 2009/12/31 14:05:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.68 2010/07/04 13:36:42 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -170,7 +170,8 @@ j_init(void)
 	if (!mflagset && Flag(FTALKING))
 		Flag(FMONITOR) = 1;
 
-	/* shl_j is used to do asynchronous notification (used in
+	/*
+	 * shl_j is used to do asynchronous notification (used in
 	 * an interrupt handler, so need a distinct shf)
 	 */
 	shl_j = shf_fdopen(2, SHF_WR, NULL);
@@ -178,7 +179,8 @@ j_init(void)
 	if (Flag(FMONITOR) || Flag(FTALKING)) {
 		int i;
 
-		/* the TF_SHELL_USES test is a kludge that lets us know if
+		/*
+		 * the TF_SHELL_USES test is a kludge that lets us know if
 		 * if the signals have been changed by the shell.
 		 */
 		for (i = NELEM(tt_sigs); --i >= 0; ) {
@@ -233,7 +235,8 @@ j_exit(void)
 
 #ifndef MKSH_UNEMPLOYED
 	if (kshpid == procpid && restore_ttypgrp >= 0) {
-		/* Need to restore the tty pgrp to what it was when the
+		/*
+		 * Need to restore the tty pgrp to what it was when the
 		 * shell started up, so that the process that started us
 		 * will be able to access the tty when we are done.
 		 * Also need to restore our process group in case we are
@@ -349,7 +352,8 @@ exchild(struct op *t, int flags,
 	} pi;
 
 	if (flags & XEXEC)
-		/* Clear XFORK|XPCLOSE|XCCLOSE|XCOPROC|XPIPEO|XPIPEI|XXCOM|XBGND
+		/*
+		 * Clear XFORK|XPCLOSE|XCCLOSE|XCOPROC|XPIPEO|XPIPEI|XXCOM|XBGND
 		 * (also done in another execute() below)
 		 */
 		return (execute(t, flags & (XEXEC | XERROK), xerrok));
@@ -375,7 +379,8 @@ exchild(struct op *t, int flags,
 		last_proc = p;
 	} else {
 		j = new_job(); /* fills in j->job */
-		/* we don't consider XXCOMs foreground since they don't get
+		/*
+		 * we don't consider XXCOMs foreground since they don't get
 		 * tty process group and we don't save or restore tty modes.
 		 */
 		j->flags = (flags & XXCOM) ? JF_XXCOM :
@@ -591,7 +596,8 @@ waitfor(const char *cp, int *sigp)
 	*sigp = 0;
 
 	if (cp == NULL) {
-		/* wait for an unspecified job - always returns 0, so
+		/*
+		 * wait for an unspecified job - always returns 0, so
 		 * don't have to worry about exited/signaled jobs
 		 */
 		for (j = job_list; j; j = j->next)
@@ -903,7 +909,8 @@ j_async(void)
 	return (async_pid);
 }
 
-/* Make j the last async process
+/*
+ * Make j the last async process
  *
  * If jobs are compiled in then this routine expects sigchld to be blocked.
  */
@@ -939,7 +946,8 @@ j_set_async(Job *j)
 	}
 }
 
-/* Start a job: set STARTED, check for held signals and set j->last_proc
+/*
+ * Start a job: set STARTED, check for held signals and set j->last_proc
  *
  * If jobs are compiled in then this routine expects sigchld to be blocked.
  */
@@ -1029,7 +1037,8 @@ j_waitj(Job *j,
 		}
 #endif
 		if (tty_fd >= 0) {
-			/* Only restore tty settings if job was originally
+			/*
+			 * Only restore tty settings if job was originally
 			 * started in the foreground. Problems can be
 			 * caused by things like 'more foobar &' which will
 			 * typically get and save the shell's vi/emacs tty
@@ -1042,7 +1051,8 @@ j_waitj(Job *j,
 				tcgetattr(tty_fd, &tty_state);
 			} else {
 				tcsetattr(tty_fd, TCSADRAIN, &tty_state);
-				/* Don't use tty mode if job is stopped and
+				/*-
+				 * Don't use tty mode if job is stopped and
 				 * later restarted and exits. Consider
 				 * the sequence:
 				 *	vi foo (stopped)
@@ -1058,7 +1068,8 @@ j_waitj(Job *j,
 			}
 		}
 #ifndef MKSH_UNEMPLOYED
-		/* If it looks like user hit ^C to kill a job, pretend we got
+		/*
+		 * If it looks like user hit ^C to kill a job, pretend we got
 		 * one too to break out of for loops, etc. (AT&T ksh does this
 		 * even when not monitoring, but this doesn't make sense since
 		 * a tty generated ^C goes to the whole process group)
@@ -1097,7 +1108,8 @@ j_waitj(Job *j,
 	return (rv);
 }
 
-/* SIGCHLD handler to reap children and update job states
+/*
+ * SIGCHLD handler to reap children and update job states
  *
  * If jobs are compiled in then this routine expects sigchld to be blocked.
  */
@@ -1105,14 +1117,16 @@ j_waitj(Job *j,
 static void
 j_sigchld(int sig MKSH_A_UNUSED)
 {
-	int		errno_ = errno;
-	Job		*j;
-	Proc		*p = NULL;
-	int		pid;
-	int		status;
-	struct rusage	ru0, ru1;
+	/* this runs inside interrupt context, with errno saved */
 
-	/* Don't wait for any processes if a job is partially started.
+	Job *j;
+	Proc *p = NULL;
+	pid_t pid;
+	int status;
+	struct rusage ru0, ru1;
+
+	/*
+	 * Don't wait for any processes if a job is partially started.
 	 * This is so we don't do away with the process group leader
 	 * before all the processes in a pipe line are started (so the
 	 * setpgid() won't fail)
@@ -1120,15 +1134,19 @@ j_sigchld(int sig MKSH_A_UNUSED)
 	for (j = job_list; j; j = j->next)
 		if (j->ppid == procpid && !(j->flags & JF_STARTED)) {
 			held_sigchld = 1;
-			goto finished;
+			return;
 		}
 
 	getrusage(RUSAGE_CHILDREN, &ru0);
 	do {
 		pid = waitpid(-1, &status, (WNOHANG|WUNTRACED));
 
-		if (pid <= 0)	/* return if would block (0) ... */
-			break;	/* ... or no children or interrupted (-1) */
+		/*
+		 * return if this would block (0) or no children
+		 * or interrupted (-1)
+		 */
+		if (pid <= 0)
+			return;
 
 		getrusage(RUSAGE_CHILDREN, &ru1);
 
@@ -1165,9 +1183,6 @@ j_sigchld(int sig MKSH_A_UNUSED)
 
 		check_job(j);	/* check to see if entire job is done */
 	} while (1);
-
- finished:
-	errno = errno_;
 }
 
 /*
@@ -1212,17 +1227,20 @@ check_job(Job *j)
 		break;
 	}
 
-	/* Note when co-process dies: can't be done in j_wait() nor
+	/*
+	 * Note when co-process dies: can't be done in j_wait() nor
 	 * remove_job() since neither may be called for non-interactive
 	 * shells.
 	 */
 	if (j->state == PEXITED || j->state == PSIGNALLED) {
-		/* No need to keep co-process input any more
+		/*
+		 * No need to keep co-process input any more
 		 * (at least, this is what ksh93d thinks)
 		 */
 		if (coproc.job == j) {
 			coproc.job = NULL;
-			/* XXX would be nice to get the closes out of here
+			/*
+			 * XXX would be nice to get the closes out of here
 			 * so they aren't done in the signal handler.
 			 * Would mean a check in coproc_getfd() to
 			 * do "if job == 0 && write >= 0, close write".
@@ -1238,7 +1256,8 @@ check_job(Job *j)
 	j->flags |= JF_CHANGED;
 #ifndef MKSH_UNEMPLOYED
 	if (Flag(FMONITOR) && !(j->flags & JF_XXCOM)) {
-		/* Only put stopped jobs at the front to avoid confusing
+		/*
+		 * Only put stopped jobs at the front to avoid confusing
 		 * the user (don't want finished jobs effecting %+ or %-)
 		 */
 		if (j->state == PSTOPPED)
@@ -1255,7 +1274,8 @@ check_job(Job *j)
 						fd = ep->savefd[2];
 				shf_reopen(fd, SHF_WR, shl_j);
 			}
-			/* Can't call j_notify() as it removes jobs. The job
+			/*
+			 * Can't call j_notify() as it removes jobs. The job
 			 * must stay in the job list as j_waitj() may be
 			 * running with this job.
 			 */
@@ -1299,7 +1319,8 @@ j_print(Job *j, int how, struct shf *shf)
 	int	output = 0;
 
 	if (how == JP_PGRP) {
-		/* POSIX doesn't say what to do it there is no process
+		/*
+		 * POSIX doesn't say what to do it there is no process
 		 * group leader (ie, !FMONITOR). We arbitrarily return
 		 * last pid (which is what $! returns).
 		 */
@@ -1338,8 +1359,9 @@ j_print(Job *j, int how, struct shf *shf)
 			if (WCOREDUMP(p->status))
 				coredumped = 1;
 #endif
-			/* kludge for not reporting 'normal termination signals'
-			 * (ie, SIGINT, SIGPIPE)
+			/*
+			 * kludge for not reporting 'normal termination
+			 * signals' (i.e. SIGINT, SIGPIPE)
 			 */
 			if (how == JP_SHORT && !coredumped &&
 			    (WTERMSIG(p->status) == SIGINT ||
@@ -1392,7 +1414,8 @@ j_print(Job *j, int how, struct shf *shf)
 		shf_putc('\n', shf);
 }
 
-/* Convert % sequence to job
+/*
+ * Convert % sequence to job
  *
  * If jobs are compiled in then this routine expects sigchld to be blocked.
  */
@@ -1409,8 +1432,10 @@ j_lookup(const char *cp, int *ecodep)
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->last_proc && j->last_proc->pid == job)
 				return (j);
-		/* ...then look for process group (this is non-POSIX,
-		 * but should not break anything */
+		/*
+		 * ...then look for process group (this is non-POSIX,
+		 * but should not break anything
+		 */
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->pgrp && j->pgrp == job)
 				return (j);
@@ -1484,7 +1509,8 @@ j_lookup(const char *cp, int *ecodep)
 static Job	*free_jobs;
 static Proc	*free_procs;
 
-/* allocate a new job and fill in the job number.
+/*
+ * allocate a new job and fill in the job number.
  *
  * If jobs are compiled in then this routine expects sigchld to be blocked.
  */
@@ -1512,7 +1538,8 @@ new_job(void)
 	return (newj);
 }
 
-/* Allocate new process struct
+/*
+ * Allocate new process struct
  *
  * If jobs are compiled in then this routine expects sigchld to be blocked.
  */
@@ -1530,7 +1557,8 @@ new_proc(void)
 	return (p);
 }
 
-/* Take job out of job_list and put old structures into free list.
+/*
+ * Take job out of job_list and put old structures into free list.
  * Keeps nzombies, last_job and async_job up to date.
  *
  * If jobs are compiled in then this routine expects sigchld to be blocked.
@@ -1570,7 +1598,8 @@ remove_job(Job *j, const char *where)
 		async_job = NULL;
 }
 
-/* put j in a particular location (taking it out job_list if it is there
+/*
+ * put j in a particular location (taking it out job_list if it is there
  * already)
  *
  * If jobs are compiled in then this routine expects sigchld to be blocked.
@@ -1606,7 +1635,8 @@ put_job(Job *j, int where)
 	}
 }
 
-/* nuke a job (called when unable to start full job).
+/*
+ * nuke a job (called when unable to start full job).
  *
  * If jobs are compiled in then this routine expects sigchld to be blocked.
  */

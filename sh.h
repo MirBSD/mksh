@@ -150,7 +150,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.392 2010/05/22 12:49:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.393 2010/07/04 13:36:43 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2010/05/22"
 
@@ -658,7 +658,7 @@ typedef struct trap {
 #define SS_RESTORE_IGN	3	/* restore to SIG_IGN */
 #define SS_FORCE	BIT(3)	/* set signal even if original signal ignored */
 #define SS_USER		BIT(4)	/* user is doing the set (ie, trap command) */
-#define SS_SHTRAP	BIT(5)	/* trap for internal use (CHLD,ALRM,WINCH) */
+#define SS_SHTRAP	BIT(5)	/* trap for internal use (SIGCHLD, SIGALRM) */
 
 #define SIGEXIT_	0	/* for trap EXIT */
 #define SIGERR_		NSIG	/* for trap ERR */

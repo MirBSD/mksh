@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.94 2010/05/22 12:49:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.95 2010/07/04 13:36:42 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -310,7 +310,8 @@ hist_execute(char *cmd)
 			q[-1] = '\n';
 	}
 
-	/* Commands are executed here instead of pushing them onto the
+	/*
+	 * Commands are executed here instead of pushing them onto the
 	 * input 'cause POSIX says the redirection and variable assignments
 	 * in
 	 *	X=y fc -e - 42 2> /dev/null
@@ -860,9 +861,10 @@ hist_skip_back(unsigned char *base, int *bytes, int no)
 	unsigned char *ep;
 
 	for (ep = base + *bytes; --ep > base; ) {
-		/* this doesn't really work: the 4 byte line number that is
-		 * encoded after the COMMAND byte can itself contain the
-		 * COMMAND byte....
+		/*
+		 * this doesn't really work: the 4 byte line number that
+		 * is encoded after the COMMAND byte can itself contain
+		 * the COMMAND byte....
 		 */
 		for (; ep > base && *ep != COMMAND; ep--)
 			;
@@ -1119,7 +1121,7 @@ alarm_init(void)
 static void
 alarm_catcher(int sig MKSH_A_UNUSED)
 {
-	int errno_ = errno;
+	/* this runs inside interrupt context, with errno saved */
 
 	if (ksh_tmout_state == TMOUT_READING) {
 		int left = alarm(0);
@@ -1130,7 +1132,6 @@ alarm_catcher(int sig MKSH_A_UNUSED)
 		} else
 			alarm(left);
 	}
-	errno = errno_;
 }
 
 Trap *
@@ -1178,7 +1179,8 @@ trapsig(int i)
 	errno = errno_;
 }
 
-/* called when we want to allow the user to ^C out of something - won't
+/*
+ * called when we want to allow the user to ^C out of something - won't
  * work if user has trapped SIGINT.
  */
 void
@@ -1188,7 +1190,8 @@ intrcheck(void)
 		runtraps(TF_DFL_INTR|TF_FATAL);
 }
 
-/* called after EINTR to check if a signal with normally causes process
+/*
+ * called after EINTR to check if a signal with normally causes process
  * termination has been received.
  */
 int
@@ -1205,7 +1208,8 @@ fatal_trap_check(void)
 	return (0);
 }
 
-/* Returns the signal number of any pending traps: ie, a signal which has
+/*
+ * Returns the signal number of any pending traps: ie, a signal which has
  * occurred for which a trap has been set or for which the TF_DFL_INTR flag
  * is set.
  */
@@ -1237,7 +1241,8 @@ runtraps(int flag)
 		warningf(false, "timed out waiting for input");
 		unwind(LEXIT);
 	} else
-		/* XXX: this means the alarm will have no effect if a trap
+		/*
+		 * XXX: this means the alarm will have no effect if a trap
 		 * is caught after the alarm() was started...not good.
 		 */
 		ksh_tmout_state = TMOUT_EXECUTING;
@@ -1283,7 +1288,8 @@ runtrap(Trap *p)
 		p->trap = NULL;
 	}
 	oexstat = exstat;
-	/* Note: trapstr is fully parsed before anything is executed, thus
+	/*
+	 * Note: trapstr is fully parsed before anything is executed, thus
 	 * no problem with afree(p->trap) in settrap() while still in use.
 	 */
 	command(trapstr, current_lineno);
@@ -1352,7 +1358,8 @@ settrap(Trap *p, const char *s)
 				p->flags |= TF_EXEC_DFL;
 		}
 
-		/* assumes handler already set to what shell wants it
+		/*
+		 * assumes handler already set to what shell wants it
 		 * (normally trapsig, but could be j_sigchld() or SIG_IGN)
 		 */
 		return;
@@ -1362,7 +1369,8 @@ settrap(Trap *p, const char *s)
 	setsig(p, f, SS_RESTORE_CURR|SS_USER);
 }
 
-/* Called by c_print() when writing to a co-process to ensure SIGPIPE won't
+/*
+ * Called by c_print() when writing to a co-process to ensure SIGPIPE won't
  * kill shell (unless user catches it and exits)
  */
 int
@@ -1390,7 +1398,8 @@ restore_pipe(int restore_dfl)
 		setsig(&sigtraps[SIGPIPE], SIG_DFL, SS_RESTORE_CURR);
 }
 
-/* Set action for a signal. Action may not be set if original
+/*
+ * Set action for a signal. Action may not be set if original
  * action was SIG_IGN, depending on the value of flags and FTALKING.
  */
 int
@@ -1401,7 +1410,8 @@ setsig(Trap *p, sig_t f, int flags)
 	if (p->signal == SIGEXIT_ || p->signal == SIGERR_)
 		return (1);
 
-	/* First time setting this signal? If so, get and note the current
+	/*
+	 * First time setting this signal? If so, get and note the current
 	 * setting.
 	 */
 	if (!(p->flags & (TF_ORIG_IGN|TF_ORIG_DFL))) {
@@ -1411,7 +1421,8 @@ setsig(Trap *p, sig_t f, int flags)
 		p->cursig = SIG_IGN;
 	}
 
-	/* Generally, an ignored signal stays ignored, except if
+	/*-
+	 * Generally, an ignored signal stays ignored, except if
 	 *	- the user of an interactive shell wants to change it
 	 *	- the shell wants for force a change
 	 */
@@ -1421,9 +1432,10 @@ setsig(Trap *p, sig_t f, int flags)
 
 	setexecsig(p, flags & SS_RESTORE_MASK);
 
-	/* This is here 'cause there should be a way of clearing shtraps, but
-	 * don't know if this is a sane way of doing it. At the moment,
-	 * all users of shtrap are lifetime users (SIGCHLD, SIGALRM, SIGWINCH).
+	/*
+	 * This is here 'cause there should be a way of clearing shtraps,
+	 * but don't know if this is a sane way of doing it. At the moment,
+	 * all users of shtrap are lifetime users (SIGCHLD, SIGALRM).
 	 */
 	if (!(flags & SS_USER))
 		p->shtrap = (sig_t)NULL;
