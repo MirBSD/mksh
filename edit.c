@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.193 2010/07/04 17:45:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.194 2010/07/04 18:52:52 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1944,7 +1944,7 @@ x_draw_line(int c MKSH_A_UNUSED)
 static int
 x_e_rebuildline(const char *clrstr)
 {
-	shf_fprintf(shl_out, clrstr);
+	shf_puts(clrstr, shl_out);
 	x_adjust();
 	return (KSTD);
 }
