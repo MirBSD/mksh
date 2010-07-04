@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.166 2010/07/04 17:33:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.167 2010/07/04 17:45:15 tg Exp $");
 
 extern char **environ;
 
@@ -54,6 +54,9 @@ static void reclaim(void);
 static void remove_temps(struct temp *);
 void chvt_reinit(void);
 Source *mksh_init(int, const char *[]);
+#ifdef SIGWINCH
+static void x_sigwinch(int);
+#endif
 
 static const char initifs[] = "IFS= \t\n";
 
@@ -398,6 +401,12 @@ mksh_init(int argc, const char *argv[])
 		}
 		x_init();
 	}
+
+#ifdef SIGWINCH
+	sigtraps[SIGWINCH].flags |= TF_SHELL_USES;
+	setsig(&sigtraps[SIGWINCH], x_sigwinch,
+	    SS_RESTORE_ORIG|SS_FORCE|SS_SHTRAP);
+#endif
 
 	l = e->loc;
 	l->argv = &argv[argi - 1];
@@ -1459,3 +1468,13 @@ ktsort(struct table *tp)
 	p[i] = NULL;
 	return (p);
 }
+
+#ifdef SIGWINCH
+static void
+x_sigwinch(int sig MKSH_A_UNUSED)
+{
+	/* this runs inside interrupt context, with errno saved */
+
+	got_winch = 1;
+}
+#endif

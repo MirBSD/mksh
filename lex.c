@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.113 2010/04/08 13:21:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.114 2010/07/04 17:45:14 tg Exp $");
 
 /*
  * states while lexing word
@@ -1406,6 +1406,8 @@ getsc_line(Source *s)
 		xp += nread;
 	} else {
 		if (interactive) {
+			if (got_winch)
+				change_winsz();
 			pprompt(prompt, 0);
 		} else
 			s->line++;

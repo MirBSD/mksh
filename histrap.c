@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.95 2010/07/04 13:36:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.96 2010/07/04 17:45:14 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -1433,9 +1433,10 @@ setsig(Trap *p, sig_t f, int flags)
 	setexecsig(p, flags & SS_RESTORE_MASK);
 
 	/*
-	 * This is here 'cause there should be a way of clearing shtraps,
-	 * but don't know if this is a sane way of doing it. At the moment,
-	 * all users of shtrap are lifetime users (SIGCHLD, SIGALRM).
+	 * This is here 'cause there should be a way of clearing
+	 * shtraps, but don't know if this is a sane way of doing
+	 * it. At the moment, all users of shtrap are lifetime
+	 * users (SIGALRM, SIGCHLD, SIGWINCH).
 	 */
 	if (!(flags & SS_USER))
 		p->shtrap = (sig_t)NULL;

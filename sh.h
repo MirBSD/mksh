@@ -150,9 +150,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.394 2010/07/04 17:33:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.395 2010/07/04 17:45:16 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2010/05/22"
+#define MKSH_VERSION "R39 2010/07/04"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -665,7 +665,7 @@ typedef struct trap {
 #define SS_RESTORE_IGN	3	/* restore to SIG_IGN */
 #define SS_FORCE	BIT(3)	/* set signal even if original signal ignored */
 #define SS_USER		BIT(4)	/* user is doing the set (ie, trap command) */
-#define SS_SHTRAP	BIT(5)	/* trap for internal use (SIGCHLD, SIGALRM) */
+#define SS_SHTRAP	BIT(5)	/* trap for internal use (ALRM, CHLD, WINCH) */
 
 #define SIGEXIT_	0	/* for trap EXIT */
 #define SIGERR_		NSIG	/* for trap ERR */
@@ -674,6 +674,13 @@ EXTERN volatile sig_atomic_t trap;	/* traps pending? */
 EXTERN volatile sig_atomic_t intrsig;	/* pending trap interrupts command */
 EXTERN volatile sig_atomic_t fatal_trap;/* received a fatal signal */
 extern	Trap	sigtraps[NSIG+1];
+
+/* got_winch = 1 when needing to re-adjust the window size */
+#ifdef SIGWINCH
+EXTERN volatile sig_atomic_t got_winch I__(1);
+#else
+#define got_winch	true
+#endif
 
 /*
  * TMOUT support

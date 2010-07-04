@@ -25,7 +25,20 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.192 2010/05/22 12:37:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.193 2010/07/04 17:45:12 tg Exp $");
+
+/*
+ * in later versions we might use libtermcap for this, but since external
+ * dependencies are problematic, this has not yet been decided on; another
+ * good string is "\033c" except on hardware terminals like the DEC VT420
+ * which do a full power cycle then...
+ */
+#ifndef MKSH_CLS_STRING
+#define MKSH_CLS_STRING		"\033[;H\033[J"
+#endif
+#ifndef MKSH_CLRTOEOL_STRING
+#define MKSH_CLRTOEOL_STRING	"\033[K"
+#endif
 
 /* tty driver characters we are interested in */
 typedef struct {
@@ -45,6 +58,7 @@ static X_chars edchars;
 #define XCF_FULLPATH	BIT(2)	/* command completion: store full path */
 #define XCF_COMMAND_FILE (XCF_COMMAND|XCF_FILE)
 
+static char editmode;
 static int modified;			/* buffer has been "modified" */
 static char holdbuf[LINE];		/* place to hold last edit buffer */
 
@@ -67,7 +81,11 @@ static int x_vi(char *, size_t);
 #endif
 
 #define x_flush()	shf_flush(shl_out)
+#ifdef MKSH_SMALL
+#define x_putc(c)	x_putcf(c)
+#else
 #define x_putc(c)	shf_putc((c), shl_out)
+#endif
 
 static int path_order_cmp(const void *aa, const void *bb);
 static char *add_glob(const char *, int)
@@ -84,6 +102,7 @@ static int x_command_glob(int, const char *, int, char ***)
 static int x_locate_word(const char *, int, int, int *, bool *);
 
 static int x_e_getmbc(char *);
+static int x_e_rebuildline(const char *);
 
 /* +++ generic editing functions +++ */
 
@@ -96,7 +115,6 @@ x_init(void)
 	    edchars.eof = -2;
 	/* default value for deficient systems */
 	edchars.werase = 027;	/* ^W */
-	change_winsz();
 	x_init_emacs();
 }
 
@@ -118,8 +136,8 @@ x_read(char *buf, size_t len)
 #endif
 	else
 		i = -1;		/* internal error */
+	editmode = 0;
 	x_mode(false);
-	change_winsz();
 	return (i);
 }
 
@@ -1091,6 +1109,7 @@ x_emacs(char *buf, size_t len)
 			x_load_hist(histptr - off);
 		x_nextcmd = -1;
 	}
+	editmode = 1;
 	while (1) {
 		x_flush();
 		if ((c = x_e_getc()) < 0)
@@ -1923,22 +1942,17 @@ x_draw_line(int c MKSH_A_UNUSED)
 }
 
 static int
+x_e_rebuildline(const char *clrstr)
+{
+	shf_fprintf(shl_out, clrstr);
+	x_adjust();
+	return (KSTD);
+}
+
+static int
 x_cls(int c MKSH_A_UNUSED)
 {
-/*
- * in later versions we might use libtermcap for this, but since external
- * dependencies are problematic, this has not yet been decided on; another
- * good string is "\033c" except on hardware terminals like the DEC VT420
- * which do a full power cycle then...
- */
-#ifndef MKSH_CLS_STRING
-#define MKSH_CLS_STRING	"\033[;H\033[J"
-#endif
-	shf_fprintf(shl_out, MKSH_CLS_STRING);
-	x_putc('\r');
-	x_init_prompt();
-	x_redraw(0);
-	return (KSTD);
+	return (x_e_rebuildline(MKSH_CLS_STRING));
 }
 
 /* Redraw (part of) the line. If limit is < 0, the everything is redrawn
@@ -3096,6 +3110,15 @@ x_mode(bool onoff)
 	static bool x_cur_mode;
 	bool prev;
 
+	if (onoff && got_winch) {
+		change_winsz();
+		if (x_cols != xx_cols && editmode == 1) {
+			/* redraw line in Emacs mode */
+			xx_cols = x_cols;
+			x_e_rebuildline(MKSH_CLRTOEOL_STRING);
+		}
+	}
+
 	if (x_cur_mode == onoff)
 		return (x_cur_mode);
 	prev = x_cur_mode;
@@ -3381,6 +3404,7 @@ x_vi(char *buf, size_t len)
 	lastref = 1;
 	holdlen = 0;
 
+	editmode = 2;
 	x_flush();
 	while (1) {
 		if (macro.p) {
