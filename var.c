@@ -22,7 +22,11 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.106 2010/07/04 17:45:17 tg Exp $");
+#if defined(__OpenBSD__)
+#include <sys/sysctl.h>
+#endif
+
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.107 2010/07/11 11:17:33 tg Exp $");
 
 /*
  * Variables
@@ -1022,6 +1026,11 @@ void
 change_random(const void *vp, size_t n)
 {
 	register uint32_t h = 0x100;
+#if defined(__OpenBSD__)
+	int mib[2];
+	uint8_t k[3];
+	size_t klen;
+#endif
 
 	kshstate_v.cr_dp = vp;
 	kshstate_v.cr_dsz = n;
@@ -1029,6 +1038,19 @@ change_random(const void *vp, size_t n)
 	h = oaathash_update(oaathash_update(h, (void *)&kshstate_v,
 	    sizeof(kshstate_v)), vp, n);
 	kshstate_v.lcg_state_ = oaathash_finalise(h);
+
+#if defined(__OpenBSD__)
+	/* OpenBSD, MirBSD: proper kernel entropy comes at zero cost */
+
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_ARND;
+	klen = sizeof(k);
+	sysctl(mib, 2, k, &klen, &kshstate_v.lcg_state_,
+	    sizeof(kshstate_v.lcg_state_));
+	/* we ignore failures and take in k anyway */
+	h = oaathash_update(h, k, sizeof(k));
+	kshstate_v.lcg_state_ = oaathash_finalise(h);
+#endif
 }
 
 /*
