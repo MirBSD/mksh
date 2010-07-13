@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.228 2010/07/11 11:17:31 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.229 2010/07/13 13:07:56 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.134 2010/05/10 21:04:54 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -71,7 +71,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 11 2010 $
+.Dd $Mdocdate: July 13 2010 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -3852,6 +3852,11 @@ during file name generation.
 Print commands and parameter assignments when they are executed, preceded by
 the value of
 .Ev PS4 .
+.It Ic arc4random
+Deprecated, will be removed in
+.Nm
+R40.
+Do not use, emits a warning to stderr.
 .It Ic bgnice
 Background jobs are run with lower priority.
 .It Ic braceexpand
