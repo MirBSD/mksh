@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.229 2010/07/13 13:07:56 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.134 2010/05/10 21:04:54 jmc Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.230 2010/07/13 13:12:30 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.135 2010/07/12 16:26:45 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 .\"	Thorsten Glaser <tg@mirbsd.org>
@@ -595,8 +595,8 @@ are only recognised if they are unquoted and if they are used as the first
 word of a command (i.e. they can't be preceded by parameter assignments or
 redirections):
 .Bd -literal -offset indent
-case     else     function     then      !
-do       esac     if           time      [[
+case     else     function     then      !       (
+do       esac     if           time      [[      ((
 done     fi       in           until     {
 elif     for      select       while     }
 .Ed
