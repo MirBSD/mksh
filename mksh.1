@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.230 2010/07/13 13:12:30 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.135 2010/07/12 16:26:45 jmc Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.231 2010/07/17 20:21:18 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.136 2010/07/15 20:04:35 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 .\"	Thorsten Glaser <tg@mirbsd.org>
@@ -71,7 +71,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 13 2010 $
+.Dd $Mdocdate: July 17 2010 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -386,7 +386,7 @@ are used to specify conditional execution;
 is used in
 .Ic case
 statements;
-.Ql (( .. ))
+.Ql \&(( .. ))
 is used in arithmetic expressions;
 and lastly,
 .Ql \&( .. )\&
@@ -641,7 +641,7 @@ and
 .Ql }
 are reserved words, not meta-characters.
 .It Xo case Ar word No in
-.Oo Op (
+.Oo Op \&(
 .Ar \ pattern
 .Op \*(Ba Ar pattern
 .No ... No )
@@ -833,7 +833,7 @@ below).
 Note that redirections specified after a function definition are
 performed whenever the function is executed, not when the function definition
 is executed.
-.It Ar name Ns () Ar command
+.It Ar name Ns \&() Ar command
 Mostly the same as
 .Ic function
 (see
@@ -842,11 +842,11 @@ below).
 Whitespace (space or tab) after
 .Ar name
 will be ignored most of the time.
-.It Xo function Ar name Ns ()
+.It Xo function Ar name Ns \&()
 .No { Ar list ; No }
 .Xc
 The same as
-.Ar name Ns ()
+.Ar name Ns \&()
 .Pq Nm bash Ns ism .
 The
 .Ic function
@@ -859,7 +859,7 @@ The
 reserved word is described in the
 .Sx Command execution
 section.
-.It (( Ar expression No ))
+.It \&(( Ar expression No ))
 The arithmetic expression
 .Ar expression
 is evaluated; equivalent to
@@ -902,7 +902,7 @@ The second operand of the
 and
 .Sq =
 expressions are patterns (e.g. the comparison
-.Ic [[ foobar = f*r ]]
+.Ic \&[[ foobar = f*r ]]
 succeeds).
 .It
 The single argument form of
@@ -1265,9 +1265,9 @@ form
 where
 .Ar expr
 is an arithmetic expression.
-Array indices are currently limited to the range 0 through 4294967295, (for
+Array indices are currently limited in
 .Nm
-only; portable maximum is 1023), inclusive.
+to the range 0 through 4294967295, inclusive.
 That is, they are a 32-bit unsigned integer.
 Parameter substitutions take the form
 .Pf $ Ns Ar name ,
@@ -1452,8 +1452,8 @@ or not specified; otherwise the length
 of the string value of parameter
 .Ar name .
 .Pp
-.It Pf ${# Ns Ar name Ns [*]}
-.It Pf ${# Ns Ar name Ns [@]}
+.It Pf ${# Ns Ar name Ns \&[*]}
+.It Pf ${# Ns Ar name Ns \&[@]}
 The number of elements in the array
 .Ar name .
 .Pp
@@ -1478,8 +1478,8 @@ is a name reference (bound variable), created by the
 command (which is an alias for
 .Ic typeset Fl n ) .
 .Pp
-.It Pf ${! Ns Ar name Ns [*]}
-.It Pf ${! Ns Ar name Ns [@]}
+.It Pf ${! Ns Ar name Ns \&[*]}
+.It Pf ${! Ns Ar name Ns \&[@]}
 The names of indices (keys) in the array
 .Ar name .
 .Pp
@@ -2039,7 +2039,7 @@ A file name pattern is a word containing one or more unquoted
 or
 .Ql \&!
 characters or
-.Dq [..]
+.Dq \&[..]
 sequences.
 Once brace expansion has been performed, the shell replaces file
 name patterns with the sorted names of all the files that match the pattern
@@ -2050,12 +2050,12 @@ The pattern elements have the following meaning:
 Matches any single character.
 .It \&*
 Matches any sequence of octets.
-.It [..]
+.It \&[..]
 Matches any of the octets inside the brackets.
 Ranges of octets can be specified by separating two octets by a
 .Ql \-
 (e.g.\&
-.Dq [a0\-9]
+.Dq \&[a0\-9]
 matches the letter
 .Sq a
 or any digit).
@@ -2070,7 +2070,7 @@ Also, a
 .Ql \&!
 appearing at the start of the list has special meaning (see below), so to
 represent itself it must be quoted or appear later in the list.
-.It [!..]
+.It \&[!..]
 Like [..],
 except it matches any octet not inside the brackets.
 .Sm off
@@ -2169,10 +2169,6 @@ If the
 option is set, any directories that result from file name generation are marked
 with a trailing
 .Ql / .
-.Pp
-The POSIX character classes (i.e.\&
-.Pf [: Ns Ar class-name Ns :]
-inside a [..] expression) are not implemented.
 .Ss Input/output redirection
 When a command is executed, its standard input, standard output, and standard
 error (file descriptors 0, 1, and 2, respectively) are normally inherited from
@@ -2615,7 +2611,7 @@ is used.
 Functions are defined using either Korn shell
 .Ic function Ar function-name
 syntax or the Bourne/POSIX shell
-.Ar function-name Ns ()
+.Ar function-name Ns \&()
 syntax (see below for the difference between the two forms).
 Functions are like
 .Li .\(hyscripts
@@ -2703,7 +2699,7 @@ Functions defined with the
 .Ic function
 reserved word are treated differently in the following ways from functions
 defined with the
-.Ic ()
+.Ic \&()
 notation:
 .Bl -bullet
 .It
@@ -3417,7 +3413,7 @@ if the last expression evaluated to non-zero (zero).
 If an error occurs during
 the parsing or evaluation of an expression, the exit status is greater than 1.
 Since expressions may need to be quoted,
-.No (( Ar expr No ))
+.No \&(( Ar expr No ))
 is syntactic sugar for
 .No let \&" Ns Ar expr Ns \&" .
 .Pp
@@ -4387,7 +4383,7 @@ or cleared
 .Pq Ic + .
 Values for parameters may optionally be specified.
 For
-.Ar name Ns [*] ,
+.Ar name Ns \&[*] ,
 the change affects the entire array, and no value may be specified.
 If
 .Ic typeset
@@ -4717,7 +4713,7 @@ the default
 or functions
 .Pq Fl f .
 With
-.Ar parameter Ns [*] ,
+.Ar parameter Ns \&[*] ,
 attributes are kept, only values are unset.
 .Pp
 The exit status is non-zero if any of the parameters have the read-only
@@ -4822,7 +4818,7 @@ cannot be.
 .Pp
 When a job is created, it is assigned a job number.
 For interactive shells, this number is printed inside
-.Dq [..] ,
+.Dq \&[..] ,
 followed by the process IDs of the processes in the job when an asynchronous
 command is run.
 A job may be referred to in the
@@ -6042,7 +6038,7 @@ foo \*(Ba bar \*(Ba read baz    # will not change $baz
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R39d
+.Nm mksh\ R39c+CVS
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
