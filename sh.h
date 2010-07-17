@@ -150,9 +150,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.397 2010/07/13 13:12:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.398 2010/07/17 22:09:38 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2010/07/13"
+#define MKSH_VERSION "R39 2010/07/17"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -548,7 +548,7 @@ extern struct env {
  * some kind of global shell state, for change_random() mostly
  */
 
-EXTERN struct {
+EXTERN struct mksh_kshstate_v {
 	/* for change_random */
 	struct timeval cr_tv;	/* timestamp */
 	const void *cr_dp;	/* argument address */
@@ -561,7 +561,7 @@ EXTERN struct {
 	struct env env_;	/* top-level parsing & execution env. */
 	uint8_t shell_flags_[FNFLAGS];
 } kshstate_v;
-EXTERN struct {
+EXTERN struct mksh_kshstate_f {
 	const char *kshname_;	/* $0 */
 	pid_t kshpid_;		/* $$, shell PID */
 	pid_t kshpgrp_;		/* process group of shell */
@@ -1666,7 +1666,9 @@ enum Test_op {
 	TO_FILRD, TO_FILGZ, TO_FILTT, TO_FILSETU, TO_FILWR, TO_FILEX,
 	/* binary operators */
 	TO_STEQL, TO_STNEQ, TO_STLT, TO_STGT, TO_INTEQ, TO_INTNE, TO_INTGT,
-	TO_INTGE, TO_INTLT, TO_INTLE, TO_FILEQ, TO_FILNT, TO_FILOT
+	TO_INTGE, TO_INTLT, TO_INTLE, TO_FILEQ, TO_FILNT, TO_FILOT,
+	/* not an operator */
+	TO_NONNULL	/* !TO_NONOP */
 };
 typedef enum Test_op Test_op;
 
@@ -1686,19 +1688,18 @@ typedef enum Test_meta Test_meta;
 #define TEF_ERROR	BIT(0)		/* set if we've hit an error */
 #define TEF_DBRACKET	BIT(1)		/* set if [[ .. ]] test */
 
-typedef struct test_env Test_env;
-struct test_env {
+typedef struct test_env {
 	union {
 		const char **wp;/* used by ptest_* */
 		XPtrV *av;	/* used by dbtestp_* */
 	} pos;
 	const char **wp_end;	/* used by ptest_* */
-	int (*isa)(Test_env *, Test_meta);
-	const char *(*getopnd) (Test_env *, Test_op, bool);
-	int (*eval)(Test_env *, Test_op, const char *, const char *, bool);
-	void (*error)(Test_env *, int, const char *);
+	Test_op (*isa)(struct test_env *, Test_meta);
+	const char *(*getopnd) (struct test_env *, Test_op, bool);
+	int (*eval)(struct test_env *, Test_op, const char *, const char *, bool);
+	void (*error)(struct test_env *, int, const char *);
 	int flags;		/* TEF_* */
-};
+} Test_env;
 
 extern const char *const dbtest_tokens[];
 

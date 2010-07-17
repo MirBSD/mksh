@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.155 2010/04/27 21:39:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.156 2010/07/17 22:09:34 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -168,7 +168,7 @@ static int test_oexpr(Test_env *, bool);
 static int test_aexpr(Test_env *, bool);
 static int test_nexpr(Test_env *, bool);
 static int test_primary(Test_env *, bool);
-static int ptest_isa(Test_env *, Test_meta);
+static Test_op ptest_isa(Test_env *, Test_meta);
 static const char *ptest_getopnd(Test_env *, Test_op, bool);
 static void ptest_error(Test_env *, int, const char *);
 static char *kill_fmt_entry(char *, int, int, const void *);
@@ -336,7 +336,7 @@ c_cd(const char **wp)
 	bool printpath = false;		/* print where we cd'd? */
 	struct tbl *pwd_s, *oldpwd_s;
 	XString xs;
-	char *dir, *allocd = NULL, *try, *pwd, *cdpath;
+	char *dir, *allocd = NULL, *tryp, *pwd, *cdpath;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "LP")) != -1)
 		switch (optc) {
@@ -421,10 +421,10 @@ c_cd(const char **wp)
 	do {
 		cdnode = make_path(current_wd, dir, &cdpath, &xs, &phys_path);
 		if (physical)
-			rv = chdir(try = Xstring(xs, xp) + phys_path);
+			rv = chdir(tryp = Xstring(xs, xp) + phys_path);
 		else {
 			simplify_path(Xstring(xs, xp));
-			rv = chdir(try = Xstring(xs, xp));
+			rv = chdir(tryp = Xstring(xs, xp));
 		}
 	} while (rv < 0 && cdpath != NULL);
 
@@ -432,7 +432,7 @@ c_cd(const char **wp)
 		if (cdnode)
 			bi_errorf("%s: bad directory", dir);
 		else
-			bi_errorf("%s - %s", try, strerror(errno));
+			bi_errorf("%s - %s", tryp, strerror(errno));
 		afree(allocd, ATEMP);
 		return (1);
 	}
@@ -2633,11 +2633,11 @@ c_mknod(const char **wp)
 			goto c_mknod_err;
 		}
 		dv = makedev(majnum, minnum);
-		if ((unsigned long)major(dv) != majnum) {
+		if ((unsigned long)(major(dv)) != majnum) {
 			bi_errorf("device major too large: %lu", majnum);
 			goto c_mknod_err;
 		}
-		if ((unsigned long)minor(dv) != minnum) {
+		if ((unsigned long)(minor(dv)) != minnum) {
 			bi_errorf("device minor too large: %lu", minnum);
 			goto c_mknod_err;
 		}
@@ -3048,31 +3048,33 @@ test_primary(Test_env *te, bool do_eval)
  * Plain test (test and [ .. ]) specific routines.
  */
 
-/* Test if the current token is a whatever. Accepts the current token if
+/*
+ * Test if the current token is a whatever. Accepts the current token if
  * it is. Returns 0 if it is not, non-zero if it is (in the case of
  * TM_UNOP and TM_BINOP, the returned value is a Test_op).
  */
-static int
+static Test_op
 ptest_isa(Test_env *te, Test_meta meta)
 {
 	/* Order important - indexed by Test_meta values */
 	static const char *const tokens[] = {
 		"-o", "-a", "!", "(", ")"
 	};
-	int rv;
+	Test_op rv;
 
 	if (te->pos.wp >= te->wp_end)
-		return (meta == TM_END);
+		return (meta == TM_END ? TO_NONNULL : TO_NONOP);
 
 	if (meta == TM_UNOP || meta == TM_BINOP)
 		rv = test_isop(meta, *te->pos.wp);
 	else if (meta == TM_END)
-		rv = 0;
+		rv = TO_NONOP;
 	else
-		rv = strcmp(*te->pos.wp, tokens[(int) meta]) == 0;
+		rv = !strcmp(*te->pos.wp, tokens[(int)meta]) ?
+		    TO_NONNULL : TO_NONOP;
 
 	/* Accept the token? */
-	if (rv)
+	if (rv != TO_NONOP)
 		te->pos.wp++;
 
 	return (rv);

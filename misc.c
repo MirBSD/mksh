@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.140 2010/07/13 13:07:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.141 2010/07/17 22:09:36 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
@@ -695,10 +695,10 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 static const unsigned char *
 cclass(const unsigned char *p, int sub)
 {
-	int c, d, not, found = 0;
+	int c, d, notp, found = 0;
 	const unsigned char *orig_p = p;
 
-	if ((not = (ISMAGIC(*p) && *++p == NOT)))
+	if ((notp = (ISMAGIC(*p) && *++p == NOT)))
 		p++;
 	do {
 		c = *p++;
@@ -732,7 +732,7 @@ cclass(const unsigned char *p, int sub)
 			found = 1;
 	} while (!(ISMAGIC(p[0]) && p[1] == ']'));
 
-	return ((found != not) ? p+2 : NULL);
+	return ((found != notp) ? p+2 : NULL);
 }
 
 /* Look for next ) or | (if match_sep) in *(foo|bar) pattern */

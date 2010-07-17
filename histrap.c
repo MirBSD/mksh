@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.96 2010/07/04 17:45:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.97 2010/07/17 22:09:35 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -956,7 +956,7 @@ writehistfile(int lno, char *cmd)
 {
 	int	sizenow;
 	unsigned char	*base;
-	unsigned char	*new;
+	unsigned char	*news;
 	int	bytes;
 	unsigned char	hdr[5];
 
@@ -973,13 +973,13 @@ writehistfile(int lno, char *cmd)
 			    MAP_FILE | MAP_PRIVATE, histfd, (off_t)0);
 			if (base == (unsigned char *)MAP_FAILED)
 				goto bad;
-			new = base + hsize;
-			if (*new != COMMAND) {
+			news = base + hsize;
+			if (*news != COMMAND) {
 				munmap((caddr_t)base, sizenow);
 				goto bad;
 			}
 			hist_source->line--;
-			histload(hist_source, new, bytes);
+			histload(hist_source, news, bytes);
 			hist_source->line++;
 			lno = hist_source->line;
 			munmap((caddr_t)base, sizenow);

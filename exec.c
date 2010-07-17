@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.74 2010/04/08 13:21:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.75 2010/07/17 22:09:34 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -35,7 +35,7 @@ static int call_builtin(struct tbl *, const char **);
 static int iosetup(struct ioword *, struct tbl *);
 static int herein(const char *, int);
 static const char *do_selectargs(const char **, bool);
-static int dbteste_isa(Test_env *, Test_meta);
+static Test_op dbteste_isa(Test_env *, Test_meta);
 static const char *dbteste_getopnd(Test_env *, Test_op, bool);
 static void dbteste_error(Test_env *, int, const char *);
 
@@ -1446,19 +1446,20 @@ pr_list(char * const *ap)
  *	[[ ... ]] evaluation routines
  */
 
-/* Test if the current token is a whatever. Accepts the current token if
+/*
+ * Test if the current token is a whatever. Accepts the current token if
  * it is. Returns 0 if it is not, non-zero if it is (in the case of
  * TM_UNOP and TM_BINOP, the returned value is a Test_op).
  */
-static int
+static Test_op
 dbteste_isa(Test_env *te, Test_meta meta)
 {
-	int ret = 0;
+	Test_op ret = TO_NONOP;
 	int uqword;
 	const char *p;
 
 	if (!*te->pos.wp)
-		return (meta == TM_END);
+		return (meta == TM_END ? TO_NONNULL : TO_NONOP);
 
 	/* unquoted word? */
 	for (p = *te->pos.wp; *p == CHAR; p += 2)
@@ -1476,13 +1477,13 @@ dbteste_isa(Test_env *te, Test_meta meta)
 			ret = test_isop(meta, buf);
 		}
 	} else if (meta == TM_END)
-		ret = 0;
+		ret = TO_NONOP;
 	else
-		ret = uqword &&
-		    strcmp(*te->pos.wp, dbtest_tokens[(int) meta]) == 0;
+		ret = (uqword && !strcmp(*te->pos.wp,
+		    dbtest_tokens[(int)meta])) ? TO_NONNULL : TO_NONOP;
 
 	/* Accept the token? */
-	if (ret)
+	if (ret != TO_NONOP)
 		te->pos.wp++;
 
 	return (ret);

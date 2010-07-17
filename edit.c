@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.194 2010/07/04 18:52:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.195 2010/07/17 22:09:32 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2258,13 +2258,13 @@ x_vt_hack(int c)
 static char *
 x_mapin(const char *cp, Area *ap)
 {
-	char *new, *op;
+	char *news, *op;
 
 	/* for clang's static analyser, the nonnull attribute isn't enough */
 	mkssert(cp != NULL);
 
-	strdupx(new, cp, ap);
-	op = new;
+	strdupx(news, cp, ap);
+	op = news;
 	while (*cp) {
 		/* XXX -- should handle \^ escape? */
 		if (*cp == '^') {
@@ -2281,7 +2281,7 @@ x_mapin(const char *cp, Area *ap)
 	}
 	*op = '\0';
 
-	return (new);
+	return (news);
 }
 
 static void
@@ -3311,7 +3311,7 @@ static const unsigned char classify[128] = {
 static char		undocbuf[LINE];
 
 static struct edstate	*save_edstate(struct edstate *old);
-static void		restore_edstate(struct edstate *old, struct edstate *new);
+static void		restore_edstate(struct edstate *old, struct edstate *news);
 static void		free_edstate(struct edstate *old);
 
 static struct edstate	ebuf;
@@ -4573,25 +4573,25 @@ restore_cbuf(void)
 static struct edstate *
 save_edstate(struct edstate *old)
 {
-	struct edstate *new;
+	struct edstate *news;
 
-	new = alloc(sizeof(struct edstate), APERM);
-	new->cbuf = alloc(old->cbufsize, APERM);
-	memcpy(new->cbuf, old->cbuf, old->linelen);
-	new->cbufsize = old->cbufsize;
-	new->linelen = old->linelen;
-	new->cursor = old->cursor;
-	new->winleft = old->winleft;
-	return (new);
+	news = alloc(sizeof(struct edstate), APERM);
+	news->cbuf = alloc(old->cbufsize, APERM);
+	memcpy(news->cbuf, old->cbuf, old->linelen);
+	news->cbufsize = old->cbufsize;
+	news->linelen = old->linelen;
+	news->cursor = old->cursor;
+	news->winleft = old->winleft;
+	return (news);
 }
 
 static void
-restore_edstate(struct edstate *new, struct edstate *old)
+restore_edstate(struct edstate *news, struct edstate *old)
 {
-	memcpy(new->cbuf, old->cbuf, old->linelen);
-	new->linelen = old->linelen;
-	new->cursor = old->cursor;
-	new->winleft = old->winleft;
+	memcpy(news->cbuf, old->cbuf, old->linelen);
+	news->linelen = old->linelen;
+	news->cursor = old->cursor;
+	news->winleft = old->winleft;
 	free_edstate(old);
 }
 

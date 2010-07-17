@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.107 2010/07/11 11:17:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.108 2010/07/17 22:09:40 tg Exp $");
 
 /*
  * Variables
@@ -40,7 +40,7 @@ __RCSID("$MirOS: src/bin/mksh/var.c,v 1.107 2010/07/11 11:17:33 tg Exp $");
 static struct tbl vtemp;
 static struct table specials;
 static char *formatstr(struct tbl *, const char *);
-static void export(struct tbl *, const char *);
+static void exportprep(struct tbl *, const char *);
 static int special(const char *);
 static void unspecial(const char *);
 static void getspec(struct tbl *);
@@ -426,7 +426,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 		if (s && (vq->flag & (UCASEV_AL|LCASEV|LJUST|RJUST)))
 			s = salloc = formatstr(vq, s);
 		if ((vq->flag&EXPORT))
-			export(vq, s);
+			exportprep(vq, s);
 		else {
 			strdupx(vq->val.s, s, vq->areap);
 			vq->flag |= ALLOC;
@@ -645,7 +645,7 @@ formatstr(struct tbl *vp, const char *s)
  * make vp->val.s be "name=value" for quick exporting.
  */
 static void
-export(struct tbl *vp, const char *val)
+exportprep(struct tbl *vp, const char *val)
 {
 	char *xp;
 	char *op = (vp->flag&ALLOC) ? vp->val.s : NULL;
@@ -837,7 +837,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	/* only x[0] is ever exported, so use vpbase */
 	if ((vpbase->flag&EXPORT) && !(vpbase->flag&INTEGER) &&
 	    vpbase->type == 0)
-		export(vpbase, (vpbase->flag&ISSET) ? vpbase->val.s : null);
+		exportprep(vpbase, (vpbase->flag&ISSET) ? vpbase->val.s : null);
 
 	return (vp);
 }
@@ -1288,7 +1288,7 @@ unsetspec(struct tbl *vp)
 static struct tbl *
 arraysearch(struct tbl *vp, uint32_t val)
 {
-	struct tbl *prev, *curr, *new;
+	struct tbl *prev, *curr, *news;
 	size_t len;
 
 	vp->flag = (vp->flag | (ARRAY|DEFINED)) & ~ASSOC;
@@ -1304,25 +1304,25 @@ arraysearch(struct tbl *vp, uint32_t val)
 	if (curr && curr->ua.index == val) {
 		if (curr->flag&ISSET)
 			return (curr);
-		new = curr;
+		news = curr;
 	} else
-		new = NULL;
+		news = NULL;
 	len = strlen(vp->name) + 1;
-	if (!new) {
-		new = alloc(offsetof(struct tbl, name[0]) + len, vp->areap);
-		memcpy(new->name, vp->name, len);
+	if (!news) {
+		news = alloc(offsetof(struct tbl, name[0]) + len, vp->areap);
+		memcpy(news->name, vp->name, len);
 	}
-	new->flag = (vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL)) | AINDEX;
-	new->type = vp->type;
-	new->areap = vp->areap;
-	new->u2.field = vp->u2.field;
-	new->ua.index = val;
+	news->flag = (vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL)) | AINDEX;
+	news->type = vp->type;
+	news->areap = vp->areap;
+	news->u2.field = vp->u2.field;
+	news->ua.index = val;
 
-	if (curr != new) {		/* not reusing old array entry */
-		prev->u.array = new;
-		new->u.array = curr;
+	if (curr != news) {		/* not reusing old array entry */
+		prev->u.array = news;
+		news->u.array = curr;
 	}
-	return (new);
+	return (news);
 }
 
 /* Return the length of an array reference (eg, [1+2]) - cp is assumed

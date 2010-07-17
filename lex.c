@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.115 2010/07/04 18:29:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.116 2010/07/17 22:09:36 tg Exp $");
 
 /*
  * states while lexing word
@@ -1748,12 +1748,12 @@ getsc_bn(void)
 static Lex_state *
 push_state_(State_info *si, Lex_state *old_end)
 {
-	Lex_state *new = alloc(STATE_BSIZE * sizeof(Lex_state), ATEMP);
+	Lex_state *news = alloc(STATE_BSIZE * sizeof(Lex_state), ATEMP);
 
-	new[0].ls_info.base = old_end;
-	si->base = &new[0];
-	si->end = &new[STATE_BSIZE];
-	return (&new[1]);
+	news[0].ls_info.base = old_end;
+	si->base = &news[0];
+	si->end = &news[STATE_BSIZE];
+	return (&news[1]);
 }
 
 static Lex_state *

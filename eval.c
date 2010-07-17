@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.89 2010/05/16 19:17:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.90 2010/07/17 22:09:33 tg Exp $");
 
 /*
  * string expansion
@@ -1559,19 +1559,19 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 				count++;
 			else if ((*p == CBRACE && --count == 0) ||
 			    (*p == ',' && count == 1)) {
-				char *new;
+				char *news;
 				int l1, l2, l3;
 
 				l1 = brace_start - start;
 				l2 = (p - 1) - field_start;
 				l3 = end - brace_end;
-				new = alloc(l1 + l2 + l3 + 1, ATEMP);
-				memcpy(new, start, l1);
-				memcpy(new + l1, field_start, l2);
-				memcpy(new + l1 + l2, brace_end, l3);
-				new[l1 + l2 + l3] = '\0';
-				alt_expand(wp, new, new + l1,
-				    new + l1 + l2 + l3, fdo);
+				news = alloc(l1 + l2 + l3 + 1, ATEMP);
+				memcpy(news, start, l1);
+				memcpy(news + l1, field_start, l2);
+				memcpy(news + l1 + l2, brace_end, l3);
+				news[l1 + l2 + l3] = '\0';
+				alt_expand(wp, news, news + l1,
+				    news + l1 + l2 + l3, fdo);
 				field_start = p + 1;
 			}
 		}

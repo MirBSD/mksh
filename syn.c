@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.48 2009/12/12 22:27:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.49 2010/07/17 22:09:39 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -50,7 +50,7 @@ static void nesting_push(struct nesting_state *, int);
 static void nesting_pop(struct nesting_state *);
 static int assign_command(char *);
 static int inalias(struct source *);
-static int dbtestp_isa(Test_env *, Test_meta);
+static Test_op dbtestp_isa(Test_env *, Test_meta);
 static const char *dbtestp_getopnd(Test_env *, Test_op, bool);
 static int dbtestp_eval(Test_env *, Test_op, const char *,
     const char *, bool);
@@ -917,42 +917,45 @@ const char db_close[] = { CHAR, ']', CHAR, ']', EOS };
 const char db_lthan[] = { CHAR, '<', EOS };
 const char db_gthan[] = { CHAR, '>', EOS };
 
-/* Test if the current token is a whatever. Accepts the current token if
+/*
+ * Test if the current token is a whatever. Accepts the current token if
  * it is. Returns 0 if it is not, non-zero if it is (in the case of
  * TM_UNOP and TM_BINOP, the returned value is a Test_op).
  */
-static int
+static Test_op
 dbtestp_isa(Test_env *te, Test_meta meta)
 {
 	int c = tpeek(ARRAYVAR | (meta == TM_BINOP ? 0 : CONTIN));
 	int uqword;
 	char *save = NULL;
-	int ret = 0;
+	Test_op ret = TO_NONOP;
 
 	/* unquoted word? */
 	uqword = c == LWORD && *ident;
 
 	if (meta == TM_OR)
-		ret = c == LOGOR;
+		ret = c == LOGOR ? TO_NONNULL : TO_NONOP;
 	else if (meta == TM_AND)
-		ret = c == LOGAND;
+		ret = c == LOGAND ? TO_NONNULL : TO_NONOP;
 	else if (meta == TM_NOT)
-		ret = uqword && strcmp(yylval.cp, dbtest_tokens[(int) TM_NOT]) == 0;
+		ret = (uqword && !strcmp(yylval.cp,
+		    dbtest_tokens[(int)TM_NOT])) ? TO_NONNULL : TO_NONOP;
 	else if (meta == TM_OPAREN)
-		ret = c == '(' /*)*/;
+		ret = c == '(' /*)*/ ? TO_NONNULL : TO_NONOP;
 	else if (meta == TM_CPAREN)
-		ret = c == /*(*/ ')';
+		ret = c == /*(*/ ')' ? TO_NONNULL : TO_NONOP;
 	else if (meta == TM_UNOP || meta == TM_BINOP) {
 		if (meta == TM_BINOP && c == REDIR &&
 		    (yylval.iop->flag == IOREAD || yylval.iop->flag == IOWRITE)) {
-			ret = 1;
+			ret = TO_NONNULL;
 			save = wdcopy(yylval.iop->flag == IOREAD ?
 			    db_lthan : db_gthan, ATEMP);
 		} else if (uqword && (ret = test_isop(meta, ident)))
 			save = yylval.cp;
 	} else /* meta == TM_END */
-		ret = uqword && strcmp(yylval.cp, db_close) == 0;
-	if (ret) {
+		ret = (uqword && !strcmp(yylval.cp,
+		    db_close)) ? TO_NONNULL : TO_NONOP;
+	if (ret != TO_NONOP) {
 		ACCEPT;
 		if (meta < NELEM(dbtest_tokens))
 			save = wdcopy(dbtest_tokens[(int)meta], ATEMP);
