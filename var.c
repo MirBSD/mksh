@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.108 2010/07/17 22:09:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.109 2010/07/18 17:29:50 tg Exp $");
 
 /*
  * Variables
@@ -1049,6 +1049,16 @@ change_random(const void *vp, size_t n)
 	    sizeof(kshstate_v.lcg_state_));
 	/* we ignore failures and take in k anyway */
 	h = oaathash_update(h, k, sizeof(k));
+	kshstate_v.lcg_state_ = oaathash_finalise(h);
+#elif defined(MKSH_A4PB)
+	/* forced by the user to use arc4random_pushb(3) • Cygwin? */
+	{
+		uint32_t prv;
+
+		prv = arc4random_pushb(&kshstate_v.lcg_state_,
+		    sizeof(kshstate_v.lcg_state_));
+		h = oaathash_update(h, &prv, sizeof(prv));
+	}
 	kshstate_v.lcg_state_ = oaathash_finalise(h);
 #endif
 }
