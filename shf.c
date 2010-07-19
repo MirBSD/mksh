@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.35 2009/11/28 14:28:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.36 2010/07/19 22:41:04 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -636,32 +636,45 @@ shf_write(const char *buf, int nbytes, struct shf *shf)
 		shf->wnleft -= ncopy;
 	}
 	if (nbytes > 0) {
-		/* Flush deals with strings and sticky errors */
-		if (shf_emptybuf(shf, EB_GROW) == EOF)
-			return (EOF);
-		if (nbytes > shf->wbsize) {
-			ncopy = nbytes;
-			if (shf->wbsize)
-				ncopy -= nbytes % shf->wbsize;
-			nbytes -= ncopy;
-			while (ncopy > 0) {
-				n = write(shf->fd, buf, ncopy);
-				if (n < 0) {
-					if (errno == EINTR &&
-					    !(shf->flags & SHF_INTERRUPT))
-						continue;
-					shf->flags |= SHF_ERROR;
-					shf->errno_ = errno;
-					shf->wnleft = 0;
-					/* Note: fwrite(3S) returns 0 for
-					 * errors - this doesn't */
+		if (shf->flags & SHF_STRING) {
+			/* resize buffer until there's enough space left */
+			while (nbytes > shf->wnleft)
+				if (shf_emptybuf(shf, EB_GROW) == EOF)
 					return (EOF);
+			/* then write everything into the buffer */
+		} else {
+			/* flush deals with sticky errors */
+			if (shf_emptybuf(shf, EB_GROW) == EOF)
+				return (EOF);
+			/* write chunks larger than window size directly */
+			if (nbytes > shf->wbsize) {
+				ncopy = nbytes;
+				if (shf->wbsize)
+					ncopy -= nbytes % shf->wbsize;
+				nbytes -= ncopy;
+				while (ncopy > 0) {
+					n = write(shf->fd, buf, ncopy);
+					if (n < 0) {
+						if (errno == EINTR &&
+						    !(shf->flags & SHF_INTERRUPT))
+							continue;
+						shf->flags |= SHF_ERROR;
+						shf->errno_ = errno;
+						shf->wnleft = 0;
+						/*
+						 * Note: fwrite(3) returns 0
+						 * for errors - this doesn't
+						 */
+						return (EOF);
+					}
+					buf += n;
+					ncopy -= n;
 				}
-				buf += n;
-				ncopy -= n;
 			}
+			/* ... and buffer the rest */
 		}
 		if (nbytes > 0) {
+			/* write remaining bytes to buffer */
 			memcpy(shf->wp, buf, nbytes);
 			shf->wp += nbytes;
 			shf->wnleft -= nbytes;
