@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.116 2010/07/17 22:09:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.117 2010/07/21 11:31:15 tg Exp $");
 
 /*
  * states while lexing word
@@ -1110,7 +1110,7 @@ yylex(int cf)
 			else {
 				Source *s = source;
 
-				while (s->flags & SF_HASALIAS)
+				while (s && (s->flags & SF_HASALIAS))
 					if (s->u.tblp == p)
 						return (LWORD);
 					else
