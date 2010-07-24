@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.97 2010/07/17 22:09:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.98 2010/07/24 17:08:29 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -50,7 +50,7 @@ static int sprinkle(int);
 #endif
 
 static int hist_execute(char *);
-static int hist_replace(char **, const char *, const char *, int);
+static int hist_replace(char **, const char *, const char *, bool);
 static char **hist_get(const char *, bool, bool);
 static char **hist_get_oldest(void);
 static void histbackup(void);
@@ -72,7 +72,8 @@ c_fc(const char **wp)
 	struct temp *tf;
 	const char *p;
 	char *editor = NULL;
-	int gflag = 0, lflag = 0, nflag = 0, sflag = 0, rflag = 0;
+	bool gflag = false, lflag = false, nflag = false, rflag = false,
+	    sflag = false;
 	int optc;
 	const char *first = NULL, *last = NULL;
 	char **hfirst, **hlast, **hp;
@@ -88,7 +89,7 @@ c_fc(const char **wp)
 		case 'e':
 			p = builtin_opt.optarg;
 			if (ksh_isdash(p))
-				sflag++;
+				sflag = true;
 			else {
 				size_t len = strlen(p);
 				editor = alloc(len + 4, ATEMP);
@@ -97,19 +98,19 @@ c_fc(const char **wp)
 			}
 			break;
 		case 'g': /* non-AT&T ksh */
-			gflag++;
+			gflag = true;
 			break;
 		case 'l':
-			lflag++;
+			lflag = true;
 			break;
 		case 'n':
-			nflag++;
+			nflag = true;
 			break;
 		case 'r':
-			rflag++;
+			rflag = true;
 			break;
 		case 's':	/* POSIX version of -e - */
-			sflag++;
+			sflag = true;
 			break;
 		/* kludge city - accept -num as -- -num (kind of) */
 		case '0': case '1': case '2': case '3': case '4':
@@ -186,11 +187,10 @@ c_fc(const char **wp)
 		 * when range is specified; AT&T ksh and pdksh allow out of
 		 * bounds for -l as well.
 		 */
-		hfirst = hist_get(first, (lflag || last) ? true : false,
-		    lflag ? true : false);
+		hfirst = hist_get(first, (lflag || last) ? true : false, lflag);
 		if (!hfirst)
 			return (1);
-		hlast = last ? hist_get(last, true, lflag ? true : false) :
+		hlast = last ? hist_get(last, true, lflag) :
 		    (lflag ? hist_get_newest(false) : hfirst);
 		if (!hlast)
 			return (1);
@@ -325,7 +325,7 @@ hist_execute(char *cmd)
 }
 
 static int
-hist_replace(char **hp, const char *pat, const char *rep, int globr)
+hist_replace(char **hp, const char *pat, const char *rep, bool globr)
 {
 	char *line;
 
@@ -338,12 +338,12 @@ hist_replace(char **hp, const char *pat, const char *rep, int globr)
 		int len;
 		XString xs;
 		char *xp;
-		int any_subst = 0;
+		bool any_subst = false;
 
 		Xinit(xs, xp, 128, ATEMP);
 		for (s = *hp; (s1 = strstr(s, pat)) && (!any_subst || globr);
 		    s = s1 + pat_len) {
-			any_subst = 1;
+			any_subst = true;
 			len = s1 - s;
 			XcheckN(xs, xp, len + rep_len);
 			memcpy(xp, s, len);		/* first part */
