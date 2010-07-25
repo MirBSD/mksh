@@ -150,9 +150,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.401 2010/07/24 17:08:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.402 2010/07/25 11:35:42 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2010/07/24"
+#define MKSH_VERSION "R39 2010/07/25"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -675,7 +675,7 @@ EXTERN volatile sig_atomic_t intrsig;	/* pending trap interrupts command */
 EXTERN volatile sig_atomic_t fatal_trap;/* received a fatal signal */
 extern	Trap	sigtraps[NSIG+1];
 
-/* got_winch = 1 when needing to re-adjust the window size */
+/* got_winch = 1 when we need to re-adjust the window size */
 #ifdef SIGWINCH
 EXTERN volatile sig_atomic_t got_winch I__(1);
 #else

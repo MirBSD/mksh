@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.195 2010/07/17 22:09:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.196 2010/07/25 11:35:40 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -59,6 +59,7 @@ static X_chars edchars;
 #define XCF_COMMAND_FILE (XCF_COMMAND|XCF_FILE)
 
 static char editmode;
+static int xx_cols;			/* for Emacs mode */
 static int modified;			/* buffer has been "modified" */
 static char holdbuf[LINE];		/* place to hold last edit buffer */
 
@@ -153,6 +154,16 @@ x_getc(void)
 		if (trap) {
 			x_mode(false);
 			runtraps(0);
+#ifdef SIGWINCH
+			if (got_winch) {
+				change_winsz();
+				if (x_cols != xx_cols && editmode == 1) {
+					/* redraw line in Emacs mode */
+					xx_cols = x_cols;
+					x_e_rebuildline(MKSH_CLRTOEOL_STRING);
+				}
+			}
+#endif
 			x_mode(true);
 		}
 	return ((n == 1) ? (int)(unsigned char)c : -1);
@@ -823,7 +834,6 @@ static int x_adj_ok;
  */
 static int x_adj_done;
 
-static int xx_cols;
 static int x_col;
 static int x_displen;
 static int x_arg;		/* general purpose arg */
@@ -3109,15 +3119,6 @@ x_mode(bool onoff)
 {
 	static bool x_cur_mode;
 	bool prev;
-
-	if (onoff && got_winch) {
-		change_winsz();
-		if (x_cols != xx_cols && editmode == 1) {
-			/* redraw line in Emacs mode */
-			xx_cols = x_cols;
-			x_e_rebuildline(MKSH_CLRTOEOL_STRING);
-		}
-	}
 
 	if (x_cur_mode == onoff)
 		return (x_cur_mode);

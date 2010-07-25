@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.109 2010/07/18 17:29:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.110 2010/07/25 11:35:43 tg Exp $");
 
 /*
  * Variables
@@ -1454,7 +1454,7 @@ change_winsz(void)
 	}
 
 #ifdef TIOCGWINSZ
-	/* check if window size has changed since first time */
+	/* check if window size has changed */
 	if (tty_fd >= 0) {
 		struct winsize ws;
 
