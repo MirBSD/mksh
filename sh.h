@@ -150,7 +150,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.402 2010/07/25 11:35:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.403 2010/08/14 21:35:13 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2010/07/25"
 
@@ -312,6 +312,15 @@ extern const char *const sys_siglist[];
 extern int __cdecl seteuid(uid_t);
 extern int __cdecl setegid(gid_t);
 #endif
+
+/* remove redundances */
+
+#if defined(MirBSD) && (MirBSD >= 0x08A8)
+#define MKSH_mirbsd_wcwidth
+#define utf_wcwidth(i) wcwidth((__WCHAR_TYPE__)i)
+extern int wcwidth(__WCHAR_TYPE__);
+#endif
+
 
 /* some useful #defines */
 #ifdef EXTERN
@@ -1397,7 +1406,9 @@ int utf_widthadj(const char *, const char **);
 int utf_mbswidth(const char *);
 const char *utf_skipcols(const char *, int);
 size_t utf_ptradj(const char *);
+#ifndef MKSH_mirbsd_wcwidth
 int utf_wcwidth(unsigned int);
+#endif
 /* funcs.c */
 int c_hash(const char **);
 int c_cd(const char **);

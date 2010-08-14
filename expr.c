@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.43 2010/01/25 14:38:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.44 2010/08/14 21:35:13 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -798,6 +798,7 @@ utf_wctomb(char *dst, unsigned int wc)
 }
 
 
+#ifndef MKSH_mirbsd_wcwidth
 /* --- begin of wcwidth.c excerpt --- */
 /*-
  * Markus Kuhn -- 2007-05-26 (Unicode 5.0)
@@ -891,3 +892,4 @@ utf_wcwidth(unsigned int c)
 	    (c >= 0xffe0 && c <= 0xffe6))) ? 2 : 1);
 }
 /* --- end of wcwidth.c excerpt --- */
+#endif
