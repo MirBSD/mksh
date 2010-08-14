@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.233 2010/08/14 19:55:37 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.234 2010/08/14 20:13:10 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.136 2010/07/15 20:04:35 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -888,14 +888,6 @@ Operators (e.g.\&
 .Sq \&! )
 must be unquoted.
 .It
-The second operand of the
-.Sq !=
-and
-.Sq =
-expressions are patterns (e.g. the comparison
-.Ic \&[[ foobar = f*r ]]
-succeeds).
-.It
 Parameter, command, and arithmetic substitutions are performed as expressions
 are evaluated and lazy expression evaluation is used for the
 .Ql &&
@@ -910,6 +902,23 @@ exists and is readable:
 .Bd -literal -offset indent
 $ [[ \-r foo && $(\*(Ltfoo) = b*r ]]
 .Ed
+.It
+The second operand of the
+.Sq !=
+and
+.Sq =
+expressions are patterns (e.g. the comparison
+.Ic \&[[ foobar = f*r ]]
+succeeds).
+This even works indirectly:
+.Bd -literal -offset indent
+$ bar=foobar; baz=\*(aqf*r\*(aq
+$ [[ $bar = $baz ]]; echo $?
+$ [[ $bar = "$baz" ]]; echo $?
+.Ed
+.Pp
+Perhaps surprisingly, the first comparision succeeds,
+whereas the second doesn't.
 .El
 .El
 .Ss Quoting
@@ -4213,8 +4222,12 @@ or
 .Sq Fl n .
 Use tests like
 .Dq if \&[ x\&"$foo\&" = x"bar" \&]
-instead, or the double-bracket operator:
+instead, or the double-bracket operator
 .Dq if \&[[ $foo = bar \&]]
+or, to avoid pattern matching (see
+.Ic \&[[
+above):
+.Dq if \&[[ $foo = "$bar" \&]]
 .Pp
 .It Xo
 .Ic time
