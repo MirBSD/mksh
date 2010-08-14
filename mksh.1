@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.232 2010/07/17 22:09:37 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.233 2010/08/14 19:55:37 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.136 2010/07/15 20:04:35 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -71,7 +71,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 17 2010 $
+.Dd $Mdocdate: August 14 2010 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -601,15 +601,6 @@ done     fi       in           until     {
 elif     for      select       while     }
 .Ed
 .Pp
-.Sy Note :
-Some shells (but not this one) execute control structure commands in a
-subshell when one or more of their file descriptors are redirected, so any
-environment changes inside them may fail.
-To be portable, the
-.Ic exec
-statement should be used instead to redirect file descriptors before the
-control structure.
-.Pp
 In the following compound command descriptions, command lists (denoted as
 .Em list )
 that are followed by reserved words must end with a semicolon, a newline, or
@@ -904,14 +895,6 @@ and
 expressions are patterns (e.g. the comparison
 .Ic \&[[ foobar = f*r ]]
 succeeds).
-.It
-The single argument form of
-.Ic test ,
-which tests if the argument has a non-zero length, is not portable,
-e.g. instead of
-.No \&[ Ar str No \&]
-use
-.No \&[[ \-n Ar str No \&]] .
 .It
 Parameter, command, and arithmetic substitutions are performed as expressions
 are evaluated and lazy expression evaluation is used for the
