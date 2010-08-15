@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.456 2010/08/15 00:41:05 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.457 2010/08/15 00:43:55 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1096,8 +1096,7 @@ ac_testn can_ucbint8 '!' can_int8type 1 "for UCB 8-bit integer type" <<-'EOF'
 	int main(int ac, char **av) { return ((u_int8_t)av[ac]); }
 EOF
 case $HAVE_CAN_INTTYPES$HAVE_CAN_UCBINTS in
-01)	HAVE_U_INT32_T=1
-	echo 'typedef u_int32_t uint32_t;' >>stdint.h ;;
+01)	echo 'typedef u_int32_t uint32_t;' >>stdint.h ;;
 00)	echo 'typedef signed int int32_t;' >>stdint.h
 	echo 'typedef unsigned int uint32_t;' >>stdint.h ;;
 esac
@@ -1171,15 +1170,6 @@ fi
 
 test 1 = $HAVE_SIG_T || CPPFLAGS="$CPPFLAGS -Dsig_t=nosig_t"
 ac_cppflags SIG_T
-
-ac_testn u_int32_t <<-'EOF'
-	#include <sys/types.h>
-	#if HAVE_STDINT_H
-	#include <stdint.h>
-	#endif
-	int main(void) { return ((int)(u_int32_t)0); }
-EOF
-test 1 = $HAVE_U_INT32_T || CPPFLAGS="$CPPFLAGS -Du_int32_t=uint32_t"
 
 #
 # Environment: signals
