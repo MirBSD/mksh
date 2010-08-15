@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.455 2010/07/18 17:29:49 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.456 2010/08/15 00:41:05 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1087,11 +1087,23 @@ ac_testn can_ucbints '!' can_inttypes 1 "for UCB 32-bit integer types" <<-'EOF'
 	#include <sys/types.h>
 	int main(int ac, char **av) { return ((u_int32_t)*av + (int32_t)ac); }
 EOF
+ac_testn can_int8type '!' stdint_h 1 "for standard 8-bit integer type" <<-'EOF'
+	#include <sys/types.h>
+	int main(int ac, char **av) { return ((uint8_t)av[ac]); }
+EOF
+ac_testn can_ucbint8 '!' can_int8type 1 "for UCB 8-bit integer type" <<-'EOF'
+	#include <sys/types.h>
+	int main(int ac, char **av) { return ((u_int8_t)av[ac]); }
+EOF
 case $HAVE_CAN_INTTYPES$HAVE_CAN_UCBINTS in
 01)	HAVE_U_INT32_T=1
 	echo 'typedef u_int32_t uint32_t;' >>stdint.h ;;
 00)	echo 'typedef signed int int32_t;' >>stdint.h
 	echo 'typedef unsigned int uint32_t;' >>stdint.h ;;
+esac
+case $HAVE_CAN_INT8TYPE$HAVE_CAN_UCBINT8 in
+01)	echo 'typedef u_int8_t uint8_t;' >>stdint.h ;;
+00)	echo 'typedef unsigned char uint8_t;' >>stdint.h ;;
 esac
 test -f stdint.h && HAVE_STDINT_H=1
 ac_cppflags STDINT_H
