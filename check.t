@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.386 2010/07/25 11:35:38 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.387 2010/08/24 14:42:00 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2010/07/25
+	@(#)MIRBSD KSH R39 2010/08/24
 description:
 	Check version of shell.
 stdin:
@@ -7371,4 +7371,75 @@ stdin:
 	print ${%?} .
 expected-stdout:
 	1 .
+---
+name: realpath-1
+description:
+	Check proper return values for realpath
+stdin:
+	wd=$(realpath .)
+	mkdir dir
+	:>file
+	:>dir/file
+	ln -s dir lndir
+	ln -s file lnfile
+	ln -s nix lnnix
+	ln -s . lnself
+	i=0
+	chk() {
+		typeset x y
+		x=$(realpath "$wd/$1" 2>&1); y=$?
+		print $((++i)) "?$1" =${x##*$wd/} !$y
+	}
+	chk dir
+	chk dir/
+	chk dir/file
+	chk dir/nix
+	chk file
+	chk file/
+	chk file/file
+	chk file/nix
+	chk nix
+	chk nix/
+	chk nix/file
+	chk nix/nix
+	chk lndir
+	chk lndir/
+	chk lndir/file
+	chk lndir/nix
+	chk lnfile
+	chk lnfile/
+	chk lnfile/file
+	chk lnfile/nix
+	chk lnnix
+	chk lnnix/
+	chk lnnix/file
+	chk lnnix/nix
+	chk lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself
+	rm lnself
+expected-stdout:
+	1 ?dir =dir !0
+	2 ?dir/ =dir !0
+	3 ?dir/file =dir/file !0
+	4 ?dir/nix =dir/nix !0
+	5 ?file =file !0
+	6 ?file/ =file/: Not a directory !20
+	7 ?file/file =file/file: Not a directory !20
+	8 ?file/nix =file/nix: Not a directory !20
+	9 ?nix =nix !0
+	10 ?nix/ =nix !0
+	11 ?nix/file =nix/file: No such file or directory !2
+	12 ?nix/nix =nix/nix: No such file or directory !2
+	13 ?lndir =dir !0
+	14 ?lndir/ =dir !0
+	15 ?lndir/file =dir/file !0
+	16 ?lndir/nix =dir/nix !0
+	17 ?lnfile =file !0
+	18 ?lnfile/ =lnfile/: Not a directory !20
+	19 ?lnfile/file =lnfile/file: Not a directory !20
+	20 ?lnfile/nix =lnfile/nix: Not a directory !20
+	21 ?lnnix =nix !0
+	22 ?lnnix/ =nix !0
+	23 ?lnnix/file =lnnix/file: No such file or directory !2
+	24 ?lnnix/nix =lnnix/nix: No such file or directory !2
+	25 ?lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself =lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself: Too many levels of symbolic links !62
 ---

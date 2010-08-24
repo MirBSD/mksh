@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.234 2010/08/14 20:13:10 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.235 2010/08/24 14:42:03 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.136 2010/07/15 20:04:35 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -71,7 +71,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: August 14 2010 $
+.Dd $Mdocdate: August 24 2010 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -3629,6 +3629,14 @@ printed.
 .Xc
 Prints the resolved absolute pathname corresponding to
 .Ar name .
+If
+.Ar name
+ends with a slash
+.Pq Sq / ,
+it's also checked for existence and whether it is a directory; otherwise,
+.Ic realpath
+returns 0 if the pathname either exists or can be created immediately,
+i.e. all but the last component exist and are directories.
 .Pp
 .It Ic rename Ar from to
 Renames the file

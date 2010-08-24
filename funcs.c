@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.156 2010/07/17 22:09:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.157 2010/08/24 14:42:01 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -290,7 +290,7 @@ do_realpath(const char *upath)
 			 */
 			xp = (ldest[0] == '/') ? Xstring(xs, xp) :
 			    Xrestpos(xs, xp, pos);
-			tp = shf_smprintf("%s/%s", ldest, ip);
+			tp = shf_smprintf("%s%s%s", ldest, *ip ? "/" : "", ip);
 			afree(ipath, ATEMP);
 			ip = ipath = tp;
 		}
@@ -309,6 +309,22 @@ do_realpath(const char *upath)
 		Xput(xs, xp, '/');
 	Xput(xs, xp, '\0');
 
+	/*
+	 * if source path had a trailing slash, check if target path
+	 * is not a non-directory existing file
+	 */
+	if (ip > ipath && ip[-1] == '/') {
+		if (stat(Xstring(xs, xp), &sb)) {
+			if (errno != ENOENT)
+				goto notfound;
+		} else if (!S_ISDIR(sb.st_mode)) {
+			errno = ENOTDIR;
+			goto notfound;
+		}
+		/* target now either does not exist or is a directory */
+	}
+
+	/* return target path */
 	if (ldest != NULL)
 		afree(ldest, ATEMP);
 	afree(ipath, ATEMP);
