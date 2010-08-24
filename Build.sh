@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.458 2010/08/24 15:19:52 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.459 2010/08/24 15:46:06 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1104,19 +1104,23 @@ rmf lft*	# end of large file support test
 #
 ac_test can_inttypes '!' stdint_h 1 "for standard 32-bit integer types" <<-'EOF'
 	#include <sys/types.h>
-	int main(int ac, char **av) { return ((uint32_t)*av + (int32_t)ac); }
+	#include <stddef.h>
+	int main(int ac, char **av) { return ((uint32_t)(ptrdiff_t)*av + (int32_t)ac); }
 EOF
 ac_test can_ucbints '!' can_inttypes 1 "for UCB 32-bit integer types" <<-'EOF'
 	#include <sys/types.h>
-	int main(int ac, char **av) { return ((u_int32_t)*av + (int32_t)ac); }
+	#include <stddef.h>
+	int main(int ac, char **av) { return ((u_int32_t)(ptrdiff_t)*av + (int32_t)ac); }
 EOF
 ac_test can_int8type '!' stdint_h 1 "for standard 8-bit integer type" <<-'EOF'
 	#include <sys/types.h>
-	int main(int ac, char **av) { return ((uint8_t)av[ac]); }
+	#include <stddef.h>
+	int main(int ac, char **av) { return ((uint8_t)(ptrdiff_t)av[ac]); }
 EOF
 ac_test can_ucbint8 '!' can_int8type 1 "for UCB 8-bit integer type" <<-'EOF'
 	#include <sys/types.h>
-	int main(int ac, char **av) { return ((u_int8_t)av[ac]); }
+	#include <stddef.h>
+	int main(int ac, char **av) { return ((u_int8_t)(ptrdiff_t)av[ac]); }
 EOF
 
 ac_test rlim_t <<-'EOF'
