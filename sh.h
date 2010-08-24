@@ -150,7 +150,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.404 2010/08/24 14:42:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.405 2010/08/24 15:19:54 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2010/08/24"
 
@@ -186,6 +186,23 @@ typedef void (*sig_t)(int);
 typedef int bool;
 #define false 0
 #define true 1
+#endif
+
+#if !HAVE_CAN_INTTYPES
+#if !HAVE_CAN_UCBINTS
+typedef signed int int32_t;
+typedef unsigned int uint32_t;
+#else
+typedef u_int32_t uint32_t;
+#endif
+#endif
+
+#if !HAVE_CAN_INT8TYPE
+#if !HAVE_CAN_UCBINT8
+typedef unsigned char uint8_t;
+#else
+typedef u_int8_t uint8_t;
+#endif
 #endif
 
 /* extra macros */

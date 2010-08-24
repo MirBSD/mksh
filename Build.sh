@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.457 2010/08/15 00:43:55 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.458 2010/08/24 15:19:52 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -284,7 +284,7 @@ if test -d mksh || test -d mksh.exe; then
 	exit 1
 fi
 rmf a.exe* a.out* conftest.c *core lft mksh* no *.bc *.ll *.o \
-    Rebuild.sh signames.inc stdint.h test.sh x vv.out
+    Rebuild.sh signames.inc test.sh x vv.out
 
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=
 test -n "$dirname" || dirname=.
@@ -1069,43 +1069,15 @@ ac_header sys/param.h
 ac_header sys/mkdev.h sys/types.h
 ac_header sys/mman.h sys/types.h
 ac_header sys/sysmacros.h
+ac_header grp.h sys/types.h
 ac_header libgen.h
 ac_header libutil.h sys/types.h
 ac_header paths.h
 ac_header stdbool.h
+ac_header stdint.h stdarg.h
 ac_header strings.h sys/types.h
-ac_header grp.h sys/types.h
 ac_header ulimit.h sys/types.h
 ac_header values.h
-
-ac_header '!' stdint.h stdarg.h
-ac_testn can_inttypes '!' stdint_h 1 "for standard 32-bit integer types" <<-'EOF'
-	#include <sys/types.h>
-	int main(int ac, char **av) { return ((uint32_t)*av + (int32_t)ac); }
-EOF
-ac_testn can_ucbints '!' can_inttypes 1 "for UCB 32-bit integer types" <<-'EOF'
-	#include <sys/types.h>
-	int main(int ac, char **av) { return ((u_int32_t)*av + (int32_t)ac); }
-EOF
-ac_testn can_int8type '!' stdint_h 1 "for standard 8-bit integer type" <<-'EOF'
-	#include <sys/types.h>
-	int main(int ac, char **av) { return ((uint8_t)av[ac]); }
-EOF
-ac_testn can_ucbint8 '!' can_int8type 1 "for UCB 8-bit integer type" <<-'EOF'
-	#include <sys/types.h>
-	int main(int ac, char **av) { return ((u_int8_t)av[ac]); }
-EOF
-case $HAVE_CAN_INTTYPES$HAVE_CAN_UCBINTS in
-01)	echo 'typedef u_int32_t uint32_t;' >>stdint.h ;;
-00)	echo 'typedef signed int int32_t;' >>stdint.h
-	echo 'typedef unsigned int uint32_t;' >>stdint.h ;;
-esac
-case $HAVE_CAN_INT8TYPE$HAVE_CAN_UCBINT8 in
-01)	echo 'typedef u_int8_t uint8_t;' >>stdint.h ;;
-00)	echo 'typedef unsigned char uint8_t;' >>stdint.h ;;
-esac
-test -f stdint.h && HAVE_STDINT_H=1
-ac_cppflags STDINT_H
 
 #
 # Environment: definitions
@@ -1130,6 +1102,23 @@ rmf lft*	# end of large file support test
 #
 # Environment: types
 #
+ac_test can_inttypes '!' stdint_h 1 "for standard 32-bit integer types" <<-'EOF'
+	#include <sys/types.h>
+	int main(int ac, char **av) { return ((uint32_t)*av + (int32_t)ac); }
+EOF
+ac_test can_ucbints '!' can_inttypes 1 "for UCB 32-bit integer types" <<-'EOF'
+	#include <sys/types.h>
+	int main(int ac, char **av) { return ((u_int32_t)*av + (int32_t)ac); }
+EOF
+ac_test can_int8type '!' stdint_h 1 "for standard 8-bit integer type" <<-'EOF'
+	#include <sys/types.h>
+	int main(int ac, char **av) { return ((uint8_t)av[ac]); }
+EOF
+ac_test can_ucbint8 '!' can_int8type 1 "for UCB 8-bit integer type" <<-'EOF'
+	#include <sys/types.h>
+	int main(int ac, char **av) { return ((u_int8_t)av[ac]); }
+EOF
+
 ac_test rlim_t <<-'EOF'
 	#include <sys/types.h>
 	#include <sys/time.h>
