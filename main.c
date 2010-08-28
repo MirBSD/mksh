@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.167 2010/07/04 17:45:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.168 2010/08/28 15:39:19 tg Exp $");
 
 extern char **environ;
 
@@ -337,7 +337,7 @@ mksh_init(int argc, const char *argv[])
 		s->u.shf = shf_open(s->file, O_RDONLY, 0,
 		    SHF_MAPHI | SHF_CLEXEC);
 		if (s->u.shf == NULL) {
-			shl_stdout_ok = 0;
+			shl_stdout_ok = false;
 			warningf(true, "%s: %s", s->file, strerror(errno));
 			/* mandated by SUSv4 */
 			exstat = 127;
@@ -906,7 +906,7 @@ errorf(const char *fmt, ...)
 {
 	va_list va;
 
-	shl_stdout_ok = 0;	/* debugging: note that stdout not valid */
+	shl_stdout_ok = false;	/* debugging: note that stdout not valid */
 	exstat = 1;
 	if (*fmt != 1) {
 		error_prefix(true);
@@ -941,7 +941,7 @@ bi_errorf(const char *fmt, ...)
 {
 	va_list va;
 
-	shl_stdout_ok = 0;	/* debugging: note that stdout not valid */
+	shl_stdout_ok = false;	/* debugging: note that stdout not valid */
 	exstat = 1;
 	if (*fmt != 1) {
 		error_prefix(true);

@@ -150,7 +150,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.405 2010/08/24 15:19:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.406 2010/08/28 15:39:20 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2010/08/24"
 
@@ -655,7 +655,7 @@ struct temp {
 #define shl_spare	(&shf_iob[0])	/* for c_read()/c_print() */
 #define shl_stdout	(&shf_iob[1])
 #define shl_out		(&shf_iob[2])
-EXTERN int shl_stdout_ok;
+EXTERN bool shl_stdout_ok;
 
 /*
  * trap handlers

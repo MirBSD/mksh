@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.75 2010/07/17 22:09:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.76 2010/08/28 15:39:18 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -1094,11 +1094,11 @@ call_builtin(struct tbl *tp, const char **wp)
 	builtin_argv0 = wp[0];
 	builtin_flag = tp->flag;
 	shf_reopen(1, SHF_WR, shl_stdout);
-	shl_stdout_ok = 1;
+	shl_stdout_ok = true;
 	ksh_getopt_reset(&builtin_opt, GF_ERROR);
 	rv = (*tp->val.f)(wp);
 	shf_flush(shl_stdout);
-	shl_stdout_ok = 0;
+	shl_stdout_ok = false;
 	builtin_flag = 0;
 	builtin_argv0 = NULL;
 	return (rv);
