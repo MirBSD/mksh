@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.143 2010/08/28 16:47:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.144 2010/08/28 18:50:55 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
@@ -168,10 +168,11 @@ printoptions(bool verbose)
 		    octs + 4, oi.opt_width + 4, true);
 	} else {
 		/* short version á la AT&T ksh93 */
-		shf_puts("set", shl_stdout);
+		shf_puts(T_set, shl_stdout);
 		while (i < (int)NELEM(options)) {
 			if (Flag(i) && options[i].name)
-				shprintf(" -o %s", options[i].name);
+				shprintf("%s %s %s", null, "-o",
+				    options[i].name);
 			++i;
 		}
 		shf_putc('\n', shl_stdout);
@@ -345,7 +346,7 @@ parse_args(const char **argv,
 			else if ((i != (size_t)-1) && (options[i].flags & what))
 				change_flag((enum sh_flag)i, what, set);
 			else {
-				bi_errorf("%s: bad option", go.optarg);
+				bi_errorf("%s: %s", go.optarg, "bad option");
 				return (-1);
 			}
 			break;
@@ -399,7 +400,7 @@ parse_args(const char **argv,
 		    argv[go.optind]);
 
 	if (arrayset && (!*array || *skip_varname(array, false))) {
-		bi_errorf("%s: is not an identifier", array);
+		bi_errorf("%s: %s", array, "is not an identifier");
 		return (-1);
 	}
 	if (sortargs) {
@@ -456,7 +457,7 @@ bi_getn(const char *as, int *ai)
 	int rv;
 
 	if (!(rv = getn(as, ai)))
-		bi_errorf("%s: bad number", as);
+		bi_errorf("%s: %s", as, "bad number");
 	return (rv);
 }
 
@@ -858,9 +859,10 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 				go->optarg = go->buf;
 				return (':');
 			}
-			warningf(true, "%s%s-'%c' requires argument",
+			warningf(true, "%s%s-'%c' %s",
 			    (go->flags & GF_NONAME) ? "" : argv[0],
-			    (go->flags & GF_NONAME) ? "" : ": ", c);
+			    (go->flags & GF_NONAME) ? "" : ": ", c,
+			    "requires an argument");
 			if (go->flags & GF_ERROR)
 				bi_errorfz();
 			return ('?');
@@ -1289,42 +1291,43 @@ chvt(const char *fn)
 			if (stat(dv, &sb)) {
 				strlcpy(dv + 8, fn, sizeof(dv) - 8);
 				if (stat(dv, &sb))
-					errorf("chvt: can't find tty %s", fn);
+					errorf("%s: %s %s", "chvt",
+					    "can't find tty", fn);
 			}
 			fn = dv;
 		}
 		if (!(sb.st_mode & S_IFCHR))
-			errorf("chvt: not a char device: %s", fn);
+			errorf("%s %s %s", "chvt: not a char", "device", fn);
 		if ((sb.st_uid != 0) && chown(fn, 0, 0))
-			warningf(false, "chvt: cannot chown root %s", fn);
+			warningf(false, "%s: %s %s", "chvt", "cannot chown root", fn);
 		if (((sb.st_mode & 07777) != 0600) && chmod(fn, (mode_t)0600))
-			warningf(false, "chvt: cannot chmod 0600 %s", fn);
+			warningf(false, "%s: %s %s", "chvt", "cannot chmod 0600", fn);
 #if HAVE_REVOKE
 		if (revoke(fn))
 #endif
-			warningf(false, "chvt: cannot revoke %s, new shell is"
-			    " potentially insecure", fn);
+			warningf(false, "%s: cannot revoke %s, new shell is"
+			    " potentially insecure", "chvt", fn);
 	}
 	if ((fd = open(fn, O_RDWR)) == -1) {
 		sleep(1);
 		if ((fd = open(fn, O_RDWR)) == -1)
-			errorf("chvt: cannot open %s", fn);
+			errorf("%s: %s %s", "chvt", "cannot open", fn);
 	}
 	switch (fork()) {
 	case -1:
-		errorf("chvt: %s failed", "fork");
+		errorf("%s: %s %s", "chvt", "fork", "failed");
 	case 0:
 		break;
 	default:
 		exit(0);
 	}
 	if (setsid() == -1)
-		errorf("chvt: %s failed", "setsid");
+		errorf("%s: %s %s", "chvt", "setsid", "failed");
 	if (fn != dv + 1) {
 		if (ioctl(fd, TIOCSCTTY, NULL) == -1)
-			errorf("chvt: %s failed", "TIOCSCTTY");
+			errorf("%s: %s %s", "chvt", "TIOCSCTTY", "failed");
 		if (tcflush(fd, TCIOFLUSH))
-			errorf("chvt: %s failed", "TCIOFLUSH");
+			errorf("%s: %s %s", "chvt", "TCIOFLUSH", "failed");
 	}
 	ksh_dup2(fd, 0, false);
 	ksh_dup2(fd, 1, false);

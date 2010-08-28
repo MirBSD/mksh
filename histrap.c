@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.99 2010/08/28 15:48:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.100 2010/08/28 18:50:52 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -230,15 +230,16 @@ c_fc(const char **wp)
 
 	tf = maketemp(ATEMP, TT_HIST_EDIT, &e->temps);
 	if (!(shf = tf->shf)) {
-		bi_errorf("cannot create temp file %s - %s",
-		    tf->name, strerror(errno));
+		bi_errorf("can't %s temporary file %s: %s",
+		    "create", tf->name, strerror(errno));
 		return (1);
 	}
 	for (hp = rflag ? hlast : hfirst;
 	    hp >= hfirst && hp <= hlast; hp += rflag ? -1 : 1)
 		shf_fprintf(shf, "%s\n", *hp);
 	if (shf_close(shf) == EOF) {
-		bi_errorf("error writing temporary file - %s", strerror(errno));
+		bi_errorf("can't %s temporary file %s: %s",
+		    "write", tf->name, strerror(errno));
 		return (1);
 	}
 
@@ -263,7 +264,8 @@ c_fc(const char **wp)
 		int n;
 
 		if (!(shf = shf_open(tf->name, O_RDONLY, 0, 0))) {
-			bi_errorf("cannot open temp file %s", tf->name);
+			bi_errorf("can't %s temporary file %s: %s",
+			    "open", tf->name, strerror(errno));
 			return (1);
 		}
 
@@ -275,8 +277,8 @@ c_fc(const char **wp)
 				XcheckN(xs, xp, Xlength(xs, xp));
 		}
 		if (n < 0) {
-			bi_errorf("error reading temp file %s - %s",
-			    tf->name, strerror(shf_errno(shf)));
+			bi_errorf("can't %s temporary file %s: %s",
+			    "read", tf->name, strerror(shf_errno(shf)));
 			shf_close(shf);
 			return (1);
 		}
@@ -380,18 +382,18 @@ hist_get(const char *str, bool approx, bool allow_cur)
 			if (approx)
 				hp = hist_get_oldest();
 			else {
-				bi_errorf("%s: not in history", str);
+				bi_errorf("%s: %s", str, "not in history");
 				hp = NULL;
 			}
 		} else if ((ptrdiff_t)hp > (ptrdiff_t)histptr) {
 			if (approx)
 				hp = hist_get_newest(allow_cur);
 			else {
-				bi_errorf("%s: not in history", str);
+				bi_errorf("%s: %s", str, "not in history");
 				hp = NULL;
 			}
 		} else if (!allow_cur && hp == histptr) {
-			bi_errorf("%s: invalid range", str);
+			bi_errorf("%s: %s", str, "invalid range");
 			hp = NULL;
 		}
 	} else {
@@ -399,7 +401,7 @@ hist_get(const char *str, bool approx, bool allow_cur)
 
 		/* the -1 is to avoid the current fc command */
 		if ((n = findhist(histptr - history - 1, 0, str, anchored)) < 0)
-			bi_errorf("%s: not in history", str);
+			bi_errorf("%s: %s", str, "not in history");
 		else
 			hp = &history[n];
 	}

@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.197 2010/08/28 16:47:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.198 2010/08/28 18:50:47 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -324,7 +324,7 @@ x_file_glob(int flags MKSH_A_UNUSED, const char *str, int slen, char ***wordsp)
 	source = s;
 	if (yylex(ONEWORD | LQCHAR) != LWORD) {
 		source = sold;
-		internal_warningf("fileglob: substitute error");
+		internal_warningf("%s: %s", "fileglob", "substitute error");
 		return (0);
 	}
 	source = sold;
@@ -2403,7 +2403,7 @@ x_bind(const char *a1, const char *a2,
 		m1 = msg + strlen(msg);
 		while (*c && m1 < (msg + sizeof(msg) - 3))
 			x_mapout2(*c++, &m1);
-		bi_errorf("%s' too long", msg);
+		bi_errorf("'%s' too long", msg);
 		return (1);
 	}
 #ifndef MKSH_SMALL
@@ -2428,7 +2428,7 @@ x_bind(const char *a1, const char *a2,
 			    strcmp(x_ftab[f].xf_name, a2) == 0)
 				break;
 		if (f == NELEM(x_ftab) || x_ftab[f].xf_flags & XF_NOBIND) {
-			bi_errorf("%s: no such function", a2);
+			bi_errorf("%s: %s", a2, "no such function");
 			return (1);
 		}
 	}
@@ -4811,7 +4811,7 @@ grabhist(int save, int n)
 	}
 	(void)histnum(n);
 	if ((hptr = *histpos()) == NULL) {
-		internal_warningf("grabhist: bad history array");
+		internal_warningf("%s: %s", "grabhist", "bad history array");
 		return (-1);
 	}
 	if (save)

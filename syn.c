@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.49 2010/07/17 22:09:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.50 2010/08/28 18:50:58 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -181,7 +181,7 @@ synio(int cf)
 		if (*ident != 0) /* unquoted */
 			iop->flag |= IOEVAL;
 		if (herep > &heres[HERES - 1])
-			yyerror("too many <<s\n");
+			yyerror("too many %ss\n", "<<");
 		*herep++ = iop;
 	} else
 		iop->name = yylval.cp;
@@ -257,7 +257,8 @@ get_command(int cf)
 			case REDIR:
 				while ((iop = synio(cf)) != NULL) {
 					if (iopn >= NUFILE)
-						yyerror("too many redirections\n");
+						yyerror("too many %ss\n",
+						    "redirection");
 					iops[iopn++] = iop;
 				}
 				break;
@@ -403,8 +404,8 @@ get_command(int cf)
 		t = newtp((c == FOR) ? TFOR : TSELECT);
 		musthave(LWORD, ARRAYVAR);
 		if (!is_wdvarname(yylval.cp, true))
-			yyerror("%s: bad identifier\n",
-			    c == FOR ? "for" : "select");
+			yyerror("%s: %s\n", c == FOR ? "for" : "select",
+			    "bad identifier");
 		strdupx(t->str, ident, ATEMP);
 		nesting_push(&old_nesting, c);
 		t->vars = wordlist();
@@ -466,7 +467,7 @@ get_command(int cf)
 
 	while ((iop = synio(syniocf)) != NULL) {
 		if (iopn >= NUFILE)
-			yyerror("too many redirections\n");
+			yyerror("too many %ss\n", "redirection");
 		iops[iopn++] = iop;
 	}
 
@@ -622,7 +623,7 @@ function_body(char *name,
 	 */
 	for (p = sname; *p; p++)
 		if (ctype(*p, C_QUOTE))
-			yyerror("%s: invalid function name\n", sname);
+			yyerror("%s: %s\n", sname, "invalid function name");
 
 	/* Note that POSIX allows only compound statements after foo(), sh and
 	 * AT&T ksh allow any command, go with the later since it shouldn't
@@ -796,7 +797,7 @@ syntaxerr(const char *what)
 			goto Again;
 		}
 		/* don't quote the EOF */
-		yyerror("%s: unexpected EOF\n", T_synerr);
+		yyerror("%s: %s\n", T_synerr, "unexpected EOF");
 		/* NOTREACHED */
 
 	case LWORD:
@@ -882,7 +883,7 @@ assign_command(char *s)
 {
 	if (!*s)
 		return (0);
-	return ((strcmp(s, "alias") == 0) ||
+	return ((strcmp(s, T_alias) == 0) ||
 	    (strcmp(s, "export") == 0) ||
 	    (strcmp(s, "readonly") == 0) ||
 	    (strcmp(s, T_typeset) == 0));

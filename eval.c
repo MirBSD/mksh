@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.90 2010/07/17 22:09:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.91 2010/08/28 18:50:49 tg Exp $");
 
 /*
  * string expansion
@@ -334,7 +334,7 @@ expand(const char *cp,	/* input word */
 						*end = EOS;
 					str = snptreef(NULL, 64, "%S", beg);
 					afree(beg, ATEMP);
-					errorf("%s: bad substitution", str);
+					errorf("%s: %s", str, "bad substitution");
 				}
 				if (f & DOBLANK)
 					doblank++;
@@ -974,7 +974,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 			}
 		}
 		if (Flag(FNOUNSET) && c == 0 && !zero_ok)
-			errorf("%s: parameter not set", sp);
+			errorf("%s: %s", sp, "parameter not set");
 		*stypep = 0; /* unqualified variable/string substitution */
 		xp->str = shf_smprintf("%d", c);
 		return (XSUB);
@@ -1105,7 +1105,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		state = XBASE;	/* expand word instead of variable value */
 	if (Flag(FNOUNSET) && xp->str == null && !zero_ok &&
 	    (ctype(c, C_SUBOP2) || (state != XBASE && c != '+')))
-		errorf("%s: parameter not set", sp);
+		errorf("%s: %s", sp, "parameter not set");
 	return (state);
 }
 
@@ -1135,12 +1135,12 @@ comsub(Expand *xp, const char *cp)
 		char *name;
 
 		if ((io->flag&IOTYPE) != IOREAD)
-			errorf("funny $() command: %s",
+			errorf("%s: %s", "funny $() command",
 			    snptreef(NULL, 32, "%R", io));
 		shf = shf_open(name = evalstr(io->name, DOTILDE), O_RDONLY, 0,
 			SHF_MAPHI|SHF_CLEXEC);
 		if (shf == NULL)
-			errorf("%s: cannot open $() input", name);
+			errorf("%s: %s", name, "cannot open $() input");
 		xp->split = 0;	/* no waitlast() */
 	} else {
 		int ofd1, pv[2];

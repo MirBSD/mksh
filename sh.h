@@ -150,7 +150,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.409 2010/08/28 17:21:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.410 2010/08/28 18:50:55 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2010/08/28"
 
@@ -633,6 +633,14 @@ EXTERN const char r_fc_e_[] I__("r=fc -e -");
 EXTERN const char T_local_typeset[] I__("local=typeset");
 #define T__typeset	(T_local_typeset + 5)	/* "=typeset" */
 #define T_typeset	(T_local_typeset + 6)	/* "typeset" */
+EXTERN const char T_palias[] I__("+alias");
+#define T_alias		(T_palias + 1)		/* "alias" */
+EXTERN const char T_punalias[] I__("+unalias");
+#define T_unalias	(T_punalias + 1)	/* "unalias" */
+EXTERN const char T_sgset[] I__("*=set");
+#define T_set		(T_sgset + 2)		/* "set" */
+EXTERN const char T_gbuiltin[] I__("=builtin");
+#define T_builtin	(T_gbuiltin + 1)	/* "builtin" */
 
 enum temp_type {
 	TT_HEREDOC_EXP,	/* expanded heredoc */

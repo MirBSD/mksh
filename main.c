@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.168 2010/08/28 15:39:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.169 2010/08/28 18:50:54 tg Exp $");
 
 extern char **environ;
 
@@ -68,7 +68,7 @@ static const char *initcoms[] = {
 	T_typeset, "-x", "HOME", "PATH", "RANDOM", "SHELL", NULL,
 	T_typeset, "-i10", "COLUMNS", "LINES", "OPTIND", "PGRP", "PPID",
 	    "RANDOM", "SECONDS", "TMOUT", "USER_ID", NULL,
-	"alias",
+	T_alias,
 	"integer=typeset -i",
 	T_local_typeset,
 	"hash=alias -t",	/* not "alias -t --": hash -r needs to work */
@@ -87,7 +87,7 @@ static const char *initcoms[] = {
 	"login=exec login",
 	NULL,
 	 /* this is what AT&T ksh seems to track, with the addition of emacs */
-	"alias", "-tU",
+	T_alias, "-tU",
 	"cat", "cc", "chmod", "cp", "date", "ed", "emacs", "grep", "ls",
 	"make", "mv", "pr", "rm", "sed", "sh", "vi", "who", NULL,
 	NULL
@@ -323,7 +323,7 @@ mksh_init(int argc, const char *argv[])
 	if (Flag(FCOMMAND)) {
 		s = pushs(SSTRING, ATEMP);
 		if (!(s->start = s->str = argv[argi++]))
-			errorf("-c requires an argument");
+			errorf("%s %s", "-c", "requires an argument");
 #ifdef MKSH_MIDNIGHTBSD01ASH_COMPAT
 		/* compatibility to MidnightBSD 0.1 /bin/sh (kludge) */
 		if (Flag(FSH) && argv[argi] && !strcmp(argv[argi], "--"))
@@ -633,7 +633,7 @@ shell(Source * volatile s, volatile int toplevel)
 		t = compile(s);
 		if (t != NULL && t->type == TEOF) {
 			if (wastty && Flag(FIGNOREEOF) && --attempts > 0) {
-				shellf("Use 'exit' to leave ksh\n");
+				shellf("Use 'exit' to leave mksh\n");
 				s->type = SSTDIN;
 			} else if (wastty && !really_exit &&
 			    j_stopped_running()) {
@@ -876,13 +876,12 @@ tty_init(bool init_ttystate, bool need_tty)
 	}
 	if ((tty_fd = fcntl(tfd, F_DUPFD, FDBASE)) < 0) {
 		if (need_tty)
-			warningf(false, "j_ttyinit: dup of tty fd failed: %s",
-			    strerror(errno));
+			warningf(false, "%s: %s: %s", "j_ttyinit",
+			    "dup of tty fd failed", strerror(errno));
 	} else if (fcntl(tty_fd, F_SETFD, FD_CLOEXEC) < 0) {
 		if (need_tty)
-			warningf(false,
-			    "j_ttyinit: can't set close-on-exec flag: %s",
-			    strerror(errno));
+			warningf(false, "%s: %s: %s", "j_ttyinit",
+			    "can't set close-on-exec flag", strerror(errno));
 		close(tty_fd);
 		tty_fd = -1;
 	} else if (init_ttystate)
@@ -1280,7 +1279,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	tp->shf = NULL;
 	tp->type = type;
 #if HAVE_MKSTEMP
-	shf_snprintf(pathname, len, "%s/mksh.XXXXXXXXXX", dir);
+	shf_snprintf(pathname, len, "%s/%s", dir, "mksh.XXXXXXXXXX");
 	if ((fd = mkstemp(pathname)) >= 0)
 #else
 	if (tp->name[0] && (fd = open(tp->name, O_CREAT | O_RDWR, 0600)) >= 0)

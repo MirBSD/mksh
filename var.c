@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.110 2010/07/25 11:35:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.111 2010/08/28 18:50:58 tg Exp $");
 
 /*
  * Variables
@@ -393,7 +393,7 @@ intval(struct tbl *vp)
 	base = getint(vp, &num, false);
 	if (base == -1)
 		/* XXX check calls - is error here ok by POSIX? */
-		errorf("%s: bad number", str_val(vp));
+		errorf("%s: %s", str_val(vp), "bad number");
 	return (num);
 }
 
@@ -406,7 +406,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 
 	error_ok &= ~0x4;
 	if ((vq->flag & RDONLY) && !no_ro_check) {
-		warningf(true, "%s: is read only", vq->name);
+		warningf(true, "%s: %s", vq->name, "is read only");
 		if (!error_ok)
 			errorfz();
 		return (0);
@@ -685,8 +685,8 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	mkssert(*var != 0);
 	if (*val == '[') {
 		if (set_refflag)
-			errorf("%s: reference variable cannot be an array",
-			    var);
+			errorf("%s: %s", var,
+			    "reference variable cannot be an array");
 		len = array_ref_len(val);
 		if (len == 0)
 			return (NULL);
@@ -722,7 +722,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	/* Prevent typeset from creating a local PATH/ENV/SHELL */
 	if (Flag(FRESTRICTED) && (strcmp(tvar, "PATH") == 0 ||
 	    strcmp(tvar, "ENV") == 0 || strcmp(tvar, "SHELL") == 0))
-		errorf("%s: restricted", tvar);
+		errorf("%s: %s", tvar, "restricted");
 
 	vp = (set&LOCAL) ? local(tvar, (set & LOCAL_COPY) ? true : false) :
 	    global(tvar);
@@ -756,7 +756,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	if ((vpbase->flag&RDONLY) &&
 	    (val || clr || (set & ~EXPORT)))
 		/* XXX check calls - is error here ok by POSIX? */
-		errorf("%s: is read only", tvar);
+		errorf("%s: %s", tvar, "is read only");
 	afree(tvar, ATEMP);
 
 	/* most calls are with set/clr == 0 */
@@ -1389,7 +1389,7 @@ set_array(const char *var, bool reset, const char **vals)
 
 	/* Note: AT&T ksh allows set -A but not set +A of a read-only var */
 	if ((vp->flag&RDONLY))
-		errorf("%s: is read only", var);
+		errorf("%s: %s", var, "is read only");
 	/* This code is quite non-optimal */
 	if (reset)
 		/* trash existing values and attributes */

@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.70 2010/08/28 15:48:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.71 2010/08/28 18:50:53 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -276,8 +276,8 @@ j_change(void)
 				pid_t ttypgrp;
 
 				if ((ttypgrp = tcgetpgrp(tty_fd)) < 0) {
-					warningf(false,
-					    "j_init: tcgetpgrp() failed: %s",
+					warningf(false, "%s: %s: %s", "j_init",
+					    "tcgetpgrp() failed",
 					    strerror(errno));
 					ttypgrp_ok = false;
 					break;
@@ -292,14 +292,14 @@ j_change(void)
 			    SS_RESTORE_DFL|SS_FORCE);
 		if (ttypgrp_ok && kshpgrp != kshpid) {
 			if (setpgid(0, kshpid) < 0) {
-				warningf(false,
-				    "j_init: setpgid() failed: %s",
+				warningf(false, "%s: %s: %s", "j_init",
+				    "setpgid() failed",
 				    strerror(errno));
 				ttypgrp_ok = false;
 			} else {
 				if (tcsetpgrp(tty_fd, kshpid) < 0) {
-					warningf(false,
-					    "j_init: tcsetpgrp() failed: %s",
+					warningf(false, "%s: %s: %s", "j_init",
+					    "tcsetpgrp() failed",
 					    strerror(errno));
 					ttypgrp_ok = false;
 				} else
@@ -308,7 +308,8 @@ j_change(void)
 			}
 		}
 		if (use_tty && !ttypgrp_ok)
-			warningf(false, "warning: won't have full job control");
+			warningf(false, "%s: %s", "warning",
+			    "won't have full job control");
 		if (tty_fd >= 0)
 			tcgetattr(tty_fd, &tty_state);
 	} else {
@@ -494,8 +495,9 @@ exchild(struct op *t, int flags,
 #ifndef MKSH_SMALL
 		if (t->type == TPIPE)
 			unwind(LLEAVE);
-		internal_warningf("exchild: execute() returned");
-		fptreef(shl_out, 2, "exchild: tried to execute {\n%T\n}\n", t);
+		internal_warningf("%s: %s", "exchild", "execute() returned");
+		fptreef(shl_out, 2, "%s: tried to execute {\n%T\n}\n",
+		    "exchild", t);
 		shf_flush(shl_out);
 #endif
 		unwind(LLEAVE);
@@ -561,9 +563,9 @@ waitlast(void)
 	j = last_job;
 	if (!j || !(j->flags & JF_STARTED)) {
 		if (!j)
-			warningf(true, "waitlast: no last job");
+			warningf(true, "%s: %s", "waitlast", "no last job");
 		else
-			internal_warningf("waitlast: not started");
+			internal_warningf("%s: %s", "waitlast", "not started");
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		return (125);	/* not so arbitrary, non-zero value */
 	}
@@ -754,7 +756,7 @@ j_resume(const char *cp, int bg)
 				    tty_fd, (long)kshpgrp, strerror(errno));
 		}
 		sigprocmask(SIG_SETMASK, &omask, NULL);
-		bi_errorf("cannot continue job %s: %s",
+		bi_errorf("%s %s %s", "cannot continue job",
 		    cp, strerror(err));
 		return (1);
 	}
@@ -916,7 +918,7 @@ j_set_async(Job *j)
 	if (async_job && (async_job->flags & (JF_KNOWN|JF_ZOMBIE)) == JF_ZOMBIE)
 		remove_job(async_job, "async");
 	if (!(j->flags & JF_STARTED)) {
-		internal_warningf("j_async: job not started");
+		internal_warningf("%s: %s", "j_async", "job not started");
 		return;
 	}
 	async_job = j;
@@ -930,8 +932,8 @@ j_set_async(Job *j)
 		if (!oldest) {
 			/* XXX debugging */
 			if (!(async_job->flags & JF_ZOMBIE) || nzombie != 1) {
-				internal_warningf("j_async: bad nzombie (%d)",
-				    nzombie);
+				internal_warningf("%s: bad nzombie (%d)",
+				    "j_async", nzombie);
 				nzombie = 0;
 			}
 			break;

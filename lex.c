@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.118 2010/07/25 11:35:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.119 2010/08/28 18:50:53 tg Exp $");
 
 /*
  * states while lexing word
@@ -944,7 +944,7 @@ yylex(int cf)
 
 #ifndef MKSH_SMALL
 	if (state == SLETARRAY && statep->ls_sletarray.nparen != -1)
-		yyerror("%s: ')' missing\n", T_synerr);
+		yyerror("%s: '%s' %s\n", T_synerr, ")", "missing");
 #endif
 
 	/* This done to avoid tests for SHEREDELIM wherever SBASE tested */

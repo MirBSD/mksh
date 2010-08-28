@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.44 2010/08/14 21:35:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.45 2010/08/28 18:50:50 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -269,26 +269,28 @@ evalerr(Expr_state *es, enum error_type type, const char *str)
 		default:
 			s = opinfo[(int)es->tok].name;
 		}
-		warningf(true, "%s: unexpected '%s'", es->expression, s);
+		warningf(true, "%s: %s '%s'", es->expression,
+		    "unexpected", s);
 		break;
 
 	case ET_BADLIT:
-		warningf(true, "%s: bad number '%s'", es->expression, str);
+		warningf(true, "%s: %s '%s'", es->expression,
+		    "bad number", str);
 		break;
 
 	case ET_RECURSIVE:
-		warningf(true, "%s: expression recurses on parameter '%s'",
-		    es->expression, str);
+		warningf(true, "%s: %s '%s'", es->expression,
+		    "expression recurses on parameter", str);
 		break;
 
 	case ET_LVALUE:
-		warningf(true, "%s: %s requires lvalue",
-		    es->expression, str);
+		warningf(true, "%s: %s %s",
+		    es->expression, str, "requires lvalue");
 		break;
 
 	case ET_RDONLY:
-		warningf(true, "%s: %s applied to read only variable",
-		    es->expression, str);
+		warningf(true, "%s: %s %s",
+		    es->expression, str, "applied to read only variable");
 		break;
 
 	default: /* keep gcc happy */

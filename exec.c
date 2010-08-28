@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.78 2010/08/28 17:21:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.79 2010/08/28 18:50:49 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -450,7 +450,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 			}
 			tp = findcom(cp, FC_BI);
 			if (tp == NULL)
-				errorf("builtin: %s: not a builtin", cp);
+				errorf("%s: %s: %s", T_builtin, cp, "not a builtin");
 			continue;
 		} else if (tp->val.f == c_exec) {
 			if (ap[1] == NULL)
@@ -472,8 +472,8 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 			fcflags = FC_BI|FC_PATH;
 			if (saw_p) {
 				if (Flag(FRESTRICTED)) {
-					warningf(true,
-					    "command -p: restricted");
+					warningf(true, "%s: %s",
+					    "command -p", "restricted");
 					rv = 1;
 					goto Leave;
 				}
@@ -551,7 +551,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 		goto Leave;
 	} else if (!tp) {
 		if (Flag(FRESTRICTED) && vstrchr(cp, '/')) {
-			warningf(true, "%s: restricted", cp);
+			warningf(true, "%s: %s", cp, "restricted");
 			rv = 1;
 			goto Leave;
 		}
@@ -573,15 +573,13 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 
 			if (!tp->u.fpath) {
 				if (tp->u2.errno_) {
-					warningf(true,
-					    "%s: can't find function "
-					    "definition file - %s",
-					    cp, strerror(tp->u2.errno_));
+					warningf(true, "%s: %s: %s", cp,
+					    "can't find function definition file",
+					    strerror(tp->u2.errno_));
 					rv = 126;
 				} else {
-					warningf(true,
-					    "%s: can't find function "
-					    "definition file", cp);
+					warningf(true, "%s: %s", cp,
+					    "can't find function definition file");
 					rv = 127;
 				}
 				break;
@@ -589,16 +587,15 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 			if (include(tp->u.fpath, 0, NULL, 0) < 0) {
 				rv = errno;
 				warningf(true,
-				    "%s: can't open function definition file %s - %s",
+				    "%s: can't open function definition file %s: %s",
 				    cp, tp->u.fpath, strerror(rv));
 				rv = 127;
 				break;
 			}
 			if (!(ftp = findfunc(cp, hash(cp), false)) ||
 			    !(ftp->flag & ISSET)) {
-				warningf(true,
-				    "%s: function not defined by %s",
-				    cp, tp->u.fpath);
+				warningf(true, "%s: %s %s", cp,
+				    "function not defined by", tp->u.fpath);
 				rv = 127;
 				break;
 			}
@@ -681,11 +678,11 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 			 * useful error message and set the exit status to 126.
 			 */
 			if (tp->u2.errno_) {
-				warningf(true, "%s: cannot execute - %s", cp,
-				    strerror(tp->u2.errno_));
+				warningf(true, "%s: %s: %s", cp,
+				    "cannot execute", strerror(tp->u2.errno_));
 				rv = 126;	/* POSIX */
 			} else {
-				warningf(true, "%s: not found", cp);
+				warningf(true, "%s: %s", cp, "not found");
 				rv = 127;
 			}
 			break;
@@ -822,7 +819,7 @@ shcomexec(const char **wp)
 
 	tp = ktsearch(&builtins, *wp, hash(*wp));
 	if (tp == NULL)
-		internal_errorf("shcomexec: %s", *wp);
+		internal_errorf("%s: %s", "shcomexec", *wp);
 	return (call_builtin(tp, wp));
 }
 
@@ -1198,7 +1195,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 
 	if (do_open) {
 		if (Flag(FRESTRICTED) && (flags & O_CREAT)) {
-			warningf(true, "%s: restricted", cp);
+			warningf(true, "%s: %s", cp, "restricted");
 			return (-1);
 		}
 		u = open(cp, flags, 0666);
@@ -1237,7 +1234,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 
 			ev = errno;
 			warningf(true,
-			    "could not finish (dup) redirection %s: %s",
+			    "%s %s %s", "could not finish (dup) redirection",
 			    snptreef(NULL, 32, "%R", &iotmp),
 			    strerror(ev));
 			if (iotype != IODUP)
@@ -1309,7 +1306,7 @@ herein(const char *content, int sub)
 		s->start = s->str = content;
 		source = s;
 		if (yylex(ONEWORD|HEREDOC) != LWORD)
-			internal_errorf("herein: yylex");
+			internal_errorf("%s: %s", "herein", "yylex");
 		source = osource;
 		shf_puts(evalstr(yylval.cp, 0), shf);
 	} else
