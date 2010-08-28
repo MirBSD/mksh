@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.196 2010/07/25 11:35:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.197 2010/08/28 16:47:08 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -148,7 +148,7 @@ static int
 x_getc(void)
 {
 	char c;
-	int n;
+	ssize_t n;
 
 	while ((n = blocking_read(STDIN_FILENO, &c, 1)) < 0 && errno == EINTR)
 		if (trap) {

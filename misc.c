@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.142 2010/08/28 15:48:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.143 2010/08/28 16:47:09 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
@@ -1021,19 +1021,20 @@ strip_nuls(char *buf, int nbytes)
 	}
 }
 
-/* Like read(2), but if read fails due to non-blocking flag, resets flag
- * and restarts read.
+/*
+ * Like read(2), but if read fails due to non-blocking flag,
+ * resets flag and restarts read.
  */
-int
-blocking_read(int fd, char *buf, int nbytes)
+ssize_t
+blocking_read(int fd, char *buf, size_t nbytes)
 {
-	int ret;
-	int tried_reset = 0;
+	ssize_t ret;
+	bool tried_reset = false;
 
 	while ((ret = read(fd, buf, nbytes)) < 0) {
 		if (!tried_reset && errno == EAGAIN) {
 			if (reset_nonblock(fd) > 0) {
-				tried_reset = 1;
+				tried_reset = true;
 				continue;
 			}
 			errno = EAGAIN;
@@ -1043,7 +1044,8 @@ blocking_read(int fd, char *buf, int nbytes)
 	return (ret);
 }
 
-/* Reset the non-blocking flag on the specified file descriptor.
+/*
+ * Reset the non-blocking flag on the specified file descriptor.
  * Returns -1 if there was an error, 0 if non-blocking wasn't set,
  * 1 if it was.
  */

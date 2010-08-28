@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.36 2010/07/19 22:41:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.37 2010/08/28 16:47:11 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -395,6 +395,8 @@ shf_emptybuf(struct shf *shf, int flags)
 static int
 shf_fillbuf(struct shf *shf)
 {
+	ssize_t n;
+
 	if (shf->flags & SHF_STRING)
 		return (0);
 
@@ -414,23 +416,20 @@ shf_fillbuf(struct shf *shf)
 
 	shf->rp = shf->buf;
 	while (1) {
-		shf->rnleft = blocking_read(shf->fd, (char *) shf->buf,
-		    shf->rbsize);
-		if (shf->rnleft < 0 && errno == EINTR &&
-		    !(shf->flags & SHF_INTERRUPT))
+		n = blocking_read(shf->fd, (char *)shf->buf, shf->rbsize);
+		if (n < 0 && errno == EINTR && !(shf->flags & SHF_INTERRUPT))
 			continue;
 		break;
 	}
-	if (shf->rnleft <= 0) {
-		if (shf->rnleft < 0) {
-			shf->flags |= SHF_ERROR;
-			shf->errno_ = errno;
-			shf->rnleft = 0;
-			shf->rp = shf->buf;
-			return (EOF);
-		}
-		shf->flags |= SHF_EOF;
+	if (n < 0) {
+		shf->flags |= SHF_ERROR;
+		shf->errno_ = errno;
+		shf->rnleft = 0;
+		shf->rp = shf->buf;
+		return (EOF);
 	}
+	if ((shf->rnleft = n) == 0)
+		shf->flags |= SHF_EOF;
 	return (0);
 }
 
