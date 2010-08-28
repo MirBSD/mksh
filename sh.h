@@ -150,7 +150,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.410 2010/08/28 18:50:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.411 2010/08/28 20:22:22 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2010/08/28"
 
@@ -641,6 +641,8 @@ EXTERN const char T_sgset[] I__("*=set");
 #define T_set		(T_sgset + 2)		/* "set" */
 EXTERN const char T_gbuiltin[] I__("=builtin");
 #define T_builtin	(T_gbuiltin + 1)	/* "builtin" */
+EXTERN const char T__function[] I__(" function");
+#define T_function	(T__function + 1)	/* "function" */
 
 enum temp_type {
 	TT_HEREDOC_EXP,	/* expanded heredoc */
@@ -1668,6 +1670,7 @@ char *wdcopy(const char *, Area *);
 const char *wdscan(const char *, int);
 char *wdstrip(const char *, bool, bool);
 void tfree(struct op *, Area *);
+int fpFUNCTf(struct shf *, int, bool, const char *, struct op *);
 /* var.c */
 void newblock(void);
 void popblock(void);

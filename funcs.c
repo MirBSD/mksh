@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.159 2010/08/28 18:50:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.160 2010/08/28 20:22:17 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -204,7 +204,7 @@ do_realpath(const char *upath)
 		/* upath is a relative pathname, prepend cwd */
 		if ((tp = ksh_get_wd(NULL)) == NULL || tp[0] != '/')
 			return (NULL);
-		ipath = shf_smprintf("%s/%s", tp, upath);
+		ipath = shf_smprintf("%s%s%s", tp, "/", upath);
 		afree(tp, ATEMP);
 	}
 
@@ -401,7 +401,7 @@ c_cd(const char **wp)
 		char *cp;
 
 		if (!current_wd[0]) {
-			bi_errorf("don't know current directory");
+			bi_errorf("can't determine current directory");
 			return (1);
 		}
 		/* substitute arg1 for arg2 in current path.
@@ -521,7 +521,8 @@ c_pwd(const char **wp)
 	if (p && access(p, R_OK) < 0)
 		p = NULL;
 	if (!p && !(p = allocd = ksh_get_wd(NULL))) {
-		bi_errorf("%s: %s", "can't get current directory", strerror(errno));
+		bi_errorf("%s: %s", "can't determine current directory",
+		    strerror(errno));
 		return (1);
 	}
 	shprintf("%s\n", p);
@@ -832,7 +833,7 @@ c_whence(const char **wp)
 						shprintf(" (autoload from %s)",
 						    tp->u.fpath);
 				}
-				shf_puts(" function", shl_stdout);
+				shf_puts(T__function, shl_stdout);
 			}
 			break;
 		case CSHELL:
@@ -1057,11 +1058,11 @@ c_typeset(const char **wp)
 				if (fset | fclr) {
 					f->flag |= fset;
 					f->flag &= ~fclr;
-				} else
-					fptreef(shl_stdout, 0,
-					    f->flag & FKSH ?
-					    "function %s %T\n" :
-					    "%s() %T\n", wp[i], f->val.t);
+				} else {
+					fpFUNCTf(shl_stdout, 0, f->flag & FKSH,
+					    wp[i], f->val.t);
+					shf_putc('\n', shl_stdout);
+				}
 			} else if (!typeset(wp[i], fset, fclr, field, base)) {
 				bi_errorf("%s: %s", wp[i], "not identifier");
 				set_refflag = 0;
@@ -1080,11 +1081,12 @@ c_typeset(const char **wp)
 				if (flag && (vp->flag & flag) == 0)
 					continue;
 				if (thing == '-')
-					fptreef(shl_stdout, 0, vp->flag & FKSH ?
-					    "function %s %T\n" : "%s() %T\n",
+					fpFUNCTf(shl_stdout, 0,
+					    vp->flag & FKSH,
 					    vp->name, vp->val.t);
 				else
-					shprintf("%s\n", vp->name);
+					shf_puts(vp->name, shl_stdout);
+				shf_putc('\n', shl_stdout);
 			}
 		}
 	} else {
@@ -2049,7 +2051,7 @@ c_read(const char **wp)
 			 * (it also doesn't check the interactive flag,
 			 * as is indicated in the Kornshell book).
 			 */
-			shellf("%s", cp+1);
+			shf_puts(cp + 1, shl_out);
 		}
 	}
 
@@ -2136,7 +2138,7 @@ c_read(const char **wp)
 		/* Must be done before setting export. */
 		if (vp->flag & RDONLY) {
 			shf_flush(shf);
-			bi_errorf("%s is read only", *wp);
+			bi_errorf("%s: %s", *wp, "is read only");
 			afree(wpalloc, ATEMP);
 			return (1);
 		}
@@ -2338,7 +2340,7 @@ c_brkcont(const char **wp)
 		 * scripts, but don't generate an error (ie, keep going).
 		 */
 		if (n == quit) {
-			warningf(true, "%s: %s %s", wp[0], "cannot", wp[0]);
+			warningf(true, "%s: %s %s", wp[0], "can't", wp[0]);
 			return (0);
 		}
 		/* POSIX says if n is too big, the last enclosing loop
@@ -2433,7 +2435,7 @@ c_unset(const char **wp)
 			afree(cp, ATEMP);
 
 			if ((vp->flag&RDONLY)) {
-				bi_errorf("%s is read only", vp->name);
+				bi_errorf("%s: %s", vp->name, "is read only");
 				return (1);
 			}
 			unset(vp, optc);
@@ -3352,7 +3354,7 @@ set_ulimit(const struct limits *l, const char *v, int how)
 	}
 
 	if (getrlimit(l->resource, &limit) < 0) {
-		/* some cannot be read, e.g. Linux RLIMIT_LOCKS */
+		/* some can't be read, e.g. Linux RLIMIT_LOCKS */
 		limit.rlim_cur = RLIM_INFINITY;
 		limit.rlim_max = RLIM_INFINITY;
 	}
@@ -3455,7 +3457,7 @@ c_cat(const char **wp)
 
 	/* XXX uses malloc instead of lalloc (for alignment/speed) */
 	if ((buf = malloc(MKSH_CAT_BUFSIZ)) == NULL) {
-		bi_errorf("cannot allocate %lu data bytes",
+		bi_errorf("can't allocate %lu data bytes",
 		    (unsigned long)MKSH_CAT_BUFSIZ);
 		return (1);
 	}

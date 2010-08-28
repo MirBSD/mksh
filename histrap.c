@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.100 2010/08/28 18:50:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.101 2010/08/28 20:22:18 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -79,7 +79,7 @@ c_fc(const char **wp)
 	char **hfirst, **hlast, **hp;
 
 	if (!Flag(FTALKING_I)) {
-		bi_errorf("history functions not available");
+		bi_errorf("history %ss not available", T_function);
 		return (1);
 	}
 
@@ -307,8 +307,10 @@ hist_execute(char *cmd)
 		}
 		histsave(&hist_source->line, p, true, true);
 
-		shellf("%s\n", p); /* POSIX doesn't say this is done... */
-		if (q)		/* restore \n (trailing \n not restored) */
+		/* POSIX doesn't say this is done... */
+		shellf("%s\n", p);
+		if (q)
+			/* restore \n (trailing \n not restored) */
 			q[-1] = '\n';
 	}
 
@@ -354,7 +356,7 @@ hist_replace(char **hp, const char *pat, const char *rep, bool globr)
 			xp += rep_len;
 		}
 		if (!any_subst) {
-			bi_errorf("substitution failed");
+			bi_errorf("bad substitution");
 			return (1);
 		}
 		len = strlen(s) + 1;
@@ -748,8 +750,9 @@ hist_init(Source *s)
 				hist_finish();
 				if (rv) {
  hiniterr:
-					bi_errorf("cannot unlink HISTFILE %s"
-					    " - %s", hname, strerror(errno));
+					bi_errorf("can't %s %s: %s",
+					    "unlink HISTFILE", hname,
+					    strerror(errno));
 					hsize = 0;
 					return;
 				}
@@ -1087,7 +1090,8 @@ inittraps(void)
 #endif
 			if ((sigtraps[i].mess == NULL) ||
 			    (sigtraps[i].mess[0] == '\0'))
-				sigtraps[i].mess = shf_smprintf("Signal %d", i);
+				sigtraps[i].mess = shf_smprintf("%s %d",
+				    "Signal", i);
 		}
 	}
 	sigtraps[SIGEXIT_].name = "EXIT";	/* our name for signal 0 */

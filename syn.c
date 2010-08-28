@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.50 2010/08/28 18:50:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.51 2010/08/28 20:22:23 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -740,7 +740,7 @@ const struct tokeninfo {
 	{ "do",		DO,	true },
 	{ "done",	DONE,	true },
 	{ "in",		IN,	true },
-	{ "function",	FUNCTION, true },
+	{ T_function,	FUNCTION, true },
 	{ "time",	TIME,	true },
 	{ "{",		'{',	true },
 	{ "}",		'}',	true },
@@ -797,7 +797,7 @@ syntaxerr(const char *what)
 			goto Again;
 		}
 		/* don't quote the EOF */
-		yyerror("%s: %s\n", T_synerr, "unexpected EOF");
+		yyerror("%s: %s %s\n", T_synerr, "unexpected", "EOF");
 		/* NOTREACHED */
 
 	case LWORD:

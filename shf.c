@@ -18,11 +18,13 @@
  * of dealing in the work, even if advised of the possibility of such
  * damage or existence of a defect, except proven that it results out
  * of said person's immediate fault when using the work as intended.
+ *-
+ * Use %lX instead of %p and floating point isn't supported at all.
  */
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.38 2010/08/28 18:50:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.39 2010/08/28 20:22:23 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -704,7 +706,8 @@ shf_snprintf(char *buf, int bsize, const char *fmt, ...)
 	int n;
 
 	if (!buf || bsize <= 0)
-		internal_errorf("shf_snprintf: buf %p, bsize %d", buf, bsize);
+		internal_errorf("shf_snprintf: buf %lX, bsize %d",
+		    (long)(ptrdiff_t)buf, bsize);
 
 	shf_sopen(buf, bsize, SHF_WR, &shf);
 	va_start(args, fmt);
@@ -854,11 +857,6 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		}
 
 		switch (c) {
-		case 'p': /* pointer */
-			flags &= ~(FL_LONG | FL_SHORT);
-			flags |= (sizeof(char *) > sizeof(int)) ?
-			    /* hope it fits.. */ FL_LONG : 0;
-			/* aaahhh... */
 		case 'd':
 		case 'i':
 		case 'o':
@@ -916,7 +914,6 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 					*--cp = '0';
 				break;
 
-			case 'p':
 			case 'x': {
 				const char *digits = (flags & FL_UPPER) ?
 				    digits_uc : digits_lc;

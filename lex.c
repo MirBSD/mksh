@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.119 2010/08/28 18:50:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.120 2010/08/28 20:22:20 tg Exp $");
 
 /*
  * states while lexing word
@@ -944,7 +944,7 @@ yylex(int cf)
 
 #ifndef MKSH_SMALL
 	if (state == SLETARRAY && statep->ls_sletarray.nparen != -1)
-		yyerror("%s: '%s' %s\n", T_synerr, ")", "missing");
+		yyerror("%s: %s\n", T_synerr, "missing )");
 #endif
 
 	/* This done to avoid tests for SHEREDELIM wherever SBASE tested */
@@ -1207,7 +1207,8 @@ readhere(struct ioword *iop)
 		ungetsc(c);
 		while ((c = getsc()) != '\n') {
 			if (c == 0)
-				yyerror("here document '%s' unclosed\n", eof);
+				yyerror("%s '%s' unclosed\n", "here document",
+				    eof);
 			Xcheck(xs, xp);
 			Xput(xs, xp, c);
 		}

@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.30 2010/02/25 20:18:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.31 2010/08/28 20:22:24 tg Exp $");
 
 #define INDENT	4
 
@@ -164,12 +164,10 @@ ptree(struct op *t, int indent, struct shf *shf)
 		fptreef(shf, indent, "%T& ", t->left);
 		break;
 	case TFUNCT:
-		fptreef(shf, indent,
-		    t->u.ksh_func ? "function %s %T" : "%s() %T",
-		    t->str, t->left);
+		fpFUNCTf(shf, indent, t->u.ksh_func, t->str, t->left);
 		break;
 	case TTIME:
-		fptreef(shf, indent, "time %T", t->left);
+		fptreef(shf, indent, "%s %T", "time", t->left);
 		break;
 	default:
 		shf_puts("<botch>", shf);
@@ -713,4 +711,13 @@ iofree(struct ioword **iow, Area *ap)
 		afree(p, ap);
 	}
 	afree(iow, ap);
+}
+
+int
+fpFUNCTf(struct shf *shf, int i, bool isksh, const char *k, struct op *v)
+{
+	if (isksh)
+		return (fptreef(shf, i, "%s %s %T", T_function, k, v));
+	else
+		return (fptreef(shf, i, "%s() %T", k, v));
 }

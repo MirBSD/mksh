@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.79 2010/08/28 18:50:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.80 2010/08/28 20:22:17 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -88,8 +88,8 @@ execute(struct op *volatile t,
 			timex_hook(t, &up);
 		ap = (const char **)up;
 		if (Flag(FXTRACE) && ap[0]) {
-			shf_fprintf(shl_out, "%s",
-				substitute(str_val(global("PS4")), 0));
+			shf_puts(substitute(str_val(global("PS4")), 0),
+			    shl_out);
 			for (i = 0; ap[i]; i++)
 				shf_fprintf(shl_out, "%s%c", ap[i],
 				    ap[i + 1] ? ' ' : '\n');
@@ -534,8 +534,8 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 
 		if (Flag(FXTRACE)) {
 			if (i == 0)
-				shf_fprintf(shl_out, "%s",
-					substitute(str_val(global("PS4")), 0));
+				shf_puts(substitute(str_val(global("PS4")), 0),
+				    shl_out);
 			shf_fprintf(shl_out, "%s%c", cp,
 			    t->vars[i + 1] ? ' ' : '\n');
 			if (!t->vars[i + 1])
@@ -573,22 +573,24 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 
 			if (!tp->u.fpath) {
 				if (tp->u2.errno_) {
-					warningf(true, "%s: %s: %s", cp,
-					    "can't find function definition file",
+					warningf(true, "%s: %s %s: %s", cp,
+					    "can't find",
+					    "function definition file",
 					    strerror(tp->u2.errno_));
 					rv = 126;
 				} else {
-					warningf(true, "%s: %s", cp,
-					    "can't find function definition file");
+					warningf(true, "%s: %s %s", cp,
+					    "can't find",
+					    "function definition file");
 					rv = 127;
 				}
 				break;
 			}
 			if (include(tp->u.fpath, 0, NULL, 0) < 0) {
 				rv = errno;
-				warningf(true,
-				    "%s: can't open function definition file %s: %s",
-				    cp, tp->u.fpath, strerror(rv));
+				warningf(true, "%s: %s %s %s: %s", cp,
+				    "can't open", "function definition file",
+				    tp->u.fpath, strerror(rv));
 				rv = 127;
 				break;
 			}
@@ -664,7 +666,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 			/* NOTREACHED */
 		default:
 			quitenv(NULL);
-			internal_errorf("CFUNC %d", i);
+			internal_errorf("%s %d", "CFUNC", i);
 		}
 		break;
 	}
@@ -679,7 +681,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 			 */
 			if (tp->u2.errno_) {
 				warningf(true, "%s: %s: %s", cp,
-				    "cannot execute", strerror(tp->u2.errno_));
+				    "can't execute", strerror(tp->u2.errno_));
 				rv = 126;	/* POSIX */
 			} else {
 				warningf(true, "%s: %s", cp, "not found");
@@ -1204,7 +1206,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		/* herein() may already have printed message */
 		if (u == -1) {
 			u = errno;
-			warningf(true, "cannot %s %s: %s",
+			warningf(true, "can't %s %s: %s",
 			    iotype == IODUP ? "dup" :
 			    (iotype == IOREAD || iotype == IOHERE) ?
 			    "open" : "create", cp, strerror(u));
@@ -1233,8 +1235,8 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			int ev;
 
 			ev = errno;
-			warningf(true,
-			    "%s %s %s", "could not finish (dup) redirection",
+			warningf(true, "%s %s %s",
+			    "can't finish (dup) redirection",
 			    snptreef(NULL, 32, "%R", &iotmp),
 			    strerror(ev));
 			if (iotype != IODUP)
@@ -1273,7 +1275,7 @@ herein(const char *content, int sub)
 
 	/* ksh -c 'cat << EOF' can cause this... */
 	if (content == NULL) {
-		warningf(true, "here document missing");
+		warningf(true, "%s missing", "here document");
 		return (-2); /* special to iosetup(): don't print error */
 	}
 
@@ -1317,9 +1319,7 @@ herein(const char *content, int sub)
 	if (shf_close(shf) == EOF) {
 		i = errno;
 		close(fd);
-		fd = errno;
-		warningf(true, "error writing %s: %s, %s", h->name,
-		    strerror(i), strerror(fd));
+		warningf(true, "%s: %s: %s", "write", h->name, strerror(i));
 		return (-2);	/* special to iosetup(): don't print error */
 	}
 
@@ -1349,7 +1349,7 @@ do_selectargs(const char **ap, bool print_menu)
 		 */
 		if (print_menu || !*str_val(global("REPLY")))
 			pr_menu(ap);
-		shellf("%s", str_val(global("PS3")));
+		shf_puts(str_val(global("PS3")), shl_out);
 		if (call_builtin(findcom("read", FC_BI), read_args))
 			return (NULL);
 		s = str_val(global("REPLY"));
@@ -1430,7 +1430,7 @@ static char *plain_fmt_entry(char *, int, int, const void *);
 static char *
 plain_fmt_entry(char *buf, int buflen, int i, const void *arg)
 {
-	shf_snprintf(buf, buflen, "%s", ((const char * const *)arg)[i]);
+	strlcpy(buf, ((const char * const *)arg)[i], buflen);
 	return (buf);
 }
 

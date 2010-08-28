@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.71 2010/08/28 18:50:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.72 2010/08/28 20:22:19 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -276,8 +276,8 @@ j_change(void)
 				pid_t ttypgrp;
 
 				if ((ttypgrp = tcgetpgrp(tty_fd)) < 0) {
-					warningf(false, "%s: %s: %s", "j_init",
-					    "tcgetpgrp() failed",
+					warningf(false, "%s: %s %s: %s",
+					    "j_init", "tcgetpgrp", "failed",
 					    strerror(errno));
 					ttypgrp_ok = false;
 					break;
@@ -292,14 +292,13 @@ j_change(void)
 			    SS_RESTORE_DFL|SS_FORCE);
 		if (ttypgrp_ok && kshpgrp != kshpid) {
 			if (setpgid(0, kshpid) < 0) {
-				warningf(false, "%s: %s: %s", "j_init",
-				    "setpgid() failed",
-				    strerror(errno));
+				warningf(false, "%s: %s %s: %s", "j_init",
+				    "setpgid", "failed", strerror(errno));
 				ttypgrp_ok = false;
 			} else {
 				if (tcsetpgrp(tty_fd, kshpid) < 0) {
-					warningf(false, "%s: %s: %s", "j_init",
-					    "tcsetpgrp() failed",
+					warningf(false, "%s: %s %s: %s",
+					    "j_init", "tcsetpgrp", "failed",
 					    strerror(errno));
 					ttypgrp_ok = false;
 				} else
@@ -369,8 +368,8 @@ exchild(struct op *t, int flags,
 	if (flags & XPIPEI) {
 		/* continuing with a pipe */
 		if (!last_job)
-			internal_errorf(
-			    "exchild: XPIPEI and no last_job - pid %d",
+			internal_errorf("%s %d",
+			    "exchild: XPIPEI and no last_job - pid",
 			    (int)procpid);
 		pi.j = last_job;
 		if (last_proc)
@@ -411,7 +410,7 @@ exchild(struct op *t, int flags,
 		kill_job(pi.j, SIGKILL);
 		remove_job(pi.j, "fork failed");
 		sigprocmask(SIG_SETMASK, &omask, NULL);
-		errorf("cannot fork - try again");
+		errorf("can't fork - try again");
 	}
 	pi.p->pid = pi.cldpid ? pi.cldpid : (procpid = getpid());
 
@@ -570,7 +569,7 @@ waitlast(void)
 		return (125);	/* not so arbitrary, non-zero value */
 	}
 
-	rv = j_waitj(j, JW_NONE, "jw:waitlast");
+	rv = j_waitj(j, JW_NONE, "waitlast");
 
 	sigprocmask(SIG_SETMASK, &omask, NULL);
 
@@ -729,10 +728,10 @@ j_resume(const char *cp, int bg)
 					tcsetattr(tty_fd, TCSADRAIN, &tty_state);
 				sigprocmask(SIG_SETMASK, &omask,
 				    NULL);
-				bi_errorf("1st tcsetpgrp(%d, %d) failed: %s",
-				    tty_fd,
-				    (int)((j->flags & JF_SAVEDTTYPGRP) ?
-				    j->saved_ttypgrp : j->pgrp),
+				bi_errorf("%s %s(%d, %ld) %s: %s",
+				    "1st", "tcsetpgrp", tty_fd,
+				    (long)((j->flags & JF_SAVEDTTYPGRP) ?
+				    j->saved_ttypgrp : j->pgrp), "failed",
 				    strerror(rv));
 				return (1);
 			}
@@ -751,12 +750,12 @@ j_resume(const char *cp, int bg)
 			if (ttypgrp_ok && (j->flags & JF_SAVEDTTY))
 				tcsetattr(tty_fd, TCSADRAIN, &tty_state);
 			if (ttypgrp_ok && tcsetpgrp(tty_fd, kshpgrp) < 0)
-				warningf(true,
-				    "fg: 2nd tcsetpgrp(%d, %ld) failed: %s",
-				    tty_fd, (long)kshpgrp, strerror(errno));
+				warningf(true, "%s %s(%d, %ld) %s: %s",
+				    "fg: 2nd", "tcsetpgrp", tty_fd,
+				    (long)kshpgrp, "failed", strerror(errno));
 		}
 		sigprocmask(SIG_SETMASK, &omask, NULL);
-		bi_errorf("%s %s %s", "cannot continue job",
+		bi_errorf("%s %s %s", "can't continue job",
 		    cp, strerror(err));
 		return (1);
 	}
@@ -1023,9 +1022,9 @@ j_waitj(Job *j,
 			    (j->saved_ttypgrp = tcgetpgrp(tty_fd)) >= 0)
 				j->flags |= JF_SAVEDTTYPGRP;
 			if (tcsetpgrp(tty_fd, kshpgrp) < 0)
-				warningf(true,
-				    "j_waitj: tcsetpgrp(%d, %ld) failed: %s",
-				    tty_fd, (long)kshpgrp, strerror(errno));
+				warningf(true, "%s %s(%d, %ld) %s: %s",
+				    "j_waitj:", "tcsetpgrp", tty_fd,
+				    (long)kshpgrp, "failed", strerror(errno));
 			if (j->state == PSTOPPED) {
 				j->flags |= JF_SAVEDTTY;
 				tcgetattr(tty_fd, &j->ttystat);
@@ -1373,7 +1372,7 @@ j_print(Job *j, int how, struct shf *shf)
 			if (p == j->proc_list)
 				shf_fprintf(shf, "[%d] %c ", j->job, jobchar);
 			else
-				shf_fprintf(shf, "%s", filler);
+				shf_puts(filler, shf);
 		}
 
 		if (how == JP_LONG)
@@ -1570,7 +1569,7 @@ remove_job(Job *j, const char *where)
 	for (; curr != NULL && curr != j; prev = &curr->next, curr = *prev)
 		;
 	if (curr != j) {
-		internal_warningf("remove_job: job not found (%s)", where);
+		internal_warningf("remove_job: job %s (%s)", "not found", where);
 		return;
 	}
 	*prev = curr->next;

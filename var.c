@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.111 2010/08/28 18:50:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.112 2010/08/28 20:22:24 tg Exp $");
 
 /*
  * Variables
@@ -686,7 +686,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	if (*val == '[') {
 		if (set_refflag)
 			errorf("%s: %s", var,
-			    "reference variable cannot be an array");
+			    "reference variable can't be an array");
 		len = array_ref_len(val);
 		if (len == 0)
 			return (NULL);
@@ -712,7 +712,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 			return (NULL);
 		strdupx(tvar, var, ATEMP);
 		val = NULL;
-		/* handle foo[*] ⇒ foo (whole array) mapping for R39b */
+		/* handle foo[*] => foo (whole array) mapping for R39b */
 		len = strlen(tvar);
 		if (len > 3 && tvar[len-3] == '[' && tvar[len-2] == '*' &&
 		    tvar[len-1] == ']')
@@ -1051,7 +1051,7 @@ change_random(const void *vp, size_t n)
 	h = oaathash_update(h, k, sizeof(k));
 	kshstate_v.lcg_state_ = oaathash_finalise(h);
 #elif defined(MKSH_A4PB)
-	/* forced by the user to use arc4random_pushb(3) • Cygwin? */
+	/* forced by the user to use arc4random_pushb(3) - Cygwin? */
 	{
 		uint32_t prv;
 

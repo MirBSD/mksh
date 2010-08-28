@@ -1,26 +1,26 @@
 /*-
- * Copyright © 2009
+ * Copyright (c) 2009, 2010
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
- * is granted to deal in this work without restriction, including un‐
+ * is granted to deal in this work without restriction, including un-
  * limited rights to use, publicly perform, distribute, sell, modify,
  * merge, give away, or sublicence.
  *
- * This work is provided “AS IS” and WITHOUT WARRANTY of any kind, to
+ * This work is provided "AS IS" and WITHOUT WARRANTY of any kind, to
  * the utmost extent permitted by applicable law, neither express nor
  * implied; without malicious intent or gross negligence. In no event
  * may a licensor, author or contributor be held liable for indirect,
  * direct, other damage, loss, or other issues arising in any way out
  * of dealing in the work, even if advised of the possibility of such
  * damage or existence of a defect, except proven that it results out
- * of said person’s immediate fault when using the work as intended.
+ * of said person's immediate fault when using the work as intended.
  */
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.11 2009/08/08 13:08:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.12 2010/08/28 20:22:19 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -61,7 +61,8 @@ findptr(ALLOC_ITEM **lpp, char *ptr, Area *ap)
 #ifndef MKSH_SMALL
  fail:
 #endif
-			internal_errorf("rogue pointer %p", ptr);
+			internal_errorf("rogue pointer %lX",
+			    (long)(ptrdiff_t)ptr);
 		}
 	return (ap);
 }
@@ -85,7 +86,7 @@ aresize(void *ptr, size_t numb, Area *ap)
 	    || ALLOC_ISUNALIGNED(lp)
 #endif
 	    )
-		internal_errorf("cannot allocate %lu data bytes",
+		internal_errorf("can't allocate %lu data bytes",
 		    (unsigned long)numb);
 	/* this only works because Area is an ALLOC_ITEM */
 	lp->next = ap->next;

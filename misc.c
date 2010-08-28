@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.144 2010/08/28 18:50:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.145 2010/08/28 20:22:21 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
@@ -167,7 +167,7 @@ printoptions(bool verbose)
 		print_columns(shl_stdout, n, options_fmt_entry, &oi,
 		    octs + 4, oi.opt_width + 4, true);
 	} else {
-		/* short version á la AT&T ksh93 */
+		/* short version like AT&T ksh93 */
 		shf_puts(T_set, shl_stdout);
 		while (i < (int)NELEM(options)) {
 			if (Flag(i) && options[i].name)
@@ -833,9 +833,10 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 			go->buf[0] = c;
 			go->optarg = go->buf;
 		} else {
-			warningf(true, "%s%s-%c: unknown option",
+			warningf(true, "%s%s-%c: %s",
 			    (go->flags & GF_NONAME) ? "" : argv[0],
-			    (go->flags & GF_NONAME) ? "" : ": ", c);
+			    (go->flags & GF_NONAME) ? "" : ": ", c,
+			    "unknown option");
 			if (go->flags & GF_ERROR)
 				bi_errorfz();
 		}
@@ -859,7 +860,7 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 				go->optarg = go->buf;
 				return (':');
 			}
-			warningf(true, "%s%s-'%c' %s",
+			warningf(true, "%s%s-%c: %s",
 			    (go->flags & GF_NONAME) ? "" : argv[0],
 			    (go->flags & GF_NONAME) ? "" : ": ", c,
 			    "requires an argument");
@@ -1299,19 +1300,20 @@ chvt(const char *fn)
 		if (!(sb.st_mode & S_IFCHR))
 			errorf("%s %s %s", "chvt: not a char", "device", fn);
 		if ((sb.st_uid != 0) && chown(fn, 0, 0))
-			warningf(false, "%s: %s %s", "chvt", "cannot chown root", fn);
+			warningf(false, "%s: %s %s", "chvt", "can't chown root", fn);
 		if (((sb.st_mode & 07777) != 0600) && chmod(fn, (mode_t)0600))
-			warningf(false, "%s: %s %s", "chvt", "cannot chmod 0600", fn);
+			warningf(false, "%s: %s %s", "chvt", "can't chmod 0600", fn);
 #if HAVE_REVOKE
 		if (revoke(fn))
 #endif
-			warningf(false, "%s: cannot revoke %s, new shell is"
-			    " potentially insecure", "chvt", fn);
+			warningf(false, "%s: %s %s", "chvt",
+			    "new shell is potentially insecure, can't revoke",
+			    fn);
 	}
 	if ((fd = open(fn, O_RDWR)) == -1) {
 		sleep(1);
 		if ((fd = open(fn, O_RDWR)) == -1)
-			errorf("%s: %s %s", "chvt", "cannot open", fn);
+			errorf("%s: %s %s", "chvt", "can't open", fn);
 	}
 	switch (fork()) {
 	case -1:

@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.91 2010/08/28 18:50:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.92 2010/08/28 20:22:16 tg Exp $");
 
 /*
  * string expansion
@@ -108,7 +108,7 @@ substitute(const char *cp, int f)
 	s->start = s->str = cp;
 	source = s;
 	if (yylex(ONEWORD) != LWORD)
-		internal_errorf("substitute");
+		internal_errorf("bad substitution");
 	source = sold;
 	afree(s, ATEMP);
 	return (evalstr(yylval.cp, f));
@@ -1134,13 +1134,13 @@ comsub(Expand *xp, const char *cp)
 		struct ioword *io = *t->ioact;
 		char *name;
 
-		if ((io->flag&IOTYPE) != IOREAD)
+		if ((io->flag & IOTYPE) != IOREAD)
 			errorf("%s: %s", "funny $() command",
 			    snptreef(NULL, 32, "%R", io));
 		shf = shf_open(name = evalstr(io->name, DOTILDE), O_RDONLY, 0,
 			SHF_MAPHI|SHF_CLEXEC);
 		if (shf == NULL)
-			errorf("%s: %s", name, "cannot open $() input");
+			errorf("%s: %s %s", name, "can't open", "$() input");
 		xp->split = 0;	/* no waitlast() */
 	} else {
 		int ofd1, pv[2];

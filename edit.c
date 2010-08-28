@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.198 2010/08/28 18:50:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.199 2010/08/28 20:22:15 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -324,7 +324,7 @@ x_file_glob(int flags MKSH_A_UNUSED, const char *str, int slen, char ***wordsp)
 	source = s;
 	if (yylex(ONEWORD | LQCHAR) != LWORD) {
 		source = sold;
-		internal_warningf("%s: %s", "fileglob", "substitute error");
+		internal_warningf("%s: %s", "fileglob", "bad substitution");
 		return (0);
 	}
 	source = sold;
@@ -2245,7 +2245,7 @@ x_vt_hack(int c)
 
 	/*-
 	 * At this point, we have read the following octets so far:
-	 * - ESC+[ or ESC+O or Ctrl-X (Præfix 2)
+	 * - ESC+[ or ESC+O or Ctrl-X (Prefix 2)
 	 * - 1 (vt_hack)
 	 * - ;
 	 * - 5 (Ctrl key combiner) or 3 (Alt key combiner)
@@ -2356,7 +2356,7 @@ x_bind(const char *a1, const char *a2,
 #endif
 
 	if (x_tab == NULL) {
-		bi_errorf("cannot bind, not a tty");
+		bi_errorf("can't bind, not a tty");
 		return (1);
 	}
 	/* List function names */
@@ -2398,12 +2398,12 @@ x_bind(const char *a1, const char *a2,
 	    && ((*m1 != '~') || *(m1 + 1))
 #endif
 	    ) {
-		char msg[256] = "key sequence '";
+		char msg[256];
 		const char *c = a1;
-		m1 = msg + strlen(msg);
+		m1 = msg;
 		while (*c && m1 < (msg + sizeof(msg) - 3))
 			x_mapout2(*c++, &m1);
-		bi_errorf("'%s' too long", msg);
+		bi_errorf("%s: %s '%s'", "bind", "too long key sequence", msg);
 		return (1);
 	}
 #ifndef MKSH_SMALL
@@ -2428,7 +2428,7 @@ x_bind(const char *a1, const char *a2,
 			    strcmp(x_ftab[f].xf_name, a2) == 0)
 				break;
 		if (f == NELEM(x_ftab) || x_ftab[f].xf_flags & XF_NOBIND) {
-			bi_errorf("%s: %s", a2, "no such function");
+			bi_errorf("%s: %s %s", a2, "no such", T_function);
 			return (1);
 		}
 	}

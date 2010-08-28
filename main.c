@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.169 2010/08/28 18:50:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.170 2010/08/28 20:22:20 tg Exp $");
 
 extern char **environ;
 
@@ -424,7 +424,7 @@ mksh_init(int argc, const char *argv[])
 	 * user will know why things broke.
 	 */
 	if (!current_wd[0] && Flag(FTALKING))
-		warningf(false, "Cannot determine current working directory");
+		warningf(false, "can't determine current directory");
 
 	if (Flag(FLOGIN)) {
 		include(KSH_SYSTEM_PROFILE, 0, NULL, 1);
@@ -475,7 +475,7 @@ main(int argc, const char *argv[])
 	if ((s = mksh_init(argc, argv))) {
 		/* put more entropy into the LCG */
 		change_random(s, sizeof(*s));
-		/* doesn’t return */
+		/* doesn't return */
 		shell(s, true);
 	}
 	return (1);
@@ -526,7 +526,7 @@ include(const char *name, int argc, const char **argv, int intr_ok)
 			unwind(i);
 			/* NOTREACHED */
 		default:
-			internal_errorf("include: %d", i);
+			internal_errorf("%s %d", "include", i);
 			/* NOTREACHED */
 		}
 	}
@@ -612,7 +612,7 @@ shell(Source * volatile s, volatile int toplevel)
 		default:
 			source = old_source;
 			quitenv(NULL);
-			internal_errorf("shell: %d", i);
+			internal_errorf("%s %d", "shell", i);
 			/* NOTREACHED */
 		}
 	}
@@ -857,8 +857,8 @@ tty_init(bool init_ttystate, bool need_tty)
 	if ((tfd = open("/dev/tty", O_RDWR, 0)) < 0) {
 		tty_devtty = 0;
 		if (need_tty)
-			warningf(false,
-			    "No controlling tty (open /dev/tty: %s)",
+			warningf(false, "%s: %s %s: %s",
+			    "No controlling tty", "open", "/dev/tty",
 			    strerror(errno));
 	}
 	if (tfd < 0) {
@@ -869,15 +869,14 @@ tty_init(bool init_ttystate, bool need_tty)
 			tfd = 2;
 		else {
 			if (need_tty)
-				warningf(false,
-				    "Can't find tty file descriptor");
+				warningf(false, "can't find tty fd");
 			return;
 		}
 	}
 	if ((tty_fd = fcntl(tfd, F_DUPFD, FDBASE)) < 0) {
 		if (need_tty)
-			warningf(false, "%s: %s: %s", "j_ttyinit",
-			    "dup of tty fd failed", strerror(errno));
+			warningf(false, "%s: %s %s: %s", "j_ttyinit",
+			    "dup of tty fd", "failed", strerror(errno));
 	} else if (fcntl(tty_fd, F_SETFD, FD_CLOEXEC) < 0) {
 		if (need_tty)
 			warningf(false, "%s: %s: %s", "j_ttyinit",
@@ -1279,7 +1278,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	tp->shf = NULL;
 	tp->type = type;
 #if HAVE_MKSTEMP
-	shf_snprintf(pathname, len, "%s/%s", dir, "mksh.XXXXXXXXXX");
+	shf_snprintf(pathname, len, "%s%s", dir, "/mksh.XXXXXXXXXX");
 	if ((fd = mkstemp(pathname)) >= 0)
 #else
 	if (tp->name[0] && (fd = open(tp->name, O_CREAT | O_RDWR, 0600)) >= 0)
