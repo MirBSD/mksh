@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.77 2010/08/28 15:48:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.78 2010/08/28 17:21:43 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -489,6 +489,21 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 				subst_exstat = 0;
 				break;
 			}
+		} else if (tp->val.f == c_cat) {
+			/*
+			 * if we have any flags, do not use the builtin
+			 * in theory, we could allow -u, but that would
+			 * mean to use ksh_getopt here and possibly ad-
+			 * ded complexity and more code and isn't worth
+			 */
+			if (ap[1] && ap[1][0] == '-' && ap[1][1] != '\0' &&
+			    /* argument, begins with -, is not - or -- */
+			    (ap[1][1] != '-' || ap[1][2] != '\0'))
+				/* don't look for builtins or functions */
+				fcflags = FC_PATH;
+			else
+				/* go on, use the builtin */
+				break;
 		} else
 			break;
 		tp = findcom(ap[0], fcflags & (FC_BI|FC_FUNC));

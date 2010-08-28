@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.157 2010/08/24 14:42:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.158 2010/08/28 17:21:44 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -102,6 +102,7 @@ const struct builtin mkshbuiltins[] = {
 	{"+fg", c_fgbg},
 #endif
 	{"bind", c_bind},
+	{"cat", c_cat},
 #if HAVE_MKNOD
 	{"mknod", c_mknod},
 #endif
@@ -3425,5 +3426,79 @@ c_realpath(const char **wp)
 		afree(buf, ATEMP);
 	}
 
+	return (rv);
+}
+
+int
+c_cat(const char **wp)
+{
+	int fd = STDIN_FILENO, rv = 0;
+	ssize_t n, w;
+	const char *fn = "<stdin>";
+	char *buf, *cp;
+#define MKSH_CAT_BUFSIZ 4096
+
+	/* XXX uses malloc instead of lalloc (for alignment/speed) */
+	if ((buf = malloc(MKSH_CAT_BUFSIZ)) == NULL) {
+		bi_errorf("cannot allocate %lu data bytes",
+		    (unsigned long)MKSH_CAT_BUFSIZ);
+		return (1);
+	}
+
+	++wp;		/* argv[0] */
+	if (wp[0] && wp[0][0] == '-' && wp[0][1] == '-' && wp[0][2] == '\0')
+		++wp;	/* "--" (options separator) */
+
+	do {
+		if (*wp) {
+			fn = *wp++;
+			if (fn[0] == '-' && fn[1] == '\0')
+				fd = STDIN_FILENO;
+			else if ((fd = open(fn, O_RDONLY)) < 0) {
+				rv = errno;
+				bi_errorf("%s: %s", fn, strerror(rv));
+				rv = 1;
+				continue;
+			}
+		}
+		while (1) {
+			n = blocking_read(fd, (cp = buf), MKSH_CAT_BUFSIZ);
+			if (n == -1) {
+				if (errno == EINTR)
+					/* interrupted, try again */
+					continue;
+				/* an error occured during reading */
+				rv = errno;
+				bi_errorf("%s: %s", fn, strerror(rv));
+				rv = 1;
+				break;
+			} else if (n == 0)
+				/* end of file reached */
+				break;
+			while (n) {
+				w = write(STDOUT_FILENO, cp, n);
+				if (w == -1) {
+					if (errno == EINTR)
+						/* interrupted, try again */
+						continue;
+					/* an error occured during writing */
+					rv = errno;
+					bi_errorf("%s: %s", "<stdout>",
+					    strerror(rv));
+					rv = 1;
+					if (fd != STDIN_FILENO)
+						close(fd);
+					goto out;
+				}
+				n -= w;
+				cp += w;
+			}
+		}
+		if (fd != STDIN_FILENO)
+			close(fd);
+	} while (*wp);
+
+ out:
+	free(buf);
 	return (rv);
 }
