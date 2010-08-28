@@ -150,7 +150,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.406 2010/08/28 15:39:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.407 2010/08/28 15:48:20 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2010/08/24"
 
@@ -698,7 +698,7 @@ typedef struct trap {
 
 EXTERN volatile sig_atomic_t trap;	/* traps pending? */
 EXTERN volatile sig_atomic_t intrsig;	/* pending trap interrupts command */
-EXTERN volatile sig_atomic_t fatal_trap;/* received a fatal signal */
+EXTERN volatile sig_atomic_t fatal_trap; /* received a fatal signal */
 extern	Trap	sigtraps[NSIG+1];
 
 /* got_winch = 1 when we need to re-adjust the window size */
@@ -759,13 +759,13 @@ EXTERN int ifs0 I__(' ');	/* for "$*" */
 #define GI_MINUSMINUS	BIT(2)	/* arguments were ended with -- */
 
 typedef struct {
-	const char	*optarg;
-	int		optind;
-	int		uoptind;/* what user sees in $OPTIND */
-	int		flags;	/* see GF_* */
-	int		info;	/* see GI_* */
-	unsigned int	p;	/* 0 or index into argv[optind - 1] */
-	char		buf[2];	/* for bad option OPTARG value */
+	const char *optarg;
+	int optind;
+	int uoptind;		/* what user sees in $OPTIND */
+	int flags;		/* see GF_* */
+	int info;		/* see GI_* */
+	unsigned int p;		/* 0 or index into argv[optind - 1] */
+	char buf[2];		/* for bad option OPTARG value */
 } Getopt;
 
 EXTERN Getopt builtin_opt;	/* for shell builtin commands */
@@ -896,7 +896,7 @@ struct tbl {			/* table item */
 		char *s;		/* string */
 		mksh_ari_t i;		/* integer */
 		mksh_uari_t u;		/* unsigned integer */
-		int (*f)(const char **);/* int function */
+		int (*f)(const char **); /* int function */
 		struct op *t;		/* "function" tree */
 	} val;			/* value */
 	union {
@@ -1115,11 +1115,11 @@ struct op {
  * IO redirection
  */
 struct ioword {
-	int	unit;	/* unit affected */
-	int	flag;	/* action (below) */
-	char	*name;	/* file name (unused if heredoc) */
-	char	*delim;	/* delimiter for <<,<<- */
-	char	*heredoc;/* content of heredoc */
+	int	unit;		/* unit affected */
+	int	flag;		/* action (below) */
+	char	*name;		/* file name (unused if heredoc) */
+	char	*delim;		/* delimiter for <<,<<- */
+	char	*heredoc;	/* content of heredoc */
 };
 
 /* ioword.flag - type of redirection */
@@ -1718,15 +1718,15 @@ typedef enum Test_meta Test_meta;
 
 typedef struct test_env {
 	union {
-		const char **wp;/* used by ptest_* */
-		XPtrV *av;	/* used by dbtestp_* */
+		const char **wp;	/* used by ptest_* */
+		XPtrV *av;		/* used by dbtestp_* */
 	} pos;
-	const char **wp_end;	/* used by ptest_* */
+	const char **wp_end;		/* used by ptest_* */
 	Test_op (*isa)(struct test_env *, Test_meta);
 	const char *(*getopnd) (struct test_env *, Test_op, bool);
 	int (*eval)(struct test_env *, Test_op, const char *, const char *, bool);
 	void (*error)(struct test_env *, int, const char *);
-	int flags;		/* TEF_* */
+	int flags;			/* TEF_* */
 } Test_env;
 
 extern const char *const dbtest_tokens[];

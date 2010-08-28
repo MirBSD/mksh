@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.69 2010/07/04 17:33:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.70 2010/08/28 15:48:19 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -63,7 +63,7 @@ struct proc {
 #define JF_W_ASYNCNOTIFY 0x004	/* set if waiting and async notification ok */
 #define JF_XXCOM	0x008	/* set for $(command) jobs */
 #define JF_FG		0x010	/* running in foreground (also has tty pgrp) */
-#define JF_SAVEDTTY	0x020	/* j->ttystate is valid */
+#define JF_SAVEDTTY	0x020	/* j->ttystat is valid */
 #define JF_CHANGED	0x040	/* process has changed state */
 #define JF_KNOWN	0x080	/* $! referenced */
 #define JF_ZOMBIE	0x100	/* known, unwaited process */
@@ -87,7 +87,7 @@ struct job {
 	int32_t	age;		/* number of jobs started */
 	Coproc_id coproc_id;	/* 0 or id of coprocess output pipe */
 #ifndef MKSH_UNEMPLOYED
-	struct termios ttystate;/* saved tty state for stopped jobs */
+	struct termios ttystat;	/* saved tty state for stopped jobs */
 	pid_t saved_ttypgrp;	/* saved tty process group for stopped jobs */
 #endif
 };
@@ -376,7 +376,7 @@ exchild(struct op *t, int flags,
 			last_proc->next = pi.p;
 		last_proc = pi.p;
 	} else {
-		pi.j = new_job(); /* fills in pi.j->job */
+		pi.j = new_job();	/* fills in pi.j->job */
 		/*
 		 * we don't consider XXCOMs foreground since they don't get
 		 * tty process group and we don't save or restore tty modes.
@@ -565,7 +565,7 @@ waitlast(void)
 		else
 			internal_warningf("waitlast: not started");
 		sigprocmask(SIG_SETMASK, &omask, NULL);
-		return (125); /* not so arbitrary, non-zero value */
+		return (125);	/* not so arbitrary, non-zero value */
 	}
 
 	rv = j_waitj(j, JW_NONE, "jw:waitlast");
@@ -717,7 +717,7 @@ j_resume(const char *cp, int bg)
 		/* attach tty to job */
 		if (j->state == PRUNNING) {
 			if (ttypgrp_ok && (j->flags & JF_SAVEDTTY))
-				tcsetattr(tty_fd, TCSADRAIN, &j->ttystate);
+				tcsetattr(tty_fd, TCSADRAIN, &j->ttystat);
 			/* See comment in j_waitj regarding saved_ttypgrp. */
 			if (ttypgrp_ok &&
 			    tcsetpgrp(tty_fd, (j->flags & JF_SAVEDTTYPGRP) ?
@@ -993,7 +993,7 @@ j_waitj(Job *j,
 			int oldf = j->flags & (JF_WAITING|JF_W_ASYNCNOTIFY);
 			j->flags &= ~(JF_WAITING|JF_W_ASYNCNOTIFY);
 			runtraps(TF_FATAL);
-			j->flags |= oldf; /* not reached... */
+			j->flags |= oldf;	/* not reached... */
 		}
 		if ((flags & JW_INTERRUPT) && (rv = trap_pending())) {
 			j->flags &= ~(JF_WAITING|JF_W_ASYNCNOTIFY);
@@ -1026,7 +1026,7 @@ j_waitj(Job *j,
 				    tty_fd, (long)kshpgrp, strerror(errno));
 			if (j->state == PSTOPPED) {
 				j->flags |= JF_SAVEDTTY;
-				tcgetattr(tty_fd, &j->ttystate);
+				tcgetattr(tty_fd, &j->ttystat);
 			}
 		}
 #endif

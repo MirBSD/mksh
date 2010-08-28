@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.141 2010/07/17 22:09:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.142 2010/08/28 15:48:19 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
@@ -705,9 +705,11 @@ cclass(const unsigned char *p, int sub)
 		if (ISMAGIC(c)) {
 			c = *p++;
 			if ((c & 0x80) && !ISMAGIC(c)) {
-				c &= 0x7f;/* extended pattern matching: *+?@! */
+				/* extended pattern matching: *+?@! */
+				c &= 0x7F;
 				/* XXX the ( char isn't handled as part of [] */
-				if (c == ' ') /* simile for @: plain (..) */
+				if (c == ' ')
+					/* simile for @: plain (..) */
 					c = '(' /*)*/;
 			}
 		}

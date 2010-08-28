@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.98 2010/07/24 17:08:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.99 2010/08/28 15:48:18 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -1096,7 +1096,7 @@ inittraps(void)
 
 	sigtraps[SIGINT].flags |= TF_DFL_INTR | TF_TTY_INTR;
 	sigtraps[SIGQUIT].flags |= TF_DFL_INTR | TF_TTY_INTR;
-	sigtraps[SIGTERM].flags |= TF_DFL_INTR;/* not fatal for interactive */
+	sigtraps[SIGTERM].flags |= TF_DFL_INTR; /* not fatal for interactive */
 	sigtraps[SIGHUP].flags |= TF_FATAL;
 	sigtraps[SIGCHLD].flags |= TF_SHELL_USES;
 

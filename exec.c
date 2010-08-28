@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.76 2010/08/28 15:39:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.77 2010/08/28 15:48:18 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -441,7 +441,8 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 	 */
 	keepasn_ok = 1;
 	while (tp && tp->type == CSHELL) {
-		fcflags = FC_BI|FC_FUNC|FC_PATH;/* undo effects of command */
+		/* undo effects of command */
+		fcflags = FC_BI|FC_FUNC|FC_PATH;
 		if (tp->val.f == c_builtin) {
 			if ((cp = *++ap) == NULL) {
 				tp = NULL;
