@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.237 2010/08/28 21:22:24 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.238 2010/09/05 19:12:24 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.136 2010/07/15 20:04:35 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -71,7 +71,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: August 28 2010 $
+.Dd $Mdocdate: September 5 2010 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -6032,33 +6032,40 @@ See the documentation, CVS, and web site for details.
 .Sh CAVEATS
 .Nm
 only supports the Unicode BMP (Basic Multilingual Plane).
-Pipelines are executed in subshells.
 It has a different scope model from
 .At
 .Nm ksh ,
 which leads to subtile differences in semantics for identical builtins.
+.Pp
+The parts of a pipeline, like below, are executed in subshells.
+Thus, variable assignments inside them fail.
+Use co-processes instead.
+.Bd -literal -offset indent
+foo \*(Ba bar \*(Ba read baz            # will not change $baz
+foo \*(Ba bar \*(Ba& read -p baz        # will, however, do so
+.Ed
 .Sh BUGS
 Suspending (using \*(haZ) pipelines like the one below will only suspend
 the currently running part of the pipeline; in this example,
 .Dq fubar
-is immediately printed on suspension (but not later).
+is immediately printed on suspension (but not later after an
+.Ic fg ) .
 .Bd -literal -offset indent
 $ sleep 666 && echo fubar
 .Ed
 .Pp
-Some parts of the parser are not recursive; things like the following
-example will fail because of the parenthesis asymmetry:
+Some parts of the parser are not recursive; the following
+code fails because of the parenthesis asymmetry
+.Pq RedHat BZ#496791 .
+A workaround exists; use
+.Ql x=$(cat) \*(Lt\*(Lt"EOF"
+instead to merely slurp the string.
 .Bd -literal -offset indent
 x=$(case $foo in bar) echo $bar ;; *) echo $baz ;; esac)
-.Ed
-.Pp
-Patches welcome.
-.Pp
-The parts of a pipeline, like below, are executed in subshells.
-Thus, variable assignments inside them fail.
-This is actually a feature; use co-processes instead.
-.Bd -literal -offset indent
-foo \*(Ba bar \*(Ba read baz    # will not change $baz
+# above fails to parse; below is the workaround
+x=$(eval $(cat)) \*(Lt\*(Lt"EOF"
+case $foo in bar) echo $bar ;; *) echo $baz ;; esac
+EOF
 .Ed
 .Pp
 This document attempts to describe
