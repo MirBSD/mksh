@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.238 2010/09/05 19:12:24 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.239 2010/09/05 19:51:33 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.136 2010/07/15 20:04:35 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -2961,7 +2961,11 @@ loop.
 .Ar level
 defaults to 1.
 .Pp
-.It Ic builtin Ar command Op Ar arg ...
+.It Xo
+.Ic builtin
+.Op Fl \-
+.Ar command Op Ar arg ...
+.Xc
 Execute the built-in command
 .Ar command .
 .Pp
@@ -3657,7 +3661,11 @@ it's also checked for existence and whether it is a directory; otherwise,
 returns 0 if the pathname either exists or can be created immediately,
 i.e. all but the last component exist and are directories.
 .Pp
-.It Ic rename Ar from to
+.It Xo
+.Ic rename
+.Op Fl \-
+.Ar from to
+.Xc
 Renames the file
 .Ar from
 to

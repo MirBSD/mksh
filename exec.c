@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.80 2010/08/28 20:22:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.81 2010/09/05 19:51:32 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -444,12 +444,12 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 		/* undo effects of command */
 		fcflags = FC_BI|FC_FUNC|FC_PATH;
 		if (tp->val.f == c_builtin) {
-			if ((cp = *++ap) == NULL) {
+			if ((cp = *++ap) == NULL ||
+			    (!strcmp(cp, "--") && (cp = *++ap) == NULL)) {
 				tp = NULL;
 				break;
 			}
-			tp = findcom(cp, FC_BI);
-			if (tp == NULL)
+			if ((tp = findcom(cp, FC_BI)) == NULL)
 				errorf("%s: %s: %s", T_builtin, cp, "not a builtin");
 			continue;
 		} else if (tp->val.f == c_exec) {

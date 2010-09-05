@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.199 2010/08/28 20:22:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.200 2010/09/05 19:51:31 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2403,7 +2403,7 @@ x_bind(const char *a1, const char *a2,
 		m1 = msg;
 		while (*c && m1 < (msg + sizeof(msg) - 3))
 			x_mapout2(*c++, &m1);
-		bi_errorf("%s: %s '%s'", "bind", "too long key sequence", msg);
+		bi_errorf("%s: %s", "too long key sequence", msg);
 		return (1);
 	}
 #ifndef MKSH_SMALL

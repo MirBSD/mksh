@@ -150,9 +150,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.411 2010/08/28 20:22:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.412 2010/09/05 19:51:35 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2010/08/28"
+#define MKSH_VERSION "R39 2010/09/05"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1475,7 +1475,8 @@ int c_times(const char **);
 int timex(struct op *, int, volatile int *);
 void timex_hook(struct op *, char ** volatile *);
 int c_exec(const char **);
-int c_builtin(const char **);
+/* dummy function (just need pointer value), special case in comexec() */
+#define c_builtin shcomexec
 int c_test(const char **);
 #if HAVE_MKNOD
 int c_mknod(const char **);

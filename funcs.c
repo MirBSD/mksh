@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.160 2010/08/28 20:22:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.161 2010/09/05 19:51:33 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2678,7 +2678,7 @@ c_mknod(const char **wp)
 			goto c_mknod_failed;
 	} else if (mkfifo(argv[0], mode)) {
  c_mknod_failed:
-		bi_errorf("%s: %s", *wp, strerror(errno));
+		bi_errorf("%s: %s", argv[0], strerror(errno));
  c_mknod_err:
 		rv = 1;
 	}
@@ -2692,13 +2692,6 @@ c_mknod(const char **wp)
 	return (1);
 }
 #endif
-
-/* dummy function, special case in comexec() */
-int
-c_builtin(const char **wp MKSH_A_UNUSED)
-{
-	return (0);
-}
 
 /* test(1) accepts the following grammar:
 	oexpr	::= aexpr | aexpr "-o" oexpr ;
@@ -3397,13 +3390,18 @@ c_rename(const char **wp)
 {
 	int rv = 1;
 
-	if (wp == NULL		/* argv */ ||
-	    wp[0] == NULL	/* name of builtin */ ||
-	    wp[1] == NULL	/* first argument */ ||
-	    wp[2] == NULL	/* second argument */ ||
-	    wp[3] != NULL	/* no further args please */)
+	/* skip argv[0] */
+	++wp;
+	if (wp[0] && !strcmp(wp[0], "--"))
+		/* skip "--" (options separator) */
+		++wp;
+
+	/* check for exactly two arguments */
+	if (wp[0] == NULL	/* first argument */ ||
+	    wp[1] == NULL	/* second argument */ ||
+	    wp[2] != NULL	/* no further args please */)
 		bi_errorf(T_synerr);
-	else if ((rv = rename(wp[1], wp[2])) != 0) {
+	else if ((rv = rename(wp[0], wp[1])) != 0) {
 		rv = errno;
 		bi_errorf("%s: %s", "failed", strerror(rv));
 	}
@@ -3417,30 +3415,24 @@ c_realpath(const char **wp)
 	int rv = 1;
 	char *buf;
 
-	if (wp != NULL && wp[0] != NULL && wp[1] != NULL) {
-		if (strcmp(wp[1], "--")) {
-			if (wp[2] == NULL) {
-				wp += 1;
-				rv = 0;
-			}
-		} else {
-			if (wp[2] != NULL && wp[3] == NULL) {
-				wp += 2;
-				rv = 0;
-			}
-		}
-	}
+	/* skip argv[0] */
+	++wp;
+	if (wp[0] && !strcmp(wp[0], "--"))
+		/* skip "--" (options separator) */
+		++wp;
 
-	if (rv)
+	/* check for exactly one argument */
+	if (wp[0] == NULL || wp[1] != NULL)
 		bi_errorf(T_synerr);
-	else if ((buf = do_realpath(*wp)) == NULL) {
+	else if ((buf = do_realpath(wp[0])) == NULL) {
 		rv = errno;
-		bi_errorf("%s: %s", *wp, strerror(rv));
+		bi_errorf("%s: %s", wp[0], strerror(rv));
 		if ((unsigned int)rv > 255)
 			rv = 255;
 	} else {
 		shprintf("%s\n", buf);
 		afree(buf, ATEMP);
+		rv = 0;
 	}
 
 	return (rv);
@@ -3462,9 +3454,11 @@ c_cat(const char **wp)
 		return (1);
 	}
 
-	++wp;		/* argv[0] */
-	if (wp[0] && wp[0][0] == '-' && wp[0][1] == '-' && wp[0][2] == '\0')
-		++wp;	/* "--" (options separator) */
+	/* skip argv[0] */
+	++wp;
+	if (wp[0] && !strcmp(wp[0], "--"))
+		/* skip "--" (options separator) */
+		++wp;
 
 	do {
 		if (*wp) {
