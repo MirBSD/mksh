@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.161 2010/09/05 19:51:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.162 2010/09/14 21:26:12 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -208,6 +208,7 @@ do_realpath(const char *upath)
 		afree(tp, ATEMP);
 	}
 
+	/* ipath and upath are in memory at the same time -> unchecked */
 	Xinit(xs, xp, strlen(ip = ipath) + 1, ATEMP);
 
 	while (*ip) {
@@ -277,8 +278,15 @@ do_realpath(const char *upath)
 			}
 
 			/* get symlink(7) target */
-			if (pathcnd)
+			if (pathcnd) {
+#ifdef NO_PATH_MAX
+				if (notoktoadd(pathlen, 1)) {
+					errno = ENAMETOOLONG;
+					goto notfound;
+				}
+#endif
 				ldest = aresize(ldest, pathlen + 1, ATEMP);
+			}
 			llen = readlink(Xstring(xs, xp), ldest, pathlen);
 			if (llen < 0)
 				/* oops... */
@@ -397,7 +405,7 @@ c_cd(const char **wp)
 		}
 	} else if (!wp[2]) {
 		/* Two arguments - substitute arg1 in PWD for arg2 */
-		int ilen, olen, nlen, elen;
+		size_t ilen, olen, nlen, elen;
 		char *cp;
 
 		if (!current_wd[0]) {
@@ -413,6 +421,12 @@ c_cd(const char **wp)
 			bi_errorf("bad substitution");
 			return (1);
 		}
+		/*-
+		 * ilen = part of current_wd before wp[0]
+		 * elen = part of current_wd after wp[0]
+		 * because current_wd and wp[1] need to be in memory at the
+		 * same time beforehand the addition can stay unchecked
+		 */
 		ilen = cp - current_wd;
 		olen = strlen(wp[0]);
 		nlen = strlen(wp[1]);
@@ -2381,7 +2395,7 @@ c_set(const char **wp)
 		while (*++wp != NULL)
 			strdupx(*wp, *wp, &l->area);
 		l->argc = wp - owp - 1;
-		l->argv = alloc((l->argc + 2) * sizeof(char *), &l->area);
+		l->argv = alloc2(l->argc + 2, sizeof(char *), &l->area);
 		for (wp = l->argv; (*wp++ = *owp++) != NULL; )
 			;
 	}

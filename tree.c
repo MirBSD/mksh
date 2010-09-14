@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.31 2010/08/28 20:22:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.32 2010/09/14 21:26:19 tg Exp $");
 
 #define INDENT	4
 
@@ -454,7 +454,7 @@ tcopy(struct op *t, Area *ap)
 	else {
 		for (tw = (const char **)t->vars; *tw++ != NULL; )
 			;
-		rw = r->vars = alloc((tw - (const char **)t->vars + 1) *
+		rw = r->vars = alloc2(tw - (const char **)t->vars + 1,
 		    sizeof(*tw), ap);
 		for (tw = (const char **)t->vars; *tw != NULL; )
 			*rw++ = wdcopy(*tw++, ap);
@@ -466,7 +466,7 @@ tcopy(struct op *t, Area *ap)
 	else {
 		for (tw = t->args; *tw++ != NULL; )
 			;
-		r->args = (const char **)(rw = alloc((tw - t->args + 1) *
+		r->args = (const char **)(rw = alloc2(tw - t->args + 1,
 		    sizeof(*tw), ap));
 		for (tw = t->args; *tw != NULL; )
 			*rw++ = wdcopy(*tw++, ap);
@@ -636,7 +636,7 @@ iocopy(struct ioword **iow, Area *ap)
 
 	for (ior = iow; *ior++ != NULL; )
 		;
-	ior = alloc((ior - iow + 1) * sizeof(struct ioword *), ap);
+	ior = alloc2(ior - iow + 1, sizeof(struct ioword *), ap);
 
 	for (i = 0; iow[i] != NULL; i++) {
 		struct ioword *p, *q;

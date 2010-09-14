@@ -33,14 +33,10 @@
  * SUCH DAMAGE.
  */
 
-#if defined(HAVE_CONFIG_H) && (HAVE_CONFIG_H != 0)
-/* usually when packaged with third-party software */
-#ifdef CONFIG_H_FILENAME
-#include CONFIG_H_FILENAME
+#ifdef IN_MKSH
+#include "sh.h"
+#undef SETMODE_DEBUG
 #else
-#include "config.h"
-#endif
-#endif
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -55,19 +51,35 @@
 #include <stdio.h>
 #endif
 
-__SCCSID("@(#)setmode.c	8.2 (Berkeley) 3/25/94");
-__RCSID("$MirOS: src/bin/mksh/setmode.c,v 1.14 2009/06/10 18:12:48 tg Rel $");
-__RCSID("$miros: src/lib/libc/gen/setmode.c,v 1.12 2009/06/10 18:12:42 tg Exp $");
+#endif
 
-/* for mksh */
+__SCCSID("@(#)setmode.c	8.2 (Berkeley) 3/25/94");
+__RCSID("$MirOS: src/bin/mksh/setmode.c,v 1.15 2010/09/14 21:26:16 tg Exp $");
+__RCSID("$miros: src/lib/libc/gen/setmode.c,v 1.14 2010/09/14 21:26:04 tg Exp $");
+
+#ifdef IN_MKSH
+
 #ifdef ksh_isdigit
 #undef isdigit
 #define isdigit		ksh_isdigit
 #endif
 
+#else
+
 #ifndef S_ISTXT
 #define S_ISTXT		0001000
 #endif
+
+#ifndef SIZE_MAX
+#ifdef SIZE_T_MAX
+#define SIZE_MAX	SIZE_T_MAX
+#else
+#define SIZE_MAX	((size_t)-1)
+#endif
+#endif
+
+#endif
+
 
 #define	SET_LEN		6	/* initial # of bitcmd struct to malloc */
 #define	SET_LEN_INCR	4	/* # of bitcmd structs to add as needed */
@@ -165,12 +177,15 @@ getmode(const void *bbox, mode_t omode)
 		}
 }
 
+#define notoktomul(a, b)	((a) && (b) && (SIZE_MAX / (a) < (b)))
+
 #define	ADDCMD(a, b, c, d)						\
 	if (set >= endset) {						\
 		BITCMD *newset;						\
 		setlen += SET_LEN_INCR;					\
-		newset = realloc(saveset, sizeof(BITCMD) * setlen);	\
-		if (newset == NULL) {					\
+		if (notoktomul(setlen, sizeof(BITCMD)) ||		\
+		    (newset = realloc(saveset, setlen *			\
+		    sizeof(BITCMD))) == NULL) {				\
 			free(saveset);					\
 			return (NULL);					\
 		}							\
@@ -210,7 +225,8 @@ setmode(const char *p)
 
 	setlen = SET_LEN + 2;
 
-	if ((set = calloc(sizeof(BITCMD), setlen)) == NULL)
+	if (notoktomul(setlen, sizeof(BITCMD)) ||
+	    (set = malloc(setlen * sizeof(BITCMD))) == NULL)
 		return (NULL);
 	saveset = set;
 	endset = set + (setlen - 2);

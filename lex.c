@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.120 2010/08/28 20:22:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.121 2010/09/14 21:26:14 tg Exp $");
 
 /*
  * states while lexing word
@@ -1446,7 +1446,7 @@ getsc_line(Source *s)
 		int linelen;
 
 		linelen = Xlength(s->xs, xp);
-		XcheckN(s->xs, xp, fc_e_n + /* NUL */ 1);
+		XcheckN(s->xs, xp, Tn_fc_e_ + /* NUL */ 1);
 		/* reload after potential realloc */
 		cp = Xstring(s->xs, xp);
 		/* change initial '!' into space */
@@ -1454,10 +1454,10 @@ getsc_line(Source *s)
 		/* NUL terminate the current string */
 		*xp = '\0';
 		/* move the actual string forward */
-		memmove(cp + fc_e_n, cp, linelen + /* NUL */ 1);
-		xp += fc_e_n;
+		memmove(cp + Tn_fc_e_, cp, linelen + /* NUL */ 1);
+		xp += Tn_fc_e_;
 		/* prepend it with "fc -e -" */
-		memcpy(cp, fc_e_, fc_e_n);
+		memcpy(cp, T_fc_e_, Tn_fc_e_);
 	}
 #endif
 	s->start = s->str = cp;
@@ -1749,7 +1749,7 @@ getsc_bn(void)
 static Lex_state *
 push_state_(State_info *si, Lex_state *old_end)
 {
-	Lex_state *news = alloc(STATE_BSIZE * sizeof(Lex_state), ATEMP);
+	Lex_state *news = alloc2(STATE_BSIZE, sizeof(Lex_state), ATEMP);
 
 	news[0].ls_info.base = old_end;
 	si->base = &news[0];

@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.171 2010/09/14 21:00:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.172 2010/09/14 21:26:14 tg Exp $");
 
 extern char **environ;
 
@@ -84,7 +84,7 @@ static const char *initcoms[] = {
 	"history=fc -l",
 	"nameref=typeset -n",
 	"nohup=nohup ",
-	r_fc_e_,
+	T_r_fc_e_,
 	"source=PATH=$PATH:. command .",
 	"login=exec login",
 	NULL,
@@ -119,7 +119,7 @@ mksh_init(int argc, const char *argv[])
 	struct tbl *vp;
 	struct stat s_stdin;
 #if !defined(_PATH_DEFPATH) && defined(_CS_PATH)
-	size_t k;
+	ssize_t k;
 	char *cp;
 #endif
 
@@ -181,7 +181,7 @@ mksh_init(int argc, const char *argv[])
 	def_path = _PATH_DEFPATH;
 #else
 #ifdef _CS_PATH
-	if ((k = confstr(_CS_PATH, NULL, 0)) != (size_t)-1 && k > 0 &&
+	if ((k = confstr(_CS_PATH, NULL, 0)) > 0 &&
 	    confstr(_CS_PATH, cp = alloc(k + 1, APERM), k + 1) == k + 1)
 		def_path = cp;
 	else
@@ -1266,6 +1266,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	pathname = tempnam(dir, "mksh.");
 	len = ((pathname == NULL) ? 0 : strlen(pathname)) + 1;
 #endif
+	/* reasonably sure that this will not overflow */
 	tp = alloc(sizeof(struct temp) + len, ap);
 	tp->name = (char *)&tp[1];
 #if !HAVE_MKSTEMP
@@ -1313,7 +1314,7 @@ texpand(struct table *tp, size_t nsize)
 	struct tbl *tblp, **pp;
 	struct tbl **ntblp, **otblp = tp->tbls;
 
-	ntblp = alloc(nsize * sizeof(struct tbl *), tp->areap);
+	ntblp = alloc2(nsize, sizeof(struct tbl *), tp->areap);
 	for (i = 0; i < nsize; i++)
 		ntblp[i] = NULL;
 	tp->size = nsize;
@@ -1392,7 +1393,7 @@ struct tbl *
 ktenter(struct table *tp, const char *n, uint32_t h)
 {
 	struct tbl **pp, *p;
-	int len;
+	size_t len;
 
 	if (tp->size == 0)
 		texpand(tp, INIT_TBLS);
@@ -1407,8 +1408,9 @@ ktenter(struct table *tp, const char *n, uint32_t h)
 	}
 
 	/* create new tbl entry */
-	len = strlen(n) + 1;
-	p = alloc(offsetof(struct tbl, name[0]) + len, tp->areap);
+	len = strlen(n);
+	checkoktoadd(len, offsetof(struct tbl, name[0]) + 1);
+	p = alloc(offsetof(struct tbl, name[0]) + ++len, tp->areap);
 	p->flag = 0;
 	p->type = 0;
 	p->areap = tp->areap;
@@ -1456,7 +1458,8 @@ ktsort(struct table *tp)
 	size_t i;
 	struct tbl **p, **sp, **dp;
 
-	p = alloc((tp->size + 1) * sizeof(struct tbl *), ATEMP);
+	/* tp->size + 1 will not overflow */
+	p = alloc2(tp->size + 1, sizeof(struct tbl *), ATEMP);
 	sp = tp->tbls;		/* source */
 	dp = p;			/* dest */
 	i = (size_t)tp->size;

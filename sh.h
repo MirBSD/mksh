@@ -154,9 +154,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.413 2010/09/14 21:15:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.414 2010/09/14 21:26:16 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2010/09/05"
+#define MKSH_VERSION "R39 2010/09/14"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -630,10 +630,11 @@ extern const struct shoption options[];
 /* null value for variable; comparision pointer for unset */
 EXTERN char null[] I__("");
 /* helpers for string pooling */
-#define T_synerr "syntax error"
-EXTERN const char r_fc_e_[] I__("r=fc -e -");
-#define fc_e_		(r_fc_e_ + 2)		/* "fc -e -" */
-#define fc_e_n		7			/* strlen(fc_e_) */
+EXTERN const char T_intovfl[] I__("integer overflow %lu %c %lu prevented");
+EXTERN const char T_synerr[] I__("syntax error");
+EXTERN const char T_r_fc_e_[] I__("r=fc -e -");
+#define T_fc_e_		(T_r_fc_e_ + 2)		/* "fc -e -" */
+#define Tn_fc_e_	7			/* strlen(T_fc_e_) */
 EXTERN const char T_local_typeset[] I__("local=typeset");
 #define T__typeset	(T_local_typeset + 5)	/* "=typeset" */
 #define T_typeset	(T_local_typeset + 6)	/* "typeset" */
@@ -1223,7 +1224,7 @@ typedef char *XStringP;
 #define XcheckN(xs, xp, n) do {					\
 	int more = ((xp) + (n)) - (xs).end;			\
 	if (more > 0)						\
-		(xp) = Xcheck_grow_(&(xs), (xp), more);		\
+		(xp) = Xcheck_grow_(&(xs), (xp), (size_t)more);	\
 } while (/* CONSTCOND */ 0)
 
 /* check for overflow, expand string */
@@ -1244,7 +1245,7 @@ typedef char *XStringP;
 #define Xsavepos(xs, xp)	((xp) - (xs).beg)
 #define Xrestpos(xs, xp, n)	((xs).beg + (n))
 
-char *Xcheck_grow_(XString *, const char *, unsigned int);
+char *Xcheck_grow_(XString *, const char *, size_t);
 
 /*
  * expandable vector of generic pointers
@@ -1257,7 +1258,7 @@ typedef struct XPtrV {
 
 #define XPinit(x, n) do {					\
 	void **vp__;						\
-	vp__ = alloc((n) * sizeof(void *), ATEMP);		\
+	vp__ = alloc2((n), sizeof(void *), ATEMP);		\
 	(x).cur = (x).beg = vp__;				\
 	(x).end = vp__ + (n);					\
 } while (/* CONSTCOND */ 0)
@@ -1265,8 +1266,8 @@ typedef struct XPtrV {
 #define XPput(x, p) do {					\
 	if ((x).cur >= (x).end) {				\
 		size_t n = XPsize(x);				\
-		(x).beg = aresize((x).beg,			\
-		    n * 2 * sizeof(void *), ATEMP);		\
+		(x).beg = aresize2((x).beg,			\
+		    n, 2 * sizeof(void *), ATEMP);		\
 		(x).cur = (x).beg + n;				\
 		(x).end = (x).cur + n;				\
 	}							\
@@ -1275,7 +1276,7 @@ typedef struct XPtrV {
 
 #define XPptrv(x)	((x).beg)
 #define XPsize(x)	((x).cur - (x).beg)
-#define XPclose(x)	aresize((x).beg, XPsize(x) * sizeof(void *), ATEMP)
+#define XPclose(x)	aresize2((x).beg, XPsize(x), sizeof(void *), ATEMP)
 #define XPfree(x)	afree((x).beg, ATEMP)
 
 #define IDENT	64
@@ -1392,12 +1393,21 @@ EXTERN int histsize;	/* history size */
 /* user and system time of last j_waitjed job */
 EXTERN struct timeval j_usrtime, j_systime;
 
+#define notoktoadd(val, cnst)	((val) > (SIZE_MAX - (cnst)))
+#define checkoktoadd(val, cnst) do {					\
+	if (notoktoadd((val), (cnst)))					\
+		internal_errorf(T_intovfl, (unsigned long)(val),	\
+		    '+', (unsigned long)(cnst));			\
+} while (/* CONSTCOND */ 0)
+
 /* lalloc.c */
 void ainit(Area *);
 void afreeall(Area *);
 /* these cannot fail and can take NULL (not for ap) */
-#define alloc(n, ap)	aresize(NULL, (n), (ap))
+#define alloc(n, ap)		aresize(NULL, (n), (ap))
+#define alloc2(m, n, ap)	aresize2(NULL, (m), (n), (ap))
 void *aresize(void *, size_t, Area *);
+void *aresize2(void *, size_t, size_t, Area *);
 void afree(void *, Area *);	/* can take NULL */
 /* edit.c */
 #ifndef MKSH_SMALL

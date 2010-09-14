@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.200 2010/09/05 19:51:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.201 2010/09/14 21:26:09 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -424,7 +424,7 @@ x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 		int i, path_order = 0;
 
 		info = (struct path_order_info *)
-		    alloc(nwords * sizeof(struct path_order_info), ATEMP);
+		    alloc2(nwords, sizeof(struct path_order_info), ATEMP);
 		for (i = 0; i < nwords; i++) {
 			info[i].word = words[i];
 			info[i].base = x_basename(words[i], NULL);
@@ -678,13 +678,15 @@ glob_table(const char *pat, XPtrV *wp, struct table *tp)
 static void
 glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
 {
-	const char *sp, *p;
+	const char *sp = lpath, *p;
 	char *xp, **words;
-	int staterr, pathlen, patlen, oldsize, newsize, i, j;
+	size_t pathlen, patlen, oldsize, newsize, i, j;
+	int staterr;
 	XString xs;
 
-	patlen = strlen(pat) + 1;
-	sp = lpath;
+	patlen = strlen(pat);
+	checkoktoadd(patlen, 129 + X_EXTRA);
+	++patlen;
 	Xinit(xs, xp, patlen + 128, ATEMP);
 	while (sp) {
 		xp = Xstring(xs, xp);
@@ -2466,7 +2468,7 @@ x_init_emacs(void)
 	ainit(AEDIT);
 	x_nextcmd = -1;
 
-	x_tab = alloc(X_NTABS * sizeof(*x_tab), AEDIT);
+	x_tab = alloc2(X_NTABS, sizeof(*x_tab), AEDIT);
 	for (j = 0; j < X_TABSZ; j++)
 		x_tab[0][j] = XFUNC_insert;
 	for (i = 1; i < X_NTABS; i++)
@@ -2477,7 +2479,7 @@ x_init_emacs(void)
 		    = x_defbindings[i].xdb_func;
 
 #ifndef MKSH_SMALL
-	x_atab = alloc(X_NTABS * sizeof(*x_atab), AEDIT);
+	x_atab = alloc2(X_NTABS, sizeof(*x_atab), AEDIT);
 	for (i = 1; i < X_NTABS; i++)
 		for (j = 0; j < X_TABSZ; j++)
 			x_atab[i][j] = NULL;
@@ -3912,7 +3914,7 @@ vi_cmd(int argcnt, const char *cmd)
 			{
 				static char alias[] = "_\0";
 				struct tbl *ap;
-				int olen, nlen;
+				size_t olen, nlen;
 				char *p, *nbuf;
 
 				/* lookup letter in alias list... */
@@ -3929,6 +3931,10 @@ vi_cmd(int argcnt, const char *cmd)
 				nlen = strlen(ap->val.s) + 1;
 				olen = !macro.p ? 2 :
 				    macro.len - (macro.p - macro.buf);
+				/*
+				 * at this point, it's fairly reasonable that
+				 * nlen + olen + 2 doesn't overflow
+				 */
 				nbuf = alloc(nlen + 1 + olen, APERM);
 				memcpy(nbuf, ap->val.s, nlen);
 				nbuf[nlen++] = cmd[1];

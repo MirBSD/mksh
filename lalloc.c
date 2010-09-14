@@ -20,7 +20,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.12 2010/08/28 20:22:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.13 2010/09/14 21:26:14 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -68,6 +68,15 @@ findptr(ALLOC_ITEM **lpp, char *ptr, Area *ap)
 }
 
 void *
+aresize2(void *ptr, size_t fac1, size_t fac2, Area *ap)
+{
+	if (fac1 && fac2 && (SIZE_MAX / fac1 < fac2))
+		internal_errorf(T_intovfl, (unsigned long)fac1, '*',
+		    (unsigned long)fac2);
+	return (aresize(ptr, fac1 * fac2, ap));
+}
+
+void *
 aresize(void *ptr, size_t numb, Area *ap)
 {
 	ALLOC_ITEM *lp = NULL;
@@ -80,7 +89,7 @@ aresize(void *ptr, size_t numb, Area *ap)
 		pp->next = lp->next;
 	}
 
-	if ((numb >= SIZE_MAX - ALLOC_SIZE) ||
+	if (notoktoadd(numb, ALLOC_SIZE) ||
 	    (lp = remalloc(lp, numb + ALLOC_SIZE)) == NULL
 #ifndef MKSH_SMALL
 	    || ALLOC_ISUNALIGNED(lp)

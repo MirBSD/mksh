@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.101 2010/08/28 20:22:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.102 2010/09/14 21:26:13 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -92,6 +92,8 @@ c_fc(const char **wp)
 				sflag = true;
 			else {
 				size_t len = strlen(p);
+
+				/* almost certainly not overflowing */
 				editor = alloc(len + 4, ATEMP);
 				memcpy(editor, p, len);
 				memcpy(editor + len, " $_", 4);
@@ -269,7 +271,17 @@ c_fc(const char **wp)
 			return (1);
 		}
 
-		n = stat(tf->name, &statb) < 0 ? 128 : statb.st_size + 1;
+		if (stat(tf->name, &statb) < 0)
+			n = 128;
+		else {
+			if (notoktoadd(statb.st_size, 1 + X_EXTRA)) {
+				bi_errorf(T_intovfl,
+				    (unsigned long)statb.st_size, '+',
+				    1UL + X_EXTRA);
+				goto errout;
+			}
+			n = statb.st_size + 1;
+		}
 		Xinit(xs, xp, n, hist_source->areap);
 		while ((n = shf_read(xp, Xnleft(xs, xp), shf)) > 0) {
 			xp += n;
@@ -279,6 +291,7 @@ c_fc(const char **wp)
 		if (n < 0) {
 			bi_errorf("can't %s temporary file %s: %s",
 			    "read", tf->name, strerror(shf_errno(shf)));
+ errout:
 			shf_close(shf);
 			return (1);
 		}
@@ -532,7 +545,7 @@ sethistsize(int n)
 			cursize = n;
 		}
 
-		history = aresize(history, n * sizeof(char *), APERM);
+		history = aresize2(history, n, sizeof(char *), APERM);
 
 		histsize = n;
 		histptr = history + cursize;
@@ -583,7 +596,7 @@ init_histvec(void)
 {
 	if (history == (char **)NULL) {
 		histsize = HISTORYSIZE;
-		history = alloc(histsize * sizeof(char *), APERM);
+		history = alloc2(histsize, sizeof(char *), APERM);
 		histptr = history - 1;
 	}
 }

@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.92 2010/08/28 20:22:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.93 2010/09/14 21:26:10 tg Exp $");
 
 /*
  * string expansion
@@ -1562,6 +1562,10 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 				char *news;
 				int l1, l2, l3;
 
+				/*
+				 * addition safe since these operate on
+				 * one string (separate substrings)
+				 */
 				l1 = brace_start - start;
 				l2 = (p - 1) - field_start;
 				l3 = end - brace_end;

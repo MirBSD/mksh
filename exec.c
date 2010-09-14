@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.81 2010/09/05 19:51:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.82 2010/09/14 21:26:11 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -101,7 +101,7 @@ execute(struct op *volatile t,
 	flags &= ~XTIME;
 
 	if (t->ioact != NULL || t->type == TPIPE || t->type == TCOPROC) {
-		e->savefd = alloc(NUFILE * sizeof(short), ATEMP);
+		e->savefd = alloc2(NUFILE, sizeof(short), ATEMP);
 		/* initialise to not redirected */
 		memset(e->savefd, 0, NUFILE * sizeof(short));
 	}

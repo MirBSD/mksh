@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.146 2010/09/14 21:15:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.147 2010/09/14 21:26:15 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
@@ -43,6 +43,25 @@ static int do_gmatch(const unsigned char *, const unsigned char *,
 static const unsigned char *cclass(const unsigned char *, int);
 #ifdef TIOCSCTTY
 static void chvt(const char *);
+#endif
+
+#ifdef SETUID_CAN_FAIL_WITH_EAGAIN
+/* we don't need to check for other codes, EPERM won't happen */
+#define DO_SETUID(func, argvec) do {					\
+	bool messaged = false;						\
+									\
+	while (/* CONSTCOND */ 1)					\
+		if (!(func argvec) || errno != EAGAIN)			\
+			break;						\
+		else if (!messaged) {					\
+			warningf(true, "%s failed with EAGAIN,"		\
+			    " probably due to a too low process"	\
+			    " limit; retrying infinitely", #func);	\
+			messaged = true;				\
+		}							\
+} while (/* CONSTCOND */ 0)
+#else
+#define DO_SETUID(func, argvec) func argvec
 #endif
 
 /*
@@ -82,12 +101,15 @@ initctypes(void)
 
 /* called from XcheckN() to grow buffer */
 char *
-Xcheck_grow_(XString *xsp, const char *xp, unsigned int more)
+Xcheck_grow_(XString *xsp, const char *xp, size_t more)
 {
 	const char *old_beg = xsp->beg;
 
-	xsp->len += more > xsp->len ? more : xsp->len;
-	xsp->beg = aresize(xsp->beg, xsp->len + 8, xsp->areap);
+	if (more < xsp->len)
+		more = xsp->len;
+	/* (xsp->len + X_EXTRA) never overflows */
+	checkoktoadd(more, xsp->len + X_EXTRA);
+	xsp->beg = aresize(xsp->beg, (xsp->len += more) + X_EXTRA, xsp->areap);
 	xsp->end = xsp->beg + xsp->len;
 	return (xsp->beg + (xp - old_beg));
 }
@@ -222,14 +244,16 @@ change_flag(enum sh_flag f, int what, unsigned int newval)
 #if HAVE_SETRESUGID
 		gid_t kshegid = getgid();
 
-		setresgid(kshegid, kshegid, kshegid);
+		DO_SETUID(setresgid, (kshegid, kshegid, kshegid));
 #if HAVE_SETGROUPS
+		/* setgroups doesn't EAGAIN on Linux */
 		setgroups(1, &kshegid);
 #endif
-		setresuid(ksheuid, ksheuid, ksheuid);
+		DO_SETUID(setresuid, (ksheuid, ksheuid, ksheuid));
 #else
+		/* seteuid, setegid, setgid don't EAGAIN on Linux */
 		seteuid(ksheuid = kshuid = getuid());
-		setuid(ksheuid);
+		DO_SETUID(setuid, (ksheuid));
 		setegid(kshegid = kshgid = getgid());
 		setgid(kshegid);
 #endif

@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.112 2010/08/28 20:22:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.113 2010/09/14 21:26:19 tg Exp $");
 
 /*
  * Variables
@@ -649,10 +649,13 @@ exportprep(struct tbl *vp, const char *val)
 {
 	char *xp;
 	char *op = (vp->flag&ALLOC) ? vp->val.s : NULL;
-	int namelen = strlen(vp->name);
-	int vallen = strlen(val) + 1;
+	size_t namelen, vallen;
+
+	namelen = strlen(vp->name);
+	vallen = strlen(val) + 1;
 
 	vp->flag |= ALLOC;
+	/* since name+val are both in memory this can go unchecked */
 	xp = alloc(namelen + 1 + vallen, vp->areap);
 	memcpy(vp->val.s = xp, vp->name, namelen);
 	xp += namelen;
@@ -1317,9 +1320,10 @@ arraysearch(struct tbl *vp, uint32_t val)
 		news = curr;
 	} else
 		news = NULL;
-	len = strlen(vp->name) + 1;
 	if (!news) {
-		news = alloc(offsetof(struct tbl, name[0]) + len, vp->areap);
+		len = strlen(vp->name);
+		checkoktoadd(len, 1 + offsetof(struct tbl, name[0]));
+		news = alloc(offsetof(struct tbl, name[0]) + ++len, vp->areap);
 		memcpy(news->name, vp->name, len);
 	}
 	news->flag = (vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL)) | AINDEX;

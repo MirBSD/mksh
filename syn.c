@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.51 2010/08/28 20:22:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.52 2010/09/14 21:26:18 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -231,7 +231,8 @@ get_command(int cf)
 	XPtrV args, vars;
 	struct nesting_state old_nesting;
 
-	iops = alloc((NUFILE + 1) * sizeof(struct ioword *), ATEMP);
+	/* NUFILE is small enough to leave this addition unchecked */
+	iops = alloc2((NUFILE + 1), sizeof(struct ioword *), ATEMP);
 	XPinit(args, 16);
 	XPinit(vars, 16);
 
@@ -476,7 +477,7 @@ get_command(int cf)
 		t->ioact = NULL;
 	} else {
 		iops[iopn++] = NULL;
-		iops = aresize(iops, iopn * sizeof(struct ioword *), ATEMP);
+		iops = aresize2(iops, iopn, sizeof(struct ioword *), ATEMP);
 		t->ioact = iops;
 	}
 
@@ -656,12 +657,13 @@ function_body(char *name,
 	if ((t->left = get_command(CONTIN)) == NULL) {
 		char *tv;
 		/*
-		 * Probably something like foo() followed by eof or ;.
+		 * Probably something like foo() followed by EOF or ';'.
 		 * This is accepted by sh and ksh88.
 		 * To make "typeset -f foo" work reliably (so its output can
 		 * be used as input), we pretend there is a colon here.
 		 */
 		t->left = newtp(TCOM);
+		/* (2 * sizeof(char *)) is small enough */
 		t->left->args = alloc(2 * sizeof(char *), ATEMP);
 		t->left->args[0] = tv = alloc(3, ATEMP);
 		tv[0] = CHAR;

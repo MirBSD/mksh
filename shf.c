@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.39 2010/08/28 20:22:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.40 2010/09/14 21:26:17 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -47,7 +47,8 @@ struct shf *
 shf_open(const char *name, int oflags, int mode, int sflags)
 {
 	struct shf *shf;
-	int bsize = sflags & SHF_UNBUF ? (sflags & SHF_RD ? 1 : 0) : SHF_BSIZE;
+	int bsize = /* at most 512 */
+	    sflags & SHF_UNBUF ? (sflags & SHF_RD ? 1 : 0) : SHF_BSIZE;
 	int fd;
 
 	/* Done before open so if alloca fails, fd won't be lost. */
@@ -85,7 +86,8 @@ shf_open(const char *name, int oflags, int mode, int sflags)
 struct shf *
 shf_fdopen(int fd, int sflags, struct shf *shf)
 {
-	int bsize = sflags & SHF_UNBUF ? (sflags & SHF_RD ? 1 : 0) : SHF_BSIZE;
+	int bsize = /* at most 512 */
+	    sflags & SHF_UNBUF ? (sflags & SHF_RD ? 1 : 0) : SHF_BSIZE;
 
 	/* use fcntl() to figure out correct read/write flags */
 	if (sflags & SHF_GETFL) {
@@ -142,7 +144,8 @@ shf_fdopen(int fd, int sflags, struct shf *shf)
 struct shf *
 shf_reopen(int fd, int sflags, struct shf *shf)
 {
-	int bsize = sflags & SHF_UNBUF ? (sflags & SHF_RD ? 1 : 0) : SHF_BSIZE;
+	int bsize = /* at most 512 */
+	    sflags & SHF_UNBUF ? (sflags & SHF_RD ? 1 : 0) : SHF_BSIZE;
 
 	/* use fcntl() to figure out correct read/write flags */
 	if (sflags & SHF_GETFL) {
@@ -344,7 +347,7 @@ shf_emptybuf(struct shf *shf, int flags)
 		    !(shf->flags & SHF_ALLOCB))
 			return (EOF);
 		/* allocate more space for buffer */
-		nbuf = aresize(shf->buf, 2 * shf->wbsize, shf->areap);
+		nbuf = aresize2(shf->buf, 2, shf->wbsize, shf->areap);
 		shf->rp = nbuf + (shf->rp - shf->buf);
 		shf->wp = nbuf + (shf->wp - shf->buf);
 		shf->rbsize += shf->wbsize;
