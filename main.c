@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.170 2010/08/28 20:22:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.171 2010/09/14 21:00:13 tg Exp $");
 
 extern char **environ;
 
@@ -74,7 +74,9 @@ static const char *initcoms[] = {
 	"hash=alias -t",	/* not "alias -t --": hash -r needs to work */
 	"type=whence -v",
 #ifndef MKSH_UNEMPLOYED
+#ifndef ANDROID
 	"stop=kill -STOP",
+#endif
 	"suspend=kill -STOP $$",
 #endif
 	"autoload=typeset -fu",
