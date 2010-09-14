@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.459 2010/08/24 15:46:06 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.460 2010/09/14 21:15:09 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -30,6 +30,7 @@ srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.459 2010/08/24 15:46:06 tg Exp $'
 #			MKSH_NOPWNAM MKSH_NO_LIMITS MKSH_SMALL MKSH_S_NOVI
 #			MKSH_UNEMPLOYED MKSH_DEFAULT_EXECSHELL MKSHRC_PATH
 #			MKSH_DEFAULT_TMPDIR MKSH_CLRTOEOL_STRING MKSH_A4PB
+#			MKSH_NO_DEPRECATED_WARNING MKSH_DONT_EMIT_IDSTRING
 
 LC_ALL=C
 export LC_ALL

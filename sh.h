@@ -141,16 +141,20 @@
 #undef __SCCSID
 #define __IDSTRING_CONCAT(l,p)		__LINTED__ ## l ## _ ## p
 #define __IDSTRING_EXPAND(l,p)		__IDSTRING_CONCAT(l,p)
+#ifdef MKSH_DONT_EMIT_IDSTRING
+#define __IDSTRING(prefix, string)	/* nothing */
+#else
 #define __IDSTRING(prefix, string)				\
 	static const char __IDSTRING_EXPAND(__LINE__,prefix) []	\
 	    MKSH_A_USED = "@(""#)" #prefix ": " string
+#endif
 #define __COPYRIGHT(x)		__IDSTRING(copyright,x)
 #define __RCSID(x)		__IDSTRING(rcsid,x)
 #define __SCCSID(x)		__IDSTRING(sccsid,x)
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.412 2010/09/05 19:51:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.413 2010/09/14 21:15:11 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2010/09/05"
 

@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.145 2010/08/28 20:22:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.146 2010/09/14 21:15:10 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
@@ -330,12 +330,14 @@ parse_args(const char **argv,
 				break;
 			}
 			i = option(go.optarg);
+#ifndef MKSH_NO_DEPRECATED_WARNING
 			if ((enum sh_flag)i == FARC4RANDOM) {
 				warningf(true, "Do not use set ±o arc4random,"
 				    " it will be removed in the next version"
 				    " of mksh!");
 				return (0);
 			}
+#endif
 			if ((i != (size_t)-1) && set == Flag(i))
 				/* Don't check the context if the flag
 				 * isn't changing - makes "set -o interactive"
