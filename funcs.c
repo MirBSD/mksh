@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.162 2010/09/14 21:26:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.163 2010/09/15 21:08:18 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2065,7 +2065,7 @@ c_read(const char **wp)
 			 * (it also doesn't check the interactive flag,
 			 * as is indicated in the Kornshell book).
 			 */
-			shf_puts(cp + 1, shl_out);
+			shellf("%s", cp+1);
 		}
 	}
 

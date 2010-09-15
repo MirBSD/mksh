@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.82 2010/09/14 21:26:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.83 2010/09/15 21:08:17 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -1349,7 +1349,7 @@ do_selectargs(const char **ap, bool print_menu)
 		 */
 		if (print_menu || !*str_val(global("REPLY")))
 			pr_menu(ap);
-		shf_puts(str_val(global("PS3")), shl_out);
+		shellf("%s", str_val(global("PS3")));
 		if (call_builtin(findcom("read", FC_BI), read_args))
 			return (NULL);
 		s = str_val(global("REPLY"));
