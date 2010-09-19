@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.113 2010/09/14 21:26:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.114 2010/09/19 19:21:20 tg Exp $");
 
 /*
  * Variables
@@ -1029,10 +1029,8 @@ void
 change_random(const void *vp, size_t n)
 {
 	register uint32_t h = 0x100;
-#if defined(__OpenBSD__)
-	int mib[2];
-	uint8_t k[3];
-	size_t klen;
+#if defined(arc4random_pushb_fast) || defined(MKSH_A4PB)
+	uint32_t i;
 #endif
 
 	kshstate_v.cr_dp = vp;
@@ -1042,26 +1040,21 @@ change_random(const void *vp, size_t n)
 	    sizeof(kshstate_v)), vp, n);
 	kshstate_v.lcg_state_ = oaathash_finalise(h);
 
-#if defined(__OpenBSD__)
-	/* OpenBSD, MirBSD: proper kernel entropy comes at zero cost */
-
-	mib[0] = CTL_KERN;
-	mib[1] = KERN_ARND;
-	klen = sizeof(k);
-	sysctl(mib, 2, k, &klen, &kshstate_v.lcg_state_,
+#if defined(arc4random_pushb_fast) || defined(MKSH_A4PB)
+	/*
+	 * either we have very check entropy get and push available,
+	 * with malloc() pulling in this code already anyway, or the
+	 * user requested us to use the old functions
+	 */
+#if defined(arc4random_pushb_fast)
+	arc4random_pushb_fast(&kshstate_v.lcg_state_,
 	    sizeof(kshstate_v.lcg_state_));
-	/* we ignore failures and take in k anyway */
-	h = oaathash_update(h, k, sizeof(k));
-	kshstate_v.lcg_state_ = oaathash_finalise(h);
-#elif defined(MKSH_A4PB)
-	/* forced by the user to use arc4random_pushb(3) - Cygwin? */
-	{
-		uint32_t prv;
-
-		prv = arc4random_pushb(&kshstate_v.lcg_state_,
-		    sizeof(kshstate_v.lcg_state_));
-		h = oaathash_update(h, &prv, sizeof(prv));
-	}
+	i = arc4random();
+#else
+	i = arc4random_pushb(&kshstate_v.lcg_state_,
+	    sizeof(kshstate_v.lcg_state_));
+#endif
+	h = oaathash_update(h, (void *)&i, sizeof(i));
 	kshstate_v.lcg_state_ = oaathash_finalise(h);
 #endif
 }
