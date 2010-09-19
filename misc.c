@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.147 2010/09/14 21:26:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.148 2010/09/19 19:28:22 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
@@ -48,17 +48,9 @@ static void chvt(const char *);
 #ifdef SETUID_CAN_FAIL_WITH_EAGAIN
 /* we don't need to check for other codes, EPERM won't happen */
 #define DO_SETUID(func, argvec) do {					\
-	bool messaged = false;						\
-									\
-	while (/* CONSTCOND */ 1)					\
-		if (!(func argvec) || errno != EAGAIN)			\
-			break;						\
-		else if (!messaged) {					\
-			warningf(true, "%s failed with EAGAIN,"		\
-			    " probably due to a too low process"	\
-			    " limit; retrying infinitely", #func);	\
-			messaged = true;				\
-		}							\
+	if ((func argvec) && errno == EAGAIN)				\
+		errorf("%s failed with EAGAIN, probably due to a"	\
+		    " too low process limit; aborting", #func);		\
 } while (/* CONSTCOND */ 0)
 #else
 #define DO_SETUID(func, argvec) func argvec
