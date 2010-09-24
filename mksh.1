@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.240 2010/09/05 20:43:37 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.136 2010/07/15 20:04:35 schwarze Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.241 2010/09/24 20:21:43 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.138 2010/09/20 07:41:17 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 .\"	Thorsten Glaser <tg@mirbsd.org>
@@ -71,7 +71,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: September 5 2010 $
+.Dd $Mdocdate: September 24 2010 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -154,9 +154,12 @@
 .Op Fl +abCefhiklmnprUuvXx
 .Op Fl T Ar /dev/ttyCn | \-
 .Op Fl +o Ar option
-.Oo Fl c Ar string \*(Ba Fl s \*(Ba
-.Ar \ file\ \&
-.Op Ar argument ... Oc
+.Oo
+.Fl c Ar string \*(Ba
+.Fl s \*(Ba
+.Ar file
+.Op Ar argument ...
+.Oc
 .Ek
 .Sh DESCRIPTION
 .Nm
