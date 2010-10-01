@@ -154,9 +154,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.416 2010/09/19 19:28:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.417 2010/10/01 19:04:38 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2010/09/19"
+#define MKSH_VERSION "R39 2010/10/01"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -631,7 +631,12 @@ extern const struct shoption options[];
 EXTERN char null[] I__("");
 /* helpers for string pooling */
 EXTERN const char T_intovfl[] I__("integer overflow %lu %c %lu prevented");
+#if defined(__GNUC__)
+/* trust this to have string pooling; -Wformat bitches otherwise */
+#define T_synerr	"syntax error"
+#else
 EXTERN const char T_synerr[] I__("syntax error");
+#endif
 EXTERN const char T_r_fc_e_[] I__("r=fc -e -");
 #define T_fc_e_		(T_r_fc_e_ + 2)		/* "fc -e -" */
 #define Tn_fc_e_	7			/* strlen(T_fc_e_) */

@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.461 2010/09/14 21:26:04 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.462 2010/10/01 19:04:35 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1137,14 +1137,14 @@ ac_testn sig_t <<-'EOF'
 	#include <sys/types.h>
 	#include <signal.h>
 	#include <stddef.h>
-	int main(void) { return ((int)(ptrdiff_t)(sig_t)kill(0,0)); }
+	int main(void) { return ((int)(ptrdiff_t)(sig_t)(ptrdiff_t)kill(0,0)); }
 EOF
 
 ac_testn sighandler_t '!' sig_t 0 <<-'EOF'
 	#include <sys/types.h>
 	#include <signal.h>
 	#include <stddef.h>
-	int main(void) { return ((int)(ptrdiff_t)(sighandler_t)kill(0,0)); }
+	int main(void) { return ((int)(ptrdiff_t)(sighandler_t)(ptrdiff_t)kill(0,0)); }
 EOF
 if test 1 = $HAVE_SIGHANDLER_T; then
 	CPPFLAGS="$CPPFLAGS -Dsig_t=sighandler_t"
@@ -1155,7 +1155,7 @@ ac_testn __sighandler_t '!' sig_t 0 <<-'EOF'
 	#include <sys/types.h>
 	#include <signal.h>
 	#include <stddef.h>
-	int main(void) { return ((int)(ptrdiff_t)(__sighandler_t)kill(0,0)); }
+	int main(void) { return ((int)(ptrdiff_t)(__sighandler_t)(ptrdiff_t)kill(0,0)); }
 EOF
 if test 1 = $HAVE___SIGHANDLER_T; then
 	CPPFLAGS="$CPPFLAGS -Dsig_t=__sighandler_t"
