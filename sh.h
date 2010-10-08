@@ -154,7 +154,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.417 2010/10/01 19:04:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.418 2010/10/08 17:56:57 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2010/10/01"
 
@@ -303,11 +303,6 @@ extern int getrusage(int, struct rusage *);
 
 #if !HAVE_REVOKE_DECL
 extern int revoke(const char *);
-#endif
-
-#if !HAVE_SETMODE
-mode_t getmode(const void *, mode_t);
-void *setmode(const char *);
 #endif
 
 #ifdef __ultrix

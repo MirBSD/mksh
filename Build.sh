@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.462 2010/10/01 19:04:35 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.463 2010/10/08 17:56:55 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -509,6 +509,8 @@ UWIN*)
 	oswarn='; it may or may not work'
 	;;
 esac
+
+: ${HAVE_MKNOD=0}
 
 : ${CC=cc} ${NROFF=nroff}
 test 0 = $r && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
@@ -1044,7 +1046,6 @@ if ac_ifcpp 'ifdef MKSH_SMALL' isset_MKSH_SMALL '' \
 		;;
 	esac
 
-	: ${HAVE_MKNOD=0}
 	: ${HAVE_NICE=0}
 	: ${HAVE_REVOKE=0}
 	: ${HAVE_PERSISTENT_HISTORY=0}
@@ -1265,20 +1266,6 @@ ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<-'EOF'
 	int main(void) { return ((int)(ptrdiff_t)(void *)nl_langinfo(CODESET)); }
 EOF
 
-ac_test setmode mknod 1 <<-'EOF'
-	/* XXX imake style */
-	/* XXX conditions correct? */
-	#if defined(__MSVCRT__) || defined(__CYGWIN__)
-	/* force a failure: Win32 setmode() is not what we want... */
-	int main(void) { return (thiswillneverbedefinedIhope()); }
-	#else
-	#include <sys/types.h>
-	#include <unistd.h>
-	int main(int ac, char *av[]) { return (getmode(setmode(av[0]),
-	    (mode_t)ac)); }
-	#endif
-EOF
-
 ac_test setresugid <<-'EOF'
 	#include <sys/types.h>
 	#include <unistd.h>
@@ -1423,7 +1410,6 @@ mksh_cfg: NSIG' >conftest.c
 	$e done.
 fi
 
-addsrcs '!' HAVE_SETMODE setmode.c
 addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && CPPFLAGS="$CPPFLAGS -DMKSH_PRINTF_BUILTIN"
