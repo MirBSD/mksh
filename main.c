@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.172 2010/09/14 21:26:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.173 2010/11/01 17:29:04 tg Exp $");
 
 extern char **environ;
 
@@ -672,10 +672,14 @@ unwind(int i)
 	/* ordering for EXIT vs ERR is a bit odd (this is what AT&T ksh does) */
 	if (i == LEXIT || (Flag(FERREXIT) && (i == LERROR || i == LINTR) &&
 	    sigtraps[SIGEXIT_].trap)) {
-		runtrap(&sigtraps[SIGEXIT_]);
+		++trap_nested;
+		runtrap(&sigtraps[SIGEXIT_], trap_nested == 1);
+		--trap_nested;
 		i = LLEAVE;
 	} else if (Flag(FERREXIT) && (i == LERROR || i == LINTR)) {
-		runtrap(&sigtraps[SIGERR_]);
+		++trap_nested;
+		runtrap(&sigtraps[SIGERR_], trap_nested == 1);
+		--trap_nested;
 		i = LLEAVE;
 	}
 	while (1) {

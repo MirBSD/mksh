@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.163 2010/09/15 21:08:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.164 2010/11/01 17:29:02 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2293,7 +2293,8 @@ c_exitreturn(const char **wp)
 			warningf(true, "%s: %s", arg, "bad number");
 		} else
 			exstat = n;
-	}
+	} else if (trap_exstat != -1)
+		exstat = trap_exstat;
 	if (wp[0][0] == 'r') { /* return */
 		struct env *ep;
 

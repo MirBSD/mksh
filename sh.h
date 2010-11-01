@@ -154,9 +154,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.418 2010/10/08 17:56:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.419 2010/11/01 17:29:05 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2010/10/01"
+#define MKSH_VERSION "R39 2010/11/01"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -584,6 +584,8 @@ EXTERN struct mksh_kshstate_v {
 	int exstat_;		/* exit status */
 	int subst_exstat_;	/* exit status of last $(..)/`..` */
 	struct env env_;	/* top-level parsing & execution env. */
+	short trap_exstat_;	/* exit status before running a trap */
+	uint8_t trap_nested_;	/* running nested traps */
 	uint8_t shell_flags_[FNFLAGS];
 } kshstate_v;
 EXTERN struct mksh_kshstate_f {
@@ -602,6 +604,8 @@ EXTERN struct mksh_kshstate_f {
 #define kshppid		kshstate_f.kshppid_
 #define exstat		kshstate_v.exstat_
 #define subst_exstat	kshstate_v.subst_exstat_
+#define trap_exstat	kshstate_v.trap_exstat_
+#define trap_nested	kshstate_v.trap_nested_
 
 /* evil hack: return hash(kshstate_f concat (kshstate_f'.h:=hash(arg))) */
 uint32_t evilhash(const char *);
@@ -1526,7 +1530,7 @@ void intrcheck(void);
 int fatal_trap_check(void);
 int trap_pending(void);
 void runtraps(int intr);
-void runtrap(Trap *);
+void runtrap(Trap *, bool);
 void cleartraps(void);
 void restoresigs(void);
 void settrap(Trap *, const char *);

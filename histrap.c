@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.102 2010/09/14 21:26:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.103 2010/11/01 17:29:03 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -1066,6 +1066,8 @@ inittraps(void)
 	int i;
 	const char *cs;
 
+	trap_exstat = -1;
+
 	/* Populate sigtraps based on sys_signame and sys_siglist. */
 	for (i = 0; i <= NSIG; i++) {
 		sigtraps[i].signal = i;
@@ -1271,22 +1273,29 @@ runtraps(int flag)
 		intrsig = 0;
 	if (flag & TF_FATAL)
 		fatal_trap = 0;
+	++trap_nested;
 	for (p = sigtraps, i = NSIG+1; --i >= 0; p++)
 		if (p->set && (!flag ||
 		    ((p->flags & flag) && p->trap == NULL)))
-			runtrap(p);
+			runtrap(p, false);
+	if (!--trap_nested)
+		runtrap(NULL, true);
 }
 
 void
-runtrap(Trap *p)
+runtrap(Trap *p, bool is_last)
 {
-	int	i = p->signal;
-	char	*trapstr = p->trap;
-	int	oexstat;
-	int	old_changed = 0;
+	int old_changed = 0, i;
+	char *trapstr;
 
+	if (p == NULL)
+		/* just clean up, see runtraps() above */
+		goto donetrap;
+	i = p->signal;
+	trapstr = p->trap;
 	p->set = 0;
-	if (trapstr == NULL) { /* SIG_DFL */
+	if (trapstr == NULL) {
+		/* SIG_DFL */
 		if (p->flags & TF_FATAL) {
 			/* eg, SIGHUP */
 			exstat = 128 + i;
@@ -1297,22 +1306,23 @@ runtrap(Trap *p)
 			exstat = 128 + i;
 			unwind(LINTR);
 		}
-		return;
+		goto donetrap;
 	}
-	if (trapstr[0] == '\0') /* SIG_IGN */
-		return;
+	if (trapstr[0] == '\0')
+		/* SIG_IGN */
+		goto donetrap;
 	if (i == SIGEXIT_ || i == SIGERR_) {	/* avoid recursion on these */
 		old_changed = p->flags & TF_CHANGED;
 		p->flags &= ~TF_CHANGED;
 		p->trap = NULL;
 	}
-	oexstat = exstat;
+	if (trap_exstat == -1)
+		trap_exstat = exstat;
 	/*
 	 * Note: trapstr is fully parsed before anything is executed, thus
 	 * no problem with afree(p->trap) in settrap() while still in use.
 	 */
 	command(trapstr, current_lineno);
-	exstat = oexstat;
 	if (i == SIGEXIT_ || i == SIGERR_) {
 		if (p->flags & TF_CHANGED)
 			/* don't clear TF_CHANGED */
@@ -1320,6 +1330,13 @@ runtrap(Trap *p)
 		else
 			p->trap = trapstr;
 		p->flags |= old_changed;
+	}
+
+ donetrap:
+	/* we're the last trap of a sequence executed */
+	if (is_last && trap_exstat != -1) {
+		exstat = trap_exstat;
+		trap_exstat = -1;
 	}
 }
 
