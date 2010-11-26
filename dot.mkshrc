@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.56 2010/07/11 13:54:37 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.57 2010/11/26 21:08:54 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -33,7 +33,7 @@ PS1='$(precmd)${USER:=$(ulimit -c 0;id -un 2>&-||print \?)}@${HOSTNAME%%.*}:$(
 	typeset d=${PWD:-?} n p=~; [[ $p = ?(*/) ]] || d=${d/#$p/~}
 	(( (${%d}>0 ? ${%d}: ${#d}) > (n = (COLUMNS/3<7 ? 7: COLUMNS/3)) )) && {
 	d=${d:(-n)}; p=...; } || p=; print -nr -- "$p$d") '"$PS1 "
-: ${MKSH:=$(whence -p mksh)}; export EDITOR HOSTNAME MKSH PS1 TERM USER
+: ${MKSH:=$(whence -p mksh)}; export EDITOR HOSTNAME MKSH TERM USER
 alias ls=ls
 unalias ls
 alias l='ls -F'
