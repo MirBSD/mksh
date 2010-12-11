@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.46 2010/11/01 17:28:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.47 2010/12/11 16:05:03 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -810,7 +810,7 @@ utf_wctomb(char *dst, unsigned int wc)
  * disclaims all warranties with regard to this software.
  */
 
-__RCSID("$miros: src/lib/libc/i18n/wcwidth.c,v 1.8 2008/09/20 12:01:18 tg Exp $");
+__RCSID("$miros: src/lib/libc/i18n/wcwidth.c,v 1.10 2010/12/11 16:05:03 tg Exp $");
 
 int
 utf_wcwidth(unsigned int c)
@@ -889,7 +889,7 @@ utf_wcwidth(unsigned int c)
 	size_t min = 0, mid, max = NELEM(comb) - 1;
 
 	/* test for 8-bit control characters */
-	if (c < 32 || (c >= 0x7f && c < 0xa0))
+	if (c < 32 || (c >= 0x7F && c < 0xA0))
 		return (c ? -1 : 0);
 
 	/* binary search in table of non-spacing characters */
@@ -905,16 +905,17 @@ utf_wcwidth(unsigned int c)
 		}
 
 	/* if we arrive here, c is not a combining or C0/C1 control char */
+
 	return ((c >= 0x1100 && (
-	    c <= 0x115f || /* Hangul Jamo init. consonants */
-	    c == 0x2329 || c == 0x232a ||
-	    (c >= 0x2e80 && c <= 0xa4cf && c != 0x303f) || /* CJK ... Yi */
-	    (c >= 0xac00 && c <= 0xd7a3) || /* Hangul Syllables */
-	    (c >= 0xf900 && c <= 0xfaff) || /* CJK Compatibility Ideographs */
-	    (c >= 0xfe10 && c <= 0xfe19) || /* Vertical forms */
-	    (c >= 0xfe30 && c <= 0xfe6f) || /* CJK Compatibility Forms */
-	    (c >= 0xff00 && c <= 0xff60) || /* Fullwidth Forms */
-	    (c >= 0xffe0 && c <= 0xffe6))) ? 2 : 1);
+	    c <= 0x115F || /* Hangul Jamo init. consonants */
+	    c == 0x2329 || c == 0x232A ||
+	    (c >= 0x2E80 && c <= 0xA4CF && c != 0x303F) || /* CJK ... Yi */
+	    (c >= 0xAC00 && c <= 0xD7A3) || /* Hangul Syllables */
+	    (c >= 0xF900 && c <= 0xFAFF) || /* CJK Compatibility Ideographs */
+	    (c >= 0xFE10 && c <= 0xFE19) || /* Vertical forms */
+	    (c >= 0xFE30 && c <= 0xFE6F) || /* CJK Compatibility Forms */
+	    (c >= 0xFF00 && c <= 0xFF60) || /* Fullwidth Forms */
+	    (c >= 0xFFE0 && c <= 0xFFE6))) ? 2 : 1);
 }
 /* --- end of wcwidth.c excerpt --- */
 #endif
