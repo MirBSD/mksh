@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.463 2010/10/08 17:56:55 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.464 2010/12/12 14:06:35 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1047,7 +1047,6 @@ if ac_ifcpp 'ifdef MKSH_SMALL' isset_MKSH_SMALL '' \
 	esac
 
 	: ${HAVE_NICE=0}
-	: ${HAVE_REVOKE=0}
 	: ${HAVE_PERSISTENT_HISTORY=0}
 	check_categories=$check_categories,smksh
 	HAVE_ISSET_MKSH_CONSERVATIVE_FDS=1	# from sh.h
