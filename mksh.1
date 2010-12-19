@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.242 2010/10/08 17:30:05 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.243 2010/12/19 20:00:55 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.138 2010/09/20 07:41:17 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
@@ -71,7 +71,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: October 8 2010 $
+.Dd $Mdocdate: December 19 2010 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -971,6 +971,9 @@ If a single-quoted string is preceded by an unquoted
 C style backslash expansion (see below) is applied (even single quote
 characters inside can be escaped and do not terminate the string then);
 the expanded result is treated as any other single-quoted string.
+If a double-quoted string is preceded by an unquoted
+.Ql $ ,
+the latter is ignored.
 .Ss Backslash expansion
 In places where backslashes are expanded, certain C and
 .At

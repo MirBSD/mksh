@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.396 2010/11/01 17:29:00 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.397 2010/12/19 20:00:53 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2010/11/01
+	@(#)MIRBSD KSH R39 2010/12/19
 description:
 	Check version of shell.
 stdin:
@@ -5983,6 +5983,22 @@ expected-stdout:
 	000000A0  0B 5C 77 5C 79 5C 7A 5C - 7B 5C 7C 5C 7D 5C 7E 20  |.\w\y\z\{\|\}\~ |
 	000000B0  E2 82 AC 64 20 EF BF BD - 20 12 33 20 78 20 53 20  |...d ... .3 x S |
 	000000C0  53 34 0A                -                          |S4.|
+---
+name: dollar-doublequoted-strings
+description:
+	Check that a $ preceding "…" is ignored
+stdin:
+	echo $"Localise me!"
+	cat <<<$"Me too!"
+	V=X
+	aol=aol
+	cat <<-$"aol"
+		I do not take a $V for a V!
+	aol
+expected-stdout:
+	Localise me!
+	Me too!
+	I do not take a $V for a V!
 ---
 name: dollar-quoted-strings
 description:

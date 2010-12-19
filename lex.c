@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.121 2010/09/14 21:26:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.122 2010/12/19 20:00:54 tg Exp $");
 
 /*
  * states while lexing word
@@ -485,9 +485,13 @@ yylex(int cf)
 					PUSH_STATE(SEQUOTE);
 					statep->ls_sequote.got_NUL = false;
 					break;
+				} else if (c == '"' && (state == SBASE)) {
+					/* XXX which other states are valid? */
+					goto DEQUOTE;
 				} else {
 					*wp++ = CHAR;
 					*wp++ = '$';
+ DEQUOTE:
 					ungetsc(c);
 				}
 				break;
@@ -834,7 +838,8 @@ yylex(int cf)
 					PUSH_STATE(SEQUOTE);
 					statep->ls_sequote.got_NUL = false;
 					goto sherestring_quoted;
-				}
+				} else if (c2 == '"')
+					goto sherestring_dquoted;
 				ungetsc(c2);
 				goto sherestring_regular;
 			} else if (c == '\'') {
@@ -845,6 +850,7 @@ yylex(int cf)
 				/* invoke quoting mode */
 				Xstring(ws, wp)[0] = QCHAR;
 			} else if (c == '"') {
+ sherestring_dquoted:
 				state = statep->ls_state = SHEREDQUOTE;
 				*wp++ = OQUOTE;
 				/* just don't IFS split; no quoting mode */
@@ -876,7 +882,8 @@ yylex(int cf)
 					PUSH_STATE(SEQUOTE);
 					statep->ls_sequote.got_NUL = false;
 					goto sheredelim_quoted;
-				}
+				} else if (c2 == '"')
+					goto sheredelim_dquoted;
 				ungetsc(c2);
 				goto sheredelim_regular;
 			} else if (c == '\'') {
@@ -885,6 +892,7 @@ yylex(int cf)
 				*wp++ = OQUOTE;
 				ignore_backslash_newline++;
 			} else if (c == '"') {
+ sheredelim_dquoted:
 				state = statep->ls_state = SHEREDQUOTE;
 				*wp++ = OQUOTE;
 			} else {
