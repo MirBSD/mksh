@@ -9,7 +9,7 @@
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -154,9 +154,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.420 2010/12/19 20:00:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.421 2011/01/09 21:57:29 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2010/12/19"
+#define MKSH_VERSION "R39 2011/01/08"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -630,6 +630,7 @@ extern const struct shoption options[];
 EXTERN char null[] I__("");
 /* helpers for string pooling */
 EXTERN const char T_intovfl[] I__("integer overflow %lu %c %lu prevented");
+EXTERN const char T_oomem[] I__("can't allocate %lu data bytes");
 #if defined(__GNUC__)
 /* trust this to have string pooling; -Wformat bitches otherwise */
 #define T_synerr	"syntax error"
@@ -1199,7 +1200,7 @@ struct ioword {
 #define DB_BE	4	/* an inserted -BE */
 #define DB_PAT	5	/* a pattern argument */
 
-#define X_EXTRA	8	/* this many extra bytes in X string */
+#define X_EXTRA	20	/* this many extra bytes in X string */
 
 typedef struct XString {
 	char *end, *beg;	/* end, begin of string */
@@ -1397,6 +1398,8 @@ EXTERN int histsize;	/* history size */
 /* user and system time of last j_waitjed job */
 EXTERN struct timeval j_usrtime, j_systime;
 
+#define notoktomul(fac1, fac2)	((fac1) && (fac2) && \
+				    (SIZE_MAX / (fac1) < (fac2)))
 #define notoktoadd(val, cnst)	((val) > (SIZE_MAX - (cnst)))
 #define checkoktoadd(val, cnst) do {					\
 	if (notoktoadd((val), (cnst)))					\
@@ -1637,6 +1640,7 @@ int xstrcmp(const void *, const void *);
 void ksh_getopt_reset(Getopt *, int);
 int ksh_getopt(const char **, Getopt *, const char *);
 void print_value_quoted(const char *);
+char *quote_value(const char *);
 void print_columns(struct shf *, int,
     char *(*)(char *, int, int, const void *),
     const void *, int, int, bool);

@@ -2,7 +2,7 @@
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.148 2010/09/19 19:28:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.149 2011/01/09 21:57:27 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
 
@@ -921,25 +921,33 @@ void
 print_value_quoted(const char *s)
 {
 	const char *p;
-	int inquote = 0;
+	bool inquote = false;
 
-	/* Test if any quotes are needed */
+	/* first, check whether any quotes are needed */
 	for (p = s; *p; p++)
 		if (ctype(*p, C_QUOTE))
 			break;
 	if (!*p) {
+		/* nope, use the shortcut */
 		shf_puts(s, shl_stdout);
 		return;
 	}
+
+	/* quote via state machine */
 	for (p = s; *p; p++) {
 		if (*p == '\'') {
-			if (inquote)
+			/*
+			 * multiple '''s or any ' at beginning of string
+			 * look nicer this way than when simply substituting
+			 */
+			if (inquote) {
 				shf_putc('\'', shl_stdout);
+				inquote = false;
+			}
 			shf_putc('\\', shl_stdout);
-			inquote = 0;
 		} else if (!inquote) {
 			shf_putc('\'', shl_stdout);
-			inquote = 1;
+			inquote = true;
 		}
 		shf_putc(*p, shl_stdout);
 	}

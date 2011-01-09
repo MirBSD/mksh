@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009, 2010
+ * Copyright (c) 2009, 2010, 2011
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -20,7 +20,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.13 2010/09/14 21:26:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.14 2011/01/09 21:57:27 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -70,7 +70,7 @@ findptr(ALLOC_ITEM **lpp, char *ptr, Area *ap)
 void *
 aresize2(void *ptr, size_t fac1, size_t fac2, Area *ap)
 {
-	if (fac1 && fac2 && (SIZE_MAX / fac1 < fac2))
+	if (notoktomul(fac1, fac2))
 		internal_errorf(T_intovfl, (unsigned long)fac1, '*',
 		    (unsigned long)fac2);
 	return (aresize(ptr, fac1 * fac2, ap));
@@ -95,8 +95,7 @@ aresize(void *ptr, size_t numb, Area *ap)
 	    || ALLOC_ISUNALIGNED(lp)
 #endif
 	    )
-		internal_errorf("can't allocate %lu data bytes",
-		    (unsigned long)numb);
+		internal_errorf(T_oomem, (unsigned long)numb);
 	/* this only works because Area is an ALLOC_ITEM */
 	lp->next = ap->next;
 	ap->next = lp;

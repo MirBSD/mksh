@@ -1,7 +1,7 @@
 /*	$OpenBSD: exec.c,v 1.49 2009/01/29 23:27:26 jaredy Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,18 +22,18 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.83 2010/09/15 21:08:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.84 2011/01/09 21:57:25 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
 #endif
 
-static int comexec(struct op *, struct tbl *volatile, const char **,
+static int comexec(struct op *, struct tbl * volatile, const char **,
     int volatile, volatile int *);
 static void scriptexec(struct op *, const char **) MKSH_A_NORETURN;
 static int call_builtin(struct tbl *, const char **);
 static int iosetup(struct ioword *, struct tbl *);
-static int herein(const char *, int);
+static int herein(const char *, int, char **);
 static const char *do_selectargs(const char **, bool);
 static Test_op dbteste_isa(Test_env *, Test_meta);
 static const char *dbteste_getopnd(Test_env *, Test_op, bool);
@@ -43,7 +43,7 @@ static void dbteste_error(Test_env *, int, const char *);
  * execute command tree
  */
 int
-execute(struct op *volatile t,
+execute(struct op * volatile t,
     volatile int flags,		/* if XEXEC don't fork */
     volatile int * volatile xerrok)
 {
@@ -52,9 +52,10 @@ execute(struct op *volatile t,
 	int pv[2];
 	const char ** volatile ap;
 	char ** volatile up;
-	const char *s, *cp;
+	const char *s, *ccp;
 	struct ioword **iowp;
 	struct tbl *tp = NULL;
+	char *cp;
 
 	if (t == NULL)
 		return (0);
@@ -71,7 +72,48 @@ execute(struct op *volatile t,
 	if (trap)
 		runtraps(0);
 
-	if (t->type == TCOM) {
+	if (t->type == TCOM /* we want to run an executable... */) {
+		/* check if this is 'var=<<EOF' */
+		if (
+		    /* we have zero arguments, i.e. no programme to run */
+		    t->args[0] == NULL &&
+		    /* we have exactly one variable assignment */
+		    t->vars[0] != NULL && t->vars[1] == NULL &&
+		    /* we have exactly one I/O redirection */
+		    t->ioact != NULL && t->ioact[0] != NULL &&
+		    t->ioact[1] == NULL &&
+		    /* of type "here document" (or "here string") */
+		    (t->ioact[0]->flag & IOTYPE) == IOHERE &&
+		    /* the variable assignment begins with a valid varname */
+		    (ccp = skip_wdvarname(t->vars[0], true)) != t->vars[0] &&
+		    /* and has no right-hand side (i.e. "varname=") */
+		    ccp[0] == CHAR && ccp[1] == '=' && ccp[2] == EOS &&
+		    /* plus we can have a here document content */
+		    herein(t->ioact[0]->heredoc, t->ioact[0]->flag & IOEVAL,
+		    &cp) == 0 && cp && *cp) {
+			char *sp = cp, *dp;
+			size_t n = ccp - t->vars[0] + 2, z;
+
+			/* drop redirection (will be garbage collected) */
+			t->ioact = NULL;
+
+			/* set variable to its expanded value */
+			z = strlen(cp) + 1;
+			if (notoktomul(z, 2) || notoktoadd(z * 2, n))
+				internal_errorf(T_oomem, (unsigned long)-1);
+			dp = alloc(z * 2 + n, ATEMP);
+			memcpy(dp, t->vars[0], n);
+			t->vars[0] = dp;
+			dp += n;
+			while (*sp) {
+				*dp++ = QCHAR;
+				*dp++ = *sp++;
+			}
+			*dp = EOS;
+			/* free the expanded value */
+			afree(cp, APERM);
+		}
+
 		/* Clear subst_exstat before argument expansion. Used by
 		 * null commands (see comexec() and c_eval()) and by c_set().
 		 */
@@ -293,12 +335,12 @@ execute(struct op *volatile t,
 			}
 		} else { /* TSELECT */
 			for (;;) {
-				if (!(cp = do_selectargs(ap, is_first))) {
+				if (!(ccp = do_selectargs(ap, is_first))) {
 					rv = 1;
 					break;
 				}
 				is_first = false;
-				setstr(global(t->str), cp, KSH_UNWIND_ERROR);
+				setstr(global(t->str), ccp, KSH_UNWIND_ERROR);
 				execute(t->left, flags & XERROK, xerrok);
 			}
 		}
@@ -337,11 +379,11 @@ execute(struct op *volatile t,
 		break;
 
 	case TCASE:
-		cp = evalstr(t->str, DOTILDE);
+		ccp = evalstr(t->str, DOTILDE);
 		for (t = t->left; t != NULL && t->type == TPAT; t = t->right)
 		    for (ap = (const char **)t->vars; *ap; ap++)
 			if ((s = evalstr(*ap, DOTILDE|DOPAT)) &&
-			    gmatchx(cp, s, false))
+			    gmatchx(ccp, s, false))
 				goto Found;
 		break;
  Found:
@@ -400,7 +442,7 @@ execute(struct op *volatile t,
  */
 
 static int
-comexec(struct op *t, struct tbl *volatile tp, const char **ap,
+comexec(struct op *t, struct tbl * volatile tp, const char **ap,
     volatile int flags, volatile int *xerrok)
 {
 	int i;
@@ -566,7 +608,7 @@ comexec(struct op *t, struct tbl *volatile tp, const char **ap,
 	case CFUNC: {			/* function call */
 		volatile unsigned char old_xflag;
 		volatile Tflag old_inuse;
-		const char *volatile old_kshname;
+		const char * volatile old_kshname;
 
 		if (!(tp->flag & ISSET)) {
 			struct tbl *ftp;
@@ -1171,7 +1213,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	case IOHERE:
 		do_open = 0;
 		/* herein() returns -2 if error has been printed */
-		u = herein(iop->heredoc, iop->flag & IOEVAL);
+		u = herein(iop->heredoc, iop->flag & IOEVAL, NULL);
 		/* cp may have wrong name */
 		break;
 
@@ -1261,66 +1303,91 @@ iosetup(struct ioword *iop, struct tbl *tp)
 }
 
 /*
- * open here document temp file.
- * if unquoted here, expand here temp file into second temp file.
+ * Process here documents by providing the content, either as
+ * result (globally allocated) string or in a temp file; if
+ * unquoted, the string is expanded first.
  */
 static int
-herein(const char *content, int sub)
+hereinval(const char *content, int sub, char **resbuf, struct shf *shf)
 {
-	volatile int fd = -1;
-	struct source *s, *volatile osource;
-	struct shf *volatile shf;
-	struct temp *h;
-	int i;
-
-	/* ksh -c 'cat << EOF' can cause this... */
-	if (content == NULL) {
-		warningf(true, "%s missing", "here document");
-		return (-2); /* special to iosetup(): don't print error */
-	}
-
-	/* Create temp file to hold content (done before newenv so temp
-	 * doesn't get removed too soon).
-	 */
-	h = maketemp(ATEMP, TT_HEREDOC_EXP, &e->temps);
-	if (!(shf = h->shf) || (fd = open(h->name, O_RDONLY, 0)) < 0) {
-		fd = errno;
-		warningf(true, "can't %s temporary file %s: %s",
-		    !shf ? "create" : "open",
-		    h->name, strerror(fd));
-		if (shf)
-			shf_close(shf);
-		return (-2 /* special to iosetup(): don't print error */);
-	}
+	const char *ccp;
+	struct source *s, *osource;
 
 	osource = source;
 	newenv(E_ERRH);
-	i = sigsetjmp(e->jbuf, 0);
-	if (i) {
+	if (sigsetjmp(e->jbuf, 0)) {
 		source = osource;
 		quitenv(shf);
-		close(fd);
-		return (-2); /* special to iosetup(): don't print error */
+		/* special to iosetup(): don't print error */
+		return (-2);
 	}
 	if (sub) {
-		/* Do substitutions on the content of heredoc */
+		/* do substitutions on the content of heredoc */
 		s = pushs(SSTRING, ATEMP);
 		s->start = s->str = content;
 		source = s;
 		if (yylex(ONEWORD|HEREDOC) != LWORD)
 			internal_errorf("%s: %s", "herein", "yylex");
 		source = osource;
-		shf_puts(evalstr(yylval.cp, 0), shf);
+		ccp = evalstr(yylval.cp, 0);
 	} else
-		shf_puts(content, shf);
+		ccp = content;
+
+	if (resbuf == NULL)
+		shf_puts(ccp, shf);
+	else
+		strdupx(*resbuf, ccp, APERM);
 
 	quitenv(NULL);
+	return (0);
+}
+
+static int
+herein(const char *content, int sub, char **resbuf)
+{
+	int fd = -1;
+	struct shf *shf;
+	struct temp *h;
+	int i;
+
+	/* ksh -c 'cat << EOF' can cause this... */
+	if (content == NULL) {
+		warningf(true, "%s missing", "here document");
+		/* special to iosetup(): don't print error */
+		return (-2);
+	}
+
+	/* skip all the fd setup if we just want the value */
+	if (resbuf != NULL)
+		return (hereinval(content, sub, resbuf, NULL));
+
+	/*
+	 * Create temp file to hold content (done before newenv
+	 * so temp doesn't get removed too soon).
+	 */
+	h = maketemp(ATEMP, TT_HEREDOC_EXP, &e->temps);
+	if (!(shf = h->shf) || (fd = open(h->name, O_RDONLY, 0)) < 0) {
+		i = errno;
+		warningf(true, "can't %s temporary file %s: %s",
+		    !shf ? "create" : "open", h->name, strerror(i));
+		if (shf)
+			shf_close(shf);
+		/* special to iosetup(): don't print error */
+		return (-2);
+	}
+
+	if (hereinval(content, sub, NULL, shf) == -2) {
+		close(fd);
+		/* special to iosetup(): don't print error */
+		return (-2);
+	}
 
 	if (shf_close(shf) == EOF) {
 		i = errno;
 		close(fd);
 		warningf(true, "%s: %s: %s", "write", h->name, strerror(i));
-		return (-2);	/* special to iosetup(): don't print error */
+		/* special to iosetup(): don't print error */
+		return (-2);
 	}
 
 	return (fd);

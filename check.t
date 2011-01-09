@@ -1,9 +1,9 @@
-# $MirOS: src/bin/mksh/check.t,v 1.397 2010/12/19 20:00:53 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.398 2011/01/09 21:57:22 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
 #-
-# Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+# Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2010/12/19
+	@(#)MIRBSD KSH R39 2011/01/08
 description:
 	Check version of shell.
 stdin:
@@ -2006,6 +2006,45 @@ stdin:
 	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<< bar
 expected-stdout:
 	one
+---
+name: heredoc-10
+description:
+	Check direct here document assignment
+stdin:
+	x=u
+	va=<<EOF
+	=a $x \x40=
+	EOF
+	vb=<<'EOF'
+	=b $x \x40=
+	EOF
+	function foo {
+		vc=<<-EOF
+			=c $x \x40=
+		EOF
+	}
+	typeset -f foo
+	foo
+	# rather nonsensical, but…
+	vd=<<<"=d $x \x40="
+	ve=<<<'=e $x \x40='
+	vf=<<<$'=f $x \x40='
+	# now check
+	print -r -- "| va={$va} vb={$vb} vc={$vc} vd={$vd} ve={$ve} vf={$vf} |"
+expected-stdout:
+	function foo {
+	    vc= <<- EOF 
+	=c $x \x40=
+	EOF
+	
+	} 
+	| va={=a u \x40=
+	} vb={=b $x \x40=
+	} vc={=c u \x40=
+	} vd={=d u \x40=
+	} ve={=e $x \x40=
+	} vf={=f $x @=
+	} |
 ---
 name: heredoc-quoting-unsubst
 description:

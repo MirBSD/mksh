@@ -4,7 +4,8 @@
 /*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
 /*-
- * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+ *		 2010, 2011
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -25,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.164 2010/11/01 17:29:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.165 2011/01/09 21:57:26 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1174,8 +1175,10 @@ c_typeset(const char **wp)
 							char *s = str_val(vp);
 
 							shf_putc('=', shl_stdout);
-							/* AT&T ksh can't have
-							 * justified integers.. */
+							/*
+							 * AT&T ksh can't have
+							 * justified integers...
+							 */
 							if ((vp->flag &
 							    (INTEGER|LJUST|RJUST)) ==
 							    INTEGER)
@@ -3464,8 +3467,7 @@ c_cat(const char **wp)
 
 	/* XXX uses malloc instead of lalloc (for alignment/speed) */
 	if ((buf = malloc(MKSH_CAT_BUFSIZ)) == NULL) {
-		bi_errorf("can't allocate %lu data bytes",
-		    (unsigned long)MKSH_CAT_BUFSIZ);
+		bi_errorf(T_oomem, (unsigned long)MKSH_CAT_BUFSIZ);
 		return (1);
 	}
 
