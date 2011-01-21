@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.245 2011/01/21 21:04:45 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.246 2011/01/21 22:00:14 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.138 2010/09/20 07:41:17 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -3568,6 +3568,7 @@ directories to the root directory) is printed.
 .Pp
 .It Xo
 .Ic read
+.Op Fl d Ar delimiter
 .Op Fl prsu Ns Op Ar n
 .Op Ar parameter ...
 .Xc
@@ -3577,6 +3578,12 @@ using the
 parameter (see
 .Sx Substitution
 above), and assigns each field to the specified parameters.
+Lines are delimited by the first character of
+.Ar delimiter ,
+.Dv NUL
+if empty, if
+.Fl d
+was used, a newline otherwise.
 If there are more parameters than fields, the extra parameters are set to
 .Dv NULL ,
 or alternatively, if there are more fields than parameters, the last parameter

@@ -26,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.165 2011/01/09 21:57:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.166 2011/01/21 22:00:15 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2020,11 +2020,14 @@ c_read(const char **wp)
 	struct shf *shf;
 	XString cs, xs = { NULL, NULL, 0, NULL};
 	struct tbl *vp;
-	char *ccp, *xp = NULL, *wpalloc = NULL;
+	char *ccp, *xp = NULL, *wpalloc = NULL, delim = '\n';
 	static char REPLY[] = "REPLY";
 
-	while ((optc = ksh_getopt(wp, &builtin_opt, "prsu,")) != -1)
+	while ((optc = ksh_getopt(wp, &builtin_opt, "d:prsu,")) != -1)
 		switch (optc) {
+		case 'd':
+			delim = builtin_opt.optarg[0];
+			break;
 		case 'p':
 			if ((fd = coproc_getfd(R_OK, &emsg)) < 0) {
 				bi_errorf("%s: %s", "-p", emsg);
@@ -2053,7 +2056,8 @@ c_read(const char **wp)
 	if (*wp == NULL)
 		*--wp = REPLY;
 
-	/* Since we can't necessarily seek backwards on non-regular files,
+	/*
+	 * Since we can't necessarily seek backwards on non-regular files,
 	 * don't buffer them so we can't read too much.
 	 */
 	shf = shf_reopen(fd, SHF_RD | SHF_INTERRUPT | can_seek(fd), shl_spare);
@@ -2063,16 +2067,18 @@ c_read(const char **wp)
 		wpalloc[cp - *wp] = '\0';
 		*wp = wpalloc;
 		if (isatty(fd)) {
-			/* AT&T ksh says it prints prompt on fd if it's open
+			/*
+			 * AT&T ksh says it prints prompt on fd if it's open
 			 * for writing and is a tty, but it doesn't do it
 			 * (it also doesn't check the interactive flag,
-			 * as is indicated in the Kornshell book).
+			 * as is indicated in the Korn Shell book).
 			 */
-			shellf("%s", cp+1);
+			shellf("%s", cp + 1);
 		}
 	}
 
-	/* If we are reading from the co-process for the first time,
+	/*
+	 * If we are reading from the co-process for the first time,
 	 * make sure the other side of the pipe is closed first. This allows
 	 * the detection of eof.
 	 *
@@ -2089,10 +2095,10 @@ c_read(const char **wp)
 	Xinit(cs, ccp, 128, ATEMP);
 	for (; *wp != NULL; wp++) {
 		for (ccp = Xstring(cs, ccp); ; ) {
-			if (c == '\n' || c == EOF)
-				break;
 			while (1) {
 				c = shf_getc(shf);
+				if (c == delim)
+					break;
 				if (c == '\0')
 					continue;
 				if (c == EOF && shf_error(shf) &&
@@ -2121,7 +2127,8 @@ c_read(const char **wp)
 				if (c == '\n') {
 					c = 0;
 					if (Flag(FTALKING_I) && isatty(fd)) {
-						/* set prompt in case this is
+						/*
+						 * set prompt in case this is
 						 * called from .profile or $ENV
 						 */
 						set_prompt(PS2, NULL);
@@ -2135,7 +2142,7 @@ c_read(const char **wp)
 				expanding = true;
 				continue;
 			}
-			if (c == '\n' || c == EOF)
+			if (c == delim || c == EOF)
 				break;
 			if (ctype(c, C_IFS)) {
 				if (Xlength(cs, ccp) == 0 && ctype(c, C_IFSWS))
@@ -2174,9 +2181,10 @@ c_read(const char **wp)
 		histsave(&source->line, Xstring(xs, xp), true, false);
 		Xfree(xs, xp);
 	}
-	/* if this is the co-process fd, close the file descriptor
-	 * (can get eof if and only if all processes are have died, ie,
-	 * coproc.njobs is 0 and the pipe is closed).
+	/*
+	 * if this is the co-process fd, close the file descriptor
+	 * (can get eof if and only if all processes are have died,
+	 * i.e. coproc.njobs is 0 and the pipe is closed).
 	 */
 	if (c == EOF && !ecode)
 		coproc_read_close(fd);

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.398 2011/01/09 21:57:22 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.399 2011/01/21 22:00:17 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3410,6 +3410,30 @@ stdin:
 	echo "[$REPLY]";
 expected-stdout:
 	[abc]
+---
+name: read-delim-1
+description:
+	Check read with delimiters
+stdin:
+	emit() {
+		printf 'foo bar\tbaz\nblah \0blub\tblech\nmyok meck \0'
+	}
+	emit | while IFS= read -d "" foo; do print -r -- "<$foo>"; done
+	emit | while read -d "" foo; do print -r -- "<$foo>"; done
+	emit | while read -d "eh?" foo; do print -r -- "<$foo>"; done
+expected-stdout:
+	<foo bar	baz
+	blah >
+	<blub	blech
+	myok meck >
+	<foo bar	baz
+	blah>
+	<blub	blech
+	myok meck>
+	<foo bar	baz
+	blah blub	bl>
+	<ch
+	myok m>
 ---
 name: regression-1
 description:
