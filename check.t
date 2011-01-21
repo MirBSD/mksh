@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.399 2011/01/21 22:00:17 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.400 2011/01/21 22:25:31 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/01/08
+	@(#)MIRBSD KSH R39 2011/01/21
 description:
 	Check version of shell.
 stdin:
@@ -5940,6 +5940,16 @@ expected-stdout:
 	b we
 	c we
 	d we
+---
+name: varexpand-special-hash
+description:
+	Check special ${var@x} expansion for x=hash
+stdin:
+	typeset -i8 foo=10
+	bar=baz
+	print ${bar@#} ${baz@#} .
+expected-stdout:
+	57F1BA9A 04808901 .
 ---
 name: varexpand-null-1
 description:
