@@ -4,7 +4,7 @@
 /*	$OpenBSD: vi.c,v 1.26 2009/06/29 22:50:19 martynas Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.201 2010/09/14 21:26:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.202 2011/01/21 22:43:17 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2950,11 +2950,14 @@ x_prev_histword(int c MKSH_A_UNUSED)
 {
 	char *rcp, *cp;
 	char **xhp;
-	int m;
+	int m = 1;
 
-	if (xmp && modified > 1)
-		x_kill_region(0);
-	m = modified ? modified : 1;
+	if (x_last_command == XFUNC_prev_histword) {
+		if (xmp && modified > 1)
+			x_kill_region(0);
+		if (modified)
+			m = modified;
+	}
 	xhp = histptr - (m - 1);
 	if ((xhp < history) || !(cp = *xhp)) {
 		x_e_putc2(7);
