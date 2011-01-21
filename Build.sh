@@ -1,7 +1,7 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.465 2011/01/15 21:56:36 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.466 2011/01/21 20:51:56 tg Exp $'
 #-
-# Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+# Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -1203,7 +1203,9 @@ EOF
 ac_testn flock_ex '' 'flock and mmap' <<-'EOF'
 	#include <sys/types.h>
 	#include <sys/file.h>
+	#if HAVE_SYS_MMAN_H
 	#include <sys/mman.h>
+	#endif
 	#include <fcntl.h>
 	#include <stdlib.h>
 	int main(void) { return ((void *)mmap(NULL, (size_t)flock(0, LOCK_EX),
