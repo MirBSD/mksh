@@ -154,7 +154,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.421 2011/01/09 21:57:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.422 2011/01/21 21:04:47 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/01/08"
 
@@ -519,7 +519,7 @@ enum sh_flag {
 	FNFLAGS		/* (place holder: how many flags are there) */
 };
 
-#define Flag(f)	(kshstate_v.shell_flags_[(int)(f)])
+#define Flag(f)	(shell_flags[(int)(f)])
 #define UTFMODE	Flag(FUNICODE)
 
 /*
@@ -569,46 +569,31 @@ extern struct env {
 #define LSHELL	8	/* return to interactive shell() */
 #define LAEXPR	9	/* error in arithmetic expression */
 
-/*
- * some kind of global shell state, for change_random() mostly
- */
-
-EXTERN struct mksh_kshstate_v {
-	/* for change_random */
-	struct timeval cr_tv;	/* timestamp */
-	const void *cr_dp;	/* argument address */
-	size_t cr_dsz;		/* argument length */
-	uint32_t lcg_state_;	/* previous LCG state */
-	/* global state */
-	pid_t procpid_;		/* PID of executing process */
-	int exstat_;		/* exit status */
-	int subst_exstat_;	/* exit status of last $(..)/`..` */
-	struct env env_;	/* top-level parsing & execution env. */
-	short trap_exstat_;	/* exit status before running a trap */
-	uint8_t trap_nested_;	/* running nested traps */
-	uint8_t shell_flags_[FNFLAGS];
-} kshstate_v;
-EXTERN struct mksh_kshstate_f {
-	const char *kshname_;	/* $0 */
-	pid_t kshpid_;		/* $$, shell PID */
-	pid_t kshpgrp_;		/* process group of shell */
+/* sort of shell global state */
+EXTERN pid_t procpid;		/* PID of executing process */
+EXTERN int exstat;		/* exit status */
+EXTERN int subst_exstat;	/* exit status of last $(..)/`..` */
+EXTERN short trap_exstat;	/* exit status before running a trap */
+EXTERN uint8_t trap_nested;	/* running nested traps */
+EXTERN uint8_t shell_flags[FNFLAGS];
+EXTERN const char *kshname;	/* $0 */
+EXTERN struct {
+	uid_t kshuid_;		/* real UID of shell */
 	uid_t ksheuid_;		/* effective UID of shell */
+	gid_t kshgid_;		/* real GID of shell */
+	gid_t kshegid_;		/* effective GID of shell */
+	pid_t kshpgrp_;		/* process group of shell */
 	pid_t kshppid_;		/* PID of parent of shell */
-	uint32_t h;		/* some kind of hash */
-} kshstate_f;
-#define kshname		kshstate_f.kshname_
-#define kshpid		kshstate_f.kshpid_
-#define procpid		kshstate_v.procpid_
-#define kshpgrp		kshstate_f.kshpgrp_
-#define ksheuid		kshstate_f.ksheuid_
-#define kshppid		kshstate_f.kshppid_
-#define exstat		kshstate_v.exstat_
-#define subst_exstat	kshstate_v.subst_exstat_
-#define trap_exstat	kshstate_v.trap_exstat_
-#define trap_nested	kshstate_v.trap_nested_
+	pid_t kshpid_;		/* $$, shell PID */
+} rndsetupstate;
 
-/* evil hack: return hash(kshstate_f concat (kshstate_f'.h:=hash(arg))) */
-uint32_t evilhash(const char *);
+#define kshpid		rndsetupstate.kshpid_
+#define kshpgrp		rndsetupstate.kshpgrp_
+#define kshuid		rndsetupstate.kshuid_
+#define ksheuid		rndsetupstate.ksheuid_
+#define kshgid		rndsetupstate.kshgid_
+#define kshegid		rndsetupstate.kshegid_
+#define kshppid		rndsetupstate.kshppid_
 
 
 /* option processing */
@@ -1407,6 +1392,36 @@ EXTERN struct timeval j_usrtime, j_systime;
 		    '+', (unsigned long)(cnst));			\
 } while (/* CONSTCOND */ 0)
 
+/* Bob Jenkins' one-at-a-time hash, with better start value */
+#define oaat1_init_impl(h) do {						\
+	(h) = 0x100;							\
+} while (/* CONSTCOND */ 0)
+#define oaat1_addmem_impl(h, buf, len) do {				\
+	register const uint8_t *oaat1_addmem_p = (const void *)(buf);	\
+	register size_t oaat1_addmem_n = (len);				\
+									\
+	while (oaat1_addmem_n--) {					\
+		(h) += *oaat1_addmem_p++;				\
+		(h) += (h) << 10;					\
+		(h) ^= (h) >> 6;					\
+	}								\
+} while (/* CONSTCOND */ 0)
+#define oaat1_addstr_impl(h, s) do {					\
+	register const uint8_t *oaat1_addstr_p = (const void *)(s);	\
+	register uint8_t oaat1_addstr_c;				\
+									\
+	while ((oaat1_addstr_c = *oaat1_addstr_p++)) {			\
+		h += oaat1_addstr_c;					\
+		(h) += (h) << 10;					\
+		(h) ^= (h) >> 6;					\
+	}								\
+} while (/* CONSTCOND */ 0)
+#define oaat1_fini_impl(h) do {						\
+	(h) += (h) << 3;						\
+	(h) ^= (h) >> 11;						\
+	(h) += (h) << 15;						\
+} while (/* CONSTCOND */ 0)
+
 /* lalloc.c */
 void ainit(Area *);
 void afreeall(Area *);
@@ -1614,9 +1629,6 @@ void coproc_write_close(int);
 int coproc_getfd(int, const char **);
 void coproc_cleanup(int);
 struct temp *maketemp(Area *, Temp_type, struct temp **);
-#define hash(s) oaathash_full((const uint8_t *)(s))
-uint32_t oaathash_full(register const uint8_t *);
-uint32_t hashmem(const void *, size_t);
 void ktinit(struct table *, Area *, size_t);
 struct tbl *ktsearch(struct table *, const char *, uint32_t);
 struct tbl *ktenter(struct table *, const char *, uint32_t);
@@ -1712,11 +1724,12 @@ const char *skip_wdvarname(const char *, int);
 int is_wdvarname(const char *, int);
 int is_wdvarassign(const char *);
 char **makenv(void);
-void change_random(const void *, size_t);
 void change_winsz(void);
 int array_ref_len(const char *);
 char *arrayname(const char *);
 mksh_uari_t set_array(const char *, bool, const char **);
+uint32_t hash(const void *);
+void rndset(long);
 
 enum Test_op {
 	TO_NONOP = 0,	/* non-operator */

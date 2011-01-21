@@ -29,14 +29,9 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.149 2011/01/09 21:57:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.150 2011/01/21 21:04:45 tg Exp $");
 
 unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
-
-#if !HAVE_SETRESUGID
-uid_t kshuid;
-gid_t kshgid, kshegid;
-#endif
 
 static int do_gmatch(const unsigned char *, const unsigned char *,
     const unsigned char *, const unsigned char *);
@@ -233,9 +228,10 @@ change_flag(enum sh_flag f, int what, unsigned int newval)
 		Flag(f) = (unsigned char)newval;
 	} else if (f == FPRIVILEGED && oldval && !newval) {
 		/* Turning off -p? */
-#if HAVE_SETRESUGID
-		gid_t kshegid = getgid();
 
+		/*XXX this can probably be optimised */
+		kshegid = kshgid = getgid();
+#if HAVE_SETRESUGID
 		DO_SETUID(setresgid, (kshegid, kshegid, kshegid));
 #if HAVE_SETGROUPS
 		/* setgroups doesn't EAGAIN on Linux */
@@ -246,7 +242,7 @@ change_flag(enum sh_flag f, int what, unsigned int newval)
 		/* seteuid, setegid, setgid don't EAGAIN on Linux */
 		seteuid(ksheuid = kshuid = getuid());
 		DO_SETUID(setuid, (ksheuid));
-		setegid(kshegid = kshgid = getgid());
+		setegid(kshegid);
 		setgid(kshegid);
 #endif
 	} else if ((f == FPOSIX || f == FSH) && newval) {
@@ -1305,9 +1301,6 @@ chvt(const char *fn)
 	struct stat sb;
 	int fd;
 
-	/* for entropy */
-	kshstate_f.h = evilhash(fn);
-
 	if (*fn == '-') {
 		memcpy(dv, "-/dev/null", sizeof("-/dev/null"));
 		fn = dv + 1;
@@ -1362,6 +1355,14 @@ chvt(const char *fn)
 	ksh_dup2(fd, 2, false);
 	if (fd > 2)
 		close(fd);
+	{
+		register uint32_t h;
+
+		oaat1_init_impl(h);
+		oaat1_addmem_impl(h, &rndsetupstate, sizeof(rndsetupstate));
+		oaat1_fini_impl(h);
+		rndset((long)h);
+	}
 	chvt_reinit();
 }
 #endif

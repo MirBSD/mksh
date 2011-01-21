@@ -4,7 +4,7 @@
 /*	$OpenBSD: table.c,v 1.13 2009/01/17 22:06:44 millert Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -33,14 +33,9 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.173 2010/11/01 17:29:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.174 2011/01/21 21:04:44 tg Exp $");
 
 extern char **environ;
-
-#if !HAVE_SETRESUGID
-extern uid_t kshuid;
-extern gid_t kshgid, kshegid;
-#endif
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -50,10 +45,10 @@ extern gid_t kshgid, kshegid;
 #define MKSH_DEFAULT_TMPDIR	"/tmp"
 #endif
 
+void chvt_reinit(void);
 static void reclaim(void);
 static void remove_temps(struct temp *);
-void chvt_reinit(void);
-Source *mksh_init(int, const char *[]);
+static mksh_uari_t rndsetup(void);
 #ifdef SIGWINCH
 static void x_sigwinch(int);
 #endif
@@ -66,8 +61,9 @@ static const char initsubs[] =
 static const char *initcoms[] = {
 	T_typeset, "-r", initvsn, NULL,
 	T_typeset, "-x", "HOME", "PATH", "RANDOM", "SHELL", NULL,
-	T_typeset, "-i10", "COLUMNS", "LINES", "OPTIND", "PGRP", "PPID",
-	    "RANDOM", "SECONDS", "TMOUT", "USER_ID", NULL,
+	T_typeset, "-i10", "COLUMNS", "KSHEGID", "KSHGID", "KSHUID", "LINES",
+	    "OPTIND", "PGRP", "PPID", "RANDOM", "SECONDS", "TMOUT", "USER_ID",
+	    NULL,
 	T_alias,
 	"integer=typeset -i",
 	T_local_typeset,
@@ -97,7 +93,41 @@ static const char *initcoms[] = {
 
 static int initio_done;
 
-struct env *e = &kshstate_v.env_;
+/* top-level parsing and execution environment */
+static struct env env;
+struct env *e = &env;
+
+static mksh_uari_t
+rndsetup(void)
+{
+	register uint32_t h;
+	struct {
+		ALLOC_ITEM __alloc_i;
+		void *dataptr, *stkptr, *mallocptr;
+		sigjmp_buf jbuf;
+		struct timeval tv;
+		struct timezone tz;
+	} *bufptr;
+	char *cp;
+
+	cp = alloc(sizeof(*bufptr) - ALLOC_SIZE, APERM);
+	bufptr = (void *)(cp - ALLOC_SIZE);	/* undo what alloc() did */
+	bufptr->dataptr = &rndsetupstate;	/* PIE or something */
+	bufptr->stkptr = &bufptr;		/* ASLR in Win/Lin */
+	bufptr->mallocptr = bufptr;		/* randomised malloc in BSD */
+	sigsetjmp(bufptr->jbuf, 1);		/* glibc pointer guard */
+	gettimeofday(&bufptr->tv, &bufptr->tz);	/* introduce variation */
+
+	oaat1_init_impl(h);
+	/* variation through pid, ppid, and the works */
+	oaat1_addmem_impl(h, &rndsetupstate, sizeof(rndsetupstate));
+	/* some variation, some possibly entropy, depending on OE */
+	oaat1_addmem_impl(h, bufptr, sizeof(*bufptr));
+	oaat1_fini_impl(h);
+
+	afree(cp, APERM);
+	return ((mksh_uari_t)h);
+}
 
 void
 chvt_reinit(void)
@@ -108,8 +138,8 @@ chvt_reinit(void)
 	kshppid = getppid();
 }
 
-Source *
-mksh_init(int argc, const char *argv[])
+int
+main(int argc, const char *argv[])
 {
 	int argi, i;
 	Source *s;
@@ -140,16 +170,17 @@ mksh_init(int argc, const char *argv[])
 	ainit(&aperm);		/* initialise permanent Area */
 
 	/* set up base environment */
-	kshstate_v.env_.type = E_NONE;
-	ainit(&kshstate_v.env_.area);
-	newblock();		/* set up global l->vars and l->funs */
+	env.type = E_NONE;
+	ainit(&env.area);
+	/* set up global l->vars and l->funs */
+	newblock();
 
 	/* Do this first so output routines (eg, errorf, shellf) can work */
 	initio();
 
 	argi = parse_args(argv, OF_FIRSTTIME, NULL);
 	if (argi < 0)
-		return (NULL);
+		return (1);
 
 	initvar();
 
@@ -197,28 +228,33 @@ mksh_init(int argc, const char *argv[])
 		def_path = "/bin:/usr/bin:/sbin:/usr/sbin";
 #endif
 
-	/* Set PATH to def_path (will set the path global variable).
+	/*
+	 * Set PATH to def_path (will set the path global variable).
 	 * (import of environment below will probably change this setting).
 	 */
 	vp = global("PATH");
 	/* setstr can't fail here */
 	setstr(vp, def_path, KSH_RETURN_ERROR);
 
-	/* Turn on nohup by default for now - will change to off
+	/*
+	 * Turn on nohup by default for now - will change to off
 	 * by default once people are aware of its existence
 	 * (AT&T ksh does not have a nohup option - it always sends
 	 * the hup).
 	 */
 	Flag(FNOHUP) = 1;
 
-	/* Turn on brace expansion by default. AT&T kshs that have
+	/*
+	 * Turn on brace expansion by default. AT&T kshs that have
 	 * alternation always have it on.
 	 */
 	Flag(FBRACEEXPAND) = 1;
 
-	/* Set edit mode to emacs by default, may be overridden
+	/*
+	 * Set edit mode to emacs by default, may be overridden
 	 * by the environment or the user. Also, we want tab completion
-	 * on in vi by default. */
+	 * on in vi by default.
+	 */
 	change_flag(FEMACS, OF_SPECIAL, 1);
 #if !MKSH_S_NOVI
 	Flag(FVITABCOMPLETE) = 1;
@@ -266,7 +302,8 @@ mksh_init(int argc, const char *argv[])
 		set_current_wd(pwdx);
 		if (current_wd[0])
 			simplify_path(current_wd);
-		/* Only set pwd if we know where we are or if it had a
+		/*
+		 * Only set pwd if we know where we are or if it had a
 		 * bogus value
 		 */
 		if (current_wd[0] || pwd != null)
@@ -283,6 +320,10 @@ mksh_init(int argc, const char *argv[])
 	setint(global("LINES"), 0);
 	setint(global("OPTIND"), 1);
 
+	kshuid = getuid();
+	kshgid = getgid();
+	kshegid = getegid();
+
 	safe_prompt = ksheuid ? "$ " : "# ";
 	vp = global("PS1");
 	/* Set PS1 if unset or we are root and prompt doesn't contain a # */
@@ -294,18 +335,19 @@ mksh_init(int argc, const char *argv[])
 	vp->flag |= INT_U;
 	setint((vp = global("PPID")), (mksh_uari_t)kshppid);
 	vp->flag |= INT_U;
-	setint((vp = global("RANDOM")), (mksh_uari_t)evilhash(kshname));
-	vp->flag |= INT_U;
 	setint((vp = global("USER_ID")), (mksh_uari_t)ksheuid);
+	vp->flag |= INT_U;
+	setint((vp = global("KSHUID")), (mksh_uari_t)kshuid);
+	vp->flag |= INT_U;
+	setint((vp = global("KSHEGID")), (mksh_uari_t)kshegid);
+	vp->flag |= INT_U;
+	setint((vp = global("KSHGID")), (mksh_uari_t)kshgid);
+	vp->flag |= INT_U;
+	setint((vp = global("RANDOM")), rndsetup());
 	vp->flag |= INT_U;
 
 	/* Set this before parsing arguments */
-#if HAVE_SETRESUGID
-	Flag(FPRIVILEGED) = getuid() != ksheuid || getgid() != getegid();
-#else
-	Flag(FPRIVILEGED) = (kshuid = getuid()) != ksheuid ||
-	    (kshgid = getgid()) != (kshegid = getegid());
-#endif
+	Flag(FPRIVILEGED) = kshuid != ksheuid || kshgid != kshegid;
 
 	/* this to note if monitor is set on command line (see below) */
 #ifndef MKSH_UNEMPLOYED
@@ -316,7 +358,7 @@ mksh_init(int argc, const char *argv[])
 
 	argi = parse_args(argv, OF_CMDLINE, NULL);
 	if (argi < 0)
-		return (NULL);
+		return (1);
 
 	/* process this later only, default to off (hysterical raisins) */
 	utf_flag = UTFMODE;
@@ -422,7 +464,8 @@ mksh_init(int argc, const char *argv[])
 	errexit = Flag(FERREXIT);
 	Flag(FERREXIT) = 0;
 
-	/* Do this before profile/$ENV so that if it causes problems in them,
+	/*
+	 * Do this before profile/$ENV so that if it causes problems in them,
 	 * user will know why things broke.
 	 */
 	if (!current_wd[0] && Flag(FTALKING))
@@ -464,23 +507,9 @@ mksh_init(int argc, const char *argv[])
 	} else
 		Flag(FTRACKALL) = 1;	/* set after ENV */
 
-	return (s);
-}
-
-int
-main(int argc, const char *argv[])
-{
-	Source *s;
-
-	kshstate_v.lcg_state_ = 5381;
-
-	if ((s = mksh_init(argc, argv))) {
-		/* put more entropy into the LCG */
-		change_random(s, sizeof(*s));
-		/* doesn't return */
-		shell(s, true);
-	}
-	return (1);
+	/* doesn't return */
+	shell(s, true);
+	return (0);
 }
 
 int
@@ -516,7 +545,8 @@ include(const char *name, int argc, const char **argv, int intr_ok)
 		case LERROR:
 			return (exstat & 0xff); /* see below */
 		case LINTR:
-			/* intr_ok is set if we are including .profile or $ENV.
+			/*
+			 * intr_ok is set if we are including .profile or $ENV.
 			 * If user ^Cs out, we don't want to kill the shell...
 			 */
 			if (intr_ok && (exstat - 128) != SIGTERM)
@@ -587,13 +617,15 @@ shell(Source * volatile s, volatile int toplevel)
 			if (interactive) {
 				if (i == LINTR)
 					shellf("\n");
-				/* Reset any eof that was read as part of a
+				/*
+				 * Reset any eof that was read as part of a
 				 * multiline command.
 				 */
 				if (Flag(FIGNOREEOF) && s->type == SEOF &&
 				    wastty)
 					s->type = SSTDIN;
-				/* Used by exit command to get back to
+				/*
+				 * Used by exit command to get back to
 				 * top level shell. Kind of strange since
 				 * interactive is set if we are reading from
 				 * a tty, but to have stopped jobs, one only
@@ -642,7 +674,8 @@ shell(Source * volatile s, volatile int toplevel)
 				really_exit = 1;
 				s->type = SSTDIN;
 			} else {
-				/* this for POSIX which says EXIT traps
+				/*
+				 * this for POSIX which says EXIT traps
 				 * shall be taken in the environment
 				 * immediately after the last command
 				 * executed.
@@ -742,7 +775,8 @@ quitenv(struct shf *shf)
 		if (ep->savefd[2])	/* Clear any write errors */
 			shf_reopen(2, SHF_WR, shl_out);
 	}
-	/* Bottom of the stack.
+	/*
+	 * Bottom of the stack.
 	 * Either main shell is exiting or cleanup_parents_env() was called.
 	 */
 	if (ep->oenv == NULL) {
@@ -755,7 +789,8 @@ quitenv(struct shf *shf)
 			if (ep->flags & EF_FAKE_SIGDIE) {
 				int sig = exstat - 128;
 
-				/* ham up our death a bit (AT&T ksh
+				/*
+				 * ham up our death a bit (AT&T ksh
 				 * only seems to do this for SIGTERM)
 				 * Don't do it for SIGQUIT, since we'd
 				 * dump a core..
@@ -839,7 +874,8 @@ remove_temps(struct temp *tp)
 			unlink(tp->name);
 }
 
-/* Initialise tty_fd. Used for saving/reseting tty modes upon
+/*
+ * Initialise tty_fd. Used for saving/reseting tty modes upon
  * foreground job completion and for setting up tty process group.
  */
 void
@@ -937,7 +973,8 @@ warningf(bool fileline, const char *fmt, ...)
 	shf_flush(shl_out);
 }
 
-/* Used by built-in utilities to prefix shell and utility name to message
+/*
+ * Used by built-in utilities to prefix shell and utility name to message
  * (also unwinds environments for special builtins).
  */
 void
@@ -958,7 +995,8 @@ bi_errorf(const char *fmt, ...)
 		shf_putchar('\n', shl_out);
 	}
 	shf_flush(shl_out);
-	/* POSIX special builtins and ksh special builtins cause
+	/*
+	 * POSIX special builtins and ksh special builtins cause
 	 * non-interactive shells to exit.
 	 * XXX odd use of KEEPASN; also may not want LERROR here
 	 */
@@ -1133,7 +1171,8 @@ closepipe(int *pv)
 	close(pv[1]);
 }
 
-/* Called by iosetup() (deals with 2>&4, etc.), c_read, c_print to turn
+/*
+ * Called by iosetup() (deals with 2>&4, etc.), c_read, c_print to turn
  * a string (the X in 2>&X, read -uX, print -uX) into a file descriptor.
  */
 int
@@ -1156,7 +1195,8 @@ check_fd(const char *name, int mode, const char **emsgp)
 		return (-1);
 	}
 	fl &= O_ACCMODE;
-	/* X_OK is a kludge to disable this check for dups (x<&1):
+	/*
+	 * X_OK is a kludge to disable this check for dups (x<&1):
 	 * historical shells never did this check (XXX don't know what
 	 * POSIX has to say).
 	 */
@@ -1192,7 +1232,8 @@ coproc_read_close(int fd)
 	}
 }
 
-/* Called by c_read() and by iosetup() to close the other side of the
+/*
+ * Called by c_read() and by iosetup() to close the other side of the
  * read pipe, so reads will actually terminate.
  */
 void
@@ -1204,7 +1245,8 @@ coproc_readw_close(int fd)
 	}
 }
 
-/* Called by c_print when a write to a fd fails with EPIPE and by iosetup
+/*
+ * Called by c_print when a write to a fd fails with EPIPE and by iosetup
  * when co-process input is dup'd
  */
 void
@@ -1216,7 +1258,8 @@ coproc_write_close(int fd)
 	}
 }
 
-/* Called to check for existence of/value of the co-process file descriptor.
+/*
+ * Called to check for existence of/value of the co-process file descriptor.
  * (Used by check_fd() and by c_read/c_print to deal with -p option).
  */
 int
@@ -1231,7 +1274,8 @@ coproc_getfd(int mode, const char **emsgp)
 	return (-1);
 }
 
-/* called to close file descriptors related to the coprocess (if any)
+/*
+ * called to close file descriptors related to the coprocess (if any)
  * Should be called with SIGCHLD blocked.
  */
 void

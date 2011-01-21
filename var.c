@@ -1,7 +1,7 @@
 /*	$OpenBSD: var.c,v 1.34 2007/10/15 02:16:35 deraadt Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.114 2010/09/19 19:21:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.115 2011/01/21 21:04:48 tg Exp $");
 
 /*
  * Variables
@@ -39,6 +39,8 @@ __RCSID("$MirOS: src/bin/mksh/var.c,v 1.114 2010/09/19 19:21:20 tg Exp $");
  */
 static struct tbl vtemp;
 static struct table specials;
+static uint32_t lcg_state = 5381;
+
 static char *formatstr(struct tbl *, const char *);
 static void exportprep(struct tbl *, const char *);
 static int special(const char *);
@@ -50,9 +52,6 @@ static int getint(struct tbl *, mksh_ari_t *, bool);
 static mksh_ari_t intval(struct tbl *);
 static struct tbl *arraysearch(struct tbl *, uint32_t);
 static const char *array_index_calc(const char *, bool *, uint32_t *);
-static uint32_t oaathash_update(register uint32_t, register const uint8_t *,
-    register size_t);
-static uint32_t oaathash_finalise(register uint32_t);
 
 uint8_t set_refflag = 0;
 
@@ -986,79 +985,6 @@ makenv(void)
 	return ((char **)XPclose(denv));
 }
 
-/* Bob Jenkins' one-at-a-time hash */
-static uint32_t
-oaathash_update(register uint32_t h, register const uint8_t *cp,
-    register size_t n)
-{
-	while (n--) {
-		h += *cp++;
-		h += h << 10;
-		h ^= h >> 6;
-	}
-
-	return (h);
-}
-
-static uint32_t
-oaathash_finalise(register uint32_t h)
-{
-	h += h << 3;
-	h ^= h >> 11;
-	h += h << 15;
-
-	return (h);
-}
-
-uint32_t
-oaathash_full(register const uint8_t *bp)
-{
-	register uint32_t h = 0;
-	register uint8_t c;
-
-	while ((c = *bp++)) {
-		h += c;
-		h += h << 10;
-		h ^= h >> 6;
-	}
-
-	return (oaathash_finalise(h));
-}
-
-void
-change_random(const void *vp, size_t n)
-{
-	register uint32_t h = 0x100;
-#if defined(arc4random_pushb_fast) || defined(MKSH_A4PB)
-	uint32_t i;
-#endif
-
-	kshstate_v.cr_dp = vp;
-	kshstate_v.cr_dsz = n;
-	gettimeofday(&kshstate_v.cr_tv, NULL);
-	h = oaathash_update(oaathash_update(h, (void *)&kshstate_v,
-	    sizeof(kshstate_v)), vp, n);
-	kshstate_v.lcg_state_ = oaathash_finalise(h);
-
-#if defined(arc4random_pushb_fast) || defined(MKSH_A4PB)
-	/*
-	 * either we have very check entropy get and push available,
-	 * with malloc() pulling in this code already anyway, or the
-	 * user requested us to use the old functions
-	 */
-#if defined(arc4random_pushb_fast)
-	arc4random_pushb_fast(&kshstate_v.lcg_state_,
-	    sizeof(kshstate_v.lcg_state_));
-	i = arc4random();
-#else
-	i = arc4random_pushb(&kshstate_v.lcg_state_,
-	    sizeof(kshstate_v.lcg_state_));
-#endif
-	h = oaathash_update(h, (void *)&i, sizeof(i));
-	kshstate_v.lcg_state_ = oaathash_finalise(h);
-#endif
-}
-
 /*
  * handle special variables with side effects - PATH, SECONDS.
  */
@@ -1113,8 +1039,7 @@ getspec(struct tbl *vp)
 		 * this is the same Linear Congruential PRNG as Borland
 		 * C/C++ allegedly uses in its built-in rand() function
 		 */
-		i = ((kshstate_v.lcg_state_ =
-		    22695477 * kshstate_v.lcg_state_ + 1) >> 16) & 0x7FFF;
+		i = ((lcg_state = 22695477 * lcg_state + 1) >> 16) & 0x7FFF;
 		break;
 	case V_HISTSIZE:
 		i = histsize;
@@ -1181,17 +1106,17 @@ setspec(struct tbl *vp)
 			    stat(s, &statb) == 0 && S_ISDIR(statb.st_mode))
 				strdupx(tmpdir, s, APERM);
 		}
-		break;
+		return;
 #if HAVE_PERSISTENT_HISTORY
 	case V_HISTFILE:
 		sethistfile(str_val(vp));
-		break;
+		return;
 #endif
 	case V_TMOUT:
 		/* AT&T ksh seems to do this (only listen if integer) */
 		if (vp->flag & INTEGER)
 			ksh_tmout = vp->val.i >= 0 ? vp->val.i : 0;
-		break;
+		return;
 
 	/* common sub-cases */
 	case V_OPTIND:
@@ -1232,7 +1157,7 @@ setspec(struct tbl *vp)
 		 * mksh R39d+ no longer has the traditional repeatability
 		 * of $RANDOM sequences, but always retains state
 		 */
-		change_random(&i, sizeof(i));
+		rndset((long)i);
 		break;
 	case V_SECONDS:
 		{
@@ -1476,12 +1401,42 @@ change_winsz(void)
 }
 
 uint32_t
-evilhash(const char *s)
+hash(const void *s)
 {
-	register uint32_t h = 0x100;
+	register uint32_t h;
 
-	h = oaathash_update(h, (void *)&kshstate_f, sizeof(kshstate_f));
-	kshstate_f.h = oaathash_full((const uint8_t *)s);
-	return (oaathash_finalise(oaathash_update(h,
-	    (void *)&kshstate_f.h, sizeof(kshstate_f.h))));
+	oaat1_init_impl(h);
+	oaat1_addstr_impl(h, s);
+	oaat1_fini_impl(h);
+	return (h);
+}
+
+void
+rndset(long v)
+{
+	register uint32_t h;
+
+	oaat1_init_impl(h);
+	oaat1_addmem_impl(h, &lcg_state, sizeof(lcg_state));
+	oaat1_addmem_impl(h, &v, sizeof(v));
+
+#if defined(arc4random_pushb_fast) || defined(MKSH_A4PB)
+	/*
+	 * either we have very chap entropy get and push available,
+	 * with malloc() pulling in this code already anyway, or the
+	 * user requested us to use the old functions
+	 */
+	lcg_state = h;
+	oaat1_fini_impl(lcg_state);
+#if defined(arc4random_pushb_fast)
+	arc4random_pushb_fast(&lcg_state, sizeof(lcg_state));
+	lcg_state = arc4random();
+#else
+	lcg_state = arc4random_pushb(&lcg_state, sizeof(lcg_state));
+#endif
+	oaat1_addmem_impl(h, &lcg_state, sizeof(lcg_state));
+#endif
+
+	oaat1_fini_impl(h);
+	lcg_state = h;
 }

@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.244 2011/01/09 21:57:27 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.245 2011/01/21 21:04:45 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.138 2010/09/20 07:41:17 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 9 2011 $
+.Dd $Mdocdate: January 21 2011 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -1768,6 +1768,12 @@ above for details.
 .Sy Note :
 This parameter is not imported from the environment when the shell is
 started.
+.It Ev KSHEGID
+The effective group id of the shell.
+.It Ev KSHGID
+The real group id of the shell.
+.It Ev KSHUID
+The real user id of the shell.
 .It Ev KSH_VERSION
 The name and version of the shell (read-only).
 See also the version commands in

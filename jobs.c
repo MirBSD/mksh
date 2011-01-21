@@ -1,7 +1,7 @@
 /*	$OpenBSD: jobs.c,v 1.38 2009/12/12 04:28:44 deraadt Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.72 2010/08/28 20:22:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.73 2011/01/21 21:04:44 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -342,11 +342,9 @@ exchild(struct op *t, int flags,
 
 	int rv = 0, forksleep;
 	sigset_t omask;
-	struct {
-		Proc *p;
-		Job *j;
-		pid_t cldpid;
-	} pi;
+	Proc *p;
+	Job *j;
+	pid_t cldpid;
 
 	if (flags & XEXEC)
 		/*
@@ -358,11 +356,11 @@ exchild(struct op *t, int flags,
 	/* no SIGCHLDs while messing with job and process lists */
 	sigprocmask(SIG_BLOCK, &sm_sigchld, &omask);
 
-	pi.p = new_proc();
-	pi.p->next = NULL;
-	pi.p->state = PRUNNING;
-	pi.p->status = 0;
-	pi.p->pid = 0;
+	p = new_proc();
+	p->next = NULL;
+	p->state = PRUNNING;
+	p->status = 0;
+	p->pid = 0;
 
 	/* link process into jobs list */
 	if (flags & XPIPEI) {
@@ -371,78 +369,76 @@ exchild(struct op *t, int flags,
 			internal_errorf("%s %d",
 			    "exchild: XPIPEI and no last_job - pid",
 			    (int)procpid);
-		pi.j = last_job;
+		j = last_job;
 		if (last_proc)
-			last_proc->next = pi.p;
-		last_proc = pi.p;
+			last_proc->next = p;
+		last_proc = p;
 	} else {
-		pi.j = new_job();	/* fills in pi.j->job */
+		/* fills in j->job */
+		j = new_job();
 		/*
 		 * we don't consider XXCOMs foreground since they don't get
 		 * tty process group and we don't save or restore tty modes.
 		 */
-		pi.j->flags = (flags & XXCOM) ? JF_XXCOM :
+		j->flags = (flags & XXCOM) ? JF_XXCOM :
 		    ((flags & XBGND) ? 0 : (JF_FG|JF_USETTYMODE));
-		timerclear(&pi.j->usrtime);
-		timerclear(&pi.j->systime);
-		pi.j->state = PRUNNING;
-		pi.j->pgrp = 0;
-		pi.j->ppid = procpid;
-		pi.j->age = ++njobs;
-		pi.j->proc_list = pi.p;
-		pi.j->coproc_id = 0;
-		last_job = pi.j;
-		last_proc = pi.p;
-		put_job(pi.j, PJ_PAST_STOPPED);
+		timerclear(&j->usrtime);
+		timerclear(&j->systime);
+		j->state = PRUNNING;
+		j->pgrp = 0;
+		j->ppid = procpid;
+		j->age = ++njobs;
+		j->proc_list = p;
+		j->coproc_id = 0;
+		last_job = j;
+		last_proc = p;
+		put_job(j, PJ_PAST_STOPPED);
 	}
 
-	snptreef(pi.p->command, sizeof(pi.p->command), "%T", t);
+	snptreef(p->command, sizeof(p->command), "%T", t);
 
 	/* create child process */
 	forksleep = 1;
-	while ((pi.cldpid = fork()) < 0 && errno == EAGAIN && forksleep < 32) {
+	while ((cldpid = fork()) < 0 && errno == EAGAIN && forksleep < 32) {
 		if (intrsig)	 /* allow user to ^C out... */
 			break;
 		sleep(forksleep);
 		forksleep <<= 1;
 	}
-	if (pi.cldpid < 0) {
-		kill_job(pi.j, SIGKILL);
-		remove_job(pi.j, "fork failed");
+	/* ensure $RANDOM changes between parent and child */
+	rndset((long)cldpid);
+	/* fork failed? */
+	if (cldpid < 0) {
+		kill_job(j, SIGKILL);
+		remove_job(j, "fork failed");
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		errorf("can't fork - try again");
 	}
-	pi.p->pid = pi.cldpid ? pi.cldpid : (procpid = getpid());
-
-	/*
-	 * ensure next child gets a (slightly) different $RANDOM sequence
-	 * from its parent process and other child processes
-	 */
-	change_random(&pi, sizeof(pi));
+	p->pid = cldpid ? cldpid : (procpid = getpid());
 
 #ifndef MKSH_UNEMPLOYED
 	/* job control set up */
 	if (Flag(FMONITOR) && !(flags&XXCOM)) {
 		int	dotty = 0;
-		if (pi.j->pgrp == 0) {	/* First process */
-			pi.j->pgrp = pi.p->pid;
+		if (j->pgrp == 0) {	/* First process */
+			j->pgrp = p->pid;
 			dotty = 1;
 		}
 
 		/* set pgrp in both parent and child to deal with race
 		 * condition
 		 */
-		setpgid(pi.p->pid, pi.j->pgrp);
+		setpgid(p->pid, j->pgrp);
 		if (ttypgrp_ok && dotty && !(flags & XBGND))
-			tcsetpgrp(tty_fd, pi.j->pgrp);
+			tcsetpgrp(tty_fd, j->pgrp);
 	}
 #endif
 
 	/* used to close pipe input fd */
-	if (close_fd >= 0 && (((flags & XPCLOSE) && pi.cldpid) ||
-	    ((flags & XCCLOSE) && !pi.cldpid)))
+	if (close_fd >= 0 && (((flags & XPCLOSE) && cldpid) ||
+	    ((flags & XCCLOSE) && !cldpid)))
 		close(close_fd);
-	if (!pi.cldpid) {
+	if (!cldpid) {
 		/* child */
 
 		/* Do this before restoring signal */
@@ -480,7 +476,7 @@ exchild(struct op *t, int flags,
 				close(forksleep);
 			}
 		}
-		remove_job(pi.j, "child");	/* in case of $(jobs) command */
+		remove_job(j, "child");	/* in case of $(jobs) command */
 		nzombie = 0;
 #ifndef MKSH_UNEMPLOYED
 		ttypgrp_ok = false;
@@ -505,27 +501,26 @@ exchild(struct op *t, int flags,
 
 	/* shell (parent) stuff */
 	if (!(flags & XPIPEO)) {	/* last process in a job */
-		j_startjob(pi.j);
+		j_startjob(j);
 		if (flags & XCOPROC) {
-			pi.j->coproc_id = coproc.id;
+			j->coproc_id = coproc.id;
 			/* n jobs using co-process output */
 			coproc.njobs++;
 			/* j using co-process input */
-			coproc.job = (void *)pi.j;
+			coproc.job = (void *)j;
 		}
 		if (flags & XBGND) {
-			j_set_async(pi.j);
+			j_set_async(j);
 			if (Flag(FTALKING)) {
-				shf_fprintf(shl_out, "[%d]", pi.j->job);
-				for (pi.p = pi.j->proc_list; pi.p;
-				    pi.p = pi.p->next)
+				shf_fprintf(shl_out, "[%d]", j->job);
+				for (p = j->proc_list; p; p = p->next)
 					shf_fprintf(shl_out, " %d",
-					    (int)pi.p->pid);
+					    (int)p->pid);
 				shf_putchar('\n', shl_out);
 				shf_flush(shl_out);
 			}
 		} else
-			rv = j_waitj(pi.j, JW_NONE, "jw:last proc");
+			rv = j_waitj(j, JW_NONE, "jw:last proc");
 	}
 
 	sigprocmask(SIG_SETMASK, &omask, NULL);
