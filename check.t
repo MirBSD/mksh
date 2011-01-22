@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.400 2011/01/21 22:25:31 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.401 2011/01/22 20:33:11 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/01/21
+	@(#)MIRBSD KSH R39 2011/01/22
 description:
 	Check version of shell.
 stdin:
@@ -3410,6 +3410,22 @@ stdin:
 	echo "[$REPLY]";
 expected-stdout:
 	[abc]
+---
+name: read-regress-1
+description:
+	Check a regression of read
+file-setup: file 644 "foo"
+	foo bar
+	baz
+	blah
+stdin:
+	while read a b c; do
+		read d
+		break
+	done <foo
+	echo "<$a|$b|$c><$d>"
+expected-stdout:
+	<foo|bar|><baz>
 ---
 name: read-delim-1
 description:
