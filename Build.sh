@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.466 2011/01/21 20:51:56 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.467 2011/01/29 19:07:15 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1422,7 +1422,6 @@ test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 
-CPPFLAGS="$CPPFLAGS -DIN_MKSH"
 files=
 objs=
 sp=
