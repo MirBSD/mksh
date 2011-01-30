@@ -154,7 +154,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.424 2011/01/22 20:33:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.425 2011/01/30 01:35:35 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/01/22"
 
@@ -489,6 +489,10 @@ char *ucstrstr(char *, const char *);
 #define MKSH_S_NOVI		0
 #endif
 
+#if defined(MKSH_NOPROSPECTOFWORK) && !defined(MKSH_UNEMPLOYED)
+#define MKSH_UNEMPLOYED
+#endif
+
 /*
  * simple grouping allocator
  */
@@ -789,8 +793,10 @@ struct coproc {
 };
 EXTERN struct coproc coproc;
 
+#ifndef MKSH_NOPROSPECTOFWORK
 /* Used in jobs.c and by coprocess stuff in exec.c */
 EXTERN sigset_t		sm_default, sm_sigchld;
+#endif
 
 /* name of called builtin function (used by error functions) */
 EXTERN const char *builtin_argv0;

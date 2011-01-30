@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.84 2011/01/09 21:57:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.85 2011/01/30 01:35:33 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -114,14 +114,17 @@ execute(struct op * volatile t,
 			afree(cp, APERM);
 		}
 
-		/* Clear subst_exstat before argument expansion. Used by
+		/*
+		 * Clear subst_exstat before argument expansion. Used by
 		 * null commands (see comexec() and c_eval()) and by c_set().
 		 */
 		subst_exstat = 0;
 
-		current_lineno = t->lineno;	/* for $LINENO */
+		/* for $LINENO */
+		current_lineno = t->lineno;
 
-		/* POSIX says expand command words first, then redirections,
+		/*
+		 * POSIX says expand command words first, then redirections,
 		 * and assignments last..
 		 */
 		up = eval(t->args, t->u.evalflags | DOBLANK | DOGLOB | DOTILDE);
@@ -153,7 +156,8 @@ execute(struct op * volatile t,
 		for (iowp = t->ioact; *iowp != NULL; iowp++) {
 			if (iosetup(*iowp, tp) < 0) {
 				exstat = rv = 1;
-				/* Redirection failures for special commands
+				/*
+				 * Redirection failures for special commands
 				 * cause (non-interactive) shell to exit.
 				 */
 				if (tp && tp->type == CSHELL &&
@@ -180,7 +184,8 @@ execute(struct op * volatile t,
 		e->savefd[1] = savefd(1);
 		while (t->type == TPIPE) {
 			openpipe(pv);
-			ksh_dup2(pv[1], 1, false); /* stdout of curr */
+			/* stdout of curr */
+			ksh_dup2(pv[1], 1, false);
 			/**
 			 * Let exchild() close pv[0] in child
 			 * (if this isn't done, commands like
@@ -189,13 +194,16 @@ execute(struct op * volatile t,
 			 */
 			exchild(t->left, flags | XPIPEO | XCCLOSE,
 			    NULL, pv[0]);
-			ksh_dup2(pv[0], 0, false); /* stdin of next */
+			/* stdin of next */
+			ksh_dup2(pv[0], 0, false);
 			closepipe(pv);
 			flags |= XPIPEI;
 			t = t->right;
 		}
-		restfd(1, e->savefd[1]); /* stdout of last */
-		e->savefd[1] = 0; /* no need to re-restore this */
+		/* stdout of last */
+		restfd(1, e->savefd[1]);
+		/* no need to re-restore this */
+		e->savefd[1] = 0;
 		/* Let exchild() close 0 in parent, after fork, before wait */
 		i = exchild(t, flags | XPCLOSE, xerrok, 0);
 		if (!(flags&XBGND) && !(flags&XXCOM))
@@ -211,9 +219,11 @@ execute(struct op * volatile t,
 		break;
 
 	case TCOPROC: {
+#ifndef MKSH_NOPROSPECTOFWORK
 		sigset_t omask;
 
-		/* Block sigchild as we are using things changed in the
+		/*
+		 * Block sigchild as we are using things changed in the
 		 * signal handler
 		 */
 		sigprocmask(SIG_BLOCK, &sm_sigchld, &omask);
@@ -225,6 +235,7 @@ execute(struct op * volatile t,
 			unwind(i);
 			/* NOTREACHED */
 		}
+#endif
 		/* Already have a (live) co-process? */
 		if (coproc.job && coproc.write >= 0)
 			errorf("coprocess already exists");
@@ -250,15 +261,20 @@ execute(struct op * volatile t,
 			openpipe(pv);
 			coproc.read = pv[0];
 			ksh_dup2(pv[1], 1, false);
-			coproc.readw = pv[1];	 /* closed before first read */
+			/* closed before first read */
+			coproc.readw = pv[1];
 			coproc.njobs = 0;
 			/* create new coprocess id */
 			++coproc.id;
 		}
+#ifndef MKSH_NOPROSPECTOFWORK
 		sigprocmask(SIG_SETMASK, &omask, NULL);
-		e->type = E_EXEC; /* no more need for error handler */
+		/* no more need for error handler */
+		e->type = E_EXEC;
+#endif
 
-		/* exchild() closes coproc.* in child after fork,
+		/*
+		 * exchild() closes coproc.* in child after fork,
 		 * will also increment coproc.njobs when the
 		 * job is actually created.
 		 */
@@ -269,7 +285,8 @@ execute(struct op * volatile t,
 	}
 
 	case TASYNC:
-		/* XXX non-optimal, I think - "(foo &)", forks for (),
+		/*
+		 * XXX non-optimal, I think - "(foo &)", forks for (),
 		 * forks again for async... parent should optimise
 		 * this to "foo &"...
 		 */
@@ -327,13 +344,15 @@ execute(struct op * volatile t,
 				goto Break;
 			}
 		}
-		rv = 0; /* in case of a continue */
+		/* in case of a continue */
+		rv = 0;
 		if (t->type == TFOR) {
 			while (*ap != NULL) {
 				setstr(global(t->str), *ap++, KSH_UNWIND_ERROR);
 				rv = execute(t->left, flags & XERROK, xerrok);
 			}
-		} else { /* TSELECT */
+		} else {
+			/* TSELECT */
 			for (;;) {
 				if (!(ccp = do_selectargs(ap, is_first))) {
 					rv = 1;
@@ -363,7 +382,8 @@ execute(struct op * volatile t,
 				goto Break;
 			}
 		}
-		rv = 0; /* in case of a continue */
+		/* in case of a continue */
+		rv = 0;
 		while ((execute(t->left, XERROK, NULL) == 0) ==
 		    (t->type == TWHILE))
 			rv = execute(t->right, flags & XERROK, xerrok);
@@ -372,7 +392,8 @@ execute(struct op * volatile t,
 	case TIF:
 	case TELIF:
 		if (t->right == NULL)
-			break;	/* should be error */
+			/* should be error */
+			break;
 		rv = execute(t->left, XERROK, NULL) == 0 ?
 		    execute(t->right->left, flags & XERROK, xerrok) :
 		    execute(t->right->right, flags & XERROK, xerrok);
@@ -399,13 +420,15 @@ execute(struct op * volatile t,
 		break;
 
 	case TTIME:
-		/* Clear XEXEC so nested execute() call doesn't exit
+		/*
+		 * Clear XEXEC so nested execute() call doesn't exit
 		 * (allows "ls -l | time grep foo").
 		 */
 		rv = timex(t, flags & ~XEXEC, xerrok);
 		break;
 
-	case TEXEC:		/* an eval'd TCOM */
+	case TEXEC:
+		/* an eval'd TCOM */
 		s = t->args[0];
 		up = makenv();
 		restoresigs();
@@ -425,9 +448,11 @@ execute(struct op * volatile t,
  Break:
 	exstat = rv;
 
-	quitenv(NULL);		/* restores IO */
+	/* restores IO */
+	quitenv(NULL);
 	if ((flags&XEXEC))
-		unwind(LEXIT);	/* exit child */
+		/* exit child */
+		unwind(LEXIT);
 	if (rv != 0 && !(flags & XERROK) &&
 	    (xerrok == NULL || !*xerrok)) {
 		trapsig(SIGERR_);

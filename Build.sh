@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.467 2011/01/29 19:07:15 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.468 2011/01/30 01:35:29 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -31,6 +31,7 @@ srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.467 2011/01/29 19:07:15 tg Exp $'
 #			MKSH_UNEMPLOYED MKSH_DEFAULT_EXECSHELL MKSHRC_PATH
 #			MKSH_DEFAULT_TMPDIR MKSH_CLRTOEOL_STRING MKSH_A4PB
 #			MKSH_NO_DEPRECATED_WARNING MKSH_DONT_EMIT_IDSTRING
+#			MKSH_NOPROSPECTOFWORK
 
 LC_ALL=C
 export LC_ALL
@@ -1061,6 +1062,9 @@ ac_ifcpp 'ifdef MKSH_BINSHREDUCED' isset_MKSH_BINSHREDUCED '' \
 ac_ifcpp 'ifdef MKSH_UNEMPLOYED' isset_MKSH_UNEMPLOYED '' \
     "if mksh will be built without job control" && \
     check_categories=$check_categories,arge
+ac_ifcpp 'ifdef MKSH_NOPROSPECTOFWORK' isset_MKSH_NOPROSPECTOFWORK '' \
+    "if mksh will be built without job signals" && \
+    check_categories=$check_categories,arge,nojsig
 ac_ifcpp 'ifdef MKSH_ASSUME_UTF8' isset_MKSH_ASSUME_UTF8 '' \
     'if the default UTF-8 mode is specified' && : ${HAVE_SETLOCALE_CTYPE=0}
 ac_ifcpp 'ifdef MKSH_CONSERVATIVE_FDS' isset_MKSH_CONSERVATIVE_FDS '' \
