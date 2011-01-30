@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.468 2011/01/30 01:35:29 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.469 2011/01/30 02:18:19 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1075,6 +1075,7 @@ ac_ifcpp 'ifdef MKSH_CONSERVATIVE_FDS' isset_MKSH_CONSERVATIVE_FDS '' \
 # Environment: headers
 #
 ac_header sys/param.h
+ac_header sys/file.h sys/types.h
 ac_header sys/mkdev.h sys/types.h
 ac_header sys/mman.h sys/types.h
 ac_header sys/sysmacros.h
@@ -1206,7 +1207,9 @@ EOF
 #
 ac_testn flock_ex '' 'flock and mmap' <<-'EOF'
 	#include <sys/types.h>
+	#if HAVE_SYS_FILE_H
 	#include <sys/file.h>
+	#endif
 	#if HAVE_SYS_MMAN_H
 	#include <sys/mman.h>
 	#endif

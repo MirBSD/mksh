@@ -22,11 +22,11 @@
  */
 
 #include "sh.h"
-#if HAVE_PERSISTENT_HISTORY
+#if HAVE_SYS_FILE_H
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.103 2010/11/01 17:29:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.104 2011/01/30 02:18:20 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
