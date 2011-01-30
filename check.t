@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.403 2011/01/30 01:35:56 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.404 2011/01/30 02:18:25 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -346,7 +346,7 @@ expected-stdout:
 ---
 name: bksl-nl-ign-1
 description:
-	Check that \newline is not collasped after #
+	Check that \newline is not collapsed after #
 stdin:
 	echo hi #there \
 	echo folks
@@ -356,7 +356,7 @@ expected-stdout:
 ---
 name: bksl-nl-ign-2
 description:
-	Check that \newline is not collasped inside single quotes
+	Check that \newline is not collapsed inside single quotes
 stdin:
 	echo 'hi \
 	there'
@@ -368,7 +368,7 @@ expected-stdout:
 ---
 name: bksl-nl-ign-3
 description:
-	Check that \newline is not collasped inside single quotes
+	Check that \newline is not collapsed inside single quotes
 stdin:
 	cat << \EOF
 	hi \
@@ -418,7 +418,7 @@ expected-stdout:
 #
 name: bksl-nl-1
 description:
-	Check that \newline is collasped before, in the middle of, and
+	Check that \newline is collapsed before, in the middle of, and
 	after words
 stdin:
 	 	 	\
@@ -430,7 +430,7 @@ expected-stdout:
 ---
 name: bksl-nl-2
 description:
-	Check that \newline is collasped in $ sequences
+	Check that \newline is collapsed in $ sequences
 	(ksh93 fails this)
 stdin:
 	a=12
@@ -454,7 +454,7 @@ expected-stdout:
 ---
 name: bksl-nl-3
 description:
-	Check that \newline is collasped in $(..) and `...` sequences
+	Check that \newline is collapsed in $(..) and `...` sequences
 	(ksh93 fails this)
 stdin:
 	echo $\
@@ -479,7 +479,7 @@ expected-stdout:
 ---
 name: bksl-nl-4
 description:
-	Check that \newline is collasped in $((..)) sequences
+	Check that \newline is collapsed in $((..)) sequences
 	(ksh93 fails this)
 stdin:
 	echo $\
@@ -501,7 +501,7 @@ expected-stdout:
 ---
 name: bksl-nl-5
 description:
-	Check that \newline is collasped in double quoted strings
+	Check that \newline is collapsed in double quoted strings
 stdin:
 	echo "\
 	hi"
@@ -516,7 +516,7 @@ expected-stdout:
 ---
 name: bksl-nl-6
 description:
-	Check that \newline is collasped in here document delimiters
+	Check that \newline is collapsed in here document delimiters
 	(ksh93 fails second part of this)
 stdin:
 	a=12
@@ -539,7 +539,7 @@ expected-stdout:
 ---
 name: bksl-nl-7
 description:
-	Check that \newline is collasped in double-quoted here-document
+	Check that \newline is collapsed in double-quoted here-document
 	delimiter.
 stdin:
 	a=12
@@ -558,7 +558,7 @@ expected-stdout:
 ---
 name: bksl-nl-8
 description:
-	Check that \newline is collasped in various 2+ character tokens
+	Check that \newline is collapsed in various 2+ character tokens
 	delimiter.
 	(ksh93 fails this)
 stdin:
