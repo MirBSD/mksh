@@ -26,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.167 2011/01/22 20:33:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.168 2011/01/30 01:35:58 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2336,15 +2336,15 @@ c_trap(const char **wp)
 		s = NULL;
 
 	/* set/clear traps */
-	while (*wp != NULL) {
-		p = gettrap(*wp++, true);
-		if (p == NULL) {
-			bi_errorf("bad signal '%s'", wp[-1]);
-			return (1);
-		}
-		settrap(p, s);
-	}
-	return (0);
+	i = 0;
+	while (*wp != NULL)
+		if ((p = gettrap(*wp++, true)) == NULL) {
+			warningf(true, "%s: %s '%s'", builtin_argv0,
+			    "bad signal", wp[-1]);
+			++i;
+		} else
+			settrap(p, s);
+	return (i);
 }
 
 int

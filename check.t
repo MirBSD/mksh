@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.402 2011/01/30 01:35:32 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.403 2011/01/30 01:35:56 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/01/22
+	@(#)MIRBSD KSH R39 2011/01/29
 description:
 	Check version of shell.
 stdin:
@@ -3384,6 +3384,26 @@ stdin:
 expected-stdout:
 	line <6>
 expected-exit: 1
+---
+name: unknown-trap
+description:
+	Ensure unknown traps are not a syntax error
+stdin:
+	(
+	trap "echo trap 1 executed" UNKNOWNSIGNAL || echo "foo"
+	echo =1
+	trap "echo trap 2 executed" UNKNOWNSIGNAL EXIT 999999 FNORD
+	echo = $?
+	) 2>&1 | sed "s^${__progname}: <stdin>\[[0-9]*]PROG"
+expected-stdout:
+	PROG: trap: bad signal 'UNKNOWNSIGNAL'
+	foo
+	=1
+	PROG: trap: bad signal 'UNKNOWNSIGNAL'
+	PROG: trap: bad signal '999999'
+	PROG: trap: bad signal 'FNORD'
+	= 3
+	trap 2 executed
 ---
 name: read-IFS-1
 description:
