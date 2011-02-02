@@ -1,7 +1,7 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.57 2010/11/26 21:08:54 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.58 2011/02/02 22:48:15 tg Exp $
 #-
-# Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010
+# Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -350,6 +350,7 @@ alias cls='print -n \\033c'
 #unset LANGUAGE LC_ADDRESS LC_ALL LC_COLLATE LC_IDENTIFICATION LC_MONETARY \
 #    LC_NAME LC_NUMERIC LC_TELEPHONE LC_TIME
 #p=en_GB.UTF-8
+#set -U
 #export LANG=C LC_CTYPE=$p LC_MEASUREMENT=$p LC_MESSAGES=$p LC_PAPER=$p
 
 unset p
