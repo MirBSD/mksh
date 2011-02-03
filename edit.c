@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.202 2011/01/21 22:43:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.203 2011/02/03 15:57:50 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -57,6 +57,9 @@ static X_chars edchars;
 #define XCF_FILE	BIT(1)	/* Do file completion */
 #define XCF_FULLPATH	BIT(2)	/* command completion: store full path */
 #define XCF_COMMAND_FILE (XCF_COMMAND|XCF_FILE)
+#define XCF_IS_COMMAND	BIT(3)	/* return flag: is command */
+#define XCF_IS_VARSUB	BIT(4)	/* return flag: is $FOO substitution */
+#define XCF_IS_EXTGLOB	BIT(5)	/* return flag: is foo* expansion */
 
 static char editmode;
 static int xx_cols;			/* for Emacs mode */
@@ -68,8 +71,7 @@ static void x_putcf(int);
 static bool x_mode(bool);
 static int x_do_comment(char *, int, int *);
 static void x_print_expansions(int, char *const *, bool);
-static int x_cf_glob(int, const char *, int, int, int *, int *, char ***,
-    bool *);
+static int x_cf_glob(int *, const char *, int, int, int *, int *, char ***);
 static int x_longest_prefix(int, char *const *);
 static int x_basename(const char *, const char *);
 static void x_free_words(int, char **);
@@ -89,17 +91,10 @@ static int x_vi(char *, size_t);
 #endif
 
 static int path_order_cmp(const void *aa, const void *bb);
-static char *add_glob(const char *, int)
-    MKSH_A_NONNULL((nonnull (1)))
-    MKSH_A_BOUNDED(string, 1, 2);
 static void glob_table(const char *, XPtrV *, struct table *);
 static void glob_path(int flags, const char *, XPtrV *, const char *);
-static int x_file_glob(int, const char *, int, char ***)
-    MKSH_A_NONNULL((nonnull (2)))
-    MKSH_A_BOUNDED(string, 2, 3);
-static int x_command_glob(int, const char *, int, char ***)
-    MKSH_A_NONNULL((nonnull (2)))
-    MKSH_A_BOUNDED(string, 2, 3);
+static int x_file_glob(int, char *, char ***);
+static int x_command_glob(int, char *, char ***);
 static int x_locate_word(const char *, int, int, int *, bool *);
 
 static int x_e_getmbc(char *);
@@ -111,11 +106,14 @@ static int x_e_rebuildline(const char *);
 void
 x_init(void)
 {
-	/* set to -2 to force initial binding */
+	/*
+	 * Set edchars to -2 to force initial binding, except
+	 * we need default values for some deficient systems…
+	 */
 	edchars.erase = edchars.kill = edchars.intr = edchars.quit =
 	    edchars.eof = -2;
-	/* default value for deficient systems */
-	edchars.werase = 027;	/* ^W */
+	/* ^W */
+	edchars.werase = 027;
 	x_init_emacs();
 }
 
@@ -136,7 +134,8 @@ x_read(char *buf, size_t len)
 		i = x_vi(buf, len);
 #endif
 	else
-		i = -1;		/* internal error */
+		/* internal error */
+		i = -1;
 	editmode = 0;
 	x_mode(false);
 	return (i);
@@ -179,7 +178,8 @@ x_putcf(int c)
  * Misc common code for vi/emacs *
  *********************************/
 
-/* Handle the commenting/uncommenting of a line.
+/*-
+ * Handle the commenting/uncommenting of a line.
  * Returns:
  *	1 if a carriage return is indicated (comment added)
  *	0 if no return (comment removed)
@@ -193,7 +193,8 @@ x_do_comment(char *buf, int bsize, int *lenp)
 	int i, j, len = *lenp;
 
 	if (len == 0)
-		return (1); /* somewhat arbitrary - it's what AT&T ksh does */
+		/* somewhat arbitrary - it's what AT&T ksh does */
+		return (1);
 
 	/* Already commented? */
 	if (buf[0] == '#') {
@@ -238,7 +239,8 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
 	int prefix_len;
 	XPtrV l = { NULL, NULL, NULL };
 
-	/* Check if all matches are in the same directory (in this
+	/*
+	 * Check if all matches are in the same directory (in this
 	 * case, we want to omit the directory name)
 	 */
 	if (!is_command &&
@@ -272,7 +274,8 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
 	pr_list(use_copy ? (char **)XPptrv(l) : words);
 
 	if (use_copy)
-		XPfree(l); /* not x_free_words() */
+		/* not x_free_words() */
+		XPfree(l);
 }
 
 /**
@@ -283,18 +286,13 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
  *	- returns number of matching strings
  */
 static int
-x_file_glob(int flags MKSH_A_UNUSED, const char *str, int slen, char ***wordsp)
+x_file_glob(int flags MKSH_A_UNUSED, char *toglob, char ***wordsp)
 {
-	char *toglob, **words;
+	char **words;
 	int nwords, i, idx;
 	bool escaping;
 	XPtrV w;
 	struct source *s, *sold;
-
-	if (slen < 0)
-		return (0);
-
-	toglob = add_glob(str, slen);
 
 	/* remove all escaping backward slashes */
 	escaping = false;
@@ -338,8 +336,9 @@ x_file_glob(int flags MKSH_A_UNUSED, const char *str, int slen, char ***wordsp)
 	if (nwords == 1) {
 		struct stat statb;
 
-		/* Check if globbing failed (returned glob pattern),
-		 * but be careful (E.g. toglob == "ab*" when the file
+		/*
+		 * Check if globbing failed (returned glob pattern),
+		 * but be careful (e.g. toglob == "ab*" when the file
 		 * "ab*" exists is not an error).
 		 * Also, check for empty result - happens if we tried
 		 * to glob something which evaluated to an empty
@@ -353,7 +352,6 @@ x_file_glob(int flags MKSH_A_UNUSED, const char *str, int slen, char ***wordsp)
 			nwords = 0;
 		}
 	}
-	afree(toglob, ATEMP);
 
 	if ((*wordsp = nwords ? words : NULL) == NULL && words != NULL)
 		x_free_words(nwords, words);
@@ -381,21 +379,15 @@ path_order_cmp(const void *aa, const void *bb)
 }
 
 static int
-x_command_glob(int flags, const char *str, int slen, char ***wordsp)
+x_command_glob(int flags, char *toglob, char ***wordsp)
 {
-	char *toglob, *pat, *fpath;
+	char *pat, *fpath;
 	int nwords;
 	XPtrV w;
 	struct block *l;
 
-	if (slen < 0)
-		return (0);
-
-	toglob = add_glob(str, slen);
-
 	/* Convert "foo*" (toglob) to a pattern for future use */
 	pat = evalstr(toglob, DOPAT | DOTILDE);
-	afree(toglob, ATEMP);
 
 	XPinit(w, 32);
 
@@ -481,7 +473,8 @@ x_locate_word(const char *buf, int buflen, int pos, int *startp,
 	/* The case where pos == buflen happens to take care of itself... */
 
 	start = pos;
-	/* Keep going backwards to start of word (has effect of allowing
+	/*
+	 * Keep going backwards to start of word (has effect of allowing
 	 * one blank after the end of a word)
 	 */
 	for (; (start > 0 && IS_WORDC(buf[start - 1])) ||
@@ -502,7 +495,8 @@ x_locate_word(const char *buf, int buflen, int pos, int *startp,
 			p--;
 		iscmd = p < 0 || vstrchr(";|&()`", buf[p]);
 		if (iscmd) {
-			/* If command has a /, path, etc. is not searched;
+			/*
+			 * If command has a /, path, etc. is not searched;
 			 * only current directory is searched which is just
 			 * like file globbing.
 			 */
@@ -519,77 +513,94 @@ x_locate_word(const char *buf, int buflen, int pos, int *startp,
 }
 
 static int
-x_cf_glob(int flags, const char *buf, int buflen, int pos, int *startp,
-    int *endp, char ***wordsp, bool *is_commandp)
+x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
+    int *endp, char ***wordsp)
 {
-	int len, nwords;
+	int len, nwords = 0;
 	char **words = NULL;
 	bool is_command;
 
 	len = x_locate_word(buf, buflen, pos, startp, &is_command);
-	if (!(flags & XCF_COMMAND))
+	if (!(*flagsp & XCF_COMMAND))
 		is_command = false;
-	/* Don't do command globing on zero length strings - it takes too
+	/*
+	 * Don't do command globing on zero length strings - it takes too
 	 * long and isn't very useful. File globs are more likely to be
 	 * useful, so allow these.
 	 */
 	if (len == 0 && is_command)
 		return (0);
 
-	nwords = is_command ?
-	    x_command_glob(flags, buf + *startp, len, &words) :
-	    x_file_glob(flags, buf + *startp, len, &words);
+	if (len >= 0) {
+		char *toglob, *s;
+		bool saw_slash = false, saw_dollar = false, saw_glob = false;
+
+		/*
+		 * Given a string, copy it and possibly add a '*' to the end.
+		 */
+
+		strndupx(toglob, buf + *startp, len + /* the '*' */ 1, ATEMP);
+		toglob[len] = '\0';
+
+		/*
+		 * If the pathname contains a wildcard (an unquoted '*',
+		 * '?', or '[') or parameter expansion ('$'), or a ~username
+		 * with no trailing slash, then it is globbed based on that
+		 * value (i.e., without the appended '*').
+		 */
+		for (s = toglob; *s; s++) {
+			if (*s == '\\' && s[1])
+				s++;
+			else if (*s == '$') {
+				/*
+				 * Do not append a space after the value
+				 * if expanding a parameter substitution
+				 * as in: “cat $HOME/.ss↹” (LP: #710539)
+				 */
+				saw_dollar = true;
+			} else if (*s == '?' || *s == '*' || *s == '[' ||
+			    /* ?() *() +() @() !() but two already checked */
+			    (s[1] == '(' /*)*/ &&
+			    (*s == '+' || *s == '@' || *s == '!'))) {
+				/* just expand based on the extglob */
+				saw_glob = true;
+			} else if (*s == '/')
+				saw_slash = true;
+		}
+		if (saw_glob) {
+			/*
+			 * do not append a glob, we already have a
+			 * glob or extglob; it works even if this is
+			 * a parameter expansion as we have a glob
+			 */
+			*flagsp |= XCF_IS_EXTGLOB;
+		} else if (saw_dollar) {
+			/* do not append a glob, nor later a space */
+			*flagsp |= XCF_IS_VARSUB;
+		} else if (*toglob != '~' || saw_slash) {
+			/* append a glob, this is not just a tilde */
+			toglob[len] = '*';
+			toglob[len + 1] = '\0';
+		}
+
+		/*
+		 * Expand (glob) it now.
+		 */
+
+		nwords = is_command ?
+		    x_command_glob(*flagsp, toglob, &words) :
+		    x_file_glob(*flagsp, toglob, &words);
+		afree(toglob, ATEMP);
+	}
 	if (nwords == 0) {
 		*wordsp = NULL;
 		return (0);
 	}
-	if (is_commandp)
-		*is_commandp = is_command;
+	*flagsp |= XCF_IS_COMMAND;
 	*wordsp = words;
 	*endp = *startp + len;
 
 	return (nwords);
-}
-
-/* Given a string, copy it and possibly add a '*' to the end.
- * The new string is returned.
- */
-static char *
-add_glob(const char *str, int slen)
-{
-	char *toglob, *s;
-	bool saw_slash = false;
-
-	if (slen < 0)
-		return (NULL);
-
-	/* for clang's static analyser, the nonnull attribute isn't enough */
-	mkssert(str != NULL);
-
-	strndupx(toglob, str, slen + 1, ATEMP); /* + 1 for "*" */
-	toglob[slen] = '\0';
-
-	/*
-	 * If the pathname contains a wildcard (an unquoted '*',
-	 * '?', or '[') or parameter expansion ('$'), or a ~username
-	 * with no trailing slash, then it is globbed based on that
-	 * value (i.e., without the appended '*').
-	 */
-	for (s = toglob; *s; s++) {
-		if (*s == '\\' && s[1])
-			s++;
-		else if (*s == '*' || *s == '[' || *s == '?' || *s == '$' ||
-		    (s[1] == '(' /*)*/ && /* *s in '*','?' already checked */
-		    (*s == '+' || *s == '@' || *s == '!')))
-			break;
-		else if (*s == '/')
-			saw_slash = true;
-	}
-	if (!*s && (*toglob != '~' || saw_slash)) {
-		toglob[slen] = '*';
-		toglob[slen + 1] = '\0';
-	}
-	return (toglob);
 }
 
 /*
@@ -622,7 +633,8 @@ x_free_words(int nwords, char **words)
 	afree(words, ATEMP);
 }
 
-/* Return the offset of the basename of string s (which ends at se - need not
+/*-
+ * Return the offset of the basename of string s (which ends at se - need not
  * be null terminated). Trailing slashes are ignored. If s is just a slash,
  * then the offset is 0 (actually, length - 1).
  *	s		Return
@@ -694,7 +706,8 @@ glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
 			p = sp + strlen(sp);
 		pathlen = p - sp;
 		if (pathlen) {
-			/* Copy sp into xp, stuffing any MAGIC characters
+			/*
+			 * Copy sp into xp, stuffing any MAGIC characters
 			 * on the way
 			 */
 			const char *s = sp;
@@ -713,7 +726,8 @@ glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
 		memcpy(xp, pat, patlen);
 
 		oldsize = XPsize(*wp);
-		glob_str(Xstring(xs, xp), wp, 1); /* mark dirs */
+		/* mark dirs */
+		glob_str(Xstring(xs, xp), wp, 1);
 		newsize = XPsize(*wp);
 
 		/* Check that each match is executable... */
@@ -809,7 +823,8 @@ struct x_defbindings {
 #define X_NTABS		3			/* normal, meta1, meta2 */
 #define X_TABSZ		256			/* size of keydef tables etc */
 
-/* Arguments for do_complete()
+/*-
+ * Arguments for do_complete()
  * 0 = enumerate	M-=	complete as much as possible and then list
  * 1 = complete		M-Esc
  * 2 = list		M-?
@@ -1000,7 +1015,8 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_fold_capitalise,	1,	'C'	},
 	{ XFUNC_fold_capitalise,	1,	'c'	},
 #endif
-	/* These for ansi arrow keys: arguablely shouldn't be here by
+	/*
+	 * These for ANSI arrow keys: arguablely shouldn't be here by
 	 * default, but its simpler/faster/smaller than using termcap
 	 * entries.
 	 */
@@ -1156,7 +1172,8 @@ x_emacs(char *buf, size_t len)
 		case KEOL:
 			i = xep - xbuf;
 			return (i);
-		case KINTR:	/* special case for interrupt */
+		case KINTR:
+			/* special case for interrupt */
 			trapsig(SIGINT);
 			x_mode(false);
 			unwind(LSHELL);
@@ -1267,7 +1284,8 @@ x_ins(const char *s)
 	x_lastcp();
 	x_adj_ok = (xcp >= xlp);
 	x_zots(cp);
-	if (adj == x_adj_done) {	/* has x_adjust() been called? */
+	/* has x_adjust() been called? */
+	if (adj == x_adj_done) {
 		/* no */
 		cp = xlp;
 		while (cp > xcp)
@@ -1356,13 +1374,15 @@ x_delete(int nc, int push)
 		x_push(nb);
 
 	xep -= nb;
-	memmove(xcp, xcp + nb, xep - xcp + 1);	/* Copies the NUL */
-	x_adj_ok = 0;			/* don't redraw */
+	/* Copies the NUL */
+	memmove(xcp, xcp + nb, xep - xcp + 1);
+	/* don't redraw */
+	x_adj_ok = 0;
 	xlp_valid = false;
 	x_zots(xcp);
 	/*
 	 * if we are already filling the line,
-	 * there is no need to ' ','\b'.
+	 * there is no need to ' ', '\b'.
 	 * But if we must, make sure we do the minimum.
 	 */
 	if ((i = xx_cols - 2 - x_col) > 0 || xep - xlp == 0) {
@@ -1474,10 +1494,12 @@ x_goto(char *cp)
 		/* we are heading off screen */
 		xcp = cp;
 		x_adjust();
-	} else if (cp < xcp) {		/* move back */
+	} else if (cp < xcp) {
+		/* move back */
 		while (cp < xcp)
 			x_bs3(&xcp);
-	} else if (cp > xcp) {		/* move forward */
+	} else if (cp > xcp) {
+		/* move forward */
 		while (cp > xcp)
 			x_zotc3(&xcp);
 	}
@@ -1517,9 +1539,11 @@ x_size2(char *cp, char **dcp)
 	if (dcp)
 		*dcp = cp + 1;
 	if (c == '\t')
-		return (4);	/* Kludge, tabs are always four spaces. */
+		/* Kludge, tabs are always four spaces. */
+		return (4);
 	if (c < ' ' || c == 0x7f)
-		return (2);	/* control unsigned char */
+		/* control unsigned char */
+		return (2);
 	return (1);
 }
 
@@ -1702,7 +1726,8 @@ x_next_com(int c MKSH_A_UNUSED)
 	return (KSTD);
 }
 
-/* Goto a particular history number obtained from argument.
+/*
+ * Goto a particular history number obtained from argument.
  * If no argument is given history 1 is probably not what you
  * want so we'll simply go to the oldest one.
  */
@@ -1835,7 +1860,8 @@ x_search_hist(int c)
 			if (offset >= 0)
 				x_load_hist(histptr + 1);
 			break;
-		} else { /* other command */
+		} else {
+			/* other command */
 			x_e_ungetc(c);
 			break;
 		}
@@ -1967,7 +1993,8 @@ x_cls(int c MKSH_A_UNUSED)
 	return (x_e_rebuildline(MKSH_CLS_STRING));
 }
 
-/* Redraw (part of) the line. If limit is < 0, the everything is redrawn
+/*
+ * Redraw (part of) the line. If limit is < 0, the everything is redrawn
  * on a NEW line, otherwise limit is the screen column up to which needs
  * redrawing.
  */
@@ -2004,7 +2031,8 @@ x_redraw(int limit)
 		limit = xx_cols;
 	if (limit >= 0) {
 		if (xep > xlp)
-			i = 0;			/* we fill the line */
+			/* we fill the line */
+			i = 0;
 		else {
 			char *cpl = xbp;
 
@@ -2021,7 +2049,8 @@ x_redraw(int limit)
 			j++;
 		}
 		i = ' ';
-		if (xep > xlp) {		/* more off screen */
+		if (xep > xlp) {
+			/* more off screen */
 			if (xbp > xbuf)
 				i = '*';
 			else
@@ -2045,7 +2074,8 @@ x_transpose(int c MKSH_A_UNUSED)
 {
 	unsigned int tmpa, tmpb;
 
-	/* What transpose is meant to do seems to be up for debate. This
+	/*-
+	 * What transpose is meant to do seems to be up for debate. This
 	 * is a general summary of the options; the text is abcd with the
 	 * upper case character or underscore indicating the cursor position:
 	 *	Who			Before	After	Before	After
@@ -2066,8 +2096,9 @@ x_transpose(int c MKSH_A_UNUSED)
 			x_e_putc2(7);
 			return (KSTD);
 		}
-		/* Gosling/Unipress emacs style: Swap two characters before the
-		 * cursor, do not change cursor position
+		/*
+		 * Gosling/Unipress emacs style: Swap two characters before
+		 * the cursor, do not change cursor position
 		 */
 		x_bs3(&xcp);
 		if (utf_mbtowc(&tmpa, xcp) == (size_t)-1) {
@@ -2084,7 +2115,8 @@ x_transpose(int c MKSH_A_UNUSED)
 		utf_wctomb(xcp, tmpb);
 		x_zotc3(&xcp);
 	} else {
-		/* GNU emacs style: Swap the characters before and under the
+		/*
+		 * GNU emacs style: Swap the characters before and under the
 		 * cursor, move cursor position along one.
 		 */
 		if (utf_mbtowc(&tmpa, xcp) == (size_t)-1) {
@@ -2281,7 +2313,8 @@ x_mapin(const char *cp, Area *ap)
 		/* XXX -- should handle \^ escape? */
 		if (*cp == '^') {
 			cp++;
-			if (*cp >= '?')	/* includes '?'; ASCII */
+			if (*cp >= '?')
+				/* includes '?'; ASCII */
 				*op++ = CTRL(*cp);
 			else {
 				*op++ = '^';
@@ -2345,9 +2378,11 @@ x_print(int prefix, int key)
 int
 x_bind(const char *a1, const char *a2,
 #ifndef MKSH_SMALL
-    bool macro,			/* bind -m */
+    /* bind -m */
+    bool macro,
 #endif
-    bool list)			/* bind -l */
+    /* bind -l */
+    bool list)
 {
 	unsigned char f;
 	int prefix, key;
@@ -2605,10 +2640,10 @@ x_expand(int c MKSH_A_UNUSED)
 {
 	char **words;
 	int start, end, nwords, i;
-	bool is_command;
 
-	nwords = x_cf_glob(XCF_FILE, xbuf, xep - xbuf, xcp - xbuf,
-	    &start, &end, &words, &is_command);
+	i = XCF_FILE;
+	nwords = x_cf_glob(&i, xbuf, xep - xbuf, xcp - xbuf,
+	    &start, &end, &words);
 
 	if (nwords == 0) {
 		x_e_putc2(7);
@@ -2616,7 +2651,9 @@ x_expand(int c MKSH_A_UNUSED)
 	}
 	x_goto(xbuf + start);
 	x_delete(end - start, false);
-	for (i = 0; i < nwords;) {
+
+	i = 0;
+	while (i < nwords) {
 		if (x_escape(words[i], strlen(words[i]), x_do_ins) < 0 ||
 		    (++i < nwords && x_ins(" ") < 0)) {
 			x_e_putc2(7);
@@ -2628,24 +2665,26 @@ x_expand(int c MKSH_A_UNUSED)
 	return (KSTD);
 }
 
-/* type == 0 for list, 1 for complete and 2 for complete-list */
 static void
-do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
+do_complete(
+    /* XCF_{COMMAND,FILE,COMMAND_FILE} */
+    int flags,
+    /* 0 for list, 1 for complete and 2 for complete-list */
     Comp_type type)
 {
 	char **words;
 	int start, end, nlen, olen, nwords;
-	bool is_command, completed = false;
+	bool completed = false;
 
-	nwords = x_cf_glob(flags, xbuf, xep - xbuf, xcp - xbuf,
-	    &start, &end, &words, &is_command);
+	nwords = x_cf_glob(&flags, xbuf, xep - xbuf, xcp - xbuf,
+	    &start, &end, &words);
 	/* no match */
 	if (nwords == 0) {
 		x_e_putc2(7);
 		return;
 	}
 	if (type == CT_LIST) {
-		x_print_expansions(nwords, words, is_command);
+		x_print_expansions(nwords, words, flags & XCF_IS_COMMAND);
 		x_redraw(0);
 		x_free_words(nwords, words);
 		return;
@@ -2660,13 +2699,14 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
 		x_adjust();
 		completed = true;
 	}
-	/* add space if single non-dir match */
-	if (nwords == 1 && words[0][nlen - 1] != '/') {
+	/* add space if single non-dir match and not parameter substitution */
+	if (nwords == 1 && words[0][nlen - 1] != '/' &&
+	    !(flags & XCF_IS_VARSUB)) {
 		x_ins(" ");
 		completed = true;
 	}
 	if (type == CT_COMPLIST && !completed) {
-		x_print_expansions(nwords, words, is_command);
+		x_print_expansions(nwords, words, flags & XCF_IS_COMMAND);
 		completed = true;
 	}
 	if (completed)
@@ -2675,7 +2715,8 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
 	x_free_words(nwords, words);
 }
 
-/* NAME:
+/*-
+ * NAME:
  *	x_adjust - redraw the line adjusting starting point etc.
  *
  * DESCRIPTION:
@@ -2691,7 +2732,8 @@ do_complete(int flags,	/* XCF_{COMMAND,FILE,COMMAND_FILE} */
 static void
 x_adjust(void)
 {
-	x_adj_done++;			/* flag the fact that we were called. */
+	/* flag the fact that we were called. */
+	x_adj_done++;
 	/*
 	 * we had a problem if the prompt length > xx_cols / 2
 	 */
@@ -2819,7 +2861,8 @@ x_e_puts(const char *s)
 		x_e_putc3(&s);
 }
 
-/* NAME:
+/*-
+ * NAME:
  *	x_set_arg - set an arg value for next function
  *
  * DESCRIPTION:
@@ -2833,7 +2876,8 @@ x_set_arg(int c)
 {
 	int n = 0, first = 1;
 
-	c &= 255;	/* strip command prefix */
+	/* strip command prefix */
+	c &= 255;
 	for (; c >= 0 && ksh_isdigit(c); c = x_e_getc(), first = 0)
 		n = n * 10 + (c - '0');
 	if (c < 0 || first) {
@@ -2929,7 +2973,8 @@ x_edit_line(int c MKSH_A_UNUSED)
 }
 #endif
 
-/* NAME:
+/*-
+ * NAME:
  *	x_prev_histword - recover word from prev command
  *
  * DESCRIPTION:
@@ -3026,7 +3071,8 @@ x_fold_capitalise(int c MKSH_A_UNUSED)
 	return (x_fold_case('C'));
 }
 
-/* NAME:
+/*-
+ * NAME:
  *	x_fold_case - convert word to UPPER/lower/Capital case
  *
  * DESCRIPTION:
@@ -3056,9 +3102,11 @@ x_fold_case(int c)
 		 * a different action than for the rest.
 		 */
 		if (cp != xep) {
-			if (c == 'L')		/* lowercase */
+			if (c == 'L')
+				/* lowercase */
 				*cp = ksh_tolower(*cp);
-			else			/* uppercase, capitalise */
+			else
+				/* uppercase, capitalise */
 				*cp = ksh_toupper(*cp);
 			cp++;
 		}
@@ -3066,9 +3114,11 @@ x_fold_case(int c)
 		 * now for the rest of the word
 		 */
 		while (cp != xep && !is_mfs(*cp)) {
-			if (c == 'U')		/* uppercase */
+			if (c == 'U')
+				/* uppercase */
 				*cp = ksh_toupper(*cp);
-			else			/* lowercase, capitalise */
+			else
+				/* lowercase, capitalise */
 				*cp = ksh_tolower(*cp);
 			cp++;
 		}
@@ -3079,7 +3129,8 @@ x_fold_case(int c)
 }
 #endif
 
-/* NAME:
+/*-
+ * NAME:
  *	x_lastcp - last visible char
  *
  * SYNOPSIS:
@@ -3146,10 +3197,10 @@ x_mode(bool onoff)
 		cb.c_iflag &= ~(INLCR | ICRNL);
 		cb.c_lflag &= ~(ISIG | ICANON | ECHO);
 #if defined(VLNEXT) && defined(_POSIX_VDISABLE)
-		/* osf/1 processes lnext when ~icanon */
+		/* OSF/1 processes lnext when ~icanon */
 		cb.c_cc[VLNEXT] = _POSIX_VDISABLE;
 #endif
-		/* sunos 4.1.x & osf/1 processes discard(flush) when ~icanon */
+		/* SunOS 4.1.x & OSF/1 processes discard(flush) when ~icanon */
 #if defined(VDISCARD) && defined(_POSIX_VDISABLE)
 		cb.c_cc[VDISCARD] = _POSIX_VDISABLE;
 #endif
@@ -3345,7 +3396,8 @@ static int ohnum;			/* history line copied (after mod) */
 static int hlast;			/* 1 past last position in history */
 static int state;
 
-/* Information for keeping track of macros that are being expanded.
+/*
+ * Information for keeping track of macros that are being expanded.
  * The format of buf is the alias contents followed by a NUL byte followed
  * by the name (letter) of the alias. The end of the buffer is marked by
  * a double NUL. The name of the alias is stored so recursive macros can
@@ -3809,7 +3861,8 @@ vi_insert(int ch)
 		expanded = NONE;
 		return (0);
 	}
-	/* If any chars are entered before escape, trash the saved insert
+	/*
+	 * If any chars are entered before escape, trash the saved insert
 	 * buffer (if user inserts & deletes char, ibuf gets trashed and
 	 * we don't want to use it)
 	 */
@@ -4332,29 +4385,37 @@ vi_cmd(int argcnt, const char *cmd)
 				return (ret);
 			}
 
-		case '=':			/* AT&T ksh */
-		case Ctrl('e'):			/* Nonstandard vi/ksh */
+		/* AT&T ksh */
+		case '=':
+		/* Nonstandard vi/ksh */
+		case Ctrl('e'):
 			print_expansions(es, 1);
 			break;
 
 
-		case Ctrl('i'):			/* Nonstandard vi/ksh */
+		/* Nonstandard vi/ksh */
+		case Ctrl('i'):
 			if (!Flag(FVITABCOMPLETE))
 				return (-1);
 			complete_word(1, argcnt);
 			break;
 
-		case Ctrl('['):			/* some annoying AT&T kshs */
+		/* some annoying AT&T kshs */
+		case Ctrl('['):
 			if (!Flag(FVIESCCOMPLETE))
 				return (-1);
-		case '\\':			/* AT&T ksh */
-		case Ctrl('f'):			/* Nonstandard vi/ksh */
+		/* AT&T ksh */
+		case '\\':
+		/* Nonstandard vi/ksh */
+		case Ctrl('f'):
 			complete_word(1, argcnt);
 			break;
 
 
-		case '*':			/* AT&T ksh */
-		case Ctrl('x'):			/* Nonstandard vi/ksh */
+		/* AT&T ksh */
+		case '*':
+		/* Nonstandard vi/ksh */
+		case Ctrl('x'):
 			expand_word(1);
 			break;
 		}
@@ -5005,7 +5066,8 @@ display(char *wb1, char *wb2, int leftside)
 		col++;
 	}
 	if (es->winleft > 0 && moreright)
-		/* POSIX says to use * for this but that is a globbing
+		/*
+		 * POSIX says to use * for this but that is a globbing
 		 * character and may confuse people; + is more innocuous
 		 */
 		mc = '+';
@@ -5054,11 +5116,8 @@ static int
 expand_word(int cmd)
 {
 	static struct edstate *buf;
-	int rval = 0;
-	int nwords;
-	int start, end;
+	int rval = 0, nwords, start, end, i;
 	char **words;
-	int i;
 
 	/* Undo previous expansion */
 	if (cmd == 0 && expanded == EXPAND && buf) {
@@ -5072,9 +5131,9 @@ expand_word(int cmd)
 		buf = 0;
 	}
 
-	nwords = x_cf_glob(XCF_COMMAND_FILE|XCF_FULLPATH,
-	    es->cbuf, es->linelen, es->cursor,
-	    &start, &end, &words, NULL);
+	i = XCF_COMMAND_FILE | XCF_FULLPATH;
+	nwords = x_cf_glob(&i, es->cbuf, es->linelen, es->cursor,
+	    &start, &end, &words);
 	if (nwords == 0) {
 		vi_error();
 		return (-1);
@@ -5084,7 +5143,8 @@ expand_word(int cmd)
 	expanded = EXPAND;
 	del_range(start, end);
 	es->cursor = start;
-	for (i = 0; i < nwords; ) {
+	i = 0;
+	while (i < nwords) {
 		if (x_escape(words[i], strlen(words[i]), x_vi_putbuf) != 0) {
 			rval = -1;
 			break;
@@ -5109,10 +5169,10 @@ static int
 complete_word(int cmd, int count)
 {
 	static struct edstate *buf;
-	int rval, nwords, start, end, match_len;
+	int rval, nwords, start, end, match_len, flags;
 	char **words;
 	char *match;
-	bool is_command, is_unique;
+	bool is_unique;
 
 	/* Undo previous completion */
 	if (cmd == 0 && expanded == COMPLETE && buf) {
@@ -5131,12 +5191,15 @@ complete_word(int cmd, int count)
 		buf = 0;
 	}
 
-	/* XCF_FULLPATH for count 'cause the menu printed by print_expansions()
-	 * was done this way.
+	/*
+	 * XCF_FULLPATH for count 'cause the menu printed by
+	 * print_expansions() was done this way.
 	 */
-	nwords = x_cf_glob(XCF_COMMAND_FILE | (count ? XCF_FULLPATH : 0),
-	    es->cbuf, es->linelen, es->cursor,
-	    &start, &end, &words, &is_command);
+	flags = XCF_COMMAND_FILE;
+	if (count)
+		flags |= XCF_FULLPATH;
+	nwords = x_cf_glob(&flags, es->cbuf, es->linelen, es->cursor,
+	    &start, &end, &words);
 	if (nwords == 0) {
 		vi_error();
 		return (-1);
@@ -5147,7 +5210,8 @@ complete_word(int cmd, int count)
 		count--;
 		if (count >= nwords) {
 			vi_error();
-			x_print_expansions(nwords, words, is_command);
+			x_print_expansions(nwords, words,
+			    flags & XCF_IS_COMMAND);
 			x_free_words(nwords, words);
 			redraw_line(0);
 			return (-1);
@@ -5155,7 +5219,7 @@ complete_word(int cmd, int count)
 		/*
 		 * Expand the count'th word to its basename
 		 */
-		if (is_command) {
+		if (flags & XCF_IS_COMMAND) {
 			match = words[count] +
 			    x_basename(words[count], NULL);
 			/* If more than one possible match, use full path */
@@ -5174,7 +5238,8 @@ complete_word(int cmd, int count)
 	} else {
 		match = words[0];
 		match_len = x_longest_prefix(nwords, words);
-		expanded = COMPLETE;	/* next call will list completions */
+		/* next call will list completions */
+		expanded = COMPLETE;
 		is_unique = nwords == 1;
 	}
 
@@ -5182,18 +5247,25 @@ complete_word(int cmd, int count)
 	del_range(start, end);
 	es->cursor = start;
 
-	/* escape all shell-sensitive characters and put the result into
-	 * command buffer */
+	/*
+	 * escape all shell-sensitive characters and put the result into
+	 * command buffer
+	 */
 	rval = x_escape(match, match_len, x_vi_putbuf);
 
 	if (rval == 0 && is_unique) {
-		/* If exact match, don't undo. Allows directory completions
+		/*
+		 * If exact match, don't undo. Allows directory completions
 		 * to be used (ie, complete the next portion of the path).
 		 */
 		expanded = NONE;
 
-		/* If not a directory, add a space to the end... */
-		if (match_len > 0 && match[match_len - 1] != '/')
+		/*
+		 * append a space if this is not a directory or the
+		 * result of a parameter substitution
+		 */
+		if (match_len > 0 && match[match_len - 1] != '/' &&
+		    !(flags & XCF_IS_VARSUB))
 			rval = putbuf(" ", 1, 0);
 	}
 	x_free_words(nwords, words);
@@ -5201,7 +5273,8 @@ complete_word(int cmd, int count)
 	modified = 1;
 	hnum = hlast;
 	insert = INSERT;
-	lastac = 0;	 /* prevent this from being redone... */
+	/* prevent this from being redone... */
+	lastac = 0;
 	refresh(0);
 
 	return (rval);
@@ -5210,18 +5283,17 @@ complete_word(int cmd, int count)
 static int
 print_expansions(struct edstate *est, int cmd MKSH_A_UNUSED)
 {
-	int start, end, nwords;
+	int start, end, nwords, i;
 	char **words;
-	bool is_command;
 
-	nwords = x_cf_glob(XCF_COMMAND_FILE | XCF_FULLPATH,
-	    est->cbuf, est->linelen, est->cursor,
-	    &start, &end, &words, &is_command);
+	i = XCF_COMMAND_FILE | XCF_FULLPATH;
+	nwords = x_cf_glob(&i, est->cbuf, est->linelen, est->cursor,
+	    &start, &end, &words);
 	if (nwords == 0) {
 		vi_error();
 		return (-1);
 	}
-	x_print_expansions(nwords, words, is_command);
+	x_print_expansions(nwords, words, i & XCF_IS_COMMAND);
 	x_free_words(nwords, words);
 	redraw_line(0);
 	return (0);
