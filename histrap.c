@@ -2,7 +2,7 @@
 /*	$OpenBSD: trap.c,v 1.23 2010/05/19 17:36:08 jasper Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.106 2011/02/09 15:08:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.107 2011/02/09 19:32:15 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
