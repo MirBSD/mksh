@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.104 2011/01/30 02:18:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.105 2011/02/09 13:08:25 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -274,9 +274,16 @@ c_fc(const char **wp)
 		if (stat(tf->name, &statb) < 0)
 			n = 128;
 		else {
-			if (notoktoadd(statb.st_size, 1 + X_EXTRA)) {
-				bi_errorf(T_intovfl,
-				    (unsigned long)statb.st_size, '+',
+			unsigned long st_sizeUL;
+
+			/* we pretty much assume ulong >= size_t */
+			st_sizeUL = (unsigned long)statb.st_size;
+			if (
+			    /* too big, truncated by the cast */
+			    statb.st_size != (long)st_sizeUL ||
+			    /* a few additional bytes do not fit */
+			    notoktoadd(st_sizeUL, 1 + X_EXTRA)) {
+				bi_errorf(T_intovfl, st_sizeUL, '+',
 				    1UL + X_EXTRA);
 				goto errout;
 			}
