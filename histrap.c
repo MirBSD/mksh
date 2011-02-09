@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.105 2011/02/09 13:08:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.106 2011/02/09 15:08:01 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -60,10 +60,14 @@ static int hstarted;		/* set after hist_init() called */
 static Source *hist_source;
 
 #if HAVE_PERSISTENT_HISTORY
-static char *hname;		/* current name of history file */
+/* current history file: name, fd, size */
+static char *hname;
 static int histfd;
 static int hsize;
 #endif
+
+static const char T_not_in_history[] = "not in history";
+#define T_history (T_not_in_history + 7)
 
 int
 c_fc(const char **wp)
@@ -86,6 +90,7 @@ c_fc(const char **wp)
 	while ((optc = ksh_getopt(wp, &builtin_opt,
 	    "e:glnrs0,1,2,3,4,5,6,7,8,9,")) != -1)
 		switch (optc) {
+
 		case 'e':
 			p = builtin_opt.optarg;
 			if (ksh_isdash(p))
@@ -99,21 +104,29 @@ c_fc(const char **wp)
 				memcpy(editor + len, " $_", 4);
 			}
 			break;
-		case 'g': /* non-AT&T ksh */
+
+		/* non-AT&T ksh */
+		case 'g':
 			gflag = true;
 			break;
+
 		case 'l':
 			lflag = true;
 			break;
+
 		case 'n':
 			nflag = true;
 			break;
+
 		case 'r':
 			rflag = true;
 			break;
-		case 's':	/* POSIX version of -e - */
+
+		/* POSIX version of -e - */
+		case 's':
 			sflag = true;
 			break;
+
 		/* kludge city - accept -num as -- -num (kind of) */
 		case '0': case '1': case '2': case '3': case '4':
 		case '5': case '6': case '7': case '8': case '9':
@@ -128,6 +141,7 @@ c_fc(const char **wp)
 				return (1);
 			}
 			break;
+
 		case '?':
 			return (1);
 		}
@@ -185,9 +199,10 @@ c_fc(const char **wp)
 		/* can't fail if hfirst didn't fail */
 		hlast = hist_get_newest(false);
 	} else {
-		/* POSIX says not an error if first/last out of bounds
-		 * when range is specified; AT&T ksh and pdksh allow out of
-		 * bounds for -l as well.
+		/*
+		 * POSIX says not an error if first/last out of bounds
+		 * when range is specified; AT&T ksh and pdksh allow out
+		 * of bounds for -l as well.
 		 */
 		hfirst = hist_get(first, (lflag || last) ? true : false, lflag);
 		if (!hfirst)
@@ -201,7 +216,8 @@ c_fc(const char **wp)
 		char **temp;
 
 		temp = hfirst; hfirst = hlast; hlast = temp;
-		rflag = !rflag; /* POSIX */
+		/* POSIX */
+		rflag = !rflag;
 	}
 
 	/* List history */
@@ -273,22 +289,12 @@ c_fc(const char **wp)
 
 		if (stat(tf->name, &statb) < 0)
 			n = 128;
-		else {
-			unsigned long st_sizeUL;
-
-			/* we pretty much assume ulong >= size_t */
-			st_sizeUL = (unsigned long)statb.st_size;
-			if (
-			    /* too big, truncated by the cast */
-			    statb.st_size != (long)st_sizeUL ||
-			    /* a few additional bytes do not fit */
-			    notoktoadd(st_sizeUL, 1 + X_EXTRA)) {
-				bi_errorf(T_intovfl, st_sizeUL, '+',
-				    1UL + X_EXTRA);
-				goto errout;
-			}
+		else if (statb.st_size > (1024 * 1048576)) {
+			bi_errorf("%s %s too large: %lu", T_history,
+			    "file", (unsigned long)statb.st_size);
+			goto errout;
+		} else
 			n = statb.st_size + 1;
-		}
 		Xinit(xs, xp, n, hist_source->areap);
 		while ((n = shf_read(xp, Xnleft(xs, xp), shf)) > 0) {
 			xp += n;
@@ -321,8 +327,10 @@ hist_execute(char *cmd)
 
 	for (p = cmd; p; p = q) {
 		if ((q = strchr(p, '\n'))) {
-			*q++ = '\0'; /* kill the newline */
-			if (!*q) /* ignore trailing newline */
+			/* kill the newline */
+			*q++ = '\0';
+			if (!*q)
+				/* ignore trailing newline */
 				q = NULL;
 		}
 		histsave(&hist_source->line, p, true, true);
@@ -334,7 +342,7 @@ hist_execute(char *cmd)
 			q[-1] = '\n';
 	}
 
-	/*
+	/*-
 	 * Commands are executed here instead of pushing them onto the
 	 * input 'cause POSIX says the redirection and variable assignments
 	 * in
@@ -370,9 +378,11 @@ hist_replace(char **hp, const char *pat, const char *rep, bool globr)
 			any_subst = true;
 			len = s1 - s;
 			XcheckN(xs, xp, len + rep_len);
-			memcpy(xp, s, len);		/* first part */
+			/*; first part */
+			memcpy(xp, s, len);
 			xp += len;
-			memcpy(xp, rep, rep_len);	/* replacement */
+			/* replacement */
+			memcpy(xp, rep, rep_len);
 			xp += rep_len;
 		}
 		if (!any_subst) {
@@ -404,14 +414,14 @@ hist_get(const char *str, bool approx, bool allow_cur)
 			if (approx)
 				hp = hist_get_oldest();
 			else {
-				bi_errorf("%s: %s", str, "not in history");
+				bi_errorf("%s: %s", str, T_not_in_history);
 				hp = NULL;
 			}
 		} else if ((ptrdiff_t)hp > (ptrdiff_t)histptr) {
 			if (approx)
 				hp = hist_get_newest(allow_cur);
 			else {
-				bi_errorf("%s: %s", str, "not in history");
+				bi_errorf("%s: %s", str, T_not_in_history);
 				hp = NULL;
 			}
 		} else if (!allow_cur && hp == histptr) {
@@ -423,7 +433,7 @@ hist_get(const char *str, bool approx, bool allow_cur)
 
 		/* the -1 is to avoid the current fc command */
 		if ((n = findhist(histptr - history - 1, 0, str, anchored)) < 0)
-			bi_errorf("%s: %s", str, "not in history");
+			bi_errorf("%s: %s", str, T_not_in_history);
 		else
 			hp = &history[n];
 	}
@@ -452,9 +462,9 @@ hist_get_oldest(void)
 	return (history);
 }
 
-/******************************/
-/* Back up over last histsave */
-/******************************/
+/*
+ * Back up over last histsave
+ */
 static void
 histbackup(void)
 {
@@ -669,7 +679,8 @@ histsave(int *lnp, const char *cmd, bool dowrite MKSH_A_UNUSED, bool ignoredups)
 
 	hp = histptr;
 
-	if (++hp >= history + histsize) { /* remove oldest command */
+	if (++hp >= history + histsize) {
+		/* remove oldest command */
 		afree(*history, APERM);
 		for (hp = history; hp < history + histsize - 1; hp++)
 			hp[0] = hp[1];
@@ -689,7 +700,7 @@ histsave(int *lnp, const char *cmd, bool dowrite MKSH_A_UNUSED, bool ignoredups)
  *	if your system ain't got it - then you'll have to undef HISTORYFILE
  */
 
-/*
+/*-
  *	Open a history file
  *	Format is:
  *	Bytes 1, 2:
@@ -1116,7 +1127,8 @@ inittraps(void)
 				    "Signal", i);
 		}
 	}
-	sigtraps[SIGEXIT_].name = "EXIT";	/* our name for signal 0 */
+	/* our name for signal 0 */
+	sigtraps[SIGEXIT_].name = "EXIT";
 
 	(void)sigemptyset(&Sigact_ign.sa_mask);
 	Sigact_ign.sa_flags = 0; /* interruptible */
@@ -1124,7 +1136,8 @@ inittraps(void)
 
 	sigtraps[SIGINT].flags |= TF_DFL_INTR | TF_TTY_INTR;
 	sigtraps[SIGQUIT].flags |= TF_DFL_INTR | TF_TTY_INTR;
-	sigtraps[SIGTERM].flags |= TF_DFL_INTR; /* not fatal for interactive */
+	/* SIGTERM is not fatal for interactive */
+	sigtraps[SIGTERM].flags |= TF_DFL_INTR;
 	sigtraps[SIGHUP].flags |= TF_FATAL;
 	sigtraps[SIGCHLD].flags |= TF_SHELL_USES;
 
@@ -1318,7 +1331,8 @@ runtrap(Trap *p, bool is_last)
 	if (trapstr[0] == '\0')
 		/* SIG_IGN */
 		goto donetrap;
-	if (i == SIGEXIT_ || i == SIGERR_) {	/* avoid recursion on these */
+	if (i == SIGEXIT_ || i == SIGERR_) {
+		/* avoid recursion on these */
 		old_changed = p->flags & TF_CHANGED;
 		p->flags &= ~TF_CHANGED;
 		p->trap = NULL;
@@ -1384,7 +1398,8 @@ settrap(Trap *p, const char *s)
 
 	if (p->trap)
 		afree(p->trap, APERM);
-	strdupx(p->trap, s, APERM); /* handles s == 0 */
+	/* handles s == NULL */
+	strdupx(p->trap, s, APERM);
 	p->flags |= TF_CHANGED;
 	f = !s ? SIG_DFL : s[0] ? trapsig : SIG_IGN;
 
@@ -1428,7 +1443,8 @@ block_pipe(void)
 			restore_dfl = 1;
 	} else if (p->cursig == SIG_DFL) {
 		setsig(p, SIG_IGN, SS_RESTORE_CURR);
-		restore_dfl = 1; /* restore to SIG_DFL */
+		/* restore to SIG_DFL */
+		restore_dfl = 1;
 	}
 	return (restore_dfl);
 }
@@ -1491,7 +1507,8 @@ setsig(Trap *p, sig_t f, int flags)
 	if (p->cursig != f) {
 		p->cursig = f;
 		(void)sigemptyset(&sigact.sa_mask);
-		sigact.sa_flags = 0 /* interruptible */;
+		/* interruptible */
+		sigact.sa_flags = 0;
 		sigact.sa_handler = f;
 		sigaction(p->signal, &sigact, NULL);
 	}
@@ -1511,7 +1528,8 @@ setexecsig(Trap *p, int restore)
 	/* restore original value for exec'd kids */
 	p->flags &= ~(TF_EXEC_IGN|TF_EXEC_DFL);
 	switch (restore & SS_RESTORE_MASK) {
-	case SS_RESTORE_CURR: /* leave things as they currently are */
+	case SS_RESTORE_CURR:
+		/* leave things as they currently are */
 		break;
 	case SS_RESTORE_ORIG:
 		p->flags |= p->flags & TF_ORIG_IGN ? TF_EXEC_IGN : TF_EXEC_DFL;
