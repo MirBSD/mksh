@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.469 2011/01/30 02:18:19 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.470 2011/02/09 19:32:26 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1074,18 +1074,22 @@ ac_ifcpp 'ifdef MKSH_CONSERVATIVE_FDS' isset_MKSH_CONSERVATIVE_FDS '' \
 #
 # Environment: headers
 #
-ac_header sys/param.h
+ac_header sys/bsdtypes.h
 ac_header sys/file.h sys/types.h
 ac_header sys/mkdev.h sys/types.h
 ac_header sys/mman.h sys/types.h
+ac_header sys/param.h
+ac_header sys/select.h sys/types.h
 ac_header sys/sysmacros.h
+ac_header bstring.h
 ac_header grp.h sys/types.h
 ac_header libgen.h
 ac_header libutil.h sys/types.h
 ac_header paths.h
 ac_header stdbool.h
 ac_header stdint.h stdarg.h
-ac_header strings.h sys/types.h
+# include strings.h only if compatible with string.h
+ac_header strings.h sys/types.h string.h
 ac_header ulimit.h sys/types.h
 ac_header values.h
 
@@ -1276,6 +1280,32 @@ ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<-'EOF'
 	#include <langinfo.h>
 	#include <stddef.h>
 	int main(void) { return ((int)(ptrdiff_t)(void *)nl_langinfo(CODESET)); }
+EOF
+
+ac_test select <<-'EOF'
+	#include <sys/types.h>
+	#include <sys/time.h>
+	#if HAVE_SYS_BSDTYPES_H
+	#include <sys/bsdtypes.h>
+	#endif
+	#if HAVE_SYS_SELECT_H
+	#include <sys/select.h>
+	#endif
+	#if HAVE_BSTRING_H
+	#include <bstring.h>
+	#endif
+	#include <stddef.h>
+	#include <stdlib.h>
+	#include <string.h>
+	#if HAVE_STRINGS_H
+	#include <strings.h>
+	#endif
+	#include <unistd.h>
+	int main(void) {
+		struct timeval tv = { 1, 200000 };
+		fd_set fds; FD_ZERO(&fds); FD_SET(0, &fds);
+		return (select(FD_SETSIZE, &fds, NULL, NULL, &tv));
+	}
 EOF
 
 ac_test setresugid <<-'EOF'
