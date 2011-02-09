@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.58 2011/02/02 22:48:15 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.59 2011/02/09 19:32:35 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -202,6 +202,24 @@ function pushd {
 	fi
 	(( isnoglob )) || set +o noglob
 	dirs $fa
+}
+
+# pager (not control character safe)
+function smores {
+	typeset dummy line llen curlin=0
+
+	cat "$@" | while IFS= read -r line; do
+		llen=${%line}
+		(( llen == -1 )) && llen=${#line}
+		(( llen = llen ? (llen + COLUMNS - 1) / COLUMNS : 1 ))
+		if (( (curlin += llen) >= LINES )); then
+			print -n -- '\033[7m--more--\033[0m'
+			read -u1 dummy
+			[[ $dummy = [Qq]* ]] && return 0
+			curlin=$llen
+		fi
+		print -r -- "$line"
+	done
 }
 
 # base64 encoder (not NUL safe) and decoder (NUL safe), RFC compliant
