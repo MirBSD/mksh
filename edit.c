@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.203 2011/02/03 15:57:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.204 2011/02/09 13:08:16 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -854,7 +854,7 @@ static int x_adj_done;
 static int x_col;
 static int x_displen;
 static int x_arg;		/* general purpose arg */
-static int x_arg_defaulted;	/* x_arg not explicitly set; defaulted to 1 */
+static bool x_arg_defaulted;	/* x_arg not explicitly set; defaulted to 1 */
 
 static int xlp_valid;
 
@@ -1160,7 +1160,7 @@ x_emacs(char *buf, size_t len)
 		if (!(x_ftab[f].xf_flags & XF_PREFIX) &&
 		    x_last_command != XFUNC_set_arg) {
 			x_arg = 1;
-			x_arg_defaulted = 1;
+			x_arg_defaulted = true;
 		}
 		i = c | (x_curprefix << 8);
 		x_curprefix = 0;
@@ -2264,7 +2264,7 @@ x_vt_hack(int c)
 	switch ((c = x_e_getc())) {
 	case '~':
 		x_arg = 1;
-		x_arg_defaulted = 1;
+		x_arg_defaulted = true;
 		return (x_mv_begin(0));
 	case ';':
 		/* "interesting" sequence detected */
@@ -2874,20 +2874,24 @@ x_e_puts(const char *s)
 static int
 x_set_arg(int c)
 {
-	int n = 0, first = 1;
+	int n = 0;
+	bool first = true;
 
 	/* strip command prefix */
 	c &= 255;
-	for (; c >= 0 && ksh_isdigit(c); c = x_e_getc(), first = 0)
+	while (c >= 0 && ksh_isdigit(c)) {
 		n = n * 10 + (c - '0');
+		c = x_e_getc();
+		first = false;
+	}
 	if (c < 0 || first) {
 		x_e_putc2(7);
 		x_arg = 1;
-		x_arg_defaulted = 1;
+		x_arg_defaulted = true;
 	} else {
 		x_e_ungetc(c);
 		x_arg = n;
-		x_arg_defaulted = 0;
+		x_arg_defaulted = false;
 	}
 	return (KSTD);
 }
@@ -2996,13 +3000,16 @@ x_prev_histword(int c MKSH_A_UNUSED)
 	char *rcp, *cp;
 	char **xhp;
 	int m = 1;
+	/* -1 = defaulted; 0+ = argument */
+	static int last_arg = -1;
 
 	if (x_last_command == XFUNC_prev_histword) {
 		if (xmp && modified > 1)
 			x_kill_region(0);
 		if (modified)
 			m = modified;
-	}
+	} else
+		last_arg = x_arg_defaulted ? -1 : x_arg;
 	xhp = histptr - (m - 1);
 	if ((xhp < history) || !(cp = *xhp)) {
 		x_e_putc2(7);
@@ -3010,7 +3017,9 @@ x_prev_histword(int c MKSH_A_UNUSED)
 		return (KSTD);
 	}
 	x_set_mark(0);
-	if (x_arg_defaulted) {
+	if ((x_arg = last_arg) == -1) {
+		/* x_arg_defaulted */
+
 		rcp = &cp[strlen(cp) - 1];
 		/*
 		 * ignore white-space after the last word
@@ -3023,6 +3032,7 @@ x_prev_histword(int c MKSH_A_UNUSED)
 			rcp++;
 		x_ins(rcp);
 	} else {
+		/* not x_arg_defaulted */
 		char ch;
 
 		rcp = cp;
@@ -3031,7 +3041,7 @@ x_prev_histword(int c MKSH_A_UNUSED)
 		 */
 		while (*rcp && is_cfs(*rcp))
 			rcp++;
-		while (x_arg-- > 1) {
+		while (x_arg-- > 0) {
 			while (*rcp && !is_cfs(*rcp))
 				rcp++;
 			while (*rcp && is_cfs(*rcp))

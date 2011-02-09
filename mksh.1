@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.247 2011/01/21 22:25:33 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.248 2011/02/09 13:08:18 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.138 2010/09/20 07:41:17 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 21 2011 $
+.Dd $Mdocdate: February 9 2011 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -5294,10 +5294,10 @@ Introduces a 2-character command sequence.
 .Op Ar n
 .No \*(ha[. , \*(ha[_
 .Xc
-The last
-.Pq Ar n Ns th
-word of the previous (on repeated execution, second-last, third-last, etc.)
-command is inserted at the cursor.
+The last word, or, if given, the
+.Ar n Ns th
+word (zero-based) of the previous (on repeated execution, second-last,
+third-last, etc.) command is inserted at the cursor.
 Use of this editing command trashes the mark.
 .It quote: \*(ha\*(ha , \*(haV
 The following character is taken literally rather than as an editing command.
