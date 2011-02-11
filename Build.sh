@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.470 2011/02/09 19:32:26 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.471 2011/02/11 00:49:03 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -971,6 +971,7 @@ ac_test attribute_format '' 'for __attribute__((format))' <<-'EOF'
 	/* force a failure: gcc 1.42 has a false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
+	#define printf printfoo
 	#include <stdio.h>
 	#undef __attribute__
 	#undef printf
