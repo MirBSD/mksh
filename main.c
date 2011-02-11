@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.175 2011/01/21 21:07:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.176 2011/02/11 01:18:18 tg Exp $");
 
 extern char **environ;
 
@@ -67,7 +67,8 @@ static const char *initcoms[] = {
 	T_alias,
 	"integer=typeset -i",
 	T_local_typeset,
-	"hash=alias -t",	/* not "alias -t --": hash -r needs to work */
+	/* not "alias -t --": hash -r needs to work */
+	"hash=alias -t",
 	"type=whence -v",
 #if !defined(ANDROID) && !defined(MKSH_UNEMPLOYED)
 	/* not in Android for political reasons */
@@ -111,12 +112,18 @@ rndsetup(void)
 	char *cp;
 
 	cp = alloc(sizeof(*bufptr) - ALLOC_SIZE, APERM);
-	bufptr = (void *)(cp - ALLOC_SIZE);	/* undo what alloc() did */
-	bufptr->dataptr = &rndsetupstate;	/* PIE or something */
-	bufptr->stkptr = &bufptr;		/* ASLR in Win/Lin */
-	bufptr->mallocptr = bufptr;		/* randomised malloc in BSD */
-	sigsetjmp(bufptr->jbuf, 1);		/* glibc pointer guard */
-	gettimeofday(&bufptr->tv, &bufptr->tz);	/* introduce variation */
+	/* undo what alloc() did to the malloc result address */
+	bufptr = (void *)(cp - ALLOC_SIZE);
+	/* PIE or something similar provides us with deltas here */
+	bufptr->dataptr = &rndsetupstate;
+	/* ASLR in at least Windows, Linux, some BSDs */
+	bufptr->stkptr = &bufptr;
+	/* randomised malloc in BSD (and possibly others) */
+	bufptr->mallocptr = bufptr;
+	/* glibc pointer guard */
+	sigsetjmp(bufptr->jbuf, 1);
+	/* introduce variation */
+	gettimeofday(&bufptr->tv, &bufptr->tz);
 
 	oaat1_init_impl(h);
 	/* variation through pid, ppid, and the works */
@@ -138,14 +145,18 @@ chvt_reinit(void)
 	kshppid = getppid();
 }
 
+static const char *empty_argv[] = {
+	"mksh", NULL
+};
+
 int
 main(int argc, const char *argv[])
 {
 	int argi, i;
-	Source *s;
+	Source *s = NULL;
 	struct block *l;
 	unsigned char restricted, errexit, utf_flag;
-	const char **wp;
+	const char *ccp, **wp;
 	struct tbl *vp;
 	struct stat s_stdin;
 #if !defined(_PATH_DEFPATH) && defined(_CS_PATH)
@@ -158,16 +169,13 @@ main(int argc, const char *argv[])
 
 	/* make sure argv[] is sane */
 	if (!*argv) {
-		static const char *empty_argv[] = {
-			"mksh", NULL
-		};
-
 		argv = empty_argv;
 		argc = 1;
 	}
-	kshname = *argv;
+	kshname = argv[0];
 
-	ainit(&aperm);		/* initialise permanent Area */
+	/* initialise permanent Area */
+	ainit(&aperm);
 
 	/* set up base environment */
 	env.type = E_NONE;
@@ -178,9 +186,41 @@ main(int argc, const char *argv[])
 	/* Do this first so output routines (eg, errorf, shellf) can work */
 	initio();
 
-	argi = parse_args(argv, OF_FIRSTTIME, NULL);
-	if (argi < 0)
-		return (1);
+	/* determine the basename (without '-' or path) of the executable */
+	ccp = kshname;
+	goto begin_parse_kshname;
+	while ((i = ccp[argi++])) {
+		if (i == '/') {
+			ccp += argi;
+ begin_parse_kshname:
+			argi = 0;
+			if (*ccp == '-')
+				++ccp;
+		}
+	}
+	if (!*ccp)
+		ccp = empty_argv[0];
+
+	/* define built-in commands and see if we were called as one */
+	ktinit(&builtins, APERM,
+	    /* must be 80% of 2^n (currently 44 builtins) */ 64);
+	for (i = 0; mkshbuiltins[i].name != NULL; i++)
+		if (!strcmp(ccp, builtin(mkshbuiltins[i].name,
+		    mkshbuiltins[i].func)))
+			Flag(FAS_BUILTIN) = 1;
+
+	if (!Flag(FAS_BUILTIN)) {
+		/* check for -T option early */
+		argi = parse_args(argv, OF_FIRSTTIME, NULL);
+		if (argi < 0)
+			return (1);
+
+#ifdef MKSH_BINSHREDUCED
+		/* set FSH if we're called as -sh or /bin/sh or so */
+		if (!strcmp(ccp, "sh"))
+			change_flag(FSH, OF_FIRSTTIME, 1);
+#endif
+	}
 
 	initvar();
 
@@ -199,12 +239,6 @@ main(int argc, const char *argv[])
 
 	/* define shell keywords */
 	initkeywords();
-
-	/* define built-in commands */
-	ktinit(&builtins, APERM,
-	    /* must be 80% of 2^n (currently 44 builtins) */ 64);
-	for (i = 0; mkshbuiltins[i].name != NULL; i++)
-		builtin(mkshbuiltins[i].name, mkshbuiltins[i].func);
 
 	init_histvec();
 
@@ -260,28 +294,13 @@ main(int argc, const char *argv[])
 	Flag(FVITABCOMPLETE) = 1;
 #endif
 
-#ifdef MKSH_BINSHREDUCED
-	/* set FSH if we're called as -sh or /bin/sh or so */
-	{
-		const char *cc;
-
-		cc = kshname;
-		i = 0; argi = 0;
-		while (cc[i] != '\0')
-			/* the following line matches '-' and '/' ;-) */
-			if ((cc[i++] | 2) == '/')
-				argi = i;
-		if (((cc[argi] | 0x20) == 's') && ((cc[argi + 1] | 0x20) == 'h'))
-			change_flag(FSH, OF_FIRSTTIME, 1);
-	}
-#endif
-
 	/* import environment */
 	if (environ != NULL)
 		for (wp = (const char **)environ; *wp != NULL; wp++)
 			typeset(*wp, IMPORT | EXPORT, 0, 0, 0);
 
-	typeset(initifs, 0, 0, 0, 0);	/* for security */
+	/* for security */
+	typeset(initifs, 0, 0, 0, 0);
 
 	/* assign default shell variable values */
 	substitute(initsubs, 0);
@@ -356,15 +375,20 @@ main(int argc, const char *argv[])
 	/* this to note if utf-8 mode is set on command line (see below) */
 	UTFMODE = 2;
 
-	argi = parse_args(argv, OF_CMDLINE, NULL);
-	if (argi < 0)
-		return (1);
+	if (!Flag(FAS_BUILTIN)) {
+		argi = parse_args(argv, OF_CMDLINE, NULL);
+		if (argi < 0)
+			return (1);
+	}
 
 	/* process this later only, default to off (hysterical raisins) */
 	utf_flag = UTFMODE;
 	UTFMODE = 0;
 
-	if (Flag(FCOMMAND)) {
+	if (Flag(FAS_BUILTIN)) {
+		/* auto-detect from environment variables, always */
+		utf_flag = 3;
+	} else if (Flag(FCOMMAND)) {
 		s = pushs(SSTRING, ATEMP);
 		if (!(s->start = s->str = argv[argi++]))
 			errorf("%s %s", "-c", "requires an argument");
@@ -410,37 +434,17 @@ main(int argc, const char *argv[])
 
 	/* initialise job control */
 	j_init();
-	/* set: 0/1; unset: 2->0 */
-	UTFMODE = utf_flag & 1;
 	/* Do this after j_init(), as tty_fd is not initialised until then */
 	if (Flag(FTALKING)) {
 		if (utf_flag == 2) {
 #ifndef MKSH_ASSUME_UTF8
-#define isuc(x)	(((x) != NULL) && \
-		    (stristr((x), "UTF-8") || stristr((x), "utf8")))
-		/* Check if we're in a UTF-8 locale */
-			const char *ccp;
-
-#if HAVE_SETLOCALE_CTYPE
-			ccp = setlocale(LC_CTYPE, "");
-#if HAVE_LANGINFO_CODESET
-			if (!isuc(ccp))
-				ccp = nl_langinfo(CODESET);
-#endif
-#else
-			/* these were imported from environ earlier */
-			ccp = str_val(global("LC_ALL"));
-			if (ccp == null)
-				ccp = str_val(global("LC_CTYPE"));
-			if (ccp == null)
-				ccp = str_val(global("LANG"));
-#endif
-			UTFMODE = isuc(ccp);
-#undef isuc
+			/* auto-detect from locale or environment */
+			utf_flag = 4;
 #elif MKSH_ASSUME_UTF8
-			UTFMODE = 1;
+			utf_flag = 1;
 #else
-			UTFMODE = 0;
+			/* always disable UTF-8 (for interactive) */
+			utf_flag = 0;
 #endif
 		}
 		x_init();
@@ -453,10 +457,62 @@ main(int argc, const char *argv[])
 #endif
 
 	l = e->loc;
-	l->argv = &argv[argi - 1];
-	l->argc = argc - argi;
-	l->argv[0] = kshname;
-	getopts_reset(1);
+	if (Flag(FAS_BUILTIN)) {
+		l->argc = argc;
+		l->argv = argv;
+		l->argv[0] = ccp;
+	} else {
+		l->argc = argc - argi;
+		l->argv = &argv[argi - 1];
+		l->argv[0] = kshname;
+		getopts_reset(1);
+	}
+
+	/* divine the initial state of the utf8-mode Flag */
+#define isuc(x)	(((x) != NULL) && \
+	    (stristr((x), "UTF-8") || stristr((x), "utf8")))
+	ccp = null;
+	switch (utf_flag) {
+
+	/* auto-detect from locale or environment */
+	case 4:
+#if HAVE_SETLOCALE_CTYPE
+		ccp = setlocale(LC_CTYPE, "");
+#if HAVE_LANGINFO_CODESET
+		if (!isuc(ccp))
+			ccp = nl_langinfo(CODESET);
+#endif
+		if (!isuc(ccp))
+			ccp = null;
+		/* FALLTHROUGH */
+#endif
+
+	/* auto-detect from environment */
+	case 3:
+		/* these were imported from environ earlier */
+		if (ccp == null)
+			ccp = str_val(global("LC_ALL"));
+		if (ccp == null)
+			ccp = str_val(global("LC_CTYPE"));
+		if (ccp == null)
+			ccp = str_val(global("LANG"));
+		UTFMODE = isuc(ccp);
+		break;
+
+	/* not set on command line, not FTALKING */
+	case 2:
+	/* unknown values */
+	default:
+		utf_flag = 0;
+		/* FALLTHROUGH */
+
+	/* known values */
+	case 1:
+	case 0:
+		UTFMODE = utf_flag;
+		break;
+	}
+#undef isuc
 
 	/* Disable during .profile/ENV reading */
 	restricted = Flag(FRESTRICTED);
@@ -505,7 +561,11 @@ main(int argc, const char *argv[])
 		hist_init(s);
 		alarm_init();
 	} else
-		Flag(FTRACKALL) = 1;	/* set after ENV */
+		/* set after ENV */
+		Flag(FTRACKALL) = 1;
+
+	if (Flag(FAS_BUILTIN))
+		return (shcomexec(l->argv));
 
 	/* doesn't return */
 	shell(s, true);
@@ -543,7 +603,8 @@ include(const char *name, int argc, const char **argv, int intr_ok)
 		switch (i) {
 		case LRETURN:
 		case LERROR:
-			return (exstat & 0xff); /* see below */
+			/* see below */
+			return (exstat & 0xFF);
 		case LINTR:
 			/*
 			 * intr_ok is set if we are including .profile or $ENV.
@@ -575,7 +636,8 @@ include(const char *name, int argc, const char **argv, int intr_ok)
 		e->loc->argv = old_argv;
 		e->loc->argc = old_argc;
 	}
-	return (i & 0xff);	/* & 0xff to ensure value not -1 */
+	/* & 0xff to ensure value not -1 */
+	return (i & 0xFF);
 }
 
 /* spawn a command into a shell optionally keeping track of the line number */
@@ -603,7 +665,8 @@ shell(Source * volatile s, volatile int toplevel)
 	Source *volatile old_source = source;
 	int i;
 
-	s->flags |= SF_FIRST;	/* enable UTF-8 BOM check */
+	/* enable UTF-8 BOM check */
+	s->flags |= SF_FIRST;
 
 	newenv(E_PARSE);
 	if (interactive)
@@ -611,7 +674,8 @@ shell(Source * volatile s, volatile int toplevel)
 	i = sigsetjmp(e->jbuf, 0);
 	if (i) {
 		switch (i) {
-		case LINTR: /* we get here if SIGINT not caught or ignored */
+		case LINTR:
+			/* we get here if SIGINT not caught or ignored */
 		case LERROR:
 		case LSHELL:
 			if (interactive) {
@@ -641,7 +705,8 @@ shell(Source * volatile s, volatile int toplevel)
 		case LRETURN:
 			source = old_source;
 			quitenv(NULL);
-			unwind(i);	/* keep on going */
+			/* keep on going */
+			unwind(i);
 			/* NOTREACHED */
 		default:
 			source = old_source;
@@ -745,7 +810,8 @@ newenv(int type)
 	 * so first get the actually used memory, then assign it
 	 */
 	cp = alloc(sizeof(struct env) - ALLOC_SIZE, ATEMP);
-	ep = (void *)(cp - ALLOC_SIZE);	/* undo what alloc() did */
+	/* undo what alloc() did to the malloc result address */
+	ep = (void *)(cp - ALLOC_SIZE);
 	/* initialise public members of struct env (not the ALLOC_ITEM) */
 	ainit(&ep->area);
 	ep->oenv = e;
@@ -772,7 +838,8 @@ quitenv(struct shf *shf)
 			/* if ep->savefd[fd] < 0, means fd was closed */
 			if (ep->savefd[fd])
 				restfd(fd, ep->savefd[fd]);
-		if (ep->savefd[2])	/* Clear any write errors */
+		if (ep->savefd[2])
+			/* Clear any write errors */
 			shf_reopen(2, SHF_WR, shl_out);
 	}
 	/*
@@ -780,7 +847,8 @@ quitenv(struct shf *shf)
 	 * Either main shell is exiting or cleanup_parents_env() was called.
 	 */
 	if (ep->oenv == NULL) {
-		if (ep->type == E_NONE) {	/* Main shell exiting? */
+		if (ep->type == E_NONE) {
+			/* Main shell exiting? */
 #if HAVE_PERSISTENT_HISTORY
 			if (Flag(FTALKING))
 				hist_finish();
@@ -946,7 +1014,9 @@ errorf(const char *fmt, ...)
 {
 	va_list va;
 
-	shl_stdout_ok = false;	/* debugging: note that stdout not valid */
+	/* debugging: note that stdout not valid */
+	shl_stdout_ok = false;
+
 	exstat = 1;
 	if (*fmt != 1) {
 		error_prefix(true);
@@ -982,12 +1052,14 @@ bi_errorf(const char *fmt, ...)
 {
 	va_list va;
 
-	shl_stdout_ok = false;	/* debugging: note that stdout not valid */
+	/* debugging: note that stdout not valid */
+	shl_stdout_ok = false;
+
 	exstat = 1;
 	if (*fmt != 1) {
 		error_prefix(true);
 		/* not set when main() calls parse_args() */
-		if (builtin_argv0)
+		if (builtin_argv0 && builtin_argv0 != kshname)
 			shf_fprintf(shl_out, "%s: ", builtin_argv0);
 		va_start(va, fmt);
 		shf_vfprintf(shl_out, fmt, va);
@@ -1058,7 +1130,8 @@ shellf(const char *fmt, ...)
 {
 	va_list va;
 
-	if (!initio_done) /* shl_out may not be set up yet... */
+	if (!initio_done)
+		/* shl_out may not be set up yet... */
 		return;
 	va_start(va, fmt);
 	shf_vfprintf(shl_out, fmt, va);
@@ -1094,9 +1167,11 @@ struct shf shf_iob[3];
 void
 initio(void)
 {
-	shf_fdopen(1, SHF_WR, shl_stdout);	/* force buffer allocation */
+	/* force buffer allocation */
+	shf_fdopen(1, SHF_WR, shl_stdout);
 	shf_fdopen(2, SHF_WR, shl_out);
-	shf_fdopen(2, SHF_WR, shl_spare);	/* force buffer allocation */
+	/* force buffer allocation */
+	shf_fdopen(2, SHF_WR, shl_spare);
 	initio_done = 1;
 }
 
@@ -1110,7 +1185,7 @@ ksh_dup2(int ofd, int nfd, bool errok)
 		errorf("too many files open in shell");
 
 #ifdef __ultrix
-	/* XXX imake style */
+	/*XXX imake style */
 	if (rv >= 0)
 		fcntl(nfd, F_SETFD, 0);
 #endif
@@ -1119,8 +1194,8 @@ ksh_dup2(int ofd, int nfd, bool errok)
 }
 
 /*
- * move fd from user space (0<=fd<10) to shell space (fd>=10),
- * set close-on-exec flag.
+ * Move fd from user space (0 <= fd < 10) to shell space (fd >= 10),
+ * set close-on-exec flag. See FDBASE in sh.h, maybe 24 not 10 here.
  */
 short
 savefd(int fd)
@@ -1141,10 +1216,12 @@ restfd(int fd, int ofd)
 {
 	if (fd == 2)
 		shf_flush(&shf_iob[fd]);
-	if (ofd < 0)		/* original fd closed */
+	if (ofd < 0)
+		/* original fd closed */
 		close(fd);
 	else if (fd != ofd) {
-		ksh_dup2(ofd, fd, true); /* XXX: what to do if this fails? */
+		/*XXX: what to do if this dup fails? */
+		ksh_dup2(ofd, fd, true);
 		close(ofd);
 	}
 }
@@ -1366,11 +1443,14 @@ texpand(struct table *tp, size_t nsize)
 	for (i = 0; i < nsize; i++)
 		ntblp[i] = NULL;
 	tp->size = nsize;
-	tp->nfree = (nsize * 4) / 5;	/* table can get 80% full */
+	/* table can get 80% full */
+	tp->nfree = (nsize * 4) / 5;
 	tp->tbls = ntblp;
 	if (otblp == NULL)
 		return;
-	nsize--;			/* from here on nsize := mask */
+
+	/* from here on nsize := mask */
+	nsize--;
 	for (i = 0; i < osize; i++)
 		if ((tblp = otblp[i]) != NULL) {
 			if ((tblp->flag & DEFINED)) {

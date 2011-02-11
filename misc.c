@@ -29,9 +29,10 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.150 2011/01/21 21:04:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.151 2011/02/11 01:18:19 tg Exp $");
 
-unsigned char chtypes[UCHAR_MAX + 1];	/* type bits for unsigned char */
+/* type bits for unsigned char */
+unsigned char chtypes[UCHAR_MAX + 1];
 
 static int do_gmatch(const unsigned char *, const unsigned char *,
     const unsigned char *, const unsigned char *);
@@ -62,7 +63,8 @@ setctypes(const char *s, int t)
 	if (t & C_IFS) {
 		for (i = 0; i < UCHAR_MAX + 1; i++)
 			chtypes[i] &= ~C_IFS;
-		chtypes[0] |= C_IFS; /* include \0 in C_IFS */
+		/* include \0 in C_IFS */
+		chtypes[0] |= C_IFS;
 	}
 	while (*s != 0)
 		chtypes[(unsigned char)*s++] |= t;
@@ -79,7 +81,8 @@ initctypes(void)
 		chtypes[c] |= C_ALPHA;
 	chtypes['_'] |= C_ALPHA;
 	setctypes("0123456789", C_DIGIT);
-	setctypes(" \t\n|&;<>()", C_LEX1); /* \0 added automatically */
+	/* \0 added automatically */
+	setctypes(" \t\n|&;<>()", C_LEX1);
 	setctypes("*@#!$-?", C_VAR1);
 	setctypes(" \t\n", C_IFSWS);
 	setctypes("=-+?", C_SUBOP1);
@@ -209,7 +212,8 @@ change_flag(enum sh_flag f, int what, unsigned int newval)
 	unsigned char oldval;
 
 	oldval = Flag(f);
-	Flag(f) = newval ? 1 : 0;	/* needed for tristates */
+	/* needed for tristates */
+	Flag(f) = newval ? 1 : 0;
 #ifndef MKSH_UNEMPLOYED
 	if (f == FMONITOR) {
 		if (what != OF_CMDLINE && newval != oldval)
@@ -256,12 +260,14 @@ change_flag(enum sh_flag f, int what, unsigned int newval)
 	}
 }
 
-/* Parse command line & set command arguments. Returns the index of
+/*
+ * Parse command line and set command arguments. Returns the index of
  * non-option arguments, -1 if there is an error.
  */
 int
 parse_args(const char **argv,
-    int what,			/* OF_CMDLINE or OF_SET */
+    /* OF_CMDLINE or OF_SET */
+    int what,
     bool *setargsp)
 {
 	static char cmd_opts[NELEM(options) + 5]; /* o:T:\0 */
@@ -304,7 +310,8 @@ parse_args(const char **argv,
 
 	if (what == OF_CMDLINE) {
 		const char *p = argv[0], *q;
-		/* Set FLOGIN before parsing options so user can clear
+		/*
+		 * Set FLOGIN before parsing options so user can clear
 		 * flag using +l.
 		 */
 		if (*p != '-')
@@ -332,7 +339,8 @@ parse_args(const char **argv,
 			if (what == OF_FIRSTTIME)
 				break;
 			if (go.optarg == NULL) {
-				/* lone -o: print options
+				/*
+				 * lone -o: print options
 				 *
 				 * Note that on the command line, -o requires
 				 * an option (ie, can't get here if what is
@@ -351,7 +359,8 @@ parse_args(const char **argv,
 			}
 #endif
 			if ((i != (size_t)-1) && set == Flag(i))
-				/* Don't check the context if the flag
+				/*
+				 * Don't check the context if the flag
 				 * isn't changing - makes "set -o interactive"
 				 * work if you're already interactive. Needed
 				 * if the output of "set +o" is to be used.
@@ -495,7 +504,8 @@ gmatchx(const char *s, const char *p, bool isfile)
 
 	se = s + strlen(s);
 	pe = p + strlen(p);
-	/* isfile is false iff no syntax check has been done on
+	/*
+	 * isfile is false iff no syntax check has been done on
 	 * the pattern. If check fails, just to a strcmp().
 	 */
 	if (!isfile && !has_globbing(p, pe)) {
@@ -509,7 +519,8 @@ gmatchx(const char *s, const char *p, bool isfile)
 	    (const unsigned char *) p, (const unsigned char *) pe));
 }
 
-/* Returns if p is a syntacticly correct globbing pattern, false
+/**
+ * Returns if p is a syntacticly correct globbing pattern, false
  * if it contains no pattern characters or if there is a syntax error.
  * Syntax errors are:
  *	- [ with no closing ]
@@ -517,14 +528,14 @@ gmatchx(const char *s, const char *p, bool isfile)
  *	- [...] and *(...) not nested (eg, [a$(b|]c), *(a[b|c]d))
  */
 /*XXX
-- if no magic,
-	if dest given, copy to dst
-	return ?
-- if magic && (no globbing || syntax error)
-	debunk to dst
-	return ?
-- return ?
-*/
+ * - if no magic,
+ *	if dest given, copy to dst
+ *	return ?
+ * - if magic && (no globbing || syntax error)
+ *	debunk to dst
+ *	return ?
+ * - return ?
+ */
 int
 has_globbing(const char *xp, const char *xpe)
 {
@@ -532,42 +543,46 @@ has_globbing(const char *xp, const char *xpe)
 	const unsigned char *pe = (const unsigned char *) xpe;
 	int c;
 	int nest = 0, bnest = 0;
-	int saw_glob = 0;
-	int in_bracket = 0; /* inside [...] */
+	bool saw_glob = false;
+	/* inside [...] */
+	bool in_bracket = false;
 
 	for (; p < pe; p++) {
 		if (!ISMAGIC(*p))
 			continue;
 		if ((c = *++p) == '*' || c == '?')
-			saw_glob = 1;
+			saw_glob = true;
 		else if (c == '[') {
 			if (!in_bracket) {
-				saw_glob = 1;
-				in_bracket = 1;
+				saw_glob = true;
+				in_bracket = true;
 				if (ISMAGIC(p[1]) && p[2] == NOT)
 					p += 2;
 				if (ISMAGIC(p[1]) && p[2] == ']')
 					p += 2;
 			}
-			/* XXX Do we need to check ranges here? POSIX Q */
+			/*XXX Do we need to check ranges here? POSIX Q */
 		} else if (c == ']') {
 			if (in_bracket) {
-				if (bnest)		/* [a*(b]) */
+				if (bnest)
+					/* [a*(b]) */
 					return (0);
-				in_bracket = 0;
+				in_bracket = false;
 			}
 		} else if ((c & 0x80) && vstrchr("*+?@! ", c & 0x7f)) {
-			saw_glob = 1;
+			saw_glob = true;
 			if (in_bracket)
 				bnest++;
 			else
 				nest++;
 		} else if (c == '|') {
-			if (in_bracket && !bnest)	/* *(a[foo|bar]) */
+			if (in_bracket && !bnest)
+				/* *(a[foo|bar]) */
 				return (0);
 		} else if (c == /*(*/ ')') {
 			if (in_bracket) {
-				if (!bnest--)		/* *(a[b)c] */
+				if (!bnest--)
+					/* *(a[b)c] */
 					return (0);
 			} else if (nest)
 				nest--;
@@ -629,8 +644,11 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 		 * [*+?@!](pattern|pattern|..)
 		 * This is also needed for ${..%..}, etc.
 		 */
-		case 0x80|'+': /* matches one or more times */
-		case 0x80|'*': /* matches zero or more times */
+
+		/* matches one or more times */
+		case 0x80|'+':
+		/* matches zero or more times */
+		case 0x80|'*':
 			if (!(prest = pat_scan(p, pe, 0)))
 				return (0);
 			s--;
@@ -652,9 +670,12 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 			}
 			return (0);
 
-		case 0x80|'?': /* matches zero or once */
-		case 0x80|'@': /* matches one of the patterns */
-		case 0x80|' ': /* simile for @ */
+		/* matches zero or once */
+		case 0x80|'?':
+		/* matches one of the patterns */
+		case 0x80|'@':
+		/* simile for @ */
+		case 0x80|' ':
 			if (!(prest = pat_scan(p, pe, 0)))
 				return (0);
 			s--;
@@ -675,7 +696,8 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 			}
 			return (0);
 
-		case 0x80|'!': /* matches none of the patterns */
+		/* matches none of the patterns */
+		case 0x80|'!':
 			if (!(prest = pat_scan(p, pe, 0)))
 				return (0);
 			s--;
@@ -733,7 +755,8 @@ cclass(const unsigned char *p, int sub)
 			return (sub == '[' ? orig_p : NULL);
 		if (ISMAGIC(p[0]) && p[1] == '-' &&
 		    (!ISMAGIC(p[2]) || p[3] != ']')) {
-			p += 2; /* MAGIC- */
+			/* MAGIC- */
+			p += 2;
 			d = *p++;
 			if (ISMAGIC(d)) {
 				d = *p++;
@@ -789,7 +812,8 @@ ksh_getopt_reset(Getopt *go, int flags)
 }
 
 
-/* getopt() used for shell built-in commands, the getopts command, and
+/**
+ * getopt() used for shell built-in commands, the getopts command, and
  * command line options.
  * A leading ':' in options means don't print errors, instead return '?'
  * or ':' and set go->optarg to the offending option character.
@@ -830,7 +854,8 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 			return (-1);
 		}
 		if (arg == NULL ||
-		    ((flag != '-' ) && /* neither a - nor a + (if + allowed) */
+		    ((flag != '-' ) &&
+		    /* neither a - nor a + (if + allowed) */
 		    (!(go->flags & GF_PLUSOPT) || flag != '+')) ||
 		    (c = arg[1]) == '\0') {
 			go->p = 0;
@@ -856,7 +881,8 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 		}
 		return ('?');
 	}
-	/* : means argument must be present, may be part of option argument
+	/**
+	 * : means argument must be present, may be part of option argument
 	 *   or the next argument
 	 * ; same as : but argument may be missing
 	 * , means argument is part of option argument, and may be null.
@@ -888,7 +914,8 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 		go->optarg = argv[go->optind - 1] + go->p;
 		go->p = 0;
 	} else if (*o == '#') {
-		/* argument is optional and may be attached or unattached
+		/*
+		 * argument is optional and may be attached or unattached
 		 * but must start with a digit. optarg is set to 0 if the
 		 * argument is missing.
 		 */
@@ -909,7 +936,8 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 	return (c);
 }
 
-/* print variable/alias value using necessary quotes
+/*
+ * print variable/alias value using necessary quotes
  * (POSIX says they should be suitable for re-entry...)
  * No trailing newline is printed.
  */
@@ -1025,8 +1053,9 @@ strip_nuls(char *buf, int nbytes)
 {
 	char *dst;
 
-	/* nbytes check because some systems (older FreeBSDs) have a buggy
-	 * memchr()
+	/*
+	 * nbytes check because some systems (older FreeBSDs) have a
+	 * buggy memchr()
 	 */
 	if (nbytes && (dst = memchr(buf, '\0', nbytes))) {
 		char *end = buf + nbytes;
@@ -1116,7 +1145,7 @@ ksh_get_wd(size_t *dlen)
 	return (ret);
 }
 
-/*
+/**
  *	Makes a filename into result using the following algorithm.
  *	- make result NULL
  *	- if file starts with '/', append file to result & set cdpathp to NULL
@@ -1133,7 +1162,8 @@ ksh_get_wd(size_t *dlen)
  */
 int
 make_path(const char *cwd, const char *file,
-    char **cdpathp,		/* & of : separated list */
+    /* & of : separated list */
+    char **cdpathp,
     XString *xsp,
     int *phys_pathp)
 {
@@ -1218,7 +1248,8 @@ simplify_path(char *pathl)
 	if ((isrooted = pathl[0] == '/'))
 		very_start++;
 
-	/* Before			After
+	/*-
+	 * Before			After
 	 * /foo/			/foo
 	 * /foo/../../bar		/bar
 	 * /foo/./blah/..		/foo
@@ -1571,7 +1602,7 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		/* FALLTHROUGH */
 	case 'x':
 		i = cstyle ? -1 : 2;
-		/*
+		/**
 		 * x:	look for a hexadecimal number with up to
 		 *	two (C style: arbitrary) digits; convert
 		 *	to raw octet (C style: Unicode if >0xFF)

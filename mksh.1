@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.249 2011/02/11 00:41:35 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.250 2011/02/11 01:18:19 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.138 2010/09/20 07:41:17 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -162,6 +162,8 @@
 .Op Ar argument ...
 .Oc
 .Ek
+.Nm builtin-name
+.Op Ar argument ...
 .Sh DESCRIPTION
 .Nm
 is a command interpreter intended for both interactive and shell
@@ -169,6 +171,9 @@ script use.
 Its command language is a superset of the
 .Xr sh C
 shell language and largely compatible to the original Korn shell.
+.Pp
+Most builtins can be called directly, for example if a link points from its
+name to the shell; not all make sense, have been tested or work at all though.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
@@ -3176,8 +3181,8 @@ If the
 .Ic posix
 or
 .Ic sh
-option is set, only the first argument is treated as an option, and only
-if it is exactly
+option is set or this is a direct builtin call, only the first argument
+is treated as an option, and only if it is exactly
 .Dq Fl n .
 Backslash interpretation is disabled.
 .Pp
@@ -3865,7 +3870,9 @@ is used).
 Enable UTF-8 support in the
 .Sx Emacs editing mode
 and internal string handling functions.
-This is enabled automatically for interactive shells if your system supports
+This flag is disabled by default, but can be enabled by setting it on the
+shell command line; is enabled automatically for interactive shells if
+requested at compile time, your system supports
 .Fn setlocale LC_CTYPE \&""
 and optionally
 .Fn nl_langinfo CODESET ,
@@ -3878,8 +3885,10 @@ environment variables,
 and at least one of these returns something that matches
 .Dq UTF\-8
 or
-.Dq utf8 ,
-or if the input begins with a UTF-8 Byte Order Mark.
+.Dq utf8
+case-insensitively; for direct builtin calls depending on the
+aforementioned environment variables; or for stdin or scripts,
+if the input begins with a UTF-8 Byte Order Mark.
 .It Fl u \*(Ba Ic nounset
 Referencing of an unset parameter, other than
 .Dq $@
@@ -3904,7 +3913,7 @@ the value of
 .It Ic arc4random
 Deprecated, will be removed in
 .Nm
-R40.
+R41.
 Do not use, emits a warning to stderr.
 .It Ic bgnice
 Background jobs are run with lower priority.
@@ -4052,6 +4061,7 @@ Suspends execution for a minimum of the
 .Ar seconds
 specified as positive decimal value with an optional fractional part.
 Signal delivery may continue execution earlier.
+.Pp
 .It Ic source Ar file Op Ar arg ...
 Like
 .Ic \&. Po Do dot Dc Pc ,

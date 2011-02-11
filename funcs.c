@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.169 2011/02/11 00:41:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.170 2011/02/11 01:18:17 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -126,6 +126,10 @@ const struct builtin mkshbuiltins[] = {
 	{"rename", c_rename},
 #if HAVE_SELECT
 	{"sleep", c_sleep},
+#endif
+#ifdef __MirBSD__
+	/* alias to "true" for historical reasons */
+	{"domainname", c_label},
 #endif
 	{NULL, (int (*)(const char **))NULL}
 };
@@ -497,7 +501,7 @@ c_cd(const char **wp)
 	allocd = NULL;
 
 	/* Clear out tracked aliases with relative paths */
-	flushcom(0);
+	flushcom(false);
 
 	/*
 	 * Set OLDPWD (note: unsetting OLDPWD does not disable this
@@ -590,7 +594,7 @@ c_print(const char **wp)
 	if (wp[0][0] == 'e') {
 		/* echo builtin */
 		wp++;
-		if (Flag(FPOSIX) || Flag(FSH)) {
+		if (Flag(FPOSIX) || Flag(FSH) || Flag(FAS_BUILTIN)) {
 			/* Debian Policy 10.4 compliant "echo" builtin */
 			if (*wp && !strcmp(*wp, "-n")) {
 				/* we recognise "-n" only as the first arg */
@@ -1844,7 +1848,11 @@ c_bind(const char **wp)
 	return (rv);
 }
 
-/* :, false and true (and ulimit if MKSH_NO_LIMITS) */
+/**
+ * :, false and true
+ * ulimit if MKSH_NO_LIMITS
+ * domainname on MirBSD (hysterical raisins, just don't ask)
+ */
 int
 c_label(const char **wp)
 {

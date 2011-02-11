@@ -154,9 +154,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.429 2011/02/11 00:41:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.430 2011/02/11 01:18:22 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2011/02/09"
+#define MKSH_VERSION "R39 2011/02/11"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1459,9 +1459,9 @@ int execute(struct op * volatile, volatile int, volatile int * volatile);
 int shcomexec(const char **);
 struct tbl *findfunc(const char *, uint32_t, bool);
 int define(const char *, struct op *);
-void builtin(const char *, int (*)(const char **));
+const char *builtin(const char *, int (*)(const char **));
 struct tbl *findcom(const char *, int);
-void flushcom(int);
+void flushcom(bool);
 const char *search(const char *, const char *, int, int *);
 int search_access(const char *, int, int *);
 int pr_menu(const char * const *);

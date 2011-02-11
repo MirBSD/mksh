@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.115 2011/01/21 21:04:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.116 2011/02/11 01:18:23 tg Exp $");
 
 /*
  * Variables
@@ -1084,7 +1084,8 @@ setspec(struct tbl *vp)
 			afree(path, APERM);
 		s = str_val(vp);
 		strdupx(path, s, APERM);
-		flushcom(1);	/* clear tracked aliases */
+		/* clear tracked aliases */
+		flushcom(true);
 		return;
 	case V_IFS:
 		setctypes(s = str_val(vp), C_IFS);
@@ -1182,7 +1183,8 @@ unsetspec(struct tbl *vp)
 		if (path)
 			afree(path, APERM);
 		strdupx(path, def_path, APERM);
-		flushcom(1);	/* clear tracked aliases */
+		/* clear tracked aliases */
+		flushcom(true);
 		break;
 	case V_IFS:
 		setctypes(" \t\n", C_IFS);

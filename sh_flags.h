@@ -1,5 +1,5 @@
 #if defined(SHFLAGS_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.7 2010/07/13 13:07:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.8 2011/02/11 01:18:23 tg Exp $");
 #define FN(sname,cname,ochar,flags)	/* nothing */
 #elif defined(SHFLAGS_ENUMS)
 #define FN(sname,cname,ochar,flags)	cname,
@@ -134,6 +134,9 @@ FN(NULL, FCOMMAND, 'c', OF_CMDLINE)
 /*
  * anonymous flags: used internally by shell only (not visible to user)
  */
+
+/* ./.	direct builtin call (divined from argv[0] multi-call binary) */
+FN(NULL, FAS_BUILTIN, 0, OF_INTERNAL)
 
 /* ./.	(internal) initial shell was interactive */
 FN(NULL, FTALKING_I, 0, OF_INTERNAL)
