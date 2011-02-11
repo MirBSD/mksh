@@ -1,7 +1,7 @@
 /*	$OpenBSD: syn.c,v 1.28 2008/07/23 16:34:38 jaredy Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.52 2010/09/14 21:26:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.53 2011/02/11 00:41:38 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -405,7 +405,7 @@ get_command(int cf)
 		t = newtp((c == FOR) ? TFOR : TSELECT);
 		musthave(LWORD, ARRAYVAR);
 		if (!is_wdvarname(yylval.cp, true))
-			yyerror("%s: %s\n", c == FOR ? "for" : "select",
+			yyerror("%s: %s\n", c == FOR ? "for" : T_select,
 			    "bad identifier");
 		strdupx(t->str, ident, ATEMP);
 		nesting_push(&old_nesting, c);
@@ -736,7 +736,7 @@ const struct tokeninfo {
 	{ "case",	CASE,	true },
 	{ "esac",	ESAC,	true },
 	{ "for",	FOR,	true },
-	{ "select",	SELECT,	true },
+	{ T_select,	SELECT,	true },
 	{ "while",	WHILE,	true },
 	{ "until",	UNTIL,	true },
 	{ "do",		DO,	true },
@@ -1005,3 +1005,61 @@ dbtestp_error(Test_env *te, int offset, const char *msg)
 	}
 	syntaxerr(msg);
 }
+
+#if HAVE_SELECT
+
+#ifndef EOVERFLOW
+#ifdef ERANGE
+#define EOVERFLOW	ERANGE
+#else
+#define EOVERFLOW	EINVAL
+#endif
+#endif
+
+bool
+parse_usec(const char *s, struct timeval *tv)
+{
+	struct timeval tt;
+	int i;
+
+	tv->tv_sec = 0;
+	/* parse integral part */
+	while (ksh_isdigit(*s)) {
+		tt.tv_sec = tv->tv_sec * 10 + (*s++ - '0');
+		if (tt.tv_sec / 10 != tv->tv_sec) {
+			errno = EOVERFLOW;
+			return (true);
+		}
+		tv->tv_sec = tt.tv_sec;
+	}
+
+	tv->tv_usec = 0;
+	if (!*s)
+		/* no decimal fraction */
+		return (false);
+	else if (*s++ != '.') {
+		/* junk after integral part */
+		errno = EINVAL;
+		return (true);
+	}
+
+	/* parse decimal fraction */
+	i = 100000;
+	while (ksh_isdigit(*s)) {
+		tv->tv_usec += i * (*s++ - '0');
+		if (i == 1)
+			break;
+		i /= 10;
+	}
+	/* check for junk after fractional part */
+	while (ksh_isdigit(*s))
+		++s;
+	if (*s) {
+		errno = EINVAL;
+		return (true);
+	}
+
+	/* end of input string reached, no errors */
+	return (false);
+}
+#endif

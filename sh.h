@@ -154,7 +154,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.428 2011/02/09 13:08:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.429 2011/02/11 00:41:37 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/02/09"
 
@@ -626,6 +626,7 @@ EXTERN const char T_oomem[] I__("can't allocate %lu data bytes");
 #else
 EXTERN const char T_synerr[] I__("syntax error");
 #endif
+EXTERN const char T_select[] I__("select");
 EXTERN const char T_r_fc_e_[] I__("r=fc -e -");
 #define T_fc_e_		(T_r_fc_e_ + 2)		/* "fc -e -" */
 #define Tn_fc_e_	7			/* strlen(T_fc_e_) */
@@ -794,7 +795,7 @@ struct coproc {
 EXTERN struct coproc coproc;
 
 #ifndef MKSH_NOPROSPECTOFWORK
-/* Used in jobs.c and by coprocess stuff in exec.c */
+/* used in jobs.c and by coprocess stuff in exec.c and select() calls */
 EXTERN sigset_t		sm_default, sm_sigchld;
 #endif
 
@@ -1526,6 +1527,7 @@ int c_mknod(const char **);
 int c_realpath(const char **);
 int c_rename(const char **);
 int c_cat(const char **);
+int c_sleep(const char **);
 /* histrap.c */
 void init_histvec(void);
 void hist_init(Source *);
@@ -1703,6 +1705,7 @@ int shf_vfprintf(struct shf *, const char *, va_list)
 /* syn.c */
 void initkeywords(void);
 struct op *compile(Source *);
+bool parse_usec(const char *, struct timeval *);
 /* tree.c */
 int fptreef(struct shf *, int, const char *, ...);
 char *snptreef(char *, int, const char *, ...);

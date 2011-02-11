@@ -26,7 +26,19 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.168 2011/01/30 01:35:58 tg Exp $");
+#if HAVE_SELECT
+#if HAVE_SYS_BSDTYPES_H
+#include <sys/bsdtypes.h>
+#endif
+#if HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+#if HAVE_BSTRING_H
+#include <bstring.h>
+#endif
+#endif
+
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.169 2011/02/11 00:41:34 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -112,6 +124,9 @@ const struct builtin mkshbuiltins[] = {
 #endif
 	{"realpath", c_realpath},
 	{"rename", c_rename},
+#if HAVE_SELECT
+	{"sleep", c_sleep},
+#endif
 	{NULL, (int (*)(const char **))NULL}
 };
 
@@ -3647,3 +3662,43 @@ c_cat(const char **wp)
 	free(buf);
 	return (rv);
 }
+
+#if HAVE_SELECT
+int
+c_sleep(const char **wp)
+{
+	struct timeval tv;
+	int rv = 1;
+
+	/* skip argv[0] */
+	++wp;
+	if (wp[0] && !strcmp(wp[0], "--"))
+		/* skip "--" (options separator) */
+		++wp;
+
+	if (!wp[0] || wp[1])
+		bi_errorf(T_synerr);
+	else if (parse_usec(wp[0], &tv))
+		bi_errorf("%s: %s '%s'", T_synerr, strerror(errno), wp[0]);
+	else {
+#ifndef MKSH_NOPROSPECTOFWORK
+		sigset_t omask;
+
+		/* block SIGCHLD from interrupting us, though */
+		sigprocmask(SIG_BLOCK, &sm_sigchld, &omask);
+#endif
+		if (select(0, NULL, NULL, NULL, &tv) == 0 || errno == EINTR)
+			/*
+			 * strictly speaking only for SIGALRM, but the
+			 * execution may be interrupted by other signals
+			 */
+			rv = 0;
+		else
+			bi_errorf("%s: %s", T_select, strerror(errno));
+#ifndef MKSH_NOPROSPECTOFWORK
+		sigprocmask(SIG_BLOCK, &omask, NULL);
+#endif
+	}
+	return (rv);
+}
+#endif
