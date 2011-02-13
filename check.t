@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.407 2011/02/11 01:18:15 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.408 2011/02/13 21:13:05 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/02/11
+	@(#)MIRBSD KSH R39 2011/02/13
 description:
 	Check version of shell.
 stdin:
@@ -64,6 +64,15 @@ description:
 category: disabled
 stdin:
 	set
+---
+name: selftest-direct-builtin-call
+description:
+	Check that direct builtin calls work
+stdin:
+	ln -s "$__progname" echo
+	./echo -c 'echo  foo'
+expected-stdout:
+	-c echo  foo
 ---
 name: alias-1
 description:
@@ -4467,6 +4476,18 @@ stdin:
 	t() {
 		time
 	}
+---
+name: regression-65
+description:
+	check for a regression with sleep builtin and signal mask
+time-limit: 3
+stdin:
+	sleep 1
+	echo blub |&
+	while read -p line; do :; done
+	echo ok
+expected-stdout:
+	ok
 ---
 name: syntax-1
 description:

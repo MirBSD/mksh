@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.170 2011/02/11 01:18:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.171 2011/02/13 21:13:06 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3704,7 +3704,7 @@ c_sleep(const char **wp)
 		else
 			bi_errorf("%s: %s", T_select, strerror(errno));
 #ifndef MKSH_NOPROSPECTOFWORK
-		sigprocmask(SIG_BLOCK, &omask, NULL);
+		sigprocmask(SIG_SETMASK, &omask, NULL);
 #endif
 	}
 	return (rv);
