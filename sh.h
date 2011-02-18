@@ -154,9 +154,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.431 2011/02/13 21:13:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.432 2011/02/18 22:26:13 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2011/02/13"
+#define MKSH_VERSION "R39 2011/02/18"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -577,6 +577,7 @@ extern struct env {
 EXTERN pid_t procpid;		/* PID of executing process */
 EXTERN int exstat;		/* exit status */
 EXTERN int subst_exstat;	/* exit status of last $(..)/`..` */
+EXTERN struct tbl *vp_pipest;	/* global PIPESTATUS array */
 EXTERN short trap_exstat;	/* exit status before running a trap */
 EXTERN uint8_t trap_nested;	/* running nested traps */
 EXTERN uint8_t shell_flags[FNFLAGS];
@@ -948,7 +949,7 @@ struct tbl {			/* table item */
 #define LCASEV		BIT(17)	/* convert to lower case */
 #define UCASEV_AL	BIT(18) /* convert to upper case / autoload function */
 #define INT_U		BIT(19)	/* unsigned integer */
-#define INT_L		BIT(20)	/* long integer (no-op) */
+#define INT_L		BIT(20)	/* long integer (no-op but used as magic) */
 #define IMPORT		BIT(21)	/* flag to typeset(): no arrays, must have = */
 #define LOCAL_COPY	BIT(22)	/* with LOCAL - copy attrs from existing var */
 #define EXPRINEVAL	BIT(23)	/* contents currently being evaluated */
@@ -1162,6 +1163,7 @@ struct ioword {
 #define XERROK	BIT(8)		/* non-zero exit ok (for set -e) */
 #define XCOPROC BIT(9)		/* starting a co-process */
 #define XTIME	BIT(10)		/* timing TCOM command */
+#define XPIPEST	BIT(11)		/* want PIPESTATUS */
 
 /*
  * flags to control expansion of words (assumed by t->evalflags to fit

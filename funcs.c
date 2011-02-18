@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.171 2011/02/13 21:13:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.172 2011/02/18 22:26:08 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3599,7 +3599,7 @@ c_realpath(const char **wp)
 int
 c_cat(const char **wp)
 {
-	int fd = STDIN_FILENO, rv = 0;
+	int fd = STDIN_FILENO, rv;
 	ssize_t n, w;
 	const char *fn = "<stdin>";
 	char *buf, *cp;
@@ -3611,11 +3611,19 @@ c_cat(const char **wp)
 		return (1);
 	}
 
-	/* skip argv[0] */
-	++wp;
-	if (wp[0] && !strcmp(wp[0], "--"))
-		/* skip "--" (options separator) */
-		++wp;
+	/* parse options: POSIX demands we support "-u" as no-op */
+	while ((rv = ksh_getopt(wp, &builtin_opt, "u")) != -1) {
+		switch (rv) {
+		case 'u':
+			/* we already operate unbuffered */
+			break;
+		default:
+			bi_errorf(T_synerr);
+			return (1);
+		}
+	}
+	wp += builtin_opt.optind;
+	rv = 0;
 
 	do {
 		if (*wp) {

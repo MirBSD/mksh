@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.86 2011/02/11 01:18:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.87 2011/02/18 22:26:08 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -153,6 +153,9 @@ execute(struct op * volatile t,
 		memset(e->savefd, 0, NUFILE * sizeof(short));
 	}
 
+	/* mark for replacement later (unless TPIPE) */
+	vp_pipest->flag |= INT_L;
+
 	/* do redirection, to be restored in quitenv() */
 	if (t->ioact != NULL)
 		for (iowp = t->ioact; *iowp != NULL; iowp++) {
@@ -207,7 +210,7 @@ execute(struct op * volatile t,
 		/* no need to re-restore this */
 		e->savefd[1] = 0;
 		/* Let exchild() close 0 in parent, after fork, before wait */
-		i = exchild(t, flags | XPCLOSE, xerrok, 0);
+		i = exchild(t, flags | XPCLOSE | XPIPEST, xerrok, 0);
 		if (!(flags&XBGND) && !(flags&XXCOM))
 			rv = i;
 		break;
@@ -449,6 +452,12 @@ execute(struct op * volatile t,
 	}
  Break:
 	exstat = rv;
+	if (vp_pipest->flag & INT_L) {
+		unset(vp_pipest, 1);
+		vp_pipest->flag = DEFINED | ISSET | INTEGER | RDONLY |
+		    ARRAY | INT_U;
+		vp_pipest->val.i = rv;
+	}
 
 	/* restores IO */
 	quitenv(NULL);
@@ -570,6 +579,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			 * in theory, we could allow -u, but that would
 			 * mean to use ksh_getopt here and possibly ad-
 			 * ded complexity and more code and isn't worth
+			 * additional hassle (and the builtin must call
+			 * ksh_getopt already but can't come back here)
 			 */
 			if (ap[1] && ap[1][0] == '-' && ap[1][1] != '\0' &&
 			    /* argument, begins with -, is not - or -- */

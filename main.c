@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.176 2011/02/11 01:18:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.177 2011/02/18 22:26:10 tg Exp $");
 
 extern char **environ;
 
@@ -364,6 +364,7 @@ main(int argc, const char *argv[])
 	vp->flag |= INT_U;
 	setint((vp = global("RANDOM")), rndsetup());
 	vp->flag |= INT_U;
+	setint((vp_pipest = global("PIPESTATUS")), 0);
 
 	/* Set this before parsing arguments */
 	Flag(FPRIVILEGED) = kshuid != ksheuid || kshgid != kshegid;

@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.74 2011/01/30 01:35:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.75 2011/02/18 22:26:09 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -97,6 +97,7 @@ struct job {
 #define JW_INTERRUPT	0x01	/* ^C will stop the wait */
 #define JW_ASYNCNOTIFY	0x02	/* asynchronous notification during wait ok */
 #define JW_STOPPEDWAIT	0x04	/* wait even if job stopped */
+#define JW_PIPEST	0x08	/* want PIPESTATUS */
 
 /* Error codes for j_lookup() */
 #define JL_OK		0
@@ -205,6 +206,19 @@ j_init(void)
 #endif
 	  if (Flag(FTALKING))
 		tty_init(true, true);
+}
+
+static int
+proc_errorlevel(Proc *p)
+{
+	switch (p->state) {
+	case PEXITED:
+		return (WEXITSTATUS(p->status));
+	case PSIGNALLED:
+		return (128 + WTERMSIG(p->status));
+	default:
+		return (0);
+	}
 }
 
 /* job cleanup before shell exit */
@@ -349,13 +363,18 @@ exchild(struct op *t, int flags,
 	/* for pipelines */
 	static Proc *last_proc;
 
-	int rv = 0, forksleep;
+	int rv = 0, forksleep, jwflags = JW_NONE;
 #ifndef MKSH_NOPROSPECTOFWORK
 	sigset_t omask;
 #endif
 	Proc *p;
 	Job *j;
 	pid_t cldpid;
+
+	if (flags & XPIPEST) {
+		flags &= ~XPIPEST;
+		jwflags |= JW_PIPEST;
+	}
 
 	if (flags & XEXEC)
 		/*
@@ -543,7 +562,7 @@ exchild(struct op *t, int flags,
 				shf_flush(shl_out);
 			}
 		} else
-			rv = j_waitj(j, JW_NONE, "jw:last proc");
+			rv = j_waitj(j, jwflags, "jw:last proc");
 	}
 
 #ifndef MKSH_NOPROSPECTOFWORK
@@ -1158,6 +1177,38 @@ j_waitj(Job *j,
 	j_systime = j->systime;
 	rv = j->status;
 
+	if ((flags & JW_PIPEST) && (j->proc_list != NULL)) {
+		size_t num = 0;
+		Proc *p = j->proc_list;
+		struct tbl *vp;
+
+		unset(vp_pipest, 1);
+		vp = vp_pipest;
+		vp->flag = DEFINED | ISSET | INTEGER | RDONLY | ARRAY | INT_U;
+		goto got_array;
+
+		while (p != NULL) {
+			{
+				struct tbl *vq;
+
+				/* strlen(vp_pipest->name) == 10 */
+				vq = alloc(offsetof(struct tbl, name[0]) + 11,
+				    vp_pipest->areap);
+				memset(vq, 0, offsetof(struct tbl, name[0]));
+				memcpy(vq->name, vp_pipest->name, 11);
+				vp->u.array = vq;
+				vp = vq;
+			}
+			vp->areap = vp_pipest->areap;
+			vp->ua.index = ++num;
+			vp->flag = DEFINED | ISSET | INTEGER | RDONLY |
+			    ARRAY | INT_U | AINDEX;
+ got_array:
+			vp->val.i = proc_errorlevel(p);
+			p = p->next;
+		}
+	}
+
 	if (!(flags & JW_ASYNCNOTIFY)
 #ifndef MKSH_UNEMPLOYED
 	    && (!Flag(FMONITOR) || j->state != PSTOPPED)
@@ -1295,18 +1346,7 @@ check_job(Job *j)
 			jstate = p->state;
 	}
 	j->state = jstate;
-
-	switch (j->last_proc->state) {
-	case PEXITED:
-		j->status = WEXITSTATUS(j->last_proc->status);
-		break;
-	case PSIGNALLED:
-		j->status = 128 + WTERMSIG(j->last_proc->status);
-		break;
-	default:
-		j->status = 0;
-		break;
-	}
+	j->status = proc_errorlevel(j->last_proc);
 
 	/*
 	 * Note when co-process dies: can't be done in j_wait() nor

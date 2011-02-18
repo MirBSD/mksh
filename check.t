@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.408 2011/02/13 21:13:05 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.409 2011/02/18 22:26:06 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/02/13
+	@(#)MIRBSD KSH R39 2011/02/18
 description:
 	Check version of shell.
 stdin:
@@ -69,8 +69,9 @@ name: selftest-direct-builtin-call
 description:
 	Check that direct builtin calls work
 stdin:
+	ln -s "$__progname" cat
 	ln -s "$__progname" echo
-	./echo -c 'echo  foo'
+	./echo -c 'echo  foo' | ./cat -u
 expected-stdout:
 	-c echo  foo
 ---
@@ -5243,6 +5244,28 @@ expected-stdout:
 	100 hi
 	200 hi
 	300 hi
+---
+name: pipeline-3
+description:
+	Check that PIPESTATUS does what it's supposed to
+stdin:
+	echo 1 $PIPESTATUS .
+	echo 2 ${PIPESTATUS[0]} .
+	echo 3 ${PIPESTATUS[1]} .
+	(echo x; exit 12) | (cat; exit 23) | (cat; exit 42)
+	echo 5 $? , $PIPESTATUS , ${PIPESTATUS[0]} , ${PIPESTATUS[1]} , ${PIPESTATUS[2]} , ${PIPESTATUS[3]} .
+	echo 6 ${PIPESTATUS[0]} .
+	set | fgrep PIPESTATUS
+	echo 8 $(set | fgrep PIPESTATUS) .
+expected-stdout:
+	1 0 .
+	2 0 .
+	3 .
+	x
+	5 42 , 12 , 12 , 23 , 42 , .
+	6 0 .
+	PIPESTATUS[0]=0
+	8 PIPESTATUS[0]=0 PIPESTATUS[1]=0 .
 ---
 name: persist-history-1
 description:
