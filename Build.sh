@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.471 2011/02/11 00:49:03 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.472 2011/02/27 19:29:18 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -418,6 +418,11 @@ Darwin)
 DragonFly)
 	;;
 FreeBSD)
+	;;
+FreeMiNT)
+	oswarn="; it has minor issues"
+	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
+	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 GNU)
 	# define NO_PATH_MAX to use Hurd-only functions
@@ -1480,7 +1485,7 @@ cat >>test.sh <<-EOF
 	cstr="\$cstr"'print \$os . ", Perl version " . \$];'
 	for perli in \$PERL perl5 perl no; do
 		[[ \$perli = no ]] && exit 1
-		perlos=\$(\$perli -e "\$cstr") 2>&- || continue
+		perlos=\$(\$perli -e "\$cstr") 2>/dev/null || continue
 		print "Perl interpreter '\$perli' running on '\$perlos'"
 		[[ -n \$perlos ]] && break
 	done
