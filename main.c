@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.177 2011/02/18 22:26:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.178 2011/02/27 19:29:31 tg Exp $");
 
 extern char **environ;
 
@@ -957,16 +957,18 @@ tty_init(bool init_ttystate, bool need_tty)
 		close(tty_fd);
 		tty_fd = -1;
 	}
-	tty_devtty = 1;
+	tty_devtty = true;
 
 #ifdef _UWIN
-	/* XXX imake style */
-	if (isatty(3))
+	/*XXX imake style */
+	if (isatty(3)) {
+		/* fd 3 on UWIN _is_ /dev/tty (or our controlling tty) */
 		tfd = 3;
-	else
+		do_close = false;
+	} else
 #endif
-	if ((tfd = open("/dev/tty", O_RDWR, 0)) < 0) {
-		tty_devtty = 0;
+	  if ((tfd = open("/dev/tty", O_RDWR, 0)) < 0) {
+		tty_devtty = false;
 		if (need_tty)
 			warningf(false, "%s: %s %s: %s",
 			    "No controlling tty", "open", "/dev/tty",

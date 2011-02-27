@@ -154,7 +154,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.432 2011/02/18 22:26:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.433 2011/02/27 19:29:32 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/02/18"
 
@@ -1795,7 +1795,7 @@ int test_eval(Test_env *, Test_op, const char *, const char *, bool);
 int test_parse(Test_env *);
 
 EXTERN int tty_fd I__(-1);	/* dup'd tty file descriptor */
-EXTERN int tty_devtty;		/* true if tty_fd is from /dev/tty */
+EXTERN bool tty_devtty;		/* true if tty_fd is from /dev/tty */
 EXTERN struct termios tty_state;	/* saved tty state */
 
 extern void tty_init(bool, bool);
