@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.172 2011/02/18 22:26:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.173 2011/03/05 21:43:15 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -364,7 +364,7 @@ do_realpath(const char *upath)
 	return (Xclose(xs, xp));
 
  notfound:
-	/* save; free(3) might trash it */
+	/* save; freeing memory might trash it */
 	llen = errno;
 	if (ldest != NULL)
 		afree(ldest, ATEMP);
@@ -2744,7 +2744,7 @@ c_mknod(const char **wp)
 				return (1);
 			}
 			mode = getmode(set, (mode_t)(DEFFILEMODE));
-			free(set);
+			free_ossetmode(set);
 			break;
 		default:
 			goto c_mknod_usage;
@@ -3605,8 +3605,7 @@ c_cat(const char **wp)
 	char *buf, *cp;
 #define MKSH_CAT_BUFSIZ 4096
 
-	/* XXX uses malloc instead of lalloc (for alignment/speed) */
-	if ((buf = malloc(MKSH_CAT_BUFSIZ)) == NULL) {
+	if ((buf = malloc_os(MKSH_CAT_BUFSIZ)) == NULL) {
 		bi_errorf(T_oomem, (unsigned long)MKSH_CAT_BUFSIZ);
 		return (1);
 	}
@@ -3675,7 +3674,7 @@ c_cat(const char **wp)
 	} while (*wp);
 
  out:
-	free(buf);
+	free_osmalloc(buf);
 	return (rv);
 }
 

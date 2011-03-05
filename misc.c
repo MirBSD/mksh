@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.151 2011/02/11 01:18:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.152 2011/03/05 21:43:17 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1130,7 +1130,7 @@ ksh_get_wd(size_t *dlen)
 	if ((b = get_current_dir_name())) {
 		len = strlen(b) + 1;
 		strndupx(ret, b, len - 1, ATEMP);
-		free(b);
+		free_gnu_gcdn(b);
 	} else
 		ret = NULL;
 #else

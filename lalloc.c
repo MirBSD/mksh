@@ -20,13 +20,13 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.14 2011/01/09 21:57:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.15 2011/03/05 21:43:16 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
-#define remalloc(p,n)	((p) == NULL ? malloc(n) : realloc((p), (n)))
+#define remalloc(p,n)	((p) == NULL ? malloc_os(n) : realloc_os((p), (n)))
 #else
-#define remalloc(p,n)	realloc((p), (n))
+#define remalloc(p,n)	realloc_os((p), (n))
 #endif
 
 #define ALLOC_ISUNALIGNED(p) (((ptrdiff_t)(p)) % ALLOC_SIZE)
@@ -113,7 +113,7 @@ afree(void *ptr, Area *ap)
 		/* unhook */
 		pp->next = lp->next;
 		/* now free ALLOC_ITEM */
-		free(lp);
+		free_osmalloc(lp);
 	}
 }
 
@@ -127,6 +127,6 @@ afreeall(Area *ap)
 		/* make next ALLOC_ITEM head of list */
 		ap->next = lp->next;
 		/* free old head */
-		free(lp);
+		free_osmalloc(lp);
 	}
 }

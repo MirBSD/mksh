@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.178 2011/02/27 19:29:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.179 2011/03/05 21:43:17 tg Exp $");
 
 extern char **environ;
 
@@ -1402,7 +1402,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 		tp->name[0] = '\0';
 	else {
 		memcpy(tp->name, pathname, len);
-		free(pathname);
+		free_ostempnam(pathname);
 	}
 #endif
 	pathname = tp->name;

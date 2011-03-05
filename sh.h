@@ -154,7 +154,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.433 2011/02/27 19:29:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.434 2011/03/05 21:43:18 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/02/18"
 
@@ -496,6 +496,30 @@ char *ucstrstr(char *, const char *);
 /*
  * simple grouping allocator
  */
+
+
+/* 0. OS API: where to get memory from and how to free it (grouped) */
+
+/* malloc(3)/realloc(3) -> free(3) */
+#define malloc_os(sz)		malloc(sz)
+#define realloc_os(p,sz)	realloc((p), (sz))
+#define free_osmalloc(p)	free(p)
+
+#if HAVE_MKNOD
+/* setmode(3) -> free(3) */
+#define free_ossetmode(p)	free(p)
+#endif
+
+#if !HAVE_MKSTEMP
+/* tempnam(3) -> free(3) */
+#define free_ostempnam(p)	free(p)
+#endif
+
+#ifdef NO_PATH_MAX
+/* GNU libc: get_current_dir_name(3) -> free(3) */
+#define free_gnu_gcdn(p)	free(p)
+#endif
+
 
 /* 1. internal structure */
 struct lalloc {
