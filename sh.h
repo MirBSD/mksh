@@ -154,7 +154,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.434 2011/03/05 21:43:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.435 2011/03/05 21:48:09 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/02/18"
 
@@ -500,10 +500,15 @@ char *ucstrstr(char *, const char *);
 
 /* 0. OS API: where to get memory from and how to free it (grouped) */
 
-/* malloc(3)/realloc(3) -> free(3) */
-#define malloc_os(sz)		malloc(sz)
-#define realloc_os(p,sz)	realloc((p), (sz))
-#define free_osmalloc(p)	free(p)
+/* malloc(3)/realloc(3) -> free(3) for use by the memory allocator */
+#define malloc_osi(sz)		malloc(sz)
+#define realloc_osi(p,sz)	realloc((p), (sz))
+#define free_osimalloc(p)	free(p)
+
+/* malloc(3)/realloc(3) -> free(3) for use by mksh code */
+#define malloc_osfunc(sz)	malloc(sz)
+#define realloc_osfunc(p,sz)	realloc((p), (sz))
+#define free_osfunc(p)		free(p)
 
 #if HAVE_MKNOD
 /* setmode(3) -> free(3) */
