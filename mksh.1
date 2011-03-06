@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.251 2011/02/18 22:26:11 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.252 2011/03/06 01:50:09 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.138 2010/09/20 07:41:17 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: February 18 2011 $
+.Dd $Mdocdate: March 6 2011 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -1238,12 +1238,23 @@ Note that
 has the same effect as
 .Ic $(cat foo) .
 .Pp
-.Sy Note :
-.Pf $( Ns Ar command Ns \&)
-expressions are currently parsed by finding matching parentheses,
-regardless of quoting; comments containing quote characters are
-not handled correctly.
-This should be fixed soon.
+Note that some shells do not use a recursive parser for command substitutions,
+leading to failure for certain constructs; to be portable, use as workaround
+.Ql x=$(cat) \*(Lt\*(Lt"EOF"
+(or the newline-keeping
+.Ql x=\*(Lt\*(Lt"EOF"
+extension) instead to merely slurp the string.
+.St -p1003.1
+recommends to use case statements of the form
+.Ql "x=$(case $foo in (bar) echo $bar ;; (*) echo $baz ;; esac)"
+instead, which would work but not serve as example for this portability issue.
+.Bd -literal -offset indent
+x=$(case $foo in bar) echo $bar ;; *) echo $baz ;; esac)
+# above fails to parse on old shells; below is the workaround
+x=$(eval $(cat)) \*(Lt\*(Lt"EOF"
+case $foo in bar) echo $bar ;; *) echo $baz ;; esac
+EOF
+.Ed
 .Pp
 Arithmetic substitutions are replaced by the value of the specified expression.
 For example, the command
@@ -6107,28 +6118,7 @@ the currently running part of the pipeline; in this example,
 is immediately printed on suspension (but not later after an
 .Ic fg ) .
 .Bd -literal -offset indent
-$ sleep 666 && echo fubar
-.Ed
-.Pp
-Some parts of the parser are not recursive; the following
-code fails because of the parenthesis asymmetry
-.Pq RedHat BZ#496791 .
-A workaround exists; use
-.Ql x=$(cat) \*(Lt\*(Lt"EOF"
-or the newline-keeping
-.Ql x=\*(Lt\*(Lt"EOF"
-instead to merely slurp the string.
-Of course, in this case, the form
-.Ql x=$(case $foo in (bar) ...
-actually recommended by
-.St -p1003.1
-would work as well, but we use it as an example of this parser bug.
-.Bd -literal -offset indent
-x=$(case $foo in bar) echo $bar ;; *) echo $baz ;; esac)
-# above fails to parse; below is the workaround
-x=$(eval $(cat)) \*(Lt\*(Lt"EOF"
-case $foo in bar) echo $bar ;; *) echo $baz ;; esac
-EOF
+$ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
 This document attempts to describe

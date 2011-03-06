@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.413 2011/02/27 19:41:17 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.414 2011/03/06 01:50:08 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/02/18
+	@(#)MIRBSD KSH R39 2011/03/05
 description:
 	Check version of shell.
 stdin:
@@ -6933,11 +6933,10 @@ expected-stdout:
 ---
 name: comsub-1
 description:
-	COMSUB are currently parsed by hacking lex.c instead of
-	recursively (see regression-6): matching parenthesēs bug
-	Fails on: pdksh mksh bash2 bash3 zsh
-	Passes on: bash4 ksh93
-expected-fail: yes
+	COMSUB are now parsed recursively, so this works
+	see also regression-6: matching parenthesēs bug
+	Fails on: pdksh bash2 bash3 zsh
+	Passes on: bash4 ksh93 mksh(20110305+)
 stdin:
 	echo $(case 1 in (1) echo yes;; (2) echo no;; esac)
 	echo $(case 1 in 1) echo yes;; 2) echo no;; esac)
@@ -6949,10 +6948,9 @@ name: comsub-2
 description:
 	RedHat BZ#496791 – another case of missing recursion
 	in parsing COMSUB expressions
-	Fails on: pdksh mksh bash2 bash3¹ bash4¹ zsh
-	Passes on: ksh93
+	Fails on: pdksh bash2 bash3¹ bash4¹ zsh
+	Passes on: ksh93 mksh(20110305+)
 	① bash[34] seem to choke on comment ending with backslash-newline
-expected-fail: yes
 stdin:
 	# a comment with " ' \
 	x=$(
@@ -6962,6 +6960,24 @@ stdin:
 	echo $x
 expected-stdout:
 	yes
+---
+name: comsub-3
+description:
+	Extended test for COMSUB explaining why a recursive parser
+	is a must (a non-recursive parser cannot pass all three of
+	these test cases, especially the ‘#’ is difficult)
+stdin:
+	echo $(typeset -i10 x=16#20; echo $x)
+	echo $(typeset -Uui16 x=16#$(id -u)
+	) .
+	echo $(c=1; d=1
+	typeset -Uui16 a=36#foo; c=2
+	typeset -Uui16 b=36 #foo; d=2
+	echo $a $b $c $d)
+expected-stdout:
+	32
+	.
+	16#4F68 16#24 2 1
 ---
 name: test-stnze-1
 description:
