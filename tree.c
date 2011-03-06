@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.33 2011/03/06 00:52:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.34 2011/03/06 02:14:09 tg Exp $");
 
 #define INDENT	4
 
@@ -154,7 +154,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		fptreef(shf, indent, "%;done ");
 		break;
 	case TBRACE:
-		fptreef(shf, indent + INDENT, "{%;%T", t->left);
+		fptreef(shf, indent + INDENT, "{%N%T", t->left);
 		fptreef(shf, indent, "%;} ");
 		break;
 	case TCOPROC:
