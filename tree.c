@@ -1,7 +1,7 @@
 /*	$OpenBSD: tree.c,v 1.19 2008/08/11 21:50:35 jaredy Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.32 2010/09/14 21:26:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.33 2011/03/06 00:52:02 tg Exp $");
 
 #define INDENT	4
 
@@ -115,7 +115,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 			for (w = (const char **)t1->vars; *w != NULL; w++)
 				fptreef(shf, indent, "%S%c", *w,
 				    (w[1] != NULL) ? '|' : ')');
-			fptreef(shf, indent + INDENT, "%;%T%N;;", t1->left);
+			fptreef(shf, indent + INDENT, "%N%T%N;;", t1->left);
 		}
 		fptreef(shf, indent, "%Nesac ");
 		break;
