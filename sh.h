@@ -154,7 +154,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.435 2011/03/05 21:48:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.436 2011/03/06 01:25:33 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/02/18"
 
@@ -1737,6 +1737,7 @@ int shf_vfprintf(struct shf *, const char *, va_list)
 void initkeywords(void);
 struct op *compile(Source *);
 bool parse_usec(const char *, struct timeval *);
+char *yyrecursive(void);
 /* tree.c */
 int fptreef(struct shf *, int, const char *, ...);
 char *snptreef(char *, int, const char *, ...);

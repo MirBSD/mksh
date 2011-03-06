@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.53 2011/02/11 00:41:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.54 2011/03/06 01:25:35 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -32,7 +32,7 @@ struct nesting_state {
 static void yyparse(void);
 static struct op *pipeline(int);
 static struct op *andor(void);
-static struct op *c_list(int);
+static struct op *c_list(bool);
 static struct ioword *synio(int);
 static struct op *nested(int, int, int);
 static struct op *get_command(int);
@@ -59,11 +59,11 @@ static void dbtestp_error(Test_env *, int, const char *) MKSH_A_NORETURN;
 static struct op *outtree;		/* yyparse output */
 static struct nesting_state nesting;	/* \n changed to ; */
 
-static int reject;		/* token(cf) gets symbol again */
-static int symbol;		/* yylex value */
+static bool reject;			/* token(cf) gets symbol again */
+static int symbol;			/* yylex value */
 
-#define REJECT		(reject = 1)
-#define ACCEPT		(reject = 0)
+#define REJECT		(reject = true)
+#define ACCEPT		(reject = false)
 #define token(cf)	((reject) ? (ACCEPT, symbol) : (symbol = yylex(cf)))
 #define tpeek(cf)	((reject) ? (symbol) : (REJECT, symbol = yylex(cf)))
 #define musthave(c,cf)	do { if (token(cf) != (c)) syntaxerr(NULL); } while (0)
@@ -122,20 +122,23 @@ andor(void)
 }
 
 static struct op *
-c_list(int multi)
+c_list(bool multi)
 {
 	struct op *t = NULL, *p, *tl = NULL;
-	int c, have_sep;
+	int c;
+	bool have_sep;
 
 	while (1) {
 		p = andor();
-		/* Token has always been read/rejected at this point, so
+		/*
+		 * Token has always been read/rejected at this point, so
 		 * we don't worry about what flags to pass token()
 		 */
 		c = token(0);
-		have_sep = 1;
+		have_sep = true;
 		if (c == '\n' && (multi || inalias(source))) {
-			if (!p) /* ignore blank lines */
+			if (!p)
+				/* ignore blank lines */
 				continue;
 		} else if (!p)
 			break;
@@ -143,7 +146,7 @@ c_list(int multi)
 			p = block(c == '&' ? TASYNC : TCOPROC,
 			    p, NOBLOCK, NOWORDS);
 		else if (c != ';')
-			have_sep = 0;
+			have_sep = false;
 		if (!t)
 			t = p;
 		else if (!tl)
@@ -178,7 +181,8 @@ synio(int cf)
 	musthave(LWORD, ishere ? HEREDELIM : 0);
 	if (ishere) {
 		iop->delim = yylval.cp;
-		if (*ident != 0) /* unquoted */
+		if (*ident != 0)
+			/* unquoted */
 			iop->flag |= IOEVAL;
 		if (herep > &heres[HERES - 1])
 			yyerror("too many %ss\n", "<<");
@@ -243,7 +247,8 @@ get_command(int cf)
 		afree(iops, ATEMP);
 		XPfree(args);
 		XPfree(vars);
-		return (NULL); /* empty line */
+		/* empty line */
+		return (NULL);
 
 	case LWORD:
 	case REDIR:
@@ -266,7 +271,8 @@ get_command(int cf)
 
 			case LWORD:
 				ACCEPT;
-				/* the iopn == 0 and XPsize(vars) == 0 are
+				/*
+				 * the iopn == 0 and XPsize(vars) == 0 are
 				 * dubious but AT&T ksh acts this way
 				 */
 				if (iopn == 0 && XPsize(vars) == 0 &&
@@ -281,7 +287,8 @@ get_command(int cf)
 				break;
 
 			case '(':
-				/* Check for "> foo (echo hi)" which AT&T ksh
+				/*
+				 * Check for "> foo (echo hi)" which AT&T ksh
 				 * allows (not POSIX, but not disallowed)
 				 */
 				afree(t, ATEMP);
@@ -294,13 +301,12 @@ get_command(int cf)
 				    XPsize(vars) == 1 && is_wdvarassign(yylval.cp))
 					goto is_wdarrassign;
 #endif
-				/* Must be a function */
+				/* must be a function */
 				if (iopn != 0 || XPsize(args) != 1 ||
 				    XPsize(vars) != 0)
 					syntaxerr(NULL);
 				ACCEPT;
-				/*(*/
-				musthave(')', 0);
+				musthave(/*(*/')', 0);
 				t = function_body(XPptrv(args)[0], false);
 				goto Leave;
 #ifndef MKSH_SMALL
@@ -364,13 +370,13 @@ get_command(int cf)
 			CHAR, 't', EOS
 		};
 
-		/* Leave KEYWORD in syniocf (allow if (( 1 )) then ...) */
+		/* leave KEYWORD in syniocf (allow if (( 1 )) then ...) */
 		lno = source->line;
 		ACCEPT;
 		switch (token(LETEXPR)) {
 		case LWORD:
 			break;
-		case '(':	/* ) */
+		case '(': /*)*/
 			goto Subshell;
 		default:
 			syntaxerr(NULL);
@@ -383,7 +389,7 @@ get_command(int cf)
 	}
 
 	case DBRACKET: /* [[ .. ]] */
-		/* Leave KEYWORD in syniocf (allow if [[ -n 1 ]] then ...) */
+		/* leave KEYWORD in syniocf (allow if [[ -n 1 ]] then ...) */
 		t = newtp(TDBRACKET);
 		ACCEPT;
 		{
@@ -454,7 +460,8 @@ get_command(int cf)
 		t = pipeline(0);
 		if (t) {
 			t->str = alloc(2, ATEMP);
-			t->str[0] = '\0';	/* TF_* flags */
+			/* TF_* flags */
+			t->str[0] = '\0';
 			t->str[1] = '\0';
 		}
 		t = block(TTIME, t, NOBLOCK, NOWORDS);
@@ -501,7 +508,8 @@ dogroup(void)
 	struct op *list;
 
 	c = token(CONTIN|KEYWORD|ALIAS);
-	/* A {...} can be used instead of do...done for for/select loops
+	/*
+	 * A {...} can be used instead of do...done for for/select loops
 	 * but not for while/until loops - we don't need to check if it
 	 * is a while loop because it would have been parsed as part of
 	 * the conditional command list...
@@ -569,7 +577,8 @@ caselist(void)
 	else
 		syntaxerr(NULL);
 	t = tl = NULL;
-	while ((tpeek(CONTIN|KEYWORD|ESACONLY)) != c) { /* no ALIAS here */
+	/* no ALIAS here */
+	while ((tpeek(CONTIN|KEYWORD|ESACONLY)) != c) {
 		struct op *tc = casepart(c);
 		if (tl == NULL)
 			t = tl = tc, tl->right = NULL;
@@ -609,16 +618,18 @@ casepart(int endtok)
 
 static struct op *
 function_body(char *name,
-    bool ksh_func)		/* function foo { ... } vs foo() { .. } */
+    /* function foo { ... } vs foo() { .. } */
+    bool ksh_func)
 {
 	char *sname, *p;
 	struct op *t;
 	bool old_func_parse;
 
 	sname = wdstrip(name, false, false);
-	/* Check for valid characters in name. POSIX and AT&T ksh93 say only
-	 * allow [a-zA-Z_0-9] but this allows more as old pdkshs have
-	 * allowed more (the following were never allowed:
+	/*-
+	 * Check for valid characters in name. POSIX and AT&T ksh93 say
+	 * only allow [a-zA-Z_0-9] but this allows more as old pdkshs
+	 * have allowed more; the following were never allowed:
 	 *	NUL TAB NL SP " $ & ' ( ) ; < = > \ ` |
 	 * C_QUOTE covers all but adds # * ? [ ]
 	 */
@@ -626,13 +637,14 @@ function_body(char *name,
 		if (ctype(*p, C_QUOTE))
 			yyerror("%s: %s\n", sname, "invalid function name");
 
-	/* Note that POSIX allows only compound statements after foo(), sh and
-	 * AT&T ksh allow any command, go with the later since it shouldn't
-	 * break anything. However, for function foo, AT&T ksh only accepts
-	 * an open-brace.
+	/*
+	 * Note that POSIX allows only compound statements after foo(),
+	 * sh and AT&T ksh allow any command, go with the later since it
+	 * shouldn't break anything. However, for function foo, AT&T ksh
+	 * only accepts an open-brace.
 	 */
 	if (ksh_func) {
-		if (tpeek(CONTIN|KEYWORD|ALIAS) == '(' /* ) */) {
+		if (tpeek(CONTIN|KEYWORD|ALIAS) == '(' /*)*/) {
 			struct tbl *tp;
 
 			/* function foo () { */
@@ -643,7 +655,7 @@ function_body(char *name,
 			if ((tp = ktsearch(&aliases, sname, hash(sname))))
 				ktdelete(tp);
 		}
-		musthave('{', CONTIN|KEYWORD|ALIAS); /* } */
+		musthave('{' /*}*/, CONTIN|KEYWORD|ALIAS);
 		REJECT;
 	}
 
@@ -689,7 +701,8 @@ wordlist(void)
 	XPinit(args, 16);
 	/* POSIX does not do alias expansion here... */
 	if ((c = token(CONTIN|KEYWORD|ALIAS)) != IN) {
-		if (c != ';') /* non-POSIX, but AT&T ksh accepts a ; here */
+		if (c != ';')
+			/* non-POSIX, but AT&T ksh accepts a ; here */
 			REJECT;
 		return (NULL);
 	}
@@ -766,7 +779,8 @@ initkeywords(void)
 	struct tbl *p;
 
 	ktinit(&keywords, APERM,
-	    /* must be 80% of 2^n (currently 20 keywords) */ 32);
+	    /* must be 80% of 2^n (currently 20 keywords) */
+	    32);
 	for (tt = tokentab; tt->name; tt++) {
 		if (tt->reserved) {
 			p = ktenter(&keywords, tt->name, hash(tt->name));
@@ -780,7 +794,8 @@ initkeywords(void)
 static void
 syntaxerr(const char *what)
 {
-	char redir[6];	/* 2<<- is the longest redirection, I think */
+	/* 2<<- is the longest redirection, I think */
+	char redir[6];
 	const char *s;
 	struct tokeninfo const *tt;
 	int c;
@@ -870,7 +885,8 @@ compile(Source *s)
 	return (outtree);
 }
 
-/* This kludge exists to take care of sh/AT&T ksh oddity in which
+/*-
+ * This kludge exists to take care of sh/AT&T ksh oddity in which
  * the arguments of alias/export/readonly/typeset have no field
  * splitting, file globbing, or (normal) tilde expansion done.
  * AT&T ksh seems to do something similar to this since
@@ -902,7 +918,8 @@ inalias(struct source *s)
 }
 
 
-/* Order important - indexed by Test_meta values
+/*
+ * Order important - indexed by Test_meta values
  * Note that ||, &&, ( and ) can't appear in as unquoted strings
  * in normal shell input, so these can be interpreted unambiguously
  * in the evaluation pass.
@@ -955,7 +972,8 @@ dbtestp_isa(Test_env *te, Test_meta meta)
 			    db_lthan : db_gthan, ATEMP);
 		} else if (uqword && (ret = test_isop(meta, ident)))
 			save = yylval.cp;
-	} else /* meta == TM_END */
+	} else
+		/* meta == TM_END */
 		ret = (uqword && !strcmp(yylval.cp,
 		    db_close)) ? TO_NONNULL : TO_NONOP;
 	if (ret != TO_NONOP) {
@@ -1063,3 +1081,31 @@ parse_usec(const char *s, struct timeval *tv)
 	return (false);
 }
 #endif
+
+/*
+ * Helper function called from within lex.c:yylex() to parse
+ * a COMSUB recursively using the main shell parser and lexer
+ */
+char *
+yyrecursive(void)
+{
+	struct op *t;
+	char *cp;
+	bool old_reject;
+	int old_symbol;
+
+	/* push reject state, parse recursively, pop reject state */
+	old_reject = reject;
+	old_symbol = symbol;
+	ACCEPT;
+	/* we use TPAREN as a helper container here */
+	t = nested(TPAREN, '(', ')');
+	reject = old_reject;
+	symbol = old_symbol;
+
+	/* t->left because nested(TPAREN, ...) hides our goodies there */
+	cp = snptreef(NULL, 0, "%T", t->left);
+	tfree(t, ATEMP);
+
+	return (cp);
+}
