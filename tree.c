@@ -22,18 +22,20 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.35 2011/03/06 02:28:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.36 2011/03/06 17:08:14 tg Exp $");
 
-#define INDENT	4
+#define INDENT	8
 
 #define tputc(c, shf) shf_putchar(c, shf);
 static void ptree(struct op *, int, struct shf *);
 static void pioact(struct shf *, int, struct ioword *);
-static void tputC(int, struct shf *);
-static void tputS(char *, struct shf *);
+static void tputS(const char *, struct shf *);
 static void vfptreef(struct shf *, int, const char *, va_list);
 static struct ioword **iocopy(struct ioword **, Area *);
 static void iofree(struct ioword **, Area *);
+
+/* "foo& ; bar" and "foo |& ; bar" are invalid */
+static bool prevent_semicolon = false;
 
 /*
  * print a command tree
@@ -44,22 +46,26 @@ ptree(struct op *t, int indent, struct shf *shf)
 	const char **w;
 	struct ioword **ioact;
 	struct op *t1;
+	int i;
 
  Chain:
 	if (t == NULL)
 		return;
 	switch (t->type) {
 	case TCOM:
-		if (t->vars)
-			for (w = (const char **)t->vars; *w != NULL; )
+		if (t->vars) {
+			w = (const char **)t->vars;
+			while (*w)
 				fptreef(shf, indent, "%S ", *w++);
-		else
+		} else
 			shf_puts("#no-vars# ", shf);
-		if (t->args)
-			for (w = t->args; *w != NULL; )
+		if (t->args) {
+			w = t->args;
+			while (*w)
 				fptreef(shf, indent, "%S ", *w++);
-		else
+		} else
 			shf_puts("#no-args# ", shf);
+		prevent_semicolon = false;
 		break;
 	case TEXEC:
 		t = t->left;
@@ -78,30 +84,28 @@ ptree(struct op *t, int indent, struct shf *shf)
 	case TOR:
 	case TAND:
 		fptreef(shf, indent, "%T%s %T",
-		    t->left, (t->type==TOR) ? "||" : "&&", t->right);
+		    t->left, (t->type == TOR) ? "||" : "&&", t->right);
 		break;
 	case TBANG:
 		shf_puts("! ", shf);
+		prevent_semicolon = false;
 		t = t->right;
 		goto Chain;
-	case TDBRACKET: {
-		int i;
-
+	case TDBRACKET:
+		w = t->args;
 		shf_puts("[[", shf);
-		for (i = 0; t->args[i]; i++)
-			fptreef(shf, indent, " %S", t->args[i]);
+		while (*w)
+			fptreef(shf, indent, " %S", *w++);
 		shf_puts(" ]] ", shf);
 		break;
-	}
 	case TSELECT:
-		fptreef(shf, indent, "select %s ", t->str);
-		/* FALLTHROUGH */
 	case TFOR:
-		if (t->type == TFOR)
-			fptreef(shf, indent, "for %s ", t->str);
+		fptreef(shf, indent, "%s %s ",
+		    (t->type == TFOR) ? "for" : "select", t->str);
 		if (t->vars != NULL) {
 			shf_puts("in ", shf);
-			for (w = (const char **)t->vars; *w; )
+			w = (const char **)t->vars;
+			while (*w)
 				fptreef(shf, indent, "%S ", *w++);
 			fptreef(shf, indent, "%;");
 		}
@@ -112,34 +116,42 @@ ptree(struct op *t, int indent, struct shf *shf)
 		fptreef(shf, indent, "case %S in", t->str);
 		for (t1 = t->left; t1 != NULL; t1 = t1->right) {
 			fptreef(shf, indent, "%N(");
-			for (w = (const char **)t1->vars; *w != NULL; w++)
+			w = (const char **)t1->vars;
+			while (*w) {
 				fptreef(shf, indent, "%S%c", *w,
 				    (w[1] != NULL) ? '|' : ')');
+				++w;
+			}
 			fptreef(shf, indent + INDENT, "%N%T%N;;", t1->left);
 		}
 		fptreef(shf, indent, "%Nesac ");
 		break;
-	case TIF:
+#ifndef MKSH_NO_DEPRECATED_WARNING
 	case TELIF:
-		/* 3 == strlen("if ") */
-		fptreef(shf, indent + 3, "if %T", t->left);
-		for (;;) {
+		internal_errorf("TELIF in tree.c:ptree() unexpected");
+		/* FALLTHROUGH */
+#endif
+	case TIF:
+		i = 2;
+		goto process_TIF;
+		do {
+			t = t->right;
+			i = 0;
+			fptreef(shf, indent, "%;");
+ process_TIF:
+			/* 5 == strlen("elif ") */
+			fptreef(shf, indent + 5 - i, "elif %T" + i, t->left);
 			t = t->right;
 			if (t->left != NULL) {
 				fptreef(shf, indent, "%;");
-				fptreef(shf, indent + INDENT, "then%N%T",
-				    t->left);
+				fptreef(shf, indent + INDENT, "%s%N%T",
+				    "then", t->left);
 			}
-			if (t->right == NULL || t->right->type != TELIF)
-				break;
-			t = t->right;
-			fptreef(shf, indent, "%;");
-			/* 5 == strlen("elif ") */
-			fptreef(shf, indent + 5, "elif %T", t->left);
-		}
+		} while (t->right && t->right->type == TELIF);
 		if (t->right != NULL) {
 			fptreef(shf, indent, "%;");
-			fptreef(shf, indent + INDENT, "else%N%T", t->right);
+			fptreef(shf, indent + INDENT, "%s%N%T",
+			    "else", t->right);
 		}
 		fptreef(shf, indent, "%;fi ");
 		break;
@@ -147,10 +159,10 @@ ptree(struct op *t, int indent, struct shf *shf)
 	case TUNTIL:
 		/* 6 == strlen("while"/"until") */
 		fptreef(shf, indent + 6, "%s %T",
-		    (t->type==TWHILE) ? "while" : "until",
+		    (t->type == TWHILE) ? "while" : "until",
 		    t->left);
-		fptreef(shf, indent, "%;do ");
-		fptreef(shf, indent + INDENT, "%T", t->right);
+		fptreef(shf, indent, "%;");
+		fptreef(shf, indent + INDENT, "do%N%T", t->right);
 		fptreef(shf, indent, "%;done ");
 		break;
 	case TBRACE:
@@ -159,9 +171,11 @@ ptree(struct op *t, int indent, struct shf *shf)
 		break;
 	case TCOPROC:
 		fptreef(shf, indent, "%T|& ", t->left);
+		prevent_semicolon = true;
 		break;
 	case TASYNC:
 		fptreef(shf, indent, "%T& ", t->left);
+		prevent_semicolon = true;
 		break;
 	case TFUNCT:
 		fpFUNCTf(shf, indent, t->u.ksh_func, t->str, t->left);
@@ -171,15 +185,17 @@ ptree(struct op *t, int indent, struct shf *shf)
 		break;
 	default:
 		shf_puts("<botch>", shf);
+		prevent_semicolon = false;
 		break;
 	}
 	if ((ioact = t->ioact) != NULL) {
-		int	need_nl = 0;
+		bool need_nl = false;
 
 		while (*ioact != NULL)
 			pioact(shf, indent, *ioact++);
 		/* Print here documents after everything else... */
-		for (ioact = t->ioact; *ioact != NULL; ) {
+		ioact = t->ioact;
+		while (*ioact != NULL) {
 			struct ioword *iop = *ioact++;
 
 			/* heredoc is 0 when tracing (set -x) */
@@ -190,12 +206,13 @@ ptree(struct op *t, int indent, struct shf *shf)
 				shf_puts(iop->heredoc, shf);
 				fptreef(shf, indent, "%s",
 				    evalstr(iop->delim, 0));
-				need_nl = 1;
+				need_nl = true;
 			}
 		}
-		/* Last delimiter must be followed by a newline (this often
-		 * leads to an extra blank line, but its not worth worrying
-		 * about)
+		/*
+		 * Last delimiter must be followed by a newline (this
+		 * often leads to an extra blank line, but it's not
+		 * worth worrying about)
 		 */
 		if (need_nl)
 			tputc('\n', shf);
@@ -218,60 +235,44 @@ pioact(struct shf *shf, int indent, struct ioword *iop)
 
 	switch (type) {
 	case IOREAD:
-		shf_puts("< ", shf);
+		shf_puts("<", shf);
 		break;
 	case IOHERE:
 		shf_puts(flag & IOSKIP ? "<<-" : "<<", shf);
 		break;
 	case IOCAT:
-		shf_puts(">> ", shf);
+		shf_puts(">>", shf);
 		break;
 	case IOWRITE:
-		shf_puts(flag & IOCLOB ? ">| " : "> ", shf);
+		shf_puts(flag & IOCLOB ? ">|" : ">", shf);
 		break;
 	case IORDWR:
-		shf_puts("<> ", shf);
+		shf_puts("<>", shf);
 		break;
 	case IODUP:
 		shf_puts(flag & IORDUP ? "<&" : ">&", shf);
 		break;
 	}
-	/* name/delim are 0 when printing syntax errors */
+	/* name/delim are NULL when printing syntax errors */
 	if (type == IOHERE) {
 		if (iop->delim)
-			fptreef(shf, indent, "%s%S ",
-			    /* here string */ iop->delim[1] == '<' ? "" : " ",
-			    iop->delim);
+			fptreef(shf, indent, "%S ", iop->delim);
 		else
 			tputc(' ', shf);
 	} else if (iop->name)
 		fptreef(shf, indent, (iop->flag & IONAMEXP) ? "%s " : "%S ",
 		    iop->name);
+	prevent_semicolon = false;
 }
 
-
-/*
- * variants of fputc, fputs for ptreef and snptreef
- */
+/* variant of fputs for ptreef */
 static void
-tputC(int c, struct shf *shf)
-{
-	if ((c&0x60) == 0) {		/* C0|C1 */
-		tputc((c&0x80) ? '$' : '^', shf);
-		tputc(((c&0x7F)|0x40), shf);
-	} else if ((c&0x7F) == 0x7F) {	/* DEL */
-		tputc((c&0x80) ? '$' : '^', shf);
-		tputc('?', shf);
-	} else
-		tputc(c, shf);
-}
-
-static void
-tputS(char *wp, struct shf *shf)
+tputS(const char *wp, struct shf *shf)
 {
 	int c, quotelevel = 0;
 
-	/* problems:
+	/*-
+	 * problems:
 	 *	`...` -> $(...)
 	 *	'foo' -> "foo"
 	 * could change encoding to:
@@ -284,25 +285,25 @@ tputS(char *wp, struct shf *shf)
 			return;
 		case ADELIM:
 		case CHAR:
-			tputC(*wp++, shf);
+			tputc(*wp++, shf);
 			break;
 		case QCHAR:
 			c = *wp++;
 			if (!quotelevel || (c == '"' || c == '`' || c == '$'))
 				tputc('\\', shf);
-			tputC(c, shf);
+			tputc(c, shf);
 			break;
 		case COMSUB:
 			shf_puts("$(", shf);
 			while (*wp != 0)
-				tputC(*wp++, shf);
+				tputc(*wp++, shf);
 			tputc(')', shf);
 			wp++;
 			break;
 		case EXPRSUB:
 			shf_puts("$((", shf);
 			while (*wp != 0)
-				tputC(*wp++, shf);
+				tputc(*wp++, shf);
 			shf_puts("))", shf);
 			wp++;
 			break;
@@ -320,7 +321,7 @@ tputS(char *wp, struct shf *shf)
 			if (*wp++ == '{')
 				tputc('{', shf);
 			while ((c = *wp++) != 0)
-				tputC(c, shf);
+				tputc(c, shf);
 			break;
 		case CSUBST:
 			if (*wp++ == '}')
@@ -344,16 +345,14 @@ tputS(char *wp, struct shf *shf)
  * variable args with an ANSI compiler
  */
 /* VARARGS */
-int
+void
 fptreef(struct shf *shf, int indent, const char *fmt, ...)
 {
 	va_list va;
 
 	va_start(va, fmt);
-
 	vfptreef(shf, indent, fmt, va);
 	va_end(va);
-	return (0);
 }
 
 /* VARARGS */
@@ -369,7 +368,8 @@ snptreef(char *s, int n, const char *fmt, ...)
 	vfptreef(&shf, 0, fmt, va);
 	va_end(va);
 
-	return (shf_sclose(&shf)); /* null terminates */
+	/* shf_sclose NUL terminates */
+	return (shf_sclose(&shf));
 }
 
 static void
@@ -381,40 +381,52 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 		if (c == '%') {
 			switch ((c = *fmt++)) {
 			case 'c':
+				/* character (octet, probably) */
 				tputc(va_arg(va, int), shf);
 				break;
 			case 's':
+				/* string */
 				shf_puts(va_arg(va, char *), shf);
 				break;
-			case 'S':	/* word */
+			case 'S':
+				/* word */
 				tputS(va_arg(va, char *), shf);
 				break;
-			case 'd':	/* decimal */
+			case 'd':
+				/* signed decimal */
 				shf_fprintf(shf, "%d", va_arg(va, int));
 				break;
-			case 'u':	/* decimal */
+			case 'u':
+				/* unsigned decimal */
 				shf_fprintf(shf, "%u", va_arg(va, unsigned int));
 				break;
-			case 'T':	/* format tree */
+			case 'T':
+				/* format tree */
 				ptree(va_arg(va, struct op *), indent, shf);
-				break;
-			case ';':	/* newline or ; */
-			case 'N':	/* newline or space */
+				goto dont_trash_prevent_semicolon;
+			case ';':
+				/* newline or ; */
+			case 'N':
+				/* newline or space */
 				if (shf->flags & SHF_STRING) {
-					if (c == ';')
+					if (c == ';' && !prevent_semicolon)
 						tputc(';', shf);
 					tputc(' ', shf);
 				} else {
 					int i;
 
 					tputc('\n', shf);
-					for (i = indent; i >= 8; i -= 8)
+					i = indent;
+					while (i >= 8) {
 						tputc('\t', shf);
-					for (; i > 0; --i)
+						i -= 8;
+					}
+					while (i--)
 						tputc(' ', shf);
 				}
 				break;
 			case 'R':
+				/* I/O redirection */
 				pioact(shf, indent, va_arg(va, struct ioword *));
 				break;
 			default:
@@ -423,6 +435,9 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 			}
 		} else
 			tputc(c, shf);
+		prevent_semicolon = false;
+ dont_trash_prevent_semicolon:
+		;
 	}
 }
 
@@ -452,11 +467,13 @@ tcopy(struct op *t, Area *ap)
 	if (t->vars == NULL)
 		r->vars = NULL;
 	else {
-		for (tw = (const char **)t->vars; *tw++ != NULL; )
-			;
+		tw = (const char **)t->vars;
+		while (*tw)
+			++tw;
 		rw = r->vars = alloc2(tw - (const char **)t->vars + 1,
 		    sizeof(*tw), ap);
-		for (tw = (const char **)t->vars; *tw != NULL; )
+		tw = (const char **)t->vars;
+		while (*tw)
 			*rw++ = wdcopy(*tw++, ap);
 		*rw = NULL;
 	}
@@ -464,11 +481,13 @@ tcopy(struct op *t, Area *ap)
 	if (t->args == NULL)
 		r->args = NULL;
 	else {
-		for (tw = t->args; *tw++ != NULL; )
-			;
+		tw = t->args;
+		while (*tw)
+			++tw;
 		r->args = (const char **)(rw = alloc2(tw - t->args + 1,
 		    sizeof(*tw), ap));
-		for (tw = t->args; *tw != NULL; )
+		tw = t->args;
+		while (*tw)
 			*rw++ = wdcopy(*tw++, ap);
 		*rw = NULL;
 	}
@@ -485,7 +504,9 @@ tcopy(struct op *t, Area *ap)
 char *
 wdcopy(const char *wp, Area *ap)
 {
-	size_t len = wdscan(wp, EOS) - wp;
+	size_t len;
+
+	len = wdscan(wp, EOS) - wp;
 	return (memcpy(alloc(len, ap), wp, len));
 }
 
@@ -544,9 +565,9 @@ wdscan(const char *wp, int c)
 		}
 }
 
-/* return a copy of wp without any of the mark up characters and
- * with quote characters (" ' \) stripped.
- * (string is allocated from ATEMP)
+/*
+ * return a copy of wp without any of the mark up characters and with
+ * quote characters (" ' \) stripped. (string is allocated from ATEMP)
  */
 char *
 wdstrip(const char *wp, bool keepq, bool make_magic)
@@ -556,7 +577,8 @@ wdstrip(const char *wp, bool keepq, bool make_magic)
 
 	shf_sopen(NULL, 32, SHF_WR | SHF_DYNAMIC, &shf);
 
-	/* problems:
+	/*-
+	 * problems:
 	 *	`...` -> $(...)
 	 *	x${foo:-"hi"} -> x${foo:-hi}
 	 *	x${foo:-'hi'} -> x${foo:-hi} unless keepq
@@ -564,7 +586,8 @@ wdstrip(const char *wp, bool keepq, bool make_magic)
 	while (1)
 		switch (*wp++) {
 		case EOS:
-			return (shf_sclose(&shf)); /* null terminates */
+			/* shf_sclose NUL terminates */
+			return (shf_sclose(&shf));
 		case ADELIM:
 		case CHAR:
 			c = *wp++;
@@ -634,8 +657,9 @@ iocopy(struct ioword **iow, Area *ap)
 	struct ioword **ior;
 	int i;
 
-	for (ior = iow; *ior++ != NULL; )
-		;
+	ior = iow;
+	while (*ior)
+		++ior;
 	ior = alloc2(ior - iow + 1, sizeof(struct ioword *), ap);
 
 	for (i = 0; iow[i] != NULL; i++) {
@@ -678,8 +702,9 @@ tfree(struct op *t, Area *ap)
 	}
 
 	if (t->args != NULL) {
+		/*XXX we assume the caller is right */
 		union mksh_ccphack cw;
-		/* XXX we assume the caller is right */
+
 		cw.ro = t->args;
 		for (w = cw.rw; *w != NULL; w++)
 			afree(*w, ap);
@@ -701,7 +726,8 @@ iofree(struct ioword **iow, Area *ap)
 	struct ioword **iop;
 	struct ioword *p;
 
-	for (iop = iow; (p = *iop++) != NULL; ) {
+	iop = iow;
+	while ((p = *iop++) != NULL) {
 		if (p->name != NULL)
 			afree(p->name, ap);
 		if (p->delim != NULL)
@@ -713,11 +739,38 @@ iofree(struct ioword **iow, Area *ap)
 	afree(iow, ap);
 }
 
-int
+void
 fpFUNCTf(struct shf *shf, int i, bool isksh, const char *k, struct op *v)
 {
 	if (isksh)
-		return (fptreef(shf, i, "%s %s %T", T_function, k, v));
+		fptreef(shf, i, "%s %s %T", T_function, k, v);
 	else
-		return (fptreef(shf, i, "%s() %T", k, v));
+		fptreef(shf, i, "%s() %T", k, v);
+}
+
+
+/* for jobs.c */
+void
+vistree(char *dst, size_t sz, struct op *t)
+{
+	int c;
+	char *cp, *buf;
+
+	buf = alloc(sz, ATEMP);
+	snptreef(buf, sz, "%T", t);
+	cp = buf;
+	while ((c = *cp++)) {
+		if (((c & 0x60) == 0) || ((c & 0x7F) == 0x7F)) {
+			/* C0 or C1 control character or DEL */
+			if (!--sz)
+				break;
+			*dst++ = (c & 0x80) ? '$' : '^';
+			c = (c & 0x7F) ^ 0x40;
+		}
+		if (!--sz)
+			break;
+		*dst++ = c;
+	}
+	*dst = '\0';
+	afree(buf, ATEMP);
 }

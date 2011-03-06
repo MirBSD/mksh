@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.123 2011/03/06 01:25:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.124 2011/03/06 17:08:12 tg Exp $");
 
 /*
  * states while lexing word
@@ -614,29 +614,32 @@ yylex(int cf)
 			else if (c == ')') {
 				statep->ls_sasparen.nparen--;
 				if (statep->ls_sasparen.nparen == 1) {
-					POP_STATE();
 					if ((c2 = getsc()) == /*(*/')') {
+						POP_STATE();
 						/* end of EXPRSUB */
 						*wp++ = 0;
 						break;
 					} else {
 						Source *s;
 
+						ungetsc(c2);
 						/*
 						 * mismatched parenthesis -
 						 * assume we were really
 						 * parsing a $(...) expression
 						 */
 						*wp = EOS;
-						wp = Xstring(ws, wp);
+						wp = Xrestpos(ws, wp,
+						    statep->ls_sasparen.start);
+						POP_STATE();
 						/* dp = $((blah))\0 */
 						dp = wdstrip(wp, true, false);
 						s = pushs(SREREAD,
 						    source->areap);
 						s->start = s->str =
 						    (s->u.freeme = dp) + 2;
-						dp[strlen(dp) - 1] = c2;
-						/* s->str = (blah)C\0 */
+						dp[strlen(dp) - 1] = 0;
+						/* s->str = (blah)\0 */
 						s->next = source;
 						source = s;
 						goto subst_command;

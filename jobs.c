@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.75 2011/02/18 22:26:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.76 2011/03/06 17:08:12 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -427,7 +427,7 @@ exchild(struct op *t, int flags,
 		put_job(j, PJ_PAST_STOPPED);
 	}
 
-	snptreef(p->command, sizeof(p->command), "%T", t);
+	vistree(p->command, sizeof(p->command), t);
 
 	/* create child process */
 	forksleep = 1;
@@ -532,7 +532,7 @@ exchild(struct op *t, int flags,
 		if (t->type == TPIPE)
 			unwind(LLEAVE);
 		internal_warningf("%s: %s", "exchild", "execute() returned");
-		fptreef(shl_out, 2, "%s: tried to execute {\n%T\n}\n",
+		fptreef(shl_out, 8, "%s: tried to execute {\n\t%T\n}\n",
 		    "exchild", t);
 		shf_flush(shl_out);
 #endif

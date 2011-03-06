@@ -154,9 +154,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.437 2011/03/06 01:50:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.438 2011/03/06 17:08:13 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2011/03/05"
+#define MKSH_VERSION "R39 2011/03/06"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1739,14 +1739,16 @@ struct op *compile(Source *);
 bool parse_usec(const char *, struct timeval *);
 char *yyrecursive(void);
 /* tree.c */
-int fptreef(struct shf *, int, const char *, ...);
+void fptreef(struct shf *, int, const char *, ...);
 char *snptreef(char *, int, const char *, ...);
 struct op *tcopy(struct op *, Area *);
 char *wdcopy(const char *, Area *);
 const char *wdscan(const char *, int);
 char *wdstrip(const char *, bool, bool);
 void tfree(struct op *, Area *);
-int fpFUNCTf(struct shf *, int, bool, const char *, struct op *);
+void vistree(char *, size_t, struct op *)
+    MKSH_A_BOUNDED(string, 1, 2);
+void fpFUNCTf(struct shf *, int, bool, const char *, struct op *);
 /* var.c */
 void newblock(void);
 void popblock(void);
