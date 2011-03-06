@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.34 2011/03/06 02:14:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.35 2011/03/06 02:28:59 tg Exp $");
 
 #define INDENT	4
 
@@ -139,7 +139,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		}
 		if (t->right != NULL) {
 			fptreef(shf, indent, "%;");
-			fptreef(shf, indent + INDENT, "else%;%T", t->right);
+			fptreef(shf, indent + INDENT, "else%N%T", t->right);
 		}
 		fptreef(shf, indent, "%;fi ");
 		break;
@@ -149,8 +149,8 @@ ptree(struct op *t, int indent, struct shf *shf)
 		fptreef(shf, indent + 6, "%s %T",
 		    (t->type==TWHILE) ? "while" : "until",
 		    t->left);
-		fptreef(shf, indent, "%;do");
-		fptreef(shf, indent + INDENT, "%;%T", t->right);
+		fptreef(shf, indent, "%;do ");
+		fptreef(shf, indent + INDENT, "%T", t->right);
 		fptreef(shf, indent, "%;done ");
 		break;
 	case TBRACE:
