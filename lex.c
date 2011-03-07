@@ -1,3 +1,4 @@
+
 /*	$OpenBSD: lex.c,v 1.44 2008/07/03 17:52:08 otto Exp $	*/
 
 /*-
@@ -22,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.125 2011/03/07 20:07:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.126 2011/03/07 20:08:48 tg Exp $");
 
 /*
  * states while lexing word
@@ -61,7 +62,7 @@ typedef struct lex_state {
 		bool abool;
 		/* SADELIM information */
 		struct {
-			/* SADELIM_BASH, SADELIM_MAKE */
+			/* SADELIM_BASH, later extensions */
 			unsigned char style;
 			/* character to search for */
 			unsigned char delimiter;
@@ -81,7 +82,6 @@ typedef struct lex_state {
 #define ls_bool		u.abool
 #define ls_adelim	u.adelim
 #define SADELIM_BASH	0
-#define SADELIM_MAKE	1
 
 typedef struct {
 	Lex_state *base;
