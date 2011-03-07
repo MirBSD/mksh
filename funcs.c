@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.174 2011/03/05 21:48:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.175 2011/03/07 20:30:37 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -381,7 +381,7 @@ int
 c_cd(const char **wp)
 {
 	int optc, rv, phys_path;
-	bool physical = Flag(FPHYSICAL) ? true : false;
+	bool physical = tobool(Flag(FPHYSICAL));
 	/* was a node from cdpath added in? */
 	int cdnode;
 	/* print where we cd'd? */
@@ -539,7 +539,7 @@ int
 c_pwd(const char **wp)
 {
 	int optc;
-	bool physical = Flag(FPHYSICAL) ? true : false;
+	bool physical = tobool(Flag(FPHYSICAL));
 	char *p, *allocd = NULL;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "LP")) != -1)
@@ -1112,7 +1112,7 @@ c_typeset(const char **wp)
 		for (i = builtin_opt.optind; wp[i]; i++) {
 			if (func) {
 				f = findfunc(wp[i], hash(wp[i]),
-				    (fset&UCASEV_AL) ? true : false);
+				    tobool(fset & UCASEV_AL));
 				if (!f) {
 					/* AT&T ksh does ++rv: bogus */
 					rv = 1;

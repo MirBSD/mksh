@@ -154,7 +154,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.438 2011/03/06 17:08:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.439 2011/03/07 20:30:40 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/03/06"
 
@@ -187,10 +187,16 @@ typedef void (*sig_t)(int);
 
 #if !HAVE_STDBOOL_H
 /* kludge, but enough for mksh */
-typedef int bool;
+typedef unsigned char bool;
 #define false 0
 #define true 1
 #endif
+
+/* choose the one that is optimised on most platforms? */
+#define tobool(cond)	((cond) ? true : false)
+/*#define tobool(cond)	(!!(cond))*/
+/* the following only with <stdbool.h> and even then sometimes buggy */
+/*#define tobool(cond)	((bool)(cond))*/
 
 #if !HAVE_CAN_INTTYPES
 #if !HAVE_CAN_UCBINTS
@@ -778,9 +784,9 @@ EXTERN int really_exit;
 
 extern unsigned char chtypes[];
 
-#define ctype(c, t)	!!( ((t) == C_SUBOP2) ?				\
+#define ctype(c, t)	tobool( ((t) == C_SUBOP2) ?			\
 			    (((c) == '#' || (c) == '%') ? 1 : 0) :	\
-			    (chtypes[(unsigned char)(c)]&(t)) )
+			    (chtypes[(unsigned char)(c)] & (t)) )
 #define ksh_isalphx(c)	ctype((c), C_ALPHA)
 #define ksh_isalnux(c)	ctype((c), C_ALPHA | C_DIGIT)
 

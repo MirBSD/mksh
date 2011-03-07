@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.107 2011/02/09 19:32:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.108 2011/03/07 20:30:38 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -204,7 +204,7 @@ c_fc(const char **wp)
 		 * when range is specified; AT&T ksh and pdksh allow out
 		 * of bounds for -l as well.
 		 */
-		hfirst = hist_get(first, (lflag || last) ? true : false, lflag);
+		hfirst = hist_get(first, tobool(lflag || last), lflag);
 		if (!hfirst)
 			return (1);
 		hlast = last ? hist_get(last, true, lflag) :

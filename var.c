@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.116 2011/02/11 01:18:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.117 2011/03/07 20:30:41 tg Exp $");
 
 /*
  * Variables
@@ -726,7 +726,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	    strcmp(tvar, "ENV") == 0 || strcmp(tvar, "SHELL") == 0))
 		errorf("%s: %s", tvar, "restricted");
 
-	vp = (set&LOCAL) ? local(tvar, (set & LOCAL_COPY) ? true : false) :
+	vp = (set&LOCAL) ? local(tvar, tobool(set & LOCAL_COPY)) :
 	    global(tvar);
 	if (set_refflag == 2 && (vp->flag & (ARRAY|ASSOC)) == ASSOC)
 		vp->flag &= ~ASSOC;

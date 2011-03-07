@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.127 2011/03/07 20:09:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.128 2011/03/07 20:30:39 tg Exp $");
 
 /*
  * states while lexing word
@@ -54,7 +54,7 @@ __RCSID("$MirOS: src/bin/mksh/lex.c,v 1.127 2011/03/07 20:09:34 tg Exp $");
 typedef struct lex_state {
 	union {
 		/* point to the next state block */
-		Lex_state *base;
+		struct lex_state *base;
 		/* marks start of $(( in output string */
 		int start;
 		/* SBQUOTE: true if in double quotes: "`...`" */
@@ -90,7 +90,7 @@ static int getsc_bn(void);
 static int s_get(void);
 static void s_put(int);
 static char *get_brace_var(XString *, char *);
-static int arraysub(char **);
+static bool arraysub(char **);
 static const char *ungetsc(int);
 static void gethere(bool);
 static Lex_state *push_state_(State_info *, Lex_state *);
@@ -1641,7 +1641,7 @@ get_brace_var(XString *wsp, char *wp)
  * if eof or newline was found.
  * (Returned string double null terminated)
  */
-static int
+static bool
 arraysub(char **strp)
 {
 	XString ws;
@@ -1664,7 +1664,7 @@ arraysub(char **strp)
 	*wp++ = '\0';
 	*strp = Xclose(ws, wp);
 
-	return (depth == 0 ? 1 : 0);
+	return (tobool(depth == 0));
 }
 
 /* Unget a char: handles case when we are already at the start of the buffer */

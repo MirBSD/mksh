@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.204 2011/02/09 13:08:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.205 2011/03/07 20:30:35 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2444,7 +2444,7 @@ x_bind(const char *a1, const char *a2,
 		return (1);
 	}
 #ifndef MKSH_SMALL
-	hastilde = *m1;
+	hastilde = tobool(*m1);
 #endif
 	afree(m2, ATEMP);
 
