@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.126 2011/03/07 20:08:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.127 2011/03/07 20:09:34 tg Exp $");
 
 /*
  * states while lexing word
@@ -62,14 +62,10 @@ typedef struct lex_state {
 		bool abool;
 		/* SADELIM information */
 		struct {
-			/* SADELIM_BASH, later extensions */
-			unsigned char style;
 			/* character to search for */
 			unsigned char delimiter;
 			/* max. number of delimiters */
 			unsigned char num;
-			/* ofs. into sadelim_flags[] */
-			unsigned char flags;
 		} adelim;
 	} u;
 	/* count open parentheses */
@@ -81,7 +77,6 @@ typedef struct lex_state {
 #define ls_start	u.start
 #define ls_bool		u.abool
 #define ls_adelim	u.adelim
-#define SADELIM_BASH	0
 
 typedef struct {
 	Lex_state *base;
@@ -388,7 +383,6 @@ yylex(int cf)
 							*wp++ = ':';
 							PUSH_STATE(SBRACE);
 							PUSH_STATE(SADELIM);
-							statep->ls_adelim.style = SADELIM_BASH;
 							statep->ls_adelim.delimiter = ':';
 							statep->ls_adelim.num = 1;
 							statep->nparen = 0;
@@ -405,7 +399,6 @@ yylex(int cf)
 							ungetsc(c);
 							PUSH_STATE(SBRACE);
 							PUSH_STATE(SADELIM);
-							statep->ls_adelim.style = SADELIM_BASH;
 							statep->ls_adelim.delimiter = ':';
 							statep->ls_adelim.num = 2;
 							statep->nparen = 0;
@@ -421,7 +414,6 @@ yylex(int cf)
 							ungetsc(c);
 						PUSH_STATE(SBRACE);
 						PUSH_STATE(SADELIM);
-						statep->ls_adelim.style = SADELIM_BASH;
 						statep->ls_adelim.delimiter = '/';
 						statep->ls_adelim.num = 1;
 						statep->nparen = 0;
