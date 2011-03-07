@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.416 2011/03/06 17:08:10 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.417 2011/03/07 20:32:48 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/03/06
+	@(#)MIRBSD KSH R39 2011/03/07
 description:
 	Check version of shell.
 stdin:
@@ -6971,7 +6971,7 @@ stdin:
 		if [[ $line = '#1' ]]; then
 			lastf=0
 			continue
-		elif [[ $line = EOFN ]]; then
+		elif [[ $line = EOFN* ]]; then
 			fbody=$fbody$'\n'$line
 			continue
 		elif [[ $line != '#'* ]]; then
@@ -7037,6 +7037,29 @@ stdin:
 	echo 'fo\ob\"a\`r'\''b\$az'
 	#OSUBST_CSUBST_OPAT_SPAT_CPAT
 	[[ ${foo#blub} = @(bar|baz) ]]
+	#heredoc_closed
+	x=$(cat <<EOFN
+	note there must be no space between EOFN and )
+	EOFN); echo $x
+	#heredoc_space
+	x=$(cat <<EOFN\ 
+	note the space between EOFN and ) is actually part of the here document marker
+	EOFN ); echo $x
+	#patch_motd
+	x=$(sysctl -n kern.version | sed 1q)
+	[[ -s /etc/motd && "$([[ "$(head -1 /etc/motd)" != $x ]] && \
+	    ed -s /etc/motd 2>&1 <<-EOF
+		1,/^\$/d
+		0a
+			$x
+	
+		.
+		wq
+	EOF)" = @(?) ]] && rm -f /etc/motd
+	if [[ ! -s /etc/motd ]]; then
+		install -c -o root -g wheel -m 664 /dev/null /etc/motd
+		print -- "$x\n" >/etc/motd
+	fi
 	#0
 	EOD
 expected-stdout:
@@ -7446,6 +7469,161 @@ expected-stdout:
 	)|tr u x); }
 	function reread_OSUBST_CSUBST_OPAT_SPAT_CPAT {
 		x=$(( [[ ${foo#blub} = @(bar|baz) ]] ) | tr u x ) 
+	} 
+	inline_heredoc_closed() {
+		x=$(cat <<EOFN
+		note there must be no space between EOFN and )
+	EOFN); echo $x
+	}
+	inline_heredoc_closed() {
+		x=$(cat <<EOFN 
+		note there must be no space between EOFN and )
+	EOFN
+	) 
+		echo $x 
+	} 
+	function comsub_heredoc_closed { x=$(
+		x=$(cat <<EOFN
+		note there must be no space between EOFN and )
+	EOFN); echo $x
+	); }
+	function comsub_heredoc_closed {
+		x=$(x=$(cat <<EOFN 
+		note there must be no space between EOFN and )
+	EOFN
+	) ; echo $x ) 
+	} 
+	function reread_heredoc_closed { x=$((
+		x=$(cat <<EOFN
+		note there must be no space between EOFN and )
+	EOFN); echo $x
+	)|tr u x); }
+	function reread_heredoc_closed {
+		x=$(( x=$(cat <<EOFN 
+		note there must be no space between EOFN and )
+	EOFN
+	) ; echo $x ) | tr u x ) 
+	} 
+	inline_heredoc_space() {
+		x=$(cat <<EOFN\ 
+		note the space between EOFN and ) is actually part of the here document marker
+	EOFN ); echo $x
+	}
+	inline_heredoc_space() {
+		x=$(cat <<EOFN\  
+		note the space between EOFN and ) is actually part of the here document marker
+	EOFN 
+	) 
+		echo $x 
+	} 
+	function comsub_heredoc_space { x=$(
+		x=$(cat <<EOFN\ 
+		note the space between EOFN and ) is actually part of the here document marker
+	EOFN ); echo $x
+	); }
+	function comsub_heredoc_space {
+		x=$(x=$(cat <<EOFN\  
+		note the space between EOFN and ) is actually part of the here document marker
+	EOFN 
+	) ; echo $x ) 
+	} 
+	function reread_heredoc_space { x=$((
+		x=$(cat <<EOFN\ 
+		note the space between EOFN and ) is actually part of the here document marker
+	EOFN ); echo $x
+	)|tr u x); }
+	function reread_heredoc_space {
+		x=$(( x=$(cat <<EOFN\  
+		note the space between EOFN and ) is actually part of the here document marker
+	EOFN 
+	) ; echo $x ) | tr u x ) 
+	} 
+	inline_patch_motd() {
+		x=$(sysctl -n kern.version | sed 1q)
+		[[ -s /etc/motd && "$([[ "$(head -1 /etc/motd)" != $x ]] && \
+		    ed -s /etc/motd 2>&1 <<-EOF
+			1,/^\$/d
+			0a
+				$x
+		
+			.
+			wq
+		EOF)" = @(?) ]] && rm -f /etc/motd
+		if [[ ! -s /etc/motd ]]; then
+			install -c -o root -g wheel -m 664 /dev/null /etc/motd
+			print -- "$x\n" >/etc/motd
+		fi
+	}
+	inline_patch_motd() {
+		x=$(sysctl -n kern.version | sed 1q ) 
+		[[ -s /etc/motd && "$([[ "$(head -1 /etc/motd )" != $x ]] && ed -s /etc/motd 2>&1 <<-EOF 
+	1,/^\$/d
+	0a
+	$x
+	
+	.
+	wq
+	EOF
+	)" = @(?) ]] && rm -f /etc/motd 
+		if [[ ! -s /etc/motd ]] 
+		then
+			install -c -o root -g wheel -m 664 /dev/null /etc/motd 
+			print -- "$x\n" >/etc/motd 
+		fi 
+	} 
+	function comsub_patch_motd { x=$(
+		x=$(sysctl -n kern.version | sed 1q)
+		[[ -s /etc/motd && "$([[ "$(head -1 /etc/motd)" != $x ]] && \
+		    ed -s /etc/motd 2>&1 <<-EOF
+			1,/^\$/d
+			0a
+				$x
+		
+			.
+			wq
+		EOF)" = @(?) ]] && rm -f /etc/motd
+		if [[ ! -s /etc/motd ]]; then
+			install -c -o root -g wheel -m 664 /dev/null /etc/motd
+			print -- "$x\n" >/etc/motd
+		fi
+	); }
+	function comsub_patch_motd {
+		x=$(x=$(sysctl -n kern.version | sed 1q ) ; [[ -s /etc/motd && "$([[ "$(head -1 /etc/motd )" != $x ]] && ed -s /etc/motd 2>&1 <<-EOF 
+	1,/^\$/d
+	0a
+	$x
+	
+	.
+	wq
+	EOF
+	)" = @(?) ]] && rm -f /etc/motd ; if [[ ! -s /etc/motd ]] ; then install -c -o root -g wheel -m 664 /dev/null /etc/motd ; print -- "$x\n" >/etc/motd ; fi ) 
+	} 
+	function reread_patch_motd { x=$((
+		x=$(sysctl -n kern.version | sed 1q)
+		[[ -s /etc/motd && "$([[ "$(head -1 /etc/motd)" != $x ]] && \
+		    ed -s /etc/motd 2>&1 <<-EOF
+			1,/^\$/d
+			0a
+				$x
+		
+			.
+			wq
+		EOF)" = @(?) ]] && rm -f /etc/motd
+		if [[ ! -s /etc/motd ]]; then
+			install -c -o root -g wheel -m 664 /dev/null /etc/motd
+			print -- "$x\n" >/etc/motd
+		fi
+	)|tr u x); }
+	function reread_patch_motd {
+		x=$(( x=$(sysctl -n kern.version | sed 1q ) ; [[ -s /etc/motd && "$([[ "$(head -1 /etc/motd )" != $x ]] && ed -s /etc/motd 2>&1 <<-EOF 
+	1,/^\$/d
+	0a
+	$x
+	
+	.
+	wq
+	EOF
+	)" = @(?) ]] && rm -f /etc/motd ; if [[ ! -s /etc/motd ]] ; then install -c -o root -g wheel -m 664 /dev/null /etc/motd ; print -- "$x\n" >/etc/motd ; fi ) | tr u x ) 
 	} 
 ---
 name: test-stnze-1

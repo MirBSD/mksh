@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.128 2011/03/07 20:30:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.129 2011/03/07 20:32:49 tg Exp $");
 
 /*
  * states while lexing word
@@ -100,6 +100,7 @@ static int dopprompt(const char *, int, bool);
 
 static int backslash_skip;
 static int ignore_backslash_newline;
+static int comsub_nesting_level;
 
 /* optimised getsc_bn() */
 #define _getsc()	(*source->str != '\0' && *source->str != '\\' \
@@ -149,7 +150,7 @@ getsc_(void)
  *
  * tokens are not regular expressions, they are LL(1).
  * for example, "${var:-${PWD}}", and "$(size $(whence ksh))".
- * hence the state stack.
+ * hence the state stack. Note "$(...)" are now parsed recursively.
  */
 
 int
@@ -359,7 +360,9 @@ yylex(int cf)
 					} else {
 						ungetsc(c);
  subst_command:
+						++comsub_nesting_level;
 						sp = yyrecursive();
+						--comsub_nesting_level;
 						c2 = strlen(sp) + 1;
 						XcheckN(ws, wp, c2);
 						*wp++ = COMSUB;
@@ -1114,7 +1117,6 @@ readhere(struct ioword *iop)
 	int c;
 	char *volatile eof;
 	char *eofp;
-	int skiptabs;
 	XString xs;
 	char *xp;
 	int xpos;
@@ -1135,41 +1137,66 @@ readhere(struct ioword *iop)
 
 	Xinit(xs, xp, 256, ATEMP);
 
-	for (;;) {
-		eofp = eof;
-		skiptabs = iop->flag & IOSKIP;
-		xpos = Xsavepos(xs, xp);
-		while ((c = getsc()) != 0) {
-			if (skiptabs) {
-				if (c == '\t')
-					continue;
-				skiptabs = 0;
-			}
-			if (c != *eofp)
+ heredoc_read_line:
+	/* beginning of line */
+	eofp = eof;
+	xpos = Xsavepos(xs, xp);
+	if (iop->flag & IOSKIP) {
+		/* skip over leading tabs */
+		while ((c = getsc()) == '\t')
+			/* nothing */;
+		goto heredoc_parse_char;
+	}
+ heredoc_read_char:
+	c = getsc();
+ heredoc_parse_char:
+	/* compare with here document marker */
+	if (!*eofp) {
+		/* end of here document marker, what to do? */
+		switch (c) {
+		case /*(*/ ')':
+			if (!comsub_nesting_level)
+				/* not allowed outside $(...) => mismatch */
 				break;
-			Xcheck(xs, xp);
-			Xput(xs, xp, c);
-			eofp++;
+			/* Allow $(...) to close here */
+			ungetsc(/*(*/ ')');
+			/* FALLTHROUGH */
+		case 0:
+			/*
+			 * Allow EOF here to commands without trailing
+			 * newlines (mksh -c '...') will work as well.
+			 */
+		case '\n':
+			/* Newline terminates here document marker */
+			goto heredoc_found_terminator;
 		}
-		/*
-		 * Allow EOF here so commands with out trailing newlines
-		 * will work (eg, ksh -c '...', $(...), etc).
-		 */
-		if (*eofp == '\0' && (c == 0 || c == '\n')) {
-			xp = Xrestpos(xs, xp, xpos);
-			break;
-		}
-		ungetsc(c);
-		while ((c = getsc()) != '\n') {
-			if (c == 0)
-				yyerror("%s '%s' unclosed\n", "here document",
-				    eof);
-			Xcheck(xs, xp);
-			Xput(xs, xp, c);
-		}
+	} else if (c == *eofp++)
+		/* store; then read and compare next character */
+		goto heredoc_store_and_loop;
+	/* nope, mismatch; read until end of line */
+	while (c != '\n') {
+		if (!c)
+			/* oops, reached EOF */
+			yyerror("%s '%s' unclosed\n", "here document", eof);
+		/* store character */
 		Xcheck(xs, xp);
 		Xput(xs, xp, c);
+		/* read next character */
+		c = getsc();
 	}
+	/* we read a newline as last character */
+ heredoc_store_and_loop:
+	/* store character */
+	Xcheck(xs, xp);
+	Xput(xs, xp, c);
+	if (c == '\n')
+		goto heredoc_read_line;
+	goto heredoc_read_char;
+
+ heredoc_found_terminator:
+	/* jump back to saved beginning of line */
+	xp = Xrestpos(xs, xp, xpos);
+	/* terminate, close and store */
 	Xput(xs, xp, '\0');
 	iop->heredoc = Xclose(xs, xp);
 
