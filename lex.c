@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.124 2011/03/06 17:08:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.125 2011/03/07 20:07:52 tg Exp $");
 
 /*
  * states while lexing word
@@ -44,63 +44,44 @@ __RCSID("$MirOS: src/bin/mksh/lex.c,v 1.124 2011/03/06 17:08:12 tg Exp $");
 #define SLETARRAY	14	/* inside =( ), just copy */
 #define SADELIM		15	/* like SBASE, looking for delimiter */
 #define SHERESTRING	16	/* parsing <<< string */
+#define SINVALID	255	/* invalid state */
 
 /*
  * Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state.
  */
-typedef struct lex_state Lex_state;
-struct lex_state {
-	int ls_state;
+typedef struct lex_state {
 	union {
-		/* $((...)) */
-		struct sasparen_info {
-			int nparen;	/* count open parenthesis */
-			int start;	/* marks start of $(( in output str */
-#define ls_sasparen ls_info.u_sasparen
-		} u_sasparen;
-
-		/* ((...)) */
-		struct sletparen_info {
-			int nparen;	/* count open parenthesis */
-#define ls_sletparen ls_info.u_sletparen
-		} u_sletparen;
-
-		/* `...` */
-		struct sbquote_info {
-			int indquotes;	/* true if in double quotes: "`...`" */
-#define ls_sbquote ls_info.u_sbquote
-		} u_sbquote;
-
-#ifndef MKSH_SMALL
-		/* =(...) */
-		struct sletarray_info {
-			int nparen;	/* count open parentheses */
-#define ls_sletarray ls_info.u_sletarray
-		} u_sletarray;
-#endif
-
-		/* ADELIM */
-		struct sadelim_info {
-			unsigned char nparen;	/* count open parentheses */
+		/* point to the next state block */
+		Lex_state *base;
+		/* marks start of $(( in output string */
+		int start;
+		/* SBQUOTE: true if in double quotes: "`...`" */
+		/* SEQUOTE: got NUL, ignore rest of string */
+		bool abool;
+		/* SADELIM information */
+		struct {
+			/* SADELIM_BASH, SADELIM_MAKE */
+			unsigned char style;
+			/* character to search for */
+			unsigned char delimiter;
+			/* max. number of delimiters */
+			unsigned char num;
+			/* ofs. into sadelim_flags[] */
+			unsigned char flags;
+		} adelim;
+	} u;
+	/* count open parentheses */
+	short nparen;
+	/* type of this state */
+	uint8_t type;
+} Lex_state;
+#define ls_base		u.base
+#define ls_start	u.start
+#define ls_bool		u.abool
+#define ls_adelim	u.adelim
 #define SADELIM_BASH	0
 #define SADELIM_MAKE	1
-			unsigned char style;
-			unsigned char delimiter;
-			unsigned char num;
-			unsigned char flags;	/* ofs. into sadelim_flags[] */
-#define ls_sadelim ls_info.u_sadelim
-		} u_sadelim;
-
-		/* $'...' */
-		struct sequote_info {
-			bool got_NUL;	/* ignore rest of string */
-#define ls_sequote ls_info.u_sequote
-		} u_sequote;
-
-		Lex_state *base;	/* used to point to next state block */
-	} ls_info;
-};
 
 typedef struct {
 	Lex_state *base;
@@ -154,18 +135,18 @@ getsc_(void)
 #define getsc_()	_getsc_()
 #endif
 
-#define STATE_BSIZE	32
+#define STATE_BSIZE	8
 
 #define PUSH_STATE(s)	do {					\
 	if (++statep == state_info.end)				\
 		statep = push_state_(&state_info, statep);	\
-	state = statep->ls_state = (s);				\
+	state = statep->type = (s);				\
 } while (0)
 
 #define POP_STATE()	do {					\
 	if (--statep == state_info.base)			\
 		statep = pop_state_(&state_info, statep);	\
-	state = statep->ls_state;				\
+	state = statep->type;					\
 } while (0)
 
 /**
@@ -187,8 +168,8 @@ yylex(int cf)
 	char *sp, *dp;
 
  Again:
-	states[0].ls_state = -1;
-	states[0].ls_info.base = NULL;
+	states[0].type = SINVALID;
+	states[0].ls_base = NULL;
 	statep = &states[1];
 	state_info.base = states;
 	state_info.end = &state_info.base[STATE_BSIZE];
@@ -204,11 +185,11 @@ yylex(int cf)
 		/* enclose arguments in (double) quotes */
 		*wp++ = OQUOTE;
 		state = SLETPAREN;
-		statep->ls_sletparen.nparen = 0;
+		statep->nparen = 0;
 #ifndef MKSH_SMALL
 	} else if (cf&LETARRAY) {
 		state = SLETARRAY;
-		statep->ls_sletarray.nparen = 0;
+		statep->nparen = 0;
 #endif
 	} else {
 		/* normal lexing */
@@ -230,7 +211,7 @@ yylex(int cf)
 	}
 
 	/* Initial state: one of SBASE SHEREDELIM SWORD SASPAREN */
-	statep->ls_state = state;
+	statep->type = state;
 
 	/* check for here string */
 	if (state == SHEREDELIM) {
@@ -255,14 +236,14 @@ yylex(int cf)
 		switch (state) {
 		case SADELIM:
 			if (c == '(')
-				statep->ls_sadelim.nparen++;
+				statep->nparen++;
 			else if (c == ')')
-				statep->ls_sadelim.nparen--;
-			else if (statep->ls_sadelim.nparen == 0 &&
-			    (c == /*{*/ '}' || c == statep->ls_sadelim.delimiter)) {
+				statep->nparen--;
+			else if (statep->nparen == 0 &&
+			    (c == /*{*/ '}' || c == statep->ls_adelim.delimiter)) {
 				*wp++ = ADELIM;
 				*wp++ = c;
-				if (c == /*{*/ '}' || --statep->ls_sadelim.num == 0)
+				if (c == /*{*/ '}' || --statep->ls_adelim.num == 0)
 					POP_STATE();
 				if (c == /*{*/ '}')
 					POP_STATE();
@@ -376,8 +357,8 @@ yylex(int cf)
 					c = getsc();
 					if (c == '(') /*)*/ {
 						PUSH_STATE(SASPAREN);
-						statep->ls_sasparen.nparen = 2;
-						statep->ls_sasparen.start =
+						statep->nparen = 2;
+						statep->ls_start =
 						    Xsavepos(ws, wp);
 						*wp++ = EXPRSUB;
 					} else {
@@ -407,10 +388,10 @@ yylex(int cf)
 							*wp++ = ':';
 							PUSH_STATE(SBRACE);
 							PUSH_STATE(SADELIM);
-							statep->ls_sadelim.style = SADELIM_BASH;
-							statep->ls_sadelim.delimiter = ':';
-							statep->ls_sadelim.num = 1;
-							statep->ls_sadelim.nparen = 0;
+							statep->ls_adelim.style = SADELIM_BASH;
+							statep->ls_adelim.delimiter = ':';
+							statep->ls_adelim.num = 1;
+							statep->nparen = 0;
 							break;
 						} else if (ksh_isdigit(c) ||
 						    c == '('/*)*/ || c == ' ' ||
@@ -424,10 +405,10 @@ yylex(int cf)
 							ungetsc(c);
 							PUSH_STATE(SBRACE);
 							PUSH_STATE(SADELIM);
-							statep->ls_sadelim.style = SADELIM_BASH;
-							statep->ls_sadelim.delimiter = ':';
-							statep->ls_sadelim.num = 2;
-							statep->ls_sadelim.nparen = 0;
+							statep->ls_adelim.style = SADELIM_BASH;
+							statep->ls_adelim.delimiter = ':';
+							statep->ls_adelim.num = 2;
+							statep->nparen = 0;
 							break;
 						}
 					} else if (c == '/') {
@@ -440,10 +421,10 @@ yylex(int cf)
 							ungetsc(c);
 						PUSH_STATE(SBRACE);
 						PUSH_STATE(SADELIM);
-						statep->ls_sadelim.style = SADELIM_BASH;
-						statep->ls_sadelim.delimiter = '/';
-						statep->ls_sadelim.num = 1;
-						statep->ls_sadelim.nparen = 0;
+						statep->ls_adelim.style = SADELIM_BASH;
+						statep->ls_adelim.delimiter = '/';
+						statep->ls_adelim.num = 1;
+						statep->nparen = 0;
 						break;
 					}
 					/*
@@ -485,7 +466,7 @@ yylex(int cf)
 					*wp++ = OQUOTE;
 					ignore_backslash_newline++;
 					PUSH_STATE(SEQUOTE);
-					statep->ls_sequote.got_NUL = false;
+					statep->ls_bool = false;
 					break;
 				} else if (c == '"' && (state == SBASE)) {
 					/* XXX which other states are valid? */
@@ -522,19 +503,19 @@ yylex(int cf)
 				 * literal meaning, except when followed by
 				 * $ ` \.").
 				 */
-				statep->ls_sbquote.indquotes = 0;
+				statep->ls_bool = false;
 				s2 = statep;
 				base = state_info.base;
 				while (1) {
 					for (; s2 != base; s2--) {
-						if (s2->ls_state == SDQUOTE) {
-							statep->ls_sbquote.indquotes = 1;
+						if (s2->type == SDQUOTE) {
+							statep->ls_bool = true;
 							break;
 						}
 					}
 					if (s2 != base)
 						break;
-					if (!(s2 = s2->ls_info.base))
+					if (!(s2 = s2->ls_base))
 						break;
 					base = s2-- - STATE_BSIZE;
 				}
@@ -562,8 +543,8 @@ yylex(int cf)
 				if ((c2 = unbksl(true, s_get, s_put)) == -1)
 					c2 = s_get();
 				if (c2 == 0)
-					statep->ls_sequote.got_NUL = true;
-				if (!statep->ls_sequote.got_NUL) {
+					statep->ls_bool = true;
+				if (!statep->ls_bool) {
 					char ts[4];
 
 					if ((unsigned int)c2 < 0x100) {
@@ -578,7 +559,7 @@ yylex(int cf)
 						}
 					}
 				}
-			} else if (!statep->ls_sequote.got_NUL) {
+			} else if (!statep->ls_bool) {
 				*wp++ = QCHAR;
 				*wp++ = c;
 			}
@@ -610,10 +591,10 @@ yylex(int cf)
 			 * (embed "...", $(...), etc.)
 			 */
 			if (c == '(')
-				statep->ls_sasparen.nparen++;
+				statep->nparen++;
 			else if (c == ')') {
-				statep->ls_sasparen.nparen--;
-				if (statep->ls_sasparen.nparen == 1) {
+				statep->nparen--;
+				if (statep->nparen == 1) {
 					if ((c2 = getsc()) == /*(*/')') {
 						POP_STATE();
 						/* end of EXPRSUB */
@@ -630,7 +611,7 @@ yylex(int cf)
 						 */
 						*wp = EOS;
 						wp = Xrestpos(ws, wp,
-						    statep->ls_sasparen.start);
+						    statep->ls_start);
 						POP_STATE();
 						/* dp = $((blah))\0 */
 						dp = wdstrip(wp, true, false);
@@ -713,7 +694,7 @@ yylex(int cf)
 					*wp++ = c;
 					break;
 				case '"':
-					if (statep->ls_sbquote.indquotes) {
+					if (statep->ls_bool) {
 						*wp++ = c;
 						break;
 					}
@@ -737,8 +718,8 @@ yylex(int cf)
 		/* LETEXPR: (( ... )) */
 		case SLETPAREN:
 			if (c == /*(*/ ')') {
-				if (statep->ls_sletparen.nparen > 0)
-					--statep->ls_sletparen.nparen;
+				if (statep->nparen > 0)
+					--statep->nparen;
 				else if ((c2 = getsc()) == /*(*/ ')') {
 					c = 0;
 					*wp++ = CQUOTE;
@@ -763,20 +744,20 @@ yylex(int cf)
 				}
 			} else if (c == '(')
 				/*
-				 * parenthesis inside quotes and
+				 * parentheses inside quotes and
 				 * backslashes are lost, but AT&T ksh
 				 * doesn't count them either
 				 */
-				++statep->ls_sletparen.nparen;
+				++statep->nparen;
 			goto Sbase2;
 
 #ifndef MKSH_SMALL
 		/* LETARRAY: =( ... ) */
 		case SLETARRAY:
 			if (c == '('/*)*/)
-				++statep->ls_sletarray.nparen;
+				++statep->nparen;
 			else if (c == /*(*/')')
-				if (statep->ls_sletarray.nparen-- == 0) {
+				if (statep->nparen-- == 0) {
 					c = 0;
 					goto Done;
 				}
@@ -799,7 +780,7 @@ yylex(int cf)
 			} else if (c == '$') {
 				if ((c2 = getsc()) == '\'') {
 					PUSH_STATE(SEQUOTE);
-					statep->ls_sequote.got_NUL = false;
+					statep->ls_bool = false;
 					goto sherestring_quoted;
 				} else if (c2 == '"')
 					goto sherestring_dquoted;
@@ -814,7 +795,7 @@ yylex(int cf)
 				Xstring(ws, wp)[0] = QCHAR;
 			} else if (c == '"') {
  sherestring_dquoted:
-				state = statep->ls_state = SHEREDQUOTE;
+				state = statep->type = SHEREDQUOTE;
 				*wp++ = OQUOTE;
 				/* just don't IFS split; no quoting mode */
 			} else {
@@ -846,7 +827,7 @@ yylex(int cf)
 			} else if (c == '$') {
 				if ((c2 = getsc()) == '\'') {
 					PUSH_STATE(SEQUOTE);
-					statep->ls_sequote.got_NUL = false;
+					statep->ls_bool = false;
 					goto sheredelim_quoted;
 				} else if (c2 == '"')
 					goto sheredelim_dquoted;
@@ -859,7 +840,7 @@ yylex(int cf)
 				ignore_backslash_newline++;
 			} else if (c == '"') {
  sheredelim_dquoted:
-				state = statep->ls_state = SHEREDQUOTE;
+				state = statep->type = SHEREDQUOTE;
 				*wp++ = OQUOTE;
 			} else {
  sheredelim_regular:
@@ -872,7 +853,7 @@ yylex(int cf)
 		case SHEREDQUOTE:
 			if (c == '"') {
 				*wp++ = CQUOTE;
-				state = statep->ls_state =
+				state = statep->type =
 				    /* dp[1] == '<' means here string */
 				    Xstring(ws, wp)[1] == '<' ?
 				    SHERESTRING : SHEREDELIM;
@@ -920,7 +901,7 @@ yylex(int cf)
 		yyerror("no closing quote\n");
 
 #ifndef MKSH_SMALL
-	if (state == SLETARRAY && statep->ls_sletarray.nparen != -1)
+	if (state == SLETARRAY && statep->nparen != -1)
 		yyerror("%s: %s\n", T_synerr, "missing )");
 #endif
 
@@ -1752,7 +1733,7 @@ push_state_(State_info *si, Lex_state *old_end)
 {
 	Lex_state *news = alloc2(STATE_BSIZE, sizeof(Lex_state), ATEMP);
 
-	news[0].ls_info.base = old_end;
+	news[0].ls_base = old_end;
 	si->base = &news[0];
 	si->end = &news[STATE_BSIZE];
 	return (&news[1]);
@@ -1763,8 +1744,8 @@ pop_state_(State_info *si, Lex_state *old_end)
 {
 	Lex_state *old_base = si->base;
 
-	si->base = old_end->ls_info.base - STATE_BSIZE;
-	si->end = old_end->ls_info.base;
+	si->base = old_end->ls_base - STATE_BSIZE;
+	si->end = old_end->ls_base;
 
 	afree(old_base, ATEMP);
 
