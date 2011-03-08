@@ -22,11 +22,10 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.36 2011/03/06 17:08:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.37 2011/03/08 18:49:51 tg Exp $");
 
 #define INDENT	8
 
-#define tputc(c, shf) shf_putchar(c, shf);
 static void ptree(struct op *, int, struct shf *);
 static void pioact(struct shf *, int, struct ioword *);
 static void tputS(const char *, struct shf *);
@@ -202,7 +201,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 			if ((iop->flag & IOTYPE) == IOHERE && iop->heredoc &&
 			    /* iop->delim[1] == '<' means here string */
 			    (!iop->delim || iop->delim[1] != '<')) {
-				tputc('\n', shf);
+				shf_putc('\n', shf);
 				shf_puts(iop->heredoc, shf);
 				fptreef(shf, indent, "%s",
 				    evalstr(iop->delim, 0));
@@ -215,7 +214,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		 * worth worrying about)
 		 */
 		if (need_nl)
-			tputc('\n', shf);
+			shf_putc('\n', shf);
 	}
 }
 
@@ -258,7 +257,7 @@ pioact(struct shf *shf, int indent, struct ioword *iop)
 		if (iop->delim)
 			fptreef(shf, indent, "%S ", iop->delim);
 		else
-			tputc(' ', shf);
+			shf_putc(' ', shf);
 	} else if (iop->name)
 		fptreef(shf, indent, (iop->flag & IONAMEXP) ? "%s " : "%S ",
 		    iop->name);
@@ -285,57 +284,56 @@ tputS(const char *wp, struct shf *shf)
 			return;
 		case ADELIM:
 		case CHAR:
-			tputc(*wp++, shf);
+			shf_putchar(*wp++, shf);
 			break;
 		case QCHAR:
 			c = *wp++;
-			if (!quotelevel || (c == '"' || c == '`' || c == '$'))
-				tputc('\\', shf);
-			tputc(c, shf);
+			if (!quotelevel ||
+			    (c == '"' || c == '`' || c == '$' || c == '\\'))
+				shf_putc('\\', shf);
+			shf_putc(c, shf);
 			break;
 		case COMSUB:
 			shf_puts("$(", shf);
-			while (*wp != 0)
-				tputc(*wp++, shf);
-			tputc(')', shf);
-			wp++;
+			while ((c = *wp++) != 0)
+				shf_putc(c, shf);
+			shf_putc(')', shf);
 			break;
 		case EXPRSUB:
 			shf_puts("$((", shf);
-			while (*wp != 0)
-				tputc(*wp++, shf);
+			while ((c = *wp++) != 0)
+				shf_putc(c, shf);
 			shf_puts("))", shf);
-			wp++;
 			break;
 		case OQUOTE:
 			quotelevel++;
-			tputc('"', shf);
+			shf_putc('"', shf);
 			break;
 		case CQUOTE:
 			if (quotelevel)
 				quotelevel--;
-			tputc('"', shf);
+			shf_putc('"', shf);
 			break;
 		case OSUBST:
-			tputc('$', shf);
+			shf_putc('$', shf);
 			if (*wp++ == '{')
-				tputc('{', shf);
+				shf_putc('{', shf);
 			while ((c = *wp++) != 0)
-				tputc(c, shf);
+				shf_putc(c, shf);
 			break;
 		case CSUBST:
 			if (*wp++ == '}')
-				tputc('}', shf);
+				shf_putc('}', shf);
 			break;
 		case OPAT:
-			tputc(*wp++, shf);
-			tputc('(', shf);
+			shf_putchar(*wp++, shf);
+			shf_putc('(', shf);
 			break;
 		case SPAT:
-			tputc('|', shf);
+			shf_putc('|', shf);
 			break;
 		case CPAT:
-			tputc(')', shf);
+			shf_putc(')', shf);
 			break;
 		}
 }
@@ -382,7 +380,7 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 			switch ((c = *fmt++)) {
 			case 'c':
 				/* character (octet, probably) */
-				tputc(va_arg(va, int), shf);
+				shf_putchar(va_arg(va, int), shf);
 				break;
 			case 's':
 				/* string */
@@ -410,19 +408,19 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 				/* newline or space */
 				if (shf->flags & SHF_STRING) {
 					if (c == ';' && !prevent_semicolon)
-						tputc(';', shf);
-					tputc(' ', shf);
+						shf_putc(';', shf);
+					shf_putc(' ', shf);
 				} else {
 					int i;
 
-					tputc('\n', shf);
+					shf_putc('\n', shf);
 					i = indent;
 					while (i >= 8) {
-						tputc('\t', shf);
+						shf_putc('\t', shf);
 						i -= 8;
 					}
 					while (i--)
-						tputc(' ', shf);
+						shf_putc(' ', shf);
 				}
 				break;
 			case 'R':
@@ -430,11 +428,11 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 				pioact(shf, indent, va_arg(va, struct ioword *));
 				break;
 			default:
-				tputc(c, shf);
+				shf_putc(c, shf);
 				break;
 			}
 		} else
-			tputc(c, shf);
+			shf_putc(c, shf);
 		prevent_semicolon = false;
  dont_trash_prevent_semicolon:
 		;
@@ -593,20 +591,20 @@ wdstrip(const char *wp, bool keepq, bool make_magic)
 			c = *wp++;
 			if (make_magic && (ISMAGIC(c) || c == '[' || c == NOT ||
 			    c == '-' || c == ']' || c == '*' || c == '?'))
-				shf_putchar(MAGIC, &shf);
-			shf_putchar(c, &shf);
+				shf_putc(MAGIC, &shf);
+			shf_putc(c, &shf);
 			break;
 		case QCHAR:
 			c = *wp++;
 			if (keepq && (c == '"' || c == '`' || c == '$' || c == '\\'))
-				shf_putchar('\\', &shf);
-			shf_putchar(c, &shf);
+				shf_putc('\\', &shf);
+			shf_putc(c, &shf);
 			break;
 		case COMSUB:
 			shf_puts("$(", &shf);
 			while (*wp != 0)
 				shf_putchar(*wp++, &shf);
-			shf_putchar(')', &shf);
+			shf_putc(')', &shf);
 			break;
 		case EXPRSUB:
 			shf_puts("$((", &shf);
@@ -619,34 +617,34 @@ wdstrip(const char *wp, bool keepq, bool make_magic)
 		case CQUOTE:
 			break;
 		case OSUBST:
-			shf_putchar('$', &shf);
+			shf_putc('$', &shf);
 			if (*wp++ == '{')
-			    shf_putchar('{', &shf);
+			    shf_putc('{', &shf);
 			while ((c = *wp++) != 0)
-				shf_putchar(c, &shf);
+				shf_putc(c, &shf);
 			break;
 		case CSUBST:
 			if (*wp++ == '}')
-				shf_putchar('}', &shf);
+				shf_putc('}', &shf);
 			break;
 		case OPAT:
 			if (make_magic) {
-				shf_putchar(MAGIC, &shf);
+				shf_putc(MAGIC, &shf);
 				shf_putchar(*wp++ | 0x80, &shf);
 			} else {
 				shf_putchar(*wp++, &shf);
-				shf_putchar('(', &shf);
+				shf_putc('(', &shf);
 			}
 			break;
 		case SPAT:
 			if (make_magic)
-				shf_putchar(MAGIC, &shf);
-			shf_putchar('|', &shf);
+				shf_putc(MAGIC, &shf);
+			shf_putc('|', &shf);
 			break;
 		case CPAT:
 			if (make_magic)
-				shf_putchar(MAGIC, &shf);
-			shf_putchar(')', &shf);
+				shf_putc(MAGIC, &shf);
+			shf_putc(')', &shf);
 			break;
 		}
 }
@@ -774,3 +772,273 @@ vistree(char *dst, size_t sz, struct op *t)
 	*dst = '\0';
 	afree(buf, ATEMP);
 }
+
+#ifdef DEBUG
+static void
+dumpchar(struct shf *shf, int c)
+{
+	if (((c & 0x60) == 0) || ((c & 0x7F) == 0x7F)) {
+		/* C0 or C1 control character or DEL */
+		shf_putc((c & 0x80) ? '$' : '^', shf);
+		c = (c & 0x7F) ^ 0x40;
+	}
+	shf_putc(c, shf);
+}
+
+/* see: tputS */
+static void
+dumpwdvar(struct shf *shf, const char *wp)
+{
+	int c, quotelevel = 0;
+
+	while (1) {
+		switch(*wp++) {
+		case EOS:
+			shf_puts("EOS", shf);
+			return;
+		case ADELIM:
+			shf_puts("ADELIM=", shf);
+ dumpchar:
+			dumpchar(shf, *wp++);
+			break;
+		case CHAR:
+			shf_puts("CHAR=", shf);
+			goto dumpchar;
+		case QCHAR:
+			shf_puts("QCHAR<", shf);
+			c = *wp++;
+			if (!quotelevel ||
+			    (c == '"' || c == '`' || c == '$' || c == '\\'))
+				shf_putc('\\', shf);
+			dumpchar(shf, c);
+			goto closeandout;
+		case COMSUB:
+			shf_puts("COMSUB<", shf);
+ dumpsub:
+			while ((c = *wp++) != 0)
+				dumpchar(shf, c);
+ closeandout:
+			shf_putc('>', shf);
+			break;
+		case EXPRSUB:
+			shf_puts("EXPRSUB<", shf);
+			goto dumpsub;
+		case OQUOTE:
+			shf_fprintf(shf, "OQUOTE{%d", ++quotelevel);
+			break;
+		case CQUOTE:
+			shf_fprintf(shf, "%d}CQUOTE", quotelevel);
+			if (quotelevel)
+				quotelevel--;
+			else
+				shf_puts("(err)", shf);
+			break;
+		case OSUBST:
+			shf_puts("OSUBST(", shf);
+			dumpchar(shf, *wp++);
+			shf_puts(")[", shf);
+			while ((c = *wp++) != 0)
+				dumpchar(shf, c);
+			break;
+		case CSUBST:
+			shf_puts("]CSUBST(", shf);
+			dumpchar(shf, *wp++);
+			shf_putc(')', shf);
+			break;
+		case OPAT:
+			shf_puts("OPAT=", shf);
+			dumpchar(shf, *wp++);
+			break;
+		case SPAT:
+			shf_puts("SPAT", shf);
+			break;
+		case CPAT:
+			shf_puts("CPAT", shf);
+			break;
+		default:
+			shf_fprintf(shf, "INVAL<%u>", (uint8_t)wp[-1]);
+			break;
+		}
+		shf_putc(' ', shf);
+	}
+}
+
+void
+dumptree(struct shf *shf, struct op *t)
+{
+	int i;
+	const char **w, *name;
+	struct op *t1;
+	static int nesting = 0;
+
+	for (i = 0; i < nesting; ++i)
+		shf_putc('\t', shf);
+	++nesting;
+	shf_puts("{tree:" /*}*/, shf);
+	if (t == NULL) {
+		name = "(null)";
+		goto out;
+	}
+	switch (t->type) {
+#define OPEN(x) case x: name = #x; shf_puts(" {" #x ":", shf); /*}*/
+
+	OPEN(TCOM)
+		if (t->vars) {
+			i = 0;
+			w = (const char **)t->vars;
+			while (*w) {
+				shf_putc('\n', shf);
+				for (int j = 0; j < nesting; ++j)
+					shf_putc('\t', shf);
+				shf_fprintf(shf, " var%d<", i++);
+				dumpwdvar(shf, *w++);
+				shf_putc('>', shf);
+			}
+		} else
+			shf_puts(" #no-vars#", shf);
+		if (t->args) {
+			i = 0;
+			w = t->args;
+			while (*w) {
+				shf_putc('\n', shf);
+				for (int j = 0; j < nesting; ++j)
+					shf_putc('\t', shf);
+				shf_fprintf(shf, " arg%d<", i++);
+				dumpwdvar(shf, *w++);
+				shf_putc('>', shf);
+			}
+		} else
+			shf_puts(" #no-args#", shf);
+		break;
+	OPEN(TEXEC)
+ dumpleftandout:
+		t = t->left;
+ dumpandout:
+		shf_putc('\n', shf);
+		dumptree(shf, t);
+		break;
+	OPEN(TPAREN)
+		goto dumpleftandout;
+	OPEN(TPIPE)
+ dumpleftmidrightandout:
+		shf_putc('\n', shf);
+		dumptree(shf, t->left);
+// middumprightandout:
+		shf_fprintf(shf, "/%s:", name);
+ dumprightandout:
+		t = t->right;
+		goto dumpandout;
+	OPEN(TLIST)
+		goto dumpleftmidrightandout;
+	OPEN(TOR)
+		goto dumpleftmidrightandout;
+	OPEN(TAND)
+		goto dumpleftmidrightandout;
+	OPEN(TBANG)
+		goto dumprightandout;
+	OPEN(TDBRACKET)
+		i = 0;
+		w = t->args;
+		while (*w) {
+			shf_putc('\n', shf);
+			for (int j = 0; j < nesting; ++j)
+				shf_putc('\t', shf);
+			shf_fprintf(shf, " arg%d<", i++);
+			dumpwdvar(shf, *w++);
+			shf_putc('>', shf);
+		}
+		break;
+	OPEN(TFOR)
+ dumpfor:
+		shf_fprintf(shf, " str<%s>", t->str);
+		if (t->vars != NULL) {
+			i = 0;
+			w = (const char **)t->vars;
+			while (*w) {
+				shf_putc('\n', shf);
+				for (int j = 0; j < nesting; ++j)
+					shf_putc('\t', shf);
+				shf_fprintf(shf, " var%d<", i++);
+				dumpwdvar(shf, *w++);
+				shf_putc('>', shf);
+			}
+		}
+		goto dumpleftandout;
+	OPEN(TSELECT)
+		goto dumpfor;
+	OPEN(TCASE)
+		shf_fprintf(shf, " str<%s>", t->str);
+		i = 0;
+		for (t1 = t->left; t1 != NULL; t1 = t1->right) {
+			shf_putc('\n', shf);
+			for (int j = 0; j < nesting; ++j)
+				shf_putc('\t', shf);
+			shf_fprintf(shf, " sub%d[(", i);
+			w = (const char **)t1->vars;
+			while (*w) {
+				dumpwdvar(shf, *w);
+				if (w[1] != NULL)
+					shf_putc('|', shf);
+				++w;
+			}
+			shf_putc(')', shf);
+			shf_putc('\n', shf);
+			dumptree(shf, t1->left);
+			shf_fprintf(shf, " /%d]", i++);
+		}
+		break;
+	OPEN(TWHILE)
+		goto dumpleftmidrightandout;
+	OPEN(TUNTIL)
+		goto dumpleftmidrightandout;
+	OPEN(TBRACE)
+		goto dumpleftandout;
+	OPEN(TCOPROC)
+		goto dumpleftandout;
+	OPEN(TASYNC)
+		goto dumpleftandout;
+	OPEN(TFUNCT)
+		shf_fprintf(shf, " str<%s> ksh<%s>", t->str,
+		    t->u.ksh_func ? "yes" : "no");
+		goto dumpleftandout;
+	OPEN(TTIME)
+		goto dumpleftandout;
+	OPEN(TIF)
+ dumpif:
+		shf_putc('\n', shf);
+		dumptree(shf, t->left);
+		t = t->right;
+		if (t->left != NULL) {
+			shf_puts(" /TTHEN:\n", shf);
+			dumptree(shf, t->left);
+		}
+		if (t->right && t->right->type == TELIF) {
+			shf_puts(" /TELIF:", shf);
+			t = t->right;
+			goto dumpif;
+		}
+		if (t->right != NULL) {
+			shf_puts(" /TELSE:\n", shf);
+			dumptree(shf, t->right);
+		}
+		break;
+	OPEN(TEOF)
+ dumpunexpected:
+		shf_puts("unexpected", shf);
+		break;
+	OPEN(TELIF)
+		goto dumpunexpected;
+	OPEN(TPAT)
+		goto dumpunexpected;
+	default:
+		name = "TINVALID";
+		shf_fprintf(shf, "{T<%d>:" /*}*/, t->type);
+		goto dumpunexpected;
+
+#undef OPEN
+	}
+ out:
+	shf_fprintf(shf, /*{*/ " /%s}\n", name);
+	--nesting;
+}
+#endif

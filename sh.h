@@ -154,9 +154,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.440 2011/03/07 20:32:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.441 2011/03/08 18:49:50 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2011/03/07"
+#define MKSH_VERSION "R39 2011/03/08"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1752,6 +1752,7 @@ char *wdcopy(const char *, Area *);
 const char *wdscan(const char *, int);
 char *wdstrip(const char *, bool, bool);
 void tfree(struct op *, Area *);
+void dumptree(struct shf *, struct op *);
 void vistree(char *, size_t, struct op *)
     MKSH_A_BOUNDED(string, 1, 2);
 void fpFUNCTf(struct shf *, int, bool, const char *, struct op *);
