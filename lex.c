@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.131 2011/03/12 21:41:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.132 2011/03/12 22:40:02 tg Exp $");
 
 /*
  * states while lexing word
@@ -752,8 +752,9 @@ yylex(int cf)
 					c = 0;
 					goto Done;
 				}
-			} else if (c == '$')
-				goto subst_dollar;
+			} 
+//else if (c == '$')
+//				goto subst_dollar;
 			*wp++ = CHAR;
 			*wp++ = c;
 			break;
