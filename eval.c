@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.97 2011/03/12 23:04:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.98 2011/03/12 23:06:43 tg Exp $");
 
 /*
  * string expansion
@@ -391,7 +391,9 @@ expand(const char *cp,	/* input word */
 						} else {
 							end = mid +
 							    (wdscan(mid, ADELIM) - mid);
-							if (end >= stg)
+							if (end >= stg ||
+							    /* more than max delimiters */
+							    end[-1] != /*{*/ '}')
 								goto unwind_substsyn;
 							end[-2] = EOS;
 							sp += end - beg - 1;
