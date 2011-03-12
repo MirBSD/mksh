@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.38 2011/03/12 21:41:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.39 2011/03/12 23:04:48 tg Exp $");
 
 #define INDENT	8
 
@@ -302,8 +302,8 @@ tputS(const char *wp, struct shf *shf)
 			break;
 		case EXPRSUB:
 			shf_puts("$((", shf);
-			tputS(wp, shf);
-			wp = wdscan(wp, EOS);
+			while ((c = *wp++) != 0)
+				shf_putc(c, shf);
 			shf_puts("))", shf);
 			break;
 		case OQUOTE:
@@ -527,10 +527,8 @@ wdscan(const char *wp, int c)
 		case QCHAR:
 			wp++;
 			break;
-		case EXPRSUB:
-			wp = wdscan(wp, EOS);
-			break;
 		case COMSUB:
+		case EXPRSUB:
 			while (*wp++ != 0)
 				;
 			break;
@@ -618,8 +616,8 @@ wdstrip_internal(struct shf *shf, const char *wp, bool keepq, bool make_magic)
 			break;
 		case EXPRSUB:
 			shf_puts("$((", shf);
-			wdstrip_internal(shf, wp, keepq, make_magic);
-			wp = wdscan(wp, EOS);
+			while (*wp != 0)
+				shf_putchar(*wp++, shf);
 			shf_puts("))", shf);
 			break;
 		case OQUOTE:
@@ -824,17 +822,15 @@ dumpwdvar(struct shf *shf, const char *wp)
 			goto closeandout;
 		case COMSUB:
 			shf_puts("COMSUB<", shf);
+ dumpsub:
 			while ((c = *wp++) != 0)
 				dumpchar(shf, c);
  closeandout:
 			shf_putc('>', shf);
 			break;
 		case EXPRSUB:
-			shf_puts("EXPRSUB[", shf);
-			dumpwdvar(shf, wp);
-			wp = wdscan(wp, EOS);
-			shf_puts("]EXPRSUB", shf);
-			break;
+			shf_puts("EXPRSUB<", shf);
+			goto dumpsub;
 		case OQUOTE:
 			shf_fprintf(shf, "OQUOTE{%d", ++quotelevel);
 			break;

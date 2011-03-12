@@ -154,7 +154,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.442 2011/03/12 21:41:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.443 2011/03/12 23:04:47 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/03/08"
 
@@ -1149,7 +1149,7 @@ struct op {
 #define CHAR	1	/* unquoted character */
 #define QCHAR	2	/* quoted character */
 #define COMSUB	3	/* $() substitution (0 terminated) */
-#define EXPRSUB	4	/* $(()) substitution (EOS terminated wdstring) */
+#define EXPRSUB	4	/* $(()) substitution (0 terminated) */
 #define OQUOTE	5	/* opening " or ' */
 #define CQUOTE	6	/* closing " or ' */
 #define OSUBST	7	/* opening ${ subst (followed by { or X) */

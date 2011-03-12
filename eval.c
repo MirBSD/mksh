@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.96 2011/03/12 21:41:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.97 2011/03/12 23:04:45 tg Exp $");
 
 /*
  * string expansion
@@ -291,19 +291,15 @@ expand(const char *cp,	/* input word */
 					newlines = 0;
 				}
 				continue;
-			case EXPRSUB: {
-				char *xp;
-
-				xp = wdstrip(sp, true, false);
-				sp = wdscan(sp, EOS);
+			case EXPRSUB:
 				word = IFS_WORD;
 				tilde_ok = 0;
 				if (f & DONTRUNCOMMAND) {
-					c = strlen(xp);
 					*dp++ = '$'; *dp++ = '('; *dp++ = '(';
-					XcheckN(ds, dp, c + 2);
-					memcpy(dp, xp, c);
-					dp += c;
+					while (*sp != '\0') {
+						Xcheck(ds, dp);
+						*dp++ = *sp++;
+					}
 					*dp++ = ')'; *dp++ = ')';
 				} else {
 					struct tbl v;
@@ -313,16 +309,15 @@ expand(const char *cp,	/* input word */
 					/* not default */
 					v.type = 10;
 					v.name[0] = '\0';
-					v_evaluate(&v, substitute(xp, 0),
+					v_evaluate(&v, substitute(sp, 0),
 					    KSH_UNWIND_ERROR, true);
+					sp = strnul(sp) + 1;
 					for (p = str_val(&v); *p; ) {
 						Xcheck(ds, dp);
 						*dp++ = *p++;
 					}
 				}
-				afree(xp, ATEMP);
 				continue;
-			}
 			case OSUBST: {
 				/* ${{#}var{:}[=+-?#%]word} */
 			/*-

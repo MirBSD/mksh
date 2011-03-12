@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.133 2011/03/12 22:44:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.134 2011/03/12 23:04:46 tg Exp $");
 
 /*
  * states while lexing word
@@ -246,7 +246,6 @@ yylex(int cf)
 			}
 			/* FALLTHROUGH */
 		case SBASE:
-// subst_base:
 			if (c == '[' && (cf & (VARASN|ARRAYVAR))) {
 				/* temporary */
 				*wp = EOS;
@@ -588,10 +587,12 @@ yylex(int cf)
 			else if (c == ')') {
 				statep->nparen--;
 				if (statep->nparen == 1) {
+					/* end of EXPRSUB */
 					*wp++ = EOS;
+					/* EOS == '\0', coincidentally */
+
 					if ((c2 = getsc()) == /*(*/')') {
 						POP_STATE();
-						/* end of EXPRSUB */
 						break;
 					} else {
 						Source *s;
@@ -619,9 +620,8 @@ yylex(int cf)
 					}
 				}
 			}
-*wp++ = CHAR;
-                       *wp++ = c;
-                       break;
+			*wp++ = c;
+			break;
 
 		case SQBRACE:
 			if (c == '\\') {
@@ -682,6 +682,9 @@ yylex(int cf)
 				POP_STATE();
 			} else if (c == '\\') {
 				switch (c = getsc()) {
+				case 0:
+					/* trailing \ is lost */
+					break;
 				case '\\':
 				case '$': case '`':
 					*wp++ = c;
@@ -693,11 +696,8 @@ yylex(int cf)
 					}
 					/* FALLTHROUGH */
 				default:
-					if (c) {
-						/* trailing \ is lost */
-						*wp++ = '\\';
-						*wp++ = c;
-					}
+					*wp++ = '\\';
+					*wp++ = c;
 					break;
 				}
 			} else
@@ -755,8 +755,6 @@ yylex(int cf)
 					goto Done;
 				}
 			} 
-//else if (c == '$')
-//				goto subst_dollar;
 			*wp++ = CHAR;
 			*wp++ = c;
 			break;
@@ -856,15 +854,16 @@ yylex(int cf)
 			} else {
 				if (c == '\\') {
 					switch (c = getsc()) {
-					case '\\': case '"':
-					case '$': case '`':
+					case 0:
+						/* trailing \ is lost */
+					case '\\':
+					case '"':
+					case '$':
+					case '`':
 						break;
 					default:
-						if (c) {
-							/* trailing \ lost */
-							*wp++ = CHAR;
-							*wp++ = '\\';
-						}
+						*wp++ = CHAR;
+						*wp++ = '\\';
 						break;
 					}
 				}
