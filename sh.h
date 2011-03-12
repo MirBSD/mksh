@@ -154,7 +154,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.441 2011/03/08 18:49:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.442 2011/03/12 21:41:14 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/03/08"
 
@@ -1149,7 +1149,7 @@ struct op {
 #define CHAR	1	/* unquoted character */
 #define QCHAR	2	/* quoted character */
 #define COMSUB	3	/* $() substitution (0 terminated) */
-#define EXPRSUB	4	/* $(()) substitution (0 terminated) */
+#define EXPRSUB	4	/* $(()) substitution (EOS terminated wdstring) */
 #define OQUOTE	5	/* opening " or ' */
 #define CQUOTE	6	/* closing " or ' */
 #define OSUBST	7	/* opening ${ subst (followed by { or X) */
@@ -1753,6 +1753,7 @@ const char *wdscan(const char *, int);
 char *wdstrip(const char *, bool, bool);
 void tfree(struct op *, Area *);
 void dumptree(struct shf *, struct op *);
+void dumpwdvar(struct shf *, const char *);
 void vistree(char *, size_t, struct op *)
     MKSH_A_BOUNDED(string, 1, 2);
 void fpFUNCTf(struct shf *, int, bool, const char *, struct op *);

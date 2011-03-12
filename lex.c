@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.130 2011/03/12 20:20:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.131 2011/03/12 21:41:13 tg Exp $");
 
 /*
  * states while lexing word
@@ -246,6 +246,7 @@ yylex(int cf)
 			}
 			/* FALLTHROUGH */
 		case SBASE:
+ subst_base:
 			if (c == '[' && (cf & (VARASN|ARRAYVAR))) {
 				/* temporary */
 				*wp = EOS;
@@ -587,10 +588,10 @@ yylex(int cf)
 			else if (c == ')') {
 				statep->nparen--;
 				if (statep->nparen == 1) {
+					*wp++ = EOS;
 					if ((c2 = getsc()) == /*(*/')') {
 						POP_STATE();
 						/* end of EXPRSUB */
-						*wp++ = 0;
 						break;
 					} else {
 						Source *s;
@@ -601,7 +602,6 @@ yylex(int cf)
 						 * assume we were really
 						 * parsing a $(...) expression
 						 */
-						*wp = EOS;
 						wp = Xrestpos(ws, wp,
 						    statep->ls_start);
 						POP_STATE();
@@ -619,8 +619,7 @@ yylex(int cf)
 					}
 				}
 			}
-			*wp++ = c;
-			break;
+			goto subst_base;
 
 		case SQBRACE:
 			if (c == '\\') {
