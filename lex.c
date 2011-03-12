@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.134 2011/03/12 23:04:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.135 2011/03/12 23:16:51 tg Exp $");
 
 /*
  * states while lexing word
@@ -205,7 +205,7 @@ yylex(int cf)
 		cf |= ALIAS;
 	}
 
-	/* Initial state: one of SBASE SHEREDELIM SWORD SASPAREN */
+	/* Initial state: one of SWORD SLETPAREN SLETARRAY SHEREDELIM SBASE */
 	statep->type = state;
 
 	/* check for here string */
