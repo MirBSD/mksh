@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.419 2011/03/12 01:04:39 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.420 2011/03/12 20:20:14 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -6949,9 +6949,25 @@ description:
 stdin:
 	echo $(case 1 in (1) echo yes;; (2) echo no;; esac)
 	echo $(case 1 in 1) echo yes;; 2) echo no;; esac)
+	echo $(($(case 1 in (1) echo 1;; (*) echo 2;; esac)+10))
+	echo $(($(case 1 in 1) echo 1;; *) echo 2;; esac)+20))
+	TEST=1234; echo ${TEST: $(case 1 in (1) echo 1;; (*) echo 2;; esac)}
+	TEST=5678; echo ${TEST: $(case 1 in 1) echo 1;; *) echo 2;; esac)}
+	(( a = $(case 1 in (1) echo 1;; (*) echo 2;; esac) )); echo $a.
+	(( a = $(case 1 in 1) echo 1;; *) echo 2;; esac) )); echo $a.
+	a=($(case 1 in (1) echo 1;; (*) echo 2;; esac)); echo ${a[0]}.
+	a=($(case 1 in 1) echo 1;; *) echo 2;; esac)); echo ${a[0]}.
 expected-stdout:
 	yes
 	yes
+	11
+	21
+	234
+	678
+	1.
+	1.
+	1.
+	1.
 ---
 name: comsub-2
 description:

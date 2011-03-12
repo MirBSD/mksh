@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.54 2011/03/06 01:25:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.55 2011/03/12 20:20:17 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -1093,6 +1093,10 @@ yyrecursive(void)
 	char *cp;
 	bool old_reject;
 	int old_symbol;
+	extern short comsub_nesting_level;
+
+	/* tell the lexer to accept a closing parenthesis as EOD */
+	++comsub_nesting_level;
 
 	/* push reject state, parse recursively, pop reject state */
 	old_reject = reject;
@@ -1107,5 +1111,6 @@ yyrecursive(void)
 	cp = snptreef(NULL, 0, "%T", t->left);
 	tfree(t, ATEMP);
 
+	--comsub_nesting_level;
 	return (cp);
 }

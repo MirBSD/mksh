@@ -1,4 +1,3 @@
-
 /*	$OpenBSD: lex.c,v 1.44 2008/07/03 17:52:08 otto Exp $	*/
 
 /*-
@@ -23,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.129 2011/03/07 20:32:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.130 2011/03/12 20:20:16 tg Exp $");
 
 /*
  * states while lexing word
@@ -100,7 +99,7 @@ static int dopprompt(const char *, int, bool);
 
 static int backslash_skip;
 static int ignore_backslash_newline;
-static int comsub_nesting_level;
+short comsub_nesting_level = 0;
 
 /* optimised getsc_bn() */
 #define _getsc()	(*source->str != '\0' && *source->str != '\\' \
@@ -360,9 +359,7 @@ yylex(int cf)
 					} else {
 						ungetsc(c);
  subst_command:
-						++comsub_nesting_level;
 						sp = yyrecursive();
-						--comsub_nesting_level;
 						c2 = strlen(sp) + 1;
 						XcheckN(ws, wp, c2);
 						*wp++ = COMSUB;
@@ -751,11 +748,13 @@ yylex(int cf)
 		case SLETARRAY:
 			if (c == '('/*)*/)
 				++statep->nparen;
-			else if (c == /*(*/')')
+			else if (c == /*(*/')') {
 				if (statep->nparen-- == 0) {
 					c = 0;
 					goto Done;
 				}
+			} else if (c == '$')
+				goto subst_dollar;
 			*wp++ = CHAR;
 			*wp++ = c;
 			break;
