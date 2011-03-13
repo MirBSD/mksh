@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.140 2011/03/13 16:07:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.141 2011/03/13 16:20:45 tg Exp $");
 
 /*
  * states while lexing word
@@ -1729,13 +1729,18 @@ arraysub(char **strp)
 static void
 ungetsc(int c)
 {
+	struct sretrace_info *rp = retrace_info;
+
 	if (backslash_skip)
 		backslash_skip--;
 	/* Don't unget EOF... */
 	if (source->str == null && c == '\0')
 		return;
-	if (retrace_info && Xlength(retrace_info->xs, retrace_info->xp))
-		retrace_info->xp--;
+	while (rp) {
+		if (Xlength(rp->xs, rp->xp))
+			rp->xp--;
+		rp = rp->next;
+	}
 	ungetsc_(c);
 }
 static void
