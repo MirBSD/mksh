@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.87 2011/02/18 22:26:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.88 2011/03/13 01:20:18 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -336,7 +336,7 @@ execute(struct op * volatile t,
 		    (const char **)eval((const char **)t->vars,
 		    DOBLANK | DOGLOB | DOTILDE);
 		e->type = E_LOOP;
-		while (1) {
+		while (/* CONSTCOND */ 1) {
 			i = sigsetjmp(e->jbuf, 0);
 			if (!i)
 				break;
@@ -374,7 +374,7 @@ execute(struct op * volatile t,
 	case TWHILE:
 	case TUNTIL:
 		e->type = E_LOOP;
-		while (1) {
+		while (/* CONSTCOND */ 1) {
 			i = sigsetjmp(e->jbuf, 0);
 			if (!i)
 				break;
@@ -958,7 +958,7 @@ define(const char *name, struct op *t)
 	struct tbl *tp;
 	bool was_set = false;
 
-	while (1) {
+	while (/* CONSTCOND */ 1) {
 		tp = findfunc(name, hash(name), true);
 
 		if (tp->flag & ISSET)
@@ -1491,7 +1491,7 @@ do_selectargs(const char **ap, bool print_menu)
 
 	for (argct = 0; ap[argct]; argct++)
 		;
-	while (1) {
+	while (/* CONSTCOND */ 1) {
 		/*-
 		 * Menu is printed if
 		 *	- this is the first time around the select loop

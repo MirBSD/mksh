@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.205 2011/03/07 20:30:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.206 2011/03/13 01:20:16 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1138,7 +1138,7 @@ x_emacs(char *buf, size_t len)
 		x_nextcmd = -1;
 	}
 	editmode = 1;
-	while (1) {
+	while (/* CONSTCOND */ 1) {
 		x_flush();
 		if ((c = x_e_getc()) < 0)
 			return (0);
@@ -1797,7 +1797,7 @@ x_search_hist(int c)
 	unsigned char f;
 
 	*p = '\0';
-	while (1) {
+	while (/* CONSTCOND */ 1) {
 		if (offset < 0) {
 			x_e_puts("\nI-search: ");
 			x_e_puts(pat);
@@ -3474,7 +3474,7 @@ x_vi(char *buf, size_t len)
 
 	editmode = 2;
 	x_flush();
-	while (1) {
+	while (/* CONSTCOND */ 1) {
 		if (macro.p) {
 			c = *macro.p++;
 			/* end of current macro? */

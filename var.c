@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.117 2011/03/07 20:30:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.118 2011/03/13 01:20:25 tg Exp $");
 
 /*
  * Variables
@@ -910,7 +910,7 @@ skip_wdvarname(const char *s,
 			char c;
 			int depth = 0;
 
-			while (1) {
+			while (/* CONSTCOND */ 1) {
 				if (p[0] != CHAR)
 					break;
 				c = p[1];

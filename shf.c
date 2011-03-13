@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.40 2010/09/14 21:26:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.41 2011/03/13 01:20:23 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -420,7 +420,7 @@ shf_fillbuf(struct shf *shf)
 	shf->flags |= SHF_READING;
 
 	shf->rp = shf->buf;
-	while (1) {
+	while (/* CONSTCOND */ 1) {
 		n = blocking_read(shf->fd, (char *)shf->buf, shf->rbsize);
 		if (n < 0 && errno == EINTR && !(shf->flags & SHF_INTERRUPT))
 			continue;

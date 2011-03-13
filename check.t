@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.422 2011/03/12 23:06:41 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.423 2011/03/13 01:20:14 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/03/08
+	@(#)MIRBSD KSH R39 2011/03/12
 description:
 	Check version of shell.
 stdin:
@@ -6945,6 +6945,8 @@ description:
 stdin:
 	echo $(case 1 in (1) echo yes;; (2) echo no;; esac)
 	echo $(case 1 in 1) echo yes;; 2) echo no;; esac)
+	echo $(($(case 1 in (1) echo 1;; (*) echo 2;; esac)+10))
+	echo $(($(case 1 in 1) echo 1;; *) echo 2;; esac)+20))
 	TEST=1234; echo ${TEST: $(case 1 in (1) echo 1;; (*) echo 2;; esac)}
 	TEST=5678; echo ${TEST: $(case 1 in 1) echo 1;; *) echo 2;; esac)}
 	(( a = $(case 1 in (1) echo 1;; (*) echo 2;; esac) )); echo $a.
@@ -6952,6 +6954,8 @@ stdin:
 expected-stdout:
 	yes
 	yes
+	11
+	21
 	234
 	678
 	1.
@@ -6962,13 +6966,9 @@ description:
 	COMSUB inside SLETARRAY and SASPAREN/EXPRSUB
 expected-fail: yes
 stdin:
-	echo $(($(case 1 in (1) echo 1;; (*) echo 2;; esac)+10))
-	echo $(($(case 1 in 1) echo 1;; *) echo 2;; esac)+20))
 	a=($(case 1 in (1) echo 1;; (*) echo 2;; esac)); echo ${a[0]}.
 	a=($(case 1 in 1) echo 1;; *) echo 2;; esac)); echo ${a[0]}.
 expected-stdout:
-	11
-	21
 	1.
 	1.
 ---

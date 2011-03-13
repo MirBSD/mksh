@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.175 2011/03/07 20:30:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.176 2011/03/13 01:20:19 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2172,7 +2172,7 @@ c_read(const char **wp)
 			if (c == delim || c == EOF)
 				break;
 			/* loop to read one character */
-			while (1) {
+			while (/* CONSTCOND */ 1) {
 				c = shf_getc(shf);
 				/* we break unless NUL or EOF, so... */
 				if (c == delim)
@@ -3636,7 +3636,7 @@ c_cat(const char **wp)
 				continue;
 			}
 		}
-		while (1) {
+		while (/* CONSTCOND */ 1) {
 			n = blocking_read(fd, (cp = buf), MKSH_CAT_BUFSIZ);
 			if (n == -1) {
 				if (errno == EINTR)

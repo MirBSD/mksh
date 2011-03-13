@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.55 2011/03/12 20:20:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.56 2011/03/13 01:20:24 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -66,7 +66,7 @@ static int symbol;			/* yylex value */
 #define ACCEPT		(reject = false)
 #define token(cf)	((reject) ? (ACCEPT, symbol) : (symbol = yylex(cf)))
 #define tpeek(cf)	((reject) ? (symbol) : (REJECT, symbol = yylex(cf)))
-#define musthave(c,cf)	do { if (token(cf) != (c)) syntaxerr(NULL); } while (0)
+#define musthave(c,cf)	do { if (token(cf) != (c)) syntaxerr(NULL); } while (/* CONSTCOND */ 0)
 
 static void
 yyparse(void)
@@ -128,7 +128,7 @@ c_list(bool multi)
 	int c;
 	bool have_sep;
 
-	while (1) {
+	while (/* CONSTCOND */ 1) {
 		p = andor();
 		/*
 		 * Token has always been read/rejected at this point, so
@@ -256,7 +256,7 @@ get_command(int cf)
 		syniocf &= ~(KEYWORD|ALIAS);
 		t = newtp(TCOM);
 		t->lineno = source->line;
-		while (1) {
+		while (/* CONSTCOND */ 1) {
 			cf = (t->u.evalflags ? ARRAYVAR : 0) |
 			    (XPsize(args) == 0 ? ALIAS|VARASN : CMDWORD);
 			switch (tpeek(cf)) {

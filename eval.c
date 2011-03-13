@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.98 2011/03/12 23:06:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.99 2011/03/13 01:20:17 tg Exp $");
 
 /*
  * string expansion
@@ -246,7 +246,7 @@ expand(const char *cp,	/* input word */
 	memset(&st_head, 0, sizeof(st_head));
 	st = &st_head;
 
-	while (1) {
+	while (/* CONSTCOND */ 1) {
 		Xcheck(ds, dp);
 
 		switch (type) {

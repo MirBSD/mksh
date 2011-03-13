@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.179 2011/03/05 21:43:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.180 2011/03/13 01:20:21 tg Exp $");
 
 extern char **environ;
 
@@ -716,7 +716,7 @@ shell(Source * volatile s, volatile int toplevel)
 			/* NOTREACHED */
 		}
 	}
-	while (1) {
+	while (/* CONSTCOND */ 1) {
 		if (trap)
 			runtraps(0);
 
@@ -781,7 +781,7 @@ unwind(int i)
 		--trap_nested;
 		i = LLEAVE;
 	}
-	while (1) {
+	while (/* CONSTCOND */ 1) {
 		switch (e->type) {
 		case E_PARSE:
 		case E_FUNC:

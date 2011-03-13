@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.153 2011/03/07 20:30:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.154 2011/03/13 01:20:21 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1594,11 +1594,11 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		break;
 	case 'U':
 		i = 8;
-		if (0)
+		if (/* CONSTCOND */ 0)
 		/* FALLTHROUGH */
 	case 'u':
 		i = 4;
-		if (0)
+		if (/* CONSTCOND */ 0)
 		/* FALLTHROUGH */
 	case 'x':
 		i = cstyle ? -1 : 2;

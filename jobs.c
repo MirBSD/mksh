@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.76 2011/03/06 17:08:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.77 2011/03/13 01:20:20 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -293,7 +293,7 @@ j_change(void)
 			setsig(&sigtraps[SIGTTIN], SIG_DFL,
 			    SS_RESTORE_ORIG|SS_FORCE);
 			/* wait to be given tty (POSIX.1, B.2, job control) */
-			while (1) {
+			while (/* CONSTCOND */ 1) {
 				pid_t ttypgrp;
 
 				if ((ttypgrp = tcgetpgrp(tty_fd)) < 0) {
@@ -1310,9 +1310,9 @@ j_sigchld(int sig MKSH_A_UNUSED)
 		check_job(j);
 	}
 #ifndef MKSH_NOPROSPECTOFWORK
-	    while (1);
+	    while (/* CONSTCOND */ 1);
 #else
-	    while (0);
+	    while (/* CONSTCOND */ 0);
 #endif
 }
 

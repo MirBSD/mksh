@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.39 2011/03/12 23:04:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.40 2011/03/13 01:20:24 tg Exp $");
 
 #define INDENT	8
 
@@ -279,7 +279,7 @@ tputS(const char *wp, struct shf *shf)
 	 *	OQUOTE ["'] ... CQUOTE ["']
 	 *	COMSUB [(`] ...\0	(handle $ ` \ and maybe " in `...` case)
 	 */
-	while (1)
+	while (/* CONSTCOND */ 1)
 		switch (*wp++) {
 		case EOS:
 			return;
@@ -515,7 +515,7 @@ wdscan(const char *wp, int c)
 {
 	int nest = 0;
 
-	while (1)
+	while (/* CONSTCOND */ 1)
 		switch (*wp++) {
 		case EOS:
 			return (wp);
@@ -590,7 +590,7 @@ wdstrip_internal(struct shf *shf, const char *wp, bool keepq, bool make_magic)
 	 *	x${foo:-"hi"} -> x${foo:-hi}
 	 *	x${foo:-'hi'} -> x${foo:-hi} unless keepq
 	 */
-	while (1)
+	while (/* CONSTCOND */ 1)
 		switch (*wp++) {
 		case EOS:
 			return;
@@ -799,7 +799,7 @@ dumpwdvar(struct shf *shf, const char *wp)
 {
 	int c, quotelevel = 0;
 
-	while (1) {
+	while (/* CONSTCOND */ 1) {
 		switch(*wp++) {
 		case EOS:
 			shf_puts("EOS", shf);
