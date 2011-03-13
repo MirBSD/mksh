@@ -20,7 +20,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.16 2011/03/05 21:48:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.17 2011/03/13 10:50:44 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -61,8 +61,15 @@ findptr(ALLOC_ITEM **lpp, char *ptr, Area *ap)
 #ifndef MKSH_SMALL
  fail:
 #endif
+#ifdef DEBUG
+			internal_warningf("rogue pointer %lX in ap %lX",
+			    (long)(ptrdiff_t)ptr, (long)(ptrdiff_t)ap);
+			/* try to get a coredump */
+			abort();
+#else
 			internal_errorf("rogue pointer %lX",
 			    (long)(ptrdiff_t)ptr);
+#endif
 		}
 	return (ap);
 }
