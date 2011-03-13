@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.138 2011/03/13 15:57:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.139 2011/03/13 16:03:51 tg Exp $");
 
 /*
  * states while lexing word
@@ -103,6 +103,7 @@ static Lex_state *push_state_(State_info *, Lex_state *);
 static Lex_state *pop_state_(State_info *, Lex_state *);
 
 static int dopprompt(const char *, int, bool);
+void yyskiputf8bom(void);
 
 static int backslash_skip;
 static int ignore_backslash_newline;
@@ -110,12 +111,10 @@ static struct sretrace_info *retrace_info = NULL;
 short comsub_nesting_level = 0;
 
 /* optimised getsc_bn() */
-#define _getsc()	(*source->str != '\0' && *source->str != '\\' \
-			 && !backslash_skip && !(source->flags & SF_FIRST) \
-			 ? *source->str++ : getsc_bn())
+#define _getsc()	(*source->str != '\0' && *source->str != '\\' && \
+			    !backslash_skip ? *source->str++ : getsc_bn())
 /* optimised getsc__() */
-#define	_getsc_()	((*source->str != '\0') && !(source->flags & SF_FIRST) \
-			 ? *source->str++ : getsc__())
+#define	_getsc_()	((*source->str != '\0') ? *source->str++ : getsc__())
 
 /* retrace helper */
 #define _getsc_r(carg)	{				\
@@ -1293,7 +1292,6 @@ getsc__(void)
 	Source *s = source;
 	int c;
 
- getsc_again:
 	while ((c = *s->str++) == 0) {
 		/* return 0 for EOF by default */
 		s->str = NULL;
@@ -1388,17 +1386,6 @@ getsc__(void)
 		if (s->flags & SF_ECHO) {
 			shf_puts(s->str, shl_out);
 			shf_flush(shl_out);
-		}
-	}
-	/* check for UTF-8 byte order mark */
-	if (s->flags & SF_FIRST) {
-		s->flags &= ~SF_FIRST;
-		if (((unsigned char)c == 0xEF) &&
-		    (((const unsigned char *)(s->str))[0] == 0xBB) &&
-		    (((const unsigned char *)(s->str))[1] == 0xBF)) {
-			s->str += 2;
-			UTFMODE = 1;
-			goto getsc_again;
 		}
 	}
 	return (c);
@@ -1797,6 +1784,29 @@ getsc_bn(void)
 		}
 		return (c);
 	}
+}
+
+void
+yyskiputf8bom(void)
+{
+	int c;
+
+	if ((unsigned char)(c = _getsc_()) != 0xEF) {
+		ungetsc_(c);
+		return;
+	}
+	if ((unsigned char)(c = _getsc_()) != 0xBB) {
+		ungetsc_(c);
+		ungetsc_(0xEF);
+		return;
+	}
+	if ((unsigned char)(c = _getsc_()) != 0xBF) {
+		ungetsc_(c);
+		ungetsc_(0xBB);
+		ungetsc_(0xEF);
+		return;
+	}
+	UTFMODE |= 8;
 }
 
 static Lex_state *

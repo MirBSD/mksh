@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.99 2011/03/13 01:20:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.100 2011/03/13 16:03:50 tg Exp $");
 
 /*
  * string expansion
@@ -1182,11 +1182,12 @@ comsub(Expand *xp, const char *cp)
 	Source *s, *sold;
 	struct op *t;
 	struct shf *shf;
+	uint8_t old_utfmode = UTFMODE;
 
 	s = pushs(SSTRING, ATEMP);
 	s->start = s->str = cp;
 	sold = source;
-	t = compile(s);
+	t = compile(s, true);
 	afree(s, ATEMP);
 	source = sold;
 
@@ -1224,6 +1225,7 @@ comsub(Expand *xp, const char *cp)
 		xp->split = 1;
 	}
 
+	UTFMODE = old_utfmode;
 	xp->u.shf = shf;
 	return (XCOM);
 }

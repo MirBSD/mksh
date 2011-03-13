@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.180 2011/03/13 01:20:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.181 2011/03/13 16:03:52 tg Exp $");
 
 extern char **environ;
 
@@ -663,11 +663,9 @@ shell(Source * volatile s, volatile int toplevel)
 	volatile int wastty = s->flags & SF_TTY;
 	volatile int attempts = 13;
 	volatile int interactive = Flag(FTALKING) && toplevel;
+	volatile bool sfirst = true;
 	Source *volatile old_source = source;
 	int i;
-
-	/* enable UTF-8 BOM check */
-	s->flags |= SF_FIRST;
 
 	newenv(E_PARSE);
 	if (interactive)
@@ -730,7 +728,8 @@ shell(Source * volatile s, volatile int toplevel)
 			j_notify();
 			set_prompt(PS1, s);
 		}
-		t = compile(s);
+		t = compile(s, sfirst);
+		sfirst = false;
 		if (t != NULL && t->type == TEOF) {
 			if (wastty && Flag(FIGNOREEOF) && --attempts > 0) {
 				shellf("Use 'exit' to leave mksh\n");

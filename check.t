@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.424 2011/03/13 15:57:21 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.425 2011/03/13 16:03:49 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/03/12
+	@(#)MIRBSD KSH R39 2011/03/13
 description:
 	Check version of shell.
 stdin:
@@ -5373,7 +5373,7 @@ expected-stdout:
 	mit
 	ohne
 	=
-	﻿: mit
+	﻿: ohne
 ---
 name: utf8bom-2
 description:
@@ -5404,12 +5404,17 @@ expected-stderr-pattern:
 name: utf8bom-3
 description:
 	Reading the UTF-8 BOM should enable the utf8-mode flag
+	(temporarily for COMSUBs)
 stdin:
 	"$__progname" -c ':; if [[ $- = *U* ]]; then echo 1 on; else echo 1 off; fi'
 	"$__progname" -c '﻿:; if [[ $- = *U* ]]; then echo 2 on; else echo 2 off; fi'
+	"$__progname" -c 'if [[ $- = *U* ]]; then echo 3 on; else echo 3 off; fi; x=$(﻿:; if [[ $- = *U* ]]; then echo 4 on; else echo 4 off; fi); echo $x; if [[ $- = *U* ]]; then echo 5 on; else echo 5 off; fi'
 expected-stdout:
 	1 off
 	2 on
+	3 off
+	4 on
+	5 off
 ---
 name: utf8opt-1a
 description:

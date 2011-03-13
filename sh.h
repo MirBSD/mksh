@@ -154,9 +154,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.444 2011/03/13 01:20:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.445 2011/03/13 16:03:53 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2011/03/12"
+#define MKSH_VERSION "R39 2011/03/13"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1353,8 +1353,7 @@ struct source {
 #define SF_ALIAS	BIT(1)	/* faking space at end of alias */
 #define SF_ALIASEND	BIT(2)	/* faking space at end of alias */
 #define SF_TTY		BIT(3)	/* type == SSTDIN & it is a tty */
-#define SF_FIRST	BIT(4)	/* initial state (to ignore UTF-8 BOM) */
-#define SF_HASALIAS	BIT(5)	/* u.tblp valid (SALIAS, SEOF) */
+#define SF_HASALIAS	BIT(4)	/* u.tblp valid (SALIAS, SEOF) */
 
 typedef union {
 	int i;
@@ -1741,7 +1740,7 @@ int shf_vfprintf(struct shf *, const char *, va_list)
     MKSH_A_FORMAT(printf, 2, 0);
 /* syn.c */
 void initkeywords(void);
-struct op *compile(Source *);
+struct op *compile(Source *, bool);
 bool parse_usec(const char *, struct timeval *);
 char *yyrecursive(void);
 /* tree.c */
