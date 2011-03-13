@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.139 2011/03/13 16:03:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.140 2011/03/13 16:07:36 tg Exp $");
 
 /*
  * states while lexing word
@@ -618,10 +618,6 @@ yylex(int cf)
 
 		/* $(( ... )) */
 		case SASPAREN:
-			/*
-			 * XXX should nest using existing state machine
-			 * (embed "...", $(...), etc.)
-			 */
 			if (c == '(')
 				statep->nparen++;
 			else if (c == ')') {
@@ -659,6 +655,7 @@ yylex(int cf)
 					}
 				}
 			}
+			/* reuse existing state machine */
 			goto Sbase2;
 
 		case SQBRACE:
@@ -802,6 +799,7 @@ yylex(int cf)
 					goto Done;
 				}
 			}
+			/* reuse existing state machine */
 			goto Sbase2;
 #endif
 
