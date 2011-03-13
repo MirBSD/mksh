@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.136 2011/03/13 01:11:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.137 2011/03/13 15:31:46 tg Exp $");
 
 /*
  * states while lexing word
@@ -660,8 +660,6 @@ yylex(int cf)
 				}
 			}
 			goto Sbase2;
-			*wp++ = c;
-			break;
 
 		case SQBRACE:
 			if (c == '\\') {
