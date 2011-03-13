@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.135 2011/03/12 23:16:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.136 2011/03/13 01:11:58 tg Exp $");
 
 /*
  * states while lexing word
@@ -46,6 +46,12 @@ __RCSID("$MirOS: src/bin/mksh/lex.c,v 1.135 2011/03/12 23:16:51 tg Exp $");
 #define SHERESTRING	16	/* parsing <<< string */
 #define SINVALID	255	/* invalid state */
 
+struct sretrace_info {
+	struct sretrace_info *next;
+	XString xs;
+	char *xp;
+};
+
 /*
  * Structure to keep track of the lexing state and the various pieces of info
  * needed for each particular state.
@@ -54,7 +60,7 @@ typedef struct lex_state {
 	union {
 		/* point to the next state block */
 		struct lex_state *base;
-		/* marks start of $(( in output string */
+		/* marks start of state output in output string */
 		int start;
 		/* SBQUOTE: true if in double quotes: "`...`" */
 		/* SEQUOTE: got NUL, ignore rest of string */
@@ -83,6 +89,8 @@ typedef struct {
 } State_info;
 
 static void readhere(struct ioword *);
+static void ungetsc(int);
+static void ungetsc_(int);
 static int getsc__(void);
 static void getsc_line(Source *);
 static int getsc_bn(void);
@@ -90,7 +98,6 @@ static int s_get(void);
 static void s_put(int);
 static char *get_brace_var(XString *, char *);
 static bool arraysub(char **);
-static const char *ungetsc(int);
 static void gethere(bool);
 static Lex_state *push_state_(State_info *, Lex_state *);
 static Lex_state *pop_state_(State_info *, Lex_state *);
@@ -99,6 +106,7 @@ static int dopprompt(const char *, int, bool);
 
 static int backslash_skip;
 static int ignore_backslash_newline;
+static struct sretrace_info *retrace_info = NULL;
 short comsub_nesting_level = 0;
 
 /* optimised getsc_bn() */
@@ -109,25 +117,38 @@ short comsub_nesting_level = 0;
 #define	_getsc_()	((*source->str != '\0') && !(source->flags & SF_FIRST) \
 			 ? *source->str++ : getsc__())
 
+/* retrace helper */
+#define _getsc_r(carg)	{				\
+	int cev = (carg);				\
+	struct sretrace_info *rp = retrace_info;	\
+							\
+	while (rp) {					\
+		Xcheck(rp->xs, rp->xp);			\
+		*rp->xp++ = cev;			\
+		rp = rp->next;				\
+	}						\
+							\
+	return (cev);					\
+}
+
 #ifdef MKSH_SMALL
 static int getsc(void);
-static int getsc_(void);
 
 static int
 getsc(void)
 {
-	return (_getsc());
-}
-
-static int
-getsc_(void)
-{
-	return (_getsc_());
+	_getsc_r(_getsc());
 }
 #else
-/* !MKSH_SMALL: use them inline */
-#define getsc()		_getsc()
-#define getsc_()	_getsc_()
+static int getsc_r(int);
+
+static int
+getsc_r(int c)
+{
+	_getsc_r(c);
+}
+
+#define getsc()		getsc_r(_getsc())
 #endif
 
 #define STATE_BSIZE	8
@@ -136,13 +157,32 @@ getsc_(void)
 	if (++statep == state_info.end)				\
 		statep = push_state_(&state_info, statep);	\
 	state = statep->type = (s);				\
-} while (0)
+} while (/* CONSTCOND */ 0)
 
 #define POP_STATE()	do {					\
 	if (--statep == state_info.base)			\
 		statep = pop_state_(&state_info, statep);	\
 	state = statep->type;					\
-} while (0)
+} while (/* CONSTCOND */ 0)
+
+#define PUSH_SRETRACE()	do {					\
+	struct sretrace_info *ri;				\
+								\
+	statep->ls_start = Xsavepos(ws, wp);			\
+	ri = alloc(sizeof(struct sretrace_info), ATEMP);	\
+	Xinit(ri->xs, ri->xp, 64, ATEMP);			\
+	ri->next = retrace_info;				\
+	retrace_info = ri;					\
+} while (/* CONSTCOND */ 0)
+
+#define POP_SRETRACE()	do {					\
+	wp = Xrestpos(ws, wp, statep->ls_start);		\
+	*retrace_info->xp = '\0';				\
+	sp = Xstring(retrace_info->xs, retrace_info->xp);	\
+	dp = (void *)retrace_info;				\
+	retrace_info = retrace_info->next;			\
+	afree(dp, ATEMP);					\
+} while (/* CONSTCOND */ 0)
 
 /**
  * Lexical analyser
@@ -351,11 +391,11 @@ yylex(int cf)
 				if (c == '(') /*)*/ {
 					c = getsc();
 					if (c == '(') /*)*/ {
+						*wp++ = EXPRSUB;
 						PUSH_STATE(SASPAREN);
 						statep->nparen = 2;
-						statep->ls_start =
-						    Xsavepos(ws, wp);
-						*wp++ = EXPRSUB;
+						PUSH_SRETRACE();
+						*retrace_info->xp++ = '(';
 					} else {
 						ungetsc(c);
  subst_command:
@@ -498,7 +538,7 @@ yylex(int cf)
 				statep->ls_bool = false;
 				s2 = statep;
 				base = state_info.base;
-				while (1) {
+				while (/* CONSTCOND */ 1) {
 					for (; s2 != base; s2--) {
 						if (s2->type == SDQUOTE) {
 							statep->ls_bool = true;
@@ -588,11 +628,16 @@ yylex(int cf)
 				statep->nparen--;
 				if (statep->nparen == 1) {
 					/* end of EXPRSUB */
-					*wp++ = EOS;
-					/* EOS == '\0', coincidentally */
+					POP_SRETRACE();
+					POP_STATE();
 
-					if ((c2 = getsc()) == /*(*/')') {
-						POP_STATE();
+					if ((c2 = getsc()) == /*(*/ ')') {
+						c = strlen(sp) - 2;
+						XcheckN(ws, wp, c);
+						memcpy(wp, sp + 1, c);
+						wp += c;
+						afree(sp, ATEMP);
+						*wp++ = '\0';
 						break;
 					} else {
 						Source *s;
@@ -603,23 +648,18 @@ yylex(int cf)
 						 * assume we were really
 						 * parsing a $(...) expression
 						 */
-						wp = Xrestpos(ws, wp,
-						    statep->ls_start);
-						POP_STATE();
-						/* dp = $((blah))\0 */
-						dp = wdstrip(wp, true, false);
+						--wp;
 						s = pushs(SREREAD,
 						    source->areap);
 						s->start = s->str =
-						    (s->u.freeme = dp) + 2;
-						dp[strlen(dp) - 1] = 0;
-						/* s->str = (blah)\0 */
+						    s->u.freeme = sp;
 						s->next = source;
 						source = s;
 						goto subst_command;
 					}
 				}
 			}
+			goto Sbase2;
 			*wp++ = c;
 			break;
 
@@ -754,7 +794,7 @@ yylex(int cf)
 					c = 0;
 					goto Done;
 				}
-			} 
+			}
 			*wp++ = CHAR;
 			*wp++ = c;
 			break;
@@ -1395,7 +1435,7 @@ getsc_line(Source *s)
 		else
 			s->line++;
 
-		while (1) {
+		while (/* CONSTCOND */ 1) {
 			char *p = shf_getse(xp, Xnleft(s->xs, xp), s->u.shf);
 
 			if (!p && shf_error(s->u.shf) &&
@@ -1607,7 +1647,7 @@ get_brace_var(XString *wsp, char *wp)
 	char c;
 
 	state = PS_INITIAL;
-	while (1) {
+	while (/* CONSTCOND */ 1) {
 		c = getsc();
 		/* State machine to figure out where the variable part ends. */
 		switch (state) {
@@ -1695,14 +1735,21 @@ arraysub(char **strp)
 }
 
 /* Unget a char: handles case when we are already at the start of the buffer */
-static const char *
+static void
 ungetsc(int c)
 {
 	if (backslash_skip)
 		backslash_skip--;
 	/* Don't unget EOF... */
 	if (source->str == null && c == '\0')
-		return (source->str);
+		return;
+	if (retrace_info && Xlength(retrace_info->xs, retrace_info->xp))
+		retrace_info->xp--;
+	ungetsc_(c);
+}
+static void
+ungetsc_(int c)
+{
 	if (source->str > source->start)
 		source->str--;
 	else {
@@ -1714,7 +1761,6 @@ ungetsc(int c)
 		s->next = source;
 		source = s;
 	}
-	return (source->str);
 }
 
 
@@ -1725,22 +1771,22 @@ getsc_bn(void)
 	int c, c2;
 
 	if (ignore_backslash_newline)
-		return (getsc_());
+		return (_getsc_());
 
 	if (backslash_skip == 1) {
 		backslash_skip = 2;
-		return (getsc_());
+		return (_getsc_());
 	}
 
 	backslash_skip = 0;
 
-	while (1) {
-		c = getsc_();
+	while (/* CONSTCOND */ 1) {
+		c = _getsc_();
 		if (c == '\\') {
-			if ((c2 = getsc_()) == '\n')
+			if ((c2 = _getsc_()) == '\n')
 				/* ignore the \newline; get the next char... */
 				continue;
-			ungetsc(c2);
+			ungetsc_(c2);
 			backslash_skip = 1;
 		}
 		return (c);
