@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.426 2011/03/13 16:20:43 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.427 2011/03/13 17:07:08 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -6941,34 +6941,49 @@ stdin:
 expected-stdout:
 	Fowl
 ---
-name: comsub-1
+name: comsub-1a
 description:
 	COMSUB are now parsed recursively, so this works
 	see also regression-6: matching parenthesēs bug
 	Fails on: pdksh bash2 bash3 zsh
-	Passes on: bash4 ksh93 mksh(20110305+)
+	Passes on: bash4 ksh93 mksh(20110313+)
 stdin:
 	echo $(case 1 in (1) echo yes;; (2) echo no;; esac)
 	echo $(case 1 in 1) echo yes;; 2) echo no;; esac)
-	echo $(($(case 1 in (1) echo 1;; (*) echo 2;; esac)+10))
-	echo $(($(case 1 in 1) echo 1;; *) echo 2;; esac)+20))
-	a=($(case 1 in (1) echo 1;; (*) echo 2;; esac)); echo ${a[0]}.
-	a=($(case 1 in 1) echo 1;; *) echo 2;; esac)); echo ${a[0]}.
 	TEST=1234; echo ${TEST: $(case 1 in (1) echo 1;; (*) echo 2;; esac)}
 	TEST=5678; echo ${TEST: $(case 1 in 1) echo 1;; *) echo 2;; esac)}
-	(( a = $(case 1 in (1) echo 1;; (*) echo 2;; esac) )); echo $a.
-	(( a = $(case 1 in 1) echo 1;; *) echo 2;; esac) )); echo $a.
-	a=($(($(case 1 in (1) echo 1;; (*) echo 2;; esac)+10))); echo ${a[0]}.
-	a=($(($(case 1 in 1) echo 1;; *) echo 2;; esac)+20))); echo ${a[0]}.
 expected-stdout:
 	yes
 	yes
+	234
+	678
+---
+name: comsub-1b
+description:
+	COMSUB are now parsed recursively, so this works
+	Fails on GNU bash even, ksh93 passes
+stdin:
+	echo $(($(case 1 in (1) echo 1;; (*) echo 2;; esac)+10))
+	echo $(($(case 1 in 1) echo 1;; *) echo 2;; esac)+20))
+	(( a = $(case 1 in (1) echo 1;; (*) echo 2;; esac) )); echo $a.
+	(( a = $(case 1 in 1) echo 1;; *) echo 2;; esac) )); echo $a.
+expected-stdout:
 	11
 	21
 	1.
 	1.
-	234
-	678
+---
+name: comsub-1c
+description:
+	COMSUB are now parsed recursively, so this works (ksh93, mksh)
+	First test passes on bash4, second fails there
+category: !smksh
+stdin:
+	a=($(case 1 in (1) echo 1;; (*) echo 2;; esac)); echo ${a[0]}.
+	a=($(case 1 in 1) echo 1;; *) echo 2;; esac)); echo ${a[0]}.
+	a=($(($(case 1 in (1) echo 1;; (*) echo 2;; esac)+10))); echo ${a[0]}.
+	a=($(($(case 1 in 1) echo 1;; *) echo 2;; esac)+20))); echo ${a[0]}.
+expected-stdout:
 	1.
 	1.
 	11.
