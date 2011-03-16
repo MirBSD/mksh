@@ -1,6 +1,6 @@
 /*	$OpenBSD: edit.c,v 1.34 2010/05/20 01:13:07 fgsch Exp $	*/
 /*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
-/*	$OpenBSD: emacs.c,v 1.42 2009/06/02 06:47:47 halex Exp $	*/
+/*	$OpenBSD: emacs.c,v 1.43 2011/03/14 21:20:01 okan Exp $	*/
 /*	$OpenBSD: vi.c,v 1.26 2009/06/29 22:50:19 martynas Exp $	*/
 
 /*-
@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.206 2011/03/13 01:20:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.207 2011/03/16 20:31:32 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
