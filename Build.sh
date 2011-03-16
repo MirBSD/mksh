@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.472 2011/02/27 19:29:18 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.473 2011/03/16 20:03:21 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -976,13 +976,13 @@ ac_test attribute_format '' 'for __attribute__((format))' <<-'EOF'
 	/* force a failure: gcc 1.42 has a false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
-	#define printf printfoo
+	#define fprintf printfoo
 	#include <stdio.h>
 	#undef __attribute__
-	#undef printf
-	extern int printf(const char *format, ...)
-	    __attribute__((format (printf, 1, 2)));
-	int main(int ac, char **av) { return (printf("%s%d", *av, ac)); }
+	#undef fprintf
+	extern int fprintf(FILE *, const char *format, ...)
+	    __attribute__((format (printf, 2, 3)));
+	int main(int ac, char **av) { return (fprintf(stderr, "%s%d", *av, ac)); }
 	#endif
 EOF
 ac_test attribute_nonnull '' 'for __attribute__((nonnull))' <<-'EOF'
