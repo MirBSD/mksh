@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.176 2011/03/13 01:20:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.177 2011/03/16 20:56:32 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -58,6 +58,10 @@ __RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.176 2011/03/13 01:20:19 tg Exp $");
 
 #ifdef MKSH_NO_LIMITS
 #define c_ulimit c_label
+#endif
+
+#if defined(ANDROID)
+static int c_android_lsmod(const char **);
 #endif
 
 extern uint8_t set_refflag;
@@ -130,6 +134,9 @@ const struct builtin mkshbuiltins[] = {
 #ifdef __MirBSD__
 	/* alias to "true" for historical reasons */
 	{"domainname", c_label},
+#endif
+#if defined(ANDROID)
+	{"lsmod", c_android_lsmod},
 #endif
 	{NULL, (int (*)(const char **))NULL}
 };
@@ -3715,5 +3722,16 @@ c_sleep(const char **wp)
 #endif
 	}
 	return (rv);
+}
+#endif
+
+#if defined(ANDROID)
+static int
+c_android_lsmod(const char **wp MKSH_A_UNUSED)
+{
+	const char *cwp[3] = { "cat", "/proc/modules", NULL };
+
+	builtin_argv0 = cwp[0];
+	return (c_cat(cwp));
 }
 #endif
