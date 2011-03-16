@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.427 2011/03/13 17:07:08 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.428 2011/03/16 20:26:34 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/03/13
+	@(#)MIRBSD KSH R39 2011/03/16
 description:
 	Check version of shell.
 stdin:
@@ -5505,7 +5505,7 @@ expected-stdout:
 name: aliases-1
 description:
 	Check if built-in shell aliases are okay
-category: !arge
+category: !android,!arge
 stdin:
 	alias
 	typeset -f
@@ -5546,6 +5546,28 @@ expected-stdout:
 	source='PATH=$PATH:. command .'
 	type='whence -v'
 ---
+name: aliases-1-android
+description:
+	Check if built-in shell aliases are okay
+category: android
+stdin:
+	alias
+	typeset -f
+expected-stdout:
+	autoload='typeset -fu'
+	functions='typeset -f'
+	hash='alias -t'
+	history='fc -l'
+	integer='typeset -i'
+	local=typeset
+	login='exec login'
+	lsmod='cat /proc/modules'
+	nameref='typeset -n'
+	nohup='nohup '
+	r='fc -e -'
+	source='PATH=$PATH:. command .'
+	type='whence -v'
+---
 name: aliases-2a
 description:
 	Check if “set -o sh” disables built-in aliases (except a few)
@@ -5562,7 +5584,6 @@ name: aliases-3a
 description:
 	Check if running as sh disables built-in aliases (except a few)
 category: disabled
-arguments: !-o!sh!
 stdin:
 	cp "$__progname" sh
 	./sh -c 'alias; typeset -f'
@@ -5574,7 +5595,7 @@ expected-stdout:
 name: aliases-2b
 description:
 	Check if “set -o sh” does not influence built-in aliases
-category: !arge
+category: !android,!arge
 arguments: !-o!sh!
 stdin:
 	alias
@@ -5598,8 +5619,7 @@ expected-stdout:
 name: aliases-3b
 description:
 	Check if running as sh does not influence built-in aliases
-category: !arge
-arguments: !-o!sh!
+category: !android,!arge
 stdin:
 	cp "$__progname" sh
 	./sh -c 'alias; typeset -f'
@@ -5646,7 +5666,6 @@ name: aliases-3b-hartz4
 description:
 	Check if running as sh does not influence built-in aliases
 category: arge
-arguments: !-o!sh!
 stdin:
 	cp "$__progname" sh
 	./sh -c 'alias; typeset -f'
@@ -5659,6 +5678,52 @@ expected-stdout:
 	integer='typeset -i'
 	local=typeset
 	login='exec login'
+	nameref='typeset -n'
+	nohup='nohup '
+	r='fc -e -'
+	source='PATH=$PATH:. command .'
+	type='whence -v'
+---
+name: aliases-2b-android
+description:
+	Check if “set -o sh” does not influence built-in aliases
+category: android
+arguments: !-o!sh!
+stdin:
+	alias
+	typeset -f
+expected-stdout:
+	autoload='typeset -fu'
+	functions='typeset -f'
+	hash='alias -t'
+	history='fc -l'
+	integer='typeset -i'
+	local=typeset
+	login='exec login'
+	lsmod='cat /proc/modules'
+	nameref='typeset -n'
+	nohup='nohup '
+	r='fc -e -'
+	source='PATH=$PATH:. command .'
+	type='whence -v'
+---
+name: aliases-3b-android
+description:
+	Check if running as sh does not influence built-in aliases
+category: android
+stdin:
+	cp "$__progname" sh
+	./sh -c 'alias; typeset -f'
+	rm -f sh
+expected-stdout:
+	autoload='typeset -fu'
+	functions='typeset -f'
+	hash='alias -t'
+	history='fc -l'
+	integer='typeset -i'
+	local=typeset
+	login='exec login'
+	lsmod='cat /proc/modules'
 	nameref='typeset -n'
 	nohup='nohup '
 	r='fc -e -'

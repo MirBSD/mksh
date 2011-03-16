@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.473 2011/03/16 20:03:21 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.474 2011/03/16 20:26:33 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -390,6 +390,12 @@ ccpc=-Wc,
 ccpl=-Wl,
 tsts=
 ccpr='|| for _f in ${tcfn}*; do test x"${_f}" = x"mksh.1" || rm -f "${_f}"; done'
+
+# Evil hack
+if test x"$TARGET_OS" = x"Android"; then
+	check_categories=$check_categories,android
+	TARGET_OS=Linux
+fi
 
 # Configuration depending on OS revision, on OSes that need them
 case $TARGET_OS in
