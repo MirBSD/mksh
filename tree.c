@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.40 2011/03/13 01:20:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.41 2011/03/17 21:58:40 tg Exp $");
 
 #define INDENT	8
 
@@ -782,7 +782,7 @@ vistree(char *dst, size_t sz, struct op *t)
 }
 
 #ifdef DEBUG
-static void
+void
 dumpchar(struct shf *shf, int c)
 {
 	if (((c & 0x60) == 0) || ((c & 0x7F) == 0x7F)) {
