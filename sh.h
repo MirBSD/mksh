@@ -154,7 +154,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.447 2011/03/17 21:58:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.448 2011/03/17 21:59:30 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/03/16"
 
@@ -1691,7 +1691,6 @@ int getn(const char *, int *);
 int bi_getn(const char *, int *);
 int gmatchx(const char *, const char *, bool);
 int has_globbing(const char *, const char *);
-const unsigned char *pat_scan(const unsigned char *, const unsigned char *, int);
 int xstrcmp(const void *, const void *);
 void ksh_getopt_reset(Getopt *, int);
 int ksh_getopt(const char **, Getopt *, const char *);

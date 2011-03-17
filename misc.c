@@ -29,11 +29,13 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.154 2011/03/13 01:20:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.155 2011/03/17 21:59:28 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
 
+static const unsigned char *pat_scan(const unsigned char *,
+    const unsigned char *, bool);
 static int do_gmatch(const unsigned char *, const unsigned char *,
     const unsigned char *, const unsigned char *);
 static const unsigned char *cclass(const unsigned char *, int);
@@ -649,7 +651,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 		case 0x80|'+':
 		/* matches zero or more times */
 		case 0x80|'*':
-			if (!(prest = pat_scan(p, pe, 0)))
+			if (!(prest = pat_scan(p, pe, false)))
 				return (0);
 			s--;
 			/* take care of zero matches */
@@ -657,7 +659,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 			    do_gmatch(s, se, prest, pe))
 				return (1);
 			for (psub = p; ; psub = pnext) {
-				pnext = pat_scan(psub, pe, 1);
+				pnext = pat_scan(psub, pe, true);
 				for (srest = s; srest <= se; srest++) {
 					if (do_gmatch(s, srest, psub, pnext - 2) &&
 					    (do_gmatch(srest, se, prest, pe) ||
@@ -676,7 +678,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 		case 0x80|'@':
 		/* simile for @ */
 		case 0x80|' ':
-			if (!(prest = pat_scan(p, pe, 0)))
+			if (!(prest = pat_scan(p, pe, false)))
 				return (0);
 			s--;
 			/* Take care of zero matches */
@@ -684,7 +686,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 			    do_gmatch(s, se, prest, pe))
 				return (1);
 			for (psub = p; ; psub = pnext) {
-				pnext = pat_scan(psub, pe, 1);
+				pnext = pat_scan(psub, pe, true);
 				srest = prest == pe ? se : s;
 				for (; srest <= se; srest++) {
 					if (do_gmatch(s, srest, psub, pnext - 2) &&
@@ -698,14 +700,14 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 
 		/* matches none of the patterns */
 		case 0x80|'!':
-			if (!(prest = pat_scan(p, pe, 0)))
+			if (!(prest = pat_scan(p, pe, false)))
 				return (0);
 			s--;
 			for (srest = s; srest <= se; srest++) {
 				int matched = 0;
 
 				for (psub = p; ; psub = pnext) {
-					pnext = pat_scan(psub, pe, 1);
+					pnext = pat_scan(psub, pe, true);
 					if (do_gmatch(s, srest, psub,
 					    pnext - 2)) {
 						matched = 1;
@@ -777,7 +779,7 @@ cclass(const unsigned char *p, int sub)
 
 /* Look for next ) or | (if match_sep) in *(foo|bar) pattern */
 const unsigned char *
-pat_scan(const unsigned char *p, const unsigned char *pe, int match_sep)
+pat_scan(const unsigned char *p, const unsigned char *pe, bool match_sep)
 {
 	int nest = 0;
 
