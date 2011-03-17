@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.155 2011/03/17 21:59:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.156 2011/03/17 22:00:45 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -486,6 +486,79 @@ bi_getn(const char *as, int *ai)
 	return (rv);
 }
 
+/**
+ * pattern simplifications:
+ * - @(x) -> x (not @(x|y) though)
+ * - ** -> *
+ */
+static void *
+simplify_gmatch_pattern(const unsigned char *sp)
+{
+	uint8_t c;
+	unsigned char *cp, *dp;
+	const unsigned char *ps, *se;
+
+	cp = alloc(strlen((void *)sp) + 1, ATEMP);
+	goto simplify_gmatch_pat1a;
+
+	/* foo@(b@(a)r)b@(a|a)z -> foobarb@(a|a)z */
+ simplify_gmatch_pat1:
+	sp = cp;
+ simplify_gmatch_pat1a:
+	dp = cp;
+	se = sp + strlen((const void *)sp);
+	while ((c = *sp++)) {
+		if (!ISMAGIC(c)) {
+			*dp++ = c;
+			continue;
+		}
+		switch ((c = *sp++)) {
+		case 0x80|'@':
+		/* simile for @ */
+		case 0x80|' ':
+			/* check whether it has only one clause */
+			ps = pat_scan(sp, se, true);
+			if (!ps || ps[-1] != /*(*/ ')')
+				/* nope */
+				break;
+			/* copy inner clause until matching close */
+			ps -= 2;
+			while ((const unsigned char *)sp < ps)
+				*dp++ = *sp++;
+			/* skip MAGIC and closing parenthesis */
+			sp += 2;
+			/* copy the rest of the pattern */
+			memmove(dp, sp, strlen((void *)sp) + 1);
+			/* redo from start */
+			goto simplify_gmatch_pat1;
+		}
+		*dp++ = MAGIC;
+		*dp++ = c;
+	}
+	*dp = '\0';
+
+	/* collapse adjacent asterisk wildcards */
+	sp = dp = cp;
+	while ((c = *sp++)) {
+		if (!ISMAGIC(c)) {
+			*dp++ = c;
+			continue;
+		}
+		switch ((c = *sp++)) {
+		case '*':
+			while (ISMAGIC(sp[0]) && sp[1] == c)
+				sp += 2;
+			break;
+		}
+		*dp++ = MAGIC;
+		*dp++ = c;
+	}
+	*dp = '\0';
+
+	/* return the result, allocated from ATEMP */
+	return (cp);
+}
+
 /* -------- gmatch.c -------- */
 
 /*
@@ -495,11 +568,12 @@ bi_getn(const char *as, int *ai)
  * Match a pattern as in sh(1).
  * pattern character are prefixed with MAGIC by expand.
  */
-
 int
 gmatchx(const char *s, const char *p, bool isfile)
 {
 	const char *se, *pe;
+	char *pnew;
+	int rv;
 
 	if (s == NULL || p == NULL)
 		return (0);
@@ -517,8 +591,18 @@ gmatchx(const char *s, const char *p, bool isfile)
 		debunk(t, p, len);
 		return (!strcmp(t, s));
 	}
-	return (do_gmatch((const unsigned char *) s, (const unsigned char *) se,
-	    (const unsigned char *) p, (const unsigned char *) pe));
+
+	/*
+	 * since the do_gmatch() engine sucks so much, we must do some
+	 * pattern simplifications
+	 */
+	pnew = simplify_gmatch_pattern((const unsigned char *)p);
+	pe = pnew + strlen(pnew);
+
+	rv = do_gmatch((const unsigned char *)s, (const unsigned char *)se,
+	    (const unsigned char *)pnew, (const unsigned char *)pe);
+	afree(pnew, ATEMP);
+	return (rv);
 }
 
 /**
