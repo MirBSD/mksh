@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.101 2011/03/16 20:31:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.102 2011/03/17 21:57:50 tg Exp $");
 
 /*
  * string expansion
@@ -464,12 +464,44 @@ expand(const char *cp,	/* input word */
 						*d = '\0';
 						afree(tpat0, ATEMP);
 
-						/* reject empty pattern */
-						if (!*pat || gmatchx("", pat, false))
+						/* check for special cases */
+						d = str_val(st->var);
+						switch (*pat) {
+						case '#':
+							/* anchor at begin */
+							tpat0 = pat + 1;
+							tpat1 = rrep;
+							tpat2 = d;
+							break;
+						case '%':
+							/* anchor at end */
+							tpat0 = pat + 1;
+							tpat1 = d;
+							tpat2 = rrep;
+							break;
+						case '\0':
+							/* empty pattern */
 							goto no_repl;
+						default:
+							tpat0 = pat;
+							/* silence gcc */
+							tpat1 = tpat2 = NULL;
+						}
+						if (gmatchx(null, tpat0, false)) {
+							/*
+							 * pattern matches
+							 * the empty string
+							 */
+							if (tpat0 == pat)
+								goto no_repl;
+							/* but is anchored */
+							s = shf_smprintf("%s%s",
+							    tpat1, tpat2);
+							goto do_repl;
+						}
 
 						/* prepare string on which to work */
-						strdupx(s, str_val(st->var), ATEMP);
+						strdupx(s, d, ATEMP);
 						sbeg = s;
 
 						/* first see if we have any match at all */
@@ -527,6 +559,7 @@ expand(const char *cp,	/* input word */
 							goto again_repl;
  end_repl:
 						afree(tpat1, ATEMP);
+ do_repl:
 						x.str = s;
  no_repl:
 						afree(pat, ATEMP);
