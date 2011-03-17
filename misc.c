@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.156 2011/03/17 22:00:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.157 2011/03/17 22:09:22 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -498,7 +498,7 @@ simplify_gmatch_pattern(const unsigned char *sp)
 	unsigned char *cp, *dp;
 	const unsigned char *ps, *se;
 
-	cp = alloc(strlen((void *)sp) + 1, ATEMP);
+	cp = alloc(strlen((const void *)sp) + 1, ATEMP);
 	goto simplify_gmatch_pat1a;
 
 	/* foo@(b@(a)r)b@(a|a)z -> foobarb@(a|a)z */
@@ -528,7 +528,7 @@ simplify_gmatch_pattern(const unsigned char *sp)
 			/* skip MAGIC and closing parenthesis */
 			sp += 2;
 			/* copy the rest of the pattern */
-			memmove(dp, sp, strlen((void *)sp) + 1);
+			memmove(dp, sp, strlen((const void *)sp) + 1);
 			/* redo from start */
 			goto simplify_gmatch_pat1;
 		}
