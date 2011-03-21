@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.430 2011/03/17 22:09:20 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.431 2011/03/21 21:57:32 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/03/17
+	@(#)MIRBSD KSH R39 2011/03/21
 description:
 	Check version of shell.
 stdin:
@@ -7040,13 +7040,13 @@ stdin:
 		if (( lastf )); then
 			x="inline_${nextf}() {"$fbody$'\n}\n'
 			print -nr -- "$x"
-			print -r -- "${x}typeset -f inline_$nextf" | $__progname
+			print -r -- "${x}typeset -f inline_$nextf" | "$__progname"
 			x="function comsub_$nextf { x=\$("$fbody$'\n); }\n'
 			print -nr -- "$x"
-			print -r -- "${x}typeset -f comsub_$nextf" | $__progname
+			print -r -- "${x}typeset -f comsub_$nextf" | "$__progname"
 			x="function reread_$nextf { x=\$(("$fbody$'\n)|tr u x); }\n'
 			print -nr -- "$x"
-			print -r -- "${x}typeset -f reread_$nextf" | $__progname
+			print -r -- "${x}typeset -f reread_$nextf" | "$__progname"
 		fi
 		lastf=1
 		fbody=
@@ -8383,4 +8383,14 @@ expected-stdout:
 	23 ?lnnix/file =lnnix/file: No such file or directory !2
 	24 ?lnnix/nix =lnnix/nix: No such file or directory !2
 	25 ?lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself =lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself: Too many levels of symbolic links !62
+---
+name: crash-1
+description:
+	Crashed during March 2011, fixed on vernal equinōx ☺
+category: os:mirbsd,os:openbsd
+stdin:
+	export MALLOC_OPTIONS=FGJPRSX
+	"$__progname" -c 'x=$(tr z r <<<baz); echo $x'
+expected-stdout:
+	bar
 ---

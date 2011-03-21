@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.57 2011/03/13 16:03:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.58 2011/03/21 21:57:35 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -1097,6 +1097,7 @@ yyrecursive(void)
 	char *cp;
 	bool old_reject;
 	int old_symbol;
+	struct ioword **old_herep;
 	extern short comsub_nesting_level;
 
 	/* tell the lexer to accept a closing parenthesis as EOD */
@@ -1106,8 +1107,10 @@ yyrecursive(void)
 	old_reject = reject;
 	old_symbol = symbol;
 	ACCEPT;
+	old_herep = herep;
 	/* we use TPAREN as a helper container here */
 	t = nested(TPAREN, '(', ')');
+	herep = old_herep;
 	reject = old_reject;
 	symbol = old_symbol;
 
