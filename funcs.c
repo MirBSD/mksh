@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.177 2011/03/16 20:56:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.178 2011/03/23 18:47:06 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -242,6 +242,9 @@ do_realpath(const char *upath)
 	/* ipath and upath are in memory at the same time -> unchecked */
 	Xinit(xs, xp, strlen(ip = ipath) + 1, ATEMP);
 
+	/* now jump into the deep of the loop */
+	goto beginning_of_a_pathname;
+
 	while (*ip) {
 		/* skip slashes in input */
 		while (*ip == '/')
@@ -328,11 +331,25 @@ do_realpath(const char *upath)
 			 * restart if symlink target is an absolute path,
 			 * otherwise continue with currently resolved prefix
 			 */
-			xp = (ldest[0] == '/') ? Xstring(xs, xp) :
-			    Xrestpos(xs, xp, pos);
+			/* append rest of current input path to link target */
 			tp = shf_smprintf("%s%s%s", ldest, *ip ? "/" : "", ip);
 			afree(ipath, ATEMP);
 			ip = ipath = tp;
+			if (ldest[0] != '/') {
+				/* symlink target is a relative path */
+				xp = Xrestpos(xs, xp, pos);
+			} else {
+				/* symlink target is an absolute path */
+				xp = Xstring(xs, xp);
+ beginning_of_a_pathname:
+				/* assert: (ip == ipath)[0] == '/' */
+				/* assert: xp == xs.beg => start of path */
+
+				if (ip[1] == '/' && ip[2] != '/') {
+					/* keep UNC names, per POSIX */
+					Xput(xs, xp, '/');
+				}
+			}
 		}
 		/* otherwise (no symlink) merely go on */
 	}

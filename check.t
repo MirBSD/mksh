@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.431 2011/03/21 21:57:32 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.432 2011/03/23 18:47:04 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/03/21
+	@(#)MIRBSD KSH R39 2011/03/23
 description:
 	Check version of shell.
 stdin:
@@ -8383,6 +8383,36 @@ expected-stdout:
 	23 ?lnnix/file =lnnix/file: No such file or directory !2
 	24 ?lnnix/nix =lnnix/nix: No such file or directory !2
 	25 ?lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself =lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself/lnself: Too many levels of symbolic links !62
+---
+name: realpath-2
+description:
+	Ensure that exactly two leading slashes are not collapsed
+	POSIX guarantees this exception, e.g. for UNC paths on Cygwin
+category: os:mirbsd
+stdin:
+	ln -s /bin t1
+	ln -s //bin t2
+	ln -s ///bin t3
+	realpath /bin
+	realpath //bin
+	realpath ///bin
+	realpath /usr/bin
+	realpath /usr//bin
+	realpath /usr///bin
+	realpath t1
+	realpath t2
+	realpath t3
+	rm -f t1 t2 t3
+expected-stdout:
+	/bin
+	//bin
+	/bin
+	/usr/bin
+	/usr/bin
+	/usr/bin
+	/bin
+	//bin
+	/bin
 ---
 name: crash-1
 description:
