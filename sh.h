@@ -154,7 +154,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.451 2011/03/23 18:47:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.452 2011/03/24 19:05:49 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/03/23"
 
@@ -1517,7 +1517,6 @@ int utf_wcwidth(unsigned int);
 #endif
 /* funcs.c */
 int c_hash(const char **);
-int c_cd(const char **);
 int c_pwd(const char **);
 int c_print(const char **);
 #ifdef MKSH_PRINTF_BUILTIN
@@ -1703,10 +1702,11 @@ void strip_nuls(char *, int);
 ssize_t blocking_read(int, char *, size_t)
     MKSH_A_BOUNDED(buffer, 2, 3);
 int reset_nonblock(int);
-char *ksh_get_wd(size_t *);
-int make_path(const char *, const char *, char **, XString *, int *);
+char *ksh_get_wd(void);
+char *do_realpath(const char *);
 void simplify_path(char *);
 void set_current_wd(char *);
+int c_cd(const char **);
 #ifdef MKSH_SMALL
 char *strdup_(const char *, Area *);
 char *strndup_(const char *, size_t, Area *);

@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.157 2011/03/17 22:09:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.158 2011/03/24 19:05:48 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -42,6 +42,9 @@ static const unsigned char *cclass(const unsigned char *, int);
 #ifdef TIOCSCTTY
 static void chvt(const char *);
 #endif
+
+/*XXX this should go away */
+static int make_path(const char *, const char *, char **, XString *, int *);
 
 #ifdef SETUID_CAN_FAIL_WITH_EAGAIN
 /* we don't need to check for other codes, EPERM won't happen */
@@ -1204,31 +1207,221 @@ reset_nonblock(int fd)
 	return (1);
 }
 
-
-/* Like getcwd(), except bsize is ignored if buf is 0 (PATH_MAX is used) */
+/* getcwd(3) equivalent, allocates from ATEMP but doesn't resize */
 char *
-ksh_get_wd(size_t *dlen)
+ksh_get_wd(void)
 {
-	char *ret, *b;
-	size_t len = 1;
-
 #ifdef NO_PATH_MAX
-	if ((b = get_current_dir_name())) {
-		len = strlen(b) + 1;
-		strndupx(ret, b, len - 1, ATEMP);
-		free_gnu_gcdn(b);
+	char *rv, *cp;
+
+	if ((cp = get_current_dir_name())) {
+		strdupx(rv, cp, ATEMP);
+		free_gnu_gcdn(cp);
 	} else
-		ret = NULL;
+		rv = NULL;
 #else
-	if ((ret = getcwd((b = alloc(PATH_MAX + 1, ATEMP)), PATH_MAX)))
-		ret = aresize(b, len = (strlen(b) + 1), ATEMP);
-	else
-		afree(b, ATEMP);
+	char *rv;
+
+	if (!getcwd((rv = alloc(PATH_MAX + 1, ATEMP)), PATH_MAX)) {
+		afree(rv, ATEMP);
+		rv = NULL;
+	}
 #endif
 
-	if (dlen)
-		*dlen = len;
-	return (ret);
+	return (rv);
+}
+
+char *
+do_realpath(const char *upath)
+{
+	char *xp, *ip, *tp, *ipath, *ldest = NULL;
+	XString xs;
+	ptrdiff_t pos;
+	size_t len;
+	int llen;
+	struct stat sb;
+#ifdef NO_PATH_MAX
+	size_t ldestlen = 0;
+#define pathlen sb.st_size
+#define pathcnd (ldestlen < (pathlen + 1))
+#else
+#define pathlen PATH_MAX
+#define pathcnd (!ldest)
+#endif
+	/* max. recursion depth */
+	int symlinks = 32;
+
+	if (upath[0] == '/') {
+		/* upath is an absolute pathname */
+		strdupx(ipath, upath, ATEMP);
+	} else {
+		/* upath is a relative pathname, prepend cwd */
+		if ((tp = ksh_get_wd()) == NULL || tp[0] != '/')
+			return (NULL);
+		ipath = shf_smprintf("%s%s%s", tp, "/", upath);
+		afree(tp, ATEMP);
+	}
+
+	/* ipath and upath are in memory at the same time -> unchecked */
+	Xinit(xs, xp, strlen(ip = ipath) + 1, ATEMP);
+
+	/* now jump into the deep of the loop */
+	goto beginning_of_a_pathname;
+
+	while (*ip) {
+		/* skip slashes in input */
+		while (*ip == '/')
+			++ip;
+		if (!*ip)
+			break;
+
+		/* get next pathname component from input */
+		tp = ip;
+		while (*ip && *ip != '/')
+			++ip;
+		len = ip - tp;
+
+		/* check input for "." and ".." */
+		if (tp[0] == '.') {
+			if (len == 1)
+				/* just continue with the next one */
+				continue;
+			else if (len == 2 && tp[1] == '.') {
+				/* strip off last pathname component */
+				while (xp > Xstring(xs, xp))
+					if (*--xp == '/')
+						break;
+				/* then continue with the next one */
+				continue;
+			}
+		}
+
+		/* store output position away, then append slash to output */
+		pos = Xsavepos(xs, xp);
+		/* 1 for the '/' and len + 1 for tp and the NUL from below */
+		XcheckN(xs, xp, 1 + len + 1);
+		Xput(xs, xp, '/');
+
+		/* append next pathname component to output */
+		memcpy(xp, tp, len);
+		xp += len;
+		*xp = '\0';
+
+		/* lstat the current output, see if it's a symlink */
+		if (lstat(Xstring(xs, xp), &sb)) {
+			/* lstat failed */
+			if (errno == ENOENT) {
+				/* because the pathname does not exist */
+				while (*ip == '/')
+					/* skip any trailing slashes */
+					++ip;
+				/* no more components left? */
+				if (!*ip)
+					/* we can still return successfully */
+					break;
+				/* more components left? fall through */
+			}
+			/* not ENOENT or not at the end of ipath */
+			goto notfound;
+		}
+
+		/* check if we encountered a symlink? */
+		if (S_ISLNK(sb.st_mode)) {
+			/* reached maximum recursion depth? */
+			if (!symlinks--) {
+				/* yep, prevent infinite loops */
+				errno = ELOOP;
+				goto notfound;
+			}
+
+			/* get symlink(7) target */
+			if (pathcnd) {
+#ifdef NO_PATH_MAX
+				if (notoktoadd(pathlen, 1)) {
+					errno = ENAMETOOLONG;
+					goto notfound;
+				}
+#endif
+				ldest = aresize(ldest, pathlen + 1, ATEMP);
+			}
+			llen = readlink(Xstring(xs, xp), ldest, pathlen);
+			if (llen < 0)
+				/* oops... */
+				goto notfound;
+			ldest[llen] = '\0';
+
+			/*
+			 * restart if symlink target is an absolute path,
+			 * otherwise continue with currently resolved prefix
+			 */
+			/* append rest of current input path to link target */
+			tp = shf_smprintf("%s%s%s", ldest, *ip ? "/" : "", ip);
+			afree(ipath, ATEMP);
+			ip = ipath = tp;
+			if (ldest[0] != '/') {
+				/* symlink target is a relative path */
+				xp = Xrestpos(xs, xp, pos);
+			} else {
+				/* symlink target is an absolute path */
+				xp = Xstring(xs, xp);
+ beginning_of_a_pathname:
+				/* assert: (ip == ipath)[0] == '/' */
+				/* assert: xp == xs.beg => start of path */
+
+				if (ip[1] == '/' && ip[2] != '/') {
+					/* keep UNC names, per POSIX */
+					Xput(xs, xp, '/');
+				}
+			}
+		}
+		/* otherwise (no symlink) merely go on */
+	}
+
+	/*
+	 * either found the target and successfully resolved it,
+	 * or found its parent directory and may create it
+	 */
+	if (Xlength(xs, xp) == 0)
+		/*
+		 * if the resolved pathname is "", make it "/",
+		 * otherwise do not add a trailing slash
+		 */
+		Xput(xs, xp, '/');
+	Xput(xs, xp, '\0');
+
+	/*
+	 * if source path had a trailing slash, check if target path
+	 * is not a non-directory existing file
+	 */
+	if (ip > ipath && ip[-1] == '/') {
+		if (stat(Xstring(xs, xp), &sb)) {
+			if (errno != ENOENT)
+				goto notfound;
+		} else if (!S_ISDIR(sb.st_mode)) {
+			errno = ENOTDIR;
+			goto notfound;
+		}
+		/* target now either does not exist or is a directory */
+	}
+
+	/* return target path */
+	if (ldest != NULL)
+		afree(ldest, ATEMP);
+	afree(ipath, ATEMP);
+	return (Xclose(xs, xp));
+
+ notfound:
+	/* save; freeing memory might trash it */
+	llen = errno;
+	if (ldest != NULL)
+		afree(ldest, ATEMP);
+	afree(ipath, ATEMP);
+	Xfree(xs, xp);
+	errno = llen;
+	return (NULL);
+
+#undef pathlen
+#undef pathcnd
 }
 
 /**
@@ -1246,9 +1439,9 @@ ksh_get_wd(size_t *dlen)
  *	The return value indicates whether a non-null element from cdpathp
  *	was appended to result.
  */
-int
+static int
 make_path(const char *cwd, const char *file,
-    /* & of : separated list */
+    /* pointer to colon-separated list */
     char **cdpathp,
     XString *xsp,
     int *phys_pathp)
@@ -1386,27 +1579,180 @@ simplify_path(char *pathl)
 	}
 }
 
-
 void
-set_current_wd(char *pathl)
+set_current_wd(char *nwd)
 {
-	size_t len = 1;
-	char *p = pathl;
+	char *allocd = NULL;
 
-	if (p == NULL) {
-		if ((p = ksh_get_wd(&len)) == NULL)
-			p = null;
-	} else
-		len = strlen(p) + 1;
-
-	if (len > current_wd_size) {
-		afree(current_wd, APERM);
-		current_wd = alloc(current_wd_size = len, APERM);
+	if (nwd == NULL) {
+		allocd = ksh_get_wd();
+		nwd = allocd ? allocd : null;
 	}
-	memcpy(current_wd, p, len);
-	if (p != pathl && p != null)
-		afree(p, ATEMP);
+
+	afree(current_wd, APERM);
+	strdupx(current_wd, nwd, APERM);
+
+	afree(allocd, ATEMP);
 }
+
+int
+c_cd(const char **wp)
+{
+	int optc, rv, phys_path;
+	bool physical = tobool(Flag(FPHYSICAL));
+	/* was a node from cdpath added in? */
+	int cdnode;
+	/* print where we cd'd? */
+	bool printpath = false;
+	struct tbl *pwd_s, *oldpwd_s;
+	XString xs;
+	char *dir, *allocd = NULL, *tryp, *pwd, *cdpath;
+
+	while ((optc = ksh_getopt(wp, &builtin_opt, "LP")) != -1)
+		switch (optc) {
+		case 'L':
+			physical = false;
+			break;
+		case 'P':
+			physical = true;
+			break;
+		case '?':
+			return (1);
+		}
+	wp += builtin_opt.optind;
+
+	if (Flag(FRESTRICTED)) {
+		bi_errorf("restricted shell - can't cd");
+		return (1);
+	}
+
+	pwd_s = global("PWD");
+	oldpwd_s = global("OLDPWD");
+
+	if (!wp[0]) {
+		/* No arguments - go home */
+		if ((dir = str_val(global("HOME"))) == null) {
+			bi_errorf("no home directory (HOME not set)");
+			return (1);
+		}
+	} else if (!wp[1]) {
+		/* One argument: - or dir */
+		strdupx(allocd, wp[0], ATEMP);
+		if (ksh_isdash((dir = allocd))) {
+			afree(allocd, ATEMP);
+			allocd = NULL;
+			dir = str_val(oldpwd_s);
+			if (dir == null) {
+				bi_errorf("no OLDPWD");
+				return (1);
+			}
+			printpath = true;
+		}
+	} else if (!wp[2]) {
+		/* Two arguments - substitute arg1 in PWD for arg2 */
+		size_t ilen, olen, nlen, elen;
+		char *cp;
+
+		if (!current_wd[0]) {
+			bi_errorf("can't determine current directory");
+			return (1);
+		}
+		/*
+		 * substitute arg1 for arg2 in current path.
+		 * if the first substitution fails because the cd fails
+		 * we could try to find another substitution. For now
+		 * we don't
+		 */
+		if ((cp = strstr(current_wd, wp[0])) == NULL) {
+			bi_errorf("bad substitution");
+			return (1);
+		}
+		/*-
+		 * ilen = part of current_wd before wp[0]
+		 * elen = part of current_wd after wp[0]
+		 * because current_wd and wp[1] need to be in memory at the
+		 * same time beforehand the addition can stay unchecked
+		 */
+		ilen = cp - current_wd;
+		olen = strlen(wp[0]);
+		nlen = strlen(wp[1]);
+		elen = strlen(current_wd + ilen + olen) + 1;
+		dir = allocd = alloc(ilen + nlen + elen, ATEMP);
+		memcpy(dir, current_wd, ilen);
+		memcpy(dir + ilen, wp[1], nlen);
+		memcpy(dir + ilen + nlen, current_wd + ilen + olen, elen);
+		printpath = true;
+	} else {
+		bi_errorf("too many arguments");
+		return (1);
+	}
+
+#ifdef NO_PATH_MAX
+	/* only a first guess; make_path will enlarge xs if necessary */
+	XinitN(xs, 1024, ATEMP);
+#else
+	XinitN(xs, PATH_MAX, ATEMP);
+#endif
+
+	cdpath = str_val(global("CDPATH"));
+	do {
+		cdnode = make_path(current_wd, dir, &cdpath, &xs, &phys_path);
+		if (physical)
+			rv = chdir(tryp = Xstring(xs, xp) + phys_path);
+		else {
+			simplify_path(Xstring(xs, xp));
+			rv = chdir(tryp = Xstring(xs, xp));
+		}
+	} while (rv < 0 && cdpath != NULL);
+
+	if (rv < 0) {
+		if (cdnode)
+			bi_errorf("%s: %s", dir, "bad directory");
+		else
+			bi_errorf("%s: %s", tryp, strerror(errno));
+		afree(allocd, ATEMP);
+		return (1);
+	}
+
+	/* allocd (above) => dir, which is no longer used */
+	afree(allocd, ATEMP);
+	allocd = NULL;
+
+	/* Clear out tracked aliases with relative paths */
+	flushcom(false);
+
+	/*
+	 * Set OLDPWD (note: unsetting OLDPWD does not disable this
+	 * setting in AT&T ksh)
+	 */
+	if (current_wd[0])
+		/* Ignore failure (happens if readonly or integer) */
+		setstr(oldpwd_s, current_wd, KSH_RETURN_ERROR);
+
+	if (Xstring(xs, xp)[0] != '/') {
+		pwd = NULL;
+	} else if (!physical || !(pwd = allocd = do_realpath(Xstring(xs, xp))))
+		pwd = Xstring(xs, xp);
+
+	/* Set PWD */
+	if (pwd) {
+		char *ptmp = pwd;
+
+		set_current_wd(ptmp);
+		/* Ignore failure (happens if readonly or integer) */
+		setstr(pwd_s, ptmp, KSH_RETURN_ERROR);
+	} else {
+		set_current_wd(null);
+		pwd = Xstring(xs, xp);
+		/* XXX unset $PWD? */
+	}
+	if (printpath || cdnode)
+		shprintf("%s\n", pwd);
+
+	afree(allocd, ATEMP);
+	return (0);
+}
+
 
 #ifdef TIOCSCTTY
 extern void chvt_reinit(void);
