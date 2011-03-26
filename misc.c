@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.158 2011/03/24 19:05:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.159 2011/03/26 15:37:19 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1368,8 +1368,9 @@ do_realpath(const char *upath)
 				/* assert: (ip == ipath)[0] == '/' */
 				/* assert: xp == xs.beg => start of path */
 
+				/* exactly two leading slashes? */
 				if (ip[1] == '/' && ip[2] != '/') {
-					/* keep UNC names, per POSIX */
+					/* SUSv4 3.266 Pathname */
 					Xput(xs, xp, '/');
 				}
 			}
@@ -1525,6 +1526,9 @@ simplify_path(char *pathl)
 		return;
 
 	if ((isrooted = pathl[0] == '/'))
+		very_start++;
+	/* exactly two leading slashes? (SUSv4 3.266) */
+	if (isrooted && pathl[1] == '/' && pathl[2] != '/')
 		very_start++;
 
 	/*-
