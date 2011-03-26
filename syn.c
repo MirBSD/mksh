@@ -22,7 +22,9 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.58 2011/03/21 21:57:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.59 2011/03/26 15:32:37 tg Exp $");
+
+extern short subshell_nesting_level;
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -356,7 +358,9 @@ get_command(int cf)
 
 	case '(':
  Subshell:
+		++subshell_nesting_level;
 		t = nested(TPAREN, '(', ')');
+		--subshell_nesting_level;
 		break;
 
 	case '{': /*}*/
@@ -1098,10 +1102,9 @@ yyrecursive(void)
 	bool old_reject;
 	int old_symbol;
 	struct ioword **old_herep;
-	extern short comsub_nesting_level;
 
 	/* tell the lexer to accept a closing parenthesis as EOD */
-	++comsub_nesting_level;
+	++subshell_nesting_level;
 
 	/* push reject state, parse recursively, pop reject state */
 	old_reject = reject;
@@ -1118,6 +1121,6 @@ yyrecursive(void)
 	cp = snptreef(NULL, 0, "%T", t->left);
 	tfree(t, ATEMP);
 
-	--comsub_nesting_level;
+	--subshell_nesting_level;
 	return (cp);
 }

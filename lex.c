@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.142 2011/03/13 16:35:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.143 2011/03/26 15:32:37 tg Exp $");
 
 /*
  * states while lexing word
@@ -108,7 +108,7 @@ void yyskiputf8bom(void);
 static int backslash_skip;
 static int ignore_backslash_newline;
 static struct sretrace_info *retrace_info = NULL;
-short comsub_nesting_level = 0;
+short subshell_nesting_level = 0;
 
 /* optimised getsc_bn() */
 #define _getsc()	(*source->str != '\0' && *source->str != '\\' && \
@@ -1198,10 +1198,13 @@ readhere(struct ioword *iop)
 		/* end of here document marker, what to do? */
 		switch (c) {
 		case /*(*/ ')':
-			if (!comsub_nesting_level)
-				/* not allowed outside $(...) => mismatch */
+			if (!subshell_nesting_level)
+				/*-
+				 * not allowed outside $(...) or (...)
+				 * => mismatch
+				 */
 				break;
-			/* Allow $(...) to close here */
+			/* allow $(...) or (...) to close here */
 			ungetsc(/*(*/ ')');
 			/* FALLTHROUGH */
 		case 0:

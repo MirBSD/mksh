@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.432 2011/03/23 18:47:04 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.433 2011/03/26 15:32:35 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -2079,6 +2079,156 @@ expected-stdout:
 	} ve={=e $x \x40=
 	} vf={=f $x @=
 	} |
+---
+name: heredoc-comsub-1
+description:
+	Tests for here documents in COMSUB, taken from Austin ML
+stdin:
+	text=$(cat <<EOF
+	here is the text
+	EOF)
+	echo = $text =
+expected-stdout:
+	= here is the text =
+---
+name: heredoc-comsub-2
+description:
+	Tests for here documents in COMSUB, taken from Austin ML
+stdin:
+	unbalanced=$(cat <<EOF
+	this paren ) is a problem
+	EOF)
+	echo = $unbalanced =
+expected-stdout:
+	= this paren ) is a problem =
+---
+name: heredoc-comsub-3
+description:
+	Tests for here documents in COMSUB, taken from Austin ML
+stdin:
+	balanced=$(cat <<EOF
+	these parens ( ) are not a problem
+	EOF)
+	echo = $balanced =
+expected-stdout:
+	= these parens ( ) are not a problem =
+---
+name: heredoc-comsub-4
+description:
+	Tests for here documents in COMSUB, taken from Austin ML
+stdin:
+	balanced=$(cat <<EOF
+	these parens \( ) are a problem
+	EOF)
+	echo = $balanced =
+expected-stdout:
+	= these parens \( ) are a problem =
+---
+name: heredoc-subshell-1
+description:
+	Tests for here documents in subshells, taken from Austin ML
+stdin:
+	(cat <<EOF
+	some text
+	EOF)
+	echo end
+expected-stdout:
+	some text
+	end
+---
+name: heredoc-subshell-2
+description:
+	Tests for here documents in subshells, taken from Austin ML
+stdin:
+	(cat <<EOF
+	some text
+	EOF
+	)
+	echo end
+expected-stdout:
+	some text
+	end
+---
+name: heredoc-subshell-3
+description:
+	Tests for here documents in subshells, taken from Austin ML
+stdin:
+	(cat <<EOF; )
+	some text
+	EOF
+	echo end
+expected-stdout:
+	some text
+	end
+---
+name: heredoc-weird-1
+description:
+	Tests for here documents, taken from Austin ML
+	Documents current state in mksh, *NOT* necessarily correct!
+stdin:
+	cat <<END
+	hello
+	END\
+	END
+	END
+	echo end
+expected-stdout:
+	hello
+	ENDEND
+	end
+---
+name: heredoc-weird-2
+description:
+	Tests for here documents, taken from Austin ML
+stdin:
+	cat <<'    END    '
+	hello
+	    END    
+	echo end
+expected-stdout:
+	hello
+	end
+---
+name: heredoc-weird-3
+description:
+	Tests for here documents, taken from Austin ML
+stdin:
+	cat <<x*x & touch 'x*x'
+	hello
+	x*x
+	echo end
+expected-stdout:
+	hello
+	end
+---
+name: heredoc-weird-4
+description:
+	Tests for here documents, taken from Austin ML
+	Documents current state in mksh, *NOT* necessarily correct!
+stdin:
+	cat <<END
+	hello\
+	END
+	END
+	echo end
+expected-stdout:
+	helloEND
+	end
+---
+name: heredoc-weird-5
+description:
+	Tests for here documents, taken from Austin ML
+	Documents current state in mksh, *NOT* necessarily correct!
+stdin:
+	cat <<END
+	hello
+	\END
+	END
+	echo end
+expected-stdout:
+	hello
+	\END
+	end
 ---
 name: heredoc-quoting-unsubst
 description:
