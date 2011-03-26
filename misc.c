@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.159 2011/03/26 15:37:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.160 2011/03/26 19:29:41 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1514,6 +1514,7 @@ make_path(const char *cwd, const char *file,
 /*
  * Simplify pathnames containing "." and ".." entries.
  * ie, simplify_path("/a/b/c/./../d/..") returns "/a/b"
+ * but simplify_path("//./C/foo/bar/../baz") stays as it is
  */
 void
 simplify_path(char *pathl)
@@ -1529,7 +1530,8 @@ simplify_path(char *pathl)
 		very_start++;
 	/* exactly two leading slashes? (SUSv4 3.266) */
 	if (isrooted && pathl[1] == '/' && pathl[2] != '/')
-		very_start++;
+		/* implementation defined, we CANNOT simplify this */
+		return;
 
 	/*-
 	 * Before			After
