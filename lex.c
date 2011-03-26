@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.143 2011/03/26 15:32:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.144 2011/03/26 16:11:43 tg Exp $");
 
 /*
  * states while lexing word
@@ -1634,13 +1634,12 @@ promptlen(const char *cp)
 static char *
 get_brace_var(XString *wsp, char *wp)
 {
+	char c;
 	enum parse_state {
 		PS_INITIAL, PS_SAW_HASH, PS_IDENT,
 		PS_NUMBER, PS_VAR1
-	} state;
-	char c;
+	} state = PS_INITIAL;
 
-	state = PS_INITIAL;
 	while (/* CONSTCOND */ 1) {
 		c = getsc();
 		/* State machine to figure out where the variable part ends. */
@@ -1656,7 +1655,19 @@ get_brace_var(XString *wsp, char *wp)
 				state = PS_IDENT;
 			else if (ksh_isdigit(c))
 				state = PS_NUMBER;
-			else if (ctype(c, C_VAR1))
+			else if (c == '#') {
+				if (state == PS_SAW_HASH) {
+					char c2;
+
+					c2 = getsc();
+					ungetsc(c2);
+					if (c2 != '}') {
+						ungetsc(c);
+						goto out;
+					}
+				}
+				state = PS_VAR1;
+			} else if (ctype(c, C_VAR1))
 				state = PS_VAR1;
 			else
 				goto out;

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.433 2011/03/26 15:32:35 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.434 2011/03/26 16:11:41 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1391,6 +1391,22 @@ stdin:
 expected-stderr-pattern:
 	/bad substitution/
 expected-exit: 1
+---
+name: expand-trim-1
+description:
+	Check corner case of trim expansion vs. $# vs. ${#var}
+stdin:
+	set 1 2 3 4 5 6 7 8 9 10 11
+	echo ${#}	# value of $#
+	echo ${##}	# length of $#
+	echo ${##1}	# $# trimmed 1
+	set 1 2 3 4 5 6 7 8 9 10 11 12
+	echo ${##1}
+expected-stdout:
+	11
+	2
+	1
+	2
 ---
 name: eglob-bad-1
 description:
