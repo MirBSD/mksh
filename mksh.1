@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.253 2011/03/13 16:35:54 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.254 2011/03/26 21:46:04 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.139 2011/03/09 09:30:39 okan Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 13 2011 $
+.Dd $Mdocdate: March 26 2011 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -4140,6 +4140,9 @@ group is the shell's effective group ID.
 .It Fl g Ar file
 .Ar file Ns 's
 mode has the setgid bit set.
+.It Fl H Ar file
+.Ar file
+is a context dependent directory (only useful on HP-UX).
 .It Fl h Ar file
 .Ar file
 is a symbolic link.

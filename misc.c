@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.162 2011/03/26 21:09:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.163 2011/03/26 21:46:03 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -200,7 +200,7 @@ char *
 getoptions(void)
 {
 	unsigned int i;
-	char m[(int) FNFLAGS + 1];
+	char m[(int)FNFLAGS + 1];
 	char *cp = m;
 
 	for (i = 0; i < NELEM(options); i++)

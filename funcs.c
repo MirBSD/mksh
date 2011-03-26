@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.179 2011/03/24 19:05:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.180 2011/03/26 21:46:02 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2615,132 +2615,180 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	if (!do_eval)
 		return (0);
 
-	switch ((int)op) {
+	switch (op) {
+
 	/*
 	 * Unary Operators
 	 */
+
+	/* -n */
 	case TO_STNZE:
-		/* -n */
 		return (*opnd1 != '\0');
+
+	/* -z */
 	case TO_STZER:
-		/* -z */
 		return (*opnd1 == '\0');
+
+	/* -o */
 	case TO_OPTION:
-		/* -o */
 		if ((i = *opnd1) == '!' || i == '?')
 			opnd1++;
 		if ((k = option(opnd1)) == (size_t)-1)
 			return (0);
 		return (i == '?' ? 1 : i == '!' ? !Flag(k) : Flag(k));
+
+	/* -r */
 	case TO_FILRD:
-		/* -r */
 		return (test_eaccess(opnd1, R_OK) == 0);
+
+	/* -w */
 	case TO_FILWR:
-		/* -w */
 		return (test_eaccess(opnd1, W_OK) == 0);
+
+	/* -x */
 	case TO_FILEX:
-		/* -x */
 		return (test_eaccess(opnd1, X_OK) == 0);
+
+	/* -a */
 	case TO_FILAXST:
-		/* -a */
+	/* -e */
 	case TO_FILEXST:
-		/* -e */
 		return (stat(opnd1, &b1) == 0);
+
+	/* -r */
 	case TO_FILREG:
-		/* -r */
 		return (stat(opnd1, &b1) == 0 && S_ISREG(b1.st_mode));
+
+	/* -d */
 	case TO_FILID:
-		/* -d */
 		return (stat(opnd1, &b1) == 0 && S_ISDIR(b1.st_mode));
+
+	/* -c */
 	case TO_FILCDEV:
-		/* -c */
 		return (stat(opnd1, &b1) == 0 && S_ISCHR(b1.st_mode));
+
+	/* -b */
 	case TO_FILBDEV:
-		/* -b */
 		return (stat(opnd1, &b1) == 0 && S_ISBLK(b1.st_mode));
+
+	/* -p */
 	case TO_FILFIFO:
-		/* -p */
 		return (stat(opnd1, &b1) == 0 && S_ISFIFO(b1.st_mode));
+
+	/* -h or -L */
 	case TO_FILSYM:
-		/* -h -L */
 		return (lstat(opnd1, &b1) == 0 && S_ISLNK(b1.st_mode));
+
+	/* -S */
 	case TO_FILSOCK:
-		/* -S */
 		return (stat(opnd1, &b1) == 0 && S_ISSOCK(b1.st_mode));
+
+	/* -H => HP context dependent files (directories) */
 	case TO_FILCDF:
-		/* -H HP context dependent files (directories) */
+#ifdef S_ISCDF
+	{
+		char *nv;
+
+		/*
+		 * Append a + to filename and check to see if result is
+		 * a setuid directory. CDF stuff in general is hookey,
+		 * since it breaks for, e.g., the following sequence:
+		 * echo hi >foo+; mkdir foo; echo bye >foo/default;
+		 * chmod u+s foo (foo+ refers to the file with hi in it,
+		 * there is no way to get at the file with bye in it;
+		 * please correct me if I'm wrong about this).
+		 */
+
+		nv = shf_smprintf("%s+", opnd1);
+		return (stat(nv, &b1) == 0 && S_ISCDF(b1.st_mode));
+	}
+#else
 		return (0);
+#endif
+
+	/* -u */
 	case TO_FILSETU:
-		/* -u */
 		return (stat(opnd1, &b1) == 0 &&
 		    (b1.st_mode & S_ISUID) == S_ISUID);
+
+	/* -g */
 	case TO_FILSETG:
-		/* -g */
 		return (stat(opnd1, &b1) == 0 &&
 		    (b1.st_mode & S_ISGID) == S_ISGID);
+
+	/* -k */
 	case TO_FILSTCK:
-		/* -k */
 #ifdef S_ISVTX
 		return (stat(opnd1, &b1) == 0 &&
 		    (b1.st_mode & S_ISVTX) == S_ISVTX);
 #else
 		return (0);
 #endif
+
+	/* -s */
 	case TO_FILGZ:
-		/* -s */
 		return (stat(opnd1, &b1) == 0 && b1.st_size > 0L);
+
+	/* -t */
 	case TO_FILTT:
-		/* -t */
 		if (opnd1 && !bi_getn(opnd1, &i)) {
 			te->flags |= TEF_ERROR;
 			i = 0;
 		} else
 			i = isatty(opnd1 ? i : 0);
 		return (i);
+
+	/* -O */
 	case TO_FILUID:
-		/* -O */
 		return (stat(opnd1, &b1) == 0 && b1.st_uid == ksheuid);
+
+	/* -G */
 	case TO_FILGID:
-		/* -G */
 		return (stat(opnd1, &b1) == 0 && b1.st_gid == getegid());
+
 	/*
 	 * Binary Operators
 	 */
+
+	/* = */
 	case TO_STEQL:
-		/* = */
 		if (te->flags & TEF_DBRACKET)
 			return (gmatchx(opnd1, opnd2, false));
 		return (strcmp(opnd1, opnd2) == 0);
+
+	/* != */
 	case TO_STNEQ:
-		/* != */
 		if (te->flags & TEF_DBRACKET)
 			return (!gmatchx(opnd1, opnd2, false));
 		return (strcmp(opnd1, opnd2) != 0);
+
+	/* < */
 	case TO_STLT:
-		/* < */
 		return (strcmp(opnd1, opnd2) < 0);
+
+	/* > */
 	case TO_STGT:
-		/* > */
 		return (strcmp(opnd1, opnd2) > 0);
+
+	/* -eq */
 	case TO_INTEQ:
-		/* -eq */
+	/* -ne */
 	case TO_INTNE:
-		/* -ne */
+	/* -ge */
 	case TO_INTGE:
-		/* -ge */
+	/* -gt */
 	case TO_INTGT:
-		/* -gt */
+	/* -le */
 	case TO_INTLE:
-		/* -le */
+	/* -lt */
 	case TO_INTLT:
-		/* -lt */
 		if (!evaluate(opnd1, &v1, KSH_RETURN_ERROR, false) ||
 		    !evaluate(opnd2, &v2, KSH_RETURN_ERROR, false)) {
 			/* error already printed.. */
 			te->flags |= TEF_ERROR;
 			return (1);
 		}
-		switch ((int)op) {
+		switch (op) {
 		case TO_INTEQ:
 			return (v1 == v2);
 		case TO_INTNE:
@@ -2753,9 +2801,14 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 			return (v1 <= v2);
 		case TO_INTLT:
 			return (v1 < v2);
+		default:
+			/* NOTREACHED */
+			break;
 		}
+		/* NOTREACHED */
+
+	/* -nt */
 	case TO_FILNT:
-		/* -nt */
 		/*
 		 * ksh88/ksh93 succeed if file2 can't be stated
 		 * (subtly different from 'does not exist').
@@ -2763,8 +2816,9 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 		return (stat(opnd1, &b1) == 0 &&
 		    (((s = stat(opnd2, &b2)) == 0 &&
 		    b1.st_mtime > b2.st_mtime) || s < 0));
+
+	/* -ot */
 	case TO_FILOT:
-		/* -ot */
 		/*
 		 * ksh88/ksh93 succeed if file1 can't be stated
 		 * (subtly different from 'does not exist').
@@ -2772,10 +2826,17 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 		return (stat(opnd2, &b2) == 0 &&
 		    (((s = stat(opnd1, &b1)) == 0 &&
 		    b1.st_mtime < b2.st_mtime) || s < 0));
+
+	/* -ef */
 	case TO_FILEQ:
-		/* -ef */
 		return (stat (opnd1, &b1) == 0 && stat (opnd2, &b2) == 0 &&
 		    b1.st_dev == b2.st_dev && b1.st_ino == b2.st_ino);
+
+	/* all other cases */
+	case TO_NONOP:
+	case TO_NONNULL:
+		/* throw the error */
+		break;
 	}
 	(*te->error)(te, 0, "internal error: unknown op");
 	return (1);
