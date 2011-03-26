@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.160 2011/03/26 19:29:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.161 2011/03/26 19:43:48 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1586,7 +1586,7 @@ simplify_path(char *pathl)
 }
 
 void
-set_current_wd(char *nwd)
+set_current_wd(const char *nwd)
 {
 	char *allocd = NULL;
 

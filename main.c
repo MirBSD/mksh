@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.185 2011/03/26 19:35:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.186 2011/03/26 19:43:47 tg Exp $");
 
 extern char **environ;
 
@@ -156,12 +156,12 @@ main(int argc, const char *argv[])
 	Source *s = NULL;
 	struct block *l;
 	unsigned char restricted, errexit, utf_flag;
+	char *cp;
 	const char *ccp, **wp;
 	struct tbl *vp;
 	struct stat s_stdin;
 #if !defined(_PATH_DEFPATH) && defined(_CS_PATH)
 	ssize_t k;
-	char *cp;
 #endif
 
 	/* do things like getpgrp() et al. */
@@ -306,26 +306,17 @@ main(int argc, const char *argv[])
 	substitute(initsubs, 0);
 
 	/* Figure out the current working directory and set $PWD */
-	{
-		struct tbl *pwd_v = global("PWD");
-		char *pwd = str_val(pwd_v);
-		char *pwdx = pwd;
-
-		/* Try to use existing $PWD if it is valid */
-		if (pwd[0] != '/' ||
-		    !test_eval(NULL, TO_FILEQ, pwd, ".", true))
-			pwdx = NULL;
-		set_current_wd(pwdx);
-		if (current_wd[0])
-			simplify_path(current_wd);
-		/*
-		 * Only set pwd if we know where we are or if it had a
-		 * bogus value
-		 */
-		if (current_wd[0] || pwd != null)
-			/* setstr can't fail here */
-			setstr(pwd_v, current_wd, KSH_RETURN_ERROR);
-	}
+	vp = global("PWD");
+	cp = str_val(vp);
+	/* Try to use existing $PWD if it is valid */
+	set_current_wd((cp[0] == '/' && test_eval(NULL, TO_FILEQ, cp, ".",
+	    true)) ? cp : NULL);
+	if (current_wd[0])
+		simplify_path(current_wd);
+	/* Only set pwd if we know where we are or if it had a bogus value */
+	if (current_wd[0] || *cp)
+		/* setstr can't fail here */
+		setstr(vp, current_wd, KSH_RETURN_ERROR);
 
 	for (wp = initcoms; *wp != NULL; wp++) {
 		shcomexec(wp);
