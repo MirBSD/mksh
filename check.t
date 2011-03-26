@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.435 2011/03/26 16:19:29 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.436 2011/03/26 21:09:06 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -8581,6 +8581,12 @@ stdin:
 	realpath t2
 	realpath t3
 	rm -f t1 t2 t3
+	cd //usr/bin
+	pwd
+	cd ../lib
+	pwd
+	cd -P ../libexec
+	pwd
 expected-stdout:
 	/bin
 	//bin
@@ -8591,6 +8597,9 @@ expected-stdout:
 	/bin
 	//bin
 	/bin
+	//usr/bin
+	//usr/bin/../lib
+	//usr/libexec
 ---
 name: crash-1
 description:

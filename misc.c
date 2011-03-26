@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.161 2011/03/26 19:43:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.162 2011/03/26 21:09:09 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1511,78 +1511,104 @@ make_path(const char *cwd, const char *file,
 	return (rval);
 }
 
-/*
+/*-
  * Simplify pathnames containing "." and ".." entries.
- * ie, simplify_path("/a/b/c/./../d/..") returns "/a/b"
- * but simplify_path("//./C/foo/bar/../baz") stays as it is
+ *
+ * simplify_path(this)			= that
+ * /a/b/c/./../d/..			/a/b
+ * //./C/foo/bar/../baz			//./C/foo/bar/../baz
+ * /foo/				/foo
+ * /foo/../../bar			/bar
+ * /foo/./blah/..			/foo
+ * .					.
+ * ..					..
+ * ./foo				foo
+ * foo/../../../bar			../../bar
  */
 void
-simplify_path(char *pathl)
+simplify_path(char *p)
 {
-	char *cur, *t;
-	bool isrooted;
-	char *very_start = pathl, *start;
+	char *dp, *ip, *sp, *tp;
+	size_t len;
+	bool needslash;
 
-	if (!*pathl)
+	switch (*p) {
+	case 0:
 		return;
+	case '/':
+		/* exactly two leading slashes? (SUSv4 3.266) */
+		if (p[1] == '/' && p[2] != '/')
+			/* implementation defined, we CANNOT simplify this */
+			return;
+		needslash = true;
+		break;
+	default:
+		needslash = false;
+	}
+	dp = ip = sp = p;
 
-	if ((isrooted = pathl[0] == '/'))
-		very_start++;
-	/* exactly two leading slashes? (SUSv4 3.266) */
-	if (isrooted && pathl[1] == '/' && pathl[2] != '/')
-		/* implementation defined, we CANNOT simplify this */
-		return;
-
-	/*-
-	 * Before			After
-	 * /foo/			/foo
-	 * /foo/../../bar		/bar
-	 * /foo/./blah/..		/foo
-	 * .				.
-	 * ..				..
-	 * ./foo			foo
-	 * foo/../../../bar		../../bar
-	 */
-
-	for (cur = t = start = very_start; ; ) {
-		/* treat multiple '/'s as one '/' */
-		while (*t == '/')
-			t++;
-
-		if (*t == '\0') {
-			if (cur == pathl)
-				/* convert empty path to dot */
-				*cur++ = '.';
-			*cur = '\0';
+	while (*ip) {
+		/* skip slashes in input */
+		while (*ip == '/')
+			++ip;
+		if (!*ip)
 			break;
-		}
 
-		if (t[0] == '.') {
-			if (!t[1] || t[1] == '/') {
-				t += 1;
+		/* get next pathname component from input */
+		tp = ip;
+		while (*ip && *ip != '/')
+			++ip;
+		len = ip - tp;
+
+		/* check input for "." and ".." */
+		if (tp[0] == '.') {
+			if (len == 1)
+				/* just continue with the next one */
 				continue;
-			} else if (t[1] == '.' && (!t[2] || t[2] == '/')) {
-				if (!isrooted && cur == start) {
-					if (cur != very_start)
-						*cur++ = '/';
-					*cur++ = '.';
-					*cur++ = '.';
-					start = cur;
-				} else if (cur != start)
-					while (--cur > start && *cur != '/')
-						;
-				t += 2;
+			else if (len == 2 && tp[1] == '.') {
+				/* parent level, but how? */
+				if (*p == '/')
+					/* absolute path, only one way */
+					goto strip_last_component;
+				else if (dp > sp) {
+					/* relative path, with subpaths */
+					needslash = false;
+ strip_last_component:
+					/* strip off last pathname component */
+					while (dp > sp)
+						if (*--dp == '/')
+							break;
+				} else {
+					/* relative path, at its beginning */
+					if (needslash)
+						/* or already dotdot-slash'd */
+						*dp++ = '/';
+					/* keep dotdot-slash if not absolute */
+					*dp++ = '.';
+					*dp++ = '.';
+					needslash = true;
+					sp = dp;
+				}
+				/* then continue with the next one */
 				continue;
 			}
 		}
 
-		if (cur != very_start)
-			*cur++ = '/';
+		if (needslash)
+			*dp++ = '/';
 
-		/* find/copy next component of pathname */
-		while (*t && *t != '/')
-			*cur++ = *t++;
+		/* append next pathname component to output */
+		memmove(dp, tp, len);
+		dp += len;
+
+		/* append slash if we continue */
+		needslash = true;
+		/* try next component */
 	}
+	if (dp == p)
+		/* empty path -> dot */
+		*dp++ = needslash ? '/' : '.';
+	*dp = '\0';
 }
 
 void
