@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.184 2011/03/16 20:56:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.185 2011/03/26 19:35:35 tg Exp $");
 
 extern char **environ;
 
@@ -307,16 +307,13 @@ main(int argc, const char *argv[])
 
 	/* Figure out the current working directory and set $PWD */
 	{
-		struct stat s_pwd, s_dot;
 		struct tbl *pwd_v = global("PWD");
 		char *pwd = str_val(pwd_v);
 		char *pwdx = pwd;
 
 		/* Try to use existing $PWD if it is valid */
 		if (pwd[0] != '/' ||
-		    stat(pwd, &s_pwd) < 0 || stat(".", &s_dot) < 0 ||
-		    s_pwd.st_dev != s_dot.st_dev ||
-		    s_pwd.st_ino != s_dot.st_ino)
+		    !test_eval(NULL, TO_FILEQ, pwd, ".", true))
 			pwdx = NULL;
 		set_current_wd(pwdx);
 		if (current_wd[0])
