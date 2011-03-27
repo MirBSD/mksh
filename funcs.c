@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.181 2011/03/27 01:30:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.182 2011/03/27 18:50:04 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1454,7 +1454,7 @@ c_getopts(const char **wp)
 	vq = global(var);
 	/* Error message already printed (integer, readonly) */
 	if (!setstr(vq, buf, KSH_RETURN_ERROR))
-		rv = 1;
+		rv = 2;
 	if (Flag(FEXPORT))
 		typeset(var, EXPORT, 0, 0, 0);
 
@@ -1917,7 +1917,7 @@ c_read(const char **wp)
 			shf_flush(shf);
 			bi_errorf("%s: %s", *wp, "is read only");
 			afree(wpalloc, ATEMP);
-			return (1);
+			return (2);
 		}
 		if (Flag(FEXPORT))
 			typeset(*wp, EXPORT, 0, 0, 0);
@@ -2187,7 +2187,7 @@ int
 c_unset(const char **wp)
 {
 	const char *id;
-	int optc;
+	int optc, rv = 0;
 	bool unset_var = true;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "fv")) != -1)
@@ -2199,7 +2199,8 @@ c_unset(const char **wp)
 			unset_var = true;
 			break;
 		case '?':
-			return (1);
+			/*XXX not reached due to GF_ERROR */
+			return (2);
 		}
 	wp += builtin_opt.optind;
 	for (; (id = *wp) != NULL; wp++)
@@ -2222,14 +2223,15 @@ c_unset(const char **wp)
 			afree(cp, ATEMP);
 
 			if ((vp->flag&RDONLY)) {
-				bi_errorf("%s: %s", vp->name, "is read only");
-				return (1);
-			}
-			unset(vp, optc);
+				warningf(true, "%s: %s", vp->name,
+				    "is read only");
+				rv = 1;
+			} else
+				unset(vp, optc);
 		} else
 			/* unset function */
 			define(id, NULL);
-	return (0);
+	return (rv);
 }
 
 static void

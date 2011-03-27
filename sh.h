@@ -154,9 +154,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.455 2011/03/27 01:30:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.456 2011/03/27 18:50:05 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2011/03/26"
+#define MKSH_VERSION "R39 2011/03/27"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1642,14 +1642,16 @@ void cleanup_proc_env(void);
 void errorf(const char *, ...)
     MKSH_A_NORETURN
     MKSH_A_FORMAT(printf, 1, 2);
+void errorfx(int, const char *, ...)
+    MKSH_A_NORETURN
+    MKSH_A_FORMAT(printf, 2, 3);
 void warningf(bool, const char *, ...)
     MKSH_A_FORMAT(printf, 2, 3);
 void bi_errorf(const char *, ...)
     MKSH_A_FORMAT(printf, 1, 2);
 #define errorfz()	errorf("\1")
+#define errorfxz(rc)	errorfx((rc), "\1")
 #define bi_errorfz()	bi_errorf("\1")
-void internal_verrorf(const char *, va_list)
-    MKSH_A_FORMAT(printf, 1, 0);
 void internal_errorf(const char *, ...)
     MKSH_A_NORETURN
     MKSH_A_FORMAT(printf, 1, 2);

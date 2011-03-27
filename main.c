@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.186 2011/03/26 19:43:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.187 2011/03/27 18:50:05 tg Exp $");
 
 extern char **environ;
 
@@ -999,23 +999,59 @@ tty_close(void)
 }
 
 /* A shell error occurred (eg, syntax error, etc.) */
+
+#define VWARNINGF_ERRORPREFIX	1
+#define VWARNINGF_FILELINE	2
+#define VWARNINGF_BUILTIN	4
+#define VWARNINGF_INTERNAL	8
+
+static void MKSH_A_FORMAT(printf, 2, 0)
+vwarningf(unsigned int flags, const char *fmt, va_list ap)
+{
+	if (*fmt != 1) {
+		if (flags & VWARNINGF_INTERNAL)
+			shf_fprintf(shl_out, "internal error: ");
+		if (flags & VWARNINGF_ERRORPREFIX)
+			error_prefix(tobool(flags & VWARNINGF_FILELINE));
+		if ((flags & VWARNINGF_BUILTIN) &&
+		    /* not set when main() calls parse_args() */
+		    builtin_argv0 && builtin_argv0 != kshname)
+			shf_fprintf(shl_out, "%s: ", builtin_argv0);
+		shf_vfprintf(shl_out, fmt, ap);
+		shf_putchar('\n', shl_out);
+	}
+	shf_flush(shl_out);
+}
+
+void
+errorfx(int rc, const char *fmt, ...)
+{
+	va_list va;
+
+	exstat = rc;
+
+	/* debugging: note that stdout not valid */
+	shl_stdout_ok = false;
+
+	va_start(va, fmt);
+	vwarningf(VWARNINGF_ERRORPREFIX | VWARNINGF_FILELINE, fmt, va);
+	va_end(va);
+	unwind(LERROR);
+}
+
 void
 errorf(const char *fmt, ...)
 {
 	va_list va;
 
+	exstat = 1;
+
 	/* debugging: note that stdout not valid */
 	shl_stdout_ok = false;
 
-	exstat = 1;
-	if (*fmt != 1) {
-		error_prefix(true);
-		va_start(va, fmt);
-		shf_vfprintf(shl_out, fmt, va);
-		va_end(va);
-		shf_putchar('\n', shl_out);
-	}
-	shf_flush(shl_out);
+	va_start(va, fmt);
+	vwarningf(VWARNINGF_ERRORPREFIX | VWARNINGF_FILELINE, fmt, va);
+	va_end(va);
 	unwind(LERROR);
 }
 
@@ -1025,12 +1061,10 @@ warningf(bool fileline, const char *fmt, ...)
 {
 	va_list va;
 
-	error_prefix(fileline);
 	va_start(va, fmt);
-	shf_vfprintf(shl_out, fmt, va);
+	vwarningf(VWARNINGF_ERRORPREFIX | (fileline ? VWARNINGF_FILELINE : 0),
+	    fmt, va);
 	va_end(va);
-	shf_putchar('\n', shl_out);
-	shf_flush(shl_out);
 }
 
 /*
@@ -1046,17 +1080,12 @@ bi_errorf(const char *fmt, ...)
 	shl_stdout_ok = false;
 
 	exstat = 1;
-	if (*fmt != 1) {
-		error_prefix(true);
-		/* not set when main() calls parse_args() */
-		if (builtin_argv0 && builtin_argv0 != kshname)
-			shf_fprintf(shl_out, "%s: ", builtin_argv0);
-		va_start(va, fmt);
-		shf_vfprintf(shl_out, fmt, va);
-		va_end(va);
-		shf_putchar('\n', shl_out);
-	}
-	shf_flush(shl_out);
+
+	va_start(va, fmt);
+	vwarningf(VWARNINGF_ERRORPREFIX | VWARNINGF_FILELINE |
+	    VWARNINGF_BUILTIN, fmt, va);
+	va_end(va);
+
 	/*
 	 * POSIX special builtins and ksh special builtins cause
 	 * non-interactive shells to exit.
@@ -1070,21 +1099,12 @@ bi_errorf(const char *fmt, ...)
 
 /* Called when something that shouldn't happen does */
 void
-internal_verrorf(const char *fmt, va_list ap)
-{
-	shf_fprintf(shl_out, "internal error: ");
-	shf_vfprintf(shl_out, fmt, ap);
-	shf_putchar('\n', shl_out);
-	shf_flush(shl_out);
-}
-
-void
 internal_errorf(const char *fmt, ...)
 {
 	va_list va;
 
 	va_start(va, fmt);
-	internal_verrorf(fmt, va);
+	vwarningf(VWARNINGF_INTERNAL, fmt, va);
 	va_end(va);
 	unwind(LERROR);
 }
@@ -1095,7 +1115,7 @@ internal_warningf(const char *fmt, ...)
 	va_list va;
 
 	va_start(va, fmt);
-	internal_verrorf(fmt, va);
+	vwarningf(VWARNINGF_INTERNAL, fmt, va);
 	va_end(va);
 }
 

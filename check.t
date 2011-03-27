@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.437 2011/03/26 21:46:00 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.438 2011/03/27 18:50:02 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/03/26
+	@(#)MIRBSD KSH R39 2011/03/27
 description:
 	Check version of shell.
 stdin:
@@ -4678,6 +4678,65 @@ stdin:
 	echo ok
 expected-stdout:
 	ok
+---
+name: readonly-0
+description:
+	Ensure readonly is honoured for assignments and unset
+stdin:
+	"$__progname" -c 'u=x; echo $? $u .' || echo aborted, $?
+	echo =
+	"$__progname" -c 'readonly u; u=x; echo $? $u .' || echo aborted, $?
+	echo =
+	"$__progname" -c 'u=x; readonly u; unset u; echo $? $u .' || echo aborted, $?
+expected-stdout:
+	0 x .
+	=
+	aborted, 2
+	=
+	1 x .
+expected-stderr-pattern:
+	/read *only/
+---
+name: readonly-1
+description:
+	http://austingroupbugs.net/view.php?id=367 for export
+stdin:
+	"$__progname" -c 'readonly foo; export foo=a; echo $?' || echo aborted, $?
+expected-stdout:
+	aborted, 2
+expected-stderr-pattern:
+	/read *only/
+---
+name: readonly-2a
+description:
+	Check that getopts works as intended, for readonly-2b to be valid
+stdin:
+	"$__progname" -c 'set -- -a b; getopts a c; echo $? $c .; getopts a c; echo $? $c .' || echo aborted, $?
+expected-stdout:
+	0 a .
+	1 ? .
+---
+name: readonly-2b
+description:
+	http://austingroupbugs.net/view.php?id=367 for getopts
+stdin:
+	"$__progname" -c 'readonly c; set -- -a b; getopts a c; echo $? $c .' || echo aborted, $?
+expected-stdout:
+	2 .
+expected-stderr-pattern:
+	/read *only/
+---
+name: readonly-3
+description:
+	http://austingroupbugs.net/view.php?id=367 for read
+stdin:
+	echo x | "$__progname" -c 'read s; echo $? $s .' || echo aborted, $?
+	echo y | "$__progname" -c 'readonly s; read s; echo $? $s .' || echo aborted, $?
+expected-stdout:
+	0 x .
+	2 .
+expected-stderr-pattern:
+	/read *only/
 ---
 name: syntax-1
 description:

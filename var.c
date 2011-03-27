@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.118 2011/03/13 01:20:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.119 2011/03/27 18:50:06 tg Exp $");
 
 /*
  * Variables
@@ -407,7 +407,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 	if ((vq->flag & RDONLY) && !no_ro_check) {
 		warningf(true, "%s: %s", vq->name, "is read only");
 		if (!error_ok)
-			errorfz();
+			errorfxz(2);
 		return (0);
 	}
 	if (!(vq->flag&INTEGER)) { /* string dest */
@@ -758,7 +758,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	if ((vpbase->flag&RDONLY) &&
 	    (val || clr || (set & ~EXPORT)))
 		/* XXX check calls - is error here ok by POSIX? */
-		errorf("%s: %s", tvar, "is read only");
+		errorfx(2, "%s: %s", tvar, "is read only");
 	afree(tvar, ATEMP);
 
 	/* most calls are with set/clr == 0 */
@@ -1313,7 +1313,7 @@ set_array(const char *var, bool reset, const char **vals)
 
 	/* Note: AT&T ksh allows set -A but not set +A of a read-only var */
 	if ((vp->flag&RDONLY))
-		errorf("%s: %s", var, "is read only");
+		errorfx(2, "%s: %s", var, "is read only");
 	/* This code is quite non-optimal */
 	if (reset)
 		/* trash existing values and attributes */
