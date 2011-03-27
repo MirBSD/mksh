@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.180 2011/03/26 21:46:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.181 2011/03/27 01:30:36 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2700,7 +2700,9 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 		 */
 
 		nv = shf_smprintf("%s+", opnd1);
-		return (stat(nv, &b1) == 0 && S_ISCDF(b1.st_mode));
+		i = (stat(nv, &b1) == 0 && S_ISCDF(b1.st_mode));
+		afree(nv, ATEMP);
+		return (i);
 	}
 #else
 		return (0);

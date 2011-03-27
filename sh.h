@@ -154,7 +154,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.454 2011/03/26 21:46:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.455 2011/03/27 01:30:38 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/03/26"
 
@@ -273,6 +273,9 @@ typedef u_int8_t uint8_t;
 #endif
 #ifndef S_ISSOCK
 #define S_ISSOCK(m)	((m & 0170000) == 0140000)
+#endif
+#if !defined(S_ISCDF) && defined(S_CDF)
+#define S_ISCDF(m)	(S_ISDIR(m) && ((m) & S_CDF))
 #endif
 #ifndef DEFFILEMODE
 #define DEFFILEMODE	(S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
