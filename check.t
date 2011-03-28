@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.438 2011/03/27 18:50:02 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.439 2011/03/28 08:40:40 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/03/27
+	@(#)MIRBSD KSH R39 2011/03/28
 description:
 	Check version of shell.
 stdin:
@@ -1554,6 +1554,35 @@ expected-stdout:
 	2: ef
 	3: abcdef
 	4: cdef
+---
+name: eglob-trim-3a
+description:
+	Check eglobbing works in trims, for Korn Shell
+category: !binsh
+stdin:
+	set -o sh
+	x=foobar
+	y=foobaz
+	echo "<${x%bar|baz},${y%bar|baz}>"
+	echo "<${x%ba(r|z)},${y%ba(r|z)}>"
+expected-stdout:
+	<foo,foo>
+	<foo,foo>
+---
+name: eglob-trim-3b
+description:
+	Check eglobbing doesn’t work in trims, for reduced-feature /bin/sh
+category: binsh
+stdin:
+	set -o sh
+	x=foobar
+	y=foobaz
+	echo "<${x%bar|baz},${y%bar|baz}>"
+	z='foo(bar'
+	echo "<${z%(*}>"
+expected-stdout:
+	<foobar,foobaz>
+	<foo>
 ---
 name: eglob-substrpl-1
 description:
