@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.102 2011/03/17 21:57:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.103 2011/03/28 08:27:08 tg Exp $");
 
 /*
  * string expansion
@@ -578,8 +578,11 @@ expand(const char *cp,	/* input word */
 						 * in a trim will work as
 						 * expected)
 						 */
-						*dp++ = MAGIC;
-						*dp++ = (char)('@' | 0x80);
+						if (!Flag(FSH)) {
+							*dp++ = MAGIC;
+							*dp++ = (char)('@' |
+							    0x80);
+						}
 						break;
 					case '=':
 						/*
@@ -635,8 +638,12 @@ expand(const char *cp,	/* input word */
 				switch (st->stype & 0x17F) {
 				case '#':
 				case '%':
-					/* Append end-pattern */
-					*dp++ = MAGIC; *dp++ = ')'; *dp = '\0';
+					if (!Flag(FSH)) {
+						/* Append end-pattern */
+						*dp++ = MAGIC;
+						*dp++ = ')';
+					}
+					*dp = '\0';
 					dp = Xrestpos(ds, dp, st->base);
 					/*
 					 * Must use st->var since calling
