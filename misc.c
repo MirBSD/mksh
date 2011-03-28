@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.163 2011/03/26 21:46:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.164 2011/03/28 21:31:01 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1368,9 +1368,9 @@ do_realpath(const char *upath)
 				/* assert: (ip == ipath)[0] == '/' */
 				/* assert: xp == xs.beg => start of path */
 
-				/* exactly two leading slashes? */
+				/* exactly two leading slashes? (SUSv4 3.266) */
 				if (ip[1] == '/' && ip[2] != '/') {
-					/* SUSv4 3.266 Pathname */
+					/* keep them, e.g. for UNC pathnames */
 					Xput(xs, xp, '/');
 				}
 			}
@@ -1516,7 +1516,7 @@ make_path(const char *cwd, const char *file,
  *
  * simplify_path(this)			= that
  * /a/b/c/./../d/..			/a/b
- * //./C/foo/bar/../baz			//./C/foo/bar/../baz
+ * //./C/foo/bar/../baz			//C/foo/baz
  * /foo/				/foo
  * /foo/../../bar			/bar
  * /foo/./blah/..			/foo
@@ -1538,8 +1538,8 @@ simplify_path(char *p)
 	case '/':
 		/* exactly two leading slashes? (SUSv4 3.266) */
 		if (p[1] == '/' && p[2] != '/')
-			/* implementation defined, we CANNOT simplify this */
-			return;
+			/* keep them, e.g. for UNC pathnames */
+			++p;
 		needslash = true;
 		break;
 	default:
