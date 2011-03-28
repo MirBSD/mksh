@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.24 2011/02/27 19:29:19 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.25 2011/03/28 21:15:05 tg Exp $
 # $OpenBSD: th,v 1.13 2006/05/18 21:27:23 miod Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011
@@ -157,19 +157,19 @@ $os = defined $^O ? $^O : 'unknown';
 ($prog = $0) =~ s#.*/##;
 
 $Usage = <<EOF ;
-Usage: $prog [-s test-set] [-C category] [-p prog] [-v] [-e e=v] name ...
-	-p p	Use p as the program to test
+Usage: $prog [-Pv] [-C cat] [-e e=v] [-p prog] [-s fn] [-t tmo] name ...
 	-C c	Specify the comma separated list of categories the program
 		belongs to (see category field).
-	-s s	Read tests from file s; if s is a directory, it is recursively
-		scaned for test files (which end in .t).
-	-t t	Use t as default time limit for tests (default is unlimited)
-	-P	program (-p) string has multiple words, and the program is in
-		the path (kludge option)
-	-v	Verbose mode: print reason test failed.
 	-e e=v	Set the environment variable e to v for all tests
 		(if no =v is given, the current value is used)
 		Only one -e option can be given at the moment, sadly.
+	-P	program (-p) string has multiple words, and the program is in
+		the path (kludge option)
+	-p p	Use p as the program to test
+	-s s	Read tests from file s; if s is a directory, it is recursively
+		scaned for test files (which end in .t).
+	-t t	Use t as default time limit for tests (default is unlimited)
+	-v	Verbose mode: print reason test failed.
 	name	specifies the name of the test(s) to run; if none are
 		specified, all tests are run.
 EOF
@@ -220,7 +220,7 @@ $nxpassed = 0;
 
 %known_tests = ();
 
-if (!getopts('C:p:Ps:t:ve:')) {
+if (!getopts('C:e:Pp:s:t:v')) {
     print STDERR $Usage;
     exit 1;
 }

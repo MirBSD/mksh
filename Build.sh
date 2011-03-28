@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.474 2011/03/16 20:26:33 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.475 2011/03/28 21:15:04 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -393,7 +393,7 @@ ccpr='|| for _f in ${tcfn}*; do test x"${_f}" = x"mksh.1" || rm -f "${_f}"; done
 
 # Evil hack
 if test x"$TARGET_OS" = x"Android"; then
-	check_categories=$check_categories,android
+	check_categories="$check_categories android"
 	TARGET_OS=Linux
 fi
 
@@ -1065,23 +1065,23 @@ if ac_ifcpp 'ifdef MKSH_SMALL' isset_MKSH_SMALL '' \
 
 	: ${HAVE_NICE=0}
 	: ${HAVE_PERSISTENT_HISTORY=0}
-	check_categories=$check_categories,smksh
+	check_categories="$check_categories smksh"
 	HAVE_ISSET_MKSH_CONSERVATIVE_FDS=1	# from sh.h
 fi
 ac_ifcpp 'ifdef MKSH_BINSHREDUCED' isset_MKSH_BINSHREDUCED '' \
     "if a reduced-feature sh is requested" && \
-    check_categories=$check_categories,binsh
+    check_categories="$check_categories binsh"
 ac_ifcpp 'ifdef MKSH_UNEMPLOYED' isset_MKSH_UNEMPLOYED '' \
     "if mksh will be built without job control" && \
-    check_categories=$check_categories,arge
+    check_categories="$check_categories arge"
 ac_ifcpp 'ifdef MKSH_NOPROSPECTOFWORK' isset_MKSH_NOPROSPECTOFWORK '' \
     "if mksh will be built without job signals" && \
-    check_categories=$check_categories,arge,nojsig
+    check_categories="$check_categories arge nojsig"
 ac_ifcpp 'ifdef MKSH_ASSUME_UTF8' isset_MKSH_ASSUME_UTF8 '' \
     'if the default UTF-8 mode is specified' && : ${HAVE_SETLOCALE_CTYPE=0}
 ac_ifcpp 'ifdef MKSH_CONSERVATIVE_FDS' isset_MKSH_CONSERVATIVE_FDS '' \
     'if traditional/conservative fd use is requested' && \
-    check_categories=$check_categories,convfds
+    check_categories="$check_categories convfds"
 
 #
 # Environment: headers
@@ -1382,7 +1382,7 @@ CC=$save_CC; LDFLAGS=$save_LDFLAGS; LIBS=$save_LIBS
 #
 fd='if to use persistent history'
 ac_cache PERSISTENT_HISTORY || test 0 = $HAVE_FLOCK_EX || fv=1
-test 1 = $fv || check_categories=$check_categories,no-histfile
+test 1 = $fv || check_categories="$check_categories no-histfile"
 ac_testdone
 ac_cppflags
 
@@ -1407,7 +1407,7 @@ $e ... done.
 # the character count to standard output; cope for that
 echo wq >x
 ed x <x 2>/dev/null | grep 3 >/dev/null 2>&1 && \
-    check_categories=$check_categories,$oldish_ed
+    check_categories="$check_categories $oldish_ed"
 rmf x vv.out
 
 if test 0 = $HAVE_SYS_SIGNAME; then
@@ -1481,7 +1481,42 @@ esac
 cat >>test.sh <<-EOF
 	LC_ALL=C PATH='$PATH'; export LC_ALL PATH
 	test -n "\$KSH_VERSION" || exit 1
-	check_categories=$check_categories
+	set -A check_categories -- $check_categories
+	pflag='$curdir/mksh'
+	sflag='$srcdir/check.t'
+	usee=0 Pflag=0 uset=0 vflag=0 xflag=0
+	while getopts "C:e:Pp:s:t:v" ch; do case \$ch {
+	(C)	check_categories[\${#check_categories[*]}]=\$OPTARG ;;
+	(e)	usee=1; eflag=\$OPTARG ;;
+	(P)	Pflag=1 ;;
+	(p)	pflag=\$OPTARG ;;
+	(s)	sflag=\$OPTARG ;;
+	(t)	uset=1; tflag=\$OPTARG ;;
+	(v)	vflag=1 ;;
+	(*)	xflag=1 ;;
+	}
+	done
+	shift \$((OPTIND - 1))
+	set -A args -- '$srcdir/check.pl' -p "\$pflag" -s "\$sflag"
+	x=
+	for y in "\${check_categories[@]}"; do
+		x=\$x,\$y
+	done
+	if [[ -n \$x ]]; then
+		args[\${#args[*]}]=-C
+		args[\${#args[*]}]=\${x#,}
+	fi
+	if (( usee )); then
+		args[\${#args[*]}]=-e
+		args[\${#args[*]}]=\$eflag
+	fi
+	(( Pflag )) && args[\${#args[*]}]=-P
+	if (( uset )); then
+		args[\${#args[*]}]=-t
+		args[\${#args[*]}]=\$tflag
+	fi
+	(( vflag )) && args[\${#args[*]}]=-v
+	(( xflag )) && args[\${#args[*]}]=-x	# force usage by synerr
 	print Testing mksh for conformance:
 	fgrep MirOS: '$srcdir/check.t'
 	fgrep MIRBSD '$srcdir/check.t'
@@ -1495,7 +1530,7 @@ cat >>test.sh <<-EOF
 		print "Perl interpreter '\$perli' running on '\$perlos'"
 		[[ -n \$perlos ]] && break
 	done
-	exec \$perli '$srcdir/check.pl' -s '$srcdir/check.t' -p '$curdir/mksh' \${check_categories:+-C} \${check_categories#,} \$*$tsts
+	exec \$perli "\${args[@]}" "\$@"$tsts
 EOF
 chmod 755 test.sh
 test $HAVE_CAN_COMBINE$cm = 0combine && cm=normal
