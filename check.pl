@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.25 2011/03/28 21:15:05 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.26 2011/03/28 21:58:05 tg Exp $
 # $OpenBSD: th,v 1.13 2006/05/18 21:27:23 miod Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011
@@ -136,6 +136,8 @@
 #					One category os:XXX is predefined
 #					(XXX is the operating system name,
 #					eg, linux, dec_osf).
+#	need-ctty			'yes' if the test needs a ctty, run
+#					with -C regress:no-ctty to disable.
 # Flag meanings:
 #	r	tag is required (eg, a test must have a name tag).
 #	m	value can be multiple lines. Lines must be prefixed with
@@ -194,6 +196,7 @@ EOF
 	'expected-stderr',		'm',
 	'expected-stderr-pattern',	'm',
 	'category',			'm',
+	'need-ctty',			'',
 	);
 # Filled in by read_test()
 %internal_test_fields = (
@@ -643,6 +646,7 @@ category_check
     local(*test) = @_;
     local($c);
 
+    return 0 if ($test{'need-ctty'} && defined $categories{'regress:no-ctty'});
     return 1 if (!defined $test{'category'});
     local($ok) = 0;
     foreach $c (split(',', $test{'category'})) {
@@ -1064,6 +1068,16 @@ read_test
 	$test{'expected-fail'} = $1 eq 'yes';
     } else {
 	$test{'expected-fail'} = 0;
+    }
+    if (defined $test{'need-ctty'}) {
+	if ($test{'need-ctty'} !~ /^(yes|no)$/) {
+	    print STDERR
+	      "$prog:$test{':long-name'}: bad value for need-ctty field\n";
+	    return undef;
+	}
+	$test{'need-ctty'} = $1 eq 'yes';
+    } else {
+	$test{'need-ctty'} = 0;
     }
     if (defined $test{'arguments'}) {
 	local($firstc) = substr($test{'arguments'}, 0, 1);

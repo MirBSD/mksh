@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.441 2011/03/28 21:30:59 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.442 2011/03/28 21:58:06 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1013,6 +1013,7 @@ file-setup: file 644 "foo"
 	XXX=_
 	PS1=X
 	false && echo hmmm
+need-ctty: yes
 arguments: !-i!
 stdin:
 	echo hi${XXX}there
@@ -2486,6 +2487,7 @@ expected-stdout:
 name: history-basic
 description:
 	See if we can test history at all
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2502,6 +2504,7 @@ expected-stderr-pattern:
 name: history-dups
 description:
 	Verify duplicates and spaces are not entered
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2522,6 +2525,7 @@ expected-stderr-pattern:
 name: history-unlink
 description:
 	Check if broken HISTFILEs do not cause trouble
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=foo/hist.file!
 file-setup: file 644 "Env"
@@ -2544,6 +2548,7 @@ expected-stderr-pattern:
 name: history-e-minus-1
 description:
 	Check if more recent command is executed
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2563,6 +2568,7 @@ name: history-e-minus-2
 description:
 	Check that repeated command is printed before command
 	is re-executed.
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2582,6 +2588,7 @@ description:
 	fc -e - fails when there is no history
 	(ksh93 has a bug that causes this to fail)
 	(ksh88 loops on this)
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2597,6 +2604,7 @@ expected-stderr-pattern:
 name: history-e-minus-4
 description:
 	Check if "fc -e -" command output goes to stdout.
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2615,6 +2623,7 @@ expected-stderr-pattern:
 name: history-e-minus-5
 description:
 	fc is replaced in history by new command.
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2640,6 +2649,7 @@ name: history-list-1
 description:
 	List lists correct range
 	(ksh88 fails 'cause it lists the fc command)
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2663,6 +2673,7 @@ description:
 	Lists oldest history if given pre-historic number
 	(ksh93 has a bug that causes this to fail)
 	(ksh88 fails 'cause it lists the fc command)
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2685,6 +2696,7 @@ expected-stderr-pattern:
 name: history-list-3
 description:
 	Can give number 'options' to fc
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2708,6 +2720,7 @@ expected-stderr-pattern:
 name: history-list-4
 description:
 	-1 refers to previous command
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2730,6 +2743,7 @@ expected-stderr-pattern:
 name: history-list-5
 description:
 	List command stays in history
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2756,6 +2770,7 @@ name: history-list-6
 description:
 	HISTSIZE limits about of history kept.
 	(ksh88 fails 'cause it lists the fc command)
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!HISTSIZE=3!
 file-setup: file 644 "Env"
@@ -2781,6 +2796,7 @@ expected-stderr-pattern:
 name: history-list-7
 description:
 	fc allows too old/new errors in range specification
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!HISTSIZE=3!
 file-setup: file 644 "Env"
@@ -2807,6 +2823,7 @@ expected-stderr-pattern:
 name: history-list-r-1
 description:
 	test -r flag in history
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2833,6 +2850,7 @@ expected-stderr-pattern:
 name: history-list-r-2
 description:
 	If first is newer than last, -r is implied.
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2859,6 +2877,7 @@ expected-stderr-pattern:
 name: history-list-r-3
 description:
 	If first is newer than last, -r is cancelled.
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2885,6 +2904,7 @@ expected-stderr-pattern:
 name: history-subst-1
 description:
 	Basic substitution
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2903,6 +2923,7 @@ expected-stderr-pattern:
 name: history-subst-2
 description:
 	Does subst find previous command?
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2921,6 +2942,7 @@ expected-stderr-pattern:
 name: history-subst-3
 description:
 	Does subst find previous command when no arguments given
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2940,6 +2962,7 @@ name: history-subst-4
 description:
 	Global substitutions work
 	(ksh88 and ksh93 do not have -g option)
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2957,6 +2980,7 @@ name: history-subst-5
 description:
 	Make sure searches don't find current (fc) command
 	(ksh88/ksh93 don't have the ? prefix thing so they fail this test)
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -2978,6 +3002,7 @@ description:
 	that prints no prompts). This is for oldish ed(1) which write
 	the character count to stdout.
 category: stdout-ed
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -3000,6 +3025,7 @@ name: history-ed-2-old
 description:
 	Correct command is edited when number given
 category: stdout-ed
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -3031,6 +3057,7 @@ description:
 	(NOTE: adjusted for COMPLEX HISTORY compile time option)
 	(ksh88 fails 'cause it lists the fc command)
 category: stdout-ed
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -3062,6 +3089,7 @@ description:
 	Basic (ed) editing works (assumes you have generic ed editor
 	that prints no prompts). This is for newish ed(1) and stderr.
 category: !no-stderr-ed
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -3082,6 +3110,7 @@ name: history-ed-2
 description:
 	Correct command is edited when number given
 category: !no-stderr-ed
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -3109,6 +3138,7 @@ description:
 	Newly created multi line commands show up as single command
 	in history.
 category: !no-stderr-ed
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -3305,6 +3335,7 @@ description:
 	Syntax errors in expressions and effects on bases
 	(interactive so errors don't cause exits)
 	(ksh88 fails this test - shell exits, even with -i)
+need-ctty: yes
 arguments: !-i!
 stdin:
 	PS1= # minimise prompt hassles
@@ -4323,6 +4354,7 @@ file-setup: file 644 "env"
 	PS1=Y
 	PS2=X
 env-setup: !ENV=./env!
+need-ctty: yes
 arguments: !-i!
 stdin:
 	alias foo='echo hi ; '
@@ -4353,6 +4385,7 @@ file-setup: file 644 "env"
 file-setup: file 644 "abc"
 	stuff
 env-setup: !ENV=./env!
+need-ctty: yes
 arguments: !-i!
 stdin:
 	sed 's/^/X /' < ab*
@@ -4956,6 +4989,7 @@ expected-stdout:
 name: xxx-exec-1
 description:
 	Check that exec exits for built-ins
+need-ctty: yes
 arguments: !-i!
 stdin:
 	exec echo hi
@@ -5003,6 +5037,7 @@ expected-stdout:
 name: xxx-status-1
 description:
 	Check that blank lines don't clear $?
+need-ctty: yes
 arguments: !-i!
 stdin:
 	(exit 1)
@@ -5380,6 +5415,7 @@ description:
 	Part 2: verify mkshrc can be read (interactive shells)
 file-setup: file 644 ".mkshrc"
 	FNORD=42
+need-ctty: yes
 arguments: !-i!
 env-setup: !HOME=.!ENV=!PS1=!
 stdin:
@@ -5539,6 +5575,7 @@ name: persist-history-1
 description:
 	Check if persistent history saving works
 category: !no-histfile
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -5709,6 +5746,7 @@ description:
 	-UMKSH_ASSUME_UTF8 => not expected, but if your OS is old,
 	 try passing HAVE_SETLOCALE_CTYPE=0 to Build.sh
 category: !os:hpux
+need-ctty: yes
 arguments: !-i!
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.UTF-8!
 stdin:
@@ -5727,6 +5765,7 @@ description:
 	Check that the utf8-mode flag is set at interactive startup
 	Expected failure if -DMKSH_ASSUME_UTF8=0
 category: os:hpux
+need-ctty: yes
 arguments: !-i!
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.utf8!
 stdin:
@@ -8043,6 +8082,7 @@ file-setup: file 755 "falsetto"
 file-setup: file 755 "!false"
 	#! /bin/sh
 	echo si
+need-ctty: yes
 arguments: !-i!
 stdin:
 	export PATH=.:$PATH
@@ -8071,6 +8111,7 @@ file-setup: file 755 "falsetto"
 file-setup: file 755 "!"
 	#! /bin/sh
 	echo si
+need-ctty: yes
 arguments: !-i!
 stdin:
 	export PATH=.:$PATH
@@ -8097,6 +8138,7 @@ file-setup: file 755 "falsetto"
 file-setup: file 755 "!"
 	#! /bin/sh
 	echo si
+need-ctty: yes
 arguments: !-i!
 env-setup: !ENV=./Env!
 file-setup: file 644 "Env"
