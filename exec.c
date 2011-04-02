@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.88 2011/03/13 01:20:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.89 2011/04/02 10:30:10 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -847,8 +847,15 @@ scriptexec(struct op *tp, const char **ap)
 			/* read error -> no good */
 			buf[0] = '\0';
 		close(fd);
-		/* scan for newline (or CR) or NUL _before_ end of buffer */
+
+		/* skip UTF-8 Byte Order Mark, if present */
 		cp = (unsigned char *)buf;
+		if ((cp[0] == 0xEF) && (cp[1] == 0xBB) && (cp[2] == 0xBF))
+			cp += 3;
+		/* save begin of shebang for later */
+		fd = (char *)cp - buf;		/* either 0 or (if BOM) 3 */
+
+		/* scan for newline (or CR) or NUL _before_ end of buffer */
 		while ((char *)cp < (buf + sizeof(buf)))
 			if (*cp == '\0' || *cp == '\n' || *cp == '\r') {
 				*cp = '\0';
@@ -858,13 +865,13 @@ scriptexec(struct op *tp, const char **ap)
 		/* if the shebang line is longer than MAXINTERP, bail out */
 		if ((char *)cp >= (buf + sizeof(buf)))
 			goto noshebang;
-		/* skip UTF-8 Byte Order Mark, if present */
-		cp = (unsigned char *)buf;
-		if ((cp[0] == 0xEF) && (cp[1] == 0xBB) && (cp[2] == 0xBF))
-			cp += 3;
+
+		/* restore begin of shebang position (buf+0 or buf+3) */
+		cp = (unsigned char *)(buf + fd);
 		/* bail out if read error (above) or no shebang */
 		if ((cp[0] != '#') || (cp[1] != '!'))
 			goto noshebang;
+
 		cp += 2;
 		/* skip whitespace before shell name */
 		while (*cp == ' ' || *cp == '\t')
