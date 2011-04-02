@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.187 2011/03/27 18:50:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.188 2011/04/02 13:55:35 tg Exp $");
 
 extern char **environ;
 
@@ -112,6 +112,10 @@ rndsetup(void)
 	char *cp;
 
 	cp = alloc(sizeof(*bufptr) - ALLOC_SIZE, APERM);
+#ifdef DEBUG
+	/* clear the allocated space, for valgrind */
+	memset(cp, 0, sizeof(*bufptr) - ALLOC_SIZE);
+#endif
 	/* undo what alloc() did to the malloc result address */
 	bufptr = (void *)(cp - ALLOC_SIZE);
 	/* PIE or something similar provides us with deltas here */
