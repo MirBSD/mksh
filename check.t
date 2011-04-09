@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.444 2011/04/09 15:39:50 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.445 2011/04/09 18:47:12 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/04/01
+	@(#)MIRBSD KSH R39 2011/04/09
 description:
 	Check version of shell.
 stdin:
@@ -7212,21 +7212,22 @@ stdin:
 name: fd-cloexec-1
 description:
 	Verify that file descriptors > 2 are private for Korn shells
+	AT&T ksh93 does this still, which means we must keep it as well
 file-setup: file 644 "test.sh"
-	print -u3 Fowl
+	echo >&3 Fowl
 stdin:
 	exec 3>&1
 	"$__progname" test.sh
 expected-exit: e != 0
-expected-stderr:
-	test.sh[1]: print: -u: 3: bad file descriptor
+expected-stderr-pattern:
+	/bad file descriptor/
 ---
 name: fd-cloexec-2
 description:
 	Verify that file descriptors > 2 are not private for POSIX shells
 	See Debian Bug #154540, Closes: #499139
 file-setup: file 644 "test.sh"
-	print -u3 Fowl
+	echo >&3 Fowl
 stdin:
 	test -n "$POSH_VERSION" || set -o sh
 	exec 3>&1
