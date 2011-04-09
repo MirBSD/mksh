@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.59 2011/03/26 15:32:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.60 2011/04/09 15:14:54 tg Exp $");
 
 extern short subshell_nesting_level;
 
@@ -665,7 +665,7 @@ function_body(char *name,
 
 	t = newtp(TFUNCT);
 	t->str = sname;
-	t->u.ksh_func = ksh_func;
+	t->u.ksh_func = tobool(ksh_func);
 	t->lineno = source->line;
 
 	old_func_parse = e->flags & EF_FUNC_PARSE;

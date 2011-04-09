@@ -68,9 +68,6 @@
 #include <setjmp.h>
 #include <signal.h>
 #include <stdarg.h>
-#if HAVE_STDBOOL_H
-#include <stdbool.h>
-#endif
 #include <stddef.h>
 #if HAVE_STDINT_H
 #include <stdint.h>
@@ -154,7 +151,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.459 2011/04/09 14:58:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.460 2011/04/09 15:14:53 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/04/01"
 
@@ -184,20 +181,6 @@ typedef long rlim_t;
 #undef sig_t
 typedef void (*sig_t)(int);
 #endif
-
-#if !HAVE_STDBOOL_H
-/* kludge, but enough for mksh */
-typedef unsigned char mksh_bool;
-#define bool mksh_bool
-#define false 0
-#define true 1
-#endif
-
-/* choose the one that is optimised on most platforms? */
-#define tobool(cond)	((cond) ? true : false)
-/*#define tobool(cond)	(!!(cond))*/
-/* the following only with <stdbool.h> and even then sometimes buggy */
-/*#define tobool(cond)	((bool)(cond))*/
 
 #if !HAVE_CAN_INTTYPES
 #if !HAVE_CAN_UCBINTS
@@ -366,6 +349,19 @@ typedef int32_t Tflag;
 /* arithmetics types */
 typedef int32_t mksh_ari_t;
 typedef uint32_t mksh_uari_t;
+
+/* boolean type (no <stdbool.h> deliberately) */
+typedef unsigned char mksh_bool;
+#undef bool
+#undef false
+#undef true
+/* access macros for boolean type */
+#define bool		mksh_bool
+/* values must have identity mapping between mksh_bool and short */
+#define false		0
+#define true		1
+/* make any-type into bool or short */
+#define tobool(cond)	((cond) ? true : false)
 
 /* these shall be smaller than 100 */
 #ifdef MKSH_CONSERVATIVE_FDS
@@ -1115,7 +1111,8 @@ struct op {
 					 */
 	int lineno;			/* TCOM/TFUNC: LINENO for this */
 	short type;			/* operation type, see below */
-	union { /* WARNING: newtp(), tcopy() use evalflags = 0 to clear union */
+	union {
+		/* WARNING: newtp(), tcopy() use evalflags = 0 to clear union */
 		short evalflags;	/* TCOM: arg expansion eval() flags */
 		short ksh_func;		/* TFUNC: function x (vs x()) */
 	} u;

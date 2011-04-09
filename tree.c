@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.42 2011/04/09 15:05:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.43 2011/04/09 15:14:55 tg Exp $");
 
 #define INDENT	8
 
@@ -178,7 +178,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		prevent_semicolon = true;
 		break;
 	case TFUNCT:
-		fpFUNCTf(shf, indent, t->u.ksh_func, t->str, t->left);
+		fpFUNCTf(shf, indent, tobool(t->u.ksh_func), t->str, t->left);
 		break;
 	case TTIME:
 		fptreef(shf, indent, "%s %T", "time", t->left);

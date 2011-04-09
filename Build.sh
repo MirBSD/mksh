@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.475 2011/03/28 21:15:04 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.476 2011/04/09 15:14:51 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1098,7 +1098,6 @@ ac_header grp.h sys/types.h
 ac_header libgen.h
 ac_header libutil.h sys/types.h
 ac_header paths.h
-ac_header stdbool.h
 ac_header stdint.h stdarg.h
 # include strings.h only if compatible with string.h
 ac_header strings.h sys/types.h string.h
