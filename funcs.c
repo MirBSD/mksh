@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.183 2011/04/09 15:14:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.184 2011/04/09 15:21:36 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -820,7 +820,7 @@ c_typeset(const char **wp)
 					continue;
 				if (thing == '-')
 					fpFUNCTf(shl_stdout, 0,
-					    vp->flag & FKSH,
+					    tobool(vp->flag & FKSH),
 					    vp->name, vp->val.t);
 				else
 					shf_puts(vp->name, shl_stdout);
