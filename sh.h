@@ -154,7 +154,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.458 2011/04/02 10:30:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.459 2011/04/09 14:58:53 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/04/01"
 
@@ -187,7 +187,8 @@ typedef void (*sig_t)(int);
 
 #if !HAVE_STDBOOL_H
 /* kludge, but enough for mksh */
-typedef unsigned char bool;
+typedef unsigned char mksh_bool;
+#define bool mksh_bool
 #define false 0
 #define true 1
 #endif
