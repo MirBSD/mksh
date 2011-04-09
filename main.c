@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.188 2011/04/02 13:55:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.189 2011/04/09 21:01:02 tg Exp $");
 
 extern char **environ;
 
@@ -1009,7 +1009,7 @@ tty_close(void)
 #define VWARNINGF_BUILTIN	4
 #define VWARNINGF_INTERNAL	8
 
-static void MKSH_A_FORMAT(printf, 2, 0)
+static void MKSH_A_FORMAT(__printf__, 2, 0)
 vwarningf(unsigned int flags, const char *fmt, va_list ap)
 {
 	if (*fmt != 1) {

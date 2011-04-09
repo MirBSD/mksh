@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.207 2011/03/16 20:31:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.208 2011/04/09 21:01:00 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -908,7 +908,7 @@ static int x_match(char *, char *);
 static void x_redraw(int);
 static void x_push(int);
 static char *x_mapin(const char *, Area *)
-    MKSH_A_NONNULL((nonnull (1)));
+    MKSH_A_NONNULL((__nonnull__ (1)));
 static char *x_mapout(int);
 static void x_mapout2(int, char **);
 static void x_print(int, int);

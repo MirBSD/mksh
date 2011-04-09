@@ -90,12 +90,12 @@
 
 #undef __attribute__
 #if HAVE_ATTRIBUTE_BOUNDED
-#define MKSH_A_BOUNDED(x,y,z)	__attribute__((bounded (x, y, z)))
+#define MKSH_A_BOUNDED(x,y,z)	__attribute__((__bounded__ (x, y, z)))
 #else
 #define MKSH_A_BOUNDED(x,y,z)	/* nothing */
 #endif
 #if HAVE_ATTRIBUTE_FORMAT
-#define MKSH_A_FORMAT(x,y,z)	__attribute__((format (x, y, z)))
+#define MKSH_A_FORMAT(x,y,z)	__attribute__((__format__ (x, y, z)))
 #else
 #define MKSH_A_FORMAT(x,y,z)	/* nothing */
 #endif
@@ -105,17 +105,17 @@
 #define MKSH_A_NONNULL(a)	/* nothing */
 #endif
 #if HAVE_ATTRIBUTE_NORETURN
-#define MKSH_A_NORETURN		__attribute__((noreturn))
+#define MKSH_A_NORETURN		__attribute__((__noreturn__))
 #else
 #define MKSH_A_NORETURN		/* nothing */
 #endif
 #if HAVE_ATTRIBUTE_UNUSED
-#define MKSH_A_UNUSED		__attribute__((unused))
+#define MKSH_A_UNUSED		__attribute__((__unused__))
 #else
 #define MKSH_A_UNUSED		/* nothing */
 #endif
 #if HAVE_ATTRIBUTE_USED
-#define MKSH_A_USED		__attribute__((used))
+#define MKSH_A_USED		__attribute__((__used__))
 #else
 #define MKSH_A_USED		/* nothing */
 #endif
@@ -151,7 +151,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.461 2011/04/09 18:47:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.462 2011/04/09 21:01:03 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/04/09"
 
@@ -1623,7 +1623,7 @@ int j_stopped_running(void);
 int yylex(int);
 void yyerror(const char *, ...)
     MKSH_A_NORETURN
-    MKSH_A_FORMAT(printf, 1, 2);
+    MKSH_A_FORMAT(__printf__, 1, 2);
 Source *pushs(int, Area *);
 void set_prompt(int, Source *);
 void pprompt(const char *, int);
@@ -1639,27 +1639,27 @@ void cleanup_parents_env(void);
 void cleanup_proc_env(void);
 void errorf(const char *, ...)
     MKSH_A_NORETURN
-    MKSH_A_FORMAT(printf, 1, 2);
+    MKSH_A_FORMAT(__printf__, 1, 2);
 void errorfx(int, const char *, ...)
     MKSH_A_NORETURN
-    MKSH_A_FORMAT(printf, 2, 3);
+    MKSH_A_FORMAT(__printf__, 2, 3);
 void warningf(bool, const char *, ...)
-    MKSH_A_FORMAT(printf, 2, 3);
+    MKSH_A_FORMAT(__printf__, 2, 3);
 void bi_errorf(const char *, ...)
-    MKSH_A_FORMAT(printf, 1, 2);
+    MKSH_A_FORMAT(__printf__, 1, 2);
 #define errorfz()	errorf("\1")
 #define errorfxz(rc)	errorfx((rc), "\1")
 #define bi_errorfz()	bi_errorf("\1")
 void internal_errorf(const char *, ...)
     MKSH_A_NORETURN
-    MKSH_A_FORMAT(printf, 1, 2);
+    MKSH_A_FORMAT(__printf__, 1, 2);
 void internal_warningf(const char *, ...)
-    MKSH_A_FORMAT(printf, 1, 2);
+    MKSH_A_FORMAT(__printf__, 1, 2);
 void error_prefix(bool);
 void shellf(const char *, ...)
-    MKSH_A_FORMAT(printf, 1, 2);
+    MKSH_A_FORMAT(__printf__, 1, 2);
 void shprintf(const char *, ...)
-    MKSH_A_FORMAT(printf, 1, 2);
+    MKSH_A_FORMAT(__printf__, 1, 2);
 int can_seek(int);
 void initio(void);
 int ksh_dup2(int, int, bool);
@@ -1703,7 +1703,7 @@ void print_columns(struct shf *, int,
     const void *, int, int, bool);
 void strip_nuls(char *, int);
 ssize_t blocking_read(int, char *, size_t)
-    MKSH_A_BOUNDED(buffer, 2, 3);
+    MKSH_A_BOUNDED(__buffer__, 2, 3);
 int reset_nonblock(int);
 char *ksh_get_wd(void);
 char *do_realpath(const char *);
@@ -1732,14 +1732,14 @@ int shf_putchar(int, struct shf *);
 int shf_puts(const char *, struct shf *);
 int shf_write(const char *, int, struct shf *);
 int shf_fprintf(struct shf *, const char *, ...)
-    MKSH_A_FORMAT(printf, 2, 3);
+    MKSH_A_FORMAT(__printf__, 2, 3);
 int shf_snprintf(char *, int, const char *, ...)
-    MKSH_A_FORMAT(printf, 3, 4)
-    MKSH_A_BOUNDED(string, 1, 2);
+    MKSH_A_FORMAT(__printf__, 3, 4)
+    MKSH_A_BOUNDED(__string__, 1, 2);
 char *shf_smprintf(const char *, ...)
-    MKSH_A_FORMAT(printf, 1, 2);
+    MKSH_A_FORMAT(__printf__, 1, 2);
 int shf_vfprintf(struct shf *, const char *, va_list)
-    MKSH_A_FORMAT(printf, 2, 0);
+    MKSH_A_FORMAT(__printf__, 2, 0);
 /* syn.c */
 void initkeywords(void);
 struct op *compile(Source *, bool);
@@ -1757,7 +1757,7 @@ void dumpchar(struct shf *, int);
 void dumptree(struct shf *, struct op *);
 void dumpwdvar(struct shf *, const char *);
 void vistree(char *, size_t, struct op *)
-    MKSH_A_BOUNDED(string, 1, 2);
+    MKSH_A_BOUNDED(__string__, 1, 2);
 void fpFUNCTf(struct shf *, int, bool, const char *, struct op *);
 /* var.c */
 void newblock(void);
@@ -1770,7 +1770,7 @@ int setstr(struct tbl *, const char *, int);
 struct tbl *setint_v(struct tbl *, struct tbl *, bool);
 void setint(struct tbl *, mksh_ari_t);
 struct tbl *typeset(const char *, Tflag, Tflag, int, int)
-    MKSH_A_NONNULL((nonnull (1)));
+    MKSH_A_NONNULL((__nonnull__ (1)));
 void unset(struct tbl *, int);
 const char *skip_varname(const char *, int);
 const char *skip_wdvarname(const char *, int);

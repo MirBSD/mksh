@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.476 2011/04/09 15:14:51 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.477 2011/04/09 21:00:58 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -961,7 +961,7 @@ test $ct = pcc && phase=u
 #
 # Compiler: check for stuff that only generates warnings
 #
-ac_test attribute_bounded '' 'for __attribute__((bounded))' <<-'EOF'
+ac_test attribute_bounded '' 'for __attribute__((__bounded__))' <<-'EOF'
 	#if defined(__GNUC__) && (__GNUC__ < 2)
 	/* force a failure: gcc 1.42 has a false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
@@ -969,15 +969,15 @@ ac_test attribute_bounded '' 'for __attribute__((bounded))' <<-'EOF'
 	#include <string.h>
 	#undef __attribute__
 	int xcopy(const void *, void *, size_t)
-	    __attribute__((bounded (buffer, 1, 3)))
-	    __attribute__((bounded (buffer, 2, 3)));
+	    __attribute__((__bounded__ (__buffer__, 1, 3)))
+	    __attribute__((__bounded__ (__buffer__, 2, 3)));
 	int main(int ac, char *av[]) { return (xcopy(av[0], av[--ac], 1)); }
 	int xcopy(const void *s, void *d, size_t n) {
 		memmove(d, s, n); return ((int)n);
 	}
 	#endif
 EOF
-ac_test attribute_format '' 'for __attribute__((format))' <<-'EOF'
+ac_test attribute_format '' 'for __attribute__((__format__))' <<-'EOF'
 	#if defined(__GNUC__) && (__GNUC__ < 2)
 	/* force a failure: gcc 1.42 has a false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
@@ -987,51 +987,51 @@ ac_test attribute_format '' 'for __attribute__((format))' <<-'EOF'
 	#undef __attribute__
 	#undef fprintf
 	extern int fprintf(FILE *, const char *format, ...)
-	    __attribute__((format (printf, 2, 3)));
+	    __attribute__((__format__ (__printf__, 2, 3)));
 	int main(int ac, char **av) { return (fprintf(stderr, "%s%d", *av, ac)); }
 	#endif
 EOF
-ac_test attribute_nonnull '' 'for __attribute__((nonnull))' <<-'EOF'
+ac_test attribute_nonnull '' 'for __attribute__((__nonnull__))' <<-'EOF'
 	#if defined(__GNUC__) && (__GNUC__ < 2)
 	/* force a failure: gcc 1.42 has a false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
-	int foo(char *s1, char *s2) __attribute__((nonnull));
-	int bar(char *s1, char *s2) __attribute__((nonnull (1, 2)));
-	int baz(char *s) __attribute__((nonnull (1)));
+	int foo(char *s1, char *s2) __attribute__((__nonnull__));
+	int bar(char *s1, char *s2) __attribute__((__nonnull__ (1, 2)));
+	int baz(char *s) __attribute__((__nonnull__ (1)));
 	int foo(char *s1, char *s2) { return (bar(s2, s1)); }
 	int bar(char *s1, char *s2) { return (baz(s1) - baz(s2)); }
 	int baz(char *s) { return (*s); }
 	int main(int ac, char **av) { return (ac == foo(av[0], av[ac-1])); }
 	#endif
 EOF
-ac_test attribute_noreturn '' 'for __attribute__((noreturn))' <<-'EOF'
+ac_test attribute_noreturn '' 'for __attribute__((__noreturn__))' <<-'EOF'
 	#if defined(__GNUC__) && (__GNUC__ < 2)
 	/* force a failure: gcc 1.42 has a false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
 	#include <stdlib.h>
 	#undef __attribute__
-	void fnord(void) __attribute__((noreturn));
+	void fnord(void) __attribute__((__noreturn__));
 	int main(void) { fnord(); }
 	void fnord(void) { exit(0); }
 	#endif
 EOF
-ac_test attribute_unused '' 'for __attribute__((unused))' <<-'EOF'
+ac_test attribute_unused '' 'for __attribute__((__unused__))' <<-'EOF'
 	#if defined(__GNUC__) && (__GNUC__ < 2)
 	/* force a failure: gcc 1.42 has a false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
-	int main(int ac __attribute__((unused)), char **av
-	    __attribute__((unused))) { return (0); }
+	int main(int ac __attribute__((__unused__)), char **av
+	    __attribute__((__unused__))) { return (0); }
 	#endif
 EOF
-ac_test attribute_used '' 'for __attribute__((used))' <<-'EOF'
+ac_test attribute_used '' 'for __attribute__((__used__))' <<-'EOF'
 	#if defined(__GNUC__) && (__GNUC__ < 2)
 	/* force a failure: gcc 1.42 has a false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
-	static const char fnord[] __attribute__((used)) = "42";
+	static const char fnord[] __attribute__((__used__)) = "42";
 	int main(void) { return (0); }
 	#endif
 EOF

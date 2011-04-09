@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.184 2011/04/09 15:21:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.185 2011/04/09 21:01:01 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -205,7 +205,7 @@ static void ptest_error(Test_env *, int, const char *);
 static char *kill_fmt_entry(char *, int, int, const void *);
 static void p_time(struct shf *, bool, long, int, int,
     const char *, const char *)
-    MKSH_A_NONNULL((nonnull (6, 7)));
+    MKSH_A_NONNULL((__nonnull__ (6, 7)));
 
 int
 c_pwd(const char **wp)
