@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.443 2011/04/02 10:30:09 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.444 2011/04/09 15:39:50 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -5126,12 +5126,12 @@ description:
 	Check some "exit on error" conditions
 stdin:
 	set -ex
-	/usr/bin/env false && echo something
+	env false && echo something
 	echo END
 expected-stdout:
 	END
 expected-stderr:
-	+ /usr/bin/env false
+	+ env false
 	+ echo END
 ---
 name: exit-err-2
@@ -5139,15 +5139,15 @@ description:
 	Check some "exit on error" edge conditions (POSIXly)
 stdin:
 	set -ex
-	if /usr/bin/env true; then
-		/usr/bin/env false && echo something
+	if env true; then
+		env false && echo something
 	fi
 	echo END
 expected-stdout:
 	END
 expected-stderr:
-	+ /usr/bin/env true
-	+ /usr/bin/env false
+	+ env true
+	+ env false
 	+ echo END
 ---
 name: exit-err-3
