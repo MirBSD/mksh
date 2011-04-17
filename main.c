@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.189 2011/04/09 21:01:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.190 2011/04/17 12:24:43 tg Exp $");
 
 extern char **environ;
 
@@ -550,12 +550,13 @@ main(int argc, const char *argv[])
 	}
 	Flag(FERREXIT) = errexit;
 
-	if (Flag(FTALKING)) {
+	if (Flag(FTALKING))
 		hist_init(s);
-		alarm_init();
-	} else
+	else
 		/* set after ENV */
 		Flag(FTRACKALL) = 1;
+
+	alarm_init();
 
 	if (Flag(FAS_BUILTIN))
 		return (shcomexec(l->argv));
