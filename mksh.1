@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.254 2011/03/26 21:46:04 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.255 2011/04/17 15:43:12 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.139 2011/03/09 09:30:39 okan Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 26 2011 $
+.Dd $Mdocdate: April 17 2011 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -2698,9 +2698,7 @@ and
 respectively.
 When a traced function is executed, the shell's
 .Ic xtrace
-option is turned on for the function's duration; otherwise, the
-.Ic xtrace
-option is turned off.
+option is turned on for the function's duration.
 The
 .Dq export
 attribute of functions is currently not used.
