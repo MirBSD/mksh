@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.89 2011/04/02 10:30:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.90 2011/04/17 15:40:35 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -717,7 +717,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		}
 
 		old_xflag = Flag(FXTRACE);
-		Flag(FXTRACE) = tp->flag & TRACE ? 1 : 0;
+		Flag(FXTRACE) |= tp->flag & TRACE ? 1 : 0;
 
 		old_inuse = tp->flag & FINUSE;
 		tp->flag |= FINUSE;
