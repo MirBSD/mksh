@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.208 2011/04/09 21:01:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.209 2011/04/22 12:10:13 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -872,7 +872,7 @@ static char *killstack[KILLSIZE];
 static int killsp, killtp;
 static int x_curprefix;
 #ifndef MKSH_SMALL
-static char *macroptr = NULL;	/* bind key macro active? */
+static char *macroptr;		/* bind key macro active? */
 #endif
 #if !MKSH_S_NOVI
 static int cur_col;		/* current column on line */

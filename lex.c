@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.145 2011/03/28 08:27:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.146 2011/04/22 12:10:14 tg Exp $");
 
 /*
  * states while lexing word
@@ -107,7 +107,7 @@ void yyskiputf8bom(void);
 
 static int backslash_skip;
 static int ignore_backslash_newline;
-static struct sretrace_info *retrace_info = NULL;
+static struct sretrace_info *retrace_info;
 short subshell_nesting_level = 0;
 
 /* optimised getsc_bn() */
