@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.43 2011/04/09 15:14:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.44 2011/04/22 12:15:42 tg Exp $");
 
 #define INDENT	8
 
@@ -35,7 +35,7 @@ static void iofree(struct ioword **, Area *);
 static void wdstrip_internal(struct shf *, const char *, bool, bool);
 
 /* "foo& ; bar" and "foo |& ; bar" are invalid */
-static bool prevent_semicolon = false;
+static bool prevent_semicolon;
 
 /*
  * print a command tree

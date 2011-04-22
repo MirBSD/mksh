@@ -151,7 +151,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.463 2011/04/17 12:24:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.464 2011/04/22 12:15:40 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/04/17"
 
@@ -353,6 +353,7 @@ typedef uint32_t mksh_uari_t;
 /* boolean type (no <stdbool.h> deliberately) */
 typedef unsigned char mksh_bool;
 #undef bool
+/* false MUST equal 0 */
 #undef false
 #undef true
 /* access macros for boolean type */

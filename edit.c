@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.209 2011/04/22 12:10:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.210 2011/04/22 12:15:38 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1186,7 +1186,7 @@ x_emacs(char *buf, size_t len)
 static int
 x_insert(int c)
 {
-	static int left = 0, pos, save_arg;
+	static int left, pos, save_arg;
 	static char str[4];
 
 	/*
