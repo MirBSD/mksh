@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.108 2011/03/07 20:30:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.109 2011/04/22 12:21:53 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -524,26 +524,6 @@ findhist(int start, int fwd, const char *str, int anchored)
 			return (hp - history);
 
 	return (-1);
-}
-
-int
-findhistrel(const char *str)
-{
-	int	maxhist = histptr - history;
-	int	start = maxhist - 1;
-	int	rec;
-
-	getn(str, &rec);
-	if (rec == 0)
-		return (-1);
-	if (rec > 0) {
-		if (rec > maxhist)
-			return (-1);
-		return (rec - 1);
-	}
-	if (rec > maxhist)
-		return (-1);
-	return (start + rec + 1);
 }
 
 /*

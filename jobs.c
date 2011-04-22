@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.77 2011/03/13 01:20:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.78 2011/04/22 12:21:54 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -859,25 +859,6 @@ j_stopped_running(void)
 	}
 
 	return (0);
-}
-
-int
-j_njobs(void)
-{
-	Job *j;
-	int nj = 0;
-#ifndef MKSH_NOPROSPECTOFWORK
-	sigset_t omask;
-
-	sigprocmask(SIG_BLOCK, &sm_sigchld, &omask);
-#endif
-	for (j = job_list; j; j = j->next)
-		nj++;
-
-#ifndef MKSH_NOPROSPECTOFWORK
-	sigprocmask(SIG_SETMASK, &omask, NULL);
-#endif
-	return (nj);
 }
 
 

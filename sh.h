@@ -151,7 +151,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.464 2011/04/22 12:15:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.465 2011/04/22 12:21:55 tg Exp $");
 #endif
 #define MKSH_VERSION "R39 2011/04/17"
 
@@ -840,9 +840,8 @@ EXTERN sigset_t		sm_default, sm_sigchld;
 EXTERN const char *builtin_argv0;
 EXTERN Tflag builtin_flag;	/* flags of called builtin (SPEC_BI, etc.) */
 
-/* current working directory, and size of memory allocated for same */
+/* current working directory */
 EXTERN char	*current_wd;
-EXTERN size_t	current_wd_size;
 
 /* Minimum required space to work with on a line - if the prompt leaves less
  * space than this on a line, the prompt is truncated.
@@ -1583,7 +1582,6 @@ void sethistfile(const char *);
 char **histpos(void);
 int histnum(int);
 int findhist(int, int, const char *, int);
-int findhistrel(const char *);
 char **hist_get_newest(bool);
 void inittraps(void);
 void alarm_init(void);
@@ -1616,7 +1614,6 @@ int j_kill(const char *, int);
 int j_resume(const char *, int);
 #endif
 int j_jobs(const char *, int, int);
-int j_njobs(void);
 void j_notify(void);
 pid_t j_async(void);
 int j_stopped_running(void);
