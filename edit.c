@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.210 2011/04/22 12:15:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.211 2011/04/22 12:16:38 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -3420,10 +3420,10 @@ struct macro_state {
 };
 static struct macro_state macro;
 
-enum expand_mode {
-	NONE, EXPAND, COMPLETE, PRINT
-};
-static enum expand_mode expanded = NONE;	/* last input was expanded */
+/* last input was expanded */
+static enum expand_mode {
+	NONE = 0, EXPAND, COMPLETE, PRINT
+} expanded;
 
 static int
 x_vi(char *buf, size_t len)
