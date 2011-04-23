@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.255 2011/04/17 15:43:12 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.256 2011/04/23 10:40:27 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.139 2011/03/09 09:30:39 okan Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 17 2011 $
+.Dd $Mdocdate: April 23 2011 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -1279,10 +1279,11 @@ form
 where
 .Ar expr
 is an arithmetic expression.
-Array indices are currently limited in
+Array indices in
 .Nm
-to the range 0 through 4294967295, inclusive.
+are limited to the range 0 through 4294967295, inclusive.
 That is, they are a 32-bit unsigned integer.
+.Pp
 Parameter substitutions take the form
 .Pf $ Ns Ar name ,
 .Pf ${ Ns Ar name Ns } ,
@@ -1293,6 +1294,11 @@ or
 where
 .Ar name
 is a parameter name.
+Substitution of all array elements with
+.Pf ${ Ns Ar name Ns \&[*]}
+and
+.Pf ${ Ns Ar name Ns \&[@]}
+works equivalent to $* and $@ for positional parameters.
 If substitution is performed on a parameter
 (or an array parameter element)
 that is not set, a null string is substituted unless the
