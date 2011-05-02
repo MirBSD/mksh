@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.103 2011/03/28 08:27:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.104 2011/05/02 22:52:51 tg Exp $");
 
 /*
  * string expansion
@@ -398,11 +398,11 @@ expand(const char *cp,	/* input word */
 							end[-2] = EOS;
 							sp += end - beg - 1;
 						}
-						evaluate(substitute(stg = wdstrip(beg, false, false), 0),
+						evaluate(substitute(stg = wdstrip(beg, 0), 0),
 						    &from, KSH_UNWIND_ERROR, true);
 						afree(stg, ATEMP);
 						if (end) {
-							evaluate(substitute(stg = wdstrip(mid, false, false), 0),
+							evaluate(substitute(stg = wdstrip(mid, 0), 0),
 							    &num, KSH_UNWIND_ERROR, true);
 							afree(stg, ATEMP);
 						}
@@ -441,10 +441,11 @@ expand(const char *cp,	/* input word */
 						else
 							d[-2] = EOS;
 						sp += (d ? d : p) - s - 1;
-						tpat0 = wdstrip(s, true, true);
+						tpat0 = wdstrip(s,
+						    WDS_KEEPQ | WDS_MAGIC);
 						pat = substitute(tpat0, 0);
 						if (d) {
-							d = wdstrip(p, true, false);
+							d = wdstrip(p, WDS_KEEPQ);
 							rrep = substitute(d, 0);
 							afree(d, ATEMP);
 						} else

@@ -22,17 +22,16 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.44 2011/04/22 12:15:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.45 2011/05/02 22:52:54 tg Exp $");
 
 #define INDENT	8
 
 static void ptree(struct op *, int, struct shf *);
 static void pioact(struct shf *, int, struct ioword *);
-static void tputS(const char *, struct shf *);
+static const char *wdvarput(struct shf *, const char *, int, int);
 static void vfptreef(struct shf *, int, const char *, va_list);
 static struct ioword **iocopy(struct ioword **, Area *);
 static void iofree(struct ioword **, Area *);
-static void wdstrip_internal(struct shf *, const char *, bool, bool);
 
 /* "foo& ; bar" and "foo |& ; bar" are invalid */
 static bool prevent_semicolon;
@@ -265,16 +264,18 @@ pioact(struct shf *shf, int indent, struct ioword *iop)
 	prevent_semicolon = false;
 }
 
-/* variant of fputs for ptreef */
-static void
-tputS(const char *wp, struct shf *shf)
+/* variant of fputs for ptreef and wdstrip */
+static const char *
+wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 {
-	int c, quotelevel = 0;
+	int c;
 
 	/*-
 	 * problems:
 	 *	`...` -> $(...)
 	 *	'foo' -> "foo"
+	 *	x${foo:-"hi"} -> x${foo:-hi} unless WDS_TPUTS
+	 *	x${foo:-'hi'} -> x${foo:-hi} unless WDS_KEEPQ
 	 * could change encoding to:
 	 *	OQUOTE ["'] ... CQUOTE ["']
 	 *	COMSUB [(`] ...\0	(handle $ ` \ and maybe " in `...` case)
@@ -282,18 +283,33 @@ tputS(const char *wp, struct shf *shf)
 	while (/* CONSTCOND */ 1)
 		switch (*wp++) {
 		case EOS:
-			return;
+			return (wp);
 		case ADELIM:
 		case CHAR:
-			shf_putchar(*wp++, shf);
-			break;
-		case QCHAR:
 			c = *wp++;
-			if (!quotelevel ||
-			    (c == '"' || c == '`' || c == '$' || c == '\\'))
+			if ((opmode & WDS_MAGIC) &&
+			    (ISMAGIC(c) || c == '[' || c == NOT ||
+			    c == '-' || c == ']' || c == '*' || c == '?'))
+				shf_putc(MAGIC, shf);
+			shf_putc(c, shf);
+			break;
+		case QCHAR: {
+			bool doq;
+
+			c = *wp++;
+			doq = (c == '"' || c == '`' || c == '$' || c == '\\');
+			if (opmode & WDS_TPUTS) {
+				if (quotelevel == 0)
+					doq = true;
+			} else {
+				if (!(opmode & WDS_KEEPQ))
+					doq = false;
+			}
+			if (doq)
 				shf_putc('\\', shf);
 			shf_putc(c, shf);
 			break;
+		}
 		case COMSUB:
 			shf_puts("$(", shf);
 			while ((c = *wp++) != 0)
@@ -307,13 +323,17 @@ tputS(const char *wp, struct shf *shf)
 			shf_puts("))", shf);
 			break;
 		case OQUOTE:
-			quotelevel++;
-			shf_putc('"', shf);
+			if (opmode & WDS_TPUTS) {
+				quotelevel++;
+				shf_putc('"', shf);
+			}
 			break;
 		case CQUOTE:
-			if (quotelevel)
-				quotelevel--;
-			shf_putc('"', shf);
+			if (opmode & WDS_TPUTS) {
+				if (quotelevel)
+					quotelevel--;
+				shf_putc('"', shf);
+			}
 			break;
 		case OSUBST:
 			shf_putc('$', shf);
@@ -321,20 +341,29 @@ tputS(const char *wp, struct shf *shf)
 				shf_putc('{', shf);
 			while ((c = *wp++) != 0)
 				shf_putc(c, shf);
+			wp = wdvarput(shf, wp, 0, opmode);
 			break;
 		case CSUBST:
 			if (*wp++ == '}')
 				shf_putc('}', shf);
-			break;
+			return (wp);
 		case OPAT:
-			shf_putchar(*wp++, shf);
-			shf_putc('(', shf);
+			if (opmode & WDS_MAGIC) {
+				shf_putc(MAGIC, shf);
+				shf_putchar(*wp++ | 0x80, shf);
+			} else {
+				shf_putchar(*wp++, shf);
+				shf_putc('(', shf);
+			}
 			break;
 		case SPAT:
-			shf_putc('|', shf);
-			break;
+			c = '|';
+			if (0)
 		case CPAT:
-			shf_putc(')', shf);
+				c = /*(*/ ')';
+			if (opmode & WDS_MAGIC)
+				shf_putc(MAGIC, shf);
+			shf_putc(c, shf);
 			break;
 		}
 }
@@ -389,7 +418,7 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 				break;
 			case 'S':
 				/* word */
-				tputS(va_arg(va, char *), shf);
+				wdvarput(shf, va_arg(va, char *), 0, WDS_TPUTS);
 				break;
 			case 'd':
 				/* signed decimal */
@@ -569,92 +598,14 @@ wdscan(const char *wp, int c)
  * quote characters (" ' \) stripped. (string is allocated from ATEMP)
  */
 char *
-wdstrip(const char *wp, bool keepq, bool make_magic)
+wdstrip(const char *wp, int opmode)
 {
 	struct shf shf;
 
 	shf_sopen(NULL, 32, SHF_WR | SHF_DYNAMIC, &shf);
-	wdstrip_internal(&shf, wp, keepq, make_magic);
+	wdvarput(&shf, wp, 0, opmode);
 	/* shf_sclose NUL terminates */
 	return (shf_sclose(&shf));
-}
-
-static void
-wdstrip_internal(struct shf *shf, const char *wp, bool keepq, bool make_magic)
-{
-	int c;
-
-	/*-
-	 * problems:
-	 *	`...` -> $(...)
-	 *	x${foo:-"hi"} -> x${foo:-hi}
-	 *	x${foo:-'hi'} -> x${foo:-hi} unless keepq
-	 */
-	while (/* CONSTCOND */ 1)
-		switch (*wp++) {
-		case EOS:
-			return;
-		case ADELIM:
-		case CHAR:
-			c = *wp++;
-			if (make_magic && (ISMAGIC(c) || c == '[' || c == NOT ||
-			    c == '-' || c == ']' || c == '*' || c == '?'))
-				shf_putc(MAGIC, shf);
-			shf_putc(c, shf);
-			break;
-		case QCHAR:
-			c = *wp++;
-			if (keepq && (c == '"' || c == '`' || c == '$' || c == '\\'))
-				shf_putc('\\', shf);
-			shf_putc(c, shf);
-			break;
-		case COMSUB:
-			shf_puts("$(", shf);
-			while ((c = *wp++) != 0)
-				shf_putc(c, shf);
-			shf_putc(')', shf);
-			break;
-		case EXPRSUB:
-			shf_puts("$((", shf);
-			while (*wp != 0)
-				shf_putchar(*wp++, shf);
-			shf_puts("))", shf);
-			break;
-		case OQUOTE:
-			break;
-		case CQUOTE:
-			break;
-		case OSUBST:
-			shf_putc('$', shf);
-			if (*wp++ == '{')
-			    shf_putc('{', shf);
-			while ((c = *wp++) != 0)
-				shf_putc(c, shf);
-			break;
-		case CSUBST:
-			if (*wp++ == '}')
-				shf_putc('}', shf);
-			break;
-		case OPAT:
-			if (make_magic) {
-				shf_putc(MAGIC, shf);
-				shf_putchar(*wp++ | 0x80, shf);
-			} else {
-				shf_putchar(*wp++, shf);
-				shf_putc('(', shf);
-			}
-			break;
-		case SPAT:
-			if (make_magic)
-				shf_putc(MAGIC, shf);
-			shf_putc('|', shf);
-			break;
-		case CPAT:
-			if (make_magic)
-				shf_putc(MAGIC, shf);
-			shf_putc(')', shf);
-			break;
-		}
 }
 
 static struct ioword **
@@ -793,29 +744,28 @@ dumpchar(struct shf *shf, int c)
 	shf_putc(c, shf);
 }
 
-/* see: tputS */
-void
-dumpwdvar(struct shf *shf, const char *wp)
+/* see: wdvarput */
+static const char *
+dumpwdvar_(struct shf *shf, const char *wp, int quotelevel)
 {
-	int c, quotelevel = 0;
+	int c;
 
 	while (/* CONSTCOND */ 1) {
 		switch(*wp++) {
 		case EOS:
 			shf_puts("EOS", shf);
-			return;
+			return (wp);
 		case ADELIM:
 			shf_puts("ADELIM=", shf);
- dumpchar:
+			if (0)
+		case CHAR:
+				shf_puts("CHAR=", shf);
 			dumpchar(shf, *wp++);
 			break;
-		case CHAR:
-			shf_puts("CHAR=", shf);
-			goto dumpchar;
 		case QCHAR:
 			shf_puts("QCHAR<", shf);
 			c = *wp++;
-			if (!quotelevel ||
+			if (quotelevel == 0 ||
 			    (c == '"' || c == '`' || c == '$' || c == '\\'))
 				shf_putc('\\', shf);
 			dumpchar(shf, c);
@@ -847,12 +797,14 @@ dumpwdvar(struct shf *shf, const char *wp)
 			shf_puts(")[", shf);
 			while ((c = *wp++) != 0)
 				dumpchar(shf, c);
+			shf_putc('|', shf);
+			wp = dumpwdvar_(shf, wp, 0);
 			break;
 		case CSUBST:
 			shf_puts("]CSUBST(", shf);
 			dumpchar(shf, *wp++);
 			shf_putc(')', shf);
-			break;
+			return (wp);
 		case OPAT:
 			shf_puts("OPAT=", shf);
 			dumpchar(shf, *wp++);
@@ -869,6 +821,11 @@ dumpwdvar(struct shf *shf, const char *wp)
 		}
 		shf_putc(' ', shf);
 	}
+}
+void
+dumpwdvar(struct shf *shf, const char *wp)
+{
+	dumpwdvar_(shf, wp, 0);
 }
 
 void

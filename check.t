@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.447 2011/04/22 21:44:33 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.448 2011/05/02 22:52:49 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/04/22
+	@(#)MIRBSD KSH R39 2011/05/02
 description:
 	Check version of shell.
 stdin:
@@ -7392,7 +7392,7 @@ stdin:
 	echo "fo\ob\"a\`r\'b\$az"
 	echo 'fo\ob\"a\`r'\''b\$az'
 	#OSUBST_CSUBST_OPAT_SPAT_CPAT
-	[[ ${foo#blub} = @(bar|baz) ]]
+	[[ ${foo#bl\(u\)b} = @(bar|baz) ]]
 	#heredoc_closed
 	x=$(cat <<EOFN
 	note there must be no space between EOFN and )
@@ -7809,22 +7809,22 @@ expected-stdout:
 		x=$(( echo fo\ob\"a\`r\'b\$az ; echo "fo\ob\"a\`r\'b\$az" ; echo "fo\\ob\\\"a\\\`r"\'"b\\\$az" ) | tr u x ) 
 	} 
 	inline_OSUBST_CSUBST_OPAT_SPAT_CPAT() {
-		[[ ${foo#blub} = @(bar|baz) ]]
+		[[ ${foo#bl\(u\)b} = @(bar|baz) ]]
 	}
 	inline_OSUBST_CSUBST_OPAT_SPAT_CPAT() {
-		[[ ${foo#blub} = @(bar|baz) ]] 
+		[[ ${foo#bl\(u\)b} = @(bar|baz) ]] 
 	} 
 	function comsub_OSUBST_CSUBST_OPAT_SPAT_CPAT { x=$(
-		[[ ${foo#blub} = @(bar|baz) ]]
+		[[ ${foo#bl\(u\)b} = @(bar|baz) ]]
 	); }
 	function comsub_OSUBST_CSUBST_OPAT_SPAT_CPAT {
-		x=$([[ ${foo#blub} = @(bar|baz) ]] ) 
+		x=$([[ ${foo#bl\(u\)b} = @(bar|baz) ]] ) 
 	} 
 	function reread_OSUBST_CSUBST_OPAT_SPAT_CPAT { x=$((
-		[[ ${foo#blub} = @(bar|baz) ]]
+		[[ ${foo#bl\(u\)b} = @(bar|baz) ]]
 	)|tr u x); }
 	function reread_OSUBST_CSUBST_OPAT_SPAT_CPAT {
-		x=$(( [[ ${foo#blub} = @(bar|baz) ]] ) | tr u x ) 
+		x=$(( [[ ${foo#bl\(u\)b} = @(bar|baz) ]] ) | tr u x ) 
 	} 
 	inline_heredoc_closed() {
 		x=$(cat <<EOFN
