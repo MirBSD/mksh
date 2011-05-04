@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.164 2011/03/28 21:31:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.165 2011/05/04 23:16:02 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -281,7 +281,8 @@ parse_args(const char **argv,
 	const char *array = NULL;
 	Getopt go;
 	size_t i;
-	int optc, sortargs = 0, arrayset = 0;
+	int optc, arrayset = 0;
+	bool sortargs = false;
 
 	/* First call? Build option strings... */
 	if (cmd_opts[0] == '\0') {
@@ -400,7 +401,7 @@ parse_args(const char **argv,
 				break;
 			/* -s: sort positional params (AT&T ksh stupidity) */
 			if (what == OF_SET && optc == 's') {
-				sortargs = 1;
+				sortargs = true;
 				break;
 			}
 			for (i = 0; i < NELEM(options); i++)
@@ -427,9 +428,15 @@ parse_args(const char **argv,
 		*setargsp = !arrayset && ((go.info & GI_MINUSMINUS) ||
 		    argv[go.optind]);
 
-	if (arrayset && (!*array || *skip_varname(array, false))) {
-		bi_errorf("%s: %s", array, "is not an identifier");
-		return (-1);
+	if (arrayset) {
+		const char *ccp = NULL;
+
+		if (*array)
+			ccp = skip_varname(array, false);
+		if (!ccp || !(!ccp[0] || (ccp[0] == '+' && !ccp[1]))) {
+			bi_errorf("%s: %s", array, "is not an identifier");
+			return (-1);
+		}
 	}
 	if (sortargs) {
 		for (i = go.optind; argv[i]; i++)

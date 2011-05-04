@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.119 2011/03/27 18:50:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.120 2011/05/04 23:16:05 tg Exp $");
 
 /*
  * Variables
@@ -678,6 +678,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	char *tvar;
 	const char *val;
 	int len;
+	bool vappend = false;
 
 	/* check for valid variable name, search for value */
 	val = skip_varname(var, false);
@@ -706,9 +707,13 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 		}
 		val += len;
 	}
-	if (*val == '=')
-		strndupx(tvar, var, val++ - var, ATEMP);
-	else {
+	if (val[0] == '=' || (val[0] == '+' && val[1] == '=')) {
+		strndupx(tvar, var, val - var, ATEMP);
+		if (*val++ == '+') {
+			++val;
+			vappend = true;
+		}
+	} else {
 		/* Importing from original environment: must have an = */
 		if (set & IMPORT)
 			return (NULL);
@@ -752,8 +757,10 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 
 	vpbase = (vp->flag & ARRAY) ? global(arrayname(var)) : vp;
 
-	/* only allow export flag to be set. AT&T ksh allows any attribute to
-	 * be changed which means it can be truncated or modified (-L/-R/-Z/-i)
+	/*
+	 * only allow export flag to be set; AT&T ksh allows any
+	 * attribute to be changed which means it can be truncated or
+	 * modified (-L/-R/-Z/-i)
 	 */
 	if ((vpbase->flag&RDONLY) &&
 	    (val || clr || (set & ~EXPORT)))
@@ -793,8 +800,9 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 				t->flag &= ~ALLOC;
 			}
 			t->flag = (t->flag | set) & ~clr;
-			/* Don't change base if assignment is to be done,
-			 * in case assignment fails.
+			/*
+			 * Don't change base if assignment is to be
+			 * done, in case assignment fails.
 			 */
 			if ((set & INTEGER) && base > 0 && (!val || t != vp))
 				t->type = base;
@@ -802,9 +810,11 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 				t->u2.field = field;
 			if (fake_assign) {
 				if (!setstr(t, s, KSH_RETURN_ERROR)) {
-					/* Somewhat arbitrary action here:
-					 * zap contents of variable, but keep
-					 * the flag settings.
+					/*
+					 * Somewhat arbitrary action
+					 * here: zap contents of
+					 * variable, but keep the flag
+					 * settings.
 					 */
 					ok = false;
 					if (t->flag & INTEGER)
@@ -825,6 +835,14 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	}
 
 	if (val != NULL) {
+		char *tval;
+
+		if (vappend) {
+			tval = shf_smprintf("%s%s", str_val(vp), val);
+			val = tval;
+		} else
+			tval = NULL;
+
 		if (vp->flag&INTEGER) {
 			/* do not zero base before assignment */
 			setstr(vp, val, KSH_UNWIND_ERROR | 0x4);
@@ -834,6 +852,9 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 		} else
 			/* setstr can't fail (readonly check already done) */
 			setstr(vp, val, KSH_RETURN_ERROR | 0x4);
+
+		if (tval != NULL)
+			afree(tval, ATEMP);
 	}
 
 	/* only x[0] is ever exported, so use vpbase */
@@ -942,7 +963,8 @@ is_wdvarassign(const char *s)
 {
 	const char *p = skip_wdvarname(s, true);
 
-	return (p != s && p[0] == CHAR && p[1] == '=');
+	return (p != s && p[0] == CHAR &&
+	    (p[1] == '=' || (p[1] == '+' && p[2] == CHAR && p[3] == '=')));
 }
 
 /*
@@ -1301,33 +1323,42 @@ mksh_uari_t
 set_array(const char *var, bool reset, const char **vals)
 {
 	struct tbl *vp, *vq;
-	mksh_uari_t i;
+	mksh_uari_t i, j = 0;
 	const char *ccp;
-#ifndef MKSH_SMALL
-	char *cp;
-	mksh_uari_t j;
-#endif
+	char *cp = NULL;
 
 	/* to get local array, use "typeset foo; set -A foo" */
-	vp = global(var);
+	i = strlen(var);
+	if (i > 0 && var[i - 1] == '+') {
+		/* append mode */
+		reset = false;
+		strndupx(cp, var, i - 1, ATEMP);
+	}
+	vp = global(cp ? cp : var);
 
 	/* Note: AT&T ksh allows set -A but not set +A of a read-only var */
 	if ((vp->flag&RDONLY))
-		errorfx(2, "%s: %s", var, "is read only");
+		errorfx(2, "%s: %s", cp ? cp : var, "is read only");
 	/* This code is quite non-optimal */
 	if (reset)
 		/* trash existing values and attributes */
 		unset(vp, 1);
-	/* todo: would be nice for assignment to completely succeed or
+	/*
+	 * todo: would be nice for assignment to completely succeed or
 	 * completely fail. Only really effects integer arrays:
 	 * evaluation of some of vals[] may fail...
 	 */
 	i = 0;
-#ifndef MKSH_SMALL
-	j = 0;
-#else
-#define j i
-#endif
+	if (cp != NULL) {
+		/* find out where to set when appending */
+		for (vq = vp; vq; vq = vq->u.array) {
+			if (!(vq->flag & ISSET))
+				continue;
+			if (arrayindex(vq) >= j)
+				j = arrayindex(vq) + 1;
+		}
+		afree(cp, ATEMP);
+	}
 	while ((ccp = vals[i])) {
 #ifndef MKSH_SMALL
 		if (*ccp == '[') {
@@ -1356,9 +1387,7 @@ set_array(const char *var, bool reset, const char **vals)
 		/* would be nice to deal with errors here... (see above) */
 		setstr(vq, ccp, KSH_RETURN_ERROR);
 		i++;
-#ifndef MKSH_SMALL
 		j++;
-#endif
 	}
 
 	return (i);

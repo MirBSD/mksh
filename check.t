@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.448 2011/05/02 22:52:49 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.449 2011/05/04 23:16:00 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -6208,6 +6208,22 @@ expected-stdout:
 	2f 9 002 .
 	2g 009 .
 	2h 00001 00002 .
+---
+name: arrays-9
+description:
+	Check that we can concatenate parameters and arrays
+stdin:
+	unset foo; foo=bar; foo+=baz; echo 1 $foo .
+	unset foo; typeset -i16 foo=10; foo+=20; echo 2 $foo .
+	unset foo; foo=(bar); foo+=(baz); echo 3 ${!foo[*]} : ${foo[*]} .
+	unset foo; foo=(foo bar); foo+=(baz); echo 4 ${!foo[*]} : ${foo[*]} .
+	unset foo; foo=([2]=foo [0]=bar); foo+=(baz [5]=quux); echo 5 ${!foo[*]} : ${foo[*]} .
+expected-stdout:
+	1 barbaz .
+	2 16#a20 .
+	3 0 1 : bar baz .
+	4 0 1 2 : foo bar baz .
+	5 0 2 3 5 : bar foo baz quux .
 ---
 name: varexpand-substr-1
 description:
