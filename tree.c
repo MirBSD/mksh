@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.45 2011/05/02 22:52:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.46 2011/05/04 22:38:27 tg Exp $");
 
 #define INDENT	8
 
@@ -283,7 +283,7 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 	while (/* CONSTCOND */ 1)
 		switch (*wp++) {
 		case EOS:
-			return (wp);
+			return (--wp);
 		case ADELIM:
 		case CHAR:
 			c = *wp++;
@@ -754,7 +754,7 @@ dumpwdvar_(struct shf *shf, const char *wp, int quotelevel)
 		switch(*wp++) {
 		case EOS:
 			shf_puts("EOS", shf);
-			return (wp);
+			return (--wp);
 		case ADELIM:
 			shf_puts("ADELIM=", shf);
 			if (0)
