@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.449 2011/05/04 23:16:00 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.450 2011/05/05 00:04:55 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/05/02
+	@(#)MIRBSD KSH R39 2011/05/04
 description:
 	Check version of shell.
 stdin:
@@ -2127,6 +2127,45 @@ expected-stdout:
 	} vd={=d u \x40=
 	} ve={=e $x \x40=
 	} vf={=f $x @=
+	} |
+---
+name: heredoc-11
+description:
+	Check here documents with no or empty delimiter
+stdin:
+	x=u
+	va=<<
+	=a $x \x40=
+	<<
+	vb=<<''
+	=b $x \x40=
+	
+	function foo {
+		vc=<<-
+			=c $x \x40=
+		<<
+		vd=<<-''
+			=d $x \x40=
+	
+	}
+	typeset -f foo
+	foo
+	print -r -- "| va={$va} vb={$vb} vc={$vc} vd={$vd} |"
+expected-stdout:
+	function foo {
+		vc= <<- 
+	=c $x \x40=
+	<<
+	
+		vd= <<-"" 
+	=d $x \x40=
+	
+	
+	} 
+	| va={=a u \x40=
+	} vb={=b $x \x40=
+	} vc={=c u \x40=
+	} vd={=d $x \x40=
 	} |
 ---
 name: heredoc-comsub-1

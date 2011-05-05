@@ -151,9 +151,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.467 2011/05/02 22:52:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.468 2011/05/05 00:04:59 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2011/05/02"
+#define MKSH_VERSION "R39 2011/05/04"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1172,19 +1172,21 @@ struct ioword {
 };
 
 /* ioword.flag - type of redirection */
-#define IOTYPE	0xF	/* type: bits 0:3 */
-#define IOREAD	0x1	/* < */
-#define IOWRITE	0x2	/* > */
-#define IORDWR	0x3	/* <>: todo */
-#define IOHERE	0x4	/* << (here file) */
-#define IOCAT	0x5	/* >> */
-#define IODUP	0x6	/* <&/>& */
-#define IOEVAL	BIT(4)	/* expand in << */
-#define IOSKIP	BIT(5)	/* <<-, skip ^\t* */
-#define IOCLOB	BIT(6)	/* >|, override -o noclobber */
-#define IORDUP	BIT(7)	/* x<&y (as opposed to x>&y) */
-#define IONAMEXP BIT(8)	/* name has been expanded */
-#define IOBASH	BIT(9)	/* &> etc. */
+#define IOTYPE		0xF	/* type: bits 0:3 */
+#define IOREAD		0x1	/* < */
+#define IOWRITE		0x2	/* > */
+#define IORDWR		0x3	/* <>: todo */
+#define IOHERE		0x4	/* << (here file) */
+#define IOCAT		0x5	/* >> */
+#define IODUP		0x6	/* <&/>& */
+#define IOEVAL		BIT(4)	/* expand in << */
+#define IOSKIP		BIT(5)	/* <<-, skip ^\t* */
+#define IOCLOB		BIT(6)	/* >|, override -o noclobber */
+#define IORDUP		BIT(7)	/* x<&y (as opposed to x>&y) */
+#define IONAMEXP	BIT(8)	/* name has been expanded */
+#define IOBASH		BIT(9)	/* &> etc. */
+#define IOHERESTR	BIT(10)	/* <<< (here string) */
+#define IONDELIM	BIT(11)	/* null delimiter (<<) */
 
 /* execute/exchild flags */
 #define XEXEC	BIT(0)		/* execute without forking */

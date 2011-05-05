@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.147 2011/05/02 22:52:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.148 2011/05/05 00:04:57 tg Exp $");
 
 /*
  * states while lexing word
@@ -980,10 +980,14 @@ yylex(int cf)
 			iop->flag |= c == c2 ?
 			    (c == '>' ? IOCAT : IOHERE) : IORDWR;
 			if (iop->flag == IOHERE) {
-				if ((c2 = getsc()) == '-')
+				if ((c2 = getsc()) == '-') {
 					iop->flag |= IOSKIP;
-				else
-					ungetsc(c2);
+					c2 = getsc();
+				} else if (c2 == '<')
+					iop->flag |= IOHERESTR;
+				ungetsc(c2);
+				if (c2 == '\n')
+					iop->flag |= IONDELIM;
 			}
 		} else if (c2 == '&')
 			iop->flag |= IODUP | (c == '<' ? IORDUP : 0);
@@ -1003,7 +1007,7 @@ yylex(int cf)
 		yylval.iop = iop;
 		return (REDIR);
  no_iop:
-		;
+		afree(iop, ATEMP);
 	}
 
 	if (wp == dp && state == SBASE) {
@@ -1142,7 +1146,7 @@ gethere(bool iseof)
 	struct ioword **p;
 
 	for (p = heres; p < herep; p++)
-		if (iseof && (*p)->delim[1] != '<')
+		if (iseof && !((*p)->flag & IOHERESTR))
 			/* only here strings at EOF */
 			return;
 		else
@@ -1158,22 +1162,21 @@ static void
 readhere(struct ioword *iop)
 {
 	int c;
-	char *volatile eof;
-	char *eofp;
+	const char *eof, *eofp;
 	XString xs;
 	char *xp;
 	int xpos;
 
-	if (iop->delim[1] == '<') {
+	if (iop->flag & IOHERESTR) {
 		/* process the here string */
-		xp = iop->heredoc = evalstr(iop->delim, DOBLANK);
+		iop->heredoc = xp = evalstr(iop->delim, DOBLANK);
 		c = strlen(xp) - 1;
 		memmove(xp, xp + 1, c);
 		xp[c] = '\n';
 		return;
 	}
 
-	eof = evalstr(iop->delim, 0);
+	eof = iop->flag & IONDELIM ? "<<" : evalstr(iop->delim, 0);
 
 	if (!(iop->flag & IOEVAL))
 		ignore_backslash_newline++;

@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.62 2011/05/02 22:52:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.63 2011/05/05 00:05:01 tg Exp $");
 
 extern short subshell_nesting_level;
 
@@ -179,12 +179,15 @@ synio(int cf)
 		return (NULL);
 	ACCEPT;
 	iop = yylval.iop;
-	ishere = (iop->flag&IOTYPE) == IOHERE;
+	if (iop->flag & IONDELIM)
+		goto gotnulldelim;
+	ishere = (iop->flag & IOTYPE) == IOHERE;
 	musthave(LWORD, ishere ? HEREDELIM : 0);
 	if (ishere) {
 		iop->delim = yylval.cp;
 		if (*ident != 0)
 			/* unquoted */
+ gotnulldelim:
 			iop->flag |= IOEVAL;
 		if (herep > &heres[HERES - 1])
 			yyerror("too many %ss\n", "<<");

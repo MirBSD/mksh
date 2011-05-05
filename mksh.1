@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.258 2011/05/04 23:16:03 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.259 2011/05/05 00:04:58 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.140 2011/04/23 10:14:59 sobrado Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: May 4 2011 $
+.Dd $Mdocdate: May 5 2011 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -1461,7 +1461,9 @@ on it; if
 .Ar word
 is not needed, it is not evaluated.
 .Pp
-The following forms of parameter substitution can also be used:
+The following forms of parameter substitution can also be used (if
+.Ar name
+is an array, its element #0 will be substituted in a scalar context):
 .Pp
 .Bl -tag -width Ds -compact
 .It Pf ${# Ns Ar name Ns \&}
@@ -1525,6 +1527,8 @@ A single
 .Ql #
 results in the shortest match, and two
 of them result in the longest match.
+Cannot be applied to a vector
+.Pq ${*} or ${@} or ${array[*]} or ${array[@]} .
 .Pp
 .Sm off
 .It Xo
@@ -1537,6 +1541,7 @@ of them result in the longest match.
 .Xc
 .Sm on
 Like ${..#..} substitution, but it deletes from the end of the value.
+Cannot be applied to a vector.
 .Pp
 .Sm off
 .It Xo
@@ -1569,6 +1574,8 @@ If
 is omitted, the
 .Ar pattern
 is replaced by the empty string, i.e. deleted.
+Cannot be applied to a vector.
+Inefficiently implemented.
 .Pp
 .Sm off
 .It Xo
@@ -1604,6 +1611,8 @@ are evaluated as arithmetic expressions.
 Currently,
 .Ar pos
 must start with a space, opening parenthesis or digit to be recognised.
+Cannot be applied to a vector.
+.Pp
 .It Pf ${ Ns Ar name Ns @#}
 The internal hash of the expansion of
 .Ar name .
@@ -1614,12 +1623,15 @@ This is the hash the shell uses internally for its associative arrays.
 .Pp
 Note that
 .Ar pattern
-may need to be escaped as an extended globbing pattern
+may need extended globbing pattern
 .Pq @(...) ,
-with single quotes
+single
 .Pq \&\*(aq...\&\*(aq
-or double quotes
-.Pq \&"...\&" .
+or double
+.Pq \&"...\&"
+quote escaping unless
+.Fl o Ic sh
+is set.
 .Pp
 The following special parameters are implicitly set by the shell and cannot be
 set directly using assignments:
@@ -1692,8 +1704,9 @@ arguments or splitting arguments with spaces.
 .El
 .Pp
 The following parameters are set and/or used by the shell:
-.Bl -tag -width "PIPESTATUS"
-.It Ev _ No (underscore)
+.Bl -tag -width "KSH_VERSION"
+.It Ev _
+.Pq underscore
 When an external command is executed by the shell, this parameter is set in the
 environment of the new process to the path of the executed command.
 In interactive use, this parameter is also set in the parent shell to the last
@@ -2217,7 +2230,7 @@ asynchronous commands created when job control is disabled, for which standard
 input is initially set to be from
 .Pa /dev/null ,
 and commands for which any of the following redirections have been specified:
-.Bl -tag -width Ds
+.Bl -tag -width XXxxmarker
 .It \*(Gt Ar file
 Standard output is redirected to
 .Ar file .
@@ -2283,6 +2296,20 @@ but not for
 .Ql \&" .
 If multiple here documents are used on the same command line, they are saved in
 order.
+.Pp
+If no
+.Ar marker
+is given, the here document ends at the next
+.Ic \*(Lt\*(Lt
+and substitution will be performed.
+If
+.Ar marker
+is only a set of either single
+.Dq \*(aq\*(aq
+or double
+.Sq \&""
+quotes with nothing in between, the here document ends at the next empty line
+and substitution will not be performed.
 .It \*(Lt\*(Lt\- Ar marker
 Same as
 .Ic \*(Lt\*(Lt ,
@@ -2373,13 +2400,9 @@ statements, etc.
 any redirections must appear at the end.
 Redirections are processed after
 pipelines are created and in the order they are given, so the following
-will print an error with a line number prepended to it, if you have a
-.Xr cat 1
-that supports the
-.Fl n
-option:
+will print an error with a line number prepended to it:
 .Pp
-.D1 $ cat /foo/bar 2\*(Gt&1 \*(Gt/dev/null \*(Ba cat \-n
+.D1 $ cat /foo/bar 2\*(Gt&1 \*(Gt/dev/null \*(Ba pr \-n \-t
 .Pp
 File descriptors created by input/output redirections are private to the
 Korn shell, but passed to sub-processes if
