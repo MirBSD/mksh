@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.185 2011/04/09 21:01:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.186 2011/05/06 15:41:23 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2542,10 +2542,22 @@ c_test(const char **wp)
 	 * our parser does the right thing for the omitted steps.
 	 */
 	if (argc <= 5) {
-		const char **owp = wp;
+		const char **owp = wp, **owpend = te.wp_end;
 		int invert = 0;
 		Test_op op;
 		const char *opnd1, *opnd2;
+
+		if (argc >= 2 && ((*te.isa)(&te, TM_OPAREN))) {
+			te.pos.wp = te.wp_end - 1;
+			if ((*te.isa)(&te, TM_CPAREN)) {
+				argc -= 2;
+				te.wp_end--;
+				te.pos.wp = owp + 2;
+			} else {
+				te.pos.wp = owp + 1;
+				te.wp_end = owpend;
+			}
+		}
 
 		while (--argc >= 0) {
 			if ((*te.isa)(&te, TM_END))
@@ -2567,8 +2579,6 @@ c_test(const char **wp)
 			}
 			if (argc == 1) {
 				opnd1 = (*te.getopnd)(&te, TO_NONOP, 1);
-				if (strcmp(opnd1, "-t") == 0)
-				    break;
 				res = (*te.eval)(&te, TO_STNZE, opnd1,
 				    NULL, 1);
 				if (invert & 1)
@@ -2581,6 +2591,7 @@ c_test(const char **wp)
 				break;
 		}
 		te.pos.wp = owp + 1;
+		te.wp_end = owpend;
 	}
 
 	return (test_parse(&te));

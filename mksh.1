@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.259 2011/05/05 00:04:58 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.260 2011/05/06 15:41:24 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.140 2011/04/23 10:14:59 sobrado Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: May 5 2011 $
+.Dd $Mdocdate: May 6 2011 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -4229,14 +4229,12 @@ socket.
 .It Fl s Ar file
 .Ar file
 is not empty.
-.It Fl t Op Ar fd
+.It Fl t Ar fd
 File descriptor
 .Ar fd
 is a
 .Xr tty 4
 device.
-.Ar fd
-may be left out, in which case it is taken to be 1.
 .It Fl u Ar file
 .Ar file Ns 's
 mode has the setuid bit set.
