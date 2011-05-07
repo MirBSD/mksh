@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.148 2011/05/05 00:04:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.149 2011/05/07 00:24:34 tg Exp $");
 
 /*
  * states while lexing word
@@ -812,8 +812,6 @@ yylex(int cf)
 					*wp++ = QCHAR;
 					*wp++ = c;
 				}
-				/* invoke quoting mode */
-				Xstring(ws, wp)[0] = QCHAR;
 			} else if (c == '$') {
 				if ((c2 = getsc()) == '\'') {
 					PUSH_STATE(SEQUOTE);
@@ -828,8 +826,6 @@ yylex(int cf)
  sherestring_quoted:
 				*wp++ = OQUOTE;
 				ignore_backslash_newline++;
-				/* invoke quoting mode */
-				Xstring(ws, wp)[0] = QCHAR;
 			} else if (c == '"') {
  sherestring_dquoted:
 				state = statep->type = SHEREDQUOTE;

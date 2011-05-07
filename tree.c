@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.47 2011/05/05 00:05:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.48 2011/05/07 00:24:35 tg Exp $");
 
 #define INDENT	8
 
@@ -197,7 +197,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		while (*ioact != NULL) {
 			struct ioword *iop = *ioact++;
 
-			/* heredoc is 0 when tracing (set -x) */
+			/* heredoc is NULL when tracing (set -x) */
 			if ((iop->flag & (IOTYPE | IOHERESTR)) == IOHERE &&
 			    iop->heredoc) {
 				shf_putc('\n', shf);
