@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.149 2011/05/07 00:24:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.150 2011/05/07 00:51:12 tg Exp $");
 
 /*
  * states while lexing word
@@ -1101,13 +1101,7 @@ yylex(int cf)
 				 */
 				++cp;
 			/* prefer functions over aliases */
-			if (*cp == '(' /*)*/)
-				/*
-				 * delete alias upon encountering function
-				 * definition
-				 */
-				ktdelete(p);
-			else {
+			if (cp[0] != '(' || cp[1] != ')') {
 				Source *s = source;
 
 				while (s && (s->flags & SF_HASALIAS))

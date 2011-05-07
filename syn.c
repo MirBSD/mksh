@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.63 2011/05/05 00:05:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.64 2011/05/07 00:51:12 tg Exp $");
 
 extern short subshell_nesting_level;
 
@@ -652,15 +652,11 @@ function_body(char *name,
 	 */
 	if (ksh_func) {
 		if (tpeek(CONTIN|KEYWORD|ALIAS) == '(' /*)*/) {
-			struct tbl *tp;
-
 			/* function foo () { */
 			ACCEPT;
 			musthave(')', 0);
 			/* degrade to POSIX function */
 			ksh_func = false;
-			if ((tp = ktsearch(&aliases, sname, hash(sname))))
-				ktdelete(tp);
 		}
 		musthave('{' /*}*/, CONTIN|KEYWORD|ALIAS);
 		REJECT;

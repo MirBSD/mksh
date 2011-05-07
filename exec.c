@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.90 2011/04/17 15:40:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.91 2011/05/07 00:51:11 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -962,11 +962,20 @@ findfunc(const char *name, uint32_t h, bool create)
 int
 define(const char *name, struct op *t)
 {
+	uint32_t nhash;
 	struct tbl *tp;
 	bool was_set = false;
 
+	nhash = hash(name);
+
+	if (t != NULL && !tobool(t->u.ksh_func)) {
+		/* drop same-name aliases for POSIX functions */
+		if ((tp = ktsearch(&aliases, name, nhash)))
+			ktdelete(tp);
+	}
+
 	while (/* CONSTCOND */ 1) {
-		tp = findfunc(name, hash(name), true);
+		tp = findfunc(name, nhash, true);
 
 		if (tp->flag & ISSET)
 			was_set = true;
