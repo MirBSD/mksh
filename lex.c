@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.151 2011/05/29 02:18:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.152 2011/05/29 06:19:27 tg Exp $");
 
 /*
  * states while lexing word
@@ -1024,6 +1024,14 @@ yylex(int cf)
 				c = BRKFT;
 			else
 				ungetsc(c2);
+#ifndef MKSH_SMALL
+			if (c == BREAK) {
+				if ((c2 = getsc()) == '&')
+					c = BRKEV;
+				else
+					ungetsc(c2);
+			}
+#endif
 		} else if (c == '\n') {
 			gethere(false);
 			if (cf & CONTIN)
