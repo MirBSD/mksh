@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.187 2011/05/29 02:18:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.188 2011/05/29 05:13:12 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1761,9 +1761,9 @@ c_read(const char **wp)
 {
 #define is_ifsws(c) (ctype((c), C_IFS) && ctype((c), C_IFSWS))
 	static char REPLY[] = "REPLY";
-	int c, fd = 0, rv = 0;
+	int c, fd = 0, rv = 0, lastparm = 0;
 	bool savehist = false, intoarray = false, aschars = false;
-	bool rawmode = false, expanding = false, lastparm = false;
+	bool rawmode = false, expanding = false;
 	enum { LINES, BYTES, UPTO, READALL } readmode = LINES;
 	char delim = '\n';
 	size_t bytesleft = 128, bytesread;
@@ -1771,6 +1771,7 @@ c_read(const char **wp)
 	char *cp, *allocd = NULL, *xp;
 	const char *ccp;
 	XString xs;
+	ptrdiff_t xsave = 0;
 	struct termios tios;
 	bool restore_tios = false;
 #if HAVE_SELECT
@@ -2027,6 +2028,17 @@ c_read(const char **wp)
 		/* counter for array index */
 		c = 0;
 	}
+	if (!aschars) {
+		/* skip initial IFS whitespace */
+		while (bytesread && is_ifsws(*ccp)) {
+			++ccp;
+			--bytesread;
+		}
+		/* trim trailing IFS whitespace */
+		while (bytesread && is_ifsws(ccp[bytesread - 1])) {
+			--bytesread;
+		}
+	}
  c_read_splitloop:
 	xp = Xstring(xs, xp);
 	/* generate next word */
@@ -2054,37 +2066,58 @@ c_read(const char **wp)
 	}
 
 	if (!intoarray && wp[1] == NULL)
-		lastparm = true;
+		lastparm = 1;
 
-	/* skip initial IFS whitespace */
-	while (is_ifsws(*ccp)) {
-		++ccp;
-		--bytesread;
-	}
+ c_read_splitlast:
 	/* copy until IFS character */
 	while (bytesread) {
 		char ch;
 
-		ch = *ccp++;
-		--bytesread;
+		ch = *ccp;
 		if (expanding) {
 			expanding = false;
+			goto c_read_splitcopy;
 		} else if (ctype(ch, C_IFS)) {
-			if (!lastparm)
-				break;
-			/* last parameter, copy all */
+			break;
 		} else if (!rawmode && ch == '\\') {
 			expanding = true;
-			continue;
+		} else {
+ c_read_splitcopy:
+			Xcheck(xs, xp);
+			Xput(xs, xp, ch);
 		}
+		++ccp;
+		--bytesread;
+	}
+	xsave = Xsavepos(xs, xp);
+	/* copy word delimiter: IFSWS+IFS,IFSWS */
+	while (bytesread) {
+		char ch;
+
+		ch = *ccp;
+		if (!ctype(ch, C_IFS))
+			break;
 		Xcheck(xs, xp);
 		Xput(xs, xp, ch);
+		++ccp;
+		--bytesread;
+		if (!ctype(ch, C_IFSWS))
+			break;
 	}
-	if (lastparm) {
-		/* remove trailing IFS whitespace */
-		while (Xlength(xs, xp) && is_ifsws(xp[-1]))
-			--xp;
+	while (bytesread && is_ifsws(*ccp)) {
+		Xcheck(xs, xp);
+		Xput(xs, xp, *ccp);
+		++ccp;
+		--bytesread;
 	}
+	/* if no more parameters, rinse and repeat */
+	if (lastparm && bytesread) {
+		++lastparm;
+		goto c_read_splitlast;
+	}
+	/* get rid of the delimiter unless we pack the rest */
+	if (lastparm < 2)
+		xp = Xrestpos(xs, xp, xsave);
  c_read_gotword:
 	Xput(xs, xp, '\0');
 	if (intoarray) {
