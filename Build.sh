@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.477 2011/04/09 21:00:58 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.478 2011/05/29 16:31:38 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -535,6 +535,10 @@ test 0 = $r && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
 # this aids me in tracing FTBFSen without access to the buildd
 $e "Hi from$ao $bi$srcversion$ao on:"
 case $TARGET_OS in
+AIX)
+	vv '|' "oslevel >&2"
+	vv '|' "uname -a >&2"
+	;;
 Darwin)
 	vv '|' "hwprefs machine_type os_type os_class >&2"
 	vv '|' "uname -a >&2"
@@ -754,6 +758,7 @@ watcom)
     own risk, please report success/failure to the developers.'
 	;;
 xlc)
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -qversion"
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -qversion=verbose"
 	vv '|' "ld -V"
 	;;
@@ -1448,7 +1453,7 @@ mksh_cfg: NSIG' >conftest.c
 		vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
 		    grep mksh_cfg: | \
 		    sed 's/^mksh_cfg:[	 ]*\([0-9x]*\).*$/\1:'$name/
-	done | grep -v '^:' | while IFS=: read nr name; do
+	done | grep -v '^:' | sed 's/:/ /g' | while read nr name; do
 		test $printf = echo || nr=`printf %d "$nr" 2>/dev/null`
 		test $nr -gt 0 && test $nr -le $NSIG || continue
 		case $sigseen in
