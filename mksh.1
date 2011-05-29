@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.261 2011/05/29 02:18:54 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.262 2011/05/29 17:01:26 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.140 2011/04/23 10:14:59 sobrado Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -3770,7 +3770,7 @@ option, use of the
 .Fl r
 option might be prudent; the same applies for:
 .Bd -literal -offset indent
-find . -type f -print0 \*(Ba \e
+find . \-type f \-print0 \*(Ba \e
     while IFS= read \-d \*(aq\*(aq \-r filename; do
 	print \-r \-\- "found <${filename#./}>"
 done
