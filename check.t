@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.456 2011/05/29 16:31:40 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.457 2011/05/29 16:38:58 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7660,6 +7660,25 @@ expected-stdout:
 	32
 	.
 	16#4F68 16#24 2 1
+---
+name: comsub-4
+description:
+	Check the tree dump functions for !MKSH_SMALL functionality
+category: !smksh
+stdin:
+	x() { case $1 in a) a+=b ;;& *) c+=(d e) ;; esac; }
+	typeset -f x
+expected-stdout:
+	x() {
+		case $1 in
+		(a)
+			a+=b 
+			;|
+		(*)
+			eval set -A c+ -- d e 
+			;;
+		esac 
+	} 
 ---
 name: comsub-torture
 description:
