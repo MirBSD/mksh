@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.48 2011/05/07 00:24:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.49 2011/05/29 02:18:57 tg Exp $");
 
 #define INDENT	8
 
@@ -100,7 +100,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 	case TSELECT:
 	case TFOR:
 		fptreef(shf, indent, "%s %s ",
-		    (t->type == TFOR) ? "for" : "select", t->str);
+		    (t->type == TFOR) ? "for" : T_select, t->str);
 		if (t->vars != NULL) {
 			shf_puts("in ", shf);
 			w = (const char **)t->vars;
@@ -121,7 +121,8 @@ ptree(struct op *t, int indent, struct shf *shf)
 				    (w[1] != NULL) ? '|' : ')');
 				++w;
 			}
-			fptreef(shf, indent + INDENT, "%N%T%N;;", t1->left);
+			fptreef(shf, indent + INDENT, "%N%T%N;%c", t1->left,
+			    t1->u.charflag);
 		}
 		fptreef(shf, indent, "%Nesac ");
 		break;
@@ -949,7 +950,7 @@ dumptree(struct shf *shf, struct op *t)
 			shf_putc(')', shf);
 			shf_putc('\n', shf);
 			dumptree(shf, t1->left);
-			shf_fprintf(shf, " /%d]", i++);
+			shf_fprintf(shf, " ;%c/%d]", t1->u.charflag, i++);
 		}
 		break;
 	OPEN(TWHILE)

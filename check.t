@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.454 2011/05/07 02:02:45 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.455 2011/05/29 02:18:47 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R39 2011/05/06
+	@(#)MIRBSD KSH R39 2011/05/28
 description:
 	Check version of shell.
 stdin:
@@ -1004,6 +1004,43 @@ expected-stdout:
 	  2 /etc
 	  1 /bin
 	  0 /tmp
+---
+name: cd-pe
+description:
+	Check package for cd -Pe
+need-pass: no
+file-setup: file 644 "x"
+	mkdir noread noread/target noread/target/subdir
+	ln -s noread link
+	chmod 311 noread
+	cd -P$1 .
+	echo 0=$?
+	bwd=$PWD
+	cd -P$1 link/target
+	echo 1=$?,${PWD#$bwd/}
+	epwd=$($TSHELL -c pwd 2>/dev/null)
+	echo pwd=$?,$epwd
+	mv ../../noread ../../renamed
+	cd -P$1 subdir
+	echo 2=$?,${PWD#$bwd/}
+	cd $bwd
+	chmod 755 renamed
+	rm -rf noread link renamed
+stdin:
+	export TSHELL="$__progname"
+	"$__progname" x
+	echo "now with -e:"
+	"$__progname" x e
+expected-stdout:
+	0=0
+	1=0,noread/target
+	pwd=1,
+	2=0,noread/target/subdir
+	now with -e:
+	0=0
+	1=0,noread/target
+	pwd=1,
+	2=1,noread/target/subdir
 ---
 name: env-prompt
 description:
@@ -3764,6 +3801,34 @@ expected-stdout:
 	<ch
 	myok m>
 ---
+name: read-ext-1
+description:
+	Check read with number of bytes specified, and -A
+stdin:
+	print 'foo\nbar' >x1
+	print -n x >x2
+	print 'foo\\ bar baz' >x3
+	x1a=u; read x1a <x1
+	x1b=u; read -N-1 x1b <x1
+	x2a=u; read x2a <x2; r2a=$?
+	x2b=u; read -N2 x2c <x2; r2b=$?
+	x2c=u; read -n2 x2c <x2; r2c=$?
+	x3a=u; read -A x3a <x3
+	print -r "x1a=<$x1a>"
+	print -r "x1b=<$x1b>"
+	print -r "x2a=$r2a<$x2a>"
+	print -r "x2b=$r2b<$x2b>"
+	print -r "x2c=$r2c<$x2c>"
+	print -r "x3a=<${x3a[0]}|${x3a[1]}|${x3a[2]}>"
+expected-stdout:
+	x1a=<foo>
+	x1b=<foo
+	bar>
+	x2a=1<x>
+	x2b=1<u>
+	x2c=0<x>
+	x3a=<foo bar|baz|>
+---
 name: regression-1
 description:
 	Lex array code had problems with this.
@@ -5722,6 +5787,7 @@ description:
 	XXX if the OS can already execute them, we lose
 	note: cygwin execve(2) doesn't return to us with ENOEXEC, we lose
 	note: Ultrix perl5 t4 returns 65280 (exit-code 255) and no text
+need-pass: no
 category: !os:cygwin,!os:uwin-nt,!os:ultrix,!smksh
 env-setup: !FOO=BAR!
 stdin:
@@ -6822,7 +6888,7 @@ expected-stderr-pattern:
 	/1#���: unexpected '�'/
 expected-exit: e != 0
 ---
-name: integer-base-one-3A
+name: integer-base-one-3As
 description:
 	some sample code for hexdumping
 stdin:
@@ -6889,7 +6955,7 @@ expected-stdout:
 	00000110  EF F0 F1 F2 F3 F4 F5 F6 - F7 F8 F9 FA FB FC FD FE  |................|
 	00000120  FF 0A                   -                          |..|
 ---
-name: integer-base-one-3W
+name: integer-base-one-3Ws
 description:
 	some sample code for hexdumping Unicode
 stdin:
@@ -6992,6 +7058,172 @@ expected-stdout:
 	00000120  000A EFE0 EF80 EF80 - 000A FFFD EFEF EFBF  |.���.���|
 	00000128  EFBE EFEF EFBF EFBF - 000A                 |����.|
 ---
+name: integer-base-one-3Ar
+description:
+	some sample code for hexdumping
+stdin:
+	{
+		print 'Hello, World!\\\nこんにちは！'
+		typeset -Uui16 i=0x100
+		# change that to 0xFF once we can handle embedded
+		# NUL characters in strings / here documents
+		while (( i++ < 0x1FF )); do
+			print -n "\x${i#16#1}"
+		done
+		print
+	} | {
+		typeset -Uui16 -Z11 pos=0
+		typeset -Uui16 -Z5 hv
+		dasc=
+		while read -ar line; do
+			typeset -i1 line
+			line[${#line[*]}]=10
+			i=0
+			while (( i < ${#line[*]} )); do
+				hv=${line[i++]}
+				if (( (pos & 15) == 0 )); then
+					(( pos )) && print "$dasc|"
+					print -n "${pos#16#}  "
+					dasc=' |'
+				fi
+				print -n "${hv#16#} "
+				if (( (hv < 32) || (hv > 126) )); then
+					dasc=$dasc.
+				else
+					dasc=$dasc${line[i-1]#1#}
+				fi
+				(( (pos++ & 15) == 7 )) && print -n -- '- '
+			done
+		done
+		if (( (pos & 15) != 1 )); then
+			while (( pos & 15 )); do
+				print -n '   '
+				(( (pos++ & 15) == 7 )) && print -n -- '- '
+			done
+			print "$dasc|"
+		fi
+	}
+expected-stdout:
+	00000000  48 65 6C 6C 6F 2C 20 57 - 6F 72 6C 64 21 5C 0A E3  |Hello, World!\..|
+	00000010  81 93 E3 82 93 E3 81 AB - E3 81 A1 E3 81 AF EF BC  |................|
+	00000020  81 0A 01 02 03 04 05 06 - 07 08 09 0A 0B 0C 0D 0E  |................|
+	00000030  0F 10 11 12 13 14 15 16 - 17 18 19 1A 1B 1C 1D 1E  |................|
+	00000040  1F 20 21 22 23 24 25 26 - 27 28 29 2A 2B 2C 2D 2E  |. !"#$%&'()*+,-.|
+	00000050  2F 30 31 32 33 34 35 36 - 37 38 39 3A 3B 3C 3D 3E  |/0123456789:;<=>|
+	00000060  3F 40 41 42 43 44 45 46 - 47 48 49 4A 4B 4C 4D 4E  |?@ABCDEFGHIJKLMN|
+	00000070  4F 50 51 52 53 54 55 56 - 57 58 59 5A 5B 5C 5D 5E  |OPQRSTUVWXYZ[\]^|
+	00000080  5F 60 61 62 63 64 65 66 - 67 68 69 6A 6B 6C 6D 6E  |_`abcdefghijklmn|
+	00000090  6F 70 71 72 73 74 75 76 - 77 78 79 7A 7B 7C 7D 7E  |opqrstuvwxyz{|}~|
+	000000A0  7F 80 81 82 83 84 85 86 - 87 88 89 8A 8B 8C 8D 8E  |................|
+	000000B0  8F 90 91 92 93 94 95 96 - 97 98 99 9A 9B 9C 9D 9E  |................|
+	000000C0  9F A0 A1 A2 A3 A4 A5 A6 - A7 A8 A9 AA AB AC AD AE  |................|
+	000000D0  AF B0 B1 B2 B3 B4 B5 B6 - B7 B8 B9 BA BB BC BD BE  |................|
+	000000E0  BF C0 C1 C2 C3 C4 C5 C6 - C7 C8 C9 CA CB CC CD CE  |................|
+	000000F0  CF D0 D1 D2 D3 D4 D5 D6 - D7 D8 D9 DA DB DC DD DE  |................|
+	00000100  DF E0 E1 E2 E3 E4 E5 E6 - E7 E8 E9 EA EB EC ED EE  |................|
+	00000110  EF F0 F1 F2 F3 F4 F5 F6 - F7 F8 F9 FA FB FC FD FE  |................|
+	00000120  FF 0A                   -                          |..|
+---
+name: integer-base-one-3Wr
+description:
+	some sample code for hexdumping Unicode
+stdin:
+	set -U
+	{
+		print 'Hello, World!\\\nこんにちは！'
+		typeset -Uui16 i=0x100
+		# change that to 0xFF once we can handle embedded
+		# NUL characters in strings / here documents
+		while (( i++ < 0x1FF )); do
+			print -n "\u${i#16#1}"
+		done
+		print
+		print \\xff		# invalid utf-8
+		print \\xc2		# invalid 2-byte
+		print \\xef\\xbf\\xc0	# invalid 3-byte
+		print \\xc0\\x80	# non-minimalistic
+		print \\xe0\\x80\\x80	# non-minimalistic
+		print '�￾￿'	# end of range
+	} | {
+		typeset -Uui16 -Z11 pos=0
+		typeset -Uui16 -Z7 hv
+		dasc=
+		while read -ar line; do
+			typeset -i1 line
+			line[${#line[*]}]=10
+			i=0
+			while (( i < ${#line[*]} )); do
+				hv=${line[i++]}
+				if (( (hv < 32) || \
+				    ((hv > 126) && (hv < 160)) )); then
+					dch=.
+				elif (( (hv & 0xFF80) == 0xEF80 )); then
+					dch=�
+				else
+					dch=${line[i-1]#1#}
+				fi
+				if (( (pos & 7) == 7 )); then
+					dasc=$dasc$dch
+					dch=
+				elif (( (pos & 7) == 0 )); then
+					(( pos )) && print "$dasc|"
+					print -n "${pos#16#}  "
+					dasc=' |'
+				fi
+				print -n "${hv#16#} "
+				(( (pos++ & 7) == 3 )) && \
+				    print -n -- '- '
+				dasc=$dasc$dch
+			done
+		done
+		if (( pos & 7 )); then
+			while (( pos & 7 )); do
+				print -n '     '
+				(( (pos++ & 7) == 3 )) && print -n -- '- '
+			done
+			print "$dasc|"
+		fi
+	}
+expected-stdout:
+	00000000  0048 0065 006C 006C - 006F 002C 0020 0057  |Hello, W|
+	00000008  006F 0072 006C 0064 - 0021 005C 000A 3053  |orld!\.こ|
+	00000010  3093 306B 3061 306F - FF01 000A 0001 0002  |んにちは！...|
+	00000018  0003 0004 0005 0006 - 0007 0008 0009 000A  |........|
+	00000020  000B 000C 000D 000E - 000F 0010 0011 0012  |........|
+	00000028  0013 0014 0015 0016 - 0017 0018 0019 001A  |........|
+	00000030  001B 001C 001D 001E - 001F 0020 0021 0022  |..... !"|
+	00000038  0023 0024 0025 0026 - 0027 0028 0029 002A  |#$%&'()*|
+	00000040  002B 002C 002D 002E - 002F 0030 0031 0032  |+,-./012|
+	00000048  0033 0034 0035 0036 - 0037 0038 0039 003A  |3456789:|
+	00000050  003B 003C 003D 003E - 003F 0040 0041 0042  |;<=>?@AB|
+	00000058  0043 0044 0045 0046 - 0047 0048 0049 004A  |CDEFGHIJ|
+	00000060  004B 004C 004D 004E - 004F 0050 0051 0052  |KLMNOPQR|
+	00000068  0053 0054 0055 0056 - 0057 0058 0059 005A  |STUVWXYZ|
+	00000070  005B 005C 005D 005E - 005F 0060 0061 0062  |[\]^_`ab|
+	00000078  0063 0064 0065 0066 - 0067 0068 0069 006A  |cdefghij|
+	00000080  006B 006C 006D 006E - 006F 0070 0071 0072  |klmnopqr|
+	00000088  0073 0074 0075 0076 - 0077 0078 0079 007A  |stuvwxyz|
+	00000090  007B 007C 007D 007E - 007F 0080 0081 0082  |{|}~....|
+	00000098  0083 0084 0085 0086 - 0087 0088 0089 008A  |........|
+	000000A0  008B 008C 008D 008E - 008F 0090 0091 0092  |........|
+	000000A8  0093 0094 0095 0096 - 0097 0098 0099 009A  |........|
+	000000B0  009B 009C 009D 009E - 009F 00A0 00A1 00A2  |..... ¡¢|
+	000000B8  00A3 00A4 00A5 00A6 - 00A7 00A8 00A9 00AA  |£¤¥¦§¨©ª|
+	000000C0  00AB 00AC 00AD 00AE - 00AF 00B0 00B1 00B2  |«¬­®¯°±²|
+	000000C8  00B3 00B4 00B5 00B6 - 00B7 00B8 00B9 00BA  |³´µ¶·¸¹º|
+	000000D0  00BB 00BC 00BD 00BE - 00BF 00C0 00C1 00C2  |»¼½¾¿ÀÁÂ|
+	000000D8  00C3 00C4 00C5 00C6 - 00C7 00C8 00C9 00CA  |ÃÄÅÆÇÈÉÊ|
+	000000E0  00CB 00CC 00CD 00CE - 00CF 00D0 00D1 00D2  |ËÌÍÎÏÐÑÒ|
+	000000E8  00D3 00D4 00D5 00D6 - 00D7 00D8 00D9 00DA  |ÓÔÕÖ×ØÙÚ|
+	000000F0  00DB 00DC 00DD 00DE - 00DF 00E0 00E1 00E2  |ÛÜÝÞßàáâ|
+	000000F8  00E3 00E4 00E5 00E6 - 00E7 00E8 00E9 00EA  |ãäåæçèéê|
+	00000100  00EB 00EC 00ED 00EE - 00EF 00F0 00F1 00F2  |ëìíîïðñò|
+	00000108  00F3 00F4 00F5 00F6 - 00F7 00F8 00F9 00FA  |óôõö÷øùú|
+	00000110  00FB 00FC 00FD 00FE - 00FF 000A EFFF 000A  |ûüýþÿ.�.|
+	00000118  EFC2 000A EFEF EFBF - EFC0 000A EFC0 EF80  |�.���.��|
+	00000120  000A EFE0 EF80 EF80 - 000A FFFD EFEF EFBF  |.���.���|
+	00000128  EFBE EFEF EFBF EFBF - 000A                 |����.|
+---
 name: integer-base-one-4
 description:
 	Check if ksh93-style base-one integers work
@@ -7012,6 +7244,32 @@ expected-stdout:
 	4 <'a'>
 	5 97
 	6 97
+---
+name: integer-base-one-5A
+description:
+	Check to see that we’re NUL and Unicode safe
+stdin:
+	set +U
+	print 'a\0b\xfdz' >x
+	read -a y <x
+	set -U
+	typeset -Uui16 y
+	print ${y[*]} .
+expected-stdout:
+	16#61 16#0 16#62 16#FD 16#7A .
+---
+name: integer-base-one-5W
+description:
+	Check to see that we’re NUL and Unicode safe
+stdin:
+	set -U
+	print 'a\0b€c' >x
+	read -a y <x
+	set +U
+	typeset -Uui16 y
+	print ${y[*]} .
+expected-stdout:
+	16#61 16#0 16#62 16#20AC 16#63 .
 ---
 name: ulimit-1
 description:
@@ -7442,7 +7700,7 @@ stdin:
 	#TFOR_TTIME
 	for  i  in  {1,2,3}  ;  do  time  echo  $i ;  done
 	#TCASE
-	case  $foo  in  1)  echo eins;; 2) echo zwei  ;; *) echo kann net bis drei zählen;;  esac
+	case  $foo  in  1)  echo eins;& 2) echo zwei  ;| *) echo kann net bis drei zählen;;  esac
 	#TIF_TBANG_TDBRACKET_TELIF
 	if  !  [[  1  =  1  ]]  ;  then  echo eins;  elif [[ 1 = 2 ]]; then echo zwei  ;else echo drei; fi
 	#TWHILE
@@ -7599,32 +7857,32 @@ expected-stdout:
 		x=$(( for i in {1,2,3} ; do time echo $i ; done ) | tr u x ) 
 	} 
 	inline_TCASE() {
-		case  $foo  in  1)  echo eins;; 2) echo zwei  ;; *) echo kann net bis drei zählen;;  esac
+		case  $foo  in  1)  echo eins;& 2) echo zwei  ;| *) echo kann net bis drei zählen;;  esac
 	}
 	inline_TCASE() {
 		case $foo in
 		(1)
 			echo eins 
-			;;
+			;&
 		(2)
 			echo zwei 
-			;;
+			;|
 		(*)
 			echo kann net bis drei zählen 
 			;;
 		esac 
 	} 
 	function comsub_TCASE { x=$(
-		case  $foo  in  1)  echo eins;; 2) echo zwei  ;; *) echo kann net bis drei zählen;;  esac
+		case  $foo  in  1)  echo eins;& 2) echo zwei  ;| *) echo kann net bis drei zählen;;  esac
 	); }
 	function comsub_TCASE {
-		x=$(case $foo in (1) echo eins  ;; (2) echo zwei  ;; (*) echo kann net bis drei zählen  ;; esac ) 
+		x=$(case $foo in (1) echo eins  ;& (2) echo zwei  ;| (*) echo kann net bis drei zählen  ;; esac ) 
 	} 
 	function reread_TCASE { x=$((
-		case  $foo  in  1)  echo eins;; 2) echo zwei  ;; *) echo kann net bis drei zählen;;  esac
+		case  $foo  in  1)  echo eins;& 2) echo zwei  ;| *) echo kann net bis drei zählen;;  esac
 	)|tr u x); }
 	function reread_TCASE {
-		x=$(( case $foo in (1) echo eins  ;; (2) echo zwei  ;; (*) echo kann net bis drei zählen  ;; esac ) | tr u x ) 
+		x=$(( case $foo in (1) echo eins  ;& (2) echo zwei  ;| (*) echo kann net bis drei zählen  ;; esac ) | tr u x ) 
 	} 
 	inline_TIF_TBANG_TDBRACKET_TELIF() {
 		if  !  [[  1  =  1  ]]  ;  then  echo eins;  elif [[ 1 = 2 ]]; then echo zwei  ;else echo drei; fi
@@ -8844,4 +9102,38 @@ stdin:
 	test  -e  ; echo $?
 expected-stdout:
 	0
+---
+name: case-zsh
+description:
+	Check that zsh case variants work
+stdin:
+	case 'b' in
+	  a) echo a ;;
+	  b) echo b ;;
+	  c) echo c ;;
+	  *) echo x ;;
+	esac
+	echo =
+	case 'b' in
+	  a) echo a ;&
+	  b) echo b ;&
+	  c) echo c ;&
+	  *) echo x ;&
+	esac
+	echo =
+	case 'b' in
+	  a) echo a ;|
+	  b) echo b ;|
+	  c) echo c ;|
+	  *) echo x ;|
+	esac
+expected-stdout:
+	b
+	=
+	b
+	c
+	x
+	=
+	b
+	x
 ---

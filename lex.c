@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.150 2011/05/07 00:51:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.151 2011/05/29 02:18:52 tg Exp $");
 
 /*
  * states while lexing word
@@ -1018,6 +1018,10 @@ yylex(int cf)
 				    /* c == '(' ) */ MDPAREN;
 			else if (c == '|' && c2 == '&')
 				c = COPROC;
+			else if (c == ';' && c2 == '|')
+				c = BRKEV;
+			else if (c == ';' && c2 == '&')
+				c = BRKFT;
 			else
 				ungetsc(c2);
 		} else if (c == '\n') {

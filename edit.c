@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.211 2011/04/22 12:16:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.212 2011/05/29 02:18:49 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -68,7 +68,7 @@ static char holdbuf[LINE];		/* place to hold last edit buffer */
 
 static int x_getc(void);
 static void x_putcf(int);
-static bool x_mode(bool);
+static void x_mode(bool);
 static int x_do_comment(char *, int, int *);
 static void x_print_expansions(int, char *const *, bool);
 static int x_cf_glob(int *, const char *, int, int, int *, int *, char ***);
@@ -3180,44 +3180,26 @@ x_lastcp(void)
 	return (xlp);
 }
 
-static bool
+static void
 x_mode(bool onoff)
 {
 	static bool x_cur_mode;
-	bool prev;
 
 	if (x_cur_mode == onoff)
-		return (x_cur_mode);
-	prev = x_cur_mode;
+		return;
 	x_cur_mode = onoff;
 
 	if (onoff) {
-		struct termios cb;
+		x_mkraw(tty_fd, NULL, false);
 
-		cb = tty_state;
-
-		edchars.erase = cb.c_cc[VERASE];
-		edchars.kill = cb.c_cc[VKILL];
-		edchars.intr = cb.c_cc[VINTR];
-		edchars.quit = cb.c_cc[VQUIT];
-		edchars.eof = cb.c_cc[VEOF];
+		edchars.erase = tty_state.c_cc[VERASE];
+		edchars.kill = tty_state.c_cc[VKILL];
+		edchars.intr = tty_state.c_cc[VINTR];
+		edchars.quit = tty_state.c_cc[VQUIT];
+		edchars.eof = tty_state.c_cc[VEOF];
 #ifdef VWERASE
-		edchars.werase = cb.c_cc[VWERASE];
+		edchars.werase = tty_state.c_cc[VWERASE];
 #endif
-		cb.c_iflag &= ~(INLCR | ICRNL);
-		cb.c_lflag &= ~(ISIG | ICANON | ECHO);
-#if defined(VLNEXT) && defined(_POSIX_VDISABLE)
-		/* OSF/1 processes lnext when ~icanon */
-		cb.c_cc[VLNEXT] = _POSIX_VDISABLE;
-#endif
-		/* SunOS 4.1.x & OSF/1 processes discard(flush) when ~icanon */
-#if defined(VDISCARD) && defined(_POSIX_VDISABLE)
-		cb.c_cc[VDISCARD] = _POSIX_VDISABLE;
-#endif
-		cb.c_cc[VTIME] = 0;
-		cb.c_cc[VMIN] = 1;
-
-		tcsetattr(tty_fd, TCSADRAIN, &cb);
 
 #ifdef _POSIX_VDISABLE
 		/* Convert unset values to internal 'unset' value */
@@ -3249,8 +3231,6 @@ x_mode(bool onoff)
 			bind_if_not_bound(0, edchars.quit, XFUNC_noop);
 	} else
 		tcsetattr(tty_fd, TCSADRAIN, &tty_state);
-
-	return (prev);
 }
 
 #if !MKSH_S_NOVI
@@ -5338,3 +5318,34 @@ vi_macro_reset(void)
 	}
 }
 #endif /* !MKSH_S_NOVI */
+
+void
+x_mkraw(int fd, struct termios *ocb, bool forread)
+{
+	struct termios cb;
+
+	if (ocb)
+		tcgetattr(fd, ocb);
+	else
+		ocb = &tty_state;
+
+	cb = *ocb;
+	if (forread) {
+		cb.c_lflag &= ~(ICANON) | ECHO;
+	} else {
+		cb.c_iflag &= ~(INLCR | ICRNL);
+		cb.c_lflag &= ~(ISIG | ICANON | ECHO);
+	}
+#if defined(VLNEXT) && defined(_POSIX_VDISABLE)
+	/* OSF/1 processes lnext when ~icanon */
+	cb.c_cc[VLNEXT] = _POSIX_VDISABLE;
+#endif
+	/* SunOS 4.1.x & OSF/1 processes discard(flush) when ~icanon */
+#if defined(VDISCARD) && defined(_POSIX_VDISABLE)
+	cb.c_cc[VDISCARD] = _POSIX_VDISABLE;
+#endif
+	cb.c_cc[VTIME] = 0;
+	cb.c_cc[VMIN] = 1;
+
+	tcsetattr(fd, TCSADRAIN, &cb);
+}

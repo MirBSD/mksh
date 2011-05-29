@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.59 2011/02/09 19:32:35 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.60 2011/05/29 02:18:49 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -222,7 +222,7 @@ function smores {
 	done
 }
 
-# base64 encoder (not NUL safe) and decoder (NUL safe), RFC compliant
+# base64 encoder and decoder, RFC compliant, NUL safe
 function Lb64decode {
 	[[ -o utf8-mode ]]; typeset u=$?
 	set +U
@@ -262,18 +262,20 @@ set -A Lb64encode_code -- A B C D E F G H I J K L M N O P Q R S T U V W X Y Z \
 function Lb64encode {
 	[[ -o utf8-mode ]]; typeset u=$?
 	set +U
-	typeset c s="$*" t
-	[[ -n $s ]] || { s=$(cat;print x); s=${s%x}; }
-	typeset -i i=0 n=${#s} j v
+	typeset c s t
+	if (( $# )); then
+		read -raN-1 s <<<"$*"
+		unset s[${#s[*]}-1]
+	else
+		read -raN-1 s
+	fi
+	typeset -i i=0 n=${#s[*]} j v
 
 	while (( i < n )); do
-		c=${s:(i++):1}
-		(( v = 1#$c << 16 ))
-		c=${s:(i++):1}
-		(( j = ${#c} ? 1#$c : 0 ))
+		(( v = s[i++] << 16 ))
+		(( j = i < n ? s[i++] : 0 ))
 		(( v |= j << 8 ))
-		c=${s:(i++):1}
-		(( j = ${#c} ? 1#$c : 0 ))
+		(( j = i < n ? s[i++] : 0 ))
 		(( v |= j ))
 		t=$t${Lb64encode_code[v >> 18]}${Lb64encode_code[v >> 12 & 63]}
 		c=${Lb64encode_code[v >> 6 & 63]}
@@ -297,12 +299,17 @@ typeset -Z11 -Uui16 Lcdbhash_result
 function Lcdbhash_add {
 	[[ -o utf8-mode ]]; typeset u=$?
 	set +U
-	typeset s="$*"
-	[[ -n $s ]] || { s=$(cat;print x); s=${s%x}; }
-	typeset -i i=0 n=${#s}
+	typeset s
+	if (( $# )); then
+		read -raN-1 s <<<"$*"
+		unset s[${#s[*]}-1]
+	else
+		read -raN-1 s
+	fi
+	typeset -i i=0 n=${#s[*]}
 
 	while (( i < n )); do
-		((# Lcdbhash_result = (Lcdbhash_result * 33) ^ 1#${s:(i++):1} ))
+		((# Lcdbhash_result = (Lcdbhash_result * 33) ^ s[i++] ))
 	done
 
 	(( u )) || set -U
@@ -318,12 +325,17 @@ typeset -Z11 -Uui16 Loaathash_result
 function Loaathash_add {
 	[[ -o utf8-mode ]]; typeset u=$?
 	set +U
-	typeset s="$*"
-	[[ -n $s ]] || { s=$(cat;print x); s=${s%x}; }
-	typeset -i i=0 n=${#s}
+	typeset s
+	if (( $# )); then
+		read -raN-1 s <<<"$*"
+		unset s[${#s[*]}-1]
+	else
+		read -raN-1 s
+	fi
+	typeset -i i=0 n=${#s[*]}
 
 	while (( i < n )); do
-		((# Loaathash_result = (Loaathash_result + 1#${s:(i++):1}) *
+		((# Loaathash_result = (Loaathash_result + s[i++]) *
 		    1025 ))
 		((# Loaathash_result ^= Loaathash_result >> 6 ))
 	done

@@ -151,9 +151,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.469 2011/05/06 15:41:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.470 2011/05/29 02:18:55 tg Exp $");
 #endif
-#define MKSH_VERSION "R39 2011/05/06"
+#define MKSH_VERSION "R39 2011/05/28"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1111,10 +1111,14 @@ struct op {
 					 */
 	int lineno;			/* TCOM/TFUNC: LINENO for this */
 	short type;			/* operation type, see below */
+	/* WARNING: newtp(), tcopy() use evalflags = 0 to clear union */
 	union {
-		/* WARNING: newtp(), tcopy() use evalflags = 0 to clear union */
-		short evalflags;	/* TCOM: arg expansion eval() flags */
-		short ksh_func;		/* TFUNC: function x (vs x()) */
+		/* TCOM: arg expansion eval() flags */
+		short evalflags;
+		/* TFUNC: function x (vs x()) */
+		short ksh_func;
+		/* TPAT: termination character */
+		char charflag;
 	} u;
 };
 
@@ -1392,6 +1396,8 @@ typedef union {
 #define BANG		278	/* ! */
 #define DBRACKET	279	/* [[ .. ]] */
 #define COPROC		280	/* |& */
+#define BRKEV		281	/* ;| */
+#define BRKFT		282	/* ;& */
 #define YYERRCODE	300
 
 /* flags to yylex */
@@ -1484,6 +1490,7 @@ int x_bind(const char *, const char *, bool, bool);
 int x_bind(const char *, const char *, bool);
 #endif
 void x_init(void);
+void x_mkraw(int, struct termios *, bool);
 int x_read(char *, size_t);
 /* eval.c */
 char *substitute(const char *, int);
@@ -1779,6 +1786,7 @@ const char *skip_varname(const char *, int);
 const char *skip_wdvarname(const char *, int);
 int is_wdvarname(const char *, int);
 int is_wdvarassign(const char *);
+struct tbl *arraysearch(struct tbl *, uint32_t);
 char **makenv(void);
 void change_winsz(void);
 int array_ref_len(const char *);

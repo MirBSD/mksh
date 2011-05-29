@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.260 2011/05/06 15:41:24 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.261 2011/05/29 02:18:54 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.140 2011/04/23 10:14:59 sobrado Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: May 6 2011 $
+.Dd $Mdocdate: May 29 2011 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -391,8 +391,11 @@ is used to create asynchronous pipelines;
 and
 .Ql \*(Ba\*(Ba
 are used to specify conditional execution;
-.Ql ;;
-is used in
+.Ql ;; ,
+.Ql ;&\&
+and
+.Ql ;\*(Ba\&
+are used in
 .Ic case
 statements;
 .Ql \&(( .. ))
@@ -642,10 +645,12 @@ and
 are reserved words, not meta-characters.
 .It Xo case Ar word No in
 .Oo Op \&(
-.Ar \ pattern
-.Op \*(Ba Ar pattern
-.No ... No )
-.Ar list No ;;\ \& Oc ... esac
+.Ar pattern
+.Op \*(Ba Ar pat
+.No ... Ns )
+.Ar list
+.Op ;; \*(Ba ;&\& \*(Ba ;\*(Ba\ \&
+.Oc ... esac
 .Xc
 The
 .Ic case
@@ -669,12 +674,22 @@ stripped; any space within a pattern must be quoted.
 Both the word and the
 patterns are subject to parameter, command, and arithmetic substitution, as
 well as tilde substitution.
+.Pp
 For historical reasons, open and close braces may be used instead of
 .Ic in
 and
 .Ic esac
 e.g.\&
-.Ic case $foo { *) echo bar; } .
+.Ic case $foo { *) echo bar;; } .
+.Pp
+The list terminators are
+.Ql ;;
+(terminate after the list),
+.Ql ;&\&
+(fall through into the next list) and
+.Ql ;\*(Ba\&
+(evaluate the remaining pattern-list tuples).
+.Pp
 The exit status of a
 .Ic case
 statement is that of the executed
@@ -3059,12 +3074,17 @@ option is supported as a no-op.
 .Pp
 .It Xo
 .Ic cd
-.Op Fl LP
+.Op Fl L
+.Op Ar dir
+.Xc
+.It Xo
+.Ic cd
+.Fl P Op Fl e
 .Op Ar dir
 .Xc
 .It Xo
 .Ic chdir
-.Op Fl LP
+.Op Fl eLP
 .Op Ar dir
 .Xc
 Set the working directory to
@@ -3120,15 +3140,21 @@ and
 .Ev OLDPWD
 parameters are updated to reflect the current and old working directory,
 respectively.
+If the
+.Fl e
+option is set for physical filesystem traversal, and
+.Ev PWD
+could not be set, the exit code is 1; greater than 1 if an
+error occurred, 0 otherwise.
 .Pp
 .It Xo
 .Ic cd
-.Op Fl LP
+.Op Fl eLP
 .Ar old new
 .Xc
 .It Xo
 .Ic chdir
-.Op Fl LP
+.Op Fl eLP
 .Ar old new
 .Xc
 The string
@@ -3627,36 +3653,96 @@ directories to the root directory) is printed.
 .Pp
 .It Xo
 .Ic read
-.Op Fl d Ar delimiter
-.Op Fl prsu Ns Op Ar n
-.Op Ar parameter ...
+.Op Fl A | Fl a
+.Op Fl d Ar x
+.Oo Fl N Ar z \*(Ba
+.Fl n Ar z Oc
+.Oo Fl p \*(Ba
+.Fl u Ns Op Ar n
+.Oc Op Fl t Ar n
+.Op Fl rs
+.Op Ar p ...
 .Xc
-Reads a line of input from the standard input, separates the line into fields
-using the
+Reads a line of input, separates the input into fields using the
 .Ev IFS
 parameter (see
 .Sx Substitution
-above), and assigns each field to the specified parameters.
-Lines are delimited by the first character of
-.Ar delimiter ,
-.Dv NUL
-if empty, if
-.Fl d
-was used, a newline otherwise.
-If there are more parameters than fields, the extra parameters are set to
-.Dv NULL ,
-or alternatively, if there are more fields than parameters, the last parameter
-is assigned the remaining fields (inclusive of any separating spaces).
+above), and assigns each field to the specified parameters
+.Ar p .
 If no parameters are specified, the
 .Ev REPLY
-parameter is used.
-If the input line ends in a backslash and the
-.Fl r
-option was not used, the backslash and the newline are stripped and more input
-is read.
-If no input is read,
+parameter is used to store the result.
+With the
+.Fl A
+and
+.Fl a
+options, only no or one parameter is accepted.
+If there are more parameters than fields, the extra parameters are set to
+the empty string or 0; if there are more fields than parameters, the last
+parameter is assigned the remaining fields (including the word separators).
+.Pp
+The options are as follows:
+.Bl -tag -width XuXnX
+.It Fl A
+Store the result into the parameter
+.Ar p
+(or
+.Ev REPLY )
+as array of words.
+.It Fl a
+Store the result without word splitting into the parameter
+.Ar p
+(or
+.Ev REPLY )
+as array of characters (wide characters if the
+.Ic utf8\-mode
+option is enacted, octets otherwise).
+.It Fl d Ar x
+Use the first byte of
+.Ar x ,
+.Dv NUL
+if empty, instead of the ASCII newline character as input line delimiter.
+.It Fl N Ar z
+Instead of reading till end-of-line, read exactly
+.Ar z
+bytes; less if EOF or a timeout occurs.
+.It Fl n Ar z
+Instead of reading till end-of-line, read up to
+.Ar z
+bytes but return as soon as any bytes are read, e.g.\& from a
+slow terminal device, or if EOF or a timeout occurs.
+.It Fl p
+Read from the currently active co-process, see
+.Sx Co-processes
+above for details on this.
+.It Fl u Ns Op Ar n
+Read from the file descriptor
+.Ar n
+(defaults to 0, i.e.\& standard input).
+The argument must immediately follow the option character.
+.It Fl t Ar n
+Interrupt reading after
+.Ar n
+seconds (specified as positive decimal value with an optional fractional part).
+.It Fl r
+Normally, the ASCII backslash character escapes the special
+meaning of the following character and is stripped from the input;
 .Ic read
-exits with a non-zero status.
+does not stop when encountering a backslash-newline sequence and
+does not store that newline in the result.
+This option enables raw mode, in which backslashes are not processed.
+.It Fl s
+The input line is saved to the history.
+.El
+.Pp
+If the input is a terminal, both the
+.Fl N
+and
+.Fl n
+options set it into raw mode;
+they read an entire file if \-1 is passed as
+.Ar z
+argument.
 .Pp
 The first parameter may have a question mark and a string appended to it, in
 which case the string is used as a prompt (printed to standard error before
@@ -3665,20 +3751,9 @@ any input is read) if the input is a
 (e.g.\&
 .Ic read nfoo?\*(aqnumber of foos: \*(aq ) .
 .Pp
-The
-.Fl u Ns Ar n
-and
-.Fl p
-options cause input to be read from file descriptor
-.Ar n
-.Pf ( Ar n
-defaults to 0 if omitted)
-or the current co-process (see
-.Sx Co-processes
-above for comments on this), respectively.
-If the
-.Fl s
-option is used, input is saved to the history file.
+If no input is read or a timeout occurred,
+.Ic read
+exits with a non-zero status.
 .Pp
 Another handy set of tricks:
 If
@@ -3689,6 +3764,17 @@ then leading whitespace will be removed (IFS) and backslashes processed.
 You might want to use
 .Ic while IFS= read \-r foo; do ...; done
 for pristine I/O.
+Similarily, when using the
+.Fl a
+option, use of the
+.Fl r
+option might be prudent; the same applies for:
+.Bd -literal -offset indent
+find . -type f -print0 \*(Ba \e
+    while IFS= read \-d \*(aq\*(aq \-r filename; do
+	print \-r \-\- "found <${filename#./}>"
+done
+.Ed
 .Pp
 The inner loop will be executed in a subshell and variable changes
 cannot be propagated if executed in a pipeline:
@@ -6153,7 +6239,7 @@ $ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R39c+CVS
+.Nm mksh\ R40~rc
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.91 2011/05/07 00:51:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.92 2011/05/29 02:18:51 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -405,15 +405,30 @@ execute(struct op * volatile t,
 		break;
 
 	case TCASE:
+		i = 0;
 		ccp = evalstr(t->str, DOTILDE);
-		for (t = t->left; t != NULL && t->type == TPAT; t = t->right)
-		    for (ap = (const char **)t->vars; *ap; ap++)
-			if ((s = evalstr(*ap, DOTILDE|DOPAT)) &&
-			    gmatchx(ccp, s, false))
-				goto Found;
-		break;
- Found:
-		rv = execute(t->left, flags & XERROK, xerrok);
+		for (t = t->left; t != NULL && t->type == TPAT; t = t->right) {
+			for (ap = (const char **)t->vars; *ap; ap++) {
+				if (i || ((s = evalstr(*ap, DOTILDE|DOPAT)) &&
+				    gmatchx(ccp, s, false))) {
+					rv = execute(t->left, flags & XERROK,
+					    xerrok);
+					i = 0;
+					switch (t->u.charflag) {
+					case '&':
+						i = 1;
+						/* FALLTHROUGH */
+					case '|':
+						goto TCASE_next;
+					}
+					goto TCASE_out;
+				}
+			}
+			i = 0;
+ TCASE_next:
+			/* empty */;
+		}
+ TCASE_out:
 		break;
 
 	case TBRACE:

@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.186 2011/05/06 15:41:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.187 2011/05/29 02:18:51 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1759,58 +1759,96 @@ c_wait(const char **wp)
 int
 c_read(const char **wp)
 {
-	int c, ecode = 0, fd = 0, optc;
-	bool expande = true, historyr = false, expanding;
-	const char *cp, *emsg;
-	struct shf *shf;
-	XString cs, xs = { NULL, NULL, 0, NULL};
-	struct tbl *vp;
-	char *ccp, *xp = NULL, *wpalloc = NULL, delim = '\n';
+#define is_ifsws(c) (ctype((c), C_IFS) && ctype((c), C_IFSWS))
 	static char REPLY[] = "REPLY";
+	int c, fd = 0, rv = 0;
+	bool savehist = false, intoarray = false, aschars = false;
+	bool rawmode = false, expanding = false, lastparm = false;
+	enum { LINES, BYTES, UPTO, READALL } readmode = LINES;
+	char delim = '\n';
+	size_t bytesleft = 128, bytesread;
+	struct tbl *vp /* FU gcc */ = NULL, *vq;
+	char *cp, *allocd = NULL, *xp;
+	const char *ccp;
+	XString xs;
+	struct termios tios;
+	bool restore_tios = false;
+#if HAVE_SELECT
+	bool hastimeout = false;
+	struct timeval tv, tvlim;
+#define c_read_opts "Aad:N:n:prst:u,"
+#else
+#define c_read_opts "Aad:N:n:prsu,"
+#endif
 
-	while ((optc = ksh_getopt(wp, &builtin_opt, "d:prsu,")) != -1)
-		switch (optc) {
-		case 'd':
-			delim = builtin_opt.optarg[0];
-			break;
-		case 'p':
-			if ((fd = coproc_getfd(R_OK, &emsg)) < 0) {
-				bi_errorf("%s: %s", "-p", emsg);
-				return (1);
-			}
-			break;
-		case 'r':
-			expande = false;
-			break;
-		case 's':
-			historyr = true;
-			break;
-		case 'u':
-			if (!*(cp = builtin_opt.optarg))
-				fd = 0;
-			else if ((fd = check_fd(cp, R_OK, &emsg)) < 0) {
-				bi_errorf("%s: %s: %s", "-u", cp, emsg);
-				return (1);
-			}
-			break;
-		case '?':
-			return (1);
+	while ((c = ksh_getopt(wp, &builtin_opt, c_read_opts)) != -1)
+	switch (c) {
+	case 'a':
+		aschars = true;
+		/* FALLTHROUGH */
+	case 'A':
+		intoarray = true;
+		break;
+	case 'd':
+		delim = builtin_opt.optarg[0];
+		break;
+	case 'N':
+	case 'n':
+		readmode = c == 'N' ? BYTES : UPTO;
+		if (!bi_getn(builtin_opt.optarg, &c))
+			return (2);
+		if (c == -1) {
+			readmode = READALL;
+			bytesleft = 1024;
+		} else
+			bytesleft = (unsigned int)c;
+		break;
+	case 'p':
+		if ((fd = coproc_getfd(R_OK, &ccp)) < 0) {
+			bi_errorf("%s: %s", "-p", ccp);
+			return (2);
 		}
+		break;
+	case 'r':
+		rawmode = true;
+		break;
+	case 's':
+		savehist = true;
+		break;
+#if HAVE_SELECT
+	case 't':
+		if (parse_usec(builtin_opt.optarg, &tv)) {
+			bi_errorf("%s: %s '%s'", T_synerr, strerror(errno),
+			    builtin_opt.optarg);
+			return (2);
+		}
+		hastimeout = true;
+		break;
+#endif
+	case 'u':
+		if (!builtin_opt.optarg[0])
+			fd = 0;
+		else if ((fd = check_fd(builtin_opt.optarg, R_OK, &ccp)) < 0) {
+			bi_errorf("%s: %s: %s", "-u", builtin_opt.optarg, ccp);
+			return (2);
+		}
+		break;
+	case '?':
+		return (2);
+	}
 	wp += builtin_opt.optind;
-
 	if (*wp == NULL)
 		*--wp = REPLY;
 
-	/*
-	 * Since we can't necessarily seek backwards on non-regular files,
-	 * don't buffer them so we can't read too much.
-	 */
-	shf = shf_reopen(fd, SHF_RD | SHF_INTERRUPT | can_seek(fd), shl_spare);
+	if (intoarray && wp[1] != NULL) {
+		bi_errorf("too many arguments");
+		return (2);
+	}
 
-	if ((cp = cstrchr(*wp, '?')) != NULL) {
-		strdupx(wpalloc, *wp, ATEMP);
-		wpalloc[cp - *wp] = '\0';
-		*wp = wpalloc;
+	if ((ccp = cstrchr(*wp, '?')) != NULL) {
+		strdupx(allocd, *wp, ATEMP);
+		allocd[ccp - *wp] = '\0';
+		*wp = allocd;
 		if (isatty(fd)) {
 			/*
 			 * AT&T ksh says it prints prompt on fd if it's open
@@ -1818,133 +1856,268 @@ c_read(const char **wp)
 			 * (it also doesn't check the interactive flag,
 			 * as is indicated in the Korn Shell book).
 			 */
-			shellf("%s", cp + 1);
+			shf_puts(ccp + 1, shl_out);
 		}
 	}
 
-	/*
-	 * If we are reading from the co-process for the first time,
-	 * make sure the other side of the pipe is closed first. This allows
-	 * the detection of eof.
-	 *
-	 * This is not compatible with AT&T ksh... the fd is kept so another
-	 * coproc can be started with same output, however, this means eof
-	 * can't be detected... This is why it is closed here.
-	 * If this call is removed, remove the eof check below, too.
-	 * coproc_readw_close(fd);
+	Xinit(xs, xp, bytesleft, ATEMP);
+
+	if (readmode == LINES)
+		bytesleft = 1;
+	else if (isatty(fd)) {
+		x_mkraw(fd, &tios, true);
+		restore_tios = true;
+	}
+
+#if HAVE_SELECT
+	if (hastimeout) {
+		gettimeofday(&tvlim, NULL);
+		timeradd(&tvlim, &tv, &tvlim);
+	}
+#endif
+
+ c_read_readloop:
+#if HAVE_SELECT
+	if (hastimeout) {
+		fd_set fdset;
+
+		FD_ZERO(&fdset);
+		FD_SET(fd, &fdset);
+		gettimeofday(&tv, NULL);
+		timersub(&tvlim, &tv, &tv);
+		if (tv.tv_sec < 0) {
+			/* timeout expired globally */
+			rv = 1;
+			goto c_read_out;
+		}
+
+		switch (select(fd + 1, &fdset, NULL, NULL, &tv)) {
+		case 1:
+			break;
+		case 0:
+			/* timeout expired for this call */
+			rv = 1;
+			goto c_read_out;
+		default:
+			bi_errorf("%s: %s", T_select, strerror(errno));
+			rv = 2;
+			goto c_read_out;
+		}
+	}
+#endif
+
+	bytesread = blocking_read(fd, xp, bytesleft);
+	if (bytesread == (size_t)-1) {
+		/* interrupted */
+		if (errno == EINTR && fatal_trap_check()) {
+			/*
+			 * Was the offending signal one that would
+			 * normally kill a process? If so, pretend
+			 * the read was killed.
+			 */
+			rv = 2;
+			goto c_read_out;
+		}
+		/* just ignore the signal */
+		goto c_read_readloop;
+	}
+
+	switch (readmode) {
+	case READALL:
+		if (bytesread == 0) {
+			/* end of file reached */
+			rv = 1;
+			goto c_read_readdone;
+		}
+		xp += bytesread;
+		XcheckN(xs, xp, bytesleft);
+		break;
+
+	case UPTO:
+		if (bytesread == 0)
+			/* end of file reached */
+			rv = 1;
+		xp += bytesread;
+		goto c_read_readdone;
+
+	case BYTES:
+		if (bytesread == 0) {
+			/* end of file reached */
+			rv = 1;
+			xp = Xstring(xs, xp);
+			goto c_read_readdone;
+		}
+		xp += bytesread;
+		if ((bytesleft -= bytesread) == 0)
+			goto c_read_readdone;
+		break;
+	case LINES:
+		if (bytesread == 0) {
+			/* end of file reached */
+			rv = 1;
+			goto c_read_readdone;
+		}
+		if ((c = *xp) == '\0' && !aschars && delim != '\0') {
+			/* skip any read NULs unless delimiter */
+			break;
+		}
+		if (expanding) {
+			expanding = false;
+			if (c == delim) {
+				if (Flag(FTALKING_I) && isatty(fd)) {
+					/*
+					 * set prompt in case this is
+					 * called from .profile or $ENV
+					 */
+					set_prompt(PS2, NULL);
+					pprompt(prompt, 0);
+				}
+				/* drop the backslash */
+				--xp;
+				/* and the delimiter */
+				break;
+			}
+		} else if (c == delim) {
+			goto c_read_readdone;
+		} else if (!rawmode && c == '\\') {
+			expanding = true;
+		}
+		Xcheck(xs, xp);
+		++xp;
+		break;
+	}
+	goto c_read_readloop;
+
+ c_read_readdone:
+	bytesread = Xlength(xs, xp);
+	Xput(xs, xp, '\0');
+
+	/*-
+	 * state: we finished reading the input and NUL terminated it
+	 * Xstring(xs, xp) -> xp-1 = input string without trailing delim
+	 * rv = 1 if EOF, 0 otherwise (errors handled already)
 	 */
 
-	if (historyr)
-		Xinit(xs, xp, 128, ATEMP);
-	expanding = false;
-	Xinit(cs, ccp, 128, ATEMP);
-	/* initialise to something not EOF or delim or any character */
-	c = 0x100;
-	for (; *wp != NULL; wp++) {
-		for (ccp = Xstring(cs, ccp); ; ) {
-			if (c == delim || c == EOF)
-				break;
-			/* loop to read one character */
-			while (/* CONSTCOND */ 1) {
-				c = shf_getc(shf);
-				/* we break unless NUL or EOF, so... */
-				if (c == delim)
-					/* in case delim == NUL */
-					break;
-				if (c == '\0')
-					/* skip any read NUL byte */
-					continue;
-				if (c == EOF && shf_error(shf) &&
-				    shf_errno(shf) == EINTR) {
-					/*
-					 * Was the offending signal one that
-					 * would normally kill a process?
-					 * If so, pretend the read was killed.
-					 */
-					ecode = fatal_trap_check();
+	if (rv == 1) {
+		/* clean up coprocess if needed, on EOF */
+		coproc_read_close(fd);
+		if (readmode == READALL)
+			/* EOF is no error here */
+			rv = 0;
+	}
 
-					/* non fatal (eg, CHLD), carry on */
-					if (!ecode) {
-						shf_clearerr(shf);
-						continue;
-					}
-				}
-				break;
-			}
-			if (historyr) {
-				Xcheck(xs, xp);
-				Xput(xs, xp, c);
-			}
-			Xcheck(cs, ccp);
-			if (expanding) {
-				expanding = false;
-				if (c == delim) {
-					c = 0;
-					if (Flag(FTALKING_I) && isatty(fd)) {
-						/*
-						 * set prompt in case this is
-						 * called from .profile or $ENV
-						 */
-						set_prompt(PS2, NULL);
-						pprompt(prompt, 0);
-					}
-				} else if (c != EOF)
-					Xput(cs, ccp, c);
-				continue;
-			}
-			if (expande && c == '\\') {
-				expanding = true;
-				continue;
-			}
-			if (c == delim || c == EOF)
-				break;
-			if (ctype(c, C_IFS)) {
-				if (Xlength(cs, ccp) == 0 && ctype(c, C_IFSWS))
-					continue;
-				if (wp[1])
-					break;
-			}
-			Xput(cs, ccp, c);
-		}
-		/* strip trailing IFS white space from last variable */
-		if (!wp[1])
-			while (Xlength(cs, ccp) && ctype(ccp[-1], C_IFS) &&
-			    ctype(ccp[-1], C_IFSWS))
-				ccp--;
-		Xput(cs, ccp, '\0');
+	if (savehist)
+		histsave(&source->line, Xstring(xs, xp), true, false);
+
+	ccp = cp = Xclose(xs, xp);
+	expanding = false;
+	XinitN(xs, 128, ATEMP);
+	if (intoarray) {
 		vp = global(*wp);
-		/* Must be done before setting export. */
 		if (vp->flag & RDONLY) {
-			shf_flush(shf);
+ c_read_splitro:
 			bi_errorf("%s: %s", *wp, "is read only");
-			afree(wpalloc, ATEMP);
-			return (2);
+ c_read_spliterr:
+			rv = 2;
+			afree(cp, ATEMP);
+			goto c_read_out;
 		}
+		/* exporting an array is currently pointless */
+		unset(vp, 1);
+		/* counter for array index */
+		c = 0;
+	}
+ c_read_splitloop:
+	xp = Xstring(xs, xp);
+	/* generate next word */
+	if (!bytesread) {
+		/* no more input */
+		if (intoarray)
+			goto c_read_splitdone;
+		/* zero out next parameters */
+		goto c_read_gotword;
+	}
+	if (aschars) {
+		Xput(xs, xp, '1');
+		Xput(xs, xp, '#');
+		bytesleft = utf_ptradj(ccp);
+		while (bytesleft && bytesread) {
+			*xp++ = *ccp++;
+			--bytesleft;
+			--bytesread;
+		}
+		if (xp[-1] == '\0') {
+			xp[-1] = '0';
+			xp[-3] = '2';
+		}
+		goto c_read_gotword;
+	}
+
+	if (!intoarray && wp[1] == NULL)
+		lastparm = true;
+
+	/* skip initial IFS whitespace */
+	while (is_ifsws(*ccp)) {
+		++ccp;
+		--bytesread;
+	}
+	/* copy until IFS character */
+	while (bytesread) {
+		char ch;
+
+		ch = *ccp++;
+		--bytesread;
+		if (expanding) {
+			expanding = false;
+		} else if (ctype(ch, C_IFS)) {
+			if (!lastparm)
+				break;
+			/* last parameter, copy all */
+		} else if (!rawmode && ch == '\\') {
+			expanding = true;
+			continue;
+		}
+		Xcheck(xs, xp);
+		Xput(xs, xp, ch);
+	}
+	if (lastparm) {
+		/* remove trailing IFS whitespace */
+		while (Xlength(xs, xp) && is_ifsws(xp[-1]))
+			--xp;
+	}
+ c_read_gotword:
+	Xput(xs, xp, '\0');
+	if (intoarray) {
+		vq = arraysearch(vp, c++);
+	} else {
+		vq = global(*wp);
+		/* must be checked before exporting */
+		if (vq->flag & RDONLY)
+			goto c_read_splitro;
 		if (Flag(FEXPORT))
 			typeset(*wp, EXPORT, 0, 0, 0);
-		if (!setstr(vp, Xstring(cs, ccp), KSH_RETURN_ERROR)) {
-			shf_flush(shf);
-			afree(wpalloc, ATEMP);
-			return (1);
-		}
 	}
-
-	shf_flush(shf);
-	if (historyr) {
-		Xput(xs, xp, '\0');
-		histsave(&source->line, Xstring(xs, xp), true, false);
-		Xfree(xs, xp);
+	if (!setstr(vq, Xstring(xs, xp), KSH_RETURN_ERROR))
+		goto c_read_spliterr;
+	if (aschars) {
+		setint_v(vq, vq, false);
+		/* protect from UTFMODE changes */
+		vq->type = 0;
 	}
-	/*
-	 * if this is the co-process fd, close the file descriptor
-	 * (can get eof if and only if all processes are have died,
-	 * i.e. coproc.njobs is 0 and the pipe is closed).
-	 */
-	if (c == EOF && !ecode)
-		coproc_read_close(fd);
+	if (intoarray || *++wp != NULL)
+		goto c_read_splitloop;
 
-	afree(wpalloc, ATEMP);
-	return (ecode ? ecode : c == EOF);
+ c_read_splitdone:
+	/* free up */
+	afree(cp, ATEMP);
+
+ c_read_out:
+	afree(allocd, ATEMP);
+	Xfree(xs, xp);
+	if (restore_tios)
+		tcsetattr(fd, TCSADRAIN, &tios);
+	return (rv);
+#undef is_ifsws
 }
 
 int

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.26 2011/03/28 21:58:05 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.27 2011/05/29 02:18:47 tg Exp $
 # $OpenBSD: th,v 1.13 2006/05/18 21:27:23 miod Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011
@@ -197,6 +197,7 @@ EOF
 	'expected-stderr-pattern',	'm',
 	'category',			'm',
 	'need-ctty',			'',
+	'need-pass',			'',
 	);
 # Filled in by read_test()
 %internal_test_fields = (
@@ -217,6 +218,7 @@ $tempe = "/tmp/rte$$";
 $tempdir = "/tmp/rtd$$";
 
 $nfailed = 0;
+$nifailed = 0;
 $nxfailed = 0;
 $npassed = 0;
 $nxpassed = 0;
@@ -304,12 +306,13 @@ if (-d $test_set) {
 }
 &cleanup_exit() if !defined $ret;
 
-$tot_failed = $nfailed + $nxfailed;
+$tot_failed = $nfailed + $nifailed + $nxfailed;
 $tot_passed = $npassed + $nxpassed;
 if ($tot_failed || $tot_passed) {
     print "Total failed: $tot_failed";
+    print " ($nifailed ignored)" if $nifailed;
     print " ($nxfailed unexpected)" if $nxfailed;
-    print " (as expected)" if $nfailed && !$nxfailed;
+    print " (as expected)" if $nfailed && !$nxfailed && !$nifailed;
     print "\nTotal passed: $tot_passed";
     print " ($nxpassed unexpected)" if $nxpassed;
     print "\n";
@@ -323,7 +326,11 @@ cleanup_exit
     local($sig, $exitcode) = ('', 1);
 
     if ($_[0] eq 'ok') {
-	$exitcode = 0;
+	unless ($nxfailed) {
+		$exitcode = 0;
+	} else {
+		$exitcode = 1;
+	}
     } elsif ($_[0] ne '') {
 	$sig = $_[0];
     }
@@ -620,8 +627,13 @@ run_test
 
     if ($failed) {
 	if (!$test{'expected-fail'}) {
-	    print "FAIL $name\n";
-	    $nxfailed++;
+	    if ($test{'need-pass'}) {
+		print "FAIL $name\n";
+		$nxfailed++;
+	    } else {
+		print "FAIL $name (ignored)\n";
+		$nifailed++;
+	    }
 	} else {
 	    print "fail $name (as expected)\n";
 	    $nfailed++;
@@ -1078,6 +1090,16 @@ read_test
 	$test{'need-ctty'} = $1 eq 'yes';
     } else {
 	$test{'need-ctty'} = 0;
+    }
+    if (defined $test{'need-pass'}) {
+	if ($test{'need-pass'} !~ /^(yes|no)$/) {
+	    print STDERR
+	      "$prog:$test{':long-name'}: bad value for need-pass field\n";
+	    return undef;
+	}
+	$test{'need-pass'} = $1 eq 'yes';
+    } else {
+	$test{'need-pass'} = 1;
     }
     if (defined $test{'arguments'}) {
 	local($firstc) = substr($test{'arguments'}, 0, 1);

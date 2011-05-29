@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.64 2011/05/07 00:51:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.65 2011/05/29 02:18:57 tg Exp $");
 
 extern short subshell_nesting_level;
 
@@ -619,7 +619,17 @@ casepart(int endtok)
 	t->left = c_list(true);
 	/* Note: POSIX requires the ;; */
 	if ((tpeek(CONTIN|KEYWORD|ALIAS)) != endtok)
-		musthave(BREAK, CONTIN|KEYWORD|ALIAS);
+		switch (symbol) {
+		default:
+			syntaxerr(NULL);
+		case BREAK:
+		case BRKEV:
+		case BRKFT:
+			t->u.charflag =
+			    (symbol == BRKEV) ? '|' :
+			    (symbol == BRKFT) ? '&' : ';';
+			ACCEPT;
+		}
 	return (t);
 }
 
@@ -768,6 +778,8 @@ const struct tokeninfo {
 	{ "&&",		LOGAND,	false },
 	{ "||",		LOGOR,	false },
 	{ ";;",		BREAK,	false },
+	{ ";|",		BRKEV,	false },
+	{ ";&",		BRKFT,	false },
 	{ "((",		MDPAREN, false },
 	{ "|&",		COPROC,	false },
 	/* and some special cases... */
@@ -782,8 +794,8 @@ initkeywords(void)
 	struct tbl *p;
 
 	ktinit(&keywords, APERM,
-	    /* must be 80% of 2^n (currently 20 keywords) */
-	    32);
+	    /* must be 80% of 2^n (currently 28 keywords) */
+	    64);
 	for (tt = tokentab; tt->name; tt++) {
 		if (tt->reserved) {
 			p = ktenter(&keywords, tt->name, hash(tt->name));

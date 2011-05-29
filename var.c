@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.121 2011/05/07 02:02:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.122 2011/05/29 02:18:57 tg Exp $");
 
 /*
  * Variables
@@ -50,7 +50,6 @@ static void setspec(struct tbl *);
 static void unsetspec(struct tbl *);
 static int getint(struct tbl *, mksh_ari_t *, bool);
 static mksh_ari_t intval(struct tbl *);
-static struct tbl *arraysearch(struct tbl *, uint32_t);
 static const char *array_index_calc(const char *, bool *, uint32_t *);
 
 uint8_t set_refflag = 0;
@@ -348,6 +347,8 @@ str_val(struct tbl *vp)
 			n = (vp->val.i < 0) ? -vp->val.i : vp->val.i;
 		base = (vp->type == 0) ? 10 : vp->type;
 
+		if (base == 1 && n == 0)
+			base = 2;
 		if (base == 1) {
 			size_t sz = 1;
 
@@ -478,8 +479,6 @@ getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 		return (vp->type);
 	}
 	s = vp->val.s + vp->type;
-	if (s == NULL)	/* redundant given initial test */
-		s = null;
 	base = 10;
 	num = 0;
 	neg = 0;
@@ -553,10 +552,12 @@ setint_v(struct tbl *vq, struct tbl *vp, bool arith)
 		return (NULL);
 	if (!(vq->flag & INTEGER) && (vq->flag & ALLOC)) {
 		vq->flag &= ~ALLOC;
+		vq->type = 0;
 		afree(vq->val.s, vq->areap);
 	}
 	vq->val.i = num;
-	if (vq->type == 0) /* default base */
+	if (vq->type == 0)
+		/* default base */
 		vq->type = base;
 	vq->flag |= ISSET|INTEGER;
 	if (vq->flag&SPECIAL)
@@ -1240,7 +1241,7 @@ unsetspec(struct tbl *vp)
  * Search for (and possibly create) a table entry starting with
  * vp, indexed by val.
  */
-static struct tbl *
+struct tbl *
 arraysearch(struct tbl *vp, uint32_t val)
 {
 	struct tbl *prev, *curr, *news;

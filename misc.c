@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.165 2011/05/04 23:16:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.166 2011/05/29 02:18:53 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1641,14 +1641,17 @@ c_cd(const char **wp)
 	bool physical = tobool(Flag(FPHYSICAL));
 	/* was a node from cdpath added in? */
 	int cdnode;
-	/* print where we cd'd? */
-	bool printpath = false;
+	/* show where we went?, error for $PWD */
+	bool printpath = false, eflag = false;
 	struct tbl *pwd_s, *oldpwd_s;
 	XString xs;
 	char *dir, *allocd = NULL, *tryp, *pwd, *cdpath;
 
-	while ((optc = ksh_getopt(wp, &builtin_opt, "LP")) != -1)
+	while ((optc = ksh_getopt(wp, &builtin_opt, "eLP")) != -1)
 		switch (optc) {
+		case 'e':
+			eflag = true;
+			break;
 		case 'L':
 			physical = false;
 			break;
@@ -1656,13 +1659,13 @@ c_cd(const char **wp)
 			physical = true;
 			break;
 		case '?':
-			return (1);
+			return (2);
 		}
 	wp += builtin_opt.optind;
 
 	if (Flag(FRESTRICTED)) {
 		bi_errorf("restricted shell - can't cd");
-		return (1);
+		return (2);
 	}
 
 	pwd_s = global("PWD");
@@ -1672,7 +1675,7 @@ c_cd(const char **wp)
 		/* No arguments - go home */
 		if ((dir = str_val(global("HOME"))) == null) {
 			bi_errorf("no home directory (HOME not set)");
-			return (1);
+			return (2);
 		}
 	} else if (!wp[1]) {
 		/* One argument: - or dir */
@@ -1683,7 +1686,7 @@ c_cd(const char **wp)
 			dir = str_val(oldpwd_s);
 			if (dir == null) {
 				bi_errorf("no OLDPWD");
-				return (1);
+				return (2);
 			}
 			printpath = true;
 		}
@@ -1694,7 +1697,7 @@ c_cd(const char **wp)
 
 		if (!current_wd[0]) {
 			bi_errorf("can't determine current directory");
-			return (1);
+			return (2);
 		}
 		/*
 		 * substitute arg1 for arg2 in current path.
@@ -1704,7 +1707,7 @@ c_cd(const char **wp)
 		 */
 		if ((cp = strstr(current_wd, wp[0])) == NULL) {
 			bi_errorf("bad substitution");
-			return (1);
+			return (2);
 		}
 		/*-
 		 * ilen = part of current_wd before wp[0]
@@ -1723,7 +1726,7 @@ c_cd(const char **wp)
 		printpath = true;
 	} else {
 		bi_errorf("too many arguments");
-		return (1);
+		return (2);
 	}
 
 #ifdef NO_PATH_MAX
@@ -1750,8 +1753,11 @@ c_cd(const char **wp)
 		else
 			bi_errorf("%s: %s", tryp, strerror(errno));
 		afree(allocd, ATEMP);
-		return (1);
+		Xfree(xs, xp);
+		return (2);
 	}
+
+	rv = 0;
 
 	/* allocd (above) => dir, which is no longer used */
 	afree(allocd, ATEMP);
@@ -1770,8 +1776,14 @@ c_cd(const char **wp)
 
 	if (Xstring(xs, xp)[0] != '/') {
 		pwd = NULL;
-	} else if (!physical || !(pwd = allocd = do_realpath(Xstring(xs, xp))))
+	} else if (!physical) {
+		goto norealpath_PWD;
+	} else if ((pwd = allocd = do_realpath(Xstring(xs, xp))) == NULL) {
+		if (eflag)
+			rv = 1;
+ norealpath_PWD:
 		pwd = Xstring(xs, xp);
+	}
 
 	/* Set PWD */
 	if (pwd) {
@@ -1784,12 +1796,15 @@ c_cd(const char **wp)
 		set_current_wd(null);
 		pwd = Xstring(xs, xp);
 		/* XXX unset $PWD? */
+		if (eflag)
+			rv = 1;
 	}
 	if (printpath || cdnode)
 		shprintf("%s\n", pwd);
 
 	afree(allocd, ATEMP);
-	return (0);
+	Xfree(xs, xp);
+	return (rv);
 }
 
 
