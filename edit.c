@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.213 2011/06/04 15:06:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.214 2011/06/04 15:11:29 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -596,7 +596,8 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 		*wordsp = NULL;
 		return (0);
 	}
-	*flagsp |= XCF_IS_COMMAND;
+	if (is_command)
+		*flagsp |= XCF_IS_COMMAND;
 	*wordsp = words;
 	*endp = *startp + len;
 
