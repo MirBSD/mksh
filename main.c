@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.191 2011/05/29 16:31:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.192 2011/06/04 16:42:30 tg Exp $");
 
 extern char **environ;
 
@@ -1457,12 +1457,21 @@ texpand(struct table *tp, size_t nsize)
 	struct tbl *tblp, **pp;
 	struct tbl **ntblp, **otblp = tp->tbls;
 
+	i = 1;
+	i <<= 30;
+	if (nsize > i)
+		internal_errorf("hash table size limit reached");
+
 	ntblp = alloc2(nsize, sizeof(struct tbl *), tp->areap);
-	for (i = 0; i < nsize; i++)
-		ntblp[i] = NULL;
+	memset(ntblp, 0, nsize * sizeof(struct tbl *));
 	tp->size = nsize;
-	/* table can get 80% full */
-	tp->nfree = (nsize * 4) / 5;
+	if (nsize == i) {
+		/* cannot be grown any more, use a fixed value */
+		tp->nfree = i - 65536;
+	} else /* (nsize < 2^30) */ {
+		/* table can get 80% full */
+		tp->nfree = (nsize * 4) / 5;
+	}
 	tp->tbls = ntblp;
 	if (otblp == NULL)
 		return;
@@ -1547,7 +1556,7 @@ ktenter(struct table *tp, const char *n, uint32_t h)
 	if ((p = ktscan(tp, n, h, &pp)))
 		return (p);
 
-	if (tp->nfree <= 0) {
+	if (tp->nfree == 0) {
 		/* too full */
 		texpand(tp, 2 * tp->size);
 		goto Search;

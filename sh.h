@@ -151,9 +151,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.472 2011/06/04 16:11:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.473 2011/06/04 16:42:31 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2011/05/29"
+#define MKSH_VERSION "R40 2011/06/04"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -935,7 +935,8 @@ extern struct shf shf_iob[];
 struct table {
 	Area *areap;		/* area to allocate entries */
 	struct tbl **tbls;	/* hashed table items */
-	short size, nfree;	/* hash size (always 2^^n), free entries */
+	uint32_t size;		/* table size (always 2^n) */
+	uint32_t nfree;		/* free table entries */
 };
 
 struct tbl {			/* table item */
