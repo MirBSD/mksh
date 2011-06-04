@@ -1,5 +1,5 @@
 /*	$OpenBSD: edit.c,v 1.34 2010/05/20 01:13:07 fgsch Exp $	*/
-/*	$OpenBSD: edit.h,v 1.8 2005/03/28 21:28:22 deraadt Exp $	*/
+/*	$OpenBSD: edit.h,v 1.9 2011/05/30 17:14:35 martynas Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.43 2011/03/14 21:20:01 okan Exp $	*/
 /*	$OpenBSD: vi.c,v 1.26 2009/06/29 22:50:19 martynas Exp $	*/
 
@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.214 2011/06/04 15:11:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.215 2011/06/04 16:44:30 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -52,7 +52,7 @@ typedef struct {
 
 static X_chars edchars;
 
-/* x_fc_glob() flags */
+/* x_cf_glob() flags */
 #define XCF_COMMAND	BIT(0)	/* Do command completion */
 #define XCF_FILE	BIT(1)	/* Do file completion */
 #define XCF_FULLPATH	BIT(2)	/* command completion: store full path */
