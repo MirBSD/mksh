@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.459 2011/06/04 16:42:28 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.460 2011/06/04 17:08:11 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3091,6 +3091,7 @@ description:
 	the character count to stdout.
 category: stdout-ed
 need-ctty: yes
+need-pass: no
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -3114,6 +3115,7 @@ description:
 	Correct command is edited when number given
 category: stdout-ed
 need-ctty: yes
+need-pass: no
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -3146,6 +3148,7 @@ description:
 	(ksh88 fails 'cause it lists the fc command)
 category: stdout-ed
 need-ctty: yes
+need-pass: no
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -3178,6 +3181,7 @@ description:
 	that prints no prompts). This is for newish ed(1) and stderr.
 category: !no-stderr-ed
 need-ctty: yes
+need-pass: no
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -3199,6 +3203,7 @@ description:
 	Correct command is edited when number given
 category: !no-stderr-ed
 need-ctty: yes
+need-pass: no
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
@@ -3227,6 +3232,7 @@ description:
 	in history.
 category: !no-stderr-ed
 need-ctty: yes
+need-pass: no
 arguments: !-i!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
