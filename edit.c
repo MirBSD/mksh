@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.212 2011/05/29 02:18:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.213 2011/06/04 15:06:50 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -56,7 +56,7 @@ static X_chars edchars;
 #define XCF_COMMAND	BIT(0)	/* Do command completion */
 #define XCF_FILE	BIT(1)	/* Do file completion */
 #define XCF_FULLPATH	BIT(2)	/* command completion: store full path */
-#define XCF_COMMAND_FILE (XCF_COMMAND|XCF_FILE)
+#define XCF_COMMAND_FILE (XCF_COMMAND | XCF_FILE)
 #define XCF_IS_COMMAND	BIT(3)	/* return flag: is command */
 #define XCF_IS_VARSUB	BIT(4)	/* return flag: is $FOO substitution */
 #define XCF_IS_EXTGLOB	BIT(5)	/* return flag: is foo* expansion */
@@ -521,7 +521,7 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 	bool is_command;
 
 	len = x_locate_word(buf, buflen, pos, startp, &is_command);
-	if (!(*flagsp & XCF_COMMAND))
+	if (!((*flagsp) & XCF_COMMAND))
 		is_command = false;
 	/*
 	 * Don't do command globing on zero length strings - it takes too
@@ -2684,7 +2684,8 @@ do_complete(
 		return;
 	}
 	if (type == CT_LIST) {
-		x_print_expansions(nwords, words, flags & XCF_IS_COMMAND);
+		x_print_expansions(nwords, words,
+		    tobool(flags & XCF_IS_COMMAND));
 		x_redraw(0);
 		x_free_words(nwords, words);
 		return;
@@ -2706,7 +2707,8 @@ do_complete(
 		completed = true;
 	}
 	if (type == CT_COMPLIST && !completed) {
-		x_print_expansions(nwords, words, flags & XCF_IS_COMMAND);
+		x_print_expansions(nwords, words,
+		    tobool(flags & XCF_IS_COMMAND));
 		completed = true;
 	}
 	if (completed)
@@ -5201,7 +5203,7 @@ complete_word(int cmd, int count)
 		if (count >= nwords) {
 			vi_error();
 			x_print_expansions(nwords, words,
-			    flags & XCF_IS_COMMAND);
+			    tobool(flags & XCF_IS_COMMAND));
 			x_free_words(nwords, words);
 			redraw_line(0);
 			return (-1);
@@ -5283,7 +5285,7 @@ print_expansions(struct edstate *est, int cmd MKSH_A_UNUSED)
 		vi_error();
 		return (-1);
 	}
-	x_print_expansions(nwords, words, i & XCF_IS_COMMAND);
+	x_print_expansions(nwords, words, tobool(i & XCF_IS_COMMAND));
 	x_free_words(nwords, words);
 	redraw_line(0);
 	return (0);
