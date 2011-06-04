@@ -151,7 +151,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.471 2011/05/29 16:31:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.472 2011/06/04 16:11:19 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2011/05/29"
 
@@ -1413,9 +1413,8 @@ typedef union {
 #define HEREDELIM	BIT(9)	/* parsing <<,<<- delimiter */
 #define LQCHAR		BIT(10)	/* source string contains QCHAR */
 #define HEREDOC		BIT(11)	/* parsing a here document */
-#define LETARRAY	BIT(12)	/* copy expression inside =( ) */
 
-#define HERES	10		/* max << in line */
+#define HERES		10	/* max number of << in line */
 
 #undef CTRL
 #define	CTRL(x)		((x) == '?' ? 0x7F : (x) & 0x1F)	/* ASCII */

@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.65 2011/05/29 02:18:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.66 2011/06/04 16:11:20 tg Exp $");
 
 extern short subshell_nesting_level;
 
@@ -292,6 +292,11 @@ get_command(int cf)
 				break;
 
 			case '(':
+#ifndef MKSH_SMALL
+				if ((XPsize(args) == 0 || Flag(FKEYWORD)) &&
+				    XPsize(vars) == 1 && is_wdvarassign(yylval.cp))
+					goto is_wdarrassign;
+#endif
 				/*
 				 * Check for "> foo (echo hi)" which AT&T ksh
 				 * allows (not POSIX, but not disallowed)
@@ -301,11 +306,7 @@ get_command(int cf)
 					ACCEPT;
 					goto Subshell;
 				}
-#ifndef MKSH_SMALL
-				if ((XPsize(args) == 0 || Flag(FKEYWORD)) &&
-				    XPsize(vars) == 1 && is_wdvarassign(yylval.cp))
-					goto is_wdarrassign;
-#endif
+
 				/* must be a function */
 				if (iopn != 0 || XPsize(args) != 1 ||
 				    XPsize(vars) != 0)
@@ -318,37 +319,37 @@ get_command(int cf)
  is_wdarrassign:
 			{
 				static const char set_cmd0[] = {
-					CHAR, 'e', CHAR, 'v',
-					CHAR, 'a', CHAR, 'l', EOS
+					CHAR, 's', CHAR, 'e',
+					CHAR, 't', EOS
 				};
 				static const char set_cmd1[] = {
-					CHAR, 's', CHAR, 'e',
-					CHAR, 't', CHAR, ' ',
 					CHAR, '-', CHAR, 'A', EOS
 				};
 				static const char set_cmd2[] = {
 					CHAR, '-', CHAR, '-', EOS
 				};
 				char *tcp;
-				XPfree(vars);
-				XPinit(vars, 16);
-				/*
-				 * we know (or rather hope) that yylval.cp
-				 * contains a string "varname="
-				 */
-				tcp = wdcopy(yylval.cp, ATEMP);
-				tcp[wdscan(tcp, EOS) - tcp - 3] = EOS;
-				/* now make an array assignment command */
-				t = newtp(TCOM);
-				t->lineno = source->line;
+
 				ACCEPT;
+
+				/* manipulate the vars string */
+				tcp = *(--vars.cur);
+				/* 'varname=' -> 'varname' */
+				tcp[wdscan(tcp, EOS) - tcp - 3] = EOS;
+
+				/* construct new args strings */
 				XPput(args, wdcopy(set_cmd0, ATEMP));
 				XPput(args, wdcopy(set_cmd1, ATEMP));
 				XPput(args, tcp);
 				XPput(args, wdcopy(set_cmd2, ATEMP));
-				musthave(LWORD,LETARRAY);
-				XPput(args, yylval.cp);
-				break;
+
+				/* slurp in words till closing paren */
+				while (token(CONTIN) == LWORD)
+					XPput(args, yylval.cp);
+				if (symbol != /*(*/ ')')
+					syntaxerr(NULL);
+
+				goto Leave;
 			}
 #endif
 

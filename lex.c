@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.152 2011/05/29 06:19:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.153 2011/06/04 16:11:18 tg Exp $");
 
 /*
  * states while lexing word
@@ -41,9 +41,8 @@ __RCSID("$MirOS: src/bin/mksh/lex.c,v 1.152 2011/05/29 06:19:27 tg Exp $");
 #define SHEREDQUOTE	11	/* parsing " in <<,<<- delimiter */
 #define SPATTERN	12	/* parsing *(...|...) pattern (*+?@!) */
 #define STBRACE		13	/* parsing ${...[#%]...} */
-#define SLETARRAY	14	/* inside =( ), just copy */
-#define SADELIM		15	/* like SBASE, looking for delimiter */
-#define SHERESTRING	16	/* parsing <<< string */
+#define SADELIM		14	/* like SBASE, looking for delimiter */
+#define SHERESTRING	15	/* parsing <<< string */
 #define SINVALID	255	/* invalid state */
 
 struct sretrace_info {
@@ -220,12 +219,6 @@ yylex(int cf)
 		*wp++ = OQUOTE;
 		state = SLETPAREN;
 		statep->nparen = 0;
-#ifndef MKSH_SMALL
-	} else if (cf & LETARRAY) {
-		state = SLETARRAY;
-		statep->nparen = 0;
-		PUSH_SRETRACE();
-#endif
 	} else {
 		/* normal lexing */
 		state = (cf & HEREDELIM) ? SHEREDELIM : SBASE;
@@ -245,7 +238,7 @@ yylex(int cf)
 		cf |= ALIAS;
 	}
 
-	/* Initial state: one of SWORD SLETPAREN SLETARRAY SHEREDELIM SBASE */
+	/* Initial state: one of SWORD SLETPAREN SHEREDELIM SBASE */
 	statep->type = state;
 
 	/* check for here string */
@@ -779,30 +772,6 @@ yylex(int cf)
 				++statep->nparen;
 			goto Sbase2;
 
-#ifndef MKSH_SMALL
-		/* LETARRAY: =( ... ) */
-		case SLETARRAY:
-			if (c == '('/*)*/)
-				++statep->nparen;
-			else if (c == /*(*/')') {
-				if (statep->nparen-- == 0) {
-					POP_SRETRACE();
-					/* drop trailing paren */
-					c = strlen(dp = sp) - 1;
-					XcheckN(ws, wp, c * 2);
-					while (c--) {
-						*wp++ = CHAR;
-						*wp++ = *dp++;
-					}
-					afree(sp, ATEMP);
-					/* assert: c == 0 */
-					goto Done;
-				}
-			}
-			/* reuse existing state machine */
-			goto Sbase2;
-#endif
-
 		/* <<< delimiter */
 		case SHERESTRING:
 			if (c == '\\') {
@@ -934,11 +903,6 @@ yylex(int cf)
 		/* XXX figure out what is missing */
 		yyerror("no closing quote\n");
 
-#ifndef MKSH_SMALL
-	if (state == SLETARRAY && statep->nparen != -1)
-		yyerror("%s: %s\n", T_synerr, "missing )");
-#endif
-
 	/* This done to avoid tests for SHEREDELIM wherever SBASE tested */
 	if (state == SHEREDELIM || state == SHERESTRING)
 		state = SBASE;
@@ -1046,11 +1010,7 @@ yylex(int cf)
 	*wp++ = EOS;
 	yylval.cp = Xclose(ws, wp);
 	if (state == SWORD || state == SLETPAREN
-	    /* XXX ONEWORD? */
-#ifndef MKSH_SMALL
-	    || state == SLETARRAY
-#endif
-	    )
+	    /* XXX ONEWORD? */)
 		return (LWORD);
 
 	/* unget terminator */
