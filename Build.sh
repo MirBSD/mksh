@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.480 2011/06/05 18:23:43 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.481 2011/06/05 19:55:22 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -439,11 +439,18 @@ FreeMiNT)
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 GNU)
+	case $CC in
+	*tendracc*) ;;
+	*) CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE" ;;
+	esac
 	# define NO_PATH_MAX to use Hurd-only functions
-	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE -DNO_PATH_MAX"
+	CPPFLAGS="$CPPFLAGS -DNO_PATH_MAX"
 	;;
 GNU/kFreeBSD)
-	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
+	case $CC in
+	*tendracc*) ;;
+	*) CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE" ;;
+	esac
 	;;
 Haiku)
 	CPPFLAGS="$CPPFLAGS -DMKSH_ASSUME_UTF8"
@@ -461,7 +468,11 @@ IRIX*)
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 Linux)
-	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE -DSETUID_CAN_FAIL_WITH_EAGAIN"
+	case $CC in
+	*tendracc*) ;;
+	*) CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE" ;;
+	esac
+	CPPFLAGS="$CPPFLAGS -DSETUID_CAN_FAIL_WITH_EAGAIN"
 	: ${HAVE_REVOKE=0}
 	;;
 MidnightBSD)
@@ -1052,8 +1063,8 @@ test $ct = pcc && phase=u
 # Compiler: check for stuff that only generates warnings
 #
 ac_test attribute_bounded '' 'for __attribute__((__bounded__))' <<-'EOF'
-	#if defined(__GNUC__) && (__GNUC__ < 2)
-	/* force a failure: gcc 1.42 has a false positive here */
+	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
+	/* force a failure: TenDRA and gcc 1.42 have false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
 	#include <string.h>
@@ -1068,8 +1079,8 @@ ac_test attribute_bounded '' 'for __attribute__((__bounded__))' <<-'EOF'
 	#endif
 EOF
 ac_test attribute_format '' 'for __attribute__((__format__))' <<-'EOF'
-	#if defined(__GNUC__) && (__GNUC__ < 2)
-	/* force a failure: gcc 1.42 has a false positive here */
+	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
+	/* force a failure: TenDRA and gcc 1.42 have false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
 	#define fprintf printfoo
@@ -1082,8 +1093,8 @@ ac_test attribute_format '' 'for __attribute__((__format__))' <<-'EOF'
 	#endif
 EOF
 ac_test attribute_nonnull '' 'for __attribute__((__nonnull__))' <<-'EOF'
-	#if defined(__GNUC__) && (__GNUC__ < 2)
-	/* force a failure: gcc 1.42 has a false positive here */
+	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
+	/* force a failure: TenDRA and gcc 1.42 have false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
 	int foo(char *s1, char *s2) __attribute__((__nonnull__));
@@ -1096,8 +1107,8 @@ ac_test attribute_nonnull '' 'for __attribute__((__nonnull__))' <<-'EOF'
 	#endif
 EOF
 ac_test attribute_noreturn '' 'for __attribute__((__noreturn__))' <<-'EOF'
-	#if defined(__GNUC__) && (__GNUC__ < 2)
-	/* force a failure: gcc 1.42 has a false positive here */
+	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
+	/* force a failure: TenDRA and gcc 1.42 have false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
 	#include <stdlib.h>
@@ -1108,8 +1119,8 @@ ac_test attribute_noreturn '' 'for __attribute__((__noreturn__))' <<-'EOF'
 	#endif
 EOF
 ac_test attribute_unused '' 'for __attribute__((__unused__))' <<-'EOF'
-	#if defined(__GNUC__) && (__GNUC__ < 2)
-	/* force a failure: gcc 1.42 has a false positive here */
+	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
+	/* force a failure: TenDRA and gcc 1.42 have false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
 	int main(int ac __attribute__((__unused__)), char **av
@@ -1117,8 +1128,8 @@ ac_test attribute_unused '' 'for __attribute__((__unused__))' <<-'EOF'
 	#endif
 EOF
 ac_test attribute_used '' 'for __attribute__((__used__))' <<-'EOF'
-	#if defined(__GNUC__) && (__GNUC__ < 2)
-	/* force a failure: gcc 1.42 has a false positive here */
+	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
+	/* force a failure: TenDRA and gcc 1.42 have false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
 	static const char fnord[] __attribute__((__used__)) = "42";
