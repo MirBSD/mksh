@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.192 2011/06/04 16:42:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.193 2011/06/05 19:58:18 tg Exp $");
 
 extern char **environ;
 
@@ -206,8 +206,9 @@ main(int argc, const char *argv[])
 		ccp = empty_argv[0];
 
 	/* define built-in commands and see if we were called as one */
-	ktinit(&builtins, APERM,
-	    /* must be 80% of 2^n (currently 44 builtins) */ 64);
+	ktinit(APERM, &builtins,
+	    /* currently 50 builtins -> 80% of 64 (2^6) */
+	    6);
 	for (i = 0; mkshbuiltins[i].name != NULL; i++)
 		if (!strcmp(ccp, builtin(mkshbuiltins[i].name,
 		    mkshbuiltins[i].func)))
@@ -235,10 +236,10 @@ main(int argc, const char *argv[])
 	coproc_init();
 
 	/* set up variable and command dictionaries */
-	ktinit(&taliases, APERM, 0);
-	ktinit(&aliases, APERM, 0);
+	ktinit(APERM, &taliases, 0);
+	ktinit(APERM, &aliases, 0);
 #ifndef MKSH_NOPWNAM
-	ktinit(&homedirs, APERM, 0);
+	ktinit(APERM, &homedirs, 0);
 #endif
 
 	/* define shell keywords */
@@ -1442,53 +1443,48 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
  * but with a slightly tweaked implementation written from scratch.
  */
 
-#define	INIT_TBLS	8	/* initial table size (power of 2) */
+#define	INIT_TBLSHIFT	3	/* initial table shift (2^3 = 8) */
 #define PERTURB_SHIFT	5	/* see Python 2.5.4 Objects/dictobject.c */
 
-static void texpand(struct table *, size_t);
+static void tgrow(struct table *);
 static int tnamecmp(const void *, const void *);
-static struct tbl *ktscan(struct table *, const char *, uint32_t,
-    struct tbl ***);
 
 static void
-texpand(struct table *tp, size_t nsize)
+tgrow(struct table *tp)
 {
-	size_t i, j, osize = tp->size, perturb;
+	size_t i, j, osize, mask, perturb;
 	struct tbl *tblp, **pp;
 	struct tbl **ntblp, **otblp = tp->tbls;
 
-	i = 1;
-	i <<= 30;
-	if (nsize > i)
+	if (tp->tshift > 29)
 		internal_errorf("hash table size limit reached");
 
-	ntblp = alloc2(nsize, sizeof(struct tbl *), tp->areap);
-	memset(ntblp, 0, nsize * sizeof(struct tbl *));
-	tp->size = nsize;
-	if (nsize == i) {
-		/* cannot be grown any more, use a fixed value */
-		tp->nfree = i - 65536;
-	} else /* (nsize < 2^30) */ {
-		/* table can get 80% full */
-		tp->nfree = (nsize * 4) / 5;
-	}
+	/* calculate old size, new shift and new size */
+	osize = 1 << (tp->tshift++);
+	i = osize << 1;
+
+	ntblp = alloc2(i, sizeof(struct tbl *), tp->areap);
+	/* multiplication cannot overflow: alloc2 checked that */
+	memset(ntblp, 0, i * sizeof(struct tbl *));
+
+	/* table can get 80% full except when reaching its limit */
+	tp->nfree = (tp->tshift == 30) ? 0x3FFF0000UL : ((i * 4) / 5);
 	tp->tbls = ntblp;
 	if (otblp == NULL)
 		return;
 
-	/* from here on nsize := mask */
-	nsize--;
+	mask = i - 1;
 	for (i = 0; i < osize; i++)
 		if ((tblp = otblp[i]) != NULL) {
 			if ((tblp->flag & DEFINED)) {
 				/* search for free hash table slot */
-				j = (perturb = tblp->ua.hval) & nsize;
+				j = (perturb = tblp->ua.hval) & mask;
 				goto find_first_empty_slot;
  find_next_empty_slot:
 				j = (j << 2) + j + perturb + 1;
 				perturb >>= PERTURB_SHIFT;
  find_first_empty_slot:
-				pp = &ntblp[j & nsize];
+				pp = &ntblp[j & mask];
 				if (*pp != NULL)
 					goto find_next_empty_slot;
 				/* found an empty hash table slot */
@@ -1502,23 +1498,23 @@ texpand(struct table *tp, size_t nsize)
 }
 
 void
-ktinit(struct table *tp, Area *ap, size_t tsize)
+ktinit(Area *ap, struct table *tp, uint8_t initshift)
 {
 	tp->areap = ap;
 	tp->tbls = NULL;
-	tp->size = tp->nfree = 0;
-	if (tsize)
-		texpand(tp, tsize);
+	tp->tshift = ((initshift > INIT_TBLSHIFT) ?
+	    initshift : INIT_TBLSHIFT) - 1;
+	tgrow(tp);
 }
 
 /* table, name (key) to search for, hash(name), rv pointer to tbl ptr */
-static struct tbl *
+struct tbl *
 ktscan(struct table *tp, const char *name, uint32_t h, struct tbl ***ppp)
 {
 	size_t j, perturb, mask;
 	struct tbl **pp, *p;
 
-	mask = tp->size - 1;
+	mask = (1 << (tp->tshift)) - 1;
 	/* search for hash table slot matching name */
 	j = (perturb = h) & mask;
 	goto find_first_slot;
@@ -1536,13 +1532,6 @@ ktscan(struct table *tp, const char *name, uint32_t h, struct tbl ***ppp)
 	return (p);
 }
 
-/* table, name (key) to search for, hash(n) */
-struct tbl *
-ktsearch(struct table *tp, const char *n, uint32_t h)
-{
-	return (tp->size ? ktscan(tp, n, h, NULL) : NULL);
-}
-
 /* table, name (key) to enter, hash(n) */
 struct tbl *
 ktenter(struct table *tp, const char *n, uint32_t h)
@@ -1550,15 +1539,13 @@ ktenter(struct table *tp, const char *n, uint32_t h)
 	struct tbl **pp, *p;
 	size_t len;
 
-	if (tp->size == 0)
-		texpand(tp, INIT_TBLS);
  Search:
 	if ((p = ktscan(tp, n, h, &pp)))
 		return (p);
 
 	if (tp->nfree == 0) {
 		/* too full */
-		texpand(tp, 2 * tp->size);
+		tgrow(tp);
 		goto Search;
 	}
 
@@ -1583,7 +1570,7 @@ ktenter(struct table *tp, const char *n, uint32_t h)
 void
 ktwalk(struct tstate *ts, struct table *tp)
 {
-	ts->left = tp->size;
+	ts->left = 1 << (tp->tshift);
 	ts->next = tp->tbls;
 }
 
@@ -1613,16 +1600,19 @@ ktsort(struct table *tp)
 	size_t i;
 	struct tbl **p, **sp, **dp;
 
-	/* tp->size + 1 will not overflow */
-	p = alloc2(tp->size + 1, sizeof(struct tbl *), ATEMP);
+	/*
+	 * since the table is never entirely full, no need to reserve
+	 * additional space for the trailing NULL appended below
+	 */
+	i = 1 << (tp->tshift);
+	p = alloc2(i, sizeof(struct tbl *), ATEMP);
 	sp = tp->tbls;		/* source */
 	dp = p;			/* dest */
-	i = (size_t)tp->size;
 	while (i--)
 		if ((*dp = *sp++) != NULL && (((*dp)->flag & DEFINED) ||
 		    ((*dp)->flag & ARRAY)))
 			dp++;
-	qsort(p, (i = dp - p), sizeof(void *), tnamecmp);
+	qsort(p, (i = dp - p), sizeof(struct tbl *), tnamecmp);
 	p[i] = NULL;
 	return (p);
 }

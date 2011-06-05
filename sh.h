@@ -151,9 +151,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.473 2011/06/04 16:42:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.474 2011/06/05 19:58:19 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2011/06/04"
+#define MKSH_VERSION "R40 2011/06/05"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -935,8 +935,8 @@ extern struct shf shf_iob[];
 struct table {
 	Area *areap;		/* area to allocate entries */
 	struct tbl **tbls;	/* hashed table items */
-	uint32_t size;		/* table size (always 2^n) */
 	uint32_t nfree;		/* free table entries */
+	uint8_t tshift;		/* table size (2^tshift) */
 };
 
 struct tbl {			/* table item */
@@ -1682,8 +1682,10 @@ void coproc_write_close(int);
 int coproc_getfd(int, const char **);
 void coproc_cleanup(int);
 struct temp *maketemp(Area *, Temp_type, struct temp **);
-void ktinit(struct table *, Area *, size_t);
-struct tbl *ktsearch(struct table *, const char *, uint32_t);
+void ktinit(Area *, struct table *, uint8_t);
+struct tbl *ktscan(struct table *, const char *, uint32_t, struct tbl ***);
+/* table, name (key) to search for, hash(n) */
+#define ktsearch(tp, s, h) ktscan((tp), (s), (h), NULL)
 struct tbl *ktenter(struct table *, const char *, uint32_t);
 #define ktdelete(p)	do { p->flag = 0; } while (/* CONSTCOND */ 0)
 void ktwalk(struct tstate *, struct table *);
@@ -1783,8 +1785,8 @@ struct tbl *typeset(const char *, Tflag, Tflag, int, int)
     MKSH_A_NONNULL((__nonnull__ (1)));
 void unset(struct tbl *, int);
 const char *skip_varname(const char *, int);
-const char *skip_wdvarname(const char *, int);
-int is_wdvarname(const char *, int);
+const char *skip_wdvarname(const char *, bool);
+int is_wdvarname(const char *, bool);
 int is_wdvarassign(const char *);
 struct tbl *arraysearch(struct tbl *, uint32_t);
 char **makenv(void);

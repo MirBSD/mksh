@@ -26,9 +26,9 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.122 2011/05/29 02:18:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.123 2011/06/05 19:58:20 tg Exp $");
 
-/*
+/*-
  * Variables
  *
  * WARNING: unreadable code, needs a rewrite
@@ -37,6 +37,7 @@ __RCSID("$MirOS: src/bin/mksh/var.c,v 1.122 2011/05/29 02:18:57 tg Exp $");
  * otherwise, (val.s + type) contains string value.
  * if (flag&EXPORT), val.s contains "name=value" for E-Z exporting.
  */
+
 static struct tbl vtemp;
 static struct table specials;
 static uint32_t lcg_state = 5381;
@@ -66,7 +67,8 @@ newblock(void)
 
 	l = alloc(sizeof(struct block), ATEMP);
 	l->flags = 0;
-	ainit(&l->area); /* todo: could use e->area (l->area => l->areap) */
+	/* TODO: could use e->area (l->area => l->areap) */
+	ainit(&l->area);
 	if (!e->loc) {
 		l->argc = 0;
 		l->argv = empty;
@@ -75,8 +77,8 @@ newblock(void)
 		l->argv = e->loc->argv;
 	}
 	l->exit = l->error = NULL;
-	ktinit(&l->vars, &l->area, 0);
-	ktinit(&l->funs, &l->area, 0);
+	ktinit(&l->area, &l->vars, 0);
+	ktinit(&l->area, &l->funs, 0);
 	l->next = e->loc;
 	e->loc = l;
 }
@@ -87,12 +89,15 @@ newblock(void)
 void
 popblock(void)
 {
+	ssize_t i;
 	struct block *l = e->loc;
 	struct tbl *vp, **vpp = l->vars.tbls, *vq;
-	int i;
 
-	e->loc = l->next;	/* pop block */
-	for (i = l->vars.size; --i >= 0; )
+	/* pop block */
+	e->loc = l->next;
+
+	i = 1 << (l->vars.tshift);
+	while (--i >= 0)
 		if ((vp = *vpp++) != NULL && (vp->flag&SPECIAL)) {
 			if ((vq = global(vp->name))->flag & ISSET)
 				setspec(vq);
@@ -115,6 +120,7 @@ enum var_specs {
 	V_MAX
 };
 
+/* this is biased with -1 relative to VARSPEC_ENUMS */
 static const char * const initvar_names[] = {
 #define VARSPEC_ITEMS
 #include "var_spec.h"
@@ -126,8 +132,9 @@ initvar(void)
 	int i = 0;
 	struct tbl *tp;
 
-	ktinit(&specials, APERM,
-	    /* must be 80% of 2^n (currently 12 specials) */ 16);
+	ktinit(APERM, &specials,
+	    /* currently 12 specials -> 80% of 16 (2^4) */
+	    4);
 	while (i < V_MAX - 1) {
 		tp = ktenter(&specials, initvar_names[i],
 		    hash(initvar_names[i]));
@@ -136,8 +143,9 @@ initvar(void)
 	}
 }
 
-/* Used to calculate an array index for global()/local(). Sets *arrayp to
- * true if this is an array, sets *valp to the array index, returns
+/*
+ * Used to calculate an array index for global()/local(). Sets *arrayp
+ * to true if this is an array, sets *valp to the array index, returns
  * the basename of the array.
  */
 static const char *
@@ -179,7 +187,7 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 		char *sub, *tmp;
 		mksh_ari_t rval;
 
-		/* Calculate the value of the subscript */
+		/* calculate the value of the subscript */
 		*arrayp = true;
 		strndupx(tmp, p + 1, len - 2, ATEMP);
 		sub = substitute(tmp, 0);
@@ -234,7 +242,7 @@ global(const char *n)
 			vp->val.i = kshpid;
 			break;
 		case '!':
-			/* If no job, expand to nothing */
+			/* if no job, expand to nothing */
 			if ((vp->val.i = j_async()) == 0)
 				vp->flag &= ~(ISSET|INTEGER);
 			break;
@@ -284,7 +292,7 @@ local(const char *n, bool copy)
 	bool array;
 	uint32_t h, val;
 
-	/* Check to see if this is an array */
+	/* check to see if this is an array */
 	n = array_index_calc(n, &array, &val);
 	h = hash(n);
 	if (!ksh_isalphx(*n)) {
@@ -327,18 +335,23 @@ str_val(struct tbl *vp)
 	if ((vp->flag&SPECIAL))
 		getspec(vp);
 	if (!(vp->flag&ISSET))
-		s = null;		/* special to dollar() */
-	else if (!(vp->flag&INTEGER))	/* string source */
+		/* special to dollar() */
+		s = null;
+	else if (!(vp->flag&INTEGER))
+		/* string source */
 		s = vp->val.s + vp->type;
-	else {				/* integer source */
-		/* worst case number length is when base=2 */
-		/* 1 (minus) + 2 (base, up to 36) + 1 ('#') + number of bits
-		 * in the mksh_uari_t + 1 (NUL) */
+	else {
+		/* integer source */
+		mksh_uari_t n;
+		int base;
+		/**
+		 * worst case number length is when base == 2:
+		 *	1 (minus) + 2 (base, up to 36) + 1 ('#') +
+		 *	number of bits in the mksh_uari_t + 1 (NUL)
+		 */
 		char strbuf[1 + 2 + 1 + 8 * sizeof(mksh_uari_t) + 1];
 		const char *digits = (vp->flag & UCASEV_AL) ?
 		    digits_uc : digits_lc;
-		mksh_uari_t n;
-		int base;
 
 		s = strbuf + sizeof(strbuf);
 		if (vp->flag & INT_U)
@@ -375,7 +388,8 @@ str_val(struct tbl *vp)
 			if (!(vp->flag & INT_U) && vp->val.i < 0)
 				*--s = '-';
 		}
-		if (vp->flag & (RJUST|LJUST)) /* case already dealt with */
+		if (vp->flag & (RJUST|LJUST))
+			/* case already dealt with */
 			s = formatstr(vp, s);
 		else
 			strdupx(s, s, ATEMP);
@@ -411,7 +425,8 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 			errorfxz(2);
 		return (0);
 	}
-	if (!(vq->flag&INTEGER)) { /* string dest */
+	if (!(vq->flag&INTEGER)) {
+		/* string dest */
 		if ((vq->flag&ALLOC)) {
 			/* debugging */
 			if (s >= vq->val.s &&
@@ -431,7 +446,8 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 			strdupx(vq->val.s, s, vq->areap);
 			vq->flag |= ALLOC;
 		}
-	} else {		/* integer dest */
+	} else {
+		/* integer dest */
 		if (!v_evaluate(vq, s, error_ok, true))
 			return (0);
 	}
@@ -539,7 +555,8 @@ getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 	return (base);
 }
 
-/* convert variable vq to integer variable, setting its value from vp
+/*
+ * convert variable vq to integer variable, setting its value from vp
  * (vq and vp may be the same)
  */
 struct tbl *
@@ -575,7 +592,8 @@ formatstr(struct tbl *vp, const char *s)
 	olen = utf_mbswidth(s);
 
 	if (vp->flag & (RJUST|LJUST)) {
-		if (!vp->u2.field)	/* default field width */
+		if (!vp->u2.field)
+			/* default field width */
 			vp->u2.field = olen;
 		nlen = vp->u2.field;
 	} else
@@ -660,16 +678,17 @@ exportprep(struct tbl *vp, const char *val)
 	memcpy(vp->val.s = xp, vp->name, namelen);
 	xp += namelen;
 	*xp++ = '=';
-	vp->type = xp - vp->val.s; /* offset to value */
+	/* offset to value */
+	vp->type = xp - vp->val.s;
 	memcpy(xp, val, vallen);
 	if (op != NULL)
 		afree(op, vp->areap);
 }
 
 /*
- * lookup variable (according to (set&LOCAL)),
- * set its attributes (INTEGER, RDONLY, EXPORT, TRACE, LJUST, RJUST, ZEROFIL,
- * LCASEV, UCASEV_AL), and optionally set its value if an assignment.
+ * lookup variable (according to (set&LOCAL)), set its attributes
+ * (INTEGER, RDONLY, EXPORT, TRACE, LJUST, RJUST, ZEROFIL, LCASEV,
+ * UCASEV_AL), and optionally set its value if an assignment.
  */
 struct tbl *
 typeset(const char *var, Tflag set, Tflag clr, int field, int base)
@@ -694,11 +713,12 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 		len = array_ref_len(val);
 		if (len == 0)
 			return (NULL);
-		/* IMPORT is only used when the shell starts up and is
+		/*
+		 * IMPORT is only used when the shell starts up and is
 		 * setting up its environment. Allow only simple array
-		 * references at this time since parameter/command substitution
-		 * is preformed on the [expression] which would be a major
-		 * security hole.
+		 * references at this time since parameter/command
+		 * substitution is preformed on the [expression] which
+		 * would be a major security hole.
 		 */
 		if (set & IMPORT) {
 			int i;
@@ -715,7 +735,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 			vappend = true;
 		}
 	} else {
-		/* Importing from original environment: must have an = */
+		/* importing from original environment: must have an = */
 		if (set & IMPORT)
 			return (NULL);
 		strdupx(tvar, var, ATEMP);
@@ -727,7 +747,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 			tvar[len-3] = '\0';
 	}
 
-	/* Prevent typeset from creating a local PATH/ENV/SHELL */
+	/* prevent typeset from creating a local PATH/ENV/SHELL */
 	if (Flag(FRESTRICTED) && (strcmp(tvar, "PATH") == 0 ||
 	    strcmp(tvar, "ENV") == 0 || strcmp(tvar, "SHELL") == 0))
 		errorf("%s: %s", tvar, "restricted");
@@ -740,7 +760,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 		if (vp->flag & ARRAY) {
 			struct tbl *a, *tmp;
 
-			/* Free up entire array */
+			/* free up entire array */
 			for (a = vp->u.array; a; ) {
 				tmp = a;
 				a = a->u.array;
@@ -773,8 +793,9 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	if (set | clr) {
 		bool ok = true;
 
-		/* XXX if x[0] isn't set, there will be problems: need to have
-		 * one copy of attributes for arrays...
+		/*
+		 * XXX if x[0] isn't set, there will be problems: need
+		 * to have one copy of attributes for arrays...
 		 */
 		for (t = vpbase; t; t = t->u.array) {
 			bool fake_assign;
@@ -847,7 +868,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 		if (vp->flag&INTEGER) {
 			/* do not zero base before assignment */
 			setstr(vp, val, KSH_UNWIND_ERROR | 0x4);
-			/* Done after assignment to override default */
+			/* done after assignment to override default */
 			if (base > 0)
 				vp->type = base;
 		} else
@@ -879,7 +900,7 @@ unset(struct tbl *vp, int flags)
 	if ((vp->flag & ARRAY) && (flags & 1)) {
 		struct tbl *a, *tmp;
 
-		/* Free up entire array */
+		/* free up entire array */
 		for (a = vp->u.array; a; ) {
 			tmp = a;
 			a = a->u.array;
@@ -893,15 +914,17 @@ unset(struct tbl *vp, int flags)
 		vp->flag &= ~(ALLOC|ISSET);
 		return;
 	}
-	/* If foo[0] is being unset, the remainder of the array is kept... */
+	/* if foo[0] is being unset, the remainder of the array is kept... */
 	vp->flag &= SPECIAL | ((flags & 1) ? 0 : ARRAY|DEFINED);
 	if (vp->flag & SPECIAL)
-		unsetspec(vp);	/* responsible for 'unspecial'ing var */
+		/* responsible for 'unspecial'ing var */
+		unsetspec(vp);
 }
 
-/* return a pointer to the first char past a legal variable name (returns the
- * argument if there is no legal name, returns a pointer to the terminating
- * NUL if whole string is legal).
+/*
+ * Return a pointer to the first char past a legal variable name
+ * (returns the argument if there is no legal name, returns a pointer to
+ * the terminating NUL if whole string is legal).
  */
 const char *
 skip_varname(const char *s, int aok)
@@ -920,7 +943,8 @@ skip_varname(const char *s, int aok)
 /* Return a pointer to the first character past any legal variable name */
 const char *
 skip_wdvarname(const char *s,
-    int aok)				/* skip array de-reference? */
+    /* skip array de-reference? */
+    bool aok)
 {
 	if (s[0] == CHAR && ksh_isalphx(s[1])) {
 		do {
@@ -951,7 +975,7 @@ skip_wdvarname(const char *s,
 
 /* Check if coded string s is a variable name */
 int
-is_wdvarname(const char *s, int aok)
+is_wdvarname(const char *s, bool aok)
 {
 	const char *p = skip_wdvarname(s, aok);
 
@@ -974,14 +998,16 @@ is_wdvarassign(const char *s)
 char **
 makenv(void)
 {
+	ssize_t i;
 	struct block *l;
 	XPtrV denv;
 	struct tbl *vp, **vpp;
-	int i;
 
 	XPinit(denv, 64);
-	for (l = e->loc; l != NULL; l = l->next)
-		for (vpp = l->vars.tbls, i = l->vars.size; --i >= 0; )
+	for (l = e->loc; l != NULL; l = l->next) {
+		vpp = l->vars.tbls;
+		i = 1 << (l->vars.tshift);
+		while (--i >= 0)
 			if ((vp = *vpp++) != NULL &&
 			    (vp->flag&(ISSET|EXPORT)) == (ISSET|EXPORT)) {
 				struct block *l2;
@@ -1004,6 +1030,7 @@ makenv(void)
 				}
 				XPput(denv, vp->val.s);
 			}
+	}
 	XPput(denv, NULL);
 	return ((char **)XPclose(denv));
 }
@@ -1119,8 +1146,9 @@ setspec(struct tbl *vp)
 			afree(tmpdir, APERM);
 			tmpdir = NULL;
 		}
-		/* Use tmpdir iff it is an absolute path, is writable and
-		 * searchable and is a directory...
+		/*
+		 * Use tmpdir iff it is an absolute path, is writable
+		 * and searchable and is a directory...
 		 */
 		{
 			struct stat statb;
@@ -1223,7 +1251,8 @@ unsetspec(struct tbl *vp)
 	case V_LINENO:
 	case V_RANDOM:
 	case V_SECONDS:
-	case V_TMOUT:		/* AT&T ksh leaves previous value in place */
+	case V_TMOUT:
+		/* AT&T ksh leaves previous value in place */
 		unspecial(vp->name);
 		break;
 
@@ -1248,7 +1277,7 @@ arraysearch(struct tbl *vp, uint32_t val)
 	size_t len;
 
 	vp->flag = (vp->flag | (ARRAY|DEFINED)) & ~ASSOC;
-	/* The table entry is always [0] */
+	/* the table entry is always [0] */
 	if (val == 0)
 		return (vp);
 	prev = vp;
@@ -1275,16 +1304,18 @@ arraysearch(struct tbl *vp, uint32_t val)
 	news->u2.field = vp->u2.field;
 	news->ua.index = val;
 
-	if (curr != news) {		/* not reusing old array entry */
+	if (curr != news) {
+		/* not reusing old array entry */
 		prev->u.array = news;
 		news->u.array = curr;
 	}
 	return (news);
 }
 
-/* Return the length of an array reference (eg, [1+2]) - cp is assumed
- * to point to the open bracket. Returns 0 if there is no matching closing
- * bracket.
+/*
+ * Return the length of an array reference (eg, [1+2]) - cp is assumed
+ * to point to the open bracket. Returns 0 if there is no matching
+ * closing bracket.
  */
 int
 array_ref_len(const char *cp)
@@ -1352,7 +1383,7 @@ set_array(const char *var, bool reset, const char **vals)
 		/* trash existing values and attributes */
 		unset(vp, 1);
 	/*
-	 * todo: would be nice for assignment to completely succeed or
+	 * TODO: would be nice for assignment to completely succeed or
 	 * completely fail. Only really effects integer arrays:
 	 * evaluation of some of vals[] may fail...
 	 */
