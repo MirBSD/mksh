@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.479 2011/06/05 18:16:19 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.480 2011/06/05 18:23:43 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -898,6 +898,10 @@ if test $ct = gcc; then
 	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
 	ac_flags 1 fstackprotectorall -fstack-protector-all
 	ac_flags 1 fwrapv -fwrapv
+	test $cm = dragonegg && case " $CC $CFLAGS $LDFLAGS " in
+	*\ -fplugin=*dragonegg*) ;;
+	*) ac_flags 1 fplugin_dragonegg -fplugin=dragonegg ;;
+	esac
 	if test $cm = lto; then
 		fv=0
 		checks='1 2 3 4 5 6 7 8'
