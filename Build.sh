@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.478 2011/05/29 16:31:38 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.479 2011/06/05 18:16:19 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -218,7 +218,7 @@ ac_test() {
 	ac_cppflags
 }
 
-# ac_flags [-] add varname flags [text]
+# ac_flags [-] add varname cflags [text] [ldflags]
 ac_flags() {
 	if test x"$1" = x"-"; then
 		shift
@@ -230,9 +230,14 @@ ac_flags() {
 	vn=$2
 	f=$3
 	ft=$4
+	fl=$5
 	test x"$ft" = x"" && ft="if $f can be used"
 	save_CFLAGS=$CFLAGS
 	CFLAGS="$CFLAGS $f"
+	if test -n "$fl"; then
+		save_LDFLAGS=$LDFLAGS
+		LDFLAGS="$LDFLAGS $fl"
+	fi
 	if test 1 = $hf; then
 		ac_testn can_$vn '' "$ft"
 	else
@@ -242,6 +247,9 @@ ac_flags() {
 		EOF
 	fi
 	eval fv=\$HAVE_CAN_`upper $vn`
+	if test -n "$fl"; then
+		test 11 = $fa$fv || LDFLAGS=$save_LDFLAGS
+	fi
 	test 11 = $fa$fv || CFLAGS=$save_CFLAGS
 }
 
@@ -303,7 +311,7 @@ last=
 for i
 do
 	case $last:$i in
-	c:combine|c:dragonegg|c:llvm)
+	c:combine|c:dragonegg|c:llvm|c:lto)
 		cm=$i
 		last=
 		;;
@@ -890,9 +898,42 @@ if test $ct = gcc; then
 	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
 	ac_flags 1 fstackprotectorall -fstack-protector-all
 	ac_flags 1 fwrapv -fwrapv
-	test $cm = combine && ac_flags 0 combine \
-	    '-fwhole-program --combine' \
-	    'if gcc supports -fwhole-program --combine'
+	if test $cm = lto; then
+		fv=0
+		checks='1 2 3 4 5 6 7 8'
+	elif test $cm = combine; then
+		fv=0
+		checks='7 8'
+	else
+		fv=1
+	fi
+	test $fv = 1 || for what in $checks; do
+		test $fv = 1 && break
+		case $what in
+		1)	t_cflags='-flto=jobserver'
+			t_ldflags='-fuse-linker-plugin'
+			t_use=1 t_name=fltojs_lp ;;
+		2)	t_cflags='-flto=jobserver' t_ldflags=''
+			t_use=1 t_name=fltojs_nn ;;
+		3)	t_cflags='-flto=jobserver'
+			t_ldflags='-fno-use-linker-plugin -fwhole-program'
+			t_use=1 t_name=fltojs_np ;;
+		4)	t_cflags='-flto'
+			t_ldflags='-fuse-linker-plugin'
+			t_use=1 t_name=fltons_lp ;;
+		5)	t_cflags='-flto' t_ldflags=''
+			t_use=1 t_name=fltons_nn ;;
+		6)	t_cflags='-flto'
+			t_ldflags='-fno-use-linker-plugin -fwhole-program'
+			t_use=1 t_name=fltons_np ;;
+		7)	t_cflags='-fwhole-program --combine' t_ldflags=''
+			t_use=0 t_name=combine cm=combine ;;
+		8)	fv=1 cm=normal ;;
+		esac
+		test $fv = 1 && break
+		ac_flags $t_use $t_name "$t_cflags" \
+		    "if gcc supports $t_cflags $t_ldflags" "$t_ldflags"
+	done
 	i=1
 elif test $ct = icc; then
 	ac_flags 1 fnobuiltinsetmode -fno-builtin-setmode
@@ -957,8 +998,48 @@ if test 1 = $i; then
 	    ac_flags 1 stdc99 -std=c99 'for support of ISO C99'
 	ac_flags 1 wall -Wall
 fi
-phase=x
 
+# check whether whatever we use for the final link will succeed
+if test $cm = makefile; then
+	: nothing to check
+else
+	HAVE_LINK_WORKS=x
+	ac_testinit link_works '' 'checking if the final link command may succeed'
+	fv=1
+	cat >conftest.c <<-'EOF'
+		#include <stdio.h>
+		int main(void) { printf("Hello, World!\n"); return (0); }
+EOF
+	case $cm in
+	llvm)
+		v "$CC $CFLAGS $CPPFLAGS $NOWARN -emit-llvm -c conftest.c" || fv=0
+		rmf mksh.s
+		test $fv = 0 || v "llvm-link -o - conftest.o | opt $optflags | llc -o mksh.s" || fv=0
+		test $fv = 0 || v "$CC $CFLAGS $LDFLAGS -o $tcfn mksh.s $LIBS $ccpr"
+		;;
+	dragonegg)
+		v "$CC $CFLAGS $CPPFLAGS $NOWARN -S -flto conftest.c" || fv=0
+		test $fv = 0 || v "mv conftest.s conftest.ll"
+		test $fv = 0 || v "llvm-as conftest.ll" || fv=0
+		rmf mksh.s
+		test $fv = 0 || v "llvm-link -o - conftest.bc | opt $optflags | llc -o mksh.s" || fv=0
+		test $fv = 0 || v "$CC $CFLAGS $LDFLAGS -o $tcfn mksh.s $LIBS $ccpr"
+		;;
+	combine)
+		v "$CC $CFLAGS $CPPFLAGS $LDFLAGS -fwhole-program --combine $NOWARN -o $tcfn conftest.c $LIBS $ccpr"
+		;;
+	lto|normal)
+		cm=normal
+		v "$CC $CFLAGS $CPPFLAGS $NOWARN -c conftest.c" || fv=0
+		test $fv = 0 || v "$CC $CFLAGS $LDFLAGS -o $tcfn conftest.o $LIBS $ccpr"
+		;;
+	esac
+	test -f $tcfn || fv=0
+	ac_testdone
+	test $fv = 1 || exit 1
+fi
+
+phase=x
 # The following tests run with -Werror or similar (all compilers) if possible
 NOWARN=$DOWARN
 test $ct = pcc && phase=u
@@ -1537,7 +1618,6 @@ cat >>test.sh <<-EOF
 	exec \$perli "\${args[@]}" "\$@"$tsts
 EOF
 chmod 755 test.sh
-test $HAVE_CAN_COMBINE$cm = 0combine && cm=normal
 if test $cm = llvm; then
 	emitbc="-emit-llvm -c"
 elif test $cm = dragonegg; then
