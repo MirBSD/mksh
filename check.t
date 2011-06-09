@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.462 2011/06/05 19:58:16 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.463 2011/06/09 21:10:50 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -6938,7 +6938,7 @@ stdin:
 		while (( i++ < 0x1FF )); do
 			print -n "\x${i#16#1}"
 		done
-		print
+		print '\0z'
 	} | {
 		typeset -Uui16 -Z11 pos=0
 		typeset -Uui16 -Z5 hv
@@ -6991,7 +6991,7 @@ expected-stdout:
 	000000F0  CF D0 D1 D2 D3 D4 D5 D6 - D7 D8 D9 DA DB DC DD DE  |................|
 	00000100  DF E0 E1 E2 E3 E4 E5 E6 - E7 E8 E9 EA EB EC ED EE  |................|
 	00000110  EF F0 F1 F2 F3 F4 F5 F6 - F7 F8 F9 FA FB FC FD FE  |................|
-	00000120  FF 0A                   -                          |..|
+	00000120  FF 7A 0A                -                          |.z.|
 ---
 name: integer-base-one-3Ws
 description:
@@ -7013,6 +7013,7 @@ stdin:
 		print \\xc0\\x80	# non-minimalistic
 		print \\xe0\\x80\\x80	# non-minimalistic
 		print '�￾￿'	# end of range
+		print '\0z'		# embedded NUL
 	} | {
 		typeset -Uui16 -Z11 pos=0
 		typeset -Uui16 -Z7 hv
@@ -7094,7 +7095,7 @@ expected-stdout:
 	00000110  00FB 00FC 00FD 00FE - 00FF 000A EFFF 000A  |ûüýþÿ.�.|
 	00000118  EFC2 000A EFEF EFBF - EFC0 000A EFC0 EF80  |�.���.��|
 	00000120  000A EFE0 EF80 EF80 - 000A FFFD EFEF EFBF  |.���.���|
-	00000128  EFBE EFEF EFBF EFBF - 000A                 |����.|
+	00000128  EFBE EFEF EFBF EFBF - 000A 007A 000A       |����.z.|
 ---
 name: integer-base-one-3Ar
 description:
@@ -7108,7 +7109,7 @@ stdin:
 		while (( i++ < 0x1FF )); do
 			print -n "\x${i#16#1}"
 		done
-		print
+		print '\0z'
 	} | {
 		typeset -Uui16 -Z11 pos=0
 		typeset -Uui16 -Z5 hv
@@ -7160,7 +7161,7 @@ expected-stdout:
 	000000F0  CF D0 D1 D2 D3 D4 D5 D6 - D7 D8 D9 DA DB DC DD DE  |................|
 	00000100  DF E0 E1 E2 E3 E4 E5 E6 - E7 E8 E9 EA EB EC ED EE  |................|
 	00000110  EF F0 F1 F2 F3 F4 F5 F6 - F7 F8 F9 FA FB FC FD FE  |................|
-	00000120  FF 0A                   -                          |..|
+	00000120  FF 00 7A 0A             -                          |..z.|
 ---
 name: integer-base-one-3Wr
 description:
@@ -7182,6 +7183,7 @@ stdin:
 		print \\xc0\\x80	# non-minimalistic
 		print \\xe0\\x80\\x80	# non-minimalistic
 		print '�￾￿'	# end of range
+		print '\0z'		# embedded NUL
 	} | {
 		typeset -Uui16 -Z11 pos=0
 		typeset -Uui16 -Z7 hv
@@ -7260,7 +7262,7 @@ expected-stdout:
 	00000110  00FB 00FC 00FD 00FE - 00FF 000A EFFF 000A  |ûüýþÿ.�.|
 	00000118  EFC2 000A EFEF EFBF - EFC0 000A EFC0 EF80  |�.���.��|
 	00000120  000A EFE0 EF80 EF80 - 000A FFFD EFEF EFBF  |.���.���|
-	00000128  EFBE EFEF EFBF EFBF - 000A                 |����.|
+	00000128  EFBE EFEF EFBF EFBF - 000A 0000 007A 000A  |����..z.|
 ---
 name: integer-base-one-4
 description:
