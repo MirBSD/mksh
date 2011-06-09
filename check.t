@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.463 2011/06/09 21:10:50 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.464 2011/06/09 21:26:21 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -6609,13 +6609,11 @@ stdin:
 				line=${line:1}
 			done
 		done
-		if (( (pos & 15) != 1 )); then
-			while (( pos & 15 )); do
-				print -n '   '
-				(( (pos++ & 15) == 7 )) && print -n -- '- '
-			done
-			print "$dasc|"
-		fi
+		while (( pos & 15 )); do
+			print -n '   '
+			(( (pos++ & 15) == 7 )) && print -n -- '- '
+		done
+		print "$dasc|"
 	}
 expected-stdout:
 	00000000  5C 20 5C 21 5C 22 5C 23 - 5C 24 5C 25 5C 26 5C 27  |\ \!\"\#\$\%\&\'|
@@ -6683,13 +6681,11 @@ stdin:
 				line=${line:1}
 			done
 		done
-		if (( (pos & 15) != 1 )); then
-			while (( pos & 15 )); do
-				print -n '   '
-				(( (pos++ & 15) == 7 )) && print -n -- '- '
-			done
-			print "$dasc|"
-		fi
+		while (( pos & 15 )); do
+			print -n '   '
+			(( (pos++ & 15) == 7 )) && print -n -- '- '
+		done
+		print "$dasc|"
 	}
 expected-stdout:
 	00000000  20 21 22 23 24 25 26 27 - 28 29 2A 2B 2C 2D 2E 2F  | !"#$%&'()*+,-./|
@@ -6964,13 +6960,11 @@ stdin:
 				line=${line:1}
 			done
 		done
-		if (( (pos & 15) != 1 )); then
-			while (( pos & 15 )); do
-				print -n '   '
-				(( (pos++ & 15) == 7 )) && print -n -- '- '
-			done
-			print "$dasc|"
-		fi
+		while (( pos & 15 )); do
+			print -n '   '
+			(( (pos++ & 15) == 7 )) && print -n -- '- '
+		done
+		print "$dasc|"
 	}
 expected-stdout:
 	00000000  48 65 6C 6C 6F 2C 20 57 - 6F 72 6C 64 21 5C 0A E3  |Hello, World!\..|
@@ -7049,13 +7043,11 @@ stdin:
 				dasc=$dasc$dch
 			done
 		done
-		if (( pos & 7 )); then
-			while (( pos & 7 )); do
-				print -n '     '
-				(( (pos++ & 7) == 3 )) && print -n -- '- '
-			done
-			print "$dasc|"
-		fi
+		while (( pos & 7 )); do
+			print -n '     '
+			(( (pos++ & 7) == 3 )) && print -n -- '- '
+		done
+		print "$dasc|"
 	}
 expected-stdout:
 	00000000  0048 0065 006C 006C - 006F 002C 0020 0057  |Hello, W|
@@ -7134,13 +7126,11 @@ stdin:
 				(( (pos++ & 15) == 7 )) && print -n -- '- '
 			done
 		done
-		if (( (pos & 15) != 1 )); then
-			while (( pos & 15 )); do
-				print -n '   '
-				(( (pos++ & 15) == 7 )) && print -n -- '- '
-			done
-			print "$dasc|"
-		fi
+		while (( pos & 15 )); do
+			print -n '   '
+			(( (pos++ & 15) == 7 )) && print -n -- '- '
+		done
+		print "$dasc|"
 	}
 expected-stdout:
 	00000000  48 65 6C 6C 6F 2C 20 57 - 6F 72 6C 64 21 5C 0A E3  |Hello, World!\..|
@@ -7216,13 +7206,11 @@ stdin:
 				dasc=$dasc$dch
 			done
 		done
-		if (( pos & 7 )); then
-			while (( pos & 7 )); do
-				print -n '     '
-				(( (pos++ & 7) == 3 )) && print -n -- '- '
-			done
-			print "$dasc|"
-		fi
+		while (( pos & 7 )); do
+			print -n '     '
+			(( (pos++ & 7) == 3 )) && print -n -- '- '
+		done
+		print "$dasc|"
 	}
 expected-stdout:
 	00000000  0048 0065 006C 006C - 006F 002C 0020 0057  |Hello, W|
