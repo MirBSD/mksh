@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.464 2011/06/09 21:26:21 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.465 2011/06/09 21:53:12 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -6585,8 +6585,9 @@ stdin:
 	    '\U\V\W\X\Y\Z\[\\\]\^\_\`\a\b  \d\e\f\g\h\i\j\k\l\m\n\o\p' \
 	    '\q\r\s\t\u\v\w\x\y\z\{\|\}\~' '\u20acd' '\U20acd' '\x123' \
 	    '\0x' '\0123' '\01234' | {
+		# integer-base-one-3As
 		typeset -Uui16 -Z11 pos=0
-		typeset -Uui16 -Z5 hv
+		typeset -Uui16 -Z5 hv=2147483647
 		typeset -i1 wc=0x0A
 		dasc=
 		nl=${wc#1#}
@@ -6613,7 +6614,7 @@ stdin:
 			print -n '   '
 			(( (pos++ & 15) == 7 )) && print -n -- '- '
 		done
-		print "$dasc|"
+		(( hv == 2147483647 )) || print "$dasc|"
 	}
 expected-stdout:
 	00000000  5C 20 5C 21 5C 22 5C 23 - 5C 24 5C 25 5C 26 5C 27  |\ \!\"\#\$\%\&\'|
@@ -6657,8 +6658,9 @@ stdin:
 	    $'\u20acd' $'\U20acd' $'\x123' $'fn\x0rd' $'\0234' $'\234' \
 	    $'\2345' $'\ca' $'\c!' $'\c?' $'\c€' $'a\
 	b' | {
+		# integer-base-one-3As
 		typeset -Uui16 -Z11 pos=0
-		typeset -Uui16 -Z5 hv
+		typeset -Uui16 -Z5 hv=2147483647
 		typeset -i1 wc=0x0A
 		dasc=
 		nl=${wc#1#}
@@ -6685,7 +6687,7 @@ stdin:
 			print -n '   '
 			(( (pos++ & 15) == 7 )) && print -n -- '- '
 		done
-		print "$dasc|"
+		(( hv == 2147483647 )) || print "$dasc|"
 	}
 expected-stdout:
 	00000000  20 21 22 23 24 25 26 27 - 28 29 2A 2B 2C 2D 2E 2F  | !"#$%&'()*+,-./|
@@ -6925,6 +6927,7 @@ expected-exit: e != 0
 name: integer-base-one-3As
 description:
 	some sample code for hexdumping
+	not NUL safe; input lines must be NL terminated
 stdin:
 	{
 		print 'Hello, World!\\\nこんにちは！'
@@ -6936,8 +6939,9 @@ stdin:
 		done
 		print '\0z'
 	} | {
+		# integer-base-one-3As
 		typeset -Uui16 -Z11 pos=0
-		typeset -Uui16 -Z5 hv
+		typeset -Uui16 -Z5 hv=2147483647
 		typeset -i1 wc=0x0A
 		dasc=
 		nl=${wc#1#}
@@ -6964,7 +6968,7 @@ stdin:
 			print -n '   '
 			(( (pos++ & 15) == 7 )) && print -n -- '- '
 		done
-		print "$dasc|"
+		(( hv == 2147483647 )) || print "$dasc|"
 	}
 expected-stdout:
 	00000000  48 65 6C 6C 6F 2C 20 57 - 6F 72 6C 64 21 5C 0A E3  |Hello, World!\..|
@@ -6990,6 +6994,7 @@ expected-stdout:
 name: integer-base-one-3Ws
 description:
 	some sample code for hexdumping Unicode
+	not NUL safe; input lines must be NL terminated
 stdin:
 	set -U
 	{
@@ -7009,6 +7014,7 @@ stdin:
 		print '�￾￿'	# end of range
 		print '\0z'		# embedded NUL
 	} | {
+		# integer-base-one-3Ws
 		typeset -Uui16 -Z11 pos=0
 		typeset -Uui16 -Z7 hv
 		typeset -i1 wc=0x0A
@@ -7047,7 +7053,7 @@ stdin:
 			print -n '     '
 			(( (pos++ & 7) == 3 )) && print -n -- '- '
 		done
-		print "$dasc|"
+		(( hv == 2147483647 )) || print "$dasc|"
 	}
 expected-stdout:
 	00000000  0048 0065 006C 006C - 006F 002C 0020 0057  |Hello, W|
@@ -7091,7 +7097,7 @@ expected-stdout:
 ---
 name: integer-base-one-3Ar
 description:
-	some sample code for hexdumping
+	some sample code for hexdumping; NUL and binary safe
 stdin:
 	{
 		print 'Hello, World!\\\nこんにちは！'
@@ -7103,12 +7109,12 @@ stdin:
 		done
 		print '\0z'
 	} | {
+		# integer-base-one-3Ar
 		typeset -Uui16 -Z11 pos=0
-		typeset -Uui16 -Z5 hv
+		typeset -Uui16 -Z5 hv=2147483647
 		dasc=
-		while read -ar line; do
+		if read -arN -1 line; then
 			typeset -i1 line
-			line[${#line[*]}]=10
 			i=0
 			while (( i < ${#line[*]} )); do
 				hv=${line[i++]}
@@ -7125,12 +7131,12 @@ stdin:
 				fi
 				(( (pos++ & 15) == 7 )) && print -n -- '- '
 			done
-		done
+		fi
 		while (( pos & 15 )); do
 			print -n '   '
 			(( (pos++ & 15) == 7 )) && print -n -- '- '
 		done
-		print "$dasc|"
+		(( hv == 2147483647 )) || print "$dasc|"
 	}
 expected-stdout:
 	00000000  48 65 6C 6C 6F 2C 20 57 - 6F 72 6C 64 21 5C 0A E3  |Hello, World!\..|
@@ -7155,7 +7161,7 @@ expected-stdout:
 ---
 name: integer-base-one-3Wr
 description:
-	some sample code for hexdumping Unicode
+	some sample code for hexdumping Unicode; NUL and binary safe
 stdin:
 	set -U
 	{
@@ -7175,12 +7181,12 @@ stdin:
 		print '�￾￿'	# end of range
 		print '\0z'		# embedded NUL
 	} | {
+		# integer-base-one-3Wr
 		typeset -Uui16 -Z11 pos=0
-		typeset -Uui16 -Z7 hv
+		typeset -Uui16 -Z7 hv=2147483647
 		dasc=
-		while read -ar line; do
+		if read -arN -1 line; then
 			typeset -i1 line
-			line[${#line[*]}]=10
 			i=0
 			while (( i < ${#line[*]} )); do
 				hv=${line[i++]}
@@ -7205,12 +7211,12 @@ stdin:
 				    print -n -- '- '
 				dasc=$dasc$dch
 			done
-		done
+		fi
 		while (( pos & 7 )); do
 			print -n '     '
 			(( (pos++ & 7) == 3 )) && print -n -- '- '
 		done
-		print "$dasc|"
+		(( hv == 2147483647 )) || print "$dasc|"
 	}
 expected-stdout:
 	00000000  0048 0065 006C 006C - 006F 002C 0020 0057  |Hello, W|
