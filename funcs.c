@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.188 2011/05/29 05:13:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.189 2011/06/11 03:14:49 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1858,6 +1858,7 @@ c_read(const char **wp)
 			 * as is indicated in the Korn Shell book).
 			 */
 			shf_puts(ccp + 1, shl_out);
+			shf_flush(shl_out);
 		}
 	}
 
