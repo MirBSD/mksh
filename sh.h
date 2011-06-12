@@ -151,9 +151,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.475 2011/06/11 03:14:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.476 2011/06/12 14:58:45 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2011/06/10"
+#define MKSH_VERSION "R40 2011/06/12"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1435,8 +1435,8 @@ EXTERN int histsize;	/* history size */
 /* user and system time of last j_waitjed job */
 EXTERN struct timeval j_usrtime, j_systime;
 
-#define notoktomul(fac1, fac2)	((fac1) && (fac2) && \
-				    (SIZE_MAX / (fac1) < (fac2)))
+#define notoktomul(fac1, fac2)	(((fac1) != 0) && ((fac2) != 0) && \
+				    ((SIZE_MAX / (fac1)) < (fac2)))
 #define notoktoadd(val, cnst)	((val) > (SIZE_MAX - (cnst)))
 #define checkoktoadd(val, cnst) do {					\
 	if (notoktoadd((val), (cnst)))					\
