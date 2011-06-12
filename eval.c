@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.104 2011/05/02 22:52:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.105 2011/06/12 14:45:33 tg Exp $");
 
 /*
  * string expansion
@@ -373,7 +373,7 @@ expand(const char *cp,	/* input word */
 					switch (stype & 0x17F) {
 					case 0x100 | '#':
 						x.str = shf_smprintf("%08X",
-						    hash(str_val(st->var)));
+						    (unsigned int)hash(str_val(st->var)));
 						break;
 					case '0': {
 						char *beg, *mid, *end, *stg;

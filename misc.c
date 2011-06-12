@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.166 2011/05/29 02:18:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.167 2011/06/12 14:45:34 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -872,7 +872,7 @@ cclass(const unsigned char *p, int sub)
 }
 
 /* Look for next ) or | (if match_sep) in *(foo|bar) pattern */
-const unsigned char *
+static const unsigned char *
 pat_scan(const unsigned char *p, const unsigned char *pe, bool match_sep)
 {
 	int nest = 0;
@@ -1885,6 +1885,9 @@ chvt(const char *fn)
 #endif
 
 #ifdef DEBUG
+char intsize_is_okay[sizeof(int) >= 4 ? 1 : -1];
+char intsizes_are_okay[sizeof(int) == sizeof(unsigned int) ? 1 : -1];
+char longsize_is_okay[sizeof(long) >= sizeof(int) ? 1 : -1];
 char longsizes_are_okay[sizeof(long) == sizeof(unsigned long) ? 1 : -1];
 char arisize_is_okay[sizeof(mksh_ari_t) == 4 ? 1 : -1];
 char uarisize_is_okay[sizeof(mksh_uari_t) == 4 ? 1 : -1];
