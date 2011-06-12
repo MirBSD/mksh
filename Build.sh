@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.481 2011/06/05 19:55:22 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.482 2011/06/12 14:37:00 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -479,6 +479,7 @@ MidnightBSD)
 	;;
 Minix)
 	CPPFLAGS="$CPPFLAGS -DMKSH_UNEMPLOYED -DMKSH_CONSERVATIVE_FDS"
+	CPPFLAGS="$CPPFLAGS -DMKSH_NO_LIMITS"
 	CPPFLAGS="$CPPFLAGS -D_POSIX_SOURCE -D_POSIX_1_SOURCE=2 -D_MINIX"
 	oldish_ed=no-stderr-ed		# /usr/bin/ed(!) is broken
 	: ${HAVE_SETLOCALE_CTYPE=0}
