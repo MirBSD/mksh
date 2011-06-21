@@ -151,7 +151,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.476 2011/06/12 14:58:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.477 2011/06/21 21:10:12 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2011/06/12"
 
@@ -340,8 +340,9 @@ extern int wcwidth(__WCHAR_TYPE__);
 # define EXTERN_DEFINED
 #endif
 
+/* define bit in flag */
+#define BIT(i)		(1 << (i))
 #define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
-#define BIT(i)		(1 << (i))	/* define bit in flag */
 
 /* Table flag type - needs > 16 and < 32 bits */
 typedef int32_t Tflag;
@@ -373,7 +374,8 @@ typedef unsigned char mksh_bool;
 #define FDBASE		24	/* First file usable by Shell */
 #endif
 
-/* Make MAGIC a char that might be printed to make bugs more obvious, but
+/*
+ * Make MAGIC a char that might be printed to make bugs more obvious, but
  * not a char that is used often. Also, can't use the high bit as it causes
  * portability problems (calling strchr(x, 0x80|'x') is error prone).
  */
@@ -820,7 +822,9 @@ EXTERN Getopt user_opt;		/* parsing state for getopts builtin command */
 
 /* This for co-processes */
 
-typedef int32_t Coproc_id; /* something that won't (realisticly) wrap */
+/* something that won't (realisticly) wrap */
+typedef int32_t Coproc_id;
+
 struct coproc {
 	void *job;	/* 0 or job of co-process using input pipe */
 	int read;	/* pipe from co-process's stdout */
@@ -838,16 +842,19 @@ EXTERN sigset_t		sm_default, sm_sigchld;
 
 /* name of called builtin function (used by error functions) */
 EXTERN const char *builtin_argv0;
-EXTERN Tflag builtin_flag;	/* flags of called builtin (SPEC_BI, etc.) */
+/* flags of called builtin (SPEC_BI, etc.) */
+EXTERN Tflag builtin_flag;
 
 /* current working directory */
 EXTERN char	*current_wd;
 
-/* Minimum required space to work with on a line - if the prompt leaves less
- * space than this on a line, the prompt is truncated.
+/*
+ * Minimum required space to work with on a line - if the prompt leaves
+ * less space than this on a line, the prompt is truncated.
  */
 #define MIN_EDIT_SPACE	7
-/* Minimum allowed value for x_cols: 2 for prompt, 3 for " < " at end of line
+/*
+ * Minimum allowed value for x_cols: 2 for prompt, 3 for " < " at end of line
  */
 #define MIN_COLS	(2 + MIN_EDIT_SPACE + 3)
 #define MIN_LINS	3
@@ -999,8 +1006,10 @@ struct tbl {			/* table item */
 #define FKSH		BIT(11)	/* function defined with function x (vs x()) */
 #define SPEC_BI		BIT(12)	/* a POSIX special builtin */
 #define REG_BI		BIT(13)	/* a POSIX regular builtin */
-/* Attributes that can be set by the user (used to decide if an unset param
- * should be repoted by set/typeset). Does not include ARRAY or LOCAL.
+/*
+ * Attributes that can be set by the user (used to decide if an unset
+ * param should be repoted by set/typeset). Does not include ARRAY or
+ * LOCAL.
  */
 #define USERATTRIB	(EXPORT|INTEGER|RDONLY|LJUST|RJUST|ZEROFIL|\
 			    LCASEV|UCASEV_AL|INT_U|INT_L)
@@ -1798,7 +1807,8 @@ uint32_t hash(const void *);
 void rndset(long);
 
 enum Test_op {
-	TO_NONOP = 0,	/* non-operator */
+	/* non-operator */
+	TO_NONOP = 0,
 	/* unary operators */
 	TO_STNZE, TO_STZER, TO_OPTION,
 	TO_FILAXST,
