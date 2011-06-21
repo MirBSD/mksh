@@ -151,7 +151,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.477 2011/06/21 21:10:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.478 2011/06/21 21:11:20 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2011/06/12"
 
@@ -1016,6 +1016,12 @@ struct tbl {			/* table item */
 
 #define arrayindex(vp)	((unsigned long)((vp)->flag & AINDEX ? \
 			    (vp)->ua.index : 0))
+
+EXTERN enum {
+	SRF_NOP,
+	SRF_ENABLE,
+	SRF_DISABLE
+} set_refflag I__(SRF_NOP);
 
 /* command types */
 #define CNONE		0	/* undefined */

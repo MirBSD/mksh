@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.189 2011/06/11 03:14:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.190 2011/06/21 21:11:19 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -63,8 +63,6 @@ __RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.189 2011/06/11 03:14:49 tg Exp $");
 #if defined(ANDROID)
 static int c_android_lsmod(const char **);
 #endif
-
-extern uint8_t set_refflag;
 
 /*
  * A leading = means assignments before command are kept;
@@ -691,7 +689,8 @@ c_typeset(const char **wp)
 			flag = LCASEV;
 			break;
 		case 'n':
-			set_refflag = (builtin_opt.info & GI_PLUS) ? 2 : 1;
+			set_refflag = (builtin_opt.info & GI_PLUS) ?
+			    SRF_DISABLE : SRF_ENABLE;
 			break;
 		/* export, readonly: POSIX -p flag */
 		case 'p':
@@ -742,9 +741,10 @@ c_typeset(const char **wp)
 		builtin_opt.optind++;
 	}
 
-	if (func && (((fset|fclr) & ~(TRACE|UCASEV_AL|EXPORT)) || set_refflag)) {
+	if (func && (((fset|fclr) & ~(TRACE|UCASEV_AL|EXPORT)) ||
+	    set_refflag != SRF_NOP)) {
 		bi_errorf("only -t, -u and -x options may be used with -f");
-		set_refflag = 0;
+		set_refflag = SRF_NOP;
 		return (1);
 	}
 	if (wp[builtin_opt.optind]) {
@@ -769,7 +769,7 @@ c_typeset(const char **wp)
 		 * are also set in this command
 		 */
 		if ((fset & (LJUST | RJUST | ZEROFIL | UCASEV_AL | LCASEV |
-		    INTEGER | INT_U | INT_L)) || set_refflag)
+		    INTEGER | INT_U | INT_L)) || set_refflag != SRF_NOP)
 			fclr |= ~fset & (LJUST | RJUST | ZEROFIL | UCASEV_AL |
 			    LCASEV | INTEGER | INT_U | INT_L);
 	}
@@ -801,11 +801,11 @@ c_typeset(const char **wp)
 				}
 			} else if (!typeset(wp[i], fset, fclr, field, base)) {
 				bi_errorf("%s: %s", wp[i], "not identifier");
-				set_refflag = 0;
+				set_refflag = SRF_NOP;
 				return (1);
 			}
 		}
-		set_refflag = 0;
+		set_refflag = SRF_NOP;
 		return (rv);
 	}
 

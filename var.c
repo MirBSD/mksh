@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.124 2011/06/21 21:08:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.125 2011/06/21 21:11:21 tg Exp $");
 
 /*-
  * Variables
@@ -52,8 +52,6 @@ static void unsetspec(struct tbl *);
 static int getint(struct tbl *, mksh_ari_t *, bool);
 static mksh_ari_t intval(struct tbl *);
 static const char *array_index_calc(const char *, bool *, uint32_t *);
-
-uint8_t set_refflag = 0;
 
 /*
  * create a new block for function calls and simple commands
@@ -179,7 +177,7 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 	*arrayp = false;
  redo_from_ref:
 	p = skip_varname(n, false);
-	if (!set_refflag && (p != n) && ksh_isalphx(n[0])) {
+	if (set_refflag == SRF_NOP && (p != n) && ksh_isalphx(n[0])) {
 		struct tbl *vp;
 		char *vn;
 
@@ -713,7 +711,7 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 	mkssert(var != NULL);
 	mkssert(*var != 0);
 	if (*val == '[') {
-		if (set_refflag)
+		if (set_refflag != SRF_NOP)
 			errorf("%s: %s", var,
 			    "reference variable can't be an array");
 		len = array_ref_len(val);
@@ -760,9 +758,9 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 
 	vp = (set&LOCAL) ? local(tvar, tobool(set & LOCAL_COPY)) :
 	    global(tvar);
-	if (set_refflag == 2 && (vp->flag & (ARRAY|ASSOC)) == ASSOC)
+	if (set_refflag == SRF_DISABLE && (vp->flag & (ARRAY|ASSOC)) == ASSOC)
 		vp->flag &= ~ASSOC;
-	else if (set_refflag == 1) {
+	else if (set_refflag == SRF_ENABLE) {
 		if (vp->flag & ARRAY) {
 			struct tbl *a, *tmp;
 
