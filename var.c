@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.123 2011/06/05 19:58:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.124 2011/06/21 21:08:50 tg Exp $");
 
 /*-
  * Variables
@@ -143,6 +143,27 @@ initvar(void)
 	}
 }
 
+/* common code for several functions below */
+static struct block *
+varsearch(struct block *l, struct tbl **vpp, const char *vn, uint32_t h)
+{
+	register struct tbl *vp;
+
+	if (l) {
+ varsearch_loop:
+		if ((vp = ktsearch(&l->vars, vn, h)) != NULL)
+			goto varsearch_out;
+		if (l->next != NULL) {
+			l = l->next;
+			goto varsearch_loop;
+		}
+	}
+	vp = NULL;
+ varsearch_out:
+	*vpp = vp;
+	return (l);
+}
+
 /*
  * Used to calculate an array index for global()/local(). Sets *arrayp
  * to true if this is an array, sets *valp to the array index, returns
@@ -159,17 +180,12 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
  redo_from_ref:
 	p = skip_varname(n, false);
 	if (!set_refflag && (p != n) && ksh_isalphx(n[0])) {
-		struct block *l = e->loc;
 		struct tbl *vp;
 		char *vn;
-		uint32_t h;
 
 		strndupx(vn, n, p - n, ATEMP);
-		h = hash(vn);
 		/* check if this is a reference */
-		do {
-			vp = ktsearch(&l->vars, vn, h);
-		} while (!vp && (l = l->next));
+		varsearch(e->loc, &vp, vn, hash(vn));
 		afree(vn, ATEMP);
 		if (vp && (vp->flag & (DEFINED|ASSOC|ARRAY)) ==
 		    (DEFINED|ASSOC)) {
@@ -261,17 +277,9 @@ global(const char *n)
 		}
 		return (vp);
 	}
-	for (l = e->loc; ; l = l->next) {
-		vp = ktsearch(&l->vars, n, h);
-		if (vp != NULL) {
-			if (array)
-				return (arraysearch(vp, val));
-			else
-				return (vp);
-		}
-		if (l->next == NULL)
-			break;
-	}
+	l = varsearch(e->loc, &vp, n, h);
+	if (vp != NULL)
+		return (array ? arraysearch(vp, val) : vp);
 	vp = ktenter(&l->vars, n, h);
 	if (array)
 		vp = arraysearch(vp, val);
@@ -304,12 +312,10 @@ local(const char *n, bool copy)
 	}
 	vp = ktenter(&l->vars, n, h);
 	if (copy && !(vp->flag & DEFINED)) {
-		struct block *ll = l;
-		struct tbl *vq = NULL;
+		struct tbl *vq;
 
-		while ((ll = ll->next) && !(vq = ktsearch(&ll->vars, n, h)))
-			;
-		if (vq) {
+		varsearch(l->next, &vq, n, h);
+		if (vq != NULL) {
 			vp->flag |= vq->flag &
 			    (EXPORT | INTEGER | RDONLY | LJUST | RJUST |
 			    ZEROFIL | LCASEV | UCASEV_AL | INT_U | INT_L);
