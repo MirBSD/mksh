@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.125 2011/06/21 21:11:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.126 2011/06/21 21:50:26 tg Exp $");
 
 /*-
  * Variables
@@ -749,6 +749,25 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 		if (len > 3 && tvar[len-3] == '[' && tvar[len-2] == '*' &&
 		    tvar[len-1] == ']')
 			tvar[len-3] = '\0';
+	}
+
+	if (set_refflag == SRF_ENABLE) {
+		const char *qval;
+
+		/* bail out on 'nameref foo+=bar' */
+		if (vappend)
+			errorfz();
+		/* find value if variable already exists */
+		if ((qval = val) == NULL) {
+			varsearch(e->loc, &vp, tvar, hash(tvar));
+			if (vp != NULL)
+				qval = str_val(vp);
+		}
+		/* silently ignore 'nameref foo=foo' */
+		if (qval != NULL && !strcmp(qval, tvar)) {
+			afree(tvar, ATEMP);
+			return (&vtemp);
+		}
 	}
 
 	/* prevent typeset from creating a local PATH/ENV/SHELL */

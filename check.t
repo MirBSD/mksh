@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.467 2011/06/12 14:58:43 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.468 2011/06/21 21:50:23 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2011/06/12
+	@(#)MIRBSD KSH R40 2011/06/21
 description:
 	Check version of shell.
 stdin:
@@ -8754,6 +8754,23 @@ expected-stdout:
 	1 c .
 	2 a .
 	3 .
+---
+name: nameref-4
+description:
+	Ensure we don't run in an infinite loop
+time-limit: 3
+stdin:
+	baz() {
+		typeset -n foo=foo
+		foo[0]=bar
+	}
+	set -A foo bad
+	echo sind $foo .
+	baz
+	echo blah $foo .
+expected-stdout:
+	sind bad .
+	blah bar .
 ---
 name: better-parens-1a
 description:
