@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.215 2011/06/04 16:44:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.216 2011/06/30 13:48:12 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -58,7 +58,7 @@ static X_chars edchars;
 #define XCF_FULLPATH	BIT(2)	/* command completion: store full path */
 #define XCF_COMMAND_FILE (XCF_COMMAND | XCF_FILE)
 #define XCF_IS_COMMAND	BIT(3)	/* return flag: is command */
-#define XCF_IS_VARSUB	BIT(4)	/* return flag: is $FOO substitution */
+#define XCF_IS_SUBGLOB	BIT(4)	/* return flag: is $FOO or ~foo substitution */
 #define XCF_IS_EXTGLOB	BIT(5)	/* return flag: is foo* expansion */
 
 static char editmode;
@@ -574,10 +574,10 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 			 * a parameter expansion as we have a glob
 			 */
 			*flagsp |= XCF_IS_EXTGLOB;
-		} else if (saw_dollar) {
+		} else if (saw_dollar || *toglob == '~') {
 			/* do not append a glob, nor later a space */
-			*flagsp |= XCF_IS_VARSUB;
-		} else if (*toglob != '~' || saw_slash) {
+			*flagsp |= XCF_IS_SUBGLOB;
+		} else if (saw_slash) {
 			/* append a glob, this is not just a tilde */
 			toglob[len] = '*';
 			toglob[len + 1] = '\0';
@@ -2701,9 +2701,12 @@ do_complete(
 		x_adjust();
 		completed = true;
 	}
-	/* add space if single non-dir match and not parameter substitution */
+	/*
+	 * append a space if this is a single non-directory match
+	 * and not a parameter or homedir substitution
+	 */
 	if (nwords == 1 && words[0][nlen - 1] != '/' &&
-	    !(flags & XCF_IS_VARSUB)) {
+	    !(flags & XCF_IS_SUBGLOB)) {
 		x_ins(" ");
 		completed = true;
 	}
@@ -5254,11 +5257,11 @@ complete_word(int cmd, int count)
 		expanded = NONE;
 
 		/*
-		 * append a space if this is not a directory or the
-		 * result of a parameter substitution
+		 * append a space if this is a non-directory match
+		 * and not a parameter or homedir substitution
 		 */
 		if (match_len > 0 && match[match_len - 1] != '/' &&
-		    !(flags & XCF_IS_VARSUB))
+		    !(flags & XCF_IS_SUBGLOB))
 			rval = putbuf(" ", 1, 0);
 	}
 	x_free_words(nwords, words);
