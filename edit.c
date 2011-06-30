@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.216 2011/06/30 13:48:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.217 2011/06/30 14:09:04 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -533,7 +533,7 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 
 	if (len >= 0) {
 		char *toglob, *s;
-		bool saw_slash = false, saw_dollar = false, saw_glob = false;
+		bool saw_dollar = false, saw_glob = false;
 
 		/*
 		 * Given a string, copy it and possibly add a '*' to the end.
@@ -564,8 +564,7 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 			    (*s == '+' || *s == '@' || *s == '!'))) {
 				/* just expand based on the extglob */
 				saw_glob = true;
-			} else if (*s == '/')
-				saw_slash = true;
+			}
 		}
 		if (saw_glob) {
 			/*
@@ -577,7 +576,7 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 		} else if (saw_dollar || *toglob == '~') {
 			/* do not append a glob, nor later a space */
 			*flagsp |= XCF_IS_SUBGLOB;
-		} else if (saw_slash) {
+		} else {
 			/* append a glob, this is not just a tilde */
 			toglob[len] = '*';
 			toglob[len + 1] = '\0';
