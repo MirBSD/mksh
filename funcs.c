@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.190 2011/06/21 21:11:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.191 2011/07/02 17:57:23 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -103,6 +103,7 @@ const struct builtin mkshbuiltins[] = {
 	{"*=export", c_typeset},
 	{"+fc", c_fc},
 	{"+getopts", c_getopts},
+	{"=global", c_typeset},
 	{"+jobs", c_jobs},
 	{"+kill", c_kill},
 	{"let", c_let},
@@ -597,7 +598,7 @@ c_command(const char **wp)
 	return (c_whence(wp));
 }
 
-/* typeset, export, and readonly */
+/* typeset, global, export, and readonly */
 int
 c_typeset(const char **wp)
 {
