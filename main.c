@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.193 2011/06/05 19:58:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.194 2011/07/02 17:57:39 tg Exp $");
 
 extern char **environ;
 
@@ -61,9 +61,7 @@ static const char initsubs[] =
 static const char *initcoms[] = {
 	T_typeset, "-r", initvsn, NULL,
 	T_typeset, "-x", "HOME", "PATH", "RANDOM", "SHELL", NULL,
-	T_typeset, "-i10", "COLUMNS", "KSHEGID", "KSHGID", "KSHUID", "LINES",
-	    "OPTIND", "PGRP", "PPID", "RANDOM", "SECONDS", "TMOUT", "USER_ID",
-	    NULL,
+	T_typeset, "-i10", "SECONDS", "TMOUT", NULL,
 	T_alias,
 	"integer=typeset -i",
 	T_local_typeset,
@@ -90,6 +88,10 @@ static const char *initcoms[] = {
 	"cat", "cc", "chmod", "cp", "date", "ed", "emacs", "grep", "ls",
 	"make", "mv", "pr", "rm", "sed", "sh", "vi", "who", NULL,
 	NULL
+};
+
+static const char *restr_com[] = {
+	T_typeset, "-r", "PATH", "ENV", "SHELL", NULL
 };
 
 static int initio_done;
@@ -328,9 +330,9 @@ main(int argc, const char *argv[])
 		while (*wp != NULL)
 			wp++;
 	}
-	setint(global("COLUMNS"), 0);
-	setint(global("LINES"), 0);
-	setint(global("OPTIND"), 1);
+	setint_n(global("COLUMNS"), 0);
+	setint_n(global("LINES"), 0);
+	setint_n(global("OPTIND"), 1);
 
 	kshuid = getuid();
 	kshgid = getgid();
@@ -343,21 +345,21 @@ main(int argc, const char *argv[])
 	    (!ksheuid && !strchr(str_val(vp), '#')))
 		/* setstr can't fail here */
 		setstr(vp, safe_prompt, KSH_RETURN_ERROR);
-	setint((vp = global("PGRP")), (mksh_uari_t)kshpgrp);
+	setint_n((vp = global("PGRP")), (mksh_uari_t)kshpgrp);
 	vp->flag |= INT_U;
-	setint((vp = global("PPID")), (mksh_uari_t)kshppid);
+	setint_n((vp = global("PPID")), (mksh_uari_t)kshppid);
 	vp->flag |= INT_U;
-	setint((vp = global("USER_ID")), (mksh_uari_t)ksheuid);
+	setint_n((vp = global("USER_ID")), (mksh_uari_t)ksheuid);
 	vp->flag |= INT_U;
-	setint((vp = global("KSHUID")), (mksh_uari_t)kshuid);
+	setint_n((vp = global("KSHUID")), (mksh_uari_t)kshuid);
 	vp->flag |= INT_U;
-	setint((vp = global("KSHEGID")), (mksh_uari_t)kshegid);
+	setint_n((vp = global("KSHEGID")), (mksh_uari_t)kshegid);
 	vp->flag |= INT_U;
-	setint((vp = global("KSHGID")), (mksh_uari_t)kshgid);
+	setint_n((vp = global("KSHGID")), (mksh_uari_t)kshgid);
 	vp->flag |= INT_U;
-	setint((vp = global("RANDOM")), rndsetup());
+	setint_n((vp = global("RANDOM")), rndsetup());
 	vp->flag |= INT_U;
-	setint((vp_pipest = global("PIPESTATUS")), 0);
+	setint_n((vp_pipest = global("PIPESTATUS")), 0);
 
 	/* Set this before parsing arguments */
 	Flag(FPRIVILEGED) = kshuid != ksheuid || kshgid != kshegid;
@@ -540,11 +542,6 @@ main(int argc, const char *argv[])
 	}
 
 	if (restricted) {
-		static const char *restr_com[] = {
-			T_typeset, "-r", "PATH",
-			"ENV", "SHELL",
-			NULL
-		};
 		shcomexec(restr_com);
 		/* After typeset command... */
 		Flag(FRESTRICTED) = 1;

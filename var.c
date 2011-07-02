@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.126 2011/06/21 21:50:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.127 2011/07/02 17:57:41 tg Exp $");
 
 /*-
  * Variables
@@ -50,7 +50,6 @@ static void getspec(struct tbl *);
 static void setspec(struct tbl *);
 static void unsetspec(struct tbl *);
 static int getint(struct tbl *, mksh_ari_t *, bool);
-static mksh_ari_t intval(struct tbl *);
 static const char *array_index_calc(const char *, bool *, uint32_t *);
 
 /*
@@ -401,20 +400,6 @@ str_val(struct tbl *vp)
 	return (s);
 }
 
-/* get variable integer value, with error checking */
-static mksh_ari_t
-intval(struct tbl *vp)
-{
-	mksh_ari_t num;
-	int base;
-
-	base = getint(vp, &num, false);
-	if (base == -1)
-		/* XXX check calls - is error here ok by POSIX? */
-		errorf("%s: %s", str_val(vp), "bad number");
-	return (num);
-}
-
 /* set variable to string value */
 int
 setstr(struct tbl *vq, const char *s, int error_ok)
@@ -571,19 +556,26 @@ setint_v(struct tbl *vq, struct tbl *vp, bool arith)
 
 	if ((base = getint(vp, &num, arith)) == -1)
 		return (NULL);
+	setint_n(vq, num);
+	if (vq->type == 0)
+		/* default base */
+		vq->type = base;
+	return (vq);
+}
+
+/* convert variable vq to integer variable, setting its value to num */
+void
+setint_n(struct tbl *vq, mksh_ari_t num)
+{
 	if (!(vq->flag & INTEGER) && (vq->flag & ALLOC)) {
 		vq->flag &= ~ALLOC;
 		vq->type = 0;
 		afree(vq->val.s, vq->areap);
 	}
 	vq->val.i = num;
-	if (vq->type == 0)
-		/* default base */
-		vq->type = base;
 	vq->flag |= ISSET|INTEGER;
 	if (vq->flag&SPECIAL)
 		setspec(vq);
-	return (vq);
 }
 
 static char *
@@ -1140,7 +1132,7 @@ getspec(struct tbl *vp)
 		return;
 	}
 	vp->flag &= ~SPECIAL;
-	setint(vp, i);
+	setint_n(vp, i);
 	vp->flag |= SPECIAL;
 }
 
@@ -1187,11 +1179,6 @@ setspec(struct tbl *vp)
 		sethistfile(str_val(vp));
 		return;
 #endif
-	case V_TMOUT:
-		/* AT&T ksh seems to do this (only listen if integer) */
-		if (vp->flag & INTEGER)
-			ksh_tmout = vp->val.i >= 0 ? vp->val.i : 0;
-		return;
 
 	/* common sub-cases */
 	case V_OPTIND:
@@ -1201,8 +1188,14 @@ setspec(struct tbl *vp)
 	case V_RANDOM:
 	case V_SECONDS:
 	case V_LINENO:
+	case V_TMOUT:
 		vp->flag &= ~SPECIAL;
-		i = intval(vp);
+		if (getint(vp, &i, false) == -1) {
+			s = str_val(vp);
+			if (st != V_RANDOM)
+				errorf("%s: %s: %s", vp->name, "bad number", s);
+			i = hash(s);
+		}
 		vp->flag |= SPECIAL;
 		break;
 	default:
@@ -1245,6 +1238,9 @@ setspec(struct tbl *vp)
 	case V_LINENO:
 		/* The -1 is because line numbering starts at 1. */
 		user_lineno = (unsigned int)i - current_lineno - 1;
+		break;
+	case V_TMOUT:
+		ksh_tmout = i >= 0 ? i : 0;
 		break;
 	}
 }
