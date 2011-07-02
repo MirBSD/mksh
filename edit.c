@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.217 2011/06/30 14:09:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.218 2011/07/02 17:57:12 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -573,7 +573,8 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 			 * a parameter expansion as we have a glob
 			 */
 			*flagsp |= XCF_IS_EXTGLOB;
-		} else if (saw_dollar || *toglob == '~') {
+		} else if (saw_dollar ||
+		    (*toglob == '~' && !vstrchr(toglob, '/'))) {
 			/* do not append a glob, nor later a space */
 			*flagsp |= XCF_IS_SUBGLOB;
 		} else {
