@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.60 2011/05/29 02:18:49 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.61 2011/07/03 23:26:47 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -365,6 +365,11 @@ function Lstripcom {
 		_line=${_line%%#*}
 		[[ -n $_line ]] && print -r -- $_line
 	done; }
+}
+
+# give MidnightBSD's laffer1 a bit of csh feeling
+function setenv {
+	eval export $1'="$2"'
 }
 
 : place customisations below this line
