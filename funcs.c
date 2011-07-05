@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.191 2011/07/02 17:57:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.192 2011/07/05 19:56:24 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3596,9 +3596,12 @@ c_cat(const char **wp)
 		while (/* CONSTCOND */ 1) {
 			n = blocking_read(fd, (cp = buf), MKSH_CAT_BUFSIZ);
 			if (n == -1) {
-				if (errno == EINTR)
+				if (errno == EINTR) {
+					/* give the user a chance to ^C out */
+					intrcheck();
 					/* interrupted, try again */
 					continue;
+				}
 				/* an error occured during reading */
 				rv = errno;
 				bi_errorf("%s: %s", fn, strerror(rv));
