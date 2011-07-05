@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.61 2011/07/03 23:26:47 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.62 2011/07/05 20:19:17 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -25,12 +25,12 @@
 [[ $HOSTNAME = @(localhost|*([	 ])) ]] && HOSTNAME=$(ulimit -c 0;hostname 2>&-)
 : ${HOSTNAME:=nil}; if (( USER_ID )); then PS1='$'; else PS1='#'; fi
 function precmd {
-	typeset e=$?
+	local e=$?
 
 	(( e )) && print -n "$e|"
 }
 PS1='$(precmd)${USER:=$(ulimit -c 0;id -un 2>&-||print \?)}@${HOSTNAME%%.*}:$(
-	typeset d=${PWD:-?} n p=~; [[ $p = ?(*/) ]] || d=${d/#$p/~}
+	local d=${PWD:-?} n p=~; [[ $p = ?(*/) ]] || d=${d/#$p/~}
 	(( (${%d}>0 ? ${%d}: ${#d}) > (n = (COLUMNS/3<7 ? 7: COLUMNS/3)) )) && {
 	d=${d:(-n)}; p=...; } || p=; print -nr -- "$p$d") '"$PS1 "
 : ${MKSH:=$(whence -p mksh)}; export EDITOR HOSTNAME MKSH TERM USER
@@ -64,7 +64,7 @@ function cd {
 	chpwd "$@"
 }
 function cd_csh {
-	typeset d t=${1/#~/$DIRSTACKBASE}
+	local d t=${1/#~/$DIRSTACKBASE}
 
 	if ! d=$(builtin cd "$t" 2>&1); then
 		print -u2 "${1}: ${d##*$t - }."
@@ -73,8 +73,8 @@ function cd_csh {
 	cd "$t"
 }
 function dirs {
-	typeset d dwidth
-	typeset -i isnoglob=0 fl=0 fv=0 fn=0 cpos=0
+	local d dwidth
+	local -i isnoglob=0 fl=0 fv=0 fn=0 cpos=0
 
 	[[ $(set +o) == *@(-o noglob)@(| *) ]] && isnoglob=1
 	set -o noglob
@@ -120,8 +120,8 @@ function dirs {
 	return 0
 }
 function popd {
-	typeset d fa
-	typeset -i isnoglob=0 n=1
+	local d fa
+	local -i isnoglob=0 n=1
 
 	[[ $(set +o) == *@(-o noglob)@(| *) ]] && isnoglob=1
 	set -o noglob
@@ -159,8 +159,8 @@ function popd {
 	dirs $fa
 }
 function pushd {
-	typeset d fa
-	typeset -i isnoglob=0 n=1
+	local d fa
+	local -i isnoglob=0 n=1
 
 	[[ $(set +o) == *@(-o noglob)@(| *) ]] && isnoglob=1
 	set -o noglob
@@ -206,7 +206,7 @@ function pushd {
 
 # pager (not control character safe)
 function smores {
-	typeset dummy line llen curlin=0
+	local dummy line llen curlin=0
 
 	cat "$@" | while IFS= read -r line; do
 		llen=${%line}
@@ -224,12 +224,12 @@ function smores {
 
 # base64 encoder and decoder, RFC compliant, NUL safe
 function Lb64decode {
-	[[ -o utf8-mode ]]; typeset u=$?
+	[[ -o utf8-mode ]]; local u=$?
 	set +U
-	typeset c s="$*" t=
+	local c s="$*" t=
 	[[ -n $s ]] || { s=$(cat;print x); s=${s%x}; }
-	typeset -i i=0 n=${#s} p=0 v x
-	typeset -i16 o
+	local -i i=0 n=${#s} p=0 v x
+	local -i16 o
 
 	while (( i < n )); do
 		c=${s:(i++):1}
@@ -260,16 +260,16 @@ function Lb64decode {
 set -A Lb64encode_code -- A B C D E F G H I J K L M N O P Q R S T U V W X Y Z \
     a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9 + /
 function Lb64encode {
-	[[ -o utf8-mode ]]; typeset u=$?
+	[[ -o utf8-mode ]]; local u=$?
 	set +U
-	typeset c s t
+	local c s t
 	if (( $# )); then
 		read -raN-1 s <<<"$*"
 		unset s[${#s[*]}-1]
 	else
 		read -raN-1 s
 	fi
-	typeset -i i=0 n=${#s[*]} j v
+	local -i i=0 n=${#s[*]} j v
 
 	while (( i < n )); do
 		(( v = s[i++] << 16 ))
@@ -297,16 +297,16 @@ function Lb64encode {
 # DJB cdb hash (not via stdio, for speed)
 typeset -Z11 -Uui16 Lcdbhash_result
 function Lcdbhash_add {
-	[[ -o utf8-mode ]]; typeset u=$?
+	[[ -o utf8-mode ]]; local u=$?
 	set +U
-	typeset s
+	local s
 	if (( $# )); then
 		read -raN-1 s <<<"$*"
 		unset s[${#s[*]}-1]
 	else
 		read -raN-1 s
 	fi
-	typeset -i i=0 n=${#s[*]}
+	local -i i=0 n=${#s[*]}
 
 	while (( i < n )); do
 		((# Lcdbhash_result = (Lcdbhash_result * 33) ^ s[i++] ))
@@ -323,16 +323,16 @@ function Lcdbhash {
 # Jenkins one-at-a-time hash (not via stdio, for speed)
 typeset -Z11 -Uui16 Loaathash_result
 function Loaathash_add {
-	[[ -o utf8-mode ]]; typeset u=$?
+	[[ -o utf8-mode ]]; local u=$?
 	set +U
-	typeset s
+	local s
 	if (( $# )); then
 		read -raN-1 s <<<"$*"
 		unset s[${#s[*]}-1]
 	else
 		read -raN-1 s
 	fi
-	typeset -i i=0 n=${#s[*]}
+	local -i i=0 n=${#s[*]}
 
 	while (( i < n )); do
 		((# Loaathash_result = (Loaathash_result + s[i++]) *

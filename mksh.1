@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.266 2011/07/02 17:57:24 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.267 2011/07/05 20:19:18 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.140 2011/04/23 10:14:59 sobrado Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 2 2011 $
+.Dd $Mdocdate: July 5 2011 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -1352,6 +1352,7 @@ The construct
 is also recognised; the old and new values are immediately concatenated.
 The fourth way of setting a parameter is with the
 .Ic export ,
+.Ic global ,
 .Ic readonly ,
 and
 .Ic typeset
@@ -2045,6 +2046,7 @@ In parameter assignments
 in the arguments of
 .Ic alias ,
 .Ic export ,
+.Ic global ,
 .Ic readonly ,
 and
 .Ic typeset ) ,
@@ -2848,7 +2850,7 @@ Additional
 .Nm
 special commands
 .Pp
-.Ic builtin , times , typeset
+.Ic builtin , global , times , typeset
 .Pp
 Very special commands
 .Pq non-POSIX
