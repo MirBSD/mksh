@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.470 2011/07/02 17:57:37 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.471 2011/07/05 20:12:15 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2011/07/02
+	@(#)MIRBSD KSH R40 2011/07/05
 description:
 	Check version of shell.
 stdin:
@@ -5709,6 +5709,40 @@ expected-stdout-pattern:
 	/cat hist.file/
 expected-stderr-pattern:
 	/^X*$/
+---
+name: typeset-1
+description:
+	Check that global does what typeset is supposed to do
+stdin:
+	set -A arrfoo 65
+	foo() {
+		global -Uui16 arrfoo[*]
+	}
+	echo before ${arrfoo[0]} .
+	foo
+	echo after ${arrfoo[0]} .
+	set -A arrbar 65
+	bar() {
+		echo inside before ${arrbar[0]} .
+		arrbar[0]=97
+		echo inside changed ${arrbar[0]} .
+		global -Uui16 arrbar[*]
+		echo inside typeset ${arrbar[0]} .
+		arrbar[0]=48
+		echo inside changed ${arrbar[0]} .
+	}
+	echo before ${arrbar[0]} .
+	bar
+	echo after ${arrbar[0]} .
+expected-stdout:
+	before 65 .
+	after 16#41 .
+	before 65 .
+	inside before 65 .
+	inside changed 97 .
+	inside typeset 16#61 .
+	inside changed 16#30 .
+	after 16#30 .
 ---
 name: typeset-padding-1
 description:

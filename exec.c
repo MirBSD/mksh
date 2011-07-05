@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.92 2011/05/29 02:18:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.93 2011/07/05 20:12:17 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -669,7 +669,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	/* function call */
 	case CFUNC: {
 		volatile unsigned char old_xflag;
-		volatile Tflag old_inuse;
+		volatile uint32_t old_inuse;
 		const char * volatile old_kshname;
 
 		if (!(tp->flag & ISSET)) {
@@ -1033,7 +1033,7 @@ const char *
 builtin(const char *name, int (*func) (const char **))
 {
 	struct tbl *tp;
-	Tflag flag;
+	uint32_t flag;
 
 	/* see if any flags should be set for this builtin */
 	for (flag = 0; ; name++) {

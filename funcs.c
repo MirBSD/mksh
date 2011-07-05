@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.192 2011/07/05 19:56:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.193 2011/07/05 20:12:18 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -604,7 +604,7 @@ c_typeset(const char **wp)
 {
 	struct block *l;
 	struct tbl *vp, **p;
-	Tflag fset = 0, fclr = 0, flag;
+	uint32_t fset = 0, fclr = 0, flag;
 	int thing = 0, field, base, optc;
 	const char *opts;
 	const char *fieldstr, *basestr;
@@ -966,7 +966,7 @@ c_alias(const char **wp)
 	struct table *t = &aliases;
 	int rv = 0, prefix = 0;
 	bool rflag = false, tflag, Uflag = false, pflag = false;
-	Tflag xflag = 0;
+	uint32_t xflag = 0;
 	int optc;
 
 	builtin_opt.flags |= GF_PLUSOPT;

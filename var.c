@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.127 2011/07/02 17:57:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.128 2011/07/05 20:12:20 tg Exp $");
 
 /*-
  * Variables
@@ -687,7 +687,7 @@ exportprep(struct tbl *vp, const char *val)
  * UCASEV_AL), and optionally set its value if an assignment.
  */
 struct tbl *
-typeset(const char *var, Tflag set, Tflag clr, int field, int base)
+typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 {
 	struct tbl *vp;
 	struct tbl *vpbase, *t;

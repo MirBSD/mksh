@@ -151,9 +151,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.481 2011/07/02 17:57:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.482 2011/07/05 20:12:19 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2011/07/02"
+#define MKSH_VERSION "R40 2011/07/05"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -343,9 +343,6 @@ extern int wcwidth(__WCHAR_TYPE__);
 /* define bit in flag */
 #define BIT(i)		(1 << (i))
 #define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
-
-/* Table flag type - needs > 16 and < 32 bits */
-typedef int32_t Tflag;
 
 /* arithmetics types */
 typedef int32_t mksh_ari_t;
@@ -843,7 +840,7 @@ EXTERN sigset_t		sm_default, sm_sigchld;
 /* name of called builtin function (used by error functions) */
 EXTERN const char *builtin_argv0;
 /* flags of called builtin (SPEC_BI, etc.) */
-EXTERN Tflag builtin_flag;
+EXTERN uint32_t builtin_flag;
 
 /* current working directory */
 EXTERN char	*current_wd;
@@ -946,31 +943,40 @@ struct table {
 	uint8_t tshift;		/* table size (2^tshift) */
 };
 
-struct tbl {			/* table item */
-	Area *areap;		/* area to allocate from */
+/* table item */
+struct tbl {
+	/* Area to allocate from */
+	Area *areap;
+	/* value */
 	union {
-		char *s;		/* string */
-		mksh_ari_t i;		/* integer */
-		mksh_uari_t u;		/* unsigned integer */
-		int (*f)(const char **); /* int function */
-		struct op *t;		/* "function" tree */
-	} val;			/* value */
+		char *s;			/* string */
+		mksh_ari_t i;			/* integer */
+		mksh_uari_t u;			/* unsigned integer */
+		int (*f)(const char **);	/* built-in command */
+		struct op *t;			/* "function" tree */
+	} val;
 	union {
 		struct tbl *array;	/* array values */
 		const char *fpath;	/* temporary path to undef function */
 	} u;
 	union {
-		int field;	/* field with for -L/-R/-Z */
-		int errno_;	/* CEXEC/CTALIAS */
+		int field;		/* field with for -L/-R/-Z */
+		int errno_;		/* CEXEC/CTALIAS */
 	} u2;
-	int type;		/* command type (see below), base (if INTEGER),
-				 * or offset from val.s of value (if EXPORT) */
-	Tflag flag;		/* flags */
 	union {
 		uint32_t hval;		/* hash(name) */
 		uint32_t index;		/* index for an array */
 	} ua;
-	char name[4];		/* name -- variable length */
+	/*
+	 * command type (see below), base (if INTEGER),
+	 * offset from val.s of value (if EXPORT)
+	 */
+	int type;
+	/* flags (see below) */
+	uint32_t flag;
+
+	/* actually longer: name (variable length) */
+	char name[4];
 };
 
 /* common flag bits */
@@ -1797,7 +1803,7 @@ int setstr(struct tbl *, const char *, int);
 struct tbl *setint_v(struct tbl *, struct tbl *, bool);
 void setint(struct tbl *, mksh_ari_t);
 void setint_n(struct tbl *, mksh_ari_t);
-struct tbl *typeset(const char *, Tflag, Tflag, int, int)
+struct tbl *typeset(const char *, uint32_t, uint32_t, int, int)
     MKSH_A_NONNULL((__nonnull__ (1)));
 void unset(struct tbl *, int);
 const char *skip_varname(const char *, int);
