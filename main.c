@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.194 2011/07/02 17:57:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.195 2011/07/06 22:21:57 tg Exp $");
 
 extern char **environ;
 
@@ -131,12 +131,12 @@ rndsetup(void)
 	/* introduce variation */
 	gettimeofday(&bufptr->tv, &bufptr->tz);
 
-	oaat1_init_impl(h);
+	NZATInit(h);
 	/* variation through pid, ppid, and the works */
-	oaat1_addmem_impl(h, &rndsetupstate, sizeof(rndsetupstate));
+	NZATUpdateMem(h, &rndsetupstate, sizeof(rndsetupstate));
 	/* some variation, some possibly entropy, depending on OE */
-	oaat1_addmem_impl(h, bufptr, sizeof(*bufptr));
-	oaat1_fini_impl(h);
+	NZATUpdateMem(h, bufptr, sizeof(*bufptr));
+	NZAATFinish(h);
 
 	afree(cp, APERM);
 	return ((mksh_uari_t)h);

@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.168 2011/06/12 15:37:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.169 2011/07/06 22:21:57 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1867,9 +1867,9 @@ chvt(const char *fn)
 	{
 		register uint32_t h;
 
-		oaat1_init_impl(h);
-		oaat1_addmem_impl(h, &rndsetupstate, sizeof(rndsetupstate));
-		oaat1_fini_impl(h);
+		NZATInit(h);
+		NZATUpdateMem(h, &rndsetupstate, sizeof(rndsetupstate));
+		NZAATFinish(h);
 		rndset((long)h);
 	}
 	chvt_reinit();

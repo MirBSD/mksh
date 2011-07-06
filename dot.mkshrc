@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.62 2011/07/05 20:19:17 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.63 2011/07/06 22:21:56 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -294,9 +294,9 @@ function Lb64encode {
 	(( u )) || set -U
 }
 
-# DJB cdb hash (not via stdio, for speed)
-typeset -Z11 -Uui16 Lcdbhash_result
-function Lcdbhash_add {
+# mksh NUL counting, never zero
+typeset -Z11 -Uui16 Lnzathash_v
+function Lnzathash_add {
 	[[ -o utf8-mode ]]; local u=$?
 	set +U
 	local s
@@ -309,53 +309,32 @@ function Lcdbhash_add {
 	local -i i=0 n=${#s[*]}
 
 	while (( i < n )); do
-		((# Lcdbhash_result = (Lcdbhash_result * 33) ^ s[i++] ))
+		((# Lnzathash_v = (Lnzathash_v + s[i++] + 1) * 1025 ))
+		((# Lnzathash_v ^= Lnzathash_v >> 6 ))
 	done
 
 	(( u )) || set -U
 }
-function Lcdbhash {
-	Lcdbhash_result=5381
-	Lcdbhash_add "$@"
-	print ${Lcdbhash_result#16#}
+function Lnzaathash_end {
+	((# Lnzathash_v += Lnzathash_v << 3 ))
+	((# Lnzathash_v = (Lnzathash_v ^
+	    (Lnzathash_v >> 11)) * 32769 ))
+	print ${Lnzathash_v#16#}
 }
-
-# Jenkins one-at-a-time hash (not via stdio, for speed)
-typeset -Z11 -Uui16 Loaathash_result
-function Loaathash_add {
-	[[ -o utf8-mode ]]; local u=$?
-	set +U
-	local s
-	if (( $# )); then
-		read -raN-1 s <<<"$*"
-		unset s[${#s[*]}-1]
+function Lnzaathash {
+	Lnzathash_v=0
+	Lnzathash_add "$@"
+	Lnzaathash_end
+}
+function Lnzathash {
+	Lnzathash_v=0
+	Lnzathash_add "$@"
+	if (( Lnzathash_v )); then
+		Lnzaathash_end
 	else
-		read -raN-1 s
+		Lnzathash_v=1
+		print ${Lnzathash_v#16#}
 	fi
-	local -i i=0 n=${#s[*]}
-
-	while (( i < n )); do
-		((# Loaathash_result = (Loaathash_result + s[i++]) *
-		    1025 ))
-		((# Loaathash_result ^= Loaathash_result >> 6 ))
-	done
-
-	(( u )) || set -U
-}
-function Loaathash_do {
-	Loaathash_add "$@"
-	((# Loaathash_result += Loaathash_result << 3 ))
-	((# Loaathash_result = (Loaathash_result ^
-	    (Loaathash_result >> 11)) * 32769 ))
-	print ${Loaathash_result#16#}
-}
-function Loaathash {
-	Loaathash_result=0
-	Loaathash_do "$@"
-}
-function Loaathash1 {
-	Loaathash_result=0x100
-	Loaathash_do "$@"
 }
 
 # strip comments (and leading/trailing whitespace if IFS is set) from
