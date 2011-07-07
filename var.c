@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.129 2011/07/06 22:22:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.130 2011/07/07 20:24:53 tg Exp $");
 
 /*-
  * Variables
@@ -1461,7 +1461,7 @@ change_winsz(void)
 #ifdef TIOCGWINSZ
 		if (tty_fd < 0)
 			/* non-FTALKING, try to get an fd anyway */
-			tty_init(false, false);
+			tty_init(true, false);
 #endif
 		x_cols = -1;
 	}
