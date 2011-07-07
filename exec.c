@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.93 2011/07/05 20:12:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.94 2011/07/07 21:24:52 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -588,6 +588,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				subst_exstat = 0;
 				break;
 			}
+#ifndef MKSH_NO_EXTERNAL_CAT
 		} else if (tp->val.f == c_cat) {
 			/*
 			 * if we have any flags, do not use the builtin
@@ -605,6 +606,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			else
 				/* go on, use the builtin */
 				break;
+#endif
 		} else
 			break;
 		tp = findcom(ap[0], fcflags & (FC_BI|FC_FUNC));
