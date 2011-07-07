@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484 2011/07/07 21:24:51 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.1 2011/07/07 21:42:08 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -326,6 +326,10 @@ do
 	:-c)
 		last=c
 		;;
+	:-combine)
+		cm=combine
+		echo "$me: Warning: '$i' is deprecated, use '-c combine' instead!" >&2
+		;;
 	:-g)
 		# checker, debug, valgrind build
 		CPPFLAGS="$CPPFLAGS -DDEBUG"
@@ -333,6 +337,16 @@ do
 		;;
 	:-j)
 		pm=1
+		;;
+	:-llvm)
+		cm=llvm
+		optflags=-std-compile-opts
+		echo "$me: Warning: '$i' is deprecated, use '-c llvm -O' instead!" >&2
+		;;
+	:-llvm=*)
+		cm=llvm
+		optflags=`echo "x$i" | sed 's/^x-llvm=//'`
+		echo "$me: Warning: '$i' is deprecated, use '-c llvm -o $llvm' instead!" >&2
 		;;
 	:-M)
 		cm=makefile

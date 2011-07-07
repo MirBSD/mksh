@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.474 2011/07/07 21:02:39 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.474.2.1 2011/07/07 21:42:10 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -6570,7 +6570,7 @@ stdin:
 	unset baz
 	print ${foo@#} ${bar@#} ${baz@#} .
 expected-stdout:
-	3BA2B200 9072C3DA 00000001 .
+	E76664C2 57F1BA9A 04808901 .
 ---
 name: varexpand-null-1
 description:
