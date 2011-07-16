@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.195.2.1 2011/07/07 21:42:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.195.2.2 2011/07/16 16:04:11 tg Exp $");
 
 extern char **environ;
 
@@ -524,13 +524,13 @@ main(int argc, const char *argv[])
 		warningf(false, "can't determine current directory");
 
 	if (Flag(FLOGIN)) {
-		include(KSH_SYSTEM_PROFILE, 0, NULL, 1);
+		include(MKSH_SYSTEM_PROFILE, 0, NULL, 1);
 		if (!Flag(FPRIVILEGED))
 			include(substitute("$HOME/.profile", 0), 0,
 			    NULL, 1);
 	}
 	if (Flag(FPRIVILEGED))
-		include("/etc/suid_profile", 0, NULL, 1);
+		include(MKSH_SUID_PROFILE, 0, NULL, 1);
 	else if (Flag(FTALKING)) {
 		char *env_file;
 

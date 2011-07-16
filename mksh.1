@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.269.2.3 2011/07/16 15:47:53 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.269.2.4 2011/07/16 16:04:13 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.140 2011/04/23 10:14:59 sobrado Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -201,9 +201,9 @@ and
 parameters).
 It also processes the
 .Ev ENV
-parameter or
-.Pa $HOME/.mkshrc
-(see below).
+parameter or the
+.Pa mkshrc
+file (see below).
 For non-interactive shells, the
 .Ic trackall
 option is on by default (see the
@@ -215,12 +215,9 @@ If the basename the shell is called with (i.e. argv[0])
 starts with
 .Ql \-
 or if this option is used,
-the shell is assumed to be a login shell and the shell reads and executes
-the contents of
-.Pa /etc/profile
-and
-.Pa $HOME/.profile
-if they exist and are readable.
+the shell is assumed to be a login shell; see
+.Sx Startup files
+below.
 .It Fl p
 Privileged shell.
 A shell is
@@ -231,18 +228,10 @@ effective user ID or group ID (see
 .Xr getuid 2
 and
 .Xr getgid 2 ) .
-A privileged shell does not process
-.Pa $HOME/.profile
-nor the
-.Ev ENV
-parameter or
-.Pa $HOME/.mkshrc
-(see below).
-Instead, the file
-.Pa /etc/suid_profile
-is processed.
 Clearing the privileged option causes the shell to set
 its effective user ID (group ID) to its real user ID (group ID).
+For further implications, see
+.Sx Startup files .
 .It Fl r
 Restricted shell.
 A shell is
@@ -321,31 +310,25 @@ option is used and there is a non-option argument, it is used as the name;
 if commands are being read from a file, the file is used as the name;
 otherwise, the basename the shell was called with (i.e. argv[0]) is used.
 .Pp
-If the
-.Ev ENV
-parameter is set when an interactive shell starts (or, in the case of login
-shells, after any profiles are processed), its value is subjected to
-parameter, command, arithmetic, and tilde
-.Pq Sq \*(TI
-substitution and the resulting file
-(if any) is read and executed.
-If the
-.Ev ENV
-variable is unset or empty, the file
-.Pa $HOME/.mkshrc
-is read and processed like above instead, leaving
-.Ev ENV
-unchanged.
-This processing does not occur if
-.Ev ENV
-is set to a non-existing filename.
-.Pp
 The exit status of the shell is 127 if the command file specified on the
 command line could not be opened, or non-zero if a fatal syntax error
 occurred during the execution of a script.
 In the absence of fatal errors,
 the exit status is that of the last command executed, or zero, if no
 command is executed.
+.Ss Startup files
+For the actual location of these files, see
+.Sx FILES .
+A login shell processes the system profile first.
+A privileged shell then processes the suid profile.
+A non-privileged login shell processes the user profile next.
+A non-privileged interactive shell checks the value of the
+.Ev ENV
+parameter after subjecting it to parameter, command, arithmetic and tilde
+.Pq Sq \*(TI
+substitution; if unset or empty, the user mkshrc profile is processed;
+otherwise, if a file whose name is the substitution result exists,
+it is processed; non-existence is silently ignored.
 .Ss Command syntax
 The shell begins parsing its input by removing any backslash-newline
 combinations, then breaking it into
@@ -6121,22 +6104,30 @@ The interrupt and quit terminal characters cause the current line to be
 deleted and a new prompt to be printed.
 .El
 .Sh FILES
-.Bl -tag -width "/etc/suid_profileXX" -compact
+.Bl -tag -width XetcXsuid_profile -compact
 .It Pa \*(TI/.mkshrc
-User's startup script (interactive shells).
-Used only if
-.Ev ENV
-is unset or empty.
-The location can be changed at compile time (for embedded systems).
+User mkshrc profile (non-privileged interactive shells); see
+.Sx Startup files.
+The location can be changed at compile time (for embedded systems);
+AOSP Android builds use
+.Pa /system/etc/mkshrc .
 .It Pa \*(TI/.profile
-User's login profile.
+User profile (non-privileged login shells); see
+.Sx Startup files
+near the top of this manual.
 .It Pa /etc/profile
-System login profile.
+System profile (login shells); see
+.Sx Startup files.
 .It Pa /etc/shells
 Shell database.
 .It Pa /etc/suid_profile
-Privileged shell profile.
+Suid profile (privileged shells); see
+.Sx Startup files.
 .El
+.Pp
+Note: On Android,
+.Pa /system/etc/
+contains the system and suid profile.
 .Sh SEE ALSO
 .Xr awk 1 ,
 .Xr cat 1 ,
