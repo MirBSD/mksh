@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.218 2011/07/02 17:57:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.219 2011/07/16 18:15:45 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -3273,7 +3273,7 @@ static int Backword(int);
 static int Endword(int);
 static int grabhist(int, int);
 static int grabsearch(int, int, int, char *);
-static void redraw_line(int);
+static void redraw_line(bool);
 static void refresh(int);
 static int outofwin(void);
 static void rewindow(void);
@@ -3450,8 +3450,10 @@ x_vi(char *buf, size_t len)
 		wbuf[0] = aresize(wbuf[0], wbuf_len, APERM);
 		wbuf[1] = aresize(wbuf[1], wbuf_len, APERM);
 	}
-	(void)memset(wbuf[0], ' ', wbuf_len);
-	(void)memset(wbuf[1], ' ', wbuf_len);
+	if (wbuf_len) {
+		memset(wbuf[0], ' ', wbuf_len);
+		memset(wbuf[1], ' ', wbuf_len);
+	}
 	winwidth = x_cols - pwidth - 3;
 	win = 0;
 	morec = ' ';
@@ -3959,7 +3961,7 @@ vi_cmd(int argcnt, const char *cmd)
 
 		case Ctrl('l'):
 		case Ctrl('r'):
-			redraw_line(1);
+			redraw_line(true);
 			break;
 
 		case '@':
@@ -4925,9 +4927,10 @@ grabsearch(int save, int start, int fwd, char *pat)
 }
 
 static void
-redraw_line(int newl)
+redraw_line(bool newl)
 {
-	(void)memset(wbuf[win], ' ', wbuf_len);
+	if (wbuf_len)
+		memset(wbuf[win], ' ', wbuf_len);
 	if (newl) {
 		x_putc('\r');
 		x_putc('\n');
@@ -5209,7 +5212,7 @@ complete_word(int cmd, int count)
 			x_print_expansions(nwords, words,
 			    tobool(flags & XCF_IS_COMMAND));
 			x_free_words(nwords, words);
-			redraw_line(0);
+			redraw_line(false);
 			return (-1);
 		}
 		/*
@@ -5291,7 +5294,7 @@ print_expansions(struct edstate *est, int cmd MKSH_A_UNUSED)
 	}
 	x_print_expansions(nwords, words, tobool(i & XCF_IS_COMMAND));
 	x_free_words(nwords, words);
-	redraw_line(0);
+	redraw_line(false);
 	return (0);
 }
 
