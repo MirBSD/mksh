@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.42 2011/07/16 17:07:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.41.2.1 2011/07/16 13:16:46 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */

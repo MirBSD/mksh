@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.79 2011/07/16 17:41:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.78.2.2 2011/07/16 23:37:59 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -353,6 +353,7 @@ j_change(void)
 }
 #endif
 
+#if HAVE_NICE
 /* run nice(3) and ignore the result */
 static void
 ksh_nice(int ness)
@@ -368,6 +369,7 @@ ksh_nice(int ness)
 	(void)nice(ness);
 #endif
 }
+#endif
 
 /* execute tree in child subprocess */
 int

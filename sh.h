@@ -9,28 +9,28 @@
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
 /*-
- * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
- * is granted to deal in this work without restriction, including un‐
+ * is granted to deal in this work without restriction, including un-
  * limited rights to use, publicly perform, distribute, sell, modify,
  * merge, give away, or sublicence.
  *
- * This work is provided “AS IS” and WITHOUT WARRANTY of any kind, to
+ * This work is provided "AS IS" and WITHOUT WARRANTY of any kind, to
  * the utmost extent permitted by applicable law, neither express nor
  * implied; without malicious intent or gross negligence. In no event
  * may a licensor, author or contributor be held liable for indirect,
  * direct, other damage, loss, or other issues arising in any way out
  * of dealing in the work, even if advised of the possibility of such
  * damage or existence of a defect, except proven that it results out
- * of said person’s immediate fault when using the work as intended.
+ * of said person's immediate fault when using the work as intended.
  */
 
 #ifdef __dietlibc__
 /* XXX imake style */
-#define _BSD_SOURCE	/* live, BSD, live❣ */
+#define _BSD_SOURCE	/* live, BSD, live! */
 #endif
 
 #if HAVE_SYS_PARAM_H
@@ -151,9 +151,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.487 2011/07/16 17:08:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.484.2.3 2011/07/16 16:04:16 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2011/07/15"
+#define MKSH_VERSION "R40 2011/07/16"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1471,55 +1471,35 @@ EXTERN struct timeval j_usrtime, j_systime;
 		    '+', (unsigned long)(cnst));			\
 } while (/* CONSTCOND */ 0)
 
-
-/* NZAT/NZAAT hashes based on Bob Jenkins' one-at-a-time hash */
-
-/* From: src/kern/include/nzat.h,v 1.1 2011/07/06 22:18:52 tg Exp $ */
-
-#define NZATInit(h) do {					\
-	(h) = 0;						\
+/* Bob Jenkins' one-at-a-time hash, with better start value */
+#define oaat1_init_impl(h) do {						\
+	(h) = 0x100;							\
 } while (/* CONSTCOND */ 0)
-
-#define NZATUpdateByte(h,b) do {				\
-	(h) += (uint8_t)(b);					\
-	++(h);							\
-	(h) += (h) << 10;					\
-	(h) ^= (h) >> 6;					\
+#define oaat1_addmem_impl(h, buf, len) do {				\
+	register const uint8_t *oaat1_addmem_p = (const void *)(buf);	\
+	register size_t oaat1_addmem_n = (len);				\
+									\
+	while (oaat1_addmem_n--) {					\
+		(h) += *oaat1_addmem_p++;				\
+		(h) += (h) << 10;					\
+		(h) ^= (h) >> 6;					\
+	}								\
 } while (/* CONSTCOND */ 0)
-
-#define NZATUpdateMem(h,p,z) do {				\
-	register const uint8_t *NZATUpdateMem_p;		\
-	register size_t NZATUpdateMem_z = (z);			\
-								\
-	NZATUpdateMem_p = (const void *)(p);			\
-	while (NZATUpdateMem_z--)				\
-		NZATUpdateByte((h), *NZATUpdateMem_p++);	\
+#define oaat1_addstr_impl(h, s) do {					\
+	register const uint8_t *oaat1_addstr_p = (const void *)(s);	\
+	register uint8_t oaat1_addstr_c;				\
+									\
+	while ((oaat1_addstr_c = *oaat1_addstr_p++)) {			\
+		h += oaat1_addstr_c;					\
+		(h) += (h) << 10;					\
+		(h) ^= (h) >> 6;					\
+	}								\
 } while (/* CONSTCOND */ 0)
-
-#define NZATUpdateString(h,s) do {				\
-	register const char *NZATUpdateString_s;		\
-	register uint8_t NZATUpdateString_c;			\
-								\
-	NZATUpdateString_s = (const void *)(s);			\
-	while ((NZATUpdateString_c = *NZATUpdateString_s++))	\
-		NZATUpdateByte((h), NZATUpdateString_c);	\
+#define oaat1_fini_impl(h) do {						\
+	(h) += (h) << 3;						\
+	(h) ^= (h) >> 11;						\
+	(h) += (h) << 15;						\
 } while (/* CONSTCOND */ 0)
-
-/* not zero after termination */
-#define NZATFinish(h) do {					\
-	if ((h) == 0)						\
-		++(h);						\
-	else							\
-		NZAATFinish(h);					\
-} while (/* CONSTCOND */ 0)
-
-/* NULs zählen an allen Teilen */
-#define NZAATFinish(h) do {					\
-	(h) += (h) << 3;					\
-	(h) ^= (h) >> 11;					\
-	(h) += (h) << 15;					\
-} while (/* CONSTCOND */ 0)
-
 
 /* lalloc.c */
 void ainit(Area *);

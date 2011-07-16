@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.272 2011/07/16 17:08:20 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.269.2.4 2011/07/16 16:04:13 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.140 2011/04/23 10:14:59 sobrado Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -1617,8 +1617,8 @@ Cannot be applied to a vector.
 .It Pf ${ Ns Ar name Ns @#}
 The internal hash of the expansion of
 .Ar name .
-At the moment, this is NZAT (a never-zero 32-bit hash based on
-Bob Jenkins' one-at-a-time hash), but this is not set.
+At the moment, this is OAAT1 (Bob Jenkins' one-at-a-time hash with
+an initialisation value of 0x00000100), this will change for R41.
 This is the hash the shell uses internally for its associative arrays.
 .El
 .Pp
@@ -4041,6 +4041,11 @@ during file name generation.
 Print commands and parameter assignments when they are executed, preceded by
 the value of
 .Ev PS4 .
+.It Fl o Ic arc4random
+Deprecated, will be removed in
+.Nm
+R41.
+Do not use, emits a warning to stderr.
 .It Fl o Ic bgnice
 Background jobs are run with lower priority.
 .It Fl o Ic braceexpand
@@ -6252,7 +6257,7 @@ $ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R40+CVS
+.Nm mksh\ R40b
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
