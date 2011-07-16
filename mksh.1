@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.269.2.2 2011/07/16 13:59:08 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.269.2.3 2011/07/16 15:47:53 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.140 2011/04/23 10:14:59 sobrado Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -176,7 +176,7 @@ Most builtins can be called directly, for example if a link points from its
 name to the shell; not all make sense, have been tested or work at all though.
 .Pp
 The options are as follows:
-.Bl -tag -width Ds
+.Bl -tag -width XcXstring
 .It Fl c Ar string
 .Nm
 will execute the command(s) contained in
@@ -627,7 +627,7 @@ $ { { echo foo; echo bar; } }
 This is not valid:
 .Pp
 .Dl $ { echo foo; echo bar }
-.Bl -tag -width Ds
+.Bl -tag -width 4n
 .It Pq Ar list
 Execute
 .Ar list
@@ -682,13 +682,15 @@ and
 e.g.\&
 .Ic case $foo { *) echo bar;; } .
 .Pp
-The list terminators are
-.Ql ;;
-(terminate after the list),
-.Ql ;&\&
-(fall through into the next list) and
-.Ql ;\*(Ba\&
-(evaluate the remaining pattern-list tuples).
+The list terminators are:
+.Bl -tag -width 4n
+.It Ql ;;
+Terminate after the list.
+.It Ql ;&\&
+Fall through into the next list.
+.It Ql ;\*(Ba\&
+Evaluate the remaining pattern-list tuples.
+.El
 .Pp
 The exit status of a
 .Ic case
@@ -870,10 +872,10 @@ keyword is ignored.
 .Op Ar pipeline
 .Xc
 The
-.Ic time
-reserved word is described in the
 .Sx Command execution
-section.
+section describes the
+.Ic time
+reserved word.
 .It \&(( Ar expression No ))
 The arithmetic expression
 .Ar expression
@@ -890,7 +892,7 @@ Similar to the
 and
 .Ic \&[ ... \&]
 commands (described later), with the following exceptions:
-.Bl -bullet -offset indent
+.Bl -bullet
 .It
 Field splitting and file name generation are not performed on arguments.
 .It
@@ -1651,7 +1653,7 @@ is set.
 .Pp
 The following special parameters are implicitly set by the shell and cannot be
 set directly using assignments:
-.Bl -tag -width "1 ... 9"
+.Bl -tag -width "1 .. 9"
 .It Ev \&!
 Process ID of the last background process started.
 If no background processes have been started, the parameter is not set.
@@ -1689,7 +1691,7 @@ is also set to the name of the current script or
 the name of the current function, if it was defined with the
 .Ic function
 keyword (i.e. a Korn shell style function).
-.It Ev 1 No ... Ev 9
+.It Ev 1 No .. Ev 9
 The first nine positional parameters that were supplied to the shell, function,
 or script sourced using the
 .Sq \&.
@@ -1697,7 +1699,8 @@ built-in.
 Further positional parameters may be accessed using
 .Pf ${ Ar number Ns } .
 .It Ev *
-All positional parameters (except parameter 0) i.e. $1, $2, $3, ...
+All positional parameters (except 0), i.e. $1, $2, $3, ...
+.br
 If used
 outside of double quotes, parameters are separate words (which are subjected
 to word splitting); if used within double quotes, parameters are separated
@@ -1914,13 +1917,13 @@ The
 distribution comes with a sample
 .Pa dot.mkshrc
 containing a sophisticated example, but you might like the following one
-(note that ${HOSTNAME:=$(hostname \-s)} and the
+(note that ${HOSTNAME:=$(hostname)} and the
 root-vs-user distinguishing clause are (in this example) executed at
 .Ev PS1
 assignment time, while the $USER and $PWD are escaped
 and thus will be evaluated each time a prompt is displayed):
 .Bd -literal
-PS1=\*(aq${USER:=$(id \-un)}\*(aq"@${HOSTNAME:=$(hostname \-s)}:\e$PWD $(
+PS1=\*(aq${USER:=$(id \-un)}\*(aq"@${HOSTNAME:=$(hostname)}:\e$PWD $(
 	if (( USER_ID )); then print \e$; else print \e#; fi) "
 .Ed
 .Pp
@@ -3899,7 +3902,7 @@ syntax, where
 is the option's single letter name (not all options have a single letter name).
 The following table lists both option letters (if they exist) and long names
 along with a description of what the option does:
-.Bl -tag -width 15n
+.Bl -tag -width 3n
 .It Fl A Ar name
 Sets the elements of the array parameter
 .Ar name
@@ -3939,17 +3942,17 @@ or
 which can also be written
 .Ic foo=([0]=a b c)
 because indices are incremented automatically.
-.It Fl a \*(Ba Ic allexport
+.It Fl a \*(Ba Fl o Ic allexport
 All new parameters are created with the export attribute.
-.It Fl b \*(Ba Ic notify
+.It Fl b \*(Ba Fl o Ic notify
 Print job notification messages asynchronously, instead of just before the
 prompt.
 Only used if job control is enabled
 .Pq Fl m .
-.It Fl C \*(Ba Ic noclobber
+.It Fl C \*(Ba Fl o Ic noclobber
 Prevent \*(Gt redirection from overwriting existing files.
 Instead, \*(Gt\*(Ba must be used to force an overwrite.
-.It Fl e \*(Ba Ic errexit
+.It Fl e \*(Ba Fl o Ic errexit
 Exit (after executing the
 .Dv ERR
 trap) as soon as an error occurs or a command fails (i.e. exits with a
@@ -3964,40 +3967,40 @@ explicitly tested by a shell construct such as
 or
 .Ic !\&
 statements.
-.It Fl f \*(Ba Ic noglob
+.It Fl f \*(Ba Fl o Ic noglob
 Do not expand file name patterns.
-.It Fl h \*(Ba Ic trackall
+.It Fl h \*(Ba Fl o Ic trackall
 Create tracked aliases for all executed commands (see
 .Sx Aliases
 above).
 Enabled by default for non-interactive shells.
-.It Fl i \*(Ba Ic interactive
+.It Fl i \*(Ba Fl o Ic interactive
 The shell is an interactive shell.
 This option can only be used when the shell is invoked.
 See above for a description of what this means.
-.It Fl k \*(Ba Ic keyword
+.It Fl k \*(Ba Fl o Ic keyword
 Parameter assignments are recognised anywhere in a command.
-.It Fl l \*(Ba Ic login
+.It Fl l \*(Ba Fl o Ic login
 The shell is a login shell.
 This option can only be used when the shell is invoked.
 See above for a description of what this means.
-.It Fl m \*(Ba Ic monitor
+.It Fl m \*(Ba Fl o Ic monitor
 Enable job control (default for interactive shells).
-.It Fl n \*(Ba Ic noexec
+.It Fl n \*(Ba Fl o Ic noexec
 Do not execute any commands.
 Useful for checking the syntax of scripts
 (ignored if interactive).
-.It Fl p \*(Ba Ic privileged
+.It Fl p \*(Ba Fl o Ic privileged
 The shell is a privileged shell.
 It is set automatically if, when the shell starts,
 the real UID or GID does not match
 the effective UID (EUID) or GID (EGID), respectively.
 See above for a description of what this means.
-.It Fl r \*(Ba Ic restricted
+.It Fl r \*(Ba Fl o Ic restricted
 The shell is a restricted shell.
 This option can only be used when the shell is invoked.
 See above for a description of what this means.
-.It Fl s \*(Ba Ic stdin
+.It Fl s \*(Ba Fl o Ic stdin
 If used when the shell is invoked, commands are read from standard input.
 Set automatically if the shell is invoked with no arguments.
 .Pp
@@ -4011,7 +4014,7 @@ the positional parameters (or to array
 if
 .Fl A
 is used).
-.It Fl U \*(Ba Ic utf8\-mode
+.It Fl U \*(Ba Fl o Ic utf8\-mode
 Enable UTF-8 support in the
 .Sx Emacs editing mode
 and internal string handling functions.
@@ -4034,7 +4037,7 @@ or
 case-insensitively; for direct builtin calls depending on the
 aforementioned environment variables; or for stdin or scripts,
 if the input begins with a UTF-8 Byte Order Mark.
-.It Fl u \*(Ba Ic nounset
+.It Fl u \*(Ba Fl o Ic nounset
 Referencing of an unset parameter, other than
 .Dq $@
 or
@@ -4045,42 +4048,42 @@ is treated as an error, unless one of the
 or
 .Ql =
 modifiers is used.
-.It Fl v \*(Ba Ic verbose
+.It Fl v \*(Ba Fl o Ic verbose
 Write shell input to standard error as it is read.
-.It Fl X \*(Ba Ic markdirs
+.It Fl X \*(Ba Fl o Ic markdirs
 Mark directories with a trailing
 .Ql /
 during file name generation.
-.It Fl x \*(Ba Ic xtrace
+.It Fl x \*(Ba Fl o Ic xtrace
 Print commands and parameter assignments when they are executed, preceded by
 the value of
 .Ev PS4 .
-.It Ic arc4random
+.It Fl o Ic arc4random
 Deprecated, will be removed in
 .Nm
 R41.
 Do not use, emits a warning to stderr.
-.It Ic bgnice
+.It Fl o Ic bgnice
 Background jobs are run with lower priority.
-.It Ic braceexpand
+.It Fl o Ic braceexpand
 Enable brace expansion (a.k.a. alternation).
 This is enabled by default.
 If disabled, tilde expansion after an equals sign is disabled as a side effect.
-.It Ic emacs
+.It Fl o Ic emacs
 Enable BRL emacs-like command-line editing (interactive shells only); see
 .Sx Emacs editing mode .
-.It Ic gmacs
+.It Fl o Ic gmacs
 Enable gmacs-like command-line editing (interactive shells only).
 Currently identical to emacs editing except that transpose\-chars (\*(haT) acts
 slightly differently.
-.It Ic ignoreeof
+.It Fl o Ic ignoreeof
 The shell will not (easily) exit when end-of-file is read;
 .Ic exit
 must be used.
 To avoid infinite loops, the shell will exit if
 .Dv EOF
 is read 13 times in a row.
-.It Ic nohup
+.It Fl o Ic nohup
 Do not kill running jobs with a
 .Dv SIGHUP
 signal when a login shell exits.
@@ -4092,11 +4095,11 @@ which
 doesn't have this option, but does send the
 .Dv SIGHUP
 signal.
-.It Ic nolog
+.It Fl o Ic nolog
 No effect.
 In the original Korn shell, this prevents function definitions from
 being stored in the history file.
-.It Ic physical
+.It Fl o Ic physical
 Causes the
 .Ic cd
 and
@@ -4122,7 +4125,7 @@ See the
 and
 .Ic pwd
 commands above for more details.
-.It Ic posix
+.It Fl o Ic posix
 Enable a somewhat more
 .Px
 ish mode.
@@ -4131,7 +4134,7 @@ As a side effect, setting this flag turns off
 mode, which can be turned back on manually, and
 .Ic sh
 mode.
-.It Ic sh
+.It Fl o Ic sh
 Enable
 .Pa /bin/sh
 .Pq kludge
@@ -4145,18 +4148,18 @@ As a side effect, setting this flag turns off
 mode, which can be turned back on manually, and
 .Ic posix
 mode.
-.It Ic vi
+.It Fl o Ic vi
 Enable
 .Xr vi 1 Ns -like
 command-line editing (interactive shells only).
-.It Ic vi\-esccomplete
+.It Fl o Ic vi\-esccomplete
 In vi command-line editing, do command and file name completion when escape
 (\*(ha[) is entered in command mode.
-.It Ic vi\-tabcomplete
+.It Fl o Ic vi\-tabcomplete
 In vi command-line editing, do command and file name completion when tab (\*(haI)
 is entered in insert mode.
 This is the default.
-.It Ic viraw
+.It Fl o Ic viraw
 No effect.
 In the original Korn shell, unless
 .Ic viraw
@@ -5626,7 +5629,7 @@ and have their usual meaning (normal values are in parentheses): kill (\*(haU),
 erase (\*(ha?), werase (\*(haW), eof (\*(haD), intr (\*(haC), and quit (\*(ha\e).
 In addition to
 the above, the following characters are also treated specially in insert mode:
-.Bl -tag -width 10n
+.Bl -tag -width XJXXXXM
 .It \*(haE
 Command and file name enumeration (see below).
 .It \*(haF
