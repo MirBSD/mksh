@@ -151,7 +151,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.484 2011/07/07 20:24:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.485 2011/07/16 17:07:34 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2011/07/07"
 
@@ -877,21 +877,16 @@ EXTERN mksh_ari_t x_lins I__(-1);	/* tty lines */
  * Shell file I/O routines
  */
 
-#define SHF_BSIZE	512
+#define SHF_BSIZE		512
 
-#define shf_fileno(shf)	((shf)->fd)
+#define shf_fileno(shf)		((shf)->fd)
 #define shf_setfileno(shf,nfd)	((shf)->fd = (nfd))
-#ifdef MKSH_SMALL
-int shf_getc(struct shf *);
-int shf_putc(int, struct shf *);
-#else
-#define shf_getc(shf)		((shf)->rnleft > 0 ? \
+#define shf_getc_(shf)		((shf)->rnleft > 0 ? \
 				    (shf)->rnleft--, *(shf)->rp++ : \
 				    shf_getchar(shf))
-#define shf_putc(c, shf)	((shf)->wnleft == 0 ? \
+#define shf_putc_(c, shf)	((shf)->wnleft == 0 ? \
 				    shf_putchar((c), (shf)) : \
 				    ((shf)->wnleft--, *(shf)->wp++ = (c)))
-#endif
 #define shf_eof(shf)		((shf)->flags & SHF_EOF)
 #define shf_error(shf)		((shf)->flags & SHF_ERROR)
 #define shf_errno(shf)		((shf)->errno_)
@@ -1778,6 +1773,13 @@ int shf_read(char *, int, struct shf *);
 char *shf_getse(char *, int, struct shf *);
 int shf_getchar(struct shf *s);
 int shf_ungetc(int, struct shf *);
+#ifdef MKSH_SMALL
+int shf_getc(struct shf *);
+int shf_putc(int, struct shf *);
+#else
+#define shf_getc shf_getc_
+#define shf_putc shf_putc_
+#endif
 int shf_putchar(int, struct shf *);
 int shf_puts(const char *, struct shf *);
 int shf_write(const char *, int, struct shf *);
