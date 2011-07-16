@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.78 2011/04/22 12:21:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.79 2011/07/16 17:41:50 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -353,6 +353,22 @@ j_change(void)
 }
 #endif
 
+/* run nice(3) and ignore the result */
+static void
+ksh_nice(int ness)
+{
+#if defined(__USE_FORTIFY_LEVEL) && (__USE_FORTIFY_LEVEL > 0)
+	int e;
+
+	errno = 0;
+	/* this is gonna annoy users; complain to your distro, people! */
+	if (nice(ness) == -1 && (e = errno) != 0)
+		warningf(false, "%s: %s", "bgnice", strerror(e));
+#else
+	(void)nice(ness);
+#endif
+}
+
 /* execute tree in child subprocess */
 int
 exchild(struct op *t, int flags,
@@ -499,7 +515,7 @@ exchild(struct op *t, int flags,
 #endif
 #if HAVE_NICE
 		if (Flag(FBGNICE) && (flags & XBGND))
-			(void)nice(4);
+			ksh_nice(4);
 #endif
 		if ((flags & XBGND)
 #ifndef MKSH_UNEMPLOYED
