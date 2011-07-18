@@ -151,9 +151,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.487 2011/07/16 17:08:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.488 2011/07/18 00:35:46 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2011/07/15"
+#define MKSH_VERSION "R40 2011/07/17"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1474,7 +1474,7 @@ EXTERN struct timeval j_usrtime, j_systime;
 
 /* NZAT/NZAAT hashes based on Bob Jenkins' one-at-a-time hash */
 
-/* From: src/kern/include/nzat.h,v 1.1 2011/07/06 22:18:52 tg Exp $ */
+/* From: src/kern/include/nzat.h,v 1.2 2011/07/18 00:35:40 tg Exp $ */
 
 #define NZATInit(h) do {					\
 	(h) = 0;						\
@@ -1515,6 +1515,8 @@ EXTERN struct timeval j_usrtime, j_systime;
 
 /* NULs zählen an allen Teilen */
 #define NZAATFinish(h) do {					\
+	(h) += (h) << 10;					\
+	(h) ^= (h) >> 6;					\
 	(h) += (h) << 3;					\
 	(h) ^= (h) >> 11;					\
 	(h) += (h) << 15;					\

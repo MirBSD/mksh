@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.63 2011/07/06 22:21:56 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.64 2011/07/18 00:35:45 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -316,6 +316,8 @@ function Lnzathash_add {
 	(( u )) || set -U
 }
 function Lnzaathash_end {
+	((# Lnzathash_v *= 1025 ))
+	((# Lnzathash_v ^= Lnzathash_v >> 6 ))
 	((# Lnzathash_v += Lnzathash_v << 3 ))
 	((# Lnzathash_v = (Lnzathash_v ^
 	    (Lnzathash_v >> 11)) * 32769 ))
