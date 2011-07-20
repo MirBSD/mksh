@@ -151,9 +151,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.488 2011/07/18 00:35:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.489 2011/07/20 23:47:29 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2011/07/17"
+#define MKSH_VERSION "R40 2011/07/20"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1595,7 +1595,6 @@ int c_kill(const char **);
 void getopts_reset(int);
 int c_getopts(const char **);
 int c_bind(const char **);
-int c_label(const char **);
 int c_shift(const char **);
 int c_umask(const char **);
 int c_dot(const char **);

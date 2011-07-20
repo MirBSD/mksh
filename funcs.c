@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.193 2011/07/05 20:12:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.194 2011/07/20 23:47:28 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -57,12 +57,24 @@ __RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.193 2011/07/05 20:12:18 tg Exp $");
 #endif
 
 #ifdef MKSH_NO_LIMITS
-#define c_ulimit c_label
+#define c_ulimit c_true
 #endif
 
 #if defined(ANDROID)
 static int c_android_lsmod(const char **);
 #endif
+
+static int
+c_true(const char **wp MKSH_A_UNUSED)
+{
+	return (0);
+}
+
+static int
+c_false(const char **wp MKSH_A_UNUSED)
+{
+	return (1);
+}
 
 /*
  * A leading = means assignments before command are kept;
@@ -72,7 +84,7 @@ static int c_android_lsmod(const char **);
  */
 const struct builtin mkshbuiltins[] = {
 	{"*=.", c_dot},
-	{"*=:", c_label},
+	{"*=:", c_true},
 	{"[", c_test},
 	{"*=break", c_brkcont},
 	{T_gbuiltin, c_builtin},
@@ -80,7 +92,7 @@ const struct builtin mkshbuiltins[] = {
 	{"*=eval", c_eval},
 	{"*=exec", c_exec},
 	{"*=exit", c_exitreturn},
-	{"+false", c_label},
+	{"+false", c_false},
 	{"*=return", c_exitreturn},
 	{T_sgset, c_set},
 	{"*=shift", c_shift},
@@ -89,7 +101,7 @@ const struct builtin mkshbuiltins[] = {
 	{"+=wait", c_wait},
 	{"+read", c_read},
 	{"test", c_test},
-	{"+true", c_label},
+	{"+true", c_true},
 	{"ulimit", c_ulimit},
 	{"+umask", c_umask},
 	{"*=unset", c_unset},
@@ -132,7 +144,7 @@ const struct builtin mkshbuiltins[] = {
 #endif
 #ifdef __MirBSD__
 	/* alias to "true" for historical reasons */
-	{"domainname", c_label},
+	{"domainname", c_true},
 #endif
 #if defined(ANDROID)
 	{"lsmod", c_android_lsmod},
@@ -1520,17 +1532,6 @@ c_bind(const char **wp)
 	}
 
 	return (rv);
-}
-
-/**
- * :, false and true
- * ulimit if MKSH_NO_LIMITS
- * domainname on MirBSD (hysterical raisins, just don't ask)
- */
-int
-c_label(const char **wp)
-{
-	return (wp[0][0] == 'f' ? 1 : 0);
 }
 
 int
