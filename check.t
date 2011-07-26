@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.478 2011/07/20 23:47:26 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.479 2011/07/26 16:57:25 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2011/07/20
+	@(#)MIRBSD KSH R40 2011/07/26
 description:
 	Check version of shell.
 stdin:
@@ -1603,16 +1603,17 @@ stdin:
 	set +o sh
 	x=foobar
 	y=foobaz
-	echo "<${x%bar|baz},${y%bar|baz}>"
+	z=fooba\?
+	echo "<${x%bar|baz},${y%bar|baz},${z%\?}>"
 	echo "<${x%ba(r|z)},${y%ba(r|z)}>"
 	set -o sh
-	echo "<${x%bar|baz},${y%bar|baz}>"
+	echo "<${x%bar|baz},${y%bar|baz},${z%\?}>"
 	z='foo(bar'
 	echo "<${z%(*}>"
 expected-stdout:
+	<foo,foo,fooba>
 	<foo,foo>
-	<foo,foo>
-	<foobar,foobaz>
+	<foobar,foobaz,fooba>
 	<foo>
 ---
 name: eglob-substrpl-1

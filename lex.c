@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.153 2011/06/04 16:11:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.154 2011/07/26 16:57:27 tg Exp $");
 
 /*
  * states while lexing word
@@ -40,9 +40,10 @@ __RCSID("$MirOS: src/bin/mksh/lex.c,v 1.153 2011/06/04 16:11:18 tg Exp $");
 #define SHEREDELIM	10	/* parsing <<,<<- delimiter */
 #define SHEREDQUOTE	11	/* parsing " in <<,<<- delimiter */
 #define SPATTERN	12	/* parsing *(...|...) pattern (*+?@!) */
-#define STBRACE		13	/* parsing ${...[#%]...} */
-#define SADELIM		14	/* like SBASE, looking for delimiter */
-#define SHERESTRING	15	/* parsing <<< string */
+#define SADELIM		13	/* like SBASE, looking for delimiter */
+#define SHERESTRING	14	/* parsing <<< string */
+#define STBRACEKORN	15	/* parsing ${...[#%]...} !FSH */
+#define STBRACEBOURNE	16	/* parsing ${...[#%]...} FSH */
 #define SINVALID	255	/* invalid state */
 
 struct sretrace_info {
@@ -456,9 +457,12 @@ yylex(int cf)
 					 * If this is a trim operation,
 					 * treat (,|,) specially in STBRACE.
 					 */
-					if (!Flag(FSH) && ctype(c, C_SUBOP2)) {
+					if (ctype(c, C_SUBOP2)) {
 						ungetsc(c);
-						PUSH_STATE(STBRACE);
+						if (Flag(FSH))
+							PUSH_STATE(STBRACEBOURNE);
+						else
+							PUSH_STATE(STBRACEKORN);
 					} else {
 						ungetsc(c);
 						if (state == SDQUOTE)
@@ -687,19 +691,21 @@ yylex(int cf)
 			*wp++ = /*{*/ '}';
 			break;
 
-		case STBRACE:
-			/* Same as SBASE, except (,|,) treated specially */
-			if (c == /*{*/ '}') {
-				POP_STATE();
-				*wp++ = CSUBST;
-				*wp++ = /*{*/ '}';
-			} else if (c == '|') {
+		/* Same as SBASE, except (,|,) treated specially */
+		case STBRACEKORN:
+			if (c == '|')
 				*wp++ = SPAT;
-			} else if (c == '(') {
+			else if (c == '(') {
 				*wp++ = OPAT;
 				/* simile for @ */
 				*wp++ = ' ';
 				PUSH_STATE(SPATTERN);
+			} else /* FALLTHROUGH */
+		case STBRACEBOURNE:
+			  if (c == /*{*/ '}') {
+				POP_STATE();
+				*wp++ = CSUBST;
+				*wp++ = /*{*/ '}';
 			} else
 				goto Sbase1;
 			break;
