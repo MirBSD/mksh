@@ -151,7 +151,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.490 2011/07/26 16:57:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.491 2011/08/13 22:19:41 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2011/07/26"
 
@@ -651,7 +651,7 @@ struct shoption {
 };
 extern const struct shoption options[];
 
-/* null value for variable; comparision pointer for unset */
+/* null value for variable; comparison pointer for unset */
 EXTERN char null[] I__("");
 /* helpers for string pooling */
 EXTERN const char T_intovfl[] I__("integer overflow %lu %c %lu prevented");
