@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.485 2011/07/16 18:03:04 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.486 2011/08/26 10:20:28 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -297,7 +297,7 @@ rmf a.exe* a.out* conftest.c *core lft mksh* no *.bc *.ll *.o \
     Rebuild.sh signames.inc test.sh x vv.out
 
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=
-test -n "$dirname" || dirname=.
+test -n "$srcdir" || srcdir=.
 dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\(.*\)".*$/\1/p' $srcdir/sh.h`
 
 e=echo
@@ -1165,7 +1165,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.485 2011/07/16 18:03:04 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.486 2011/08/26 10:20:28 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
