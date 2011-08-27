@@ -1,7 +1,7 @@
 /*	$OpenBSD: expr.c,v 1.21 2009/06/01 19:00:57 deraadt Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.47 2010/12/11 16:05:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.48 2011/08/27 18:06:44 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -141,12 +141,6 @@ struct expr_state {
 	(mksh_ari_t)((x)->val.u op (y)->val.u) :	\
 	(mksh_ari_t)((x)->val.i op (y)->val.i)		\
 )
-#define chvui(x, op)	do {			\
-	if (es->natural)			\
-		(x)->val.u = op (x)->val.u;	\
-	else					\
-		(x)->val.i = op (x)->val.i;	\
-} while (/* CONSTCOND */ 0)
 #define stvui(x, n)	do {			\
 	if (es->natural)			\
 		(x)->val.u = (n);		\
@@ -315,11 +309,11 @@ evalexpr(Expr_state *es, int prec)
 			exprtoken(es);
 			vl = intvar(es, evalexpr(es, P_PRIMARY));
 			if (op == O_BNOT)
-				chvui(vl, ~);
+				vl->val.i = ~vl->val.i;
 			else if (op == O_LNOT)
-				chvui(vl, !);
+				vl->val.i = !vl->val.i;
 			else if (op == O_MINUS)
-				chvui(vl, -);
+				vl->val.i = -vl->val.i;
 			/* op == O_PLUS is a no-op */
 		} else if (op == OPEN_PAREN) {
 			exprtoken(es);
@@ -505,7 +499,7 @@ exprtoken(Expr_state *es)
 		for (; ksh_isalnux(c); c = *cp)
 			cp++;
 		if (c == '[') {
-			int len;
+			size_t len;
 
 			len = array_ref_len(cp);
 			if (len == 0)
@@ -682,12 +676,12 @@ utf_widthadj(const char *src, const char **dst)
 	return (width);
 }
 
-int
+size_t
 utf_mbswidth(const char *s)
 {
-	size_t len;
+	size_t len, width = 0;
 	unsigned int wc;
-	int width = 0, cw;
+	int cw;
 
 	if (!UTFMODE)
 		return (strlen(s));

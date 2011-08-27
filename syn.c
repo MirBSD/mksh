@@ -22,9 +22,10 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.67 2011/06/05 19:58:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.68 2011/08/27 18:06:51 tg Exp $");
 
 extern short subshell_nesting_level;
+extern void yyskiputf8bom(void);
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -893,8 +894,6 @@ newtp(int type)
 struct op *
 compile(Source *s, bool skiputf8bom)
 {
-	extern void yyskiputf8bom(void);
-
 	nesting.start_token = 0;
 	nesting.start_line = 0;
 	herep = heres;

@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.195 2011/08/27 17:30:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.196 2011/08/27 18:06:44 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -213,7 +213,7 @@ static int test_primary(Test_env *, bool);
 static Test_op ptest_isa(Test_env *, Test_meta);
 static const char *ptest_getopnd(Test_env *, Test_op, bool);
 static void ptest_error(Test_env *, int, const char *);
-static char *kill_fmt_entry(char *, int, int, const void *);
+static char *kill_fmt_entry(char *, size_t, int, const void *);
 static void p_time(struct shf *, bool, long, int, int,
     const char *, const char *)
     MKSH_A_NONNULL((__nonnull__ (6, 7)));
@@ -401,8 +401,7 @@ c_print(const char **wp)
 					/* generic function returned Unicode */
 					char ts[4];
 
-					c = utf_wctomb(ts, c - 0x100);
-					ts[c] = 0;
+					ts[utf_wctomb(ts, c - 0x100)] = 0;
 					for (c = 0; ts[c]; ++c)
 						Xput(xs, xp, ts[c]);
 					continue;
@@ -1258,7 +1257,7 @@ c_fgbg(const char **wp)
 
 /* format a single kill item */
 static char *
-kill_fmt_entry(char *buf, int buflen, int i, const void *arg)
+kill_fmt_entry(char *buf, size_t buflen, int i, const void *arg)
 {
 	const struct kill_info *ki = (const struct kill_info *)arg;
 
@@ -1329,7 +1328,8 @@ c_kill(const char **wp)
 					shprintf("%d\n", n);
 			}
 		} else {
-			int w, j, mess_cols, mess_octs;
+			ssize_t w, mess_cols, mess_octs;
+			int j;
 			struct kill_info ki;
 
 			for (j = NSIG, ki.num_width = 1; j >= 10; j /= 10)

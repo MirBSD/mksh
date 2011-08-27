@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.94 2011/07/07 21:24:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.95 2011/08/27 18:06:43 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -51,7 +51,7 @@ execute(struct op * volatile t,
 	int i;
 	volatile int rv = 0, dummy = 0;
 	int pv[2];
-	const char ** volatile ap;
+	const char ** volatile ap = NULL;
 	char ** volatile up;
 	const char *s, *ccp;
 	struct ioword **iowp;
@@ -1215,7 +1215,7 @@ search(const char *name, const char *lpath,
 	const char *sp, *p;
 	char *xp;
 	XString xs;
-	int namelen;
+	size_t namelen;
 
 	if (errnop)
 		*errnop = 0;
@@ -1550,11 +1550,11 @@ struct select_menu_info {
 	int num_width;
 };
 
-static char *select_fmt_entry(char *, int, int, const void *);
+static char *select_fmt_entry(char *, size_t, int, const void *);
 
 /* format a single select menu item */
 static char *
-select_fmt_entry(char *buf, int buflen, int i, const void *arg)
+select_fmt_entry(char *buf, size_t buflen, int i, const void *arg)
 {
 	const struct select_menu_info *smi =
 	    (const struct select_menu_info *)arg;
@@ -1572,7 +1572,8 @@ pr_menu(const char * const *ap)
 {
 	struct select_menu_info smi;
 	const char * const *pp;
-	int acols = 0, aocts = 0, i, n;
+	size_t acols = 0, aocts = 0, i;
+	int n;
 
 	/*
 	 * width/column calculations were done once and saved, but this
@@ -1609,10 +1610,10 @@ pr_menu(const char * const *ap)
 }
 
 /* XXX: horrible kludge to fit within the framework */
-static char *plain_fmt_entry(char *, int, int, const void *);
+static char *plain_fmt_entry(char *, size_t, int, const void *);
 
 static char *
-plain_fmt_entry(char *buf, int buflen, int i, const void *arg)
+plain_fmt_entry(char *buf, size_t buflen, int i, const void *arg)
 {
 	strlcpy(buf, ((const char * const *)arg)[i], buflen);
 	return (buf);
@@ -1621,7 +1622,8 @@ plain_fmt_entry(char *buf, int buflen, int i, const void *arg)
 int
 pr_list(char * const *ap)
 {
-	int acols = 0, aocts = 0, i, n;
+	size_t acols = 0, aocts = 0, i;
+	int n;
 	char * const *pp;
 
 	for (n = 0, pp = ap; *pp; n++, pp++) {

@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.80 2011/07/16 23:37:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.81 2011/08/27 18:06:46 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1059,7 +1059,7 @@ j_waitj(Job *j,
     int flags,
     const char *where)
 {
-	int	rv;
+	int rv;
 
 	/*
 	 * No auto-notify on the job we are waiting on.
@@ -1177,7 +1177,7 @@ j_waitj(Job *j,
 	rv = j->status;
 
 	if ((flags & JW_PIPEST) && (j->proc_list != NULL)) {
-		size_t num = 0;
+		uint32_t num = 0;
 		Proc *p = j->proc_list;
 		struct tbl *vp;
 
@@ -1542,9 +1542,10 @@ j_print(Job *j, int how, struct shf *shf)
 static Job *
 j_lookup(const char *cp, int *ecodep)
 {
-	Job		*j, *last_match;
-	Proc		*p;
-	int		len, job = 0;
+	Job *j, *last_match;
+	Proc *p;
+	size_t len;
+	int job = 0;
 
 	if (ksh_isdigit(*cp)) {
 		getn(cp, &job);

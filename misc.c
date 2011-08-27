@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.170 2011/08/27 17:30:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.171 2011/08/27 18:06:49 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -141,12 +141,12 @@ struct options_info {
 	int opts[NELEM(options)];
 };
 
-static char *options_fmt_entry(char *, int, int, const void *);
+static char *options_fmt_entry(char *, size_t, int, const void *);
 static void printoptions(bool);
 
 /* format a single select menu item */
 static char *
-options_fmt_entry(char *buf, int buflen, int i, const void *arg)
+options_fmt_entry(char *buf, size_t buflen, int i, const void *arg)
 {
 	const struct options_info *oi = (const struct options_info *)arg;
 
@@ -159,17 +159,17 @@ options_fmt_entry(char *buf, int buflen, int i, const void *arg)
 static void
 printoptions(bool verbose)
 {
-	int i = 0;
+	size_t i = 0;
 
 	if (verbose) {
-		int n = 0, len, octs = 0;
+		ssize_t n = 0, len, octs = 0;
 		struct options_info oi;
 
 		/* verbose version */
 		shf_puts("Current option settings\n", shl_stdout);
 
 		oi.opt_width = 0;
-		while (i < (int)NELEM(options)) {
+		while (i < NELEM(options)) {
 			if (options[i].name) {
 				oi.opts[n++] = i;
 				len = strlen(options[i].name);
@@ -199,7 +199,7 @@ printoptions(bool verbose)
 char *
 getoptions(void)
 {
-	unsigned int i;
+	size_t i;
 	char m[(int)FNFLAGS + 1];
 	char *cp = m;
 
@@ -1073,10 +1073,10 @@ print_value_quoted(const char *s)
  */
 void
 print_columns(struct shf *shf, int n,
-    char *(*func)(char *, int, int, const void *),
-    const void *arg, int max_oct, int max_col, bool prefcol)
+    char *(*func)(char *, size_t, int, const void *),
+    const void *arg, size_t max_oct, size_t max_col_, bool prefcol)
 {
-	int i, r, c, rows, cols, nspace;
+	int i, r, c, rows, cols, nspace, max_col;
 	char *str;
 
 	if (n <= 0) {
@@ -1085,6 +1085,14 @@ print_columns(struct shf *shf, int n,
 #endif
 		return;
 	}
+
+	if (max_col_ > 2147483647) {
+#ifndef MKSH_SMALL
+		internal_warningf("print_columns called with max_col=%zu > INT_MAX", max_col_);
+#endif
+		return;
+	}
+	max_col = (int)max_col_;
 
 	++max_oct;
 	str = alloc(max_oct, ATEMP);
@@ -1449,7 +1457,7 @@ make_path(const char *cwd, const char *file,
 	int rval = 0;
 	bool use_cdpath = true;
 	char *plist;
-	int len, plen = 0;
+	size_t len, plen = 0;
 	char *xp = Xstring(*xsp, xp);
 
 	if (!file)
@@ -1877,12 +1885,18 @@ chvt(const char *fn)
 #endif
 
 #ifdef DEBUG
-char intsize_is_okay[sizeof(int) >= 4 ? 1 : -1];
-char intsizes_are_okay[sizeof(int) == sizeof(unsigned int) ? 1 : -1];
-char longsize_is_okay[sizeof(long) >= sizeof(int) ? 1 : -1];
-char longsizes_are_okay[sizeof(long) == sizeof(unsigned long) ? 1 : -1];
-char arisize_is_okay[sizeof(mksh_ari_t) == 4 ? 1 : -1];
-char uarisize_is_okay[sizeof(mksh_uari_t) == 4 ? 1 : -1];
+#define assert_eq(name, a, b) char name[a == b ? 1 : -1]
+#define assert_ge(name, a, b) char name[a >= b ? 1 : -1]
+assert_ge(intsize_is_okay, sizeof(int), 4);
+assert_eq(intsizes_are_okay, sizeof(int), sizeof(unsigned int));
+assert_ge(longsize_is_okay, sizeof(long), sizeof(int));
+assert_eq(arisize_is_okay, sizeof(mksh_ari_t), 4);
+assert_eq(uarisize_is_okay, sizeof(mksh_uari_t), 4);
+assert_eq(sizesizes_are_okay, sizeof(size_t), sizeof(ssize_t));
+assert_eq(ptrsizes_are_okay, sizeof(ptrdiff_t), sizeof(void *));
+assert_eq(ptrsize_is_sizet, sizeof(ptrdiff_t), sizeof(size_t));
+/* formatting routines assume this */
+assert_ge(ptr_fits_in_long, sizeof(long), sizeof(size_t));
 
 char *
 strchr(char *p, int ch)

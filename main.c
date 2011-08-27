@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.197 2011/08/27 17:30:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.198 2011/08/27 18:06:48 tg Exp $");
 
 extern char **environ;
 
@@ -377,6 +377,44 @@ main(int argc, const char *argv[])
 			return (1);
 	}
 
+#ifdef DEBUG
+	/* test wraparound of arithmetic types */
+	{
+		volatile long xl;
+		volatile unsigned long xul;
+		volatile int xi;
+		volatile unsigned int xui;
+		volatile mksh_ari_t xa;
+		volatile mksh_uari_t xua, xua2;
+		volatile uint8_t xc;
+
+		xa = 2147483647;
+		xua = 2147483647;
+		++xa;
+		++xua;
+		xua2 = xa;
+		xl = xa;
+		xul = xua;
+		xa = 0;
+		xua = 0;
+		--xa;
+		--xua;
+		xi = xa;
+		xui = xua;
+		xa = -1;
+		xua = xa;
+		++xa;
+		++xua;
+		xc = 0;
+		--xc;
+		if ((xua2 != 2147483648UL) ||
+		    (xl != -2147483648L) || (xul != 2147483648UL) ||
+		    (xi != -1) || (xui != 4294967295U) ||
+		    (xa != 0) || (xua != 0) || (xc != 255))
+			errorf("integer wraparound test failed");
+	}
+#endif
+
 	/* process this later only, default to off (hysterical raisins) */
 	utf_flag = UTFMODE;
 	UTFMODE = 0;
@@ -561,6 +599,7 @@ main(int argc, const char *argv[])
 
 	/* doesn't return */
 	shell(s, true);
+	/* NOTREACHED */
 	return (0);
 }
 
@@ -1395,7 +1434,7 @@ struct temp *
 maketemp(Area *ap, Temp_type type, struct temp **tlist)
 {
 	struct temp *tp;
-	int len;
+	size_t len;
 	int fd;
 	char *pathname;
 	const char *dir;
@@ -1457,7 +1496,7 @@ tgrow(struct table *tp)
 		internal_errorf("hash table size limit reached");
 
 	/* calculate old size, new shift and new size */
-	osize = 1 << (tp->tshift++);
+	osize = (size_t)1 << (tp->tshift++);
 	i = osize << 1;
 
 	ntblp = alloc2(i, sizeof(struct tbl *), tp->areap);
@@ -1511,7 +1550,7 @@ ktscan(struct table *tp, const char *name, uint32_t h, struct tbl ***ppp)
 	size_t j, perturb, mask;
 	struct tbl **pp, *p;
 
-	mask = (1 << (tp->tshift)) - 1;
+	mask = ((size_t)1 << (tp->tshift)) - 1;
 	/* search for hash table slot matching name */
 	j = (perturb = h) & mask;
 	goto find_first_slot;
@@ -1567,7 +1606,7 @@ ktenter(struct table *tp, const char *n, uint32_t h)
 void
 ktwalk(struct tstate *ts, struct table *tp)
 {
-	ts->left = 1 << (tp->tshift);
+	ts->left = (size_t)1 << (tp->tshift);
 	ts->next = tp->tbls;
 }
 
@@ -1601,7 +1640,7 @@ ktsort(struct table *tp)
 	 * since the table is never entirely full, no need to reserve
 	 * additional space for the trailing NULL appended below
 	 */
-	i = 1 << (tp->tshift);
+	i = (size_t)1 << (tp->tshift);
 	p = alloc2(i, sizeof(struct tbl *), ATEMP);
 	sp = tp->tbls;		/* source */
 	dp = p;			/* dest */

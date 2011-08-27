@@ -151,9 +151,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.492 2011/08/27 17:30:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.493 2011/08/27 18:06:50 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2011/07/26"
+#define MKSH_VERSION "R40 2011/08/27"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -654,7 +654,7 @@ extern const struct shoption options[];
 /* null value for variable; comparison pointer for unset */
 EXTERN char null[] I__("");
 /* helpers for string pooling */
-EXTERN const char T_intovfl[] I__("integer overflow %lu %c %lu prevented");
+EXTERN const char T_intovfl[] I__("integer overflow %zu %c %zu prevented");
 EXTERN const char T_oomem[] I__("can't allocate %lu data bytes");
 #if defined(__GNUC__)
 /* trust this to have string pooling; -Wformat bitches otherwise */
@@ -804,6 +804,10 @@ EXTERN int ifs0 I__(' ');	/* for "$*" */
 #define GI_PLUS		BIT(1)	/* an option started with +... */
 #define GI_MINUSMINUS	BIT(2)	/* arguments were ended with -- */
 
+/* in case some OS defines these */
+#undef optarg
+#undef optind
+
 typedef struct {
 	const char *optarg;
 	int optind;
@@ -930,14 +934,14 @@ struct shf {
 	unsigned char *rp;	/* read: current position in buffer */
 	unsigned char *wp;	/* write: current position in buffer */
 	unsigned char *buf;	/* buffer */
+	ssize_t bsize;		/* actual size of buf */
+	ssize_t rbsize;		/* size of buffer (1 if SHF_UNBUF) */
+	ssize_t rnleft;		/* read: how much data left in buffer */
+	ssize_t wbsize;		/* size of buffer (0 if SHF_UNBUF) */
+	ssize_t wnleft;		/* write: how much space left in buffer */
 	int flags;		/* see SHF_* */
-	int rbsize;		/* size of buffer (1 if SHF_UNBUF) */
-	int rnleft;		/* read: how much data left in buffer */
-	int wbsize;		/* size of buffer (0 if SHF_UNBUF) */
-	int wnleft;		/* write: how much space left in buffer */
 	int fd;			/* file descriptor */
 	int errno_;		/* saved value of errno after error */
-	int bsize;		/* actual size of buf */
 };
 
 extern struct shf shf_iob[];
@@ -945,7 +949,7 @@ extern struct shf shf_iob[];
 struct table {
 	Area *areap;		/* area to allocate entries */
 	struct tbl **tbls;	/* hashed table items */
-	uint32_t nfree;		/* free table entries */
+	size_t nfree;		/* free table entries */
 	uint8_t tshift;		/* table size (2^tshift) */
 };
 
@@ -1291,9 +1295,9 @@ typedef char *XStringP;
 
 /* check if there are at least n bytes left */
 #define XcheckN(xs, xp, n) do {					\
-	int more = ((xp) + (n)) - (xs).end;			\
+	ssize_t more = ((xp) + (n)) - (xs).end;			\
 	if (more > 0)						\
-		(xp) = Xcheck_grow_(&(xs), (xp), (size_t)more);	\
+		(xp) = Xcheck_grow_(&(xs), (xp), more);		\
 } while (/* CONSTCOND */ 0)
 
 /* check for overflow, expand string */
@@ -1449,9 +1453,9 @@ typedef union {
 #define	UNCTRL(x)	((x) ^ 0x40)				/* ASCII */
 
 EXTERN Source *source;		/* yyparse/yylex source */
-EXTERN YYSTYPE	yylval;		/* result from yylex */
-EXTERN struct ioword *heres [HERES], **herep;
-EXTERN char	ident [IDENT+1];
+EXTERN YYSTYPE yylval;		/* result from yylex */
+EXTERN struct ioword *heres[HERES], **herep;
+EXTERN char ident[IDENT+1];
 
 #define HISTORYSIZE	500	/* size of saved history */
 
@@ -1467,8 +1471,8 @@ EXTERN struct timeval j_usrtime, j_systime;
 #define notoktoadd(val, cnst)	((val) > (SIZE_MAX - (cnst)))
 #define checkoktoadd(val, cnst) do {					\
 	if (notoktoadd((val), (cnst)))					\
-		internal_errorf(T_intovfl, (unsigned long)(val),	\
-		    '+', (unsigned long)(cnst));			\
+		internal_errorf(T_intovfl, (size_t)(val),		\
+		    '+', (size_t)(cnst));				\
 } while (/* CONSTCOND */ 0)
 
 
@@ -1568,7 +1572,7 @@ int v_evaluate(struct tbl *, const char *, volatile int, bool);
 size_t utf_mbtowc(unsigned int *, const char *);
 size_t utf_wctomb(char *, unsigned int);
 int utf_widthadj(const char *, const char **);
-int utf_mbswidth(const char *);
+size_t utf_mbswidth(const char *);
 const char *utf_skipcols(const char *, int);
 size_t utf_ptradj(const char *);
 #ifndef MKSH_mirbsd_wcwidth
@@ -1756,8 +1760,8 @@ int ksh_getopt(const char **, Getopt *, const char *);
 void print_value_quoted(const char *);
 char *quote_value(const char *);
 void print_columns(struct shf *, int,
-    char *(*)(char *, int, int, const void *),
-    const void *, int, int, bool);
+    char *(*)(char *, size_t, int, const void *),
+    const void *, size_t, size_t, bool);
 void strip_nuls(char *, int);
 ssize_t blocking_read(int, char *, size_t)
     MKSH_A_BOUNDED(__buffer__, 2, 3);
@@ -1776,13 +1780,13 @@ int unbksl(bool, int (*)(void), void (*)(int));
 struct shf *shf_open(const char *, int, int, int);
 struct shf *shf_fdopen(int, int, struct shf *);
 struct shf *shf_reopen(int, int, struct shf *);
-struct shf *shf_sopen(char *, int, int, struct shf *);
+struct shf *shf_sopen(char *, ssize_t, int, struct shf *);
 int shf_close(struct shf *);
 int shf_fdclose(struct shf *);
 char *shf_sclose(struct shf *);
 int shf_flush(struct shf *);
-int shf_read(char *, int, struct shf *);
-char *shf_getse(char *, int, struct shf *);
+ssize_t shf_read(char *, ssize_t, struct shf *);
+char *shf_getse(char *, ssize_t, struct shf *);
 int shf_getchar(struct shf *s);
 int shf_ungetc(int, struct shf *);
 #ifdef MKSH_SMALL
@@ -1793,16 +1797,16 @@ int shf_putc(int, struct shf *);
 #define shf_putc shf_putc_
 #endif
 int shf_putchar(int, struct shf *);
-int shf_puts(const char *, struct shf *);
-int shf_write(const char *, int, struct shf *);
-int shf_fprintf(struct shf *, const char *, ...)
+ssize_t shf_puts(const char *, struct shf *);
+ssize_t shf_write(const char *, ssize_t, struct shf *);
+ssize_t shf_fprintf(struct shf *, const char *, ...)
     MKSH_A_FORMAT(__printf__, 2, 3);
-int shf_snprintf(char *, int, const char *, ...)
+ssize_t shf_snprintf(char *, ssize_t, const char *, ...)
     MKSH_A_FORMAT(__printf__, 3, 4)
     MKSH_A_BOUNDED(__string__, 1, 2);
 char *shf_smprintf(const char *, ...)
     MKSH_A_FORMAT(__printf__, 1, 2);
-int shf_vfprintf(struct shf *, const char *, va_list)
+ssize_t shf_vfprintf(struct shf *, const char *, va_list)
     MKSH_A_FORMAT(__printf__, 2, 0);
 /* syn.c */
 void initkeywords(void);
@@ -1811,7 +1815,7 @@ bool parse_usec(const char *, struct timeval *);
 char *yyrecursive(void);
 /* tree.c */
 void fptreef(struct shf *, int, const char *, ...);
-char *snptreef(char *, int, const char *, ...);
+char *snptreef(char *, ssize_t, const char *, ...);
 struct op *tcopy(struct op *, Area *);
 char *wdcopy(const char *, Area *);
 const char *wdscan(const char *, int);
@@ -1847,7 +1851,7 @@ int is_wdvarassign(const char *);
 struct tbl *arraysearch(struct tbl *, uint32_t);
 char **makenv(void);
 void change_winsz(void);
-int array_ref_len(const char *);
+size_t array_ref_len(const char *);
 char *arrayname(const char *);
 mksh_uari_t set_array(const char *, bool, const char **);
 uint32_t hash(const void *);

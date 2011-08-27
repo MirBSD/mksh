@@ -1,4 +1,4 @@
-/*	$OpenBSD: edit.c,v 1.34 2010/05/20 01:13:07 fgsch Exp $	*/
+;/*	$OpenBSD: edit.c,v 1.34 2010/05/20 01:13:07 fgsch Exp $	*/
 /*	$OpenBSD: edit.h,v 1.9 2011/05/30 17:14:35 martynas Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.43 2011/03/14 21:20:01 okan Exp $	*/
 /*	$OpenBSD: vi.c,v 1.26 2009/06/29 22:50:19 martynas Exp $	*/
@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.219 2011/07/16 18:15:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.220 2011/08/27 18:06:41 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -69,10 +69,10 @@ static char holdbuf[LINE];		/* place to hold last edit buffer */
 static int x_getc(void);
 static void x_putcf(int);
 static void x_mode(bool);
-static int x_do_comment(char *, int, int *);
+static int x_do_comment(char *, ssize_t, ssize_t *);
 static void x_print_expansions(int, char *const *, bool);
 static int x_cf_glob(int *, const char *, int, int, int *, int *, char ***);
-static int x_longest_prefix(int, char *const *);
+static size_t x_longest_prefix(int, char *const *);
 static int x_basename(const char *, const char *);
 static void x_free_words(int, char **);
 static int x_escape(const char *, size_t, int (*)(const char *, size_t));
@@ -188,9 +188,9 @@ x_putcf(int c)
  * moved to the start of the line after (un)commenting.
  */
 static int
-x_do_comment(char *buf, int bsize, int *lenp)
+x_do_comment(char *buf, ssize_t bsize, ssize_t *lenp)
 {
-	int i, j, len = *lenp;
+	ssize_t i, j, len = *lenp;
 
 	if (len == 0)
 		/* somewhat arbitrary - it's what AT&T ksh does */
@@ -607,10 +607,11 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 /*
  * Find longest common prefix
  */
-static int
+static size_t
 x_longest_prefix(int nwords, char * const * words)
 {
-	int i, j, prefix_len;
+	int i;
+	size_t j, prefix_len;
 	char *p;
 
 	if (nwords <= 0)
@@ -2212,7 +2213,7 @@ x_yank(int c MKSH_A_UNUSED)
 static int
 x_meta_yank(int c MKSH_A_UNUSED)
 {
-	int len;
+	size_t len;
 
 	if ((x_last_command != XFUNC_yank && x_last_command != XFUNC_meta_yank) ||
 	    killstack[killtp] == 0) {
@@ -2907,7 +2908,7 @@ static int
 x_comment(int c MKSH_A_UNUSED)
 {
 	int oldsize = x_size_str(xbuf);
-	int len = xep - xbuf;
+	ssize_t len = xep - xbuf;
 	int ret = x_do_comment(xbuf, xend - xbuf, &len);
 
 	if (ret < 0)
@@ -2929,7 +2930,8 @@ x_version(int c MKSH_A_UNUSED)
 {
 	char *o_xbuf = xbuf, *o_xend = xend;
 	char *o_xbp = xbp, *o_xep = xep, *o_xcp = xcp;
-	int vlen, lim = x_lastcp() - xbp;
+	int lim = x_lastcp() - xbp;
+	size_t vlen;
 	char *v;
 
 	strdupx(v, KSH_VERSION, ATEMP);
@@ -2945,7 +2947,7 @@ x_version(int c MKSH_A_UNUSED)
 	xbp = o_xbp;
 	xep = o_xep;
 	xcp = o_xcp;
-	x_redraw(vlen);
+	x_redraw((int)vlen);
 
 	if (c < 0)
 		return (KSTD);
@@ -3246,10 +3248,10 @@ x_mode(bool onoff)
 
 struct edstate {
 	char *cbuf;
-	int winleft;
-	int cbufsize;
-	int linelen;
-	int cursor;
+	ssize_t winleft;
+	ssize_t cbufsize;
+	ssize_t linelen;
+	ssize_t cursor;
 };
 
 static int vi_hook(int);
@@ -3262,7 +3264,7 @@ static void yank_range(int, int);
 static int bracktype(int);
 static void save_cbuf(void);
 static void restore_cbuf(void);
-static int putbuf(const char *, int, int);
+static int putbuf(const char *, ssize_t, int);
 static void del_range(int, int);
 static int findch(int, int, int, int);
 static int forwword(int);
@@ -3402,7 +3404,7 @@ static int state;
 struct macro_state {
 	unsigned char *p;	/* current position in buf */
 	unsigned char *buf;	/* pointer to macro(s) being expanded */
-	int len;		/* how much data in buffer */
+	size_t len;		/* how much data in buffer */
 };
 static struct macro_state macro;
 
@@ -4681,7 +4683,7 @@ x_vi_putbuf(const char *s, size_t len)
 }
 
 static int
-putbuf(const char *buf, int len, int repl)
+putbuf(const char *buf, ssize_t len, int repl)
 {
 	if (len == 0)
 		return (0);
@@ -4907,7 +4909,7 @@ grabsearch(int save, int start, int fwd, char *pat)
 		start--;
 	anchored = *pat == '^' ? (++pat, 1) : 0;
 	if ((hist = findhist(start, fwd, pat, anchored)) < 0) {
-		/* if (start != 0 && fwd && match(holdbuf, pat) >= 0) { */
+		/* if (start != 0 && fwd && match(holdbuf, pat) >= 0) {} */
 		/* XXX should strcmp be strncmp? */
 		if (start != 0 && fwd && strcmp(holdbuf, pat) >= 0) {
 			restore_cbuf();
@@ -5168,7 +5170,8 @@ static int
 complete_word(int cmd, int count)
 {
 	static struct edstate *buf;
-	int rval, nwords, start, end, match_len, flags;
+	int rval, nwords, start, end, flags;
+	size_t match_len;
 	char **words;
 	char *match;
 	bool is_unique;

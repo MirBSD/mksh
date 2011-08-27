@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.109 2011/04/22 12:21:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.110 2011/08/27 18:06:45 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -63,7 +63,7 @@ static Source *hist_source;
 /* current history file: name, fd, size */
 static char *hname;
 static int histfd;
-static int hsize;
+static size_t hsize;
 #endif
 
 static const char T_not_in_history[] = "not in history";
@@ -365,9 +365,9 @@ hist_replace(char **hp, const char *pat, const char *rep, bool globr)
 		strdupx(line, *hp, ATEMP);
 	else {
 		char *s, *s1;
-		int pat_len = strlen(pat);
-		int rep_len = strlen(rep);
-		int len;
+		size_t pat_len = strlen(pat);
+		size_t rep_len = strlen(rep);
+		size_t len;
 		XString xs;
 		char *xp;
 		bool any_subst = false;
@@ -509,10 +509,10 @@ histnum(int n)
 int
 findhist(int start, int fwd, const char *str, int anchored)
 {
-	char	**hp;
-	int	maxhist = histptr - history;
-	int	incr = fwd ? 1 : -1;
-	int	len = strlen(str);
+	char **hp;
+	int maxhist = histptr - history;
+	int incr = fwd ? 1 : -1;
+	size_t len = strlen(str);
 
 	if (start < 0 || start >= maxhist)
 		start = maxhist;
@@ -700,6 +700,7 @@ hist_init(Source *s)
 #if HAVE_PERSISTENT_HISTORY
 	unsigned char *base;
 	int lines, fd, rv = 0;
+	off_t hfsize;
 #endif
 
 	if (Flag(FTALKING) == 0)
@@ -725,7 +726,10 @@ hist_init(Source *s)
 
 	(void)flock(histfd, LOCK_EX);
 
-	hsize = lseek(histfd, (off_t)0, SEEK_END);
+	hfsize = lseek(histfd, (off_t)0, SEEK_END);
+	hsize = 1024 * 1048576;
+	if (hfsize < (off_t)hsize)
+		hsize = (size_t)hfsize;
 
 	if (hsize == 0) {
 		/* add magic */
@@ -774,7 +778,10 @@ hist_init(Source *s)
 		munmap((caddr_t)base, hsize);
 	}
 	(void)flock(histfd, LOCK_UN);
-	hsize = lseek(histfd, (off_t)0, SEEK_END);
+	hfsize = lseek(histfd, (off_t)0, SEEK_END);
+	hsize = 1024 * 1048576;
+	if (hfsize < (off_t)hsize)
+		hsize = hfsize;
 #endif
 }
 
@@ -970,36 +977,34 @@ histinsert(Source *s, int lno, const char *line)
 static void
 writehistfile(int lno, char *cmd)
 {
-	int	sizenow;
-	unsigned char	*base;
-	unsigned char	*news;
-	int	bytes;
-	unsigned char	hdr[5];
+	off_t sizenow;
+	ssize_t bytes;
+	unsigned char *base, *news, hdr[5];
 
 	(void)flock(histfd, LOCK_EX);
 	sizenow = lseek(histfd, (off_t)0, SEEK_END);
-	if (sizenow != hsize) {
+	if ((sizenow <= (1024 * 1048576)) && ((size_t)sizenow != hsize)) {
 		/*
 		 *	Things have changed
 		 */
-		if (sizenow > hsize) {
+		if ((size_t)sizenow > hsize) {
 			/* someone has added some lines */
-			bytes = sizenow - hsize;
-			base = (void *)mmap(NULL, sizenow, PROT_READ,
+			bytes = (size_t)sizenow - hsize;
+			base = (void *)mmap(NULL, (size_t)sizenow, PROT_READ,
 			    MAP_FILE | MAP_PRIVATE, histfd, (off_t)0);
 			if (base == (unsigned char *)MAP_FAILED)
 				goto bad;
 			news = base + hsize;
 			if (*news != COMMAND) {
-				munmap((caddr_t)base, sizenow);
+				munmap((caddr_t)base, (size_t)sizenow);
 				goto bad;
 			}
 			hist_source->line--;
 			histload(hist_source, news, bytes);
 			hist_source->line++;
 			lno = hist_source->line;
-			munmap((caddr_t)base, sizenow);
-			hsize = sizenow;
+			munmap((caddr_t)base, (size_t)sizenow);
+			hsize = (size_t)sizenow;
 		} else {
 			/* it has shrunk */
 			/* but to what? */
@@ -1020,7 +1025,10 @@ writehistfile(int lno, char *cmd)
 		if ((write(histfd, hdr, 5) != 5) ||
 		    (write(histfd, cmd, bytes) != bytes))
 			goto bad;
-		hsize = lseek(histfd, (off_t)0, SEEK_END);
+		sizenow = lseek(histfd, (off_t)0, SEEK_END);
+		hsize = 1024 * 1048576;
+		if (sizenow < (off_t)hsize)
+			hsize = (size_t)sizenow;
 	}
 	(void)flock(histfd, LOCK_UN);
 	return;

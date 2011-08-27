@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.106 2011/07/02 17:57:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.107 2011/08/27 18:06:42 tg Exp $");
 
 /*
  * string expansion
@@ -67,11 +67,11 @@ static char *tilde(char *);
 static char *homedir(char *);
 #endif
 static void alt_expand(XPtrV *, char *, char *, char *, int);
-static size_t utflen(const char *);
+static int utflen(const char *);
 static void utfincptr(const char *, mksh_ari_t *);
 
 /* UTFMODE functions */
-static size_t
+static int
 utflen(const char *s)
 {
 	size_t n;
@@ -84,7 +84,10 @@ utflen(const char *s)
 		}
 	} else
 		n = strlen(s);
-	return (n);
+
+	if (n > 2147483647)
+		n = 2147483647;
+	return ((int)n);
 }
 
 static void
@@ -581,8 +584,7 @@ expand(const char *cp,	/* input word */
 						 */
 						if (!Flag(FSH)) {
 							*dp++ = MAGIC;
-							*dp++ = (char)('@' |
-							    0x80);
+							*dp++ = '@' | 0x80;
 						}
 						break;
 					case '=':
@@ -719,7 +721,7 @@ expand(const char *cp,	/* input word */
 				/* open pattern: *(foo|bar) */
 				/* Next char is the type of pattern */
 				make_magic = 1;
-				c = *sp++ + 0x80;
+				c = *sp++ | 0x80;
 				break;
 
 			case SPAT:
@@ -1474,8 +1476,7 @@ globit(XString *xs,	/* dest string */
 		DIR *dirp;
 		struct dirent *d;
 		char *name;
-		int len;
-		int prefix_len;
+		size_t len, prefix_len;
 
 		/* xp = *xpp;	copy_non_glob() may have re-alloc'd xs */
 		*xp = '\0';

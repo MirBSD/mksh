@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.154 2011/07/26 16:57:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.155 2011/08/27 18:06:47 tg Exp $");
 
 /*
  * states while lexing word
@@ -197,6 +197,7 @@ yylex(int cf)
 	Lex_state states[STATE_BSIZE], *statep, *s2, *base;
 	State_info state_info;
 	int c, c2, state;
+	size_t cz;
 	XString ws;		/* expandable output word */
 	char *wp;		/* output word pointer */
 	char *sp, *dp;
@@ -394,11 +395,11 @@ yylex(int cf)
 						ungetsc(c);
  subst_command:
 						sp = yyrecursive();
-						c2 = strlen(sp) + 1;
-						XcheckN(ws, wp, c2);
+						cz = strlen(sp) + 1;
+						XcheckN(ws, wp, cz);
 						*wp++ = COMSUB;
-						memcpy(wp, sp, c2);
-						wp += c2;
+						memcpy(wp, sp, cz);
+						wp += cz;
 					}
 				} else if (c == '{') /*}*/ {
 					*wp++ = OSUBST;
@@ -580,11 +581,11 @@ yylex(int cf)
 						*wp++ = QCHAR;
 						*wp++ = c2;
 					} else {
-						c = utf_wctomb(ts, c2 - 0x100);
-						ts[c] = 0;
-						for (c = 0; ts[c]; ++c) {
+						cz = utf_wctomb(ts, c2 - 0x100);
+						ts[cz] = 0;
+						for (cz = 0; ts[cz]; ++cz) {
 							*wp++ = QCHAR;
-							*wp++ = ts[c];
+							*wp++ = ts[cz];
 						}
 					}
 				}
@@ -625,10 +626,10 @@ yylex(int cf)
 					POP_STATE();
 
 					if ((c2 = getsc()) == /*(*/ ')') {
-						c = strlen(sp) - 2;
-						XcheckN(ws, wp, c);
-						memcpy(wp, sp + 1, c);
-						wp += c;
+						cz = strlen(sp) - 2;
+						XcheckN(ws, wp, cz);
+						memcpy(wp, sp + 1, cz);
+						wp += cz;
 						afree(sp, ATEMP);
 						*wp++ = '\0';
 						break;
@@ -1138,9 +1139,9 @@ readhere(struct ioword *iop)
 	if (iop->flag & IOHERESTR) {
 		/* process the here string */
 		iop->heredoc = xp = evalstr(iop->delim, DOBLANK);
-		c = strlen(xp) - 1;
-		memmove(xp, xp + 1, c);
-		xp[c] = '\n';
+		xpos = strlen(xp) - 1;
+		memmove(xp, xp + 1, xpos);
+		xp[xpos] = '\n';
 		return;
 	}
 

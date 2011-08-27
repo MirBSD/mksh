@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.49 2011/05/29 02:18:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.50 2011/08/27 18:06:51 tg Exp $");
 
 #define INDENT	8
 
@@ -386,7 +386,7 @@ fptreef(struct shf *shf, int indent, const char *fmt, ...)
 
 /* VARARGS */
 char *
-snptreef(char *s, int n, const char *fmt, ...)
+snptreef(char *s, ssize_t n, const char *fmt, ...)
 {
 	va_list va;
 	struct shf shf;
