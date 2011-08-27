@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.169 2011/07/06 22:21:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.170 2011/08/27 17:30:07 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1915,7 +1915,6 @@ strstr(char *b, const char *l)
 }
 #endif
 
-#ifndef MKSH_ASSUME_UTF8
 #if !HAVE_STRCASESTR
 const char *
 stristr(const char *b, const char *l)
@@ -1934,7 +1933,6 @@ stristr(const char *b, const char *l)
 		goto stristr_look;
 	return (b - 1);
 }
-#endif
 #endif
 
 #ifdef MKSH_SMALL

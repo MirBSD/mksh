@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.479 2011/07/26 16:57:25 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.480 2011/08/27 17:30:02 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -5891,6 +5891,7 @@ description:
 	-DMKSH_ASSUME_UTF8=1 => not expected, please investigate
 	-UMKSH_ASSUME_UTF8 => not expected, but if your OS is old,
 	 try passing HAVE_SETLOCALE_CTYPE=0 to Build.sh
+need-pass: no
 category: !os:hpux
 need-ctty: yes
 arguments: !-i!

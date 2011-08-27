@@ -151,7 +151,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.491 2011/08/13 22:19:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.492 2011/08/27 17:30:07 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2011/07/26"
 
@@ -164,8 +164,8 @@ __RCSID("$MirOS: src/bin/mksh/sh.h,v 1.491 2011/08/13 22:19:41 tg Exp $");
 #undef RUSAGE_SELF
 #undef RUSAGE_CHILDREN
 #define rusage mksh_rusage
-#define RUSAGE_SELF	0
-#define RUSAGE_CHILDREN	-1
+#define RUSAGE_SELF		0
+#define RUSAGE_CHILDREN		-1
 
 struct rusage {
 	struct timeval ru_utime;
@@ -476,7 +476,7 @@ char *ucstrstr(char *, const char *);
 #endif
 
 #if HAVE_STRCASESTR
-#define stristr(b,l)	((const char *)strcasestr((b), (l)))
+#define stristr(b,l)		((const char *)strcasestr((b), (l)))
 #endif
 
 #ifdef MKSH_SMALL
@@ -496,7 +496,7 @@ char *ucstrstr(char *, const char *);
 #endif
 
 #if defined(MKSH_NOPROSPECTOFWORK) && !defined(MKSH_UNEMPLOYED)
-#define MKSH_UNEMPLOYED
+#define MKSH_UNEMPLOYED		1
 #endif
 
 /*
