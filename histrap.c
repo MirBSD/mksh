@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.110 2011/08/27 18:06:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.111 2011/09/07 15:24:16 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -66,8 +66,8 @@ static int histfd;
 static size_t hsize;
 #endif
 
-static const char T_not_in_history[] = "not in history";
-#define T_history (T_not_in_history + 7)
+static const char Tnot_in_history[] = "not in history";
+#define Thistory (Tnot_in_history + 7)
 
 int
 c_fc(const char **wp)
@@ -83,7 +83,7 @@ c_fc(const char **wp)
 	char **hfirst, **hlast, **hp;
 
 	if (!Flag(FTALKING_I)) {
-		bi_errorf("history %ss not available", T_function);
+		bi_errorf("history %ss not available", Tfunction);
 		return (1);
 	}
 
@@ -290,7 +290,7 @@ c_fc(const char **wp)
 		if (stat(tf->name, &statb) < 0)
 			n = 128;
 		else if (statb.st_size > (1024 * 1048576)) {
-			bi_errorf("%s %s too large: %lu", T_history,
+			bi_errorf("%s %s too large: %lu", Thistory,
 			    "file", (unsigned long)statb.st_size);
 			goto errout;
 		} else
@@ -414,14 +414,14 @@ hist_get(const char *str, bool approx, bool allow_cur)
 			if (approx)
 				hp = hist_get_oldest();
 			else {
-				bi_errorf("%s: %s", str, T_not_in_history);
+				bi_errorf("%s: %s", str, Tnot_in_history);
 				hp = NULL;
 			}
 		} else if ((ptrdiff_t)hp > (ptrdiff_t)histptr) {
 			if (approx)
 				hp = hist_get_newest(allow_cur);
 			else {
-				bi_errorf("%s: %s", str, T_not_in_history);
+				bi_errorf("%s: %s", str, Tnot_in_history);
 				hp = NULL;
 			}
 		} else if (!allow_cur && hp == histptr) {
@@ -433,7 +433,7 @@ hist_get(const char *str, bool approx, bool allow_cur)
 
 		/* the -1 is to avoid the current fc command */
 		if ((n = findhist(histptr - history - 1, 0, str, anchored)) < 0)
-			bi_errorf("%s: %s", str, T_not_in_history);
+			bi_errorf("%s: %s", str, Tnot_in_history);
 		else
 			hp = &history[n];
 	}
@@ -1077,7 +1077,7 @@ inittraps(void)
 	/* Populate sigtraps based on sys_signame and sys_siglist. */
 	for (i = 0; i <= NSIG; i++) {
 		sigtraps[i].signal = i;
-		if (i == SIGERR_) {
+		if (i == ksh_SIGERR) {
 			sigtraps[i].name = "ERR";
 			sigtraps[i].mess = "Error handler";
 		} else {
@@ -1116,7 +1116,7 @@ inittraps(void)
 		}
 	}
 	/* our name for signal 0 */
-	sigtraps[SIGEXIT_].name = "EXIT";
+	sigtraps[ksh_SIGEXIT].name = "EXIT";
 
 	(void)sigemptyset(&Sigact_ign.sa_mask);
 	Sigact_ign.sa_flags = 0; /* interruptible */
@@ -1194,7 +1194,7 @@ void
 trapsig(int i)
 {
 	Trap *p = &sigtraps[i];
-	int errno_ = errno;
+	int errno_sv = errno;
 
 	trap = p->set = 1;
 	if (p->flags & TF_DFL_INTR)
@@ -1205,7 +1205,7 @@ trapsig(int i)
 	}
 	if (p->shtrap)
 		(*p->shtrap)(i);
-	errno = errno_;
+	errno = errno_sv;
 }
 
 /*
@@ -1319,7 +1319,7 @@ runtrap(Trap *p, bool is_last)
 	if (trapstr[0] == '\0')
 		/* SIG_IGN */
 		goto donetrap;
-	if (i == SIGEXIT_ || i == SIGERR_) {
+	if (i == ksh_SIGEXIT || i == ksh_SIGERR) {
 		/* avoid recursion on these */
 		old_changed = p->flags & TF_CHANGED;
 		p->flags &= ~TF_CHANGED;
@@ -1332,7 +1332,7 @@ runtrap(Trap *p, bool is_last)
 	 * no problem with afree(p->trap) in settrap() while still in use.
 	 */
 	command(trapstr, current_lineno);
-	if (i == SIGEXIT_ || i == SIGERR_) {
+	if (i == ksh_SIGEXIT || i == ksh_SIGERR) {
 		if (p->flags & TF_CHANGED)
 			/* don't clear TF_CHANGED */
 			afree(trapstr, APERM);
@@ -1454,7 +1454,7 @@ setsig(Trap *p, sig_t f, int flags)
 {
 	struct sigaction sigact;
 
-	if (p->signal == SIGEXIT_ || p->signal == SIGERR_)
+	if (p->signal == ksh_SIGEXIT || p->signal == ksh_SIGERR)
 		return (1);
 
 	/*

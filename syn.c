@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.68 2011/08/27 18:06:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.69 2011/09/07 15:24:21 tg Exp $");
 
 extern short subshell_nesting_level;
 extern void yyskiputf8bom(void);
@@ -420,7 +420,7 @@ get_command(int cf)
 		t = newtp((c == FOR) ? TFOR : TSELECT);
 		musthave(LWORD, ARRAYVAR);
 		if (!is_wdvarname(yylval.cp, true))
-			yyerror("%s: %s\n", c == FOR ? "for" : T_select,
+			yyerror("%s: %s\n", c == FOR ? "for" : Tselect,
 			    "bad identifier");
 		strdupx(t->str, ident, ATEMP);
 		nesting_push(&old_nesting, c);
@@ -764,13 +764,13 @@ const struct tokeninfo {
 	{ "case",	CASE,	true },
 	{ "esac",	ESAC,	true },
 	{ "for",	FOR,	true },
-	{ T_select,	SELECT,	true },
+	{ Tselect,	SELECT,	true },
 	{ "while",	WHILE,	true },
 	{ "until",	UNTIL,	true },
 	{ "do",		DO,	true },
 	{ "done",	DONE,	true },
 	{ "in",		IN,	true },
-	{ T_function,	FUNCTION, true },
+	{ Tfunction,	FUNCTION, true },
 	{ "time",	TIME,	true },
 	{ "{",		'{',	true },
 	{ "}",		'}',	true },
@@ -831,7 +831,7 @@ syntaxerr(const char *what)
 			goto Again;
 		}
 		/* don't quote the EOF */
-		yyerror("%s: %s %s\n", T_synerr, "unexpected", "EOF");
+		yyerror("%s: %s %s\n", Tsynerr, "unexpected", "EOF");
 		/* NOTREACHED */
 
 	case LWORD:
@@ -858,7 +858,7 @@ syntaxerr(const char *what)
 			s = redir;
 		}
 	}
-	yyerror("%s: '%s' %s\n", T_synerr, s, what);
+	yyerror("%s: '%s' %s\n", Tsynerr, s, what);
 }
 
 static void
@@ -920,10 +920,10 @@ assign_command(char *s)
 {
 	if (!*s)
 		return (0);
-	return ((strcmp(s, T_alias) == 0) ||
+	return ((strcmp(s, Talias) == 0) ||
 	    (strcmp(s, "export") == 0) ||
 	    (strcmp(s, "readonly") == 0) ||
-	    (strcmp(s, T_typeset) == 0));
+	    (strcmp(s, Ttypeset) == 0));
 }
 
 /* Check if we are in the middle of reading an alias */

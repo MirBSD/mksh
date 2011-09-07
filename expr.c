@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.48 2011/08/27 18:06:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.49 2011/09/07 15:24:14 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -913,3 +913,22 @@ utf_wcwidth(unsigned int c)
 }
 /* --- end of wcwidth.c excerpt --- */
 #endif
+
+/*
+ * Wrapper around access(2) because it says root can execute everything
+ * on some operating systems. Does not set errno, no user needs it. Use
+ * this iff mode can have the X_OK bit set, access otherwise.
+ */
+int
+ksh_access(const char *fn, int mode)
+{
+	int rv;
+	struct stat sb;
+
+	if ((rv = access(fn, mode)) == 0 && kshuid == 0 && (mode & X_OK) &&
+	    (rv = stat(fn, &sb)) == 0 && !S_ISDIR(sb.st_mode) &&
+	    (sb.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH)) == 0)
+		rv = -1;
+
+	return (rv);
+}

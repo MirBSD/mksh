@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.43 2011/08/27 18:06:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.44 2011/09/07 15:24:20 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -145,7 +145,7 @@ shf_fdopen(int fd, int sflags, struct shf *shf)
 	shf->wnleft = 0; /* force call to shf_emptybuf() */
 	shf->wbsize = sflags & SHF_UNBUF ? 0 : bsize;
 	shf->flags = sflags;
-	shf->errno_ = 0;
+	shf->errnosv = 0;
 	shf->bsize = bsize;
 	if (sflags & SHF_CLEXEC)
 		fcntl(fd, F_SETFD, FD_CLOEXEC);
@@ -172,7 +172,7 @@ shf_reopen(int fd, int sflags, struct shf *shf)
 	shf->wnleft = 0; /* force call to shf_emptybuf() */
 	shf->wbsize = sflags & SHF_UNBUF ? 0 : bsize;
 	shf->flags = (shf->flags & (SHF_ALLOCS | SHF_ALLOCB)) | sflags;
-	shf->errno_ = 0;
+	shf->errnosv = 0;
 	if (sflags & SHF_CLEXEC)
 		fcntl(fd, F_SETFD, FD_CLOEXEC);
 	return (shf);
@@ -212,7 +212,7 @@ shf_sopen(char *buf, ssize_t bsize, int sflags, struct shf *shf)
 	shf->wnleft = bsize - 1;	/* space for a '\0' */
 	shf->wbsize = bsize;
 	shf->flags = sflags | SHF_STRING;
-	shf->errno_ = 0;
+	shf->errnosv = 0;
 	shf->bsize = bsize;
 
 	return (shf);
@@ -290,7 +290,7 @@ shf_flush(struct shf *shf)
 		internal_errorf("%s: %s", "shf_flush", "no fd");
 
 	if (shf->flags & SHF_ERROR) {
-		errno = shf->errno_;
+		errno = shf->errnosv;
 		return (EOF);
 	}
 
@@ -321,7 +321,7 @@ shf_emptybuf(struct shf *shf, int flags)
 		internal_errorf("%s: %s", "shf_emptybuf", "no fd");
 
 	if (shf->flags & SHF_ERROR) {
-		errno = shf->errno_;
+		errno = shf->errnosv;
 		return (EOF);
 	}
 
@@ -363,7 +363,7 @@ shf_emptybuf(struct shf *shf, int flags)
 					    !(shf->flags & SHF_INTERRUPT))
 						continue;
 					shf->flags |= SHF_ERROR;
-					shf->errno_ = errno;
+					shf->errnosv = errno;
 					shf->wnleft = 0;
 					if (buf != shf->buf) {
 						/*
@@ -408,7 +408,7 @@ shf_fillbuf(struct shf *shf)
 
 	if (shf->flags & (SHF_EOF | SHF_ERROR)) {
 		if (shf->flags & SHF_ERROR)
-			errno = shf->errno_;
+			errno = shf->errnosv;
 		return (EOF);
 	}
 
@@ -426,7 +426,7 @@ shf_fillbuf(struct shf *shf)
 	}
 	if (n < 0) {
 		shf->flags |= SHF_ERROR;
-		shf->errno_ = errno;
+		shf->errnosv = errno;
 		shf->rnleft = 0;
 		shf->rp = shf->buf;
 		return (EOF);
@@ -585,7 +585,7 @@ shf_putchar(int c, struct shf *shf)
 		if (shf->fd < 0)
 			internal_errorf("%s: %s", "shf_putchar", "no fd");
 		if (shf->flags & SHF_ERROR) {
-			errno = shf->errno_;
+			errno = shf->errnosv;
 			return (EOF);
 		}
 		while ((n = write(shf->fd, &cc, 1)) != 1)
@@ -594,7 +594,7 @@ shf_putchar(int c, struct shf *shf)
 				    !(shf->flags & SHF_INTERRUPT))
 					continue;
 				shf->flags |= SHF_ERROR;
-				shf->errno_ = errno;
+				shf->errnosv = errno;
 				return (EOF);
 			}
 	} else {
@@ -668,7 +668,7 @@ shf_write(const char *buf, ssize_t nbytes, struct shf *shf)
 						    !(shf->flags & SHF_INTERRUPT))
 							continue;
 						shf->flags |= SHF_ERROR;
-						shf->errno_ = errno;
+						shf->errnosv = errno;
 						shf->wnleft = 0;
 						/*
 						 * Note: fwrite(3) returns 0

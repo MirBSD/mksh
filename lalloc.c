@@ -20,7 +20,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.18 2011/08/27 18:06:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.19 2011/09/07 15:24:16 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -77,7 +77,7 @@ void *
 aresize2(void *ptr, size_t fac1, size_t fac2, Area *ap)
 {
 	if (notoktomul(fac1, fac2))
-		internal_errorf(T_intovfl, fac1, '*', fac2);
+		internal_errorf(Tintovfl, fac1, '*', fac2);
 	return (aresize(ptr, fac1 * fac2, ap));
 }
 
@@ -100,7 +100,7 @@ aresize(void *ptr, size_t numb, Area *ap)
 	    || ALLOC_ISUNALIGNED(lp)
 #endif
 	    )
-		internal_errorf(T_oomem, (unsigned long)numb);
+		internal_errorf(Toomem, (unsigned long)numb);
 	/* this only works because Area is an ALLOC_ITEM */
 	lp->next = ap->next;
 	ap->next = lp;

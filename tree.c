@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.50 2011/08/27 18:06:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.51 2011/09/07 15:24:21 tg Exp $");
 
 #define INDENT	8
 
@@ -100,7 +100,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 	case TSELECT:
 	case TFOR:
 		fptreef(shf, indent, "%s %s ",
-		    (t->type == TFOR) ? "for" : T_select, t->str);
+		    (t->type == TFOR) ? "for" : Tselect, t->str);
 		if (t->vars != NULL) {
 			shf_puts("in ", shf);
 			w = (const char **)t->vars;
@@ -701,7 +701,7 @@ void
 fpFUNCTf(struct shf *shf, int i, bool isksh, const char *k, struct op *v)
 {
 	if (isksh)
-		fptreef(shf, i, "%s %s %T", T_function, k, v);
+		fptreef(shf, i, "%s %s %T", Tfunction, k, v);
 	else
 		fptreef(shf, i, "%s() %T", k, v);
 }

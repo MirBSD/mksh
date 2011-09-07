@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.107 2011/08/27 18:06:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.108 2011/09/07 15:24:13 tg Exp $");
 
 /*
  * string expansion
@@ -232,7 +232,7 @@ expand(const char *cp,	/* input word */
 	if (Flag(FMARKDIRS))
 		f |= DOMARKDIRS;
 	if (Flag(FBRACEEXPAND) && (f & DOGLOB))
-		f |= DOBRACE_;
+		f |= DOBRACE;
 
 	/* init destination string */
 	Xinit(ds, dp, 128, ATEMP);
@@ -573,9 +573,9 @@ expand(const char *cp,	/* input word */
 					}
 					case '#':
 					case '%':
-						/* ! DOBLANK,DOBRACE_,DOTILDE */
+						/* ! DOBLANK,DOBRACE,DOTILDE */
 						f = DOPAT | (f&DONTRUNCOMMAND) |
-						    DOTEMP_;
+						    DOTEMP;
 						st->quotew = quote = 0;
 						/*
 						 * Prepend open pattern (so |
@@ -604,17 +604,17 @@ expand(const char *cp,	/* input word */
 						 */
 						if (!(x.var->flag & INTEGER))
 							f |= DOASNTILDE|DOTILDE;
-						f |= DOTEMP_;
+						f |= DOTEMP;
 						/*
 						 * These will be done after the
 						 * value has been assigned.
 						 */
-						f &= ~(DOBLANK|DOGLOB|DOBRACE_);
+						f &= ~(DOBLANK|DOGLOB|DOBRACE);
 						tilde_ok = 1;
 						break;
 					case '?':
 						f &= ~DOBLANK;
-						f |= DOTEMP_;
+						f |= DOTEMP;
 						/* FALLTHROUGH */
 					default:
 						/* Enable tilde expansion */
@@ -849,14 +849,14 @@ expand(const char *cp,	/* input word */
 
 				*dp++ = '\0';
 				p = Xclose(ds, dp);
-				if (fdo & DOBRACE_)
+				if (fdo & DOBRACE)
 					/* also does globbing */
 					alt_expand(wp, p, p,
 					    p + Xlength(ds, (dp - 1)),
 					    fdo | (f & DOMARKDIRS));
 				else if (fdo & DOGLOB)
 					glob(p, wp, f & DOMARKDIRS);
-				else if ((f & DOPAT) || !(fdo & DOMAGIC_))
+				else if ((f & DOPAT) || !(fdo & DOMAGIC))
 					XPput(*wp, p);
 				else
 					XPput(*wp, debunk(p, p, strlen(p) + 1));
@@ -897,7 +897,7 @@ expand(const char *cp,	/* input word */
 					 * [...] expressions.
 					 */
 					if (f & (DOPAT | DOGLOB)) {
-						fdo |= DOMAGIC_;
+						fdo |= DOMAGIC;
 						if (c == '[')
 							fdo |= f & DOGLOB;
 						*dp++ = MAGIC;
@@ -906,22 +906,22 @@ expand(const char *cp,	/* input word */
 				case '*':
 				case '?':
 					if (f & (DOPAT | DOGLOB)) {
-						fdo |= DOMAGIC_ | (f & DOGLOB);
+						fdo |= DOMAGIC | (f & DOGLOB);
 						*dp++ = MAGIC;
 					}
 					break;
 				case OBRACE:
 				case ',':
 				case CBRACE:
-					if ((f & DOBRACE_) && (c == OBRACE ||
-					    (fdo & DOBRACE_))) {
-						fdo |= DOBRACE_|DOMAGIC_;
+					if ((f & DOBRACE) && (c == OBRACE ||
+					    (fdo & DOBRACE))) {
+						fdo |= DOBRACE|DOMAGIC;
 						*dp++ = MAGIC;
 					}
 					break;
 				case '=':
 					/* Note first unquoted = for ~ */
-					if (!(f & DOTEMP_) && !saw_eq &&
+					if (!(f & DOTEMP) && !saw_eq &&
 					    (Flag(FBRACEEXPAND) ||
 					    (f & DOASNTILDE))) {
 						saw_eq = 1;
@@ -931,7 +931,7 @@ expand(const char *cp,	/* input word */
 				case ':':
 					/* : */
 					/* Note unquoted : for ~ */
-					if (!(f & DOTEMP_) && (f & DOASNTILDE))
+					if (!(f & DOTEMP) && (f & DOASNTILDE))
 						tilde_ok = 1;
 					break;
 				case '~':
@@ -967,10 +967,10 @@ expand(const char *cp,	/* input word */
 
 			if (make_magic) {
 				make_magic = 0;
-				fdo |= DOMAGIC_ | (f & DOGLOB);
+				fdo |= DOMAGIC | (f & DOGLOB);
 				*dp++ = MAGIC;
 			} else if (ISMAGIC(c)) {
-				fdo |= DOMAGIC_;
+				fdo |= DOMAGIC;
 				*dp++ = MAGIC;
 			}
 			/* save output char */

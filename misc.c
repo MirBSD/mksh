@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.171 2011/08/27 18:06:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.172 2011/09/07 15:24:18 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -185,7 +185,7 @@ printoptions(bool verbose)
 		    octs + 4, oi.opt_width + 4, true);
 	} else {
 		/* short version like AT&T ksh93 */
-		shf_puts(T_set, shl_stdout);
+		shf_puts(Tset, shl_stdout);
 		while (i < (int)NELEM(options)) {
 			if (Flag(i) && options[i].name)
 				shprintf("%s %s %s", null, "-o",
@@ -1074,7 +1074,7 @@ print_value_quoted(const char *s)
 void
 print_columns(struct shf *shf, int n,
     char *(*func)(char *, size_t, int, const void *),
-    const void *arg, size_t max_oct, size_t max_col_, bool prefcol)
+    const void *arg, size_t max_oct, size_t max_colz, bool prefcol)
 {
 	int i, r, c, rows, cols, nspace, max_col;
 	char *str;
@@ -1086,13 +1086,14 @@ print_columns(struct shf *shf, int n,
 		return;
 	}
 
-	if (max_col_ > 2147483647) {
+	if (max_colz > 2147483647) {
 #ifndef MKSH_SMALL
-		internal_warningf("print_columns called with max_col=%zu > INT_MAX", max_col_);
+		internal_warningf("print_columns called with max_col=%zu > INT_MAX",
+		    max_colz);
 #endif
 		return;
 	}
-	max_col = (int)max_col_;
+	max_col = (int)max_colz;
 
 	++max_oct;
 	str = alloc(max_oct, ATEMP);

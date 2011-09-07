@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.95 2011/08/27 18:06:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.96 2011/09/07 15:24:14 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -38,6 +38,7 @@ static const char *do_selectargs(const char **, bool);
 static Test_op dbteste_isa(Test_env *, Test_meta);
 static const char *dbteste_getopnd(Test_env *, Test_op, bool);
 static void dbteste_error(Test_env *, int, const char *);
+static int search_access(const char *, int);
 
 /*
  * execute command tree
@@ -102,7 +103,7 @@ execute(struct op * volatile t,
 			/* set variable to its expanded value */
 			z = strlen(cp) + 1;
 			if (notoktomul(z, 2) || notoktoadd(z * 2, n))
-				internal_errorf(T_oomem, (unsigned long)-1);
+				internal_errorf(Toomem, (unsigned long)-1);
 			dp = alloc(z * 2 + n, ATEMP);
 			memcpy(dp, t->vars[0], n);
 			t->vars[0] = dp;
@@ -481,7 +482,7 @@ execute(struct op * volatile t,
 		unwind(LEXIT);
 	if (rv != 0 && !(flags & XERROK) &&
 	    (xerrok == NULL || !*xerrok)) {
-		trapsig(SIGERR_);
+		trapsig(ksh_SIGERR);
 		if (Flag(FERREXIT))
 			unwind(LERROR);
 	}
@@ -546,7 +547,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				break;
 			}
 			if ((tp = findcom(cp, FC_BI)) == NULL)
-				errorf("%s: %s: %s", T_builtin, cp, "not a builtin");
+				errorf("%s: %s: %s", Tbuiltin, cp, "not a builtin");
 			continue;
 		} else if (tp->val.f == c_exec) {
 			if (ap[1] == NULL)
@@ -678,18 +679,10 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			struct tbl *ftp;
 
 			if (!tp->u.fpath) {
-				if (tp->u2.errno_) {
-					warningf(true, "%s: %s %s: %s", cp,
-					    "can't find",
-					    "function definition file",
-					    strerror(tp->u2.errno_));
-					rv = 126;
-				} else {
-					warningf(true, "%s: %s %s", cp,
-					    "can't find",
-					    "function definition file");
-					rv = 127;
-				}
+				rv = (tp->u2.errnov == ENOENT) ? 127 : 126;
+				warningf(true, "%s: %s %s: %s", cp,
+				    "can't find", "function definition file",
+				    strerror(tp->u2.errnov));
 				break;
 			}
 			if (include(tp->u.fpath, 0, NULL, 0) < 0) {
@@ -785,20 +778,13 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	/* tracked alias */
 	case CTALIAS:
 		if (!(tp->flag&ISSET)) {
-			/*
-			 * errno_ will be set if the named command was found
-			 * but could not be executed (permissions, no execute
-			 * bit, directory, etc). Print out a (hopefully)
-			 * useful error message and set the exit status to 126.
-			 */
-			if (tp->u2.errno_) {
-				warningf(true, "%s: %s: %s", cp,
-				    "can't execute", strerror(tp->u2.errno_));
-				/* POSIX */
-				rv = 126;
-			} else {
-				warningf(true, "%s: %s", cp, "not found");
+			if (tp->u2.errnov == ENOENT) {
 				rv = 127;
+				warningf(true, "%s: %s", cp, "not found");
+			} else {
+				rv = 126;
+				warningf(true, "%s: %s: %s", cp, "can't execute",
+				    strerror(tp->u2.errnov));
 			}
 			break;
 		}
@@ -851,7 +837,7 @@ scriptexec(struct op *tp, const char **ap)
 
 	sh = str_val(global("EXECSHELL"));
 	if (sh && *sh)
-		sh = search(sh, path, X_OK, NULL);
+		sh = search_path(sh, path, X_OK, NULL);
 	if (!sh || !*sh)
 		sh = MKSH_DEFAULT_EXECSHELL;
 
@@ -1094,10 +1080,10 @@ findcom(const char *name, int flags)
 		if (tp && !(tp->flag & ISSET)) {
 			if ((fpath = str_val(global("FPATH"))) == null) {
 				tp->u.fpath = NULL;
-				tp->u2.errno_ = 0;
+				tp->u2.errnov = ENOENT;
 			} else
-				tp->u.fpath = search(name, fpath, R_OK,
-				    &tp->u2.errno_);
+				tp->u.fpath = search_path(name, fpath, R_OK,
+				    &tp->u2.errnov);
 		}
 	}
 	if (!tp && (flags & FC_REGBI) && tbi && (tbi->flag & REG_BI))
@@ -1106,7 +1092,8 @@ findcom(const char *name, int flags)
 		tp = tbi;
 	if (!tp && (flags & FC_PATH) && !(flags & FC_DEFPATH)) {
 		tp = ktsearch(&taliases, name, h);
-		if (tp && (tp->flag & ISSET) && access(tp->val.s, X_OK) != 0) {
+		if (tp && (tp->flag & ISSET) &&
+		    ksh_access(tp->val.s, X_OK) != 0) {
 			if (tp->flag & ALLOC) {
 				tp->flag &= ~ALLOC;
 				afree(tp->val.s, APERM);
@@ -1129,8 +1116,9 @@ findcom(const char *name, int flags)
 			/* make ~ISSET */
 			tp->flag = DEFINED;
 		}
-		npath.ro = search(name, flags & FC_DEFPATH ? def_path : path,
-		    X_OK, &tp->u2.errno_);
+		npath.ro = search_path(name,
+		    (flags & FC_DEFPATH) ? def_path : path,
+		    X_OK, &tp->u2.errnov);
 		if (npath.ro) {
 			strdupx(tp->val.s, npath.ro, APERM);
 			if (npath.ro != name)
@@ -1138,8 +1126,8 @@ findcom(const char *name, int flags)
 			tp->flag |= ISSET|ALLOC;
 		} else if ((flags & FC_FUNC) &&
 		    (fpath = str_val(global("FPATH"))) != null &&
-		    (npath.ro = search(name, fpath, R_OK,
-		    &tp->u2.errno_)) != NULL) {
+		    (npath.ro = search_path(name, fpath, R_OK,
+		    &tp->u2.errnov)) != NULL) {
 			/*
 			 * An undocumented feature of AT&T ksh is that
 			 * it searches FPATH if a command is not found,
@@ -1176,37 +1164,31 @@ flushcom(bool all)
 		}
 }
 
-/* Check if path is something we want to find. Returns -1 for failure. */
-int
-search_access(const char *lpath, int mode,
-    /* set if candidate found, but not suitable */
-    int *errnop)
+/* check if path is something we want to find */
+static int
+search_access(const char *fn, int mode)
 {
-	int ret, err = 0;
-	struct stat statb;
+	struct stat sb;
 
-	if (stat(lpath, &statb) < 0)
-		return (-1);
-	ret = access(lpath, mode);
-	if (ret < 0)
-		/* File exists, but we can't access it */
-		err = errno;
-	else if (mode == X_OK && (!S_ISREG(statb.st_mode) ||
-	    !(statb.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH)))) {
-		/* This 'cause access() says root can execute everything */
-		ret = -1;
-		err = S_ISDIR(statb.st_mode) ? EISDIR : EACCES;
-	}
-	if (err && errnop && !*errnop)
-		*errnop = err;
-	return (ret);
+	if (stat(fn, &sb) < 0)
+		/* file does not exist */
+		return (ENOENT);
+	/* LINTED use of access */
+	if (access(fn, mode) < 0)
+		/* file exists, but we can't access it */
+		return (errno);
+	if (mode == X_OK && (!S_ISREG(sb.st_mode) ||
+	    !(sb.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH))))
+		/* access(2) may say root can execute everything */
+		return (S_ISDIR(sb.st_mode) ? EISDIR : EACCES);
+	return (0);
 }
 
 /*
  * search for command with PATH
  */
 const char *
-search(const char *name, const char *lpath,
+search_path(const char *name, const char *lpath,
     /* R_OK or X_OK */
     int mode,
     /* set if candidate found, but not suitable */
@@ -1216,13 +1198,16 @@ search(const char *name, const char *lpath,
 	char *xp;
 	XString xs;
 	size_t namelen;
+	int ec = 0, ev;
 
-	if (errnop)
-		*errnop = 0;
 	if (vstrchr(name, '/')) {
-		if (search_access(name, mode, errnop) == 0)
+		if ((ec = search_access(name, mode)) == 0) {
+ search_path_ok:
+			if (errnop)
+				*errnop = 0;
 			return (name);
-		return (NULL);
+		}
+		goto search_path_err;
 	}
 
 	namelen = strlen(name) + 1;
@@ -1242,12 +1227,20 @@ search(const char *name, const char *lpath,
 		sp = p;
 		XcheckN(xs, xp, namelen);
 		memcpy(xp, name, namelen);
-		if (search_access(Xstring(xs, xp), mode, errnop) == 0)
-			return (Xclose(xs, xp + namelen));
+		if ((ev = search_access(Xstring(xs, xp), mode)) == 0) {
+			name = Xclose(xs, xp + namelen);
+			goto search_path_ok;
+		}
+		/* accumulate non-ENOENT errors only */
+		if (ev != ENOENT && ec == 0)
+			ec = ev;
 		if (*sp++ == '\0')
 			sp = NULL;
 	}
 	Xfree(xs, xp);
+ search_path_err:
+	if (errnop)
+		*errnop = ec ? ec : ENOENT;
 	return (NULL);
 }
 

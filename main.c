@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.198 2011/08/27 18:06:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.199 2011/09/07 15:24:17 tg Exp $");
 
 extern char **environ;
 
@@ -59,12 +59,12 @@ static const char initsubs[] =
     "${PS2=> } ${PS3=#? } ${PS4=+ } ${SECONDS=0} ${TMOUT=0}";
 
 static const char *initcoms[] = {
-	T_typeset, "-r", initvsn, NULL,
-	T_typeset, "-x", "HOME", "PATH", "RANDOM", "SHELL", NULL,
-	T_typeset, "-i10", "SECONDS", "TMOUT", NULL,
-	T_alias,
+	Ttypeset, "-r", initvsn, NULL,
+	Ttypeset, "-x", "HOME", "PATH", "RANDOM", "SHELL", NULL,
+	Ttypeset, "-i10", "SECONDS", "TMOUT", NULL,
+	Talias,
 	"integer=typeset -i",
-	T_local_typeset,
+	Tlocal_typeset,
 	/* not "alias -t --": hash -r needs to work */
 	"hash=alias -t",
 	"type=whence -v",
@@ -79,19 +79,19 @@ static const char *initcoms[] = {
 	"history=fc -l",
 	"nameref=typeset -n",
 	"nohup=nohup ",
-	T_r_fc_e_,
+	Tr_fc_e_dash,
 	"source=PATH=$PATH:. command .",
 	"login=exec login",
 	NULL,
 	 /* this is what AT&T ksh seems to track, with the addition of emacs */
-	T_alias, "-tU",
+	Talias, "-tU",
 	"cat", "cc", "chmod", "cp", "date", "ed", "emacs", "grep", "ls",
 	"make", "mv", "pr", "rm", "sed", "sh", "vi", "who", NULL,
 	NULL
 };
 
 static const char *restr_com[] = {
-	T_typeset, "-r", "PATH", "ENV", "SHELL", NULL
+	Ttypeset, "-r", "PATH", "ENV", "SHELL", NULL
 };
 
 static int initio_done;
@@ -105,7 +105,7 @@ rndsetup(void)
 {
 	register uint32_t h;
 	struct {
-		ALLOC_ITEM __alloc_i;
+		ALLOC_ITEM alloc_INT;
 		void *dataptr, *stkptr, *mallocptr;
 		sigjmp_buf jbuf;
 		struct timeval tv;
@@ -799,14 +799,14 @@ unwind(int i)
 {
 	/* ordering for EXIT vs ERR is a bit odd (this is what AT&T ksh does) */
 	if (i == LEXIT || (Flag(FERREXIT) && (i == LERROR || i == LINTR) &&
-	    sigtraps[SIGEXIT_].trap)) {
+	    sigtraps[ksh_SIGEXIT].trap)) {
 		++trap_nested;
-		runtrap(&sigtraps[SIGEXIT_], trap_nested == 1);
+		runtrap(&sigtraps[ksh_SIGEXIT], trap_nested == 1);
 		--trap_nested;
 		i = LLEAVE;
 	} else if (Flag(FERREXIT) && (i == LERROR || i == LINTR)) {
 		++trap_nested;
-		runtrap(&sigtraps[SIGERR_], trap_nested == 1);
+		runtrap(&sigtraps[ksh_SIGERR], trap_nested == 1);
 		--trap_nested;
 		i = LLEAVE;
 	}

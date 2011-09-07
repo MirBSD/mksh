@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.155 2011/08/27 18:06:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.156 2011/09/07 15:24:16 tg Exp $");
 
 /*
  * states while lexing word
@@ -91,7 +91,7 @@ typedef struct {
 static void readhere(struct ioword *);
 static void ungetsc(int);
 static void ungetsc_(int);
-static int getsc__(void);
+static int getsc_uu(void);
 static void getsc_line(Source *);
 static int getsc_bn(void);
 static int s_get(void);
@@ -111,13 +111,13 @@ static struct sretrace_info *retrace_info;
 short subshell_nesting_level = 0;
 
 /* optimised getsc_bn() */
-#define _getsc()	(*source->str != '\0' && *source->str != '\\' && \
+#define o_getsc()	(*source->str != '\0' && *source->str != '\\' && \
 			    !backslash_skip ? *source->str++ : getsc_bn())
-/* optimised getsc__() */
-#define	_getsc_()	((*source->str != '\0') ? *source->str++ : getsc__())
+/* optimised getsc_uu() */
+#define	o_getsc_u()	((*source->str != '\0') ? *source->str++ : getsc_uu())
 
 /* retrace helper */
-#define _getsc_r(carg)	{				\
+#define o_getsc_r(carg)	{				\
 	int cev = (carg);				\
 	struct sretrace_info *rp = retrace_info;	\
 							\
@@ -136,7 +136,7 @@ static int getsc(void);
 static int
 getsc(void)
 {
-	_getsc_r(_getsc());
+	o_getsc_r(o_getsc());
 }
 #else
 static int getsc_r(int);
@@ -144,10 +144,10 @@ static int getsc_r(int);
 static int
 getsc_r(int c)
 {
-	_getsc_r(c);
+	o_getsc_r(c);
 }
 
-#define getsc()		getsc_r(_getsc())
+#define getsc()		getsc_r(o_getsc())
 #endif
 
 #define STATE_BSIZE	8
@@ -1260,7 +1260,7 @@ pushs(int type, Area *areap)
 }
 
 static int
-getsc__(void)
+getsc_uu(void)
 {
 	Source *s = source;
 	int c;
@@ -1328,7 +1328,7 @@ getsc__(void)
 				/* pop source stack */
 				source = s->next;
 				source->flags |= s->flags & SF_ALIAS;
-				c = getsc__();
+				c = getsc_uu();
 				if (c) {
 					s->flags |= SF_ALIASEND;
 					s->ugbuf[0] = c; s->ugbuf[1] = '\0';
@@ -1445,7 +1445,7 @@ getsc_line(Source *s)
 		int linelen;
 
 		linelen = Xlength(s->xs, xp);
-		XcheckN(s->xs, xp, Tn_fc_e_ + /* NUL */ 1);
+		XcheckN(s->xs, xp, Zfc_e_dash + /* NUL */ 1);
 		/* reload after potential realloc */
 		cp = Xstring(s->xs, xp);
 		/* change initial '!' into space */
@@ -1453,10 +1453,10 @@ getsc_line(Source *s)
 		/* NUL terminate the current string */
 		*xp = '\0';
 		/* move the actual string forward */
-		memmove(cp + Tn_fc_e_, cp, linelen + /* NUL */ 1);
-		xp += Tn_fc_e_;
+		memmove(cp + Zfc_e_dash, cp, linelen + /* NUL */ 1);
+		xp += Zfc_e_dash;
 		/* prepend it with "fc -e -" */
-		memcpy(cp, T_fc_e_, Tn_fc_e_);
+		memcpy(cp, Tfc_e_dash, Zfc_e_dash);
 	}
 #endif
 	s->start = s->str = cp;
@@ -1753,19 +1753,19 @@ getsc_bn(void)
 	int c, c2;
 
 	if (ignore_backslash_newline)
-		return (_getsc_());
+		return (o_getsc_u());
 
 	if (backslash_skip == 1) {
 		backslash_skip = 2;
-		return (_getsc_());
+		return (o_getsc_u());
 	}
 
 	backslash_skip = 0;
 
 	while (/* CONSTCOND */ 1) {
-		c = _getsc_();
+		c = o_getsc_u();
 		if (c == '\\') {
-			if ((c2 = _getsc_()) == '\n')
+			if ((c2 = o_getsc_u()) == '\n')
 				/* ignore the \newline; get the next char... */
 				continue;
 			ungetsc_(c2);
@@ -1780,16 +1780,16 @@ yyskiputf8bom(void)
 {
 	int c;
 
-	if ((unsigned char)(c = _getsc_()) != 0xEF) {
+	if ((unsigned char)(c = o_getsc_u()) != 0xEF) {
 		ungetsc_(c);
 		return;
 	}
-	if ((unsigned char)(c = _getsc_()) != 0xBB) {
+	if ((unsigned char)(c = o_getsc_u()) != 0xBB) {
 		ungetsc_(c);
 		ungetsc_(0xEF);
 		return;
 	}
-	if ((unsigned char)(c = _getsc_()) != 0xBF) {
+	if ((unsigned char)(c = o_getsc_u()) != 0xBF) {
 		ungetsc_(c);
 		ungetsc_(0xBB);
 		ungetsc_(0xEF);

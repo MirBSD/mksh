@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.131 2011/08/27 18:06:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.132 2011/09/07 15:24:22 tg Exp $");
 
 /*-
  * Variables
@@ -1170,6 +1170,7 @@ setspec(struct tbl *vp)
 			struct stat statb;
 
 			s = str_val(vp);
+			/* LINTED use of access */
 			if (s[0] == '/' && access(s, W_OK|X_OK) == 0 &&
 			    stat(s, &statb) == 0 && S_ISDIR(statb.st_mode))
 				strdupx(tmpdir, s, APERM);

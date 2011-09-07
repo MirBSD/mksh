@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.220 2011/08/27 18:06:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.221 2011/09/07 15:24:12 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -695,7 +695,6 @@ glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
 	const char *sp = lpath, *p;
 	char *xp, **words;
 	size_t pathlen, patlen, oldsize, newsize, i, j;
-	int staterr;
 	XString xs;
 
 	patlen = strlen(pat);
@@ -735,9 +734,7 @@ glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
 		/* Check that each match is executable... */
 		words = (char **)XPptrv(*wp);
 		for (i = j = oldsize; i < newsize; i++) {
-			staterr = 0;
-			if ((search_access(words[i], X_OK, &staterr) >= 0) ||
-			    (staterr == EISDIR)) {
+			if (ksh_access(words[i], X_OK) == 0) {
 				words[j] = words[i];
 				if (!(flags & XCF_FULLPATH))
 					memmove(words[j], words[j] + pathlen,
@@ -2467,7 +2464,7 @@ x_bind(const char *a1, const char *a2,
 			    strcmp(x_ftab[f].xf_name, a2) == 0)
 				break;
 		if (f == NELEM(x_ftab) || x_ftab[f].xf_flags & XF_NOBIND) {
-			bi_errorf("%s: %s %s", a2, "no such", T_function);
+			bi_errorf("%s: %s %s", a2, "no such", Tfunction);
 			return (1);
 		}
 	}
@@ -3291,58 +3288,58 @@ static void vi_error(void);
 static void vi_macro_reset(void);
 static int x_vi_putbuf(const char *, size_t);
 
-#define C_	0x1		/* a valid command that isn't a M_, E_, U_ */
-#define M_	0x2		/* movement command (h, l, etc.) */
-#define E_	0x4		/* extended command (c, d, y) */
-#define X_	0x8		/* long command (@, f, F, t, T, etc.) */
-#define U_	0x10		/* an UN-undoable command (that isn't a M_) */
-#define B_	0x20		/* bad command (^@) */
-#define Z_	0x40		/* repeat count defaults to 0 (not 1) */
-#define S_	0x80		/* search (/, ?) */
+#define vC	0x01		/* a valid command that isn't a vM, vE, vU */
+#define vM	0x02		/* movement command (h, l, etc.) */
+#define vE	0x04		/* extended command (c, d, y) */
+#define vX	0x08		/* long command (@, f, F, t, T, etc.) */
+#define vU	0x10		/* an UN-undoable command (that isn't a vM) */
+#define vB	0x20		/* bad command (^@) */
+#define vZ	0x40		/* repeat count defaults to 0 (not 1) */
+#define vS	0x80		/* search (/, ?) */
 
-#define is_bad(c)	(classify[(c)&0x7f]&B_)
-#define is_cmd(c)	(classify[(c)&0x7f]&(M_|E_|C_|U_))
-#define is_move(c)	(classify[(c)&0x7f]&M_)
-#define is_extend(c)	(classify[(c)&0x7f]&E_)
-#define is_long(c)	(classify[(c)&0x7f]&X_)
-#define is_undoable(c)	(!(classify[(c)&0x7f]&U_))
-#define is_srch(c)	(classify[(c)&0x7f]&S_)
-#define is_zerocount(c)	(classify[(c)&0x7f]&Z_)
+#define is_bad(c)	(classify[(c)&0x7f]&vB)
+#define is_cmd(c)	(classify[(c)&0x7f]&(vM|vE|vC|vU))
+#define is_move(c)	(classify[(c)&0x7f]&vM)
+#define is_extend(c)	(classify[(c)&0x7f]&vE)
+#define is_long(c)	(classify[(c)&0x7f]&vX)
+#define is_undoable(c)	(!(classify[(c)&0x7f]&vU))
+#define is_srch(c)	(classify[(c)&0x7f]&vS)
+#define is_zerocount(c)	(classify[(c)&0x7f]&vZ)
 
 static const unsigned char classify[128] = {
 /*	 0	1	2	3	4	5	6	7	*/
 /* 0	^@	^A	^B	^C	^D	^E	^F	^G	*/
-	B_,	0,	0,	0,	0,	C_|U_,	C_|Z_,	0,
+	vB,	0,	0,	0,	0,	vC|vU,	vC|vZ,	0,
 /* 1	^H	^I	^J	^K	^L	^M	^N	^O	*/
-	M_,	C_|Z_,	0,	0,	C_|U_,	0,	C_,	0,
+	vM,	vC|vZ,	0,	0,	vC|vU,	0,	vC,	0,
 /* 2	^P	^Q	^R	^S	^T	^U	^V	^W	*/
-	C_,	0,	C_|U_,	0,	0,	0,	C_,	0,
+	vC,	0,	vC|vU,	0,	0,	0,	vC,	0,
 /* 3	^X	^Y	^Z	^[	^\	^]	^^	^_	*/
-	C_,	0,	0,	C_|Z_,	0,	0,	0,	0,
+	vC,	0,	0,	vC|vZ,	0,	0,	0,	0,
 /* 4	<space>	!	"	#	$	%	&	'	*/
-	M_,	0,	0,	C_,	M_,	M_,	0,	0,
+	vM,	0,	0,	vC,	vM,	vM,	0,	0,
 /* 5	(	)	*	+	,	-	.	/	*/
-	0,	0,	C_,	C_,	M_,	C_,	0,	C_|S_,
+	0,	0,	vC,	vC,	vM,	vC,	0,	vC|vS,
 /* 6	0	1	2	3	4	5	6	7	*/
-	M_,	0,	0,	0,	0,	0,	0,	0,
+	vM,	0,	0,	0,	0,	0,	0,	0,
 /* 7	8	9	:	;	<	=	>	?	*/
-	0,	0,	0,	M_,	0,	C_,	0,	C_|S_,
+	0,	0,	0,	vM,	0,	vC,	0,	vC|vS,
 /* 8	@	A	B	C	D	E	F	G	*/
-	C_|X_,	C_,	M_,	C_,	C_,	M_,	M_|X_,	C_|U_|Z_,
+	vC|vX,	vC,	vM,	vC,	vC,	vM,	vM|vX,	vC|vU|vZ,
 /* 9	H	I	J	K	L	M	N	O	*/
-	0,	C_,	0,	0,	0,	0,	C_|U_,	0,
+	0,	vC,	0,	0,	0,	0,	vC|vU,	0,
 /* A	P	Q	R	S	T	U	V	W	*/
-	C_,	0,	C_,	C_,	M_|X_,	C_,	0,	M_,
+	vC,	0,	vC,	vC,	vM|vX,	vC,	0,	vM,
 /* B	X	Y	Z	[	\	]	^	_	*/
-	C_,	C_|U_,	0,	0,	C_|Z_,	0,	M_,	C_|Z_,
+	vC,	vC|vU,	0,	0,	vC|vZ,	0,	vM,	vC|vZ,
 /* C	`	a	b	c	d	e	f	g	*/
-	0,	C_,	M_,	E_,	E_,	M_,	M_|X_,	C_|Z_,
+	0,	vC,	vM,	vE,	vE,	vM,	vM|vX,	vC|vZ,
 /* D	h	i	j	k	l	m	n	o	*/
-	M_,	C_,	C_|U_,	C_|U_,	M_,	0,	C_|U_,	0,
+	vM,	vC,	vC|vU,	vC|vU,	vM,	0,	vC|vU,	0,
 /* E	p	q	r	s	t	u	v	w	*/
-	C_,	0,	X_,	C_,	M_|X_,	C_|U_,	C_|U_|Z_, M_,
+	vC,	0,	vX,	vC,	vM|vX,	vC|vU,	vC|vU|vZ, vM,
 /* F	x	y	z	{	|	}	~	^?	*/
-	C_,	E_|U_,	0,	0,	M_|Z_,	0,	C_,	0
+	vC,	vE|vU,	0,	0,	vM|vZ,	0,	vC,	0
 };
 
 #define MAXVICMD	3
