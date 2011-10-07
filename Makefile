@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.87 2011/04/09 18:47:12 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.88 2011/10/07 19:51:17 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -75,6 +75,9 @@ regress: ${PROG} check.pl check.t
 test-build: .PHONY
 	-rm -rf build-dir
 	mkdir -p build-dir
+.if ${USE_PRINTF_BUILTIN} == 1
+	cp ${BSDSRCDIR}/usr.bin/printf/printf.c build-dir/
+.endif
 	cd build-dir; env CC=${CC:Q} CFLAGS=${CFLAGS:M*:Q} \
 	    CPPFLAGS=${CPPFLAGS:M*:Q} LDFLAGS=${LDFLAGS:M*:Q} \
 	    LIBS= NOWARN=-Wno-error TARGET_OS= CPP= /bin/sh \
