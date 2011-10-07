@@ -1,6 +1,6 @@
-;/*	$OpenBSD: edit.c,v 1.34 2010/05/20 01:13:07 fgsch Exp $	*/
+/*	$OpenBSD: edit.c,v 1.34 2010/05/20 01:13:07 fgsch Exp $	*/
 /*	$OpenBSD: edit.h,v 1.9 2011/05/30 17:14:35 martynas Exp $	*/
-/*	$OpenBSD: emacs.c,v 1.43 2011/03/14 21:20:01 okan Exp $	*/
+/*	$OpenBSD: emacs.c,v 1.44 2011/09/05 04:50:33 marco Exp $	*/
 /*	$OpenBSD: vi.c,v 1.26 2009/06/29 22:50:19 martynas Exp $	*/
 
 /*-
@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.221 2011/09/07 15:24:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.222 2011/10/07 19:45:08 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2878,17 +2878,21 @@ x_e_puts(const char *s)
 static int
 x_set_arg(int c)
 {
-	int n = 0;
+	unsigned int n = 0;
 	bool first = true;
 
 	/* strip command prefix */
 	c &= 255;
 	while (c >= 0 && ksh_isdigit(c)) {
 		n = n * 10 + (c - '0');
+		if (n > LINE)
+			/* upper bound for repeat */
+			goto x_set_arg_too_big;
 		c = x_e_getc();
 		first = false;
 	}
 	if (c < 0 || first) {
+ x_set_arg_too_big:
 		x_e_putc2(7);
 		x_arg = 1;
 		x_arg_defaulted = true;
