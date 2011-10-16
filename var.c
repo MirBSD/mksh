@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.132 2011/09/07 15:24:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.133 2011/10/16 00:18:56 tg Exp $");
 
 /*-
  * Variables
@@ -713,7 +713,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 		 * IMPORT is only used when the shell starts up and is
 		 * setting up its environment. Allow only simple array
 		 * references at this time since parameter/command
-		 * substitution is preformed on the [expression] which
+		 * substitution is performed on the [expression] which
 		 * would be a major security hole.
 		 */
 		if (set & IMPORT) {
