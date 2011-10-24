@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.172 2011/09/07 15:24:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.173 2011/10/24 19:40:46 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1032,36 +1032,108 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 void
 print_value_quoted(const char *s)
 {
-	const char *p;
-	bool inquote = false;
+	unsigned char c;
+	const unsigned char *p = (const unsigned char *)s;
+	bool inquote = true;
 
 	/* first, check whether any quotes are needed */
-	for (p = s; *p; p++)
-		if (ctype(*p, C_QUOTE))
+	while ((c = *p++) != 0)
+		if (c < 32 && c != '\n')
 			break;
-	if (!*p) {
-		/* nope, use the shortcut */
-		shf_puts(s, shl_stdout);
-		return;
-	}
+		else if (ctype(*p, C_QUOTE))
+			inquote = false;
 
-	/* quote via state machine */
-	for (p = s; *p; p++) {
-		if (*p == '\'') {
-			/*
-			 * multiple '''s or any ' at beginning of string
-			 * look nicer this way than when simply substituting
-			 */
-			if (inquote) {
-				shf_putc('\'', shl_stdout);
-				inquote = false;
-			}
-			shf_putc('\\', shl_stdout);
-		} else if (!inquote) {
-			shf_putc('\'', shl_stdout);
-			inquote = true;
+	p = (const unsigned char *)s;
+	if (c == 0) {
+		if (inquote) {
+			/* nope, use the shortcut */
+			shf_puts(s, shl_stdout);
+			return;
 		}
-		shf_putc(*p, shl_stdout);
+
+		/* otherwise, quote nicely via state machine */
+		while ((c = *p++) != 0) {
+			if (c == '\'') {
+				/*
+				 * multiple single quotes or any of them
+				 * at the beginning of a string look nicer
+				 * this way than when simply substituting
+				 */
+				if (inquote) {
+					shf_putc('\'', shl_stdout);
+					inquote = false;
+				}
+				shf_putc('\\', shl_stdout);
+			} else if (!inquote) {
+				shf_putc('\'', shl_stdout);
+				inquote = true;
+			}
+			shf_putc(c, shl_stdout);
+		}
+	} else {
+		unsigned int wc;
+		size_t n;
+
+		/* use $'...' quote format */
+		shf_putc('$', shl_stdout);
+		shf_putc('\'', shl_stdout);
+		while ((c = *p) != 0) {
+			if (c >= 0xC2) {
+				n = utf_mbtowc(&wc, p);
+				if (n != (size_t)-1) {
+					p += n;
+					shf_fprintf(shl_stdout, "\\u%04X", wc);
+					continue;
+				}
+			}
+			++p;
+			switch (c) {
+			/* see unbksl() in this file for comments */
+			case 7:
+				c = 'a';
+				if (0)
+					/* FALLTHROUGH */
+			case '\b':
+				  c = 'b';
+				if (0)
+					/* FALLTHROUGH */
+			case '\f':
+				  c = 'f';
+				if (0)
+					/* FALLTHROUGH */
+			case '\r':
+				  c = 'r';
+				if (0)
+					/* FALLTHROUGH */
+			case '\t':
+				  c = 't';
+				if (0)
+					/* FALLTHROUGH */
+			case 11:
+				  c = 'v';
+				if (0)
+					/* FALLTHROUGH */
+			case '\033':
+				/* take E not e because \e is \ in *roff */
+				  c = 'E';
+				/* FALLTHROUGH */
+			case '\\':
+				shf_putc('\\', shl_stdout);
+				/* FALLTHROUGH */
+			case '\n':
+ dgk_regchar:
+				shf_putc(c, shl_stdout);
+				break;
+			default:
+				if (c >= 32 && c <= 0x7E)
+					goto dgk_regchar;
+				/* FALLTHROUGH */
+			case '\'':
+				shf_fprintf(shl_stdout, "\\x%02X", c);
+				break;
+			}
+		}
+		inquote = true;
 	}
 	if (inquote)
 		shf_putc('\'', shl_stdout);
