@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.275 2011/10/07 19:51:29 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.276 2011/10/24 19:41:11 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.141 2011/09/03 22:59:08 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: October 7 2011 $
+.Dd $Mdocdate: October 24 2011 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -3294,12 +3294,13 @@ Sets the export attribute of the named parameters.
 Exported parameters are passed in the environment to executed commands.
 If values are specified, the named parameters are also assigned.
 .Pp
-If no parameters are specified, the names of all parameters with the export
-attribute are printed one per line, unless the
-.Fl p
-option is used, in which case
+If no parameters are specified, all parameters with the export attribute
+set are printed one per line; either their names, or, if a
+.Ql \-
+with no option letter is specified, name=value pairs, or, with
+.Fl p ,
 .Ic export
-commands defining all exported parameters, including their values, are printed.
+commands suitable for re-entry.
 .Pp
 .It Ic false
 A command that exits with a non-zero status.
