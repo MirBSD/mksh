@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.44 2011/09/07 15:24:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.45 2011/10/25 22:36:38 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1046,12 +1046,12 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 int
 shf_getc(struct shf *shf)
 {
-	return (shf_getc_(shf));
+	return (shf_getc_i(shf));
 }
 
 int
 shf_putc(int c, struct shf *shf)
 {
-	return (shf_putc_(c, shf));
+	return (shf_putc_i(c, shf));
 }
 #endif

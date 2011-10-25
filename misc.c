@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.175 2011/10/25 22:25:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.176 2011/10/25 22:36:37 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -2029,7 +2029,7 @@ stristr(const char *b, const char *l)
 
 #ifdef MKSH_SMALL
 char *
-strndup_(const char *src, size_t len, Area *ap)
+strndup_i(const char *src, size_t len, Area *ap)
 {
 	char *dst = NULL;
 
@@ -2042,9 +2042,9 @@ strndup_(const char *src, size_t len, Area *ap)
 }
 
 char *
-strdup_(const char *src, Area *ap)
+strdup_i(const char *src, Area *ap)
 {
-	return (src == NULL ? NULL : strndup_(src, strlen(src), ap));
+	return (src == NULL ? NULL : strndup_i(src, strlen(src), ap));
 }
 #endif
 

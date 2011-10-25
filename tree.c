@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.51 2011/09/07 15:24:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.52 2011/10/25 22:36:39 tg Exp $");
 
 #define INDENT	8
 
@@ -747,7 +747,7 @@ dumpchar(struct shf *shf, int c)
 
 /* see: wdvarput */
 static const char *
-dumpwdvar_(struct shf *shf, const char *wp, int quotelevel)
+dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 {
 	int c;
 
@@ -799,7 +799,7 @@ dumpwdvar_(struct shf *shf, const char *wp, int quotelevel)
 			while ((c = *wp++) != 0)
 				dumpchar(shf, c);
 			shf_putc('|', shf);
-			wp = dumpwdvar_(shf, wp, 0);
+			wp = dumpwdvar_i(shf, wp, 0);
 			break;
 		case CSUBST:
 			shf_puts("]CSUBST(", shf);
@@ -826,7 +826,7 @@ dumpwdvar_(struct shf *shf, const char *wp, int quotelevel)
 void
 dumpwdvar(struct shf *shf, const char *wp)
 {
-	dumpwdvar_(shf, wp, 0);
+	dumpwdvar_i(shf, wp, 0);
 }
 
 void

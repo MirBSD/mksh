@@ -151,7 +151,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.497 2011/10/25 22:25:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.498 2011/10/25 22:36:37 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2011/10/24"
 
@@ -442,11 +442,11 @@ char *ucstrstr(char *, const char *);
 } while (/* CONSTCOND */ 0)
 
 #ifdef MKSH_SMALL
-#define strdupx(d, s, ap) do { \
-	(d) = strdup_((s), (ap)); \
+#define strdupx(d, s, ap) do {						\
+	(d) = strdup_i((s), (ap));					\
 } while (/* CONSTCOND */ 0)
-#define strndupx(d, s, n, ap) do { \
-	(d) = strndup_((s), (n), (ap)); \
+#define strndupx(d, s, n, ap) do {					\
+	(d) = strndup_i((s), (n), (ap));				\
 } while (/* CONSTCOND */ 0)
 #else
 /* be careful to evaluate arguments only once! */
@@ -896,10 +896,10 @@ EXTERN mksh_ari_t x_lins E_INIT(-1);	/* tty lines */
 
 #define shf_fileno(shf)		((shf)->fd)
 #define shf_setfileno(shf,nfd)	((shf)->fd = (nfd))
-#define shf_getc_(shf)		((shf)->rnleft > 0 ? \
+#define shf_getc_i(shf)		((shf)->rnleft > 0 ? \
 				    (shf)->rnleft--, *(shf)->rp++ : \
 				    shf_getchar(shf))
-#define shf_putc_(c, shf)	((shf)->wnleft == 0 ? \
+#define shf_putc_i(c, shf)	((shf)->wnleft == 0 ? \
 				    shf_putchar((c), (shf)) : \
 				    ((shf)->wnleft--, *(shf)->wp++ = (c)))
 #define shf_eof(shf)		((shf)->flags & SHF_EOF)
@@ -1772,8 +1772,8 @@ void simplify_path(char *);
 void set_current_wd(const char *);
 int c_cd(const char **);
 #ifdef MKSH_SMALL
-char *strdup_(const char *, Area *);
-char *strndup_(const char *, size_t, Area *);
+char *strdup_i(const char *, Area *);
+char *strndup_i(const char *, size_t, Area *);
 #endif
 int unbksl(bool, int (*)(void), void (*)(int));
 /* shf.c */
@@ -1793,8 +1793,8 @@ int shf_ungetc(int, struct shf *);
 int shf_getc(struct shf *);
 int shf_putc(int, struct shf *);
 #else
-#define shf_getc shf_getc_
-#define shf_putc shf_putc_
+#define shf_getc shf_getc_i
+#define shf_putc shf_putc_i
 #endif
 int shf_putchar(int, struct shf *);
 ssize_t shf_puts(const char *, struct shf *);

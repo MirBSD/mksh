@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.156 2011/09/07 15:24:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.157 2011/10/25 22:36:36 tg Exp $");
 
 /*
  * states while lexing word
@@ -90,7 +90,7 @@ typedef struct {
 
 static void readhere(struct ioword *);
 static void ungetsc(int);
-static void ungetsc_(int);
+static void ungetsc_i(int);
 static int getsc_uu(void);
 static void getsc_line(Source *);
 static int getsc_bn(void);
@@ -99,8 +99,8 @@ static void s_put(int);
 static char *get_brace_var(XString *, char *);
 static bool arraysub(char **);
 static void gethere(bool);
-static Lex_state *push_state_(State_info *, Lex_state *);
-static Lex_state *pop_state_(State_info *, Lex_state *);
+static Lex_state *push_state_i(State_info *, Lex_state *);
+static Lex_state *pop_state_i(State_info *, Lex_state *);
 
 static int dopprompt(const char *, int, bool);
 void yyskiputf8bom(void);
@@ -154,13 +154,13 @@ getsc_r(int c)
 
 #define PUSH_STATE(s)	do {					\
 	if (++statep == state_info.end)				\
-		statep = push_state_(&state_info, statep);	\
+		statep = push_state_i(&state_info, statep);	\
 	state = statep->type = (s);				\
 } while (/* CONSTCOND */ 0)
 
 #define POP_STATE()	do {					\
 	if (--statep == state_info.base)			\
-		statep = pop_state_(&state_info, statep);	\
+		statep = pop_state_i(&state_info, statep);	\
 	state = statep->type;					\
 } while (/* CONSTCOND */ 0)
 
@@ -1727,10 +1727,10 @@ ungetsc(int c)
 			rp->xp--;
 		rp = rp->next;
 	}
-	ungetsc_(c);
+	ungetsc_i(c);
 }
 static void
-ungetsc_(int c)
+ungetsc_i(int c)
 {
 	if (source->str > source->start)
 		source->str--;
@@ -1768,7 +1768,7 @@ getsc_bn(void)
 			if ((c2 = o_getsc_u()) == '\n')
 				/* ignore the \newline; get the next char... */
 				continue;
-			ungetsc_(c2);
+			ungetsc_i(c2);
 			backslash_skip = 1;
 		}
 		return (c);
@@ -1781,25 +1781,25 @@ yyskiputf8bom(void)
 	int c;
 
 	if ((unsigned char)(c = o_getsc_u()) != 0xEF) {
-		ungetsc_(c);
+		ungetsc_i(c);
 		return;
 	}
 	if ((unsigned char)(c = o_getsc_u()) != 0xBB) {
-		ungetsc_(c);
-		ungetsc_(0xEF);
+		ungetsc_i(c);
+		ungetsc_i(0xEF);
 		return;
 	}
 	if ((unsigned char)(c = o_getsc_u()) != 0xBF) {
-		ungetsc_(c);
-		ungetsc_(0xBB);
-		ungetsc_(0xEF);
+		ungetsc_i(c);
+		ungetsc_i(0xBB);
+		ungetsc_i(0xEF);
 		return;
 	}
 	UTFMODE |= 8;
 }
 
 static Lex_state *
-push_state_(State_info *si, Lex_state *old_end)
+push_state_i(State_info *si, Lex_state *old_end)
 {
 	Lex_state *news = alloc2(STATE_BSIZE, sizeof(Lex_state), ATEMP);
 
@@ -1810,7 +1810,7 @@ push_state_(State_info *si, Lex_state *old_end)
 }
 
 static Lex_state *
-pop_state_(State_info *si, Lex_state *old_end)
+pop_state_i(State_info *si, Lex_state *old_end)
 {
 	Lex_state *old_base = si->base;
 
