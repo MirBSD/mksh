@@ -151,7 +151,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.496 2011/10/24 19:41:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.497 2011/10/25 22:25:07 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2011/10/24"
 
@@ -1297,7 +1297,7 @@ typedef char *XStringP;
 #define XcheckN(xs, xp, n) do {					\
 	ssize_t more = ((xp) + (n)) - (xs).end;			\
 	if (more > 0)						\
-		(xp) = Xcheck_grow_(&(xs), (xp), more);		\
+		(xp) = Xcheck_grow(&(xs), (xp), more);		\
 } while (/* CONSTCOND */ 0)
 
 /* check for overflow, expand string */
@@ -1318,7 +1318,7 @@ typedef char *XStringP;
 #define Xsavepos(xs, xp)	((xp) - (xs).beg)
 #define Xrestpos(xs, xp, n)	((xs).beg + (n))
 
-char *Xcheck_grow_(XString *, const char *, size_t);
+char *Xcheck_grow(XString *, const char *, size_t);
 
 /*
  * expandable vector of generic pointers

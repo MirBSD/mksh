@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.174 2011/10/24 19:40:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.175 2011/10/25 22:25:06 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -96,7 +96,7 @@ initctypes(void)
 
 /* called from XcheckN() to grow buffer */
 char *
-Xcheck_grow_(XString *xsp, const char *xp, size_t more)
+Xcheck_grow(XString *xsp, const char *xp, size_t more)
 {
 	const char *old_beg = xsp->beg;
 
