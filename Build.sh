@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.2 2011/07/16 18:03:01 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.3 2011/10/25 22:50:27 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -206,11 +206,15 @@ EOF
 	test x"$fv" = x"1"
 }
 
+add_cppflags() {
+	CPPFLAGS="$CPPFLAGS $*"
+}
+
 ac_cppflags() {
 	test x"$1" = x"" || fu=$1
 	fv=$2
 	test x"$2" = x"" && eval fv=\$HAVE_$fu
-	CPPFLAGS="$CPPFLAGS -DHAVE_$fu=$fv"
+	add_cppflags -DHAVE_$fu=$fv
 }
 
 ac_test() {
@@ -297,7 +301,7 @@ rmf a.exe* a.out* conftest.c *core lft mksh* no *.bc *.ll *.o \
     Rebuild.sh signames.inc test.sh x vv.out
 
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=
-test -n "$dirname" || dirname=.
+test -n "$srcdir" || srcdir=.
 dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\(.*\)".*$/\1/p' $srcdir/sh.h`
 
 e=echo
@@ -332,7 +336,7 @@ do
 		;;
 	:-g)
 		# checker, debug, valgrind build
-		CPPFLAGS="$CPPFLAGS -DDEBUG"
+		add_cppflags -DDEBUG
 		CFLAGS="$CFLAGS -g3 -fno-builtin"
 		;;
 	:-j)
@@ -393,6 +397,10 @@ else
 fi
 
 test x"$TARGET_OS" = x"" && TARGET_OS=`uname -s 2>/dev/null || uname`
+if test x"$TARGET_OS" = x""; then
+	echo "$me: Set TARGET_OS, your uname is broken!" >&2
+	exit 1
+fi
 oswarn=
 ccpc=-Wc,
 ccpl=-Wl,
@@ -415,7 +423,7 @@ esac
 # Configuration depending on OS name
 case $TARGET_OS in
 AIX)
-	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
+	add_cppflags -D_ALL_SOURCE
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 BeOS)
@@ -435,32 +443,32 @@ FreeBSD)
 	;;
 FreeMiNT)
 	oswarn="; it has minor issues"
-	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
+	add_cppflags -D_GNU_SOURCE
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 GNU)
 	case $CC in
 	*tendracc*) ;;
-	*) CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE" ;;
+	*) add_cppflags -D_GNU_SOURCE ;;
 	esac
 	# define NO_PATH_MAX to use Hurd-only functions
-	CPPFLAGS="$CPPFLAGS -DNO_PATH_MAX"
+	add_cppflags -DNO_PATH_MAX
 	;;
 GNU/kFreeBSD)
 	case $CC in
 	*tendracc*) ;;
-	*) CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE" ;;
+	*) add_cppflags -D_GNU_SOURCE ;;
 	esac
 	;;
 Haiku)
-	CPPFLAGS="$CPPFLAGS -DMKSH_ASSUME_UTF8"
+	add_cppflags -DMKSH_ASSUME_UTF8
 	;;
 HP-UX)
 	;;
 Interix)
 	ccpc='-X '
 	ccpl='-Y '
-	CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
+	add_cppflags -D_ALL_SOURCE
 	: ${LIBS='-lcrypt'}
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
@@ -470,17 +478,18 @@ IRIX*)
 Linux)
 	case $CC in
 	*tendracc*) ;;
-	*) CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE" ;;
+	*) add_cppflags -D_GNU_SOURCE ;;
 	esac
-	CPPFLAGS="$CPPFLAGS -DSETUID_CAN_FAIL_WITH_EAGAIN"
+	add_cppflags -DSETUID_CAN_FAIL_WITH_EAGAIN
 	: ${HAVE_REVOKE=0}
 	;;
 MidnightBSD)
 	;;
 Minix)
-	CPPFLAGS="$CPPFLAGS -DMKSH_UNEMPLOYED -DMKSH_CONSERVATIVE_FDS"
-	CPPFLAGS="$CPPFLAGS -DMKSH_NO_LIMITS"
-	CPPFLAGS="$CPPFLAGS -D_POSIX_SOURCE -D_POSIX_1_SOURCE=2 -D_MINIX"
+	add_cppflags -DMKSH_UNEMPLOYED
+	add_cppflags -DMKSH_CONSERVATIVE_FDS
+	add_cppflags -DMKSH_NO_LIMITS
+	add_cppflags -D_POSIX_SOURCE -D_POSIX_1_SOURCE=2 -D_MINIX
 	oldish_ed=no-stderr-ed		# /usr/bin/ed(!) is broken
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
@@ -497,15 +506,20 @@ OpenBSD)
 	;;
 OSF1)
 	HAVE_SIG_T=0	# incompatible
-	CPPFLAGS="$CPPFLAGS -D_OSF_SOURCE -D_POSIX_C_SOURCE=200112L"
-	CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=600 -D_XOPEN_SOURCE_EXTENDED"
+	add_cppflags -D_OSF_SOURCE
+	add_cppflags -D_POSIX_C_SOURCE=200112L
+	add_cppflags -D_XOPEN_SOURCE=600
+	add_cppflags -D_XOPEN_SOURCE_EXTENDED
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 Plan9)
-	CPPFLAGS="$CPPFLAGS -D_POSIX_SOURCE -D_LIMITS_EXTENSION"
-	CPPFLAGS="$CPPFLAGS -D_BSD_EXTENSION -D_SUSV2_SOURCE"
+	add_cppflags -D_POSIX_SOURCE
+	add_cppflags -D_LIMITS_EXTENSION
+	add_cppflags -D_BSD_EXTENSION
+	add_cppflags -D_SUSV2_SOURCE
+	add_cppflags -DMKSH_ASSUME_UTF8
 	oswarn=' and will currently not work'
-	CPPFLAGS="$CPPFLAGS -DMKSH_ASSUME_UTF8 -DMKSH_UNEMPLOYED"
+	add_cppflags -DMKSH_UNEMPLOYED
 	;;
 PW32*)
 	HAVE_SIG_T=0	# incompatible
@@ -513,7 +527,7 @@ PW32*)
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 QNX)
-	CPPFLAGS="$CPPFLAGS -D__NO_EXT_QNX"
+	add_cppflags -D__NO_EXT_QNX
 	case $TARGET_OSREV in
 	[012345].*|6.[0123].*|6.4.[01])
 		oldish_ed=no-stderr-ed		# oldish /bin/ed is broken
@@ -522,15 +536,16 @@ QNX)
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 SunOS)
-	CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE -D__EXTENSIONS__"
+	add_cppflags -D_BSD_SOURCE
+	add_cppflags -D__EXTENSIONS__
 	;;
 syllable)
-	CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
+	add_cppflags -D_GNU_SOURCE
 	oswarn=' and will currently not work'
 	;;
 ULTRIX)
 	: ${CC=cc -YPOSIX}
-	CPPFLAGS="$CPPFLAGS -Dssize_t=int"
+	add_cppflags -Dssize_t=int
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 UWIN*)
@@ -1179,7 +1194,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.484.2.2 2011/07/16 18:03:01 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.484.2.3 2011/10/25 22:50:27 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1222,10 +1237,11 @@ int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721 &&
 int main(void) { return (0); }' >lft.c
 ac_testn can_lfs '' "for large file support" <lft.c
 save_CPPFLAGS=$CPPFLAGS
-CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
+add_cppflags -D_FILE_OFFSET_BITS=64
 ac_testn can_lfs_sus '!' can_lfs 0 "... with -D_FILE_OFFSET_BITS=64" <lft.c
 if test 0 = $HAVE_CAN_LFS_SUS; then
-	CPPFLAGS="$save_CPPFLAGS -D_LARGE_FILES=1"
+	CPPFLAGS=$save_CPPFLAGS
+	add_cppflags -D_LARGE_FILES=1
 	ac_testn can_lfs_aix '!' can_lfs 0 "... with -D_LARGE_FILES=1" <lft.c
 	test 1 = $HAVE_CAN_LFS_AIX || CPPFLAGS=$save_CPPFLAGS
 fi
@@ -1278,7 +1294,7 @@ ac_testn sighandler_t '!' sig_t 0 <<-'EOF'
 	int main(void) { return ((int)(ptrdiff_t)(sighandler_t)(ptrdiff_t)kill(0,0)); }
 EOF
 if test 1 = $HAVE_SIGHANDLER_T; then
-	CPPFLAGS="$CPPFLAGS -Dsig_t=sighandler_t"
+	add_cppflags -Dsig_t=sighandler_t
 	HAVE_SIG_T=1
 fi
 
@@ -1289,11 +1305,11 @@ ac_testn __sighandler_t '!' sig_t 0 <<-'EOF'
 	int main(void) { return ((int)(ptrdiff_t)(__sighandler_t)(ptrdiff_t)kill(0,0)); }
 EOF
 if test 1 = $HAVE___SIGHANDLER_T; then
-	CPPFLAGS="$CPPFLAGS -Dsig_t=__sighandler_t"
+	add_cppflags -Dsig_t=__sighandler_t
 	HAVE_SIG_T=1
 fi
 
-test 1 = $HAVE_SIG_T || CPPFLAGS="$CPPFLAGS -Dsig_t=nosig_t"
+test 1 = $HAVE_SIG_T || add_cppflags -Dsig_t=nosig_t
 ac_cppflags SIG_T
 
 #
@@ -1311,9 +1327,10 @@ for what in name list; do
 		extern const char *const _sys_sig${what}[];
 		int main(void) { return (_sys_sig${what}[0][0]); }
 	EOF
-	if eval "test 1 = \$HAVE__SYS_SIG$uwhat"; then
-		CPPFLAGS="$CPPFLAGS -Dsys_sig$what=_sys_sig$what"
-		eval "HAVE_SYS_SIG$uwhat=1"
+	eval uwhat_v=\$HAVE__SYS_SIG$uwhat
+	if test 1 = "$uwhat_v"; then
+		add_cppflags -Dsys_sig$what=_sys_sig$what
+		eval HAVE_SYS_SIG$uwhat=1
 	fi
 	ac_cppflags SYS_SIG$uwhat
 done
@@ -1572,7 +1589,7 @@ fi
 
 addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
-test 1 = "$USE_PRINTF_BUILTIN" && CPPFLAGS="$CPPFLAGS -DMKSH_PRINTF_BUILTIN"
+test 1 = "$USE_PRINTF_BUILTIN" && add_cppflags -DMKSH_PRINTF_BUILTIN
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
 
 $e $bi$me: Finished configuration testing, now producing output.$ao

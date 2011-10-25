@@ -9,28 +9,28 @@
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
- * is granted to deal in this work without restriction, including un-
+ * is granted to deal in this work without restriction, including un‐
  * limited rights to use, publicly perform, distribute, sell, modify,
  * merge, give away, or sublicence.
  *
- * This work is provided "AS IS" and WITHOUT WARRANTY of any kind, to
+ * This work is provided “AS IS” and WITHOUT WARRANTY of any kind, to
  * the utmost extent permitted by applicable law, neither express nor
  * implied; without malicious intent or gross negligence. In no event
  * may a licensor, author or contributor be held liable for indirect,
  * direct, other damage, loss, or other issues arising in any way out
  * of dealing in the work, even if advised of the possibility of such
  * damage or existence of a defect, except proven that it results out
- * of said person's immediate fault when using the work as intended.
+ * of said person’s immediate fault when using the work as intended.
  */
 
 #ifdef __dietlibc__
 /* XXX imake style */
-#define _BSD_SOURCE	/* live, BSD, live! */
+#define _BSD_SOURCE	/* live, BSD, live❣ */
 #endif
 
 #if HAVE_SYS_PARAM_H
@@ -151,9 +151,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.484.2.4 2011/07/26 17:17:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.484.2.5 2011/10/25 22:50:39 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2011/07/25"
+#define MKSH_VERSION "R40 2011/10/25"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -164,8 +164,8 @@ __RCSID("$MirOS: src/bin/mksh/sh.h,v 1.484.2.4 2011/07/26 17:17:30 tg Exp $");
 #undef RUSAGE_SELF
 #undef RUSAGE_CHILDREN
 #define rusage mksh_rusage
-#define RUSAGE_SELF	0
-#define RUSAGE_CHILDREN	-1
+#define RUSAGE_SELF		0
+#define RUSAGE_CHILDREN		-1
 
 struct rusage {
 	struct timeval ru_utime;
@@ -333,9 +333,9 @@ extern int wcwidth(__WCHAR_TYPE__);
 
 /* some useful #defines */
 #ifdef EXTERN
-# define I__(i) = i
+# define E_INIT(i) = i
 #else
-# define I__(i)
+# define E_INIT(i)
 # define EXTERN extern
 # define EXTERN_DEFINED
 #endif
@@ -383,11 +383,11 @@ typedef unsigned char mksh_bool;
 #define LINE		4096	/* input line size */
 
 EXTERN const char *safe_prompt; /* safe prompt if PS1 substitution fails */
-EXTERN const char initvsn[] I__("KSH_VERSION=@(#)MIRBSD KSH " MKSH_VERSION);
+EXTERN const char initvsn[] E_INIT("KSH_VERSION=@(#)MIRBSD KSH " MKSH_VERSION);
 #define KSH_VERSION	(initvsn + /* "KSH_VERSION=@(#)" */ 16)
 
-EXTERN const char digits_uc[] I__("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-EXTERN const char digits_lc[] I__("0123456789abcdefghijklmnopqrstuvwxyz");
+EXTERN const char digits_uc[] E_INIT("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+EXTERN const char digits_lc[] E_INIT("0123456789abcdefghijklmnopqrstuvwxyz");
 
 /*
  * Evil hack for const correctness due to API brokenness
@@ -442,11 +442,11 @@ char *ucstrstr(char *, const char *);
 } while (/* CONSTCOND */ 0)
 
 #ifdef MKSH_SMALL
-#define strdupx(d, s, ap) do { \
-	(d) = strdup_((s), (ap)); \
+#define strdupx(d, s, ap) do {						\
+	(d) = strdup_i((s), (ap));					\
 } while (/* CONSTCOND */ 0)
-#define strndupx(d, s, n, ap) do { \
-	(d) = strndup_((s), (n), (ap)); \
+#define strndupx(d, s, n, ap) do {					\
+	(d) = strndup_i((s), (n), (ap));				\
 } while (/* CONSTCOND */ 0)
 #else
 /* be careful to evaluate arguments only once! */
@@ -476,7 +476,7 @@ char *ucstrstr(char *, const char *);
 #endif
 
 #if HAVE_STRCASESTR
-#define stristr(b,l)	((const char *)strcasestr((b), (l)))
+#define stristr(b,l)		((const char *)strcasestr((b), (l)))
 #endif
 
 #ifdef MKSH_SMALL
@@ -496,7 +496,7 @@ char *ucstrstr(char *, const char *);
 #endif
 
 #if defined(MKSH_NOPROSPECTOFWORK) && !defined(MKSH_UNEMPLOYED)
-#define MKSH_UNEMPLOYED
+#define MKSH_UNEMPLOYED		1
 #endif
 
 /*
@@ -565,7 +565,7 @@ enum sh_flag {
  * parsing & execution environment
  */
 extern struct env {
-	ALLOC_ITEM __alloc_i;	/* internal, do not touch */
+	ALLOC_ITEM alloc_INT;	/* internal, do not touch */
 	Area area;		/* temporary allocation area */
 	struct env *oenv;	/* link to previous environment */
 	struct block *loc;	/* local variables and functions */
@@ -618,22 +618,22 @@ EXTERN uint8_t trap_nested;	/* running nested traps */
 EXTERN uint8_t shell_flags[FNFLAGS];
 EXTERN const char *kshname;	/* $0 */
 EXTERN struct {
-	uid_t kshuid_;		/* real UID of shell */
-	uid_t ksheuid_;		/* effective UID of shell */
-	gid_t kshgid_;		/* real GID of shell */
-	gid_t kshegid_;		/* effective GID of shell */
-	pid_t kshpgrp_;		/* process group of shell */
-	pid_t kshppid_;		/* PID of parent of shell */
-	pid_t kshpid_;		/* $$, shell PID */
+	uid_t kshuid_v;		/* real UID of shell */
+	uid_t ksheuid_v;	/* effective UID of shell */
+	gid_t kshgid_v;		/* real GID of shell */
+	gid_t kshegid_v;	/* effective GID of shell */
+	pid_t kshpgrp_v;	/* process group of shell */
+	pid_t kshppid_v;	/* PID of parent of shell */
+	pid_t kshpid_v;		/* $$, shell PID */
 } rndsetupstate;
 
-#define kshpid		rndsetupstate.kshpid_
-#define kshpgrp		rndsetupstate.kshpgrp_
-#define kshuid		rndsetupstate.kshuid_
-#define ksheuid		rndsetupstate.ksheuid_
-#define kshgid		rndsetupstate.kshgid_
-#define kshegid		rndsetupstate.kshegid_
-#define kshppid		rndsetupstate.kshppid_
+#define kshpid		rndsetupstate.kshpid_v
+#define kshpgrp		rndsetupstate.kshpgrp_v
+#define kshuid		rndsetupstate.kshuid_v
+#define ksheuid		rndsetupstate.ksheuid_v
+#define kshgid		rndsetupstate.kshgid_v
+#define kshegid		rndsetupstate.kshegid_v
+#define kshppid		rndsetupstate.kshppid_v
 
 
 /* option processing */
@@ -651,34 +651,34 @@ struct shoption {
 };
 extern const struct shoption options[];
 
-/* null value for variable; comparision pointer for unset */
-EXTERN char null[] I__("");
+/* null value for variable; comparison pointer for unset */
+EXTERN char null[] E_INIT("");
 /* helpers for string pooling */
-EXTERN const char T_intovfl[] I__("integer overflow %lu %c %lu prevented");
-EXTERN const char T_oomem[] I__("can't allocate %lu data bytes");
+EXTERN const char Tintovfl[] E_INIT("integer overflow %zu %c %zu prevented");
+EXTERN const char Toomem[] E_INIT("can't allocate %lu data bytes");
 #if defined(__GNUC__)
 /* trust this to have string pooling; -Wformat bitches otherwise */
-#define T_synerr	"syntax error"
+#define Tsynerr		"syntax error"
 #else
-EXTERN const char T_synerr[] I__("syntax error");
+EXTERN const char Tsynerr[] E_INIT("syntax error");
 #endif
-EXTERN const char T_select[] I__("select");
-EXTERN const char T_r_fc_e_[] I__("r=fc -e -");
-#define T_fc_e_		(T_r_fc_e_ + 2)		/* "fc -e -" */
-#define Tn_fc_e_	7			/* strlen(T_fc_e_) */
-EXTERN const char T_local_typeset[] I__("local=typeset");
-#define T__typeset	(T_local_typeset + 5)	/* "=typeset" */
-#define T_typeset	(T_local_typeset + 6)	/* "typeset" */
-EXTERN const char T_palias[] I__("+alias");
-#define T_alias		(T_palias + 1)		/* "alias" */
-EXTERN const char T_punalias[] I__("+unalias");
-#define T_unalias	(T_punalias + 1)	/* "unalias" */
-EXTERN const char T_sgset[] I__("*=set");
-#define T_set		(T_sgset + 2)		/* "set" */
-EXTERN const char T_gbuiltin[] I__("=builtin");
-#define T_builtin	(T_gbuiltin + 1)	/* "builtin" */
-EXTERN const char T__function[] I__(" function");
-#define T_function	(T__function + 1)	/* "function" */
+EXTERN const char Tselect[] E_INIT("select");
+EXTERN const char Tr_fc_e_dash[] E_INIT("r=fc -e -");
+#define Tfc_e_dash	(Tr_fc_e_dash + 2)	/* "fc -e -" */
+#define Zfc_e_dash	7			/* strlen(Tfc_e_dash) */
+EXTERN const char Tlocal_typeset[] E_INIT("local=typeset");
+#define T_typeset	(Tlocal_typeset + 5)	/* "=typeset" */
+#define Ttypeset	(Tlocal_typeset + 6)	/* "typeset" */
+EXTERN const char Tpalias[] E_INIT("+alias");
+#define Talias		(Tpalias + 1)		/* "alias" */
+EXTERN const char Tpunalias[] E_INIT("+unalias");
+#define Tunalias	(Tpunalias + 1)		/* "unalias" */
+EXTERN const char Tsgset[] E_INIT("*=set");
+#define Tset		(Tsgset + 2)		/* "set" */
+EXTERN const char Tgbuiltin[] E_INIT("=builtin");
+#define Tbuiltin	(Tgbuiltin + 1)		/* "builtin" */
+EXTERN const char T_function[] E_INIT(" function");
+#define Tfunction	(T_function + 1)	/* "function" */
 
 enum temp_type {
 	TT_HEREDOC_EXP,	/* expanded heredoc */
@@ -739,8 +739,8 @@ typedef struct trap {
 #define SS_USER		BIT(4)	/* user is doing the set (ie, trap command) */
 #define SS_SHTRAP	BIT(5)	/* trap for internal use (ALRM, CHLD, WINCH) */
 
-#define SIGEXIT_	0	/* for trap EXIT */
-#define SIGERR_		NSIG	/* for trap ERR */
+#define ksh_SIGEXIT	0	/* for trap EXIT */
+#define ksh_SIGERR	NSIG	/* for trap ERR */
 
 EXTERN volatile sig_atomic_t trap;	/* traps pending? */
 EXTERN volatile sig_atomic_t intrsig;	/* pending trap interrupts command */
@@ -749,7 +749,7 @@ extern	Trap	sigtraps[NSIG+1];
 
 /* got_winch = 1 when we need to re-adjust the window size */
 #ifdef SIGWINCH
-EXTERN volatile sig_atomic_t got_winch I__(1);
+EXTERN volatile sig_atomic_t got_winch E_INIT(1);
 #else
 #define got_winch	true
 #endif
@@ -764,7 +764,7 @@ enum tmout_enum {
 	TMOUT_LEAVING		/* have timed out */
 };
 EXTERN unsigned int ksh_tmout;
-EXTERN enum tmout_enum ksh_tmout_state I__(TMOUT_EXECUTING);
+EXTERN enum tmout_enum ksh_tmout_state E_INIT(TMOUT_EXECUTING);
 
 /* For "You have stopped jobs" message */
 EXTERN int really_exit;
@@ -790,7 +790,7 @@ extern unsigned char chtypes[];
 #define ksh_isalphx(c)	ctype((c), C_ALPHA)
 #define ksh_isalnux(c)	ctype((c), C_ALPHA | C_DIGIT)
 
-EXTERN int ifs0 I__(' ');	/* for "$*" */
+EXTERN int ifs0 E_INIT(' ');	/* for "$*" */
 
 /* Argument parsing for built-in commands and getopts command */
 
@@ -803,6 +803,10 @@ EXTERN int ifs0 I__(' ');	/* for "$*" */
 #define GI_MINUS	BIT(0)	/* an option started with -... */
 #define GI_PLUS		BIT(1)	/* an option started with +... */
 #define GI_MINUSMINUS	BIT(2)	/* arguments were ended with -- */
+
+/* in case some OS defines these */
+#undef optarg
+#undef optind
 
 typedef struct {
 	const char *optarg;
@@ -855,8 +859,8 @@ EXTERN char	*current_wd;
  */
 #define MIN_COLS	(2 + MIN_EDIT_SPACE + 3)
 #define MIN_LINS	3
-EXTERN mksh_ari_t x_cols I__(80);	/* tty columns */
-EXTERN mksh_ari_t x_lins I__(-1);	/* tty lines */
+EXTERN mksh_ari_t x_cols E_INIT(80);	/* tty columns */
+EXTERN mksh_ari_t x_lins E_INIT(-1);	/* tty lines */
 
 /* These to avoid bracket matching problems */
 #define OPAREN	'('
@@ -892,15 +896,15 @@ EXTERN mksh_ari_t x_lins I__(-1);	/* tty lines */
 
 #define shf_fileno(shf)		((shf)->fd)
 #define shf_setfileno(shf,nfd)	((shf)->fd = (nfd))
-#define shf_getc_(shf)		((shf)->rnleft > 0 ? \
+#define shf_getc_i(shf)		((shf)->rnleft > 0 ? \
 				    (shf)->rnleft--, *(shf)->rp++ : \
 				    shf_getchar(shf))
-#define shf_putc_(c, shf)	((shf)->wnleft == 0 ? \
+#define shf_putc_i(c, shf)	((shf)->wnleft == 0 ? \
 				    shf_putchar((c), (shf)) : \
 				    ((shf)->wnleft--, *(shf)->wp++ = (c)))
 #define shf_eof(shf)		((shf)->flags & SHF_EOF)
 #define shf_error(shf)		((shf)->flags & SHF_ERROR)
-#define shf_errno(shf)		((shf)->errno_)
+#define shf_errno(shf)		((shf)->errnosv)
 #define shf_clearerr(shf)	((shf)->flags &= ~(SHF_EOF | SHF_ERROR))
 
 /* Flags passed to shf_*open() */
@@ -930,14 +934,14 @@ struct shf {
 	unsigned char *rp;	/* read: current position in buffer */
 	unsigned char *wp;	/* write: current position in buffer */
 	unsigned char *buf;	/* buffer */
+	ssize_t bsize;		/* actual size of buf */
+	ssize_t rbsize;		/* size of buffer (1 if SHF_UNBUF) */
+	ssize_t rnleft;		/* read: how much data left in buffer */
+	ssize_t wbsize;		/* size of buffer (0 if SHF_UNBUF) */
+	ssize_t wnleft;		/* write: how much space left in buffer */
 	int flags;		/* see SHF_* */
-	int rbsize;		/* size of buffer (1 if SHF_UNBUF) */
-	int rnleft;		/* read: how much data left in buffer */
-	int wbsize;		/* size of buffer (0 if SHF_UNBUF) */
-	int wnleft;		/* write: how much space left in buffer */
 	int fd;			/* file descriptor */
-	int errno_;		/* saved value of errno after error */
-	int bsize;		/* actual size of buf */
+	int errnosv;		/* saved value of errno after error */
 };
 
 extern struct shf shf_iob[];
@@ -945,7 +949,7 @@ extern struct shf shf_iob[];
 struct table {
 	Area *areap;		/* area to allocate entries */
 	struct tbl **tbls;	/* hashed table items */
-	uint32_t nfree;		/* free table entries */
+	size_t nfree;		/* free table entries */
 	uint8_t tshift;		/* table size (2^tshift) */
 };
 
@@ -967,7 +971,7 @@ struct tbl {
 	} u;
 	union {
 		int field;		/* field with for -L/-R/-Z */
-		int errno_;		/* CEXEC/CTALIAS */
+		int errnov;		/* CEXEC/CTALIAS */
 	} u2;
 	union {
 		uint32_t hval;		/* hash(name) */
@@ -1033,7 +1037,7 @@ EXTERN enum {
 	SRF_NOP,
 	SRF_ENABLE,
 	SRF_DISABLE
-} set_refflag I__(SRF_NOP);
+} set_refflag E_INIT(SRF_NOP);
 
 /* command types */
 #define CNONE		0	/* undefined */
@@ -1057,13 +1061,13 @@ EXTERN enum {
 #define AF_ARGV_ALLOC	0x1	/* argv[] array allocated */
 #define AF_ARGS_ALLOCED	0x2	/* argument strings allocated */
 #define AI_ARGV(a, i)	((i) == 0 ? (a).argv[0] : (a).argv[(i) - (a).skip])
-#define AI_ARGC(a)	((a).argc_ - (a).skip)
+#define AI_ARGC(a)	((a).ai_argc - (a).skip)
 
 /* Argument info. Used for $#, $* for shell, functions, includes, etc. */
 struct arg_info {
 	const char **argv;
 	int flags;	/* AF_* */
-	int argc_;
+	int ai_argc;
 	int skip;	/* first arg is argv[0], second is argv[1 + skip] */
 };
 
@@ -1245,9 +1249,9 @@ struct ioword {
 #define DOTILDE	BIT(3)		/* normal ~ expansion (first char) */
 #define DONTRUNCOMMAND BIT(4)	/* do not run $(command) things */
 #define DOASNTILDE BIT(5)	/* assignment ~ expansion (after =, :) */
-#define DOBRACE_ BIT(6)		/* used by expand(): do brace expansion */
-#define DOMAGIC_ BIT(7)		/* used by expand(): string contains MAGIC */
-#define DOTEMP_	BIT(8)		/* ditto : in word part of ${..[%#=?]..} */
+#define DOBRACE BIT(6)		/* used by expand(): do brace expansion */
+#define DOMAGIC BIT(7)		/* used by expand(): string contains MAGIC */
+#define DOTEMP	BIT(8)		/* dito: in word part of ${..[%#=?]..} */
 #define DOVACHECK BIT(9)	/* var assign check (for typeset, set, etc) */
 #define DOMARKDIRS BIT(10)	/* force markdirs behaviour */
 
@@ -1291,9 +1295,9 @@ typedef char *XStringP;
 
 /* check if there are at least n bytes left */
 #define XcheckN(xs, xp, n) do {					\
-	int more = ((xp) + (n)) - (xs).end;			\
+	ssize_t more = ((xp) + (n)) - (xs).end;			\
 	if (more > 0)						\
-		(xp) = Xcheck_grow_(&(xs), (xp), (size_t)more);	\
+		(xp) = Xcheck_grow(&(xs), (xp), more);		\
 } while (/* CONSTCOND */ 0)
 
 /* check for overflow, expand string */
@@ -1314,7 +1318,7 @@ typedef char *XStringP;
 #define Xsavepos(xs, xp)	((xp) - (xs).beg)
 #define Xrestpos(xs, xp, n)	((xs).beg + (n))
 
-char *Xcheck_grow_(XString *, const char *, size_t);
+char *Xcheck_grow(XString *, const char *, size_t);
 
 /*
  * expandable vector of generic pointers
@@ -1326,10 +1330,10 @@ typedef struct XPtrV {
 } XPtrV;
 
 #define XPinit(x, n) do {					\
-	void **vp__;						\
-	vp__ = alloc2((n), sizeof(void *), ATEMP);		\
-	(x).cur = (x).beg = vp__;				\
-	(x).end = vp__ + (n);					\
+	void **XPinit_vp;					\
+	XPinit_vp = alloc2((n), sizeof(void *), ATEMP);		\
+	(x).cur = (x).beg = XPinit_vp;				\
+	(x).end = XPinit_vp + (n);				\
 } while (/* CONSTCOND */ 0)
 
 #define XPput(x, p) do {					\
@@ -1449,9 +1453,9 @@ typedef union {
 #define	UNCTRL(x)	((x) ^ 0x40)				/* ASCII */
 
 EXTERN Source *source;		/* yyparse/yylex source */
-EXTERN YYSTYPE	yylval;		/* result from yylex */
-EXTERN struct ioword *heres [HERES], **herep;
-EXTERN char	ident [IDENT+1];
+EXTERN YYSTYPE yylval;		/* result from yylex */
+EXTERN struct ioword *heres[HERES], **herep;
+EXTERN char ident[IDENT+1];
 
 #define HISTORYSIZE	500	/* size of saved history */
 
@@ -1467,8 +1471,8 @@ EXTERN struct timeval j_usrtime, j_systime;
 #define notoktoadd(val, cnst)	((val) > (SIZE_MAX - (cnst)))
 #define checkoktoadd(val, cnst) do {					\
 	if (notoktoadd((val), (cnst)))					\
-		internal_errorf(T_intovfl, (unsigned long)(val),	\
-		    '+', (unsigned long)(cnst));			\
+		internal_errorf(Tintovfl, (size_t)(val),		\
+		    '+', (size_t)(cnst));				\
 } while (/* CONSTCOND */ 0)
 
 /* Bob Jenkins' one-at-a-time hash, with better start value */
@@ -1535,8 +1539,7 @@ int define(const char *, struct op *);
 const char *builtin(const char *, int (*)(const char **));
 struct tbl *findcom(const char *, int);
 void flushcom(bool);
-const char *search(const char *, const char *, int, int *);
-int search_access(const char *, int, int *);
+const char *search_path(const char *, const char *, int, int *);
 int pr_menu(const char * const *);
 int pr_list(char * const *);
 /* expr.c */
@@ -1546,12 +1549,13 @@ int v_evaluate(struct tbl *, const char *, volatile int, bool);
 size_t utf_mbtowc(unsigned int *, const char *);
 size_t utf_wctomb(char *, unsigned int);
 int utf_widthadj(const char *, const char **);
-int utf_mbswidth(const char *);
+size_t utf_mbswidth(const char *);
 const char *utf_skipcols(const char *, int);
 size_t utf_ptradj(const char *);
 #ifndef MKSH_mirbsd_wcwidth
 int utf_wcwidth(unsigned int);
 #endif
+int ksh_access(const char *, int);
 /* funcs.c */
 int c_hash(const char **);
 int c_pwd(const char **);
@@ -1573,7 +1577,6 @@ int c_kill(const char **);
 void getopts_reset(int);
 int c_getopts(const char **);
 int c_bind(const char **);
-int c_label(const char **);
 int c_shift(const char **);
 int c_umask(const char **);
 int c_dot(const char **);
@@ -1735,8 +1738,8 @@ int ksh_getopt(const char **, Getopt *, const char *);
 void print_value_quoted(const char *);
 char *quote_value(const char *);
 void print_columns(struct shf *, int,
-    char *(*)(char *, int, int, const void *),
-    const void *, int, int, bool);
+    char *(*)(char *, size_t, int, const void *),
+    const void *, size_t, size_t, bool);
 void strip_nuls(char *, int);
 ssize_t blocking_read(int, char *, size_t)
     MKSH_A_BOUNDED(__buffer__, 2, 3);
@@ -1747,41 +1750,41 @@ void simplify_path(char *);
 void set_current_wd(const char *);
 int c_cd(const char **);
 #ifdef MKSH_SMALL
-char *strdup_(const char *, Area *);
-char *strndup_(const char *, size_t, Area *);
+char *strdup_i(const char *, Area *);
+char *strndup_i(const char *, size_t, Area *);
 #endif
 int unbksl(bool, int (*)(void), void (*)(int));
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);
 struct shf *shf_fdopen(int, int, struct shf *);
 struct shf *shf_reopen(int, int, struct shf *);
-struct shf *shf_sopen(char *, int, int, struct shf *);
+struct shf *shf_sopen(char *, ssize_t, int, struct shf *);
 int shf_close(struct shf *);
 int shf_fdclose(struct shf *);
 char *shf_sclose(struct shf *);
 int shf_flush(struct shf *);
-int shf_read(char *, int, struct shf *);
-char *shf_getse(char *, int, struct shf *);
+ssize_t shf_read(char *, ssize_t, struct shf *);
+char *shf_getse(char *, ssize_t, struct shf *);
 int shf_getchar(struct shf *s);
 int shf_ungetc(int, struct shf *);
 #ifdef MKSH_SMALL
 int shf_getc(struct shf *);
 int shf_putc(int, struct shf *);
 #else
-#define shf_getc shf_getc_
-#define shf_putc shf_putc_
+#define shf_getc shf_getc_i
+#define shf_putc shf_putc_i
 #endif
 int shf_putchar(int, struct shf *);
-int shf_puts(const char *, struct shf *);
-int shf_write(const char *, int, struct shf *);
-int shf_fprintf(struct shf *, const char *, ...)
+ssize_t shf_puts(const char *, struct shf *);
+ssize_t shf_write(const char *, ssize_t, struct shf *);
+ssize_t shf_fprintf(struct shf *, const char *, ...)
     MKSH_A_FORMAT(__printf__, 2, 3);
-int shf_snprintf(char *, int, const char *, ...)
+ssize_t shf_snprintf(char *, ssize_t, const char *, ...)
     MKSH_A_FORMAT(__printf__, 3, 4)
     MKSH_A_BOUNDED(__string__, 1, 2);
 char *shf_smprintf(const char *, ...)
     MKSH_A_FORMAT(__printf__, 1, 2);
-int shf_vfprintf(struct shf *, const char *, va_list)
+ssize_t shf_vfprintf(struct shf *, const char *, va_list)
     MKSH_A_FORMAT(__printf__, 2, 0);
 /* syn.c */
 void initkeywords(void);
@@ -1790,7 +1793,7 @@ bool parse_usec(const char *, struct timeval *);
 char *yyrecursive(void);
 /* tree.c */
 void fptreef(struct shf *, int, const char *, ...);
-char *snptreef(char *, int, const char *, ...);
+char *snptreef(char *, ssize_t, const char *, ...);
 struct op *tcopy(struct op *, Area *);
 char *wdcopy(const char *, Area *);
 const char *wdscan(const char *, int);
@@ -1826,7 +1829,7 @@ int is_wdvarassign(const char *);
 struct tbl *arraysearch(struct tbl *, uint32_t);
 char **makenv(void);
 void change_winsz(void);
-int array_ref_len(const char *);
+size_t array_ref_len(const char *);
 char *arrayname(const char *);
 mksh_uari_t set_array(const char *, bool, const char **);
 uint32_t hash(const void *);
@@ -1885,7 +1888,7 @@ Test_op	test_isop(Test_meta, const char *);
 int test_eval(Test_env *, Test_op, const char *, const char *, bool);
 int test_parse(Test_env *);
 
-EXTERN int tty_fd I__(-1);	/* dup'd tty file descriptor */
+EXTERN int tty_fd E_INIT(-1);	/* dup'd tty file descriptor */
 EXTERN bool tty_devtty;		/* true if tty_fd is from /dev/tty */
 EXTERN struct termios tty_state;	/* saved tty state */
 
@@ -1897,6 +1900,6 @@ extern void tty_close(void);
 # undef EXTERN_DEFINED
 # undef EXTERN
 #endif
-#undef I__
+#undef E_INIT
 
 #endif /* !MKSH_INCLUDES_ONLY */

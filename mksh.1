@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.269.2.4 2011/07/16 16:04:13 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.140 2011/04/23 10:14:59 sobrado Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.269.2.5 2011/10/25 22:50:36 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.141 2011/09/03 22:59:08 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
 .\"		2010, 2011
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 16 2011 $
+.Dd $Mdocdate: October 25 2011 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -926,7 +926,7 @@ $ [[ $bar = $baz ]]; echo $?
 $ [[ $bar = "$baz" ]]; echo $?
 .Ed
 .Pp
-Perhaps surprisingly, the first comparision succeeds,
+Perhaps surprisingly, the first comparison succeeds,
 whereas the second doesn't.
 .El
 .El
@@ -3294,12 +3294,13 @@ Sets the export attribute of the named parameters.
 Exported parameters are passed in the environment to executed commands.
 If values are specified, the named parameters are also assigned.
 .Pp
-If no parameters are specified, the names of all parameters with the export
-attribute are printed one per line, unless the
-.Fl p
-option is used, in which case
+If no parameters are specified, all parameters with the export attribute
+set are printed one per line; either their names, or, if a
+.Ql \-
+with no option letter is specified, name=value pairs, or, with
+.Fl p ,
 .Ic export
-commands defining all exported parameters, including their values, are printed.
+commands defining all exported parameters, including their values.
 .Pp
 .It Ic false
 A command that exits with a non-zero status.
@@ -6230,6 +6231,16 @@ This shell is based upon the Public Domain Korn SHell.
 The developer of mksh recognises the efforts of the pdksh authors,
 who had dedicated their work into Public Domain, our users, and
 all contributors, such as the Debian and OpenBSD projects.
+.\"
+.\" Charles Forsyth, author of the (Public Domain) Bourne Shell clone,
+.\" which mksh is derived from, agreed to the following:
+.\"
+.\" In countries where the Public Domain status of the work may not be
+.\" valid, its primary author hereby grants a copyright licence to the
+.\" general public to deal in the work without restriction and permis-
+.\" sion to sublicence derivates under the terms of any (OSI approved)
+.\" Open Source licence.
+.\"
 See the documentation, CVS, and web site for details.
 .Sh CAVEATS
 .Nm
@@ -6257,7 +6268,7 @@ $ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R40b
+.Nm mksh\ R40c
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

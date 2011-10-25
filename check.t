@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.474.2.3 2011/07/26 17:17:27 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.474.2.4 2011/10/25 22:50:29 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2011/07/25
+	@(#)MIRBSD KSH R40 2011/10/25
 description:
 	Check version of shell.
 stdin:
@@ -5891,6 +5891,7 @@ description:
 	-DMKSH_ASSUME_UTF8=1 => not expected, please investigate
 	-UMKSH_ASSUME_UTF8 => not expected, but if your OS is old,
 	 try passing HAVE_SETLOCALE_CTYPE=0 to Build.sh
+need-pass: no
 category: !os:hpux
 need-ctty: yes
 arguments: !-i!

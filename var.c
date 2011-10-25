@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.130.2.1 2011/07/07 21:42:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.130.2.2 2011/10/25 22:50:41 tg Exp $");
 
 /*-
  * Variables
@@ -170,7 +170,7 @@ static const char *
 array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 {
 	const char *p;
-	int len;
+	size_t len;
 	char *ap = NULL;
 
 	*arrayp = false;
@@ -585,7 +585,7 @@ formatstr(struct tbl *vp, const char *s)
 	char *p, *q;
 	size_t psiz;
 
-	olen = utf_mbswidth(s);
+	olen = (int)utf_mbswidth(s);
 
 	if (vp->flag & (RJUST|LJUST)) {
 		if (!vp->u2.field)
@@ -693,7 +693,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 	struct tbl *vpbase, *t;
 	char *tvar;
 	const char *val;
-	int len;
+	size_t len;
 	bool vappend = false;
 
 	/* check for valid variable name, search for value */
@@ -713,11 +713,12 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 		 * IMPORT is only used when the shell starts up and is
 		 * setting up its environment. Allow only simple array
 		 * references at this time since parameter/command
-		 * substitution is preformed on the [expression] which
+		 * substitution is performed on the [expression] which
 		 * would be a major security hole.
 		 */
 		if (set & IMPORT) {
-			int i;
+			size_t i;
+
 			for (i = 1; i < len - 1; i++)
 				if (!ksh_isdigit(val[i]))
 					return (NULL);
@@ -738,9 +739,9 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 		val = NULL;
 		/* handle foo[*] => foo (whole array) mapping for R39b */
 		len = strlen(tvar);
-		if (len > 3 && tvar[len-3] == '[' && tvar[len-2] == '*' &&
-		    tvar[len-1] == ']')
-			tvar[len-3] = '\0';
+		if (len > 3 && tvar[len - 3] == '[' && tvar[len - 2] == '*' &&
+		    tvar[len - 1] == ']')
+			tvar[len - 3] = '\0';
 	}
 
 	if (set_refflag == SRF_ENABLE) {
@@ -944,7 +945,7 @@ unset(struct tbl *vp, int flags)
 const char *
 skip_varname(const char *s, int aok)
 {
-	int alen;
+	size_t alen;
 
 	if (s && ksh_isalphx(*s)) {
 		while (*++s && ksh_isalnux(*s))
@@ -1169,6 +1170,7 @@ setspec(struct tbl *vp)
 			struct stat statb;
 
 			s = str_val(vp);
+			/* LINTED use of access */
 			if (s[0] == '/' && access(s, W_OK|X_OK) == 0 &&
 			    stat(s, &statb) == 0 && S_ISDIR(statb.st_mode))
 				strdupx(tmpdir, s, APERM);
@@ -1336,11 +1338,11 @@ arraysearch(struct tbl *vp, uint32_t val)
  * to point to the open bracket. Returns 0 if there is no matching
  * closing bracket.
  */
-int
+size_t
 array_ref_len(const char *cp)
 {
 	const char *s = cp;
-	int c;
+	char c;
 	int depth = 0;
 
 	while ((c = *s++) && (c != ']' || --depth))
@@ -1374,19 +1376,20 @@ mksh_uari_t
 set_array(const char *var, bool reset, const char **vals)
 {
 	struct tbl *vp, *vq;
-	mksh_uari_t i, j = 0;
+	mksh_uari_t i = 0, j = 0;
 	const char *ccp;
 #ifndef MKSH_SMALL
 	char *cp = NULL;
+	size_t n;
 #endif
 
 	/* to get local array, use "typeset foo; set -A foo" */
 #ifndef MKSH_SMALL
-	i = strlen(var);
-	if (i > 0 && var[i - 1] == '+') {
+	n = strlen(var);
+	if (n > 0 && var[n - 1] == '+') {
 		/* append mode */
 		reset = false;
-		strndupx(cp, var, i - 1, ATEMP);
+		strndupx(cp, var, n - 1, ATEMP);
 	}
 #define CPORVAR	(cp ? cp : var)
 #else
@@ -1406,7 +1409,6 @@ set_array(const char *var, bool reset, const char **vals)
 	 * completely fail. Only really effects integer arrays:
 	 * evaluation of some of vals[] may fail...
 	 */
-	i = 0;
 #ifndef MKSH_SMALL
 	if (cp != NULL) {
 		/* find out where to set when appending */

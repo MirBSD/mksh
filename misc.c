@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.167 2011/06/12 14:45:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.167.2.1 2011/10/25 22:50:35 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -96,7 +96,7 @@ initctypes(void)
 
 /* called from XcheckN() to grow buffer */
 char *
-Xcheck_grow_(XString *xsp, const char *xp, size_t more)
+Xcheck_grow(XString *xsp, const char *xp, size_t more)
 {
 	const char *old_beg = xsp->beg;
 
@@ -141,12 +141,12 @@ struct options_info {
 	int opts[NELEM(options)];
 };
 
-static char *options_fmt_entry(char *, int, int, const void *);
+static char *options_fmt_entry(char *, size_t, int, const void *);
 static void printoptions(bool);
 
 /* format a single select menu item */
 static char *
-options_fmt_entry(char *buf, int buflen, int i, const void *arg)
+options_fmt_entry(char *buf, size_t buflen, int i, const void *arg)
 {
 	const struct options_info *oi = (const struct options_info *)arg;
 
@@ -159,17 +159,17 @@ options_fmt_entry(char *buf, int buflen, int i, const void *arg)
 static void
 printoptions(bool verbose)
 {
-	int i = 0;
+	size_t i = 0;
 
 	if (verbose) {
-		int n = 0, len, octs = 0;
+		ssize_t n = 0, len, octs = 0;
 		struct options_info oi;
 
 		/* verbose version */
 		shf_puts("Current option settings\n", shl_stdout);
 
 		oi.opt_width = 0;
-		while (i < (int)NELEM(options)) {
+		while (i < NELEM(options)) {
 			if (options[i].name) {
 				oi.opts[n++] = i;
 				len = strlen(options[i].name);
@@ -185,7 +185,7 @@ printoptions(bool verbose)
 		    octs + 4, oi.opt_width + 4, true);
 	} else {
 		/* short version like AT&T ksh93 */
-		shf_puts(T_set, shl_stdout);
+		shf_puts(Tset, shl_stdout);
 		while (i < (int)NELEM(options)) {
 			if (Flag(i) && options[i].name)
 				shprintf("%s %s %s", null, "-o",
@@ -199,7 +199,7 @@ printoptions(bool verbose)
 char *
 getoptions(void)
 {
-	unsigned int i;
+	size_t i;
 	char m[(int)FNFLAGS + 1];
 	char *cp = m;
 
@@ -1081,10 +1081,10 @@ print_value_quoted(const char *s)
  */
 void
 print_columns(struct shf *shf, int n,
-    char *(*func)(char *, int, int, const void *),
-    const void *arg, int max_oct, int max_col, bool prefcol)
+    char *(*func)(char *, size_t, int, const void *),
+    const void *arg, size_t max_oct, size_t max_colz, bool prefcol)
 {
-	int i, r, c, rows, cols, nspace;
+	int i, r, c, rows, cols, nspace, max_col;
 	char *str;
 
 	if (n <= 0) {
@@ -1093,6 +1093,15 @@ print_columns(struct shf *shf, int n,
 #endif
 		return;
 	}
+
+	if (max_colz > 2147483647) {
+#ifndef MKSH_SMALL
+		internal_warningf("print_columns called with max_col=%zu > INT_MAX",
+		    max_colz);
+#endif
+		return;
+	}
+	max_col = (int)max_colz;
 
 	++max_oct;
 	str = alloc(max_oct, ATEMP);
@@ -1457,7 +1466,7 @@ make_path(const char *cwd, const char *file,
 	int rval = 0;
 	bool use_cdpath = true;
 	char *plist;
-	int len, plen = 0;
+	size_t len, plen = 0;
 	char *xp = Xstring(*xsp, xp);
 
 	if (!file)
@@ -1885,12 +1894,18 @@ chvt(const char *fn)
 #endif
 
 #ifdef DEBUG
-char intsize_is_okay[sizeof(int) >= 4 ? 1 : -1];
-char intsizes_are_okay[sizeof(int) == sizeof(unsigned int) ? 1 : -1];
-char longsize_is_okay[sizeof(long) >= sizeof(int) ? 1 : -1];
-char longsizes_are_okay[sizeof(long) == sizeof(unsigned long) ? 1 : -1];
-char arisize_is_okay[sizeof(mksh_ari_t) == 4 ? 1 : -1];
-char uarisize_is_okay[sizeof(mksh_uari_t) == 4 ? 1 : -1];
+#define assert_eq(name, a, b) char name[a == b ? 1 : -1]
+#define assert_ge(name, a, b) char name[a >= b ? 1 : -1]
+assert_ge(intsize_is_okay, sizeof(int), 4);
+assert_eq(intsizes_are_okay, sizeof(int), sizeof(unsigned int));
+assert_ge(longsize_is_okay, sizeof(long), sizeof(int));
+assert_eq(arisize_is_okay, sizeof(mksh_ari_t), 4);
+assert_eq(uarisize_is_okay, sizeof(mksh_uari_t), 4);
+assert_eq(sizesizes_are_okay, sizeof(size_t), sizeof(ssize_t));
+assert_eq(ptrsizes_are_okay, sizeof(ptrdiff_t), sizeof(void *));
+assert_eq(ptrsize_is_sizet, sizeof(ptrdiff_t), sizeof(size_t));
+/* formatting routines assume this */
+assert_ge(ptr_fits_in_long, sizeof(long), sizeof(size_t));
 
 char *
 strchr(char *p, int ch)
@@ -1923,7 +1938,6 @@ strstr(char *b, const char *l)
 }
 #endif
 
-#ifndef MKSH_ASSUME_UTF8
 #if !HAVE_STRCASESTR
 const char *
 stristr(const char *b, const char *l)
@@ -1943,11 +1957,10 @@ stristr(const char *b, const char *l)
 	return (b - 1);
 }
 #endif
-#endif
 
 #ifdef MKSH_SMALL
 char *
-strndup_(const char *src, size_t len, Area *ap)
+strndup_i(const char *src, size_t len, Area *ap)
 {
 	char *dst = NULL;
 
@@ -1960,9 +1973,9 @@ strndup_(const char *src, size_t len, Area *ap)
 }
 
 char *
-strdup_(const char *src, Area *ap)
+strdup_i(const char *src, Area *ap)
 {
-	return (src == NULL ? NULL : strndup_(src, strlen(src), ap));
+	return (src == NULL ? NULL : strndup_i(src, strlen(src), ap));
 }
 #endif
 
