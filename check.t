@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.485 2011/10/26 20:46:13 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.486 2011/11/05 23:39:02 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1010,7 +1010,7 @@ description:
 	Check package for cd -Pe
 need-pass: no
 # the mv command fails on Cygwin
-category: !os:cygwin
+category: !os:cygwin,!os:msys
 file-setup: file 644 "x"
 	mkdir noread noread/target noread/target/subdir
 	ln -s noread link
@@ -1911,7 +1911,7 @@ description:
 	Check that globbing matches the right things...
 # breaks on Mac OSX (HFS+ non-standard Unicode canonical decomposition)
 # breaks on Cygwin 1.7 (files are now UTF-16 or something)
-category: !os:cygwin,!os:darwin
+category: !os:cygwin,!os:darwin,!os:msys
 file-setup: file 644 "aÂc"
 stdin:
 	echo a[Á-Ú]*
@@ -5821,7 +5821,7 @@ description:
 	note: cygwin execve(2) doesn't return to us with ENOEXEC, we lose
 	note: Ultrix perl5 t4 returns 65280 (exit-code 255) and no text
 need-pass: no
-category: !os:cygwin,!os:uwin-nt,!os:ultrix,!smksh
+category: !os:cygwin,!os:msys,!os:ultrix,!os:uwin-nt,!smksh
 env-setup: !FOO=BAR!
 stdin:
 	print '#!'"$__progname"'\nprint "1 a=$ENV{FOO}";' >t1
