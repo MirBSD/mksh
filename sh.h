@@ -151,9 +151,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.499 2011/10/26 20:46:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.500 2011/11/08 22:07:14 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2011/10/26"
+#define MKSH_VERSION "R40 2011/11/07"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1840,7 +1840,7 @@ char *str_val(struct tbl *);
 int setstr(struct tbl *, const char *, int);
 struct tbl *setint_v(struct tbl *, struct tbl *, bool);
 void setint(struct tbl *, mksh_ari_t);
-void setint_n(struct tbl *, mksh_ari_t);
+void setint_n(struct tbl *, mksh_ari_t, int);
 struct tbl *typeset(const char *, uint32_t, uint32_t, int, int)
     MKSH_A_NONNULL((__nonnull__ (1)));
 void unset(struct tbl *, int);
