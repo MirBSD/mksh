@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.130.2.2 2011/10/25 22:50:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.130.2.3 2011/11/08 22:07:25 tg Exp $");
 
 /*-
  * Variables
@@ -556,7 +556,7 @@ setint_v(struct tbl *vq, struct tbl *vp, bool arith)
 
 	if ((base = getint(vp, &num, arith)) == -1)
 		return (NULL);
-	setint_n(vq, num);
+	setint_n(vq, num, 0);
 	if (vq->type == 0)
 		/* default base */
 		vq->type = base;
@@ -565,7 +565,7 @@ setint_v(struct tbl *vq, struct tbl *vp, bool arith)
 
 /* convert variable vq to integer variable, setting its value to num */
 void
-setint_n(struct tbl *vq, mksh_ari_t num)
+setint_n(struct tbl *vq, mksh_ari_t num, int newbase)
 {
 	if (!(vq->flag & INTEGER) && (vq->flag & ALLOC)) {
 		vq->flag &= ~ALLOC;
@@ -573,6 +573,8 @@ setint_n(struct tbl *vq, mksh_ari_t num)
 		afree(vq->val.s, vq->areap);
 	}
 	vq->val.i = num;
+	if (newbase != 0)
+		vq->type = newbase;
 	vq->flag |= ISSET|INTEGER;
 	if (vq->flag&SPECIAL)
 		setspec(vq);
@@ -1133,7 +1135,7 @@ getspec(struct tbl *vp)
 		return;
 	}
 	vp->flag &= ~SPECIAL;
-	setint_n(vp, i);
+	setint_n(vp, i, 0);
 	vp->flag |= SPECIAL;
 }
 

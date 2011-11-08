@@ -33,7 +33,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.195.2.3 2011/10/25 22:50:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.195.2.4 2011/11/08 22:07:21 tg Exp $");
 
 extern char **environ;
 
@@ -330,9 +330,9 @@ main(int argc, const char *argv[])
 		while (*wp != NULL)
 			wp++;
 	}
-	setint_n(global("COLUMNS"), 0);
-	setint_n(global("LINES"), 0);
-	setint_n(global("OPTIND"), 1);
+	setint_n(global("COLUMNS"), 0, 10);
+	setint_n(global("LINES"), 0, 10);
+	setint_n(global("OPTIND"), 1, 10);
 
 	kshuid = getuid();
 	kshgid = getgid();
@@ -345,21 +345,21 @@ main(int argc, const char *argv[])
 	    (!ksheuid && !strchr(str_val(vp), '#')))
 		/* setstr can't fail here */
 		setstr(vp, safe_prompt, KSH_RETURN_ERROR);
-	setint_n((vp = global("PGRP")), (mksh_uari_t)kshpgrp);
+	setint_n((vp = global("PGRP")), (mksh_uari_t)kshpgrp, 10);
 	vp->flag |= INT_U;
-	setint_n((vp = global("PPID")), (mksh_uari_t)kshppid);
+	setint_n((vp = global("PPID")), (mksh_uari_t)kshppid, 10);
 	vp->flag |= INT_U;
-	setint_n((vp = global("USER_ID")), (mksh_uari_t)ksheuid);
+	setint_n((vp = global("USER_ID")), (mksh_uari_t)ksheuid, 10);
 	vp->flag |= INT_U;
-	setint_n((vp = global("KSHUID")), (mksh_uari_t)kshuid);
+	setint_n((vp = global("KSHUID")), (mksh_uari_t)kshuid, 10);
 	vp->flag |= INT_U;
-	setint_n((vp = global("KSHEGID")), (mksh_uari_t)kshegid);
+	setint_n((vp = global("KSHEGID")), (mksh_uari_t)kshegid, 10);
 	vp->flag |= INT_U;
-	setint_n((vp = global("KSHGID")), (mksh_uari_t)kshgid);
+	setint_n((vp = global("KSHGID")), (mksh_uari_t)kshgid, 10);
 	vp->flag |= INT_U;
-	setint_n((vp = global("RANDOM")), rndsetup());
+	setint_n((vp = global("RANDOM")), rndsetup(), 10);
 	vp->flag |= INT_U;
-	setint_n((vp_pipest = global("PIPESTATUS")), 0);
+	setint_n((vp_pipest = global("PIPESTATUS")), 0, 10);
 
 	/* Set this before parsing arguments */
 	Flag(FPRIVILEGED) = kshuid != ksheuid || kshgid != kshegid;
