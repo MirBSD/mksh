@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.197 2011/09/07 15:24:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.198 2011/11/09 22:17:25 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3646,7 +3646,7 @@ c_sleep(const char **wp)
 		/* block SIGCHLD from interrupting us, though */
 		sigprocmask(SIG_BLOCK, &sm_sigchld, &omask);
 #endif
-		if (select(0, NULL, NULL, NULL, &tv) == 0 || errno == EINTR)
+		if (select(1, NULL, NULL, NULL, &tv) == 0 || errno == EINTR)
 			/*
 			 * strictly speaking only for SIGALRM, but the
 			 * execution may be interrupted by other signals
