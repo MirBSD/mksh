@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.489 2011/11/09 22:17:23 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.490 2011/11/11 22:14:15 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -25,7 +25,7 @@
 # http://www.research.att.com/~gsf/public/ifs.sh
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2011/11/09
+	@(#)MIRBSD KSH R40 2011/11/11
 description:
 	Check version of shell.
 stdin:
@@ -6177,7 +6177,6 @@ expected-stdout:
 name: arrays-2a
 description:
 	Check if bash-style arrays work as expected
-category: !smksh
 stdin:
 	v="c d"
 	foo=(a \$v "$v" '$v' b)
@@ -6188,7 +6187,6 @@ expected-stdout:
 name: arrays-2b
 description:
 	Check if bash-style arrays work as expected, with newlines
-category: !smksh
 stdin:
 	test -n "$ZSH_VERSION" && setopt KSH_ARRAYS
 	v="e f"
@@ -6229,7 +6227,6 @@ expected-stdout:
 name: arrays-4
 description:
 	Check if Korn Shell arrays with specified indices work as expected
-category: !smksh
 stdin:
 	v="c d"
 	set -A foo -- [1]=\$v [2]="$v" [4]='$v' [0]=a [5]=b
@@ -6240,7 +6237,6 @@ expected-stdout:
 name: arrays-5
 description:
 	Check if bash-style arrays with specified indices work as expected
-category: !smksh
 stdin:
 	v="c d"
 	foo=([1]=\$v [2]="$v" [4]='$v' [0]=a [5]=b)
@@ -6409,7 +6405,6 @@ expected-stdout:
 name: arrays-9a
 description:
 	Check that we can concatenate arrays
-category: !smksh
 stdin:
 	unset foo; foo=(bar); foo+=(baz); echo 1 ${!foo[*]} : ${foo[*]} .
 	unset foo; foo=(foo bar); foo+=(baz); echo 2 ${!foo[*]} : ${foo[*]} .
@@ -7651,46 +7646,39 @@ description:
 	Fails on: pdksh bash2 bash3 zsh
 	Passes on: bash4 ksh93 mksh(20110313+)
 stdin:
-	echo $(case 1 in (1) echo yes;; (2) echo no;; esac)
-	echo $(case 1 in 1) echo yes;; 2) echo no;; esac)
-	TEST=1234; echo ${TEST: $(case 1 in (1) echo 1;; (*) echo 2;; esac)}
-	TEST=5678; echo ${TEST: $(case 1 in 1) echo 1;; *) echo 2;; esac)}
+	echo 1 $(case 1 in (1) echo yes;; (2) echo no;; esac) .
+	echo 2 $(case 1 in 1) echo yes;; 2) echo no;; esac) .
+	TEST=1234; echo 3 ${TEST: $(case 1 in (1) echo 1;; (*) echo 2;; esac)} .
+	TEST=5678; echo 4 ${TEST: $(case 1 in 1) echo 1;; *) echo 2;; esac)} .
+	a=($(case 1 in (1) echo 1;; (*) echo 2;; esac)); echo 5 ${a[0]} .
+	a=($(case 1 in 1) echo 1;; *) echo 2;; esac)); echo 6 ${a[0]} .
 expected-stdout:
-	yes
-	yes
-	234
-	678
+	1 yes .
+	2 yes .
+	3 234 .
+	4 678 .
+	5 1 .
+	6 1 .
 ---
 name: comsub-1b
 description:
 	COMSUB are now parsed recursively, so this works
-	Fails on GNU bash even, ksh93 passes
+	Fails on: pdksh bash2 bash3 bash4 zsh
+	Passes on: ksh93 mksh(20110313+)
 stdin:
-	echo $(($(case 1 in (1) echo 1;; (*) echo 2;; esac)+10))
-	echo $(($(case 1 in 1) echo 1;; *) echo 2;; esac)+20))
-	(( a = $(case 1 in (1) echo 1;; (*) echo 2;; esac) )); echo $a.
-	(( a = $(case 1 in 1) echo 1;; *) echo 2;; esac) )); echo $a.
+	echo 1 $(($(case 1 in (1) echo 1;; (*) echo 2;; esac)+10)) .
+	echo 2 $(($(case 1 in 1) echo 1;; *) echo 2;; esac)+20)) .
+	(( a = $(case 1 in (1) echo 1;; (*) echo 2;; esac) )); echo 3 $a .
+	(( a = $(case 1 in 1) echo 1;; *) echo 2;; esac) )); echo 4 $a .
+	a=($(($(case 1 in (1) echo 1;; (*) echo 2;; esac)+10))); echo 5 ${a[0]} .
+	a=($(($(case 1 in 1) echo 1;; *) echo 2;; esac)+20))); echo 6 ${a[0]} .
 expected-stdout:
-	11
-	21
-	1.
-	1.
----
-name: comsub-1c
-description:
-	COMSUB are now parsed recursively, so this works (ksh93, mksh)
-	First test passes on bash4, second fails there
-category: !smksh
-stdin:
-	a=($(case 1 in (1) echo 1;; (*) echo 2;; esac)); echo ${a[0]}.
-	a=($(case 1 in 1) echo 1;; *) echo 2;; esac)); echo ${a[0]}.
-	a=($(($(case 1 in (1) echo 1;; (*) echo 2;; esac)+10))); echo ${a[0]}.
-	a=($(($(case 1 in 1) echo 1;; *) echo 2;; esac)+20))); echo ${a[0]}.
-expected-stdout:
-	1.
-	1.
-	11.
-	21.
+	1 11 .
+	2 21 .
+	3 1 .
+	4 1 .
+	5 11 .
+	6 21 .
 ---
 name: comsub-2
 description:
@@ -7732,16 +7720,16 @@ description:
 	Check the tree dump functions for !MKSH_SMALL functionality
 category: !smksh
 stdin:
-	x() { case $1 in a) a+=b ;;& *) c+=(d e) ;; esac; }
+	x() { case $1 in u) echo x ;;& *) echo $1 ;; esac; }
 	typeset -f x
 expected-stdout:
 	x() {
 		case $1 in
-		(a)
-			a+=b 
+		(u)
+			echo x 
 			;|
 		(*)
-			set -A c+ -- d e 
+			echo $1 
 			;;
 		esac 
 	} 
@@ -7844,6 +7832,8 @@ stdin:
 		install -c -o root -g wheel -m 664 /dev/null /etc/motd
 		print -- "$x\n" >/etc/motd
 	fi
+	#wdarrassign
+	a+=b; c+=(d e)
 	#0
 	EOD
 expected-stdout:
@@ -8408,6 +8398,25 @@ expected-stdout:
 	wq
 	EOF
 	)" = @(?) ]] && rm -f /etc/motd ; if [[ ! -s /etc/motd ]] ; then install -c -o root -g wheel -m 664 /dev/null /etc/motd ; print -- "$x\n" >/etc/motd ; fi ) | tr u x ) 
+	} 
+	inline_wdarrassign() {
+		a+=b; c+=(d e)
+	}
+	inline_wdarrassign() {
+		a+=b 
+		set -A c+ -- d e 
+	} 
+	function comsub_wdarrassign { x=$(
+		a+=b; c+=(d e)
+	); }
+	function comsub_wdarrassign {
+		x=$(a+=b ; set -A c+ -- d e ) 
+	} 
+	function reread_wdarrassign { x=$((
+		a+=b; c+=(d e)
+	)|tr u x); }
+	function reread_wdarrassign {
+		x=$(( a+=b ; set -A c+ -- d e ) | tr u x ) 
 	} 
 ---
 name: test-stnze-1

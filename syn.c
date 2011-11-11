@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.69 2011/09/07 15:24:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.70 2011/11/11 22:14:19 tg Exp $");
 
 extern short subshell_nesting_level;
 extern void yyskiputf8bom(void);
@@ -232,13 +232,27 @@ nested(int type, int smark, int emark)
 	return (block(type, t, NOBLOCK, NOWORDS));
 }
 
+static const char let_cmd[] = {
+	CHAR, 'l', CHAR, 'e', CHAR, 't', EOS
+};
+static const char setA_cmd0[] = {
+	CHAR, 's', CHAR, 'e', CHAR, 't', EOS
+};
+static const char setA_cmd1[] = {
+	CHAR, '-', CHAR, 'A', EOS
+};
+static const char setA_cmd2[] = {
+	CHAR, '-', CHAR, '-', EOS
+};
+
 static struct op *
 get_command(int cf)
 {
 	struct op *t;
-	int c, iopn = 0, syniocf;
+	int c, iopn = 0, syniocf, lno;
 	struct ioword *iop, **iops;
 	XPtrV args, vars;
+	char *tcp;
 	struct nesting_state old_nesting;
 
 	/* NUFILE is small enough to leave this addition unchecked */
@@ -292,67 +306,50 @@ get_command(int cf)
 					XPput(args, yylval.cp);
 				break;
 
-			case '(':
-#ifndef MKSH_SMALL
-				if ((XPsize(args) == 0 || Flag(FKEYWORD)) &&
-				    XPsize(vars) == 1 && is_wdvarassign(yylval.cp))
-					goto is_wdarrassign;
-#endif
-				/*
-				 * Check for "> foo (echo hi)" which AT&T ksh
-				 * allows (not POSIX, but not disallowed)
-				 */
-				afree(t, ATEMP);
-				if (XPsize(args) == 0 && XPsize(vars) == 0) {
+			case '(' /*)*/:
+				if (XPsize(args) == 0 && XPsize(vars) == 1 &&
+				    is_wdvarassign(yylval.cp)) {
+					/* wdarrassign: foo=(bar) */
 					ACCEPT;
-					goto Subshell;
+
+					/* manipulate the vars string */
+					tcp = *(--vars.cur);
+					/* 'varname=' -> 'varname' */
+					tcp[wdscan(tcp, EOS) - tcp - 3] = EOS;
+
+					/* construct new args strings */
+					XPput(args, wdcopy(setA_cmd0, ATEMP));
+					XPput(args, wdcopy(setA_cmd1, ATEMP));
+					XPput(args, tcp);
+					XPput(args, wdcopy(setA_cmd2, ATEMP));
+
+					/* slurp in words till closing paren */
+					while (token(CONTIN) == LWORD)
+						XPput(args, yylval.cp);
+					if (symbol != /*(*/ ')')
+						syntaxerr(NULL);
+				} else {
+					/*
+					 * Check for "> foo (echo hi)"
+					 * which AT&T ksh allows (not
+					 * POSIX, but not disallowed)
+					 */
+					afree(t, ATEMP);
+					if (XPsize(args) == 0 &&
+					    XPsize(vars) == 0) {
+						ACCEPT;
+						goto Subshell;
+					}
+
+					/* must be a function */
+					if (iopn != 0 || XPsize(args) != 1 ||
+					    XPsize(vars) != 0)
+						syntaxerr(NULL);
+					ACCEPT;
+					musthave(/*(*/')', 0);
+					t = function_body(XPptrv(args)[0], false);
 				}
-
-				/* must be a function */
-				if (iopn != 0 || XPsize(args) != 1 ||
-				    XPsize(vars) != 0)
-					syntaxerr(NULL);
-				ACCEPT;
-				musthave(/*(*/')', 0);
-				t = function_body(XPptrv(args)[0], false);
 				goto Leave;
-#ifndef MKSH_SMALL
- is_wdarrassign:
-			{
-				static const char set_cmd0[] = {
-					CHAR, 's', CHAR, 'e',
-					CHAR, 't', EOS
-				};
-				static const char set_cmd1[] = {
-					CHAR, '-', CHAR, 'A', EOS
-				};
-				static const char set_cmd2[] = {
-					CHAR, '-', CHAR, '-', EOS
-				};
-				char *tcp;
-
-				ACCEPT;
-
-				/* manipulate the vars string */
-				tcp = *(--vars.cur);
-				/* 'varname=' -> 'varname' */
-				tcp[wdscan(tcp, EOS) - tcp - 3] = EOS;
-
-				/* construct new args strings */
-				XPput(args, wdcopy(set_cmd0, ATEMP));
-				XPput(args, wdcopy(set_cmd1, ATEMP));
-				XPput(args, tcp);
-				XPput(args, wdcopy(set_cmd2, ATEMP));
-
-				/* slurp in words till closing paren */
-				while (token(CONTIN) == LWORD)
-					XPput(args, yylval.cp);
-				if (symbol != /*(*/ ')')
-					syntaxerr(NULL);
-
-				goto Leave;
-			}
-#endif
 
 			default:
 				goto Leave;
@@ -372,13 +369,7 @@ get_command(int cf)
 		t = nested(TBRACE, '{', '}');
 		break;
 
-	case MDPAREN: {
-		int lno;
-		static const char let_cmd[] = {
-			CHAR, 'l', CHAR, 'e',
-			CHAR, 't', EOS
-		};
-
+	case MDPAREN:
 		/* leave KEYWORD in syniocf (allow if (( 1 )) then ...) */
 		lno = source->line;
 		ACCEPT;
@@ -395,7 +386,6 @@ get_command(int cf)
 		XPput(args, wdcopy(let_cmd, ATEMP));
 		XPput(args, yylval.cp);
 		break;
-	}
 
 	case DBRACKET: /* [[ .. ]] */
 		/* leave KEYWORD in syniocf (allow if [[ -n 1 ]] then ...) */
