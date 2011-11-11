@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.276 2011/10/24 19:41:11 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.277 2011/11/11 22:10:52 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.141 2011/09/03 22:59:08 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: October 24 2011 $
+.Dd $Mdocdate: November 11 2011 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -923,7 +923,7 @@ This even works indirectly:
 .Bd -literal -offset indent
 $ bar=foobar; baz=\*(aqf*r\*(aq
 $ [[ $bar = $baz ]]; echo $?
-$ [[ $bar = "$baz" ]]; echo $?
+$ [[ $bar = \&"$baz" ]]; echo $?
 .Ed
 .Pp
 Perhaps surprisingly, the first comparison succeeds,
@@ -4431,7 +4431,7 @@ instead, or the double-bracket operator
 or, to avoid pattern matching (see
 .Ic \&[[
 above):
-.Dq if \&[[ $foo = "$bar" \&]]
+.Dq if \&[[ $foo = \&"$bar" \&]]
 .Pp
 .It Xo
 .Ic time
