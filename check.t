@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.490 2011/11/11 22:14:15 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.491 2011/11/19 17:25:55 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1010,7 +1010,8 @@ description:
 	Check package for cd -Pe
 need-pass: no
 # the mv command fails on Cygwin
-category: !os:cygwin,!os:msys
+# Hurd aborts the testsuite (permission denied)
+category: !os:cygwin,!os:gnu,!os:msys
 file-setup: file 644 "x"
 	mkdir noread noread/target noread/target/subdir
 	ln -s noread link
