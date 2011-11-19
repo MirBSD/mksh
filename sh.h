@@ -151,9 +151,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.484.2.6 2011/11/08 22:07:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.484.2.7 2011/11/19 22:22:00 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2011/11/08"
+#define MKSH_VERSION "R40 2011/11/18"
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -1475,6 +1475,7 @@ EXTERN struct timeval j_usrtime, j_systime;
 		    '+', (size_t)(cnst));				\
 } while (/* CONSTCOND */ 0)
 
+
 /* Bob Jenkins' one-at-a-time hash, with better start value */
 #define oaat1_init_impl(h) do {						\
 	(h) = 0x100;							\
@@ -1504,6 +1505,7 @@ EXTERN struct timeval j_usrtime, j_systime;
 	(h) ^= (h) >> 11;						\
 	(h) += (h) << 15;						\
 } while (/* CONSTCOND */ 0)
+
 
 /* lalloc.c */
 void ainit(Area *);

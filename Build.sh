@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.3 2011/10/25 22:50:27 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.4 2011/11/19 22:21:51 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -496,8 +496,10 @@ Minix)
 MirBSD)
 	;;
 MSYS_*)
-	# probably same as CYGWIN* – need to test; from RT|Chatzilla
-	oswarn='but will probably work'
+	# almost same as CYGWIN* (from RT|Chatzilla)
+	: ${HAVE_SETLOCALE_CTYPE=0}
+	# broken on this OE (from ir0nh34d)
+	: ${HAVE_STDINT_H=0}
 	;;
 NetBSD)
 	;;
@@ -1194,7 +1196,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.484.2.3 2011/10/25 22:50:27 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.484.2.4 2011/11/19 22:21:51 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in

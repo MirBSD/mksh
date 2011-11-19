@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.130.2.3 2011/11/08 22:07:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.130.2.4 2011/11/19 22:22:03 tg Exp $");
 
 /*-
  * Variables
@@ -1379,29 +1379,23 @@ set_array(const char *var, bool reset, const char **vals)
 {
 	struct tbl *vp, *vq;
 	mksh_uari_t i = 0, j = 0;
-	const char *ccp;
-#ifndef MKSH_SMALL
+	const char *ccp = var;
 	char *cp = NULL;
 	size_t n;
-#endif
 
 	/* to get local array, use "typeset foo; set -A foo" */
-#ifndef MKSH_SMALL
 	n = strlen(var);
 	if (n > 0 && var[n - 1] == '+') {
 		/* append mode */
 		reset = false;
 		strndupx(cp, var, n - 1, ATEMP);
+		ccp = cp;
 	}
-#define CPORVAR	(cp ? cp : var)
-#else
-#define CPORVAR	var
-#endif
-	vp = global(CPORVAR);
+	vp = global(ccp);
 
 	/* Note: AT&T ksh allows set -A but not set +A of a read-only var */
 	if ((vp->flag&RDONLY))
-		errorfx(2, "%s: %s", CPORVAR, "is read only");
+		errorfx(2, "%s: %s", ccp, "is read only");
 	/* This code is quite non-optimal */
 	if (reset)
 		/* trash existing values and attributes */
@@ -1411,7 +1405,6 @@ set_array(const char *var, bool reset, const char **vals)
 	 * completely fail. Only really effects integer arrays:
 	 * evaluation of some of vals[] may fail...
 	 */
-#ifndef MKSH_SMALL
 	if (cp != NULL) {
 		/* find out where to set when appending */
 		for (vq = vp; vq; vq = vq->u.array) {
@@ -1422,9 +1415,7 @@ set_array(const char *var, bool reset, const char **vals)
 		}
 		afree(cp, ATEMP);
 	}
-#endif
 	while ((ccp = vals[i])) {
-#ifndef MKSH_SMALL
 		if (*ccp == '[') {
 			int level = 0;
 
@@ -1445,7 +1436,6 @@ set_array(const char *var, bool reset, const char **vals)
 			} else
 				ccp = vals[i];
 		}
-#endif
 
 		vq = arraysearch(vp, j);
 		/* would be nice to deal with errors here... (see above) */
