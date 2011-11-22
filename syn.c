@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.70 2011/11/11 22:14:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.71 2011/11/22 18:01:41 tg Exp $");
 
 extern short subshell_nesting_level;
 extern void yyskiputf8bom(void);
@@ -609,17 +609,23 @@ casepart(int endtok)
 	musthave(')', 0);
 
 	t->left = c_list(true);
-	/* Note: POSIX requires the ;; */
+
+	/* initialise to default for ;; or omitted */
+	t->u.charflag = ';';
+	/* SUSv4 requires the ;; except in the last casepart */
 	if ((tpeek(CONTIN|KEYWORD|ALIAS)) != endtok)
 		switch (symbol) {
 		default:
 			syntaxerr(NULL);
-		case BREAK:
 		case BRKEV:
+			t->u.charflag = '|';
+			if (0)
+				/* FALLTHROUGH */
 		case BRKFT:
-			t->u.charflag =
-			    (symbol == BRKEV) ? '|' :
-			    (symbol == BRKFT) ? '&' : ';';
+			t->u.charflag = '&';
+			/* FALLTHROUGH */
+		case BREAK:
+			/* initialised above, but we need to eat the token */
 			ACCEPT;
 		}
 	return (t);
