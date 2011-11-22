@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.135 2011/11/11 22:14:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.130.2.4 2011/11/19 22:22:03 tg Exp $");
 
 /*-
  * Variables
@@ -1490,9 +1490,9 @@ hash(const void *s)
 {
 	register uint32_t h;
 
-	NZATInit(h);
-	NZATUpdateString(h, s);
-	NZATFinish(h);
+	oaat1_init_impl(h);
+	oaat1_addstr_impl(h, s);
+	oaat1_fini_impl(h);
 	return (h);
 }
 
@@ -1501,9 +1501,9 @@ rndset(long v)
 {
 	register uint32_t h;
 
-	NZATInit(h);
-	NZATUpdateMem(h, &lcg_state, sizeof(lcg_state));
-	NZATUpdateMem(h, &v, sizeof(v));
+	oaat1_init_impl(h);
+	oaat1_addmem_impl(h, &lcg_state, sizeof(lcg_state));
+	oaat1_addmem_impl(h, &v, sizeof(v));
 
 #if defined(arc4random_pushb_fast) || defined(MKSH_A4PB)
 	/*
@@ -1512,16 +1512,16 @@ rndset(long v)
 	 * user requested us to use the old functions
 	 */
 	lcg_state = h;
-	NZAATFinish(lcg_state);
+	oaat1_fini_impl(lcg_state);
 #if defined(arc4random_pushb_fast)
 	arc4random_pushb_fast(&lcg_state, sizeof(lcg_state));
 	lcg_state = arc4random();
 #else
 	lcg_state = arc4random_pushb(&lcg_state, sizeof(lcg_state));
 #endif
-	NZATUpdateMem(h, &lcg_state, sizeof(lcg_state));
+	oaat1_addmem_impl(h, &lcg_state, sizeof(lcg_state));
 #endif
 
-	NZAATFinish(h);
+	oaat1_fini_impl(h);
 	lcg_state = h;
 }

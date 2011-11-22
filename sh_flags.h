@@ -1,5 +1,5 @@
 #if defined(SHFLAGS_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.9 2011/06/12 15:37:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.8 2011/02/11 01:18:23 tg Exp $");
 #define FN(sname,cname,ochar,flags)	/* nothing */
 #elif defined(SHFLAGS_ENUMS)
 #define FN(sname,cname,ochar,flags)	cname,
@@ -20,6 +20,9 @@ __RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.9 2011/06/12 15:37:10 tg Exp $");
 
 /* -a	all new parameters are created with the export attribute */
 F0("allexport", FEXPORT, 'a', OF_ANY)
+
+/* ./.	backwards compat: dummy, emits a warning */
+FN("arc4random", FARC4RANDOM, 0, OF_ANY)
 
 #if HAVE_NICE
 /* ./.	bgnice */

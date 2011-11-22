@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.489 2011/11/05 23:39:01 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.4 2011/11/19 22:21:51 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -330,6 +330,10 @@ do
 	:-c)
 		last=c
 		;;
+	:-combine)
+		cm=combine
+		echo "$me: Warning: '$i' is deprecated, use '-c combine' instead!" >&2
+		;;
 	:-g)
 		# checker, debug, valgrind build
 		add_cppflags -DDEBUG
@@ -337,6 +341,16 @@ do
 		;;
 	:-j)
 		pm=1
+		;;
+	:-llvm)
+		cm=llvm
+		optflags=-std-compile-opts
+		echo "$me: Warning: '$i' is deprecated, use '-c llvm -O' instead!" >&2
+		;;
+	:-llvm=*)
+		cm=llvm
+		optflags=`echo "x$i" | sed 's/^x-llvm=//'`
+		echo "$me: Warning: '$i' is deprecated, use '-c llvm -o $llvm' instead!" >&2
 		;;
 	:-M)
 		cm=makefile
@@ -1182,7 +1196,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.489 2011/11/05 23:39:01 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.484.2.4 2011/11/19 22:21:51 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
