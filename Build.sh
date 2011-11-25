@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.489 2011/11/05 23:39:01 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.490 2011/11/25 23:29:30 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1182,7 +1182,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.489 2011/11/05 23:39:01 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.490 2011/11/25 23:29:30 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1596,9 +1596,10 @@ cat >>test.sh <<-EOF
 	pflag='$curdir/mksh'
 	sflag='$srcdir/check.t'
 	usee=0 Pflag=0 uset=0 vflag=0 xflag=0
-	while getopts "C:e:Pp:s:t:v" ch; do case \$ch {
+	while getopts "C:e:fPp:s:t:v" ch; do case \$ch {
 	(C)	check_categories[\${#check_categories[*]}]=\$OPTARG ;;
 	(e)	usee=1; eflag=\$OPTARG ;;
+	(f)	check_categories[\${#check_categories[*]}]=fastbox ;;
 	(P)	Pflag=1 ;;
 	(p)	pflag=\$OPTARG ;;
 	(s)	sflag=\$OPTARG ;;
