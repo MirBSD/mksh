@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.65 2011/08/27 18:06:40 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.66 2011/11/25 23:43:59 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -77,7 +77,7 @@ function dirs {
 	local d dwidth
 	local -i isnoglob=0 fl=0 fv=0 fn=0 cpos=0
 
-	[[ $(set +o) == *@(-o noglob)@(| *) ]] && isnoglob=1
+	[[ $- = *f* ]] && isnoglob=1
 	set -o noglob
 	while getopts ":lvn" d; do
 		case $d {
@@ -124,7 +124,7 @@ function popd {
 	local d fa
 	local -i isnoglob=0 n=1
 
-	[[ $(set +o) == *@(-o noglob)@(| *) ]] && isnoglob=1
+	[[ $- = *f* ]] && isnoglob=1
 	set -o noglob
 	while getopts ":0123456789lvn" d; do
 		case $d {
@@ -163,7 +163,7 @@ function pushd {
 	local d fa
 	local -i isnoglob=0 n=1
 
-	[[ $(set +o) == *@(-o noglob)@(| *) ]] && isnoglob=1
+	[[ $- = *f* ]] && isnoglob=1
 	set -o noglob
 	while getopts ":0123456789lvn" d; do
 		case $d {
