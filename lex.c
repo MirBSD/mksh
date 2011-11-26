@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.157 2011/10/25 22:36:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.158 2011/11/26 17:56:30 tg Exp $");
 
 /*
  * states while lexing word
@@ -1440,7 +1440,7 @@ getsc_line(Source *s)
 		alarm(0);
 	}
 	cp = Xstring(s->xs, xp);
-#ifndef MKSH_SMALL
+#if !defined(MKSH_SMALL) && !defined(MKSH_DISABLE_DEPRECATED)
 	if (interactive && *cp == '!' && cur_prompt == PS1) {
 		int linelen;
 
