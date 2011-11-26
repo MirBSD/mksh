@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.4 2011/11/19 22:21:51 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.5 2011/11/26 18:23:14 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -25,13 +25,14 @@ srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.4 2011/11/19 22:21:51 tg Exp
 # Environment used:	CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF
 #			TARGET_OS TARGET_OSREV
 # Feature selectors:	USE_PRINTF_BUILTIN
-# CPPFLAGS recognised:	MKSH_ASSUME_UTF8 MKSH_BINSHREDUCED MKSH_CLS_STRING
-#			MKSH_CONSERVATIVE_FDS MKSH_MIDNIGHTBSD01ASH_COMPAT
-#			MKSH_NOPWNAM MKSH_NO_LIMITS MKSH_SMALL MKSH_S_NOVI
-#			MKSH_UNEMPLOYED MKSH_DEFAULT_EXECSHELL MKSHRC_PATH
-#			MKSH_DEFAULT_TMPDIR MKSH_CLRTOEOL_STRING MKSH_A4PB
-#			MKSH_NO_DEPRECATED_WARNING MKSH_DONT_EMIT_IDSTRING
-#			MKSH_NOPROSPECTOFWORK MKSH_NO_EXTERNAL_CAT
+# CPPFLAGS recognised:	MKSH_MIDNIGHTBSD01ASH_COMPAT MKSH_CONSERVATIVE_FDS
+#			MKSH_DONT_EMIT_IDSTRING MKSH_NO_DEPRECATED_WARNING
+#			MKSH_DISABLE_DEPRECATED MKSH_ASSUME_UTF8 MKSH_A4PB
+#			MKSH_SMALL MKSH_BINSHREDUCED MKSH_NOPROSPECTOFWORK
+#			MKSH_UNEMPLOYED MKSH_NO_LIMITS MKSH_DEFAULT_TMPDIR
+#			MKSH_DEFAULT_EXECSHELL MKSHRC_PATH MKSH_CLS_STRING
+#			MKSH_CLRTOEOL_STRING MKSH_NO_EXTERNAL_CAT
+#			MKSH_NOPWNAM MKSH_S_NOVI
 
 LC_ALL=C
 export LC_ALL
@@ -1196,7 +1197,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.484.2.4 2011/11/19 22:21:51 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.484.2.5 2011/11/26 18:23:14 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1610,9 +1611,10 @@ cat >>test.sh <<-EOF
 	pflag='$curdir/mksh'
 	sflag='$srcdir/check.t'
 	usee=0 Pflag=0 uset=0 vflag=0 xflag=0
-	while getopts "C:e:Pp:s:t:v" ch; do case \$ch {
+	while getopts "C:e:fPp:s:t:v" ch; do case \$ch {
 	(C)	check_categories[\${#check_categories[*]}]=\$OPTARG ;;
 	(e)	usee=1; eflag=\$OPTARG ;;
+	(f)	check_categories[\${#check_categories[*]}]=fastbox ;;
 	(P)	Pflag=1 ;;
 	(p)	pflag=\$OPTARG ;;
 	(s)	sflag=\$OPTARG ;;
