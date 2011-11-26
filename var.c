@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.135 2011/11/11 22:14:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.136 2011/11/26 00:45:03 tg Exp $");
 
 /*-
  * Variables
@@ -1383,7 +1383,7 @@ set_array(const char *var, bool reset, const char **vals)
 	char *cp = NULL;
 	size_t n;
 
-	/* to get local array, use "typeset foo; set -A foo" */
+	/* to get local array, use "local foo; set -A foo" */
 	n = strlen(var);
 	if (n > 0 && var[n - 1] == '+') {
 		/* append mode */
@@ -1397,9 +1397,12 @@ set_array(const char *var, bool reset, const char **vals)
 	if ((vp->flag&RDONLY))
 		errorfx(2, "%s: %s", ccp, "is read only");
 	/* This code is quite non-optimal */
-	if (reset)
+	if (reset) {
 		/* trash existing values and attributes */
 		unset(vp, 1);
+		/* allocate-by-access the [0] element to keep in scope */
+		arraysearch(vp, 0);
+	}
 	/*
 	 * TODO: would be nice for assignment to completely succeed or
 	 * completely fail. Only really effects integer arrays:
