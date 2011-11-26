@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.111 2011/09/07 15:24:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.112 2011/11/26 18:19:00 tg Exp $");
 
 /*-
  * MirOS: This is the default mapping type, and need not be specified.
@@ -527,8 +527,7 @@ findhist(int start, int fwd, const char *str, int anchored)
 }
 
 /*
- *	set history
- *	this means reallocating the dataspace
+ * set history; this means reallocating the dataspace
  */
 void
 sethistsize(int n)
@@ -551,9 +550,8 @@ sethistsize(int n)
 
 #if HAVE_PERSISTENT_HISTORY
 /*
- *	set history file
- *	This can mean reloading/resetting/starting history file
- *	maintenance
+ * set history file; this can mean reloading/resetting/starting
+ * history file maintenance
  */
 void
 sethistfile(const char *name)
@@ -567,7 +565,7 @@ sethistfile(const char *name)
 		return;
 
 	/*
-	 * its a new name - possibly
+	 * it's a new name - possibly
 	 */
 	if (histfd) {
 		/* yes the file is open */
@@ -586,7 +584,7 @@ sethistfile(const char *name)
 #endif
 
 /*
- *	initialise the history vector
+ * initialise the history vector
  */
 void
 init_histvec(void)
@@ -600,11 +598,7 @@ init_histvec(void)
 
 
 /*
- *	Routines added by Peter Collinson BSDI(Europe)/Hillside Systems to
- *	a) permit HISTSIZE to control number of lines of history stored
- *	b) maintain a physical history file
- *
- *	It turns out that there is a lot of ghastly hackery here
+ * It turns out that there is a lot of ghastly hackery here
  */
 
 #if !defined(MKSH_SMALL) && HAVE_PERSISTENT_HISTORY
@@ -670,25 +664,23 @@ histsave(int *lnp, const char *cmd, bool dowrite MKSH_A_UNUSED, bool ignoredups)
 }
 
 /*
- *	Write history data to a file nominated by HISTFILE
- *	if HISTFILE is unset then history still happens, but
- *	the data is not written to a file
- *	All copies of ksh looking at the file will maintain the
- *	same history. This is ksh behaviour.
+ * Write history data to a file nominated by HISTFILE;
+ * if HISTFILE is unset then history still happens, but
+ * the data is not written to a file. All copies of ksh
+ * looking at the file will maintain the same history.
+ * This is ksh behaviour.
  *
- *	This stuff uses mmap()
- *	if your system ain't got it - then you'll have to undef HISTORYFILE
+ * This stuff uses mmap()
  */
 
 /*-
- *	Open a history file
- *	Format is:
- *	Bytes 1, 2:
- *		HMAGIC - just to check that we are dealing with
- *		the correct object
- *	Then follows a number of stored commands
- *	Each command is
- *	<command byte><command number(4 bytes)><bytes><null>
+ * Open a history file
+ * Format is:
+ * Bytes 1, 2:
+ *	HMAGIC - just to check that we are dealing with the correct object
+ * Then follows a number of stored commands
+ * Each command is
+ *	<command byte><command number(4 bytes)><bytes><NUL>
  */
 #define HMAGIC1		0xab
 #define HMAGIC2		0xcd
@@ -787,10 +779,12 @@ hist_init(Source *s)
 
 #if HAVE_PERSISTENT_HISTORY
 typedef enum state {
-	shdr,		/* expecting a header */
-	sline,		/* looking for a null byte to end the line */
-	sn1,		/* bytes 1 to 4 of a line no */
-	sn2, sn3, sn4
+	/* expecting a header */
+	shdr,
+	/* looking for a NUL byte to end the line */
+	sline,
+	/* bytes 1 to 4 of a line number */
+	sn1, sn2, sn3, sn4
 } State;
 
 static int
@@ -825,7 +819,7 @@ hist_count_lines(unsigned char *base, int bytes)
 }
 
 /*
- *	Shrink the history file to histsize lines
+ * Shrink the history file to HISTSIZE lines
  */
 static int
 hist_shrink(unsigned char *oldbase, int oldbytes)
@@ -843,7 +837,7 @@ hist_shrink(unsigned char *oldbase, int oldbytes)
 		return (0);
 
 	/*
-	 *	create temp file
+	 * create temp file
 	 */
 	nfile = shf_smprintf("%s.%d", hname, (int)procpid);
 	if ((fd = open(nfile, O_CREAT | O_TRUNC | O_WRONLY, 0600)) < 0)
@@ -858,7 +852,7 @@ hist_shrink(unsigned char *oldbase, int oldbytes)
 	fd = -1;
 
 	/*
-	 *	rename
+	 * rename
 	 */
 	if (rename(nfile, hname) < 0) {
  errout:
@@ -874,8 +868,8 @@ hist_shrink(unsigned char *oldbase, int oldbytes)
 }
 
 /*
- *	find a pointer to the data 'no' back from the end of the file
- *	return the pointer and the number of bytes left
+ * find a pointer to the data 'no' back from the end of the file;
+ * return the pointer and the number of bytes left
  */
 static unsigned char *
 hist_skip_back(unsigned char *base, int *bytes, int no)
@@ -887,7 +881,7 @@ hist_skip_back(unsigned char *base, int *bytes, int no)
 		/*
 		 * this doesn't really work: the 4 byte line number that
 		 * is encoded after the COMMAND byte can itself contain
-		 * the COMMAND byte....
+		 * the COMMAND byte...
 		 */
 		for (; ep > base && *ep != COMMAND; ep--)
 			;
@@ -902,7 +896,7 @@ hist_skip_back(unsigned char *base, int *bytes, int no)
 }
 
 /*
- *	load the history structure from the stored data
+ * load the history structure from the stored data
  */
 static void
 histload(Source *s, unsigned char *base, int bytes)
@@ -918,27 +912,27 @@ histload(Source *s, unsigned char *base, int bytes)
 				state = sn1;
 			break;
 		case sn1:
-			lno = (((*base)&0xff)<<24);
+			lno = (((*base) & 0xFF) << 24);
 			state = sn2;
 			break;
 		case sn2:
-			lno |= (((*base)&0xff)<<16);
+			lno |= (((*base) & 0xFF) << 16);
 			state = sn3;
 			break;
 		case sn3:
-			lno |= (((*base)&0xff)<<8);
+			lno |= (((*base) & 0xFF) << 8);
 			state = sn4;
 			break;
 		case sn4:
-			lno |= (*base)&0xff;
-			line = base+1;
+			lno |= (*base) & 0xFF;
+			line = base + 1;
 			state = sline;
 			break;
 		case sline:
 			if (*base == '\0') {
 				/* worry about line numbers */
 				if (histptr >= history && lno-1 != s->line) {
-					/* a replacement ? */
+					/* a replacement? */
 					histinsert(s, lno, (char *)line);
 				} else {
 					s->line = lno--;
@@ -952,7 +946,7 @@ histload(Source *s, unsigned char *base, int bytes)
 }
 
 /*
- *	Insert a line into the history at a specified number
+ * Insert a line into the history at a specified number
  */
 static void
 histinsert(Source *s, int lno, const char *line)
@@ -968,11 +962,12 @@ histinsert(Source *s, int lno, const char *line)
 }
 
 /*
- *	write a command to the end of the history file
- *	This *MAY* seem easy but it's also necessary to check
- *	that the history file has not changed in size.
- *	If it has - then some other shell has written to it
- *	and we should read those commands to update our history
+ * write a command to the end of the history file
+ *
+ * This *MAY* seem easy but it's also necessary to check
+ * that the history file has not changed in size.
+ * If it has - then some other shell has written to it and
+ * we should (re)read those commands to update our history
  */
 static void
 writehistfile(int lno, char *cmd)
@@ -985,7 +980,7 @@ writehistfile(int lno, char *cmd)
 	sizenow = lseek(histfd, (off_t)0, SEEK_END);
 	if ((sizenow <= (1024 * 1048576)) && ((size_t)sizenow != hsize)) {
 		/*
-		 *	Things have changed
+		 * Things have changed
 		 */
 		if ((size_t)sizenow > hsize) {
 			/* someone has added some lines */
@@ -1014,13 +1009,13 @@ writehistfile(int lno, char *cmd)
 	}
 	if (cmd) {
 		/*
-		 *	we can write our bit now
+		 * we can write our bit now
 		 */
 		hdr[0] = COMMAND;
-		hdr[1] = (lno>>24)&0xff;
-		hdr[2] = (lno>>16)&0xff;
-		hdr[3] = (lno>>8)&0xff;
-		hdr[4] = lno&0xff;
+		hdr[1] = (lno >> 24) & 0xFF;
+		hdr[2] = (lno >> 16) & 0xFF;
+		hdr[3] = (lno >> 8) & 0xFF;
+		hdr[4] = lno & 0xFF;
 		bytes = strlen(cmd) + 1;
 		if ((write(histfd, hdr, 5) != 5) ||
 		    (write(histfd, cmd, bytes) != bytes))
@@ -1045,7 +1040,7 @@ hist_finish(void)
 }
 
 /*
- *	add magic to the history file
+ * add magic to the history file
  */
 static int
 sprinkle(int fd)
