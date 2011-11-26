@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.109 2011/10/11 19:06:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.110 2011/11/26 00:45:20 tg Exp $");
 
 /*
  * string expansion
@@ -189,8 +189,8 @@ typedef struct SubType {
 	struct tbl *var;	/* variable for ${var..} */
 	struct SubType *prev;	/* old type */
 	struct SubType *next;	/* poped type (to avoid re-allocating) */
+	size_t	base;		/* begin position of expanded word */
 	short	stype;		/* [=+-?%#] action after expanded word */
-	short	base;		/* begin position of expanded word */
 	short	f;		/* saved value of f (DOPAT, etc) */
 	uint8_t	quotep;		/* saved value of quote (for ${..[%#]..}) */
 	uint8_t	quotew;		/* saved value of quote (for ${..[+-=]..}) */

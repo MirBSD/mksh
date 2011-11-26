@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.89 2011/11/25 23:29:30 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.90 2011/11/26 00:45:17 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -70,7 +70,7 @@ regress: ${PROG} check.pl check.t
 	mkdir -p regress-dir
 	echo export FNORD=666 >regress-dir/.mkshrc
 	HOME=$$(realpath regress-dir) perl ${.CURDIR}/check.pl \
-	    -s ${.CURDIR}/check.t -v -p ./${PROG}
+	    -s ${.CURDIR}/check.t -v -p ./${PROG} -C fastbox
 
 test-build: .PHONY
 	-rm -rf build-dir
