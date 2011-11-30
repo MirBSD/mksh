@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.278 2011/11/11 22:14:02 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.279 2011/11/30 21:34:14 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.141 2011/09/03 22:59:08 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: November 11 2011 $
+.Dd $Mdocdate: November 30 2011 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -3549,7 +3549,7 @@ The file type may be
 (character type device),
 or
 .Cm p
-(named pipe).
+.Pq named pipe , Tn FIFO .
 The file created may be modified according to its
 .Ar mode
 (via the
@@ -4296,7 +4296,8 @@ instead of
 .Ql xtrace .
 .It Fl p Ar file
 .Ar file
-is a named pipe.
+is a named pipe
+.Pq Tn FIFO .
 .It Fl r Ar file
 .Ar file
 exists and is readable.
@@ -4394,22 +4395,22 @@ a mathematical term or the name of an integer variable:
 x=1; [ "x" \-eq 1 ]	evaluates to true
 .Ed
 .Pp
-Note that some special rules are applied (courtesy of POSIX)
-if the number of
-arguments to
+Note that some special rules are applied (courtesy of
+.Px
+) if the number of arguments to
 .Ic test
-or
+or inside the brackets
 .Ic \&[ ... \&]
 is less than five: if leading
 .Ql \&!
-arguments can be stripped such that only one argument remains then a string
-length test is performed (again, even if the argument is a unary operator); if
-leading
-.Ql \&!
-arguments can be stripped such that three arguments remain and the second
-argument is a binary operator, then the binary operation is performed (even
-if the first argument is a unary operator, including an unstripped
-.Ql \&! ) .
+arguments can be stripped such that only one to three arguments remain,
+then the lowered comparison is executed; (thanks to XSI) parentheses
+.Ic \e( ... \e)
+lower four- and three-argument forms to two- and one-argument forms,
+respectively; three-argument forms ultimately prefer binary operations,
+followed by negation and parenthesis lowering; two- and four-argument forms
+prefer negation followed by parenthesis; the one-argument form always implies
+.Fl n .
 .Pp
 .Sy Note :
 A common mistake is to use

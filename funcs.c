@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.199 2011/11/19 17:42:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.200 2011/11/30 21:34:12 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2724,8 +2724,10 @@ c_mknod(const char **wp)
 int
 c_test(const char **wp)
 {
-	int argc, res;
+	int argc, rv, invert = 0;
 	Test_env te;
+	Test_op op;
+	const char *lhs, **swp;
 
 	te.flags = 0;
 	te.isa = ptest_isa;
@@ -2747,63 +2749,96 @@ c_test(const char **wp)
 	te.wp_end = wp + argc;
 
 	/*
-	 * Handle the special cases from POSIX.2, section 4.62.4.
-	 * Implementation of all the rules isn't necessary since
-	 * our parser does the right thing for the omitted steps.
+	 * Attempt to conform to POSIX special cases. This is pretty
+	 * dumb code straight-forward from the 2008 spec, but unless
+	 * the old pdksh code doesn't live from so many assumptions.
 	 */
-	if (argc <= 5) {
-		const char **owp = wp, **owpend = te.wp_end;
-		int invert = 0;
-		Test_op op;
-		const char *opnd1, *opnd2;
-
-		if (argc >= 2 && ((*te.isa)(&te, TM_OPAREN))) {
-			te.pos.wp = te.wp_end - 1;
-			if ((*te.isa)(&te, TM_CPAREN)) {
-				argc -= 2;
-				te.wp_end--;
-				te.pos.wp = owp + 2;
-			} else {
-				te.pos.wp = owp + 1;
-				te.wp_end = owpend;
-			}
+	switch (argc - 1) {
+	case 0:
+		return (1);
+	case 1:
+ ptest_one:
+		op = TO_STNZE;
+		goto ptest_unary;
+	case 2:
+ ptest_two:
+		if ((*te.isa)(&te, TM_NOT)) {
+			++invert;
+			goto ptest_one;
 		}
-
-		while (--argc >= 0) {
-			if ((*te.isa)(&te, TM_END))
-				return (!0);
-			if (argc == 3) {
-				opnd1 = (*te.getopnd)(&te, TO_NONOP, 1);
-				if ((op = (*te.isa)(&te, TM_BINOP))) {
-					opnd2 = (*te.getopnd)(&te, op, 1);
-					res = (*te.eval)(&te, op, opnd1,
-					    opnd2, 1);
-					if (te.flags & TEF_ERROR)
-						return (T_ERR_EXIT);
-					if (invert & 1)
-						res = !res;
-					return (!res);
-				}
-				/* back up to opnd1 */
-				te.pos.wp--;
-			}
-			if (argc == 1) {
-				opnd1 = (*te.getopnd)(&te, TO_NONOP, 1);
-				res = (*te.eval)(&te, TO_STNZE, opnd1,
-				    NULL, 1);
-				if (invert & 1)
-					res = !res;
-				return (!res);
-			}
-			if ((*te.isa)(&te, TM_NOT)) {
-				invert++;
-			} else
-				break;
+		if ((op = (*te.isa)(&te, TM_UNOP))) {
+ ptest_unary:
+			rv = (*te.eval)(&te, op,
+			    (*te.getopnd)(&te, op, true), NULL, true);
+ ptest_out:
+			return ((invert & 1) ? rv : !rv);
 		}
-		te.pos.wp = owp + 1;
-		te.wp_end = owpend;
+		/* let the parser deal with anything else */
+		break;
+	case 3:
+ ptest_three:
+		swp = te.pos.wp;
+		/* skip lhs, without evaluation */
+		(*te.getopnd)(&te, TO_NONOP, false);
+		if ((op = (*te.isa)(&te, TM_BINOP))) {
+			const char *rhs;
+
+			/* read rhs, with evaluation */
+			rhs = (*te.getopnd)(&te, op, true);
+			/* back up to lhs */
+			te.pos.wp = swp;
+			/* re-read lhs, with evaluation */
+			lhs = (*te.getopnd)(&te, op, true);
+			/* finally run the test of lhs op rhs */
+			rv = (*te.eval)(&te, op, lhs, rhs, true);
+			goto ptest_out;
+		}
+		/* back up to lhs */
+		te.pos.wp = swp;
+		if ((*te.isa)(&te, TM_NOT)) {
+			++invert;
+			goto ptest_two;
+		}
+		if ((*te.isa)(&te, TM_OPAREN)) {
+			swp = te.pos.wp;
+			/* skip operand, without evaluation */
+			(*te.getopnd)(&te, TO_NONOP, false);
+			/* check for closing parenthesis */
+			op = (*te.isa)(&te, TM_CPAREN);
+			/* back up to operand */
+			te.pos.wp = swp;
+			/* if there was a closing paren, handle it */
+			if (op)
+				goto ptest_one;
+			/* backing up is done before calling the parser */
+		}
+		/* let the parser deal with it */
+		break;
+	case 4:
+		if ((*te.isa)(&te, TM_NOT)) {
+			++invert;
+			goto ptest_three;
+		}
+		if ((*te.isa)(&te, TM_OPAREN)) {
+			swp = te.pos.wp;
+			/* skip two operands, without evaluation */
+			(*te.getopnd)(&te, TO_NONOP, false);
+			(*te.getopnd)(&te, TO_NONOP, false);
+			/* check for closing parenthesis */
+			op = (*te.isa)(&te, TM_CPAREN);
+			/* back up to first operand */
+			te.pos.wp = swp;
+			/* if there was a closing paren, handle it */
+			if (op)
+				goto ptest_two;
+			/* backing up is done before calling the parser */
+		}
+		/* defer this to the parser */
+		break;
 	}
 
+	/* "The results are unspecified." */
+	te.pos.wp = wp + 1;
 	return (test_parse(&te));
 }
 
