@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.200 2011/11/30 21:34:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.201 2011/12/02 22:55:48 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2697,7 +2697,7 @@ c_mknod(const char **wp)
 #endif
 
 /*-
-   test(1) accepts the following grammar:
+   test(1) roughly accepts the following grammar:
 	oexpr	::= aexpr | aexpr "-o" oexpr ;
 	aexpr	::= nexpr | nexpr "-a" aexpr ;
 	nexpr	::= primary | "!" nexpr ;
@@ -2713,13 +2713,13 @@ c_mknod(const char **wp)
 
 	binary-operator ::= "="|"=="|"!="|"-eq"|"-ne"|"-ge"|"-gt"|"-le"|"-lt"|
 			    "-nt"|"-ot"|"-ef"|
-			    "<"|">"	# rules used for [[ .. ]] expressions
+			    "<"|">"	# rules used for [[ ... ]] expressions
 			    ;
-	operand ::= <any thing>
+	operand ::= <anything>
 */
 
 /* POSIX says > 1 for errors */
-#define T_ERR_EXIT	2
+#define T_ERR_EXIT 2
 
 int
 c_test(const char **wp)
@@ -2778,19 +2778,13 @@ c_test(const char **wp)
 	case 3:
  ptest_three:
 		swp = te.pos.wp;
-		/* skip lhs, without evaluation */
-		(*te.getopnd)(&te, TO_NONOP, false);
+		/* inside knowledge shows ptest_getopnd never evaluates */
+		/* skip lhs, without evaluation; assign with */
+		lhs = (*te.getopnd)(&te, TO_NONOP, true);
 		if ((op = (*te.isa)(&te, TM_BINOP))) {
-			const char *rhs;
-
-			/* read rhs, with evaluation */
-			rhs = (*te.getopnd)(&te, op, true);
-			/* back up to lhs */
-			te.pos.wp = swp;
-			/* re-read lhs, with evaluation */
-			lhs = (*te.getopnd)(&te, op, true);
-			/* finally run the test of lhs op rhs */
-			rv = (*te.eval)(&te, op, lhs, rhs, true);
+			/* test lhs op rhs */
+			rv = (*te.eval)(&te, op, lhs,
+			    (*te.getopnd)(&te, op, true), true);
 			goto ptest_out;
 		}
 		/* back up to lhs */

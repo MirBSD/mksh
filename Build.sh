@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.491 2011/11/26 17:56:29 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.492 2011/12/02 22:55:45 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -22,17 +22,7 @@ srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.491 2011/11/26 17:56:29 tg Exp $'
 # People analysing the output must whitelist conftest.c for any kind
 # of compiler warning checks (mirtoconf is by design not quiet).
 #
-# Environment used:	CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF
-#			TARGET_OS TARGET_OSREV
-# Feature selectors:	USE_PRINTF_BUILTIN
-# CPPFLAGS recognised:	MKSH_MIDNIGHTBSD01ASH_COMPAT MKSH_CONSERVATIVE_FDS
-#			MKSH_DONT_EMIT_IDSTRING MKSH_NO_DEPRECATED_WARNING
-#			MKSH_DISABLE_DEPRECATED MKSH_ASSUME_UTF8 MKSH_A4PB
-#			MKSH_SMALL MKSH_BINSHREDUCED MKSH_NOPROSPECTOFWORK
-#			MKSH_UNEMPLOYED MKSH_NO_LIMITS MKSH_DEFAULT_TMPDIR
-#			MKSH_DEFAULT_EXECSHELL MKSHRC_PATH MKSH_CLS_STRING
-#			MKSH_CLRTOEOL_STRING MKSH_NO_EXTERNAL_CAT
-#			MKSH_NOPWNAM MKSH_S_NOVI
+# Used environment documentation is at the end of this file.
 
 LC_ALL=C
 export LC_ALL
@@ -1183,7 +1173,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.491 2011/11/26 17:56:29 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.492 2011/12/02 22:55:45 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1785,3 +1775,51 @@ $e
 $e Run the regression test suite: ./test.sh
 $e Please also read the sample file dot.mkshrc and the fine manual.
 exit 0
+
+: <<'EOD'
+
+=== Environment used ===
+
+==== build environment ====
+CC				default: cc
+CFLAGS				if empty, defaults to -xO2 or +O2
+				or -O3 -qstrict or -O2, per compiler
+CPPFLAGS			default empty
+LDFLAGS				default empty; added before sources
+LIBS				default empty; added after sources
+				[Interix] default: -lcrypt (XXX still needed?)
+NOWARN				-Wno-error or similar
+NROFF				default: nroff
+TARGET_OS			default: $(uname -s || uname)
+TARGET_OSREV			[QNX] default: $(uname -r)
+
+==== feature selectors ====
+USE_PRINTF_BUILTIN		1 to include (unsupported) printf(1) as builtin
+===== general format =====
+HAVE_STRLEN			ac_test
+HAVE_STRING_H			ac_header
+HAVE_CAN_FSTACKPROTECTORALL	ac_flags
+
+==== cpp definitions ====
+MKSHRC_PATH			"~/.mkshrc" (do not change)
+MKSH_A4PB			force use of arc4random_pushb
+MKSH_ASSUME_UTF8		(0=disabled, 1=enabled; default: unset)
+MKSH_BINSHREDUCED		if */sh or */-sh, enable set -o sh
+MKSH_CLRTOEOL_STRING		"\033[K"
+MKSH_CLS_STRING			"\033[;H\033[J"
+MKSH_CONSERVATIVE_FDS		fd 0-9 for scripts, shell only up to 31
+MKSH_DEFAULT_EXECSHELL		"/bin/sh" (do not change)
+MKSH_DEFAULT_TMPDIR		"/tmp" (do not change)
+MKSH_DISABLE_DEPRECATED		disable code paths scheduled for later removal
+MKSH_DONT_EMIT_IDSTRING		omit RCS IDs from binary
+MKSH_MIDNIGHTBSD01ASH_COMPAT	set -o sh: additional compatibility quirk
+MKSH_NOPROSPECTOFWORK		disable jobs, co-processes, etc. (do not use)
+MKSH_NOPWNAM			skip PAM calls, for -static on eglibc, Solaris
+MKSH_NO_DEPRECATED_WARNING	omit warning when deprecated stuff is run
+MKSH_NO_EXTERNAL_CAT		omit hack to skip cat builtin when flags passed
+MKSH_NO_LIMITS			omit ulimit code
+MKSH_SMALL			omit some code, optimise hard for size (slower)
+MKSH_S_NOVI			disable Vi editing mode (default if MKSH_SMALL)
+MKSH_UNEMPLOYED			disable job control (but not jobs/co-processes)
+
+EOD
