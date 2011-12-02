@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.201 2011/12/02 22:55:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.202 2011/12/02 23:05:18 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2752,6 +2752,7 @@ c_test(const char **wp)
 	 * Attempt to conform to POSIX special cases. This is pretty
 	 * dumb code straight-forward from the 2008 spec, but unless
 	 * the old pdksh code doesn't live from so many assumptions.
+	 * It does, though, inline some calls to '(*te.funcname)()'.
 	 */
 	switch (argc - 1) {
 	case 0:
@@ -2762,14 +2763,13 @@ c_test(const char **wp)
 		goto ptest_unary;
 	case 2:
  ptest_two:
-		if ((*te.isa)(&te, TM_NOT)) {
+		if (ptest_isa(&te, TM_NOT)) {
 			++invert;
 			goto ptest_one;
 		}
-		if ((op = (*te.isa)(&te, TM_UNOP))) {
+		if ((op = ptest_isa(&te, TM_UNOP))) {
  ptest_unary:
-			rv = (*te.eval)(&te, op,
-			    (*te.getopnd)(&te, op, true), NULL, true);
+			rv = test_eval(&te, op, *te.pos.wp++, NULL, true);
  ptest_out:
 			return ((invert & 1) ? rv : !rv);
 		}
@@ -2778,27 +2778,25 @@ c_test(const char **wp)
 	case 3:
  ptest_three:
 		swp = te.pos.wp;
-		/* inside knowledge shows ptest_getopnd never evaluates */
-		/* skip lhs, without evaluation; assign with */
-		lhs = (*te.getopnd)(&te, TO_NONOP, true);
-		if ((op = (*te.isa)(&te, TM_BINOP))) {
+		/* use inside knowledge of ptest_getopnd inlined below */
+		lhs = *te.pos.wp++;
+		if ((op = ptest_isa(&te, TM_BINOP))) {
 			/* test lhs op rhs */
-			rv = (*te.eval)(&te, op, lhs,
-			    (*te.getopnd)(&te, op, true), true);
+			rv = test_eval(&te, op, lhs, *te.pos.wp++, true);
 			goto ptest_out;
 		}
 		/* back up to lhs */
 		te.pos.wp = swp;
-		if ((*te.isa)(&te, TM_NOT)) {
+		if (ptest_isa(&te, TM_NOT)) {
 			++invert;
 			goto ptest_two;
 		}
-		if ((*te.isa)(&te, TM_OPAREN)) {
+		if (ptest_isa(&te, TM_OPAREN)) {
 			swp = te.pos.wp;
 			/* skip operand, without evaluation */
-			(*te.getopnd)(&te, TO_NONOP, false);
+			te.pos.wp++;
 			/* check for closing parenthesis */
-			op = (*te.isa)(&te, TM_CPAREN);
+			op = ptest_isa(&te, TM_CPAREN);
 			/* back up to operand */
 			te.pos.wp = swp;
 			/* if there was a closing paren, handle it */
@@ -2809,17 +2807,17 @@ c_test(const char **wp)
 		/* let the parser deal with it */
 		break;
 	case 4:
-		if ((*te.isa)(&te, TM_NOT)) {
+		if (ptest_isa(&te, TM_NOT)) {
 			++invert;
 			goto ptest_three;
 		}
-		if ((*te.isa)(&te, TM_OPAREN)) {
+		if (ptest_isa(&te, TM_OPAREN)) {
 			swp = te.pos.wp;
 			/* skip two operands, without evaluation */
-			(*te.getopnd)(&te, TO_NONOP, false);
-			(*te.getopnd)(&te, TO_NONOP, false);
+			te.pos.wp++;
+			te.pos.wp++;
 			/* check for closing parenthesis */
-			op = (*te.isa)(&te, TM_CPAREN);
+			op = ptest_isa(&te, TM_CPAREN);
 			/* back up to first operand */
 			te.pos.wp = swp;
 			/* if there was a closing paren, handle it */
