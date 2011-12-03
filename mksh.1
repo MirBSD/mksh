@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.279 2011/11/30 21:34:14 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.280 2011/12/03 00:09:15 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.141 2011/09/03 22:59:08 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: November 30 2011 $
+.Dd $Mdocdate: December 3 2011 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -4602,6 +4602,14 @@ If
 is used inside a function, any parameters specified are localised.
 This is not done by the otherwise identical
 .Ic global .
+.Em Note :
+This means that
+.Nm No 's Ic global
+command is
+.Em not
+equivalent to other programming languages' as it does not allow a
+function called from another function to access a parameter at truly
+global scope, but only prevents putting an accessed one into local scope.
 .Pp
 When
 .Fl f
