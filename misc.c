@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.178 2011/12/03 00:01:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.179 2011/12/03 00:03:25 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1079,7 +1079,7 @@ print_value_quoted(const char *s)
 		shf_putc('\'', shl_stdout);
 		while ((c = *p) != 0) {
 			if (c >= 0xC2) {
-				n = utf_mbtowc(&wc, p);
+				n = utf_mbtowc(&wc, (const char *)p);
 				if (n != (size_t)-1) {
 					p += n;
 					shf_fprintf(shl_stdout, "\\u%04X", wc);
