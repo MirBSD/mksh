@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.5 2011/11/26 18:23:14 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.6 2011/12/04 19:59:37 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -22,17 +22,7 @@ srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.5 2011/11/26 18:23:14 tg Exp
 # People analysing the output must whitelist conftest.c for any kind
 # of compiler warning checks (mirtoconf is by design not quiet).
 #
-# Environment used:	CC CFLAGS CPPFLAGS LDFLAGS LIBS NOWARN NROFF
-#			TARGET_OS TARGET_OSREV
-# Feature selectors:	USE_PRINTF_BUILTIN
-# CPPFLAGS recognised:	MKSH_MIDNIGHTBSD01ASH_COMPAT MKSH_CONSERVATIVE_FDS
-#			MKSH_DONT_EMIT_IDSTRING MKSH_NO_DEPRECATED_WARNING
-#			MKSH_DISABLE_DEPRECATED MKSH_ASSUME_UTF8 MKSH_A4PB
-#			MKSH_SMALL MKSH_BINSHREDUCED MKSH_NOPROSPECTOFWORK
-#			MKSH_UNEMPLOYED MKSH_NO_LIMITS MKSH_DEFAULT_TMPDIR
-#			MKSH_DEFAULT_EXECSHELL MKSHRC_PATH MKSH_CLS_STRING
-#			MKSH_CLRTOEOL_STRING MKSH_NO_EXTERNAL_CAT
-#			MKSH_NOPWNAM MKSH_S_NOVI
+# Used environment documentation is at the end of this file.
 
 LC_ALL=C
 export LC_ALL
@@ -925,6 +915,7 @@ i=0
 if test $ct = gcc; then
 	# The following tests run with -Werror (gcc only) if possible
 	NOWARN=$DOWARN; phase=u
+	ac_flags 0 wnooverflow -Wno-overflow
 	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
 	ac_flags 1 fstackprotectorall -fstack-protector-all
 	ac_flags 1 fwrapv -fwrapv
@@ -1197,7 +1188,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.484.2.5 2011/11/26 18:23:14 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.484.2.6 2011/12/04 19:59:37 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1512,6 +1503,55 @@ test 1 = $fv || check_categories="$check_categories no-histfile"
 ac_testdone
 ac_cppflags
 
+save_CFLAGS=$CFLAGS
+test 1 = $HAVE_CAN_WNOOVERFLOW && CFLAGS="$CFLAGS -Wno-overflow"
+ac_testn compile_time_asserts_$$ '' 'whether compile-time assertions pass' <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	struct ctasserts {
+	#define cta(name, assertion) char name[(assertion) ? 1 : -1]
+/* this one should be defined by the standard */
+cta(char_is_1_char, (sizeof(char) == 1) && (sizeof(signed char) == 1) &&
+    (sizeof(unsigned char) == 1));
+/* the next assertion is probably not really needed */
+cta(short_is_2_char, sizeof(short) == 2);
+cta(short_size_no_matter_of_signedness, sizeof(short) == sizeof(unsigned short));
+/* the next assertion is probably not really needed */
+cta(int_is_4_char, sizeof(int) == 4);
+cta(int_size_no_matter_of_signedness, sizeof(int) == sizeof(unsigned int));
+
+cta(long_ge_int, sizeof(long) >= sizeof(int));
+
+/* the next assertion is probably not really needed */
+cta(ari_is_4_char, sizeof(mksh_ari_t) == 4);
+/* but the next three are; we REQUIRE signed integer wraparound */
+cta(ari_is_signed, (mksh_ari_t)-1 < (mksh_ari_t)0);
+cta(ari_has_31_bit, 0 < (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 1));
+cta(ari_sign_32_bit_and_wrap,
+    (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 1) >
+    (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 2));
+/* the next assertion is probably not really needed */
+cta(uari_is_4_char, sizeof(mksh_uari_t) == 4);
+/* but the next four are; we REQUIRE unsigned integer wraparound */
+cta(uari_is_unsigned, (mksh_uari_t)-1 > (mksh_uari_t)0);
+cta(uari_has_31_bit, 0 < (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 2 + 1));
+cta(uari_has_32_bit, 0 < (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 3));
+cta(uari_wrap_32_bit,
+    (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 3) >
+    (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 4));
+
+cta(sizet_size_no_matter_of_signedness, sizeof(ssize_t) == sizeof(size_t));
+cta(ptrdifft_sizet_same_size, sizeof(ptrdiff_t) == sizeof(size_t));
+cta(ptrdifft_voidptr_same_size, sizeof(ptrdiff_t) == sizeof(void *));
+cta(ptrdifft_funcptr_same_size, sizeof(ptrdiff_t) == sizeof(void (*)(void)));
+/* our formatting routines assume this */
+cta(ptr_fits_in_long, sizeof(ptrdiff_t) <= sizeof(long));
+	};
+	int main(void) { return (sizeof(struct ctasserts)); }
+EOF
+CFLAGS=$save_CFLAGS
+eval test 1 = \$HAVE_COMPILE_TIME_ASSERTS_$$ || exit 1
+
 #
 # Compiler: Praeprocessor (only if needed)
 #
@@ -1799,3 +1839,67 @@ $e
 $e Run the regression test suite: ./test.sh
 $e Please also read the sample file dot.mkshrc and the fine manual.
 exit 0
+
+: <<'EOD'
+
+=== Environment used ===
+
+==== build environment ====
+CC				default: cc
+CFLAGS				if empty, defaults to -xO2 or +O2
+				or -O3 -qstrict or -O2, per compiler
+CPPFLAGS			default empty
+LDFLAGS				default empty; added before sources
+LIBS				default empty; added after sources
+				[Interix] default: -lcrypt (XXX still needed?)
+NOWARN				-Wno-error or similar
+NROFF				default: nroff
+TARGET_OS			default: $(uname -s || uname)
+TARGET_OSREV			[QNX] default: $(uname -r)
+
+==== feature selectors ====
+USE_PRINTF_BUILTIN		1 to include (unsupported) printf(1) as builtin
+===== general format =====
+HAVE_STRLEN			ac_test
+HAVE_STRING_H			ac_header
+HAVE_CAN_FSTACKPROTECTORALL	ac_flags
+
+==== cpp definitions ====
+MKSHRC_PATH			"~/.mkshrc" (do not change)
+MKSH_A4PB			force use of arc4random_pushb
+MKSH_ASSUME_UTF8		(0=disabled, 1=enabled; default: unset)
+MKSH_BINSHREDUCED		if */sh or */-sh, enable set -o sh
+MKSH_CLRTOEOL_STRING		"\033[K"
+MKSH_CLS_STRING			"\033[;H\033[J"
+MKSH_CONSERVATIVE_FDS		fd 0-9 for scripts, shell only up to 31
+MKSH_DEFAULT_EXECSHELL		"/bin/sh" (do not change)
+MKSH_DEFAULT_TMPDIR		"/tmp" (do not change)
+MKSH_DISABLE_DEPRECATED		disable code paths scheduled for later removal
+MKSH_DONT_EMIT_IDSTRING		omit RCS IDs from binary
+MKSH_MIDNIGHTBSD01ASH_COMPAT	set -o sh: additional compatibility quirk
+MKSH_NOPROSPECTOFWORK		disable jobs, co-processes, etc. (do not use)
+MKSH_NOPWNAM			skip PAM calls, for -static on eglibc, Solaris
+MKSH_NO_DEPRECATED_WARNING	omit warning when deprecated stuff is run
+MKSH_NO_EXTERNAL_CAT		omit hack to skip cat builtin when flags passed
+MKSH_NO_LIMITS			omit ulimit code
+MKSH_SMALL			omit some code, optimise hard for size (slower)
+MKSH_S_NOVI			disable Vi editing mode (default if MKSH_SMALL)
+MKSH_UNEMPLOYED			disable job control (but not jobs/co-processes)
+
+=== generic installation instructions ===
+
+Set CC and possibly CFLAGS, CPPFLAGS, LDFLAGS, LIBS. If cross-compiling,
+also set TARGET_OS. To disable tests, set e.g. HAVE_STRLCPY=0; to enable
+them, set to a value other than 0 or 1. Ensure /bin/ed is installed. For
+MKSH_SMALL but with Vi mode, add -DMKSH_S_NOVI=0 to CPPFLAGS as well.
+
+Normally, the following command is what you want to run, then:
+$ (sh Build.sh -r -c lto && ./test.sh -v) 2>&1 | tee log
+
+Copy dot.mkshrc to /etc/skel/.mkshrc; install mksh into $prefix/bin; or
+/bin; install the manpage, if omitting the -r flag a catmanpage is made
+using $NROFF. Consider using a forward script as /etc/skel/.mkshrc like
+https://www.mirbsd.org/cvs.cgi/contrib/hosted/tg/deb/mksh/debian/.mkshrc?rev=HEAD
+and put dot.mkshrc as /etc/mkshrc so users need not keep up their HOME.
+
+EOD

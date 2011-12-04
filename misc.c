@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.167.2.2 2011/11/26 18:23:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.167.2.3 2011/12/04 19:59:47 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1894,19 +1894,6 @@ chvt(const char *fn)
 #endif
 
 #ifdef DEBUG
-#define assert_eq(name, a, b) char name[a == b ? 1 : -1]
-#define assert_ge(name, a, b) char name[a >= b ? 1 : -1]
-assert_ge(intsize_is_okay, sizeof(int), 4);
-assert_eq(intsizes_are_okay, sizeof(int), sizeof(unsigned int));
-assert_ge(longsize_is_okay, sizeof(long), sizeof(int));
-assert_eq(arisize_is_okay, sizeof(mksh_ari_t), 4);
-assert_eq(uarisize_is_okay, sizeof(mksh_uari_t), 4);
-assert_eq(sizesizes_are_okay, sizeof(size_t), sizeof(ssize_t));
-assert_eq(ptrsizes_are_okay, sizeof(ptrdiff_t), sizeof(void *));
-assert_eq(ptrsize_is_sizet, sizeof(ptrdiff_t), sizeof(size_t));
-/* formatting routines assume this */
-assert_ge(ptr_fits_in_long, sizeof(long), sizeof(size_t));
-
 char *
 strchr(char *p, int ch)
 {
