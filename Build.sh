@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.493 2011/12/03 00:01:26 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.494 2011/12/04 19:38:36 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1174,7 +1174,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.493 2011/12/03 00:01:26 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.494 2011/12/04 19:38:36 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1871,5 +1871,21 @@ MKSH_NO_LIMITS			omit ulimit code
 MKSH_SMALL			omit some code, optimise hard for size (slower)
 MKSH_S_NOVI			disable Vi editing mode (default if MKSH_SMALL)
 MKSH_UNEMPLOYED			disable job control (but not jobs/co-processes)
+
+=== generic installation instructions ===
+
+Set CC and possibly CFLAGS, CPPFLAGS, LDFLAGS, LIBS. If cross-compiling,
+also set TARGET_OS. To disable tests, set e.g. HAVE_STRLCPY=0; to enable
+them, set to a value other than 0 or 1. Ensure /bin/ed is installed. For
+MKSH_SMALL but with Vi mode, add -DMKSH_S_NOVI=0 to CPPFLAGS as well.
+
+Normally, the following command is what you want to run, then:
+$ (sh Build.sh -r -c lto && ./test.sh -v) 2>&1 | tee log
+
+Copy dot.mkshrc to /etc/skel/.mkshrc; install mksh into $prefix/bin; or
+/bin; install the manpage, if omitting the -r flag a catmanpage is made
+using $NROFF. Consider using a forward script as /etc/skel/.mkshrc like
+https://www.mirbsd.org/cvs.cgi/contrib/hosted/tg/deb/mksh/debian/.mkshrc?rev=HEAD
+and put dot.mkshrc as /etc/mkshrc so users need not keep up their HOME.
 
 EOD
