@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.494 2011/12/04 19:38:36 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.495 2011/12/04 19:59:33 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1174,7 +1174,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.494 2011/12/04 19:38:36 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.495 2011/12/04 19:59:33 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1529,7 +1529,7 @@ cta(uari_wrap_32_bit,
 cta(sizet_size_no_matter_of_signedness, sizeof(ssize_t) == sizeof(size_t));
 cta(ptrdifft_sizet_same_size, sizeof(ptrdiff_t) == sizeof(size_t));
 cta(ptrdifft_voidptr_same_size, sizeof(ptrdiff_t) == sizeof(void *));
-cta(ptrdifft_funcptr_same_size, sizeof(ptrdiff_t) == sizeof(void (*)()));
+cta(ptrdifft_funcptr_same_size, sizeof(ptrdiff_t) == sizeof(void (*)(void)));
 /* our formatting routines assume this */
 cta(ptr_fits_in_long, sizeof(ptrdiff_t) <= sizeof(long));
 	};
