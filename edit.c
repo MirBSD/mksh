@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.222 2011/10/07 19:45:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.223 2011/12/04 23:22:59 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -3275,7 +3275,7 @@ static int Forwword(int);
 static int Backword(int);
 static int Endword(int);
 static int grabhist(int, int);
-static int grabsearch(int, int, int, char *);
+static int grabsearch(int, int, int, const char *);
 static void redraw_line(bool);
 static void refresh(int);
 static int outofwin(void);
@@ -4896,7 +4896,7 @@ grabhist(int save, int n)
 }
 
 static int
-grabsearch(int save, int start, int fwd, char *pat)
+grabsearch(int save, int start, int fwd, const char *pat)
 {
 	char *hptr;
 	int hist;
@@ -4910,8 +4910,7 @@ grabsearch(int save, int start, int fwd, char *pat)
 		start--;
 	anchored = *pat == '^' ? (++pat, 1) : 0;
 	if ((hist = findhist(start, fwd, pat, anchored)) < 0) {
-		/* if (start != 0 && fwd && match(holdbuf, pat) >= 0) {} */
-		/* XXX should strcmp be strncmp? */
+		/* (start != 0 && fwd && match(holdbuf, pat) >= 0) */
 		if (start != 0 && fwd && strcmp(holdbuf, pat) >= 0) {
 			restore_cbuf();
 			return (0);
