@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.495 2011/12/04 19:59:33 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.496 2011/12/08 22:16:42 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1174,7 +1174,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.495 2011/12/04 19:59:33 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.496 2011/12/08 22:16:42 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1678,9 +1678,15 @@ cat >>test.sh <<-EOF
 	cstr='\$os = defined \$^O ? \$^O : "unknown";'
 	cstr="\$cstr"'print \$os . ", Perl version " . \$];'
 	for perli in \$PERL perl5 perl no; do
-		[[ \$perli = no ]] && exit 1
-		perlos=\$(\$perli -e "\$cstr") 2>/dev/null || continue
-		print "Perl interpreter '\$perli' running on '\$perlos'"
+		if [[ \$perli = no ]]; then
+			print Cannot find a working Perl interpreter, aborting.
+			exit 1
+		fi
+		print "Trying Perl interpreter '\$perli'..."
+		perlos=\$(\$perli -e "\$cstr")
+		rv=\$?
+		print "Errorlevel \$rv, running on '\$perlos'"
+		(( rv )) && continue
 		[[ -n \$perlos ]] && break
 	done
 	exec \$perli "\${args[@]}" "\$@"$tsts
