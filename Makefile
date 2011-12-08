@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.90 2011/11/26 00:45:17 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.91 2011/12/08 22:19:16 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -26,7 +26,7 @@ PROG=		mksh
 SRCS=		edit.c eval.c exec.c expr.c funcs.c histrap.c jobs.c \
 		lalloc.c lex.c main.c misc.c shf.c syn.c tree.c var.c
 .if !make(test-build)
-CPPFLAGS+=	-DMKSH_ASSUME_UTF8 \
+CPPFLAGS+=	-DMKSH_ASSUME_UTF8 -DMKSH_DISABLE_DEPRECATED \
 		-DHAVE_ATTRIBUTE_BOUNDED=1 -DHAVE_ATTRIBUTE_FORMAT=1 \
 		-DHAVE_ATTRIBUTE_NONNULL=1 -DHAVE_ATTRIBUTE_NORETURN=1 \
 		-DHAVE_ATTRIBUTE_UNUSED=1 -DHAVE_ATTRIBUTE_USED=1 \
@@ -70,7 +70,7 @@ regress: ${PROG} check.pl check.t
 	mkdir -p regress-dir
 	echo export FNORD=666 >regress-dir/.mkshrc
 	HOME=$$(realpath regress-dir) perl ${.CURDIR}/check.pl \
-	    -s ${.CURDIR}/check.t -v -p ./${PROG} -C fastbox
+	    -s ${.CURDIR}/check.t -v -p ./${PROG} -C fastbox,nodeprecated
 
 test-build: .PHONY
 	-rm -rf build-dir
