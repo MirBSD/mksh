@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.496 2011/12/08 22:16:42 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.497 2011/12/08 22:19:03 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1139,6 +1139,9 @@ ac_ifcpp 'ifdef MKSH_ASSUME_UTF8' isset_MKSH_ASSUME_UTF8 '' \
 ac_ifcpp 'ifdef MKSH_CONSERVATIVE_FDS' isset_MKSH_CONSERVATIVE_FDS '' \
     'if traditional/conservative fd use is requested' && \
     check_categories="$check_categories convfds"
+ac_ifcpp 'ifdef MKSH_DISABLE_DEPRECATED' isset_MKSH_DISABLE_DEPRECATED '' \
+    "if deprecated features are to be omitted" && \
+    check_categories="$check_categories nodeprecated"
 
 #
 # Environment: headers
@@ -1174,7 +1177,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.496 2011/12/08 22:16:42 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.497 2011/12/08 22:19:03 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
