@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.203 2011/12/09 20:40:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.204 2011/12/09 20:40:25 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -616,9 +616,9 @@ c_typeset(const char **wp)
 	struct block *l;
 	struct tbl *vp, **p;
 	uint32_t fset = 0, fclr = 0, flag;
-	int thing = 0, field, base, optc;
+	int thing = 0, field = 0, base = 0, optc;
 	const char *opts;
-	const char *fieldstr, *basestr;
+	const char *fieldstr = NULL, *basestr = NULL;
 	bool localv = false, func = false, pflag = false, istset = true;
 
 	switch (**wp) {
@@ -649,7 +649,6 @@ c_typeset(const char **wp)
 	/* see comment below regarding possible opions */
 	opts = istset ? "L#R#UZ#afi#lnprtux" : "p";
 
-	fieldstr = basestr = NULL;
 	builtin_opt.flags |= GF_PLUSOPT;
 	/*
 	 * AT&T ksh seems to have 0-9 as options which are multiplied
@@ -740,12 +739,12 @@ c_typeset(const char **wp)
 		}
 	}
 
-	field = 0;
 	if (fieldstr && !bi_getn(fieldstr, &field))
 		goto errout;
-	base = 0;
-	if (basestr && !bi_getn(basestr, &base))
+	if (basestr && (!bi_getn(basestr, &base) || base < 1 || base > 36)) {
+		bi_errorf("%s: %s", "bad integer base", basestr);
 		goto errout;
+	}
 
 	if (!(builtin_opt.info & GI_MINUSMINUS) && wp[builtin_opt.optind] &&
 	    (wp[builtin_opt.optind][0] == '-' ||
