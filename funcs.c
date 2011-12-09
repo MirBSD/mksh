@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.202 2011/12/02 23:05:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.203 2011/12/09 20:40:14 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -725,6 +725,8 @@ c_typeset(const char **wp)
 			flag = EXPORT;
 			break;
 		case '?':
+ errout:
+			set_refflag = SRF_NOP;
 			return (1);
 		}
 		if (builtin_opt.info & GI_PLUS) {
@@ -740,10 +742,10 @@ c_typeset(const char **wp)
 
 	field = 0;
 	if (fieldstr && !bi_getn(fieldstr, &field))
-		return (1);
+		goto errout;
 	base = 0;
 	if (basestr && !bi_getn(basestr, &base))
-		return (1);
+		goto errout;
 
 	if (!(builtin_opt.info & GI_MINUSMINUS) && wp[builtin_opt.optind] &&
 	    (wp[builtin_opt.optind][0] == '-' ||
@@ -756,8 +758,7 @@ c_typeset(const char **wp)
 	if (func && (((fset|fclr) & ~(TRACE|UCASEV_AL|EXPORT)) ||
 	    set_refflag != SRF_NOP)) {
 		bi_errorf("only -t, -u and -x options may be used with -f");
-		set_refflag = SRF_NOP;
-		return (1);
+		goto errout;
 	}
 	if (wp[builtin_opt.optind]) {
 		/*
@@ -813,8 +814,7 @@ c_typeset(const char **wp)
 				}
 			} else if (!typeset(wp[i], fset, fclr, field, base)) {
 				bi_errorf("%s: %s", wp[i], "not identifier");
-				set_refflag = SRF_NOP;
-				return (1);
+				goto errout;
 			}
 		}
 		set_refflag = SRF_NOP;
@@ -968,6 +968,7 @@ c_typeset(const char **wp)
 			}
 		}
 	}
+	set_refflag = SRF_NOP;
 	return (0);
 }
 
