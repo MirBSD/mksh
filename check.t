@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.499 2011/12/08 22:19:04 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.500 2011/12/09 20:40:02 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -28,7 +28,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2011/12/02
+	@(#)MIRBSD KSH R40 2011/12/09
 description:
 	Check version of shell.
 stdin:
@@ -3599,6 +3599,135 @@ stdin:
 expected-stdout:
 	64
 	64
+---
+name: integer-base-check-flat-posix
+description:
+	Check behaviour of POSuX bases
+stdin:
+	echo :$((10)).$((010)).$((0x10)).
+expected-stdout:
+	:10.8.16.
+---
+name: integer-base-check-flat-right
+description:
+	Check behaviour does not match POSuX, because a not type-safe
+	scripting language has *no* business interpreting "010" as octal
+stdin:
+	echo :$((10)).$((010)).$((0x10)).
+expected-stdout:
+	:10.10.16.
+---
+name: integer-base-check-numeric-from
+description:
+	Check behaviour for base one to 36, and that 37 errors out
+stdin:
+	echo 1:$((1#1))0.
+	i=1
+	while (( ++i <= 36 )); do
+		eval 'echo '$i':$(('$i'#10)).'
+	done
+	echo 37:$($__progname -c 'echo $((37#10))').$?:
+expected-stdout:
+	1:490.
+	2:2.
+	3:3.
+	4:4.
+	5:5.
+	6:6.
+	7:7.
+	8:8.
+	9:9.
+	10:10.
+	11:11.
+	12:12.
+	13:13.
+	14:14.
+	15:15.
+	16:16.
+	17:17.
+	18:18.
+	19:19.
+	20:20.
+	21:21.
+	22:22.
+	23:23.
+	24:24.
+	25:25.
+	26:26.
+	27:27.
+	28:28.
+	29:29.
+	30:30.
+	31:31.
+	32:32.
+	33:33.
+	34:34.
+	35:35.
+	36:36.
+	37:.0:
+expected-stderr-pattern:
+	/.*bad number '37#10'/
+---
+name: integer-base-check-numeric-to
+description:
+	Check behaviour for base one to 36, and that 37 errors out
+stdin:
+	i=0
+	while (( ++i <= 37 )); do
+		typeset -Uui$i x=0x40
+		eval "typeset -i10 y=$x"
+		print $i:$x.$y.
+	done
+expected-stdout:
+	1:1#@.64.
+	2:2#1000000.64.
+	3:3#2101.64.
+	4:4#1000.64.
+	5:5#224.64.
+	6:6#144.64.
+	7:7#121.64.
+	8:8#100.64.
+	9:9#71.64.
+	10:64.64.
+	11:11#59.64.
+	12:12#54.64.
+	13:13#4C.64.
+	14:14#48.64.
+	15:15#44.64.
+	16:16#40.64.
+	17:17#3D.64.
+	18:18#3A.64.
+	19:19#37.64.
+	20:20#34.64.
+	21:21#31.64.
+	22:22#2K.64.
+	23:23#2I.64.
+	24:24#2G.64.
+	25:25#2E.64.
+	26:26#2C.64.
+	27:27#2A.64.
+	28:28#28.64.
+	29:29#26.64.
+	30:30#24.64.
+	31:31#22.64.
+	32:32#20.64.
+	33:33#1V.64.
+	34:34#1U.64.
+	35:35#1T.64.
+	36:36#1S.64.
+	37:36#1S.64.
+expected-stderr-pattern:
+	/.*bad integer base: 37/
+---
+name: integer-arithmetic-span
+description:
+	Check wraparound and size that is defined in mksh
+stdin:
+	echo s:$((2147483647+1)).$(((2147483647*2)+1)).$(((2147483647*2)+2)).
+	echo u:$((#2147483647+1)).$((#(2147483647*2)+1)).$((#(2147483647*2)+2)).
+expected-stdout:
+	s:-2147483648.-1.0.
+	u:2147483648.4294967295.0.
 ---
 name: lineno-stdin
 description:
