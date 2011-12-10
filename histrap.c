@@ -26,15 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.112 2011/11/26 18:19:00 tg Exp $");
-
-/*-
- * MirOS: This is the default mapping type, and need not be specified.
- * IRIX doesn't have this constant.
- */
-#ifndef MAP_FILE
-#define MAP_FILE	0
-#endif
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.113 2011/12/10 14:12:16 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -60,6 +52,23 @@ static int hstarted;		/* set after hist_init() called */
 static Source *hist_source;
 
 #if HAVE_PERSISTENT_HISTORY
+/*XXX imake style */
+#if defined(__linux)
+#define caddr_cast(x)	((void *)(x))
+#else
+#define caddr_cast(x)	((caddr_t)(x))
+#endif
+
+/* several OEs do not have these constants */
+#ifndef MAP_FAILED
+#define MAP_FAILED	caddr_cast(-1)
+#endif
+
+/* some OEs need the default mapping type specified */
+#ifndef MAP_FILE
+#define MAP_FILE	0
+#endif
+
 /* current history file: name, fd, size */
 static char *hname;
 static int histfd;
@@ -741,7 +750,7 @@ hist_init(Source *s)
 		if (base == (unsigned char *)MAP_FAILED ||
 		    *base != HMAGIC1 || base[1] != HMAGIC2) {
 			if (base != (unsigned char *)MAP_FAILED)
-				munmap((caddr_t)base, hsize);
+				munmap(caddr_cast(base), hsize);
 			hist_finish();
 			if (unlink(hname) /* fails */)
 				goto hiniterr;
@@ -753,7 +762,7 @@ hist_init(Source *s)
 				/* we need to make the file smaller */
 				if (hist_shrink(base, hsize))
 					rv = unlink(hname);
-				munmap((caddr_t)base, hsize);
+				munmap(caddr_cast(base), hsize);
 				hist_finish();
 				if (rv) {
  hiniterr:
@@ -767,7 +776,7 @@ hist_init(Source *s)
 			}
 		}
 		histload(hist_source, base+2, hsize-2);
-		munmap((caddr_t)base, hsize);
+		munmap(caddr_cast(base), hsize);
 	}
 	(void)flock(histfd, LOCK_UN);
 	hfsize = lseek(histfd, (off_t)0, SEEK_END);
@@ -991,14 +1000,14 @@ writehistfile(int lno, char *cmd)
 				goto bad;
 			news = base + hsize;
 			if (*news != COMMAND) {
-				munmap((caddr_t)base, (size_t)sizenow);
+				munmap(caddr_cast(base), (size_t)sizenow);
 				goto bad;
 			}
 			hist_source->line--;
 			histload(hist_source, news, bytes);
 			hist_source->line++;
 			lno = hist_source->line;
-			munmap((caddr_t)base, (size_t)sizenow);
+			munmap(caddr_cast(base), (size_t)sizenow);
 			hsize = (size_t)sizenow;
 		} else {
 			/* it has shrunk */

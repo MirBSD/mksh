@@ -151,7 +151,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.510 2011/12/10 13:34:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.511 2011/12/10 14:12:17 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2011/12/10"
 
@@ -281,15 +281,6 @@ typedef u_int8_t uint8_t;
 #endif
 #ifndef DEFFILEMODE
 #define DEFFILEMODE	(S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
-#endif
-
-#if !defined(MAP_FAILED)
-/* XXX imake style */
-#  if defined(__linux)
-#define MAP_FAILED	((void *)-1)
-#  elif defined(__bsdi__) || defined(__osf__) || defined(__ultrix)
-#define MAP_FAILED	((caddr_t)-1)
-#  endif
 #endif
 
 #ifndef NSIG
