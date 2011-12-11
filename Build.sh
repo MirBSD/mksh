@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.6 2011/12/04 19:59:37 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.7 2011/12/11 18:18:18 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1153,6 +1153,9 @@ ac_ifcpp 'ifdef MKSH_ASSUME_UTF8' isset_MKSH_ASSUME_UTF8 '' \
 ac_ifcpp 'ifdef MKSH_CONSERVATIVE_FDS' isset_MKSH_CONSERVATIVE_FDS '' \
     'if traditional/conservative fd use is requested' && \
     check_categories="$check_categories convfds"
+ac_ifcpp 'ifdef MKSH_DISABLE_DEPRECATED' isset_MKSH_DISABLE_DEPRECATED '' \
+    "if deprecated features are to be omitted" && \
+    check_categories="$check_categories nodeprecated"
 
 #
 # Environment: headers
@@ -1188,7 +1191,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.484.2.6 2011/12/04 19:59:37 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.484.2.7 2011/12/11 18:18:18 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1692,10 +1695,22 @@ cat >>test.sh <<-EOF
 	cstr='\$os = defined \$^O ? \$^O : "unknown";'
 	cstr="\$cstr"'print \$os . ", Perl version " . \$];'
 	for perli in \$PERL perl5 perl no; do
-		[[ \$perli = no ]] && exit 1
-		perlos=\$(\$perli -e "\$cstr") 2>/dev/null || continue
-		print "Perl interpreter '\$perli' running on '\$perlos'"
-		[[ -n \$perlos ]] && break
+		if [[ \$perli = no ]]; then
+			print Cannot find a working Perl interpreter, aborting.
+			exit 1
+		fi
+		print "Trying Perl interpreter '\$perli'..."
+		perlos=\$(\$perli -e "\$cstr")
+		rv=\$?
+		print "Errorlevel \$rv, running on '\$perlos'"
+		if (( rv )); then
+			print "=> not using"
+			continue
+		fi
+		if [[ -n \$perlos ]]; then
+			print "=> using it"
+			break
+		fi
 	done
 	exec \$perli "\${args[@]}" "\$@"$tsts
 EOF

@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.269.2.7 2011/12/04 19:59:51 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.269.2.8 2011/12/11 18:18:25 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.141 2011/09/03 22:59:08 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: December 4 2011 $
+.Dd $Mdocdate: December 11 2011 $
 .\"
 .\" Check which macro package we use
 .\"
@@ -2465,14 +2465,8 @@ Grouping operators:
 ( )
 .Ed
 .Pp
-Integer constants and expressions are calculated using the
-.Vt mksh_ari_t
-.Po if signed Pc
-or
-.Vt mksh_uari_t
-.Po if unsigned Pc
-type, and are limited to 32 bits.
-Overflows wrap silently.
+Integer constants and expressions are calculated using an exactly 32-bit
+wide, signed or unsigned, type with silent wraparound on integer overflow.
 Integer constants may be specified with arbitrary bases using the notation
 .Ar base Ns # Ns Ar number ,
 where
@@ -2480,22 +2474,15 @@ where
 is a decimal integer specifying the base, and
 .Ar number
 is a number in the specified base.
-Additionally,
-integers may be prefixed with
-.Sq 0X
-or
-.Sq 0x
-(specifying base 16), similar to
-.At
-.Nm ksh ,
-or
-.Sq 0
-(base 8), as an
-.Nm
-extension, in all forms of arithmetic expressions,
-except as numeric arguments to the
+Additionally, base-16 integers may be specified by prefixing them with
+.Sq 0x Pq case-insensitive
+in all forms of arithmetic expressions, except as numeric arguments to the
 .Ic test
-command.
+built-in command.
+Base-8 integers may be specified by prefixing them with
+.Sq 0 ,
+but this is deprecated and will be removed in the next version of
+.Nm .
 As a special
 .Nm mksh
 extension, numbers to the base of one are treated as either (8-bit

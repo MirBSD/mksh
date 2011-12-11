@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.130.2.5 2011/11/26 18:23:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.130.2.6 2011/12/11 18:18:30 tg Exp $");
 
 /*-
  * Variables
@@ -469,10 +469,10 @@ setint(struct tbl *vq, mksh_ari_t n)
 static int
 getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 {
-	char *s;
 	int c, base, neg;
+	mksh_uari_t num;
+	const char *s;
 	bool have_base = false;
-	mksh_ari_t num;
 
 	if (vp->flag&SPECIAL)
 		getspec(vp);
@@ -487,6 +487,13 @@ getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 	base = 10;
 	num = 0;
 	neg = 0;
+#ifdef MKSH_DISABLE_DEPRECATED
+	if (arith && s[0] == '0' && (s[1] | 0x20) == 'x') {
+		s += 2;
+		base = 16;
+		have_base = true;
+	}
+#else
 	if (arith && *s == '0' && *(s+1)) {
 		s++;
 		if (*s == 'x' || *s == 'X') {
@@ -499,19 +506,20 @@ getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 			base = 8;
 		have_base = true;
 	}
-	for (c = *s++; c ; c = *s++) {
+#endif
+	while ((c = *s++)) {
 		if (c == '-') {
 			neg++;
 			continue;
 		} else if (c == '#') {
-			base = (int)num;
-			if (have_base || base < 1 || base > 36)
+			if (have_base || num < 1 || num > 36)
 				return (-1);
+			base = (int)num;
 			if (base == 1) {
 				unsigned int wc;
 
 				if (!UTFMODE)
-					wc = *(unsigned char *)s;
+					wc = *(const unsigned char *)s;
 				else if (utf_mbtowc(&wc, s) == (size_t)-1)
 					/* OPTU-8 -> OPTU-16 */
 					/*
@@ -519,7 +527,7 @@ getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 					 * the same as 1#\x80 does, thus is
 					 * not round-tripping correctly XXX)
 					 */
-					wc = 0xEF00 + *(unsigned char *)s;
+					wc = 0xEF00 + *(const unsigned char *)s;
 				*nump = (mksh_ari_t)wc;
 				return (1);
 			}
@@ -538,9 +546,7 @@ getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 			return (-1);
 		num = num * base + c;
 	}
-	if (neg)
-		num = -num;
-	*nump = num;
+	*nump = neg ? -((mksh_ari_t)num) : (mksh_ari_t)num;
 	return (base);
 }
 
