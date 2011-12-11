@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.223 2011/12/04 23:22:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.224 2011/12/11 18:01:03 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -859,6 +859,7 @@ static int xlp_valid;
 
 static char **x_histp;		/* history position */
 static int x_nextcmd;		/* for newline-and-next */
+static char **x_histncp;	/* saved x_histp for " */
 static char *xmp;		/* mark pointer */
 static unsigned char x_last_command;
 static unsigned char (*x_tab)[X_TABSZ];	/* key definition */
@@ -1130,10 +1131,13 @@ x_emacs(char *buf, size_t len)
 	xx_cols = x_cols;
 	x_init_prompt();
 
+	x_histncp = NULL;
 	if (x_nextcmd >= 0) {
 		int off = source->line - x_nextcmd;
-		if (histptr - history >= off)
+		if (histptr - history >= off) {
 			x_load_hist(histptr - off);
+			x_histncp = x_histp;
+		}
 		x_nextcmd = -1;
 	}
 	editmode = 1;
@@ -1773,7 +1777,14 @@ x_load_hist(char **hp)
 static int
 x_nl_next_com(int c MKSH_A_UNUSED)
 {
-	x_nextcmd = source->line - (histptr - x_histp) + 1;
+/*shellf( "x_histncp = %08X\n"
+	"x_histp   = %08X\n"
+	"histptr+1 = %08X\n", (uint32_t)x_histncp,
+	(uint32_t)x_histp, (uint32_t)(histptr + 1));*/
+	if (!x_histncp || (x_histp != x_histncp && x_histp != histptr + 1))
+		/* fresh start of ^O */
+		x_histncp = x_histp;
+	x_nextcmd = source->line - (histptr - x_histncp) + 1;
 	return (x_newline('\n'));
 }
 
