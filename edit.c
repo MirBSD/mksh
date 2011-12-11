@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.224 2011/12/11 18:01:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.225 2011/12/11 18:07:45 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1777,10 +1777,6 @@ x_load_hist(char **hp)
 static int
 x_nl_next_com(int c MKSH_A_UNUSED)
 {
-/*shellf( "x_histncp = %08X\n"
-	"x_histp   = %08X\n"
-	"histptr+1 = %08X\n", (uint32_t)x_histncp,
-	(uint32_t)x_histp, (uint32_t)(histptr + 1));*/
 	if (!x_histncp || (x_histp != x_histncp && x_histp != histptr + 1))
 		/* fresh start of ^O */
 		x_histncp = x_histp;
