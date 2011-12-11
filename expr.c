@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.49 2011/09/07 15:24:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.50 2011/12/11 01:35:10 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -351,11 +351,12 @@ evalexpr(Expr_state *es, int prec)
 		} else if (op != O_TERN && op != O_LAND && op != O_LOR)
 			vr = intvar(es, evalexpr(es, prec - 1));
 		if ((op == O_DIV || op == O_MOD || op == O_DIVASN ||
-		    op == O_MODASN) && vr->val.i == 0) {
+		    op == O_MODASN) && (vr->val.i == 0 || (!es->natural &&
+		    vr->val.i == -1 && vl->val.i == -2147483648))) {
 			if (es->noassign)
 				vr->val.i = 1;
 			else
-				evalerr(es, ET_STR, "zero divisor");
+				evalerr(es, ET_STR, "invalid divisor");
 		}
 		switch ((int)op) {
 		case O_TIMES:
