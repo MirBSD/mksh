@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.502 2011/12/11 01:35:08 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.503 2011/12/11 01:56:41 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -287,22 +287,19 @@ description:
 	Check division by zero errors out
 stdin:
 	x=$(echo $((1 / 0)))
-	echo =$?.
+	echo =$?:$x.
 expected-stdout:
-	=1.
+	=1:.
 expected-stderr-pattern:
 	/.*divisor/
 ---
 name: arith-div-intmin-by-minusone
 description:
-	Check division overflow errors out
+	Check division overflow wraps around silently
 stdin:
-	x=$(echo $((-2147483648 / -1)))
-	echo =$?.
+	echo :$((-2147483648 / -1))_$((-2147483648 % -1)).
 expected-stdout:
-	=1.
-expected-stderr-pattern:
-	/.*divisor/
+	:-2147483648_0.
 ---
 name: arith-assop-assoc-1
 description:

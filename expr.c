@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.50 2011/12/11 01:35:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.51 2011/12/11 01:56:43 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -343,7 +343,8 @@ evalexpr(Expr_state *es, int prec)
 	    op = es->tok) {
 		exprtoken(es);
 		vasn = vl;
-		if (op != O_ASN) /* vl may not have a value yet */
+		if (op != O_ASN)
+			/* vl may not have a value yet */
 			vl = intvar(es, vl);
 		if (IS_ASSIGNOP(op)) {
 			assign_check(es, op, vasn);
@@ -351,12 +352,11 @@ evalexpr(Expr_state *es, int prec)
 		} else if (op != O_TERN && op != O_LAND && op != O_LOR)
 			vr = intvar(es, evalexpr(es, prec - 1));
 		if ((op == O_DIV || op == O_MOD || op == O_DIVASN ||
-		    op == O_MODASN) && (vr->val.i == 0 || (!es->natural &&
-		    vr->val.i == -1 && vl->val.i == -2147483648))) {
+		    op == O_MODASN) && vr->val.i == 0) {
 			if (es->noassign)
 				vr->val.i = 1;
 			else
-				evalerr(es, ET_STR, "invalid divisor");
+				evalerr(es, ET_STR, "zero divisor");
 		}
 		switch ((int)op) {
 		case O_TIMES:
@@ -365,11 +365,22 @@ evalexpr(Expr_state *es, int prec)
 			break;
 		case O_DIV:
 		case O_DIVASN:
-			res = bivui(vl, /, vr);
+			if (!es->natural && vr->val.i == -1 &&
+			    vl->val.i == ((mksh_ari_t)1 << 31)) {
+				/* -2147483648 / -1 = 2147483648 */
+				/* 80000000 / FFFFFFFF = 80000000 */
+				res = ((mksh_ari_t)1 << 31);
+			} else
+				res = bivui(vl, /, vr);
 			break;
 		case O_MOD:
 		case O_MODASN:
-			res = bivui(vl, %, vr);
+			if (!es->natural && vr->val.i == -1 &&
+			    vl->val.i == ((mksh_ari_t)1 << 31)) {
+				/* -2147483648 % -1 = 0 */
+				res = 0;
+			} else
+				res = bivui(vl, %, vr);
 			break;
 		case O_PLUS:
 		case O_PLUSASN:
