@@ -151,9 +151,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.511 2011/12/10 14:12:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.484.2.11 2011/12/11 18:18:28 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2011/12/10"
+#define MKSH_VERSION "R40 2011/12/11"
 
 /* arithmetics types */
 typedef int32_t mksh_ari_t;
@@ -1467,54 +1467,34 @@ EXTERN struct timeval j_usrtime, j_systime;
 } while (/* CONSTCOND */ 0)
 
 
-/* NZAT/NZAAT hashes based on Bob Jenkins' one-at-a-time hash */
-
-/* From: src/kern/include/nzat.h,v 1.2 2011/07/18 00:35:40 tg Exp $ */
-
-#define NZATInit(h) do {					\
-	(h) = 0;						\
+/* Bob Jenkins' one-at-a-time hash, with better start value */
+#define oaat1_init_impl(h) do {						\
+	(h) = 0x100;							\
 } while (/* CONSTCOND */ 0)
-
-#define NZATUpdateByte(h,b) do {				\
-	(h) += (uint8_t)(b);					\
-	++(h);							\
-	(h) += (h) << 10;					\
-	(h) ^= (h) >> 6;					\
+#define oaat1_addmem_impl(h, buf, len) do {				\
+	register const uint8_t *oaat1_addmem_p = (const void *)(buf);	\
+	register size_t oaat1_addmem_n = (len);				\
+									\
+	while (oaat1_addmem_n--) {					\
+		(h) += *oaat1_addmem_p++;				\
+		(h) += (h) << 10;					\
+		(h) ^= (h) >> 6;					\
+	}								\
 } while (/* CONSTCOND */ 0)
-
-#define NZATUpdateMem(h,p,z) do {				\
-	register const uint8_t *NZATUpdateMem_p;		\
-	register size_t NZATUpdateMem_z = (z);			\
-								\
-	NZATUpdateMem_p = (const void *)(p);			\
-	while (NZATUpdateMem_z--)				\
-		NZATUpdateByte((h), *NZATUpdateMem_p++);	\
+#define oaat1_addstr_impl(h, s) do {					\
+	register const uint8_t *oaat1_addstr_p = (const void *)(s);	\
+	register uint8_t oaat1_addstr_c;				\
+									\
+	while ((oaat1_addstr_c = *oaat1_addstr_p++)) {			\
+		h += oaat1_addstr_c;					\
+		(h) += (h) << 10;					\
+		(h) ^= (h) >> 6;					\
+	}								\
 } while (/* CONSTCOND */ 0)
-
-#define NZATUpdateString(h,s) do {				\
-	register const char *NZATUpdateString_s;		\
-	register uint8_t NZATUpdateString_c;			\
-								\
-	NZATUpdateString_s = (const void *)(s);			\
-	while ((NZATUpdateString_c = *NZATUpdateString_s++))	\
-		NZATUpdateByte((h), NZATUpdateString_c);	\
-} while (/* CONSTCOND */ 0)
-
-/* not zero after termination */
-#define NZATFinish(h) do {					\
-	if ((h) == 0)						\
-		++(h);						\
-	else							\
-		NZAATFinish(h);					\
-} while (/* CONSTCOND */ 0)
-
-/* NULs zählen an allen Teilen */
-#define NZAATFinish(h) do {					\
-	(h) += (h) << 10;					\
-	(h) ^= (h) >> 6;					\
-	(h) += (h) << 3;					\
-	(h) ^= (h) >> 11;					\
-	(h) += (h) << 15;					\
+#define oaat1_fini_impl(h) do {						\
+	(h) += (h) << 3;						\
+	(h) ^= (h) >> 11;						\
+	(h) += (h) << 15;						\
 } while (/* CONSTCOND */ 0)
 
 
