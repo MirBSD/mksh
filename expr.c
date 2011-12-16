@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.51 2011/12/11 01:56:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.52 2011/12/16 20:03:02 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -284,7 +284,7 @@ evalerr(Expr_state *es, enum error_type type, const char *str)
 
 	case ET_RDONLY:
 		warningf(true, "%s: %s %s",
-		    es->expression, str, "applied to read only variable");
+		    es->expression, str, "applied to read-only variable");
 		break;
 
 	default: /* keep gcc happy */
@@ -347,7 +347,8 @@ evalexpr(Expr_state *es, int prec)
 			/* vl may not have a value yet */
 			vl = intvar(es, vl);
 		if (IS_ASSIGNOP(op)) {
-			assign_check(es, op, vasn);
+			if (!es->noassign)
+				assign_check(es, op, vasn);
 			vr = intvar(es, evalexpr(es, P_ASSIGN));
 		} else if (op != O_TERN && op != O_LAND && op != O_LOR)
 			vr = intvar(es, evalexpr(es, prec - 1));
@@ -609,7 +610,8 @@ do_ppmm(Expr_state *es, enum token op, struct tbl *vasn, bool is_prefix)
 		setint_v(vasn, vl, es->arith);
 	else
 		setint(vasn, vl->val.i);
-	if (!is_prefix)		/* undo the inc/dec */
+	if (!is_prefix)
+		/* undo the increment/decrement */
 		vl->val.i = oval;
 
 	return (vl);
