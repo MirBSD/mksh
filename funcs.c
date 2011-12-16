@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.204 2011/12/09 20:40:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.205 2011/12/16 20:03:26 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2021,7 +2021,7 @@ c_read(const char **wp)
 		vp = global(*wp);
 		if (vp->flag & RDONLY) {
  c_read_splitro:
-			bi_errorf("%s: %s", *wp, "is read only");
+			bi_errorf("read-only: %s", *wp);
  c_read_spliterr:
 			rv = 2;
 			afree(cp, ATEMP);
@@ -2434,8 +2434,7 @@ c_unset(const char **wp)
 			afree(cp, ATEMP);
 
 			if ((vp->flag&RDONLY)) {
-				warningf(true, "%s: %s", vp->name,
-				    "is read only");
+				warningf(true, "read-only: %s", vp->name);
 				rv = 1;
 			} else
 				unset(vp, optc);
