@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.498 2011/12/10 14:16:09 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.499 2011/12/18 02:20:09 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -954,13 +954,12 @@ elif test $ct = icc; then
 elif test $ct = sunpro; then
 	phase=u
 	ac_flags 1 v -v
-	ac_flags 1 xc99 -xc99 'for support of ISO C99'
 	ac_flags 1 ipo -xipo 'for cross-module optimisation'
 	phase=x
 elif test $ct = hpcc; then
 	phase=u
-	ac_flags 1 agcc -Agcc 'for support of GCC extensions'
-	ac_flags 1 ac99 -AC99 'for support of ISO C99'
+	# probably not needed
+	#ac_flags 1 agcc -Agcc 'for support of GCC extensions'
 	phase=x
 elif test $ct = dec; then
 	ac_flags 0 verb -verbose
@@ -971,7 +970,6 @@ elif test $ct = dmc; then
 elif test $ct = bcc; then
 	ac_flags 1 strpool "${ccpc}-d" 'if string pooling can be enabled'
 elif test $ct = mipspro; then
-	ac_flags 1 xc99 -c99 'for support of ISO C99'
 	ac_flags 1 fullwarn -fullwarn 'for remark output support'
 elif test $ct = msc; then
 	ac_flags 1 strpool "${ccpc}/GF" 'if string pooling can be enabled'
@@ -983,8 +981,6 @@ elif test $ct = msc; then
 	ac_flags 1 wall "${ccpc}/Wall" 'to enable all warnings'
 	ac_flags 1 wp64 "${ccpc}/Wp64" 'to enable 64-bit warnings'
 elif test $ct = xlc; then
-	ac_flags 1 x99 -qlanglvl=extc99
-	test 1 = $HAVE_CAN_X99 || ac_flags 1 c99 -qlanglvl=stdc99
 	ac_flags 1 rodata "-qro -qroconst -qroptr"
 	ac_flags 1 rtcheck -qcheck=all
 	ac_flags 1 rtchkc -qextchk
@@ -1004,9 +1000,6 @@ elif test $ct = nwcc; then
 fi
 # flags common to a subset of compilers (run with -Werror on gcc)
 if test 1 = $i; then
-	ac_flags 1 stdg99 -std=gnu99 'for support of ISO C99 + GCC extensions'
-	test 1 = $HAVE_CAN_STDG99 || \
-	    ac_flags 1 stdc99 -std=c99 'for support of ISO C99'
 	ac_flags 1 wall -Wall
 fi
 
@@ -1177,7 +1170,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.498 2011/12/10 14:16:09 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.499 2011/12/18 02:20:09 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
