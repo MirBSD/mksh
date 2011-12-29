@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.225 2011/12/11 18:07:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.226 2011/12/29 23:36:10 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -624,6 +624,10 @@ x_longest_prefix(int nwords, char * const * words)
 				prefix_len = j;
 				break;
 			}
+	/* false for nwords==1 as 0 = words[0][prefix_len] then */
+	if (UTFMODE && prefix_len && (words[0][prefix_len] & 0xC0) == 0x80)
+		while (prefix_len && (words[0][prefix_len] & 0xC0) != 0xC0)
+			--prefix_len;
 	return (prefix_len);
 }
 
