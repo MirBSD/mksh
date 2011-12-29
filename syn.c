@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.71 2011/11/22 18:01:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.72 2011/12/29 22:03:15 tg Exp $");
 
 extern short subshell_nesting_level;
 extern void yyskiputf8bom(void);
@@ -64,6 +64,7 @@ static struct nesting_state nesting;	/* \n changed to ; */
 
 static bool reject;			/* token(cf) gets symbol again */
 static int symbol;			/* yylex value */
+static int sALIAS = ALIAS;		/* 0 in yyrecursive */
 
 #define REJECT		(reject = true)
 #define ACCEPT		(reject = false)
@@ -227,7 +228,7 @@ nested(int type, int smark, int emark)
 
 	nesting_push(&old_nesting, smark);
 	t = c_list(true);
-	musthave(emark, KEYWORD|ALIAS);
+	musthave(emark, KEYWORD|sALIAS);
 	nesting_pop(&old_nesting);
 	return (block(type, t, NOBLOCK, NOWORDS));
 }
@@ -260,8 +261,8 @@ get_command(int cf)
 	XPinit(args, 16);
 	XPinit(vars, 16);
 
-	syniocf = KEYWORD|ALIAS;
-	switch (c = token(cf|KEYWORD|ALIAS|VARASN)) {
+	syniocf = KEYWORD|sALIAS;
+	switch (c = token(cf|KEYWORD|sALIAS|VARASN)) {
 	default:
 		REJECT;
 		afree(iops, ATEMP);
@@ -273,12 +274,12 @@ get_command(int cf)
 	case LWORD:
 	case REDIR:
 		REJECT;
-		syniocf &= ~(KEYWORD|ALIAS);
+		syniocf &= ~(KEYWORD|sALIAS);
 		t = newtp(TCOM);
 		t->lineno = source->line;
 		while (/* CONSTCOND */ 1) {
 			cf = (t->u.evalflags ? ARRAYVAR : 0) |
-			    (XPsize(args) == 0 ? ALIAS|VARASN : CMDWORD);
+			    (XPsize(args) == 0 ? sALIAS|VARASN : CMDWORD);
 			switch (tpeek(cf)) {
 			case REDIR:
 				while ((iop = synio(cf)) != NULL) {
@@ -442,12 +443,12 @@ get_command(int cf)
 		t = newtp(TIF);
 		t->left = c_list(true);
 		t->right = thenpart();
-		musthave(FI, KEYWORD|ALIAS);
+		musthave(FI, KEYWORD|sALIAS);
 		nesting_pop(&old_nesting);
 		break;
 
 	case BANG:
-		syniocf &= ~(KEYWORD|ALIAS);
+		syniocf &= ~(KEYWORD|sALIAS);
 		t = pipeline(0);
 		if (t == NULL)
 			syntaxerr(NULL);
@@ -455,7 +456,7 @@ get_command(int cf)
 		break;
 
 	case TIME:
-		syniocf &= ~(KEYWORD|ALIAS);
+		syniocf &= ~(KEYWORD|sALIAS);
 		t = pipeline(0);
 		if (t) {
 			t->str = alloc(2, ATEMP);
@@ -506,7 +507,7 @@ dogroup(void)
 	int c;
 	struct op *list;
 
-	c = token(CONTIN|KEYWORD|ALIAS);
+	c = token(CONTIN|KEYWORD|sALIAS);
 	/*
 	 * A {...} can be used instead of do...done for for/select loops
 	 * but not for while/until loops - we don't need to check if it
@@ -520,7 +521,7 @@ dogroup(void)
 	else
 		syntaxerr(NULL);
 	list = c_list(true);
-	musthave(c, KEYWORD|ALIAS);
+	musthave(c, KEYWORD|sALIAS);
 	return (list);
 }
 
@@ -529,7 +530,7 @@ thenpart(void)
 {
 	struct op *t;
 
-	musthave(THEN, KEYWORD|ALIAS);
+	musthave(THEN, KEYWORD|sALIAS);
 	t = newtp(0);
 	t->left = c_list(true);
 	if (t->left == NULL)
@@ -543,7 +544,7 @@ elsepart(void)
 {
 	struct op *t;
 
-	switch (token(KEYWORD|ALIAS|VARASN)) {
+	switch (token(KEYWORD|sALIAS|VARASN)) {
 	case ELSE:
 		if ((t = c_list(true)) == NULL)
 			syntaxerr(NULL);
@@ -567,7 +568,7 @@ caselist(void)
 	struct op *t, *tl;
 	int c;
 
-	c = token(CONTIN|KEYWORD|ALIAS);
+	c = token(CONTIN|KEYWORD|sALIAS);
 	/* A {...} can be used instead of in...esac for case statements */
 	if (c == IN)
 		c = ESAC;
@@ -584,7 +585,7 @@ caselist(void)
 		else
 			tl->right = tc, tl = tc;
 	}
-	musthave(c, KEYWORD|ALIAS);
+	musthave(c, KEYWORD|sALIAS);
 	return (t);
 }
 
@@ -613,7 +614,7 @@ casepart(int endtok)
 	/* initialise to default for ;; or omitted */
 	t->u.charflag = ';';
 	/* SUSv4 requires the ;; except in the last casepart */
-	if ((tpeek(CONTIN|KEYWORD|ALIAS)) != endtok)
+	if ((tpeek(CONTIN|KEYWORD|sALIAS)) != endtok)
 		switch (symbol) {
 		default:
 			syntaxerr(NULL);
@@ -659,14 +660,14 @@ function_body(char *name,
 	 * only accepts an open-brace.
 	 */
 	if (ksh_func) {
-		if (tpeek(CONTIN|KEYWORD|ALIAS) == '(' /*)*/) {
+		if (tpeek(CONTIN|KEYWORD|sALIAS) == '(' /*)*/) {
 			/* function foo () { */
 			ACCEPT;
 			musthave(')', 0);
 			/* degrade to POSIX function */
 			ksh_func = false;
 		}
-		musthave('{' /*}*/, CONTIN|KEYWORD|ALIAS);
+		musthave('{' /*}*/, CONTIN|KEYWORD|sALIAS);
 		REJECT;
 	}
 
@@ -711,7 +712,7 @@ wordlist(void)
 
 	XPinit(args, 16);
 	/* POSIX does not do alias expansion here... */
-	if ((c = token(CONTIN|KEYWORD|ALIAS)) != IN) {
+	if ((c = token(CONTIN|KEYWORD|sALIAS)) != IN) {
 		if (c != ';')
 			/* non-POSIX, but AT&T ksh accepts a ; here */
 			REJECT;
@@ -1107,7 +1108,7 @@ yyrecursive(void)
 	struct op *t;
 	char *cp;
 	bool old_reject;
-	int old_symbol;
+	int old_symbol, old_salias;
 	struct ioword **old_herep;
 
 	/* tell the lexer to accept a closing parenthesis as EOD */
@@ -1118,8 +1119,11 @@ yyrecursive(void)
 	old_symbol = symbol;
 	ACCEPT;
 	old_herep = herep;
+	old_salias = sALIAS;
+	sALIAS = 0;
 	/* we use TPAREN as a helper container here */
 	t = nested(TPAREN, '(', ')');
+	sALIAS = old_salias;
 	herep = old_herep;
 	reject = old_reject;
 	symbol = old_symbol;
