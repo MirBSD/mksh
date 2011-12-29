@@ -151,7 +151,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.512 2011/12/16 20:03:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.513 2011/12/29 22:54:21 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2011/12/16"
 
@@ -1748,7 +1748,7 @@ int has_globbing(const char *, const char *);
 int xstrcmp(const void *, const void *);
 void ksh_getopt_reset(Getopt *, int);
 int ksh_getopt(const char **, Getopt *, const char *);
-void print_value_quoted(const char *);
+void print_value_quoted(struct shf *, const char *);
 char *quote_value(const char *);
 void print_columns(struct shf *, int,
     char *(*)(char *, size_t, int, const void *),
@@ -1818,6 +1818,7 @@ void tfree(struct op *, Area *);
 void dumpchar(struct shf *, int);
 void dumptree(struct shf *, struct op *);
 void dumpwdvar(struct shf *, const char *);
+void dumpioact(struct shf *shf, struct op *t);
 void vistree(char *, size_t, struct op *)
     MKSH_A_BOUNDED(__string__, 1, 2);
 void fpFUNCTf(struct shf *, int, bool, const char *, struct op *);

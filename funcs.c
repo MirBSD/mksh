@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.205 2011/12/16 20:03:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.206 2011/12/29 22:54:19 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -547,7 +547,7 @@ c_whence(const char **wp)
 				    Talias);
 			if (!iam_whence && !vflag)
 				shprintf("%s %s=", Talias, id);
-			print_value_quoted(tp->val.s);
+			print_value_quoted(shl_stdout, tp->val.s);
 			break;
 		case CFUNC:
 			if (vflag) {
@@ -921,7 +921,7 @@ c_typeset(const char **wp)
 							    INTEGER)
 								shf_puts(s, shl_stdout);
 							else
-								print_value_quoted(s);
+								print_value_quoted(shl_stdout, s);
 						}
 						shf_putc('\n', shl_stdout);
 						if (vp->flag & ARRAY)
@@ -953,7 +953,7 @@ c_typeset(const char **wp)
 							    INTEGER)
 								shf_puts(s, shl_stdout);
 							else
-								print_value_quoted(s);
+								print_value_quoted(shl_stdout, s);
 						}
 						shf_putc('\n', shl_stdout);
 					}
@@ -1053,7 +1053,7 @@ c_alias(const char **wp)
 				shf_puts(ap->name, shl_stdout);
 				if (prefix != '+') {
 					shf_putc('=', shl_stdout);
-					print_value_quoted(ap->val.s);
+					print_value_quoted(shl_stdout, ap->val.s);
 				}
 				shf_putc('\n', shl_stdout);
 			}
@@ -1078,7 +1078,7 @@ c_alias(const char **wp)
 				shf_puts(ap->name, shl_stdout);
 				if (prefix != '+') {
 					shf_putc('=', shl_stdout);
-					print_value_quoted(ap->val.s);
+					print_value_quoted(shl_stdout, ap->val.s);
 				}
 				shf_putc('\n', shl_stdout);
 			} else {
@@ -2225,7 +2225,7 @@ c_trap(const char **wp)
 		for (p = sigtraps, i = NSIG+1; --i >= 0; p++)
 			if (p->trap != NULL) {
 				shf_puts("trap -- ", shl_stdout);
-				print_value_quoted(p->trap);
+				print_value_quoted(shl_stdout, p->trap);
 				shprintf(" %s\n", p->name);
 			}
 		return (0);

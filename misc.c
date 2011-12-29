@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.179 2011/12/03 00:03:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.180 2011/12/29 22:54:20 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1030,7 +1030,7 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
  * No trailing newline is printed.
  */
 void
-print_value_quoted(const char *s)
+print_value_quoted(struct shf *shf, const char *s)
 {
 	unsigned char c;
 	const unsigned char *p = (const unsigned char *)s;
@@ -1047,7 +1047,7 @@ print_value_quoted(const char *s)
 	if (c == 0) {
 		if (inquote) {
 			/* nope, use the shortcut */
-			shf_puts(s, shl_stdout);
+			shf_puts(s, shf);
 			return;
 		}
 
@@ -1060,29 +1060,29 @@ print_value_quoted(const char *s)
 				 * this way than when simply substituting
 				 */
 				if (inquote) {
-					shf_putc('\'', shl_stdout);
+					shf_putc('\'', shf);
 					inquote = false;
 				}
-				shf_putc('\\', shl_stdout);
+				shf_putc('\\', shf);
 			} else if (!inquote) {
-				shf_putc('\'', shl_stdout);
+				shf_putc('\'', shf);
 				inquote = true;
 			}
-			shf_putc(c, shl_stdout);
+			shf_putc(c, shf);
 		}
 	} else {
 		unsigned int wc;
 		size_t n;
 
 		/* use $'...' quote format */
-		shf_putc('$', shl_stdout);
-		shf_putc('\'', shl_stdout);
+		shf_putc('$', shf);
+		shf_putc('\'', shf);
 		while ((c = *p) != 0) {
 			if (c >= 0xC2) {
 				n = utf_mbtowc(&wc, (const char *)p);
 				if (n != (size_t)-1) {
 					p += n;
-					shf_fprintf(shl_stdout, "\\u%04X", wc);
+					shf_fprintf(shf, "\\u%04X", wc);
 					continue;
 				}
 			}
@@ -1122,7 +1122,7 @@ print_value_quoted(const char *s)
 				  c = 'E';
 				/* FALLTHROUGH */
 			case '\\':
-				shf_putc('\\', shl_stdout);
+				shf_putc('\\', shf);
 
 				if (0)
 					/* FALLTHROUGH */
@@ -1130,18 +1130,18 @@ print_value_quoted(const char *s)
 				  if (c < 32 || c > 0x7E) {
 					/* FALLTHROUGH */
 			case '\'':
-					shf_fprintf(shl_stdout, "\\x%02X", c);
+					shf_fprintf(shf, "\\x%02X", c);
 					break;
 				}
 
-				shf_putc(c, shl_stdout);
+				shf_putc(c, shf);
 				break;
 			}
 		}
 		inquote = true;
 	}
 	if (inquote)
-		shf_putc('\'', shl_stdout);
+		shf_putc('\'', shf);
 }
 
 /*

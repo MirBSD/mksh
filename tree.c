@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.52 2011/10/25 22:36:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.53 2011/12/29 22:54:22 tg Exp $");
 
 #define INDENT	8
 
@@ -830,6 +830,65 @@ dumpwdvar(struct shf *shf, const char *wp)
 }
 
 void
+dumpioact(struct shf *shf, struct op *t)
+{
+	struct ioword **ioact, *iop;
+
+	if ((ioact = t->ioact) == NULL)
+		return;
+
+	shf_puts("{IOACT", shf);
+	while ((iop = *ioact++) != NULL) {
+		int type = iop->flag & IOTYPE;
+#define DT(x) case x: shf_puts(#x, shf); break;
+#define DB(x) if (iop->flag & x) shf_puts("|" #x, shf);
+
+		shf_putc(';', shf);
+		switch (type) {
+		DT(IOREAD)
+		DT(IOWRITE)
+		DT(IORDWR)
+		DT(IOHERE)
+		DT(IOCAT)
+		DT(IODUP)
+		default:
+			shf_fprintf(shf, "unk%d", type);
+		}
+		DB(IOEVAL)
+		DB(IOSKIP)
+		DB(IOCLOB)
+		DB(IORDUP)
+		DB(IONAMEXP)
+		DB(IOBASH)
+		DB(IOHERESTR)
+		DB(IONDELIM)
+		shf_fprintf(shf, ",unit=%d", iop->unit);
+		if (iop->delim) {
+			shf_puts(",delim<", shf);
+			dumpwdvar(shf, iop->delim);
+			shf_putc('>', shf);
+		}
+		if (iop->name) {
+			if (iop->flag & IONAMEXP) {
+				shf_puts(",name=", shf);
+				print_value_quoted(shf, iop->name);
+			} else {
+				shf_puts(",name<", shf);
+				dumpwdvar(shf, iop->name);
+				shf_putc('>', shf);
+			}
+		}
+		if (iop->heredoc) {
+			shf_puts(",heredoc=", shf);
+			print_value_quoted(shf, iop->heredoc);
+		}
+#undef DT
+#undef DB
+	}
+	shf_putc('}', shf);
+}
+
+void
 dumptree(struct shf *shf, struct op *t)
 {
 	int i;
@@ -845,6 +904,7 @@ dumptree(struct shf *shf, struct op *t)
 		name = "(null)";
 		goto out;
 	}
+	dumpioact(shf, t);
 	switch (t->type) {
 #define OPEN(x) case x: name = #x; shf_puts(" {" #x ":", shf); /*}*/
 
@@ -948,6 +1008,7 @@ dumptree(struct shf *shf, struct op *t)
 				++w;
 			}
 			shf_putc(')', shf);
+			dumpioact(shf, t);
 			shf_putc('\n', shf);
 			dumptree(shf, t1->left);
 			shf_fprintf(shf, " ;%c/%d]", t1->u.charflag, i++);
@@ -974,6 +1035,7 @@ dumptree(struct shf *shf, struct op *t)
 		shf_putc('\n', shf);
 		dumptree(shf, t->left);
 		t = t->right;
+		dumpioact(shf, t);
 		if (t->left != NULL) {
 			shf_puts(" /TTHEN:\n", shf);
 			dumptree(shf, t->left);
@@ -981,6 +1043,7 @@ dumptree(struct shf *shf, struct op *t)
 		if (t->right && t->right->type == TELIF) {
 			shf_puts(" /TELIF:", shf);
 			t = t->right;
+			dumpioact(shf, t);
 			goto dumpif;
 		}
 		if (t->right != NULL) {
