@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.138 2011/12/16 20:03:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.139 2011/12/30 21:00:32 tg Exp $");
 
 /*-
  * Variables
@@ -1220,7 +1220,7 @@ setspec(struct tbl *vp)
 		getopts_reset((int)i);
 		break;
 	case V_HISTSIZE:
-		sethistsize((int)i);
+		sethistsize(i);
 		break;
 	case V_COLUMNS:
 		if (i >= MIN_COLS)

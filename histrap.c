@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.114 2011/12/30 20:35:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.115 2011/12/30 21:00:30 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -35,7 +35,7 @@ static struct sigaction Sigact_ign;
 static int hist_count_lines(unsigned char *, int);
 static int hist_shrink(unsigned char *, int);
 static unsigned char *hist_skip_back(unsigned char *,int *,int);
-static void histload(Source *, unsigned char *, int);
+static void histload(Source *, unsigned char *, size_t);
 static void histinsert(Source *, int, const char *);
 static void writehistfile(int, char *);
 static int sprinkle(int);
@@ -539,7 +539,7 @@ findhist(int start, int fwd, const char *str, int anchored)
  * set history; this means reallocating the dataspace
  */
 void
-sethistsize(int n)
+sethistsize(mksh_ari_t n)
 {
 	if (n > 0 && n != histsize) {
 		int cursize = histptr - history;
@@ -908,7 +908,7 @@ hist_skip_back(unsigned char *base, int *bytes, int no)
  * load the history structure from the stored data
  */
 static void
-histload(Source *s, unsigned char *base, int bytes)
+histload(Source *s, unsigned char *base, size_t bytes)
 {
 	State state;
 	int lno = 0;

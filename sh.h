@@ -151,7 +151,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.514 2011/12/29 23:36:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.515 2011/12/30 21:00:30 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2011/12/29"
 
@@ -1450,9 +1450,9 @@ EXTERN char ident[IDENT+1];
 
 #define HISTORYSIZE	500	/* size of saved history */
 
-EXTERN char **history;	/* saved commands */
-EXTERN char **histptr;	/* last history item */
-EXTERN int histsize;	/* history size */
+EXTERN char **history;		/* saved commands */
+EXTERN char **histptr;		/* last history item */
+EXTERN mksh_ari_t histsize;	/* history size */
 
 /* user and system time of last j_waitjed job */
 EXTERN struct timeval j_usrtime, j_systime;
@@ -1627,7 +1627,7 @@ void histsave(int *, const char *, bool, bool);
 bool histsync(void);
 #endif
 int c_fc(const char **);
-void sethistsize(int);
+void sethistsize(mksh_ari_t);
 #if HAVE_PERSISTENT_HISTORY
 void sethistfile(const char *);
 #endif
