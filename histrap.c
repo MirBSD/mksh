@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.113 2011/12/10 14:12:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.114 2011/12/30 20:35:29 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -71,7 +71,7 @@ static Source *hist_source;
 
 /* current history file: name, fd, size */
 static char *hname;
-static int histfd;
+static int histfd = -1;
 static size_t hsize;
 #endif
 
@@ -576,10 +576,10 @@ sethistfile(const char *name)
 	/*
 	 * it's a new name - possibly
 	 */
-	if (histfd) {
+	if (histfd != -1) {
 		/* yes the file is open */
 		(void)close(histfd);
-		histfd = 0;
+		histfd = -1;
 		hsize = 0;
 		afree(hname, APERM);
 		hname = NULL;
@@ -617,7 +617,7 @@ histsync(void)
 {
 	bool changed = false;
 
-	if (histfd) {
+	if (histfd != -1) {
 		int lno = hist_source->line;
 
 		hist_source->line++;
@@ -656,7 +656,7 @@ histsave(int *lnp, const char *cmd, bool dowrite MKSH_A_UNUSED, bool ignoredups)
 	++*lnp;
 
 #if HAVE_PERSISTENT_HISTORY
-	if (histfd && dowrite)
+	if (dowrite && histfd != -1)
 		writehistfile(*lnp, c);
 #endif
 
@@ -778,11 +778,11 @@ hist_init(Source *s)
 		histload(hist_source, base+2, hsize-2);
 		munmap(caddr_cast(base), hsize);
 	}
-	(void)flock(histfd, LOCK_UN);
 	hfsize = lseek(histfd, (off_t)0, SEEK_END);
 	hsize = 1024 * 1048576;
 	if (hfsize < (off_t)hsize)
 		hsize = hfsize;
+	(void)flock(histfd, LOCK_UN);
 #endif
 }
 
@@ -1045,7 +1045,7 @@ hist_finish(void)
 {
 	(void)flock(histfd, LOCK_UN);
 	(void)close(histfd);
-	histfd = 0;
+	histfd = -1;
 }
 
 /*
