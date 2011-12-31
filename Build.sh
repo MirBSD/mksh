@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.500 2011/12/31 00:31:25 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.501 2011/12/31 02:04:16 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -147,7 +147,7 @@ ac_testinit() {
 }
 
 # pipe .c | ac_test[n] [!] label [!] checkif[!]0 [setlabelifcheckis[!]0] useroutput
-ac_testn() {
+ac_testnnd() {
 	if test x"$1" = x"!"; then
 		fr=1
 		shift
@@ -173,6 +173,9 @@ ac_testn() {
 		test $ct = sunpro && vscan='-e ignored -e turned.off'
 	fi
 	test -n "$vscan" && grep $vscan vv.out >/dev/null 2>&1 && fv=$fr
+}
+ac_testn() {
+	ac_testnnd "$@"
 	rmf conftest.c conftest.o ${tcfn}* vv.out
 	ac_testdone
 }
@@ -1171,7 +1174,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.500 2011/12/31 00:31:25 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.501 2011/12/31 02:04:16 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1534,6 +1537,61 @@ cta(ptr_fits_in_long, sizeof(ptrdiff_t) <= sizeof(long));
 EOF
 CFLAGS=$save_CFLAGS
 eval test 1 = \$HAVE_COMPILE_TIME_ASSERTS_$$ || exit 1
+
+#
+# runtime checks
+# once this is more than one, check if we can do runtime
+# checks (not cross-compiling) first to save on warnings
+#
+$e "${bi}run-time checks follow$ao, please ignore any weird errors"
+
+ac_testnnd silent_idivwrapv '' '(run-time) whether signed integer division overflows wrap silently' <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	#ifdef SIGFPE
+	static void fpe_catcher(int) MKSH_A_NORETURN;
+	#endif
+	int main(int ac, char **av) {
+		mksh_ari_t o1, o2, r1, r2;
+
+	#ifdef SIGFPE
+		signal(SIGFPE, fpe_catcher);
+	#endif
+		o1 = ((mksh_ari_t)1 << 31);
+		o2 = -ac;
+		r1 = o1 / o2;
+		r2 = o1 % o2;
+		if (r1 == o1 && r2 == 0) {
+			printf("si");
+			return (0);
+		}
+		printf("no %d %d %d %d %s", o1, o2, r1, r2, av[0]);
+		return (1);
+	}
+	#ifdef SIGFPE
+	static const char fpe_msg[] = "no, got SIGFPE, what were they smoking?";
+	static void fpe_catcher(int sig MKSH_A_UNUSED) {
+		write(1, fpe_msg, sizeof(fpe_msg) - 1);
+		_exit(2);
+	}
+	#endif
+EOF
+if test $fv = 0; then
+	echo "| hrm, compiling this failed, but we will just failback"
+else
+	echo "| running test programme; this will fail if cross-compiling"
+	echo "| in which case we will gracefully degrade to the default"
+	./$tcfn >vv.out 2>&1
+	rv=$?
+	echo "| result: `cat vv.out`"
+	fv=0
+	test $rv = 0 && test x"`cat vv.out`" = x"si" && fv=1
+fi
+rmf conftest.c conftest.o ${tcfn}* vv.out
+ac_testdone
+ac_cppflags
+
+$e "${bi}end of run-time checks$ao"
 
 #
 # Compiler: Praeprocessor (only if needed)

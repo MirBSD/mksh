@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.91 2011/12/08 22:19:16 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.92 2011/12/31 02:04:17 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -46,6 +46,8 @@ CPPFLAGS+=	-DMKSH_ASSUME_UTF8 -DMKSH_DISABLE_DEPRECATED \
 		-DHAVE_STRCASESTR=1 -DHAVE_STRLCPY=1 -DHAVE_FLOCK_DECL=1 \
 		-DHAVE_REVOKE_DECL=1 -DHAVE_SYS_SIGLIST_DECL=1 \
 		-DHAVE_PERSISTENT_HISTORY=1
+# probably differs between i386 and sparc
+CPPFLAGS+=	-DHAVE_SILENT_IDIVWRAPV=0
 COPTS+=		-std=gnu99 -Wall
 .endif
 
