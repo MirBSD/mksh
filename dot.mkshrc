@@ -1,0 +1,372 @@
+# $Id$
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.69 2011/12/31 01:07:19 tg Exp $
+#-
+# Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011
+#	Thorsten Glaser <tg@mirbsd.org>
+#
+# Provided that these terms and disclaimer and all copyright notices
+# are retained or reproduced in an accompanying document, permission
+# is granted to deal in this work without restriction, including un-
+# limited rights to use, publicly perform, distribute, sell, modify,
+# merge, give away, or sublicence.
+#
+# This work is provided "AS IS" and WITHOUT WARRANTY of any kind, to
+# the utmost extent permitted by applicable law, neither express nor
+# implied; without malicious intent or gross negligence. In no event
+# may a licensor, author or contributor be held liable for indirect,
+# direct, other damage, loss, or other issues arising in any way out
+# of dealing in the work, even if advised of the possibility of such
+# damage or existence of a defect, except proven that it results out
+# of said person's immediate fault when using the work as intended.
+#-
+# ${ENV:-~/.mkshrc}: mksh initialisation file for interactive shells
+
+: ${EDITOR:=/bin/ed} ${TERM:=vt100} ${HOSTNAME:=$(ulimit -c 0;hostname -s 2>&-)}
+[[ $HOSTNAME = @(localhost|*([	 ])) ]] && HOSTNAME=$(ulimit -c 0;hostname 2>&-)
+: ${HOSTNAME:=nil}; if (( USER_ID )); then PS1='$'; else PS1='#'; fi
+function precmd {
+	local e=$?
+
+	(( e )) && print -n "$e|"
+}
+PS1=$'\001\r''$(precmd)${USER:=$(ulimit -c 0; id -un 2>/dev/null || echo \?
+	)}@${HOSTNAME%%.*}:$(local d=${PWD:-?} p=~; [[ $p = ?(*/) ]] || \
+	d=${d/#$p/~}; local m=${%d} n p=...; (( m > 0 )) || m=${#d}
+	(( m > (n = (COLUMNS/3 < 7 ? 7 : COLUMNS/3)) )) && d=${d:(-n)} || \
+	p=; print -nr -- "$p$d") '"$PS1 "
+: ${MKSH:=$(whence -p mksh)}; export EDITOR HOSTNAME MKSH TERM USER
+alias ls=ls
+unalias ls
+alias l='ls -F'
+alias la='l -a'
+alias ll='l -l'
+alias lo='l -alo'
+whence -p rot13 >&- || alias rot13='tr \
+    abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \
+    nopqrstuvwxyzabcdefghijklmNOPQRSTUVWXYZABCDEFGHIJKLM'
+whence -p hd >&- || function hd {
+	hexdump -e '"%08.8_ax  " 8/1 "%02X " " - " 8/1 "%02X "' \
+	    -e '"  |" "%_p"' -e '"|\n"' "$@"
+}
+
+# Berkeley C shell compatible dirs, popd, and pushd functions
+# Z shell compatible chpwd() hook, used to update DIRSTACK[0]
+DIRSTACKBASE=$(realpath ~/. 2>&- || print -nr -- "$HOME")
+set -A DIRSTACK
+function chpwd {
+	DIRSTACK[0]=$(realpath . 2>&- || print -r -- "$PWD")
+	[[ $DIRSTACKBASE = ?(*/) ]] || \
+	    DIRSTACK[0]=${DIRSTACK[0]/#$DIRSTACKBASE/~}
+	:
+}
+chpwd .
+function cd {
+	builtin cd "$@"
+	chpwd "$@"
+}
+function cd_csh {
+	local d t=${1/#~/$DIRSTACKBASE}
+
+	if ! d=$(builtin cd "$t" 2>&1); then
+		print -u2 "${1}: ${d##*$t - }."
+		return 1
+	fi
+	cd "$t"
+}
+function dirs {
+	local d dwidth
+	local -i fl=0 fv=0 fn=0 cpos=0
+
+	while getopts ":lvn" d; do
+		case $d {
+		(l)	fl=1 ;;
+		(v)	fv=1 ;;
+		(n)	fn=1 ;;
+		(*)	print -u2 'Usage: dirs [-lvn].'
+			return 1 ;;
+		}
+	done
+	shift $((OPTIND - 1))
+	if (( $# > 0 )); then
+		print -u2 'Usage: dirs [-lvn].'
+		return 1
+	fi
+	if (( fv )); then
+		fv=0
+		while (( fv < ${#DIRSTACK[*]} )); do
+			d=${DIRSTACK[fv]}
+			(( fl )) && d=${d/#~/$DIRSTACKBASE}
+			print -r -- "$fv	$d"
+			let fv++
+		done
+	else
+		fv=0
+		while (( fv < ${#DIRSTACK[*]} )); do
+			d=${DIRSTACK[fv]}
+			(( fl )) && d=${d/#~/$DIRSTACKBASE}
+			(( dwidth = (${%d} > 0 ? ${%d} : ${#d}) ))
+			if (( fn && (cpos += dwidth + 1) >= 79 && \
+			    dwidth < 80 )); then
+				print
+				(( cpos = dwidth + 1 ))
+			fi
+			print -nr -- "$d "
+			let fv++
+		done
+		print
+	fi
+	return 0
+}
+function popd {
+	local d fa
+	local -i n=1
+
+	while getopts ":0123456789lvn" d; do
+		case $d {
+		(l|v|n)	fa+=" -$d" ;;
+		(+*)	n=2
+			break ;;
+		(*)	print -u2 'Usage: popd [-lvn] [+<n>].'
+			return 1 ;;
+		}
+	done
+	shift $((OPTIND - n))
+	n=0
+	if (( $# > 1 )); then
+		print -u2 popd: Too many arguments.
+		return 1
+	elif [[ $1 = ++([0-9]) && $1 != +0 ]]; then
+		if (( (n = ${1#+}) >= ${#DIRSTACK[*]} )); then
+			print -u2 popd: Directory stack not that deep.
+			return 1
+		fi
+	elif [[ -n $1 ]]; then
+		print -u2 popd: Bad directory.
+		return 1
+	fi
+	if (( ${#DIRSTACK[*]} < 2 )); then
+		print -u2 popd: Directory stack empty.
+		return 1
+	fi
+	unset DIRSTACK[n]
+	set -A DIRSTACK -- "${DIRSTACK[@]}"
+	cd_csh "${DIRSTACK[0]}" || return 1
+	dirs $fa
+}
+function pushd {
+	local d fa
+	local -i n=1
+
+	while getopts ":0123456789lvn" d; do
+		case $d {
+		(l|v|n)	fa+=" -$d" ;;
+		(+*)	n=2
+			break ;;
+		(*)	print -u2 'Usage: pushd [-lvn] [<dir>|+<n>].'
+			return 1 ;;
+		}
+	done
+	shift $((OPTIND - n))
+	if (( $# == 0 )); then
+		if (( ${#DIRSTACK[*]} < 2 )); then
+			print -u2 pushd: No other directory.
+			return 1
+		fi
+		d=${DIRSTACK[1]}
+		DIRSTACK[1]=${DIRSTACK[0]}
+		cd_csh "$d" || return 1
+	elif (( $# > 1 )); then
+		print -u2 pushd: Too many arguments.
+		return 1
+	elif [[ $1 = ++([0-9]) && $1 != +0 ]]; then
+		if (( (n = ${1#+}) >= ${#DIRSTACK[*]} )); then
+			print -u2 pushd: Directory stack not that deep.
+			return 1
+		fi
+		while (( n-- )); do
+			d=${DIRSTACK[0]}
+			unset DIRSTACK[0]
+			set -A DIRSTACK -- "${DIRSTACK[@]}" "$d"
+		done
+		cd_csh "${DIRSTACK[0]}" || return 1
+	else
+		set -A DIRSTACK -- placeholder "${DIRSTACK[@]}"
+		cd_csh "$1" || return 1
+	fi
+	dirs $fa
+}
+
+# pager (not control character safe)
+function smores {
+	local dummy line llen curlin=0
+
+	cat "$@" | while IFS= read -r line; do
+		llen=${%line}
+		(( llen == -1 )) && llen=${#line}
+		(( llen = llen ? (llen + COLUMNS - 1) / COLUMNS : 1 ))
+		if (( (curlin += llen) >= LINES )); then
+			print -n -- '\033[7m--more--\033[0m'
+			read -u1 dummy
+			[[ $dummy = [Qq]* ]] && return 0
+			curlin=$llen
+		fi
+		print -r -- "$line"
+	done
+}
+
+# base64 encoder and decoder, RFC compliant, NUL safe
+function Lb64decode {
+	[[ -o utf8-mode ]]; local u=$?
+	set +U
+	local c s="$*" t=
+	[[ -n $s ]] || { s=$(cat;print x); s=${s%x}; }
+	local -i i=0 j=0 n=${#s} p=0 v x
+	local -i16 o
+
+	while (( i < n )); do
+		c=${s:(i++):1}
+		case $c {
+		(=)	break ;;
+		([A-Z])	(( v = 1#$c - 65 )) ;;
+		([a-z])	(( v = 1#$c - 71 )) ;;
+		([0-9])	(( v = 1#$c + 4 )) ;;
+		(+)	v=62 ;;
+		(/)	v=63 ;;
+		(*)	continue ;;
+		}
+		(( x = (x << 6) | v ))
+		case $((p++)) {
+		(0)	continue ;;
+		(1)	(( o = (x >> 4) & 255 )) ;;
+		(2)	(( o = (x >> 2) & 255 )) ;;
+		(3)	(( o = x & 255 ))
+			p=0
+			;;
+		}
+		t+=\\x${o#16#}
+		(( ++j & 4095 )) && continue
+		print -n $t
+		t=
+	done
+	print -n $t
+	(( u )) || set -U
+}
+
+set -A Lb64encode_code -- A B C D E F G H I J K L M N O P Q R S T U V W X Y Z \
+    a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9 + /
+function Lb64encode {
+	[[ -o utf8-mode ]]; local u=$?
+	set +U
+	local c s t
+	if (( $# )); then
+		read -raN-1 s <<<"$*"
+		unset s[${#s[*]}-1]
+	else
+		read -raN-1 s
+	fi
+	local -i i=0 n=${#s[*]} j v
+
+	while (( i < n )); do
+		(( v = s[i++] << 16 ))
+		(( j = i < n ? s[i++] : 0 ))
+		(( v |= j << 8 ))
+		(( j = i < n ? s[i++] : 0 ))
+		(( v |= j ))
+		t+=${Lb64encode_code[v >> 18]}${Lb64encode_code[v >> 12 & 63]}
+		c=${Lb64encode_code[v >> 6 & 63]}
+		if (( i <= n )); then
+			t+=$c${Lb64encode_code[v & 63]}
+		elif (( i == n + 1 )); then
+			t+=$c=
+		else
+			t+===
+		fi
+		if (( ${#t} == 76 || i >= n )); then
+			print $t
+			t=
+		fi
+	done
+	(( u )) || set -U
+}
+
+# mksh NUL counting, never zero
+typeset -Z11 -Uui16 Lnzathash_v
+function Lnzathash_add {
+	[[ -o utf8-mode ]]; local u=$?
+	set +U
+	local s
+	if (( $# )); then
+		read -raN-1 s <<<"$*"
+		unset s[${#s[*]}-1]
+	else
+		read -raN-1 s
+	fi
+	local -i i=0 n=${#s[*]}
+
+	while (( i < n )); do
+		((# Lnzathash_v = (Lnzathash_v + s[i++] + 1) * 1025 ))
+		((# Lnzathash_v ^= Lnzathash_v >> 6 ))
+	done
+
+	(( u )) || set -U
+}
+function Lnzaathash_end {
+	((# Lnzathash_v *= 1025 ))
+	((# Lnzathash_v ^= Lnzathash_v >> 6 ))
+	((# Lnzathash_v += Lnzathash_v << 3 ))
+	((# Lnzathash_v = (Lnzathash_v ^
+	    (Lnzathash_v >> 11)) * 32769 ))
+	print ${Lnzathash_v#16#}
+}
+function Lnzaathash {
+	Lnzathash_v=0
+	Lnzathash_add "$@"
+	Lnzaathash_end
+}
+function Lnzathash {
+	Lnzathash_v=0
+	Lnzathash_add "$@"
+	Lnzathash_end
+}
+function Lnzathash_end {
+	if (( Lnzathash_v )); then
+		Lnzaathash_end
+	else
+		Lnzathash_v=1
+		print ${Lnzathash_v#16#}
+	fi
+}
+
+# strip comments (and leading/trailing whitespace if IFS is set) from
+# any file(s) given as argument, or stdin if none, and spew to stdout
+function Lstripcom {
+	cat "$@" | { set -o noglob; while read _line; do
+		_line=${_line%%#*}
+		[[ -n $_line ]] && print -r -- $_line
+	done; }
+}
+
+# give MidnightBSD's laffer1 a bit of csh feeling
+function setenv {
+	eval export $1'="$2"'
+}
+
+: place customisations below this line
+
+for p in ~/.etc/bin ~/bin; do
+	[[ -d $p/. ]] || continue
+	[[ :$PATH: = *:$p:* ]] || PATH=$p:$PATH
+done
+
+export SHELL=$MKSH MANWIDTH=80 LESSHISTFILE=-
+alias cls='print -n \\033c'
+
+#unset LANGUAGE LC_ADDRESS LC_ALL LC_COLLATE LC_IDENTIFICATION LC_MONETARY \
+#    LC_NAME LC_NUMERIC LC_TELEPHONE LC_TIME
+#p=en_GB.UTF-8
+#set -U
+#export LANG=C LC_CTYPE=$p LC_MEASUREMENT=$p LC_MESSAGES=$p LC_PAPER=$p
+
+unset p
+
+: place customisations above this line
