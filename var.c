@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.130.2.6 2011/12/11 18:18:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.130.2.7 2011/12/31 02:25:36 tg Exp $");
 
 /*-
  * Variables
@@ -709,7 +709,6 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 	if (val == var)
 		return (NULL);
 	mkssert(var != NULL);
-	mkssert(*var != 0);
 	if (*val == '[') {
 		if (set_refflag != SRF_NOP)
 			errorf("%s: %s", var,
@@ -1220,7 +1219,7 @@ setspec(struct tbl *vp)
 		getopts_reset((int)i);
 		break;
 	case V_HISTSIZE:
-		sethistsize((int)i);
+		sethistsize(i);
 		break;
 	case V_COLUMNS:
 		if (i >= MIN_COLS)

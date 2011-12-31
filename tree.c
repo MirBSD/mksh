@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.52 2011/10/25 22:36:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.52.4.1 2011/12/31 02:25:35 tg Exp $");
 
 #define INDENT	8
 
@@ -133,25 +133,26 @@ ptree(struct op *t, int indent, struct shf *shf)
 #endif
 	case TIF:
 		i = 2;
+		t1 = t;
 		goto process_TIF;
 		do {
-			t = t->right;
+			t1 = t1->right;
 			i = 0;
 			fptreef(shf, indent, "%;");
  process_TIF:
 			/* 5 == strlen("elif ") */
-			fptreef(shf, indent + 5 - i, "elif %T" + i, t->left);
-			t = t->right;
-			if (t->left != NULL) {
+			fptreef(shf, indent + 5 - i, "elif %T" + i, t1->left);
+			t1 = t1->right;
+			if (t1->left != NULL) {
 				fptreef(shf, indent, "%;");
 				fptreef(shf, indent + INDENT, "%s%N%T",
-				    "then", t->left);
+				    "then", t1->left);
 			}
-		} while (t->right && t->right->type == TELIF);
-		if (t->right != NULL) {
+		} while (t1->right && t1->right->type == TELIF);
+		if (t1->right != NULL) {
 			fptreef(shf, indent, "%;");
 			fptreef(shf, indent + INDENT, "%s%N%T",
-			    "else", t->right);
+			    "else", t1->right);
 		}
 		fptreef(shf, indent, "%;fi ");
 		break;

@@ -151,9 +151,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.484.2.11 2011/12/11 18:18:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.484.2.12 2011/12/31 02:25:33 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2011/12/11"
+#define MKSH_VERSION "R40 2011/12/30"
 
 /* arithmetics types */
 typedef int32_t mksh_ari_t;
@@ -162,7 +162,7 @@ typedef uint32_t mksh_uari_t;
 /* boolean type (no <stdbool.h> deliberately) */
 typedef unsigned char mksh_bool;
 #undef bool
-/* false MUST equal 0 */
+/* false MUST equal the same 0 as written by static storage initialisation */
 #undef false
 #undef true
 /* access macros for boolean type */
@@ -1448,11 +1448,9 @@ EXTERN YYSTYPE yylval;		/* result from yylex */
 EXTERN struct ioword *heres[HERES], **herep;
 EXTERN char ident[IDENT+1];
 
-#define HISTORYSIZE	500	/* size of saved history */
-
-EXTERN char **history;	/* saved commands */
-EXTERN char **histptr;	/* last history item */
-EXTERN int histsize;	/* history size */
+EXTERN char **history;		/* saved commands */
+EXTERN char **histptr;		/* last history item */
+EXTERN mksh_ari_t histsize;	/* history size */
 
 /* user and system time of last j_waitjed job */
 EXTERN struct timeval j_usrtime, j_systime;
@@ -1607,12 +1605,14 @@ void histsave(int *, const char *, bool, bool);
 bool histsync(void);
 #endif
 int c_fc(const char **);
-void sethistsize(int);
+void sethistsize(mksh_ari_t);
 #if HAVE_PERSISTENT_HISTORY
 void sethistfile(const char *);
 #endif
+#if !MKSH_S_NOVI
 char **histpos(void);
 int histnum(int);
+#endif
 int findhist(int, int, const char *, int);
 char **hist_get_newest(bool);
 void inittraps(void);
@@ -1798,6 +1798,7 @@ void tfree(struct op *, Area *);
 void dumpchar(struct shf *, int);
 void dumptree(struct shf *, struct op *);
 void dumpwdvar(struct shf *, const char *);
+void dumpioact(struct shf *shf, struct op *t);
 void vistree(char *, size_t, struct op *)
     MKSH_A_BOUNDED(__string__, 1, 2);
 void fpFUNCTf(struct shf *, int, bool, const char *, struct op *);
