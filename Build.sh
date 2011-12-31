@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.8 2011/12/31 02:25:21 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.9 2011/12/31 02:54:13 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -1188,7 +1188,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.484.2.8 2011/12/31 02:25:21 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.484.2.9 2011/12/31 02:54:13 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1584,9 +1584,9 @@ ac_testnnd silent_idivwrapv '' '(run-time) whether signed integer division overf
 	}
 	#ifdef SIGFPE
 	static const char fpe_msg[] = "no, got SIGFPE, what were they smoking?";
+	#define fpe_msglen (sizeof(fpe_msg) - 1)
 	static void fpe_catcher(int sig MKSH_A_UNUSED) {
-		write(1, fpe_msg, sizeof(fpe_msg) - 1);
-		_exit(2);
+		_exit(write(1, fpe_msg, fpe_msglen) == fpe_msglen ? 2 : 3);
 	}
 	#endif
 EOF
