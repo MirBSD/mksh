@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.54 2011/12/29 23:36:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.55 2011/12/31 00:27:27 tg Exp $");
 
 #define INDENT	8
 
@@ -895,7 +895,7 @@ dumptree(struct shf *shf, struct op *t)
 	int i;
 	const char **w, *name;
 	struct op *t1;
-	static int nesting = 0;
+	static int nesting;
 
 	for (i = 0; i < nesting; ++i)
 		shf_putc('\t', shf);

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.506 2011/12/29 23:36:21 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.507 2011/12/31 00:27:23 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -28,7 +28,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2011/12/29
+	@(#)MIRBSD KSH R40 2011/12/30
 description:
 	Check version of shell.
 stdin:

@@ -151,9 +151,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.515 2011/12/30 21:00:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.516 2011/12/31 00:27:25 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2011/12/29"
+#define MKSH_VERSION "R40 2011/12/30"
 
 /* arithmetics types */
 typedef int32_t mksh_ari_t;
@@ -162,7 +162,7 @@ typedef uint32_t mksh_uari_t;
 /* boolean type (no <stdbool.h> deliberately) */
 typedef unsigned char mksh_bool;
 #undef bool
-/* false MUST equal 0 */
+/* false MUST equal the same 0 as written by static storage initialisation */
 #undef false
 #undef true
 /* access macros for boolean type */
@@ -1448,8 +1448,6 @@ EXTERN YYSTYPE yylval;		/* result from yylex */
 EXTERN struct ioword *heres[HERES], **herep;
 EXTERN char ident[IDENT+1];
 
-#define HISTORYSIZE	500	/* size of saved history */
-
 EXTERN char **history;		/* saved commands */
 EXTERN char **histptr;		/* last history item */
 EXTERN mksh_ari_t histsize;	/* history size */
@@ -1631,8 +1629,10 @@ void sethistsize(mksh_ari_t);
 #if HAVE_PERSISTENT_HISTORY
 void sethistfile(const char *);
 #endif
+#if !MKSH_S_NOVI
 char **histpos(void);
 int histnum(int);
+#endif
 int findhist(int, int, const char *, int);
 char **hist_get_newest(bool);
 void inittraps(void);
