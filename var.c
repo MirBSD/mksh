@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.139 2011/12/30 21:00:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.140 2011/12/31 00:47:46 tg Exp $");
 
 /*-
  * Variables
@@ -709,7 +709,6 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 	if (val == var)
 		return (NULL);
 	mkssert(var != NULL);
-	mkssert(*var != 0);
 	if (*val == '[') {
 		if (set_refflag != SRF_NOP)
 			errorf("%s: %s", var,

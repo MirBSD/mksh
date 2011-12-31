@@ -26,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.116 2011/12/31 00:23:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.117 2011/12/31 00:47:45 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -766,7 +766,6 @@ hist_init(Source *s)
 				goto hist_trunc_abort;
 			/* and of course the entries */
 			hp = history;
-			lines = s->line - (histptr - hp);
 			while (hp < histptr) {
 				if (!writehistline(fd,
 				    s->line - (histptr - hp), *hp))
