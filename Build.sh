@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.499 2011/12/18 02:20:09 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.500 2011/12/31 00:31:25 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -672,8 +672,9 @@ bcc)
 clang)
 	# does not work with current "ccc" compiler driver
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -version"
-	# this works, for now
+	# one of these two works, for now
 	vv '|' "${CLANG-clang} -version"
+	vv '|' "${CLANG-clang} --version"
 	# ensure compiler and linker are in sync unless overridden
 	case $CCC_CC:$CCC_LD in
 	:*)	;;
@@ -1170,7 +1171,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.499 2011/12/18 02:20:09 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.500 2011/12/31 00:31:25 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
