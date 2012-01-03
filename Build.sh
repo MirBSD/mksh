@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.506 2012/01/03 16:03:22 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.507 2012/01/03 16:14:39 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -997,7 +997,7 @@ elif test $ct = tendra; then
 	test 1 = $HAVE_CAN_YSYSTEM && CPPFLAGS="-Ysystem $CPPFLAGS"
 	ac_flags 1 extansi -Xa
 elif test $ct = tcc; then
-	ac_flags 1 boundschk -b
+	#broken# ac_flags 1 boundschk -b
 elif test $ct = clang; then
 	i=1
 elif test $ct = nwcc; then
@@ -1262,7 +1262,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.506 2012/01/03 16:03:22 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.507 2012/01/03 16:14:39 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
