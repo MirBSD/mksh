@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.503 2012/01/03 00:58:06 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.504 2012/01/03 01:30:16 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1261,7 +1261,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.503 2012/01/03 00:58:06 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.504 2012/01/03 01:30:16 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1682,15 +1682,19 @@ $e $bi$me: Finished configuration testing, now producing output.$ao
 files=
 objs=
 sp=
+case $tcfn in
+a.exe)	mkshexe=mksh.exe ;;
+*)	mkshexe=mksh ;;
+esac
 case $curdir in
-*\ *)	echo "#!./mksh" >test.sh ;;
-*)	echo "#!$curdir/mksh" >test.sh ;;
+*\ *)	echo "#!./$mkshexe" >test.sh ;;
+*)	echo "#!$curdir/$mkshexe" >test.sh ;;
 esac
 cat >>test.sh <<-EOF
 	LC_ALL=C PATH='$PATH'; export LC_ALL PATH
 	test -n "\$KSH_VERSION" || exit 1
 	set -A check_categories -- $check_categories
-	pflag='$curdir/mksh'
+	pflag='$curdir/$mkshexe'
 	sflag='$srcdir/check.t'
 	usee=0 Pflag=0 uset=0 vflag=0 xflag=0
 	while getopts "C:e:fPp:s:t:v" ch; do case \$ch {
@@ -1785,10 +1789,6 @@ dragonegg|llvm)
 *)
 	lobjs=$objs
 	;;
-esac
-case $tcfn in
-a.exe)	mkshexe=mksh.exe ;;
-*)	mkshexe=mksh ;;
 esac
 echo tcfn=$mkshexe >>Rebuild.sh
 echo "$CC $CFLAGS $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
