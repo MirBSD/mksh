@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.504 2012/01/03 01:30:16 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.505 2012/01/03 01:40:13 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -442,7 +442,7 @@ GNU/kFreeBSD)
 	esac
 	;;
 Haiku)
-	add_cppflags -DMKSH_ASSUME_UTF8
+	add_cppflags -DMKSH_ASSUME_UTF8; HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	;;
 HP-UX)
 	;;
@@ -477,6 +477,7 @@ Minix)
 MirBSD)
 	;;
 MSYS_*)
+	add_cppflags -DMKSH_ASSUME_UTF8=0; HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	# almost same as CYGWIN* (from RT|Chatzilla)
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	# broken on this OE (from ir0nh34d)
@@ -500,7 +501,7 @@ Plan9)
 	add_cppflags -D_LIMITS_EXTENSION
 	add_cppflags -D_BSD_EXTENSION
 	add_cppflags -D_SUSV2_SOURCE
-	add_cppflags -DMKSH_ASSUME_UTF8
+	add_cppflags -DMKSH_ASSUME_UTF8; HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	oswarn=' and will currently not work'
 	add_cppflags -DMKSH_UNEMPLOYED
 	;;
@@ -1261,7 +1262,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.504 2012/01/03 01:30:16 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.505 2012/01/03 01:40:13 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
