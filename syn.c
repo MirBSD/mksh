@@ -1,7 +1,8 @@
 /*	$OpenBSD: syn.c,v 1.28 2008/07/23 16:34:38 jaredy Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+ *		 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.72 2011/12/29 22:03:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.73 2012/01/03 15:32:08 tg Exp $");
 
 extern short subshell_nesting_level;
 extern void yyskiputf8bom(void);
@@ -458,7 +459,7 @@ get_command(int cf)
 	case TIME:
 		syniocf &= ~(KEYWORD|sALIAS);
 		t = pipeline(0);
-		if (t) {
+		if (t && t->type == TCOM) {
 			t->str = alloc(2, ATEMP);
 			/* TF_* flags */
 			t->str[0] = '\0';
