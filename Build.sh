@@ -1,7 +1,8 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.502 2011/12/31 02:54:15 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.503 2012/01/03 00:58:06 tg Exp $'
 #-
-# Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+# Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+#		2011, 2012
 #	Thorsten Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -1162,51 +1163,6 @@ ac_header ulimit.h sys/types.h
 ac_header values.h
 
 #
-# check whether whatever we use for the final link will succeed
-#
-if test $cm = makefile; then
-	: nothing to check
-else
-	HAVE_LINK_WORKS=x
-	ac_testinit link_works '' 'checking if the final link command may succeed'
-	fv=1
-	cat >conftest.c <<-'EOF'
-		#define EXTERN
-		#define MKSH_INCLUDES_ONLY
-		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.502 2011/12/31 02:54:15 tg Exp $");
-		int main(void) { printf("Hello, World!\n"); return (0); }
-EOF
-	case $cm in
-	llvm)
-		v "$CC $CFLAGS $CPPFLAGS $NOWARN -emit-llvm -c conftest.c" || fv=0
-		rmf mksh.s
-		test $fv = 0 || v "llvm-link -o - conftest.o | opt $optflags | llc -o mksh.s" || fv=0
-		test $fv = 0 || v "$CC $CFLAGS $LDFLAGS -o $tcfn mksh.s $LIBS $ccpr"
-		;;
-	dragonegg)
-		v "$CC $CFLAGS $CPPFLAGS $NOWARN -S -flto conftest.c" || fv=0
-		test $fv = 0 || v "mv conftest.s conftest.ll"
-		test $fv = 0 || v "llvm-as conftest.ll" || fv=0
-		rmf mksh.s
-		test $fv = 0 || v "llvm-link -o - conftest.bc | opt $optflags | llc -o mksh.s" || fv=0
-		test $fv = 0 || v "$CC $CFLAGS $LDFLAGS -o $tcfn mksh.s $LIBS $ccpr"
-		;;
-	combine)
-		v "$CC $CFLAGS $CPPFLAGS $LDFLAGS -fwhole-program --combine $NOWARN -o $tcfn conftest.c $LIBS $ccpr"
-		;;
-	lto|normal)
-		cm=normal
-		v "$CC $CFLAGS $CPPFLAGS $NOWARN -c conftest.c" || fv=0
-		test $fv = 0 || v "$CC $CFLAGS $LDFLAGS -o $tcfn conftest.o $LIBS $ccpr"
-		;;
-	esac
-	test -f $tcfn || fv=0
-	ac_testdone
-	test $fv = 1 || exit 1
-fi
-
-#
 # Environment: definitions
 #
 echo '#include <sys/types.h>
@@ -1291,6 +1247,51 @@ fi
 
 test 1 = $HAVE_SIG_T || add_cppflags -Dsig_t=nosig_t
 ac_cppflags SIG_T
+
+#
+# check whether whatever we use for the final link will succeed
+#
+if test $cm = makefile; then
+	: nothing to check
+else
+	HAVE_LINK_WORKS=x
+	ac_testinit link_works '' 'checking if the final link command may succeed'
+	fv=1
+	cat >conftest.c <<-'EOF'
+		#define EXTERN
+		#define MKSH_INCLUDES_ONLY
+		#include "sh.h"
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.503 2012/01/03 00:58:06 tg Exp $");
+		int main(void) { printf("Hello, World!\n"); return (0); }
+EOF
+	case $cm in
+	llvm)
+		v "$CC $CFLAGS $CPPFLAGS $NOWARN -emit-llvm -c conftest.c" || fv=0
+		rmf mksh.s
+		test $fv = 0 || v "llvm-link -o - conftest.o | opt $optflags | llc -o mksh.s" || fv=0
+		test $fv = 0 || v "$CC $CFLAGS $LDFLAGS -o $tcfn mksh.s $LIBS $ccpr"
+		;;
+	dragonegg)
+		v "$CC $CFLAGS $CPPFLAGS $NOWARN -S -flto conftest.c" || fv=0
+		test $fv = 0 || v "mv conftest.s conftest.ll"
+		test $fv = 0 || v "llvm-as conftest.ll" || fv=0
+		rmf mksh.s
+		test $fv = 0 || v "llvm-link -o - conftest.bc | opt $optflags | llc -o mksh.s" || fv=0
+		test $fv = 0 || v "$CC $CFLAGS $LDFLAGS -o $tcfn mksh.s $LIBS $ccpr"
+		;;
+	combine)
+		v "$CC $CFLAGS $CPPFLAGS $LDFLAGS -fwhole-program --combine $NOWARN -o $tcfn conftest.c $LIBS $ccpr"
+		;;
+	lto|normal)
+		cm=normal
+		v "$CC $CFLAGS $CPPFLAGS $NOWARN -c conftest.c" || fv=0
+		test $fv = 0 || v "$CC $CFLAGS $LDFLAGS -o $tcfn conftest.o $LIBS $ccpr"
+		;;
+	esac
+	test -f $tcfn || fv=0
+	ac_testdone
+	test $fv = 1 || exit 1
+fi
 
 #
 # Environment: signals
