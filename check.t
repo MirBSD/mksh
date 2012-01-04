@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.510 2012/01/03 15:32:05 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.511 2012/01/04 19:09:32 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2012/01/03
+	@(#)MIRBSD KSH R40 2012/01/04
 description:
 	Check version of shell.
 stdin:
@@ -4998,6 +4998,29 @@ stdin:
 	echo ok
 expected-stdout:
 	ok
+---
+name: regression-66
+description:
+	Check that quoting is sane
+stdin:
+	ac_space=' '
+	ac_newline='
+	'
+	set | grep ^ac_ |&
+	set -A lines
+	while IFS= read -pr line; do
+		if [[ $line = *space* ]]; then
+			lines[0]=$line
+		else
+			lines[1]=$line
+		fi
+	done
+	for line in "${lines[@]}"; do
+		print -r -- "$line"
+	done
+expected-stdout:
+	ac_space=' '
+	ac_newline=$'\n'
 ---
 name: readonly-0
 description:

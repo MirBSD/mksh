@@ -29,7 +29,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.180 2011/12/29 22:54:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.181 2012/01/04 19:09:35 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1037,10 +1037,8 @@ print_value_quoted(struct shf *shf, const char *s)
 	bool inquote = true;
 
 	/* first, check whether any quotes are needed */
-	while ((c = *p++) != 0)
-		if (c < 32)
-			break;
-		else if (ctype(*p, C_QUOTE))
+	while ((c = *p++) >= 32)
+		if (ctype(c, C_QUOTE))
 			inquote = false;
 
 	p = (const unsigned char *)s;
