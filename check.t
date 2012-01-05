@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.511 2012/01/04 19:09:32 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.512 2012/01/05 11:52:48 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3879,7 +3879,7 @@ stdin:
 	echo =1
 	trap "echo trap 2 executed" UNKNOWNSIGNAL EXIT 999999 FNORD
 	echo = $?
-	) 2>&1 | sed "s^${__progname}: <stdin>\[[0-9]*]PROG"
+	) 2>&1 | sed "s^${__progname%.exe}\.*e*x*e*: <stdin>\[[0-9]*]PROG"
 expected-stdout:
 	PROG: trap: bad signal 'UNKNOWNSIGNAL'
 	foo
