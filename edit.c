@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.226 2011/12/29 23:36:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.227 2012/01/29 01:41:12 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1802,7 +1802,7 @@ static int
 x_search_hist(int c)
 {
 	int offset = -1;	/* offset of match in xbuf, else -1 */
-	char pat[256 + 1];	/* pattern buffer */
+	char pat[80 + 1];	/* pattern buffer */
 	char *p = pat;
 	unsigned char f;
 

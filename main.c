@@ -4,7 +4,8 @@
 /*	$OpenBSD: table.c,v 1.13 2009/01/17 22:06:44 millert Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+ *		 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -33,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.201 2011/11/08 22:07:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.202 2012/01/29 01:41:14 tg Exp $");
 
 extern char **environ;
 
@@ -45,6 +46,7 @@ extern char **environ;
 #define MKSH_DEFAULT_TMPDIR	"/tmp"
 #endif
 
+static int main_init(int, const char *[], Source **, struct block **);
 void chvt_reinit(void);
 static void reclaim(void);
 static void remove_temps(struct temp *);
@@ -155,8 +157,8 @@ static const char *empty_argv[] = {
 	"mksh", NULL
 };
 
-int
-main(int argc, const char *argv[])
+static int
+main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 {
 	int argi, i;
 	Source *s = NULL;
@@ -594,13 +596,29 @@ main(int argc, const char *argv[])
 
 	alarm_init();
 
-	if (Flag(FAS_BUILTIN))
-		return (shcomexec(l->argv));
-
-	/* doesn't return */
-	shell(s, true);
-	/* NOTREACHED */
+	*sp = s;
+	*lp = l;
 	return (0);
+}
+
+/* this indirection barrier reduces stack usage during normal operation */
+
+int
+main(int argc, const char *argv[])
+{
+	int rv;
+	Source *s;
+	struct block *l;
+
+	if ((rv = main_init(argc, argv, &s, &l)) == 0) {
+		if (Flag(FAS_BUILTIN)) {
+			rv = shcomexec(l->argv);
+		} else {
+			shell(s, true);
+			/* NOTREACHED */
+		}
+	}
+	return (rv);
 }
 
 int

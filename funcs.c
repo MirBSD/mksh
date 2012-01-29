@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.206 2011/12/29 22:54:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.207 2012/01/29 01:41:13 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1759,11 +1759,11 @@ c_wait(const char **wp)
 	return (rv);
 }
 
+static char REPLY[] = "REPLY";
 int
 c_read(const char **wp)
 {
 #define is_ifsws(c) (ctype((c), C_IFS) && ctype((c), C_IFSWS))
-	static char REPLY[] = "REPLY";
 	int c, fd = 0, rv = 0, lastparm = 0;
 	bool savehist = false, intoarray = false, aschars = false;
 	bool rawmode = false, expanding = false;
