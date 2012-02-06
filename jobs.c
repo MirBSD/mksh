@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.83 2012/02/06 17:42:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.84 2012/02/06 17:49:52 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -37,13 +37,15 @@ __RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.83 2012/02/06 17:42:23 tg Exp $");
 #define PSIGNALLED	2
 #define PSTOPPED	3
 
-typedef struct proc	Proc;
+typedef struct proc Proc;
 struct proc {
 	Proc *next;		/* next process in pipeline (if any) */
 	pid_t pid;		/* process id */
 	int state;
 	int status;		/* wait status */
-	char command[44];	/* process command string */
+	/* process command string from vistree */
+	char command[64 - (ALLOC_SIZE + sizeof(Proc *) + sizeof(pid_t) +
+	    2 * sizeof(int))];
 };
 
 /* Notify/print flag - j_print() argument */
