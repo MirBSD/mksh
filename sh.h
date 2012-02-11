@@ -9,7 +9,8 @@
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
 
 /*-
- * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+ *	       2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -151,11 +152,21 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.484.2.13 2011/12/31 02:31:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.484.2.14 2012/02/11 15:25:33 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2011/12/31"
+#define MKSH_VERSION "R40 2012/02/11"
 
-/* arithmetics types */
+/* arithmetic types: C implementation */
+#if !HAVE_CAN_INTTYPES
+#if !HAVE_CAN_UCBINTS
+typedef signed int int32_t;
+typedef unsigned int uint32_t;
+#else
+typedef u_int32_t uint32_t;
+#endif
+#endif
+
+/* arithmetic types: shell arithmetics */
 typedef int32_t mksh_ari_t;
 typedef uint32_t mksh_uari_t;
 
@@ -173,6 +184,26 @@ typedef unsigned char mksh_bool;
 /* make any-type into bool or short */
 #define tobool(cond)	((cond) ? true : false)
 
+/* char (octet) type: C implementation */
+#if !HAVE_CAN_INT8TYPE
+#if !HAVE_CAN_UCBINT8
+typedef unsigned char uint8_t;
+#else
+typedef u_int8_t uint8_t;
+#endif
+#endif
+
+/* other standard types */
+
+#if !HAVE_RLIM_T
+typedef long rlim_t;
+#endif
+
+#if !HAVE_SIG_T
+#undef sig_t
+typedef void (*sig_t)(int);
+#endif
+
 #ifndef MKSH_INCLUDES_ONLY
 
 /* extra types */
@@ -189,32 +220,6 @@ struct rusage {
 	struct timeval ru_utime;
 	struct timeval ru_stime;
 };
-#endif
-
-#if !HAVE_RLIM_T
-typedef long rlim_t;
-#endif
-
-#if !HAVE_SIG_T
-#undef sig_t
-typedef void (*sig_t)(int);
-#endif
-
-#if !HAVE_CAN_INTTYPES
-#if !HAVE_CAN_UCBINTS
-typedef signed int int32_t;
-typedef unsigned int uint32_t;
-#else
-typedef u_int32_t uint32_t;
-#endif
-#endif
-
-#if !HAVE_CAN_INT8TYPE
-#if !HAVE_CAN_UCBINT8
-typedef unsigned char uint8_t;
-#else
-typedef u_int8_t uint8_t;
-#endif
 #endif
 
 /* extra macros */

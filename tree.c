@@ -1,7 +1,8 @@
 /*	$OpenBSD: tree.c,v 1.19 2008/08/11 21:50:35 jaredy Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+ *		 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.52.4.1 2011/12/31 02:25:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.52.4.2 2012/02/11 15:25:36 tg Exp $");
 
 #define INDENT	8
 
@@ -712,24 +713,42 @@ fpFUNCTf(struct shf *shf, int i, bool isksh, const char *k, struct op *v)
 void
 vistree(char *dst, size_t sz, struct op *t)
 {
-	int c;
+	unsigned int c;
 	char *cp, *buf;
+	size_t n;
 
-	buf = alloc(sz, ATEMP);
-	snptreef(buf, sz, "%T", t);
+	buf = alloc(sz + 8, ATEMP);
+	snptreef(buf, sz + 8, "%T", t);
 	cp = buf;
-	while ((c = *cp++)) {
-		if (((c & 0x60) == 0) || ((c & 0x7F) == 0x7F)) {
-			/* C0 or C1 control character or DEL */
-			if (!--sz)
-				break;
-			*dst++ = (c & 0x80) ? '$' : '^';
-			c = (c & 0x7F) ^ 0x40;
-		}
-		if (!--sz)
-			break;
-		*dst++ = c;
+ vist_loop:
+	if (UTFMODE && (n = utf_mbtowc(&c, cp)) != (size_t)-1) {
+		if (c == 0 || n >= sz)
+			/* NUL or not enough free space */
+			goto vist_out;
+		/* copy multibyte char */
+		sz -= n;
+		while (n--)
+			*dst++ = *cp++;
+		goto vist_loop;
 	}
+	if (--sz == 0 || (c = (unsigned char)(*cp++)) == 0)
+		/* NUL or not enough free space */
+		goto vist_out;
+	if ((c & 0x60) == 0 || (c & 0x7F) == 0x7F) {
+		/* C0 or C1 control character or DEL */
+		if (--sz == 0)
+			/* not enough free space for two chars */
+			goto vist_out;
+		*dst++ = (c & 0x80) ? '$' : '^';
+		c = (c & 0x7F) ^ 0x40;
+	} else if (UTFMODE && c > 0x7F) {
+		/* better not try to display broken multibyte chars */
+		c = '?';
+	}
+	*dst++ = c;
+	goto vist_loop;
+
+ vist_out:
 	*dst = '\0';
 	afree(buf, ATEMP);
 }
