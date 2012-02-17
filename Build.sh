@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.508 2012/01/04 08:56:27 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.509 2012/02/17 09:49:45 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -518,6 +518,9 @@ QNX)
 		;;
 	esac
 	: ${HAVE_SETLOCALE_CTYPE=0}
+	;;
+skyos)
+	oswarn="; it has minor issues"
 	;;
 SunOS)
 	add_cppflags -D_BSD_SOURCE
@@ -1262,7 +1265,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.508 2012/01/04 08:56:27 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.509 2012/02/17 09:49:45 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
