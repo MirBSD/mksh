@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.510 2012/02/17 13:59:56 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.511 2012/03/03 19:27:07 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1105,24 +1105,6 @@ phase=x
 #
 if ac_ifcpp 'ifdef MKSH_SMALL' isset_MKSH_SMALL '' \
     "if a reduced-feature mksh is requested"; then
-	#XXX this sucks; fix it for *all* compilers
-	case $ct in
-	clang|icc|nwcc)
-		ac_flags 1 fnoinline -fno-inline
-		;;
-	gcc)
-		NOWARN=$DOWARN; phase=u
-		ac_flags 1 fnoinline -fno-inline
-		NOWARN=$save_NOWARN; phase=x
-		;;
-	sunpro)
-		ac_flags 1 fnoinline -xinline=
-		;;
-	xlc)
-		ac_flags 1 fnoinline -qnoinline
-		;;
-	esac
-
 	: ${HAVE_NICE=0}
 	: ${HAVE_PERSISTENT_HISTORY=0}
 	check_categories="$check_categories smksh"
@@ -1266,7 +1248,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.510 2012/02/17 13:59:56 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.511 2012/03/03 19:27:07 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
