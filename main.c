@@ -1,7 +1,7 @@
 /*	$OpenBSD: main.c,v 1.47 2011/09/07 11:33:25 otto Exp $	*/
 /*	$OpenBSD: tty.c,v 1.9 2006/03/14 22:08:01 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.22 2006/03/17 16:30:13 millert Exp $	*/
-/*	$OpenBSD: table.c,v 1.14 2012/02/02 08:42:46 otto Exp $	*/
+/*	$OpenBSD: table.c,v 1.15 2012/02/19 07:52:30 otto Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.204 2012/03/03 21:13:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.205 2012/03/03 21:30:56 tg Exp $");
 
 extern char **environ;
 
@@ -218,8 +218,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	/* define built-in commands and see if we were called as one */
 	ktinit(APERM, &builtins,
-	    /* currently 50 builtins -> 80% of 64 (2^6) */
-	    6);
+	    /* currently up to 50 builtins */
+	    /* 80% of 64 = 2^6 */ 6, /* 66% of 128 = 2^7 */ 7);
 	for (i = 0; mkshbuiltins[i].name != NULL; i++)
 		if (!strcmp(ccp, builtin(mkshbuiltins[i].name,
 		    mkshbuiltins[i].func)))
@@ -247,10 +247,10 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	coproc_init();
 
 	/* set up variable and command dictionaries */
-	ktinit(APERM, &taliases, 0);
-	ktinit(APERM, &aliases, 0);
+	ktinit(APERM, &taliases, 0, 0);
+	ktinit(APERM, &aliases, 0, 0);
 #ifndef MKSH_NOPWNAM
-	ktinit(APERM, &homedirs, 0);
+	ktinit(APERM, &homedirs, 0, 0);
 #endif
 
 	/* define shell keywords */
@@ -1528,8 +1528,15 @@ tgrow(struct table *tp)
 	/* multiplication cannot overflow: alloc2 checked that */
 	memset(ntblp, 0, i * sizeof(struct tbl *));
 
-	/* table can get 80% full except when reaching its limit */
-	tp->nfree = (tp->tshift == 30) ? 0x3FFF0000UL : ((i * 4) / 5);
+	/* table can get very full when reaching its size limit */
+	tp->nfree = (tp->tshift == 30) ? 0x3FFF0000UL :
+	    /* but otherwise, only 80% (MKSH_SMALL) or 66% (normal) */
+#ifdef MKSH_SMALL
+	    ((i * 4) / 5)
+#else
+	    ((i * 2) / 3)
+#endif
+	    ;
 	tp->tbls = ntblp;
 	if (otblp == NULL)
 		return;
@@ -1559,7 +1566,7 @@ tgrow(struct table *tp)
 }
 
 void
-ktinit(Area *ap, struct table *tp, uint8_t initshift)
+ktinit_real(Area *ap, struct table *tp, uint8_t initshift)
 {
 	tp->areap = ap;
 	tp->tbls = NULL;

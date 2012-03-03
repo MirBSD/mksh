@@ -1,6 +1,6 @@
 /*	$OpenBSD: sh.h,v 1.30 2010/01/04 18:07:11 deraadt Exp $	*/
 /*	$OpenBSD: shf.h,v 1.6 2005/12/11 18:53:51 deraadt Exp $	*/
-/*	$OpenBSD: table.h,v 1.7 2005/12/11 20:31:21 otto Exp $	*/
+/*	$OpenBSD: table.h,v 1.8 2012/02/19 07:52:30 otto Exp $	*/
 /*	$OpenBSD: tree.h,v 1.10 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: expand.h,v 1.6 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: lex.h,v 1.11 2006/05/29 18:22:24 otto Exp $	*/
@@ -152,9 +152,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.521 2012/02/06 17:42:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.522 2012/03/03 21:30:57 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/02/06"
+#define MKSH_VERSION "R40 2012/03/03"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1730,7 +1730,12 @@ void coproc_write_close(int);
 int coproc_getfd(int, const char **);
 void coproc_cleanup(int);
 struct temp *maketemp(Area *, Temp_type, struct temp **);
-void ktinit(Area *, struct table *, uint8_t);
+void ktinit_real(Area *, struct table *, uint8_t);
+#ifdef MKSH_SMALL
+#define ktinit(ap, tp, s80, s66) ktinit_real((ap), (tp), (s80))
+#else
+#define ktinit(ap, tp, s80, s66) ktinit_real((ap), (tp), (s66))
+#endif
 struct tbl *ktscan(struct table *, const char *, uint32_t, struct tbl ***);
 /* table, name (key) to search for, hash(n) */
 #define ktsearch(tp, s, h) ktscan((tp), (s), (h), NULL)
