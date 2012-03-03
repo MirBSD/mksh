@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.10 2012/02/11 15:25:26 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.484.2.11 2012/03/03 21:41:37 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -155,7 +155,7 @@ ac_testnnd() {
 	else
 		fr=0
 	fi
-	ac_testinit "$@" || return
+	ac_testinit "$@" || return 1
 	cat >conftest.c
 	vv ']' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS $ccpr"
 	test $tcfn = no && test -f a.out && tcfn=a.out
@@ -174,9 +174,10 @@ ac_testnnd() {
 		test $ct = sunpro && vscan='-e ignored -e turned.off'
 	fi
 	test -n "$vscan" && grep $vscan vv.out >/dev/null 2>&1 && fv=$fr
+	return 0
 }
 ac_testn() {
-	ac_testnnd "$@"
+	ac_testnnd "$@" || return
 	rmf conftest.c conftest.o ${tcfn}* vv.out
 	ac_testdone
 }
@@ -292,7 +293,7 @@ if test -d mksh || test -d mksh.exe; then
 	echo "$me: Error: ./mksh is a directory!" >&2
 	exit 1
 fi
-rmf a.exe* a.out* conftest.c *core lft mksh* no *.bc *.ll *.o \
+rmf a.exe* a.out* conftest.c *core core.* lft mksh* no *.bc *.ll *.o \
     Rebuild.sh signames.inc test.sh x vv.out
 
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=
@@ -408,6 +409,47 @@ if test x"$TARGET_OS" = x"Android"; then
 	TARGET_OS=Linux
 fi
 
+# Evil OS
+if test x"$TARGET_OS" = x"Minix"; then
+	echo >&2 "
+WARNING: additional checks before running Build.sh required!
+You can avoid these by calling Build.sh correctly, see below.
+"
+	cat >conftest.c <<'EOF'
+#include <sys/types.h>
+#ifdef _NETBSD_SOURCE
+ct=Ninix3
+#else
+ct=Minix3
+#endif
+EOF
+	ct=unknown
+	vv ']' "${CC-cc} -E $CFLAGS $CPPFLAGS $NOWARN conftest.c | grep ct= | tr -d \\\\015 >x"
+	sed 's/^/[ /' x
+	eval `cat x`
+	rmf x vv.out
+	case $ct in
+	Minix3|Ninix3)
+		echo >&2 "
+Warning: you set TARGET_OS to $TARGET_OS but that is ambiguous.
+Please set it to either Minix3 or Ninix3, whereas the latter is
+all versions of Minix with even partial NetBSD(R) userland. The
+value determined from your compiler for the current compilation
+(which may be wrong) is: $ct
+"
+		TARGET_OS=$ct
+		;;
+	*)
+		echo >&2 "
+Warning: you set TARGET_OS to $TARGET_OS but that is ambiguous.
+Please set it to either Minix3 or Ninix3, whereas the latter is
+all versions of Minix with even partial NetBSD(R) userland. The
+proper value couldn't be determined, continue at your own risk.
+"
+		;;
+	esac
+fi
+
 # Configuration depending on OS revision, on OSes that need them
 case $TARGET_OS in
 QNX)
@@ -480,7 +522,7 @@ Linux)
 	;;
 MidnightBSD)
 	;;
-Minix)
+Minix3)
 	add_cppflags -DMKSH_UNEMPLOYED
 	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	add_cppflags -DMKSH_NO_LIMITS
@@ -498,6 +540,14 @@ MSYS_*)
 	: ${HAVE_STDINT_H=0}
 	;;
 NetBSD)
+	;;
+Ninix3)
+	# similar to Minix3
+	add_cppflags -DMKSH_UNEMPLOYED
+	add_cppflags -DMKSH_CONSERVATIVE_FDS
+	add_cppflags -DMKSH_NO_LIMITS
+	# but no idea what else could be needed
+	oswarn="; it has unknown issues"
 	;;
 OpenBSD)
 	: ${HAVE_SETLOCALE_CTYPE=0}
@@ -532,6 +582,9 @@ QNX)
 		;;
 	esac
 	: ${HAVE_SETLOCALE_CTYPE=0}
+	;;
+skyos)
+	oswarn="; it has minor issues"
 	;;
 SunOS)
 	add_cppflags -D_BSD_SOURCE
@@ -1276,7 +1329,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.484.2.10 2012/02/11 15:25:26 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.484.2.11 2012/03/03 21:41:37 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1561,7 +1614,7 @@ eval test 1 = \$HAVE_COMPILE_TIME_ASSERTS_$$ || exit 1
 #
 $e "${bi}run-time checks follow$ao, please ignore any weird errors"
 
-ac_testnnd silent_idivwrapv '' '(run-time) whether signed integer division overflows wrap silently' <<-'EOF'
+if ac_testnnd silent_idivwrapv '' '(run-time) whether signed integer division overflows wrap silently' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	#ifdef SIGFPE
@@ -1592,19 +1645,21 @@ ac_testnnd silent_idivwrapv '' '(run-time) whether signed integer division overf
 	}
 	#endif
 EOF
-if test $fv = 0; then
-	echo "| hrm, compiling this failed, but we will just failback"
-else
-	echo "| running test programme; this will fail if cross-compiling"
-	echo "| in which case we will gracefully degrade to the default"
-	./$tcfn >vv.out 2>&1
-	rv=$?
-	echo "| result: `cat vv.out`"
-	fv=0
-	test $rv = 0 && test x"`cat vv.out`" = x"si" && fv=1
+then
+	if test $fv = 0; then
+		echo "| hrm, compiling this failed, but we will just failback"
+	else
+		echo "| running test programme; this will fail if cross-compiling"
+		echo "| in which case we will gracefully degrade to the default"
+		./$tcfn >vv.out 2>&1
+		rv=$?
+		echo "| result: `cat vv.out`"
+		fv=0
+		test $rv = 0 && test x"`cat vv.out`" = x"si" && fv=1
+	fi
+	rmf conftest.c conftest.o ${tcfn}* vv.out
+	ac_testdone
 fi
-rmf conftest.c conftest.o ${tcfn}* vv.out
-ac_testdone
 ac_cppflags
 
 $e "${bi}end of run-time checks$ao"

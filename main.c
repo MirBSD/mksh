@@ -1,10 +1,11 @@
 /*	$OpenBSD: main.c,v 1.47 2011/09/07 11:33:25 otto Exp $	*/
 /*	$OpenBSD: tty.c,v 1.9 2006/03/14 22:08:01 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.22 2006/03/17 16:30:13 millert Exp $	*/
-/*	$OpenBSD: table.c,v 1.13 2009/01/17 22:06:44 millert Exp $	*/
+/*	$OpenBSD: table.c,v 1.15 2012/02/19 07:52:30 otto Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+ *		 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -33,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.195.2.4 2011/11/08 22:07:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.195.2.5 2012/03/03 21:41:44 tg Exp $");
 
 extern char **environ;
 
@@ -109,7 +110,10 @@ rndsetup(void)
 		void *dataptr, *stkptr, *mallocptr;
 		sigjmp_buf jbuf;
 		struct timeval tv;
+#if !defined(_MINIX)
+		/*XXX imake style */
 		struct timezone tz;
+#endif
 	} *bufptr;
 	char *cp;
 
@@ -129,7 +133,11 @@ rndsetup(void)
 	/* glibc pointer guard */
 	sigsetjmp(bufptr->jbuf, 1);
 	/* introduce variation */
+#if !defined(_MINIX)
 	gettimeofday(&bufptr->tv, &bufptr->tz);
+#else
+	gettimeofday(&bufptr->tv, NULL);
+#endif
 
 	oaat1_init_impl(h);
 	/* variation through pid, ppid, and the works */
