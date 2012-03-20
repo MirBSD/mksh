@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.516 2012/03/03 21:30:54 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.517 2012/03/20 16:48:12 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3937,7 +3937,7 @@ description:
 	Check read with delimiters
 stdin:
 	emit() {
-		printf 'foo bar\tbaz\nblah \0blub\tblech\nmyok meck \0'
+		print -n 'foo bar\tbaz\nblah \0blub\tblech\nmyok meck \0'
 	}
 	emit | while IFS= read -d "" foo; do print -r -- "<$foo>"; done
 	emit | while read -d "" foo; do print -r -- "<$foo>"; done
@@ -7112,16 +7112,13 @@ expected-stdout:
 ---
 name: print-nul-chars
 description:
-	Check handling of NUL characters for print and read
-	note: second line should output “4 3” but we cannot
-	handle NUL characters in strings yet
+	Check handling of NUL characters for print and COMSUB
 stdin:
-	print $(($(print '<\0>' | wc -c)))
 	x=$(print '<\0>')
-	print $(($(print "$x" | wc -c))) ${#x}
-expected-stdout:
-	4
-	3 2
+	print $(($(print '<\0>' | wc -c))) $(($(print "$x" | wc -c))) \
+	    ${#x} "$x" '<\0>'
+expected-stdout-pattern:
+	/^4 3 2 <> <\0>$/
 ---
 name: print-escapes
 description:
