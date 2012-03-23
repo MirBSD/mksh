@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.228 2012/03/23 21:15:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.229 2012/03/23 21:34:47 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2721,14 +2721,14 @@ do_complete(
 	}
 	olen = end - start;
 	nlen = x_longest_prefix(nwords, words);
-	/* complete */
-	if (nwords == 1 || nlen > olen) {
-		x_goto(xbuf + start);
-		x_delete(olen, false);
-		x_escape(words[0], nlen, x_do_ins);
-		x_adjust();
+	/* always complete */
+	x_goto(xbuf + start);
+	x_delete(olen, false);
+	x_escape(words[0], nlen, x_do_ins);
+	x_adjust();
+	/* check if we did add something */
+	if (xcp - (xbuf + start) > olen)
 		completed = true;
-	}
 	/*
 	 * append a space if this is a single non-directory match
 	 * and not a parameter or homedir substitution
