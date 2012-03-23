@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.227 2012/01/29 01:41:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.228 2012/03/23 21:15:34 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -288,28 +288,38 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
 static int
 x_file_glob(int flags MKSH_A_UNUSED, char *toglob, char ***wordsp)
 {
-	char **words;
-	int nwords, i, idx;
+	char ch, **words;
+	int nwords, i = 0, idx = 0;
 	bool escaping;
 	XPtrV w;
 	struct source *s, *sold;
 
 	/* remove all escaping backward slashes */
 	escaping = false;
-	for (i = 0, idx = 0; toglob[i]; i++) {
-		if (toglob[i] == '\\' && !escaping) {
+	while ((ch = toglob[i++])) {
+		if (ch == '\\' && !escaping) {
 			escaping = true;
 			continue;
 		}
-		/* specially escape escaped [ or $ or ` for globbing */
-		if (escaping && (toglob[i] == '[' ||
-		    toglob[i] == '$' || toglob[i] == '`'))
-			toglob[idx++] = QCHAR;
-
-		toglob[idx] = toglob[i];
-		idx++;
-		if (escaping)
+		if (escaping) {
+			/*
+			 * empirically made list of chars to escape
+			 * for globbing; ASCII 0x02 probably too as
+			 * that's what QCHAR is, but...
+			 */
+			switch (ch) {
+			case '$':
+			case '*':
+			case '?':
+			case '[':
+			case '\\':
+			case '`':
+				toglob[idx++] = QCHAR;
+				break;
+			}
 			escaping = false;
+		}
+		toglob[idx++] = ch;
 	}
 	toglob[idx] = '\0';
 
@@ -335,6 +345,15 @@ x_file_glob(int flags MKSH_A_UNUSED, char *toglob, char ***wordsp)
 		;
 	if (nwords == 1) {
 		struct stat statb;
+
+		/* Drop all QCHAR from toglob for strcmp below */
+		i = 0;
+		idx = 0;
+		while ((ch = toglob[i++])) {
+			if (ch != QCHAR)
+				toglob[idx++] = ch;
+		}
+		toglob[idx] = '\0';
 
 		/*
 		 * Check if globbing failed (returned glob pattern),
