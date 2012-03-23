@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.182 2012/01/04 22:38:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.183 2012/03/23 20:07:11 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -645,7 +645,7 @@ has_globbing(const char *xp, const char *xpe)
 			if (!in_bracket) {
 				saw_glob = true;
 				in_bracket = true;
-				if (ISMAGIC(p[1]) && p[2] == NOT)
+				if (ISMAGIC(p[1]) && p[2] == '!')
 					p += 2;
 				if (ISMAGIC(p[1]) && p[2] == ']')
 					p += 2;
@@ -824,7 +824,7 @@ cclass(const unsigned char *p, int sub)
 	int c, d, notp, found = 0;
 	const unsigned char *orig_p = p;
 
-	if ((notp = (ISMAGIC(*p) && *++p == NOT)))
+	if ((notp = (ISMAGIC(*p) && *++p == '!')))
 		p++;
 	do {
 		c = *p++;

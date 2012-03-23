@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.111 2011/12/16 20:03:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.112 2012/03/23 20:07:10 tg Exp $");
 
 /*
  * string expansion
@@ -896,7 +896,7 @@ expand(const char *cp,	/* input word */
 			if (!quote)
 				switch (c) {
 				case '[':
-				case NOT:
+				case '!':
 				case '-':
 				case ']':
 					/*

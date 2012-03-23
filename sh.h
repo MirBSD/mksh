@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.523 2012/03/23 19:38:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.524 2012/03/23 20:07:11 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/03/03"
 
@@ -374,7 +374,6 @@ extern int wcwidth(__WCHAR_TYPE__);
  */
 #define MAGIC		(7)	/* prefix for *?[!{,} during expand */
 #define ISMAGIC(c)	((unsigned char)(c) == MAGIC)
-#define NOT		'!'	/* might use ^ (ie, [!...] vs [^..]) */
 
 #define LINE		4096	/* input line size */
 
