@@ -26,7 +26,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.141 2012/03/03 21:30:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.142 2012/03/23 21:58:24 tg Exp $");
 
 /*-
  * Variables
@@ -1132,7 +1132,6 @@ getspec(struct tbl *vp)
 		 * and the window is then resized, the app won't
 		 * see the change cause the environ doesn't change.
 		 */
-		change_winsz();
 		i = st == V_COLUMNS ? x_cols : x_lins;
 		break;
 	default:
@@ -1458,16 +1457,6 @@ set_array(const char *var, bool reset, const char **vals)
 void
 change_winsz(void)
 {
-	if (x_lins < 0) {
-		/* first time initialisation */
-#ifdef TIOCGWINSZ
-		if (tty_fd < 0)
-			/* non-FTALKING, try to get an fd anyway */
-			tty_init(true, false);
-#endif
-		x_cols = -1;
-	}
-
 #ifdef TIOCGWINSZ
 	/* check if window size has changed */
 	if (tty_fd >= 0) {

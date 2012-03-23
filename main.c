@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.207 2012/03/23 19:38:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.208 2012/03/23 21:58:21 tg Exp $");
 
 extern char **environ;
 
@@ -257,6 +257,12 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	initkeywords();
 
 	init_histvec();
+
+#ifdef TIOCGWINSZ
+	/* try to initialise tty size before importing environment */
+	tty_init(false, false);
+	change_winsz();
+#endif
 
 #ifdef _PATH_DEFPATH
 	def_path = _PATH_DEFPATH;

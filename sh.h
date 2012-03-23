@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.524 2012/03/23 20:07:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.525 2012/03/23 21:58:22 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/03/03"
 
@@ -858,7 +858,7 @@ EXTERN char	*current_wd;
 #define MIN_COLS	(2 + MIN_EDIT_SPACE + 3)
 #define MIN_LINS	3
 EXTERN mksh_ari_t x_cols E_INIT(80);	/* tty columns */
-EXTERN mksh_ari_t x_lins E_INIT(-1);	/* tty lines */
+EXTERN mksh_ari_t x_lins E_INIT(24);	/* tty lines */
 
 /* These to avoid bracket matching problems */
 #define OPAREN	'('

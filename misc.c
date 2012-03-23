@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.183 2012/03/23 20:07:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.184 2012/03/23 21:58:22 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1173,10 +1173,6 @@ print_columns(struct shf *shf, int n,
 
 	++max_oct;
 	str = alloc(max_oct, ATEMP);
-
-	/* ensure x_cols is valid first */
-	if (x_cols < MIN_COLS)
-		change_winsz();
 
 	/*
 	 * We use (max_col + 1) to consider the space separator.
