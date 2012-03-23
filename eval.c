@@ -1,7 +1,8 @@
 /*	$OpenBSD: eval.c,v 1.37 2011/10/11 14:32:43 otto Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+ *		 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.112 2012/03/23 20:07:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.113 2012/03/23 23:25:27 tg Exp $");
 
 /*
  * string expansion
@@ -375,9 +376,26 @@ expand(const char *cp,	/* input word */
 						sp += slen;
 					switch (stype & 0x17F) {
 					case 0x100 | '#':
-						x.str = shf_smprintf("%08X",
-						    (unsigned int)hash(str_val(st->var)));
+					    {
+						char *beg, *end;
+						mksh_ari_t seed;
+						register uint32_t h;
+
+						beg = wdcopy(sp, ATEMP);
+						end = beg + (wdscan(sp, CSUBST) - sp);
+						end[-2] = EOS;
+						end = wdstrip(beg, 0);
+						afree(beg, ATEMP);
+						evaluate(substitute(end, 0),
+						    &seed, KSH_UNWIND_ERROR, true);
+						/* hash with seed, for now */
+						h = seed;
+						NZATUpdateString(h,
+						    str_val(st->var));
+						NZATFinish(h);
+						x.str = shf_smprintf("%08X", h);
 						break;
+					}
 					case '0': {
 						char *beg, *mid, *end, *stg;
 						mksh_ari_t from = 0, num = -1, flen, finc = 0;

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.517 2012/03/20 16:48:12 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.518 2012/03/23 23:25:23 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2012/03/03
+	@(#)MIRBSD KSH R40 2012/03/23
 description:
 	Check version of shell.
 stdin:
@@ -7069,9 +7069,14 @@ stdin:
 	typeset -i8 foo=10
 	bar=baz
 	unset baz
+	bla=foo
 	print ${foo@#} ${bar@#} ${baz@#} .
+	print ${foo@#123} ${bar@#456} ${baz@#789} .
+	print ${foo@#bla} ${bar@#bar} ${baz@#OPTIND} .
 expected-stdout:
 	D50219A0 20E5DB5B 00000001 .
+	554A1C76 004A212E CB209562 .
+	6B21CF91 20E5DB5B 124EA49D .
 ---
 name: varexpand-null-1
 description:

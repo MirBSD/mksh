@@ -1,7 +1,8 @@
 /*	$OpenBSD: var.c,v 1.34 2007/10/15 02:16:35 deraadt Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+ *		 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -26,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.142 2012/03/23 21:58:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.143 2012/03/23 23:25:30 tg Exp $");
 
 /*-
  * Variables

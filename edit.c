@@ -4,7 +4,8 @@
 /*	$OpenBSD: vi.c,v 1.26 2009/06/29 22:50:19 martynas Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+ *		 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -25,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.229 2012/03/23 21:34:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.230 2012/03/23 23:25:25 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
