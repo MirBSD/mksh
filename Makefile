@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.92 2011/12/31 02:04:17 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.93 2012/03/23 19:38:11 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -56,6 +56,11 @@ USE_PRINTF_BUILTIN?=	0
 .PATH: ${BSDSRCDIR}/usr.bin/printf
 SRCS+=		printf.c
 CPPFLAGS+=	-DMKSH_PRINTF_BUILTIN
+.endif
+
+DEBUGFILE?=	No
+.if ${DEBUGFILE:L} == "yes"
+CPPFLAGS+=	-DDF=mksh_debugtofile
 .endif
 
 MANLINKS=	[ false pwd sh sleep test true

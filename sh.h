@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.522 2012/03/03 21:30:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.523 2012/03/23 19:38:12 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/03/03"
 
@@ -697,6 +697,9 @@ struct temp {
 #define shl_spare	(&shf_iob[0])	/* for c_read()/c_print() */
 #define shl_stdout	(&shf_iob[1])
 #define shl_out		(&shf_iob[2])
+#ifdef DF
+#define shl_dbg		(&shf_iob[3])	/* for DF() */
+#endif
 EXTERN bool shl_stdout_ok;
 
 /*
@@ -1744,6 +1747,10 @@ struct tbl *ktenter(struct table *, const char *, uint32_t);
 void ktwalk(struct tstate *, struct table *);
 struct tbl *ktnext(struct tstate *);
 struct tbl **ktsort(struct table *);
+#ifdef DF
+void DF(const char *, ...)
+    MKSH_A_FORMAT(__printf__, 1, 2);
+#endif
 /* misc.c */
 void setctypes(const char *, int);
 void initctypes(void);
