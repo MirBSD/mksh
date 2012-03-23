@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.205 2012/03/03 21:30:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.206 2012/03/23 18:58:15 tg Exp $");
 
 extern char **environ;
 
@@ -96,7 +96,7 @@ static const char *restr_com[] = {
 	Ttypeset, "-r", "PATH", "ENV", "SHELL", NULL
 };
 
-static int initio_done;
+static bool initio_done;
 
 /* top-level parsing and execution environment */
 static struct env env;
@@ -1252,7 +1252,7 @@ initio(void)
 	shf_fdopen(2, SHF_WR, shl_out);
 	/* force buffer allocation */
 	shf_fdopen(2, SHF_WR, shl_spare);
-	initio_done = 1;
+	initio_done = true;
 }
 
 /* A dup2() with error checking */
