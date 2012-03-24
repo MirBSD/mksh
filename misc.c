@@ -2,7 +2,8 @@
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+ *		 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -29,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.167.2.3 2011/12/04 19:59:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.167.2.4 2012/03/24 21:22:38 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -652,7 +653,7 @@ has_globbing(const char *xp, const char *xpe)
 			if (!in_bracket) {
 				saw_glob = true;
 				in_bracket = true;
-				if (ISMAGIC(p[1]) && p[2] == NOT)
+				if (ISMAGIC(p[1]) && p[2] == '!')
 					p += 2;
 				if (ISMAGIC(p[1]) && p[2] == ']')
 					p += 2;
@@ -831,7 +832,7 @@ cclass(const unsigned char *p, int sub)
 	int c, d, notp, found = 0;
 	const unsigned char *orig_p = p;
 
-	if ((notp = (ISMAGIC(*p) && *++p == NOT)))
+	if ((notp = (ISMAGIC(*p) && *++p == '!')))
 		p++;
 	do {
 		c = *p++;
@@ -1105,10 +1106,6 @@ print_columns(struct shf *shf, int n,
 
 	++max_oct;
 	str = alloc(max_oct, ATEMP);
-
-	/* ensure x_cols is valid first */
-	if (x_cols < MIN_COLS)
-		change_winsz();
 
 	/*
 	 * We use (max_col + 1) to consider the space separator.

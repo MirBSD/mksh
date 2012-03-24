@@ -1,7 +1,8 @@
 /*	$OpenBSD: var.c,v 1.34 2007/10/15 02:16:35 deraadt Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+ *		 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -26,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.130.2.7 2011/12/31 02:25:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.130.2.8 2012/03/24 21:22:46 tg Exp $");
 
 /*-
  * Variables
@@ -502,8 +503,12 @@ getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 		} else if (vp->flag & ZEROFIL) {
 			while (*s == '0')
 				s++;
-		} else
+		} else {
+			warningf(true, "interpreting %s[%lu]='%s' as octal"
+			    " is deprecated", vp->name,
+			    arrayindex(vp), vp->val.s + vp->type);
 			base = 8;
+		}
 		have_base = true;
 	}
 #endif
@@ -1132,7 +1137,6 @@ getspec(struct tbl *vp)
 		 * and the window is then resized, the app won't
 		 * see the change cause the environ doesn't change.
 		 */
-		change_winsz();
 		i = st == V_COLUMNS ? x_cols : x_lins;
 		break;
 	default:
@@ -1458,16 +1462,6 @@ set_array(const char *var, bool reset, const char **vals)
 void
 change_winsz(void)
 {
-	if (x_lins < 0) {
-		/* first time initialisation */
-#ifdef TIOCGWINSZ
-		if (tty_fd < 0)
-			/* non-FTALKING, try to get an fd anyway */
-			tty_init(true, false);
-#endif
-		x_cols = -1;
-	}
-
 #ifdef TIOCGWINSZ
 	/* check if window size has changed */
 	if (tty_fd >= 0) {

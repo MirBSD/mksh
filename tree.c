@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.52.4.2 2012/02/11 15:25:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.52.4.3 2012/03/24 21:22:45 tg Exp $");
 
 #define INDENT	8
 
@@ -291,7 +291,7 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 		case CHAR:
 			c = *wp++;
 			if ((opmode & WDS_MAGIC) &&
-			    (ISMAGIC(c) || c == '[' || c == NOT ||
+			    (ISMAGIC(c) || c == '[' || c == '!' ||
 			    c == '-' || c == ']' || c == '*' || c == '?'))
 				shf_putc(MAGIC, shf);
 			shf_putc(c, shf);
@@ -855,7 +855,7 @@ dumptree(struct shf *shf, struct op *t)
 	int i;
 	const char **w, *name;
 	struct op *t1;
-	static int nesting = 0;
+	static int nesting;
 
 	for (i = 0; i < nesting; ++i)
 		shf_putc('\t', shf);

@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.204 2011/12/09 20:40:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.204.2.1 2012/03/24 21:22:35 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -58,10 +58,6 @@ __RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.204 2011/12/09 20:40:25 tg Exp $");
 
 #ifdef MKSH_NO_LIMITS
 #define c_ulimit	c_true
-#endif
-
-#if defined(ANDROID)
-static int c_android_lsmod(const char **);
 #endif
 
 static int
@@ -145,9 +141,6 @@ const struct builtin mkshbuiltins[] = {
 #ifdef __MirBSD__
 	/* alias to "true" for historical reasons */
 	{"domainname", c_true},
-#endif
-#if defined(ANDROID)
-	{"lsmod", c_android_lsmod},
 #endif
 	{NULL, (int (*)(const char **))NULL}
 };
@@ -1759,11 +1752,11 @@ c_wait(const char **wp)
 	return (rv);
 }
 
+static char REPLY[] = "REPLY";
 int
 c_read(const char **wp)
 {
 #define is_ifsws(c) (ctype((c), C_IFS) && ctype((c), C_IFSWS))
-	static char REPLY[] = "REPLY";
 	int c, fd = 0, rv = 0, lastparm = 0;
 	bool savehist = false, intoarray = false, aschars = false;
 	bool rawmode = false, expanding = false;
@@ -3668,10 +3661,25 @@ c_sleep(const char **wp)
 		bi_errorf("%s: %s '%s'", Tsynerr, strerror(errno), wp[0]);
 	else {
 #ifndef MKSH_NOPROSPECTOFWORK
-		sigset_t omask;
+		sigset_t omask, bmask;
 
-		/* block SIGCHLD from interrupting us, though */
-		sigprocmask(SIG_BLOCK, &sm_sigchld, &omask);
+		/* block a number of signals from interrupting us, though */
+		(void)sigemptyset(&bmask);
+		(void)sigaddset(&bmask, SIGPIPE);
+		(void)sigaddset(&bmask, SIGCHLD);
+#ifdef SIGWINCH
+		(void)sigaddset(&bmask, SIGWINCH);
+#endif
+#ifdef SIGINFO
+		(void)sigaddset(&bmask, SIGINFO);
+#endif
+#ifdef SIGUSR1
+		(void)sigaddset(&bmask, SIGUSR1);
+#endif
+#ifdef SIGUSR2
+		(void)sigaddset(&bmask, SIGUSR2);
+#endif
+		sigprocmask(SIG_BLOCK, &bmask, &omask);
 #endif
 		if (select(1, NULL, NULL, NULL, &tv) == 0 || errno == EINTR)
 			/*
@@ -3682,20 +3690,10 @@ c_sleep(const char **wp)
 		else
 			bi_errorf("%s: %s", Tselect, strerror(errno));
 #ifndef MKSH_NOPROSPECTOFWORK
+		/* this will re-schedule signal delivery */
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 #endif
 	}
 	return (rv);
-}
-#endif
-
-#if defined(ANDROID)
-static int
-c_android_lsmod(const char **wp MKSH_A_UNUSED)
-{
-	const char *cwp[3] = { "cat", "/proc/modules", NULL };
-
-	builtin_argv0 = cwp[0];
-	return (c_cat(cwp));
 }
 #endif

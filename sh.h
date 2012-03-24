@@ -1,6 +1,6 @@
 /*	$OpenBSD: sh.h,v 1.30 2010/01/04 18:07:11 deraadt Exp $	*/
 /*	$OpenBSD: shf.h,v 1.6 2005/12/11 18:53:51 deraadt Exp $	*/
-/*	$OpenBSD: table.h,v 1.7 2005/12/11 20:31:21 otto Exp $	*/
+/*	$OpenBSD: table.h,v 1.8 2012/02/19 07:52:30 otto Exp $	*/
 /*	$OpenBSD: tree.h,v 1.10 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: expand.h,v 1.6 2005/03/30 17:16:37 deraadt Exp $	*/
 /*	$OpenBSD: lex.h,v 1.11 2006/05/29 18:22:24 otto Exp $	*/
@@ -152,9 +152,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.484.2.15 2012/03/03 21:41:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.484.2.16 2012/03/24 21:22:43 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/03/02"
+#define MKSH_VERSION "R40 2012/03/20"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -374,7 +374,6 @@ extern int wcwidth(__WCHAR_TYPE__);
  */
 #define MAGIC		(7)	/* prefix for *?[!{,} during expand */
 #define ISMAGIC(c)	((unsigned char)(c) == MAGIC)
-#define NOT		'!'	/* might use ^ (ie, [!...] vs [^..]) */
 
 #define LINE		4096	/* input line size */
 
@@ -697,6 +696,9 @@ struct temp {
 #define shl_spare	(&shf_iob[0])	/* for c_read()/c_print() */
 #define shl_stdout	(&shf_iob[1])
 #define shl_out		(&shf_iob[2])
+#ifdef DF
+#define shl_dbg		(&shf_iob[3])	/* for DF() */
+#endif
 EXTERN bool shl_stdout_ok;
 
 /*
@@ -856,7 +858,7 @@ EXTERN char	*current_wd;
 #define MIN_COLS	(2 + MIN_EDIT_SPACE + 3)
 #define MIN_LINS	3
 EXTERN mksh_ari_t x_cols E_INIT(80);	/* tty columns */
-EXTERN mksh_ari_t x_lins E_INIT(-1);	/* tty lines */
+EXTERN mksh_ari_t x_lins E_INIT(24);	/* tty lines */
 
 /* These to avoid bracket matching problems */
 #define OPAREN	'('
@@ -1719,6 +1721,10 @@ struct tbl *ktenter(struct table *, const char *, uint32_t);
 void ktwalk(struct tstate *, struct table *);
 struct tbl *ktnext(struct tstate *);
 struct tbl **ktsort(struct table *);
+#ifdef DF
+void DF(const char *, ...)
+    MKSH_A_FORMAT(__printf__, 1, 2);
+#endif
 /* misc.c */
 void setctypes(const char *, int);
 void initctypes(void);
