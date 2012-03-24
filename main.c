@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.195.2.6 2012/03/24 21:22:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.195.2.7 2012/03/24 22:11:43 tg Exp $");
 
 extern char **environ;
 
@@ -110,10 +110,6 @@ rndsetup(void)
 		void *dataptr, *stkptr, *mallocptr;
 		sigjmp_buf jbuf;
 		struct timeval tv;
-#if !defined(_MINIX)
-		/*XXX imake style */
-		struct timezone tz;
-#endif
 	} *bufptr;
 	char *cp;
 
@@ -132,12 +128,8 @@ rndsetup(void)
 	bufptr->mallocptr = bufptr;
 	/* glibc pointer guard */
 	sigsetjmp(bufptr->jbuf, 1);
-	/* introduce variation */
-#if !defined(_MINIX)
-	gettimeofday(&bufptr->tv, &bufptr->tz);
-#else
+	/* introduce variation (and yes, second arg MBZ for portability) */
 	gettimeofday(&bufptr->tv, NULL);
-#endif
 
 	oaat1_init_impl(h);
 	/* variation through pid, ppid, and the works */
