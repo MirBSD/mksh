@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.143 2012/03/23 23:25:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.144 2012/03/24 19:13:27 tg Exp $");
 
 /*-
  * Variables
@@ -503,8 +503,12 @@ getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 		} else if (vp->flag & ZEROFIL) {
 			while (*s == '0')
 				s++;
-		} else
+		} else {
+			warningf(true, "interpreting %s[%lu]='%s' as octal"
+			    " is deprecated", vp->name,
+			    arrayindex(vp), vp->val.s + vp->type);
 			base = 8;
+		}
 		have_base = true;
 	}
 #endif
