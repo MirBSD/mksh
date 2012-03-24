@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.208 2012/03/03 19:28:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.209 2012/03/24 18:47:04 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3660,10 +3660,25 @@ c_sleep(const char **wp)
 		bi_errorf("%s: %s '%s'", Tsynerr, strerror(errno), wp[0]);
 	else {
 #ifndef MKSH_NOPROSPECTOFWORK
-		sigset_t omask;
+		sigset_t omask, bmask;
 
-		/* block SIGCHLD from interrupting us, though */
-		sigprocmask(SIG_BLOCK, &sm_sigchld, &omask);
+		/* block a number of signals from interrupting us, though */
+		(void)sigemptyset(&bmask);
+		(void)sigaddset(&bmask, SIGPIPE);
+		(void)sigaddset(&bmask, SIGCHLD);
+#ifdef SIGWINCH
+		(void)sigaddset(&bmask, SIGWINCH);
+#endif
+#ifdef SIGINFO
+		(void)sigaddset(&bmask, SIGINFO);
+#endif
+#ifdef SIGUSR1
+		(void)sigaddset(&bmask, SIGUSR1);
+#endif
+#ifdef SIGUSR2
+		(void)sigaddset(&bmask, SIGUSR2);
+#endif
+		sigprocmask(SIG_BLOCK, &bmask, &omask);
 #endif
 		if (select(1, NULL, NULL, NULL, &tv) == 0 || errno == EINTR)
 			/*
@@ -3674,6 +3689,7 @@ c_sleep(const char **wp)
 		else
 			bi_errorf("%s: %s", Tselect, strerror(errno));
 #ifndef MKSH_NOPROSPECTOFWORK
+		/* this will re-schedule signal delivery */
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 #endif
 	}
