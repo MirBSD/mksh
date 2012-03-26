@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.513 2012/03/26 19:48:06 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.514 2012/03/26 19:54:54 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -568,6 +568,13 @@ QNX)
 		;;
 	esac
 	: ${HAVE_SETLOCALE_CTYPE=0}
+	;;
+SCO_SV)
+	# <RT|AO> it is quite sure that sys_siglist[] is broken
+	# (it returns non mappable address)
+	: ${HAVE_SYS_SIGLIST=0} ${HAVE__SYS_SIGLIST=0}
+	# need test logs
+	oswarn='; it may or may not work'
 	;;
 skyos)
 	oswarn="; it has minor issues"
@@ -1297,7 +1304,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.513 2012/03/26 19:48:06 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.514 2012/03/26 19:54:54 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
