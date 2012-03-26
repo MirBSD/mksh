@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.184 2012/03/23 21:58:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.185 2012/03/26 20:04:05 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1310,6 +1310,10 @@ ksh_get_wd(void)
 
 	return (rv);
 }
+
+#ifndef ELOOP
+#define ELOOP		E2BIG
+#endif
 
 char *
 do_realpath(const char *upath)
