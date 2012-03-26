@@ -152,9 +152,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.528 2012/03/25 14:28:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.529 2012/03/26 21:10:44 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/03/25"
+#define MKSH_VERSION "R40 2012/03/26"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -196,7 +196,7 @@ typedef u_int8_t uint8_t;
 /* other standard types */
 
 #if !HAVE_RLIM_T
-typedef long rlim_t;
+typedef unsigned long rlim_t;
 #endif
 
 #if !HAVE_SIG_T

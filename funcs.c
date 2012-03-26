@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.209 2012/03/24 18:47:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.210 2012/03/26 21:10:42 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3251,7 +3251,7 @@ ptest_error(Test_env *te, int ofs, const char *msg)
 struct limits {
 	const char *name;
 	int resource;		/* resource to get/set */
-	int factor;		/* multiply by to get rlim_{cur,max} values */
+	unsigned int factor;	/* multiply by to get rlim_{cur,max} values */
 	char option;
 };
 
@@ -3447,9 +3447,9 @@ set_ulimit(const struct limits *l, const char *v, int how)
 	if (strcmp(v, "unlimited") == 0)
 		val = (rlim_t)RLIM_INFINITY;
 	else {
-		mksh_ari_t rval;
+		mksh_uari_t rval;
 
-		if (!evaluate(v, &rval, KSH_RETURN_ERROR, false))
+		if (!evaluate(v, (mksh_ari_t *)&rval, KSH_RETURN_ERROR, false))
 			return (1);
 		/*
 		 * Avoid problems caused by typos that evaluate misses due
@@ -3499,7 +3499,7 @@ print_ulimit(const struct limits *l, int how)
 	if (val == (rlim_t)RLIM_INFINITY)
 		shf_puts("unlimited\n", shl_stdout);
 	else
-		shprintf("%ld\n", (long)(val / l->factor));
+		shprintf("%lu\n", (unsigned long)(val / l->factor));
 }
 #endif
 
