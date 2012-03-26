@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.514 2012/03/26 19:54:54 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.515 2012/03/26 20:14:58 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -640,7 +640,7 @@ operating system '$TARGET_OS'$oswarn. If you can provide
 a shell account to the developer, this may improve; please
 drop us a success or failure notice or even send in diffs.
 "
-$e "$bi$me: Building the MirBSD Korn Shell$ao $ui$dstversion$ao"
+$e "$bi$me: Building the MirBSD Korn Shell$ao $ui$dstversion$ao on $TARGET_OS ${TARGET_OSREV}..."
 
 #
 # Begin of mirtoconf checks
@@ -1304,7 +1304,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.514 2012/03/26 19:54:54 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.515 2012/03/26 20:14:58 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
