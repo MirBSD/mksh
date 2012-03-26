@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.521 2012/03/25 14:28:11 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.522 2012/03/26 00:25:52 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -298,9 +298,11 @@ name: arith-div-intmin-by-minusone
 description:
 	Check division overflow wraps around silently
 stdin:
-	echo :$((-2147483648 / -1))_$((-2147483648 % -1)).
+	echo signed:$((-2147483648 / -1))r$((-2147483648 % -1)).
+	echo unsigned:$((# -2147483648 / -1))r$((# -2147483648 % -1)).
 expected-stdout:
-	:-2147483648_0.
+	signed:-2147483648r0.
+	unsigned:0r2147483648.
 ---
 name: arith-assop-assoc-1
 description:
