@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.532 2012/03/27 22:41:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.533 2012/03/27 22:49:47 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/03/27"
 
@@ -167,6 +167,14 @@ typedef u_int32_t uint32_t;
 #endif
 
 /* arithmetic types: shell arithmetics */
+/*
+ * NOTE: these are currently hard-coded to exactly 32 bit, do not change
+ *
+ * TODO: make these configurable, or add 64-bit arithmetic, somehow
+ * (on some operating environments, 64-bit types are needed for some
+ * things, such as the ulimit builtin, to work proper), except mksh
+ * must still be able to run on systems with no native 64-bit integers
+ */
 typedef int32_t mksh_ari_t;
 typedef uint32_t mksh_uari_t;
 
