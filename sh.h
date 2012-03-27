@@ -152,9 +152,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.530 2012/03/27 21:23:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.531 2012/03/27 22:36:53 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/03/26"
+#define MKSH_VERSION "R40 2012/03/27"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1663,6 +1663,10 @@ int block_pipe(void);
 void restore_pipe(int);
 int setsig(Trap *, sig_t, int);
 void setexecsig(Trap *, int);
+#if HAVE_FLOCK || HAVE_LOCK_FCNTL
+void mksh_lockfd(int);
+void mksh_unlkfd(int);
+#endif
 /* jobs.c */
 void j_init(void);
 void j_exit(void);

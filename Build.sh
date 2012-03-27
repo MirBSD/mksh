@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.517 2012/03/27 21:23:50 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.518 2012/03/27 22:36:48 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1335,7 +1335,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.517 2012/03/27 21:23:50 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.518 2012/03/27 22:36:48 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1399,19 +1399,18 @@ EOF
 #
 # Environment: library functions
 #
-ac_testn flock_ex '' 'flock and mmap' <<-'EOF'
-	#include <sys/types.h>
-	#if HAVE_SYS_FILE_H
-	#include <sys/file.h>
-	#endif
-	#if HAVE_SYS_MMAN_H
-	#include <sys/mman.h>
-	#endif
+ac_test flock <<-'EOF'
 	#include <fcntl.h>
-	#include <stdlib.h>
-	int main(void) { return ((void *)mmap(NULL, (size_t)flock(0, LOCK_EX),
-	    PROT_READ, MAP_PRIVATE, 0, (off_t)0) == (void *)NULL ? 1 :
-	    munmap(NULL, 0)); }
+	int main(void) { return (flock(0, LOCK_EX | LOCK_UN)); }
+EOF
+
+ac_test lock_fcntl '!' flock 1 'whether we can lock files with fcntl' <<-'EOF'
+	#include <fcntl.h>
+	int main(void) {
+		struct flock lks;
+		lks.l_type = F_WRLCK | F_UNLCK;
+		return (fcntl(0, F_SETLKW, &lks));
+	}
 EOF
 
 ac_test getrusage <<-'EOF'
@@ -1444,6 +1443,20 @@ ac_test mkstemp <<-'EOF'
 	#include <stdlib.h>
 	#include <unistd.h>
 	int main(void) { char tmpl[] = "X"; return (mkstemp(tmpl)); }
+EOF
+
+ac_test mmap lock_fcntl 0 'for mmap and munmap' <<-'EOF'
+	#include <sys/types.h>
+	#if HAVE_SYS_FILE_H
+	#include <sys/file.h>
+	#endif
+	#if HAVE_SYS_MMAN_H
+	#include <sys/mman.h>
+	#endif
+	#include <stdlib.h>
+	int main(void) { return ((void *)mmap(NULL, (size_t)0,
+	    PROT_READ, MAP_PRIVATE, 0, (off_t)0) == (void *)NULL ? 1 :
+	    munmap(NULL, 0)); }
 EOF
 
 ac_test nice <<-'EOF'
@@ -1536,7 +1549,7 @@ EOF
 #
 save_CC=$CC; save_LDFLAGS=$LDFLAGS; save_LIBS=$LIBS
 CC="$CC -c -o $tcfn"; LDFLAGS=; LIBS=
-ac_test '!' flock_decl flock_ex 1 'if flock() does not need to be declared' <<-'EOF'
+ac_test '!' flock_decl flock 1 'if flock() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	long flock(void);		/* this clashes if defined before */
@@ -1559,7 +1572,9 @@ CC=$save_CC; LDFLAGS=$save_LDFLAGS; LIBS=$save_LIBS
 # other checks
 #
 fd='if to use persistent history'
-ac_cache PERSISTENT_HISTORY || test 0 = $HAVE_FLOCK_EX || fv=1
+ac_cache PERSISTENT_HISTORY || case $HAVE_MMAP$HAVE_FLOCK$HAVE_LOCL_FCNTL in
+11*|101) fv=1 ;;
+esac
 test 1 = $fv || check_categories="$check_categories no-histfile"
 ac_testdone
 ac_cppflags

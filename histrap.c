@@ -2,7 +2,8 @@
 /*	$OpenBSD: trap.c,v 1.23 2010/05/19 17:36:08 jasper Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+ *		 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -26,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.117 2011/12/31 00:47:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.118 2012/03/27 22:36:52 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -723,7 +724,7 @@ hist_init(Source *s)
 	if (histfd != fd)
 		close(fd);
 
-	(void)flock(histfd, LOCK_EX);
+	mksh_lockfd(histfd);
 
 	histfsize = lseek(histfd, (off_t)0, SEEK_END);
 	if (histfsize > MKSH_MAXHISTFSIZE || hs == hist_init_restore) {
@@ -815,7 +816,7 @@ hist_init(Source *s)
 	}
 	histfsize = lseek(histfd, (off_t)0, SEEK_END);
  hist_init_tail:
-	(void)flock(histfd, LOCK_UN);
+	mksh_unlkfd(histfd);
 #endif
 }
 
@@ -880,7 +881,7 @@ writehistfile(int lno, const char *cmd)
 	size_t bytes;
 	unsigned char *base, *news;
 
-	(void)flock(histfd, LOCK_EX);
+	mksh_lockfd(histfd);
 	sizenow = lseek(histfd, (off_t)0, SEEK_END);
 	if (sizenow < histfsize) {
 		/* the file has shrunk; give up */
@@ -917,7 +918,7 @@ writehistfile(int lno, const char *cmd)
 		return;
 	}
 	histfsize = lseek(histfd, (off_t)0, SEEK_END);
-	(void)flock(histfd, LOCK_UN);
+	mksh_unlkfd(histfd);
 }
 
 static int
@@ -938,7 +939,7 @@ writehistline(int fd, int lno, const char *cmd)
 void
 hist_finish(void)
 {
-	(void)flock(histfd, LOCK_UN);
+	mksh_unlkfd(histfd);
 	(void)close(histfd);
 	histfd = -1;
 }
@@ -1419,3 +1420,53 @@ setexecsig(Trap *p, int restore)
 		break;
 	}
 }
+
+#if HAVE_PERSISTENT_HISTORY || defined(DF)
+/*
+ * File descriptor locking and unlocking functions.
+ * Could use some error handling, but hey, this is only
+ * advisory locking anyway, will often not work over NFS,
+ * and you are SOL if this fails...
+ */
+
+void
+mksh_lockfd(int fd)
+{
+#if defined(__OpenBSD__)
+	/* flock is not interrupted by signals */
+	(void)flock(fd, LOCK_EX);
+#elif HAVE_FLOCK
+	int rv;
+
+	/* e.g. on Linux */
+	do {
+		rv = flock(fd, LOCK_EX);
+	} while (rv == 1 && errno == EINTR);
+#elif HAVE_LOCK_FCNTL
+	int rv;
+	struct flock lks;
+
+	memset(&lks, 0, sizeof(lks));
+	lks.l_type = F_WRLCK;
+	do {
+		rv = fcntl(fd, F_SETLKW, &lks);
+	} while (rv == 1 && errno == EINTR);
+#else
+#error oops
+#endif
+}
+
+void
+mksh_unlkfd(int fd)
+{
+#if HAVE_FLOCK
+	(void)flock(fd, LOCK_UN);
+#elif HAVE_LOCK_FCNTL
+	struct flock lks;
+
+	memset(&lks, 0, sizeof(lks));
+	lks.l_type = F_UNLCK;
+	(void)fcntl(fd, F_SETLKW, &lks);
+#endif
+}
+#endif
