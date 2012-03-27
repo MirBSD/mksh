@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.515 2012/03/26 20:14:58 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.516 2012/03/27 21:01:55 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -438,7 +438,7 @@ fi
 
 # Configuration depending on OS revision, on OSes that need them
 case $TARGET_OS in
-QNX)
+QNX|SCO_SV)
 	test x"$TARGET_OSREV" = x"" && TARGET_OSREV=`uname -r`
 	;;
 esac
@@ -570,11 +570,22 @@ QNX)
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 SCO_SV)
-	# <RT|AO> it is quite sure that sys_siglist[] is broken
-	# (it returns non mappable address)
-	: ${HAVE_SYS_SIGLIST=0} ${HAVE__SYS_SIGLIST=0}
-	# need test logs
-	oswarn='; it may or may not work'
+	oswarn='; it may actually work'
+	case $TARGET_OSREV in
+	3.2*)
+		# SCO OpenServer 5
+		add_cppflags -DMKSH_UNEMPLOYED
+		;;
+	5*)
+		# SCO OpenServer 6
+		# sys_siglist[] is broken (returns non mappable address)
+		: ${HAVE_SYS_SIGLIST=0} ${HAVE__SYS_SIGLIST=0}
+		;;
+	*)
+		oswarn='; this is an unknown version'
+		oswarn="$oswarn${nl}of ${TARGET_OS} ${TARGET_OSREV}, please tell me"
+		;;
+	esac
 	;;
 skyos)
 	oswarn="; it has minor issues"
@@ -591,6 +602,10 @@ ULTRIX)
 	: ${CC=cc -YPOSIX}
 	add_cppflags -Dssize_t=int
 	: ${HAVE_SETLOCALE_CTYPE=0}
+	;;
+UnixWare|UNIX_SV)
+	# SCO UnixWare
+	oswarn='; it may work well'
 	;;
 UWIN*)
 	ccpc='-Yc,'
@@ -629,6 +644,11 @@ IRIX*)
 OSF1)
 	vv '|' "uname -a >&2"
 	vv '|' "/usr/sbin/sizer -v >&2"
+	;;
+SCO_SV|UnixWare|UNIX_SV)
+	vv '|' "uname -a >&2"
+	vv '|' "uname -X >&2"
+	vv '|' "custom >&2"
 	;;
 *)
 	vv '|' "uname -a >&2"
@@ -682,6 +702,8 @@ ct=pgi
 ct=dmc
 #elif defined(_MSC_VER)
 ct=msc
+#elif defined(__USLC__)
+ct=uslc
 #elif defined(__ADSPBLACKFIN__) || defined(__ADSPTS__) || defined(__ADSP21000__)
 ct=adsp
 #elif defined(__IAR_SYSTEMS_ICC__)
@@ -831,6 +853,15 @@ tendra)
 ucode)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -Wl,-V conftest.c $LIBS"
+	;;
+uslc)
+	case $TARGET_OS:$TARGET_OSREV in
+	SCO_SV:3.2*)
+		# SCO OpenServer 5
+		CFLAGS="$CFLAGS -g"
+		;;
+	esac
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
 	;;
 watcom)
 	echo >&2 'Warning: Watcom C Compiler detected. This compiler has not yet
@@ -1304,7 +1335,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.515 2012/03/26 20:14:58 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.516 2012/03/27 21:01:55 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
