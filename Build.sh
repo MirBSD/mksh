@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.519 2012/03/27 22:41:16 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.520 2012/03/27 23:01:51 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -617,6 +617,7 @@ UWIN*)
 	;;
 *)
 	oswarn='; it may or may not work'
+	test x"$TARGET_OSREV" = x"" && TARGET_OSREV=`uname -r`
 	;;
 esac
 
@@ -875,6 +876,9 @@ xlc)
 	;;
 *)
 	ct=unknown
+	vv "$CC --version"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
 	;;
 esac
 case $cm in
@@ -1335,7 +1339,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.519 2012/03/27 22:41:16 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.520 2012/03/27 23:01:51 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
