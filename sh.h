@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.533 2012/03/27 22:49:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.534 2012/03/27 22:58:39 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/03/27"
 
@@ -383,7 +383,7 @@ extern int wcwidth(__WCHAR_TYPE__);
 /*
  * Make MAGIC a char that might be printed to make bugs more obvious, but
  * not a char that is used often. Also, can't use the high bit as it causes
- * portability problems (calling strchr(x, 0x80|'x') is error prone).
+ * portability problems (calling strchr(x, 0x80 | 'x') is error prone).
  */
 #define MAGIC		(7)	/* prefix for *?[!{,} during expand */
 #define ISMAGIC(c)	((unsigned char)(c) == MAGIC)
@@ -877,14 +877,6 @@ EXTERN char	*current_wd;
 #define MIN_LINS	3
 EXTERN mksh_ari_t x_cols E_INIT(80);	/* tty columns */
 EXTERN mksh_ari_t x_lins E_INIT(24);	/* tty lines */
-
-/* These to avoid bracket matching problems */
-#define OPAREN	'('
-#define CPAREN	')'
-#define OBRACK	'['
-#define CBRACK	']'
-#define OBRACE	'{'
-#define CBRACE	'}'
 
 
 /* Determine the location of the system (common) profile */
