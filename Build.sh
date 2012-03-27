@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.520 2012/03/27 23:01:51 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.521 2012/03/27 23:13:40 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -299,6 +299,7 @@ rmf a.exe* a.out* conftest.c *core core.* lft mksh* no *.bc *.ll *.o \
 curdir=`pwd` srcdir=`dirname "$0"` check_categories=
 test -n "$srcdir" || srcdir=.
 dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\(.*\)".*$/\1/p' $srcdir/sh.h`
+add_cppflags -DMKSH_BUILDSH
 
 e=echo
 r=0
@@ -582,8 +583,8 @@ SCO_SV)
 		: ${HAVE_SYS_SIGLIST=0} ${HAVE__SYS_SIGLIST=0}
 		;;
 	*)
-		oswarn='; this is an unknown version'
-		oswarn="$oswarn${nl}of ${TARGET_OS} ${TARGET_OSREV}, please tell me"
+		oswarn='; this is an unknown version of'
+		oswarn="$oswarn$nl$TARGET_OS ${TARGET_OSREV}, please tell me what to do"
 		;;
 	esac
 	;;
@@ -1339,7 +1340,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.520 2012/03/27 23:01:51 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.521 2012/03/27 23:13:40 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1773,7 +1774,7 @@ addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && add_cppflags -DMKSH_PRINTF_BUILTIN
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
-add_cppflags -DMKSH_BUILDSH
+add_cppflags -DMKSH_BUILD_R=409
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 
