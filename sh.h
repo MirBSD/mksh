@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.531 2012/03/27 22:36:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.532 2012/03/27 22:41:17 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/03/27"
 
@@ -203,6 +203,12 @@ typedef unsigned long rlim_t;
 #undef sig_t
 typedef void (*sig_t)(int);
 #endif
+
+/* un-do vendor damage */
+
+#undef BAD		/* AIX defines that somewhere */
+#undef flock		/* SCO UnixWare defines that to flock64 but ENOENT */
+
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -296,7 +302,6 @@ struct rusage {
 #endif
 #endif
 
-#undef BAD		/* AIX defines that somewhere */
 
 /* OS-dependent additions (functions, variables, by OS) */
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.518 2012/03/27 22:36:48 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.519 2012/03/27 22:41:16 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1335,7 +1335,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.518 2012/03/27 22:36:48 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.519 2012/03/27 22:41:16 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1401,11 +1401,13 @@ EOF
 #
 ac_test flock <<-'EOF'
 	#include <fcntl.h>
+	#undef flock
 	int main(void) { return (flock(0, LOCK_EX | LOCK_UN)); }
 EOF
 
 ac_test lock_fcntl '!' flock 1 'whether we can lock files with fcntl' <<-'EOF'
 	#include <fcntl.h>
+	#undef flock
 	int main(void) {
 		struct flock lks;
 		lks.l_type = F_WRLCK | F_UNLCK;
