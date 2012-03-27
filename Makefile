@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.93 2012/03/23 19:38:11 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.94 2012/03/27 21:23:51 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -48,6 +48,7 @@ CPPFLAGS+=	-DMKSH_ASSUME_UTF8 -DMKSH_DISABLE_DEPRECATED \
 		-DHAVE_PERSISTENT_HISTORY=1
 # probably differs between i386 and sparc
 CPPFLAGS+=	-DHAVE_SILENT_IDIVWRAPV=0
+CPPFLAGS+=	-D${${PROG:L}_tf:C/(Mir${MAN:E}{0,1}){2}/4/:S/x/mksh_BUILD/:U}
 COPTS+=		-std=gnu99 -Wall
 .endif
 
@@ -95,6 +96,7 @@ cleandir: clean-extra
 clean-extra: .PHONY
 	-rm -rf build-dir regress-dir printf.o printf.ln
 
+mksh_tf=xMakefile${OStype:S/${MACHINE_OS}/1/1g}${OSNAME}
 distribution:
 	sed 's!\$$I''d\([:$$]\)!$$M''irSecuCron\1!g' \
 	    ${.CURDIR}/dot.mkshrc >${DESTDIR}/etc/skel/.mkshrc
