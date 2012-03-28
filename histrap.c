@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.118 2012/03/27 22:36:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.119 2012/03/28 23:07:47 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -1451,22 +1451,25 @@ mksh_lockfd(int fd)
 	do {
 		rv = fcntl(fd, F_SETLKW, &lks);
 	} while (rv == 1 && errno == EINTR);
-#else
-#error oops
 #endif
 }
 
+/* designed to not define mksh_unlkfd if none triggered */
+#if HAVE_FLOCK
 void
 mksh_unlkfd(int fd)
 {
-#if HAVE_FLOCK
 	(void)flock(fd, LOCK_UN);
+}
 #elif HAVE_LOCK_FCNTL
+void
+mksh_unlkfd(int fd)
+{
 	struct flock lks;
 
 	memset(&lks, 0, sizeof(lks));
 	lks.l_type = F_UNLCK;
 	(void)fcntl(fd, F_SETLKW, &lks);
-#endif
 }
+#endif
 #endif
