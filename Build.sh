@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.521 2012/03/27 23:13:40 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.522 2012/03/28 11:13:45 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -650,7 +650,6 @@ OSF1)
 SCO_SV|UnixWare|UNIX_SV)
 	vv '|' "uname -a >&2"
 	vv '|' "uname -X >&2"
-	vv '|' "custom >&2"
 	;;
 *)
 	vv '|' "uname -a >&2"
@@ -1340,7 +1339,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.521 2012/03/27 23:13:40 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.522 2012/03/28 11:13:45 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
