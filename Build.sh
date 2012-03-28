@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.522 2012/03/28 11:13:45 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.523 2012/03/28 11:14:20 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1339,7 +1339,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.522 2012/03/28 11:13:45 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.523 2012/03/28 11:14:20 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1578,7 +1578,7 @@ CC=$save_CC; LDFLAGS=$save_LDFLAGS; LIBS=$save_LIBS
 # other checks
 #
 fd='if to use persistent history'
-ac_cache PERSISTENT_HISTORY || case $HAVE_MMAP$HAVE_FLOCK$HAVE_LOCL_FCNTL in
+ac_cache PERSISTENT_HISTORY || case $HAVE_MMAP$HAVE_FLOCK$HAVE_LOCK_FCNTL in
 11*|101) fv=1 ;;
 esac
 test 1 = $fv || check_categories="$check_categories no-histfile"
