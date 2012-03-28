@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.536 2012/03/28 11:05:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.537 2012/03/28 23:09:24 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/03/27"
 
@@ -444,7 +444,12 @@ char *ucstrstr(char *, const char *);
 
 #if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 409)
 #error Must run Build.sh to compile this.
-I’m sorry, Dave. I’m afraid I can’t do that.
+int
+im_sorry_dave(void)
+{
+	/* I’m sorry, Dave. I’m afraid I can’t do that. */
+	return (thiswillneverbedefinedIhope());
+}
 #endif
 
 /* use this ipv strchr(s, 0) but no side effects in s! */
