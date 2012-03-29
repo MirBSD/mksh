@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.158 2011/11/26 17:56:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.159 2012/03/29 19:23:00 tg Exp $");
 
 /*
  * states while lexing word
@@ -1633,7 +1633,7 @@ get_brace_var(XString *wsp, char *wp)
 
 					c2 = getsc();
 					ungetsc(c2);
-					if (c2 != '}') {
+					if (c2 != /*{*/ '}') {
 						ungetsc(c);
 						goto out;
 					}

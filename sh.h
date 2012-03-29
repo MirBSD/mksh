@@ -152,9 +152,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.537 2012/03/28 23:09:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.538 2012/03/29 19:23:01 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/03/27"
+#define MKSH_VERSION "R40 2012/03/29"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -590,8 +590,8 @@ extern struct env {
 	short *savefd;		/* original redirected fds */
 	struct temp *temps;	/* temp files */
 	sigjmp_buf jbuf;	/* long jump back to env creator */
-	short type;		/* environment type - see below */
-	short flags;		/* EF_* */
+	uint8_t type;		/* environment type - see below */
+	uint8_t flags;		/* EF_* */
 } *e;
 
 /* struct env.type values */
@@ -610,8 +610,8 @@ extern struct env {
 #define EF_FAKE_SIGDIE	BIT(2)	/* hack to get info from unwind to quitenv */
 
 /* Do breaks/continues stop at env type e? */
-#define STOP_BRKCONT(t)	((t) == E_NONE || (t) == E_PARSE \
-			 || (t) == E_FUNC || (t) == E_INCL)
+#define STOP_BRKCONT(t)	((t) == E_NONE || (t) == E_PARSE || \
+			    (t) == E_FUNC || (t) == E_INCL)
 /* Do returns stop at env type e? */
 #define STOP_RETURN(t)	((t) == E_FUNC || (t) == E_INCL)
 

@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *		 2010, 2011
+ *		 2010, 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.210 2012/03/26 21:10:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.211 2012/03/29 19:22:58 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2253,7 +2253,7 @@ c_exitreturn(const char **wp)
 	const char *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
-		return (1);
+		goto c_exitreturn_err;
 	arg = wp[builtin_opt.optind];
 
 	if (arg) {
@@ -2288,6 +2288,9 @@ c_exitreturn(const char **wp)
 	quitenv(NULL);
 	unwind(how);
 	/* NOTREACHED */
+
+ c_exitreturn_err:
+	return (1);
 }
 
 int
@@ -2298,19 +2301,19 @@ c_brkcont(const char **wp)
 	const char *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
-		return (1);
+		goto c_brkcont_err;
 	arg = wp[builtin_opt.optind];
 
 	if (!arg)
 		n = 1;
 	else if (!bi_getn(arg, &n))
-		return (1);
-	quit = n;
-	if (quit <= 0) {
+		goto c_brkcont_err;
+	if (n <= 0) {
 		/* AT&T ksh does this for non-interactive shells only - weird */
 		bi_errorf("%s: %s", arg, "bad value");
-		return (1);
+		goto c_brkcont_err;
 	}
+	quit = n;
 
 	/* Stop at E_NONE, E_PARSE, E_FUNC, or E_INCL */
 	for (ep = e; ep && !STOP_BRKCONT(ep->type); ep = ep->oenv)
@@ -2344,6 +2347,9 @@ c_brkcont(const char **wp)
 
 	unwind(*wp[0] == 'b' ? LBREAK : LCONTIN);
 	/* NOTREACHED */
+
+ c_brkcont_err:
+	return (1);
 }
 
 int
@@ -2974,7 +2980,7 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 
 	/* -s */
 	case TO_FILGZ:
-		return (stat(opnd1, &b1) == 0 && b1.st_size > 0L);
+		return (stat(opnd1, &b1) == 0 && (off_t)b1.st_size > (off_t)0);
 
 	/* -t */
 	case TO_FILTT:

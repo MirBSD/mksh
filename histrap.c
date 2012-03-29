@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.119 2012/03/28 23:07:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.120 2012/03/29 19:22:59 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -342,7 +342,7 @@ c_fc(const char **wp)
 			    "file", (unsigned long)statb.st_size);
 			goto errout;
 		} else
-			n = statb.st_size + 1;
+			n = (size_t)statb.st_size + 1;
 		Xinit(xs, xp, n, hist_source->areap);
 		while ((n = shf_read(xp, Xnleft(xs, xp), shf)) > 0) {
 			xp += n;

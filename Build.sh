@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.524 2012/03/28 11:15:04 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.525 2012/03/29 19:22:54 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -571,7 +571,6 @@ QNX)
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 SCO_SV)
-	oswarn='; it may actually work'
 	case $TARGET_OSREV in
 	3.2*)
 		# SCO OpenServer 5
@@ -606,7 +605,6 @@ ULTRIX)
 	;;
 UnixWare|UNIX_SV)
 	# SCO UnixWare
-	oswarn='; it may work well'
 	;;
 UWIN*)
 	ccpc='-Yc,'
@@ -860,6 +858,7 @@ uslc)
 	SCO_SV:3.2*)
 		# SCO OpenServer 5
 		CFLAGS="$CFLAGS -g"
+		: ${HAVE_CAN_OTWO=0} ${HAVE_CAN_OPTIMISE=0}
 		;;
 	esac
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
@@ -1339,7 +1338,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.524 2012/03/28 11:15:04 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.525 2012/03/29 19:22:54 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1661,7 +1660,8 @@ if ac_testnnd silent_idivwrapv '' '(run-time) whether signed integer division ov
 			printf("si");
 			return (0);
 		}
-		printf("no %d %d %d %d %s", o1, o2, r1, r2, av[0]);
+		printf("no %d %d %d %d %s", (int)o1, (int)o2, (int)r1,
+		    (int)r2, av[0]);
 		return (1);
 	}
 	#ifdef SIGFPE

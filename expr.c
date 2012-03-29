@@ -1,7 +1,8 @@
 /*	$OpenBSD: expr.c,v 1.21 2009/06/01 19:00:57 deraadt Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+ *		 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.53 2011/12/31 02:04:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.54 2012/03/29 19:22:58 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -368,10 +369,11 @@ evalexpr(Expr_state *es, int prec)
 		case O_DIVASN:
 #if !HAVE_SILENT_IDIVWRAPV
 			if (!es->natural && vr->val.i == -1 &&
-			    vl->val.i == ((mksh_ari_t)1 << 31)) {
+			    vl->val.i == ((mksh_ari_t)-2147483648)) {
 				/* -2147483648 / -1 = 2147483648 */
+				/* this ^ is really (1 << 31) though */
 				/* 80000000 / FFFFFFFF = 80000000 */
-				res = ((mksh_ari_t)1 << 31);
+				res = ((mksh_ari_t)-2147483648);
 			} else
 #endif
 				res = bivui(vl, /, vr);
@@ -380,7 +382,7 @@ evalexpr(Expr_state *es, int prec)
 		case O_MODASN:
 #if !HAVE_SILENT_IDIVWRAPV
 			if (!es->natural && vr->val.i == -1 &&
-			    vl->val.i == ((mksh_ari_t)1 << 31)) {
+			    vl->val.i == ((mksh_ari_t)-2147483648)) {
 				/* -2147483648 % -1 = 0 */
 				res = 0;
 			} else

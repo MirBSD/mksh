@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.114 2012/03/27 22:58:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.115 2012/03/29 19:22:57 tg Exp $");
 
 /*
  * string expansion
@@ -393,7 +393,8 @@ expand(const char *cp,	/* input word */
 						NZATUpdateString(h,
 						    str_val(st->var));
 						NZATFinish(h);
-						x.str = shf_smprintf("%08X", h);
+						x.str = shf_smprintf("%08X",
+						     (unsigned int)h);
 						break;
 					}
 					case '0': {
