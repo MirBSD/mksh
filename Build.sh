@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.526 2012/03/30 09:27:19 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.527 2012/03/30 10:24:45 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -578,14 +578,13 @@ SCO_SV)
 		;;
 	5*)
 		# SCO OpenServer 6
-		# sys_siglist[] is broken (returns non mappable address)
-		: ${HAVE_SYS_SIGLIST=0} ${HAVE__SYS_SIGLIST=0}
 		;;
 	*)
 		oswarn='; this is an unknown version of'
 		oswarn="$oswarn$nl$TARGET_OS ${TARGET_OSREV}, please tell me what to do"
 		;;
 	esac
+	: ${HAVE_SYS_SIGLIST=0} ${HAVE__SYS_SIGLIST=0}
 	;;
 skyos)
 	oswarn="; it has minor issues"
@@ -605,6 +604,7 @@ ULTRIX)
 	;;
 UnixWare|UNIX_SV)
 	# SCO UnixWare
+	: ${HAVE_SYS_SIGLIST=0} ${HAVE__SYS_SIGLIST=0}
 	;;
 UWIN*)
 	ccpc='-Yc,'
@@ -1338,7 +1338,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.526 2012/03/30 09:27:19 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.527 2012/03/30 10:24:45 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
