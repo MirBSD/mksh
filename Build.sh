@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.525 2012/03/29 19:22:54 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.526 2012/03/30 09:27:19 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -622,7 +622,7 @@ esac
 
 : ${HAVE_MKNOD=0}
 
-: ${CC=cc} ${NROFF=nroff}
+: ${AWK=awk} ${CC=cc} ${NROFF=nroff}
 test 0 = $r && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
     NROFF="$NROFF -c"
 
@@ -1338,7 +1338,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.525 2012/03/29 19:22:54 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.526 2012/03/30 09:27:19 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1734,7 +1734,7 @@ mksh_cfg: NSIG' >conftest.c
 	NSIG=`vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
 	    grep mksh_cfg: | sed 's/^mksh_cfg:[	 ]*\([0-9x ()+-]*\).*$/\1/'`
 	case $NSIG in
-	*[\ \(\)+-]*) NSIG=`awk "BEGIN { print $NSIG }"` ;;
+	*[\ \(\)+-]*) NSIG=`"$AWK" "BEGIN { print $NSIG }"` ;;
 	esac
 	printf=printf
 	(printf hallo) >/dev/null 2>&1 || printf=echo
@@ -1997,6 +1997,7 @@ exit 0
 === Environment used ===
 
 ==== build environment ====
+AWK				default: awk
 CC				default: cc
 CFLAGS				if empty, defaults to -xO2 or +O2
 				or -O3 -qstrict or -O2, per compiler
