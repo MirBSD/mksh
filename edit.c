@@ -26,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.232 2012/03/31 19:20:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.233 2012/03/31 19:52:34 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1191,10 +1191,6 @@ x_emacs(char *buf, size_t len)
 		}
 		i = c | (x_curprefix << 8);
 		x_curprefix = 0;
-#ifdef DEBUG
-		if (xcp > xep)
-			abort();
-#endif
 		switch ((*x_ftab[f].xf_func)(i)) {
 		case KSTD:
 			if (!(x_ftab[f].xf_flags & XF_PREFIX))
@@ -1518,7 +1514,9 @@ x_fword(int move)
 static void
 x_goto(char *cp)
 {
-	if (UTFMODE)
+	if (cp >= xep)
+		cp = xep;
+	else if (UTFMODE)
 		while ((cp > xbuf) && ((*cp & 0xC0) == 0x80))
 			--cp;
 	if (cp < xbp || cp >= utf_skipcols(xbp, x_displen)) {
