@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.529 2012/03/31 17:42:58 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.530 2012/03/31 18:33:16 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -529,6 +529,12 @@ MSYS_*)
 	: ${HAVE_STDINT_H=0}
 	;;
 NetBSD)
+	;;
+NEXTSTEP)
+	# NeXTstep works, OpenStep 4.2 is broken and needs LIBS to have
+	# http://www.math.unl.edu/~rdieter1/OpenStep/Developer/PortingTips/posix1.txt
+	# with sigprocmask adapted for the omask==NULL case (thanks RT)
+	oswarn="; it has minor issues"
 	;;
 Ninix3)
 	# similar to Minix3
@@ -1342,7 +1348,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.529 2012/03/31 17:42:58 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.530 2012/03/31 18:33:16 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
