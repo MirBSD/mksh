@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.527 2012/03/30 10:24:45 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.528 2012/03/31 17:37:03 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -404,11 +404,13 @@ You can avoid these by calling Build.sh correctly, see below.
 "
 	cat >conftest.c <<'EOF'
 #include <sys/types.h>
+const char *
 #ifdef _NETBSD_SOURCE
-ct=Ninix3
+ct="Ninix3"
 #else
-ct=Minix3
+ct="Minix3"
 #endif
+;
 EOF
 	ct=unknown
 	vv ']' "${CC-cc} -E $CFLAGS $CPPFLAGS $NOWARN conftest.c | grep ct= | tr -d \\\\015 >x"
@@ -677,61 +679,63 @@ $e $bi$me: Scanning for functions... please ignore any errors.$ao
 CPP="$CC -E"
 $e ... which compiler seems to be used
 cat >conftest.c <<'EOF'
+const char *
 #if defined(__ICC) || defined(__INTEL_COMPILER)
-ct=icc
+ct="icc"
 #elif defined(__xlC__) || defined(__IBMC__)
-ct=xlc
+ct="xlc"
 #elif defined(__SUNPRO_C)
-ct=sunpro
+ct="sunpro"
 #elif defined(__ACK__)
-ct=ack
+ct="ack"
 #elif defined(__BORLANDC__)
-ct=bcc
+ct="bcc"
 #elif defined(__WATCOMC__)
-ct=watcom
+ct="watcom"
 #elif defined(__MWERKS__)
-ct=metrowerks
+ct="metrowerks"
 #elif defined(__HP_cc)
-ct=hpcc
+ct="hpcc"
 #elif defined(__DECC) || (defined(__osf__) && !defined(__GNUC__))
-ct=dec
+ct="dec"
 #elif defined(__PGI)
-ct=pgi
+ct="pgi"
 #elif defined(__DMC__)
-ct=dmc
+ct="dmc"
 #elif defined(_MSC_VER)
-ct=msc
+ct="msc"
 #elif defined(__ADSPBLACKFIN__) || defined(__ADSPTS__) || defined(__ADSP21000__)
-ct=adsp
+ct="adsp"
 #elif defined(__IAR_SYSTEMS_ICC__)
-ct=iar
+ct="iar"
 #elif defined(SDCC)
-ct=sdcc
+ct="sdcc"
 #elif defined(__PCC__)
-ct=pcc
+ct="pcc"
 #elif defined(__TenDRA__)
-ct=tendra
+ct="tendra"
 #elif defined(__TINYC__)
-ct=tcc
+ct="tcc"
 #elif defined(__llvm__) && defined(__clang__)
-ct=clang
+ct="clang"
 #elif defined(__NWCC__)
-ct=nwcc
+ct="nwcc"
 #elif defined(__GNUC__)
-ct=gcc
+ct="gcc"
 #elif defined(_COMPILER_VERSION)
-ct=mipspro
+ct="mipspro"
 #elif defined(__sgi)
-ct=mipspro
+ct="mipspro"
 #elif defined(__hpux) || defined(__hpua)
-ct=hpcc
+ct="hpcc"
 #elif defined(__ultrix)
-ct=ucode
+ct="ucode"
 #elif defined(__USLC__)
-ct=uslc
+ct="uslc"
 #else
-ct=unknown
+ct="unknown"
 #endif
+;
 EOF
 ct=unknown
 vv ']' "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c | grep ct= | tr -d \\\\015 >x"
@@ -1338,7 +1342,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.527 2012/03/30 10:24:45 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.528 2012/03/31 17:37:03 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
