@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.527 2012/03/31 18:26:53 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.528 2012/03/31 18:28:11 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -8269,6 +8269,7 @@ description:
 	is a must (a non-recursive parser cannot pass all three of
 	these test cases, especially the ‘#’ is difficult)
 stdin:
+	print '#!'"$__progname"'\necho 1234' >id; chmod +x id; PATH=.:$PATH
 	echo $(typeset -i10 x=16#20; echo $x)
 	echo $(typeset -Uui16 x=16#$(id -u)
 	) .
