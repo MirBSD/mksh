@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.528 2012/03/31 17:37:03 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.529 2012/03/31 17:42:58 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1342,7 +1342,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.528 2012/03/31 17:37:03 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.529 2012/03/31 17:42:58 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1734,9 +1734,11 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 #define NSIG (SIGMAX+1)
 #endif
 #endif
-mksh_cfg: NSIG' >conftest.c
+int
+mksh_cfg= NSIG
+;' >conftest.c
 	NSIG=`vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
-	    grep mksh_cfg: | sed 's/^mksh_cfg:[	 ]*\([0-9x ()+-]*\).*$/\1/'`
+	    grep mksh_cfg= | sed 's/^mksh_cfg=[	 ]*\([0-9x ()+-]*\).*$/\1/'`
 	case $NSIG in
 	*[\ \(\)+-]*) NSIG=`"$AWK" "BEGIN { print $NSIG }"` ;;
 	esac
@@ -1754,10 +1756,12 @@ mksh_cfg: NSIG' >conftest.c
 	test $NSIG -gt 1 || sigs=
 	for name in $sigs; do
 		echo '#include <signal.h>' >conftest.c
-		echo mksh_cfg: SIG$name >>conftest.c
+		echo int >>conftest.c
+		echo mksh_cfg= SIG$name >>conftest.c
+		echo ';' >>conftest.c
 		vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
-		    grep mksh_cfg: | \
-		    sed 's/^mksh_cfg:[	 ]*\([0-9x]*\).*$/\1:'$name/
+		    grep mksh_cfg= | \
+		    sed 's/^mksh_cfg=[	 ]*\([0-9x]*\).*$/\1:'$name/
 	done | grep -v '^:' | sed 's/:/ /g' | while read nr name; do
 		test $printf = echo || nr=`printf %d "$nr" 2>/dev/null`
 		test $nr -gt 0 && test $nr -le $NSIG || continue
