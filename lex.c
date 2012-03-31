@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.159 2012/03/29 19:23:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.160 2012/03/31 17:29:59 tg Exp $");
 
 /*
  * states while lexing word
@@ -1514,7 +1514,7 @@ set_prompt(int to, Source *s)
 			ps1 = shf_sclose(shf);
 			saved_atemp = ATEMP;
 			newenv(E_ERRH);
-			if (sigsetjmp(e->jbuf, 0)) {
+			if (kshsetjmp(e->jbuf)) {
 				prompt = safe_prompt;
 				/*
 				 * Don't print an error - assume it has already

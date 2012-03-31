@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.213 2012/03/31 17:08:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.214 2012/03/31 17:30:00 tg Exp $");
 
 extern char **environ;
 
@@ -652,8 +652,7 @@ include(const char *name, int argc, const char **argv, int intr_ok)
 		old_argc = 0;
 	}
 	newenv(E_INCL);
-	i = sigsetjmp(e->jbuf, 0);
-	if (i) {
+	if ((i = kshsetjmp(e->jbuf))) {
 		quitenv(s ? s->u.shf : NULL);
 		if (old_argv) {
 			e->loc->argv = old_argv;
@@ -728,49 +727,47 @@ shell(Source * volatile s, volatile int toplevel)
 	newenv(E_PARSE);
 	if (interactive)
 		really_exit = 0;
-	i = sigsetjmp(e->jbuf, 0);
-	if (i) {
-		switch (i) {
-		case LINTR:
-			/* we get here if SIGINT not caught or ignored */
-		case LERROR:
-		case LSHELL:
-			if (interactive) {
-				if (i == LINTR)
-					shellf("\n");
-				/*
-				 * Reset any eof that was read as part of a
-				 * multiline command.
-				 */
-				if (Flag(FIGNOREEOF) && s->type == SEOF &&
-				    wastty)
-					s->type = SSTDIN;
-				/*
-				 * Used by exit command to get back to
-				 * top level shell. Kind of strange since
-				 * interactive is set if we are reading from
-				 * a tty, but to have stopped jobs, one only
-				 * needs FMONITOR set (not FTALKING/SF_TTY)...
-				 */
-				/* toss any input we have so far */
-				s->start = s->str = null;
-				break;
-			}
-			/* FALLTHROUGH */
-		case LEXIT:
-		case LLEAVE:
-		case LRETURN:
-			source = old_source;
-			quitenv(NULL);
-			/* keep on going */
-			unwind(i);
-			/* NOTREACHED */
-		default:
-			source = old_source;
-			quitenv(NULL);
-			internal_errorf("%s %d", "shell", i);
-			/* NOTREACHED */
+	switch ((i = kshsetjmp(e->jbuf))) {
+	case 0:
+		break;
+	case LINTR:
+		/* we get here if SIGINT not caught or ignored */
+	case LERROR:
+	case LSHELL:
+		if (interactive) {
+			if (i == LINTR)
+				shellf("\n");
+			/*
+			 * Reset any eof that was read as part of a
+			 * multiline command.
+			 */
+			if (Flag(FIGNOREEOF) && s->type == SEOF && wastty)
+				s->type = SSTDIN;
+			/*
+			 * Used by exit command to get back to
+			 * top level shell. Kind of strange since
+			 * interactive is set if we are reading from
+			 * a tty, but to have stopped jobs, one only
+			 * needs FMONITOR set (not FTALKING/SF_TTY)...
+			 */
+			/* toss any input we have so far */
+			s->start = s->str = null;
+			break;
 		}
+		/* FALLTHROUGH */
+	case LEXIT:
+	case LLEAVE:
+	case LRETURN:
+		source = old_source;
+		quitenv(NULL);
+		/* keep on going */
+		unwind(i);
+		/* NOTREACHED */
+	default:
+		source = old_source;
+		quitenv(NULL);
+		internal_errorf("%s %d", "shell", i);
+		/* NOTREACHED */
 	}
 	while (/* CONSTCOND */ 1) {
 		if (trap)
@@ -845,7 +842,7 @@ unwind(int i)
 		case E_INCL:
 		case E_LOOP:
 		case E_ERRH:
-			siglongjmp(e->jbuf, i);
+			kshlongjmp(e->jbuf, i);
 			/* NOTREACHED */
 		case E_NONE:
 			if (i == LINTR)

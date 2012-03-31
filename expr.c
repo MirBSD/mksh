@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.54 2012/03/29 19:22:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.55 2012/03/31 17:29:59 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -199,8 +199,7 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok,
 	curstate.natural = false;
 
 	newenv(E_ERRH);
-	i = sigsetjmp(e->jbuf, 0);
-	if (i) {
+	if ((i = kshsetjmp(e->jbuf))) {
 		/* Clear EXPRINEVAL in of any variables we were playing with */
 		if (curstate.evaling)
 			curstate.evaling->flag &= ~EXPRINEVAL;

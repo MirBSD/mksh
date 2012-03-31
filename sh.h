@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.538 2012/03/29 19:23:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.539 2012/03/31 17:30:00 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/03/29"
 
@@ -582,6 +582,16 @@ enum sh_flag {
 /*
  * parsing & execution environment
  */
+#if defined(NeXT) && !defined(__GLIBC__)
+#define kshjmp_buf	jmp_buf
+#define kshsetjmp(jbuf)	_setjmp(jbuf)
+#define kshlongjmp	_longjmp
+#else
+#define kshjmp_buf	sigjmp_buf
+#define kshsetjmp(jbuf)	sigsetjmp((jbuf), 0)
+#define kshlongjmp	siglongjmp
+#endif
+
 extern struct env {
 	ALLOC_ITEM alloc_INT;	/* internal, do not touch */
 	Area area;		/* temporary allocation area */
@@ -589,7 +599,7 @@ extern struct env {
 	struct block *loc;	/* local variables and functions */
 	short *savefd;		/* original redirected fds */
 	struct temp *temps;	/* temp files */
-	sigjmp_buf jbuf;	/* long jump back to env creator */
+	kshjmp_buf jbuf;	/* long jump back to env creator */
 	uint8_t type;		/* environment type - see below */
 	uint8_t flags;		/* EF_* */
 } *e;
@@ -615,7 +625,7 @@ extern struct env {
 /* Do returns stop at env type e? */
 #define STOP_RETURN(t)	((t) == E_FUNC || (t) == E_INCL)
 
-/* values for siglongjmp(e->jbuf, 0) */
+/* values for kshlongjmp(e->jbuf, i) */
 #define LRETURN	1	/* return statement */
 #define LEXIT	2	/* exit statement */
 #define LERROR	3	/* errorf() called */
@@ -898,7 +908,7 @@ EXTERN mksh_ari_t x_lins E_INIT(24);	/* tty lines */
 
 
 /* Used by v_evaluate() and setstr() to control action when error occurs */
-#define KSH_UNWIND_ERROR	0	/* unwind the stack (longjmp) */
+#define KSH_UNWIND_ERROR	0	/* unwind the stack (kshlongjmp) */
 #define KSH_RETURN_ERROR	1	/* return 1/0 for success/failure */
 
 /*

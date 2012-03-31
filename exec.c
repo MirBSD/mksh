@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.96 2011/09/07 15:24:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.97 2012/03/31 17:29:58 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -234,8 +234,7 @@ execute(struct op * volatile t,
 		 */
 		sigprocmask(SIG_BLOCK, &sm_sigchld, &omask);
 		e->type = E_ERRH;
-		i = sigsetjmp(e->jbuf, 0);
-		if (i) {
+		if ((i = kshsetjmp(e->jbuf))) {
 			sigprocmask(SIG_SETMASK, &omask, NULL);
 			quitenv(NULL);
 			unwind(i);
@@ -337,10 +336,7 @@ execute(struct op * volatile t,
 		    (const char **)eval((const char **)t->vars,
 		    DOBLANK | DOGLOB | DOTILDE);
 		e->type = E_LOOP;
-		while (/* CONSTCOND */ 1) {
-			i = sigsetjmp(e->jbuf, 0);
-			if (!i)
-				break;
+		while ((i = kshsetjmp(e->jbuf))) {
 			if ((e->flags&EF_BRKCONT_PASS) ||
 			    (i != LBREAK && i != LCONTIN)) {
 				quitenv(NULL);
@@ -375,10 +371,7 @@ execute(struct op * volatile t,
 	case TWHILE:
 	case TUNTIL:
 		e->type = E_LOOP;
-		while (/* CONSTCOND */ 1) {
-			i = sigsetjmp(e->jbuf, 0);
-			if (!i)
-				break;
+		while ((i = kshsetjmp(e->jbuf))) {
 			if ((e->flags&EF_BRKCONT_PASS) ||
 			    (i != LBREAK && i != LCONTIN)) {
 				quitenv(NULL);
@@ -733,8 +726,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		tp->flag |= FINUSE;
 
 		e->type = E_FUNC;
-		i = sigsetjmp(e->jbuf, 0);
-		if (i == 0) {
+		if (!(i = kshsetjmp(e->jbuf))) {
 			/* seems odd to pass XERROK here, but AT&T ksh does */
 			exstat = execute(tp->val.t, flags & XERROK, xerrok);
 			i = LRETURN;
@@ -1424,7 +1416,7 @@ hereinval(const char *content, int sub, char **resbuf, struct shf *shf)
 
 	osource = source;
 	newenv(E_ERRH);
-	if (sigsetjmp(e->jbuf, 0)) {
+	if (kshsetjmp(e->jbuf)) {
 		source = osource;
 		quitenv(shf);
 		/* special to iosetup(): don't print error */
