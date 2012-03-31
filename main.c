@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.212 2012/03/27 22:36:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.213 2012/03/31 17:08:52 tg Exp $");
 
 extern char **environ;
 
@@ -109,7 +109,9 @@ rndsetup(void)
 	struct {
 		ALLOC_ITEM alloc_INT;
 		void *dataptr, *stkptr, *mallocptr;
+#if defined(__GLIBC__) && (__GLIBC__ >= 2)
 		sigjmp_buf jbuf;
+#endif
 		struct timeval tv;
 	} *bufptr;
 	char *cp;
@@ -127,8 +129,10 @@ rndsetup(void)
 	bufptr->stkptr = &bufptr;
 	/* randomised malloc in BSD (and possibly others) */
 	bufptr->mallocptr = bufptr;
+#if defined(__GLIBC__) && (__GLIBC__ >= 2)
 	/* glibc pointer guard */
 	sigsetjmp(bufptr->jbuf, 1);
+#endif
 	/* introduce variation (and yes, second arg MBZ for portability) */
 	gettimeofday(&bufptr->tv, NULL);
 
