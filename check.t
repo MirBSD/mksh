@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.525 2012/03/29 19:22:55 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.526 2012/03/31 18:18:41 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4520,6 +4520,9 @@ name: regression-42
 description:
 	Can't use command line assignments to assign readonly parameters.
 stdin:
+	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
+	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
+	    done >env; chmod +x env; PATH=.:$PATH
 	foo=bar
 	readonly foo
 	foo=stuff env | grep '^foo'
@@ -4635,10 +4638,10 @@ name: regression-50
 description:
 	Check that aliases do not use continuation prompt after trailing
 	semi-colon.
-file-setup: file 644 "env"
+file-setup: file 644 "envf"
 	PS1=Y
 	PS2=X
-env-setup: !ENV=./env!
+env-setup: !ENV=./envf!
 need-ctty: yes
 arguments: !-i!
 stdin:
@@ -4665,11 +4668,11 @@ expected-stdout:
 name: regression-52
 description:
 	Check that globbing works in pipelined commands
-file-setup: file 644 "env"
+file-setup: file 644 "envf"
 	PS1=P
 file-setup: file 644 "abc"
 	stuff
-env-setup: !ENV=./env!
+env-setup: !ENV=./envf!
 need-ctty: yes
 arguments: !-i!
 stdin:
@@ -5202,6 +5205,9 @@ name: xxx-exec-environment-1
 description:
 	Check to see if exec sets it's environment correctly
 stdin:
+	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
+	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
+	    done >env; chmod +x env; PATH=.:$PATH
 	FOO=bar exec env
 expected-stdout-pattern:
 	/(^|.*\n)FOO=bar\n/
@@ -5211,9 +5217,11 @@ description:
 	Check to make sure exec doesn't change environment if a program
 	isn't exec-ed
 stdin:
-	sortprog=$(whence -p sort) || sortprog=cat
-	env | $sortprog | grep -v '^RANDOM=' >bar1
-	FOO=bar exec; env | $sortprog | grep -v '^RANDOM=' >bar2
+	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
+	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
+	    done >env; chmod +x env; PATH=.:$PATH
+	env >bar1
+	FOO=bar exec; env >bar2
 	cmp -s bar1 bar2
 ---
 name: exec-function-environment-1
@@ -5433,6 +5441,10 @@ name: exit-err-1
 description:
 	Check some "exit on error" conditions
 stdin:
+	print '#!'"$__progname"'\nexec "$1"' >env
+	print '#!'"$__progname"'\nexit 1' >false
+	chmod +x env false
+	PATH=.:$PATH
 	set -ex
 	env false && echo something
 	echo END
@@ -5446,6 +5458,11 @@ name: exit-err-2
 description:
 	Check some "exit on error" edge conditions (POSIXly)
 stdin:
+	print '#!'"$__progname"'\nexec "$1"' >env
+	print '#!'"$__progname"'\nexit 1' >false
+	print '#!'"$__progname"'\nexit 0' >true
+	chmod +x env false
+	PATH=.:$PATH
 	set -ex
 	if env true; then
 		env false && echo something
@@ -8094,6 +8111,9 @@ description:
 	global environment.
 	Inspired by PR 2450.
 stdin:
+	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
+	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
+	    done >env; chmod +x env; PATH=.:$PATH
 	function k {
 		if [ x$FOO != xbar ]; then
 			echo 1
