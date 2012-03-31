@@ -26,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.231 2012/03/31 17:29:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.232 2012/03/31 19:20:12 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -867,12 +867,12 @@ static char *xcp;		/* current position */
 static char *xep;		/* current end */
 static char *xbp;		/* start of visible portion of input buffer */
 static char *xlp;		/* last char visible on screen */
-static int x_adj_ok;
+static bool x_adj_ok;
 /*
  * we use x_adj_done so that functions can tell
  * whether x_adjust() has been called while they are active.
  */
-static int x_adj_done;
+static bool x_adj_done;
 
 static int x_col;
 static int x_displen;
@@ -910,7 +910,7 @@ static char morec;		/* more character at right of window */
 static int lastref;		/* argument to last refresh() */
 static int holdlen;		/* length of holdbuf */
 #endif
-static int prompt_redraw;	/* 0 if newline forced after prompt */
+static bool prompt_redraw;	/* false if newline forced after prompt */
 
 static int x_ins(const char *);
 static void x_delete(int, int);
@@ -1121,19 +1121,19 @@ static void
 x_init_prompt(void)
 {
 	x_col = promptlen(prompt);
-	x_adj_ok = 1;
-	prompt_redraw = 1;
+	x_adj_ok = true;
+	prompt_redraw = true;
 	if (x_col >= xx_cols)
 		x_col %= xx_cols;
 	x_displen = xx_cols - 2 - x_col;
-	x_adj_done = 0;
+	x_adj_done = false;
 
 	pprompt(prompt, 0);
 	if (x_displen < 1) {
 		x_col = 0;
 		x_displen = xx_cols - 2;
 		x_e_putc2('\n');
-		prompt_redraw = 0;
+		prompt_redraw = false;
 	}
 }
 
@@ -1303,7 +1303,7 @@ static int
 x_ins(const char *s)
 {
 	char *cp = xcp;
-	int adj = x_adj_done;
+	bool adj = x_adj_done;
 
 	if (x_do_ins(s, strlen(s)) < 0)
 		return (-1);
@@ -1313,7 +1313,7 @@ x_ins(const char *s)
 	 */
 	xlp_valid = false;
 	x_lastcp();
-	x_adj_ok = (xcp >= xlp);
+	x_adj_ok = tobool(xcp >= xlp);
 	x_zots(cp);
 	/* has x_adjust() been called? */
 	if (adj == x_adj_done) {
@@ -1324,7 +1324,7 @@ x_ins(const char *s)
 	}
 	if (xlp == xep - 1)
 		x_redraw(xx_cols);
-	x_adj_ok = 1;
+	x_adj_ok = true;
 	return (0);
 }
 
@@ -1408,7 +1408,7 @@ x_delete(int nc, int push)
 	/* Copies the NUL */
 	memmove(xcp, xcp + nb, xep - xcp + 1);
 	/* don't redraw */
-	x_adj_ok = 0;
+	x_adj_ok = false;
 	xlp_valid = false;
 	x_zots(xcp);
 	/*
@@ -1428,7 +1428,7 @@ x_delete(int nc, int push)
 			x_e_putc2('\b');
 	}
 	/*x_goto(xcp);*/
-	x_adj_ok = 1;
+	x_adj_ok = true;
 	xlp_valid = false;
 	cp = x_lastcp();
 	while (cp > xcp)
@@ -1581,7 +1581,7 @@ x_size2(char *cp, char **dcp)
 static void
 x_zots(char *str)
 {
-	int adj = x_adj_done;
+	bool adj = x_adj_done;
 
 	x_lastcp();
 	while (*str && str < xlp && adj == x_adj_done)
@@ -2038,7 +2038,7 @@ x_redraw(int limit)
 	int i, j, x_trunc = 0;
 	char *cp;
 
-	x_adj_ok = 0;
+	x_adj_ok = false;
 	if (limit == -1)
 		x_e_putc2('\n');
 	else
@@ -2099,7 +2099,7 @@ x_redraw(int limit)
 	cp = xlp;
 	while (cp > xcp)
 		x_bs3(&cp);
-	x_adj_ok = 1;
+	x_adj_ok = true;
 	return;
 }
 
@@ -2772,7 +2772,7 @@ static void
 x_adjust(void)
 {
 	/* flag the fact that we were called. */
-	x_adj_done++;
+	x_adj_done = true;
 	/*
 	 * we had a problem if the prompt length > xx_cols / 2
 	 */
@@ -2894,7 +2894,7 @@ x_e_putc3(const char **cp)
 static void
 x_e_puts(const char *s)
 {
-	int adj = x_adj_done;
+	bool adj = x_adj_done;
 
 	while (*s && adj == x_adj_done)
 		x_e_putc3(&s);
@@ -3477,10 +3477,11 @@ x_vi(char *buf, size_t len)
 
 	pprompt(prompt, 0);
 	if (cur_col > x_cols - 3 - MIN_EDIT_SPACE) {
-		prompt_redraw = cur_col = 0;
+		prompt_redraw = false;
+		cur_col = 0;
 		x_putc('\n');
 	} else
-		prompt_redraw = 1;
+		prompt_redraw = true;
 	pwidth = cur_col;
 
 	if (!wbuf_len || wbuf_len != x_cols - 3) {
