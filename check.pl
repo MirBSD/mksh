@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.28 2012/03/26 21:06:34 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.29 2012/03/31 18:47:20 tg Exp $
 # $OpenBSD: th,v 1.13 2006/05/18 21:27:23 miod Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
@@ -151,7 +151,8 @@
 #	p	tag takes parameters (used with m).
 #	s	tag can be used several times.
 
-use POSIX qw(EINTR);
+#use POSIX qw(EINTR);
+use Errno;
 use Getopt::Std;
 use Config;
 
@@ -557,7 +558,9 @@ run_test
 	$xpid = waitpid($pid, 0);
 	$child_kill_ok = 0;
 	if ($xpid < 0) {
-	    next if $! == EINTR;
+	    if ($!{EINTR}) {
+		next if $! == EINTR;
+	    }
 	    print STDERR "$prog: error waiting for child - $!\n";
 	    return undef;
 	}
