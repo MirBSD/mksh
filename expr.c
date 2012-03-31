@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.55 2012/03/31 17:29:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.56 2012/03/31 17:52:33 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -367,12 +367,19 @@ evalexpr(Expr_state *es, int prec)
 		case O_DIV:
 		case O_DIVASN:
 #if !HAVE_SILENT_IDIVWRAPV
-			if (!es->natural && vr->val.i == -1 &&
-			    vl->val.i == ((mksh_ari_t)-2147483648)) {
+			/*
+			 * we are doing the comparisons here for the
+			 * signed arithmetics (!es->natural) case,
+			 * but the exact value checks and the bypass
+			 * case assignments are done unsignedly as
+			 * several compilers bitch around otherwise
+			 */
+			if (!es->natural &&
+			    vl->val.u == (mksh_uari_t)0x80000000UL &&
+			    vr->val.u == (mksh_uari_t)0xFFFFFFFFUL) {
 				/* -2147483648 / -1 = 2147483648 */
 				/* this ^ is really (1 << 31) though */
-				/* 80000000 / FFFFFFFF = 80000000 */
-				res = ((mksh_ari_t)-2147483648);
+				res = (mksh_ari_t)(mksh_uari_t)0x80000000UL;
 			} else
 #endif
 				res = bivui(vl, /, vr);
@@ -380,8 +387,10 @@ evalexpr(Expr_state *es, int prec)
 		case O_MOD:
 		case O_MODASN:
 #if !HAVE_SILENT_IDIVWRAPV
-			if (!es->natural && vr->val.i == -1 &&
-			    vl->val.i == ((mksh_ari_t)-2147483648)) {
+			/* see O_DIV / O_DIVASN for the reason behind this */
+			if (!es->natural &&
+			    vl->val.u == (mksh_uari_t)0x80000000UL &&
+			    vr->val.u == (mksh_uari_t)0xFFFFFFFFUL) {
 				/* -2147483648 % -1 = 0 */
 				res = 0;
 			} else
