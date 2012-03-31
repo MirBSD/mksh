@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.526 2012/03/31 18:18:41 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.527 2012/03/31 18:26:53 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1091,11 +1091,14 @@ name: expand-ugly
 description:
 	Check that weird ${foo+bar} constructs are parsed correctly
 stdin:
+	print '#!'"$__progname"'\nfor x in "$@"; do print -r -- "$x"; done' >pfn
+	print '#!'"$__progname"'\nfor x in "$@"; do print -nr -- "<$x> "; done' >pfs
+	chmod +x pfn pfs
 	(echo 1 ${IFS+'}'z}) 2>&- || echo failed in 1
 	(echo 2 "${IFS+'}'z}") 2>&- || echo failed in 2
 	(echo 3 "foo ${IFS+'bar} baz") 2>&- || echo failed in 3
-	(echo -n '4 '; printf '%s\n' "foo ${IFS+"b   c"} baz") 2>&- || echo failed in 4
-	(echo -n '5 '; printf '%s\n' "foo ${IFS+b   c} baz") 2>&- || echo failed in 5
+	(echo -n '4 '; ./pfn "foo ${IFS+"b   c"} baz") 2>&- || echo failed in 4
+	(echo -n '5 '; ./pfn "foo ${IFS+b   c} baz") 2>&- || echo failed in 5
 	(echo 6 ${IFS+"}"z}) 2>&- || echo failed in 6
 	(echo 7 "${IFS+"}"z}") 2>&- || echo failed in 7
 	(echo 8 "${IFS+\"}\"z}") 2>&- || echo failed in 8
@@ -1105,7 +1108,7 @@ stdin:
 	(echo 12 "$(echo ${IFS+'}'z})") 2>&- || echo failed in 12
 	(echo 13 ${IFS+\}z}) 2>&- || echo failed in 13
 	(echo 14 "${IFS+\}z}") 2>&- || echo failed in 14
-	u=x; (echo -n '15 '; printf '<%s> ' "foo ${IFS+a"b$u{ {"{{\}b} c ${IFS+d{}} bar" ${IFS-e{}} baz; echo .) 2>&- || echo failed in 15
+	u=x; (echo -n '15 '; ./pfs "foo ${IFS+a"b$u{ {"{{\}b} c ${IFS+d{}} bar" ${IFS-e{}} baz; echo .) 2>&- || echo failed in 15
 	l=t; (echo 16 ${IFS+h`echo -n i ${IFS+$l}h`ere}) 2>&- || echo failed in 16
 	l=t; (echo 17 ${IFS+h$(echo -n i ${IFS+$l}h)ere}) 2>&- || echo failed in 17
 	l=t; (echo 18 "${IFS+h`echo -n i ${IFS+$l}h`ere}") 2>&- || echo failed in 18
@@ -1114,26 +1117,26 @@ stdin:
 	l=t; (echo 21 ${IFS+h$(echo -n i "${IFS+$l}"h)ere}) 2>&- || echo failed in 21
 	l=t; (echo 22 "${IFS+h`echo -n i "${IFS+$l}"h`ere}") 2>&- || echo failed in 22
 	l=t; (echo 23 "${IFS+h$(echo -n i "${IFS+$l}"h)ere}") 2>&- || echo failed in 23
-	key=value; (echo -n '24 '; printf '%s\n' "${IFS+'$key'}") 2>&- || echo failed in 24
-	key=value; (echo -n '25 '; printf '%s\n' "${IFS+"'$key'"}") 2>&- || echo failed in 25	# ksh93: “'$key'”
-	key=value; (echo -n '26 '; printf '%s\n' ${IFS+'$key'}) 2>&- || echo failed in 26
-	key=value; (echo -n '27 '; printf '%s\n' ${IFS+"'$key'"}) 2>&- || echo failed in 27
-	(echo -n '28 '; printf '%s\n' "${IFS+"'"x ~ x'}'x"'}"x}" #') 2>&- || echo failed in 28
-	u=x; (echo -n '29 '; printf '<%s> ' foo ${IFS+a"b$u{ {"{ {\}b} c ${IFS+d{}} bar ${IFS-e{}} baz; echo .) 2>&- || echo failed in 29
-	(echo -n '30 '; printf '<%s> ' ${IFS+foo 'b\
+	key=value; (echo -n '24 '; ./pfn "${IFS+'$key'}") 2>&- || echo failed in 24
+	key=value; (echo -n '25 '; ./pfn "${IFS+"'$key'"}") 2>&- || echo failed in 25	# ksh93: “'$key'”
+	key=value; (echo -n '26 '; ./pfn ${IFS+'$key'}) 2>&- || echo failed in 26
+	key=value; (echo -n '27 '; ./pfn ${IFS+"'$key'"}) 2>&- || echo failed in 27
+	(echo -n '28 '; ./pfn "${IFS+"'"x ~ x'}'x"'}"x}" #') 2>&- || echo failed in 28
+	u=x; (echo -n '29 '; ./pfs foo ${IFS+a"b$u{ {"{ {\}b} c ${IFS+d{}} bar ${IFS-e{}} baz; echo .) 2>&- || echo failed in 29
+	(echo -n '30 '; ./pfs ${IFS+foo 'b\
 	ar' baz}; echo .) 2>&- || (echo failed in 30; echo failed in 31)
-	(echo -n '32 '; printf '<%s> ' ${IFS+foo "b\
+	(echo -n '32 '; ./pfs ${IFS+foo "b\
 	ar" baz}; echo .) 2>&- || echo failed in 32
-	(echo -n '33 '; printf '<%s> ' "${IFS+foo 'b\
+	(echo -n '33 '; ./pfs "${IFS+foo 'b\
 	ar' baz}"; echo .) 2>&- || echo failed in 33
-	(echo -n '34 '; printf '<%s> ' "${IFS+foo "b\
+	(echo -n '34 '; ./pfs "${IFS+foo "b\
 	ar" baz}"; echo .) 2>&- || echo failed in 34
-	(echo -n '35 '; printf '<%s> ' ${v=a\ b} x ${v=c\ d}; echo .) 2>&- || echo failed in 35
-	(echo -n '36 '; printf '<%s> ' "${v=a\ b}" x "${v=c\ d}"; echo .) 2>&- || echo failed in 36
-	(echo -n '37 '; printf '<%s> ' ${v-a\ b} x ${v-c\ d}; echo .) 2>&- || echo failed in 37
+	(echo -n '35 '; ./pfs ${v=a\ b} x ${v=c\ d}; echo .) 2>&- || echo failed in 35
+	(echo -n '36 '; ./pfs "${v=a\ b}" x "${v=c\ d}"; echo .) 2>&- || echo failed in 36
+	(echo -n '37 '; ./pfs ${v-a\ b} x ${v-c\ d}; echo .) 2>&- || echo failed in 37
 	(echo 38 ${IFS+x'a'y} / "${IFS+x'a'y}" .) 2>&- || echo failed in 38
 	foo="x'a'y"; (echo 39 ${foo%*'a'*} / "${foo%*'a'*}" .) 2>&- || echo failed in 39
-	foo="a b c"; (echo -n '40 '; printf '<%s> ' "${foo#a}"; echo .) 2>&- || echo failed in 40
+	foo="a b c"; (echo -n '40 '; ./pfs "${foo#a}"; echo .) 2>&- || echo failed in 40
 expected-stdout:
 	1 }z
 	2 ''z}
@@ -6401,23 +6404,25 @@ name: arrays-2b
 description:
 	Check if bash-style arrays work as expected, with newlines
 stdin:
+	print '#!'"$__progname"'\nfor x in "$@"; do print -nr -- "$x|"; done' >pfp
+	chmod +x pfp
 	test -n "$ZSH_VERSION" && setopt KSH_ARRAYS
 	v="e f"
 	foo=(a
 		bc
 		d \$v "$v" '$v' g
 	)
-	printf '%s|' "${#foo[*]}" "${foo[0]}" "${foo[1]}" "${foo[2]}" "${foo[3]}" "${foo[4]}" "${foo[5]}" "${foo[6]}"; echo
+	./pfp "${#foo[*]}" "${foo[0]}" "${foo[1]}" "${foo[2]}" "${foo[3]}" "${foo[4]}" "${foo[5]}" "${foo[6]}"; echo
 	foo=(a\
 		bc
 		d \$v "$v" '$v' g
 	)
-	printf '%s|' "${#foo[*]}" "${foo[0]}" "${foo[1]}" "${foo[2]}" "${foo[3]}" "${foo[4]}" "${foo[5]}" "${foo[6]}"; echo
+	./pfp "${#foo[*]}" "${foo[0]}" "${foo[1]}" "${foo[2]}" "${foo[3]}" "${foo[4]}" "${foo[5]}" "${foo[6]}"; echo
 	foo=(a\
 	bc\\
 		d \$v "$v" '$v'
 	g)
-	printf '%s|' "${#foo[*]}" "${foo[0]}" "${foo[1]}" "${foo[2]}" "${foo[3]}" "${foo[4]}" "${foo[5]}" "${foo[6]}"; echo
+	./pfp "${#foo[*]}" "${foo[0]}" "${foo[1]}" "${foo[2]}" "${foo[3]}" "${foo[4]}" "${foo[5]}" "${foo[6]}"; echo
 expected-stdout:
 	7|a|bc|d|$v|e f|$v|g|
 	7|a|bc|d|$v|e f|$v|g|
@@ -7129,7 +7134,9 @@ name: varexpand-null-2
 description:
 	Ensure empty strings, when quoted, are expanded as empty strings
 stdin:
-	printf '<%s> ' 1 "${a}" 2 "${a#?}" + "${b%?}" 3 "${a=}" + "${b/c/d}"
+	print '#!'"$__progname"'\nfor x in "$@"; do print -nr -- "<$x> "; done' >pfs
+	chmod +x pfs
+	./pfs 1 "${a}" 2 "${a#?}" + "${b%?}" 3 "${a=}" + "${b/c/d}"
 	echo .
 expected-stdout:
 	<1> <> <2> <> <+> <> <3> <> <+> <> .
@@ -7235,7 +7242,9 @@ name: dollar-quoted-strings
 description:
 	Check backslash expansion by $'…' strings
 stdin:
-	printf '%s\n' $'\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/ \1\2\3\4\5\6' \
+	print '#!'"$__progname"'\nfor x in "$@"; do print -r -- "$x"; done' >pfn
+	chmod +x pfn
+	./pfn $'\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/ \1\2\3\4\5\6' \
 	    $'a\0b' $'a\01b' $'\7\8\9\:\;\<\=\>\?\@\A\B\C\D\E\F\G\H\I' \
 	    $'\J\K\L\M\N\O\P\Q\R\S\T\U1\V\W\X\Y\Z\[\\\]\^\_\`\a\b\d\e' \
 	    $'\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u1\v\w\x1\y\z\{\|\}\~ $x' \
@@ -8295,16 +8304,18 @@ name: comsub-5
 description:
 	Check COMSUB works with aliases (does not expand them twice)
 stdin:
+	print '#!'"$__progname"'\nfor x in "$@"; do print -r -- "$x"; done' >pfn
+	chmod +x pfn
 	alias echo='echo a'
 	foo() {
-		printf '%s\n' "$(echo foo)"
+		./pfn "$(echo foo)"
 	}
-	printf '%s\n' "$(echo b)"
+	./pfn "$(echo b)"
 	typeset -f foo
 expected-stdout:
 	a b
 	foo() {
-		printf "%s\\n" "$(echo foo )" 
+		./pfn "$(echo foo )" 
 	} 
 ---
 name: comsub-torture
