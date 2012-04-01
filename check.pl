@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.29 2012/03/31 18:47:20 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.30 2012/04/01 04:03:08 tg Exp $
 # $OpenBSD: th,v 1.13 2006/05/18 21:27:23 miod Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
@@ -152,7 +152,11 @@
 #	s	tag can be used several times.
 
 #use POSIX qw(EINTR);
-use Errno;
+BEGIN {
+	unless (eval "use Errno") {
+		warn "couldn't load Errno: $@";
+	}
+}
 use Getopt::Std;
 use Config;
 
