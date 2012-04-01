@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.530 2012/03/31 18:33:16 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.531 2012/04/01 02:35:33 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -28,6 +28,17 @@ srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.530 2012/03/31 18:33:16 tg Exp $'
 LC_ALL=C
 export LC_ALL
 
+if test -n "${ZSH_VERSION+x}" && (emulate sh) >/dev/null 2>&1; then
+	emulate sh
+	NULLCMD=:
+fi
+
+if test -d /usr/xpg4/bin/. >/dev/null 2>&1; then
+	# Solaris: some of the tools have weird behaviour, use portable ones
+	PATH=/usr/xpg4/bin:$PATH
+	export PATH
+fi
+
 v() {
 	$e "$*"
 	eval "$@"
@@ -54,17 +65,6 @@ rmf() {
 	done
 }
 
-if test -d /usr/xpg4/bin/. >/dev/null 2>&1; then
-	# Solaris: some of the tools have weird behaviour, use portable ones
-	PATH=/usr/xpg4/bin:$PATH
-	export PATH
-fi
-
-if test -n "${ZSH_VERSION+x}" && (emulate sh) >/dev/null 2>&1; then
-	emulate sh
-	NULLCMD=:
-fi
-
 allu=QWERTYUIOPASDFGHJKLZXCVBNM
 alll=qwertyuiopasdfghjklzxcvbnm
 alln=0123456789
@@ -89,6 +89,12 @@ fi
 
 upper() {
 	echo :"$@" | sed 's/^://' | tr $alll $allu
+}
+
+use_save_temps() {
+	(set -x; eval "$CC" -c -save-temps "$@") >&2
+	cat conftest.i 2>/dev/null
+	rm -f conftest.i conftest.o conftest.s
 }
 
 # clean up after ac_testrun()
@@ -263,6 +269,7 @@ ac_header() {
 	fi
 	hf=$1; shift
 	hv=`echo "$hf" | tr -d '\012\015' | tr -c $alll$allu$alln $alls`
+	echo "/* NeXTstep bug workaround */" >x
 	for i
 	do
 		echo "#include <$i>" >>x
@@ -293,11 +300,11 @@ if test -d mksh || test -d mksh.exe; then
 	echo "$me: Error: ./mksh is a directory!" >&2
 	exit 1
 fi
-rmf a.exe* a.out* conftest.c *core core.* lft mksh* no *.bc *.ll *.o \
+rmf a.exe* a.out* conftest.* *core core.* lft mksh* no *.bc *.ll *.o \
     Rebuild.sh signames.inc test.sh x vv.out
 
-curdir=`pwd` srcdir=`dirname "$0"` check_categories=
-test -n "$srcdir" || srcdir=.
+curdir=`pwd` srcdir=`dirname "$0" 2>/dev/null` check_categories=
+test -n "$srcdir" || srcdir=. # in case dirname does not exist
 dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\(.*\)".*$/\1/p' $srcdir/sh.h`
 add_cppflags -DMKSH_BUILDSH
 
@@ -743,7 +750,7 @@ ct="unknown"
 #endif
 ;
 EOF
-ct=unknown
+ct=untested
 vv ']' "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c | grep ct= | tr -d \\\\015 >x"
 sed 's/^/[ /' x
 eval `cat x`
@@ -884,6 +891,7 @@ xlc)
 	vv '|' "ld -V"
 	;;
 *)
+	test x"$ct" = x"untested" && $e "!!! detecting preprocessor failed"
 	ct=unknown
 	vv "$CC --version"
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
@@ -934,6 +942,13 @@ if ac_ifcpp 'ifdef __TINYC__' couldbe_tcc '!' compiler_known 0 \
     'if this could be tcc'; then
 	ct=tcc
 	CPP='cpp -D__TINYC__'
+	HAVE_COMPILER_KNOWN=1
+fi
+if ac_ifcpp 'ifdef __GNUC__' couldbe_gcc '!' compiler_known 0 \
+    'if this could be a hidden gcc'; then
+	ct=gcc
+	CPP=use_save_temps
+	HAVE_COMPILER_KNOWN=1
 fi
 
 if test $ct = sunpro; then
@@ -1348,7 +1363,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.530 2012/03/31 18:33:16 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.531 2012/04/01 02:35:33 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1779,9 +1794,9 @@ mksh_cfg= NSIG
 			;;
 		esac
 	done 2>&1 >signames.inc
-	rmf conftest.c
 	$e done.
 fi
+rmf conftest.*
 
 addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
@@ -1799,10 +1814,11 @@ a.exe)	mkshexe=mksh.exe ;;
 *)	mkshexe=mksh ;;
 esac
 case $curdir in
-*\ *)	echo "#!./$mkshexe" >test.sh ;;
-*)	echo "#!$curdir/$mkshexe" >test.sh ;;
+*\ *)	mkshshebang="#!./$mkshexe" ;;
+*)	mkshshebang="#!$curdir/$mkshexe" ;;
 esac
-cat >>test.sh <<-EOF
+cat >test.sh <<-EOF
+	$mkshshebang
 	LC_ALL=C PATH='$PATH'; export LC_ALL PATH
 	test -n "\$KSH_VERSION" || exit 1
 	set -A check_categories -- $check_categories
@@ -1877,7 +1893,8 @@ elif test $cm = dragonegg; then
 else
 	emitbc=-c
 fi
-echo set -x >Rebuild.sh
+echo "# work around NeXTstep bug" >Rebuild.sh
+echo set -x >>Rebuild.sh
 for file in $SRCS; do
 	op=`echo x"$file" | sed 's/^x\(.*\)\.c$/\1./'`
 	test -f $file || file=$srcdir/$file
