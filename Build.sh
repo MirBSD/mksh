@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.532 2012/04/01 04:57:24 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.533 2012/04/01 16:40:26 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1361,7 +1361,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.532 2012/04/01 04:57:24 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.533 2012/04/01 16:40:26 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1744,7 +1744,8 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 	else
 		$e No list of signal names available via cpp. Falling back...
 	fi
-	sigseen=:
+	sigseenone=:
+	sigseentwo=:
 	echo '#include <signal.h>
 #ifndef NSIG
 #if defined(_NSIG)
@@ -1774,6 +1775,10 @@ mksh_cfg= NSIG
 	    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | sort`
 	test $NSIG -gt 1 || sigs=
 	for name in $sigs; do
+		case $sigseenone in
+		*:$name:*) continue ;;
+		esac
+		sigseenone=$sigseenone$name:
 		echo '#include <signal.h>' >conftest.c
 		echo int >>conftest.c
 		echo mksh_cfg= SIG$name >>conftest.c
@@ -1783,10 +1788,10 @@ mksh_cfg= NSIG
 	done | sed -e '/^:/d' -e 's/:/ /g' | while read nr name; do
 		test $printf = echo || nr=`printf %d "$nr" 2>/dev/null`
 		test $nr -gt 0 && test $nr -le $NSIG || continue
-		case $sigseen in
+		case $sigseentwo in
 		*:$nr:*) ;;
 		*)	echo "		{ \"$name\", $nr },"
-			sigseen=$sigseen$nr:
+			sigseentwo=$sigseentwo$nr:
 			$printf "$name=$nr " >&2
 			;;
 		esac
