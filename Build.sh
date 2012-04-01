@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.531 2012/04/01 02:35:33 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.532 2012/04/01 04:57:24 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -89,12 +89,6 @@ fi
 
 upper() {
 	echo :"$@" | sed 's/^://' | tr $alll $allu
-}
-
-use_save_temps() {
-	(set -x; eval "$CC" -c -save-temps "$@") >&2
-	cat conftest.i 2>/dev/null
-	rm -f conftest.i conftest.o conftest.s
 }
 
 # clean up after ac_testrun()
@@ -300,7 +294,7 @@ if test -d mksh || test -d mksh.exe; then
 	echo "$me: Error: ./mksh is a directory!" >&2
 	exit 1
 fi
-rmf a.exe* a.out* conftest.* *core core.* lft mksh* no *.bc *.ll *.o \
+rmf a.exe* a.out* conftest.c *core core.* lft mksh* no *.bc *.ll *.o \
     Rebuild.sh signames.inc test.sh x vv.out
 
 curdir=`pwd` srcdir=`dirname "$0" 2>/dev/null` check_categories=
@@ -448,6 +442,9 @@ fi
 
 # Configuration depending on OS revision, on OSes that need them
 case $TARGET_OS in
+NEXTSTEP)
+	test x"$TARGET_OSREV" = x"" && TARGET_OSREV=`hostinfo 2>&1 | sed -n '/^.*NeXT Mach \([0-9.]*\):.*$/s//\1/p'`
+	;;
 QNX|SCO_SV)
 	test x"$TARGET_OSREV" = x"" && TARGET_OSREV=`uname -r`
 	;;
@@ -538,10 +535,17 @@ MSYS_*)
 NetBSD)
 	;;
 NEXTSTEP)
-	# NeXTstep works, OpenStep 4.2 is broken and needs LIBS to have
-	# http://www.math.unl.edu/~rdieter1/OpenStep/Developer/PortingTips/posix1.txt
-	# with sigprocmask adapted for the omask==NULL case (thanks RT)
-	oswarn="; it has minor issues"
+	add_cppflags -D_NEXT_SOURCE
+	add_cppflags -D_POSIX_SOURCE
+	: ${AWK=gawk} ${CC=cc -posix}
+	# NeXTstep cannot get a controlling tty
+	add_cppflags -DMKSH_UNEMPLOYED
+	case $TARGET_OSREV in
+	4.2*)
+		# OpenStep 4.2 is broken by default
+		oswarn="; it needs libposix.a"
+		;;
+	esac
 	;;
 Ninix3)
 	# similar to Minix3
@@ -751,7 +755,7 @@ ct="unknown"
 ;
 EOF
 ct=untested
-vv ']' "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c | grep ct= | tr -d \\\\015 >x"
+vv ']' "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c | sed -n '/^ct *= */s//ct=/p' | tr -d \\\\015 >x"
 sed 's/^/[ /' x
 eval `cat x`
 rmf x vv.out
@@ -942,12 +946,6 @@ if ac_ifcpp 'ifdef __TINYC__' couldbe_tcc '!' compiler_known 0 \
     'if this could be tcc'; then
 	ct=tcc
 	CPP='cpp -D__TINYC__'
-	HAVE_COMPILER_KNOWN=1
-fi
-if ac_ifcpp 'ifdef __GNUC__' couldbe_gcc '!' compiler_known 0 \
-    'if this could be a hidden gcc'; then
-	ct=gcc
-	CPP=use_save_temps
 	HAVE_COMPILER_KNOWN=1
 fi
 
@@ -1363,7 +1361,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.531 2012/04/01 02:35:33 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.532 2012/04/01 04:57:24 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1759,7 +1757,7 @@ int
 mksh_cfg= NSIG
 ;' >conftest.c
 	NSIG=`vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
-	    grep mksh_cfg= | sed 's/^mksh_cfg=[	 ]*\([0-9x ()+-]*\).*$/\1/'`
+	    sed -n '/^mksh_cfg *=[	 ]*\([0-9x ()+-]*\).*$/s//\1/p'`
 	case $NSIG in
 	*[\ \(\)+-]*) NSIG=`"$AWK" "BEGIN { print $NSIG }"` ;;
 	esac
@@ -1781,9 +1779,8 @@ mksh_cfg= NSIG
 		echo mksh_cfg= SIG$name >>conftest.c
 		echo ';' >>conftest.c
 		vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
-		    grep mksh_cfg= | \
-		    sed 's/^mksh_cfg=[	 ]*\([0-9x]*\).*$/\1:'$name/
-	done | grep -v '^:' | sed 's/:/ /g' | while read nr name; do
+		    sed -n '/^mksh_cfg *=[	 ]*\([0-9x]*\).*$/s//\1:'$name/p
+	done | sed -e '/^:/d' -e 's/:/ /g' | while read nr name; do
 		test $printf = echo || nr=`printf %d "$nr" 2>/dev/null`
 		test $nr -gt 0 && test $nr -le $NSIG || continue
 		case $sigseen in
@@ -1794,9 +1791,9 @@ mksh_cfg= NSIG
 			;;
 		esac
 	done 2>&1 >signames.inc
+	rmf conftest.c
 	$e done.
 fi
-rmf conftest.*
 
 addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
