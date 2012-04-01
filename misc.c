@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.185 2012/03/26 20:04:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.186 2012/04/01 16:55:16 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -250,9 +250,16 @@ change_flag(enum sh_flag f, int what, unsigned int newval)
 		DO_SETUID(setresuid, (ksheuid, ksheuid, ksheuid));
 #else
 		/* seteuid, setegid, setgid don't EAGAIN on Linux */
-		seteuid(ksheuid = kshuid = getuid());
+		ksheuid = kshuid = getuid();
+#ifndef __BEOS__
+		/* BeOS doesn't have different UIDs */
+		seteuid(ksheuid);
+#endif
 		DO_SETUID(setuid, (ksheuid));
+#ifndef __BEOS__
+		/* BeOS doesn't have different GIDs */
 		setegid(kshegid);
+#endif
 		setgid(kshegid);
 #endif
 	} else if ((f == FPOSIX || f == FSH) && newval) {
