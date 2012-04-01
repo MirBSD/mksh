@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.534 2012/04/01 16:55:15 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.535 2012/04/01 17:17:45 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1371,7 +1371,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.534 2012/04/01 16:55:15 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.535 2012/04/01 17:17:45 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1776,8 +1776,8 @@ mksh_cfg= NSIG
 	(printf hallo) >/dev/null 2>&1 || printf=echo
 	test $printf = echo || NSIG=`printf %d "$NSIG" 2>/dev/null`
 	$printf "NSIG=$NSIG ... "
-	sigs="ABRT ALRM BUS CHLD CLD CONT DIL EMT FPE HUP ILL INFO INT IO IOT"
-	sigs="$sigs KILL LOST PIPE PROF PWR QUIT RESV SAK SEGV STOP SYS TERM"
+	sigs="INT SEGV ABRT KILL ALRM BUS CHLD CLD CONT DIL EMT FPE HUP ILL"
+	sigs="$sigs INFO IO IOT LOST PIPE PROF PWR QUIT RESV SAK STOP SYS TERM"
 	sigs="$sigs TRAP TSTP TTIN TTOU URG USR1 USR2 VTALRM WINCH XCPU XFSZ"
 	test 1 = $HAVE_CPP_DD && test $NSIG -gt 1 && sigs="$sigs "`vq \
 	    "$CPP $CFLAGS $CPPFLAGS $NOWARN -dD conftest.c" | \
