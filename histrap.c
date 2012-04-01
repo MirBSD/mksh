@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.120 2012/03/29 19:22:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.121 2012/04/01 03:23:08 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -692,7 +692,9 @@ histsave(int *lnp, const char *cmd, bool dowrite MKSH_A_UNUSED, bool ignoredups)
 #define HMAGIC2		0xCD
 #define COMMAND		0xFF
 
+#if HAVE_PERSISTENT_HISTORY
 static const unsigned char sprinkle[2] = { HMAGIC1, HMAGIC2 };
+#endif
 
 void
 hist_init(Source *s)
