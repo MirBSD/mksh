@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.541 2012/04/06 12:59:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.542 2012/04/06 13:29:01 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/03/29"
 
@@ -324,11 +324,6 @@ extern int getrusage(int, struct rusage *);
 
 #if !HAVE_REVOKE_DECL
 extern int revoke(const char *);
-#endif
-
-#ifdef __ultrix
-/* XXX imake style */
-int strcasecmp(const char *, const char *);
 #endif
 
 #if !HAVE_STRLCPY
@@ -1662,7 +1657,7 @@ int findhist(int, int, const char *, int);
 char **hist_get_newest(bool);
 void inittraps(void);
 void alarm_init(void);
-Trap *gettrap(const char *, int);
+Trap *gettrap(const char *, bool);
 void trapsig(int);
 void intrcheck(void);
 int fatal_trap_check(void);

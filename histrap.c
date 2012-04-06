@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.121 2012/04/01 03:23:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.122 2012/04/06 13:29:00 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -987,8 +987,14 @@ inittraps(void)
 			else {
 				char *s;
 
-				if (!strncasecmp(cs, "SIG", 3))
+				/* this is not optimal, what about SIGSIG1? */
+				if ((cs[0] & 0xDF) == 'S' &&
+				    (cs[1] & 0xDF) == 'I' &&
+				    (cs[2] & 0xDF) == 'G' &&
+				    cs[3] != '\0') {
+					/* skip leading "SIG" */
 					cs += 3;
+				}
 				strdupx(s, cs, APERM);
 				sigtraps[i].name = s;
 				while ((*s = ksh_toupper(*s)))
@@ -1056,27 +1062,45 @@ alarm_catcher(int sig MKSH_A_UNUSED)
 }
 
 Trap *
-gettrap(const char *name, int igncase)
+gettrap(const char *cs, bool igncase)
 {
-	int n = NSIG + 1;
+	int i;
 	Trap *p;
-	const char *n2;
-	int (*cmpfunc)(const char *, const char *) = strcmp;
+	char *as;
 
-	if (ksh_isdigit(*name)) {
-		if (getn(name, &n) && 0 <= n && n < NSIG)
-			return (&sigtraps[n]);
-		else
-			return (NULL);
+	if (ksh_isdigit(*cs)) {
+		return ((getn(cs, &i) && 0 <= i && i < NSIG) ?
+		    (&sigtraps[i]) : NULL);
 	}
 
-	n2 = strncasecmp(name, "SIG", 3) ? NULL : name + 3;
-	if (igncase)
-		cmpfunc = strcasecmp;
-	for (p = sigtraps; --n >= 0; p++)
-		if (!cmpfunc(p->name, name) || (n2 && !cmpfunc(p->name, n2)))
-			return (p);
-	return (NULL);
+	/* this breaks SIGSIG1, but we do that above anyway */
+	if ((cs[0] & 0xDF) == 'S' &&
+	    (cs[1] & 0xDF) == 'I' &&
+	    (cs[2] & 0xDF) == 'G' &&
+	    cs[3] != '\0') {
+		/* skip leading "SIG" */
+		cs += 3;
+	}
+	if (igncase) {
+		char *s;
+
+		strdupx(as, cs, ATEMP);
+		cs = s = as;
+		while ((*s = ksh_toupper(*s)))
+			++s;
+	} else
+		as = NULL;
+
+	p = sigtraps;
+	for (i = 0; i <= NSIG; i++) {
+		if (!strcmp(p->name, cs))
+			goto found;
+		++p;
+	}
+	p = NULL;
+ found:
+	afree(as, ATEMP);
+	return (p);
 }
 
 /*

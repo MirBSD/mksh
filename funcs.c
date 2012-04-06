@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.211 2012/03/29 19:22:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.212 2012/04/06 13:28:59 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1275,7 +1275,7 @@ c_kill(const char **wp)
 	/* assume old style options if -digits or -UPPERCASE */
 	if ((p = wp[1]) && *p == '-' && (ksh_isdigit(p[1]) ||
 	    ksh_isupper(p[1]))) {
-		if (!(t = gettrap(p + 1, true))) {
+		if (!(t = gettrap(p + 1, false))) {
 			bi_errorf("bad signal '%s'", p + 1);
 			return (1);
 		}
