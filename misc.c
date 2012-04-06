@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.167.2.4 2012/03/24 21:22:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.167.2.5 2012/04/06 14:40:22 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -250,9 +250,16 @@ change_flag(enum sh_flag f, int what, unsigned int newval)
 		DO_SETUID(setresuid, (ksheuid, ksheuid, ksheuid));
 #else
 		/* seteuid, setegid, setgid don't EAGAIN on Linux */
-		seteuid(ksheuid = kshuid = getuid());
+		ksheuid = kshuid = getuid();
+#ifndef __BEOS__
+		/* BeOS doesn't have different UIDs */
+		seteuid(ksheuid);
+#endif
 		DO_SETUID(setuid, (ksheuid));
+#ifndef __BEOS__
+		/* BeOS doesn't have different GIDs */
 		setegid(kshegid);
+#endif
 		setgid(kshegid);
 #endif
 	} else if ((f == FPOSIX || f == FSH) && newval) {
@@ -1244,6 +1251,10 @@ ksh_get_wd(void)
 	return (rv);
 }
 
+#ifndef ELOOP
+#define ELOOP		E2BIG
+#endif
+
 char *
 do_realpath(const char *upath)
 {
@@ -1918,26 +1929,6 @@ strstr(char *b, const char *l)
 			return (NULL);
 	if (strncmp(b, l, n))
 		goto strstr_look;
-	return (b - 1);
-}
-#endif
-
-#if !HAVE_STRCASESTR
-const char *
-stristr(const char *b, const char *l)
-{
-	char first, c;
-	size_t n;
-
-	if ((first = *l++), ((first = ksh_tolower(first)) == '\0'))
-		return (b);
-	n = strlen(l);
- stristr_look:
-	while ((c = *b++), ((c = ksh_tolower(c)) != first))
-		if (c == '\0')
-			return (NULL);
-	if (strncasecmp(b, l, n))
-		goto stristr_look;
 	return (b - 1);
 }
 #endif

@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.195.2.7 2012/03/24 22:11:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.195.2.8 2012/04/06 14:40:20 tg Exp $");
 
 extern char **environ;
 
@@ -46,6 +46,7 @@ extern char **environ;
 #define MKSH_DEFAULT_TMPDIR	"/tmp"
 #endif
 
+static uint8_t isuc(const char *);
 void chvt_reinit(void);
 static void reclaim(void);
 static void remove_temps(struct temp *);
@@ -108,7 +109,9 @@ rndsetup(void)
 	struct {
 		ALLOC_ITEM alloc_INT;
 		void *dataptr, *stkptr, *mallocptr;
+#if defined(__GLIBC__) && (__GLIBC__ >= 2)
 		sigjmp_buf jbuf;
+#endif
 		struct timeval tv;
 	} *bufptr;
 	char *cp;
@@ -126,8 +129,10 @@ rndsetup(void)
 	bufptr->stkptr = &bufptr;
 	/* randomised malloc in BSD (and possibly others) */
 	bufptr->mallocptr = bufptr;
+#if defined(__GLIBC__) && (__GLIBC__ >= 2)
 	/* glibc pointer guard */
 	sigsetjmp(bufptr->jbuf, 1);
+#endif
 	/* introduce variation (and yes, second arg MBZ for portability) */
 	gettimeofday(&bufptr->tv, NULL);
 
@@ -154,6 +159,29 @@ chvt_reinit(void)
 static const char *empty_argv[] = {
 	"mksh", NULL
 };
+
+static uint8_t
+isuc(const char *cx) {
+	char *cp, *x;
+	uint8_t rv = 0;
+
+	if (!cx || !*cx)
+		return (0);
+
+	/* uppercase a string duplicate */
+	strdupx(x, cx, ATEMP);
+	cp = x;
+	while ((*cp = ksh_toupper(*cp)))
+		++cp;
+
+	/* check for UTF-8 */
+	if (strstr(x, "UTF-8") || strstr(x, "UTF8"))
+		rv = 1;
+
+	/* free copy and out */
+	afree(x, ATEMP);
+	return (rv);
+}
 
 int
 main(int argc, const char *argv[])
@@ -251,8 +279,9 @@ main(int argc, const char *argv[])
 
 #ifdef TIOCGWINSZ
 	/* try to initialise tty size before importing environment */
-	tty_init(true, false);
+	tty_init(false, false);
 	change_winsz();
+	tty_close();
 #endif
 
 #ifdef _PATH_DEFPATH
@@ -509,8 +538,6 @@ main(int argc, const char *argv[])
 	}
 
 	/* divine the initial state of the utf8-mode Flag */
-#define isuc(x)	(((x) != NULL) && \
-	    (stristr((x), "UTF-8") || stristr((x), "utf8")))
 	ccp = null;
 	switch (utf_flag) {
 
@@ -552,7 +579,6 @@ main(int argc, const char *argv[])
 		UTFMODE = utf_flag;
 		break;
 	}
-#undef isuc
 
 	/* Disable during .profile/ENV reading */
 	restricted = Flag(FRESTRICTED);
@@ -630,8 +656,7 @@ include(const char *name, int argc, const char **argv, int intr_ok)
 		old_argc = 0;
 	}
 	newenv(E_INCL);
-	i = sigsetjmp(e->jbuf, 0);
-	if (i) {
+	if ((i = kshsetjmp(e->jbuf))) {
 		quitenv(s ? s->u.shf : NULL);
 		if (old_argv) {
 			e->loc->argv = old_argv;
@@ -706,49 +731,47 @@ shell(Source * volatile s, volatile int toplevel)
 	newenv(E_PARSE);
 	if (interactive)
 		really_exit = 0;
-	i = sigsetjmp(e->jbuf, 0);
-	if (i) {
-		switch (i) {
-		case LINTR:
-			/* we get here if SIGINT not caught or ignored */
-		case LERROR:
-		case LSHELL:
-			if (interactive) {
-				if (i == LINTR)
-					shellf("\n");
-				/*
-				 * Reset any eof that was read as part of a
-				 * multiline command.
-				 */
-				if (Flag(FIGNOREEOF) && s->type == SEOF &&
-				    wastty)
-					s->type = SSTDIN;
-				/*
-				 * Used by exit command to get back to
-				 * top level shell. Kind of strange since
-				 * interactive is set if we are reading from
-				 * a tty, but to have stopped jobs, one only
-				 * needs FMONITOR set (not FTALKING/SF_TTY)...
-				 */
-				/* toss any input we have so far */
-				s->start = s->str = null;
-				break;
-			}
-			/* FALLTHROUGH */
-		case LEXIT:
-		case LLEAVE:
-		case LRETURN:
-			source = old_source;
-			quitenv(NULL);
-			/* keep on going */
-			unwind(i);
-			/* NOTREACHED */
-		default:
-			source = old_source;
-			quitenv(NULL);
-			internal_errorf("%s %d", "shell", i);
-			/* NOTREACHED */
+	switch ((i = kshsetjmp(e->jbuf))) {
+	case 0:
+		break;
+	case LINTR:
+		/* we get here if SIGINT not caught or ignored */
+	case LERROR:
+	case LSHELL:
+		if (interactive) {
+			if (i == LINTR)
+				shellf("\n");
+			/*
+			 * Reset any eof that was read as part of a
+			 * multiline command.
+			 */
+			if (Flag(FIGNOREEOF) && s->type == SEOF && wastty)
+				s->type = SSTDIN;
+			/*
+			 * Used by exit command to get back to
+			 * top level shell. Kind of strange since
+			 * interactive is set if we are reading from
+			 * a tty, but to have stopped jobs, one only
+			 * needs FMONITOR set (not FTALKING/SF_TTY)...
+			 */
+			/* toss any input we have so far */
+			s->start = s->str = null;
+			break;
 		}
+		/* FALLTHROUGH */
+	case LEXIT:
+	case LLEAVE:
+	case LRETURN:
+		source = old_source;
+		quitenv(NULL);
+		/* keep on going */
+		unwind(i);
+		/* NOTREACHED */
+	default:
+		source = old_source;
+		quitenv(NULL);
+		internal_errorf("%s %d", "shell", i);
+		/* NOTREACHED */
 	}
 	while (/* CONSTCOND */ 1) {
 		if (trap)
@@ -823,7 +846,7 @@ unwind(int i)
 		case E_INCL:
 		case E_LOOP:
 		case E_ERRH:
-			siglongjmp(e->jbuf, i);
+			kshlongjmp(e->jbuf, i);
 			/* NOTREACHED */
 		case E_NONE:
 			if (i == LINTR)
@@ -1696,7 +1719,7 @@ DF(const char *fmt, ...)
 	va_list args;
 	struct timeval tv;
 
-	(void)flock(shl_dbg_fd, LOCK_EX);
+	mksh_lockfd(shl_dbg_fd);
 	gettimeofday(&tv, NULL);
 	shf_fprintf(shl_dbg, "[%d.%06d:%d] ", (int)tv.tv_sec, (int)tv.tv_usec,
 	    (int)getpid());
@@ -1705,6 +1728,6 @@ DF(const char *fmt, ...)
 	va_end(args);
 	shf_putc('\n', shl_dbg);
 	shf_flush(shl_dbg);
-	(void)flock(shl_dbg_fd, LOCK_UN);
+	mksh_unlkfd(shl_dbg_fd);
 }
 #endif

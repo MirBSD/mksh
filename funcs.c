@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *		 2010, 2011
+ *		 2010, 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.204.2.1 2012/03/24 21:22:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.204.2.2 2012/04/06 14:40:18 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2253,7 +2253,7 @@ c_exitreturn(const char **wp)
 	const char *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
-		return (1);
+		goto c_exitreturn_err;
 	arg = wp[builtin_opt.optind];
 
 	if (arg) {
@@ -2288,6 +2288,9 @@ c_exitreturn(const char **wp)
 	quitenv(NULL);
 	unwind(how);
 	/* NOTREACHED */
+
+ c_exitreturn_err:
+	return (1);
 }
 
 int
@@ -2298,19 +2301,19 @@ c_brkcont(const char **wp)
 	const char *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
-		return (1);
+		goto c_brkcont_err;
 	arg = wp[builtin_opt.optind];
 
 	if (!arg)
 		n = 1;
 	else if (!bi_getn(arg, &n))
-		return (1);
-	quit = n;
-	if (quit <= 0) {
+		goto c_brkcont_err;
+	if (n <= 0) {
 		/* AT&T ksh does this for non-interactive shells only - weird */
 		bi_errorf("%s: %s", arg, "bad value");
-		return (1);
+		goto c_brkcont_err;
 	}
+	quit = n;
 
 	/* Stop at E_NONE, E_PARSE, E_FUNC, or E_INCL */
 	for (ep = e; ep && !STOP_BRKCONT(ep->type); ep = ep->oenv)
@@ -2344,6 +2347,9 @@ c_brkcont(const char **wp)
 
 	unwind(*wp[0] == 'b' ? LBREAK : LCONTIN);
 	/* NOTREACHED */
+
+ c_brkcont_err:
+	return (1);
 }
 
 int
@@ -2975,7 +2981,7 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 
 	/* -s */
 	case TO_FILGZ:
-		return (stat(opnd1, &b1) == 0 && b1.st_size > 0L);
+		return (stat(opnd1, &b1) == 0 && (off_t)b1.st_size > (off_t)0);
 
 	/* -t */
 	case TO_FILTT:
@@ -3252,7 +3258,7 @@ ptest_error(Test_env *te, int ofs, const char *msg)
 struct limits {
 	const char *name;
 	int resource;		/* resource to get/set */
-	int factor;		/* multiply by to get rlim_{cur,max} values */
+	unsigned int factor;	/* multiply by to get rlim_{cur,max} values */
 	char option;
 };
 
@@ -3448,9 +3454,9 @@ set_ulimit(const struct limits *l, const char *v, int how)
 	if (strcmp(v, "unlimited") == 0)
 		val = (rlim_t)RLIM_INFINITY;
 	else {
-		mksh_ari_t rval;
+		mksh_uari_t rval;
 
-		if (!evaluate(v, &rval, KSH_RETURN_ERROR, false))
+		if (!evaluate(v, (mksh_ari_t *)&rval, KSH_RETURN_ERROR, false))
 			return (1);
 		/*
 		 * Avoid problems caused by typos that evaluate misses due
@@ -3500,7 +3506,7 @@ print_ulimit(const struct limits *l, int how)
 	if (val == (rlim_t)RLIM_INFINITY)
 		shf_puts("unlimited\n", shl_stdout);
 	else
-		shprintf("%ld\n", (long)(val / l->factor));
+		shprintf("%lu\n", (unsigned long)(val / l->factor));
 }
 #endif
 

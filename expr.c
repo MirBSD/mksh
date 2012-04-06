@@ -1,7 +1,8 @@
 /*	$OpenBSD: expr.c,v 1.21 2009/06/01 19:00:57 deraadt Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+ *		 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.51.2.1 2011/12/31 02:25:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.51.2.2 2012/04/06 14:40:17 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -198,8 +199,7 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok,
 	curstate.natural = false;
 
 	newenv(E_ERRH);
-	i = sigsetjmp(e->jbuf, 0);
-	if (i) {
+	if ((i = kshsetjmp(e->jbuf))) {
 		/* Clear EXPRINEVAL in of any variables we were playing with */
 		if (curstate.evaling)
 			curstate.evaling->flag &= ~EXPRINEVAL;
@@ -367,11 +367,19 @@ evalexpr(Expr_state *es, int prec)
 		case O_DIV:
 		case O_DIVASN:
 #if !HAVE_SILENT_IDIVWRAPV
-			if (!es->natural && vr->val.i == -1 &&
-			    vl->val.i == ((mksh_ari_t)1 << 31)) {
+			/*
+			 * we are doing the comparisons here for the
+			 * signed arithmetics (!es->natural) case,
+			 * but the exact value checks and the bypass
+			 * case assignments are done unsignedly as
+			 * several compilers bitch around otherwise
+			 */
+			if (!es->natural &&
+			    vl->val.u == (mksh_uari_t)0x80000000UL &&
+			    vr->val.u == (mksh_uari_t)0xFFFFFFFFUL) {
 				/* -2147483648 / -1 = 2147483648 */
-				/* 80000000 / FFFFFFFF = 80000000 */
-				res = ((mksh_ari_t)1 << 31);
+				/* this ^ is really (1 << 31) though */
+				res = (mksh_ari_t)(mksh_uari_t)0x80000000UL;
 			} else
 #endif
 				res = bivui(vl, /, vr);
@@ -379,8 +387,10 @@ evalexpr(Expr_state *es, int prec)
 		case O_MOD:
 		case O_MODASN:
 #if !HAVE_SILENT_IDIVWRAPV
-			if (!es->natural && vr->val.i == -1 &&
-			    vl->val.i == ((mksh_ari_t)1 << 31)) {
+			/* see O_DIV / O_DIVASN for the reason behind this */
+			if (!es->natural &&
+			    vl->val.u == (mksh_uari_t)0x80000000UL &&
+			    vr->val.u == (mksh_uari_t)0xFFFFFFFFUL) {
 				/* -2147483648 % -1 = 0 */
 				res = 0;
 			} else

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.474.2.14 2012/03/24 21:22:30 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.474.2.15 2012/04/06 14:40:11 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2012/03/20
+	@(#)MIRBSD KSH R40 2012/04/06
 description:
 	Check version of shell.
 stdin:
@@ -298,9 +298,11 @@ name: arith-div-intmin-by-minusone
 description:
 	Check division overflow wraps around silently
 stdin:
-	echo :$((-2147483648 / -1))_$((-2147483648 % -1)).
+	echo signed:$((-2147483648 / -1))r$((-2147483648 % -1)).
+	echo unsigned:$((# -2147483648 / -1))r$((# -2147483648 % -1)).
 expected-stdout:
-	:-2147483648_0.
+	signed:-2147483648r0.
+	unsigned:0r2147483648.
 ---
 name: arith-assop-assoc-1
 description:
@@ -1089,11 +1091,14 @@ name: expand-ugly
 description:
 	Check that weird ${foo+bar} constructs are parsed correctly
 stdin:
+	print '#!'"$__progname"'\nfor x in "$@"; do print -r -- "$x"; done' >pfn
+	print '#!'"$__progname"'\nfor x in "$@"; do print -nr -- "<$x> "; done' >pfs
+	chmod +x pfn pfs
 	(echo 1 ${IFS+'}'z}) 2>&- || echo failed in 1
 	(echo 2 "${IFS+'}'z}") 2>&- || echo failed in 2
 	(echo 3 "foo ${IFS+'bar} baz") 2>&- || echo failed in 3
-	(echo -n '4 '; printf '%s\n' "foo ${IFS+"b   c"} baz") 2>&- || echo failed in 4
-	(echo -n '5 '; printf '%s\n' "foo ${IFS+b   c} baz") 2>&- || echo failed in 5
+	(echo -n '4 '; ./pfn "foo ${IFS+"b   c"} baz") 2>&- || echo failed in 4
+	(echo -n '5 '; ./pfn "foo ${IFS+b   c} baz") 2>&- || echo failed in 5
 	(echo 6 ${IFS+"}"z}) 2>&- || echo failed in 6
 	(echo 7 "${IFS+"}"z}") 2>&- || echo failed in 7
 	(echo 8 "${IFS+\"}\"z}") 2>&- || echo failed in 8
@@ -1103,7 +1108,7 @@ stdin:
 	(echo 12 "$(echo ${IFS+'}'z})") 2>&- || echo failed in 12
 	(echo 13 ${IFS+\}z}) 2>&- || echo failed in 13
 	(echo 14 "${IFS+\}z}") 2>&- || echo failed in 14
-	u=x; (echo -n '15 '; printf '<%s> ' "foo ${IFS+a"b$u{ {"{{\}b} c ${IFS+d{}} bar" ${IFS-e{}} baz; echo .) 2>&- || echo failed in 15
+	u=x; (echo -n '15 '; ./pfs "foo ${IFS+a"b$u{ {"{{\}b} c ${IFS+d{}} bar" ${IFS-e{}} baz; echo .) 2>&- || echo failed in 15
 	l=t; (echo 16 ${IFS+h`echo -n i ${IFS+$l}h`ere}) 2>&- || echo failed in 16
 	l=t; (echo 17 ${IFS+h$(echo -n i ${IFS+$l}h)ere}) 2>&- || echo failed in 17
 	l=t; (echo 18 "${IFS+h`echo -n i ${IFS+$l}h`ere}") 2>&- || echo failed in 18
@@ -1112,26 +1117,26 @@ stdin:
 	l=t; (echo 21 ${IFS+h$(echo -n i "${IFS+$l}"h)ere}) 2>&- || echo failed in 21
 	l=t; (echo 22 "${IFS+h`echo -n i "${IFS+$l}"h`ere}") 2>&- || echo failed in 22
 	l=t; (echo 23 "${IFS+h$(echo -n i "${IFS+$l}"h)ere}") 2>&- || echo failed in 23
-	key=value; (echo -n '24 '; printf '%s\n' "${IFS+'$key'}") 2>&- || echo failed in 24
-	key=value; (echo -n '25 '; printf '%s\n' "${IFS+"'$key'"}") 2>&- || echo failed in 25	# ksh93: “'$key'”
-	key=value; (echo -n '26 '; printf '%s\n' ${IFS+'$key'}) 2>&- || echo failed in 26
-	key=value; (echo -n '27 '; printf '%s\n' ${IFS+"'$key'"}) 2>&- || echo failed in 27
-	(echo -n '28 '; printf '%s\n' "${IFS+"'"x ~ x'}'x"'}"x}" #') 2>&- || echo failed in 28
-	u=x; (echo -n '29 '; printf '<%s> ' foo ${IFS+a"b$u{ {"{ {\}b} c ${IFS+d{}} bar ${IFS-e{}} baz; echo .) 2>&- || echo failed in 29
-	(echo -n '30 '; printf '<%s> ' ${IFS+foo 'b\
+	key=value; (echo -n '24 '; ./pfn "${IFS+'$key'}") 2>&- || echo failed in 24
+	key=value; (echo -n '25 '; ./pfn "${IFS+"'$key'"}") 2>&- || echo failed in 25	# ksh93: “'$key'”
+	key=value; (echo -n '26 '; ./pfn ${IFS+'$key'}) 2>&- || echo failed in 26
+	key=value; (echo -n '27 '; ./pfn ${IFS+"'$key'"}) 2>&- || echo failed in 27
+	(echo -n '28 '; ./pfn "${IFS+"'"x ~ x'}'x"'}"x}" #') 2>&- || echo failed in 28
+	u=x; (echo -n '29 '; ./pfs foo ${IFS+a"b$u{ {"{ {\}b} c ${IFS+d{}} bar ${IFS-e{}} baz; echo .) 2>&- || echo failed in 29
+	(echo -n '30 '; ./pfs ${IFS+foo 'b\
 	ar' baz}; echo .) 2>&- || (echo failed in 30; echo failed in 31)
-	(echo -n '32 '; printf '<%s> ' ${IFS+foo "b\
+	(echo -n '32 '; ./pfs ${IFS+foo "b\
 	ar" baz}; echo .) 2>&- || echo failed in 32
-	(echo -n '33 '; printf '<%s> ' "${IFS+foo 'b\
+	(echo -n '33 '; ./pfs "${IFS+foo 'b\
 	ar' baz}"; echo .) 2>&- || echo failed in 33
-	(echo -n '34 '; printf '<%s> ' "${IFS+foo "b\
+	(echo -n '34 '; ./pfs "${IFS+foo "b\
 	ar" baz}"; echo .) 2>&- || echo failed in 34
-	(echo -n '35 '; printf '<%s> ' ${v=a\ b} x ${v=c\ d}; echo .) 2>&- || echo failed in 35
-	(echo -n '36 '; printf '<%s> ' "${v=a\ b}" x "${v=c\ d}"; echo .) 2>&- || echo failed in 36
-	(echo -n '37 '; printf '<%s> ' ${v-a\ b} x ${v-c\ d}; echo .) 2>&- || echo failed in 37
+	(echo -n '35 '; ./pfs ${v=a\ b} x ${v=c\ d}; echo .) 2>&- || echo failed in 35
+	(echo -n '36 '; ./pfs "${v=a\ b}" x "${v=c\ d}"; echo .) 2>&- || echo failed in 36
+	(echo -n '37 '; ./pfs ${v-a\ b} x ${v-c\ d}; echo .) 2>&- || echo failed in 37
 	(echo 38 ${IFS+x'a'y} / "${IFS+x'a'y}" .) 2>&- || echo failed in 38
 	foo="x'a'y"; (echo 39 ${foo%*'a'*} / "${foo%*'a'*}" .) 2>&- || echo failed in 39
-	foo="a b c"; (echo -n '40 '; printf '<%s> ' "${foo#a}"; echo .) 2>&- || echo failed in 40
+	foo="a b c"; (echo -n '40 '; ./pfs "${foo#a}"; echo .) 2>&- || echo failed in 40
 expected-stdout:
 	1 }z
 	2 ''z}
@@ -1889,7 +1894,8 @@ description:
 	Check that symbolic links aren't stat()'d
 # breaks on FreeMiNT (cannot unlink dangling symlinks)
 # breaks on MSYS (does not support symlinks)
-category: !os:mint,!os:msys
+# breaks on Dell UNIX 4.0 R2.2 (SVR4) where unlink also fails
+category: !os:mint,!os:msys,!os:svr4.0
 file-setup: dir 755 "dir"
 file-setup: symlink 644 "dir/abc"
 	non-existent-file
@@ -4518,6 +4524,9 @@ name: regression-42
 description:
 	Can't use command line assignments to assign readonly parameters.
 stdin:
+	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
+	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
+	    done >env; chmod +x env; PATH=.:$PATH
 	foo=bar
 	readonly foo
 	foo=stuff env | grep '^foo'
@@ -4633,10 +4642,10 @@ name: regression-50
 description:
 	Check that aliases do not use continuation prompt after trailing
 	semi-colon.
-file-setup: file 644 "env"
+file-setup: file 644 "envf"
 	PS1=Y
 	PS2=X
-env-setup: !ENV=./env!
+env-setup: !ENV=./envf!
 need-ctty: yes
 arguments: !-i!
 stdin:
@@ -4663,11 +4672,11 @@ expected-stdout:
 name: regression-52
 description:
 	Check that globbing works in pipelined commands
-file-setup: file 644 "env"
+file-setup: file 644 "envf"
 	PS1=P
 file-setup: file 644 "abc"
 	stuff
-env-setup: !ENV=./env!
+env-setup: !ENV=./envf!
 need-ctty: yes
 arguments: !-i!
 stdin:
@@ -5201,6 +5210,9 @@ name: xxx-exec-environment-1
 description:
 	Check to see if exec sets it's environment correctly
 stdin:
+	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
+	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
+	    done >env; chmod +x env; PATH=.:$PATH
 	FOO=bar exec env
 expected-stdout-pattern:
 	/(^|.*\n)FOO=bar\n/
@@ -5210,9 +5222,11 @@ description:
 	Check to make sure exec doesn't change environment if a program
 	isn't exec-ed
 stdin:
-	sortprog=$(whence -p sort) || sortprog=cat
-	env | $sortprog | grep -v '^RANDOM=' >bar1
-	FOO=bar exec; env | $sortprog | grep -v '^RANDOM=' >bar2
+	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
+	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
+	    done >env; chmod +x env; PATH=.:$PATH
+	env >bar1
+	FOO=bar exec; env >bar2
 	cmp -s bar1 bar2
 ---
 name: exec-function-environment-1
@@ -5432,6 +5446,10 @@ name: exit-err-1
 description:
 	Check some "exit on error" conditions
 stdin:
+	print '#!'"$__progname"'\nexec "$1"' >env
+	print '#!'"$__progname"'\nexit 1' >false
+	chmod +x env false
+	PATH=.:$PATH
 	set -ex
 	env false && echo something
 	echo END
@@ -5445,6 +5463,11 @@ name: exit-err-2
 description:
 	Check some "exit on error" edge conditions (POSIXly)
 stdin:
+	print '#!'"$__progname"'\nexec "$1"' >env
+	print '#!'"$__progname"'\nexit 1' >false
+	print '#!'"$__progname"'\nexit 0' >true
+	chmod +x env false
+	PATH=.:$PATH
 	set -ex
 	if env true; then
 		env false && echo something
@@ -6383,23 +6406,25 @@ name: arrays-2b
 description:
 	Check if bash-style arrays work as expected, with newlines
 stdin:
+	print '#!'"$__progname"'\nfor x in "$@"; do print -nr -- "$x|"; done' >pfp
+	chmod +x pfp
 	test -n "$ZSH_VERSION" && setopt KSH_ARRAYS
 	v="e f"
 	foo=(a
 		bc
 		d \$v "$v" '$v' g
 	)
-	printf '%s|' "${#foo[*]}" "${foo[0]}" "${foo[1]}" "${foo[2]}" "${foo[3]}" "${foo[4]}" "${foo[5]}" "${foo[6]}"; echo
+	./pfp "${#foo[*]}" "${foo[0]}" "${foo[1]}" "${foo[2]}" "${foo[3]}" "${foo[4]}" "${foo[5]}" "${foo[6]}"; echo
 	foo=(a\
 		bc
 		d \$v "$v" '$v' g
 	)
-	printf '%s|' "${#foo[*]}" "${foo[0]}" "${foo[1]}" "${foo[2]}" "${foo[3]}" "${foo[4]}" "${foo[5]}" "${foo[6]}"; echo
+	./pfp "${#foo[*]}" "${foo[0]}" "${foo[1]}" "${foo[2]}" "${foo[3]}" "${foo[4]}" "${foo[5]}" "${foo[6]}"; echo
 	foo=(a\
 	bc\\
 		d \$v "$v" '$v'
 	g)
-	printf '%s|' "${#foo[*]}" "${foo[0]}" "${foo[1]}" "${foo[2]}" "${foo[3]}" "${foo[4]}" "${foo[5]}" "${foo[6]}"; echo
+	./pfp "${#foo[*]}" "${foo[0]}" "${foo[1]}" "${foo[2]}" "${foo[3]}" "${foo[4]}" "${foo[5]}" "${foo[6]}"; echo
 expected-stdout:
 	7|a|bc|d|$v|e f|$v|g|
 	7|a|bc|d|$v|e f|$v|g|
@@ -7106,7 +7131,9 @@ name: varexpand-null-2
 description:
 	Ensure empty strings, when quoted, are expanded as empty strings
 stdin:
-	printf '<%s> ' 1 "${a}" 2 "${a#?}" + "${b%?}" 3 "${a=}" + "${b/c/d}"
+	print '#!'"$__progname"'\nfor x in "$@"; do print -nr -- "<$x> "; done' >pfs
+	chmod +x pfs
+	./pfs 1 "${a}" 2 "${a#?}" + "${b%?}" 3 "${a=}" + "${b/c/d}"
 	echo .
 expected-stdout:
 	<1> <> <2> <> <+> <> <3> <> <+> <> .
@@ -7212,7 +7239,9 @@ name: dollar-quoted-strings
 description:
 	Check backslash expansion by $'…' strings
 stdin:
-	printf '%s\n' $'\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/ \1\2\3\4\5\6' \
+	print '#!'"$__progname"'\nfor x in "$@"; do print -r -- "$x"; done' >pfn
+	chmod +x pfn
+	./pfn $'\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/ \1\2\3\4\5\6' \
 	    $'a\0b' $'a\01b' $'\7\8\9\:\;\<\=\>\?\@\A\B\C\D\E\F\G\H\I' \
 	    $'\J\K\L\M\N\O\P\Q\R\S\T\U1\V\W\X\Y\Z\[\\\]\^\_\`\a\b\d\e' \
 	    $'\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u1\v\w\x1\y\z\{\|\}\~ $x' \
@@ -7869,6 +7898,7 @@ expected-stdout:
 name: ulimit-1
 description:
 	Check if we can use a specific syntax idiom for ulimit
+category: !os:syllable
 stdin:
 	if ! x=$(ulimit -d) || [[ $x = unknown ]]; then
 		#echo expected to fail on this OS
@@ -8087,6 +8117,9 @@ description:
 	global environment.
 	Inspired by PR 2450.
 stdin:
+	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
+	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
+	    done >env; chmod +x env; PATH=.:$PATH
 	function k {
 		if [ x$FOO != xbar ]; then
 			echo 1
@@ -8233,6 +8266,7 @@ description:
 	is a must (a non-recursive parser cannot pass all three of
 	these test cases, especially the ‘#’ is difficult)
 stdin:
+	print '#!'"$__progname"'\necho 1234' >id; chmod +x id; PATH=.:$PATH
 	echo $(typeset -i10 x=16#20; echo $x)
 	echo $(typeset -Uui16 x=16#$(id -u)
 	) .
@@ -8268,16 +8302,18 @@ name: comsub-5
 description:
 	Check COMSUB works with aliases (does not expand them twice)
 stdin:
+	print '#!'"$__progname"'\nfor x in "$@"; do print -r -- "$x"; done' >pfn
+	chmod +x pfn
 	alias echo='echo a'
 	foo() {
-		printf '%s\n' "$(echo foo)"
+		./pfn "$(echo foo)"
 	}
-	printf '%s\n' "$(echo b)"
+	./pfn "$(echo b)"
 	typeset -f foo
 expected-stdout:
 	a b
 	foo() {
-		printf "%s\\n" "$(echo foo )" 
+		./pfn "$(echo foo )" 
 	} 
 ---
 name: comsub-torture
@@ -10204,6 +10240,10 @@ stdin:
 		(( u )) || set -U
 	}
 	
-	s=$("$__perlname" -e 'print "a"x12120;')
+	i=-1
+	s=
+	while (( ++i < 12120 )); do
+		s+=a
+	done
 	Lb64decode $s >/dev/null
 ---

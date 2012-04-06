@@ -1,7 +1,8 @@
 /*	$OpenBSD: eval.c,v 1.37 2011/10/11 14:32:43 otto Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+ *		 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.112 2012/03/23 20:07:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.112.2.1 2012/04/06 14:40:16 tg Exp $");
 
 /*
  * string expansion
@@ -918,10 +919,10 @@ expand(const char *cp,	/* input word */
 						*dp++ = MAGIC;
 					}
 					break;
-				case OBRACE:
+				case '{':
+				case '}':
 				case ',':
-				case CBRACE:
-					if ((f & DOBRACE) && (c == OBRACE ||
+					if ((f & DOBRACE) && (c == '{' /*}*/ ||
 					    (fdo & DOBRACE))) {
 						fdo |= DOBRACE|DOMAGIC;
 						*dp++ = MAGIC;
@@ -1646,7 +1647,7 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 	char *p;
 
 	/* search for open brace */
-	for (p = exp_start; (p = strchr(p, MAGIC)) && p[1] != OBRACE; p += 2)
+	for (p = exp_start; (p = strchr(p, MAGIC)) && p[1] != '{' /*}*/; p += 2)
 		;
 	brace_start = p;
 
@@ -1656,9 +1657,9 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 		count = 1;
 		for (p += 2; *p && count; p++) {
 			if (ISMAGIC(*p)) {
-				if (*++p == OBRACE)
+				if (*++p == '{' /*}*/)
 					count++;
-				else if (*p == CBRACE)
+				else if (*p == /*{*/ '}')
 					--count;
 				else if (*p == ',' && count == 1)
 					comma = p;
@@ -1689,9 +1690,9 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 	count = 1;
 	for (p = brace_start + 2; p != brace_end; p++) {
 		if (ISMAGIC(*p)) {
-			if (*++p == OBRACE)
+			if (*++p == '{' /*}*/)
 				count++;
-			else if ((*p == CBRACE && --count == 0) ||
+			else if ((*p == /*{*/ '}' && --count == 0) ||
 			    (*p == ',' && count == 1)) {
 				char *news;
 				int l1, l2, l3;

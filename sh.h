@@ -152,9 +152,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.484.2.16 2012/03/24 21:22:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.484.2.17 2012/04/06 14:40:23 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/03/20"
+#define MKSH_VERSION "R40 2012/04/06"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -167,6 +167,14 @@ typedef u_int32_t uint32_t;
 #endif
 
 /* arithmetic types: shell arithmetics */
+/*
+ * NOTE: these are currently hard-coded to exactly 32 bit, do not change
+ *
+ * TODO: make these configurable, or add 64-bit arithmetic, somehow
+ * (on some operating environments, 64-bit types are needed for some
+ * things, such as the ulimit builtin, to work proper), except mksh
+ * must still be able to run on systems with no native 64-bit integers
+ */
 typedef int32_t mksh_ari_t;
 typedef uint32_t mksh_uari_t;
 
@@ -196,13 +204,20 @@ typedef u_int8_t uint8_t;
 /* other standard types */
 
 #if !HAVE_RLIM_T
-typedef long rlim_t;
+typedef unsigned long rlim_t;
 #endif
 
 #if !HAVE_SIG_T
 #undef sig_t
 typedef void (*sig_t)(int);
 #endif
+
+/* un-do vendor damage */
+
+#undef BAD		/* AIX defines that somewhere */
+#undef PRINT		/* LynxOS defines that somewhere */
+#undef flock		/* SCO UnixWare defines that to flock64 but ENOENT */
+
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -296,7 +311,6 @@ struct rusage {
 #endif
 #endif
 
-#undef BAD		/* AIX defines that somewhere */
 
 /* OS-dependent additions (functions, variables, by OS) */
 
@@ -310,15 +324,6 @@ extern int getrusage(int, struct rusage *);
 
 #if !HAVE_REVOKE_DECL
 extern int revoke(const char *);
-#endif
-
-#ifdef __ultrix
-/* XXX imake style */
-int strcasecmp(const char *, const char *);
-#endif
-
-#if !HAVE_STRCASESTR
-const char *stristr(const char *, const char *);
 #endif
 
 #if !HAVE_STRLCPY
@@ -370,7 +375,7 @@ extern int wcwidth(__WCHAR_TYPE__);
 /*
  * Make MAGIC a char that might be printed to make bugs more obvious, but
  * not a char that is used often. Also, can't use the high bit as it causes
- * portability problems (calling strchr(x, 0x80|'x') is error prone).
+ * portability problems (calling strchr(x, 0x80 | 'x') is error prone).
  */
 #define MAGIC		(7)	/* prefix for *?[!{,} during expand */
 #define ISMAGIC(c)	((unsigned char)(c) == MAGIC)
@@ -429,6 +434,16 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	((void)0)
 #endif
 
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 406)
+#error Must run Build.sh to compile this.
+int
+im_sorry_dave(void)
+{
+	/* I’m sorry, Dave. I’m afraid I can’t do that. */
+	return (thiswillneverbedefinedIhope());
+}
+#endif
+
 /* use this ipv strchr(s, 0) but no side effects in s! */
 #define strnul(s)	((s) + strlen(s))
 
@@ -468,10 +483,6 @@ char *ucstrstr(char *, const char *);
 	}								\
 	(d) = strdup_dst;						\
 } while (/* CONSTCOND */ 0)
-#endif
-
-#if HAVE_STRCASESTR
-#define stristr(b,l)		((const char *)strcasestr((b), (l)))
 #endif
 
 #ifdef MKSH_SMALL
@@ -559,6 +570,16 @@ enum sh_flag {
 /*
  * parsing & execution environment
  */
+#if defined(NeXT) && !defined(__GLIBC__)
+#define kshjmp_buf	jmp_buf
+#define kshsetjmp(jbuf)	_setjmp(jbuf)
+#define kshlongjmp	_longjmp
+#else
+#define kshjmp_buf	sigjmp_buf
+#define kshsetjmp(jbuf)	sigsetjmp((jbuf), 0)
+#define kshlongjmp	siglongjmp
+#endif
+
 extern struct env {
 	ALLOC_ITEM alloc_INT;	/* internal, do not touch */
 	Area area;		/* temporary allocation area */
@@ -566,9 +587,9 @@ extern struct env {
 	struct block *loc;	/* local variables and functions */
 	short *savefd;		/* original redirected fds */
 	struct temp *temps;	/* temp files */
-	sigjmp_buf jbuf;	/* long jump back to env creator */
-	short type;		/* environment type - see below */
-	short flags;		/* EF_* */
+	kshjmp_buf jbuf;	/* long jump back to env creator */
+	uint8_t type;		/* environment type - see below */
+	uint8_t flags;		/* EF_* */
 } *e;
 
 /* struct env.type values */
@@ -587,12 +608,12 @@ extern struct env {
 #define EF_FAKE_SIGDIE	BIT(2)	/* hack to get info from unwind to quitenv */
 
 /* Do breaks/continues stop at env type e? */
-#define STOP_BRKCONT(t)	((t) == E_NONE || (t) == E_PARSE \
-			 || (t) == E_FUNC || (t) == E_INCL)
+#define STOP_BRKCONT(t)	((t) == E_NONE || (t) == E_PARSE || \
+			    (t) == E_FUNC || (t) == E_INCL)
 /* Do returns stop at env type e? */
 #define STOP_RETURN(t)	((t) == E_FUNC || (t) == E_INCL)
 
-/* values for siglongjmp(e->jbuf, 0) */
+/* values for kshlongjmp(e->jbuf, i) */
 #define LRETURN	1	/* return statement */
 #define LEXIT	2	/* exit statement */
 #define LERROR	3	/* errorf() called */
@@ -860,14 +881,6 @@ EXTERN char	*current_wd;
 EXTERN mksh_ari_t x_cols E_INIT(80);	/* tty columns */
 EXTERN mksh_ari_t x_lins E_INIT(24);	/* tty lines */
 
-/* These to avoid bracket matching problems */
-#define OPAREN	'('
-#define CPAREN	')'
-#define OBRACK	'['
-#define CBRACK	']'
-#define OBRACE	'{'
-#define CBRACE	'}'
-
 
 /* Determine the location of the system (common) profile */
 
@@ -883,7 +896,7 @@ EXTERN mksh_ari_t x_lins E_INIT(24);	/* tty lines */
 
 
 /* Used by v_evaluate() and setstr() to control action when error occurs */
-#define KSH_UNWIND_ERROR	0	/* unwind the stack (longjmp) */
+#define KSH_UNWIND_ERROR	0	/* unwind the stack (kshlongjmp) */
 #define KSH_RETURN_ERROR	1	/* return 1/0 for success/failure */
 
 /*
@@ -1624,7 +1637,7 @@ int findhist(int, int, const char *, int);
 char **hist_get_newest(bool);
 void inittraps(void);
 void alarm_init(void);
-Trap *gettrap(const char *, int);
+Trap *gettrap(const char *, bool);
 void trapsig(int);
 void intrcheck(void);
 int fatal_trap_check(void);
@@ -1638,6 +1651,10 @@ int block_pipe(void);
 void restore_pipe(int);
 int setsig(Trap *, sig_t, int);
 void setexecsig(Trap *, int);
+#if HAVE_FLOCK || HAVE_LOCK_FCNTL
+void mksh_lockfd(int);
+void mksh_unlkfd(int);
+#endif
 /* jobs.c */
 void j_init(void);
 void j_exit(void);
