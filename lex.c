@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.160 2012/03/31 17:29:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.158 2011/11/26 17:56:30 tg Exp $");
 
 /*
  * states while lexing word
@@ -1514,7 +1514,7 @@ set_prompt(int to, Source *s)
 			ps1 = shf_sclose(shf);
 			saved_atemp = ATEMP;
 			newenv(E_ERRH);
-			if (kshsetjmp(e->jbuf)) {
+			if (sigsetjmp(e->jbuf, 0)) {
 				prompt = safe_prompt;
 				/*
 				 * Don't print an error - assume it has already
@@ -1633,7 +1633,7 @@ get_brace_var(XString *wsp, char *wp)
 
 					c2 = getsc();
 					ungetsc(c2);
-					if (c2 != /*{*/ '}') {
+					if (c2 != '}') {
 						ungetsc(c);
 						goto out;
 					}

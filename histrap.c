@@ -2,8 +2,7 @@
 /*	$OpenBSD: trap.c,v 1.23 2010/05/19 17:36:08 jasper Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -27,7 +26,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.122 2012/04/06 13:29:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.117 2011/12/31 00:47:45 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -342,7 +341,7 @@ c_fc(const char **wp)
 			    "file", (unsigned long)statb.st_size);
 			goto errout;
 		} else
-			n = (size_t)statb.st_size + 1;
+			n = statb.st_size + 1;
 		Xinit(xs, xp, n, hist_source->areap);
 		while ((n = shf_read(xp, Xnleft(xs, xp), shf)) > 0) {
 			xp += n;
@@ -692,9 +691,7 @@ histsave(int *lnp, const char *cmd, bool dowrite MKSH_A_UNUSED, bool ignoredups)
 #define HMAGIC2		0xCD
 #define COMMAND		0xFF
 
-#if HAVE_PERSISTENT_HISTORY
 static const unsigned char sprinkle[2] = { HMAGIC1, HMAGIC2 };
-#endif
 
 void
 hist_init(Source *s)
@@ -726,7 +723,7 @@ hist_init(Source *s)
 	if (histfd != fd)
 		close(fd);
 
-	mksh_lockfd(histfd);
+	(void)flock(histfd, LOCK_EX);
 
 	histfsize = lseek(histfd, (off_t)0, SEEK_END);
 	if (histfsize > MKSH_MAXHISTFSIZE || hs == hist_init_restore) {
@@ -818,7 +815,7 @@ hist_init(Source *s)
 	}
 	histfsize = lseek(histfd, (off_t)0, SEEK_END);
  hist_init_tail:
-	mksh_unlkfd(histfd);
+	(void)flock(histfd, LOCK_UN);
 #endif
 }
 
@@ -883,7 +880,7 @@ writehistfile(int lno, const char *cmd)
 	size_t bytes;
 	unsigned char *base, *news;
 
-	mksh_lockfd(histfd);
+	(void)flock(histfd, LOCK_EX);
 	sizenow = lseek(histfd, (off_t)0, SEEK_END);
 	if (sizenow < histfsize) {
 		/* the file has shrunk; give up */
@@ -920,7 +917,7 @@ writehistfile(int lno, const char *cmd)
 		return;
 	}
 	histfsize = lseek(histfd, (off_t)0, SEEK_END);
-	mksh_unlkfd(histfd);
+	(void)flock(histfd, LOCK_UN);
 }
 
 static int
@@ -941,7 +938,7 @@ writehistline(int fd, int lno, const char *cmd)
 void
 hist_finish(void)
 {
-	mksh_unlkfd(histfd);
+	(void)flock(histfd, LOCK_UN);
 	(void)close(histfd);
 	histfd = -1;
 }
@@ -987,14 +984,8 @@ inittraps(void)
 			else {
 				char *s;
 
-				/* this is not optimal, what about SIGSIG1? */
-				if ((cs[0] & 0xDF) == 'S' &&
-				    (cs[1] & 0xDF) == 'I' &&
-				    (cs[2] & 0xDF) == 'G' &&
-				    cs[3] != '\0') {
-					/* skip leading "SIG" */
+				if (!strncasecmp(cs, "SIG", 3))
 					cs += 3;
-				}
 				strdupx(s, cs, APERM);
 				sigtraps[i].name = s;
 				while ((*s = ksh_toupper(*s)))
@@ -1062,45 +1053,27 @@ alarm_catcher(int sig MKSH_A_UNUSED)
 }
 
 Trap *
-gettrap(const char *cs, bool igncase)
+gettrap(const char *name, int igncase)
 {
-	int i;
+	int n = NSIG + 1;
 	Trap *p;
-	char *as;
+	const char *n2;
+	int (*cmpfunc)(const char *, const char *) = strcmp;
 
-	if (ksh_isdigit(*cs)) {
-		return ((getn(cs, &i) && 0 <= i && i < NSIG) ?
-		    (&sigtraps[i]) : NULL);
+	if (ksh_isdigit(*name)) {
+		if (getn(name, &n) && 0 <= n && n < NSIG)
+			return (&sigtraps[n]);
+		else
+			return (NULL);
 	}
 
-	/* this breaks SIGSIG1, but we do that above anyway */
-	if ((cs[0] & 0xDF) == 'S' &&
-	    (cs[1] & 0xDF) == 'I' &&
-	    (cs[2] & 0xDF) == 'G' &&
-	    cs[3] != '\0') {
-		/* skip leading "SIG" */
-		cs += 3;
-	}
-	if (igncase) {
-		char *s;
-
-		strdupx(as, cs, ATEMP);
-		cs = s = as;
-		while ((*s = ksh_toupper(*s)))
-			++s;
-	} else
-		as = NULL;
-
-	p = sigtraps;
-	for (i = 0; i <= NSIG; i++) {
-		if (!strcmp(p->name, cs))
-			goto found;
-		++p;
-	}
-	p = NULL;
- found:
-	afree(as, ATEMP);
-	return (p);
+	n2 = strncasecmp(name, "SIG", 3) ? NULL : name + 3;
+	if (igncase)
+		cmpfunc = strcasecmp;
+	for (p = sigtraps; --n >= 0; p++)
+		if (!cmpfunc(p->name, name) || (n2 && !cmpfunc(p->name, n2)))
+			return (p);
+	return (NULL);
 }
 
 /*
@@ -1446,56 +1419,3 @@ setexecsig(Trap *p, int restore)
 		break;
 	}
 }
-
-#if HAVE_PERSISTENT_HISTORY || defined(DF)
-/*
- * File descriptor locking and unlocking functions.
- * Could use some error handling, but hey, this is only
- * advisory locking anyway, will often not work over NFS,
- * and you are SOL if this fails...
- */
-
-void
-mksh_lockfd(int fd)
-{
-#if defined(__OpenBSD__)
-	/* flock is not interrupted by signals */
-	(void)flock(fd, LOCK_EX);
-#elif HAVE_FLOCK
-	int rv;
-
-	/* e.g. on Linux */
-	do {
-		rv = flock(fd, LOCK_EX);
-	} while (rv == 1 && errno == EINTR);
-#elif HAVE_LOCK_FCNTL
-	int rv;
-	struct flock lks;
-
-	memset(&lks, 0, sizeof(lks));
-	lks.l_type = F_WRLCK;
-	do {
-		rv = fcntl(fd, F_SETLKW, &lks);
-	} while (rv == 1 && errno == EINTR);
-#endif
-}
-
-/* designed to not define mksh_unlkfd if none triggered */
-#if HAVE_FLOCK
-void
-mksh_unlkfd(int fd)
-{
-	(void)flock(fd, LOCK_UN);
-}
-#elif HAVE_LOCK_FCNTL
-void
-mksh_unlkfd(int fd)
-{
-	struct flock lks;
-
-	memset(&lks, 0, sizeof(lks));
-	lks.l_type = F_UNLCK;
-	(void)fcntl(fd, F_SETLKW, &lks);
-}
-#endif
-#endif
