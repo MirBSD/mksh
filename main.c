@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.214 2012/03/31 17:30:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.215 2012/04/06 12:59:26 tg Exp $");
 
 extern char **environ;
 
@@ -46,6 +46,7 @@ extern char **environ;
 #define MKSH_DEFAULT_TMPDIR	"/tmp"
 #endif
 
+static uint8_t isuc(const char *);
 static int main_init(int, const char *[], Source **, struct block **);
 void chvt_reinit(void);
 static void reclaim(void);
@@ -159,6 +160,29 @@ chvt_reinit(void)
 static const char *empty_argv[] = {
 	"mksh", NULL
 };
+
+static uint8_t
+isuc(const char *cx) {
+	char *cp, *x;
+	uint8_t rv = 0;
+
+	if (!cx || !*cx)
+		return (0);
+
+	/* uppercase a string duplicate */
+	strdupx(x, cx, ATEMP);
+	cp = x;
+	while ((*cp = ksh_toupper(*cp)))
+		++cp;
+
+	/* check for UTF-8 */
+	if (strstr(x, "UTF-8") || strstr(x, "UTF8"))
+		rv = 1;
+
+	/* free copy and out */
+	afree(x, ATEMP);
+	return (rv);
+}
 
 static int
 main_init(int argc, const char *argv[], Source **sp, struct block **lp)
@@ -515,8 +539,6 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	}
 
 	/* divine the initial state of the utf8-mode Flag */
-#define isuc(x)	(((x) != NULL) && \
-	    (stristr((x), "UTF-8") || stristr((x), "utf8")))
 	ccp = null;
 	switch (utf_flag) {
 
@@ -558,7 +580,6 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		UTFMODE = utf_flag;
 		break;
 	}
-#undef isuc
 
 	/* Disable during .profile/ENV reading */
 	restricted = Flag(FRESTRICTED);

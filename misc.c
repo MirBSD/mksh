@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.186 2012/04/01 16:55:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.187 2012/04/06 12:59:27 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1996,26 +1996,6 @@ strstr(char *b, const char *l)
 			return (NULL);
 	if (strncmp(b, l, n))
 		goto strstr_look;
-	return (b - 1);
-}
-#endif
-
-#if !HAVE_STRCASESTR
-const char *
-stristr(const char *b, const char *l)
-{
-	char first, c;
-	size_t n;
-
-	if ((first = *l++), ((first = ksh_tolower(first)) == '\0'))
-		return (b);
-	n = strlen(l);
- stristr_look:
-	while ((c = *b++), ((c = ksh_tolower(c)) != first))
-		if (c == '\0')
-			return (NULL);
-	if (strncasecmp(b, l, n))
-		goto stristr_look;
 	return (b - 1);
 }
 #endif

@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.540 2012/04/06 11:51:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.541 2012/04/06 12:59:28 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/03/29"
 
@@ -331,10 +331,6 @@ extern int revoke(const char *);
 int strcasecmp(const char *, const char *);
 #endif
 
-#if !HAVE_STRCASESTR
-const char *stristr(const char *, const char *);
-#endif
-
 #if !HAVE_STRLCPY
 size_t strlcpy(char *, const char *, size_t);
 #endif
@@ -492,10 +488,6 @@ im_sorry_dave(void)
 	}								\
 	(d) = strdup_dst;						\
 } while (/* CONSTCOND */ 0)
-#endif
-
-#if HAVE_STRCASESTR
-#define stristr(b,l)		((const char *)strcasestr((b), (l)))
 #endif
 
 #ifdef MKSH_SMALL

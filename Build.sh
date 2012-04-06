@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.537 2012/04/06 12:57:53 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.538 2012/04/06 12:59:25 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1371,7 +1371,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.537 2012/04/06 12:57:53 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.538 2012/04/06 12:59:25 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1562,18 +1562,6 @@ ac_test setgroups setresugid 0 <<-'EOF'
 	#endif
 	#include <unistd.h>
 	int main(void) { gid_t gid = 0; return (setgroups(0, &gid)); }
-EOF
-
-ac_test strcasestr <<-'EOF'
-	#include <sys/types.h>
-	#include <stddef.h>
-	#include <string.h>
-	#if HAVE_STRINGS_H
-	#include <strings.h>
-	#endif
-	int main(int ac, char *av[]) {
-		return ((int)(ptrdiff_t)(void *)strcasestr(*av, av[ac]));
-	}
 EOF
 
 ac_test strlcpy <<-'EOF'
