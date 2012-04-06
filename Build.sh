@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.538 2012/04/06 12:59:25 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.539 2012/04/06 13:25:51 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1371,7 +1371,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.538 2012/04/06 12:59:25 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.539 2012/04/06 13:25:51 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1587,10 +1587,11 @@ ac_test '!' revoke_decl revoke 1 'if revoke() does not need to be declared' <<-'
 	long revoke(void);		/* this clashes if defined before */
 	int main(void) { return ((int)revoke()); }
 EOF
-ac_test sys_siglist_decl sys_siglist 1 'if sys_siglist[] does not need to be declared' <<-'EOF'
+ac_test '!' sys_siglist_decl sys_siglist 1 'if sys_siglist[] does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
-	int main(void) { return (sys_siglist[0][0]); }
+	extern int sys_siglist[5][5][5][5][5];	/* this clashes happily */
+	int main(void) { return (sys_siglist[0][0][0][0][0]); }
 EOF
 CC=$save_CC; LDFLAGS=$save_LDFLAGS; LIBS=$save_LIBS
 
