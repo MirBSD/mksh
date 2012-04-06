@@ -26,7 +26,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.233 2012/03/31 19:52:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.234 2012/04/06 15:06:42 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -3116,7 +3116,7 @@ x_fold_lower(int c MKSH_A_UNUSED)
 	return (x_fold_case('L'));
 }
 
-/* Lowercase N(1) words */
+/* Titlecase N(1) words */
 static int
 x_fold_capitalise(int c MKSH_A_UNUSED)
 {
@@ -3128,8 +3128,8 @@ x_fold_capitalise(int c MKSH_A_UNUSED)
  *	x_fold_case - convert word to UPPER/lower/Capital case
  *
  * DESCRIPTION:
- *	This function is used to implement M-U,M-u,M-L,M-l,M-C and M-c
- *	to UPPER case, lower case or Capitalise words.
+ *	This function is used to implement M-U/M-u, M-L/M-l, M-C/M-c
+ *	to UPPER CASE, lower case or Capitalise Words.
  *
  * RETURN VALUE:
  *	None
