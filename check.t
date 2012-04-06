@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.529 2012/04/06 12:27:15 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.530 2012/04/06 12:30:40 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -10244,6 +10244,10 @@ stdin:
 		(( u )) || set -U
 	}
 	
-	s=$("$__perlname" -e 'print "a"x12120;')
+	i=-1
+	s=
+	while (( ++i < 12120 )); do
+		s+=a
+	done
 	Lb64decode $s >/dev/null
 ---
