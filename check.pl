@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.30 2012/04/01 04:03:08 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.31 2012/04/06 12:22:14 tg Exp $
 # $OpenBSD: th,v 1.13 2006/05/18 21:27:23 miod Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
@@ -151,12 +151,24 @@
 #	p	tag takes parameters (used with m).
 #	s	tag can be used several times.
 
-#use POSIX qw(EINTR);
+# pull EINTR from POSIX.pm or Errno.pm if they exist
+# otherwise just skip it
 BEGIN {
-	unless (eval "use Errno") {
-		warn "couldn't load Errno: $@";
+	$EINTR = 0;
+	eval {
+		require POSIX;
+		$EINTR = POSIX::EINTR();
+	};
+	if ($@) {
+		eval {
+			require Errno;
+			$EINTR = Errno::EINTR();
+		} or do {
+			$EINTR = 0;
+		};
 	}
-}
+};
+
 use Getopt::Std;
 use Config;
 
@@ -562,8 +574,8 @@ run_test
 	$xpid = waitpid($pid, 0);
 	$child_kill_ok = 0;
 	if ($xpid < 0) {
-	    if ($!{EINTR}) {
-		next if $! == EINTR;
+	    if ($EINTR) {
+		next if $! == $EINTR;
 	    }
 	    print STDERR "$prog: error waiting for child - $!\n";
 	    return undef;
