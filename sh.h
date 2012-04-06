@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.539 2012/03/31 17:30:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.540 2012/04/06 11:51:43 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/03/29"
 
@@ -215,6 +215,7 @@ typedef void (*sig_t)(int);
 /* un-do vendor damage */
 
 #undef BAD		/* AIX defines that somewhere */
+#undef PRINT		/* LynxOS defines that somewhere */
 #undef flock		/* SCO UnixWare defines that to flock64 but ENOENT */
 
 
