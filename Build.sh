@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.540 2012/04/06 15:03:42 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.541 2012/04/06 15:20:41 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -276,6 +276,12 @@ ac_header() {
 }
 
 addsrcs() {
+	addsrcs_s=0
+	if test x"$1" = x"-s"; then
+		# optstatic
+		addsrcs_s=1
+		shift
+	fi
 	if test x"$1" = x"!"; then
 		fr=0
 		shift
@@ -283,6 +289,13 @@ addsrcs() {
 		fr=1
 	fi
 	eval i=\$$1
+	if test $addsrcs_s = 1; then
+		if test -f "$2" || test -f "$srcdir/$2"; then
+			# always add $2, since it exists
+			fr=1
+			i=1
+		fi
+	fi
 	test $fr = "$i" && case " $SRCS " in
 	*\ $2\ *)	;;
 	*)		SRCS="$SRCS $2" ;;
@@ -1376,7 +1389,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.540 2012/04/06 15:03:42 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.541 2012/04/06 15:20:41 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1804,10 +1817,11 @@ mksh_cfg= NSIG
 	$e done.
 fi
 
-addsrcs '!' HAVE_STRLCPY strlcpy.c
+addsrcs -s '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && add_cppflags -DMKSH_PRINTF_BUILTIN
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
+test -n "$LDSTATIC" && add_cppflags -DMKSH_OPTSTATIC
 add_cppflags -DMKSH_BUILD_R=409
 
 $e $bi$me: Finished configuration testing, now producing output.$ao

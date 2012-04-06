@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.542 2012/04/06 13:29:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.543 2012/04/06 15:20:42 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/03/29"
 
@@ -343,7 +343,7 @@ extern int __cdecl setegid(gid_t);
 
 /* remove redundances */
 
-#if defined(MirBSD) && (MirBSD >= 0x08A8)
+#if defined(MirBSD) && (MirBSD >= 0x08A8) && !defined(MKSH_OPTSTATIC)
 #define MKSH_mirbsd_wcwidth
 #define utf_wcwidth(i) wcwidth((__WCHAR_TYPE__)i)
 extern int wcwidth(__WCHAR_TYPE__);
