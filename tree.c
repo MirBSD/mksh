@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.57 2012/03/23 20:07:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.58 2012/04/07 11:19:30 tg Exp $");
 
 #define INDENT	8
 
@@ -127,7 +127,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		}
 		fptreef(shf, indent, "%Nesac ");
 		break;
-#ifndef MKSH_NO_DEPRECATED_WARNING
+#ifdef DEBUG
 	case TELIF:
 		internal_errorf("TELIF in tree.c:ptree() unexpected");
 		/* FALLTHROUGH */
