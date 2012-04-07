@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.530 2012/04/06 12:30:40 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.531 2012/04/07 11:19:47 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2012/03/29
+	@(#)MIRBSD KSH R40 2012/04/07
 description:
 	Check version of shell.
 stdin:
@@ -3422,7 +3422,6 @@ expected-stdout:
 name: integer-base-err-1
 description:
 	Can't have 0 base (causes shell to exit)
-category: nodeprecated
 expected-exit: e != 0
 stdin:
 	typeset -i i
@@ -3431,19 +3430,6 @@ stdin:
 	echo $i
 expected-stderr-pattern:
 	/^.*:.*0#4.*\n$/
----
-name: integer-base-err-1-deprecated
-description:
-	Can't have 0 base (causes shell to exit)
-category: !nodeprecated
-expected-exit: e != 0
-stdin:
-	typeset -i i
-	i=3
-	i=0#4
-	echo $i
-expected-stderr-pattern:
-	/^.*octal is deprecated\n.*:.*0#4.*\n$/
 ---
 name: integer-base-err-2
 description:
@@ -3640,22 +3626,10 @@ expected-stdout:
 	64
 	64
 ---
-name: integer-base-check-flat-posix
-description:
-	Check behaviour of POSuX bases
-category: !nodeprecated
-stdin:
-	echo :$((10)).$((010)).$((0x10)).
-expected-stdout:
-	:10.8.16.
-expected-stderr-pattern:
-	/octal is deprecated/
----
-name: integer-base-check-flat-right
+name: integer-base-check-flat
 description:
 	Check behaviour does not match POSuX, because a not type-safe
 	scripting language has *no* business interpreting "010" as octal
-category: nodeprecated
 stdin:
 	echo :$((10)).$((010)).$((0x10)).
 expected-stdout:
@@ -9429,99 +9403,6 @@ expected-stdout:
 	11 0
 	12 0
 ---
-name: event-subst-1a
-description:
-	Check that '!' substitution in interactive mode works
-category: !smksh,!nodeprecated
-file-setup: file 755 "falsetto"
-	#! /bin/sh
-	echo molto bene
-	exit 42
-file-setup: file 755 "!false"
-	#! /bin/sh
-	echo si
-need-ctty: yes
-arguments: !-i!
-stdin:
-	export PATH=.:$PATH
-	falsetto
-	echo yeap
-	!false
-expected-exit: 42
-expected-stdout:
-	molto bene
-	yeap
-	molto bene
-expected-stderr-pattern:
-	/.*/
----
-name: event-subst-1b
-description:
-	Check that '!' substitution in interactive mode works
-	even when a space separates it from the search command,
-	which is not what GNU bash provides but required for the
-	other regression tests below to check
-category: !smksh,!nodeprecated
-file-setup: file 755 "falsetto"
-	#! /bin/sh
-	echo molto bene
-	exit 42
-file-setup: file 755 "!"
-	#! /bin/sh
-	echo si
-need-ctty: yes
-arguments: !-i!
-stdin:
-	export PATH=.:$PATH
-	falsetto
-	echo yeap
-	! false
-expected-exit: 42
-expected-stdout:
-	molto bene
-	yeap
-	molto bene
-expected-stderr-pattern:
-	/.*/
----
-name: event-subst-2
-description:
-	Check that '!' substitution in interactive mode
-	does not break things
-category: !smksh,!nodeprecated
-file-setup: file 755 "falsetto"
-	#! /bin/sh
-	echo molto bene
-	exit 42
-file-setup: file 755 "!"
-	#! /bin/sh
-	echo si
-need-ctty: yes
-arguments: !-i!
-env-setup: !ENV=./Env!
-file-setup: file 644 "Env"
-	PS1=X
-stdin:
-	export PATH=.:$PATH
-	falsetto
-	echo yeap
-	!false
-	echo meow
-	! false
-	echo = $?
-	if
-	! false; then echo foo; else echo bar; fi
-expected-stdout:
-	molto bene
-	yeap
-	molto bene
-	meow
-	molto bene
-	= 42
-	foo
-expected-stderr-pattern:
-	/.*/
----
 name: event-subst-3
 description:
 	Check that '!' substitution in noninteractive mode is ignored
@@ -9554,7 +9435,6 @@ expected-stdout:
 name: event-subst-0
 description:
 	Check that '!' substitution in interactive mode is ignored
-category: nodeprecated
 need-ctty: yes
 arguments: !-i!
 file-setup: file 755 "falsetto"
