@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.543 2012/04/07 11:19:45 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.544 2012/04/08 20:02:33 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1058,7 +1058,6 @@ if test $ct = gcc; then
 	ac_flags 0 wnooverflow -Wno-overflow
 	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
 	ac_flags 1 fstackprotectorall -fstack-protector-all
-	ac_flags 1 fwrapv -fwrapv
 	test $cm = dragonegg && case " $CC $CFLAGS $LDFLAGS " in
 	*\ -fplugin=*dragonegg*) ;;
 	*) ac_flags 1 fplugin_dragonegg -fplugin=dragonegg ;;
@@ -1155,6 +1154,7 @@ fi
 # flags common to a subset of compilers (run with -Werror on gcc)
 if test 1 = $i; then
 	ac_flags 1 wall -Wall
+	ac_flags 1 fwrapv -fwrapv
 fi
 
 phase=x
@@ -1392,7 +1392,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.543 2012/04/07 11:19:45 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.544 2012/04/08 20:02:33 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
