@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.545 2012/04/14 14:02:39 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.546 2012/04/14 14:04:13 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1392,7 +1392,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.545 2012/04/14 14:02:39 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.546 2012/04/14 14:04:13 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1512,6 +1512,7 @@ ac_test mmap lock_fcntl 0 'for mmap and munmap' <<-'EOF'
 	#if HAVE_SYS_MMAN_H
 	#include <sys/mman.h>
 	#endif
+	#include <stddef.h>
 	#include <stdlib.h>
 	int main(void) { return ((void *)mmap(NULL, (size_t)0,
 	    PROT_READ, MAP_PRIVATE, 0, (off_t)0) == (void *)NULL ? 1 :
