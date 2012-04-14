@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.545 2012/04/07 11:19:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.546 2012/04/14 14:02:40 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/04/07"
 
@@ -210,6 +210,14 @@ typedef unsigned long rlim_t;
 #if !HAVE_SIG_T
 #undef sig_t
 typedef void (*sig_t)(int);
+#endif
+
+#ifdef MKSH_TYPEDEF_SIG_ATOMIC_T
+typedef MKSH_TYPEDEF_SIG_ATOMIC_T sig_atomic_t;
+#endif
+
+#ifdef MKSH_TYPEDEF_SSIZE_T
+typedef MKSH_TYPEDEF_SSIZE_T ssize_t;
 #endif
 
 /* un-do vendor damage */

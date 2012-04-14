@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.544 2012/04/08 20:02:33 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.545 2012/04/14 14:02:39 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -649,7 +649,7 @@ syllable)
 	;;
 ULTRIX)
 	: ${CC=cc -YPOSIX}
-	add_cppflags -Dssize_t=int
+	add_cppflags -DMKSH_TYPEDEF_SSIZE_T=int
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 UnixWare|UNIX_SV)
@@ -1392,7 +1392,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.544 2012/04/08 20:02:33 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.545 2012/04/14 14:02:39 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2092,6 +2092,8 @@ MKSH_NO_EXTERNAL_CAT		omit hack to skip cat builtin when flags passed
 MKSH_NO_LIMITS			omit ulimit code
 MKSH_SMALL			omit some code, optimise hard for size (slower)
 MKSH_S_NOVI			disable Vi editing mode (default if MKSH_SMALL)
+MKSH_TYPEDEF_SIG_ATOMIC_T	define to e.g. 'int' if sig_atomic_t is missing
+MKSH_TYPEDEF_SSIZE_T		define to e.g. 'long' if your OS has no ssize_t
 MKSH_UNEMPLOYED			disable job control (but not jobs/co-processes)
 
 === generic installation instructions ===
