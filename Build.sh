@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.547 2012/04/14 14:07:45 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.548 2012/04/14 14:11:07 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -470,6 +470,15 @@ esac
 
 # Configuration depending on OS name
 case $TARGET_OS in
+386BSD)
+	# required fixes for 386BSD-0.0new are:
+	# http://groups.google.com/group/comp.unix.bsd/browse_thread/thread/1c6397039f10e76b?hl=en
+	# http://groups.google.com/group/comp.unix.bsd/browse_thread/thread/cb899f7ccb81550b?hl=en
+	# from 386BSD-0.1 on, it works out of the box
+	: ${HAVE_CAN_OTWO=0}
+	add_cppflags -DMKSH_NO_SIGSETJMP
+	add_cppflags -DMKSH_TYPEDEF_SIG_ATOMIC_T=int
+	;;
 AIX)
 	add_cppflags -D_ALL_SOURCE
 	: ${HAVE_SETLOCALE_CTYPE=0}
@@ -1393,7 +1402,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.547 2012/04/14 14:07:45 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.548 2012/04/14 14:11:07 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
