@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.145 2012/04/07 11:19:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.146 2012/04/14 14:35:13 tg Exp $");
 
 /*-
  * Variables
@@ -1094,11 +1094,7 @@ getspec(struct tbl *vp)
 			return;
 		break;
 	case V_RANDOM:
-		/*
-		 * this is the same Linear Congruential PRNG as Borland
-		 * C/C++ allegedly uses in its built-in rand() function
-		 */
-		i = ((lcg_state = 22695477 * lcg_state + 1) >> 16) & 0x7FFF;
+		i = rndget();
 		break;
 	case V_HISTSIZE:
 		i = histsize;
@@ -1477,6 +1473,16 @@ hash(const void *s)
 	NZATUpdateString(h, s);
 	NZATFinish(h);
 	return (h);
+}
+
+mksh_ari_t
+rndget(void)
+{
+	/*
+	 * this is the same Linear Congruential PRNG as Borland
+	 * C/C++ allegedly uses in its built-in rand() function
+	 */
+	return (((lcg_state = 22695477 * lcg_state + 1) >> 16) & 0x7FFF);
 }
 
 void

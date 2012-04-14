@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.547 2012/04/14 14:07:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.548 2012/04/14 14:35:12 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/04/07"
 
@@ -1888,6 +1888,7 @@ size_t array_ref_len(const char *);
 char *arrayname(const char *);
 mksh_uari_t set_array(const char *, bool, const char **);
 uint32_t hash(const void *);
+mksh_ari_t rndget(void);
 void rndset(long);
 
 enum Test_op {
