@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.122 2012/04/06 13:29:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.123 2012/04/14 16:07:47 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -297,7 +297,7 @@ c_fc(const char **wp)
 	tf = maketemp(ATEMP, TT_HIST_EDIT, &e->temps);
 	if (!(shf = tf->shf)) {
 		bi_errorf("can't %s temporary file %s: %s",
-		    "create", tf->name, strerror(errno));
+		    "create", tf->tffn, strerror(errno));
 		return (1);
 	}
 	for (hp = rflag ? hlast : hfirst;
@@ -305,12 +305,12 @@ c_fc(const char **wp)
 		shf_fprintf(shf, "%s\n", *hp);
 	if (shf_close(shf) == EOF) {
 		bi_errorf("can't %s temporary file %s: %s",
-		    "write", tf->name, strerror(errno));
+		    "write", tf->tffn, strerror(errno));
 		return (1);
 	}
 
 	/* Ignore setstr errors here (arbitrary) */
-	setstr(local("_", false), tf->name, KSH_RETURN_ERROR);
+	setstr(local("_", false), tf->tffn, KSH_RETURN_ERROR);
 
 	/* XXX: source should not get trashed by this.. */
 	{
@@ -329,13 +329,13 @@ c_fc(const char **wp)
 		char *xp;
 		ssize_t n;
 
-		if (!(shf = shf_open(tf->name, O_RDONLY, 0, 0))) {
+		if (!(shf = shf_open(tf->tffn, O_RDONLY, 0, 0))) {
 			bi_errorf("can't %s temporary file %s: %s",
-			    "open", tf->name, strerror(errno));
+			    "open", tf->tffn, strerror(errno));
 			return (1);
 		}
 
-		if (stat(tf->name, &statb) < 0)
+		if (stat(tf->tffn, &statb) < 0)
 			n = 128;
 		else if ((off_t)statb.st_size > MKSH_MAXHISTFSIZE) {
 			bi_errorf("%s %s too large: %lu", Thistory,
@@ -351,7 +351,7 @@ c_fc(const char **wp)
 		}
 		if (n < 0) {
 			bi_errorf("can't %s temporary file %s: %s",
-			    "read", tf->name, strerror(shf_errno(shf)));
+			    "read", tf->tffn, strerror(shf_errno(shf)));
  errout:
 			shf_close(shf);
 			return (1);

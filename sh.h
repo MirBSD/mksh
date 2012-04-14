@@ -152,9 +152,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.548 2012/04/14 14:35:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.549 2012/04/14 16:07:48 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/04/07"
+#define MKSH_VERSION "R40 2012/04/14"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -535,11 +535,6 @@ im_sorry_dave(void)
 #define free_ossetmode(p)	free(p)
 #endif
 
-#if !HAVE_MKSTEMP
-/* tempnam(3) -> free(3) */
-#define free_ostempnam(p)	free(p)
-#endif
-
 #ifdef NO_PATH_MAX
 /* GNU libc: get_current_dir_name(3) -> free(3) */
 #define free_gnu_gcdn(p)	free(p)
@@ -704,18 +699,21 @@ EXTERN const char Tgbuiltin[] E_INIT("=builtin");
 EXTERN const char T_function[] E_INIT(" function");
 #define Tfunction	(T_function + 1)	/* "function" */
 
-enum temp_type {
-	TT_HEREDOC_EXP,	/* expanded heredoc */
-	TT_HIST_EDIT	/* temp file used for history editing (fc -e) */
-};
-typedef enum temp_type Temp_type;
+typedef uint8_t Temp_type;
+/* expanded heredoc */
+#define TT_HEREDOC_EXP	0
+/* temp file used for history editing (fc -e) */
+#define TT_HIST_EDIT	1
+
 /* temp/heredoc files. The file is removed when the struct is freed. */
 struct temp {
 	struct temp *next;
 	struct shf *shf;
-	char *name;
-	int pid;	/* pid of process parsed here-doc */
+	/* pid of process parsed here-doc */
+	pid_t pid;
 	Temp_type type;
+	/* actually longer: name (variable length) */
+	char tffn[3];
 };
 
 /*

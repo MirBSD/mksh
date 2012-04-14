@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.548 2012/04/14 14:11:07 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.549 2012/04/14 16:07:43 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1402,7 +1402,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.548 2012/04/14 14:11:07 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.549 2012/04/14 16:07:43 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1506,12 +1506,6 @@ ac_test mknod '' 'if to use mknod(), makedev() and friends' <<-'EOF'
 		return (mknod(av[0], (mode_t)0, dv) ? (int)major(dv) :
 		    (int)minor(dv));
 	}
-EOF
-
-ac_test mkstemp <<-'EOF'
-	#include <stdlib.h>
-	#include <unistd.h>
-	int main(void) { char tmpl[] = "X"; return (mkstemp(tmpl)); }
 EOF
 
 ac_test mmap lock_fcntl 0 'for mmap and munmap' <<-'EOF'
@@ -2103,7 +2097,7 @@ MKSH_NO_EXTERNAL_CAT		omit hack to skip cat builtin when flags passed
 MKSH_NO_LIMITS			omit ulimit code
 MKSH_NO_SIGSETJMP		define if sigsetjmp is broken or not available
 MKSH_SMALL			omit some code, optimise hard for size (slower)
-MKSH_S_NOVI			disable Vi editing mode (default if MKSH_SMALL)
+MKSH_S_NOVI=1			disable Vi editing mode (default if MKSH_SMALL)
 MKSH_TYPEDEF_SIG_ATOMIC_T	define to e.g. 'int' if sig_atomic_t is missing
 MKSH_TYPEDEF_SSIZE_T		define to e.g. 'long' if your OS has no ssize_t
 MKSH_UNEMPLOYED			disable job control (but not jobs/co-processes)

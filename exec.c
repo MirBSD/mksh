@@ -1,7 +1,8 @@
 /*	$OpenBSD: exec.c,v 1.49 2009/01/29 23:27:26 jaredy Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+ *		 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.97 2012/03/31 17:29:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.98 2012/04/14 16:07:46 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -1467,10 +1468,10 @@ herein(const char *content, int sub, char **resbuf)
 	 * so temp doesn't get removed too soon).
 	 */
 	h = maketemp(ATEMP, TT_HEREDOC_EXP, &e->temps);
-	if (!(shf = h->shf) || (fd = open(h->name, O_RDONLY, 0)) < 0) {
+	if (!(shf = h->shf) || (fd = open(h->tffn, O_RDONLY, 0)) < 0) {
 		i = errno;
 		warningf(true, "can't %s temporary file %s: %s",
-		    !shf ? "create" : "open", h->name, strerror(i));
+		    !shf ? "create" : "open", h->tffn, strerror(i));
 		if (shf)
 			shf_close(shf);
 		/* special to iosetup(): don't print error */
@@ -1486,7 +1487,8 @@ herein(const char *content, int sub, char **resbuf)
 	if (shf_close(shf) == EOF) {
 		i = errno;
 		close(fd);
-		warningf(true, "%s: %s: %s", "write", h->name, strerror(i));
+		warningf(true, "can't %s temporary file %s: %s",
+		    "write", h->tffn, strerror(i));
 		/* special to iosetup(): don't print error */
 		return (-2);
 	}

@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.215 2012/04/06 12:59:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.216 2012/04/14 16:07:47 tg Exp $");
 
 extern char **environ;
 
@@ -1015,7 +1015,7 @@ remove_temps(struct temp *tp)
 {
 	for (; tp != NULL; tp = tp->next)
 		if (tp->pid == procpid)
-			unlink(tp->name);
+			unlink(tp->tffn);
 }
 
 /*
@@ -1499,42 +1499,61 @@ coproc_cleanup(int reuse)
 struct temp *
 maketemp(Area *ap, Temp_type type, struct temp **tlist)
 {
-	struct temp *tp;
+	char *cp;
 	size_t len;
-	int fd;
-	char *pathname;
+	int i;
+	struct temp *tp;
 	const char *dir;
+	struct stat sb;
 
 	dir = tmpdir ? tmpdir : MKSH_DEFAULT_TMPDIR;
-#if HAVE_MKSTEMP
-	len = strlen(dir) + 6 + 10 + 1;
-#else
-	pathname = tempnam(dir, "mksh.");
-	len = ((pathname == NULL) ? 0 : strlen(pathname)) + 1;
-#endif
-	/* reasonably sure that this will not overflow */
-	tp = alloc(sizeof(struct temp) + len, ap);
-	tp->name = (char *)&tp[1];
-#if !HAVE_MKSTEMP
-	if (pathname == NULL)
-		tp->name[0] = '\0';
-	else {
-		memcpy(tp->name, pathname, len);
-		free_ostempnam(pathname);
-	}
-#endif
-	pathname = tp->name;
-	tp->shf = NULL;
-	tp->type = type;
-#if HAVE_MKSTEMP
-	shf_snprintf(pathname, len, "%s%s", dir, "/mksh.XXXXXXXXXX");
-	if ((fd = mkstemp(pathname)) >= 0)
-#else
-	if (tp->name[0] && (fd = open(tp->name, O_CREAT | O_RDWR, 0600)) >= 0)
-#endif
-		tp->shf = shf_fdopen(fd, SHF_WR, NULL);
-	tp->pid = procpid;
+	/* add "/shXXXXXX.tmp" plus NUL */
+	len = strlen(dir);
+	checkoktoadd(len, offsetof(struct temp, tffn[0]) + 14);
+	tp = alloc(offsetof(struct temp, tffn[0]) + 14 + len, ap);
 
+	tp->shf = NULL;
+	tp->pid = procpid;
+	tp->type = type;
+
+	if (stat(dir, &sb) || !S_ISDIR(sb.st_mode)) {
+		tp->tffn[0] = '\0';
+		goto maketemp_out;
+	}
+
+	cp = (void *)tp;
+	cp += offsetof(struct temp, tffn[0]);
+	memcpy(cp, dir, len);
+	cp += len;
+	memcpy(cp, "/shXXXXXX.tmp", 14);
+	/* point to the first of six Xes */
+	cp += 3;
+	/* generate random part of filename */
+	len = -1;
+	do {
+		i = rndget() % 36;
+		cp[++len] = i < 26 ? 'a' + i : '0' + i - 26;
+	} while (len < 5);
+
+	/* cyclically attempt to open a temporary file */
+	while ((i = open(tp->tffn, O_CREAT | O_EXCL | O_RDWR, 0600)) == -1) {
+		if (errno != EEXIST)
+			goto maketemp_out;
+		/* count down from z to a then from 9 to 0 */
+		while (cp[len] == '0')
+			if (!len--)
+				goto maketemp_out;
+		if (cp[len] == 'a')
+			cp[len] = '9';
+		else
+			--cp[len];
+		/* do another cycle */
+	}
+
+	/* shf_fdopen cannot fail, so no fd leak */
+	tp->shf = shf_fdopen(i, SHF_WR, NULL);
+
+ maketemp_out:
 	tp->next = *tlist;
 	*tlist = tp;
 	return (tp);
