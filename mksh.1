@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.283 2012/04/07 11:19:49 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.284 2012/04/14 12:51:34 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.141 2011/09/03 22:59:08 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -28,6 +28,8 @@
 .\" * ~ is size-reduced and placed atop in groff, so use \*(TI
 .\" * ^ is size-reduced and placed atop in groff, so use \*(ha
 .\" * \(en does not work in nroff, so use \*(en
+.\" * <>| are problematic, so redefine and use \*(Lt\*(Gt\*(Ba
+.\" Also make sure to use \& especially with two-letter words.
 .\" The section after the "doc" macropackage has been loaded contains
 .\" additional code to convene between the UCB mdoc macropackage (and
 .\" its variant as BSD mdoc in groff) and the GNU mdoc macropackage.
@@ -72,11 +74,13 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 7 2012 $
+.Dd $Mdocdate: April 14 2012 $
 .\"
-.\" Check which macro package we use
+.\" Check which macro package we use, and do other -mdoc setup.
 .\"
 .ie \n(.g \{\
+.	if \*[.T]utf8 .tr \[la]\*(Lt
+.	if \*[.T]utf8 .tr \[ra]\*(Gt
 .	ie d volume-ds-1 .ds tT gnu
 .	el .ds tT bsd
 .\}
@@ -153,7 +157,7 @@
 .Nm
 .Bk -words
 .Op Fl +abCefhiklmnprUuvXx
-.Op Fl T Ar /dev/ttyCn | \-
+.Op Fl T Ar /dev/ttyCn \*(Ba \-
 .Op Fl +o Ar option
 .Oo
 .Fl c Ar string \*(Ba
@@ -3640,7 +3644,7 @@ directories to the root directory) is printed.
 .Pp
 .It Xo
 .Ic read
-.Op Fl A | Fl a
+.Op Fl A \*(Ba Fl a
 .Op Fl d Ar x
 .Oo Fl N Ar z \*(Ba
 .Fl n Ar z Oc
@@ -3759,7 +3763,7 @@ option might be prudent; the same applies for:
 .Bd -literal -offset indent
 find . \-type f \-print0 \*(Ba \e
     while IFS= read \-d \*(aq\*(aq \-r filename; do
-	print \-r \-\- "found <${filename#./}>"
+	print \-r \-\- "found \*(Lt${filename#./}\*(Gt"
 done
 .Ed
 .Pp
