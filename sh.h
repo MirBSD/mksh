@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.546 2012/04/14 14:02:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.547 2012/04/14 14:07:47 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/04/07"
 
@@ -578,7 +578,7 @@ enum sh_flag {
 /*
  * parsing & execution environment
  */
-#if defined(NeXT) && !defined(__GLIBC__)
+#ifdef MKSH_NO_SIGSETJMP
 #define kshjmp_buf	jmp_buf
 #define kshsetjmp(jbuf)	_setjmp(jbuf)
 #define kshlongjmp	_longjmp

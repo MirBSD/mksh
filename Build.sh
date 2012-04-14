@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.546 2012/04/14 14:04:13 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.547 2012/04/14 14:07:45 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -569,6 +569,7 @@ NEXTSTEP)
 	add_cppflags -D_NEXT_SOURCE
 	add_cppflags -D_POSIX_SOURCE
 	: ${AWK=gawk} ${CC=cc -posix}
+	add_cppflags -DMKSH_NO_SIGSETJMP
 	# NeXTstep cannot get a controlling tty
 	add_cppflags -DMKSH_UNEMPLOYED
 	case $TARGET_OSREV in
@@ -1392,7 +1393,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.546 2012/04/14 14:04:13 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.547 2012/04/14 14:07:45 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2091,6 +2092,7 @@ MKSH_NOPWNAM			skip PAM calls, for -static on eglibc, Solaris
 MKSH_NO_DEPRECATED_WARNING	omit warning when deprecated stuff is run
 MKSH_NO_EXTERNAL_CAT		omit hack to skip cat builtin when flags passed
 MKSH_NO_LIMITS			omit ulimit code
+MKSH_NO_SIGSETJMP		define if sigsetjmp is broken or not available
 MKSH_SMALL			omit some code, optimise hard for size (slower)
 MKSH_S_NOVI			disable Vi editing mode (default if MKSH_SMALL)
 MKSH_TYPEDEF_SIG_ATOMIC_T	define to e.g. 'int' if sig_atomic_t is missing
