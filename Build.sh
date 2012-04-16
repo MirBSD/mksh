@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.550 2012/04/14 19:35:43 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.551 2012/04/16 17:49:40 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -461,7 +461,7 @@ fi
 # Configuration depending on OS revision, on OSes that need them
 case $TARGET_OS in
 NEXTSTEP)
-	test x"$TARGET_OSREV" = x"" && TARGET_OSREV=`hostinfo 2>&1 | sed -n '/^.*NeXT Mach \([0-9.]*\):.*$/s//\1/p'`
+	test x"$TARGET_OSREV" = x"" && TARGET_OSREV=`hostinfo 2>&1 | grep 'NeXT Mach [0-9.]*:' | sed 's/^.*NeXT Mach \([0-9.]*\):.*$/\1/'`
 	;;
 QNX|SCO_SV)
 	test x"$TARGET_OSREV" = x"" && TARGET_OSREV=`uname -r`
@@ -1398,7 +1398,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.550 2012/04/14 19:35:43 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.551 2012/04/16 17:49:40 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1778,8 +1778,10 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 int
 mksh_cfg= NSIG
 ;' >conftest.c
+	# GNU sed 2.03 segfaults when optimising this to sed -n
 	NSIG=`vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
-	    sed -n '/^mksh_cfg *=[	 ]*\([0-9x ()+-]*\).*$/s//\1/p'`
+	    grep '^mksh_cfg *=[	 ]*\([0-9x ()+-]*\).*$' | \
+	    sed 's/^mksh_cfg *=[	 ]*\([0-9x ()+-]*\).*$/\1/'`
 	case $NSIG in
 	*[\ \(\)+-]*) NSIG=`"$AWK" "BEGIN { print $NSIG }"` ;;
 	esac
@@ -1804,8 +1806,10 @@ mksh_cfg= NSIG
 		echo int >>conftest.c
 		echo mksh_cfg= SIG$name >>conftest.c
 		echo ';' >>conftest.c
+		# GNU sed 2.03 croaks on optimising this, too
 		vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
-		    sed -n '/^mksh_cfg *=[	 ]*\([0-9x]*\).*$/s//\1:'$name/p
+		    grep '^mksh_cfg *=[	 ]*\([0-9x]*\).*$' | \
+		    sed 's/^mksh_cfg *=[	 ]*\([0-9x]*\).*$/\1:'$name/
 	done | sed -e '/^:/d' -e 's/:/ /g' | while read nr name; do
 		test $printf = echo || nr=`printf %d "$nr" 2>/dev/null`
 		test $nr -gt 0 && test $nr -le $NSIG || continue
