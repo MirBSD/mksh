@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.146 2012/04/14 14:35:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.147 2012/04/22 21:50:35 tg Exp $");
 
 /*-
  * Variables
@@ -1471,7 +1471,7 @@ hash(const void *s)
 
 	NZATInit(h);
 	NZATUpdateString(h, s);
-	NZATFinish(h);
+	NZAATFinish(h);
 	return (h);
 }
 

@@ -152,9 +152,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.549 2012/04/14 16:07:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.550 2012/04/22 21:50:33 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/04/14"
+#define MKSH_VERSION "R40 2012/04/22"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1491,7 +1491,7 @@ EXTERN struct timeval j_usrtime, j_systime;
 } while (/* CONSTCOND */ 0)
 
 
-/* NZAT/NZAAT hashes based on Bob Jenkins' one-at-a-time hash */
+/* NZAAT hash based on Bob Jenkins' one-at-a-time hash */
 
 /* From: src/kern/include/nzat.h,v 1.2 2011/07/18 00:35:40 tg Exp $ */
 
@@ -1524,15 +1524,6 @@ EXTERN struct timeval j_usrtime, j_systime;
 		NZATUpdateByte((h), NZATUpdateString_c);	\
 } while (/* CONSTCOND */ 0)
 
-/* not zero after termination */
-#define NZATFinish(h) do {					\
-	if ((h) == 0)						\
-		++(h);						\
-	else							\
-		NZAATFinish(h);					\
-} while (/* CONSTCOND */ 0)
-
-/* NULs zählen an allen Teilen */
 #define NZAATFinish(h) do {					\
 	(h) += (h) << 10;					\
 	(h) ^= (h) >> 6;					\
