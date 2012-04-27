@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.84 2012/02/06 17:49:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.85 2012/04/27 16:16:22 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1062,6 +1062,9 @@ j_waitj(Job *j,
     const char *where)
 {
 	int rv;
+#ifdef MKSH_NO_SIGSUSPEND
+	sigset_t omask;
+#endif
 
 	/*
 	 * No auto-notify on the job we are waiting on.
@@ -1078,7 +1081,14 @@ j_waitj(Job *j,
 	while (j->state == PRUNNING ||
 	    ((flags & JW_STOPPEDWAIT) && j->state == PSTOPPED)) {
 #ifndef MKSH_NOPROSPECTOFWORK
+#ifdef MKSH_NO_SIGSUSPEND
+		sigprocmask(SIG_SETMASK, &sm_default, &omask);
+		pause();
+		/* note that handlers may run here so they need to know */
+		sigprocmask(SIG_SETMASK, &qmask, NULL);
+#else
 		sigsuspend(&sm_default);
+#endif
 #else
 		j_sigchld(SIGCHLD);
 #endif
@@ -1244,6 +1254,12 @@ j_sigchld(int sig MKSH_A_UNUSED)
 	pid_t pid;
 	int status;
 	struct rusage ru0, ru1;
+#ifdef MKSH_NO_SIGSUSPEND
+	sigset_t omask;
+
+	/* this handler can run while SIGCHLD is not blocked, so block it now */
+	sigprocmask(SIG_BLOCK, &sm_sigchld, &omask);
+#endif
 
 #ifndef MKSH_NOPROSPECTOFWORK
 	/*
@@ -1255,7 +1271,7 @@ j_sigchld(int sig MKSH_A_UNUSED)
 	for (j = job_list; j; j = j->next)
 		if (j->ppid == procpid && !(j->flags & JF_STARTED)) {
 			held_sigchld = 1;
-			return;
+			goto j_sigchld_out;
 		}
 #endif
 
@@ -1272,7 +1288,7 @@ j_sigchld(int sig MKSH_A_UNUSED)
 		 * or interrupted (-1)
 		 */
 		if (pid <= 0)
-			return;
+			goto j_sigchld_out;
 
 		getrusage(RUSAGE_CHILDREN, &ru1);
 
@@ -1315,6 +1331,12 @@ j_sigchld(int sig MKSH_A_UNUSED)
 #else
 	    while (/* CONSTCOND */ 0);
 #endif
+
+ j_sigchld_out:
+#ifdef MKSH_NO_SIGSUSPEND
+	sigprocmask(SIG_SETMASK, &omask, NULL);
+#endif
+	/* nothing */;
 }
 
 /*

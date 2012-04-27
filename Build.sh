@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.551 2012/04/16 17:49:40 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.552 2012/04/27 16:16:19 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1398,7 +1398,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.551 2012/04/16 17:49:40 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.552 2012/04/27 16:16:19 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2096,6 +2096,7 @@ MKSH_NO_DEPRECATED_WARNING	omit warning when deprecated stuff is run
 MKSH_NO_EXTERNAL_CAT		omit hack to skip cat builtin when flags passed
 MKSH_NO_LIMITS			omit ulimit code
 MKSH_NO_SIGSETJMP		define if sigsetjmp is broken or not available
+MKSH_NO_SIGSUSPEND		use sigprocmask+pause instead of sigsuspend
 MKSH_SMALL			omit some code, optimise hard for size (slower)
 MKSH_S_NOVI=1			disable Vi editing mode (default if MKSH_SMALL)
 MKSH_TYPEDEF_SIG_ATOMIC_T	define to e.g. 'int' if sig_atomic_t is missing
