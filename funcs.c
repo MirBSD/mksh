@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.217 2012/05/04 22:05:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.218 2012/05/04 22:18:24 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1783,7 +1783,7 @@ c_read(const char **wp)
 	const char *ccp;
 	XString xs;
 	ptrdiff_t xsave = 0;
-	struct termios tios;
+	mksh_ttyst tios;
 	bool restore_tios = false;
 #if HAVE_SELECT
 	bool hastimeout = false;
@@ -2160,7 +2160,7 @@ c_read(const char **wp)
 	afree(allocd, ATEMP);
 	Xfree(xs, xp);
 	if (restore_tios)
-		tcsetattr(fd, TCSADRAIN, &tios);
+		mksh_tcset(fd, &tios);
 	return (rv);
 #undef is_ifsws
 }

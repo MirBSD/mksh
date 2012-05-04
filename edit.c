@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.235 2012/05/04 20:49:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.236 2012/05/04 22:18:23 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -3274,7 +3274,7 @@ x_mode(bool onoff)
 		if (edchars.quit >= 0)
 			bind_if_not_bound(0, edchars.quit, XFUNC_noop);
 	} else
-		tcsetattr(tty_fd, TCSADRAIN, &tty_state);
+		mksh_tcset(tty_fd, &tty_state);
 }
 
 #if !MKSH_S_NOVI
@@ -5369,12 +5369,12 @@ vi_macro_reset(void)
 #endif /* !MKSH_NO_CMDLINE_EDITING */
 
 void
-x_mkraw(int fd, struct termios *ocb, bool forread)
+x_mkraw(int fd, mksh_ttyst *ocb, bool forread)
 {
-	struct termios cb;
+	mksh_ttyst cb;
 
 	if (ocb)
-		tcgetattr(fd, ocb);
+		mksh_tcget(fd, ocb);
 	else
 		ocb = &tty_state;
 
@@ -5396,5 +5396,5 @@ x_mkraw(int fd, struct termios *ocb, bool forread)
 	cb.c_cc[VTIME] = 0;
 	cb.c_cc[VMIN] = 1;
 
-	tcsetattr(fd, TCSADRAIN, &cb);
+	mksh_tcset(fd, &cb);
 }

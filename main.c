@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.219 2012/05/04 21:47:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.220 2012/05/04 22:18:26 tg Exp $");
 
 extern char **environ;
 
@@ -1076,7 +1076,7 @@ tty_init(bool init_ttystate, bool need_tty)
 		close(tty_fd);
 		tty_fd = -1;
 	} else if (init_ttystate)
-		tcgetattr(tty_fd, &tty_state);
+		mksh_tcget(tty_fd, &tty_state);
 	if (do_close)
 		close(tfd);
 }

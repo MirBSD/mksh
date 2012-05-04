@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.86 2012/05/04 21:48:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.87 2012/05/04 22:18:25 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -89,7 +89,7 @@ struct job {
 	int32_t	age;		/* number of jobs started */
 	Coproc_id coproc_id;	/* 0 or id of coprocess output pipe */
 #ifndef MKSH_UNEMPLOYED
-	struct termios ttystat;	/* saved tty state for stopped jobs */
+	mksh_ttyst ttystat;	/* saved tty state for stopped jobs */
 	pid_t saved_ttypgrp;	/* saved tty process group for stopped jobs */
 #endif
 };
@@ -333,7 +333,7 @@ j_change(void)
 			warningf(false, "%s: %s", "warning",
 			    "won't have full job control");
 		if (tty_fd >= 0)
-			tcgetattr(tty_fd, &tty_state);
+			mksh_tcget(tty_fd, &tty_state);
 	} else {
 		ttypgrp_ok = false;
 		if (Flag(FTALKING))
@@ -803,14 +803,14 @@ j_resume(const char *cp, int bg)
 		/* attach tty to job */
 		if (j->state == PRUNNING) {
 			if (ttypgrp_ok && (j->flags & JF_SAVEDTTY))
-				tcsetattr(tty_fd, TCSADRAIN, &j->ttystat);
+				mksh_tcset(tty_fd, &j->ttystat);
 			/* See comment in j_waitj regarding saved_ttypgrp. */
 			if (ttypgrp_ok &&
 			    tcsetpgrp(tty_fd, (j->flags & JF_SAVEDTTYPGRP) ?
 			    j->saved_ttypgrp : j->pgrp) < 0) {
 				rv = errno;
 				if (j->flags & JF_SAVEDTTY)
-					tcsetattr(tty_fd, TCSADRAIN, &tty_state);
+					mksh_tcset(tty_fd, &tty_state);
 				sigprocmask(SIG_SETMASK, &omask, NULL);
 				bi_errorf("%s %s(%d, %ld) %s: %s",
 				    "1st", "tcsetpgrp", tty_fd,
@@ -832,7 +832,7 @@ j_resume(const char *cp, int bg)
 		if (!bg) {
 			j->flags &= ~JF_FG;
 			if (ttypgrp_ok && (j->flags & JF_SAVEDTTY))
-				tcsetattr(tty_fd, TCSADRAIN, &tty_state);
+				mksh_tcset(tty_fd, &tty_state);
 			if (ttypgrp_ok && tcsetpgrp(tty_fd, kshpgrp) < 0)
 				warningf(true, "%s %s(%d, %ld) %s: %s",
 				    "fg: 2nd", "tcsetpgrp", tty_fd,
@@ -1130,7 +1130,7 @@ j_waitj(Job *j,
 				    (long)kshpgrp, "failed", strerror(errno));
 			if (j->state == PSTOPPED) {
 				j->flags |= JF_SAVEDTTY;
-				tcgetattr(tty_fd, &j->ttystat);
+				mksh_tcget(tty_fd, &j->ttystat);
 			}
 		}
 #endif
@@ -1146,9 +1146,9 @@ j_waitj(Job *j,
 			 */
 			if (j->state == PEXITED && j->status == 0 &&
 			    (j->flags & JF_USETTYMODE)) {
-				tcgetattr(tty_fd, &tty_state);
+				mksh_tcget(tty_fd, &tty_state);
 			} else {
-				tcsetattr(tty_fd, TCSADRAIN, &tty_state);
+				mksh_tcset(tty_fd, &tty_state);
 				/*-
 				 * Don't use tty mode if job is stopped and
 				 * later restarted and exits. Consider

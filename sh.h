@@ -79,7 +79,12 @@
 #if HAVE_STRINGS_H
 #include <strings.h>
 #endif
+#if HAVE_TERMIOS_H
 #include <termios.h>
+#else
+/* shudder */
+#include <termio.h>
+#endif
 #include <time.h>
 #if HAVE_ULIMIT_H
 #include <ulimit.h>
@@ -152,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.556 2012/05/04 22:05:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.557 2012/05/04 22:18:27 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/04/27"
 
@@ -350,6 +355,10 @@ extern int __cdecl setegid(gid_t);
 #endif
 
 #if defined(__COHERENT__)
+#ifndef O_ACCMODE
+/* this need not work everywhere, take care */
+#define O_ACCMODE	(O_RDONLY | O_WRONLY | O_RDWR)
+#endif
 #define mksh_TIME(tv) do {		\
 	(tv).tv_usec = 0;		\
 	(tv).tv_sec = time(NULL);	\
@@ -364,6 +373,16 @@ extern int __cdecl setegid(gid_t);
 #define mksh_lstat	stat
 #else
 #define mksh_lstat	lstat
+#endif
+
+#if HAVE_TERMIOS_H
+#define mksh_ttyst	struct termios
+#define mksh_tcget(fd,st) tcgetattr((fd), (st))
+#define mksh_tcset(fd,st) tcsetattr((fd), TCSADRAIN, (st))
+#else
+#define mksh_ttyst	struct termio
+#define mksh_tcget(fd,st) ioctl((fd), TCGETA, (st))
+#define mksh_tcset(fd,st) ioctl((fd), TCSETAW, (st))
 #endif
 
 /* remove redundancies */
@@ -1569,7 +1588,7 @@ int x_bind(const char *, const char *, bool);
 void x_init(void);
 int x_read(char *, size_t);
 #endif
-void x_mkraw(int, struct termios *, bool);
+void x_mkraw(int, mksh_ttyst *, bool);
 /* eval.c */
 char *substitute(const char *, int);
 char **eval(const char **, int);
@@ -1955,7 +1974,7 @@ int test_parse(Test_env *);
 
 EXTERN int tty_fd E_INIT(-1);	/* dup'd tty file descriptor */
 EXTERN bool tty_devtty;		/* true if tty_fd is from /dev/tty */
-EXTERN struct termios tty_state;	/* saved tty state */
+EXTERN mksh_ttyst tty_state;	/* saved tty state */
 
 extern void tty_init(bool, bool);
 extern void tty_close(void);
