@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.557 2012/05/04 21:34:12 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.558 2012/05/04 21:37:08 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -398,8 +398,11 @@ else
 	LDFLAGS=$LDSTATIC
 fi
 
-test x"$TARGET_OS" = x"" && TARGET_OS=`uname -s 2>/dev/null || uname`
-if test x"$TARGET_OS" = x""; then
+if test -z "$TARGET_OS"; then
+	x=`uname -s 2>/dev/null || uname`
+	test x"$x" = x"`uname -n 2>/dev/null`" || TARGET_OS=$x
+fi
+if test -z "$TARGET_OS"; then
 	echo "$me: Set TARGET_OS, your uname is broken!" >&2
 	exit 1
 fi
@@ -1398,7 +1401,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.557 2012/05/04 21:34:12 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.558 2012/05/04 21:37:08 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
