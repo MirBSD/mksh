@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.58 2012/04/07 11:19:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.59 2012/05/04 18:45:03 tg Exp $");
 
 #define INDENT	8
 
@@ -911,7 +911,7 @@ dumpioact(struct shf *shf, struct op *t)
 void
 dumptree(struct shf *shf, struct op *t)
 {
-	int i;
+	int i, j;
 	const char **w, *name;
 	struct op *t1;
 	static int nesting;
@@ -934,7 +934,7 @@ dumptree(struct shf *shf, struct op *t)
 			w = (const char **)t->vars;
 			while (*w) {
 				shf_putc('\n', shf);
-				for (int j = 0; j < nesting; ++j)
+				for (j = 0; j < nesting; ++j)
 					shf_putc('\t', shf);
 				shf_fprintf(shf, " var%d<", i++);
 				dumpwdvar(shf, *w++);
@@ -947,7 +947,7 @@ dumptree(struct shf *shf, struct op *t)
 			w = t->args;
 			while (*w) {
 				shf_putc('\n', shf);
-				for (int j = 0; j < nesting; ++j)
+				for (j = 0; j < nesting; ++j)
 					shf_putc('\t', shf);
 				shf_fprintf(shf, " arg%d<", i++);
 				dumpwdvar(shf, *w++);
@@ -987,7 +987,7 @@ dumptree(struct shf *shf, struct op *t)
 		w = t->args;
 		while (*w) {
 			shf_putc('\n', shf);
-			for (int j = 0; j < nesting; ++j)
+			for (j = 0; j < nesting; ++j)
 				shf_putc('\t', shf);
 			shf_fprintf(shf, " arg%d<", i++);
 			dumpwdvar(shf, *w++);
@@ -1002,7 +1002,7 @@ dumptree(struct shf *shf, struct op *t)
 			w = (const char **)t->vars;
 			while (*w) {
 				shf_putc('\n', shf);
-				for (int j = 0; j < nesting; ++j)
+				for (j = 0; j < nesting; ++j)
 					shf_putc('\t', shf);
 				shf_fprintf(shf, " var%d<", i++);
 				dumpwdvar(shf, *w++);
@@ -1017,7 +1017,7 @@ dumptree(struct shf *shf, struct op *t)
 		i = 0;
 		for (t1 = t->left; t1 != NULL; t1 = t1->right) {
 			shf_putc('\n', shf);
-			for (int j = 0; j < nesting; ++j)
+			for (j = 0; j < nesting; ++j)
 				shf_putc('\t', shf);
 			shf_fprintf(shf, " sub%d[(", i);
 			w = (const char **)t1->vars;
