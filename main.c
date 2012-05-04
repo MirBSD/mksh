@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.217 2012/05/04 20:49:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.218 2012/05/04 21:15:33 tg Exp $");
 
 extern char **environ;
 
@@ -739,19 +739,19 @@ command(const char *comm, int line)
  * run the commands from the input source, returning status.
  */
 int
-shell(Source * volatile s, volatile int toplevel)
+shell(Source * volatile s, volatile bool toplevel)
 {
 	struct op *t;
-	volatile int wastty = s->flags & SF_TTY;
-	volatile int attempts = 13;
-	volatile int interactive = Flag(FTALKING) && toplevel;
+	volatile bool wastty = tobool(s->flags & SF_TTY);
+	volatile uint8_t attempts = 13;
+	volatile bool interactive = Flag(FTALKING) && toplevel;
 	volatile bool sfirst = true;
 	Source *volatile old_source = source;
 	int i;
 
 	newenv(E_PARSE);
 	if (interactive)
-		really_exit = 0;
+		really_exit = false;
 	switch ((i = kshsetjmp(e->jbuf))) {
 	case 0:
 		break;
@@ -816,7 +816,7 @@ shell(Source * volatile s, volatile int toplevel)
 				s->type = SSTDIN;
 			} else if (wastty && !really_exit &&
 			    j_stopped_running()) {
-				really_exit = 1;
+				really_exit = true;
 				s->type = SSTDIN;
 			} else {
 				/*
@@ -834,7 +834,7 @@ shell(Source * volatile s, volatile int toplevel)
 			exstat = execute(t, 0, NULL);
 
 		if (t != NULL && t->type != TEOF && interactive && really_exit)
-			really_exit = 0;
+			really_exit = false;
 
 		reclaim();
 	}

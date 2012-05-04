@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.553 2012/05/04 20:49:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.554 2012/05/04 21:15:34 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/04/27"
 
@@ -792,7 +792,7 @@ EXTERN unsigned int ksh_tmout;
 EXTERN enum tmout_enum ksh_tmout_state E_INIT(TMOUT_EXECUTING);
 
 /* For "You have stopped jobs" message */
-EXTERN int really_exit;
+EXTERN bool really_exit;
 
 /*
  * fast character classes
@@ -1706,7 +1706,7 @@ int promptlen(const char *);
 /* main.c */
 int include(const char *, int, const char **, int);
 int command(const char *, int);
-int shell(Source *volatile, int volatile);
+int shell(Source * volatile, volatile bool);
 void unwind(int) MKSH_A_NORETURN;
 void newenv(int);
 void quitenv(struct shf *);
