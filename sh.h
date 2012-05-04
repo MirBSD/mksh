@@ -82,7 +82,7 @@
 #if HAVE_TERMIOS_H
 #include <termios.h>
 #else
-/* shudder */
+/* shudder… */
 #include <termio.h>
 #endif
 #include <time.h>
@@ -157,9 +157,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.557 2012/05/04 22:18:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.558 2012/05/04 22:44:34 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/04/27"
+#define MKSH_VERSION "R40 2012/05/04"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
