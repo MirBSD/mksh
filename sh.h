@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.551 2012/04/27 16:16:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.552 2012/05/04 20:08:25 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/04/27"
 
@@ -1772,7 +1772,6 @@ char *getoptions(void);
 void change_flag(enum sh_flag, int, unsigned int);
 int parse_args(const char **, int, bool *);
 int getn(const char *, int *);
-int bi_getn(const char *, int *);
 int gmatchx(const char *, const char *, bool);
 int has_globbing(const char *, const char *);
 int xstrcmp(const void *, const void *);

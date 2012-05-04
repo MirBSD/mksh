@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.187 2012/04/06 12:59:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.188 2012/05/04 20:08:25 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -482,17 +482,6 @@ getn(const char *s, int *ai)
  getn_out:
 	if (neg)
 		*ai = -*ai;
-	return (rv);
-}
-
-/* getn() that prints error */
-int
-bi_getn(const char *as, int *ai)
-{
-	int rv;
-
-	if (!(rv = getn(as, ai)))
-		bi_errorf("%s: %s", as, "bad number");
 	return (rv);
 }
 

@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.212 2012/04/06 13:28:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.213 2012/05/04 20:08:24 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -59,6 +59,17 @@ __RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.212 2012/04/06 13:28:59 tg Exp $");
 #ifdef MKSH_NO_LIMITS
 #define c_ulimit	c_true
 #endif
+
+/* getn() that prints error */
+static int
+bi_getn(const char *as, int *ai)
+{
+	int rv;
+
+	if (!(rv = getn(as, ai)))
+		bi_errorf("%s: %s", as, "bad number");
+	return (rv);
+}
 
 static int
 c_true(const char **wp MKSH_A_UNUSED)
