@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.552 2012/05/04 20:08:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.553 2012/05/04 20:49:07 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/04/27"
 
@@ -1543,14 +1543,16 @@ void *aresize(void *, size_t, Area *);
 void *aresize2(void *, size_t, size_t, Area *);
 void afree(void *, Area *);	/* can take NULL */
 /* edit.c */
+#ifndef MKSH_NO_CMDLINE_EDITING
 #ifndef MKSH_SMALL
 int x_bind(const char *, const char *, bool, bool);
 #else
 int x_bind(const char *, const char *, bool);
 #endif
 void x_init(void);
-void x_mkraw(int, struct termios *, bool);
 int x_read(char *, size_t);
+#endif
+void x_mkraw(int, struct termios *, bool);
 /* eval.c */
 char *substitute(const char *, int);
 char **eval(const char **, int);
@@ -1604,7 +1606,9 @@ int c_fgbg(const char **);
 int c_kill(const char **);
 void getopts_reset(int);
 int c_getopts(const char **);
+#ifndef MKSH_NO_CMDLINE_EDITING
 int c_bind(const char **);
+#endif
 int c_shift(const char **);
 int c_umask(const char **);
 int c_dot(const char **);
@@ -1646,7 +1650,7 @@ void sethistsize(mksh_ari_t);
 #if HAVE_PERSISTENT_HISTORY
 void sethistfile(const char *);
 #endif
-#if !MKSH_S_NOVI
+#if !defined(MKSH_NO_CMDLINE_EDITING) && !MKSH_S_NOVI
 char **histpos(void);
 int histnum(int);
 #endif

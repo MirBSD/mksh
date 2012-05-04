@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.188 2012/05/04 20:08:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.189 2012/05/04 20:49:06 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -226,6 +226,7 @@ change_flag(enum sh_flag f, int what, unsigned int newval)
 			j_change();
 	} else
 #endif
+#ifndef MKSH_NO_CMDLINE_EDITING
 	  if ((
 #if !MKSH_S_NOVI
 	    f == FVI ||
@@ -236,7 +237,9 @@ change_flag(enum sh_flag f, int what, unsigned int newval)
 #endif
 		    Flag(FEMACS) = Flag(FGMACS) = 0;
 		Flag(f) = (unsigned char)newval;
-	} else if (f == FPRIVILEGED && oldval && !newval) {
+	} else
+#endif
+	  if (f == FPRIVILEGED && oldval && !newval) {
 		/* Turning off -p? */
 
 		/*XXX this can probably be optimised */

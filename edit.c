@@ -26,7 +26,9 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.234 2012/04/06 15:06:42 tg Exp $");
+#ifndef MKSH_NO_CMDLINE_EDITING
+
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.235 2012/05/04 20:49:01 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -5364,6 +5366,7 @@ vi_macro_reset(void)
 	}
 }
 #endif /* !MKSH_S_NOVI */
+#endif /* !MKSH_NO_CMDLINE_EDITING */
 
 void
 x_mkraw(int fd, struct termios *ocb, bool forread)

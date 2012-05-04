@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.123 2012/04/14 16:07:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.124 2012/05/04 20:49:04 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -475,7 +475,7 @@ hist_get_oldest(void)
 	return (history);
 }
 
-#if !MKSH_S_NOVI
+#if !defined(MKSH_NO_CMDLINE_EDITING) && !MKSH_S_NOVI
 /* current position in history[] */
 static char **current;
 

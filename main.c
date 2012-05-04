@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.216 2012/04/14 16:07:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.217 2012/05/04 20:49:05 tg Exp $");
 
 extern char **environ;
 
@@ -327,6 +327,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	 */
 	Flag(FBRACEEXPAND) = 1;
 
+#ifndef MKSH_NO_CMDLINE_EDITING
 	/*
 	 * Set edit mode to emacs by default, may be overridden
 	 * by the environment or the user. Also, we want tab completion
@@ -335,6 +336,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	change_flag(FEMACS, OF_SPECIAL, 1);
 #if !MKSH_S_NOVI
 	Flag(FVITABCOMPLETE) = 1;
+#endif
 #endif
 
 	/* import environment */
@@ -517,7 +519,9 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 			utf_flag = 0;
 #endif
 		}
+#ifndef MKSH_NO_CMDLINE_EDITING
 		x_init();
+#endif
 	}
 
 #ifdef SIGWINCH

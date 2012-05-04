@@ -1,5 +1,5 @@
 #if defined(SHFLAGS_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.9 2011/06/12 15:37:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.10 2012/05/04 20:49:08 tg Exp $");
 #define FN(sname,cname,ochar,flags)	/* nothing */
 #elif defined(SHFLAGS_ENUMS)
 #define FN(sname,cname,ochar,flags)	cname,
@@ -29,14 +29,18 @@ FN("bgnice", FBGNICE, 0, OF_ANY)
 /* ./.	enable {} globbing (non-standard) */
 FN("braceexpand", FBRACEEXPAND, 0, OF_ANY)
 
+#ifndef MKSH_NO_CMDLINE_EDITING
 /* ./.	Emacs command line editing mode */
 FN("emacs", FEMACS, 0, OF_ANY)
+#endif
 
 /* -e	quit on error */
 FN("errexit", FERREXIT, 'e', OF_ANY)
 
+#ifndef MKSH_NO_CMDLINE_EDITING
 /* ./.	Emacs command line editing mode, gmacs variant */
 FN("gmacs", FGMACS, 0, OF_ANY)
+#endif
 
 /* ./.	reading EOF does not exit */
 FN("ignoreeof", FIGNOREEOF, 0, OF_ANY)
@@ -108,7 +112,7 @@ FN("utf8-mode", FUNICODE, 'U', OF_ANY)
 /* -v	echo input */
 FN("verbose", FVERBOSE, 'v', OF_ANY)
 
-#if !MKSH_S_NOVI
+#if !defined(MKSH_NO_CMDLINE_EDITING) && !MKSH_S_NOVI
 /* ./.	Vi command line editing mode */
 FN("vi", FVI, 0, OF_ANY)
 

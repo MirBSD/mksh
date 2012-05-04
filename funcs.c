@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.213 2012/05/04 20:08:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.214 2012/05/04 20:49:03 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -139,7 +139,9 @@ const struct builtin mkshbuiltins[] = {
 	{"+bg", c_fgbg},
 	{"+fg", c_fgbg},
 #endif
+#ifndef MKSH_NO_CMDLINE_EDITING
 	{"bind", c_bind},
+#endif
 	{"cat", c_cat},
 #if HAVE_MKNOD
 	{"mknod", c_mknod},
@@ -1481,6 +1483,7 @@ c_getopts(const char **wp)
 	return (optc < 0 ? 1 : rv);
 }
 
+#ifndef MKSH_NO_CMDLINE_EDITING
 int
 c_bind(const char **wp)
 {
@@ -1539,6 +1542,7 @@ c_bind(const char **wp)
 
 	return (rv);
 }
+#endif
 
 int
 c_shift(const char **wp)

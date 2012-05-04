@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.552 2012/04/27 16:16:19 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.553 2012/05/04 20:49:00 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1398,7 +1398,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.552 2012/04/27 16:16:19 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.553 2012/05/04 20:49:00 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2092,6 +2092,7 @@ MKSH_DONT_EMIT_IDSTRING		omit RCS IDs from binary
 MKSH_MIDNIGHTBSD01ASH_COMPAT	set -o sh: additional compatibility quirk
 MKSH_NOPROSPECTOFWORK		disable jobs, co-processes, etc. (do not use)
 MKSH_NOPWNAM			skip PAM calls, for -static on eglibc, Solaris
+MKSH_NO_CMDLINE_EDITING		disable command line editing code entirely
 MKSH_NO_DEPRECATED_WARNING	omit warning when deprecated stuff is run
 MKSH_NO_EXTERNAL_CAT		omit hack to skip cat builtin when flags passed
 MKSH_NO_LIMITS			omit ulimit code

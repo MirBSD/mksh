@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.161 2012/04/07 11:19:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.162 2012/05/04 20:49:04 tg Exp $");
 
 /*
  * states while lexing word
@@ -1382,6 +1382,7 @@ getsc_line(Source *s)
 	}
 	if (interactive)
 		change_winsz();
+#ifndef MKSH_NO_CMDLINE_EDITING
 	if (have_tty && (
 #if !MKSH_S_NOVI
 	    Flag(FVI) ||
@@ -1395,7 +1396,9 @@ getsc_line(Source *s)
 			nread = 0;
 		xp[nread] = '\0';
 		xp += nread;
-	} else {
+	} else
+#endif
+	  {
 		if (interactive)
 			pprompt(prompt, 0);
 		else
