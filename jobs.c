@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.85 2012/04/27 16:16:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.86 2012/05/04 21:48:29 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1085,7 +1085,7 @@ j_waitj(Job *j,
 		sigprocmask(SIG_SETMASK, &sm_default, &omask);
 		pause();
 		/* note that handlers may run here so they need to know */
-		sigprocmask(SIG_SETMASK, &qmask, NULL);
+		sigprocmask(SIG_SETMASK, &omask, NULL);
 #else
 		sigsuspend(&sm_default);
 #endif
