@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.556 2012/05/04 21:33:14 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.557 2012/05/04 21:34:12 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1398,7 +1398,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.556 2012/05/04 21:33:14 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.557 2012/05/04 21:34:12 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1783,7 +1783,7 @@ mksh_cfg= NSIG
 	    grep '^mksh_cfg *=[	 ]*[0-9x ()+-]*.*$' | \
 	    sed 's/^mksh_cfg *=[	 ]*\([0-9x ()+-][0-9x	 ()+-]*\).*$/\1/'`
 	case $NSIG in
-	*[\ \(\)+-]*) NSIG=`"$AWK" "BEGIN { print $NSIG }"` ;;
+	*[\ \(\)+-]*) NSIG=`"$AWK" "BEGIN { print $NSIG }" </dev/null` ;;
 	esac
 	printf=printf
 	(printf hallo) >/dev/null 2>&1 || printf=echo
