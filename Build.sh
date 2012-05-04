@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.559 2012/05/04 21:42:50 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.560 2012/05/04 21:57:36 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -494,6 +494,8 @@ BeOS)
 	esac
 	# BeOS has no real tty either
 	add_cppflags -DMKSH_UNEMPLOYED
+	# BeOS doesn't have different UIDs and GIDs
+	add_cppflags -DMKSH__NO_SETEUGID
 	;;
 BSD/OS)
 	: ${HAVE_SETLOCALE_CTYPE=0}
@@ -501,6 +503,7 @@ BSD/OS)
 Coherent)
 	oswarn="; it has major issues"
 	check_categories="$check_categories nosymlink"
+	add_cppflags -DMKSH__NO_SETEUGID
 	;;
 CYGWIN*)
 	: ${HAVE_SETLOCALE_CTYPE=0}
@@ -1405,7 +1408,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.559 2012/05/04 21:42:50 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.560 2012/05/04 21:57:36 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
