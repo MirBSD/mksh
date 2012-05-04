@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.215 2012/05/04 21:15:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.216 2012/05/04 21:47:01 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1884,7 +1884,7 @@ c_read(const char **wp)
 
 #if HAVE_SELECT
 	if (hastimeout) {
-		gettimeofday(&tvlim, NULL);
+		mksh_TIME(tvlim);
 		timeradd(&tvlim, &tv, &tvlim);
 	}
 #endif
@@ -1896,7 +1896,7 @@ c_read(const char **wp)
 
 		FD_ZERO(&fdset);
 		FD_SET(fd, &fdset);
-		gettimeofday(&tv, NULL);
+		mksh_TIME(tv);
 		timersub(&tvlim, &tv, &tv);
 		if (tv.tv_sec < 0) {
 			/* timeout expired globally */
@@ -2504,7 +2504,7 @@ timex(struct op *t, int f, volatile int *xerrok)
 	struct rusage ru0, ru1, cru0, cru1;
 	struct timeval usrtime, systime, tv0, tv1;
 
-	gettimeofday(&tv0, NULL);
+	mksh_TIME(tv0);
 	getrusage(RUSAGE_SELF, &ru0);
 	getrusage(RUSAGE_CHILDREN, &cru0);
 	if (t->left) {
@@ -2521,7 +2521,7 @@ timex(struct op *t, int f, volatile int *xerrok)
 		rv = execute(t->left, f | XTIME, xerrok);
 		if (t->left->type == TCOM)
 			tf |= t->left->str[0];
-		gettimeofday(&tv1, NULL);
+		mksh_TIME(tv1);
 		getrusage(RUSAGE_SELF, &ru1);
 		getrusage(RUSAGE_CHILDREN, &cru1);
 	} else

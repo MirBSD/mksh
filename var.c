@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.147 2012/04/22 21:50:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.148 2012/05/04 21:47:04 tg Exp $");
 
 /*-
  * Variables
@@ -1088,7 +1088,7 @@ getspec(struct tbl *vp)
 		if (vp->flag & ISSET) {
 			struct timeval tv;
 
-			gettimeofday(&tv, NULL);
+			mksh_TIME(tv);
 			i = tv.tv_sec - seconds;
 		} else
 			return;
@@ -1221,7 +1221,7 @@ setspec(struct tbl *vp)
 		{
 			struct timeval tv;
 
-			gettimeofday(&tv, NULL);
+			mksh_TIME(tv);
 			seconds = tv.tv_sec - i;
 		}
 		break;

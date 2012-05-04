@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.554 2012/05/04 21:15:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.555 2012/05/04 21:47:03 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/04/27"
 
@@ -347,6 +347,15 @@ extern const char *const sys_siglist[];
 #define makedev mkdev
 extern int __cdecl seteuid(uid_t);
 extern int __cdecl setegid(gid_t);
+#endif
+
+#if defined(__COHERENT__)
+#define mksh_TIME(tv) do {		\
+	(tv).tv_usec = 0;		\
+	(tv).tv_sec = time(NULL);	\
+} while (/* CONSTCOND */ 0)
+#else
+#define mksh_TIME(tv) gettimeofday(&(tv), NULL)
 #endif
 
 /* remove redundancies */

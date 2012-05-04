@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.218 2012/05/04 21:15:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.219 2012/05/04 21:47:02 tg Exp $");
 
 extern char **environ;
 
@@ -135,7 +135,7 @@ rndsetup(void)
 	sigsetjmp(bufptr->jbuf, 1);
 #endif
 	/* introduce variation (and yes, second arg MBZ for portability) */
-	gettimeofday(&bufptr->tv, NULL);
+	mksh_TIME(bufptr->tv);
 
 	NZATInit(h);
 	/* variation through pid, ppid, and the works */
@@ -1767,7 +1767,7 @@ DF(const char *fmt, ...)
 	struct timeval tv;
 
 	mksh_lockfd(shl_dbg_fd);
-	gettimeofday(&tv, NULL);
+	mksh_TIME(tv);
 	shf_fprintf(shl_dbg, "[%d.%06d:%d] ", (int)tv.tv_sec, (int)tv.tv_usec,
 	    (int)getpid());
 	va_start(args, fmt);
