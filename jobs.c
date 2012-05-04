@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.87 2012/05/04 22:18:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.88 2012/05/04 22:34:50 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -329,9 +329,11 @@ j_change(void)
 				kshpgrp = kshpid;
 			}
 		}
+#ifndef MKSH_DISABLE_TTY_WARNING
 		if (use_tty && !ttypgrp_ok)
 			warningf(false, "%s: %s", "warning",
 			    "won't have full job control");
+#endif
 		if (tty_fd >= 0)
 			mksh_tcget(tty_fd, &tty_state);
 	} else {

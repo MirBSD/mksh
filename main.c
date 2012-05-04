@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.220 2012/05/04 22:18:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.221 2012/05/04 22:34:51 tg Exp $");
 
 extern char **environ;
 
@@ -1048,10 +1048,12 @@ tty_init(bool init_ttystate, bool need_tty)
 #endif
 	  if ((tfd = open("/dev/tty", O_RDWR, 0)) < 0) {
 		tty_devtty = false;
+#ifndef MKSH_DISABLE_TTY_WARNING
 		if (need_tty)
 			warningf(false, "%s: %s %s: %s",
 			    "No controlling tty", "open", "/dev/tty",
 			    strerror(errno));
+#endif
 	}
 	if (tfd < 0) {
 		do_close = false;
@@ -1060,8 +1062,10 @@ tty_init(bool init_ttystate, bool need_tty)
 		else if (isatty(2))
 			tfd = 2;
 		else {
+#ifndef MKSH_DISABLE_TTY_WARNING
 			if (need_tty)
 				warningf(false, "can't find tty fd");
+#endif
 			return;
 		}
 	}
