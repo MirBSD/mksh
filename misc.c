@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.190 2012/05/04 21:57:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.191 2012/05/04 22:05:02 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1389,7 +1389,7 @@ do_realpath(const char *upath)
 		*xp = '\0';
 
 		/* lstat the current output, see if it's a symlink */
-		if (lstat(Xstring(xs, xp), &sb)) {
+		if (mksh_lstat(Xstring(xs, xp), &sb)) {
 			/* lstat failed */
 			if (errno == ENOENT) {
 				/* because the pathname does not exist */
@@ -1406,6 +1406,7 @@ do_realpath(const char *upath)
 			goto notfound;
 		}
 
+#ifndef MKSH__NO_SYMLINK
 		/* check if we encountered a symlink? */
 		if (S_ISLNK(sb.st_mode)) {
 			/* reached maximum recursion depth? */
@@ -1456,6 +1457,7 @@ do_realpath(const char *upath)
 				}
 			}
 		}
+#endif
 		/* otherwise (no symlink) merely go on */
 	}
 

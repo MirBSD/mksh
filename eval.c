@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.117 2012/04/22 21:50:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.118 2012/05/04 22:05:00 tg Exp $");
 
 /*
  * string expansion
@@ -1437,7 +1437,7 @@ globit(XString *xs,	/* dest string */
 			struct stat lstatb, statb;
 			int stat_done = 0;	 /* -1: failed, 1 ok */
 
-			if (lstat(Xstring(*xs, xp), &lstatb) < 0)
+			if (mksh_lstat(Xstring(*xs, xp), &lstatb) < 0)
 				return;
 			/*
 			 * special case for systems which strip trailing

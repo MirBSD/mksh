@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.216 2012/05/04 21:47:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.217 2012/05/04 22:05:00 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2943,7 +2943,11 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 
 	/* -h or -L */
 	case TO_FILSYM:
+#ifdef MKSH__NO_SYMLINK
+		return (0);
+#else
 		return (lstat(opnd1, &b1) == 0 && S_ISLNK(b1.st_mode));
+#endif
 
 	/* -S */
 	case TO_FILSOCK:

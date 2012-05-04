@@ -152,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.555 2012/05/04 21:47:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.556 2012/05/04 22:05:02 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/04/27"
 
@@ -356,6 +356,14 @@ extern int __cdecl setegid(gid_t);
 } while (/* CONSTCOND */ 0)
 #else
 #define mksh_TIME(tv) gettimeofday(&(tv), NULL)
+#endif
+
+#ifdef MKSH__NO_SYMLINK
+#undef S_ISLNK
+#define S_ISLNK(m)	(/* CONSTCOND */ 0)
+#define mksh_lstat	stat
+#else
+#define mksh_lstat	lstat
 #endif
 
 /* remove redundancies */
