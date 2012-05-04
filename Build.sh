@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.553 2012/05/04 20:49:00 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.554 2012/05/04 21:28:06 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1398,7 +1398,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.553 2012/05/04 20:49:00 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.554 2012/05/04 21:28:06 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1852,13 +1852,14 @@ cat >test.sh <<-EOF
 	set -A check_categories -- $check_categories
 	pflag='$curdir/$mkshexe'
 	sflag='$srcdir/check.t'
-	usee=0 Pflag=0 uset=0 vflag=0 xflag=0
-	while getopts "C:e:fPp:s:t:v" ch; do case \$ch {
+	usee=0 Pflag=0 Sflag=0 uset=0 vflag=0 xflag=0
+	while getopts "C:e:fPp:Ss:t:v" ch; do case \$ch {
 	(C)	check_categories[\${#check_categories[*]}]=\$OPTARG ;;
 	(e)	usee=1; eflag=\$OPTARG ;;
 	(f)	check_categories[\${#check_categories[*]}]=fastbox ;;
 	(P)	Pflag=1 ;;
 	(p)	pflag=\$OPTARG ;;
+	(S)	Sflag=1 ;;
 	(s)	sflag=\$OPTARG ;;
 	(t)	uset=1; tflag=\$OPTARG ;;
 	(v)	vflag=1 ;;
@@ -1866,7 +1867,7 @@ cat >test.sh <<-EOF
 	}
 	done
 	shift \$((OPTIND - 1))
-	set -A args -- '$srcdir/check.pl' -p "\$pflag" -s "\$sflag"
+	set -A args -- '$srcdir/check.pl' -p "\$pflag"
 	x=
 	for y in "\${check_categories[@]}"; do
 		x=\$x,\$y
@@ -1887,8 +1888,7 @@ cat >test.sh <<-EOF
 	(( vflag )) && args[\${#args[*]}]=-v
 	(( xflag )) && args[\${#args[*]}]=-x	# force usage by synerr
 	print Testing mksh for conformance:
-	fgrep MirOS: '$srcdir/check.t'
-	fgrep MIRBSD '$srcdir/check.t'
+	fgrep -e MirOS: -e MIRBSD "\$sflag"
 	print "This shell is actually:\\n\\t\$KSH_VERSION"
 	print 'test.sh built for mksh $dstversion'
 	cstr='\$os = defined \$^O ? \$^O : "unknown";'
@@ -1911,7 +1911,15 @@ cat >test.sh <<-EOF
 			break
 		fi
 	done
-	exec \$perli "\${args[@]}" "\$@"$tsts
+	(( Sflag )) || exec \$perli "\${args[@]}" -s "\$sflag" "\$@"$tsts
+	# use of the -S option for check.t split into multiple chunks
+	rv=0
+	for s in "\$sflag".*; do
+		\$perli "\${args[@]}" -s "\$s" "\$@"$tsts
+		rc=\$?
+		(( rv = rv ? rv : rc ))
+	done
+	exit \$rv
 EOF
 chmod 755 test.sh
 if test $cm = llvm; then
