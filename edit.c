@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.236 2012/05/04 22:18:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.237 2012/05/05 17:32:31 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -5367,34 +5367,3 @@ vi_macro_reset(void)
 }
 #endif /* !MKSH_S_NOVI */
 #endif /* !MKSH_NO_CMDLINE_EDITING */
-
-void
-x_mkraw(int fd, mksh_ttyst *ocb, bool forread)
-{
-	mksh_ttyst cb;
-
-	if (ocb)
-		mksh_tcget(fd, ocb);
-	else
-		ocb = &tty_state;
-
-	cb = *ocb;
-	if (forread) {
-		cb.c_lflag &= ~(ICANON) | ECHO;
-	} else {
-		cb.c_iflag &= ~(INLCR | ICRNL);
-		cb.c_lflag &= ~(ISIG | ICANON | ECHO);
-	}
-#if defined(VLNEXT) && defined(_POSIX_VDISABLE)
-	/* OSF/1 processes lnext when ~icanon */
-	cb.c_cc[VLNEXT] = _POSIX_VDISABLE;
-#endif
-	/* SunOS 4.1.x & OSF/1 processes discard(flush) when ~icanon */
-#if defined(VDISCARD) && defined(_POSIX_VDISABLE)
-	cb.c_cc[VDISCARD] = _POSIX_VDISABLE;
-#endif
-	cb.c_cc[VTIME] = 0;
-	cb.c_cc[VMIN] = 1;
-
-	mksh_tcset(fd, &cb);
-}
