@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.124 2012/05/04 20:49:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.125 2012/05/05 18:04:20 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -941,8 +941,10 @@ writehistline(int fd, int lno, const char *cmd)
 void
 hist_finish(void)
 {
-	mksh_unlkfd(histfd);
-	(void)close(histfd);
+	if (histfd >= 0) {
+		mksh_unlkfd(histfd);
+		(void)close(histfd);
+	}
 	histfd = -1;
 }
 #endif
