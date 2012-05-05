@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.192 2012/05/05 15:10:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.193 2012/05/05 17:37:43 tg Exp $");
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -1288,7 +1288,7 @@ reset_nonblock(int fd)
 char *
 ksh_get_wd(void)
 {
-#ifdef NO_PATH_MAX
+#ifdef MKSH__NO_PATH_MAX
 	char *rv, *cp;
 
 	if ((cp = get_current_dir_name())) {
@@ -1321,7 +1321,7 @@ do_realpath(const char *upath)
 	size_t len;
 	int llen;
 	struct stat sb;
-#ifdef NO_PATH_MAX
+#ifdef MKSH__NO_PATH_MAX
 	size_t ldestlen = 0;
 #define pathlen sb.st_size
 #define pathcnd (ldestlen < (pathlen + 1))
@@ -1418,7 +1418,7 @@ do_realpath(const char *upath)
 
 			/* get symlink(7) target */
 			if (pathcnd) {
-#ifdef NO_PATH_MAX
+#ifdef MKSH__NO_PATH_MAX
 				if (notoktoadd(pathlen, 1)) {
 					errno = ENAMETOOLONG;
 					goto notfound;
@@ -1806,7 +1806,7 @@ c_cd(const char **wp)
 		return (2);
 	}
 
-#ifdef NO_PATH_MAX
+#ifdef MKSH__NO_PATH_MAX
 	/* only a first guess; make_path will enlarge xs if necessary */
 	XinitN(xs, 1024, ATEMP);
 #else

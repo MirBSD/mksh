@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.558 2012/05/04 22:44:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.559 2012/05/05 17:37:44 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/05/04"
 
@@ -289,7 +289,7 @@ struct rusage {
 #define ksh_isdash(s)	(((s) != NULL) && ((s)[0] == '-') && ((s)[1] == '\0'))
 #define ksh_isspace(c)	((((c) >= 0x09) && ((c) <= 0x0D)) || ((c) == 0x20))
 
-#ifdef NO_PATH_MAX
+#ifdef MKSH__NO_PATH_MAX
 #undef PATH_MAX
 #else
 #ifndef PATH_MAX
@@ -571,7 +571,7 @@ im_sorry_dave(void)
 #define free_ossetmode(p)	free(p)
 #endif
 
-#ifdef NO_PATH_MAX
+#ifdef MKSH__NO_PATH_MAX
 /* GNU libc: get_current_dir_name(3) -> free(3) */
 #define free_gnu_gcdn(p)	free(p)
 #endif

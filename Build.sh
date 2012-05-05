@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.563 2012/05/04 22:34:49 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.564 2012/05/05 17:37:42 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -477,6 +477,7 @@ case $TARGET_OS in
 	: ${HAVE_CAN_OTWO=0}
 	add_cppflags -DMKSH_NO_SIGSETJMP
 	add_cppflags -DMKSH_TYPEDEF_SIG_ATOMIC_T=int
+	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	;;
 AIX)
 	add_cppflags -D_ALL_SOURCE
@@ -494,6 +495,7 @@ BeOS)
 	esac
 	# BeOS has no real tty either
 	add_cppflags -DMKSH_UNEMPLOYED
+	add_cppflags -DMKSH_DISABLE_TTY_WARNING
 	# BeOS doesn't have different UIDs and GIDs
 	add_cppflags -DMKSH__NO_SETEUGID
 	;;
@@ -505,6 +507,8 @@ Coherent)
 	add_cppflags -DMKSH__NO_SYMLINK
 	check_categories="$check_categories nosymlink"
 	add_cppflags -DMKSH__NO_SETEUGID
+	add_cppflags -DMKSH_CONSERVATIVE_FDS
+	add_cppflags -DMKSH_DISABLE_TTY_WARNING
 	;;
 CYGWIN*)
 	: ${HAVE_SETLOCALE_CTYPE=0}
@@ -518,6 +522,7 @@ FreeBSD)
 FreeMiNT)
 	oswarn="; it has minor issues"
 	add_cppflags -D_GNU_SOURCE
+	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 GNU)
@@ -525,8 +530,8 @@ GNU)
 	*tendracc*) ;;
 	*) add_cppflags -D_GNU_SOURCE ;;
 	esac
-	# define NO_PATH_MAX to use Hurd-only functions
-	add_cppflags -DNO_PATH_MAX
+	# define MKSH__NO_PATH_MAX to use Hurd-only functions
+	add_cppflags -DMKSH__NO_PATH_MAX
 	;;
 GNU/kFreeBSD)
 	case $CC in
@@ -594,6 +599,7 @@ NEXTSTEP)
 		oswarn="; it needs libposix.a"
 		;;
 	esac
+	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	;;
 Ninix3)
 	# similar to Minix3
@@ -620,6 +626,7 @@ Plan9)
 	add_cppflags -D_BSD_EXTENSION
 	add_cppflags -D_SUSV2_SOURCE
 	add_cppflags -DMKSH_ASSUME_UTF8; HAVE_ISSET_MKSH_ASSUME_UTF8=1
+	add_cppflags -DMKSH_NO_CMDLINE_EDITING
 	oswarn=' and will currently not work'
 	add_cppflags -DMKSH_UNEMPLOYED
 	;;
@@ -651,6 +658,7 @@ SCO_SV)
 		oswarn="$oswarn$nl$TARGET_OS ${TARGET_OSREV}, please tell me what to do"
 		;;
 	esac
+	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	: ${HAVE_SYS_SIGLIST=0} ${HAVE__SYS_SIGLIST=0}
 	;;
 skyos)
@@ -667,10 +675,12 @@ syllable)
 ULTRIX)
 	: ${CC=cc -YPOSIX}
 	add_cppflags -DMKSH_TYPEDEF_SSIZE_T=int
+	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 UnixWare|UNIX_SV)
 	# SCO UnixWare
+	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	: ${HAVE_SYS_SIGLIST=0} ${HAVE__SYS_SIGLIST=0}
 	;;
 UWIN*)
@@ -1410,7 +1420,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.563 2012/05/04 22:34:49 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.564 2012/05/05 17:37:42 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
