@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.564 2012/05/05 17:37:42 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.565 2012/05/06 15:40:31 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -312,7 +312,7 @@ rmf a.exe* a.out* conftest.c *core core.* lft mksh* no *.bc *.ll *.o \
 
 curdir=`pwd` srcdir=`dirname "$0" 2>/dev/null` check_categories=
 test -n "$srcdir" || srcdir=. # in case dirname does not exist
-dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\(.*\)".*$/\1/p' $srcdir/sh.h`
+dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\([^"]*\)".*$/\1/p' $srcdir/sh.h`
 add_cppflags -DMKSH_BUILDSH
 
 e=echo
@@ -464,7 +464,9 @@ fi
 # Configuration depending on OS revision, on OSes that need them
 case $TARGET_OS in
 NEXTSTEP)
-	test x"$TARGET_OSREV" = x"" && TARGET_OSREV=`hostinfo 2>&1 | grep 'NeXT Mach [0-9.]*:' | sed 's/^.*NeXT Mach \([0-9.]*\):.*$/\1/'`
+	test x"$TARGET_OSREV" = x"" && TARGET_OSREV=`hostinfo 2>&1 | \
+	    grep 'NeXT Mach [0-9][0-9.]*:' | \
+	    sed 's/^.*NeXT Mach \([0-9][0-9.]*\):.*$/\1/'`
 	;;
 QNX|SCO_SV)
 	test x"$TARGET_OSREV" = x"" && TARGET_OSREV=`uname -r`
@@ -1420,7 +1422,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.564 2012/05/05 17:37:42 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.565 2012/05/06 15:40:31 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1802,9 +1804,10 @@ mksh_cfg= NSIG
 ;' >conftest.c
 	# GNU sed 2.03 segfaults when optimising this to sed -n
 	NSIG=`vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
-	    grep '^mksh_cfg *=[	 ]*[0-9x ()+-]*.*$' | \
-	    sed 's/^mksh_cfg *=[	 ]*\([0-9x ()+-][0-9x	 ()+-]*\).*$/\1/'`
+	    grep '^mksh_cfg *=' | \
+	    sed 's/^mksh_cfg *=[	 ]*\([()0-9x+-][()0-9x+	 -]*\).*$/\1/'`
 	case $NSIG in
+	*mksh_cfg*) $e "Error: NSIG='$NSIG'"; NSIG=0 ;;
 	*[\ \(\)+-]*) NSIG=`"$AWK" "BEGIN { print $NSIG }" </dev/null` ;;
 	esac
 	printf=printf
@@ -1816,8 +1819,8 @@ mksh_cfg= NSIG
 	sigs="$sigs TRAP TSTP TTIN TTOU URG USR1 USR2 VTALRM WINCH XCPU XFSZ"
 	test 1 = $HAVE_CPP_DD && test $NSIG -gt 1 && sigs="$sigs "`vq \
 	    "$CPP $CFLAGS $CPPFLAGS $NOWARN -dD conftest.c" | \
-	    grep '[	 ]SIG[A-Z0-9]*[	 ]' | \
-	    sed 's/^\(.*[	 ]SIG\)\([A-Z0-9]*\)\([	 ].*\)$/\2/' | sort`
+	    grep '[	 ]SIG[A-Z0-9][A-Z0-9]*[	 ]' | \
+	    sed 's/^.*[	 ]SIG\([A-Z0-9][A-Z0-9]*\)[	 ].*$/\1/' | sort`
 	test $NSIG -gt 1 || sigs=
 	for name in $sigs; do
 		case $sigseenone in
@@ -1830,9 +1833,9 @@ mksh_cfg= NSIG
 		echo ';' >>conftest.c
 		# GNU sed 2.03 croaks on optimising this, too
 		vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
-		    grep '^mksh_cfg *=[	 ]*[0-9x]*.*$' | \
-		    sed 's/^mksh_cfg *=[	 ]*\([0-9x]*\).*$/\1:'$name/
-	done | sed -e '/^:/d' -e 's/:/ /g' | while read nr name; do
+		    grep '^mksh_cfg *=' | \
+		    sed 's/^mksh_cfg *=[	 ]*\([0-9][0-9x]*\).*$/:\1 '$name/
+	done | sed -n '/^:[^ ]/s/^://p' | while read nr name; do
 		test $printf = echo || nr=`printf %d "$nr" 2>/dev/null`
 		test $nr -gt 0 && test $nr -le $NSIG || continue
 		case $sigseentwo in
@@ -1951,7 +1954,7 @@ elif test $cm = dragonegg; then
 else
 	emitbc=-c
 fi
-echo "# work around NeXTstep bug" >Rebuild.sh
+echo ": # work around NeXTstep bug" >Rebuild.sh
 echo set -x >>Rebuild.sh
 for file in $SRCS; do
 	op=`echo x"$file" | sed 's/^x\(.*\)\.c$/\1./'`
