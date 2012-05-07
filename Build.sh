@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.565 2012/05/06 15:40:31 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.566 2012/05/07 17:03:03 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -692,6 +692,12 @@ UWIN*)
 	oswarn="; it will compile, but the target"
 	oswarn="$oswarn${nl}platform itself is very flakey/unreliable"
 	: ${HAVE_SETLOCALE_CTYPE=0}
+	;;
+_svr4)
+	# generic target for SVR4 Unix with uname -s = uname -n
+	# this duplicates the * target below
+	oswarn='; it may or may not work'
+	test x"$TARGET_OSREV" = x"" && TARGET_OSREV=`uname -r`
 	;;
 *)
 	oswarn='; it may or may not work'
@@ -1422,7 +1428,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.565 2012/05/06 15:40:31 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.566 2012/05/07 17:03:03 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
