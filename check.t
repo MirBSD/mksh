@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.536 2012/05/04 22:44:31 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.537 2012/05/09 23:20:55 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2012/05/04
+	@(#)MIRBSD KSH R40 2012/05/09
 description:
 	Check version of shell.
 stdin:
@@ -4821,7 +4821,8 @@ expected-stdout:
 	M
 	    xxx[1]=7
 	N
-	    typeset -i xxx
+	    set -A xxx
+	    typeset -i xxx[1]
 ---
 name: regression-58
 description:
@@ -4922,6 +4923,9 @@ stdin:
 		typeset -
 		echo FNORD-8
 	} | fgrep FNORD
+	fnord=(42 23)
+	typeset -p fnord
+	echo FNORD-9
 expected-stdout:
 	FNORD-0
 	FNORD-1
@@ -4972,6 +4976,10 @@ expected-stdout:
 	FNORD_G=7
 	FNORD_H=8
 	FNORD-8
+	set -A fnord
+	typeset fnord[0]=42
+	typeset fnord[1]=23
+	FNORD-9
 ---
 name: regression-64
 description:

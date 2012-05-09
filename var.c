@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.148 2012/05/04 21:47:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.149 2012/05/09 23:21:00 tg Exp $");
 
 /*-
  * Variables
@@ -141,8 +141,8 @@ initvar(void)
 	}
 }
 
-/* common code for several functions below */
-static struct block *
+/* common code for several functions below and c_typeset() */
+struct block *
 varsearch(struct block *l, struct tbl **vpp, const char *vn, uint32_t h)
 {
 	register struct tbl *vp;

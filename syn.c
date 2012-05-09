@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.74 2012/03/03 21:30:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.75 2012/05/09 23:21:00 tg Exp $");
 
 extern short subshell_nesting_level;
 extern void yyskiputf8bom(void);
@@ -52,7 +52,7 @@ static struct op *newtp(int);
 static void syntaxerr(const char *) MKSH_A_NORETURN;
 static void nesting_push(struct nesting_state *, int);
 static void nesting_pop(struct nesting_state *);
-static int assign_command(char *);
+static int assign_command(const char *);
 static int inalias(struct source *);
 static Test_op dbtestp_isa(Test_env *, Test_meta);
 static const char *dbtestp_getopnd(Test_env *, Test_op, bool);
@@ -914,13 +914,13 @@ compile(Source *s, bool skiputf8bom)
  *	$
  */
 static int
-assign_command(char *s)
+assign_command(const char *s)
 {
 	if (!*s)
 		return (0);
 	return ((strcmp(s, Talias) == 0) ||
-	    (strcmp(s, "export") == 0) ||
-	    (strcmp(s, "readonly") == 0) ||
+	    (strcmp(s, Texport) == 0) ||
+	    (strcmp(s, Treadonly) == 0) ||
 	    (strcmp(s, Ttypeset) == 0));
 }
 

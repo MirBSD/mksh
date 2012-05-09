@@ -157,9 +157,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.559 2012/05/05 17:37:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.560 2012/05/09 23:20:58 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/05/04"
+#define MKSH_VERSION "R40 2012/05/09"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -730,6 +730,12 @@ EXTERN const char Tpunalias[] E_INIT("+unalias");
 #define Tunalias	(Tpunalias + 1)		/* "unalias" */
 EXTERN const char Tsgset[] E_INIT("*=set");
 #define Tset		(Tsgset + 2)		/* "set" */
+EXTERN const char Tsgunset[] E_INIT("*=unset");
+#define Tunset		(Tsgunset + 2)		/* "unset" */
+EXTERN const char Tsgexport[] E_INIT("*=export");
+#define Texport		(Tsgexport + 2)		/* "export" */
+EXTERN const char Tsgreadonly[] E_INIT("*=readonly");
+#define Treadonly	(Tsgreadonly + 2)	/* "readonly" */
 EXTERN const char Tgbuiltin[] E_INIT("=builtin");
 #define Tbuiltin	(Tgbuiltin + 1)		/* "builtin" */
 EXTERN const char T_function[] E_INIT(" function");
@@ -1895,6 +1901,7 @@ void fpFUNCTf(struct shf *, int, bool, const char *, struct op *);
 void newblock(void);
 void popblock(void);
 void initvar(void);
+struct block *varsearch(struct block *, struct tbl **, const char *, uint32_t);
 struct tbl *global(const char *);
 struct tbl *local(const char *, bool);
 char *str_val(struct tbl *);

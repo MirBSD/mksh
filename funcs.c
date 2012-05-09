@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.218 2012/05/04 22:18:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.219 2012/05/09 23:20:56 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -111,7 +111,7 @@ const struct builtin mkshbuiltins[] = {
 	{"+true", c_true},
 	{"ulimit", c_ulimit},
 	{"+umask", c_umask},
-	{"*=unset", c_unset},
+	{Tsgunset, c_unset},
 	/* no =: AT&T manual wrong */
 	{Tpalias, c_alias},
 	{"+cd", c_cd},
@@ -119,7 +119,7 @@ const struct builtin mkshbuiltins[] = {
 	{"chdir", c_cd},
 	{"+command", c_command},
 	{"echo", c_print},
-	{"*=export", c_typeset},
+	{Tsgexport, c_typeset},
 	{"+fc", c_fc},
 	{"+getopts", c_getopts},
 	{"=global", c_typeset},
@@ -131,7 +131,7 @@ const struct builtin mkshbuiltins[] = {
 	{"printf", c_printf},
 #endif
 	{"pwd", c_pwd},
-	{"*=readonly", c_typeset},
+	{Tsgreadonly, c_typeset},
 	{T_typeset, c_typeset},
 	{Tpunalias, c_unalias},
 	{"whence", c_whence},
@@ -616,13 +616,16 @@ c_command(const char **wp)
 }
 
 /* typeset, global, export, and readonly */
+static void c_typeset_vardump(struct tbl *, uint32_t, int, bool, bool);
+static void c_typeset_vardump_recursive(struct block *, uint32_t, int, bool,
+    bool);
 int
 c_typeset(const char **wp)
 {
-	struct block *l;
 	struct tbl *vp, **p;
 	uint32_t fset = 0, fclr = 0, flag;
-	int thing = 0, field = 0, base = 0, optc;
+	int thing = 0, field = 0, base = 0, i;
+	struct block *l;
 	const char *opts;
 	const char *fieldstr = NULL, *basestr = NULL;
 	bool localv = false, func = false, pflag = false, istset = true;
@@ -665,9 +668,9 @@ c_typeset(const char **wp)
 	 * Here, the number must follow the RLZi option, but is optional
 	 * (see the # kludge in ksh_getopt()).
 	 */
-	while ((optc = ksh_getopt(wp, &builtin_opt, opts)) != -1) {
+	while ((i = ksh_getopt(wp, &builtin_opt, opts)) != -1) {
 		flag = 0;
-		switch (optc) {
+		switch (i) {
 		case 'L':
 			flag = LJUST;
 			fieldstr = builtin_opt.optarg;
@@ -793,8 +796,10 @@ c_typeset(const char **wp)
 	}
 
 	/* set variables and attributes */
-	if (wp[builtin_opt.optind]) {
-		int i, rv = 0;
+	if (wp[builtin_opt.optind] &&
+	    /* not "typeset -p varname" */
+	    !(!func && pflag && !(fset | fclr))) {
+		int rv = 0;
 		struct tbl *f;
 
 		if (localv && !func)
@@ -826,6 +831,7 @@ c_typeset(const char **wp)
 		return (rv);
 	}
 
+	set_refflag = SRF_NOP;
 	/* list variables and attributes */
 
 	/* no difference at this point.. */
@@ -844,137 +850,133 @@ c_typeset(const char **wp)
 				shf_putc('\n', shl_stdout);
 			}
 		}
-	} else {
-		for (l = e->loc; l; l = l->next) {
-			for (p = ktsort(&l->vars); (vp = *p++); ) {
-				struct tbl *tvp;
-				bool any_set = false;
-				/*
-				 * See if the parameter is set (for arrays, if any
-				 * element is set).
-				 */
-				for (tvp = vp; tvp; tvp = tvp->u.array)
-					if (tvp->flag & ISSET) {
-						any_set = true;
-						break;
-					}
-
-				/*
-				 * Check attributes - note that all array elements
-				 * have (should have?) the same attributes, so checking
-				 * the first is sufficient.
-				 *
-				 * Report an unset param only if the user has
-				 * explicitly given it some attribute (like export);
-				 * otherwise, after "echo $FOO", we would report FOO...
-				 */
-				if (!any_set && !(vp->flag & USERATTRIB))
-					continue;
-				if (flag && (vp->flag & flag) == 0)
-					continue;
-				for (; vp; vp = vp->u.array) {
-					/*
-					 * Ignore array elements that aren't
-					 * set unless there are no set elements,
-					 * in which case the first is reported on
-					 */
-					if ((vp->flag&ARRAY) && any_set &&
-					    !(vp->flag & ISSET))
-						continue;
-					/* no arguments */
-					if (thing == 0 && flag == 0) {
-						/*
-						 * AT&T ksh prints things
-						 * like export, integer,
-						 * leftadj, zerofill, etc.,
-						 * but POSIX says must
-						 * be suitable for re-entry...
-						 */
-						shf_puts("typeset ", shl_stdout);
-						if (((vp->flag&(ARRAY|ASSOC))==ASSOC))
-							shprintf("%s ", "-n");
-						if ((vp->flag&INTEGER))
-							shprintf("%s ", "-i");
-						if ((vp->flag&EXPORT))
-							shprintf("%s ", "-x");
-						if ((vp->flag&RDONLY))
-							shprintf("%s ", "-r");
-						if ((vp->flag&TRACE))
-							shprintf("%s ", "-t");
-						if ((vp->flag&LJUST))
-							shprintf("-L%d ", vp->u2.field);
-						if ((vp->flag&RJUST))
-							shprintf("-R%d ", vp->u2.field);
-						if ((vp->flag&ZEROFIL))
-							shprintf("%s ", "-Z");
-						if ((vp->flag&LCASEV))
-							shprintf("%s ", "-l");
-						if ((vp->flag&UCASEV_AL))
-							shprintf("%s ", "-u");
-						if ((vp->flag&INT_U))
-							shprintf("%s ", "-U");
-						shf_puts(vp->name, shl_stdout);
-						if (pflag) {
-							char *s = str_val(vp);
-
-							shf_putc('=', shl_stdout);
-							/*
-							 * AT&T ksh can't have
-							 * justified integers...
-							 */
-							if ((vp->flag &
-							    (INTEGER|LJUST|RJUST)) ==
-							    INTEGER)
-								shf_puts(s, shl_stdout);
-							else
-								print_value_quoted(shl_stdout, s);
-						}
-						shf_putc('\n', shl_stdout);
-						if (vp->flag & ARRAY)
-							break;
-					} else {
-						if (pflag)
-							shf_puts(istset ?
-							    "typeset " :
-							    (flag & EXPORT) ?
-							    "export " :
-							    "readonly ",
-							    shl_stdout);
-						if ((vp->flag&ARRAY) && any_set)
-							shprintf("%s[%lu]",
-							    vp->name,
-							    arrayindex(vp));
-						else
-							shf_puts(vp->name, shl_stdout);
-						if (thing == '-' && (vp->flag&ISSET)) {
-							char *s = str_val(vp);
-
-							shf_putc('=', shl_stdout);
-							/*
-							 * AT&T ksh can't have
-							 * justified integers...
-							 */
-							if ((vp->flag &
-							    (INTEGER|LJUST|RJUST)) ==
-							    INTEGER)
-								shf_puts(s, shl_stdout);
-							else
-								print_value_quoted(shl_stdout, s);
-						}
-						shf_putc('\n', shl_stdout);
-					}
-					/*
-					 * Only report first 'element' of an array with
-					 * no set elements.
-					 */
-					if (!any_set)
-						break;
-				}
-			}
+	} else if (wp[builtin_opt.optind]) {
+		for (i = builtin_opt.optind; wp[i]; i++) {
+			varsearch(e->loc, &vp, wp[i], hash(wp[i]));
+			if (!vp)
+				continue;
+			c_typeset_vardump(vp, flag, thing, pflag, istset);
 		}
-	}
-	set_refflag = SRF_NOP;
+	} else
+		c_typeset_vardump_recursive(e->loc, flag, thing, pflag, istset);
 	return (0);
+}
+
+static void
+c_typeset_vardump_recursive(struct block *l, uint32_t flag, int thing,
+    bool pflag, bool istset)
+{
+	struct tbl **blockvars, *vp;
+
+	if (l->next)
+		c_typeset_vardump_recursive(l->next, flag, thing, pflag, istset);
+	blockvars = ktsort(&l->vars);
+	while ((vp = *blockvars++))
+		c_typeset_vardump(vp, flag, thing, pflag, istset);
+	/*XXX doesn’t this leak? */
+}
+
+static void
+c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, bool pflag,
+    bool istset)
+{
+	struct tbl *tvp;
+	int any_set = 0;
+	char *s;
+
+	/*
+	 * See if the parameter is set (for arrays, if any
+	 * element is set).
+	 */
+	for (tvp = vp; tvp; tvp = tvp->u.array)
+		if (tvp->flag & ISSET) {
+			any_set = 1;
+			break;
+		}
+
+	/*
+	 * Check attributes - note that all array elements
+	 * have (should have?) the same attributes, so checking
+	 * the first is sufficient.
+	 *
+	 * Report an unset param only if the user has
+	 * explicitly given it some attribute (like export);
+	 * otherwise, after "echo $FOO", we would report FOO...
+	 */
+	if (!any_set && !(vp->flag & USERATTRIB))
+		return;
+	if (flag && (vp->flag & flag) == 0)
+		return;
+	if (!(vp->flag & ARRAY))
+		/* optimise later conditionals */
+		any_set = 0;
+	do {
+		/*
+		 * Ignore array elements that aren't set unless there
+		 * are no set elements, in which case the first is
+		 * reported on
+		 */
+		if (any_set && !(vp->flag & ISSET))
+			continue;
+		/* no arguments */
+		if (!thing && !flag) {
+			if (any_set == 1) {
+				shprintf("%s %s %s\n", Tset, "-A", vp->name);
+				any_set = 2;
+			}
+			/*
+			 * AT&T ksh prints things like export, integer,
+			 * leftadj, zerofill, etc., but POSIX says must
+			 * be suitable for re-entry...
+			 */
+			shprintf("%s %s", Ttypeset, "");
+			if (((vp->flag & (ARRAY | ASSOC)) == ASSOC))
+				shprintf("%s ", "-n");
+			if ((vp->flag & INTEGER))
+				shprintf("%s ", "-i");
+			if ((vp->flag & EXPORT))
+				shprintf("%s ", "-x");
+			if ((vp->flag & RDONLY))
+				shprintf("%s ", "-r");
+			if ((vp->flag & TRACE))
+				shprintf("%s ", "-t");
+			if ((vp->flag & LJUST))
+				shprintf("-L%d ", vp->u2.field);
+			if ((vp->flag & RJUST))
+				shprintf("-R%d ", vp->u2.field);
+			if ((vp->flag & ZEROFIL))
+				shprintf("%s ", "-Z");
+			if ((vp->flag & LCASEV))
+				shprintf("%s ", "-l");
+			if ((vp->flag & UCASEV_AL))
+				shprintf("%s ", "-u");
+			if ((vp->flag & INT_U))
+				shprintf("%s ", "-U");
+		} else if (pflag) {
+			shprintf("%s %s", istset ? Ttypeset :
+			    (flag & EXPORT) ? Texport : Treadonly, "");
+		}
+		if (any_set)
+			shprintf("%s[%lu]", vp->name, arrayindex(vp));
+		else
+			shf_puts(vp->name, shl_stdout);
+		if ((!thing && !flag && pflag) ||
+		    (thing == '-' && (vp->flag & ISSET))) {
+			s = str_val(vp);
+			shf_putc('=', shl_stdout);
+			/* AT&T ksh can't have justified integers... */
+			if ((vp->flag & (INTEGER | LJUST | RJUST)) == INTEGER)
+				shf_puts(s, shl_stdout);
+			else
+				print_value_quoted(shl_stdout, s);
+		}
+		shf_putc('\n', shl_stdout);
+
+		/*
+		 * Only report first 'element' of an array with
+		 * no set elements.
+		 */
+	} while (any_set && (vp = vp->u.array));
 }
 
 int
