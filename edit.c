@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.237 2012/05/05 17:32:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.237.2.1 2012/05/09 21:34:26 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -80,8 +80,6 @@ static int x_basename(const char *, const char *);
 static void x_free_words(int, char **);
 static int x_escape(const char *, size_t, int (*)(const char *, size_t));
 static int x_emacs(char *, size_t);
-static void x_init_emacs(void);
-static void x_init_prompt(void);
 #if !MKSH_S_NOVI
 static int x_vi(char *, size_t);
 #endif
@@ -104,21 +102,6 @@ static int x_e_getmbc(char *);
 static int x_e_rebuildline(const char *);
 
 /* +++ generic editing functions +++ */
-
-/* Called from main */
-void
-x_init(void)
-{
-	/*
-	 * Set edchars to -2 to force initial binding, except
-	 * we need default values for some deficient systems…
-	 */
-	edchars.erase = edchars.kill = edchars.intr = edchars.quit =
-	    edchars.eof = -2;
-	/* ^W */
-	edchars.werase = 027;
-	x_init_emacs();
-}
 
 /*
  * read an edited command line
@@ -824,29 +807,10 @@ static	Area	aedit;
 #define	KEOL	1		/* ^M, ^J */
 #define	KINTR	2		/* ^G, ^C */
 
-struct x_ftab {
-	int (*xf_func)(int c);
-	const char *xf_name;
-	short xf_flags;
-};
-
-struct x_defbindings {
-	unsigned char xdb_func;	/* XFUNC_* */
-	unsigned char xdb_tab;
-	unsigned char xdb_char;
-};
-
-#define XF_ARG		1	/* command takes number prefix */
-#define	XF_NOBIND	2	/* not allowed to bind to function */
-#define	XF_PREFIX	4	/* function sets prefix */
-
 /* Separator for completion */
 #define	is_cfs(c)	((c) == ' ' || (c) == '\t' || (c) == '"' || (c) == '\'')
 /* Separator for motion */
 #define	is_mfs(c)	(!(ksh_isalnux(c) || (c) == '$' || ((c) & 0x80)))
-
-#define X_NTABS		3			/* normal, meta1, meta2 */
-#define X_TABSZ		256			/* size of keydef tables etc */
 
 /*-
  * Arguments for do_complete()
@@ -933,8 +897,8 @@ static int x_search_dir(int);
 static int x_match(char *, char *);
 static void x_redraw(int);
 static void x_push(int);
-static char *x_mapin(const char *, Area *)
-    MKSH_A_NONNULL((__nonnull__ (1)));
+static char *x_mapin(const char *, Area *);
+static char *x_mapout_str(const void *);
 static char *x_mapout(int);
 static void x_mapout2(int, char **);
 static void x_print(int, int);
@@ -955,117 +919,63 @@ static int unget_char = -1;
 static int x_do_ins(const char *, size_t);
 static void bind_if_not_bound(int, int, int);
 
+//XXX nukeold: X_NTABS
+//XXX nukeold: X_TABSZ
+//XXX nukeold: x_bound
+//XXX nukeold: x_tab
+//XXX nukeold: x_atab
+
+/**
+ * Bound keys are kept in one of three tables (normal, prefix-1,
+ * prefix-2) which are pointers to bytes, sorted by the bytes
+ * pointed to. They are structured as follows:
+ * The first byte(s), up to a NUL, are the keys that need to
+ * be pressed to activate this binding. Then, one byte is the
+ * flags (XF_*), then there is either one byte with the function
+ * code or a C string that is the macro text.
+ * The tables point to 'uint8_t *', although those with XF_CONST
+ * must not be written to; others are allocated from AEDIT.
+ */
+
+#define X_KP 3
+static uint8_t *x_kpt[X_KP];	/* sorted table of bindings */
+static size_t x_kpn[X_KP];	/* number of elements in them */
+static size_t x_kpz[X_KP];	/* sizes of the tables */
+
+static void x_init_emacs_one_defbinding(int, const uint8_t *, size_t);
+
+/* flags for emacs mode keybindings */
+#define XF_CONST	BIT(0)	/* not allocated in AEDIT */
+#define XF_PREFIX	BIT(1)	/* is a prefix function */
+#define XF_MACRO	BIT(2)	/* is a macro */
+#define XF_NOBIND	BIT(3)	/* may not be bound */
+
+typedef int (*emacsfn_ptr)(int);
+
 enum emacs_funcs {
 #define EMACSFN_ENUMS
 #include "emacsfn.h"
 	XFUNC_MAX
 };
 
+/* not side-effect safe */
+#define XFN_ISPREFIX(x)	((x) == XFUNC_meta1 || (x) == XFUNC_meta2)
+#define XFN_ISNOBIND(x)	((x) == XFUNC_set_arg) /* or ins_string (soon dead) */
+
+//XXX nukeold: x_defbindings
 #define EMACSFN_DEFNS
 #include "emacsfn.h"
 
-static const struct x_ftab x_ftab[] = {
-#define EMACSFN_ITEMS
+//XXX nukeold: x_ftab
+static emacsfn_ptr const x_emacsfnp[] = {
+#define EMACSFN_PTRS
 #include "emacsfn.h"
-	{ 0, NULL, 0 }
+};
+static const char * const x_emacsfns[] = {
+#define EMACSFN_STRS
+#include "emacsfn.h"
 };
 
-static struct x_defbindings const x_defbindings[] = {
-	{ XFUNC_del_back,		0, CTRL('?')	},
-	{ XFUNC_del_bword,		1, CTRL('?')	},
-	{ XFUNC_eot_del,		0, CTRL('D')	},
-	{ XFUNC_del_back,		0, CTRL('H')	},
-	{ XFUNC_del_bword,		1, CTRL('H')	},
-	{ XFUNC_del_bword,		1,	'h'	},
-	{ XFUNC_mv_bword,		1,	'b'	},
-	{ XFUNC_mv_fword,		1,	'f'	},
-	{ XFUNC_del_fword,		1,	'd'	},
-	{ XFUNC_mv_back,		0, CTRL('B')	},
-	{ XFUNC_mv_forw,		0, CTRL('F')	},
-	{ XFUNC_search_char_forw,	0, CTRL(']')	},
-	{ XFUNC_search_char_back,	1, CTRL(']')	},
-	{ XFUNC_newline,		0, CTRL('M')	},
-	{ XFUNC_newline,		0, CTRL('J')	},
-	{ XFUNC_end_of_text,		0, CTRL('_')	},
-	{ XFUNC_abort,			0, CTRL('G')	},
-	{ XFUNC_prev_com,		0, CTRL('P')	},
-	{ XFUNC_next_com,		0, CTRL('N')	},
-	{ XFUNC_nl_next_com,		0, CTRL('O')	},
-	{ XFUNC_search_hist,		0, CTRL('R')	},
-	{ XFUNC_beg_hist,		1,	'<'	},
-	{ XFUNC_end_hist,		1,	'>'	},
-	{ XFUNC_goto_hist,		1,	'g'	},
-	{ XFUNC_mv_end,			0, CTRL('E')	},
-	{ XFUNC_mv_begin,		0, CTRL('A')	},
-	{ XFUNC_draw_line,		0, CTRL('L')	},
-	{ XFUNC_cls,			1, CTRL('L')	},
-	{ XFUNC_meta1,			0, CTRL('[')	},
-	{ XFUNC_meta2,			0, CTRL('X')	},
-	{ XFUNC_kill,			0, CTRL('K')	},
-	{ XFUNC_yank,			0, CTRL('Y')	},
-	{ XFUNC_meta_yank,		1,	'y'	},
-	{ XFUNC_literal,		0, CTRL('^')	},
-	{ XFUNC_comment,		1,	'#'	},
-	{ XFUNC_transpose,		0, CTRL('T')	},
-	{ XFUNC_complete,		1, CTRL('[')	},
-	{ XFUNC_comp_list,		0, CTRL('I')	},
-	{ XFUNC_comp_list,		1,	'='	},
-	{ XFUNC_enumerate,		1,	'?'	},
-	{ XFUNC_expand,			1,	'*'	},
-	{ XFUNC_comp_file,		1, CTRL('X')	},
-	{ XFUNC_comp_comm,		2, CTRL('[')	},
-	{ XFUNC_list_comm,		2,	'?'	},
-	{ XFUNC_list_file,		2, CTRL('Y')	},
-	{ XFUNC_set_mark,		1,	' '	},
-	{ XFUNC_kill_region,		0, CTRL('W')	},
-	{ XFUNC_xchg_point_mark,	2, CTRL('X')	},
-	{ XFUNC_literal,		0, CTRL('V')	},
-	{ XFUNC_version,		1, CTRL('V')	},
-	{ XFUNC_prev_histword,		1,	'.'	},
-	{ XFUNC_prev_histword,		1,	'_'	},
-	{ XFUNC_set_arg,		1,	'0'	},
-	{ XFUNC_set_arg,		1,	'1'	},
-	{ XFUNC_set_arg,		1,	'2'	},
-	{ XFUNC_set_arg,		1,	'3'	},
-	{ XFUNC_set_arg,		1,	'4'	},
-	{ XFUNC_set_arg,		1,	'5'	},
-	{ XFUNC_set_arg,		1,	'6'	},
-	{ XFUNC_set_arg,		1,	'7'	},
-	{ XFUNC_set_arg,		1,	'8'	},
-	{ XFUNC_set_arg,		1,	'9'	},
-#ifndef MKSH_SMALL
-	{ XFUNC_fold_upper,		1,	'U'	},
-	{ XFUNC_fold_upper,		1,	'u'	},
-	{ XFUNC_fold_lower,		1,	'L'	},
-	{ XFUNC_fold_lower,		1,	'l'	},
-	{ XFUNC_fold_capitalise,	1,	'C'	},
-	{ XFUNC_fold_capitalise,	1,	'c'	},
-#endif
-	/*
-	 * These for ANSI arrow keys: arguablely shouldn't be here by
-	 * default, but its simpler/faster/smaller than using termcap
-	 * entries.
-	 */
-	{ XFUNC_meta2,			1,	'['	},
-	{ XFUNC_meta2,			1,	'O'	},
-	{ XFUNC_prev_com,		2,	'A'	},
-	{ XFUNC_next_com,		2,	'B'	},
-	{ XFUNC_mv_forw,		2,	'C'	},
-	{ XFUNC_mv_back,		2,	'D'	},
-#ifndef MKSH_SMALL
-	{ XFUNC_vt_hack,		2,	'1'	},
-	{ XFUNC_mv_begin | 0x80,	2,	'7'	},
-	{ XFUNC_mv_begin,		2,	'H'	},
-	{ XFUNC_mv_end | 0x80,		2,	'4'	},
-	{ XFUNC_mv_end | 0x80,		2,	'8'	},
-	{ XFUNC_mv_end,			2,	'F'	},
-	{ XFUNC_del_char | 0x80,	2,	'3'	},
-	{ XFUNC_search_hist_up | 0x80,	2,	'5'	},
-	{ XFUNC_search_hist_dn | 0x80,	2,	'6'	},
-	/* more non-standard ones */
-	{ XFUNC_edit_line,		2,	'e'	}
-#endif
-};
 
 #ifdef MKSH_SMALL
 static void x_modified(void);
@@ -1077,7 +987,6 @@ x_modified(void)
 		modified = 1;
 	}
 }
-#define XFUNC_VALUE(f) (f)
 #else
 #define x_modified() do {			\
 	if (!modified) {			\
@@ -1085,7 +994,6 @@ x_modified(void)
 		modified = 1;			\
 	}					\
 } while (/* CONSTCOND */ 0)
-#define XFUNC_VALUE(f) (f & 0x7F)
 #endif
 
 static int
@@ -1119,26 +1027,6 @@ x_e_getmbc(char *sbuf)
 	return (pos);
 }
 
-static void
-x_init_prompt(void)
-{
-	x_col = promptlen(prompt);
-	x_adj_ok = true;
-	prompt_redraw = true;
-	if (x_col >= xx_cols)
-		x_col %= xx_cols;
-	x_displen = xx_cols - 2 - x_col;
-	x_adj_done = false;
-
-	pprompt(prompt, 0);
-	if (x_displen < 1) {
-		x_col = 0;
-		x_displen = xx_cols - 2;
-		x_e_putc2('\n');
-		prompt_redraw = false;
-	}
-}
-
 static int
 x_emacs(char *buf, size_t len)
 {
@@ -1155,7 +1043,22 @@ x_emacs(char *buf, size_t len)
 	x_last_command = XFUNC_error;
 
 	xx_cols = x_cols;
-	x_init_prompt();
+	/* initialise the prompt */
+	x_col = promptlen(prompt);
+	x_adj_ok = true;
+	prompt_redraw = true;
+	if (x_col >= xx_cols)
+		x_col %= xx_cols;
+	x_displen = xx_cols - 2 - x_col;
+	x_adj_done = false;
+
+	pprompt(prompt, 0);
+	if (x_displen < 1) {
+		x_col = 0;
+		x_displen = xx_cols - 2;
+		x_e_putc2('\n');
+		prompt_redraw = false;
+	}
 
 	x_histncp = NULL;
 	if (x_nextcmd >= 0) {
@@ -2285,82 +2188,57 @@ x_error(int c MKSH_A_UNUSED)
 	return (KSTD);
 }
 
-#ifndef MKSH_SMALL
-/* special VT100 style key sequence hack */
-static int
-x_vt_hack(int c)
-{
-	/* we only support PF2-'1' for now */
-	if (c != (2 << 8 | '1'))
-		return (x_error(c));
-
-	/* what's the next character? */
-	switch ((c = x_e_getc())) {
-	case '~':
-		x_arg = 1;
-		x_arg_defaulted = true;
-		return (x_mv_begin(0));
-	case ';':
-		/* "interesting" sequence detected */
-		break;
-	default:
-		goto unwind_err;
-	}
-
-	/* XXX x_e_ungetc is one-octet only */
-	if ((c = x_e_getc()) != '5' && c != '3')
-		goto unwind_err;
-
-	/*-
-	 * At this point, we have read the following octets so far:
-	 * - ESC+[ or ESC+O or Ctrl-X (Prefix 2)
-	 * - 1 (vt_hack)
-	 * - ;
-	 * - 5 (Ctrl key combiner) or 3 (Alt key combiner)
-	 * We can now accept one more octet designating the key.
-	 */
-
-	switch ((c = x_e_getc())) {
-	case 'C':
-		return (x_mv_fword(c));
-	case 'D':
-		return (x_mv_bword(c));
-	}
-
- unwind_err:
-	x_e_ungetc(c);
-	return (x_error(c));
-}
-#endif
-
 static char *
-x_mapin(const char *cp, Area *ap)
+x_mapin(const char *s, Area *ap)
 {
-	char *news, *op;
+	char c, *cp, *d;
 
-	/* for clang's static analyser, the nonnull attribute isn't enough */
-	mkssert(cp != NULL);
-
-	strdupx(news, cp, ap);
-	op = news;
-	while (*cp) {
-		/* XXX -- should handle \^ escape? */
-		if (*cp == '^') {
-			cp++;
-			if (*cp >= '?')
+	cp = d = alloc(strlen(s) + 1, ap);
+	while ((c = *s++)) {
+		if (c == '^') {
+			if ((c = *s++) >= '?') {
 				/* includes '?'; ASCII */
-				*op++ = CTRL(*cp);
-			else {
-				*op++ = '^';
-				cp--;
+				*cp++ = CTRL(c);
+			} else {
+				*cp++ = '^';
+				/* use '^ ' for a caret by convention */
+				if (c != ' ')
+					/* do not skip the second char */
+					--s;
 			}
 		} else
-			*op++ = *cp;
-		cp++;
+			*cp++ = c;
 	}
-	*op = '\0';
+	*cp++ = 0;
+	return (aresize(d, cp - d, ap));
+}
 
-	return (news);
+static char *
+x_mapout_str(const void *src)
+{
+	uint8_t c;
+	char *cp;
+	const uint8_t *s = src;
+	char *d;
+
+	/*
+	 * just allocate twice the string at ATEMP and don't shrink it,
+	 * as the result is usually short-lived (for printing) anyway
+	 */
+	cp = d = alloc2(2, strlen(src) + 1, ATEMP);
+	while ((c = *s++)) {
+		if (c == '^') {
+			/* use '^ ' for a caret by convention */
+			*cp++ = '^';
+			*cp++ = ' ';
+		} else if (c < ' ' || c == 0x7F) {
+			*cp++ = '^';
+			*cp++ = UNCTRL(c);
+		} else
+			*cp++ = c;
+	}
+	*cp = 0;
+	return (d);
 }
 
 static void
@@ -2400,9 +2278,9 @@ x_print(int prefix, int key)
 	shprintf("%s = ", x_mapout(key));
 #else
 	shprintf("%s%s = ", x_mapout(key), (f & 0x80) ? "~" : "");
-	if (XFUNC_VALUE(f) != XFUNC_ins_string)
+	if (f != XFUNC_ins_string)
 #endif
-		shprintf("%s\n", x_ftab[XFUNC_VALUE(f)].xf_name);
+		shprintf("%s\n", x_ftab[f].xf_name);
 #ifndef MKSH_SMALL
 	else
 		shprintf("'%s'\n", x_atab[prefix][key]);
@@ -2441,7 +2319,7 @@ x_bind(const char *a1, const char *a2,
 	if (a1 == NULL) {
 		for (prefix = 0; prefix < X_NTABS; prefix++)
 			for (key = 0; key < X_TABSZ; key++) {
-				f = XFUNC_VALUE(x_tab[prefix][key]);
+				f = x_tab[prefix][key];
 				if (f == XFUNC_insert || f == XFUNC_error
 #ifndef MKSH_SMALL
 				    || (macro && f != XFUNC_ins_string)
@@ -2456,7 +2334,7 @@ x_bind(const char *a1, const char *a2,
 	prefix = 0;
 	for (;; m1++) {
 		key = (unsigned char)*m1;
-		f = XFUNC_VALUE(x_tab[prefix][key]);
+		f = x_tab[prefix][key];
 		if (f == XFUNC_meta1)
 			prefix = 1;
 		else if (f == XFUNC_meta2)
@@ -2469,12 +2347,11 @@ x_bind(const char *a1, const char *a2,
 	    && ((*m1 != '~') || *(m1 + 1))
 #endif
 	    ) {
-		char msg[256];
-		const char *c = a1;
-		m1 = msg;
-		while (*c && m1 < (msg + sizeof(msg) - 3))
-			x_mapout2(*c++, &m1);
+		char *msg;
+
+		msg = x_mapout_str(a1);
 		bi_errorf("%s: %s", "too long key sequence", msg);
+		afree(msg, ATEMP);
 		return (1);
 	}
 #ifndef MKSH_SMALL
@@ -2505,7 +2382,7 @@ x_bind(const char *a1, const char *a2,
 	}
 
 #ifndef MKSH_SMALL
-	if (XFUNC_VALUE(x_tab[prefix][key]) == XFUNC_ins_string &&
+	if (x_tab[prefix][key] == XFUNC_ins_string &&
 	    x_atab[prefix][key])
 		afree(x_atab[prefix][key], AEDIT);
 #endif
@@ -2530,29 +2407,39 @@ x_bind(const char *a1, const char *a2,
 }
 
 static void
-x_init_emacs(void)
+x_init_emacs_one_defbinding(int dsttab, const uint8_t *src, size_t num)
 {
-	int i, j;
+	uint8_t *dst;
+	union mksh_cchack p;
 
-	ainit(AEDIT);
-	x_nextcmd = -1;
+	x_kpt[dsttab] = dst = alloc2(num, sizeof(uint8_t *), AEDIT);
+	x_kpz[dsttab] = num;
 
-	x_tab = alloc2(X_NTABS, sizeof(*x_tab), AEDIT);
-	for (j = 0; j < X_TABSZ; j++)
-		x_tab[0][j] = XFUNC_insert;
-	for (i = 1; i < X_NTABS; i++)
-		for (j = 0; j < X_TABSZ; j++)
-			x_tab[i][j] = XFUNC_error;
-	for (i = 0; i < (int)NELEM(x_defbindings); i++)
-		x_tab[x_defbindings[i].xdb_tab][x_defbindings[i].xdb_char]
-		    = x_defbindings[i].xdb_func;
-
-#ifndef MKSH_SMALL
-	x_atab = alloc2(X_NTABS, sizeof(*x_atab), AEDIT);
-	for (i = 1; i < X_NTABS; i++)
-		for (j = 0; j < X_TABSZ; j++)
-			x_atab[i][j] = NULL;
+	num = 0;
+	while (*src) {
+		p.ro = (const void *)src;
+		*dst++ = (void *)p.rw;
+		while (*src++)
+			;
+#ifdef DEBUG
+		/* check XF_CONST is set and XF_MACRO is not set */
+		if ((*src & (XF_CONST | XF_MACRO)) != XF_CONST)
+			internal_errorf("flags %02X for macro %s invalid!",
+			    *src, x_mapout_str(p.ro));
+		/* because the following code does not work for XF_MACRO */
+		/* and since we have none, I did not bother writing it */
 #endif
+		++src;
+		++src;
+		++num;
+#ifdef DEBUG
+		/* check they are really sorted */
+		if (*src && (strcmp(p.ro, (const void *)src) >= 0))
+			internal_errorf("macro %s not < %s (please sort)",
+			    x_mapout_str(p.ro), x_mapout_str(src));
+#endif
+	}
+	x_kpn[dsttab] = num;
 }
 
 static void
@@ -5366,4 +5253,28 @@ vi_macro_reset(void)
 	}
 }
 #endif /* !MKSH_S_NOVI */
+
+/* Called from main */
+void
+x_init(void)
+{
+	/*
+	 * Set edchars to -2 to force initial binding, except
+	 * we need default values for some deficient systems…
+	 */
+	edchars.erase = edchars.kill = edchars.intr = edchars.quit =
+	    edchars.eof = -2;
+	/* ^W */
+	edchars.werase = 027;
+
+	ainit(AEDIT);
+
+	/* emacs mode ^O command */
+	x_nextcmd = -1;
+
+	/* for grepping: X_KP */
+	x_init_emacs_one_defbinding(0, x_defbindings0, 32);
+	x_init_emacs_one_defbinding(1, x_defbindings1, 48);
+	x_init_emacs_one_defbinding(2, x_defbindings2, 24);
+}
 #endif /* !MKSH_NO_CMDLINE_EDITING */
