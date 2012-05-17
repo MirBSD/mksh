@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.568 2012/05/17 18:54:28 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.569 2012/05/17 19:14:07 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -822,9 +822,18 @@ ct="lcc"
 ct="unknown"
 #endif
 ;
+const char *
+#if defined(__KLIBC__)
+et="klibc"
+#else
+et="unknown"
+#endif
+;
 EOF
 ct=untested
-vv ']' "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c | sed -n '/^ct *= */s//ct=/p' | tr -d \\\\015 >x"
+et=untested
+vv ']' "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c | \
+    sed -n '/^[ce]t *= */s/\([ce]t\) *= */\1=/p' | tr -d \\\\015 >x"
 sed 's/^/[ /' x
 eval `cat x`
 rmf x vv.out
@@ -976,7 +985,19 @@ dragonegg|llvm)
 	vv '|' "llc -version"
 	;;
 esac
-$e "$bi==> which compiler seems to be used...$ao $ui$ct$ao"
+case $et in
+klibc)
+	add_cppflags -DMKSH_NO_LIMITS
+	;;
+unknown)
+	# nothing special detected, don’t worry
+	unset et
+	;;
+*)
+	# huh?
+	;;
+esac
+$e "$bi==> which compiler seems to be used...$ao $ui$ct${et+ on $et}$ao"
 rmf conftest.c conftest.o conftest a.out* a.exe* vv.out
 
 #
@@ -1431,7 +1452,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.568 2012/05/17 18:54:28 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.569 2012/05/17 19:14:07 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
