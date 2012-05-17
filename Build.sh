@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.569 2012/05/17 19:14:07 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.570 2012/05/17 19:36:41 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1452,7 +1452,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.569 2012/05/17 19:14:07 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.570 2012/05/17 19:36:41 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1639,6 +1639,38 @@ ac_test setgroups setresugid 0 <<-'EOF'
 	#include <unistd.h>
 	int main(void) { gid_t gid = 0; return (setgroups(0, &gid)); }
 EOF
+
+if test x"$et" = x"klibc"; then
+
+	ac_testn __rt_sigsuspend '' 'whether klibc uses RT signals' <<-'EOF'
+		#define MKSH_INCLUDES_ONLY
+		#include "sh.h"
+		extern int __rt_sigsuspend(const sigset_t *, size_t);
+		int main(void) { return (__rt_sigsuspend(NULL, 0)); }
+EOF
+
+	# no? damn! legacy crap ahead!
+
+	ac_testn __sigsuspend_s '!' __rt_sigsuspend 1 \
+	    'whether sigsuspend is usable (1/2)' <<-'EOF'
+		#define MKSH_INCLUDES_ONLY
+		#include "sh.h"
+		extern int __sigsuspend_s(sigset_t);
+		int main(void) { return (__sigsuspend_s(0)); }
+EOF
+	ac_testn __sigsuspend_xxs '!' __sigsuspend_s 1 \
+	    'whether sigsuspend is usable (2/2)' <<-'EOF'
+		#define MKSH_INCLUDES_ONLY
+		#include "sh.h"
+		extern int __sigsuspend_xxs(int, int, sigset_t);
+		int main(void) { return (__sigsuspend_xxs(0, 0, 0)); }
+EOF
+
+	if test "000" = "$HAVE___RT_SIGSUSPEND$HAVE___SIGSUSPEND_S$HAVE___SIGSUSPEND_XXS"; then
+		# no usable sigsuspend(), use pause() *ugh*
+		add_cppflags -DMKSH_NO_SIGSUSPEND
+	fi
+fi
 
 ac_test strlcpy <<-'EOF'
 	#include <string.h>
