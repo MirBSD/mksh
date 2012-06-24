@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.98 2012/04/14 16:07:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.99 2012/06/24 20:05:23 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -1264,7 +1264,8 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	int u = -1;
 	char *cp = iop->name;
 	int iotype = iop->flag & IOTYPE;
-	int do_open = 1, do_close = 0, flags = 0;
+	bool do_open = true, do_close = false;
+	int flags = 0;
 	struct ioword iotmp;
 	struct stat statb;
 
@@ -1306,7 +1307,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		break;
 
 	case IOHERE:
-		do_open = 0;
+		do_open = false;
 		/* herein() returns -2 if error has been printed */
 		u = herein(iop->heredoc, iop->flag & IOEVAL, NULL);
 		/* cp may have wrong name */
@@ -1315,11 +1316,11 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	case IODUP: {
 		const char *emsg;
 
-		do_open = 0;
+		do_open = false;
 		if (*cp == '-' && !cp[1]) {
 			/* prevent error return below */
 			u = 1009;
-			do_close = 1;
+			do_close = true;
 		} else if ((u = check_fd(cp,
 		    X_OK | ((iop->flag & IORDUP) ? R_OK : W_OK),
 		    &emsg)) < 0) {
@@ -1331,7 +1332,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			/* "dup from" == "dup to" */
 			return (0);
 		break;
-	}
+	    }
 	}
 
 	if (do_open) {
