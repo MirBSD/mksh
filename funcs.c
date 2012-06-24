@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.219 2012/05/09 23:20:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.220 2012/06/24 20:00:51 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3592,11 +3592,6 @@ c_cat(const char **wp)
 	char *buf, *cp;
 #define MKSH_CAT_BUFSIZ 4096
 
-	if ((buf = malloc_osfunc(MKSH_CAT_BUFSIZ)) == NULL) {
-		bi_errorf(Toomem, (unsigned long)MKSH_CAT_BUFSIZ);
-		return (1);
-	}
-
 	/* parse options: POSIX demands we support "-u" as no-op */
 	while ((rv = ksh_getopt(wp, &builtin_opt, "u")) != -1) {
 		switch (rv) {
@@ -3610,6 +3605,11 @@ c_cat(const char **wp)
 	}
 	wp += builtin_opt.optind;
 	rv = 0;
+
+	if ((buf = malloc_osfunc(MKSH_CAT_BUFSIZ)) == NULL) {
+		bi_errorf(Toomem, (unsigned long)MKSH_CAT_BUFSIZ);
+		return (1);
+	}
 
 	do {
 		if (*wp) {
