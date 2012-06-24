@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.125 2012/05/05 18:04:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.126 2012/06/24 19:47:11 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -1374,6 +1374,8 @@ setsig(Trap *p, sig_t f, int flags)
 
 	if (p->signal == ksh_SIGEXIT || p->signal == ksh_SIGERR)
 		return (1);
+
+	memset(&sigact, 0, sizeof(sigact));
 
 	/*
 	 * First time setting this signal? If so, get and note the current
