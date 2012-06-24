@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.572 2012/06/24 20:46:07 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.573 2012/06/24 20:47:07 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -315,7 +315,7 @@ pm=0
 cm=normal
 optflags=-std-compile-opts
 last=
-tfn=mksh
+tfn=
 
 for i
 do
@@ -385,6 +385,7 @@ if test -n "$last"; then
 	exit 1
 fi
 
+test -z "$tfn" && tfn=mksh
 if test -d $tfn || test -d $tfn.exe; then
 	echo "$me: Error: ./$tfn is a directory!" >&2
 	exit 1
@@ -1464,7 +1465,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.572 2012/06/24 20:46:07 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.573 2012/06/24 20:47:07 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
