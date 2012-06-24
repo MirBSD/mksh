@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.571 2012/05/18 01:38:04 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.572 2012/06/24 20:46:07 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -303,13 +303,6 @@ addsrcs() {
 }
 
 
-if test -d mksh || test -d mksh.exe; then
-	echo "$me: Error: ./mksh is a directory!" >&2
-	exit 1
-fi
-rmf a.exe* a.out* conftest.c *core core.* lft mksh* no *.bc *.ll *.o \
-    Rebuild.sh signames.inc test.sh x vv.out
-
 curdir=`pwd` srcdir=`dirname "$0" 2>/dev/null` check_categories=
 test -n "$srcdir" || srcdir=. # in case dirname does not exist
 dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\([^"]*\)".*$/\1/p' $srcdir/sh.h`
@@ -322,6 +315,7 @@ pm=0
 cm=normal
 optflags=-std-compile-opts
 last=
+tfn=mksh
 
 for i
 do
@@ -336,6 +330,10 @@ do
 		;;
 	o:*)
 		optflags=$i
+		last=
+		;;
+	t:*)
+		tfn=$i
 		last=
 		;;
 	:-c)
@@ -364,6 +362,9 @@ do
 	:-r)
 		r=1
 		;;
+	:-t)
+		last=t
+		;;
 	:-v)
 		echo "Build.sh $srcversion"
 		echo "for mksh $dstversion"
@@ -383,6 +384,13 @@ if test -n "$last"; then
 	echo "$me: Option -'$last' not followed by argument!" >&2
 	exit 1
 fi
+
+if test -d $tfn || test -d $tfn.exe; then
+	echo "$me: Error: ./$tfn is a directory!" >&2
+	exit 1
+fi
+rmf a.exe* a.out* conftest.c *core core.* lft ${tfn}* no *.bc *.ll *.o \
+    Rebuild.sh signames.inc test.sh x vv.out
 
 SRCS="lalloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
 SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
@@ -1456,23 +1464,23 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.571 2012/05/18 01:38:04 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.572 2012/06/24 20:46:07 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
 	llvm)
 		v "$CC $CFLAGS $CPPFLAGS $NOWARN -emit-llvm -c conftest.c" || fv=0
-		rmf mksh.s
-		test $fv = 0 || v "llvm-link -o - conftest.o | opt $optflags | llc -o mksh.s" || fv=0
-		test $fv = 0 || v "$CC $CFLAGS $LDFLAGS -o $tcfn mksh.s $LIBS $ccpr"
+		rmf $tfn.s
+		test $fv = 0 || v "llvm-link -o - conftest.o | opt $optflags | llc -o $tfn.s" || fv=0
+		test $fv = 0 || v "$CC $CFLAGS $LDFLAGS -o $tcfn $tfn.s $LIBS $ccpr"
 		;;
 	dragonegg)
 		v "$CC $CFLAGS $CPPFLAGS $NOWARN -S -flto conftest.c" || fv=0
 		test $fv = 0 || v "mv conftest.s conftest.ll"
 		test $fv = 0 || v "llvm-as conftest.ll" || fv=0
-		rmf mksh.s
-		test $fv = 0 || v "llvm-link -o - conftest.bc | opt $optflags | llc -o mksh.s" || fv=0
-		test $fv = 0 || v "$CC $CFLAGS $LDFLAGS -o $tcfn mksh.s $LIBS $ccpr"
+		rmf $tfn.s
+		test $fv = 0 || v "llvm-link -o - conftest.bc | opt $optflags | llc -o $tfn.s" || fv=0
+		test $fv = 0 || v "$CC $CFLAGS $LDFLAGS -o $tcfn $tfn.s $LIBS $ccpr"
 		;;
 	combine)
 		v "$CC $CFLAGS $CPPFLAGS $LDFLAGS -fwhole-program --combine $NOWARN -o $tcfn conftest.c $LIBS $ccpr"
@@ -1929,8 +1937,8 @@ files=
 objs=
 sp=
 case $tcfn in
-a.exe)	mkshexe=mksh.exe ;;
-*)	mkshexe=mksh ;;
+a.exe)	mkshexe=$tfn.exe ;;
+*)	mkshexe=$tfn ;;
 esac
 case $curdir in
 *\ *)	mkshshebang="#!./$mkshexe" ;;
@@ -2038,9 +2046,9 @@ for file in $SRCS; do
 done
 case $cm in
 dragonegg|llvm)
-	echo "rm -f mksh.s" >>Rebuild.sh
-	echo "llvm-link -o - $objs | opt $optflags | llc -o mksh.s" >>Rebuild.sh
-	lobjs=mksh.s
+	echo "rm -f $tfn.s" >>Rebuild.sh
+	echo "llvm-link -o - $objs | opt $optflags | llc -o $tfn.s" >>Rebuild.sh
+	lobjs=$tfn.s
 	;;
 *)
 	lobjs=$objs
@@ -2119,8 +2127,8 @@ else
 fi
 case $cm in
 dragonegg|llvm)
-	rmf mksh.s
-	v "llvm-link -o - $objs | opt $optflags | llc -o mksh.s"
+	rmf $tfn.s
+	v "llvm-link -o - $objs | opt $optflags | llc -o $tfn.s"
 	;;
 esac
 tcfn=$mkshexe
@@ -2134,8 +2142,8 @@ test -f /usr/ucb/$i && i=/usr/ucb/$i
 test 1 = $eq && e=:
 $e
 $e Installing the shell:
-$e "# $i -c -s -o root -g bin -m 555 mksh /bin/mksh"
-$e "# grep -x /bin/mksh /etc/shells >/dev/null || echo /bin/mksh >>/etc/shells"
+$e "# $i -c -s -o root -g bin -m 555 $tfn /bin/$tfn"
+$e "# grep -x /bin/$tfn /etc/shells >/dev/null || echo /bin/$tfn >>/etc/shells"
 $e "# $i -c -o root -g bin -m 444 dot.mkshrc /usr/share/doc/mksh/examples/"
 $e
 $e Installing the manual:
