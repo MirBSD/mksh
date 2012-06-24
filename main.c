@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.222 2012/05/05 17:32:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.223 2012/06/24 20:15:47 tg Exp $");
 
 extern char **environ;
 
@@ -623,7 +623,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	}
 	Flag(FERREXIT) = errexit;
 
-	if (Flag(FTALKING))
+	if (Flag(FTALKING) && s)
 		hist_init(s);
 	else
 		/* set after ENV */
