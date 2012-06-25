@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.573 2012/06/24 20:47:07 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.574 2012/06/25 16:05:06 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -316,6 +316,7 @@ cm=normal
 optflags=-std-compile-opts
 last=
 tfn=
+legacy=0
 
 for i
 do
@@ -346,6 +347,12 @@ do
 		;;
 	:-j)
 		pm=1
+		;;
+	:-L)
+		legacy=1
+		;;
+	:+L)
+		legacy=0
 		;;
 	:-M)
 		cm=makefile
@@ -385,7 +392,11 @@ if test -n "$last"; then
 	exit 1
 fi
 
-test -z "$tfn" && tfn=mksh
+test -z "$tfn" && if test $legacy = 0; then
+	tfn=mksh
+else
+	tfn=lksh
+fi
 if test -d $tfn || test -d $tfn.exe; then
 	echo "$me: Error: ./$tfn is a directory!" >&2
 	exit 1
@@ -393,8 +404,16 @@ fi
 rmf a.exe* a.out* conftest.c *core core.* lft ${tfn}* no *.bc *.ll *.o \
     Rebuild.sh signames.inc test.sh x vv.out
 
-SRCS="lalloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c"
-SRCS="$SRCS jobs.c lex.c main.c misc.c shf.c syn.c tree.c var.c"
+SRCS="lalloc.c eval.c exec.c expr.c funcs.c histrap.c jobs.c"
+SRCS="$SRCS lex.c main.c misc.c shf.c syn.c tree.c var.c"
+
+if test $legacy = 0; then
+	SRCS="$SRCS edit.c"
+	check_categories="$check_categories shell:legacy-no"
+else
+	check_categories="$check_categories shell:legacy-yes"
+	add_cppflags -DMKSH_LEGACY_MODE
+fi
 
 if test x"$srcdir" = x"."; then
 	CPPFLAGS="-I. $CPPFLAGS"
@@ -1465,7 +1484,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.573 2012/06/24 20:47:07 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.574 2012/06/25 16:05:06 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in

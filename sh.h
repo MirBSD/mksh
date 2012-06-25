@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.561 2012/06/24 20:39:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.562 2012/06/25 16:05:10 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/06/24"
 
@@ -427,7 +427,14 @@ extern int wcwidth(__WCHAR_TYPE__);
 #define LINE		4096	/* input line size */
 
 EXTERN const char *safe_prompt; /* safe prompt if PS1 substitution fails */
-EXTERN const char initvsn[] E_INIT("KSH_VERSION=@(#)MIRBSD KSH " MKSH_VERSION);
+
+#ifdef MKSH_LEGACY_MODE
+#define KSH_VERSIONNAME	"LEGACY"
+#else
+#define KSH_VERSIONNAME	"MIRBSD"
+#endif
+EXTERN const char initvsn[] E_INIT("KSH_VERSION=@(#)" KSH_VERSIONNAME \
+    " KSH " MKSH_VERSION);
 #define KSH_VERSION	(initvsn + /* "KSH_VERSION=@(#)" */ 16)
 
 EXTERN const char digits_uc[] E_INIT("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
@@ -527,6 +534,14 @@ im_sorry_dave(void)
 	}								\
 	(d) = strdup_dst;						\
 } while (/* CONSTCOND */ 0)
+#endif
+
+#ifdef MKSH_LEGACY_MODE
+#ifndef MKSH_NO_CMDLINE_EDITING
+#define MKSH_NO_CMDLINE_EDITING	/* defined */
+#endif
+#undef MKSH_S_NOVI
+#define MKSH_S_NOVI		1
 #endif
 
 #ifdef MKSH_SMALL
