@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.539 2012/06/25 16:05:08 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.540 2012/06/25 16:17:51 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -78,6 +78,19 @@ description:
 category: disabled
 stdin:
 	set
+---
+name: selftest-legacy
+description:
+	Check some things in the LEGACY KSH
+category: shell:legacy-yes
+stdin:
+	(set -o emacs); echo 1 = $? .
+	(set -o vi); echo 2 = $? .
+expected-stdout:
+	1 = 1 .
+	2 = 1 .
+expected-stderr-pattern:
+	/set: emacs: bad option\n.*set: vi: bad option/
 ---
 name: selftest-direct-builtin-call
 description:
@@ -4088,6 +4101,7 @@ description:
 	but not 0 according to the getopt(1) manual page, ksh88, and
 	Bourne sh (such as /bin/sh on Solaris).
 	In mksh R39b, we honour POSIX except when -o sh is set.
+category: shell:legacy-no
 stdin:
 	showf() {
 		[[ -o posix ]]; FPOSIX=$((1-$?))
@@ -4109,6 +4123,38 @@ stdin:
 expected-stdout:
 	FPOSIX=0 FSH=0 rv=0
 	FPOSIX=0 FSH=1 rv=1
+	FPOSIX=1 FSH=0 rv=0
+---
+name: regression-10-legacy
+description:
+	The following:
+		set -- `false`
+		echo $?
+	should print 0 according to POSIX (dash, bash, ksh93, posh)
+	but not 0 according to the getopt(1) manual page, ksh88, and
+	Bourne sh (such as /bin/sh on Solaris).
+category: shell:legacy-yes
+stdin:
+	showf() {
+		[[ -o posix ]]; FPOSIX=$((1-$?))
+		[[ -o sh ]]; FSH=$((1-$?))
+		echo -n "FPOSIX=$FPOSIX FSH=$FSH "
+	}
+	set +o posix +o sh
+	showf
+	set -- `false`
+	echo rv=$?
+	set -o sh
+	showf
+	set -- `false`
+	echo rv=$?
+	set -o posix
+	showf
+	set -- `false`
+	echo rv=$?
+expected-stdout:
+	FPOSIX=0 FSH=0 rv=0
+	FPOSIX=0 FSH=1 rv=0
 	FPOSIX=1 FSH=0 rv=0
 ---
 name: regression-11

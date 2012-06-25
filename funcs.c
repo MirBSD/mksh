@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.220 2012/06/24 20:00:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.221 2012/06/25 16:17:54 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2407,7 +2407,11 @@ c_set(const char **wp)
 	 * if there are no command substitutions).
 	 * Switched ksh (!posix !sh) to POSIX in mksh R39b.
 	 */
+#ifdef MKSH_LEGACY_MODE
+	return (subst_exstat);
+#else
 	return (Flag(FSH) ? subst_exstat : 0);
+#endif
 }
 
 int
@@ -2612,6 +2616,7 @@ c_exec(const char **wp MKSH_A_UNUSED)
 		for (i = 0; i < NUFILE; i++) {
 			if (e->savefd[i] > 0)
 				close(e->savefd[i]);
+#ifdef MKSH_LEGACY_MODE
 			/*
 			 * keep all file descriptors > 2 private for ksh,
 			 * but not for POSIX or legacy/kludge sh
@@ -2619,6 +2624,7 @@ c_exec(const char **wp MKSH_A_UNUSED)
 			if (!Flag(FPOSIX) && !Flag(FSH) && i > 2 &&
 			    e->savefd[i])
 				fcntl(i, F_SETFD, FD_CLOEXEC);
+#endif
 		}
 		e->savefd = NULL;
 	}
