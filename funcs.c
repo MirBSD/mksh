@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.221 2012/06/25 16:17:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.222 2012/06/25 16:34:58 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2616,7 +2616,7 @@ c_exec(const char **wp MKSH_A_UNUSED)
 		for (i = 0; i < NUFILE; i++) {
 			if (e->savefd[i] > 0)
 				close(e->savefd[i]);
-#ifdef MKSH_LEGACY_MODE
+#ifndef MKSH_LEGACY_MODE
 			/*
 			 * keep all file descriptors > 2 private for ksh,
 			 * but not for POSIX or legacy/kludge sh

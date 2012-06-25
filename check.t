@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.541 2012/06/25 16:31:16 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.542 2012/06/25 16:34:56 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4163,9 +4163,9 @@ stdin:
 	set -- `false`
 	echo rv=$?
 expected-stdout:
-	FPOSIX=0 FSH=0 rv=0
-	FPOSIX=0 FSH=1 rv=0
-	FPOSIX=1 FSH=0 rv=0
+	FPOSIX=0 FSH=0 rv=1
+	FPOSIX=0 FSH=1 rv=1
+	FPOSIX=1 FSH=0 rv=1
 ---
 name: regression-11
 description:
@@ -8232,6 +8232,7 @@ name: fd-cloexec-1
 description:
 	Verify that file descriptors > 2 are private for Korn shells
 	AT&T ksh93 does this still, which means we must keep it as well
+category: shell:legacy-no
 file-setup: file 644 "test.sh"
 	echo >&3 Fowl
 stdin:
@@ -8249,6 +8250,18 @@ file-setup: file 644 "test.sh"
 	echo >&3 Fowl
 stdin:
 	test -n "$POSH_VERSION" || set -o sh
+	exec 3>&1
+	"$__progname" test.sh
+expected-stdout:
+	Fowl
+---
+name: fd-cloexec-3
+description:
+	Verify that file descriptors > 2 are not private for LEGACY KSH
+category: shell:legacy-yes
+file-setup: file 644 "test.sh"
+	echo >&3 Fowl
+stdin:
 	exec 3>&1
 	"$__progname" test.sh
 expected-stdout:
