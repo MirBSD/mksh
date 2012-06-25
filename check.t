@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.540 2012/06/25 16:17:51 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.541 2012/06/25 16:31:16 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -3653,10 +3653,20 @@ name: integer-base-check-flat
 description:
 	Check behaviour does not match POSuX, because a not type-safe
 	scripting language has *no* business interpreting "010" as octal
+category: shell:legacy-no
 stdin:
 	echo :$((10)).$((010)).$((0x10)).
 expected-stdout:
 	:10.10.16.
+---
+name: integer-base-check-flat-legacy
+description:
+	Check behaviour matches POSuX for LEGACY KSH
+category: shell:legacy-yes
+stdin:
+	echo :$((10)).$((010)).$((0x10)).
+expected-stdout:
+	:10.8.16.
 ---
 name: integer-base-check-numeric-from
 description:
