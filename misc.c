@@ -30,7 +30,20 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.193 2012/05/05 17:37:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.194 2012/06/26 19:22:19 tg Exp $");
+
+#define KSH_CHVT_FLAG
+#ifdef MKSH_SMALL
+#undef KSH_CHVT_FLAG
+#endif
+#ifdef TIOCSCTTY
+#define KSH_CHVT_CODE
+#define KSH_CHVT_FLAG
+#endif
+#ifdef MKSH_LEGACY_MODE
+#undef KSH_CHVT_CODE
+#undef KSH_CHVT_FLAG
+#endif
 
 /* type bits for unsigned char */
 unsigned char chtypes[UCHAR_MAX + 1];
@@ -40,7 +53,7 @@ static const unsigned char *pat_scan(const unsigned char *,
 static int do_gmatch(const unsigned char *, const unsigned char *,
     const unsigned char *, const unsigned char *);
 static const unsigned char *cclass(const unsigned char *, int);
-#ifdef TIOCSCTTY
+#ifdef KSH_CHVT_CODE
 static void chvt(const char *);
 #endif
 
@@ -300,7 +313,7 @@ parse_args(const char **argv,
 		/* see cmd_opts[] declaration */
 		*p++ = 'o';
 		*p++ = ':';
-#if !defined(MKSH_SMALL) || defined(TIOCSCTTY)
+#ifdef KSH_CHVT_FLAG
 		*p++ = 'T';
 		*p++ = ':';
 #endif
@@ -381,11 +394,11 @@ parse_args(const char **argv,
 			}
 			break;
 
-#if !defined(MKSH_SMALL) || defined(TIOCSCTTY)
+#ifdef KSH_CHVT_FLAG
 		case 'T':
 			if (what != OF_FIRSTTIME)
 				break;
-#ifndef TIOCSCTTY
+#ifndef KSH_CHVT_CODE
 			errorf("no TIOCSCTTY ioctl");
 #else
 			change_flag(FTALKING, OF_CMDLINE, 1);
@@ -1885,7 +1898,7 @@ c_cd(const char **wp)
 }
 
 
-#ifdef TIOCSCTTY
+#ifdef KSH_CHVT_CODE
 extern void chvt_reinit(void);
 
 static void
