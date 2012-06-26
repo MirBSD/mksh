@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.575 2012/06/26 19:15:11 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.576 2012/06/26 19:33:29 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -58,9 +58,9 @@ vq() {
 
 rmf() {
 	for _f in "$@"; do
-		case ${_f} in
-		mksh.1) ;;
-		*) rm -f "${_f}" ;;
+		case $_f in
+		Build.sh|check.pl|check.t|dot.mkshrc|*.c|*.h|mksh.1) ;;
+		*) rm -f "$_f" ;;
 		esac
 	done
 }
@@ -439,7 +439,7 @@ oswarn=
 ccpc=-Wc,
 ccpl=-Wl,
 tsts=
-ccpr='|| for _f in ${tcfn}*; do test x"${_f}" = x"mksh.1" || rm -f "${_f}"; done'
+ccpr='|| for _f in ${tcfn}*; do case $_f in Build.sh|check.pl|check.t|dot.mkshrc|*.c|*.h|mksh.1) ;; *) rm -f "$_f" ;; esac; done'
 
 # Evil hack
 if test x"$TARGET_OS" = x"Android"; then
@@ -1485,7 +1485,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.575 2012/06/26 19:15:11 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.576 2012/06/26 19:33:29 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2155,8 +2155,8 @@ esac
 tcfn=$mkshexe
 test $cm = combine || v "$CC $CFLAGS $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
 test -f $tcfn || exit 1
-test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || \
-    rmf mksh.cat1
+test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >$tfn.cat1" || \
+    rmf $tfn.cat1
 test 0 = $eq && v size $tcfn
 i=install
 test -f /usr/ucb/$i && i=/usr/ucb/$i
@@ -2168,12 +2168,12 @@ $e "# grep -x /bin/$tfn /etc/shells >/dev/null || echo /bin/$tfn >>/etc/shells"
 $e "# $i -c -o root -g bin -m 444 dot.mkshrc /usr/share/doc/mksh/examples/"
 $e
 $e Installing the manual:
-if test -f mksh.cat1; then
-	$e "# $i -c -o root -g bin -m 444 mksh.cat1" \
-	    "/usr/share/man/cat1/mksh.0"
+if test -f $tfn.cat1; then
+	$e "# $i -c -o root -g bin -m 444 $tfn.cat1" \
+	    "/usr/share/man/cat1/$tfn.0"
 	$e or
 fi
-$e "# $i -c -o root -g bin -m 444 mksh.1 /usr/share/man/man1/mksh.1"
+$e "# $i -c -o root -g bin -m 444 mksh.1 /usr/share/man/man1/$tfn.1"
 $e
 $e Run the regression test suite: ./test.sh
 $e Please also read the sample file dot.mkshrc and the fine manual.
