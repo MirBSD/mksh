@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.119 2012/06/24 19:36:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.120 2012/06/28 20:03:20 tg Exp $");
 
 /*
  * string expansion
@@ -369,7 +369,16 @@ expand(const char *cp,	/* input word */
 					st->stype = stype;
 					st->base = Xsavepos(ds, dp);
 					st->f = f;
-					st->var = x.var;
+					if (x.var == &vtemp) {
+						st->var = tempvar();
+						st->var->flag &= ~INTEGER;
+						/* can't fail here */
+						setstr(st->var,
+						    str_val(x.var),
+						    KSH_RETURN_ERROR | 0x4);
+					} else
+						st->var = x.var;
+
 					st->quotew = st->quotep = quote;
 					/* skip qualifier(s) */
 					if (stype)
