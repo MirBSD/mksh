@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.548 2012/06/28 20:14:15 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.549 2012/06/28 20:17:35 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2012/06/26
+	@(#)MIRBSD KSH R40 2012/06/28
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R40 2012/06/26
+	@(#)LEGACY KSH R40 2012/06/28
 description:
 	Check version of legacy shell.
 stdin:
@@ -324,12 +324,24 @@ expected-stderr-pattern:
 name: arith-div-intmin-by-minusone
 description:
 	Check division overflow wraps around silently
+category: int:32
 stdin:
 	echo signed:$((-2147483648 / -1))r$((-2147483648 % -1)).
 	echo unsigned:$((# -2147483648 / -1))r$((# -2147483648 % -1)).
 expected-stdout:
 	signed:-2147483648r0.
 	unsigned:0r2147483648.
+---
+name: arith-div-intmin-by-minusone-64
+description:
+	Check division overflow wraps around silently
+category: int:64
+stdin:
+	echo signed:$((-9223372036854775808 / -1))r$((-9223372036854775808 % -1)).
+	echo unsigned:$((# -9223372036854775808 / -1))r$((# -9223372036854775808 % -1)).
+expected-stdout:
+	signed:-9223372036854775808r0.
+	unsigned:0r9223372036854775808.
 ---
 name: arith-assop-assoc-1
 description:
@@ -345,6 +357,7 @@ expected-stdout:
 name: arith-unsigned-1
 description:
 	Check if unsigned arithmetics work
+category: int:32
 stdin:
 	# signed vs unsigned
 	echo x1 $((-1)) $((#-1))
@@ -382,6 +395,7 @@ expected-stdout:
 name: arith-limit32-1
 description:
 	Check if arithmetics are 32 bit
+category: int:32
 stdin:
 	# signed vs unsigned
 	echo x1 $((-1)) $((#-1))
@@ -403,6 +417,34 @@ expected-stdout:
 	x2 2147483647 2147483647
 	x3 -2147483648 2147483648
 	x4 -1 4294967295
+	x5 0 0
+	x6 1 1
+---
+name: arith-limit64-1
+description:
+	Check if arithmetics are 64 bit
+category: int:64
+stdin:
+	# signed vs unsigned
+	echo x1 $((-1)) $((#-1))
+	# calculating
+	typeset -i vs
+	typeset -Ui vu
+	vs=9223372036854775807; vu=9223372036854775807
+	echo x2 $vs $vu
+	let vs++ vu++
+	echo x3 $vs $vu
+	vs=18446744073709551615; vu=18446744073709551615
+	echo x4 $vs $vu
+	let vs++ vu++
+	echo x5 $vs $vu
+	let vs++ vu++
+	echo x6 $vs $vu
+expected-stdout:
+	x1 -1 18446744073709551615
+	x2 9223372036854775807 9223372036854775807
+	x3 -9223372036854775808 9223372036854775808
+	x4 -1 18446744073709551615
 	x5 0 0
 	x6 1 1
 ---
@@ -3790,12 +3832,24 @@ expected-stderr-pattern:
 name: integer-arithmetic-span
 description:
 	Check wraparound and size that is defined in mksh
+category: int:32
 stdin:
 	echo s:$((2147483647+1)).$(((2147483647*2)+1)).$(((2147483647*2)+2)).
 	echo u:$((#2147483647+1)).$((#(2147483647*2)+1)).$((#(2147483647*2)+2)).
 expected-stdout:
 	s:-2147483648.-1.0.
 	u:2147483648.4294967295.0.
+---
+name: integer-arithmetic-span-64
+description:
+	Check wraparound and size that is defined in mksh
+category: int:64
+stdin:
+	echo s:$((9223372036854775807+1)).$(((9223372036854775807*2)+1)).$(((9223372036854775807*2)+2)).
+	echo u:$((#9223372036854775807+1)).$((#(9223372036854775807*2)+1)).$((#(9223372036854775807*2)+2)).
+expected-stdout:
+	s:-9223372036854775808.-1.0.
+	u:9223372036854775808.18446744073709551615.0.
 ---
 name: lineno-stdin
 description:

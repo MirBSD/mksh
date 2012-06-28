@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.60 2012/06/28 20:01:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.61 2012/06/28 20:17:39 tg Exp $");
 
 #define INDENT	8
 

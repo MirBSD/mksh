@@ -157,9 +157,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.567 2012/06/28 20:05:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.568 2012/06/28 20:17:37 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/06/26"
+#define MKSH_VERSION "R40 2012/06/28"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -172,16 +172,21 @@ typedef u_int32_t uint32_t;
 #endif
 
 /* arithmetic types: shell arithmetics */
+#ifdef MKSH_LEGACY_MODE
 /*
- * NOTE: these are currently hard-coded to exactly 32 bit, do not change
- *
- * TODO: make these configurable, or add 64-bit arithmetic, somehow
- * (on some operating environments, 64-bit types are needed for some
- * things, such as the ulimit builtin, to work proper), except mksh
- * must still be able to run on systems with no native 64-bit integers
+ * POSIX demands these to be the C environment's long type
+ */
+typedef long mksh_ari_t;
+typedef unsigned long mksh_uari_t;
+#else
+/*
+ * These types are exactly 32 bit wide; signed and unsigned
+ * integer wraparound, even across division and modulo, for
+ * any shell code using them, is guaranteed.
  */
 typedef int32_t mksh_ari_t;
 typedef uint32_t mksh_uari_t;
+#endif
 
 /* boolean type (no <stdbool.h> deliberately) */
 typedef unsigned char mksh_bool;

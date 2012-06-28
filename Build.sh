@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.576 2012/06/26 19:33:29 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.577 2012/06/28 20:17:33 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -409,7 +409,7 @@ SRCS="$SRCS lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
 if test $legacy = 0; then
 	SRCS="$SRCS edit.c"
-	check_categories="$check_categories shell:legacy-no"
+	check_categories="$check_categories shell:legacy-no int:32"
 else
 	check_categories="$check_categories shell:legacy-yes"
 	add_cppflags -DMKSH_LEGACY_MODE
@@ -1485,7 +1485,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.576 2012/06/26 19:33:29 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.577 2012/06/28 20:17:33 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1752,11 +1752,15 @@ test x1 = x$HAVE_CAN_WNOOVERFLOW && CFLAGS="$CFLAGS -Wno-overflow"
 ac_testn compile_time_asserts_$$ '' 'whether compile-time assertions pass' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
+	#ifndef CHAR_BIT
+	#define CHAR_BIT 8	/* defuse this test on really legacy systems */
+	#endif
 	struct ctasserts {
 	#define cta(name, assertion) char name[(assertion) ? 1 : -1]
 /* this one should be defined by the standard */
 cta(char_is_1_char, (sizeof(char) == 1) && (sizeof(signed char) == 1) &&
     (sizeof(unsigned char) == 1));
+cta(char_is_8_bits, (CHAR_BIT) == 8);
 /* the next assertion is probably not really needed */
 cta(short_is_2_char, sizeof(short) == 2);
 cta(short_size_no_matter_of_signedness, sizeof(short) == sizeof(unsigned short));
@@ -1765,24 +1769,28 @@ cta(int_is_4_char, sizeof(int) == 4);
 cta(int_size_no_matter_of_signedness, sizeof(int) == sizeof(unsigned int));
 
 cta(long_ge_int, sizeof(long) >= sizeof(int));
+cta(long_size_no_matter_of_signedness, sizeof(long) == sizeof(unsigned long));
 
+#ifndef MKSH_LEGACY_MODE
 /* the next assertion is probably not really needed */
 cta(ari_is_4_char, sizeof(mksh_ari_t) == 4);
-/* but the next three are; we REQUIRE signed integer wraparound */
-cta(ari_is_signed, (mksh_ari_t)-1 < (mksh_ari_t)0);
+/* but the next two are; we REQUIRE signed integer wraparound */
 cta(ari_has_31_bit, 0 < (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 1));
 cta(ari_sign_32_bit_and_wrap,
     (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 1) >
     (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 2));
 /* the next assertion is probably not really needed */
 cta(uari_is_4_char, sizeof(mksh_uari_t) == 4);
-/* but the next four are; we REQUIRE unsigned integer wraparound */
-cta(uari_is_unsigned, (mksh_uari_t)-1 > (mksh_uari_t)0);
+/* but the next three are; we REQUIRE unsigned integer wraparound */
 cta(uari_has_31_bit, 0 < (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 2 + 1));
 cta(uari_has_32_bit, 0 < (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 3));
 cta(uari_wrap_32_bit,
     (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 3) >
     (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 4));
+#endif
+/* these are always required */
+cta(ari_is_signed, (mksh_ari_t)-1 < (mksh_ari_t)0);
+cta(uari_is_unsigned, (mksh_uari_t)-1 > (mksh_uari_t)0);
 
 cta(sizet_size_no_matter_of_signedness, sizeof(ssize_t) == sizeof(size_t));
 cta(ptrdifft_sizet_same_size, sizeof(ptrdiff_t) == sizeof(size_t));
@@ -1797,6 +1805,45 @@ CFLAGS=$save_CFLAGS
 eval test 1 = \$HAVE_COMPILE_TIME_ASSERTS_$$ || exit 1
 
 #
+# extra checks for legacy mksh
+#
+if test $legacy = 1; then
+	ac_test long_32bit '' 'whether long is 32 bit wide' <<-'EOF'
+		#define MKSH_INCLUDES_ONLY
+		#include "sh.h"
+		#ifndef CHAR_BIT
+		#define CHAR_BIT 0
+		#endif
+		struct ctasserts {
+		#define cta(name, assertion) char name[(assertion) ? 1 : -1]
+			cta(char_is_8_bits, (CHAR_BIT) == 8);
+			cta(long_is_32_bits, sizeof(long) == 4);
+		};
+		int main(void) { return (sizeof(struct ctasserts)); }
+EOF
+
+	ac_test long_64bit '!' long_32bit 0 'whether long is 64 bit wide' <<-'EOF'
+		#define MKSH_INCLUDES_ONLY
+		#include "sh.h"
+		#ifndef CHAR_BIT
+		#define CHAR_BIT 0
+		#endif
+		struct ctasserts {
+		#define cta(name, assertion) char name[(assertion) ? 1 : -1]
+			cta(char_is_8_bits, (CHAR_BIT) == 8);
+			cta(long_is_64_bits, sizeof(long) == 8);
+		};
+		int main(void) { return (sizeof(struct ctasserts)); }
+EOF
+
+	case $HAVE_LONG_32BIT$HAVE_LONG_64BIT in
+	10) check_categories="$check_categories int:32" ;;
+	01) check_categories="$check_categories int:64" ;;
+	*) check_categories="$check_categories int:u" ;;
+	esac
+fi
+
+#
 # runtime checks
 # once this is more than one, check if we can do runtime
 # checks (not cross-compiling) first to save on warnings
@@ -1806,6 +1853,13 @@ $e "${bi}run-time checks follow$ao, please ignore any weird errors"
 if ac_testnnd silent_idivwrapv '' '(run-time) whether signed integer division overflows wrap silently' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
+	#if !defined(MKSH_LEGACY_MODE) || HAVE_LONG_32BIT
+	#define IDIVWRAPV_VL	(mksh_uari_t)0x80000000UL
+	#elif HAVE_LONG_64BIT
+	#define IDIVWRAPV_VL	(mksh_uari_t)0x8000000000000000UL
+	#else
+	# error "cannot check this"
+	#endif
 	#ifdef SIGFPE
 	static void fpe_catcher(int) MKSH_A_NORETURN;
 	#endif
@@ -1815,7 +1869,7 @@ if ac_testnnd silent_idivwrapv '' '(run-time) whether signed integer division ov
 	#ifdef SIGFPE
 		signal(SIGFPE, fpe_catcher);
 	#endif
-		o1 = ((mksh_ari_t)1 << 31);
+		o1 = (mksh_ari_t)IDIVWRAPV_VL;
 		o2 = -ac;
 		r1 = o1 / o2;
 		r2 = o1 % o2;
@@ -2031,10 +2085,12 @@ cat >test.sh <<-EOF
 			break
 		fi
 	done
+	(( Sflag )) || echo + \$perli "\${args[@]}" -s "\$sflag" "\$@"
 	(( Sflag )) || exec \$perli "\${args[@]}" -s "\$sflag" "\$@"$tsts
 	# use of the -S option for check.t split into multiple chunks
 	rv=0
 	for s in "\$sflag".*; do
+		echo + \$perli "\${args[@]}" -s "\$s" "\$@"
 		\$perli "\${args[@]}" -s "\$s" "\$@"$tsts
 		rc=\$?
 		(( rv = rv ? rv : rc ))

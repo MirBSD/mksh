@@ -23,7 +23,21 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.57 2012/06/28 20:02:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.58 2012/06/28 20:17:36 tg Exp $");
+
+#if !HAVE_SILENT_IDIVWRAPV
+#if !defined(MKSH_LEGACY_MODE) || HAVE_LONG_32BIT
+#define IDIVWRAPV_VL	(mksh_uari_t)0x80000000UL
+#define IDIVWRAPV_VR	(mksh_uari_t)0xFFFFFFFFUL
+#elif HAVE_LONG_64BIT
+#define IDIVWRAPV_VL	(mksh_uari_t)0x8000000000000000UL
+#define IDIVWRAPV_VR	(mksh_uari_t)0xFFFFFFFFFFFFFFFFUL
+#else
+# warning "cannot guarantee integer division wraparound"
+#undef HAVE_SILENT_IDIVWRAPV
+#define HAVE_SILENT_IDIVWRAPV 1
+#endif
+#endif
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -374,11 +388,11 @@ evalexpr(Expr_state *es, int prec)
 			 * several compilers bitch around otherwise
 			 */
 			if (!es->natural &&
-			    vl->val.u == (mksh_uari_t)0x80000000UL &&
-			    vr->val.u == (mksh_uari_t)0xFFFFFFFFUL) {
+			    vl->val.u == IDIVWRAPV_VL &&
+			    vr->val.u == IDIVWRAPV_VR) {
 				/* -2147483648 / -1 = 2147483648 */
 				/* this ^ is really (1 << 31) though */
-				res = (mksh_ari_t)(mksh_uari_t)0x80000000UL;
+				res = (mksh_ari_t)IDIVWRAPV_VL;
 			} else
 #endif
 				res = bivui(vl, /, vr);
@@ -388,8 +402,8 @@ evalexpr(Expr_state *es, int prec)
 #if !HAVE_SILENT_IDIVWRAPV
 			/* see O_DIV / O_DIVASN for the reason behind this */
 			if (!es->natural &&
-			    vl->val.u == (mksh_uari_t)0x80000000UL &&
-			    vr->val.u == (mksh_uari_t)0xFFFFFFFFUL) {
+			    vl->val.u == IDIVWRAPV_VL &&
+			    vr->val.u == IDIVWRAPV_VR) {
 				/* -2147483648 % -1 = 0 */
 				res = 0;
 			} else
