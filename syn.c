@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.75 2012/05/09 23:21:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.76 2012/06/28 20:04:02 tg Exp $");
 
 extern short subshell_nesting_level;
 extern void yyskiputf8bom(void);
@@ -72,6 +72,9 @@ static int sALIAS = ALIAS;		/* 0 in yyrecursive */
 #define token(cf)	((reject) ? (ACCEPT, symbol) : (symbol = yylex(cf)))
 #define tpeek(cf)	((reject) ? (symbol) : (REJECT, symbol = yylex(cf)))
 #define musthave(c,cf)	do { if (token(cf) != (c)) syntaxerr(NULL); } while (/* CONSTCOND */ 0)
+
+static const char Tcbrace[] = "}";
+static const char Tesac[] = "esac";
 
 static void
 yyparse(void)
@@ -602,7 +605,20 @@ casepart(int endtok)
 	if (token(CONTIN | KEYWORD) != '(')
 		REJECT;
 	do {
-		musthave(LWORD, 0);
+		switch (token(0)) {
+		case LWORD:
+			break;
+		case '}':
+		case ESAC:
+			if (symbol != endtok) {
+				strdupx(yylval.cp,
+				    symbol == '}' ? Tcbrace : Tesac, ATEMP);
+				break;
+			}
+			/* FALLTHROUGH */
+		default:
+			syntaxerr(NULL);
+		}
 		XPput(ptns, yylval.cp);
 	} while (token(0) == '|');
 	REJECT;
@@ -760,7 +776,7 @@ const struct tokeninfo {
 	{ "elif",	ELIF,	true },
 	{ "fi",		FI,	true },
 	{ "case",	CASE,	true },
-	{ "esac",	ESAC,	true },
+	{ Tesac,	ESAC,	true },
 	{ "for",	FOR,	true },
 	{ Tselect,	SELECT,	true },
 	{ "while",	WHILE,	true },
@@ -771,7 +787,7 @@ const struct tokeninfo {
 	{ Tfunction,	FUNCTION, true },
 	{ "time",	TIME,	true },
 	{ "{",		'{',	true },
-	{ "}",		'}',	true },
+	{ Tcbrace,	'}',	true },
 	{ "!",		BANG,	true },
 	{ "[[",		DBRACKET, true },
 	/* Lexical tokens (0[EOF], LWORD and REDIR handled specially) */
