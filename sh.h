@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.566 2012/06/28 20:02:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.567 2012/06/28 20:05:11 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/06/26"
 
@@ -1462,6 +1462,7 @@ struct source {
 #define SWORDSEP	6	/* string[] separator */
 #define SALIAS		7	/* alias expansion */
 #define SREREAD		8	/* read ahead to be re-scanned */
+#define SSTRINGCMDLINE	9	/* string from "mksh -c ..." */
 
 /* Source.flags values */
 #define SF_ECHO		BIT(0)	/* echo input to shlout */

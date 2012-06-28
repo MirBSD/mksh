@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.163 2012/05/04 22:44:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.164 2012/06/28 20:05:07 tg Exp $");
 
 /*
  * states while lexing word
@@ -1283,6 +1283,7 @@ getsc_uu(void)
 			break;
 
 		case SSTRING:
+		case SSTRINGCMDLINE:
 			break;
 
 		case SWORDS:

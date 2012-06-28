@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.546 2012/06/28 20:04:01 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.547 2012/06/28 20:05:05 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4085,8 +4085,10 @@ description:
 	(so quotes could also be used to hide hem).  The former is
 	easier, the later better...
 stdin:
-	echo $(echo \()
+	echo $(echo \( )
+	echo $(echo "(" )
 expected-stdout:
+	(
 	(
 ---
 name: regression-9
@@ -6394,6 +6396,17 @@ expected-stdout:
 	r='fc -e -'
 	source='PATH=$PATH:. command .'
 	type='whence -v'
+---
+name: aliases-cmdline
+description:
+	Check that aliases work from the command line (Debian #517009)
+	Note that due to the nature of the lexing process, defining
+	aliases in COMSUBs then immediately using them, and things
+	like 'alias foo=bar && foo', still fail.
+stdin:
+	"$__progname" -c $'alias a="echo OK"\na'
+expected-stdout:
+	OK
 ---
 name: aliases-funcdef-1
 description:

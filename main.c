@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.223 2012/06/24 20:15:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.224 2012/06/28 20:05:08 tg Exp $");
 
 extern char **environ;
 
@@ -461,7 +461,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		/* auto-detect from environment variables, always */
 		utf_flag = 3;
 	} else if (Flag(FCOMMAND)) {
-		s = pushs(SSTRING, ATEMP);
+		s = pushs(SSTRINGCMDLINE, ATEMP);
 		if (!(s->start = s->str = argv[argi++]))
 			errorf("%s %s", "-c", "requires an argument");
 #ifdef MKSH_MIDNIGHTBSD01ASH_COMPAT
