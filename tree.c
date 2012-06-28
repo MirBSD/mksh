@@ -1,4 +1,4 @@
-/*	$OpenBSD: tree.c,v 1.19 2008/08/11 21:50:35 jaredy Exp $	*/
+/*	$OpenBSD: tree.c,v 1.20 2012/06/27 07:17:19 otto Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.59 2012/05/04 18:45:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.60 2012/06/28 20:01:01 tg Exp $");
 
 #define INDENT	8
 
