@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.56 2012/03/31 17:52:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.57 2012/06/28 20:02:27 tg Exp $");
 
 /* The order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -160,7 +160,6 @@ static struct tbl *evalexpr(Expr_state *, int);
 static void exprtoken(Expr_state *);
 static struct tbl *do_ppmm(Expr_state *, enum token, struct tbl *, bool);
 static void assign_check(Expr_state *, enum token, struct tbl *);
-static struct tbl *tempvar(void);
 static struct tbl *intvar(Expr_state *, struct tbl *);
 
 /*
@@ -641,7 +640,7 @@ assign_check(Expr_state *es, enum token op, struct tbl *vasn)
 		evalerr(es, ET_RDONLY, opinfo[(int)op].name);
 }
 
-static struct tbl *
+struct tbl *
 tempvar(void)
 {
 	struct tbl *vp;

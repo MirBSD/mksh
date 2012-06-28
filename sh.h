@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.565 2012/06/28 20:01:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.566 2012/06/28 20:02:28 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/06/26"
 
@@ -1063,6 +1063,8 @@ struct tbl {
 	char name[4];
 };
 
+EXTERN struct tbl vtemp;
+
 /* common flag bits */
 #define ALLOC		BIT(0)	/* val.s has been allocated */
 #define DEFINED		BIT(1)	/* is defined in block */
@@ -1643,6 +1645,7 @@ size_t utf_ptradj(const char *);
 int utf_wcwidth(unsigned int);
 #endif
 int ksh_access(const char *, int);
+struct tbl *tempvar(void);
 /* funcs.c */
 int c_hash(const char **);
 int c_pwd(const char **);
