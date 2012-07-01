@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.578 2012/07/01 15:51:24 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.579 2012/07/01 15:54:49 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1486,7 +1486,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.578 2012/07/01 15:51:24 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.579 2012/07/01 15:54:49 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2285,6 +2285,7 @@ MKSH_NO_LIMITS			omit ulimit code
 MKSH_NO_SIGSETJMP		define if sigsetjmp is broken or not available
 MKSH_NO_SIGSUSPEND		use sigprocmask+pause instead of sigsuspend
 MKSH_SMALL			omit some code, optimise hard for size (slower)
+MKSH_SMALL_BUT_FAST		disable some hard-for-size optim. (modern sys.)
 MKSH_S_NOVI=1			disable Vi editing mode (default if MKSH_SMALL)
 MKSH_TYPEDEF_SIG_ATOMIC_T	define to e.g. 'int' if sig_atomic_t is missing
 MKSH_TYPEDEF_SSIZE_T		define to e.g. 'long' if your OS has no ssize_t

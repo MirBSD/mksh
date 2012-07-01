@@ -157,9 +157,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.571 2012/07/01 15:44:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.572 2012/07/01 15:54:57 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/06/28"
+#define MKSH_VERSION "R40 2012/07/01"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -498,7 +498,7 @@ im_sorry_dave(void)
 	(dst) = (src) + utf_ptradj(src);				\
 } while (/* CONSTCOND */ 0)
 
-#ifdef MKSH_SMALL
+#if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
 #define strdupx(d, s, ap) do {						\
 	(d) = strdup_i((s), (ap));					\
 } while (/* CONSTCOND */ 0)
@@ -1859,7 +1859,7 @@ char *do_realpath(const char *);
 void simplify_path(char *);
 void set_current_wd(const char *);
 int c_cd(const char **);
-#ifdef MKSH_SMALL
+#if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
 char *strdup_i(const char *, Area *);
 char *strndup_i(const char *, size_t, Area *);
 #endif
@@ -1877,7 +1877,7 @@ ssize_t shf_read(char *, ssize_t, struct shf *);
 char *shf_getse(char *, ssize_t, struct shf *);
 int shf_getchar(struct shf *s);
 int shf_ungetc(int, struct shf *);
-#ifdef MKSH_SMALL
+#if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
 int shf_getc(struct shf *);
 int shf_putc(int, struct shf *);
 #else

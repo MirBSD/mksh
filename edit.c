@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.238 2012/07/01 15:36:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.239 2012/07/01 15:54:53 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -88,7 +88,7 @@ static int x_vi(char *, size_t);
 #endif
 
 #define x_flush()	shf_flush(shl_out)
-#ifdef MKSH_SMALL
+#if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
 #define x_putc(c)	x_putcf(c)
 #else
 #define x_putc(c)	shf_putc((c), shl_out)

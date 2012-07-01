@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.194 2012/06/26 19:22:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.195 2012/07/01 15:54:56 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -2006,7 +2006,7 @@ strstr(char *b, const char *l)
 }
 #endif
 
-#ifdef MKSH_SMALL
+#if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
 char *
 strndup_i(const char *src, size_t len, Area *ap)
 {
