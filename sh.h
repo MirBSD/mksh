@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.570 2012/07/01 15:41:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.571 2012/07/01 15:44:31 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/06/28"
 
@@ -535,6 +535,9 @@ im_sorry_dave(void)
 #ifdef MKSH_LEGACY_MODE
 #ifndef MKSH_NO_CMDLINE_EDITING
 #define MKSH_NO_CMDLINE_EDITING	/* defined */
+#endif
+#ifndef MKSH_CONSERVATIVE_FDS
+#define MKSH_CONSERVATIVE_FDS	/* defined */
 #endif
 #undef MKSH_S_NOVI
 #define MKSH_S_NOVI		1
