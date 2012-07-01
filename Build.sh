@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.577 2012/06/28 20:17:33 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.578 2012/07/01 15:51:24 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -414,6 +414,7 @@ else
 	check_categories="$check_categories shell:legacy-yes"
 	add_cppflags -DMKSH_LEGACY_MODE
 	HAVE_PERSISTENT_HISTORY=0
+	HAVE_ISSET_MKSH_CONSERVATIVE_FDS=1	# from sh.h
 fi
 
 if test x"$srcdir" = x"."; then
@@ -1485,7 +1486,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.577 2012/06/28 20:17:33 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.578 2012/07/01 15:51:24 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
