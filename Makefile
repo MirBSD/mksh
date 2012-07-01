@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.100 2012/06/28 20:17:34 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.101 2012/07/01 15:54:36 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -90,7 +90,11 @@ test-build: .PHONY
 	cd build-dir; env CC=${CC:Q} CFLAGS=${CFLAGS:M*:Q} \
 	    CPPFLAGS=${CPPFLAGS:M*:Q} LDFLAGS=${LDFLAGS:M*:Q} \
 	    LIBS= NOWARN=-Wno-error TARGET_OS= CPP= /bin/sh \
-	    ${.CURDIR}/Build.sh -Q -r && ./test.sh -v -f
+	    ${.CURDIR}/Build.sh -Q -r ${_TBF} && ./test.sh -v -f
+
+test-build-lksh: .PHONY
+	cd ${.CURDIR} && exec ${MAKE} test-build \
+	    _TBF=-L USE_PRINTF_BUILTIN=0
 
 cleandir: clean-extra
 
