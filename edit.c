@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.237 2012/05/05 17:32:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.238 2012/07/01 15:36:18 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -71,6 +71,7 @@ static char holdbuf[LINE];		/* place to hold last edit buffer */
 
 static int x_getc(void);
 static void x_putcf(int);
+static void x_modified(void);
 static void x_mode(bool);
 static int x_do_comment(char *, ssize_t, ssize_t *);
 static void x_print_expansions(int, char *const *, bool);
@@ -1067,8 +1068,6 @@ static struct x_defbindings const x_defbindings[] = {
 #endif
 };
 
-#ifdef MKSH_SMALL
-static void x_modified(void);
 static void
 x_modified(void)
 {
@@ -1077,14 +1076,10 @@ x_modified(void)
 		modified = 1;
 	}
 }
+
+#ifdef MKSH_SMALL
 #define XFUNC_VALUE(f) (f)
 #else
-#define x_modified() do {			\
-	if (!modified) {			\
-		x_histp = histptr + 1;		\
-		modified = 1;			\
-	}					\
-} while (/* CONSTCOND */ 0)
 #define XFUNC_VALUE(f) (f & 0x7F)
 #endif
 
