@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.76 2012/06/28 20:04:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.77 2012/07/01 15:38:08 tg Exp $");
 
 extern short subshell_nesting_level;
 extern void yyskiputf8bom(void);
@@ -810,8 +810,8 @@ initkeywords(void)
 	struct tbl *p;
 
 	ktinit(APERM, &keywords,
-	    /* currently 28 keywords */
-	    /* 80% of 64 = 2^6 */ 6, /* 66% of 64 = 2^6 */ 6);
+	    /* currently 28 keywords: 75% of 64 = 2^6 */
+	    6);
 	for (tt = tokentab; tt->name; tt++) {
 		if (tt->reserved) {
 			p = ktenter(&keywords, tt->name, hash(tt->name));

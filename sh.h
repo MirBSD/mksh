@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.568 2012/06/28 20:17:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.569 2012/07/01 15:38:07 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/06/28"
 
@@ -1816,12 +1816,7 @@ void coproc_write_close(int);
 int coproc_getfd(int, const char **);
 void coproc_cleanup(int);
 struct temp *maketemp(Area *, Temp_type, struct temp **);
-void ktinit_real(Area *, struct table *, uint8_t);
-#ifdef MKSH_SMALL
-#define ktinit(ap, tp, s80, s66) ktinit_real((ap), (tp), (s80))
-#else
-#define ktinit(ap, tp, s80, s66) ktinit_real((ap), (tp), (s66))
-#endif
+void ktinit(Area *, struct table *, uint8_t);
 struct tbl *ktscan(struct table *, const char *, uint32_t, struct tbl ***);
 /* table, name (key) to search for, hash(n) */
 #define ktsearch(tp, s, h) ktscan((tp), (s), (h), NULL)

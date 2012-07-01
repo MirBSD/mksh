@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.151 2012/06/28 20:02:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.152 2012/07/01 15:38:09 tg Exp $");
 
 /*-
  * Variables
@@ -74,8 +74,8 @@ newblock(void)
 		l->argv = e->loc->argv;
 	}
 	l->exit = l->error = NULL;
-	ktinit(&l->area, &l->vars, 0, 0);
-	ktinit(&l->area, &l->funs, 0, 0);
+	ktinit(&l->area, &l->vars, 0);
+	ktinit(&l->area, &l->funs, 0);
 	l->next = e->loc;
 	e->loc = l;
 }
@@ -130,8 +130,8 @@ initvar(void)
 	struct tbl *tp;
 
 	ktinit(APERM, &specials,
-	    /* currently 12 specials */
-	    /* 80% of 16 = 2^4 */ 4, /* 66% of 32 = 2^5 */ 5);
+	    /* currently 12 specials: 75% of 16 = 2^4 */
+	    4);
 	while (i < V_MAX - 1) {
 		tp = ktenter(&specials, initvar_names[i],
 		    hash(initvar_names[i]));
