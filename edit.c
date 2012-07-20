@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.242 2012/07/20 20:16:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.243 2012/07/20 20:33:15 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -942,7 +942,7 @@ static bool prompt_redraw;	/* false if newline forced after prompt */
 static int x_ins(const char *);
 static void x_delete(int, int);
 static int x_bword(void);
-static int x_fword(int);
+static int x_fword(bool);
 static void x_goto(char *);
 static void x_bs3(char **);
 static int x_size_str(char *);
@@ -974,6 +974,7 @@ static int x_fold_case(int);
 #endif
 static char *x_lastcp(void);
 static void do_complete(int, Comp_type);
+static int x_nb2nc(int);
 
 static int unget_char = -1;
 
@@ -1091,6 +1092,18 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_edit_line,		2,	'e'	}
 #endif
 };
+
+/* want size_t, not int */
+static int
+x_nb2nc(int nb)
+{
+	char *cp;
+	size_t nc = 0;
+
+	for (cp = xcp; cp < (xcp + nb); ++nc)
+		cp += utf_ptradj(cp);
+	return (nc);
+}
 
 static void
 x_modified(void)
@@ -1472,21 +1485,21 @@ x_mv_bword(int c MKSH_A_UNUSED)
 static int
 x_mv_fword(int c MKSH_A_UNUSED)
 {
-	x_fword(1);
+	x_fword(true);
 	return (KSTD);
 }
 
 static int
 x_del_fword(int c MKSH_A_UNUSED)
 {
-	x_delete(x_fword(0), true);
+	x_delete(x_fword(false), true);
 	return (KSTD);
 }
 
 static int
 x_bword(void)
 {
-	int nc = 0, nb = 0;
+	int nb = 0;
 	char *cp = xcp;
 
 	if (cp == xbuf) {
@@ -1504,16 +1517,14 @@ x_bword(void)
 		}
 	}
 	x_goto(cp);
-	for (cp = xcp; cp < (xcp + nb); ++nc)
-		cp += utf_ptradj(cp);
-	return (nc);
+	return (x_nb2nc(nb));
 }
 
 static int
-x_fword(int move)
+x_fword(bool move)
 {
-	int nc = 0;
-	char *cp = xcp, *cp2;
+	int nc;
+	char *cp = xcp;
 
 	if (cp == xep) {
 		x_e_putc2(7);
@@ -1525,8 +1536,7 @@ x_fword(int move)
 		while (cp != xep && !is_mfs(*cp))
 			cp++;
 	}
-	for (cp2 = xcp; cp2 < cp; ++nc)
-		cp2 += utf_ptradj(cp2);
+	nc = x_nb2nc(cp - xcp);
 	if (move)
 		x_goto(cp);
 	return (nc);
