@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.241 2012/07/20 18:39:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.242 2012/07/20 20:16:26 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2726,7 +2726,7 @@ do_complete(
 {
 	char **words;
 	int start, end, nlen, olen, nwords;
-	bool completed = false;
+	bool completed;
 
 	nwords = x_cf_glob(&flags, xbuf, xep - xbuf, xcp - xbuf,
 	    &start, &end, &words);
@@ -2744,14 +2744,47 @@ do_complete(
 	}
 	olen = end - start;
 	nlen = x_longest_prefix(nwords, words);
-	/* always complete */
-	x_goto(xbuf + start);
-	x_delete(olen, false);
-	x_escape(words[0], nlen, x_do_ins);
-	x_adjust();
-	/* check if we did add something */
-	if (xcp - (xbuf + start) > olen)
+	if (nwords == 1 || (flags & XCF_IS_SUBGLOB)) {
+		/*
+		 * always complete the expansion of parameter and
+		 * homedir substitution as well as single matches
+		 */
 		completed = true;
+	} else {
+		char *unescaped;
+
+		/* make a copy of the original string part and... */
+		strndupx(unescaped, xbuf + start, olen, ATEMP);
+		/* ... convert it from backslash-escaped via QCHAR-escaped... */
+		x_glob_hlp_add_qchar(unescaped);
+		/* ... to unescaped, for comparison with the matches */
+		x_glob_hlp_rem_qchar(unescaped);
+		/*
+		 * match iff entire original string is part of the
+		 * longest prefix, implying the latter is at least
+		 * the same size (after unescaping)
+		 */
+		completed = !strncmp(words[0], unescaped, strlen(unescaped));
+
+		afree(unescaped, ATEMP);
+	}
+	if (type == CT_COMPLIST && nwords > 1) {
+		/*
+		 * print expansions, since we didn't get back
+		 * just a single match
+		 */
+		x_print_expansions(nwords, words,
+		    tobool(flags & XCF_IS_COMMAND));
+	}
+	if (completed) {
+		/* expand on the command line */
+		xmp = NULL;
+		xcp = xbuf + start;
+		xep -= olen;
+		memmove(xcp, xcp + olen, xep - xcp + 1);
+		x_escape(words[0], nlen, x_do_ins);
+	}
+	x_adjust();
 	/*
 	 * append a space if this is a single non-directory match
 	 * and not a parameter or homedir substitution
@@ -2759,15 +2792,7 @@ do_complete(
 	if (nwords == 1 && words[0][nlen - 1] != '/' &&
 	    !(flags & XCF_IS_SUBGLOB)) {
 		x_ins(" ");
-		completed = true;
 	}
-	if (type == CT_COMPLIST && !completed) {
-		x_print_expansions(nwords, words,
-		    tobool(flags & XCF_IS_COMMAND));
-		completed = true;
-	}
-	if (completed)
-		x_redraw(0);
 
 	x_free_words(nwords, words);
 }
