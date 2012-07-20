@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.240 2012/07/20 18:08:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.241 2012/07/20 18:39:53 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -77,6 +77,8 @@ static int x_do_comment(char *, ssize_t, ssize_t *);
 static void x_print_expansions(int, char *const *, bool);
 static int x_cf_glob(int *, const char *, int, int, int *, int *, char ***);
 static size_t x_longest_prefix(int, char *const *);
+static void x_glob_hlp_add_qchar(char *);
+static void x_glob_hlp_rem_qchar(char *);
 static int x_basename(const char *, const char *);
 static void x_free_words(int, char **);
 static int x_escape(const char *, size_t, int (*)(const char *, size_t));
@@ -282,6 +284,61 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
 		XPfree(l);
 }
 
+/*
+ * Convert backslash-escaped string to QCHAR-escaped
+ * string useful for globbing; loses QCHAR unless it
+ * can squeeze in, eg. by previous loss of backslash
+ */
+static void
+x_glob_hlp_add_qchar(char *cp)
+{
+	char ch, *dp = cp;
+	bool escaping = false;
+
+	while ((ch = *cp++)) {
+		if (ch == '\\' && !escaping) {
+			escaping = true;
+			continue;
+		}
+		if (escaping || (ch == QCHAR && (cp - dp) > 1)) {
+			/*
+			 * empirically made list of chars to escape
+			 * for globbing as well as QCHAR itself
+			 */
+			switch (ch) {
+			case QCHAR:
+			case '$':
+			case '*':
+			case '?':
+			case '[':
+			case '\\':
+			case '`':
+				*dp++ = QCHAR;
+				break;
+			}
+			escaping = false;
+		}
+		*dp++ = ch;
+	}
+	*dp = '\0';
+}
+
+/*
+ * Unescape a QCHAR-escaped string
+ */
+static void
+x_glob_hlp_rem_qchar(char *cp)
+{
+	char ch, *dp = cp;
+
+	while ((ch = *cp++)) {
+		if (ch == QCHAR && !(ch = *cp++))
+			break;
+		*dp++ = ch;
+	}
+	*dp = '\0';
+}
+
 /**
  * Do file globbing:
  *	- appends * to (copy of) str if no globbing chars found
@@ -292,40 +349,13 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
 static int
 x_file_glob(int flags MKSH_A_UNUSED, char *toglob, char ***wordsp)
 {
-	char ch, **words;
-	int nwords, i = 0, idx = 0;
-	bool escaping;
+	char **words;
+	int nwords;
 	XPtrV w;
 	struct source *s, *sold;
 
 	/* remove all escaping backward slashes */
-	escaping = false;
-	while ((ch = toglob[i++])) {
-		if (ch == '\\' && !escaping) {
-			escaping = true;
-			continue;
-		}
-		if (escaping) {
-			/*
-			 * empirically made list of chars to escape
-			 * for globbing; ASCII 0x02 probably too as
-			 * that's what QCHAR is, but...
-			 */
-			switch (ch) {
-			case '$':
-			case '*':
-			case '?':
-			case '[':
-			case '\\':
-			case '`':
-				toglob[idx++] = QCHAR;
-				break;
-			}
-			escaping = false;
-		}
-		toglob[idx++] = ch;
-	}
-	toglob[idx] = '\0';
+	x_glob_hlp_add_qchar(toglob);
 
 	/*
 	 * Convert "foo*" (toglob) to an array of strings (words)
@@ -351,13 +381,7 @@ x_file_glob(int flags MKSH_A_UNUSED, char *toglob, char ***wordsp)
 		struct stat statb;
 
 		/* Drop all QCHAR from toglob for strcmp below */
-		i = 0;
-		idx = 0;
-		while ((ch = toglob[i++])) {
-			if (ch != QCHAR)
-				toglob[idx++] = ch;
-		}
-		toglob[idx] = '\0';
+		x_glob_hlp_rem_qchar(toglob);
 
 		/*
 		 * Check if globbing failed (returned glob pattern),
