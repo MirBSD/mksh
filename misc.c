@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.195 2012/07/01 15:54:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.196 2012/07/20 21:18:45 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1139,7 +1139,7 @@ print_value_quoted(struct shf *shf, const char *s)
 				  if (c < 32 || c > 0x7E) {
 					/* FALLTHROUGH */
 			case '\'':
-					shf_fprintf(shf, "\\x%02X", c);
+					shf_fprintf(shf, "\\%03o", c);
 					break;
 				}
 
