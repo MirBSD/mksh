@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.243 2012/07/20 20:33:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.244 2012/07/20 20:50:07 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -940,9 +940,9 @@ static int holdlen;		/* length of holdbuf */
 static bool prompt_redraw;	/* false if newline forced after prompt */
 
 static int x_ins(const char *);
-static void x_delete(int, int);
-static int x_bword(void);
-static int x_fword(bool);
+static void x_delete(size_t, bool);
+static size_t x_bword(void);
+static size_t x_fword(bool);
 static void x_goto(char *);
 static void x_bs3(char **);
 static int x_size_str(char *);
@@ -974,7 +974,7 @@ static int x_fold_case(int);
 #endif
 static char *x_lastcp(void);
 static void do_complete(int, Comp_type);
-static int x_nb2nc(int);
+static size_t x_nb2nc(size_t);
 
 static int unget_char = -1;
 
@@ -1094,8 +1094,8 @@ static struct x_defbindings const x_defbindings[] = {
 };
 
 /* want size_t, not int */
-static int
-x_nb2nc(int nb)
+static size_t
+x_nb2nc(size_t nb)
 {
 	char *cp;
 	size_t nc = 0;
@@ -1361,7 +1361,7 @@ x_ins(const char *s)
 static int
 x_del_back(int c MKSH_A_UNUSED)
 {
-	int i = 0;
+	ssize_t i = 0;
 
 	if (xcp == xbuf) {
 		x_e_putc2(7);
@@ -1378,7 +1378,7 @@ static int
 x_del_char(int c MKSH_A_UNUSED)
 {
 	char *cp, *cp2;
-	int i = 0;
+	ssize_t i = 0;
 
 	cp = xcp;
 	while (i < x_arg) {
@@ -1399,9 +1399,9 @@ x_del_char(int c MKSH_A_UNUSED)
 
 /* Delete nc chars to the right of the cursor (including cursor position) */
 static void
-x_delete(int nc, int push)
+x_delete(size_t nc, bool push)
 {
-	int i, nb, nw;
+	size_t i, nb, nw;
 	char *cp;
 
 	if (nc == 0)
@@ -1496,10 +1496,10 @@ x_del_fword(int c MKSH_A_UNUSED)
 	return (KSTD);
 }
 
-static int
+static size_t
 x_bword(void)
 {
-	int nb = 0;
+	size_t nb = 0;
 	char *cp = xcp;
 
 	if (cp == xbuf) {
@@ -1520,10 +1520,10 @@ x_bword(void)
 	return (x_nb2nc(nb));
 }
 
-static int
+static size_t
 x_fword(bool move)
 {
-	int nc;
+	size_t nc;
 	char *cp = xcp;
 
 	if (cp == xep) {
@@ -2223,20 +2223,18 @@ x_meta2(int c MKSH_A_UNUSED)
 static int
 x_kill(int c MKSH_A_UNUSED)
 {
-	int col = xcp - xbuf;
-	int lastcol = xep - xbuf;
-	int ndel;
+	size_t col = xcp - xbuf;
+	size_t lastcol = xep - xbuf;
+	size_t ndel, narg;
 
-	if (x_arg_defaulted)
-		x_arg = lastcol;
-	else if (x_arg > lastcol)
-		x_arg = lastcol;
-	ndel = x_arg - col;
-	if (ndel < 0) {
-		x_goto(xbuf + x_arg);
-		ndel = -ndel;
-	}
-	x_delete(ndel, true);
+	if (x_arg_defaulted || (narg = x_arg) > lastcol)
+		narg = lastcol;
+	if (narg < col) {
+		x_goto(xbuf + narg);
+		ndel = col - narg;
+	} else
+		ndel = narg - col;
+	x_delete(x_nb2nc(ndel), true);
 	return (KSTD);
 }
 
@@ -2284,7 +2282,7 @@ x_meta_yank(int c MKSH_A_UNUSED)
 	}
 	len = strlen(killstack[killtp]);
 	x_goto(xcp - len);
-	x_delete(len, false);
+	x_delete(x_nb2nc(len), false);
 	do {
 		if (killtp == 0)
 			killtp = KILLSIZE - 1;
@@ -2604,7 +2602,7 @@ x_set_mark(int c MKSH_A_UNUSED)
 static int
 x_kill_region(int c MKSH_A_UNUSED)
 {
-	int rsize;
+	size_t rsize;
 	char *xr;
 
 	if (xmp == NULL) {
@@ -2619,7 +2617,7 @@ x_kill_region(int c MKSH_A_UNUSED)
 		xr = xmp;
 	}
 	x_goto(xr);
-	x_delete(rsize, true);
+	x_delete(x_nb2nc(rsize), true);
 	xmp = xr;
 	return (KSTD);
 }
@@ -2712,7 +2710,7 @@ x_expand(int c MKSH_A_UNUSED)
 		return (KSTD);
 	}
 	x_goto(xbuf + start);
-	x_delete(end - start, false);
+	x_delete(x_nb2nc(end - start), false);
 
 	i = 0;
 	while (i < nwords) {
