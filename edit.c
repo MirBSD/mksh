@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.239 2012/07/01 15:54:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.240 2012/07/20 18:08:23 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2054,7 +2054,6 @@ x_redraw(int limit)
 		x_displen = xx_cols - 2;
 	}
 	xlp_valid = false;
-	x_lastcp();
 	x_zots(xbp);
 	if (xbp != xbuf || xep > xlp)
 		limit = xx_cols;
