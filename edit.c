@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.237 2012/05/05 17:32:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.237.4.1 2012/07/20 22:51:40 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -76,6 +76,8 @@ static int x_do_comment(char *, ssize_t, ssize_t *);
 static void x_print_expansions(int, char *const *, bool);
 static int x_cf_glob(int *, const char *, int, int, int *, int *, char ***);
 static size_t x_longest_prefix(int, char *const *);
+static void x_glob_hlp_add_qchar(char *);
+static void x_glob_hlp_rem_qchar(char *);
 static int x_basename(const char *, const char *);
 static void x_free_words(int, char **);
 static int x_escape(const char *, size_t, int (*)(const char *, size_t));
@@ -281,6 +283,61 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
 		XPfree(l);
 }
 
+/*
+ * Convert backslash-escaped string to QCHAR-escaped
+ * string useful for globbing; loses QCHAR unless it
+ * can squeeze in, eg. by previous loss of backslash
+ */
+static void
+x_glob_hlp_add_qchar(char *cp)
+{
+	char ch, *dp = cp;
+	bool escaping = false;
+
+	while ((ch = *cp++)) {
+		if (ch == '\\' && !escaping) {
+			escaping = true;
+			continue;
+		}
+		if (escaping || (ch == QCHAR && (cp - dp) > 1)) {
+			/*
+			 * empirically made list of chars to escape
+			 * for globbing as well as QCHAR itself
+			 */
+			switch (ch) {
+			case QCHAR:
+			case '$':
+			case '*':
+			case '?':
+			case '[':
+			case '\\':
+			case '`':
+				*dp++ = QCHAR;
+				break;
+			}
+			escaping = false;
+		}
+		*dp++ = ch;
+	}
+	*dp = '\0';
+}
+
+/*
+ * Unescape a QCHAR-escaped string
+ */
+static void
+x_glob_hlp_rem_qchar(char *cp)
+{
+	char ch, *dp = cp;
+
+	while ((ch = *cp++)) {
+		if (ch == QCHAR && !(ch = *cp++))
+			break;
+		*dp++ = ch;
+	}
+	*dp = '\0';
+}
+
 /**
  * Do file globbing:
  *	- appends * to (copy of) str if no globbing chars found
@@ -291,40 +348,13 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
 static int
 x_file_glob(int flags MKSH_A_UNUSED, char *toglob, char ***wordsp)
 {
-	char ch, **words;
-	int nwords, i = 0, idx = 0;
-	bool escaping;
+	char **words;
+	int nwords;
 	XPtrV w;
 	struct source *s, *sold;
 
 	/* remove all escaping backward slashes */
-	escaping = false;
-	while ((ch = toglob[i++])) {
-		if (ch == '\\' && !escaping) {
-			escaping = true;
-			continue;
-		}
-		if (escaping) {
-			/*
-			 * empirically made list of chars to escape
-			 * for globbing; ASCII 0x02 probably too as
-			 * that's what QCHAR is, but...
-			 */
-			switch (ch) {
-			case '$':
-			case '*':
-			case '?':
-			case '[':
-			case '\\':
-			case '`':
-				toglob[idx++] = QCHAR;
-				break;
-			}
-			escaping = false;
-		}
-		toglob[idx++] = ch;
-	}
-	toglob[idx] = '\0';
+	x_glob_hlp_add_qchar(toglob);
 
 	/*
 	 * Convert "foo*" (toglob) to an array of strings (words)
@@ -350,13 +380,7 @@ x_file_glob(int flags MKSH_A_UNUSED, char *toglob, char ***wordsp)
 		struct stat statb;
 
 		/* Drop all QCHAR from toglob for strcmp below */
-		i = 0;
-		idx = 0;
-		while ((ch = toglob[i++])) {
-			if (ch != QCHAR)
-				toglob[idx++] = ch;
-		}
-		toglob[idx] = '\0';
+		x_glob_hlp_rem_qchar(toglob);
 
 		/*
 		 * Check if globbing failed (returned glob pattern),
@@ -915,9 +939,9 @@ static int holdlen;		/* length of holdbuf */
 static bool prompt_redraw;	/* false if newline forced after prompt */
 
 static int x_ins(const char *);
-static void x_delete(int, int);
-static int x_bword(void);
-static int x_fword(int);
+static void x_delete(size_t, bool);
+static size_t x_bword(void);
+static size_t x_fword(bool);
 static void x_goto(char *);
 static void x_bs3(char **);
 static int x_size_str(char *);
@@ -949,6 +973,7 @@ static int x_fold_case(int);
 #endif
 static char *x_lastcp(void);
 static void do_complete(int, Comp_type);
+static size_t x_nb2nc(size_t);
 
 static int unget_char = -1;
 
@@ -1066,6 +1091,17 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_edit_line,		2,	'e'	}
 #endif
 };
+
+static size_t
+x_nb2nc(size_t nb)
+{
+	char *cp;
+	size_t nc = 0;
+
+	for (cp = xcp; cp < (xcp + nb); ++nc)
+		cp += utf_ptradj(cp);
+	return (nc);
+}
 
 #ifdef MKSH_SMALL
 static void x_modified(void);
@@ -1329,7 +1365,7 @@ x_ins(const char *s)
 static int
 x_del_back(int c MKSH_A_UNUSED)
 {
-	int i = 0;
+	ssize_t i = 0;
 
 	if (xcp == xbuf) {
 		x_e_putc2(7);
@@ -1346,7 +1382,7 @@ static int
 x_del_char(int c MKSH_A_UNUSED)
 {
 	char *cp, *cp2;
-	int i = 0;
+	ssize_t i = 0;
 
 	cp = xcp;
 	while (i < x_arg) {
@@ -1367,9 +1403,9 @@ x_del_char(int c MKSH_A_UNUSED)
 
 /* Delete nc chars to the right of the cursor (including cursor position) */
 static void
-x_delete(int nc, int push)
+x_delete(size_t nc, bool push)
 {
-	int i, nb, nw;
+	size_t i, nb, nw;
 	char *cp;
 
 	if (nc == 0)
@@ -1453,21 +1489,21 @@ x_mv_bword(int c MKSH_A_UNUSED)
 static int
 x_mv_fword(int c MKSH_A_UNUSED)
 {
-	x_fword(1);
+	x_fword(true);
 	return (KSTD);
 }
 
 static int
 x_del_fword(int c MKSH_A_UNUSED)
 {
-	x_delete(x_fword(0), true);
+	x_delete(x_fword(false), true);
 	return (KSTD);
 }
 
-static int
+static size_t
 x_bword(void)
 {
-	int nc = 0, nb = 0;
+	size_t nb = 0;
 	char *cp = xcp;
 
 	if (cp == xbuf) {
@@ -1485,16 +1521,14 @@ x_bword(void)
 		}
 	}
 	x_goto(cp);
-	for (cp = xcp; cp < (xcp + nb); ++nc)
-		cp += utf_ptradj(cp);
-	return (nc);
+	return (x_nb2nc(nb));
 }
 
-static int
-x_fword(int move)
+static size_t
+x_fword(bool move)
 {
-	int nc = 0;
-	char *cp = xcp, *cp2;
+	size_t nc;
+	char *cp = xcp;
 
 	if (cp == xep) {
 		x_e_putc2(7);
@@ -1506,8 +1540,7 @@ x_fword(int move)
 		while (cp != xep && !is_mfs(*cp))
 			cp++;
 	}
-	for (cp2 = xcp; cp2 < cp; ++nc)
-		cp2 += utf_ptradj(cp2);
+	nc = x_nb2nc(cp - xcp);
 	if (move)
 		x_goto(cp);
 	return (nc);
@@ -2195,20 +2228,18 @@ x_meta2(int c MKSH_A_UNUSED)
 static int
 x_kill(int c MKSH_A_UNUSED)
 {
-	int col = xcp - xbuf;
-	int lastcol = xep - xbuf;
-	int ndel;
+	size_t col = xcp - xbuf;
+	size_t lastcol = xep - xbuf;
+	size_t ndel, narg;
 
-	if (x_arg_defaulted)
-		x_arg = lastcol;
-	else if (x_arg > lastcol)
-		x_arg = lastcol;
-	ndel = x_arg - col;
-	if (ndel < 0) {
-		x_goto(xbuf + x_arg);
-		ndel = -ndel;
-	}
-	x_delete(ndel, true);
+	if (x_arg_defaulted || (narg = x_arg) > lastcol)
+		narg = lastcol;
+	if (narg < col) {
+		x_goto(xbuf + narg);
+		ndel = col - narg;
+	} else
+		ndel = narg - col;
+	x_delete(x_nb2nc(ndel), true);
 	return (KSTD);
 }
 
@@ -2256,7 +2287,7 @@ x_meta_yank(int c MKSH_A_UNUSED)
 	}
 	len = strlen(killstack[killtp]);
 	x_goto(xcp - len);
-	x_delete(len, false);
+	x_delete(x_nb2nc(len), false);
 	do {
 		if (killtp == 0)
 			killtp = KILLSIZE - 1;
@@ -2576,7 +2607,7 @@ x_set_mark(int c MKSH_A_UNUSED)
 static int
 x_kill_region(int c MKSH_A_UNUSED)
 {
-	int rsize;
+	size_t rsize;
 	char *xr;
 
 	if (xmp == NULL) {
@@ -2591,7 +2622,7 @@ x_kill_region(int c MKSH_A_UNUSED)
 		xr = xmp;
 	}
 	x_goto(xr);
-	x_delete(rsize, true);
+	x_delete(x_nb2nc(rsize), true);
 	xmp = xr;
 	return (KSTD);
 }
@@ -2684,7 +2715,7 @@ x_expand(int c MKSH_A_UNUSED)
 		return (KSTD);
 	}
 	x_goto(xbuf + start);
-	x_delete(end - start, false);
+	x_delete(x_nb2nc(end - start), false);
 
 	i = 0;
 	while (i < nwords) {
@@ -2708,7 +2739,7 @@ do_complete(
 {
 	char **words;
 	int start, end, nlen, olen, nwords;
-	bool completed = false;
+	bool completed;
 
 	nwords = x_cf_glob(&flags, xbuf, xep - xbuf, xcp - xbuf,
 	    &start, &end, &words);
@@ -2726,14 +2757,47 @@ do_complete(
 	}
 	olen = end - start;
 	nlen = x_longest_prefix(nwords, words);
-	/* always complete */
-	x_goto(xbuf + start);
-	x_delete(olen, false);
-	x_escape(words[0], nlen, x_do_ins);
-	x_adjust();
-	/* check if we did add something */
-	if (xcp - (xbuf + start) > olen)
+	if (nwords == 1 || (flags & XCF_IS_SUBGLOB)) {
+		/*
+		 * always complete the expansion of parameter and
+		 * homedir substitution as well as single matches
+		 */
 		completed = true;
+	} else {
+		char *unescaped;
+
+		/* make a copy of the original string part and... */
+		strndupx(unescaped, xbuf + start, olen, ATEMP);
+		/* ... convert it from backslash-escaped via QCHAR-escaped... */
+		x_glob_hlp_add_qchar(unescaped);
+		/* ... to unescaped, for comparison with the matches */
+		x_glob_hlp_rem_qchar(unescaped);
+		/*
+		 * match iff entire original string is part of the
+		 * longest prefix, implying the latter is at least
+		 * the same size (after unescaping)
+		 */
+		completed = !strncmp(words[0], unescaped, strlen(unescaped));
+
+		afree(unescaped, ATEMP);
+	}
+	if (type == CT_COMPLIST && nwords > 1) {
+		/*
+		 * print expansions, since we didn't get back
+		 * just a single match
+		 */
+		x_print_expansions(nwords, words,
+		    tobool(flags & XCF_IS_COMMAND));
+	}
+	if (completed) {
+		/* expand on the command line */
+		xmp = NULL;
+		xcp = xbuf + start;
+		xep -= olen;
+		memmove(xcp, xcp + olen, xep - xcp + 1);
+		x_escape(words[0], nlen, x_do_ins);
+	}
+	x_adjust();
 	/*
 	 * append a space if this is a single non-directory match
 	 * and not a parameter or homedir substitution
@@ -2741,15 +2805,7 @@ do_complete(
 	if (nwords == 1 && words[0][nlen - 1] != '/' &&
 	    !(flags & XCF_IS_SUBGLOB)) {
 		x_ins(" ");
-		completed = true;
 	}
-	if (type == CT_COMPLIST && !completed) {
-		x_print_expansions(nwords, words,
-		    tobool(flags & XCF_IS_COMMAND));
-		completed = true;
-	}
-	if (completed)
-		x_redraw(0);
 
 	x_free_words(nwords, words);
 }

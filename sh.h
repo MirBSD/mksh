@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.568 2012/06/28 20:17:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.568.2.1 2012/07/20 22:51:43 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/06/28"
 
@@ -412,15 +412,6 @@ extern int wcwidth(__WCHAR_TYPE__);
 #define BIT(i)		(1 << (i))
 #define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
 
-/* these shall be smaller than 100 */
-#ifdef MKSH_CONSERVATIVE_FDS
-#define NUFILE		32	/* Number of user-accessible files */
-#define FDBASE		10	/* First file usable by Shell */
-#else
-#define NUFILE		56	/* Number of user-accessible files */
-#define FDBASE		24	/* First file usable by Shell */
-#endif
-
 /*
  * Make MAGIC a char that might be printed to make bugs more obvious, but
  * not a char that is used often. Also, can't use the high bit as it causes
@@ -545,6 +536,9 @@ im_sorry_dave(void)
 #ifndef MKSH_NO_CMDLINE_EDITING
 #define MKSH_NO_CMDLINE_EDITING	/* defined */
 #endif
+#ifndef MKSH_CONSERVATIVE_FDS
+#define MKSH_CONSERVATIVE_FDS	/* defined */
+#endif
 #undef MKSH_S_NOVI
 #define MKSH_S_NOVI		1
 #endif
@@ -567,6 +561,15 @@ im_sorry_dave(void)
 
 #if defined(MKSH_NOPROSPECTOFWORK) && !defined(MKSH_UNEMPLOYED)
 #define MKSH_UNEMPLOYED		1
+#endif
+
+/* these shall be smaller than 100 */
+#ifdef MKSH_CONSERVATIVE_FDS
+#define NUFILE		32	/* Number of user-accessible files */
+#define FDBASE		10	/* First file usable by Shell */
+#else
+#define NUFILE		56	/* Number of user-accessible files */
+#define FDBASE		24	/* First file usable by Shell */
 #endif
 
 /*
