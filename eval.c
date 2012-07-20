@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.120 2012/06/28 20:03:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.121 2012/07/20 23:22:10 tg Exp $");
 
 /*
  * string expansion
@@ -406,6 +406,15 @@ expand(const char *cp,	/* input word */
 						    (unsigned int)h);
 						break;
 					}
+					case 0x100 | 'Q':
+					    {
+						struct shf shf;
+
+						shf_sopen(NULL, 0, SHF_WR|SHF_DYNAMIC, &shf);
+						print_value_quoted(&shf, str_val(st->var));
+						x.str = shf_sclose(&shf);
+						break;
+					}
 					case '0': {
 						char *beg, *mid, *end, *stg;
 						mksh_ari_t from = 0, num = -1, flen, finc = 0;
@@ -734,6 +743,7 @@ expand(const char *cp,	/* input word */
 				case '0':
 				case '/':
 				case 0x100 | '#':
+				case 0x100 | 'Q':
 					dp = Xrestpos(ds, dp, st->base);
 					type = XSUB;
 					if (f&DOBLANK)
@@ -1161,6 +1171,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		case '0':
 		case '/':
 		case 0x100 | '#':
+		case 0x100 | 'Q':
 			return (-1);
 		}
 		if (e->loc->argc == 0) {
@@ -1188,6 +1199,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 			case '0':
 			case '/':
 			case 0x100 | '#':
+			case 0x100 | 'Q':
 				return (-1);
 			}
 			XPinit(wv, 32);
@@ -1244,7 +1256,8 @@ varsub(Expand *xp, const char *sp, const char *word,
 	if (((stype < 0x100) && (ctype(c, C_SUBOP2) || c == '/' ||
 	    (((stype&0x80) ? *xp->str=='\0' : xp->str==null) ? /* undef? */
 	    c == '=' || c == '-' || c == '?' : c == '+'))) ||
-	    stype == (0x80 | '0') || stype == (0x100 | '#'))
+	    stype == (0x80 | '0') || stype == (0x100 | '#') ||
+	    stype == (0x100 | 'Q'))
 		/* expand word instead of variable value */
 		state = XBASE;
 	if (Flag(FNOUNSET) && xp->str == null && !zero_ok &&

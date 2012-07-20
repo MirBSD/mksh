@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.550 2012/07/01 15:54:51 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.551 2012/07/20 23:22:07 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2012/07/01
+	@(#)MIRBSD KSH R40 2012/07/21
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R40 2012/07/01
+	@(#)LEGACY KSH R40 2012/07/21
 description:
 	Check version of legacy shell.
 stdin:
@@ -7250,6 +7250,28 @@ expected-stdout:
 	D50219A0 20E5DB5B 00000000 .
 	554A1C76 004A212E CB209562 .
 	6B21CF91 20E5DB5B 124EA49D .
+---
+name: varexpand-special-quote
+description:
+	Check special ${var@Q} expansion for quoted strings
+stdin:
+	set +U
+	i=x
+	j=a\ b
+	k=$'c
+	d\xA0''e€f'
+	print -r -- "<i=$i j=$j k=$k>"
+	s="u=${i@Q} v=${j@Q} w=${k@Q}"
+	print -r -- "s=\"$s\""
+	eval "$s"
+	typeset -p u v w
+expected-stdout:
+	<i=x j=a b k=c
+	d�e€f>
+	s="u=x v='a b' w=$'c\nd\240e\u20ACf'"
+	typeset u=x
+	typeset v='a b'
+	typeset w=$'c\nd\240e\u20ACf'
 ---
 name: varexpand-null-1
 description:
