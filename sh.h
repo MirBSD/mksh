@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.573 2012/07/20 23:22:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.574 2012/07/22 15:56:51 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/07/21"
 
@@ -631,6 +631,8 @@ enum sh_flag {
 
 /*
  * parsing & execution environment
+ *
+ * note that kshlongjmp MUST NOT be passed 0 as second argument!
  */
 #ifdef MKSH_NO_SIGSETJMP
 #define kshjmp_buf	jmp_buf
@@ -676,6 +678,7 @@ extern struct env {
 #define STOP_RETURN(t)	((t) == E_FUNC || (t) == E_INCL)
 
 /* values for kshlongjmp(e->jbuf, i) */
+/* note that i MUST NOT be zero */
 #define LRETURN	1	/* return statement */
 #define LEXIT	2	/* exit statement */
 #define LERROR	3	/* errorf() called */
@@ -1776,6 +1779,7 @@ int promptlen(const char *);
 int include(const char *, int, const char **, int);
 int command(const char *, int);
 int shell(Source * volatile, volatile bool);
+/* argument MUST NOT be 0 */
 void unwind(int) MKSH_A_NORETURN;
 void newenv(int);
 void quitenv(struct shf *);
