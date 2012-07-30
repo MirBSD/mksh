@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.574 2012/07/22 15:56:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.575 2012/07/30 17:04:30 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/07/21"
 
@@ -667,7 +667,6 @@ extern struct env {
 /* # indicates env has valid jbuf (see unwind()) */
 
 /* struct env.flag values */
-#define EF_FUNC_PARSE	BIT(0)	/* function being parsed */
 #define EF_BRKCONT_PASS	BIT(1)	/* set if E_LOOP must pass break/continue on */
 #define EF_FAKE_SIGDIE	BIT(2)	/* hack to get info from unwind to quitenv */
 

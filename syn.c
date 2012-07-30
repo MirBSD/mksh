@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.77 2012/07/01 15:38:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.78 2012/07/30 17:04:31 tg Exp $");
 
 extern short subshell_nesting_level;
 extern void yyskiputf8bom(void);
@@ -656,7 +656,6 @@ function_body(char *name,
 {
 	char *sname, *p;
 	struct op *t;
-	bool old_func_parse;
 
 	sname = wdstrip(name, 0);
 	/*-
@@ -678,7 +677,7 @@ function_body(char *name,
 	 */
 	if (ksh_func) {
 		if (tpeek(CONTIN|KEYWORD|sALIAS) == '(' /*)*/) {
-			/* function foo () { */
+			/* function foo () { //}*/
 			ACCEPT;
 			musthave(')', 0);
 			/* degrade to POSIX function */
@@ -693,8 +692,6 @@ function_body(char *name,
 	t->u.ksh_func = tobool(ksh_func);
 	t->lineno = source->line;
 
-	old_func_parse = e->flags & EF_FUNC_PARSE;
-	e->flags |= EF_FUNC_PARSE;
 	if ((t->left = get_command(CONTIN)) == NULL) {
 		char *tv;
 		/*
@@ -715,8 +712,6 @@ function_body(char *name,
 		t->left->vars[0] = NULL;
 		t->left->lineno = 1;
 	}
-	if (!old_func_parse)
-		e->flags &= ~EF_FUNC_PARSE;
 
 	return (t);
 }
