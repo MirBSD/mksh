@@ -23,9 +23,9 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.78 2012/07/30 17:04:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.79 2012/07/30 21:37:16 tg Exp $");
 
-extern short subshell_nesting_level;
+extern int subshell_nesting_type;
 extern void yyskiputf8bom(void);
 
 struct nesting_state {
@@ -363,12 +363,15 @@ get_command(int cf)
  Leave:
 		break;
 
-	case '(':
+	case '(': /*)*/ {
+		int subshell_nesting_type_saved;
  Subshell:
-		++subshell_nesting_level;
+		subshell_nesting_type_saved = subshell_nesting_type;
+		subshell_nesting_type = ')';
 		t = nested(TPAREN, '(', ')');
-		--subshell_nesting_level;
+		subshell_nesting_type = subshell_nesting_type_saved;
 		break;
+	    }
 
 	case '{': /*}*/
 		t = nested(TBRACE, '{', '}');
@@ -1115,16 +1118,29 @@ parse_usec(const char *s, struct timeval *tv)
  * a COMSUB recursively using the main shell parser and lexer
  */
 char *
-yyrecursive(void)
+yyrecursive(int subtype)
 {
 	struct op *t;
 	char *cp;
 	bool old_reject;
-	int old_symbol, old_salias;
+	int old_symbol, old_salias, old_nesting_type;
 	struct ioword **old_herep;
+	int stok, etok;
+
+	switch (subtype) {
+	case FUNSUB:
+		stok = '{';
+		etok = '}';
+		break;
+	case COMSUB:
+	default:
+		stok = '(';
+		etok = ')';
+	}
 
 	/* tell the lexer to accept a closing parenthesis as EOD */
-	++subshell_nesting_level;
+	old_nesting_type = subshell_nesting_type;
+	subshell_nesting_type = etok;
 
 	/* push reject state, parse recursively, pop reject state */
 	old_reject = reject;
@@ -1134,7 +1150,7 @@ yyrecursive(void)
 	old_salias = sALIAS;
 	sALIAS = 0;
 	/* we use TPAREN as a helper container here */
-	t = nested(TPAREN, '(', ')');
+	t = nested(TPAREN, stok, etok);
 	sALIAS = old_salias;
 	herep = old_herep;
 	reject = old_reject;
@@ -1144,6 +1160,6 @@ yyrecursive(void)
 	cp = snptreef(NULL, 0, "%T", t->left);
 	tfree(t, ATEMP);
 
-	--subshell_nesting_level;
+	subshell_nesting_type = old_nesting_type;
 	return (cp);
 }

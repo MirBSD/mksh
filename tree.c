@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.62 2012/07/30 19:58:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.63 2012/07/30 21:37:17 tg Exp $");
 
 #define INDENT	8
 
@@ -292,6 +292,7 @@ static const char *
 wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 {
 	int c;
+	const char *cs;
 
 	/*-
 	 * problems:
@@ -335,16 +336,20 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 		}
 		case COMSUB:
 			shf_puts("$(", shf);
+			cs = ")";
+ pSUB:
 			while ((c = *wp++) != 0)
 				shf_putc(c, shf);
-			shf_putc(')', shf);
+			shf_puts(cs, shf);
 			break;
+		case FUNSUB:
+			shf_puts("${ ", shf);
+			cs = ";}";
+			goto pSUB;
 		case EXPRSUB:
 			shf_puts("$((", shf);
-			while ((c = *wp++) != 0)
-				shf_putc(c, shf);
-			shf_puts("))", shf);
-			break;
+			cs = "))";
+			goto pSUB;
 		case OQUOTE:
 			if (opmode & WDS_TPUTS) {
 				quotelevel++;
@@ -580,6 +585,7 @@ wdscan(const char *wp, int c)
 			wp++;
 			break;
 		case COMSUB:
+		case FUNSUB:
 		case EXPRSUB:
 			while (*wp++ != 0)
 				;
@@ -819,6 +825,9 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
  closeandout:
 			shf_putc('>', shf);
 			break;
+		case FUNSUB:
+			shf_puts("FUNSUB<", shf);
+			goto dumpsub;
 		case EXPRSUB:
 			shf_puts("EXPRSUB<", shf);
 			goto dumpsub;

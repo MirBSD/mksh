@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.552 2012/07/30 19:58:03 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.553 2012/07/30 21:37:08 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2012/07/21
+	@(#)MIRBSD KSH R40 2012/07/30
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R40 2012/07/21
+	@(#)LEGACY KSH R40 2012/07/30
 description:
 	Check version of legacy shell.
 stdin:
@@ -6194,21 +6194,6 @@ expected-stdout:
 expected-stderr-pattern:
 	/(Unrecognized character .... ignored at \..t4 line 1)*/
 ---
-name: utf8bom-3
-description:
-	Reading the UTF-8 BOM should enable the utf8-mode flag
-	(temporarily for COMSUBs)
-stdin:
-	"$__progname" -c ':; if [[ $- = *U* ]]; then echo 1 on; else echo 1 off; fi'
-	"$__progname" -c '﻿:; if [[ $- = *U* ]]; then echo 2 on; else echo 2 off; fi'
-	"$__progname" -c 'if [[ $- = *U* ]]; then echo 3 on; else echo 3 off; fi; x=$(﻿:; if [[ $- = *U* ]]; then echo 4 on; else echo 4 off; fi); echo $x; if [[ $- = *U* ]]; then echo 5 on; else echo 5 off; fi'
-expected-stdout:
-	1 off
-	2 on
-	3 off
-	4 on
-	5 off
----
 name: utf8opt-1a
 description:
 	Check that the utf8-mode flag is not set at non-interactive startup
@@ -9520,6 +9505,26 @@ expected-stdout:
 		x=$(( echo $(true >&3 ) $((1+ 2)) ) | tr u x ) 
 	} 
 ---
+name: funsub-1
+description:
+	Check that non-subenvironment command substitution works
+stdin:
+	set -e
+	foo=bar
+	echo "ob $foo ."
+	echo "${
+		echo "ib $foo :"
+		foo=baz
+		echo "ia $foo :"
+		false
+	}" .
+	echo "oa $foo ."
+expected-stdout:
+	ob bar .
+	ib bar :
+	ia baz : .
+	oa baz .
+---
 name: test-stnze-1
 description:
 	Check that the short form [ $x ] works
@@ -9613,7 +9618,6 @@ expected-stdout:
 name: event-subst-3
 description:
 	Check that '!' substitution in noninteractive mode is ignored
-category: !smksh
 file-setup: file 755 "falsetto"
 	#! /bin/sh
 	echo molto bene

@@ -157,9 +157,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.575 2012/07/30 17:04:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.576 2012/07/30 21:37:15 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/07/21"
+#define MKSH_VERSION "R40 2012/07/30"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -765,6 +765,8 @@ EXTERN const char Tgbuiltin[] E_INIT("=builtin");
 #define Tbuiltin	(Tgbuiltin + 1)		/* "builtin" */
 EXTERN const char T_function[] E_INIT(" function");
 #define Tfunction	(T_function + 1)	/* "function" */
+EXTERN const char TC_LEX1[] E_INIT("|&;<>() \t\n");
+#define TC_IFSWS	(TC_LEX1 + 7)		/* space tab newline */
 
 typedef uint8_t Temp_type;
 /* expanded heredoc */
@@ -1281,6 +1283,7 @@ struct op {
 #define SPAT	10	/* separate pattern: | */
 #define CPAT	11	/* close pattern: ) */
 #define ADELIM	12	/* arbitrary delimiter: ${foo:2:3} ${foo/bar/baz} */
+#define FUNSUB	14	/* ${ foo;} substitution (NUL terminated) */
 
 /*
  * IO redirection
@@ -1903,7 +1906,7 @@ ssize_t shf_vfprintf(struct shf *, const char *, va_list)
 void initkeywords(void);
 struct op *compile(Source *, bool);
 bool parse_usec(const char *, struct timeval *);
-char *yyrecursive(void);
+char *yyrecursive(int);
 /* tree.c */
 void fptreef(struct shf *, int, const char *, ...);
 char *snptreef(char *, ssize_t, const char *, ...);

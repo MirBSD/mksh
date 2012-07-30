@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.122 2012/07/30 17:28:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.123 2012/07/30 21:37:11 tg Exp $");
 
 /*
  * string expansion
@@ -58,7 +58,7 @@ typedef struct Expand {
 #define IFS_NWS		2	/* have seen IFS non-white-space */
 
 static int varsub(Expand *, const char *, const char *, int *, int *);
-static int comsub(Expand *, const char *);
+static int comsub(Expand *, const char *, int);
 static char *trimsub(char *, char *, int);
 static void glob(char *, XPtrV *, int);
 static void globit(XString *, char **, char *, XPtrV *, int);
@@ -278,17 +278,27 @@ expand(const char *cp,	/* input word */
 				quote = st->quotew;
 				continue;
 			case COMSUB:
+			case FUNSUB:
 				tilde_ok = 0;
 				if (f & DONTRUNCOMMAND) {
 					word = IFS_WORD;
-					*dp++ = '$'; *dp++ = '(';
+					*dp++ = '$';
+					if (c == FUNSUB) {
+						*dp++ = '{';
+						*dp++ = ' ';
+					} else
+						*dp++ = '(';
 					while (*sp != '\0') {
 						Xcheck(ds, dp);
 						*dp++ = *sp++;
 					}
-					*dp++ = ')';
+					if (c == FUNSUB) {
+						*dp++ = ';';
+						*dp++ = '}';
+					} else
+						*dp++ = ')';
 				} else {
-					type = comsub(&x, sp);
+					type = comsub(&x, sp, c);
 					if (type == XCOM && (f&DOBLANK))
 						doblank++;
 					sp = strnul(sp) + 1;
@@ -611,8 +621,8 @@ expand(const char *cp,	/* input word */
 					case '#':
 					case '%':
 						/* ! DOBLANK,DOBRACE,DOTILDE */
-						f = DOPAT | (f&DONTRUNCOMMAND) |
-						    DOTEMP;
+						f = (f & DONTRUNCOMMAND) |
+						    DOPAT | DOTEMP;
 						st->quotew = quote = 0;
 						/*
 						 * Prepend open pattern (so |
@@ -1272,7 +1282,7 @@ varsub(Expand *xp, const char *sp, const char *word,
  * Run the command in $(...) and read its output.
  */
 static int
-comsub(Expand *xp, const char *cp)
+comsub(Expand *xp, const char *cp, int fn)
 {
 	Source *s, *sold;
 	struct op *t;
@@ -1286,10 +1296,15 @@ comsub(Expand *xp, const char *cp)
 	afree(s, ATEMP);
 	source = sold;
 
+	UTFMODE = old_utfmode;
+
 	if (t == NULL)
 		return (XBASE);
 
-	if (t != NULL && t->type == TCOM &&
+	/* no waitlast() unless specifically enabled later */
+	xp->split = false;
+
+	if (t->type == TCOM &&
 	    *t->args == NULL && *t->vars == NULL && t->ioact != NULL) {
 		/* $(<file) */
 		struct ioword *io = *t->ioact;
@@ -1302,10 +1317,9 @@ comsub(Expand *xp, const char *cp)
 			SHF_MAPHI|SHF_CLEXEC);
 		if (shf == NULL)
 			errorf("%s: %s %s", name, "can't open", "$() input");
-		/* no waitlast() */
-		xp->split = false;
 	} else {
 		int ofd1, pv[2];
+
 		openpipe(pv);
 		shf = shf_fdopen(pv[0], SHF_RD, NULL);
 		ofd1 = savefd(1);
@@ -1313,14 +1327,16 @@ comsub(Expand *xp, const char *cp)
 			ksh_dup2(pv[1], 1, false);
 			close(pv[1]);
 		}
-		execute(t, XFORK|XXCOM|XPIPEO, NULL);
+		execute(t, XXCOM | XPIPEO |
+		    (fn == FUNSUB ? XERROK : XFORK), NULL);
 		restfd(1, ofd1);
-		startlast();
-		/* waitlast() */
-		xp->split = true;
+		if (fn != FUNSUB) {
+			startlast();
+			/* waitlast() */
+			xp->split = true;
+		}
 	}
 
-	UTFMODE = old_utfmode;
 	xp->u.shf = shf;
 	return (XCOM);
 }
@@ -1328,7 +1344,6 @@ comsub(Expand *xp, const char *cp)
 /*
  * perform #pattern and %pattern substitution in ${}
  */
-
 static char *
 trimsub(char *str, char *pat, int how)
 {

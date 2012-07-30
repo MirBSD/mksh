@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.196 2012/07/20 21:18:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.197 2012/07/30 21:37:13 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -101,9 +101,9 @@ initctypes(void)
 	chtypes['_'] |= C_ALPHA;
 	setctypes("0123456789", C_DIGIT);
 	/* \0 added automatically */
-	setctypes(" \t\n|&;<>()", C_LEX1);
+	setctypes(TC_LEX1, C_LEX1);
 	setctypes("*@#!$-?", C_VAR1);
-	setctypes(" \t\n", C_IFSWS);
+	setctypes(TC_IFSWS, C_IFSWS);
 	setctypes("=-+?", C_SUBOP1);
 	setctypes("\t\n \"#$&'()*;<=>?[\\]`|", C_QUOTE);
 }
