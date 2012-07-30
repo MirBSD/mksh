@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.551 2012/07/20 23:22:07 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.552 2012/07/30 19:58:03 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -2268,7 +2268,13 @@ stdin:
 			=c $x \x40=
 		EOF
 	}
-	typeset -f foo
+	fnd=$(typeset -f foo)
+	print -r -- "$fnd"
+	function foo {
+		echo blub
+	}
+	foo
+	eval "$fnd"
 	foo
 	# rather nonsensical, but…
 	vd=<<<"=d $x \x40="
@@ -2278,11 +2284,12 @@ stdin:
 	print -r -- "| va={$va} vb={$vb} vc={$vc} vd={$vd} ve={$ve} vf={$vf} |"
 expected-stdout:
 	function foo {
-		vc= <<-EOF 
+		vc=<<-EOF
 	=c $x \x40=
 	EOF
 	
 	} 
+	blub
 	| va={=a u \x40=
 	} vb={=b $x \x40=
 	} vc={=c u \x40=
@@ -2310,20 +2317,27 @@ stdin:
 			=d $x \x40=
 	
 	}
-	typeset -f foo
+	fnd=$(typeset -f foo)
+	print -r -- "$fnd"
+	function foo {
+		echo blub
+	}
+	foo
+	eval "$fnd"
 	foo
 	print -r -- "| va={$va} vb={$vb} vc={$vc} vd={$vd} |"
 expected-stdout:
 	function foo {
-		vc= <<- 
+		vc=<<-
 	=c $x \x40=
 	<<
 	
-		vd= <<-"" 
+		vd=<<-""
 	=d $x \x40=
 	
 	
 	} 
+	blub
 	| va={=a u \x40=
 	} vb={=b $x \x40=
 	} vc={=c u \x40=
@@ -8859,7 +8873,7 @@ expected-stdout:
 	EOFN
 	}
 	inline_IOWRITE_IOCLOB_IOHERE_noIOSKIP() {
-		cat >|bar <<"EOFN" 
+		cat >|bar <<"EOFN"
 		foo
 	EOFN
 	
@@ -8870,7 +8884,7 @@ expected-stdout:
 	EOFN
 	); }
 	function comsub_IOWRITE_IOCLOB_IOHERE_noIOSKIP {
-		x=$(cat >|bar <<"EOFN" 
+		x=$(cat >|bar <<"EOFN"
 		foo
 	EOFN
 	) 
@@ -8881,7 +8895,7 @@ expected-stdout:
 	EOFN
 	)|tr u x); }
 	function reread_IOWRITE_IOCLOB_IOHERE_noIOSKIP {
-		x=$(( cat >|bar <<"EOFN" 
+		x=$(( cat >|bar <<"EOFN"
 		foo
 	EOFN
 	) | tr u x ) 
@@ -8892,7 +8906,7 @@ expected-stdout:
 		EOFI
 	}
 	inline_IOWRITE_noIOCLOB_IOHERE_IOSKIP() {
-		cat >bar <<-EOFI 
+		cat >bar <<-EOFI
 	foo
 	EOFI
 	
@@ -8903,7 +8917,7 @@ expected-stdout:
 		EOFI
 	); }
 	function comsub_IOWRITE_noIOCLOB_IOHERE_IOSKIP {
-		x=$(cat >bar <<-EOFI 
+		x=$(cat >bar <<-EOFI
 	foo
 	EOFI
 	) 
@@ -8914,7 +8928,7 @@ expected-stdout:
 		EOFI
 	)|tr u x); }
 	function reread_IOWRITE_noIOCLOB_IOHERE_IOSKIP {
-		x=$(( cat >bar <<-EOFI 
+		x=$(( cat >bar <<-EOFI
 	foo
 	EOFI
 	) | tr u x ) 
@@ -9005,7 +9019,7 @@ expected-stdout:
 	EOFN); echo $x
 	}
 	inline_heredoc_closed() {
-		x=$(cat <<EOFN 
+		x=$(cat <<EOFN
 		note there must be no space between EOFN and )
 	EOFN
 	) 
@@ -9017,7 +9031,7 @@ expected-stdout:
 	EOFN); echo $x
 	); }
 	function comsub_heredoc_closed {
-		x=$(x=$(cat <<EOFN 
+		x=$(x=$(cat <<EOFN
 		note there must be no space between EOFN and )
 	EOFN
 	) ; echo $x ) 
@@ -9028,7 +9042,7 @@ expected-stdout:
 	EOFN); echo $x
 	)|tr u x); }
 	function reread_heredoc_closed {
-		x=$(( x=$(cat <<EOFN 
+		x=$(( x=$(cat <<EOFN
 		note there must be no space between EOFN and )
 	EOFN
 	) ; echo $x ) | tr u x ) 
@@ -9039,7 +9053,7 @@ expected-stdout:
 	EOFN ); echo $x
 	}
 	inline_heredoc_space() {
-		x=$(cat <<EOFN\  
+		x=$(cat <<EOFN\ 
 		note the space between EOFN and ) is actually part of the here document marker
 	EOFN 
 	) 
@@ -9051,7 +9065,7 @@ expected-stdout:
 	EOFN ); echo $x
 	); }
 	function comsub_heredoc_space {
-		x=$(x=$(cat <<EOFN\  
+		x=$(x=$(cat <<EOFN\ 
 		note the space between EOFN and ) is actually part of the here document marker
 	EOFN 
 	) ; echo $x ) 
@@ -9062,7 +9076,7 @@ expected-stdout:
 	EOFN ); echo $x
 	)|tr u x); }
 	function reread_heredoc_space {
-		x=$(( x=$(cat <<EOFN\  
+		x=$(( x=$(cat <<EOFN\ 
 		note the space between EOFN and ) is actually part of the here document marker
 	EOFN 
 	) ; echo $x ) | tr u x ) 
@@ -9085,7 +9099,7 @@ expected-stdout:
 	}
 	inline_patch_motd() {
 		x=$(sysctl -n kern.version | sed 1q ) 
-		[[ -s /etc/motd && "$([[ "$(head -1 /etc/motd )" != $x ]] && ed -s /etc/motd 2>&1 <<-EOF 
+		[[ -s /etc/motd && "$([[ "$(head -1 /etc/motd )" != $x ]] && ed -s /etc/motd 2>&1 <<-EOF
 	1,/^\$/d
 	0a
 	$x
@@ -9117,7 +9131,7 @@ expected-stdout:
 		fi
 	); }
 	function comsub_patch_motd {
-		x=$(x=$(sysctl -n kern.version | sed 1q ) ; [[ -s /etc/motd && "$([[ "$(head -1 /etc/motd )" != $x ]] && ed -s /etc/motd 2>&1 <<-EOF 
+		x=$(x=$(sysctl -n kern.version | sed 1q ) ; [[ -s /etc/motd && "$([[ "$(head -1 /etc/motd )" != $x ]] && ed -s /etc/motd 2>&1 <<-EOF
 	1,/^\$/d
 	0a
 	$x
@@ -9144,7 +9158,7 @@ expected-stdout:
 		fi
 	)|tr u x); }
 	function reread_patch_motd {
-		x=$(( x=$(sysctl -n kern.version | sed 1q ) ; [[ -s /etc/motd && "$([[ "$(head -1 /etc/motd )" != $x ]] && ed -s /etc/motd 2>&1 <<-EOF 
+		x=$(( x=$(sysctl -n kern.version | sed 1q ) ; [[ -s /etc/motd && "$([[ "$(head -1 /etc/motd )" != $x ]] && ed -s /etc/motd 2>&1 <<-EOF
 	1,/^\$/d
 	0a
 	$x
