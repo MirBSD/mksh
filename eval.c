@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.121 2012/07/20 23:22:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.122 2012/07/30 17:28:21 tg Exp $");
 
 /*
  * string expansion
@@ -41,7 +41,7 @@ typedef struct Expand {
 		struct shf *shf;	/* file */
 	} u;				/* source */
 	struct tbl *var;		/* variable in ${var..} */
-	short split;			/* split "$@" / call waitlast $() */
+	bool split;			/* split "$@" / call waitlast $() */
 } Expand;
 
 #define	XBASE		0	/* scanning original */
@@ -217,8 +217,8 @@ expand(const char *cp,	/* input word */
 	SubType st_head, *st;
 	/* For trailing newlines in COMSUB */
 	int newlines = 0;
-	int saw_eq, tilde_ok;
-	int make_magic;
+	bool saw_eq, make_magic;
+	int tilde_ok;
 	size_t len;
 
 	if (cp == NULL)
@@ -240,11 +240,11 @@ expand(const char *cp,	/* input word */
 	type = XBASE;
 	sp = cp;
 	fdo = 0;
-	saw_eq = 0;
+	saw_eq = false;
 	/* must be 1/0 */
 	tilde_ok = (f & (DOTILDE|DOASNTILDE)) ? 1 : 0;
 	doblank = 0;
-	make_magic = 0;
+	make_magic = false;
 	word = (f&DOBLANK) ? IFS_WS : IFS_WORD;
 	/* clang doesn't know OSUBST comes before CSUBST */
 	memset(&st_head, 0, sizeof(st_head));
@@ -758,19 +758,19 @@ expand(const char *cp,	/* input word */
 			case OPAT:
 				/* open pattern: *(foo|bar) */
 				/* Next char is the type of pattern */
-				make_magic = 1;
+				make_magic = true;
 				c = *sp++ | 0x80;
 				break;
 
 			case SPAT:
 				/* pattern separator (|) */
-				make_magic = 1;
+				make_magic = true;
 				c = '|';
 				break;
 
 			case CPAT:
 				/* close pattern */
-				make_magic = 1;
+				make_magic = true;
 				c = /*(*/ ')';
 				break;
 			}
@@ -900,7 +900,7 @@ expand(const char *cp,	/* input word */
 				else
 					XPput(*wp, debunk(p, p, strlen(p) + 1));
 				fdo = 0;
-				saw_eq = 0;
+				saw_eq = false;
 				tilde_ok = (f & (DOTILDE|DOASNTILDE)) ? 1 : 0;
 				if (c == 0)
 					return;
@@ -971,7 +971,7 @@ expand(const char *cp,	/* input word */
 					if (!(f & DOTEMP) && !saw_eq &&
 					    (Flag(FBRACEEXPAND) ||
 					    (f & DOASNTILDE))) {
-						saw_eq = 1;
+						saw_eq = true;
 						tilde_ok = 1;
 					}
 					break;
@@ -1013,7 +1013,7 @@ expand(const char *cp,	/* input word */
 				quote &= ~2;
 
 			if (make_magic) {
-				make_magic = 0;
+				make_magic = false;
 				fdo |= DOMAGIC | (f & DOGLOB);
 				*dp++ = MAGIC;
 			} else if (ISMAGIC(c)) {
@@ -1181,7 +1181,8 @@ varsub(Expand *xp, const char *sp, const char *word,
 		} else {
 			xp->u.strv = (const char **)e->loc->argv + 1;
 			xp->str = *xp->u.strv++;
-			xp->split = c == '@'; /* $@ */
+			/* $@ */
+			xp->split = tobool(c == '@');
 			state = XARG;
 		}
 		/* POSIX 2009? */
@@ -1221,7 +1222,8 @@ varsub(Expand *xp, const char *sp, const char *word,
 				XPput(wv, 0);
 				xp->u.strv = (const char **)XPptrv(wv);
 				xp->str = *xp->u.strv++;
-				xp->split = p[1] == '@'; /* ${foo[@]} */
+				/* ${foo[@]} */
+				xp->split = tobool(p[1] == '@');
 				state = XARG;
 			}
 		} else {
@@ -1301,7 +1303,7 @@ comsub(Expand *xp, const char *cp)
 		if (shf == NULL)
 			errorf("%s: %s %s", name, "can't open", "$() input");
 		/* no waitlast() */
-		xp->split = 0;
+		xp->split = false;
 	} else {
 		int ofd1, pv[2];
 		openpipe(pv);
@@ -1315,7 +1317,7 @@ comsub(Expand *xp, const char *cp)
 		restfd(1, ofd1);
 		startlast();
 		/* waitlast() */
-		xp->split = 1;
+		xp->split = true;
 	}
 
 	UTFMODE = old_utfmode;
