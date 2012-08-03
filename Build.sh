@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.579 2012/07/01 15:54:49 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.580 2012/08/03 18:16:43 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -546,6 +546,7 @@ CYGWIN*)
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 Darwin)
+	add_cppflags -D_DARWIN_C_SOURCE
 	;;
 DragonFly)
 	;;
@@ -1486,7 +1487,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.579 2012/07/01 15:54:49 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.580 2012/08/03 18:16:43 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
