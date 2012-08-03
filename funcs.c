@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.222 2012/06/25 16:34:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.223 2012/08/03 18:30:13 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3414,20 +3414,82 @@ c_ulimit(const char **wp)
 #endif
 		{ NULL, 0, 0, 0 }
 	};
-	static char opts[3 + NELEM(limits)];
+	static const char opts[] = "a"
+#ifdef RLIMIT_SBSIZE
+	    "B"
+#endif
+#ifdef RLIMIT_TCACHE
+	    "C"
+#endif
+#ifdef RLIMIT_CORE
+	    "c"
+#endif
+#ifdef RLIMIT_DATA
+	    "d"
+#endif
+#ifdef RLIMIT_NICE
+	    "e"
+#endif
+#ifdef RLIMIT_FSIZE
+	    "f"
+#endif
+	    "H"
+#ifdef RLIMIT_SIGPENDING
+	    "i"
+#endif
+#ifdef RLIMIT_LOCKS
+	    "L"
+#endif
+#ifdef RLIMIT_MEMLOCK
+	    "l"
+#endif
+#ifdef RLIMIT_AIO_MEM
+	    "M"
+#endif
+#if defined(ULIMIT_M_IS_RSS) || defined(ULIMIT_M_IS_VMEM)
+	    "m"
+#endif
+#ifdef RLIMIT_NOFILE
+	    "n"
+#endif
+#ifdef RLIMIT_AIO_OPS
+	    "O"
+#endif
+#ifdef RLIMIT_PTHREAD
+	    "P"
+#endif
+#ifdef RLIMIT_NPROC
+	    "p"
+#endif
+#ifdef RLIMIT_MSGQUEUE
+	    "q"
+#endif
+#ifdef RLIMIT_RTPRIO
+	    "r"
+#endif
+	    "S"
+#ifdef RLIMIT_STACK
+	    "s"
+#endif
+#ifdef RLIMIT_TIME
+	    "T"
+#endif
+#ifdef RLIMIT_CPU
+	    "t"
+#endif
+#ifdef RLIMIT_NOVMON
+	    "V"
+#endif
+#if defined(ULIMIT_V_IS_VMEM) || defined(ULIMIT_V_IS_AS)
+	    "v"
+#endif
+#ifdef RLIMIT_SWAP
+	    "w"
+#endif
+	    ;
 	int how = SOFT | HARD, optc, what = 'f';
 	bool all = false;
 	const struct limits *l;
-
-	if (!opts[0]) {
-		/* build options string on first call - yuck */
-		char *p = opts;
-
-		*p++ = 'H'; *p++ = 'S'; *p++ = 'a';
-		for (l = limits; l->name; l++)
-			*p++ = l->option;
-		*p = '\0';
-	}
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, opts)) != -1)
 		switch (optc) {
@@ -3441,8 +3503,7 @@ c_ulimit(const char **wp)
 			all = true;
 			break;
 		case '?':
-			bi_errorf("%s: %s", "usage",
-			    "ulimit [-acdfHLlmnpSsTtvw] [value]");
+			bi_errorf("usage: ulimit [-%s] [value]", opts);
 			return (1);
 		default:
 			what = optc;
