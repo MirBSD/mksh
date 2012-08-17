@@ -23,10 +23,11 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.79 2012/07/30 21:37:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.80 2012/08/17 18:34:25 tg Exp $");
 
-extern int subshell_nesting_type;
 extern void yyskiputf8bom(void);
+
+extern uint8_t subshell_nesting_level;
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -363,15 +364,12 @@ get_command(int cf)
  Leave:
 		break;
 
-	case '(': /*)*/ {
-		int subshell_nesting_type_saved;
+	case '(': /*)*/
  Subshell:
-		subshell_nesting_type_saved = subshell_nesting_type;
-		subshell_nesting_type = ')';
+		++subshell_nesting_level;
 		t = nested(TPAREN, '(', ')');
-		subshell_nesting_type = subshell_nesting_type_saved;
+		--subshell_nesting_level;
 		break;
-	    }
 
 	case '{': /*}*/
 		t = nested(TBRACE, '{', '}');
@@ -1118,29 +1116,16 @@ parse_usec(const char *s, struct timeval *tv)
  * a COMSUB recursively using the main shell parser and lexer
  */
 char *
-yyrecursive(int subtype)
+yyrecursive(void)
 {
 	struct op *t;
 	char *cp;
 	bool old_reject;
-	int old_symbol, old_salias, old_nesting_type;
+	int old_symbol, old_salias;
 	struct ioword **old_herep;
-	int stok, etok;
-
-	switch (subtype) {
-	case FUNSUB:
-		stok = '{';
-		etok = '}';
-		break;
-	case COMSUB:
-	default:
-		stok = '(';
-		etok = ')';
-	}
 
 	/* tell the lexer to accept a closing parenthesis as EOD */
-	old_nesting_type = subshell_nesting_type;
-	subshell_nesting_type = etok;
+	++subshell_nesting_level;
 
 	/* push reject state, parse recursively, pop reject state */
 	old_reject = reject;
@@ -1150,7 +1135,7 @@ yyrecursive(int subtype)
 	old_salias = sALIAS;
 	sALIAS = 0;
 	/* we use TPAREN as a helper container here */
-	t = nested(TPAREN, stok, etok);
+	t = nested(TPAREN, '(', ')');
 	sALIAS = old_salias;
 	herep = old_herep;
 	reject = old_reject;
@@ -1160,6 +1145,6 @@ yyrecursive(int subtype)
 	cp = snptreef(NULL, 0, "%T", t->left);
 	tfree(t, ATEMP);
 
-	subshell_nesting_type = old_nesting_type;
+	--subshell_nesting_level;
 	return (cp);
 }

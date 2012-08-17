@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.123 2012/07/30 21:37:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.124 2012/08/17 18:34:20 tg Exp $");
 
 /*
  * string expansion
@@ -58,7 +58,7 @@ typedef struct Expand {
 #define IFS_NWS		2	/* have seen IFS non-white-space */
 
 static int varsub(Expand *, const char *, const char *, int *, int *);
-static int comsub(Expand *, const char *, int);
+static int comsub(Expand *, const char *);
 static char *trimsub(char *, char *, int);
 static void glob(char *, XPtrV *, int);
 static void globit(XString *, char **, char *, XPtrV *, int);
@@ -278,27 +278,18 @@ expand(const char *cp,	/* input word */
 				quote = st->quotew;
 				continue;
 			case COMSUB:
-			case FUNSUB:
 				tilde_ok = 0;
 				if (f & DONTRUNCOMMAND) {
 					word = IFS_WORD;
 					*dp++ = '$';
-					if (c == FUNSUB) {
-						*dp++ = '{';
-						*dp++ = ' ';
-					} else
-						*dp++ = '(';
+					*dp++ = '(';
 					while (*sp != '\0') {
 						Xcheck(ds, dp);
 						*dp++ = *sp++;
 					}
-					if (c == FUNSUB) {
-						*dp++ = ';';
-						*dp++ = '}';
-					} else
-						*dp++ = ')';
+					*dp++ = ')';
 				} else {
-					type = comsub(&x, sp, c);
+					type = comsub(&x, sp);
 					if (type == XCOM && (f&DOBLANK))
 						doblank++;
 					sp = strnul(sp) + 1;
@@ -1282,7 +1273,7 @@ varsub(Expand *xp, const char *sp, const char *word,
  * Run the command in $(...) and read its output.
  */
 static int
-comsub(Expand *xp, const char *cp, int fn)
+comsub(Expand *xp, const char *cp)
 {
 	Source *s, *sold;
 	struct op *t;
@@ -1327,14 +1318,11 @@ comsub(Expand *xp, const char *cp, int fn)
 			ksh_dup2(pv[1], 1, false);
 			close(pv[1]);
 		}
-		execute(t, XXCOM | XPIPEO |
-		    (fn == FUNSUB ? XERROK : XFORK), NULL);
+		execute(t, XXCOM | XPIPEO | XFORK, NULL);
 		restfd(1, ofd1);
-		if (fn != FUNSUB) {
-			startlast();
-			/* waitlast() */
-			xp->split = true;
-		}
+		startlast();
+		/* waitlast() */
+		xp->split = true;
 	}
 
 	xp->u.shf = shf;

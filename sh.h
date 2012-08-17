@@ -157,9 +157,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.577 2012/08/03 18:45:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.578 2012/08/17 18:34:24 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/08/03"
+#define MKSH_VERSION "R40 2012/08/17"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1283,7 +1283,6 @@ struct op {
 #define SPAT	10	/* separate pattern: | */
 #define CPAT	11	/* close pattern: ) */
 #define ADELIM	12	/* arbitrary delimiter: ${foo:2:3} ${foo/bar/baz} */
-#define FUNSUB	14	/* ${ foo;} substitution (NUL terminated) */
 
 /*
  * IO redirection
@@ -1906,7 +1905,7 @@ ssize_t shf_vfprintf(struct shf *, const char *, va_list)
 void initkeywords(void);
 struct op *compile(Source *, bool);
 bool parse_usec(const char *, struct timeval *);
-char *yyrecursive(int);
+char *yyrecursive(void);
 /* tree.c */
 void fptreef(struct shf *, int, const char *, ...);
 char *snptreef(char *, ssize_t, const char *, ...);

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.554 2012/08/03 18:45:29 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.555 2012/08/17 18:34:18 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2012/08/03
+	@(#)MIRBSD KSH R40 2012/08/17
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R40 2012/08/03
+	@(#)LEGACY KSH R40 2012/08/17
 description:
 	Check version of legacy shell.
 stdin:
@@ -9504,26 +9504,6 @@ expected-stdout:
 	function reread_COMSUB_EXPRSUB {
 		x=$(( echo $(true >&3 ) $((1+ 2)) ) | tr u x ) 
 	} 
----
-name: funsub-1
-description:
-	Check that non-subenvironment command substitution works
-stdin:
-	set -e
-	foo=bar
-	echo "ob $foo ."
-	echo "${
-		echo "ib $foo :"
-		foo=baz
-		echo "ia $foo :"
-		false
-	}" .
-	echo "oa $foo ."
-expected-stdout:
-	ob bar .
-	ib bar :
-	ia baz : .
-	oa baz .
 ---
 name: test-stnze-1
 description:

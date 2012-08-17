@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.166 2012/07/30 21:37:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.167 2012/08/17 18:34:21 tg Exp $");
 
 /*
  * states while lexing word
@@ -109,7 +109,7 @@ void yyskiputf8bom(void);
 static int backslash_skip;
 static int ignore_backslash_newline;
 static struct sretrace_info *retrace_info;
-int subshell_nesting_type = 0;
+uint8_t subshell_nesting_level = 0;
 
 /* optimised getsc_bn() */
 #define o_getsc()	(*source->str != '\0' && *source->str != '\\' && \
@@ -262,11 +262,6 @@ yylex(int cf)
 	while (!((c = getsc()) == 0 ||
 	    ((state == SBASE || state == SHEREDELIM || state == SHERESTRING) &&
 	    ctype(c, C_LEX1)))) {
-		if (state == SBASE &&
-		    subshell_nesting_type == /*{*/ '}' &&
-		    c == /*{*/ '}')
-			/* possibly end ${ :;} */
-			break;
  accept_nonword:
 		Xcheck(ws, wp);
 		switch (state) {
@@ -400,27 +395,14 @@ yylex(int cf)
 					} else {
 						ungetsc(c);
  subst_command:
-						c = COMSUB;
- subst_command2:
-						sp = yyrecursive(c);
+						sp = yyrecursive();
 						cz = strlen(sp) + 1;
 						XcheckN(ws, wp, cz);
-						*wp++ = c;
+						*wp++ = COMSUB;
 						memcpy(wp, sp, cz);
 						wp += cz;
 					}
 				} else if (c == '{') /*}*/ {
-					c = getsc();
-					if (ctype(c, C_IFSWS)) {
-						/*
-						 * non-subenvironment
-						 * "command" substitution
-						 */
-						c = FUNSUB;
-						goto subst_command2;
-					}
-					ungetsc(c);
-
 					*wp++ = OSUBST;
 					*wp++ = '{'; /*}*/
 					wp = get_brace_var(&ws, wp);
@@ -1189,7 +1171,7 @@ readhere(struct ioword *iop)
 		/* end of here document marker, what to do? */
 		switch (c) {
 		case /*(*/ ')':
-			if (!subshell_nesting_type)
+			if (!subshell_nesting_level)
 				/*-
 				 * not allowed outside $(...) or (...)
 				 * => mismatch

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.63 2012/07/30 21:37:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.64 2012/08/17 18:34:25 tg Exp $");
 
 #define INDENT	8
 
@@ -342,10 +342,6 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 				shf_putc(c, shf);
 			shf_puts(cs, shf);
 			break;
-		case FUNSUB:
-			shf_puts("${ ", shf);
-			cs = ";}";
-			goto pSUB;
 		case EXPRSUB:
 			shf_puts("$((", shf);
 			cs = "))";
@@ -585,7 +581,6 @@ wdscan(const char *wp, int c)
 			wp++;
 			break;
 		case COMSUB:
-		case FUNSUB:
 		case EXPRSUB:
 			while (*wp++ != 0)
 				;
@@ -825,9 +820,6 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
  closeandout:
 			shf_putc('>', shf);
 			break;
-		case FUNSUB:
-			shf_puts("FUNSUB<", shf);
-			goto dumpsub;
 		case EXPRSUB:
 			shf_puts("EXPRSUB<", shf);
 			goto dumpsub;
