@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.125 2012/08/24 19:02:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.126 2012/08/24 20:05:13 tg Exp $");
 
 /*
  * string expansion
@@ -1009,9 +1009,12 @@ expand(const char *cp,	/* input word */
 					}
 					break;
 				}
-			else
+			else {
 				/* undo temporary */
 				quote &= ~2;
+				if (f & DOKEEPQUOTE)
+					*dp++ = '\\';
+			}
 
 			if (make_magic) {
 				make_magic = false;

@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.580 2012/08/24 19:09:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.581 2012/08/24 20:05:13 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/08/17"
 
@@ -1343,6 +1343,7 @@ struct ioword {
 #define DOTEMP	BIT(8)		/* dito: in word part of ${..[%#=?]..} */
 #define DOVACHECK BIT(9)	/* var assign check (for typeset, set, etc) */
 #define DOMARKDIRS BIT(10)	/* force markdirs behaviour */
+#define DOKEEPQUOTE BIT(11)	/* internal use by globbing code */
 
 /*
  * The arguments of [[ .. ]] expressions are kept in t->args[] and flags

@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.247 2012/08/24 19:14:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.248 2012/08/24 20:05:11 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -61,8 +61,8 @@ static X_chars edchars;
 #define XCF_FULLPATH	BIT(2)	/* command completion: store full path */
 #define XCF_COMMAND_FILE (XCF_COMMAND | XCF_FILE)
 #define XCF_IS_COMMAND	BIT(3)	/* return flag: is command */
-#define XCF_IS_SUBGLOB	BIT(4)	/* return flag: is $FOO or ~foo substitution */
-#define XCF_IS_EXTGLOB	BIT(5)	/* return flag: is foo* expansion */
+#define XCF_IS_SUBST	BIT(4)	/* return flag: is $FOO substitution */
+#define XCF_IS_NOSPACE	BIT(5)	/* return flag: do not append a space */
 
 static char editmode;
 static int xx_cols;			/* for Emacs mode */
@@ -96,10 +96,10 @@ static int x_vi(char *, size_t);
 #define x_putc(c)	shf_putc((c), shl_out)
 #endif
 
-static int path_order_cmp(const void *aa, const void *bb);
+static int path_order_cmp(const void *, const void *);
 static void glob_table(const char *, XPtrV *, struct table *);
-static void glob_path(int flags, const char *, XPtrV *, const char *);
-static int x_file_glob(int, char *, char ***);
+static void glob_path(int, const char *, XPtrV *, const char *);
+static int x_file_glob(int *, char *, char ***);
 static int x_command_glob(int, char *, char ***);
 static int x_locate_word(const char *, int, int, int *, bool *);
 
@@ -347,9 +347,9 @@ x_glob_hlp_rem_qchar(char *cp)
  *	- returns number of matching strings
  */
 static int
-x_file_glob(int flags MKSH_A_UNUSED, char *toglob, char ***wordsp)
+x_file_glob(int *flagsp, char *toglob, char ***wordsp)
 {
-	char **words;
+	char **words, *cp;
 	int nwords;
 	XPtrV w;
 	struct source *s, *sold;
@@ -372,7 +372,16 @@ x_file_glob(int flags MKSH_A_UNUSED, char *toglob, char ***wordsp)
 	source = sold;
 	afree(s, ATEMP);
 	XPinit(w, 32);
-	expand(yylval.cp, &w, DOGLOB | DOTILDE | DOMARKDIRS);
+	cp = yylval.cp;
+	while (*cp == CHAR || *cp == QCHAR)
+		cp += 2;
+	nwords = DOGLOB | DOTILDE | DOMARKDIRS;
+	if (*cp != EOS) {
+		/* probably a $FOO expansion */
+		nwords = DOKEEPQUOTE;
+		*flagsp |= XCF_IS_SUBST | XCF_IS_NOSPACE;
+	}
+	expand(yylval.cp, &w, nwords);
 	XPput(w, NULL);
 	words = (char **)XPclose(w);
 
@@ -581,7 +590,6 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 
 	if (len >= 0) {
 		char *toglob, *s;
-		bool saw_dollar = false, saw_glob = false;
 
 		/*
 		 * Given a string, copy it and possibly add a '*' to the end.
@@ -592,52 +600,40 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 
 		/*
 		 * If the pathname contains a wildcard (an unquoted '*',
-		 * '?', or '[') or parameter expansion ('$'), or a ~username
-		 * with no trailing slash, then it is globbed based on that
-		 * value (i.e., without the appended '*').
+		 * '?', or '[') or an extglob, then it is globbed based
+		 * on that value (i.e., without the appended '*').
 		 */
 		for (s = toglob; *s; s++) {
 			if (*s == '\\' && s[1])
 				s++;
-			else if (*s == '$') {
-				/*
-				 * Do not append a space after the value
-				 * if expanding a parameter substitution
-				 * as in: “cat $HOME/.ss↹” (LP: #710539)
-				 */
-				saw_dollar = true;
-			} else if (*s == '?' || *s == '*' || *s == '[' ||
+			else if (*s == '?' || *s == '*' || *s == '[' ||
+			    /* also skip this for variable expansion */
+			    *s == '$' ||
 			    /* ?() *() +() @() !() but two already checked */
 			    (s[1] == '(' /*)*/ &&
 			    (*s == '+' || *s == '@' || *s == '!'))) {
 				/* just expand based on the extglob */
-				saw_glob = true;
+				goto dont_add_glob;
 			}
 		}
-		if (saw_glob) {
-			/*
-			 * do not append a glob, we already have a
-			 * glob or extglob; it works even if this is
-			 * a parameter expansion as we have a glob
-			 */
-			*flagsp |= XCF_IS_EXTGLOB;
-		} else if (saw_dollar ||
-		    (*toglob == '~' && !vstrchr(toglob, '/'))) {
-			/* do not append a glob, nor later a space */
-			*flagsp |= XCF_IS_SUBGLOB;
-		} else {
-			/* append a glob, this is not just a tilde */
-			toglob[len] = '*';
-			toglob[len + 1] = '\0';
+
+		if (*toglob == '~' && !vstrchr(toglob, '/')) {
+			/* neither for '~foo' (but '~foo/bar') */
+			*flagsp |= XCF_IS_NOSPACE;
+			goto dont_add_glob;
 		}
 
+		/* append a glob */
+		toglob[len] = '*';
+		toglob[len + 1] = '\0';
+ dont_add_glob:
 		/*
 		 * Expand (glob) it now.
 		 */
 
 		nwords = is_command ?
 		    x_command_glob(*flagsp, toglob, &words) :
-		    x_file_glob(*flagsp, toglob, &words);
+		    x_file_glob(flagsp, toglob, &words);
 		afree(toglob, ATEMP);
 	}
 	if (nwords == 0) {
@@ -2752,7 +2748,7 @@ do_complete(
 	}
 	olen = end - start;
 	nlen = x_longest_prefix(nwords, words);
-	if (nwords == 1 || (flags & XCF_IS_SUBGLOB)) {
+	if (nwords == 1 || (flags & XCF_IS_SUBST)) {
 		/*
 		 * always complete the expansion of parameter and
 		 * homedir substitution as well as single matches
@@ -2790,7 +2786,10 @@ do_complete(
 		xcp = xbuf + start;
 		xep -= olen;
 		memmove(xcp, xcp + olen, xep - xcp + 1);
-		x_escape(words[0], nlen, x_do_ins);
+		if (flags & XCF_IS_SUBST)
+			x_do_ins(words[0], nlen);
+		else
+			x_escape(words[0], nlen, x_do_ins);
 	}
 	x_adjust();
 	/*
@@ -2798,7 +2797,7 @@ do_complete(
 	 * and not a parameter or homedir substitution
 	 */
 	if (nwords == 1 && words[0][nlen - 1] != '/' &&
-	    !(flags & XCF_IS_SUBGLOB)) {
+	    !(flags & XCF_IS_NOSPACE)) {
 		x_ins(" ");
 	}
 
@@ -5354,7 +5353,7 @@ complete_word(int cmd, int count)
 		 * and not a parameter or homedir substitution
 		 */
 		if (match_len > 0 && match[match_len - 1] != '/' &&
-		    !(flags & XCF_IS_SUBGLOB))
+		    !(flags & XCF_IS_NOSPACE))
 			rval = putbuf(" ", 1, 0);
 	}
 	x_free_words(nwords, words);
