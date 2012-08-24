@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.248 2012/08/24 20:05:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.249 2012/08/24 20:57:44 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -61,8 +61,7 @@ static X_chars edchars;
 #define XCF_FULLPATH	BIT(2)	/* command completion: store full path */
 #define XCF_COMMAND_FILE (XCF_COMMAND | XCF_FILE)
 #define XCF_IS_COMMAND	BIT(3)	/* return flag: is command */
-#define XCF_IS_SUBST	BIT(4)	/* return flag: is $FOO substitution */
-#define XCF_IS_NOSPACE	BIT(5)	/* return flag: do not append a space */
+#define XCF_IS_NOSPACE	BIT(4)	/* return flag: do not append a space */
 
 static char editmode;
 static int xx_cols;			/* for Emacs mode */
@@ -378,8 +377,9 @@ x_file_glob(int *flagsp, char *toglob, char ***wordsp)
 	nwords = DOGLOB | DOTILDE | DOMARKDIRS;
 	if (*cp != EOS) {
 		/* probably a $FOO expansion */
-		nwords = DOKEEPQUOTE;
-		*flagsp |= XCF_IS_SUBST | XCF_IS_NOSPACE;
+		*flagsp |= XCF_IS_NOSPACE;
+		/* this always results in at most one match */
+		nwords = DOKEEPQCHAR;
 	}
 	expand(yylval.cp, &w, nwords);
 	XPput(w, NULL);
@@ -601,18 +601,23 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 		/*
 		 * If the pathname contains a wildcard (an unquoted '*',
 		 * '?', or '[') or an extglob, then it is globbed based
-		 * on that value (i.e., without the appended '*').
+		 * on that value (i.e., without the appended '*'). Same
+		 * for parameter substitutions (as in “cat $HOME/.ss↹”)
+		 * without appending a trailing space (LP: #710539), as
+		 * well as for “~foo” (but not “~foo/”).
 		 */
 		for (s = toglob; *s; s++) {
 			if (*s == '\\' && s[1])
 				s++;
 			else if (*s == '?' || *s == '*' || *s == '[' ||
-			    /* also skip this for variable expansion */
 			    *s == '$' ||
 			    /* ?() *() +() @() !() but two already checked */
 			    (s[1] == '(' /*)*/ &&
 			    (*s == '+' || *s == '@' || *s == '!'))) {
-				/* just expand based on the extglob */
+				/*
+				 * just expand based on the extglob
+				 * or parameter
+				 */
 				goto dont_add_glob;
 			}
 		}
@@ -807,20 +812,24 @@ glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
 static int
 x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 {
+	char ch;
 	size_t add = 0, wlen = len;
 	const char *ifs = str_val(local("IFS", 0));
 	int rval = 0;
 
-	while (wlen - add > 0)
-		if (vstrchr("\"#$&'()*:;<=>?[\\`{|}", s[add]) ||
-		    vstrchr(ifs, s[add])) {
+	while (wlen - add > 0) {
+		ch = s[add];
+		if (vstrchr("\"#$&'()*:;<=>?[\\`{|}", ch) ||
+		    ch == QCHAR || vstrchr(ifs, ch)) {
 			if (putbuf_func(s, add) != 0) {
 				rval = -1;
 				break;
 			}
-			putbuf_func(s[add] == '\n' ? "'" : "\\", 1);
+			putbuf_func(ch == '\n' ? "'" : "\\", 1);
+			if (ch == QCHAR)
+				++add;
 			putbuf_func(&s[add], 1);
-			if (s[add] == '\n')
+			if (ch == '\n')
 				putbuf_func("'", 1);
 
 			add++;
@@ -829,6 +838,7 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 			add = 0;
 		} else
 			++add;
+	}
 	if (wlen > 0 && rval == 0)
 		rval = putbuf_func(s, wlen);
 
@@ -2748,17 +2758,33 @@ do_complete(
 	}
 	olen = end - start;
 	nlen = x_longest_prefix(nwords, words);
-	if (nwords == 1 || (flags & XCF_IS_SUBST)) {
+	if (nwords == 1) {
 		/*
-		 * always complete the expansion of parameter and
-		 * homedir substitution as well as single matches
+		 * always complete single matches;
+		 * any expansion of parameter substitution
+		 * is always at most one result, too
 		 */
 		completed = true;
 	} else {
 		char *unescaped;
 
-		/* make a copy of the original string part and... */
+		/* make a copy of the original string part */
 		strndupx(unescaped, xbuf + start, olen, ATEMP);
+		if (*unescaped == '~') {
+			/*
+			 * do some tilde expansion; we know at this
+			 * point (by means of having nwords > 1) that
+			 * the string looke like "~foo/bar"
+			 */
+			char *cp, *dp;
+
+			cp = ucstrchr(unescaped + 1, '/');
+			*cp++ = 0;
+			if ((dp = tilde(unescaped + 1))) {
+				/* got a match */
+			}
+		}
+
 		/* ... convert it from backslash-escaped via QCHAR-escaped... */
 		x_glob_hlp_add_qchar(unescaped);
 		/* ... to unescaped, for comparison with the matches */
@@ -2786,10 +2812,7 @@ do_complete(
 		xcp = xbuf + start;
 		xep -= olen;
 		memmove(xcp, xcp + olen, xep - xcp + 1);
-		if (flags & XCF_IS_SUBST)
-			x_do_ins(words[0], nlen);
-		else
-			x_escape(words[0], nlen, x_do_ins);
+		x_escape(words[0], nlen, x_do_ins);
 	}
 	x_adjust();
 	/*

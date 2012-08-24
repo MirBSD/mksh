@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.126 2012/08/24 20:05:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.127 2012/08/24 20:57:45 tg Exp $");
 
 /*
  * string expansion
@@ -63,7 +63,6 @@ static char *trimsub(char *, char *, int);
 static void glob(char *, XPtrV *, bool);
 static void globit(XString *, char **, char *, XPtrV *, int);
 static const char *maybe_expand_tilde(const char *, XString *, char **, int);
-static char *tilde(char *);
 #ifndef MKSH_NOPWNAM
 static char *homedir(char *);
 #endif
@@ -1012,8 +1011,8 @@ expand(const char *cp,	/* input word */
 			else {
 				/* undo temporary */
 				quote &= ~2;
-				if (f & DOKEEPQUOTE)
-					*dp++ = '\\';
+				if (f & DOKEEPQCHAR)
+					*dp++ = QCHAR;
 			}
 
 			if (make_magic) {
@@ -1642,7 +1641,7 @@ maybe_expand_tilde(const char *p, XString *dsp, char **dpp, int isassign)
  * based on a version by Arnold Robbins
  */
 
-static char *
+char *
 tilde(char *cp)
 {
 	char *dp = null;
