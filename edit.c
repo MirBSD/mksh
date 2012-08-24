@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.246 2012/08/24 19:02:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.247 2012/08/24 19:14:56 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -370,6 +370,7 @@ x_file_glob(int flags MKSH_A_UNUSED, char *toglob, char ***wordsp)
 		return (0);
 	}
 	source = sold;
+	afree(s, ATEMP);
 	XPinit(w, 32);
 	expand(yylval.cp, &w, DOGLOB | DOTILDE | DOMARKDIRS);
 	XPput(w, NULL);
