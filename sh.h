@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.579 2012/08/24 19:02:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.580 2012/08/24 19:09:10 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/08/17"
 
@@ -959,15 +959,16 @@ EXTERN mksh_ari_t x_lins E_INIT(24);	/* tty lines */
 
 /* Determine the location of the system (common) profile */
 
-/* This is deliberately not configurable via CPPFLAGS */
+#ifndef MKSH_DEFAULT_PROFILEDIR
 #if defined(ANDROID)
-#define MKSH_ETC_LOCATION	"/system/etc"
+#define MKSH_DEFAULT_PROFILEDIR	"/system/etc"
 #else
-#define MKSH_ETC_LOCATION	"/etc"
+#define MKSH_DEFAULT_PROFILEDIR	"/etc"
+#endif
 #endif
 
-#define MKSH_SYSTEM_PROFILE	MKSH_ETC_LOCATION "/profile"
-#define MKSH_SUID_PROFILE	MKSH_ETC_LOCATION "/suid_profile"
+#define MKSH_SYSTEM_PROFILE	MKSH_DEFAULT_PROFILEDIR "/profile"
+#define MKSH_SUID_PROFILE	MKSH_DEFAULT_PROFILEDIR "/suid_profile"
 
 
 /* Used by v_evaluate() and setstr() to control action when error occurs */

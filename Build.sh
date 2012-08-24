@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.580 2012/08/03 18:16:43 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.581 2012/08/24 19:09:09 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1487,7 +1487,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.580 2012/08/03 18:16:43 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.581 2012/08/24 19:09:09 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2272,6 +2272,7 @@ MKSH_CLRTOEOL_STRING		"\033[K"
 MKSH_CLS_STRING			"\033[;H\033[J"
 MKSH_CONSERVATIVE_FDS		fd 0-9 for scripts, shell only up to 31
 MKSH_DEFAULT_EXECSHELL		"/bin/sh" (do not change)
+MKSH_DEFAULT_PROFILEDIR		"/etc" (do not change)
 MKSH_DEFAULT_TMPDIR		"/tmp" (do not change)
 MKSH_DISABLE_DEPRECATED		disable code paths scheduled for later removal
 MKSH_DISABLE_TTY_WARNING	shut up warning about ctty if OS cant be fixed
