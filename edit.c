@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.249 2012/08/24 20:57:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.250 2012/08/24 21:15:40 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -379,7 +379,7 @@ x_file_glob(int *flagsp, char *toglob, char ***wordsp)
 		/* probably a $FOO expansion */
 		*flagsp |= XCF_IS_NOSPACE;
 		/* this always results in at most one match */
-		nwords = DOKEEPQCHAR;
+		nwords = 0;
 	}
 	expand(yylval.cp, &w, nwords);
 	XPput(w, NULL);
@@ -812,24 +812,20 @@ glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
 static int
 x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 {
-	char ch;
 	size_t add = 0, wlen = len;
 	const char *ifs = str_val(local("IFS", 0));
 	int rval = 0;
 
-	while (wlen - add > 0) {
-		ch = s[add];
-		if (vstrchr("\"#$&'()*:;<=>?[\\`{|}", ch) ||
-		    ch == QCHAR || vstrchr(ifs, ch)) {
+	while (wlen - add > 0)
+		if (vstrchr("\"#$&'()*:;<=>?[\\`{|}", s[add]) ||
+		    vstrchr(ifs, s[add])) {
 			if (putbuf_func(s, add) != 0) {
 				rval = -1;
 				break;
 			}
-			putbuf_func(ch == '\n' ? "'" : "\\", 1);
-			if (ch == QCHAR)
-				++add;
+			putbuf_func(s[add] == '\n' ? "'" : "\\", 1);
 			putbuf_func(&s[add], 1);
-			if (ch == '\n')
+			if (s[add] == '\n')
 				putbuf_func("'", 1);
 
 			add++;
@@ -838,7 +834,6 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 			add = 0;
 		} else
 			++add;
-	}
 	if (wlen > 0 && rval == 0)
 		rval = putbuf_func(s, wlen);
 
@@ -2774,15 +2769,16 @@ do_complete(
 			/*
 			 * do some tilde expansion; we know at this
 			 * point (by means of having nwords > 1) that
-			 * the string looke like "~foo/bar"
+			 * the string looks like "~foo/bar" and that
+			 * the tilde resolves
 			 */
-			char *cp, *dp;
+			char *cp;
 
 			cp = ucstrchr(unescaped + 1, '/');
 			*cp++ = 0;
-			if ((dp = tilde(unescaped + 1))) {
-				/* got a match */
-			}
+			cp = shf_smprintf("%s/%s", tilde(unescaped + 1), cp);
+			afree(unescaped, ATEMP);
+			unescaped = cp;
 		}
 
 		/* ... convert it from backslash-escaped via QCHAR-escaped... */
