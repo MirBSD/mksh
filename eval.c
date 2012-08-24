@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.124 2012/08/17 18:34:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.125 2012/08/24 19:02:57 tg Exp $");
 
 /*
  * string expansion
@@ -60,7 +60,7 @@ typedef struct Expand {
 static int varsub(Expand *, const char *, const char *, int *, int *);
 static int comsub(Expand *, const char *);
 static char *trimsub(char *, char *, int);
-static void glob(char *, XPtrV *, int);
+static void glob(char *, XPtrV *, bool);
 static void globit(XString *, char **, char *, XPtrV *, int);
 static const char *maybe_expand_tilde(const char *, XString *, char **, int);
 static char *tilde(char *);
@@ -895,7 +895,7 @@ expand(const char *cp,	/* input word */
 					    p + Xlength(ds, (dp - 1)),
 					    fdo | (f & DOMARKDIRS));
 				else if (fdo & DOGLOB)
-					glob(p, wp, f & DOMARKDIRS);
+					glob(p, wp, tobool(f & DOMARKDIRS));
 				else if ((f & DOPAT) || !(fdo & DOMAGIC))
 					XPput(*wp, p);
 				else
@@ -1399,7 +1399,7 @@ trimsub(char *str, char *pat, int how)
 
 /* XXX cp not const 'cause slashes are temporarily replaced with NULs... */
 static void
-glob(char *cp, XPtrV *wp, int markdirs)
+glob(char *cp, XPtrV *wp, bool markdirs)
 {
 	int oldsize = XPsize(*wp);
 
@@ -1420,7 +1420,7 @@ glob(char *cp, XPtrV *wp, int markdirs)
  * the number of matches found.
  */
 int
-glob_str(char *cp, XPtrV *wp, int markdirs)
+glob_str(char *cp, XPtrV *wp, bool markdirs)
 {
 	int oldsize = XPsize(*wp);
 	XString xs;
@@ -1720,7 +1720,7 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 		 * expansion. }
 		 */
 		if (fdo & DOGLOB)
-			glob(start, wp, fdo & DOMARKDIRS);
+			glob(start, wp, tobool(fdo & DOMARKDIRS));
 		else
 			XPput(*wp, debunk(start, start, end - start));
 		return;
