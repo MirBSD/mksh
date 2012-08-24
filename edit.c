@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.250 2012/08/24 21:15:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.251 2012/08/24 21:33:49 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2774,7 +2774,7 @@ do_complete(
 			 */
 			char *cp;
 
-			cp = ucstrchr(unescaped + 1, '/');
+			cp = strchr(unescaped + 1, '/');
 			*cp++ = 0;
 			cp = shf_smprintf("%s/%s", tilde(unescaped + 1), cp);
 			afree(unescaped, ATEMP);
