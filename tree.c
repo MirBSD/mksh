@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.61 2012/06/28 20:17:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.61.2.1 2012/09/03 19:11:15 tg Exp $");
 
 #define INDENT	8
 
@@ -53,6 +53,25 @@ ptree(struct op *t, int indent, struct shf *shf)
 		return;
 	switch (t->type) {
 	case TCOM:
+		prevent_semicolon = false;
+		/*
+		 * special-case 'var=<<EOF' (rough; see
+		 * exec.c:execute() for full code)
+		 */
+		if (
+		    /* we have zero arguments, i.e. no programme to run */
+		    t->args[0] == NULL &&
+		    /* we have exactly one variable assignment */
+		    t->vars[0] != NULL && t->vars[1] == NULL &&
+		    /* we have exactly one I/O redirection */
+		    t->ioact != NULL && t->ioact[0] != NULL &&
+		    t->ioact[1] == NULL &&
+		    /* of type "here document" (or "here string") */
+		    (t->ioact[0]->flag & IOTYPE) == IOHERE) {
+			fptreef(shf, indent, "%S", t->vars[0]);
+			break;
+		}
+
 		if (t->vars) {
 			w = (const char **)t->vars;
 			while (*w)
@@ -65,7 +84,6 @@ ptree(struct op *t, int indent, struct shf *shf)
 				fptreef(shf, indent, "%S ", *w++);
 		} else
 			shf_puts("#no-args# ", shf);
-		prevent_semicolon = false;
 		break;
 	case TEXEC:
 		t = t->left;
@@ -216,8 +234,10 @@ ptree(struct op *t, int indent, struct shf *shf)
 		 * often leads to an extra blank line, but it's not
 		 * worth worrying about)
 		 */
-		if (need_nl)
+		if (need_nl) {
 			shf_putc('\n', shf);
+			prevent_semicolon = true;
+		}
 	}
 }
 
@@ -258,8 +278,8 @@ pioact(struct shf *shf, int indent, struct ioword *iop)
 	/* name/delim are NULL when printing syntax errors */
 	if (type == IOHERE) {
 		if (iop->delim)
-			fptreef(shf, indent, "%S ", iop->delim);
-		else
+			wdvarput(shf, iop->delim, 0, WDS_TPUTS);
+		if (iop->flag & IOHERESTR)
 			shf_putc(' ', shf);
 	} else if (iop->name)
 		fptreef(shf, indent, (iop->flag & IONAMEXP) ? "%s " : "%S ",
