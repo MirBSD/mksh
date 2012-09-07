@@ -1,4 +1,4 @@
-/*	$OpenBSD: main.c,v 1.47 2011/09/07 11:33:25 otto Exp $	*/
+/*	$OpenBSD: main.c,v 1.50 2012/09/06 18:04:34 millert Exp $ */
 /*	$OpenBSD: tty.c,v 1.9 2006/03/14 22:08:01 deraadt Exp $	*/
 /*	$OpenBSD: io.c,v 1.22 2006/03/17 16:30:13 millert Exp $	*/
 /*	$OpenBSD: table.c,v 1.15 2012/02/19 07:52:30 otto Exp $	*/
@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.226 2012/07/22 15:56:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.227 2012/09/07 21:02:43 tg Exp $");
 
 extern char **environ;
 
@@ -537,8 +537,16 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		l->argv[0] = ccp;
 	} else {
 		l->argc = argc - argi;
-		l->argv = &argv[argi - 1];
+		/*
+		 * allocate a new array because otherwise, when we modify
+		 * it in-place, ps(1) output changes; the meaning of argc
+		 * here is slightly different as it excludes kshname, and
+		 * we add a trailing NULL sentinel as well
+		 */
+		l->argv = alloc2(l->argc + 2, sizeof(void *), APERM);
 		l->argv[0] = kshname;
+		memcpy(&l->argv[1], &argv[argi], l->argc * sizeof(void *));
+		l->argv[l->argc + 1] = NULL;
 		getopts_reset(1);
 	}
 
