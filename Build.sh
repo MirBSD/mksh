@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.581 2012/08/24 19:09:09 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.582 2012/09/18 14:18:59 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -27,6 +27,10 @@ srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.581 2012/08/24 19:09:09 tg Exp $'
 
 LC_ALL=C
 export LC_ALL
+
+case $ZSH_VERSION:$VERSION in
+:zsh*) ZSH_VERSION=2 ;;
+esac
 
 if test -n "${ZSH_VERSION+x}" && (emulate sh) >/dev/null 2>&1; then
 	emulate sh
@@ -1487,7 +1491,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.581 2012/08/24 19:09:09 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.582 2012/09/18 14:18:59 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
