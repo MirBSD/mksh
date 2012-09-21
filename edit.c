@@ -1,4 +1,4 @@
-/*	$OpenBSD: edit.c,v 1.34 2010/05/20 01:13:07 fgsch Exp $	*/
+/*	$OpenBSD: edit.c,v 1.35 2012/09/10 01:25:30 tedu Exp $	*/
 /*	$OpenBSD: edit.h,v 1.9 2011/05/30 17:14:35 martynas Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.44 2011/09/05 04:50:33 marco Exp $	*/
 /*	$OpenBSD: vi.c,v 1.26 2009/06/29 22:50:19 martynas Exp $	*/
@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.251 2012/08/24 21:33:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.252 2012/09/21 17:20:20 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
