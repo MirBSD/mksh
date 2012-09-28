@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.583 2012/09/27 18:23:43 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.584 2012/09/28 18:57:49 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1492,7 +1492,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.583 2012/09/27 18:23:43 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.584 2012/09/28 18:57:49 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1767,7 +1767,8 @@ ac_testn compile_time_asserts_$$ '' 'whether compile-time assertions pass' <<-'E
 /* this one should be defined by the standard */
 cta(char_is_1_char, (sizeof(char) == 1) && (sizeof(signed char) == 1) &&
     (sizeof(unsigned char) == 1));
-cta(char_is_8_bits, (CHAR_BIT) == 8);
+cta(char_is_8_bits, ((CHAR_BIT) == 8) && ((int)(unsigned char)0xFF == 0xFF) &&
+    ((int)(unsigned char)0x100 == 0) && ((int)(unsigned char)(int)-1 == 0xFF));
 /* the next assertion is probably not really needed */
 cta(short_is_2_char, sizeof(short) == 2);
 cta(short_size_no_matter_of_signedness, sizeof(short) == sizeof(unsigned short));
