@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.587 2012/09/21 17:20:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.588 2012/10/03 15:13:34 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/09/07"
 
@@ -1644,8 +1644,8 @@ const char *builtin(const char *, int (*)(const char **));
 struct tbl *findcom(const char *, int);
 void flushcom(bool);
 const char *search_path(const char *, const char *, int, int *);
-int pr_menu(const char * const *);
-int pr_list(char * const *);
+void pr_menu(const char * const *);
+void pr_list(char * const *);
 /* expr.c */
 int evaluate(const char *, mksh_ari_t *, int, bool);
 int v_evaluate(struct tbl *, const char *, volatile int, bool);
@@ -1854,8 +1854,8 @@ void ksh_getopt_reset(Getopt *, int);
 int ksh_getopt(const char **, Getopt *, const char *);
 void print_value_quoted(struct shf *, const char *);
 char *quote_value(const char *);
-void print_columns(struct shf *, int,
-    char *(*)(char *, size_t, int, const void *),
+void print_columns(struct shf *, unsigned int,
+    char *(*)(char *, size_t, unsigned int, const void *),
     const void *, size_t, size_t, bool);
 void strip_nuls(char *, int);
 ssize_t blocking_read(int, char *, size_t)

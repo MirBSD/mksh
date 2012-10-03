@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.197 2012/07/30 21:37:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.198 2012/10/03 15:13:33 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -155,12 +155,12 @@ struct options_info {
 	int opts[NELEM(options)];
 };
 
-static char *options_fmt_entry(char *, size_t, int, const void *);
+static char *options_fmt_entry(char *, size_t, unsigned int, const void *);
 static void printoptions(bool);
 
 /* format a single select menu item */
 static char *
-options_fmt_entry(char *buf, size_t buflen, int i, const void *arg)
+options_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 {
 	const struct options_info *oi = (const struct options_info *)arg;
 
@@ -176,7 +176,7 @@ printoptions(bool verbose)
 	size_t i = 0;
 
 	if (verbose) {
-		ssize_t n = 0, len, octs = 0;
+		size_t n = 0, len, octs = 0;
 		struct options_info oi;
 
 		/* verbose version */
@@ -190,8 +190,8 @@ printoptions(bool verbose)
 				if (len > octs)
 					octs = len;
 				len = utf_mbswidth(options[i].name);
-				if (len > oi.opt_width)
-					oi.opt_width = len;
+				if ((int)len > oi.opt_width)
+					oi.opt_width = (int)len;
 			}
 			++i;
 		}
@@ -1158,29 +1158,32 @@ print_value_quoted(struct shf *shf, const char *s)
  * the i-th element
  */
 void
-print_columns(struct shf *shf, int n,
-    char *(*func)(char *, size_t, int, const void *),
+print_columns(struct shf *shf, unsigned int n,
+    char *(*func)(char *, size_t, unsigned int, const void *),
     const void *arg, size_t max_oct, size_t max_colz, bool prefcol)
 {
-	int i, r, c, rows, cols, nspace, max_col;
+	unsigned int i, r, c, rows, cols, nspace, max_col;
 	char *str;
 
-	if (n <= 0) {
+	if (!n)
+		return;
+
+	if (max_colz > 2147483646) {
 #ifndef MKSH_SMALL
-		internal_warningf("print_columns called with n=%d <= 0", n);
+		internal_warningf("print_columns called with %s=%zu >= INT_MAX",
+		    "max_col", max_colz);
 #endif
 		return;
 	}
+	max_col = (unsigned int)max_colz;
 
-	if (max_colz > 2147483647) {
+	if (max_oct > 2147483646) {
 #ifndef MKSH_SMALL
-		internal_warningf("print_columns called with max_col=%zu > INT_MAX",
-		    max_colz);
+		internal_warningf("print_columns called with %s=%zu >= INT_MAX",
+		    "max_oct", max_oct);
 #endif
 		return;
 	}
-	max_col = (int)max_colz;
-
 	++max_oct;
 	str = alloc(max_oct, ATEMP);
 

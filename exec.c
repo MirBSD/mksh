@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.99 2012/06/24 20:05:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.100 2012/10/03 15:13:30 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -40,6 +40,9 @@ static Test_op dbteste_isa(Test_env *, Test_meta);
 static const char *dbteste_getopnd(Test_env *, Test_op, bool);
 static void dbteste_error(Test_env *, int, const char *);
 static int search_access(const char *, int);
+/* XXX: horrible kludge to fit within the framework */
+static char *plain_fmt_entry(char *, size_t, unsigned int, const void *);
+static char *select_fmt_entry(char *, size_t, unsigned int, const void *);
 
 /*
  * execute command tree
@@ -1529,7 +1532,7 @@ do_selectargs(const char **ap, bool print_menu)
 			getn(s, &i);
 			return ((i >= 1 && i <= argct) ? ap[i - 1] : null);
 		}
-		print_menu = 1;
+		print_menu = true;
 	}
 }
 
@@ -1538,16 +1541,14 @@ struct select_menu_info {
 	int num_width;
 };
 
-static char *select_fmt_entry(char *, size_t, int, const void *);
-
 /* format a single select menu item */
 static char *
-select_fmt_entry(char *buf, size_t buflen, int i, const void *arg)
+select_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 {
 	const struct select_menu_info *smi =
 	    (const struct select_menu_info *)arg;
 
-	shf_snprintf(buf, buflen, "%*d) %s",
+	shf_snprintf(buf, buflen, "%*u) %s",
 	    smi->num_width, i + 1, smi->args[i]);
 	return (buf);
 }
@@ -1555,13 +1556,13 @@ select_fmt_entry(char *buf, size_t buflen, int i, const void *arg)
 /*
  *	print a select style menu
  */
-int
+void
 pr_menu(const char * const *ap)
 {
 	struct select_menu_info smi;
 	const char * const *pp;
 	size_t acols = 0, aocts = 0, i;
-	int n;
+	unsigned int n;
 
 	/*
 	 * width/column calculations were done once and saved, but this
@@ -1593,25 +1594,20 @@ pr_menu(const char * const *ap)
 	print_columns(shl_out, n, select_fmt_entry, (void *)&smi,
 	    smi.num_width + 2 + aocts, smi.num_width + 2 + acols,
 	    true);
-
-	return (n);
 }
 
-/* XXX: horrible kludge to fit within the framework */
-static char *plain_fmt_entry(char *, size_t, int, const void *);
-
 static char *
-plain_fmt_entry(char *buf, size_t buflen, int i, const void *arg)
+plain_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 {
 	strlcpy(buf, ((const char * const *)arg)[i], buflen);
 	return (buf);
 }
 
-int
+void
 pr_list(char * const *ap)
 {
 	size_t acols = 0, aocts = 0, i;
-	int n;
+	unsigned int n;
 	char * const *pp;
 
 	for (n = 0, pp = ap; *pp; n++, pp++) {
@@ -1625,8 +1621,6 @@ pr_list(char * const *ap)
 
 	print_columns(shl_out, n, plain_fmt_entry, (const void *)ap,
 	    aocts, acols, false);
-
-	return (n);
 }
 
 /*
