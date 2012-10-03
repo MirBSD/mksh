@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.252 2012/09/21 17:20:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.253 2012/10/03 15:50:29 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -242,7 +242,7 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
 {
 	bool use_copy = false;
 	int prefix_len;
-	XPtrV l = { NULL, NULL, NULL };
+	XPtrV l = { NULL, 0, 0 };
 
 	/*
 	 * Check if all matches are in the same directory (in this
@@ -439,7 +439,7 @@ static int
 x_command_glob(int flags, char *toglob, char ***wordsp)
 {
 	char *pat, *fpath;
-	int nwords;
+	size_t nwords;
 	XPtrV w;
 	struct block *l;
 
@@ -470,7 +470,7 @@ x_command_glob(int flags, char *toglob, char ***wordsp)
 		/* Sort by basename, then path order */
 		struct path_order_info *info, *last_info = NULL;
 		char **words = (char **)XPptrv(w);
-		int i, path_order = 0;
+		size_t i, path_order = 0;
 
 		info = (struct path_order_info *)
 		    alloc2(nwords, sizeof(struct path_order_info), ATEMP);
@@ -492,7 +492,7 @@ x_command_glob(int flags, char *toglob, char ***wordsp)
 	} else {
 		/* Sort and remove duplicate entries */
 		char **words = (char **)XPptrv(w);
-		int i, j;
+		size_t i, j;
 
 		qsort(words, nwords, sizeof(void *), xstrcmp);
 		for (i = j = 0; i < nwords - 1; i++) {
@@ -502,8 +502,7 @@ x_command_glob(int flags, char *toglob, char ***wordsp)
 				afree(words[i], ATEMP);
 		}
 		words[j++] = words[i];
-		nwords = j;
-		w.cur = (void **)&words[j];
+		w.len = nwords = j;
 	}
 
 	XPput(w, NULL);
@@ -796,7 +795,7 @@ glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
 			} else
 				afree(words[i], ATEMP);
 		}
-		wp->cur = (void **)&words[j];
+		wp->len = j;
 
 		if (!*sp++)
 			break;

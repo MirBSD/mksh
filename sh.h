@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.588 2012/10/03 15:13:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.589 2012/10/03 15:50:31 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/09/07"
 
@@ -1413,35 +1413,38 @@ char *Xcheck_grow(XString *, const char *, size_t);
  * expandable vector of generic pointers
  */
 
-typedef struct XPtrV {
-	void **cur;		/* next avail pointer */
-	void **beg, **end;	/* begin, end of vector */
+typedef struct {
+	/* begin of allocated area */
+	void **beg;
+	/* currently used number of entries */
+	size_t len;
+	/* allocated number of entries */
+	size_t siz;
 } XPtrV;
 
-#define XPinit(x, n) do {					\
-	void **XPinit_vp;					\
-	XPinit_vp = alloc2((n), sizeof(void *), ATEMP);		\
-	(x).cur = (x).beg = XPinit_vp;				\
-	(x).end = XPinit_vp + (n);				\
-} while (/* CONSTCOND */ 0)
+#define XPinit(x, n)	do {					\
+	(x).siz = (n);						\
+	(x).len = 0;						\
+	(x).beg = alloc2((x).siz, sizeof(void *), ATEMP);	\
+} while (/* CONSTCOND */ 0)					\
 
-#define XPput(x, p) do {					\
-	if ((x).cur >= (x).end) {				\
-		size_t n = XPsize(x);				\
-		(x).beg = aresize2((x).beg,			\
-		    n, 2 * sizeof(void *), ATEMP);		\
-		(x).cur = (x).beg + n;				\
-		(x).end = (x).cur + n;				\
+#define XPput(x, p)	do {					\
+	if ((x).len == (x).siz) {				\
+		(x).beg = aresize2((x).beg, (x).siz,		\
+		    2 * sizeof(void *), ATEMP);			\
+		(x).siz <<= 1;					\
 	}							\
-	*(x).cur++ = (p);					\
+	(x).beg[(x).len++] = (p);				\
 } while (/* CONSTCOND */ 0)
 
 #define XPptrv(x)	((x).beg)
-#define XPsize(x)	((x).cur - (x).beg)
+#define XPsize(x)	((x).len)
 #define XPclose(x)	aresize2((x).beg, XPsize(x), sizeof(void *), ATEMP)
 #define XPfree(x)	afree((x).beg, ATEMP)
 
-#define IDENT	64
+/*
+ * Lexer internals
+ */
 
 typedef struct source Source;
 struct source {
@@ -1542,10 +1545,12 @@ typedef union {
 #define	CTRL(x)		((x) == '?' ? 0x7F : (x) & 0x1F)	/* ASCII */
 #define	UNCTRL(x)	((x) ^ 0x40)				/* ASCII */
 
+#define IDENT		64
+
 EXTERN Source *source;		/* yyparse/yylex source */
 EXTERN YYSTYPE yylval;		/* result from yylex */
 EXTERN struct ioword *heres[HERES], **herep;
-EXTERN char ident[IDENT+1];
+EXTERN char ident[IDENT + 1];
 
 EXTERN char **history;		/* saved commands */
 EXTERN char **histptr;		/* last history item */
