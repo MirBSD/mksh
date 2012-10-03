@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.253 2012/10/03 15:50:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.254 2012/10/03 17:24:17 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1378,10 +1378,10 @@ static int
 x_del_char(int c MKSH_A_UNUSED)
 {
 	char *cp, *cp2;
-	ssize_t i = 0;
+	size_t i = 0;
 
 	cp = xcp;
-	while (i < x_arg) {
+	while (i < (size_t)x_arg) {
 		utf_ptradjx(cp, cp2);
 		if (cp2 > xep)
 			break;
@@ -1904,7 +1904,7 @@ x_search_hist(int c)
 		} else if (f == XFUNC_insert) {
 			/* add char to pattern */
 			/* overflow check... */
-			if (p >= &pat[sizeof(pat) - 1]) {
+			if ((size_t)(p - pat) >= sizeof(pat) - 1) {
 				x_e_putc2(7);
 				continue;
 			}
@@ -2498,7 +2498,7 @@ x_bind(const char *a1, const char *a2,
 		char msg[256];
 		const char *c = a1;
 		m1 = msg;
-		while (*c && m1 < (msg + sizeof(msg) - 3))
+		while (*c && (size_t)(m1 - msg) < sizeof(msg) - 3)
 			x_mapout2(*c++, &m1);
 		bi_errorf("%s: %s", "too long key sequence", msg);
 		return (1);
@@ -2584,9 +2584,14 @@ x_init_emacs(void)
 static void
 bind_if_not_bound(int p, int k, int func)
 {
-	/* Has user already bound this key? If so, don't override it */
-	if (x_bound[((p) * X_TABSZ + (k)) / 8] &
-	    (1 << (((p) * X_TABSZ + (k)) % 8)))
+	int t;
+
+	/*
+	 * Has user already bound this key?
+	 * If so, do not override it.
+	 */
+	t = p * X_TABSZ + k;
+	if (x_bound[t >> 3] & (1 << (t & 7)))
 		return;
 
 	x_tab[p][k] = func;
@@ -3544,7 +3549,7 @@ x_vi(char *buf, size_t len)
 	cur_col -= prompt_trunc;
 
 	pprompt(prompt, 0);
-	if (cur_col > x_cols - 3 - MIN_EDIT_SPACE) {
+	if ((mksh_uari_t)cur_col > (mksh_uari_t)x_cols - 3 - MIN_EDIT_SPACE) {
 		prompt_redraw = false;
 		cur_col = 0;
 		x_putc('\n');
@@ -3812,7 +3817,8 @@ vi_hook(int ch)
 			else {
 				locpat[srchlen++] = ch;
 				if (ch < ' ' || ch == 0x7f) {
-					if (es->linelen + 2 > es->cbufsize)
+					if ((size_t)es->linelen + 2 >
+					    (size_t)es->cbufsize)
 						vi_error();
 					es->cbuf[es->linelen++] = '^';
 					es->cbuf[es->linelen++] = ch ^ '@';
@@ -4403,7 +4409,7 @@ vi_cmd(int argcnt, const char *cmd)
 			break;
 		case '_':
 			{
-				int inspace;
+				bool inspace;
 				char *p, *sp;
 
 				if (histnum(-1) < 0)
@@ -4424,12 +4430,12 @@ vi_cmd(int argcnt, const char *cmd)
 					sp = p;
 				} else {
 					sp = p;
-					inspace = 0;
+					inspace = false;
 					while (*p) {
 						if (issp(*p))
-							inspace = 1;
+							inspace = true;
 						else if (inspace) {
-							inspace = 0;
+							inspace = false;
 							sp = p;
 						}
 						p++;
@@ -4444,11 +4450,8 @@ vi_cmd(int argcnt, const char *cmd)
 					argcnt++;
 					p++;
 				}
-				if (putbuf(" ", 1, 0) != 0)
-					argcnt = -1;
-				else if (putbuf(sp, argcnt, 0) != 0)
-					argcnt = -1;
-				if (argcnt < 0) {
+				if (putbuf(" ", 1, 0) != 0 ||
+				    putbuf(sp, argcnt, 0) != 0) {
 					if (es->cursor != 0)
 						es->cursor--;
 					return (-1);

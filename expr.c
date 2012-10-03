@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.59 2012/09/01 23:46:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.60 2012/10/03 17:24:19 tg Exp $");
 
 #if !HAVE_SILENT_IDIVWRAPV
 #if !defined(MKSH_LEGACY_MODE) || HAVE_LONG_32BIT
@@ -153,15 +153,9 @@ struct expr_state {
 };
 
 #define bivui(x, op, y)	(es->natural ?			\
-	(mksh_ari_t)((x)->val.u op (y)->val.u) :	\
-	(mksh_ari_t)((x)->val.i op (y)->val.i)		\
+	(mksh_uari_t)((x)->val.u op (y)->val.u) :	\
+	(mksh_uari_t)((x)->val.i op (y)->val.i)		\
 )
-#define stvui(x, n)	do {			\
-	if (es->natural)			\
-		(x)->val.u = (n);		\
-	else					\
-		(x)->val.i = (n);		\
-} while (/* CONSTCOND */ 0)
 
 enum error_type {
 	ET_UNEXPECTED, ET_BADLIT, ET_RECURSIVE,
@@ -313,7 +307,7 @@ evalexpr(Expr_state *es, int prec)
 {
 	struct tbl *vl, *vr = NULL, *vasn;
 	enum token op;
-	mksh_ari_t res = 0;
+	mksh_uari_t res = 0;
 
 	if (prec == P_PRIMARY) {
 		op = es->tok;
@@ -392,7 +386,7 @@ evalexpr(Expr_state *es, int prec)
 			    vr->val.u == IDIVWRAPV_VR) {
 				/* -2147483648 / -1 = 2147483648 */
 				/* this ^ is really (1 << 31) though */
-				res = (mksh_ari_t)IDIVWRAPV_VL;
+				res = IDIVWRAPV_VL;
 			} else
 #endif
 				res = bivui(vl, /, vr);
@@ -493,23 +487,23 @@ evalexpr(Expr_state *es, int prec)
 			}
 			break;
 		case O_ASN:
-			res = vr->val.i;
+			res = vr->val.u;
 			break;
 		case O_COMMA:
-			res = vr->val.i;
+			res = vr->val.u;
 			break;
 		}
 		if (IS_ASSIGNOP(op)) {
-			stvui(vr, res);
+			vr->val.u = res;
 			if (!es->noassign) {
 				if (vasn->flag & INTEGER)
 					setint_v(vasn, vr, es->arith);
 				else
-					setint(vasn, res);
+					setint(vasn, (mksh_ari_t)res);
 			}
 			vl = vr;
 		} else if (op != O_TERN)
-			stvui(vl, res);
+			vl->val.u = res;
 	}
 	return (vl);
 }

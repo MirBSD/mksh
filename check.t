@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.558 2012/09/07 21:02:40 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.559 2012/10/03 17:24:14 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2012/09/07
+	@(#)MIRBSD KSH R40 2012/10/03
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R40 2012/09/07
+	@(#)LEGACY KSH R40 2012/10/03
 description:
 	Check version of legacy shell.
 stdin:
@@ -353,6 +353,42 @@ stdin:
 expected-stdout:
 	6
 	6,5,3
+---
+name: arith-mandatory
+description:
+	If MKSH_GCC565048 is set when compiling, passing of
+	this test is *mandatory* for a valid mksh executable!
+category: shell:legacy-no
+stdin:
+	typeset -i sari=0
+	typeset -Ui uari=0
+	typeset -i x=0
+	print -r -- $((x++)):$sari=$uari.
+	let --sari --uari
+	print -r -- $((x++)):$sari=$uari.
+	sari=2147483647 uari=2147483647
+	print -r -- $((x++)):$sari=$uari.
+	let ++sari ++uari
+	print -r -- $((x++)):$sari=$uari.
+	let --sari --uari
+	let 'sari *= 2' 'uari *= 2'
+	let ++sari ++uari
+	print -r -- $((x++)):$sari=$uari.
+	let ++sari ++uari
+	print -r -- $((x++)):$sari=$uari.
+	sari=-2147483648 uari=-2147483648
+	print -r -- $((x++)):$sari=$uari.
+	let --sari --uari
+	print -r -- $((x++)):$sari=$uari.
+expected-stdout:
+	0:0=0.
+	1:-1=4294967295.
+	2:2147483647=2147483647.
+	3:-2147483648=2147483648.
+	4:-1=4294967295.
+	5:0=0.
+	6:-2147483648=2147483648.
+	7:2147483647=2147483647.
 ---
 name: arith-unsigned-1
 description:

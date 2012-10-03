@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.167 2012/08/17 18:34:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.168 2012/10/03 17:24:20 tg Exp $");
 
 /*
  * states while lexing word
@@ -1034,17 +1034,17 @@ yylex(int cf)
 	sp = yylval.cp;
 	dp = ident;
 	if ((cf & HEREDELIM) && (sp[1] == '<'))
-		while (dp < ident+IDENT) {
+		while ((dp - ident) < IDENT) {
 			if ((c = *sp++) == CHAR)
 				*dp++ = *sp++;
 			else if ((c != OQUOTE) && (c != CQUOTE))
 				break;
 		}
 	else
-		while (dp < ident+IDENT && (c = *sp++) == CHAR)
+		while ((dp - ident) < IDENT && (c = *sp++) == CHAR)
 			*dp++ = *sp++;
 	/* Make sure the ident array stays '\0' padded */
-	memset(dp, 0, (ident+IDENT) - dp + 1);
+	memset(dp, 0, (ident + IDENT) - dp + 1);
 	if (c != EOS)
 		/* word is not unquoted */
 		*ident = '\0';
@@ -1677,7 +1677,7 @@ arraysub(char **strp)
 	XString ws;
 	char *wp, c;
 	/* we are just past the initial [ */
-	int depth = 1;
+	unsigned int depth = 1;
 
 	Xinit(ws, wp, 32, ATEMP);
 

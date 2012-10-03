@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.100 2012/10/03 15:13:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.101 2012/10/03 17:24:18 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -1653,9 +1653,10 @@ dbteste_isa(Test_env *te, Test_meta meta)
 			char buf[8];
 			char *q = buf;
 
-			for (p = *te->pos.wp;
-			    *p == CHAR && q < &buf[sizeof(buf) - 1]; p += 2)
-				*q++ = p[1];
+			p = *te->pos.wp;
+			while (*p++ == CHAR &&
+			    (size_t)(q - buf) < sizeof(buf) - 1)
+				*q++ = *p++;
 			*q = '\0';
 			ret = test_isop(meta, buf);
 		}

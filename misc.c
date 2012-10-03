@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.198 2012/10/03 15:13:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.199 2012/10/03 17:24:21 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -469,8 +469,10 @@ parse_args(const char **argv,
 int
 getn(const char *s, int *ai)
 {
-	int i, c, rv = 0;
+	int c;
+	unsigned int i, j, k;
 	bool neg = false;
+	int rv = 0;
 
 	do {
 		c = *s++;
@@ -480,22 +482,19 @@ getn(const char *s, int *ai)
 		c = *s++;
 	} else if (c == '+')
 		c = *s++;
-	*ai = i = 0;
+	k = neg ? 2147483648U : 2147483647U;
+	j = i = 0;
 	do {
 		if (!ksh_isdigit(c))
 			goto getn_out;
-		i *= 10;
-		if (i < *ai)
-			/* overflow */
+		if ((j = i * 10 + c - '0') > k)
 			goto getn_out;
-		i += c - '0';
-		*ai = i;
+		i = j;
 	} while ((c = *s++));
 	rv = 1;
 
  getn_out:
-	if (neg)
-		*ai = -*ai;
+	*ai = i == 2147483648U ? -2147483648 : neg ? -(int)i : (int)i;
 	return (rv);
 }
 

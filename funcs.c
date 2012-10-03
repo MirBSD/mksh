@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.225 2012/10/03 16:16:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.226 2012/10/03 17:24:19 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1899,7 +1899,7 @@ c_read(const char **wp)
 		fd_set fdset;
 
 		FD_ZERO(&fdset);
-		FD_SET(fd, &fdset);
+		FD_SET((unsigned int)fd, &fdset);
 		mksh_TIME(tv);
 		timersub(&tvlim, &tv, &tv);
 		if (tv.tv_sec < 0) {
@@ -2315,7 +2315,8 @@ c_exitreturn(const char **wp)
 int
 c_brkcont(const char **wp)
 {
-	int n, quit;
+	unsigned int quit;
+	int n;
 	struct env *ep, *last_ep = NULL;
 	const char *arg;
 
@@ -2332,7 +2333,7 @@ c_brkcont(const char **wp)
 		bi_errorf("%s: %s", arg, "bad value");
 		goto c_brkcont_err;
 	}
-	quit = n;
+	quit = (unsigned int)n;
 
 	/* Stop at E_NONE, E_PARSE, E_FUNC, or E_INCL */
 	for (ep = e; ep && !STOP_BRKCONT(ep->type); ep = ep->oenv)
@@ -2349,7 +2350,7 @@ c_brkcont(const char **wp)
 		 * can. We print a message 'cause it helps in debugging
 		 * scripts, but don't generate an error (ie, keep going).
 		 */
-		if (n == quit) {
+		if ((unsigned int)n == quit) {
 			warningf(true, "%s: %s %s", wp[0], "can't", wp[0]);
 			return (0);
 		}
@@ -2360,8 +2361,8 @@ c_brkcont(const char **wp)
 		 */
 		if (last_ep)
 			last_ep->flags &= ~EF_BRKCONT_PASS;
-		warningf(true, "%s: can only %s %d level(s)",
-		    wp[0], wp[0], n - quit);
+		warningf(true, "%s: can only %s %u level(s)",
+		    wp[0], wp[0], (unsigned int)n - quit);
 	}
 
 	unwind(*wp[0] == 'b' ? LBREAK : LCONTIN);

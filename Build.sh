@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.584 2012/09/28 18:57:49 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.585 2012/10/03 17:24:13 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1492,7 +1492,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.584 2012/09/28 18:57:49 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.585 2012/10/03 17:24:13 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1784,9 +1784,11 @@ cta(long_size_no_matter_of_signedness, sizeof(long) == sizeof(unsigned long));
 cta(ari_is_4_char, sizeof(mksh_ari_t) == 4);
 /* but the next two are; we REQUIRE signed integer wraparound */
 cta(ari_has_31_bit, 0 < (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 1));
+#ifndef MKSH_GCC565048
 cta(ari_sign_32_bit_and_wrap,
     (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 1) >
     (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 2));
+#endif
 /* the next assertion is probably not really needed */
 cta(uari_is_4_char, sizeof(mksh_uari_t) == 4);
 /* but the next three are; we REQUIRE unsigned integer wraparound */
@@ -1807,7 +1809,17 @@ cta(ptrdifft_funcptr_same_size, sizeof(ptrdiff_t) == sizeof(void (*)(void)));
 /* our formatting routines assume this */
 cta(ptr_fits_in_long, sizeof(ptrdiff_t) <= sizeof(long));
 	};
-	int main(void) { return (sizeof(struct ctasserts)); }
+#ifndef MKSH_LEGACY_MODE
+#ifndef MKSH_GCC565048
+#define NUM 22
+#else
+#define NUM 21
+#endif
+#else
+#define NUM 15
+#endif
+char ctasserts_dblcheck[sizeof(struct ctasserts) == NUM ? 1 : -1];
+	int main(void) { return (sizeof(ctasserts_dblcheck)); }
 EOF
 CFLAGS=$save_CFLAGS
 eval test 1 = \$HAVE_COMPILE_TIME_ASSERTS_$$ || exit 1
