@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.101 2012/07/01 15:54:36 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.102 2012/10/14 14:51:08 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -109,3 +109,30 @@ distribution:
 	chmod 0644 ${DESTDIR}/etc/skel/.mkshrc
 
 .include <bsd.prog.mk>
+
+CLEANFILES+=	${MANALL:S/.cat/.ps/}
+CLEANFILES+=	${MAN:S/$/.htm/} ${MAN:S/$/.pdf/}
+CLEANFILES+=	${MAN:S/$/.txt/} ${MAN:S/$/.txt.gz/}
+cats: ${MANALL} ${MANALL:S/.cat/.ps/}
+.if "${MANALL:Nmksh.cat1}" != ""
+.  error Adjust here.
+.endif
+	x=$$(ident ${.CURDIR:Q}/mksh.1 | \
+	    awk '/MirOS:/ { print $$4$$5; }' | \
+	    tr -dc 0-9); (( $${#x} == 14 )) || exit 1; exec \
+	    ${MKSH} ${BSDSRCDIR:Q}/contrib/hosted/tg/ps2pdfmir -c \
+	    -o mksh.1.pdf '[' /Title '(mksh - The MirBSD Korn Shell)' \
+	    /Author '(Thorsten Glaser, The MirOS Project)' \
+	    /Subject '(BSD Reference Manual)' /ModDate "(D:$$x)" \
+	    /Creator '(GNU groff version 1.19.2-3 \(MirPorts\))' \
+	    /Producer '(Artifex Ghostscript 8.54-3 \(MirPorts\))' \
+	    /Keywords '(mksh, ksh, sh)' /DOCINFO pdfmark \
+	    -f mksh.ps1
+	set -e; . ${BSDSRCDIR:Q}/scripts/roff2htm; set_target_absolute; \
+	    for m in ${MANALL}; do \
+		bn=$${m%.*}; ext=$${m##*.cat}; \
+		[[ $$bn != $$m ]]; [[ $$ext != $$m ]]; \
+		col -bx <"$$m" >"$$bn.$$ext.txt"; \
+		rm -f "$$bn.$$ext.txt.gz"; gzip -n9 "$$bn.$$ext.txt"; \
+		do_conversion_verbose "$$bn" "$$ext" "$$m" "$$bn.$$ext.htm"; \
+	done
