@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.102 2012/10/14 14:51:08 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.103 2012/10/14 16:22:49 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -110,8 +110,8 @@ distribution:
 
 .include <bsd.prog.mk>
 
-CLEANFILES+=	${MANALL:S/.cat/.ps/}
-CLEANFILES+=	${MAN:S/$/.htm/} ${MAN:S/$/.pdf/}
+CLEANFILES+=	${MANALL:S/.cat/.ps/} ${MAN:S/$/.pdf/} ${MANALL:S/$/.gz/}
+CLEANFILES+=	${MAN:S/$/.htm/} ${MAN:S/$/.htm.gz/}
 CLEANFILES+=	${MAN:S/$/.txt/} ${MAN:S/$/.txt.gz/}
 cats: ${MANALL} ${MANALL:S/.cat/.ps/}
 .if "${MANALL:Nmksh.cat1}" != ""
@@ -132,7 +132,9 @@ cats: ${MANALL} ${MANALL:S/.cat/.ps/}
 	    for m in ${MANALL}; do \
 		bn=$${m%.*}; ext=$${m##*.cat}; \
 		[[ $$bn != $$m ]]; [[ $$ext != $$m ]]; \
+		gzip -n9 <"$$m" >"$$m.gz"; \
 		col -bx <"$$m" >"$$bn.$$ext.txt"; \
 		rm -f "$$bn.$$ext.txt.gz"; gzip -n9 "$$bn.$$ext.txt"; \
 		do_conversion_verbose "$$bn" "$$ext" "$$m" "$$bn.$$ext.htm"; \
+		rm -f "$$bn.$$ext.htm.gz"; gzip -n9 "$$bn.$$ext.htm"; \
 	done
