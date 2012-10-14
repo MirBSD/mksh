@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.293 2012/08/17 18:34:22 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.294 2012/10/14 14:04:05 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.144 2012/07/08 08:13:20 guenther Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: August 17 2012 $
+.Dd $Mdocdate: October 14 2012 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1814,7 +1814,7 @@ This is different from
 .Nm ksh .
 .It Ev HISTSIZE
 The number of commands normally stored for history.
-The default is 500.
+The default is 2047.
 .It Ev HOME
 The default directory for the
 .Ic cd
