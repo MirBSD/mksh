@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.585 2012/10/03 17:24:13 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.586 2012/10/14 14:02:10 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1492,7 +1492,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.585 2012/10/03 17:24:13 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.586 2012/10/14 14:02:10 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1557,8 +1557,12 @@ EOF
 # Environment: library functions
 #
 ac_test flock <<-'EOF'
+	#include <sys/types.h>
 	#include <fcntl.h>
 	#undef flock
+	#if HAVE_SYS_FILE_H
+	#include <sys/file.h>
+	#endif
 	int main(void) { return (flock(0, LOCK_EX | LOCK_UN)); }
 EOF
 
@@ -1726,6 +1730,9 @@ CC="$CC -c -o $tcfn"; LDFLAGS=; LIBS=
 ac_test '!' flock_decl flock 1 'if flock() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
+	#if HAVE_SYS_FILE_H
+	#include <sys/file.h>
+	#endif
 	long flock(void);		/* this clashes if defined before */
 	int main(void) { return ((int)flock()); }
 EOF
