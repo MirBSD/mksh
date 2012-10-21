@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.230 2012/10/21 21:26:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.231 2012/10/21 21:39:04 tg Exp $");
 
 extern char **environ;
 
@@ -711,7 +711,7 @@ include(const char *name, int argc, const char **argv, int intr_ok)
 			 * intr_ok is set if we are including .profile or $ENV.
 			 * If user ^Cs out, we don't want to kill the shell...
 			 */
-			if (intr_ok && (exstat - 128) != SIGTERM)
+			if (intr_ok && ((exstat & 0xFF) - 128) != SIGTERM)
 				return (1);
 			/* FALLTHROUGH */
 		case LEXIT:
@@ -855,7 +855,7 @@ shell(Source * volatile s, volatile bool toplevel)
 			t->u.evalflags |= DOTCOMEXEC;
 #endif
 		if (!Flag(FNOEXEC) || (s->flags & SF_TTY))
-			exstat = execute(t, 0, NULL);
+			exstat = execute(t, 0, NULL) & 0xFF;
 
 		if (t->type != TEOF && interactive && really_exit)
 			really_exit = false;
@@ -865,7 +865,7 @@ shell(Source * volatile s, volatile bool toplevel)
 	}
 	quitenv(NULL);
 	source = old_source;
-	return (exstat);
+	return (exstat & 0xFF);
 }
 
 /* return to closest error handler or shell(), exit if none found */
@@ -961,7 +961,7 @@ quitenv(struct shf *shf)
 #endif
 			j_exit();
 			if (ep->flags & EF_FAKE_SIGDIE) {
-				int sig = exstat - 128;
+				int sig = (exstat & 0xFF) - 128;
 
 				/*
 				 * ham up our death a bit (AT&T ksh
@@ -980,7 +980,7 @@ quitenv(struct shf *shf)
 		if (shf)
 			shf_close(shf);
 		reclaim();
-		exit(exstat);
+		exit(exstat & 0xFF);
 	}
 	if (shf)
 		shf_close(shf);

@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.126 2012/06/24 19:47:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.127 2012/10/21 21:39:03 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -1224,12 +1224,12 @@ runtrap(Trap *p, bool is_last)
 		/* SIG_DFL */
 		if (p->flags & TF_FATAL) {
 			/* eg, SIGHUP */
-			exstat = 128 + i;
+			exstat = (int)ksh_min(128U + (unsigned)i, 255U);
 			unwind(LLEAVE);
 		}
 		if (p->flags & TF_DFL_INTR) {
 			/* eg, SIGINT, SIGQUIT, SIGTERM, etc. */
-			exstat = 128 + i;
+			exstat = (int)ksh_min(128U + (unsigned)i, 255U);
 			unwind(LINTR);
 		}
 		goto donetrap;
@@ -1244,7 +1244,7 @@ runtrap(Trap *p, bool is_last)
 		p->trap = NULL;
 	}
 	if (trap_exstat == -1)
-		trap_exstat = exstat;
+		trap_exstat = exstat & 0xFF;
 	/*
 	 * Note: trapstr is fully parsed before anything is executed, thus
 	 * no problem with afree(p->trap) in settrap() while still in use.

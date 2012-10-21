@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.226 2012/10/03 17:24:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.227 2012/10/21 21:39:02 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2280,7 +2280,7 @@ c_exitreturn(const char **wp)
 			exstat = 1;
 			warningf(true, "%s: %s", arg, "bad number");
 		} else
-			exstat = n;
+			exstat = n & 0xFF;
 	} else if (trap_exstat != -1)
 		exstat = trap_exstat;
 	if (wp[0][0] == 'r') {

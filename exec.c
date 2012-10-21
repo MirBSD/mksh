@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.102 2012/10/21 21:26:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.103 2012/10/21 21:39:01 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -464,7 +464,7 @@ execute(struct op * volatile t,
 			errorf("%s: %s", s, strerror(rv));
 	}
  Break:
-	exstat = rv;
+	exstat = rv & 0xFF;
 	if (vp_pipest->flag & INT_L) {
 		unset(vp_pipest, 1);
 		vp_pipest->flag = DEFINED | ISSET | INTEGER | RDONLY |
@@ -741,7 +741,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		e->type = E_FUNC;
 		if (!(i = kshsetjmp(e->jbuf))) {
 			/* seems odd to pass XERROK here, but AT&T ksh does */
-			exstat = execute(tp->val.t, flags & XERROK, xerrok);
+			exstat = execute(tp->val.t, flags & XERROK, xerrok) & 0xFF;
 			i = LRETURN;
 		}
 		kshname = old_kshname;
@@ -762,7 +762,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		switch (i) {
 		case LRETURN:
 		case LERROR:
-			rv = exstat;
+			rv = exstat & 0xFF;
 			break;
 		case LINTR:
 		case LEXIT:
@@ -822,7 +822,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	}
  Leave:
 	if (flags & XEXEC) {
-		exstat = rv;
+		exstat = rv & 0xFF;
 		unwind(LLEAVE);
 	}
 	return (rv);

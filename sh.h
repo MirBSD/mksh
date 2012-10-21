@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.593 2012/10/21 21:26:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.594 2012/10/21 21:39:05 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/10/03"
 
@@ -293,6 +293,8 @@ struct rusage {
 #define ksh_toupper(c)	(((c) >= 'a') && ((c) <= 'z') ? (c) - 'a' + 'A' : (c))
 #define ksh_isdash(s)	(((s) != NULL) && ((s)[0] == '-') && ((s)[1] == '\0'))
 #define ksh_isspace(c)	((((c) >= 0x09) && ((c) <= 0x0D)) || ((c) == 0x20))
+#define ksh_min(x,y)	((x) < (y) ? (x) : (y))
+#define ksh_max(x,y)	((x) > (y) ? (x) : (y))
 
 #ifdef MKSH__NO_PATH_MAX
 #undef PATH_MAX
