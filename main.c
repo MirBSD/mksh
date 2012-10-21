@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.228 2012/09/21 17:20:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.229 2012/10/21 17:16:45 tg Exp $");
 
 extern char **environ;
 
@@ -1291,14 +1291,20 @@ struct shf shf_iob[NSHF_IOB];
 void
 initio(void)
 {
+#ifdef DF
+	const char *lfp;
+#endif
+
 	/* force buffer allocation */
 	shf_fdopen(1, SHF_WR, shl_stdout);
 	shf_fdopen(2, SHF_WR, shl_out);
 	shf_fdopen(2, SHF_WR, shl_spare);
 #ifdef DF
-	if ((shl_dbg_fd = open("/tmp/mksh-dbg.txt",
-	    O_WRONLY | O_APPEND | O_CREAT, 0600)) == -1)
-		errorf("cannot open debug output file");
+	if ((lfp = getenv("SDMKSH_PATH")) == NULL)
+		lfp = "/tmp/mksh-dbg.txt";
+
+	if ((shl_dbg_fd = open(lfp, O_WRONLY | O_APPEND | O_CREAT, 0600)) == -1)
+		errorf("cannot open debug output file %s", lfp);
 	if (shl_dbg_fd < FDBASE) {
 		int nfd;
 
@@ -1307,6 +1313,7 @@ initio(void)
 		if ((shl_dbg_fd = nfd) == -1)
 			errorf("cannot dup debug output file");
 	}
+	fcntl(shl_dbg_fd, F_SETFD, FD_CLOEXEC);
 	shf_fdopen(shl_dbg_fd, SHF_WR, shl_dbg);
 	DF("=== open ===");
 #endif
@@ -1773,11 +1780,15 @@ DF(const char *fmt, ...)
 {
 	va_list args;
 	struct timeval tv;
+	mirtime_mjd mjd;
 
 	mksh_lockfd(shl_dbg_fd);
 	mksh_TIME(tv);
-	shf_fprintf(shl_dbg, "[%d.%06d:%d] ", (int)tv.tv_sec, (int)tv.tv_usec,
-	    (int)getpid());
+	timet2mjd(&mjd, tv.tv_sec);
+	shf_fprintf(shl_dbg, "[%02u:%02u:%02u (%u) %u.%06u] ",
+	    (unsigned)mjd.sec / 3600, ((unsigned)mjd.sec / 60) % 60,
+	    (unsigned)mjd.sec % 60, (unsigned)getpid(),
+	    (unsigned)tv.tv_sec, (unsigned)tv.tv_usec);
 	va_start(args, fmt);
 	shf_vfprintf(shl_dbg, fmt, args);
 	va_end(args);

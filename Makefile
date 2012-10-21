@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.103 2012/10/14 16:22:49 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.104 2012/10/21 17:16:44 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -18,8 +18,13 @@
 # of dealing in the work, even if advised of the possibility of such
 # damage or existence of a defect, except proven that it results out
 # of said person's immediate fault when using the work as intended.
-#-
-# use CPPFLAGS=-DDEBUG __CRAZY=Yes to check for certain more stuff
+
+.ifmake d
+__CRAZY=	Yes
+MKC_DEBG=	cpp
+DEBUGFILE=	Yes
+NOMAN=		Yes
+.endif
 
 .include <bsd.own.mk>
 
@@ -138,3 +143,15 @@ cats: ${MANALL} ${MANALL:S/.cat/.ps/}
 		do_conversion_verbose "$$bn" "$$ext" "$$m" "$$bn.$$ext.htm"; \
 		rm -f "$$bn.$$ext.htm.gz"; gzip -n9 "$$bn.$$ext.htm"; \
 	done
+
+.ifmake d
+.  ifmake obj || depend || all || install || regress || test-build
+d:
+.  else
+d: all
+.  endif
+.endif
+
+dr:
+	p=$$(realpath ${PROG:Q}) && cd ${.CURDIR:Q} && exec ${MKSH} \
+	    ${BSDSRCDIR:Q}/contrib/hosted/tg/sdmksh "$$p"
