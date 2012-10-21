@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.560 2012/10/21 17:38:22 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.561 2012/10/21 21:55:01 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2012/10/03
+	@(#)MIRBSD KSH R40 2012/10/21
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R40 2012/10/03
+	@(#)LEGACY KSH R40 2012/10/21
 description:
 	Check version of legacy shell.
 stdin:
@@ -5748,19 +5748,29 @@ name: exit-eval-1
 description:
 	Check eval vs substitution exit codes (ksh93 alike)
 stdin:
+	(exit 12)
 	eval $(false)
 	echo A $?
+	(exit 12)
 	eval ' $(false)'
 	echo B $?
+	(exit 12)
 	eval " $(false)"
 	echo C $?
+	(exit 12)
 	eval "eval $(false)"
 	echo D $?
+	(exit 12)
 	eval 'eval '"$(false)"
 	echo E $?
 	IFS="$IFS:"
+	(exit 12)
 	eval $(echo :; false)
 	echo F $?
+	echo -n "G "
+	(exit 12)
+	eval 'echo $?'
+	echo H $?
 expected-stdout:
 	A 0
 	B 1
@@ -5768,6 +5778,8 @@ expected-stdout:
 	D 0
 	E 0
 	F 0
+	G 12
+	H 0
 ---
 name: exit-trap-1
 description:

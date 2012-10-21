@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.227 2012/10/21 21:39:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.228 2012/10/21 21:55:03 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2210,8 +2210,10 @@ c_eval(const char **wp)
 	 *	If there are no arguments, or only null arguments,
 	 *	eval shall return a zero exit status; ...
 	 */
-	/* exstat = subst_exstat; */	/* AT&T ksh88 */
-	exstat = 0;			/* SUSv4 */
+	/* AT&T ksh88: use subst_exstat */
+	/* exstat = subst_exstat; */
+	/* SUSv4: OR with a high value never written otherwise */
+	exstat |= 0x4000;
 
 	savef = Flag(FERREXIT);
 	Flag(FERREXIT) = 0;
@@ -2219,6 +2221,9 @@ c_eval(const char **wp)
 	Flag(FERREXIT) = savef;
 	source = saves;
 	afree(s, ATEMP);
+	if (exstat & 0x4000)
+		/* detect old exstat, use 0 in that case */
+		rv = 0;
 	return (rv);
 }
 
