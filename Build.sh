@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.586 2012/10/14 14:02:10 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.587 2012/10/21 17:38:21 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1492,7 +1492,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.586 2012/10/14 14:02:10 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.587 2012/10/21 17:38:21 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1791,7 +1791,7 @@ cta(long_size_no_matter_of_signedness, sizeof(long) == sizeof(unsigned long));
 cta(ari_is_4_char, sizeof(mksh_ari_t) == 4);
 /* but the next two are; we REQUIRE signed integer wraparound */
 cta(ari_has_31_bit, 0 < (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 1));
-#ifndef MKSH_GCC565048
+#ifndef MKSH_GCC55009
 cta(ari_sign_32_bit_and_wrap,
     (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 1) >
     (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 2));
@@ -1817,7 +1817,7 @@ cta(ptrdifft_funcptr_same_size, sizeof(ptrdiff_t) == sizeof(void (*)(void)));
 cta(ptr_fits_in_long, sizeof(ptrdiff_t) <= sizeof(long));
 	};
 #ifndef MKSH_LEGACY_MODE
-#ifndef MKSH_GCC565048
+#ifndef MKSH_GCC55009
 #define NUM 22
 #else
 #define NUM 21
