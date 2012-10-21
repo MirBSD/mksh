@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.101 2012/10/03 17:24:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.102 2012/10/21 21:26:39 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -605,10 +605,19 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				/* go on, use the builtin */
 				break;
 #endif
+#ifndef MKSH_SMALL
+		} else if (tp->val.f == c_trap) {
+			t->u.evalflags &= ~DOTCOMEXEC;
+			break;
+#endif
 		} else
 			break;
 		tp = findcom(ap[0], fcflags & (FC_BI|FC_FUNC));
 	}
+#ifndef MKSH_SMALL
+	if (t->u.evalflags & DOTCOMEXEC)
+		flags |= XEXEC;
+#endif
 	l_expand = e->loc;
 	if (keepasn_ok && (!ap[0] || (tp && (tp->flag & KEEPASN))))
 		type_flags = 0;

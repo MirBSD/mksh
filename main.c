@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.229 2012/10/21 17:16:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.230 2012/10/21 21:26:40 tg Exp $");
 
 extern char **environ;
 
@@ -464,6 +464,16 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		s = pushs(SSTRINGCMDLINE, ATEMP);
 		if (!(s->start = s->str = argv[argi++]))
 			errorf("%s %s", "-c", "requires an argument");
+#ifndef MKSH_SMALL
+		while (*s->str) {
+			if (*s->str != ' ' && ctype(*s->str, C_QUOTE))
+				break;
+			s->str++;
+		}
+		if (!*s->str)
+			s->flags |= SF_MAYEXEC;
+		s->str = s->start;
+#endif
 #ifdef MKSH_MIDNIGHTBSD01ASH_COMPAT
 		/* compatibility to MidnightBSD 0.1 /bin/sh (kludge) */
 		if (Flag(FSH) && argv[argi] && !strcmp(argv[argi], "--"))
@@ -818,7 +828,9 @@ shell(Source * volatile s, volatile bool toplevel)
 		}
 		t = compile(s, sfirst);
 		sfirst = false;
-		if (t != NULL && t->type == TEOF) {
+		if (!t)
+			goto source_no_tree;
+		if (t->type == TEOF) {
 			if (wastty && Flag(FIGNOREEOF) && --attempts > 0) {
 				shellf("Use 'exit' to leave mksh\n");
 				s->type = SSTDIN;
@@ -838,12 +850,17 @@ shell(Source * volatile s, volatile bool toplevel)
 				break;
 			}
 		}
-		if (t && (!Flag(FNOEXEC) || (s->flags & SF_TTY)))
+#ifndef MKSH_SMALL
+		  else if ((s->flags & SF_MAYEXEC) && t->type == TCOM)
+			t->u.evalflags |= DOTCOMEXEC;
+#endif
+		if (!Flag(FNOEXEC) || (s->flags & SF_TTY))
 			exstat = execute(t, 0, NULL);
 
-		if (t != NULL && t->type != TEOF && interactive && really_exit)
+		if (t->type != TEOF && interactive && really_exit)
 			really_exit = false;
 
+ source_no_tree:
 		reclaim();
 	}
 	quitenv(NULL);
