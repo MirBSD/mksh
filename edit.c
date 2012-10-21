@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.254 2012/10/03 17:24:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.255 2012/10/21 18:33:46 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -77,7 +77,7 @@ static void x_print_expansions(int, char *const *, bool);
 static int x_cf_glob(int *, const char *, int, int, int *, int *, char ***);
 static size_t x_longest_prefix(int, char *const *);
 static void x_glob_hlp_add_qchar(char *);
-static void x_glob_hlp_rem_qchar(char *);
+static char *x_glob_hlp_tilde_and_rem_qchar(char *, bool);
 static int x_basename(const char *, const char *);
 static void x_free_words(int, char **);
 static int x_escape(const char *, size_t, int (*)(const char *, size_t));
@@ -323,12 +323,42 @@ x_glob_hlp_add_qchar(char *cp)
 }
 
 /*
- * Unescape a QCHAR-escaped string
+ * Run tilde expansion on argument string, return the result
+ * after unescaping; if the flag is set, the original string
+ * is freed if changed and assumed backslash-escaped, if not
+ * it is assumed QCHAR-escaped
  */
-static void
-x_glob_hlp_rem_qchar(char *cp)
+static char *
+x_glob_hlp_tilde_and_rem_qchar(char *s, bool magic_flag)
 {
-	char ch, *dp = cp;
+	char ch, *cp, *dp;
+
+	/*
+	 * On the string, check whether we have a tilde expansion,
+	 * and if so, discern "~foo/bar" and "~/baz" from "~blah";
+	 * if we have a directory part (the former), try to expand
+	 */
+	if (*s == '~' && (cp = strchr(s, '/')) != NULL) {
+		/* ok, so split into "~foo"/"bar" or "~"/"baz" */
+		*cp++ = 0;
+		/* try to expand the tilde */
+		if (!(dp = tilde(s + 1))) {
+			/* nope, revert damage */
+			*--cp = '/';
+		} else {
+			/* ok, expand and replace */
+			cp = shf_smprintf("%s/%s", dp, cp);
+			if (magic_flag)
+				afree(s, ATEMP);
+			s = cp;
+		}
+	}
+
+	/* ... convert it from backslash-escaped via QCHAR-escaped... */
+	if (magic_flag)
+		x_glob_hlp_add_qchar(s);
+	/* ... to unescaped, for comparison with the matches */
+	cp = dp = s;
 
 	while ((ch = *cp++)) {
 		if (ch == QCHAR && !(ch = *cp++))
@@ -336,11 +366,12 @@ x_glob_hlp_rem_qchar(char *cp)
 		*dp++ = ch;
 	}
 	*dp = '\0';
+
+	return (s);
 }
 
 /**
  * Do file globbing:
- *	- appends * to (copy of) str if no globbing chars found
  *	- does expansion, checks for no match, etc.
  *	- sets *wordsp to array of matching strings
  *	- returns number of matching strings
@@ -390,8 +421,8 @@ x_file_glob(int *flagsp, char *toglob, char ***wordsp)
 	if (nwords == 1) {
 		struct stat statb;
 
-		/* Drop all QCHAR from toglob for strcmp below */
-		x_glob_hlp_rem_qchar(toglob);
+		/* Expand any tilde and drop all QCHAR for comparison */
+		toglob = x_glob_hlp_tilde_and_rem_qchar(toglob, false);
 
 		/*
 		 * Check if globbing failed (returned glob pattern),
@@ -2769,26 +2800,10 @@ do_complete(
 
 		/* make a copy of the original string part */
 		strndupx(unescaped, xbuf + start, olen, ATEMP);
-		if (*unescaped == '~') {
-			/*
-			 * do some tilde expansion; we know at this
-			 * point (by means of having nwords > 1) that
-			 * the string looks like "~foo/bar" and that
-			 * the tilde resolves
-			 */
-			char *cp;
 
-			cp = strchr(unescaped + 1, '/');
-			*cp++ = 0;
-			cp = shf_smprintf("%s/%s", tilde(unescaped + 1), cp);
-			afree(unescaped, ATEMP);
-			unescaped = cp;
-		}
+		/* expand any tilde and unescape the string for comparison */
+		unescaped = x_glob_hlp_tilde_and_rem_qchar(unescaped, true);
 
-		/* ... convert it from backslash-escaped via QCHAR-escaped... */
-		x_glob_hlp_add_qchar(unescaped);
-		/* ... to unescaped, for comparison with the matches */
-		x_glob_hlp_rem_qchar(unescaped);
 		/*
 		 * match iff entire original string is part of the
 		 * longest prefix, implying the latter is at least
