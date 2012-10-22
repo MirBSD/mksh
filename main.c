@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.231 2012/10/21 21:39:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.232 2012/10/22 16:53:22 tg Exp $");
 
 extern char **environ;
 
@@ -464,7 +464,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		s = pushs(SSTRINGCMDLINE, ATEMP);
 		if (!(s->start = s->str = argv[argi++]))
 			errorf("%s %s", "-c", "requires an argument");
-#ifndef MKSH_SMALL
+#if !defined(MKSH_SMALL) && !defined(MKSH_DISABLE_EXPERIMENTAL)
 		while (*s->str) {
 			if (*s->str != ' ' && ctype(*s->str, C_QUOTE))
 				break;
@@ -850,7 +850,7 @@ shell(Source * volatile s, volatile bool toplevel)
 				break;
 			}
 		}
-#ifndef MKSH_SMALL
+#if !defined(MKSH_SMALL) && !defined(MKSH_DISABLE_EXPERIMENTAL)
 		  else if ((s->flags & SF_MAYEXEC) && t->type == TCOM)
 			t->u.evalflags |= DOTCOMEXEC;
 #endif

@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.595 2012/10/21 21:55:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.596 2012/10/22 16:53:22 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/10/21"
 
@@ -1345,7 +1345,7 @@ struct ioword {
 #define DOTEMP	BIT(8)		/* dito: in word part of ${..[%#=?]..} */
 #define DOVACHECK BIT(9)	/* var assign check (for typeset, set, etc) */
 #define DOMARKDIRS BIT(10)	/* force markdirs behaviour */
-#ifndef MKSH_SMALL
+#if !defined(MKSH_SMALL) && !defined(MKSH_DISABLE_EXPERIMENTAL)
 #define DOTCOMEXEC BIT(11)	/* not an eval flag, used by sh -c hack */
 #endif
 
@@ -1491,7 +1491,7 @@ struct source {
 #define SF_ALIASEND	BIT(2)	/* faking space at end of alias */
 #define SF_TTY		BIT(3)	/* type == SSTDIN & it is a tty */
 #define SF_HASALIAS	BIT(4)	/* u.tblp valid (SALIAS, SEOF) */
-#ifndef MKSH_SMALL
+#if !defined(MKSH_SMALL) && !defined(MKSH_DISABLE_EXPERIMENTAL)
 #define SF_MAYEXEC	BIT(5)	/* special sh -c optimisation hack */
 #endif
 
