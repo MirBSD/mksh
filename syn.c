@@ -23,11 +23,10 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.81 2012/10/03 15:50:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.82 2012/10/22 20:19:18 tg Exp $");
 
+extern int subshell_nesting_type;
 extern void yyskiputf8bom(void);
-
-extern uint8_t subshell_nesting_level;
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -364,12 +363,15 @@ get_command(int cf)
  Leave:
 		break;
 
-	case '(': /*)*/
+	case '(': /*)*/ {
+		int subshell_nesting_type_saved;
  Subshell:
-		++subshell_nesting_level;
+		subshell_nesting_type_saved = subshell_nesting_type;
+		subshell_nesting_type = ')';
 		t = nested(TPAREN, '(', ')');
-		--subshell_nesting_level;
+		subshell_nesting_type = subshell_nesting_type_saved;
 		break;
+	    }
 
 	case '{': /*}*/
 		t = nested(TBRACE, '{', '}');
@@ -1116,16 +1118,29 @@ parse_usec(const char *s, struct timeval *tv)
  * a COMSUB recursively using the main shell parser and lexer
  */
 char *
-yyrecursive(void)
+yyrecursive(int subtype MKSH_A_UNUSED)
 {
 	struct op *t;
 	char *cp;
 	bool old_reject;
-	int old_symbol, old_salias;
+	int old_symbol, old_salias, old_nesting_type;
 	struct ioword **old_herep;
+	int stok, etok;
+
+#ifndef MKSH_DISABLE_EXPERIMENTAL
+	if (subtype == FUNSUB) {
+		stok = '{';
+		etok = '}';
+	} else
+#endif
+	  {
+		stok = '(';
+		etok = ')';
+	}
 
 	/* tell the lexer to accept a closing parenthesis as EOD */
-	++subshell_nesting_level;
+	old_nesting_type = subshell_nesting_type;
+	subshell_nesting_type = etok;
 
 	/* push reject state, parse recursively, pop reject state */
 	old_reject = reject;
@@ -1135,7 +1150,7 @@ yyrecursive(void)
 	old_salias = sALIAS;
 	sALIAS = 0;
 	/* we use TPAREN as a helper container here */
-	t = nested(TPAREN, '(', ')');
+	t = nested(TPAREN, stok, etok);
 	sALIAS = old_salias;
 	herep = old_herep;
 	reject = old_reject;
@@ -1145,6 +1160,6 @@ yyrecursive(void)
 	cp = snptreef(NULL, 0, "%T", t->left);
 	tfree(t, ATEMP);
 
-	--subshell_nesting_level;
+	subshell_nesting_type = old_nesting_type;
 	return (cp);
 }

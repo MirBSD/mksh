@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.128 2012/08/24 21:15:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.129 2012/10/22 20:19:12 tg Exp $");
 
 /*
  * string expansion
@@ -58,7 +58,7 @@ typedef struct Expand {
 #define IFS_NWS		2	/* have seen IFS non-white-space */
 
 static int varsub(Expand *, const char *, const char *, int *, int *);
-static int comsub(Expand *, const char *);
+static int comsub(Expand *, const char *, int);
 static char *trimsub(char *, char *, int);
 static void glob(char *, XPtrV *, bool);
 static void globit(XString *, char **, char *, XPtrV *, int);
@@ -277,18 +277,33 @@ expand(const char *cp,	/* input word */
 				quote = st->quotew;
 				continue;
 			case COMSUB:
+#ifndef MKSH_DISABLE_EXPERIMENTAL
+			case FUNSUB:
+#endif
 				tilde_ok = 0;
 				if (f & DONTRUNCOMMAND) {
 					word = IFS_WORD;
 					*dp++ = '$';
-					*dp++ = '(';
+#ifndef MKSH_DISABLE_EXPERIMENTAL
+					if (c == FUNSUB) {
+						*dp++ = '{';
+						*dp++ = ' ';
+					} else
+#endif
+						*dp++ = '(';
 					while (*sp != '\0') {
 						Xcheck(ds, dp);
 						*dp++ = *sp++;
 					}
-					*dp++ = ')';
+#ifndef MKSH_DISABLE_EXPERIMENTAL
+					if (c == FUNSUB) {
+						*dp++ = ';';
+						*dp++ = '}';
+					} else
+#endif
+						*dp++ = ')';
 				} else {
-					type = comsub(&x, sp);
+					type = comsub(&x, sp, c);
 					if (type == XCOM && (f&DOBLANK))
 						doblank++;
 					sp = strnul(sp) + 1;
@@ -1272,7 +1287,7 @@ varsub(Expand *xp, const char *sp, const char *word,
  * Run the command in $(...) and read its output.
  */
 static int
-comsub(Expand *xp, const char *cp)
+comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 {
 	Source *s, *sold;
 	struct op *t;
@@ -1307,6 +1322,30 @@ comsub(Expand *xp, const char *cp)
 			SHF_MAPHI|SHF_CLEXEC);
 		if (shf == NULL)
 			errorf("%s: %s %s", name, "can't open", "$() input");
+#ifndef MKSH_DISABLE_EXPERIMENTAL
+	} else if (fn == FUNSUB) {
+		int ofd1;
+		struct temp *tf = NULL;
+
+		/* create a temporary file, open for writing */
+		maketemp(ATEMP, TT_FUNSUB, &tf);
+		if (!tf->shf) {
+			errorf("can't %s temporary file %s: %s",
+			    "create", tf->tffn, strerror(errno));
+		}
+		/* save stdout and make the temporary file it */
+		ofd1 = savefd(1);
+		ksh_dup2(shf_fileno(tf->shf), 1, false);
+		/* run tree, with output thrown into the tempfile */
+		execute(t, XXCOM | XERROK, NULL);
+		/* close the tempfile and restore regular stdout */
+		shf_close(tf->shf);
+		restfd(1, ofd1);
+		/* now open, unlink and free the tempfile for reading */
+		shf = shf_open(tf->tffn, O_RDONLY, 0, SHF_MAPHI | SHF_CLEXEC);
+		unlink(tf->tffn);
+		afree(tf, ATEMP);
+#endif
 	} else {
 		int ofd1, pv[2];
 

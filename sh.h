@@ -157,9 +157,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.596 2012/10/22 16:53:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.597 2012/10/22 20:19:16 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/10/21"
+#define MKSH_VERSION "R40 2012/10/22"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -773,8 +773,12 @@ EXTERN const char TC_LEX1[] E_INIT("|&;<>() \t\n");
 typedef uint8_t Temp_type;
 /* expanded heredoc */
 #define TT_HEREDOC_EXP	0
-/* temp file used for history editing (fc -e) */
+/* temporary file used for history editing (fc -e) */
 #define TT_HIST_EDIT	1
+#ifndef MKSH_DISABLE_EXPERIMENTAL
+/* temporary file used during in-situ command substitution */
+#define TT_FUNSUB	2
+#endif
 
 /* temp/heredoc files. The file is removed when the struct is freed. */
 struct temp {
@@ -1286,6 +1290,9 @@ struct op {
 #define SPAT	10	/* separate pattern: | */
 #define CPAT	11	/* close pattern: ) */
 #define ADELIM	12	/* arbitrary delimiter: ${foo:2:3} ${foo/bar/baz} */
+#ifndef MKSH_DISABLE_EXPERIMENTAL
+#define FUNSUB	14	/* ${ foo;} substitution (NUL terminated) */
+#endif
 
 /*
  * IO redirection
@@ -1321,7 +1328,6 @@ struct ioword {
 #define XBGND	BIT(2)		/* command & */
 #define XPIPEI	BIT(3)		/* input is pipe */
 #define XPIPEO	BIT(4)		/* output is pipe */
-#define XPIPE	(XPIPEI|XPIPEO)	/* member of pipe */
 #define XXCOM	BIT(5)		/* `...` command */
 #define XPCLOSE	BIT(6)		/* exchild: close close_fd in parent */
 #define XCCLOSE	BIT(7)		/* exchild: close close_fd in child */
@@ -1922,7 +1928,7 @@ ssize_t shf_vfprintf(struct shf *, const char *, va_list)
 void initkeywords(void);
 struct op *compile(Source *, bool);
 bool parse_usec(const char *, struct timeval *);
-char *yyrecursive(void);
+char *yyrecursive(int);
 /* tree.c */
 void fptreef(struct shf *, int, const char *, ...);
 char *snptreef(char *, ssize_t, const char *, ...);
