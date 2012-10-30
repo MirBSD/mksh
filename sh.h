@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.599 2012/10/30 20:13:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.600 2012/10/30 20:49:43 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/10/30"
 
@@ -646,7 +646,10 @@ enum sh_flag {
 #define kshlongjmp	siglongjmp
 #endif
 
+struct sretrace_info;
 struct yyrecursive_state;
+
+extern struct sretrace_info *retrace_info;
 
 extern struct env {
 	ALLOC_ITEM alloc_INT;	/* internal, do not touch */
@@ -1933,7 +1936,7 @@ void initkeywords(void);
 struct op *compile(Source *, bool);
 bool parse_usec(const char *, struct timeval *);
 char *yyrecursive(int);
-void yyrecursive_pop(void);
+void yyrecursive_pop(bool);
 /* tree.c */
 void fptreef(struct shf *, int, const char *, ...);
 char *snptreef(char *, ssize_t, const char *, ...);

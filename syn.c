@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.83 2012/10/30 20:07:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.84 2012/10/30 20:49:44 tg Exp $");
 
 extern int subshell_nesting_type;
 extern void yyskiputf8bom(void);
@@ -1162,7 +1162,7 @@ yyrecursive(int subtype MKSH_A_UNUSED)
 	e->yyrecursive_statep = ys;
 	/* we use TPAREN as a helper container here */
 	t = nested(TPAREN, stok, etok);
-	yyrecursive_pop();
+	yyrecursive_pop(false);
 
 	/* t->left because nested(TPAREN, ...) hides our goodies there */
 	cp = snptreef(NULL, 0, "%T", t->left);
@@ -1172,10 +1172,13 @@ yyrecursive(int subtype MKSH_A_UNUSED)
 }
 
 void
-yyrecursive_pop(void)
+yyrecursive_pop(bool popall)
 {
-	struct yyrecursive_state *ys = e->yyrecursive_statep;
+	struct yyrecursive_state *ys;
 
+ popnext:
+	if (!(ys = e->yyrecursive_statep))
+		return;
 	e->yyrecursive_statep = ys->next;
 
 	sALIAS = ys->old_salias;
@@ -1186,4 +1189,6 @@ yyrecursive_pop(void)
 	subshell_nesting_type = ys->old_nesting_type;
 
 	afree(ys, ATEMP);
+	if (popall)
+		goto popnext;
 }
