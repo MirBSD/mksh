@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.228 2012/10/21 21:55:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.229 2012/10/30 20:06:49 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3661,7 +3661,7 @@ c_realpath(const char **wp)
 int
 c_cat(const char **wp)
 {
-	int fd = STDIN_FILENO, rv;
+	int fd = STDIN_FILENO, rv, eno;
 	ssize_t n, w;
 	const char *fn = "<stdin>";
 	char *buf, *cp;
@@ -3692,24 +3692,24 @@ c_cat(const char **wp)
 			if (fn[0] == '-' && fn[1] == '\0')
 				fd = STDIN_FILENO;
 			else if ((fd = open(fn, O_RDONLY)) < 0) {
-				rv = errno;
-				bi_errorf("%s: %s", fn, strerror(rv));
+				eno = errno;
+				bi_errorf("%s: %s", fn, strerror(eno));
 				rv = 1;
 				continue;
 			}
 		}
 		while (/* CONSTCOND */ 1) {
 			n = blocking_read(fd, (cp = buf), MKSH_CAT_BUFSIZ);
+			eno = errno;
+			/* give the user a chance to ^C out */
+			intrcheck();
 			if (n == -1) {
-				if (errno == EINTR) {
-					/* give the user a chance to ^C out */
-					intrcheck();
+				if (eno == EINTR) {
 					/* interrupted, try again */
 					continue;
 				}
 				/* an error occured during reading */
-				rv = errno;
-				bi_errorf("%s: %s", fn, strerror(rv));
+				bi_errorf("%s: %s", fn, strerror(eno));
 				rv = 1;
 				break;
 			} else if (n == 0)
@@ -3722,9 +3722,9 @@ c_cat(const char **wp)
 						/* interrupted, try again */
 						continue;
 					/* an error occured during writing */
-					rv = errno;
+					eno = errno;
 					bi_errorf("%s: %s", "<stdout>",
-					    strerror(rv));
+					    strerror(eno));
 					rv = 1;
 					if (fd != STDIN_FILENO)
 						close(fd);
