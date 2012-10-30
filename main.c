@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.233 2012/10/22 20:19:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.234 2012/10/30 20:07:00 tg Exp $");
 
 extern char **environ;
 
@@ -795,6 +795,7 @@ shell(Source * volatile s, volatile bool toplevel)
 			 */
 			/* toss any input we have so far */
 			s->start = s->str = null;
+			herep = heres;
 			break;
 		}
 		/* FALLTHROUGH */
