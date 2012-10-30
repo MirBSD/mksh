@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.82 2012/10/22 20:19:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.83 2012/10/30 20:07:15 tg Exp $");
 
 extern int subshell_nesting_type;
 extern void yyskiputf8bom(void);
@@ -31,6 +31,15 @@ extern void yyskiputf8bom(void);
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
 	int start_line;		/* line nesting began on */
+};
+
+struct yyrecursive_state {
+	struct yyrecursive_state *next;
+	struct ioword **old_herep;
+	int old_symbol;
+	int old_salias;
+	int old_nesting_type;
+	bool old_reject;
 };
 
 static void yyparse(void);
@@ -1122,9 +1131,7 @@ yyrecursive(int subtype MKSH_A_UNUSED)
 {
 	struct op *t;
 	char *cp;
-	bool old_reject;
-	int old_symbol, old_salias, old_nesting_type;
-	struct ioword **old_herep;
+	struct yyrecursive_state *ys;
 	int stok, etok;
 
 #ifndef MKSH_DISABLE_EXPERIMENTAL
@@ -1138,28 +1145,45 @@ yyrecursive(int subtype MKSH_A_UNUSED)
 		etok = ')';
 	}
 
+	ys = alloc(sizeof(struct yyrecursive_state), ATEMP);
+
 	/* tell the lexer to accept a closing parenthesis as EOD */
-	old_nesting_type = subshell_nesting_type;
+	ys->old_nesting_type = subshell_nesting_type;
 	subshell_nesting_type = etok;
 
 	/* push reject state, parse recursively, pop reject state */
-	old_reject = reject;
-	old_symbol = symbol;
+	ys->old_reject = reject;
+	ys->old_symbol = symbol;
 	ACCEPT;
-	old_herep = herep;
-	old_salias = sALIAS;
+	ys->old_herep = herep;
+	ys->old_salias = sALIAS;
 	sALIAS = 0;
+	ys->next = e->yyrecursive_statep;
+	e->yyrecursive_statep = ys;
 	/* we use TPAREN as a helper container here */
 	t = nested(TPAREN, stok, etok);
-	sALIAS = old_salias;
-	herep = old_herep;
-	reject = old_reject;
-	symbol = old_symbol;
+	yyrecursive_pop();
 
 	/* t->left because nested(TPAREN, ...) hides our goodies there */
 	cp = snptreef(NULL, 0, "%T", t->left);
 	tfree(t, ATEMP);
 
-	subshell_nesting_type = old_nesting_type;
 	return (cp);
+}
+
+void
+yyrecursive_pop(void)
+{
+	struct yyrecursive_state *ys = e->yyrecursive_statep;
+
+	e->yyrecursive_statep = ys->next;
+
+	sALIAS = ys->old_salias;
+	herep = ys->old_herep;
+	reject = ys->old_reject;
+	symbol = ys->old_symbol;
+
+	subshell_nesting_type = ys->old_nesting_type;
+
+	afree(ys, ATEMP);
 }

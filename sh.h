@@ -157,9 +157,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.597 2012/10/22 20:19:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.598 2012/10/30 20:07:13 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/10/22"
+#define MKSH_VERSION "R40 2012/10/30"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -646,6 +646,8 @@ enum sh_flag {
 #define kshlongjmp	siglongjmp
 #endif
 
+struct yyrecursive_state;
+
 extern struct env {
 	ALLOC_ITEM alloc_INT;	/* internal, do not touch */
 	Area area;		/* temporary allocation area */
@@ -653,6 +655,8 @@ extern struct env {
 	struct block *loc;	/* local variables and functions */
 	short *savefd;		/* original redirected fds */
 	struct temp *temps;	/* temp files */
+	/* saved parser recursion state */
+	struct yyrecursive_state *yyrecursive_statep;
 	kshjmp_buf jbuf;	/* long jump back to env creator */
 	uint8_t type;		/* environment type - see below */
 	uint8_t flags;		/* EF_* */
@@ -1929,6 +1933,7 @@ void initkeywords(void);
 struct op *compile(Source *, bool);
 bool parse_usec(const char *, struct timeval *);
 char *yyrecursive(int);
+void yyrecursive_pop(void);
 /* tree.c */
 void fptreef(struct shf *, int, const char *, ...);
 char *snptreef(char *, ssize_t, const char *, ...);

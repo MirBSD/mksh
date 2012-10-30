@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.234 2012/10/30 20:07:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.235 2012/10/30 20:07:12 tg Exp $");
 
 extern char **environ;
 
@@ -925,6 +925,7 @@ newenv(int type)
 	ep->loc = e->loc;
 	ep->savefd = NULL;
 	ep->temps = NULL;
+	ep->yyrecursive_statep = NULL;
 	ep->type = type;
 	ep->flags = 0;
 	/* jump buffer is invalid because flags == 0 */
@@ -938,6 +939,8 @@ quitenv(struct shf *shf)
 	char *cp;
 	int fd;
 
+	while (e->yyrecursive_statep)
+		yyrecursive_pop();
 	if (ep->oenv && ep->oenv->loc != ep->loc)
 		popblock();
 	if (ep->savefd != NULL) {
