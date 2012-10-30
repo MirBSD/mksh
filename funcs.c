@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.229 2012/10/30 20:06:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.230 2012/10/30 20:13:18 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1741,7 +1741,7 @@ c_dot(const char **wp)
 		argc = 0;
 		argv = NULL;
 	}
-	if ((i = include(file, argc, argv, 0)) < 0) {
+	if ((i = include(file, argc, argv, false)) < 0) {
 		/* should not happen */
 		bi_errorf("%s: %s", cp, strerror(errno));
 		return (1);

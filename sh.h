@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.598 2012/10/30 20:07:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.599 2012/10/30 20:13:20 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/10/30"
 
@@ -1804,7 +1804,7 @@ void set_prompt(int, Source *);
 void pprompt(const char *, int);
 int promptlen(const char *);
 /* main.c */
-int include(const char *, int, const char **, int);
+int include(const char *, int, const char **, bool);
 int command(const char *, int);
 int shell(Source * volatile, volatile bool);
 /* argument MUST NOT be 0 */

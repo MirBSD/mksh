@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.235 2012/10/30 20:07:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.236 2012/10/30 20:13:19 tg Exp $");
 
 extern char **environ;
 
@@ -617,13 +617,13 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		warningf(false, "can't determine current directory");
 
 	if (Flag(FLOGIN)) {
-		include(MKSH_SYSTEM_PROFILE, 0, NULL, 1);
+		include(MKSH_SYSTEM_PROFILE, 0, NULL, true);
 		if (!Flag(FPRIVILEGED))
 			include(substitute("$HOME/.profile", 0), 0,
-			    NULL, 1);
+			    NULL, true);
 	}
 	if (Flag(FPRIVILEGED))
-		include(MKSH_SUID_PROFILE, 0, NULL, 1);
+		include(MKSH_SUID_PROFILE, 0, NULL, true);
 	else if (Flag(FTALKING)) {
 		char *env_file;
 
@@ -631,7 +631,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		env_file = substitute(substitute("${ENV:-" MKSHRC_PATH "}", 0),
 		    DOTILDE);
 		if (*env_file != '\0')
-			include(env_file, 0, NULL, 1);
+			include(env_file, 0, NULL, true);
 	}
 
 	if (restricted) {
@@ -675,7 +675,7 @@ main(int argc, const char *argv[])
 }
 
 int
-include(const char *name, int argc, const char **argv, int intr_ok)
+include(const char *name, int argc, const char **argv, bool intr_ok)
 {
 	Source *volatile s = NULL;
 	struct shf *shf;
