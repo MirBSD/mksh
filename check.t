@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.563 2012/10/30 20:07:10 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.564 2012/11/12 18:48:29 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -5607,6 +5607,7 @@ env-setup: !HOME=/sweet!
 stdin:
 	echo ${A=a=}~ b=~ c=d~ ~
 	set +o braceexpand
+	unset A
 	echo ${A=a=}~ b=~ c=d~ ~
 expected-stdout:
 	a=/sweet b=/sweet c=d~ /sweet
