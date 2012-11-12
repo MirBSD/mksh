@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.600 2012/10/30 20:49:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.601 2012/11/12 18:28:40 tg Exp $");
 #endif
 #define MKSH_VERSION "R40 2012/10/30"
 
@@ -1826,9 +1826,9 @@ void warningf(bool, const char *, ...)
     MKSH_A_FORMAT(__printf__, 2, 3);
 void bi_errorf(const char *, ...)
     MKSH_A_FORMAT(__printf__, 1, 2);
-#define errorfz()	errorf("\1")
-#define errorfxz(rc)	errorfx((rc), "\1")
-#define bi_errorfz()	bi_errorf("\1")
+#define errorfz()	errorf(NULL)
+#define errorfxz(rc)	errorfx((rc), NULL)
+#define bi_errorfz()	bi_errorf(NULL)
 void internal_errorf(const char *, ...)
     MKSH_A_NORETURN
     MKSH_A_FORMAT(__printf__, 1, 2);
