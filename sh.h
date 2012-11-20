@@ -157,9 +157,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.602 2012/11/12 19:13:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.603 2012/11/20 18:50:46 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/11/12"
+#define MKSH_VERSION "R40 2012/11/20"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -338,6 +338,15 @@ struct rusage {
 extern int flock(int, int);
 #endif
 
+#if !HAVE_GETTIMEOFDAY
+#define mksh_TIME(tv) do {		\
+	(tv).tv_usec = 0;		\
+	(tv).tv_sec = time(NULL);	\
+} while (/* CONSTCOND */ 0)
+#else
+#define mksh_TIME(tv) gettimeofday(&(tv), NULL)
+#endif
+
 #if !HAVE_GETRUSAGE
 extern int getrusage(int, struct rusage *);
 #endif
@@ -366,12 +375,6 @@ extern int __cdecl setegid(gid_t);
 /* this need not work everywhere, take care */
 #define O_ACCMODE	(O_RDONLY | O_WRONLY | O_RDWR)
 #endif
-#define mksh_TIME(tv) do {		\
-	(tv).tv_usec = 0;		\
-	(tv).tv_sec = time(NULL);	\
-} while (/* CONSTCOND */ 0)
-#else
-#define mksh_TIME(tv) gettimeofday(&(tv), NULL)
 #endif
 
 #ifdef MKSH__NO_SYMLINK
