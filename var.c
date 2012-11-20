@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.154 2012/10/21 21:39:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.155 2012/11/20 17:34:42 tg Exp $");
 
 /*-
  * Variables
@@ -1086,6 +1086,31 @@ getspec(struct tbl *vp)
 	int st;
 
 	switch ((st = special(vp->name))) {
+	case V_COLUMNS:
+		/*
+		 * Do NOT export COLUMNS/LINES. Many applications
+		 * check COLUMNS/LINES before checking ws.ws_col/row,
+		 * so if the app is started with C/L in the environ
+		 * and the window is then resized, the app won't
+		 * see the change cause the environ doesn't change.
+		 */
+		i = x_cols;
+		break;
+	case V_HISTSIZE:
+		i = histsize;
+		break;
+	case V_LINENO:
+		i = current_lineno + user_lineno;
+		break;
+	case V_LINES:
+		i = x_lins;
+		break;
+	case V_OPTIND:
+		i = user_opt.uoptind;
+		break;
+	case V_RANDOM:
+		i = rndget();
+		break;
 	case V_SECONDS:
 		/*
 		 * On start up the value of SECONDS is used before
@@ -1099,29 +1124,6 @@ getspec(struct tbl *vp)
 			i = tv.tv_sec - seconds;
 		} else
 			return;
-		break;
-	case V_RANDOM:
-		i = rndget();
-		break;
-	case V_HISTSIZE:
-		i = histsize;
-		break;
-	case V_OPTIND:
-		i = user_opt.uoptind;
-		break;
-	case V_LINENO:
-		i = current_lineno + user_lineno;
-		break;
-	case V_COLUMNS:
-	case V_LINES:
-		/*
-		 * Do NOT export COLUMNS/LINES. Many applications
-		 * check COLUMNS/LINES before checking ws.ws_col/row,
-		 * so if the app is started with C/L in the environ
-		 * and the window is then resized, the app won't
-		 * see the change cause the environ doesn't change.
-		 */
-		i = st == V_COLUMNS ? x_cols : x_lins;
 		break;
 	default:
 		/* do nothing, do not touch vp at all */
@@ -1140,6 +1142,15 @@ setspec(struct tbl *vp)
 	int st;
 
 	switch ((st = special(vp->name))) {
+#if HAVE_PERSISTENT_HISTORY
+	case V_HISTFILE:
+		sethistfile(str_val(vp));
+		return;
+#endif
+	case V_IFS:
+		setctypes(s = str_val(vp), C_IFS);
+		ifs0 = *s;
+		return;
 	case V_PATH:
 		if (path)
 			afree(path, APERM);
@@ -1147,10 +1158,6 @@ setspec(struct tbl *vp)
 		strdupx(path, s, APERM);
 		/* clear tracked aliases */
 		flushcom(true);
-		return;
-	case V_IFS:
-		setctypes(s = str_val(vp), C_IFS);
-		ifs0 = *s;
 		return;
 	case V_TMPDIR:
 		if (tmpdir) {
@@ -1171,20 +1178,14 @@ setspec(struct tbl *vp)
 				strdupx(tmpdir, s, APERM);
 		}
 		return;
-#if HAVE_PERSISTENT_HISTORY
-	case V_HISTFILE:
-		sethistfile(str_val(vp));
-		return;
-#endif
-
 	/* common sub-cases */
-	case V_OPTIND:
-	case V_HISTSIZE:
 	case V_COLUMNS:
+	case V_HISTSIZE:
+	case V_LINENO:
 	case V_LINES:
+	case V_OPTIND:
 	case V_RANDOM:
 	case V_SECONDS:
-	case V_LINENO:
 	case V_TMOUT:
 		vp->flag &= ~SPECIAL;
 		if (getint(vp, &i, false) == -1) {
@@ -1203,19 +1204,23 @@ setspec(struct tbl *vp)
 	/* process the singular parts of the common cases */
 
 	switch (st) {
-	case V_OPTIND:
-		getopts_reset((int)i);
-		break;
-	case V_HISTSIZE:
-		sethistsize(i);
-		break;
 	case V_COLUMNS:
 		if (i >= MIN_COLS)
 			x_cols = i;
 		break;
+	case V_HISTSIZE:
+		sethistsize(i);
+		break;
+	case V_LINENO:
+		/* The -1 is because line numbering starts at 1. */
+		user_lineno = (unsigned int)i - current_lineno - 1;
+		break;
 	case V_LINES:
 		if (i >= MIN_LINS)
 			x_lins = i;
+		break;
+	case V_OPTIND:
+		getopts_reset((int)i);
 		break;
 	case V_RANDOM:
 		/*
@@ -1232,10 +1237,6 @@ setspec(struct tbl *vp)
 			seconds = tv.tv_sec - i;
 		}
 		break;
-	case V_LINENO:
-		/* The -1 is because line numbering starts at 1. */
-		user_lineno = (unsigned int)i - current_lineno - 1;
-		break;
 	case V_TMOUT:
 		ksh_tmout = i >= 0 ? i : 0;
 		break;
@@ -1245,17 +1246,25 @@ setspec(struct tbl *vp)
 static void
 unsetspec(struct tbl *vp)
 {
+	/*
+	 * AT&T ksh man page says OPTIND, OPTARG and _ lose special
+	 * meaning, but OPTARG does not (still set by getopts) and _ is
+	 * also still set in various places. Don't know what AT&T does
+	 * for HISTSIZE, HISTFILE. Unsetting these in AT&T ksh does not
+	 * loose the 'specialness': IFS, COLUMNS, PATH, TMPDIR
+	 */
+
 	switch (special(vp->name)) {
+	case V_IFS:
+		setctypes(TC_IFSWS, C_IFS);
+		ifs0 = ' ';
+		break;
 	case V_PATH:
 		if (path)
 			afree(path, APERM);
 		strdupx(path, def_path, APERM);
 		/* clear tracked aliases */
 		flushcom(true);
-		break;
-	case V_IFS:
-		setctypes(TC_IFSWS, C_IFS);
-		ifs0 = ' ';
 		break;
 	case V_TMPDIR:
 		/* should not become unspecial */
@@ -1271,14 +1280,6 @@ unsetspec(struct tbl *vp)
 		/* AT&T ksh leaves previous value in place */
 		unspecial(vp->name);
 		break;
-
-	/*
-	 * AT&T ksh man page says OPTIND, OPTARG and _ lose special
-	 * meaning, but OPTARG does not (still set by getopts) and _ is
-	 * also still set in various places. Don't know what AT&T does
-	 * for HISTSIZE, HISTFILE. Unsetting these in AT&T ksh does not
-	 * loose the 'specialness': IFS, COLUMNS, PATH, TMPDIR
-	 */
 	}
 }
 
