@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.238 2012/11/12 18:28:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.239 2012/11/20 17:42:29 tg Exp $");
 
 extern char **environ;
 
@@ -383,6 +383,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	    (!ksheuid && !strchr(str_val(vp), '#')))
 		/* setstr can't fail here */
 		setstr(vp, safe_prompt, KSH_RETURN_ERROR);
+	setint_n((vp = global("BASHPID")), 0, 10);
+	vp->flag |= INT_U;
 	setint_n((vp = global("PGRP")), (mksh_uari_t)kshpgrp, 10);
 	vp->flag |= INT_U;
 	setint_n((vp = global("PPID")), (mksh_uari_t)kshppid, 10);

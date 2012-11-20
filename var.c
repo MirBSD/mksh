@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.155 2012/11/20 17:34:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.156 2012/11/20 17:42:32 tg Exp $");
 
 /*-
  * Variables
@@ -130,8 +130,8 @@ initvar(void)
 	struct tbl *tp;
 
 	ktinit(APERM, &specials,
-	    /* currently 12 specials: 75% of 16 = 2^4 */
-	    4);
+	    /* currently 13 specials: 75% of 32 = 2^5 */
+	    5);
 	while (i < V_MAX - 1) {
 		tp = ktenter(&specials, initvar_names[i],
 		    hash(initvar_names[i]));
@@ -1086,6 +1086,9 @@ getspec(struct tbl *vp)
 	int st;
 
 	switch ((st = special(vp->name))) {
+	case V_BASHPID:
+		i = (mksh_ari_t)procpid;
+		break;
 	case V_COLUMNS:
 		/*
 		 * Do NOT export COLUMNS/LINES. Many applications

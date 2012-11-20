@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.296 2012/10/22 20:19:14 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.297 2012/11/20 17:42:30 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.144 2012/07/08 08:13:20 guenther Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: October 22 2012 $
+.Dd $Mdocdate: November 20 2012 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1741,6 +1741,8 @@ When an external command is executed by the shell, this parameter is set in the
 environment of the new process to the path of the executed command.
 In interactive use, this parameter is also set in the parent shell to the last
 word of the previous command.
+.It Ev BASHPID
+The PID of the shell or subshell.
 .It Ev CDPATH
 Search path for the
 .Ic cd
