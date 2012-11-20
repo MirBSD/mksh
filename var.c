@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.157 2012/11/20 18:06:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.158 2012/11/20 18:07:45 tg Exp $");
 
 /*-
  * Variables
@@ -130,7 +130,7 @@ initvar(void)
 	struct tbl *tp;
 
 	ktinit(APERM, &specials,
-	    /* currently 13 specials: 75% of 32 = 2^5 */
+	    /* currently 14 specials: 75% of 32 = 2^5 */
 	    5);
 	while (i < V_MAX - 1) {
 		tp = ktenter(&specials, initvar_names[i],
@@ -1087,6 +1087,7 @@ getspec(struct tbl *vp)
 {
 	register mksh_ari_t i;
 	int st;
+	struct timeval tv;
 
 	switch ((st = special(vp->name))) {
 	case V_BASHPID:
@@ -1111,6 +1112,18 @@ getspec(struct tbl *vp)
 	case V_LINES:
 		i = x_lins;
 		break;
+	case V_MKSH_UNIXTIME: {
+		/* 10(%u) + 1(.) + 6 + NUL */
+		char buf[18];
+
+		vp->flag &= ~SPECIAL;
+		mksh_TIME(tv);
+		shf_snprintf(buf, sizeof(buf), "%u.%06u",
+		    (unsigned)tv.tv_sec, (unsigned)tv.tv_usec);
+		setstr(vp, buf, KSH_RETURN_ERROR | 0x4);
+		vp->flag |= SPECIAL;
+		return;
+	}
 	case V_OPTIND:
 		i = user_opt.uoptind;
 		break;
@@ -1124,8 +1137,6 @@ getspec(struct tbl *vp)
 		 * (see initcoms[] in main.c).
 		 */
 		if (vp->flag & ISSET) {
-			struct timeval tv;
-
 			mksh_TIME(tv);
 			i = tv.tv_sec - seconds;
 		} else
