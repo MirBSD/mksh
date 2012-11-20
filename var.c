@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.156 2012/11/20 17:42:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.157 2012/11/20 18:06:53 tg Exp $");
 
 /*-
  * Variables
@@ -417,12 +417,15 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 	if (!(vq->flag&INTEGER)) {
 		/* string dest */
 		if ((vq->flag&ALLOC)) {
+#ifndef MKSH_SMALL
 			/* debugging */
 			if (s >= vq->val.s &&
-			    s <= vq->val.s + strlen(vq->val.s))
+			    s <= vq->val.s + strlen(vq->val.s)) {
 				internal_errorf(
 				    "setstr: %s=%s: assigning to self",
 				    vq->name, s);
+			}
+#endif
 			afree(vq->val.s, vq->areap);
 		}
 		vq->flag &= ~(ISSET|ALLOC);
