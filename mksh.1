@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.298 2012/11/20 18:07:43 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.299 2012/11/20 18:25:12 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.144 2012/07/08 08:13:20 guenther Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -175,7 +175,24 @@ script use.
 Its command language is a superset of the
 .Xr sh C
 shell language and largely compatible to the original Korn shell.
-.Pp
+.Ss I'm an Android user, so what's mksh?
+.Nm mksh
+is a
+.Ux
+shell / command interpreter, similar to
+.Nm COMMAND.COM
+or
+.Nm CMD.EXE ,
+which has been included with
+.Tn Android Open Source Project
+for a while now.
+Basically, it's a program that runs in a terminal (console window),
+takes user input and runs commands or scripts, which it can also
+be asked to do by other programs, even in the background.
+Any privilege pop-ups you might be encountering are thus not
+.Nm mksh
+issues but questions by some other program utilising it.
+.Ss Invocation
 Most builtins can be called directly, for example if a link points from its
 name to the shell; not all make sense, have been tested or work at all though.
 .Pp
@@ -2776,7 +2793,8 @@ command can be used inside a function to create a local parameter.
 Note that
 .At
 .Nm ksh93
-uses static scoping (one global scope, one local scope per function), whereas
+uses static scoping (one global scope, one local scope per function)
+and allows local variables only on Korn style functions, whereas
 .Nm mksh
 uses dynamic scoping (nested scopes of varying locality).
 Note that special parameters (e.g.\&
@@ -2820,7 +2838,7 @@ and remove alias definitions upon encounter, while aliases take precedence
 over Korn-style functions.
 .El
 .Pp
-In the future, the following differences will also be added:
+In the future, the following differences may also be added:
 .Bl -bullet
 .It
 A separate trap/signal environment will be used during the execution of
@@ -6188,6 +6206,8 @@ contains the system and suid profile.
 .Xr mknod 8
 .Pp
 .Pa http://docsrv.sco.com:507/en/man/html.C/sh.C.html
+.Pp
+.Pa https://www.mirbsd.org/ksh\-chan.htm
 .Rs
 .%A Morris Bolsky
 .%B "The KornShell Command and Programming Language"
@@ -6295,7 +6315,7 @@ $ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R40+CVS
+.Nm mksh\ R41
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
