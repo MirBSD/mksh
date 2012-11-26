@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.105 2012/11/20 18:50:42 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.106 2012/11/26 16:39:43 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -115,24 +115,36 @@ distribution:
 
 .include <bsd.prog.mk>
 
+.ifmake cats
+V_GROFF!=	pkg_info -e 'groff-*'
+V_GHOSTSCRIPT!=	pkg_info -e 'ghostscript-*'
+.  if empty(V_GROFF) || empty(V_GHOSTSCRIPT)
+.    error empty V_GROFF=${V_GROFF} or V_GHOSTSCRIPT=${V_GHOSTSCRIPT}
+.  endif
+.endif
+
 CLEANFILES+=	${MANALL:S/.cat/.ps/} ${MAN:S/$/.pdf/} ${MANALL:S/$/.gz/}
 CLEANFILES+=	${MAN:S/$/.htm/} ${MAN:S/$/.htm.gz/}
 CLEANFILES+=	${MAN:S/$/.txt/} ${MAN:S/$/.txt.gz/}
+CATS_KW=	mksh, ksh, sh
+CATS_TITLE_mksh_1=mksh - The MirBSD Korn Shell
 cats: ${MANALL} ${MANALL:S/.cat/.ps/}
 .if "${MANALL:Nmksh.cat1}" != ""
 .  error Adjust here.
 .endif
-	x=$$(ident ${.CURDIR:Q}/mksh.1 | \
+.for _m _n in mksh 1
+	x=$$(ident ${.CURDIR:Q}/${_m}.${_n} | \
 	    awk '/MirOS:/ { print $$4$$5; }' | \
 	    tr -dc 0-9); (( $${#x} == 14 )) || exit 1; exec \
 	    ${MKSH} ${BSDSRCDIR:Q}/contrib/hosted/tg/ps2pdfmir -c \
-	    -o mksh.1.pdf '[' /Title '(mksh - The MirBSD Korn Shell)' \
-	    /Author '(Thorsten Glaser, The MirOS Project)' \
+	    -o ${_m}.${_n}.pdf '[' /Author '(The MirOS Project)' \
+	    /Title '('${CATS_TITLE_${_m}_${_n}:Q}')' \
 	    /Subject '(BSD Reference Manual)' /ModDate "(D:$$x)" \
-	    /Creator '(GNU groff version 1.19.2-3 \(MirPorts\))' \
-	    /Producer '(Artifex Ghostscript 8.54-3 \(MirPorts\))' \
-	    /Keywords '(mksh, ksh, sh)' /DOCINFO pdfmark \
-	    -f mksh.ps1
+	    /Creator '(GNU groff version ${V_GROFF:S/groff-//} \(MirPorts\))' \
+	    /Producer '(Artifex Ghostscript ${V_GHOSTSCRIPT:S/ghostscript-//:S/-artifex//} \(MirPorts\))' \
+	    /Keywords '('${CATS_KW:Q}')' /DOCINFO pdfmark \
+	    -f ${_m}.ps${_n}
+.endfor
 	set -e; . ${BSDSRCDIR:Q}/scripts/roff2htm; set_target_absolute; \
 	    for m in ${MANALL}; do \
 		bn=$${m%.*}; ext=$${m##*.cat}; \
