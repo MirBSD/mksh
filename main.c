@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.240 2012/11/20 18:07:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.241 2012/11/26 22:49:48 tg Exp $");
 
 extern char **environ;
 
@@ -59,7 +59,7 @@ static void x_sigwinch(int);
 static const char initifs[] = "IFS= \t\n";
 
 static const char initsubs[] =
-    "${PS2=> } ${PS3=#? } ${PS4=+ } ${SECONDS=0} ${TMOUT=0} ${MKSH_UNIXTIME=}";
+    "${PS2=> } ${PS3=#? } ${PS4=+ } ${SECONDS=0} ${TMOUT=0} ${EPOCHREALTIME=}";
 
 static const char *initcoms[] = {
 	Ttypeset, "-r", initvsn, NULL,

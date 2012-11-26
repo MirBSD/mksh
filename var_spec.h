@@ -1,5 +1,5 @@
 #if defined(VARSPEC_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/var_spec.h,v 1.4 2012/11/20 18:07:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var_spec.h,v 1.5 2012/11/26 22:49:51 tg Exp $");
 #define FN(name)			/* nothing */
 #elif defined(VARSPEC_ENUMS)
 #define FN(name)			V_##name,
@@ -28,7 +28,7 @@ FN(HISTSIZE)
 FN(IFS)
 FN(LINENO)
 FN(LINES)
-FN(MKSH_UNIXTIME)
+FN(EPOCHREALTIME)
 FN(OPTIND)
 FN(PATH)
 FN(RANDOM)

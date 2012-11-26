@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.158 2012/11/20 18:07:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.159 2012/11/26 22:49:50 tg Exp $");
 
 /*-
  * Variables
@@ -1112,7 +1112,7 @@ getspec(struct tbl *vp)
 	case V_LINES:
 		i = x_lins;
 		break;
-	case V_MKSH_UNIXTIME: {
+	case V_EPOCHREALTIME: {
 		/* 10(%u) + 1(.) + 6 + NUL */
 		char buf[18];
 
