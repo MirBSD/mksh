@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.245 2012/11/30 19:58:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.246 2012/11/30 20:19:13 tg Exp $");
 
 extern char **environ;
 
@@ -460,7 +460,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		s = pushs(SSTRINGCMDLINE, ATEMP);
 		if (!(s->start = s->str = argv[argi++]))
 			errorf("%s %s", "-c", "requires an argument");
-#if !defined(MKSH_SMALL) && !defined(MKSH_DISABLE_EXPERIMENTAL)
+#if !defined(MKSH_SMALL)
 		while (*s->str) {
 			if (*s->str != ' ' && ctype(*s->str, C_QUOTE))
 				break;
@@ -849,7 +849,7 @@ shell(Source * volatile s, volatile bool toplevel)
 				break;
 			}
 		}
-#if !defined(MKSH_SMALL) && !defined(MKSH_DISABLE_EXPERIMENTAL)
+#if !defined(MKSH_SMALL)
 		  else if ((s->flags & SF_MAYEXEC) && t->type == TCOM)
 			t->u.evalflags |= DOTCOMEXEC;
 #endif
@@ -1593,7 +1593,6 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 		/* do another cycle */
 	}
 
-#ifndef MKSH_DISABLE_EXPERIMENTAL
 	if (type == TT_FUNSUB) {
 		int nfd;
 
@@ -1603,7 +1602,6 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 			i = nfd;
 		}
 	}
-#endif
 
 	/* shf_fdopen cannot fail, so no fd leak */
 	tp->shf = shf_fdopen(i, SHF_WR, NULL);

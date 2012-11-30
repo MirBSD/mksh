@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.84 2012/10/30 20:49:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.85 2012/11/30 20:19:15 tg Exp $");
 
 extern int subshell_nesting_type;
 extern void yyskiputf8bom(void);
@@ -1134,13 +1134,10 @@ yyrecursive(int subtype MKSH_A_UNUSED)
 	struct yyrecursive_state *ys;
 	int stok, etok;
 
-#ifndef MKSH_DISABLE_EXPERIMENTAL
 	if (subtype == FUNSUB) {
 		stok = '{';
 		etok = '}';
-	} else
-#endif
-	  {
+	} else {
 		stok = '(';
 		etok = ')';
 	}

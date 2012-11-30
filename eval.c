@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.129 2012/10/22 20:19:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.130 2012/11/30 20:19:11 tg Exp $");
 
 /*
  * string expansion
@@ -277,30 +277,24 @@ expand(const char *cp,	/* input word */
 				quote = st->quotew;
 				continue;
 			case COMSUB:
-#ifndef MKSH_DISABLE_EXPERIMENTAL
 			case FUNSUB:
-#endif
 				tilde_ok = 0;
 				if (f & DONTRUNCOMMAND) {
 					word = IFS_WORD;
 					*dp++ = '$';
-#ifndef MKSH_DISABLE_EXPERIMENTAL
 					if (c == FUNSUB) {
 						*dp++ = '{';
 						*dp++ = ' ';
 					} else
-#endif
 						*dp++ = '(';
 					while (*sp != '\0') {
 						Xcheck(ds, dp);
 						*dp++ = *sp++;
 					}
-#ifndef MKSH_DISABLE_EXPERIMENTAL
 					if (c == FUNSUB) {
 						*dp++ = ';';
 						*dp++ = '}';
 					} else
-#endif
 						*dp++ = ')';
 				} else {
 					type = comsub(&x, sp, c);
@@ -1322,7 +1316,6 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 			SHF_MAPHI|SHF_CLEXEC);
 		if (shf == NULL)
 			errorf("%s: %s %s", name, "can't open", "$() input");
-#ifndef MKSH_DISABLE_EXPERIMENTAL
 	} else if (fn == FUNSUB) {
 		int ofd1;
 		struct temp *tf = NULL;
@@ -1345,7 +1338,6 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 		shf = shf_open(tf->tffn, O_RDONLY, 0, SHF_MAPHI | SHF_CLEXEC);
 		unlink(tf->tffn);
 		afree(tf, ATEMP);
-#endif
 	} else {
 		int ofd1, pv[2];
 

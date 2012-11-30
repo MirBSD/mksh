@@ -157,7 +157,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.608 2012/11/30 19:58:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.609 2012/11/30 20:19:14 tg Exp $");
 #endif
 #define MKSH_VERSION "R41 2012/11/30"
 
@@ -785,10 +785,8 @@ typedef uint8_t Temp_type;
 #define TT_HEREDOC_EXP	0
 /* temporary file used for history editing (fc -e) */
 #define TT_HIST_EDIT	1
-#ifndef MKSH_DISABLE_EXPERIMENTAL
 /* temporary file used during in-situ command substitution */
 #define TT_FUNSUB	2
-#endif
 
 /* temp/heredoc files. The file is removed when the struct is freed. */
 struct temp {
@@ -1300,9 +1298,7 @@ struct op {
 #define SPAT	10	/* separate pattern: | */
 #define CPAT	11	/* close pattern: ) */
 #define ADELIM	12	/* arbitrary delimiter: ${foo:2:3} ${foo/bar/baz} */
-#ifndef MKSH_DISABLE_EXPERIMENTAL
 #define FUNSUB	14	/* ${ foo;} substitution (NUL terminated) */
-#endif
 
 /*
  * IO redirection
@@ -1361,7 +1357,7 @@ struct ioword {
 #define DOTEMP	BIT(8)		/* dito: in word part of ${..[%#=?]..} */
 #define DOVACHECK BIT(9)	/* var assign check (for typeset, set, etc) */
 #define DOMARKDIRS BIT(10)	/* force markdirs behaviour */
-#if !defined(MKSH_SMALL) && !defined(MKSH_DISABLE_EXPERIMENTAL)
+#if !defined(MKSH_SMALL)
 #define DOTCOMEXEC BIT(11)	/* not an eval flag, used by sh -c hack */
 #endif
 
@@ -1507,7 +1503,7 @@ struct source {
 #define SF_ALIASEND	BIT(2)	/* faking space at end of alias */
 #define SF_TTY		BIT(3)	/* type == SSTDIN & it is a tty */
 #define SF_HASALIAS	BIT(4)	/* u.tblp valid (SALIAS, SEOF) */
-#if !defined(MKSH_SMALL) && !defined(MKSH_DISABLE_EXPERIMENTAL)
+#if !defined(MKSH_SMALL)
 #define SF_MAYEXEC	BIT(5)	/* special sh -c optimisation hack */
 #endif
 

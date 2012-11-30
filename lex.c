@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.171 2012/11/30 19:02:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.172 2012/11/30 20:19:12 tg Exp $");
 
 /*
  * states while lexing word
@@ -262,13 +262,11 @@ yylex(int cf)
 	while (!((c = getsc()) == 0 ||
 	    ((state == SBASE || state == SHEREDELIM || state == SHERESTRING) &&
 	    ctype(c, C_LEX1)))) {
-#ifndef MKSH_DISABLE_EXPERIMENTAL
 		if (state == SBASE &&
 		    subshell_nesting_type == /*{*/ '}' &&
 		    c == /*{*/ '}')
 			/* possibly end ${ :;} */
 			break;
-#endif
  accept_nonword:
 		Xcheck(ws, wp);
 		switch (state) {
@@ -403,9 +401,7 @@ yylex(int cf)
 						ungetsc(c);
  subst_command:
 						c = COMSUB;
-#ifndef MKSH_DISABLE_EXPERIMENTAL
  subst_command2:
-#endif
 						sp = yyrecursive(c);
 						cz = strlen(sp) + 1;
 						XcheckN(ws, wp, cz);
@@ -414,7 +410,6 @@ yylex(int cf)
 						wp += cz;
 					}
 				} else if (c == '{') /*}*/ {
-#ifndef MKSH_DISABLE_EXPERIMENTAL
 					c = getsc();
 					if (ctype(c, C_IFSWS)) {
 						/*
@@ -425,7 +420,6 @@ yylex(int cf)
 						goto subst_command2;
 					}
 					ungetsc(c);
-#endif
 					*wp++ = OSUBST;
 					*wp++ = '{'; /*}*/
 					wp = get_brace_var(&ws, wp);
