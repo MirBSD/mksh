@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.243 2012/11/30 19:25:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.244 2012/11/30 19:51:24 tg Exp $");
 
 extern char **environ;
 
@@ -1135,7 +1135,7 @@ static void vwarningf(unsigned int, const char *, va_list)
 static void
 vwarningf(unsigned int flags, const char *fmt, va_list ap)
 {
-	if (fmt) {
+	if (*fmt) {
 		if (flags & VWARNINGF_INTERNAL)
 			shf_fprintf(shl_out, "internal error: ");
 		if (flags & VWARNINGF_ERRORPREFIX)
