@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.241 2012/11/26 22:49:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.242 2012/11/30 19:02:09 tg Exp $");
 
 extern char **environ;
 
@@ -1327,7 +1327,7 @@ initio(void)
 	if ((lfp = getenv("SDMKSH_PATH")) == NULL)
 		lfp = "/tmp/mksh-dbg.txt";
 
-	if ((shl_dbg_fd = open(lfp, O_WRONLY | O_APPEND | O_CREAT, 0600)) == -1)
+	if ((shl_dbg_fd = open(lfp, O_WRONLY | O_APPEND | O_CREAT, 0600)) < 0)
 		errorf("cannot open debug output file %s", lfp);
 	if (shl_dbg_fd < FDBASE) {
 		int nfd;
@@ -1584,7 +1584,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	} while (len < 5);
 
 	/* cyclically attempt to open a temporary file */
-	while ((i = open(tp->tffn, O_CREAT | O_EXCL | O_RDWR, 0600)) == -1) {
+	while ((i = open(tp->tffn, O_CREAT | O_EXCL | O_RDWR, 0600)) < 0) {
 		if (errno != EEXIST)
 			goto maketemp_out;
 		/* count down from z to a then from 9 to 0 */

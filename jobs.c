@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.88 2012/05/04 22:34:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.89 2012/11/30 19:02:07 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -291,7 +291,7 @@ j_change(void)
 			tty_init(false, true);
 
 		/* no controlling tty, no SIGT* */
-		if ((ttypgrp_ok = use_tty && tty_fd >= 0 && tty_devtty)) {
+		if ((ttypgrp_ok = (use_tty && tty_fd >= 0 && tty_devtty))) {
 			setsig(&sigtraps[SIGTTIN], SIG_DFL,
 			    SS_RESTORE_ORIG|SS_FORCE);
 			/* wait to be given tty (POSIX.1, B.2, job control) */
@@ -363,12 +363,12 @@ static void
 ksh_nice(int ness)
 {
 #if defined(__USE_FORTIFY_LEVEL) && (__USE_FORTIFY_LEVEL > 0)
-	int e;
+	int eno;
 
 	errno = 0;
 	/* this is gonna annoy users; complain to your distro, people! */
-	if (nice(ness) == -1 && (e = errno) != 0)
-		warningf(false, "%s: %s", "bgnice", strerror(e));
+	if (nice(ness) == -1 && (eno = errno) != 0)
+		warningf(false, "%s: %s", "bgnice", strerror(eno));
 #else
 	(void)nice(ness);
 #endif
@@ -477,6 +477,7 @@ exchild(struct op *t, int flags,
 	/* job control set up */
 	if (Flag(FMONITOR) && !(flags&XXCOM)) {
 		bool dotty = false;
+
 		if (j->pgrp == 0) {
 			/* First process */
 			j->pgrp = p->pid;
@@ -829,7 +830,7 @@ j_resume(const char *cp, int bg)
 	}
 
 	if (j->state == PRUNNING && mksh_killpg(j->pgrp, SIGCONT) < 0) {
-		int err = errno;
+		int eno = errno;
 
 		if (!bg) {
 			j->flags &= ~JF_FG;
@@ -842,7 +843,7 @@ j_resume(const char *cp, int bg)
 		}
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		bi_errorf("%s %s %s", "can't continue job",
-		    cp, strerror(err));
+		    cp, strerror(eno));
 		return (1);
 	}
 	if (!bg) {

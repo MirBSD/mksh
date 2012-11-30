@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.105 2012/10/30 20:13:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.106 2012/11/30 19:02:06 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -1385,13 +1385,13 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		close(iop->unit);
 	else if (u != iop->unit) {
 		if (ksh_dup2(u, iop->unit, true) < 0) {
-			int ev;
+			int eno;
 
-			ev = errno;
+			eno = errno;
 			warningf(true, "%s %s %s",
 			    "can't finish (dup) redirection",
 			    snptreef(NULL, 32, "%R", &iotmp),
-			    strerror(ev));
+			    strerror(eno));
 			if (iotype != IODUP)
 				close(u);
 			return (-1);

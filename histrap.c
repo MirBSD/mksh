@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.127 2012/10/21 21:39:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.128 2012/11/30 19:02:07 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -1112,7 +1112,7 @@ void
 trapsig(int i)
 {
 	Trap *p = &sigtraps[i];
-	int errno_sv = errno;
+	int eno = errno;
 
 	trap = p->set = 1;
 	if (p->flags & TF_DFL_INTR)
@@ -1123,7 +1123,7 @@ trapsig(int i)
 	}
 	if (p->shtrap)
 		(*p->shtrap)(i);
-	errno = errno_sv;
+	errno = eno;
 }
 
 /*

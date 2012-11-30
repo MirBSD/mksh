@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.159 2012/11/26 22:49:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.160 2012/11/30 19:02:10 tg Exp $");
 
 /*-
  * Variables
@@ -405,7 +405,7 @@ int
 setstr(struct tbl *vq, const char *s, int error_ok)
 {
 	char *salloc = NULL;
-	int no_ro_check = error_ok & 0x4;
+	bool no_ro_check = tobool(error_ok & 0x4);
 
 	error_ok &= ~0x4;
 	if ((vq->flag & RDONLY) && !no_ro_check) {
