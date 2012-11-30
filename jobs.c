@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.89 2012/11/30 19:02:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.90 2012/11/30 19:20:01 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -547,7 +547,6 @@ exchild(struct op *t, int flags,
 		Flag(FMONITOR) = 0;
 #endif
 		Flag(FTALKING) = 0;
-		tty_close();
 		cleartraps();
 		/* no return */
 		execute(t, (flags & XERROK) | XEXEC, NULL);
