@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.160 2012/11/30 19:02:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.161 2012/11/30 19:25:08 tg Exp $");
 
 /*-
  * Variables
@@ -1090,10 +1090,8 @@ getspec(struct tbl *vp)
 	struct timeval tv;
 
 	switch ((st = special(vp->name))) {
-	case V_BASHPID:
-		i = (mksh_ari_t)procpid;
-		break;
 	case V_COLUMNS:
+	case V_LINES:
 		/*
 		 * Do NOT export COLUMNS/LINES. Many applications
 		 * check COLUMNS/LINES before checking ws.ws_col/row,
@@ -1101,6 +1099,15 @@ getspec(struct tbl *vp)
 		 * and the window is then resized, the app won't
 		 * see the change cause the environ doesn't change.
 		 */
+		if (got_winch)
+			change_winsz();
+		break;
+	}
+	switch (st) {
+	case V_BASHPID:
+		i = (mksh_ari_t)procpid;
+		break;
+	case V_COLUMNS:
 		i = x_cols;
 		break;
 	case V_HISTSIZE:
@@ -1197,9 +1204,16 @@ setspec(struct tbl *vp)
 		return;
 	/* common sub-cases */
 	case V_COLUMNS:
+	case V_LINES:
+		if (vp->flag & IMPORT) {
+			/* do not touch */
+			unspecial(vp->name);
+			vp->flag &= ~SPECIAL;
+			return;
+		}
+		/* FALLTHROUGH */
 	case V_HISTSIZE:
 	case V_LINENO:
-	case V_LINES:
 	case V_OPTIND:
 	case V_RANDOM:
 	case V_SECONDS:
@@ -1466,7 +1480,7 @@ change_winsz(void)
 {
 #ifdef TIOCGWINSZ
 	/* check if window size has changed */
-	if (tty_fd >= 0) {
+	if (tty_init_fd() < 2) {
 		struct winsize ws;
 
 		if (ioctl(tty_fd, TIOCGWINSZ, &ws) >= 0) {

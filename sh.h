@@ -157,9 +157,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.604 2012/11/26 23:14:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.605 2012/11/30 19:25:06 tg Exp $");
 #endif
-#define MKSH_VERSION "R40 2012/11/26"
+#define MKSH_VERSION "R41 2012/11/30"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -2043,9 +2043,9 @@ int test_parse(Test_env *);
 EXTERN int tty_fd E_INIT(-1);	/* dup'd tty file descriptor */
 EXTERN bool tty_devtty;		/* true if tty_fd is from /dev/tty */
 EXTERN mksh_ttyst tty_state;	/* saved tty state */
+EXTERN bool tty_hasstate;	/* true if tty_state is valid */
 
-extern void tty_init(bool, bool);
-extern void tty_close(void);
+extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 
 /* be sure not to interfere with anyone else's idea about EXTERN */
 #ifdef EXTERN_DEFINED

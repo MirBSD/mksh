@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.90 2012/11/30 19:20:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.91 2012/11/30 19:25:03 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -152,6 +152,9 @@ static void		put_job(Job *, int);
 static void		remove_job(Job *, const char *);
 static int		kill_job(Job *, int);
 
+static void tty_init_talking(void);
+static void tty_init_state(void);
+
 /* initialise job control */
 void
 j_init(void)
@@ -201,13 +204,15 @@ j_init(void)
 		}
 	}
 
-	/* j_change() calls tty_init() */
+	/* j_change() calls tty_init_talking() and tty_init_state() */
 	if (Flag(FMONITOR))
 		j_change();
 	else
 #endif
-	  if (Flag(FTALKING))
-		tty_init(true, true);
+	  if (Flag(FTALKING)) {
+		tty_init_talking();
+		tty_init_state();
+	}
 }
 
 static int
@@ -286,9 +291,9 @@ j_change(void)
 	if (Flag(FMONITOR)) {
 		bool use_tty = Flag(FTALKING);
 
-		/* Don't call tcgetattr() 'til we own the tty process group */
+		/* don't call mksh_tcget until we own the tty process group */
 		if (use_tty)
-			tty_init(false, true);
+			tty_init_talking();
 
 		/* no controlling tty, no SIGT* */
 		if ((ttypgrp_ok = (use_tty && tty_fd >= 0 && tty_devtty))) {
@@ -334,8 +339,6 @@ j_change(void)
 			warningf(false, "%s: %s", "warning",
 			    "won't have full job control");
 #endif
-		if (tty_fd >= 0)
-			mksh_tcget(tty_fd, &tty_state);
 	} else {
 		ttypgrp_ok = false;
 		if (Flag(FTALKING))
@@ -351,9 +354,8 @@ j_change(void)
 					    SIG_IGN : SIG_DFL,
 					    SS_RESTORE_ORIG|SS_FORCE);
 			}
-		if (!Flag(FTALKING))
-			tty_close();
 	}
+	tty_init_state();
 }
 #endif
 
@@ -1136,7 +1138,7 @@ j_waitj(Job *j,
 			}
 		}
 #endif
-		if (tty_fd >= 0) {
+		if (tty_hasstate) {
 			/*
 			 * Only restore tty settings if job was originally
 			 * started in the foreground. Problems can be
@@ -1802,4 +1804,42 @@ kill_job(Job *j, int sig)
 			if (kill(p->pid, sig) < 0)
 				rval = -1;
 	return (rval);
+}
+
+static void
+tty_init_talking(void)
+{
+	switch (tty_init_fd()) {
+	case 0:
+		break;
+	case 1:
+#ifndef MKSH_DISABLE_TTY_WARNING
+		warningf(false, "%s: %s %s: %s",
+		    "No controlling tty", "open", "/dev/tty",
+		    strerror(errno));
+#endif
+		break;
+	case 2:
+#ifndef MKSH_DISABLE_TTY_WARNING
+		warningf(false, "%s: %s", "can't find tty fd", strerror(errno));
+#endif
+		break;
+	case 3:
+		warningf(false, "%s: %s %s: %s", "j_ttyinit",
+		    "dup of tty fd", "failed", strerror(errno));
+		break;
+	case 4:
+		warningf(false, "%s: %s: %s", "j_ttyinit",
+		    "can't set close-on-exec flag", strerror(errno));
+		break;
+	}
+}
+
+static void
+tty_init_state(void)
+{
+	if (tty_fd >= 0) {
+		mksh_tcget(tty_fd, &tty_state);
+		tty_hasstate = true;
+	}
 }

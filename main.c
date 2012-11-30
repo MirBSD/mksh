@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.242 2012/11/30 19:02:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.243 2012/11/30 19:25:04 tg Exp $");
 
 extern char **environ;
 
@@ -64,7 +64,7 @@ static const char initsubs[] =
 static const char *initcoms[] = {
 	Ttypeset, "-r", initvsn, NULL,
 	Ttypeset, "-x", "HOME", "PATH", "RANDOM", "SHELL", NULL,
-	Ttypeset, "-i10", "SECONDS", "TMOUT", NULL,
+	Ttypeset, "-i10", "COLUMNS", "LINES", "SECONDS", "TMOUT", NULL,
 	Talias,
 	"integer=typeset -i",
 	Tlocal_typeset,
@@ -278,12 +278,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	init_histvec();
 
-#ifdef TIOCGWINSZ
-	/* try to initialise tty size before importing environment */
-	tty_init(false, false);
+	/* initialise tty size before importing environment */
 	change_winsz();
-	tty_close();
-#endif
 
 #ifdef _PATH_DEFPATH
 	def_path = _PATH_DEFPATH;
@@ -368,8 +364,6 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		while (*wp != NULL)
 			wp++;
 	}
-	setint_n(global("COLUMNS"), 0, 10);
-	setint_n(global("LINES"), 0, 10);
 	setint_n(global("OPTIND"), 1, 10);
 
 	kshuid = getuid();
@@ -518,7 +512,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	/* initialise job control */
 	j_init();
-	/* Do this after j_init(), as tty_fd is not initialised until then */
+	/* do this after j_init() which calls tty_init_state() */
 	if (Flag(FTALKING)) {
 		if (utf_flag == 2) {
 #ifndef MKSH_ASSUME_UTF8
@@ -1056,75 +1050,76 @@ remove_temps(struct temp *tp)
 }
 
 /*
- * Initialise tty_fd. Used for saving/reseting tty modes upon
- * foreground job completion and for setting up tty process group.
+ * Initialise tty_fd. Used for tracking the size of the terminal,
+ * saving/resetting tty modes upon forground job completion, and
+ * for setting up the tty process group. Return values:
+ *	0 = got controlling tty
+ *	1 = got terminal but no controlling tty
+ *	2 = cannot find a terminal
+ *	3 = cannot dup fd
+ *	4 = cannot make fd close-on-exec
+ * An existing tty_fd is cached if no "better" one could be found,
+ * i.e. if tty_devtty was already set or the new would not set it.
  */
-void
-tty_init(bool init_ttystate, bool need_tty)
+int
+tty_init_fd(void)
 {
-	bool do_close = true;
-	int tfd;
+	int fd, rv, eno = 0;
+	bool do_close = false, is_devtty = true;
 
-	if (tty_fd >= 0) {
-		close(tty_fd);
-		tty_fd = -1;
+	if (tty_devtty) {
+		/* already got a tty which is /dev/tty */
+		return (0);
 	}
-	tty_devtty = true;
 
 #ifdef _UWIN
 	/*XXX imake style */
 	if (isatty(3)) {
 		/* fd 3 on UWIN _is_ /dev/tty (or our controlling tty) */
-		tfd = 3;
-		do_close = false;
-	} else
-#endif
-	  if ((tfd = open("/dev/tty", O_RDWR, 0)) < 0) {
-		tty_devtty = false;
-#ifndef MKSH_DISABLE_TTY_WARNING
-		if (need_tty)
-			warningf(false, "%s: %s %s: %s",
-			    "No controlling tty", "open", "/dev/tty",
-			    strerror(errno));
-#endif
+		fd = 3;
+		goto got_fd;
 	}
-	if (tfd < 0) {
-		do_close = false;
-		if (isatty(0))
-			tfd = 0;
-		else if (isatty(2))
-			tfd = 2;
-		else {
-#ifndef MKSH_DISABLE_TTY_WARNING
-			if (need_tty)
-				warningf(false, "can't find tty fd");
 #endif
-			return;
-		}
+	if ((fd = open("/dev/tty", O_RDWR, 0)) >= 0) {
+		do_close = true;
+		goto got_fd;
 	}
-	if ((tty_fd = fcntl(tfd, F_DUPFD, FDBASE)) < 0) {
-		if (need_tty)
-			warningf(false, "%s: %s %s: %s", "j_ttyinit",
-			    "dup of tty fd", "failed", strerror(errno));
-	} else if (fcntl(tty_fd, F_SETFD, FD_CLOEXEC) < 0) {
-		if (need_tty)
-			warningf(false, "%s: %s: %s", "j_ttyinit",
-			    "can't set close-on-exec flag", strerror(errno));
-		close(tty_fd);
-		tty_fd = -1;
-	} else if (init_ttystate)
-		mksh_tcget(tty_fd, &tty_state);
-	if (do_close)
-		close(tfd);
-}
+	eno = errno;
 
-void
-tty_close(void)
-{
 	if (tty_fd >= 0) {
-		close(tty_fd);
-		tty_fd = -1;
+		/* already got a non-devtty one */
+		rv = 1;
+		goto out;
 	}
+	is_devtty = false;
+
+	if (isatty((fd = 0)) || isatty((fd = 2)))
+		goto got_fd;
+	/* cannot find one */
+	rv = 2;
+	/* assert: do_close == false */
+	goto out;
+
+ got_fd:
+	if ((rv = fcntl(fd, F_DUPFD, FDBASE)) < 0) {
+		eno = errno;
+		rv = 3;
+		goto out;
+	}
+	if (fcntl(rv, F_SETFD, FD_CLOEXEC) < 0) {
+		eno = errno;
+		close(rv);
+		rv = 4;
+		goto out;
+	}
+	tty_fd = rv;
+	tty_devtty = is_devtty;
+	rv = eno = 0;
+ out:
+	if (do_close)
+		close(fd);
+	errno = eno;
+	return (rv);
 }
 
 /* A shell error occurred (eg, syntax error, etc.) */
