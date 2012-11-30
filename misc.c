@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.200 2012/10/22 20:52:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.201 2012/11/30 17:34:46 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1938,9 +1938,9 @@ chvt(const char *fn)
 			    "new shell is potentially insecure, can't revoke",
 			    fn);
 	}
-	if ((fd = open(fn, O_RDWR)) == -1) {
+	if ((fd = open(fn, O_RDWR)) < 0) {
 		sleep(1);
-		if ((fd = open(fn, O_RDWR)) == -1)
+		if ((fd = open(fn, O_RDWR)) < 0)
 			errorf("%s: %s %s", "chvt", "can't open", fn);
 	}
 	switch (fork()) {
