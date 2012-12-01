@@ -105,11 +105,6 @@
 #else
 #define MKSH_A_FORMAT(x,y,z)	/* nothing */
 #endif
-#if HAVE_ATTRIBUTE_NONNULL
-#define MKSH_A_NONNULL(a)	__attribute__(a)
-#else
-#define MKSH_A_NONNULL(a)	/* nothing */
-#endif
 #if HAVE_ATTRIBUTE_NORETURN
 #define MKSH_A_NORETURN		__attribute__((__noreturn__))
 #else
@@ -157,7 +152,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.610 2012/11/30 20:49:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.611 2012/12/01 01:36:28 tg Exp $");
 #endif
 #define MKSH_VERSION "R41 2012/11/30"
 
@@ -1966,8 +1961,7 @@ int setstr(struct tbl *, const char *, int);
 struct tbl *setint_v(struct tbl *, struct tbl *, bool);
 void setint(struct tbl *, mksh_ari_t);
 void setint_n(struct tbl *, mksh_ari_t, int);
-struct tbl *typeset(const char *, uint32_t, uint32_t, int, int)
-    MKSH_A_NONNULL((__nonnull__ (1)));
+struct tbl *typeset(const char *, uint32_t, uint32_t, int, int);
 void unset(struct tbl *, int);
 const char *skip_varname(const char *, int);
 const char *skip_wdvarname(const char *, bool);
