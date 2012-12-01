@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.590.2.2 2012/11/30 22:17:34 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.590.2.3 2012/12/01 14:22:12 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1495,7 +1495,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.590.2.2 2012/11/30 22:17:34 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.590.2.3 2012/12/01 14:22:12 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1997,6 +1997,7 @@ mksh_cfg= NSIG
 	esac
 	printf=printf
 	(printf hallo) >/dev/null 2>&1 || printf=echo
+	test $printf = echo || test "`printf %d 42`" = 42 || printf=echo
 	test $printf = echo || NSIG=`printf %d "$NSIG" 2>/dev/null`
 	$printf "NSIG=$NSIG ... "
 	sigs="INT SEGV ABRT KILL ALRM BUS CHLD CLD CONT DIL EMT FPE HUP ILL"
