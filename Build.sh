@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.590.2.4 2012/12/03 13:07:13 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.590.2.5 2012/12/03 22:10:04 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -594,7 +594,6 @@ IRIX*)
 Linux)
 	case $CC in
 	*tendracc*) ;;
-	*/musl-gcc*) add_cppflags -D_GNU_SOURCE -D_BSD_SOURCE ;;
 	*) add_cppflags -D_GNU_SOURCE ;;
 	esac
 	add_cppflags -DSETUID_CAN_FAIL_WITH_EAGAIN
@@ -1495,7 +1494,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.590.2.4 2012/12/03 13:07:13 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.590.2.5 2012/12/03 22:10:04 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
