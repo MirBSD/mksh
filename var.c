@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.162 2012/12/01 01:36:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.163 2012/12/04 01:11:17 tg Exp $");
 
 /*-
  * Variables
@@ -615,10 +615,13 @@ formatstr(struct tbl *vp, const char *s)
 				--slen;
 			}
 			if (vp->flag & ZEROFIL && vp->flag & INTEGER) {
+				if (!s[0] || !s[1])
+					goto uhm_no;
 				if (s[1] == '#')
 					n = 2;
 				else if (s[2] == '#')
 					n = 3;
+ uhm_no:
 				if (vp->u2.field <= n)
 					n = 0;
 			}
