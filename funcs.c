@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.230 2012/10/30 20:13:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.230.2.1 2012/12/04 01:26:23 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -220,8 +220,7 @@ static const char *ptest_getopnd(Test_env *, Test_op, bool);
 static void ptest_error(Test_env *, int, const char *);
 static char *kill_fmt_entry(char *, size_t, unsigned int, const void *);
 static void p_time(struct shf *, bool, long, int, int,
-    const char *, const char *)
-    MKSH_A_NONNULL((__nonnull__ (6, 7)));
+    const char *, const char *);
 
 int
 c_pwd(const char **wp)
@@ -853,8 +852,6 @@ c_typeset(const char **wp)
 	} else if (wp[builtin_opt.optind]) {
 		for (i = builtin_opt.optind; wp[i]; i++) {
 			varsearch(e->loc, &vp, wp[i], hash(wp[i]));
-			if (!vp)
-				continue;
 			c_typeset_vardump(vp, flag, thing, pflag, istset);
 		}
 	} else
@@ -883,6 +880,9 @@ c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, bool pflag,
 	struct tbl *tvp;
 	int any_set = 0;
 	char *s;
+
+	if (!vp)
+		return;
 
 	/*
 	 * See if the parameter is set (for arrays, if any
@@ -2766,6 +2766,8 @@ c_test(const char **wp)
 
 	for (argc = 0; wp[argc]; argc++)
 		;
+	mkssert(argc > 0);
+	mkssert(wp[0] != NULL);
 
 	if (strcmp(wp[0], "[") == 0) {
 		if (strcmp(wp[--argc], "]") != 0) {

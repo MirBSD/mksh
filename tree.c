@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.65 2012/10/22 20:19:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.65.2.1 2012/12/04 01:26:35 tg Exp $");
 
 #define INDENT	8
 
@@ -36,6 +36,8 @@ static void iofree(struct ioword **, Area *);
 
 /* "foo& ; bar" and "foo |& ; bar" are invalid */
 static bool prevent_semicolon;
+
+static const char Telif_pT[] = "elif %T";
 
 /*
  * print a command tree
@@ -160,7 +162,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 			fptreef(shf, indent, "%;");
  process_TIF:
 			/* 5 == strlen("elif ") */
-			fptreef(shf, indent + 5 - i, "elif %T" + i, t1->left);
+			fptreef(shf, indent + 5 - i, Telif_pT + i, t1->left);
 			t1 = t1->right;
 			if (t1->left != NULL) {
 				fptreef(shf, indent, "%;");
@@ -177,7 +179,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		break;
 	case TWHILE:
 	case TUNTIL:
-		/* 6 == strlen("while"/"until") */
+		/* 6 == strlen("while "/"until ") */
 		fptreef(shf, indent + 6, "%s %T",
 		    (t->type == TWHILE) ? "while" : "until",
 		    t->left);

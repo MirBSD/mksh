@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.590.2.5 2012/12/03 22:10:04 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.590.2.6 2012/12/04 01:26:12 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1293,20 +1293,6 @@ ac_test attribute_format '' 'for __attribute__((__format__))' <<-'EOF'
 	int main(int ac, char **av) { return (fprintf(stderr, "%s%d", *av, ac)); }
 	#endif
 EOF
-ac_test attribute_nonnull '' 'for __attribute__((__nonnull__))' <<-'EOF'
-	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
-	/* force a failure: TenDRA and gcc 1.42 have false positive here */
-	int main(void) { return (thiswillneverbedefinedIhope()); }
-	#else
-	int foo(char *s1, char *s2) __attribute__((__nonnull__));
-	int bar(char *s1, char *s2) __attribute__((__nonnull__ (1, 2)));
-	int baz(char *s) __attribute__((__nonnull__ (1)));
-	int foo(char *s1, char *s2) { return (bar(s2, s1)); }
-	int bar(char *s1, char *s2) { return (baz(s1) - baz(s2)); }
-	int baz(char *s) { return (*s); }
-	int main(int ac, char **av) { return (ac == foo(av[0], av[ac-1])); }
-	#endif
-EOF
 ac_test attribute_noreturn '' 'for __attribute__((__noreturn__))' <<-'EOF'
 	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
 	/* force a failure: TenDRA and gcc 1.42 have false positive here */
@@ -1494,7 +1480,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.590.2.5 2012/12/03 22:10:04 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.590.2.6 2012/12/04 01:26:12 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.106 2012/11/30 19:02:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.106.2.1 2012/12/04 01:26:22 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -32,7 +32,7 @@ __RCSID("$MirOS: src/bin/mksh/exec.c,v 1.106 2012/11/30 19:02:06 tg Exp $");
 static int comexec(struct op *, struct tbl * volatile, const char **,
     int volatile, volatile int *);
 static void scriptexec(struct op *, const char **) MKSH_A_NORETURN;
-static int call_builtin(struct tbl *, const char **);
+static int call_builtin(struct tbl *, const char **, const char *);
 static int iosetup(struct ioword *, struct tbl *);
 static int herein(const char *, int, char **);
 static const char *do_selectargs(const char **, bool);
@@ -672,7 +672,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 
 	/* shell built-in */
 	case CSHELL:
-		rv = call_builtin(tp, (const char **)ap);
+		rv = call_builtin(tp, (const char **)ap, null);
 		break;
 
 	/* function call */
@@ -933,9 +933,7 @@ shcomexec(const char **wp)
 	struct tbl *tp;
 
 	tp = ktsearch(&builtins, *wp, hash(*wp));
-	if (tp == NULL)
-		internal_errorf("%s: %s", "shcomexec", *wp);
-	return (call_builtin(tp, wp));
+	return (call_builtin(tp, wp, "shcomexec"));
 }
 
 /*
@@ -984,6 +982,8 @@ define(const char *name, struct op *t)
 
 	while (/* CONSTCOND */ 1) {
 		tp = findfunc(name, nhash, true);
+		/* because findfunc:create=true */
+		mkssert(tp != NULL);
 
 		if (tp->flag & ISSET)
 			was_set = true;
@@ -1250,10 +1250,12 @@ search_path(const char *name, const char *lpath,
 }
 
 static int
-call_builtin(struct tbl *tp, const char **wp)
+call_builtin(struct tbl *tp, const char **wp, const char *where)
 {
 	int rv;
 
+	if (!tp)
+		internal_errorf("%s: %s", where, wp[0]);
 	builtin_argv0 = wp[0];
 	builtin_flag = tp->flag;
 	shf_reopen(1, SHF_WR, shl_stdout);
@@ -1534,7 +1536,7 @@ do_selectargs(const char **ap, bool print_menu)
 		if (print_menu || !*str_val(global("REPLY")))
 			pr_menu(ap);
 		shellf("%s", str_val(global("PS3")));
-		if (call_builtin(findcom("read", FC_BI), read_args))
+		if (call_builtin(findcom("read", FC_BI), read_args, Tselect))
 			return (NULL);
 		s = str_val(global("REPLY"));
 		if (*s) {

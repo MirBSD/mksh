@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.47 2012/10/03 16:16:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.47.2.1 2012/12/04 01:26:35 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -971,14 +971,13 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 
 		case 'c':
 			flags &= ~FL_DOT;
-			numbuf[0] = (char)(VA(int));
-			s = numbuf;
-			len = 1;
-			break;
+			c = (char)(VA(int));
+			/* FALLTHROUGH */
 
 		case '%':
 		default:
 			numbuf[0] = c;
+			numbuf[1] = 0;
 			s = numbuf;
 			len = 1;
 			break;

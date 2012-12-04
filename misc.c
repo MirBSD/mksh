@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.201 2012/11/30 17:34:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.201.2.1 2012/12/04 01:26:28 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -445,6 +445,7 @@ parse_args(const char **argv,
 	if (arrayset) {
 		const char *ccp = NULL;
 
+		mkssert(array != NULL);
 		if (*array)
 			ccp = skip_varname(array, false);
 		if (!ccp || !(!ccp[0] || (ccp[0] == '+' && !ccp[1]))) {
@@ -469,33 +470,40 @@ parse_args(const char **argv,
 int
 getn(const char *s, int *ai)
 {
-	int c;
-	unsigned int i, j, k;
+	char c;
+	unsigned int i = 0;
 	bool neg = false;
-	int rv = 0;
 
 	do {
 		c = *s++;
 	} while (ksh_isspace(c));
-	if (c == '-') {
+
+	switch (c) {
+	case '-':
 		neg = true;
+		/* FALLTHROUGH */
+	case '+':
 		c = *s++;
-	} else if (c == '+')
-		c = *s++;
-	k = neg ? 2147483648U : 2147483647U;
-	j = i = 0;
+		break;
+	}
+
 	do {
 		if (!ksh_isdigit(c))
-			goto getn_out;
-		if ((j = i * 10 + c - '0') > k)
-			goto getn_out;
-		i = j;
+			/* not numeric */
+			return (0);
+		if (i > 214748364U)
+			/* overflow on multiplication */
+			return (0);
+		i = i * 10U + (unsigned int)(c - '0');
+		/* now: i <= 2147483649U */
 	} while ((c = *s++));
-	rv = 1;
 
- getn_out:
-	*ai = i == 2147483648U ? (int)i : neg ? -(int)i : (int)i;
-	return (rv);
+	if (i > (neg ? 2147483648U : 2147483647U))
+		/* overflow for signed 32-bit int */
+		return (0);
+
+	*ai = neg ? -(int)i : (int)i;
+	return (1);
 }
 
 /**

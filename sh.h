@@ -105,11 +105,6 @@
 #else
 #define MKSH_A_FORMAT(x,y,z)	/* nothing */
 #endif
-#if HAVE_ATTRIBUTE_NONNULL
-#define MKSH_A_NONNULL(a)	__attribute__(a)
-#else
-#define MKSH_A_NONNULL(a)	/* nothing */
-#endif
 #if HAVE_ATTRIBUTE_NORETURN
 #define MKSH_A_NORETURN		__attribute__((__noreturn__))
 #else
@@ -157,9 +152,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.608.2.1 2012/11/30 20:49:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.608.2.2 2012/12/04 01:26:32 tg Exp $");
 #endif
-#define MKSH_VERSION "R41 2012/11/30"
+#define MKSH_VERSION "R41 2012/12/03"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -477,12 +472,16 @@ char *ucstrstr(char *, const char *);
 })
 #define vstrchr(s,c)	(cstrchr((s), (c)) != NULL)
 #define vstrstr(b,l)	(cstrstr((b), (l)) != NULL)
-#define mkssert(e)	((e) ? (void)0 : exit(255))
 #else /* !DEBUG, !gcc */
 #define cstrchr(s,c)	((const char *)strchr((s), (c)))
 #define cstrstr(s,c)	((const char *)strstr((s), (c)))
 #define vstrchr(s,c)	(strchr((s), (c)) != NULL)
 #define vstrstr(b,l)	(strstr((b), (l)) != NULL)
+#endif
+
+#if defined(DEBUG) || defined(__COVERITY__)
+#define mkssert(e)	((e) ? (void)0 : exit(255))
+#else
 #define mkssert(e)	((void)0)
 #endif
 
@@ -1970,8 +1969,7 @@ int setstr(struct tbl *, const char *, int);
 struct tbl *setint_v(struct tbl *, struct tbl *, bool);
 void setint(struct tbl *, mksh_ari_t);
 void setint_n(struct tbl *, mksh_ari_t, int);
-struct tbl *typeset(const char *, uint32_t, uint32_t, int, int)
-    MKSH_A_NONNULL((__nonnull__ (1)));
+struct tbl *typeset(const char *, uint32_t, uint32_t, int, int);
 void unset(struct tbl *, int);
 const char *skip_varname(const char *, int);
 const char *skip_wdvarname(const char *, bool);

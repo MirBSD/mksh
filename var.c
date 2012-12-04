@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.161 2012/11/30 19:25:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.161.2.1 2012/12/04 01:26:36 tg Exp $");
 
 /*-
  * Variables
@@ -299,6 +299,7 @@ local(const char *n, bool copy)
 
 	/* check to see if this is an array */
 	n = array_index_calc(n, &array, &val);
+	mkssert(n != NULL);
 	h = hash(n);
 	if (!ksh_isalphx(*n)) {
 		vp = &vtemp;
@@ -615,10 +616,13 @@ formatstr(struct tbl *vp, const char *s)
 				--slen;
 			}
 			if (vp->flag & ZEROFIL && vp->flag & INTEGER) {
+				if (!s[0] || !s[1])
+					goto uhm_no;
 				if (s[1] == '#')
 					n = 2;
 				else if (s[2] == '#')
 					n = 3;
+ uhm_no:
 				if (vp->u2.field <= n)
 					n = 0;
 			}
@@ -704,7 +708,6 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 	val = skip_varname(var, false);
 	if (val == var)
 		return (NULL);
-	mkssert(var != NULL);
 	if (*val == '[') {
 		if (set_refflag != SRF_NOP)
 			errorf("%s: %s", var,

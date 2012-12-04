@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.256 2012/11/26 22:39:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.256.2.1 2012/12/04 01:26:19 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -990,8 +990,7 @@ static int x_search_dir(int);
 static int x_match(char *, char *);
 static void x_redraw(int);
 static void x_push(int);
-static char *x_mapin(const char *, Area *)
-    MKSH_A_NONNULL((__nonnull__ (1)));
+static char *x_mapin(const char *, Area *);
 static char *x_mapout(int);
 static void x_mapout2(int, char **);
 static void x_print(int, int);
@@ -2274,6 +2273,7 @@ x_push(int nchars)
 {
 	char *cp;
 
+	mkssert(xcp != NULL);
 	strndupx(cp, xcp, nchars, AEDIT);
 	if (killstack[killsp])
 		afree(killstack[killsp], AEDIT);
@@ -2394,9 +2394,6 @@ static char *
 x_mapin(const char *cp, Area *ap)
 {
 	char *news, *op;
-
-	/* for clang's static analyser, the nonnull attribute isn't enough */
-	mkssert(cp != NULL);
 
 	strdupx(news, cp, ap);
 	op = news;

@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.128 2012/11/30 19:02:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.128.2.1 2012/12/04 01:26:25 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -634,6 +634,7 @@ histsave(int *lnp, const char *cmd, bool dowrite MKSH_A_UNUSED, bool ignoredups)
 	char **hp;
 	char *c, *cp;
 
+	mkssert(cmd != NULL);
 	strdupx(c, cmd, APERM);
 	if ((cp = strchr(c, '\n')) != NULL)
 		*cp = '\0';
