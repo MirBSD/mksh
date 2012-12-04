@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.231 2012/12/01 01:36:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.232 2012/12/04 01:18:28 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -852,8 +852,6 @@ c_typeset(const char **wp)
 	} else if (wp[builtin_opt.optind]) {
 		for (i = builtin_opt.optind; wp[i]; i++) {
 			varsearch(e->loc, &vp, wp[i], hash(wp[i]));
-			if (!vp)
-				continue;
 			c_typeset_vardump(vp, flag, thing, pflag, istset);
 		}
 	} else
@@ -882,6 +880,9 @@ c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, bool pflag,
 	struct tbl *tvp;
 	int any_set = 0;
 	char *s;
+
+	if (!vp)
+		return;
 
 	/*
 	 * See if the parameter is set (for arrays, if any
@@ -2765,6 +2766,8 @@ c_test(const char **wp)
 
 	for (argc = 0; wp[argc]; argc++)
 		;
+	mkssert(argc > 0);
+	mkssert(wp[0] != NULL);
 
 	if (strcmp(wp[0], "[") == 0) {
 		if (strcmp(wp[--argc], "]") != 0) {

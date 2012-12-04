@@ -152,9 +152,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.611 2012/12/01 01:36:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.612 2012/12/04 01:18:32 tg Exp $");
 #endif
-#define MKSH_VERSION "R41 2012/11/30"
+#define MKSH_VERSION "R41 2012/12/03"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -472,12 +472,16 @@ char *ucstrstr(char *, const char *);
 })
 #define vstrchr(s,c)	(cstrchr((s), (c)) != NULL)
 #define vstrstr(b,l)	(cstrstr((b), (l)) != NULL)
-#define mkssert(e)	((e) ? (void)0 : exit(255))
 #else /* !DEBUG, !gcc */
 #define cstrchr(s,c)	((const char *)strchr((s), (c)))
 #define cstrstr(s,c)	((const char *)strstr((s), (c)))
 #define vstrchr(s,c)	(strchr((s), (c)) != NULL)
 #define vstrstr(b,l)	(strstr((b), (l)) != NULL)
+#endif
+
+#if defined(DEBUG) || defined(__COVERITY__)
+#define mkssert(e)	((e) ? (void)0 : exit(255))
+#else
 #define mkssert(e)	((void)0)
 #endif
 
