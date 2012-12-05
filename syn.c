@@ -23,10 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.84 2012/10/30 20:49:44 tg Exp $");
-
-extern int subshell_nesting_type;
-extern void yyskiputf8bom(void);
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.84.2.1 2012/12/05 19:58:36 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -771,7 +768,7 @@ block(int type, struct op *t1, struct op *t2, char **wp)
 	return (t);
 }
 
-const struct tokeninfo {
+static const struct tokeninfo {
 	const char *name;
 	short val;
 	short reserved;
@@ -973,9 +970,9 @@ const char *const dbtest_tokens[] = {
 	dbtest_or, dbtest_and, dbtest_not,
 	dbtest_oparen, dbtest_cparen
 };
-const char db_close[] = { CHAR, ']', CHAR, ']', EOS };
-const char db_lthan[] = { CHAR, '<', EOS };
-const char db_gthan[] = { CHAR, '>', EOS };
+static const char db_close[] = { CHAR, ']', CHAR, ']', EOS };
+static const char db_lthan[] = { CHAR, '<', EOS };
+static const char db_gthan[] = { CHAR, '>', EOS };
 
 /*
  * Test if the current token is a whatever. Accepts the current token if
@@ -1018,7 +1015,7 @@ dbtestp_isa(Test_env *te, Test_meta meta)
 		    db_close)) ? TO_NONNULL : TO_NONOP;
 	if (ret != TO_NONOP) {
 		ACCEPT;
-		if (meta < NELEM(dbtest_tokens))
+		if ((unsigned int)meta < NELEM(dbtest_tokens))
 			save = wdcopy(dbtest_tokens[(int)meta], ATEMP);
 		if (save)
 			XPput(*te->pos.av, save);

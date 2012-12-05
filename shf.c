@@ -1,7 +1,7 @@
 /*	$OpenBSD: shf.c,v 1.15 2006/04/02 00:48:33 deraadt Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.47.2.1 2012/12/04 01:26:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.47.2.2 2012/12/05 19:58:35 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -552,7 +552,7 @@ shf_ungetc(int c, struct shf *shf)
 		 * Can unget what was read, but not something different;
 		 * we don't want to modify a string.
 		 */
-		if (shf->rp[-1] != c)
+		if ((int)(shf->rp[-1]) != c)
 			return (EOF);
 		shf->flags &= ~SHF_EOF;
 		shf->rp--;

@@ -152,9 +152,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.608.2.2 2012/12/04 01:26:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.608.2.3 2012/12/05 19:58:33 tg Exp $");
 #endif
-#define MKSH_VERSION "R41 2012/12/03"
+#define MKSH_VERSION "R41 2012/12/05"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -651,7 +651,8 @@ enum sh_flag {
 struct sretrace_info;
 struct yyrecursive_state;
 
-extern struct sretrace_info *retrace_info;
+EXTERN struct sretrace_info *retrace_info E_INIT(NULL);
+EXTERN int subshell_nesting_type E_INIT(0);
 
 extern struct env {
 	ALLOC_ITEM alloc_INT;	/* internal, do not touch */
@@ -1801,6 +1802,7 @@ pid_t j_async(void);
 int j_stopped_running(void);
 /* lex.c */
 int yylex(int);
+void yyskiputf8bom(void);
 void yyerror(const char *, ...)
     MKSH_A_NORETURN
     MKSH_A_FORMAT(__printf__, 1, 2);
@@ -1874,7 +1876,7 @@ void setctypes(const char *, int);
 void initctypes(void);
 size_t option(const char *);
 char *getoptions(void);
-void change_flag(enum sh_flag, int, unsigned int);
+void change_flag(enum sh_flag, int, bool);
 int parse_args(const char **, int, bool *);
 int getn(const char *, int *);
 int gmatchx(const char *, const char *, bool);
