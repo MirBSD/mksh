@@ -23,10 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.85 2012/11/30 20:19:15 tg Exp $");
-
-extern int subshell_nesting_type;
-extern void yyskiputf8bom(void);
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.86 2012/12/05 18:54:10 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -771,7 +768,7 @@ block(int type, struct op *t1, struct op *t2, char **wp)
 	return (t);
 }
 
-const struct tokeninfo {
+static const struct tokeninfo {
 	const char *name;
 	short val;
 	short reserved;
@@ -973,9 +970,9 @@ const char *const dbtest_tokens[] = {
 	dbtest_or, dbtest_and, dbtest_not,
 	dbtest_oparen, dbtest_cparen
 };
-const char db_close[] = { CHAR, ']', CHAR, ']', EOS };
-const char db_lthan[] = { CHAR, '<', EOS };
-const char db_gthan[] = { CHAR, '>', EOS };
+static const char db_close[] = { CHAR, ']', CHAR, ']', EOS };
+static const char db_lthan[] = { CHAR, '<', EOS };
+static const char db_gthan[] = { CHAR, '>', EOS };
 
 /*
  * Test if the current token is a whatever. Accepts the current token if

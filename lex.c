@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.172 2012/11/30 20:19:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.173 2012/12/05 18:54:08 tg Exp $");
 
 /*
  * states while lexing word
@@ -104,12 +104,9 @@ static Lex_state *push_state_i(State_info *, Lex_state *);
 static Lex_state *pop_state_i(State_info *, Lex_state *);
 
 static int dopprompt(const char *, int, bool);
-void yyskiputf8bom(void);
 
 static int backslash_skip;
 static int ignore_backslash_newline;
-struct sretrace_info *retrace_info = NULL;
-int subshell_nesting_type = 0;
 
 /* optimised getsc_bn() */
 #define o_getsc()	(*source->str != '\0' && *source->str != '\\' && \
