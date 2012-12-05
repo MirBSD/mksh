@@ -152,9 +152,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.613 2012/12/05 18:54:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.614 2012/12/05 19:38:23 tg Exp $");
 #endif
-#define MKSH_VERSION "R41 2012/12/03"
+#define MKSH_VERSION "R41 2012/12/05"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1872,7 +1872,7 @@ void setctypes(const char *, int);
 void initctypes(void);
 size_t option(const char *);
 char *getoptions(void);
-void change_flag(enum sh_flag, int, unsigned int);
+void change_flag(enum sh_flag, int, bool);
 int parse_args(const char **, int, bool *);
 int getn(const char *, int *);
 int gmatchx(const char *, const char *, bool);

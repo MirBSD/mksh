@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.173 2012/12/05 18:54:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.174 2012/12/05 19:38:20 tg Exp $");
 
 /*
  * states while lexing word
@@ -272,8 +272,8 @@ yylex(int cf)
 				statep->nparen++;
 			else if (c == ')')
 				statep->nparen--;
-			else if (statep->nparen == 0 &&
-			    (c == /*{*/ '}' || c == statep->ls_adelim.delimiter)) {
+			else if (statep->nparen == 0 && (c == /*{*/ '}' ||
+			    c == (int)statep->ls_adelim.delimiter)) {
 				*wp++ = ADELIM;
 				*wp++ = c;
 				if (c == /*{*/ '}' || --statep->ls_adelim.num == 0)

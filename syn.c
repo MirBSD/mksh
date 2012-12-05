@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.86 2012/12/05 18:54:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.87 2012/12/05 19:38:25 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -1015,7 +1015,7 @@ dbtestp_isa(Test_env *te, Test_meta meta)
 		    db_close)) ? TO_NONNULL : TO_NONOP;
 	if (ret != TO_NONOP) {
 		ACCEPT;
-		if (meta < NELEM(dbtest_tokens))
+		if ((unsigned int)meta < NELEM(dbtest_tokens))
 			save = wdcopy(dbtest_tokens[(int)meta], ATEMP);
 		if (save)
 			XPput(*te->pos.av, save);
