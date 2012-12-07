@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.571 2012/12/05 19:38:18 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.572 2012/12/07 23:43:09 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -8133,6 +8133,36 @@ stdin:
 	fi
 expected-stdout:
 	okay
+---
+name: redir-1
+description:
+	Check some of the most basic invariants of I/O redirection
+stdin:
+	i=0
+	function d {
+		print o$i.
+		print -u2 e$((i++)).
+	}
+	d >a 2>b
+	echo =1=
+	cat a
+	echo =2=
+	cat b
+	echo =3=
+	d 2>&1 >c
+	echo =4=
+	cat c
+	echo =5=
+expected-stdout:
+	=1=
+	o0.
+	=2=
+	e0.
+	=3=
+	e1.
+	=4=
+	o1.
+	=5=
 ---
 name: bashiop-1
 description:
