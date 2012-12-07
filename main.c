@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.247 2012/12/05 19:38:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.248 2012/12/07 23:46:36 tg Exp $");
 
 extern char **environ;
 
@@ -1654,7 +1654,7 @@ tgrow(struct table *tp)
 		if ((tblp = otblp[i]) != NULL) {
 			if ((tblp->flag & DEFINED)) {
 				/* search for free hash table slot */
-				j = (perturb = tblp->ua.hval) & mask;
+				j = perturb = tblp->ua.hval;
 				goto find_first_empty_slot;
  find_next_empty_slot:
 				j = (j << 2) + j + perturb + 1;
@@ -1692,7 +1692,7 @@ ktscan(struct table *tp, const char *name, uint32_t h, struct tbl ***ppp)
 
 	mask = ((size_t)1 << (tp->tshift)) - 1;
 	/* search for hash table slot matching name */
-	j = (perturb = h) & mask;
+	j = perturb = h;
 	goto find_first_slot;
  find_next_slot:
 	j = (j << 2) + j + perturb + 1;
