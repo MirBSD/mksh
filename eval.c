@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.130 2012/11/30 20:19:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.131 2012/12/08 18:30:29 tg Exp $");
 
 /*
  * string expansion
@@ -516,6 +516,7 @@ expand(const char *cp,	/* input word */
 
 						/* check for special cases */
 						d = str_val(st->var);
+						mkssert(d != NULL);
 						switch (*pat) {
 						case '#':
 							/* anchor at begin */

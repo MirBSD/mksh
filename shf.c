@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.49 2012/12/05 19:38:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.50 2012/12/08 18:30:31 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -764,7 +764,12 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 	ssize_t field, precision, len;
 	unsigned long lnum;
 	/* %#o produces the longest output */
-	char numbuf[(8 * sizeof(long) + 2) / 3 + 1];
+	char numbuf[(8 * sizeof(long) + 2) / 3 + 1
+#ifdef DEBUG
+		/* a NUL for LLVM/Clang scan-build */
+		+ 1
+#endif
+	    ];
 	/* this stuff for dealing with the buffer */
 	ssize_t nwritten = 0;
 
@@ -902,6 +907,16 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
  integral:
 			flags |= FL_NUMBER;
 			cp = numbuf + sizeof(numbuf);
+#ifdef DEBUG
+			/*
+			 * this is necessary so Clang 3.2 realises
+			 * utf_skipcols/shf_putc in the output loop
+			 * terminate; these values are always ASCII
+			 * so an out-of-bounds access cannot happen
+			 * but Clang doesn't know that
+			 */
+			*--cp = '\0';
+#endif
 
 			switch (c) {
 			case 'd':
@@ -953,6 +968,10 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 			}
 			}
 			len = numbuf + sizeof(numbuf) - (s = cp);
+#ifdef DEBUG
+			/* see above comment for Clang 3.2 */
+			--len;
+#endif
 			if (flags & FL_DOT) {
 				if (precision > len) {
 					field = precision;

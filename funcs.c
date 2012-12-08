@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.232 2012/12/04 01:18:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.233 2012/12/08 18:30:30 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2896,6 +2896,31 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 
 	if (!do_eval)
 		return (0);
+
+#ifdef DEBUG
+	switch (op) {
+	/* Binary operators */
+	case TO_STEQL:
+	case TO_STNEQ:
+	case TO_STLT:
+	case TO_STGT:
+	case TO_INTEQ:
+	case TO_INTNE:
+	case TO_INTGT:
+	case TO_INTGE:
+	case TO_INTLT:
+	case TO_INTLE:
+	case TO_FILEQ:
+	case TO_FILNT:
+	case TO_FILOT:
+		/* consistency check, but does not happen in practice */
+		if (!opnd2) {
+			te->flags |= TEF_ERROR;
+			return (1);
+		}
+		break;
+	}
+#endif
 
 	switch (op) {
 

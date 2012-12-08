@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.258 2012/12/04 01:18:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.259 2012/12/08 18:30:27 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -606,6 +606,8 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 	int len, nwords = 0;
 	char **words = NULL;
 	bool is_command;
+
+	mkssert(buf != NULL);
 
 	len = x_locate_word(buf, buflen, pos, startp, &is_command);
 	if (!((*flagsp) & XCF_COMMAND))

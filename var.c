@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.164 2012/12/04 01:18:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.165 2012/12/08 18:30:31 tg Exp $");
 
 /*-
  * Variables
@@ -672,6 +672,8 @@ exportprep(struct tbl *vp, const char *val)
 	char *xp;
 	char *op = (vp->flag&ALLOC) ? vp->val.s : NULL;
 	size_t namelen, vallen;
+
+	mkssert(val != NULL);
 
 	namelen = strlen(vp->name);
 	vallen = strlen(val) + 1;
