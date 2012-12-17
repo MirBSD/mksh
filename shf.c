@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.52 2012/12/17 22:57:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.53 2012/12/17 23:18:11 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1078,21 +1078,79 @@ shf_putc(int c, struct shf *shf)
 }
 #endif
 
-#if !HAVE_STRERROR
-/*
- * This is absolutely minimalistic. We could catch a number of well-
- * known errors (like ENOENT) and provide real error strings for them,
- * but to do that, I'd like a survey of which errors usually occur on
- * what systems, to be worth it. Modern systems do have strerror; this
- * is a porting aid only right now.
- */
-char *
-strerror(int errnum)
+#ifdef DEBUG
+const char *
+cstrerror(int errnum)
 {
-	/* "Errno. " + sign + rounded(octal) bits + NUL */
-	static char errbuf[7 + 1 + (8 * sizeof(int) + 2) / 3 + 1];
+#undef strerror
+	return (strerror(errnum));
+#define strerror dontuse_strerror /* poisoned */
+}
+#elif !HAVE_STRERROR
+#if HAVE_SYS_ERRLIST
+#if !HAVE_SYS_ERRLIST_DECL
+extern int sys_nerr;
+extern char *sys_errlist[];
+#endif
+#endif
+const char *
+cstrerror(int errnum)
+{
+	/* "Unknown error: " + sign + rough estimate + NUL */
+	static char errbuf[15 + 1 + (8 * sizeof(int) + 2) / 3 + 1];
 
-	shf_snprintf(errbuf, sizeof(errbuf), "Errno. %d", errnum);
-	return (errbuf);
+#if HAVE_SYS_ERRLIST
+	if (errnum > 0 && errnum < sys_nerr)
+		return (sys_errlist[errnum]);
+#endif
+
+	switch (errnum) {
+	case 0:
+		return ("Undefined error: 0");
+#ifdef EPERM
+	case EPERM:
+		return ("Operation not permitted");
+#endif
+#ifdef ENOENT
+	case ENOENT:
+		return ("No such file or directory");
+#endif
+#ifdef ESRCH
+	case ESRCH:
+		return ("No such process");
+#endif
+#ifdef E2BIG
+	case E2BIG:
+		return ("Argument list too long");
+#endif
+#ifdef ENOEXEC
+	case ENOEXEC:
+		return ("Exec format error");
+#endif
+#ifdef ENOMEM
+	case ENOMEM:
+		return ("Cannot allocate memory");
+#endif
+#ifdef EACCES
+	case EACCES:
+		return ("Permission denied");
+#endif
+#ifdef ENOTDIR
+	case ENOTDIR:
+		return ("Not a directory");
+#endif
+#ifdef EINVAL
+	case EINVAL:
+		return ("Invalid argument");
+#endif
+#ifdef ELOOP
+	case ELOOP:
+		return ("Too many levels of symbolic links");
+#endif
+	default:
+		shf_snprintf(errbuf, sizeof(errbuf),
+		    "Unknown error: %d", errnum);
+		return (errbuf);
+	}
 }
 #endif

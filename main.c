@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.248 2012/12/07 23:46:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.249 2012/12/17 23:18:07 tg Exp $");
 
 extern char **environ;
 
@@ -484,7 +484,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		    SHF_MAPHI | SHF_CLEXEC);
 		if (s->u.shf == NULL) {
 			shl_stdout_ok = false;
-			warningf(true, "%s: %s", s->file, strerror(errno));
+			warningf(true, "%s: %s", s->file, cstrerror(errno));
 			/* mandated by SUSv4 */
 			exstat = 127;
 			unwind(LERROR);

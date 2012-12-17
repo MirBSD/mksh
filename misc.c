@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.204 2012/12/05 19:38:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.205 2012/12/17 23:18:08 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1853,7 +1853,7 @@ c_cd(const char **wp)
 		if (cdnode)
 			bi_errorf("%s: %s", dir, "bad directory");
 		else
-			bi_errorf("%s: %s", tryp, strerror(errno));
+			bi_errorf("%s: %s", tryp, cstrerror(errno));
 		afree(allocd, ATEMP);
 		Xfree(xs, xp);
 		return (2);

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.108 2012/12/04 01:18:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.109 2012/12/17 23:18:03 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -461,7 +461,7 @@ execute(struct op * volatile t,
 		if (rv == ENOEXEC)
 			scriptexec(t, (const char **)up);
 		else
-			errorf("%s: %s", s, strerror(rv));
+			errorf("%s: %s", s, cstrerror(rv));
 	}
  Break:
 	exstat = rv & 0xFF;
@@ -688,14 +688,14 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				rv = (tp->u2.errnov == ENOENT) ? 127 : 126;
 				warningf(true, "%s: %s %s: %s", cp,
 				    "can't find", "function definition file",
-				    strerror(tp->u2.errnov));
+				    cstrerror(tp->u2.errnov));
 				break;
 			}
 			if (include(tp->u.fpath, 0, NULL, false) < 0) {
 				rv = errno;
 				warningf(true, "%s: %s %s %s: %s", cp,
 				    "can't open", "function definition file",
-				    tp->u.fpath, strerror(rv));
+				    tp->u.fpath, cstrerror(rv));
 				rv = 127;
 				break;
 			}
@@ -789,7 +789,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			} else {
 				rv = 126;
 				warningf(true, "%s: %s: %s", cp, "can't execute",
-				    strerror(tp->u2.errnov));
+				    cstrerror(tp->u2.errnov));
 			}
 			break;
 		}
@@ -924,7 +924,7 @@ scriptexec(struct op *tp, const char **ap)
 	execve(args.rw[0], args.rw, cap.rw);
 
 	/* report both the programme that was run and the bogus interpreter */
-	errorf("%s: %s: %s", tp->str, sh, strerror(errno));
+	errorf("%s: %s: %s", tp->str, sh, cstrerror(errno));
 }
 
 int
@@ -1363,7 +1363,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			warningf(true, "can't %s %s: %s",
 			    iotype == IODUP ? "dup" :
 			    (iotype == IOREAD || iotype == IOHERE) ?
-			    "open" : "create", cp, strerror(u));
+			    "open" : "create", cp, cstrerror(u));
 		}
 		return (-1);
 	}
@@ -1393,7 +1393,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			warningf(true, "%s %s %s",
 			    "can't finish (dup) redirection",
 			    snptreef(NULL, 32, "%R", &iotmp),
-			    strerror(eno));
+			    cstrerror(eno));
 			if (iotype != IODUP)
 				close(u);
 			return (-1);
@@ -1486,7 +1486,7 @@ herein(const char *content, int sub, char **resbuf)
 	if (!(shf = h->shf) || (fd = open(h->tffn, O_RDONLY, 0)) < 0) {
 		i = errno;
 		warningf(true, "can't %s temporary file %s: %s",
-		    !shf ? "create" : "open", h->tffn, strerror(i));
+		    !shf ? "create" : "open", h->tffn, cstrerror(i));
 		if (shf)
 			shf_close(shf);
 		/* special to iosetup(): don't print error */
@@ -1503,7 +1503,7 @@ herein(const char *content, int sub, char **resbuf)
 		i = errno;
 		close(fd);
 		warningf(true, "can't %s temporary file %s: %s",
-		    "write", h->tffn, strerror(i));
+		    "write", h->tffn, cstrerror(i));
 		/* special to iosetup(): don't print error */
 		return (-2);
 	}

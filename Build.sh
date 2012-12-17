@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.601 2012/12/17 22:57:49 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.602 2012/12/17 23:18:01 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1527,7 +1527,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.601 2012/12/17 22:57:49 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.602 2012/12/17 23:18:01 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1779,6 +1779,12 @@ ac_test strerror <<-'EOF'
 	int main(int ac, char *av[]) { return (*strerror(*av[ac])); }
 EOF
 
+ac_test sys_errlist '!' strerror 0 "the sys_signame[] array and sys_nerr" <<-'EOF'
+	extern int sys_nerr;
+	extern char *sys_errlist[];
+	int main(void) { return (*sys_errlist[sys_nerr - 1]); }
+EOF
+
 ac_test strlcpy <<-'EOF'
 	#include <string.h>
 	int main(int ac, char *av[]) { return (strlcpy(*av, av[1],
@@ -1805,11 +1811,15 @@ ac_test '!' revoke_decl revoke 1 'if revoke() does not need to be declared' <<-'
 	long revoke(void);		/* this clashes if defined before */
 	int main(void) { return ((int)revoke()); }
 EOF
-ac_test '!' sys_siglist_decl sys_siglist 1 'if sys_siglist[] does not need to be declared' <<-'EOF'
+ac_test sys_errlist_decl sys_errlist 0 "for declaration of sys_errlist[] and sys_nerr" <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
-	extern int sys_siglist[5][5][5][5][5];	/* this clashes happily */
-	int main(void) { return (sys_siglist[0][0][0][0][0]); }
+	int main(void) { return (*sys_errlist[sys_nerr - 1]); }
+EOF
+ac_test sys_siglist_decl sys_siglist 1 'for declaration of sys_siglist[]' <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	int main(void) { return (sys_siglist[0][0]); }
 EOF
 CC=$save_CC; LDFLAGS=$save_LDFLAGS; LIBS=$save_LIBS
 

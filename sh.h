@@ -94,6 +94,10 @@
 /* shudder… */
 #include <termio.h>
 #endif
+#ifdef _ISC_UNIX
+/* XXX imake style */
+#include <sys/sioctl.h>
+#endif
 #if HAVE_ULIMIT_H
 #include <ulimit.h>
 #endif
@@ -160,7 +164,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.617 2012/12/17 22:14:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.618 2012/12/17 23:18:09 tg Exp $");
 #endif
 #define MKSH_VERSION "R41 2012/12/07"
 
@@ -363,8 +367,11 @@ extern int getrusage(int, struct rusage *);
 extern int revoke(const char *);
 #endif
 
-#if !HAVE_STRERROR
-extern char *strerror(int);
+#if defined(DEBUG) || !HAVE_STRERROR
+#define strerror dontuse_strerror /* poisoned */
+extern const char *cstrerror(int);
+#else
+#define cstrerror(errnum)	((const char *)strerror(errnum))
 #endif
 
 #if !HAVE_STRLCPY

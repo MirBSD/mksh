@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.234 2012/12/17 23:09:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.235 2012/12/17 23:18:04 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -253,7 +253,7 @@ c_pwd(const char **wp)
 		p = NULL;
 	if (!p && !(p = allocd = ksh_get_wd())) {
 		bi_errorf("%s: %s", "can't determine current directory",
-		    strerror(errno));
+		    cstrerror(errno));
 		return (1);
 	}
 	shprintf("%s\n", p);
@@ -1379,7 +1379,7 @@ c_kill(const char **wp)
 			rv = 1;
 		} else {
 			if (mksh_kill(n, sig) < 0) {
-				bi_errorf("%s: %s", p, strerror(errno));
+				bi_errorf("%s: %s", p, cstrerror(errno));
 				rv = 1;
 			}
 		}
@@ -1726,7 +1726,7 @@ c_dot(const char **wp)
 		return (1);
 	}
 	if ((file = search_path(cp, path, R_OK, &errcode)) == NULL) {
-		bi_errorf("%s: %s", cp, strerror(errcode));
+		bi_errorf("%s: %s", cp, cstrerror(errcode));
 		return (1);
 	}
 
@@ -1743,7 +1743,7 @@ c_dot(const char **wp)
 	}
 	if ((i = include(file, argc, argv, false)) < 0) {
 		/* should not happen */
-		bi_errorf("%s: %s", cp, strerror(errno));
+		bi_errorf("%s: %s", cp, cstrerror(errno));
 		return (1);
 	}
 	return (i);
@@ -1834,7 +1834,7 @@ c_read(const char **wp)
 #if HAVE_SELECT
 	case 't':
 		if (parse_usec(builtin_opt.optarg, &tv)) {
-			bi_errorf("%s: %s '%s'", Tsynerr, strerror(errno),
+			bi_errorf("%s: %s '%s'", Tsynerr, cstrerror(errno),
 			    builtin_opt.optarg);
 			return (2);
 		}
@@ -1916,7 +1916,7 @@ c_read(const char **wp)
 			rv = 1;
 			goto c_read_out;
 		default:
-			bi_errorf("%s: %s", Tselect, strerror(errno));
+			bi_errorf("%s: %s", Tselect, cstrerror(errno));
 			rv = 2;
 			goto c_read_out;
 		}
@@ -2710,7 +2710,7 @@ c_mknod(const char **wp)
 			goto c_mknod_failed;
 	} else if (mkfifo(argv[0], mode)) {
  c_mknod_failed:
-		bi_errorf("%s: %s", argv[0], strerror(errno));
+		bi_errorf("%s: %s", argv[0], cstrerror(errno));
  c_mknod_err:
 		rv = 1;
 	}
@@ -3610,7 +3610,7 @@ set_ulimit(const struct limits *l, const char *v, int how)
 	if (errno == EPERM)
 		bi_errorf("%s exceeds allowable %s limit", v, l->name);
 	else
-		bi_errorf("bad %s limit: %s", l->name, strerror(errno));
+		bi_errorf("bad %s limit: %s", l->name, cstrerror(errno));
 	return (1);
 }
 
@@ -3653,7 +3653,7 @@ c_rename(const char **wp)
 		bi_errorf(Tsynerr);
 	else if ((rv = rename(wp[0], wp[1])) != 0) {
 		rv = errno;
-		bi_errorf("%s: %s", "failed", strerror(rv));
+		bi_errorf("%s: %s", "failed", cstrerror(rv));
 	}
 
 	return (rv);
@@ -3676,7 +3676,7 @@ c_realpath(const char **wp)
 		bi_errorf(Tsynerr);
 	else if ((buf = do_realpath(wp[0])) == NULL) {
 		rv = errno;
-		bi_errorf("%s: %s", wp[0], strerror(rv));
+		bi_errorf("%s: %s", wp[0], cstrerror(rv));
 		if ((unsigned int)rv > 255)
 			rv = 255;
 	} else {
@@ -3723,7 +3723,7 @@ c_cat(const char **wp)
 				fd = STDIN_FILENO;
 			else if ((fd = open(fn, O_RDONLY)) < 0) {
 				eno = errno;
-				bi_errorf("%s: %s", fn, strerror(eno));
+				bi_errorf("%s: %s", fn, cstrerror(eno));
 				rv = 1;
 				continue;
 			}
@@ -3739,7 +3739,7 @@ c_cat(const char **wp)
 					continue;
 				}
 				/* an error occured during reading */
-				bi_errorf("%s: %s", fn, strerror(eno));
+				bi_errorf("%s: %s", fn, cstrerror(eno));
 				rv = 1;
 				break;
 			} else if (n == 0)
@@ -3754,7 +3754,7 @@ c_cat(const char **wp)
 					/* an error occured during writing */
 					eno = errno;
 					bi_errorf("%s: %s", "<stdout>",
-					    strerror(eno));
+					    cstrerror(eno));
 					rv = 1;
 					if (fd != STDIN_FILENO)
 						close(fd);
@@ -3789,7 +3789,7 @@ c_sleep(const char **wp)
 	if (!wp[0] || wp[1])
 		bi_errorf(Tsynerr);
 	else if (parse_usec(wp[0], &tv))
-		bi_errorf("%s: %s '%s'", Tsynerr, strerror(errno), wp[0]);
+		bi_errorf("%s: %s '%s'", Tsynerr, cstrerror(errno), wp[0]);
 	else {
 #ifndef MKSH_NOPROSPECTOFWORK
 		sigset_t omask, bmask;
@@ -3819,7 +3819,7 @@ c_sleep(const char **wp)
 			 */
 			rv = 0;
 		else
-			bi_errorf("%s: %s", Tselect, strerror(errno));
+			bi_errorf("%s: %s", Tselect, cstrerror(errno));
 #ifndef MKSH_NOPROSPECTOFWORK
 		/* this will re-schedule signal delivery */
 		sigprocmask(SIG_SETMASK, &omask, NULL);

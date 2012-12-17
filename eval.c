@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.131 2012/12/08 18:30:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.132 2012/12/17 23:18:03 tg Exp $");
 
 /*
  * string expansion
@@ -1325,7 +1325,7 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 		maketemp(ATEMP, TT_FUNSUB, &tf);
 		if (!tf->shf) {
 			errorf("can't %s temporary file %s: %s",
-			    "create", tf->tffn, strerror(errno));
+			    "create", tf->tffn, cstrerror(errno));
 		}
 		/* save stdout and make the temporary file it */
 		ofd1 = savefd(1);
