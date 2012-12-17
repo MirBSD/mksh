@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.600 2012/12/17 22:14:24 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.601 2012/12/17 22:57:49 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -619,15 +619,10 @@ LynxOS)
 MidnightBSD)
 	;;
 Minix-vmd)
-	#XXX @RT: really?
 	add_cppflags -DMKSH__NO_SETEUGID
 	add_cppflags -DMKSH_UNEMPLOYED
 	add_cppflags -DMKSH_CONSERVATIVE_FDS
-	#XXX added from Minix3; RT didn't use this, why?
-	add_cppflags -DMKSH_NO_LIMITS
-	#XXX why the deviation from Minix3?
 	add_cppflags -D_MINIX_SOURCE
-	#XXX two copied from Minix3
 	oldish_ed=no-stderr-ed		# no /bin/ed, maybe see below
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
@@ -1532,7 +1527,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.600 2012/12/17 22:14:24 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.601 2012/12/17 22:57:49 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
