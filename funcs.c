@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.233 2012/12/08 18:30:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.234 2012/12/17 23:09:15 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2918,6 +2918,9 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 			te->flags |= TEF_ERROR;
 			return (1);
 		}
+		break;
+	default:
+		/* for completeness of switch */
 		break;
 	}
 #endif
