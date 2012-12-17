@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.598 2012/12/05 19:38:05 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.599 2012/12/17 21:55:04 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -270,7 +270,21 @@ ac_header() {
 	echo "/* NeXTstep bug workaround */" >x
 	for i
 	do
-		echo "#include <$i>" >>x
+		case $i in
+		_time)
+			echo '#if HAVE_BOTH_TIME_H' >>x
+			echo '#include <sys/time.h>' >>x
+			echo '#include <time.h>' >>x
+			echo '#elif HAVE_SYS_TIME_H' >>x
+			echo '#include <sys/time.h>' >>x
+			echo '#elif HAVE_TIME_H' >>x
+			echo '#include <time.h>' >>x
+			echo '#endif' >>x
+			;;
+		*)
+			echo "#include <$i>" >>x
+			;;
+		esac
 	done
 	echo "#include <$hf>" >>x
 	echo 'int main(void) { return (0); }' >>x
@@ -603,6 +617,19 @@ LynxOS)
 	oswarn="; it has minor issues"
 	;;
 MidnightBSD)
+	;;
+Minix-vmd)
+	#XXX @RT: really?
+	add_cppflags -DMKSH__NO_SETEUGID
+	add_cppflags -DMKSH_UNEMPLOYED
+	add_cppflags -DMKSH_CONSERVATIVE_FDS
+	#XXX added from Minix3; RT didn't use this, why?
+	add_cppflags -DMKSH_NO_LIMITS
+	#XXX why the deviation from Minix3?
+	add_cppflags -D_MINIX_SOURCE
+	#XXX two copied from Minix3
+	oldish_ed=no-stderr-ed		# no /bin/ed, maybe see below
+	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 Minix3)
 	add_cppflags -DMKSH_UNEMPLOYED
@@ -1364,11 +1391,21 @@ ac_ifcpp 'ifdef MKSH_CONSERVATIVE_FDS' isset_MKSH_CONSERVATIVE_FDS '' \
 #
 # Environment: headers
 #
+ac_header sys/time.h sys/types.h
+ac_header time.h sys/types.h
+test "11" = "$HAVE_SYS_TIME_H$HAVE_TIME_H" || HAVE_BOTH_TIME_H=0
+ac_test both_time_h '' 'whether <sys/time.h> and <time.h> can both be included' <<-'EOF'
+	#include <sys/types.h>
+	#include <sys/time.h>
+	#include <time.h>
+	int main(void) { struct tm tm; return ((int)sizeof(tm)); }
+EOF
 ac_header sys/bsdtypes.h
 ac_header sys/file.h sys/types.h
 ac_header sys/mkdev.h sys/types.h
 ac_header sys/mman.h sys/types.h
 ac_header sys/param.h
+ac_header sys/resource.h sys/types.h _time
 ac_header sys/select.h sys/types.h
 ac_header sys/sysmacros.h
 ac_header bstring.h
@@ -1430,8 +1467,17 @@ EOF
 
 ac_test rlim_t <<-'EOF'
 	#include <sys/types.h>
+	#if HAVE_BOTH_TIME_H
 	#include <sys/time.h>
+	#include <time.h>
+	#elif HAVE_SYS_TIME_H
+	#include <sys/time.h>
+	#elif HAVE_TIME_H
+	#include <time.h>
+	#endif
+	#if HAVE_SYS_RESOURCE_H
 	#include <sys/resource.h>
+	#endif
 	#include <unistd.h>
 	int main(void) { return ((int)(rlim_t)0); }
 EOF
@@ -1482,7 +1528,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.598 2012/12/05 19:38:05 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.599 2012/12/17 21:55:04 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1641,7 +1687,14 @@ EOF
 
 ac_test select <<-'EOF'
 	#include <sys/types.h>
+	#if HAVE_BOTH_TIME_H
 	#include <sys/time.h>
+	#include <time.h>
+	#elif HAVE_SYS_TIME_H
+	#include <sys/time.h>
+	#elif HAVE_TIME_H
+	#include <time.h>
+	#endif
 	#if HAVE_SYS_BSDTYPES_H
 	#include <sys/bsdtypes.h>
 	#endif

@@ -38,7 +38,14 @@
 #include <sys/param.h>
 #endif
 #include <sys/types.h>
+#if HAVE_BOTH_TIME_H
 #include <sys/time.h>
+#include <time.h>
+#elif HAVE_SYS_TIME_H
+#include <sys/time.h>
+#elif HAVE_TIME_H
+#include <time.h>
+#endif
 #include <sys/ioctl.h>
 #if HAVE_SYS_SYSMACROS_H
 #include <sys/sysmacros.h>
@@ -49,7 +56,9 @@
 #if HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #endif
+#if HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
+#endif
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <dirent.h>
@@ -85,7 +94,6 @@
 /* shudder… */
 #include <termio.h>
 #endif
-#include <time.h>
 #if HAVE_ULIMIT_H
 #include <ulimit.h>
 #endif
@@ -152,7 +160,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.615 2012/12/07 23:46:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.616 2012/12/17 21:55:06 tg Exp $");
 #endif
 #define MKSH_VERSION "R41 2012/12/07"
 
