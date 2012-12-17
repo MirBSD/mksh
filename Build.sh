@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.602 2012/12/17 23:18:01 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.603 2012/12/17 23:31:30 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1527,7 +1527,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.602 2012/12/17 23:18:01 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.603 2012/12/17 23:31:30 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1560,9 +1560,26 @@ EOF
 fi
 
 #
-# Environment: signals
+# Environment: errors and signals
 #
 test x"NetBSD" = x"$TARGET_OS" && $e Ignore the compatibility warning.
+
+ac_testn sys_errlist '' "the sys_errlist[] array and sys_nerr" <<-'EOF'
+	extern int sys_nerr;
+	extern char *sys_errlist[];
+	int main(void) { return (*sys_errlist[sys_nerr - 1]); }
+EOF
+ac_testn _sys_errlist '!' sys_errlist 0 "the _sys_errlist[] array and _sys_nerr" <<-'EOF'
+	extern int _sys_nerr;
+	extern char *_sys_errlist[];
+	int main(void) { return (*_sys_errlist[_sys_nerr - 1]); }
+EOF
+if test 1 = "$HAVE__SYS_ERRLIST"; then
+	add_cppflags -Dsys_nerr=_sys_nerr
+	add_cppflags -Dsys_errlist=_sys_errlist
+	HAVE_SYS_ERRLIST=1
+fi
+ac_cppflags SYS_ERRLIST
 
 for what in name list; do
 	uwhat=`upper $what`
@@ -1581,12 +1598,6 @@ for what in name list; do
 	fi
 	ac_cppflags SYS_SIG$uwhat
 done
-
-ac_test strsignal '!' sys_siglist 0 <<-'EOF'
-	#include <string.h>
-	#include <signal.h>
-	int main(void) { return (strsignal(1)[0]); }
-EOF
 
 #
 # Environment: library functions
@@ -1774,15 +1785,15 @@ EOF
 	fi
 fi
 
-ac_test strerror <<-'EOF'
+ac_test strerror '!' sys_errlist 0 <<-'EOF'
 	extern char *strerror(int);
 	int main(int ac, char *av[]) { return (*strerror(*av[ac])); }
 EOF
 
-ac_test sys_errlist '!' strerror 0 "the sys_signame[] array and sys_nerr" <<-'EOF'
-	extern int sys_nerr;
-	extern char *sys_errlist[];
-	int main(void) { return (*sys_errlist[sys_nerr - 1]); }
+ac_test strsignal '!' sys_siglist 0 <<-'EOF'
+	#include <string.h>
+	#include <signal.h>
+	int main(void) { return (strsignal(1)[0]); }
 EOF
 
 ac_test strlcpy <<-'EOF'
