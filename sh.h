@@ -160,7 +160,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.616 2012/12/17 21:55:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.617 2012/12/17 22:14:26 tg Exp $");
 #endif
 #define MKSH_VERSION "R41 2012/12/07"
 
@@ -354,8 +354,17 @@ extern int flock(int, int);
 extern int getrusage(int, struct rusage *);
 #endif
 
+#if !HAVE_MEMMOVE
+/* we assume either memmove or bcopy exist, at the moment */
+#define memmove(dst, src, len)	bcopy((src), (dst), (len))
+#endif
+
 #if !HAVE_REVOKE_DECL
 extern int revoke(const char *);
+#endif
+
+#if !HAVE_STRERROR
+extern char *strerror(int);
 #endif
 
 #if !HAVE_STRLCPY

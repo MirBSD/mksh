@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.50 2012/12/08 18:30:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.51 2012/12/17 22:14:27 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1075,5 +1075,24 @@ int
 shf_putc(int c, struct shf *shf)
 {
 	return (shf_putc_i(c, shf));
+}
+#endif
+
+#if !HAVE_STRERROR
+/*
+ * This is absolutely minimalistic. We could catch a number of well-
+ * known errors (like ENOENT) and provide real error strings for them,
+ * but to do that, I'd like a survey of which errors usually occur on
+ * what systems, to be worth it. Modern systems do have strerror; this
+ * is a porting aid only right now.
+ */
+char *
+strerror(int errnum)
+{
+	/* "Errno. " + sign + rounded(octal) bits + NUL */
+	static char errbuf[7 + 1 + (8 * sizeof(int) + 2) / 3 + 1];
+
+	shf_snprintf(errbuf, sizeof(errbuf), "Errno. %d", errnum);
+	return (errbuf);
 }
 #endif

@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.599 2012/12/17 21:55:04 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.600 2012/12/17 22:14:24 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1304,6 +1304,10 @@ ac_test attribute_bounded '' 'for __attribute__((__bounded__))' <<-'EOF'
 	    __attribute__((__bounded__ (__buffer__, 2, 3)));
 	int main(int ac, char *av[]) { return (xcopy(av[0], av[--ac], 1)); }
 	int xcopy(const void *s, void *d, size_t n) {
+		/*
+		 * if memmove does not exist, we are not on a system
+		 * with GCC with __bounded__ attribute either so poo
+		 */
 		memmove(d, s, n); return ((int)n);
 	}
 	#endif
@@ -1528,7 +1532,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.599 2012/12/17 21:55:04 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.600 2012/12/17 22:14:24 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1631,6 +1635,16 @@ EOF
 ac_test killpg <<-'EOF'
 	#include <signal.h>
 	int main(int ac, char *av[]) { return (av[0][killpg(123, ac)]); }
+EOF
+
+ac_test memmove <<-'EOF'
+	#include <string.h>
+	#if HAVE_STRINGS_H
+	#include <strings.h>
+	#endif
+	int main(int ac, char *av[]) {
+		return ((int)memmove(av[0], av[1], ac));
+	}
 EOF
 
 ac_test mknod '' 'if to use mknod(), makedev() and friends' <<-'EOF'
@@ -1764,6 +1778,11 @@ EOF
 		add_cppflags -DMKSH_NO_SIGSUSPEND
 	fi
 fi
+
+ac_test strerror <<-'EOF'
+	extern char *strerror(int);
+	int main(int ac, char *av[]) { return (*strerror(*av[ac])); }
+EOF
 
 ac_test strlcpy <<-'EOF'
 	#include <string.h>
