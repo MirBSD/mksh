@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.603 2012/12/17 23:31:30 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.604 2012/12/22 00:03:37 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1527,7 +1527,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.603 2012/12/17 23:31:30 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.604 2012/12/22 00:03:37 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1644,12 +1644,14 @@ ac_test killpg <<-'EOF'
 EOF
 
 ac_test memmove <<-'EOF'
+	#include <sys/types.h>
+	#include <stddef.h>
 	#include <string.h>
 	#if HAVE_STRINGS_H
 	#include <strings.h>
 	#endif
 	int main(int ac, char *av[]) {
-		return ((int)memmove(av[0], av[1], ac));
+		return (*(int *)(void *)memmove(av[0], av[1], ac));
 	}
 EOF
 

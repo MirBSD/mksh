@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.109 2012/12/17 23:18:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.110 2012/12/22 00:03:41 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -1427,7 +1427,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 static int
 hereinval(const char *content, int sub, char **resbuf, struct shf *shf)
 {
-	const char *ccp;
+	const char * volatile ccp = content;
 	struct source *s, *osource;
 
 	osource = source;
@@ -1441,14 +1441,13 @@ hereinval(const char *content, int sub, char **resbuf, struct shf *shf)
 	if (sub) {
 		/* do substitutions on the content of heredoc */
 		s = pushs(SSTRING, ATEMP);
-		s->start = s->str = content;
+		s->start = s->str = ccp;
 		source = s;
 		if (yylex(ONEWORD|HEREDOC) != LWORD)
 			internal_errorf("%s: %s", "herein", "yylex");
 		source = osource;
 		ccp = evalstr(yylval.cp, 0);
-	} else
-		ccp = content;
+	}
 
 	if (resbuf == NULL)
 		shf_puts(ccp, shf);
