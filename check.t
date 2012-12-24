@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.575 2012/12/22 00:03:39 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.576 2012/12/24 14:37:13 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -2060,7 +2060,8 @@ description:
 	Check that globbing matches the right things...
 # breaks on Mac OSX (HFS+ non-standard Unicode canonical decomposition)
 # breaks on Cygwin 1.7 (files are now UTF-16 or something)
-category: !os:cygwin,!os:darwin,!os:msys
+# breaks on QNX 6.4.1 (says RT)
+category: !os:cygwin,!os:darwin,!os:msys,!os:nto
 file-setup: file 644 "aÂc"
 stdin:
 	echo a[Á-Ú]*
