@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.604 2012/12/22 00:03:37 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.605 2012/12/24 17:50:10 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -890,7 +890,7 @@ EOF
 ct=untested
 et=untested
 vv ']' "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c | \
-    sed -n '/^[ce]t *= */s/\([ce]t\) *= */\1=/p' | tr -d \\\\015 >x"
+    sed -n '/^ *[ce]t *= */s/^ *\([ce]t\) *= */\1=/p' | tr -d \\\\015 >x"
 sed 's/^/[ /' x
 eval `cat x`
 rmf x vv.out
@@ -1527,7 +1527,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.604 2012/12/22 00:03:37 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.605 2012/12/24 17:50:10 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2066,8 +2066,8 @@ mksh_cfg= NSIG
 ;' >conftest.c
 	# GNU sed 2.03 segfaults when optimising this to sed -n
 	NSIG=`vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
-	    grep '^mksh_cfg *=' | \
-	    sed 's/^mksh_cfg *=[	 ]*\([()0-9x+-][()0-9x+	 -]*\).*$/\1/'`
+	    grep '^ *mksh_cfg *=' | \
+	    sed 's/^ *mksh_cfg *=[	 ]*\([()0-9x+-][()0-9x+	 -]*\).*$/\1/'`
 	case $NSIG in
 	*mksh_cfg*) $e "Error: NSIG='$NSIG'"; NSIG=0 ;;
 	*[\ \(\)+-]*) NSIG=`"$AWK" "BEGIN { print $NSIG }" </dev/null` ;;
@@ -2096,8 +2096,8 @@ mksh_cfg= NSIG
 		echo ';' >>conftest.c
 		# GNU sed 2.03 croaks on optimising this, too
 		vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
-		    grep '^mksh_cfg *=' | \
-		    sed 's/^mksh_cfg *=[	 ]*\([0-9][0-9x]*\).*$/:\1 '$name/
+		    grep '^ *mksh_cfg *=' | \
+		    sed 's/^ *mksh_cfg *=[	 ]*\([0-9][0-9x]*\).*$/:\1 '$name/
 	done | sed -n '/^:[^ ]/s/^://p' | while read nr name; do
 		test $printf = echo || nr=`printf %d "$nr" 2>/dev/null`
 		test $nr -gt 0 && test $nr -le $NSIG || continue
