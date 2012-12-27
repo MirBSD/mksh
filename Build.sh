@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.605 2012/12/24 17:50:10 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.606 2012/12/27 15:52:47 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -696,6 +696,7 @@ PW32*)
 	;;
 QNX)
 	add_cppflags -D__NO_EXT_QNX
+	add_cppflags -D__EXT_UNIX_MISC
 	case $TARGET_OSREV in
 	[012345].*|6.[0123].*|6.4.[01])
 		oldish_ed=no-stderr-ed		# oldish /bin/ed is broken
@@ -1527,7 +1528,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.605 2012/12/24 17:50:10 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.606 2012/12/27 15:52:47 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
