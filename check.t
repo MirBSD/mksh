@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.580 2012/12/28 04:25:32 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.581 2012/12/28 04:29:56 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7602,11 +7602,13 @@ stdin:
 	mk 'foo ()' >f-dash
 	mk 'function foo ()' >f-bash
 	mk 'function stop ()' stop >f-stop
+	print '#!'"$__progname"'\nprint -r -- "${0%/f-argh}"' >f-argh
 	chmod +x f-*
-	x="korn: $("$PWD"/f-korn)"; echo "${x/@("$PWD")/.}"
-	x="dash: $("$PWD"/f-dash)"; echo "${x/@("$PWD")/.}"
-	x="bash: $("$PWD"/f-bash)"; echo "${x/@("$PWD")/.}"
-	x="stop: $("$PWD"/f-stop)"; echo "${x/@("$PWD")/.}"
+	u=$(./f-argh)
+	x="korn: $(./f-korn)"; echo "${x/@("$u")/.}"
+	x="dash: $(./f-dash)"; echo "${x/@("$u")/.}"
+	x="bash: $(./f-bash)"; echo "${x/@("$u")/.}"
+	x="stop: $(./f-stop)"; echo "${x/@("$u")/.}"
 expected-stdout:
 	korn: bar='foo'
 	dash: bar='./f-dash'
