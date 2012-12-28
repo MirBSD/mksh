@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.578 2012/12/28 03:18:46 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.579 2012/12/28 04:01:17 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -220,11 +220,19 @@ stdin:
 	echo -n >tf
 	alias ls=ls
 	ls
-	echo $(ls)
+	echo = now
+	i=`ls`
+	print -r -- $(for x in "$i"; do
+		[[ $x = @(.|..) ]] && continue
+		print -r -- "$x"
+	done)
+	echo = out
 	exit 0
 expected-stdout:
 	tf
+	= now
 	tf
+	= out
 ---
 name: alias-10
 description:
@@ -7596,10 +7604,10 @@ stdin:
 	mk 'function foo ()' >f-bash
 	mk 'function stop ()' stop >f-stop
 	chmod +x f-*
-	echo "korn: $(./f-korn)"
-	echo "dash: $(./f-dash)"
-	echo "bash: $(./f-bash)"
-	echo "stop: $(./f-stop)"
+	x="korn: $("$PWD"/f-korn)"; echo "${x/@("$PWD")/.}"
+	x="dash: $("$PWD"/f-dash)"; echo "${x/@("$PWD")/.}"
+	x="bash: $("$PWD"/f-bash)"; echo "${x/@("$PWD")/.}"
+	x="stop: $("$PWD"/f-stop)"; echo "${x/@("$PWD")/.}"
 expected-stdout:
 	korn: bar='foo'
 	dash: bar='./f-dash'
