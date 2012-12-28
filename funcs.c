@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.235 2012/12/17 23:18:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.236 2012/12/28 02:28:34 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3272,7 +3272,7 @@ static Test_op
 ptest_isa(Test_env *te, Test_meta meta)
 {
 	/* Order important - indexed by Test_meta values */
-	static const char *const tokens[] = {
+	static const char * const tokens[] = {
 		"-o", "-a", "!", "(", ")"
 	};
 	Test_op rv;

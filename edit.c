@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.259 2012/12/08 18:30:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.260 2012/12/28 02:28:33 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -73,9 +73,9 @@ static void x_putcf(int);
 static void x_modified(void);
 static void x_mode(bool);
 static int x_do_comment(char *, ssize_t, ssize_t *);
-static void x_print_expansions(int, char *const *, bool);
+static void x_print_expansions(int, char * const *, bool);
 static int x_cf_glob(int *, const char *, int, int, int *, int *, char ***);
-static size_t x_longest_prefix(int, char *const *);
+static size_t x_longest_prefix(int, char * const *);
 static void x_glob_hlp_add_qchar(char *);
 static char *x_glob_hlp_tilde_and_rem_qchar(char *, bool);
 static int x_basename(const char *, const char *);

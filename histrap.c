@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.130 2012/12/17 23:18:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.131 2012/12/28 02:28:35 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -953,12 +953,18 @@ hist_finish(void)
 
 #if !HAVE_SYS_SIGNAME
 static const struct mksh_sigpair {
-	const char *const name;
+	const char * const name;
 	int nr;
 } mksh_sigpairs[] = {
 #include "signames.inc"
 	{ NULL, 0 }
 };
+#endif
+
+#if HAVE_SYS_SIGLIST
+#if !HAVE_SYS_SIGLIST_DECL
+extern const char * const sys_siglist[];
+#endif
 #endif
 
 void

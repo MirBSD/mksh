@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.93 2012/12/17 23:18:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.94 2012/12/28 02:28:36 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -107,7 +107,7 @@ struct job {
 #define JL_AMBIG	2	/* %foo or %?foo is ambiguous */
 #define JL_INVALID	3	/* non-pid, non-% job id */
 
-static const char *const lookup_msgs[] = {
+static const char * const lookup_msgs[] = {
 	null,
 	"no such job",
 	"ambiguous",

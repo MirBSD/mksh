@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.53 2012/12/17 23:18:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.54 2012/12/28 02:28:39 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1087,12 +1087,14 @@ cstrerror(int errnum)
 #define strerror dontuse_strerror /* poisoned */
 }
 #elif !HAVE_STRERROR
+
 #if HAVE_SYS_ERRLIST
 #if !HAVE_SYS_ERRLIST_DECL
 extern int sys_nerr;
-extern char *sys_errlist[];
+extern const char * const sys_errlist[];
 #endif
 #endif
+
 const char *
 cstrerror(int errnum)
 {

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.87 2012/12/05 19:38:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.88 2012/12/28 02:28:39 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -966,7 +966,7 @@ static const char dbtest_and[] = { CHAR, '&', CHAR, '&', EOS };
 static const char dbtest_not[] = { CHAR, '!', EOS };
 static const char dbtest_oparen[] = { CHAR, '(', EOS };
 static const char dbtest_cparen[] = { CHAR, ')', EOS };
-const char *const dbtest_tokens[] = {
+const char * const dbtest_tokens[] = {
 	dbtest_or, dbtest_and, dbtest_not,
 	dbtest_oparen, dbtest_cparen
 };

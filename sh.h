@@ -164,9 +164,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.621 2012/12/22 22:15:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.622 2012/12/28 02:28:37 tg Exp $");
 #endif
-#define MKSH_VERSION "R41 2012/12/21"
+#define MKSH_VERSION "R41 2012/12/27"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -377,10 +377,6 @@ extern const char *cstrerror(int);
 
 #if !HAVE_STRLCPY
 size_t strlcpy(char *, const char *, size_t);
-#endif
-
-#if !HAVE_SYS_SIGLIST_DECL
-extern const char *const sys_siglist[];
 #endif
 
 #ifdef __INTERIX
@@ -2055,7 +2051,7 @@ typedef struct test_env {
 	int flags;			/* TEF_* */
 } Test_env;
 
-extern const char *const dbtest_tokens[];
+extern const char * const dbtest_tokens[];
 
 Test_op	test_isop(Test_meta, const char *);
 int test_eval(Test_env *, Test_op, const char *, const char *, bool);

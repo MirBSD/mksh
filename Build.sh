@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.606 2012/12/27 15:52:47 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.607 2012/12/28 02:28:29 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1528,7 +1528,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.606 2012/12/27 15:52:47 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.607 2012/12/28 02:28:29 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1567,12 +1567,12 @@ test x"NetBSD" = x"$TARGET_OS" && $e Ignore the compatibility warning.
 
 ac_testn sys_errlist '' "the sys_errlist[] array and sys_nerr" <<-'EOF'
 	extern int sys_nerr;
-	extern char *sys_errlist[];
+	extern const char * const sys_errlist[];
 	int main(void) { return (*sys_errlist[sys_nerr - 1]); }
 EOF
 ac_testn _sys_errlist '!' sys_errlist 0 "the _sys_errlist[] array and _sys_nerr" <<-'EOF'
 	extern int _sys_nerr;
-	extern char *_sys_errlist[];
+	extern const char * const _sys_errlist[];
 	int main(void) { return (*_sys_errlist[_sys_nerr - 1]); }
 EOF
 if test 1 = "$HAVE__SYS_ERRLIST"; then
@@ -1585,11 +1585,11 @@ ac_cppflags SYS_ERRLIST
 for what in name list; do
 	uwhat=`upper $what`
 	ac_testn sys_sig$what '' "the sys_sig${what}[] array" <<-EOF
-		extern const char *const sys_sig${what}[];
+		extern const char * const sys_sig${what}[];
 		int main(void) { return (sys_sig${what}[0][0]); }
 	EOF
 	ac_testn _sys_sig$what '!' sys_sig$what 0 "the _sys_sig${what}[] array" <<-EOF
-		extern const char *const _sys_sig${what}[];
+		extern const char * const _sys_sig${what}[];
 		int main(void) { return (_sys_sig${what}[0][0]); }
 	EOF
 	eval uwhat_v=\$HAVE__SYS_SIG$uwhat
@@ -1830,7 +1830,7 @@ ac_test sys_errlist_decl sys_errlist 0 "for declaration of sys_errlist[] and sys
 	#include "sh.h"
 	int main(void) { return (*sys_errlist[sys_nerr - 1]); }
 EOF
-ac_test sys_siglist_decl sys_siglist 1 'for declaration of sys_siglist[]' <<-'EOF'
+ac_test sys_siglist_decl sys_siglist 0 'for declaration of sys_siglist[]' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int main(void) { return (sys_siglist[0][0]); }
