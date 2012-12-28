@@ -164,7 +164,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.623 2012/12/28 03:35:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.624 2012/12/28 04:47:50 tg Exp $");
 #endif
 #define MKSH_VERSION "R41 2012/12/27"
 
@@ -503,9 +503,9 @@ char *ucstrstr(char *, const char *);
 #endif
 
 #if defined(DEBUG) || defined(__COVERITY__)
-#define mkssert(e)	((e) ? (void)0 : exit(255))
+#define mkssert(e)	do { if (!(e)) exit(255); } while (/* CONSTCOND */ 0)
 #else
-#define mkssert(e)	((void)0)
+#define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
 #if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 419)
