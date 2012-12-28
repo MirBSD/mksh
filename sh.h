@@ -164,7 +164,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.622 2012/12/28 02:28:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.623 2012/12/28 03:35:34 tg Exp $");
 #endif
 #define MKSH_VERSION "R41 2012/12/27"
 
@@ -335,6 +335,8 @@ struct rusage {
 #define NSIG		_NSIG
 #elif defined(SIGMAX)
 #define NSIG		(SIGMAX+1)
+#elif defined(_SIGMAX)
+#define NSIG		(_SIGMAX+1)
 #endif
 #endif
 

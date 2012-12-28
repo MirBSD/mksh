@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.609 2012/12/28 03:20:34 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.610 2012/12/28 03:35:33 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1528,7 +1528,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.609 2012/12/28 03:20:34 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.610 2012/12/28 03:35:33 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2060,6 +2060,8 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 #define NSIG _NSIG
 #elif defined(SIGMAX)
 #define NSIG (SIGMAX+1)
+#elif defined(_SIGMAX)
+#define NSIG (_SIGMAX+1)
 #endif
 #endif
 int
