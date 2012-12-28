@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.607 2012/12/28 02:28:29 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.608 2012/12/28 03:05:17 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1528,7 +1528,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.607 2012/12/28 02:28:29 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.608 2012/12/28 03:05:17 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1808,8 +1808,8 @@ EOF
 #
 # check headers for declarations
 #
-save_CC=$CC; save_LDFLAGS=$LDFLAGS; save_LIBS=$LIBS
-CC="$CC -c -o $tcfn"; LDFLAGS=; LIBS=
+save_tcfn=$tcfn; save_CC=$CC; save_LDFLAGS=$LDFLAGS; save_LIBS=$LIBS
+tcfn=conftest.o; CC="$CC -c -o $tcfn"; LDFLAGS=; LIBS=
 ac_test '!' flock_decl flock 1 'if flock() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
@@ -1835,7 +1835,7 @@ ac_test sys_siglist_decl sys_siglist 0 'for declaration of sys_siglist[]' <<-'EO
 	#include "sh.h"
 	int main(void) { return (sys_siglist[0][0]); }
 EOF
-CC=$save_CC; LDFLAGS=$save_LDFLAGS; LIBS=$save_LIBS
+tcfn=$save_tcfn; CC=$save_CC; LDFLAGS=$save_LDFLAGS; LIBS=$save_LIBS
 
 #
 # other checks
