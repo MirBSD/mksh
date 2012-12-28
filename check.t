@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.581 2012/12/28 04:29:56 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.582 2012/12/28 07:45:55 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1148,7 +1148,8 @@ description:
 need-pass: no
 # the mv command fails on Cygwin
 # Hurd aborts the testsuite (permission denied)
-category: !os:cygwin,!os:gnu,!os:msys,!nosymlink
+# QNX does not find subdir to cd into
+category: !os:cygwin,!os:gnu,!os:msys,!os:nto,!nosymlink
 file-setup: file 644 "x"
 	mkdir noread noread/target noread/target/subdir
 	ln -s noread link
