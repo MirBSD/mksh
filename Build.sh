@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.608 2012/12/28 03:05:17 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.609 2012/12/28 03:20:34 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1528,7 +1528,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.608 2012/12/28 03:05:17 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.609 2012/12/28 03:20:34 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1566,12 +1566,12 @@ fi
 test x"NetBSD" = x"$TARGET_OS" && $e Ignore the compatibility warning.
 
 ac_testn sys_errlist '' "the sys_errlist[] array and sys_nerr" <<-'EOF'
-	extern int sys_nerr;
+	extern const int sys_nerr;
 	extern const char * const sys_errlist[];
 	int main(void) { return (*sys_errlist[sys_nerr - 1]); }
 EOF
 ac_testn _sys_errlist '!' sys_errlist 0 "the _sys_errlist[] array and _sys_nerr" <<-'EOF'
-	extern int _sys_nerr;
+	extern const int _sys_nerr;
 	extern const char * const _sys_errlist[];
 	int main(void) { return (*_sys_errlist[_sys_nerr - 1]); }
 EOF
