@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.590.2.7 2012/12/05 19:58:23 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.590.2.8 2013/01/01 21:19:53 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -270,7 +270,21 @@ ac_header() {
 	echo "/* NeXTstep bug workaround */" >x
 	for i
 	do
-		echo "#include <$i>" >>x
+		case $i in
+		_time)
+			echo '#if HAVE_BOTH_TIME_H' >>x
+			echo '#include <sys/time.h>' >>x
+			echo '#include <time.h>' >>x
+			echo '#elif HAVE_SYS_TIME_H' >>x
+			echo '#include <sys/time.h>' >>x
+			echo '#elif HAVE_TIME_H' >>x
+			echo '#include <time.h>' >>x
+			echo '#endif' >>x
+			;;
+		*)
+			echo "#include <$i>" >>x
+			;;
+		esac
 	done
 	echo "#include <$hf>" >>x
 	echo 'int main(void) { return (0); }' >>x
@@ -674,6 +688,7 @@ PW32*)
 	;;
 QNX)
 	add_cppflags -D__NO_EXT_QNX
+	add_cppflags -D__EXT_UNIX_MISC
 	case $TARGET_OSREV in
 	[012345].*|6.[0123].*|6.4.[01])
 		oldish_ed=no-stderr-ed		# oldish /bin/ed is broken
@@ -868,7 +883,7 @@ EOF
 ct=untested
 et=untested
 vv ']' "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c | \
-    sed -n '/^[ce]t *= */s/\([ce]t\) *= */\1=/p' | tr -d \\\\015 >x"
+    sed -n '/^ *[ce]t *= */s/^ *\([ce]t\) *= */\1=/p' | tr -d \\\\015 >x"
 sed 's/^/[ /' x
 eval `cat x`
 rmf x vv.out
@@ -1109,6 +1124,9 @@ elif test $ct = tendra; then
 elif test $ct = ucode; then
 	save_NOWARN=
 	DOWARN=-w2
+elif test $ct = watcom; then
+	save_NOWARN=
+	DOWARN=-Wc,-we
 else
 	test x"$save_NOWARN" = x"" && save_NOWARN=-Wno-error
 	ac_flags 0 wnoerror "$save_NOWARN"
@@ -1277,6 +1295,10 @@ ac_test attribute_bounded '' 'for __attribute__((__bounded__))' <<-'EOF'
 	    __attribute__((__bounded__ (__buffer__, 2, 3)));
 	int main(int ac, char *av[]) { return (xcopy(av[0], av[--ac], 1)); }
 	int xcopy(const void *s, void *d, size_t n) {
+		/*
+		 * if memmove does not exist, we are not on a system
+		 * with GCC with __bounded__ attribute either so poo
+		 */
 		memmove(d, s, n); return ((int)n);
 	}
 	#endif
@@ -1364,11 +1386,21 @@ ac_ifcpp 'ifdef MKSH_DISABLE_EXPERIMENTAL' isset_MKSH_DISABLE_EXPERIMENTAL '' \
 #
 # Environment: headers
 #
+ac_header sys/time.h sys/types.h
+ac_header time.h sys/types.h
+test "11" = "$HAVE_SYS_TIME_H$HAVE_TIME_H" || HAVE_BOTH_TIME_H=0
+ac_test both_time_h '' 'whether <sys/time.h> and <time.h> can both be included' <<-'EOF'
+	#include <sys/types.h>
+	#include <sys/time.h>
+	#include <time.h>
+	int main(void) { struct tm tm; return ((int)sizeof(tm)); }
+EOF
 ac_header sys/bsdtypes.h
 ac_header sys/file.h sys/types.h
 ac_header sys/mkdev.h sys/types.h
 ac_header sys/mman.h sys/types.h
 ac_header sys/param.h
+ac_header sys/resource.h sys/types.h _time
 ac_header sys/select.h sys/types.h
 ac_header sys/sysmacros.h
 ac_header bstring.h
@@ -1430,8 +1462,17 @@ EOF
 
 ac_test rlim_t <<-'EOF'
 	#include <sys/types.h>
+	#if HAVE_BOTH_TIME_H
 	#include <sys/time.h>
+	#include <time.h>
+	#elif HAVE_SYS_TIME_H
+	#include <sys/time.h>
+	#elif HAVE_TIME_H
+	#include <time.h>
+	#endif
+	#if HAVE_SYS_RESOURCE_H
 	#include <sys/resource.h>
+	#endif
 	#include <unistd.h>
 	int main(void) { return ((int)(rlim_t)0); }
 EOF
@@ -1482,7 +1523,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.590.2.7 2012/12/05 19:58:23 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.590.2.8 2013/01/01 21:19:53 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1587,6 +1628,18 @@ ac_test killpg <<-'EOF'
 	int main(int ac, char *av[]) { return (av[0][killpg(123, ac)]); }
 EOF
 
+ac_test memmove <<-'EOF'
+	#include <sys/types.h>
+	#include <stddef.h>
+	#include <string.h>
+	#if HAVE_STRINGS_H
+	#include <strings.h>
+	#endif
+	int main(int ac, char *av[]) {
+		return (*(int *)(void *)memmove(av[0], av[1], ac));
+	}
+EOF
+
 ac_test mknod '' 'if to use mknod(), makedev() and friends' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
@@ -1641,7 +1694,14 @@ EOF
 
 ac_test select <<-'EOF'
 	#include <sys/types.h>
+	#if HAVE_BOTH_TIME_H
 	#include <sys/time.h>
+	#include <time.h>
+	#elif HAVE_SYS_TIME_H
+	#include <sys/time.h>
+	#elif HAVE_TIME_H
+	#include <time.h>
+	#endif
 	#if HAVE_SYS_BSDTYPES_H
 	#include <sys/bsdtypes.h>
 	#endif
@@ -1721,8 +1781,8 @@ EOF
 #
 # check headers for declarations
 #
-save_CC=$CC; save_LDFLAGS=$LDFLAGS; save_LIBS=$LIBS
-CC="$CC -c -o $tcfn"; LDFLAGS=; LIBS=
+save_tcfn=$tcfn; save_CC=$CC; save_LDFLAGS=$LDFLAGS; save_LIBS=$LIBS
+tcfn=conftest.o; CC="$CC -c -o $tcfn"; LDFLAGS=; LIBS=
 ac_test '!' flock_decl flock 1 'if flock() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
@@ -1744,7 +1804,7 @@ ac_test '!' sys_siglist_decl sys_siglist 1 'if sys_siglist[] does not need to be
 	extern int sys_siglist[5][5][5][5][5];	/* this clashes happily */
 	int main(void) { return (sys_siglist[0][0][0][0][0]); }
 EOF
-CC=$save_CC; LDFLAGS=$save_LDFLAGS; LIBS=$save_LIBS
+tcfn=$save_tcfn; CC=$save_CC; LDFLAGS=$save_LDFLAGS; LIBS=$save_LIBS
 
 #
 # other checks
@@ -1969,6 +2029,8 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 #define NSIG _NSIG
 #elif defined(SIGMAX)
 #define NSIG (SIGMAX+1)
+#elif defined(_SIGMAX)
+#define NSIG (_SIGMAX+1)
 #endif
 #endif
 int
@@ -1976,8 +2038,8 @@ mksh_cfg= NSIG
 ;' >conftest.c
 	# GNU sed 2.03 segfaults when optimising this to sed -n
 	NSIG=`vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
-	    grep '^mksh_cfg *=' | \
-	    sed 's/^mksh_cfg *=[	 ]*\([()0-9x+-][()0-9x+	 -]*\).*$/\1/'`
+	    grep '^ *mksh_cfg *=' | \
+	    sed 's/^ *mksh_cfg *=[	 ]*\([()0-9x+-][()0-9x+	 -]*\).*$/\1/'`
 	case $NSIG in
 	*mksh_cfg*) $e "Error: NSIG='$NSIG'"; NSIG=0 ;;
 	*[\ \(\)+-]*) NSIG=`"$AWK" "BEGIN { print $NSIG }" </dev/null` ;;
@@ -2006,8 +2068,8 @@ mksh_cfg= NSIG
 		echo ';' >>conftest.c
 		# GNU sed 2.03 croaks on optimising this, too
 		vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
-		    grep '^mksh_cfg *=' | \
-		    sed 's/^mksh_cfg *=[	 ]*\([0-9][0-9x]*\).*$/:\1 '$name/
+		    grep '^ *mksh_cfg *=' | \
+		    sed 's/^ *mksh_cfg *=[	 ]*\([0-9][0-9x]*\).*$/:\1 '$name/
 	done | sed -n '/^:[^ ]/s/^://p' | while read nr name; do
 		test $printf = echo || nr=`printf %d "$nr" 2>/dev/null`
 		test $nr -gt 0 && test $nr -le $NSIG || continue
@@ -2300,6 +2362,7 @@ MKSH_DISABLE_DEPRECATED		disable code paths scheduled for later removal
 MKSH_DISABLE_EXPERIMENTAL	disable code not yet comfy for (LTS) snapshots
 MKSH_DISABLE_TTY_WARNING	shut up warning about ctty if OS cant be fixed
 MKSH_DONT_EMIT_IDSTRING		omit RCS IDs from binary
+MKSH_GCC55009			DANGER! see http://www.mirbsd.org/mksh.htm#p41
 MKSH_MIDNIGHTBSD01ASH_COMPAT	set -o sh: additional compatibility quirk
 MKSH_NOPROSPECTOFWORK		disable jobs, co-processes, etc. (do not use)
 MKSH_NOPWNAM			skip PAM calls, for -static on eglibc, Solaris

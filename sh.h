@@ -10,7 +10,7 @@
 
 /*-
  * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *	       2011, 2012
+ *	       2011, 2012, 2013
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -38,7 +38,14 @@
 #include <sys/param.h>
 #endif
 #include <sys/types.h>
+#if HAVE_BOTH_TIME_H
 #include <sys/time.h>
+#include <time.h>
+#elif HAVE_SYS_TIME_H
+#include <sys/time.h>
+#elif HAVE_TIME_H
+#include <time.h>
+#endif
 #include <sys/ioctl.h>
 #if HAVE_SYS_SYSMACROS_H
 #include <sys/sysmacros.h>
@@ -49,7 +56,9 @@
 #if HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #endif
+#if HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
+#endif
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <dirent.h>
@@ -85,7 +94,10 @@
 /* shudder… */
 #include <termio.h>
 #endif
-#include <time.h>
+#ifdef _ISC_UNIX
+/* XXX imake style */
+#include <sys/sioctl.h>
+#endif
 #if HAVE_ULIMIT_H
 #include <ulimit.h>
 #endif
@@ -152,9 +164,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.608.2.5 2012/12/22 00:03:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.608.2.6 2013/01/01 21:20:08 tg Exp $");
 #endif
-#define MKSH_VERSION "R41 2012/12/20"
+#define MKSH_VERSION "R41 2013/01/01 stable"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -323,6 +335,8 @@ struct rusage {
 #define NSIG		_NSIG
 #elif defined(SIGMAX)
 #define NSIG		(SIGMAX+1)
+#elif defined(_SIGMAX)
+#define NSIG		(_SIGMAX+1)
 #endif
 #endif
 
@@ -346,9 +360,17 @@ extern int flock(int, int);
 extern int getrusage(int, struct rusage *);
 #endif
 
+#if !HAVE_MEMMOVE
+/* we assume either memmove or bcopy exist, at the moment */
+#define memmove(dst, src, len)	bcopy((src), (dst), (len))
+#endif
+
 #if !HAVE_REVOKE_DECL
 extern int revoke(const char *);
 #endif
+
+/* source-level forward compatibility with mksh R42 */
+#define cstrerror(errnum)	((const char *)strerror(errnum))
 
 #if !HAVE_STRLCPY
 size_t strlcpy(char *, const char *, size_t);
@@ -480,9 +502,9 @@ char *ucstrstr(char *, const char *);
 #endif
 
 #if defined(DEBUG) || defined(__COVERITY__)
-#define mkssert(e)	((e) ? (void)0 : exit(255))
+#define mkssert(e)	do { if (!(e)) exit(255); } while (/* CONSTCOND */ 0)
 #else
-#define mkssert(e)	((void)0)
+#define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
 #if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 411)

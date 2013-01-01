@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012
+ *		 2011, 2012, 2013
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.106.2.2 2012/12/22 00:03:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.106.2.3 2013/01/01 21:20:03 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -479,9 +479,14 @@ execute(struct op * volatile t,
 		unwind(LEXIT);
 	if (rv != 0 && !(flags & XERROK) &&
 	    (xerrok == NULL || !*xerrok)) {
-		trapsig(ksh_SIGERR);
-		if (Flag(FERREXIT))
-			unwind(LERROR);
+		if (Flag(FERREXIT) & 0x80) {
+			/* inside eval */
+			Flag(FERREXIT) = 0;
+		} else {
+			trapsig(ksh_SIGERR);
+			if (Flag(FERREXIT))
+				unwind(LERROR);
+		}
 	}
 	return (rv);
 }

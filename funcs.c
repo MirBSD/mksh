@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *		 2010, 2011, 2012
+ *		 2010, 2011, 2012, 2013
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.230.2.1 2012/12/04 01:26:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.230.2.2 2013/01/01 21:20:04 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2216,7 +2216,7 @@ c_eval(const char **wp)
 	exstat |= 0x4000;
 
 	savef = Flag(FERREXIT);
-	Flag(FERREXIT) = 0;
+	Flag(FERREXIT) |= 0x80;
 	rv = shell(s, false);
 	Flag(FERREXIT) = savef;
 	source = saves;
