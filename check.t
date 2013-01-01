@@ -1,10 +1,10 @@
-# $MirOS: src/bin/mksh/check.t,v 1.583 2013/01/01 03:32:41 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.584 2013/01/01 20:45:00 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#	      2011, 2012
+#	      2011, 2012, 2013
 #	Thorsten Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R41 2012/12/31
+	@(#)MIRBSD KSH R41 2013/01/01
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R41 2012/12/31
+	@(#)LEGACY KSH R41 2013/01/01
 description:
 	Check version of legacy shell.
 stdin:
@@ -5820,6 +5820,94 @@ stdin:
 expected-stdout:
 	hi
 expected-exit: 9
+---
+name: exit-trap-2
+description:
+	Check that ERR and EXIT traps are run just like ksh93 does.
+	GNU bash does not run ERtrap in eval-undef.
+file-setup: file 644 "x"
+	v=; unset v
+	trap 'echo EXtrap' EXIT
+	trap 'echo ERtrap' ERR
+	set -e
+	echo "and run $1"
+	eval $1
+	echo and out
+file-setup: file 644 "xt"
+	v=; unset v
+	trap 'echo EXtrap' EXIT
+	trap 'echo ERtrap' ERR
+	set -e
+	echo 'and run true'
+	true
+	echo and out
+file-setup: file 644 "xf"
+	v=; unset v
+	trap 'echo EXtrap' EXIT
+	trap 'echo ERtrap' ERR
+	set -e
+	echo 'and run false'
+	false
+	echo and out
+file-setup: file 644 "xu"
+	v=; unset v
+	trap 'echo EXtrap' EXIT
+	trap 'echo ERtrap' ERR
+	set -e
+	echo 'and run ${v?}'
+	${v?}
+	echo and out
+stdin:
+	runtest() {
+		rm -f rc
+		(
+			"$__progname" "$@"
+			echo $? >rc
+		) 2>&1 | sed \
+		    -e 's/parameter not set/parameter null or not set/' \
+		    -e 's/[[]6]//' -e 's/: eval: line 1//' -e 's/: line 6//' \
+		    -e "s^${__progname%.exe}\.*e*x*e*: <stdin>\[[0-9]*]PROG"
+	}
+	echo :
+	runtest x true
+	echo = eval-true $(<rc) .
+	runtest x false
+	echo = eval-false $(<rc) .
+	runtest x '${v?}'
+	echo = eval-undef $(<rc) .
+	runtest xt
+	echo = noeval-true $(<rc) .
+	runtest xf
+	echo = noeval-false $(<rc) .
+	runtest xu
+	echo = noeval-undef $(<rc) .
+expected-stdout:
+	:
+	and run true
+	and out
+	EXtrap
+	= eval-true 0 .
+	and run false
+	ERtrap
+	EXtrap
+	= eval-false 1 .
+	and run ${v?}
+	x: v: parameter null or not set
+	ERtrap
+	EXtrap
+	= eval-undef 1 .
+	and run true
+	and out
+	EXtrap
+	= noeval-true 0 .
+	and run false
+	ERtrap
+	EXtrap
+	= noeval-false 1 .
+	and run ${v?}
+	xu: v: parameter null or not set
+	EXtrap
+	= noeval-undef 1 .
 ---
 name: test-stlt-1
 description:
