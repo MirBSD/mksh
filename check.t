@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.569.2.5 2013/01/01 21:19:57 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.569.2.6 2013/01/01 22:23:18 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -5824,20 +5824,23 @@ expected-exit: 9
 name: exit-trap-2
 description:
 	Check that ERR and EXIT traps are run just like ksh93 does.
-	GNU bash does not run ERtrap in eval-undef.
+	GNU bash does not run ERtrap in ±e eval-undef but runs it
+	twice (bug?) in +e eval-false, so does ksh93 (bug?), which
+	also has a bug to continue execution (echoing "and out" and
+	returning 0) in +e eval-undef.
 file-setup: file 644 "x"
 	v=; unset v
 	trap 'echo EXtrap' EXIT
 	trap 'echo ERtrap' ERR
-	set -e
-	echo "and run $1"
-	eval $1
+	set $1
+	echo "and run $2"
+	eval $2
 	echo and out
 file-setup: file 644 "xt"
 	v=; unset v
 	trap 'echo EXtrap' EXIT
 	trap 'echo ERtrap' ERR
-	set -e
+	set $1
 	echo 'and run true'
 	true
 	echo and out
@@ -5845,7 +5848,7 @@ file-setup: file 644 "xf"
 	v=; unset v
 	trap 'echo EXtrap' EXIT
 	trap 'echo ERtrap' ERR
-	set -e
+	set $1
 	echo 'and run false'
 	false
 	echo and out
@@ -5853,7 +5856,7 @@ file-setup: file 644 "xu"
 	v=; unset v
 	trap 'echo EXtrap' EXIT
 	trap 'echo ERtrap' ERR
-	set -e
+	set $1
 	echo 'and run ${v?}'
 	${v?}
 	echo and out
@@ -5868,21 +5871,36 @@ stdin:
 		    -e 's/[[]6]//' -e 's/: eval: line 1//' -e 's/: line 6//' \
 		    -e "s^${__progname%.exe}\.*e*x*e*: <stdin>\[[0-9]*]PROG"
 	}
-	echo :
-	runtest x true
+	xe=-e
+	echo : $xe
+	runtest x $xe true
 	echo = eval-true $(<rc) .
-	runtest x false
+	runtest x $xe false
 	echo = eval-false $(<rc) .
-	runtest x '${v?}'
+	runtest x $xe '${v?}'
 	echo = eval-undef $(<rc) .
-	runtest xt
+	runtest xt $xe
 	echo = noeval-true $(<rc) .
-	runtest xf
+	runtest xf $xe
 	echo = noeval-false $(<rc) .
-	runtest xu
+	runtest xu $xe
+	echo = noeval-undef $(<rc) .
+	xe=+e
+	echo : $xe
+	runtest x $xe true
+	echo = eval-true $(<rc) .
+	runtest x $xe false
+	echo = eval-false $(<rc) .
+	runtest x $xe '${v?}'
+	echo = eval-undef $(<rc) .
+	runtest xt $xe
+	echo = noeval-true $(<rc) .
+	runtest xf $xe
+	echo = noeval-false $(<rc) .
+	runtest xu $xe
 	echo = noeval-undef $(<rc) .
 expected-stdout:
-	:
+	: -e
 	and run true
 	and out
 	EXtrap
@@ -5904,6 +5922,34 @@ expected-stdout:
 	ERtrap
 	EXtrap
 	= noeval-false 1 .
+	and run ${v?}
+	xu: v: parameter null or not set
+	EXtrap
+	= noeval-undef 1 .
+	: +e
+	and run true
+	and out
+	EXtrap
+	= eval-true 0 .
+	and run false
+	ERtrap
+	and out
+	EXtrap
+	= eval-false 0 .
+	and run ${v?}
+	x: v: parameter null or not set
+	ERtrap
+	EXtrap
+	= eval-undef 1 .
+	and run true
+	and out
+	EXtrap
+	= noeval-true 0 .
+	and run false
+	ERtrap
+	and out
+	EXtrap
+	= noeval-false 0 .
 	and run ${v?}
 	xu: v: parameter null or not set
 	EXtrap

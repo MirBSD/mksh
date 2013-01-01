@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.245.2.3 2013/01/01 21:20:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.245.2.4 2013/01/01 22:23:22 tg Exp $");
 
 extern char **environ;
 
@@ -872,20 +872,6 @@ shell(Source * volatile s, volatile bool toplevel)
 void
 unwind(int i)
 {
-	/* ordering for EXIT vs ERR is a bit odd (this is what AT&T ksh does) */
-	if (i == LEXIT || (Flag(FERREXIT) == 1 &&
-	    (i == LERROR || i == LINTR) && sigtraps[ksh_SIGEXIT].trap)) {
-		++trap_nested;
-		runtrap(&sigtraps[ksh_SIGEXIT], trap_nested == 1);
-		--trap_nested;
-		i = LLEAVE;
-	} else if (Flag(FERREXIT) == 1 && (i == LERROR || i == LINTR)) {
-		++trap_nested;
-		runtrap(&sigtraps[ksh_SIGERR], trap_nested == 1);
-		--trap_nested;
-		i = LLEAVE;
-	}
-
 	/*
 	 * This is a kludge. We need to restore everything that was
 	 * changed in the new environment, see cid 1005090337C7A669439
@@ -900,6 +886,20 @@ unwind(int i)
 		/* GNU bash does not run this trapsig */
 		trapsig(ksh_SIGERR);
 		Flag(FERREXIT) &= ~0x80;
+	}
+
+	/* ordering for EXIT vs ERR is a bit odd (this is what AT&T ksh does) */
+	if (i == LEXIT ||
+	    ((i == LERROR || i == LINTR) && sigtraps[ksh_SIGEXIT].trap)) {
+		++trap_nested;
+		runtrap(&sigtraps[ksh_SIGEXIT], trap_nested == 1);
+		--trap_nested;
+		i = LLEAVE;
+	} else if (Flag(FERREXIT) == 1 && (i == LERROR || i == LINTR)) {
+		++trap_nested;
+		runtrap(&sigtraps[ksh_SIGERR], trap_nested == 1);
+		--trap_nested;
+		i = LLEAVE;
 	}
 
 	while (/* CONSTCOND */ 1) {
