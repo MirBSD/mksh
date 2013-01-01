@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.611 2012/12/28 04:58:13 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.612 2013/01/01 21:19:36 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1529,7 +1529,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.611 2012/12/28 04:58:13 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.612 2013/01/01 21:19:36 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2394,6 +2394,7 @@ MKSH_DISABLE_DEPRECATED		disable code paths scheduled for later removal
 MKSH_DISABLE_EXPERIMENTAL	disable code not yet comfy for (LTS) snapshots
 MKSH_DISABLE_TTY_WARNING	shut up warning about ctty if OS cant be fixed
 MKSH_DONT_EMIT_IDSTRING		omit RCS IDs from binary
+MKSH_GCC55009			DANGER! see http://www.mirbsd.org/mksh.htm#p41
 MKSH_MIDNIGHTBSD01ASH_COMPAT	set -o sh: additional compatibility quirk
 MKSH_NOPROSPECTOFWORK		disable jobs, co-processes, etc. (do not use)
 MKSH_NOPWNAM			skip PAM calls, for -static on eglibc, Solaris
