@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.55 2012/12/28 03:20:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.56 2013/01/01 03:32:44 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1102,7 +1102,7 @@ cstrerror(int errnum)
 	static char errbuf[15 + 1 + (8 * sizeof(int) + 2) / 3 + 1];
 
 #if HAVE_SYS_ERRLIST
-	if (errnum > 0 && errnum < sys_nerr)
+	if (errnum > 0 && errnum < sys_nerr && sys_errlist[errnum])
 		return (sys_errlist[errnum]);
 #endif
 
