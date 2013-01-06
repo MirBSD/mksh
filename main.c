@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.251 2013/01/01 22:23:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.252 2013/01/06 18:44:07 tg Exp $");
 
 extern char **environ;
 
@@ -1336,8 +1336,11 @@ initio(void)
 	shf_fdopen(2, SHF_WR, shl_out);
 	shf_fdopen(2, SHF_WR, shl_spare);
 #ifdef DF
-	if ((lfp = getenv("SDMKSH_PATH")) == NULL)
-		lfp = "/tmp/mksh-dbg.txt";
+	if ((lfp = getenv("SDMKSH_PATH")) == NULL) {
+		if ((lfp = getenv("HOME")) == NULL || *lfp != '/')
+			errorf("cannot get home directory");
+		lfp = shf_smprintf("%s/mksh-dbg.txt", lfp);
+	}
 
 	if ((shl_dbg_fd = open(lfp, O_WRONLY | O_APPEND | O_CREAT, 0600)) < 0)
 		errorf("cannot open debug output file %s", lfp);
