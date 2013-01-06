@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.111 2013/01/01 20:45:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.112 2013/01/06 18:51:42 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -506,7 +506,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	/* Must be static (XXX but why?) */
 	static struct op texec;
 	int type_flags;
-	int keepasn_ok;
+	bool keepasn_ok;
 	int fcflags = FC_BI|FC_FUNC|FC_PATH;
 	bool bourne_function_call = false;
 	struct block *l_expand, *l_assign;
@@ -538,7 +538,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	 *	FOO=bar command			FOO is neither kept nor exported
 	 *	PATH=... foobar			use new PATH in foobar search
 	 */
-	keepasn_ok = 1;
+	keepasn_ok = true;
 	while (tp && tp->type == CSHELL) {
 		/* undo effects of command */
 		fcflags = FC_BI|FC_FUNC|FC_PATH;
@@ -585,7 +585,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			 * POSIX says special builtins lose their status
 			 * if accessed using command.
 			 */
-			keepasn_ok = 0;
+			keepasn_ok = false;
 			if (!ap[0]) {
 				/* ensure command with no args exits with 0 */
 				subst_exstat = 0;
@@ -678,6 +678,10 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	/* shell built-in */
 	case CSHELL:
 		rv = call_builtin(tp, (const char **)ap, null);
+		if (!keepasn_ok && tp->val.f == c_shift) {
+			l_expand->argc = l_assign->argc;
+			l_expand->argv = l_assign->argv;
+		}
 		break;
 
 	/* function call */
