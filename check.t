@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.569.2.6 2013/01/01 22:23:18 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.569.2.7 2013/01/06 18:59:08 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R41 2013/01/01 stable
+	@(#)MIRBSD KSH R41 2013/01/05
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R41 2013/01/01 stable
+	@(#)LEGACY KSH R41 2013/01/05
 description:
 	Check version of legacy shell.
 stdin:
@@ -10565,6 +10565,34 @@ expected-stdout:
 	4(})korn no
 	5(esac)bourne no
 	6(esac)korn esac
+---
+name: command-shift
+description:
+	Check that 'command shift' works
+stdin:
+	function snc {
+		echo "before	0='$0' 1='$1' 2='$2'"
+		shift
+		echo "after	0='$0' 1='$1' 2='$2'"
+	}
+	function swc {
+		echo "before	0='$0' 1='$1' 2='$2'"
+		command shift
+		echo "after	0='$0' 1='$1' 2='$2'"
+	}
+	echo = without command
+	snc 一 二
+	echo = with command
+	swc 一 二
+	echo = done
+expected-stdout:
+	= without command
+	before	0='snc' 1='一' 2='二'
+	after	0='snc' 1='二' 2=''
+	= with command
+	before	0='swc' 1='一' 2='二'
+	after	0='swc' 1='二' 2=''
+	= done
 ---
 name: stateptr-underflow
 description:
