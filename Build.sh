@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.590.2.8 2013/01/01 21:19:53 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.590.2.9 2013/01/12 02:25:05 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1254,7 +1254,7 @@ elif test $ct = msc; then
 elif test $ct = xlc; then
 	ac_flags 1 rodata "-qro -qroconst -qroptr"
 	ac_flags 1 rtcheck -qcheck=all
-	ac_flags 1 rtchkc -qextchk
+	#ac_flags 1 rtchkc -qextchk	# reported broken
 	ac_flags 1 wformat "-qformat=all -qformat=nozln"
 	#ac_flags 1 wp64 -qwarn64	# too verbose for now
 elif test $ct = tendra; then
@@ -1523,7 +1523,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.590.2.8 2013/01/01 21:19:53 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.590.2.9 2013/01/12 02:25:05 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
