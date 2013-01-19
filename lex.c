@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.175 2013/01/19 17:20:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.176 2013/01/19 17:49:46 tg Exp $");
 
 /*
  * states while lexing word
@@ -504,15 +504,13 @@ yylex(int cf)
 					*wp++ = '\0';
 					*wp++ = CSUBST;
 					*wp++ = 'X';
-				} else if (c == '\'' && (state == SBASE)) {
-					/* XXX which other states are valid? */
+				} else if (c == '\'' && !(cf & HEREDOC)) {
 					*wp++ = OQUOTE;
 					ignore_backslash_newline++;
 					PUSH_STATE(SEQUOTE);
 					statep->ls_bool = false;
 					break;
-				} else if (c == '"' && (state == SBASE)) {
-					/* XXX which other states are valid? */
+				} else if (c == '"' && !(cf & HEREDOC)) {
 					goto DEQUOTE;
 				} else {
 					*wp++ = CHAR;
