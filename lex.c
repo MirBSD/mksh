@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.176 2013/01/19 17:49:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.177 2013/01/19 18:32:56 tg Exp $");
 
 /*
  * states while lexing word
@@ -793,57 +793,58 @@ yylex(int cf)
 		/* <<, <<-, <<< delimiter */
 		case SHEREDELIM:
 			/*
-			 * XXX chuck this state (and the next) - use
-			 * the existing states ($ and \`...` should be
-			 * stripped of their specialness after the
-			 * fact).
-			 */
-			/*
 			 * here delimiters need a special case since
 			 * $ and `...` are not to be treated specially
 			 */
-			if (c == '\\') {
-				c = getsc();
-				if (c) {
+			switch (c) {
+			case '\\':
+				if ((c = getsc())) {
 					/* trailing \ is lost */
 					*wp++ = QCHAR;
 					*wp++ = c;
 				}
-			} else if (c == '$') {
+				break;
+			case '$':
 				if ((c2 = getsc()) == '\'') {
 					PUSH_STATE(SEQUOTE);
 					statep->ls_bool = false;
-					goto sheredelim_quoted;
-				} else if (c2 == '"')
-					goto sheredelim_dquoted;
+					if (0)
+						/* FALLTHROUGH */
+			case '\'':
+					  PUSH_STATE(SSQUOTE);
+					*wp++ = OQUOTE;
+					ignore_backslash_newline++;
+					break;
+				} else if (c2 == '"') {
+					/* FALLTHROUGH */
+			case '"':
+					state = statep->type = SHEREDQUOTE;
+					PUSH_SRETRACE();
+					break;
+				}
 				ungetsc(c2);
-				goto sheredelim_regular;
-			} else if (c == '\'') {
-				PUSH_STATE(SSQUOTE);
- sheredelim_quoted:
-				*wp++ = OQUOTE;
-				ignore_backslash_newline++;
-			} else if (c == '"') {
- sheredelim_dquoted:
-				state = statep->type = SHEREDQUOTE;
-				*wp++ = OQUOTE;
-			} else {
- sheredelim_regular:
+				/* FALLTHROUGH */
+			default:
 				*wp++ = CHAR;
 				*wp++ = c;
 			}
 			break;
 
-		/* " in <<,<<- delimiter */
+		/* " in <<, <<-, <<< delimiter */
 		case SHEREDQUOTE:
-			if (c == '"') {
-				*wp++ = CQUOTE;
-				state = statep->type = SHEREDELIM;
-			} else {
+			if (c != '"')
+				goto Subst;
+			POP_SRETRACE();
+			dp = strnul(sp) - 1;
+			/* remove the trailing double quote */
+			*dp = '\0';
+			/* store the quoted string */
+			*wp++ = OQUOTE;
+			XcheckN(ws, wp, (dp - sp));
+			dp = sp;
+			while ((c = *dp++)) {
 				if (c == '\\') {
-					switch (c = getsc()) {
-					case 0:
-						/* trailing \ is lost */
+					switch ((c = *dp++)) {
 					case '\\':
 					case '"':
 					case '$':
@@ -858,6 +859,9 @@ yylex(int cf)
 				*wp++ = CHAR;
 				*wp++ = c;
 			}
+			afree(sp, ATEMP);
+			*wp++ = CQUOTE;
+			state = statep->type = SHEREDELIM;
 			break;
 
 		/* in *(...|...) pattern (*+?@!) */
