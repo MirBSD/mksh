@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.174 2012/12/05 19:38:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.175 2013/01/19 17:20:02 tg Exp $");
 
 /*
  * states while lexing word
@@ -38,13 +38,12 @@ __RCSID("$MirOS: src/bin/mksh/lex.c,v 1.174 2012/12/05 19:38:20 tg Exp $");
 #define SQBRACE		7	/* inside "${}" */
 #define SBQUOTE		8	/* inside `` */
 #define SASPAREN	9	/* inside $(( )) */
-#define SHEREDELIM	10	/* parsing <<,<<- delimiter */
-#define SHEREDQUOTE	11	/* parsing " in <<,<<- delimiter */
+#define SHEREDELIM	10	/* parsing <<,<<-,<<< delimiter */
+#define SHEREDQUOTE	11	/* parsing " in <<,<<-,<<< delimiter */
 #define SPATTERN	12	/* parsing *(...|...) pattern (*+?@!) */
 #define SADELIM		13	/* like SBASE, looking for delimiter */
-#define SHERESTRING	14	/* parsing <<< string */
-#define STBRACEKORN	15	/* parsing ${...[#%]...} !FSH */
-#define STBRACEBOURNE	16	/* parsing ${...[#%]...} FSH */
+#define STBRACEKORN	14	/* parsing ${...[#%]...} !FSH */
+#define STBRACEBOURNE	15	/* parsing ${...[#%]...} FSH */
 #define SINVALID	255	/* invalid state */
 
 struct sretrace_info {
@@ -245,7 +244,7 @@ yylex(int cf)
 	if (state == SHEREDELIM) {
 		c = getsc();
 		if (c == '<') {
-			state = SHERESTRING;
+			state = SHEREDELIM;
 			while ((c = getsc()) == ' ' || c == '\t')
 				;
 			ungetsc(c);
@@ -257,8 +256,7 @@ yylex(int cf)
 
 	/* collect non-special or quoted characters to form word */
 	while (!((c = getsc()) == 0 ||
-	    ((state == SBASE || state == SHEREDELIM || state == SHERESTRING) &&
-	    ctype(c, C_LEX1)))) {
+	    ((state == SBASE || state == SHEREDELIM) && ctype(c, C_LEX1)))) {
 		if (state == SBASE &&
 		    subshell_nesting_type == /*{*/ '}' &&
 		    c == /*{*/ '}')
@@ -794,42 +792,7 @@ yylex(int cf)
 				++statep->nparen;
 			goto Sbase2;
 
-		/* <<< delimiter */
-		case SHERESTRING:
-			if (c == '\\') {
-				c = getsc();
-				if (c) {
-					/* trailing \ is lost */
-					*wp++ = QCHAR;
-					*wp++ = c;
-				}
-			} else if (c == '$') {
-				if ((c2 = getsc()) == '\'') {
-					PUSH_STATE(SEQUOTE);
-					statep->ls_bool = false;
-					goto sherestring_quoted;
-				} else if (c2 == '"')
-					goto sherestring_dquoted;
-				ungetsc(c2);
-				goto sherestring_regular;
-			} else if (c == '\'') {
-				PUSH_STATE(SSQUOTE);
- sherestring_quoted:
-				*wp++ = OQUOTE;
-				ignore_backslash_newline++;
-			} else if (c == '"') {
- sherestring_dquoted:
-				state = statep->type = SHEREDQUOTE;
-				*wp++ = OQUOTE;
-				/* just don't IFS split; no quoting mode */
-			} else {
- sherestring_regular:
-				*wp++ = CHAR;
-				*wp++ = c;
-			}
-			break;
-
-		/* <<,<<- delimiter */
+		/* <<, <<-, <<< delimiter */
 		case SHEREDELIM:
 			/*
 			 * XXX chuck this state (and the next) - use
@@ -877,10 +840,7 @@ yylex(int cf)
 		case SHEREDQUOTE:
 			if (c == '"') {
 				*wp++ = CQUOTE;
-				state = statep->type =
-				    /* dp[1] == '<' means here string */
-				    Xstring(ws, wp)[1] == '<' ?
-				    SHERESTRING : SHEREDELIM;
+				state = statep->type = SHEREDELIM;
 			} else {
 				if (c == '\\') {
 					switch (c = getsc()) {
@@ -926,7 +886,7 @@ yylex(int cf)
 		yyerror("no closing quote\n");
 
 	/* This done to avoid tests for SHEREDELIM wherever SBASE tested */
-	if (state == SHEREDELIM || state == SHERESTRING)
+	if (state == SHEREDELIM)
 		state = SBASE;
 
 	dp = Xstring(ws, wp);
