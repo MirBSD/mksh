@@ -164,9 +164,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.627 2013/01/06 18:51:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.628 2013/01/19 19:47:13 tg Exp $");
 #endif
-#define MKSH_VERSION "R41 2013/01/06"
+#define MKSH_VERSION "R41 2013/01/19"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1580,7 +1580,8 @@ typedef union {
 #define CMDWORD		BIT(8)	/* parsing simple command (alias related) */
 #define HEREDELIM	BIT(9)	/* parsing <<,<<- delimiter */
 #define LQCHAR		BIT(10)	/* source string contains QCHAR */
-#define HEREDOC		BIT(11)	/* parsing a here document */
+#define HEREDOCBODY	BIT(11)	/* parsing a here document body */
+#define HERESTRBODY	BIT(12)	/* parsing a here string body */
 
 #define HERES		10	/* max number of << in line */
 

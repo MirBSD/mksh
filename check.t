@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.587 2013/01/19 18:32:54 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.588 2013/01/19 19:47:05 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R41 2013/01/06
+	@(#)MIRBSD KSH R41 2013/01/19
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R41 2013/01/06
+	@(#)LEGACY KSH R41 2013/01/19
 description:
 	Check version of legacy shell.
 stdin:
@@ -7677,18 +7677,34 @@ expected-stdout:
 ---
 name: dollar-quotes-in-herestrings
 description:
-	They are, not parsed in here strings either
+	On the other hand, they are parsed in here strings and
+	parameter substitutions
 stdin:
 	cat <<<"dollar = strchr(s, '$');	/* ' */"
 	cat <<<'dollar = strchr(s, '\''$'\'');	/* '\'' */'
 	x="dollar = strchr(s, '$');	/* ' */"
 	cat <<<"$x"
 	cat <<<$'a\E[0m\tb'
+	unset nl; print -r -- "x${nl:=$'\n'}y"
+	echo "1 foo\"bar"
+	cat <<EOF
+	2 foo\"bar
+	EOF
+	cat <<<"3 foo\"bar"
+	cat <<<"4 foo\\\"bar"
+	cat <<<'5 foo\"bar'
 expected-stdout:
+	dollar = strchr(s, ');	/*  */
 	dollar = strchr(s, '$');	/* ' */
-	dollar = strchr(s, '$');	/* ' */
-	dollar = strchr(s, '$');	/* ' */
+	dollar = strchr(s, ');	/*  */
 	a[0m	b
+	x
+	y
+	1 foo"bar
+	2 foo\"bar
+	3 foo"bar
+	4 foo\"bar
+	5 foo\"bar
 ---
 name: dot-needs-argument
 description:

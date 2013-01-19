@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.112 2013/01/06 18:51:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.113 2013/01/19 19:47:10 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -34,7 +34,7 @@ static int comexec(struct op *, struct tbl * volatile, const char **,
 static void scriptexec(struct op *, const char **) MKSH_A_NORETURN;
 static int call_builtin(struct tbl *, const char **, const char *);
 static int iosetup(struct ioword *, struct tbl *);
-static int herein(const char *, int, char **);
+static int herein(struct ioword *, char **);
 static const char *do_selectargs(const char **, bool);
 static Test_op dbteste_isa(Test_env *, Test_meta);
 static const char *dbteste_getopnd(Test_env *, Test_op, bool);
@@ -96,8 +96,7 @@ execute(struct op * volatile t,
 		    /* and has no right-hand side (i.e. "varname=") */
 		    ccp[0] == CHAR && ccp[1] == '=' && ccp[2] == EOS &&
 		    /* plus we can have a here document content */
-		    herein(t->ioact[0]->heredoc, t->ioact[0]->flag & IOEVAL,
-		    &cp) == 0 && cp && *cp) {
+		    herein(t->ioact[0], &cp) == 0 && cp && *cp) {
 			char *sp = cp, *dp;
 			size_t n = ccp - t->vars[0] + 2, z;
 
@@ -1332,7 +1331,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	case IOHERE:
 		do_open = false;
 		/* herein() returns -2 if error has been printed */
-		u = herein(iop->heredoc, iop->flag & IOEVAL, NULL);
+		u = herein(iop, NULL);
 		/* cp may have wrong name */
 		break;
 
@@ -1452,7 +1451,7 @@ hereinval(const char *content, int sub, char **resbuf, struct shf *shf)
 		s = pushs(SSTRING, ATEMP);
 		s->start = s->str = ccp;
 		source = s;
-		if (yylex(ONEWORD|HEREDOC) != LWORD)
+		if (yylex(sub) != LWORD)
 			internal_errorf("%s: %s", "herein", "yylex");
 		source = osource;
 		ccp = evalstr(yylval.cp, 0);
@@ -1468,7 +1467,7 @@ hereinval(const char *content, int sub, char **resbuf, struct shf *shf)
 }
 
 static int
-herein(const char *content, int sub, char **resbuf)
+herein(struct ioword *iop, char **resbuf)
 {
 	int fd = -1;
 	struct shf *shf;
@@ -1476,15 +1475,20 @@ herein(const char *content, int sub, char **resbuf)
 	int i;
 
 	/* ksh -c 'cat << EOF' can cause this... */
-	if (content == NULL) {
+	if (iop->heredoc == NULL) {
 		warningf(true, "%s missing", "here document");
 		/* special to iosetup(): don't print error */
 		return (-2);
 	}
 
+	/* lexer substitution flags */
+	i = (iop->flag & IOEVAL) ?
+	    (ONEWORD | ((iop->flag & IOHERESTR) ? HERESTRBODY : HEREDOCBODY)) :
+	    0;
+
 	/* skip all the fd setup if we just want the value */
 	if (resbuf != NULL)
-		return (hereinval(content, sub, resbuf, NULL));
+		return (hereinval(iop->heredoc, i, resbuf, NULL));
 
 	/*
 	 * Create temp file to hold content (done before newenv
@@ -1501,7 +1505,7 @@ herein(const char *content, int sub, char **resbuf)
 		return (-2);
 	}
 
-	if (hereinval(content, sub, NULL, shf) == -2) {
+	if (hereinval(iop->heredoc, i, NULL, shf) == -2) {
 		close(fd);
 		/* special to iosetup(): don't print error */
 		return (-2);
