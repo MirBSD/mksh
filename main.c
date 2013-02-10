@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.256 2013/02/10 17:55:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.257 2013/02/10 18:17:30 tg Exp $");
 
 extern char **environ;
 
@@ -971,6 +971,8 @@ quitenv(struct shf *shf)
 	 * Either main shell is exiting or cleanup_parents_env() was called.
 	 */
 	if (ep->oenv == NULL) {
+		struct block *l;
+
 		if (ep->type == E_NONE) {
 			/* Main shell exiting? */
 #if HAVE_PERSISTENT_HISTORY
@@ -997,6 +999,13 @@ quitenv(struct shf *shf)
 		}
 		if (shf)
 			shf_close(shf);
+#ifdef DEBUG_LEAKS
+		l = e->loc;
+		while (l) {
+			afreeall(&l->area);
+			l = l->next;
+		}
+#endif
 		reclaim();
 #ifdef DEBUG_LEAKS
 #ifndef MKSH_NO_CMDLINE_EDITING
