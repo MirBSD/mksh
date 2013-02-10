@@ -1,4 +1,4 @@
-/*	$OpenBSD: lex.c,v 1.45 2011/03/09 09:30:39 okan Exp $	*/
+/*	$OpenBSD: lex.c,v 1.46 2013/01/20 14:47:46 stsp Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.178 2013/01/19 19:47:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.179 2013/02/10 17:18:48 tg Exp $");
 
 /*
  * states while lexing word
