@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.589 2013/02/10 19:03:58 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.590 2013/02/10 23:32:18 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -9770,7 +9770,6 @@ expected-stdout:
 name: funsub-1
 description:
 	Check that non-subenvironment command substitution works
-category: !noexperimental
 stdin:
 	set -e
 	foo=bar
