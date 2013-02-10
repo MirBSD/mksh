@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.569.2.7 2013/01/06 18:59:08 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.569.2.8 2013/02/10 23:59:30 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R41 2013/01/05
+	@(#)MIRBSD KSH R41 2013/02/10
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R41 2013/01/05
+	@(#)LEGACY KSH R41 2013/02/10
 description:
 	Check version of legacy shell.
 stdin:
@@ -5751,6 +5751,21 @@ expected-stdout:
 	*** Error code 42
 	
 	Stop in WD/zd/a (line 2 of Makefile).
+---
+name: exit-err-7
+description:
+	"set -e" regression (LP#1104543)
+stdin:
+	set -e
+	bla() {
+		[ -x $PWD/nonexistant ] && $PWD/nonexistant
+	}
+	echo x
+	bla
+	echo y$?
+expected-stdout:
+	x
+expected-exit: 1
 ---
 name: exit-enoent-1
 description:

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.106.2.5 2013/02/10 17:11:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.106.2.6 2013/02/10 23:59:34 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -749,8 +749,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 
 		e->type = E_FUNC;
 		if (!(i = kshsetjmp(e->jbuf))) {
-			/* seems odd to pass XERROK here, but AT&T ksh does */
-			exstat = execute(tp->val.t, flags & XERROK, xerrok) & 0xFF;
+			exstat = execute(tp->val.t, 0, NULL) & 0xFF;
 			i = LRETURN;
 		}
 		kshname = old_kshname;
