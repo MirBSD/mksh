@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012
+ *		 2011, 2012, 2013
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.132 2012/12/17 23:18:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.133 2013/02/10 21:08:35 tg Exp $");
 
 /*
  * string expansion
@@ -1340,10 +1340,23 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 		unlink(tf->tffn);
 		afree(tf, ATEMP);
 	} else {
-		int ofd1, pv[2];
+#ifdef DEBUG_LEAKS
+#define ofd1 e->savefd[1]
+#else
+		int ofd1;
+#endif
+		int pv[2];
 
 		openpipe(pv);
 		shf = shf_fdopen(pv[0], SHF_RD, NULL);
+#ifdef DEBUG_LEAKS
+		if (!e->savefd) {
+			e->savefd = alloc2(NUFILE, sizeof(short), ATEMP);
+			memset(e->savefd, 0, NUFILE * sizeof(short));
+		}
+		/* hack to get it closed in child */
+		e->savefd[pv[0]] = pv[0];
+#endif
 		ofd1 = savefd(1);
 		if (pv[1] != 1) {
 			ksh_dup2(pv[1], 1, false);
