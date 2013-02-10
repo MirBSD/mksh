@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.133 2013/02/10 21:08:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.134 2013/02/10 21:42:15 tg Exp $");
 
 /*
  * string expansion
@@ -1340,23 +1340,10 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 		unlink(tf->tffn);
 		afree(tf, ATEMP);
 	} else {
-#ifdef DEBUG_LEAKS
-#define ofd1 e->savefd[1]
-#else
-		int ofd1;
-#endif
-		int pv[2];
+		int ofd1, pv[2];
 
 		openpipe(pv);
 		shf = shf_fdopen(pv[0], SHF_RD, NULL);
-#ifdef DEBUG_LEAKS
-		if (!e->savefd) {
-			e->savefd = alloc2(NUFILE, sizeof(short), ATEMP);
-			memset(e->savefd, 0, NUFILE * sizeof(short));
-		}
-		/* hack to get it closed in child */
-		e->savefd[pv[0]] = pv[0];
-#endif
 		ofd1 = savefd(1);
 		if (pv[1] != 1) {
 			ksh_dup2(pv[1], 1, false);
