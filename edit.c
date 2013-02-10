@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.264 2013/02/10 17:41:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.265 2013/02/10 19:05:36 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -5451,7 +5451,8 @@ x_init(void)
 void
 x_done(void)
 {
-	afreeall(AEDIT);
+	if (x_tab != NULL)
+		afreeall(AEDIT);
 }
 #endif
 #endif /* !MKSH_NO_CMDLINE_EDITING */

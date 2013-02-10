@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.257 2013/02/10 18:17:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.258 2013/02/10 19:05:37 tg Exp $");
 
 extern char **environ;
 
@@ -955,7 +955,7 @@ quitenv(struct shf *shf)
 	int fd;
 
 	yyrecursive_pop(true);
-	if (ep->oenv && ep->oenv->loc != ep->loc)
+	while (ep->oenv && ep->oenv->loc != ep->loc)
 		popblock();
 	if (ep->savefd != NULL) {
 		for (fd = 0; fd < NUFILE; fd++)
@@ -971,8 +971,6 @@ quitenv(struct shf *shf)
 	 * Either main shell is exiting or cleanup_parents_env() was called.
 	 */
 	if (ep->oenv == NULL) {
-		struct block *l;
-
 		if (ep->type == E_NONE) {
 			/* Main shell exiting? */
 #if HAVE_PERSISTENT_HISTORY
@@ -999,18 +997,10 @@ quitenv(struct shf *shf)
 		}
 		if (shf)
 			shf_close(shf);
-#ifdef DEBUG_LEAKS
-		l = e->loc;
-		while (l) {
-			afreeall(&l->area);
-			l = l->next;
-		}
-#endif
 		reclaim();
 #ifdef DEBUG_LEAKS
 #ifndef MKSH_NO_CMDLINE_EDITING
-		if (Flag(FTALKING))
-			x_done();
+		x_done();
 #endif
 		afreeall(APERM);
 		if (tty_fd >= 0)
@@ -1074,6 +1064,13 @@ cleanup_proc_env(void)
 static void
 reclaim(void)
 {
+	struct block *l;
+
+	while ((l = e->loc) && (!e->oenv || e->oenv->loc != l)) {
+		e->loc = l->next;
+		afreeall(&l->area);
+	}
+
 	remove_temps(e->temps);
 	e->temps = NULL;
 	afreeall(&e->area);
