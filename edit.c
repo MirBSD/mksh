@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.237.4.2 2012/09/03 19:10:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.237.4.3 2013/02/10 16:53:15 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -900,7 +900,7 @@ static bool x_adj_ok;
  * we use x_adj_done so that functions can tell
  * whether x_adjust() has been called while they are active.
  */
-static bool x_adj_done;
+static int x_adj_done;
 
 static int x_col;
 static int x_displen;
@@ -1166,7 +1166,7 @@ x_init_prompt(void)
 	if (x_col >= xx_cols)
 		x_col %= xx_cols;
 	x_displen = xx_cols - 2 - x_col;
-	x_adj_done = false;
+	x_adj_done = 0;
 
 	pprompt(prompt, 0);
 	if (x_displen < 1) {
@@ -1339,7 +1339,7 @@ static int
 x_ins(const char *s)
 {
 	char *cp = xcp;
-	bool adj = x_adj_done;
+	int adj = x_adj_done;
 
 	if (x_do_ins(s, strlen(s)) < 0)
 		return (-1);
@@ -1616,7 +1616,7 @@ x_size2(char *cp, char **dcp)
 static void
 x_zots(char *str)
 {
-	bool adj = x_adj_done;
+	int adj = x_adj_done;
 
 	x_lastcp();
 	while (*str && str < xlp && adj == x_adj_done)
@@ -2847,7 +2847,7 @@ static void
 x_adjust(void)
 {
 	/* flag the fact that we were called. */
-	x_adj_done = true;
+	x_adj_done++;
 	/*
 	 * we had a problem if the prompt length > xx_cols / 2
 	 */
@@ -2969,7 +2969,7 @@ x_e_putc3(const char **cp)
 static void
 x_e_puts(const char *s)
 {
-	bool adj = x_adj_done;
+	int adj = x_adj_done;
 
 	while (*s && adj == x_adj_done)
 		x_e_putc3(&s);
