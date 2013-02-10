@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.578 2012/07/01 15:51:24 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.578.2.1 2013/02/10 16:50:34 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1486,7 +1486,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.578 2012/07/01 15:51:24 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.578.2.1 2013/02/10 16:50:34 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1772,7 +1772,7 @@ cta(int_size_no_matter_of_signedness, sizeof(int) == sizeof(unsigned int));
 cta(long_ge_int, sizeof(long) >= sizeof(int));
 cta(long_size_no_matter_of_signedness, sizeof(long) == sizeof(unsigned long));
 
-#ifndef MKSH_LEGACY_MODE
+#if !defined(MKSH_LEGACY_MODE) && !defined(MKSH_GCC565048)
 /* the next assertion is probably not really needed */
 cta(ari_is_4_char, sizeof(mksh_ari_t) == 4);
 /* but the next two are; we REQUIRE signed integer wraparound */
