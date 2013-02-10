@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.75 2013/02/10 19:04:00 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.76 2013/02/10 23:30:47 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -33,10 +33,10 @@ function precmd {
 	return $e
 }
 PS1=$'\001\r''${ precmd;}${USER:=$(ulimit -c 0; id -un 2>/dev/null || echo \?
-	)}@${HOSTNAME%%.*}:$(local d=${PWD:-?} p=~; [[ $p = ?(*/) ]] || \
+	)}@${HOSTNAME%%.*}:${ local e=$? d=${PWD:-?} p=~; [[ $p = ?(*/) ]] || \
 	d=${d/#$p/~}; local m=${%d} n p=...; (( m > 0 )) || m=${#d}
 	(( m > (n = (COLUMNS/3 < 7 ? 7 : COLUMNS/3)) )) && d=${d:(-n)} || \
-	p=; print -nr -- "$p$d") '"$PS1 "
+	p=; print -nr -- "$p$d"; return $e;} '"$PS1 "
 : ${MKSH:=$(whence -p mksh)}; export EDITOR HOSTNAME MKSH TERM USER
 alias ls=ls
 unalias ls

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.134 2013/02/10 21:42:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.135 2013/02/10 23:30:47 tg Exp $");
 
 /*
  * string expansion
@@ -59,6 +59,7 @@ typedef struct Expand {
 
 static int varsub(Expand *, const char *, const char *, int *, int *);
 static int comsub(Expand *, const char *, int);
+static int funsub(struct op *, struct shf *, int);
 static char *trimsub(char *, char *, int);
 static void glob(char *, XPtrV *, bool);
 static void globit(XString *, char **, char *, XPtrV *, int);
@@ -1318,7 +1319,7 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 		if (shf == NULL)
 			errorf("%s: %s %s", name, "can't open", "$() input");
 	} else if (fn == FUNSUB) {
-		int ofd1;
+		int ofd1, i;
 		struct temp *tf = NULL;
 
 		/* create a temporary file, open for writing */
@@ -1330,11 +1331,12 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 		/* save stdout and make the temporary file it */
 		ofd1 = savefd(1);
 		ksh_dup2(shf_fileno(tf->shf), 1, false);
-		/* run tree, with output thrown into the tempfile */
-		execute(t, XXCOM | XERROK, NULL);
-		/* close the tempfile and restore regular stdout */
-		shf_close(tf->shf);
-		restfd(1, ofd1);
+		/*
+		 * run tree, with output thrown into the tempfile,
+		 * in new function block; close tempfile and end redir
+		 */
+		i = funsub(t, tf->shf, ofd1);
+		subst_exstat = exstat & 0xFF;
 		/* now open, unlink and free the tempfile for reading */
 		shf = shf_open(tf->tffn, O_RDONLY, 0, SHF_MAPHI | SHF_CLEXEC);
 		unlink(tf->tffn);
@@ -1793,4 +1795,30 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 		}
 	}
 	return;
+}
+
+/* helper function due to setjmp/longjmp woes */
+int
+funsub(struct op *t, struct shf *shf, int ofd1)
+{
+	volatile int i;
+
+	newblock();
+	e->type = E_FUNC;
+	if (!(i = kshsetjmp(e->jbuf))) {
+		execute(t, XXCOM | XERROK, NULL);
+		i = LRETURN;
+	}
+	/* close the tempfile and restore regular stdout */
+	shf_close(shf);
+	restfd(1, ofd1);
+	/* function block error handling */
+	if (i != LRETURN /* && i != LERROR */) {
+		quitenv(NULL);
+		unwind(i);
+		internal_errorf("%s %d", "FUNSUB<", i);
+		/* NOTREACHED */
+	}
+	popblock();
+	return (i);
 }
