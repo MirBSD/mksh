@@ -94,10 +94,6 @@
 /* shudder… */
 #include <termio.h>
 #endif
-#ifdef _ISC_UNIX
-/* XXX imake style */
-#include <sys/sioctl.h>
-#endif
 #if HAVE_ULIMIT_H
 #include <ulimit.h>
 #endif
@@ -164,7 +160,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.608.2.7 2013/01/06 18:59:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.608.2.8 2013/02/10 17:11:27 tg Exp $");
 #endif
 #define MKSH_VERSION "R41 2013/01/05"
 

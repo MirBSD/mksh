@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.161.2.1 2012/12/04 01:26:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.161.2.2 2013/02/10 17:11:31 tg Exp $");
 
 /*-
  * Variables
@@ -299,7 +299,6 @@ local(const char *n, bool copy)
 
 	/* check to see if this is an array */
 	n = array_index_calc(n, &array, &val);
-	mkssert(n != NULL);
 	h = hash(n);
 	if (!ksh_isalphx(*n)) {
 		vp = &vtemp;

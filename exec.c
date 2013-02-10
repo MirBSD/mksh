@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.106.2.4 2013/01/06 18:59:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.106.2.5 2013/02/10 17:11:19 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -991,8 +991,6 @@ define(const char *name, struct op *t)
 
 	while (/* CONSTCOND */ 1) {
 		tp = findfunc(name, nhash, true);
-		/* because findfunc:create=true */
-		mkssert(tp != NULL);
 
 		if (tp->flag & ISSET)
 			was_set = true;

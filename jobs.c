@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.91.2.1 2012/12/04 01:26:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.91.2.2 2013/02/10 17:11:25 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1722,7 +1722,6 @@ remove_job(Job *j, const char *where)
 	Proc	*p, *tmp;
 	Job	**prev, *curr;
 
-	mkssert(j != NULL);
 	prev = &job_list;
 	curr = job_list;
 	while (curr && curr != j) {
@@ -1765,7 +1764,6 @@ put_job(Job *j, int where)
 {
 	Job	**prev, *curr;
 
-	mkssert(j != NULL);
 	/* Remove job from list (if there) */
 	prev = &job_list;
 	curr = job_list;

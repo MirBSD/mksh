@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.590.2.9 2013/01/12 02:25:05 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.590.2.10 2013/02/10 17:11:15 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012
@@ -1295,10 +1295,6 @@ ac_test attribute_bounded '' 'for __attribute__((__bounded__))' <<-'EOF'
 	    __attribute__((__bounded__ (__buffer__, 2, 3)));
 	int main(int ac, char *av[]) { return (xcopy(av[0], av[--ac], 1)); }
 	int xcopy(const void *s, void *d, size_t n) {
-		/*
-		 * if memmove does not exist, we are not on a system
-		 * with GCC with __bounded__ attribute either so poo
-		 */
 		memmove(d, s, n); return ((int)n);
 	}
 	#endif
@@ -1523,7 +1519,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.590.2.9 2013/01/12 02:25:05 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.590.2.10 2013/02/10 17:11:15 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
