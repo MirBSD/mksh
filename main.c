@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.258 2013/02/10 19:05:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.259 2013/02/10 21:17:07 tg Exp $");
 
 extern char **environ;
 
@@ -1046,8 +1046,14 @@ cleanup_parents_env(void)
 			afree(ep->savefd, &ep->area);
 			ep->savefd = NULL;
 		}
+#ifdef DEBUG_LEAKS
+		if (ep->type != E_NONE)
+			ep->type = E_GONE;
+#endif
 	}
+#ifndef DEBUG_LEAKS
 	e->oenv = NULL;
+#endif
 }
 
 /* Called just before an execve cleanup stuff temporary files */

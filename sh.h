@@ -164,7 +164,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.632 2013/02/10 17:41:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.633 2013/02/10 21:17:07 tg Exp $");
 #endif
 #define MKSH_VERSION "R41 2013/01/19"
 
@@ -702,6 +702,7 @@ extern struct env {
 #define E_EXEC	4	/* executing command tree */
 #define E_LOOP	5	/* executing for/while # */
 #define E_ERRH	6	/* general error handler # */
+#define E_GONE	7	/* hidden in child */
 /* # indicates env has valid jbuf (see unwind()) */
 
 /* struct env.flag values */
