@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.74 2013/01/21 15:06:24 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.75 2013/02/10 19:04:00 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -22,9 +22,9 @@
 #-
 # ${ENV:-~/.mkshrc}: mksh initialisation file for interactive shells
 
-: ${EDITOR:=/bin/ed} ${TERM:=vt100} ${HOSTNAME:=$(ulimit -c 0;hostname -s 2>&-)}
-[[ $HOSTNAME = @(localhost|*([	 ])) ]] && HOSTNAME=$(ulimit -c 0;hostname 2>&-)
-: ${HOSTNAME:=nil}; if (( USER_ID )); then PS1='$'; else PS1='#'; fi
+PS1='#'; (( USER_ID )) && PS1='$'; [[ ${HOSTNAME:=$(ulimit -c 0; hostname -s \
+    2>/dev/null)} = *([	 ]|localhost) ]] && HOSTNAME=$(ulimit -c 0; hostname \
+    2>/dev/null); : ${EDITOR:=/bin/ed} ${HOSTNAME:=nil} ${TERM:=vt100}
 function precmd {
 	local e=$?
 
@@ -44,20 +44,20 @@ alias l='ls -F'
 alias la='l -a'
 alias ll='l -l'
 alias lo='l -alo'
-whence -p rot13 >&- || alias rot13='tr \
+whence -p rot13 >/dev/null || alias rot13='tr \
     abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \
     nopqrstuvwxyzabcdefghijklmNOPQRSTUVWXYZABCDEFGHIJKLM'
-whence -p hd >&- || function hd {
+whence -p hd >/dev/null || function hd {
 	hexdump -e '"%08.8_ax  " 8/1 "%02X " " - " 8/1 "%02X "' \
 	    -e '"  |" "%_p"' -e '"|\n"' "$@"
 }
 
 # Berkeley C shell compatible dirs, popd, and pushd functions
 # Z shell compatible chpwd() hook, used to update DIRSTACK[0]
-DIRSTACKBASE=$(realpath ~/. 2>&- || print -nr -- "${HOME:-/}")
+DIRSTACKBASE=$(realpath ~/. 2>/dev/null || print -nr -- "${HOME:-/}")
 set -A DIRSTACK
 function chpwd {
-	DIRSTACK[0]=$(realpath . 2>&- || print -r -- "$PWD")
+	DIRSTACK[0]=$(realpath . 2>/dev/null || print -r -- "$PWD")
 	[[ $DIRSTACKBASE = ?(*/) ]] || \
 	    DIRSTACK[0]=${DIRSTACK[0]/#$DIRSTACKBASE/~}
 	:

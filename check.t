@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.588 2013/01/19 19:47:05 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.589 2013/02/10 19:03:58 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -1207,49 +1207,49 @@ stdin:
 	print '#!'"$__progname"'\nfor x in "$@"; do print -r -- "$x"; done' >pfn
 	print '#!'"$__progname"'\nfor x in "$@"; do print -nr -- "<$x> "; done' >pfs
 	chmod +x pfn pfs
-	(echo 1 ${IFS+'}'z}) 2>&- || echo failed in 1
-	(echo 2 "${IFS+'}'z}") 2>&- || echo failed in 2
-	(echo 3 "foo ${IFS+'bar} baz") 2>&- || echo failed in 3
-	(echo -n '4 '; ./pfn "foo ${IFS+"b   c"} baz") 2>&- || echo failed in 4
-	(echo -n '5 '; ./pfn "foo ${IFS+b   c} baz") 2>&- || echo failed in 5
-	(echo 6 ${IFS+"}"z}) 2>&- || echo failed in 6
-	(echo 7 "${IFS+"}"z}") 2>&- || echo failed in 7
-	(echo 8 "${IFS+\"}\"z}") 2>&- || echo failed in 8
-	(echo 9 "${IFS+\"\}\"z}") 2>&- || echo failed in 9
-	(echo 10 foo ${IFS+'bar} baz'}) 2>&- || echo failed in 10
-	(echo 11 "$(echo "${IFS+'}'z}")") 2>&- || echo failed in 11
-	(echo 12 "$(echo ${IFS+'}'z})") 2>&- || echo failed in 12
-	(echo 13 ${IFS+\}z}) 2>&- || echo failed in 13
-	(echo 14 "${IFS+\}z}") 2>&- || echo failed in 14
-	u=x; (echo -n '15 '; ./pfs "foo ${IFS+a"b$u{ {"{{\}b} c ${IFS+d{}} bar" ${IFS-e{}} baz; echo .) 2>&- || echo failed in 15
-	l=t; (echo 16 ${IFS+h`echo -n i ${IFS+$l}h`ere}) 2>&- || echo failed in 16
-	l=t; (echo 17 ${IFS+h$(echo -n i ${IFS+$l}h)ere}) 2>&- || echo failed in 17
-	l=t; (echo 18 "${IFS+h`echo -n i ${IFS+$l}h`ere}") 2>&- || echo failed in 18
-	l=t; (echo 19 "${IFS+h$(echo -n i ${IFS+$l}h)ere}") 2>&- || echo failed in 19
-	l=t; (echo 20 ${IFS+h`echo -n i "${IFS+$l}"h`ere}) 2>&- || echo failed in 20
-	l=t; (echo 21 ${IFS+h$(echo -n i "${IFS+$l}"h)ere}) 2>&- || echo failed in 21
-	l=t; (echo 22 "${IFS+h`echo -n i "${IFS+$l}"h`ere}") 2>&- || echo failed in 22
-	l=t; (echo 23 "${IFS+h$(echo -n i "${IFS+$l}"h)ere}") 2>&- || echo failed in 23
-	key=value; (echo -n '24 '; ./pfn "${IFS+'$key'}") 2>&- || echo failed in 24
-	key=value; (echo -n '25 '; ./pfn "${IFS+"'$key'"}") 2>&- || echo failed in 25	# ksh93: “'$key'”
-	key=value; (echo -n '26 '; ./pfn ${IFS+'$key'}) 2>&- || echo failed in 26
-	key=value; (echo -n '27 '; ./pfn ${IFS+"'$key'"}) 2>&- || echo failed in 27
-	(echo -n '28 '; ./pfn "${IFS+"'"x ~ x'}'x"'}"x}" #') 2>&- || echo failed in 28
-	u=x; (echo -n '29 '; ./pfs foo ${IFS+a"b$u{ {"{ {\}b} c ${IFS+d{}} bar ${IFS-e{}} baz; echo .) 2>&- || echo failed in 29
+	(echo 1 ${IFS+'}'z}) 2>/dev/null || echo failed in 1
+	(echo 2 "${IFS+'}'z}") 2>/dev/null || echo failed in 2
+	(echo 3 "foo ${IFS+'bar} baz") 2>/dev/null || echo failed in 3
+	(echo -n '4 '; ./pfn "foo ${IFS+"b   c"} baz") 2>/dev/null || echo failed in 4
+	(echo -n '5 '; ./pfn "foo ${IFS+b   c} baz") 2>/dev/null || echo failed in 5
+	(echo 6 ${IFS+"}"z}) 2>/dev/null || echo failed in 6
+	(echo 7 "${IFS+"}"z}") 2>/dev/null || echo failed in 7
+	(echo 8 "${IFS+\"}\"z}") 2>/dev/null || echo failed in 8
+	(echo 9 "${IFS+\"\}\"z}") 2>/dev/null || echo failed in 9
+	(echo 10 foo ${IFS+'bar} baz'}) 2>/dev/null || echo failed in 10
+	(echo 11 "$(echo "${IFS+'}'z}")") 2>/dev/null || echo failed in 11
+	(echo 12 "$(echo ${IFS+'}'z})") 2>/dev/null || echo failed in 12
+	(echo 13 ${IFS+\}z}) 2>/dev/null || echo failed in 13
+	(echo 14 "${IFS+\}z}") 2>/dev/null || echo failed in 14
+	u=x; (echo -n '15 '; ./pfs "foo ${IFS+a"b$u{ {"{{\}b} c ${IFS+d{}} bar" ${IFS-e{}} baz; echo .) 2>/dev/null || echo failed in 15
+	l=t; (echo 16 ${IFS+h`echo -n i ${IFS+$l}h`ere}) 2>/dev/null || echo failed in 16
+	l=t; (echo 17 ${IFS+h$(echo -n i ${IFS+$l}h)ere}) 2>/dev/null || echo failed in 17
+	l=t; (echo 18 "${IFS+h`echo -n i ${IFS+$l}h`ere}") 2>/dev/null || echo failed in 18
+	l=t; (echo 19 "${IFS+h$(echo -n i ${IFS+$l}h)ere}") 2>/dev/null || echo failed in 19
+	l=t; (echo 20 ${IFS+h`echo -n i "${IFS+$l}"h`ere}) 2>/dev/null || echo failed in 20
+	l=t; (echo 21 ${IFS+h$(echo -n i "${IFS+$l}"h)ere}) 2>/dev/null || echo failed in 21
+	l=t; (echo 22 "${IFS+h`echo -n i "${IFS+$l}"h`ere}") 2>/dev/null || echo failed in 22
+	l=t; (echo 23 "${IFS+h$(echo -n i "${IFS+$l}"h)ere}") 2>/dev/null || echo failed in 23
+	key=value; (echo -n '24 '; ./pfn "${IFS+'$key'}") 2>/dev/null || echo failed in 24
+	key=value; (echo -n '25 '; ./pfn "${IFS+"'$key'"}") 2>/dev/null || echo failed in 25	# ksh93: “'$key'”
+	key=value; (echo -n '26 '; ./pfn ${IFS+'$key'}) 2>/dev/null || echo failed in 26
+	key=value; (echo -n '27 '; ./pfn ${IFS+"'$key'"}) 2>/dev/null || echo failed in 27
+	(echo -n '28 '; ./pfn "${IFS+"'"x ~ x'}'x"'}"x}" #') 2>/dev/null || echo failed in 28
+	u=x; (echo -n '29 '; ./pfs foo ${IFS+a"b$u{ {"{ {\}b} c ${IFS+d{}} bar ${IFS-e{}} baz; echo .) 2>/dev/null || echo failed in 29
 	(echo -n '30 '; ./pfs ${IFS+foo 'b\
-	ar' baz}; echo .) 2>&- || (echo failed in 30; echo failed in 31)
+	ar' baz}; echo .) 2>/dev/null || (echo failed in 30; echo failed in 31)
 	(echo -n '32 '; ./pfs ${IFS+foo "b\
-	ar" baz}; echo .) 2>&- || echo failed in 32
+	ar" baz}; echo .) 2>/dev/null || echo failed in 32
 	(echo -n '33 '; ./pfs "${IFS+foo 'b\
-	ar' baz}"; echo .) 2>&- || echo failed in 33
+	ar' baz}"; echo .) 2>/dev/null || echo failed in 33
 	(echo -n '34 '; ./pfs "${IFS+foo "b\
-	ar" baz}"; echo .) 2>&- || echo failed in 34
-	(echo -n '35 '; ./pfs ${v=a\ b} x ${v=c\ d}; echo .) 2>&- || echo failed in 35
-	(echo -n '36 '; ./pfs "${v=a\ b}" x "${v=c\ d}"; echo .) 2>&- || echo failed in 36
-	(echo -n '37 '; ./pfs ${v-a\ b} x ${v-c\ d}; echo .) 2>&- || echo failed in 37
-	(echo 38 ${IFS+x'a'y} / "${IFS+x'a'y}" .) 2>&- || echo failed in 38
-	foo="x'a'y"; (echo 39 ${foo%*'a'*} / "${foo%*'a'*}" .) 2>&- || echo failed in 39
-	foo="a b c"; (echo -n '40 '; ./pfs "${foo#a}"; echo .) 2>&- || echo failed in 40
+	ar" baz}"; echo .) 2>/dev/null || echo failed in 34
+	(echo -n '35 '; ./pfs ${v=a\ b} x ${v=c\ d}; echo .) 2>/dev/null || echo failed in 35
+	(echo -n '36 '; ./pfs "${v=a\ b}" x "${v=c\ d}"; echo .) 2>/dev/null || echo failed in 36
+	(echo -n '37 '; ./pfs ${v-a\ b} x ${v-c\ d}; echo .) 2>/dev/null || echo failed in 37
+	(echo 38 ${IFS+x'a'y} / "${IFS+x'a'y}" .) 2>/dev/null || echo failed in 38
+	foo="x'a'y"; (echo 39 ${foo%*'a'*} / "${foo%*'a'*}" .) 2>/dev/null || echo failed in 39
+	foo="a b c"; (echo -n '40 '; ./pfs "${foo#a}"; echo .) 2>/dev/null || echo failed in 40
 expected-stdout:
 	1 }z
 	2 ''z}
@@ -1303,12 +1303,12 @@ stdin:
 		(echo "$1 plus norm foo ${v+'bar'} baz")
 		(echo "$1 dash norm foo ${v-'bar'} baz")
 		(echo "$1 eqal norm foo ${v='bar'} baz")
-		(echo "$1 qstn norm foo ${v?'bar'} baz") 2>&- || \
+		(echo "$1 qstn norm foo ${v?'bar'} baz") 2>/dev/null || \
 		    echo "$1 qstn norm -> error"
 		(echo "$1 PLUS norm foo ${v:+'bar'} baz")
 		(echo "$1 DASH norm foo ${v:-'bar'} baz")
 		(echo "$1 EQAL norm foo ${v:='bar'} baz")
-		(echo "$1 QSTN norm foo ${v:?'bar'} baz") 2>&- || \
+		(echo "$1 QSTN norm foo ${v:?'bar'} baz") 2>/dev/null || \
 		    echo "$1 QSTN norm -> error"
 	}
 	tl_paren() {
@@ -1317,12 +1317,12 @@ stdin:
 		(echo "$1 plus parn foo ${v+(bar)} baz")
 		(echo "$1 dash parn foo ${v-(bar)} baz")
 		(echo "$1 eqal parn foo ${v=(bar)} baz")
-		(echo "$1 qstn parn foo ${v?(bar)} baz") 2>&- || \
+		(echo "$1 qstn parn foo ${v?(bar)} baz") 2>/dev/null || \
 		    echo "$1 qstn parn -> error"
 		(echo "$1 PLUS parn foo ${v:+(bar)} baz")
 		(echo "$1 DASH parn foo ${v:-(bar)} baz")
 		(echo "$1 EQAL parn foo ${v:=(bar)} baz")
-		(echo "$1 QSTN parn foo ${v:?(bar)} baz") 2>&- || \
+		(echo "$1 QSTN parn foo ${v:?(bar)} baz") 2>/dev/null || \
 		    echo "$1 QSTN parn -> error"
 	}
 	tl_brace() {
@@ -1331,12 +1331,12 @@ stdin:
 		(echo "$1 plus brac foo ${v+a$u{{{\}b} c ${v+d{}} baz")
 		(echo "$1 dash brac foo ${v-a$u{{{\}b} c ${v-d{}} baz")
 		(echo "$1 eqal brac foo ${v=a$u{{{\}b} c ${v=d{}} baz")
-		(echo "$1 qstn brac foo ${v?a$u{{{\}b} c ${v?d{}} baz") 2>&- || \
+		(echo "$1 qstn brac foo ${v?a$u{{{\}b} c ${v?d{}} baz") 2>/dev/null || \
 		    echo "$1 qstn brac -> error"
 		(echo "$1 PLUS brac foo ${v:+a$u{{{\}b} c ${v:+d{}} baz")
 		(echo "$1 DASH brac foo ${v:-a$u{{{\}b} c ${v:-d{}} baz")
 		(echo "$1 EQAL brac foo ${v:=a$u{{{\}b} c ${v:=d{}} baz")
-		(echo "$1 QSTN brac foo ${v:?a$u{{{\}b} c ${v:?d{}} baz") 2>&- || \
+		(echo "$1 QSTN brac foo ${v:?a$u{{{\}b} c ${v:?d{}} baz") 2>/dev/null || \
 		    echo "$1 QSTN brac -> error"
 	}
 	tl_norm 1 -
@@ -1433,12 +1433,12 @@ stdin:
 		(echo $1 plus norm foo ${v+'bar'} baz)
 		(echo $1 dash norm foo ${v-'bar'} baz)
 		(echo $1 eqal norm foo ${v='bar'} baz)
-		(echo $1 qstn norm foo ${v?'bar'} baz) 2>&- || \
+		(echo $1 qstn norm foo ${v?'bar'} baz) 2>/dev/null || \
 		    echo "$1 qstn norm -> error"
 		(echo $1 PLUS norm foo ${v:+'bar'} baz)
 		(echo $1 DASH norm foo ${v:-'bar'} baz)
 		(echo $1 EQAL norm foo ${v:='bar'} baz)
-		(echo $1 QSTN norm foo ${v:?'bar'} baz) 2>&- || \
+		(echo $1 QSTN norm foo ${v:?'bar'} baz) 2>/dev/null || \
 		    echo "$1 QSTN norm -> error"
 	}
 	tl_paren() {
@@ -1447,12 +1447,12 @@ stdin:
 		(echo $1 plus parn foo ${v+\(bar')'} baz)
 		(echo $1 dash parn foo ${v-\(bar')'} baz)
 		(echo $1 eqal parn foo ${v=\(bar')'} baz)
-		(echo $1 qstn parn foo ${v?\(bar')'} baz) 2>&- || \
+		(echo $1 qstn parn foo ${v?\(bar')'} baz) 2>/dev/null || \
 		    echo "$1 qstn parn -> error"
 		(echo $1 PLUS parn foo ${v:+\(bar')'} baz)
 		(echo $1 DASH parn foo ${v:-\(bar')'} baz)
 		(echo $1 EQAL parn foo ${v:=\(bar')'} baz)
-		(echo $1 QSTN parn foo ${v:?\(bar')'} baz) 2>&- || \
+		(echo $1 QSTN parn foo ${v:?\(bar')'} baz) 2>/dev/null || \
 		    echo "$1 QSTN parn -> error"
 	}
 	tl_brace() {
@@ -1461,12 +1461,12 @@ stdin:
 		(echo $1 plus brac foo ${v+a$u{{{\}b} c ${v+d{}} baz)
 		(echo $1 dash brac foo ${v-a$u{{{\}b} c ${v-d{}} baz)
 		(echo $1 eqal brac foo ${v=a$u{{{\}b} c ${v=d{}} baz)
-		(echo $1 qstn brac foo ${v?a$u{{{\}b} c ${v?d{}} baz) 2>&- || \
+		(echo $1 qstn brac foo ${v?a$u{{{\}b} c ${v?d{}} baz) 2>/dev/null || \
 		    echo "$1 qstn brac -> error"
 		(echo $1 PLUS brac foo ${v:+a$u{{{\}b} c ${v:+d{}} baz)
 		(echo $1 DASH brac foo ${v:-a$u{{{\}b} c ${v:-d{}} baz)
 		(echo $1 EQAL brac foo ${v:=a$u{{{\}b} c ${v:=d{}} baz)
-		(echo $1 QSTN brac foo ${v:?a$u{{{\}b} c ${v:?d{}} baz) 2>&- || \
+		(echo $1 QSTN brac foo ${v:?a$u{{{\}b} c ${v:?d{}} baz) 2>/dev/null || \
 		    echo "$1 QSTN brac -> error"
 	}
 	tl_norm 1 -
@@ -2296,7 +2296,7 @@ name: heredoc-9e
 description:
 	Check here string related regression with multiple iops
 stdin:
-	echo $(tr r z <<<'bar' 2>&-)
+	echo $(tr r z <<<'bar' 2>/dev/null)
 expected-stdout:
 	baz
 ---
@@ -4347,7 +4347,7 @@ stdin:
 	cat t1 t1 t1 t1  t1 t1 t1 t1  t1 t1 t1 t1  t1 t1 t1 t1  > t2
 	cat t2 t2 t2 t2  t2 t2 t2 t2  t2 t2 t2 t2  t2 t2 t2 t2  > t1
 	cat t1 t1 t1 t1 > t2
-	(: ; cat t2 2>&-) | sleep 1
+	(: ; cat t2 2>/dev/null) | sleep 1
 ---
 name: regression-14
 description:
@@ -7733,7 +7733,7 @@ stdin:
 	foo
 	korn
 	unset -f foo
-	foo 2>&- || echo rab
+	foo 2>/dev/null || echo rab
 expected-stdout:
 	baz
 	bar
