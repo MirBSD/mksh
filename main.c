@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.254 2013/02/10 17:41:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.255 2013/02/10 17:43:07 tg Exp $");
 
 extern char **environ;
 
@@ -1003,7 +1003,7 @@ quitenv(struct shf *shf)
 		if (Flag(FTALKING))
 			x_done();
 #endif
-//		afreeall(APERM);
+		afreeall(APERM);
 #endif
 		exit(exstat & 0xFF);
 	}
