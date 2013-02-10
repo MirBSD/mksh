@@ -1,8 +1,8 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.614 2013/02/10 18:17:28 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.615 2013/02/10 21:20:57 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#		2011, 2012
+#		2011, 2012, 2013
 #	Thorsten Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -1529,7 +1529,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.614 2013/02/10 18:17:28 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.615 2013/02/10 21:20:57 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2380,7 +2380,7 @@ HAVE_STRING_H			ac_header
 HAVE_CAN_FSTACKPROTECTORALL	ac_flags
 
 ==== cpp definitions ====
-DEBUG				enable debugging (want gcc), implies:
+DEBUG				dont use in production, wants gcc, implies:
 DEBUG_LEAKS			enable freeing resources before exiting
 MKSHRC_PATH			"~/.mkshrc" (do not change)
 MKSH_A4PB			force use of arc4random_pushb
