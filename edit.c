@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.263 2013/02/10 17:39:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.264 2013/02/10 17:41:03 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -5447,7 +5447,7 @@ x_init(void)
 #endif
 }
 
-#ifdef DEBUG
+#ifdef DEBUG_LEAKS
 void
 x_done(void)
 {

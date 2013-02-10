@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.253 2013/02/10 17:38:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.254 2013/02/10 17:41:05 tg Exp $");
 
 extern char **environ;
 
@@ -998,7 +998,7 @@ quitenv(struct shf *shf)
 		if (shf)
 			shf_close(shf);
 		reclaim();
-#ifdef DEBUG
+#ifdef DEBUG_LEAKS
 #ifndef MKSH_NO_CMDLINE_EDITING
 		if (Flag(FTALKING))
 			x_done();

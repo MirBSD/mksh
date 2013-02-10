@@ -164,7 +164,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.631 2013/02/10 17:39:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.632 2013/02/10 17:41:06 tg Exp $");
 #endif
 #define MKSH_VERSION "R41 2013/01/19"
 
@@ -504,6 +504,9 @@ char *ucstrstr(char *, const char *);
 
 #if defined(DEBUG) || defined(__COVERITY__)
 #define mkssert(e)	do { if (!(e)) exit(255); } while (/* CONSTCOND */ 0)
+#ifndef DEBUG_LEAKS
+#define DEBUG_LEAKS
+#endif
 #else
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
@@ -1674,7 +1677,7 @@ int x_bind(const char *, const char *, bool, bool);
 int x_bind(const char *, const char *, bool);
 #endif
 void x_init(void);
-#ifdef DEBUG
+#ifdef DEBUG_LEAKS
 void x_done(void);
 #endif
 int x_read(char *, size_t);
