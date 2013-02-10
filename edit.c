@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012
+ *		 2011, 2012, 2013
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.261 2013/02/10 17:18:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.262 2013/02/10 17:38:13 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -82,7 +82,6 @@ static int x_basename(const char *, const char *);
 static void x_free_words(int, char **);
 static int x_escape(const char *, size_t, int (*)(const char *, size_t));
 static int x_emacs(char *, size_t);
-static void x_init_emacs(void);
 static void x_init_prompt(void);
 #if !MKSH_S_NOVI
 static int x_vi(char *, size_t);
@@ -106,21 +105,6 @@ static int x_e_getmbc(char *);
 static int x_e_rebuildline(const char *);
 
 /* +++ generic editing functions +++ */
-
-/* Called from main */
-void
-x_init(void)
-{
-	/*
-	 * Set edchars to -2 to force initial binding, except
-	 * we need default values for some deficient systems…
-	 */
-	edchars.erase = edchars.kill = edchars.intr = edchars.quit =
-	    edchars.eof = -2;
-	/* ^W */
-	edchars.werase = 027;
-	x_init_emacs();
-}
 
 /*
  * read an edited command line
@@ -2583,32 +2567,6 @@ x_bind(const char *a1, const char *a2,
 		    (1 << ((prefix * X_TABSZ + key) % 8));
 
 	return (0);
-}
-
-static void
-x_init_emacs(void)
-{
-	int i, j;
-
-	ainit(AEDIT);
-	x_nextcmd = -1;
-
-	x_tab = alloc2(X_NTABS, sizeof(*x_tab), AEDIT);
-	for (j = 0; j < X_TABSZ; j++)
-		x_tab[0][j] = XFUNC_insert;
-	for (i = 1; i < X_NTABS; i++)
-		for (j = 0; j < X_TABSZ; j++)
-			x_tab[i][j] = XFUNC_error;
-	for (i = 0; i < (int)NELEM(x_defbindings); i++)
-		x_tab[x_defbindings[i].xdb_tab][x_defbindings[i].xdb_char]
-		    = x_defbindings[i].xdb_func;
-
-#ifndef MKSH_SMALL
-	x_atab = alloc2(X_NTABS, sizeof(*x_atab), AEDIT);
-	for (i = 1; i < X_NTABS; i++)
-		for (j = 0; j < X_TABSZ; j++)
-			x_atab[i][j] = NULL;
-#endif
 }
 
 static void
@@ -5451,4 +5409,47 @@ vi_macro_reset(void)
 	}
 }
 #endif /* !MKSH_S_NOVI */
+
+/* called from main.c */
+void
+x_init(void)
+{
+	int i, j;
+
+	/*
+	 * Set edchars to -2 to force initial binding, except
+	 * we need default values for some deficient systems…
+	 */
+	edchars.erase = edchars.kill = edchars.intr = edchars.quit =
+	    edchars.eof = -2;
+	/* ^W */
+	edchars.werase = 027;
+
+	/* initialise Emacs command line editing mode */
+	ainit(AEDIT);
+	x_nextcmd = -1;
+
+	x_tab = alloc2(X_NTABS, sizeof(*x_tab), AEDIT);
+	for (j = 0; j < X_TABSZ; j++)
+		x_tab[0][j] = XFUNC_insert;
+	for (i = 1; i < X_NTABS; i++)
+		for (j = 0; j < X_TABSZ; j++)
+			x_tab[i][j] = XFUNC_error;
+	for (i = 0; i < (int)NELEM(x_defbindings); i++)
+		x_tab[x_defbindings[i].xdb_tab][x_defbindings[i].xdb_char]
+		    = x_defbindings[i].xdb_func;
+
+#ifndef MKSH_SMALL
+	x_atab = alloc2(X_NTABS, sizeof(*x_atab), AEDIT);
+	for (i = 1; i < X_NTABS; i++)
+		for (j = 0; j < X_TABSZ; j++)
+			x_atab[i][j] = NULL;
+#endif
+}
+
+void
+x_done(void)
+{
+	afreeall(AEDIT);
+}
 #endif /* !MKSH_NO_CMDLINE_EDITING */
