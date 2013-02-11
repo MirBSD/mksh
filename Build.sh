@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.615 2013/02/10 21:20:57 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.616 2013/02/11 16:27:56 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -1529,7 +1529,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.615 2013/02/10 21:20:57 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.616 2013/02/11 16:27:56 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2144,17 +2144,22 @@ cat >test.sh <<-EOF
 	set -A check_categories -- $check_categories
 	pflag='$curdir/$mkshexe'
 	sflag='$srcdir/check.t'
-	usee=0 Pflag=0 Sflag=0 uset=0 vflag=0 xflag=0
-	while getopts "C:e:fPp:Ss:t:v" ch; do case \$ch {
+	usee=0 Pflag=0 Sflag=0 uset=0 vflag=1 xflag=0
+	while getopts "C:e:fPp:QSs:t:v" ch; do case \$ch {
 	(C)	check_categories[\${#check_categories[*]}]=\$OPTARG ;;
 	(e)	usee=1; eflag=\$OPTARG ;;
 	(f)	check_categories[\${#check_categories[*]}]=fastbox ;;
 	(P)	Pflag=1 ;;
+	(+P)	Pflag=0 ;;
 	(p)	pflag=\$OPTARG ;;
+	(Q)	vflag=0 ;;
+	(+Q)	vflag=1 ;;
 	(S)	Sflag=1 ;;
+	(+S)	Sflag=0 ;;
 	(s)	sflag=\$OPTARG ;;
 	(t)	uset=1; tflag=\$OPTARG ;;
 	(v)	vflag=1 ;;
+	(+v)	vflag=0 ;;
 	(*)	xflag=1 ;;
 	}
 	done
@@ -2282,7 +2287,7 @@ LIBS=		$LIBS
 #	\$(CC) \$(CFLAGS) \$(CPPFLAGS) -c \$<
 
 # for all make variants:
-#REGRESS_FLAGS=	-v
+#REGRESS_FLAGS=	-f
 #regress:
 #	./test.sh \$(REGRESS_FLAGS)
 
@@ -2421,7 +2426,7 @@ them, set to a value other than 0 or 1. Ensure /bin/ed is installed. For
 MKSH_SMALL but with Vi mode, add -DMKSH_S_NOVI=0 to CPPFLAGS as well.
 
 Normally, the following command is what you want to run, then:
-$ (sh Build.sh -r -c lto && ./test.sh -v) 2>&1 | tee log
+$ (sh Build.sh -r -c lto && ./test.sh -f) 2>&1 | tee log
 
 Copy dot.mkshrc to /etc/skel/.mkshrc; install mksh into $prefix/bin; or
 /bin; install the manpage, if omitting the -r flag a catmanpage is made
