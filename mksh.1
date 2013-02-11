@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.303 2013/02/10 23:58:19 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.304 2013/02/11 17:17:59 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.145 2013/01/17 21:20:25 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: February 10 2013 $
+.Dd $Mdocdate: February 11 2013 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1608,6 +1608,7 @@ begins with
 it is anchored at the beginning of the value; if it begins with
 .Ql % ,
 it is anchored at the end.
+Patterns that are empty or consist only of wildcards are invalid.
 A single
 .Ql /
 replaces the first occurence of the search
@@ -1619,7 +1620,7 @@ is omitted, the
 .Ar pattern
 is replaced by the empty string, i.e. deleted.
 Cannot be applied to a vector.
-Inefficiently implemented.
+Inefficiently implemented, may be slow.
 .Pp
 .Sm off
 .It Xo
@@ -1664,7 +1665,7 @@ Cannot be applied to a vector.
 The internal hash of the expansion of
 .Ar name ,
 with an optional (defaulting to zero)
-.Ar seed .
+.Op Ar seed .
 At the moment, this is NZAAT (a 32-bit hash based on
 Bob Jenkins' one-at-a-time hash), but this is not set.
 This is the hash the shell uses internally for its associative arrays.
@@ -2259,6 +2260,9 @@ matches no strings; the pattern
 .Ic !(?)*\&
 matches all strings (think about it).
 .El
+.Pp
+Note that complicated globbing, especially with alternatives,
+is slow; using separate comparisons may (or may not) be faster.
 .Pp
 Note that
 .Nm mksh
@@ -4488,6 +4492,10 @@ or, to avoid pattern matching (see
 above):
 .Dq if \&[[ $foo = \&"$bar" \&]]
 .Pp
+The
+.Ic \&[[ ... ]]
+construct is not only more secure to use but also often faster.
+.Pp
 .It Xo
 .Ic time
 .Op Fl p
@@ -6327,7 +6335,7 @@ $ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R41
+.Nm mksh\ R42
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
