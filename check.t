@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.592 2013/02/10 23:59:23 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.593 2013/02/11 13:06:54 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -10638,6 +10638,22 @@ expected-stdout:
 	before	0='swc' 1='一' 2='二'
 	after	0='swc' 1='二' 2=''
 	= done
+---
+name: duffs-device
+description:
+	Check that the compiler did not optimise-break them
+	(lex.c has got a similar one in SHEREDELIM)
+stdin:
+	set +U
+	s=
+	typeset -i1 i=0
+	while (( ++i < 256 )); do
+		s+=${i#1#}
+	done
+	s+=$'\xC2\xA0\xE2\x82\xAC\xEF\xBF\xBD\xEF\xBF\xBE\xEF\xBF\xBF\xF0\x90\x80\x80.'
+	typeset -p s
+expected-stdout:
+	typeset s=$'\001\002\003\004\005\006\a\b\t\n\v\f\r\016\017\020\021\022\023\024\025\026\027\030\031\032\E\034\035\036\037 !"#$%&\047()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\177\200\201\202\203\204\205\206\207\210\211\212\213\214\215\216\217\220\221\222\223\224\225\226\227\230\231\232\233\234\235\236\237\240\241\242\243\244\245\246\247\250\251\252\253\254\255\256\257\260\261\262\263\264\265\266\267\270\271\272\273\274\275\276\277\300\301\302\303\304\305\306\307\310\311\312\313\314\315\316\317\320\321\322\323\324\325\326\327\330\331\332\333\334\335\336\337\340\341\342\343\344\345\346\347\350\351\352\353\354\355\356\357\360\361\362\363\364\365\366\367\370\371\372\373\374\375\376\377\u00A0\u20AC\uFFFD\357\277\276\357\277\277\360\220\200\200.'
 ---
 name: stateptr-underflow
 description:
