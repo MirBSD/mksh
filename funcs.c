@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *		 2010, 2011, 2012
+ *		 2010, 2011, 2012, 2013
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.222 2012/06/25 16:34:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.222.2.1 2013/02/11 00:27:13 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2208,15 +2208,20 @@ c_eval(const char **wp)
 	 *	If there are no arguments, or only null arguments,
 	 *	eval shall return a zero exit status; ...
 	 */
-	/* exstat = subst_exstat; */	/* AT&T ksh88 */
-	exstat = 0;			/* SUSv4 */
+	/* AT&T ksh88: use subst_exstat */
+	/* exstat = subst_exstat; */
+	/* SUSv4: OR with a high value never written otherwise */
+	exstat |= 0x4000;
 
 	savef = Flag(FERREXIT);
-	Flag(FERREXIT) = 0;
+	Flag(FERREXIT) |= 0x80;
 	rv = shell(s, false);
 	Flag(FERREXIT) = savef;
 	source = saves;
 	afree(s, ATEMP);
+	if (exstat & 0x4000)
+		/* detect old exstat, use 0 in that case */
+		rv = 0;
 	return (rv);
 }
 
@@ -2278,7 +2283,7 @@ c_exitreturn(const char **wp)
 			exstat = 1;
 			warningf(true, "%s: %s", arg, "bad number");
 		} else
-			exstat = n;
+			exstat = n & 0xFF;
 	} else if (trap_exstat != -1)
 		exstat = trap_exstat;
 	if (wp[0][0] == 'r') {

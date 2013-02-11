@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012
+ *		 2011, 2012, 2013
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.224 2012/06/28 20:05:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.224.2.1 2013/02/11 00:27:17 tg Exp $");
 
 extern char **environ;
 
@@ -693,7 +693,7 @@ include(const char *name, int argc, const char **argv, int intr_ok)
 			 * intr_ok is set if we are including .profile or $ENV.
 			 * If user ^Cs out, we don't want to kill the shell...
 			 */
-			if (intr_ok && (exstat - 128) != SIGTERM)
+			if (intr_ok && ((exstat & 0xFF) - 128) != SIGTERM)
 				return (1);
 			/* FALLTHROUGH */
 		case LEXIT:
@@ -831,7 +831,7 @@ shell(Source * volatile s, volatile bool toplevel)
 			}
 		}
 		if (t && (!Flag(FNOEXEC) || (s->flags & SF_TTY)))
-			exstat = execute(t, 0, NULL);
+			exstat = execute(t, 0, NULL) & 0xFF;
 
 		if (t != NULL && t->type != TEOF && interactive && really_exit)
 			really_exit = false;
@@ -840,26 +840,43 @@ shell(Source * volatile s, volatile bool toplevel)
 	}
 	quitenv(NULL);
 	source = old_source;
-	return (exstat);
+	return (exstat & 0xFF);
 }
 
 /* return to closest error handler or shell(), exit if none found */
 void
 unwind(int i)
 {
+	/*
+	 * This is a kludge. We need to restore everything that was
+	 * changed in the new environment, see cid 1005090337C7A669439
+	 * and 10050903386452ACBF1, but fail to even save things most of
+	 * the time. funcs.c:c_eval() changes FERREXIT temporarily to 0,
+	 * which needs to be restored thus (related to Debian #696823).
+	 * We did not save the shell flags, so we use a special or'd
+	 * value here... this is mostly to clean up behind *other*
+	 * callers of unwind(LERROR) here; exec.c has the regular case.
+	 */
+	if (Flag(FERREXIT) & 0x80) {
+		/* GNU bash does not run this trapsig */
+		trapsig(ksh_SIGERR);
+		Flag(FERREXIT) &= ~0x80;
+	}
+
 	/* ordering for EXIT vs ERR is a bit odd (this is what AT&T ksh does) */
-	if (i == LEXIT || (Flag(FERREXIT) && (i == LERROR || i == LINTR) &&
-	    sigtraps[ksh_SIGEXIT].trap)) {
+	if (i == LEXIT ||
+	    ((i == LERROR || i == LINTR) && sigtraps[ksh_SIGEXIT].trap)) {
 		++trap_nested;
 		runtrap(&sigtraps[ksh_SIGEXIT], trap_nested == 1);
 		--trap_nested;
 		i = LLEAVE;
-	} else if (Flag(FERREXIT) && (i == LERROR || i == LINTR)) {
+	} else if (Flag(FERREXIT) == 1 && (i == LERROR || i == LINTR)) {
 		++trap_nested;
 		runtrap(&sigtraps[ksh_SIGERR], trap_nested == 1);
 		--trap_nested;
 		i = LLEAVE;
 	}
+
 	while (/* CONSTCOND */ 1) {
 		switch (e->type) {
 		case E_PARSE:
@@ -935,7 +952,7 @@ quitenv(struct shf *shf)
 #endif
 			j_exit();
 			if (ep->flags & EF_FAKE_SIGDIE) {
-				int sig = exstat - 128;
+				int sig = (exstat & 0xFF) - 128;
 
 				/*
 				 * ham up our death a bit (AT&T ksh
@@ -954,7 +971,7 @@ quitenv(struct shf *shf)
 		if (shf)
 			shf_close(shf);
 		reclaim();
-		exit(exstat);
+		exit(exstat & 0xFF);
 	}
 	if (shf)
 		shf_close(shf);

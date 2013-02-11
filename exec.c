@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012
+ *		 2011, 2012, 2013
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.99 2012/06/24 20:05:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.99.2.1 2013/02/11 00:27:12 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -461,7 +461,7 @@ execute(struct op * volatile t,
 			errorf("%s: %s", s, strerror(rv));
 	}
  Break:
-	exstat = rv;
+	exstat = rv & 0xFF;
 	if (vp_pipest->flag & INT_L) {
 		unset(vp_pipest, 1);
 		vp_pipest->flag = DEFINED | ISSET | INTEGER | RDONLY |
@@ -476,9 +476,14 @@ execute(struct op * volatile t,
 		unwind(LEXIT);
 	if (rv != 0 && !(flags & XERROK) &&
 	    (xerrok == NULL || !*xerrok)) {
-		trapsig(ksh_SIGERR);
-		if (Flag(FERREXIT))
-			unwind(LERROR);
+		if (Flag(FERREXIT) & 0x80) {
+			/* inside eval */
+			Flag(FERREXIT) = 0;
+		} else {
+			trapsig(ksh_SIGERR);
+			if (Flag(FERREXIT))
+				unwind(LERROR);
+		}
 	}
 	return (rv);
 }
@@ -728,8 +733,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 
 		e->type = E_FUNC;
 		if (!(i = kshsetjmp(e->jbuf))) {
-			/* seems odd to pass XERROK here, but AT&T ksh does */
-			exstat = execute(tp->val.t, flags & XERROK, xerrok);
+			exstat = execute(tp->val.t, 0, NULL) & 0xFF;
 			i = LRETURN;
 		}
 		kshname = old_kshname;
@@ -750,7 +754,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		switch (i) {
 		case LRETURN:
 		case LERROR:
-			rv = exstat;
+			rv = exstat & 0xFF;
 			break;
 		case LINTR:
 		case LEXIT:
@@ -810,7 +814,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	}
  Leave:
 	if (flags & XEXEC) {
-		exstat = rv;
+		exstat = rv & 0xFF;
 		unwind(LLEAVE);
 	}
 	return (rv);

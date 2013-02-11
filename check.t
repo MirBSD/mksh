@@ -1,10 +1,10 @@
-# $MirOS: src/bin/mksh/check.t,v 1.549.2.2 2012/09/03 19:11:11 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.549.2.3 2013/02/11 00:27:07 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
 #-
 # Copyright Â© 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#	      2011, 2012
+#	      2011, 2012, 2013
 #	Thorsten Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2012/07/20 Debian-3
+	@(#)MIRBSD KSH R40 2012/07/20 Debian-5
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R40 2012/07/20 Debian-3
+	@(#)LEGACY KSH R40 2012/07/20 Debian-5
 description:
 	Check version of legacy shell.
 stdin:
@@ -217,14 +217,21 @@ description:
 	the time-limit clause (e.g. to 7) if this occurs.
 time-limit: 3
 stdin:
-	echo -n >tf
-	alias ls=ls
-	ls
-	echo $(ls)
+	print '#!'"$__progname"'\necho tf' >lq
+	chmod +x lq
+	PATH=$PWD:$PATH
+	alias lq=lq
+	lq
+	echo = now
+	i=`lq`
+	print -r -- $i
+	echo = out
 	exit 0
 expected-stdout:
 	tf
+	= now
 	tf
+	= out
 ---
 name: alias-10
 description:
@@ -2025,6 +2032,7 @@ description:
 # breaks on Mac OSX (HFS+ non-standard Unicode canonical decomposition)
 # breaks on Cygwin 1.7 (files are now UTF-16 or something)
 category: !os:cygwin,!os:darwin,!os:msys
+need-pass: no
 file-setup: file 644 "aÂc"
 stdin:
 	echo a[Á-Ú]*
@@ -5571,10 +5579,29 @@ env-setup: !HOME=/sweet!
 stdin:
 	echo ${A=a=}~ b=~ c=d~ ~
 	set +o braceexpand
+	unset A
 	echo ${A=a=}~ b=~ c=d~ ~
 expected-stdout:
 	a=/sweet b=/sweet c=d~ /sweet
 	a=~ b=~ c=d~ /sweet
+---
+name: tilde-expand-2
+description:
+	Check tilde expansion works
+env-setup: !HOME=/sweet!
+stdin:
+	wd=$PWD
+	cd /
+	plus=$(print -r -- ~+)
+	minus=$(print -r -- ~-)
+	nix=$(print -r -- ~)
+	[[ $plus = / ]]; echo one $? .
+	[[ $minus = "$wd" ]]; echo two $? .
+	[[ $nix = /sweet ]]; echo nix $? .
+expected-stdout:
+	one 0 .
+	two 0 .
+	nix 0 .
 ---
 name: exit-err-1
 description:
@@ -5686,6 +5713,21 @@ expected-stdout:
 	
 	Stop in WD/zd/a (line 2 of Makefile).
 ---
+name: exit-err-7
+description:
+	"set -e" regression (LP#1104543)
+stdin:
+	set -e
+	bla() {
+		[ -x $PWD/nonexistant ] && $PWD/nonexistant
+	}
+	echo x
+	bla
+	echo y$?
+expected-stdout:
+	x
+expected-exit: 1
+---
 name: exit-enoent-1
 description:
 	SUSv4 says that the shell should exit with 126/127 in some situations
@@ -5712,19 +5754,29 @@ name: exit-eval-1
 description:
 	Check eval vs substitution exit codes (ksh93 alike)
 stdin:
+	(exit 12)
 	eval $(false)
 	echo A $?
+	(exit 12)
 	eval ' $(false)'
 	echo B $?
+	(exit 12)
 	eval " $(false)"
 	echo C $?
+	(exit 12)
 	eval "eval $(false)"
 	echo D $?
+	(exit 12)
 	eval 'eval '"$(false)"
 	echo E $?
 	IFS="$IFS:"
+	(exit 12)
 	eval $(echo :; false)
 	echo F $?
+	echo -n "G "
+	(exit 12)
+	eval 'echo $?'
+	echo H $?
 expected-stdout:
 	A 0
 	B 1
@@ -5732,6 +5784,8 @@ expected-stdout:
 	D 0
 	E 0
 	F 0
+	G 12
+	H 0
 ---
 name: exit-trap-1
 description:
@@ -5742,6 +5796,140 @@ stdin:
 expected-stdout:
 	hi
 expected-exit: 9
+---
+name: exit-trap-2
+description:
+	Check that ERR and EXIT traps are run just like ksh93 does.
+	GNU bash does not run ERtrap in Â±e eval-undef but runs it
+	twice (bug?) in +e eval-false, so does ksh93 (bug?), which
+	also has a bug to continue execution (echoing "and out" and
+	returning 0) in +e eval-undef.
+file-setup: file 644 "x"
+	v=; unset v
+	trap 'echo EXtrap' EXIT
+	trap 'echo ERtrap' ERR
+	set $1
+	echo "and run $2"
+	eval $2
+	echo and out
+file-setup: file 644 "xt"
+	v=; unset v
+	trap 'echo EXtrap' EXIT
+	trap 'echo ERtrap' ERR
+	set $1
+	echo 'and run true'
+	true
+	echo and out
+file-setup: file 644 "xf"
+	v=; unset v
+	trap 'echo EXtrap' EXIT
+	trap 'echo ERtrap' ERR
+	set $1
+	echo 'and run false'
+	false
+	echo and out
+file-setup: file 644 "xu"
+	v=; unset v
+	trap 'echo EXtrap' EXIT
+	trap 'echo ERtrap' ERR
+	set $1
+	echo 'and run ${v?}'
+	${v?}
+	echo and out
+stdin:
+	runtest() {
+		rm -f rc
+		(
+			"$__progname" "$@"
+			echo $? >rc
+		) 2>&1 | sed \
+		    -e 's/parameter not set/parameter null or not set/' \
+		    -e 's/[[]6]//' -e 's/: eval: line 1//' -e 's/: line 6//' \
+		    -e "s^${__progname%.exe}\.*e*x*e*: <stdin>\[[0-9]*]PROG"
+	}
+	xe=-e
+	echo : $xe
+	runtest x $xe true
+	echo = eval-true $(<rc) .
+	runtest x $xe false
+	echo = eval-false $(<rc) .
+	runtest x $xe '${v?}'
+	echo = eval-undef $(<rc) .
+	runtest xt $xe
+	echo = noeval-true $(<rc) .
+	runtest xf $xe
+	echo = noeval-false $(<rc) .
+	runtest xu $xe
+	echo = noeval-undef $(<rc) .
+	xe=+e
+	echo : $xe
+	runtest x $xe true
+	echo = eval-true $(<rc) .
+	runtest x $xe false
+	echo = eval-false $(<rc) .
+	runtest x $xe '${v?}'
+	echo = eval-undef $(<rc) .
+	runtest xt $xe
+	echo = noeval-true $(<rc) .
+	runtest xf $xe
+	echo = noeval-false $(<rc) .
+	runtest xu $xe
+	echo = noeval-undef $(<rc) .
+expected-stdout:
+	: -e
+	and run true
+	and out
+	EXtrap
+	= eval-true 0 .
+	and run false
+	ERtrap
+	EXtrap
+	= eval-false 1 .
+	and run ${v?}
+	x: v: parameter null or not set
+	ERtrap
+	EXtrap
+	= eval-undef 1 .
+	and run true
+	and out
+	EXtrap
+	= noeval-true 0 .
+	and run false
+	ERtrap
+	EXtrap
+	= noeval-false 1 .
+	and run ${v?}
+	xu: v: parameter null or not set
+	EXtrap
+	= noeval-undef 1 .
+	: +e
+	and run true
+	and out
+	EXtrap
+	= eval-true 0 .
+	and run false
+	ERtrap
+	and out
+	EXtrap
+	= eval-false 0 .
+	and run ${v?}
+	x: v: parameter null or not set
+	ERtrap
+	EXtrap
+	= eval-undef 1 .
+	and run true
+	and out
+	EXtrap
+	= noeval-true 0 .
+	and run false
+	ERtrap
+	and out
+	EXtrap
+	= noeval-false 0 .
+	and run ${v?}
+	xu: v: parameter null or not set
+	EXtrap
+	= noeval-undef 1 .
 ---
 name: test-stlt-1
 description:
@@ -8058,6 +8246,36 @@ stdin:
 	fi
 expected-stdout:
 	okay
+---
+name: redir-1
+description:
+	Check some of the most basic invariants of I/O redirection
+stdin:
+	i=0
+	function d {
+		print o$i.
+		print -u2 e$((i++)).
+	}
+	d >a 2>b
+	echo =1=
+	cat a
+	echo =2=
+	cat b
+	echo =3=
+	d 2>&1 >c
+	echo =4=
+	cat c
+	echo =5=
+expected-stdout:
+	=1=
+	o0.
+	=2=
+	e0.
+	=3=
+	e1.
+	=4=
+	o1.
+	=5=
 ---
 name: bashiop-1
 description:
