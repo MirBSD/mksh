@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.616 2013/02/11 16:27:56 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.616.2.1 2013/02/11 17:25:00 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -1529,7 +1529,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.616 2013/02/11 16:27:56 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.616.2.1 2013/02/11 17:25:00 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2122,7 +2122,7 @@ addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && add_cppflags -DMKSH_PRINTF_BUILTIN
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
 test -n "$LDSTATIC" && add_cppflags -DMKSH_OPTSTATIC
-add_cppflags -DMKSH_BUILD_R=419
+add_cppflags -DMKSH_BUILD_R=421
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 
