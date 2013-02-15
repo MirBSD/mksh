@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012
+ *		 2011, 2012, 2013
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.58.2.1 2012/09/03 19:10:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.58.2.2 2013/02/15 18:54:53 tg Exp $");
 
 #if !HAVE_SILENT_IDIVWRAPV
 #if !defined(MKSH_LEGACY_MODE) || HAVE_LONG_32BIT
@@ -205,11 +205,10 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok,
 	int i;
 
 	/* save state to allow recursive calls */
+	memset(&curstate, 0, sizeof(curstate));
 	curstate.expression = curstate.tokp = expr;
-	curstate.noassign = 0;
+	curstate.tok = BAD;
 	curstate.arith = arith;
-	curstate.evaling = NULL;
-	curstate.natural = false;
 
 	newenv(E_ERRH);
 	if ((i = kshsetjmp(e->jbuf))) {
@@ -647,7 +646,7 @@ do_ppmm(Expr_state *es, enum token op, struct tbl *vasn, bool is_prefix)
 static void
 assign_check(Expr_state *es, enum token op, struct tbl *vasn)
 {
-	if (es->tok == END ||
+	if (es->tok == END || !vasn ||
 	    (vasn->name[0] == '\0' && !(vasn->flag & EXPRLVALUE)))
 		evalerr(es, ET_LVALUE, opinfo[(int)op].name);
 	else if (vasn->flag & RDONLY)

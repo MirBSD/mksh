@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.549.2.3 2013/02/11 00:27:07 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.549.2.4 2013/02/15 18:54:47 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R40 2012/07/20 Debian-5
+	@(#)MIRBSD KSH R40 2012/07/20 Debian-7
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R40 2012/07/20 Debian-5
+	@(#)LEGACY KSH R40 2012/07/20 Debian-7
 description:
 	Check version of legacy shell.
 stdin:
@@ -5727,6 +5727,18 @@ stdin:
 expected-stdout:
 	x
 expected-exit: 1
+---
+name: exit-err-8
+description:
+	"set -e" regression (Debian #700526)
+stdin:
+	set -e
+	_db_cmd() { return $1; }
+	db_input() { _db_cmd 30; }
+	db_go() { _db_cmd 0; }
+	db_input || :
+	db_go
+	exit 0
 ---
 name: exit-enoent-1
 description:
