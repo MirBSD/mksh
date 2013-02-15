@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.106.2.6 2013/02/10 23:59:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.106.2.7 2013/02/15 18:54:41 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -749,7 +749,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 
 		e->type = E_FUNC;
 		if (!(i = kshsetjmp(e->jbuf))) {
-			exstat = execute(tp->val.t, 0, NULL) & 0xFF;
+			exstat = execute(tp->val.t, flags & XERROK, NULL) & 0xFF;
 			i = LRETURN;
 		}
 		kshname = old_kshname;
