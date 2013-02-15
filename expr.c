@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012
+ *		 2011, 2012, 2013
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.60 2012/10/03 17:24:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.61 2013/02/15 18:36:48 tg Exp $");
 
 #if !HAVE_SILENT_IDIVWRAPV
 #if !defined(MKSH_LEGACY_MODE) || HAVE_LONG_32BIT
@@ -139,18 +139,24 @@ static const struct opinfo opinfo[] = {
 	{ "",	 0, P_PRIMARY }
 };
 
-typedef struct expr_state Expr_state;
-struct expr_state {
-	const char *expression;		/* expression being evaluated */
-	const char *tokp;		/* lexical position */
-	struct tbl *val;		/* value from token() */
-	struct tbl *evaling;		/* variable that is being recursively
-					 * expanded (EXPRINEVAL flag set) */
-	int noassign;			/* don't do assigns (for ?:,&&,||) */
-	enum token tok;			/* token from token() */
-	bool arith;			/* evaluating an $(()) expression? */
-	bool natural;			/* unsigned arithmetic calculation */
-};
+typedef struct expr_state {
+	/* expression being evaluated */
+	const char *expression;
+	/* lexical position */
+	const char *tokp;
+	/* value from token() */
+	struct tbl *val;
+	/* variable that is being recursively expanded (EXPRINEVAL flag set) */
+	struct tbl *evaling;
+	/* token from token() */
+	enum token tok;
+	/* don't do assignments (for ?:, &&, ||) */
+	short noassign;
+	/* evaluating an $(()) expression? */
+	bool arith;
+	/* unsigned arithmetic calculation */
+	bool natural;
+} Expr_state;
 
 #define bivui(x, op, y)	(es->natural ?			\
 	(mksh_uari_t)((x)->val.u op (y)->val.u) :	\
@@ -199,11 +205,10 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok,
 	int i;
 
 	/* save state to allow recursive calls */
+	memset(&curstate, 0, sizeof(curstate));
 	curstate.expression = curstate.tokp = expr;
-	curstate.noassign = 0;
+	curstate.tok = BAD;
 	curstate.arith = arith;
-	curstate.evaling = NULL;
-	curstate.natural = false;
 
 	newenv(E_ERRH);
 	if ((i = kshsetjmp(e->jbuf))) {
@@ -641,7 +646,7 @@ do_ppmm(Expr_state *es, enum token op, struct tbl *vasn, bool is_prefix)
 static void
 assign_check(Expr_state *es, enum token op, struct tbl *vasn)
 {
-	if (es->tok == END ||
+	if (es->tok == END || !vasn ||
 	    (vasn->name[0] == '\0' && !(vasn->flag & EXPRLVALUE)))
 		evalerr(es, ET_LVALUE, opinfo[(int)op].name);
 	else if (vasn->flag & RDONLY)
