@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.617 2013/02/16 00:21:55 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.618 2013/02/16 17:55:51 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -1529,7 +1529,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.617 2013/02/16 00:21:55 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.618 2013/02/16 17:55:51 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1811,6 +1811,7 @@ EOF
 #
 save_tcfn=$tcfn; save_CC=$CC; save_LDFLAGS=$LDFLAGS; save_LIBS=$LIBS
 tcfn=conftest.o; CC="$CC -c -o $tcfn"; LDFLAGS=; LIBS=
+rm -f conftest.o
 ac_test '!' flock_decl flock 1 'if flock() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
@@ -1820,17 +1821,20 @@ ac_test '!' flock_decl flock 1 'if flock() does not need to be declared' <<-'EOF
 	long flock(void);		/* this clashes if defined before */
 	int main(void) { return ((int)flock()); }
 EOF
+rm -f conftest.o
 ac_test '!' revoke_decl revoke 1 'if revoke() does not need to be declared' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	long revoke(void);		/* this clashes if defined before */
 	int main(void) { return ((int)revoke()); }
 EOF
+rm -f conftest.o
 ac_test sys_errlist_decl sys_errlist 0 "for declaration of sys_errlist[] and sys_nerr" <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int main(void) { return (*sys_errlist[sys_nerr - 1]); }
 EOF
+rm -f conftest.o
 ac_test sys_siglist_decl sys_siglist 0 'for declaration of sys_siglist[]' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
