@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.594 2013/02/15 18:50:11 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.595 2013/02/17 05:40:13 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R42 2013/02/15
+	@(#)MIRBSD KSH R43 2013/02/16
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R42 2013/02/15
+	@(#)LEGACY KSH R43 2013/02/16
 description:
 	Check version of legacy shell.
 stdin:
@@ -7688,25 +7688,19 @@ expected-stdout:
 	00000070  EF BF BD 0A C4 A3 0A 66 - 6E 0A 13 34 0A 9C 0A 9C  |.......fn..4....|
 	00000080  35 0A 01 0A 01 0A 7F 0A - 02 82 AC 0A 61 0A 62 0A  |5...........a.b.|
 ---
-name: dollar-quotes-in-heredocs
+name: dollar-quotes-in-heredocs-strings
 description:
-	They are, however, not parsed in here documents
+	They are, however, not parsed in here documents, here strings
+	(outside of string delimiters) or regular strings, but in
+	parameter substitutions.
 stdin:
 	cat <<EOF
 		dollar = strchr(s, '$');	/* ' */
+		foo " bar \" baz
 	EOF
 	cat <<$'a\tb'
 	a\tb
 	a	b
-expected-stdout:
-		dollar = strchr(s, '$');	/* ' */
-	a\tb
----
-name: dollar-quotes-in-herestrings
-description:
-	On the other hand, they are parsed in here strings and
-	parameter substitutions
-stdin:
 	cat <<<"dollar = strchr(s, '$');	/* ' */"
 	cat <<<'dollar = strchr(s, '\''$'\'');	/* '\'' */'
 	x="dollar = strchr(s, '$');	/* ' */"
@@ -7714,16 +7708,25 @@ stdin:
 	cat <<<$'a\E[0m\tb'
 	unset nl; print -r -- "x${nl:=$'\n'}y"
 	echo "1 foo\"bar"
+	# cf & HEREDOC
 	cat <<EOF
 	2 foo\"bar
 	EOF
+	# probably never reached for here strings?
 	cat <<<"3 foo\"bar"
 	cat <<<"4 foo\\\"bar"
 	cat <<<'5 foo\"bar'
+	# old scripts use this (e.g. ncurses)
+	echo "^$"
+	# make sure this works, outside of quotes
+	cat <<<'7'$'\t''.'
 expected-stdout:
-	dollar = strchr(s, ');	/*  */
+		dollar = strchr(s, '$');	/* ' */
+		foo " bar \" baz
+	a\tb
 	dollar = strchr(s, '$');	/* ' */
-	dollar = strchr(s, ');	/*  */
+	dollar = strchr(s, '$');	/* ' */
+	dollar = strchr(s, '$');	/* ' */
 	a[0m	b
 	x
 	y
@@ -7732,6 +7735,8 @@ expected-stdout:
 	3 foo"bar
 	4 foo\"bar
 	5 foo\"bar
+	^$
+	7	.
 ---
 name: dot-needs-argument
 description:

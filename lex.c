@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.179 2013/02/10 17:18:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.180 2013/02/17 05:40:16 tg Exp $");
 
 /*
  * states while lexing word
@@ -359,7 +359,7 @@ yylex(int cf)
 				c = getsc();
 				switch (c) {
 				case '"':
-					if ((cf & (HEREDOCBODY | HERESTRBODY)))
+					if ((cf & HEREDOC))
 						goto heredocquote;
 					/* FALLTHROUGH */
 				case '\\':
@@ -504,15 +504,27 @@ yylex(int cf)
 					*wp++ = '\0';
 					*wp++ = CSUBST;
 					*wp++ = 'X';
-				} else if (c == '\'' && !(cf & HEREDOCBODY)) {
+				} else if (c == '\'' || c == '"') {
+					switch (state) {
+					/*
+					 * states in which $'…'/$"…" are
+					 * invalid; still not too sure about
+					 * which must be included/excluded…
+					 */
+					case SWORD:
+					case SDQUOTE:
+						goto DNQUOTE;
+					}
+					if (c == '"')
+						goto DEQUOTE;
+					/* c == '\'' */
 					*wp++ = OQUOTE;
 					ignore_backslash_newline++;
 					PUSH_STATE(SEQUOTE);
 					statep->ls_bool = false;
 					break;
-				} else if (c == '"' && !(cf & HEREDOCBODY)) {
-					goto DEQUOTE;
 				} else {
+ DNQUOTE:
 					*wp++ = CHAR;
 					*wp++ = '$';
  DEQUOTE:

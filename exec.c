@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.115 2013/02/15 18:50:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.116 2013/02/17 05:40:15 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -1481,9 +1481,7 @@ herein(struct ioword *iop, char **resbuf)
 	}
 
 	/* lexer substitution flags */
-	i = (iop->flag & IOEVAL) ?
-	    (ONEWORD | ((iop->flag & IOHERESTR) ? HERESTRBODY : HEREDOCBODY)) :
-	    0;
+	i = (iop->flag & IOEVAL) ? (ONEWORD | HEREDOC) : 0;
 
 	/* skip all the fd setup if we just want the value */
 	if (resbuf != NULL)
