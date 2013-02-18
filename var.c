@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012
+ *		 2011, 2012, 2013
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.165 2012/12/08 18:30:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.166 2013/02/18 22:24:52 tg Exp $");
 
 /*-
  * Variables
@@ -708,8 +708,6 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 
 	/* check for valid variable name, search for value */
 	val = skip_varname(var, false);
-	if (val == var)
-		return (NULL);
 	if (*val == '[') {
 		if (set_refflag != SRF_NOP)
 			errorf("%s: %s", var,
@@ -739,10 +737,16 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 			++val;
 			vappend = true;
 		}
+	} else if ((val[0] != '\0') || (set & IMPORT)) {
+		/*
+		 * must have a = when setting a variable by importing
+		 * the original environment, otherwise be empty; we
+		 * also end up here when a variable name was invalid
+		 * or none given
+		 */
+		return (NULL);
 	} else {
-		/* importing from original environment: must have an = */
-		if (set & IMPORT)
-			return (NULL);
+		/* just varname with no value part nor equals sign */
 		strdupx(tvar, var, ATEMP);
 		val = NULL;
 		/* handle foo[*] => foo (whole array) mapping for R39b */
