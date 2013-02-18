@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.237 2013/01/01 20:45:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.238 2013/02/18 22:47:32 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -274,7 +274,7 @@ c_print(const char **wp)
 #define PO_HIST		BIT(3)	/* print to history instead of stdout */
 #define PO_COPROC	BIT(4)	/* printing to coprocess: block SIGPIPE */
 	int fd = 1, c;
-	int flags = PO_EXPAND|PO_NL;
+	int flags = PO_EXPAND | PO_NL;
 	const char *s, *emsg;
 	XString xs;
 	char *xp;
@@ -282,7 +282,21 @@ c_print(const char **wp)
 	if (wp[0][0] == 'e') {
 		/* echo builtin */
 		wp++;
-		if (Flag(FPOSIX) || Flag(FSH) || Flag(FAS_BUILTIN)) {
+#ifdef MKSH_MIDNIGHTBSD01ASH_COMPAT
+		if (Flag(FSH)) {
+			/*
+			 * MidnightBSD /bin/sh needs a BSD echo, that is,
+			 * one that supports -e but does not enable it by
+			 * default
+			 */
+			flags = PO_NL;
+		}
+#endif
+		if (Flag(FPOSIX) ||
+#ifndef MKSH_MIDNIGHTBSD01ASH_COMPAT
+		    Flag(FSH) ||
+#endif
+		    Flag(FAS_BUILTIN)) {
 			/* Debian Policy 10.4 compliant "echo" builtin */
 			if (*wp && !strcmp(*wp, "-n")) {
 				/* we recognise "-n" only as the first arg */
