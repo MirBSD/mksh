@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.304 2013/02/11 17:17:59 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.305 2013/02/19 18:45:20 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.145 2013/01/17 21:20:25 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: February 11 2013 $
+.Dd $Mdocdate: February 19 2013 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -6335,10 +6335,15 @@ $ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R42
+.Nm mksh\ R43
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
+when not called as
+.Pa /bin/sh
+which, on some systems only, enables
+.Ic set \-o sh
+automatically (whose behaviour differs across targets),
 for an operating environment supporting all of its advanced needs.
 Please report bugs in
 .Nm
@@ -6351,4 +6356,6 @@ or in the
 .Pq or Li \&#ksh
 IRC channel at
 .Pa irc.freenode.net
-.Pq Port 6697 SSL, 6667 unencrypted .
+.Pq Port 6697 SSL, 6667 unencrypted ,
+or at:
+.Pa https://launchpad.net/mksh

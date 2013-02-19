@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.596 2013/02/18 22:55:37 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.597 2013/02/19 18:45:17 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R43 2013/02/18
+	@(#)MIRBSD KSH R43 2013/02/19
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R43 2013/02/18
+	@(#)LEGACY KSH R43 2013/02/19
 description:
 	Check version of legacy shell.
 stdin:
@@ -6005,10 +6005,9 @@ description:
 stdin:
 	test \( -f = -f \)
 	rv=$?
-	test -n "$POSH_VERSION" || set -o sh
-	echo -e $rv
+	echo $rv
 expected-stdout:
-	-e 0
+	0
 ---
 name: test-option-1
 description:
@@ -10301,11 +10300,37 @@ description:
 	mandates it shall be treated as string but escapes
 	shall be expanded.
 stdin:
-	test -n "$POSH_VERSION" || set -o sh
+	test -n "$POSH_VERSION" || set -o posix
 	echo -n 'foo\x40bar'
 	echo -e '\tbaz'
 expected-stdout:
 	foo\x40bar-e \tbaz
+---
+name: echo-test-3-mnbsd
+description:
+	Test what the echo builtin does, and test a compatibility flag.
+category: mnbsdash
+stdin:
+	"$__progname" -c 'echo -n 1=\\x40$1; echo -e \\x2E' -- foo bar
+	"$__progname" -o posix -c 'echo -n 2=\\x40$1; echo -e \\x2E' -- foo bar
+	"$__progname" -o sh -c 'echo -n 3=\\x40$1; echo -e \\x2E' -- foo bar
+expected-stdout:
+	1=@foo.
+	2=\x40foo-e \x2E
+	3=\x40bar.
+---
+name: echo-test-3-normal
+description:
+	Test what the echo builtin does, and test a compatibility flag.
+category: !mnbsdash
+stdin:
+	"$__progname" -c 'echo -n 1=\\x40$1; echo -e \\x2E' -- foo bar
+	"$__progname" -o posix -c 'echo -n 2=\\x40$1; echo -e \\x2E' -- foo bar
+	"$__progname" -o sh -c 'echo -n 3=\\x40$1; echo -e \\x2E' -- foo bar
+expected-stdout:
+	1=@foo.
+	2=\x40foo-e \x2E
+	3=\x40foo-e \x2E
 ---
 name: utilities-getopts-1
 description:

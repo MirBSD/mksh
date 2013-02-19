@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.181 2013/02/17 06:05:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.182 2013/02/19 18:45:20 tg Exp $");
 
 /*
  * states while lexing word
@@ -1508,7 +1508,8 @@ set_prompt(int to, Source *s)
 static int
 dopprompt(const char *cp, int ntruncate, bool doprint)
 {
-	int columns = 0, lines = 0, indelimit = 0;
+	int columns = 0, lines = 0;
+	bool indelimit = false;
 	char delimiter = 0;
 
 	/*
