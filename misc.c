@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.205 2012/12/17 23:18:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.206 2013/02/24 14:10:04 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1206,7 +1206,7 @@ print_columns(struct shf *shf, unsigned int n,
 	/* if we can only print one column anyway, skip the goo */
 	if (cols < 2) {
 		for (i = 0; i < n; ++i)
-			shf_fprintf(shf, "%s \n",
+			shf_fprintf(shf, "%s\n",
 			    (*func)(str, max_oct, i, arg));
 		goto out;
 	}
