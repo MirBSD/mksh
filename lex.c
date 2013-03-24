@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.182 2013/02/19 18:45:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.183 2013/03/24 15:01:48 tg Exp $");
 
 /*
  * states while lexing word
@@ -898,7 +898,8 @@ yylex(int cf)
 		state = SBASE;
 
 	dp = Xstring(ws, wp);
-	if ((c == '<' || c == '>' || c == '&') && state == SBASE) {
+	if (state == SBASE && (c == '<' || c == '>' ||
+	    (!Flag(FSH) && !Flag(FPOSIX) && c == '&'))) {
 		struct ioword *iop = alloc(sizeof(struct ioword), ATEMP);
 
 		if (Xlength(ws, wp) == 0)

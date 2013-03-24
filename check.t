@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.600 2013/03/24 00:56:19 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.601 2013/03/24 15:01:46 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R44 2013/03/23
+	@(#)MIRBSD KSH R44 2013/03/24
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R44 2013/03/23
+	@(#)LEGACY KSH R44 2013/03/24
 description:
 	Check version of legacy shell.
 stdin:
@@ -8510,6 +8510,21 @@ expected-stdout:
 	===
 	ras
 	dwa
+---
+name: bashiop-5
+description:
+	Check if GNU bash-like I/O redirection is only supported
+	in !POSIX !sh mode as it breaks existing scripts' syntax
+	(tested only on MirBSD as it uses /dev/fd)
+category: os:mirbsd
+stdin:
+	"$__progname" -c 'echo foo>/dev/null&>/dev/fd/2 echo bar1'
+	"$__progname" -o posix -c 'echo foo>/dev/null&>/dev/fd/2 echo bar2'
+	"$__progname" -o sh -c 'echo foo>/dev/null&>/dev/fd/2 echo bar3'
+expected-stderr:
+	foo echo bar1
+	bar2
+	bar3
 ---
 name: mkshiop-1
 description:
