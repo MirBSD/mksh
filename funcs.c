@@ -1,5 +1,5 @@
 /*	$OpenBSD: c_ksh.c,v 1.33 2009/02/07 14:03:24 kili Exp $	*/
-/*	$OpenBSD: c_sh.c,v 1.41 2010/03/27 09:10:01 jmc Exp $	*/
+/*	$OpenBSD: c_sh.c,v 1.42 2013/03/20 21:05:00 millert Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.18 2009/03/01 20:11:06 otto Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.238 2013/02/18 22:47:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.239 2013/03/24 21:34:13 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2253,7 +2253,7 @@ c_trap(const char **wp)
 	wp += builtin_opt.optind;
 
 	if (*wp == NULL) {
-		for (p = sigtraps, i = NSIG+1; --i >= 0; p++)
+		for (p = sigtraps, i = NSIG + 1; --i >= 0; p++)
 			if (p->trap != NULL) {
 				shf_puts("trap -- ", shl_stdout);
 				print_value_quoted(shl_stdout, p->trap);
