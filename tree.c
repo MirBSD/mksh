@@ -23,12 +23,12 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.67 2012/12/04 01:10:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.68 2013/03/24 00:56:27 tg Exp $");
 
 #define INDENT	8
 
 static void ptree(struct op *, int, struct shf *);
-static void pioact(struct shf *, int, struct ioword *);
+static void pioact(struct shf *, struct ioword *);
 static const char *wdvarput(struct shf *, const char *, int, int);
 static void vfptreef(struct shf *, int, const char *, va_list);
 static struct ioword **iocopy(struct ioword **, Area *);
@@ -214,7 +214,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		bool need_nl = false;
 
 		while (*ioact != NULL)
-			pioact(shf, indent, *ioact++);
+			pioact(shf, *ioact++);
 		/* Print here documents after everything else... */
 		ioact = t->ioact;
 		while (*ioact != NULL) {
@@ -244,7 +244,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 }
 
 static void
-pioact(struct shf *shf, int indent, struct ioword *iop)
+pioact(struct shf *shf, struct ioword *iop)
 {
 	int flag = iop->flag;
 	int type = flag & IOTYPE;
@@ -283,9 +283,13 @@ pioact(struct shf *shf, int indent, struct ioword *iop)
 			wdvarput(shf, iop->delim, 0, WDS_TPUTS);
 		if (iop->flag & IOHERESTR)
 			shf_putc(' ', shf);
-	} else if (iop->name)
-		fptreef(shf, indent, (iop->flag & IONAMEXP) ? "%s " : "%S ",
-		    iop->name);
+	} else if (iop->name) {
+		if (iop->flag & IONAMEXP)
+			print_value_quoted(shf, iop->name);
+		else
+			wdvarput(shf, iop->name, 0, WDS_TPUTS);
+		shf_putc(' ', shf);
+	}
 	prevent_semicolon = false;
 }
 
@@ -485,7 +489,7 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 				break;
 			case 'R':
 				/* I/O redirection */
-				pioact(shf, indent, va_arg(va, struct ioword *));
+				pioact(shf, va_arg(va, struct ioword *));
 				break;
 			default:
 				shf_putc(c, shf);

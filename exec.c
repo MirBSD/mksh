@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.116 2013/02/17 05:40:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.117 2013/03/24 00:56:22 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -138,12 +138,10 @@ execute(struct op * volatile t,
 			/* Allow option parsing (bizarre, but POSIX) */
 			timex_hook(t, &up);
 		ap = (const char **)up;
-		if (Flag(FXTRACE) && ap[0]) {
+		if (Flag(FXTRACE)) {
 			shf_puts(substitute(str_val(global("PS4")), 0),
 			    shl_out);
-			for (i = 0; ap[i]; i++)
-				shf_fprintf(shl_out, "%s%c", ap[i],
-				    ap[i + 1] ? ' ' : '\n');
+			fptreef(shl_out, 0, "%T\n", t);
 			shf_flush(shl_out);
 		}
 		if (ap[0])
@@ -645,16 +643,6 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		cp = evalstr(t->vars[i], DOASNTILDE);
 		e->loc = l_assign;
 		/* but assign in there as usual */
-
-		if (Flag(FXTRACE)) {
-			if (i == 0)
-				shf_puts(substitute(str_val(global("PS4")), 0),
-				    shl_out);
-			shf_fprintf(shl_out, "%s%c", cp,
-			    t->vars[i + 1] ? ' ' : '\n');
-			if (!t->vars[i + 1])
-				shf_flush(shl_out);
-		}
 		typeset(cp, type_flags, 0, 0, 0);
 		if (bourne_function_call && !(type_flags & EXPORT))
 			typeset(cp, LOCAL|LOCAL_COPY|EXPORT, 0, 0, 0);
@@ -1298,11 +1286,6 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	iotmp.name = (iotype == IOHERE) ? NULL : cp;
 	iotmp.flag |= IONAMEXP;
 
-	if (Flag(FXTRACE))
-		shellf("%s%s\n",
-		    substitute(str_val(global("PS4")), 0),
-		    snptreef(NULL, 32, "%R", &iotmp));
-
 	switch (iotype) {
 	case IOREAD:
 		flags = O_RDONLY;
@@ -1345,8 +1328,11 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		} else if ((u = check_fd(cp,
 		    X_OK | ((iop->flag & IORDUP) ? R_OK : W_OK),
 		    &emsg)) < 0) {
+			char *sp;
+
 			warningf(true, "%s: %s",
-			    snptreef(NULL, 32, "%R", &iotmp), emsg);
+			    (sp = snptreef(NULL, 32, "%R", &iotmp)), emsg);
+			afree(sp, ATEMP);
 			return (-1);
 		}
 		if (u == iop->unit)
@@ -1395,12 +1381,14 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	else if (u != iop->unit) {
 		if (ksh_dup2(u, iop->unit, true) < 0) {
 			int eno;
+			char *sp;
 
 			eno = errno;
 			warningf(true, "%s %s %s",
 			    "can't finish (dup) redirection",
-			    snptreef(NULL, 32, "%R", &iotmp),
+			    (sp = snptreef(NULL, 32, "%R", &iotmp)),
 			    cstrerror(eno));
+			afree(sp, ATEMP);
 			if (iotype != IODUP)
 				close(u);
 			return (-1);

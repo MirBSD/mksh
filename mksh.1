@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.305 2013/02/19 18:45:20 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.306 2013/03/24 00:56:23 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.145 2013/01/17 21:20:25 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: February 19 2013 $
+.Dd $Mdocdate: March 24 2013 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2037,6 +2037,9 @@ Parameter, command, and arithmetic substitutions are performed
 before it is printed.
 The default is
 .Sq +\ \& .
+You may want to set it to
+.Sq \&[$EPOCHREALTIME]\ \&
+instead, to include timestamps.
 .It Ev PWD
 The current working directory.
 May be unset or
@@ -4097,7 +4100,7 @@ Mark directories with a trailing
 .Ql /
 during file name generation.
 .It Fl x \*(Ba Fl o Ic xtrace
-Print commands and parameter assignments when they are executed, preceded by
+Print command trees when they are executed, preceded by
 the value of
 .Ev PS4 .
 .It Fl o Ic bgnice
@@ -6335,7 +6338,7 @@ $ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R43
+.Nm mksh\ R44
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
