@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.601 2013/03/24 15:01:46 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.602 2013/03/29 17:33:53 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R44 2013/03/24
+	@(#)MIRBSD KSH R44 2013/03/29
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R44 2013/03/24
+	@(#)LEGACY KSH R44 2013/03/29
 description:
 	Check version of legacy shell.
 stdin:
@@ -8363,6 +8363,7 @@ name: bashiop-1
 description:
 	Check if GNU bash-like I/O redirection works
 	Part 1: this is also supported by GNU bash
+category: shell:legacy-no
 stdin:
 	exec 3>&1
 	function threeout {
@@ -8383,6 +8384,7 @@ name: bashiop-2a
 description:
 	Check if GNU bash-like I/O redirection works
 	Part 2: this is *not* supported by GNU bash
+category: shell:legacy-no
 stdin:
 	exec 3>&1
 	function threeout {
@@ -8403,6 +8405,7 @@ name: bashiop-2b
 description:
 	Check if GNU bash-like I/O redirection works
 	Part 2: this is *not* supported by GNU bash
+category: shell:legacy-no
 stdin:
 	exec 3>&1
 	function threeout {
@@ -8423,6 +8426,7 @@ name: bashiop-2c
 description:
 	Check if GNU bash-like I/O redirection works
 	Part 2: this is supported by GNU bash 4 only
+category: shell:legacy-no
 stdin:
 	echo mir >foo
 	set -o noclobber
@@ -8446,6 +8450,7 @@ name: bashiop-3a
 description:
 	Check if GNU bash-like I/O redirection fails correctly
 	Part 1: this is also supported by GNU bash
+category: shell:legacy-no
 stdin:
 	echo mir >foo
 	set -o noclobber
@@ -8467,6 +8472,7 @@ name: bashiop-3b
 description:
 	Check if GNU bash-like I/O redirection fails correctly
 	Part 2: this is *not* supported by GNU bash
+category: shell:legacy-no
 stdin:
 	echo mir >foo
 	set -o noclobber
@@ -8490,6 +8496,7 @@ description:
 	Check if GNU bash-like I/O redirection works
 	Part 4: this is also supported by GNU bash,
 	but failed in some mksh versions
+category: shell:legacy-no
 stdin:
 	exec 3>&1
 	function threeout {
@@ -8511,20 +8518,33 @@ expected-stdout:
 	ras
 	dwa
 ---
-name: bashiop-5
+name: bashiop-5-normal
 description:
 	Check if GNU bash-like I/O redirection is only supported
 	in !POSIX !sh mode as it breaks existing scripts' syntax
-	(tested only on MirBSD as it uses /dev/fd)
-category: os:mirbsd
+category: shell:legacy-no
 stdin:
-	"$__progname" -c 'echo foo>/dev/null&>/dev/fd/2 echo bar1'
-	"$__progname" -o posix -c 'echo foo>/dev/null&>/dev/fd/2 echo bar2'
-	"$__progname" -o sh -c 'echo foo>/dev/null&>/dev/fd/2 echo bar3'
-expected-stderr:
-	foo echo bar1
-	bar2
-	bar3
+	:>x; echo 1 "$("$__progname" -c 'echo foo>/dev/null&>x echo bar')" = "$(<x)" .
+	:>x; echo 2 "$("$__progname" -o posix -c 'echo foo>/dev/null&>x echo bar')" = "$(<x)" .
+	:>x; echo 3 "$("$__progname" -o sh -c 'echo foo>/dev/null&>x echo bar')" = "$(<x)" .
+expected-stdout:
+	1  = foo echo bar .
+	2  = bar .
+	3  = bar .
+---
+name: bashiop-5-legacy
+description:
+	Check if GNU bash-like I/O redirection is not parsed
+	in lksh as it breaks existing scripts' syntax
+category: shell:legacy-yes
+stdin:
+	:>x; echo 1 "$("$__progname" -c 'echo foo>/dev/null&>x echo bar')" = "$(<x)" .
+	:>x; echo 2 "$("$__progname" -o posix -c 'echo foo>/dev/null&>x echo bar')" = "$(<x)" .
+	:>x; echo 3 "$("$__progname" -o sh -c 'echo foo>/dev/null&>x echo bar')" = "$(<x)" .
+expected-stdout:
+	1  = bar .
+	2  = bar .
+	3  = bar .
 ---
 name: mkshiop-1
 description:
