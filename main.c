@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.260 2013/02/10 21:42:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.261 2013/03/29 17:33:07 tg Exp $");
 
 extern char **environ;
 
@@ -1594,7 +1594,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 {
 	char *cp;
 	size_t len;
-	int i;
+	int i, j;
 	struct temp *tp;
 	const char *dir;
 	struct stat sb;
@@ -1644,17 +1644,19 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	}
 
 	if (type == TT_FUNSUB) {
-		int nfd;
-
 		/* map us high and mark as close-on-exec */
-		if ((nfd = savefd(i)) != i) {
+		if ((j = savefd(i)) != i) {
 			close(i);
-			i = nfd;
+			i = j;
 		}
-	}
+
+		/* operation mode for the shf */
+		j = SHF_RD;
+	} else
+		j = SHF_WR;
 
 	/* shf_fdopen cannot fail, so no fd leak */
-	tp->shf = shf_fdopen(i, SHF_WR, NULL);
+	tp->shf = shf_fdopen(i, j, NULL);
 
  maketemp_out:
 	tp->next = *tlist;

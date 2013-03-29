@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.137 2013/02/23 20:03:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.138 2013/03/29 17:33:06 tg Exp $");
 
 /*
  * string expansion
@@ -1341,28 +1341,31 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 		int ofd1;
 		struct temp *tf = NULL;
 
-		/* create a temporary file, open for writing */
+		/*
+		 * create a temporary file, open for reading and writing,
+		 * with an shf open for reading (buffered) but yet unused
+		 */
 		maketemp(ATEMP, TT_FUNSUB, &tf);
 		if (!tf->shf) {
 			errorf("can't %s temporary file %s: %s",
 			    "create", tf->tffn, cstrerror(errno));
 		}
-		/* save stdout and make the temporary file it */
+		/* extract shf from temporary file, unlink and free it */
+		shf = tf->shf;
+		unlink(tf->tffn);
+		afree(tf, ATEMP);
+		/* save stdout and let it point to the tempfile */
 		ofd1 = savefd(1);
-		ksh_dup2(shf_fileno(tf->shf), 1, false);
+		ksh_dup2(shf_fileno(shf), 1, false);
 		/*
 		 * run tree, with output thrown into the tempfile,
 		 * in a new function block
 		 */
 		funsub(t);
 		subst_exstat = exstat & 0xFF;
-		/* close the tempfile and restore regular stdout */
-		shf_close(tf->shf);
+		/* rewind the tempfile and restore regular stdout */
+		lseek(shf_fileno(shf), (off_t)0, SEEK_SET);
 		restfd(1, ofd1);
-		/* now open, unlink and free the tempfile for reading */
-		shf = shf_open(tf->tffn, O_RDONLY, 0, SHF_MAPHI | SHF_CLEXEC);
-		unlink(tf->tffn);
-		afree(tf, ATEMP);
 	} else {
 		int ofd1, pv[2];
 
