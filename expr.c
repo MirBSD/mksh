@@ -1,4 +1,4 @@
-/*	$OpenBSD: expr.c,v 1.21 2009/06/01 19:00:57 deraadt Exp $	*/
+/*	$OpenBSD: expr.c,v 1.22 2013/03/28 08:39:28 nicm Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.61 2013/02/15 18:36:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.62 2013/03/29 16:54:05 tg Exp $");
 
 #if !HAVE_SILENT_IDIVWRAPV
 #if !defined(MKSH_LEGACY_MODE) || HAVE_LONG_32BIT
