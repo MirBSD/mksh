@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.56 2013/01/01 03:32:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.57 2013/03/30 15:39:16 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -985,6 +985,10 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		case 's':
 			if ((s = VA(const char *)) == NULL)
 				s = "(null)";
+			else if (flags & FL_HASH) {
+				print_value_quoted(shf, s);
+				continue;
+			}
 			len = utf_mbswidth(s);
 			break;
 
