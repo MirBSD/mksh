@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.166 2013/02/18 22:24:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.167 2013/03/30 15:39:26 tg Exp $");
 
 /*-
  * Variables
@@ -708,6 +708,10 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 
 	/* check for valid variable name, search for value */
 	val = skip_varname(var, false);
+	if (val == var) {
+		/* no variable name given */
+		return (NULL);
+	}
 	if (*val == '[') {
 		if (set_refflag != SRF_NOP)
 			errorf("%s: %s", var,
@@ -742,7 +746,6 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 		 * must have a = when setting a variable by importing
 		 * the original environment, otherwise be empty; we
 		 * also end up here when a variable name was invalid
-		 * or none given
 		 */
 		return (NULL);
 	} else {
