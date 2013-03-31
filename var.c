@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.167 2013/03/30 15:39:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.168 2013/03/31 18:30:05 tg Exp $");
 
 /*-
  * Variables
@@ -480,7 +480,7 @@ getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 
 	if (vp->flag&SPECIAL)
 		getspec(vp);
-	/* XXX is it possible for ISSET to be set and val.s to be 0? */
+	/* XXX is it possible for ISSET to be set and val.s to be NULL? */
 	if (!(vp->flag&ISSET) || (!(vp->flag&INTEGER) && vp->val.s == NULL))
 		return (-1);
 	if (vp->flag&INTEGER) {
