@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.62 2013/03/29 16:54:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.63 2013/03/31 18:33:13 tg Exp $");
 
 #if !HAVE_SILENT_IDIVWRAPV
 #if !defined(MKSH_LEGACY_MODE) || HAVE_LONG_32BIT
@@ -67,7 +67,6 @@ enum token {
 	/* things that don't appear in the opinfo[] table */
 	VAR, LIT, END, BAD
 };
-#define IS_BINOP(op) (((int)op) >= (int)O_EQ && ((int)op) <= (int)O_COMMA)
 #define IS_ASSIGNOP(op)	((int)(op) >= (int)O_ASN && (int)(op) <= (int)O_BORASN)
 
 /* precisions; used to be enum prec but we do arithmetics on it */
@@ -158,6 +157,7 @@ typedef struct expr_state {
 	bool natural;
 } Expr_state;
 
+/* to be replaced (later) */
 #define bivui(x, op, y)	(es->natural ?			\
 	(mksh_uari_t)((x)->val.u op (y)->val.u) :	\
 	(mksh_uari_t)((x)->val.i op (y)->val.i)		\
@@ -307,6 +307,32 @@ evalerr(Expr_state *es, enum error_type type, const char *str)
 	unwind(LAEXPR);
 }
 
+/* do a ++ or -- operation */
+static struct tbl *
+do_ppmm(Expr_state *es, enum token op, struct tbl *vasn, bool is_prefix)
+{
+	struct tbl *vl;
+	mksh_uari_t oval;
+
+	assign_check(es, op, vasn);
+
+	vl = intvar(es, vasn);
+	oval = vl->val.u;
+	if (op == O_PLUSPLUS)
+		++vl->val.u;
+	else
+		--vl->val.u;
+	if (vasn->flag & INTEGER)
+		setint_v(vasn, vl, es->arith);
+	else
+		setint(vasn, vl->val.i);
+	if (!is_prefix)
+		/* undo the increment/decrement */
+		vl->val.u = oval;
+
+	return (vl);
+}
+
 static struct tbl *
 evalexpr(Expr_state *es, int prec)
 {
@@ -315,44 +341,67 @@ evalexpr(Expr_state *es, int prec)
 	mksh_uari_t res = 0;
 
 	if (prec == P_PRIMARY) {
-		op = es->tok;
-		if (op == O_BNOT || op == O_LNOT || op == O_MINUS ||
-		    op == O_PLUS) {
+		switch ((int)(op = es->tok)) {
+		case O_BNOT:
+		case O_LNOT:
+		case O_MINUS:
+		case O_PLUS:
 			exprtoken(es);
 			vl = intvar(es, evalexpr(es, P_PRIMARY));
-			if (op == O_BNOT)
-				vl->val.i = ~vl->val.i;
-			else if (op == O_LNOT)
-				vl->val.i = !vl->val.i;
-			else if (op == O_MINUS)
-				vl->val.i = -vl->val.i;
-			/* op == O_PLUS is a no-op */
-		} else if (op == OPEN_PAREN) {
+			switch ((int)op) {
+			case O_BNOT:
+				vl->val.u = ~vl->val.u;
+				break;
+			case O_LNOT:
+				vl->val.u = !vl->val.u;
+				break;
+			case O_MINUS:
+				vl->val.u = -vl->val.u;
+				break;
+			case O_PLUS:
+				/* nop */
+				break;
+			}
+			break;
+
+		case OPEN_PAREN:
 			exprtoken(es);
 			vl = evalexpr(es, MAX_PREC);
 			if (es->tok != CLOSE_PAREN)
 				evalerr(es, ET_STR, "missing )");
 			exprtoken(es);
-		} else if (op == O_PLUSPLUS || op == O_MINUSMINUS) {
+			break;
+
+		case O_PLUSPLUS:
+		case O_MINUSMINUS:
 			exprtoken(es);
 			vl = do_ppmm(es, op, es->val, true);
 			exprtoken(es);
-		} else if (op == VAR || op == LIT) {
+			break;
+
+		case VAR:
+		case LIT:
 			vl = es->val;
 			exprtoken(es);
-		} else {
+			break;
+
+		default:
 			evalerr(es, ET_UNEXPECTED, NULL);
 			/* NOTREACHED */
 		}
+
 		if (es->tok == O_PLUSPLUS || es->tok == O_MINUSMINUS) {
 			vl = do_ppmm(es, es->tok, vl, false);
 			exprtoken(es);
 		}
+
 		return (vl);
+		/* prec == P_PRIMARY */
 	}
+
 	vl = evalexpr(es, prec - 1);
-	for (op = es->tok; IS_BINOP(op) && opinfo[(int)op].prec == prec;
-	    op = es->tok) {
+	while ((int)(op = es->tok) >= (int)O_EQ && (int)op <= (int)O_COMMA &&
+	    opinfo[(int)op].prec == prec) {
 		exprtoken(es);
 		vasn = vl;
 		if (op != O_ASN)
@@ -362,69 +411,92 @@ evalexpr(Expr_state *es, int prec)
 			if (!es->noassign)
 				assign_check(es, op, vasn);
 			vr = intvar(es, evalexpr(es, P_ASSIGN));
-		} else if (op != O_TERN && op != O_LAND && op != O_LOR)
+		} else if (op == O_TERN) {
+			bool ev = vl->val.u != 0;
+
+			if (!ev)
+				es->noassign++;
+			vl = evalexpr(es, MAX_PREC);
+			if (!ev)
+				es->noassign--;
+			if (es->tok != CTERN)
+				evalerr(es, ET_STR, "missing :");
+			exprtoken(es);
+			if (ev)
+				es->noassign++;
+			vr = evalexpr(es, P_TERN);
+			if (ev)
+				es->noassign--;
+			vl = ev ? vl : vr;
+			continue;
+		} else if (op != O_LAND && op != O_LOR)
 			vr = intvar(es, evalexpr(es, prec - 1));
-		if ((op == O_DIV || op == O_MOD || op == O_DIVASN ||
-		    op == O_MODASN) && vr->val.i == 0) {
-			if (es->noassign)
-				vr->val.i = 1;
-			else
-				evalerr(es, ET_STR, "zero divisor");
-		}
+
 		switch ((int)op) {
-		case O_TIMES:
-		case O_TIMESASN:
-			res = bivui(vl, *, vr);
-			break;
 		case O_DIV:
 		case O_DIVASN:
-#if !HAVE_SILENT_IDIVWRAPV
-			/*
-			 * we are doing the comparisons here for the
-			 * signed arithmetics (!es->natural) case,
-			 * but the exact value checks and the bypass
-			 * case assignments are done unsignedly as
-			 * several compilers bitch around otherwise
-			 */
-			if (!es->natural &&
-			    vl->val.u == IDIVWRAPV_VL &&
-			    vr->val.u == IDIVWRAPV_VR) {
-				/* -2147483648 / -1 = 2147483648 */
-				/* this ^ is really (1 << 31) though */
-				res = IDIVWRAPV_VL;
-			} else
-#endif
-				res = bivui(vl, /, vr);
-			break;
 		case O_MOD:
 		case O_MODASN:
+			/*
+			 * actually, the entire division routine needs
+			 * a more high-level implementation using only
+			 * unsigned arithmetics
+			 */
+			switch (vr->val.u) {
 #if !HAVE_SILENT_IDIVWRAPV
-			/* see O_DIV / O_DIVASN for the reason behind this */
-			if (!es->natural &&
-			    vl->val.u == IDIVWRAPV_VL &&
-			    vr->val.u == IDIVWRAPV_VR) {
-				/* -2147483648 % -1 = 0 */
-				res = 0;
-			} else
+			case IDIVWRAPV_VR:
+				if (vl->val.u == IDIVWRAPV_VL && !es->natural) {
+					/*
+					 * these are the correct precalculated
+					 * values for signed division of the
+					 * most negative number (which has no
+					 * positive representation) by -1:
+					 * result INTMIN, modulo 0
+					 */
+					res = op == O_DIV || op == O_DIVASN ?
+					    IDIVWRAPV_VL : 0;
+					break;
+				}
+				if (0)
+					/* FALLTHROUGH */
 #endif
-				res = bivui(vl, %, vr);
+			case 0:
+				  {
+					if (!es->noassign) {
+						evalerr(es, ET_STR,
+						    "zero divisor");
+					}
+					vr->val.u = 1;
+				}
+				/* FALLTHROUGH */
+			default:
+				res = op == O_DIV || op == O_DIVASN ?
+				    bivui(vl, /, vr) : bivui(vl, %, vr);
+			}
+			break;
+		case O_TIMES:
+		case O_TIMESASN:
+			/* all bivui users need special handling */
+			res = bivui(vl, *, vr);
 			break;
 		case O_PLUS:
 		case O_PLUSASN:
-			res = bivui(vl, +, vr);
+			res = vl->val.u + vr->val.u;
 			break;
 		case O_MINUS:
 		case O_MINUSASN:
-			res = bivui(vl, -, vr);
+			res = vl->val.u - vr->val.u;
 			break;
 		case O_LSHIFT:
 		case O_LSHIFTASN:
-			res = bivui(vl, <<, vr);
+			/* how about ANDing with 31 (except lksh)? */
+			res = vl->val.u << vr->val.u;
 			break;
 		case O_RSHIFT:
 		case O_RSHIFTASN:
 			res = bivui(vl, >>, vr);
 			break;
+		/* how about rotation? */
 		case O_LT:
 			res = bivui(vl, <, vr);
 			break;
@@ -438,66 +510,45 @@ evalexpr(Expr_state *es, int prec)
 			res = bivui(vl, >=, vr);
 			break;
 		case O_EQ:
-			res = bivui(vl, ==, vr);
+			res = vl->val.u == vr->val.u;
 			break;
 		case O_NE:
-			res = bivui(vl, !=, vr);
+			res = vl->val.u != vr->val.u;
 			break;
 		case O_BAND:
 		case O_BANDASN:
-			res = bivui(vl, &, vr);
+			res = vl->val.u & vr->val.u;
 			break;
 		case O_BXOR:
 		case O_BXORASN:
-			res = bivui(vl, ^, vr);
+			res = vl->val.u ^ vr->val.u;
 			break;
 		case O_BOR:
 		case O_BORASN:
-			res = bivui(vl, |, vr);
+			res = vl->val.u | vr->val.u;
 			break;
 		case O_LAND:
-			if (!vl->val.i)
+			if (!vl->val.u)
 				es->noassign++;
 			vr = intvar(es, evalexpr(es, prec - 1));
-			res = bivui(vl, &&, vr);
-			if (!vl->val.i)
+			res = vl->val.u && vr->val.u;
+			if (!vl->val.u)
 				es->noassign--;
 			break;
 		case O_LOR:
-			if (vl->val.i)
+			if (vl->val.u)
 				es->noassign++;
 			vr = intvar(es, evalexpr(es, prec - 1));
-			res = bivui(vl, ||, vr);
-			if (vl->val.i)
+			res = vl->val.u || vr->val.u;
+			if (vl->val.u)
 				es->noassign--;
 			break;
-		case O_TERN:
-			{
-				bool ev = vl->val.i != 0;
-
-				if (!ev)
-					es->noassign++;
-				vl = evalexpr(es, MAX_PREC);
-				if (!ev)
-					es->noassign--;
-				if (es->tok != CTERN)
-					evalerr(es, ET_STR, "missing :");
-				exprtoken(es);
-				if (ev)
-					es->noassign++;
-				vr = evalexpr(es, P_TERN);
-				if (ev)
-					es->noassign--;
-				vl = ev ? vl : vr;
-			}
-			break;
 		case O_ASN:
-			res = vr->val.u;
-			break;
 		case O_COMMA:
 			res = vr->val.u;
 			break;
 		}
+
 		if (IS_ASSIGNOP(op)) {
 			vr->val.u = res;
 			if (!es->noassign) {
@@ -507,7 +558,7 @@ evalexpr(Expr_state *es, int prec)
 					setint(vasn, (mksh_ari_t)res);
 			}
 			vl = vr;
-		} else if (op != O_TERN)
+		} else
 			vl->val.u = res;
 	}
 	return (vl);
@@ -608,39 +659,6 @@ exprtoken(Expr_state *es)
 			es->tok = BAD;
 	}
 	es->tokp = cp;
-}
-
-/* Do a ++ or -- operation */
-static struct tbl *
-do_ppmm(Expr_state *es, enum token op, struct tbl *vasn, bool is_prefix)
-{
-	struct tbl *vl;
-	mksh_ari_t oval;
-
-	assign_check(es, op, vasn);
-
-	vl = intvar(es, vasn);
-	oval = vl->val.i;
-	if (op == O_PLUSPLUS) {
-		if (es->natural)
-			++vl->val.u;
-		else
-			++vl->val.i;
-	} else {
-		if (es->natural)
-			--vl->val.u;
-		else
-			--vl->val.i;
-	}
-	if (vasn->flag & INTEGER)
-		setint_v(vasn, vl, es->arith);
-	else
-		setint(vasn, vl->val.i);
-	if (!is_prefix)
-		/* undo the increment/decrement */
-		vl->val.i = oval;
-
-	return (vl);
 }
 
 static void
