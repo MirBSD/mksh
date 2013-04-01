@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.603 2013/03/30 23:31:01 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.604 2013/04/01 01:16:34 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -363,30 +363,32 @@ expected-stdout:
 ---
 name: arith-mandatory
 description:
-	If MKSH_GCC55009 is set when compiling, passing of
-	this test is *mandatory* for a valid mksh executable!
+	Passing of this test is *mandatory* for a valid mksh executable!
 category: shell:legacy-no
 stdin:
 	typeset -i sari=0
 	typeset -Ui uari=0
 	typeset -i x=0
-	print -r -- $((x++)):$sari=$uari.
+	print -r -- $((x++)):$sari=$uari. #0
 	let --sari --uari
-	print -r -- $((x++)):$sari=$uari.
+	print -r -- $((x++)):$sari=$uari. #1
 	sari=2147483647 uari=2147483647
-	print -r -- $((x++)):$sari=$uari.
+	print -r -- $((x++)):$sari=$uari. #2
 	let ++sari ++uari
-	print -r -- $((x++)):$sari=$uari.
+	print -r -- $((x++)):$sari=$uari. #3
 	let --sari --uari
 	let 'sari *= 2' 'uari *= 2'
 	let ++sari ++uari
-	print -r -- $((x++)):$sari=$uari.
+	print -r -- $((x++)):$sari=$uari. #4
 	let ++sari ++uari
-	print -r -- $((x++)):$sari=$uari.
+	print -r -- $((x++)):$sari=$uari. #5
 	sari=-2147483648 uari=-2147483648
-	print -r -- $((x++)):$sari=$uari.
+	print -r -- $((x++)):$sari=$uari. #6
 	let --sari --uari
-	print -r -- $((x++)):$sari=$uari.
+	print -r -- $((x++)):$sari=$uari. #7
+	(( sari = -5 >> 1 ))
+	((# uari = -5 >> 1 ))
+	print -r -- $((x++)):$sari=$uari. #8
 expected-stdout:
 	0:0=0.
 	1:-1=4294967295.
@@ -396,6 +398,7 @@ expected-stdout:
 	5:0=0.
 	6:-2147483648=2147483648.
 	7:2147483647=2147483647.
+	8:-3=2147483645.
 ---
 name: arith-unsigned-1
 description:

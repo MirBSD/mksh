@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.64 2013/04/01 01:02:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.65 2013/04/01 01:16:37 tg Exp $");
 
 #if !HAVE_SILENT_IDIVWRAPV
 #if !defined(MKSH_LEGACY_MODE) || HAVE_LONG_32BIT
@@ -493,11 +493,23 @@ evalexpr(Expr_state *es, int prec)
 			break;
 		case O_RSHIFT:
 		case O_RSHIFTASN:
-			/* all bivui users need special handling */
-			res = bivui(vl, >>, vr);
+			if (es->natural)
+				res = vl->val.u >> vr->val.u;
+			else {
+				/*
+				 * This is implementation-defined in ISO C,
+				 * though not undefined, and all known twos
+				 * complement implementations make an arith
+				 * shift-right out of this, and open-coding
+				 * it would probably hurt massively.
+				 */
+				/* how about ANDing? use vr->val.u? */
+				res = (mksh_uari_t)(vl->val.i >> vr->val.i);
+			}
 			break;
 		/* how about rotation? */
 		case O_LT:
+			/* all bivui users need special handling */
 			res = bivui(vl, <, vr);
 			break;
 		case O_LE:
