@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.65 2013/04/01 01:16:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.66 2013/04/01 01:29:47 tg Exp $");
 
 #if !HAVE_SILENT_IDIVWRAPV
 #if !defined(MKSH_LEGACY_MODE) || HAVE_LONG_32BIT
@@ -503,8 +503,8 @@ evalexpr(Expr_state *es, int prec)
 				 * shift-right out of this, and open-coding
 				 * it would probably hurt massively.
 				 */
-				/* how about ANDing? use vr->val.u? */
-				res = (mksh_uari_t)(vl->val.i >> vr->val.i);
+				/* how about ANDing? */
+				res = (mksh_uari_t)(vl->val.i >> vr->val.u);
 			}
 			break;
 		/* how about rotation? */
