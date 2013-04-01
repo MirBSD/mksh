@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.63 2013/03/31 18:33:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.64 2013/04/01 01:02:09 tg Exp $");
 
 #if !HAVE_SILENT_IDIVWRAPV
 #if !defined(MKSH_LEGACY_MODE) || HAVE_LONG_32BIT
@@ -476,8 +476,7 @@ evalexpr(Expr_state *es, int prec)
 			break;
 		case O_TIMES:
 		case O_TIMESASN:
-			/* all bivui users need special handling */
-			res = bivui(vl, *, vr);
+			res = vl->val.u * vr->val.u;
 			break;
 		case O_PLUS:
 		case O_PLUSASN:
@@ -494,6 +493,7 @@ evalexpr(Expr_state *es, int prec)
 			break;
 		case O_RSHIFT:
 		case O_RSHIFTASN:
+			/* all bivui users need special handling */
 			res = bivui(vl, >>, vr);
 			break;
 		/* how about rotation? */
