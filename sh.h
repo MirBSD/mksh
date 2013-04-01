@@ -164,9 +164,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.646 2013/03/30 23:31:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.647 2013/04/01 02:37:51 tg Exp $");
 #endif
-#define MKSH_VERSION "R44 2013/03/30"
+#define MKSH_VERSION "R44 2013/03/31"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -470,6 +470,14 @@ union mksh_ccphack {
 	char **rw;
 	const char **ro;
 };
+
+/*
+ * Evil hack since casting uint to sint is implementation-defined
+ */
+typedef union {
+	mksh_ari_t i;
+	mksh_uari_t u;
+} mksh_ari_u;
 
 /* for const debugging */
 #if defined(DEBUG) && defined(__GNUC__) && !defined(__ICC) && \
@@ -2011,7 +2019,7 @@ char *arrayname(const char *);
 mksh_uari_t set_array(const char *, bool, const char **);
 uint32_t hash(const void *);
 mksh_ari_t rndget(void);
-void rndset(long);
+void rndset(unsigned long);
 
 enum Test_op {
 	/* non-operator */

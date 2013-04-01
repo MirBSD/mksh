@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.207 2013/02/24 14:22:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.208 2013/04/01 02:37:51 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1979,7 +1979,7 @@ chvt(const char *fn)
 		NZATInit(h);
 		NZATUpdateMem(h, &rndsetupstate, sizeof(rndsetupstate));
 		NZAATFinish(h);
-		rndset((long)h);
+		rndset((unsigned long)h);
 	}
 	chvt_reinit();
 }

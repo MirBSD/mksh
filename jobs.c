@@ -22,7 +22,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.94 2012/12/28 02:28:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.95 2013/04/01 02:37:50 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -463,7 +463,7 @@ exchild(struct op *t, int flags,
 		forksleep <<= 1;
 	}
 	/* ensure $RANDOM changes between parent and child */
-	rndset((long)cldpid);
+	rndset((unsigned long)cldpid);
 	/* fork failed? */
 	if (cldpid < 0) {
 		kill_job(j, SIGKILL);

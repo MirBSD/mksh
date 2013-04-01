@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.168 2013/03/31 18:30:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.169 2013/04/01 02:37:53 tg Exp $");
 
 /*-
  * Variables
@@ -49,7 +49,7 @@ static void unspecial(const char *);
 static void getspec(struct tbl *);
 static void setspec(struct tbl *);
 static void unsetspec(struct tbl *);
-static int getint(struct tbl *, mksh_ari_t *, bool);
+static int getint(struct tbl *, mksh_ari_u *, bool);
 static const char *array_index_calc(const char *, bool *, uint32_t *);
 
 /*
@@ -471,12 +471,12 @@ setint(struct tbl *vq, mksh_ari_t n)
 }
 
 static int
-getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
+getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 {
-	int c, base, neg;
+	int c, base;
 	mksh_uari_t num;
 	const char *s;
-	bool have_base = false;
+	bool have_base = false, neg = false;
 
 	if (vp->flag&SPECIAL)
 		getspec(vp);
@@ -484,13 +484,12 @@ getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 	if (!(vp->flag&ISSET) || (!(vp->flag&INTEGER) && vp->val.s == NULL))
 		return (-1);
 	if (vp->flag&INTEGER) {
-		*nump = vp->val.i;
+		nump->i = vp->val.i;
 		return (vp->type);
 	}
 	s = vp->val.s + vp->type;
 	base = 10;
 	num = 0;
-	neg = 0;
 	if (arith && s[0] == '0' && (s[1] | 0x20) == 'x') {
 		s += 2;
 		base = 16;
@@ -506,7 +505,7 @@ getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 #endif
 	while ((c = *s++)) {
 		if (c == '-') {
-			neg++;
+			neg = true;
 			continue;
 		} else if (c == '#') {
 			if (have_base || num < 1 || num > 36)
@@ -525,7 +524,7 @@ getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 					 * not round-tripping correctly XXX)
 					 */
 					wc = 0xEF00 + *(const unsigned char *)s;
-				*nump = (mksh_ari_t)wc;
+				nump->u = (mksh_uari_t)wc;
 				return (1);
 			}
 			num = 0;
@@ -543,7 +542,9 @@ getint(struct tbl *vp, mksh_ari_t *nump, bool arith)
 			return (-1);
 		num = num * base + c;
 	}
-	*nump = neg ? -((mksh_ari_t)num) : (mksh_ari_t)num;
+	if (neg)
+		num = -num;
+	nump->u = num;
 	return (base);
 }
 
@@ -555,11 +556,11 @@ struct tbl *
 setint_v(struct tbl *vq, struct tbl *vp, bool arith)
 {
 	int base;
-	mksh_ari_t num;
+	mksh_ari_u num;
 
 	if ((base = getint(vp, &num, arith)) == -1)
 		return (NULL);
-	setint_n(vq, num, 0);
+	setint_n(vq, num.i, 0);
 	if (vq->type == 0)
 		/* default base */
 		vq->type = base;
@@ -1097,7 +1098,7 @@ static int user_lineno;		/* what user set $LINENO to */
 static void
 getspec(struct tbl *vp)
 {
-	register mksh_ari_t i;
+	mksh_ari_u num;
 	int st;
 	struct timeval tv;
 
@@ -1117,19 +1118,19 @@ getspec(struct tbl *vp)
 	}
 	switch (st) {
 	case V_BASHPID:
-		i = (mksh_ari_t)procpid;
+		num.u = (mksh_uari_t)procpid;
 		break;
 	case V_COLUMNS:
-		i = x_cols;
+		num.i = x_cols;
 		break;
 	case V_HISTSIZE:
-		i = histsize;
+		num.i = histsize;
 		break;
 	case V_LINENO:
-		i = current_lineno + user_lineno;
+		num.i = current_lineno + user_lineno;
 		break;
 	case V_LINES:
-		i = x_lins;
+		num.i = x_lins;
 		break;
 	case V_EPOCHREALTIME: {
 		/* 10(%u) + 1(.) + 6 + NUL */
@@ -1144,10 +1145,10 @@ getspec(struct tbl *vp)
 		return;
 	}
 	case V_OPTIND:
-		i = user_opt.uoptind;
+		num.i = user_opt.uoptind;
 		break;
 	case V_RANDOM:
-		i = rndget();
+		num.i = rndget();
 		break;
 	case V_SECONDS:
 		/*
@@ -1157,7 +1158,7 @@ getspec(struct tbl *vp)
 		 */
 		if (vp->flag & ISSET) {
 			mksh_TIME(tv);
-			i = tv.tv_sec - seconds;
+			num.i = tv.tv_sec - seconds;
 		} else
 			return;
 		break;
@@ -1166,14 +1167,14 @@ getspec(struct tbl *vp)
 		return;
 	}
 	vp->flag &= ~SPECIAL;
-	setint_n(vp, i, 0);
+	setint_n(vp, num.i, 0);
 	vp->flag |= SPECIAL;
 }
 
 static void
 setspec(struct tbl *vp)
 {
-	mksh_ari_t i;
+	mksh_ari_u num;
 	char *s;
 	int st;
 
@@ -1231,11 +1232,11 @@ setspec(struct tbl *vp)
 	case V_SECONDS:
 	case V_TMOUT:
 		vp->flag &= ~SPECIAL;
-		if (getint(vp, &i, false) == -1) {
+		if (getint(vp, &num, false) == -1) {
 			s = str_val(vp);
 			if (st != V_RANDOM)
 				errorf("%s: %s: %s", vp->name, "bad number", s);
-			i = hash(s);
+			num.u = hash(s);
 		}
 		vp->flag |= SPECIAL;
 		break;
@@ -1248,40 +1249,40 @@ setspec(struct tbl *vp)
 
 	switch (st) {
 	case V_COLUMNS:
-		if (i >= MIN_COLS)
-			x_cols = i;
+		if (num.i >= MIN_COLS)
+			x_cols = num.i;
 		break;
 	case V_HISTSIZE:
-		sethistsize(i);
+		sethistsize(num.i);
 		break;
 	case V_LINENO:
 		/* The -1 is because line numbering starts at 1. */
-		user_lineno = (unsigned int)i - current_lineno - 1;
+		user_lineno = num.u - current_lineno - 1;
 		break;
 	case V_LINES:
-		if (i >= MIN_LINS)
-			x_lins = i;
+		if (num.i >= MIN_LINS)
+			x_lins = num.i;
 		break;
 	case V_OPTIND:
-		getopts_reset((int)i);
+		getopts_reset((int)num.i);
 		break;
 	case V_RANDOM:
 		/*
 		 * mksh R39d+ no longer has the traditional repeatability
 		 * of $RANDOM sequences, but always retains state
 		 */
-		rndset((long)i);
+		rndset((unsigned long)num.u);
 		break;
 	case V_SECONDS:
 		{
 			struct timeval tv;
 
 			mksh_TIME(tv);
-			seconds = tv.tv_sec - i;
+			seconds = tv.tv_sec - num.i;
 		}
 		break;
 	case V_TMOUT:
-		ksh_tmout = i >= 0 ? i : 0;
+		ksh_tmout = num.i >= 0 ? num.i : 0;
 		break;
 	}
 }
@@ -1537,7 +1538,7 @@ rndget(void)
 }
 
 void
-rndset(long v)
+rndset(unsigned long v)
 {
 	register uint32_t h;
 

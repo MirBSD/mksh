@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.67 2013/04/01 02:28:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.68 2013/04/01 02:37:49 tg Exp $");
 
 #if !HAVE_SILENT_IDIVWRAPV
 #if !defined(MKSH_LEGACY_MODE) || HAVE_LONG_32BIT
@@ -558,7 +558,7 @@ evalexpr(Expr_state *es, int prec)
 				if (vasn->flag & INTEGER)
 					setint_v(vasn, vr, es->arith);
 				else
-					setint(vasn, (mksh_ari_t)res);
+					setint(vasn, vr->val.i);
 			}
 			vl = vr;
 		} else
