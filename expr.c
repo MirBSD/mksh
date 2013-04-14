@@ -23,23 +23,9 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.68 2013/04/01 02:37:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.69 2013/04/14 13:36:50 tg Exp $");
 
-#if !HAVE_SILENT_IDIVWRAPV
-#if !defined(MKSH_LEGACY_MODE) || HAVE_LONG_32BIT
-#define IDIVWRAPV_VL	(mksh_uari_t)0x80000000UL
-#define IDIVWRAPV_VR	(mksh_uari_t)0xFFFFFFFFUL
-#elif HAVE_LONG_64BIT
-#define IDIVWRAPV_VL	(mksh_uari_t)0x8000000000000000UL
-#define IDIVWRAPV_VR	(mksh_uari_t)0xFFFFFFFFFFFFFFFFUL
-#else
-# warning "cannot guarantee integer division wraparound"
-#undef HAVE_SILENT_IDIVWRAPV
-#define HAVE_SILENT_IDIVWRAPV 1
-#endif
-#endif
-
-/* The order of these enums is constrained by the order of opinfo[] */
+/* the order of these enums is constrained by the order of opinfo[] */
 enum token {
 	/* some (long) unary operators */
 	O_PLUSPLUS = 0, O_MINUSMINUS,
@@ -47,7 +33,14 @@ enum token {
 	O_EQ, O_NE,
 	/* assignments are assumed to be in range O_ASN .. O_BORASN */
 	O_ASN, O_TIMESASN, O_DIVASN, O_MODASN, O_PLUSASN, O_MINUSASN,
+#ifndef MKSH_LEGACY_MODE
+	O_ROLASN, O_RORASN,
+#endif
 	O_LSHIFTASN, O_RSHIFTASN, O_BANDASN, O_BXORASN, O_BORASN,
+	/* binary non-assignment operators */
+#ifndef MKSH_LEGACY_MODE
+	O_ROL, O_ROR,
+#endif
 	O_LSHIFT, O_RSHIFT,
 	O_LE, O_GE, O_LT, O_GT,
 	O_LAND,
@@ -70,10 +63,10 @@ enum token {
 #define IS_ASSIGNOP(op)	((int)(op) >= (int)O_ASN && (int)(op) <= (int)O_BORASN)
 
 /* precisions; used to be enum prec but we do arithmetics on it */
-#define P_PRIMARY	0	/* VAR, LIT, (), ~ ! - + */
+#define P_PRIMARY	0	/* VAR, LIT, (), ! ~ ++ -- */
 #define P_MULT		1	/* * / % */
 #define P_ADD		2	/* + - */
-#define P_SHIFT		3	/* << >> */
+#define P_SHIFT		3	/* <<< >>> << >> */
 #define P_RELATION	4	/* < <= > >= */
 #define P_EQUALITY	5	/* == != */
 #define P_BAND		6	/* & */
@@ -82,60 +75,72 @@ enum token {
 #define P_LAND		9	/* && */
 #define P_LOR		10	/* || */
 #define P_TERN		11	/* ?: */
-#define P_ASSIGN	12	/* = *= /= %= += -= <<= >>= &= ^= |= */
+	/* = += -= *= /= %= <<<= >>>= <<= >>= &= ^= |= */
+#define P_ASSIGN	12
 #define P_COMMA		13	/* , */
 #define MAX_PREC	P_COMMA
 
 struct opinfo {
-	char		name[4];
-	int		len;	/* name length */
-	int		prec;	/* precedence: lower is higher */
+	char name[5];
+	/* name length */
+	uint8_t len;
+	/* precedence: lower is higher */
+	uint8_t prec;
 };
 
-/* Tokens in this table must be ordered so the longest are first
+/*
+ * Tokens in this table must be ordered so the longest are first
  * (eg, += before +). If you change something, change the order
  * of enum token too.
  */
 static const struct opinfo opinfo[] = {
-	{ "++",	 2, P_PRIMARY },	/* before + */
-	{ "--",	 2, P_PRIMARY },	/* before - */
-	{ "==",	 2, P_EQUALITY },	/* before = */
-	{ "!=",	 2, P_EQUALITY },	/* before ! */
-	{ "=",	 1, P_ASSIGN },		/* keep assigns in a block */
-	{ "*=",	 2, P_ASSIGN },
-	{ "/=",	 2, P_ASSIGN },
-	{ "%=",	 2, P_ASSIGN },
-	{ "+=",	 2, P_ASSIGN },
-	{ "-=",	 2, P_ASSIGN },
-	{ "<<=", 3, P_ASSIGN },
-	{ ">>=", 3, P_ASSIGN },
-	{ "&=",	 2, P_ASSIGN },
-	{ "^=",	 2, P_ASSIGN },
-	{ "|=",	 2, P_ASSIGN },
-	{ "<<",	 2, P_SHIFT },
-	{ ">>",	 2, P_SHIFT },
-	{ "<=",	 2, P_RELATION },
-	{ ">=",	 2, P_RELATION },
-	{ "<",	 1, P_RELATION },
-	{ ">",	 1, P_RELATION },
-	{ "&&",	 2, P_LAND },
-	{ "||",	 2, P_LOR },
-	{ "*",	 1, P_MULT },
-	{ "/",	 1, P_MULT },
-	{ "%",	 1, P_MULT },
-	{ "+",	 1, P_ADD },
-	{ "-",	 1, P_ADD },
-	{ "&",	 1, P_BAND },
-	{ "^",	 1, P_BXOR },
-	{ "|",	 1, P_BOR },
-	{ "?",	 1, P_TERN },
-	{ ",",	 1, P_COMMA },
-	{ "~",	 1, P_PRIMARY },
-	{ "!",	 1, P_PRIMARY },
-	{ "(",	 1, P_PRIMARY },
-	{ ")",	 1, P_PRIMARY },
-	{ ":",	 1, P_PRIMARY },
-	{ "",	 0, P_PRIMARY }
+	{ "++",   2, P_PRIMARY },	/* before + */
+	{ "--",   2, P_PRIMARY },	/* before - */
+	{ "==",   2, P_EQUALITY },	/* before = */
+	{ "!=",   2, P_EQUALITY },	/* before ! */
+	{ "=",    1, P_ASSIGN },	/* keep assigns in a block */
+	{ "*=",   2, P_ASSIGN },
+	{ "/=",   2, P_ASSIGN },
+	{ "%=",   2, P_ASSIGN },
+	{ "+=",   2, P_ASSIGN },
+	{ "-=",   2, P_ASSIGN },
+#ifndef MKSH_LEGACY_MODE
+	{ "<<<=", 4, P_ASSIGN },	/* before <<< */
+	{ ">>>=", 4, P_ASSIGN },	/* before >>> */
+#endif
+	{ "<<=",  3, P_ASSIGN },
+	{ ">>=",  3, P_ASSIGN },
+	{ "&=",   2, P_ASSIGN },
+	{ "^=",   2, P_ASSIGN },
+	{ "|=",   2, P_ASSIGN },
+#ifndef MKSH_LEGACY_MODE
+	{ "<<<",  3, P_SHIFT },		/* before << */
+	{ ">>>",  3, P_SHIFT },		/* before >> */
+#endif
+	{ "<<",   2, P_SHIFT },
+	{ ">>",   2, P_SHIFT },
+	{ "<=",   2, P_RELATION },
+	{ ">=",   2, P_RELATION },
+	{ "<",    1, P_RELATION },
+	{ ">",    1, P_RELATION },
+	{ "&&",   2, P_LAND },
+	{ "||",   2, P_LOR },
+	{ "*",    1, P_MULT },
+	{ "/",    1, P_MULT },
+	{ "%",    1, P_MULT },
+	{ "+",    1, P_ADD },
+	{ "-",    1, P_ADD },
+	{ "&",    1, P_BAND },
+	{ "^",    1, P_BXOR },
+	{ "|",    1, P_BOR },
+	{ "?",    1, P_TERN },
+	{ ",",    1, P_COMMA },
+	{ "~",    1, P_PRIMARY },
+	{ "!",    1, P_PRIMARY },
+	{ "(",    1, P_PRIMARY },
+	{ ")",    1, P_PRIMARY },
+	{ ":",    1, P_PRIMARY },
+	{ "",     0, P_PRIMARY }
 };
 
 typedef struct expr_state {
@@ -157,12 +162,6 @@ typedef struct expr_state {
 	bool natural;
 } Expr_state;
 
-/* to be replaced (later) */
-#define bivui(x, op, y)	(es->natural ?			\
-	(mksh_uari_t)((x)->val.u op (y)->val.u) :	\
-	(mksh_uari_t)((x)->val.i op (y)->val.i)		\
-)
-
 enum error_type {
 	ET_UNEXPECTED, ET_BADLIT, ET_RECURSIVE,
 	ET_LVALUE, ET_RDONLY, ET_STR
@@ -170,7 +169,7 @@ enum error_type {
 
 static void evalerr(Expr_state *, enum error_type, const char *)
     MKSH_A_NORETURN;
-static struct tbl *evalexpr(Expr_state *, int);
+static struct tbl *evalexpr(Expr_state *, unsigned int);
 static void exprtoken(Expr_state *);
 static struct tbl *do_ppmm(Expr_state *, enum token, struct tbl *, bool);
 static void assign_check(Expr_state *, enum token, struct tbl *);
@@ -185,7 +184,7 @@ evaluate(const char *expr, mksh_ari_t *rval, int error_ok, bool arith)
 	struct tbl v;
 	int ret;
 
-	v.flag = DEFINED|INTEGER;
+	v.flag = DEFINED | INTEGER;
 	v.type = 0;
 	ret = v_evaluate(&v, expr, error_ok, arith);
 	*rval = v.val.i;
@@ -334,11 +333,11 @@ do_ppmm(Expr_state *es, enum token op, struct tbl *vasn, bool is_prefix)
 }
 
 static struct tbl *
-evalexpr(Expr_state *es, int prec)
+evalexpr(Expr_state *es, unsigned int prec)
 {
 	struct tbl *vl, *vr = NULL, *vasn;
 	enum token op;
-	mksh_uari_t res = 0;
+	mksh_uari_t res = 0, t1, t2, t3;
 
 	if (prec == P_PRIMARY) {
 		switch ((int)(op = es->tok)) {
@@ -432,125 +431,172 @@ evalexpr(Expr_state *es, int prec)
 		} else if (op != O_LAND && op != O_LOR)
 			vr = intvar(es, evalexpr(es, prec - 1));
 
+		/* common ops setup */
 		switch ((int)op) {
 		case O_DIV:
 		case O_DIVASN:
 		case O_MOD:
 		case O_MODASN:
-			/*
-			 * actually, the entire division routine needs
-			 * a more high-level implementation using only
-			 * unsigned arithmetics
-			 */
-			switch (vr->val.u) {
-#if !HAVE_SILENT_IDIVWRAPV
-			case IDIVWRAPV_VR:
-				if (vl->val.u == IDIVWRAPV_VL && !es->natural) {
-					/*
-					 * these are the correct precalculated
-					 * values for signed division of the
-					 * most negative number (which has no
-					 * positive representation) by -1:
-					 * result INTMIN, modulo 0
-					 */
-					res = op == O_DIV || op == O_DIVASN ?
-					    IDIVWRAPV_VL : 0;
-					break;
-				}
-				if (0)
-					/* FALLTHROUGH */
-#endif
-			case 0:
-				  {
-					if (!es->noassign) {
-						evalerr(es, ET_STR,
-						    "zero divisor");
-					}
-					vr->val.u = 1;
-				}
-				/* FALLTHROUGH */
-			default:
-				res = op == O_DIV || op == O_DIVASN ?
-				    bivui(vl, /, vr) : bivui(vl, %, vr);
+			if (vr->val.u == 0) {
+				if (!es->noassign)
+					evalerr(es, ET_STR, "zero divisor");
+				vr->val.u = 1;
 			}
+			/* calculate the absolute values */
+			t1 = vl->val.i < 0 ? -vl->val.u : vl->val.u;
+			t2 = vr->val.i < 0 ? -vr->val.u : vr->val.u;
 			break;
+#ifndef MKSH_LEGACY_MODE
+		case O_LSHIFT:
+		case O_LSHIFTASN:
+		case O_RSHIFT:
+		case O_RSHIFTASN:
+		case O_ROL:
+		case O_ROLASN:
+		case O_ROR:
+		case O_RORASN:
+			t1 = vl->val.u;
+			t2 = vr->val.u & 31;
+			break;
+#endif
+		case O_LAND:
+		case O_LOR:
+			t1 = vl->val.u;
+			t2 = 0;	/* gcc */
+			break;
+		default:
+			t1 = vl->val.u;
+			t2 = vr->val.u;
+			break;
+		}
+
+#define cmpop(op)	(es->natural ?			\
+	(mksh_uari_t)(vl->val.u op vr->val.u) :		\
+	(mksh_uari_t)(vl->val.i op vr->val.i)		\
+)
+
+		/* op calculation */
+		switch ((int)op) {
 		case O_TIMES:
 		case O_TIMESASN:
-			res = vl->val.u * vr->val.u;
+			res = t1 * t2;
+			break;
+		case O_MOD:
+		case O_MODASN:
+			if (es->natural) {
+				res = vl->val.u % vr->val.u;
+				break;
+			}
+			goto signed_division;
+		case O_DIV:
+		case O_DIVASN:
+			if (es->natural) {
+				res = vl->val.u / vr->val.u;
+				break;
+			}
+ signed_division:
+			/*
+			 * a / b = abs(a) / abs(b) * sgn((u)a^(u)b)
+			 */
+			t3 = t1 / t2;
+#ifndef MKSH_LEGACY_MODE
+			res = ((vl->val.u ^ vr->val.u) & 0x80000000) ? -t3 : t3;
+#else
+			res = ((t1 == vl->val.u ? 0 : 1) ^
+			    (t2 == vr->val.u ? 0 : 1)) ? -t3 : t3;
+#endif
+			if (op == O_MOD || op == O_MODASN) {
+				/*
+				 * primitive modulo, to get the sign of
+				 * the result correct:
+				 * (a % b) = a - ((a / b) * b)
+				 * the subtraction and multiplication
+				 * are, amazingly enough, sign ignorant
+				 */
+				res = vl->val.u - (res * vr->val.u);
+			}
 			break;
 		case O_PLUS:
 		case O_PLUSASN:
-			res = vl->val.u + vr->val.u;
+			res = t1 + t2;
 			break;
 		case O_MINUS:
 		case O_MINUSASN:
-			res = vl->val.u - vr->val.u;
+			res = t1 - t2;
 			break;
+#ifndef MKSH_LEGACY_MODE
+		case O_ROL:
+		case O_ROLASN:
+			res = (t1 << t2) | (t1 >> (32 - t2));
+			break;
+		case O_ROR:
+		case O_RORASN:
+			res = (t1 >> t2) | (t1 << (32 - t2));
+			break;
+#endif
 		case O_LSHIFT:
 		case O_LSHIFTASN:
-			/* how about ANDing with 31 (except lksh)? */
-			res = vl->val.u << vr->val.u;
+			res = t1 << t2;
 			break;
 		case O_RSHIFT:
 		case O_RSHIFTASN:
-			/* how about ANDing with 31 (except lksh)? */
 			res = es->natural || vl->val.i >= 0 ?
-			    vl->val.u >> vr->val.u :
-			    ~(~vl->val.u >> vr->val.u);
+			    t1 >> t2 :
+			    ~(~t1 >> t2);
 			break;
-		/* how about rotation? */
 		case O_LT:
-			/* all bivui users need special handling */
-			res = bivui(vl, <, vr);
+			res = cmpop(<);
 			break;
 		case O_LE:
-			res = bivui(vl, <=, vr);
+			res = cmpop(<=);
 			break;
 		case O_GT:
-			res = bivui(vl, >, vr);
+			res = cmpop(>);
 			break;
 		case O_GE:
-			res = bivui(vl, >=, vr);
+			res = cmpop(>=);
 			break;
 		case O_EQ:
-			res = vl->val.u == vr->val.u;
+			res = t1 == t2;
 			break;
 		case O_NE:
-			res = vl->val.u != vr->val.u;
+			res = t1 != t2;
 			break;
 		case O_BAND:
 		case O_BANDASN:
-			res = vl->val.u & vr->val.u;
+			res = t1 & t2;
 			break;
 		case O_BXOR:
 		case O_BXORASN:
-			res = vl->val.u ^ vr->val.u;
+			res = t1 ^ t2;
 			break;
 		case O_BOR:
 		case O_BORASN:
-			res = vl->val.u | vr->val.u;
+			res = t1 | t2;
 			break;
 		case O_LAND:
-			if (!vl->val.u)
+			if (!t1)
 				es->noassign++;
 			vr = intvar(es, evalexpr(es, prec - 1));
-			res = vl->val.u && vr->val.u;
-			if (!vl->val.u)
+			res = t1 && vr->val.u;
+			if (!t1)
 				es->noassign--;
 			break;
 		case O_LOR:
-			if (vl->val.u)
+			if (t1)
 				es->noassign++;
 			vr = intvar(es, evalexpr(es, prec - 1));
-			res = vl->val.u || vr->val.u;
-			if (vl->val.u)
+			res = t1 || vr->val.u;
+			if (t1)
 				es->noassign--;
 			break;
 		case O_ASN:
 		case O_COMMA:
-			res = vr->val.u;
+			res = t2;
 			break;
 		}
+
+#undef cmpop
 
 		if (IS_ASSIGNOP(op)) {
 			vr->val.u = res;
@@ -574,13 +620,14 @@ exprtoken(Expr_state *es)
 	int c;
 	char *tvar;
 
-	/* skip white space */
+	/* skip whitespace */
  skip_spaces:
 	while ((c = *cp), ksh_isspace(c))
 		++cp;
 	if (es->tokp == es->expression && c == '#') {
 		/* expression begins with # */
-		es->natural = true;	/* switch to unsigned */
+		/* switch to unsigned */
+		es->natural = true;
 		++cp;
 		goto skip_spaces;
 	}
@@ -598,12 +645,6 @@ exprtoken(Expr_state *es)
 			if (len == 0)
 				evalerr(es, ET_STR, "missing ]");
 			cp += len;
-		} else if (c == '(' /*)*/ ) {
-			/* todo: add math functions (all take single argument):
-			 * abs acos asin atan cos cosh exp int log sin sinh sqrt
-			 * tan tanh
-			 */
-			;
 		}
 		if (es->noassign) {
 			es->val = tempvar();

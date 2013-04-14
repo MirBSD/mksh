@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.308 2013/03/24 21:34:14 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.309 2013/04/14 13:36:53 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.146 2013/03/18 11:10:52 mpi Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 24 2013 $
+.Dd $Mdocdate: April 14 2013 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2525,15 +2525,15 @@ Unary operators:
 Binary operators:
 .Bd -literal -offset indent
 ,
-= *= /= %= += \-= \*(Lt\*(Lt= \*(Gt\*(Gt= &= \*(ha= \*(Ba=
+= += \-= *= /= %= \*(Lt\*(Lt\*(Lt= \*(Gt\*(Gt\*(Gt= \*(Lt\*(Lt= \*(Gt\*(Gt= &= \*(ha= \*(Ba=
 \*(Ba\*(Ba
 &&
 \*(Ba
 \*(ha
 &
 == !=
-\*(Lt \*(Lt= \*(Gt= \*(Gt
-\*(Lt\*(Lt \*(Gt\*(Gt
+\*(Lt \*(Lt= \*(Gt \*(Gt=
+\*(Lt\*(Lt\*(Lt \*(Gt\*(Gt\*(Gt \*(Lt\*(Lt \*(Gt\*(Gt
 + \-
 * / %
 .Ed
@@ -2619,8 +2619,8 @@ The result is the value of the expression on the right-hand side.
 .It =
 Assignment; the variable on the left is set to the value on the right.
 .It Xo
-.No *= /= += \-= \*(Lt\*(Lt=
-.No \*(Gt\*(Gt= &= \*(ha= \*(Ba=
+.No += \-= *= /= %= \*(Lt\*(Lt\*(Lt= \*(Gt\*(Gt\*(Gt=
+.No \*(Lt\*(Lt= \*(Gt\*(Gt= &= \*(ha= \*(Ba=
 .Xc
 Assignment operators.
 .Sm off
@@ -2666,10 +2666,15 @@ Not equal; the result is 0 if both arguments are equal, 1 if not.
 .It \*(Lt
 Less than; the result is 1 if the left argument is less than the right, 0 if
 not.
-.It \*(Lt= \*(Gt= \*(Gt
+.It \*(Lt= \*(Gt \*(Gt=
 Less than or equal, greater than or equal, greater than.
 See
 .Ic \*(Lt .
+.It \*(Lt\*(Lt\*(Lt \*(Gt\*(Gt\*(Gt
+Rotate left (right); the result is similar to shift (see
+.Ic \*(Lt\*(Lt )
+except that the bits shifted out at one end are shifted in
+at the other end, instead of zero or sign bits.
 .It \*(Lt\*(Lt \*(Gt\*(Gt
 Shift left (right); the result is the left argument with its bits shifted left
 (right) by the amount given in the right argument.
@@ -2678,7 +2683,6 @@ Addition, subtraction, multiplication, and division.
 .It %
 Remainder; the result is the remainder of the division of the left argument by
 the right.
-The sign of the result is unspecified if either argument is negative.
 .It Xo
 .Sm off
 .Aq Ar arg1 ?
@@ -2692,6 +2696,7 @@ is non-zero, the result is
 .Aq Ar arg2 ;
 otherwise the result is
 .Aq Ar arg3 .
+The non-result argument is not evaluated.
 .El
 .Ss Co-processes
 A co-process (which is a pipeline created with the
@@ -6345,7 +6350,7 @@ $ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R44
+.Nm mksh\ R45
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
