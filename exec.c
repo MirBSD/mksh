@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.117 2013/03/24 00:56:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.118 2013/04/26 19:40:44 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -141,8 +141,7 @@ execute(struct op * volatile t,
 		if (Flag(FXTRACE)) {
 			shf_puts(substitute(str_val(global("PS4")), 0),
 			    shl_out);
-			fptreef(shl_out, 0, "%T\n", t);
-			shf_flush(shl_out);
+			Flag(FXTRACE) = 2;
 		}
 		if (ap[0])
 			tp = findcom(ap[0], FC_BI|FC_FUNC);
@@ -333,6 +332,7 @@ execute(struct op * volatile t,
 	case TFOR:
 	case TSELECT: {
 		volatile bool is_first = true;
+
 		ap = (t->vars == NULL) ? e->loc->argv + 1 :
 		    (const char **)eval((const char **)t->vars,
 		    DOBLANK | DOGLOB | DOTILDE);
@@ -642,10 +642,35 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		e->loc = l_expand;
 		cp = evalstr(t->vars[i], DOASNTILDE);
 		e->loc = l_assign;
+		if (Flag(FXTRACE)) {
+			const char *ccp;
+
+			ccp = skip_varname(cp, true);
+			if (*ccp == '+')
+				++ccp;
+			if (*ccp == '=')
+				++ccp;
+			shf_write(cp, ccp - cp, shl_out);
+			print_value_quoted(shl_out, ccp);
+			shf_putc(' ', shl_out);
+		}
 		/* but assign in there as usual */
 		typeset(cp, type_flags, 0, 0, 0);
 		if (bourne_function_call && !(type_flags & EXPORT))
 			typeset(cp, LOCAL|LOCAL_COPY|EXPORT, 0, 0, 0);
+	}
+
+	if (Flag(FXTRACE)) {
+		rv = 0;
+ xtrace_ap_loop:
+		print_value_quoted(shl_out, ap[rv]);
+		if (ap[++rv]) {
+			shf_putc(' ', shl_out);
+			goto xtrace_ap_loop;
+		}
+		shf_putc('\n', shl_out);
+		Flag(FXTRACE) = 1;
+		shf_flush(shl_out);
 	}
 
 	if ((cp = *ap) == NULL) {
@@ -1285,6 +1310,9 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	iotmp = *iop;
 	iotmp.name = (iotype == IOHERE) ? NULL : cp;
 	iotmp.flag |= IONAMEXP;
+
+	if (Flag(FXTRACE) == 2)
+		fptreef(shl_out, 0, "%R", &iotmp);
 
 	switch (iotype) {
 	case IOREAD:

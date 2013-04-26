@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.605 2013/04/01 02:37:47 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.606 2013/04/26 19:40:42 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R44 2013/03/31
+	@(#)MIRBSD KSH R44 2013/04/26
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R44 2013/03/31
+	@(#)LEGACY KSH R44 2013/04/26
 description:
 	Check version of legacy shell.
 stdin:
@@ -3920,6 +3920,13 @@ expected-stdout:
 	s:-9223372036854775808.-1.0.
 	u:9223372036854775808.18446744073709551615.0.
 ---
+name: integer-size-FAIL-to-detect
+description:
+	Notify the user that their ints are not 32 or 64 bit
+category: int:u
+stdin:
+	:
+---
 name: lineno-stdin
 description:
 	See if $LINENO is updated and can be modified.
@@ -5665,8 +5672,8 @@ stdin:
 expected-stdout:
 	END
 expected-stderr:
-	+ env false 
-	+ echo END 
+	+ env false
+	+ echo END
 ---
 name: exit-err-2
 description:
@@ -5685,9 +5692,9 @@ stdin:
 expected-stdout:
 	END
 expected-stderr:
-	+ env true 
-	+ env false 
-	+ echo END 
+	+ env true
+	+ env false
+	+ echo END
 ---
 name: exit-err-3
 description:
