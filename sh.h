@@ -164,9 +164,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.650 2013/04/26 19:40:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.651 2013/04/26 21:22:49 tg Exp $");
 #endif
-#define MKSH_VERSION "R44 2013/04/26"
+#define MKSH_VERSION "R45 2013/04/26"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -520,7 +520,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 449)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 451)
 #error Must run Build.sh to compile this.
 int
 im_sorry_dave(void)
@@ -797,10 +797,8 @@ EXTERN const char Tr_fc_e_dash[] E_INIT("r=fc -e -");
 EXTERN const char Tlocal_typeset[] E_INIT("local=typeset");
 #define T_typeset	(Tlocal_typeset + 5)	/* "=typeset" */
 #define Ttypeset	(Tlocal_typeset + 6)	/* "typeset" */
-EXTERN const char Tpalias[] E_INIT("+alias");
-#define Talias		(Tpalias + 1)		/* "alias" */
-EXTERN const char Tpunalias[] E_INIT("+unalias");
-#define Tunalias	(Tpunalias + 1)		/* "unalias" */
+EXTERN const char Talias[] E_INIT("alias");
+EXTERN const char Tunalias[] E_INIT("unalias");
 EXTERN const char Tsgset[] E_INIT("*=set");
 #define Tset		(Tsgset + 2)		/* "set" */
 EXTERN const char Tsgunset[] E_INIT("*=unset");
@@ -1160,7 +1158,6 @@ EXTERN struct tbl vtemp;
 #define FDELETE		BIT(10)	/* function deleted while it was executing */
 #define FKSH		BIT(11)	/* function defined with function x (vs x()) */
 #define SPEC_BI		BIT(12)	/* a POSIX special builtin */
-#define REG_BI		BIT(13)	/* a POSIX regular builtin */
 /*
  * Attributes that can be set by the user (used to decide if an unset
  * param should be repoted by set/typeset). Does not include ARRAY or
@@ -1189,12 +1186,11 @@ EXTERN enum {
 
 /* Flags for findcom()/comexec() */
 #define FC_SPECBI	BIT(0)	/* special builtin */
-#define FC_FUNC		BIT(1)	/* function builtin */
-#define FC_REGBI	BIT(2)	/* regular builtin */
-#define FC_UNREGBI	BIT(3)	/* un-regular builtin (!special,!regular) */
-#define FC_BI		(FC_SPECBI|FC_REGBI|FC_UNREGBI)
-#define FC_PATH		BIT(4)	/* do path search */
-#define FC_DEFPATH	BIT(5)	/* use default path in path search */
+#define FC_FUNC		BIT(1)	/* function */
+#define FC_NORMBI	BIT(2)	/* not special builtin */
+#define FC_BI		(FC_SPECBI | FC_NORMBI)
+#define FC_PATH		BIT(3)	/* do path search */
+#define FC_DEFPATH	BIT(4)	/* use default path in path search */
 
 
 #define AF_ARGV_ALLOC	0x1	/* argv[] array allocated */

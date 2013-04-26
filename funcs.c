@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.241 2013/04/26 17:39:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.242 2013/04/26 21:22:45 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -84,70 +84,69 @@ c_false(const char **wp MKSH_A_UNUSED)
 }
 
 /*
- * A leading = means assignments before command are kept;
- * a leading * means a POSIX special builtin;
- * a leading + means a POSIX regular builtin
- * (* and + should not be combined).
+ * A leading = means assignments before command are kept.
+ * A leading * means a POSIX special builtin.
  */
 const struct builtin mkshbuiltins[] = {
 	{"*=.", c_dot},
 	{"*=:", c_true},
 	{"[", c_test},
+	/* no =: AT&T manual wrong */
+	{Talias, c_alias},
 	{"*=break", c_brkcont},
 	{Tgbuiltin, c_builtin},
+	{"cat", c_cat},
+	{"cd", c_cd},
+	/* dash compatibility hack */
+	{"chdir", c_cd},
+	{"command", c_command},
 	{"*=continue", c_brkcont},
+	{"echo", c_print},
 	{"*=eval", c_eval},
 	{"*=exec", c_exec},
 	{"*=exit", c_exitreturn},
-	{"+false", c_false},
+	{Tsgexport, c_typeset},
+	{"false", c_false},
+	{"fc", c_fc},
+	{"getopts", c_getopts},
+	{"=global", c_typeset},
+	{"jobs", c_jobs},
+	{"kill", c_kill},
+	{"let", c_let},
+	{"let]", c_let},
+	{"print", c_print},
+	{"pwd", c_pwd},
+	{"read", c_read},
+	{Tsgreadonly, c_typeset},
+	{"realpath", c_realpath},
+	{"rename", c_rename},
 	{"*=return", c_exitreturn},
 	{Tsgset, c_set},
 	{"*=shift", c_shift},
-	{"=times", c_times},
-	{"*=trap", c_trap},
-	{"+=wait", c_wait},
-	{"+read", c_read},
 	{"test", c_test},
-	{"+true", c_true},
-	{"ulimit", c_ulimit},
-	{"+umask", c_umask},
-	{Tsgunset, c_unset},
-	/* no =: AT&T manual wrong */
-	{Tpalias, c_alias},
-	{"+cd", c_cd},
-	/* dash compatibility hack */
-	{"chdir", c_cd},
-	{"+command", c_command},
-	{"echo", c_print},
-	{Tsgexport, c_typeset},
-	{"+fc", c_fc},
-	{"+getopts", c_getopts},
-	{"=global", c_typeset},
-	{"+jobs", c_jobs},
-	{"+kill", c_kill},
-	{"let", c_let},
-	{"print", c_print},
-#ifdef MKSH_PRINTF_BUILTIN
-	{"printf", c_printf},
-#endif
-	{"pwd", c_pwd},
-	{Tsgreadonly, c_typeset},
+	{"*=times", c_times},
+	{"*=trap", c_trap},
+	{"true", c_true},
 	{T_typeset, c_typeset},
-	{Tpunalias, c_unalias},
+	{"ulimit", c_ulimit},
+	{"umask", c_umask},
+	{Tunalias, c_unalias},
+	{Tsgunset, c_unset},
+	{"=wait", c_wait},
 	{"whence", c_whence},
 #ifndef MKSH_UNEMPLOYED
-	{"+bg", c_fgbg},
-	{"+fg", c_fgbg},
+	{"bg", c_fgbg},
+	{"fg", c_fgbg},
 #endif
 #ifndef MKSH_NO_CMDLINE_EDITING
 	{"bind", c_bind},
 #endif
-	{"cat", c_cat},
 #if HAVE_MKNOD
 	{"mknod", c_mknod},
 #endif
-	{"realpath", c_realpath},
-	{"rename", c_rename},
+#ifdef MKSH_PRINTF_BUILTIN
+	{"printf", c_printf},
+#endif
 #if HAVE_SELECT
 	{"sleep", c_sleep},
 #endif

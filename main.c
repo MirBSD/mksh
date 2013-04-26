@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.261 2013/03/29 17:33:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.262 2013/04/26 21:22:46 tg Exp $");
 
 extern char **environ;
 
@@ -238,7 +238,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	/* define built-in commands and see if we were called as one */
 	ktinit(APERM, &builtins,
-	    /* currently up to 50 builtins: 75% of 128 = 2^7 */
+	    /* currently up to 51 builtins: 75% of 128 = 2^7 */
 	    7);
 	for (i = 0; mkshbuiltins[i].name != NULL; i++)
 		if (!strcmp(ccp, builtin(mkshbuiltins[i].name,

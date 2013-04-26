@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.309 2013/04/14 13:36:53 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.310 2013/04/26 21:22:47 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.146 2013/03/18 11:10:52 mpi Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 14 2013 $
+.Dd $Mdocdate: April 26 2013 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2768,8 +2768,7 @@ However, unlike
 shell arguments (i.e. positional parameters $1, $2, etc.)\&
 are never visible inside them.
 When the shell is determining the location of a command, functions
-are searched after special built-in commands, before regular and
-non-regular built-ins, and before the
+are searched after special built-in commands, before builtins and the
 .Ev PATH
 is searched.
 .Pp
@@ -2883,8 +2882,8 @@ returns.
 .El
 .Ss Command execution
 After evaluation of command-line arguments, redirections, and parameter
-assignments, the type of command is determined: a special built-in, a
-function, a regular built-in, or the name of a file to execute found using the
+assignments, the type of command is determined: a special built-in command,
+a function, a normal builtin, or the name of a file to execute found using the
 .Ev PATH
 parameter.
 The checks are made in the above order.
@@ -2900,46 +2899,30 @@ parameter is not used to find them.
 The original
 .Nm ksh
 and POSIX differ somewhat in which commands are considered
-special or regular:
+special or regular.
 .Pp
-POSIX special commands
+POSIX special built-in utilities:
 .Pp
 .Ic \&. , \&: , break , continue ,
 .Ic eval , exec , exit , export ,
 .Ic readonly , return , set , shift ,
-.Ic trap , unset , wait
+.Ic times , trap , unset
 .Pp
 Additional
 .Nm
-special commands
+commands keeping assignments:
 .Pp
-.Ic builtin , global , times , typeset
+.Ic builtin , global , typeset , wait
 .Pp
-Very special commands
-.Pq non-POSIX
+Builtins that are not special:
 .Pp
-.Ic alias , readonly , set , typeset
-.Pp
-POSIX regular commands
-.Pp
-.Ic alias , bg , cd , command ,
+.Ic [ , alias , bg , bind ,
+.Ic cat , cd , command , echo ,
 .Ic false , fc , fg , getopts ,
-.Ic jobs , kill , read , true ,
-.Ic umask , unalias
-.Pp
-Additional
-.Nm
-regular commands
-.Pp
-.Ic \&[ , chdir , bind , cat ,
-.Ic echo , let , mknod , print ,
-.Ic pwd , realpath , rename , sleep ,
-.Ic test , ulimit , whence
-.Pp
-In the future, the additional
-.Nm
-special and regular commands may be treated
-differently from the POSIX special and regular commands.
+.Ic jobs , kill , let , mknod ,
+.Ic print , pwd , read , realpath ,
+.Ic rename , sleep , test , true ,
+.Ic ulimit , umask , unalias , whence
 .Pp
 Once the type of command has been determined, any command-line parameter
 assignments are performed and exported for the duration of the command.
@@ -2966,6 +2949,10 @@ those of the environment the command is used in.
 .It Ic \&: Op Ar ...
 The null command.
 Exit status is set to zero.
+.Pp
+.It Ic \&[ Ar expression Ic \&]
+See
+.Ic test .
 .Pp
 .It Xo Ic alias
 .Oo Fl d \*(Ba t Oo Fl r Oc \*(Ba
@@ -3521,6 +3508,10 @@ resetting
 .Ev OPTIND ,
 may lead to unexpected results.
 .Pp
+.It global Ar ...
+See
+.Ic typeset .
+.Pp
 .It Xo
 .Ic hash
 .Op Fl r
@@ -3599,6 +3590,10 @@ Since expressions may need to be quoted,
 .No \&(( Ar expr No ))
 is syntactic sugar for
 .No let \&" Ns Ar expr Ns \&" .
+.Pp
+.It let]
+Internally used alias for
+.Ic let .
 .Pp
 .It Xo
 .Ic mknod

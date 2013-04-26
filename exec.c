@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.119 2013/04/26 19:47:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.120 2013/04/26 21:22:44 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -1047,25 +1047,23 @@ const char *
 builtin(const char *name, int (*func) (const char **))
 {
 	struct tbl *tp;
-	uint32_t flag;
+	uint32_t flag = DEFINED;
 
 	/* see if any flags should be set for this builtin */
-	for (flag = 0; ; name++) {
+	while (1) {
 		if (*name == '=')
 			/* command does variable assignment */
 			flag |= KEEPASN;
 		else if (*name == '*')
 			/* POSIX special builtin */
 			flag |= SPEC_BI;
-		else if (*name == '+')
-			/* POSIX regular builtin */
-			flag |= REG_BI;
 		else
 			break;
+		name++;
 	}
 
 	tp = ktenter(&builtins, name, hash(name));
-	tp->flag = DEFINED | flag;
+	tp->flag = flag;
 	tp->type = CSHELL;
 	tp->val.f = func;
 
@@ -1097,7 +1095,7 @@ findcom(const char *name, int flags)
 	tbi = (flags & FC_BI) ? ktsearch(&builtins, name, h) : NULL;
 	/*
 	 * POSIX says special builtins first, then functions, then
-	 * POSIX regular builtins, then search path...
+	 * regular builtins, then search path...
 	 */
 	if ((flags & FC_SPECBI) && tbi && (tbi->flag & SPEC_BI))
 		tp = tbi;
@@ -1112,9 +1110,7 @@ findcom(const char *name, int flags)
 				    &tp->u2.errnov);
 		}
 	}
-	if (!tp && (flags & FC_REGBI) && tbi && (tbi->flag & REG_BI))
-		tp = tbi;
-	if (!tp && (flags & FC_UNREGBI) && tbi)
+	if (!tp && (flags & FC_NORMBI) && tbi)
 		tp = tbi;
 	if (!tp && (flags & FC_PATH) && !(flags & FC_DEFPATH)) {
 		tp = ktsearch(&taliases, name, h);

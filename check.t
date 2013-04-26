@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.606 2013/04/26 19:40:42 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.607 2013/04/26 21:22:42 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R44 2013/04/26
+	@(#)MIRBSD KSH R45 2013/04/26
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R44 2013/04/26
+	@(#)LEGACY KSH R45 2013/04/26
 description:
 	Check version of legacy shell.
 stdin:
@@ -9090,7 +9090,7 @@ expected-stdout:
 	}
 	inline_TWHILE() {
 		i=1 
-		while let " i < 10 " 
+		while let] " i < 10 " 
 		do
 			echo $i 
 			let ++i 
@@ -9100,20 +9100,20 @@ expected-stdout:
 		i=1; while (( i < 10 )); do echo $i; let ++i; done
 	); }
 	function comsub_TWHILE {
-		x=$(i=1 ; while let " i < 10 " ; do echo $i ; let ++i ; done ) 
+		x=$(i=1 ; while let] " i < 10 " ; do echo $i ; let ++i ; done ) 
 	} 
 	function reread_TWHILE { x=$((
 		i=1; while (( i < 10 )); do echo $i; let ++i; done
 	)|tr u x); }
 	function reread_TWHILE {
-		x=$(( i=1 ; while let " i < 10 " ; do echo $i ; let ++i ; done ) | tr u x ) 
+		x=$(( i=1 ; while let] " i < 10 " ; do echo $i ; let ++i ; done ) | tr u x ) 
 	} 
 	inline_TUNTIL() {
 		i=10; until  (( !--i )) ; do echo $i; done
 	}
 	inline_TUNTIL() {
 		i=10 
-		until let " !--i " 
+		until let] " !--i " 
 		do
 			echo $i 
 		done 
@@ -9122,13 +9122,13 @@ expected-stdout:
 		i=10; until  (( !--i )) ; do echo $i; done
 	); }
 	function comsub_TUNTIL {
-		x=$(i=10 ; until let " !--i " ; do echo $i ; done ) 
+		x=$(i=10 ; until let] " !--i " ; do echo $i ; done ) 
 	} 
 	function reread_TUNTIL { x=$((
 		i=10; until  (( !--i )) ; do echo $i; done
 	)|tr u x); }
 	function reread_TUNTIL {
-		x=$(( i=10 ; until let " !--i " ; do echo $i ; done ) | tr u x ) 
+		x=$(( i=10 ; until let] " !--i " ; do echo $i ; done ) | tr u x ) 
 	} 
 	inline_TCOPROC() {
 		cat  *  |&  ls
@@ -9742,7 +9742,7 @@ expected-stdout:
 	}
 	inline_TWHILE() {
 		i=1 
-		while let " i < 10 " >&3 
+		while let] " i < 10 " >&3 
 		do
 			echo $i 
 			let ++i 
@@ -9752,20 +9752,20 @@ expected-stdout:
 		i=1; while (( i < 10 )) >&3; do echo $i; let ++i; done >&3
 	); }
 	function comsub_TWHILE {
-		x=$(i=1 ; while let " i < 10 " >&3 ; do echo $i ; let ++i ; done >&3 ) 
+		x=$(i=1 ; while let] " i < 10 " >&3 ; do echo $i ; let ++i ; done >&3 ) 
 	} 
 	function reread_TWHILE { x=$((
 		i=1; while (( i < 10 )) >&3; do echo $i; let ++i; done >&3
 	)|tr u x); }
 	function reread_TWHILE {
-		x=$(( i=1 ; while let " i < 10 " >&3 ; do echo $i ; let ++i ; done >&3 ) | tr u x ) 
+		x=$(( i=1 ; while let] " i < 10 " >&3 ; do echo $i ; let ++i ; done >&3 ) | tr u x ) 
 	} 
 	inline_TUNTIL() {
 		i=10; until  (( !--i )) >&3 ; do echo $i; done >&3
 	}
 	inline_TUNTIL() {
 		i=10 
-		until let " !--i " >&3 
+		until let] " !--i " >&3 
 		do
 			echo $i 
 		done >&3 
@@ -9774,13 +9774,13 @@ expected-stdout:
 		i=10; until  (( !--i )) >&3 ; do echo $i; done >&3
 	); }
 	function comsub_TUNTIL {
-		x=$(i=10 ; until let " !--i " >&3 ; do echo $i ; done >&3 ) 
+		x=$(i=10 ; until let] " !--i " >&3 ; do echo $i ; done >&3 ) 
 	} 
 	function reread_TUNTIL { x=$((
 		i=10; until  (( !--i )) >&3 ; do echo $i; done >&3
 	)|tr u x); }
 	function reread_TUNTIL {
-		x=$(( i=10 ; until let " !--i " >&3 ; do echo $i ; done >&3 ) | tr u x ) 
+		x=$(( i=10 ; until let] " !--i " >&3 ; do echo $i ; done >&3 ) | tr u x ) 
 	} 
 	inline_TCOPROC() {
 		cat  *  >&3 |&  >&3 ls

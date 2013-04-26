@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.626 2013/04/26 19:40:07 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.627 2013/04/26 21:22:39 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -1177,7 +1177,6 @@ i=0
 if test $ct = gcc; then
 	# The following tests run with -Werror (gcc only) if possible
 	NOWARN=$DOWARN; phase=u
-	ac_flags 0 wnooverflow -Wno-overflow
 	# mksh is not written in CFrustFrust!
 	ac_flags 1 no_eh_frame -fno-asynchronous-unwind-tables
 	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
@@ -1532,7 +1531,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.626 2013/04/26 19:40:07 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.627 2013/04/26 21:22:39 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1848,7 +1847,6 @@ ac_testdone
 ac_cppflags
 
 save_CFLAGS=$CFLAGS
-test x1 = x$HAVE_CAN_WNOOVERFLOW && CFLAGS="$CFLAGS -Wno-overflow"
 ac_testn compile_time_asserts_$$ '' 'whether compile-time assertions pass' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
@@ -2048,7 +2046,7 @@ addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && add_cppflags -DMKSH_PRINTF_BUILTIN
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
 test -n "$LDSTATIC" && add_cppflags -DMKSH_OPTSTATIC
-add_cppflags -DMKSH_BUILD_R=449
+add_cppflags -DMKSH_BUILD_R=451
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 
