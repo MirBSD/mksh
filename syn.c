@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.88 2012/12/28 02:28:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.89 2013/04/26 18:27:07 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -53,7 +53,7 @@ static struct op *caselist(void);
 static struct op *casepart(int);
 static struct op *function_body(char *, bool);
 static char **wordlist(void);
-static struct op *block(int, struct op *, struct op *, char **);
+static struct op *block(int, struct op *, struct op *);
 static struct op *newtp(int);
 static void syntaxerr(const char *) MKSH_A_NORETURN;
 static void nesting_push(struct nesting_state *, int);
@@ -108,9 +108,9 @@ pipeline(int cf)
 			if ((p = get_command(CONTIN)) == NULL)
 				syntaxerr(NULL);
 			if (tl == NULL)
-				t = tl = block(TPIPE, t, p, NOWORDS);
+				t = tl = block(TPIPE, t, p);
 			else
-				tl = tl->right = block(TPIPE, tl->right, p, NOWORDS);
+				tl = tl->right = block(TPIPE, tl->right, p);
 		}
 		REJECT;
 	}
@@ -128,7 +128,7 @@ andor(void)
 		while ((c = token(0)) == LOGAND || c == LOGOR) {
 			if ((p = pipeline(CONTIN)) == NULL)
 				syntaxerr(NULL);
-			t = block(c == LOGAND? TAND: TOR, t, p, NOWORDS);
+			t = block(c == LOGAND? TAND: TOR, t, p);
 		}
 		REJECT;
 	}
@@ -157,16 +157,15 @@ c_list(bool multi)
 		} else if (!p)
 			break;
 		else if (c == '&' || c == COPROC)
-			p = block(c == '&' ? TASYNC : TCOPROC,
-			    p, NOBLOCK, NOWORDS);
+			p = block(c == '&' ? TASYNC : TCOPROC, p, NULL);
 		else if (c != ';')
 			have_sep = false;
 		if (!t)
 			t = p;
 		else if (!tl)
-			t = tl = block(TLIST, t, p, NOWORDS);
+			t = tl = block(TLIST, t, p);
 		else
-			tl = tl->right = block(TLIST, tl->right, p, NOWORDS);
+			tl = tl->right = block(TLIST, tl->right, p);
 		if (!have_sep)
 			break;
 	}
@@ -240,7 +239,7 @@ nested(int type, int smark, int emark)
 	t = c_list(true);
 	musthave(emark, KEYWORD|sALIAS);
 	nesting_pop(&old_nesting);
-	return (block(type, t, NOBLOCK, NOWORDS));
+	return (block(type, t, NULL));
 }
 
 static const char let_cmd[] = {
@@ -465,7 +464,7 @@ get_command(int cf)
 		t = pipeline(0);
 		if (t == NULL)
 			syntaxerr(NULL);
-		t = block(TBANG, NOBLOCK, t, NOWORDS);
+		t = block(TBANG, NULL, t);
 		break;
 
 	case TIME:
@@ -477,7 +476,7 @@ get_command(int cf)
 			t->str[0] = '\0';
 			t->str[1] = '\0';
 		}
-		t = block(TTIME, t, NOBLOCK, NOWORDS);
+		t = block(TTIME, t, NULL);
 		break;
 
 	case FUNCTION:
@@ -505,7 +504,7 @@ get_command(int cf)
 		XPput(args, NULL);
 		t->args = (const char **)XPclose(args);
 		XPput(vars, NULL);
-		t->vars = (char **) XPclose(vars);
+		t->vars = (char **)XPclose(vars);
 	} else {
 		XPfree(args);
 		XPfree(vars);
@@ -632,7 +631,7 @@ casepart(int endtok)
 	} while (token(0) == '|');
 	REJECT;
 	XPput(ptns, NULL);
-	t->vars = (char **) XPclose(ptns);
+	t->vars = (char **)XPclose(ptns);
 	musthave(')', 0);
 
 	t->left = c_list(true);
@@ -757,14 +756,13 @@ wordlist(void)
  */
 
 static struct op *
-block(int type, struct op *t1, struct op *t2, char **wp)
+block(int type, struct op *t1, struct op *t2)
 {
 	struct op *t;
 
 	t = newtp(type);
 	t->left = t1;
 	t->right = t2;
-	t->vars = wp;
 	return (t);
 }
 
