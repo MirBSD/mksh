@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.118 2013/04/26 19:40:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.119 2013/04/26 19:47:07 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -661,12 +661,13 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	}
 
 	if (Flag(FXTRACE)) {
-		rv = 0;
+		if (ap[rv = 0]) {
  xtrace_ap_loop:
-		print_value_quoted(shl_out, ap[rv]);
-		if (ap[++rv]) {
-			shf_putc(' ', shl_out);
-			goto xtrace_ap_loop;
+			print_value_quoted(shl_out, ap[rv]);
+			if (ap[++rv]) {
+				shf_putc(' ', shl_out);
+				goto xtrace_ap_loop;
+			}
 		}
 		shf_putc('\n', shl_out);
 		Flag(FXTRACE) = 1;
