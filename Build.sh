@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.625 2013/03/24 00:56:17 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.626 2013/04/26 19:40:07 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -1532,7 +1532,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.625 2013/03/24 00:56:17 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.626 2013/04/26 19:40:07 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1875,13 +1875,8 @@ cta(long_size_no_matter_of_signedness, sizeof(long) == sizeof(unsigned long));
 #ifndef MKSH_LEGACY_MODE
 /* the next assertion is probably not really needed */
 cta(ari_is_4_char, sizeof(mksh_ari_t) == 4);
-/* but the next two are; we REQUIRE signed integer wraparound */
+/* but this is */
 cta(ari_has_31_bit, 0 < (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 1));
-#ifndef MKSH_GCC55009
-cta(ari_sign_32_bit_and_wrap,
-    (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 1) >
-    (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 2));
-#endif
 /* the next assertion is probably not really needed */
 cta(uari_is_4_char, sizeof(mksh_uari_t) == 4);
 /* but the next three are; we REQUIRE unsigned integer wraparound */
@@ -1894,6 +1889,8 @@ cta(uari_wrap_32_bit,
 /* these are always required */
 cta(ari_is_signed, (mksh_ari_t)-1 < (mksh_ari_t)0);
 cta(uari_is_unsigned, (mksh_uari_t)-1 > (mksh_uari_t)0);
+/* we require these to have the precisely same size and assume 2s complement */
+cta(ari_size_no_matter_of_signedness, sizeof(mksh_ari_t) == sizeof(mksh_uari_t));
 
 cta(sizet_size_no_matter_of_signedness, sizeof(ssize_t) == sizeof(size_t));
 cta(ptrdifft_sizet_same_size, sizeof(ptrdiff_t) == sizeof(size_t));
@@ -1903,13 +1900,9 @@ cta(ptrdifft_funcptr_same_size, sizeof(ptrdiff_t) == sizeof(void (*)(void)));
 cta(ptr_fits_in_long, sizeof(ptrdiff_t) <= sizeof(long));
 	};
 #ifndef MKSH_LEGACY_MODE
-#ifndef MKSH_GCC55009
 #define NUM 22
 #else
-#define NUM 21
-#endif
-#else
-#define NUM 15
+#define NUM 16
 #endif
 char ctasserts_dblcheck[sizeof(struct ctasserts) == NUM ? 1 : -1];
 	int main(void) { return (sizeof(ctasserts_dblcheck)); }
@@ -1955,71 +1948,6 @@ EOF
 	*) check_categories="$check_categories int:u" ;;
 	esac
 fi
-
-#
-# runtime checks
-# once this is more than one, check if we can do runtime
-# checks (not cross-compiling) first to save on warnings
-#
-$e "${bi}run-time checks follow$ao, please ignore any weird errors"
-
-if ac_testnnd silent_idivwrapv '' '(run-time) whether signed integer division overflows wrap silently' <<-'EOF'
-	#define MKSH_INCLUDES_ONLY
-	#include "sh.h"
-	#if !defined(MKSH_LEGACY_MODE) || HAVE_LONG_32BIT
-	#define IDIVWRAPV_VL	(mksh_uari_t)0x80000000UL
-	#elif HAVE_LONG_64BIT
-	#define IDIVWRAPV_VL	(mksh_uari_t)0x8000000000000000UL
-	#else
-	# error "cannot check this"
-	#endif
-	#ifdef SIGFPE
-	static void fpe_catcher(int) MKSH_A_NORETURN;
-	#endif
-	int main(int ac, char **av) {
-		mksh_ari_t o1, o2, r1, r2;
-
-	#ifdef SIGFPE
-		signal(SIGFPE, fpe_catcher);
-	#endif
-		o1 = (mksh_ari_t)IDIVWRAPV_VL;
-		o2 = -ac;
-		r1 = o1 / o2;
-		r2 = o1 % o2;
-		if (r1 == o1 && r2 == 0) {
-			printf("si");
-			return (0);
-		}
-		printf("no %d %d %d %d %s", (int)o1, (int)o2, (int)r1,
-		    (int)r2, av[0]);
-		return (1);
-	}
-	#ifdef SIGFPE
-	static const char fpe_msg[] = "no, got SIGFPE, what were they smoking?";
-	#define fpe_msglen (sizeof(fpe_msg) - 1)
-	static void fpe_catcher(int sig MKSH_A_UNUSED) {
-		_exit(write(1, fpe_msg, fpe_msglen) == fpe_msglen ? 2 : 3);
-	}
-	#endif
-EOF
-then
-	if test $fv = 0; then
-		echo "| hrm, compiling this failed, but we will just failback"
-	else
-		echo "| running test programme; this will fail if cross-compiling"
-		echo "| in which case we will gracefully degrade to the default"
-		./$tcfn >vv.out 2>&1
-		rv=$?
-		echo "| result: `cat vv.out`"
-		fv=0
-		test $rv = 0 && test x"`cat vv.out`" = x"si" && fv=1
-	fi
-	rmf conftest.c conftest.o ${tcfn}* vv.out
-	ac_testdone
-fi
-ac_cppflags
-
-$e "${bi}end of run-time checks$ao"
 
 #
 # Compiler: Praeprocessor (only if needed)
@@ -2400,7 +2328,6 @@ MKSH_DISABLE_DEPRECATED		disable code paths scheduled for later removal
 MKSH_DISABLE_EXPERIMENTAL	disable code not yet comfy for (LTS) snapshots
 MKSH_DISABLE_TTY_WARNING	shut up warning about ctty if OS cant be fixed
 MKSH_DONT_EMIT_IDSTRING		omit RCS IDs from binary
-MKSH_GCC55009			DANGER! see http://www.mirbsd.org/mksh.htm#p41
 MKSH_MIDNIGHTBSD01ASH_COMPAT	set -o sh: additional compatibility quirk
 MKSH_NOPROSPECTOFWORK		disable jobs, co-processes, etc. (do not use)
 MKSH_NOPWNAM			skip PAM calls, for -static on eglibc, Solaris
