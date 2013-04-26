@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.69 2013/04/14 13:36:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.70 2013/04/26 19:10:58 tg Exp $");
 
 /* the order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -155,7 +155,7 @@ typedef struct expr_state {
 	/* token from token() */
 	enum token tok;
 	/* don't do assignments (for ?:, &&, ||) */
-	short noassign;
+	uint8_t noassign;
 	/* evaluating an $(()) expression? */
 	bool arith;
 	/* unsigned arithmetic calculation */
