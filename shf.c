@@ -1,7 +1,8 @@
 /*	$OpenBSD: shf.c,v 1.16 2013/04/19 17:36:09 millert Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
+ *		 2012, 2013
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.58 2013/04/26 17:39:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.59 2013/04/26 19:49:07 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
