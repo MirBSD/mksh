@@ -1,5 +1,5 @@
 /*	$OpenBSD: c_ksh.c,v 1.33 2009/02/07 14:03:24 kili Exp $	*/
-/*	$OpenBSD: c_sh.c,v 1.42 2013/03/20 21:05:00 millert Exp $	*/
+/*	$OpenBSD: c_sh.c,v 1.43 2013/04/19 17:39:45 deraadt Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.18 2009/03/01 20:11:06 otto Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.240 2013/03/30 15:39:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.241 2013/04/26 17:39:28 tg Exp $");
 
 #if HAVE_KILLPG
 /*

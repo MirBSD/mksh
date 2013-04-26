@@ -1,4 +1,4 @@
-/*	$OpenBSD: shf.c,v 1.15 2006/04/02 00:48:33 deraadt Exp $	*/
+/*	$OpenBSD: shf.c,v 1.16 2013/04/19 17:36:09 millert Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.57 2013/03/30 15:39:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.58 2013/04/26 17:39:30 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
