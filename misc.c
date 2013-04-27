@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.209 2013/04/26 19:10:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.210 2013/04/27 19:09:13 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1221,8 +1221,8 @@ print_columns(struct shf *shf, unsigned int n,
 		rows = (n + cols - 1) / cols;
 	}
 
+	nspace = (x_cols - max_col * cols) / cols;
 	max_col = -max_col;
-	nspace = (x_cols + max_col * cols) / cols;
 	if (nspace <= 0)
 		nspace = 1;
 	for (r = 0; r < rows; r++) {
