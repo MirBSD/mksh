@@ -164,7 +164,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.651 2013/04/26 21:22:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.652 2013/04/27 18:12:39 tg Exp $");
 #endif
 #define MKSH_VERSION "R45 2013/04/26"
 
@@ -520,7 +520,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 451)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 459)
 #error Must run Build.sh to compile this.
 int
 im_sorry_dave(void)
