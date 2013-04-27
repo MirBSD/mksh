@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.119 2013/04/27 18:22:47 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.120 2013/04/27 18:50:21 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -104,6 +104,9 @@ test-build-lksh: .PHONY
 	cd ${.CURDIR} && exec ${MAKE} lksh.cat1 test-build \
 	    _TBF=-L USE_PRINTF_BUILTIN=0
 
+bothmans: .PHONY
+	cd ${.CURDIR} && exec ${MAKE} MAN='lksh.1 mksh.1' __MANALL
+
 cleandir: clean-extra
 
 clean-extra: .PHONY
@@ -132,7 +135,7 @@ CLEANFILES+=	${MAN:S/$/.txt/} ${MAN:S/$/.txt.gz/}
 CATS_KW=	mksh, ksh, sh
 CATS_TITLE_mksh_1=mksh - The MirBSD Korn Shell
 cats: ${MANALL} ${MANALL:S/.cat/.ps/}
-.if "${MANALL:Nmksh.cat1}" != ""
+.if "${MANALL:Nlksh.cat1:Nmksh.cat1}" != ""
 .  error Adjust here.
 .endif
 .for _m _n in mksh 1

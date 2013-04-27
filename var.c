@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.170 2013/04/07 14:11:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.171 2013/04/27 18:50:25 tg Exp $");
 
 /*-
  * Variables
@@ -495,14 +495,12 @@ getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 		base = 16;
 		have_base = true;
 	}
-#ifdef MKSH_LEGACY_MODE
-	if (arith && s[0] == '0' && ksh_isdigit(s[1]) &&
+	if (Flag(FPOSIX) && arith && s[0] == '0' && ksh_isdigit(s[1]) &&
 	    !(vp->flag & ZEROFIL)) {
 		/* interpret as octal (deprecated) */
 		base = 8;
 		have_base = true;
 	}
-#endif
 	while ((c = *s++)) {
 		if (c == '-') {
 			neg = true;

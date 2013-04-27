@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.310 2013/04/26 21:22:47 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.311 2013/04/27 18:50:24 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.146 2013/03/18 11:10:52 mpi Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 26 2013 $
+.Dd $Mdocdate: April 27 2013 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2563,9 +2563,14 @@ Additionally, base-16 integers may be specified by prefixing them with
 in all forms of arithmetic expressions, except as numeric arguments to the
 .Ic test
 built-in command.
-It is discouraged to prefix numbers with a sole zero
-.Pq Sq 0 ,
-because some shells may interpret them as base-8 integers.
+Prefixing numbers with a sole digit zero
+.Pq Sq 0
+leads to the shell interpreting it as base-8 integer in
+.Ic posix
+mode
+.Em only ;
+historically, (pd)ksh has never done so either anyway,
+and it's unsafe to do that, but POSIX demands it nowadays.
 As a special
 .Nm mksh
 extension, numbers to the base of one are treated as either (8-bit
@@ -6334,6 +6339,16 @@ Use co-processes instead.
 foo \*(Ba bar \*(Ba read baz            # will not change $baz
 foo \*(Ba bar \*(Ba& read \-p baz        # will, however, do so
 .Ed
+.Pp
+.Nm mksh
+provides a consistent set of 32-bit integer arithmetics, both signed
+and unsigned, with defined wraparound and sign of the result of a modulo
+operation, even (defying POSIX) on 64-bit systems.
+If you require 64-bit integer arithmetics, use
+.Nm lksh Pq legacy mksh
+instead, but be aware that, in POSIX, it's legal for the OS to make
+.Li print $((2147483647 + 1))
+delete all files on your system, as it's Undefined Behaviour.
 .Sh BUGS
 Suspending (using \*(haZ) pipelines like the one below will only suspend
 the currently running part of the pipeline; in this example,
@@ -6345,7 +6360,7 @@ $ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R45
+.Nm mksh\ R46
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

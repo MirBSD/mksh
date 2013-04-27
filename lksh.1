@@ -1,7 +1,22 @@
-.\" $MirOS: src/bin/mksh/lksh.1,v 1.1 2013/04/27 18:13:58 tg Exp $
+.\" $MirOS: src/bin/mksh/lksh.1,v 1.2 2013/04/27 18:50:24 tg Exp $
 .\"-
 .\" Copyright (c) 2008, 2009, 2010, 2012, 2013
 .\"	Thorsten “mirabilos” Glaser <tg@mirbsd.org>
+.\"
+.\" Provided that these terms and disclaimer and all copyright notices
+.\" are retained or reproduced in an accompanying document, permission
+.\" is granted to deal in this work without restriction, including un‐
+.\" limited rights to use, publicly perform, distribute, sell, modify,
+.\" merge, give away, or sublicence.
+.\"
+.\" This work is provided “AS IS” and WITHOUT WARRANTY of any kind, to
+.\" the utmost extent permitted by applicable law, neither express nor
+.\" implied; without malicious intent or gross negligence. In no event
+.\" may a licensor, author or contributor be held liable for indirect,
+.\" direct, other damage, loss, or other issues arising in any way out
+.\" of dealing in the work, even if advised of the possibility of such
+.\" damage or existence of a defect, except proven that it results out
+.\" of said person’s immediate fault when using the work as intended.
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
 .\" * ` generates ‘ in gnroff, so use \`
@@ -149,11 +164,15 @@
 .Ek
 .Sh DESCRIPTION
 .Nm
-is a command interpreter intended exclusive for running legacy
+is a command interpreter intended exclusively for running legacy
 shell scripts.
 It is built on
 .Nm mksh ;
 refer to its manual page for details on the scripting language.
+It is recommended to port scripts to
+.Nm mksh
+instead of relying on legacy or idiotic POSIX-mandated behaviour,
+since the MirBSD Korn Shell scripting language is much more consistent.
 .Sh LEGACY MODE
 .Nm
 has the following differences from
@@ -212,9 +231,6 @@ unlike
 .Nm ksh ,
 does not keep file descriptors \*(Gt 2 private.
 .It
-.Nm
-parses leading-zero numbers as octal (base 8).
-.It
 Integers use the host C environment's
 .Vt long
 type, not
@@ -246,13 +262,6 @@ tries to make a cross between a legacy bourne/posix compatibl-ish
 shell and a legacy pdksh-alike but
 .Dq legacy
 is not exactly specified.
-Parsing numbers with leading zero digits or
-.Dq 0x
-is relatively recent in all
-.Nm pdksh
-derivates, but supported here for completeness.
-It might make sense to make this a run-time option, but
-that might also be overkill.
 .Pp
 The
 .Ic set
