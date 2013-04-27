@@ -1,0 +1,279 @@
+.\" $MirOS: src/bin/mksh/lksh.1,v 1.1 2013/04/27 18:13:58 tg Exp $
+.\"-
+.\" Copyright (c) 2008, 2009, 2010, 2012, 2013
+.\"	Thorsten “mirabilos” Glaser <tg@mirbsd.org>
+.\"-
+.\" Try to make GNU groff and AT&T nroff more compatible
+.\" * ` generates ‘ in gnroff, so use \`
+.\" * ' generates ’ in gnroff, \' generates ´, so use \*(aq
+.\" * - generates ‐ in gnroff, \- generates −, so .tr it to -
+.\"   thus use - for hyphens and \- for minus signs and option dashes
+.\" * ~ is size-reduced and placed atop in groff, so use \*(TI
+.\" * ^ is size-reduced and placed atop in groff, so use \*(ha
+.\" * \(en does not work in nroff, so use \*(en
+.\" * <>| are problematic, so redefine and use \*(Lt\*(Gt\*(Ba
+.\" Also make sure to use \& especially with two-letter words.
+.\" The section after the "doc" macropackage has been loaded contains
+.\" additional code to convene between the UCB mdoc macropackage (and
+.\" its variant as BSD mdoc in groff) and the GNU mdoc macropackage.
+.\"
+.ie \n(.g \{\
+.	if \*[.T]ascii .tr \-\N'45'
+.	if \*[.T]latin1 .tr \-\N'45'
+.	if \*[.T]utf8 .tr \-\N'45'
+.	ds <= \[<=]
+.	ds >= \[>=]
+.	ds Rq \[rq]
+.	ds Lq \[lq]
+.	ds sL \(aq
+.	ds sR \(aq
+.	if \*[.T]utf8 .ds sL `
+.	if \*[.T]ps .ds sL `
+.	if \*[.T]utf8 .ds sR '
+.	if \*[.T]ps .ds sR '
+.	ds aq \(aq
+.	ds TI \(ti
+.	ds ha \(ha
+.	ds en \(en
+.\}
+.el \{\
+.	ds aq '
+.	ds TI ~
+.	ds ha ^
+.	ds en \(em
+.\}
+.\"
+.\" Implement .Dd with the Mdocdate RCS keyword
+.\"
+.rn Dd xD
+.de Dd
+.ie \\$1$Mdocdate: \{\
+.	xD \\$2 \\$3, \\$4
+.\}
+.el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
+..
+.\"
+.\" .Dd must come before definition of .Mx, because when called
+.\" with -mandoc, it might implement .Mx itself, but we want to
+.\" use our own definition. And .Dd must come *first*, always.
+.\"
+.Dd $Mdocdate: April 27 2013 $
+.\"
+.\" Check which macro package we use, and do other -mdoc setup.
+.\"
+.ie \n(.g \{\
+.	if \*[.T]utf8 .tr \[la]\*(Lt
+.	if \*[.T]utf8 .tr \[ra]\*(Gt
+.	ie d volume-ds-1 .ds tT gnu
+.	el .ds tT bsd
+.\}
+.el .ds tT ucb
+.\"
+.\" Implement .Mx (MirBSD)
+.\"
+.ie "\*(tT"gnu" \{\
+.	eo
+.	de Mx
+.	nr curr-font \n[.f]
+.	nr curr-size \n[.ps]
+.	ds str-Mx \f[\n[curr-font]]\s[\n[curr-size]u]
+.	ds str-Mx1 \*[Tn-font-size]\%MirOS\*[str-Mx]
+.	if !\n[arg-limit] \
+.	if \n[.$] \{\
+.	ds macro-name Mx
+.	parse-args \$@
+.	\}
+.	if (\n[arg-limit] > \n[arg-ptr]) \{\
+.	nr arg-ptr +1
+.	ie (\n[type\n[arg-ptr]] == 2) \
+.	as str-Mx1 \~\*[arg\n[arg-ptr]]
+.	el \
+.	nr arg-ptr -1
+.	\}
+.	ds arg\n[arg-ptr] "\*[str-Mx1]
+.	nr type\n[arg-ptr] 2
+.	ds space\n[arg-ptr] "\*[space]
+.	nr num-args (\n[arg-limit] - \n[arg-ptr])
+.	nr arg-limit \n[arg-ptr]
+.	if \n[num-args] \
+.	parse-space-vector
+.	print-recursive
+..
+.	ec
+.	ds sP \s0
+.	ds tN \*[Tn-font-size]
+.\}
+.el \{\
+.	de Mx
+.	nr cF \\n(.f
+.	nr cZ \\n(.s
+.	ds aa \&\f\\n(cF\s\\n(cZ
+.	if \\n(aC==0 \{\
+.		ie \\n(.$==0 \&MirOS\\*(aa
+.		el .aV \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8 \\$9
+.	\}
+.	if \\n(aC>\\n(aP \{\
+.		nr aP \\n(aP+1
+.		ie \\n(C\\n(aP==2 \{\
+.			as b1 \&MirOS\ #\&\\*(A\\n(aP\\*(aa
+.			ie \\n(aC>\\n(aP \{\
+.				nr aP \\n(aP+1
+.				nR
+.			\}
+.			el .aZ
+.		\}
+.		el \{\
+.			as b1 \&MirOS\\*(aa
+.			nR
+.		\}
+.	\}
+..
+.\}
+.\"-
+.Dt LKSH 1
+.Os MirBSD
+.Sh NAME
+.Nm lksh
+.Nd Legacy Korn shell built on mksh
+.Sh SYNOPSIS
+.Nm
+.Bk -words
+.Op Fl +abCefhiklmnprUuvXx
+.Op Fl +o Ar opt
+.Oo
+.Fl c Ar string \*(Ba
+.Fl s \*(Ba
+.Ar file
+.Op Ar args ...
+.Oc
+.Ek
+.Sh DESCRIPTION
+.Nm
+is a command interpreter intended exclusive for running legacy
+shell scripts.
+It is built on
+.Nm mksh ;
+refer to its manual page for details on the scripting language.
+.Sh LEGACY MODE
+.Nm
+has the following differences from
+.Nm mksh :
+.Bl -bullet
+.It
+.Nm
+is not suitable for use as
+.Pa /bin/sh .
+.It
+There is no explicit support for interactive use,
+nor any command line editing code.
+Hence,
+.Nm
+is not suitable as a user's login shell, either; use
+.Nm mksh
+instead.
+.It
+The
+.Ev KSH_VERSION
+string identifies
+.Nm
+as
+.Dq LEGACY KSH
+instead of
+.Dq MIRBSD KSH .
+.It
+Some
+.Nm mksh
+specific extensions are missing; specifically, the
+.Fl T
+command-line option.
+.It
+Some extensions from other shells, such as
+.Tn GNU
+.Nm bash ,
+which
+.Nm mksh
+provides, are missing, for increased compatibility with legacy scripts.
+.It
+.Nm
+always uses traditional mode for constructs like:
+.Bd -literal -offset indent
+$ set -- $(getopt ab:c "$@")
+$ echo $?
+.Ed
+.Pp
+POSIX mandates this to show 0, but traditional mode
+passes through the errorlevel from the
+.Xr getopt 1
+command.
+.It
+.Nm lksh ,
+unlike
+.At
+.Nm ksh ,
+does not keep file descriptors \*(Gt 2 private.
+.It
+.Nm
+parses leading-zero numbers as octal (base 8).
+.It
+Integers use the host C environment's
+.Vt long
+type, not
+.Vt int32_t .
+Unsigned arithmetic is done using
+.Vt unsigned long ,
+not
+.Vt uint32_t .
+Neither value limits nor wraparound is guaranteed.
+Dividing the largest negative number by \-1 is Undefined Behaviour
+.Po
+but might work on 32-bit and 64-bit
+.Vt long
+types
+.Pc .
+.It
+.Nm
+only offers the traditional ten file descriptors to scripts.
+.El
+.Sh SEE ALSO
+.Xr mksh 1
+.Pp
+.Pa https://www.mirbsd.org/mksh.htm
+.Pp
+.Pa https://www.mirbsd.org/ksh\-chan.htm
+.Sh CAVEATS
+.Nm
+tries to make a cross between a legacy bourne/posix compatibl-ish
+shell and a legacy pdksh-alike but
+.Dq legacy
+is not exactly specified.
+Parsing numbers with leading zero digits or
+.Dq 0x
+is relatively recent in all
+.Nm pdksh
+derivates, but supported here for completeness.
+It might make sense to make this a run-time option, but
+that might also be overkill.
+.Pp
+The
+.Ic set
+built-in command does not have all options one would expect
+from a full-blown
+.Nm mksh
+or
+.Nm pdksh .
+.Pp
+Talk to the
+.Mx
+development team using the mailing list at
+.Aq miros\-mksh@mirbsd.org
+or the
+.Li \&#\&!/bin/mksh
+.Pq or Li \&#ksh
+IRC channel at
+.Pa irc.freenode.net
+.Pq Port 6697 SSL, 6667 unencrypted
+if you need any further quirks or assistance,
+and consider migrating your legacy scripts to work with
+.Nm mksh
+instead of requiring
+.Nm .
