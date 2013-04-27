@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.608 2013/04/27 18:50:21 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.609 2013/04/27 19:16:23 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R45 2013/04/26
+	@(#)MIRBSD KSH R45 2013/04/27
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R45 2013/04/26
+	@(#)LEGACY KSH R45 2013/04/27
 description:
 	Check version of legacy shell.
 stdin:
