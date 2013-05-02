@@ -1,7 +1,8 @@
 /*	$OpenBSD: jobs.c,v 1.38 2009/12/12 04:28:44 deraadt Exp $	*/
 
 /*-
- * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
+ *		 2012, 2013
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -22,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.95 2013/04/01 02:37:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.96 2013/05/02 20:28:12 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1220,6 +1221,8 @@ j_waitj(Job *j,
 			    ARRAY | INT_U | AINDEX;
  got_array:
 			vp->val.i = proc_errorlevel(p);
+			if (Flag(FPIPEFAIL) && vp->val.i)
+				rv = vp->val.i;
 			p = p->next;
 		}
 	}

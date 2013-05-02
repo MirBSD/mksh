@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.610 2013/05/02 20:21:38 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.611 2013/05/02 20:28:10 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -6293,6 +6293,28 @@ expected-stdout:
 	6 0 .
 	PIPESTATUS[0]=0
 	8 PIPESTATUS[0]=0 PIPESTATUS[1]=0 .
+---
+name: pipeline-4
+description:
+	Check that "set -o pipefail" does what it's supposed to
+stdin:
+	echo 1 "$("$__progname" -c '(exit 12) | (exit 23) | (exit 42); echo $?')" .
+	echo 2 "$("$__progname" -c '! (exit 12) | (exit 23) | (exit 42); echo $?')" .
+	echo 3 "$("$__progname" -o pipefail -c '(exit 12) | (exit 23) | (exit 42); echo $?')" .
+	echo 4 "$("$__progname" -o pipefail -c '! (exit 12) | (exit 23) | (exit 42); echo $?')" .
+	echo 5 "$("$__progname" -c '(exit 23) | (exit 42) | :; echo $?')" .
+	echo 6 "$("$__progname" -c '! (exit 23) | (exit 42) | :; echo $?')" .
+	echo 7 "$("$__progname" -o pipefail -c '(exit 23) | (exit 42) | :; echo $?')" .
+	echo 8 "$("$__progname" -o pipefail -c '! (exit 23) | (exit 42) | :; echo $?')" .
+expected-stdout:
+	1 42 .
+	2 0 .
+	3 42 .
+	4 0 .
+	5 0 .
+	6 1 .
+	7 42 .
+	8 0 .
 ---
 name: persist-history-1
 description:

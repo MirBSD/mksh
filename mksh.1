@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.313 2013/05/02 15:33:30 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.314 2013/05/02 20:28:13 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.146 2013/03/18 11:10:52 mpi Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -514,7 +514,9 @@ token to form pipelines, in which the standard output of each command but the
 last is piped (see
 .Xr pipe 2 )
 to the standard input of the following command.
-The exit status of a pipeline is that of its last command.
+The exit status of a pipeline is that of its last command, unless the
+.Ic pipefail
+option is set (see there).
 All commands of a pipeline are executed in separate subshells;
 this is allowed by POSIX but differs from both variants of
 .At
@@ -4177,6 +4179,9 @@ See the
 and
 .Ic pwd
 commands above for more details.
+.It Fl o Ic pipefail
+Make the exit status of a pipeline (before logically complementing) the
+rightmost non-zero errorlevel, or zero if all commands exited with zero.
 .It Fl o Ic posix
 Enable a somewhat more
 .Px

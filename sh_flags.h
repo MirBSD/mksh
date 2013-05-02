@@ -1,5 +1,5 @@
 #if defined(SHFLAGS_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.13 2013/05/02 20:21:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.14 2013/05/02 20:28:15 tg Exp $");
 #define FN(sname,cname,ochar,flags)	/* nothing */
 #elif defined(SHFLAGS_ENUMS)
 #define FN(sname,cname,ochar,flags)	cname,
@@ -87,6 +87,9 @@ FN("nounset", FNOUNSET, 'u', OF_ANY)
 
 /* ./.	don't do logical cds/pwds (non-standard) */
 FN("physical", FPHYSICAL, 0, OF_ANY)
+
+/* ./.	errorlevel of a pipeline is the rightmost nonzero value */
+FN("pipefail", FPIPEFAIL, 0, OF_ANY)
 
 /* ./.	adhere more closely to POSIX even when undesirable */
 FN("posix", FPOSIX, 0, OF_ANY)
