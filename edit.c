@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.265 2013/02/10 19:05:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.266 2013/05/02 15:33:28 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -3411,11 +3411,11 @@ static const unsigned char classify[128] = {
 /* 8	@	A	B	C	D	E	F	G	*/
 	vC|vX,	vC,	vM,	vC,	vC,	vM,	vM|vX,	vC|vU|vZ,
 /* 9	H	I	J	K	L	M	N	O	*/
-	0,	vC,	0,	0,	0,	0,	vC|vU,	0,
+	0,	vC,	0,	0,	0,	0,	vC|vU,	vU,
 /* A	P	Q	R	S	T	U	V	W	*/
 	vC,	0,	vC,	vC,	vM|vX,	vC,	0,	vM,
 /* B	X	Y	Z	[	\	]	^	_	*/
-	vC,	vC|vU,	0,	0,	vC|vZ,	0,	vM,	vC|vZ,
+	vC,	vC|vU,	0,	vU,	vC|vZ,	0,	vM,	vC|vZ,
 /* C	`	a	b	c	d	e	f	g	*/
 	0,	vC,	vM,	vE,	vE,	vM,	vM|vX,	vC|vZ,
 /* D	h	i	j	k	l	m	n	o	*/
@@ -3443,6 +3443,7 @@ static const unsigned char classify[128] = {
 #define VLIT		8		/* ^V */
 #define VSEARCH		9		/* /, ? */
 #define VVERSION	10		/* <ESC> ^V */
+#define VPREFIX2	11		/* ^[[ and ^[O in insert mode */
 
 static char		undocbuf[LINE];
 
@@ -3805,10 +3806,35 @@ vi_hook(int ch)
 			return (0);
 		}
 		break;
+
+	case VPREFIX2:
+		state = VFAIL;
+		switch (ch) {
+		case 'A':
+			/* the cursor may not be at the BOL */
+			if (!es->cursor)
+				break;
+			/* nor further in the line than we can search for */
+			if ((size_t)es->cursor >= sizeof(srchpat) - 1)
+				es->cursor = sizeof(srchpat) - 2;
+			/* anchor the search pattern */
+			srchpat[0] = '^';
+			/* take the current line up to the cursor */
+			memmove(srchpat + 1, es->cbuf, es->cursor);
+			srchpat[es->cursor + 1] = '\0';
+			/* set a magic flag */
+			argc1 = 2 + (int)es->cursor;
+			/* and emulate a backwards history search */
+			lastsearch = '/';
+			*curcmd = 'n';
+			goto pseudo_VCMD;
+		}
+		break;
 	}
 
 	switch (state) {
 	case VCMD:
+ pseudo_VCMD:
 		state = VNORMAL;
 		switch (vi_cmd(argc1, curcmd)) {
 		case -1:
@@ -4378,6 +4404,11 @@ vi_cmd(int argcnt, const char *cmd)
 				hnum = c2;
 				ohnum = hnum;
 			}
+			if (argcnt >= 2) {
+				/* flag from cursor-up command */
+				es->cursor = argcnt - 2;
+				return (0);
+			}
 			break;
 		case '_':
 			{
@@ -4498,6 +4529,16 @@ vi_cmd(int argcnt, const char *cmd)
 		case Ctrl('x'):
 			expand_word(1);
 			break;
+
+
+		/* mksh: cursor movement */
+		case '[':
+		case 'O':
+			state = VPREFIX2;
+			if (es->linelen != 0)
+				es->cursor++;
+			insert = INSERT;
+			return (0);
 		}
 		if (insert == 0 && es->cursor != 0 && es->cursor >= es->linelen)
 			es->cursor--;

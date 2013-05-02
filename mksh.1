@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.312 2013/04/27 19:16:25 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.313 2013/05/02 15:33:30 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.146 2013/03/18 11:10:52 mpi Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 27 2013 $
+.Dd $Mdocdate: May 2 2013 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -6035,6 +6035,11 @@ Search for the
 .Ar n Ns th
 occurrence of the last search string;
 the direction of the search is the opposite of the last search.
+.It Ar ANSI-CurUp
+Take the characters from the beginning of the line to the current
+cursor position as search string and do a backwards history search
+for lines beginning with this string; keep the cursor position.
+This works only in insert mode and keeps it enabled.
 .El
 .Pp
 Edit commands
