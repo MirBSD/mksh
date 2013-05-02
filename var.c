@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.171 2013/04/27 18:50:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.172 2013/05/02 20:23:09 tg Exp $");
 
 /*-
  * Variables
@@ -347,7 +347,7 @@ str_val(struct tbl *vp)
 	else {
 		/* integer source */
 		mksh_uari_t n;
-		int base;
+		unsigned int base;
 		/**
 		 * worst case number length is when base == 2:
 		 *	1 (minus) + 2 (base, up to 36) + 1 ('#') +
@@ -361,8 +361,8 @@ str_val(struct tbl *vp)
 		if (vp->flag & INT_U)
 			n = vp->val.u;
 		else
-			n = (vp->val.i < 0) ? -vp->val.i : vp->val.i;
-		base = (vp->type == 0) ? 10 : vp->type;
+			n = (vp->val.i < 0) ? -vp->val.u : vp->val.u;
+		base = (vp->type == 0) ? 10U : (unsigned int)vp->type;
 
 		if (base == 1 && n == 0)
 			base = 2;
@@ -473,8 +473,7 @@ setint(struct tbl *vq, mksh_ari_t n)
 static int
 getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 {
-	int c, base;
-	mksh_uari_t num;
+	mksh_uari_t c, num, base;
 	const char *s;
 	bool have_base = false, neg = false;
 
@@ -508,8 +507,7 @@ getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 		} else if (c == '#') {
 			if (have_base || num < 1 || num > 36)
 				return (-1);
-			base = (int)num;
-			if (base == 1) {
+			if ((base = num) == 1) {
 				unsigned int wc;
 
 				if (!UTFMODE)
@@ -536,7 +534,7 @@ getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 			c -= 'A' - 10;
 		else
 			return (-1);
-		if (c < 0 || c >= base)
+		if (c >= base)
 			return (-1);
 		num = num * base + c;
 	}
