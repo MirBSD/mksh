@@ -164,9 +164,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.653 2013/04/27 19:16:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.654 2013/05/02 21:59:52 tg Exp $");
 #endif
-#define MKSH_VERSION "R45 2013/04/27"
+#define MKSH_VERSION "R46 2013/05/02"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -520,7 +520,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 459)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 461)
 #error Must run Build.sh to compile this.
 int
 im_sorry_dave(void)
@@ -1327,6 +1327,7 @@ struct op {
 #define CPAT	11	/* close pattern: ) */
 #define ADELIM	12	/* arbitrary delimiter: ${foo:2:3} ${foo/bar/baz} */
 #define FUNSUB	14	/* ${ foo;} substitution (NUL terminated) */
+#define VALSUB	15	/* ${|foo;} substitution (NUL terminated) */
 
 /*
  * IO redirection

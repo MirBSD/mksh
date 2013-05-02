@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.611 2013/05/02 20:28:10 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.612 2013/05/02 21:59:45 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R45 2013/04/27
+	@(#)MIRBSD KSH R46 2013/05/02
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R45 2013/04/27
+	@(#)LEGACY KSH R46 2013/05/02
 description:
 	Check version of legacy shell.
 stdin:
@@ -8922,8 +8922,8 @@ stdin:
 	EOFI
 	#IORDWR_IODUP
 	sh  1<>/dev/console  0<&1  2>&1
-	#COMSUB_EXPRSUB
-	echo $(true) $((1+ 2))
+	#COMSUB_EXPRSUB_FUNSUB_VALSUB
+	echo $(true) $((1+ 2)) ${  :;} ${| REPLY=x;}
 	#QCHAR_OQUOTE_CQUOTE
 	echo fo\ob\"a\`r\'b\$az
 	echo "fo\ob\"a\`r\'b\$az"
@@ -9305,23 +9305,23 @@ expected-stdout:
 	function reread_IORDWR_IODUP {
 		x=$(( sh 1<>/dev/console <&1 2>&1 ) | tr u x ) 
 	} 
-	inline_COMSUB_EXPRSUB() {
-		echo $(true) $((1+ 2))
+	inline_COMSUB_EXPRSUB_FUNSUB_VALSUB() {
+		echo $(true) $((1+ 2)) ${  :;} ${| REPLY=x;}
 	}
-	inline_COMSUB_EXPRSUB() {
-		echo $(true ) $((1+ 2)) 
+	inline_COMSUB_EXPRSUB_FUNSUB_VALSUB() {
+		echo $(true ) $((1+ 2)) ${ : ;} ${|REPLY=x ;} 
 	} 
-	function comsub_COMSUB_EXPRSUB { x=$(
-		echo $(true) $((1+ 2))
+	function comsub_COMSUB_EXPRSUB_FUNSUB_VALSUB { x=$(
+		echo $(true) $((1+ 2)) ${  :;} ${| REPLY=x;}
 	); }
-	function comsub_COMSUB_EXPRSUB {
-		x=$(echo $(true ) $((1+ 2)) ) 
+	function comsub_COMSUB_EXPRSUB_FUNSUB_VALSUB {
+		x=$(echo $(true ) $((1+ 2)) ${ : ;} ${|REPLY=x ;} ) 
 	} 
-	function reread_COMSUB_EXPRSUB { x=$((
-		echo $(true) $((1+ 2))
+	function reread_COMSUB_EXPRSUB_FUNSUB_VALSUB { x=$((
+		echo $(true) $((1+ 2)) ${  :;} ${| REPLY=x;}
 	)|tr u x); }
-	function reread_COMSUB_EXPRSUB {
-		x=$(( echo $(true ) $((1+ 2)) ) | tr u x ) 
+	function reread_COMSUB_EXPRSUB_FUNSUB_VALSUB {
+		x=$(( echo $(true ) $((1+ 2)) ${ : ;} ${|REPLY=x ;} ) | tr u x ) 
 	} 
 	inline_QCHAR_OQUOTE_CQUOTE() {
 		echo fo\ob\"a\`r\'b\$az
@@ -9906,6 +9906,35 @@ expected-stdout:
 	1:ya x2,2,0.
 	2:ya x2,1,0.
 	3:ya,1,3.
+---
+name: valsub-1
+description:
+	Check that "value substitutions" work as advertised
+stdin:
+	x=1
+	y=2
+	z=3
+	REPLY=4
+	echo "before:	x<$x> y<$y> z<$z> R<$REPLY>"
+	x=${|
+		local y
+		echo "begin:	x<$x> y<$y> z<$z> R<$REPLY>"
+		x=5
+		y=6
+		z=7
+		REPLY=8
+		echo "end:	x<$x> y<$y> z<$z> R<$REPLY>"
+	}
+	echo "after:	x<$x> y<$y> z<$z> R<$REPLY>"
+	# ensure trailing newlines are kept
+	t=${|REPLY=$'foo\n\n';}
+	typeset -p t
+expected-stdout:
+	before:	x<1> y<2> z<3> R<4>
+	begin:	x<1> y<> z<3> R<>
+	end:	x<5> y<6> z<7> R<8>
+	after:	x<8> y<2> z<7> R<4>
+	typeset t=$'foo\n\n'
 ---
 name: test-stnze-1
 description:

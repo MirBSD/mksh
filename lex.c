@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.184 2013/03/29 17:33:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.185 2013/05/02 21:59:49 tg Exp $");
 
 /*
  * states while lexing word
@@ -421,8 +421,14 @@ yylex(int cf)
 						wp += cz;
 					}
 				} else if (c == '{') /*}*/ {
-					c = getsc();
-					if (ctype(c, C_IFSWS)) {
+					if ((c = getsc()) == '|') {
+						/*
+						 * non-subenvironment
+						 * value substitution
+						 */
+						c = VALSUB;
+						goto subst_command2;
+					} else if (ctype(c, C_IFSWS)) {
 						/*
 						 * non-subenvironment
 						 * "command" substitution

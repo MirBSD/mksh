@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.138 2013/03/29 17:33:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.139 2013/05/02 21:59:49 tg Exp $");
 
 /*
  * string expansion
@@ -66,6 +66,7 @@ typedef struct {
 static int varsub(Expand *, const char *, const char *, int *, int *);
 static int comsub(Expand *, const char *, int);
 static void funsub(struct op *);
+static char *valsub(struct op *, Area *);
 static char *trimsub(char *, char *, int);
 static void glob(char *, XPtrV *, bool);
 static void globit(XString *, char **, char *, XPtrV *, int);
@@ -298,27 +299,26 @@ expand(
 				continue;
 			case COMSUB:
 			case FUNSUB:
+			case VALSUB:
 				tilde_ok = 0;
 				if (f & DONTRUNCOMMAND) {
 					word = IFS_WORD;
 					*dp++ = '$';
-					if (c == FUNSUB) {
-						*dp++ = '{';
-						*dp++ = ' ';
-					} else
-						*dp++ = '(';
+					*dp++ = c == COMSUB ? '(' : '{';
+					if (c != COMSUB)
+						*dp++ = c == FUNSUB ? ' ' : '|';
 					while (*sp != '\0') {
 						Xcheck(ds, dp);
 						*dp++ = *sp++;
 					}
-					if (c == FUNSUB) {
+					if (c != COMSUB) {
 						*dp++ = ';';
 						*dp++ = '}';
 					} else
 						*dp++ = ')';
 				} else {
 					type = comsub(&x, sp, c);
-					if (type == XCOM && (f&DOBLANK))
+					if (type != XBASE && (f & DOBLANK))
 						doblank++;
 					sp = strnul(sp) + 1;
 					newlines = 0;
@@ -1366,6 +1366,10 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 		/* rewind the tempfile and restore regular stdout */
 		lseek(shf_fileno(shf), (off_t)0, SEEK_SET);
 		restfd(1, ofd1);
+	} else if (fn == VALSUB) {
+		xp->str = valsub(t, ATEMP);
+		subst_exstat = exstat & 0xFF;
+		return (XSUB);
 	} else {
 		int ofd1, pv[2];
 
@@ -1831,4 +1835,20 @@ funsub(struct op *t)
 	if (!kshsetjmp(e->jbuf))
 		execute(t, XXCOM | XERROK, NULL);
 	popblock();
+}
+
+static char *
+valsub(struct op *t, Area *ap)
+{
+	char *cp;
+	struct tbl *vp;
+
+	newblock();
+	vp = local("REPLY", false);
+	e->type = E_FUNC;
+	if (!kshsetjmp(e->jbuf))
+		execute(t, XXCOM | XERROK, NULL);
+	strdupx(cp, str_val(vp), ap);
+	popblock();
+	return (cp);
 }

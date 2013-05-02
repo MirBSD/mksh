@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.90 2013/04/26 21:22:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.91 2013/05/02 21:59:53 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -1129,7 +1129,7 @@ yyrecursive(int subtype MKSH_A_UNUSED)
 	struct yyrecursive_state *ys;
 	int stok, etok;
 
-	if (subtype == FUNSUB) {
+	if (subtype != COMSUB) {
 		stok = '{';
 		etok = '}';
 	} else {

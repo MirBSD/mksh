@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012
+ *		 2011, 2012, 2013
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.68 2013/03/24 00:56:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.69 2013/05/02 21:59:54 tg Exp $");
 
 #define INDENT	8
 
@@ -349,7 +349,14 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 			shf_puts(cs, shf);
 			break;
 		case FUNSUB:
-			shf_puts("${ ", shf);
+			c = ' ';
+			if (0)
+				/* FALLTHROUGH */
+		case VALSUB:
+			  c = '|';
+			shf_putc('$', shf);
+			shf_putc('{', shf);
+			shf_putc(c, shf);
 			cs = ";}";
 			goto pSUB;
 		case EXPRSUB:
@@ -592,6 +599,7 @@ wdscan(const char *wp, int c)
 			break;
 		case COMSUB:
 		case FUNSUB:
+		case VALSUB:
 		case EXPRSUB:
 			while (*wp++ != 0)
 				;
@@ -833,6 +841,9 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 			break;
 		case FUNSUB:
 			shf_puts("FUNSUB<", shf);
+			goto dumpsub;
+		case VALSUB:
+			shf_puts("VALSUB<", shf);
 			goto dumpsub;
 		case EXPRSUB:
 			shf_puts("EXPRSUB<", shf);
