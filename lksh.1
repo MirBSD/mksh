@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/lksh.1,v 1.3 2013/04/27 19:16:25 tg Exp $
+.\" $MirOS: src/bin/mksh/lksh.1,v 1.4 2013/05/02 20:21:43 tg Exp $
 .\"-
 .\" Copyright (c) 2008, 2009, 2010, 2012, 2013
 .\"	Thorsten “mirabilos” Glaser <tg@mirbsd.org>
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 27 2013 $
+.Dd $Mdocdate: May 2 2013 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -184,7 +184,7 @@ is not suitable for use as
 .Pa /bin/sh .
 .It
 There is no explicit support for interactive use,
-nor any command line editing code.
+nor any command line editing or history code.
 Hence,
 .Nm
 is not suitable as a user's login shell, either; use
@@ -200,19 +200,43 @@ as
 instead of
 .Dq MIRBSD KSH .
 .It
-Some
-.Nm mksh
-specific extensions are missing; specifically, the
-.Fl T
-command-line option.
+.Nm
+only offers the traditional ten file descriptors to scripts.
 .It
-Some extensions from other shells, such as
+.Nm
+uses
+.Tn POSIX
+arithmetics, which has quite a few implications:
+The data type for arithmetics is the host ISO C
+.Vt long
+data type.
+Signed integer wraparound is Undefined Behaviour.
+The sign of the result of a modulo operation with at least one
+negative operand is unspecified.
+Shift operations on negative numbers are unspecified.
+Division of the largest negative number by \-1 is Undefined Behaviour.
+The compiler is permitted to delete all data and crash the system
+if Undefined Behaviour occurs.
+.It
+The rotation arithmetic operators are not available.
+.It
+The shift arithmetic operators take all bits of the second operand into
+account; if they exceed permitted precision, the result is unspecified.
+.It
+The
 .Tn GNU
-.Nm bash ,
-which
-.Nm mksh
-provides, are missing, for increased compatibility with legacy scripts.
+.Nm bash
+extension &\*(Gt to redirect stdout and stderr in one go is not parsed.
 .It
+The
+.Nm mksh
+command line option
+.Fl T
+is not available.
+.It
+Unless
+.Ic set -o posix
+is active,
 .Nm
 always uses traditional mode for constructs like:
 .Bd -literal -offset indent
@@ -230,27 +254,6 @@ unlike
 .At
 .Nm ksh ,
 does not keep file descriptors \*(Gt 2 private.
-.It
-Integers use the host C environment's
-.Vt long
-type, not
-.Vt int32_t .
-Unsigned arithmetic is done using
-.Vt unsigned long ,
-not
-.Vt uint32_t .
-Neither value limits nor wraparound is guaranteed.
-Dividing the largest negative number by \-1 is Undefined Behaviour
-.Po
-but might work on 32-bit and 64-bit
-.Vt long
-types
-.Pc .
-POSIX, by virtue of including ISO C, makes it legal for code triggering
-Undefined Behaviour to remove all your data and crash the system!
-.It
-.Nm
-only offers the traditional ten file descriptors to scripts.
 .El
 .Sh SEE ALSO
 .Xr mksh 1

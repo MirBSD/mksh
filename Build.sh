@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.628 2013/04/27 18:12:37 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.629 2013/05/02 20:21:36 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -1367,8 +1367,8 @@ if ac_ifcpp 'ifdef MKSH_SMALL' isset_MKSH_SMALL '' \
 	check_categories="$check_categories smksh"
 	HAVE_ISSET_MKSH_CONSERVATIVE_FDS=1	# from sh.h
 fi
-ac_ifcpp 'ifdef MKSH_BINSHREDUCED' isset_MKSH_BINSHREDUCED '' \
-    "if a reduced-feature sh is requested" && \
+ac_ifcpp 'if defined(MKSH_BINSHPOSIX) || defined(MKSH_BINSHREDUCED)' \
+    isset_MKSH_BINSH '' 'if invoking as sh should be handled specially' && \
     check_categories="$check_categories binsh"
 ac_ifcpp 'ifdef MKSH_UNEMPLOYED' isset_MKSH_UNEMPLOYED '' \
     "if mksh will be built without job control" && \
@@ -1531,7 +1531,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.628 2013/04/27 18:12:37 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.629 2013/05/02 20:21:36 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2315,6 +2315,7 @@ DEBUG_LEAKS			enable freeing resources before exiting
 MKSHRC_PATH			"~/.mkshrc" (do not change)
 MKSH_A4PB			force use of arc4random_pushb
 MKSH_ASSUME_UTF8		(0=disabled, 1=enabled; default: unset)
+MKSH_BINSHPOSIX			if */sh or */-sh, enable set -o posix
 MKSH_BINSHREDUCED		if */sh or */-sh, enable set -o sh
 MKSH_CLRTOEOL_STRING		"\033[K"
 MKSH_CLS_STRING			"\033[;H\033[J"

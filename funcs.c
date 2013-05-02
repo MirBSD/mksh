@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.242 2013/04/26 21:22:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.243 2013/05/02 20:21:41 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2426,12 +2426,13 @@ c_set(const char **wp)
 	 * which assumes the exit value set will be that of the $()
 	 * (subst_exstat is cleared in execute() so that it will be 0
 	 * if there are no command substitutions).
-	 * Switched ksh (!posix !sh) to POSIX in mksh R39b.
 	 */
 #ifdef MKSH_LEGACY_MODE
-	return (subst_exstat);
+	/* traditional behaviour, unless set -o posix */
+	return (Flag(FPOSIX) ? 0 : subst_exstat);
 #else
-	return (Flag(FSH) ? subst_exstat : 0);
+	/* conformant behaviour, unless set -o sh +o posix */
+	return (Flag(FSH) && !Flag(FPOSIX) ? subst_exstat : 0);
 #endif
 }
 

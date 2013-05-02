@@ -1,5 +1,5 @@
 #if defined(SHFLAGS_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.12 2012/06/28 20:14:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.13 2013/05/02 20:21:45 tg Exp $");
 #define FN(sname,cname,ochar,flags)	/* nothing */
 #elif defined(SHFLAGS_ENUMS)
 #define FN(sname,cname,ochar,flags)	cname,
@@ -88,7 +88,7 @@ FN("nounset", FNOUNSET, 'u', OF_ANY)
 /* ./.	don't do logical cds/pwds (non-standard) */
 FN("physical", FPHYSICAL, 0, OF_ANY)
 
-/* ./.	pdksh compat: somewhat more POSIXish mode (non-standard) */
+/* ./.	adhere more closely to POSIX even when undesirable */
 FN("posix", FPOSIX, 0, OF_ANY)
 
 /* -p	use suid_profile; privileged shell */
@@ -97,7 +97,7 @@ FN("privileged", FPRIVILEGED, 'p', OF_ANY)
 /* -r	restricted shell */
 FN("restricted", FRESTRICTED, 'r', OF_CMDLINE)
 
-/* ./.	pdksh compat: called as sh not mksh; kludge mode (non-standard) */
+/* ./.	kludge mode for better compat with traditional sh (OS-specific) */
 FN("sh", FSH, 0, OF_ANY)
 
 /* -s	(invocation) parse stdin (pseudo non-standard) */

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.609 2013/04/27 19:16:23 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.610 2013/05/02 20:21:38 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -4254,7 +4254,7 @@ description:
 	should print 0 according to POSIX (dash, bash, ksh93, posh)
 	but not 0 according to the getopt(1) manual page, ksh88, and
 	Bourne sh (such as /bin/sh on Solaris).
-	In mksh R39b, we honour POSIX except when -o sh is set.
+	We honour POSIX except when -o sh is set.
 category: shell:legacy-no
 stdin:
 	showf() {
@@ -4274,10 +4274,15 @@ stdin:
 	showf
 	set -- `false`
 	echo rv=$?
+	set -o posix -o sh
+	showf
+	set -- `false`
+	echo rv=$?
 expected-stdout:
 	FPOSIX=0 FSH=0 rv=0
 	FPOSIX=0 FSH=1 rv=1
 	FPOSIX=1 FSH=0 rv=0
+	FPOSIX=1 FSH=1 rv=0
 ---
 name: regression-10-legacy
 description:
@@ -4306,10 +4311,15 @@ stdin:
 	showf
 	set -- `false`
 	echo rv=$?
+	set -o posix -o sh
+	showf
+	set -- `false`
+	echo rv=$?
 expected-stdout:
 	FPOSIX=0 FSH=0 rv=1
 	FPOSIX=0 FSH=1 rv=1
-	FPOSIX=1 FSH=0 rv=1
+	FPOSIX=1 FSH=0 rv=0
+	FPOSIX=1 FSH=1 rv=0
 ---
 name: regression-11
 description:
@@ -6187,7 +6197,7 @@ expected-stdout:
 ---
 name: sh-mode-2a
 description:
-	Check that sh mode is *not* automatically turned on
+	Check that posix or sh mode is *not* automatically turned on
 category: !binsh
 stdin:
 	ln -s "$__progname" ksh || cp "$__progname" ksh
@@ -6196,7 +6206,7 @@ stdin:
 	ln -s "$__progname" ./-sh || cp "$__progname" ./-sh
 	for shell in {,-}{,k}sh; do
 		print -- $shell $(./$shell +l -c \
-		    '[[ $(set +o) == *@(-o sh)@(| *) ]] && echo sh || echo nosh')
+		    '[[ $(set +o) == *"-o "@(sh|posix)@(| *) ]] && echo sh || echo nosh')
 	done
 expected-stdout:
 	sh nosh
@@ -6206,7 +6216,7 @@ expected-stdout:
 ---
 name: sh-mode-2b
 description:
-	Check that sh mode *is* automatically turned on
+	Check that posix or sh mode *is* automatically turned on
 category: binsh
 stdin:
 	ln -s "$__progname" ksh || cp "$__progname" ksh
@@ -6215,7 +6225,7 @@ stdin:
 	ln -s "$__progname" ./-sh || cp "$__progname" ./-sh
 	for shell in {,-}{,k}sh; do
 		print -- $shell $(./$shell +l -c \
-		    '[[ $(set +o) == *@(-o sh)@(| *) ]] && echo sh || echo nosh')
+		    '[[ $(set +o) == *"-o "@(sh|posix)@(| *) ]] && echo sh || echo nosh')
 	done
 expected-stdout:
 	sh sh

@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.210 2013/04/27 19:09:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.211 2013/05/02 20:21:44 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -277,11 +277,10 @@ change_flag(enum sh_flag f, int what, bool newset)
 		setgid(kshegid);
 #endif
 	} else if ((f == FPOSIX || f == FSH) && newval) {
-		Flag(FPOSIX) = Flag(FSH) = Flag(FBRACEEXPAND) = 0;
-		Flag(f) = newval;
-	}
-	/* Changing interactive flag? */
-	if (f == FTALKING) {
+		/* Turning on -o posix or -o sh? */
+		Flag(FBRACEEXPAND) = 0;
+	} else if (f == FTALKING) {
+		/* Changing interactive flag? */
 		if ((what == OF_CMDLINE || what == OF_SET) && procpid == kshpid)
 			Flag(FTALKING_I) = newval;
 	}
@@ -306,6 +305,7 @@ parse_args(const char **argv,
 	size_t i;
 	int optc, arrayset = 0;
 	bool sortargs = false;
+	bool fcompatseen = false;
 
 	/* First call? Build option strings... */
 	if (cmd_opts[0] == '\0') {
@@ -379,6 +379,17 @@ parse_args(const char **argv,
 				break;
 			}
 			i = option(go.optarg);
+			if ((i == FPOSIX || i == FSH) && set && !fcompatseen) {
+				/*
+				 * If running 'set -o posix' or
+				 * 'set -o sh', turn off the other;
+				 * if running 'set -o posix -o sh'
+				 * allow both to be set though.
+				 */
+				Flag(FPOSIX) = 0;
+				Flag(FSH) = 0;
+				fcompatseen = true;
+			}
 			if ((i != (size_t)-1) && (set ? 1U : 0U) == Flag(i))
 				/*
 				 * Don't check the context if the flag
