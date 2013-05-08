@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.632 2013/05/08 11:16:17 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.633 2013/05/08 11:30:45 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -27,6 +27,9 @@ srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.632 2013/05/08 11:16:17 tg Exp $'
 
 LC_ALL=C
 export LC_ALL
+
+echo "For the build logs, demonstrate that /dev/null and /dev/tty exist:"
+ls -l /dev/null /dev/tty
 
 case $ZSH_VERSION:$VERSION in
 :zsh*) ZSH_VERSION=2 ;;
@@ -1537,7 +1540,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.632 2013/05/08 11:16:17 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.633 2013/05/08 11:30:45 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1753,7 +1756,7 @@ EOF
 ac_test setresugid <<-'EOF'
 	#include <sys/types.h>
 	#include <unistd.h>
-	int main(void) { setresuid(0,0,0); return (setresgid(0,0,0)); }
+	int main(void) { return (setresuid(0,0,0) + setresgid(0,0,0)); }
 EOF
 
 ac_test setgroups setresugid 0 <<-'EOF'
