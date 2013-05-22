@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.633 2013/05/08 11:30:45 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.634 2013/05/22 18:56:50 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -193,7 +193,7 @@ ac_testn() {
 ac_ifcpp() {
 	expr=$1; shift
 	ac_testn "$@" <<-EOF
-		extern void thiswillneverbedefinedIhope(void);
+		extern int thiswillneverbedefinedIhope(void);
 		int main(void) { return (
 		#$expr
 		    0
@@ -1181,6 +1181,7 @@ i=0
 if test $ct = gcc; then
 	# The following tests run with -Werror (gcc only) if possible
 	NOWARN=$DOWARN; phase=u
+	ac_flags 1 wnodeprecated -Wno-deprecated
 	# mksh is not written in CFrustFrust!
 	ac_flags 1 no_eh_frame -fno-asynchronous-unwind-tables
 	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
@@ -1294,7 +1295,7 @@ test $ct = pcc && phase=u
 #
 ac_test attribute_bounded '' 'for __attribute__((__bounded__))' <<-'EOF'
 	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
-	extern void thiswillneverbedefinedIhope(void);
+	extern int thiswillneverbedefinedIhope(void);
 	/* force a failure: TenDRA and gcc 1.42 have false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
@@ -1315,7 +1316,7 @@ ac_test attribute_bounded '' 'for __attribute__((__bounded__))' <<-'EOF'
 EOF
 ac_test attribute_format '' 'for __attribute__((__format__))' <<-'EOF'
 	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
-	extern void thiswillneverbedefinedIhope(void);
+	extern int thiswillneverbedefinedIhope(void);
 	/* force a failure: TenDRA and gcc 1.42 have false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
@@ -1330,7 +1331,7 @@ ac_test attribute_format '' 'for __attribute__((__format__))' <<-'EOF'
 EOF
 ac_test attribute_noreturn '' 'for __attribute__((__noreturn__))' <<-'EOF'
 	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
-	extern void thiswillneverbedefinedIhope(void);
+	extern int thiswillneverbedefinedIhope(void);
 	/* force a failure: TenDRA and gcc 1.42 have false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
@@ -1343,7 +1344,7 @@ ac_test attribute_noreturn '' 'for __attribute__((__noreturn__))' <<-'EOF'
 EOF
 ac_test attribute_unused '' 'for __attribute__((__unused__))' <<-'EOF'
 	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
-	extern void thiswillneverbedefinedIhope(void);
+	extern int thiswillneverbedefinedIhope(void);
 	/* force a failure: TenDRA and gcc 1.42 have false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
@@ -1353,7 +1354,7 @@ ac_test attribute_unused '' 'for __attribute__((__unused__))' <<-'EOF'
 EOF
 ac_test attribute_used '' 'for __attribute__((__used__))' <<-'EOF'
 	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
-	extern void thiswillneverbedefinedIhope(void);
+	extern int thiswillneverbedefinedIhope(void);
 	/* force a failure: TenDRA and gcc 1.42 have false positive here */
 	int main(void) { return (thiswillneverbedefinedIhope()); }
 	#else
@@ -1540,7 +1541,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.633 2013/05/08 11:30:45 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.634 2013/05/22 18:56:50 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
