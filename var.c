@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.172 2013/05/02 20:23:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.173 2013/05/31 22:47:14 tg Exp $");
 
 /*-
  * Variables
@@ -768,10 +768,15 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 			if (vp != NULL)
 				qval = str_val(vp);
 		}
-		/* silently ignore 'nameref foo=foo' */
-		if (qval != NULL && !strcmp(qval, tvar)) {
-			afree(tvar, ATEMP);
-			return (&vtemp);
+		/* prevent nameref loops */
+		while (qval) {
+			if (!strcmp(qval, tvar))
+				errorf("%s: %s", qval,
+				    "expression recurses on parameter");
+			varsearch(e->loc, &vp, qval, hash(qval));
+			qval = NULL;
+			if (vp && ((vp->flag & (ARRAY|ASSOC)) == ASSOC))
+				qval = str_val(vp);
 		}
 	}
 

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.612 2013/05/02 21:59:45 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.613 2013/05/31 22:47:12 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -29,7 +29,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R46 2013/05/02
+	@(#)MIRBSD KSH R46 2013/05/31
 description:
 	Check version of shell.
 stdin:
@@ -38,7 +38,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R46 2013/05/02
+	@(#)LEGACY KSH R46 2013/05/31
 description:
 	Check version of legacy shell.
 stdin:
@@ -10261,7 +10261,7 @@ description:
 time-limit: 3
 stdin:
 	baz() {
-		typeset -n foo=foo
+		typeset -n foo=fnord fnord=foo
 		foo[0]=bar
 	}
 	set -A foo bad
@@ -10270,7 +10270,9 @@ stdin:
 	echo blah $foo .
 expected-stdout:
 	sind bad .
-	blah bar .
+	blah bad .
+expected-stderr-pattern:
+	/fnord: expression recurses on parameter/
 ---
 name: better-parens-1a
 description:
