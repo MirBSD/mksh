@@ -164,9 +164,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.655 2013/05/08 11:16:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.656 2013/05/31 23:27:14 tg Exp $");
 #endif
-#define MKSH_VERSION "R46 2013/05/02"
+#define MKSH_VERSION "R46 2013/05/31"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -416,7 +416,7 @@ extern int __cdecl setegid(gid_t);
 
 /* remove redundancies */
 
-#if defined(MirBSD) && (MirBSD >= 0x08A8) && !defined(MKSH_OPTSTATIC)
+#if defined(MirBSD) && (MirBSD >= 0x0AB3) && !defined(MKSH_OPTSTATIC)
 #define MKSH_mirbsd_wcwidth
 #define utf_wcwidth(i) wcwidth((__WCHAR_TYPE__)i)
 extern int wcwidth(__WCHAR_TYPE__);
@@ -520,7 +520,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 461)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 469)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
