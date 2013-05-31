@@ -1,4 +1,4 @@
-/*	$OpenBSD: jobs.c,v 1.38 2009/12/12 04:28:44 deraadt Exp $	*/
+/*	$OpenBSD: jobs.c,v 1.39 2009/12/13 04:36:48 deraadt Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.96 2013/05/02 20:28:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.97 2013/05/31 23:59:07 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1254,8 +1254,7 @@ j_waitj(Job *j,
 static void
 j_sigchld(int sig MKSH_A_UNUSED)
 {
-	/* this runs inside interrupt context, with errno saved */
-
+	int saved_errno = errno;
 	Job *j;
 	Proc *p = NULL;
 	pid_t pid;
@@ -1343,7 +1342,7 @@ j_sigchld(int sig MKSH_A_UNUSED)
 #ifdef MKSH_NO_SIGSUSPEND
 	sigprocmask(SIG_SETMASK, &omask, NULL);
 #endif
-	/* nothing */;
+	errno = saved_errno;
 }
 
 /*
