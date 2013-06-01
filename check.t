@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.613 2013/05/31 22:47:12 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.614 2013/06/01 00:15:55 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -2537,30 +2537,6 @@ expected-stdout:
 	\END
 	end
 ---
-name: heredoc-quoting-unsubst
-description:
-	Check for correct handling of quoted characters in
-	here documents without substitution (marker is quoted).
-stdin:
-	foo=bar
-	cat <<-'EOF'
-		x " \" \ \\ $ \$ `echo baz` \`echo baz\` $foo \$foo x
-	EOF
-expected-stdout:
-	x " \" \ \\ $ \$ `echo baz` \`echo baz\` $foo \$foo x
----
-name: heredoc-quoting-subst
-description:
-	Check for correct handling of quoted characters in
-	here documents with substitution (marker is not quoted).
-stdin:
-	foo=bar
-	cat <<-EOF
-		x " \" \ \\ $ \$ `echo baz` \`echo baz\` $foo \$foo x
-	EOF
-expected-stdout:
-	x " \" \ \ $ $ baz `echo baz` bar $foo x
----
 name: heredoc-tmpfile-1
 description:
 	Check that heredoc temp files aren't removed too soon or too late.
@@ -2742,6 +2718,131 @@ expected-stdout:
 	hi
 	hi
 	Left overs: *
+---
+name: heredoc-quoting-unsubst
+description:
+	Check for correct handling of quoted characters in
+	here documents without substitution (marker is quoted).
+stdin:
+	foo=bar
+	cat <<-'EOF'
+		x " \" \ \\ $ \$ `echo baz` \`echo baz\` $foo \$foo x
+	EOF
+expected-stdout:
+	x " \" \ \\ $ \$ `echo baz` \`echo baz\` $foo \$foo x
+---
+name: heredoc-quoting-subst
+description:
+	Check for correct handling of quoted characters in
+	here documents with substitution (marker is not quoted).
+stdin:
+	foo=bar
+	cat <<-EOF
+		x " \" \ \\ $ \$ `echo baz` \`echo baz\` $foo \$foo x
+	EOF
+expected-stdout:
+	x " \" \ \ $ $ baz `echo baz` bar $foo x
+---
+name: single-quotes-in-braces
+description:
+	Check that single quotes inside unquoted {} are treated as quotes
+stdin:
+	foo=1
+	echo ${foo:+'blah  $foo'}
+expected-stdout:
+	blah  $foo
+---
+name: single-quotes-in-quoted-braces
+description:
+	Check that single quotes inside quoted {} are treated as
+	normal char
+stdin:
+	foo=1
+	echo "${foo:+'blah  $foo'}"
+expected-stdout:
+	'blah  1'
+---
+name: single-quotes-in-braces-nested
+description:
+	Check that single quotes inside unquoted {} are treated as quotes,
+	even if that's inside a double-quoted command expansion
+stdin:
+	foo=1
+	echo "$( echo ${foo:+'blah  $foo'})"
+expected-stdout:
+	blah  $foo
+---
+name: single-quotes-in-brace-pattern
+description:
+	Check that single quotes inside {} pattern are treated as quotes
+stdin:
+	foo=1234
+	echo ${foo%'2'*} "${foo%'2'*}" ${foo%2'*'} "${foo%2'*'}"
+expected-stdout:
+	1 1 1234 1234
+---
+name: single-quotes-in-heredoc-braces
+description:
+	Check that single quotes inside {} in heredoc are treated
+	as normal char
+stdin:
+	foo=1
+	cat <<EOM
+	${foo:+'blah  $foo'}
+	EOM
+expected-stdout:
+	'blah  1'
+---
+name: single-quotes-in-nested-braces
+description:
+	Check that single quotes inside nested unquoted {} are
+	treated as quotes
+stdin:
+	foo=1
+	echo ${foo:+${foo:+'blah  $foo'}}
+expected-stdout:
+	blah  $foo
+---
+name: single-quotes-in-nested-quoted-braces
+description:
+	Check that single quotes inside nested quoted {} are treated
+	as normal char
+stdin:
+	foo=1
+	echo "${foo:+${foo:+'blah  $foo'}}"
+expected-stdout:
+	'blah  1'
+---
+name: single-quotes-in-nested-braces-nested
+description:
+	Check that single quotes inside nested unquoted {} are treated
+	as quotes, even if that's inside a double-quoted command expansion
+stdin:
+	foo=1
+	echo "$( echo ${foo:+${foo:+'blah  $foo'}})"
+expected-stdout:
+	blah  $foo
+---
+name: single-quotes-in-nested-brace-pattern
+description:
+	Check that single quotes inside nested {} pattern are treated as quotes
+stdin:
+	foo=1234
+	echo ${foo:+${foo%'2'*}} "${foo:+${foo%'2'*}}" ${foo:+${foo%2'*'}} "${foo:+${foo%2'*'}}"
+expected-stdout:
+	1 1 1234 1234
+---
+name: single-quotes-in-heredoc-nested-braces
+description:
+	Check that single quotes inside nested {} in heredoc are treated
+	as normal char
+stdin:
+	foo=1
+	cat <<EOM
+	${foo:+${foo:+'blah  $foo'}}
+	EOM
+expected-stdout:
+	'blah  1'
 ---
 name: history-basic
 description:

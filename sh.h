@@ -3,7 +3,7 @@
 /*	$OpenBSD: table.h,v 1.8 2012/02/19 07:52:30 otto Exp $	*/
 /*	$OpenBSD: tree.h,v 1.10 2005/03/28 21:28:22 deraadt Exp $	*/
 /*	$OpenBSD: expand.h,v 1.6 2005/03/30 17:16:37 deraadt Exp $	*/
-/*	$OpenBSD: lex.h,v 1.12 2013/01/20 14:47:46 stsp Exp $	*/
+/*	$OpenBSD: lex.h,v 1.13 2013/03/03 19:11:34 guenther Exp $	*/
 /*	$OpenBSD: proto.h,v 1.34 2012/06/27 07:17:19 otto Exp $	*/
 /*	$OpenBSD: c_test.h,v 1.4 2004/12/20 11:34:26 otto Exp $	*/
 /*	$OpenBSD: tty.h,v 1.5 2004/12/20 11:34:26 otto Exp $	*/
@@ -164,7 +164,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.656 2013/05/31 23:27:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.657 2013/06/01 00:15:58 tg Exp $");
 #endif
 #define MKSH_VERSION "R46 2013/05/31"
 
