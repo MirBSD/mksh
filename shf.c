@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.59 2013/04/26 19:49:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.60 2013/06/01 20:34:01 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -740,8 +740,6 @@ shf_smprintf(const char *fmt, ...)
 	/* NUL terminates */
 	return (shf_sclose(&shf));
 }
-
-#define BUF_SIZE	128
 
 #define	FL_HASH		0x001	/* '#' seen */
 #define FL_PLUS		0x002	/* '+' seen */

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.97 2013/05/31 23:59:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.98 2013/06/01 20:34:01 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -50,7 +50,6 @@ struct proc {
 };
 
 /* Notify/print flag - j_print() argument */
-#define JP_NONE		0	/* don't print anything */
 #define JP_SHORT	1	/* print signals processes were killed by */
 #define JP_MEDIUM	2	/* print [job-num] -/+ command */
 #define JP_LONG		3	/* print [job-num] -/+ pid command */
@@ -103,17 +102,14 @@ struct job {
 #define JW_PIPEST	0x08	/* want PIPESTATUS */
 
 /* Error codes for j_lookup() */
-#define JL_OK		0
-#define JL_NOSUCH	1	/* no such job */
-#define JL_AMBIG	2	/* %foo or %?foo is ambiguous */
-#define JL_INVALID	3	/* non-pid, non-% job id */
+#define JL_NOSUCH	0	/* no such job */
+#define JL_AMBIG	1	/* %foo or %?foo is ambiguous */
+#define JL_INVALID	2	/* non-pid, non-% job id */
 
 static const char * const lookup_msgs[] = {
-	null,
 	"no such job",
 	"ambiguous",
-	"argument must be %job or process id",
-	NULL
+	"argument must be %job or process id"
 };
 
 static Job *job_list;		/* job list */
@@ -907,7 +903,7 @@ j_jobs(const char *cp, int slp,
 		zflag = 1;
 	}
 	if (cp) {
-		int	ecode;
+		int ecode;
 
 		if ((j = j_lookup(cp, &ecode)) == NULL) {
 #ifndef MKSH_NOPROSPECTOFWORK
