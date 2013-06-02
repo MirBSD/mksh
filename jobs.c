@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.98 2013/06/01 20:34:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.99 2013/06/02 03:09:15 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -503,9 +503,6 @@ exchild(struct op *t, int flags,
 		/* Do this before restoring signal */
 		if (flags & XCOPROC)
 			coproc_cleanup(false);
-#ifndef MKSH_NOPROSPECTOFWORK
-		sigprocmask(SIG_SETMASK, &omask, NULL);
-#endif
 		cleanup_parents_env();
 #ifndef MKSH_UNEMPLOYED
 		/*
@@ -540,6 +537,10 @@ exchild(struct op *t, int flags,
 		}
 		/* in case of $(jobs) command */
 		remove_job(j, "child");
+#ifndef MKSH_NOPROSPECTOFWORK
+		/* remove_job needs SIGCHLD blocked still */
+		sigprocmask(SIG_SETMASK, &omask, NULL);
+#endif
 		nzombie = 0;
 #ifndef MKSH_UNEMPLOYED
 		ttypgrp_ok = false;

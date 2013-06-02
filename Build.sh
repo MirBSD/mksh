@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.636 2013/05/31 23:27:11 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.637 2013/06/02 03:09:11 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -1500,14 +1500,18 @@ ac_testn sig_t <<-'EOF'
 	#include <sys/types.h>
 	#include <signal.h>
 	#include <stddef.h>
-	int main(void) { return ((int)(ptrdiff_t)(sig_t)(ptrdiff_t)kill(0,0)); }
+	#include <stdlib.h>
+	volatile sig_t foo = NULL;
+	int main(void) { return (foo == NULL); }
 EOF
 
 ac_testn sighandler_t '!' sig_t 0 <<-'EOF'
 	#include <sys/types.h>
 	#include <signal.h>
 	#include <stddef.h>
-	int main(void) { return ((int)(ptrdiff_t)(sighandler_t)(ptrdiff_t)kill(0,0)); }
+	#include <stdlib.h>
+	volatile sighandler_t foo = NULL;
+	int main(void) { return (foo == NULL); }
 EOF
 if test 1 = $HAVE_SIGHANDLER_T; then
 	add_cppflags -Dsig_t=sighandler_t
@@ -1518,7 +1522,9 @@ ac_testn __sighandler_t '!' sig_t 0 <<-'EOF'
 	#include <sys/types.h>
 	#include <signal.h>
 	#include <stddef.h>
-	int main(void) { return ((int)(ptrdiff_t)(__sighandler_t)(ptrdiff_t)kill(0,0)); }
+	#include <stdlib.h>
+	volatile __sighandler_t foo = NULL;
+	int main(void) { return (foo == NULL); }
 EOF
 if test 1 = $HAVE___SIGHANDLER_T; then
 	add_cppflags -Dsig_t=__sighandler_t
@@ -1541,7 +1547,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.636 2013/05/31 23:27:11 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.637 2013/06/02 03:09:11 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in

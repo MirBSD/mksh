@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.264 2013/05/02 20:21:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.265 2013/06/02 03:09:16 tg Exp $");
 
 extern char **environ;
 
@@ -451,7 +451,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		xc = 0;
 		--xc;
 		if ((xua2 != 2147483648UL) ||
-		    (xl != -2147483648L) || (xul != 2147483648UL) ||
+		    (xl != (-2147483647L-1)) || (xul != 2147483648UL) ||
 		    (xi != -1) || (xui != 4294967295U) ||
 		    (xa != 0) || (xua != 0) || (xc != 255))
 			errorf("integer wraparound test failed");
@@ -1014,6 +1014,10 @@ quitenv(struct shf *shf)
 #ifdef DEBUG_LEAKS
 #ifndef MKSH_NO_CMDLINE_EDITING
 		x_done();
+#endif
+#ifndef MKSH_NOPROSPECTOFWORK
+		/* block at least SIGCHLD during/after afreeall */
+		sigprocmask(SIG_BLOCK, &sm_sigchld, NULL);
 #endif
 		afreeall(APERM);
 		for (fd = 3; fd < NUFILE; fd++)
