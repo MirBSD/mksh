@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.315 2013/05/02 21:59:50 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.316 2013/06/03 22:28:06 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.146 2013/03/18 11:10:52 mpi Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: May 2 2013 $
+.Dd $Mdocdate: June 3 2013 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -157,7 +157,11 @@
 .Nm
 .Bk -words
 .Op Fl +abCefhiklmnprUuvXx
-.Op Fl T Ar /dev/ttyCn \*(Ba \-
+.Oo
+.Fl T Oo Ar \&! Oc Ns Ar tty
+\*(Ba
+.Ar \&\-
+.Oc
 .Op Fl +o Ar option
 .Oo
 .Fl c Ar string \*(Ba
@@ -295,16 +299,28 @@ Redirections that create files can't be used (i.e.\&
 .It Fl s
 The shell reads commands from standard input; all non-option arguments
 are positional parameters.
-.It Fl T Ar tty
+.It Fl T Ar name
 Spawn
 .Nm
 on the
 .Xr tty 4
 device given.
-Superuser only.
+The paths
+.Ar name ,
+.Pa /dev/ttyC Ns Ar name
+and
+.Pa /dev/tty Ns Ar name
+are attempted in order.
+Unless
+.Ar name
+begins with an exclamation mark
+.Pq Sq \&! ,
+this is done in a subshell and returns immediately.
 If
-.Ar tty
-is a dash, detach from controlling terminal (daemonise) instead.
+.Ar name
+is a dash
+.Pq Sq \&\- ,
+detach from controlling terminal (daemonise) instead.
 .El
 .Pp
 In addition to the above, the options described in the
@@ -6384,7 +6400,7 @@ $ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R46
+.Nm mksh\ R47
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.265 2013/06/02 03:09:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.266 2013/06/03 22:28:04 tg Exp $");
 
 extern char **environ;
 
@@ -48,6 +48,7 @@ extern char **environ;
 
 static uint8_t isuc(const char *);
 static int main_init(int, const char *[], Source **, struct block **);
+uint32_t chvt_rndsetup(const void *, size_t);
 void chvt_reinit(void);
 static void reclaim(void);
 static void remove_temps(struct temp *);
@@ -137,15 +138,25 @@ rndsetup(void)
 	/* introduce variation (and yes, second arg MBZ for portability) */
 	mksh_TIME(bufptr->tv);
 
+	h = chvt_rndsetup(bufptr, sizeof(*bufptr));
+
+	afree(cp, APERM);
+	return ((mksh_uari_t)h);
+}
+
+uint32_t
+chvt_rndsetup(const void *bp, size_t sz)
+{
+	register uint32_t h;
+
 	NZATInit(h);
 	/* variation through pid, ppid, and the works */
 	NZATUpdateMem(h, &rndsetupstate, sizeof(rndsetupstate));
 	/* some variation, some possibly entropy, depending on OE */
-	NZATUpdateMem(h, bufptr, sizeof(*bufptr));
+	NZATUpdateMem(h, bp, sz);
 	NZAATFinish(h);
 
-	afree(cp, APERM);
-	return ((mksh_uari_t)h);
+	return (h);
 }
 
 void

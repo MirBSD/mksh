@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.211 2013/05/02 20:21:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.212 2013/06/03 22:28:05 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -54,7 +54,7 @@ static int do_gmatch(const unsigned char *, const unsigned char *,
     const unsigned char *, const unsigned char *);
 static const unsigned char *cclass(const unsigned char *, unsigned char);
 #ifdef KSH_CHVT_CODE
-static void chvt(const char *);
+static void chvt(const Getopt *);
 #endif
 
 /*XXX this should go away */
@@ -414,7 +414,7 @@ parse_args(const char **argv,
 			errorf("no TIOCSCTTY ioctl");
 #else
 			change_flag(FTALKING, OF_CMDLINE, true);
-			chvt(go.optarg);
+			chvt(&go);
 			break;
 #endif
 #endif
@@ -1925,59 +1925,69 @@ c_cd(const char **wp)
 
 
 #ifdef KSH_CHVT_CODE
+extern uint32_t chvt_rndsetup(const void *, size_t);
 extern void chvt_reinit(void);
 
 static void
-chvt(const char *fn)
+chvt(const Getopt *go)
 {
-	char dv[20];
-	struct stat sb;
+	const char *dv = go->optarg;
+	char *cp = NULL;
 	int fd;
 
-	if (*fn == '-') {
-		memcpy(dv, "-/dev/null", sizeof("-/dev/null"));
-		fn = dv + 1;
-	} else {
-		if (stat(fn, &sb)) {
-			memcpy(dv, "/dev/ttyC", 9);
-			strlcpy(dv + 9, fn, sizeof(dv) - 9);
+	switch (*dv) {
+	case '-':
+		dv = "/dev/null";
+		break;
+	case '!':
+		++dv;
+		/* FALLTHROUGH */
+	default: {
+		struct stat sb;
+
+		if (stat(dv, &sb)) {
+			cp = shf_smprintf("/dev/ttyC%s", dv);
+			dv = cp;
 			if (stat(dv, &sb)) {
-				strlcpy(dv + 8, fn, sizeof(dv) - 8);
-				if (stat(dv, &sb))
-					errorf("%s: %s %s", "chvt",
-					    "can't find tty", fn);
+				memmove(cp + 1, cp, /* /dev/tty */ 8);
+				dv = cp + 1;
+				if (stat(dv, &sb)) {
+					errorf("%s: %s: %s", "chvt",
+					    "can't find tty", go->optarg);
+				}
 			}
-			fn = dv;
 		}
 		if (!(sb.st_mode & S_IFCHR))
-			errorf("%s %s %s", "chvt: not a char", "device", fn);
-		if ((sb.st_uid != 0) && chown(fn, 0, 0))
-			warningf(false, "%s: %s %s", "chvt", "can't chown root", fn);
-		if (((sb.st_mode & 07777) != 0600) && chmod(fn, (mode_t)0600))
-			warningf(false, "%s: %s %s", "chvt", "can't chmod 0600", fn);
+			errorf("%s: %s: %s", "chvt", "not a char device", dv);
+#ifndef MKSH_DISABLE_REVOKE_WARNING
 #if HAVE_REVOKE
-		if (revoke(fn))
+		if (revoke(dv))
 #endif
 			warningf(false, "%s: %s %s", "chvt",
 			    "new shell is potentially insecure, can't revoke",
-			    fn);
+			    dv);
+#endif
+	    }
 	}
-	if ((fd = open(fn, O_RDWR)) < 0) {
+	if ((fd = open(dv, O_RDWR)) < 0) {
 		sleep(1);
-		if ((fd = open(fn, O_RDWR)) < 0)
-			errorf("%s: %s %s", "chvt", "can't open", fn);
+		if ((fd = open(dv, O_RDWR)) < 0) {
+			errorf("%s: %s %s", "chvt", "can't open", dv);
+		}
 	}
-	switch (fork()) {
-	case -1:
-		errorf("%s: %s %s", "chvt", "fork", "failed");
-	case 0:
-		break;
-	default:
-		exit(0);
+	if (go->optarg[0] != '!') {
+		switch (fork()) {
+		case -1:
+			errorf("%s: %s %s", "chvt", "fork", "failed");
+		case 0:
+			break;
+		default:
+			exit(0);
+		}
 	}
 	if (setsid() == -1)
 		errorf("%s: %s %s", "chvt", "setsid", "failed");
-	if (fn != dv + 1) {
+	if (go->optarg[0] != '-') {
 		if (ioctl(fd, TIOCSCTTY, NULL) == -1)
 			errorf("%s: %s %s", "chvt", "TIOCSCTTY", "failed");
 		if (tcflush(fd, TCIOFLUSH))
@@ -1988,14 +1998,7 @@ chvt(const char *fn)
 	ksh_dup2(fd, 2, false);
 	if (fd > 2)
 		close(fd);
-	{
-		register uint32_t h;
-
-		NZATInit(h);
-		NZATUpdateMem(h, &rndsetupstate, sizeof(rndsetupstate));
-		NZAATFinish(h);
-		rndset((unsigned long)h);
-	}
+	rndset((unsigned long)chvt_rndsetup(go, sizeof(Getopt)));
 	chvt_reinit();
 }
 #endif
