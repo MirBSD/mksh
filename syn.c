@@ -1,4 +1,4 @@
-/*	$OpenBSD: syn.c,v 1.28 2008/07/23 16:34:38 jaredy Exp $	*/
+/*	$OpenBSD: syn.c,v 1.29 2013/06/03 18:40:05 jca Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.91 2013/05/02 21:59:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.92 2013/06/03 22:28:17 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -742,13 +742,8 @@ wordlist(void)
 		XPput(args, yylval.cp);
 	if (c != '\n' && c != ';')
 		syntaxerr(NULL);
-	if (XPsize(args) == 0) {
-		XPfree(args);
-		return (NULL);
-	} else {
-		XPput(args, NULL);
-		return ((char **)XPclose(args));
-	}
+	XPput(args, NULL);
+	return ((char **)XPclose(args));
 }
 
 /*
