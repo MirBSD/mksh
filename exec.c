@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.121 2013/06/02 03:09:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.122 2013/06/03 22:28:31 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -106,7 +106,7 @@ execute(struct op * volatile t,
 			/* set variable to its expanded value */
 			z = strlen(cp) + 1;
 			if (notoktomul(z, 2) || notoktoadd(z * 2, n))
-				internal_errorf(Toomem, (unsigned long)-1);
+				internal_errorf(Toomem, (size_t)-1);
 			dp = alloc(z * 2 + n, ATEMP);
 			memcpy(dp, t->vars[0], n);
 			t->vars[0] = dp;

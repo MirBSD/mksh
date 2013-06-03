@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.243 2013/05/02 20:21:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.244 2013/06/03 22:28:32 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3726,7 +3726,7 @@ c_cat(const char **wp)
 	rv = 0;
 
 	if ((buf = malloc_osfunc(MKSH_CAT_BUFSIZ)) == NULL) {
-		bi_errorf(Toomem, (unsigned long)MKSH_CAT_BUFSIZ);
+		bi_errorf(Toomem, (size_t)MKSH_CAT_BUFSIZ);
 		return (1);
 	}
 
