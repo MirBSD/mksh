@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.638 2013/06/03 22:27:15 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.639 2013/07/08 10:12:45 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -770,7 +770,7 @@ esac
 
 : ${HAVE_MKNOD=0}
 
-: ${AWK=awk} ${CC=cc} ${NROFF=nroff}
+: ${AWK=awk} ${CC=cc} ${NROFF=nroff} ${SIZE=size}
 test 0 = $r && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
     NROFF="$NROFF -c"
 
@@ -1544,7 +1544,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.638 2013/06/03 22:27:15 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.639 2013/07/08 10:12:45 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2193,7 +2193,7 @@ dragonegg|llvm)
 esac
 echo tcfn=$mkshexe >>Rebuild.sh
 echo "$CC $CFLAGS $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
-echo 'test -f $tcfn || exit 1; size $tcfn' >>Rebuild.sh
+echo "test -f \$tcfn || exit 1; $SIZE \$tcfn" >>Rebuild.sh
 if test $cm = makefile; then
 	extras='emacsfn.h sh.h sh_flags.h var_spec.h'
 	test 0 = $HAVE_SYS_SIGNAME && extras="$extras signames.inc"
@@ -2274,7 +2274,7 @@ test $cm = combine || v "$CC $CFLAGS $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
 test -f $tcfn || exit 1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >$tfn.cat1" || \
     rmf $tfn.cat1
-test 0 = $eq && v size $tcfn
+test 0 = $eq && v $SIZE $tcfn
 i=install
 test -f /usr/ucb/$i && i=/usr/ucb/$i
 test 1 = $eq && e=:
