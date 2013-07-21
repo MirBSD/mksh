@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.317 2013/07/21 18:36:02 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.318 2013/07/21 18:47:21 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.147 2013/06/13 19:43:09 millert Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -4165,6 +4165,11 @@ must be used.
 To avoid infinite loops, the shell will exit if
 .Dv EOF
 is read 13 times in a row.
+.It Fl o Ic inherit\-xtrace
+Do not reset
+.Fl o Ic xtrace
+upon entering functions.
+This is enabled by default.
 .It Fl o Ic nohup
 Do not kill running jobs with a
 .Dv SIGHUP

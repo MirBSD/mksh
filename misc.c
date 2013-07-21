@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.212 2013/06/03 22:28:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.213 2013/07/21 18:47:20 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -229,8 +229,12 @@ void
 change_flag(enum sh_flag f, int what, bool newset)
 {
 	unsigned char oldval;
-	unsigned char newval;
+	unsigned char newval = (newset ? 1 : 0);
 
+	if (f == FXTRACE) {
+		change_xtrace(newval, true);
+		return;
+	}
 	oldval = Flag(f);
 	Flag(f) = newval = (newset ? 1 : 0);
 #ifndef MKSH_UNEMPLOYED
@@ -284,6 +288,37 @@ change_flag(enum sh_flag f, int what, bool newset)
 		if ((what == OF_CMDLINE || what == OF_SET) && procpid == kshpid)
 			Flag(FTALKING_I) = newval;
 	}
+}
+
+void
+change_xtrace(unsigned char newval, bool dosnapshot)
+{
+	if (!dosnapshot && newval == Flag(FXTRACE))
+		return;
+
+	if (Flag(FXTRACE) == 2) {
+		shf_putc('\n', shl_xtrace);
+		Flag(FXTRACE) = 1;
+		shf_flush(shl_xtrace);
+	}
+
+	if (!dosnapshot && Flag(FXTRACE) == 1)
+		switch (newval) {
+		case 1:
+			return;
+		case 2:
+			goto changed_xtrace;
+		}
+
+	shf_flush(shl_xtrace);
+	if (shl_xtrace->fd != 2)
+		close(shl_xtrace->fd);
+	if (!newval || (shl_xtrace->fd = savefd(2)) == -1)
+		shl_xtrace->fd = 2;
+
+ changed_xtrace:
+	if ((Flag(FXTRACE) = newval) == 2)
+		shf_puts(substitute(str_val(global("PS4")), 0), shl_xtrace);
 }
 
 /*
@@ -444,8 +479,10 @@ parse_args(const char **argv,
 	    (argv[go.optind][0] == '-' || argv[go.optind][0] == '+') &&
 	    argv[go.optind][1] == '\0') {
 		/* lone - clears -v and -x flags */
-		if (argv[go.optind][0] == '-')
-			Flag(FVERBOSE) = Flag(FXTRACE) = 0;
+		if (argv[go.optind][0] == '-') {
+			Flag(FVERBOSE) = 0;
+			change_xtrace(0, false);
+		}
 		/* set skips lone - or + option */
 		go.optind++;
 	}

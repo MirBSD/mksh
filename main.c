@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.267 2013/07/21 18:36:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.268 2013/07/21 18:47:19 tg Exp $");
 
 extern char **environ;
 
@@ -342,6 +342,11 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	 * alternation always have it on.
 	 */
 	Flag(FBRACEEXPAND) = 1;
+
+	/*
+	 * Turn on "set -x" inheritance by default.
+	 */
+	Flag(FXTRACEREC) = 1;
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 	/*
@@ -1388,7 +1393,7 @@ initio(void)
 	/* force buffer allocation */
 	shf_fdopen(1, SHF_WR, shl_stdout);
 	shf_fdopen(2, SHF_WR, shl_out);
-	shf_fdopen(2, SHF_WR, shl_spare);
+	shf_fdopen(2, SHF_WR, shl_xtrace);
 #ifdef DF
 	if ((lfp = getenv("SDMKSH_PATH")) == NULL) {
 		if ((lfp = getenv("HOME")) == NULL || *lfp != '/')

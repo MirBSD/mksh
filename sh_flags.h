@@ -1,5 +1,5 @@
 #if defined(SHFLAGS_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.14 2013/05/02 20:28:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.15 2013/07/21 18:47:24 tg Exp $");
 #define FN(sname,cname,ochar,flags)	/* nothing */
 #elif defined(SHFLAGS_ENUMS)
 #define FN(sname,cname,ochar,flags)	cname,
@@ -44,6 +44,9 @@ FN("gmacs", FGMACS, 0, OF_ANY)
 
 /* ./.	reading EOF does not exit */
 FN("ignoreeof", FIGNOREEOF, 0, OF_ANY)
+
+/* ./.	inherit -x flag */
+FN("inherit-xtrace", FXTRACEREC, 0, OF_ANY)
 
 /* -i	interactive shell */
 FN("interactive", FTALKING, 'i', OF_CMDLINE)

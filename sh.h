@@ -164,9 +164,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.659 2013/06/03 22:28:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.660 2013/07/21 18:47:22 tg Exp $");
 #endif
-#define MKSH_VERSION "R46 2013/06/03"
+#define MKSH_VERSION "R47 2013/07/21"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -520,7 +520,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 469)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 471)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -838,7 +838,7 @@ struct temp {
  * stdio and our IO routines
  */
 
-#define shl_spare	(&shf_iob[0])	/* for c_read()/c_print() */
+#define shl_xtrace	(&shf_iob[0])	/* for set -x */
 #define shl_stdout	(&shf_iob[1])
 #define shl_out		(&shf_iob[2])
 #ifdef DF
@@ -1906,6 +1906,7 @@ void initctypes(void);
 size_t option(const char *);
 char *getoptions(void);
 void change_flag(enum sh_flag, int, bool);
+void change_xtrace(unsigned char, bool);
 int parse_args(const char **, int, bool *);
 int getn(const char *, int *);
 int gmatchx(const char *, const char *, bool);

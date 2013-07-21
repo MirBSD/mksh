@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.123 2013/07/21 18:36:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.124 2013/07/21 18:47:18 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -138,11 +138,6 @@ execute(struct op * volatile t,
 			/* Allow option parsing (bizarre, but POSIX) */
 			timex_hook(t, &up);
 		ap = (const char **)up;
-		if (Flag(FXTRACE)) {
-			shf_puts(substitute(str_val(global("PS4")), 0),
-			    shl_out);
-			Flag(FXTRACE) = 2;
-		}
 		if (ap[0])
 			tp = findcom(ap[0], FC_BI|FC_FUNC);
 	}
@@ -639,6 +634,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	l_assign = e->loc;
 	if (Flag(FEXPORT))
 		type_flags |= EXPORT;
+	if (Flag(FXTRACE))
+		change_xtrace(2, false);
 	for (i = 0; t->vars[i]; i++) {
 		/* do NOT lookup in the new var/fn block just created */
 		e->loc = l_expand;
@@ -652,9 +649,9 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				++ccp;
 			if (*ccp == '=')
 				++ccp;
-			shf_write(cp, ccp - cp, shl_out);
-			print_value_quoted(shl_out, ccp);
-			shf_putc(' ', shl_out);
+			shf_write(cp, ccp - cp, shl_xtrace);
+			print_value_quoted(shl_xtrace, ccp);
+			shf_putc(' ', shl_xtrace);
 		}
 		/* but assign in there as usual */
 		typeset(cp, type_flags, 0, 0, 0);
@@ -663,17 +660,16 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	}
 
 	if (Flag(FXTRACE)) {
+		change_xtrace(2, false);
 		if (ap[rv = 0]) {
  xtrace_ap_loop:
-			print_value_quoted(shl_out, ap[rv]);
+			print_value_quoted(shl_xtrace, ap[rv]);
 			if (ap[++rv]) {
-				shf_putc(' ', shl_out);
+				shf_putc(' ', shl_xtrace);
 				goto xtrace_ap_loop;
 			}
 		}
-		shf_putc('\n', shl_out);
-		Flag(FXTRACE) = 1;
-		shf_flush(shl_out);
+		change_xtrace(1, false);
 	}
 
 	if ((cp = *ap) == NULL) {
@@ -756,9 +752,9 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			getopts_reset(1);
 		}
 
-		old_xflag = Flag(FXTRACE);
-		Flag(FXTRACE) |= tp->flag & TRACE ? 1 : 0;
-
+		old_xflag = Flag(FXTRACE) ? 1 : 0;
+		change_xtrace((Flag(FXTRACEREC) ? old_xflag : 0) |
+		    ((tp->flag & TRACE) ? 1 : 0), false);
 		old_inuse = tp->flag & FINUSE;
 		tp->flag |= FINUSE;
 
@@ -767,9 +763,11 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			execute(tp->val.t, flags & XERROK, NULL);
 			i = LRETURN;
 		}
+
 		kshname = old_kshname;
-		Flag(FXTRACE) = old_xflag;
+		change_xtrace(old_xflag, false);
 		tp->flag = (tp->flag & ~FINUSE) | old_inuse;
+
 		/*
 		 * Were we deleted while executing? If so, free the
 		 * execution tree. TODO: Unfortunately, the table entry
@@ -1310,8 +1308,11 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	iotmp.name = (iotype == IOHERE) ? NULL : cp;
 	iotmp.flag |= IONAMEXP;
 
-	if (Flag(FXTRACE) == 2)
-		fptreef(shl_out, 0, "%R", &iotmp);
+	if (Flag(FXTRACE)) {
+		change_xtrace(2, false);
+		fptreef(shl_xtrace, 0, "%R", &iotmp);
+		change_xtrace(1, false);
+	}
 
 	switch (iotype) {
 	case IOREAD:
