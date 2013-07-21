@@ -1,4 +1,4 @@
-/*	$OpenBSD: exec.c,v 1.49 2009/01/29 23:27:26 jaredy Exp $	*/
+/*	$OpenBSD: exec.c,v 1.50 2013/06/10 21:09:27 millert Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.122 2013/06/03 22:28:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.123 2013/07/21 18:36:00 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -302,10 +302,12 @@ execute(struct op * volatile t,
 	case TAND:
 		rv = execute(t->left, XERROK, xerrok);
 		if ((rv == 0) == (t->type == TAND))
-			rv = execute(t->right, XERROK, xerrok);
-		flags |= XERROK;
-		if (xerrok)
-			*xerrok = 1;
+			rv = execute(t->right, flags & XERROK, xerrok);
+		else {
+			flags |= XERROK;
+			if (xerrok)
+				*xerrok = 1;
+		}
 		break;
 
 	case TBANG:

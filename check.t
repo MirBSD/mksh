@@ -1,7 +1,9 @@
-# $MirOS: src/bin/mksh/check.t,v 1.616 2013/06/03 22:28:28 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.617 2013/07/21 18:35:57 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
+# $OpenBSD: regress.t,v 1.15 2013/07/01 17:25:27 jca Exp $
+# $OpenBSD: obsd-regress.t,v 1.5 2013/07/01 17:25:27 jca Exp $
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #	      2011, 2012, 2013
@@ -4783,18 +4785,16 @@ expected-stdout:
 ---
 name: regression-39
 description:
-	set -e: errors in command substitutions aren't ignored
-	Not clear if they should be or not... bash passes here
-	this may actually be required for make, so changed the
-	test to make this an mksh feature, not a bug
-arguments: !-e!
+	Only posh and oksh(2013-07) say “hi” below; FreeBSD sh,
+	GNU bash in POSIX mode, dash, ksh93, mksh don’t. All of
+	them exit 0. The POSIX behaviour is needed by BSD make.
 stdin:
+	set -e
 	echo `false; echo hi`
-#expected-fail: yes
-#expected-stdout:
-#	hi
+	echo $?
 expected-stdout:
 	
+	0
 ---
 name: regression-40
 description:
@@ -8711,10 +8711,57 @@ expected-stdout:
 	bar
 	baz
 ---
-name: oksh-shcrash
+name: oksh-eval
 description:
-	src/regress/bin/ksh/shcrash.sh,v 1.1
+	$OpenBSD: eval.sh,v 1.1 2010/03/24 08:29:44 fgsch Exp $
 stdin:
+	a=
+	for n in ${a#*=}; do echo 1hu ${n} .; done
+	for n in "${a#*=}"; do echo 1hq ${n} .; done
+	for n in ${a##*=}; do echo 2hu ${n} .; done
+	for n in "${a##*=}"; do echo 2hq ${n} .; done
+	for n in ${a%=*}; do echo 1pu ${n} .; done
+	for n in "${a%=*}"; do echo 1pq ${n} .; done
+	for n in ${a%%=*}; do echo 2pu ${n} .; done
+	for n in "${a%%=*}"; do echo 2pq ${n} .; done
+expected-stdout:
+	1hq .
+	2hq .
+	1pq .
+	2pq .
+---
+name: oksh-and-list-error-1
+description:
+	Test exit status of rightmost element in 2 element && list in -e mode
+stdin:
+	true && false
+	echo "should not print"
+arguments: !-e!
+expected-exit: e != 0
+---
+name: oksh-and-list-error-2
+description:
+	Test exit status of rightmost element in 3 element && list in -e mode
+stdin:
+	true && true && false
+	echo "should not print"
+arguments: !-e!
+expected-exit: e != 0
+---
+name: oksh-or-list-error-1
+description:
+	Test exit status of || list in -e mode
+stdin:
+	false || false
+	echo "should not print"
+arguments: !-e!
+expected-exit: e != 0
+---
+name: oksh-longline-crash
+description:
+	This used to cause a core dump
+stdin:
+	ulimit -c 0
 	deplibs="-lz -lpng /usr/local/lib/libjpeg.la -ltiff -lm -lX11 -lXext /usr/local/lib/libiconv.la -L/usr/local/lib -L/usr/ports/devel/gettext/w-gettext-0.10.40/gettext-0.10.40/intl/.libs /usr/local/lib/libintl.la /usr/local/lib/libglib.la /usr/local/lib/libgmodule.la -lintl -lm -lX11 -lXext -L/usr/X11R6/lib -lglib -lgmodule -L/usr/local/lib /usr/local/lib/libgdk.la -lintl -lm -lX11 -lXext -L/usr/X11R6/lib -lglib -lgmodule -L/usr/local/lib /usr/local/lib/libgtk.la -ltiff -ljpeg -lz -lpng -lm -lX11 -lXext -lintl -lglib -lgmodule -lgdk -lgtk -L/usr/X11R6/lib -lglib -lgmodule -L/usr/local/lib /usr/local/lib/libgdk_pixbuf.la -lz -lpng /usr/local/lib/libiconv.la -L/usr/local/lib -L/usr/ports/devel/gettext/w-gettext-0.10.40/gettext-0.10.40/intl/.libs /usr/local/lib/libintl.la /usr/local/lib/libglib.la -lm -lm /usr/local/lib/libaudiofile.la -lm -lm -laudiofile -L/usr/local/lib /usr/local/lib/libesd.la -lm -lz -L/usr/local/lib /usr/local/lib/libgnomesupport.la -lm -lz -lm -lglib -L/usr/local/lib /usr/local/lib/libgnome.la -lX11 -lXext /usr/local/lib/libiconv.la -L/usr/local/lib -L/usr/ports/devel/gettext/w-gettext-0.10.40/gettext-0.10.40/intl/.libs /usr/local/lib/libintl.la /usr/local/lib/libgmodule.la -lintl -lm -lX11 -lXext -L/usr/X11R6/lib -lglib -lgmodule -L/usr/local/lib /usr/local/lib/libgdk.la -lintl -lm -lX11 -lXext -L/usr/X11R6/lib -lglib -lgmodule -L/usr/local/lib /usr/local/lib/libgtk.la -lICE -lSM -lz -lpng /usr/local/lib/libungif.la /usr/local/lib/libjpeg.la -ltiff -lm -lz -lpng /usr/local/lib/libungif.la -lz /usr/local/lib/libjpeg.la -ltiff -L/usr/local/lib -L/usr/X11R6/lib /usr/local/lib/libgdk_imlib.la -lm -L/usr/local/lib /usr/local/lib/libart_lgpl.la -lm -lz -lm -lX11 -lXext -lintl -lglib -lgmodule -lgdk -lgtk -lICE -lSM -lm -lX11 -lXext -lintl -lglib -lgmodule -lgdk -lgtk -L/usr/X11R6/lib -lm -lz -lpng -lungif -lz -ljpeg -ltiff -ljpeg -lgdk_imlib -lglib -lm -laudiofile -lm -laudiofile -lesd -L/usr/local/lib /usr/local/lib/libgnomeui.la -lz -lz /usr/local/lib/libxml.la -lz -lz -lz /usr/local/lib/libxml.la -lm -lX11 -lXext /usr/local/lib/libiconv.la -L/usr/ports/devel/gettext/w-gettext-0.10.40/gettext-0.10.40/intl/.libs /usr/local/lib/libintl.la /usr/local/lib/libglib.la /usr/local/lib/libgmodule.la -lintl -lglib -lgmodule /usr/local/lib/libgdk.la /usr/local/lib/libgtk.la -L/usr/X11R6/lib -L/usr/local/lib /usr/local/lib/libglade.la -lz -lz -lz /usr/local/lib/libxml.la /usr/local/lib/libglib.la -lm -lm /usr/local/lib/libaudiofile.la -lm -lm -laudiofile /usr/local/lib/libesd.la -lm -lz /usr/local/lib/libgnomesupport.la -lm -lz -lm -lglib /usr/local/lib/libgnome.la -lX11 -lXext /usr/local/lib/libiconv.la -L/usr/ports/devel/gettext/w-gettext-0.10.40/gettext-0.10.40/intl/.libs /usr/local/lib/libintl.la /usr/local/lib/libgmodule.la -lintl -lm -lX11 -lXext -lglib -lgmodule /usr/local/lib/libgdk.la -lintl -lm -lX11 -lXext -lglib -lgmodule /usr/local/lib/libgtk.la -lICE -lSM -lz -lpng /usr/local/lib/libungif.la /usr/local/lib/libjpeg.la -ltiff -lm -lz -lz /usr/local/lib/libgdk_imlib.la /usr/local/lib/libart_lgpl.la -lm -lz -lm -lX11 -lXext -lintl -lglib -lgmodule -lgdk -lgtk -lm -lX11 -lXext -lintl -lglib -lgmodule -lgdk -lgtk -lm -lz -lungif -lz -ljpeg -ljpeg -lgdk_imlib -lglib -lm -laudiofile -lm -laudiofile -lesd /usr/local/lib/libgnomeui.la -L/usr/X11R6/lib -L/usr/local/lib /usr/local/lib/libglade-gnome.la /usr/local/lib/libglib.la -lm -lm /usr/local/lib/libaudiofile.la -lm -lm -laudiofile -L/usr/local/lib /usr/local/lib/libesd.la -lm -lz -L/usr/local/lib /usr/local/lib/libgnomesupport.la -lm -lz -lm -lglib -L/usr/local/lib /usr/local/lib/libgnome.la -lX11 -lXext /usr/local/lib/libiconv.la -L/usr/local/lib -L/usr/ports/devel/gettext/w-gettext-0.10.40/gettext-0.10.40/intl/.libs /usr/local/lib/libintl.la /usr/local/lib/libgmodule.la -lintl -lm -lX11 -lXext -L/usr/X11R6/lib -lglib -lgmodule -L/usr/local/lib /usr/local/lib/libgdk.la -lintl -lm -lX11 -lXext -L/usr/X11R6/lib -lglib -lgmodule -L/usr/local/lib /usr/local/lib/libgtk.la -lICE -lSM -lz -lpng /usr/local/lib/libungif.la /usr/local/lib/libjpeg.la -ltiff -lm -lz -lpng /usr/local/lib/libungif.la -lz /usr/local/lib/libjpeg.la -ltiff -L/usr/local/lib -L/usr/X11R6/lib /usr/local/lib/libgdk_imlib.la -lm -L/usr/local/lib /usr/local/lib/libart_lgpl.la -lm -lz -lm -lX11 -lXext -lintl -lglib -lgmodule -lgdk -lgtk -lICE -lSM -lm -lX11 -lXext -lintl -lglib -lgmodule -lgdk -lgtk -L/usr/X11R6/lib -lm -lz -lpng -lungif -lz -ljpeg -ltiff -ljpeg -lgdk_imlib -lglib -lm -laudiofile -lm -laudiofile -lesd -L/usr/local/lib /usr/local/lib/libgnomeui.la -L/usr/X11R6/lib -L/usr/local/lib"
 	specialdeplibs="-lgnomeui -lart_lgpl -lgdk_imlib -ltiff -ljpeg -lungif -lpng -lz -lSM -lICE -lgtk -lgdk -lgmodule -lintl -lXext -lX11 -lgnome -lgnomesupport -lesd -laudiofile -lm -lglib"
 	for deplib in $deplibs; do
@@ -8730,6 +8777,99 @@ stdin:
 			;;
 		esac
 	done
+---
+name: oksh-seterror-1
+description:
+	The -e flag should be ignored when executing a compound list
+	followed by an if statement.
+stdin:
+	if true; then false && false; fi
+	true
+arguments: !-e!
+expected-exit: e == 0
+---
+name: oksh-seterror-2
+description:
+	The -e flag should be ignored when executing a compound list
+	followed by an if statement.
+stdin:
+	if true; then if true; then false && false; fi; fi
+	true
+arguments: !-e!
+expected-exit: e == 0
+---
+name: oksh-seterror-3
+description:
+	The -e flag should be ignored when executing a compound list
+	followed by an elif statement.
+stdin:
+	if true; then :; elif true; then false && false; fi
+arguments: !-e!
+expected-exit: e == 0
+---
+name: oksh-seterror-4
+description:
+	The -e flag should be ignored when executing a pipeline
+	beginning with '!'
+stdin:
+	for i in 1 2 3
+	do
+		false && false
+		true || false
+	done
+arguments: !-e!
+expected-exit: e == 0
+---
+name: oksh-seterror-5
+description:
+	The -e flag should be ignored when executing a pipeline
+	beginning with '!'
+stdin:
+	! true | false
+	true
+arguments: !-e!
+expected-exit: e == 0
+---
+name: oksh-seterror-6
+description:
+	When trapping ERR and EXIT, both traps should run in -e mode
+	when an error occurs.
+stdin:
+	trap 'echo EXIT' EXIT
+	trap 'echo ERR' ERR
+	set -e
+	false
+	echo DONE
+	exit 0
+arguments: !-e!
+expected-exit: e != 0
+expected-stdout:
+	ERR
+	EXIT
+---
+name: oksh-seterror-7
+description:
+	The -e flag within a command substitution should be honored
+stdin:
+	echo $( set -e; false; echo foo )
+arguments: !-e!
+expected-stdout:
+	
+---
+name: oksh-input-comsub
+description:
+	A command substitution using input redirection should exit with
+	failure if the input file does not exist.
+stdin:
+	var=$(< non-existent)
+expected-exit: e != 0
+expected-stderr-pattern: /non-existent/
+---
+name: oksh-empty-for-list
+description:
+	A for list which expands to zero items should not execute the body.
+stdin:
+	set foo bar baz ; for out in ; do echo $out ; done
 ---
 name: oksh-varfunction-mod1
 description:

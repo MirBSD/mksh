@@ -1,4 +1,4 @@
-/*	$OpenBSD: eval.c,v 1.37 2011/10/11 14:32:43 otto Exp $	*/
+/*	$OpenBSD: eval.c,v 1.39 2013/07/01 17:25:27 jca Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.139 2013/05/02 21:59:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.140 2013/07/21 18:36:00 tg Exp $");
 
 /*
  * string expansion
@@ -870,7 +870,12 @@ expand(
 			break;
 
 		case XCOM:
-			if (newlines) {
+			if (x.u.shf == NULL) {
+				/* $(<...) failed */
+				subst_exstat = 1;
+				/* fake EOF */
+				c = EOF;
+			} else if (newlines) {
 				/* spit out saved NLs */
 				c = '\n';
 				--newlines;
@@ -887,7 +892,8 @@ expand(
 			}
 			if (c == EOF) {
 				newlines = 0;
-				shf_close(x.u.shf);
+				if (x.u.shf)
+					shf_close(x.u.shf);
 				if (x.split)
 					subst_exstat = waitlast();
 				type = XBASE;
@@ -1336,7 +1342,8 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 		shf = shf_open(name = evalstr(io->name, DOTILDE), O_RDONLY, 0,
 			SHF_MAPHI|SHF_CLEXEC);
 		if (shf == NULL)
-			errorf("%s: %s %s", name, "can't open", "$() input");
+			warningf(!Flag(FTALKING), "%s: %s %s: %s", name,
+			    "can't open", "$(<...) input", cstrerror(errno));
 	} else if (fn == FUNSUB) {
 		int ofd1;
 		struct temp *tf = NULL;
