@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.69 2013/05/02 21:59:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.70 2013/07/21 18:39:21 tg Exp $");
 
 #define INDENT	8
 
@@ -259,16 +259,20 @@ pioact(struct shf *shf, struct ioword *iop)
 
 	switch (type) {
 	case IOREAD:
-		shf_puts("<", shf);
+		shf_putc('<', shf);
 		break;
 	case IOHERE:
-		shf_puts(flag & IOSKIP ? "<<-" : "<<", shf);
+		shf_puts("<<", shf);
+		if (flag & IOSKIP)
+			shf_putc('-', shf);
 		break;
 	case IOCAT:
 		shf_puts(">>", shf);
 		break;
 	case IOWRITE:
-		shf_puts(flag & IOCLOB ? ">|" : ">", shf);
+		shf_putc('>', shf);
+		if (flag & IOCLOB)
+			shf_putc('|', shf);
 		break;
 	case IORDWR:
 		shf_puts("<>", shf);
