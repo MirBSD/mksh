@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.124 2013/07/21 18:47:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.125 2013/07/21 20:44:44 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -712,10 +712,9 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				break;
 			}
 			if (include(tp->u.fpath, 0, NULL, false) < 0) {
-				rv = errno;
 				warningf(true, "%s: %s %s %s: %s", cp,
 				    "can't open", "function definition file",
-				    tp->u.fpath, cstrerror(rv));
+				    tp->u.fpath, cstrerror(errno));
 				rv = 127;
 				break;
 			}
