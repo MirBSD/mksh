@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.71 2013/05/31 23:27:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.72 2013/07/21 18:38:56 tg Exp $");
 
 /* the order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -321,10 +321,12 @@ do_ppmm(Expr_state *es, enum token op, struct tbl *vasn, bool is_prefix)
 		++vl->val.u;
 	else
 		--vl->val.u;
-	if (vasn->flag & INTEGER)
-		setint_v(vasn, vl, es->arith);
-	else
-		setint(vasn, vl->val.i);
+	if (!es->noassign) {
+		if (vasn->flag & INTEGER)
+			setint_v(vasn, vl, es->arith);
+		else
+			setint(vasn, vl->val.i);
+	}
 	if (!is_prefix)
 		/* undo the increment/decrement */
 		vl->val.u = oval;
