@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.619 2013/07/21 18:47:16 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.620 2013/07/24 12:39:25 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -10186,12 +10186,15 @@ stdin:
 	# ensure trailing newlines are kept
 	t=${|REPLY=$'foo\n\n';}
 	typeset -p t
+	echo -n this used to segfault
+	echo ${|true;}$(true).
 expected-stdout:
 	before:	x<1> y<2> z<3> R<4>
 	begin:	x<1> y<> z<3> R<>
 	end:	x<5> y<6> z<7> R<8>
 	after:	x<8> y<2> z<7> R<4>
 	typeset t=$'foo\n\n'
+	this used to segfault.
 ---
 name: test-stnze-1
 description:

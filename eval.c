@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.140 2013/07/21 18:36:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.141 2013/07/24 12:39:28 tg Exp $");
 
 /*
  * string expansion
@@ -65,7 +65,6 @@ typedef struct {
 
 static int varsub(Expand *, const char *, const char *, int *, int *);
 static int comsub(Expand *, const char *, int);
-static void funsub(struct op *);
 static char *valsub(struct op *, Area *);
 static char *trimsub(char *, char *, int);
 static void glob(char *, XPtrV *, bool);
@@ -1368,7 +1367,7 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 		 * run tree, with output thrown into the tempfile,
 		 * in a new function block
 		 */
-		funsub(t);
+		valsub(t, NULL);
 		subst_exstat = exstat & 0xFF;
 		/* rewind the tempfile and restore regular stdout */
 		lseek(shf_fileno(shf), (off_t)0, SEEK_SET);
@@ -1834,28 +1833,21 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 }
 
 /* helper function due to setjmp/longjmp woes */
-static void
-funsub(struct op *t)
-{
-	newblock();
-	e->type = E_FUNC;
-	if (!kshsetjmp(e->jbuf))
-		execute(t, XXCOM | XERROK, NULL);
-	popblock();
-}
-
 static char *
 valsub(struct op *t, Area *ap)
 {
-	char *cp;
-	struct tbl *vp;
+	char *cp = NULL;
+	struct tbl * volatile vp = NULL;
 
+	newenv(E_FUNC);
 	newblock();
-	vp = local("REPLY", false);
-	e->type = E_FUNC;
+	if (ap)
+		vp = local("REPLY", false);
 	if (!kshsetjmp(e->jbuf))
 		execute(t, XXCOM | XERROK, NULL);
-	strdupx(cp, str_val(vp), ap);
-	popblock();
+	if (vp)
+		strdupx(cp, str_val(vp), ap);
+	quitenv(NULL);
+
 	return (cp);
 }
