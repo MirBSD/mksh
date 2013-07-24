@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.141 2013/07/24 12:39:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.142 2013/07/24 18:03:57 tg Exp $");
 
 /*
  * string expansion
@@ -1836,7 +1836,7 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 static char *
 valsub(struct op *t, Area *ap)
 {
-	char *cp = NULL;
+	char * volatile cp = NULL;
 	struct tbl * volatile vp = NULL;
 
 	newenv(E_FUNC);
