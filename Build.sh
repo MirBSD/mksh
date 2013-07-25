@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.642 2013/07/25 15:43:59 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.643 2013/07/25 15:54:33 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -1087,19 +1087,23 @@ if ac_ifcpp 'if 0' compiler_fails '' \
     'if the compiler does not fail correctly'; then
 	save_CFLAGS=$CFLAGS
 	: ${HAVE_CAN_DELEXE=x}
-	if test $ct = dmc; then
-		CFLAGS="$CFLAGS ${ccpl}/DELEXECUTABLE"
-		ac_testn can_delexe compiler_fails 0 'for the /DELEXECUTABLE linker option' <<-EOF
-			int main(void) { return (0); }
-		EOF
-	elif test $ct = dec; then
+	case $ct in
+	dec)
 		CFLAGS="$CFLAGS ${ccpl}-non_shared"
 		ac_testn can_delexe compiler_fails 0 'for the -non_shared linker option' <<-EOF
 			int main(void) { return (0); }
 		EOF
-	else
+		;;
+	dmc)
+		CFLAGS="$CFLAGS ${ccpl}/DELEXECUTABLE"
+		ac_testn can_delexe compiler_fails 0 'for the /DELEXECUTABLE linker option' <<-EOF
+			int main(void) { return (0); }
+		EOF
+		;;
+	*)
 		exit 1
-	fi
+		;;
+	esac
 	test 1 = $HAVE_CAN_DELEXE || CFLAGS=$save_CFLAGS
 	ac_testn compiler_still_fails '' 'if the compiler still does not fail correctly' <<-EOF
 	EOF
@@ -1112,52 +1116,65 @@ if ac_ifcpp 'ifdef __TINYC__' couldbe_tcc '!' compiler_known 0 \
 	HAVE_COMPILER_KNOWN=1
 fi
 
-if test $ct = sunpro; then
+case $ct in
+bcc)
+	save_NOWARN="${ccpc}-w"
+	DOWARN="${ccpc}-w!"
+	;;
+dec)
+	# -msg_* flags not used yet, or is -w2 correct?
+	;;
+dmc)
+	save_NOWARN="${ccpc}-w"
+	DOWARN="${ccpc}-wx"
+	;;
+hpcc)
+	save_NOWARN=
+	DOWARN=+We
+	;;
+kencc)
+	save_NOWARN=
+	DOWARN=
+	;;
+mipspro)
+	save_NOWARN=
+	DOWARN="-diag_error 1-10000"
+	;;
+msc)
+	save_NOWARN="${ccpc}/w"
+	DOWARN="${ccpc}/WX"
+	;;
+sunpro)
 	test x"$save_NOWARN" = x"" && save_NOWARN='-errwarn=%none'
 	ac_flags 0 errwarnnone "$save_NOWARN"
 	test 1 = $HAVE_CAN_ERRWARNNONE || save_NOWARN=
 	ac_flags 0 errwarnall "-errwarn=%all"
 	test 1 = $HAVE_CAN_ERRWARNALL && DOWARN="-errwarn=%all"
-elif test $ct = hpcc; then
-	save_NOWARN=
-	DOWARN=+We
-elif test $ct = mipspro; then
-	save_NOWARN=
-	DOWARN="-diag_error 1-10000"
-elif test $ct = msc; then
-	save_NOWARN="${ccpc}/w"
-	DOWARN="${ccpc}/WX"
-elif test $ct = dmc; then
-	save_NOWARN="${ccpc}-w"
-	DOWARN="${ccpc}-wx"
-elif test $ct = bcc; then
-	save_NOWARN="${ccpc}-w"
-	DOWARN="${ccpc}-w!"
-elif test $ct = dec; then
-	: -msg_* flags not used yet, or is -w2 correct?
-elif test $ct = kencc; then
-	save_NOWARN=
-	DOWARN=
-elif test $ct = xlc; then
-	save_NOWARN=-qflag=i:e
-	DOWARN=-qflag=i:i
-elif test $ct = tendra; then
+	;;
+tendra)
 	save_NOWARN=-w
-elif test $ct = ucode; then
+	;;
+ucode)
 	save_NOWARN=
 	DOWARN=-w2
-elif test $ct = watcom; then
+	;;
+watcom)
 	save_NOWARN=
 	DOWARN=-Wc,-we
-else
+	;;
+xlc)
+	save_NOWARN=-qflag=i:e
+	DOWARN=-qflag=i:i
+	;;
+*)
 	test x"$save_NOWARN" = x"" && save_NOWARN=-Wno-error
 	ac_flags 0 wnoerror "$save_NOWARN"
 	test 1 = $HAVE_CAN_WNOERROR || save_NOWARN=
 	ac_flags 0 werror -Werror
 	test 1 = $HAVE_CAN_WERROR && DOWARN=-Werror
-fi
-
-test $ct = icc && DOWARN="$DOWARN -wd1419"
+	test $ct = icc && DOWARN="$DOWARN -wd1419"
+	;;
+esac
 NOWARN=$save_NOWARN
 
 #
@@ -1165,7 +1182,16 @@ NOWARN=$save_NOWARN
 #
 i=`echo :"$orig_CFLAGS" | sed 's/^://' | tr -c -d $alll$allu$alln`
 # optimisation: only if orig_CFLAGS is empty
-test x"$i" = x"" && if test $ct = sunpro; then
+test x"$i" = x"" && case $ct in
+hpcc)
+	phase=u
+	ac_flags 1 otwo +O2
+	phase=x
+	;;
+kencc|tcc|tendra)
+	# no special optimisation
+	;;
+sunpro)
 	cat >x <<-'EOF'
 		int main(void) { return (0); }
 		#define __IDSTRING_CONCAT(l,p)	__LINTED__ ## l ## _ ## p
@@ -1175,22 +1201,34 @@ test x"$i" = x"" && if test $ct = sunpro; then
 	yes pad | head -n 256 >>x
 	ac_flags - 1 otwo -xO2 <x
 	rmf x
-elif test $ct = hpcc; then
-	phase=u
-	ac_flags 1 otwo +O2
-	phase=x
-elif test $ct = xlc; then
+	;;
+xlc)
 	ac_flags 1 othree "-O3 -qstrict"
 	test 1 = $HAVE_CAN_OTHREE || ac_flags 1 otwo -O2
-elif test $ct = kencc || test $ct = tcc || test $ct = tendra; then
-	: no special optimisation
-else
+	;;
+*)
 	ac_flags 1 otwo -O2
 	test 1 = $HAVE_CAN_OTWO || ac_flags 1 optimise -O
-fi
+	;;
+esac
 # other flags: just add them if they are supported
 i=0
-if test $ct = gcc; then
+case $ct in
+bcc)
+	ac_flags 1 strpool "${ccpc}-d" 'if string pooling can be enabled'
+	;;
+clang)
+	i=1
+	;;
+dec)
+	ac_flags 0 verb -verbose
+	ac_flags 1 rodata -readonly_strings
+	;;
+dmc)
+	ac_flags 1 decl "${ccpc}-r" 'for strict prototype checks'
+	ac_flags 1 schk "${ccpc}-s" 'for stack overflow checking'
+	;;
+gcc)
 	# The following tests run with -Werror (gcc only) if possible
 	NOWARN=$DOWARN; phase=u
 	ac_flags 1 wnodeprecateddecls -Wno-deprecated-declarations
@@ -1202,15 +1240,19 @@ if test $ct = gcc; then
 	*\ -fplugin=*dragonegg*) ;;
 	*) ac_flags 1 fplugin_dragonegg -fplugin=dragonegg ;;
 	esac
-	if test $cm = lto; then
-		fv=0
-		checks='1 2 3 4 5 6 7 8'
-	elif test $cm = combine; then
+	case $cm in
+	combine)
 		fv=0
 		checks='7 8'
-	else
+		;;
+	lto)
+		fv=0
+		checks='1 2 3 4 5 6 7 8'
+		;;
+	*)
 		fv=1
-	fi
+		;;
+	esac
 	test $fv = 1 || for what in $checks; do
 		test $fv = 1 && break
 		case $what in
@@ -1239,32 +1281,23 @@ if test $ct = gcc; then
 		    "if gcc supports $t_cflags $t_ldflags" "$t_ldflags"
 	done
 	i=1
-elif test $ct = icc; then
-	ac_flags 1 fnobuiltinsetmode -fno-builtin-setmode
-	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
-	ac_flags 1 fstacksecuritycheck -fstack-security-check
-	i=1
-elif test $ct = sunpro; then
-	phase=u
-	ac_flags 1 v -v
-	ac_flags 1 ipo -xipo 'for cross-module optimisation'
-	phase=x
-elif test $ct = hpcc; then
+	;;
+hpcc)
 	phase=u
 	# probably not needed
 	#ac_flags 1 agcc -Agcc 'for support of GCC extensions'
 	phase=x
-elif test $ct = dec; then
-	ac_flags 0 verb -verbose
-	ac_flags 1 rodata -readonly_strings
-elif test $ct = dmc; then
-	ac_flags 1 decl "${ccpc}-r" 'for strict prototype checks'
-	ac_flags 1 schk "${ccpc}-s" 'for stack overflow checking'
-elif test $ct = bcc; then
-	ac_flags 1 strpool "${ccpc}-d" 'if string pooling can be enabled'
-elif test $ct = mipspro; then
+	;;
+icc)
+	ac_flags 1 fnobuiltinsetmode -fno-builtin-setmode
+	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
+	ac_flags 1 fstacksecuritycheck -fstack-security-check
+	i=1
+	;;
+mipspro)
 	ac_flags 1 fullwarn -fullwarn 'for remark output support'
-elif test $ct = msc; then
+	;;
+msc)
 	ac_flags 1 strpool "${ccpc}/GF" 'if string pooling can be enabled'
 	echo 'int main(void) { char test[64] = ""; return (*test); }' >x
 	ac_flags - 1 stackon "${ccpc}/GZ" 'if stack checks can be enabled' <x
@@ -1273,24 +1306,33 @@ elif test $ct = msc; then
 	rmf x
 	ac_flags 1 wall "${ccpc}/Wall" 'to enable all warnings'
 	ac_flags 1 wp64 "${ccpc}/Wp64" 'to enable 64-bit warnings'
-elif test $ct = xlc; then
+	;;
+nwcc)
+	i=1
+	#broken# ac_flags 1 ssp -stackprotect
+	;;
+sunpro)
+	phase=u
+	ac_flags 1 v -v
+	ac_flags 1 ipo -xipo 'for cross-module optimisation'
+	phase=x
+	;;
+tcc)
+	: #broken# ac_flags 1 boundschk -b
+	;;
+tendra)
+	ac_flags 0 ysystem -Ysystem
+	test 1 = $HAVE_CAN_YSYSTEM && CPPFLAGS="-Ysystem $CPPFLAGS"
+	ac_flags 1 extansi -Xa
+	;;
+xlc)
 	ac_flags 1 rodata "-qro -qroconst -qroptr"
 	ac_flags 1 rtcheck -qcheck=all
 	#ac_flags 1 rtchkc -qextchk	# reported broken
 	ac_flags 1 wformat "-qformat=all -qformat=nozln"
 	#ac_flags 1 wp64 -qwarn64	# too verbose for now
-elif test $ct = tendra; then
-	ac_flags 0 ysystem -Ysystem
-	test 1 = $HAVE_CAN_YSYSTEM && CPPFLAGS="-Ysystem $CPPFLAGS"
-	ac_flags 1 extansi -Xa
-elif test $ct = tcc; then
-	: #broken# ac_flags 1 boundschk -b
-elif test $ct = clang; then
-	i=1
-elif test $ct = nwcc; then
-	i=1
-	: #broken# ac_flags 1 ssp -stackprotect
-fi
+	;;
+esac
 # flags common to a subset of compilers (run with -Werror on gcc)
 if test 1 = $i; then
 	ac_flags 1 wall -Wall
@@ -1556,7 +1598,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.642 2013/07/25 15:43:59 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.643 2013/07/25 15:54:33 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2170,13 +2212,17 @@ cat >test.sh <<-EOF
 	exit \$rv
 EOF
 chmod 755 test.sh
-if test $cm = llvm; then
-	emitbc="-emit-llvm -c"
-elif test $cm = dragonegg; then
+case $cm in
+dragonegg)
 	emitbc="-S -flto"
-else
+	;;
+llvm)
+	emitbc="-emit-llvm -c"
+	;;
+*)
 	emitbc=-c
-fi
+	;;
+esac
 echo ": # work around NeXTstep bug" >Rebuild.sh
 echo set -x >>Rebuild.sh
 for file in $SRCS; do
