@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.641 2013/07/25 15:36:18 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.642 2013/07/25 15:43:59 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -690,8 +690,11 @@ Plan9)
 	add_cppflags -D_SUSV2_SOURCE
 	add_cppflags -DMKSH_ASSUME_UTF8; HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	add_cppflags -DMKSH_NO_CMDLINE_EDITING
+	add_cppflags -DMKSH__NO_SETEUGID
 	oswarn=' and will currently not work'
 	add_cppflags -DMKSH_UNEMPLOYED
+	# this is for detecting kencc
+	add_cppflags -DMKSH_MAYBE_KENCC
 	;;
 PW32*)
 	HAVE_SIG_T=0	# incompatible
@@ -880,6 +883,9 @@ ct="ucode"
 ct="uslc"
 #elif defined(__LCC__)
 ct="lcc"
+#elif defined(MKSH_MAYBE_KENCC)
+/* and none of the above matches */
+ct="kencc"
 #else
 ct="unknown"
 #endif
@@ -955,6 +961,9 @@ iar)
 	;;
 icc)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
+	;;
+kencc)
+	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
 	;;
 lcc)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
@@ -1126,6 +1135,9 @@ elif test $ct = bcc; then
 	DOWARN="${ccpc}-w!"
 elif test $ct = dec; then
 	: -msg_* flags not used yet, or is -w2 correct?
+elif test $ct = kencc; then
+	save_NOWARN=
+	DOWARN=
 elif test $ct = xlc; then
 	save_NOWARN=-qflag=i:e
 	DOWARN=-qflag=i:i
@@ -1170,7 +1182,7 @@ elif test $ct = hpcc; then
 elif test $ct = xlc; then
 	ac_flags 1 othree "-O3 -qstrict"
 	test 1 = $HAVE_CAN_OTHREE || ac_flags 1 otwo -O2
-elif test $ct = tcc || test $ct = tendra; then
+elif test $ct = kencc || test $ct = tcc || test $ct = tendra; then
 	: no special optimisation
 else
 	ac_flags 1 otwo -O2
@@ -1544,7 +1556,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.641 2013/07/25 15:36:18 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.642 2013/07/25 15:43:59 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
