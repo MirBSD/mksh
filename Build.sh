@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.640 2013/07/21 18:47:14 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.641 2013/07/25 15:36:18 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -1544,7 +1544,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.640 2013/07/21 18:47:14 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.641 2013/07/25 15:36:18 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -1896,6 +1896,9 @@ cta(uari_has_32_bit, 0 < (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 
 cta(uari_wrap_32_bit,
     (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 3) >
     (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 4));
+#define NUM 22
+#else
+#define NUM 16
 #endif
 /* these are always required */
 cta(ari_is_signed, (mksh_ari_t)-1 < (mksh_ari_t)0);
@@ -1909,13 +1912,10 @@ cta(ptrdifft_voidptr_same_size, sizeof(ptrdiff_t) == sizeof(void *));
 cta(ptrdifft_funcptr_same_size, sizeof(ptrdiff_t) == sizeof(void (*)(void)));
 /* our formatting routines assume this */
 cta(ptr_fits_in_long, sizeof(ptrdiff_t) <= sizeof(long));
+/* for struct alignment people */
+		char padding[64 - NUM];
 	};
-#ifndef MKSH_LEGACY_MODE
-#define NUM 22
-#else
-#define NUM 16
-#endif
-char ctasserts_dblcheck[sizeof(struct ctasserts) == NUM ? 1 : -1];
+char ctasserts_dblcheck[sizeof(struct ctasserts) == 64 ? 1 : -1];
 	int main(void) { return (sizeof(ctasserts_dblcheck)); }
 EOF
 CFLAGS=$save_CFLAGS
