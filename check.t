@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.622 2013/07/25 16:06:43 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.623 2013/07/25 16:41:30 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -6119,6 +6119,27 @@ expected-stdout:
 	xu: v: parameter null or not set
 	EXtrap
 	= noeval-undef 1 .
+---
+name: exit-trap-interactive
+description:
+	Check that interactive shell doesn't exit via EXIT trap on syntax error
+arguments: !-i!
+stdin:
+	trap -- EXIT
+	echo Syntax error <
+	echo 'After error 1'
+	trap 'echo Exit trap' EXIT
+	echo Syntax error <
+	echo 'After error 2'
+	trap 'echo Exit trap' EXIT
+	exit
+	echo 'After exit'
+expected-stdout:
+	After error 1
+	After error 2
+	Exit trap
+expected-stderr-pattern:
+	/syntax error: 'newline' unexpected/
 ---
 name: test-stlt-1
 description:
