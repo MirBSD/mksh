@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.621 2013/07/24 18:03:54 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.622 2013/07/25 16:06:43 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -7708,6 +7708,28 @@ stdin:
 	print '\ca'; print b
 expected-stdout:
 	ab
+---
+name: print-cr
+description:
+	Check that CR+LF is not collapsed into LF as some MSYS shells wrongly do
+stdin:
+	echo '#!'"$__progname" >foo
+	cat >>foo <<-'EOF'
+		print -n -- '220-blau.mirbsd.org ESMTP ready at Thu, 25 Jul 2013 15:57:57 GMT\r\n220->> Bitte keine Werbung einwerfen! <<\r\r\n220 Who do you wanna pretend to be today'
+		print \?
+	EOF
+	chmod +x foo
+	echo "[$(./foo)]"
+	./foo | while IFS= read -r line; do
+		print -r -- "{$line}"
+	done
+expected-stdout:
+	[220-blau.mirbsd.org ESMTP ready at Thu, 25 Jul 2013 15:57:57 GMT
+	220->> Bitte keine Werbung einwerfen! <<
+	220 Who do you wanna pretend to be today?]
+	{220-blau.mirbsd.org ESMTP ready at Thu, 25 Jul 2013 15:57:57 GMT}
+	{220->> Bitte keine Werbung einwerfen! <<}
+	{220 Who do you wanna pretend to be today?}
 ---
 name: print-nul-chars
 description:
