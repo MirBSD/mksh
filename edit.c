@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.267 2013/06/03 22:27:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.268 2013/07/26 20:33:37 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -919,7 +919,6 @@ static bool x_adj_ok;
  */
 static int x_adj_done;		/* is incremented by x_adjust() */
 
-static int x_col;
 static int x_displen;
 static int x_arg;		/* general purpose arg */
 static bool x_arg_defaulted;	/* x_arg not explicitly set; defaulted to 1 */
@@ -944,9 +943,6 @@ static int x_curprefix;
 static char *macroptr;		/* bind key macro active? */
 #endif
 #if !MKSH_S_NOVI
-static int cur_col;		/* current column on line */
-static int pwidth;		/* width of prompt */
-static int prompt_trunc;	/* how much of prompt to truncate */
 static int winwidth;		/* width of window */
 static char *wbuf[2];		/* window buffers */
 static int wbuf_len;		/* length of window buffers (x_cols - 3) */
@@ -955,13 +951,16 @@ static char morec;		/* more character at right of window */
 static int lastref;		/* argument to last refresh() */
 static int holdlen;		/* length of holdbuf */
 #endif
-static bool prompt_redraw;	/* false if newline forced after prompt */
+static int pwidth;		/* width of prompt */
+static int prompt_trunc;	/* how much of prompt to truncate or -1 */
+static int x_col;		/* current column on line */
 
 static int x_ins(const char *);
 static void x_delete(size_t, bool);
 static size_t x_bword(void);
 static size_t x_fword(bool);
 static void x_goto(char *);
+static char *x_bs0(char *, char *);
 static void x_bs3(char **);
 static int x_size_str(char *);
 static int x_size2(char *, char **);
@@ -1170,20 +1169,14 @@ x_e_getmbc(char *sbuf)
 static void
 x_init_prompt(void)
 {
-	x_col = promptlen(prompt);
-	x_adj_ok = true;
-	prompt_redraw = true;
-	if (x_col >= xx_cols)
-		x_col %= xx_cols;
-	x_displen = xx_cols - 2 - x_col;
-	x_adj_done = 0;
-
-	pprompt(prompt, 0);
-	if (x_displen < 1) {
-		x_col = 0;
-		x_displen = xx_cols - 2;
+	prompt_trunc = pprompt(prompt, 0);
+	pwidth = prompt_trunc % x_cols;
+	prompt_trunc -= pwidth;
+	if ((mksh_uari_t)pwidth > ((mksh_uari_t)x_cols - 3 - MIN_EDIT_SPACE)) {
+		/* force newline after prompt */
+		prompt_trunc = -1;
+		pwidth = 0;
 		x_e_putc2('\n');
-		prompt_redraw = false;
 	}
 }
 
@@ -1202,8 +1195,10 @@ x_emacs(char *buf, size_t len)
 	x_histp = histptr + 1;
 	x_last_command = XFUNC_error;
 
-	xx_cols = x_cols;
 	x_init_prompt();
+	x_displen = (xx_cols = x_cols) - 2 - (x_col = pwidth);
+	x_adj_done = 0;
+	x_adj_ok = true;
 
 	x_histncp = NULL;
 	if (x_nextcmd >= 0) {
@@ -1561,11 +1556,7 @@ x_fword(bool move)
 static void
 x_goto(char *cp)
 {
-	if (cp >= xep)
-		cp = xep;
-	else if (UTFMODE)
-		while ((cp > xbuf) && ((*cp & 0xC0) == 0x80))
-			--cp;
+	cp = cp >= xep ? xep : x_bs0(cp, xbuf);
 	if (cp < xbp || cp >= utf_skipcols(xbp, x_displen)) {
 		/* we are heading off screen */
 		xcp = cp;
@@ -1581,16 +1572,22 @@ x_goto(char *cp)
 	}
 }
 
+static char *
+x_bs0(char *cp, char *lower_bound)
+{
+	if (UTFMODE)
+		while ((!lower_bound || (cp > lower_bound)) &&
+		    ((*(unsigned char *)cp & 0xC0) == 0x80))
+			--cp;
+	return (cp);
+}
+
 static void
 x_bs3(char **p)
 {
 	int i;
 
-	(*p)--;
-	if (UTFMODE)
-		while (((unsigned char)**p & 0xC0) == 0x80)
-			(*p)--;
-
+	*p = x_bs0((*p) - 1, NULL);
 	i = x_size2(*p, NULL);
 	while (i--)
 		x_e_putc2('\b');
@@ -2080,7 +2077,7 @@ x_cls(int c MKSH_A_UNUSED)
 static void
 x_redraw(int limit)
 {
-	int i, j, x_trunc = 0;
+	int i, j;
 	char *cp;
 
 	x_adj_ok = false;
@@ -2090,19 +2087,11 @@ x_redraw(int limit)
 		x_e_putc2('\r');
 	x_flush();
 	if (xbp == xbuf) {
-		x_col = promptlen(prompt);
-		if (x_col >= xx_cols)
-			x_trunc = (x_col / xx_cols) * xx_cols;
-		if (prompt_redraw)
-			pprompt(prompt, x_trunc);
+		if (prompt_trunc != -1)
+			pprompt(prompt, prompt_trunc);
+		x_col = pwidth;
 	}
-	if (x_col >= xx_cols)
-		x_col %= xx_cols;
 	x_displen = xx_cols - 2 - x_col;
-	if (x_displen < 1) {
-		x_col = 0;
-		x_displen = xx_cols - 2;
-	}
 	xlp_valid = false;
 	x_zots(xbp);
 	if (xbp != xbuf || xep > xlp)
@@ -2816,16 +2805,42 @@ do_complete(
 static void
 x_adjust(void)
 {
-	/* flag the fact that we were called. */
+	int col_left, n;
+
+	/* flag the fact that we were called */
 	x_adj_done++;
+
 	/*
-	 * we had a problem if the prompt length > xx_cols / 2
+	 * calculate the amount of columns we need to "go back"
+	 * from xcp to set xbp to (but never < xbuf) to 2/3 of
+	 * the display width; take care of pwidth though
 	 */
-	if ((xbp = xcp - (x_displen / 2)) < xbuf)
-		xbp = xbuf;
-	if (UTFMODE)
-		while ((xbp > xbuf) && ((*xbp & 0xC0) == 0x80))
-			--xbp;
+	if ((col_left = xx_cols * 2 / 3) < MIN_EDIT_SPACE) {
+		/*
+		 * cowardly refuse to do anything
+		 * if the available space is too small;
+		 * fall back to dumb pdksh code
+		 */
+		if ((xbp = xcp - (x_displen / 2)) < xbuf)
+			xbp = xbuf;
+		/* elide UTF-8 fixup as penalty */
+		goto x_adjust_out;
+	}
+
+	/* fix up xbp to character begin first */
+	xbp = x_bs0(xcp, xbuf);
+	/* walk backwards */
+	while (xbp > xbuf && col_left > 0) {
+		xbp = x_bs0(xbp - 1, xbuf);
+		col_left -= (n = x_size2(xbp, NULL));
+	}
+	/* check if we hit the prompt */
+	if (xbp == xbuf && xcp != xbuf && col_left > 0 && col_left < pwidth) {
+		/* so we did; force scrolling occurs */
+		xbp += utf_ptradj(xbp);
+	}
+
+ x_adjust_out:
 	xlp_valid = false;
 	x_redraw(xx_cols);
 	x_flush();
@@ -3517,18 +3532,8 @@ x_vi(char *buf, size_t len)
 	es->cursor = undo->cursor = 0;
 	es->winleft = undo->winleft = 0;
 
-	cur_col = promptlen(prompt);
-	prompt_trunc = (cur_col / x_cols) * x_cols;
-	cur_col -= prompt_trunc;
-
-	pprompt(prompt, 0);
-	if ((mksh_uari_t)cur_col > (mksh_uari_t)x_cols - 3 - MIN_EDIT_SPACE) {
-		prompt_redraw = false;
-		cur_col = 0;
-		x_putc('\n');
-	} else
-		prompt_redraw = true;
-	pwidth = cur_col;
+	x_init_prompt();
+	x_col = pwidth;
 
 	if (!wbuf_len || wbuf_len != x_cols - 3) {
 		wbuf_len = x_cols - 3;
@@ -5057,9 +5062,9 @@ redraw_line(bool newl)
 		x_putc('\r');
 		x_putc('\n');
 	}
-	if (prompt_redraw)
+	if (prompt_trunc != -1)
 		pprompt(prompt, prompt_trunc);
-	cur_col = pwidth;
+	x_col = pwidth;
 	morec = ' ';
 }
 
@@ -5177,10 +5182,10 @@ display(char *wb1, char *wb2, int leftside)
 	twb2 = wb2;
 	while (cnt--) {
 		if (*twb1 != *twb2) {
-			if (cur_col != col)
+			if (x_col != col)
 				ed_mov_opt(col, wb1);
 			x_putc(*twb1);
-			cur_col++;
+			x_col++;
 		}
 		twb1++;
 		twb2++;
@@ -5201,34 +5206,34 @@ display(char *wb1, char *wb2, int leftside)
 	if (mc != morec) {
 		ed_mov_opt(pwidth + winwidth + 1, wb1);
 		x_putc(mc);
-		cur_col++;
+		x_col++;
 		morec = mc;
 	}
-	if (cur_col != ncol)
+	if (x_col != ncol)
 		ed_mov_opt(ncol, wb1);
 }
 
 static void
 ed_mov_opt(int col, char *wb)
 {
-	if (col < cur_col) {
-		if (col + 1 < cur_col - col) {
+	if (col < x_col) {
+		if (col + 1 < x_col - col) {
 			x_putc('\r');
-			if (prompt_redraw)
+			if (prompt_trunc != -1)
 				pprompt(prompt, prompt_trunc);
-			cur_col = pwidth;
-			while (cur_col++ < col)
+			x_col = pwidth;
+			while (x_col++ < col)
 				x_putcf(*wb++);
 		} else {
-			while (cur_col-- > col)
+			while (x_col-- > col)
 				x_putc('\b');
 		}
 	} else {
-		wb = &wb[cur_col - pwidth];
-		while (cur_col++ < col)
+		wb = &wb[x_col - pwidth];
+		while (x_col++ < col)
 			x_putcf(*wb++);
 	}
-	cur_col = col;
+	x_col = col;
 }
 
 

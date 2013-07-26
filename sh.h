@@ -164,9 +164,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.662 2013/07/25 18:07:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.663 2013/07/26 20:33:39 tg Exp $");
 #endif
-#define MKSH_VERSION "R47 2013/07/25"
+#define MKSH_VERSION "R47 2013/07/26"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -443,8 +443,6 @@ extern int wcwidth(__WCHAR_TYPE__);
  */
 #define MAGIC		(7)	/* prefix for *?[!{,} during expand */
 #define ISMAGIC(c)	((unsigned char)(c) == MAGIC)
-
-#define LINE		4096	/* input line size */
 
 EXTERN const char *safe_prompt; /* safe prompt if PS1 substitution fails */
 
@@ -992,6 +990,8 @@ EXTERN uint32_t builtin_flag;
 /* current working directory */
 EXTERN char	*current_wd;
 
+/* input line size */
+#define LINE		4096
 /*
  * Minimum required space to work with on a line - if the prompt leaves
  * less space than this on a line, the prompt is truncated.
@@ -1837,8 +1837,7 @@ void yyerror(const char *, ...)
     MKSH_A_FORMAT(__printf__, 1, 2);
 Source *pushs(int, Area *);
 void set_prompt(int, Source *);
-void pprompt(const char *, int);
-int promptlen(const char *);
+int pprompt(const char *, int);
 /* main.c */
 int include(const char *, int, const char **, bool);
 int command(const char *, int);
