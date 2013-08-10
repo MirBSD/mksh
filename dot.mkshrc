@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.83 2013/07/25 14:02:02 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.84 2013/08/10 13:43:50 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -51,7 +51,7 @@ alias l='ls -F'
 alias la='l -a'
 alias ll='l -l'
 alias lo='l -alo'
-alias doch='fc -ln -1 | sudo mksh -s'
+alias doch='sudo mksh -c "$(fc -ln -1)"'
 whence -p rot13 >/dev/null || alias rot13='tr \
     abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \
     nopqrstuvwxyzabcdefghijklmNOPQRSTUVWXYZABCDEFGHIJKLM'
