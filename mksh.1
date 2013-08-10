@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.318 2013/07/21 18:47:21 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.319 2013/08/10 13:44:31 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.147 2013/06/13 19:43:09 millert Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 21 2013 $
+.Dd $Mdocdate: August 10 2013 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -6367,6 +6367,17 @@ all contributors, such as the Debian and OpenBSD projects.
 .\" Open Source licence.
 .\"
 See the documentation, CVS, and web site for details.
+.Pp
+The BSD daemon is Copyright \(co Marshall Kirk McKusick.
+The complete legalese is at:
+.Pa https://www.mirbsd.org/TaC\-mksh.txt
+.\"
+.\" This boils down to: feel free to use mksh.ico as application icon
+.\" or shortcut for mksh or mksh/Win32; distro patches are ok (but we
+.\" request they amend $KSH_VERSION when modifying mksh). Authors are
+.\" Marshall Kirk McKusick (UCB), Rick Collette (ekkoBSD), Thorsten
+.\" Glaser, Benny Siegert (MirBSD), Michael Langguth (mksh/Win32).
+.\"
 .Sh CAVEATS
 .Nm
 only supports the Unicode BMP (Basic Multilingual Plane).
@@ -6381,7 +6392,8 @@ This can cause issues with a
 to suddenly point to a local variable by accident; fixing this is hard.
 .Pp
 The parts of a pipeline, like below, are executed in subshells.
-Thus, variable assignments inside them fail.
+Thus, variable assignments inside them are not visible in the
+surrounding execution environment.
 Use co-processes instead.
 .Bd -literal -offset indent
 foo \*(Ba bar \*(Ba read baz            # will not change $baz
@@ -6408,7 +6420,7 @@ $ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R47
+.Nm mksh\ R48
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

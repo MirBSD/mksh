@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.268 2013/07/26 20:33:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.269 2013/08/10 13:44:29 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -66,7 +66,7 @@ static X_chars edchars;
 static char editmode;
 static int xx_cols;			/* for Emacs mode */
 static int modified;			/* buffer has been "modified" */
-static char holdbuf[LINE];		/* place to hold last edit buffer */
+static char *holdbufp;			/* place to hold last edit buffer */
 
 static int x_getc(void);
 static void x_putcf(int);
@@ -81,10 +81,10 @@ static char *x_glob_hlp_tilde_and_rem_qchar(char *, bool);
 static int x_basename(const char *, const char *);
 static void x_free_words(int, char **);
 static int x_escape(const char *, size_t, int (*)(const char *, size_t));
-static int x_emacs(char *, size_t);
+static int x_emacs(char *);
 static void x_init_prompt(void);
 #if !MKSH_S_NOVI
-static int x_vi(char *, size_t);
+static int x_vi(char *);
 #endif
 
 #define x_flush()	shf_flush(shl_out)
@@ -110,17 +110,17 @@ static int x_e_rebuildline(const char *);
  * read an edited command line
  */
 int
-x_read(char *buf, size_t len)
+x_read(char *buf)
 {
 	int i;
 
 	x_mode(true);
 	modified = 1;
 	if (Flag(FEMACS) || Flag(FGMACS))
-		i = x_emacs(buf, len);
+		i = x_emacs(buf);
 #if !MKSH_S_NOVI
 	else if (Flag(FVI))
-		i = x_vi(buf, len);
+		i = x_vi(buf);
 #endif
 	else
 		/* internal error */
@@ -1181,12 +1181,13 @@ x_init_prompt(void)
 }
 
 static int
-x_emacs(char *buf, size_t len)
+x_emacs(char *buf)
 {
 	int c, i;
 	unsigned char f;
 
-	xbp = xbuf = buf; xend = buf + len;
+	xbp = xbuf = buf;
+	xend = buf + LINE;
 	xlp = xcp = xep = buf;
 	*xcp = 0;
 	xlp_valid = true;
@@ -1821,7 +1822,7 @@ x_load_hist(char **hp)
 	char *sp = NULL;
 
 	if (hp == histptr + 1) {
-		sp = holdbuf;
+		sp = holdbufp;
 		modified = 0;
 	} else if (hp < history || hp > histptr) {
 		x_e_putc2(7);
@@ -1832,7 +1833,7 @@ x_load_hist(char **hp)
 	x_histp = hp;
 	oldsize = x_size_str(xbuf);
 	if (modified)
-		strlcpy(holdbuf, xbuf, sizeof(holdbuf));
+		strlcpy(holdbufp, xbuf, LINE);
 	strlcpy(xbuf, sp, xend - xbuf);
 	xbp = xbuf;
 	xep = xcp = xbuf + strlen(xbuf);
@@ -3360,9 +3361,9 @@ static void yank_range(int, int);
 static int bracktype(int);
 static void save_cbuf(void);
 static void restore_cbuf(void);
-static int putbuf(const char *, ssize_t, int);
+static int putbuf(const char *, ssize_t, bool);
 static void del_range(int, int);
-static int findch(int, int, int, int);
+static int findch(int, int, bool, bool);
 static int forwword(int);
 static int backword(int);
 static int endword(int);
@@ -3460,24 +3461,22 @@ static const unsigned char classify[128] = {
 #define VVERSION	10		/* <ESC> ^V */
 #define VPREFIX2	11		/* ^[[ and ^[O in insert mode */
 
-static char		undocbuf[LINE];
-
 static struct edstate	*save_edstate(struct edstate *old);
 static void		restore_edstate(struct edstate *old, struct edstate *news);
 static void		free_edstate(struct edstate *old);
 
 static struct edstate	ebuf;
-static struct edstate	undobuf = { undocbuf, 0, LINE, 0, 0 };
+static struct edstate	undobuf;
 
-static struct edstate	*es;			/* current editor state */
+static struct edstate	*es;		/* current editor state */
 static struct edstate	*undo;
 
-static char ibuf[LINE];			/* input buffer */
-static int first_insert;		/* set when starting in insert mode */
+static char *ibuf;			/* input buffer */
+static bool first_insert;		/* set when starting in insert mode */
 static int saved_inslen;		/* saved inslen for first insert */
 static int inslen;			/* length of input buffer */
 static int srchlen;			/* length of current search pattern */
-static char ybuf[LINE];			/* yank buffer */
+static char *ybuf;			/* yank buffer */
 static int yanklen;			/* length of yank buffer */
 static int fsavecmd = ' ';		/* last find command */
 static int fsavech;			/* character to find */
@@ -3485,7 +3484,7 @@ static char lastcmd[MAXVICMD];		/* last non-move command */
 static int lastac;			/* argcnt for lastcmd */
 static int lastsearch = ' ';		/* last search command */
 static char srchpat[SRCHLEN];		/* last search pattern */
-static int insert;			/* non-zero in insert mode */
+static int insert;			/* <>0 in insert mode */
 static int hnum;			/* position in history */
 static int ohnum;			/* history line copied (after mod) */
 static int hlast;			/* 1 past last position in history */
@@ -3511,7 +3510,7 @@ static enum expand_mode {
 } expanded;
 
 static int
-x_vi(char *buf, size_t len)
+x_vi(char *buf)
 {
 	int c;
 
@@ -3519,26 +3518,29 @@ x_vi(char *buf, size_t len)
 	ohnum = hnum = hlast = histnum(-1) + 1;
 	insert = INSERT;
 	saved_inslen = inslen;
-	first_insert = 1;
+	first_insert = true;
 	inslen = 0;
 	vi_macro_reset();
 
+	ebuf.cbuf = buf;
+	if (undobuf.cbuf == NULL) {
+		ibuf = alloc(LINE, AEDIT);
+		ybuf = alloc(LINE, AEDIT);
+		undobuf.cbuf = alloc(LINE, AEDIT);
+	}
+	undobuf.cbufsize = ebuf.cbufsize = LINE;
+	undobuf.linelen = ebuf.linelen = 0;
+	undobuf.cursor = ebuf.cursor = 0;
+	undobuf.winleft = ebuf.winleft = 0;
 	es = &ebuf;
-	es->cbuf = buf;
 	undo = &undobuf;
-	undo->cbufsize = es->cbufsize = len > LINE ? LINE : len;
-
-	es->linelen = undo->linelen = 0;
-	es->cursor = undo->cursor = 0;
-	es->winleft = undo->winleft = 0;
 
 	x_init_prompt();
 	x_col = pwidth;
 
-	if (!wbuf_len || wbuf_len != x_cols - 3) {
-		wbuf_len = x_cols - 3;
-		wbuf[0] = aresize(wbuf[0], wbuf_len, APERM);
-		wbuf[1] = aresize(wbuf[1], wbuf_len, APERM);
+	if (wbuf_len != x_cols - 3 && ((wbuf_len = x_cols - 3))) {
+		wbuf[0] = aresize(wbuf[0], wbuf_len, AEDIT);
+		wbuf[1] = aresize(wbuf[1], wbuf_len, AEDIT);
 	}
 	if (wbuf_len) {
 		memset(wbuf[0], ' ', wbuf_len);
@@ -3595,11 +3597,11 @@ x_vi(char *buf, size_t len)
 	x_putc('\n');
 	x_flush();
 
-	if (c == -1 || (ssize_t)len <= es->linelen)
+	if (c == -1 || (ssize_t)LINE <= es->linelen)
 		return (-1);
 
 	if (es->cbuf != buf)
-		memmove(buf, es->cbuf, es->linelen);
+		memcpy(buf, es->cbuf, es->linelen);
 
 	buf[es->linelen++] = '\n';
 
@@ -3650,10 +3652,8 @@ vi_hook(int ch)
 					save_cbuf();
 					es->cursor = 0;
 					es->linelen = 0;
-					if (ch == '/') {
-						if (putbuf("/", 1, 0) != 0)
-							return (-1);
-					} else if (putbuf("?", 1, 0) != 0)
+					if (putbuf(ch == '/' ? "/" : "?", 1,
+					    false) != 0)
 						return (-1);
 					refresh(0);
 				}
@@ -3662,7 +3662,7 @@ vi_hook(int ch)
 					es->cursor = 0;
 					es->linelen = 0;
 					putbuf(KSH_VERSION,
-					    strlen(KSH_VERSION), 0);
+					    strlen(KSH_VERSION), false);
 					refresh(0);
 				}
 			}
@@ -3993,7 +3993,7 @@ vi_insert(int ch)
 	case Ctrl('['):
 		expanded = NONE;
 		if (first_insert) {
-			first_insert = 0;
+			first_insert = false;
 			if (inslen == 0) {
 				inslen = saved_inslen;
 				return (redo_insert(0));
@@ -4105,12 +4105,12 @@ vi_cmd(int argcnt, const char *cmd)
 				 * at this point, it's fairly reasonable that
 				 * nlen + olen + 2 doesn't overflow
 				 */
-				nbuf = alloc(nlen + 1 + olen, APERM);
+				nbuf = alloc(nlen + 1 + olen, AEDIT);
 				memcpy(nbuf, ap->val.s, nlen);
 				nbuf[nlen++] = cmd[1];
 				if (macro.p) {
 					memcpy(nbuf + nlen, macro.p, olen);
-					afree(macro.buf, APERM);
+					afree(macro.buf, AEDIT);
 					nlen += olen;
 				} else {
 					nbuf[nlen++] = '\0';
@@ -4195,7 +4195,8 @@ vi_cmd(int argcnt, const char *cmd)
 			hnum = hlast;
 			if (es->linelen != 0)
 				es->cursor++;
-			while (putbuf(ybuf, yanklen, 0) == 0 && --argcnt > 0)
+			while (putbuf(ybuf, yanklen, false) == 0 &&
+			    --argcnt > 0)
 				;
 			if (es->cursor != 0)
 				es->cursor--;
@@ -4207,7 +4208,8 @@ vi_cmd(int argcnt, const char *cmd)
 			modified = 1;
 			hnum = hlast;
 			any = 0;
-			while (putbuf(ybuf, yanklen, 0) == 0 && --argcnt > 0)
+			while (putbuf(ybuf, yanklen, false) == 0 &&
+			    --argcnt > 0)
 				any = 1;
 			if (any && es->cursor != 0)
 				es->cursor--;
@@ -4458,8 +4460,8 @@ vi_cmd(int argcnt, const char *cmd)
 					argcnt++;
 					p++;
 				}
-				if (putbuf(" ", 1, 0) != 0 ||
-				    putbuf(sp, argcnt, 0) != 0) {
+				if (putbuf(" ", 1, false) != 0 ||
+				    putbuf(sp, argcnt, false) != 0) {
 					if (es->cursor != 0)
 						es->cursor--;
 					return (-1);
@@ -4602,7 +4604,8 @@ domove(int argcnt, const char *cmd, int sub)
 		t = fsavecmd > 'a';
 		if (*cmd == ',')
 			t = !t;
-		if ((ncursor = findch(fsavech, argcnt, t, i)) < 0)
+		if ((ncursor = findch(fsavech, argcnt, tobool(t),
+		    tobool(i))) < 0)
 			return (-1);
 		if (sub && t)
 			ncursor++;
@@ -4702,7 +4705,7 @@ static int
 redo_insert(int count)
 {
 	while (count-- > 0)
-		if (putbuf(ibuf, inslen, insert == REPLACE) != 0)
+		if (putbuf(ibuf, inslen, tobool(insert == REPLACE)) != 0)
 			return (-1);
 	if (es->cursor > 0)
 		es->cursor--;
@@ -4753,9 +4756,9 @@ bracktype(int ch)
 static void
 save_cbuf(void)
 {
-	memmove(holdbuf, es->cbuf, es->linelen);
+	memmove(holdbufp, es->cbuf, es->linelen);
 	holdlen = es->linelen;
-	holdbuf[holdlen] = '\0';
+	holdbufp[holdlen] = '\0';
 }
 
 static void
@@ -4763,7 +4766,7 @@ restore_cbuf(void)
 {
 	es->cursor = 0;
 	es->linelen = holdlen;
-	memmove(es->cbuf, holdbuf, holdlen);
+	memmove(es->cbuf, holdbufp, holdlen);
 }
 
 /* return a new edstate */
@@ -4772,8 +4775,8 @@ save_edstate(struct edstate *old)
 {
 	struct edstate *news;
 
-	news = alloc(sizeof(struct edstate), APERM);
-	news->cbuf = alloc(old->cbufsize, APERM);
+	news = alloc(sizeof(struct edstate), AEDIT);
+	news->cbuf = alloc(old->cbufsize, AEDIT);
 	memcpy(news->cbuf, old->cbuf, old->linelen);
 	news->cbufsize = old->cbufsize;
 	news->linelen = old->linelen;
@@ -4795,8 +4798,8 @@ restore_edstate(struct edstate *news, struct edstate *old)
 static void
 free_edstate(struct edstate *old)
 {
-	afree(old->cbuf, APERM);
-	afree(old, APERM);
+	afree(old->cbuf, AEDIT);
+	afree(old, AEDIT);
 }
 
 /*
@@ -4805,11 +4808,11 @@ free_edstate(struct edstate *old)
 static int
 x_vi_putbuf(const char *s, size_t len)
 {
-	return (putbuf(s, len, 0));
+	return (putbuf(s, len, false));
 }
 
 static int
-putbuf(const char *buf, ssize_t len, int repl)
+putbuf(const char *buf, ssize_t len, bool repl)
 {
 	if (len == 0)
 		return (0);
@@ -4839,7 +4842,7 @@ del_range(int a, int b)
 }
 
 static int
-findch(int ch, int cnt, int forw, int incl)
+findch(int ch, int cnt, bool forw, bool incl)
 {
 	int ncursor;
 
@@ -5035,8 +5038,8 @@ grabsearch(int save, int start, int fwd, const char *pat)
 		start--;
 	anchored = *pat == '^' ? (++pat, 1) : 0;
 	if ((hist = findhist(start, fwd, pat, anchored)) < 0) {
-		/* (start != 0 && fwd && match(holdbuf, pat) >= 0) */
-		if (start != 0 && fwd && strcmp(holdbuf, pat) >= 0) {
+		/* (start != 0 && fwd && match(holdbufp, pat) >= 0) */
+		if (start != 0 && fwd && strcmp(holdbufp, pat) >= 0) {
 			restore_cbuf();
 			return (0);
 		} else
@@ -5275,7 +5278,7 @@ expand_word(int cmd)
 			rval = -1;
 			break;
 		}
-		if (++i < nwords && putbuf(" ", 1, 0) != 0) {
+		if (++i < nwords && putbuf(" ", 1, false) != 0) {
 			rval = -1;
 			break;
 		}
@@ -5393,7 +5396,7 @@ complete_word(int cmd, int count)
 		 */
 		if (match_len > 0 && match[match_len - 1] != '/' &&
 		    !(flags & XCF_IS_NOSPACE))
-			rval = putbuf(" ", 1, 0);
+			rval = putbuf(" ", 1, false);
 	}
 	x_free_words(nwords, words);
 
@@ -5450,7 +5453,7 @@ static void
 vi_macro_reset(void)
 {
 	if (macro.p) {
-		afree(macro.buf, APERM);
+		afree(macro.buf, AEDIT);
 		memset((char *)&macro, 0, sizeof(macro));
 	}
 }
@@ -5471,8 +5474,11 @@ x_init(void)
 	/* ^W */
 	edchars.werase = 027;
 
-	/* initialise Emacs command line editing mode */
+	/* command line editing specific memory allocation */
 	ainit(AEDIT);
+	holdbufp = alloc(LINE, AEDIT);
+
+	/* initialise Emacs command line editing mode */
 	x_nextcmd = -1;
 
 	x_tab = alloc2(X_NTABS, sizeof(*x_tab), AEDIT);

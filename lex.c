@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.187 2013/07/26 20:33:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.188 2013/08/10 13:44:31 tg Exp $");
 
 /*
  * states while lexing word
@@ -1387,7 +1387,7 @@ getsc_line(Source *s)
 	    Flag(FEMACS) || Flag(FGMACS))) {
 		int nread;
 
-		nread = x_read(xp, LINE);
+		nread = x_read(xp);
 		if (nread < 0)
 			/* read error */
 			nread = 0;

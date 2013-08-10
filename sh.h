@@ -164,9 +164,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.663 2013/07/26 20:33:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.664 2013/08/10 13:44:33 tg Exp $");
 #endif
-#define MKSH_VERSION "R47 2013/07/26"
+#define MKSH_VERSION "R47 2013/08/10"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -518,7 +518,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 471)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 481)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -991,7 +991,7 @@ EXTERN uint32_t builtin_flag;
 EXTERN char	*current_wd;
 
 /* input line size */
-#define LINE		4096
+#define LINE		(4096 - ALLOC_SIZE)
 /*
  * Minimum required space to work with on a line - if the prompt leaves
  * less space than this on a line, the prompt is truncated.
@@ -1683,7 +1683,7 @@ void x_init(void);
 #ifdef DEBUG_LEAKS
 void x_done(void);
 #endif
-int x_read(char *, size_t);
+int x_read(char *);
 #endif
 void x_mkraw(int, mksh_ttyst *, bool);
 /* eval.c */
