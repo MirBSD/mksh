@@ -164,9 +164,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.665 2013/08/10 13:47:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.666 2013/08/11 14:57:10 tg Exp $");
 #endif
-#define MKSH_VERSION "R48 2013/08/10"
+#define MKSH_VERSION "R48 2013/08/11"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -770,13 +770,6 @@ EXTERN struct {
 #define OF_INTERNAL	0x08	/* set internally by shell */
 #define OF_FIRSTTIME	0x10	/* as early as possible, once */
 #define OF_ANY		(OF_CMDLINE | OF_SET | OF_SPECIAL | OF_INTERNAL)
-
-struct shoption {
-	const char *name;	/* long name of option */
-	char c;			/* character flag (if any) */
-	unsigned char flags;	/* OF_* */
-};
-extern const struct shoption options[];
 
 /* null value for variable; comparison pointer for unset */
 EXTERN char null[] E_INIT("");

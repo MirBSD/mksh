@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.213 2013/07/21 18:47:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.214 2013/08/11 14:57:09 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -123,10 +123,15 @@ Xcheck_grow(XString *xsp, const char *xp, size_t more)
 	return (xsp->beg + (xp - old_beg));
 }
 
+
 #define SHFLAGS_DEFNS
 #include "sh_flags.h"
 
-const struct shoption options[] = {
+#define OFC(i) (options[i][-2])
+#define OFF(i) (((const unsigned char *)options[i])[-1])
+#define OFN(i) (options[i])
+
+const char * const options[] = {
 #define SHFLAGS_ITEMS
 #include "sh_flags.h"
 };
@@ -137,15 +142,20 @@ const struct shoption options[] = {
 size_t
 option(const char *n)
 {
-	size_t i;
+	size_t i = 0;
 
-	if ((n[0] == '-' || n[0] == '+') && n[1] && !n[2]) {
-		for (i = 0; i < NELEM(options); i++)
-			if (options[i].c == n[1])
+	if ((n[0] == '-' || n[0] == '+') && n[1] && !n[2])
+		while (i < NELEM(options)) {
+			if (OFC(i) == n[1])
 				return (i);
-	} else for (i = 0; i < NELEM(options); i++)
-		if (options[i].name && strcmp(options[i].name, n) == 0)
-			return (i);
+			++i;
+		}
+	else
+		while (i < NELEM(options)) {
+			if (!strcmp(OFN(i), n))
+				return (i);
+			++i;
+		}
 
 	return ((size_t)-1);
 }
@@ -165,7 +175,7 @@ options_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 	const struct options_info *oi = (const struct options_info *)arg;
 
 	shf_snprintf(buf, buflen, "%-*s %s",
-	    oi->opt_width, options[oi->opts[i]].name,
+	    oi->opt_width, OFN(oi->opts[i]),
 	    Flag(oi->opts[i]) ? "on" : "off");
 	return (buf);
 }
@@ -184,12 +194,11 @@ printoptions(bool verbose)
 
 		oi.opt_width = 0;
 		while (i < NELEM(options)) {
-			if (options[i].name) {
+			if ((len = strlen(OFN(i)))) {
 				oi.opts[n++] = i;
-				len = strlen(options[i].name);
 				if (len > octs)
 					octs = len;
-				len = utf_mbswidth(options[i].name);
+				len = utf_mbswidth(OFN(i));
 				if ((int)len > oi.opt_width)
 					oi.opt_width = (int)len;
 			}
@@ -200,10 +209,9 @@ printoptions(bool verbose)
 	} else {
 		/* short version like AT&T ksh93 */
 		shf_puts(Tset, shl_stdout);
-		while (i < (int)NELEM(options)) {
-			if (Flag(i) && options[i].name)
-				shprintf("%s %s %s", null, "-o",
-				    options[i].name);
+		while (i < NELEM(options)) {
+			if (Flag(i) && OFN(i)[0])
+				shprintf(" -o %s", OFN(i));
 			++i;
 		}
 		shf_putc('\n', shl_stdout);
@@ -213,13 +221,15 @@ printoptions(bool verbose)
 char *
 getoptions(void)
 {
-	size_t i;
-	char m[(int)FNFLAGS + 1];
+	size_t i = 0;
+	char c, m[(int)FNFLAGS + 1];
 	char *cp = m;
 
-	for (i = 0; i < NELEM(options); i++)
-		if (options[i].c && Flag(i))
-			*cp++ = options[i].c;
+	while (i < NELEM(options)) {
+		if ((c = OFC(i)) && Flag(i))
+			*cp++ = c;
+		++i;
+	}
 	strndupx(cp, m, cp - m, ATEMP);
 	return (cp);
 }
@@ -344,7 +354,7 @@ parse_args(const char **argv,
 
 	/* First call? Build option strings... */
 	if (cmd_opts[0] == '\0') {
-		char *p = cmd_opts, *q = set_opts;
+		char ch, *p = cmd_opts, *q = set_opts;
 
 		/* see cmd_opts[] declaration */
 		*p++ = 'o';
@@ -361,11 +371,11 @@ parse_args(const char **argv,
 		*q++ = 's';
 
 		for (i = 0; i < NELEM(options); i++) {
-			if (options[i].c) {
-				if (options[i].flags & OF_CMDLINE)
-					*p++ = options[i].c;
-				if (options[i].flags & OF_SET)
-					*q++ = options[i].c;
+			if ((ch = OFC(i))) {
+				if (OFF(i) & OF_CMDLINE)
+					*p++ = ch;
+				if (OFF(i) & OF_SET)
+					*q++ = ch;
 			}
 		}
 		*p = '\0';
@@ -433,7 +443,7 @@ parse_args(const char **argv,
 				 * if the output of "set +o" is to be used.
 				 */
 				;
-			else if ((i != (size_t)-1) && (options[i].flags & what))
+			else if ((i != (size_t)-1) && (OFF(i) & what))
 				change_flag((enum sh_flag)i, what, set);
 			else {
 				bi_errorf("%s: %s", go.optarg, "bad option");
@@ -466,8 +476,8 @@ parse_args(const char **argv,
 				break;
 			}
 			for (i = 0; i < NELEM(options); i++)
-				if (optc == options[i].c &&
-				    (what & options[i].flags)) {
+				if (optc == OFC(i) &&
+				    (what & OFF(i))) {
 					change_flag((enum sh_flag)i, what, set);
 					break;
 				}

@@ -1,11 +1,22 @@
 #if defined(SHFLAGS_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.15 2013/07/21 18:47:24 tg Exp $");
-#define FN(sname,cname,ochar,flags)	/* nothing */
+__RCSID("$MirOS: src/bin/mksh/sh_flags.h,v 1.16 2013/08/11 14:57:11 tg Exp $");
+#define FN(sname,cname,ochar,flags)		\
+	static const struct {			\
+		/* character flag (if any) */	\
+		char c;				\
+		/* OF_* */			\
+		unsigned char optflags;		\
+		/* long name of option */	\
+		char name[sizeof(sname)];	\
+	} shoptione_ ## cname = {		\
+		ochar, flags, sname		\
+	};
 #elif defined(SHFLAGS_ENUMS)
 #define FN(sname,cname,ochar,flags)	cname,
 #define F0(sname,cname,ochar,flags)	cname = 0,
 #elif defined(SHFLAGS_ITEMS)
-#define FN(sname,cname,ochar,flags)	{ sname, ochar, flags },
+#define FN(sname,cname,ochar,flags)	\
+	((const char *)(&shoptione_ ## cname)) + 2,
 #endif
 
 #ifndef F0
@@ -136,17 +147,17 @@ FN("viraw", FVIRAW, 0, OF_ANY)
 FN("xtrace", FXTRACE, 'x', OF_ANY)
 
 /* -c	(invocation) execute specified command */
-FN(NULL, FCOMMAND, 'c', OF_CMDLINE)
+FN("", FCOMMAND, 'c', OF_CMDLINE)
 
 /*
  * anonymous flags: used internally by shell only (not visible to user)
  */
 
 /* ./.	direct builtin call (divined from argv[0] multi-call binary) */
-FN(NULL, FAS_BUILTIN, 0, OF_INTERNAL)
+FN("", FAS_BUILTIN, 0, OF_INTERNAL)
 
 /* ./.	(internal) initial shell was interactive */
-FN(NULL, FTALKING_I, 0, OF_INTERNAL)
+FN("", FTALKING_I, 0, OF_INTERNAL)
 
 #undef FN
 #undef F0
