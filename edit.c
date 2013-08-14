@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.269 2013/08/10 13:44:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.270 2013/08/14 20:26:17 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2828,15 +2828,15 @@ x_adjust(void)
 		goto x_adjust_out;
 	}
 
-	/* fix up xbp to character begin first */
-	xbp = x_bs0(xcp, xbuf);
+	/* fix up xbp to just past a character end first */
+	xbp = xcp >= xep ? xep : x_bs0(xcp, xbuf);
 	/* walk backwards */
 	while (xbp > xbuf && col_left > 0) {
 		xbp = x_bs0(xbp - 1, xbuf);
 		col_left -= (n = x_size2(xbp, NULL));
 	}
 	/* check if we hit the prompt */
-	if (xbp == xbuf && xcp != xbuf && col_left > 0 && col_left < pwidth) {
+	if (xbp == xbuf && xcp != xbuf && col_left >= 0 && col_left < pwidth) {
 		/* so we did; force scrolling occurs */
 		xbp += utf_ptradj(xbp);
 	}
