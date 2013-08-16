@@ -1,4 +1,4 @@
-/*	$OpenBSD: edit.c,v 1.38 2013/06/03 15:41:59 tedu Exp $	*/
+;/*	$OpenBSD: edit.c,v 1.38 2013/06/03 15:41:59 tedu Exp $	*/
 /*	$OpenBSD: edit.h,v 1.9 2011/05/30 17:14:35 martynas Exp $	*/
 /*	$OpenBSD: emacs.c,v 1.44 2011/09/05 04:50:33 marco Exp $	*/
 /*	$OpenBSD: vi.c,v 1.26 2009/06/29 22:50:19 martynas Exp $	*/
@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.270 2013/08/14 20:26:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.271 2013/08/16 10:59:01 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -82,7 +82,7 @@ static int x_basename(const char *, const char *);
 static void x_free_words(int, char **);
 static int x_escape(const char *, size_t, int (*)(const char *, size_t));
 static int x_emacs(char *);
-static void x_init_prompt(void);
+static void x_init_prompt(bool);
 #if !MKSH_S_NOVI
 static int x_vi(char *);
 #endif
@@ -148,6 +148,7 @@ x_getc(void)
 				if (x_cols != xx_cols && editmode == 1) {
 					/* redraw line in Emacs mode */
 					xx_cols = x_cols;
+					x_init_prompt(false);
 					x_e_rebuildline(MKSH_CLRTOEOL_STRING);
 				}
 			}
@@ -1167,16 +1168,17 @@ x_e_getmbc(char *sbuf)
 }
 
 static void
-x_init_prompt(void)
+x_init_prompt(bool doprint)
 {
-	prompt_trunc = pprompt(prompt, 0);
+	prompt_trunc = pprompt(prompt, doprint ? 0 : -1);
 	pwidth = prompt_trunc % x_cols;
 	prompt_trunc -= pwidth;
 	if ((mksh_uari_t)pwidth > ((mksh_uari_t)x_cols - 3 - MIN_EDIT_SPACE)) {
 		/* force newline after prompt */
 		prompt_trunc = -1;
 		pwidth = 0;
-		x_e_putc2('\n');
+		if (doprint)
+			x_e_putc2('\n');
 	}
 }
 
@@ -1196,7 +1198,7 @@ x_emacs(char *buf)
 	x_histp = histptr + 1;
 	x_last_command = XFUNC_error;
 
-	x_init_prompt();
+	x_init_prompt(true);
 	x_displen = (xx_cols = x_cols) - 2 - (x_col = pwidth);
 	x_adj_done = 0;
 	x_adj_ok = true;
@@ -3535,7 +3537,7 @@ x_vi(char *buf)
 	es = &ebuf;
 	undo = &undobuf;
 
-	x_init_prompt();
+	x_init_prompt(true);
 	x_col = pwidth;
 
 	if (wbuf_len != x_cols - 3 && ((wbuf_len = x_cols - 3))) {

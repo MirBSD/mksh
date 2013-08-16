@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.188 2013/08/10 13:44:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.189 2013/08/16 10:59:03 tg Exp $");
 
 /*
  * states while lexing word
@@ -1521,9 +1521,10 @@ set_prompt(int to, Source *s)
 int
 pprompt(const char *cp, int ntruncate)
 {
-	int columns = 0, lines = 0;
-	bool indelimit = false;
 	char delimiter = 0;
+	bool doprint = (ntruncate != -1);
+	bool indelimit = false;
+	int columns = 0, lines = 0;
 
 	/*
 	 * Undocumented AT&T ksh feature:
@@ -1552,18 +1553,19 @@ pprompt(const char *cp, int ntruncate)
 		else if (UTFMODE && ((unsigned char)*cp > 0x7F)) {
 			const char *cp2;
 			columns += utf_widthadj(cp, &cp2);
-			if (indelimit ||
-			    (ntruncate < (x_cols * lines + columns)))
+			if (doprint && (indelimit ||
+			    (ntruncate < (x_cols * lines + columns))))
 				shf_write(cp, cp2 - cp, shl_out);
 			cp = cp2 - /* loop increment */ 1;
 			continue;
 		} else
 			columns++;
-		if ((*cp != delimiter) &&
+		if (doprint && (*cp != delimiter) &&
 		    (indelimit || (ntruncate < (x_cols * lines + columns))))
 			shf_putc(*cp, shl_out);
 	}
-	shf_flush(shl_out);
+	if (doprint)
+		shf_flush(shl_out);
 	return (x_cols * lines + columns);
 }
 
