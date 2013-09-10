@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.244 2013/06/03 22:28:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.245 2013/09/10 16:30:49 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3243,6 +3243,7 @@ test_primary(Test_env *te, bool do_eval)
 	 * so that something like test \( -f = -f \) is accepted
 	 */
 	if ((te->flags & TEF_DBRACKET) || (&te->pos.wp[1] < te->wp_end &&
+/*XXX TODO: !test_opin(b_ops_xsi, … */
 	    !test_isop(TM_BINOP, te->pos.wp[1]))) {
 		if ((op = (*te->isa)(te, TM_UNOP))) {
 			/* unary expression */

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.125 2013/07/21 20:44:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.126 2013/09/10 16:30:49 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -1669,7 +1669,7 @@ static Test_op
 dbteste_isa(Test_env *te, Test_meta meta)
 {
 	Test_op ret = TO_NONOP;
-	int uqword;
+	bool uqword;
 	const char *p;
 
 	if (!*te->pos.wp)
