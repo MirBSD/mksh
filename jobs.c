@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.100 2013/07/26 20:33:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.101 2013/09/10 16:51:17 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1281,7 +1281,11 @@ j_sigchld(int sig MKSH_A_UNUSED)
 	getrusage(RUSAGE_CHILDREN, &ru0);
 	do {
 #ifndef MKSH_NOPROSPECTOFWORK
-		pid = waitpid(-1, &status, (WNOHANG|WUNTRACED));
+		pid = waitpid(-1, &status, (WNOHANG |
+#ifdef WCONTINUED
+		    WCONTINUED |
+#endif
+		    WUNTRACED));
 #else
 		pid = wait(&status);
 #endif
@@ -1320,6 +1324,13 @@ j_sigchld(int sig MKSH_A_UNUSED)
 		if (WIFSTOPPED(status))
 			p->state = PSTOPPED;
 		else
+#ifdef WIFCONTINUED
+		  if (WIFCONTINUED(status)) {
+			p->state = j->state = PRUNNING;
+			/* skip check_job(), no-op in this case */
+			continue;
+		} else
+#endif
 #endif
 		  if (WIFSIGNALED(status))
 			p->state = PSIGNALLED;
