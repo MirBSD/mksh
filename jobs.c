@@ -1,4 +1,4 @@
-/*	$OpenBSD: jobs.c,v 1.39 2009/12/13 04:36:48 deraadt Exp $	*/
+/*	$OpenBSD: jobs.c,v 1.40 2013/09/04 15:49:18 millert Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.101 2013/09/10 16:51:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.102 2013/09/10 17:33:01 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -224,6 +224,54 @@ proc_errorlevel(Proc *p)
 		return (0);
 	}
 }
+
+#ifndef MKSH_UNEMPLOYED
+/* suspend the shell */
+void
+j_suspend(void)
+{
+	struct sigaction sa, osa;
+
+	/* Restore tty and pgrp. */
+	if (ttypgrp_ok) {
+		if (tty_hasstate)
+			mksh_tcset(tty_fd, &tty_state);
+		if (restore_ttypgrp >= 0) {
+			if (tcsetpgrp(tty_fd, restore_ttypgrp) < 0) {
+				warningf(false, "%s: %s %s: %s", "j_suspend",
+				    "tcsetpgrp", "failed", cstrerror(errno));
+			} else if (setpgid(0, restore_ttypgrp) < 0) {
+				warningf(false, "%s: %s %s: %s", "j_suspend",
+				    "setpgid", "failed", cstrerror(errno));
+			}
+		}
+	}
+
+	/* Suspend the shell. */
+	memset(&sa, 0, sizeof(sa));
+	sigemptyset(&sa.sa_mask);
+	sa.sa_handler = SIG_DFL;
+	sigaction(SIGTSTP, &sa, &osa);
+	kill(0, SIGTSTP);
+
+	/* Back from suspend, reset signals, pgrp and tty. */
+	sigaction(SIGTSTP, &osa, NULL);
+	if (ttypgrp_ok) {
+		if (restore_ttypgrp >= 0) {
+			if (setpgid(0, kshpid) < 0) {
+				warningf(false, "%s: %s %s: %s", "j_suspend",
+				    "setpgid", "failed", cstrerror(errno));
+				ttypgrp_ok = false;
+			} else if (tcsetpgrp(tty_fd, kshpid) < 0) {
+				warningf(false, "%s: %s %s: %s", "j_suspend",
+				    "tcsetpgrp", "failed", cstrerror(errno));
+				ttypgrp_ok = false;
+			}
+		}
+		tty_init_state();
+	}
+}
+#endif
 
 /* job cleanup before shell exit */
 void

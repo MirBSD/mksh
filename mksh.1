@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.321 2013/08/23 14:07:37 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.147 2013/06/13 19:43:09 millert Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.322 2013/09/10 17:33:02 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.148 2013/09/04 15:49:18 millert Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
 .\"		2010, 2011, 2012, 2013
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: August 23 2013 $
+.Dd $Mdocdate: September 10 2013 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1130,7 +1130,6 @@ nameref=\*(aqtypeset \-n\*(aq
 nohup=\*(aqnohup \*(aq
 r=\*(aqfc \-e \-\*(aq
 stop=\*(aqkill \-STOP\*(aq
-suspend=\*(aqkill \-STOP $$\*(aq
 type=\*(aqwhence \-v\*(aq
 .Ed
 .Pp
@@ -2960,8 +2959,9 @@ Builtins that are not special:
 .Ic false , fc , fg , getopts ,
 .Ic jobs , kill , let , mknod ,
 .Ic print , pwd , read , realpath ,
-.Ic rename , sleep , test , true ,
-.Ic ulimit , umask , unalias , whence
+.Ic rename , sleep , suspend , test ,
+.Ic true , ulimit , umask , unalias ,
+.Ic whence
 .Pp
 Once the type of command has been determined, any command-line parameter
 assignments are performed and exported for the duration of the command.
@@ -4321,6 +4321,16 @@ In
 and
 .Nm mksh ,
 this is implemented as a shell alias instead of a builtin.
+.Pp
+.It Ic suspend
+Stops the shell as if it had received the suspend character from
+the terminal.
+It is not possible to suspend a login shell unless the parent process
+is a member of the same terminal session but is a member of a different
+process group.
+As a general rule, if the shell was started by another shell or via
+.Xr su 1 ,
+it can be suspended.
 .Pp
 .It Ic test Ar expression
 .It Ic \&[ Ar expression Ic \&]
@@ -6432,7 +6442,7 @@ $ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R48c
+.Nm mksh\ R48+CVS
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

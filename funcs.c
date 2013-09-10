@@ -1,5 +1,5 @@
 /*	$OpenBSD: c_ksh.c,v 1.33 2009/02/07 14:03:24 kili Exp $	*/
-/*	$OpenBSD: c_sh.c,v 1.43 2013/04/19 17:39:45 deraadt Exp $	*/
+/*	$OpenBSD: c_sh.c,v 1.44 2013/09/04 15:49:18 millert Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.18 2009/03/01 20:11:06 otto Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.17 2008/03/21 12:51:19 millert Exp $	*/
 
@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.245 2013/09/10 16:30:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.246 2013/09/10 17:33:00 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -58,6 +58,10 @@ __RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.245 2013/09/10 16:30:49 tg Exp $");
 
 #ifdef MKSH_NO_LIMITS
 #define c_ulimit	c_true
+#endif
+
+#ifndef MKSH_UNEMPLOYED
+static int c_suspend(const char **);
 #endif
 
 /* getn() that prints error */
@@ -123,6 +127,9 @@ const struct builtin mkshbuiltins[] = {
 	{"*=return", c_exitreturn},
 	{Tsgset, c_set},
 	{"*=shift", c_shift},
+#ifndef MKSH_UNEMPLOYED
+	{"suspend", c_suspend},
+#endif
 	{"test", c_test},
 	{"*=times", c_times},
 	{"*=trap", c_trap},
@@ -3841,5 +3848,26 @@ c_sleep(const char **wp)
 #endif
 	}
 	return (rv);
+}
+#endif
+
+#ifndef MKSH_UNEMPLOYED
+static int
+c_suspend(const char **wp)
+{
+	if (wp[1] != NULL) {
+		bi_errorf("too many arguments");
+		return (1);
+	}
+	if (Flag(FLOGIN)) {
+		/* Can't suspend an orphaned process group. */
+		if (getpgid(kshppid) == getpgid(0) ||
+		    getsid(kshppid) != getsid(0)) {
+			bi_errorf("can't suspend a login shell");
+			return (1);
+		}
+	}
+	j_suspend();
+	return (0);
 }
 #endif
