@@ -164,9 +164,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.670 2013/09/10 17:33:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.671 2013/09/24 20:19:44 tg Exp $");
 #endif
-#define MKSH_VERSION "R48 2013/09/10"
+#define MKSH_VERSION "R48 2013/09/24"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1587,6 +1587,7 @@ typedef union {
 #undef CTRL
 #define	CTRL(x)		((x) == '?' ? 0x7F : (x) & 0x1F)	/* ASCII */
 #define	UNCTRL(x)	((x) ^ 0x40)				/* ASCII */
+#define	ISCTRL(x)	(((signed char)((uint8_t)(x) + 1)) < 33)
 
 #define IDENT		64
 
@@ -1782,7 +1783,7 @@ void sethistfile(const char *);
 char **histpos(void);
 int histnum(int);
 #endif
-int findhist(int, int, const char *, int);
+int findhist(int, int, const char *, bool);
 char **hist_get_newest(bool);
 void inittraps(void);
 void alarm_init(void);

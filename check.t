@@ -1,8 +1,8 @@
-# $MirOS: src/bin/mksh/check.t,v 1.632 2013/09/10 17:32:58 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.633 2013/09/24 20:19:40 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
-# $OpenBSD: regress.t,v 1.15 2013/07/01 17:25:27 jca Exp $
+# $OpenBSD: regress.t,v 1.16 2013/09/14 20:09:30 millert Exp $
 # $OpenBSD: obsd-regress.t,v 1.5 2013/07/01 17:25:27 jca Exp $
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R48 2013/09/10
+	@(#)MIRBSD KSH R48 2013/09/24
 description:
 	Check version of shell.
 stdin:
@@ -40,7 +40,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R48 2013/09/10
+	@(#)LEGACY KSH R48 2013/09/24
 description:
 	Check version of legacy shell.
 stdin:
@@ -4806,11 +4806,12 @@ description:
 	them exit 0. The POSIX behaviour is needed by BSD make.
 stdin:
 	set -e
-	echo `false; echo hi`
+	echo `false; echo hi` $(<this-file-does-not-exist)
 	echo $?
 expected-stdout:
 	
 	0
+expected-stderr-pattern: /this-file-does-not-exist/
 ---
 name: regression-40
 description:

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.71 2013/07/26 20:33:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.72 2013/09/24 20:19:45 tg Exp $");
 
 #define INDENT	8
 
@@ -778,15 +778,16 @@ vistree(char *dst, size_t sz, struct op *t)
 	if (--sz == 0 || (c = (unsigned char)(*cp++)) == 0)
 		/* NUL or not enough free space */
 		goto vist_out;
-	if ((c & 0x60) == 0 || (c & 0x7F) == 0x7F) {
+	if (ISCTRL(c & 0x7F)) {
 		/* C0 or C1 control character or DEL */
 		if (--sz == 0)
 			/* not enough free space for two chars */
 			goto vist_out;
 		*dst++ = (c & 0x80) ? '$' : '^';
-		c = (c & 0x7F) ^ 0x40;
+		c = UNCTRL(c & 0x7F);
 	} else if (UTFMODE && c > 0x7F) {
 		/* better not try to display broken multibyte chars */
+		/* also go easy on the Unicode: no U+FFFD here */
 		c = '?';
 	}
 	*dst++ = c;
@@ -801,10 +802,10 @@ vistree(char *dst, size_t sz, struct op *t)
 void
 dumpchar(struct shf *shf, int c)
 {
-	if (((c & 0x60) == 0) || ((c & 0x7F) == 0x7F)) {
+	if (ISCTRL(c & 0x7F)) {
 		/* C0 or C1 control character or DEL */
 		shf_putc((c & 0x80) ? '$' : '^', shf);
-		c = (c & 0x7F) ^ 0x40;
+		c = UNCTRL(c & 0x7F);
 	}
 	shf_putc(c, shf);
 }
