@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.126 2013/09/10 16:30:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.127 2013/10/09 11:59:27 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -869,7 +869,7 @@ scriptexec(struct op *tp, const char **ap)
 	*tp->args-- = tp->str;
 
 #ifndef MKSH_SMALL
-	if ((fd = open(tp->str, O_RDONLY)) >= 0) {
+	if ((fd = open(tp->str, O_RDONLY | O_BINARY)) >= 0) {
 		/* read first MAXINTERP octets from file */
 		if (read(fd, buf, sizeof(buf)) <= 0)
 			/* read error -> no good */
@@ -1374,7 +1374,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			warningf(true, "%s: %s", cp, "restricted");
 			return (-1);
 		}
-		u = open(cp, flags, 0666);
+		u = open(cp, flags | O_BINARY, 0666);
 	}
 	if (u < 0) {
 		/* herein() may already have printed message */
@@ -1507,7 +1507,7 @@ herein(struct ioword *iop, char **resbuf)
 	 * so temp doesn't get removed too soon).
 	 */
 	h = maketemp(ATEMP, TT_HEREDOC_EXP, &e->temps);
-	if (!(shf = h->shf) || (fd = open(h->tffn, O_RDONLY, 0)) < 0) {
+	if (!(shf = h->shf) || (fd = open(h->tffn, O_RDONLY | O_BINARY, 0)) < 0) {
 		i = errno;
 		warningf(true, "can't %s temporary file %s: %s",
 		    !shf ? "create" : "open", h->tffn, cstrerror(i));

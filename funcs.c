@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.246 2013/09/10 17:33:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.247 2013/10/09 11:59:27 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3743,7 +3743,7 @@ c_cat(const char **wp)
 			fn = *wp++;
 			if (fn[0] == '-' && fn[1] == '\0')
 				fd = STDIN_FILENO;
-			else if ((fd = open(fn, O_RDONLY)) < 0) {
+			else if ((fd = open(fn, O_RDONLY | O_BINARY)) < 0) {
 				eno = errno;
 				bi_errorf("%s: %s", fn, cstrerror(eno));
 				rv = 1;

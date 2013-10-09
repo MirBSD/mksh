@@ -164,9 +164,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.671 2013/09/24 20:19:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.672 2013/10/09 11:59:29 tg Exp $");
 #endif
-#define MKSH_VERSION "R48 2013/09/24"
+#define MKSH_VERSION "R48 2013/10/08"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -394,6 +394,10 @@ extern int __cdecl setegid(gid_t);
 /* this need not work everywhere, take care */
 #define O_ACCMODE	(O_RDONLY | O_WRONLY | O_RDWR)
 #endif
+#endif
+
+#ifndef O_BINARY
+#define O_BINARY	0
 #endif
 
 #ifdef MKSH__NO_SYMLINK
@@ -2064,6 +2068,7 @@ Test_op	test_isop(Test_meta, const char *);
 int test_eval(Test_env *, Test_op, const char *, const char *, bool);
 int test_parse(Test_env *);
 
+/* tty_fd is not opened O_BINARY, it's thus never read/written */
 EXTERN int tty_fd E_INIT(-1);	/* dup'd tty file descriptor */
 EXTERN bool tty_devtty;		/* true if tty_fd is from /dev/tty */
 EXTERN mksh_ttyst tty_state;	/* saved tty state */

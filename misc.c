@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.215 2013/08/23 14:07:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.216 2013/10/09 11:59:29 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -2016,9 +2016,9 @@ chvt(const Getopt *go)
 #endif
 	    }
 	}
-	if ((fd = open(dv, O_RDWR)) < 0) {
+	if ((fd = open(dv, O_RDWR | O_BINARY)) < 0) {
 		sleep(1);
-		if ((fd = open(dv, O_RDWR)) < 0) {
+		if ((fd = open(dv, O_RDWR | O_BINARY)) < 0) {
 			errorf("%s: %s %s", "chvt", "can't open", dv);
 		}
 	}

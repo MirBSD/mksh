@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.270 2013/09/10 17:33:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.271 2013/10/09 11:59:29 tg Exp $");
 
 extern char **environ;
 
@@ -1658,7 +1658,8 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	} while (len < 5);
 
 	/* cyclically attempt to open a temporary file */
-	while ((i = open(tp->tffn, O_CREAT | O_EXCL | O_RDWR, 0600)) < 0) {
+	while ((i = open(tp->tffn, O_CREAT | O_EXCL | O_RDWR | O_BINARY,
+	    0600)) < 0) {
 		if (errno != EEXIST)
 			goto maketemp_out;
 		/* count down from z to a then from 9 to 0 */

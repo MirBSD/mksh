@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.61 2013/07/21 18:36:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.62 2013/10/09 11:59:30 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -62,7 +62,7 @@ shf_open(const char *name, int oflags, int mode, int sflags)
 	shf->flags = SHF_ALLOCS;
 	/* Rest filled in by reopen. */
 
-	fd = open(name, oflags, mode);
+	fd = open(name, oflags | O_BINARY, mode);
 	if (fd < 0) {
 		eno = errno;
 		afree(shf, shf->areap);
