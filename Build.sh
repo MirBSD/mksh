@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.647 2013/09/10 17:32:56 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.648 2013/10/31 20:05:38 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -1356,8 +1356,8 @@ ac_test attribute_bounded '' 'for __attribute__((__bounded__))' <<-'EOF'
 	#include <string.h>
 	#undef __attribute__
 	int xcopy(const void *, void *, size_t)
-	    __attribute__((__bounded__ (__buffer__, 1, 3)))
-	    __attribute__((__bounded__ (__buffer__, 2, 3)));
+	    __attribute__((__bounded__(__buffer__, 1, 3)))
+	    __attribute__((__bounded__(__buffer__, 2, 3)));
 	int main(int ac, char *av[]) { return (xcopy(av[0], av[--ac], 1)); }
 	int xcopy(const void *s, void *d, size_t n) {
 		/*
@@ -1379,7 +1379,7 @@ ac_test attribute_format '' 'for __attribute__((__format__))' <<-'EOF'
 	#undef __attribute__
 	#undef fprintf
 	extern int fprintf(FILE *, const char *format, ...)
-	    __attribute__((__format__ (__printf__, 2, 3)));
+	    __attribute__((__format__(__printf__, 2, 3)));
 	int main(int ac, char **av) { return (fprintf(stderr, "%s%d", *av, ac)); }
 	#endif
 EOF
@@ -1598,7 +1598,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.647 2013/09/10 17:32:56 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.648 2013/10/31 20:05:38 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in

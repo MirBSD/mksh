@@ -108,12 +108,12 @@
 
 #undef __attribute__
 #if HAVE_ATTRIBUTE_BOUNDED
-#define MKSH_A_BOUNDED(x,y,z)	__attribute__((__bounded__ (x, y, z)))
+#define MKSH_A_BOUNDED(x,y,z)	__attribute__((__bounded__(x, y, z)))
 #else
 #define MKSH_A_BOUNDED(x,y,z)	/* nothing */
 #endif
 #if HAVE_ATTRIBUTE_FORMAT
-#define MKSH_A_FORMAT(x,y,z)	__attribute__((__format__ (x, y, z)))
+#define MKSH_A_FORMAT(x,y,z)	__attribute__((__format__(x, y, z)))
 #else
 #define MKSH_A_FORMAT(x,y,z)	/* nothing */
 #endif
@@ -164,7 +164,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.672 2013/10/09 11:59:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.673 2013/10/31 20:05:39 tg Exp $");
 #endif
 #define MKSH_VERSION "R48 2013/10/08"
 
