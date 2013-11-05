@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006, 2008, 2009
+ * Copyright (c) 2006, 2008, 2009, 2013
  *	Thorsten Glaser <tg@mirbsd.org>
  * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
  *
@@ -18,13 +18,14 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/strlcpy.c,v 1.7 2009/06/10 18:12:50 tg Rel $");
+__RCSID("$MirOS: src/bin/mksh/strlcpy.c,v 1.8 2013/11/05 22:10:15 tg Exp $");
 
 /*
  * Copy src to string dst of size siz. At most siz-1 characters
  * will be copied. Always NUL terminates (unless siz == 0).
  * Returns strlen(src); if retval >= siz, truncation occurred.
  */
+#undef strlcpy
 size_t
 strlcpy(char *dst, const char *src, size_t siz)
 {
