@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.323 2013/11/17 22:20:21 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.324 2013/11/17 22:24:06 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.148 2013/09/04 15:49:18 millert Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -3418,6 +3418,7 @@ and
 .Ar last
 select commands from the history.
 Commands can be selected by history number
+(negative numbers go backwards from the current, most recent, line)
 or a string specifying the most recent command starting with that string.
 The
 .Fl l
