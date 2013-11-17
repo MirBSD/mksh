@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/genopt.sh,v 1.1 2013/11/17 22:21:18 tg Exp $
+# $MirOS: src/bin/mksh/genopt.sh,v 1.2 2013/11/17 22:22:51 tg Exp $
 #-
 # Copyright (c) 2013
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -74,6 +74,25 @@ soptc() {
 	o_str=$o_str$nl"<$optclo$islo$sym"
 }
 
+scond() {
+	case x$cond in
+	x)
+		cond=
+		;;
+	x*' '*)
+		cond=`echo "$cond" | sed 's/^ //'`
+		cond="#if $cond"
+		;;
+	x'!'*)
+		cond=`echo "$cond" | sed 's/^!//'`
+		cond="#ifndef $cond"
+		;;
+	x*)
+		cond="#ifdef $cond"
+		;;
+	esac
+}
+
 for srcfile
 do
 	bn=`basename "$srcfile" | sed 's/.opt$//'`
@@ -127,11 +146,7 @@ do
 		2:'>'*'|'*)
 			soptc
 			cond=`echo "$line" | sed 's/^[^|]*|//'`
-			case x$cond in
-			x) cond= ;;
-			x*' '*) cond="#if $cond" ;;
-			x*) cond="#ifdef $cond" ;;
-			esac
+			scond
 			case $optc in
 			'|') optc=0 ;;
 			*) optc=\'$optc\' ;;
@@ -150,11 +165,7 @@ do
 	esac
 	echo "$o_str" | sort | while IFS='|' read -r x opts cond; do
 		test -n "$x" || continue
-		case x$cond in
-		x) cond= ;;
-		x*' '*) cond="#if $cond" ;;
-		x*) cond="#ifdef $cond" ;;
-		esac
+		scond
 		test -n "$cond" && echo "$cond"
 		echo "\"$opts\""
 		test -n "$cond" && echo "#endif"

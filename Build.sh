@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.649 2013/11/17 22:21:16 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.650 2013/11/17 22:22:50 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -1602,7 +1602,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.649 2013/11/17 22:21:16 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.650 2013/11/17 22:22:50 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2257,7 +2257,7 @@ echo tcfn=$mkshexe >>Rebuild.sh
 echo "$CC $CFLAGS $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
 echo "test -f \$tcfn || exit 1; $SIZE \$tcfn" >>Rebuild.sh
 if test $cm = makefile; then
-	extras='emacsfn.h genopt.sh rlimits.opt sh.h sh_flags.h var_spec.h'
+	extras='emacsfn.h genopt.sh rlimits.opt sh.h sh_flags.opt var_spec.h'
 	test 0 = $HAVE_SYS_SIGNAME && extras="$extras signames.inc"
 	cat >Makefrag.inc <<EOF
 # Makefile fragment for building mksh $dstversion

@@ -164,7 +164,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.673 2013/10/31 20:05:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.674 2013/11/17 22:22:54 tg Exp $");
 #endif
 #define MKSH_VERSION "R48 2013/10/08"
 
@@ -664,7 +664,7 @@ EXTERN Area aperm;		/* permanent object space */
  */
 enum sh_flag {
 #define SHFLAGS_ENUMS
-#include "sh_flags.h"
+#include "sh_flags.gen"
 	FNFLAGS		/* (place holder: how many flags are there) */
 };
 

@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.216 2013/10/09 11:59:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.217 2013/11/17 22:22:53 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -125,7 +125,7 @@ Xcheck_grow(XString *xsp, const char *xp, size_t more)
 
 
 #define SHFLAGS_DEFNS
-#include "sh_flags.h"
+#include "sh_flags.gen"
 
 #define OFC(i) (options[i][-2])
 #define OFF(i) (((const unsigned char *)options[i])[-1])
@@ -133,7 +133,7 @@ Xcheck_grow(XString *xsp, const char *xp, size_t more)
 
 const char * const options[] = {
 #define SHFLAGS_ITEMS
-#include "sh_flags.h"
+#include "sh_flags.gen"
 };
 
 /*
@@ -341,46 +341,26 @@ parse_args(const char **argv,
     int what,
     bool *setargsp)
 {
-	static char cmd_opts[NELEM(options) + 5]; /* o:T:\0 */
-	static char set_opts[NELEM(options) + 6]; /* A:o;s\0 */
+	static const char cmd_opts[] =
+#define SHFLAGS_NOT_SET
+#define SHFLAGS_OPTCS
+#include "sh_flags.gen"
+#undef SHFLAGS_NOT_SET
+	    ;
+	static const char set_opts[] =
+#define SHFLAGS_NOT_CMD
+#define SHFLAGS_OPTCS
+#include "sh_flags.gen"
+#undef SHFLAGS_NOT_CMD
+	    ;
 	bool set;
-	char *opts;
+	const char *opts;
 	const char *array = NULL;
 	Getopt go;
 	size_t i;
 	int optc, arrayset = 0;
 	bool sortargs = false;
 	bool fcompatseen = false;
-
-	/* First call? Build option strings... */
-	if (cmd_opts[0] == '\0') {
-		char ch, *p = cmd_opts, *q = set_opts;
-
-		/* see cmd_opts[] declaration */
-		*p++ = 'o';
-		*p++ = ':';
-#ifdef KSH_CHVT_FLAG
-		*p++ = 'T';
-		*p++ = ':';
-#endif
-		/* see set_opts[] declaration */
-		*q++ = 'A';
-		*q++ = ':';
-		*q++ = 'o';
-		*q++ = ';';
-		*q++ = 's';
-
-		for (i = 0; i < NELEM(options); i++) {
-			if ((ch = OFC(i))) {
-				if (OFF(i) & OF_CMDLINE)
-					*p++ = ch;
-				if (OFF(i) & OF_SET)
-					*q++ = ch;
-			}
-		}
-		*p = '\0';
-		*q = '\0';
-	}
 
 	if (what == OF_CMDLINE) {
 		const char *p = argv[0], *q;
