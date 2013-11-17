@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.322 2013/09/10 17:33:02 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.323 2013/11/17 22:20:21 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.148 2013/09/04 15:49:18 millert Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: September 10 2013 $
+.Dd $Mdocdate: November 17 2013 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -4895,7 +4895,7 @@ unless they are also given on the same command line.
 .Pp
 .It Xo
 .Ic ulimit
-.Op Fl aBCcdefHiLlMmnOPpqrSsTtVvw
+.Op Fl aBCcdefHilMmnOPpqrSsTtVvw
 .Op Ar value
 .Xc
 Display or set process limits.
@@ -4946,8 +4946,6 @@ Set the hard limit only (the default is to set both hard and soft limits).
 .It Fl i Ar n
 Set the number of pending signals to
 .Ar n .
-.It Fl L Ar n
-Control flocks; documentation is missing.
 .It Fl l Ar n
 Impose a limit of
 .Ar n

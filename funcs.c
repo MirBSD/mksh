@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.248 2013/11/17 22:19:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.249 2013/11/17 22:20:20 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3426,9 +3426,6 @@ c_ulimit(const char **wp)
 #ifdef RLIMIT_SWAP
 		{ "swap(KiB)", RLIMIT_SWAP, 1024, 'w' },
 #endif
-#ifdef RLIMIT_LOCKS
-		{ "flocks", RLIMIT_LOCKS, -1, 'L' },
-#endif
 #ifdef RLIMIT_TIME
 		{ "humantime(seconds)", RLIMIT_TIME, 1, 'T' },
 #endif
@@ -3496,9 +3493,6 @@ c_ulimit(const char **wp)
 	    "H"
 #ifdef RLIMIT_SIGPENDING
 	    "i"
-#endif
-#ifdef RLIMIT_LOCKS
-	    "L"
 #endif
 #ifdef RLIMIT_MEMLOCK
 	    "l"
@@ -3619,7 +3613,11 @@ set_ulimit(const struct limits *l, const char *v, int how)
 	}
 
 	if (getrlimit(l->resource, &limit) < 0) {
-		/* some can't be read, e.g. Linux RLIMIT_LOCKS */
+#ifndef MKSH_SMALL
+		bi_errorf("limit %s could not be read, contact the mksh developers: %s",
+		    l->name, cstrerror(errno));
+#endif
+		/* some can't be read */
 		limit.rlim_cur = RLIM_INFINITY;
 		limit.rlim_max = RLIM_INFINITY;
 	}
