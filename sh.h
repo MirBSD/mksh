@@ -164,7 +164,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.674 2013/11/17 22:22:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.675 2013/11/17 22:23:29 tg Exp $");
 #endif
 #define MKSH_VERSION "R48 2013/10/08"
 
@@ -416,6 +416,10 @@ extern int __cdecl setegid(gid_t);
 #define mksh_ttyst	struct termio
 #define mksh_tcget(fd,st) ioctl((fd), TCGETA, (st))
 #define mksh_tcset(fd,st) ioctl((fd), TCSETAW, (st))
+#endif
+
+#ifndef ISTRIP
+#define ISTRIP		0
 #endif
 
 /* remove redundancies */

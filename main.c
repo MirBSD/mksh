@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.271 2013/10/09 11:59:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.272 2013/11/17 22:23:28 tg Exp $");
 
 extern char **environ;
 
@@ -1921,9 +1921,10 @@ x_mkraw(int fd, mksh_ttyst *ocb, bool forread)
 
 	cb = *ocb;
 	if (forread) {
+		cb.c_iflag &= ~(ISTRIP);
 		cb.c_lflag &= ~(ICANON) | ECHO;
 	} else {
-		cb.c_iflag &= ~(INLCR | ICRNL);
+		cb.c_iflag &= ~(INLCR | ICRNL | ISTRIP);
 		cb.c_lflag &= ~(ISIG | ICANON | ECHO);
 	}
 #if defined(VLNEXT) && defined(_POSIX_VDISABLE)
