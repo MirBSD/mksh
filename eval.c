@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.143 2013/09/24 20:19:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.144 2013/11/17 22:28:51 tg Exp $");
 
 /*
  * string expansion
@@ -719,7 +719,8 @@ expand(
 					 */
 					x.str = trimsub(str_val(st->var),
 						dp, st->stype);
-					if (x.str[0] != '\0' || st->quotep)
+					word = quote ? IFS_WORD : IFS_WS;
+					if (quote || x.str[0] != '\0')
 						type = XSUB;
 					else
 						type = XNULLSUB;

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.634 2013/10/09 11:59:26 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.635 2013/11/17 22:28:49 tg Exp $
 # $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
 # $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
@@ -31,7 +31,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R48 2013/10/08
+	@(#)MIRBSD KSH R48 2013/11/17
 description:
 	Check version of shell.
 stdin:
@@ -40,7 +40,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R48 2013/10/08
+	@(#)LEGACY KSH R48 2013/11/17
 description:
 	Check version of legacy shell.
 stdin:
@@ -3674,6 +3674,8 @@ stdin:
 	x=" A :  B::D"
 	echo -n '12:'; for i in $x ; do echo -n " [$i]" ; done ; echo
 	showargs 13 $x
+	x="X 1 2"
+	showargs 14 shift ${x#X}
 expected-stdout:
 	1: [] [b] []
 	2: [:b::]
@@ -3688,6 +3690,7 @@ expected-stdout:
 	 <11> <h:ith:ere>
 	12: [A] [B] [] [D]
 	 <13> <A> <B> <> <D>
+	 <14> <shift> <1> <2>
 ---
 name: integer-base-err-1
 description:
