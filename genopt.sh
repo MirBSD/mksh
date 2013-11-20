@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/genopt.sh,v 1.2 2013/11/17 22:22:51 tg Exp $
+# $MirOS: src/bin/mksh/genopt.sh,v 1.3 2013/11/20 20:55:01 tg Exp $
 #-
 # Copyright (c) 2013
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -43,12 +43,6 @@ allu=QWERTYUIOPASDFGHJKLZXCVBNM
 alll=qwertyuiopasdfghjklzxcvbnm
 nl='
 '
-me=`basename "$0"`
-curdir=`pwd` srcdir=`dirname "$0" 2>/dev/null`
-case x$srcdir in
-x) srcdir=. ;;
-*"'"*) echo Source directory must not contain single quotes.; exit 1 ;;
-esac
 
 die() {
 	if test -n "$1"; then
@@ -101,6 +95,7 @@ do
 	o_sym=
 	ddefs=
 	state=0
+	exec <"$srcfile"
 	while IFS= read -r line; do
 		case $state:$line in
 		2:'|'*)
@@ -157,7 +152,7 @@ do
 			test -n "$cond" && o_gen=$o_gen$nl"#endif"
 			;;
 		esac
-	done <"$srcfile"
+	done
 	case $state:$o_sym in
 	3:) die Expected optc sym at EOF ;;
 	3:*) ;;
