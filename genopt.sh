@@ -1,5 +1,5 @@
 #!/bin/sh
-# $MirOS: src/bin/mksh/genopt.sh,v 1.3 2013/11/20 20:55:01 tg Exp $
+# $MirOS: src/bin/mksh/genopt.sh,v 1.4 2013/11/20 21:14:50 tg Exp $
 #-
 # Copyright (c) 2013
 #	Thorsten Glaser <tg@mirbsd.org>
@@ -87,89 +87,85 @@ scond() {
 	esac
 }
 
-for srcfile
-do
-	bn=`basename "$srcfile" | sed 's/.opt$//'`
-	o_gen=
-	o_str=
-	o_sym=
-	ddefs=
-	state=0
-	exec <"$srcfile"
-	while IFS= read -r line; do
-		case $state:$line in
-		2:'|'*)
-			# end of input
-			o_sym=`echo "$line" | sed 's/^.//'`
-			o_gen=$o_gen$nl"#undef F0"
-			o_gen=$o_gen$nl"#undef FN"
-			for sym in $ddefs; do
-				o_gen=$o_gen$nl"#undef $sym"
-			done
-			state=3
-			;;
-		1:@@)
-			# begin of data block
-			o_gen=$o_gen$nl"#endif"
-			o_gen=$o_gen$nl"#ifndef F0"
-			o_gen=$o_gen$nl"#define F0 FN"
-			o_gen=$o_gen$nl"#endif"
-			state=2
-			;;
-		*:@@*)
-			die ;;
-		0:@*|1:@*)
-			# begin of a definition block
-			sym=`echo "$line" | sed 's/^@//'`
-			if test $state = 0; then
-				o_gen=$o_gen$nl"#if defined($sym)"
-			else
-				o_gen=$o_gen$nl"#elif defined($sym)"
-			fi
-			ddefs="$ddefs $sym"
-			state=1
-			;;
-		0:*|3:*)
-			die ;;
-		1:*)
-			# definition line
-			o_gen=$o_gen$nl$line
-			;;
-		2:'<'*'|'*)
-			soptc
-			;;
-		2:'>'*'|'*)
-			soptc
-			cond=`echo "$line" | sed 's/^[^|]*|//'`
-			scond
-			case $optc in
-			'|') optc=0 ;;
-			*) optc=\'$optc\' ;;
-			esac
-			IFS= read -r line || die Unexpected EOF
-			test -n "$cond" && o_gen=$o_gen$nl"$cond"
-			o_gen=$o_gen$nl"$line, $optc)"
-			test -n "$cond" && o_gen=$o_gen$nl"#endif"
-			;;
-		esac
-	done
-	case $state:$o_sym in
-	3:) die Expected optc sym at EOF ;;
-	3:*) ;;
-	*) die Missing EOF marker ;;
-	esac
-	echo "$o_str" | sort | while IFS='|' read -r x opts cond; do
-		test -n "$x" || continue
+test -f "$srcfile" || die Source file \$srcfile not set.
+bn=`basename "$srcfile" | sed 's/.opt$//'`
+o_gen=
+o_str=
+o_sym=
+ddefs=
+state=0
+exec <"$srcfile"
+while IFS= read -r line; do
+	case $state:$line in
+	2:'|'*)
+		# end of input
+		o_sym=`echo "$line" | sed 's/^.//'`
+		o_gen=$o_gen$nl"#undef F0"
+		o_gen=$o_gen$nl"#undef FN"
+		o_gen=$o_gen$ddefs
+		state=3
+		;;
+	1:@@)
+		# begin of data block
+		o_gen=$o_gen$nl"#endif"
+		o_gen=$o_gen$nl"#ifndef F0"
+		o_gen=$o_gen$nl"#define F0 FN"
+		o_gen=$o_gen$nl"#endif"
+		state=2
+		;;
+	*:@@*)
+		die ;;
+	0:@*|1:@*)
+		# begin of a definition block
+		sym=`echo "$line" | sed 's/^@//'`
+		if test $state = 0; then
+			o_gen=$o_gen$nl"#if defined($sym)"
+		else
+			o_gen=$o_gen$nl"#elif defined($sym)"
+		fi
+		ddefs="$ddefs$nl#undef $sym"
+		state=1
+		;;
+	0:*|3:*)
+		die ;;
+	1:*)
+		# definition line
+		o_gen=$o_gen$nl$line
+		;;
+	2:'<'*'|'*)
+		soptc
+		;;
+	2:'>'*'|'*)
+		soptc
+		cond=`echo "$line" | sed 's/^[^|]*|//'`
 		scond
-		test -n "$cond" && echo "$cond"
-		echo "\"$opts\""
-		test -n "$cond" && echo "#endif"
-	done | {
-		echo "#ifndef $o_sym$o_gen"
-		echo "#else"
-		cat
-		echo "#undef $o_sym"
-		echo "#endif"
-	} >"$bn.gen"
+		case $optc in
+		'|') optc=0 ;;
+		*) optc=\'$optc\' ;;
+		esac
+		IFS= read -r line || die Unexpected EOF
+		test -n "$cond" && o_gen=$o_gen$nl"$cond"
+		o_gen=$o_gen$nl"$line, $optc)"
+		test -n "$cond" && o_gen=$o_gen$nl"#endif"
+		;;
+	esac
 done
+case $state:$o_sym in
+3:) die Expected optc sym at EOF ;;
+3:*) ;;
+*) die Missing EOF marker ;;
+esac
+echo "$o_str" | sort | while IFS='|' read -r x opts cond; do
+	test -n "$x" || continue
+	scond
+	test -n "$cond" && echo "$cond"
+	echo "\"$opts\""
+	test -n "$cond" && echo "#endif"
+done | {
+	echo "#ifndef $o_sym$o_gen"
+	echo "#else"
+	cat
+	echo "#undef $o_sym"
+	echo "#endif"
+} >"$bn.gen"
 exit 0

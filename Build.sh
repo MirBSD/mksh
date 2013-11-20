@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.650 2013/11/17 22:22:50 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.651 2013/11/20 21:14:49 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -66,7 +66,7 @@ vq() {
 rmf() {
 	for _f in "$@"; do
 		case $_f in
-		Build.sh|check.pl|check.t|dot.mkshrc|*.c|*.h|*.ico|*.1) ;;
+		Build.sh|check.pl|check.t|dot.mkshrc|genopt.sh|*.1|*.c|*.h|*.ico|*.opt) ;;
 		*) rm -f "$_f" ;;
 		esac
 	done
@@ -327,8 +327,17 @@ addsrcs() {
 
 curdir=`pwd` srcdir=`dirname "$0" 2>/dev/null`
 case x$srcdir in
-x) srcdir=. ;;
-*"'"*) echo Source directory must not contain single quotes.; exit 1 ;;
+x)
+	srcdir=.
+	;;
+*\ *|*"	"*|*"$nl"*)
+	echo >&2 Source directory should not contain space or tab or newline.
+	echo >&2 Errors may occur.
+	;;
+*"'"*)
+	echo Source directory must not contain single quotes.
+	exit 1
+	;;
 esac
 dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\([^"]*\)".*$/\1/p' "$srcdir/sh.h"`
 add_cppflags -DMKSH_BUILDSH
@@ -427,7 +436,7 @@ if test -d $tfn || test -d $tfn.exe; then
 	echo "$me: Error: ./$tfn is a directory!" >&2
 	exit 1
 fi
-rmf a.exe* a.out* conftest.c *core core.* lft ${tfn}* no *.bc *.ll *.o \
+rmf a.exe* a.out* conftest.c *core core.* lft ${tfn}* no *.bc *.ll *.o *.gen \
     Rebuild.sh signames.inc test.sh x vv.out
 
 SRCS="lalloc.c eval.c exec.c expr.c funcs.c histrap.c jobs.c"
@@ -466,7 +475,7 @@ oswarn=
 ccpc=-Wc,
 ccpl=-Wl,
 tsts=
-ccpr='|| for _f in ${tcfn}*; do case $_f in Build.sh|check.pl|check.t|dot.mkshrc|*.c|*.h|*.ico|*.1) ;; *) rm -f "$_f" ;; esac; done'
+ccpr='|| for _f in ${tcfn}*; do case $_f in Build.sh|check.pl|check.t|dot.mkshrc|genopt.sh|*.1|*.c|*.h|*.ico|*.opt) ;; *) rm -f "$_f" ;; esac; done'
 
 # Evil hack
 if test x"$TARGET_OS" = x"Android"; then
@@ -1602,7 +1611,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.650 2013/11/17 22:22:50 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.651 2013/11/20 21:14:49 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2228,6 +2237,10 @@ llvm)
 	;;
 esac
 echo ": # work around NeXTstep bug" >Rebuild.sh
+for file in "$srcdir"/*.opt; do
+	echo "echo + Running \\\$srcdir/genopt.sh on '$file'..."
+	echo "(srcfile='$file'; . '$srcdir/genopt.sh')"
+done >>Rebuild.sh
 echo set -x >>Rebuild.sh
 for file in $SRCS; do
 	op=`echo x"$file" | sed 's/^x\(.*\)\.c$/\1./'`
@@ -2259,6 +2272,13 @@ echo "test -f \$tcfn || exit 1; $SIZE \$tcfn" >>Rebuild.sh
 if test $cm = makefile; then
 	extras='emacsfn.h genopt.sh rlimits.opt sh.h sh_flags.opt var_spec.h'
 	test 0 = $HAVE_SYS_SIGNAME && extras="$extras signames.inc"
+	gens= genq=
+	for file in "$srcdir"/*.opt; do
+		genf=`basename "$file" | sed 's/.opt$/.gen/'`
+		gens="$gens $genf"
+		genq="$genq$nl$genf: $srcdir/genopt.sh $file
+			srcfile=$file; . $srcdir/genopt.sh"
+	done
 	cat >Makefrag.inc <<EOF
 # Makefile fragment for building mksh $dstversion
 
@@ -2275,6 +2295,8 @@ CFLAGS=		$CFLAGS
 CPPFLAGS=	$CPPFLAGS
 LDFLAGS=	$LDFLAGS
 LIBS=		$LIBS
+
+.depend \$(OBJS_BP):$gens$genq
 
 # not BSD make only:
 #VPATH=		$srcdir
@@ -2299,6 +2321,9 @@ EOF
 	$e Generated Makefrag.inc successfully.
 	exit 0
 fi
+for file in "$srcdir"/*.opt; do
+	v "(srcfile='$file'; . '$srcdir/genopt.sh')" || exit 1
+done
 if test $cm = combine; then
 	objs="-o $mkshexe"
 	for file in $SRCS; do
