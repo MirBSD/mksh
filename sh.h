@@ -164,9 +164,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.678 2013/11/30 17:33:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.679 2013/11/30 17:41:35 tg Exp $");
 #endif
-#define MKSH_VERSION "R48 2013/11/29"
+#define MKSH_VERSION "R48 2013/11/30"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1826,6 +1826,8 @@ int waitfor(const char *, int *);
 int j_kill(const char *, int);
 #ifndef MKSH_UNEMPLOYED
 int j_resume(const char *, int);
+#endif
+#if !defined(MKSH_UNEMPLOYED) && HAVE_GETSID
 void j_suspend(void);
 #endif
 int j_jobs(const char *, int, int);

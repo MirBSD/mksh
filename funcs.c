@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.251 2013/11/30 17:33:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.252 2013/11/30 17:41:34 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -60,7 +60,7 @@ __RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.251 2013/11/30 17:33:49 tg Exp $");
 #define c_ulimit	c_true
 #endif
 
-#ifndef MKSH_UNEMPLOYED
+#if !defined(MKSH_UNEMPLOYED) && HAVE_GETSID
 static int c_suspend(const char **);
 #endif
 
@@ -127,7 +127,7 @@ const struct builtin mkshbuiltins[] = {
 	{"*=return", c_exitreturn},
 	{Tsgset, c_set},
 	{"*=shift", c_shift},
-#ifndef MKSH_UNEMPLOYED
+#if !defined(MKSH_UNEMPLOYED) && HAVE_GETSID
 	{"suspend", c_suspend},
 #endif
 	{"test", c_test},
@@ -3719,7 +3719,7 @@ c_sleep(const char **wp)
 }
 #endif
 
-#ifndef MKSH_UNEMPLOYED
+#if !defined(MKSH_UNEMPLOYED) && HAVE_GETSID
 static int
 c_suspend(const char **wp)
 {

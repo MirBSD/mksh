@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.102 2013/09/10 17:33:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.103 2013/11/30 17:41:35 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -225,7 +225,7 @@ proc_errorlevel(Proc *p)
 	}
 }
 
-#ifndef MKSH_UNEMPLOYED
+#if !defined(MKSH_UNEMPLOYED) && HAVE_GETSID
 /* suspend the shell */
 void
 j_suspend(void)
