@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.128 2013/11/20 21:14:50 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.129 2013/11/30 15:42:19 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -84,8 +84,8 @@ MLINKS+=	${PROG}.1 ${_i}.1
 OPTGENS!=	cd ${.CURDIR:Q} && echo *.opt
 .for _i in ${OPTGENS}
 GENERATED+=	${_i:R}.gen
-${_i:R}.gen: ${_i} ${.CURDIR}/genopt.sh
-	(srcfile=${.CURDIR:Q}/${_i}; . ${.CURDIR:Q}/genopt.sh)
+${_i:R}.gen: ${_i} ${.CURDIR}/Build.sh
+	/bin/sh ${.CURDIR:Q}/Build.sh -G ${.CURDIR:Q}/${_i:Q}
 .endfor
 CLEANFILES+=	${GENERATED}
 

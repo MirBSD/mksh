@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.651 2013/11/20 21:14:49 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.652 2013/11/30 15:42:18 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -28,9 +28,6 @@ srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.651 2013/11/20 21:14:49 tg Exp $'
 LC_ALL=C
 export LC_ALL
 
-echo "For the build logs, demonstrate that /dev/null and /dev/tty exist:"
-ls -l /dev/null /dev/tty
-
 case $ZSH_VERSION:$VERSION in
 :zsh*) ZSH_VERSION=2 ;;
 esac
@@ -45,6 +42,162 @@ if test -d /usr/xpg4/bin/. >/dev/null 2>&1; then
 	PATH=/usr/xpg4/bin:$PATH
 	export PATH
 fi
+
+nl='
+'
+safeIFS='	'
+safeIFS=" $safeIFS$nl"
+IFS=$safeIFS
+allu=QWERTYUIOPASDFGHJKLZXCVBNM
+alll=qwertyuiopasdfghjklzxcvbnm
+alln=0123456789
+alls=______________________________________________________________
+
+genopt_die() {
+	if test -n "$1"; then
+		echo >&2 "E: $*"
+		echo >&2 "E: in '$srcfile': '$line'"
+	else
+		echo >&2 "E: invalid input in '$srcfile': '$line'"
+	fi
+	rm -f "$bn.gen"
+	exit 1
+}
+
+genopt_soptc() {
+	optc=`echo "$line" | sed 's/^[<>]\(.\).*$/\1/'`
+	test x"$optc" = x'|' && return
+	optclo=`echo "$optc" | tr $allu $alll`
+	if test x"$optc" = x"$optclo"; then
+		islo=1
+	else
+		islo=0
+	fi
+	sym=`echo "$line" | sed 's/^[<>]/|/'`
+	o_str=$o_str$nl"<$optclo$islo$sym"
+}
+
+genopt_scond() {
+	case x$cond in
+	x)
+		cond=
+		;;
+	x*' '*)
+		cond=`echo "$cond" | sed 's/^ //'`
+		cond="#if $cond"
+		;;
+	x'!'*)
+		cond=`echo "$cond" | sed 's/^!//'`
+		cond="#ifndef $cond"
+		;;
+	x*)
+		cond="#ifdef $cond"
+		;;
+	esac
+}
+
+do_genopt() {
+	srcfile=$1
+	test -f "$srcfile" || genopt_die Source file \$srcfile not set.
+	bn=`basename "$srcfile" | sed 's/.opt$//'`
+	o_gen=
+	o_str=
+	o_sym=
+	ddefs=
+	state=0
+	exec <"$srcfile"
+	IFS=
+	while IFS= read -r line; do
+		IFS=$safeIFS
+		case $state:$line in
+		2:'|'*)
+			# end of input
+			o_sym=`echo "$line" | sed 's/^.//'`
+			o_gen=$o_gen$nl"#undef F0"
+			o_gen=$o_gen$nl"#undef FN"
+			o_gen=$o_gen$ddefs
+			state=3
+			;;
+		1:@@)
+			# begin of data block
+			o_gen=$o_gen$nl"#endif"
+			o_gen=$o_gen$nl"#ifndef F0"
+			o_gen=$o_gen$nl"#define F0 FN"
+			o_gen=$o_gen$nl"#endif"
+			state=2
+			;;
+		*:@@*)
+			genopt_die ;;
+		0:@*|1:@*)
+			# begin of a definition block
+			sym=`echo "$line" | sed 's/^@//'`
+			if test $state = 0; then
+				o_gen=$o_gen$nl"#if defined($sym)"
+			else
+				o_gen=$o_gen$nl"#elif defined($sym)"
+			fi
+			ddefs="$ddefs$nl#undef $sym"
+			state=1
+			;;
+		0:*|3:*)
+			genopt_die ;;
+		1:*)
+			# definition line
+			o_gen=$o_gen$nl$line
+			;;
+		2:'<'*'|'*)
+			genopt_soptc
+			;;
+		2:'>'*'|'*)
+			genopt_soptc
+			cond=`echo "$line" | sed 's/^[^|]*|//'`
+			genopt_scond
+			case $optc in
+			'|') optc=0 ;;
+			*) optc=\'$optc\' ;;
+			esac
+			IFS= read -r line || genopt_die Unexpected EOF
+			IFS=$safeIFS
+			test -n "$cond" && o_gen=$o_gen$nl"$cond"
+			o_gen=$o_gen$nl"$line, $optc)"
+			test -n "$cond" && o_gen=$o_gen$nl"#endif"
+			;;
+		esac
+	done
+	case $state:$o_sym in
+	3:) genopt_die Expected optc sym at EOF ;;
+	3:*) ;;
+	*) genopt_die Missing EOF marker ;;
+	esac
+	echo "$o_str" | sort | while IFS='|' read -r x opts cond; do
+		IFS=$safeIFS
+		test -n "$x" || continue
+		genopt_scond
+		test -n "$cond" && echo "$cond"
+		echo "\"$opts\""
+		test -n "$cond" && echo "#endif"
+	done | {
+		echo "#ifndef $o_sym$o_gen"
+		echo "#else"
+		cat
+		echo "#undef $o_sym"
+		echo "#endif"
+	} >"$bn.gen"
+	IFS=$safeIFS
+	return 0
+}
+
+if test x"$BUILDSH_RUN_GENOPT" = x"1"; then
+	set x -G "$srcfile"
+	shift
+fi
+if test x"$1" = x"-G"; then
+	do_genopt "$2"
+	exit $?
+fi
+
+echo "For the build logs, demonstrate that /dev/null and /dev/tty exist:"
+ls -l /dev/null /dev/tty
 
 v() {
 	$e "$*"
@@ -66,18 +219,12 @@ vq() {
 rmf() {
 	for _f in "$@"; do
 		case $_f in
-		Build.sh|check.pl|check.t|dot.mkshrc|genopt.sh|*.1|*.c|*.h|*.ico|*.opt) ;;
+		Build.sh|check.pl|check.t|dot.mkshrc|*.1|*.c|*.h|*.ico|*.opt) ;;
 		*) rm -f "$_f" ;;
 		esac
 	done
 }
 
-allu=QWERTYUIOPASDFGHJKLZXCVBNM
-alll=qwertyuiopasdfghjklzxcvbnm
-alln=0123456789
-alls=______________________________________________________________
-nl='
-'
 tcfn=no
 bi=
 ui=
@@ -375,6 +522,10 @@ do
 	:-c)
 		last=c
 		;;
+	:-G)
+		echo "$me: Do not call me with '-G'!" >&2
+		exit 1
+		;;
 	:-g)
 		# checker, debug, valgrind build
 		add_cppflags -DDEBUG
@@ -475,7 +626,7 @@ oswarn=
 ccpc=-Wc,
 ccpl=-Wl,
 tsts=
-ccpr='|| for _f in ${tcfn}*; do case $_f in Build.sh|check.pl|check.t|dot.mkshrc|genopt.sh|*.1|*.c|*.h|*.ico|*.opt) ;; *) rm -f "$_f" ;; esac; done'
+ccpr='|| for _f in ${tcfn}*; do case $_f in Build.sh|check.pl|check.t|dot.mkshrc|*.1|*.c|*.h|*.ico|*.opt) ;; *) rm -f "$_f" ;; esac; done'
 
 # Evil hack
 if test x"$TARGET_OS" = x"Android"; then
@@ -1611,7 +1762,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.651 2013/11/20 21:14:49 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.652 2013/11/30 15:42:18 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
@@ -2238,8 +2389,8 @@ llvm)
 esac
 echo ": # work around NeXTstep bug" >Rebuild.sh
 for file in "$srcdir"/*.opt; do
-	echo "echo + Running \\\$srcdir/genopt.sh on '$file'..."
-	echo "(srcfile='$file'; . '$srcdir/genopt.sh')"
+	echo "echo + Running genopt on '$file'..."
+	echo "(srcfile='$file'; BUILDSH_RUN_GENOPT=1; . '$srcdir/Build.sh')"
 done >>Rebuild.sh
 echo set -x >>Rebuild.sh
 for file in $SRCS; do
@@ -2270,14 +2421,14 @@ echo tcfn=$mkshexe >>Rebuild.sh
 echo "$CC $CFLAGS $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
 echo "test -f \$tcfn || exit 1; $SIZE \$tcfn" >>Rebuild.sh
 if test $cm = makefile; then
-	extras='emacsfn.h genopt.sh rlimits.opt sh.h sh_flags.opt var_spec.h'
+	extras='emacsfn.h rlimits.opt sh.h sh_flags.opt var_spec.h'
 	test 0 = $HAVE_SYS_SIGNAME && extras="$extras signames.inc"
 	gens= genq=
 	for file in "$srcdir"/*.opt; do
 		genf=`basename "$file" | sed 's/.opt$/.gen/'`
 		gens="$gens $genf"
-		genq="$genq$nl$genf: $srcdir/genopt.sh $file
-			srcfile=$file; . $srcdir/genopt.sh"
+		genq="$genq$nl$genf: $srcdir/Build.sh $file
+			srcfile=$file; BUILDSH_RUN_GENOPT=1; . $srcdir/Build.sh"
 	done
 	cat >Makefrag.inc <<EOF
 # Makefile fragment for building mksh $dstversion
@@ -2322,7 +2473,8 @@ EOF
 	exit 0
 fi
 for file in "$srcdir"/*.opt; do
-	v "(srcfile='$file'; . '$srcdir/genopt.sh')" || exit 1
+	$e "+ Running genopt on '$file'..."
+	do_genopt "$file" || exit 1
 done
 if test $cm = combine; then
 	objs="-o $mkshexe"
