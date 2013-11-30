@@ -1,7 +1,7 @@
 /*	$OpenBSD: c_ksh.c,v 1.33 2009/02/07 14:03:24 kili Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.44 2013/09/04 15:49:18 millert Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.18 2009/03/01 20:11:06 otto Exp $	*/
-/*	$OpenBSD: c_ulimit.c,v 1.18 2013/11/14 15:23:30 espie Exp $	*/
+/*	$OpenBSD: c_ulimit.c,v 1.19 2013/11/28 10:33:37 sobrado Exp $	*/
 
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.250 2013/11/17 22:21:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.251 2013/11/30 17:33:49 tg Exp $");
 
 #if HAVE_KILLPG
 /*
