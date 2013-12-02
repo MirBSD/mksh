@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.653 2013/11/30 17:41:31 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.654 2013/12/02 19:47:33 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013
@@ -107,7 +107,7 @@ do_genopt() {
 	state=0
 	exec <"$srcfile"
 	IFS=
-	while IFS= read -r line; do
+	while IFS= read line; do
 		IFS=$safeIFS
 		case $state:$line in
 		2:'|'*)
@@ -156,7 +156,7 @@ do_genopt() {
 			'|') optc=0 ;;
 			*) optc=\'$optc\' ;;
 			esac
-			IFS= read -r line || genopt_die Unexpected EOF
+			IFS= read line || genopt_die Unexpected EOF
 			IFS=$safeIFS
 			test -n "$cond" && o_gen=$o_gen$nl"$cond"
 			o_gen=$o_gen$nl"$line, $optc)"
@@ -169,7 +169,7 @@ do_genopt() {
 	3:*) ;;
 	*) genopt_die Missing EOF marker ;;
 	esac
-	echo "$o_str" | sort | while IFS='|' read -r x opts cond; do
+	echo "$o_str" | sort | while IFS='|' read x opts cond; do
 		IFS=$safeIFS
 		test -n "$x" || continue
 		genopt_scond
@@ -1762,7 +1762,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.653 2013/11/30 17:41:31 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.654 2013/12/02 19:47:33 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (0); }
 EOF
 	case $cm in
