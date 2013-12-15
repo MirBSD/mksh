@@ -1,9 +1,5 @@
-# $MirOS: src/bin/mksh/check.t,v 1.637 2013/11/30 17:41:32 tg Exp $
-# $OpenBSD: bksl-nl.t,v 1.2 2001/01/28 23:04:56 niklas Exp $
-# $OpenBSD: history.t,v 1.5 2001/01/28 23:04:56 niklas Exp $
-# $OpenBSD: read.t,v 1.3 2003/03/10 03:48:16 david Exp $
-# $OpenBSD: regress.t,v 1.16 2013/09/14 20:09:30 millert Exp $
-# $OpenBSD: obsd-regress.t,v 1.5 2013/07/01 17:25:27 jca Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.638 2013/12/15 15:45:31 tg Exp $
+# OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #	      2011, 2012, 2013
@@ -8793,7 +8789,7 @@ expected-stdout:
 ---
 name: oksh-eval
 description:
-	$OpenBSD: eval.sh,v 1.1 2010/03/24 08:29:44 fgsch Exp $
+	Check expansions.
 stdin:
 	a=
 	for n in ${a#*=}; do echo 1hu ${n} .; done
@@ -8953,8 +8949,7 @@ stdin:
 ---
 name: oksh-varfunction-mod1
 description:
-	$OpenBSD: varfunction.sh,v 1.1 2003/12/15 05:28:40 otto Exp $
-	Calling
+	(Inspired by PR 2450 on OpenBSD.) Calling
 		FOO=bar f
 	where f is a ksh style function, should not set FOO in the current
 	env. If f is a Bourne style function, FOO should be set. Furthermore,
@@ -8962,7 +8957,6 @@ description:
 	from oksh, setting FOO in the function itself must change the value in
 	setting FOO in the function itself should not change the value in
 	global environment.
-	Inspired by PR 2450.
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \

@@ -1,5 +1,5 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.33 2013/11/30 17:11:06 tg Exp $
-# $OpenBSD: th,v 1.16 2013/06/14 20:52:08 millert Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.34 2013/12/15 15:45:31 tg Exp $
+# $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
 #		2012, 2013
