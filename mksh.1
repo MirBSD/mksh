@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.325 2013/11/30 18:16:54 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.326 2013/12/18 16:54:20 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.148 2013/09/04 15:49:18 millert Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: November 30 2013 $
+.Dd $Mdocdate: December 18 2013 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2598,7 +2598,7 @@ in all forms of arithmetic expressions, except as numeric arguments to the
 built-in command.
 Prefixing numbers with a sole digit zero
 .Pq Sq 0
-leads to the shell interpreting it as base-8 integer in
+leads to the shell interpreting it as base-8 (octal) integer in
 .Ic posix
 mode
 .Em only ;
