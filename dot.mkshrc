@@ -1,8 +1,8 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.85 2013/08/22 13:46:46 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.86 2014/01/02 22:51:01 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
-#		2011, 2012, 2013
+#		2011, 2012, 2013, 2014
 #	Thorsten Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -379,6 +379,14 @@ function Lnzathash_end {
 		Lnzathash_v=1
 		print ${Lnzathash_v#16#}
 	fi
+}
+function Lnzathash_mix {
+	local -Uui16 t
+
+	((# t = ((Lnzathash_v >> 7) & 0x01010101) * 0x1B ))
+	((# t ^= (Lnzathash_v << 1) & 0xFEFEFEFE ))
+	((# Lnzathash_v = t ^ (t <<< 24) ^ (Lnzathash_v <<< 8) ^ \
+	    (Lnzathash_v <<< 16) ^ (Lnzathash_v <<< 24) ))
 }
 
 # strip comments (and leading/trailing whitespace if IFS is set) from
