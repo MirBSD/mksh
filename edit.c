@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013
+ *		 2011, 2012, 2013, 2014
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.274 2014/01/05 19:11:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.275 2014/01/05 21:57:24 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -961,7 +961,7 @@ static void x_delete(size_t, bool);
 static size_t x_bword(void);
 static size_t x_fword(bool);
 static void x_goto(char *);
-static char *x_bs0(char *, char *);
+static char *x_bs0(char *, char *) MKSH_A_PURE;
 static void x_bs3(char **);
 static int x_size_str(char *);
 static int x_size2(char *, char **);
@@ -990,7 +990,7 @@ static int x_fold_case(int);
 #endif
 static char *x_lastcp(void);
 static void do_complete(int, Comp_type);
-static size_t x_nb2nc(size_t);
+static size_t x_nb2nc(size_t) MKSH_A_PURE;
 
 static int unget_char = -1;
 
@@ -3353,7 +3353,7 @@ static void save_cbuf(void);
 static void restore_cbuf(void);
 static int putbuf(const char *, ssize_t, bool);
 static void del_range(int, int);
-static int findch(int, int, bool, bool);
+static int findch(int, int, bool, bool) MKSH_A_PURE;
 static int forwword(int);
 static int backword(int);
 static int endword(int);
@@ -3763,10 +3763,10 @@ vi_hook(int ch)
 			refresh(0);
 			return (0);
 		} else if (ch == edchars.werase) {
-			int i, n = srchlen;
+			unsigned int i, n;
 			struct edstate new_es, *save_es;
 
-			new_es.cursor = n;
+			new_es.cursor = srchlen;
 			new_es.cbuf = locpat;
 
 			save_es = es;
@@ -3774,9 +3774,10 @@ vi_hook(int ch)
 			n = backword(1);
 			es = save_es;
 
-			for (i = srchlen; --i >= n; )
+			i = (unsigned)srchlen;
+			while (--i >= n)
 				es->linelen -= char_len(locpat[i]);
-			srchlen = n;
+			srchlen = (int)n;
 			es->cursor = es->linelen;
 			refresh(0);
 			return (0);

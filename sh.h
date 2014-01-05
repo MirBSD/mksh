@@ -10,7 +10,7 @@
 
 /*-
  * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *	       2011, 2012, 2013
+ *	       2011, 2012, 2013, 2014
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -122,6 +122,11 @@
 #else
 #define MKSH_A_NORETURN		/* nothing */
 #endif
+#if HAVE_ATTRIBUTE_PURE
+#define MKSH_A_PURE		__attribute__((__pure__))
+#else
+#define MKSH_A_PURE		/* nothing */
+#endif
 #if HAVE_ATTRIBUTE_UNUSED
 #define MKSH_A_UNUSED		__attribute__((__unused__))
 #else
@@ -164,9 +169,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.681 2014/01/05 19:14:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.682 2014/01/05 21:57:28 tg Exp $");
 #endif
-#define MKSH_VERSION "R48 2013/11/30"
+#define MKSH_VERSION "R49 2014/01/05"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -298,7 +303,7 @@ struct rusage {
 #define ksh_isupper(c)	(((c) >= 'A') && ((c) <= 'Z'))
 #define ksh_tolower(c)	(((c) >= 'A') && ((c) <= 'Z') ? (c) - 'A' + 'a' : (c))
 #define ksh_toupper(c)	(((c) >= 'a') && ((c) <= 'z') ? (c) - 'a' + 'A' : (c))
-#define ksh_isdash(s)	(((s) != NULL) && ((s)[0] == '-') && ((s)[1] == '\0'))
+#define ksh_isdash(s)	(((s)[0] == '-') && ((s)[1] == '\0'))
 #define ksh_isspace(c)	((((c) >= 0x09) && ((c) <= 0x0D)) || ((c) == 0x20))
 #define ksh_min(x,y)	((x) < (y) ? (x) : (y))
 #define ksh_max(x,y)	((x) > (y) ? (x) : (y))
@@ -422,14 +427,6 @@ extern int __cdecl setegid(gid_t);
 #define ISTRIP		0
 #endif
 
-/* remove redundancies */
-
-#if defined(MirBSD) && (MirBSD >= 0x0AB5) && !defined(MKSH_OPTSTATIC)
-#define MKSH_mirbsd_wcwidth
-#define utf_wcwidth(i) wcwidth((__WCHAR_TYPE__)i)
-extern int wcwidth(__WCHAR_TYPE__);
-#endif
-
 
 /* some useful #defines */
 #ifdef EXTERN
@@ -526,7 +523,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 489)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 491)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -1434,7 +1431,7 @@ typedef char *XStringP;
 #define XcheckN(xs, xp, n) do {					\
 	ssize_t more = ((xp) + (n)) - (xs).end;			\
 	if (more > 0)						\
-		(xp) = Xcheck_grow(&(xs), (xp), more);		\
+		(xp) = Xcheck_grow(&(xs), (xp), (size_t)more);	\
 } while (/* CONSTCOND */ 0)
 
 /* check for overflow, expand string */
@@ -1715,12 +1712,10 @@ int v_evaluate(struct tbl *, const char *, volatile int, bool);
 size_t utf_mbtowc(unsigned int *, const char *);
 size_t utf_wctomb(char *, unsigned int);
 int utf_widthadj(const char *, const char **);
-size_t utf_mbswidth(const char *);
-const char *utf_skipcols(const char *, int);
-size_t utf_ptradj(const char *);
-#ifndef MKSH_mirbsd_wcwidth
-int utf_wcwidth(unsigned int);
-#endif
+size_t utf_mbswidth(const char *) MKSH_A_PURE;
+const char *utf_skipcols(const char *, int) MKSH_A_PURE;
+size_t utf_ptradj(const char *) MKSH_A_PURE;
+int utf_wcwidth(unsigned int) MKSH_A_PURE;
 int ksh_access(const char *, int);
 struct tbl *tempvar(void);
 /* funcs.c */
@@ -1788,10 +1783,10 @@ void sethistsize(mksh_ari_t);
 void sethistfile(const char *);
 #endif
 #if !defined(MKSH_NO_CMDLINE_EDITING) && !MKSH_S_NOVI
-char **histpos(void);
+char **histpos(void) MKSH_A_PURE;
 int histnum(int);
 #endif
-int findhist(int, int, const char *, bool);
+int findhist(int, int, const char *, bool) MKSH_A_PURE;
 char **hist_get_newest(bool);
 void inittraps(void);
 void alarm_init(void);
@@ -1904,18 +1899,19 @@ struct tbl **ktsort(struct table *);
 void DF(const char *, ...)
     MKSH_A_FORMAT(__printf__, 1, 2);
 #endif
+uint32_t chvt_rndsetup(const void *, size_t) MKSH_A_PURE;
 /* misc.c */
 void setctypes(const char *, int);
 void initctypes(void);
-size_t option(const char *);
+size_t option(const char *) MKSH_A_PURE;
 char *getoptions(void);
 void change_flag(enum sh_flag, int, bool);
 void change_xtrace(unsigned char, bool);
 int parse_args(const char **, int, bool *);
 int getn(const char *, int *);
 int gmatchx(const char *, const char *, bool);
-int has_globbing(const char *, const char *);
-int xstrcmp(const void *, const void *);
+int has_globbing(const char *, const char *) MKSH_A_PURE;
+int xstrcmp(const void *, const void *) MKSH_A_PURE;
 void ksh_getopt_reset(Getopt *, int);
 int ksh_getopt(const char **, Getopt *, const char *);
 void print_value_quoted(struct shf *, const char *);
@@ -2007,17 +2003,17 @@ void setint(struct tbl *, mksh_ari_t);
 void setint_n(struct tbl *, mksh_ari_t, int);
 struct tbl *typeset(const char *, uint32_t, uint32_t, int, int);
 void unset(struct tbl *, int);
-const char *skip_varname(const char *, int);
-const char *skip_wdvarname(const char *, bool);
-int is_wdvarname(const char *, bool);
-int is_wdvarassign(const char *);
+const char *skip_varname(const char *, int) MKSH_A_PURE;
+const char *skip_wdvarname(const char *, bool) MKSH_A_PURE;
+int is_wdvarname(const char *, bool) MKSH_A_PURE;
+int is_wdvarassign(const char *) MKSH_A_PURE;
 struct tbl *arraysearch(struct tbl *, uint32_t);
 char **makenv(void);
 void change_winsz(void);
-size_t array_ref_len(const char *);
+size_t array_ref_len(const char *) MKSH_A_PURE;
 char *arrayname(const char *);
 mksh_uari_t set_array(const char *, bool, const char **);
-uint32_t hash(const void *);
+uint32_t hash(const void *) MKSH_A_PURE;
 mksh_ari_t rndget(void);
 void rndset(unsigned long);
 
@@ -2070,7 +2066,7 @@ typedef struct test_env {
 
 extern const char * const dbtest_tokens[];
 
-Test_op	test_isop(Test_meta, const char *);
+Test_op	test_isop(Test_meta, const char *) MKSH_A_PURE;
 int test_eval(Test_env *, Test_op, const char *, const char *, bool);
 int test_parse(Test_env *);
 

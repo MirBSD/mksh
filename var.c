@@ -1,4 +1,4 @@
-/*	$OpenBSD: var.c,v 1.37 2013/12/18 13:53:12 millert Exp $	*/
+/*	$OpenBSD: var.c,v 1.38 2013/12/20 17:53:09 zhuk Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.175 2014/01/05 19:14:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.176 2014/01/05 21:57:29 tg Exp $");
 
 /*-
  * Variables
@@ -238,9 +238,7 @@ global(const char *n)
 		vp->areap = ATEMP;
 		*vp->name = c;
 		if (ksh_isdigit(c)) {
-			for (c = 0; ksh_isdigit(*n); n++)
-				c = (c * 10) + (*n - '0');
-			if (c <= l->argc)
+			if (getn(n, &c) && (c <= l->argc))
 				/* setstr can't fail here */
 				setstr(vp, l->argv[c], KSH_RETURN_ERROR);
 			vp->flag |= RDONLY;

@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013
+ *		 2011, 2012, 2013, 2014
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.274 2014/01/05 19:11:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.275 2014/01/05 21:57:26 tg Exp $");
 
 extern char **environ;
 
@@ -48,7 +48,6 @@ extern char **environ;
 
 static uint8_t isuc(const char *);
 static int main_init(int, const char *[], Source **, struct block **);
-uint32_t chvt_rndsetup(const void *, size_t);
 void chvt_reinit(void);
 static void reclaim(void);
 static void remove_temps(struct temp *);
@@ -542,11 +541,13 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 #ifndef MKSH_ASSUME_UTF8
 			/* auto-detect from locale or environment */
 			utf_flag = 4;
-#elif MKSH_ASSUME_UTF8
+#else /* this may not be an #elif */
+#if MKSH_ASSUME_UTF8
 			utf_flag = 1;
 #else
 			/* always disable UTF-8 (for interactive) */
 			utf_flag = 0;
+#endif
 #endif
 		}
 #ifndef MKSH_NO_CMDLINE_EDITING

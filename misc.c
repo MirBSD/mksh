@@ -3,7 +3,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013
+ *		 2011, 2012, 2013, 2014
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.218 2013/11/30 17:33:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.219 2014/01/05 21:57:27 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -49,10 +49,11 @@ __RCSID("$MirOS: src/bin/mksh/misc.c,v 1.218 2013/11/30 17:33:50 tg Exp $");
 unsigned char chtypes[UCHAR_MAX + 1];
 
 static const unsigned char *pat_scan(const unsigned char *,
-    const unsigned char *, bool);
+    const unsigned char *, bool) MKSH_A_PURE;
 static int do_gmatch(const unsigned char *, const unsigned char *,
-    const unsigned char *, const unsigned char *);
-static const unsigned char *cclass(const unsigned char *, unsigned char);
+    const unsigned char *, const unsigned char *) MKSH_A_PURE;
+static const unsigned char *cclass(const unsigned char *, unsigned char)
+    MKSH_A_PURE;
 #ifdef KSH_CHVT_CODE
 static void chvt(const Getopt *);
 #endif
@@ -1952,7 +1953,6 @@ c_cd(const char **wp)
 
 
 #ifdef KSH_CHVT_CODE
-extern uint32_t chvt_rndsetup(const void *, size_t);
 extern void chvt_reinit(void);
 
 static void

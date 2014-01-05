@@ -1,8 +1,8 @@
-# $MirOS: src/bin/mksh/check.t,v 1.638 2013/12/15 15:45:31 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.639 2014/01/05 21:57:22 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#	      2011, 2012, 2013
+#	      2011, 2012, 2013, 2014
 #	Thorsten Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -27,7 +27,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R48 2013/11/30
+	@(#)MIRBSD KSH R49 2014/01/05
 description:
 	Check version of shell.
 stdin:
@@ -36,7 +36,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R48 2013/11/30
+	@(#)LEGACY KSH R49 2014/01/05
 description:
 	Check version of legacy shell.
 stdin:
@@ -1635,6 +1635,14 @@ stdin:
 expected-stdout:
 	1=02.
 	2=02.
+---
+name: expand-number-1
+description:
+	Check that positional arguments do not overflow
+stdin:
+	echo "1 ${12345678901234567890} ."
+expected-stdout:
+	1  .
 ---
 name: eglob-bad-1
 description:

@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013
+ *		 2011, 2012, 2013, 2014
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.145 2013/11/30 00:20:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.146 2014/01/05 21:57:25 tg Exp $");
 
 /*
  * string expansion
@@ -74,7 +74,7 @@ static const char *maybe_expand_tilde(const char *, XString *, char **, int);
 static char *homedir(char *);
 #endif
 static void alt_expand(XPtrV *, char *, char *, char *, int);
-static int utflen(const char *);
+static int utflen(const char *) MKSH_A_PURE;
 static void utfincptr(const char *, mksh_ari_t *);
 
 /* UTFMODE functions */

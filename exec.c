@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013
+ *		 2011, 2012, 2013, 2014
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.127 2013/10/09 11:59:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.128 2014/01/05 21:57:25 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -884,14 +884,14 @@ scriptexec(struct op *tp, const char **ap)
 		fd = (char *)cp - buf;		/* either 0 or (if BOM) 3 */
 
 		/* scan for newline (or CR) or NUL _before_ end of buffer */
-		while ((char *)cp < (buf + sizeof(buf)))
+		while ((size_t)((char *)cp - buf) < sizeof(buf))
 			if (*cp == '\0' || *cp == '\n' || *cp == '\r') {
 				*cp = '\0';
 				break;
 			} else
 				++cp;
 		/* if the shebang line is longer than MAXINTERP, bail out */
-		if ((char *)cp >= (buf + sizeof(buf)))
+		if ((size_t)((char *)cp - buf) >= sizeof(buf))
 			goto noshebang;
 
 		/* restore begin of shebang position (buf+0 or buf+3) */

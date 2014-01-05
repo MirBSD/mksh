@@ -1,8 +1,8 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.327 2014/01/05 19:14:16 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.328 2014/01/05 21:57:27 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.149 2013/12/18 13:53:11 millert Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-.\"		2010, 2011, 2012, 2013
+.\"		2010, 2011, 2012, 2013, 2014
 .\"	Thorsten Glaser <tg@mirbsd.org>
 .\"
 .\" Provided that these terms and disclaimer and all copyright notices
@@ -371,7 +371,9 @@ The suid profile probably should run
 .Ic set +p
 unless the shell was explicitly started with
 .Fl p .
-This isn't easily implemented but a stopgap measure for:
+This isn't easily implemented but
+.Pq just always run Ic set +p
+a stopgap measure for:
 .Pa http://blog.cmpxchg8b.com/2013/08/security\-debianisms.html
 .Ss Command syntax
 The shell begins parsing its input by removing any backslash-newline
@@ -6447,7 +6449,7 @@ $ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R48+CVS
+.Nm mksh\ R49
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
