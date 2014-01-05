@@ -1,4 +1,4 @@
-/*	$OpenBSD: var.c,v 1.36 2013/12/17 16:37:06 deraadt Exp $	*/
+/*	$OpenBSD: var.c,v 1.37 2013/12/18 13:53:12 millert Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.174 2014/01/05 19:11:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.175 2014/01/05 19:14:18 tg Exp $");
 
 /*-
  * Variables
