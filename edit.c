@@ -1,7 +1,7 @@
-/*	$OpenBSD: edit.c,v 1.38 2013/06/03 15:41:59 tedu Exp $	*/
+/*	$OpenBSD: edit.c,v 1.39 2013/12/17 16:37:05 deraadt Exp $	*/
 /*	$OpenBSD: edit.h,v 1.9 2011/05/30 17:14:35 martynas Exp $	*/
-/*	$OpenBSD: emacs.c,v 1.47 2013/11/28 10:33:37 sobrado Exp $	*/
-/*	$OpenBSD: vi.c,v 1.26 2009/06/29 22:50:19 martynas Exp $	*/
+/*	$OpenBSD: emacs.c,v 1.48 2013/12/17 16:37:05 deraadt Exp $	*/
+/*	$OpenBSD: vi.c,v 1.28 2013/12/18 16:45:46 deraadt Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.273 2013/11/30 17:33:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.274 2014/01/05 19:11:43 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -3547,7 +3547,7 @@ x_vi(char *buf)
 	x_flush();
 	while (/* CONSTCOND */ 1) {
 		if (macro.p) {
-			c = *macro.p++;
+			c = (unsigned char)*macro.p++;
 			/* end of current macro? */
 			if (!c) {
 				/* more macros left to finish? */

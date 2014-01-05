@@ -1,4 +1,4 @@
-/*	$OpenBSD: expr.c,v 1.22 2013/03/28 08:39:28 nicm Exp $	*/
+/*	$OpenBSD: expr.c,v 1.23 2013/12/17 16:37:06 deraadt Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.73 2013/11/30 23:20:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.74 2014/01/05 19:11:44 tg Exp $");
 
 /* the order of these enums is constrained by the order of opinfo[] */
 enum token {

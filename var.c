@@ -1,8 +1,8 @@
-/*	$OpenBSD: var.c,v 1.35 2013/04/05 01:31:30 tedu Exp $	*/
+/*	$OpenBSD: var.c,v 1.36 2013/12/17 16:37:06 deraadt Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013
+ *		 2011, 2012, 2013, 2014
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.173 2013/05/31 22:47:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.174 2014/01/05 19:11:46 tg Exp $");
 
 /*-
  * Variables
@@ -228,7 +228,7 @@ global(const char *n)
 	/* Check to see if this is an array */
 	n = array_index_calc(n, &array, &val);
 	h = hash(n);
-	c = n[0];
+	c = (unsigned char)n[0];
 	if (!ksh_isalphx(c)) {
 		if (array)
 			errorf("bad substitution");
@@ -239,7 +239,7 @@ global(const char *n)
 		*vp->name = c;
 		if (ksh_isdigit(c)) {
 			for (c = 0; ksh_isdigit(*n); n++)
-				c = c*10 + *n-'0';
+				c = (c * 10) + (*n - '0');
 			if (c <= l->argc)
 				/* setstr can't fail here */
 				setstr(vp, l->argv[c], KSH_RETURN_ERROR);
@@ -500,7 +500,7 @@ getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 		base = 8;
 		have_base = true;
 	}
-	while ((c = *s++)) {
+	while ((c = (unsigned char)*s++)) {
 		if (c == '-') {
 			neg = true;
 			continue;
