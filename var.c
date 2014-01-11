@@ -22,12 +22,13 @@
  */
 
 #include "sh.h"
+#include "mirhash.h"
 
 #if defined(__OpenBSD__)
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.176 2014/01/05 21:57:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.177 2014/01/11 18:09:43 tg Exp $");
 
 /*-
  * Variables
@@ -40,7 +41,7 @@ __RCSID("$MirOS: src/bin/mksh/var.c,v 1.176 2014/01/05 21:57:29 tg Exp $");
  */
 
 static struct table specials;
-static uint32_t lcg_state = 5381;
+static uint32_t lcg_state = 5381, qh_state = 4711;
 
 static char *formatstr(struct tbl *, const char *);
 static void exportprep(struct tbl *, const char *);
@@ -1490,6 +1491,11 @@ set_array(const char *var, bool reset, const char **vals)
 void
 change_winsz(void)
 {
+	struct timeval tv;
+
+	mksh_TIME(tv);
+	BAFHUpdateMem_mem(qh_state, &tv, sizeof(tv));
+
 #ifdef TIOCGWINSZ
 	/* check if window size has changed */
 	if (tty_init_fd() < 2) {
@@ -1520,9 +1526,28 @@ hash(const void *s)
 {
 	register uint32_t h;
 
-	NZATInit(h);
-	NZATUpdateString(h, s);
-	NZAATFinish(h);
+	BAFHInit(h);
+	BAFHUpdateStr_reg(h, s);
+	BAFHFinish_reg(h);
+	return (h);
+}
+
+uint32_t
+chvt_rndsetup(const void *bp, size_t sz)
+{
+	register uint32_t h;
+
+	/* use LCG as seed but try to get them to deviate immediately */
+	h = lcg_state;
+	(void)rndget();
+	BAFHFinish_reg(h);
+	/* variation through pid, ppid, and the works */
+	BAFHUpdateMem_reg(h, &rndsetupstate, sizeof(rndsetupstate));
+	/* some variation, some possibly entropy, depending on OE */
+	BAFHUpdateMem_reg(h, bp, sz);
+	/* mix them all up */
+	BAFHFinish_reg(h);
+
 	return (h);
 }
 
@@ -1540,28 +1565,62 @@ void
 rndset(unsigned long v)
 {
 	register uint32_t h;
+#if defined(arc4random_pushb_fast) || defined(MKSH_A4PB)
+	register uint32_t t;
+#endif
+	struct {
+		struct timeval tv;
+		void *sp;
+		uint32_t qh;
+		pid_t pp;
+		short r;
+	} z;
 
-	NZATInit(h);
-	NZATUpdateMem(h, &lcg_state, sizeof(lcg_state));
-	NZATUpdateMem(h, &v, sizeof(v));
+	h = lcg_state;
+	BAFHFinish_reg(h);
+	BAFHUpdateMem_reg(h, &v, sizeof(v));
+
+	mksh_TIME(z.tv);
+	z.sp = &lcg_state;
+	z.pp = procpid;
+	z.r = (short)rndget();
 
 #if defined(arc4random_pushb_fast) || defined(MKSH_A4PB)
+	t = qh_state;
+	BAFHFinish_reg(t);
+	z.qh = (t & 0xFFFF8000) | rndget();
+	lcg_state = (t << 15) | rndget();
 	/*
 	 * either we have very chap entropy get and push available,
 	 * with malloc() pulling in this code already anyway, or the
 	 * user requested us to use the old functions
 	 */
-	lcg_state = h;
-	NZAATFinish(lcg_state);
+	t = h;
+	BAFHUpdateMem_reg(t, &lcg_state, sizeof(lcg_state));
+	BAFHFinish_reg(t);
+	lcg_state = t;
 #if defined(arc4random_pushb_fast)
 	arc4random_pushb_fast(&lcg_state, sizeof(lcg_state));
 	lcg_state = arc4random();
 #else
 	lcg_state = arc4random_pushb(&lcg_state, sizeof(lcg_state));
 #endif
-	NZATUpdateMem(h, &lcg_state, sizeof(lcg_state));
+	BAFHUpdateMem_reg(h, &lcg_state, sizeof(lcg_state));
+#else
+	z.qh = qh_state;
 #endif
 
-	NZAATFinish(h);
+	BAFHUpdateMem_reg(h, &z, sizeof(z));
+	BAFHFinish_reg(h);
 	lcg_state = h;
+}
+
+void
+rndpush(const void *s)
+{
+	register uint32_t h = qh_state;
+
+	BAFHUpdateStr_reg(h, s);
+	BAFHUpdateOctet_reg(h, 0);
+	qh_state = h;
 }

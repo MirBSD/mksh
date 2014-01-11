@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.328 2014/01/05 21:57:27 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.329 2014/01/11 18:09:41 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.149 2013/12/18 13:53:11 millert Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 5 2014 $
+.Dd $Mdocdate: January 11 2014 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1693,17 +1693,10 @@ Currently,
 must start with a space, opening parenthesis or digit to be recognised.
 Cannot be applied to a vector.
 .Pp
-.It Xo
-.Pf ${ Ar name
-.Pf @# Ns Oo Ar seed Oc Ns }
-.Xc
-The internal hash of the expansion of
-.Ar name ,
-with an optional (defaulting to zero)
-.Op Ar seed .
-At the moment, this is NZAAT (a 32-bit hash based on
-Bob Jenkins' one-at-a-time hash), but this is not set.
-This is the hash the shell uses internally for its associative arrays.
+.It Pf ${ Ns Ar name Ns @#}
+The hash (using the BAFH algorithm) of the expansion of
+.Ar name .
+This is also used internally for the shell's hashtables.
 .Pp
 .It Pf ${ Ns Ar name Ns @Q}
 A quoted expression safe for re-entry, whose value is the value of the
@@ -3633,7 +3626,7 @@ Since expressions may need to be quoted,
 is syntactic sugar for
 .No let \&" Ns Ar expr Ns \&" .
 .Pp
-.It let]
+.It Ic let]
 Internally used alias for
 .Ic let .
 .Pp

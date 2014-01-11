@@ -169,9 +169,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.683 2014/01/11 16:26:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.684 2014/01/11 18:09:42 tg Exp $");
 #endif
-#define MKSH_VERSION "R49 2014/01/05"
+#define MKSH_VERSION "R49 2014/01/11"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1616,48 +1616,6 @@ EXTERN struct timeval j_usrtime, j_systime;
 } while (/* CONSTCOND */ 0)
 
 
-/* NZAAT hash based on Bob Jenkins' one-at-a-time hash */
-
-/* From: src/kern/include/nzat.h,v 1.2 2011/07/18 00:35:40 tg Exp $ */
-
-#define NZATInit(h) do {					\
-	(h) = 0;						\
-} while (/* CONSTCOND */ 0)
-
-#define NZATUpdateByte(h,b) do {				\
-	(h) += (uint8_t)(b);					\
-	++(h);							\
-	(h) += (h) << 10;					\
-	(h) ^= (h) >> 6;					\
-} while (/* CONSTCOND */ 0)
-
-#define NZATUpdateMem(h,p,z) do {				\
-	register const uint8_t *NZATUpdateMem_p;		\
-	register size_t NZATUpdateMem_z = (z);			\
-								\
-	NZATUpdateMem_p = (const void *)(p);			\
-	while (NZATUpdateMem_z--)				\
-		NZATUpdateByte((h), *NZATUpdateMem_p++);	\
-} while (/* CONSTCOND */ 0)
-
-#define NZATUpdateString(h,s) do {				\
-	register const char *NZATUpdateString_s;		\
-	register uint8_t NZATUpdateString_c;			\
-								\
-	NZATUpdateString_s = (const void *)(s);			\
-	while ((NZATUpdateString_c = *NZATUpdateString_s++))	\
-		NZATUpdateByte((h), NZATUpdateString_c);	\
-} while (/* CONSTCOND */ 0)
-
-#define NZAATFinish(h) do {					\
-	(h) += (h) << 10;					\
-	(h) ^= (h) >> 6;					\
-	(h) += (h) << 3;					\
-	(h) ^= (h) >> 11;					\
-	(h) += (h) << 15;					\
-} while (/* CONSTCOND */ 0)
-
-
 /* lalloc.c */
 void ainit(Area *);
 void afreeall(Area *);
@@ -1895,7 +1853,6 @@ struct tbl **ktsort(struct table *);
 void DF(const char *, ...)
     MKSH_A_FORMAT(__printf__, 1, 2);
 #endif
-uint32_t chvt_rndsetup(const void *, size_t) MKSH_A_PURE;
 /* misc.c */
 void setctypes(const char *, int);
 void initctypes(void);
@@ -2010,8 +1967,10 @@ size_t array_ref_len(const char *) MKSH_A_PURE;
 char *arrayname(const char *);
 mksh_uari_t set_array(const char *, bool, const char **);
 uint32_t hash(const void *) MKSH_A_PURE;
+uint32_t chvt_rndsetup(const void *, size_t) MKSH_A_PURE;
 mksh_ari_t rndget(void);
 void rndset(unsigned long);
+void rndpush(const void *);
 
 enum Test_op {
 	/* non-operator */

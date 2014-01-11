@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.87 2014/01/05 22:17:57 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.88 2014/01/11 18:09:39 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014
@@ -333,9 +333,12 @@ function Lb64encode {
 	(( u )) || set -U
 }
 
-# mksh NUL counting, never zero
-typeset -Z11 -Uui16 Lnzathash_v
-function Lnzathash_add {
+# Better Avalanche for the Jenkins Hash
+typeset -Z11 -Uui16 Lbafh_v
+function Lbafh_init {
+	Lbafh_v=0
+}
+function Lbafh_add {
 	[[ -o utf8-mode ]]; local u=$?
 	set +U
 	local s
@@ -348,45 +351,19 @@ function Lnzathash_add {
 	local -i i=0 n=${#s[*]}
 
 	while (( i < n )); do
-		((# Lnzathash_v = (Lnzathash_v + s[i++] + 1) * 1025 ))
-		((# Lnzathash_v ^= Lnzathash_v >> 6 ))
+		((# Lbafh_v = (Lbafh_v + s[i++] + 1) * 1025 ))
+		((# Lbafh_v ^= Lbafh_v >> 6 ))
 	done
 
 	(( u )) || set -U
 }
-function Lnzaathash_end {
-	((# Lnzathash_v *= 1025 ))
-	((# Lnzathash_v ^= Lnzathash_v >> 6 ))
-	((# Lnzathash_v += Lnzathash_v << 3 ))
-	((# Lnzathash_v = (Lnzathash_v ^
-	    (Lnzathash_v >> 11)) * 32769 ))
-	print ${Lnzathash_v#16#}
-}
-function Lnzaathash {
-	Lnzathash_v=0
-	Lnzathash_add "$@"
-	Lnzaathash_end
-}
-function Lnzathash {
-	Lnzathash_v=0
-	Lnzathash_add "$@"
-	Lnzathash_end
-}
-function Lnzathash_end {
-	if (( Lnzathash_v )); then
-		Lnzaathash_end
-	else
-		Lnzathash_v=1
-		print ${Lnzathash_v#16#}
-	fi
-}
-function Lnzathash_mix {
-	local -Uui16 t
+function Lbafh_finish {
+	local -Ui t
 
-	((# t = ((Lnzathash_v >> 7) & 0x01010101) * 0x1B ))
-	((# t ^= (Lnzathash_v << 1) & 0xFEFEFEFE ))
-	((# Lnzathash_v = t ^ (t <<< 24) ^ (Lnzathash_v <<< 8) ^ \
-	    (Lnzathash_v <<< 16) ^ (Lnzathash_v <<< 24) ))
+	((# t = (((Lbafh_v >> 7) & 0x01010101) * 0x1B) ^ \
+	    ((Lbafh_v << 1) & 0xFEFEFEFE) ))
+	((# Lbafh_v = t ^ (t >>> 8) ^ (Lbafh_v >>> 8) ^ \
+	    (Lbafh_v >>> 16) ^ (Lbafh_v >>> 24) ))
 	:
 }
 

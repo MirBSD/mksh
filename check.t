@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.639 2014/01/05 21:57:22 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.640 2014/01/11 18:09:37 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -27,7 +27,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R49 2014/01/05
+	@(#)MIRBSD KSH R49 2014/01/11
 description:
 	Check version of shell.
 stdin:
@@ -36,7 +36,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R49 2014/01/05
+	@(#)LEGACY KSH R49 2014/01/11
 description:
 	Check version of legacy shell.
 stdin:
@@ -2075,12 +2075,18 @@ stdin:
 	echo [!-ab]*
 	echo [!ab]*
 	echo []ab]*
+	:>'./!bc'
+	:>'./^bc'
+	echo [^ab]*
+	echo [!ab]*
 expected-stdout:
 	-bc abc bbc
 	-bc abc bbc
 	cbc
 	-bc cbc
 	abc bbc
+	^bc abc bbc
+	!bc -bc ^bc cbc
 ---
 name: glob-range-2
 description:
@@ -7685,14 +7691,9 @@ stdin:
 	typeset -i8 foo=10
 	bar=baz
 	unset baz
-	bla=foo
 	print ${foo@#} ${bar@#} ${baz@#} .
-	print ${foo@#123} ${bar@#456} ${baz@#789} .
-	print ${foo@#bla} ${bar@#bar} ${baz@#OPTIND} .
 expected-stdout:
-	D50219A0 20E5DB5B 00000000 .
-	554A1C76 004A212E CB209562 .
-	6B21CF91 20E5DB5B 124EA49D .
+	9B15FBFB CFBDD32B 00000000 .
 ---
 name: varexpand-special-quote
 description:

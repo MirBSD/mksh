@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.276 2014/01/11 16:26:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.277 2014/01/11 18:09:40 tg Exp $");
 
 extern char **environ;
 
@@ -140,21 +140,6 @@ rndsetup(void)
 
 	afree(cp, APERM);
 	return ((mksh_uari_t)h);
-}
-
-uint32_t
-chvt_rndsetup(const void *bp, size_t sz)
-{
-	register uint32_t h;
-
-	NZATInit(h);
-	/* variation through pid, ppid, and the works */
-	NZATUpdateMem(h, &rndsetupstate, sizeof(rndsetupstate));
-	/* some variation, some possibly entropy, depending on OE */
-	NZATUpdateMem(h, bp, sz);
-	NZAATFinish(h);
-
-	return (h);
 }
 
 void
@@ -359,9 +344,14 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 #endif
 
 	/* import environment */
-	if (environ != NULL)
-		for (wp = (const char **)environ; *wp != NULL; wp++)
+	if (environ != NULL) {
+		wp = (const char **)environ;
+		while (*wp != NULL) {
+			rndpush(*wp);
 			typeset(*wp, IMPORT | EXPORT, 0, 0, 0);
+			++wp;
+		}
+	}
 
 	/* for security */
 	typeset(initifs, 0, 0, 0, 0);

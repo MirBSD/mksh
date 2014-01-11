@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.146 2014/01/05 21:57:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.147 2014/01/11 18:09:39 tg Exp $");
 
 /*
  * string expansion
@@ -412,27 +412,10 @@ expand(
 					if (stype)
 						sp += slen;
 					switch (stype & 0x17F) {
-					case 0x100 | '#': {
-						char *beg, *end;
-						mksh_ari_t seed;
-						register uint32_t h;
-
-						beg = wdcopy(sp, ATEMP);
-						end = beg + (wdscan(sp, CSUBST) - sp);
-						end[-2] = EOS;
-						end = wdstrip(beg, 0);
-						afree(beg, ATEMP);
-						evaluate(substitute(end, 0),
-						    &seed, KSH_UNWIND_ERROR, true);
-						/* hash with seed, for now */
-						h = seed;
-						NZATUpdateString(h,
-						    str_val(st->var));
-						NZAATFinish(h);
+					case 0x100 | '#':
 						x.str = shf_smprintf("%08X",
-						    (unsigned int)h);
+						    (unsigned int)hash(str_val(st->var)));
 						break;
-					}
 					case 0x100 | 'Q': {
 						struct shf shf;
 
