@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.275 2014/01/05 21:57:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.276 2014/01/11 16:26:28 tg Exp $");
 
 extern char **environ;
 
@@ -483,7 +483,6 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		s = pushs(SSTRINGCMDLINE, ATEMP);
 		if (!(s->start = s->str = argv[argi++]))
 			errorf("%s %s", "-c", "requires an argument");
-#if !defined(MKSH_SMALL)
 		while (*s->str) {
 			if (*s->str != ' ' && ctype(*s->str, C_QUOTE))
 				break;
@@ -492,7 +491,6 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		if (!*s->str)
 			s->flags |= SF_MAYEXEC;
 		s->str = s->start;
-#endif
 #ifdef MKSH_MIDNIGHTBSD01ASH_COMPAT
 		/* compatibility to MidnightBSD 0.1 /bin/sh (kludge) */
 		if (Flag(FSH) && argv[argi] && !strcmp(argv[argi], "--"))
@@ -873,11 +871,8 @@ shell(Source * volatile s, volatile bool toplevel)
 					unwind(LEXIT);
 				break;
 			}
-		}
-#if !defined(MKSH_SMALL)
-		  else if ((s->flags & SF_MAYEXEC) && t->type == TCOM)
+		} else if ((s->flags & SF_MAYEXEC) && t->type == TCOM)
 			t->u.evalflags |= DOTCOMEXEC;
-#endif
 		if (!Flag(FNOEXEC) || (s->flags & SF_TTY))
 			exstat = execute(t, 0, NULL) & 0xFF;
 
