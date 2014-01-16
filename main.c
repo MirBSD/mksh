@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.277 2014/01/11 18:09:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.278 2014/01/16 13:54:45 tg Exp $");
 
 extern char **environ;
 
@@ -230,6 +230,23 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	if (!*ccp)
 		ccp = empty_argv[0];
 
+	/*
+	 * Turn on nohup by default. (AT&T ksh does not have a nohup
+	 * option - it always sends the hup).
+	 */
+	Flag(FNOHUP) = 1;
+
+	/*
+	 * Turn on brace expansion by default. AT&T kshs that have
+	 * alternation always have it on.
+	 */
+	Flag(FBRACEEXPAND) = 1;
+
+	/*
+	 * Turn on "set -x" inheritance by default.
+	 */
+	Flag(FXTRACEREC) = 1;
+
 	/* define built-in commands and see if we were called as one */
 	ktinit(APERM, &builtins,
 	    /* currently up to 51 builtins: 75% of 128 = 2^7 */
@@ -311,25 +328,6 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	vp = global("PATH");
 	/* setstr can't fail here */
 	setstr(vp, def_path, KSH_RETURN_ERROR);
-
-	/*
-	 * Turn on nohup by default for now - will change to off
-	 * by default once people are aware of its existence
-	 * (AT&T ksh does not have a nohup option - it always sends
-	 * the hup).
-	 */
-	Flag(FNOHUP) = 1;
-
-	/*
-	 * Turn on brace expansion by default. AT&T kshs that have
-	 * alternation always have it on.
-	 */
-	Flag(FBRACEEXPAND) = 1;
-
-	/*
-	 * Turn on "set -x" inheritance by default.
-	 */
-	Flag(FXTRACEREC) = 1;
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 	/*
