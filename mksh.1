@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.329 2014/01/11 18:09:41 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.330 2014/01/21 20:58:32 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.149 2013/12/18 13:53:11 millert Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 11 2014 $
+.Dd $Mdocdate: January 21 2014 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -4251,6 +4251,9 @@ mode.
 Enable
 .Xr vi 1 Ns -like
 command-line editing (interactive shells only).
+See
+.Sx Vi editing mode
+for documentation and limitations.
 .It Fl o Ic vi\-esccomplete
 In vi command-line editing, do command and file name completion when escape
 (\*(ha[) is entered in command mode.
@@ -5690,6 +5693,7 @@ replaces the inserted text string with the next previously killed text string.
 .Ss Vi editing mode
 .Em Note:
 The vi command-line editing mode is orphaned, yet still functional.
+It is 8-bit clean but specifically does not support UTF-8 or MBCS.
 .Pp
 The vi command-line editor in
 .Nm
