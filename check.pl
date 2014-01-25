@@ -1,8 +1,8 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.34 2013/12/15 15:45:31 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.35 2014/01/25 22:45:49 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
-#		2012, 2013
+#		2012, 2013, 2014
 #	Thorsten Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -932,12 +932,13 @@ read_test
     %test = ();
     %cnt = ();
     while (<$in>) {
+	chop;
 	next if /^\s*$/;
 	next if /^ *#/;
 	last if /^\s*---\s*$/;
 	$start_lineno = $. if !defined $start_lineno;
 	if (!/^([-\w]+):\s*(|\S|\S.*\S)\s*$/) {
-	    print STDERR "$prog:$file:$.: unrecognised line\n";
+	    print STDERR "$prog:$file:$.: unrecognised line \"$_\"\n";
 	    return undef;
 	}
 	($field, $val) = ($1, $2);
