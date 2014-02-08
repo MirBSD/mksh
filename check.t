@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.641 2014/01/22 19:53:50 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.642 2014/02/08 20:20:32 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -69,6 +69,18 @@ stdin:
 	echo "<$ENV>"
 expected-stdout:
 	<fnord>
+---
+name: selftest-exec
+description:
+	Ensure that the test run directory (default /tmp but can be changed
+	with check.pl flag -T or test.sh $TMPDIR) is not mounted noexec, as
+	we execute scripts from the scratch directory during several tests.
+stdin:
+	print '#!'"$__progname"'\necho tf' >lq
+	chmod +x lq
+	./lq
+expected-stdout:
+	tf
 ---
 name: selftest-env
 description:
