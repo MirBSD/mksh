@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.655 2014/01/05 21:57:21 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.656 2014/02/08 20:20:17 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014
@@ -1777,7 +1777,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.655 2014/01/05 21:57:21 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.656 2014/02/08 20:20:17 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (isatty(0)); }
 EOF
 	case $cm in
@@ -2362,6 +2362,10 @@ cat >test.sh <<-EOF
 	fi
 	(( vflag )) && args[\${#args[*]}]=-v
 	(( xflag )) && args[\${#args[*]}]=-x	# force usage by synerr
+	if [[ -n \$TMPDIR && -d \$TMPDIR/. ]]; then
+		args[\${#args[*]}]=-T
+		args[\${#args[*]}]=\$TMPDIR
+	fi
 	print Testing mksh for conformance:
 	fgrep -e MirOS: -e MIRBSD "\$sflag"
 	print "This shell is actually:\\n\\t\$KSH_VERSION"
