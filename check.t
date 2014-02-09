@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.642 2014/02/08 20:20:32 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.643 2014/02/09 00:08:17 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -5471,6 +5471,19 @@ expected-stdout:
 	2 .
 expected-stderr-pattern:
 	/read-only/
+---
+name: readonly-4
+description:
+	Do not permit bypassing readonly for first array item
+expected-fail: yes
+stdin:
+	set -A arr -- foo bar
+	readonly arr
+	arr=baz
+	print -r -- "${arr[@]}"
+expected-exit: e != 0
+expected-stderr-pattern:
+	/read[ -]?only/
 ---
 name: syntax-1
 description:
