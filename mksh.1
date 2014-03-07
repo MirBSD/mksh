@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.331 2014/02/05 18:07:29 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.332 2014/03/07 22:47:49 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.151 2014/01/28 14:16:59 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: February 5 2014 $
+.Dd $Mdocdate: March 7 2014 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2038,7 +2038,7 @@ in reverse video
 in the prompt string:
 .Bd -literal -offset indent
 x=$(print \e\e001)
-PS1="$x$(print \e\er)$x$(tput smso)$x\e$PWD$x$(tput rmso)$x\*(Gt "
+PS1="$x$(print \e\er)$x$(tput so)$x\e$PWD$x$(tput se)$x\*(Gt "
 .Ed
 .Pp
 Due to a strong suggestion from David G. Korn,
