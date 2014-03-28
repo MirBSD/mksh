@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.656 2014/02/08 20:20:17 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.657 2014/03/28 12:08:25 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014
@@ -1671,7 +1671,7 @@ ac_header values.h
 echo '#include <sys/types.h>
 #include <unistd.h>
 /* check that off_t can represent 2^63-1 correctly, thx FSF */
-#define LARGE_OFF_T (((off_t)1 << 62) - 1 + ((off_t)1 << 62))
+#define LARGE_OFF_T ((((off_t)1 << 31) << 31) - 1 + (((off_t)1 << 31) << 31))
 int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721 &&
     LARGE_OFF_T % 2147483647 == 1) ? 1 : -1];
 int main(void) { return (isatty(0)); }' >lft.c
@@ -1777,7 +1777,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.656 2014/02/08 20:20:17 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.657 2014/03/28 12:08:25 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (isatty(0)); }
 EOF
 	case $cm in
