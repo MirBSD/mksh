@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.643 2014/02/09 00:08:17 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.644 2014/04/29 07:43:38 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -3733,6 +3733,19 @@ stdin:
 	showargs 1 shift ${x#X}
 expected-stdout:
 	 <1> <shift> <1> <2>
+---
+name: IFS-arith-1
+description:
+	http://austingroupbugs.net/view.php?id=832
+expected-fail: yes
+stdin:
+	${ZSH_VERSION+false} || emulate sh
+	${BASH_VERSION+set -o posix}
+	showargs() { for x in "$@"; do echo -n "<$x> "; done; echo .; }
+	IFS=0
+	showargs $((1230456))
+expected-stdout:
+	<123> <456> .
 ---
 name: integer-base-err-1
 description:
