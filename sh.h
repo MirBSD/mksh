@@ -169,9 +169,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.685 2014/01/22 19:53:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.686 2014/05/27 13:22:45 tg Exp $");
 #endif
-#define MKSH_VERSION "R49 2014/01/16"
+#define MKSH_VERSION "R49 2014/05/27"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -523,7 +523,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 491)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 499)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -1168,11 +1168,11 @@ EXTERN struct tbl vtemp;
 #define arrayindex(vp)	((unsigned long)((vp)->flag & AINDEX ? \
 			    (vp)->ua.index : 0))
 
-EXTERN enum {
+enum namerefflag {
 	SRF_NOP,
 	SRF_ENABLE,
 	SRF_DISABLE
-} set_refflag E_INIT(SRF_NOP);
+};
 
 /* command types */
 #define CNONE		0	/* undefined */
@@ -1956,7 +1956,7 @@ void setint(struct tbl *, mksh_ari_t);
 void setint_n(struct tbl *, mksh_ari_t, int);
 struct tbl *typeset(const char *, uint32_t, uint32_t, int, int);
 void unset(struct tbl *, int);
-const char *skip_varname(const char *, int) MKSH_A_PURE;
+const char *skip_varname(const char *, bool) MKSH_A_PURE;
 const char *skip_wdvarname(const char *, bool) MKSH_A_PURE;
 int is_wdvarname(const char *, bool) MKSH_A_PURE;
 int is_wdvarassign(const char *) MKSH_A_PURE;

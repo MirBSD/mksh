@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.177 2014/01/11 18:09:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.178 2014/05/27 13:22:46 tg Exp $");
 
 /*-
  * Variables
@@ -42,6 +42,8 @@ __RCSID("$MirOS: src/bin/mksh/var.c,v 1.177 2014/01/11 18:09:43 tg Exp $");
 
 static struct table specials;
 static uint32_t lcg_state = 5381, qh_state = 4711;
+/* may only be set by typeset() just before call to array_index_calc() */
+static enum namerefflag innermost_refflag = SRF_NOP;
 
 static char *formatstr(struct tbl *, const char *);
 static void exportprep(struct tbl *, const char *);
@@ -165,7 +167,8 @@ varsearch(struct block *l, struct tbl **vpp, const char *vn, uint32_t h)
 /*
  * Used to calculate an array index for global()/local(). Sets *arrayp
  * to true if this is an array, sets *valp to the array index, returns
- * the basename of the array.
+ * the basename of the array. May only be called from global()/local()
+ * and must be their first callee.
  */
 static const char *
 array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
@@ -177,7 +180,7 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 	*arrayp = false;
  redo_from_ref:
 	p = skip_varname(n, false);
-	if (set_refflag == SRF_NOP && (p != n) && ksh_isalphx(n[0])) {
+	if (innermost_refflag == SRF_NOP && (p != n) && ksh_isalphx(n[0])) {
 		struct tbl *vp;
 		char *vn;
 
@@ -185,8 +188,8 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 		/* check if this is a reference */
 		varsearch(e->loc, &vp, vn, hash(vn));
 		afree(vn, ATEMP);
-		if (vp && (vp->flag & (DEFINED|ASSOC|ARRAY)) ==
-		    (DEFINED|ASSOC)) {
+		if (vp && (vp->flag & (DEFINED | ASSOC | ARRAY)) ==
+		    (DEFINED | ASSOC)) {
 			char *cp;
 
 			/* gotcha! */
@@ -196,6 +199,7 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 			goto redo_from_ref;
 		}
 	}
+	innermost_refflag = SRF_NOP;
 
 	if (p != n && *p == '[' && (len = array_ref_len(p))) {
 		char *sub, *tmp;
@@ -226,7 +230,10 @@ global(const char *n)
 	bool array;
 	uint32_t h, val;
 
-	/* Check to see if this is an array */
+	/*
+	 * check to see if this is an array;
+	 * dereference namerefs; must come first
+	 */
 	n = array_index_calc(n, &array, &val);
 	h = hash(n);
 	c = (unsigned char)n[0];
@@ -296,7 +303,10 @@ local(const char *n, bool copy)
 	bool array;
 	uint32_t h, val;
 
-	/* check to see if this is an array */
+	/*
+	 * check to see if this is an array;
+	 * dereference namerefs; must come first
+	 */
 	n = array_index_calc(n, &array, &val);
 	mkssert(n != NULL);
 	h = hash(n);
@@ -701,6 +711,16 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 	const char *val;
 	size_t len;
 	bool vappend = false;
+	enum namerefflag new_refflag = SRF_NOP;
+
+	if ((set & (ARRAY | ASSOC)) == ASSOC) {
+		new_refflag = SRF_ENABLE;
+		set &= ~(ARRAY | ASSOC);
+	}
+	if ((clr & (ARRAY | ASSOC)) == ASSOC) {
+		new_refflag = SRF_DISABLE;
+		clr &= ~(ARRAY | ASSOC);
+	}
 
 	/* check for valid variable name, search for value */
 	val = skip_varname(var, false);
@@ -709,7 +729,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 		return (NULL);
 	}
 	if (*val == '[') {
-		if (set_refflag != SRF_NOP)
+		if (new_refflag != SRF_NOP)
 			errorf("%s: %s", var,
 			    "reference variable can't be an array");
 		len = array_ref_len(val);
@@ -755,17 +775,31 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 			tvar[len - 3] = '\0';
 	}
 
-	if (set_refflag == SRF_ENABLE) {
-		const char *qval;
+	if (new_refflag == SRF_ENABLE) {
+		const char *qval, *ccp;
 
 		/* bail out on 'nameref foo+=bar' */
 		if (vappend)
-			errorfz();
+			errorf("appending not allowed for nameref");
 		/* find value if variable already exists */
 		if ((qval = val) == NULL) {
 			varsearch(e->loc, &vp, tvar, hash(tvar));
 			if (vp != NULL)
 				qval = str_val(vp);
+		}
+		/* check target value for being a valid variable name */
+		ccp = skip_varname(qval, false);
+		if (ccp == qval)
+			errorf("%s: %s", var, "empty nameref target");
+		len = (*ccp == '[') ? array_ref_len(ccp) : 0;
+		if (ccp[len]) {
+			/*
+			 * works for cases "no array", "valid array with
+			 * junk after it" and "invalid array"; in the
+			 * latter case, len is also 0 and points to '['
+			 */
+			errorf("%s: %s", qval,
+			    "nameref target not a valid parameter name");
 		}
 		/* prevent nameref loops */
 		while (qval) {
@@ -774,7 +808,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 				    "expression recurses on parameter");
 			varsearch(e->loc, &vp, qval, hash(qval));
 			qval = NULL;
-			if (vp && ((vp->flag & (ARRAY|ASSOC)) == ASSOC))
+			if (vp && ((vp->flag & (ARRAY | ASSOC)) == ASSOC))
 				qval = str_val(vp);
 		}
 	}
@@ -784,11 +818,12 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 	    strcmp(tvar, "ENV") == 0 || strcmp(tvar, "SHELL") == 0))
 		errorf("%s: %s", tvar, "restricted");
 
-	vp = (set&LOCAL) ? local(tvar, tobool(set & LOCAL_COPY)) :
+	innermost_refflag = new_refflag;
+	vp = (set & LOCAL) ? local(tvar, tobool(set & LOCAL_COPY)) :
 	    global(tvar);
-	if (set_refflag == SRF_DISABLE && (vp->flag & (ARRAY|ASSOC)) == ASSOC)
+	if (new_refflag == SRF_DISABLE && (vp->flag & (ARRAY|ASSOC)) == ASSOC)
 		vp->flag &= ~ASSOC;
-	else if (set_refflag == SRF_ENABLE) {
+	else if (new_refflag == SRF_ENABLE) {
 		if (vp->flag & ARRAY) {
 			struct tbl *a, *tmp;
 
@@ -808,14 +843,14 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 
 	set &= ~(LOCAL|LOCAL_COPY);
 
-	vpbase = (vp->flag & ARRAY) ? global(arrayname(var)) : vp;
+	vpbase = (vp->flag & ARRAY) ? global(arrayname(tvar)) : vp;
 
 	/*
 	 * only allow export flag to be set; AT&T ksh allows any
 	 * attribute to be changed which means it can be truncated or
 	 * modified (-L/-R/-Z/-i)
 	 */
-	if ((vpbase->flag&RDONLY) &&
+	if ((vpbase->flag & RDONLY) &&
 	    (val || clr || (set & ~EXPORT)))
 		/* XXX check calls - is error here ok by POSIX? */
 		errorfx(2, "read-only: %s", tvar);
@@ -959,7 +994,7 @@ unset(struct tbl *vp, int flags)
  * the terminating NUL if whole string is legal).
  */
 const char *
-skip_varname(const char *s, int aok)
+skip_varname(const char *s, bool aok)
 {
 	size_t alen;
 
@@ -1337,7 +1372,7 @@ arraysearch(struct tbl *vp, uint32_t val)
 	struct tbl *prev, *curr, *news;
 	size_t len;
 
-	vp->flag = (vp->flag | (ARRAY|DEFINED)) & ~ASSOC;
+	vp->flag = (vp->flag | (ARRAY | DEFINED)) & ~ASSOC;
 	/* the table entry is always [0] */
 	if (val == 0)
 		return (vp);
@@ -1377,6 +1412,8 @@ arraysearch(struct tbl *vp, uint32_t val)
  * Return the length of an array reference (eg, [1+2]) - cp is assumed
  * to point to the open bracket. Returns 0 if there is no matching
  * closing bracket.
+ *
+ * XXX this should parse the actual arithmetic syntax
  */
 size_t
 array_ref_len(const char *cp)

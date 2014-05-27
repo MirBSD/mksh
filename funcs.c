@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.254 2014/01/05 19:20:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.255 2014/05/27 13:22:44 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -648,6 +648,7 @@ c_typeset(const char **wp)
 	const char *opts;
 	const char *fieldstr = NULL, *basestr = NULL;
 	bool localv = false, func = false, pflag = false, istset = true;
+	enum namerefflag new_refflag = SRF_NOP;
 
 	switch (**wp) {
 
@@ -728,7 +729,7 @@ c_typeset(const char **wp)
 			flag = LCASEV;
 			break;
 		case 'n':
-			set_refflag = (builtin_opt.info & GI_PLUS) ?
+			new_refflag = (builtin_opt.info & GI_PLUS) ?
 			    SRF_DISABLE : SRF_ENABLE;
 			break;
 		/* export, readonly: POSIX -p flag */
@@ -752,8 +753,6 @@ c_typeset(const char **wp)
 			flag = EXPORT;
 			break;
 		case '?':
- errout:
-			set_refflag = SRF_NOP;
 			return (1);
 		}
 		if (builtin_opt.info & GI_PLUS) {
@@ -768,10 +767,10 @@ c_typeset(const char **wp)
 	}
 
 	if (fieldstr && !bi_getn(fieldstr, &field))
-		goto errout;
+		return (1);
 	if (basestr && (!bi_getn(basestr, &base) || base < 1 || base > 36)) {
 		bi_errorf("%s: %s", "bad integer base", basestr);
-		goto errout;
+		return (1);
 	}
 
 	if (!(builtin_opt.info & GI_MINUSMINUS) && wp[builtin_opt.optind] &&
@@ -783,9 +782,9 @@ c_typeset(const char **wp)
 	}
 
 	if (func && (((fset|fclr) & ~(TRACE|UCASEV_AL|EXPORT)) ||
-	    set_refflag != SRF_NOP)) {
+	    new_refflag != SRF_NOP)) {
 		bi_errorf("only -t, -u and -x options may be used with -f");
-		goto errout;
+		return (1);
 	}
 	if (wp[builtin_opt.optind]) {
 		/*
@@ -809,9 +808,17 @@ c_typeset(const char **wp)
 		 * are also set in this command
 		 */
 		if ((fset & (LJUST | RJUST | ZEROFIL | UCASEV_AL | LCASEV |
-		    INTEGER | INT_U | INT_L)) || set_refflag != SRF_NOP)
+		    INTEGER | INT_U | INT_L)) || new_refflag != SRF_NOP)
 			fclr |= ~fset & (LJUST | RJUST | ZEROFIL | UCASEV_AL |
 			    LCASEV | INTEGER | INT_U | INT_L);
+	}
+	if (new_refflag != SRF_NOP) {
+		fclr &= ~(ARRAY | ASSOC);
+		fset &= ~(ARRAY | ASSOC);
+		fclr |= EXPORT;
+		fset |= ASSOC;
+		if (new_refflag == SRF_DISABLE)
+			fclr |= ASSOC;
 	}
 
 	/* set variables and attributes */
@@ -843,14 +850,12 @@ c_typeset(const char **wp)
 				}
 			} else if (!typeset(wp[i], fset, fclr, field, base)) {
 				bi_errorf("%s: %s", wp[i], "is not an identifier");
-				goto errout;
+				return (1);
 			}
 		}
-		set_refflag = SRF_NOP;
 		return (rv);
 	}
 
-	set_refflag = SRF_NOP;
 	/* list variables and attributes */
 
 	/* no difference at this point.. */

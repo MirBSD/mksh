@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.129 2014/01/11 16:26:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.130 2014/05/27 13:22:43 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -652,7 +652,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		/* but assign in there as usual */
 		typeset(cp, type_flags, 0, 0, 0);
 		if (bourne_function_call && !(type_flags & EXPORT))
-			typeset(cp, LOCAL|LOCAL_COPY|EXPORT, 0, 0, 0);
+			typeset(cp, LOCAL | LOCAL_COPY | EXPORT, 0, 0, 0);
 	}
 
 	if (Flag(FXTRACE)) {
@@ -812,7 +812,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 
 		/* set $_ to programme's full path */
 		/* setstr() can't fail here */
-		setstr(typeset("_", LOCAL|EXPORT, 0, INTEGER, 0),
+		setstr(typeset("_", LOCAL | EXPORT, 0, INTEGER, 0),
 		    tp->val.s, KSH_RETURN_ERROR);
 
 		if (flags&XEXEC) {
