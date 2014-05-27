@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.658 2014/05/27 13:22:41 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.659 2014/05/27 13:41:53 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014
@@ -940,7 +940,12 @@ AIX)
 	;;
 Darwin)
 	vv '|' "hwprefs machine_type os_type os_class >&2"
+	vv '|' "sw_vers >&2"
+	vv '|' "system_profiler SPSoftwareDataType SPHardwareDataType >&2"
+	vv '|' "/bin/sh --version >&2"
+	vv '|' "xcodebuild -version >&2"
 	vv '|' "uname -a >&2"
+	vv '|' "sysctl kern.version hw.machine hw.model hw.memsize hw.availcpu hw.cpufrequency hw.byteorder hw.cpu64bit_capable >&2"
 	;;
 IRIX*)
 	vv '|' "uname -a >&2"
@@ -1777,7 +1782,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.658 2014/05/27 13:22:41 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.659 2014/05/27 13:41:53 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (isatty(0)); }
 EOF
 	case $cm in
