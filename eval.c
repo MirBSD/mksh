@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.147 2014/01/11 18:09:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.148 2014/05/27 13:00:30 tg Exp $");
 
 /*
  * string expansion
@@ -1252,17 +1252,12 @@ varsub(Expand *xp, const char *sp, const char *word,
 			if (*sp == '!' && sp[1]) {
 				++sp;
 				xp->var = global(sp);
-				if (vstrchr(sp, '[')) {
-					if (xp->var->flag & ISSET)
-						xp->str = shf_smprintf("%lu",
-						    arrayindex(xp->var));
-					else
-						xp->str = null;
-				} else if (xp->var->flag & ISSET)
-					xp->str = xp->var->name;
+				if (vstrchr(sp, '['))
+					xp->str = shf_smprintf("%s[%lu]",
+					    xp->var->name,
+					    arrayindex(xp->var));
 				else
-					/* ksh93 compat */
-					xp->str = "0";
+					xp->str = xp->var->name;
 			} else {
 				xp->var = global(sp);
 				xp->str = str_val(xp->var);

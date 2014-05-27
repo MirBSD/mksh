@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.644 2014/04/29 07:43:38 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.645 2014/05/27 13:00:31 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -7147,15 +7147,15 @@ stdin:
 	echo !arz[0]: ${!arz[0]}
 	echo !arz[1]: ${!arz[1]}
 expected-stdout:
-	!arz: 0
-	!arz[0]:
-	!arz[1]:
 	!arz: arz
-	!arz[0]: 0
-	!arz[1]:
-	!arz: 0
-	!arz[0]:
-	!arz[1]:
+	!arz[0]: arz[0]
+	!arz[1]: arz[1]
+	!arz: arz
+	!arz[0]: arz[0]
+	!arz[1]: arz[1]
+	!arz: arz
+	!arz[0]: arz[0]
+	!arz[1]: arz[1]
 ---
 name: arrays-8
 description:
@@ -10564,7 +10564,7 @@ expected-stdout:
 	ir2: ir2
 	s1: ir2=ind
 	s2: typeset -n ir2
-	!ind[1]: 1
+	!ind[1]: blub[1]
 	!ir2: ir2
 	ind[1]: e2
 	ir2: e3
