@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.646 2014/05/27 13:22:42 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.647 2014/05/29 21:30:45 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -7071,6 +7071,18 @@ stdin:
 expected-stdout:
 	5|a|$v|c d||$v|b|
 ---
+name: arrays-4-nopos
+description:
+	Check that we do not break assignment
+	This is a regression against R20
+	Possibly take out specified indicēs until resolved!
+expected-fail: yes
+stdin:
+	set -A arr "[5]=meh"
+	echo "<${arr[0]}><${arr[5]}>"
+expected-stdout:
+	<[5]=meh><>
+---
 name: arrays-5
 description:
 	Check if bash-style arrays with specified indices work as expected
@@ -7085,6 +7097,19 @@ expected-stdout:
 	5|a|$v|c d||$v|b|
 	k= 128 129 130 .
 	v= foo bar baz .
+---
+name: arrays-5-glob
+description:
+	Check that we do not break this by globbing
+expected-fail: yes
+stdin:
+	:>b=blah
+	bleh=5
+	typeset -a arr
+	arr+=([bleh]=blah)
+	echo "<${arr[0]}><${arr[5]}>"
+expected-stdout:
+	<><blah>
 ---
 name: arrays-6
 description:
