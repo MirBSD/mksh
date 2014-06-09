@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.149 2014/06/09 10:41:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.150 2014/06/09 11:16:07 tg Exp $");
 
 /*
  * string expansion
@@ -324,9 +324,9 @@ expand(
 				}
 				continue;
 			case EXPRSUB:
-				word = IFS_WORD;
 				tilde_ok = 0;
 				if (f & DONTRUNCOMMAND) {
+					word = IFS_WORD;
 					*dp++ = '$'; *dp++ = '('; *dp++ = '(';
 					while (*sp != '\0') {
 						Xcheck(ds, dp);
@@ -343,11 +343,10 @@ expand(
 					v_evaluate(&v, substitute(sp, 0),
 					    KSH_UNWIND_ERROR, true);
 					sp = strnul(sp) + 1;
-					cp = str_val(&v);
-					while (*cp) {
-						Xcheck(ds, dp);
-						*dp++ = *cp++;
-					}
+					x.str = str_val(&v);
+					type = XSUB;
+					if (f & DOBLANK)
+						doblank++;
 				}
 				continue;
 			case OSUBST: {
@@ -683,7 +682,7 @@ expand(
 				*dp = '\0';
 				quote = st->quotep;
 				f = st->f;
-				if (f&DOBLANK)
+				if (f & DOBLANK)
 					doblank--;
 				switch (st->stype & 0x17F) {
 				case '#':
@@ -707,7 +706,7 @@ expand(
 						type = XSUB;
 					} else
 						type = quote ? XSUB : XNULLSUB;
-					if (f&DOBLANK)
+					if (f & DOBLANK)
 						doblank++;
 					st = st->prev;
 					continue;
@@ -739,7 +738,7 @@ expand(
 					    dp, len), KSH_UNWIND_ERROR);
 					x.str = str_val(st->var);
 					type = XSUB;
-					if (f&DOBLANK)
+					if (f & DOBLANK)
 						doblank++;
 					st = st->prev;
 					continue;
@@ -757,7 +756,7 @@ expand(
 				case 0x100 | 'Q':
 					dp = Xrestpos(ds, dp, st->base);
 					type = XSUB;
-					if (f&DOBLANK)
+					if (f & DOBLANK)
 						doblank++;
 					st = st->prev;
 					continue;
@@ -794,7 +793,7 @@ expand(
 			 * other stuff inside the quotes).
 			 */
 			type = XBASE;
-			if (f&DOBLANK) {
+			if (f & DOBLANK) {
 				doblank--;
 				/*
 				 * XXX not really correct:
@@ -812,7 +811,7 @@ expand(
 		case XSUBMID:
 			if ((c = *x.str++) == 0) {
 				type = XBASE;
-				if (f&DOBLANK)
+				if (f & DOBLANK)
 					doblank--;
 				continue;
 			}
@@ -833,7 +832,7 @@ expand(
 					word = IFS_WORD;
 				if ((x.str = *x.u.strv++) == NULL) {
 					type = XBASE;
-					if (f&DOBLANK)
+					if (f & DOBLANK)
 						doblank--;
 					continue;
 				}
@@ -882,7 +881,7 @@ expand(
 				if (x.split)
 					subst_exstat = waitlast();
 				type = XBASE;
-				if (f&DOBLANK)
+				if (f & DOBLANK)
 					doblank--;
 				continue;
 			}

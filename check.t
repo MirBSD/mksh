@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.649 2014/06/09 11:13:17 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.650 2014/06/09 11:16:06 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -3736,7 +3736,6 @@ expected-stdout:
 name: IFS-arith-1
 description:
 	http://austingroupbugs.net/view.php?id=832
-expected-fail: yes
 stdin:
 	${ZSH_VERSION+false} || emulate sh
 	${BASH_VERSION+set -o posix}
