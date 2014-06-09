@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.647 2014/05/29 21:30:45 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.648 2014/06/09 10:41:01 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -3726,7 +3726,6 @@ expected-stdout:
 name: IFS-subst-2
 description:
 	Check leading whitespace after trim does not make a field
-expected-fail: yes
 stdin:
 	showargs() { for i; do echo -n " <$i>"; done; echo; }
 	x="X 1 2"

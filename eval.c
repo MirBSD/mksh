@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.148 2014/05/27 13:00:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.149 2014/06/09 10:41:03 tg Exp $");
 
 /*
  * string expansion
@@ -702,10 +702,11 @@ expand(
 					 */
 					x.str = trimsub(str_val(st->var),
 						dp, st->stype);
-					if (quote || x.str[0] != '\0')
+					if (x.str[0] != '\0') {
+						word = IFS_WS;
 						type = XSUB;
-					else
-						type = XNULLSUB;
+					} else
+						type = quote ? XSUB : XNULLSUB;
 					if (f&DOBLANK)
 						doblank++;
 					st = st->prev;
@@ -796,9 +797,11 @@ expand(
 			if (f&DOBLANK) {
 				doblank--;
 				/*
-				 * not really correct: x=; "$x$@" should
-				 * generate a null argument and
-				 * set A; "${@:+}" shouldn't.
+				 * XXX not really correct:
+				 *	x=; "$x$@"
+				 * should generate a null argument and
+				 *	set A; "${@:+}"
+				 * shouldn't.
 				 */
 				if (dp == Xstring(ds, dp))
 					word = IFS_WS;
