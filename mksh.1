@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.334 2014/06/09 11:22:50 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.335 2014/06/09 12:28:17 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.152 2014/02/12 16:28:13 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -247,8 +247,7 @@ below.
 Privileged shell.
 A shell is
 .Dq privileged
-if this option is used
-or if the real user ID or group ID does not match the
+if the real user ID or group ID does not match the
 effective user ID or group ID (see
 .Xr getuid 2
 and
@@ -257,6 +256,9 @@ Clearing the privileged option causes the shell to set
 its effective user ID (group ID) to its real user ID (group ID).
 For further implications, see
 .Sx Startup files .
+If the shell is privileged and this flag is not explicitly set, the
+.Dq privileged
+option is cleared automatically after processing the startup files.
 .It Fl r
 Restricted shell.
 A shell is
@@ -366,15 +368,9 @@ parameter after subjecting it to parameter, command, arithmetic and tilde
 substitution; if unset or empty, the user mkshrc profile is processed;
 otherwise, if a file whose name is the substitution result exists,
 it is processed; non-existence is silently ignored.
-.Pp
-The suid profile probably should run
-.Ic set +p
-unless the shell was explicitly started with
-.Fl p .
-This isn't easily implemented but
-.Pq just always run Ic set +p
-a stopgap measure for:
-.Pa http://blog.cmpxchg8b.com/2013/08/security\-debianisms.html
+A privileged shell then drops privileges if neither was the
+.Fl p
+option given on the command line nor set during execution of the startup files.
 .Ss Command syntax
 The shell begins parsing its input by removing any backslash-newline
 combinations, then breaking it into
@@ -6457,7 +6453,7 @@ $ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R49
+.Nm mksh\ R50
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

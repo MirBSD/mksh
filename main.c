@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.279 2014/01/16 13:59:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.280 2014/06/09 12:28:17 tg Exp $");
 
 extern char **environ;
 
@@ -407,7 +407,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	setint_n((vp_pipest = global("PIPESTATUS")), 0, 10);
 
 	/* Set this before parsing arguments */
-	Flag(FPRIVILEGED) = kshuid != ksheuid || kshgid != kshegid;
+	Flag(FPRIVILEGED) = (kshuid != ksheuid || kshgid != kshegid) ? 2 : 0;
 
 	/* this to note if monitor is set on command line (see below) */
 #ifndef MKSH_UNEMPLOYED
@@ -585,22 +585,22 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	if (!current_wd[0] && Flag(FTALKING))
 		warningf(false, "can't determine current directory");
 
-	if (Flag(FLOGIN)) {
+	if (Flag(FLOGIN))
 		include(MKSH_SYSTEM_PROFILE, 0, NULL, true);
-		if (!Flag(FPRIVILEGED))
-			include(substitute("$HOME/.profile", 0), 0,
-			    NULL, true);
-	}
-	if (Flag(FPRIVILEGED))
+	if (!Flag(FPRIVILEGED)) {
+		if (Flag(FLOGIN))
+			include(substitute("$HOME/.profile", 0), 0, NULL, true);
+		if (Flag(FTALKING)) {
+			cp = substitute(substitute("${ENV:-" MKSHRC_PATH "}",
+			    0), DOTILDE);
+			if (cp[0] != '\0')
+				include(cp, 0, NULL, true);
+		}
+	} else {
 		include(MKSH_SUID_PROFILE, 0, NULL, true);
-	else if (Flag(FTALKING)) {
-		char *env_file;
-
-		/* include $ENV */
-		env_file = substitute(substitute("${ENV:-" MKSHRC_PATH "}", 0),
-		    DOTILDE);
-		if (*env_file != '\0')
-			include(env_file, 0, NULL, true);
+		/* turn off -p if not set explicitly */
+		if (Flag(FPRIVILEGED) != 1)
+			change_flag(FPRIVILEGED, OF_INTERNAL, false);
 	}
 
 	if (restricted) {

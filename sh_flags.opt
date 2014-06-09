@@ -1,5 +1,5 @@
 @SHFLAGS_DEFNS
-__RCSID("$MirOS: src/bin/mksh/sh_flags.opt,v 1.1 2013/11/17 22:22:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh_flags.opt,v 1.2 2014/06/09 12:28:19 tg Exp $");
 #define FN(sname,cname,flags,ochar)		\
 	static const struct {			\
 		/* character flag (if any) */	\
@@ -123,7 +123,7 @@ FN("pipefail", FPIPEFAIL, OF_ANY
 >|
 FN("posix", FPOSIX, OF_ANY
 
-/* -p	use suid_profile; privileged shell */
+/* -p	privileged shell (suid) */
 >p|
 FN("privileged", FPRIVILEGED, OF_ANY
 
