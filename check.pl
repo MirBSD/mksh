@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.35 2014/01/25 22:45:49 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.36 2014/06/09 13:25:50 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -912,7 +912,7 @@ eval_exit
     } else {
 	$expr = $expect;
 	$expr =~ s/\b([wse])\b/\$$1/g;
-	$expr =~ s/\b(SIG[A-Z0-9]+)\b/&$1/g;
+	$expr =~ s/\b(SIG[A-Z][A-Z0-9]*)\b/&$1/g;
     }
     $w = eval $expr;
     if ($@ ne '') {
@@ -1164,7 +1164,7 @@ read_test
 		print STDERR "$prog:$test{':long-name'}: expected-exit value $val not in 0..255\n";
 		return undef;
 	    }
-	} elsif ($val !~ /^([\s<>+-=*%\/&|!()]|\b[wse]\b|\bSIG[A-Z0-9]+\b)+$/) {
+	} elsif ($val !~ /^([\s<>+-=*%\/&|!()]|\b[wse]\b|\bSIG[A-Z][A-Z0-9]*\b)+$/) {
 	    print STDERR "$prog:$test{':long-name'}: bad expected-exit expression: $val\n";
 	    return undef;
 	}

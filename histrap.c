@@ -3,7 +3,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012
+ *		 2011, 2012, 2014
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.133 2013/10/09 11:59:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.134 2014/06/09 13:25:53 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -977,6 +977,7 @@ inittraps(void)
 	trap_exstat = -1;
 
 	/* Populate sigtraps based on sys_signame and sys_siglist. */
+	/*XXX this is idiotic, use a multi-key/value hashtable! */
 	for (i = 0; i <= NSIG; i++) {
 		sigtraps[i].signal = i;
 		if (i == ksh_SIGERR) {

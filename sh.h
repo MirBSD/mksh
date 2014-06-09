@@ -169,9 +169,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.686 2014/05/27 13:22:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.687 2014/06/09 13:25:53 tg Exp $");
 #endif
-#define MKSH_VERSION "R49 2014/05/27"
+#define MKSH_VERSION "R50 2014/06/09"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -342,7 +342,17 @@ struct rusage {
 #define NSIG		(SIGMAX+1)
 #elif defined(_SIGMAX)
 #define NSIG		(_SIGMAX+1)
+#else
+# error Please have your platform define NSIG.
+#define NSIG		64
 #endif
+#endif
+
+/* get rid of this (and awk/printf(1) in Build.sh) later */
+#if (NSIG < 1)
+# error Your NSIG value is not positive.
+#unset NSIG
+#define NSIG		64
 #endif
 
 
@@ -523,7 +533,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 499)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 500)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
