@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.178 2014/05/27 13:22:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.179 2014/06/09 11:13:19 tg Exp $");
 
 /*-
  * Variables
@@ -1494,6 +1494,7 @@ set_array(const char *var, bool reset, const char **vals)
 		afree(cp, ATEMP);
 	}
 	while ((ccp = vals[i])) {
+#if 0 /* temporarily taken out due to regression */
 		if (*ccp == '[') {
 			int level = 0;
 
@@ -1514,6 +1515,7 @@ set_array(const char *var, bool reset, const char **vals)
 			} else
 				ccp = vals[i];
 		}
+#endif
 
 		vq = arraysearch(vp, j);
 		/* would be nice to deal with errors here... (see above) */

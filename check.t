@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.648 2014/06/09 10:41:01 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.649 2014/06/09 11:13:17 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -7067,24 +7067,19 @@ stdin:
 	v="c d"
 	set -A foo -- [1]=\$v [2]="$v" [4]='$v' [0]=a [5]=b
 	echo "${#foo[*]}|${foo[0]}|${foo[1]}|${foo[2]}|${foo[3]}|${foo[4]}|${foo[5]}|"
-expected-stdout:
-	5|a|$v|c d||$v|b|
----
-name: arrays-4-nopos
-description:
-	Check that we do not break assignment
-	This is a regression against R20
-	Possibly take out specified indicēs until resolved!
-expected-fail: yes
-stdin:
+	# we don't want this at all:
+	#	5|a|$v|c d||$v|b|
 	set -A arr "[5]=meh"
 	echo "<${arr[0]}><${arr[5]}>"
 expected-stdout:
+	5|[1]=$v|[2]=c d|[4]=$v|[0]=a|[5]=b||
 	<[5]=meh><>
 ---
 name: arrays-5
 description:
 	Check if bash-style arrays with specified indices work as expected
+	(taken out temporarily to fix arrays-4; see also arrays-9a comment)
+category: disabled
 stdin:
 	v="c d"
 	foo=([1]=\$v [2]="$v" [4]='$v' [0]=a [5]=b)
@@ -7092,22 +7087,16 @@ stdin:
 	x=([128]=foo bar baz)
 	echo k= ${!x[*]} .
 	echo v= ${x[*]} .
-expected-stdout:
-	5|a|$v|c d||$v|b|
-	k= 128 129 130 .
-	v= foo bar baz .
----
-name: arrays-5-glob
-description:
-	Check that we do not break this by globbing
-expected-fail: yes
-stdin:
+	# Check that we do not break this by globbing
 	:>b=blah
 	bleh=5
 	typeset -a arr
 	arr+=([bleh]=blah)
 	echo "<${arr[0]}><${arr[5]}>"
 expected-stdout:
+	5|a|$v|c d||$v|b|
+	k= 128 129 130 .
+	v= foo bar baz .
 	<><blah>
 ---
 name: arrays-6
@@ -7269,11 +7258,11 @@ description:
 stdin:
 	unset foo; foo=(bar); foo+=(baz); echo 1 ${!foo[*]} : ${foo[*]} .
 	unset foo; foo=(foo bar); foo+=(baz); echo 2 ${!foo[*]} : ${foo[*]} .
-	unset foo; foo=([2]=foo [0]=bar); foo+=(baz [5]=quux); echo 3 ${!foo[*]} : ${foo[*]} .
+#	unset foo; foo=([2]=foo [0]=bar); foo+=(baz [5]=quux); echo 3 ${!foo[*]} : ${foo[*]} .
 expected-stdout:
 	1 0 1 : bar baz .
 	2 0 1 2 : foo bar baz .
-	3 0 2 3 5 : bar foo baz quux .
+#	3 0 2 3 5 : bar foo baz quux .
 ---
 name: arrays-9b
 description:
