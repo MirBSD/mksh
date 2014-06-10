@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.651 2014/06/09 13:25:50 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.652 2014/06/10 22:17:07 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -27,7 +27,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2014/06/09
+	@(#)MIRBSD KSH R50 2014/06/10
 description:
 	Check version of shell.
 stdin:
@@ -36,7 +36,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2014/06/09
+	@(#)LEGACY KSH R50 2014/06/10
 description:
 	Check version of legacy shell.
 stdin:
@@ -6513,6 +6513,7 @@ stdin:
 	echo 6 "$("$__progname" -c '! (exit 23) | (exit 42) | :; echo $?')" .
 	echo 7 "$("$__progname" -o pipefail -c '(exit 23) | (exit 42) | :; echo $?')" .
 	echo 8 "$("$__progname" -o pipefail -c '! (exit 23) | (exit 42) | :; echo $?')" .
+	echo 9 "$("$__progname" -o pipefail -c 'x=$( (exit 23) | (exit 42) | :); echo $?')" .
 expected-stdout:
 	1 42 .
 	2 0 .
@@ -6522,6 +6523,7 @@ expected-stdout:
 	6 1 .
 	7 42 .
 	8 0 .
+	9 42 .
 ---
 name: persist-history-1
 description:

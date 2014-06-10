@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
- *		 2012, 2013
+ *		 2012, 2013, 2014
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.103 2013/11/30 17:41:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.104 2014/06/10 22:17:09 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1268,6 +1268,15 @@ j_waitj(Job *j,
 			vp->val.i = proc_errorlevel(p);
 			if (Flag(FPIPEFAIL) && vp->val.i)
 				rv = vp->val.i;
+			p = p->next;
+		}
+	} else if (Flag(FPIPEFAIL) && (j->proc_list != NULL)) {
+		Proc *p = j->proc_list;
+		int i;
+
+		while (p != NULL) {
+			if ((i = proc_errorlevel(p)))
+				rv = i;
 			p = p->next;
 		}
 	}

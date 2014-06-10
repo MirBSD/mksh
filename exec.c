@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.130 2014/05/27 13:22:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.131 2014/06/10 22:17:08 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -462,7 +462,7 @@ execute(struct op * volatile t,
 	if (vp_pipest->flag & INT_L) {
 		unset(vp_pipest, 1);
 		vp_pipest->flag = DEFINED | ISSET | INTEGER | RDONLY |
-		    ARRAY | INT_U;
+		    ARRAY | INT_U | INT_L;
 		vp_pipest->val.i = rv;
 	}
 
