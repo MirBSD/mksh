@@ -169,7 +169,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.688 2014/06/10 22:17:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.689 2014/06/24 18:51:37 tg Exp $");
 #endif
 #define MKSH_VERSION "R50 2014/06/10"
 
@@ -1396,19 +1396,6 @@ struct ioword {
 #define DOVACHECK BIT(9)	/* var assign check (for typeset, set, etc) */
 #define DOMARKDIRS BIT(10)	/* force markdirs behaviour */
 #define DOTCOMEXEC BIT(11)	/* not an eval flag, used by sh -c hack */
-
-/*
- * The arguments of [[ .. ]] expressions are kept in t->args[] and flags
- * indicating how the arguments have been munged are kept in t->vars[].
- * The contents of t->vars[] are stuffed strings (so they can be treated
- * like all other t->vars[]) in which the second character is the one that
- * is examined. The DB_* defines are the values for these second characters.
- */
-#define DB_NORM	1	/* normal argument */
-#define DB_OR	2	/* || -> -o conversion */
-#define DB_AND	3	/* && -> -a conversion */
-#define DB_BE	4	/* an inserted -BE */
-#define DB_PAT	5	/* a pattern argument */
 
 #define X_EXTRA	20	/* this many extra bytes in X string */
 
