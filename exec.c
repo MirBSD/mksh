@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.131 2014/06/10 22:17:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.132 2014/06/24 18:38:31 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -919,6 +919,10 @@ scriptexec(struct op *tp, const char **ap)
 				*tp->args-- = (char *)cp;
 		}
  noshebang:
+		if (buf[0] == 0x7F && buf[1] == 'E' && buf[2] == 'L' &&
+		    buf[3] == 'F')
+			errorf("%s: not executable: %d-bit ELF file", tp->str,
+			    32 * ((uint8_t)buf[4]));
 		fd = buf[0] << 8 | buf[1];
 		if ((fd == /* OMAGIC */ 0407) ||
 		    (fd == /* NMAGIC */ 0410) ||
@@ -927,7 +931,6 @@ scriptexec(struct op *tp, const char **ap)
 		    (fd == /* ECOFF_I386 */ 0x4C01) ||
 		    (fd == /* ECOFF_M68K */ 0x0150 || fd == 0x5001) ||
 		    (fd == /* ECOFF_SH */   0x0500 || fd == 0x0005) ||
-		    (fd == 0x7F45 && buf[2] == 'L' && buf[3] == 'F') ||
 		    (fd == /* "MZ" */ 0x4D5A) ||
 		    (fd == /* gzip */ 0x1F8B))
 			errorf("%s: not executable: magic %04X", tp->str, fd);
