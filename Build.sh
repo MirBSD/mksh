@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.661 2014/06/24 20:47:40 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.662 2014/06/29 10:56:08 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014
@@ -1400,7 +1400,9 @@ gcc)
 	# mksh is not written in CFrustFrust!
 	ac_flags 1 no_eh_frame -fno-asynchronous-unwind-tables
 	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
-	ac_flags 1 fstackprotectorall -fstack-protector-all
+	ac_flags 1 fstackprotectorstrong -fstack-protector-strong
+	test 1 = $HAVE_CAN_FSTACKPROTECTORSTRONG || \
+	    ac_flags 1 fstackprotectorall -fstack-protector-all
 	test $cm = dragonegg && case " $CC $CFLAGS $LDFLAGS " in
 	*\ -fplugin=*dragonegg*) ;;
 	*) ac_flags 1 fplugin_dragonegg -fplugin=dragonegg ;;
@@ -1782,7 +1784,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.661 2014/06/24 20:47:40 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.662 2014/06/29 10:56:08 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (isatty(0)); }
 EOF
 	case $cm in
