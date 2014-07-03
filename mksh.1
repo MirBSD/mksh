@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.336 2014/06/24 20:47:44 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.337 2014/07/03 20:47:56 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.152 2014/02/12 16:28:13 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: June 24 2014 $
+.Dd $Mdocdate: July 3 2014 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2697,7 +2697,7 @@ Not equal; the result is 0 if both arguments are equal, 1 if not.
 Less than; the result is 1 if the left argument is less than the right, 0 if
 not.
 .It \*(Lt= \*(Gt \*(Gt=
-Less than or equal, greater than or equal, greater than.
+Less than or equal, greater than, greater than or equal.
 See
 .Ic \*(Lt .
 .It \*(Lt\*(Lt\*(Lt \*(Gt\*(Gt\*(Gt
