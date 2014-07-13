@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.275 2014/01/05 21:57:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.276 2014/07/13 11:34:28 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1628,7 +1628,7 @@ x_zots(char *str)
 	int adj = x_adj_done;
 
 	x_lastcp();
-	while (*str && str < xlp && adj == x_adj_done)
+	while (*str && str < xlp && x_col < xx_cols && adj == x_adj_done)
 		x_zotc3(&str);
 }
 
