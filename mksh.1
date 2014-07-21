@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.337 2014/07/03 20:47:56 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.338 2014/07/21 08:06:16 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.152 2014/02/12 16:28:13 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 3 2014 $
+.Dd $Mdocdate: July 21 2014 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -208,7 +208,7 @@ will execute the command(s) contained in
 .Ar string .
 .It Fl i
 Interactive shell.
-A shell is
+A shell that reads commands from standard input is
 .Dq interactive
 if this
 option is used or if both standard input and standard error are attached
