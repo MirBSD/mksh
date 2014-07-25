@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.338 2014/07/21 08:06:16 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.339 2014/07/25 21:38:51 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.152 2014/02/12 16:28:13 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 21 2014 $
+.Dd $Mdocdate: July 25 2014 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2711,8 +2711,15 @@ Shift left (right); the result is the left argument with its bits shifted left
 .It + \- * /
 Addition, subtraction, multiplication, and division.
 .It %
-Remainder; the result is the remainder of the division of the left argument by
-the right.
+Remainder; the result is the symmetric remainder of the division of the left
+argument by the right.
+To get the mathematical modulus of
+.Dq a Ic mod No b ,
+use the formula
+.Do
+.Pq a % b + b
+.No % b
+.Dc .
 .It Xo
 .Sm off
 .Aq Ar arg1 ?
@@ -6436,8 +6443,8 @@ foo \*(Ba bar \*(Ba& read \-p baz        # will, however, do so
 .Pp
 .Nm mksh
 provides a consistent set of 32-bit integer arithmetics, both signed
-and unsigned, with defined wraparound and sign of the result of a modulo
-operation, even (defying POSIX) on 64-bit systems.
+and unsigned, with defined wraparound and sign of the result of a
+remainder operation, even (defying POSIX) on 64-bit systems.
 If you require 64-bit integer arithmetics, use
 .Nm lksh Pq legacy mksh
 instead, but be aware that, in POSIX, it's legal for the OS to make
