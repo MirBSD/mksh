@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.256 2014/06/09 13:25:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.257 2014/07/28 21:45:44 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3643,12 +3643,14 @@ c_cat(const char **wp)
 				break;
 			while (n) {
 				w = write(STDOUT_FILENO, cp, n);
+				eno = errno;
+				/* give the user a chance to ^C out */
+				intrcheck();
 				if (w == -1) {
-					if (errno == EINTR)
+					if (eno == EINTR)
 						/* interrupted, try again */
 						continue;
 					/* an error occured during writing */
-					eno = errno;
 					bi_errorf("%s: %s", "<stdout>",
 					    cstrerror(eno));
 					rv = 1;
