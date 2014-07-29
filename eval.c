@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.150 2014/06/09 11:16:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.151 2014/07/29 16:29:11 tg Exp $");
 
 /*
  * string expansion
@@ -897,14 +897,14 @@ expand(
 			 *	word		|	ws	nws	0
 			 *	-----------------------------------
 			 *	IFS_WORD		w/WS	w/NWS	w
-			 *	IFS_WS			-/WS	w/NWS	-
-			 *	IFS_NWS			-/NWS	w/NWS	w
+			 *	IFS_WS			-/WS	-/NWS	-
+			 *	IFS_NWS			-/NWS	w/NWS	-
 			 * (w means generate a word)
 			 * Note that IFS_NWS/0 generates a word (AT&T ksh
 			 * doesn't do this, but POSIX does).
 			 */
 			if (word == IFS_WORD ||
-			    (!ctype(c, C_IFSWS) && c && word == IFS_NWS)) {
+			    (word == IFS_NWS && c && !ctype(c, C_IFSWS))) {
  emit_word:
 				*dp++ = '\0';
 				cp = Xclose(ds, dp);
