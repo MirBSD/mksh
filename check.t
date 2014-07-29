@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.656 2014/07/28 21:45:42 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.657 2014/07/29 17:56:31 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -3732,6 +3732,17 @@ stdin:
 	showargs 1 shift ${x#X}
 expected-stdout:
 	 <1> <shift> <1> <2>
+---
+name: IFS-subst-3
+description:
+	Check leading IFS non-whitespace after trim does make a field
+expected-fail: yes
+stdin:
+	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	IFS=:
+	showargs 1 ${-+:foo:bar}
+expected-stdout:
+	 <1> <> <foo> <bar>
 ---
 name: IFS-arith-1
 description:
