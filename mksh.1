@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.339 2014/07/25 21:38:51 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.340 2014/07/29 17:26:24 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.152 2014/02/12 16:28:13 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 25 2014 $
+.Dd $Mdocdate: July 29 2014 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1232,10 +1232,8 @@ whitespace octets, in combination with zero or one
 whitespace octets, delimit a field.
 As a special case, leading and trailing
 .Ev IFS
-whitespace and trailing
-.Ev IFS
-non-whitespace are stripped (i.e. no leading or trailing empty field
-is created by it); leading
+whitespace is stripped (i.e. no leading or trailing empty field
+is created by it); leading or trailing
 .Pf non- Ev IFS
 whitespace does create an empty field.
 .Pp
