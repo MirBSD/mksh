@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.36 2014/06/09 13:25:50 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.37 2014/08/19 07:43:32 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -348,6 +348,7 @@ if ($tot_failed || $tot_passed) {
     print " ($nifailed ignored)" if $nifailed;
     print " ($nxfailed unexpected)" if $nxfailed;
     print " (as expected)" if $nfailed && !$nxfailed && !$nifailed;
+    print " ($nfailed expected)" if $nfailed && ($nxfailed || $nifailed);
     print "\nTotal passed: $tot_passed";
     print " ($nxpassed unexpected)" if $nxpassed;
     print "\n";
