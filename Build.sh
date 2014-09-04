@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.664 2014/09/03 19:22:48 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.665 2014/09/04 23:06:51 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014
@@ -1784,7 +1784,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.664 2014/09/03 19:22:48 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.665 2014/09/04 23:06:51 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (isatty(0)); }
 EOF
 	case $cm in
@@ -2273,6 +2273,7 @@ mksh_cfg= NSIG
 	sigs="ABRT FPE ILL INT SEGV TERM ALRM BUS CHLD CONT HUP KILL PIPE QUIT"
 	sigs="$sigs STOP TSTP TTIN TTOU USR1 USR2 POLL PROF SYS TRAP URG VTALRM"
 	sigs="$sigs XCPU XFSZ INFO WINCH EMT IO DIL LOST PWR SAK CLD IOT RESV"
+	sigs="$sigs STKFLT UNUSED"
 	test 1 = $HAVE_CPP_DD && test $NSIG -gt 1 && sigs="$sigs "`vq \
 	    "$CPP $CFLAGS $CPPFLAGS $NOWARN -dD conftest.c" | \
 	    grep '[	 ]SIG[A-Z0-9][A-Z0-9]*[	 ]' | \
