@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.282 2014/10/02 13:53:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.283 2014/10/02 13:55:16 tg Exp $");
 
 extern char **environ;
 
@@ -184,7 +184,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	int argi, i;
 	Source *s = NULL;
 	struct block *l;
-	unsigned char restricted, errexit, utf_flag;
+	unsigned char restricted_shell, errexit, utf_flag;
 	char *cp;
 	const char *ccp, **wp;
 	struct tbl *vp;
@@ -573,7 +573,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	}
 
 	/* Disable during .profile/ENV reading */
-	restricted = Flag(FRESTRICTED);
+	restricted_shell = Flag(FRESTRICTED);
 	Flag(FRESTRICTED) = 0;
 	errexit = Flag(FERREXIT);
 	Flag(FERREXIT) = 0;
@@ -603,7 +603,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 			change_flag(FPRIVILEGED, OF_INTERNAL, false);
 	}
 
-	if (restricted) {
+	if (restricted_shell) {
 		shcomexec(restr_com);
 		/* After typeset command... */
 		Flag(FRESTRICTED) = 1;
