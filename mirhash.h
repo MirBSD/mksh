@@ -30,6 +30,12 @@
  * for speed reasons, specified for the regular stable hash, but very
  * much recommended if the actual output value may differ across runs
  * (so is using a random value instead of 0 for the IV).
+ *-
+ * Little quote gem:
+ *	We are looking into it. Changing the core
+ *	hash function in PHP isn't a trivial change
+ *	and will take us some time.
+ * -- Rasmus Lerdorf
  */
 
 #ifndef SYSKERN_MIRHASH_H
@@ -38,7 +44,7 @@
 
 #include <sys/types.h>
 
-__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.2 2014/06/29 11:48:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.3 2014/10/02 19:34:06 tg Exp $");
 
 /*-
  * BAFH itself is defined by the following primitives:
