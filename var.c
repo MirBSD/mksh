@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.181 2014/09/03 19:22:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.182 2014/10/03 17:20:03 tg Exp $");
 
 /*-
  * Variables
@@ -751,18 +751,18 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 		}
 		val += len;
 	}
-	if (val[0] == '=' || (val[0] == '+' && val[1] == '=')) {
+	if (val[0] == '=') {
 		strndupx(tvar, var, val - var, ATEMP);
-		if (*val++ == '+') {
-			++val;
-			vappend = true;
-		}
-	} else if ((val[0] != '\0') || (set & IMPORT)) {
-		/*
-		 * must have a = when setting a variable by importing
-		 * the original environment, otherwise be empty; we
-		 * also end up here when a variable name was invalid
-		 */
+		++val;
+	} else if (set & IMPORT) {
+		/* environment invalid variable name or no assignment */
+		return (NULL);
+	} else if (val[0] == '+' && val[1] == '=') {
+		strndupx(tvar, var, val - var, ATEMP);
+		val += 2;
+		vappend = true;
+	} else if (val[0] != '\0') {
+		/* other invalid variable names (not from environment) */
 		return (NULL);
 	} else {
 		/* just varname with no value part nor equals sign */
