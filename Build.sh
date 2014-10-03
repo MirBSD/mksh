@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.666 2014/09/29 18:57:00 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.667 2014/10/03 17:19:26 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014
@@ -1784,7 +1784,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.666 2014/09/29 18:57:00 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.667 2014/10/03 17:19:26 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (isatty(0)); }
 EOF
 	case $cm in
@@ -1902,6 +1902,11 @@ ac_test gettimeofday <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int main(void) { struct timeval tv; return (gettimeofday(&tv, NULL)); }
+EOF
+
+ac_test issetugid <<-'EOF'
+	#include <unistd.h>
+	int main(void) { return (issetugid()); }
 EOF
 
 ac_test killpg <<-'EOF'

@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.283 2014/10/02 13:55:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.284 2014/10/03 17:19:27 tg Exp $");
 
 extern char **environ;
 
@@ -407,7 +407,11 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	setint_n((vp_pipest = global("PIPESTATUS")), 0, 10);
 
 	/* Set this before parsing arguments */
-	Flag(FPRIVILEGED) = (kshuid != ksheuid || kshgid != kshegid) ? 2 : 0;
+	Flag(FPRIVILEGED) = (
+#if HAVE_ISSETUGID
+	    issetugid() ||
+#endif
+	    kshuid != ksheuid || kshgid != kshegid) ? 2 : 0;
 
 	/* this to note if monitor is set on command line (see below) */
 #ifndef MKSH_UNEMPLOYED
