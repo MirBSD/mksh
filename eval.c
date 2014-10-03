@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.151 2014/07/29 16:29:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.152 2014/10/03 17:32:11 tg Exp $");
 
 /*
  * string expansion
@@ -244,8 +244,8 @@ expand(
 		internal_errorf("expand(NULL)");
 	/* for alias, readonly, set, typeset commands */
 	if ((f & DOVACHECK) && is_wdvarassign(ccp)) {
-		f &= ~(DOVACHECK|DOBLANK|DOGLOB|DOTILDE);
-		f |= DOASNTILDE;
+		f &= ~(DOVACHECK | DOBLANK | DOGLOB | DOTILDE);
+		f |= DOASNTILDE | DOASNFIELD;
 	}
 	if (Flag(FNOGLOB))
 		f &= ~DOGLOB;
@@ -261,7 +261,7 @@ expand(
 	fdo = 0;
 	saw_eq = false;
 	/* must be 1/0 */
-	tilde_ok = (f & (DOTILDE|DOASNTILDE)) ? 1 : 0;
+	tilde_ok = (f & (DOTILDE | DOASNTILDE)) ? 1 : 0;
 	doblank = 0;
 	make_magic = false;
 	word = (f&DOBLANK) ? IFS_WS : IFS_WORD;
@@ -422,7 +422,7 @@ expand(
 						print_value_quoted(&shf, str_val(st->var));
 						x.str = shf_sclose(&shf);
 						break;
-					}
+					    }
 					case '0': {
 						char *beg, *mid, *end, *stg;
 						mksh_ari_t from = 0, num = -1, flen, finc = 0;
@@ -472,7 +472,7 @@ expand(
 							utfincptr(beg, &num);
 						strndupx(x.str, beg, num, ATEMP);
 						goto do_CSUBST;
-					}
+					    }
 					case '/': {
 						char *s, *p, *d, *sbeg, *end;
 						char *pat, *rrep;
@@ -616,7 +616,7 @@ expand(
 						if (rrep != null)
 							afree(rrep, ATEMP);
 						goto do_CSUBST;
-					}
+					    }
 					case '#':
 					case '%':
 						/* ! DOBLANK,DOBRACE,DOTILDE */
@@ -649,7 +649,7 @@ expand(
 						 * a arithmetic operator.
 						 */
 						if (!(x.var->flag & INTEGER))
-							f |= DOASNTILDE|DOTILDE;
+							f |= DOASNTILDE | DOTILDE;
 						f |= DOTEMP;
 						/*
 						 * These will be done after the
@@ -663,6 +663,7 @@ expand(
 						f |= DOTEMP;
 						/* FALLTHROUGH */
 					default:
+						word = IFS_WORD;
 						/* Enable tilde expansion */
 						tilde_ok = 1;
 						f |= DOTILDE;
@@ -671,7 +672,7 @@ expand(
 					/* skip word */
 					sp += wdscan(sp, CSUBST) - sp;
 				continue;
-			}
+			    }
 			case CSUBST:
 				/* only get here if expanding word */
  do_CSUBST:
@@ -741,6 +742,7 @@ expand(
 					if (f & DOBLANK)
 						doblank++;
 					st = st->prev;
+					word = quote || (!*x.str && (f & DOASNFIELD)) ? IFS_WORD : IFS_WS;
 					continue;
 				case '?': {
 					char *s = Xrestpos(ds, dp, st->base);
@@ -749,13 +751,14 @@ expand(
 					    dp == s ?
 					    "parameter null or not set" :
 					    (debunk(s, s, strlen(s) + 1), s));
-				}
+				    }
 				case '0':
 				case '/':
 				case 0x100 | '#':
 				case 0x100 | 'Q':
 					dp = Xrestpos(ds, dp, st->base);
 					type = XSUB;
+					word = quote || (!*x.str && (f & DOASNFIELD)) ? IFS_WORD : IFS_WS;
 					if (f & DOBLANK)
 						doblank++;
 					st = st->prev;
@@ -795,13 +798,6 @@ expand(
 			type = XBASE;
 			if (f & DOBLANK) {
 				doblank--;
-				/*
-				 * XXX not really correct:
-				 *	x=; "$x$@"
-				 * should generate a null argument and
-				 *	set A; "${@:+}"
-				 * shouldn't.
-				 */
 				if (dp == Xstring(ds, dp))
 					word = IFS_WS;
 			}
@@ -825,7 +821,7 @@ expand(
 			if ((c = *x.str++) == '\0') {
 				/*
 				 * force null words to be created so
-				 * set -- '' 2 ''; foo "$@" will do
+				 * set -- "" 2 ""; echo "$@" will do
 				 * the right thing
 				 */
 				if (quote && x.split)
@@ -837,8 +833,20 @@ expand(
 					continue;
 				}
 				c = ifs0;
+				if ((f & DOASNFIELD)) {
+					/* assignment, do not field-split */
+					if (x.split) {
+						c = ' ';
+						break;
+					}
+					if (c == 0) {
+						continue;
+					}
+				}
 				if (c == 0) {
 					if (quote && !x.split)
+						continue;
+					if (!quote && word == IFS_WS)
 						continue;
 					/* this is so we don't terminate */
 					c = ' ';
@@ -922,7 +930,8 @@ expand(
 					    strlen(cp) + 1));
 				fdo = 0;
 				saw_eq = false;
-				tilde_ok = (f & (DOTILDE|DOASNTILDE)) ? 1 : 0;
+				/* must be 1/0 */
+				tilde_ok = (f & (DOTILDE | DOASNTILDE)) ? 1 : 0;
 				if (c == 0)
 					return;
 				Xinit(ds, dp, 128, ATEMP);
@@ -1006,7 +1015,7 @@ expand(
 					 * through the sequence ${A=a=}~
 					 */
 					if (type == XBASE &&
-					    (f & (DOTILDE|DOASNTILDE)) &&
+					    (f & (DOTILDE | DOASNTILDE)) &&
 					    (tilde_ok & 2)) {
 						const char *tcp;
 						char *tdp = dp;

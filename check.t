@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.658 2014/09/03 19:22:49 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.659 2014/10/03 17:32:09 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -27,7 +27,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2014/09/03
+	@(#)MIRBSD KSH R50 2014/10/03
 description:
 	Check version of shell.
 stdin:
@@ -36,7 +36,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2014/09/03
+	@(#)LEGACY KSH R50 2014/10/03
 description:
 	Check version of legacy shell.
 stdin:
@@ -3736,13 +3736,396 @@ expected-stdout:
 name: IFS-subst-3
 description:
 	Check leading IFS non-whitespace after trim does make a field
-expected-fail: yes
 stdin:
 	showargs() { for i; do echo -n " <$i>"; done; echo; }
 	IFS=:
 	showargs 1 ${-+:foo:bar}
 expected-stdout:
 	 <1> <> <foo> <bar>
+---
+name: IFS-subst-4-1
+description:
+	reported by mikeserv
+stdin:
+	a='space divded  argument
+	here'
+	IFS=\  ; set -- $a
+	IFS= ; q="$*" ; nq=$*
+	printf '<%s>\n' "$*" $* "$q" "$nq"
+	[ "$q" = "$nq" ] && echo =true || echo =false
+expected-stdout:
+	<spacedivdedargument
+	here>
+	<space>
+	<divded>
+	<argument
+	here>
+	<spacedivdedargument
+	here>
+	<spacedivdedargument
+	here>
+	=true
+---
+name: IFS-subst-4-2
+description:
+	extended testsuite based on problem by mikeserv
+stdin:
+	a='space divded  argument
+	here'
+	IFS=\  ; set -- $a
+	IFS= ; q="$@" ; nq=$@
+	printf '<%s>\n' "$*" $* "$q" "$nq"
+	[ "$q" = "$nq" ] && echo =true || echo =false
+expected-stdout:
+	<spacedivdedargument
+	here>
+	<space>
+	<divded>
+	<argument
+	here>
+	<space divded argument
+	here>
+	<space divded argument
+	here>
+	=true
+---
+name: IFS-subst-4-3
+description:
+	extended testsuite based on problem by mikeserv
+stdin:
+	a='space divded  argument
+	here'
+	IFS=\ ; set -- $a; IFS=
+	qs="$*"
+	nqs=$*
+	qk="$@"
+	nqk=$@
+	printf '= qs '; printf '<%s>\n' "$qs"
+	printf '=nqs '; printf '<%s>\n' "$nqs"
+	printf '= qk '; printf '<%s>\n' "$qk"
+	printf '=nqk '; printf '<%s>\n' "$nqk"
+	printf '~ qs '; printf '<%s>\n' "$*"
+	printf '~nqs '; printf '<%s>\n' $*
+	printf '~ qk '; printf '<%s>\n' "$@"
+	printf '~nqk '; printf '<%s>\n' $@
+expected-stdout:
+	= qs <spacedivdedargument
+	here>
+	=nqs <spacedivdedargument
+	here>
+	= qk <space divded argument
+	here>
+	=nqk <space divded argument
+	here>
+	~ qs <spacedivdedargument
+	here>
+	~nqs <space>
+	<divded>
+	<argument
+	here>
+	~ qk <space>
+	<divded>
+	<argument
+	here>
+	~nqk <space>
+	<divded>
+	<argument
+	here>
+---
+name: IFS-subst-4-4
+description:
+	extended testsuite based on problem by mikeserv
+stdin:
+	a='space divded  argument
+	here'
+	IFS=\ ; set -- $a; IFS=
+	qs="$*"
+	printf '= qs '; printf '<%s>\n' "$qs"
+	printf '~ qs '; printf '<%s>\n' "$*"
+	nqs=$*
+	printf '=nqs '; printf '<%s>\n' "$nqs"
+	printf '~nqs '; printf '<%s>\n' $*
+	qk="$@"
+	printf '= qk '; printf '<%s>\n' "$qk"
+	printf '~ qk '; printf '<%s>\n' "$@"
+	nqk=$@
+	printf '=nqk '; printf '<%s>\n' "$nqk"
+	printf '~nqk '; printf '<%s>\n' $@
+expected-stdout:
+	= qs <spacedivdedargument
+	here>
+	~ qs <spacedivdedargument
+	here>
+	=nqs <spacedivdedargument
+	here>
+	~nqs <space>
+	<divded>
+	<argument
+	here>
+	= qk <space divded argument
+	here>
+	~ qk <space>
+	<divded>
+	<argument
+	here>
+	=nqk <space divded argument
+	here>
+	~nqk <space>
+	<divded>
+	<argument
+	here>
+---
+name: IFS-subst-4-4p
+description:
+	extended testsuite based on problem by mikeserv
+stdin:
+	a='space divded  argument
+	here'
+	IFS=\ ; set -- $a; IFS=
+	unset v
+	qs=${v:-"$*"}
+	printf '= qs '; printf '<%s>\n' "$qs"
+	printf '~ qs '; printf '<%s>\n' ${v:-"$*"}
+	nqs=${v:-$*}
+	printf '=nqs '; printf '<%s>\n' "$nqs"
+	printf '~nqs '; printf '<%s>\n' ${v:-$*}
+	qk=${v:-"$@"}
+	printf '= qk '; printf '<%s>\n' "$qk"
+	printf '~ qk '; printf '<%s>\n' ${v:-"$@"}
+	nqk=${v:-$@}
+	printf '=nqk '; printf '<%s>\n' "$nqk"
+	printf '~nqk '; printf '<%s>\n' ${v:-$@}
+expected-stdout:
+	= qs <spacedivdedargument
+	here>
+	~ qs <spacedivdedargument
+	here>
+	=nqs <spacedivdedargument
+	here>
+	~nqs <space>
+	<divded>
+	<argument
+	here>
+	= qk <space divded argument
+	here>
+	~ qk <space>
+	<divded>
+	<argument
+	here>
+	=nqk <space divded argument
+	here>
+	~nqk <space>
+	<divded>
+	<argument
+	here>
+---
+name: IFS-subst-4-5
+description:
+	extended testsuite based on problem by mikeserv
+stdin:
+	a='space divded  argument
+	here'
+	IFS=\ ; set -- $a; IFS=,
+	qs="$*"
+	printf '= qs '; printf '<%s>\n' "$qs"
+	printf '~ qs '; printf '<%s>\n' "$*"
+	nqs=$*
+	printf '=nqs '; printf '<%s>\n' "$nqs"
+	printf '~nqs '; printf '<%s>\n' $*
+	qk="$@"
+	printf '= qk '; printf '<%s>\n' "$qk"
+	printf '~ qk '; printf '<%s>\n' "$@"
+	nqk=$@
+	printf '=nqk '; printf '<%s>\n' "$nqk"
+	printf '~nqk '; printf '<%s>\n' $@
+expected-stdout:
+	= qs <space,divded,argument
+	here>
+	~ qs <space,divded,argument
+	here>
+	=nqs <space,divded,argument
+	here>
+	~nqs <space>
+	<divded>
+	<argument
+	here>
+	= qk <space divded argument
+	here>
+	~ qk <space>
+	<divded>
+	<argument
+	here>
+	=nqk <space divded argument
+	here>
+	~nqk <space>
+	<divded>
+	<argument
+	here>
+---
+name: IFS-subst-4-5p
+description:
+	extended testsuite based on problem by mikeserv
+stdin:
+	a='space divded  argument
+	here'
+	IFS=\ ; set -- $a; IFS=,
+	unset v
+	qs=${v:-"$*"}
+	printf '= qs '; printf '<%s>\n' "$qs"
+	printf '~ qs '; printf '<%s>\n' ${v:-"$*"}
+	nqs=${v:-$*}
+	printf '=nqs '; printf '<%s>\n' "$nqs"
+	printf '~nqs '; printf '<%s>\n' ${v:-$*}
+	qk=${v:-"$@"}
+	printf '= qk '; printf '<%s>\n' "$qk"
+	printf '~ qk '; printf '<%s>\n' ${v:-"$@"}
+	nqk=${v:-$@}
+	printf '=nqk '; printf '<%s>\n' "$nqk"
+	printf '~nqk '; printf '<%s>\n' ${v:-$@}
+expected-stdout:
+	= qs <space,divded,argument
+	here>
+	~ qs <space,divded,argument
+	here>
+	=nqs <space,divded,argument
+	here>
+	~nqs <space>
+	<divded>
+	<argument
+	here>
+	= qk <space divded argument
+	here>
+	~ qk <space>
+	<divded>
+	<argument
+	here>
+	=nqk <space divded argument
+	here>
+	~nqk <space>
+	<divded>
+	<argument
+	here>
+---
+name: IFS-subst-5
+description:
+	extended testsuite based on IFS-subst-3
+	differs slightly from ksh93:
+	- omit trailing field in a3zna, a7ina (unquoted $@ expansion)
+	- has extra middle fields in b5ins, b7ina (IFS_NWS unquoted expansion)
+	differs slightly from bash:
+	- omit leading field in a5ins, a7ina (IFS_NWS unquoted expansion)
+	differs slightly from zsh:
+	- differs in assignment, not expansion; probably zsh bug
+	- has extra middle fields in b5ins, b7ina (IFS_NWS unquoted expansion)
+	'emulate sh' zsh has extra fields in
+	- a5ins (IFS_NWS unquoted $*)
+	- b5ins, matching mksh’s
+stdin:
+	"$__progname" -c 'IFS=; set -- "" 2 ""; printf "[%s]\n" $*; x=$*; printf "<%s>\n" "$x"'
+	echo '=a1zns'
+	"$__progname" -c 'IFS=; set -- "" 2 ""; printf "[%s]\n" "$*"; x="$*"; printf "<%s>\n" "$x"'
+	echo '=a2zqs'
+	"$__progname" -c 'IFS=; set -- "" 2 ""; printf "[%s]\n" $@; x=$@; printf "<%s>\n" "$x"'
+	echo '=a3zna'
+	"$__progname" -c 'IFS=; set -- "" 2 ""; printf "[%s]\n" "$@"; x="$@"; printf "<%s>\n" "$x"'
+	echo '=a4zqa'
+	"$__progname" -c 'IFS=,; set -- "" 2 ""; printf "[%s]\n" $*; x=$*; printf "<%s>\n" "$x"'
+	echo '=a5ins'
+	"$__progname" -c 'IFS=,; set -- "" 2 ""; printf "[%s]\n" "$*"; x="$*"; printf "<%s>\n" "$x"'
+	echo '=a6iqs'
+	"$__progname" -c 'IFS=,; set -- "" 2 ""; printf "[%s]\n" $@; x=$@; printf "<%s>\n" "$x"'
+	echo '=a7ina'
+	"$__progname" -c 'IFS=,; set -- "" 2 ""; printf "[%s]\n" "$@"; x="$@"; printf "<%s>\n" "$x"'
+	echo '=a8iqa'
+	"$__progname" -c 'IFS=; set -- A B "" "" C; printf "[%s]\n" $*; x=$*; printf "<%s>\n" "$x"'
+	echo '=b1zns'
+	"$__progname" -c 'IFS=; set -- A B "" "" C; printf "[%s]\n" "$*"; x="$*"; printf "<%s>\n" "$x"'
+	echo '=b2zqs'
+	"$__progname" -c 'IFS=; set -- A B "" "" C; printf "[%s]\n" $@; x=$@; printf "<%s>\n" "$x"'
+	echo '=b3zna'
+	"$__progname" -c 'IFS=; set -- A B "" "" C; printf "[%s]\n" "$@"; x="$@"; printf "<%s>\n" "$x"'
+	echo '=b4zqa'
+	"$__progname" -c 'IFS=,; set -- A B "" "" C; printf "[%s]\n" $*; x=$*; printf "<%s>\n" "$x"'
+	echo '=b5ins'
+	"$__progname" -c 'IFS=,; set -- A B "" "" C; printf "[%s]\n" "$*"; x="$*"; printf "<%s>\n" "$x"'
+	echo '=b6iqs'
+	"$__progname" -c 'IFS=,; set -- A B "" "" C; printf "[%s]\n" $@; x=$@; printf "<%s>\n" "$x"'
+	echo '=b7ina'
+	"$__progname" -c 'IFS=,; set -- A B "" "" C; printf "[%s]\n" "$@"; x="$@"; printf "<%s>\n" "$x"'
+	echo '=b8iqa'
+expected-stdout:
+	[2]
+	<2>
+	=a1zns
+	[2]
+	<2>
+	=a2zqs
+	[2]
+	< 2 >
+	=a3zna
+	[]
+	[2]
+	[]
+	< 2 >
+	=a4zqa
+	[2]
+	<,2,>
+	=a5ins
+	[,2,]
+	<,2,>
+	=a6iqs
+	[2]
+	< 2 >
+	=a7ina
+	[]
+	[2]
+	[]
+	< 2 >
+	=a8iqa
+	[A]
+	[B]
+	[C]
+	<ABC>
+	=b1zns
+	[ABC]
+	<ABC>
+	=b2zqs
+	[A]
+	[B]
+	[C]
+	<A B   C>
+	=b3zna
+	[A]
+	[B]
+	[]
+	[]
+	[C]
+	<A B   C>
+	=b4zqa
+	[A]
+	[B]
+	[]
+	[]
+	[C]
+	<A,B,,,C>
+	=b5ins
+	[A,B,,,C]
+	<A,B,,,C>
+	=b6iqs
+	[A]
+	[B]
+	[]
+	[]
+	[C]
+	<A B   C>
+	=b7ina
+	[A]
+	[B]
+	[]
+	[]
+	[C]
+	<A B   C>
+	=b8iqa
 ---
 name: IFS-arith-1
 description:
@@ -7801,6 +8184,17 @@ stdin:
 	echo .
 expected-stdout:
 	<1> <> <2> <> <+> <> <3> <> <+> <> .
+---
+name: varexpand-null-3
+description:
+	Ensure concatenating behaviour matches other shells
+	although the line 2<> is probably wrong? XNULLSUB case.
+stdin:
+	x=; printf "1<%s>\n" "$x$@"
+	set A; printf "2<%s>\n" "${@:+}"
+expected-stdout:
+	1<>
+	2<>
 ---
 name: print-funny-chars
 description:

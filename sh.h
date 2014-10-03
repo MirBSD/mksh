@@ -169,9 +169,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.694 2014/09/03 19:22:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.695 2014/10/03 17:32:12 tg Exp $");
 #endif
-#define MKSH_VERSION "R50 2014/09/03"
+#define MKSH_VERSION "R50 2014/10/03"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -533,7 +533,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 502)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 503)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -1396,6 +1396,7 @@ struct ioword {
 #define DOVACHECK BIT(9)	/* var assign check (for typeset, set, etc) */
 #define DOMARKDIRS BIT(10)	/* force markdirs behaviour */
 #define DOTCOMEXEC BIT(11)	/* not an eval flag, used by sh -c hack */
+#define DOASNFIELD BIT(12)	/* is assignment, change field handling */
 
 #define X_EXTRA	20	/* this many extra bytes in X string */
 
