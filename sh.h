@@ -169,9 +169,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.695 2014/10/03 17:32:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.696 2014/10/04 11:47:18 tg Exp $");
 #endif
-#define MKSH_VERSION "R50 2014/10/03"
+#define MKSH_VERSION "R50 2014/10/04"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES

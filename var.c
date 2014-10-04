@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.182 2014/10/03 17:20:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.183 2014/10/04 11:47:19 tg Exp $");
 
 /*-
  * Variables
@@ -784,8 +784,9 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 		/* find value if variable already exists */
 		if ((qval = val) == NULL) {
 			varsearch(e->loc, &vp, tvar, hash(tvar));
-			if (vp != NULL)
-				qval = str_val(vp);
+			if (vp == NULL)
+				goto nameref_empty;
+			qval = str_val(vp);
 		}
 		/* check target value for being a valid variable name */
 		ccp = skip_varname(qval, false);
@@ -803,6 +804,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 			case '-':
 				goto nameref_rhs_checked;
 			}
+ nameref_empty:
 			errorf("%s: %s", var, "empty nameref target");
 		}
 		len = (*ccp == '[') ? array_ref_len(ccp) : 0;
