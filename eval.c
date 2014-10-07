@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.152 2014/10/03 17:32:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.153 2014/10/07 15:22:16 tg Exp $");
 
 /*
  * string expansion
@@ -62,6 +62,7 @@ typedef struct {
 #define IFS_WORD	0	/* word has chars (or quotes) */
 #define IFS_WS		1	/* have seen IFS white-space */
 #define IFS_NWS		2	/* have seen IFS non-white-space */
+#define IFS_IWS		3	/* begin of word, ignore IFS WS */
 
 static int varsub(Expand *, const char *, const char *, int *, int *);
 static int comsub(Expand *, const char *, int);
@@ -663,7 +664,7 @@ expand(
 						f |= DOTEMP;
 						/* FALLTHROUGH */
 					default:
-						word = IFS_WORD;
+						word = quote ? IFS_WORD : IFS_IWS;
 						/* Enable tilde expansion */
 						tilde_ok = 1;
 						f |= DOTILDE;
@@ -907,12 +908,12 @@ expand(
 			 *	IFS_WORD		w/WS	w/NWS	w
 			 *	IFS_WS			-/WS	-/NWS	-
 			 *	IFS_NWS			-/NWS	w/NWS	-
+			 *	IFS_IWS			-/WS	w/NWS	-
 			 * (w means generate a word)
-			 * Note that IFS_NWS/0 generates a word (AT&T ksh
-			 * doesn't do this, but POSIX does).
 			 */
-			if (word == IFS_WORD ||
-			    (word == IFS_NWS && c && !ctype(c, C_IFSWS))) {
+			if ((word == IFS_WORD) || (c &&
+			    (word == IFS_IWS || word == IFS_NWS) &&
+			    !ctype(c, C_IFSWS))) {
  emit_word:
 				*dp++ = '\0';
 				cp = Xclose(ds, dp);
