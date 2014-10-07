@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.343 2014/10/03 12:35:38 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.344 2014/10/07 15:30:12 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.153 2014/08/17 07:15:41 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: October 3 2014 $
+.Dd $Mdocdate: October 7 2014 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2530,6 +2530,12 @@ command, inside $((..)) expressions, inside array references (e.g.\&
 as numeric arguments to the
 .Ic test
 command, and as the value of an assignment to an integer parameter.
+.Em Warning :
+This also affects implicit conversion to integer, for example as done by the
+.Ic let
+command.
+.Em Never
+use unchecked user input, e.g. from the environment, in arithmetics!
 .Pp
 Expressions are calculated using signed arithmetic and the
 .Vt mksh_ari_t
