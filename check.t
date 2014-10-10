@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.661 2014/10/07 15:22:14 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.662 2014/10/10 22:10:19 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -8012,6 +8012,66 @@ expected-stdout:
 	.f1r:f:
 	.fnr:f:
 	.f2r:f:
+---
+name: unset-fnc-local-ksh
+description:
+	Check that “unset” removes a previous “local”
+	(ksh93 syntax compatible version); apparently,
+	there are shells which fail this?
+stdin:
+	function f {
+		echo f0: $x
+		typeset x
+		echo f1: $x
+		x=fa
+		echo f2: $x
+		unset x
+		echo f3: $x
+		x=fb
+		echo f4: $x
+	}
+	x=o
+	echo before: $x
+	f
+	echo after: $x
+expected-stdout:
+	before: o
+	f0: o
+	f1:
+	f2: fa
+	f3: o
+	f4: fb
+	after: fb
+---
+name: unset-fnc-local-sh
+description:
+	Check that “unset” removes a previous “local”
+	(Debian Policy §10.4 sh version); apparently,
+	there are shells which fail this?
+stdin:
+	f() {
+		echo f0: $x
+		local x
+		echo f1: $x
+		x=fa
+		echo f2: $x
+		unset x
+		echo f3: $x
+		x=fb
+		echo f4: $x
+	}
+	x=o
+	echo before: $x
+	f
+	echo after: $x
+expected-stdout:
+	before: o
+	f0: o
+	f1:
+	f2: fa
+	f3: o
+	f4: fb
+	after: fb
 ---
 name: varexpand-substr-1
 description:
