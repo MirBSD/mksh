@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.134 2014/10/12 19:55:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.135 2014/10/12 20:32:09 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -81,6 +81,8 @@ execute(struct op * volatile t,
 	/* we want to run an executable, do some variance checks */
 	if (t->type == TCOM) {
 		/* check if this is 'var=<<EOF' */
+		/*XXX this is broken, don’t use! */
+		/*XXX https://bugs.launchpad.net/mksh/+bug/1380389 */
 		if (
 		    /* we have zero arguments, i.e. no programme to run */
 		    t->args[0] == NULL &&
@@ -107,10 +109,10 @@ execute(struct op * volatile t,
 			t->ioact = NULL;
 
 			/* set variable to its expanded value */
-			z = strlen(cp) + 1;
-			if (notoktomul(z, 2) || notoktoadd(z * 2, n))
+			z = strlen(cp);
+			if (notoktomul(z, 2) || notoktoadd(z * 2, n + 1))
 				internal_errorf(Toomem, (size_t)-1);
-			dp = alloc(z * 2 + n, ATEMP);
+			dp = alloc(z * 2 + n + 1, APERM);
 			memcpy(dp, t->vars[0], n);
 			t->vars[0] = dp;
 			dp += n;
