@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.135 2014/10/12 20:32:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.136 2014/10/12 21:58:50 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -32,7 +32,7 @@ __RCSID("$MirOS: src/bin/mksh/exec.c,v 1.135 2014/10/12 20:32:09 tg Exp $");
 static int comexec(struct op *, struct tbl * volatile, const char **,
     int volatile, volatile int *);
 static void scriptexec(struct op *, const char **) MKSH_A_NORETURN;
-static int call_builtin(struct tbl *, const char **, const char *);
+static int call_builtin(struct tbl *, const char **, const char *, bool);
 static int iosetup(struct ioword *, struct tbl *);
 static int herein(struct ioword *, char **);
 static const char *do_selectargs(const char **, bool);
@@ -505,7 +505,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	/* Must be static (XXX but why?) */
 	static struct op texec;
 	int type_flags;
-	bool keepasn_ok;
+	bool resetspec;
 	int fcflags = FC_BI|FC_FUNC|FC_PATH;
 	bool bourne_function_call = false;
 	struct block *l_expand, *l_assign;
@@ -537,7 +537,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	 *	FOO=bar command			FOO is neither kept nor exported
 	 *	PATH=... foobar			use new PATH in foobar search
 	 */
-	keepasn_ok = true;
+	resetspec = false;
 	while (tp && tp->type == CSHELL) {
 		/* undo effects of command */
 		fcflags = FC_BI|FC_FUNC|FC_PATH;
@@ -584,7 +584,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			 * POSIX says special builtins lose their status
 			 * if accessed using command.
 			 */
-			keepasn_ok = false;
+			resetspec = true;
 			if (!ap[0]) {
 				/* ensure command with no args exits with 0 */
 				subst_exstat = 0;
@@ -619,13 +619,13 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	if (t->u.evalflags & DOTCOMEXEC)
 		flags |= XEXEC;
 	l_expand = e->loc;
-	if (keepasn_ok && (!ap[0] || (tp && (tp->flag & KEEPASN))))
+	if (!resetspec && (!ap[0] || (tp && (tp->flag & KEEPASN))))
 		type_flags = 0;
 	else {
 		/* create new variable/function block */
 		newblock();
 		/* ksh functions don't keep assignments, POSIX functions do. */
-		if (keepasn_ok && tp && tp->type == CFUNC &&
+		if (!resetspec && tp && tp->type == CFUNC &&
 		    !(tp->flag & FKSH)) {
 			bourne_function_call = true;
 			type_flags = EXPORT;
@@ -689,8 +689,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 
 	/* shell built-in */
 	case CSHELL:
-		rv = call_builtin(tp, (const char **)ap, null);
-		if (!keepasn_ok && tp->val.f == c_shift) {
+		rv = call_builtin(tp, (const char **)ap, null, resetspec);
+		if (resetspec && tp->val.f == c_shift) {
 			l_expand->argc = l_assign->argc;
 			l_expand->argv = l_assign->argv;
 		}
@@ -957,7 +957,7 @@ shcomexec(const char **wp)
 	struct tbl *tp;
 
 	tp = ktsearch(&builtins, *wp, hash(*wp));
-	return (call_builtin(tp, wp, "shcomexec"));
+	return (call_builtin(tp, wp, "shcomexec", false));
 }
 
 /*
@@ -1270,22 +1270,22 @@ search_path(const char *name, const char *lpath,
 }
 
 static int
-call_builtin(struct tbl *tp, const char **wp, const char *where)
+call_builtin(struct tbl *tp, const char **wp, const char *where, bool resetspec)
 {
 	int rv;
 
 	if (!tp)
 		internal_errorf("%s: %s", where, wp[0]);
 	builtin_argv0 = wp[0];
-	builtin_flag = tp->flag;
+	builtin_spec = tobool(!resetspec && (tp->flag & SPEC_BI));
 	shf_reopen(1, SHF_WR, shl_stdout);
 	shl_stdout_ok = true;
 	ksh_getopt_reset(&builtin_opt, GF_ERROR);
 	rv = (*tp->val.f)(wp);
 	shf_flush(shl_stdout);
 	shl_stdout_ok = false;
-	builtin_flag = 0;
 	builtin_argv0 = NULL;
+	builtin_spec = false;
 	return (rv);
 }
 
@@ -1564,7 +1564,8 @@ do_selectargs(const char **ap, bool print_menu)
 		if (print_menu || !*str_val(global("REPLY")))
 			pr_menu(ap);
 		shellf("%s", str_val(global("PS3")));
-		if (call_builtin(findcom("read", FC_BI), read_args, Tselect))
+		if (call_builtin(findcom("read", FC_BI), read_args, Tselect,
+		    false))
 			return (NULL);
 		s = str_val(global("REPLY"));
 		if (*s && getn(s, &i))

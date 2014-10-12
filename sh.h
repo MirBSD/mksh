@@ -169,7 +169,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.698 2014/10/12 19:55:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.699 2014/10/12 21:58:53 tg Exp $");
 #endif
 #define MKSH_VERSION "R50 2014/10/12"
 
@@ -992,8 +992,8 @@ EXTERN sigset_t		sm_default, sm_sigchld;
 
 /* name of called builtin function (used by error functions) */
 EXTERN const char *builtin_argv0;
-/* flags of called builtin (SPEC_BI, etc.) */
-EXTERN uint32_t builtin_flag;
+/* is called builtin SPEC_BI? */
+EXTERN bool builtin_spec;
 
 /* current working directory */
 EXTERN char	*current_wd;

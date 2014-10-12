@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.258 2014/09/03 19:55:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.259 2014/10/12 21:58:51 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1587,12 +1587,16 @@ c_shift(const char **wp)
 		return (1);
 	arg = wp[builtin_opt.optind];
 
-	if (arg) {
-		evaluate(arg, &val, KSH_UNWIND_ERROR, false);
-		n = val;
-	} else
+	if (!arg)
 		n = 1;
-	if (n < 0) {
+	else if (!evaluate(arg, &val, KSH_RETURN_ERROR, false)) {
+		/* error already printed */
+		bi_errorfz();
+		return (1);
+	} else if (!(n = val)) {
+		/* nothing to do */
+		return (0);
+	} else if (n < 0) {
 		bi_errorf("%s: %s", arg, "bad number");
 		return (1);
 	}
@@ -2417,9 +2421,8 @@ c_set(const char **wp)
 		return (c_typeset(args));
 	}
 
-	argi = parse_args(wp, OF_SET, &setargs);
-	if (argi < 0)
-		return (1);
+	if ((argi = parse_args(wp, OF_SET, &setargs)) < 0)
+		return (2);
 	/* set $# and $* */
 	if (setargs) {
 		wp += argi - 1;

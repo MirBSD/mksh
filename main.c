@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.284 2014/10/03 17:19:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.285 2014/10/12 21:58:52 tg Exp $");
 
 extern char **environ;
 
@@ -1244,7 +1244,7 @@ bi_errorf(const char *fmt, ...)
 	 * non-interactive shells to exit.
 	 * XXX odd use of KEEPASN; also may not want LERROR here
 	 */
-	if (builtin_flag & SPEC_BI) {
+	if (builtin_spec) {
 		builtin_argv0 = NULL;
 		unwind(LERROR);
 	}
