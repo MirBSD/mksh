@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.133 2014/10/03 17:32:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.134 2014/10/12 19:55:00 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -94,11 +94,14 @@ execute(struct op * volatile t,
 		    /* the variable assignment begins with a valid varname */
 		    (ccp = skip_wdvarname(t->vars[0], true)) != t->vars[0] &&
 		    /* and has no right-hand side (i.e. "varname=") */
-		    ccp[0] == CHAR && ccp[1] == '=' && ccp[2] == EOS &&
+		    ccp[0] == CHAR && ((ccp[1] == '=' && ccp[2] == EOS) ||
+		    /* or "varname+=" */ (ccp[1] == '+' && ccp[2] == CHAR &&
+		    ccp[3] == '=' && ccp[4] == EOS)) &&
 		    /* plus we can have a here document content */
 		    herein(t->ioact[0], &cp) == 0 && cp && *cp) {
 			char *sp = cp, *dp;
-			size_t n = ccp - t->vars[0] + 2, z;
+			size_t n = ccp - t->vars[0] + (ccp[1] == '+' ? 4 : 2);
+			size_t z;
 
 			/* drop redirection (will be garbage collected) */
 			t->ioact = NULL;

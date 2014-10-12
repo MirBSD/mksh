@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.662 2014/10/10 22:10:19 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.663 2014/10/12 19:54:58 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -27,7 +27,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2014/10/07
+	@(#)MIRBSD KSH R50 2014/10/12
 description:
 	Check version of shell.
 stdin:
@@ -36,7 +36,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2014/10/07
+	@(#)LEGACY KSH R50 2014/10/12
 description:
 	Check version of legacy shell.
 stdin:
@@ -2389,6 +2389,14 @@ stdin:
 	vf=<<<$'=f $x \x40='
 	# now check
 	print -r -- "| va={$va} vb={$vb} vc={$vc} vd={$vd} ve={$ve} vf={$vf} |"
+	# check append
+	v=<<-EOF
+		vapp1
+	EOF
+	v+=<<-EOF
+		vapp2
+	EOF
+	print -r -- "| ${v//$'\n'/^} |"
 expected-stdout:
 	function foo {
 		vc=<<-EOF
@@ -2404,6 +2412,7 @@ expected-stdout:
 	} ve={=e $x \x40=
 	} vf={=f $x @=
 	} |
+	| vapp1^vapp2^ |
 ---
 name: heredoc-11
 description:
@@ -2433,6 +2442,14 @@ stdin:
 	eval "$fnd"
 	foo
 	print -r -- "| va={$va} vb={$vb} vc={$vc} vd={$vd} |"
+	# check append
+	v=<<-
+		vapp1
+	<<
+	v+=<<-''
+		vapp2
+	
+	print -r -- "| ${v//$'\n'/^} |"
 expected-stdout:
 	function foo {
 		vc=<<-
@@ -2450,6 +2467,7 @@ expected-stdout:
 	} vc={=c u \x40=
 	} vd={=d $x \x40=
 	} |
+	| vapp1^vapp2^ |
 ---
 name: heredoc-comsub-1
 description:
