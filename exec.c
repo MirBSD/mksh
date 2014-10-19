@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.136 2014/10/12 21:58:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.137 2014/10/19 21:53:07 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -640,7 +640,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	for (i = 0; t->vars[i]; i++) {
 		/* do NOT lookup in the new var/fn block just created */
 		e->loc = l_expand;
-		cp = evalstr(t->vars[i], DOASNTILDE | DOASNFIELD);
+		cp = evalstr(t->vars[i], DOASNTILDE | DOSCALAR);
 		e->loc = l_assign;
 		if (Flag(FXTRACE)) {
 			const char *ccp;

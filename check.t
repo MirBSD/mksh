@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.665 2014/10/19 21:39:35 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.666 2014/10/19 21:53:05 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -22,9 +22,6 @@
 #-
 # You may also want to test IFS with the script at
 # http://www.research.att.com/~gsf/public/ifs.sh
-#
-# More testsuites at:
-# http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
 	@(#)MIRBSD KSH R50 2014/10/19
@@ -4176,6 +4173,30 @@ expected-stdout:
 	[C]
 	<A B   C>
 	=b8iqa
+---
+name: IFS-subst-6
+description:
+	Regression wrt. vector expansion in trim
+stdin:
+	showargs() { for x in "$@"; do echo -n "<$x> "; done; echo .; }
+	IFS=
+	x=abc
+	set -- a b
+	showargs ${x#$*}
+expected-stdout:
+	<c> .
+---
+name: IFS-subst-7
+description:
+	ksh93 bug wrt. vector expansion in trim
+stdin:
+	showargs() { for x in "$@"; do echo -n "<$x> "; done; echo .; }
+	IFS="*"
+	a=abcd
+	set -- '' c
+	showargs "$*" ${a##"$*"}
+expected-stdout:
+	<*c> <abcd> .
 ---
 name: IFS-arith-1
 description:

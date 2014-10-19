@@ -169,7 +169,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.700 2014/10/19 20:56:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.701 2014/10/19 21:53:08 tg Exp $");
 #endif
 #define MKSH_VERSION "R50 2014/10/19"
 
@@ -1396,7 +1396,7 @@ struct ioword {
 #define DOVACHECK BIT(9)	/* var assign check (for typeset, set, etc) */
 #define DOMARKDIRS BIT(10)	/* force markdirs behaviour */
 #define DOTCOMEXEC BIT(11)	/* not an eval flag, used by sh -c hack */
-#define DOASNFIELD BIT(12)	/* is assignment, change field handling */
+#define DOSCALAR BIT(12)	/* change field handling to non-list context */
 
 #define X_EXTRA	20	/* this many extra bytes in X string */
 
