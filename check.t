@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.666 2014/10/19 21:53:05 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.667 2014/10/19 22:26:13 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -22,6 +22,9 @@
 #-
 # You may also want to test IFS with the script at
 # http://www.research.att.com/~gsf/public/ifs.sh
+#
+# More testsuites at:
+# http://svnweb.freebsd.org/base/head/bin/test/tests/legacy_test.sh?view=co&content-type=text%2Fplain
 
 expected-stdout:
 	@(#)MIRBSD KSH R50 2014/10/19
