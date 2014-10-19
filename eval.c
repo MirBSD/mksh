@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.155 2014/10/19 20:59:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.156 2014/10/19 21:04:47 tg Exp $");
 
 /*
  * string expansion
@@ -704,7 +704,7 @@ expand(
 					x.str = trimsub(str_val(st->var),
 						dp, st->stype);
 					if (x.str[0] != '\0') {
-						word = IFS_WS;
+						word = IFS_IWS;
 						type = XSUB;
 					} else
 						type = quote ? XSUB : XNULLSUB;
@@ -743,7 +743,7 @@ expand(
 					if (f & DOBLANK)
 						doblank++;
 					st = st->prev;
-					word = quote || (!*x.str && (f & DOASNFIELD)) ? IFS_WORD : IFS_WS;
+					word = quote || (!*x.str && (f & DOASNFIELD)) ? IFS_WORD : IFS_IWS;
 					continue;
 				case '?': {
 					char *s = Xrestpos(ds, dp, st->base);
@@ -759,7 +759,7 @@ expand(
 				case 0x100 | 'Q':
 					dp = Xrestpos(ds, dp, st->base);
 					type = XSUB;
-					word = quote || (!*x.str && (f & DOASNFIELD)) ? IFS_WORD : IFS_WS;
+					word = quote || (!*x.str && (f & DOASNFIELD)) ? IFS_WORD : IFS_IWS;
 					if (f & DOBLANK)
 						doblank++;
 					st = st->prev;
@@ -800,7 +800,7 @@ expand(
 			if (f & DOBLANK) {
 				doblank--;
 				if (dp == Xstring(ds, dp))
-					word = IFS_WS;
+					word = IFS_IWS;
 			}
 			continue;
 
