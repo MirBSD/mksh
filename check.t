@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.664 2014/10/19 20:56:30 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.665 2014/10/19 21:39:35 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -3770,7 +3770,6 @@ expected-stdout:
 name: IFS-subst-3-ass
 description:
 	Check non-field semantics
-expected-fail: yes
 stdin:
 	showargs() { for i; do echo -n " <$i>"; done; echo; }
 	showargs 0 x=${-+}
