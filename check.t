@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.663 2014/10/12 19:54:58 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.664 2014/10/19 20:56:30 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -27,7 +27,7 @@
 # http://www.freebsd.org/cgi/cvsweb.cgi/src/tools/regression/bin/test/regress.sh?rev=HEAD
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2014/10/12
+	@(#)MIRBSD KSH R50 2014/10/19
 description:
 	Check version of shell.
 stdin:
@@ -36,7 +36,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2014/10/12
+	@(#)LEGACY KSH R50 2014/10/19
 description:
 	Check version of legacy shell.
 stdin:
@@ -3751,7 +3751,7 @@ stdin:
 expected-stdout:
 	 <1> <shift> <1> <2>
 ---
-name: IFS-subst-3
+name: IFS-subst-3-arr
 description:
 	Check leading IFS non-whitespace after trim does make a field
 	but leading IFS whitespace does not, nor empty replacements
@@ -3766,6 +3766,33 @@ expected-stdout:
 	 <0>
 	 <1> <> <foo> <bar>
 	 <2> <foo> <bar>
+---
+name: IFS-subst-3-ass
+description:
+	Check non-field semantics
+expected-fail: yes
+stdin:
+	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	showargs 0 x=${-+}
+	IFS=:
+	showargs 1 x=${-+:foo:bar}
+	IFS=' '
+	showargs 2 x=${-+ foo bar}
+expected-stdout:
+	 <0> <x=>
+	 <1> <x=> <foo> <bar>
+	 <2> <x=> <foo> <bar>
+---
+name: IFS-subst-3-lcl
+description:
+	Check non-field semantics, smaller corner case (LP#1381965)
+stdin:
+	set -x
+	local regex=${2:-}
+	exit 1
+expected-exit: e != 0
+expected-stderr-pattern:
+	/regex=/
 ---
 name: IFS-subst-4-1
 description:
