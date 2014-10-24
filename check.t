@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.667 2014/10/19 22:26:13 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.668 2014/10/24 12:13:52 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -8322,13 +8322,13 @@ expected-stdout:
 name: varexpand-null-3
 description:
 	Ensure concatenating behaviour matches other shells
-	although the line 2<> is probably wrong? XNULLSUB case.
 stdin:
-	x=; printf "1<%s>\n" "$x$@"
-	set A; printf "2<%s>\n" "${@:+}"
+	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	x=; showargs 1 "$x$@"
+	set A; showargs 2 "${@:+}"
 expected-stdout:
-	1<>
-	2<>
+	 <1>
+	 <2> <>
 ---
 name: print-funny-chars
 description:
