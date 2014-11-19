@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.158 2014/10/19 21:53:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.159 2014/11/19 21:49:12 tg Exp $");
 
 /*
  * string expansion
@@ -1681,7 +1681,7 @@ maybe_expand_tilde(const char *p, XString *dsp, char **dpp, int isassign)
 	}
 	*tp = '\0';
 	r = (p[0] == EOS || p[0] == CHAR || p[0] == CSUBST) ?
-	    tilde(Xstring(ts, tp)) : NULL;
+	    do_tilde(Xstring(ts, tp)) : NULL;
 	Xfree(ts, tp);
 	if (r) {
 		while (*r) {
@@ -1703,7 +1703,7 @@ maybe_expand_tilde(const char *p, XString *dsp, char **dpp, int isassign)
  */
 
 char *
-tilde(char *cp)
+do_tilde(char *cp)
 {
 	char *dp = null;
 

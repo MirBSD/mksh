@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.277 2014/11/14 20:00:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.278 2014/11/19 21:49:10 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -327,7 +327,7 @@ x_glob_hlp_tilde_and_rem_qchar(char *s, bool magic_flag)
 		/* ok, so split into "~foo"/"bar" or "~"/"baz" */
 		*cp++ = 0;
 		/* try to expand the tilde */
-		if (!(dp = tilde(s + 1))) {
+		if (!(dp = do_tilde(s + 1))) {
 			/* nope, revert damage */
 			*--cp = '/';
 		} else {
