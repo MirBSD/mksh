@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.670 2014/11/25 20:00:36 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.671 2014/11/25 21:13:18 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014
@@ -1784,7 +1784,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.670 2014/11/25 20:00:36 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.671 2014/11/25 21:13:18 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (isatty(0)); }
 EOF
 	case $cm in
@@ -2263,6 +2263,11 @@ mksh_cfg= NSIG
 ;' >conftest.c
 	# GNU sed 2.03 segfaults when optimising this to sed -n
 	NSIG=`vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
+	    grep -v '^#' | \
+	    sed '/mksh_cfg.*= *$/{
+		N
+		s/\n/ /
+		}' | \
 	    grep '^ *mksh_cfg *=' | \
 	    sed 's/^ *mksh_cfg *=[	 ]*\([()0-9x+-][()0-9x+	 -]*\).*$/\1/'`
 	case $NSIG in
@@ -2294,6 +2299,11 @@ mksh_cfg= NSIG
 		echo ';' >>conftest.c
 		# GNU sed 2.03 croaks on optimising this, too
 		vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
+		    grep -v '^#' | \
+		    sed '/mksh_cfg.*= *$/{
+			N
+			s/\n/ /
+			}' | \
 		    grep '^ *mksh_cfg *=' | \
 		    sed 's/^ *mksh_cfg *=[	 ]*\([0-9][0-9x]*\).*$/:\1 '$name/
 	done | sed -n '/^:[^ ]/s/^://p' | while read nr name; do
@@ -2315,7 +2325,7 @@ addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && add_cppflags -DMKSH_PRINTF_BUILTIN
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
-add_cppflags -DMKSH_BUILD_R=504
+add_cppflags -DMKSH_BUILD_R=509
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 

@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.260 2014/11/25 20:00:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.261 2014/11/25 21:13:25 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2797,8 +2797,6 @@ c_test(const char **wp)
 
 	for (argc = 0; wp[argc]; argc++)
 		;
-	mkssert(argc > 0);
-	mkssert(wp[0] != NULL);
 
 	if (strcmp(wp[0], "[") == 0) {
 		if (strcmp(wp[--argc], "]") != 0) {

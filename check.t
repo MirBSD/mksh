@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.670 2014/11/19 18:44:09 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.671 2014/11/25 21:13:19 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -27,7 +27,7 @@
 # http://svnweb.freebsd.org/base/head/bin/test/tests/legacy_test.sh?view=co&content-type=text%2Fplain
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2014/11/19
+	@(#)MIRBSD KSH R50 2014/11/25
 description:
 	Check version of shell.
 stdin:
@@ -36,7 +36,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2014/11/19
+	@(#)LEGACY KSH R50 2014/11/25
 description:
 	Check version of legacy shell.
 stdin:
@@ -7141,6 +7141,7 @@ description:
 	XXX if the OS can already execute them, we lose
 	note: cygwin execve(2) doesn't return to us with ENOEXEC, we lose
 	note: Ultrix perl5 t4 returns 65280 (exit-code 255) and no text
+	XXX fails when LD_PRELOAD is set with -e and Perl chokes it (ASan)
 need-pass: no
 category: !os:cygwin,!os:msys,!os:ultrix,!os:uwin-nt,!smksh
 env-setup: !FOO=BAR!
@@ -11060,6 +11061,7 @@ stdin:
 	(mypid=$$; try mypid)
 	echo =15
 	) 2>&1 | sed -e 's/^[^]]*]//' -e 's/^[^:]*: *//'
+	exit ${PIPESTATUS[0]}
 expected-stdout:
 	y
 	=1

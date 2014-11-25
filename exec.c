@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.137 2014/10/19 21:53:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.138 2014/11/25 21:13:24 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -924,11 +924,12 @@ scriptexec(struct op *tp, const char **ap)
 				*tp->args-- = (char *)cp;
 		}
  noshebang:
-		if (buf[0] == 0x7F && buf[1] == 'E' && buf[2] == 'L' &&
-		    buf[3] == 'F')
+		cp = (unsigned char *)buf;
+		if (cp[0] == 0x7F && cp[1] == 'E' && cp[2] == 'L' &&
+		    cp[3] == 'F')
 			errorf("%s: not executable: %d-bit ELF file", tp->str,
-			    32 * ((uint8_t)buf[4]));
-		fd = buf[0] << 8 | buf[1];
+			    32 * cp[4]);
+		fd = cp[0] << 8 | cp[1];
 		if ((fd == /* OMAGIC */ 0407) ||
 		    (fd == /* NMAGIC */ 0410) ||
 		    (fd == /* ZMAGIC */ 0413) ||
@@ -1006,8 +1007,6 @@ define(const char *name, struct op *t)
 
 	while (/* CONSTCOND */ 1) {
 		tp = findfunc(name, nhash, true);
-		/* because findfunc:create=true */
-		mkssert(tp != NULL);
 
 		if (tp->flag & ISSET)
 			was_set = true;

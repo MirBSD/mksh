@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.159 2014/11/19 21:49:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.160 2014/11/25 21:13:23 tg Exp $");
 
 /*
  * string expansion
@@ -237,7 +237,7 @@ expand(
 	/* record number of trailing newlines in COMSUB */
 	int newlines = 0;
 	bool saw_eq, make_magic;
-	int tilde_ok;
+	unsigned int tilde_ok;
 	size_t len;
 	char *cp;
 
@@ -516,7 +516,6 @@ expand(
 
 						/* check for special cases */
 						d = str_val(st->var);
-						mkssert(d != NULL);
 						switch (*pat) {
 						case '#':
 							/* anchor at begin */
