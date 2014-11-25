@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.259 2014/10/12 21:58:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.260 2014/11/25 20:00:37 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1817,7 +1817,7 @@ c_read(const char **wp)
 	char *cp, *allocd = NULL, *xp;
 	const char *ccp;
 	XString xs;
-	ptrdiff_t xsave = 0;
+	size_t xsave = 0;
 	mksh_ttyst tios;
 	bool restore_tios = false;
 #if HAVE_SELECT

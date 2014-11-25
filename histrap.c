@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.134 2014/06/09 13:25:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.135 2014/11/25 20:00:38 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -423,14 +423,14 @@ hist_get(const char *str, bool approx, bool allow_cur)
 
 	if (getn(str, &n)) {
 		hp = histptr + (n < 0 ? n : (n - hist_source->line));
-		if ((ptrdiff_t)hp < (ptrdiff_t)history) {
+		if ((size_t)hp < (size_t)history) {
 			if (approx)
 				hp = hist_get_oldest();
 			else {
 				bi_errorf("%s: %s", str, Tnot_in_history);
 				hp = NULL;
 			}
-		} else if ((ptrdiff_t)hp > (ptrdiff_t)histptr) {
+		} else if ((size_t)hp > (size_t)histptr) {
 			if (approx)
 				hp = hist_get_newest(allow_cur);
 			else {

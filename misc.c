@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.219 2014/01/05 21:57:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.220 2014/11/25 20:00:39 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1384,8 +1384,7 @@ do_realpath(const char *upath)
 {
 	char *xp, *ip, *tp, *ipath, *ldest = NULL;
 	XString xs;
-	ptrdiff_t pos;
-	size_t len;
+	size_t pos, len;
 	int llen;
 	struct stat sb;
 #ifdef MKSH__NO_PATH_MAX
