@@ -1,5 +1,5 @@
 /*	$OpenBSD: history.c,v 1.39 2010/05/19 17:36:08 jasper Exp $	*/
-/*	$OpenBSD: trap.c,v 1.23 2010/05/19 17:36:08 jasper Exp $	*/
+/*	$OpenBSD: history.c,v 1.40 2014/11/20 15:22:39 tedu Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.136 2014/11/25 21:13:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.137 2014/11/26 19:32:12 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
