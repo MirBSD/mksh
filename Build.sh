@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.671 2014/11/25 21:13:18 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.672 2014/12/08 12:20:40 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014
@@ -1784,7 +1784,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.671 2014/11/25 21:13:18 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.672 2014/12/08 12:20:40 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (isatty(0)); }
 EOF
 	case $cm in
@@ -2440,9 +2440,12 @@ llvm)
 	;;
 esac
 echo ": # work around NeXTstep bug" >Rebuild.sh
-for file in "$srcdir"/*.opt; do
+cd "$srcdir"
+optfiles=`echo *.opt`
+cd "$curdir"
+for file in $optfiles; do
 	echo "echo + Running genopt on '$file'..."
-	echo "(srcfile='$file'; BUILDSH_RUN_GENOPT=1; . '$srcdir/Build.sh')"
+	echo "(srcfile='$srcdir/$file'; BUILDSH_RUN_GENOPT=1; . '$srcdir/Build.sh')"
 done >>Rebuild.sh
 echo set -x >>Rebuild.sh
 for file in $SRCS; do
@@ -2476,11 +2479,11 @@ if test $cm = makefile; then
 	extras='emacsfn.h rlimits.opt sh.h sh_flags.opt var_spec.h'
 	test 0 = $HAVE_SYS_SIGNAME && extras="$extras signames.inc"
 	gens= genq=
-	for file in "$srcdir"/*.opt; do
+	for file in $optfiles; do
 		genf=`basename "$file" | sed 's/.opt$/.gen/'`
 		gens="$gens $genf"
-		genq="$genq$nl$genf: $srcdir/Build.sh $file
-			srcfile=$file; BUILDSH_RUN_GENOPT=1; . $srcdir/Build.sh"
+		genq="$genq$nl$genf: $srcdir/Build.sh $srcdir/$file
+			srcfile=$srcdir/$file; BUILDSH_RUN_GENOPT=1; . $srcdir/Build.sh"
 	done
 	cat >Makefrag.inc <<EOF
 # Makefile fragment for building mksh $dstversion
@@ -2524,9 +2527,9 @@ EOF
 	$e Generated Makefrag.inc successfully.
 	exit 0
 fi
-for file in "$srcdir"/*.opt; do
+for file in $optfiles; do
 	$e "+ Running genopt on '$file'..."
-	do_genopt "$file" || exit 1
+	do_genopt "$srcdir/$file" || exit 1
 done
 if test $cm = combine; then
 	objs="-o $mkshexe"
