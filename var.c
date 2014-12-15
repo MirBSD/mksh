@@ -1,4 +1,4 @@
-/*	$OpenBSD: var.c,v 1.38 2013/12/20 17:53:09 zhuk Exp $	*/
+/*	$OpenBSD: var.c,v 1.40 2014/12/12 05:00:55 jsg Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.184 2014/11/25 21:13:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.185 2014/12/15 23:18:47 tg Exp $");
 
 /*-
  * Variables
@@ -513,7 +513,7 @@ getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 			neg = true;
 			continue;
 		} else if (c == '#') {
-			if (have_base || num < 1 || num > 36)
+			if (have_base || num < 1)
 				return (-1);
 			if ((base = num) == 1) {
 				unsigned int wc;
@@ -530,7 +530,8 @@ getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 					wc = 0xEF00 + *(const unsigned char *)s;
 				nump->u = (mksh_uari_t)wc;
 				return (1);
-			}
+			} else if (base > 36)
+				base = 10;
 			num = 0;
 			have_base = true;
 			continue;

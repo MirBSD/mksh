@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.261 2014/11/25 21:13:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.262 2014/12/15 23:18:47 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -768,9 +768,13 @@ c_typeset(const char **wp)
 
 	if (fieldstr && !bi_getn(fieldstr, &field))
 		return (1);
-	if (basestr && (!bi_getn(basestr, &base) || base < 1 || base > 36)) {
-		bi_errorf("%s: %s", "bad integer base", basestr);
-		return (1);
+	if (basestr) {
+		if (!bi_getn(basestr, &base)) {
+			bi_errorf("%s: %s", "bad integer base", basestr);
+			return (1);
+		}
+		if (base < 1 || base > 36)
+			base = 10;
 	}
 
 	if (!(builtin_opt.info & GI_MINUSMINUS) && wp[builtin_opt.optind] &&

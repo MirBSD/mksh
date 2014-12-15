@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.672 2014/12/15 22:50:08 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.673 2014/12/15 23:18:44 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -4454,11 +4454,11 @@ expected-stdout:
 ---
 name: integer-base-check-numeric-from
 description:
-	Check behaviour for base one to 36, and that 37 errors out
+	Check behaviour for base one to 36, and that 37 degrades to 10
 stdin:
 	echo 1:$((1#1))0.
 	i=1
-	while (( ++i <= 36 )); do
+	while (( ++i <= 37 )); do
 		eval 'echo '$i':$(('$i'#10)).'
 	done
 	echo 37:$($__progname -c 'echo $((37#10))').$?:
@@ -4499,13 +4499,12 @@ expected-stdout:
 	34:34.
 	35:35.
 	36:36.
-	37:.0:
-expected-stderr-pattern:
-	/.*bad number '37#10'/
+	37:10.
+	37:10.0:
 ---
 name: integer-base-check-numeric-to
 description:
-	Check behaviour for base one to 36, and that 37 errors out
+	Check behaviour for base one to 36, and that 37 degrades to 10
 stdin:
 	i=0
 	while (( ++i <= 37 )); do
@@ -4550,9 +4549,7 @@ expected-stdout:
 	34:34#1U.64.
 	35:35#1T.64.
 	36:36#1S.64.
-	37:36#1S.64.
-expected-stderr-pattern:
-	/.*bad integer base: 37/
+	37:64.64.
 ---
 name: integer-arithmetic-span
 description:
