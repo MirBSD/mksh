@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.671 2014/11/25 21:13:19 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.672 2014/12/15 22:50:08 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -27,7 +27,7 @@
 # http://svnweb.freebsd.org/base/head/bin/test/tests/legacy_test.sh?view=co&content-type=text%2Fplain
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2014/11/25
+	@(#)MIRBSD KSH R50 2014/12/15
 description:
 	Check version of shell.
 stdin:
@@ -36,7 +36,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2014/11/25
+	@(#)LEGACY KSH R50 2014/12/15
 description:
 	Check version of legacy shell.
 stdin:
@@ -2358,6 +2358,14 @@ stdin:
 	echo $(tr r z <<<'bar' 2>/dev/null)
 expected-stdout:
 	baz
+---
+name: heredoc-9f
+description:
+	Check long here strings
+stdin:
+	cat <<< "$(  :                                                             )aa"
+expected-stdout:
+	aa
 ---
 name: heredoc-10
 description:
