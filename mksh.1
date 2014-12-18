@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.346 2014/12/15 23:26:36 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.347 2014/12/18 20:51:12 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.155 2014/12/09 15:37:13 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: December 15 2014 $
+.Dd $Mdocdate: December 18 2014 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2923,6 +2923,10 @@ trapped) will have their default effect in a function.
 .It
 The EXIT trap, if set in a function, will be executed after the function
 returns.
+.It
+Shell options
+.Pq Ic set Fl o
+have local scope, i.e. changes inside a function are reset upon its exit.
 .El
 .Ss Command execution
 After evaluation of command-line arguments, redirections, and parameter
