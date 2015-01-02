@@ -3,7 +3,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014
+ *		 2011, 2012, 2013, 2014, 2015
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.222 2015/01/02 08:18:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.223 2015/01/02 13:21:28 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
