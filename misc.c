@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.221 2014/11/25 21:13:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.222 2015/01/02 08:18:44 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -281,15 +281,15 @@ change_flag(enum sh_flag f, int what, bool newset)
 #endif
 		DO_SETUID(setresuid, (ksheuid, ksheuid, ksheuid));
 #else /* !HAVE_SETRESUGID */
-		/* seteuid, setegid, setgid don't EAGAIN on Linux */
-#ifndef MKSH__NO_SETEUGID
-		seteuid(ksheuid);
-#endif
-		DO_SETUID(setuid, (ksheuid));
+		/* setgid, setegid, seteuid don't EAGAIN on Linux */
+		setgid(kshegid);
 #ifndef MKSH__NO_SETEUGID
 		setegid(kshegid);
 #endif
-		setgid(kshegid);
+		DO_SETUID(setuid, (ksheuid));
+#ifndef MKSH__NO_SETEUGID
+		seteuid(ksheuid);
+#endif
 #endif /* !HAVE_SETRESUGID */
 	} else if ((f == FPOSIX || f == FSH) && newval) {
 		/* Turning on -o posix or -o sh? */
