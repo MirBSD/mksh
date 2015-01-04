@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.675 2015/01/04 20:23:51 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.676 2015/01/04 21:08:08 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2015/01/02
+	@(#)MIRBSD KSH R50 2015/01/04
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2015/01/02
+	@(#)LEGACY KSH R50 2015/01/04
 description:
 	Check version of legacy shell.
 stdin:
