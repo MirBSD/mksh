@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.262 2014/12/15 23:18:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.263 2015/01/04 20:37:59 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -597,9 +597,11 @@ c_whence(const char **wp)
 			break;
 		case CTALIAS:
 		case CEXEC:
+			if (vflag)
+				shf_putc(' ', shl_stdout);
 			if (tp->flag & ISSET) {
 				if (vflag) {
-					shf_puts(" is ", shl_stdout);
+					shf_puts("is ", shl_stdout);
 					if (tp->type == CTALIAS)
 						shprintf("a tracked %s%s for ",
 						    (tp->flag & EXPORT) ?
@@ -609,7 +611,7 @@ c_whence(const char **wp)
 				shf_puts(tp->val.s, shl_stdout);
 			} else {
 				if (vflag)
-					shprintf(" %s\n", "not found");
+					shf_puts("not found", shl_stdout);
 				rv = 1;
 			}
 			break;
