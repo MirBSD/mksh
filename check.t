@@ -1,5 +1,5 @@
-# $MirOS: src/bin/mksh/check.t,v 1.674 2015/01/02 13:21:26 tg Exp $
-# OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
+# $MirOS: src/bin/mksh/check.t,v 1.675 2015/01/04 20:23:51 tg Exp $
+# -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #	      2011, 2012, 2013, 2014
@@ -25,6 +25,9 @@
 #
 # More testsuites at:
 # http://svnweb.freebsd.org/base/head/bin/test/tests/legacy_test.sh?view=co&content-type=text%2Fplain
+#
+# Integrated testsuites from:
+# (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
 	@(#)MIRBSD KSH R50 2015/01/02
