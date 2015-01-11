@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.158 2014/10/19 21:53:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.158.2.1 2015/01/11 22:39:47 tg Exp $");
 
 /*
  * string expansion
@@ -237,7 +237,7 @@ expand(
 	/* record number of trailing newlines in COMSUB */
 	int newlines = 0;
 	bool saw_eq, make_magic;
-	int tilde_ok;
+	unsigned int tilde_ok;
 	size_t len;
 	char *cp;
 

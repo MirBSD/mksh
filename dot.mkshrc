@@ -1,8 +1,8 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.89 2014/07/28 21:45:44 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.89.2.1 2015/01/11 22:39:44 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
-#		2011, 2012, 2013, 2014
+#		2011, 2012, 2013, 2014, 2015
 #	Thorsten Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -67,7 +67,7 @@ else
 		local dasc line i
 
 		cat "$@" | { set +U; if read -arN -1 line; then
-			typeset -i1 line
+			typeset -i1 'line[*]'
 			i=0
 			while (( i < ${#line[*]} )); do
 				hv=${line[i++]}
@@ -263,9 +263,8 @@ function smores {
 
 # base64 encoder and decoder, RFC compliant, NUL safe
 function Lb64decode {
-	[[ -o utf8-mode ]]; local u=$?
+	[[ -o utf8-mode ]]; local u=$? c s="$*" t
 	set +U
-	local c s="$*" t=
 	[[ -n $s ]] || { s=$(cat; print x); s=${s%x}; }
 	local -i i=0 j=0 n=${#s} p=0 v x
 	local -i16 o
@@ -302,9 +301,8 @@ function Lb64decode {
 set -A Lb64encode_code -- A B C D E F G H I J K L M N O P Q R S T U V W X Y Z \
     a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9 + /
 function Lb64encode {
-	[[ -o utf8-mode ]]; local u=$?
+	[[ -o utf8-mode ]]; local u=$? c s t
 	set +U
-	local c s t
 	if (( $# )); then
 		read -raN-1 s <<<"$*"
 		unset s[${#s[*]}-1]
@@ -342,9 +340,8 @@ function Lbafh_init {
 	Lbafh_v=0
 }
 function Lbafh_add {
-	[[ -o utf8-mode ]]; local u=$?
+	[[ -o utf8-mode ]]; local u=$? s
 	set +U
-	local s
 	if (( $# )); then
 		read -raN-1 s <<<"$*"
 		unset s[${#s[*]}-1]

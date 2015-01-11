@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.137 2014/10/19 21:53:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.137.2.1 2015/01/11 22:39:48 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -854,10 +854,8 @@ scriptexec(struct op *tp, const char **ap)
 {
 	const char *sh;
 #ifndef MKSH_SMALL
-	unsigned char *cp;
-	/* 64 == MAXINTERP in MirBSD <sys/param.h> */
-	char buf[64];
 	int fd;
+	unsigned char buf[68];
 #endif
 	union mksh_ccphack args, cap;
 
@@ -871,33 +869,35 @@ scriptexec(struct op *tp, const char **ap)
 
 #ifndef MKSH_SMALL
 	if ((fd = open(tp->str, O_RDONLY | O_BINARY)) >= 0) {
-		/* read first MAXINTERP octets from file */
-		if (read(fd, buf, sizeof(buf)) <= 0)
-			/* read error -> no good */
-			buf[0] = '\0';
+		unsigned char *cp;
+		unsigned short m;
+		ssize_t n;
+
+		/* read first couple of octets from file */
+		n = read(fd, buf, sizeof(buf) - 1);
 		close(fd);
+		/* read error or short read? */
+		if (n < 5)
+			goto nomagic;
+		/* terminate buffer */
+		buf[n] = '\0';
 
 		/* skip UTF-8 Byte Order Mark, if present */
-		cp = (unsigned char *)buf;
-		if ((cp[0] == 0xEF) && (cp[1] == 0xBB) && (cp[2] == 0xBF))
-			cp += 3;
-		/* save begin of shebang for later */
-		fd = (char *)cp - buf;		/* either 0 or (if BOM) 3 */
+		cp = buf + (n = ((buf[0] == 0xEF) && (buf[1] == 0xBB) &&
+		    (buf[2] == 0xBF)) ? 3 : 0);
 
-		/* scan for newline (or CR) or NUL _before_ end of buffer */
-		while ((size_t)((char *)cp - buf) < sizeof(buf))
-			if (*cp == '\0' || *cp == '\n' || *cp == '\r') {
-				*cp = '\0';
-				break;
-			} else
-				++cp;
+		/* scan for newline or NUL (end of buffer) */
+		while (*cp && *cp != '\n')
+			++cp;
 		/* if the shebang line is longer than MAXINTERP, bail out */
-		if ((size_t)((char *)cp - buf) >= sizeof(buf))
+		if (!*cp)
 			goto noshebang;
+		/* replace newline by NUL */
+		*cp = '\0';
 
 		/* restore begin of shebang position (buf+0 or buf+3) */
-		cp = (unsigned char *)(buf + fd);
-		/* bail out if read error (above) or no shebang */
+		cp = buf + n;
+		/* bail out if no shebang magic found */
 		if ((cp[0] != '#') || (cp[1] != '!'))
 			goto noshebang;
 
@@ -923,22 +923,24 @@ scriptexec(struct op *tp, const char **ap)
 			if (*cp)
 				*tp->args-- = (char *)cp;
 		}
+		goto nomagic;
  noshebang:
-		if (buf[0] == 0x7F && buf[1] == 'E' && buf[2] == 'L' &&
-		    buf[3] == 'F')
+		m = buf[0] << 8 | buf[1];
+		if (m == 0x7F45 && buf[2] == 'L' && buf[3] == 'F')
 			errorf("%s: not executable: %d-bit ELF file", tp->str,
-			    32 * ((uint8_t)buf[4]));
-		fd = buf[0] << 8 | buf[1];
-		if ((fd == /* OMAGIC */ 0407) ||
-		    (fd == /* NMAGIC */ 0410) ||
-		    (fd == /* ZMAGIC */ 0413) ||
-		    (fd == /* QMAGIC */ 0314) ||
-		    (fd == /* ECOFF_I386 */ 0x4C01) ||
-		    (fd == /* ECOFF_M68K */ 0x0150 || fd == 0x5001) ||
-		    (fd == /* ECOFF_SH */   0x0500 || fd == 0x0005) ||
-		    (fd == /* "MZ" */ 0x4D5A) ||
-		    (fd == /* gzip */ 0x1F8B))
-			errorf("%s: not executable: magic %04X", tp->str, fd);
+			    32 * buf[4]);
+		if ((m == /* OMAGIC */ 0407) ||
+		    (m == /* NMAGIC */ 0410) ||
+		    (m == /* ZMAGIC */ 0413) ||
+		    (m == /* QMAGIC */ 0314) ||
+		    (m == /* ECOFF_I386 */ 0x4C01) ||
+		    (m == /* ECOFF_M68K */ 0x0150 || m == 0x5001) ||
+		    (m == /* ECOFF_SH */   0x0500 || m == 0x0005) ||
+		    (m == /* "MZ" */ 0x4D5A) ||
+		    (m == /* gzip */ 0x1F8B) || (m == /* .Z */ 0x1F9D))
+			errorf("%s: not executable: magic %04X", tp->str, m);
+ nomagic:
+		;
 	}
 #endif
 	args.ro = tp->args;
@@ -1006,8 +1008,6 @@ define(const char *name, struct op *t)
 
 	while (/* CONSTCOND */ 1) {
 		tp = findfunc(name, nhash, true);
-		/* because findfunc:create=true */
-		mkssert(tp != NULL);
 
 		if (tp->flag & ISSET)
 			was_set = true;

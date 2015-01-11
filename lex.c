@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.193 2014/06/29 11:28:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.193.2.1 2015/01/11 22:39:50 tg Exp $");
 
 /*
  * states while lexing word
@@ -854,7 +854,7 @@ yylex(int cf)
 			*dp = '\0';
 			/* store the quoted string */
 			*wp++ = OQUOTE;
-			XcheckN(ws, wp, (dp - sp));
+			XcheckN(ws, wp, (dp - sp) * 2);
 			dp = sp;
 			while ((c = *dp++)) {
 				if (c == '\\') {
@@ -1027,17 +1027,24 @@ yylex(int cf)
 	/* copy word to unprefixed string ident */
 	sp = yylval.cp;
 	dp = ident;
-	if ((cf & HEREDELIM) && (sp[1] == '<'))
-		while ((dp - ident) < IDENT) {
-			if ((c = *sp++) == CHAR)
-				*dp++ = *sp++;
-			else if ((c != OQUOTE) && (c != CQUOTE))
-				break;
+	if ((cf & HEREDELIM) && (sp[1] == '<')) {
+ herestringloop:
+		switch ((c = *sp++)) {
+		case CHAR:
+			++sp;
+			/* FALLTHROUGH */
+		case OQUOTE:
+		case CQUOTE:
+			goto herestringloop;
+		default:
+			break;
 		}
-	else
+		/* dummy value */
+		*dp++ = 'x';
+	} else
 		while ((dp - ident) < IDENT && (c = *sp++) == CHAR)
 			*dp++ = *sp++;
-	/* Make sure the ident array stays '\0' padded */
+	/* make sure the ident array stays NUL padded */
 	memset(dp, 0, (ident + IDENT) - dp + 1);
 	if (c != EOS)
 		/* word is not unquoted */

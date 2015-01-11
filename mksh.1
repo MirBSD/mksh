@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.344 2014/10/07 15:30:12 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.153 2014/08/17 07:15:41 jmc Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.344.2.1 2015/01/11 22:39:51 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.155 2014/12/09 15:37:13 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
 .\"		2010, 2011, 2012, 2013, 2014
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: October 7 2014 $
+.Dd $Mdocdate: January 11 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2923,6 +2923,10 @@ trapped) will have their default effect in a function.
 .It
 The EXIT trap, if set in a function, will be executed after the function
 returns.
+.It
+Shell options
+.Pq Ic set Fl o
+have local scope, i.e. changes inside a function are reset upon its exit.
 .El
 .Ss Command execution
 After evaluation of command-line arguments, redirections, and parameter
@@ -6457,6 +6461,17 @@ If you require 64-bit integer arithmetics, use
 instead, but be aware that, in POSIX, it's legal for the OS to make
 .Li print $((2147483647 + 1))
 delete all files on your system, as it's Undefined Behaviour.
+.Pp
+.Nm mksh
+provides a consistent, clear interface normally.
+This may deviate from POSIX in optional or opinionated places, such
+as whether leading-digit-zero numbers should be interpreted as octal.
+.Ic set \-o posix
+will cause the shell (either
+.Nm mksh
+or
+.Nm lksh )
+to behave more like the standard expects.
 .Sh BUGS
 Suspending (using \*(haZ) pipelines like the one below will only suspend
 the currently running part of the pipeline; in this example,
@@ -6475,9 +6490,12 @@ compiled without any options impacting functionality, such as
 when not called as
 .Pa /bin/sh
 which, on some systems only, enables
+.Ic set \-o posix
+or
 .Ic set \-o sh
 automatically (whose behaviour differs across targets),
 for an operating environment supporting all of its advanced needs.
+.Pp
 Please report bugs in
 .Nm
 to the

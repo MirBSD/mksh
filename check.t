@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.667 2014/10/19 22:26:13 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.667.2.1 2015/01/11 22:39:40 tg Exp $
 # OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -27,7 +27,7 @@
 # http://svnweb.freebsd.org/base/head/bin/test/tests/legacy_test.sh?view=co&content-type=text%2Fplain
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2014/10/19
+	@(#)MIRBSD KSH R50 2015/01/11
 description:
 	Check version of shell.
 stdin:
@@ -36,7 +36,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2014/10/19
+	@(#)LEGACY KSH R50 2015/01/11
 description:
 	Check version of legacy shell.
 stdin:
@@ -2359,6 +2359,14 @@ stdin:
 expected-stdout:
 	baz
 ---
+name: heredoc-9f
+description:
+	Check long here strings
+stdin:
+	cat <<< "$(  :                                                             )aa"
+expected-stdout:
+	aa
+---
 name: heredoc-10
 description:
 	Check direct here document assignment
@@ -4070,6 +4078,7 @@ description:
 	'emulate sh' zsh has extra fields in
 	- a5ins (IFS_NWS unquoted $*)
 	- b5ins, matching mksh’s
+	!!WARNING!! more to come: http://austingroupbugs.net/view.php?id=888
 stdin:
 	"$__progname" -c 'IFS=; set -- "" 2 ""; printf "[%s]\n" $*; x=$*; printf "<%s>\n" "$x"'
 	echo '=a1zns'
@@ -4200,6 +4209,15 @@ stdin:
 	showargs "$*" ${a##"$*"}
 expected-stdout:
 	<*c> <abcd> .
+---
+name: IFS-subst-8
+description:
+	http://austingroupbugs.net/view.php?id=221
+stdin:
+	n() { echo "$#"; }; n "${foo-$@}"
+expected-fail: yes
+expected-stdout:
+	1
 ---
 name: IFS-arith-1
 description:
@@ -7131,6 +7149,7 @@ description:
 	XXX if the OS can already execute them, we lose
 	note: cygwin execve(2) doesn't return to us with ENOEXEC, we lose
 	note: Ultrix perl5 t4 returns 65280 (exit-code 255) and no text
+	XXX fails when LD_PRELOAD is set with -e and Perl chokes it (ASan)
 need-pass: no
 category: !os:cygwin,!os:msys,!os:ultrix,!os:uwin-nt,!smksh
 env-setup: !FOO=BAR!
@@ -8322,13 +8341,14 @@ expected-stdout:
 name: varexpand-null-3
 description:
 	Ensure concatenating behaviour matches other shells
-	although the line 2<> is probably wrong? XNULLSUB case.
 stdin:
-	x=; printf "1<%s>\n" "$x$@"
-	set A; printf "2<%s>\n" "${@:+}"
+	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	x=; showargs 1 "$x"$@
+	set A; showargs 2 "${@:+}"
+expected-fail: yes
 expected-stdout:
-	1<>
-	2<>
+	 <1> <>
+	 <2> <>
 ---
 name: print-funny-chars
 description:
@@ -11049,6 +11069,7 @@ stdin:
 	(mypid=$$; try mypid)
 	echo =15
 	) 2>&1 | sed -e 's/^[^]]*]//' -e 's/^[^:]*: *//'
+	exit ${PIPESTATUS[0]}
 expected-stdout:
 	y
 	=1

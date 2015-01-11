@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *		 2010, 2011, 2012, 2013, 2014
+ *		 2010, 2011, 2012, 2013, 2014, 2015
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.259 2014/10/12 21:58:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.259.2.1 2015/01/11 22:39:49 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -550,7 +550,7 @@ c_whence(const char **wp)
 		if (vflag || (tp->type != CALIAS && tp->type != CEXEC &&
 		    tp->type != CTALIAS))
 			shf_puts(id, shl_stdout);
-		if (vflag)
+		if (vflag) {
 			switch (tp->type) {
 			case CKEYWD:
 			case CALIAS:
@@ -559,11 +559,20 @@ c_whence(const char **wp)
 				shf_puts(" is a", shl_stdout);
 				break;
 			}
+			switch (tp->type) {
+			case CKEYWD:
+			case CSHELL:
+			case CTALIAS:
+			case CEXEC:
+				shf_putc(' ', shl_stdout);
+				break;
+			}
+		}
 
 		switch (tp->type) {
 		case CKEYWD:
 			if (vflag)
-				shf_puts(" reserved word", shl_stdout);
+				shf_puts("reserved word", shl_stdout);
 			break;
 		case CALIAS:
 			if (vflag)
@@ -590,16 +599,17 @@ c_whence(const char **wp)
 			}
 			break;
 		case CSHELL:
-			if (vflag)
-				shprintf("%s %s %s",
-				    (tp->flag & SPEC_BI) ? " special" : null,
-				    "shell", Tbuiltin);
+			if (vflag) {
+				if (tp->flag & SPEC_BI)
+					shf_puts("special ", shl_stdout);
+				shprintf("%s %s", "shell", Tbuiltin);
+			}
 			break;
 		case CTALIAS:
 		case CEXEC:
 			if (tp->flag & ISSET) {
 				if (vflag) {
-					shf_puts(" is ", shl_stdout);
+					shf_puts("is ", shl_stdout);
 					if (tp->type == CTALIAS)
 						shprintf("a tracked %s%s for ",
 						    (tp->flag & EXPORT) ?
@@ -609,12 +619,12 @@ c_whence(const char **wp)
 				shf_puts(tp->val.s, shl_stdout);
 			} else {
 				if (vflag)
-					shprintf(" %s\n", "not found");
+					shf_puts("not found", shl_stdout);
 				rv = 1;
 			}
 			break;
 		default:
-			shprintf("%s is *GOK*", id);
+			shf_puts(" is *GOK*", shl_stdout);
 			break;
 		}
 		if (vflag || !rv)

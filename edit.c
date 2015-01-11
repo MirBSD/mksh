@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.276 2014/07/13 11:34:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.276.2.1 2015/01/11 22:39:45 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1009,7 +1009,6 @@ enum emacs_funcs {
 static const struct x_ftab x_ftab[] = {
 #define EMACSFN_ITEMS
 #include "emacsfn.h"
-	{ 0, NULL, 0 }
 };
 
 static struct x_defbindings const x_defbindings[] = {
@@ -2455,8 +2454,7 @@ x_bind(const char *a1, const char *a2,
 	/* List function names */
 	if (list) {
 		for (f = 0; f < NELEM(x_ftab); f++)
-			if (x_ftab[f].xf_name &&
-			    !(x_ftab[f].xf_flags & XF_NOBIND))
+			if (!(x_ftab[f].xf_flags & XF_NOBIND))
 				shprintf("%s\n", x_ftab[f].xf_name);
 		return (0);
 	}
@@ -2517,8 +2515,7 @@ x_bind(const char *a1, const char *a2,
 #endif
 	} else {
 		for (f = 0; f < NELEM(x_ftab); f++)
-			if (x_ftab[f].xf_name &&
-			    strcmp(x_ftab[f].xf_name, a2) == 0)
+			if (!strcmp(x_ftab[f].xf_name, a2))
 				break;
 		if (f == NELEM(x_ftab) || x_ftab[f].xf_flags & XF_NOBIND) {
 			bi_errorf("%s: %s %s", a2, "no such", Tfunction);
