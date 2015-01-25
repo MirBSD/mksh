@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.669 2014/10/07 15:22:12 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.669.2.1 2015/01/25 15:35:34 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014
@@ -1700,22 +1700,22 @@ rmf lft*	# end of large file support test
 ac_test can_inttypes '!' stdint_h 1 "for standard 32-bit integer types" <<-'EOF'
 	#include <sys/types.h>
 	#include <stddef.h>
-	int main(int ac, char **av) { return ((uint32_t)(ptrdiff_t)*av + (int32_t)ac); }
+	int main(int ac, char **av) { return ((uint32_t)(size_t)*av + (int32_t)ac); }
 EOF
 ac_test can_ucbints '!' can_inttypes 1 "for UCB 32-bit integer types" <<-'EOF'
 	#include <sys/types.h>
 	#include <stddef.h>
-	int main(int ac, char **av) { return ((u_int32_t)(ptrdiff_t)*av + (int32_t)ac); }
+	int main(int ac, char **av) { return ((u_int32_t)(size_t)*av + (int32_t)ac); }
 EOF
 ac_test can_int8type '!' stdint_h 1 "for standard 8-bit integer type" <<-'EOF'
 	#include <sys/types.h>
 	#include <stddef.h>
-	int main(int ac, char **av) { return ((uint8_t)(ptrdiff_t)av[ac]); }
+	int main(int ac, char **av) { return ((uint8_t)(size_t)av[ac]); }
 EOF
 ac_test can_ucbint8 '!' can_int8type 1 "for UCB 8-bit integer type" <<-'EOF'
 	#include <sys/types.h>
 	#include <stddef.h>
-	int main(int ac, char **av) { return ((u_int8_t)(ptrdiff_t)av[ac]); }
+	int main(int ac, char **av) { return ((u_int8_t)(size_t)av[ac]); }
 EOF
 
 ac_test rlim_t <<-'EOF'
@@ -1784,7 +1784,7 @@ else
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.669 2014/10/07 15:22:12 tg Exp $");
+		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.669.2.1 2015/01/25 15:35:34 tg Exp $");
 		int main(void) { printf("Hello, World!\n"); return (isatty(0)); }
 EOF
 	case $cm in
@@ -1969,13 +1969,13 @@ EOF
 ac_test setlocale_ctype '' 'setlocale(LC_CTYPE, "")' <<-'EOF'
 	#include <locale.h>
 	#include <stddef.h>
-	int main(void) { return ((int)(ptrdiff_t)(void *)setlocale(LC_CTYPE, "")); }
+	int main(void) { return ((int)(size_t)(void *)setlocale(LC_CTYPE, "")); }
 EOF
 
 ac_test langinfo_codeset setlocale_ctype 0 'nl_langinfo(CODESET)' <<-'EOF'
 	#include <langinfo.h>
 	#include <stddef.h>
-	int main(void) { return ((int)(ptrdiff_t)(void *)nl_langinfo(CODESET)); }
+	int main(void) { return ((int)(size_t)(void *)nl_langinfo(CODESET)); }
 EOF
 
 ac_test select <<-'EOF'
@@ -2150,9 +2150,9 @@ cta(uari_has_32_bit, 0 < (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 
 cta(uari_wrap_32_bit,
     (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 3) >
     (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 4));
-#define NUM 22
+#define NUM 21
 #else
-#define NUM 16
+#define NUM 15
 #endif
 /* these are always required */
 cta(ari_is_signed, (mksh_ari_t)-1 < (mksh_ari_t)0);
@@ -2161,11 +2161,10 @@ cta(uari_is_unsigned, (mksh_uari_t)-1 > (mksh_uari_t)0);
 cta(ari_size_no_matter_of_signedness, sizeof(mksh_ari_t) == sizeof(mksh_uari_t));
 
 cta(sizet_size_no_matter_of_signedness, sizeof(ssize_t) == sizeof(size_t));
-cta(ptrdifft_sizet_same_size, sizeof(ptrdiff_t) == sizeof(size_t));
-cta(ptrdifft_voidptr_same_size, sizeof(ptrdiff_t) == sizeof(void *));
-cta(ptrdifft_funcptr_same_size, sizeof(ptrdiff_t) == sizeof(void (*)(void)));
+cta(sizet_voidptr_same_size, sizeof(size_t) == sizeof(void *));
+cta(sizet_funcptr_same_size, sizeof(size_t) == sizeof(void (*)(void)));
 /* our formatting routines assume this */
-cta(ptr_fits_in_long, sizeof(ptrdiff_t) <= sizeof(long));
+cta(ptr_fits_in_long, sizeof(size_t) <= sizeof(long));
 /* for struct alignment people */
 		char padding[64 - NUM];
 	};
@@ -2264,6 +2263,11 @@ mksh_cfg= NSIG
 ;' >conftest.c
 	# GNU sed 2.03 segfaults when optimising this to sed -n
 	NSIG=`vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
+	    grep -v '^#' | \
+	    sed '/mksh_cfg.*= *$/{
+		N
+		s/\n/ /
+		}' | \
 	    grep '^ *mksh_cfg *=' | \
 	    sed 's/^ *mksh_cfg *=[	 ]*\([()0-9x+-][()0-9x+	 -]*\).*$/\1/'`
 	case $NSIG in
@@ -2295,6 +2299,11 @@ mksh_cfg= NSIG
 		echo ';' >>conftest.c
 		# GNU sed 2.03 croaks on optimising this, too
 		vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
+		    grep -v '^#' | \
+		    sed '/mksh_cfg.*= *$/{
+			N
+			s/\n/ /
+			}' | \
 		    grep '^ *mksh_cfg *=' | \
 		    sed 's/^ *mksh_cfg *=[	 ]*\([0-9][0-9x]*\).*$/:\1 '$name/
 	done | sed -n '/^:[^ ]/s/^://p' | while read nr name; do
@@ -2431,9 +2440,12 @@ llvm)
 	;;
 esac
 echo ": # work around NeXTstep bug" >Rebuild.sh
-for file in "$srcdir"/*.opt; do
+cd "$srcdir"
+optfiles=`echo *.opt`
+cd "$curdir"
+for file in $optfiles; do
 	echo "echo + Running genopt on '$file'..."
-	echo "(srcfile='$file'; BUILDSH_RUN_GENOPT=1; . '$srcdir/Build.sh')"
+	echo "(srcfile='$srcdir/$file'; BUILDSH_RUN_GENOPT=1; . '$srcdir/Build.sh')"
 done >>Rebuild.sh
 echo set -x >>Rebuild.sh
 for file in $SRCS; do
@@ -2467,11 +2479,11 @@ if test $cm = makefile; then
 	extras='emacsfn.h rlimits.opt sh.h sh_flags.opt var_spec.h'
 	test 0 = $HAVE_SYS_SIGNAME && extras="$extras signames.inc"
 	gens= genq=
-	for file in "$srcdir"/*.opt; do
+	for file in $optfiles; do
 		genf=`basename "$file" | sed 's/.opt$/.gen/'`
 		gens="$gens $genf"
-		genq="$genq$nl$genf: $srcdir/Build.sh $file
-			srcfile=$file; BUILDSH_RUN_GENOPT=1; . $srcdir/Build.sh"
+		genq="$genq$nl$genf: $srcdir/Build.sh $srcdir/$file
+			srcfile=$srcdir/$file; BUILDSH_RUN_GENOPT=1; . $srcdir/Build.sh"
 	done
 	cat >Makefrag.inc <<EOF
 # Makefile fragment for building mksh $dstversion
@@ -2515,9 +2527,9 @@ EOF
 	$e Generated Makefrag.inc successfully.
 	exit 0
 fi
-for file in "$srcdir"/*.opt; do
+for file in $optfiles; do
 	$e "+ Running genopt on '$file'..."
-	do_genopt "$file" || exit 1
+	do_genopt "$srcdir/$file" || exit 1
 done
 if test $cm = combine; then
 	objs="-o $mkshexe"

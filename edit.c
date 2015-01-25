@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.276.2.1 2015/01/11 22:39:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.276.2.2 2015/01/25 15:35:41 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -327,7 +327,7 @@ x_glob_hlp_tilde_and_rem_qchar(char *s, bool magic_flag)
 		/* ok, so split into "~foo"/"bar" or "~"/"baz" */
 		*cp++ = 0;
 		/* try to expand the tilde */
-		if (!(dp = tilde(s + 1))) {
+		if (!(dp = do_tilde(s + 1))) {
 			/* nope, revert damage */
 			*--cp = '/';
 		} else {
@@ -591,8 +591,6 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 	int len, nwords = 0;
 	char **words = NULL;
 	bool is_command;
-
-	mkssert(buf != NULL);
 
 	len = x_locate_word(buf, buflen, pos, startp, &is_command);
 	if (!((*flagsp) & XCF_COMMAND))
@@ -2239,7 +2237,6 @@ x_push(int nchars)
 {
 	char *cp;
 
-	mkssert(xcp != NULL);
 	strndupx(cp, xcp, nchars, AEDIT);
 	if (killstack[killsp])
 		afree(killstack[killsp], AEDIT);

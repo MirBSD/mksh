@@ -1,9 +1,9 @@
-/*	$OpenBSD: misc.c,v 1.38 2013/11/28 10:33:37 sobrado Exp $	*/
+/*	$OpenBSD: misc.c,v 1.39 2015/01/16 06:39:32 deraadt Exp $	*/
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014
+ *		 2011, 2012, 2013, 2014, 2015
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.219 2014/01/05 21:57:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.219.2.1 2015/01/25 15:35:48 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -281,15 +281,15 @@ change_flag(enum sh_flag f, int what, bool newset)
 #endif
 		DO_SETUID(setresuid, (ksheuid, ksheuid, ksheuid));
 #else /* !HAVE_SETRESUGID */
-		/* seteuid, setegid, setgid don't EAGAIN on Linux */
-#ifndef MKSH__NO_SETEUGID
-		seteuid(ksheuid);
-#endif
-		DO_SETUID(setuid, (ksheuid));
+		/* setgid, setegid, seteuid don't EAGAIN on Linux */
+		setgid(kshegid);
 #ifndef MKSH__NO_SETEUGID
 		setegid(kshegid);
 #endif
-		setgid(kshegid);
+		DO_SETUID(setuid, (ksheuid));
+#ifndef MKSH__NO_SETEUGID
+		seteuid(ksheuid);
+#endif
 #endif /* !HAVE_SETRESUGID */
 	} else if ((f == FPOSIX || f == FSH) && newval) {
 		/* Turning on -o posix or -o sh? */
@@ -485,7 +485,6 @@ parse_args(const char **argv,
 	if (arrayset) {
 		const char *ccp = NULL;
 
-		mkssert(array != NULL);
 		if (*array)
 			ccp = skip_varname(array, false);
 		if (!ccp || !(!ccp[0] || (ccp[0] == '+' && !ccp[1]))) {
@@ -1384,8 +1383,7 @@ do_realpath(const char *upath)
 {
 	char *xp, *ip, *tp, *ipath, *ldest = NULL;
 	XString xs;
-	ptrdiff_t pos;
-	size_t len;
+	size_t pos, len;
 	int llen;
 	struct stat sb;
 #ifdef MKSH__NO_PATH_MAX

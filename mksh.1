@@ -1,8 +1,8 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.344.2.1 2015/01/11 22:39:51 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.155 2014/12/09 15:37:13 schwarze Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.344.2.2 2015/01/25 15:35:49 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.156 2015/01/16 15:32:32 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-.\"		2010, 2011, 2012, 2013, 2014
+.\"		2010, 2011, 2012, 2013, 2014, 2015
 .\"	Thorsten Glaser <tg@mirbsd.org>
 .\"
 .\" Provided that these terms and disclaimer and all copyright notices
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 11 2015 $
+.Dd $Mdocdate: January 25 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -673,11 +673,11 @@ are reserved words, not meta-characters.
 .It Xo case Ar word No in
 .Oo Op \&(
 .Ar pattern
-.Op \*(Ba Ar pat
+.Op \*(Ba Ar pattern
 .No ... Ns )
 .Ar list
-.Op ;; \*(Ba ;&\& \*(Ba ;\*(Ba\ \&
-.Oc ... esac
+.Ic terminator
+.Oc No ... esac
 .Xc
 The
 .Ic case
@@ -707,9 +707,11 @@ For historical reasons, open and close braces may be used instead of
 and
 .Ic esac
 e.g.\&
-.Ic case $foo { *) echo bar;; } .
+.Ic case $foo { *) echo bar ;; } .
 .Pp
-The list terminators are:
+The list
+.Ic terminator Ns s
+are:
 .Bl -tag -width 4n
 .It Ql ;;
 Terminate after the list.

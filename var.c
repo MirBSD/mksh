@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.183 2014/10/04 11:47:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.183.2.1 2015/01/25 15:35:54 tg Exp $");
 
 /*-
  * Variables
@@ -308,7 +308,6 @@ local(const char *n, bool copy)
 	 * dereference namerefs; must come first
 	 */
 	n = array_index_calc(n, &array, &val);
-	mkssert(n != NULL);
 	h = hash(n);
 	if (!ksh_isalphx(*n)) {
 		vp = &vtemp;
@@ -678,8 +677,6 @@ exportprep(struct tbl *vp, const char *val)
 	char *xp;
 	char *op = (vp->flag&ALLOC) ? vp->val.s : NULL;
 	size_t namelen, vallen;
-
-	mkssert(val != NULL);
 
 	namelen = strlen(vp->name);
 	vallen = strlen(val) + 1;

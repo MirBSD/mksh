@@ -1,8 +1,8 @@
-# $MirOS: src/bin/mksh/check.t,v 1.667.2.1 2015/01/11 22:39:40 tg Exp $
-# OpenBSD src/regress/bin/ksh updated: 2013/12/02 20:39:44
+# $MirOS: src/bin/mksh/check.t,v 1.667.2.2 2015/01/25 15:35:36 tg Exp $
+# -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#	      2011, 2012, 2013, 2014
+#	      2011, 2012, 2013, 2014, 2015
 #	Thorsten Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -25,9 +25,12 @@
 #
 # More testsuites at:
 # http://svnweb.freebsd.org/base/head/bin/test/tests/legacy_test.sh?view=co&content-type=text%2Fplain
+#
+# Integrated testsuites from:
+# (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2015/01/11
+	@(#)MIRBSD KSH R50 2015/01/24
 description:
 	Check version of shell.
 stdin:
@@ -36,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2015/01/11
+	@(#)LEGACY KSH R50 2015/01/24
 description:
 	Check version of legacy shell.
 stdin:
@@ -3611,23 +3614,23 @@ name: IFS-space-1
 description:
 	Simple test, default IFS
 stdin:
-	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	set -- A B C
 	showargs 1 $*
 	showargs 2 "$*"
 	showargs 3 $@
 	showargs 4 "$@"
 expected-stdout:
-	 <1> <A> <B> <C>
-	 <2> <A B C>
-	 <3> <A> <B> <C>
-	 <4> <A> <B> <C>
+	<1> <A> <B> <C> .
+	<2> <A B C> .
+	<3> <A> <B> <C> .
+	<4> <A> <B> <C> .
 ---
 name: IFS-colon-1
 description:
 	Simple test, IFS=:
 stdin:
-	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	IFS=:
 	set -- A B C
 	showargs 1 $*
@@ -3635,16 +3638,16 @@ stdin:
 	showargs 3 $@
 	showargs 4 "$@"
 expected-stdout:
-	 <1> <A> <B> <C>
-	 <2> <A:B:C>
-	 <3> <A> <B> <C>
-	 <4> <A> <B> <C>
+	<1> <A> <B> <C> .
+	<2> <A:B:C> .
+	<3> <A> <B> <C> .
+	<4> <A> <B> <C> .
 ---
 name: IFS-null-1
 description:
 	Simple test, IFS=""
 stdin:
-	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	IFS=""
 	set -- A B C
 	showargs 1 $*
@@ -3652,16 +3655,16 @@ stdin:
 	showargs 3 $@
 	showargs 4 "$@"
 expected-stdout:
-	 <1> <A> <B> <C>
-	 <2> <ABC>
-	 <3> <A> <B> <C>
-	 <4> <A> <B> <C>
+	<1> <A> <B> <C> .
+	<2> <ABC> .
+	<3> <A> <B> <C> .
+	<4> <A> <B> <C> .
 ---
 name: IFS-space-colon-1
 description:
 	Simple test, IFS=<white-space>:
 stdin:
-	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	IFS="$IFS:"
 	set --
 	showargs 1 $*
@@ -3670,52 +3673,52 @@ stdin:
 	showargs 4 "$@"
 	showargs 5 : "$@"
 expected-stdout:
-	 <1>
-	 <2> <>
-	 <3>
-	 <4>
-	 <5> <:>
+	<1> .
+	<2> <> .
+	<3> .
+	<4> .
+	<5> <:> .
 ---
 name: IFS-space-colon-2
 description:
 	Simple test, IFS=<white-space>:
 	AT&T ksh fails this, POSIX says the test is correct.
 stdin:
-	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	IFS="$IFS:"
 	set --
 	showargs :"$@"
 expected-stdout:
-	 <:>
+	<:> .
 ---
 name: IFS-space-colon-4
 description:
 	Simple test, IFS=<white-space>:
 stdin:
-	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	IFS="$IFS:"
 	set --
 	showargs "$@$@"
 expected-stdout:
-	
+	.
 ---
 name: IFS-space-colon-5
 description:
 	Simple test, IFS=<white-space>:
 	Don't know what POSIX thinks of this.  AT&T ksh does not do this.
 stdin:
-	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	IFS="$IFS:"
 	set --
 	showargs "${@:-}"
 expected-stdout:
-	 <>
+	<> .
 ---
 name: IFS-subst-1
 description:
 	Simple test, IFS=<white-space>:
 stdin:
-	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	IFS="$IFS:"
 	x=":b: :"
 	echo -n '1:'; for i in $x ; do echo -n " [$i]" ; done ; echo
@@ -3737,58 +3740,58 @@ stdin:
 expected-stdout:
 	1: [] [b] []
 	2: [:b::]
-	 <3> <> <b> <>
-	 <4> <:b::>
+	<3> <> <b> <> .
+	<4> <:b::> .
 	5: [a] [b]
-	 <6> <a> <b>
+	<6> <a> <b> .
 	7: [a] [] [c]
-	 <8> <a> <> <c>
+	<8> <a> <> <c> .
 	9: [h] [ith] [ere]
-	 <10> <h> <ith> <ere>
-	 <11> <h:ith:ere>
+	<10> <h> <ith> <ere> .
+	<11> <h:ith:ere> .
 	12: [A] [B] [] [D]
-	 <13> <A> <B> <> <D>
+	<13> <A> <B> <> <D> .
 ---
 name: IFS-subst-2
 description:
 	Check leading whitespace after trim does not make a field
 stdin:
-	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	x="X 1 2"
 	showargs 1 shift ${x#X}
 expected-stdout:
-	 <1> <shift> <1> <2>
+	<1> <shift> <1> <2> .
 ---
 name: IFS-subst-3-arr
 description:
 	Check leading IFS non-whitespace after trim does make a field
 	but leading IFS whitespace does not, nor empty replacements
 stdin:
-	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	showargs 0 ${-+}
 	IFS=:
 	showargs 1 ${-+:foo:bar}
 	IFS=' '
 	showargs 2 ${-+ foo bar}
 expected-stdout:
-	 <0>
-	 <1> <> <foo> <bar>
-	 <2> <foo> <bar>
+	<0> .
+	<1> <> <foo> <bar> .
+	<2> <foo> <bar> .
 ---
 name: IFS-subst-3-ass
 description:
 	Check non-field semantics
 stdin:
-	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	showargs 0 x=${-+}
 	IFS=:
 	showargs 1 x=${-+:foo:bar}
 	IFS=' '
 	showargs 2 x=${-+ foo bar}
 expected-stdout:
-	 <0> <x=>
-	 <1> <x=> <foo> <bar>
-	 <2> <x=> <foo> <bar>
+	<0> <x=> .
+	<1> <x=> <foo> <bar> .
+	<2> <x=> <foo> <bar> .
 ---
 name: IFS-subst-3-lcl
 description:
@@ -3805,11 +3808,12 @@ name: IFS-subst-4-1
 description:
 	reported by mikeserv
 stdin:
+	pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; }
 	a='space divded  argument
 	here'
 	IFS=\  ; set -- $a
 	IFS= ; q="$*" ; nq=$*
-	printf '<%s>\n' "$*" $* "$q" "$nq"
+	pfn "$*" $* "$q" "$nq"
 	[ "$q" = "$nq" ] && echo =true || echo =false
 expected-stdout:
 	<spacedivdedargument
@@ -3828,11 +3832,12 @@ name: IFS-subst-4-2
 description:
 	extended testsuite based on problem by mikeserv
 stdin:
+	pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; }
 	a='space divded  argument
 	here'
 	IFS=\  ; set -- $a
 	IFS= ; q="$@" ; nq=$@
-	printf '<%s>\n' "$*" $* "$q" "$nq"
+	pfn "$*" $* "$q" "$nq"
 	[ "$q" = "$nq" ] && echo =true || echo =false
 expected-stdout:
 	<spacedivdedargument
@@ -3851,6 +3856,7 @@ name: IFS-subst-4-3
 description:
 	extended testsuite based on problem by mikeserv
 stdin:
+	pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; }
 	a='space divded  argument
 	here'
 	IFS=\ ; set -- $a; IFS=
@@ -3858,14 +3864,14 @@ stdin:
 	nqs=$*
 	qk="$@"
 	nqk=$@
-	printf '= qs '; printf '<%s>\n' "$qs"
-	printf '=nqs '; printf '<%s>\n' "$nqs"
-	printf '= qk '; printf '<%s>\n' "$qk"
-	printf '=nqk '; printf '<%s>\n' "$nqk"
-	printf '~ qs '; printf '<%s>\n' "$*"
-	printf '~nqs '; printf '<%s>\n' $*
-	printf '~ qk '; printf '<%s>\n' "$@"
-	printf '~nqk '; printf '<%s>\n' $@
+	print -nr -- '= qs '; pfn "$qs"
+	print -nr -- '=nqs '; pfn "$nqs"
+	print -nr -- '= qk '; pfn "$qk"
+	print -nr -- '=nqk '; pfn "$nqk"
+	print -nr -- '~ qs '; pfn "$*"
+	print -nr -- '~nqs '; pfn $*
+	print -nr -- '~ qk '; pfn "$@"
+	print -nr -- '~nqk '; pfn $@
 expected-stdout:
 	= qs <spacedivdedargument
 	here>
@@ -3894,21 +3900,22 @@ name: IFS-subst-4-4
 description:
 	extended testsuite based on problem by mikeserv
 stdin:
+	pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; }
 	a='space divded  argument
 	here'
 	IFS=\ ; set -- $a; IFS=
 	qs="$*"
-	printf '= qs '; printf '<%s>\n' "$qs"
-	printf '~ qs '; printf '<%s>\n' "$*"
+	print -nr -- '= qs '; pfn "$qs"
+	print -nr -- '~ qs '; pfn "$*"
 	nqs=$*
-	printf '=nqs '; printf '<%s>\n' "$nqs"
-	printf '~nqs '; printf '<%s>\n' $*
+	print -nr -- '=nqs '; pfn "$nqs"
+	print -nr -- '~nqs '; pfn $*
 	qk="$@"
-	printf '= qk '; printf '<%s>\n' "$qk"
-	printf '~ qk '; printf '<%s>\n' "$@"
+	print -nr -- '= qk '; pfn "$qk"
+	print -nr -- '~ qk '; pfn "$@"
 	nqk=$@
-	printf '=nqk '; printf '<%s>\n' "$nqk"
-	printf '~nqk '; printf '<%s>\n' $@
+	print -nr -- '=nqk '; pfn "$nqk"
+	print -nr -- '~nqk '; pfn $@
 expected-stdout:
 	= qs <spacedivdedargument
 	here>
@@ -3937,22 +3944,23 @@ name: IFS-subst-4-4p
 description:
 	extended testsuite based on problem by mikeserv
 stdin:
+	pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; }
 	a='space divded  argument
 	here'
 	IFS=\ ; set -- $a; IFS=
 	unset v
 	qs=${v:-"$*"}
-	printf '= qs '; printf '<%s>\n' "$qs"
-	printf '~ qs '; printf '<%s>\n' ${v:-"$*"}
+	print -nr -- '= qs '; pfn "$qs"
+	print -nr -- '~ qs '; pfn ${v:-"$*"}
 	nqs=${v:-$*}
-	printf '=nqs '; printf '<%s>\n' "$nqs"
-	printf '~nqs '; printf '<%s>\n' ${v:-$*}
+	print -nr -- '=nqs '; pfn "$nqs"
+	print -nr -- '~nqs '; pfn ${v:-$*}
 	qk=${v:-"$@"}
-	printf '= qk '; printf '<%s>\n' "$qk"
-	printf '~ qk '; printf '<%s>\n' ${v:-"$@"}
+	print -nr -- '= qk '; pfn "$qk"
+	print -nr -- '~ qk '; pfn ${v:-"$@"}
 	nqk=${v:-$@}
-	printf '=nqk '; printf '<%s>\n' "$nqk"
-	printf '~nqk '; printf '<%s>\n' ${v:-$@}
+	print -nr -- '=nqk '; pfn "$nqk"
+	print -nr -- '~nqk '; pfn ${v:-$@}
 expected-stdout:
 	= qs <spacedivdedargument
 	here>
@@ -3981,21 +3989,22 @@ name: IFS-subst-4-5
 description:
 	extended testsuite based on problem by mikeserv
 stdin:
+	pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; }
 	a='space divded  argument
 	here'
 	IFS=\ ; set -- $a; IFS=,
 	qs="$*"
-	printf '= qs '; printf '<%s>\n' "$qs"
-	printf '~ qs '; printf '<%s>\n' "$*"
+	print -nr -- '= qs '; pfn "$qs"
+	print -nr -- '~ qs '; pfn "$*"
 	nqs=$*
-	printf '=nqs '; printf '<%s>\n' "$nqs"
-	printf '~nqs '; printf '<%s>\n' $*
+	print -nr -- '=nqs '; pfn "$nqs"
+	print -nr -- '~nqs '; pfn $*
 	qk="$@"
-	printf '= qk '; printf '<%s>\n' "$qk"
-	printf '~ qk '; printf '<%s>\n' "$@"
+	print -nr -- '= qk '; pfn "$qk"
+	print -nr -- '~ qk '; pfn "$@"
 	nqk=$@
-	printf '=nqk '; printf '<%s>\n' "$nqk"
-	printf '~nqk '; printf '<%s>\n' $@
+	print -nr -- '=nqk '; pfn "$nqk"
+	print -nr -- '~nqk '; pfn $@
 expected-stdout:
 	= qs <space,divded,argument
 	here>
@@ -4024,22 +4033,23 @@ name: IFS-subst-4-5p
 description:
 	extended testsuite based on problem by mikeserv
 stdin:
+	pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; }
 	a='space divded  argument
 	here'
 	IFS=\ ; set -- $a; IFS=,
 	unset v
 	qs=${v:-"$*"}
-	printf '= qs '; printf '<%s>\n' "$qs"
-	printf '~ qs '; printf '<%s>\n' ${v:-"$*"}
+	print -nr -- '= qs '; pfn "$qs"
+	print -nr -- '~ qs '; pfn ${v:-"$*"}
 	nqs=${v:-$*}
-	printf '=nqs '; printf '<%s>\n' "$nqs"
-	printf '~nqs '; printf '<%s>\n' ${v:-$*}
+	print -nr -- '=nqs '; pfn "$nqs"
+	print -nr -- '~nqs '; pfn ${v:-$*}
 	qk=${v:-"$@"}
-	printf '= qk '; printf '<%s>\n' "$qk"
-	printf '~ qk '; printf '<%s>\n' ${v:-"$@"}
+	print -nr -- '= qk '; pfn "$qk"
+	print -nr -- '~ qk '; pfn ${v:-"$@"}
 	nqk=${v:-$@}
-	printf '=nqk '; printf '<%s>\n' "$nqk"
-	printf '~nqk '; printf '<%s>\n' ${v:-$@}
+	print -nr -- '=nqk '; pfn "$nqk"
+	print -nr -- '~nqk '; pfn ${v:-$@}
 expected-stdout:
 	= qs <space,divded,argument
 	here>
@@ -4080,37 +4090,53 @@ description:
 	- b5ins, matching mksh’s
 	!!WARNING!! more to come: http://austingroupbugs.net/view.php?id=888
 stdin:
-	"$__progname" -c 'IFS=; set -- "" 2 ""; printf "[%s]\n" $*; x=$*; printf "<%s>\n" "$x"'
+	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
+		IFS=; set -- "" 2 ""; pfb $*; x=$*; pfn "$x"'
 	echo '=a1zns'
-	"$__progname" -c 'IFS=; set -- "" 2 ""; printf "[%s]\n" "$*"; x="$*"; printf "<%s>\n" "$x"'
+	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
+		IFS=; set -- "" 2 ""; pfb "$*"; x="$*"; pfn "$x"'
 	echo '=a2zqs'
-	"$__progname" -c 'IFS=; set -- "" 2 ""; printf "[%s]\n" $@; x=$@; printf "<%s>\n" "$x"'
+	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
+		IFS=; set -- "" 2 ""; pfb $@; x=$@; pfn "$x"'
 	echo '=a3zna'
-	"$__progname" -c 'IFS=; set -- "" 2 ""; printf "[%s]\n" "$@"; x="$@"; printf "<%s>\n" "$x"'
+	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
+		IFS=; set -- "" 2 ""; pfb "$@"; x="$@"; pfn "$x"'
 	echo '=a4zqa'
-	"$__progname" -c 'IFS=,; set -- "" 2 ""; printf "[%s]\n" $*; x=$*; printf "<%s>\n" "$x"'
+	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
+		IFS=,; set -- "" 2 ""; pfb $*; x=$*; pfn "$x"'
 	echo '=a5ins'
-	"$__progname" -c 'IFS=,; set -- "" 2 ""; printf "[%s]\n" "$*"; x="$*"; printf "<%s>\n" "$x"'
+	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
+		IFS=,; set -- "" 2 ""; pfb "$*"; x="$*"; pfn "$x"'
 	echo '=a6iqs'
-	"$__progname" -c 'IFS=,; set -- "" 2 ""; printf "[%s]\n" $@; x=$@; printf "<%s>\n" "$x"'
+	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
+		IFS=,; set -- "" 2 ""; pfb $@; x=$@; pfn "$x"'
 	echo '=a7ina'
-	"$__progname" -c 'IFS=,; set -- "" 2 ""; printf "[%s]\n" "$@"; x="$@"; printf "<%s>\n" "$x"'
+	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
+		IFS=,; set -- "" 2 ""; pfb "$@"; x="$@"; pfn "$x"'
 	echo '=a8iqa'
-	"$__progname" -c 'IFS=; set -- A B "" "" C; printf "[%s]\n" $*; x=$*; printf "<%s>\n" "$x"'
+	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
+		IFS=; set -- A B "" "" C; pfb $*; x=$*; pfn "$x"'
 	echo '=b1zns'
-	"$__progname" -c 'IFS=; set -- A B "" "" C; printf "[%s]\n" "$*"; x="$*"; printf "<%s>\n" "$x"'
+	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
+		IFS=; set -- A B "" "" C; pfb "$*"; x="$*"; pfn "$x"'
 	echo '=b2zqs'
-	"$__progname" -c 'IFS=; set -- A B "" "" C; printf "[%s]\n" $@; x=$@; printf "<%s>\n" "$x"'
+	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
+		IFS=; set -- A B "" "" C; pfb $@; x=$@; pfn "$x"'
 	echo '=b3zna'
-	"$__progname" -c 'IFS=; set -- A B "" "" C; printf "[%s]\n" "$@"; x="$@"; printf "<%s>\n" "$x"'
+	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
+		IFS=; set -- A B "" "" C; pfb "$@"; x="$@"; pfn "$x"'
 	echo '=b4zqa'
-	"$__progname" -c 'IFS=,; set -- A B "" "" C; printf "[%s]\n" $*; x=$*; printf "<%s>\n" "$x"'
+	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
+		IFS=,; set -- A B "" "" C; pfb $*; x=$*; pfn "$x"'
 	echo '=b5ins'
-	"$__progname" -c 'IFS=,; set -- A B "" "" C; printf "[%s]\n" "$*"; x="$*"; printf "<%s>\n" "$x"'
+	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
+		IFS=,; set -- A B "" "" C; pfb "$*"; x="$*"; pfn "$x"'
 	echo '=b6iqs'
-	"$__progname" -c 'IFS=,; set -- A B "" "" C; printf "[%s]\n" $@; x=$@; printf "<%s>\n" "$x"'
+	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
+		IFS=,; set -- A B "" "" C; pfb $@; x=$@; pfn "$x"'
 	echo '=b7ina'
-	"$__progname" -c 'IFS=,; set -- A B "" "" C; printf "[%s]\n" "$@"; x="$@"; printf "<%s>\n" "$x"'
+	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
+		IFS=,; set -- A B "" "" C; pfb "$@"; x="$@"; pfn "$x"'
 	echo '=b8iqa'
 expected-stdout:
 	[2]
@@ -4190,7 +4216,7 @@ name: IFS-subst-6
 description:
 	Regression wrt. vector expansion in trim
 stdin:
-	showargs() { for x in "$@"; do echo -n "<$x> "; done; echo .; }
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	IFS=
 	x=abc
 	set -- a b
@@ -4202,7 +4228,7 @@ name: IFS-subst-7
 description:
 	ksh93 bug wrt. vector expansion in trim
 stdin:
-	showargs() { for x in "$@"; do echo -n "<$x> "; done; echo .; }
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	IFS="*"
 	a=abcd
 	set -- '' c
@@ -4225,7 +4251,7 @@ description:
 stdin:
 	${ZSH_VERSION+false} || emulate sh
 	${BASH_VERSION+set -o posix}
-	showargs() { for x in "$@"; do echo -n "<$x> "; done; echo .; }
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	IFS=0
 	showargs $((1230456))
 expected-stdout:
@@ -8342,13 +8368,13 @@ name: varexpand-null-3
 description:
 	Ensure concatenating behaviour matches other shells
 stdin:
-	showargs() { for i; do echo -n " <$i>"; done; echo; }
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	x=; showargs 1 "$x"$@
 	set A; showargs 2 "${@:+}"
 expected-fail: yes
 expected-stdout:
-	 <1> <>
-	 <2> <>
+	<1> <> .
+	<2> <> .
 ---
 name: print-funny-chars
 description:

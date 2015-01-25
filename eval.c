@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.158.2.1 2015/01/11 22:39:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.158.2.2 2015/01/25 15:35:43 tg Exp $");
 
 /*
  * string expansion
@@ -516,7 +516,6 @@ expand(
 
 						/* check for special cases */
 						d = str_val(st->var);
-						mkssert(d != NULL);
 						switch (*pat) {
 						case '#':
 							/* anchor at begin */
@@ -1681,7 +1680,7 @@ maybe_expand_tilde(const char *p, XString *dsp, char **dpp, int isassign)
 	}
 	*tp = '\0';
 	r = (p[0] == EOS || p[0] == CHAR || p[0] == CSUBST) ?
-	    tilde(Xstring(ts, tp)) : NULL;
+	    do_tilde(Xstring(ts, tp)) : NULL;
 	Xfree(ts, tp);
 	if (r) {
 		while (*r) {
@@ -1703,7 +1702,7 @@ maybe_expand_tilde(const char *p, XString *dsp, char **dpp, int isassign)
  */
 
 char *
-tilde(char *cp)
+do_tilde(char *cp)
 {
 	char *dp = null;
 

@@ -169,9 +169,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.701.2.1 2015/01/11 22:39:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.701.2.2 2015/01/25 15:35:51 tg Exp $");
 #endif
-#define MKSH_VERSION "R50 2015/01/11"
+#define MKSH_VERSION "R50 2015/01/24"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1645,7 +1645,7 @@ char *evalonestr(const char *cp, int);
 char *debunk(char *, const char *, size_t);
 void expand(const char *, XPtrV *, int);
 int glob_str(char *, XPtrV *, bool);
-char *tilde(char *);
+char *do_tilde(char *);
 /* exec.c */
 int execute(struct op * volatile, volatile int, volatile int * volatile);
 int shcomexec(const char **);
