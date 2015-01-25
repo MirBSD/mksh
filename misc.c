@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.c,v 1.38 2013/11/28 10:33:37 sobrado Exp $	*/
+/*	$OpenBSD: misc.c,v 1.39 2015/01/16 06:39:32 deraadt Exp $	*/
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
 /*-
@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.223 2015/01/02 13:21:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.224 2015/01/25 15:23:41 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
