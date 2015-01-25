@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.105 2014/10/03 12:32:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.105.2.1 2015/01/25 15:44:06 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1047,7 +1047,7 @@ j_async(void)
 static void
 j_set_async(Job *j)
 {
-	Job	*jl, *oldest;
+	Job *jl, *oldest;
 
 	if (async_job && (async_job->flags & (JF_KNOWN|JF_ZOMBIE)) == JF_ZOMBIE)
 		remove_job(async_job, "async");
@@ -1084,7 +1084,7 @@ j_set_async(Job *j)
 static void
 j_startjob(Job *j)
 {
-	Proc	*p;
+	Proc *p;
 
 	j->flags |= JF_STARTED;
 	for (p = j->proc_list; p->next; p = p->next)
@@ -1421,8 +1421,8 @@ j_sigchld(int sig MKSH_A_UNUSED)
 static void
 check_job(Job *j)
 {
-	int	jstate;
-	Proc	*p;
+	int jstate;
+	Proc *p;
 
 	/* XXX debugging (nasty - interrupt routine using shl_out) */
 	if (!(j->flags & JF_STARTED)) {
@@ -1524,14 +1524,14 @@ check_job(Job *j)
 static void
 j_print(Job *j, int how, struct shf *shf)
 {
-	Proc	*p;
-	int	state;
-	int	status;
-	int	coredumped;
-	char	jobchar = ' ';
-	char	buf[64];
+	Proc *p;
+	int state;
+	int status;
+	int coredumped;
+	char jobchar = ' ';
+	char buf[64];
 	const char *filler;
-	int	output = 0;
+	int output = 0;
 
 	if (how == JP_PGRP) {
 		/*
@@ -1737,8 +1737,8 @@ static Proc	*free_procs;
 static Job *
 new_job(void)
 {
-	int	i;
-	Job	*newj, *j;
+	int i;
+	Job *newj, *j;
 
 	if (free_jobs != NULL) {
 		newj = free_jobs;
@@ -1766,7 +1766,7 @@ new_job(void)
 static Proc *
 new_proc(void)
 {
-	Proc	*p;
+	Proc *p;
 
 	if (free_procs != NULL) {
 		p = free_procs;
@@ -1786,10 +1786,9 @@ new_proc(void)
 static void
 remove_job(Job *j, const char *where)
 {
-	Proc	*p, *tmp;
-	Job	**prev, *curr;
+	Proc *p, *tmp;
+	Job **prev, *curr;
 
-	mkssert(j != NULL);
 	prev = &job_list;
 	curr = job_list;
 	while (curr && curr != j) {
@@ -1830,9 +1829,8 @@ remove_job(Job *j, const char *where)
 static void
 put_job(Job *j, int where)
 {
-	Job	**prev, *curr;
+	Job **prev, *curr;
 
-	mkssert(j != NULL);
 	/* Remove job from list (if there) */
 	prev = &job_list;
 	curr = job_list;
@@ -1869,8 +1867,8 @@ put_job(Job *j, int where)
 static int
 kill_job(Job *j, int sig)
 {
-	Proc	*p;
-	int	rval = 0;
+	Proc *p;
+	int rval = 0;
 
 	for (p = j->proc_list; p != NULL; p = p->next)
 		if (p->pid != 0)

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.158.2.2 2015/01/25 15:35:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.158.2.3 2015/01/25 15:44:04 tg Exp $");
 
 /*
  * string expansion
@@ -70,7 +70,7 @@ static char *valsub(struct op *, Area *);
 static char *trimsub(char *, char *, int);
 static void glob(char *, XPtrV *, bool);
 static void globit(XString *, char **, char *, XPtrV *, int);
-static const char *maybe_expand_tilde(const char *, XString *, char **, int);
+static const char *maybe_expand_tilde(const char *, XString *, char **, bool);
 #ifndef MKSH_NOPWNAM
 static char *homedir(char *);
 #endif
@@ -1027,7 +1027,7 @@ expand(
 
 						tcp = maybe_expand_tilde(sp,
 						    &ds, &tdp,
-						    f & DOASNTILDE);
+						    tobool(f & DOASNTILDE));
 						if (tcp) {
 							if (dp != tdp)
 								word = IFS_WORD;
@@ -1663,7 +1663,7 @@ debunk(char *dp, const char *sp, size_t dlen)
  * past the name, otherwise returns 0.
  */
 static const char *
-maybe_expand_tilde(const char *p, XString *dsp, char **dpp, int isassign)
+maybe_expand_tilde(const char *p, XString *dsp, char **dpp, bool isassign)
 {
 	XString ts;
 	char *dp = *dpp;

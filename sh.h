@@ -10,7 +10,7 @@
 
 /*-
  * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *	       2011, 2012, 2013, 2014
+ *	       2011, 2012, 2013, 2014, 2015
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -169,7 +169,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.701.2.2 2015/01/25 15:35:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.701.2.3 2015/01/25 15:44:07 tg Exp $");
 #endif
 #define MKSH_VERSION "R50 2015/01/24"
 
@@ -312,7 +312,11 @@ struct rusage {
 #undef PATH_MAX
 #else
 #ifndef PATH_MAX
+#ifdef MAXPATHLEN
+#define PATH_MAX	MAXPATHLEN
+#else
 #define PATH_MAX	1024
+#endif
 #endif
 #endif
 #ifndef SIZE_MAX
