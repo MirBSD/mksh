@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014
+ *		 2011, 2012, 2013, 2014, 2015
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.185 2014/12/15 23:18:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.186 2015/02/06 10:56:49 tg Exp $");
 
 /*-
  * Variables
@@ -1112,6 +1112,8 @@ makenv(void)
 				}
 				XPput(denv, vp->val.s);
 			}
+		if (l->flags & BF_STOPENV)
+			break;
 	}
 	XPput(denv, NULL);
 	return ((char **)XPclose(denv));

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.142 2015/02/06 10:09:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.143 2015/02/06 10:56:46 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -446,7 +446,6 @@ execute(struct op * volatile t,
 
 	case TEXEC:
 		/* an eval'd TCOM */
-		s = t->args[0];
 		up = makenv();
 		restoresigs();
 		cleanup_proc_env();
@@ -460,7 +459,7 @@ execute(struct op * volatile t,
 		if (rv == ENOEXEC)
 			scriptexec(t, (const char **)up);
 		else
-			errorf("%s: %s", s, cstrerror(rv));
+			errorf("%s: %s", t->str, cstrerror(rv));
 	}
  Break:
 	exstat = rv & 0xFF;
@@ -509,6 +508,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	int fcflags = FC_BI|FC_FUNC|FC_PATH;
 	struct block *l_expand, *l_assign;
 	int optc;
+	const char *exec_argv0 = NULL;
+	bool exec_clrenv = false;
 
 	/* snag the last argument for $_ */
 	if (Flag(FTALKING) && *(lastp = ap)) {
@@ -554,7 +555,22 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		} else if (tp->val.f == c_exec) {
 			if (ap[1] == NULL)
 				break;
-			ap++;
+			ksh_getopt_reset(&builtin_opt, GF_ERROR);
+			while ((optc = ksh_getopt(ap, &builtin_opt, "a:c")) != -1)
+				switch (optc) {
+				case 'a':
+					exec_argv0 = builtin_opt.optarg;
+					break;
+				case 'c':
+					exec_clrenv = true;
+					/* ensure we can actually do this */
+					resetspec = true;
+					break;
+				default:
+					rv = 2;
+					goto Leave;
+				}
+			ap += builtin_opt.optind;
 			flags |= XEXEC;
 		} else if (tp->val.f == c_command) {
 			bool saw_p = false;
@@ -633,6 +649,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			type_flags = LOCAL|LOCAL_COPY|EXPORT;
 	}
 	l_assign = e->loc;
+	if (exec_clrenv)
+		l_assign->flags |= BF_STOPENV;
 	if (Flag(FEXPORT))
 		type_flags |= EXPORT;
 	if (Flag(FXTRACE))
@@ -813,14 +831,24 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			break;
 		}
 
-		/* set $_ to programme's full path */
+		/* set $_ to program's full path */
 		/* setstr() can't fail here */
 		setstr(typeset("_", LOCAL | EXPORT, 0, INTEGER, 0),
 		    tp->val.s, KSH_RETURN_ERROR);
 
-		if (flags&XEXEC) {
+		/* to fork, we set up a TEXEC node and call execute */
+		texec.type = TEXEC;
+		/* for vistree/dumptree */
+		texec.left = t;
+		texec.str = tp->val.s;
+		texec.args = ap;
+
+		/* in this case we do not fork, of course */
+		if (flags & XEXEC) {
+			if (exec_argv0)
+				texec.args[0] = exec_argv0;
 			j_exit();
-			if (!(flags&XBGND)
+			if (!(flags & XBGND)
 #ifndef MKSH_UNEMPLOYED
 			    || Flag(FMONITOR)
 #endif
@@ -830,12 +858,6 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			}
 		}
 
-		/* to fork we set up a TEXEC node and call execute */
-		texec.type = TEXEC;
-		/* for tprint */
-		texec.left = t;
-		texec.str = tp->val.s;
-		texec.args = ap;
 		rv = exchild(&texec, flags, xerrok, -1);
 		break;
 	}
