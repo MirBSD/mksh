@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014
+ *		 2011, 2012, 2013, 2014, 2015
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.161 2014/12/05 15:14:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.162 2015/02/06 09:33:41 tg Exp $");
 
 /*
  * string expansion
@@ -1749,28 +1749,30 @@ homedir(char *name)
 static void
 alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 {
-	int count = 0;
+	unsigned int count = 0;
 	char *brace_start, *brace_end, *comma = NULL;
 	char *field_start;
-	char *p;
+	char *p = exp_start;
 
 	/* search for open brace */
-	for (p = exp_start; (p = strchr(p, MAGIC)) && p[1] != '{' /*}*/; p += 2)
-		;
+	while ((p = strchr(p, MAGIC)) && p[1] != '{' /*}*/)
+		p += 2;
 	brace_start = p;
 
 	/* find matching close brace, if any */
 	if (p) {
 		comma = NULL;
 		count = 1;
-		for (p += 2; *p && count; p++) {
-			if (ISMAGIC(*p)) {
-				if (*++p == '{' /*}*/)
-					count++;
+		p += 2;
+		while (*p && count) {
+			if (ISMAGIC(*p++)) {
+				if (*p == '{' /*}*/)
+					++count;
 				else if (*p == /*{*/ '}')
 					--count;
 				else if (*p == ',' && count == 1)
 					comma = p;
+				++p;
 			}
 		}
 	}
@@ -1799,7 +1801,7 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 	for (p = brace_start + 2; p != brace_end; p++) {
 		if (ISMAGIC(*p)) {
 			if (*++p == '{' /*}*/)
-				count++;
+				++count;
 			else if ((*p == /*{*/ '}' && --count == 0) ||
 			    (*p == ',' && count == 1)) {
 				char *news;
