@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014
+ *		 2011, 2012, 2013, 2014, 2015
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.139 2014/11/25 22:46:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.140 2015/02/06 09:42:08 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -656,8 +656,6 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		}
 		/* but assign in there as usual */
 		typeset(cp, type_flags, 0, 0, 0);
-		if (bourne_function_call && !(type_flags & EXPORT))
-			typeset(cp, LOCAL | LOCAL_COPY | EXPORT, 0, 0, 0);
 	}
 
 	if (Flag(FXTRACE)) {
