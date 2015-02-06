@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.141 2015/02/06 09:42:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.142 2015/02/06 10:09:06 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -507,16 +507,17 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	int type_flags;
 	bool resetspec;
 	int fcflags = FC_BI|FC_FUNC|FC_PATH;
-	bool bourne_function_call = false;
 	struct block *l_expand, *l_assign;
+	int optc;
 
-	/*
-	 * snag the last argument for $_ XXX not the same as AT&T ksh,
-	 * which only seems to set $_ after a newline (but not in
-	 * functions/dot scripts, but in interactive and script) -
-	 * perhaps save last arg here and set it in shell()?.
-	 */
+	/* snag the last argument for $_ */
 	if (Flag(FTALKING) && *(lastp = ap)) {
+		/*
+		 * XXX not the same as AT&T ksh, which only seems to set $_
+		 * after a newline (but not in functions/dot scripts, but in
+		 * interactive and script) - perhaps save last arg here and
+		 * set it in shell()?.
+		 */
 		while (*++lastp)
 			;
 		/* setstr() can't fail here */
@@ -556,7 +557,6 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			ap++;
 			flags |= XEXEC;
 		} else if (tp->val.f == c_command) {
-			int optc;
 			bool saw_p = false;
 
 			/*
@@ -566,7 +566,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			ksh_getopt_reset(&builtin_opt, 0);
 			while ((optc = ksh_getopt(ap, &builtin_opt, ":p")) == 'p')
 				saw_p = true;
-			if (optc != EOF)
+			if (optc != -1)
 				/* command -vV or something */
 				break;
 			/* don't look for functions */
@@ -627,10 +627,9 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		newblock();
 		/* ksh functions don't keep assignments, POSIX functions do. */
 		if (!resetspec && tp && tp->type == CFUNC &&
-		    !(tp->flag & FKSH)) {
-			bourne_function_call = true;
+		    !(tp->flag & FKSH))
 			type_flags = EXPORT;
-		} else
+		else
 			type_flags = LOCAL|LOCAL_COPY|EXPORT;
 	}
 	l_assign = e->loc;
@@ -1491,7 +1490,7 @@ herein(struct ioword *iop, char **resbuf)
 	struct temp *h;
 	int i;
 
-	/* ksh -c 'cat << EOF' can cause this... */
+	/* ksh -c 'cat <<EOF' can cause this... */
 	if (iop->heredoc == NULL) {
 		warningf(true, "%s missing", "here document");
 		/* special to iosetup(): don't print error */
@@ -1526,7 +1525,7 @@ herein(struct ioword *iop, char **resbuf)
 		return (-2);
 	}
 
-	if (shf_close(shf) == EOF) {
+	if (shf_close(shf) == -1) {
 		i = errno;
 		close(fd);
 		warningf(true, "can't %s temporary file %s: %s",

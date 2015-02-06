@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.162 2015/02/06 09:33:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.163 2015/02/06 10:09:05 tg Exp $");
 
 /*
  * string expansion
@@ -871,7 +871,7 @@ expand(
 				/* $(<...) failed */
 				subst_exstat = 1;
 				/* fake EOF */
-				c = EOF;
+				c = -1;
 			} else if (newlines) {
 				/* spit out saved NLs */
 				c = '\n';
@@ -881,13 +881,13 @@ expand(
 					if (c == '\n')
 						/* save newlines */
 						newlines++;
-				if (newlines && c != EOF) {
+				if (newlines && c != -1) {
 					shf_ungetc(c, x.u.shf);
 					c = '\n';
 					--newlines;
 				}
 			}
-			if (c == EOF) {
+			if (c == -1) {
 				newlines = 0;
 				if (x.u.shf)
 					shf_close(x.u.shf);
