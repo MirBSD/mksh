@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.140 2015/02/06 09:42:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.141 2015/02/06 09:42:46 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -556,7 +556,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			ap++;
 			flags |= XEXEC;
 		} else if (tp->val.f == c_command) {
-			int optc, saw_p = 0;
+			int optc;
+			bool saw_p = false;
 
 			/*
 			 * Ugly dealing with options in two places (here
@@ -564,7 +565,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			 */
 			ksh_getopt_reset(&builtin_opt, 0);
 			while ((optc = ksh_getopt(ap, &builtin_opt, ":p")) == 'p')
-				saw_p = 1;
+				saw_p = true;
 			if (optc != EOF)
 				/* command -vV or something */
 				break;
