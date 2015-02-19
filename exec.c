@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.144 2015/02/19 21:58:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.145 2015/02/19 22:00:03 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -1492,7 +1492,7 @@ hereinval(const char *content, int sub, char **resbuf, struct shf *shf)
 		if (yylex(sub) != LWORD)
 			internal_errorf("%s: %s", "herein", "yylex");
 		source = osource;
-		ccp = evalstr(yylval.cp, 0);
+		ccp = evalstr(yylval.cp, DOSCALAR);
 	}
 
 	if (resbuf == NULL)
