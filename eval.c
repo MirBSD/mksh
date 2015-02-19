@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.164 2015/02/19 22:01:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.165 2015/02/19 22:26:48 tg Exp $");
 
 /*
  * string expansion
@@ -847,15 +847,20 @@ expand(
 					continue;
 				}
 				c = ifs0;
+				if ((f & DOHEREDOC)) {
+					/* pseudo-field-split reliably */
+					if (c == 0)
+						c = ' ';
+					break;
+				}
 				if ((f & DOSCALAR)) {
 					/* do not field-split */
 					if (x.split) {
 						c = ' ';
 						break;
 					}
-					if (c == 0) {
+					if (c == 0)
 						continue;
-					}
 				}
 				if (c == 0) {
 					if (quote && !x.split)

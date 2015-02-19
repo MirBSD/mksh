@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.679 2015/02/13 12:51:30 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.680 2015/02/19 22:26:47 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2015/02/13
+	@(#)MIRBSD KSH R50 2015/02/19
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2015/02/13
+	@(#)LEGACY KSH R50 2015/02/19
 description:
 	Check version of legacy shell.
 stdin:
@@ -2480,6 +2480,51 @@ expected-stdout:
 	} |
 	| vapp1^vapp2^ |
 ---
+name: heredoc-12
+description:
+	Check here documents can use $* and $@; note shells vary:
+	• pdksh 5.2.14 acts the same
+	• dash has 1 and 2 the same but 3 lacks the space
+	• ksh93, bash4 differ in 2 by using space ipv colon
+stdin:
+	set -- a b
+	nl='
+	'
+	IFS=" 	$nl"; n=1
+	cat <<EOF
+	$n foo $* foo
+	$n bar "$*" bar
+	$n baz $@ baz
+	$n bla "$@" bla
+	EOF
+	IFS=":"; n=2
+	cat <<EOF
+	$n foo $* foo
+	$n bar "$*" bar
+	$n baz $@ baz
+	$n bla "$@" bla
+	EOF
+	IFS=; n=3
+	cat <<EOF
+	$n foo $* foo
+	$n bar "$*" bar
+	$n baz $@ baz
+	$n bla "$@" bla
+	EOF
+expected-stdout:
+	1 foo a b foo
+	1 bar "a b" bar
+	1 baz a b baz
+	1 bla "a b" bla
+	2 foo a:b foo
+	2 bar "a:b" bar
+	2 baz a:b baz
+	2 bla "a:b" bla
+	3 foo a b foo
+	3 bar "a b" bar
+	3 baz a b baz
+	3 bla "a b" bla
+---
 name: heredoc-comsub-1
 description:
 	Tests for here documents in COMSUB, taken from Austin ML
@@ -4241,9 +4286,32 @@ description:
 	http://austingroupbugs.net/view.php?id=221
 stdin:
 	n() { echo "$#"; }; n "${foo-$@}"
-expected-fail: yes
 expected-stdout:
 	1
+---
+name: IFS-subst-9
+description:
+	Scalar context for $*/$@ in [[ and case
+stdin:
+	"$__progname" -c 'IFS=; set a b; [[ $* = "$1$2" ]]; echo 1 $?' sh a b
+	"$__progname" -c 'IFS=; [[ $* = ab ]]; echo 2 "$?"' sh a b
+	"$__progname" -c 'IFS=; [[ "$*" = ab ]]; echo 3 "$?"' sh a b
+	"$__progname" -c 'IFS=; [[ $* = a ]]; echo 4 "$?"' sh a b
+	"$__progname" -c 'IFS=; [[ "$*" = a ]]; echo 5 "$?"' sh a b
+	"$__progname" -c 'IFS=; [[ "$@" = a ]]; echo 6 "$?"' sh a b
+	"$__progname" -c 'IFS=; case "$@" in a) echo 7 a;; ab) echo 7 b;; a\ b) echo 7 ok;; esac' sh a b
+	"$__progname" -c 'IFS=; case $* in a) echo 8 a;; ab) echo 8 ok;; esac' sh a b
+	"$__progname" -c 'pfsp() { for s_arg in "$@"; do print -nr -- "<$s_arg> "; done; print .; }; IFS=; star=$* at="$@"; pfsp 9 "$star" "$at"' sh a b
+expected-stdout:
+	1 0
+	2 0
+	3 0
+	4 1
+	5 1
+	6 1
+	7 ok
+	8 ok
+	<9> <ab> <a b> .
 ---
 name: IFS-arith-1
 description:
@@ -8342,13 +8410,21 @@ name: varexpand-null-1
 description:
 	Ensure empty strings expand emptily
 stdin:
-	print x ${a} ${b} y
-	print z ${a#?} ${b%?} w
-	print v ${a=} ${b/c/d} u
+	print s ${a} . ${b} S
+	print t ${a#?} . ${b%?} T
+	print r ${a=} . ${b/c/d} R
+	print q
+	print s "${a}" . "${b}" S
+	print t "${a#?}" . "${b%?}" T
+	print r "${a=}" . "${b/c/d}" R
 expected-stdout:
-	x y
-	z w
-	v u
+	s . S
+	t . T
+	r . R
+	q
+	s  .  S
+	t  .  T
+	r  .  R
 ---
 name: varexpand-null-2
 description:
@@ -8368,7 +8444,6 @@ stdin:
 	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	x=; showargs 1 "$x"$@
 	set A; showargs 2 "${@:+}"
-expected-fail: yes
 expected-stdout:
 	<1> <> .
 	<2> <> .
