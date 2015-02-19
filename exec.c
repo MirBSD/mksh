@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.143 2015/02/06 10:56:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.144 2015/02/19 21:58:19 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -403,7 +403,7 @@ execute(struct op * volatile t,
 
 	case TCASE:
 		i = 0;
-		ccp = evalstr(t->str, DOTILDE);
+		ccp = evalstr(t->str, DOTILDE | DOSCALAR);
 		for (t = t->left; t != NULL && t->type == TPAT; t = t->right) {
 			for (ap = (const char **)t->vars; *ap; ap++) {
 				if (i || ((s = evalstr(*ap, DOTILDE|DOPAT)) &&
@@ -1735,6 +1735,7 @@ static const char *
 dbteste_getopnd(Test_env *te, Test_op op, bool do_eval)
 {
 	const char *s = *te->pos.wp;
+	int flags = DOTILDE | DOSCALAR;
 
 	if (!s)
 		return (NULL);
@@ -1745,11 +1746,9 @@ dbteste_getopnd(Test_env *te, Test_op op, bool do_eval)
 		return (null);
 
 	if (op == TO_STEQL || op == TO_STNEQ)
-		s = evalstr(s, DOTILDE | DOPAT);
-	else
-		s = evalstr(s, DOTILDE);
+		flags |= DOPAT;
 
-	return (s);
+	return (evalstr(s, flags));
 }
 
 static void
