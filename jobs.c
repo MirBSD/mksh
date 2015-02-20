@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.107 2015/02/20 12:43:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.108 2015/02/20 13:08:28 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1111,6 +1111,7 @@ j_waitj(Job *j,
     int flags,
     const char *where)
 {
+	Proc *p;
 	int rv;
 #ifdef MKSH_NO_SIGSUSPEND
 	sigset_t omask;
@@ -1238,9 +1239,10 @@ j_waitj(Job *j,
 	j_systime = j->systime;
 	rv = j->status;
 
-	if ((flags & JW_PIPEST) && (j->proc_list != NULL)) {
+	if (!(p = j->proc_list)) {
+		/* nothing */;
+	} else if (flags & JW_PIPEST) {
 		uint32_t num = 0;
-		Proc *p = j->proc_list;
 		struct tbl *vp;
 
 		unset(vp_pipest, 1);
@@ -1270,14 +1272,13 @@ j_waitj(Job *j,
 				rv = vp->val.i;
 			p = p->next;
 		}
-	} else if (Flag(FPIPEFAIL) && (j->proc_list != NULL)) {
-		Proc *p = j->proc_list;
-		int i;
-
+	} else if (Flag(FPIPEFAIL)) {
 		do {
-			if ((i = proc_errorlevel(p)))
+			const int i = proc_errorlevel(p);
+
+			if (i)
 				rv = i;
-		} while ((p = p->next) != NULL);
+		} while ((p = p->next));
 	}
 
 	if (!(flags & JW_ASYNCNOTIFY)
