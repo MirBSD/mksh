@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.680 2015/02/19 22:26:47 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.681 2015/02/20 07:14:26 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2015/02/19
+	@(#)MIRBSD KSH R50 2015/02/20
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2015/02/19
+	@(#)LEGACY KSH R50 2015/02/20
 description:
 	Check version of legacy shell.
 stdin:
@@ -8444,9 +8444,37 @@ stdin:
 	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	x=; showargs 1 "$x"$@
 	set A; showargs 2 "${@:+}"
+	n() { echo "$#"; }
+	unset e
+	set -- a b
+	n """$@"
+	n "$@"
+	n "$@"""
+	n "$e""$@"
+	n "$@"
+	n "$@""$e"
+	set --
+	n """$@"
+	n "$@"
+	n "$@"""
+	n "$e""$@"
+	n "$@"
+	n "$@""$e"
 expected-stdout:
 	<1> <> .
 	<2> <> .
+	2
+	2
+	2
+	2
+	2
+	2
+	1
+	0
+	1
+	1
+	0
+	1
 ---
 name: print-funny-chars
 description:

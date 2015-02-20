@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.165 2015/02/19 22:26:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.166 2015/02/20 07:14:29 tg Exp $");
 
 /*
  * string expansion
@@ -291,7 +291,17 @@ expand(
 				c = *sp++;
 				break;
 			case OQUOTE:
-				word = IFS_QUOTE;
+				switch (word) {
+				case IFS_QUOTE:
+					/* """something */
+					word = IFS_WORD;
+					break;
+				case IFS_WORD:
+					break;
+				default:
+					word = IFS_QUOTE;
+					break;
+				}
 				tilde_ok = 0;
 				quote = 1;
 				continue;
