@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.106 2014/11/25 21:13:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.107 2015/02/20 12:43:22 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1274,11 +1274,10 @@ j_waitj(Job *j,
 		Proc *p = j->proc_list;
 		int i;
 
-		while (p != NULL) {
+		do {
 			if ((i = proc_errorlevel(p)))
 				rv = i;
-			p = p->next;
-		}
+		} while ((p = p->next) != NULL);
 	}
 
 	if (!(flags & JW_ASYNCNOTIFY)
