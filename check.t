@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.681 2015/02/20 07:14:26 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.682 2015/03/01 15:23:03 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2015/02/20
+	@(#)MIRBSD KSH R50 2015/03/02
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2015/02/20
+	@(#)LEGACY KSH R50 2015/03/02
 description:
 	Check version of legacy shell.
 stdin:
@@ -11929,4 +11929,27 @@ expected-stdout:
 	=GNU bash, version 2.05b.0(1)-release (i386-ecce-mirbsd10)=
 expected-stderr-pattern:
 	/.*/
+---
+name: xtrace-2
+description:
+	Check that "set -x" is off during PS4 expansion
+stdin:
+	f() {
+		print -n "(f1:$-)"
+		set -x
+		print -n "(f2:$-)"
+	}
+	PS4='[(p:$-)$(f)] '
+	print "(o0:$-)"
+	set -x -o inherit-xtrace
+	print "(o1:$-)"
+	set +x
+	print "(o2:$-)"
+expected-stdout:
+	(o0:sh)
+	(o1:shx)
+	(o2:sh)
+expected-stderr:
+	[(p:sh)(f1:sh)(f2:sh)] print '(o1:shx)'
+	[(p:sh)(f1:sh)(f2:sh)] set +x
 ---
