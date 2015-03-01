@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.195 2014/12/15 22:50:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.196 2015/03/01 16:02:48 tg Exp $");
 
 /*
  * states while lexing word
@@ -1161,7 +1161,7 @@ readhere(struct ioword *iop)
 	if (iop->flag & IOSKIP) {
 		/* skip over leading tabs */
 		while ((c = getsc()) == '\t')
-			/* nothing */;
+			;	/* nothing */
 		goto heredoc_parse_char;
 	}
  heredoc_read_char:

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.109 2015/03/01 15:43:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.110 2015/03/01 16:02:48 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1240,7 +1240,7 @@ j_waitj(Job *j,
 	rv = j->status;
 
 	if (!(p = j->proc_list)) {
-		/* nothing */;
+		;	/* nothing */
 	} else if (flags & JW_PIPEST) {
 		uint32_t num = 0;
 		struct tbl *vp;
