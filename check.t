@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.667.2.2 2015/01/25 15:35:36 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.667.2.3 2015/03/01 15:42:51 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2015/01/24
+	@(#)MIRBSD KSH R50 2015/03/01
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2015/01/24
+	@(#)LEGACY KSH R50 2015/03/01
 description:
 	Check version of legacy shell.
 stdin:
@@ -2480,6 +2480,51 @@ expected-stdout:
 	} |
 	| vapp1^vapp2^ |
 ---
+name: heredoc-12
+description:
+	Check here documents can use $* and $@; note shells vary:
+	• pdksh 5.2.14 acts the same
+	• dash has 1 and 2 the same but 3 lacks the space
+	• ksh93, bash4 differ in 2 by using space ipv colon
+stdin:
+	set -- a b
+	nl='
+	'
+	IFS=" 	$nl"; n=1
+	cat <<EOF
+	$n foo $* foo
+	$n bar "$*" bar
+	$n baz $@ baz
+	$n bla "$@" bla
+	EOF
+	IFS=":"; n=2
+	cat <<EOF
+	$n foo $* foo
+	$n bar "$*" bar
+	$n baz $@ baz
+	$n bla "$@" bla
+	EOF
+	IFS=; n=3
+	cat <<EOF
+	$n foo $* foo
+	$n bar "$*" bar
+	$n baz $@ baz
+	$n bla "$@" bla
+	EOF
+expected-stdout:
+	1 foo a b foo
+	1 bar "a b" bar
+	1 baz a b baz
+	1 bla "a b" bla
+	2 foo a:b foo
+	2 bar "a:b" bar
+	2 baz a:b baz
+	2 bla "a:b" bla
+	3 foo a b foo
+	3 bar "a b" bar
+	3 baz a b baz
+	3 bla "a b" bla
+---
 name: heredoc-comsub-1
 description:
 	Tests for here documents in COMSUB, taken from Austin ML
@@ -4241,9 +4286,32 @@ description:
 	http://austingroupbugs.net/view.php?id=221
 stdin:
 	n() { echo "$#"; }; n "${foo-$@}"
-expected-fail: yes
 expected-stdout:
 	1
+---
+name: IFS-subst-9
+description:
+	Scalar context for $*/$@ in [[ and case
+stdin:
+	"$__progname" -c 'IFS=; set a b; [[ $* = "$1$2" ]]; echo 1 $?' sh a b
+	"$__progname" -c 'IFS=; [[ $* = ab ]]; echo 2 "$?"' sh a b
+	"$__progname" -c 'IFS=; [[ "$*" = ab ]]; echo 3 "$?"' sh a b
+	"$__progname" -c 'IFS=; [[ $* = a ]]; echo 4 "$?"' sh a b
+	"$__progname" -c 'IFS=; [[ "$*" = a ]]; echo 5 "$?"' sh a b
+	"$__progname" -c 'IFS=; [[ "$@" = a ]]; echo 6 "$?"' sh a b
+	"$__progname" -c 'IFS=; case "$@" in a) echo 7 a;; ab) echo 7 b;; a\ b) echo 7 ok;; esac' sh a b
+	"$__progname" -c 'IFS=; case $* in a) echo 8 a;; ab) echo 8 ok;; esac' sh a b
+	"$__progname" -c 'pfsp() { for s_arg in "$@"; do print -nr -- "<$s_arg> "; done; print .; }; IFS=; star=$* at="$@"; pfsp 9 "$star" "$at"' sh a b
+expected-stdout:
+	1 0
+	2 0
+	3 0
+	4 1
+	5 1
+	6 1
+	7 ok
+	8 ok
+	<9> <ab> <a b> .
 ---
 name: IFS-arith-1
 description:
@@ -8345,13 +8413,21 @@ name: varexpand-null-1
 description:
 	Ensure empty strings expand emptily
 stdin:
-	print x ${a} ${b} y
-	print z ${a#?} ${b%?} w
-	print v ${a=} ${b/c/d} u
+	print s ${a} . ${b} S
+	print t ${a#?} . ${b%?} T
+	print r ${a=} . ${b/c/d} R
+	print q
+	print s "${a}" . "${b}" S
+	print t "${a#?}" . "${b%?}" T
+	print r "${a=}" . "${b/c/d}" R
 expected-stdout:
-	x y
-	z w
-	v u
+	s . S
+	t . T
+	r . R
+	q
+	s  .  S
+	t  .  T
+	r  .  R
 ---
 name: varexpand-null-2
 description:
@@ -8371,10 +8447,37 @@ stdin:
 	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
 	x=; showargs 1 "$x"$@
 	set A; showargs 2 "${@:+}"
-expected-fail: yes
+	n() { echo "$#"; }
+	unset e
+	set -- a b
+	n """$@"
+	n "$@"
+	n "$@"""
+	n "$e""$@"
+	n "$@"
+	n "$@""$e"
+	set --
+	n """$@"
+	n "$@"
+	n "$@"""
+	n "$e""$@"
+	n "$@"
+	n "$@""$e"
 expected-stdout:
 	<1> <> .
 	<2> <> .
+	2
+	2
+	2
+	2
+	2
+	2
+	1
+	0
+	1
+	1
+	0
+	1
 ---
 name: print-funny-chars
 description:
@@ -11829,4 +11932,27 @@ expected-stdout:
 	=GNU bash, version 2.05b.0(1)-release (i386-ecce-mirbsd10)=
 expected-stderr-pattern:
 	/.*/
+---
+name: xtrace-2
+description:
+	Check that "set -x" is off during PS4 expansion
+stdin:
+	f() {
+		print -n "(f1:$-)"
+		set -x
+		print -n "(f2:$-)"
+	}
+	PS4='[(p:$-)$(f)] '
+	print "(o0:$-)"
+	set -x -o inherit-xtrace
+	print "(o1:$-)"
+	set +x
+	print "(o2:$-)"
+expected-stdout:
+	(o0:sh)
+	(o1:shx)
+	(o2:sh)
+expected-stderr:
+	[(p:sh)(f1:sh)(f2:sh)] print '(o1:shx)'
+	[(p:sh)(f1:sh)(f2:sh)] set +x
 ---

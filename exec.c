@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014
+ *		 2011, 2012, 2013, 2014, 2015
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.137.2.1 2015/01/11 22:39:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.137.2.2 2015/03/01 15:42:59 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -403,7 +403,7 @@ execute(struct op * volatile t,
 
 	case TCASE:
 		i = 0;
-		ccp = evalstr(t->str, DOTILDE);
+		ccp = evalstr(t->str, DOTILDE | DOSCALAR);
 		for (t = t->left; t != NULL && t->type == TPAT; t = t->right) {
 			for (ap = (const char **)t->vars; *ap; ap++) {
 				if (i || ((s = evalstr(*ap, DOTILDE|DOPAT)) &&
@@ -446,7 +446,6 @@ execute(struct op * volatile t,
 
 	case TEXEC:
 		/* an eval'd TCOM */
-		s = t->args[0];
 		up = makenv();
 		restoresigs();
 		cleanup_proc_env();
@@ -460,7 +459,7 @@ execute(struct op * volatile t,
 		if (rv == ENOEXEC)
 			scriptexec(t, (const char **)up);
 		else
-			errorf("%s: %s", s, cstrerror(rv));
+			errorf("%s: %s", t->str, cstrerror(rv));
 	}
  Break:
 	exstat = rv & 0xFF;
@@ -507,16 +506,19 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	int type_flags;
 	bool resetspec;
 	int fcflags = FC_BI|FC_FUNC|FC_PATH;
-	bool bourne_function_call = false;
 	struct block *l_expand, *l_assign;
+	int optc;
+	const char *exec_argv0 = NULL;
+	bool exec_clrenv = false;
 
-	/*
-	 * snag the last argument for $_ XXX not the same as AT&T ksh,
-	 * which only seems to set $_ after a newline (but not in
-	 * functions/dot scripts, but in interactive and script) -
-	 * perhaps save last arg here and set it in shell()?.
-	 */
+	/* snag the last argument for $_ */
 	if (Flag(FTALKING) && *(lastp = ap)) {
+		/*
+		 * XXX not the same as AT&T ksh, which only seems to set $_
+		 * after a newline (but not in functions/dot scripts, but in
+		 * interactive and script) - perhaps save last arg here and
+		 * set it in shell()?.
+		 */
 		while (*++lastp)
 			;
 		/* setstr() can't fail here */
@@ -553,10 +555,25 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		} else if (tp->val.f == c_exec) {
 			if (ap[1] == NULL)
 				break;
-			ap++;
+			ksh_getopt_reset(&builtin_opt, GF_ERROR);
+			while ((optc = ksh_getopt(ap, &builtin_opt, "a:c")) != -1)
+				switch (optc) {
+				case 'a':
+					exec_argv0 = builtin_opt.optarg;
+					break;
+				case 'c':
+					exec_clrenv = true;
+					/* ensure we can actually do this */
+					resetspec = true;
+					break;
+				default:
+					rv = 2;
+					goto Leave;
+				}
+			ap += builtin_opt.optind;
 			flags |= XEXEC;
 		} else if (tp->val.f == c_command) {
-			int optc, saw_p = 0;
+			bool saw_p = false;
 
 			/*
 			 * Ugly dealing with options in two places (here
@@ -564,8 +581,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			 */
 			ksh_getopt_reset(&builtin_opt, 0);
 			while ((optc = ksh_getopt(ap, &builtin_opt, ":p")) == 'p')
-				saw_p = 1;
-			if (optc != EOF)
+				saw_p = true;
+			if (optc != -1)
 				/* command -vV or something */
 				break;
 			/* don't look for functions */
@@ -626,13 +643,14 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		newblock();
 		/* ksh functions don't keep assignments, POSIX functions do. */
 		if (!resetspec && tp && tp->type == CFUNC &&
-		    !(tp->flag & FKSH)) {
-			bourne_function_call = true;
+		    !(tp->flag & FKSH))
 			type_flags = EXPORT;
-		} else
+		else
 			type_flags = LOCAL|LOCAL_COPY|EXPORT;
 	}
 	l_assign = e->loc;
+	if (exec_clrenv)
+		l_assign->flags |= BF_STOPENV;
 	if (Flag(FEXPORT))
 		type_flags |= EXPORT;
 	if (Flag(FXTRACE))
@@ -656,8 +674,6 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		}
 		/* but assign in there as usual */
 		typeset(cp, type_flags, 0, 0, 0);
-		if (bourne_function_call && !(type_flags & EXPORT))
-			typeset(cp, LOCAL | LOCAL_COPY | EXPORT, 0, 0, 0);
 	}
 
 	if (Flag(FXTRACE)) {
@@ -815,14 +831,24 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			break;
 		}
 
-		/* set $_ to programme's full path */
+		/* set $_ to program's full path */
 		/* setstr() can't fail here */
 		setstr(typeset("_", LOCAL | EXPORT, 0, INTEGER, 0),
 		    tp->val.s, KSH_RETURN_ERROR);
 
-		if (flags&XEXEC) {
+		/* to fork, we set up a TEXEC node and call execute */
+		texec.type = TEXEC;
+		/* for vistree/dumptree */
+		texec.left = t;
+		texec.str = tp->val.s;
+		texec.args = ap;
+
+		/* in this case we do not fork, of course */
+		if (flags & XEXEC) {
+			if (exec_argv0)
+				texec.args[0] = exec_argv0;
 			j_exit();
-			if (!(flags&XBGND)
+			if (!(flags & XBGND)
 #ifndef MKSH_UNEMPLOYED
 			    || Flag(FMONITOR)
 #endif
@@ -832,12 +858,6 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			}
 		}
 
-		/* to fork we set up a TEXEC node and call execute */
-		texec.type = TEXEC;
-		/* for tprint */
-		texec.left = t;
-		texec.str = tp->val.s;
-		texec.args = ap;
 		rv = exchild(&texec, flags, xerrok, -1);
 		break;
 	}
@@ -1472,7 +1492,7 @@ hereinval(const char *content, int sub, char **resbuf, struct shf *shf)
 		if (yylex(sub) != LWORD)
 			internal_errorf("%s: %s", "herein", "yylex");
 		source = osource;
-		ccp = evalstr(yylval.cp, 0);
+		ccp = evalstr(yylval.cp, DOSCALAR | DOHEREDOC);
 	}
 
 	if (resbuf == NULL)
@@ -1492,7 +1512,7 @@ herein(struct ioword *iop, char **resbuf)
 	struct temp *h;
 	int i;
 
-	/* ksh -c 'cat << EOF' can cause this... */
+	/* ksh -c 'cat <<EOF' can cause this... */
 	if (iop->heredoc == NULL) {
 		warningf(true, "%s missing", "here document");
 		/* special to iosetup(): don't print error */
@@ -1527,7 +1547,7 @@ herein(struct ioword *iop, char **resbuf)
 		return (-2);
 	}
 
-	if (shf_close(shf) == EOF) {
+	if (shf_close(shf) == -1) {
 		i = errno;
 		close(fd);
 		warningf(true, "can't %s temporary file %s: %s",
@@ -1715,6 +1735,7 @@ static const char *
 dbteste_getopnd(Test_env *te, Test_op op, bool do_eval)
 {
 	const char *s = *te->pos.wp;
+	int flags = DOTILDE | DOSCALAR;
 
 	if (!s)
 		return (NULL);
@@ -1725,11 +1746,9 @@ dbteste_getopnd(Test_env *te, Test_op op, bool do_eval)
 		return (null);
 
 	if (op == TO_STEQL || op == TO_STNEQ)
-		s = evalstr(s, DOTILDE | DOPAT);
-	else
-		s = evalstr(s, DOTILDE);
+		flags |= DOPAT;
 
-	return (s);
+	return (evalstr(s, flags));
 }
 
 static void

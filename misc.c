@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.219.2.1 2015/01/25 15:35:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.219.2.2 2015/03/01 15:43:02 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -304,6 +304,11 @@ change_flag(enum sh_flag f, int what, bool newset)
 void
 change_xtrace(unsigned char newval, bool dosnapshot)
 {
+	static bool in_xtrace;
+
+	if (in_xtrace)
+		return;
+
 	if (!dosnapshot && newval == Flag(FXTRACE))
 		return;
 
@@ -328,8 +333,13 @@ change_xtrace(unsigned char newval, bool dosnapshot)
 		shl_xtrace->fd = 2;
 
  changed_xtrace:
-	if ((Flag(FXTRACE) = newval) == 2)
+	if ((Flag(FXTRACE) = newval) == 2) {
+		in_xtrace = true;
+		Flag(FXTRACE) = 0;
 		shf_puts(substitute(str_val(global("PS4")), 0), shl_xtrace);
+		Flag(FXTRACE) = 2;
+		in_xtrace = false;
+	}
 }
 
 /*

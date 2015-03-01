@@ -1,4 +1,4 @@
-/*	$OpenBSD: main.c,v 1.54 2013/11/28 10:33:37 sobrado Exp $	*/
+/*	$OpenBSD: main.c,v 1.55 2015/02/09 09:09:30 jsg Exp $	*/
 /*	$OpenBSD: tty.c,v 1.10 2014/08/10 02:44:26 guenther Exp $	*/
 /*	$OpenBSD: io.c,v 1.25 2014/08/11 20:28:47 guenther Exp $	*/
 /*	$OpenBSD: table.c,v 1.15 2012/02/19 07:52:30 otto Exp $	*/
@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.285.2.1 2015/01/25 15:35:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.285.2.2 2015/03/01 15:43:01 tg Exp $");
 
 extern char **environ;
 
@@ -892,6 +892,13 @@ unwind(int i)
 			/* FALLTHROUGH */
 		default:
 			quitenv(NULL);
+			/*
+			 * quitenv() may have reclaimed the memory
+			 * used by source which will end badly when
+			 * we jump to a function that expects it to
+			 * be valid
+			 */
+			source = NULL;
 		}
 	}
 }

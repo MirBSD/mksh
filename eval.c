@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014
+ *		 2011, 2012, 2013, 2014, 2015
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.158.2.3 2015/01/25 15:44:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.158.2.4 2015/03/01 15:42:58 tg Exp $");
 
 /*
  * string expansion
@@ -59,10 +59,11 @@ typedef struct {
 #define XSUBMID		6	/* middle of expanding ${} */
 
 /* States used for field splitting */
-#define IFS_WORD	0	/* word has chars (or quotes) */
+#define IFS_WORD	0	/* word has chars (or quotes except "$@") */
 #define IFS_WS		1	/* have seen IFS white-space */
 #define IFS_NWS		2	/* have seen IFS non-white-space */
 #define IFS_IWS		3	/* begin of word, ignore IFS WS */
+#define IFS_QUOTE	4	/* beg.w/quote, become IFS_WORD unless "$@" */
 
 static int varsub(Expand *, const char *, const char *, int *, int *);
 static int comsub(Expand *, const char *, int);
@@ -290,7 +291,17 @@ expand(
 				c = *sp++;
 				break;
 			case OQUOTE:
-				word = IFS_WORD;
+				switch (word) {
+				case IFS_QUOTE:
+					/* """something */
+					word = IFS_WORD;
+					break;
+				case IFS_WORD:
+					break;
+				default:
+					word = IFS_QUOTE;
+					break;
+				}
 				tilde_ok = 0;
 				quote = 1;
 				continue;
@@ -383,6 +394,8 @@ expand(
 				if (f & DOBLANK)
 					doblank++;
 				tilde_ok = 0;
+				if (word == IFS_QUOTE && type != XNULLSUB)
+					word = IFS_WORD;
 				if (type == XBASE) {
 					/* expand? */
 					if (!st->next) {
@@ -709,8 +722,14 @@ expand(
 					if (x.str[0] != '\0') {
 						word = IFS_IWS;
 						type = XSUB;
-					} else
-						type = quote ? XSUB : XNULLSUB;
+					} else if (quote) {
+						word = IFS_WORD;
+						type = XSUB;
+					} else {
+						if (dp == Xstring(ds, dp))
+							word = IFS_IWS;
+						type = XNULLSUB;
+					}
 					if (f & DOBLANK)
 						doblank++;
 					st = st->prev;
@@ -803,7 +822,7 @@ expand(
 			type = XBASE;
 			if (f & DOBLANK) {
 				doblank--;
-				if (dp == Xstring(ds, dp))
+				if (dp == Xstring(ds, dp) && word != IFS_WORD)
 					word = IFS_IWS;
 			}
 			continue;
@@ -838,15 +857,20 @@ expand(
 					continue;
 				}
 				c = ifs0;
+				if ((f & DOHEREDOC)) {
+					/* pseudo-field-split reliably */
+					if (c == 0)
+						c = ' ';
+					break;
+				}
 				if ((f & DOSCALAR)) {
 					/* do not field-split */
 					if (x.split) {
 						c = ' ';
 						break;
 					}
-					if (c == 0) {
+					if (c == 0)
 						continue;
-					}
 				}
 				if (c == 0) {
 					if (quote && !x.split)
@@ -871,7 +895,7 @@ expand(
 				/* $(<...) failed */
 				subst_exstat = 1;
 				/* fake EOF */
-				c = EOF;
+				c = -1;
 			} else if (newlines) {
 				/* spit out saved NLs */
 				c = '\n';
@@ -881,13 +905,13 @@ expand(
 					if (c == '\n')
 						/* save newlines */
 						newlines++;
-				if (newlines && c != EOF) {
+				if (newlines && c != -1) {
 					shf_ungetc(c, x.u.shf);
 					c = '\n';
 					--newlines;
 				}
 			}
-			if (c == EOF) {
+			if (c == -1) {
 				newlines = 0;
 				if (x.u.shf)
 					shf_close(x.u.shf);
@@ -915,7 +939,7 @@ expand(
 			 *	IFS_IWS			-/WS	w/NWS	-
 			 * (w means generate a word)
 			 */
-			if ((word == IFS_WORD) || (c &&
+			if ((word == IFS_WORD) || (word == IFS_QUOTE) || (c &&
 			    (word == IFS_IWS || word == IFS_NWS) &&
 			    !ctype(c, C_IFSWS))) {
  emit_word:
@@ -1749,28 +1773,30 @@ homedir(char *name)
 static void
 alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 {
-	int count = 0;
+	unsigned int count = 0;
 	char *brace_start, *brace_end, *comma = NULL;
 	char *field_start;
-	char *p;
+	char *p = exp_start;
 
 	/* search for open brace */
-	for (p = exp_start; (p = strchr(p, MAGIC)) && p[1] != '{' /*}*/; p += 2)
-		;
+	while ((p = strchr(p, MAGIC)) && p[1] != '{' /*}*/)
+		p += 2;
 	brace_start = p;
 
 	/* find matching close brace, if any */
 	if (p) {
 		comma = NULL;
 		count = 1;
-		for (p += 2; *p && count; p++) {
-			if (ISMAGIC(*p)) {
-				if (*++p == '{' /*}*/)
-					count++;
+		p += 2;
+		while (*p && count) {
+			if (ISMAGIC(*p++)) {
+				if (*p == '{' /*}*/)
+					++count;
 				else if (*p == /*{*/ '}')
 					--count;
 				else if (*p == ',' && count == 1)
 					comma = p;
+				++p;
 			}
 		}
 	}
@@ -1799,7 +1825,7 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 	for (p = brace_start + 2; p != brace_end; p++) {
 		if (ISMAGIC(*p)) {
 			if (*++p == '{' /*}*/)
-				count++;
+				++count;
 			else if ((*p == /*{*/ '}' && --count == 0) ||
 			    (*p == ',' && count == 1)) {
 				char *news;

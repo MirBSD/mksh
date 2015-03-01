@@ -1,9 +1,9 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.344.2.2 2015/01/25 15:35:49 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.344.2.3 2015/03/01 15:43:03 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.156 2015/01/16 15:32:32 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
 .\"		2010, 2011, 2012, 2013, 2014, 2015
-.\"	Thorsten Glaser <tg@mirbsd.org>
+.\"	Thorsten “mirabilos” Glaser <tg@mirbsd.org>
 .\"
 .\" Provided that these terms and disclaimer and all copyright notices
 .\" are retained or reproduced in an accompanying document, permission
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 25 2015 $
+.Dd $Mdocdate: March 1 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -3376,9 +3376,25 @@ string which the shell then parses and executes in the current environment.
 .Pp
 .It Xo
 .Ic exec
+.Op Fl a Ar argv0
+.Op Fl c
 .Op Ar command Op Ar arg ...
 .Xc
 The command is executed without forking, replacing the shell process.
+This is currently absolute, i.e.\&
+.Ic exec
+never returns, even if the
+.Ar command
+is not found.
+The
+.Fl a
+option permits setting a different
+.Li argv[0]
+value, and
+.Fl c
+clears the environment before executing the child process, except for the
+.Ev _
+variable and direct assignments.
 .Pp
 If no command is given except for I/O redirection, the I/O redirection is
 permanent and the shell is
@@ -6485,7 +6501,7 @@ $ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
 This document attempts to describe
-.Nm mksh\ R50
+.Nm mksh\ R50e
 and up,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,

@@ -3,7 +3,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2014
+ *		 2011, 2012, 2014, 2015
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.134.2.2 2015/01/25 15:44:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.134.2.3 2015/03/01 15:43:00 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -303,7 +303,7 @@ c_fc(const char **wp)
 	for (hp = rflag ? hlast : hfirst;
 	    hp >= hfirst && hp <= hlast; hp += rflag ? -1 : 1)
 		shf_fprintf(shf, "%s\n", *hp);
-	if (shf_close(shf) == EOF) {
+	if (shf_close(shf) == -1) {
 		bi_errorf("can't %s temporary file %s: %s",
 		    "write", tf->tffn, cstrerror(errno));
 		return (1);

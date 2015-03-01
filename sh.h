@@ -169,9 +169,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.701.2.3 2015/01/25 15:44:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.701.2.4 2015/03/01 15:43:05 tg Exp $");
 #endif
-#define MKSH_VERSION "R50 2015/01/24"
+#define MKSH_VERSION "R50 2015/03/01"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -537,7 +537,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 504)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 505)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -1237,6 +1237,7 @@ struct block {
 
 /* Values for struct block.flags */
 #define BF_DOGETOPTS	BIT(0)	/* save/restore getopts state */
+#define BF_STOPENV	BIT(1)	/* do not export further */
 
 /*
  * Used by ktwalk() and ktnext() routines.
@@ -1401,6 +1402,7 @@ struct ioword {
 #define DOMARKDIRS BIT(10)	/* force markdirs behaviour */
 #define DOTCOMEXEC BIT(11)	/* not an eval flag, used by sh -c hack */
 #define DOSCALAR BIT(12)	/* change field handling to non-list context */
+#define DOHEREDOC BIT(13)	/* change scalar handling to heredoc body */
 
 #define X_EXTRA	20	/* this many extra bytes in X string */
 
