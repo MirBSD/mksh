@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.350 2015/03/01 15:43:09 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.351 2015/03/05 13:30:57 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.156 2015/01/16 15:32:32 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 1 2015 $
+.Dd $Mdocdate: March 5 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -6503,6 +6503,7 @@ $ /bin/sleep 666 && echo fubar
 This document attempts to describe
 .Nm mksh\ R50e
 and up,
+.\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
 when not called as
