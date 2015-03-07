@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.186 2015/02/06 10:56:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.187 2015/03/07 20:46:31 tg Exp $");
 
 /*-
  * Variables
@@ -1351,6 +1351,11 @@ unsetspec(struct tbl *vp)
 	 */
 
 	switch (special(vp->name)) {
+#if HAVE_PERSISTENT_HISTORY
+	case V_HISTFILE:
+		sethistfile(NULL);
+		return;
+#endif
 	case V_IFS:
 		setctypes(TC_IFSWS, C_IFS);
 		ifs0 = ' ';
