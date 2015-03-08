@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.683 2015/03/07 20:46:26 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.684 2015/03/08 22:54:31 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2015/03/07
+	@(#)MIRBSD KSH R50 2015/03/08
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2015/03/07
+	@(#)LEGACY KSH R50 2015/03/08
 description:
 	Check version of legacy shell.
 stdin:
@@ -7370,19 +7370,19 @@ stdin:
 	alias
 	typeset -f
 expected-stdout:
-	autoload='typeset -fu'
-	functions='typeset -f'
-	hash='alias -t'
-	history='fc -l'
-	integer='typeset -i'
-	local=typeset
-	login='exec login'
-	nameref='typeset -n'
+	autoload='\builtin typeset -fu'
+	functions='\builtin typeset -f'
+	hash='\builtin alias -t'
+	history='\builtin fc -l'
+	integer='\builtin typeset -i'
+	local='\builtin typeset'
+	login='\exec login'
+	nameref='\builtin typeset -n'
 	nohup='nohup '
-	r='fc -e -'
-	source='PATH=$PATH:. command .'
-	stop='kill -STOP'
-	type='whence -v'
+	r='\builtin fc -e -'
+	source='PATH=$PATH:. \command .'
+	stop='\kill -STOP'
+	type='\builtin whence -v'
 ---
 name: aliases-1-hartz4
 description:
@@ -7392,42 +7392,18 @@ stdin:
 	alias
 	typeset -f
 expected-stdout:
-	autoload='typeset -fu'
-	functions='typeset -f'
-	hash='alias -t'
-	history='fc -l'
-	integer='typeset -i'
-	local=typeset
-	login='exec login'
-	nameref='typeset -n'
+	autoload='\builtin typeset -fu'
+	functions='\builtin typeset -f'
+	hash='\builtin alias -t'
+	history='\builtin fc -l'
+	integer='\builtin typeset -i'
+	local='\builtin typeset'
+	login='\exec login'
+	nameref='\builtin typeset -n'
 	nohup='nohup '
-	r='fc -e -'
-	source='PATH=$PATH:. command .'
-	type='whence -v'
----
-name: aliases-2a
-description:
-	Check if “set -o sh” disables built-in aliases (except a few)
-category: disabled
-arguments: !-o!sh!
-stdin:
-	alias
-	typeset -f
-expected-stdout:
-	integer='typeset -i'
-	local=typeset
----
-name: aliases-3a
-description:
-	Check if running as sh disables built-in aliases (except a few)
-category: disabled
-stdin:
-	cp "$__progname" sh
-	./sh -c 'alias; typeset -f'
-	rm -f sh
-expected-stdout:
-	integer='typeset -i'
-	local=typeset
+	r='\builtin fc -e -'
+	source='PATH=$PATH:. \command .'
+	type='\builtin whence -v'
 ---
 name: aliases-2b
 description:
@@ -7438,19 +7414,19 @@ stdin:
 	alias
 	typeset -f
 expected-stdout:
-	autoload='typeset -fu'
-	functions='typeset -f'
-	hash='alias -t'
-	history='fc -l'
-	integer='typeset -i'
-	local=typeset
-	login='exec login'
-	nameref='typeset -n'
+	autoload='\builtin typeset -fu'
+	functions='\builtin typeset -f'
+	hash='\builtin alias -t'
+	history='\builtin fc -l'
+	integer='\builtin typeset -i'
+	local='\builtin typeset'
+	login='\exec login'
+	nameref='\builtin typeset -n'
 	nohup='nohup '
-	r='fc -e -'
-	source='PATH=$PATH:. command .'
-	stop='kill -STOP'
-	type='whence -v'
+	r='\builtin fc -e -'
+	source='PATH=$PATH:. \command .'
+	stop='\kill -STOP'
+	type='\builtin whence -v'
 ---
 name: aliases-3b
 description:
@@ -7461,19 +7437,19 @@ stdin:
 	./sh -c 'alias; typeset -f'
 	rm -f sh
 expected-stdout:
-	autoload='typeset -fu'
-	functions='typeset -f'
-	hash='alias -t'
-	history='fc -l'
-	integer='typeset -i'
-	local=typeset
-	login='exec login'
-	nameref='typeset -n'
+	autoload='\builtin typeset -fu'
+	functions='\builtin typeset -f'
+	hash='\builtin alias -t'
+	history='\builtin fc -l'
+	integer='\builtin typeset -i'
+	local='\builtin typeset'
+	login='\exec login'
+	nameref='\builtin typeset -n'
 	nohup='nohup '
-	r='fc -e -'
-	source='PATH=$PATH:. command .'
-	stop='kill -STOP'
-	type='whence -v'
+	r='\builtin fc -e -'
+	source='PATH=$PATH:. \command .'
+	stop='\kill -STOP'
+	type='\builtin whence -v'
 ---
 name: aliases-2b-hartz4
 description:
@@ -7484,18 +7460,18 @@ stdin:
 	alias
 	typeset -f
 expected-stdout:
-	autoload='typeset -fu'
-	functions='typeset -f'
-	hash='alias -t'
-	history='fc -l'
-	integer='typeset -i'
-	local=typeset
-	login='exec login'
-	nameref='typeset -n'
+	autoload='\builtin typeset -fu'
+	functions='\builtin typeset -f'
+	hash='\builtin alias -t'
+	history='\builtin fc -l'
+	integer='\builtin typeset -i'
+	local='\builtin typeset'
+	login='\exec login'
+	nameref='\builtin typeset -n'
 	nohup='nohup '
-	r='fc -e -'
-	source='PATH=$PATH:. command .'
-	type='whence -v'
+	r='\builtin fc -e -'
+	source='PATH=$PATH:. \command .'
+	type='\builtin whence -v'
 ---
 name: aliases-3b-hartz4
 description:
@@ -7506,18 +7482,18 @@ stdin:
 	./sh -c 'alias; typeset -f'
 	rm -f sh
 expected-stdout:
-	autoload='typeset -fu'
-	functions='typeset -f'
-	hash='alias -t'
-	history='fc -l'
-	integer='typeset -i'
-	local=typeset
-	login='exec login'
-	nameref='typeset -n'
+	autoload='\builtin typeset -fu'
+	functions='\builtin typeset -f'
+	hash='\builtin alias -t'
+	history='\builtin fc -l'
+	integer='\builtin typeset -i'
+	local='\builtin typeset'
+	login='\exec login'
+	nameref='\builtin typeset -n'
 	nohup='nohup '
-	r='fc -e -'
-	source='PATH=$PATH:. command .'
-	type='whence -v'
+	r='\builtin fc -e -'
+	source='PATH=$PATH:. \command .'
+	type='\builtin whence -v'
 ---
 name: aliases-cmdline
 description:
@@ -7574,8 +7550,8 @@ stdin:
 	:|| local() { :; }
 	alias local
 expected-stdout:
-	local=typeset
-	local=typeset
+	local='\builtin typeset'
+	local='\builtin typeset'
 ---
 name: arrays-1
 description:
@@ -10177,7 +10153,7 @@ expected-stdout:
 	}
 	inline_TWHILE() {
 		i=1 
-		while let] " i < 10 " 
+		while \let] " i < 10 " 
 		do
 			echo $i 
 			let ++i 
@@ -10187,20 +10163,20 @@ expected-stdout:
 		i=1; while (( i < 10 )); do echo $i; let ++i; done
 	); }
 	function comsub_TWHILE {
-		x=$(i=1 ; while let] " i < 10 " ; do echo $i ; let ++i ; done ) 
+		x=$(i=1 ; while \let] " i < 10 " ; do echo $i ; let ++i ; done ) 
 	} 
 	function reread_TWHILE { x=$((
 		i=1; while (( i < 10 )); do echo $i; let ++i; done
 	)|tr u x); }
 	function reread_TWHILE {
-		x=$(( i=1 ; while let] " i < 10 " ; do echo $i ; let ++i ; done ) | tr u x ) 
+		x=$(( i=1 ; while \let] " i < 10 " ; do echo $i ; let ++i ; done ) | tr u x ) 
 	} 
 	inline_TUNTIL() {
 		i=10; until  (( !--i )) ; do echo $i; done
 	}
 	inline_TUNTIL() {
 		i=10 
-		until let] " !--i " 
+		until \let] " !--i " 
 		do
 			echo $i 
 		done 
@@ -10209,13 +10185,13 @@ expected-stdout:
 		i=10; until  (( !--i )) ; do echo $i; done
 	); }
 	function comsub_TUNTIL {
-		x=$(i=10 ; until let] " !--i " ; do echo $i ; done ) 
+		x=$(i=10 ; until \let] " !--i " ; do echo $i ; done ) 
 	} 
 	function reread_TUNTIL { x=$((
 		i=10; until  (( !--i )) ; do echo $i; done
 	)|tr u x); }
 	function reread_TUNTIL {
-		x=$(( i=10 ; until let] " !--i " ; do echo $i ; done ) | tr u x ) 
+		x=$(( i=10 ; until \let] " !--i " ; do echo $i ; done ) | tr u x ) 
 	} 
 	inline_TCOPROC() {
 		cat  *  |&  ls
@@ -10591,7 +10567,7 @@ expected-stdout:
 		case x in
 		(x)
 			a+=b 
-			set -A c+ -- d e 
+			\set -A c+ -- d e 
 			;;
 		esac 
 	} 
@@ -10601,7 +10577,7 @@ expected-stdout:
 		esac
 	); }
 	function comsub_wdarrassign {
-		x=$(case x in (x) a+=b ; set -A c+ -- d e  ;; esac ) 
+		x=$(case x in (x) a+=b ; \set -A c+ -- d e  ;; esac ) 
 	} 
 	function reread_wdarrassign { x=$((
 		case x in
@@ -10609,7 +10585,7 @@ expected-stdout:
 		esac
 	)|tr u x); }
 	function reread_wdarrassign {
-		x=$(( case x in (x) a+=b ; set -A c+ -- d e  ;; esac ) | tr u x ) 
+		x=$(( case x in (x) a+=b ; \set -A c+ -- d e  ;; esac ) | tr u x ) 
 	} 
 ---
 name: comsub-torture-io
@@ -10829,7 +10805,7 @@ expected-stdout:
 	}
 	inline_TWHILE() {
 		i=1 
-		while let] " i < 10 " >&3 
+		while \let] " i < 10 " >&3 
 		do
 			echo $i 
 			let ++i 
@@ -10839,20 +10815,20 @@ expected-stdout:
 		i=1; while (( i < 10 )) >&3; do echo $i; let ++i; done >&3
 	); }
 	function comsub_TWHILE {
-		x=$(i=1 ; while let] " i < 10 " >&3 ; do echo $i ; let ++i ; done >&3 ) 
+		x=$(i=1 ; while \let] " i < 10 " >&3 ; do echo $i ; let ++i ; done >&3 ) 
 	} 
 	function reread_TWHILE { x=$((
 		i=1; while (( i < 10 )) >&3; do echo $i; let ++i; done >&3
 	)|tr u x); }
 	function reread_TWHILE {
-		x=$(( i=1 ; while let] " i < 10 " >&3 ; do echo $i ; let ++i ; done >&3 ) | tr u x ) 
+		x=$(( i=1 ; while \let] " i < 10 " >&3 ; do echo $i ; let ++i ; done >&3 ) | tr u x ) 
 	} 
 	inline_TUNTIL() {
 		i=10; until  (( !--i )) >&3 ; do echo $i; done >&3
 	}
 	inline_TUNTIL() {
 		i=10 
-		until let] " !--i " >&3 
+		until \let] " !--i " >&3 
 		do
 			echo $i 
 		done >&3 
@@ -10861,13 +10837,13 @@ expected-stdout:
 		i=10; until  (( !--i )) >&3 ; do echo $i; done >&3
 	); }
 	function comsub_TUNTIL {
-		x=$(i=10 ; until let] " !--i " >&3 ; do echo $i ; done >&3 ) 
+		x=$(i=10 ; until \let] " !--i " >&3 ; do echo $i ; done >&3 ) 
 	} 
 	function reread_TUNTIL { x=$((
 		i=10; until  (( !--i )) >&3 ; do echo $i; done >&3
 	)|tr u x); }
 	function reread_TUNTIL {
-		x=$(( i=10 ; until let] " !--i " >&3 ; do echo $i ; done >&3 ) | tr u x ) 
+		x=$(( i=10 ; until \let] " !--i " >&3 ; do echo $i ; done >&3 ) | tr u x ) 
 	} 
 	inline_TCOPROC() {
 		cat  *  >&3 |&  >&3 ls

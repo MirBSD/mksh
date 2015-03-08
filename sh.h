@@ -169,9 +169,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.716 2015/03/08 21:30:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.717 2015/03/08 22:54:35 tg Exp $");
 #endif
-#define MKSH_VERSION "R50 2015/03/07"
+#define MKSH_VERSION "R50 2015/03/08"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -802,9 +802,8 @@ EXTERN const char Toomem[] E_INIT("can't allocate %zu data bytes");
 EXTERN const char Tsynerr[] E_INIT("syntax error");
 #endif
 EXTERN const char Tselect[] E_INIT("select");
-EXTERN const char Tlocal_typeset[] E_INIT("local=typeset");
-#define T_typeset	(Tlocal_typeset + 5)	/* "=typeset" */
-#define Ttypeset	(Tlocal_typeset + 6)	/* "typeset" */
+EXTERN const char T_typeset[] E_INIT("=typeset");
+#define Ttypeset	(T_typeset + 1)		/* "typeset" */
 EXTERN const char Talias[] E_INIT("alias");
 EXTERN const char Tunalias[] E_INIT("unalias");
 EXTERN const char Tsgset[] E_INIT("*=set");

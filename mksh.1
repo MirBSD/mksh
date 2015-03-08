@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.352 2015/03/07 20:46:29 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.353 2015/03/08 22:54:34 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.156 2015/01/16 15:32:32 schwarze Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 7 2015 $
+.Dd $Mdocdate: March 8 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1120,18 +1120,19 @@ also by newline) may be one same parse tree.
 .Pp
 The following command aliases are defined automatically by the shell:
 .Bd -literal -offset indent
-autoload=\*(aqtypeset \-fu\*(aq
-functions=\*(aqtypeset \-f\*(aq
-hash=\*(aqalias \-t\*(aq
-history=\*(aqfc \-l\*(aq
-integer=\*(aqtypeset \-i\*(aq
-local=\*(aqtypeset\*(aq
-login=\*(aqexec login\*(aq
-nameref=\*(aqtypeset \-n\*(aq
+autoload=\*(aq\ebuiltin typeset \-fu\*(aq
+functions=\*(aq\ebuiltin typeset \-f\*(aq
+hash=\*(aq\ebuiltin alias \-t\*(aq
+history=\*(aq\ebuiltin fc \-l\*(aq
+integer=\*(aq\ebuiltin typeset \-i\*(aq
+local=\*(aq\ebuiltin typeset\*(aq
+login=\*(aq\eexec login\*(aq
+nameref=\*(aq\ebuiltin typeset \-n\*(aq
 nohup=\*(aqnohup \*(aq
-r=\*(aqfc \-e \-\*(aq
-stop=\*(aqkill \-STOP\*(aq
-type=\*(aqwhence \-v\*(aq
+r=\*(aq\ebuiltin fc \-e \-\*(aq
+source=\*(aqPATH=$PATH:. \ecommand .'
+stop=\*(aq\ekill \-STOP\*(aq
+type=\*(aq\ebuiltin whence \-v\*(aq
 .Ed
 .Pp
 Tracked aliases allow the shell to remember where it found a particular
@@ -6514,7 +6515,7 @@ for the in-memory portion of the history is slow, should use
 .Xr memmove 3 .
 .Pp
 This document attempts to describe
-.Nm mksh\ R50f
+.Nm mksh\ R51
 and up,
 .\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as

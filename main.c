@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.288 2015/03/08 21:30:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.289 2015/03/08 22:54:33 tg Exp $");
 
 extern char **environ;
 
@@ -66,24 +66,24 @@ static const char *initcoms[] = {
 	Ttypeset, "-x", "HOME", "PATH", "SHELL", NULL,
 	Ttypeset, "-i10", "COLUMNS", "LINES", "SECONDS", "TMOUT", NULL,
 	Talias,
-	"integer=typeset -i",
-	Tlocal_typeset,
+	"integer=\\builtin typeset -i",
+	"local=\\builtin typeset",
 	/* not "alias -t --": hash -r needs to work */
-	"hash=alias -t",
-	"type=whence -v",
+	"hash=\\builtin alias -t",
+	"type=\\builtin whence -v",
 #if !defined(ANDROID) && !defined(MKSH_UNEMPLOYED)
 	/* not in Android for political reasons */
 	/* not in ARGE mksh due to no job control */
-	"stop=kill -STOP",
+	"stop=\\kill -STOP",
 #endif
-	"autoload=typeset -fu",
-	"functions=typeset -f",
-	"history=fc -l",
-	"nameref=typeset -n",
+	"autoload=\\builtin typeset -fu",
+	"functions=\\builtin typeset -f",
+	"history=\\builtin fc -l",
+	"nameref=\\builtin typeset -n",
 	"nohup=nohup ",
-	"r=fc -e -",
-	"source=PATH=$PATH:. command .",
-	"login=exec login",
+	"r=\\builtin fc -e -",
+	"source=PATH=$PATH:. \\command .",
+	"login=\\exec login",
 	NULL,
 	 /* this is what AT&T ksh seems to track, with the addition of emacs */
 	Talias, "-tU",

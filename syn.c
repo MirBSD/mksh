@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *		 2011, 2012, 2013, 2014
+ *		 2011, 2012, 2013, 2014, 2015
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.95 2014/12/15 22:08:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.96 2015/03/08 22:54:36 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -244,10 +244,10 @@ nested(int type, int smark, int emark)
 }
 
 static const char let_cmd[] = {
-	CHAR, 'l', CHAR, 'e', CHAR, 't', CHAR, ']', EOS
+	QCHAR, 'l', CHAR, 'e', CHAR, 't', CHAR, ']', EOS
 };
 static const char setA_cmd0[] = {
-	CHAR, 's', CHAR, 'e', CHAR, 't', EOS
+	QCHAR, 's', CHAR, 'e', CHAR, 't', EOS
 };
 static const char setA_cmd1[] = {
 	CHAR, '-', CHAR, 'A', EOS
