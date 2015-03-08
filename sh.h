@@ -169,7 +169,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.715 2015/03/07 20:46:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.716 2015/03/08 21:30:22 tg Exp $");
 #endif
 #define MKSH_VERSION "R50 2015/03/07"
 
@@ -802,9 +802,6 @@ EXTERN const char Toomem[] E_INIT("can't allocate %zu data bytes");
 EXTERN const char Tsynerr[] E_INIT("syntax error");
 #endif
 EXTERN const char Tselect[] E_INIT("select");
-EXTERN const char Tr_fc_e_dash[] E_INIT("r=fc -e -");
-#define Tfc_e_dash	(Tr_fc_e_dash + 2)	/* "fc -e -" */
-#define Zfc_e_dash	7			/* strlen(Tfc_e_dash) */
 EXTERN const char Tlocal_typeset[] E_INIT("local=typeset");
 #define T_typeset	(Tlocal_typeset + 5)	/* "=typeset" */
 #define Ttypeset	(Tlocal_typeset + 6)	/* "typeset" */
@@ -812,8 +809,6 @@ EXTERN const char Talias[] E_INIT("alias");
 EXTERN const char Tunalias[] E_INIT("unalias");
 EXTERN const char Tsgset[] E_INIT("*=set");
 #define Tset		(Tsgset + 2)		/* "set" */
-EXTERN const char Tsgunset[] E_INIT("*=unset");
-#define Tunset		(Tsgunset + 2)		/* "unset" */
 EXTERN const char Tsgexport[] E_INIT("*=export");
 #define Texport		(Tsgexport + 2)		/* "export" */
 EXTERN const char Tsgreadonly[] E_INIT("*=readonly");

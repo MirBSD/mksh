@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014
+ *		 2011, 2012, 2013, 2014, 2015
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.287 2015/02/13 12:51:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.288 2015/03/08 21:30:21 tg Exp $");
 
 extern char **environ;
 
@@ -81,7 +81,7 @@ static const char *initcoms[] = {
 	"history=fc -l",
 	"nameref=typeset -n",
 	"nohup=nohup ",
-	Tr_fc_e_dash,
+	"r=fc -e -",
 	"source=PATH=$PATH:. command .",
 	"login=exec login",
 	NULL,

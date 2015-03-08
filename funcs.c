@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.264 2015/01/04 21:08:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.265 2015/03/08 21:30:20 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -138,7 +138,7 @@ const struct builtin mkshbuiltins[] = {
 	{"ulimit", c_ulimit},
 	{"umask", c_umask},
 	{Tunalias, c_unalias},
-	{Tsgunset, c_unset},
+	{"*=unset", c_unset},
 	{"=wait", c_wait},
 	{"whence", c_whence},
 #ifndef MKSH_UNEMPLOYED
