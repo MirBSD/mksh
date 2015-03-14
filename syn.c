@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.97 2015/03/14 04:37:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.98 2015/03/14 04:38:13 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -713,7 +713,7 @@ function_body(char *name,
 		/* (2 * sizeof(char *)) is small enough */
 		t->left->args = alloc(2 * sizeof(char *), ATEMP);
 		t->left->args[0] = tv = alloc(3, ATEMP);
-		tv[0] = CHAR;
+		tv[0] = QCHAR;
 		tv[1] = ':';
 		tv[2] = EOS;
 		t->left->args[1] = NULL;
