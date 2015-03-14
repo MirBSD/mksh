@@ -169,7 +169,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.717 2015/03/08 22:54:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.718 2015/03/14 04:37:54 tg Exp $");
 #endif
 #define MKSH_VERSION "R50 2015/03/08"
 
@@ -1576,10 +1576,9 @@ typedef union {
 #define VARASN		BIT(5)	/* check for var=word */
 #define ARRAYVAR	BIT(6)	/* parse x[1 & 2] as one word */
 #define ESACONLY	BIT(7)	/* only accept esac keyword */
-#define CMDWORD		BIT(8)	/* parsing simple command (alias related) */
-#define HEREDELIM	BIT(9)	/* parsing <<,<<- delimiter */
-#define LQCHAR		BIT(10)	/* source string contains QCHAR */
-#define HEREDOC 	BIT(11)	/* parsing a here document body */
+#define HEREDELIM	BIT(8)	/* parsing <<,<<- delimiter */
+#define LQCHAR		BIT(9)	/* source string contains QCHAR */
+#define HEREDOC 	BIT(10)	/* parsing a here document body */
 
 #define HERES		10	/* max number of << in line */
 

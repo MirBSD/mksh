@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.96 2015/03/08 22:54:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.97 2015/03/14 04:37:55 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -289,7 +289,7 @@ get_command(int cf)
 		t->lineno = source->line;
 		while (/* CONSTCOND */ 1) {
 			cf = (t->u.evalflags ? ARRAYVAR : 0) |
-			    (XPsize(args) == 0 ? sALIAS|VARASN : CMDWORD);
+			    (XPsize(args) == 0 ? sALIAS|VARASN : 0);
 			switch (tpeek(cf)) {
 			case REDIR:
 				while ((iop = synio(cf)) != NULL) {
