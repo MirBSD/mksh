@@ -169,9 +169,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.718 2015/03/14 04:37:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.719 2015/03/14 05:23:17 tg Exp $");
 #endif
-#define MKSH_VERSION "R50 2015/03/08"
+#define MKSH_VERSION "R50 2015/03/13"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1916,6 +1916,7 @@ char *shf_smprintf(const char *, ...)
 ssize_t shf_vfprintf(struct shf *, const char *, va_list)
     MKSH_A_FORMAT(__printf__, 2, 0);
 /* syn.c */
+int assign_command(const char *);
 void initkeywords(void);
 struct op *compile(Source *, bool);
 bool parse_usec(const char *, struct timeval *);

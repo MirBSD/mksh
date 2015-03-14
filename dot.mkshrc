@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.93 2015/03/08 23:50:00 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.94 2015/03/14 05:23:14 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -32,14 +32,14 @@ PS1='#'; (( USER_ID )) && PS1='$'; [[ ${HOSTNAME:=$(\ulimit -c 0; hostname -s \
     2>/dev/null)} = *([	 ]|localhost) ]] && HOSTNAME=$(\ulimit -c 0; hostname \
     2>/dev/null); \: ${EDITOR:=/bin/ed} ${HOSTNAME:=nil} ${TERM:=vt100}
 \: ${MKSH:=$(\builtin whence -p mksh)}; PS4='[$EPOCHREALTIME] '; PS1=$'\001\r''${|
-	\builtin typeset e=$?
+	\typeset e=$?
 
 	(( e )) && REPLY+="$e|"
 	REPLY+=${USER:=$(\ulimit -c 0; id -un 2>/dev/null || \echo \?)}
 	REPLY+=@${HOSTNAME%%.*}:
 
-	\builtin typeset d=${PWD:-?} p=~; [[ $p = ?(*/) ]] || d=${d/#$p/~}
-	\builtin typeset m=${%d} n p=...; (( m > 0 )) || m=${#d}
+	\typeset d=${PWD:-?} p=~; [[ $p = ?(*/) ]] || d=${d/#$p/~}
+	\typeset m=${%d} n p=...; (( m > 0 )) || m=${#d}
 	(( m > (n = (COLUMNS/3 < 7 ? 7 : COLUMNS/3)) )) && d=${d:(-n)} || p=
 	REPLY+=$p$d
 
@@ -62,12 +62,12 @@ if \command -v hd >/dev/null; then \:; elif \command -v hexdump >/dev/null; then
 	}
 else
 	function hd {
-		\builtin typeset -Uui16 -Z11 pos=0
-		\builtin typeset -Uui16 -Z5 hv=2147483647
-		\builtin typeset dasc line i
+		\typeset -Uui16 -Z11 pos=0
+		\typeset -Uui16 -Z5 hv=2147483647
+		\typeset dasc line i
 
 		\cat "$@" | { \set +U; if \read -arN -1 line; then
-			\builtin typeset -i1 'line[*]'
+			\typeset -i1 'line[*]'
 			i=0
 			while (( i < ${#line[*]} )); do
 				hv=${line[i++]}
@@ -109,7 +109,7 @@ function cd {
 	\chpwd "$@"
 }
 function cd_csh {
-	\builtin typeset d t=${1/#~/$DIRSTACKBASE}
+	\typeset d t=${1/#~/$DIRSTACKBASE}
 
 	if ! d=$(\builtin cd "$t" 2>&1); then
 		\builtin print -u2 "${1}: ${d##*cd: $t: }."
@@ -118,8 +118,8 @@ function cd_csh {
 	\cd "$t"
 }
 function dirs {
-	\builtin typeset d dwidth
-	\builtin typeset -i fl=0 fv=0 fn=0 cpos=0
+	\typeset d dwidth
+	\typeset -i fl=0 fv=0 fn=0 cpos=0
 
 	while \getopts ":lvn" d; do
 		case $d {
@@ -162,8 +162,8 @@ function dirs {
 	\return 0
 }
 function popd {
-	\builtin typeset d fa
-	\builtin typeset -i n=1
+	\typeset d fa
+	\typeset -i n=1
 
 	while \getopts ":0123456789lvn" d; do
 		case $d {
@@ -198,8 +198,8 @@ function popd {
 	\dirs $fa
 }
 function pushd {
-	\builtin typeset d fa
-	\builtin typeset -i n=1
+	\typeset d fa
+	\typeset -i n=1
 
 	while \getopts ":0123456789lvn" d; do
 		case $d {
@@ -263,11 +263,11 @@ function smores {
 
 # base64 encoder and decoder, RFC compliant, NUL safe
 function Lb64decode {
-	[[ -o utf8-mode ]]; \builtin typeset u=$? c s="$*" t
+	[[ -o utf8-mode ]]; \typeset u=$? c s="$*" t
 	\set +U
 	[[ -n $s ]] || { s=$(\cat; \builtin print x); s=${s%x}; }
-	\builtin typeset -i i=0 j=0 n=${#s} p=0 v x
-	\builtin typeset -i16 o
+	\typeset -i i=0 j=0 n=${#s} p=0 v x
+	\typeset -i16 o
 
 	while (( i < n )); do
 		c=${s:(i++):1}
@@ -301,7 +301,7 @@ function Lb64decode {
 \set -A Lb64encode_code -- A B C D E F G H I J K L M N O P Q R S T U V W X Y Z \
     a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9 + /
 function Lb64encode {
-	[[ -o utf8-mode ]]; \builtin typeset u=$? c s t
+	[[ -o utf8-mode ]]; \typeset u=$? c s t
 	\set +U
 	if (( $# )); then
 		\read -raN-1 s <<<"$*"
@@ -309,7 +309,7 @@ function Lb64encode {
 	else
 		\read -raN-1 s
 	fi
-	\builtin typeset -i i=0 n=${#s[*]} j v
+	\typeset -i i=0 n=${#s[*]} j v
 
 	while (( i < n )); do
 		(( v = s[i++] << 16 ))
@@ -335,12 +335,12 @@ function Lb64encode {
 }
 
 # Better Avalanche for the Jenkins Hash
-\builtin typeset -Z11 -Uui16 Lbafh_v
+\typeset -Z11 -Uui16 Lbafh_v
 function Lbafh_init {
 	Lbafh_v=0
 }
 function Lbafh_add {
-	[[ -o utf8-mode ]]; \builtin typeset u=$? s
+	[[ -o utf8-mode ]]; \typeset u=$? s
 	\set +U
 	if (( $# )); then
 		\read -raN-1 s <<<"$*"
@@ -348,7 +348,7 @@ function Lbafh_add {
 	else
 		\read -raN-1 s
 	fi
-	\builtin typeset -i i=0 n=${#s[*]}
+	\typeset -i i=0 n=${#s[*]}
 
 	while (( i < n )); do
 		((# Lbafh_v = (Lbafh_v + s[i++] + 1) * 1025 ))
@@ -358,7 +358,7 @@ function Lbafh_add {
 	(( u )) || \set -U
 }
 function Lbafh_finish {
-	\builtin typeset -Ui t
+	\typeset -Ui t
 
 	((# t = (((Lbafh_v >> 7) & 0x01010101) * 0x1B) ^ \
 	    ((Lbafh_v << 1) & 0xFEFEFEFE) ))
@@ -383,21 +383,21 @@ function setenv {
 
 # toggle built-in aliases and utilities, and aliases and functions from here
 function enable {
-	\builtin typeset doprnt=0 mode=1 x y z rv=0
-	\builtin typeset b_alias i_alias i_func nalias=0 nfunc=0 i_all
+	\typeset doprnt=0 mode=1 x y z rv=0
+	\typeset b_alias i_alias i_func nalias=0 nfunc=0 i_all
 	\set -A b_alias
 	\set -A i_alias
 	\set -A i_func
 
 	# accumulate mksh built-in aliases, in ASCIIbetical order
-	i_alias[nalias]=autoload; b_alias[nalias++]='\builtin typeset -fu'
-	i_alias[nalias]=functions; b_alias[nalias++]='\builtin typeset -f'
+	i_alias[nalias]=autoload; b_alias[nalias++]='\typeset -fu'
+	i_alias[nalias]=functions; b_alias[nalias++]='\typeset -f'
 	i_alias[nalias]=hash; b_alias[nalias++]='\builtin alias -t'
 	i_alias[nalias]=history; b_alias[nalias++]='\builtin fc -l'
-	i_alias[nalias]=integer; b_alias[nalias++]='\builtin typeset -i'
-	i_alias[nalias]=local; b_alias[nalias++]='\builtin typeset'
+	i_alias[nalias]=integer; b_alias[nalias++]='\typeset -i'
+	i_alias[nalias]=local; b_alias[nalias++]='\typeset'
 	i_alias[nalias]=login; b_alias[nalias++]='\exec login'
-	i_alias[nalias]=nameref; b_alias[nalias++]='\builtin typeset -n'
+	i_alias[nalias]=nameref; b_alias[nalias++]='\typeset -n'
 	i_alias[nalias]=nohup; b_alias[nalias++]='nohup '
 	i_alias[nalias]=r; b_alias[nalias++]='\builtin fc -e -'
 	i_alias[nalias]=source; b_alias[nalias++]='PATH=$PATH:. \command .'

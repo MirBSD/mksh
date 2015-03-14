@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.684 2015/03/08 22:54:31 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.685 2015/03/14 05:23:12 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2015/03/08
+	@(#)MIRBSD KSH R50 2015/03/13
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2015/03/08
+	@(#)LEGACY KSH R50 2015/03/13
 description:
 	Check version of legacy shell.
 stdin:
@@ -256,6 +256,19 @@ stdin:
 	echo $(bar)
 expected-stdout:
 	hello world
+---
+name: alias-11
+description:
+	Check that special argument handling still applies with escaped aliases
+stdin:
+	alias local='\typeset'
+	function foo {
+		local x=$1 y=z
+		print -r -- "$x,$y"
+	}
+	foo 'bar - baz'
+expected-stdout:
+	bar - baz,z
 ---
 name: arith-lazy-1
 description:
@@ -7370,14 +7383,14 @@ stdin:
 	alias
 	typeset -f
 expected-stdout:
-	autoload='\builtin typeset -fu'
-	functions='\builtin typeset -f'
+	autoload='\typeset -fu'
+	functions='\typeset -f'
 	hash='\builtin alias -t'
 	history='\builtin fc -l'
-	integer='\builtin typeset -i'
-	local='\builtin typeset'
+	integer='\typeset -i'
+	local='\typeset'
 	login='\exec login'
-	nameref='\builtin typeset -n'
+	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
 	source='PATH=$PATH:. \command .'
@@ -7392,14 +7405,14 @@ stdin:
 	alias
 	typeset -f
 expected-stdout:
-	autoload='\builtin typeset -fu'
-	functions='\builtin typeset -f'
+	autoload='\typeset -fu'
+	functions='\typeset -f'
 	hash='\builtin alias -t'
 	history='\builtin fc -l'
-	integer='\builtin typeset -i'
-	local='\builtin typeset'
+	integer='\typeset -i'
+	local='\typeset'
 	login='\exec login'
-	nameref='\builtin typeset -n'
+	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
 	source='PATH=$PATH:. \command .'
@@ -7414,14 +7427,14 @@ stdin:
 	alias
 	typeset -f
 expected-stdout:
-	autoload='\builtin typeset -fu'
-	functions='\builtin typeset -f'
+	autoload='\typeset -fu'
+	functions='\typeset -f'
 	hash='\builtin alias -t'
 	history='\builtin fc -l'
-	integer='\builtin typeset -i'
-	local='\builtin typeset'
+	integer='\typeset -i'
+	local='\typeset'
 	login='\exec login'
-	nameref='\builtin typeset -n'
+	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
 	source='PATH=$PATH:. \command .'
@@ -7437,14 +7450,14 @@ stdin:
 	./sh -c 'alias; typeset -f'
 	rm -f sh
 expected-stdout:
-	autoload='\builtin typeset -fu'
-	functions='\builtin typeset -f'
+	autoload='\typeset -fu'
+	functions='\typeset -f'
 	hash='\builtin alias -t'
 	history='\builtin fc -l'
-	integer='\builtin typeset -i'
-	local='\builtin typeset'
+	integer='\typeset -i'
+	local='\typeset'
 	login='\exec login'
-	nameref='\builtin typeset -n'
+	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
 	source='PATH=$PATH:. \command .'
@@ -7460,14 +7473,14 @@ stdin:
 	alias
 	typeset -f
 expected-stdout:
-	autoload='\builtin typeset -fu'
-	functions='\builtin typeset -f'
+	autoload='\typeset -fu'
+	functions='\typeset -f'
 	hash='\builtin alias -t'
 	history='\builtin fc -l'
-	integer='\builtin typeset -i'
-	local='\builtin typeset'
+	integer='\typeset -i'
+	local='\typeset'
 	login='\exec login'
-	nameref='\builtin typeset -n'
+	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
 	source='PATH=$PATH:. \command .'
@@ -7482,14 +7495,14 @@ stdin:
 	./sh -c 'alias; typeset -f'
 	rm -f sh
 expected-stdout:
-	autoload='\builtin typeset -fu'
-	functions='\builtin typeset -f'
+	autoload='\typeset -fu'
+	functions='\typeset -f'
 	hash='\builtin alias -t'
 	history='\builtin fc -l'
-	integer='\builtin typeset -i'
-	local='\builtin typeset'
+	integer='\typeset -i'
+	local='\typeset'
 	login='\exec login'
-	nameref='\builtin typeset -n'
+	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
 	source='PATH=$PATH:. \command .'
@@ -7550,8 +7563,8 @@ stdin:
 	:|| local() { :; }
 	alias local
 expected-stdout:
-	local='\builtin typeset'
-	local='\builtin typeset'
+	local='\typeset'
+	local='\typeset'
 ---
 name: arrays-1
 description:

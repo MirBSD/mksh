@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.354 2015/03/14 05:17:17 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.355 2015/03/14 05:23:16 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.157 2015/03/13 19:58:40 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -1120,14 +1120,14 @@ also by newline) may be one same parse tree.
 .Pp
 The following command aliases are defined automatically by the shell:
 .Bd -literal -offset indent
-autoload=\*(aq\ebuiltin typeset \-fu\*(aq
-functions=\*(aq\ebuiltin typeset \-f\*(aq
+autoload=\*(aq\etypeset \-fu\*(aq
+functions=\*(aq\etypeset \-f\*(aq
 hash=\*(aq\ebuiltin alias \-t\*(aq
 history=\*(aq\ebuiltin fc \-l\*(aq
-integer=\*(aq\ebuiltin typeset \-i\*(aq
-local=\*(aq\ebuiltin typeset\*(aq
+integer=\*(aq\etypeset \-i\*(aq
+local=\*(aq\etypeset\*(aq
 login=\*(aq\eexec login\*(aq
-nameref=\*(aq\ebuiltin typeset \-n\*(aq
+nameref=\*(aq\etypeset \-n\*(aq
 nohup=\*(aqnohup \*(aq
 r=\*(aq\ebuiltin fc \-e \-\*(aq
 source=\*(aqPATH=$PATH:. \ecommand .'

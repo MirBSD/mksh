@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.289 2015/03/08 22:54:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.290 2015/03/14 05:23:15 tg Exp $");
 
 extern char **environ;
 
@@ -66,8 +66,8 @@ static const char *initcoms[] = {
 	Ttypeset, "-x", "HOME", "PATH", "SHELL", NULL,
 	Ttypeset, "-i10", "COLUMNS", "LINES", "SECONDS", "TMOUT", NULL,
 	Talias,
-	"integer=\\builtin typeset -i",
-	"local=\\builtin typeset",
+	"integer=\\typeset -i",
+	"local=\\typeset",
 	/* not "alias -t --": hash -r needs to work */
 	"hash=\\builtin alias -t",
 	"type=\\builtin whence -v",
@@ -76,10 +76,10 @@ static const char *initcoms[] = {
 	/* not in ARGE mksh due to no job control */
 	"stop=\\kill -STOP",
 #endif
-	"autoload=\\builtin typeset -fu",
-	"functions=\\builtin typeset -f",
+	"autoload=\\typeset -fu",
+	"functions=\\typeset -f",
 	"history=\\builtin fc -l",
-	"nameref=\\builtin typeset -n",
+	"nameref=\\typeset -n",
 	"nohup=nohup ",
 	"r=\\builtin fc -e -",
 	"source=PATH=$PATH:. \\command .",

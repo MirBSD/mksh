@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.98 2015/03/14 04:38:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.99 2015/03/14 05:23:18 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -58,7 +58,6 @@ static struct op *newtp(int);
 static void syntaxerr(const char *) MKSH_A_NORETURN;
 static void nesting_push(struct nesting_state *, int);
 static void nesting_pop(struct nesting_state *);
-static int assign_command(const char *);
 static int inalias(struct source *) MKSH_A_PURE;
 static Test_op dbtestp_isa(Test_env *, Test_meta);
 static const char *dbtestp_getopnd(Test_env *, Test_op, bool);
@@ -927,7 +926,7 @@ compile(Source *s, bool skiputf8bom)
  *	a=a
  *	$
  */
-static int
+int
 assign_command(const char *s)
 {
 	if (!*s)
