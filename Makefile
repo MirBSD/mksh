@@ -1,7 +1,7 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.139 2014/11/25 21:13:19 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.140 2015/03/20 23:37:17 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#		2011, 2012, 2013, 2014
+#		2011, 2012, 2013, 2014, 2015
 #	Thorsten Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -113,8 +113,7 @@ test-build: .PHONY
 
 CLEANFILES+=	lksh.cat1
 test-build-lksh: .PHONY
-	cd ${.CURDIR} && exec ${MAKE} lksh.cat1 test-build \
-	    _TBF=-L USE_PRINTF_BUILTIN=0
+	cd ${.CURDIR} && exec ${MAKE} lksh.cat1 test-build _TBF=-L
 
 bothmans: .PHONY
 	cd ${.CURDIR} && exec ${MAKE} MAN='lksh.1 mksh.1' __MANALL
