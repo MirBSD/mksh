@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.344.2.3 2015/03/01 15:43:03 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.156 2015/01/16 15:32:32 schwarze Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.344.2.4 2015/03/20 22:21:05 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.158 2015/03/15 14:33:21 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
 .\"		2010, 2011, 2012, 2013, 2014, 2015
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 1 2015 $
+.Dd $Mdocdate: March 20 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1125,11 +1125,12 @@ functions=\*(aqtypeset \-f\*(aq
 hash=\*(aqalias \-t\*(aq
 history=\*(aqfc \-l\*(aq
 integer=\*(aqtypeset \-i\*(aq
-local=\*(aqtypeset\*(aq
+local=typeset
 login=\*(aqexec login\*(aq
 nameref=\*(aqtypeset \-n\*(aq
 nohup=\*(aqnohup \*(aq
 r=\*(aqfc \-e \-\*(aq
+source=\*(aqPATH=$PATH:. command .\*(aq
 stop=\*(aqkill \-STOP\*(aq
 type=\*(aqwhence \-v\*(aq
 .Ed
@@ -1254,10 +1255,8 @@ and
 .Sq D .
 Note that if the
 .Ev IFS
-parameter is set to the
-.Dv NULL
-string, no field splitting is done; if the parameter is unset, the default
-value of space, tab, and newline is used.
+parameter is set to the empty string, no field splitting is done;
+if it is unset, the default value of space, tab, and newline is used.
 .Pp
 Also, note that the field splitting applies only to the immediate result of
 the substitution.
@@ -1795,21 +1794,16 @@ word of the previous command.
 .It Ev BASHPID
 The PID of the shell or subshell.
 .It Ev CDPATH
-Search path for the
+Like
+.Ev PATH ,
+but used to resolve the argument to the
 .Ic cd
 built-in command.
-It works the same way as
-.Ev PATH
-for those directories not beginning with
-.Ql /
-in
-.Ic cd
-commands.
 Note that if
 .Ev CDPATH
 is set and does not contain
 .Sq \&.
-or contains an empty path, the current directory is not searched.
+or an empty string element, the current directory is not searched.
 Also, the
 .Ic cd
 built-in command will display the resulting directory when a match is found
@@ -1862,7 +1856,8 @@ See
 below for more information.
 .It Ev HISTFILE
 The name of the file used to store command history.
-When assigned to, history is loaded from the specified file.
+When assigned to or unset, the file is opened, history is truncated
+then loaded from the file; subsequent new lines are appended.
 Also, several invocations of the shell will share history if their
 .Ev HISTFILE
 parameters all point to the same file.
@@ -1870,7 +1865,7 @@ parameters all point to the same file.
 .Sy Note :
 If
 .Ev HISTFILE
-isn't set, no history file is used.
+is unset or empty, no history file is used.
 This is different from
 .At
 .Nm ksh .
@@ -6500,9 +6495,22 @@ is immediately printed on suspension (but not later after an
 $ /bin/sleep 666 && echo fubar
 .Ed
 .Pp
+The truncation process involved when changing
+.Ev HISTFILE
+does not free old history entries (leaks memory) and leaks
+old entries into the new history if their line numbers are
+not overwritten by same-numer entries from the persistent
+history file; truncating the on-disc file to
+.Ev HISTSIZE
+lines has always been broken and prone to history file corruption
+when multiple shells are accessing the file; the rollover process
+for the in-memory portion of the history is slow, should use
+.Xr memmove 3 .
+.Pp
 This document attempts to describe
 .Nm mksh\ R50e
 and up,
+.\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as
 .Dv MKSH_SMALL ,
 when not called as

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.667.2.3 2015/03/01 15:42:51 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.667.2.4 2015/03/20 22:20:53 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2015/03/01
+	@(#)MIRBSD KSH R50 2015/03/19
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2015/03/01
+	@(#)LEGACY KSH R50 2015/03/19
 description:
 	Check version of legacy shell.
 stdin:
@@ -256,6 +256,19 @@ stdin:
 	echo $(bar)
 expected-stdout:
 	hello world
+---
+name: alias-11
+description:
+	Check that special argument handling still applies with escaped aliases
+stdin:
+	alias local='\typeset'
+	function foo {
+		local x=$1 y=z
+		print -r -- "$x,$y"
+	}
+	foo 'bar - baz'
+expected-stdout:
+	bar - baz,z
 ---
 name: arith-lazy-1
 description:

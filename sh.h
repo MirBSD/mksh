@@ -169,9 +169,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.701.2.4 2015/03/01 15:43:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.701.2.5 2015/03/20 22:21:08 tg Exp $");
 #endif
-#define MKSH_VERSION "R50 2015/03/01"
+#define MKSH_VERSION "R50 2015/03/19"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1582,10 +1582,9 @@ typedef union {
 #define VARASN		BIT(5)	/* check for var=word */
 #define ARRAYVAR	BIT(6)	/* parse x[1 & 2] as one word */
 #define ESACONLY	BIT(7)	/* only accept esac keyword */
-#define CMDWORD		BIT(8)	/* parsing simple command (alias related) */
-#define HEREDELIM	BIT(9)	/* parsing <<,<<- delimiter */
-#define LQCHAR		BIT(10)	/* source string contains QCHAR */
-#define HEREDOC 	BIT(11)	/* parsing a here document body */
+#define HEREDELIM	BIT(8)	/* parsing <<,<<- delimiter */
+#define LQCHAR		BIT(9)	/* source string contains QCHAR */
+#define HEREDOC 	BIT(10)	/* parsing a here document body */
 
 #define HERES		10	/* max number of << in line */
 
@@ -1876,7 +1875,8 @@ char *quote_value(const char *);
 void print_columns(struct shf *, unsigned int,
     char *(*)(char *, size_t, unsigned int, const void *),
     const void *, size_t, size_t, bool);
-void strip_nuls(char *, int);
+void strip_nuls(char *, size_t)
+    MKSH_A_BOUNDED(__string__, 1, 2);
 ssize_t blocking_read(int, char *, size_t)
     MKSH_A_BOUNDED(__buffer__, 2, 3);
 int reset_nonblock(int);
@@ -1923,6 +1923,7 @@ char *shf_smprintf(const char *, ...)
 ssize_t shf_vfprintf(struct shf *, const char *, va_list)
     MKSH_A_FORMAT(__printf__, 2, 0);
 /* syn.c */
+int assign_command(const char *);
 void initkeywords(void);
 struct op *compile(Source *, bool);
 bool parse_usec(const char *, struct timeval *);

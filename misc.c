@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.c,v 1.39 2015/01/16 06:39:32 deraadt Exp $	*/
+/*	$OpenBSD: misc.c,v 1.40 2015/03/18 15:12:36 tedu Exp $	*/
 /*	$OpenBSD: path.c,v 1.12 2005/03/30 17:16:37 deraadt Exp $	*/
 
 /*-
@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.219.2.2 2015/03/01 15:43:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.219.2.3 2015/03/20 22:21:04 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1289,32 +1289,27 @@ print_columns(struct shf *shf, unsigned int n,
 	afree(str, ATEMP);
 }
 
-/* Strip any nul bytes from buf - returns new length (nbytes - # of nuls) */
+/* strip all NUL bytes from buf; output is NUL-terminated if stripped */
 void
-strip_nuls(char *buf, int nbytes)
+strip_nuls(char *buf, size_t len)
 {
-	char *dst;
+	char *cp, *dp, *ep;
 
-	/*
-	 * nbytes check because some systems (older FreeBSDs) have a
-	 * buggy memchr()
-	 */
-	if (nbytes && (dst = memchr(buf, '\0', nbytes))) {
-		char *end = buf + nbytes;
-		char *p, *q;
+	if (!len || !(dp = memchr(buf, '\0', len)))
+		return;
 
-		for (p = dst; p < end; p = q) {
-			/* skip a block of nulls */
-			while (++p < end && *p == '\0')
-				;
-			/* find end of non-null block */
-			if (!(q = memchr(p, '\0', end - p)))
-				q = end;
-			memmove(dst, p, q - p);
-			dst += q - p;
-		}
-		*dst = '\0';
-	}
+	ep = buf + len;
+	cp = dp;
+
+ cp_has_nul_byte:
+	while (cp++ < ep && *cp == '\0')
+		;	/* nothing */
+	while (cp < ep && *cp != '\0')
+		*dp++ = *cp++;
+	if (cp < ep)
+		goto cp_has_nul_byte;
+
+	*dp = '\0';
 }
 
 /*

@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014
+ *		 2011, 2012, 2013, 2014, 2015
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.193.2.1 2015/01/11 22:39:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.193.2.2 2015/03/20 22:21:03 tg Exp $");
 
 /*
  * states while lexing word
@@ -1044,13 +1044,16 @@ yylex(int cf)
 	} else
 		while ((dp - ident) < IDENT && (c = *sp++) == CHAR)
 			*dp++ = *sp++;
-	/* make sure the ident array stays NUL padded */
-	memset(dp, 0, (ident + IDENT) - dp + 1);
 	if (c != EOS)
 		/* word is not unquoted */
-		*ident = '\0';
+		dp = ident;
+	/* make sure the ident array stays NUL padded */
+	memset(dp, 0, (ident + IDENT) - dp + 1);
 
-	if (*ident != '\0' && (cf & (KEYWORD | ALIAS))) {
+	if (!(cf & (KEYWORD | ALIAS)))
+		return (LWORD);
+
+	if (*ident != '\0') {
 		struct tbl *p;
 		uint32_t h = hash(ident);
 
@@ -1106,6 +1109,11 @@ yylex(int cf)
 				goto Again;
 			}
 		}
+	} else if (cf & ALIAS) {
+		/* retain typeset et al. even when quoted */
+		if (assign_command((dp = wdstrip(yylval.cp, 0))))
+			strlcpy(ident, dp, sizeof(ident));
+		afree(dp, ATEMP);
 	}
 
 	return (LWORD);
@@ -1161,7 +1169,7 @@ readhere(struct ioword *iop)
 	if (iop->flag & IOSKIP) {
 		/* skip over leading tabs */
 		while ((c = getsc()) == '\t')
-			/* nothing */;
+			;	/* nothing */
 		goto heredoc_parse_char;
 	}
  heredoc_read_char:
