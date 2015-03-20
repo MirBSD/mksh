@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.355 2015/03/14 05:23:16 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.157 2015/03/13 19:58:40 jmc Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.356 2015/03/20 21:23:52 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.158 2015/03/15 14:33:21 jmc Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
 .\"		2010, 2011, 2012, 2013, 2014, 2015
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 14 2015 $
+.Dd $Mdocdate: March 20 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1255,10 +1255,8 @@ and
 .Sq D .
 Note that if the
 .Ev IFS
-parameter is set to the
-.Dv NULL
-string, no field splitting is done; if the parameter is unset, the default
-value of space, tab, and newline is used.
+parameter is set to the empty string, no field splitting is done;
+if it is unset, the default value of space, tab, and newline is used.
 .Pp
 Also, note that the field splitting applies only to the immediate result of
 the substitution.
@@ -1796,21 +1794,16 @@ word of the previous command.
 .It Ev BASHPID
 The PID of the shell or subshell.
 .It Ev CDPATH
-Search path for the
+Like
+.Ev PATH ,
+but used to resolve the argument to the
 .Ic cd
 built-in command.
-It works the same way as
-.Ev PATH
-for those directories not beginning with
-.Ql /
-in
-.Ic cd
-commands.
 Note that if
 .Ev CDPATH
 is set and does not contain
 .Sq \&.
-or contains an empty path, the current directory is not searched.
+or an empty string element, the current directory is not searched.
 Also, the
 .Ic cd
 built-in command will display the resulting directory when a match is found
