@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.265 2015/03/08 21:30:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.266 2015/03/20 21:01:41 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1859,7 +1859,7 @@ c_read(const char **wp)
 		if (!bi_getn(builtin_opt.optarg, &c))
 			return (2);
 		if (c == -1) {
-			readmode = READALL;
+			readmode = readmode == BYTES ? READALL : UPTO;
 			bytesleft = 1024;
 		} else
 			bytesleft = (unsigned int)c;
