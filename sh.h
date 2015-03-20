@@ -169,7 +169,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.719 2015/03/14 05:23:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.720 2015/03/20 21:46:41 tg Exp $");
 #endif
 #define MKSH_VERSION "R50 2015/03/13"
 
@@ -1869,7 +1869,8 @@ char *quote_value(const char *);
 void print_columns(struct shf *, unsigned int,
     char *(*)(char *, size_t, unsigned int, const void *),
     const void *, size_t, size_t, bool);
-void strip_nuls(char *, int);
+void strip_nuls(char *, size_t)
+    MKSH_A_BOUNDED(__string__, 1, 2);
 ssize_t blocking_read(int, char *, size_t)
     MKSH_A_BOUNDED(__buffer__, 2, 3);
 int reset_nonblock(int);
