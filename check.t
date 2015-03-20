@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.686 2015/03/20 23:37:27 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.687 2015/03/20 23:37:52 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2015/03/13
+	@(#)MIRBSD KSH R50 2015/03/20
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2015/03/13
+	@(#)LEGACY KSH R50 2015/03/20
 description:
 	Check version of legacy shell.
 stdin:
@@ -7522,6 +7522,20 @@ expected-stdout:
 name: aliases-funcdef-1
 description:
 	Check if POSIX functions take precedences over aliases
+category: shell:legacy-no
+stdin:
+	alias foo='echo makro'
+	foo() {
+		echo funktion
+	}
+	foo
+expected-stdout:
+	makro
+---
+name: aliases-funcdef-1-legacy
+description:
+	Check if POSIX functions take precedences over aliases
+category: shell:legacy-yes
 stdin:
 	alias foo='echo makro'
 	foo() {
@@ -7534,6 +7548,20 @@ expected-stdout:
 name: aliases-funcdef-2
 description:
 	Check if POSIX functions take precedences over aliases
+category: shell:legacy-no
+stdin:
+	alias foo='echo makro'
+	foo () {
+		echo funktion
+	}
+	foo
+expected-stdout:
+	makro
+---
+name: aliases-funcdef-2-legacy
+description:
+	Check if POSIX functions take precedences over aliases
+category: shell:legacy-yes
 stdin:
 	alias foo='echo makro'
 	foo () {
@@ -8699,28 +8727,87 @@ expected-exit: e != 0
 expected-stderr-pattern:
 	/\.: missing argument.*\n.*\.: missing argument/
 ---
-name: alias-function-no-conflict
+name: alias-function-no-conflict-legacy
 description:
-	make aliases not conflict with functions
-	note: for ksh-like functions, the order of preference is
-	different; bash outputs baz instead of bar in line 2 below
+	make aliases not conflict with functions, legacy version:
+	undefine these aliases upon definition of the function
+	note: for ksh functions, the order of preference differs in GNU bash
+category: shell:legacy-yes
 stdin:
+	# POSIX function overrides and removes alias
 	alias foo='echo bar'
+	foo
 	foo() {
 		echo baz
 	}
+	foo
+	unset -f foo
+	foo 2>/dev/null || echo rab
+	# alias overrides ksh function
 	alias korn='echo bar'
+	korn
 	function korn {
 		echo baz
 	}
-	foo
 	korn
+	# alias temporarily overrides POSIX function
+	bla() {
+		echo bfn
+	}
+	bla
+	alias bla='echo bal'
+	bla
+	unalias bla
+	bla
+expected-stdout:
+	bar
+	baz
+	rab
+	bar
+	bar
+	bfn
+	bal
+	bfn
+---
+name: alias-function-no-conflict
+description:
+	make aliases not conflict with function definitions
+category: shell:legacy-no
+stdin:
+	# POSIX function can be defined, but alias overrides it
+	alias foo='echo bar'
+	foo
+	foo() {
+		echo baz
+	}
+	foo
 	unset -f foo
 	foo 2>/dev/null || echo rab
+	# alias overrides ksh function
+	alias korn='echo bar'
+	korn
+	function korn {
+		echo baz
+	}
+	korn
+	# alias temporarily overrides POSIX function
+	bla() {
+		echo bfn
+	}
+	bla
+	alias bla='echo bal'
+	bla
+	unalias bla
+	bla
 expected-stdout:
-	baz
 	bar
-	rab
+	bar
+	bar
+	bar
+	bar
+	bfn
+	bal
+	bfn
 ---
 name: bash-function-parens
 description:
@@ -8732,12 +8819,13 @@ stdin:
 		echo "$1 {"
 		echo '	echo "bar='\''$0'\'\"
 		echo '}'
-		echo ${2:-foo}
+		print -r -- "${2:-foo}"
 	}
 	mk 'function foo' >f-korn
 	mk 'foo ()' >f-dash
 	mk 'function foo ()' >f-bash
-	mk 'function stop ()' stop >f-stop
+	# lksh can do without the backslash, too (cf. aliases-funcdef-2-legacy)
+	mk 'function stop ()' '\stop' >f-stop
 	print '#!'"$__progname"'\nprint -r -- "${0%/f-argh}"' >f-argh
 	chmod +x f-*
 	u=$(./f-argh)

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.146 2015/02/19 22:26:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.147 2015/03/20 23:37:54 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -1020,11 +1020,13 @@ define(const char *name, struct op *t)
 
 	nhash = hash(name);
 
+#ifdef MKSH_LEGACY_MODE
 	if (t != NULL && !tobool(t->u.ksh_func)) {
 		/* drop same-name aliases for POSIX functions */
 		if ((tp = ktsearch(&aliases, name, nhash)))
 			ktdelete(tp);
 	}
+#endif
 
 	while (/* CONSTCOND */ 1) {
 		tp = findfunc(name, nhash, true);
