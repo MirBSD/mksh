@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.685 2015/03/14 05:23:12 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.686 2015/03/20 23:37:27 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -9756,25 +9756,33 @@ description:
 	Verify that file descriptors > 2 are private for Korn shells
 	AT&T ksh93 does this still, which means we must keep it as well
 category: shell:legacy-no
-file-setup: file 644 "test.sh"
-	echo >&3 Fowl
 stdin:
-	exec 3>&1
-	"$__progname" test.sh
+	cat >cld <<-EOF
+		#!$__perlname
+		open(my \$fh, ">&", 9) or die "E: open \$!";
+		syswrite(\$fh, "Fowl\\n", 5) or die "E: write \$!";
+	EOF
+	chmod +x cld
+	exec 9>&1
+	./cld
 expected-exit: e != 0
 expected-stderr-pattern:
-	/bad file descriptor/
+	/E: open /
 ---
 name: fd-cloexec-2
 description:
 	Verify that file descriptors > 2 are not private for POSIX shells
 	See Debian Bug #154540, Closes: #499139
-file-setup: file 644 "test.sh"
-	echo >&3 Fowl
 stdin:
-	test -n "$POSH_VERSION" || set -o sh
-	exec 3>&1
-	"$__progname" test.sh
+	cat >cld <<-EOF
+		#!$__perlname
+		open(my \$fh, ">&", 9) or die "E: open \$!";
+		syswrite(\$fh, "Fowl\\n", 5) or die "E: write \$!";
+	EOF
+	chmod +x cld
+	test -n "$POSH_VERSION" || set -o posix
+	exec 9>&1
+	./cld
 expected-stdout:
 	Fowl
 ---
@@ -9782,11 +9790,15 @@ name: fd-cloexec-3
 description:
 	Verify that file descriptors > 2 are not private for LEGACY KSH
 category: shell:legacy-yes
-file-setup: file 644 "test.sh"
-	echo >&3 Fowl
 stdin:
-	exec 3>&1
-	"$__progname" test.sh
+	cat >cld <<-EOF
+		#!$__perlname
+		open(my \$fh, ">&", 9) or die "E: open \$!";
+		syswrite(\$fh, "Fowl\\n", 5) or die "E: write \$!";
+	EOF
+	chmod +x cld
+	exec 9>&1
+	./cld
 expected-stdout:
 	Fowl
 ---
