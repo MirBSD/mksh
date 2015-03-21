@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.193.2.2 2015/03/20 22:21:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.193.2.3 2015/03/21 00:12:43 tg Exp $");
 
 /*
  * states while lexing word
@@ -1080,8 +1080,7 @@ yylex(int cf)
 				 * pushed into an SREREAD) which is what
 				 * we want here anyway: find out whether
 				 * the alias name is followed by a POSIX
-				 * function definition (only the opening
-				 * parenthesis is checked though)
+				 * function definition
 				 */
 				++cp;
 			/* prefer functions over aliases */

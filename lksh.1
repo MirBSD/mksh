@@ -1,6 +1,6 @@
-.\" $MirOS: src/bin/mksh/lksh.1,v 1.5 2013/05/22 18:18:06 tg Exp $
+.\" $MirOS: src/bin/mksh/lksh.1,v 1.5.2.1 2015/03/21 00:12:45 tg Exp $
 .\"-
-.\" Copyright (c) 2008, 2009, 2010, 2012, 2013
+.\" Copyright (c) 2008, 2009, 2010, 2012, 2013, 2015
 .\"	Thorsten “mirabilos” Glaser <tg@mirbsd.org>
 .\"
 .\" Provided that these terms and disclaimer and all copyright notices
@@ -72,7 +72,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: May 22 2013 $
+.Dd $Mdocdate: March 21 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -175,7 +175,7 @@ instead of relying on legacy or idiotic POSIX-mandated behaviour,
 since the MirBSD Korn Shell scripting language is much more consistent.
 .Sh LEGACY MODE
 .Nm
-has the following differences from
+currently has the following differences from
 .Nm mksh :
 .Bl -bullet
 .It
@@ -195,6 +195,11 @@ as
 .Dq LEGACY KSH
 instead of
 .Dq MIRBSD KSH .
+Note that the rest of the version string is identical between
+the two shell flavours, and the behaviour and differences can
+change between versions; see the accompanying manual page
+.Xr mksh 1
+for the versions this document applies to.
 .It
 .Nm
 only offers the traditional ten file descriptors to scripts.
@@ -245,11 +250,17 @@ passes through the errorlevel from the
 .Xr getopt 1
 command.
 .It
-.Nm lksh ,
-unlike
+Unlike
 .At
 .Nm ksh ,
-does not keep file descriptors \*(Gt 2 private.
+.Nm mksh
+in
+.Fl o Ic posix
+or
+.Fl o Ic sh
+mode and
+.Nm lksh
+do not keep file descriptors \*(Gt 2 private from sub-processes.
 .El
 .Sh SEE ALSO
 .Xr mksh 1
