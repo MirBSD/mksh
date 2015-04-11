@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.94 2015/03/14 05:23:14 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.95 2015/04/11 18:08:56 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -22,21 +22,22 @@
 #-
 # ${ENV:-~/.mkshrc}: mksh initialisation file for interactive shells
 
-# catch non-mksh (including lksh) trying to shell this file
+# catch non-mksh (including lksh) trying to run this file
 case $KSH_VERSION in
 *MIRBSD\ KSH*) ;;
-*) \return 0 ;;
+*) return 0 ;;
 esac
 
 PS1='#'; (( USER_ID )) && PS1='$'; [[ ${HOSTNAME:=$(\ulimit -c 0; hostname -s \
     2>/dev/null)} = *([	 ]|localhost) ]] && HOSTNAME=$(\ulimit -c 0; hostname \
-    2>/dev/null); \: ${EDITOR:=/bin/ed} ${HOSTNAME:=nil} ${TERM:=vt100}
-\: ${MKSH:=$(\builtin whence -p mksh)}; PS4='[$EPOCHREALTIME] '; PS1=$'\001\r''${|
+    2>/dev/null); \: "${EDITOR:=/bin/ed} ${HOSTNAME:=nil} ${MKSH:=$(\builtin \
+    whence -p mksh || \echo /bin/mksh)} ${TERM:=vt100} ${USER:=$(\ulimit -c 0; \
+    id -un 2>/dev/null || \echo \?)}"
+PS4='[$EPOCHREALTIME] '; PS1=$'\001\r''${|
 	\typeset e=$?
 
 	(( e )) && REPLY+="$e|"
-	REPLY+=${USER:=$(\ulimit -c 0; id -un 2>/dev/null || \echo \?)}
-	REPLY+=@${HOSTNAME%%.*}:
+	REPLY+=${USER}@${HOSTNAME%%.*}:
 
 	\typeset d=${PWD:-?} p=~; [[ $p = ?(*/) ]] || d=${d/#$p/~}
 	\typeset m=${%d} n p=...; (( m > 0 )) || m=${#d}
