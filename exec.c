@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.148 2015/04/11 22:03:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.149 2015/04/11 23:28:19 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -714,9 +714,9 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 
 	/* function call */
 	case CFUNC: {
-		volatile unsigned char old_xflag;
 		volatile uint32_t old_inuse;
 		const char * volatile old_kshname;
+		volatile uint8_t old_flags[FNFLAGS];
 
 		if (!(tp->flag & ISSET)) {
 			struct tbl *ftp;
@@ -768,8 +768,9 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			getopts_reset(1);
 		}
 
-		old_xflag = Flag(FXTRACE) ? 1 : 0;
-		change_xtrace((Flag(FXTRACEREC) ? old_xflag : 0) |
+		for (type_flags = 0; type_flags < FNFLAGS; ++type_flags)
+			old_flags[type_flags] = shell_flags[type_flags];
+		change_xtrace((Flag(FXTRACEREC) ? Flag(FXTRACE) : 0) |
 		    ((tp->flag & TRACE) ? 1 : 0), false);
 		old_inuse = tp->flag & FINUSE;
 		tp->flag |= FINUSE;
@@ -781,13 +782,20 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		}
 
 		kshname = old_kshname;
-		change_xtrace(old_xflag, false);
+		change_xtrace(old_flags[(int)FXTRACE], false);
+#ifndef MKSH_LEGACY_MODE
+		if (tp->flag & FKSH) {
+			/* Korn style functions restore Flags on return */
+			old_flags[(int)FXTRACE] = Flag(FXTRACE);
+			for (type_flags = 0; type_flags < FNFLAGS; ++type_flags)
+				shell_flags[type_flags] = old_flags[type_flags];
+		}
+#endif
 		tp->flag = (tp->flag & ~FINUSE) | old_inuse;
 
 		/*
 		 * Were we deleted while executing? If so, free the
-		 * execution tree. TODO: Unfortunately, the table entry
-		 * is never re-used until the lookup table is expanded.
+		 * execution tree.
 		 */
 		if ((tp->flag & (FDELETE|FINUSE)) == FDELETE) {
 			if (tp->flag & ALLOC) {

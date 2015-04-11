@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.359 2015/04/11 22:35:10 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.360 2015/04/11 23:28:19 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.159 2015/03/25 12:10:52 jca Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -1204,7 +1204,7 @@ and
 .Ic return
 work, and in that
 .Ic exit
-terminates the parent shell.
+terminates the parent shell; flags are shared.
 .Pp
 Another variant of substitution are the valsubs (value substitutions)
 .Pf ${\*(Ba\& Ns Ar command Ns \&;}
@@ -2903,6 +2903,10 @@ untouched, so using
 inside a function interferes with using
 .Ic getopts
 outside the function).
+.It
+Shell options
+.Pq Ic set Fl o
+have local scope, i.e. changes inside a function are reset upon its exit.
 .El
 .Pp
 In the future, the following differences may also be added:
@@ -2916,10 +2920,6 @@ trapped) will have their default effect in a function.
 .It
 The EXIT trap, if set in a function, will be executed after the function
 returns.
-.It
-Shell options
-.Pq Ic set Fl o
-have local scope, i.e. changes inside a function are reset upon its exit.
 .El
 .Ss Command execution
 After evaluation of command-line arguments, redirections, and parameter

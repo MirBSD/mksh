@@ -1,8 +1,8 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.140 2015/03/20 23:37:17 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.141 2015/04/11 23:28:17 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
-#	Thorsten Glaser <tg@mirbsd.org>
+#	Thorsten “mirabilos” Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
 # are retained or reproduced in an accompanying document, permission
@@ -27,6 +27,8 @@ NOMAN=		Yes
 .endif
 
 .include <bsd.own.mk>
+
+SRCDIR=		${.CURDIR}
 
 PROG=		mksh
 SRCS=		edit.c eval.c exec.c expr.c funcs.c histrap.c jobs.c \
@@ -55,7 +57,7 @@ CPPFLAGS+=	-DMKSH_ASSUME_UTF8 -DMKSH_DISABLE_DEPRECATED \
 		-DHAVE_SETGROUPS=1 -DHAVE_STRERROR=0 -DHAVE_STRSIGNAL=0 \
 		-DHAVE_STRLCPY=1 -DHAVE_FLOCK_DECL=1 -DHAVE_REVOKE_DECL=1 \
 		-DHAVE_SYS_ERRLIST_DECL=1 -DHAVE_SYS_SIGLIST_DECL=1 \
-		-DHAVE_PERSISTENT_HISTORY=1 -DMKSH_BUILD_R=509
+		-DHAVE_PERSISTENT_HISTORY=1 -DMKSH_BUILD_R=510
 CPPFLAGS+=	-D${${PROG:L}_tf:C/(Mir${MAN:E}{0,1}){2}/4/:S/x/mksh_BUILD/:U}
 CPPFLAGS+=	-I.
 COPTS+=		-std=c89 -Wall
@@ -82,11 +84,11 @@ LINKS+=		${BINDIR}/${PROG} ${BINDIR}/${_i}
 MLINKS+=	${PROG}.1 ${_i}.1
 .endfor
 
-OPTGENS!=	cd ${.CURDIR:Q} && echo *.opt
+OPTGENS!=	cd ${SRCDIR:Q} && echo *.opt
 .for _i in ${OPTGENS}
 GENERATED+=	${_i:R}.gen
-${_i:R}.gen: ${_i} ${.CURDIR}/Build.sh
-	/bin/sh ${.CURDIR:Q}/Build.sh -G ${.CURDIR:Q}/${_i:Q}
+${_i:R}.gen: ${_i} ${SRCDIR}/Build.sh
+	/bin/sh ${SRCDIR:Q}/Build.sh -G ${SRCDIR:Q}/${_i:Q}
 .endfor
 CLEANFILES+=	${GENERATED}
 
@@ -96,8 +98,8 @@ regress: ${PROG} check.pl check.t
 	-rm -rf regress-dir
 	mkdir -p regress-dir
 	echo export FNORD=666 >regress-dir/.mkshrc
-	HOME=$$(realpath regress-dir) perl ${.CURDIR}/check.pl \
-	    -s ${.CURDIR}/check.t -v -p ./${PROG} \
+	HOME=$$(realpath regress-dir) perl ${SRCDIR}/check.pl \
+	    -s ${SRCDIR}/check.t -v -p ./${PROG} \
 	    -C shell:legacy-no,int:32,fastbox
 
 test-build: .PHONY
@@ -109,14 +111,14 @@ test-build: .PHONY
 	cd build-dir; env CC=${CC:Q} CFLAGS=${CFLAGS:M*:Q} \
 	    CPPFLAGS=${CPPFLAGS:M*:Q} LDFLAGS=${LDFLAGS:M*:Q} \
 	    LIBS= NOWARN=-Wno-error TARGET_OS= CPP= /bin/sh \
-	    ${.CURDIR}/Build.sh -Q -r ${_TBF} && ./test.sh -v -f
+	    ${SRCDIR}/Build.sh -Q -r ${_TBF} && ./test.sh -v -f
 
 CLEANFILES+=	lksh.cat1
 test-build-lksh: .PHONY
-	cd ${.CURDIR} && exec ${MAKE} lksh.cat1 test-build _TBF=-L
+	cd ${SRCDIR} && exec ${MAKE} lksh.cat1 test-build _TBF=-L
 
 bothmans: .PHONY
-	cd ${.CURDIR} && exec ${MAKE} MAN='lksh.1 mksh.1' __MANALL
+	cd ${SRCDIR} && exec ${MAKE} MAN='lksh.1 mksh.1' __MANALL
 
 cleandir: clean-extra
 
@@ -126,7 +128,7 @@ clean-extra: .PHONY
 mksh_tf=xMakefile${OStype:S/${MACHINE_OS}/1/1g}${OSNAME}
 distribution:
 	sed 's!\$$I''d\([:$$]\)!$$M''irSecuCron\1!g' \
-	    ${.CURDIR}/dot.mkshrc >${DESTDIR}/etc/skel/.mkshrc
+	    ${SRCDIR}/dot.mkshrc >${DESTDIR}/etc/skel/.mkshrc
 	chown ${BINOWN}:${CONFGRP} ${DESTDIR}/etc/skel/.mkshrc
 	chmod 0644 ${DESTDIR}/etc/skel/.mkshrc
 
@@ -150,7 +152,7 @@ cats: ${MANALL} ${MANALL:S/.cat/.ps/}
 .  error Adjust here.
 .endif
 .for _m _n in mksh 1
-	x=$$(ident ${.CURDIR:Q}/${_m}.${_n} | \
+	x=$$(ident ${SRCDIR:Q}/${_m}.${_n} | \
 	    awk '/MirOS:/ { print $$4$$5; }' | \
 	    tr -dc 0-9); (( $${#x} == 14 )) || exit 1; exec \
 	    ${MKSH} ${BSDSRCDIR:Q}/contrib/hosted/tg/ps2pdfmir -c \
@@ -182,5 +184,5 @@ d: all
 .endif
 
 dr:
-	p=$$(realpath ${PROG:Q}) && cd ${.CURDIR:Q} && exec ${MKSH} \
+	p=$$(realpath ${PROG:Q}) && cd ${SRCDIR:Q} && exec ${MKSH} \
 	    ${BSDSRCDIR:Q}/contrib/hosted/tg/sdmksh "$$p"
