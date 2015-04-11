@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.687 2015/03/20 23:37:52 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.688 2015/04/11 21:18:45 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -4841,6 +4841,66 @@ expected-stdout:
 	1: x[A] y[B] z[]
 	1a:
 	2: x[A B]
+---
+name: read-IFS-2
+description:
+	Complex tests, IFS either colon (IFS-NWS) or backslash (tricky)
+stdin:
+	n=0
+	showargs() { print -nr "$1"; shift; for s_arg in "$@"; do print -nr -- " [$s_arg]"; done; print; }
+	(IFS=\\ a=\<\\\>; showargs 3 $a)
+	(IFS=: b=\<:\>; showargs 4 $b)
+	print -r '<\>' | (IFS=\\ read f g; showargs 5 "$f" "$g")
+	print -r '<\\>' | (IFS=\\ read f g; showargs 6 "$f" "$g")
+	print '<\\\n>' | (IFS=\\ read f g; showargs 7 "$f" "$g")
+	print -r '<\>' | (IFS=\\ read f; showargs 8 "$f")
+	print -r '<\\>' | (IFS=\\ read f; showargs 9 "$f")
+	print '<\\\n>' | (IFS=\\ read f; showargs 10 "$f")
+	print -r '<\>' | (IFS=\\ read -r f g; showargs 11 "$f" "$g")
+	print -r '<\\>' | (IFS=\\ read -r f g; showargs 12 "$f" "$g")
+	print '<\\\n>' | (IFS=\\ read -r f g; showargs 13 "$f" "$g")
+	print -r '<\>' | (IFS=\\ read -r f; showargs 14 "$f")
+	print -r '<\\>' | (IFS=\\ read -r f; showargs 15 "$f")
+	print '<\\\n>' | (IFS=\\ read -r f; showargs 16 "$f")
+	print -r '<:>' | (IFS=: read f g; showargs 17 "$f" "$g")
+	print -r '<::>' | (IFS=: read f g; showargs 18 "$f" "$g")
+	print '<:\n>' | (IFS=: read f g; showargs 19 "$f" "$g")
+	print -r '<:>' | (IFS=: read f; showargs 20 "$f")
+	print -r '<::>' | (IFS=: read f; showargs 21 "$f")
+	print '<:\n>' | (IFS=: read f; showargs 22 "$f")
+	print -r '<:>' | (IFS=: read -r f g; showargs 23 "$f" "$g")
+	print -r '<::>' | (IFS=: read -r f g; showargs 24 "$f" "$g")
+	print '<:\n>' | (IFS=: read -r f g; showargs 25 "$f" "$g")
+	print -r '<:>' | (IFS=: read -r f; showargs 26 "$f")
+	print -r '<::>' | (IFS=: read -r f; showargs 27 "$f")
+	print '<:\n>' | (IFS=: read -r f; showargs 28 "$f")
+expected-stdout:
+	3 [<] [>]
+	4 [<] [>]
+	5 [<] [>]
+	6 [<] [>]
+	7 [<>] []
+	8 [<>]
+	9 [<\>]
+	10 [<>]
+	11 [<] [>]
+	12 [<] [\>]
+	13 [<] []
+	14 [<\>]
+	15 [<\\>]
+	16 [<]
+	17 [<] [>]
+	18 [<] [:>]
+	19 [<] []
+	20 [<:>]
+	21 [<::>]
+	22 [<]
+	23 [<] [>]
+	24 [<] [:>]
+	25 [<] []
+	26 [<:>]
+	27 [<::>]
+	28 [<]
 ---
 name: read-ksh-1
 description:
