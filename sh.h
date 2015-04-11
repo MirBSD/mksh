@@ -169,7 +169,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.721 2015/03/20 23:37:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.722 2015/04/11 22:03:31 tg Exp $");
 #endif
 #define MKSH_VERSION "R50 2015/03/20"
 
@@ -1341,11 +1341,11 @@ struct op {
  * IO redirection
  */
 struct ioword {
-	int	unit;		/* unit affected */
-	int	flag;		/* action (below) */
-	char	*name;		/* file name (unused if heredoc) */
-	char	*delim;		/* delimiter for <<,<<- */
-	char	*heredoc;	/* content of heredoc */
+	char *name;		/* filename (unused if heredoc) */
+	char *delim;		/* delimiter for <<, <<- */
+	char *heredoc;		/* content of heredoc */
+	unsigned short ioflag;	/* action (below) */
+	short unit;		/* unit (fd) affected */
 };
 
 /* ioword.flag - type of redirection */
