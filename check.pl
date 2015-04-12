@@ -1,8 +1,8 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.37 2014/08/19 07:43:32 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.37.2.1 2015/04/12 22:32:16 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
-#		2012, 2013, 2014
+#		2012, 2013, 2014, 2015
 #	Thorsten Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -568,7 +568,7 @@ run_test
 	}
 	push(@argv, $temps) if defined $test{'script'};
 
-	#XXX realpathise, use which/whence -p, or sth. like that
+	#XXX realpathise, use command -v/whence -p/which, or sth. like that
 	#XXX if !$program_kludge, we get by with not doing it for now tho
 	$new_env{'__progname'} = $argv[0];
 

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.193.2.3 2015/03/21 00:12:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.193.2.4 2015/04/12 22:32:28 tg Exp $");
 
 /*
  * states while lexing word
@@ -921,10 +921,9 @@ yylex(int cf)
 			if (!ksh_isdigit(dp[c2 + 1]))
 				goto no_iop;
 			iop->unit = (iop->unit * 10) + dp[c2 + 1] - '0';
+			if (iop->unit >= FDBASE)
+				goto no_iop;
 		}
-
-		if (iop->unit >= FDBASE)
-			goto no_iop;
 
 		if (c == '&') {
 			if ((c2 = getsc()) != '>') {
@@ -932,31 +931,31 @@ yylex(int cf)
 				goto no_iop;
 			}
 			c = c2;
-			iop->flag = IOBASH;
+			iop->ioflag = IOBASH;
 		} else
-			iop->flag = 0;
+			iop->ioflag = 0;
 
 		c2 = getsc();
 		/* <<, >>, <> are ok, >< is not */
 		if (c == c2 || (c == '<' && c2 == '>')) {
-			iop->flag |= c == c2 ?
+			iop->ioflag |= c == c2 ?
 			    (c == '>' ? IOCAT : IOHERE) : IORDWR;
-			if (iop->flag == IOHERE) {
+			if (iop->ioflag == IOHERE) {
 				if ((c2 = getsc()) == '-') {
-					iop->flag |= IOSKIP;
+					iop->ioflag |= IOSKIP;
 					c2 = getsc();
 				} else if (c2 == '<')
-					iop->flag |= IOHERESTR;
+					iop->ioflag |= IOHERESTR;
 				ungetsc(c2);
 				if (c2 == '\n')
-					iop->flag |= IONDELIM;
+					iop->ioflag |= IONDELIM;
 			}
 		} else if (c2 == '&')
-			iop->flag |= IODUP | (c == '<' ? IORDUP : 0);
+			iop->ioflag |= IODUP | (c == '<' ? IORDUP : 0);
 		else {
-			iop->flag |= c == '>' ? IOWRITE : IOREAD;
+			iop->ioflag |= c == '>' ? IOWRITE : IOREAD;
 			if (c == '>' && c2 == '|')
-				iop->flag |= IOCLOB;
+				iop->ioflag |= IOCLOB;
 			else
 				ungetsc(c2);
 		}
@@ -1124,7 +1123,7 @@ gethere(bool iseof)
 	struct ioword **p;
 
 	for (p = heres; p < herep; p++)
-		if (iseof && !((*p)->flag & IOHERESTR))
+		if (iseof && !((*p)->ioflag & IOHERESTR))
 			/* only here strings at EOF */
 			return;
 		else
@@ -1145,7 +1144,7 @@ readhere(struct ioword *iop)
 	char *xp;
 	int xpos;
 
-	if (iop->flag & IOHERESTR) {
+	if (iop->ioflag & IOHERESTR) {
 		/* process the here string */
 		iop->heredoc = xp = evalstr(iop->delim, DOBLANK);
 		xpos = strlen(xp) - 1;
@@ -1154,9 +1153,9 @@ readhere(struct ioword *iop)
 		return;
 	}
 
-	eof = iop->flag & IONDELIM ? "<<" : evalstr(iop->delim, 0);
+	eof = iop->ioflag & IONDELIM ? "<<" : evalstr(iop->delim, 0);
 
-	if (!(iop->flag & IOEVAL))
+	if (!(iop->ioflag & IOEVAL))
 		ignore_backslash_newline++;
 
 	Xinit(xs, xp, 256, ATEMP);
@@ -1165,7 +1164,7 @@ readhere(struct ioword *iop)
 	/* beginning of line */
 	eofp = eof;
 	xpos = Xsavepos(xs, xp);
-	if (iop->flag & IOSKIP) {
+	if (iop->ioflag & IOSKIP) {
 		/* skip over leading tabs */
 		while ((c = getsc()) == '\t')
 			;	/* nothing */
@@ -1227,7 +1226,7 @@ readhere(struct ioword *iop)
 	Xput(xs, xp, '\0');
 	iop->heredoc = Xclose(xs, xp);
 
-	if (!(iop->flag & IOEVAL))
+	if (!(iop->ioflag & IOEVAL))
 		ignore_backslash_newline--;
 }
 

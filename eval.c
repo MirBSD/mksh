@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.158.2.4 2015/03/01 15:42:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.158.2.5 2015/04/12 22:32:24 tg Exp $");
 
 /*
  * string expansion
@@ -1353,7 +1353,7 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 		struct ioword *io = *t->ioact;
 		char *name;
 
-		if ((io->flag & IOTYPE) != IOREAD)
+		if ((io->ioflag & IOTYPE) != IOREAD)
 			errorf("%s: %s", "funny $() command",
 			    snptreef(NULL, 32, "%R", io));
 		shf = shf_open(name = evalstr(io->name, DOTILDE), O_RDONLY, 0,

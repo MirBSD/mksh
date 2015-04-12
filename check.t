@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.667.2.5 2015/03/21 00:12:36 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.667.2.6 2015/04/12 22:32:17 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2015/03/19
+	@(#)MIRBSD KSH R50 2015/04/12
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2015/03/19
+	@(#)LEGACY KSH R50 2015/04/12
 description:
 	Check version of legacy shell.
 stdin:
@@ -4844,6 +4844,66 @@ expected-stdout:
 	1: x[A] y[B] z[]
 	1a:
 	2: x[A B]
+---
+name: read-IFS-2
+description:
+	Complex tests, IFS either colon (IFS-NWS) or backslash (tricky)
+stdin:
+	n=0
+	showargs() { print -nr "$1"; shift; for s_arg in "$@"; do print -nr -- " [$s_arg]"; done; print; }
+	(IFS=\\ a=\<\\\>; showargs 3 $a)
+	(IFS=: b=\<:\>; showargs 4 $b)
+	print -r '<\>' | (IFS=\\ read f g; showargs 5 "$f" "$g")
+	print -r '<\\>' | (IFS=\\ read f g; showargs 6 "$f" "$g")
+	print '<\\\n>' | (IFS=\\ read f g; showargs 7 "$f" "$g")
+	print -r '<\>' | (IFS=\\ read f; showargs 8 "$f")
+	print -r '<\\>' | (IFS=\\ read f; showargs 9 "$f")
+	print '<\\\n>' | (IFS=\\ read f; showargs 10 "$f")
+	print -r '<\>' | (IFS=\\ read -r f g; showargs 11 "$f" "$g")
+	print -r '<\\>' | (IFS=\\ read -r f g; showargs 12 "$f" "$g")
+	print '<\\\n>' | (IFS=\\ read -r f g; showargs 13 "$f" "$g")
+	print -r '<\>' | (IFS=\\ read -r f; showargs 14 "$f")
+	print -r '<\\>' | (IFS=\\ read -r f; showargs 15 "$f")
+	print '<\\\n>' | (IFS=\\ read -r f; showargs 16 "$f")
+	print -r '<:>' | (IFS=: read f g; showargs 17 "$f" "$g")
+	print -r '<::>' | (IFS=: read f g; showargs 18 "$f" "$g")
+	print '<:\n>' | (IFS=: read f g; showargs 19 "$f" "$g")
+	print -r '<:>' | (IFS=: read f; showargs 20 "$f")
+	print -r '<::>' | (IFS=: read f; showargs 21 "$f")
+	print '<:\n>' | (IFS=: read f; showargs 22 "$f")
+	print -r '<:>' | (IFS=: read -r f g; showargs 23 "$f" "$g")
+	print -r '<::>' | (IFS=: read -r f g; showargs 24 "$f" "$g")
+	print '<:\n>' | (IFS=: read -r f g; showargs 25 "$f" "$g")
+	print -r '<:>' | (IFS=: read -r f; showargs 26 "$f")
+	print -r '<::>' | (IFS=: read -r f; showargs 27 "$f")
+	print '<:\n>' | (IFS=: read -r f; showargs 28 "$f")
+expected-stdout:
+	3 [<] [>]
+	4 [<] [>]
+	5 [<] [>]
+	6 [<] [>]
+	7 [<>] []
+	8 [<>]
+	9 [<\>]
+	10 [<>]
+	11 [<] [>]
+	12 [<] [\>]
+	13 [<] []
+	14 [<\>]
+	15 [<\\>]
+	16 [<]
+	17 [<] [>]
+	18 [<] [:>]
+	19 [<] []
+	20 [<:>]
+	21 [<::>]
+	22 [<]
+	23 [<] [>]
+	24 [<] [:>]
+	25 [<] []
+	26 [<:>]
+	27 [<::>]
+	28 [<]
 ---
 name: read-ksh-1
 description:
@@ -11981,4 +12041,62 @@ expected-stdout:
 expected-stderr:
 	[(p:sh)(f1:sh)(f2:sh)] print '(o1:shx)'
 	[(p:sh)(f1:sh)(f2:sh)] set +x
+---
+name: fksh-flags
+description:
+	Check that FKSH functions have their own shell flags
+category: mksh-next
+stdin:
+	[[ $KSH_VERSION = Version* ]] && set +B
+	function foo {
+		set +f
+		set -e
+		echo 2 "${-/s}" .
+	}
+	set -fh
+	echo 1 "${-/s}" .
+	foo
+	echo 3 "${-/s}" .
+expected-stdout:
+	1 fh .
+	2 eh .
+	3 fh .
+---
+name: fksh-flags-legacy
+description:
+	Check that even FKSH functions share the shell flags
+stdin:
+	[[ $KSH_VERSION = Version* ]] && set +B
+	foo() {
+		set +f
+		set -e
+		echo 2 "${-/s}" .
+	}
+	set -fh
+	echo 1 "${-/s}" .
+	foo
+	echo 3 "${-/s}" .
+expected-stdout:
+	1 fh .
+	2 eh .
+	3 eh .
+---
+name: fsh-flags
+description:
+	Check that !FKSH functions share the shell flags
+stdin:
+	[[ $KSH_VERSION = Version* ]] && set +B
+	foo() {
+		set +f
+		set -e
+		echo 2 "${-/s}" .
+	}
+	set -fh
+	echo 1 "${-/s}" .
+	foo
+	echo 3 "${-/s}" .
+expected-stdout:
+	1 fh .
+	2 eh .
+	3 eh .
 ---

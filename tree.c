@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013
+ *		 2011, 2012, 2013, 2015
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.72 2013/09/24 20:19:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.72.2.1 2015/04/12 22:32:35 tg Exp $");
 
 #define INDENT	8
 
@@ -69,7 +69,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		    t->ioact != NULL && t->ioact[0] != NULL &&
 		    t->ioact[1] == NULL &&
 		    /* of type "here document" (or "here string") */
-		    (t->ioact[0]->flag & IOTYPE) == IOHERE) {
+		    (t->ioact[0]->ioflag & IOTYPE) == IOHERE) {
 			fptreef(shf, indent, "%S", t->vars[0]);
 			break;
 		}
@@ -221,12 +221,12 @@ ptree(struct op *t, int indent, struct shf *shf)
 			struct ioword *iop = *ioact++;
 
 			/* heredoc is NULL when tracing (set -x) */
-			if ((iop->flag & (IOTYPE | IOHERESTR)) == IOHERE &&
+			if ((iop->ioflag & (IOTYPE | IOHERESTR)) == IOHERE &&
 			    iop->heredoc) {
 				shf_putc('\n', shf);
 				shf_puts(iop->heredoc, shf);
 				fptreef(shf, indent, "%s",
-				    iop->flag & IONDELIM ? "<<" :
+				    iop->ioflag & IONDELIM ? "<<" :
 				    evalstr(iop->delim, 0));
 				need_nl = true;
 			}
@@ -246,16 +246,16 @@ ptree(struct op *t, int indent, struct shf *shf)
 static void
 pioact(struct shf *shf, struct ioword *iop)
 {
-	int flag = iop->flag;
-	int type = flag & IOTYPE;
-	int expected;
+	unsigned short flag = iop->ioflag;
+	unsigned short type = flag & IOTYPE;
+	short expected;
 
 	expected = (type == IOREAD || type == IORDWR || type == IOHERE) ? 0 :
 	    (type == IOCAT || type == IOWRITE) ? 1 :
 	    (type == IODUP && (iop->unit == !(flag & IORDUP))) ? iop->unit :
 	    iop->unit + 1;
 	if (iop->unit != expected)
-		shf_fprintf(shf, "%d", iop->unit);
+		shf_fprintf(shf, "%d", (int)iop->unit);
 
 	switch (type) {
 	case IOREAD:
@@ -285,10 +285,10 @@ pioact(struct shf *shf, struct ioword *iop)
 	if (type == IOHERE) {
 		if (iop->delim)
 			wdvarput(shf, iop->delim, 0, WDS_TPUTS);
-		if (iop->flag & IOHERESTR)
+		if (flag & IOHERESTR)
 			shf_putc(' ', shf);
 	} else if (iop->name) {
-		if (iop->flag & IONAMEXP)
+		if (flag & IONAMEXP)
 			print_value_quoted(shf, iop->name);
 		else
 			wdvarput(shf, iop->name, 0, WDS_TPUTS);
@@ -910,9 +910,9 @@ dumpioact(struct shf *shf, struct op *t)
 
 	shf_puts("{IOACT", shf);
 	while ((iop = *ioact++) != NULL) {
-		int type = iop->flag & IOTYPE;
+		unsigned short type = iop->ioflag & IOTYPE;
 #define DT(x) case x: shf_puts(#x, shf); break;
-#define DB(x) if (iop->flag & x) shf_puts("|" #x, shf);
+#define DB(x) if (iop->ioflag & x) shf_puts("|" #x, shf);
 
 		shf_putc(';', shf);
 		switch (type) {
@@ -933,14 +933,14 @@ dumpioact(struct shf *shf, struct op *t)
 		DB(IOBASH)
 		DB(IOHERESTR)
 		DB(IONDELIM)
-		shf_fprintf(shf, ",unit=%d", iop->unit);
+		shf_fprintf(shf, ",unit=%d", (int)iop->unit);
 		if (iop->delim) {
 			shf_puts(",delim<", shf);
 			dumpwdvar(shf, iop->delim);
 			shf_putc('>', shf);
 		}
 		if (iop->name) {
-			if (iop->flag & IONAMEXP) {
+			if (iop->ioflag & IONAMEXP) {
 				shf_puts(",name=", shf);
 				print_value_quoted(shf, iop->name);
 			} else {

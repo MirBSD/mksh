@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014
+ *		 2011, 2012, 2013, 2014, 2015
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.285.2.2 2015/03/01 15:43:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.285.2.3 2015/04/12 22:32:29 tg Exp $");
 
 extern char **environ;
 
@@ -1453,13 +1453,20 @@ closepipe(int *pv)
 int
 check_fd(const char *name, int mode, const char **emsgp)
 {
-	int fd, fl;
+	int fd = 0, fl;
 
 	if (name[0] == 'p' && !name[1])
 		return (coproc_getfd(mode, emsgp));
-	for (fd = 0; ksh_isdigit(*name); ++name)
+	while (ksh_isdigit(*name)) {
 		fd = (fd * 10) + *name - '0';
-	if (*name || fd >= FDBASE) {
+		if (fd >= FDBASE) {
+			if (emsgp)
+				*emsgp = "file descriptor too large";
+			return (-1);
+		}
+		++name;
+	}
+	if (*name) {
 		if (emsgp)
 			*emsgp = "illegal file descriptor name";
 		return (-1);

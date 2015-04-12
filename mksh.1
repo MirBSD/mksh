@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.344.2.4 2015/03/20 22:21:05 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.158 2015/03/15 14:33:21 jmc Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.344.2.5 2015/04/12 22:32:30 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.159 2015/03/25 12:10:52 jca Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
 .\"		2010, 2011, 2012, 2013, 2014, 2015
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 20 2015 $
+.Dd $Mdocdate: April 12 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1204,7 +1204,7 @@ and
 .Ic return
 work, and in that
 .Ic exit
-terminates the parent shell.
+terminates the parent shell; shell options are shared.
 .Pp
 Another variant of substitution are the valsubs (value substitutions)
 .Pf ${\*(Ba\& Ns Ar command Ns \&;}
@@ -6485,6 +6485,24 @@ will cause the shell (either
 or
 .Nm lksh )
 to behave more like the standard expects.
+.Pp
+For the purpose of
+.Tn POSIX ,
+.Nm mksh
+supports only the
+.Dq C
+locale.
+For users of UTF-8 locales, the following sh code makes the shell
+match the locale:
+.Bd -literal -offset indent
+case ${KSH_VERSION:\-} in
+*MIRBSD\ KSH*\*(Ba*LEGACY\ KSH*)
+	case ${LC_ALL:\-${LC_CTYPE:\-${LANG:\-}}} in
+	*[Uu][Tt][Ff]8*\*(Ba*[Uu][Tt][Ff]\-8*) set \-U ;;
+	*) set +U ;;
+	esac ;;
+esac
+.Ed
 .Sh BUGS
 Suspending (using \*(haZ) pipelines like the one below will only suspend
 the currently running part of the pipeline; in this example,

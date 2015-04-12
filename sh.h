@@ -169,9 +169,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.701.2.5 2015/03/20 22:21:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.701.2.6 2015/04/12 22:32:33 tg Exp $");
 #endif
-#define MKSH_VERSION "R50 2015/03/19"
+#define MKSH_VERSION "R50 2015/04/12"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -537,7 +537,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 505)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 506)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -1347,11 +1347,11 @@ struct op {
  * IO redirection
  */
 struct ioword {
-	int	unit;		/* unit affected */
-	int	flag;		/* action (below) */
-	char	*name;		/* file name (unused if heredoc) */
-	char	*delim;		/* delimiter for <<,<<- */
-	char	*heredoc;	/* content of heredoc */
+	char *name;		/* filename (unused if heredoc) */
+	char *delim;		/* delimiter for <<, <<- */
+	char *heredoc;		/* content of heredoc */
+	unsigned short ioflag;	/* action (below) */
+	short unit;		/* unit (fd) affected */
 };
 
 /* ioword.flag - type of redirection */

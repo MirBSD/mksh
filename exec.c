@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.137.2.2 2015/03/01 15:42:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.137.2.3 2015/04/12 22:32:25 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -92,7 +92,7 @@ execute(struct op * volatile t,
 		    t->ioact != NULL && t->ioact[0] != NULL &&
 		    t->ioact[1] == NULL &&
 		    /* of type "here document" (or "here string") */
-		    (t->ioact[0]->flag & IOTYPE) == IOHERE &&
+		    (t->ioact[0]->ioflag & IOTYPE) == IOHERE &&
 		    /* the variable assignment begins with a valid varname */
 		    (ccp = skip_wdvarname(t->vars[0], true)) != t->vars[0] &&
 		    /* and has no right-hand side (i.e. "varname=") */
@@ -786,8 +786,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 
 		/*
 		 * Were we deleted while executing? If so, free the
-		 * execution tree. TODO: Unfortunately, the table entry
-		 * is never re-used until the lookup table is expanded.
+		 * execution tree.
 		 */
 		if ((tp->flag & (FDELETE|FINUSE)) == FDELETE) {
 			if (tp->flag & ALLOC) {
@@ -1317,7 +1316,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 {
 	int u = -1;
 	char *cp = iop->name;
-	int iotype = iop->flag & IOTYPE;
+	int iotype = iop->ioflag & IOTYPE;
 	bool do_open = true, do_close = false;
 	int flags = 0;
 	struct ioword iotmp;
@@ -1329,7 +1328,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	/* Used for tracing and error messages to print expanded cp */
 	iotmp = *iop;
 	iotmp.name = (iotype == IOHERE) ? NULL : cp;
-	iotmp.flag |= IONAMEXP;
+	iotmp.ioflag |= IONAMEXP;
 
 	if (Flag(FXTRACE)) {
 		change_xtrace(2, false);
@@ -1352,7 +1351,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		 * The stat() is here to allow redirections to
 		 * things like /dev/null without error.
 		 */
-		if (Flag(FNOCLOBBER) && !(iop->flag & IOCLOB) &&
+		if (Flag(FNOCLOBBER) && !(iop->ioflag & IOCLOB) &&
 		    (stat(cp, &statb) < 0 || S_ISREG(statb.st_mode)))
 			flags |= O_EXCL;
 		break;
@@ -1377,7 +1376,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			u = 1009;
 			do_close = true;
 		} else if ((u = check_fd(cp,
-		    X_OK | ((iop->flag & IORDUP) ? R_OK : W_OK),
+		    X_OK | ((iop->ioflag & IORDUP) ? R_OK : W_OK),
 		    &emsg)) < 0) {
 			char *sp;
 
@@ -1386,7 +1385,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			afree(sp, ATEMP);
 			return (-1);
 		}
-		if (u == iop->unit)
+		if (u == (int)iop->unit)
 			/* "dup from" == "dup to" */
 			return (0);
 		break;
@@ -1414,7 +1413,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	/* Do not save if it has already been redirected (i.e. "cat >x >y"). */
 	if (e->savefd[iop->unit] == 0) {
 		/* If these are the same, it means unit was previously closed */
-		if (u == iop->unit)
+		if (u == (int)iop->unit)
 			e->savefd[iop->unit] = -1;
 		else
 			/*
@@ -1429,7 +1428,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 
 	if (do_close)
 		close(iop->unit);
-	else if (u != iop->unit) {
+	else if (u != (int)iop->unit) {
 		if (ksh_dup2(u, iop->unit, true) < 0) {
 			int eno;
 			char *sp;
@@ -1451,7 +1450,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		 * causes the shell to close its copies
 		 */
 		else if (tp && tp->type == CSHELL && tp->val.f == c_exec) {
-			if (iop->flag & IORDUP)
+			if (iop->ioflag & IORDUP)
 				/* possible exec <&p */
 				coproc_read_close(u);
 			else
@@ -1520,7 +1519,7 @@ herein(struct ioword *iop, char **resbuf)
 	}
 
 	/* lexer substitution flags */
-	i = (iop->flag & IOEVAL) ? (ONEWORD | HEREDOC) : 0;
+	i = (iop->ioflag & IOEVAL) ? (ONEWORD | HEREDOC) : 0;
 
 	/* skip all the fd setup if we just want the value */
 	if (resbuf != NULL)

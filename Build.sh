@@ -1,9 +1,9 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.669.2.2 2015/03/01 15:42:50 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.669.2.3 2015/04/12 22:32:14 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#		2011, 2012, 2013, 2014
-#	Thorsten Glaser <tg@mirbsd.org>
+#		2011, 2012, 2013, 2014, 2015
+#	Thorsten “mirabilos” Glaser <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
 # are retained or reproduced in an accompanying document, permission
@@ -1692,6 +1692,7 @@ if test 0 = $HAVE_CAN_LFS_SUS; then
 	ac_testn can_lfs_aix '!' can_lfs 0 "... with -D_LARGE_FILES=1" <lft.c
 	test 1 = $HAVE_CAN_LFS_AIX || CPPFLAGS=$save_CPPFLAGS
 fi
+rm -f lft.c
 rmf lft*	# end of large file support test
 
 #
@@ -1780,12 +1781,12 @@ else
 	HAVE_LINK_WORKS=x
 	ac_testinit link_works '' 'checking if the final link command may succeed'
 	fv=1
-	cat >conftest.c <<-'EOF'
+	cat >conftest.c <<-EOF
 		#define EXTERN
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
-		__RCSID("$MirOS: src/bin/mksh/Build.sh,v 1.669.2.2 2015/03/01 15:42:50 tg Exp $");
-		int main(void) { printf("Hello, World!\n"); return (isatty(0)); }
+		__RCSID("$srcversion");
+		int main(void) { printf("Hello, World!\\n"); return (isatty(0)); }
 EOF
 	case $cm in
 	llvm)
@@ -2325,7 +2326,7 @@ addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && add_cppflags -DMKSH_PRINTF_BUILTIN
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
-add_cppflags -DMKSH_BUILD_R=505
+add_cppflags -DMKSH_BUILD_R=506
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 

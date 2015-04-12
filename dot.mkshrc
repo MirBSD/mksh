@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.89.2.2 2015/03/20 22:20:58 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.89.2.3 2015/04/12 22:32:22 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -22,21 +22,23 @@
 #-
 # ${ENV:-~/.mkshrc}: mksh initialisation file for interactive shells
 
-# catch non-mksh (including lksh) trying to shell this file
-case $KSH_VERSION in
+# catch non-mksh (including lksh) trying to run this file
+case ${KSH_VERSION:-} in
 *MIRBSD\ KSH*) ;;
 *) return 0 ;;
 esac
 
-PS1='#'; (( USER_ID )) && PS1='$'; [[ ${HOSTNAME:=$(ulimit -c 0; hostname -s \
-    2>/dev/null)} = *([	 ]|localhost) ]] && HOSTNAME=$(ulimit -c 0; hostname \
-    2>/dev/null); : ${EDITOR:=/bin/ed} ${HOSTNAME:=nil} ${TERM:=vt100}
-: ${MKSH:=$(whence -p mksh)}; PS4='[$EPOCHREALTIME] '; PS1=$'\001\r''${|
+PS1='#'; (( USER_ID )) && PS1='$'; : "${TERM:=vt100}${HOSTNAME:=$(ulimit -c \
+    0; hostname 2>/dev/null)}${EDITOR:=/bin/ed}${USER:=$(ulimit -c 0; id -un \
+    2>/dev/null || echo \?)}${MKSH:=$(whence -p mksh)}"
+HOSTNAME=${HOSTNAME%%*([	 ]).*}; HOSTNAME=${HOSTNAME##*([	 ])}
+[[ $HOSTNAME = ?(ip6-)localhost?(6) ]] && HOSTNAME=
+: "${HOSTNAME:=nil}${MKSH:=/bin/mksh}"; export EDITOR HOSTNAME MKSH TERM USER
+PS4='[$EPOCHREALTIME] '; PS1=$'\001\r''${|
 	local e=$?
 
 	(( e )) && REPLY+="$e|"
-	REPLY+=${USER:=$(ulimit -c 0; id -un 2>/dev/null || echo \?)}
-	REPLY+=@${HOSTNAME%%.*}:
+	REPLY+=${USER}@${HOSTNAME%%.*}:
 
 	local d=${PWD:-?} p=~; [[ $p = ?(*/) ]] || d=${d/#$p/~}
 	local m=${%d} n p=...; (( m > 0 )) || m=${#d}
@@ -44,7 +46,7 @@ PS1='#'; (( USER_ID )) && PS1='$'; [[ ${HOSTNAME:=$(ulimit -c 0; hostname -s \
 	REPLY+=$p$d
 
 	return $e
-} '"$PS1 "; export EDITOR HOSTNAME MKSH TERM USER
+} '"$PS1 "
 alias ls=ls
 unalias ls
 alias l='ls -F'
@@ -72,7 +74,8 @@ else
 			while (( i < ${#line[*]} )); do
 				hv=${line[i++]}
 				if (( (pos & 15) == 0 )); then
-					(( pos )) && print -r -- "$dasc|"
+					(( pos )) && \
+					    print -r -- "$dasc|"
 					print -n "${pos#16#}  "
 					dasc=' |'
 				fi
@@ -82,11 +85,13 @@ else
 				else
 					dasc+=${line[i-1]#1#}
 				fi
-				(( (pos++ & 15) == 7 )) && print -n -- '- '
+				(( (pos++ & 15) == 7 )) && \
+				    print -n -- '- '
 			done
 			while (( pos & 15 )); do
 				print -n '   '
-				(( (pos++ & 15) == 7 )) && print -n -- '- '
+				(( (pos++ & 15) == 7 )) && \
+				    print -n -- '- '
 			done
 			(( hv == 2147483647 )) || print -r -- "$dasc|"
 		fi; }
@@ -95,10 +100,12 @@ fi
 
 # Berkeley C shell compatible dirs, popd, and pushd functions
 # Z shell compatible chpwd() hook, used to update DIRSTACK[0]
-DIRSTACKBASE=$(realpath ~/. 2>/dev/null || print -nr -- "${HOME:-/}")
+DIRSTACKBASE=$(realpath ~/. 2>/dev/null || \
+    print -nr -- "${HOME:-/}")
 set -A DIRSTACK
 function chpwd {
-	DIRSTACK[0]=$(realpath . 2>/dev/null || print -r -- "$PWD")
+	DIRSTACK[0]=$(realpath . 2>/dev/null || \
+	    print -r -- "$PWD")
 	[[ $DIRSTACKBASE = ?(*/) ]] || \
 	    DIRSTACK[0]=${DIRSTACK[0]/#$DIRSTACKBASE/~}
 	:
