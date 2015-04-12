@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.360 2015/04/11 23:28:19 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.361 2015/04/12 22:32:12 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.159 2015/03/25 12:10:52 jca Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 11 2015 $
+.Dd $Mdocdate: April 12 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1204,7 +1204,7 @@ and
 .Ic return
 work, and in that
 .Ic exit
-terminates the parent shell; flags are shared.
+terminates the parent shell; shell options are shared.
 .Pp
 Another variant of substitution are the valsubs (value substitutions)
 .Pf ${\*(Ba\& Ns Ar command Ns \&;}
