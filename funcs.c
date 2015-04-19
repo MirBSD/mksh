@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.267 2015/04/11 21:18:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.268 2015/04/19 14:40:23 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -779,7 +779,7 @@ c_typeset(const char **wp)
 	if (fieldstr && !bi_getn(fieldstr, &field))
 		return (1);
 	if (basestr) {
-		if (!bi_getn(basestr, &base)) {
+		if (!getn(basestr, &base)) {
 			bi_errorf("%s: %s", "bad integer base", basestr);
 			return (1);
 		}
@@ -2333,13 +2333,9 @@ c_exitreturn(const char **wp)
 		goto c_exitreturn_err;
 	arg = wp[builtin_opt.optind];
 
-	if (arg) {
-		if (!getn(arg, &n)) {
-			exstat = 1;
-			warningf(true, "%s: %s", arg, "bad number");
-		} else
-			exstat = n & 0xFF;
-	} else if (trap_exstat != -1)
+	if (arg)
+		exstat = bi_getn(arg, &n) ? (n & 0xFF) : 1;
+	else if (trap_exstat != -1)
 		exstat = trap_exstat;
 	if (wp[0][0] == 'r') {
 		/* return */
