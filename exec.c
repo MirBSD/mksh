@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.150 2015/04/19 14:23:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.151 2015/04/19 14:40:08 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -1597,9 +1597,9 @@ do_selectargs(const char **ap, bool print_menu)
 		if (call_builtin(findcom("read", FC_BI), read_args, Tselect,
 		    false))
 			return (NULL);
-		s = str_val(global("REPLY"));
-		if (*s && getn(s, &i))
-			return ((i >= 1 && i <= argct) ? ap[i - 1] : null);
+		if (*(s = str_val(global("REPLY"))))
+			return ((getn(s, &i) && i >= 1 && i <= argct) ?
+			    ap[i - 1] : null);
 		print_menu = true;
 	}
 }

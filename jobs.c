@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.111 2015/04/19 14:23:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.112 2015/04/19 14:40:09 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1644,8 +1644,7 @@ j_lookup(const char *cp, int *ecodep)
 	size_t len;
 	int job = 0;
 
-	if (ksh_isdigit(*cp)) {
-		getn(cp, &job);
+	if (ksh_isdigit(*cp) && getn(cp, &job)) {
 		/* Look for last_proc->pid (what $! returns) first... */
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->last_proc && j->last_proc->pid == job)
@@ -1657,11 +1656,10 @@ j_lookup(const char *cp, int *ecodep)
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->pgrp && j->pgrp == job)
 				return (j);
-		if (ecodep)
-			*ecodep = JL_NOSUCH;
-		return (NULL);
+		goto j_lookup_nosuch;
 	}
 	if (*cp != '%') {
+ j_lookup_invalid:
 		if (ecodep)
 			*ecodep = JL_INVALID;
 		return (NULL);
@@ -1681,7 +1679,8 @@ j_lookup(const char *cp, int *ecodep)
 
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
-		getn(cp, &job);
+		if (!getn(cp, &job))
+			goto j_lookup_invalid;
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->job == job)
 				return (j);
@@ -1721,6 +1720,7 @@ j_lookup(const char *cp, int *ecodep)
 			return (last_match);
 		break;
 	}
+ j_lookup_nosuch:
 	if (ecodep)
 		*ecodep = JL_NOSUCH;
 	return (NULL);
