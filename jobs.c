@@ -1,4 +1,4 @@
-/*	$OpenBSD: jobs.c,v 1.40 2013/09/04 15:49:18 millert Exp $	*/
+/*	$OpenBSD: jobs.c,v 1.41 2015/04/18 18:28:36 deraadt Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.110 2015/03/01 16:02:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.111 2015/04/19 14:23:26 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
