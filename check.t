@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.667.2.6 2015/04/12 22:32:17 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.667.2.7 2015/04/19 19:18:10 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R50 2015/04/12
+	@(#)MIRBSD KSH R50 2015/04/19
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R50 2015/04/12
+	@(#)LEGACY KSH R50 2015/04/19
 description:
 	Check version of legacy shell.
 stdin:
@@ -8590,6 +8590,50 @@ expected-stdout:
 	{220->> Bitte keine Werbung einwerfen! <<}
 	{220 Who do you wanna pretend to be today?}
 ---
+name: print-crlf
+description:
+	Check that CR+LF is shown and read as-is
+stdin:
+	cat >foo <<-'EOF'
+		x='bar
+		' #
+		if test x"$KSH_VERSION" = x""; then #
+			printf '<%s>' "$x" #
+		else #
+			print -nr -- "<$x>" #
+		fi #
+	EOF
+	echo "[$("$__progname" foo)]"
+	"$__progname" foo | while IFS= read -r line; do
+		print -r -- "{$line}"
+	done
+expected-stdout:
+	[<bar
+	>]
+	{<bar}
+---
+name: print-lf
+description:
+	Check that LF-only is shown and read as-is
+stdin:
+	cat >foo <<-'EOF'
+		x='bar
+		' #
+		if test x"$KSH_VERSION" = x""; then #
+			printf '<%s>' "$x" #
+		else #
+			print -nr -- "<$x>" #
+		fi #
+	EOF
+	echo "[$("$__progname" foo)]"
+	"$__progname" foo | while IFS= read -r line; do
+		print -r -- "{$line}"
+	done
+expected-stdout:
+	[<bar
+	>]
+	{<bar}
+---
 name: print-nul-chars
 description:
 	Check handling of NUL characters for print and COMSUB
@@ -8786,28 +8830,46 @@ expected-exit: e != 0
 expected-stderr-pattern:
 	/\.: missing argument.*\n.*\.: missing argument/
 ---
-name: alias-function-no-conflict
+name: alias-function-no-conflict-legacy
 description:
-	make aliases not conflict with functions
-	note: for ksh-like functions, the order of preference is
-	different; bash outputs baz instead of bar in line 2 below
+	make aliases not conflict with functions, legacy version:
+	undefine these aliases upon definition of the function
+	note: for ksh functions, the order of preference differs in GNU bash
 stdin:
+	# POSIX function overrides and removes alias
 	alias foo='echo bar'
+	foo
 	foo() {
 		echo baz
 	}
+	foo
+	unset -f foo
+	foo 2>/dev/null || echo rab
+	# alias overrides ksh function
 	alias korn='echo bar'
+	korn
 	function korn {
 		echo baz
 	}
-	foo
 	korn
-	unset -f foo
-	foo 2>/dev/null || echo rab
+	# alias temporarily overrides POSIX function
+	bla() {
+		echo bfn
+	}
+	bla
+	alias bla='echo bal'
+	bla
+	unalias bla
+	bla
 expected-stdout:
-	baz
 	bar
+	baz
 	rab
+	bar
+	bar
+	bfn
+	bal
+	bfn
 ---
 name: bash-function-parens
 description:
@@ -12041,26 +12103,6 @@ expected-stdout:
 expected-stderr:
 	[(p:sh)(f1:sh)(f2:sh)] print '(o1:shx)'
 	[(p:sh)(f1:sh)(f2:sh)] set +x
----
-name: fksh-flags
-description:
-	Check that FKSH functions have their own shell flags
-category: mksh-next
-stdin:
-	[[ $KSH_VERSION = Version* ]] && set +B
-	function foo {
-		set +f
-		set -e
-		echo 2 "${-/s}" .
-	}
-	set -fh
-	echo 1 "${-/s}" .
-	foo
-	echo 3 "${-/s}" .
-expected-stdout:
-	1 fh .
-	2 eh .
-	3 fh .
 ---
 name: fksh-flags-legacy
 description:

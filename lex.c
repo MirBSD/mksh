@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.193.2.4 2015/04/12 22:32:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.193.2.5 2015/04/19 19:18:19 tg Exp $");
 
 /*
  * states while lexing word
@@ -1480,7 +1480,7 @@ getsc_line(Source *s)
 void
 set_prompt(int to, Source *s)
 {
-	cur_prompt = to;
+	cur_prompt = (uint8_t)to;
 
 	switch (to) {
 	/* command */
@@ -1503,8 +1503,8 @@ set_prompt(int to, Source *s)
 				if (*ps1 != '!' || *++ps1 == '!')
 					shf_putchar(*ps1++, shf);
 				else
-					shf_fprintf(shf, "%d",
-						s ? s->line + 1 : 0);
+					shf_fprintf(shf, "%lu", s ?
+					    (unsigned long)s->line + 1 : 0UL);
 			ps1 = shf_sclose(shf);
 			saved_atemp = ATEMP;
 			newenv(E_ERRH);

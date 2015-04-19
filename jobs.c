@@ -1,8 +1,8 @@
-/*	$OpenBSD: jobs.c,v 1.40 2013/09/04 15:49:18 millert Exp $	*/
+/*	$OpenBSD: jobs.c,v 1.41 2015/04/18 18:28:36 deraadt Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
- *		 2012, 2013, 2014
+ *		 2012, 2013, 2014, 2015
  *	Thorsten Glaser <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.105.2.1 2015/01/25 15:44:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.105.2.2 2015/04/19 19:18:18 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1111,6 +1111,7 @@ j_waitj(Job *j,
     int flags,
     const char *where)
 {
+	Proc *p;
 	int rv;
 #ifdef MKSH_NO_SIGSUSPEND
 	sigset_t omask;
@@ -1238,9 +1239,10 @@ j_waitj(Job *j,
 	j_systime = j->systime;
 	rv = j->status;
 
-	if ((flags & JW_PIPEST) && (j->proc_list != NULL)) {
+	if (!(p = j->proc_list)) {
+		;	/* nothing */
+	} else if (flags & JW_PIPEST) {
 		uint32_t num = 0;
-		Proc *p = j->proc_list;
 		struct tbl *vp;
 
 		unset(vp_pipest, 1);
@@ -1270,15 +1272,13 @@ j_waitj(Job *j,
 				rv = vp->val.i;
 			p = p->next;
 		}
-	} else if (Flag(FPIPEFAIL) && (j->proc_list != NULL)) {
-		Proc *p = j->proc_list;
-		int i;
+	} else if (Flag(FPIPEFAIL)) {
+		do {
+			int i = proc_errorlevel(p);
 
-		while (p != NULL) {
-			if ((i = proc_errorlevel(p)))
+			if (i)
 				rv = i;
-			p = p->next;
-		}
+		} while ((p = p->next));
 	}
 
 	if (!(flags & JW_ASYNCNOTIFY)
@@ -1644,8 +1644,7 @@ j_lookup(const char *cp, int *ecodep)
 	size_t len;
 	int job = 0;
 
-	if (ksh_isdigit(*cp)) {
-		getn(cp, &job);
+	if (ksh_isdigit(*cp) && getn(cp, &job)) {
 		/* Look for last_proc->pid (what $! returns) first... */
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->last_proc && j->last_proc->pid == job)
@@ -1657,11 +1656,10 @@ j_lookup(const char *cp, int *ecodep)
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->pgrp && j->pgrp == job)
 				return (j);
-		if (ecodep)
-			*ecodep = JL_NOSUCH;
-		return (NULL);
+		goto j_lookup_nosuch;
 	}
 	if (*cp != '%') {
+ j_lookup_invalid:
 		if (ecodep)
 			*ecodep = JL_INVALID;
 		return (NULL);
@@ -1681,7 +1679,8 @@ j_lookup(const char *cp, int *ecodep)
 
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
-		getn(cp, &job);
+		if (!getn(cp, &job))
+			goto j_lookup_invalid;
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->job == job)
 				return (j);
@@ -1721,6 +1720,7 @@ j_lookup(const char *cp, int *ecodep)
 			return (last_match);
 		break;
 	}
+ j_lookup_nosuch:
 	if (ecodep)
 		*ecodep = JL_NOSUCH;
 	return (NULL);

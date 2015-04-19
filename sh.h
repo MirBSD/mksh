@@ -169,9 +169,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.701.2.6 2015/04/12 22:32:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.701.2.7 2015/04/19 19:18:21 tg Exp $");
 #endif
-#define MKSH_VERSION "R50 2015/04/12"
+#define MKSH_VERSION "R50 2015/04/19"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1270,7 +1270,7 @@ EXTERN char *path;		/* copy of either PATH or def_path */
 EXTERN const char *def_path;	/* path to use if PATH not set */
 EXTERN char *tmpdir;		/* TMPDIR value */
 EXTERN const char *prompt;
-EXTERN int cur_prompt;		/* PS1 or PS2 */
+EXTERN uint8_t cur_prompt;	/* PS1 or PS2 */
 EXTERN int current_lineno;	/* LINENO value */
 
 /*

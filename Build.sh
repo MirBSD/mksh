@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.669.2.3 2015/04/12 22:32:14 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.669.2.4 2015/04/19 19:18:08 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -2151,9 +2151,9 @@ cta(uari_has_32_bit, 0 < (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 
 cta(uari_wrap_32_bit,
     (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 3) >
     (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 4));
-#define NUM 21
+#define NUM 22
 #else
-#define NUM 15
+#define NUM 16
 #endif
 /* these are always required */
 cta(ari_is_signed, (mksh_ari_t)-1 < (mksh_ari_t)0);
@@ -2166,6 +2166,7 @@ cta(sizet_voidptr_same_size, sizeof(size_t) == sizeof(void *));
 cta(sizet_funcptr_same_size, sizeof(size_t) == sizeof(void (*)(void)));
 /* our formatting routines assume this */
 cta(ptr_fits_in_long, sizeof(size_t) <= sizeof(long));
+cta(ari_fits_in_long, sizeof(mksh_ari_t) <= sizeof(long));
 /* for struct alignment people */
 		char padding[64 - NUM];
 	};
