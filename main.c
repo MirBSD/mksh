@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.291 2015/04/11 22:03:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.292 2015/04/19 18:50:37 tg Exp $");
 
 extern char **environ;
 
@@ -1286,8 +1286,9 @@ error_prefix(bool fileline)
 	    strcmp(source->file, kshname) != 0)
 		shf_fprintf(shl_out, "%s: ", kshname + (*kshname == '-'));
 	if (fileline && source && source->file != NULL) {
-		shf_fprintf(shl_out, "%s[%d]: ", source->file,
-		    source->errline > 0 ? source->errline : source->line);
+		shf_fprintf(shl_out, "%s[%lu]: ", source->file,
+		    (unsigned long)(source->errline ?
+		    source->errline : source->line));
 		source->errline = 0;
 	}
 }

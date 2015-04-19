@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.140 2015/03/07 20:46:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.141 2015/04/19 18:50:36 tg Exp $");
 
 Trap sigtraps[NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -275,8 +275,9 @@ c_fc(const char **wp)
 		for (hp = rflag ? hlast : hfirst;
 		    hp >= hfirst && hp <= hlast; hp += rflag ? -1 : 1) {
 			if (!nflag)
-				shf_fprintf(shl_stdout, "%d",
-				    hist_source->line - (int)(histptr - hp));
+				shf_fprintf(shl_stdout, "%lu",
+				    (unsigned long)hist_source->line -
+				    (unsigned long)(histptr - hp));
 			shf_putc('\t', shl_stdout);
 			/* print multi-line commands correctly */
 			s = *hp;

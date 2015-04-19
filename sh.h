@@ -169,7 +169,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.723 2015/04/11 23:28:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.724 2015/04/19 18:50:37 tg Exp $");
 #endif
 #define MKSH_VERSION "R51 2015/04/11"
 
@@ -1264,7 +1264,7 @@ EXTERN char *path;		/* copy of either PATH or def_path */
 EXTERN const char *def_path;	/* path to use if PATH not set */
 EXTERN char *tmpdir;		/* TMPDIR value */
 EXTERN const char *prompt;
-EXTERN int cur_prompt;		/* PS1 or PS2 */
+EXTERN uint8_t cur_prompt;	/* PS1 or PS2 */
 EXTERN int current_lineno;	/* LINENO value */
 
 /*

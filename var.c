@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.189 2015/04/19 18:13:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.190 2015/04/19 18:50:38 tg Exp $");
 
 /*-
  * Variables
@@ -1164,7 +1164,7 @@ unspecial(const char *name)
 }
 
 static time_t seconds;		/* time SECONDS last set */
-static int user_lineno;		/* what user set $LINENO to */
+static mksh_uari_t user_lineno;	/* what user set $LINENO to */
 
 static void
 getspec(struct tbl *vp)
@@ -1198,7 +1198,7 @@ getspec(struct tbl *vp)
 		num.i = histsize;
 		break;
 	case V_LINENO:
-		num.i = current_lineno + user_lineno;
+		num.u = (mksh_uari_t)current_lineno + user_lineno;
 		break;
 	case V_LINES:
 		num.i = x_lins;
@@ -1328,7 +1328,7 @@ setspec(struct tbl *vp)
 		break;
 	case V_LINENO:
 		/* The -1 is because line numbering starts at 1. */
-		user_lineno = num.u - current_lineno - 1;
+		user_lineno = num.u - (mksh_uari_t)current_lineno - 1;
 		break;
 	case V_LINES:
 		if (num.i >= MIN_LINS)
