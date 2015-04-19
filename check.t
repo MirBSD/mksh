@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.689 2015/04/11 23:28:17 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.690 2015/04/19 19:18:03 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R51 2015/04/11
+	@(#)MIRBSD KSH R51 2015/04/19
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R51 2015/04/11
+	@(#)LEGACY KSH R51 2015/04/19
 description:
 	Check version of legacy shell.
 stdin:
@@ -8590,6 +8590,50 @@ expected-stdout:
 	{220-blau.mirbsd.org ESMTP ready at Thu, 25 Jul 2013 15:57:57 GMT}
 	{220->> Bitte keine Werbung einwerfen! <<}
 	{220 Who do you wanna pretend to be today?}
+---
+name: print-crlf
+description:
+	Check that CR+LF is shown and read as-is
+stdin:
+	cat >foo <<-'EOF'
+		x='bar
+		' #
+		if test x"$KSH_VERSION" = x""; then #
+			printf '<%s>' "$x" #
+		else #
+			print -nr -- "<$x>" #
+		fi #
+	EOF
+	echo "[$("$__progname" foo)]"
+	"$__progname" foo | while IFS= read -r line; do
+		print -r -- "{$line}"
+	done
+expected-stdout:
+	[<bar
+	>]
+	{<bar}
+---
+name: print-lf
+description:
+	Check that LF-only is shown and read as-is
+stdin:
+	cat >foo <<-'EOF'
+		x='bar
+		' #
+		if test x"$KSH_VERSION" = x""; then #
+			printf '<%s>' "$x" #
+		else #
+			print -nr -- "<$x>" #
+		fi #
+	EOF
+	echo "[$("$__progname" foo)]"
+	"$__progname" foo | while IFS= read -r line; do
+		print -r -- "{$line}"
+	done
+expected-stdout:
+	[<bar
+	>]
+	{<bar}
 ---
 name: print-nul-chars
 description:
