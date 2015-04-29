@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.229 2015/04/29 20:07:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.230 2015/04/29 20:16:48 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -93,8 +93,6 @@ setctypes(const char *s, int t)
 void
 initctypes(void)
 {
-	int c;
-
 	setctypes(digits_uc, C_ALPHA);
 	setctypes(digits_lc, C_ALPHA);
 	chtypes['_'] |= C_ALPHA;
