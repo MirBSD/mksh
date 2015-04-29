@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.362 2015/04/19 19:18:05 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.363 2015/04/29 18:54:05 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.159 2015/03/25 12:10:52 jca Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 19 2015 $
+.Dd $Mdocdate: April 29 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -3895,8 +3895,8 @@ option, use of the
 .Fl r
 option might be prudent; the same applies for:
 .Bd -literal -offset indent
-find . \-type f \-print0 \*(Ba \e
-    while IFS= read \-d \*(aq\*(aq \-r filename; do
+find . \-type f \-print0 \*(Ba& \e
+    while IFS= read \-d \*(aq\*(aq \-pr filename; do
 	print \-r \-\- "found \*(Lt${filename#./}\*(Gt"
 done
 .Ed
