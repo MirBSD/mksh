@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.344.2.5 2015/04/12 22:32:30 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.344.2.6 2015/04/29 21:00:46 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.159 2015/03/25 12:10:52 jca Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 12 2015 $
+.Dd $Mdocdate: April 29 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -4040,23 +4040,6 @@ and also supported by
 .Nm ksh93
 is:
 .Ic foo=(a b c); foo+=(d e)
-.Pp
-Another
-.At
-.Nm ksh93
-and
-.Tn GNU
-.Nm bash
-extension allows specifying the indices used for
-.Ar arg ...
-.Pq from the above example, Ic a b c
-like this:
-.Ic set \-A foo \-\- [0]=a [1]=b [2]=c
-or
-.Ic foo=([0]=a [1]=b [2]=c)
-which can also be written
-.Ic foo=([0]=a b c)
-because indices are incremented automatically.
 .It Fl a \*(Ba Fl o Ic allexport
 All new parameters are created with the export attribute.
 .It Fl b \*(Ba Fl o Ic notify
