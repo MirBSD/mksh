@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.690 2015/04/19 19:18:03 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.691 2015/04/29 20:07:30 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -4544,6 +4544,20 @@ stdin:
 expected-stdout:
 	64
 	64
+---
+name: integer-base-8
+description:
+	Check that base-36 works (full span)
+stdin:
+	echo 1:$((36#109AZ)).
+	typeset -i36 x=1691675
+	echo 2:$x.
+	typeset -Uui36 x
+	echo 3:$x.
+expected-stdout:
+	1:1691675.
+	2:36#109az.
+	3:36#109AZ.
 ---
 name: integer-base-check-flat
 description:

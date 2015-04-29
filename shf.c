@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.64 2015/02/06 10:09:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.65 2015/04/29 20:07:35 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -847,11 +847,11 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 			if (ksh_isdigit(c)) {
 				bool overflowed = false;
 
-				tmp = c - '0';
+				tmp = ksh_numdig(c);
 				while (c = *fmt++, ksh_isdigit(c)) {
 					if (notok2mul(2147483647, tmp, 10))
 						overflowed = true;
-					tmp = tmp * 10 + c - '0';
+					tmp = tmp * 10 + ksh_numdig(c);
 				}
 				--fmt;
 				if (overflowed)
@@ -872,7 +872,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 			/* nasty format */
 			break;
 
-		if (c >= 'A' && c <= 'Z') {
+		if (ksh_isupper(c)) {
 			flags |= FL_UPPER;
 			c = ksh_tolower(c);
 		}
@@ -917,7 +917,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 				/* FALLTHROUGH */
 			case 'u':
 				do {
-					*--cp = lnum % 10 + '0';
+					*--cp = digits_lc[lnum % 10];
 					lnum /= 10;
 				} while (lnum);
 
@@ -933,7 +933,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 
 			case 'o':
 				do {
-					*--cp = (lnum & 0x7) + '0';
+					*--cp = digits_lc[lnum & 0x7];
 					lnum >>= 3;
 				} while (lnum);
 
@@ -945,7 +945,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 				const char *digits = (flags & FL_UPPER) ?
 				    digits_uc : digits_lc;
 				do {
-					*--cp = digits[lnum & 0xf];
+					*--cp = digits[lnum & 0xF];
 					lnum >>= 4;
 				} while (lnum);
 
@@ -1013,7 +1013,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 						s++;
 						nwritten++;
 						if (--precision > 0 &&
-						    (*s | 0x20) == 'x') {
+						    ksh_eq(*s, 'X', 'x')) {
 							shf_putc(*s, shf);
 							s++;
 							precision--;
@@ -1025,8 +1025,10 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 					c = flags & FL_ZERO ? '0' : ' ';
 				if (field < 0) {
 					nwritten += -field;
-					for ( ; field < 0 ; field++)
+					while (field < 0) {
 						shf_putc(c, shf);
+						++field;
+					}
 				}
 			} else
 				c = ' ';

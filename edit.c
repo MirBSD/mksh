@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.284 2015/04/11 22:09:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.285 2015/04/29 20:07:31 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2966,7 +2966,7 @@ x_set_arg(int c)
 	/* strip command prefix */
 	c &= 255;
 	while (c >= 0 && ksh_isdigit(c)) {
-		n = n * 10 + (c - '0');
+		n = n * 10 + ksh_numdig(c);
 		if (n > LINE)
 			/* upper bound for repeat */
 			goto x_set_arg_too_big;
@@ -3627,8 +3627,8 @@ vi_hook(int ch)
 				return (1);
 			cmdlen = 0;
 			argc1 = 0;
-			if (ch >= '1' && ch <= '9') {
-				argc1 = ch - '0';
+			if (ch >= ord('1') && ch <= ord('9')) {
+				argc1 = ksh_numdig(ch);
 				state = VARG1;
 			} else {
 				curcmd[cmdlen++] = ch;
@@ -3672,7 +3672,7 @@ vi_hook(int ch)
 
 	case VARG1:
 		if (ksh_isdigit(ch))
-			argc1 = argc1 * 10 + ch - '0';
+			argc1 = argc1 * 10 + ksh_numdig(ch);
 		else {
 			curcmd[cmdlen++] = ch;
 			state = nextstate(ch);
@@ -3681,8 +3681,8 @@ vi_hook(int ch)
 
 	case VEXTCMD:
 		argc2 = 0;
-		if (ch >= '1' && ch <= '9') {
-			argc2 = ch - '0';
+		if (ch >= ord('1') && ch <= ord('9')) {
+			argc2 = ksh_numdig(ch);
 			state = VARG2;
 			return (0);
 		} else {
@@ -3698,7 +3698,7 @@ vi_hook(int ch)
 
 	case VARG2:
 		if (ksh_isdigit(ch))
-			argc2 = argc2 * 10 + ch - '0';
+			argc2 = argc2 * 10 + ksh_numdig(ch);
 		else {
 			if (argc1 == 0)
 				argc1 = argc2;

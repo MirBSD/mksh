@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.292 2015/04/19 18:50:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.293 2015/04/29 20:07:33 tg Exp $");
 
 extern char **environ;
 
@@ -1459,7 +1459,7 @@ check_fd(const char *name, int mode, const char **emsgp)
 	if (name[0] == 'p' && !name[1])
 		return (coproc_getfd(mode, emsgp));
 	while (ksh_isdigit(*name)) {
-		fd = (fd * 10) + *name - '0';
+		fd = fd * 10 + ksh_numdig(*name);
 		if (fd >= FDBASE) {
 			if (emsgp)
 				*emsgp = "file descriptor too large";
@@ -1613,28 +1613,20 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	memcpy(cp, "/shXXXXXX.tmp", 14);
 	/* point to the first of six Xes */
 	cp += 3;
-	/* generate random part of filename */
-	len = -1;
-	do {
-		i = rndget() % 36;
-		cp[++len] = i < 26 ? 'a' + i : '0' + i - 26;
-	} while (len < 5);
 
 	/* cyclically attempt to open a temporary file */
-	while ((i = open(tp->tffn, O_CREAT | O_EXCL | O_RDWR | O_BINARY,
-	    0600)) < 0) {
-		if (errno != EEXIST)
+	do {
+		/* generate random part of filename */
+		len = 0;
+		do {
+			cp[len++] = digits_lc[rndget() % 36];
+		} while (len < 6);
+
+		/* check if this one works */
+		if ((i = open(tp->tffn, O_CREAT | O_EXCL | O_RDWR | O_BINARY,
+		    0600)) < 0 && errno != EEXIST)
 			goto maketemp_out;
-		/* count down from z to a then from 9 to 0 */
-		while (cp[len] == '0')
-			if (!len--)
-				goto maketemp_out;
-		if (cp[len] == 'a')
-			cp[len] = '9';
-		else
-			--cp[len];
-		/* do another cycle */
-	}
+	} while (i < 0);
 
 	if (type == TT_FUNSUB) {
 		/* map us high and mark as close-on-exec */

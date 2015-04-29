@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.228 2015/04/29 18:38:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.229 2015/04/29 20:07:34 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -95,10 +95,8 @@ initctypes(void)
 {
 	int c;
 
-	for (c = 'a'; c <= 'z'; c++)
-		chtypes[c] |= C_ALPHA;
-	for (c = 'A'; c <= 'Z'; c++)
-		chtypes[c] |= C_ALPHA;
+	setctypes(digits_uc, C_ALPHA);
+	setctypes(digits_lc, C_ALPHA);
 	chtypes['_'] |= C_ALPHA;
 	setctypes("0123456789", C_DIGIT);
 	/* \0 added automatically */
@@ -545,7 +543,7 @@ getn(const char *s, int *ai)
 		if (num.u > 214748364U)
 			/* overflow on multiplication */
 			return (0);
-		num.u = num.u * 10U + (unsigned int)(c - '0');
+		num.u = num.u * 10U + (unsigned int)ksh_numdig(c);
 		/* now: num.u <= 2147483649U */
 	} while ((c = *s++));
 
@@ -2194,8 +2192,8 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		wc = 0;
 		i = 3;
 		while (i--)
-			if ((c = (*fg)()) >= '0' && c <= '7')
-				wc = (wc << 3) + (c - '0');
+			if ((c = (*fg)()) >= ord('0') && c <= ord('7'))
+				wc = (wc << 3) + ksh_numdig(c);
 			else {
 				(*fp)(c);
 				break;
@@ -2204,13 +2202,13 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 	case 'U':
 		i = 8;
 		if (/* CONSTCOND */ 0)
-		/* FALLTHROUGH */
+			/* FALLTHROUGH */
 	case 'u':
-		i = 4;
+		  i = 4;
 		if (/* CONSTCOND */ 0)
-		/* FALLTHROUGH */
+			/* FALLTHROUGH */
 	case 'x':
-		i = cstyle ? -1 : 2;
+		  i = cstyle ? -1 : 2;
 		/**
 		 * x:	look for a hexadecimal number with up to
 		 *	two (C style: arbitrary) digits; convert
@@ -2221,12 +2219,12 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		wc = 0;
 		while (i--) {
 			wc <<= 4;
-			if ((c = (*fg)()) >= '0' && c <= '9')
-				wc += c - '0';
-			else if (c >= 'A' && c <= 'F')
-				wc += c - 'A' + 10;
-			else if (c >= 'a' && c <= 'f')
-				wc += c - 'a' + 10;
+			if ((c = (*fg)()) >= ord('0') && c <= ord('9'))
+				wc += ksh_numdig(c);
+			else if (c >= ord('A') && c <= ord('F'))
+				wc += ksh_numuc(c) + 10;
+			else if (c >= ord('a') && c <= ord('f'))
+				wc += ksh_numlc(c) + 10;
 			else {
 				wc >>= 4;
 				(*fp)(c);

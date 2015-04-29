@@ -169,7 +169,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.727 2015/04/29 19:11:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.728 2015/04/29 20:07:34 tg Exp $");
 #endif
 #define MKSH_VERSION "R51 2015/04/19"
 
@@ -466,6 +466,8 @@ EXTERN const char initvsn[] E_INIT("KSH_VERSION=@(#)" KSH_VERSIONNAME \
 
 EXTERN const char digits_uc[] E_INIT("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 EXTERN const char digits_lc[] E_INIT("0123456789abcdefghijklmnopqrstuvwxyz");
+#define letters_uc (digits_uc + 10)
+#define letters_lc (digits_lc + 10)
 
 /*
  * Evil hack for const correctness due to API brokenness
@@ -924,16 +926,20 @@ extern unsigned char chtypes[];
 #define ctype(c, t)	tobool( ((t) == C_SUBOP2) ?			\
 			    (((c) == '#' || (c) == '%') ? 1 : 0) :	\
 			    (chtypes[(unsigned char)(c)] & (t)) )
+#define ord(c)		((int)(unsigned char)(c))
 #define ksh_isalphx(c)	ctype((c), C_ALPHA)
 #define ksh_isalnux(c)	ctype((c), C_ALPHA | C_DIGIT)
 #define ksh_isdigit(c)	(((c) >= '0') && ((c) <= '9'))
 #define ksh_islower(c)	(((c) >= 'a') && ((c) <= 'z'))
 #define ksh_isupper(c)	(((c) >= 'A') && ((c) <= 'Z'))
-#define ksh_tolower(c)	(((c) >= 'A') && ((c) <= 'Z') ? (c) - 'A' + 'a' : (c))
-#define ksh_toupper(c)	(((c) >= 'a') && ((c) <= 'z') ? (c) - 'a' + 'A' : (c))
+#define ksh_tolower(c)	(ksh_isupper(c) ? (c) - 'A' + 'a' : (c))
+#define ksh_toupper(c)	(ksh_islower(c) ? (c) - 'a' + 'A' : (c))
 #define ksh_isdash(s)	(((s)[0] == '-') && ((s)[1] == '\0'))
 #define ksh_isspace(c)	((((c) >= 0x09) && ((c) <= 0x0D)) || ((c) == 0x20))
 #define ksh_eq(c,u,l)	(((c) | 0x20) == (l))
+#define ksh_numdig(c)	((c) - ord('0'))
+#define ksh_numuc(c)	((c) - ord('A'))
+#define ksh_numlc(c)	((c) - ord('a'))
 
 EXTERN int ifs0 E_INIT(' ');	/* for "$*" */
 

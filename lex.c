@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.200 2015/04/19 18:50:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.201 2015/04/29 20:07:33 tg Exp $");
 
 /*
  * states while lexing word
@@ -920,7 +920,7 @@ yylex(int cf)
 				goto no_iop;
 			if (!ksh_isdigit(dp[c2 + 1]))
 				goto no_iop;
-			iop->unit = (iop->unit * 10) + dp[c2 + 1] - '0';
+			iop->unit = iop->unit * 10 + ksh_numdig(dp[c2 + 1]);
 			if (iop->unit >= FDBASE)
 				goto no_iop;
 		}
