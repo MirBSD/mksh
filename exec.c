@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.151 2015/04/19 14:40:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.152 2015/04/29 18:32:43 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -1382,7 +1382,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		const char *emsg;
 
 		do_open = false;
-		if (*cp == '-' && !cp[1]) {
+		if (ksh_isdash(cp)) {
 			/* prevent error return below */
 			u = 1009;
 			do_close = true;

@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.226 2015/03/20 21:46:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.227 2015/04/29 18:32:44 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1007,7 +1007,7 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 		const char *arg = argv[go->optind], flag = arg ? *arg : '\0';
 
 		go->p = 1;
-		if (flag == '-' && arg[1] == '-' && arg[2] == '\0') {
+		if (flag == '-' && ksh_isdash(arg + 1)) {
 			go->optind++;
 			go->p = 0;
 			go->info |= GI_MINUSMINUS;

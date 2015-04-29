@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.167 2015/04/11 22:03:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.168 2015/04/29 18:32:42 tg Exp $");
 
 /*
  * string expansion
@@ -1734,7 +1734,7 @@ do_tilde(char *cp)
 		dp = str_val(global("HOME"));
 	else if (cp[0] == '+' && cp[1] == '\0')
 		dp = str_val(global("PWD"));
-	else if (cp[0] == '-' && cp[1] == '\0')
+	else if (ksh_isdash(cp))
 		dp = str_val(global("OLDPWD"));
 #ifndef MKSH_NOPWNAM
 	else

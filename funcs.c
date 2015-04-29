@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.268 2015/04/19 14:40:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.269 2015/04/29 18:32:43 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2308,7 +2308,7 @@ c_trap(const char **wp)
 	 */
 	/* get command */
 	s = (gettrap(*wp, false) == NULL) ? *wp++ : NULL;
-	if (s != NULL && s[0] == '-' && s[1] == '\0')
+	if (s != NULL && ksh_isdash(s))
 		s = NULL;
 
 	/* set/clear traps */
@@ -3634,7 +3634,7 @@ c_cat(const char **wp)
 	do {
 		if (*wp) {
 			fn = *wp++;
-			if (fn[0] == '-' && fn[1] == '\0')
+			if (ksh_isdash(fn))
 				fd = STDIN_FILENO;
 			else if ((fd = open(fn, O_RDONLY | O_BINARY)) < 0) {
 				eno = errno;
