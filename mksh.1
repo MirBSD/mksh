@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.364 2015/04/29 18:56:00 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.365 2015/04/29 20:13:26 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.159 2015/03/25 12:10:52 jca Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -1143,16 +1143,16 @@ The next
 time the command is executed, the shell checks the saved path to see that it
 is still valid, and if so, avoids repeating the path search.
 Tracked aliases can be listed and created using
-.Ic alias \-t .
+.Ic alias Fl t .
 Note that changing the
 .Ev PATH
 parameter clears the saved paths for all tracked aliases.
 If the
 .Ic trackall
 option is set (i.e.\&
-.Ic set \-o Ic trackall
+.Ic set Fl o Ic trackall
 or
-.Ic set \-h ) ,
+.Ic set Fl h ) ,
 the shell tracks all commands.
 This option is set automatically for non-interactive shells.
 For interactive shells, only the following commands are
@@ -1213,7 +1213,7 @@ share their I/O with the parent; instead, they evaluate to whatever
 the, initially empty, expression-local variable
 .Ev REPLY
 is set to within the
-.Ar command Ns No s .
+.Ar command Ns s .
 .Pp
 If a substitution appears outside of double quotes, the results of the
 substitution are generally subject to word or field splitting according to
@@ -1426,7 +1426,7 @@ loops set parameters as well as the
 .Ic getopts ,
 .Ic read ,
 and
-.Ic set \-A
+.Ic set Fl A
 commands.
 Lastly, parameters can be assigned values using assignment operators
 inside arithmetic expressions (see
@@ -1817,9 +1817,9 @@ is non-zero and sane enough (minimum is 12x3); similar for
 .Ev LINES .
 This parameter is used by the interactive line editing modes, and by the
 .Ic select ,
-.Ic set \-o ,
+.Ic set Fl o ,
 and
-.Ic kill \-l
+.Ic kill Fl l
 commands to format information columns.
 Importing from the environment or unsetting this parameter removes the
 binding to the actual terminal size in favour of the provided value.
@@ -2140,7 +2140,7 @@ login names are also delimited by colons.
 .Pp
 The home directory of previously expanded login names are cached and re-used.
 The
-.Ic alias \-d
+.Ic alias Fl d
 command may be used to list, change, and add to this cache (e.g.\&
 .Ic alias \-d fac=/usr/local/facilities; cd \*(TIfac/bin ) .
 .Ss Brace expansion (alteration)
@@ -2743,9 +2743,9 @@ The non-result argument is not evaluated.
 A co-process (which is a pipeline created with the
 .Sq \*(Ba&
 operator) is an asynchronous process that the shell can both write to (using
-.Ic print \-p )
+.Ic print Fl p )
 and read from (using
-.Ic read \-p ) .
+.Ic read Fl p ) .
 The input and output of the co-process can also be manipulated using
 .Ic \*(Gt&p
 and
@@ -2783,13 +2783,13 @@ different from the original Korn shell which closes its copy of the write
 portion of the co-process output when the most recently started co-process
 (instead of when all sharing co-processes) exits.
 .It
-.Ic print \-p
+.Ic print Fl p
 will ignore
 .Dv SIGPIPE
 signals during writes if the signal is not being trapped or ignored; the same
 is true if the co-process input has been duplicated to another file descriptor
 and
-.Ic print \-u Ns Ar n
+.Ic print Fl u Ns Ar n
 is used.
 .El
 .Ss Functions
@@ -2818,11 +2818,11 @@ An existing function may be deleted using
 A list of functions can be obtained using
 .Ic typeset +f
 and the function definitions can be listed using
-.Ic typeset \-f .
+.Ic typeset Fl f .
 The
 .Ic autoload
 command (which is an alias for
-.Ic typeset \-fu )
+.Ic typeset Fl fu )
 may be used to create undefined functions: when an undefined function is
 executed, the shell searches the path specified in the
 .Ev FPATH
@@ -2843,9 +2843,9 @@ Functions can have two attributes,
 and
 .Dq export ,
 which can be set with
-.Ic typeset \-ft
+.Ic typeset Fl ft
 and
-.Ic typeset \-fx ,
+.Ic typeset Fl fx ,
 respectively.
 When a traced function is executed, the shell's
 .Ic xtrace
@@ -5088,7 +5088,7 @@ The exit status of
 .Ic wait
 is that of the last specified job; if the last job is killed by a signal, the
 exit status is 128 + the number of the signal (see
-.Ic kill \-l Ar exit-status
+.Ic kill Fl l Ar exit-status
 above); if the last specified job can't be found (because it never existed, or
 had already finished), the exit status of
 .Ic wait
@@ -5159,9 +5159,9 @@ using the
 .Ic jobs
 commands.
 If job control is fully enabled (using
-.Ic set \-m
+.Ic set Fl m
 or
-.Ic set \-o monitor ) ,
+.Ic set Fl o Ic monitor ) ,
 as it is for interactive shells, the processes of a job are placed in their
 own process group.
 Foreground jobs can be stopped by typing the suspend
@@ -5256,7 +5256,7 @@ The job was stopped by the indicated
 .Dv SIGTSTP ) .
 .It Ar signal-description Op Dq core dumped
 The job was killed by a signal (e.g. memory fault, hangup); use
-.Ic kill \-l
+.Ic kill Fl l
 for a list of signal descriptions.
 The
 .Dq core dumped
@@ -5785,7 +5785,7 @@ Puts the editor in command mode (see below).
 Optional file name and command completion (see
 .Ic \*(haF
 above), enabled with
-.Ic set \-o vi\-tabcomplete .
+.Ic set Fl o Ic vi\-tabcomplete .
 .El
 .Pp
 In command mode, each character is interpreted as a command.
@@ -5898,7 +5898,7 @@ option is set, while
 is only recognised if the
 .Ic vi\-esccomplete
 option is set (see
-.Ic set \-o ) .
+.Ic set Fl o ) .
 If
 .Ar n
 is specified, the
@@ -6458,7 +6458,7 @@ delete all files on your system, as it's Undefined Behaviour.
 provides a consistent, clear interface normally.
 This may deviate from POSIX in optional or opinionated places, such
 as whether leading-digit-zero numbers should be interpreted as octal.
-.Ic set \-o posix
+.Ic set Fl o Ic posix
 will cause the shell (either
 .Nm mksh
 or
@@ -6513,9 +6513,9 @@ compiled without any options impacting functionality, such as
 when not called as
 .Pa /bin/sh
 which, on some systems only, enables
-.Ic set \-o posix
+.Ic set Fl o Ic posix
 or
-.Ic set \-o sh
+.Ic set Fl o Ic sh
 automatically (whose behaviour differs across targets),
 for an operating environment supporting all of its advanced needs.
 .Pp
