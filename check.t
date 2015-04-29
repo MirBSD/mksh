@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.691 2015/04/29 20:07:30 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.692 2015/04/29 20:13:47 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -1198,7 +1198,7 @@ need-pass: no
 # the mv command fails on Cygwin
 # Hurd aborts the testsuite (permission denied)
 # QNX does not find subdir to cd into
-category: !os:cygwin,!os:gnu,!os:msys,!os:nto,!nosymlink
+category: !os:cygwin,!os:gnu,!os:msys,!os:nto,!os:os390,!nosymlink
 file-setup: file 644 "x"
 	mkdir noread noread/target noread/target/subdir
 	ln -s noread link

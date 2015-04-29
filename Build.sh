@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.675 2015/04/29 18:38:50 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.676 2015/04/29 20:13:46 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -577,8 +577,8 @@ if test -d $tfn || test -d $tfn.exe; then
 	echo "$me: Error: ./$tfn is a directory!" >&2
 	exit 1
 fi
-rmf a.exe* a.out* conftest.c *core core.* lft ${tfn}* no *.bc *.ll *.o *.gen \
-    Rebuild.sh signames.inc test.sh x vv.out
+rmf a.exe* a.out* conftest.c *core core.* ${tfn}* *.bc *.dbg *.ll *.o *.gen \
+    Rebuild.sh lft no signames.inc test.sh x vv.out
 
 SRCS="lalloc.c eval.c exec.c expr.c funcs.c histrap.c jobs.c"
 SRCS="$SRCS lex.c main.c misc.c shf.c syn.c tree.c var.c"
@@ -929,7 +929,7 @@ esac
 
 : ${AWK=awk} ${CC=cc} ${NROFF=nroff} ${SIZE=size}
 test 0 = $r && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
-    NROFF="$NROFF -c"
+    echo | $NROFF -c >/dev/null 2>&1 && NROFF="$NROFF -c"
 
 # this aids me in tracing FTBFSen without access to the buildd
 $e "Hi from$ao $bi$srcversion$ao on:"
