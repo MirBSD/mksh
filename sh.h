@@ -169,9 +169,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.728 2015/04/29 20:07:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.729 2015/04/29 20:44:37 tg Exp $");
 #endif
-#define MKSH_VERSION "R51 2015/04/19"
+#define MKSH_VERSION "R51 2015/04/29"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -329,24 +329,47 @@ struct rusage {
 #define DEFFILEMODE	(S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
 #endif
 
-#ifndef NSIG
-#if defined(_NSIG)
-#define NSIG		_NSIG
+
+/* determine ksh_NSIG: first, use the traditional definitions */
+#undef ksh_NSIG
+#if defined(NSIG)
+#define ksh_NSIG NSIG
+#elif defined(_NSIG)
+#define ksh_NSIG _NSIG
 #elif defined(SIGMAX)
-#define NSIG		(SIGMAX+1)
+#define ksh_NSIG (SIGMAX + 1)
 #elif defined(_SIGMAX)
-#define NSIG		(_SIGMAX+1)
+#define ksh_NSIG (_SIGMAX + 1)
+#elif defined(NSIG_MAX)
+#define ksh_NSIG NSIG_MAX
 #else
 # error Please have your platform define NSIG.
-#define NSIG		64
 #endif
-#endif
-
-/* get rid of this (and awk/printf(1) in Build.sh) later */
-#if (NSIG < 1)
+/* range-check them */
+#if (ksh_NSIG < 1)
 # error Your NSIG value is not positive.
-#unset NSIG
-#define NSIG		64
+#undef ksh_NSIG
+#endif
+/* second, see if the new POSIX definition is available */
+#ifdef NSIG_MAX
+#if (NSIG_MAX < 2)
+/* and usable */
+# error Your NSIG_MAX value is too small.
+#undef NSIG_MAX
+#elif (ksh_NSIG > NSIG_MAX)
+/* and realistic */
+# error Your NSIG value is larger than your NSIG_MAX value.
+#undef NSIG_MAX
+#else
+/* since it’s usable, prefer it */
+#undef ksh_NSIG
+#define ksh_NSIG NSIG_MAX
+#endif
+/* if NSIG_MAX is now still defined, use sysconf(_SC_NSIG) at runtime */
+#endif
+/* third, for cpp without the error directive, default */
+#ifndef ksh_NSIG
+#define ksh_NSIG 64
 #endif
 
 
@@ -878,13 +901,13 @@ typedef struct trap {
 #define SS_USER		BIT(4)	/* user is doing the set (ie, trap command) */
 #define SS_SHTRAP	BIT(5)	/* trap for internal use (ALRM, CHLD, WINCH) */
 
-#define ksh_SIGEXIT	0	/* for trap EXIT */
-#define ksh_SIGERR	NSIG	/* for trap ERR */
+#define ksh_SIGEXIT 0		/* for trap EXIT */
+#define ksh_SIGERR  ksh_NSIG	/* for trap ERR */
 
 EXTERN volatile sig_atomic_t trap;	/* traps pending? */
 EXTERN volatile sig_atomic_t intrsig;	/* pending trap interrupts command */
 EXTERN volatile sig_atomic_t fatal_trap; /* received a fatal signal */
-extern	Trap	sigtraps[NSIG+1];
+extern Trap sigtraps[ksh_NSIG + 1];
 
 /* got_winch = 1 when we need to re-adjust the window size */
 #ifdef SIGWINCH
@@ -1745,7 +1768,7 @@ int findhist(int, int, const char *, bool) MKSH_A_PURE;
 char **hist_get_newest(bool);
 void inittraps(void);
 void alarm_init(void);
-Trap *gettrap(const char *, bool);
+Trap *gettrap(const char *, bool, bool);
 void trapsig(int);
 void intrcheck(void);
 int fatal_trap_check(void);

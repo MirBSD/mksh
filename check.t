@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.692 2015/04/29 20:13:47 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.693 2015/04/29 20:44:32 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R51 2015/04/19
+	@(#)MIRBSD KSH R51 2015/04/29
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R51 2015/04/19
+	@(#)LEGACY KSH R51 2015/04/29
 description:
 	Check version of legacy shell.
 stdin:
@@ -4837,7 +4837,7 @@ expected-stdout:
 	PROG: trap: bad signal 'UNKNOWNSIGNAL'
 	PROG: trap: bad signal '999999'
 	PROG: trap: bad signal 'FNORD'
-	= 3
+	= 1
 	trap 2 executed
 ---
 name: read-IFS-1

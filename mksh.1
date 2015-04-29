@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.365 2015/04/29 20:13:26 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.366 2015/04/29 20:44:36 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.159 2015/03/25 12:10:52 jca Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -4631,54 +4631,60 @@ The format of the output is:
 0m0.00s 0m0.00s
 .Ed
 .Pp
+.It Ic trap Ar n Op Ar signal ...
+If the first operand is a decimal unsigned integer, this resets all
+specified signals to the default action, i.e. is the same as calling
+.Ic trap
+with a minus sign
+.Pq Sq \-
+as
+.Ar handler ,
+followed by the arguments
+.Pq Ar n Op Ar signal ... ,
+all of which are treated as signals.
+.Pp
 .It Ic trap Op Ar handler signal ...
-Sets a trap handler that is to be executed when any of the specified signals are
-received.
+Sets a trap handler that is to be executed when any of the specified
+.Ar signal Ns s
+are received.
 .Ar handler
-is either a
-.Dv NULL
-string, indicating the signals are to be ignored, a minus sign
+is either an empty string, indicating the signals are to be ignored,
+a minus sign
 .Pq Sq \- ,
-indicating that the default action is to be taken for the signals (see
-.Xr signal 3 ) ,
-or a string containing shell commands to be evaluated and executed at the first
-opportunity (i.e. when the current command completes, or before printing the
-next
+indicating that the default action is to be taken for the signals
+.Pq see Xr signal 3 ,
+or a string containing shell commands to be executed at the first opportunity
+(i.e. when the current command completes, or before printing the next
 .Ev PS1
 prompt) after receipt of one of the signals.
 .Ar signal
-is the name of a signal (e.g.\&
-.Dv PIPE
-or
-.Dv ALRM )
+is the name of a signal
+.Pq e.g.\& Dv PIPE or Dv ALRM
 or the number of the signal (see the
-.Ic kill \-l
+.Ic kill Fl l
 command above).
 .Pp
 There are two special signals:
 .Dv EXIT
-(also known as 0) which is executed when the shell is about to exit, and
+.Pq also known as 0 ,
+which is executed when the shell is about to exit, and
 .Dv ERR ,
-which is executed after an error occurs (an error is something that would cause
-the shell to exit if the
-.Fl e
+which is executed after an error occurs; an error is something
+that would cause the shell to exit if the
+.Ic set Fl e
 or
-.Ic errexit
-option were set \*(en see the
-.Ic set
-command above).
+.Ic set Fl o Ic errexit
+option were set.
 .Dv EXIT
 handlers are executed in the environment of the last executed command.
-Note
-that for non-interactive shells, the trap handler cannot be changed for signals
-that were ignored when the shell started.
 .Pp
-With no arguments,
+Note that, for non-interactive shells, the trap handler cannot be changed
+for signals that were ignored when the shell started.
+.Pp
+With no arguments, the current state of the traps that have been set since
+the shell started is shown as a series of
 .Ic trap
-lists, as a series of
-.Ic trap
-commands, the current state of the traps that have been set since the shell
-started.
+commands.
 Note that the output of
 .Ic trap
 cannot be usefully piped to another process (an artifact of the fact that

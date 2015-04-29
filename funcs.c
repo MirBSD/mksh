@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.270 2015/04/29 20:07:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.271 2015/04/29 20:44:34 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1331,7 +1331,7 @@ c_kill(const char **wp)
 	/* assume old style options if -digits or -UPPERCASE */
 	if ((p = wp[1]) && *p == '-' && (ksh_isdigit(p[1]) ||
 	    ksh_isupper(p[1]))) {
-		if (!(t = gettrap(p + 1, false))) {
+		if (!(t = gettrap(p + 1, false, false))) {
 			bi_errorf("bad signal '%s'", p + 1);
 			return (1);
 		}
@@ -1345,7 +1345,8 @@ c_kill(const char **wp)
 				lflag = true;
 				break;
 			case 's':
-				if (!(t = gettrap(builtin_opt.optarg, true))) {
+				if (!(t = gettrap(builtin_opt.optarg,
+				    true, false))) {
 					bi_errorf("bad signal '%s'",
 					    builtin_opt.optarg);
 					return (1);
@@ -1371,24 +1372,25 @@ c_kill(const char **wp)
 			for (; wp[i]; i++) {
 				if (!bi_getn(wp[i], &n))
 					return (1);
-#if (NSIG < 128)
-				if (n > 128 && n < 128 + NSIG)
+#if (ksh_NSIG < 128)
+				if (n > 128 && n < 128 + ksh_NSIG)
 					n -= 128;
 #endif
-				if (n > 0 && n < NSIG)
+				if (n > 0 && n < ksh_NSIG)
 					shprintf("%s\n", sigtraps[n].name);
 				else
 					shprintf("%d\n", n);
 			}
 		} else {
-			ssize_t w, mess_cols, mess_octs;
-			int j;
-			struct kill_info ki;
+			ssize_t w, mess_cols = 0, mess_octs = 0;
+			int j = ksh_NSIG;
+			struct kill_info ki = { 0, 0 };
 
-			for (j = NSIG, ki.num_width = 1; j >= 10; j /= 10)
+			do {
 				ki.num_width++;
-			ki.name_width = mess_cols = mess_octs = 0;
-			for (j = 0; j < NSIG; j++) {
+			} while ((j /= 10));
+
+			for (j = 1; j < ksh_NSIG; j++) {
 				w = strlen(sigtraps[j].name);
 				if (w > ki.name_width)
 					ki.name_width = w;
@@ -1400,7 +1402,7 @@ c_kill(const char **wp)
 					mess_cols = w;
 			}
 
-			print_columns(shl_stdout, (unsigned int)(NSIG - 1),
+			print_columns(shl_stdout, (unsigned int)(ksh_NSIG - 1),
 			    kill_fmt_entry, (void *)&ki,
 			    ki.num_width + 1 + ki.name_width + 1 + mess_octs,
 			    ki.num_width + 1 + ki.name_width + 1 + mess_cols,
@@ -2286,41 +2288,44 @@ c_eval(const char **wp)
 int
 c_trap(const char **wp)
 {
-	int i;
+	Trap *p = sigtraps;
+	int i = ksh_NSIG + 1;
 	const char *s;
-	Trap *p;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return (1);
 	wp += builtin_opt.optind;
 
 	if (*wp == NULL) {
-		for (p = sigtraps, i = NSIG + 1; --i >= 0; p++)
-			if (p->trap != NULL) {
+		do {
+			if (p->trap) {
 				shf_puts("trap -- ", shl_stdout);
 				print_value_quoted(shl_stdout, p->trap);
 				shprintf(" %s\n", p->name);
 			}
+			++p;
+		} while (--i);
 		return (0);
 	}
 
-	/*
-	 * Use case sensitive lookup for first arg so the
-	 * command 'exit' isn't confused with the pseudo-signal
-	 * 'EXIT'.
-	 */
-	/* get command */
-	s = (gettrap(*wp, false) == NULL) ? *wp++ : NULL;
-	if (s != NULL && ksh_isdash(s))
+	if (getn(*wp, &i)) {
+		/* first argument is a signal number, reset them all */
 		s = NULL;
+	} else {
+		/* first argument must be a command, then */
+		s = *wp++;
+		/* reset traps? */
+		if (ksh_isdash(s))
+			s = NULL;
+	}
 
-	/* set/clear traps */
+	/* set/clear the traps */
 	i = 0;
-	while (*wp != NULL)
-		if ((p = gettrap(*wp++, true)) == NULL) {
+	while (*wp)
+		if (!(p = gettrap(*wp++, true, true))) {
 			warningf(true, "%s: %s '%s'", builtin_argv0,
 			    "bad signal", wp[-1]);
-			++i;
+			i = 1;
 		} else
 			settrap(p, s);
 	return (i);

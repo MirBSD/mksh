@@ -27,9 +27,9 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.142 2015/04/29 19:11:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.143 2015/04/29 20:44:35 tg Exp $");
 
-Trap sigtraps[NSIG + 1];
+Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
 
 #if HAVE_PERSISTENT_HISTORY
@@ -980,55 +980,53 @@ inittraps(void)
 	trap_exstat = -1;
 
 	/* Populate sigtraps based on sys_signame and sys_siglist. */
-	/*XXX this is idiotic, use a multi-key/value hashtable! */
-	for (i = 0; i <= NSIG; i++) {
+	for (i = 1; i < ksh_NSIG; i++) {
 		sigtraps[i].signal = i;
-		if (i == ksh_SIGERR) {
-			sigtraps[i].name = "ERR";
-			sigtraps[i].mess = "Error handler";
-		} else {
 #if HAVE_SYS_SIGNAME
-			cs = sys_signame[i];
+		cs = sys_signame[i];
 #else
-			const struct mksh_sigpair *pair = mksh_sigpairs;
-			while ((pair->nr != i) && (pair->name != NULL))
-				++pair;
-			cs = pair->name;
+		const struct mksh_sigpair *pair = mksh_sigpairs;
+		while ((pair->nr != i) && (pair->name != NULL))
+			++pair;
+		cs = pair->name;
 #endif
-			if ((cs == NULL) ||
-			    (cs[0] == '\0'))
-				sigtraps[i].name = shf_smprintf("%d", i);
-			else {
-				char *s;
+		if ((cs == NULL) ||
+		    (cs[0] == '\0'))
+			sigtraps[i].name = shf_smprintf("%d", i);
+		else {
+			char *s;
 
-				/* this is not optimal, what about SIGSIG1? */
-				if ((cs[0] & 0xDF) == 'S' &&
-				    (cs[1] & 0xDF) == 'I' &&
-				    (cs[2] & 0xDF) == 'G' &&
-				    cs[3] != '\0') {
-					/* skip leading "SIG" */
-					cs += 3;
-				}
-				strdupx(s, cs, APERM);
-				sigtraps[i].name = s;
-				while ((*s = ksh_toupper(*s)))
-					++s;
+			/* this is not optimal, what about SIGSIG1? */
+			if (ksh_eq(cs[0], 'S', 's') &&
+			    ksh_eq(cs[1], 'I', 'i') &&
+			    ksh_eq(cs[2], 'G', 'g') &&
+			    cs[3] != '\0') {
+				/* skip leading "SIG" */
+				cs += 3;
 			}
-#if HAVE_SYS_SIGLIST
-			sigtraps[i].mess = sys_siglist[i];
-#elif HAVE_STRSIGNAL
-			sigtraps[i].mess = strsignal(i);
-#else
-			sigtraps[i].mess = NULL;
-#endif
-			if ((sigtraps[i].mess == NULL) ||
-			    (sigtraps[i].mess[0] == '\0'))
-				sigtraps[i].mess = shf_smprintf("%s %d",
-				    "Signal", i);
+			strdupx(s, cs, APERM);
+			sigtraps[i].name = s;
+			while ((*s = ksh_toupper(*s)))
+				++s;
 		}
+#if HAVE_SYS_SIGLIST
+		sigtraps[i].mess = sys_siglist[i];
+#elif HAVE_STRSIGNAL
+		sigtraps[i].mess = strsignal(i);
+#else
+		sigtraps[i].mess = NULL;
+#endif
+		if ((sigtraps[i].mess == NULL) ||
+		    (sigtraps[i].mess[0] == '\0'))
+			sigtraps[i].mess = shf_smprintf("%s %d",
+			    "Signal", i);
 	}
-	/* our name for signal 0 */
+	sigtraps[ksh_SIGEXIT].signal = ksh_SIGEXIT;
 	sigtraps[ksh_SIGEXIT].name = "EXIT";
+	sigtraps[ksh_SIGEXIT].mess = "Exit trap";
+	sigtraps[ksh_SIGERR].signal = ksh_SIGERR;
+	sigtraps[ksh_SIGERR].name = "ERR";
+	sigtraps[ksh_SIGERR].mess = "Error handler";
 
 	(void)sigemptyset(&Sigact_ign.sa_mask);
 	Sigact_ign.sa_flags = 0; /* interruptible */
@@ -1076,21 +1074,24 @@ alarm_catcher(int sig MKSH_A_UNUSED)
 }
 
 Trap *
-gettrap(const char *cs, bool igncase)
+gettrap(const char *cs, bool igncase, bool allsigs)
 {
 	int i;
 	Trap *p;
 	char *as;
 
-	if (ksh_isdigit(*cs)) {
-		return ((getn(cs, &i) && 0 <= i && i < NSIG) ?
+	/* signal number (1..ksh_NSIG) or 0? */
+
+	if (ksh_isdigit(*cs))
+		return ((getn(cs, &i) && 0 <= i && i < ksh_NSIG) ?
 		    (&sigtraps[i]) : NULL);
-	}
+
+	/* do a lookup by name then */
 
 	/* this breaks SIGSIG1, but we do that above anyway */
-	if ((cs[0] & 0xDF) == 'S' &&
-	    (cs[1] & 0xDF) == 'I' &&
-	    (cs[2] & 0xDF) == 'G' &&
+	if (ksh_eq(cs[0], 'S', 's') &&
+	    ksh_eq(cs[1], 'I', 'i') &&
+	    ksh_eq(cs[2], 'G', 'g') &&
 	    cs[3] != '\0') {
 		/* skip leading "SIG" */
 		cs += 3;
@@ -1105,14 +1106,24 @@ gettrap(const char *cs, bool igncase)
 	} else
 		as = NULL;
 
+	/* this is idiotic, we really want a hashtable here */
+
 	p = sigtraps;
-	for (i = 0; i <= NSIG; i++) {
+	i = ksh_NSIG + 1;
+	do {
 		if (!strcmp(p->name, cs))
 			goto found;
 		++p;
-	}
-	p = NULL;
+	} while (--i);
+	goto notfound;
+
  found:
+	if (!allsigs) {
+		if (p->signal == ksh_SIGEXIT || p->signal == ksh_SIGERR) {
+ notfound:
+			p = NULL;
+		}
+	}
 	afree(as, ATEMP);
 	return (p);
 }
@@ -1156,14 +1167,16 @@ intrcheck(void)
 int
 fatal_trap_check(void)
 {
-	int i;
-	Trap *p;
+	Trap *p = sigtraps;
+	int i = ksh_NSIG + 1;
 
 	/* todo: should check if signal is fatal, not the TF_DFL_INTR flag */
-	for (p = sigtraps, i = NSIG+1; --i >= 0; p++)
+	do {
 		if (p->set && (p->flags & (TF_DFL_INTR|TF_FATAL)))
 			/* return value is used as an exit code */
 			return (128 + p->signal);
+		++p;
+	} while (--i);
 	return (0);
 }
 
@@ -1175,13 +1188,15 @@ fatal_trap_check(void)
 int
 trap_pending(void)
 {
-	int i;
-	Trap *p;
+	Trap *p = sigtraps;
+	int i = ksh_NSIG + 1;
 
-	for (p = sigtraps, i = NSIG+1; --i >= 0; p++)
+	do {
 		if (p->set && ((p->trap && p->trap[0]) ||
 		    ((p->flags & (TF_DFL_INTR|TF_FATAL)) && !p->trap)))
 			return (p->signal);
+		++p;
+	} while (--i);
 	return (0);
 }
 
@@ -1192,8 +1207,8 @@ trap_pending(void)
 void
 runtraps(int flag)
 {
-	int i;
-	Trap *p;
+	Trap *p = sigtraps;
+	int i = ksh_NSIG + 1;
 
 	if (ksh_tmout_state == TMOUT_LEAVING) {
 		ksh_tmout_state = TMOUT_EXECUTING;
@@ -1212,10 +1227,12 @@ runtraps(int flag)
 	if (flag & TF_FATAL)
 		fatal_trap = 0;
 	++trap_nested;
-	for (p = sigtraps, i = NSIG+1; --i >= 0; p++)
+	do {
 		if (p->set && (!flag ||
 		    ((p->flags & flag) && p->trap == NULL)))
 			runtrap(p, false);
+		++p;
+	} while (--i);
 	if (!--trap_nested)
 		runtrap(NULL, true);
 }
@@ -1284,30 +1301,34 @@ runtrap(Trap *p, bool is_last)
 void
 cleartraps(void)
 {
-	int i;
-	Trap *p;
+	Trap *p = sigtraps;
+	int i = ksh_NSIG + 1;
 
 	trap = 0;
 	intrsig = 0;
 	fatal_trap = 0;
-	for (i = NSIG+1, p = sigtraps; --i >= 0; p++) {
+
+	do {
 		p->set = 0;
 		if ((p->flags & TF_USER_SET) && (p->trap && p->trap[0]))
 			settrap(p, NULL);
-	}
+		++p;
+	} while (--i);
 }
 
 /* restore signals just before an exec(2) */
 void
 restoresigs(void)
 {
-	int i;
-	Trap *p;
+	Trap *p = sigtraps;
+	int i = ksh_NSIG + 1;
 
-	for (i = NSIG+1, p = sigtraps; --i >= 0; p++)
+	do {
 		if (p->flags & (TF_EXEC_IGN|TF_EXEC_DFL))
 			setsig(p, (p->flags & TF_EXEC_IGN) ? SIG_IGN : SIG_DFL,
 			    SS_RESTORE_CURR|SS_FORCE);
+		++p;
+	} while (--i);
 }
 
 void
