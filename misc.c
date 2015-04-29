@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.227 2015/04/29 18:32:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.228 2015/04/29 18:38:52 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -52,7 +52,7 @@ static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, bool) MKSH_A_PURE;
 static int do_gmatch(const unsigned char *, const unsigned char *,
     const unsigned char *, const unsigned char *) MKSH_A_PURE;
-static const unsigned char *cclass(const unsigned char *, unsigned char)
+static const unsigned char *gmatch_cclass(const unsigned char *, unsigned char)
     MKSH_A_PURE;
 #ifdef KSH_CHVT_CODE
 static void chvt(const Getopt *);
@@ -776,7 +776,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 		}
 		switch (*p++) {
 		case '[':
-			if (sc == 0 || (p = cclass(p, sc)) == NULL)
+			if (sc == 0 || (p = gmatch_cclass(p, sc)) == NULL)
 				return (0);
 			break;
 
@@ -889,7 +889,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 }
 
 static const unsigned char *
-cclass(const unsigned char *p, unsigned char sub)
+gmatch_cclass(const unsigned char *p, unsigned char sub)
 {
 	unsigned char c, d;
 	bool notp, found = false;
