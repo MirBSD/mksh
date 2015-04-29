@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.38 2015/03/08 22:54:31 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.39 2015/04/29 19:01:03 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -1165,7 +1165,7 @@ read_test
 		print STDERR "$prog:$test{':long-name'}: expected-exit value $val not in 0..255\n";
 		return undef;
 	    }
-	} elsif ($val !~ /^([\s<>+-=*%\/&|!()]|\b[wse]\b|\bSIG[A-Z][A-Z0-9]*\b)+$/) {
+	} elsif ($val !~ /^([\s\d<>+=*%\/&|!()-]|\b[wse]\b|\bSIG[A-Z][A-Z0-9]*\b)+$/) {
 	    print STDERR "$prog:$test{':long-name'}: bad expected-exit expression: $val\n";
 	    return undef;
 	}
