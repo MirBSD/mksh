@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.676 2015/04/29 20:13:46 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.677 2015/04/29 20:39:00 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -2669,5 +2669,8 @@ Copy dot.mkshrc to /etc/skel/.mkshrc; install mksh into $prefix/bin; or
 using $NROFF. Consider using a forward script as /etc/skel/.mkshrc like
 http://anonscm.debian.org/cgit/collab-maint/mksh.git/plain/debian/.mkshrc
 and put dot.mkshrc as /etc/mkshrc so users need not keep up their HOME.
+
+You may also want to install the lksh binary (also as /bin/sh) built by:
+$ CPPFLAGS="$CPPFLAGS -DMKSH_BINSHPOSIX" sh Build.sh -L -r -c lto
 
 EOD
