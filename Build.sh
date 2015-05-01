@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.678 2015/04/29 20:44:31 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.679 2015/05/01 16:08:26 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -2285,8 +2285,8 @@ mksh_cfg= cfg_NSIG
 	$printf "NSIG=$NSIG ... "
 	sigs="ABRT FPE ILL INT SEGV TERM ALRM BUS CHLD CONT HUP KILL PIPE QUIT"
 	sigs="$sigs STOP TSTP TTIN TTOU USR1 USR2 POLL PROF SYS TRAP URG VTALRM"
-	sigs="$sigs XCPU XFSZ INFO WINCH EMT IO DIL LOST PWR SAK CLD IOT RESV"
-	sigs="$sigs STKFLT ABND DCE DUMP IOERR TRACE DANGER UNUSED"
+	sigs="$sigs XCPU XFSZ INFO WINCH EMT IO DIL LOST PWR SAK CLD IOT STKFLT"
+	sigs="$sigs ABND DCE DUMP IOERR TRACE DANGER THCONT THSTOP RESV UNUSED"
 	test 1 = $HAVE_CPP_DD && test $NSIG -gt 1 && sigs="$sigs "`vq \
 	    "$CPP $CFLAGS $CPPFLAGS $NOWARN -dD conftest.c" | \
 	    grep '[	 ]SIG[A-Z0-9][A-Z0-9]*[	 ]' | \
