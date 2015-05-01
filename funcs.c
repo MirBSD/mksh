@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.271 2015/04/29 20:44:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.272 2015/05/01 23:16:29 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3424,7 +3424,27 @@ ptest_error(Test_env *te, int ofs, const char *msg)
 # error nonsensical v ulimit
 #endif
 
+struct limits {
+	/* limit resource */
+	int resource;
+	/* multiply by to get rlim_{cur,max} values */
+	unsigned int factor;
+	/* getopts char */
+	char optchar;
+	/* limit name */
+	char name[1];
+};
+
 #define RLIMITS_DEFNS
+#define FN(lname,lid,lfac,lopt)				\
+	static const struct {				\
+		int resource;				\
+		unsigned int factor;			\
+		char optchar;				\
+		char name[sizeof(lname)];		\
+	} rlimits_ ## lid = {				\
+		lid, lfac, lopt, lname			\
+	};
 #include "rlimits.gen"
 
 static void print_ulimit(const struct limits *, int);

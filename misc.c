@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.231 2015/04/29 20:21:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.232 2015/05/01 23:16:30 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -122,6 +122,17 @@ Xcheck_grow(XString *xsp, const char *xp, size_t more)
 
 
 #define SHFLAGS_DEFNS
+#define FN(sname,cname,flags,ochar)		\
+	static const struct {			\
+		/* character flag (if any) */	\
+		char c;				\
+		/* OF_* */			\
+		unsigned char optflags;		\
+		/* long name of option */	\
+		char name[sizeof(sname)];	\
+	} shoptione_ ## cname = {		\
+		ochar, flags, sname		\
+	};
 #include "sh_flags.gen"
 
 #define OFC(i) (options[i][-2])
