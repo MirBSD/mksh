@@ -829,6 +829,9 @@ Ninix3)
 OpenBSD)
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
+OS/2)
+	: ${CC=gcc}
+	;;
 OSF1)
 	HAVE_SIG_T=0	# incompatible
 	add_cppflags -D_OSF_SOURCE
