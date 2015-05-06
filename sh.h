@@ -253,7 +253,8 @@ typedef MKSH_TYPEDEF_SSIZE_T ssize_t;
 
 /* extra types */
 
-#if !HAVE_GETRUSAGE
+/* OS/2 kLIBC has only a declaration of getrusage() without implementation */
+#if !HAVE_GETRUSAGE && !defined(__OS2__)
 #undef rusage
 #undef RUSAGE_SELF
 #undef RUSAGE_CHILDREN
