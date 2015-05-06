@@ -832,6 +832,7 @@ OpenBSD)
 	;;
 OS/2)
 	: ${CC=gcc}
+	: ${SIZE=echo ignore size}
 	;;
 OSF1)
 	HAVE_SIG_T=0	# incompatible
