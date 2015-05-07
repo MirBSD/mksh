@@ -1239,6 +1239,13 @@ search_access(const char *fn, int mode)
 	return (0);
 }
 
+#ifdef __OS2__
+/* check if path is something we want to find, adding executable extensions */
+#define search_access(fn, mode)	access_ex((search_access), (fn), (mode))
+#else
+#define search_access(fn, mode)	(search_access)((fn), (mode))
+#endif
+
 /*
  * search for command with PATH
  */
@@ -1260,7 +1267,11 @@ search_path(const char *name, const char *lpath,
  search_path_ok:
 			if (errnop)
 				*errnop = 0;
-			return (name);
+#ifndef __OS2__
+			return name;
+#else
+			return real_exec_name(name);
+#endif
 		}
 		goto search_path_err;
 	}

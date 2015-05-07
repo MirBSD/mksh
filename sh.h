@@ -1920,6 +1920,11 @@ char *strdup_i(const char *, Area *);
 char *strndup_i(const char *, size_t, Area *);
 #endif
 int unbksl(bool, int (*)(void), void (*)(int));
+#ifdef __OS2__
+/* os2.c */
+int access_ex(int (*)(const char *, int), const char *, int);
+const char *real_exec_name(const char *);
+#endif
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);
 struct shf *shf_fdopen(int, int, struct shf *);
