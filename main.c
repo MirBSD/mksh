@@ -82,7 +82,7 @@ static const char *initcoms[] = {
 	"nameref=\\typeset -n",
 	"nohup=nohup ",
 	"r=\\builtin fc -e -",
-	"source=PATH=$PATH:. \\command .",
+	"source=PATH=\"$PATH" PATH_SEP_STR ".\" \\command .",
 	"login=\\exec login",
 	NULL,
 	 /* this is what AT&T ksh seems to track, with the addition of emacs */

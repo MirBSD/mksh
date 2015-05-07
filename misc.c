@@ -1636,7 +1636,7 @@ make_path(const char *cwd, const char *file,
 		else if (use_cdpath) {
 			char *pend;
 
-			for (pend = plist; *pend && *pend != ':'; pend++)
+			for (pend = plist; *pend && *pend != PATH_SEP; pend++)
 				;
 			plen = pend - plist;
 			*cdpathp = *pend ? pend + 1 : NULL;

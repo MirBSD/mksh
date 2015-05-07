@@ -299,6 +299,14 @@ struct rusage {
 	} while (/* CONSTCOND */ 0)
 #endif
 
+#ifdef __OS2__
+#define PATH_SEP	';'
+#define PATH_SEP_STR	";"
+#else
+#define PATH_SEP	':'
+#define PATH_SEP_STR	":"
+#endif
+
 #ifdef MKSH__NO_PATH_MAX
 #undef PATH_MAX
 #else

@@ -771,7 +771,7 @@ glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
 	Xinit(xs, xp, patlen + 128, ATEMP);
 	while (sp) {
 		xp = Xstring(xs, xp);
-		if (!(p = cstrchr(sp, ':')))
+		if (!(p = cstrchr(sp, PATH_SEP)))
 			p = sp + strlen(sp);
 		pathlen = p - sp;
 		if (pathlen) {

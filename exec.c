@@ -1271,7 +1271,7 @@ search_path(const char *name, const char *lpath,
 	sp = lpath;
 	while (sp != NULL) {
 		xp = Xstring(xs, xp);
-		if (!(p = cstrchr(sp, ':')))
+		if (!(p = cstrchr(sp, PATH_SEP)))
 			p = sp + strlen(sp);
 		if (p != sp) {
 			XcheckN(xs, xp, p - sp);
