@@ -1232,6 +1232,10 @@ search_access(const char *fn, int mode)
 	if (access(fn, mode) < 0)
 		/* file exists, but we can't access it */
 		return (errno);
+#ifdef __OS2__
+	/* Treat all the files as executables on OS/2 */
+	sb.st_mode |= S_IXUSR | S_IXGRP | S_IXOTH;
+#endif
 	if (mode == X_OK && (!S_ISREG(sb.st_mode) ||
 	    !(sb.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH))))
 		/* access(2) may say root can execute everything */
