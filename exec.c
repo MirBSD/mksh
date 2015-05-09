@@ -930,9 +930,12 @@ scriptexec(struct op *tp, const char **ap)
 		cp = buf + n;
 		/* bail out if no shebang magic found */
 		if ((cp[0] != '#') || (cp[1] != '!'))
+#ifdef __OS2__
+			if (strncmp(cp, "extproc", 7) || (cp[7] != ' ' && cp[7] != '\t'))
+#endif
 			goto noshebang;
 
-		cp += 2;
+		cp += *cp == '#' ? 2 : 7;
 		/* skip whitespace before shell name */
 		while (*cp == ' ' || *cp == '\t')
 			++cp;

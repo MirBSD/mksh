@@ -454,7 +454,18 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 			kshname = argv[argi++];
 	} else if (argi < argc && !Flag(FSTDIN)) {
 		s = pushs(SFILE, ATEMP);
+#ifndef __OS2__
 		s->file = argv[argi++];
+#else
+		/* a bug in os2 extproc shell processing doesn't pass full pathname
+		 * of a script so we have to search for it.
+		 * This changes the behavior of 'ksh arg' to search the users search
+		 * path but it can't be helped.
+		 */
+		s->file = search_path(argv[argi++], path, X_OK, NULL);
+		if (!s->file || !*s->file)
+			s->file = argv[argi - 1];
+#endif
 		s->u.shf = shf_open(s->file, O_RDONLY, 0,
 		    SHF_MAPHI | SHF_CLEXEC);
 		if (s->u.shf == NULL) {

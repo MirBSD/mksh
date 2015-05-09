@@ -161,6 +161,9 @@ const struct builtin mkshbuiltins[] = {
 	/* alias to "true" for historical reasons */
 	{"domainname", c_true},
 #endif
+#ifdef __OS2__
+	{"extproc", c_true},
+#endif
 	{NULL, (int (*)(const char **))NULL}
 };
 
