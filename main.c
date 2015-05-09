@@ -43,7 +43,7 @@ extern char **environ;
 #endif
 
 #ifndef MKSH_DEFAULT_TMPDIR
-#define MKSH_DEFAULT_TMPDIR	"/tmp"
+#define MKSH_DEFAULT_TMPDIR	UNIXROOT "/tmp"
 #endif
 
 static uint8_t isuc(const char *);
@@ -323,7 +323,9 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		 * "keeping a regular /usr"; this is supposed
 		 * to be a sane 'basic' default PATH
 		 */
-		def_path = "/bin:/usr/bin:/sbin:/usr/sbin";
+		def_path = UNIXROOT "/bin" PATH_SEP_STR
+		           UNIXROOT "/usr/bin" PATH_SEP_STR
+		           UNIXROOT "/sbin" PATH_SEP_STR UNIXROOT "/usr/sbin";
 #endif
 
 	/*

@@ -303,6 +303,7 @@ struct rusage {
 #endif
 
 #ifdef __OS2__
+#define UNIXROOT	"/@unixroot"
 #define PATH_SEP	';'
 #define PATH_SEP_STR	";"
 #define IS_DIR_SEP(c) ({		\
@@ -328,6 +329,7 @@ struct rusage {
 	    (ksh_isalphx(_p_[0]) && _p_[1] == ':'));	\
 })
 #else
+#define UNIXROOT	""
 #define PATH_SEP	':'
 #define PATH_SEP_STR	":"
 #define IS_DIR_SEP(c)	((c) == '/')
@@ -1083,7 +1085,7 @@ EXTERN mksh_ari_t x_lins E_INIT(24);	/* tty lines */
 #if defined(ANDROID)
 #define MKSH_DEFAULT_PROFILEDIR	"/system/etc"
 #else
-#define MKSH_DEFAULT_PROFILEDIR	"/etc"
+#define MKSH_DEFAULT_PROFILEDIR	UNIXROOT "/etc"
 #endif
 #endif
 

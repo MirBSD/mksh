@@ -26,7 +26,7 @@
 __RCSID("$MirOS: src/bin/mksh/exec.c,v 1.152 2015/04/29 18:32:43 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
-#define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
+#define MKSH_DEFAULT_EXECSHELL	UNIXROOT "/bin/sh"
 #endif
 
 static int comexec(struct op *, struct tbl * volatile, const char **,
