@@ -1281,7 +1281,7 @@ setspec(struct tbl *vp)
 
 			s = str_val(vp);
 			/* LINTED use of access */
-			if (s[0] == '/' && access(s, W_OK|X_OK) == 0 &&
+			if (IS_ABS_PATH(s) && access(s, W_OK|X_OK) == 0 &&
 			    stat(s, &statb) == 0 && S_ISDIR(statb.st_mode))
 				strdupx(tmpdir, s, APERM);
 		}

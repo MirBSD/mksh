@@ -1542,7 +1542,7 @@ globit(XString *xs,	/* dest string */
 			 * SunOS 4.1.3 does this...
 			 */
 			if ((check & GF_EXCHECK) && xp > Xstring(*xs, xp) &&
-			    xp[-1] == '/' && !S_ISDIR(lstatb.st_mode) &&
+			    IS_DIR_SEP(xp[-1]) && !S_ISDIR(lstatb.st_mode) &&
 			    (!S_ISLNK(lstatb.st_mode) ||
 			    stat_check() < 0 || !S_ISDIR(statb.st_mode)))
 				return;
@@ -1552,7 +1552,7 @@ globit(XString *xs,	/* dest string */
 			 * directory
 			 */
 			if (((check & GF_MARKDIR) && (check & GF_GLOBBED)) &&
-			    xp > Xstring(*xs, xp) && xp[-1] != '/' &&
+			    xp > Xstring(*xs, xp) && !IS_DIR_SEP(xp[-1]) &&
 			    (S_ISDIR(lstatb.st_mode) ||
 			    (S_ISLNK(lstatb.st_mode) && stat_check() > 0 &&
 			    S_ISDIR(statb.st_mode)))) {
@@ -1567,11 +1567,11 @@ globit(XString *xs,	/* dest string */
 
 	if (xp > Xstring(*xs, xp))
 		*xp++ = '/';
-	while (*sp == '/') {
+	while (IS_DIR_SEP(*sp)) {
 		Xcheck(*xs, xp);
 		*xp++ = *sp++;
 	}
-	np = strchr(sp, '/');
+	np = ksh_strchr_dirsep(sp);
 	if (np != NULL) {
 		se = np;
 		/* don't assume '/', can be multiple kinds */
@@ -1679,7 +1679,7 @@ maybe_expand_tilde(const char *p, XString *dsp, char **dpp, bool isassign)
 
 	Xinit(ts, tp, 16, ATEMP);
 	/* : only for DOASNTILDE form */
-	while (p[0] == CHAR && p[1] != '/' && (!isassign || p[1] != ':'))
+	while (p[0] == CHAR && !IS_DIR_SEP(p[1]) && (!isassign || p[1] != ':'))
 	{
 		Xcheck(ts, tp);
 		*tp++ = p[1];

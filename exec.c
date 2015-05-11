@@ -693,7 +693,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		rv = subst_exstat;
 		goto Leave;
 	} else if (!tp) {
-		if (Flag(FRESTRICTED) && vstrchr(cp, '/')) {
+		if (Flag(FRESTRICTED) && ksh_vstrchr_dirsep(cp)) {
 			warningf(true, "%s: %s", cp, "restricted");
 			rv = 1;
 			goto Leave;
@@ -1125,7 +1125,7 @@ findcom(const char *name, int flags)
 	char *fpath;
 	union mksh_cchack npath;
 
-	if (vstrchr(name, '/')) {
+	if (ksh_vstrchr_dirsep(name)) {
 		insert = 0;
 		/* prevent FPATH search below */
 		flags &= ~FC_FUNC;
@@ -1216,7 +1216,7 @@ flushcom(bool all)
 	struct tstate ts;
 
 	for (ktwalk(&ts, &taliases); (tp = ktnext(&ts)) != NULL; )
-		if ((tp->flag&ISSET) && (all || tp->val.s[0] != '/')) {
+		if ((tp->flag&ISSET) && (all || !IS_ABS_PATH(tp->val.s))) {
 			if (tp->flag&ALLOC) {
 				tp->flag &= ~(ALLOC|ISSET);
 				afree(tp->val.s, APERM);
@@ -1272,7 +1272,7 @@ search_path(const char *name, const char *lpath,
 	size_t namelen;
 	int ec = 0, ev;
 
-	if (vstrchr(name, '/')) {
+	if (ksh_vstrchr_dirsep(name)) {
 		if ((ec = search_access(name, mode)) == 0) {
  search_path_ok:
 			if (errnop)

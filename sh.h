@@ -305,9 +305,35 @@ struct rusage {
 #ifdef __OS2__
 #define PATH_SEP	';'
 #define PATH_SEP_STR	";"
+#define IS_DIR_SEP(c) ({		\
+	char _ch_ = (c);				\
+	(_ch_ == '/' || _ch_ == '\\');	\
+})
+#define IS_ABS_PATH(x) ({	\
+	const char *_p_ = (x);	\
+	((ksh_isalphx(_p_[0]) && _p_[1] == ':') || IS_DIR_SEP(_p_[0]));	\
+})
+#define ksh_strchr_dirsep(s) ({				\
+	const char *_p_ = (s);					\
+	const char *_p1_ = strchr(_p_, '/');		\
+	const char *_p2_ = strchr(_p_, '\\');		\
+	const char *_p3_ = ((ksh_isalphx(_p_[0]) && _p_[1] == ':')	\
+	                    ? (_p_ + 1) : NULL );	\
+	_p1_ = _p1_ > _p2_ ? _p1_ : _p2_;		\
+	((char *)(_p1_ > _p3_ ? _p1_ : _p3_));	\
+})
+#define ksh_vstrchr_dirsep(s) ({			\
+	const char *_p_ = (s);					\
+	(vstrchr((_p_), '/') || vstrchr((_p_), '\\') ||		\
+	    (ksh_isalphx(_p_[0]) && _p_[1] == ':'));	\
+})
 #else
 #define PATH_SEP	':'
 #define PATH_SEP_STR	":"
+#define IS_DIR_SEP(c)	((c) == '/')
+#define IS_ABS_PATH(x)	(IS_DIR_SEP((x)[0]))
+#define ksh_strchr_dirsep(s)	(strchr((s), '/'))
+#define ksh_vstrchr_dirsep(s)	(vstrchr((s), '/'))
 #endif
 
 #ifdef MKSH__NO_PATH_MAX

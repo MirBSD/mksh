@@ -219,7 +219,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	ccp = kshname;
 	goto begin_parse_kshname;
 	while ((i = ccp[argi++])) {
-		if (i == '/') {
+		if (IS_DIR_SEP(i)) {
 			ccp += argi;
  begin_parse_kshname:
 			argi = 0;
@@ -361,7 +361,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	vp = global("PWD");
 	cp = str_val(vp);
 	/* Try to use existing $PWD if it is valid */
-	set_current_wd((cp[0] == '/' && test_eval(NULL, TO_FILEQ, cp, ".",
+	set_current_wd((IS_ABS_PATH(cp) && test_eval(NULL, TO_FILEQ, cp, ".",
 	    true)) ? cp : NULL);
 	if (current_wd[0])
 		simplify_path(current_wd);
@@ -1363,7 +1363,7 @@ initio(void)
 	shf_fdopen(2, SHF_WR, shl_xtrace);
 #ifdef DF
 	if ((lfp = getenv("SDMKSH_PATH")) == NULL) {
-		if ((lfp = getenv("HOME")) == NULL || *lfp != '/')
+		if ((lfp = getenv("HOME")) == NULL || !IS_ABS_PATH(lfp))
 			errorf("cannot get home directory");
 		lfp = shf_smprintf("%s/mksh-dbg.txt", lfp);
 	}

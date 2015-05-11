@@ -388,7 +388,7 @@ parse_args(const char **argv,
 		 */
 		if (*p != '-')
 			for (q = p; *q; )
-				if (*q++ == '/')
+				if (IS_DIR_SEP(*q++))
 					p = q;
 		Flag(FLOGIN) = (*p == '-');
 		opts = cmd_opts;
@@ -1418,12 +1418,12 @@ do_realpath(const char *upath)
 	/* max. recursion depth */
 	int symlinks = 32;
 
-	if (upath[0] == '/') {
+	if (IS_ABS_PATH(upath)) {
 		/* upath is an absolute pathname */
 		strdupx(ipath, upath, ATEMP);
 	} else {
 		/* upath is a relative pathname, prepend cwd */
-		if ((tp = ksh_get_wd()) == NULL || tp[0] != '/')
+		if ((tp = ksh_get_wd()) == NULL || !IS_ABS_PATH(tp))
 			return (NULL);
 		ipath = shf_smprintf("%s%s%s", tp, "/", upath);
 		afree(tp, ATEMP);
@@ -1437,14 +1437,14 @@ do_realpath(const char *upath)
 
 	while (*ip) {
 		/* skip slashes in input */
-		while (*ip == '/')
+		while (IS_DIR_SEP(*ip))
 			++ip;
 		if (!*ip)
 			break;
 
 		/* get next pathname component from input */
 		tp = ip;
-		while (*ip && *ip != '/')
+		while (*ip && !IS_DIR_SEP(*ip))
 			++ip;
 		len = ip - tp;
 
@@ -1456,7 +1456,7 @@ do_realpath(const char *upath)
 			else if (len == 2 && tp[1] == '.') {
 				/* strip off last pathname component */
 				while (xp > Xstring(xs, xp))
-					if (*--xp == '/')
+					if (IS_DIR_SEP(*--xp))
 						break;
 				/* then continue with the next one */
 				continue;
@@ -1479,7 +1479,7 @@ do_realpath(const char *upath)
 			/* lstat failed */
 			if (errno == ENOENT) {
 				/* because the pathname does not exist */
-				while (*ip == '/')
+				while (IS_DIR_SEP(*ip))
 					/* skip any trailing slashes */
 					++ip;
 				/* no more components left? */
@@ -1526,7 +1526,7 @@ do_realpath(const char *upath)
 			tp = shf_smprintf("%s%s%s", ldest, *ip ? "/" : "", ip);
 			afree(ipath, ATEMP);
 			ip = ipath = tp;
-			if (ldest[0] != '/') {
+			if (!IS_ABS_PATH(ldest)) {
 				/* symlink target is a relative path */
 				xp = Xrestpos(xs, xp, pos);
 			} else
@@ -1539,7 +1539,7 @@ do_realpath(const char *upath)
 				/* assert: xp == xs.beg => start of path */
 
 				/* exactly two leading slashes? (SUSv4 3.266) */
-				if (ip[1] == '/' && ip[2] != '/') {
+				if (IS_DIR_SEP(ip[1]) && !IS_DIR_SEP(ip[2])) {
 					/* keep them, e.g. for UNC pathnames */
 					Xput(xs, xp, '/');
 				}
@@ -1564,7 +1564,7 @@ do_realpath(const char *upath)
 	 * if source path had a trailing slash, check if target path
 	 * is not a non-directory existing file
 	 */
-	if (ip > ipath && ip[-1] == '/') {
+	if (ip > ipath && IS_DIR_SEP(ip[-1])) {
 		if (stat(Xstring(xs, xp), &sb)) {
 			if (errno != ENOENT)
 				goto notfound;
@@ -1626,7 +1626,7 @@ make_path(const char *cwd, const char *file,
 	if (!file)
 		file = null;
 
-	if (file[0] == '/') {
+	if (IS_ABS_PATH(file)) {
 		*phys_pathp = 0;
 		use_cdpath = false;
 	} else {
@@ -1635,7 +1635,7 @@ make_path(const char *cwd, const char *file,
 
 			if (c == '.')
 				c = file[2];
-			if (c == '/' || c == '\0')
+			if (IS_DIR_SEP(c) || c == '\0')
 				use_cdpath = false;
 		}
 
@@ -1651,13 +1651,13 @@ make_path(const char *cwd, const char *file,
 			*cdpathp = *pend ? pend + 1 : NULL;
 		}
 
-		if ((!use_cdpath || !plen || plist[0] != '/') &&
+		if ((!use_cdpath || !plen || !IS_ABS_PATH(plist)) &&
 		    (cwd && *cwd)) {
 			len = strlen(cwd);
 			XcheckN(*xsp, xp, len);
 			memcpy(xp, cwd, len);
 			xp += len;
-			if (cwd[len - 1] != '/')
+			if (!IS_DIR_SEP(cwd[len - 1]))
 				Xput(*xsp, xp, '/');
 		}
 		*phys_pathp = Xlength(*xsp, xp);
@@ -1665,7 +1665,7 @@ make_path(const char *cwd, const char *file,
 			XcheckN(*xsp, xp, plen);
 			memcpy(xp, plist, plen);
 			xp += plen;
-			if (plist[plen - 1] != '/')
+			if (!IS_DIR_SEP(plist[plen - 1]))
 				Xput(*xsp, xp, '/');
 			rval = 1;
 		}
@@ -1706,8 +1706,11 @@ simplify_path(char *p)
 	case 0:
 		return;
 	case '/':
+#ifdef __OS2__
+	case '\\':
+#endif
 		/* exactly two leading slashes? (SUSv4 3.266) */
-		if (p[1] == '/' && p[2] != '/')
+		if (IS_DIR_SEP(p[1]) && !IS_DIR_SEP(p[2]))
 			/* keep them, e.g. for UNC pathnames */
 			++p;
 		needslash = true;
@@ -1719,14 +1722,14 @@ simplify_path(char *p)
 
 	while (*ip) {
 		/* skip slashes in input */
-		while (*ip == '/')
+		while (IS_DIR_SEP(*ip))
 			++ip;
 		if (!*ip)
 			break;
 
 		/* get next pathname component from input */
 		tp = ip;
-		while (*ip && *ip != '/')
+		while (*ip && !IS_DIR_SEP(*ip))
 			++ip;
 		len = ip - tp;
 
@@ -1737,7 +1740,7 @@ simplify_path(char *p)
 				continue;
 			else if (len == 2 && tp[1] == '.') {
 				/* parent level, but how? */
-				if (*p == '/')
+				if (IS_ABS_PATH(p))
 					/* absolute path, only one way */
 					goto strip_last_component;
 				else if (dp > sp) {
@@ -1746,7 +1749,7 @@ simplify_path(char *p)
  strip_last_component:
 					/* strip off last pathname component */
 					while (dp > sp)
-						if (*--dp == '/')
+						if (IS_DIR_SEP(*--dp))
 							break;
 				} else {
 					/* relative path, at its beginning */
@@ -1937,7 +1940,7 @@ c_cd(const char **wp)
 		/* Ignore failure (happens if readonly or integer) */
 		setstr(oldpwd_s, current_wd, KSH_RETURN_ERROR);
 
-	if (Xstring(xs, xp)[0] != '/') {
+	if (!IS_ABS_PATH(Xstring(xs, xp))) {
 		pwd = NULL;
 	} else if (!physical) {
 		goto norealpath_PWD;
