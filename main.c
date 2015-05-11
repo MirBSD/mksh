@@ -1403,6 +1403,12 @@ ksh_dup2(int ofd, int nfd, bool errok)
 	return (rv);
 }
 
+#ifdef __OS2__
+#define IS_EXPECTED_ERRNO(e) ((e) == EBADF || (e) == EPERM)
+#else
+#define IS_EXPECTED_ERRNO(e) ((e) == EBADF)
+#endif
+
 /*
  * Move fd from user space (0 <= fd < 10) to shell space (fd >= 10),
  * set close-on-exec flag. See FDBASE in sh.h, maybe 24 not 10 here.
@@ -1413,7 +1419,7 @@ savefd(int fd)
 	int nfd = fd;
 
 	if (fd < FDBASE && (nfd = fcntl(fd, F_DUPFD, FDBASE)) < 0 &&
-	    errno == EBADF)
+	    IS_EXPECTED_ERRNO(errno))
 		return (-1);
 	if (nfd < 0 || nfd > SHRT_MAX)
 		errorf("too many files open in shell");
