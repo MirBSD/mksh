@@ -1926,6 +1926,7 @@ int unbksl(bool, int (*)(void), void (*)(int));
 #ifdef __OS2__
 /* os2.c */
 int access_ex(int (*)(const char *, int), const char *, int);
+int stat_ex(const char *, struct stat *);
 const char *real_exec_name(const char *);
 #endif
 /* shf.c */

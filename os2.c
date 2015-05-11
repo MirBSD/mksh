@@ -108,6 +108,13 @@ access_ex(int (*fn)(const char *, int), const char *name, int mode)
 	return access_stat_ex(fn, name, (void *)mode);
 }
 
+/* stat() version */
+int
+stat_ex(const char *name, struct stat *buffer)
+{
+	return access_stat_ex(stat, name, buffer);
+}
+
 static int
 test_exec_exist(const char *name, char *real_name)
 {

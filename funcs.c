@@ -2943,6 +2943,14 @@ test_isop(Test_meta meta, const char *s)
 	return (TO_NONOP);
 }
 
+#ifdef __OS2__
+#define test_access(name, mode) access_ex(access, (name), (mode))
+#define test_stat(name, buffer) stat_ex((name), (buffer))
+#else
+#define test_access(name, mode) access((name), (mode))
+#define test_stat(name, buffer) stat((name), (buffer))
+#endif
+
 int
 test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
     bool do_eval)
@@ -3008,12 +3016,12 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	/* -r */
 	case TO_FILRD:
 		/* LINTED use of access */
-		return (access(opnd1, R_OK) == 0);
+		return (test_access(opnd1, R_OK) == 0);
 
 	/* -w */
 	case TO_FILWR:
 		/* LINTED use of access */
-		return (access(opnd1, W_OK) == 0);
+		return (test_access(opnd1, W_OK) == 0);
 
 	/* -x */
 	case TO_FILEX:
@@ -3023,11 +3031,11 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	case TO_FILAXST:
 	/* -e */
 	case TO_FILEXST:
-		return (stat(opnd1, &b1) == 0);
+		return (test_stat(opnd1, &b1) == 0);
 
 	/* -r */
 	case TO_FILREG:
-		return (stat(opnd1, &b1) == 0 && S_ISREG(b1.st_mode));
+		return (test_stat(opnd1, &b1) == 0 && S_ISREG(b1.st_mode));
 
 	/* -d */
 	case TO_FILID:

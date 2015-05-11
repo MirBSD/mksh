@@ -906,12 +906,16 @@ int
 ksh_access(const char *fn, int mode)
 {
 	int rv;
+#ifndef __OS2__
 	struct stat sb;
 
 	if ((rv = access(fn, mode)) == 0 && kshuid == 0 && (mode & X_OK) &&
 	    (rv = stat(fn, &sb)) == 0 && !S_ISDIR(sb.st_mode) &&
 	    (sb.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH)) == 0)
 		rv = -1;
+#else
+	rv = access_ex(access, fn, mode);
+#endif
 
 	return (rv);
 }
