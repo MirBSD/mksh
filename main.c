@@ -647,6 +647,10 @@ main(int argc, const char *argv[])
 	Source *s;
 	struct block *l;
 
+#ifdef __OS2__
+	os2_init(&argc, &argv);
+#endif
+
 	if ((rv = main_init(argc, argv, &s, &l)) == 0) {
 		if (Flag(FAS_BUILTIN)) {
 			rv = shcomexec(l->argv);

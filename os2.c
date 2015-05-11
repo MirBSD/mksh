@@ -20,9 +20,123 @@
 
 #include "sh.h"
 
+#include <klibc/startup.h>
+
 static char *remove_trailing_dots(char *);
 static int access_stat_ex(int (*)(), const char *, void *);
 static int test_exec_exist(const char *, char *);
+static void response(int *, const char ***);
+
+#define RPUT(x) 													\
+	do {															\
+		if (new_argc >= new_alloc) {								\
+			new_alloc += 20;										\
+			new_argv = (const char **)realloc(new_argv,				\
+											  new_alloc * sizeof(char *));\
+			if (!new_argv)											\
+				goto exit_out_of_memory;							\
+		}															\
+		new_argv[new_argc++] = x;									\
+	} while (0)
+
+#define KLIBC_ARG_RESPONSE_EXCLUDE	\
+	(__KLIBC_ARG_DQUOTE | __KLIBC_ARG_WILDCARD | __KLIBC_ARG_SHELL)
+
+static void
+response(int *argcp, const char ***argvp)
+{
+	int i, old_argc, new_argc, new_alloc = 0;
+	const char **old_argv, **new_argv;
+	char *line, *l, *p;
+	FILE *f;
+
+	old_argc = *argcp; old_argv = *argvp;
+
+	for (i = 1; i < old_argc; ++i)
+		if (old_argv[i] &&
+		    !(old_argv[i][-1] & KLIBC_ARG_RESPONSE_EXCLUDE) &&
+		    old_argv[i][0] == '@')
+			break;
+
+	if (i >= old_argc)
+		return; 					/* do nothing */
+
+	new_argv = NULL; new_argc = 0;
+	for (i = 0; i < old_argc; ++i) {
+		if (i == 0 || !old_argv[i] ||
+		    (old_argv[i][-1] & KLIBC_ARG_RESPONSE_EXCLUDE) ||
+		    old_argv[i][0] != '@' ||
+		    !(f = fopen(old_argv[i] + 1, "rt")))
+			RPUT(old_argv[i]);
+		else {
+			long filesize;
+
+			fseek(f, 0, SEEK_END);
+			filesize = ftell(f);
+			fseek(f, 0, SEEK_SET);
+
+			line = malloc(filesize + 1);
+			if (!line)
+				goto exit_out_of_memory;
+
+			line[0] = __KLIBC_ARG_NONZERO | __KLIBC_ARG_RESPONSE;
+			l = line + 1;
+			while (fgets(l, filesize - (l - line - 1), f)) {
+				p = strchr(l, '\n');
+				if (p) {
+					/* if a line ends with '\',
+					 * then concatenate a next line
+					 */
+					if (p > l && p[-1] == '\\') {
+						char *p1;
+						int count = 0;
+
+						for (p1 = p - 1; p1 >= l && *p1 == '\\'; p1--)
+							count++;
+
+						if (count & 1) {
+							l = p + 1;
+
+							continue;
+						}
+					}
+
+					*p = 0;
+				}
+				p = strdup(line);
+				if (!p)
+					goto exit_out_of_memory;
+
+				RPUT(p + 1);
+
+				l = line + 1;
+			}
+
+			free(line);
+
+			if (ferror(f)) {
+				fputs("Cannot read response file\n", stderr);
+				exit(255);
+			}
+
+			fclose(f);
+		}
+	}
+
+	RPUT(NULL); --new_argc;
+
+	*argcp = new_argc; *argvp = new_argv;
+	return;
+
+exit_out_of_memory:
+	fputs("Out of memory while reading response file\n", stderr);
+	exit(255);
+}
+
+void os2_init(int *argcp, const char ***argvp)
+{
+	response(argcp, argvp);
+}
 
 /* Remove trailing dots. */
 static char *
