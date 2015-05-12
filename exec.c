@@ -970,7 +970,9 @@ scriptexec(struct op *tp, const char **ap)
 		    (m == /* ECOFF_I386 */ 0x4C01) ||
 		    (m == /* ECOFF_M68K */ 0x0150 || m == 0x5001) ||
 		    (m == /* ECOFF_SH */   0x0500 || m == 0x0005) ||
+#ifndef __OS2__
 		    (m == /* "MZ" */ 0x4D5A) ||
+#endif
 		    (m == /* gzip */ 0x1F8B) || (m == /* .Z */ 0x1F9D))
 			errorf("%s: not executable: magic %04X", tp->str, m);
  nomagic:
