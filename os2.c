@@ -21,11 +21,15 @@
 #include "sh.h"
 
 #include <klibc/startup.h>
+#include <io.h>
+#include <unistd.h>
+#include <process.h>
 
 static char *remove_trailing_dots(char *);
 static int access_stat_ex(int (*)(), const char *, void *);
 static int test_exec_exist(const char *, char *);
 static void response(int *, const char ***);
+static char *make_response_file(char * const *);
 
 #define RPUT(x) 													\
 	do {															\
@@ -252,4 +256,134 @@ real_exec_name(const char *name)
 		strdupx(real_name, x_name, ATEMP);
 
 	return real_name;
+}
+/* OS/2 can process a command line up to 32K. */
+#define MAX_CMD_LINE_LEN 32768
+
+/* Make a response file to pass a very long command line. */
+static char *
+make_response_file(char * const *argv)
+{
+	char  rsp_name_arg[] = "@mksh-rsp-XXXXXX";
+	char *rsp_name = &rsp_name_arg[1];
+	int   arg_len = 0;
+	int   i;
+
+	for (i = 0; argv[i]; i++)
+		arg_len += strlen(argv[i]) + 1;
+
+	/*
+	 * If a length of command line is longer than MAX_CMD_LINE_LEN, then use
+	 * a response file. OS/2 cannot process a command line longer than 32K.
+	 * Of course, a response file cannot be recognized by a normal OS/2
+	 * program, that is, neither non-EMX or non-kLIBC. But it cannot accept
+	 * a command line longer than 32K in itself. So using a response file
+	 * in this case, is an acceptable solution.
+	 */
+	if (arg_len > MAX_CMD_LINE_LEN) {
+		int fd;
+		char *result;
+
+		if ((fd = mkstemp(rsp_name)) == -1)
+			return NULL;
+
+		/* write all the arguments except a 0th program name */
+		for (i = 1; argv[i]; i++) {
+			write(fd, argv[i], strlen(argv[i]));
+			write(fd, "\n", 1 );
+		}
+
+		close(fd);
+
+		strdupx(result, rsp_name_arg, ATEMP);
+
+		return result;
+	}
+
+	return NULL;
+}
+
+/* Alias of execve() */
+int _std_execve(const char *, char * const *, char * const *);
+
+/* Replacement for execve() of kLIBC */
+int execve(const char *name, char * const *argv, char * const *envp)
+{
+	const char *exec_name;
+	FILE *fp;
+	char sign[2];
+	char *rsp_name_arg;
+	int saved_stdin_mode;
+	int saved_stdout_mode;
+	int saved_stderr_mode;
+	int rc;
+
+	/*
+	 * #! /bin/sh : append .exe
+	 * extproc sh : search sh.exe in PATH
+	 */
+	exec_name = search_path(name, path, X_OK, NULL);
+	if (!exec_name) {
+		errno = ENOENT;
+		return -1;
+	}
+
+	/*
+	 * kLIBC execve() has problems when executing scripts.
+	 * 1. it fails to execute a script if a directory whose name
+	 * is same as an interpreter exists in a current directory.
+	 * 2. it fails to execute a script not starting with sharpbang.
+	 * 3. it fails to execute a batch file if COMSPEC is set to a shell
+	 * incompatible with cmd.exe, such as /bin/sh.
+	 * And ksh process scripts more well, so let ksh process scripts.
+	 */
+	errno = 0;
+	if (!(fp = fopen(exec_name, "rb")))
+		errno = ENOEXEC;
+
+	if (!errno && fread(sign, 1, sizeof(sign), fp) != sizeof(sign))
+		errno = ENOEXEC;
+
+	if (fp && fclose(fp))
+		errno = ENOEXEC;
+
+	if (!errno &&
+	    !((sign[0] == 'M' && sign[1] == 'Z') ||
+	      (sign[0] == 'N' && sign[1] == 'E') ||
+	      (sign[0] == 'L' && sign[1] == 'X')))
+		errno = ENOEXEC;
+
+	if (errno == ENOEXEC)
+		return -1;
+
+	rsp_name_arg = make_response_file(argv);
+
+	/*
+	 * On kLIBC, a child inherits a translation mode of stdin/stdout/stderr
+	 * of a parent. Set stdin/stdout/stderr to a text mode, which is default.
+	 */
+	saved_stdin_mode = setmode(fileno(stdin), O_TEXT);
+	saved_stdout_mode = setmode(fileno(stdout), O_TEXT);
+	saved_stderr_mode = setmode(fileno(stderr), O_TEXT);
+
+	if (rsp_name_arg) {
+		char * const rsp_argv[] = {argv[0], rsp_name_arg, NULL};
+
+		rc = spawnve(P_WAIT, exec_name, rsp_argv, envp);
+
+		remove(&rsp_name_arg[1]);
+		afree(rsp_name_arg, ATEMP);
+
+		if (rc != -1)
+			_exit(rc);
+	}
+	else
+		rc = _std_execve(exec_name, argv, envp);
+
+	/* Restore a translation mode of stdin/stdout/stderr. */
+	setmode(fileno(stdin), saved_stdin_mode);
+	setmode(fileno(stdout), saved_stdout_mode);
+	setmode(fileno(stderr), saved_stderr_mode);
+
+	return rc;
 }
