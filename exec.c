@@ -975,6 +975,19 @@ scriptexec(struct op *tp, const char **ap)
 #endif
 		    (m == /* gzip */ 0x1F8B) || (m == /* .Z */ 0x1F9D))
 			errorf("%s: not executable: magic %04X", tp->str, m);
+#ifdef __OS2__
+		cp = _getext(tp->str);
+		if (cp && (!stricmp(cp, ".cmd") || !stricmp(cp, ".bat"))) {
+			/* execute .cmd and .bat with OS2_SHELL, usually CMD.EXE */
+			sh = getenv("OS2_SHELL");
+			*tp->args-- = "/c";
+			/* convert slahes to back-slashes */
+			for (cp = tp->str; *cp; cp++) {
+				if (*cp == '/')
+					*cp = '\\';
+			}
+		}
+#endif
  nomagic:
 		;
 	}
