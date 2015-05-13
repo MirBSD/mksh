@@ -30,6 +30,7 @@ static int access_stat_ex(int (*)(), const char *, void *);
 static int test_exec_exist(const char *, char *);
 static void response(int *, const char ***);
 static char *make_response_file(char * const *);
+static void env_slashify(void);
 
 #define RPUT(x) 													\
 	do {															\
@@ -137,9 +138,35 @@ exit_out_of_memory:
 	exit(255);
 }
 
+/*
+ * Convert backslashes of environmental variables to forward slahes.
+ * A backslash may be used as an escaped character when do 'echo'. This leads
+ * to an unexpected behavior.
+ */
+static void
+env_slashify(void)
+{
+	/*
+	 * PATH and TMPDIR are used by OS/2 as well. That is, they may have
+	 * backslashes as a directory separator.
+	 */
+	const char *var_list[] = {"PATH", "TMPDIR", NULL};
+	const char **var;
+	char *value;
+
+	for (var = var_list; *var; var++) {
+		value = getenv(*var);
+
+		if (value)
+			_fnslashify(value);
+	}
+}
+
 void os2_init(int *argcp, const char ***argvp)
 {
 	response(argcp, argvp);
+
+	env_slashify();
 }
 
 /* Remove trailing dots. */
