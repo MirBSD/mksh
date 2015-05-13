@@ -312,7 +312,10 @@ die "$prog: couldn't get temporary directory\n" if $temp_dir eq '';
 die "$prog: couldn't cd to $pwd - $!\n" if !chdir($pwd);
 
 if (!$program_kludge) {
-    $test_prog = "$pwd/$test_prog" if substr($test_prog, 0, 1) ne '/';
+    $test_prog = "$pwd/$test_prog"
+    if substr($test_prog, 0, 1) ne '/' &&
+       ($os ne 'os2' || (substr($test_prog, 0, 1) ne '\\' &&
+                           substr($test_prog, 1, 1) ne ':'));
     die "$prog: $test_prog is not executable - bye\n"
 	if (! -x $test_prog && $os ne 'os2');
 }
