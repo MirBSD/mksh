@@ -1198,7 +1198,7 @@ need-pass: no
 # the mv command fails on Cygwin
 # Hurd aborts the testsuite (permission denied)
 # QNX does not find subdir to cd into
-category: !os:cygwin,!os:gnu,!os:msys,!os:nto,!os:os390,!nosymlink
+category: !os:cygwin,!os:gnu,!os:msys,!os:nto,!os:os390,!os:os2,!nosymlink
 file-setup: file 644 "x"
 	mkdir noread noread/target noread/target/subdir
 	ln -s noread link
@@ -2078,7 +2078,8 @@ description:
 # breaks on FreeMiNT (cannot unlink dangling symlinks)
 # breaks on MSYS (does not support symlinks)
 # breaks on Dell UNIX 4.0 R2.2 (SVR4) where unlink also fails
-category: !os:mint,!os:msys,!os:svr4.0,!nosymlink
+# breaks on OS/2 (does not support symlinks)
+category: !os:mint,!os:msys,!os:svr4.0,!os:os2,!nosymlink
 file-setup: dir 755 "dir"
 file-setup: symlink 644 "dir/abc"
 	non-existent-file
@@ -2132,7 +2133,7 @@ description:
 # breaks on Mac OSX (HFS+ non-standard Unicode canonical decomposition)
 # breaks on Cygwin 1.7 (files are now UTF-16 or something)
 # breaks on QNX 6.4.1 (says RT)
-category: !os:cygwin,!os:darwin,!os:msys,!os:nto
+category: !os:cygwin,!os:darwin,!os:msys,!os:os2,!os:nto
 need-pass: no
 file-setup: file 644 "aÂc"
 stdin:
