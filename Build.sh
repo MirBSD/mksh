@@ -1668,6 +1668,7 @@ ac_header sys/select.h sys/types.h
 ac_header sys/sysmacros.h
 ac_header bstring.h
 ac_header grp.h sys/types.h
+ac_header io.h
 ac_header libgen.h
 ac_header libutil.h sys/types.h
 ac_header paths.h

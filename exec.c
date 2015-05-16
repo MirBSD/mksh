@@ -901,6 +901,9 @@ scriptexec(struct op *tp, const char **ap)
 		unsigned short m;
 		ssize_t n;
 
+#ifdef __OS2__
+		setmode(fd, O_TEXT);
+#endif
 		/* read first couple of octets from file */
 		n = read(fd, buf, sizeof(buf) - 1);
 		close(fd);

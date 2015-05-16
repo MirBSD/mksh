@@ -64,6 +64,9 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#if HAVE_IO_H
+#include <io.h>
+#endif
 #if HAVE_LIBGEN_H
 #include <libgen.h>
 #endif
