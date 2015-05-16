@@ -167,6 +167,12 @@ void os2_init(int *argcp, const char ***argvp)
 	response(argcp, argvp);
 
 	env_slashify();
+
+	setmode(STDIN_FILENO, O_TEXT);
+	if (!isatty(STDOUT_FILENO))
+		setmode(STDOUT_FILENO, O_BINARY);
+	if (!isatty(STDERR_FILENO))
+		setmode(STDERR_FILENO, O_BINARY);
 }
 
 /* Remove trailing dots. */
