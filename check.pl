@@ -280,6 +280,7 @@ foreach $env (('HOME', 'LD_LIBRARY_PATH', 'LOCPATH', 'LOGNAME',
 }
 $new_env{'CYGWIN'} = 'nodosfilewarning';
 $new_env{'ENV'} = '/nonexistant';
+$new_env{'PATH_SEPARATOR'} = $os eq 'os2' ? ';' : ':';
 if (($os eq 'VMS') || ($Config{perlpath} =~ m/$Config{_exe}$/i)) {
 	$new_env{'__perlname'} = $Config{perlpath};
 } else {

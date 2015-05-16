@@ -232,7 +232,7 @@ time-limit: 3
 stdin:
 	print '#!'"$__progname"'\necho tf' >lq
 	chmod +x lq
-	PATH=$PWD:$PATH
+	PATH="$PWD$PATH_SEPARATOR$PATH"
 	alias lq=lq
 	lq
 	echo = now
@@ -5558,7 +5558,7 @@ description:
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
-	    done >env; chmod +x env; PATH=.:$PATH
+	    done >env; chmod +x env; PATH=".$PATH_SEPARATOR$PATH"
 	foo=bar
 	readonly foo
 	foo=stuff env | grep '^foo'
@@ -6264,7 +6264,7 @@ description:
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
-	    done >env; chmod +x env; PATH=.:$PATH
+	    done >env; chmod +x env; PATH=".$PATH_SEPARATOR$PATH"
 	FOO=bar exec env
 expected-stdout-pattern:
 	/(^|.*\n)FOO=bar\n/
@@ -6276,7 +6276,7 @@ description:
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
-	    done >env; chmod +x env; PATH=.:$PATH
+	    done >env; chmod +x env; PATH=".$PATH_SEPARATOR$PATH"
 	env >bar1
 	FOO=bar exec; env >bar2
 	cmp -s bar1 bar2
@@ -6520,7 +6520,7 @@ stdin:
 	print '#!'"$__progname"'\nexec "$1"' >env
 	print '#!'"$__progname"'\nexit 1' >false
 	chmod +x env false
-	PATH=.:$PATH
+	PATH=".$PATH_SEPARATOR$PATH"
 	set -ex
 	env false && echo something
 	echo END
@@ -6538,7 +6538,7 @@ stdin:
 	print '#!'"$__progname"'\nexit 1' >false
 	print '#!'"$__progname"'\nexit 0' >true
 	chmod +x env false
-	PATH=.:$PATH
+	PATH=".$PATH_SEPARATOR$PATH"
 	set -ex
 	if env true; then
 		env false && echo something
@@ -7282,7 +7282,7 @@ stdin:
 	set -A anzahl -- foo/*
 	echo got ${#anzahl[*]} files
 	chmod +x foo/*
-	export PATH=$(pwd)/foo:$PATH
+	export PATH="$(pwd)/foo$PATH_SEPARATOR$PATH"
 	"$__progname" -c '﻿fnord'
 	echo =
 	"$__progname" -c '﻿fnord; fnord; ﻿fnord; fnord'
@@ -7467,14 +7467,14 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH=$PATH:. \command .'
+	source='PATH="$PATH:." \command .'
 	stop='\kill -STOP'
 	type='\builtin whence -v'
 ---
 name: aliases-1-hartz4
 description:
 	Check if built-in shell aliases are okay
-category: android,arge
+category: android,arge,!os:os2
 stdin:
 	alias
 	typeset -f
@@ -7489,7 +7489,28 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH=$PATH:. \command .'
+	source='PATH="$PATH:." \command .'
+	type='\builtin whence -v'
+---
+name: aliases-1-hartz4-semi
+description:
+	Check if built-in shell aliases are okay
+category: os:os2
+stdin:
+	alias
+	typeset -f
+expected-stdout:
+	autoload='\typeset -fu'
+	functions='\typeset -f'
+	hash='\builtin alias -t'
+	history='\builtin fc -l'
+	integer='\typeset -i'
+	local='\typeset'
+	login='\exec login'
+	nameref='\typeset -n'
+	nohup='nohup '
+	r='\builtin fc -e -'
+	source='PATH="$PATH;." \command .'
 	type='\builtin whence -v'
 ---
 name: aliases-2b
@@ -7511,7 +7532,7 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH=$PATH:. \command .'
+	source='PATH="$PATH:." \command .'
 	stop='\kill -STOP'
 	type='\builtin whence -v'
 ---
@@ -7534,14 +7555,14 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH=$PATH:. \command .'
+	source='PATH="$PATH:." \command .'
 	stop='\kill -STOP'
 	type='\builtin whence -v'
 ---
 name: aliases-2b-hartz4
 description:
 	Check if “set -o sh” does not influence built-in aliases
-category: android,arge
+category: android,arge,!os:os2
 arguments: !-o!sh!
 stdin:
 	alias
@@ -7557,13 +7578,13 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH=$PATH:. \command .'
+	source='PATH="$PATH:." \command .'
 	type='\builtin whence -v'
 ---
 name: aliases-3b-hartz4
 description:
 	Check if running as sh does not influence built-in aliases
-category: android,arge
+category: android,arge,!os:os2
 stdin:
 	cp "$__progname" sh
 	./sh -c 'alias; typeset -f'
@@ -7579,7 +7600,51 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH=$PATH:. \command .'
+	source='PATH="$PATH:." \command .'
+	type='\builtin whence -v'
+---
+name: aliases-2b-hartz4-semi
+description:
+	Check if “set -o sh” does not influence built-in aliases
+category: os:os2
+arguments: !-o!sh!
+stdin:
+	alias
+	typeset -f
+expected-stdout:
+	autoload='\typeset -fu'
+	functions='\typeset -f'
+	hash='\builtin alias -t'
+	history='\builtin fc -l'
+	integer='\typeset -i'
+	local='\typeset'
+	login='\exec login'
+	nameref='\typeset -n'
+	nohup='nohup '
+	r='\builtin fc -e -'
+	source='PATH="$PATH;." \command .'
+	type='\builtin whence -v'
+---
+name: aliases-3b-hartz4-semi
+description:
+	Check if running as sh does not influence built-in aliases
+category: os:os2
+stdin:
+	cp "$__progname" sh
+	./sh -c 'alias; typeset -f'
+	rm -f sh
+expected-stdout:
+	autoload='\typeset -fu'
+	functions='\typeset -f'
+	hash='\builtin alias -t'
+	history='\builtin fc -l'
+	integer='\typeset -i'
+	local='\typeset'
+	login='\exec login'
+	nameref='\typeset -n'
+	nohup='nohup '
+	r='\builtin fc -e -'
+	source='PATH="$PATH;." \command .'
 	type='\builtin whence -v'
 ---
 name: aliases-cmdline
@@ -9900,7 +9965,7 @@ description:
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
-	    done >env; chmod +x env; PATH=.:$PATH
+	    done >env; chmod +x env; PATH=".$PATH_SEPARATOR$PATH"
 	function k {
 		if [ x$FOO != xbar ]; then
 			echo 1
@@ -10072,7 +10137,7 @@ description:
 	is a must (a non-recursive parser cannot pass all three of
 	these test cases, especially the ‘#’ is difficult)
 stdin:
-	print '#!'"$__progname"'\necho 1234' >id; chmod +x id; PATH=.:$PATH
+	print '#!'"$__progname"'\necho 1234' >id; chmod +x id; PATH=".$PATH_SEPARATOR$PATH"
 	echo $(typeset -i10 x=16#20; echo $x)
 	echo $(typeset -Uui16 x=16#$(id -u)
 	) .
@@ -11307,7 +11372,7 @@ file-setup: file 755 "!false"
 	#! /bin/sh
 	echo si
 stdin:
-	export PATH=.:$PATH
+	export PATH=".$PATH_SEPARATOR$PATH"
 	falsetto
 	echo yeap
 	!false
@@ -11337,7 +11402,7 @@ file-setup: file 755 "!false"
 	#! /bin/sh
 	echo si
 stdin:
-	export PATH=.:$PATH
+	export PATH=".$PATH_SEPARATOR$PATH"
 	falsetto
 	echo yeap
 	!false
