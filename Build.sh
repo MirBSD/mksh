@@ -835,6 +835,7 @@ OS/2)
 	: ${SIZE=echo ignore size}
 	SRCS="$SRCS os2.c"
 	add_cppflags -DMKSH_UNEMPLOYED
+	add_cppflags -DMKSH_NOPROSPECTOFWORK
 	;;
 OSF1)
 	HAVE_SIG_T=0	# incompatible
