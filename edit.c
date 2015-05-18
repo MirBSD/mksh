@@ -135,6 +135,11 @@ x_read(char *buf)
 static int
 x_getc(void)
 {
+#ifdef __OS2__
+	int c = _read_kbd(0, 1, 0);
+
+	return c == 0 ? 0xE0 : c;
+#else
 	char c;
 	ssize_t n;
 
@@ -156,6 +161,7 @@ x_getc(void)
 			x_mode(true);
 		}
 	return ((n == 1) ? (int)(unsigned char)c : -1);
+#endif
 }
 
 static void
@@ -887,7 +893,11 @@ struct x_defbindings {
 /* Separator for motion */
 #define	is_mfs(c)	(!(ksh_isalnux(c) || (c) == '$' || ((c) & 0x80)))
 
+#ifndef __OS2__
 #define X_NTABS		3			/* normal, meta1, meta2 */
+#else
+#define X_NTABS		4			/* normal, meta1, meta2, meta3 */
+#endif
 #define X_TABSZ		256			/* size of keydef tables etc */
 
 /*-
@@ -1091,6 +1101,13 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_next_com,		2,	'B'	},
 	{ XFUNC_mv_forw,		2,	'C'	},
 	{ XFUNC_mv_back,		2,	'D'	},
+#ifdef __OS2__
+	{ XFUNC_meta3,			0,	0xE0	},
+	{ XFUNC_prev_com,		3,	'H'	},
+	{ XFUNC_next_com,		3,	'P'	},
+	{ XFUNC_mv_forw,		3,	'M'	},
+	{ XFUNC_mv_back,		3,	'K'	},
+#endif
 #ifndef MKSH_SMALL
 	{ XFUNC_vt_hack,		2,	'1'	},
 	{ XFUNC_mv_begin | 0x80,	2,	'7'	},
@@ -2215,6 +2232,15 @@ x_meta2(int c MKSH_A_UNUSED)
 	return (KSTD);
 }
 
+#ifdef __OS2__
+static int
+x_meta3(int c MKSH_A_UNUSED)
+{
+	x_curprefix = 3;
+	return (KSTD);
+}
+#endif
+
 static int
 x_kill(int c MKSH_A_UNUSED)
 {
@@ -2365,6 +2391,12 @@ x_mapin(const char *cp, Area *ap)
 		/* XXX -- should handle \^ escape? */
 		if (*cp == '^') {
 			cp++;
+#ifdef __OS2__
+			/* define function keys */
+			if (*cp == '0')
+				*op++ = 0xE0;
+			else
+#endif
 			/*XXX or ^^ escape? this is ugly. */
 			if (*cp >= '?')
 				/* includes '?'; ASCII */
@@ -2387,6 +2419,12 @@ x_mapout2(int c, char **buf)
 {
 	char *p = *buf;
 
+#ifdef __OS2__
+	if (c == 0xE0) {
+		*p++ = '^';
+		*p++ = '0';
+	} else
+#endif
 	if (ISCTRL(c)) {
 		*p++ = '^';
 		*p++ = UNCTRL(c);
@@ -2411,6 +2449,11 @@ x_print(int prefix, int key)
 {
 	int f = x_tab[prefix][key];
 
+#ifdef __OS2__
+	if (prefix == 3)
+		shf_puts(x_mapout(0xE0), shl_stdout);
+	else
+#endif
 	if (prefix)
 		/* prefix == 1 || prefix == 2 */
 		shf_puts(x_mapout(prefix == 1 ?
@@ -2479,6 +2522,10 @@ x_bind(const char *a1, const char *a2,
 			prefix = 1;
 		else if (f == XFUNC_meta2)
 			prefix = 2;
+#ifdef __OS2__
+		else if (f == XFUNC_meta3)
+			prefix = 3;
+#endif
 		else
 			break;
 	}
@@ -3610,8 +3657,24 @@ vi_hook(int ch)
 			}
 			switch (vi_insert(ch)) {
 			case -1:
+#ifdef __OS2__
+				/* arrow keys generate 0xe0X, where X is H.. */
+				state = VCMD;
+				argc1 = 1;
+				switch (x_getc()) {
+				case 'H': *curcmd='k'; break;
+				case 'K': *curcmd='h'; break;
+				case 'P': *curcmd='j'; break;
+				case 'M': *curcmd='l'; break;
+				default:
+					vi_error();
+					state = VNORMAL;
+				}
+				break;
+#else
 				vi_error();
 				state = VNORMAL;
+#endif
 				break;
 			case 0:
 				if (state == VLIT) {
@@ -3970,6 +4033,9 @@ vi_insert(int ch)
 	if (first_insert && ch != CTRL('['))
 		saved_inslen = 0;
 	switch (ch) {
+#ifdef __OS2__
+	case 0xE0:		/* function key prefix */
+#endif
 	case '\0':
 		return (-1);
 
