@@ -31,6 +31,9 @@ static int test_exec_exist(const char *, char *);
 static void response(int *, const char ***);
 static char *make_response_file(char * const *);
 static void env_slashify(void);
+static void add_temp(const char *);
+static void cleanup_temps(void);
+static void cleanup(void);
 
 #define RPUT(x) 													\
 	do {															\
@@ -173,6 +176,8 @@ void os2_init(int *argcp, const char ***argvp)
 		setmode(STDOUT_FILENO, O_BINARY);
 	if (!isatty(STDERR_FILENO))
 		setmode(STDERR_FILENO, O_BINARY);
+
+	atexit(cleanup);
 }
 
 /* Remove trailing dots. */
@@ -328,6 +333,8 @@ make_response_file(char * const *argv)
 
 		close(fd);
 
+		add_temp(rsp_name);
+
 		strdupx(result, rsp_name_arg, ATEMP);
 
 		return result;
@@ -345,10 +352,14 @@ int execve(const char *name, char * const *argv, char * const *envp)
 	const char *exec_name;
 	FILE *fp;
 	char sign[2];
+	char *rsp_argv[3];
 	char *rsp_name_arg;
 	int saved_stdin_mode;
 	int saved_stdout_mode;
 	int saved_stderr_mode;
+	int pid;
+	int status;
+	int fd;
 	int rc;
 
 	/*
@@ -389,8 +400,6 @@ int execve(const char *name, char * const *argv, char * const *envp)
 	if (errno == ENOEXEC)
 		return -1;
 
-	rsp_name_arg = make_response_file(argv);
-
 	/*
 	 * On kLIBC, a child inherits a translation mode of stdin/stdout/stderr
 	 * of a parent. Set stdin/stdout/stderr to a text mode, which is default.
@@ -399,24 +408,100 @@ int execve(const char *name, char * const *argv, char * const *envp)
 	saved_stdout_mode = setmode(fileno(stdout), O_TEXT);
 	saved_stderr_mode = setmode(fileno(stderr), O_TEXT);
 
+	rsp_name_arg = make_response_file(argv);
+
 	if (rsp_name_arg) {
-		char * const rsp_argv[] = {argv[0], rsp_name_arg, NULL};
+		rsp_argv[0] = argv[0];
+		rsp_argv[1] = rsp_name_arg;
+		rsp_argv[2] = NULL;
 
-		rc = spawnve(P_WAIT, exec_name, rsp_argv, envp);
-
-		remove(&rsp_name_arg[1]);
-		afree(rsp_name_arg, ATEMP);
-
-		if (rc != -1)
-			_exit(rc);
+		argv = rsp_argv;
 	}
-	else
-		rc = _std_execve(exec_name, argv, envp);
+
+	pid = spawnve(P_NOWAIT, exec_name, argv, envp);
+
+	if (rsp_name_arg)
+		afree(rsp_name_arg, ATEMP);
 
 	/* Restore a translation mode of stdin/stdout/stderr. */
 	setmode(fileno(stdin), saved_stdin_mode);
 	setmode(fileno(stdout), saved_stdout_mode);
 	setmode(fileno(stderr), saved_stderr_mode);
 
+	if (pid == -1) {
+		cleanup_temps();
+
+		return -1;
+	}
+
+	/* Close all opened handles */
+	for (fd = 0; fd < NUFILE; fd++) {
+		if (fcntl(fd, F_GETFD) == -1)
+			continue;
+
+		close(fd);
+	}
+
+	while ((rc = waitpid(pid, &status, 0)) < 0 && errno == EINTR)
+		/* NOTHING */;
+
+	cleanup_temps();
+
+	/* Is this possible ? And is this right ? */
+	if (rc == -1)
+		return -1;
+
+	_exit(WEXITSTATUS(status));
+}
+
+static struct temp *templist = NULL;
+
+static void add_temp(const char *name)
+{
+	struct temp *tp;
+
+	tp = alloc(offsetof(struct temp, tffn[0]) + strlen(name) + 1, APERM);
+	strcpy(tp->tffn, name);
+	tp->next = templist;
+	templist = tp;
+}
+
+/* Alias of unlink() */
+int _std_unlink(const char *);
+
+/*
+ * Replacement for unlink() of kLIBC not supporting to remove files used by
+ * another processes.
+ */
+int unlink(const char *name)
+{
+	int rc;
+
+	rc = _std_unlink(name);
+	if (rc == -1 && errno != ENOENT)
+		add_temp(name);
+
 	return rc;
+}
+
+static void
+cleanup_temps(void)
+{
+	struct temp *tp;
+	struct temp **tpnext;
+
+	for (tpnext = &templist, tp = templist; tp; tp = *tpnext) {
+		if (_std_unlink(tp->tffn) == 0 || errno == ENOENT) {
+			*tpnext = tp->next;
+			afree(tp, APERM);
+		} else {
+			tpnext = &tp->next;
+		}
+	}
+}
+
+static void
+cleanup(void)
+{
+	cleanup_temps();
 }
