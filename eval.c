@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.168 2015/04/29 18:32:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.169 2015/05/23 17:43:19 tg Exp $");
 
 /*
  * string expansion
@@ -528,43 +528,27 @@ expand(
 						afree(tpat0, ATEMP);
 
 						/* check for special cases */
-						d = str_val(st->var);
 						switch (*pat) {
 						case '#':
-							/* anchor at begin */
-							tpat0 = pat + 1;
-							tpat1 = rrep;
-							tpat2 = d;
-							break;
 						case '%':
-							/* anchor at end */
 							tpat0 = pat + 1;
-							tpat1 = d;
-							tpat2 = rrep;
 							break;
 						case '\0':
-							/* empty pattern */
+							/* empty pattern, reject */
 							goto no_repl;
 						default:
 							tpat0 = pat;
-							/* silence gcc */
-							tpat1 = tpat2 = NULL;
 						}
 						if (gmatchx(null, tpat0, false)) {
 							/*
-							 * pattern matches
-							 * the empty string
+							 * pattern matches empty
+							 * string => don't loop
 							 */
-							if (tpat0 == pat)
-								goto no_repl;
-							/* but is anchored */
-							s = shf_smprintf("%s%s",
-							    tpat1, tpat2);
-							goto do_repl;
+							stype &= ~0x80;
 						}
 
 						/* prepare string on which to work */
-						strdupx(s, d, ATEMP);
+						strdupx(s, str_val(st->var), ATEMP);
 						sbeg = s;
 
 						/* first see if we have any match at all */
@@ -622,7 +606,6 @@ expand(
 							goto again_repl;
  end_repl:
 						afree(tpat1, ATEMP);
- do_repl:
 						x.str = s;
  no_repl:
 						afree(pat, ATEMP);
