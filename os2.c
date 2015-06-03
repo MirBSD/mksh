@@ -18,6 +18,9 @@
  * of said person's immediate fault when using the work as intended.
  */
 
+#define INCL_DOS
+#include <os2.h>
+
 #include "sh.h"
 
 #include <klibc/startup.h>
@@ -141,6 +144,20 @@ exit_out_of_memory:
 	exit(255);
 }
 
+static void
+init_extlibpath(void)
+{
+	const char *vars[] = {"BEGINLIBPATH", "ENDLIBPATH", "LIBPATHSTRICT", NULL};
+	char val[512];
+	int flag;
+
+	for (flag = 0; vars[flag]; flag++) {
+		DosQueryExtLIBPATH(val, flag + 1);
+		if (val[0])
+			setenv(vars[flag], val, 1);
+    }
+}
+
 /*
  * Convert backslashes of environmental variables to forward slahes.
  * A backslash may be used as an escaped character when do 'echo'. This leads
@@ -152,8 +169,10 @@ env_slashify(void)
 	/*
 	 * PATH and TMPDIR are used by OS/2 as well. That is, they may have
 	 * backslashes as a directory separator.
+	 * BEGINLIBPATH and ENDLIBPATH are special variables on OS/2.
 	 */
-	const char *var_list[] = {"PATH", "TMPDIR", NULL};
+	const char *var_list[] = {"PATH", "TMPDIR",
+	                          "BEGINLIBPATH", "ENDLIBPATH", NULL};
 	const char **var;
 	char *value;
 
@@ -169,6 +188,7 @@ void os2_init(int *argcp, const char ***argvp)
 {
 	response(argcp, argvp);
 
+	init_extlibpath();
 	env_slashify();
 
 	setmode(STDIN_FILENO, O_TEXT);
@@ -178,6 +198,32 @@ void os2_init(int *argcp, const char ***argvp)
 		setmode(STDERR_FILENO, O_BINARY);
 
 	atexit(cleanup);
+}
+
+void setextlibpath(const char *name, const char *val)
+{
+	int flag;
+	char *p;
+
+	if (!strcmp(name, "BEGINLIBPATH"))
+		flag = BEGIN_LIBPATH;
+	else if (!strcmp(name, "ENDLIBPATH"))
+		flag = END_LIBPATH;
+	else if (!strcmp(name, "LIBPATHSTRICT"))
+		flag = LIBPATHSTRICT;
+	else
+		return;
+
+	/* Convert slashes to backslashes. */
+	strdupx(p, val, ATEMP);
+	for (val = p; *p; p++) {
+		if (*p == '/')
+			*p = '\\';
+	}
+
+	DosSetExtLIBPATH(val, flag);
+
+	afree((char *)val, ATEMP);
 }
 
 /* Remove trailing dots. */

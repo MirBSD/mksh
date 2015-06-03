@@ -698,6 +698,11 @@ exportprep(struct tbl *vp, const char *val)
 	char *op = (vp->flag&ALLOC) ? vp->val.s : NULL;
 	size_t namelen, vallen;
 
+#ifdef __OS2__
+	/* On OS/2, BEGIN/ENDLIBPATH and LIBPATHSTRICT are special variables. */
+	setextlibpath(vp->name, val);
+#endif
+
 	namelen = strlen(vp->name);
 	vallen = strlen(val) + 1;
 
@@ -996,6 +1001,11 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 void
 unset(struct tbl *vp, int flags)
 {
+#ifdef __OS2__
+	/* On OS/2, BEGIN/ENDLIBPATH and LIBPATHSTRICT are special variables. */
+	setextlibpath(vp->name, "");
+#endif
+
 	if (vp->flag & ALLOC)
 		afree(vp->val.s, vp->areap);
 	if ((vp->flag & ARRAY) && (flags & 1)) {
