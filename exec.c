@@ -957,6 +957,14 @@ scriptexec(struct op *tp, const char **ap)
 			if (*cp)
 				*tp->args-- = (char *)cp;
 		}
+#ifdef __OS2__
+		/*
+		 * Use shell/interpreter name without directory if specified
+		 * path does not exist
+		 */
+		if (ksh_vstrchr_dirsep(sh) && !search_path(sh, path, X_OK, NULL))
+			sh = _getname(sh);
+#endif
 		goto nomagic;
  noshebang:
 		m = buf[0] << 8 | buf[1];
