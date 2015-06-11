@@ -962,8 +962,7 @@ scriptexec(struct op *tp, const char **ap)
 		 * Search shell/interpreter name without directory in PATH
 		 * if specified path does not exist
 		 */
-		if (ksh_vstrchr_dirsep(sh) && !search_path(sh, path, X_OK, NULL))
-		{
+		if (ksh_vstrchr_dirsep(sh) && !search_path(sh, path, X_OK, NULL)) {
 			cp = search_path(_getname(sh), path, X_OK, NULL);
 			if (cp)
 				sh = cp;
