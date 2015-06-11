@@ -284,10 +284,6 @@ access_stat_ex(int (*fn)(), const char *name, void *arg)
 	const char **x_suffix;
 	int rc = -1;
 
-	/* Have an extension ? */
-	if (_getext(name))
-		return fn(name, arg);
-
 	/* Otherwise, try to append executable suffixes */
 	x_name = alloc(strlen(name) + MAX_X_SUFFIX_LEN + 1, ATEMP);
 
