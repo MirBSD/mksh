@@ -959,11 +959,15 @@ scriptexec(struct op *tp, const char **ap)
 		}
 #ifdef __OS2__
 		/*
-		 * Use shell/interpreter name without directory if specified
-		 * path does not exist
+		 * Search shell/interpreter name without directory in PATH
+		 * if specified path does not exist
 		 */
 		if (ksh_vstrchr_dirsep(sh) && !search_path(sh, path, X_OK, NULL))
-			sh = _getname(sh);
+		{
+			cp = search_path(_getname(sh), path, X_OK, NULL);
+			if (cp)
+				sh = cp;
+		}
 #endif
 		goto nomagic;
  noshebang:
