@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.367 2015/05/23 17:43:20 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.368 2015/06/28 14:57:25 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.159 2015/03/25 12:10:52 jca Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: May 23 2015 $
+.Dd $Mdocdate: June 28 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -3832,7 +3832,8 @@ if empty, instead of the ASCII newline character as input line delimiter.
 .It Fl N Ar z
 Instead of reading till end-of-line, read exactly
 .Ar z
-bytes; less if EOF or a timeout occurs.
+bytes.
+If EOF or a timeout occurs, a partial read is returned with exit status 1.
 .It Fl n Ar z
 Instead of reading till end-of-line, read up to
 .Ar z
@@ -3851,6 +3852,9 @@ The argument must immediately follow the option character.
 Interrupt reading after
 .Ar n
 seconds (specified as positive decimal value with an optional fractional part).
+The exit status of
+.Nm read
+is 1 if the timeout occurred, but partial reads may still be returned.
 .It Fl r
 Normally, the ASCII backslash character escapes the special
 meaning of the following character and is stripped from the input;

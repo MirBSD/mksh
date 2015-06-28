@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.272 2015/05/01 23:16:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.273 2015/06/28 14:57:24 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1964,8 +1964,9 @@ c_read(const char **wp)
 			break;
 		case 0:
 			/* timeout expired for this call */
-			rv = 1;
-			goto c_read_out;
+			bytesread = 0;
+			/* fake EOF read; all cases return 1 */
+			goto c_read_didread;
 		default:
 			bi_errorf("%s: %s", Tselect, cstrerror(errno));
 			rv = 2;
@@ -1990,6 +1991,7 @@ c_read(const char **wp)
 		goto c_read_readloop;
 	}
 
+ c_read_didread:
 	switch (readmode) {
 	case READALL:
 		if (bytesread == 0) {
@@ -2012,7 +2014,7 @@ c_read(const char **wp)
 		if (bytesread == 0) {
 			/* end of file reached */
 			rv = 1;
-			xp = Xstring(xs, xp);
+			/* may be partial read: $? = 1, but content */
 			goto c_read_readdone;
 		}
 		xp += bytesread;
