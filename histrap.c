@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.144 2015/07/05 16:47:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.145 2015/07/05 16:48:28 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -371,7 +371,6 @@ hist_execute(char *cmd)
 	static int last_line = -1;
 	Source *sold;
 	int ret;
-	char *p, *q;
 
 	/* Back up over last histsave */
 	if (histptr >= history && last_line != hist_source->line) {
@@ -381,22 +380,7 @@ hist_execute(char *cmd)
 		last_line = hist_source->line;
 	}
 
-	for (p = cmd; p; p = q) {
-		if ((q = strchr(p, '\n'))) {
-			/* kill the newline */
-			*q++ = '\0';
-			if (!*q)
-				/* ignore trailing newline */
-				q = NULL;
-		}
-		histsave(&hist_source->line, p, true, true);
-
-		/* POSIX doesn't say this is done... */
-		shellf("%s\n", p);
-		if (q)
-			/* restore \n (trailing \n not restored) */
-			q[-1] = '\n';
-	}
+	histsave(&hist_source->line, cmd, true, true);
 
 	/*-
 	 * Commands are executed here instead of pushing them onto the
