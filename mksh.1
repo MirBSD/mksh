@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.370 2015/07/05 15:45:18 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.371 2015/07/05 17:50:40 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -3296,9 +3296,9 @@ option is given, instead of executing
 .Ar cmd ,
 information about what would be executed is given (and the same is done for
 .Ar arg ... ) .
-For special and regular built-in commands and functions, their names are simply
-printed; for aliases, a command that defines them is printed; and for commands
-found by searching the
+For builtins, functions and keywords, their names are simply printed;
+for aliases, a command that defines them is printed;
+for utilities found by searching the
 .Ev PATH
 parameter, the full path of the command is printed.
 If no command is found
