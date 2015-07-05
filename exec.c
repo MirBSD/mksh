@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.152 2015/04/29 18:32:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.153 2015/07/05 14:43:05 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -41,8 +41,8 @@ static const char *dbteste_getopnd(Test_env *, Test_op, bool);
 static void dbteste_error(Test_env *, int, const char *);
 static int search_access(const char *, int);
 /* XXX: horrible kludge to fit within the framework */
-static char *plain_fmt_entry(char *, size_t, unsigned int, const void *);
-static char *select_fmt_entry(char *, size_t, unsigned int, const void *);
+static void plain_fmt_entry(char *, size_t, unsigned int, const void *);
+static void select_fmt_entry(char *, size_t, unsigned int, const void *);
 
 /*
  * execute command tree
@@ -1610,7 +1610,7 @@ struct select_menu_info {
 };
 
 /* format a single select menu item */
-static char *
+static void
 select_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 {
 	const struct select_menu_info *smi =
@@ -1618,7 +1618,6 @@ select_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 
 	shf_snprintf(buf, buflen, "%*u) %s",
 	    smi->num_width, i + 1, smi->args[i]);
-	return (buf);
 }
 
 /*
@@ -1664,11 +1663,10 @@ pr_menu(const char * const *ap)
 	    true);
 }
 
-static char *
+static void
 plain_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 {
 	strlcpy(buf, ((const char * const *)arg)[i], buflen);
-	return (buf);
 }
 
 void

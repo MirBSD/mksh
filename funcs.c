@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.273 2015/06/28 14:57:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.274 2015/07/05 14:43:06 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -224,7 +224,7 @@ static int test_primary(Test_env *, bool);
 static Test_op ptest_isa(Test_env *, Test_meta);
 static const char *ptest_getopnd(Test_env *, Test_op, bool);
 static void ptest_error(Test_env *, int, const char *);
-static char *kill_fmt_entry(char *, size_t, unsigned int, const void *);
+static void kill_fmt_entry(char *, size_t, unsigned int, const void *);
 static void p_time(struct shf *, bool, long, int, int,
     const char *, const char *);
 
@@ -1307,7 +1307,7 @@ c_fgbg(const char **wp)
 #endif
 
 /* format a single kill item */
-static char *
+static void
 kill_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 {
 	const struct kill_info *ki = (const struct kill_info *)arg;
@@ -1317,7 +1317,6 @@ kill_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 	    ki->num_width, i,
 	    ki->name_width, sigtraps[i].name,
 	    sigtraps[i].mess);
-	return (buf);
 }
 
 int
