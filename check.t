@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.695 2015/06/28 16:23:22 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.696 2015/07/05 15:12:04 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -8533,6 +8533,7 @@ description:
 	Ensure concatenating behaviour matches other shells
 stdin:
 	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
+	#showargs 0 ""$@
 	x=; showargs 1 "$x"$@
 	set A; showargs 2 "${@:+}"
 	n() { echo "$#"; }
@@ -8566,6 +8567,17 @@ expected-stdout:
 	1
 	0
 	1
+---
+name: varexpand-null-3a
+description:
+	Ensure concatenating behaviour matches other shells
+	(currently broken cases)
+expected-fail: yes
+stdin:
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
+	showargs 0 ""$@
+expected-stdout:
+	<0> <> .
 ---
 name: print-funny-chars
 description:
