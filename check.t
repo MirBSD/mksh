@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.696 2015/07/05 15:12:04 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.697 2015/07/05 17:04:24 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -3582,7 +3582,7 @@ expected-stdout:
 	a new line
 	1	echo abc def
 	2	echo FOOBAR def
-	3	echo a new line
+		echo a new line
 expected-stderr-pattern:
 	/^X*echo FOOBAR def\necho a new line\nX*$/
 ---
@@ -3664,7 +3664,7 @@ expected-stdout:
 	a new line
 	1	echo abc def
 	2	echo FOOBAR def
-	3	echo a new line
+		echo a new line
 expected-stderr-pattern:
 	/^X*13\n32\necho FOOBAR def\necho a new line\nX*$/
 ---

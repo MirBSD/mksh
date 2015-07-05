@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.145 2015/07/05 16:48:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.146 2015/07/05 17:04:26 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -38,7 +38,7 @@ static int writehistline(int, int, const char *);
 static void writehistfile(int, const char *);
 #endif
 
-static int hist_execute(char *);
+static int hist_execute(char *, Area *);
 static char **hist_get(const char *, bool, bool);
 static char **hist_get_oldest(void);
 
@@ -223,7 +223,7 @@ c_fc(const char **wp)
 			xp += len;
 			line = Xclose(xs, xp);
 		}
-		return (hist_execute(line));
+		return (hist_execute(line, ATEMP));
 	}
 
 	if (editor && (lflag || nflag)) {
@@ -360,13 +360,13 @@ c_fc(const char **wp)
 		shf_close(shf);
 		*xp = '\0';
 		strip_nuls(Xstring(xs, xp), Xlength(xs, xp));
-		return (hist_execute(Xstring(xs, xp)));
+		return (hist_execute(Xstring(xs, xp), hist_source->areap));
 	}
 }
 
-/* Save cmd in history, execute cmd (cmd gets trashed) */
+/* save cmd in history, execute cmd (cmd gets afree’d) */
 static int
-hist_execute(char *cmd)
+hist_execute(char *cmd, Area *areap)
 {
 	static int last_line = -1;
 	Source *sold;
@@ -381,6 +381,11 @@ hist_execute(char *cmd)
 	}
 
 	histsave(&hist_source->line, cmd, true, true);
+	/* now *histptr == cmd without all trailing newlines */
+	afree(cmd, areap);
+	cmd = *histptr;
+	/* pdksh says POSIX doesn’t say this is done, testsuite needs it */
+	shellf("%s\n", cmd);
 
 	/*-
 	 * Commands are executed here instead of pushing them onto the
