@@ -169,9 +169,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.732 2015/07/05 14:43:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.733 2015/07/05 19:37:18 tg Exp $");
 #endif
-#define MKSH_VERSION "R51 2015/06/28"
+#define MKSH_VERSION "R51 2015/07/05"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1625,6 +1625,13 @@ EXTERN char **history;		/* saved commands */
 EXTERN char **histptr;		/* last history item */
 EXTERN mksh_ari_t histsize;	/* history size */
 
+/* flags to histsave */
+#define HIST_FLUSH	0
+#define HIST_QUEUE	1
+#define HIST_APPEND	2
+#define HIST_STORE	3
+#define HIST_NOTE	4
+
 /* user and system time of last j_waitjed job */
 EXTERN struct timeval j_usrtime, j_systime;
 
@@ -1751,7 +1758,7 @@ void hist_init(Source *);
 #if HAVE_PERSISTENT_HISTORY
 void hist_finish(void);
 #endif
-void histsave(int *, const char *, bool, bool);
+void histsave(int *, const char *, int, bool);
 #if !defined(MKSH_SMALL) && HAVE_PERSISTENT_HISTORY
 bool histsync(void);
 #endif

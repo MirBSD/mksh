@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.275 2015/07/05 17:50:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.276 2015/07/05 19:37:14 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -442,7 +442,7 @@ c_print(const char **wp)
 
 	if (flags & PO_HIST) {
 		Xput(xs, xp, '\0');
-		histsave(&source->line, Xstring(xs, xp), true, false);
+		histsave(&source->line, Xstring(xs, xp), HIST_STORE, false);
 		Xfree(xs, xp);
 	} else {
 		int len = Xlength(xs, xp);
@@ -2076,7 +2076,7 @@ c_read(const char **wp)
 	}
 
 	if (savehist)
-		histsave(&source->line, Xstring(xs, xp), true, false);
+		histsave(&source->line, Xstring(xs, xp), HIST_STORE, false);
 
 	ccp = cp = Xclose(xs, xp);
 	expanding = false;

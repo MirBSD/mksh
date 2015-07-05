@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.371 2015/07/05 17:50:40 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.372 2015/07/05 19:37:17 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -1859,7 +1859,8 @@ below for more information.
 .It Ev HISTFILE
 The name of the file used to store command history.
 When assigned to or unset, the file is opened, history is truncated
-then loaded from the file; subsequent new lines are appended.
+then loaded from the file; subsequent new commands (possibly consisting
+of several lines) are appended once they successfully compiled.
 Also, several invocations of the shell will share history if their
 .Ev HISTFILE
 parameters all point to the same file.

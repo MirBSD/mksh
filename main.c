@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.293 2015/04/29 20:07:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.294 2015/07/05 19:37:16 tg Exp $");
 
 extern char **environ;
 
@@ -803,6 +803,8 @@ shell(Source * volatile s, volatile bool toplevel)
 			set_prompt(PS1, s);
 		}
 		t = compile(s, sfirst);
+		if (interactive)
+			histsave(&s->line, NULL, HIST_FLUSH, true);
 		sfirst = false;
 		if (!t)
 			goto source_no_tree;

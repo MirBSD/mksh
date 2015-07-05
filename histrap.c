@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.146 2015/07/05 17:04:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.147 2015/07/05 19:37:15 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -380,7 +380,7 @@ hist_execute(char *cmd, Area *areap)
 		last_line = hist_source->line;
 	}
 
-	histsave(&hist_source->line, cmd, true, true);
+	histsave(&hist_source->line, cmd, HIST_STORE, true);
 	/* now *histptr == cmd without all trailing newlines */
 	afree(cmd, areap);
 	cmd = *histptr;
@@ -620,31 +620,67 @@ histsync(void)
  * save command in history
  */
 void
-histsave(int *lnp, const char *cmd, bool dowrite MKSH_A_UNUSED, bool ignoredups)
+histsave(int *lnp, const char *cmd, int svmode, bool ignoredups)
 {
-	char **hp;
-	char *c;
+	static char *enqueued = NULL;
+	char **hp, *c;
 	const char *ccp;
+
+	if (svmode == HIST_APPEND) {
+		if (!enqueued)
+			svmode = HIST_STORE;
+	} else if (enqueued) {
+		c = enqueued;
+		enqueued = NULL;
+		--*lnp;
+		histsave(lnp, c, HIST_STORE, true);
+		afree(c, APERM);
+	}
+
+	if (svmode == HIST_FLUSH)
+		return;
 
 	ccp = cmd + strlen(cmd);
 	while (ccp > cmd && ccp[-1] == '\n')
 		--ccp;
 	strndupx(c, cmd, ccp - cmd, APERM);
 
-	if (ignoredups && !strcmp(c, *histptr)
+	if (svmode != HIST_APPEND) {
+		if (ignoredups && !strcmp(c, *histptr)
 #if !defined(MKSH_SMALL) && HAVE_PERSISTENT_HISTORY
-	    && !histsync()
+		    && !histsync()
 #endif
-	    ) {
+		    ) {
+			afree(c, APERM);
+			return;
+		}
+		++*lnp;
+	}
+
+#if HAVE_PERSISTENT_HISTORY
+	if (svmode == HIST_STORE && histfd != -1)
+		writehistfile(*lnp, c);
+#endif
+
+	if (svmode == HIST_QUEUE || svmode == HIST_APPEND) {
+		size_t nenq, ncmd;
+
+		if (!enqueued) {
+			if (*c)
+				enqueued = c;
+			else
+				afree(c, APERM);
+			return;
+		}
+
+		nenq = strlen(enqueued);
+		ncmd = strlen(c);
+		enqueued = aresize(enqueued, nenq + 1 + ncmd + 1, APERM);
+		enqueued[nenq] = '\n';
+		memcpy(enqueued + nenq + 1, c, ncmd + 1);
 		afree(c, APERM);
 		return;
 	}
-	++*lnp;
-
-#if HAVE_PERSISTENT_HISTORY
-	if (dowrite && histfd != -1)
-		writehistfile(*lnp, c);
-#endif
 
 	hp = histptr;
 
@@ -855,7 +891,7 @@ histload(Source *s, unsigned char *base, size_t bytes)
 		}
 	} else {
 		s->line = lno--;
-		histsave(&lno, (char *)(base + 4), false, false);
+		histsave(&lno, (char *)(base + 4), HIST_NOTE, false);
 	}
 	/* advance base pointer past NUL */
 	bytes -= ++cp - base;

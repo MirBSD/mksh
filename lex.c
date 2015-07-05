@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.202 2015/07/05 13:49:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.203 2015/07/05 19:37:16 tg Exp $");
 
 /*
  * states while lexing word
@@ -1461,11 +1461,16 @@ getsc_line(Source *s)
 		if (s->type == SFILE)
 			shf_fdclose(s->u.shf);
 		s->str = NULL;
-	} else if (interactive && *s->str &&
-	    (cur_prompt != PS1 || !ctype(*s->str, C_IFS | C_IFSWS))) {
-		histsave(&s->line, s->str, true, true);
+	} else if (interactive && *s->str) {
+		if (cur_prompt != PS1)
+			histsave(&s->line, s->str, HIST_APPEND, true);
+		else if (!ctype(*s->str, C_IFS | C_IFSWS))
+			histsave(&s->line, s->str, HIST_QUEUE, true);
 #if !defined(MKSH_SMALL) && HAVE_PERSISTENT_HISTORY
+		else
+			goto check_for_sole_return;
 	} else if (interactive && cur_prompt == PS1) {
+ check_for_sole_return:
 		cp = Xstring(s->xs, xp);
 		while (*cp && ctype(*cp, C_IFSWS))
 			++cp;
