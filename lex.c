@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.203 2015/07/05 19:37:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.204 2015/07/05 19:53:46 tg Exp $");
 
 /*
  * states while lexing word
@@ -1474,8 +1474,10 @@ getsc_line(Source *s)
 		cp = Xstring(s->xs, xp);
 		while (*cp && ctype(*cp, C_IFSWS))
 			++cp;
-		if (!*cp)
+		if (!*cp) {
+			histsave(&s->line, NULL, HIST_FLUSH, true);
 			histsync();
+		}
 #endif
 	}
 	if (interactive)
