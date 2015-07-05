@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.679 2015/05/01 16:08:26 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.680 2015/07/05 15:45:16 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -2646,6 +2646,8 @@ MKSH_NOPWNAM			skip PAM calls, for -static on glibc or Solaris
 MKSH_NO_CMDLINE_EDITING		disable command line editing code entirely
 MKSH_NO_DEPRECATED_WARNING	omit warning when deprecated stuff is run
 MKSH_NO_EXTERNAL_CAT		omit hack to skip cat builtin when flags passed
+MKSH_NO_EXTERNAL_REALPATH	same for realpath builtin
+MKSH_NO_EXTERNAL_RENAME		same for rename builtin
 MKSH_NO_LIMITS			omit ulimit code
 MKSH_NO_SIGSETJMP		define if sigsetjmp is broken or not available
 MKSH_NO_SIGSUSPEND		use sigprocmask+pause instead of sigsuspend

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.153 2015/07/05 14:43:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.154 2015/07/05 15:45:17 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -607,16 +607,21 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				subst_exstat = 0;
 				break;
 			}
+#if !defined(MKSH_NO_EXTERNAL_CAT) || \
+    !defined(MKSH_NO_EXTERNAL_REALPATH) || \
+    !defined(MKSH_NO_EXTERNAL_RENAME)
+		} else if (
 #ifndef MKSH_NO_EXTERNAL_CAT
-		} else if (tp->val.f == c_cat) {
-			/*
-			 * if we have any flags, do not use the builtin
-			 * in theory, we could allow -u, but that would
-			 * mean to use ksh_getopt here and possibly ad-
-			 * ded complexity and more code and isn't worth
-			 * additional hassle (and the builtin must call
-			 * ksh_getopt already but can't come back here)
-			 */
+		    tp->val.f == c_cat ||
+#endif
+#ifndef MKSH_NO_EXTERNAL_REALPATH
+		    tp->val.f == c_realpath ||
+#endif
+#ifndef MKSH_NO_EXTERNAL_RENAME
+		    tp->val.f == c_rename ||
+#endif
+		    0) {
+			/* if we have any flags, do not use the builtin */
 			if (ap[1] && ap[1][0] == '-' && ap[1][1] != '\0' &&
 			    /* argument, begins with -, is not - or -- */
 			    (ap[1][1] != '-' || ap[1][2] != '\0'))

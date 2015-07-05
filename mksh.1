@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.369 2015/07/05 15:22:41 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.370 2015/07/05 15:45:18 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -3957,6 +3957,12 @@ it's also checked for existence and whether it is a directory; otherwise,
 returns 0 if the pathname either exists or can be created immediately,
 i.e. all but the last component exist and are directories.
 .Pp
+Unless compiled with
+.Dv MKSH_NO_EXTERNAL_REALPATH ,
+if any options are given and this is not a direct builtin call, an external
+.Xr realpath 1
+utility is invoked instead.
+.Pp
 .It Xo
 .Ic rename
 .Op Fl \-
@@ -3971,6 +3977,11 @@ This builtin is intended for emergency situations where
 .Pa /bin/mv
 becomes unusable, and directly calls
 .Xr rename 2 .
+Unless compiled with
+.Dv MKSH_NO_EXTERNAL_RENAME ,
+if any options are given and this is not a direct builtin call, an external
+.Xr rename 1
+utility is invoked instead.
 .Pp
 .It Ic return Op Ar status
 Returns from a function or
