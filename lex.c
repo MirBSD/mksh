@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.201 2015/04/29 20:07:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.202 2015/07/05 13:49:42 tg Exp $");
 
 /*
  * states while lexing word
@@ -1495,6 +1495,7 @@ set_prompt(int to, Source *s)
 			struct shf *shf;
 			char * volatile ps1;
 			Area *saved_atemp;
+			int saved_lineno;
 
 			ps1 = str_val(global("PS1"));
 			shf = shf_sopen(NULL, strlen(ps1) * 2,
@@ -1506,6 +1507,9 @@ set_prompt(int to, Source *s)
 					shf_fprintf(shf, "%lu", s ?
 					    (unsigned long)s->line + 1 : 0UL);
 			ps1 = shf_sclose(shf);
+			saved_lineno = current_lineno;
+			if (s)
+				current_lineno = s->line + 1;
 			saved_atemp = ATEMP;
 			newenv(E_ERRH);
 			if (kshsetjmp(e->jbuf)) {
@@ -1521,6 +1525,7 @@ set_prompt(int to, Source *s)
 				char *cp = substitute(ps1, 0);
 				strdupx(prompt, cp, saved_atemp);
 			}
+			current_lineno = saved_lineno;
 			quitenv(NULL);
 		}
 		break;
