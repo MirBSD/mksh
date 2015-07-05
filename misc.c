@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.235 2015/07/05 14:47:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.236 2015/07/05 14:58:33 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1255,11 +1255,12 @@ print_columns(struct shf *shf, unsigned int n,
 	str = alloc(max_oct, ATEMP);
 
 	/*
-	 * We use (max_col + 1) to consider the space separator.
-	 * Note that no space is printed after the last column
-	 * to avoid problems with terminals that have auto-wrap.
+	 * We use (max_col + 2) to consider the separator space.
+	 * Note that no spaces are printed after the last column
+	 * to avoid problems with terminals that have auto-wrap,
+	 * but we need to also take this into account in x_cols.
 	 */
-	cols = x_cols / (max_col + 1);
+	cols = (x_cols + 1) / (max_col + 2);
 
 	/* if we can only print one column anyway, skip the goo */
 	if (cols < 2) {
@@ -1278,9 +1279,9 @@ print_columns(struct shf *shf, unsigned int n,
 	}
 
 	nspace = (x_cols - max_col * cols) / cols;
+	if (nspace < 2)
+		nspace = 2;
 	max_col = -max_col;
-	if (nspace <= 0)
-		nspace = 1;
 	for (r = 0; r < rows; r++) {
 		for (c = 0; c < cols; c++) {
 			if ((i = c * rows + r) >= n)
