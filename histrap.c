@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.143 2015/04/29 20:44:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.144 2015/07/05 16:47:28 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -634,11 +634,13 @@ void
 histsave(int *lnp, const char *cmd, bool dowrite MKSH_A_UNUSED, bool ignoredups)
 {
 	char **hp;
-	char *c, *cp;
+	char *c;
+	const char *ccp;
 
-	strdupx(c, cmd, APERM);
-	if ((cp = strchr(c, '\n')) != NULL)
-		*cp = '\0';
+	ccp = cmd + strlen(cmd);
+	while (ccp > cmd && ccp[-1] == '\n')
+		--ccp;
+	strndupx(c, cmd, ccp - cmd, APERM);
 
 	if (ignoredups && !strcmp(c, *histptr)
 #if !defined(MKSH_SMALL) && HAVE_PERSISTENT_HISTORY
