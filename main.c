@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.294 2015/07/05 19:37:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.295 2015/07/06 17:48:34 tg Exp $");
 
 extern char **environ;
 
@@ -87,7 +87,7 @@ static const char *initcoms[] = {
 	NULL,
 	 /* this is what AT&T ksh seems to track, with the addition of emacs */
 	Talias, "-tU",
-	"cat", "cc", "chmod", "cp", "date", "ed", "emacs", "grep", "ls",
+	Tcat, "cc", "chmod", "cp", "date", "ed", "emacs", "grep", "ls",
 	"make", "mv", "pr", "rm", "sed", "sh", "vi", "who", NULL,
 	NULL
 };

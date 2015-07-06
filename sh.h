@@ -169,9 +169,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.733 2015/07/05 19:37:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.734 2015/07/06 17:48:37 tg Exp $");
 #endif
-#define MKSH_VERSION "R51 2015/07/05"
+#define MKSH_VERSION "R51 2015/07/06"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -821,6 +821,7 @@ EXTERN const char T_typeset[] E_INIT("=typeset");
 #define Ttypeset	(T_typeset + 1)		/* "typeset" */
 EXTERN const char Talias[] E_INIT("alias");
 EXTERN const char Tunalias[] E_INIT("unalias");
+EXTERN const char Tcat[] E_INIT("cat");
 EXTERN const char Tsgset[] E_INIT("*=set");
 #define Tset		(Tsgset + 2)		/* "set" */
 EXTERN const char Tsgexport[] E_INIT("*=export");

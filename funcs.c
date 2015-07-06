@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.276 2015/07/05 19:37:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.277 2015/07/06 17:48:32 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -99,7 +99,7 @@ const struct builtin mkshbuiltins[] = {
 	{Talias, c_alias},
 	{"*=break", c_brkcont},
 	{Tgbuiltin, c_builtin},
-	{"cat", c_cat},
+	{Tcat, c_cat},
 	{"cd", c_cd},
 	/* dash compatibility hack */
 	{"chdir", c_cd},

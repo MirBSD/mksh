@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.372 2015/07/05 19:37:17 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.373 2015/07/06 17:48:35 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 5 2015 $
+.Dd $Mdocdate: July 6 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -3161,15 +3161,13 @@ If a
 is a single dash
 .Pq Sq -
 or absent, read from standard input.
-Unless compiled with
-.Dv MKSH_NO_EXTERNAL_CAT ,
-if any options are given, an external
-.Xr cat 1
-utility is invoked instead if called from the shell.
 For direct builtin calls, the
 .Tn POSIX
 .Fl u
 option is supported as a no-op.
+For calls from shell, if any options are given, an external
+.Xr cat 1
+utility is preferred over the builtin.
 .Pp
 .It Xo
 .Ic cd
@@ -3958,12 +3956,6 @@ it's also checked for existence and whether it is a directory; otherwise,
 returns 0 if the pathname either exists or can be created immediately,
 i.e. all but the last component exist and are directories.
 .Pp
-Unless compiled with
-.Dv MKSH_NO_EXTERNAL_REALPATH ,
-if any options are given and this is not a direct builtin call, an external
-.Xr realpath 1
-utility is invoked instead.
-.Pp
 .It Xo
 .Ic rename
 .Op Fl \-
@@ -3978,11 +3970,6 @@ This builtin is intended for emergency situations where
 .Pa /bin/mv
 becomes unusable, and directly calls
 .Xr rename 2 .
-Unless compiled with
-.Dv MKSH_NO_EXTERNAL_RENAME ,
-if any options are given and this is not a direct builtin call, an external
-.Xr rename 1
-utility is invoked instead.
 .Pp
 .It Ic return Op Ar status
 Returns from a function or

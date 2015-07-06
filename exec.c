@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.154 2015/07/05 15:45:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.155 2015/07/06 17:48:31 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -551,6 +551,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			}
 			if ((tp = findcom(cp, FC_BI)) == NULL)
 				errorf("%s: %s: %s", Tbuiltin, cp, "not a builtin");
+			if (tp->type == CSHELL && tp->val.f == c_cat)
+				break;
 			continue;
 		} else if (tp->val.f == c_exec) {
 			if (ap[1] == NULL)
@@ -607,30 +609,19 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				subst_exstat = 0;
 				break;
 			}
-#if !defined(MKSH_NO_EXTERNAL_CAT) || \
-    !defined(MKSH_NO_EXTERNAL_REALPATH) || \
-    !defined(MKSH_NO_EXTERNAL_RENAME)
-		} else if (
-#ifndef MKSH_NO_EXTERNAL_CAT
-		    tp->val.f == c_cat ||
-#endif
-#ifndef MKSH_NO_EXTERNAL_REALPATH
-		    tp->val.f == c_realpath ||
-#endif
-#ifndef MKSH_NO_EXTERNAL_RENAME
-		    tp->val.f == c_rename ||
-#endif
-		    0) {
+		} else if (tp->val.f == c_cat) {
 			/* if we have any flags, do not use the builtin */
 			if (ap[1] && ap[1][0] == '-' && ap[1][1] != '\0' &&
 			    /* argument, begins with -, is not - or -- */
-			    (ap[1][1] != '-' || ap[1][2] != '\0'))
-				/* don't look for builtins or functions */
-				fcflags = FC_PATH;
-			else
-				/* go on, use the builtin */
-				break;
-#endif
+			    (ap[1][1] != '-' || ap[1][2] != '\0')) {
+				struct tbl *ext_cat;
+
+				ext_cat = findcom(Tcat, FC_PATH | FC_FUNC);
+				if (ext_cat && (ext_cat->type != CTALIAS ||
+				    (ext_cat->flag & ISSET)))
+					tp = ext_cat;
+			}
+			break;
 		} else if (tp->val.f == c_trap) {
 			t->u.evalflags &= ~DOTCOMEXEC;
 			break;
@@ -710,6 +701,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 
 	/* shell built-in */
 	case CSHELL:
+ do_call_builtin:
 		rv = call_builtin(tp, (const char **)ap, null, resetspec);
 		if (resetspec && tp->val.f == c_shift) {
 			l_expand->argc = l_assign->argc;
@@ -734,6 +726,11 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				break;
 			}
 			if (include(tp->u.fpath, 0, NULL, false) < 0) {
+				if (!strcmp(cp, Tcat)) {
+ no_cat_in_FPATH:
+					tp = findcom(Tcat, FC_BI);
+					goto do_call_builtin;
+				}
 				warningf(true, "%s: %s %s %s: %s", cp,
 				    "can't open", "function definition file",
 				    tp->u.fpath, cstrerror(errno));
@@ -742,6 +739,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			}
 			if (!(ftp = findfunc(cp, hash(cp), false)) ||
 			    !(ftp->flag & ISSET)) {
+				if (!strcmp(cp, Tcat))
+					goto no_cat_in_FPATH;
 				warningf(true, "%s: %s %s", cp,
 				    "function not defined by", tp->u.fpath);
 				rv = 127;
