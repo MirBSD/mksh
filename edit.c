@@ -3340,6 +3340,19 @@ x_mode(bool onoff)
 		edchars.werase = tty_state.c_cc[VWERASE];
 #endif
 
+#ifdef __OS2__
+		if (edchars.erase == 0)
+			edchars.erase = 8;
+		if (edchars.kill == 0)
+			edchars.kill = 21;
+		if (edchars.intr == 0)
+			edchars.intr = 3;
+		if (edchars.quit == 0)
+			edchars.quit = 28;
+		if (edchars.eof == 0)
+			edchars.eof = 4;
+#endif
+
 #ifdef _POSIX_VDISABLE
 		/* Convert unset values to internal 'unset' value */
 		if (edchars.erase == _POSIX_VDISABLE)
