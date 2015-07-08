@@ -1,5 +1,5 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.367 2015/05/23 17:43:20 tg Exp $
-.\" $OpenBSD: ksh.1,v 1.159 2015/03/25 12:10:52 jca Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.373 2015/07/06 17:48:35 tg Exp $
+.\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
 .\"		2010, 2011, 2012, 2013, 2014, 2015
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: May 23 2015 $
+.Dd $Mdocdate: July 6 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -476,7 +476,7 @@ and
 .Ql }
 delimit
 .Xr csh 1 Ns -style
-alterations (see
+alternations (see
 .Sx Brace expansion
 below);
 and finally,
@@ -1859,7 +1859,8 @@ below for more information.
 .It Ev HISTFILE
 The name of the file used to store command history.
 When assigned to or unset, the file is opened, history is truncated
-then loaded from the file; subsequent new lines are appended.
+then loaded from the file; subsequent new commands (possibly consisting
+of several lines) are appended once they successfully compiled.
 Also, several invocations of the shell will share history if their
 .Ev HISTFILE
 parameters all point to the same file.
@@ -2145,7 +2146,7 @@ The
 .Ic alias Fl d
 command may be used to list, change, and add to this cache (e.g.\&
 .Ic alias \-d fac=/usr/local/facilities; cd \*(TIfac/bin ) .
-.Ss Brace expansion (alteration)
+.Ss Brace expansion (alternation)
 Brace expressions take the following form:
 .Bd -unfilled -offset indent
 .Sm off
@@ -3160,15 +3161,13 @@ If a
 is a single dash
 .Pq Sq -
 or absent, read from standard input.
-Unless compiled with
-.Dv MKSH_NO_EXTERNAL_CAT ,
-if any options are given, an external
-.Xr cat 1
-utility is invoked instead if called from the shell.
 For direct builtin calls, the
 .Tn POSIX
 .Fl u
 option is supported as a no-op.
+For calls from shell, if any options are given, an external
+.Xr cat 1
+utility is preferred over the builtin.
 .Pp
 .It Xo
 .Ic cd
@@ -3296,9 +3295,9 @@ option is given, instead of executing
 .Ar cmd ,
 information about what would be executed is given (and the same is done for
 .Ar arg ... ) .
-For special and regular built-in commands and functions, their names are simply
-printed; for aliases, a command that defines them is printed; and for commands
-found by searching the
+For builtins, functions and keywords, their names are simply printed;
+for aliases, a command that defines them is printed;
+for utilities found by searching the
 .Ev PATH
 parameter, the full path of the command is printed.
 If no command is found
@@ -3832,7 +3831,8 @@ if empty, instead of the ASCII newline character as input line delimiter.
 .It Fl N Ar z
 Instead of reading till end-of-line, read exactly
 .Ar z
-bytes; less if EOF or a timeout occurs.
+bytes.
+If EOF or a timeout occurs, a partial read is returned with exit status 1.
 .It Fl n Ar z
 Instead of reading till end-of-line, read up to
 .Ar z
@@ -3851,6 +3851,9 @@ The argument must immediately follow the option character.
 Interrupt reading after
 .Ar n
 seconds (specified as positive decimal value with an optional fractional part).
+The exit status of
+.Nm read
+is 1 if the timeout occurred, but partial reads may still be returned.
 .It Fl r
 Normally, the ASCII backslash character escapes the special
 meaning of the following character and is stripped from the input;

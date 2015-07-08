@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.272 2015/05/01 23:16:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.277 2015/07/06 17:48:32 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -99,7 +99,7 @@ const struct builtin mkshbuiltins[] = {
 	{Talias, c_alias},
 	{"*=break", c_brkcont},
 	{Tgbuiltin, c_builtin},
-	{"cat", c_cat},
+	{Tcat, c_cat},
 	{"cd", c_cd},
 	/* dash compatibility hack */
 	{"chdir", c_cd},
@@ -227,7 +227,7 @@ static int test_primary(Test_env *, bool);
 static Test_op ptest_isa(Test_env *, Test_meta);
 static const char *ptest_getopnd(Test_env *, Test_op, bool);
 static void ptest_error(Test_env *, int, const char *);
-static char *kill_fmt_entry(char *, size_t, unsigned int, const void *);
+static void kill_fmt_entry(char *, size_t, unsigned int, const void *);
 static void p_time(struct shf *, bool, long, int, int,
     const char *, const char *);
 
@@ -445,7 +445,7 @@ c_print(const char **wp)
 
 	if (flags & PO_HIST) {
 		Xput(xs, xp, '\0');
-		histsave(&source->line, Xstring(xs, xp), true, false);
+		histsave(&source->line, Xstring(xs, xp), HIST_STORE, false);
 		Xfree(xs, xp);
 	} else {
 		int len = Xlength(xs, xp);
@@ -541,7 +541,7 @@ c_whence(const char **wp)
 		uint32_t h = 0;
 
 		tp = NULL;
-		if ((iam_whence || vflag) && !pflag)
+		if (!pflag)
 			tp = ktsearch(&keywords, id, h = hash(id));
 		if (!tp && !pflag) {
 			tp = ktsearch(&aliases, id, h ? h : hash(id));
@@ -1310,7 +1310,7 @@ c_fgbg(const char **wp)
 #endif
 
 /* format a single kill item */
-static char *
+static void
 kill_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 {
 	const struct kill_info *ki = (const struct kill_info *)arg;
@@ -1320,7 +1320,6 @@ kill_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 	    ki->num_width, i,
 	    ki->name_width, sigtraps[i].name,
 	    sigtraps[i].mess);
-	return (buf);
 }
 
 int
@@ -1967,8 +1966,9 @@ c_read(const char **wp)
 			break;
 		case 0:
 			/* timeout expired for this call */
-			rv = 1;
-			goto c_read_out;
+			bytesread = 0;
+			/* fake EOF read; all cases return 1 */
+			goto c_read_didread;
 		default:
 			bi_errorf("%s: %s", Tselect, cstrerror(errno));
 			rv = 2;
@@ -1993,6 +1993,7 @@ c_read(const char **wp)
 		goto c_read_readloop;
 	}
 
+ c_read_didread:
 	switch (readmode) {
 	case READALL:
 		if (bytesread == 0) {
@@ -2015,7 +2016,7 @@ c_read(const char **wp)
 		if (bytesread == 0) {
 			/* end of file reached */
 			rv = 1;
-			xp = Xstring(xs, xp);
+			/* may be partial read: $? = 1, but content */
 			goto c_read_readdone;
 		}
 		xp += bytesread;
@@ -2078,7 +2079,7 @@ c_read(const char **wp)
 	}
 
 	if (savehist)
-		histsave(&source->line, Xstring(xs, xp), true, false);
+		histsave(&source->line, Xstring(xs, xp), HIST_STORE, false);
 
 	ccp = cp = Xclose(xs, xp);
 	expanding = false;

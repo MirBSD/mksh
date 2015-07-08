@@ -172,9 +172,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.730 2015/05/23 17:43:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.734 2015/07/06 17:48:37 tg Exp $");
 #endif
-#define MKSH_VERSION "R51 2015/05/23"
+#define MKSH_VERSION "R51 2015/07/06"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -861,6 +861,7 @@ EXTERN const char T_typeset[] E_INIT("=typeset");
 #define Ttypeset	(T_typeset + 1)		/* "typeset" */
 EXTERN const char Talias[] E_INIT("alias");
 EXTERN const char Tunalias[] E_INIT("unalias");
+EXTERN const char Tcat[] E_INIT("cat");
 EXTERN const char Tsgset[] E_INIT("*=set");
 #define Tset		(Tsgset + 2)		/* "set" */
 EXTERN const char Tsgexport[] E_INIT("*=export");
@@ -1665,6 +1666,13 @@ EXTERN char **history;		/* saved commands */
 EXTERN char **histptr;		/* last history item */
 EXTERN mksh_ari_t histsize;	/* history size */
 
+/* flags to histsave */
+#define HIST_FLUSH	0
+#define HIST_QUEUE	1
+#define HIST_APPEND	2
+#define HIST_STORE	3
+#define HIST_NOTE	4
+
 /* user and system time of last j_waitjed job */
 EXTERN struct timeval j_usrtime, j_systime;
 
@@ -1791,7 +1799,7 @@ void hist_init(Source *);
 #if HAVE_PERSISTENT_HISTORY
 void hist_finish(void);
 #endif
-void histsave(int *, const char *, bool, bool);
+void histsave(int *, const char *, int, bool);
 #if !defined(MKSH_SMALL) && HAVE_PERSISTENT_HISTORY
 bool histsync(void);
 #endif
@@ -1934,7 +1942,7 @@ int ksh_getopt(const char **, Getopt *, const char *);
 void print_value_quoted(struct shf *, const char *);
 char *quote_value(const char *);
 void print_columns(struct shf *, unsigned int,
-    char *(*)(char *, size_t, unsigned int, const void *),
+    void (*)(char *, size_t, unsigned int, const void *),
     const void *, size_t, size_t, bool);
 void strip_nuls(char *, size_t)
     MKSH_A_BOUNDED(__string__, 1, 2);

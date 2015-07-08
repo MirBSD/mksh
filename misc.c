@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.232 2015/05/01 23:16:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.236 2015/07/05 14:58:33 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -173,11 +173,11 @@ struct options_info {
 	int opts[NELEM(options)];
 };
 
-static char *options_fmt_entry(char *, size_t, unsigned int, const void *);
+static void options_fmt_entry(char *, size_t, unsigned int, const void *);
 static void printoptions(bool);
 
 /* format a single select menu item */
-static char *
+static void
 options_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 {
 	const struct options_info *oi = (const struct options_info *)arg;
@@ -185,7 +185,6 @@ options_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 	shf_snprintf(buf, buflen, "%-*s %s",
 	    oi->opt_width, OFN(oi->opts[i]),
 	    Flag(oi->opts[i]) ? "on" : "off");
-	return (buf);
 }
 
 static void
@@ -1227,7 +1226,7 @@ print_value_quoted(struct shf *shf, const char *s)
  */
 void
 print_columns(struct shf *shf, unsigned int n,
-    char *(*func)(char *, size_t, unsigned int, const void *),
+    void (*func)(char *, size_t, unsigned int, const void *),
     const void *arg, size_t max_oct, size_t max_colz, bool prefcol)
 {
 	unsigned int i, r, c, rows, cols, nspace, max_col;
@@ -1256,17 +1255,20 @@ print_columns(struct shf *shf, unsigned int n,
 	str = alloc(max_oct, ATEMP);
 
 	/*
-	 * We use (max_col + 1) to consider the space separator.
-	 * Note that no space is printed after the last column
-	 * to avoid problems with terminals that have auto-wrap.
+	 * We use (max_col + 2) to consider the separator space.
+	 * Note that no spaces are printed after the last column
+	 * to avoid problems with terminals that have auto-wrap,
+	 * but we need to also take this into account in x_cols.
 	 */
-	cols = x_cols / (max_col + 1);
+	cols = (x_cols + 1) / (max_col + 2);
 
 	/* if we can only print one column anyway, skip the goo */
 	if (cols < 2) {
-		for (i = 0; i < n; ++i)
-			shf_fprintf(shf, "%s\n",
-			    (*func)(str, max_oct, i, arg));
+		for (i = 0; i < n; ++i) {
+			(*func)(str, max_oct, i, arg);
+			shf_puts(str, shf);
+			shf_putc('\n', shf);
+		}
 		goto out;
 	}
 
@@ -1277,18 +1279,19 @@ print_columns(struct shf *shf, unsigned int n,
 	}
 
 	nspace = (x_cols - max_col * cols) / cols;
+	if (nspace < 2)
+		nspace = 2;
 	max_col = -max_col;
-	if (nspace <= 0)
-		nspace = 1;
 	for (r = 0; r < rows; r++) {
 		for (c = 0; c < cols; c++) {
-			i = c * rows + r;
-			if (i < n) {
-				shf_fprintf(shf, "%*s", max_col,
-				    (*func)(str, max_oct, i, arg));
-				if (c + 1 < cols)
-					shf_fprintf(shf, "%*s", nspace, null);
-			}
+			if ((i = c * rows + r) >= n)
+				break;
+			(*func)(str, max_oct, i, arg);
+			if (i + rows >= n)
+				shf_puts(str, shf);
+			else
+				shf_fprintf(shf, "%*s%*s",
+				    max_col, str, nspace, null);
 		}
 		shf_putchar('\n', shf);
 	}

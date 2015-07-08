@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.97 2015/04/29 20:56:18 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.99 2015/07/05 19:02:16 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -67,8 +67,9 @@ else
 		\typeset -Uui16 -Z11 pos=0
 		\typeset -Uui16 -Z5 hv=2147483647
 		\typeset dasc line i
+		\set +U
 
-		\cat "$@" | { \set +U; if \read -arN -1 line; then
+		\cat "$@" | if \read -arN -1 line; then
 			\typeset -i1 'line[*]'
 			i=0
 			while (( i < ${#line[*]} )); do
@@ -95,7 +96,7 @@ else
 				    \builtin print -n -- '- '
 			done
 			(( hv == 2147483647 )) || \builtin print -r -- "$dasc|"
-		fi; }
+		fi
 	}
 fi
 
@@ -112,7 +113,7 @@ function chpwd {
 	\:
 }
 \chpwd .
-function cd {
+cd() {
 	\builtin cd "$@" || \return $?
 	\chpwd "$@"
 }
@@ -271,8 +272,8 @@ function smores {
 
 # base64 encoder and decoder, RFC compliant, NUL safe, not EBCDIC safe
 function Lb64decode {
-	[[ -o utf8-mode ]]; \typeset u=$? c s="$*" t
 	\set +U
+	\typeset c s="$*" t
 	[[ -n $s ]] || { s=$(\cat; \builtin print x); s=${s%x}; }
 	\typeset -i i=0 j=0 n=${#s} p=0 v x
 	\typeset -i16 o
@@ -303,14 +304,13 @@ function Lb64decode {
 		t=
 	done
 	\builtin print -n $t
-	(( u )) || \set -U
 }
 
 \set -A Lb64encode_tbl -- A B C D E F G H I J K L M N O P Q R S T U V W X Y Z \
     a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9 + /
 function Lb64encode {
-	[[ -o utf8-mode ]]; \typeset u=$? c s t
 	\set +U
+	\typeset c s t
 	if (( $# )); then
 		\read -raN-1 s <<<"$*"
 		\unset s[${#s[*]}-1]
@@ -339,7 +339,6 @@ function Lb64encode {
 			t=
 		fi
 	done
-	(( u )) || \set -U
 }
 
 # Better Avalanche for the Jenkins Hash
@@ -348,8 +347,8 @@ function Lbafh_init {
 	Lbafh_v=0
 }
 function Lbafh_add {
-	[[ -o utf8-mode ]]; \typeset u=$? s
 	\set +U
+	\typeset s
 	if (( $# )); then
 		\read -raN-1 s <<<"$*"
 		\unset s[${#s[*]}-1]
@@ -362,8 +361,6 @@ function Lbafh_add {
 		((# Lbafh_v = (Lbafh_v + s[i++] + 1) * 1025 ))
 		((# Lbafh_v ^= Lbafh_v >> 6 ))
 	done
-
-	(( u )) || \set -U
 }
 function Lbafh_finish {
 	\typeset -Ui t
@@ -378,10 +375,11 @@ function Lbafh_finish {
 # strip comments (and leading/trailing whitespace if IFS is set) from
 # any file(s) given as argument, or stdin if none, and spew to stdout
 function Lstripcom {
-	\cat "$@" | { \set -o noglob; while \read _line; do
+	\set -o noglob
+	\cat "$@" | while \read _line; do
 		_line=${_line%%#*}
 		[[ -n $_line ]] && \builtin print -r -- $_line
-	done; }
+	done
 }
 
 # give MidnightBSD's laffer1 a bit of csh feeling

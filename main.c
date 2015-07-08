@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.293 2015/04/29 20:07:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.295 2015/07/06 17:48:34 tg Exp $");
 
 extern char **environ;
 
@@ -87,7 +87,7 @@ static const char *initcoms[] = {
 	NULL,
 	 /* this is what AT&T ksh seems to track, with the addition of emacs */
 	Talias, "-tU",
-	"cat", "cc", "chmod", "cp", "date", "ed", "emacs", "grep", "ls",
+	Tcat, "cc", "chmod", "cp", "date", "ed", "emacs", "grep", "ls",
 	"make", "mv", "pr", "rm", "sed", "sh", "vi", "who", NULL,
 	NULL
 };
@@ -825,6 +825,8 @@ shell(Source * volatile s, volatile bool toplevel)
 			set_prompt(PS1, s);
 		}
 		t = compile(s, sfirst);
+		if (interactive)
+			histsave(&s->line, NULL, HIST_FLUSH, true);
 		sfirst = false;
 		if (!t)
 			goto source_no_tree;

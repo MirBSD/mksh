@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.152 2015/04/29 18:32:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.155 2015/07/06 17:48:31 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	UNIXROOT "/bin/sh"
@@ -41,8 +41,8 @@ static const char *dbteste_getopnd(Test_env *, Test_op, bool);
 static void dbteste_error(Test_env *, int, const char *);
 static int search_access(const char *, int);
 /* XXX: horrible kludge to fit within the framework */
-static char *plain_fmt_entry(char *, size_t, unsigned int, const void *);
-static char *select_fmt_entry(char *, size_t, unsigned int, const void *);
+static void plain_fmt_entry(char *, size_t, unsigned int, const void *);
+static void select_fmt_entry(char *, size_t, unsigned int, const void *);
 
 /*
  * execute command tree
@@ -551,6 +551,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			}
 			if ((tp = findcom(cp, FC_BI)) == NULL)
 				errorf("%s: %s: %s", Tbuiltin, cp, "not a builtin");
+			if (tp->type == CSHELL && tp->val.f == c_cat)
+				break;
 			continue;
 		} else if (tp->val.f == c_exec) {
 			if (ap[1] == NULL)
@@ -607,25 +609,19 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				subst_exstat = 0;
 				break;
 			}
-#ifndef MKSH_NO_EXTERNAL_CAT
 		} else if (tp->val.f == c_cat) {
-			/*
-			 * if we have any flags, do not use the builtin
-			 * in theory, we could allow -u, but that would
-			 * mean to use ksh_getopt here and possibly ad-
-			 * ded complexity and more code and isn't worth
-			 * additional hassle (and the builtin must call
-			 * ksh_getopt already but can't come back here)
-			 */
+			/* if we have any flags, do not use the builtin */
 			if (ap[1] && ap[1][0] == '-' && ap[1][1] != '\0' &&
 			    /* argument, begins with -, is not - or -- */
-			    (ap[1][1] != '-' || ap[1][2] != '\0'))
-				/* don't look for builtins or functions */
-				fcflags = FC_PATH;
-			else
-				/* go on, use the builtin */
-				break;
-#endif
+			    (ap[1][1] != '-' || ap[1][2] != '\0')) {
+				struct tbl *ext_cat;
+
+				ext_cat = findcom(Tcat, FC_PATH | FC_FUNC);
+				if (ext_cat && (ext_cat->type != CTALIAS ||
+				    (ext_cat->flag & ISSET)))
+					tp = ext_cat;
+			}
+			break;
 		} else if (tp->val.f == c_trap) {
 			t->u.evalflags &= ~DOTCOMEXEC;
 			break;
@@ -705,6 +701,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 
 	/* shell built-in */
 	case CSHELL:
+ do_call_builtin:
 		rv = call_builtin(tp, (const char **)ap, null, resetspec);
 		if (resetspec && tp->val.f == c_shift) {
 			l_expand->argc = l_assign->argc;
@@ -729,6 +726,11 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				break;
 			}
 			if (include(tp->u.fpath, 0, NULL, false) < 0) {
+				if (!strcmp(cp, Tcat)) {
+ no_cat_in_FPATH:
+					tp = findcom(Tcat, FC_BI);
+					goto do_call_builtin;
+				}
 				warningf(true, "%s: %s %s %s: %s", cp,
 				    "can't open", "function definition file",
 				    tp->u.fpath, cstrerror(errno));
@@ -737,6 +739,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			}
 			if (!(ftp = findfunc(cp, hash(cp), false)) ||
 			    !(ftp->flag & ISSET)) {
+				if (!strcmp(cp, Tcat))
+					goto no_cat_in_FPATH;
 				warningf(true, "%s: %s %s", cp,
 				    "function not defined by", tp->u.fpath);
 				rv = 127;
@@ -1657,7 +1661,7 @@ struct select_menu_info {
 };
 
 /* format a single select menu item */
-static char *
+static void
 select_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 {
 	const struct select_menu_info *smi =
@@ -1665,7 +1669,6 @@ select_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 
 	shf_snprintf(buf, buflen, "%*u) %s",
 	    smi->num_width, i + 1, smi->args[i]);
-	return (buf);
 }
 
 /*
@@ -1711,11 +1714,10 @@ pr_menu(const char * const *ap)
 	    true);
 }
 
-static char *
+static void
 plain_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 {
 	strlcpy(buf, ((const char * const *)arg)[i], buflen);
-	return (buf);
 }
 
 void

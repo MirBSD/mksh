@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.694 2015/05/23 17:43:18 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.699 2015/07/06 17:48:29 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R51 2015/05/23
+	@(#)MIRBSD KSH R51 2015/07/06
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R51 2015/05/23
+	@(#)LEGACY KSH R51 2015/07/06
 description:
 	Check version of legacy shell.
 stdin:
@@ -3583,7 +3583,7 @@ expected-stdout:
 	a new line
 	1	echo abc def
 	2	echo FOOBAR def
-	3	echo a new line
+		echo a new line
 expected-stderr-pattern:
 	/^X*echo FOOBAR def\necho a new line\nX*$/
 ---
@@ -3665,7 +3665,7 @@ expected-stdout:
 	a new line
 	1	echo abc def
 	2	echo FOOBAR def
-	3	echo a new line
+		echo a new line
 expected-stderr-pattern:
 	/^X*13\n32\necho FOOBAR def\necho a new line\nX*$/
 ---
@@ -8599,6 +8599,7 @@ description:
 	Ensure concatenating behaviour matches other shells
 stdin:
 	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
+	showargs 0 ""$@
 	x=; showargs 1 "$x"$@
 	set A; showargs 2 "${@:+}"
 	n() { echo "$#"; }
@@ -8618,6 +8619,7 @@ stdin:
 	n "$@"
 	n "$@""$e"
 expected-stdout:
+	<0> <> .
 	<1> <> .
 	<2> <> .
 	2
