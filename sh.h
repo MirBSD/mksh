@@ -169,7 +169,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.736 2015/07/09 19:46:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.737 2015/07/09 20:20:45 tg Exp $");
 #endif
 #define MKSH_VERSION "R51 2015/07/06"
 
@@ -832,6 +832,9 @@ EXTERN const char Tunalias[] E_INIT("unalias");
 EXTERN const char Tcat[] E_INIT("cat");
 #ifdef __OS2__
 EXTERN const char Textproc[] E_INIT("extproc");
+#endif
+#ifdef MKSH_PRINTF_BUILTIN
+EXTERN const char Tprintf[] E_INIT("printf");
 #endif
 EXTERN const char Tsgset[] E_INIT("*=set");
 #define Tset		(Tsgset + 2)		/* "set" */

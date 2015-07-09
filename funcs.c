@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.278 2015/07/09 19:46:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.279 2015/07/09 20:20:42 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -152,7 +152,7 @@ const struct builtin mkshbuiltins[] = {
 	{"mknod", c_mknod},
 #endif
 #ifdef MKSH_PRINTF_BUILTIN
-	{"printf", c_printf},
+	{Tprintf, c_printf},
 #endif
 #if HAVE_SELECT
 	{"sleep", c_sleep},

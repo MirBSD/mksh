@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.157 2015/07/09 19:59:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.158 2015/07/09 20:20:42 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -551,7 +551,11 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			}
 			if ((tp = findcom(cp, FC_BI)) == NULL)
 				errorf("%s: %s: %s", Tbuiltin, cp, "not a builtin");
-			if (tp->type == CSHELL && tp->val.f == c_cat)
+			if (tp->type == CSHELL && (tp->val.f == c_cat
+#ifdef MKSH_PRINTF_BUILTIN
+			    || tp->val.f == c_printf
+#endif
+			    ))
 				break;
 			continue;
 		} else if (tp->val.f == c_exec) {
@@ -622,6 +626,16 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 					tp = ext_cat;
 			}
 			break;
+#ifdef MKSH_PRINTF_BUILTIN
+		} else if (tp->val.f == c_printf) {
+			struct tbl *ext_printf;
+
+			ext_printf = findcom(Tprintf, FC_PATH | FC_FUNC);
+			if (ext_printf && (ext_printf->type != CTALIAS ||
+			    (ext_printf->flag & ISSET)))
+				tp = ext_printf;
+			break;
+#endif
 		} else if (tp->val.f == c_trap) {
 			t->u.evalflags &= ~DOTCOMEXEC;
 			break;
@@ -731,6 +745,13 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 					tp = findcom(Tcat, FC_BI);
 					goto do_call_builtin;
 				}
+#ifdef MKSH_PRINTF_BUILTIN
+				if (!strcmp(cp, Tprintf)) {
+ no_printf_in_FPATH:
+					tp = findcom(Tprintf, FC_BI);
+					goto do_call_builtin;
+				}
+#endif
 				warningf(true, "%s: %s %s %s: %s", cp,
 				    "can't open", "function definition file",
 				    tp->u.fpath, cstrerror(errno));
@@ -741,6 +762,10 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			    !(ftp->flag & ISSET)) {
 				if (!strcmp(cp, Tcat))
 					goto no_cat_in_FPATH;
+#ifdef MKSH_PRINTF_BUILTIN
+				if (!strcmp(cp, Tprintf))
+					goto no_printf_in_FPATH;
+#endif
 				warningf(true, "%s: %s %s", cp,
 				    "function not defined by", tp->u.fpath);
 				rv = 127;
