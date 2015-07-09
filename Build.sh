@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.686 2015/07/09 19:59:13 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.687 2015/07/09 20:11:44 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -683,14 +683,14 @@ esac
 # Configuration depending on OS name
 case $TARGET_OS in
 386BSD)
-	: ${HAVE_CAN_OTWO=0}
+	: "${HAVE_CAN_OTWO=0}"
 	add_cppflags -DMKSH_NO_SIGSETJMP
 	add_cppflags -DMKSH_TYPEDEF_SIG_ATOMIC_T=int
 	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	;;
 AIX)
 	add_cppflags -D_ALL_SOURCE
-	: ${HAVE_SETLOCALE_CTYPE=0}
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 BeOS)
 	case $KSH_VERSION in
@@ -709,7 +709,7 @@ BeOS)
 	add_cppflags -DMKSH__NO_SETEUGID
 	;;
 BSD/OS)
-	: ${HAVE_SETLOCALE_CTYPE=0}
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 Coherent)
 	oswarn="; it has major issues"
@@ -720,7 +720,7 @@ Coherent)
 	add_cppflags -DMKSH_DISABLE_TTY_WARNING
 	;;
 CYGWIN*)
-	: ${HAVE_SETLOCALE_CTYPE=0}
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 Darwin)
 	add_cppflags -D_DARWIN_C_SOURCE
@@ -733,7 +733,7 @@ FreeMiNT)
 	oswarn="; it has minor issues"
 	add_cppflags -D_GNU_SOURCE
 	add_cppflags -DMKSH_CONSERVATIVE_FDS
-	: ${HAVE_SETLOCALE_CTYPE=0}
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 GNU)
 	case $CC in
@@ -758,11 +758,11 @@ Interix)
 	ccpc='-X '
 	ccpl='-Y '
 	add_cppflags -D_ALL_SOURCE
-	: ${LIBS='-lcrypt'}
-	: ${HAVE_SETLOCALE_CTYPE=0}
+	: "${LIBS=-lcrypt}"
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 IRIX*)
-	: ${HAVE_SETLOCALE_CTYPE=0}
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 Linux)
 	case $CC in
@@ -770,7 +770,7 @@ Linux)
 	*) add_cppflags -D_GNU_SOURCE ;;
 	esac
 	add_cppflags -DSETUID_CAN_FAIL_WITH_EAGAIN
-	: ${HAVE_REVOKE=0}
+	: "${HAVE_REVOKE=0}"
 	;;
 LynxOS)
 	oswarn="; it has minor issues"
@@ -783,7 +783,7 @@ Minix-vmd)
 	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	add_cppflags -D_MINIX_SOURCE
 	oldish_ed=no-stderr-ed		# no /bin/ed, maybe see below
-	: ${HAVE_SETLOCALE_CTYPE=0}
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 Minix3)
 	add_cppflags -DMKSH_UNEMPLOYED
@@ -791,23 +791,24 @@ Minix3)
 	add_cppflags -DMKSH_NO_LIMITS
 	add_cppflags -D_POSIX_SOURCE -D_POSIX_1_SOURCE=2 -D_MINIX
 	oldish_ed=no-stderr-ed		# /usr/bin/ed(!) is broken
-	: ${HAVE_SETLOCALE_CTYPE=0}
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 MirBSD)
 	;;
 MSYS_*)
 	add_cppflags -DMKSH_ASSUME_UTF8=0; HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	# almost same as CYGWIN* (from RT|Chatzilla)
-	: ${HAVE_SETLOCALE_CTYPE=0}
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	# broken on this OE (from ir0nh34d)
-	: ${HAVE_STDINT_H=0}
+	: "${HAVE_STDINT_H=0}"
 	;;
 NetBSD)
 	;;
 NEXTSTEP)
 	add_cppflags -D_NEXT_SOURCE
 	add_cppflags -D_POSIX_SOURCE
-	: ${AWK=gawk} ${CC=cc -posix}
+	: "${AWK=gawk}"
+	: "${CC=cc -posix}"
 	add_cppflags -DMKSH_NO_SIGSETJMP
 	# NeXTstep cannot get a controlling tty
 	add_cppflags -DMKSH_UNEMPLOYED
@@ -828,14 +829,14 @@ Ninix3)
 	oswarn="; it has unknown issues"
 	;;
 OpenBSD)
-	: ${HAVE_SETLOCALE_CTYPE=0}
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 OS/2)
 	HAVE_MKNOD=0	# setmode() incompatible
 	oswarn="; it is currently being ported"
 	check_categories="$check_categories nosymlink"
-	: ${CC=gcc}
-	: ${SIZE=: size}
+	: "${CC=gcc}"
+	: "${SIZE=: size}"
 	add_cppflags -DMKSH_UNEMPLOYED
 	add_cppflags -DMKSH_NOPROSPECTOFWORK
 	;;
@@ -845,7 +846,7 @@ OSF1)
 	add_cppflags -D_POSIX_C_SOURCE=200112L
 	add_cppflags -D_XOPEN_SOURCE=600
 	add_cppflags -D_XOPEN_SOURCE_EXTENDED
-	: ${HAVE_SETLOCALE_CTYPE=0}
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 Plan9)
 	add_cppflags -D_POSIX_SOURCE
@@ -863,7 +864,7 @@ Plan9)
 PW32*)
 	HAVE_SIG_T=0	# incompatible
 	oswarn=' and will currently not work'
-	: ${HAVE_SETLOCALE_CTYPE=0}
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 QNX)
 	add_cppflags -D__NO_EXT_QNX
@@ -873,7 +874,7 @@ QNX)
 		oldish_ed=no-stderr-ed		# oldish /bin/ed is broken
 		;;
 	esac
-	: ${HAVE_SETLOCALE_CTYPE=0}
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 SCO_SV)
 	case $TARGET_OSREV in
@@ -890,7 +891,7 @@ SCO_SV)
 		;;
 	esac
 	add_cppflags -DMKSH_CONSERVATIVE_FDS
-	: ${HAVE_SYS_SIGLIST=0} ${HAVE__SYS_SIGLIST=0}
+	: "${HAVE_SYS_SIGLIST=0}${HAVE__SYS_SIGLIST=0}"
 	;;
 skyos)
 	oswarn="; it has minor issues"
@@ -905,15 +906,15 @@ syllable)
 	oswarn=' and will currently not work'
 	;;
 ULTRIX)
-	: ${CC=cc -YPOSIX}
+	: "${CC=cc -YPOSIX}"
 	add_cppflags -DMKSH_TYPEDEF_SSIZE_T=int
 	add_cppflags -DMKSH_CONSERVATIVE_FDS
-	: ${HAVE_SETLOCALE_CTYPE=0}
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 UnixWare|UNIX_SV)
 	# SCO UnixWare
 	add_cppflags -DMKSH_CONSERVATIVE_FDS
-	: ${HAVE_SYS_SIGLIST=0} ${HAVE__SYS_SIGLIST=0}
+	: "${HAVE_SYS_SIGLIST=0}${HAVE__SYS_SIGLIST=0}"
 	;;
 UWIN*)
 	ccpc='-Yc,'
@@ -921,7 +922,7 @@ UWIN*)
 	tsts=" 3<>/dev/tty"
 	oswarn="; it will compile, but the target"
 	oswarn="$oswarn${nl}platform itself is very flakey/unreliable"
-	: ${HAVE_SETLOCALE_CTYPE=0}
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 _svr4)
 	# generic target for SVR4 Unix with uname -s = uname -n
@@ -935,9 +936,9 @@ _svr4)
 	;;
 esac
 
-: ${HAVE_MKNOD=0}
+: "${HAVE_MKNOD=0}"
 
-: ${AWK=awk} ${CC=cc} ${NROFF=nroff} ${SIZE=size}
+: "${AWK=awk}${CC=cc}${NROFF=nroff}${SIZE=size}"
 test 0 = $r && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
     echo | $NROFF -c >/dev/null 2>&1 && NROFF="$NROFF -c"
 
@@ -1204,7 +1205,7 @@ uslc)
 	SCO_SV:3.2*)
 		# SCO OpenServer 5
 		CFLAGS="$CFLAGS -g"
-		: ${HAVE_CAN_OTWO=0} ${HAVE_CAN_OPTIMISE=0}
+		: "${HAVE_CAN_OTWO=0}${HAVE_CAN_OPTIMISE=0}"
 		;;
 	esac
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
@@ -1258,7 +1259,7 @@ test $ct = unknown || HAVE_COMPILER_KNOWN=1
 if ac_ifcpp 'if 0' compiler_fails '' \
     'if the compiler does not fail correctly'; then
 	save_CFLAGS=$CFLAGS
-	: ${HAVE_CAN_DELEXE=x}
+	: "${HAVE_CAN_DELEXE=x}"
 	case $ct in
 	dec)
 		CFLAGS="$CFLAGS ${ccpl}-non_shared"
@@ -1620,8 +1621,8 @@ phase=x
 #
 if ac_ifcpp 'ifdef MKSH_SMALL' isset_MKSH_SMALL '' \
     "if a reduced-feature mksh is requested"; then
-	: ${HAVE_NICE=0}
-	: ${HAVE_PERSISTENT_HISTORY=0}
+	: "${HAVE_NICE=0}"
+	: "${HAVE_PERSISTENT_HISTORY=0}"
 	check_categories="$check_categories smksh"
 	HAVE_ISSET_MKSH_CONSERVATIVE_FDS=1	# from sh.h
 fi
@@ -1635,7 +1636,7 @@ ac_ifcpp 'ifdef MKSH_NOPROSPECTOFWORK' isset_MKSH_NOPROSPECTOFWORK '' \
     "if mksh will be built without job signals" && \
     check_categories="$check_categories arge nojsig"
 ac_ifcpp 'ifdef MKSH_ASSUME_UTF8' isset_MKSH_ASSUME_UTF8 '' \
-    'if the default UTF-8 mode is specified' && : ${HAVE_SETLOCALE_CTYPE=0}
+    'if the default UTF-8 mode is specified' && : "${HAVE_SETLOCALE_CTYPE=0}"
 ac_ifcpp 'ifdef MKSH_CONSERVATIVE_FDS' isset_MKSH_CONSERVATIVE_FDS '' \
     'if traditional/conservative fd use is requested' && \
     check_categories="$check_categories convfds"
