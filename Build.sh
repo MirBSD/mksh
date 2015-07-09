@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.683 2015/07/09 19:19:09 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.684 2015/07/09 19:28:17 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -578,8 +578,8 @@ if test -d $tfn || test -d $tfn.exe; then
 	echo "$me: Error: ./$tfn is a directory!" >&2
 	exit 1
 fi
-rmf a.exe* a.out* conftest.c *core core.* ${tfn}* *.bc *.dbg *.ll *.o *.gen \
-    Rebuild.sh lft no signames.inc test.sh x vv.out
+rmf a.exe* a.out* conftest.c conftest.exe* *core core.* ${tfn}* *.bc *.dbg \
+    *.ll *.o *.gen Rebuild.sh lft no signames.inc test.sh x vv.out
 
 SRCS="lalloc.c eval.c exec.c expr.c funcs.c histrap.c jobs.c"
 SRCS="$SRCS lex.c main.c misc.c shf.c syn.c tree.c var.c"
@@ -831,7 +831,11 @@ OpenBSD)
 	: ${HAVE_SETLOCALE_CTYPE=0}
 	;;
 OS/2)
+	HAVE_MKNOD=0	# setmode() incompatible
+	oswarn="; it is currently being ported"
+	check_categories="$check_categories nosymlink"
 	: ${CC=gcc}
+	: ${SIZE=: size}
 	;;
 OSF1)
 	HAVE_SIG_T=0	# incompatible
@@ -1237,7 +1241,7 @@ unknown)
 	;;
 esac
 $e "$bi==> which compiler seems to be used...$ao $ui$ct${et+ on $et}$ao"
-rmf conftest.c conftest.o conftest a.out* a.exe* vv.out
+rmf conftest.c conftest.o conftest a.out* a.exe* conftest.exe* vv.out
 
 #
 # Compiler: works as-is, with -Wno-error and -Werror
@@ -2341,8 +2345,13 @@ files=
 objs=
 sp=
 case $tcfn in
-a.exe|conftest.exe) mkshexe=$tfn.exe ;;
-*) mkshexe=$tfn ;;
+a.exe|conftest.exe)
+	mkshexe=$tfn.exe
+	add_cppflags -DMKSH_EXE_EXT
+	;;
+*)
+	mkshexe=$tfn
+	;;
 esac
 case $curdir in
 *\ *)	mkshshebang="#!./$mkshexe" ;;

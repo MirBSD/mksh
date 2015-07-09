@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.296 2015/07/09 19:19:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.297 2015/07/09 19:28:20 tg Exp $");
 
 extern char **environ;
 
@@ -264,7 +264,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 #if defined(MKSH_BINSHPOSIX) || defined(MKSH_BINSHREDUCED)
 		/* are we called as -sh or /bin/sh or so? */
-		if (!strcmp(ccp, "sh")) {
+		if (!strcmp(ccp, "sh" MKSH_EXE_EXT)) {
 			/* either also turns off braceexpand */
 #ifdef MKSH_BINSHPOSIX
 			/* enable better POSIX conformance */

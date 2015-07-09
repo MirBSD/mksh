@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.699 2015/07/06 17:48:29 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.700 2015/07/09 19:28:18 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright Â© 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2075,9 +2075,9 @@ expected-stdout:
 name: glob-bad-2
 description:
 	Check that symbolic links aren't stat()'d
-# breaks on FreeMiNT (cannot unlink dangling symlinks)
-# breaks on MSYS (does not support symlinks)
 # breaks on Dell UNIX 4.0 R2.2 (SVR4) where unlink also fails
+# breaks on FreeMiNT (cannot unlink dangling symlinks)
+# breaks on MSYS, OS/2 (do not support symlinks)
 category: !os:mint,!os:msys,!os:svr4.0,!nosymlink
 file-setup: dir 755 "dir"
 file-setup: symlink 644 "dir/abc"
@@ -2132,7 +2132,7 @@ description:
 # breaks on Mac OSX (HFS+ non-standard Unicode canonical decomposition)
 # breaks on Cygwin 1.7 (files are now UTF-16 or something)
 # breaks on QNX 6.4.1 (says RT)
-category: !os:cygwin,!os:darwin,!os:msys,!os:nto
+category: !os:cygwin,!os:darwin,!os:msys,!os:nto,!os:os2
 need-pass: no
 file-setup: file 644 "aÂc"
 stdin:

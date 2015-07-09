@@ -169,7 +169,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.734 2015/07/06 17:48:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.735 2015/07/09 19:28:21 tg Exp $");
 #endif
 #define MKSH_VERSION "R51 2015/07/06"
 
@@ -374,6 +374,13 @@ struct rusage {
 
 
 /* OS-dependent additions (functions, variables, by OS) */
+
+#ifdef MKSH_EXE_EXT
+#undef MKSH_EXE_EXT
+#define MKSH_EXE_EXT ".exe"
+#else
+#define MKSH_EXE_EXT ""
+#endif
 
 #if !HAVE_FLOCK_DECL
 extern int flock(int, int);
