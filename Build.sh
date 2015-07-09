@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.681 2015/07/06 17:48:28 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.682 2015/07/09 19:04:28 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -828,6 +828,9 @@ Ninix3)
 	;;
 OpenBSD)
 	: ${HAVE_SETLOCALE_CTYPE=0}
+	;;
+OS/2)
+	: ${CC=gcc}
 	;;
 OSF1)
 	HAVE_SIG_T=0	# incompatible
