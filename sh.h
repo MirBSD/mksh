@@ -64,6 +64,9 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#if HAVE_IO_H
+#include <io.h>
+#endif
 #if HAVE_LIBGEN_H
 #include <libgen.h>
 #endif
@@ -169,9 +172,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.737 2015/07/09 20:20:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.738 2015/07/09 20:52:42 tg Exp $");
 #endif
-#define MKSH_VERSION "R51 2015/07/06"
+#define MKSH_VERSION "R51 2015/07/09"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -560,7 +563,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 510)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 511)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -2080,6 +2083,27 @@ EXTERN mksh_ttyst tty_state;	/* saved tty state */
 EXTERN bool tty_hasstate;	/* true if tty_state is valid */
 
 extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
+
+#ifdef __OS2__
+#ifndef __GNUC__
+# error oops?
+#endif
+#define binopen2(path,flags)		__extension__({			\
+	int binopen2_fd = open((path), (flags) | O_BINARY);		\
+	if (binopen2_fd >= 0)						\
+		setmode(binopen2_fd, O_BINARY);				\
+	(binopen2_fd);							\
+})
+#define binopen3(path,flags,mode)	__extension__({			\
+	int binopen3_fd = open((path), (flags) | O_BINARY, (mode));	\
+	if (binopen3_fd >= 0)						\
+		setmode(binopen3_fd, O_BINARY);				\
+	(binopen3_fd);							\
+})
+#else
+#define binopen2(path,flags)		open((path), (flags) | O_BINARY)
+#define binopen3(path,flags,mode)	open((path), (flags) | O_BINARY, (mode))
+#endif
 
 /* be sure not to interfere with anyone else's idea about EXTERN */
 #ifdef EXTERN_DEFINED

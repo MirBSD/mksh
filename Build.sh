@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.687 2015/07/09 20:11:44 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.688 2015/07/09 20:52:34 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -1673,6 +1673,7 @@ ac_header sys/select.h sys/types.h
 ac_header sys/sysmacros.h
 ac_header bstring.h
 ac_header grp.h sys/types.h
+ac_header io.h
 ac_header libgen.h
 ac_header libutil.h sys/types.h
 ac_header paths.h
@@ -2340,7 +2341,7 @@ addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && add_cppflags -DMKSH_PRINTF_BUILTIN
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
-add_cppflags -DMKSH_BUILD_R=510
+add_cppflags -DMKSH_BUILD_R=511
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 

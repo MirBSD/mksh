@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.148 2015/07/05 19:53:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.149 2015/07/09 20:52:40 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -764,8 +764,7 @@ hist_init(Source *s)
 
  retry:
 	/* we have a file and are interactive */
-	if ((fd = open(hname, O_RDWR | O_CREAT | O_APPEND | O_BINARY,
-	    0600)) < 0)
+	if ((fd = binopen3(hname, O_RDWR | O_CREAT | O_APPEND, 0600)) < 0)
 		return;
 
 	histfd = savefd(fd);
@@ -800,8 +799,8 @@ hist_init(Source *s)
 
 			/* create temporary file */
 			nhname = shf_smprintf("%s.%d", hname, (int)procpid);
-			if ((fd = open(nhname, O_RDWR | O_CREAT | O_TRUNC |
-			    O_EXCL | O_BINARY, 0600)) < 0) {
+			if ((fd = binopen3(nhname, O_RDWR | O_CREAT | O_TRUNC |
+			    O_EXCL, 0600)) < 0) {
 				/* just don't truncate then, meh. */
 				goto hist_trunc_dont;
 			}
