@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.684 2015/07/09 19:28:17 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.685 2015/07/09 19:46:40 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -836,6 +836,8 @@ OS/2)
 	check_categories="$check_categories nosymlink"
 	: ${CC=gcc}
 	: ${SIZE=: size}
+	add_cppflags -DMKSH_UNEMPLOYED
+	add_cppflags -DMKSH_NOPROSPECTOFWORK
 	;;
 OSF1)
 	HAVE_SIG_T=0	# incompatible

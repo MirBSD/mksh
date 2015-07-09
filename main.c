@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.297 2015/07/09 19:28:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.298 2015/07/09 19:46:42 tg Exp $");
 
 extern char **environ;
 
@@ -454,7 +454,19 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 			kshname = argv[argi++];
 	} else if (argi < argc && !Flag(FSTDIN)) {
 		s = pushs(SFILE, ATEMP);
+#ifdef __OS2__
+		/*
+		 * A bug in OS/2 extproc (like shebang) handling makes
+		 * it not pass the full pathname of a script, so we need
+		 * to search for it. This changes the behaviour of a
+		 * simple "mksh foo", but can't be helped.
+		 */
+		s->file = search_path(argv[argi++], path, X_OK, NULL);
+		if (!s->file || !*s->file)
+			s->file = argv[argi - 1];
+#else
 		s->file = argv[argi++];
+#endif
 		s->u.shf = shf_open(s->file, O_RDONLY, 0,
 		    SHF_MAPHI | SHF_CLEXEC);
 		if (s->u.shf == NULL) {

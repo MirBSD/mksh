@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.155 2015/07/06 17:48:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.156 2015/07/09 19:46:41 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -930,10 +930,15 @@ scriptexec(struct op *tp, const char **ap)
 		/* restore begin of shebang position (buf+0 or buf+3) */
 		cp = buf + n;
 		/* bail out if no shebang magic found */
-		if ((cp[0] != '#') || (cp[1] != '!'))
+		if (cp[0] == '#' && cp[1] == '!')
+			cp += 2;
+#ifdef __OS2__
+		else if (!strncmp(cp, Textproc, 7) &&
+		    (cp[7] == ' ' || cp[7] == '\t'))
+			cp += 8;
+#endif
+		else
 			goto noshebang;
-
-		cp += 2;
 		/* skip whitespace before shell name */
 		while (*cp == ' ' || *cp == '\t')
 			++cp;
