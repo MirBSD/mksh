@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.156 2015/07/09 19:46:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.157 2015/07/09 19:59:14 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
@@ -973,7 +973,10 @@ scriptexec(struct op *tp, const char **ap)
 		    (m == /* ECOFF_I386 */ 0x4C01) ||
 		    (m == /* ECOFF_M68K */ 0x0150 || m == 0x5001) ||
 		    (m == /* ECOFF_SH */   0x0500 || m == 0x0005) ||
-		    (m == /* "MZ" */ 0x4D5A) ||
+		    (m == /* bzip */ 0x425A) || (m == /* "MZ" */ 0x4D5A) ||
+		    (m == /* "NE" */ 0x4E45) || (m == /* "LX" */ 0x4C58) ||
+		    (m == /* xz */ 0xFD37 && buf[2] == 'z' && buf[3] == 'X' &&
+		    buf[4] == 'Z') || (m == /* 7zip */ 0x377A) ||
 		    (m == /* gzip */ 0x1F8B) || (m == /* .Z */ 0x1F9D))
 			errorf("%s: not executable: magic %04X", tp->str, m);
  nomagic:

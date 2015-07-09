@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.685 2015/07/09 19:46:40 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.686 2015/07/09 19:59:13 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -1060,7 +1060,7 @@ ct="unknown"
 #endif
 ;
 const char *
-#if defined(__KLIBC__)
+#if defined(__KLIBC__) && !defined(__OS2__)
 et="klibc"
 #else
 et="unknown"
