@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.682 2015/07/09 19:04:28 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.683 2015/07/09 19:19:09 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -314,6 +314,7 @@ ac_testnnd() {
 	vv ']' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS $ccpr"
 	test $tcfn = no && test -f a.out && tcfn=a.out
 	test $tcfn = no && test -f a.exe && tcfn=a.exe
+	test $tcfn = no && test -f conftest.exe && tcfn=conftest.exe
 	test $tcfn = no && test -f conftest && tcfn=conftest
 	if test -f $tcfn; then
 		test 1 = $fr || fv=1
@@ -2340,8 +2341,8 @@ files=
 objs=
 sp=
 case $tcfn in
-a.exe)	mkshexe=$tfn.exe ;;
-*)	mkshexe=$tfn ;;
+a.exe|conftest.exe) mkshexe=$tfn.exe ;;
+*) mkshexe=$tfn ;;
 esac
 case $curdir in
 *\ *)	mkshshebang="#!./$mkshexe" ;;

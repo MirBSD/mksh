@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.295 2015/07/06 17:48:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.296 2015/07/09 19:19:10 tg Exp $");
 
 extern char **environ;
 
@@ -1404,7 +1404,7 @@ savefd(int fd)
 	int nfd = fd;
 
 	if (fd < FDBASE && (nfd = fcntl(fd, F_DUPFD, FDBASE)) < 0 &&
-	    errno == EBADF)
+	    (errno == EBADF || errno == EPERM))
 		return (-1);
 	if (nfd < 0 || nfd > SHRT_MAX)
 		errorf("too many files open in shell");
