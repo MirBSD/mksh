@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.376 2015/07/10 18:41:07 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.377 2015/07/10 19:35:39 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -6441,9 +6441,6 @@ The complete legalese is at:
 .\"
 .Sh CAVEATS
 .Nm
-only supports the Unicode BMP (Basic Multilingual Plane).
-.Pp
-.Nm
 has a different scope model from
 .At
 .Nm ksh ,
@@ -6488,8 +6485,20 @@ For the purpose of
 supports only the
 .Dq C
 locale.
-For users of UTF-8 locales, the following sh code makes the shell
-match the locale:
+.Nm mksh Ns 's
+.Ic utf8\-mode
+only supports the Unicode BMP (Basic Multilingual Plane) and maps
+raw octets into the U+EF80..U+EFFF wide character range; compare
+.Sx Arithmetic expressions .
+The following
+.Tn POSIX
+.Nm sh
+code toggles the
+.Ic utf8\-mode
+option dependent on the current
+.Tn POSIX
+locale for mksh to allow using the UTF-8 mode, within the constraints
+outlined above, in code portable across various shell implementations:
 .Bd -literal -offset indent
 case ${KSH_VERSION:\-} in
 *MIRBSD\ KSH*\*(Ba*LEGACY\ KSH*)
