@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.289 2015/07/10 18:41:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.290 2015/07/10 19:36:34 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -771,7 +771,7 @@ glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
 	Xinit(xs, xp, patlen + 128, ATEMP);
 	while (sp) {
 		xp = Xstring(xs, xp);
-		if (!(p = cstrchr(sp, ':')))
+		if (!(p = cstrchr(sp, MKSH_PATHSEPC)))
 			p = sp + strlen(sp);
 		pathlen = p - sp;
 		if (pathlen) {

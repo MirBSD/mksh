@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.192 2015/04/29 20:07:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.193 2015/07/10 19:36:38 tg Exp $");
 
 /*-
  * Variables
@@ -1281,7 +1281,7 @@ setspec(struct tbl *vp)
 
 			s = str_val(vp);
 			/* LINTED use of access */
-			if (s[0] == '/' && access(s, W_OK|X_OK) == 0 &&
+			if (mksh_abspath(s) && access(s, W_OK|X_OK) == 0 &&
 			    stat(s, &statb) == 0 && S_ISDIR(statb.st_mode))
 				strdupx(tmpdir, s, APERM);
 		}

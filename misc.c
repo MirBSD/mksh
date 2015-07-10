@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.237 2015/07/09 20:52:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.238 2015/07/10 19:36:36 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1412,12 +1412,12 @@ do_realpath(const char *upath)
 	/* max. recursion depth */
 	int symlinks = 32;
 
-	if (upath[0] == '/') {
+	if (mksh_abspath(upath)) {
 		/* upath is an absolute pathname */
 		strdupx(ipath, upath, ATEMP);
 	} else {
 		/* upath is a relative pathname, prepend cwd */
-		if ((tp = ksh_get_wd()) == NULL || tp[0] != '/')
+		if ((tp = ksh_get_wd()) == NULL || !mksh_abspath(tp))
 			return (NULL);
 		ipath = shf_smprintf("%s%s%s", tp, "/", upath);
 		afree(tp, ATEMP);
@@ -1520,7 +1520,7 @@ do_realpath(const char *upath)
 			tp = shf_smprintf("%s%s%s", ldest, *ip ? "/" : "", ip);
 			afree(ipath, ATEMP);
 			ip = ipath = tp;
-			if (ldest[0] != '/') {
+			if (!mksh_abspath(ldest)) {
 				/* symlink target is a relative path */
 				xp = Xrestpos(xs, xp, pos);
 			} else
@@ -1620,7 +1620,7 @@ make_path(const char *cwd, const char *file,
 	if (!file)
 		file = null;
 
-	if (file[0] == '/') {
+	if (mksh_abspath(file)) {
 		*phys_pathp = 0;
 		use_cdpath = false;
 	} else {
@@ -1637,15 +1637,15 @@ make_path(const char *cwd, const char *file,
 		if (!plist)
 			use_cdpath = false;
 		else if (use_cdpath) {
-			char *pend;
+			char *pend = plist;
 
-			for (pend = plist; *pend && *pend != ':'; pend++)
-				;
+			while (*pend && *pend != MKSH_PATHSEPC)
+				++pend;
 			plen = pend - plist;
 			*cdpathp = *pend ? pend + 1 : NULL;
 		}
 
-		if ((!use_cdpath || !plen || plist[0] != '/') &&
+		if ((!use_cdpath || !plen || !mksh_abspath(plist)) &&
 		    (cwd && *cwd)) {
 			len = strlen(cwd);
 			XcheckN(*xsp, xp, len);
@@ -1731,7 +1731,7 @@ simplify_path(char *p)
 				continue;
 			else if (len == 2 && tp[1] == '.') {
 				/* parent level, but how? */
-				if (*p == '/')
+				if (mksh_abspath(p))
 					/* absolute path, only one way */
 					goto strip_last_component;
 				else if (dp > sp) {
@@ -1931,7 +1931,7 @@ c_cd(const char **wp)
 		/* Ignore failure (happens if readonly or integer) */
 		setstr(oldpwd_s, current_wd, KSH_RETURN_ERROR);
 
-	if (Xstring(xs, xp)[0] != '/') {
+	if (!mksh_abspath(Xstring(xs, xp))) {
 		pwd = NULL;
 	} else if (!physical) {
 		goto norealpath_PWD;

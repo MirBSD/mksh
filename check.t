@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.702 2015/07/09 20:52:36 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.703 2015/07/10 19:36:31 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R51 2015/07/09
+	@(#)MIRBSD KSH R51 2015/07/10
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R51 2015/07/09
+	@(#)LEGACY KSH R51 2015/07/10
 description:
 	Check version of legacy shell.
 stdin:
@@ -232,7 +232,7 @@ time-limit: 3
 stdin:
 	print '#!'"$__progname"'\necho tf' >lq
 	chmod +x lq
-	PATH=$PWD:$PATH
+	PATH=$PWD$PATHSEP$PATH
 	alias lq=lq
 	lq
 	echo = now
@@ -5557,7 +5557,7 @@ description:
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
-	    done >env; chmod +x env; PATH=.:$PATH
+	    done >env; chmod +x env; PATH=.$PATHSEP$PATH
 	foo=bar
 	readonly foo
 	foo=stuff env | grep '^foo'
@@ -6263,7 +6263,7 @@ description:
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
-	    done >env; chmod +x env; PATH=.:$PATH
+	    done >env; chmod +x env; PATH=.$PATHSEP$PATH
 	FOO=bar exec env
 expected-stdout-pattern:
 	/(^|.*\n)FOO=bar\n/
@@ -6275,7 +6275,7 @@ description:
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
-	    done >env; chmod +x env; PATH=.:$PATH
+	    done >env; chmod +x env; PATH=.$PATHSEP$PATH
 	env >bar1
 	FOO=bar exec; env >bar2
 	cmp -s bar1 bar2
@@ -6519,7 +6519,7 @@ stdin:
 	print '#!'"$__progname"'\nexec "$1"' >env
 	print '#!'"$__progname"'\nexit 1' >false
 	chmod +x env false
-	PATH=.:$PATH
+	PATH=.$PATHSEP$PATH
 	set -ex
 	env false && echo something
 	echo END
@@ -6537,7 +6537,7 @@ stdin:
 	print '#!'"$__progname"'\nexit 1' >false
 	print '#!'"$__progname"'\nexit 0' >true
 	chmod +x env false
-	PATH=.:$PATH
+	PATH=.$PATHSEP$PATH
 	set -ex
 	if env true; then
 		env false && echo something
@@ -7281,7 +7281,7 @@ stdin:
 	set -A anzahl -- foo/*
 	echo got ${#anzahl[*]} files
 	chmod +x foo/*
-	export PATH=$(pwd)/foo:$PATH
+	export PATH=$(pwd)/foo$PATHSEP$PATH
 	"$__progname" -c '﻿fnord'
 	echo =
 	"$__progname" -c '﻿fnord; fnord; ﻿fnord; fnord'
@@ -7451,7 +7451,7 @@ expected-stdout:
 name: aliases-1
 description:
 	Check if built-in shell aliases are okay
-category: !android,!arge
+category: !android,!arge,!os:os2
 stdin:
 	alias
 	typeset -f
@@ -7491,10 +7491,31 @@ expected-stdout:
 	source='PATH=$PATH:. \command .'
 	type='\builtin whence -v'
 ---
+name: aliases-1-os2
+description:
+	Check if built-in shell aliases are okay
+category: os:os2
+stdin:
+	alias
+	typeset -f
+expected-stdout:
+	autoload='\typeset -fu'
+	functions='\typeset -f'
+	hash='\builtin alias -t'
+	history='\builtin fc -l'
+	integer='\typeset -i'
+	local='\typeset'
+	login='\exec login'
+	nameref='\typeset -n'
+	nohup='nohup '
+	r='\builtin fc -e -'
+	source='PATH=$PATH;. \command .'
+	type='\builtin whence -v'
+---
 name: aliases-2b
 description:
 	Check if “set -o sh” does not influence built-in aliases
-category: !android,!arge
+category: !android,!arge,!os:os2
 arguments: !-o!sh!
 stdin:
 	alias
@@ -7517,7 +7538,7 @@ expected-stdout:
 name: aliases-3b
 description:
 	Check if running as sh does not influence built-in aliases
-category: !android,!arge
+category: !android,!arge,!os:os2
 stdin:
 	cp "$__progname" sh
 	./sh -c 'alias; typeset -f'
@@ -7579,6 +7600,50 @@ expected-stdout:
 	nohup='nohup '
 	r='\builtin fc -e -'
 	source='PATH=$PATH:. \command .'
+	type='\builtin whence -v'
+---
+name: aliases-2b-os2
+description:
+	Check if “set -o sh” does not influence built-in aliases
+category: os:os2
+arguments: !-o!sh!
+stdin:
+	alias
+	typeset -f
+expected-stdout:
+	autoload='\typeset -fu'
+	functions='\typeset -f'
+	hash='\builtin alias -t'
+	history='\builtin fc -l'
+	integer='\typeset -i'
+	local='\typeset'
+	login='\exec login'
+	nameref='\typeset -n'
+	nohup='nohup '
+	r='\builtin fc -e -'
+	source='PATH=$PATH;. \command .'
+	type='\builtin whence -v'
+---
+name: aliases-3b-os2
+description:
+	Check if running as sh does not influence built-in aliases
+category: os:os2
+stdin:
+	cp "$__progname" sh
+	./sh -c 'alias; typeset -f'
+	rm -f sh
+expected-stdout:
+	autoload='\typeset -fu'
+	functions='\typeset -f'
+	hash='\builtin alias -t'
+	history='\builtin fc -l'
+	integer='\typeset -i'
+	local='\typeset'
+	login='\exec login'
+	nameref='\typeset -n'
+	nohup='nohup '
+	r='\builtin fc -e -'
+	source='PATH=$PATH;. \command .'
 	type='\builtin whence -v'
 ---
 name: aliases-cmdline
@@ -9907,7 +9972,7 @@ description:
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
-	    done >env; chmod +x env; PATH=.:$PATH
+	    done >env; chmod +x env; PATH=.$PATHSEP$PATH
 	function k {
 		if [ x$FOO != xbar ]; then
 			echo 1
@@ -10079,7 +10144,7 @@ description:
 	is a must (a non-recursive parser cannot pass all three of
 	these test cases, especially the ‘#’ is difficult)
 stdin:
-	print '#!'"$__progname"'\necho 1234' >id; chmod +x id; PATH=.:$PATH
+	print '#!'"$__progname"'\necho 1234' >id; chmod +x id; PATH=.$PATHSEP$PATH
 	echo $(typeset -i10 x=16#20; echo $x)
 	echo $(typeset -Uui16 x=16#$(id -u)
 	) .
@@ -11314,7 +11379,7 @@ file-setup: file 755 "!false"
 	#! /bin/sh
 	echo si
 stdin:
-	export PATH=.:$PATH
+	export PATH=.$PATHSEP$PATH
 	falsetto
 	echo yeap
 	!false
@@ -11344,7 +11409,7 @@ file-setup: file 755 "!false"
 	#! /bin/sh
 	echo si
 stdin:
-	export PATH=.:$PATH
+	export PATH=.$PATHSEP$PATH
 	falsetto
 	echo yeap
 	!false

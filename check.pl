@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.39 2015/04/29 19:01:03 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.40 2015/07/10 19:36:31 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -73,11 +73,12 @@
 #					the following minimal environment:
 #					    HOME, LD_LIBRARY_PATH, LOCPATH,
 #					    LOGNAME, PATH, SHELL, UNIXMODE,
-#					    USER
+#					    UNIXROOT, USER
 #					(values taken from the environment of
 #					the test harness).
 #					CYGWIN is set to nodosfilewarning.
 #					ENV is set to /nonexistant.
+#					PATHSEP is set to either : or ;.
 #					__progname is set to the -p argument.
 #					__perlname is set to $^X (perlexe).
 #	file-setup		mps	Used to create files, directories
@@ -275,11 +276,12 @@ $all_tests = @ARGV == 0;
 # Set up a very minimal environment
 %new_env = ();
 foreach $env (('HOME', 'LD_LIBRARY_PATH', 'LOCPATH', 'LOGNAME',
-  'PATH', 'SHELL', 'UNIXMODE', 'USER')) {
+  'PATH', 'SHELL', 'UNIXMODE', 'UNIXROOT', 'USER')) {
     $new_env{$env} = $ENV{$env} if defined $ENV{$env};
 }
 $new_env{'CYGWIN'} = 'nodosfilewarning';
 $new_env{'ENV'} = '/nonexistant';
+$new_env{'PATHSEP'} = $os eq 'os2' ? ';' : ':';
 if (($os eq 'VMS') || ($Config{perlpath} =~ m/$Config{_exe}$/i)) {
 	$new_env{'__perlname'} = $Config{perlpath};
 } else {
@@ -312,9 +314,10 @@ die "$prog: couldn't get temporary directory\n" if $temp_dir eq '';
 die "$prog: couldn't cd to $pwd - $!\n" if !chdir($pwd);
 
 if (!$program_kludge) {
-    $test_prog = "$pwd/$test_prog" if substr($test_prog, 0, 1) ne '/';
+    $test_prog = "$pwd/$test_prog" if (substr($test_prog, 0, 1) ne '/') &&
+      ($os ne 'os2' || substr($test_prog, 1, 1) ne ':');
     die "$prog: $test_prog is not executable - bye\n"
-	if (! -x $test_prog && $os ne 'os2');
+      if (! -x $test_prog && $os ne 'os2');
 }
 
 @trap_sigs = ('TERM', 'QUIT', 'INT', 'PIPE', 'HUP');

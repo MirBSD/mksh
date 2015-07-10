@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.299 2015/07/09 20:52:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.300 2015/07/10 19:36:35 tg Exp $");
 
 extern char **environ;
 
@@ -43,7 +43,7 @@ extern char **environ;
 #endif
 
 #ifndef MKSH_DEFAULT_TMPDIR
-#define MKSH_DEFAULT_TMPDIR	"/tmp"
+#define MKSH_DEFAULT_TMPDIR	MKSH_UNIXROOT "/tmp"
 #endif
 
 static uint8_t isuc(const char *);
@@ -82,7 +82,7 @@ static const char *initcoms[] = {
 	"nameref=\\typeset -n",
 	"nohup=nohup ",
 	"r=\\builtin fc -e -",
-	"source=PATH=$PATH:. \\command .",
+	"source=PATH=$PATH" MKSH_PATHSEPS ". \\command .",
 	"login=\\exec login",
 	NULL,
 	 /* this is what AT&T ksh seems to track, with the addition of emacs */
@@ -324,7 +324,10 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		 * "keeping a regular /usr"; this is supposed
 		 * to be a sane 'basic' default PATH
 		 */
-		def_path = "/bin:/usr/bin:/sbin:/usr/sbin";
+		def_path = MKSH_UNIXROOT "/bin" MKSH_PATHSEPS
+		    MKSH_UNIXROOT "/usr/bin" MKSH_PATHSEPS
+		    MKSH_UNIXROOT "/sbin" MKSH_PATHSEPS
+		    MKSH_UNIXROOT "/usr/sbin";
 #endif
 
 	/*
@@ -367,7 +370,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	vp = global("PWD");
 	cp = str_val(vp);
 	/* Try to use existing $PWD if it is valid */
-	set_current_wd((cp[0] == '/' && test_eval(NULL, TO_FILEQ, cp, ".",
+	set_current_wd((mksh_abspath(cp) && test_eval(NULL, TO_FILEQ, cp, ".",
 	    true)) ? cp : NULL);
 	if (current_wd[0])
 		simplify_path(current_wd);
@@ -1372,7 +1375,7 @@ initio(void)
 	shf_fdopen(2, SHF_WR, shl_xtrace);
 #ifdef DF
 	if ((lfp = getenv("SDMKSH_PATH")) == NULL) {
-		if ((lfp = getenv("HOME")) == NULL || *lfp != '/')
+		if ((lfp = getenv("HOME")) == NULL || !mksh_abspath(lfp))
 			errorf("cannot get home directory");
 		lfp = shf_smprintf("%s/mksh-dbg.txt", lfp);
 	}

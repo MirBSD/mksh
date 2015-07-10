@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.99 2015/07/05 19:02:16 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.100 2015/07/10 19:36:33 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -406,6 +406,7 @@ function enable {
 	i_alias[nalias]=nameref; b_alias[nalias++]='\typeset -n'
 	i_alias[nalias]=nohup; b_alias[nalias++]='nohup '
 	i_alias[nalias]=r; b_alias[nalias++]='\builtin fc -e -'
+	#XXX OS/2
 	i_alias[nalias]=source; b_alias[nalias++]='PATH=$PATH:. \command .'
 	i_alias[nalias]=stop; b_alias[nalias++]='\kill -STOP'
 	i_alias[nalias]=type; b_alias[nalias++]='\builtin whence -v'
@@ -582,6 +583,7 @@ function enable {
 
 for p in ~/.etc/bin ~/bin; do
 	[[ -d $p/. ]] || \continue
+	#XXX OS/2
 	[[ :$PATH: = *:$p:* ]] || PATH=$p:$PATH
 done
 

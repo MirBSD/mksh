@@ -23,10 +23,10 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.159 2015/07/09 20:52:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.160 2015/07/10 19:36:35 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
-#define MKSH_DEFAULT_EXECSHELL	"/bin/sh"
+#define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
 #endif
 
 static int comexec(struct op *, struct tbl * volatile, const char **,
@@ -1247,7 +1247,7 @@ flushcom(bool all)
 	struct tstate ts;
 
 	for (ktwalk(&ts, &taliases); (tp = ktnext(&ts)) != NULL; )
-		if ((tp->flag&ISSET) && (all || tp->val.s[0] != '/')) {
+		if ((tp->flag&ISSET) && (all || !mksh_abspath(tp->val.s))) {
 			if (tp->flag&ALLOC) {
 				tp->flag &= ~(ALLOC|ISSET);
 				afree(tp->val.s, APERM);
@@ -1308,7 +1308,7 @@ search_path(const char *name, const char *lpath,
 	sp = lpath;
 	while (sp != NULL) {
 		xp = Xstring(xs, xp);
-		if (!(p = cstrchr(sp, ':')))
+		if (!(p = cstrchr(sp, MKSH_PATHSEPC)))
 			p = sp + strlen(sp);
 		if (p != sp) {
 			XcheckN(xs, xp, p - sp);
