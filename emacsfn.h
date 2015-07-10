@@ -1,5 +1,5 @@
 #if defined(EMACSFN_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/emacsfn.h,v 1.5 2010/07/17 22:09:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/emacsfn.h,v 1.6 2015/07/10 18:41:07 tg Exp $");
 #define FN(cname,sname,flags)	static int x_##cname(int);
 #elif defined(EMACSFN_ENUMS)
 #define FN(cname,sname,flags)	XFUNC_##cname,
@@ -52,6 +52,7 @@ FN(list_file, "list-file", 0)
 FN(literal, "quote", 0)
 FN(meta1, "prefix-1", XF_PREFIX)
 FN(meta2, "prefix-2", XF_PREFIX)
+FN(meta3, "prefix-3", XF_PREFIX)
 FN(meta_yank, "yank-pop", 0)
 FN(mv_back, "backward-char", XF_ARG)
 FN(mv_begin, "beginning-of-line", 0)

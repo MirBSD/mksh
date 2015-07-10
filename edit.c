@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.288 2015/07/10 17:31:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.289 2015/07/10 18:41:05 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -887,7 +887,7 @@ struct x_defbindings {
 /* Separator for motion */
 #define	is_mfs(c)	(!(ksh_isalnux(c) || (c) == '$' || ((c) & 0x80)))
 
-#define X_NTABS		3			/* normal, meta1, meta2 */
+#define X_NTABS		4			/* normal, meta1, meta2, pc */
 #define X_TABSZ		256			/* size of keydef tables etc */
 
 /*-
@@ -1099,9 +1099,28 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_mv_end | 0x80,		2,	'8'	},
 	{ XFUNC_mv_end,			2,	'F'	},
 	{ XFUNC_del_char | 0x80,	2,	'3'	},
-       { XFUNC_del_char,               2,      'P'     },
+	{ XFUNC_del_char,		2,	'P'	},
 	{ XFUNC_search_hist_up | 0x80,	2,	'5'	},
 	{ XFUNC_search_hist_dn | 0x80,	2,	'6'	},
+#endif
+	/* PC scancodes */
+#if !defined(MKSH_SMALL) || defined(__OS2__)
+	{ XFUNC_meta3,			0,	0	},
+	{ XFUNC_mv_begin,		3,	71	},
+	{ XFUNC_prev_com,		3,	72	},
+#ifndef MKSH_SMALL
+	{ XFUNC_search_hist_up,		3,	73	},
+#endif
+	{ XFUNC_mv_back,		3,	75	},
+	{ XFUNC_mv_forw,		3,	77	},
+	{ XFUNC_mv_end,			3,	79	},
+	{ XFUNC_next_com,		3,	80	},
+#ifndef MKSH_SMALL
+	{ XFUNC_search_hist_dn,		3,	81	},
+#endif
+	{ XFUNC_del_char,		3,	83	},
+#endif
+#ifndef MKSH_SMALL
 	/* more non-standard ones */
 	{ XFUNC_edit_line,		2,	'e'	}
 #endif
@@ -2216,6 +2235,13 @@ x_meta2(int c MKSH_A_UNUSED)
 }
 
 static int
+x_meta3(int c MKSH_A_UNUSED)
+{
+	x_curprefix = 3;
+	return (KSTD);
+}
+
+static int
 x_kill(int c MKSH_A_UNUSED)
 {
 	size_t col = xcp - xbuf;
@@ -2413,8 +2439,8 @@ x_print(int prefix, int key)
 
 	if (prefix)
 		/* prefix == 1 || prefix == 2 */
-		shf_puts(x_mapout(prefix == 1 ?
-		    CTRL('[') : CTRL('X')), shl_stdout);
+		shf_puts(x_mapout(prefix == 1 ? CTRL('[') :
+		    prefix == 2 ? CTRL('X') : 0), shl_stdout);
 #ifdef MKSH_SMALL
 	shprintf("%s = ", x_mapout(key));
 #else
@@ -2479,6 +2505,8 @@ x_bind(const char *a1, const char *a2,
 			prefix = 1;
 		else if (f == XFUNC_meta2)
 			prefix = 2;
+		else if (f == XFUNC_meta3)
+			prefix = 3;
 		else
 			break;
 	}
@@ -3618,6 +3646,18 @@ vi_hook(int ch)
 	switch (state) {
 
 	case VNORMAL:
+		/* PC scancodes */
+		if (!ch) switch (cmdlen = 0, (ch = x_getc())) {
+		case 71: ch = '0'; goto pseudo_vi_command;
+		case 72: ch = 'k'; goto pseudo_vi_command;
+		case 73: ch = 'A'; goto vi_xfunc_search_up;
+		case 75: ch = 'h'; goto pseudo_vi_command;
+		case 77: ch = 'l'; goto pseudo_vi_command;
+		case 79: ch = '$'; goto pseudo_vi_command;
+		case 80: ch = 'j'; goto pseudo_vi_command;
+		case 83: ch = 'x'; goto pseudo_vi_command;
+		default: ch = 0; goto vi_insert_failed;
+		}
 		if (insert != 0) {
 			if (ch == CTRL('v')) {
 				state = VLIT;
@@ -3625,6 +3665,7 @@ vi_hook(int ch)
 			}
 			switch (vi_insert(ch)) {
 			case -1:
+ vi_insert_failed:
 				vi_error();
 				state = VNORMAL;
 				break;
@@ -3647,6 +3688,7 @@ vi_hook(int ch)
 				argc1 = ksh_numdig(ch);
 				state = VARG1;
 			} else {
+ pseudo_vi_command:
 				curcmd[cmdlen++] = ch;
 				state = nextstate(ch);
 				if (state == VSEARCH) {
@@ -3815,6 +3857,7 @@ vi_hook(int ch)
 		break;
 
 	case VPREFIX2:
+ vi_xfunc_search_up:
 		state = VFAIL;
 		switch (ch) {
 		case 'A':
