@@ -251,7 +251,7 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
 				break;
 		/* All in same directory? */
 		if (i == nwords) {
-			while (prefix_len > 0 && !IS_DIR_SEP(words[0][prefix_len - 1]))
+			while (prefix_len > 0 && !mksh_dirsep(words[0][prefix_len - 1]))
 				prefix_len--;
 			use_copy = true;
 			XPinit(l, nwords + 1);
@@ -327,7 +327,7 @@ x_glob_hlp_tilde_and_rem_qchar(char *s, bool magic_flag)
 	 * and if so, discern "~foo/bar" and "~/baz" from "~blah";
 	 * if we have a directory part (the former), try to expand
 	 */
-	if (*s == '~' && (cp = ksh_strchr_dirsep(s)) != NULL) {
+	if (*s == '~' && (cp = mksh_strchr_dirsep(s)) != NULL) {
 		/* ok, so split into "~foo"/"bar" or "~"/"baz" */
 		*cp++ = 0;
 		/* try to expand the tilde */
@@ -577,7 +577,7 @@ x_locate_word(const char *buf, int buflen, int pos, int *startp,
 			 * like file globbing.
 			 */
 			for (p = start; p < end; p++)
-				if (IS_DIR_SEP(buf[p]))
+				if (mksh_dirsep(buf[p]))
 					break;
 			iscmd = p == end;
 		}
@@ -641,7 +641,7 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 			}
 		}
 
-		if (*toglob == '~' && !ksh_vstrchr_dirsep(toglob)) {
+		if (*toglob == '~' && !mksh_vstrchr_dirsep(toglob)) {
 			/* neither for '~foo' (but '~foo/bar') */
 			*flagsp |= XCF_IS_NOSPACE;
 			goto dont_add_glob;
@@ -731,11 +731,11 @@ x_basename(const char *s, const char *se)
 		return (0);
 
 	/* Skip trailing slashes */
-	for (p = se - 1; p > s && IS_DIR_SEP(*p); p--)
+	for (p = se - 1; p > s && mksh_dirsep(*p); p--)
 		;
-	for (; p > s && !IS_DIR_SEP(*p); p--)
+	for (; p > s && !mksh_dirsep(*p); p--)
 		;
-	if (IS_DIR_SEP(*p) && p + 1 < se)
+	if (mksh_dirsep(*p) && p + 1 < se)
 		p++;
 
 	return (p - s);
@@ -2800,7 +2800,7 @@ do_complete(
 	 * append a space if this is a single non-directory match
 	 * and not a parameter or homedir substitution
 	 */
-	if (nwords == 1 && !IS_DIR_SEP(words[0][nlen - 1]) &&
+	if (nwords == 1 && !mksh_dirsep(words[0][nlen - 1]) &&
 	    !(flags & XCF_IS_NOSPACE)) {
 		x_ins(" ");
 	}
@@ -5443,7 +5443,7 @@ complete_word(int cmd, int count)
 		 * append a space if this is a non-directory match
 		 * and not a parameter or homedir substitution
 		 */
-		if (match_len > 0 && !IS_DIR_SEP(match[match_len - 1]) &&
+		if (match_len > 0 && !mksh_dirsep(match[match_len - 1]) &&
 		    !(flags & XCF_IS_NOSPACE))
 			rval = putbuf(" ", 1, false);
 	}

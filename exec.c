@@ -703,7 +703,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		rv = subst_exstat;
 		goto Leave;
 	} else if (!tp) {
-		if (Flag(FRESTRICTED) && ksh_vstrchr_dirsep(cp)) {
+		if (Flag(FRESTRICTED) && mksh_vstrchr_dirsep(cp)) {
 			warningf(true, "%s: %s", cp, "restricted");
 			rv = 1;
 			goto Leave;
@@ -993,7 +993,7 @@ scriptexec(struct op *tp, const char **ap)
 		 * Search shell/interpreter name without directory in PATH
 		 * if specified path does not exist
 		 */
-		if (ksh_vstrchr_dirsep(sh) && !search_path(sh, path, X_OK, NULL)) {
+		if (mksh_vstrchr_dirsep(sh) && !search_path(sh, path, X_OK, NULL)) {
 			cp = search_path(_getname(sh), path, X_OK, NULL);
 			if (cp)
 				sh = cp;
@@ -1183,7 +1183,7 @@ findcom(const char *name, int flags)
 	char *fpath;
 	union mksh_cchack npath;
 
-	if (ksh_vstrchr_dirsep(name)) {
+	if (mksh_vstrchr_dirsep(name)) {
 		insert = 0;
 		/* prevent FPATH search below */
 		flags &= ~FC_FUNC;
@@ -1330,7 +1330,7 @@ search_path(const char *name, const char *lpath,
 	size_t namelen;
 	int ec = 0, ev;
 
-	if (ksh_vstrchr_dirsep(name)) {
+	if (mksh_vstrchr_dirsep(name)) {
 		if ((ec = search_access(name, mode)) == 0) {
  search_path_ok:
 			if (errnop)

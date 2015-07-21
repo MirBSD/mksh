@@ -302,42 +302,6 @@ struct rusage {
 	} while (/* CONSTCOND */ 0)
 #endif
 
-#ifdef __OS2__
-#define UNIXROOT	"/@unixroot"
-#define PATH_SEP	';'
-#define PATH_SEP_STR	";"
-#define IS_DIR_SEP(c) ({		\
-	char _ch_ = (c);				\
-	(_ch_ == '/' || _ch_ == '\\');	\
-})
-#define IS_ABS_PATH(x) ({	\
-	const char *_p_ = (x);	\
-	((ksh_isalphx(_p_[0]) && _p_[1] == ':') || IS_DIR_SEP(_p_[0]));	\
-})
-#define ksh_strchr_dirsep(s) ({				\
-	const char *_p_ = (s);					\
-	const char *_p1_ = strchr(_p_, '/');		\
-	const char *_p2_ = strchr(_p_, '\\');		\
-	const char *_p3_ = ((ksh_isalphx(_p_[0]) && _p_[1] == ':')	\
-	                    ? (_p_ + 1) : NULL );	\
-	_p1_ = _p1_ > _p2_ ? _p1_ : _p2_;		\
-	((char *)(_p1_ > _p3_ ? _p1_ : _p3_));	\
-})
-#define ksh_vstrchr_dirsep(s) ({			\
-	const char *_p_ = (s);					\
-	(vstrchr((_p_), '/') || vstrchr((_p_), '\\') ||		\
-	    (ksh_isalphx(_p_[0]) && _p_[1] == ':'));	\
-})
-#else
-#define UNIXROOT	""
-#define PATH_SEP	':'
-#define PATH_SEP_STR	":"
-#define IS_DIR_SEP(c)	((c) == '/')
-#define IS_ABS_PATH(x)	(IS_DIR_SEP((x)[0]))
-#define ksh_strchr_dirsep(s)	(strchr((s), '/'))
-#define ksh_vstrchr_dirsep(s)	(vstrchr((s), '/'))
-#endif
-
 #ifdef MKSH__NO_PATH_MAX
 #undef PATH_MAX
 #else
@@ -1109,7 +1073,7 @@ EXTERN mksh_ari_t x_lins E_INIT(24);	/* tty lines */
 #if defined(ANDROID)
 #define MKSH_DEFAULT_PROFILEDIR	"/system/etc"
 #else
-#define MKSH_DEFAULT_PROFILEDIR	UNIXROOT "/etc"
+#define MKSH_DEFAULT_PROFILEDIR	MKSH_UNIXROOT "/etc"
 #endif
 #endif
 
@@ -2156,13 +2120,41 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 })
 #define mksh_abspath(s)			__extension__({			\
 	const char *mksh_abspath_s = (s);				\
-	(mksh_abspath_s[0] == '/' || (ksh_isalphx(mksh_abspath_s[0]) &&	\
+	(mksh_dirsep(mksh_abspath_s[0]) || (ksh_isalphx(mksh_abspath_s[0]) &&	\
 	    mksh_abspath_s[1] == ':'));					\
 })
+#define mksh_dirsep(c)			__extension__({			\
+	char mksh_dirsep_c = (c);							\
+	(mksh_dirsep_c == '/' || mksh_dirsep_c == '\\');	\
+})
+#define mksh_strchr_dirsep(s)	__extension__({					\
+	const char *mksh_strchr_dirsep_p = (s);						\
+	const char *mksh_strchr_dirsep_p1 = strchr(mksh_strchr_dirsep_p, '/');	\
+	const char *mksh_strchr_dirsep_p2 = strchr(mksh_strchr_dirsep_p, '\\');	\
+	const char *mksh_strchr_dirsep_p3 =							\
+		((ksh_isalphx(mksh_strchr_dirsep_p[0]) &&				\
+		  mksh_strchr_dirsep_p[1] == ':')						\
+	                    ? (mksh_strchr_dirsep_p + 1) : NULL );	\
+	mksh_strchr_dirsep_p1 = mksh_strchr_dirsep_p1 > mksh_strchr_dirsep_p2 ?	\
+		mksh_strchr_dirsep_p1 : mksh_strchr_dirsep_p2;			\
+	((char *)(mksh_strchr_dirsep_p1 > mksh_strchr_dirsep_p3 ?	\
+		mksh_strchr_dirsep_p1 : mksh_strchr_dirsep_p3));		\
+})
+#define mksh_vstrchr_dirsep(s)	__extension__({					\
+	const char *mksh_vstrchr_dirsep_p = (s);					\
+	(vstrchr((mksh_vstrchr_dirsep_p), '/') || 					\
+	    vstrchr((mksh_vstrchr_dirsep_p), '\\') ||				\
+	    (ksh_isalphx(mksh_vstrchr_dirsep_p[0]) && 				\
+	        mksh_vstrchr_dirsep_p[1] == ':'));					\
+})
+
 #else
 #define binopen2(path,flags)		open((path), (flags) | O_BINARY)
 #define binopen3(path,flags,mode)	open((path), (flags) | O_BINARY, (mode))
 #define mksh_abspath(s)			((s)[0] == '/')
+#define mksh_dirsep(c)			((c) == '/')
+#define mksh_strchr_dirsep(s)	(strchr((s), '/'))
+#define mksh_vstrchr_dirsep(s)	(vstrchr((s), '/'))
 #endif
 
 /* be sure not to interfere with anyone else's idea about EXTERN */

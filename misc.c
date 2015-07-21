@@ -387,7 +387,7 @@ parse_args(const char **argv,
 		 */
 		if (*p != '-')
 			for (q = p; *q; )
-				if (IS_DIR_SEP(*q++))
+				if (mksh_dirsep(*q++))
 					p = q;
 		Flag(FLOGIN) = (*p == '-');
 		opts = cmd_opts;
@@ -1440,14 +1440,14 @@ do_realpath(const char *upath)
 
 	while (*ip) {
 		/* skip slashes in input */
-		while (IS_DIR_SEP(*ip))
+		while (mksh_dirsep(*ip))
 			++ip;
 		if (!*ip)
 			break;
 
 		/* get next pathname component from input */
 		tp = ip;
-		while (*ip && !IS_DIR_SEP(*ip))
+		while (*ip && !mksh_dirsep(*ip))
 			++ip;
 		len = ip - tp;
 
@@ -1459,7 +1459,7 @@ do_realpath(const char *upath)
 			else if (len == 2 && tp[1] == '.') {
 				/* strip off last pathname component */
 				while (xp > Xstring(xs, xp))
-					if (IS_DIR_SEP(*--xp))
+					if (mksh_dirsep(*--xp))
 						break;
 				/* then continue with the next one */
 				continue;
@@ -1482,7 +1482,7 @@ do_realpath(const char *upath)
 			/* lstat failed */
 			if (errno == ENOENT) {
 				/* because the pathname does not exist */
-				while (IS_DIR_SEP(*ip))
+				while (mksh_dirsep(*ip))
 					/* skip any trailing slashes */
 					++ip;
 				/* no more components left? */
@@ -1542,7 +1542,7 @@ do_realpath(const char *upath)
 				/* assert: xp == xs.beg => start of path */
 
 				/* exactly two leading slashes? (SUSv4 3.266) */
-				if (IS_DIR_SEP(ip[1]) && !IS_DIR_SEP(ip[2])) {
+				if (mksh_dirsep(ip[1]) && !mksh_dirsep(ip[2])) {
 					/* keep them, e.g. for UNC pathnames */
 					Xput(xs, xp, '/');
 				}
@@ -1567,7 +1567,7 @@ do_realpath(const char *upath)
 	 * if source path had a trailing slash, check if target path
 	 * is not a non-directory existing file
 	 */
-	if (ip > ipath && IS_DIR_SEP(ip[-1])) {
+	if (ip > ipath && mksh_dirsep(ip[-1])) {
 		if (stat(Xstring(xs, xp), &sb)) {
 			if (errno != ENOENT)
 				goto notfound;
@@ -1638,7 +1638,7 @@ make_path(const char *cwd, const char *file,
 
 			if (c == '.')
 				c = file[2];
-			if (IS_DIR_SEP(c) || c == '\0')
+			if (mksh_dirsep(c) || c == '\0')
 				use_cdpath = false;
 		}
 
@@ -1660,7 +1660,7 @@ make_path(const char *cwd, const char *file,
 			XcheckN(*xsp, xp, len);
 			memcpy(xp, cwd, len);
 			xp += len;
-			if (!IS_DIR_SEP(cwd[len - 1]))
+			if (!mksh_dirsep(cwd[len - 1]))
 				Xput(*xsp, xp, '/');
 		}
 		*phys_pathp = Xlength(*xsp, xp);
@@ -1668,7 +1668,7 @@ make_path(const char *cwd, const char *file,
 			XcheckN(*xsp, xp, plen);
 			memcpy(xp, plist, plen);
 			xp += plen;
-			if (!IS_DIR_SEP(plist[plen - 1]))
+			if (!mksh_dirsep(plist[plen - 1]))
 				Xput(*xsp, xp, '/');
 			rval = 1;
 		}
@@ -1713,7 +1713,7 @@ simplify_path(char *p)
 	case '\\':
 #endif
 		/* exactly two leading slashes? (SUSv4 3.266) */
-		if (IS_DIR_SEP(p[1]) && !IS_DIR_SEP(p[2]))
+		if (mksh_dirsep(p[1]) && !mksh_dirsep(p[2]))
 			/* keep them, e.g. for UNC pathnames */
 			++p;
 		needslash = true;
@@ -1725,14 +1725,14 @@ simplify_path(char *p)
 
 	while (*ip) {
 		/* skip slashes in input */
-		while (IS_DIR_SEP(*ip))
+		while (mksh_dirsep(*ip))
 			++ip;
 		if (!*ip)
 			break;
 
 		/* get next pathname component from input */
 		tp = ip;
-		while (*ip && !IS_DIR_SEP(*ip))
+		while (*ip && !mksh_dirsep(*ip))
 			++ip;
 		len = ip - tp;
 
@@ -1752,7 +1752,7 @@ simplify_path(char *p)
  strip_last_component:
 					/* strip off last pathname component */
 					while (dp > sp)
-						if (IS_DIR_SEP(*--dp))
+						if (mksh_dirsep(*--dp))
 							break;
 				} else {
 					/* relative path, at its beginning */
