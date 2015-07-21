@@ -841,6 +841,7 @@ OS/2)
 	SRCS="$SRCS os2.c"
 	add_cppflags -DMKSH_UNEMPLOYED
 	add_cppflags -DMKSH_NOPROSPECTOFWORK
+	add_cppflags -DMKSH_NO_LIMITS
 	;;
 OSF1)
 	HAVE_SIG_T=0	# incompatible
