@@ -269,11 +269,6 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 			return (1);
 
 #if defined(MKSH_BINSHPOSIX) || defined(MKSH_BINSHREDUCED)
-#ifdef __OS2__
-#define EXE_EXT	".exe"
-#else
-#define EXE_EXT	""
-#endif
 		/* are we called as -sh or /bin/sh or so? */
 		if (!strcmp(ccp, "sh" MKSH_EXE_EXT)) {
 			/* either also turns off braceexpand */
