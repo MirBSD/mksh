@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.277 2015/07/06 17:48:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.280 2015/07/09 20:52:39 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -152,7 +152,7 @@ const struct builtin mkshbuiltins[] = {
 	{"mknod", c_mknod},
 #endif
 #ifdef MKSH_PRINTF_BUILTIN
-	{"printf", c_printf},
+	{Tprintf, c_printf},
 #endif
 #if HAVE_SELECT
 	{"sleep", c_sleep},
@@ -162,7 +162,7 @@ const struct builtin mkshbuiltins[] = {
 	{"domainname", c_true},
 #endif
 #ifdef __OS2__
-	{"extproc", c_true},
+	{Textproc, c_true},
 #endif
 	{NULL, (int (*)(const char **))NULL}
 };
@@ -3676,7 +3676,7 @@ c_cat(const char **wp)
 			fn = *wp++;
 			if (ksh_isdash(fn))
 				fd = STDIN_FILENO;
-			else if ((fd = open(fn, O_RDONLY | O_BINARY)) < 0) {
+			else if ((fd = binopen2(fn, O_RDONLY)) < 0) {
 				eno = errno;
 				bi_errorf("%s: %s", fn, cstrerror(eno));
 				rv = 1;

@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.287 2015/07/05 19:37:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.290 2015/07/10 19:36:34 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -777,7 +777,7 @@ glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
 	Xinit(xs, xp, patlen + 128, ATEMP);
 	while (sp) {
 		xp = Xstring(xs, xp);
-		if (!(p = cstrchr(sp, PATH_SEP)))
+		if (!(p = cstrchr(sp, MKSH_PATHSEPC)))
 			p = sp + strlen(sp);
 		pathlen = p - sp;
 		if (pathlen) {
@@ -893,11 +893,7 @@ struct x_defbindings {
 /* Separator for motion */
 #define	is_mfs(c)	(!(ksh_isalnux(c) || (c) == '$' || ((c) & 0x80)))
 
-#ifndef __OS2__
-#define X_NTABS		3			/* normal, meta1, meta2 */
-#else
-#define X_NTABS		4			/* normal, meta1, meta2, meta3 */
-#endif
+#define X_NTABS		4			/* normal, meta1, meta2, pc */
 #define X_TABSZ		256			/* size of keydef tables etc */
 
 /*-
@@ -1101,13 +1097,6 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_next_com,		2,	'B'	},
 	{ XFUNC_mv_forw,		2,	'C'	},
 	{ XFUNC_mv_back,		2,	'D'	},
-#ifdef __OS2__
-	{ XFUNC_meta3,			0,	0xE0	},
-	{ XFUNC_prev_com,		3,	'H'	},
-	{ XFUNC_next_com,		3,	'P'	},
-	{ XFUNC_mv_forw,		3,	'M'	},
-	{ XFUNC_mv_back,		3,	'K'	},
-#endif
 #ifndef MKSH_SMALL
 	{ XFUNC_vt_hack,		2,	'1'	},
 	{ XFUNC_mv_begin | 0x80,	2,	'7'	},
@@ -1116,9 +1105,28 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_mv_end | 0x80,		2,	'8'	},
 	{ XFUNC_mv_end,			2,	'F'	},
 	{ XFUNC_del_char | 0x80,	2,	'3'	},
-       { XFUNC_del_char,               2,      'P'     },
+	{ XFUNC_del_char,		2,	'P'	},
 	{ XFUNC_search_hist_up | 0x80,	2,	'5'	},
 	{ XFUNC_search_hist_dn | 0x80,	2,	'6'	},
+#endif
+	/* PC scancodes */
+#if !defined(MKSH_SMALL) || defined(__OS2__)
+	{ XFUNC_meta3,			0,	0	},
+	{ XFUNC_mv_begin,		3,	71	},
+	{ XFUNC_prev_com,		3,	72	},
+#ifndef MKSH_SMALL
+	{ XFUNC_search_hist_up,		3,	73	},
+#endif
+	{ XFUNC_mv_back,		3,	75	},
+	{ XFUNC_mv_forw,		3,	77	},
+	{ XFUNC_mv_end,			3,	79	},
+	{ XFUNC_next_com,		3,	80	},
+#ifndef MKSH_SMALL
+	{ XFUNC_search_hist_dn,		3,	81	},
+#endif
+	{ XFUNC_del_char,		3,	83	},
+#endif
+#ifndef MKSH_SMALL
 	/* more non-standard ones */
 	{ XFUNC_edit_line,		2,	'e'	}
 #endif
@@ -2232,14 +2240,12 @@ x_meta2(int c MKSH_A_UNUSED)
 	return (KSTD);
 }
 
-#ifdef __OS2__
 static int
 x_meta3(int c MKSH_A_UNUSED)
 {
 	x_curprefix = 3;
 	return (KSTD);
 }
-#endif
 
 static int
 x_kill(int c MKSH_A_UNUSED)
@@ -2391,12 +2397,6 @@ x_mapin(const char *cp, Area *ap)
 		/* XXX -- should handle \^ escape? */
 		if (*cp == '^') {
 			cp++;
-#ifdef __OS2__
-			/* define function keys */
-			if (*cp == '0')
-				*op++ = 0xE0;
-			else
-#endif
 			/*XXX or ^^ escape? this is ugly. */
 			if (*cp >= '?')
 				/* includes '?'; ASCII */
@@ -2419,12 +2419,6 @@ x_mapout2(int c, char **buf)
 {
 	char *p = *buf;
 
-#ifdef __OS2__
-	if (c == 0xE0) {
-		*p++ = '^';
-		*p++ = '0';
-	} else
-#endif
 	if (ISCTRL(c)) {
 		*p++ = '^';
 		*p++ = UNCTRL(c);
@@ -2449,15 +2443,10 @@ x_print(int prefix, int key)
 {
 	int f = x_tab[prefix][key];
 
-#ifdef __OS2__
-	if (prefix == 3)
-		shf_puts(x_mapout(0xE0), shl_stdout);
-	else
-#endif
 	if (prefix)
 		/* prefix == 1 || prefix == 2 */
-		shf_puts(x_mapout(prefix == 1 ?
-		    CTRL('[') : CTRL('X')), shl_stdout);
+		shf_puts(x_mapout(prefix == 1 ? CTRL('[') :
+		    prefix == 2 ? CTRL('X') : 0), shl_stdout);
 #ifdef MKSH_SMALL
 	shprintf("%s = ", x_mapout(key));
 #else
@@ -2522,10 +2511,8 @@ x_bind(const char *a1, const char *a2,
 			prefix = 1;
 		else if (f == XFUNC_meta2)
 			prefix = 2;
-#ifdef __OS2__
 		else if (f == XFUNC_meta3)
 			prefix = 3;
-#endif
 		else
 			break;
 	}
@@ -3338,20 +3325,22 @@ x_mode(bool onoff)
 		edchars.eof = tty_state.c_cc[VEOF];
 #ifdef VWERASE
 		edchars.werase = tty_state.c_cc[VWERASE];
+#else
+		edchars.werase = 0;
 #endif
 
-#ifdef __OS2__
-		if (edchars.erase == 0)
-			edchars.erase = 8;
-		if (edchars.kill == 0)
-			edchars.kill = 21;
-		if (edchars.intr == 0)
-			edchars.intr = 3;
-		if (edchars.quit == 0)
-			edchars.quit = 28;
-		if (edchars.eof == 0)
-			edchars.eof = 4;
-#endif
+		if (!edchars.erase)
+			edchars.erase = CTRL('H');
+		if (!edchars.kill)
+			edchars.kill = CTRL('U');
+		if (!edchars.intr)
+			edchars.intr = CTRL('C');
+		if (!edchars.quit)
+			edchars.quit = CTRL('\\');
+		if (!edchars.eof)
+			edchars.eof = CTRL('D');
+		if (!edchars.werase)
+			edchars.werase = CTRL('W');
 
 #ifdef _POSIX_VDISABLE
 		/* Convert unset values to internal 'unset' value */
@@ -3663,6 +3652,18 @@ vi_hook(int ch)
 	switch (state) {
 
 	case VNORMAL:
+		/* PC scancodes */
+		if (!ch) switch (cmdlen = 0, (ch = x_getc())) {
+		case 71: ch = '0'; goto pseudo_vi_command;
+		case 72: ch = 'k'; goto pseudo_vi_command;
+		case 73: ch = 'A'; goto vi_xfunc_search_up;
+		case 75: ch = 'h'; goto pseudo_vi_command;
+		case 77: ch = 'l'; goto pseudo_vi_command;
+		case 79: ch = '$'; goto pseudo_vi_command;
+		case 80: ch = 'j'; goto pseudo_vi_command;
+		case 83: ch = 'x'; goto pseudo_vi_command;
+		default: ch = 0; goto vi_insert_failed;
+		}
 		if (insert != 0) {
 			if (ch == CTRL('v')) {
 				state = VLIT;
@@ -3670,24 +3671,9 @@ vi_hook(int ch)
 			}
 			switch (vi_insert(ch)) {
 			case -1:
-#ifdef __OS2__
-				/* arrow keys generate 0xe0X, where X is H.. */
-				state = VCMD;
-				argc1 = 1;
-				switch (x_getc()) {
-				case 'H': *curcmd='k'; break;
-				case 'K': *curcmd='h'; break;
-				case 'P': *curcmd='j'; break;
-				case 'M': *curcmd='l'; break;
-				default:
-					vi_error();
-					state = VNORMAL;
-				}
-				break;
-#else
+ vi_insert_failed:
 				vi_error();
 				state = VNORMAL;
-#endif
 				break;
 			case 0:
 				if (state == VLIT) {
@@ -3708,6 +3694,7 @@ vi_hook(int ch)
 				argc1 = ksh_numdig(ch);
 				state = VARG1;
 			} else {
+ pseudo_vi_command:
 				curcmd[cmdlen++] = ch;
 				state = nextstate(ch);
 				if (state == VSEARCH) {
@@ -3876,6 +3863,7 @@ vi_hook(int ch)
 		break;
 
 	case VPREFIX2:
+ vi_xfunc_search_up:
 		state = VFAIL;
 		switch (ch) {
 		case 'A':
@@ -4046,9 +4034,6 @@ vi_insert(int ch)
 	if (first_insert && ch != CTRL('['))
 		saved_inslen = 0;
 	switch (ch) {
-#ifdef __OS2__
-	case 0xE0:		/* function key prefix */
-#endif
 	case '\0':
 		return (-1);
 

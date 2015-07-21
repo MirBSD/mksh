@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.699 2015/07/06 17:48:29 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.703 2015/07/10 19:36:31 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R51 2015/07/06
+	@(#)MIRBSD KSH R51 2015/07/10
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R51 2015/07/06
+	@(#)LEGACY KSH R51 2015/07/10
 description:
 	Check version of legacy shell.
 stdin:
@@ -232,7 +232,7 @@ time-limit: 3
 stdin:
 	print '#!'"$__progname"'\necho tf' >lq
 	chmod +x lq
-	PATH="$PWD$PATH_SEPARATOR$PATH"
+	PATH=$PWD$PATHSEP$PATH
 	alias lq=lq
 	lq
 	echo = now
@@ -2075,11 +2075,10 @@ expected-stdout:
 name: glob-bad-2
 description:
 	Check that symbolic links aren't stat()'d
-# breaks on FreeMiNT (cannot unlink dangling symlinks)
-# breaks on MSYS (does not support symlinks)
 # breaks on Dell UNIX 4.0 R2.2 (SVR4) where unlink also fails
-# breaks on OS/2 (does not support symlinks)
-category: !os:mint,!os:msys,!os:svr4.0,!os:os2,!nosymlink
+# breaks on FreeMiNT (cannot unlink dangling symlinks)
+# breaks on MSYS, OS/2 (do not support symlinks)
+category: !os:mint,!os:msys,!os:svr4.0,!nosymlink
 file-setup: dir 755 "dir"
 file-setup: symlink 644 "dir/abc"
 	non-existent-file
@@ -2133,7 +2132,7 @@ description:
 # breaks on Mac OSX (HFS+ non-standard Unicode canonical decomposition)
 # breaks on Cygwin 1.7 (files are now UTF-16 or something)
 # breaks on QNX 6.4.1 (says RT)
-category: !os:cygwin,!os:darwin,!os:msys,!os:os2,!os:nto
+category: !os:cygwin,!os:darwin,!os:msys,!os:nto,!os:os2
 need-pass: no
 file-setup: file 644 "a�c"
 stdin:
@@ -3556,7 +3555,6 @@ name: history-ed-3-old
 description:
 	Newly created multi line commands show up as single command
 	in history.
-	(NOTE: adjusted for COMPLEX HISTORY compile time option)
 	(ksh88 fails 'cause it lists the fc command)
 category: stdout-ed
 need-ctty: yes
@@ -5020,8 +5018,8 @@ description:
 	need to be moved out of the switch to before findcom() is
 	called - I don't know what this will break.
 stdin:
-	: ${PWD:-`pwd 2> /dev/null`}
-	: ${PWD:?"PWD not set - can't do test"}
+	: "${PWD:-`pwd 2> /dev/null`}"
+	: "${PWD:?"PWD not set - can't do test"}"
 	mkdir Y
 	cat > Y/xxxscript << EOF
 	#!/bin/sh
@@ -5559,7 +5557,7 @@ description:
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
-	    done >env; chmod +x env; PATH=".$PATH_SEPARATOR$PATH"
+	    done >env; chmod +x env; PATH=".$PATHSEP$PATH"
 	foo=bar
 	readonly foo
 	foo=stuff env | grep '^foo'
@@ -6265,7 +6263,7 @@ description:
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
-	    done >env; chmod +x env; PATH=".$PATH_SEPARATOR$PATH"
+	    done >env; chmod +x env; PATH=".$PATHSEP$PATH"
 	FOO=bar exec env
 expected-stdout-pattern:
 	/(^|.*\n)FOO=bar\n/
@@ -6277,7 +6275,7 @@ description:
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
-	    done >env; chmod +x env; PATH=".$PATH_SEPARATOR$PATH"
+	    done >env; chmod +x env; PATH=".$PATHSEP$PATH"
 	env >bar1
 	FOO=bar exec; env >bar2
 	cmp -s bar1 bar2
@@ -6521,7 +6519,7 @@ stdin:
 	print '#!'"$__progname"'\nexec "$1"' >env
 	print '#!'"$__progname"'\nexit 1' >false
 	chmod +x env false
-	PATH=".$PATH_SEPARATOR$PATH"
+	PATH=".$PATHSEP$PATH"
 	set -ex
 	env false && echo something
 	echo END
@@ -6539,7 +6537,7 @@ stdin:
 	print '#!'"$__progname"'\nexit 1' >false
 	print '#!'"$__progname"'\nexit 0' >true
 	chmod +x env false
-	PATH=".$PATH_SEPARATOR$PATH"
+	PATH=".$PATHSEP$PATH"
 	set -ex
 	if env true; then
 		env false && echo something
@@ -7283,7 +7281,7 @@ stdin:
 	set -A anzahl -- foo/*
 	echo got ${#anzahl[*]} files
 	chmod +x foo/*
-	export PATH="$(pwd)/foo$PATH_SEPARATOR$PATH"
+	export PATH="$(pwd)/foo$PATHSEP$PATH"
 	"$__progname" -c '﻿fnord'
 	echo =
 	"$__progname" -c '﻿fnord; fnord; ﻿fnord; fnord'
@@ -7453,7 +7451,7 @@ expected-stdout:
 name: aliases-1
 description:
 	Check if built-in shell aliases are okay
-category: !android,!arge
+category: !android,!arge,!os:os2
 stdin:
 	alias
 	typeset -f
@@ -7514,10 +7512,31 @@ expected-stdout:
 	source='PATH="$PATH;." \command .'
 	type='\builtin whence -v'
 ---
+name: aliases-1-os2
+description:
+	Check if built-in shell aliases are okay
+category: os:os2
+stdin:
+	alias
+	typeset -f
+expected-stdout:
+	autoload='\typeset -fu'
+	functions='\typeset -f'
+	hash='\builtin alias -t'
+	history='\builtin fc -l'
+	integer='\typeset -i'
+	local='\typeset'
+	login='\exec login'
+	nameref='\typeset -n'
+	nohup='nohup '
+	r='\builtin fc -e -'
+	source='PATH="$PATH;." \command .'
+	type='\builtin whence -v'
+---
 name: aliases-2b
 description:
 	Check if “set -o sh” does not influence built-in aliases
-category: !android,!arge
+category: !android,!arge,!os:os2
 arguments: !-o!sh!
 stdin:
 	alias
@@ -7540,7 +7559,7 @@ expected-stdout:
 name: aliases-3b
 description:
 	Check if running as sh does not influence built-in aliases
-category: !android,!arge
+category: !android,!arge,!os:os2
 stdin:
 	cp "$__progname" sh
 	./sh -c 'alias; typeset -f'
@@ -7627,6 +7646,50 @@ expected-stdout:
 	type='\builtin whence -v'
 ---
 name: aliases-3b-hartz4-semi
+description:
+	Check if running as sh does not influence built-in aliases
+category: os:os2
+stdin:
+	cp "$__progname" sh
+	./sh -c 'alias; typeset -f'
+	rm -f sh
+expected-stdout:
+	autoload='\typeset -fu'
+	functions='\typeset -f'
+	hash='\builtin alias -t'
+	history='\builtin fc -l'
+	integer='\typeset -i'
+	local='\typeset'
+	login='\exec login'
+	nameref='\typeset -n'
+	nohup='nohup '
+	r='\builtin fc -e -'
+	source='PATH="$PATH;." \command .'
+	type='\builtin whence -v'
+---
+name: aliases-2b-os2
+description:
+	Check if “set -o sh” does not influence built-in aliases
+category: os:os2
+arguments: !-o!sh!
+stdin:
+	alias
+	typeset -f
+expected-stdout:
+	autoload='\typeset -fu'
+	functions='\typeset -f'
+	hash='\builtin alias -t'
+	history='\builtin fc -l'
+	integer='\typeset -i'
+	local='\typeset'
+	login='\exec login'
+	nameref='\typeset -n'
+	nohup='nohup '
+	r='\builtin fc -e -'
+	source='PATH="$PATH;." \command .'
+	type='\builtin whence -v'
+---
+name: aliases-3b-os2
 description:
 	Check if running as sh does not influence built-in aliases
 category: os:os2
@@ -8680,6 +8743,7 @@ stdin:
 	cat >foo <<-'EOF'
 		x='bar
 		' #
+		echo .${#x} #
 		if test x"$KSH_VERSION" = x""; then #
 			printf '<%s>' "$x" #
 		else #
@@ -8691,8 +8755,10 @@ stdin:
 		print -r -- "{$line}"
 	done
 expected-stdout:
-	[<bar
+	[.5
+	<bar
 	>]
+	{.5}
 	{<bar}
 ---
 name: print-lf
@@ -8702,6 +8768,7 @@ stdin:
 	cat >foo <<-'EOF'
 		x='bar
 		' #
+		echo .${#x} #
 		if test x"$KSH_VERSION" = x""; then #
 			printf '<%s>' "$x" #
 		else #
@@ -8713,8 +8780,10 @@ stdin:
 		print -r -- "{$line}"
 	done
 expected-stdout:
-	[<bar
+	[.4
+	<bar
 	>]
+	{.4}
 	{<bar}
 ---
 name: print-nul-chars
@@ -9968,7 +10037,7 @@ description:
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
-	    done >env; chmod +x env; PATH=".$PATH_SEPARATOR$PATH"
+	    done >env; chmod +x env; PATH=".$PATHSEP$PATH"
 	function k {
 		if [ x$FOO != xbar ]; then
 			echo 1
@@ -10140,7 +10209,7 @@ description:
 	is a must (a non-recursive parser cannot pass all three of
 	these test cases, especially the ‘#’ is difficult)
 stdin:
-	print '#!'"$__progname"'\necho 1234' >id; chmod +x id; PATH=".$PATH_SEPARATOR$PATH"
+	print '#!'"$__progname"'\necho 1234' >id; chmod +x id; PATH=".$PATHSEP$PATH"
 	echo $(typeset -i10 x=16#20; echo $x)
 	echo $(typeset -Uui16 x=16#$(id -u)
 	) .
@@ -11375,7 +11444,7 @@ file-setup: file 755 "!false"
 	#! /bin/sh
 	echo si
 stdin:
-	export PATH=".$PATH_SEPARATOR$PATH"
+	export PATH=".$PATHSEP$PATH"
 	falsetto
 	echo yeap
 	!false
@@ -11405,7 +11474,7 @@ file-setup: file 755 "!false"
 	#! /bin/sh
 	echo si
 stdin:
-	export PATH=".$PATH_SEPARATOR$PATH"
+	export PATH=".$PATHSEP$PATH"
 	falsetto
 	echo yeap
 	!false

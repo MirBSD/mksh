@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.295 2015/07/06 17:48:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.300 2015/07/10 19:36:35 tg Exp $");
 
 extern char **environ;
 
@@ -43,7 +43,7 @@ extern char **environ;
 #endif
 
 #ifndef MKSH_DEFAULT_TMPDIR
-#define MKSH_DEFAULT_TMPDIR	UNIXROOT "/tmp"
+#define MKSH_DEFAULT_TMPDIR	MKSH_UNIXROOT "/tmp"
 #endif
 
 static uint8_t isuc(const char *);
@@ -82,7 +82,7 @@ static const char *initcoms[] = {
 	"nameref=\\typeset -n",
 	"nohup=nohup ",
 	"r=\\builtin fc -e -",
-	"source=PATH=\"$PATH" PATH_SEP_STR ".\" \\command .",
+	"source=PATH=\"$PATH" MKSH_PATHSEPS ".\" \\command .",
 	"login=\\exec login",
 	NULL,
 	 /* this is what AT&T ksh seems to track, with the addition of emacs */
@@ -193,6 +193,12 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	ssize_t k;
 #endif
 
+#ifdef __OS2__
+	for (i = 0; i < 3; ++i)
+		if (!isatty(i))
+			setmode(i, O_BINARY);
+#endif
+
 	/* do things like getpgrp() et al. */
 	chvt_reinit();
 
@@ -269,7 +275,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 #define EXE_EXT	""
 #endif
 		/* are we called as -sh or /bin/sh or so? */
-		if (!strcmp(ccp, "sh" EXE_EXT)) {
+		if (!strcmp(ccp, "sh" MKSH_EXE_EXT)) {
 			/* either also turns off braceexpand */
 #ifdef MKSH_BINSHPOSIX
 			/* enable better POSIX conformance */
@@ -323,9 +329,10 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		 * "keeping a regular /usr"; this is supposed
 		 * to be a sane 'basic' default PATH
 		 */
-		def_path = UNIXROOT "/bin" PATH_SEP_STR
-		           UNIXROOT "/usr/bin" PATH_SEP_STR
-		           UNIXROOT "/sbin" PATH_SEP_STR UNIXROOT "/usr/sbin";
+		def_path = MKSH_UNIXROOT "/bin" MKSH_PATHSEPS
+		    MKSH_UNIXROOT "/usr/bin" MKSH_PATHSEPS
+		    MKSH_UNIXROOT "/sbin" MKSH_PATHSEPS
+		    MKSH_UNIXROOT "/usr/sbin";
 #endif
 
 	/*
@@ -368,7 +375,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	vp = global("PWD");
 	cp = str_val(vp);
 	/* Try to use existing $PWD if it is valid */
-	set_current_wd((IS_ABS_PATH(cp) && test_eval(NULL, TO_FILEQ, cp, ".",
+	set_current_wd((mksh_abspath(cp) && test_eval(NULL, TO_FILEQ, cp, ".",
 	    true)) ? cp : NULL);
 	if (current_wd[0])
 		simplify_path(current_wd);
@@ -461,17 +468,18 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 			kshname = argv[argi++];
 	} else if (argi < argc && !Flag(FSTDIN)) {
 		s = pushs(SFILE, ATEMP);
-#ifndef __OS2__
-		s->file = argv[argi++];
-#else
-		/* a bug in os2 extproc shell processing doesn't pass full pathname
-		 * of a script so we have to search for it.
-		 * This changes the behavior of 'ksh arg' to search the users search
-		 * path but it can't be helped.
+#ifdef __OS2__
+		/*
+		 * A bug in OS/2 extproc (like shebang) handling makes
+		 * it not pass the full pathname of a script, so we need
+		 * to search for it. This changes the behaviour of a
+		 * simple "mksh foo", but can't be helped.
 		 */
 		s->file = search_path(argv[argi++], path, X_OK, NULL);
 		if (!s->file || !*s->file)
 			s->file = argv[argi - 1];
+#else
+		s->file = argv[argi++];
 #endif
 		s->u.shf = shf_open(s->file, O_RDONLY, 0,
 		    SHF_MAPHI | SHF_CLEXEC);
@@ -1376,7 +1384,7 @@ initio(void)
 	shf_fdopen(2, SHF_WR, shl_xtrace);
 #ifdef DF
 	if ((lfp = getenv("SDMKSH_PATH")) == NULL) {
-		if ((lfp = getenv("HOME")) == NULL || !IS_ABS_PATH(lfp))
+		if ((lfp = getenv("HOME")) == NULL || !mksh_abspath(lfp))
 			errorf("cannot get home directory");
 		lfp = shf_smprintf("%s/mksh-dbg.txt", lfp);
 	}
@@ -1416,12 +1424,6 @@ ksh_dup2(int ofd, int nfd, bool errok)
 	return (rv);
 }
 
-#ifdef __OS2__
-#define IS_EXPECTED_ERRNO(e) ((e) == EBADF || (e) == EPERM)
-#else
-#define IS_EXPECTED_ERRNO(e) ((e) == EBADF)
-#endif
-
 /*
  * Move fd from user space (0 <= fd < 10) to shell space (fd >= 10),
  * set close-on-exec flag. See FDBASE in sh.h, maybe 24 not 10 here.
@@ -1432,7 +1434,7 @@ savefd(int fd)
 	int nfd = fd;
 
 	if (fd < FDBASE && (nfd = fcntl(fd, F_DUPFD, FDBASE)) < 0 &&
-	    IS_EXPECTED_ERRNO(errno))
+	    (errno == EBADF || errno == EPERM))
 		return (-1);
 	if (nfd < 0 || nfd > SHRT_MAX)
 		errorf("too many files open in shell");
@@ -1657,7 +1659,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 		} while (len < 6);
 
 		/* check if this one works */
-		if ((i = open(tp->tffn, O_CREAT | O_EXCL | O_RDWR | O_BINARY,
+		if ((i = binopen3(tp->tffn, O_CREAT | O_EXCL | O_RDWR,
 		    0600)) < 0 && errno != EEXIST)
 			goto maketemp_out;
 	} while (i < 0);

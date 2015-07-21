@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.373 2015/07/06 17:48:35 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.378 2015/07/12 19:09:50 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 6 2015 $
+.Dd $Mdocdate: July 12 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -3691,6 +3691,9 @@ and
 See
 .Xr mknod 8
 for further information.
+This is not normally part of
+.Nm mksh ;
+however, distributors may have added this as builtin as a speed hack.
 .Pp
 .It Xo
 .Ic print
@@ -3751,8 +3754,9 @@ Approximately the same as the
 .Xr printf 1 ,
 utility, except it uses the same
 .Sx Backslash expansion
-and I/O code and does hot handle floating point as the rest of
+and I/O code and does not handle floating point as the rest of
 .Nm mksh .
+An external utility is preferred over the builtin.
 This is not normally part of
 .Nm mksh ;
 however, distributors may have added this as builtin as a speed hack.
@@ -5394,7 +5398,7 @@ Simply causes the character to appear as literal input.
 Most ordinary characters are bound to this.
 .It Xo backward\-char:
 .Op Ar n
-.No \*(haB , \*(haXD , ANSI-CurLeft
+.No \*(haB , \*(haXD , ANSI-CurLeft , PC-CurLeft
 .Xc
 Moves the cursor backward
 .Ar n
@@ -5411,7 +5415,7 @@ and dollar sign
 characters.
 .It beginning\-of\-history: \*(ha[\*(Lt
 Moves to the beginning of the history.
-.It beginning\-of\-line: \*(haA, ANSI-Home
+.It beginning\-of\-line: \*(haA, ANSI-Home, PC-Home
 Moves the cursor to the beginning of the edited input line.
 .It Xo capitalise\-word:
 .Op Ar n
@@ -5467,7 +5471,7 @@ Deletes
 characters before the cursor.
 .It Xo delete\-char\-forward:
 .Op Ar n
-.No ANSI-Del
+.No ANSI-Del , PC-Del
 .Xc
 Deletes
 .Ar n
@@ -5488,7 +5492,7 @@ Deletes characters after the cursor up to the end of
 words.
 .It Xo down\-history:
 .Op Ar n
-.No \*(haN , \*(haXB , ANSI-CurDown
+.No \*(haN , \*(haXB , ANSI-CurDown , PC-CurDown
 .Xc
 Scrolls the history buffer forward
 .Ar n
@@ -5520,7 +5524,7 @@ The actual command executed is
 .Ic fc \-e ${VISUAL:\-${EDITOR:\-vi}} Ar n .
 .It end\-of\-history: \*(ha[\*(Gt
 Moves to the end of the history.
-.It end\-of\-line: \*(haE, ANSI-End
+.It end\-of\-line: \*(haE, ANSI-End, PC-End
 Moves the cursor to the end of the input line.
 .It eot: \*(ha_
 Acts as an end-of-file; this is useful because edit-mode input disables
@@ -5545,7 +5549,7 @@ globbing on the word.
 If no files match the pattern, the bell is rung.
 .It Xo forward\-char:
 .Op Ar n
-.No \*(haF , \*(haXC , ANSI-CurRight
+.No \*(haF , \*(haXC , ANSI-CurRight , PC-CurRight
 .Xc
 Moves the cursor forward
 .Ar n
@@ -5659,12 +5663,12 @@ commands continue searching backward to the next previous occurrence of the
 pattern.
 The history buffer retains only a finite number of lines; the oldest
 are discarded as necessary.
-.It search\-history\-up: ANSI-PgUp
+.It search\-history\-up: ANSI-PgUp, PC-PgUp
 Search backwards through the history buffer for commands whose beginning match
 the portion of the input line before the cursor.
 When used on an empty line, this has the same effect as
 .Ic up\-history .
-.It search\-history\-down: ANSI-PgDn
+.It search\-history\-down: ANSI-PgDn, PC-PgDn
 Search forwards through the history buffer for commands whose beginning match
 the portion of the input line before the cursor.
 When used on an empty line, this has the same effect as
@@ -5684,7 +5688,7 @@ exchanges the previous and current characters and moves the cursor one
 character to the right.
 .It Xo up\-history:
 .Op Ar n
-.No \*(haP , \*(haXA , ANSI-CurUp
+.No \*(haP , \*(haXA , ANSI-CurUp , PC-CurUp
 .Xc
 Scrolls the history buffer backward
 .Ar n
@@ -6112,7 +6116,7 @@ Search for the
 .Ar n Ns th
 occurrence of the last search string;
 the direction of the search is the opposite of the last search.
-.It Ar ANSI-CurUp
+.It Ar ANSI-CurUp , PC-PgUp
 Take the characters from the beginning of the line to the current
 cursor position as search string and do a backwards history search
 for lines beginning with this string; keep the cursor position.
@@ -6263,6 +6267,8 @@ times.
 Undo the last edit command.
 .It U
 Undo all changes that have been made to the current line.
+.It PC Home, End, Del, and cursor keys
+They move as expected, both in insert and command mode.
 .It Ar intr No and Ar quit
 The interrupt and quit terminal characters cause the current line to be
 deleted and a new prompt to be printed.
@@ -6321,8 +6327,6 @@ contains the system and suid profile.
 .Xr script 7 ,
 .Xr utf\-8 7 ,
 .Xr mknod 8
-.Pp
-.Pa http://docsrv.sco.com:507/en/man/html.C/sh.C.html
 .Pp
 .Pa https://www.mirbsd.org/ksh\-chan.htm
 .Rs
@@ -6435,9 +6439,6 @@ The complete legalese is at:
 .\"
 .Sh CAVEATS
 .Nm
-only supports the Unicode BMP (Basic Multilingual Plane).
-.Pp
-.Nm
 has a different scope model from
 .At
 .Nm ksh ,
@@ -6482,8 +6483,20 @@ For the purpose of
 supports only the
 .Dq C
 locale.
-For users of UTF-8 locales, the following sh code makes the shell
-match the locale:
+.Nm mksh Ns 's
+.Ic utf8\-mode
+only supports the Unicode BMP (Basic Multilingual Plane) and maps
+raw octets into the U+EF80..U+EFFF wide character range; compare
+.Sx Arithmetic expressions .
+The following
+.Tn POSIX
+.Nm sh
+code toggles the
+.Ic utf8\-mode
+option dependent on the current
+.Tn POSIX
+locale for mksh to allow using the UTF-8 mode, within the constraints
+outlined above, in code portable across various shell implementations:
 .Bd -literal -offset indent
 case ${KSH_VERSION:\-} in
 *MIRBSD\ KSH*\*(Ba*LEGACY\ KSH*)

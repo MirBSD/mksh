@@ -172,9 +172,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.734 2015/07/06 17:48:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.739 2015/07/10 19:36:37 tg Exp $");
 #endif
-#define MKSH_VERSION "R51 2015/07/06"
+#define MKSH_VERSION "R51 2015/07/10"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -256,7 +256,7 @@ typedef MKSH_TYPEDEF_SSIZE_T ssize_t;
 
 /* extra types */
 
-/* OS/2 kLIBC has only a declaration of getrusage() without implementation */
+/* getrusage does not exist on OS/2 kLIBC */
 #if !HAVE_GETRUSAGE && !defined(__OS2__)
 #undef rusage
 #undef RUSAGE_SELF
@@ -414,6 +414,23 @@ struct rusage {
 
 
 /* OS-dependent additions (functions, variables, by OS) */
+
+#ifdef MKSH_EXE_EXT
+#undef MKSH_EXE_EXT
+#define MKSH_EXE_EXT	".exe"
+#else
+#define MKSH_EXE_EXT	""
+#endif
+
+#ifdef __OS2__
+#define MKSH_PATHSEPS	";"
+#define MKSH_PATHSEPC	';'
+#define MKSH_UNIXROOT	"/@unixroot"
+#else
+#define MKSH_PATHSEPS	":"
+#define MKSH_PATHSEPC	':'
+#define MKSH_UNIXROOT	""
+#endif
 
 #if !HAVE_FLOCK_DECL
 extern int flock(int, int);
@@ -592,7 +609,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 510)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 511)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -862,6 +879,12 @@ EXTERN const char T_typeset[] E_INIT("=typeset");
 EXTERN const char Talias[] E_INIT("alias");
 EXTERN const char Tunalias[] E_INIT("unalias");
 EXTERN const char Tcat[] E_INIT("cat");
+#ifdef __OS2__
+EXTERN const char Textproc[] E_INIT("extproc");
+#endif
+#ifdef MKSH_PRINTF_BUILTIN
+EXTERN const char Tprintf[] E_INIT("printf");
+#endif
 EXTERN const char Tsgset[] E_INIT("*=set");
 #define Tset		(Tsgset + 2)		/* "set" */
 EXTERN const char Tsgexport[] E_INIT("*=export");
@@ -2114,6 +2137,33 @@ EXTERN mksh_ttyst tty_state;	/* saved tty state */
 EXTERN bool tty_hasstate;	/* true if tty_state is valid */
 
 extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
+
+#ifdef __OS2__
+#ifndef __GNUC__
+# error oops?
+#endif
+#define binopen2(path,flags)		__extension__({			\
+	int binopen2_fd = open((path), (flags) | O_BINARY);		\
+	if (binopen2_fd >= 0)						\
+		setmode(binopen2_fd, O_BINARY);				\
+	(binopen2_fd);							\
+})
+#define binopen3(path,flags,mode)	__extension__({			\
+	int binopen3_fd = open((path), (flags) | O_BINARY, (mode));	\
+	if (binopen3_fd >= 0)						\
+		setmode(binopen3_fd, O_BINARY);				\
+	(binopen3_fd);							\
+})
+#define mksh_abspath(s)			__extension__({			\
+	const char *mksh_abspath_s = (s);				\
+	(mksh_abspath_s[0] == '/' || (ksh_isalphx(mksh_abspath_s[0]) &&	\
+	    mksh_abspath_s[1] == ':'));					\
+})
+#else
+#define binopen2(path,flags)		open((path), (flags) | O_BINARY)
+#define binopen3(path,flags,mode)	open((path), (flags) | O_BINARY, (mode))
+#define mksh_abspath(s)			((s)[0] == '/')
+#endif
 
 /* be sure not to interfere with anyone else's idea about EXTERN */
 #ifdef EXTERN_DEFINED
