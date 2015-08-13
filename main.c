@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.300 2015/07/10 19:36:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.301 2015/08/13 22:06:22 tg Exp $");
 
 extern char **environ;
 
@@ -82,7 +82,7 @@ static const char *initcoms[] = {
 	"nameref=\\typeset -n",
 	"nohup=nohup ",
 	"r=\\builtin fc -e -",
-	"source=PATH=$PATH" MKSH_PATHSEPS ". \\command .",
+	"source=PATH=$PATH" MKSH_PATHSEPE ". \\command .",
 	"login=\\exec login",
 	NULL,
 	 /* this is what AT&T ksh seems to track, with the addition of emacs */

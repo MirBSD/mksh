@@ -172,7 +172,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.740 2015/08/13 21:38:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.741 2015/08/13 22:06:23 tg Exp $");
 #endif
 #define MKSH_VERSION "R51 2015/08/13"
 
@@ -387,10 +387,12 @@ struct rusage {
 #endif
 
 #ifdef __OS2__
+#define MKSH_PATHSEPE	"\\;"
 #define MKSH_PATHSEPS	";"
 #define MKSH_PATHSEPC	';'
 #define MKSH_UNIXROOT	"/@unixroot"
 #else
+#define MKSH_PATHSEPE	":"
 #define MKSH_PATHSEPS	":"
 #define MKSH_PATHSEPC	':'
 #define MKSH_UNIXROOT	""

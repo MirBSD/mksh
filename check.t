@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.704 2015/08/13 21:38:15 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.705 2015/08/13 22:06:19 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -7509,7 +7509,7 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH=$PATH;. \command .'
+	source='PATH=$PATH\;. \command .'
 	type='\builtin whence -v'
 ---
 name: aliases-2b
@@ -7621,7 +7621,7 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH=$PATH;. \command .'
+	source='PATH=$PATH\;. \command .'
 	type='\builtin whence -v'
 ---
 name: aliases-3b-os2
@@ -7643,7 +7643,7 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH=$PATH;. \command .'
+	source='PATH=$PATH\;. \command .'
 	type='\builtin whence -v'
 ---
 name: aliases-cmdline
