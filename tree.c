@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.73 2015/04/11 22:03:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.74 2015/08/13 20:54:03 tg Exp $");
 
 #define INDENT	8
 
@@ -748,6 +748,8 @@ fpFUNCTf(struct shf *shf, int i, bool isksh, const char *k, struct op *v)
 {
 	if (isksh)
 		fptreef(shf, i, "%s %s %T", Tfunction, k, v);
+	else if (ktsearch(&keywords, k, hash(k)))
+		fptreef(shf, i, "%s %s() %T", Tfunction, k, v);
 	else
 		fptreef(shf, i, "%s() %T", k, v);
 }
