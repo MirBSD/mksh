@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.112 2015/04/19 14:40:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.113 2015/08/13 21:38:19 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -215,11 +215,14 @@ j_init(void)
 static int
 proc_errorlevel(Proc *p)
 {
+	int termsig;
+
 	switch (p->state) {
 	case PEXITED:
-		return (WEXITSTATUS(p->status));
+		return ((WEXITSTATUS(p->status)) & 255);
 	case PSIGNALLED:
-		return (128 + WTERMSIG(p->status));
+		termsig = WTERMSIG(p->status);
+		return ((termsig < 1 || termsig > 127) ? 255 : 128 + termsig);
 	default:
 		return (0);
 	}
@@ -1223,14 +1226,14 @@ j_waitj(Job *j,
 		 * even when not monitoring, but this doesn't make sense since
 		 * a tty generated ^C goes to the whole process group)
 		 */
-		{
-			int status;
+		if (Flag(FMONITOR) && j->state == PSIGNALLED &&
+		    WIFSIGNALED(j->last_proc->status)) {
+			int termsig;
 
-			status = j->last_proc->status;
-			if (Flag(FMONITOR) && j->state == PSIGNALLED &&
-			    WIFSIGNALED(status) &&
-			    (sigtraps[WTERMSIG(status)].flags & TF_TTY_INTR))
-				trapsig(WTERMSIG(status));
+			if ((termsig = WTERMSIG(j->last_proc->status)) > 0 &&
+			    termsig < ksh_NSIG &&
+			    (sigtraps[termsig].flags & TF_TTY_INTR))
+				trapsig(termsig);
 		}
 #endif
 	}
@@ -1527,7 +1530,7 @@ j_print(Job *j, int how, struct shf *shf)
 	Proc *p;
 	int state;
 	int status;
-	int coredumped;
+	bool coredumped;
 	char jobchar = ' ';
 	char buf[64];
 	const char *filler;
@@ -1551,41 +1554,49 @@ j_print(Job *j, int how, struct shf *shf)
 		jobchar = '-';
 
 	for (p = j->proc_list; p != NULL;) {
-		coredumped = 0;
+		coredumped = false;
 		switch (p->state) {
 		case PRUNNING:
 			memcpy(buf, "Running", 8);
 			break;
-		case PSTOPPED:
-			strlcpy(buf, sigtraps[WSTOPSIG(p->status)].mess,
-			    sizeof(buf));
+		case PSTOPPED: {
+			int stopsig = WSTOPSIG(p->status);
+
+			strlcpy(buf, stopsig > 0 && stopsig < ksh_NSIG ?
+			    sigtraps[stopsig].mess : "Stopped", sizeof(buf));
 			break;
-		case PEXITED:
+		}
+		case PEXITED: {
+			int exitstatus = (WEXITSTATUS(p->status)) & 255;
+
 			if (how == JP_SHORT)
 				buf[0] = '\0';
-			else if (WEXITSTATUS(p->status) == 0)
+			else if (exitstatus == 0)
 				memcpy(buf, "Done", 5);
 			else
 				shf_snprintf(buf, sizeof(buf), "Done (%d)",
-				    WEXITSTATUS(p->status));
+				    exitstatus);
 			break;
-		case PSIGNALLED:
+		}
+		case PSIGNALLED: {
+			int termsig = WTERMSIG(p->status);
 #ifdef WCOREDUMP
 			if (WCOREDUMP(p->status))
-				coredumped = 1;
+				coredumped = true;
 #endif
 			/*
 			 * kludge for not reporting 'normal termination
 			 * signals' (i.e. SIGINT, SIGPIPE)
 			 */
 			if (how == JP_SHORT && !coredumped &&
-			    (WTERMSIG(p->status) == SIGINT ||
-			    WTERMSIG(p->status) == SIGPIPE)) {
+			    (termsig == SIGINT || termsig == SIGPIPE)) {
 				buf[0] = '\0';
 			} else
-				strlcpy(buf, sigtraps[WTERMSIG(p->status)].mess,
+				strlcpy(buf, termsig > 0 && termsig < ksh_NSIG ?
+				    sigtraps[termsig].mess : "Signalled",
 				    sizeof(buf));
 			break;
+		}
 		default:
 			buf[0] = '\0';
 		}

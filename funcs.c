@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.281 2015/08/13 21:04:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.282 2015/08/13 21:38:17 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1374,7 +1374,7 @@ c_kill(const char **wp)
 			for (; wp[i]; i++) {
 				if (!bi_getn(wp[i], &n))
 					return (1);
-#if (ksh_NSIG < 128)
+#if (ksh_NSIG <= 128)
 				if (n > 128 && n < 128 + ksh_NSIG)
 					n -= 128;
 #endif
@@ -1385,7 +1385,7 @@ c_kill(const char **wp)
 			}
 		} else {
 			ssize_t w, mess_cols = 0, mess_octs = 0;
-			int j = ksh_NSIG;
+			int j = ksh_NSIG - 1;
 			struct kill_info ki = { 0, 0 };
 
 			do {
@@ -2293,7 +2293,7 @@ int
 c_trap(const char **wp)
 {
 	Trap *p = sigtraps;
-	int i = ksh_NSIG + 1;
+	int i = ksh_NSIG;
 	const char *s;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
@@ -2308,7 +2308,7 @@ c_trap(const char **wp)
 				shprintf(" %s\n", p->name);
 			}
 			++p;
-		} while (--i);
+		} while (i--);
 		return (0);
 	}
 
