@@ -1,5 +1,5 @@
 /*	$OpenBSD: c_ksh.c,v 1.34 2013/12/17 16:37:05 deraadt Exp $	*/
-/*	$OpenBSD: c_sh.c,v 1.45 2014/08/27 08:26:04 jmc Exp $	*/
+/*	$OpenBSD: c_sh.c,v 1.46 2015/07/20 20:46:24 guenther Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.18 2009/03/01 20:11:06 otto Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.19 2013/11/28 10:33:37 sobrado Exp $	*/
 
@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.280 2015/07/09 20:52:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.281 2015/08/13 21:04:11 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2542,7 +2542,7 @@ p_time(struct shf *shf, bool posix, long tv_sec, int tv_usec, int width,
 		shf_fprintf(shf, "%s%*ld.%02d%s", prefix, width,
 		    tv_sec, tv_usec, suffix);
 	else
-		shf_fprintf(shf, "%s%*ldm%d.%02ds%s", prefix, width,
+		shf_fprintf(shf, "%s%*ldm%02d.%02ds%s", prefix, width,
 		    tv_sec / 60, (int)(tv_sec % 60), tv_usec, suffix);
 }
 
