@@ -1,5 +1,5 @@
 /*	$OpenBSD: c_ksh.c,v 1.34 2013/12/17 16:37:05 deraadt Exp $	*/
-/*	$OpenBSD: c_sh.c,v 1.45 2014/08/27 08:26:04 jmc Exp $	*/
+/*	$OpenBSD: c_sh.c,v 1.46 2015/07/20 20:46:24 guenther Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.18 2009/03/01 20:11:06 otto Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.19 2013/11/28 10:33:37 sobrado Exp $	*/
 
@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.280 2015/07/09 20:52:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.282 2015/08/13 21:38:17 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1374,7 +1374,7 @@ c_kill(const char **wp)
 			for (; wp[i]; i++) {
 				if (!bi_getn(wp[i], &n))
 					return (1);
-#if (ksh_NSIG < 128)
+#if (ksh_NSIG <= 128)
 				if (n > 128 && n < 128 + ksh_NSIG)
 					n -= 128;
 #endif
@@ -1385,7 +1385,7 @@ c_kill(const char **wp)
 			}
 		} else {
 			ssize_t w, mess_cols = 0, mess_octs = 0;
-			int j = ksh_NSIG;
+			int j = ksh_NSIG - 1;
 			struct kill_info ki = { 0, 0 };
 
 			do {
@@ -2293,7 +2293,7 @@ int
 c_trap(const char **wp)
 {
 	Trap *p = sigtraps;
-	int i = ksh_NSIG + 1;
+	int i = ksh_NSIG;
 	const char *s;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
@@ -2308,7 +2308,7 @@ c_trap(const char **wp)
 				shprintf(" %s\n", p->name);
 			}
 			++p;
-		} while (--i);
+		} while (i--);
 		return (0);
 	}
 
@@ -2542,7 +2542,7 @@ p_time(struct shf *shf, bool posix, long tv_sec, int tv_usec, int width,
 		shf_fprintf(shf, "%s%*ld.%02d%s", prefix, width,
 		    tv_sec, tv_usec, suffix);
 	else
-		shf_fprintf(shf, "%s%*ldm%d.%02ds%s", prefix, width,
+		shf_fprintf(shf, "%s%*ldm%02d.%02ds%s", prefix, width,
 		    tv_sec / 60, (int)(tv_sec % 60), tv_usec, suffix);
 }
 

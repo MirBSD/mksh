@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.703 2015/07/10 19:36:31 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.705 2015/08/13 22:06:19 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R51 2015/07/10
+	@(#)MIRBSD KSH R51 2015/08/13
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R51 2015/07/10
+	@(#)LEGACY KSH R51 2015/08/13
 description:
 	Check version of legacy shell.
 stdin:
@@ -7466,7 +7466,7 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH="$PATH:." \command .'
+	source='PATH=$PATH:. \command .'
 	stop='\kill -STOP'
 	type='\builtin whence -v'
 ---
@@ -7488,28 +7488,7 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH="$PATH:." \command .'
-	type='\builtin whence -v'
----
-name: aliases-1-hartz4-semi
-description:
-	Check if built-in shell aliases are okay
-category: os:os2
-stdin:
-	alias
-	typeset -f
-expected-stdout:
-	autoload='\typeset -fu'
-	functions='\typeset -f'
-	hash='\builtin alias -t'
-	history='\builtin fc -l'
-	integer='\typeset -i'
-	local='\typeset'
-	login='\exec login'
-	nameref='\typeset -n'
-	nohup='nohup '
-	r='\builtin fc -e -'
-	source='PATH="$PATH;." \command .'
+	source='PATH=$PATH:. \command .'
 	type='\builtin whence -v'
 ---
 name: aliases-1-os2
@@ -7530,7 +7509,7 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH="$PATH;." \command .'
+	source='PATH=$PATH\;. \command .'
 	type='\builtin whence -v'
 ---
 name: aliases-2b
@@ -7552,7 +7531,7 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH="$PATH:." \command .'
+	source='PATH=$PATH:. \command .'
 	stop='\kill -STOP'
 	type='\builtin whence -v'
 ---
@@ -7575,7 +7554,7 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH="$PATH:." \command .'
+	source='PATH=$PATH:. \command .'
 	stop='\kill -STOP'
 	type='\builtin whence -v'
 ---
@@ -7598,7 +7577,7 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH="$PATH:." \command .'
+	source='PATH=$PATH:. \command .'
 	type='\builtin whence -v'
 ---
 name: aliases-3b-hartz4
@@ -7620,51 +7599,7 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH="$PATH:." \command .'
-	type='\builtin whence -v'
----
-name: aliases-2b-hartz4-semi
-description:
-	Check if “set -o sh” does not influence built-in aliases
-category: os:os2
-arguments: !-o!sh!
-stdin:
-	alias
-	typeset -f
-expected-stdout:
-	autoload='\typeset -fu'
-	functions='\typeset -f'
-	hash='\builtin alias -t'
-	history='\builtin fc -l'
-	integer='\typeset -i'
-	local='\typeset'
-	login='\exec login'
-	nameref='\typeset -n'
-	nohup='nohup '
-	r='\builtin fc -e -'
-	source='PATH="$PATH;." \command .'
-	type='\builtin whence -v'
----
-name: aliases-3b-hartz4-semi
-description:
-	Check if running as sh does not influence built-in aliases
-category: os:os2
-stdin:
-	cp "$__progname" sh
-	./sh -c 'alias; typeset -f'
-	rm -f sh
-expected-stdout:
-	autoload='\typeset -fu'
-	functions='\typeset -f'
-	hash='\builtin alias -t'
-	history='\builtin fc -l'
-	integer='\typeset -i'
-	local='\typeset'
-	login='\exec login'
-	nameref='\typeset -n'
-	nohup='nohup '
-	r='\builtin fc -e -'
-	source='PATH="$PATH;." \command .'
+	source='PATH=$PATH:. \command .'
 	type='\builtin whence -v'
 ---
 name: aliases-2b-os2
@@ -7686,7 +7621,7 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH="$PATH;." \command .'
+	source='PATH=$PATH\;. \command .'
 	type='\builtin whence -v'
 ---
 name: aliases-3b-os2
@@ -7708,7 +7643,7 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH="$PATH;." \command .'
+	source='PATH=$PATH\;. \command .'
 	type='\builtin whence -v'
 ---
 name: aliases-cmdline
