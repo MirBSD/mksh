@@ -5557,7 +5557,7 @@ description:
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
-	    done >env; chmod +x env; PATH=".$PATHSEP$PATH"
+	    done >env; chmod +x env; PATH=.$PATHSEP$PATH
 	foo=bar
 	readonly foo
 	foo=stuff env | grep '^foo'
@@ -6263,7 +6263,7 @@ description:
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
-	    done >env; chmod +x env; PATH=".$PATHSEP$PATH"
+	    done >env; chmod +x env; PATH=.$PATHSEP$PATH
 	FOO=bar exec env
 expected-stdout-pattern:
 	/(^|.*\n)FOO=bar\n/
@@ -6275,7 +6275,7 @@ description:
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
-	    done >env; chmod +x env; PATH=".$PATHSEP$PATH"
+	    done >env; chmod +x env; PATH=.$PATHSEP$PATH
 	env >bar1
 	FOO=bar exec; env >bar2
 	cmp -s bar1 bar2
@@ -6519,7 +6519,7 @@ stdin:
 	print '#!'"$__progname"'\nexec "$1"' >env
 	print '#!'"$__progname"'\nexit 1' >false
 	chmod +x env false
-	PATH=".$PATHSEP$PATH"
+	PATH=.$PATHSEP$PATH
 	set -ex
 	env false && echo something
 	echo END
@@ -6537,7 +6537,7 @@ stdin:
 	print '#!'"$__progname"'\nexit 1' >false
 	print '#!'"$__progname"'\nexit 0' >true
 	chmod +x env false
-	PATH=".$PATHSEP$PATH"
+	PATH=.$PATHSEP$PATH
 	set -ex
 	if env true; then
 		env false && echo something
@@ -7281,7 +7281,7 @@ stdin:
 	set -A anzahl -- foo/*
 	echo got ${#anzahl[*]} files
 	chmod +x foo/*
-	export PATH="$(pwd)/foo$PATHSEP$PATH"
+	export PATH=$(pwd)/foo$PATHSEP$PATH
 	"$__progname" -c '﻿fnord'
 	echo =
 	"$__progname" -c '﻿fnord; fnord; ﻿fnord; fnord'
@@ -9972,7 +9972,7 @@ description:
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
-	    done >env; chmod +x env; PATH=".$PATHSEP$PATH"
+	    done >env; chmod +x env; PATH=.$PATHSEP$PATH
 	function k {
 		if [ x$FOO != xbar ]; then
 			echo 1
@@ -10144,7 +10144,7 @@ description:
 	is a must (a non-recursive parser cannot pass all three of
 	these test cases, especially the ‘#’ is difficult)
 stdin:
-	print '#!'"$__progname"'\necho 1234' >id; chmod +x id; PATH=".$PATHSEP$PATH"
+	print '#!'"$__progname"'\necho 1234' >id; chmod +x id; PATH=.$PATHSEP$PATH
 	echo $(typeset -i10 x=16#20; echo $x)
 	echo $(typeset -Uui16 x=16#$(id -u)
 	) .
@@ -11379,7 +11379,7 @@ file-setup: file 755 "!false"
 	#! /bin/sh
 	echo si
 stdin:
-	export PATH=".$PATHSEP$PATH"
+	export PATH=.$PATHSEP$PATH
 	falsetto
 	echo yeap
 	!false
@@ -11409,7 +11409,7 @@ file-setup: file 755 "!false"
 	#! /bin/sh
 	echo si
 stdin:
-	export PATH=".$PATHSEP$PATH"
+	export PATH=.$PATHSEP$PATH
 	falsetto
 	echo yeap
 	!false
