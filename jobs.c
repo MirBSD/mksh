@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.113 2015/08/13 21:38:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.114 2015/09/05 17:20:19 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -892,7 +892,7 @@ j_resume(const char *cp, int bg)
 				    (long)kshpgrp, "failed", cstrerror(errno));
 		}
 		sigprocmask(SIG_SETMASK, &omask, NULL);
-		bi_errorf("%s %s %s", "can't continue job",
+		bi_errorf("%s %s: %s", "can't continue job",
 		    cp, cstrerror(eno));
 		return (1);
 	}
