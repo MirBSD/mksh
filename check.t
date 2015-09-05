@@ -1,9 +1,9 @@
-# $MirOS: src/bin/mksh/check.t,v 1.705 2015/08/13 22:06:19 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.706 2015/09/05 20:20:42 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #	      2011, 2012, 2013, 2014, 2015
-#	Thorsten Glaser <tg@mirbsd.org>
+#	mirabilos <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
 # are retained or reproduced in an accompanying document, permission
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R51 2015/08/13
+	@(#)MIRBSD KSH R51 2015/09/05
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R51 2015/08/13
+	@(#)LEGACY KSH R51 2015/09/05
 description:
 	Check version of legacy shell.
 stdin:
@@ -2423,7 +2423,7 @@ stdin:
 	print -r -- "| ${v//$'\n'/^} |"
 expected-stdout:
 	function foo {
-		vc=<<-EOF
+		vc=<<-EOF 
 	=c $x \x40=
 	EOF
 	
@@ -2476,11 +2476,11 @@ stdin:
 	print -r -- "| ${v//$'\n'/^} |"
 expected-stdout:
 	function foo {
-		vc=<<-
+		vc=<<- 
 	=c $x \x40=
 	<<
 	
-		vd=<<-""
+		vd=<<-"" 
 	=d $x \x40=
 	
 	
@@ -2537,6 +2537,46 @@ expected-stdout:
 	3 bar "a b" bar
 	3 baz a b baz
 	3 bla "a b" bla
+---
+name: heredoc-14
+description:
+	Check that using multiple here documents works
+stdin:
+	foo() {
+		echo "got $(cat) on stdin"
+		echo "got $(cat <&4) on fd#4"
+		echo "got $(cat <&5) on fd#5"
+	}
+	bar() {
+		foo 4<<-a <<-b 5<<-c
+		four
+		a
+		zero
+		b
+		five
+		c
+	}
+	x=$(typeset -f bar)
+	eval "$x"
+	y=$(typeset -f bar)
+	[[ $x = "$y" ]]; echo $?
+	typeset -f bar
+	bar
+expected-stdout:
+	0
+	bar() {
+		foo 4<<-a <<-b 5<<-c 
+	four
+	a
+	zero
+	b
+	five
+	c
+	
+	} 
+	got zero on stdin
+	got four on fd#4
+	got five on fd#5
 ---
 name: heredoc-comsub-1
 description:
@@ -10566,7 +10606,7 @@ expected-stdout:
 	EOFN
 	}
 	inline_IOWRITE_IOCLOB_IOHERE_noIOSKIP() {
-		cat >|bar <<"EOFN"
+		cat >|bar <<"EOFN" 
 		foo
 	EOFN
 	
@@ -10577,7 +10617,7 @@ expected-stdout:
 	EOFN
 	); }
 	function comsub_IOWRITE_IOCLOB_IOHERE_noIOSKIP {
-		x=$(cat >|bar <<"EOFN"
+		x=$(cat >|bar <<"EOFN" 
 		foo
 	EOFN
 	) 
@@ -10588,7 +10628,7 @@ expected-stdout:
 	EOFN
 	)|tr u x); }
 	function reread_IOWRITE_IOCLOB_IOHERE_noIOSKIP {
-		x=$(( cat >|bar <<"EOFN"
+		x=$(( cat >|bar <<"EOFN" 
 		foo
 	EOFN
 	) | tr u x ) 
@@ -10599,7 +10639,7 @@ expected-stdout:
 		EOFI
 	}
 	inline_IOWRITE_noIOCLOB_IOHERE_IOSKIP() {
-		cat >bar <<-EOFI
+		cat >bar <<-EOFI 
 	foo
 	EOFI
 	
@@ -10610,7 +10650,7 @@ expected-stdout:
 		EOFI
 	); }
 	function comsub_IOWRITE_noIOCLOB_IOHERE_IOSKIP {
-		x=$(cat >bar <<-EOFI
+		x=$(cat >bar <<-EOFI 
 	foo
 	EOFI
 	) 
@@ -10621,7 +10661,7 @@ expected-stdout:
 		EOFI
 	)|tr u x); }
 	function reread_IOWRITE_noIOCLOB_IOHERE_IOSKIP {
-		x=$(( cat >bar <<-EOFI
+		x=$(( cat >bar <<-EOFI 
 	foo
 	EOFI
 	) | tr u x ) 
@@ -10712,7 +10752,7 @@ expected-stdout:
 	EOFN); echo $x
 	}
 	inline_heredoc_closed() {
-		x=$(cat <<EOFN
+		x=$(cat <<EOFN 
 		note there must be no space between EOFN and )
 	EOFN
 	) 
@@ -10724,7 +10764,7 @@ expected-stdout:
 	EOFN); echo $x
 	); }
 	function comsub_heredoc_closed {
-		x=$(x=$(cat <<EOFN
+		x=$(x=$(cat <<EOFN 
 		note there must be no space between EOFN and )
 	EOFN
 	) ; echo $x ) 
@@ -10735,7 +10775,7 @@ expected-stdout:
 	EOFN); echo $x
 	)|tr u x); }
 	function reread_heredoc_closed {
-		x=$(( x=$(cat <<EOFN
+		x=$(( x=$(cat <<EOFN 
 		note there must be no space between EOFN and )
 	EOFN
 	) ; echo $x ) | tr u x ) 
@@ -10746,7 +10786,7 @@ expected-stdout:
 	EOFN ); echo $x
 	}
 	inline_heredoc_space() {
-		x=$(cat <<EOFN\ 
+		x=$(cat <<EOFN\  
 		note the space between EOFN and ) is actually part of the here document marker
 	EOFN 
 	) 
@@ -10758,7 +10798,7 @@ expected-stdout:
 	EOFN ); echo $x
 	); }
 	function comsub_heredoc_space {
-		x=$(x=$(cat <<EOFN\ 
+		x=$(x=$(cat <<EOFN\  
 		note the space between EOFN and ) is actually part of the here document marker
 	EOFN 
 	) ; echo $x ) 
@@ -10769,7 +10809,7 @@ expected-stdout:
 	EOFN ); echo $x
 	)|tr u x); }
 	function reread_heredoc_space {
-		x=$(( x=$(cat <<EOFN\ 
+		x=$(( x=$(cat <<EOFN\  
 		note the space between EOFN and ) is actually part of the here document marker
 	EOFN 
 	) ; echo $x ) | tr u x ) 
@@ -10792,7 +10832,7 @@ expected-stdout:
 	}
 	inline_patch_motd() {
 		x=$(sysctl -n kern.version | sed 1q ) 
-		[[ -s /etc/motd && "$([[ "$(head -1 /etc/motd )" != $x ]] && ed -s /etc/motd 2>&1 <<-EOF
+		[[ -s /etc/motd && "$([[ "$(head -1 /etc/motd )" != $x ]] && ed -s /etc/motd 2>&1 <<-EOF 
 	1,/^\$/d
 	0a
 	$x
@@ -10824,7 +10864,7 @@ expected-stdout:
 		fi
 	); }
 	function comsub_patch_motd {
-		x=$(x=$(sysctl -n kern.version | sed 1q ) ; [[ -s /etc/motd && "$([[ "$(head -1 /etc/motd )" != $x ]] && ed -s /etc/motd 2>&1 <<-EOF
+		x=$(x=$(sysctl -n kern.version | sed 1q ) ; [[ -s /etc/motd && "$([[ "$(head -1 /etc/motd )" != $x ]] && ed -s /etc/motd 2>&1 <<-EOF 
 	1,/^\$/d
 	0a
 	$x
@@ -10851,7 +10891,7 @@ expected-stdout:
 		fi
 	)|tr u x); }
 	function reread_patch_motd {
-		x=$(( x=$(sysctl -n kern.version | sed 1q ) ; [[ -s /etc/motd && "$([[ "$(head -1 /etc/motd )" != $x ]] && ed -s /etc/motd 2>&1 <<-EOF
+		x=$(( x=$(sysctl -n kern.version | sed 1q ) ; [[ -s /etc/motd && "$([[ "$(head -1 /etc/motd )" != $x ]] && ed -s /etc/motd 2>&1 <<-EOF 
 	1,/^\$/d
 	0a
 	$x

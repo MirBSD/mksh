@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.206 2015/09/05 19:19:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.207 2015/09/05 20:20:46 tg Exp $");
 
 /*
  * states while lexing word
@@ -946,6 +946,14 @@ yylex(int cf)
 					c2 = getsc();
 				} else if (c2 == '<')
 					iop->ioflag |= IOHERESTR;
+				if (c2 == ' ') {
+					/*XXX reentrancy hack IONDELIM */
+					c2 = getsc();
+					if (c2 != '\n') {
+						ungetsc(c2);
+						c2 = ' ';
+					}
+				}
 				ungetsc(c2);
 				if (c2 == '\n')
 					iop->ioflag |= IONDELIM;
