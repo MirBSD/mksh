@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
  *		 2012, 2013, 2014, 2015
- *	Thorsten Glaser <tg@mirbsd.org>
+ *	mirabilos <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.114 2015/09/05 17:20:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.115 2015/09/05 19:19:05 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg

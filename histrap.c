@@ -1,10 +1,10 @@
-/*	$OpenBSD: history.c,v 1.40 2014/11/20 15:22:39 tedu Exp $	*/
+/*	$OpenBSD: history.c,v 1.41 2015/09/01 13:12:31 tedu Exp $	*/
 /*	$OpenBSD: trap.c,v 1.23 2010/05/19 17:36:08 jasper Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2014, 2015
- *	Thorsten Glaser <tg@mirbsd.org>
+ *	mirabilos <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.149 2015/07/09 20:52:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.150 2015/09/05 19:19:05 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -898,8 +898,7 @@ histload(Source *s, unsigned char *base, size_t bytes)
 
 		if (lno >= s->line - (histptr - history) && lno <= s->line) {
 			hp = &histptr[lno - s->line];
-			if (*hp)
-				afree(*hp, APERM);
+			afree(*hp, APERM);
 			strdupx(*hp, (char *)(base + 4), APERM);
 		}
 	} else {
@@ -1376,8 +1375,7 @@ settrap(Trap *p, const char *s)
 {
 	sig_t f;
 
-	if (p->trap)
-		afree(p->trap, APERM);
+	afree(p->trap, APERM);
 	/* handles s == NULL */
 	strdupx(p->trap, s, APERM);
 	p->flags |= TF_CHANGED;

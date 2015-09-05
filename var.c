@@ -1,9 +1,9 @@
-/*	$OpenBSD: var.c,v 1.41 2015/04/17 17:20:41 deraadt Exp $	*/
+/*	$OpenBSD: var.c,v 1.43 2015/09/01 13:12:31 tedu Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015
- *	Thorsten Glaser <tg@mirbsd.org>
+ *	mirabilos <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.193 2015/07/10 19:36:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.194 2015/09/05 19:19:12 tg Exp $");
 
 /*-
  * Variables
@@ -710,8 +710,7 @@ exportprep(struct tbl *vp, const char *val)
 	/* offset to value */
 	vp->type = xp - vp->val.s;
 	memcpy(xp, val, vallen);
-	if (op != NULL)
-		afree(op, vp->areap);
+	afree(op, vp->areap);
 }
 
 /*
@@ -949,8 +948,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 						t->type = 0;
 					}
 				}
-				if (free_me)
-					afree(free_me, t->areap);
+				afree(free_me, t->areap);
 			}
 		}
 		if (!ok)
@@ -976,8 +974,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 			/* setstr can't fail (readonly check already done) */
 			setstr(vp, val, KSH_RETURN_ERROR | 0x4);
 
-		if (tval != NULL)
-			afree(tval, ATEMP);
+		afree(tval, ATEMP);
 	}
 
 	/* only x[0] is ever exported, so use vpbase */
@@ -1260,18 +1257,15 @@ setspec(struct tbl *vp)
 		ifs0 = *s;
 		return;
 	case V_PATH:
-		if (path)
-			afree(path, APERM);
+		afree(path, APERM);
 		s = str_val(vp);
 		strdupx(path, s, APERM);
 		/* clear tracked aliases */
 		flushcom(true);
 		return;
 	case V_TMPDIR:
-		if (tmpdir) {
-			afree(tmpdir, APERM);
-			tmpdir = NULL;
-		}
+		afree(tmpdir, APERM);
+		tmpdir = NULL;
 		/*
 		 * Use tmpdir iff it is an absolute path, is writable
 		 * and searchable and is a directory...
@@ -1380,8 +1374,7 @@ unsetspec(struct tbl *vp)
 		ifs0 = ' ';
 		break;
 	case V_PATH:
-		if (path)
-			afree(path, APERM);
+		afree(path, APERM);
 		strdupx(path, def_path, APERM);
 		/* clear tracked aliases */
 		flushcom(true);

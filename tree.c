@@ -1,9 +1,9 @@
-/*	$OpenBSD: tree.c,v 1.20 2012/06/27 07:17:19 otto Exp $	*/
+/*	$OpenBSD: tree.c,v 1.21 2015/09/01 13:12:31 tedu Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2015
- *	Thorsten Glaser <tg@mirbsd.org>
+ *	mirabilos <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.74 2015/08/13 20:54:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.75 2015/09/05 19:19:11 tg Exp $");
 
 #define INDENT	8
 
@@ -696,8 +696,7 @@ tfree(struct op *t, Area *ap)
 	if (t == NULL)
 		return;
 
-	if (t->str != NULL)
-		afree(t->str, ap);
+	afree(t->str, ap);
 
 	if (t->vars != NULL) {
 		for (w = t->vars; *w != NULL; w++)
@@ -732,12 +731,9 @@ iofree(struct ioword **iow, Area *ap)
 
 	iop = iow;
 	while ((p = *iop++) != NULL) {
-		if (p->name != NULL)
-			afree(p->name, ap);
-		if (p->delim != NULL)
-			afree(p->delim, ap);
-		if (p->heredoc != NULL)
-			afree(p->heredoc, ap);
+		afree(p->name, ap);
+		afree(p->delim, ap);
+		afree(p->heredoc, ap);
 		afree(p, ap);
 	}
 	afree(iow, ap);
