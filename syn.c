@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.101 2015/04/29 20:07:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.102 2015/09/05 17:17:47 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -822,8 +822,8 @@ initkeywords(void)
 static void
 syntaxerr(const char *what)
 {
-	/* 2<<- is the longest redirection, I think */
-	char redir[6];
+	/* 23<<- is the longest redirection, I think */
+	char redir[8];
 	const char *s;
 	struct tokeninfo const *tt;
 	int c;
