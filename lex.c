@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.207 2015/09/05 20:20:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.208 2015/09/06 13:10:48 tg Exp $");
 
 /*
  * states while lexing word
@@ -61,7 +61,7 @@ typedef struct lex_state {
 		/* point to the next state block */
 		struct lex_state *base;
 		/* marks start of state output in output string */
-		int start;
+		size_t start;
 		/* SBQUOTE: true if in double quotes: "`...`" */
 		/* SEQUOTE: got NUL, ignore rest of string */
 		bool abool;
@@ -1150,7 +1150,7 @@ readhere(struct ioword *iop)
 	const char *eof, *eofp;
 	XString xs;
 	char *xp;
-	int xpos;
+	size_t xpos;
 
 	if (iop->ioflag & IOHERESTR) {
 		/* process the here string */
