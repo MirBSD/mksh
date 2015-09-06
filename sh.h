@@ -172,9 +172,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.743 2015/09/05 20:20:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.744 2015/09/06 19:47:00 tg Exp $");
 #endif
-#define MKSH_VERSION "R51 2015/09/05"
+#define MKSH_VERSION "R51 2015/09/06"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1454,6 +1454,7 @@ struct ioword {
 #define DOTCOMEXEC BIT(11)	/* not an eval flag, used by sh -c hack */
 #define DOSCALAR BIT(12)	/* change field handling to non-list context */
 #define DOHEREDOC BIT(13)	/* change scalar handling to heredoc body */
+#define DOHERESTR BIT(14)	/* append a newline char */
 
 #define X_EXTRA	20	/* this many extra bytes in X string */
 

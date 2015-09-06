@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.171 2015/09/05 19:19:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.172 2015/09/06 19:46:59 tg Exp $");
 
 /*
  * string expansion
@@ -919,6 +919,8 @@ expand(
 			    (word == IFS_IWS || word == IFS_NWS) &&
 			    !ctype(c, C_IFSWS))) {
  emit_word:
+				if (f & DOHERESTR)
+					*dp++ = '\n';
 				*dp++ = '\0';
 				cp = Xclose(ds, dp);
 				if (fdo & DOBRACE)

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.706 2015/09/05 20:20:42 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.707 2015/09/06 19:46:56 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R51 2015/09/05
+	@(#)MIRBSD KSH R51 2015/09/06
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R51 2015/09/05
+	@(#)LEGACY KSH R51 2015/09/06
 description:
 	Check version of legacy shell.
 stdin:
@@ -2325,6 +2325,8 @@ stdin:
 	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<\$bar
 	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<-foo
 	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<"$(echo "foo bar")"
+	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<"A $(echo "foo bar") B"
+	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<<\$b\$b$bar
 expected-stdout:
 	sbb
 	sbb
@@ -2334,6 +2336,9 @@ expected-stdout:
 	$one
 	-sbb
 	sbb one
+	A sbb one B
+	$o$oone
+		onm
 ---
 name: heredoc-9b
 description:

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.76 2015/09/05 20:20:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.77 2015/09/06 19:47:01 tg Exp $");
 
 #define INDENT	8
 
@@ -226,7 +226,6 @@ ptree(struct op *t, int indent, struct shf *shf)
 				shf_putc('\n', shf);
 				shf_puts(iop->heredoc, shf);
 				fptreef(shf, indent, "%s",
-				    iop->ioflag & IONDELIM ? "<<" :
 				    evalstr(iop->delim, 0));
 				need_nl = true;
 			}
@@ -265,6 +264,8 @@ pioact(struct shf *shf, struct ioword *iop)
 		shf_puts("<<", shf);
 		if (flag & IOSKIP)
 			shf_putc('-', shf);
+		else if (flag & IOHERESTR)
+			shf_putc('<', shf);
 		break;
 	case IOCAT:
 		shf_puts(">>", shf);
@@ -283,9 +284,8 @@ pioact(struct shf *shf, struct ioword *iop)
 	}
 	/* name/delim are NULL when printing syntax errors */
 	if (type == IOHERE) {
-		if (iop->delim)
+		if (iop->delim && !(iop->ioflag & IONDELIM))
 			wdvarput(shf, iop->delim, 0, WDS_TPUTS);
-		/*XXX see IONDELIM hack */
 	} else if (iop->name) {
 		if (flag & IONAMEXP)
 			print_value_quoted(shf, iop->name);
@@ -931,7 +931,7 @@ dumpioact(struct shf *shf, struct op *t)
 		DB(IOHERESTR)
 		DB(IONDELIM)
 		shf_fprintf(shf, ",unit=%d", (int)iop->unit);
-		if (iop->delim) {
+		if (iop->delim && !(iop->ioflag & IONDELIM)) {
 			shf_puts(",delim<", shf);
 			dumpwdvar(shf, iop->delim);
 			shf_putc('>', shf);

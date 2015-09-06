@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.208 2015/09/06 13:10:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.209 2015/09/06 19:47:00 tg Exp $");
 
 /*
  * states while lexing word
@@ -38,8 +38,8 @@ __RCSID("$MirOS: src/bin/mksh/lex.c,v 1.208 2015/09/06 13:10:48 tg Exp $");
 #define SQBRACE		7	/* inside "${}" */
 #define SBQUOTE		8	/* inside `` */
 #define SASPAREN	9	/* inside $(( )) */
-#define SHEREDELIM	10	/* parsing <<,<<-,<<< delimiter */
-#define SHEREDQUOTE	11	/* parsing " in <<,<<-,<<< delimiter */
+#define SHEREDELIM	10	/* parsing << or <<- delimiter */
+#define SHEREDQUOTE	11	/* parsing " in << or <<- delimiter */
 #define SPATTERN	12	/* parsing *(...|...) pattern (*+?@!) */
 #define SADELIM		13	/* like SBASE, looking for delimiter */
 #define STBRACEKORN	14	/* parsing ${...[#%]...} !FSH */
@@ -98,7 +98,7 @@ static int s_get(void);
 static void s_put(int);
 static char *get_brace_var(XString *, char *);
 static bool arraysub(char **);
-static void gethere(bool);
+static void gethere(void);
 static Lex_state *push_state_i(State_info *, Lex_state *);
 static Lex_state *pop_state_i(State_info *, Lex_state *);
 
@@ -240,20 +240,6 @@ yylex(int cf)
 	/* Initial state: one of SWORD SLETPAREN SHEREDELIM SBASE */
 	statep->type = state;
 
-	/* check for here string */
-	if (state == SHEREDELIM) {
-		c = getsc();
-		if (c == '<') {
-			state = SHEREDELIM;
-			while ((c = getsc()) == ' ' || c == '\t')
-				;
-			ungetsc(c);
-			c = '<';
-			goto accept_nonword;
-		}
-		ungetsc(c);
-	}
-
 	/* collect non-special or quoted characters to form word */
 	while (!((c = getsc()) == 0 ||
 	    ((state == SBASE || state == SHEREDELIM) && ctype(c, C_LEX1)))) {
@@ -262,7 +248,6 @@ yylex(int cf)
 		    c == /*{*/ '}')
 			/* possibly end ${ :;} */
 			break;
- accept_nonword:
 		Xcheck(ws, wp);
 		switch (state) {
 		case SADELIM:
@@ -806,7 +791,7 @@ yylex(int cf)
 				++statep->nparen;
 			goto Sbase2;
 
-		/* <<, <<-, <<< delimiter */
+		/* << or <<- delimiter */
 		case SHEREDELIM:
 			/*
 			 * here delimiters need a special case since
@@ -844,7 +829,7 @@ yylex(int cf)
 			}
 			break;
 
-		/* " in <<, <<-, <<< delimiter */
+		/* " in << or <<- delimiter */
 		case SHEREDQUOTE:
 			if (c != '"')
 				goto Subst;
@@ -941,22 +926,12 @@ yylex(int cf)
 			iop->ioflag |= c == c2 ?
 			    (c == '>' ? IOCAT : IOHERE) : IORDWR;
 			if (iop->ioflag == IOHERE) {
-				if ((c2 = getsc()) == '-') {
+				if ((c2 = getsc()) == '-')
 					iop->ioflag |= IOSKIP;
-					c2 = getsc();
-				} else if (c2 == '<')
+				else if (c2 == '<')
 					iop->ioflag |= IOHERESTR;
-				if (c2 == ' ') {
-					/*XXX reentrancy hack IONDELIM */
-					c2 = getsc();
-					if (c2 != '\n') {
-						ungetsc(c2);
-						c2 = ' ';
-					}
-				}
-				ungetsc(c2);
-				if (c2 == '\n')
-					iop->ioflag |= IONDELIM;
+				else
+					ungetsc(c2);
 			}
 		} else if (c2 == '&')
 			iop->ioflag |= IODUP | (c == '<' ? IORDUP : 0);
@@ -1006,12 +981,14 @@ yylex(int cf)
 			}
 #endif
 		} else if (c == '\n') {
-			gethere(false);
-			if (cf & CONTIN)
-				goto Again;
-		} else if (c == '\0')
-			/* need here strings at EOF */
-			gethere(true);
+			if (cf & HEREDELIM)
+				ungetsc(c);
+			else {
+				gethere();
+				if (cf & CONTIN)
+					goto Again;
+			}
+		}
 		return (c);
 	}
 
@@ -1034,23 +1011,8 @@ yylex(int cf)
 	/* copy word to unprefixed string ident */
 	sp = yylval.cp;
 	dp = ident;
-	if ((cf & HEREDELIM) && (sp[1] == '<')) {
- herestringloop:
-		switch ((c = *sp++)) {
-		case CHAR:
-			++sp;
-			/* FALLTHROUGH */
-		case OQUOTE:
-		case CQUOTE:
-			goto herestringloop;
-		default:
-			break;
-		}
-		/* dummy value */
-		*dp++ = 'x';
-	} else
-		while ((dp - ident) < IDENT && (c = *sp++) == CHAR)
-			*dp++ = *sp++;
+	while ((dp - ident) < IDENT && (c = *sp++) == CHAR)
+		*dp++ = *sp++;
 	if (c != EOS)
 		/* word is not unquoted */
 		dp = ident;
@@ -1126,15 +1088,12 @@ yylex(int cf)
 }
 
 static void
-gethere(bool iseof)
+gethere(void)
 {
 	struct ioword **p;
 
 	for (p = heres; p < herep; p++)
-		if (iseof && !((*p)->ioflag & IOHERESTR))
-			/* only here strings at EOF */
-			return;
-		else
+		if (!((*p)->ioflag & IOHERESTR))
 			readhere(*p);
 	herep = heres;
 }
@@ -1152,16 +1111,7 @@ readhere(struct ioword *iop)
 	char *xp;
 	size_t xpos;
 
-	if (iop->ioflag & IOHERESTR) {
-		/* process the here string */
-		iop->heredoc = xp = evalstr(iop->delim, DOBLANK);
-		xpos = strlen(xp) - 1;
-		memmove(xp, xp + 1, xpos);
-		xp[xpos] = '\n';
-		return;
-	}
-
-	eof = iop->ioflag & IONDELIM ? "<<" : evalstr(iop->delim, 0);
+	eof = evalstr(iop->delim, 0);
 
 	if (!(iop->ioflag & IOEVAL))
 		ignore_backslash_newline++;
