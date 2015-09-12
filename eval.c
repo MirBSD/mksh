@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015
- *	Thorsten Glaser <tg@mirbsd.org>
+ *	mirabilos <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.170 2015/07/06 17:45:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.172 2015/09/06 19:46:59 tg Exp $");
 
 /*
  * string expansion
@@ -919,6 +919,8 @@ expand(
 			    (word == IFS_IWS || word == IFS_NWS) &&
 			    !ctype(c, C_IFSWS))) {
  emit_word:
+				if (f & DOHERESTR)
+					*dp++ = '\n';
 				*dp++ = '\0';
 				cp = Xclose(ds, dp);
 				if (fdo & DOBRACE)

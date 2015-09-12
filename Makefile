@@ -1,8 +1,8 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.142 2015/07/09 20:52:36 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.143 2015/09/05 19:19:00 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
-#	Thorsten “mirabilos” Glaser <tg@mirbsd.org>
+#	mirabilos <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
 # are retained or reproduced in an accompanying document, permission
@@ -154,7 +154,7 @@ cats: ${MANALL} ${MANALL:S/.cat/.ps/}
 .endif
 .for _m _n in mksh 1
 	x=$$(ident ${SRCDIR:Q}/${_m}.${_n} | \
-	    awk '/MirOS:/ { print $$4$$5; }' | \
+	    awk '/Mir''OS:/ { print $$4$$5; }' | \
 	    tr -dc 0-9); (( $${#x} == 14 )) || exit 1; exec \
 	    ${MKSH} ${BSDSRCDIR:Q}/contrib/hosted/tg/ps2pdfmir -c \
 	    -o ${_m}.${_n}.pdf '[' /Author '(The MirOS Project)' \

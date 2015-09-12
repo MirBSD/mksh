@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2009, 2010, 2011, 2013, 2014
- *	Thorsten Glaser <tg@mirbsd.org>
+ *	mirabilos <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -20,7 +20,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.21 2014/11/25 20:00:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.22 2015/09/05 19:19:06 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)

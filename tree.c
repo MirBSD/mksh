@@ -1,9 +1,9 @@
-/*	$OpenBSD: tree.c,v 1.20 2012/06/27 07:17:19 otto Exp $	*/
+/*	$OpenBSD: tree.c,v 1.21 2015/09/01 13:12:31 tedu Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2015
- *	Thorsten Glaser <tg@mirbsd.org>
+ *	mirabilos <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.74 2015/08/13 20:54:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.77 2015/09/06 19:47:01 tg Exp $");
 
 #define INDENT	8
 
@@ -226,7 +226,6 @@ ptree(struct op *t, int indent, struct shf *shf)
 				shf_putc('\n', shf);
 				shf_puts(iop->heredoc, shf);
 				fptreef(shf, indent, "%s",
-				    iop->ioflag & IONDELIM ? "<<" :
 				    evalstr(iop->delim, 0));
 				need_nl = true;
 			}
@@ -265,6 +264,8 @@ pioact(struct shf *shf, struct ioword *iop)
 		shf_puts("<<", shf);
 		if (flag & IOSKIP)
 			shf_putc('-', shf);
+		else if (flag & IOHERESTR)
+			shf_putc('<', shf);
 		break;
 	case IOCAT:
 		shf_puts(">>", shf);
@@ -283,17 +284,15 @@ pioact(struct shf *shf, struct ioword *iop)
 	}
 	/* name/delim are NULL when printing syntax errors */
 	if (type == IOHERE) {
-		if (iop->delim)
+		if (iop->delim && !(iop->ioflag & IONDELIM))
 			wdvarput(shf, iop->delim, 0, WDS_TPUTS);
-		if (flag & IOHERESTR)
-			shf_putc(' ', shf);
 	} else if (iop->name) {
 		if (flag & IONAMEXP)
 			print_value_quoted(shf, iop->name);
 		else
 			wdvarput(shf, iop->name, 0, WDS_TPUTS);
-		shf_putc(' ', shf);
 	}
+	shf_putc(' ', shf);
 	prevent_semicolon = false;
 }
 
@@ -696,8 +695,7 @@ tfree(struct op *t, Area *ap)
 	if (t == NULL)
 		return;
 
-	if (t->str != NULL)
-		afree(t->str, ap);
+	afree(t->str, ap);
 
 	if (t->vars != NULL) {
 		for (w = t->vars; *w != NULL; w++)
@@ -732,12 +730,9 @@ iofree(struct ioword **iow, Area *ap)
 
 	iop = iow;
 	while ((p = *iop++) != NULL) {
-		if (p->name != NULL)
-			afree(p->name, ap);
-		if (p->delim != NULL)
-			afree(p->delim, ap);
-		if (p->heredoc != NULL)
-			afree(p->heredoc, ap);
+		afree(p->name, ap);
+		afree(p->delim, ap);
+		afree(p->heredoc, ap);
 		afree(p, ap);
 	}
 	afree(iow, ap);
@@ -936,7 +931,7 @@ dumpioact(struct shf *shf, struct op *t)
 		DB(IOHERESTR)
 		DB(IONDELIM)
 		shf_fprintf(shf, ",unit=%d", (int)iop->unit);
-		if (iop->delim) {
+		if (iop->delim && !(iop->ioflag & IONDELIM)) {
 			shf_puts(",delim<", shf);
 			dumpwdvar(shf, iop->delim);
 			shf_putc('>', shf);

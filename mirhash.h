@@ -1,6 +1,6 @@
 /*-
  * Copyright © 2011, 2014, 2015
- *	Thorsten “mirabilos” Glaser <tg@mirbsd.org>
+ *	mirabilos <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -44,7 +44,7 @@
 
 #include <sys/types.h>
 
-__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.4 2015/05/30 22:14:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.5 2015/09/05 19:19:07 tg Exp $");
 
 /*-
  * BAFH itself is defined by the following primitives:

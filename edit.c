@@ -1,12 +1,12 @@
-/*	$OpenBSD: edit.c,v 1.40 2015/03/12 10:20:30 sthen Exp $	*/
+/*	$OpenBSD: edit.c,v 1.41 2015/09/01 13:12:31 tedu Exp $	*/
 /*	$OpenBSD: edit.h,v 1.9 2011/05/30 17:14:35 martynas Exp $	*/
-/*	$OpenBSD: emacs.c,v 1.50 2015/03/25 12:10:52 jca Exp $	*/
-/*	$OpenBSD: vi.c,v 1.28 2013/12/18 16:45:46 deraadt Exp $	*/
+/*	$OpenBSD: emacs.c,v 1.51 2015/09/01 13:12:31 tedu Exp $	*/
+/*	$OpenBSD: vi.c,v 1.29 2015/09/01 13:12:31 tedu Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014
- *	Thorsten Glaser <tg@mirbsd.org>
+ *		 2011, 2012, 2013, 2014, 2015
+ *	mirabilos <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.290 2015/07/10 19:36:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.291 2015/09/05 19:19:01 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2266,12 +2266,8 @@ x_kill(int c MKSH_A_UNUSED)
 static void
 x_push(int nchars)
 {
-	char *cp;
-
-	strndupx(cp, xcp, nchars, AEDIT);
-	if (killstack[killsp])
-		afree(killstack[killsp], AEDIT);
-	killstack[killsp] = cp;
+	afree(killstack[killsp], AEDIT);
+	strndupx(killstack[killsp], xcp, nchars, AEDIT);
 	killsp = (killsp + 1) % KILLSIZE;
 }
 

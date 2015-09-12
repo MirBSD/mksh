@@ -1,12 +1,12 @@
-/*	$OpenBSD: main.c,v 1.55 2015/02/09 09:09:30 jsg Exp $	*/
+/*	$OpenBSD: main.c,v 1.56 2015/09/01 17:46:31 tedu Exp $	*/
 /*	$OpenBSD: tty.c,v 1.10 2014/08/10 02:44:26 guenther Exp $	*/
 /*	$OpenBSD: io.c,v 1.25 2014/08/11 20:28:47 guenther Exp $	*/
-/*	$OpenBSD: table.c,v 1.15 2012/02/19 07:52:30 otto Exp $	*/
+/*	$OpenBSD: table.c,v 1.16 2015/09/01 13:12:31 tedu Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015
- *	Thorsten Glaser <tg@mirbsd.org>
+ *	mirabilos <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.301 2015/08/13 22:06:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.302 2015/09/05 19:19:06 tg Exp $");
 
 extern char **environ;
 
@@ -202,7 +202,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	/* do things like getpgrp() et al. */
 	chvt_reinit();
 
-	/* make sure argv[] is sane */
+	/* make sure argv[] is sane, for weird OSes */
 	if (!*argv) {
 		argv = empty_argv;
 		argc = 1;

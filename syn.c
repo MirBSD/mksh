@@ -1,9 +1,9 @@
-/*	$OpenBSD: syn.c,v 1.29 2013/06/03 18:40:05 jca Exp $	*/
+/*	$OpenBSD: syn.c,v 1.30 2015/09/01 13:12:31 tedu Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009,
  *		 2011, 2012, 2013, 2014, 2015
- *	Thorsten Glaser <tg@mirbsd.org>
+ *	mirabilos <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.101 2015/04/29 20:07:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.104 2015/09/06 19:47:01 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -172,6 +172,8 @@ c_list(bool multi)
 	return (t);
 }
 
+static const char IONDELIM_delim[] = { CHAR, '<', CHAR, '<', EOS };
+
 static struct ioword *
 synio(int cf)
 {
@@ -189,15 +191,19 @@ synio(int cf)
 		return (NULL);
 	ACCEPT;
 	iop = yylval.iop;
-	if (iop->ioflag & IONDELIM)
-		goto gotnulldelim;
 	ishere = (iop->ioflag & IOTYPE) == IOHERE;
-	musthave(LWORD, ishere ? HEREDELIM : 0);
+	if (iop->ioflag & IOHERESTR) {
+		musthave(LWORD, 0);
+	} else if (ishere && tpeek(HEREDELIM) == '\n') {
+		ACCEPT;
+		yylval.cp = wdcopy(IONDELIM_delim, ATEMP);
+		iop->ioflag |= IOEVAL | IONDELIM;
+	} else
+		musthave(LWORD, ishere ? HEREDELIM : 0);
 	if (ishere) {
 		iop->delim = yylval.cp;
-		if (*ident != 0) {
+		if (*ident != 0 && !(iop->ioflag & IOHERESTR)) {
 			/* unquoted */
- gotnulldelim:
 			iop->ioflag |= IOEVAL;
 		}
 		if (herep > &heres[HERES - 1])
@@ -822,8 +828,8 @@ initkeywords(void)
 static void
 syntaxerr(const char *what)
 {
-	/* 2<<- is the longest redirection, I think */
-	char redir[6];
+	/* 23<<- is the longest redirection, I think */
+	char redir[8];
 	const char *s;
 	struct tokeninfo const *tt;
 	int c;

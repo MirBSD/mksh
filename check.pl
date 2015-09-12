@@ -1,9 +1,9 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.40 2015/07/10 19:36:31 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.41 2015/09/05 19:19:01 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
 #		2012, 2013, 2014, 2015
-#	Thorsten Glaser <tg@mirbsd.org>
+#	mirabilos <tg@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
 # are retained or reproduced in an accompanying document, permission

@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015
- *	Thorsten Glaser <tg@mirbsd.org>
+ *	mirabilos <tg@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.160 2015/07/10 19:36:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.163 2015/09/06 19:46:59 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1524,7 +1524,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			char *sp;
 
 			eno = errno;
-			warningf(true, "%s %s %s",
+			warningf(true, "%s %s: %s",
 			    "can't finish (dup) redirection",
 			    (sp = snptreef(NULL, 32, "%R", &iotmp)),
 			    cstrerror(eno));
@@ -1560,9 +1560,9 @@ iosetup(struct ioword *iop, struct tbl *tp)
  * unquoted, the string is expanded first.
  */
 static int
-hereinval(const char *content, int sub, char **resbuf, struct shf *shf)
+hereinval(struct ioword *iop, int sub, char **resbuf, struct shf *shf)
 {
-	const char * volatile ccp = content;
+	const char * volatile ccp = iop->heredoc;
 	struct source *s, *osource;
 
 	osource = source;
@@ -1573,7 +1573,9 @@ hereinval(const char *content, int sub, char **resbuf, struct shf *shf)
 		/* special to iosetup(): don't print error */
 		return (-2);
 	}
-	if (sub) {
+	if (iop->ioflag & IOHERESTR) {
+		ccp = evalstr(iop->delim, DOHERESTR | DOSCALAR | DOHEREDOC);
+	} else if (sub) {
 		/* do substitutions on the content of heredoc */
 		s = pushs(SSTRING, ATEMP);
 		s->start = s->str = ccp;
@@ -1602,7 +1604,7 @@ herein(struct ioword *iop, char **resbuf)
 	int i;
 
 	/* ksh -c 'cat <<EOF' can cause this... */
-	if (iop->heredoc == NULL) {
+	if (iop->heredoc == NULL && !(iop->ioflag & IOHERESTR)) {
 		warningf(true, "%s missing", "here document");
 		/* special to iosetup(): don't print error */
 		return (-2);
@@ -1613,7 +1615,7 @@ herein(struct ioword *iop, char **resbuf)
 
 	/* skip all the fd setup if we just want the value */
 	if (resbuf != NULL)
-		return (hereinval(iop->heredoc, i, resbuf, NULL));
+		return (hereinval(iop, i, resbuf, NULL));
 
 	/*
 	 * Create temp file to hold content (done before newenv
@@ -1630,7 +1632,7 @@ herein(struct ioword *iop, char **resbuf)
 		return (-2);
 	}
 
-	if (hereinval(iop->heredoc, i, NULL, shf) == -2) {
+	if (hereinval(iop, i, NULL, shf) == -2) {
 		close(fd);
 		/* special to iosetup(): don't print error */
 		return (-2);
