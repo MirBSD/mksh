@@ -1,9 +1,9 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.690 2015/09/05 19:18:59 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.691 2015/10/05 17:58:55 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
-#	mirabilos <tg@mirbsd.org>
+#	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
 # are retained or reproduced in an accompanying document, permission
@@ -1916,11 +1916,6 @@ ac_test gettimeofday <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int main(void) { struct timeval tv; return (gettimeofday(&tv, NULL)); }
-EOF
-
-ac_test issetugid <<-'EOF'
-	#include <unistd.h>
-	int main(void) { return (issetugid()); }
 EOF
 
 ac_test killpg <<-'EOF'

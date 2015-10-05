@@ -11,7 +11,7 @@
 /*-
  * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *	       2011, 2012, 2013, 2014, 2015
- *	mirabilos <tg@mirbsd.org>
+ *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -172,9 +172,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.744 2015/09/06 19:47:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.745 2015/10/05 17:59:00 tg Exp $");
 #endif
-#define MKSH_VERSION "R51 2015/09/06"
+#define MKSH_VERSION "R51 2015/10/05"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES

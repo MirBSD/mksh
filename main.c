@@ -6,7 +6,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015
- *	mirabilos <tg@mirbsd.org>
+ *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.302 2015/09/05 19:19:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.303 2015/10/05 17:58:59 tg Exp $");
 
 extern char **environ;
 
@@ -416,11 +416,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	setint_n((vp_pipest = global("PIPESTATUS")), 0, 10);
 
 	/* Set this before parsing arguments */
-	Flag(FPRIVILEGED) = (
-#if HAVE_ISSETUGID
-	    issetugid() ||
-#endif
-	    kshuid != ksheuid || kshgid != kshegid) ? 2 : 0;
+	Flag(FPRIVILEGED) = (kshuid != ksheuid || kshgid != kshegid) ? 2 : 0;
 
 	/* this to note if monitor is set on command line (see below) */
 #ifndef MKSH_UNEMPLOYED
