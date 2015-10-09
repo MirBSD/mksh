@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.165 2015/10/09 16:11:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.166 2015/10/09 17:48:49 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1348,7 +1348,9 @@ call_builtin(struct tbl *tp, const char **wp, const char *where, bool resetspec)
 	if (!tp)
 		internal_errorf("%s: %s", where, wp[0]);
 	builtin_argv0 = wp[0];
-	builtin_spec = tobool(!resetspec && (tp->flag & SPEC_BI));
+	builtin_spec = tobool(!resetspec &&
+	    /*XXX odd use of KEEPASN */
+	    ((tp->flag & SPEC_BI) || (Flag(FPOSIX) && (tp->flag & KEEPASN))));
 	shf_reopen(1, SHF_WR, shl_stdout);
 	shl_stdout_ok = true;
 	ksh_getopt_reset(&builtin_opt, GF_ERROR);

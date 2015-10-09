@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.708 2015/10/05 17:58:57 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.709 2015/10/09 17:48:46 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -6505,18 +6505,13 @@ name: xxx-param-subst-qmark-1
 description:
 	Check suppresion of error message with null string.  According to
 	POSIX, it shouldn't print the error as 'word' isn't ommitted.
-	ksh88/93, Solaris /bin/sh and /usr/xpg4/bin/sh all print the error,
-	that's why the condition is reversed.
+	ksh88/93, Solaris /bin/sh and /usr/xpg4/bin/sh all print the error.
 stdin:
 	unset foo
 	x=
 	echo x${foo?$x}
 expected-exit: 1
-# POSIX
-#expected-fail: yes
-#expected-stderr-pattern: !/not set/
-# common use
-expected-stderr-pattern: /parameter null or not set/
+expected-stderr-pattern: !/not set/
 ---
 name: xxx-param-_-1
 # fails due to weirdness of execv stuff
@@ -6532,7 +6527,7 @@ description:
 env-setup: !HOME=/sweet!
 stdin:
 	echo ${A=a=}~ b=~ c=d~ ~
-	set +o braceexpand
+	set -o posix
 	unset A
 	echo ${A=a=}~ b=~ c=d~ ~
 expected-stdout:

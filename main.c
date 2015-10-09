@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.304 2015/10/09 16:11:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.305 2015/10/09 17:48:51 tg Exp $");
 
 extern char **environ;
 
@@ -1265,8 +1265,7 @@ bi_errorf(const char *fmt, ...)
 
 	/*
 	 * POSIX special builtins and ksh special builtins cause
-	 * non-interactive shells to exit.
-	 * XXX odd use of KEEPASN; also may not want LERROR here
+	 * non-interactive shells to exit. XXX may not want LERROR here
 	 */
 	if (builtin_spec) {
 		builtin_argv0 = NULL;

@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.284 2015/10/09 16:11:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.285 2015/10/09 17:48:50 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1305,7 +1305,8 @@ c_fgbg(const char **wp)
 			rv = j_resume(*wp, bg);
 	else
 		rv = j_resume("%%", bg);
-	return (bg ? 0 : rv);
+	/* fg returns $? of the job unless POSIX */
+	return ((bg | Flag(FPOSIX)) ? 0 : rv);
 }
 #endif
 
@@ -1383,6 +1384,13 @@ c_kill(const char **wp)
 				else
 					shprintf("%d\n", n);
 			}
+		} else if (Flag(FPOSIX)) {
+			n = 1;
+			while (n < ksh_NSIG) {
+				shf_puts(sigtraps[n].name, shl_stdout);
+				shf_putc(++n == ksh_NSIG ? '\n' : ' ',
+				    shl_stdout);
+			}
 		} else {
 			ssize_t w, mess_cols = 0, mess_octs = 0;
 			int j = ksh_NSIG - 1;
@@ -1436,7 +1444,8 @@ void
 getopts_reset(int val)
 {
 	if (val >= 1) {
-		ksh_getopt_reset(&user_opt, GF_NONAME | GF_PLUSOPT);
+		ksh_getopt_reset(&user_opt, GF_NONAME |
+		    (Flag(FPOSIX) ? 0 : GF_PLUSOPT));
 		user_opt.optind = user_opt.uoptind = val;
 	}
 }
