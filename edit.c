@@ -1,12 +1,12 @@
 /*	$OpenBSD: edit.c,v 1.41 2015/09/01 13:12:31 tedu Exp $	*/
 /*	$OpenBSD: edit.h,v 1.9 2011/05/30 17:14:35 martynas Exp $	*/
-/*	$OpenBSD: emacs.c,v 1.51 2015/09/01 13:12:31 tedu Exp $	*/
-/*	$OpenBSD: vi.c,v 1.29 2015/09/01 13:12:31 tedu Exp $	*/
+/*	$OpenBSD: emacs.c,v 1.52 2015/09/10 22:48:58 nicm Exp $	*/
+/*	$OpenBSD: vi.c,v 1.30 2015/09/10 22:48:58 nicm Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015
- *	mirabilos <tg@mirbsd.org>
+ *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.291 2015/09/05 19:19:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.292 2015/10/09 16:11:13 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external

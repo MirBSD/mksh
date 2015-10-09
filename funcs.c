@@ -1,4 +1,4 @@
-/*	$OpenBSD: c_ksh.c,v 1.35 2015/09/01 13:12:31 tedu Exp $	*/
+/*	$OpenBSD: c_ksh.c,v 1.37 2015/09/10 22:48:58 nicm Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.46 2015/07/20 20:46:24 guenther Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.18 2009/03/01 20:11:06 otto Exp $	*/
 /*	$OpenBSD: c_ulimit.c,v 1.19 2013/11/28 10:33:37 sobrado Exp $	*/
@@ -6,7 +6,7 @@
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
  *		 2010, 2011, 2012, 2013, 2014, 2015
- *	mirabilos <tg@mirbsd.org>
+ *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.283 2015/09/05 19:19:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.284 2015/10/09 16:11:14 tg Exp $");
 
 #if HAVE_KILLPG
 /*

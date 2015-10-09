@@ -1,9 +1,9 @@
-/*	$OpenBSD: jobs.c,v 1.41 2015/04/18 18:28:36 deraadt Exp $	*/
+/*	$OpenBSD: jobs.c,v 1.43 2015/09/10 22:48:58 nicm Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
  *		 2012, 2013, 2014, 2015
- *	mirabilos <tg@mirbsd.org>
+ *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.115 2015/09/05 19:19:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.116 2015/10/09 16:11:15 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -86,7 +86,7 @@ struct job {
 	int flags;		/* see JF_* */
 	volatile int state;	/* job state */
 	int status;		/* exit status of last process */
-	int32_t	age;		/* number of jobs started */
+	int age;		/* number of jobs started */
 	Coproc_id coproc_id;	/* 0 or id of coprocess output pipe */
 #ifndef MKSH_UNEMPLOYED
 	mksh_ttyst ttystat;	/* saved tty state for stopped jobs */
@@ -118,7 +118,7 @@ static Job *async_job;
 static pid_t async_pid;
 
 static int nzombie;		/* # of zombies owned by this process */
-static int32_t njobs;		/* # of jobs started */
+static int njobs;		/* # of jobs started */
 
 #ifndef CHILD_MAX
 #define CHILD_MAX	25

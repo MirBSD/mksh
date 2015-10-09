@@ -1,4 +1,4 @@
-/*	$OpenBSD: sh.h,v 1.33 2013/12/18 13:53:12 millert Exp $	*/
+/*	$OpenBSD: sh.h,v 1.35 2015/09/10 22:48:58 nicm Exp $	*/
 /*	$OpenBSD: shf.h,v 1.6 2005/12/11 18:53:51 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.8 2012/02/19 07:52:30 otto Exp $	*/
 /*	$OpenBSD: tree.h,v 1.10 2005/03/28 21:28:22 deraadt Exp $	*/
@@ -172,7 +172,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.745 2015/10/05 17:59:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.746 2015/10/09 16:11:18 tg Exp $");
 #endif
 #define MKSH_VERSION "R51 2015/10/05"
 
@@ -1028,7 +1028,7 @@ EXTERN Getopt user_opt;		/* parsing state for getopts builtin command */
 /* This for co-processes */
 
 /* something that won't (realisticly) wrap */
-typedef int32_t Coproc_id;
+typedef int Coproc_id;
 
 struct coproc {
 	void *job;	/* 0 or job of co-process using input pipe */

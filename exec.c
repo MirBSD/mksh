@@ -1,4 +1,4 @@
-/*	$OpenBSD: exec.c,v 1.51 2015/04/18 18:28:36 deraadt Exp $	*/
+/*	$OpenBSD: exec.c,v 1.52 2015/09/10 22:48:58 nicm Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.164 2015/10/09 15:28:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.165 2015/10/09 16:11:14 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
