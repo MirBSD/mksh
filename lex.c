@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.211 2015/10/09 17:48:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.212 2015/10/09 19:29:48 tg Exp $");
 
 /*
  * states while lexing word
@@ -951,7 +951,7 @@ yylex(int cf)
 				ungetsc(c2);
 		}
 
-		iop->name = NULL;
+		iop->ioname = NULL;
 		iop->delim = NULL;
 		iop->heredoc = NULL;
 		/* free word */

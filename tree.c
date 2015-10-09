@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2015
- *	mirabilos <tg@mirbsd.org>
+ *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.77 2015/09/06 19:47:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.78 2015/10/09 19:29:50 tg Exp $");
 
 #define INDENT	8
 
@@ -286,11 +286,11 @@ pioact(struct shf *shf, struct ioword *iop)
 	if (type == IOHERE) {
 		if (iop->delim && !(iop->ioflag & IONDELIM))
 			wdvarput(shf, iop->delim, 0, WDS_TPUTS);
-	} else if (iop->name) {
+	} else if (iop->ioname) {
 		if (flag & IONAMEXP)
-			print_value_quoted(shf, iop->name);
+			print_value_quoted(shf, iop->ioname);
 		else
-			wdvarput(shf, iop->name, 0, WDS_TPUTS);
+			wdvarput(shf, iop->ioname, 0, WDS_TPUTS);
 	}
 	shf_putc(' ', shf);
 	prevent_semicolon = false;
@@ -672,8 +672,8 @@ iocopy(struct ioword **iow, Area *ap)
 		q = alloc(sizeof(struct ioword), ap);
 		ior[i] = q;
 		*q = *p;
-		if (p->name != NULL)
-			q->name = wdcopy(p->name, ap);
+		if (p->ioname != NULL)
+			q->ioname = wdcopy(p->ioname, ap);
 		if (p->delim != NULL)
 			q->delim = wdcopy(p->delim, ap);
 		if (p->heredoc != NULL)
@@ -730,7 +730,7 @@ iofree(struct ioword **iow, Area *ap)
 
 	iop = iow;
 	while ((p = *iop++) != NULL) {
-		afree(p->name, ap);
+		afree(p->ioname, ap);
 		afree(p->delim, ap);
 		afree(p->heredoc, ap);
 		afree(p, ap);
@@ -936,13 +936,13 @@ dumpioact(struct shf *shf, struct op *t)
 			dumpwdvar(shf, iop->delim);
 			shf_putc('>', shf);
 		}
-		if (iop->name) {
+		if (iop->ioname) {
 			if (iop->ioflag & IONAMEXP) {
 				shf_puts(",name=", shf);
-				print_value_quoted(shf, iop->name);
+				print_value_quoted(shf, iop->ioname);
 			} else {
 				shf_puts(",name<", shf);
-				dumpwdvar(shf, iop->name);
+				dumpwdvar(shf, iop->ioname);
 				shf_putc('>', shf);
 			}
 		}

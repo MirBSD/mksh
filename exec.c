@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.166 2015/10/09 17:48:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.167 2015/10/09 19:29:48 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1369,7 +1369,7 @@ static int
 iosetup(struct ioword *iop, struct tbl *tp)
 {
 	int u = -1;
-	char *cp = iop->name;
+	char *cp = iop->ioname;
 	int iotype = iop->ioflag & IOTYPE;
 	bool do_open = true, do_close = false;
 	int flags = 0;
@@ -1381,7 +1381,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 
 	/* Used for tracing and error messages to print expanded cp */
 	iotmp = *iop;
-	iotmp.name = (iotype == IOHERE) ? NULL : cp;
+	iotmp.ioname = (iotype == IOHERE) ? NULL : cp;
 	iotmp.ioflag |= IONAMEXP;
 
 	if (Flag(FXTRACE)) {
