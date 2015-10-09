@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.285 2015/10/09 17:48:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.286 2015/10/09 21:36:55 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -127,6 +127,7 @@ const struct builtin mkshbuiltins[] = {
 	{"*=return", c_exitreturn},
 	{Tsgset, c_set},
 	{"*=shift", c_shift},
+	{"=source", c_dot},
 #if !defined(MKSH_UNEMPLOYED) && HAVE_GETSID
 	{"suspend", c_suspend},
 #endif
@@ -1786,7 +1787,11 @@ c_dot(const char **wp)
 		bi_errorf("missing argument");
 		return (1);
 	}
-	if ((file = search_path(cp, path, R_OK, &errcode)) == NULL) {
+	file = search_path(cp, path, R_OK, &errcode);
+	if (!file && errcode == ENOENT && wp[0][0] == 's' &&
+	    search_access(cp, R_OK) == 0)
+		file = cp;
+	if (!file) {
 		bi_errorf("%s: %s", cp, cstrerror(errcode));
 		return (1);
 	}

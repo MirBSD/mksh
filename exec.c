@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.167 2015/10/09 19:29:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.168 2015/10/09 21:36:55 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -39,7 +39,6 @@ static const char *do_selectargs(const char **, bool);
 static Test_op dbteste_isa(Test_env *, Test_meta);
 static const char *dbteste_getopnd(Test_env *, Test_op, bool);
 static void dbteste_error(Test_env *, int, const char *);
-static int search_access(const char *, int);
 /* XXX: horrible kludge to fit within the framework */
 static void plain_fmt_entry(char *, size_t, unsigned int, const void *);
 static void select_fmt_entry(char *, size_t, unsigned int, const void *);
@@ -1065,14 +1064,6 @@ define(const char *name, struct op *t)
 
 	nhash = hash(name);
 
-#ifdef MKSH_LEGACY_MODE
-	if (t != NULL && !tobool(t->u.ksh_func)) {
-		/* drop same-name aliases for POSIX functions */
-		if ((tp = ktsearch(&aliases, name, nhash)))
-			ktdelete(tp);
-	}
-#endif
-
 	while (/* CONSTCOND */ 1) {
 		tp = findfunc(name, nhash, true);
 
@@ -1257,7 +1248,7 @@ flushcom(bool all)
 }
 
 /* check if path is something we want to find */
-static int
+int
 search_access(const char *fn, int mode)
 {
 	struct stat sb;

@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.381 2015/10/09 20:43:11 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.382 2015/10/09 21:36:57 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -1130,8 +1130,6 @@ login=\*(aq\eexec login\*(aq
 nameref=\*(aq\etypeset \-n\*(aq
 nohup=\*(aqnohup \*(aq
 r=\*(aq\ebuiltin fc \-e \-\*(aq
-source=\*(aqPATH=$PATH:. \ecommand .\*(aq
-stop=\*(aq\ekill \-STOP\*(aq
 type=\*(aq\ebuiltin whence \-v\*(aq
 .Ed
 .Pp
@@ -2942,18 +2940,18 @@ Additional
 .Nm
 commands keeping assignments:
 .Pp
-.Ic builtin , global , typeset , wait
+.Ic builtin , global , source , typeset ,
+.Ic wait
 .Pp
 Builtins that are not special:
 .Pp
 .Ic [ , alias , bg , bind ,
 .Ic cat , cd , command , echo ,
 .Ic false , fc , fg , getopts ,
-.Ic jobs , kill , let , mknod ,
-.Ic print , pwd , read , realpath ,
-.Ic rename , sleep , suspend , test ,
-.Ic true , ulimit , umask , unalias ,
-.Ic whence
+.Ic jobs , kill , let , print ,
+.Ic pwd , read , realpath , rename ,
+.Ic sleep , suspend , test , true ,
+.Ic ulimit , umask , unalias , whence
 .Pp
 Once the type of command has been determined, any command-line parameter
 assignments are performed and exported for the duration of the command.
@@ -3673,10 +3671,6 @@ option),
 and
 .Ar minor
 (minor device number).
-.Pp
-See
-.Xr mknod 8
-for further information.
 This is not normally part of
 .Nm mksh ;
 however, distributors may have added this as builtin as a speed hack.
@@ -4324,16 +4318,9 @@ Signal delivery may continue execution earlier.
 Like
 .Ic \&. Po Do dot Dc Pc ,
 except that the current working directory is appended to the
-.Ev PATH
-in GNU
+search path (GNU
 .Nm bash
-and
-.Nm mksh .
-In
-.Nm ksh93
-and
-.Nm mksh ,
-this is implemented as a shell alias instead of a builtin.
+extension).
 .Pp
 .It Ic suspend
 Stops the shell as if it had received the suspend character from
@@ -6578,7 +6565,7 @@ for the in-memory portion of the history is slow, should use
 .Xr memmove 3 .
 .Pp
 This document attempts to describe
-.Nm mksh\ R51
+.Nm mksh\ R51 Ns -CVS
 and up,
 .\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as

@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.305 2015/10/09 17:48:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.306 2015/10/09 21:36:57 tg Exp $");
 
 extern char **environ;
 
@@ -71,18 +71,12 @@ static const char *initcoms[] = {
 	/* not "alias -t --": hash -r needs to work */
 	"hash=\\builtin alias -t",
 	"type=\\builtin whence -v",
-#if !defined(ANDROID) && !defined(MKSH_UNEMPLOYED)
-	/* not in Android for political reasons */
-	/* not in ARGE mksh due to no job control */
-	"stop=\\kill -STOP",
-#endif
 	"autoload=\\typeset -fu",
 	"functions=\\typeset -f",
 	"history=\\builtin fc -l",
 	"nameref=\\typeset -n",
 	"nohup=nohup ",
 	"r=\\builtin fc -e -",
-	"source=PATH=$PATH" MKSH_PATHSEPE ". \\command .",
 	"login=\\exec login",
 	NULL,
 	 /* this is what AT&T ksh seems to track, with the addition of emacs */
@@ -255,7 +249,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	/* define built-in commands and see if we were called as one */
 	ktinit(APERM, &builtins,
-	    /* currently up to 51 builtins: 75% of 128 = 2^7 */
+	    /* currently up to 54 builtins: 75% of 128 = 2^7 */
 	    7);
 	for (i = 0; mkshbuiltins[i].name != NULL; i++)
 		if (!strcmp(ccp, builtin(mkshbuiltins[i].name,

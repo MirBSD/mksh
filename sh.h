@@ -172,9 +172,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.748 2015/10/09 19:29:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.749 2015/10/09 21:36:59 tg Exp $");
 #endif
-#define MKSH_VERSION "R51 2015/10/05"
+#define MKSH_VERSION "R51 2015/10/09"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -387,12 +387,10 @@ struct rusage {
 #endif
 
 #ifdef __OS2__
-#define MKSH_PATHSEPE	"\\;"
 #define MKSH_PATHSEPS	";"
 #define MKSH_PATHSEPC	';'
 #define MKSH_UNIXROOT	"/@unixroot"
 #else
-#define MKSH_PATHSEPE	":"
 #define MKSH_PATHSEPS	":"
 #define MKSH_PATHSEPC	':'
 #define MKSH_UNIXROOT	""
@@ -1047,7 +1045,7 @@ EXTERN sigset_t		sm_default, sm_sigchld;
 
 /* name of called builtin function (used by error functions) */
 EXTERN const char *builtin_argv0;
-/* is called builtin SPEC_BI? */
+/* is called builtin SPEC_BI? (also KEEPASN, odd use though) */
 EXTERN bool builtin_spec;
 
 /* current working directory */
@@ -1072,11 +1070,7 @@ EXTERN mksh_ari_t x_lins E_INIT(24);	/* tty lines */
 /* Determine the location of the system (common) profile */
 
 #ifndef MKSH_DEFAULT_PROFILEDIR
-#if defined(ANDROID)
-#define MKSH_DEFAULT_PROFILEDIR	"/system/etc"
-#else
 #define MKSH_DEFAULT_PROFILEDIR	"/etc"
-#endif
 #endif
 
 #define MKSH_SYSTEM_PROFILE	MKSH_DEFAULT_PROFILEDIR "/profile"
@@ -1719,6 +1713,7 @@ int define(const char *, struct op *);
 const char *builtin(const char *, int (*)(const char **));
 struct tbl *findcom(const char *, int);
 void flushcom(bool);
+int search_access(const char *, int);
 const char *search_path(const char *, const char *, int, int *);
 void pr_menu(const char * const *);
 void pr_list(char * const *);
