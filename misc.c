@@ -1,10 +1,10 @@
-/*	$OpenBSD: misc.c,v 1.40 2015/03/18 15:12:36 tedu Exp $	*/
+/*	$OpenBSD: misc.c,v 1.41 2015/09/10 22:48:58 nicm Exp $	*/
 /*	$OpenBSD: path.c,v 1.13 2015/09/05 09:47:08 jsg Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015
- *	mirabilos <tg@mirbsd.org>
+ *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.239 2015/09/05 19:19:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.240 2015/10/09 16:11:17 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL

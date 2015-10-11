@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009,
  *		 2011, 2012, 2013, 2014, 2015
- *	mirabilos <tg@mirbsd.org>
+ *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.104 2015/09/06 19:47:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.106 2015/10/09 19:29:50 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -210,18 +210,22 @@ synio(int cf)
 			yyerror("too many %ss\n", "<<");
 		*herep++ = iop;
 	} else
-		iop->name = yylval.cp;
+		iop->ioname = yylval.cp;
 
 	if (iop->ioflag & IOBASH) {
 		char *cp;
 
 		nextiop = alloc(sizeof(*iop), ATEMP);
-		nextiop->name = cp = alloc(5, ATEMP);
+#ifdef MKSH_CONSERVATIVE_FDS
+		nextiop->ioname = cp = alloc(3, ATEMP);
+#else
+		nextiop->ioname = cp = alloc(5, ATEMP);
 
 		if (iop->unit > 9) {
 			*cp++ = CHAR;
 			*cp++ = digits_lc[iop->unit / 10];
 		}
+#endif
 		*cp++ = CHAR;
 		*cp++ = digits_lc[iop->unit % 10];
 		*cp = EOS;
@@ -294,7 +298,7 @@ get_command(int cf)
 		t->lineno = source->line;
 		while (/* CONSTCOND */ 1) {
 			cf = (t->u.evalflags ? ARRAYVAR : 0) |
-			    (XPsize(args) == 0 ? sALIAS|VARASN : 0);
+			    (XPsize(args) == 0 ? sALIAS|VARASN : CMDWORD);
 			switch (tpeek(cf)) {
 			case REDIR:
 				while ((iop = synio(cf)) != NULL) {

@@ -1,9 +1,9 @@
-# $MirOS: src/bin/mksh/check.t,v 1.707 2015/09/06 19:46:56 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.710 2015/10/09 21:36:52 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #	      2011, 2012, 2013, 2014, 2015
-#	mirabilos <tg@mirbsd.org>
+#	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
 # are retained or reproduced in an accompanying document, permission
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R51 2015/09/06
+	@(#)MIRBSD KSH R51 2015/10/09
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R51 2015/09/06
+	@(#)LEGACY KSH R51 2015/10/09
 description:
 	Check version of legacy shell.
 stdin:
@@ -6505,18 +6505,13 @@ name: xxx-param-subst-qmark-1
 description:
 	Check suppresion of error message with null string.  According to
 	POSIX, it shouldn't print the error as 'word' isn't ommitted.
-	ksh88/93, Solaris /bin/sh and /usr/xpg4/bin/sh all print the error,
-	that's why the condition is reversed.
+	ksh88/93, Solaris /bin/sh and /usr/xpg4/bin/sh all print the error.
 stdin:
 	unset foo
 	x=
 	echo x${foo?$x}
 expected-exit: 1
-# POSIX
-#expected-fail: yes
-#expected-stderr-pattern: !/not set/
-# common use
-expected-stderr-pattern: /parameter null or not set/
+expected-stderr-pattern: !/not set/
 ---
 name: xxx-param-_-1
 # fails due to weirdness of execv stuff
@@ -6532,7 +6527,7 @@ description:
 env-setup: !HOME=/sweet!
 stdin:
 	echo ${A=a=}~ b=~ c=d~ ~
-	set +o braceexpand
+	set -o posix
 	unset A
 	echo ${A=a=}~ b=~ c=d~ ~
 expected-stdout:
@@ -7496,7 +7491,6 @@ expected-stdout:
 name: aliases-1
 description:
 	Check if built-in shell aliases are okay
-category: !android,!arge,!os:os2
 stdin:
 	alias
 	typeset -f
@@ -7511,56 +7505,11 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH=$PATH:. \command .'
-	stop='\kill -STOP'
-	type='\builtin whence -v'
----
-name: aliases-1-hartz4
-description:
-	Check if built-in shell aliases are okay
-category: android,arge,!os:os2
-stdin:
-	alias
-	typeset -f
-expected-stdout:
-	autoload='\typeset -fu'
-	functions='\typeset -f'
-	hash='\builtin alias -t'
-	history='\builtin fc -l'
-	integer='\typeset -i'
-	local='\typeset'
-	login='\exec login'
-	nameref='\typeset -n'
-	nohup='nohup '
-	r='\builtin fc -e -'
-	source='PATH=$PATH:. \command .'
-	type='\builtin whence -v'
----
-name: aliases-1-os2
-description:
-	Check if built-in shell aliases are okay
-category: os:os2
-stdin:
-	alias
-	typeset -f
-expected-stdout:
-	autoload='\typeset -fu'
-	functions='\typeset -f'
-	hash='\builtin alias -t'
-	history='\builtin fc -l'
-	integer='\typeset -i'
-	local='\typeset'
-	login='\exec login'
-	nameref='\typeset -n'
-	nohup='nohup '
-	r='\builtin fc -e -'
-	source='PATH=$PATH\;. \command .'
 	type='\builtin whence -v'
 ---
 name: aliases-2b
 description:
 	Check if “set -o sh” does not influence built-in aliases
-category: !android,!arge,!os:os2
 arguments: !-o!sh!
 stdin:
 	alias
@@ -7576,14 +7525,11 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH=$PATH:. \command .'
-	stop='\kill -STOP'
 	type='\builtin whence -v'
 ---
 name: aliases-3b
 description:
 	Check if running as sh does not influence built-in aliases
-category: !android,!arge,!os:os2
 stdin:
 	cp "$__progname" sh
 	./sh -c 'alias; typeset -f'
@@ -7599,96 +7545,6 @@ expected-stdout:
 	nameref='\typeset -n'
 	nohup='nohup '
 	r='\builtin fc -e -'
-	source='PATH=$PATH:. \command .'
-	stop='\kill -STOP'
-	type='\builtin whence -v'
----
-name: aliases-2b-hartz4
-description:
-	Check if “set -o sh” does not influence built-in aliases
-category: android,arge,!os:os2
-arguments: !-o!sh!
-stdin:
-	alias
-	typeset -f
-expected-stdout:
-	autoload='\typeset -fu'
-	functions='\typeset -f'
-	hash='\builtin alias -t'
-	history='\builtin fc -l'
-	integer='\typeset -i'
-	local='\typeset'
-	login='\exec login'
-	nameref='\typeset -n'
-	nohup='nohup '
-	r='\builtin fc -e -'
-	source='PATH=$PATH:. \command .'
-	type='\builtin whence -v'
----
-name: aliases-3b-hartz4
-description:
-	Check if running as sh does not influence built-in aliases
-category: android,arge,!os:os2
-stdin:
-	cp "$__progname" sh
-	./sh -c 'alias; typeset -f'
-	rm -f sh
-expected-stdout:
-	autoload='\typeset -fu'
-	functions='\typeset -f'
-	hash='\builtin alias -t'
-	history='\builtin fc -l'
-	integer='\typeset -i'
-	local='\typeset'
-	login='\exec login'
-	nameref='\typeset -n'
-	nohup='nohup '
-	r='\builtin fc -e -'
-	source='PATH=$PATH:. \command .'
-	type='\builtin whence -v'
----
-name: aliases-2b-os2
-description:
-	Check if “set -o sh” does not influence built-in aliases
-category: os:os2
-arguments: !-o!sh!
-stdin:
-	alias
-	typeset -f
-expected-stdout:
-	autoload='\typeset -fu'
-	functions='\typeset -f'
-	hash='\builtin alias -t'
-	history='\builtin fc -l'
-	integer='\typeset -i'
-	local='\typeset'
-	login='\exec login'
-	nameref='\typeset -n'
-	nohup='nohup '
-	r='\builtin fc -e -'
-	source='PATH=$PATH\;. \command .'
-	type='\builtin whence -v'
----
-name: aliases-3b-os2
-description:
-	Check if running as sh does not influence built-in aliases
-category: os:os2
-stdin:
-	cp "$__progname" sh
-	./sh -c 'alias; typeset -f'
-	rm -f sh
-expected-stdout:
-	autoload='\typeset -fu'
-	functions='\typeset -f'
-	hash='\builtin alias -t'
-	history='\builtin fc -l'
-	integer='\typeset -i'
-	local='\typeset'
-	login='\exec login'
-	nameref='\typeset -n'
-	nohup='nohup '
-	r='\builtin fc -e -'
-	source='PATH=$PATH\;. \command .'
 	type='\builtin whence -v'
 ---
 name: aliases-cmdline
@@ -8960,7 +8816,7 @@ stdin:
 	"$__progname" -c source
 expected-exit: e != 0
 expected-stderr-pattern:
-	/\.: missing argument.*\n.*\.: missing argument/
+	/\.: missing argument.*\n.*source: missing argument/
 ---
 name: alias-function-no-conflict-legacy
 description:
@@ -9059,20 +8915,16 @@ stdin:
 	mk 'function foo' >f-korn
 	mk 'foo ()' >f-dash
 	mk 'function foo ()' >f-bash
-	# lksh can do without the backslash, too (cf. aliases-funcdef-2-legacy)
-	mk 'function stop ()' '\stop' >f-stop
 	print '#!'"$__progname"'\nprint -r -- "${0%/f-argh}"' >f-argh
 	chmod +x f-*
 	u=$(./f-argh)
 	x="korn: $(./f-korn)"; echo "${x/@("$u")/.}"
 	x="dash: $(./f-dash)"; echo "${x/@("$u")/.}"
 	x="bash: $(./f-bash)"; echo "${x/@("$u")/.}"
-	x="stop: $(./f-stop)"; echo "${x/@("$u")/.}"
 expected-stdout:
 	korn: bar='foo'
 	dash: bar='./f-dash'
 	bash: bar='./f-bash'
-	stop: bar='./f-stop'
 ---
 name: integer-base-one-1
 description:

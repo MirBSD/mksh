@@ -1,9 +1,9 @@
-/*	$OpenBSD: lex.c,v 1.50 2015/07/30 14:59:12 zhuk Exp $	*/
+/*	$OpenBSD: lex.c,v 1.51 2015/09/10 22:48:58 nicm Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015
- *	mirabilos <tg@mirbsd.org>
+ *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.209 2015/09/06 19:47:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.212 2015/10/09 19:29:48 tg Exp $");
 
 /*
  * states while lexing word
@@ -234,7 +234,9 @@ yylex(int cf)
 	if (source->flags & SF_ALIAS) {
 		/* trailing ' ' in alias definition */
 		source->flags &= ~SF_ALIAS;
-		cf |= ALIAS;
+		/* POSIX: trailing space only counts if parsing simple cmd */
+		if (!Flag(FPOSIX) || (cf & CMDWORD))
+			cf |= ALIAS;
 	}
 
 	/* Initial state: one of SWORD SLETPAREN SHEREDELIM SBASE */
@@ -524,27 +526,32 @@ yylex(int cf)
 				PUSH_STATE(SBQUOTE);
 				*wp++ = COMSUB;
 				/*
-				 * Need to know if we are inside double quotes
-				 * since sh/AT&T-ksh translate the \" to " in
-				 * "`...\"...`".
-				 * This is not done in POSIX mode (section
-				 * 3.2.3, Double Quotes: "The backquote shall
-				 * retain its special meaning introducing the
-				 * other form of command substitution (see
-				 * 3.6.3). The portion of the quoted string
-				 * from the initial backquote and the
-				 * characters up to the next backquote that
-				 * is not preceded by a backslash (having
-				 * escape characters removed) defines that
-				 * command whose output replaces `...` when
-				 * the word is expanded."
-				 * Section 3.6.3, Command Substitution:
-				 * "Within the backquoted style of command
-				 * substitution, backslash shall retain its
-				 * literal meaning, except when followed by
-				 * $ ` \.").
+				 * We need to know whether we are within double
+				 * quotes, since most shells translate \" to "
+				 * within "…`…\"…`…". This is not done in POSIX
+				 * mode (§2.2.3 Double-Quotes: “The backquote
+				 * shall retain its special meaning introducing
+				 * the other form of command substitution (see
+				 * Command Substitution). The portion of the
+				 * quoted string from the initial backquote and
+				 * the characters up to the next backquote that
+				 * is not preceded by a <backslash>, having
+				 * escape characters removed, defines that
+				 * command whose output replaces "`...`" when
+				 * the word is expanded.”; §2.6.3 Command
+				 * Substitution: “Within the backquoted style
+				 * of command substitution, <backslash> shall
+				 * retain its literal meaning, except when
+				 * followed by: '$', '`', or <backslash>. The
+				 * search for the matching backquote shall be
+				 * satisfied by the first unquoted non-escaped
+				 * backquote; during this search, if a
+				 * non-escaped backquote is encountered[…],
+				 * undefined results occur.”).
 				 */
 				statep->ls_bool = false;
+				if (Flag(FPOSIX))
+					break;
 				s2 = statep;
 				base = state_info.base;
 				while (/* CONSTCOND */ 1) {
@@ -732,8 +739,9 @@ yylex(int cf)
 				case 0:
 					/* trailing \ is lost */
 					break;
+				case '$':
+				case '`':
 				case '\\':
-				case '$': case '`':
 					*wp++ = c;
 					break;
 				case '"':
@@ -943,7 +951,7 @@ yylex(int cf)
 				ungetsc(c2);
 		}
 
-		iop->name = NULL;
+		iop->ioname = NULL;
 		iop->delim = NULL;
 		iop->heredoc = NULL;
 		/* free word */

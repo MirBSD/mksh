@@ -1,9 +1,9 @@
-/*	$OpenBSD: exec.c,v 1.51 2015/04/18 18:28:36 deraadt Exp $	*/
+/*	$OpenBSD: exec.c,v 1.52 2015/09/10 22:48:58 nicm Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015
- *	mirabilos <tg@mirbsd.org>
+ *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.163 2015/09/06 19:46:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.168 2015/10/09 21:36:55 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -39,7 +39,6 @@ static const char *do_selectargs(const char **, bool);
 static Test_op dbteste_isa(Test_env *, Test_meta);
 static const char *dbteste_getopnd(Test_env *, Test_op, bool);
 static void dbteste_error(Test_env *, int, const char *);
-static int search_access(const char *, int);
 /* XXX: horrible kludge to fit within the framework */
 static void plain_fmt_entry(char *, size_t, unsigned int, const void *);
 static void select_fmt_entry(char *, size_t, unsigned int, const void *);
@@ -1092,14 +1091,6 @@ define(const char *name, struct op *t)
 
 	nhash = hash(name);
 
-#ifdef MKSH_LEGACY_MODE
-	if (t != NULL && !tobool(t->u.ksh_func)) {
-		/* drop same-name aliases for POSIX functions */
-		if ((tp = ktsearch(&aliases, name, nhash)))
-			ktdelete(tp);
-	}
-#endif
-
 	while (/* CONSTCOND */ 1) {
 		tp = findfunc(name, nhash, true);
 
@@ -1284,7 +1275,7 @@ flushcom(bool all)
 }
 
 /* check if path is something we want to find */
-static int
+int
 search_access(const char *fn, int mode)
 {
 	struct stat sb;
@@ -1293,9 +1284,13 @@ search_access(const char *fn, int mode)
 		/* file does not exist */
 		return (ENOENT);
 	/* LINTED use of access */
-	if (access(fn, mode) < 0)
+	if (access(fn, mode) < 0) {
 		/* file exists, but we can't access it */
-		return (errno);
+		int eno;
+
+		eno = errno;
+		return (eno ? eno : EACCES);
+	}
 #ifdef __OS2__
 	/* Treat all the files as executables on OS/2 */
 	sb.st_mode |= S_IXUSR | S_IXGRP | S_IXOTH;
@@ -1386,7 +1381,9 @@ call_builtin(struct tbl *tp, const char **wp, const char *where, bool resetspec)
 	if (!tp)
 		internal_errorf("%s: %s", where, wp[0]);
 	builtin_argv0 = wp[0];
-	builtin_spec = tobool(!resetspec && (tp->flag & SPEC_BI));
+	builtin_spec = tobool(!resetspec &&
+	    /*XXX odd use of KEEPASN */
+	    ((tp->flag & SPEC_BI) || (Flag(FPOSIX) && (tp->flag & KEEPASN))));
 	shf_reopen(1, SHF_WR, shl_stdout);
 	shl_stdout_ok = true;
 	ksh_getopt_reset(&builtin_opt, GF_ERROR);
@@ -1405,7 +1402,7 @@ static int
 iosetup(struct ioword *iop, struct tbl *tp)
 {
 	int u = -1;
-	char *cp = iop->name;
+	char *cp = iop->ioname;
 	int iotype = iop->ioflag & IOTYPE;
 	bool do_open = true, do_close = false;
 	int flags = 0;
@@ -1417,7 +1414,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 
 	/* Used for tracing and error messages to print expanded cp */
 	iotmp = *iop;
-	iotmp.name = (iotype == IOHERE) ? NULL : cp;
+	iotmp.ioname = (iotype == IOHERE) ? NULL : cp;
 	iotmp.ioflag |= IONAMEXP;
 
 	if (Flag(FXTRACE)) {

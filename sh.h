@@ -1,4 +1,4 @@
-/*	$OpenBSD: sh.h,v 1.33 2013/12/18 13:53:12 millert Exp $	*/
+/*	$OpenBSD: sh.h,v 1.35 2015/09/10 22:48:58 nicm Exp $	*/
 /*	$OpenBSD: shf.h,v 1.6 2005/12/11 18:53:51 deraadt Exp $	*/
 /*	$OpenBSD: table.h,v 1.8 2012/02/19 07:52:30 otto Exp $	*/
 /*	$OpenBSD: tree.h,v 1.10 2005/03/28 21:28:22 deraadt Exp $	*/
@@ -11,7 +11,7 @@
 /*-
  * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *	       2011, 2012, 2013, 2014, 2015
- *	mirabilos <tg@mirbsd.org>
+ *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -172,9 +172,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.744 2015/09/06 19:47:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.749 2015/10/09 21:36:59 tg Exp $");
 #endif
-#define MKSH_VERSION "R51 2015/09/06"
+#define MKSH_VERSION "R51 2015/10/09"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -387,12 +387,10 @@ struct rusage {
 #endif
 
 #ifdef __OS2__
-#define MKSH_PATHSEPE	"\\;"
 #define MKSH_PATHSEPS	";"
 #define MKSH_PATHSEPC	';'
 #define MKSH_UNIXROOT	"/@unixroot"
 #else
-#define MKSH_PATHSEPE	":"
 #define MKSH_PATHSEPS	":"
 #define MKSH_PATHSEPC	':'
 #define MKSH_UNIXROOT	""
@@ -1028,7 +1026,7 @@ EXTERN Getopt user_opt;		/* parsing state for getopts builtin command */
 /* This for co-processes */
 
 /* something that won't (realisticly) wrap */
-typedef int32_t Coproc_id;
+typedef int Coproc_id;
 
 struct coproc {
 	void *job;	/* 0 or job of co-process using input pipe */
@@ -1047,7 +1045,7 @@ EXTERN sigset_t		sm_default, sm_sigchld;
 
 /* name of called builtin function (used by error functions) */
 EXTERN const char *builtin_argv0;
-/* is called builtin SPEC_BI? */
+/* is called builtin SPEC_BI? (also KEEPASN, odd use though) */
 EXTERN bool builtin_spec;
 
 /* current working directory */
@@ -1072,11 +1070,7 @@ EXTERN mksh_ari_t x_lins E_INIT(24);	/* tty lines */
 /* Determine the location of the system (common) profile */
 
 #ifndef MKSH_DEFAULT_PROFILEDIR
-#if defined(ANDROID)
-#define MKSH_DEFAULT_PROFILEDIR	"/system/etc"
-#else
 #define MKSH_DEFAULT_PROFILEDIR	MKSH_UNIXROOT "/etc"
-#endif
 #endif
 
 #define MKSH_SYSTEM_PROFILE	MKSH_DEFAULT_PROFILEDIR "/profile"
@@ -1398,7 +1392,7 @@ struct op {
  * IO redirection
  */
 struct ioword {
-	char *name;		/* filename (unused if heredoc) */
+	char *ioname;		/* filename (unused if heredoc) */
 	char *delim;		/* delimiter for <<, <<- */
 	char *heredoc;		/* content of heredoc */
 	unsigned short ioflag;	/* action (below) */
@@ -1634,9 +1628,10 @@ typedef union {
 #define VARASN		BIT(5)	/* check for var=word */
 #define ARRAYVAR	BIT(6)	/* parse x[1 & 2] as one word */
 #define ESACONLY	BIT(7)	/* only accept esac keyword */
-#define HEREDELIM	BIT(8)	/* parsing <<,<<- delimiter */
-#define LQCHAR		BIT(9)	/* source string contains QCHAR */
-#define HEREDOC 	BIT(10)	/* parsing a here document body */
+#define CMDWORD		BIT(8)	/* parsing simple command (alias related) */
+#define HEREDELIM	BIT(9)	/* parsing <<,<<- delimiter */
+#define LQCHAR		BIT(10)	/* source string contains QCHAR */
+#define HEREDOC 	BIT(11)	/* parsing a here document body */
 
 #define HERES		10	/* max number of << in line */
 
@@ -1718,6 +1713,7 @@ int define(const char *, struct op *);
 const char *builtin(const char *, int (*)(const char **));
 struct tbl *findcom(const char *, int);
 void flushcom(bool);
+int search_access(const char *, int);
 const char *search_path(const char *, const char *, int, int *);
 void pr_menu(const char * const *);
 void pr_list(char * const *);

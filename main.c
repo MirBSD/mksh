@@ -1,12 +1,12 @@
-/*	$OpenBSD: main.c,v 1.56 2015/09/01 17:46:31 tedu Exp $	*/
+/*	$OpenBSD: main.c,v 1.57 2015/09/10 22:48:58 nicm Exp $	*/
 /*	$OpenBSD: tty.c,v 1.10 2014/08/10 02:44:26 guenther Exp $	*/
-/*	$OpenBSD: io.c,v 1.25 2014/08/11 20:28:47 guenther Exp $	*/
+/*	$OpenBSD: io.c,v 1.26 2015/09/11 08:00:27 guenther Exp $	*/
 /*	$OpenBSD: table.c,v 1.16 2015/09/01 13:12:31 tedu Exp $	*/
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015
- *	mirabilos <tg@mirbsd.org>
+ *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.302 2015/09/05 19:19:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.306 2015/10/09 21:36:57 tg Exp $");
 
 extern char **environ;
 
@@ -71,18 +71,12 @@ static const char *initcoms[] = {
 	/* not "alias -t --": hash -r needs to work */
 	"hash=\\builtin alias -t",
 	"type=\\builtin whence -v",
-#if !defined(ANDROID) && !defined(MKSH_UNEMPLOYED)
-	/* not in Android for political reasons */
-	/* not in ARGE mksh due to no job control */
-	"stop=\\kill -STOP",
-#endif
 	"autoload=\\typeset -fu",
 	"functions=\\typeset -f",
 	"history=\\builtin fc -l",
 	"nameref=\\typeset -n",
 	"nohup=nohup ",
 	"r=\\builtin fc -e -",
-	"source=PATH=$PATH" MKSH_PATHSEPE ". \\command .",
 	"login=\\exec login",
 	NULL,
 	 /* this is what AT&T ksh seems to track, with the addition of emacs */
@@ -255,7 +249,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	/* define built-in commands and see if we were called as one */
 	ktinit(APERM, &builtins,
-	    /* currently up to 51 builtins: 75% of 128 = 2^7 */
+	    /* currently up to 54 builtins: 75% of 128 = 2^7 */
 	    7);
 	for (i = 0; mkshbuiltins[i].name != NULL; i++)
 		if (!strcmp(ccp, builtin(mkshbuiltins[i].name,
@@ -416,11 +410,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	setint_n((vp_pipest = global("PIPESTATUS")), 0, 10);
 
 	/* Set this before parsing arguments */
-	Flag(FPRIVILEGED) = (
-#if HAVE_ISSETUGID
-	    issetugid() ||
-#endif
-	    kshuid != ksheuid || kshgid != kshegid) ? 2 : 0;
+	Flag(FPRIVILEGED) = (kshuid != ksheuid || kshgid != kshegid) ? 2 : 0;
 
 	/* this to note if monitor is set on command line (see below) */
 #ifndef MKSH_UNEMPLOYED
@@ -1273,8 +1263,7 @@ bi_errorf(const char *fmt, ...)
 
 	/*
 	 * POSIX special builtins and ksh special builtins cause
-	 * non-interactive shells to exit.
-	 * XXX odd use of KEEPASN; also may not want LERROR here
+	 * non-interactive shells to exit. XXX may not want LERROR here
 	 */
 	if (builtin_spec) {
 		builtin_argv0 = NULL;

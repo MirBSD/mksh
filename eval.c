@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015
- *	mirabilos <tg@mirbsd.org>
+ *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.172 2015/09/06 19:46:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.174 2015/10/09 19:29:47 tg Exp $");
 
 /*
  * string expansion
@@ -648,6 +648,9 @@ expand(
 						tilde_ok = 1;
 						break;
 					case '?':
+						if (*sp == CSUBST)
+							errorf("%s: parameter null or not set",
+							    st->var->name);
 						f &= ~DOBLANK;
 						f |= DOTEMP;
 						/* FALLTHROUGH */
@@ -743,14 +746,12 @@ expand(
 					st = st->prev;
 					word = quote || (!*x.str && (f & DOSCALAR)) ? IFS_WORD : IFS_IWS;
 					continue;
-				case '?': {
-					char *s = Xrestpos(ds, dp, st->base);
+				case '?':
+					dp = Xrestpos(ds, dp, st->base);
 
 					errorf("%s: %s", st->var->name,
-					    dp == s ?
-					    "parameter null or not set" :
-					    (debunk(s, s, strlen(s) + 1), s));
-				    }
+					    debunk(dp, dp, strlen(dp) + 1));
+					break;
 				case '0':
 				case '/':
 				case 0x100 | '#':
@@ -1001,9 +1002,8 @@ expand(
 					break;
 				case '=':
 					/* Note first unquoted = for ~ */
-					if (!(f & DOTEMP) && !saw_eq &&
-					    (Flag(FBRACEEXPAND) ||
-					    (f & DOASNTILDE))) {
+					if (!(f & DOTEMP) && (!Flag(FPOSIX) ||
+					    (f & DOASNTILDE)) && !saw_eq) {
 						saw_eq = true;
 						tilde_ok = 1;
 					}
@@ -1287,7 +1287,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 	c = stype & 0x7F;
 	/* test the compiler's code generator */
 	if (((stype < 0x100) && (ctype(c, C_SUBOP2) || c == '/' ||
-	    (((stype&0x80) ? *xp->str=='\0' : xp->str==null) ? /* undef? */
+	    (((stype & 0x80) ? *xp->str == '\0' : xp->str == null) ?
 	    c == '=' || c == '-' || c == '?' : c == '+'))) ||
 	    stype == (0x80 | '0') || stype == (0x100 | '#') ||
 	    stype == (0x100 | 'Q'))
@@ -1334,8 +1334,8 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 		if ((io->ioflag & IOTYPE) != IOREAD)
 			errorf("%s: %s", "funny $() command",
 			    snptreef(NULL, 32, "%R", io));
-		shf = shf_open(name = evalstr(io->name, DOTILDE), O_RDONLY, 0,
-			SHF_MAPHI|SHF_CLEXEC);
+		shf = shf_open(name = evalstr(io->ioname, DOTILDE), O_RDONLY,
+			0, SHF_MAPHI | SHF_CLEXEC);
 		if (shf == NULL)
 			warningf(!Flag(FTALKING), "%s: %s %s: %s", name,
 			    "can't open", "$(<...) input", cstrerror(errno));
