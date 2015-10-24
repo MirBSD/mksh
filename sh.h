@@ -108,6 +108,9 @@
 #if HAVE_VALUES_H
 #include <values.h>
 #endif
+#ifdef MIRBSD_BOOTFLOPPY
+#include <wchar.h>
+#endif
 
 #undef __attribute__
 #if HAVE_ATTRIBUTE_BOUNDED
@@ -172,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.749 2015/10/09 21:36:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.750 2015/10/24 19:45:23 tg Exp $");
 #endif
-#define MKSH_VERSION "R51 2015/10/09"
+#define MKSH_VERSION "R51 2015/10/24"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1727,7 +1730,11 @@ int utf_widthadj(const char *, const char **);
 size_t utf_mbswidth(const char *) MKSH_A_PURE;
 const char *utf_skipcols(const char *, int) MKSH_A_PURE;
 size_t utf_ptradj(const char *) MKSH_A_PURE;
+#ifdef MIRBSD_BOOTFLOPPY
+#define utf_wcwidth(i) wcwidth((wchar_t)(i))
+#else
 int utf_wcwidth(unsigned int) MKSH_A_PURE;
+#endif
 int ksh_access(const char *, int);
 struct tbl *tempvar(void);
 /* funcs.c */
