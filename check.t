@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.711 2015/10/13 21:39:53 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.712 2015/10/24 19:46:07 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R51 2015/10/09
+	@(#)MIRBSD KSH R51 2015/10/24
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R51 2015/10/09
+	@(#)LEGACY KSH R51 2015/10/24
 description:
 	Check version of legacy shell.
 stdin:
@@ -8538,13 +8538,36 @@ expected-stdout:
 	0
 	1
 ---
+name: varexpand-funny-chars
+description:
+	Check some characters
+	XXX \uEF80 is asymmetric, possibly buggy so we don’t check this
+stdin:
+	x=$'<\x00>'; typeset -p x
+	x=$'<\x01>'; typeset -p x
+	x=$'<\u0000>'; typeset -p x
+	x=$'<\u0001>'; typeset -p x
+expected-stdout:
+	typeset x='<'
+	typeset x=$'<\001>'
+	typeset x='<'
+	typeset x=$'<\001>'
+---
 name: print-funny-chars
 description:
 	Check print builtin's capability to output designated characters
 stdin:
 	print '<\0144\0344\xDB\u00DB\u20AC\uDB\x40>'
+	print '<\x00>'
+	print '<\x01>'
+	print '<\u0000>'
+	print '<\u0001>'
 expected-stdout:
 	<d��Û€Û@>
+	< >
+	<>
+	< >
+	<>
 ---
 name: print-bksl-c
 description:
