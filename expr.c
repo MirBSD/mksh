@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.78 2015/09/05 19:19:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.79 2015/10/24 19:45:23 tg Exp $");
 
 /* the order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -920,6 +920,7 @@ ksh_access(const char *fn, int mode)
 	return (rv);
 }
 
+#ifndef MIRBSD_BOOTFLOPPY
 /* From: X11/xc/programs/xterm/wcwidth.c,v 1.8 2014/06/24 19:53:53 tg Exp $ */
 
 struct mb_ucsrange {
@@ -1199,3 +1200,4 @@ utf_wcwidth(unsigned int wc)
 		return (2);
 	return (1);
 }
+#endif
