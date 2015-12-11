@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.712 2015/10/24 19:46:07 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.713 2015/12/11 16:55:55 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -5068,7 +5068,7 @@ description:
 	called - I don't know what this will break.
 stdin:
 	: "${PWD:-`pwd 2> /dev/null`}"
-	: "${PWD:?"PWD not set - can't do test"}"
+	: "${PWD:?"PWD not set - cannot do test"}"
 	mkdir Y
 	cat > Y/xxxscript << EOF
 	#!/bin/sh
