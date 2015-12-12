@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.177 2015/12/12 20:38:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.178 2015/12/12 22:24:07 tg Exp $");
 
 /*
  * string expansion
@@ -483,7 +483,7 @@ expand(
 					case '/': {
 						char *s, *p, *d, *sbeg, *end;
 						char *pat, *rrep;
-						char *tpat0, *tpat1, *tpat2;
+						char fpat = 0, *tpat1, *tpat2;
 
 						s = wdcopy(sp, ATEMP);
 						p = s + (wdscan(sp, ADELIM) - sp);
@@ -496,23 +496,26 @@ expand(
 						else
 							d[-2] = EOS;
 						sp += (d ? d : p) - s - 1;
-						pat = evalstr(s, DOTILDE | DOPAT);
-						rrep = d ? evalstr(p, DOTILDE) : null;
+						if (!(stype & 0x80) &&
+						    s[0] == CHAR &&
+						    (s[1] == '#' || s[1] == '%'))
+							fpat = s[1];
+						pat = evalstr(s + (fpat ? 2 : 0),
+						    DOTILDE | DOSCALAR | DOPAT);
+						rrep = d ? evalstr(p,
+						    DOTILDE | DOSCALAR) : null;
 						afree(s, ATEMP);
 
 						/* check for special cases */
-						switch (*pat) {
-						case '#':
-						case '%':
-							tpat0 = pat + 1;
-							break;
-						case '\0':
-							/* empty pattern, reject */
+						if (!*pat && !fpat) {
+							/*
+							 * empty unanchored
+							 * pattern => reject
+							 */
 							goto no_repl;
-						default:
-							tpat0 = pat;
 						}
-						if (gmatchx(null, tpat0, false)) {
+						if ((stype & 0x80) &&
+						    gmatchx(null, pat, false)) {
 							/*
 							 * pattern matches empty
 							 * string => don't loop
@@ -525,15 +528,14 @@ expand(
 						sbeg = s;
 
 						/* first see if we have any match at all */
-						tpat0 = pat;
-						if (*pat == '#') {
+						if (fpat == '#') {
 							/* anchor at the beginning */
-							tpat1 = shf_smprintf("%s%c*", ++tpat0, MAGIC);
+							tpat1 = shf_smprintf("%s%c*", pat, MAGIC);
 							tpat2 = tpat1;
-						} else if (*pat == '%') {
+						} else if (fpat == '%') {
 							/* anchor at the end */
-							tpat1 = shf_smprintf("%c*%s", MAGIC, ++tpat0);
-							tpat2 = tpat0;
+							tpat1 = shf_smprintf("%c*%s", MAGIC, pat);
+							tpat2 = pat;
 						} else {
 							/* float */
 							tpat1 = shf_smprintf("%c*%s%c*", MAGIC, pat, MAGIC);
@@ -548,7 +550,7 @@ expand(
 							goto end_repl;
 						end = strnul(s);
 						/* now anchor the beginning of the match */
-						if (*pat != '#')
+						if (fpat != '#')
 							while (sbeg <= end) {
 								if (gmatchx(sbeg, tpat2, false))
 									break;
@@ -557,13 +559,13 @@ expand(
 							}
 						/* now anchor the end of the match */
 						p = end;
-						if (*pat != '%')
+						if (fpat != '%')
 							while (p >= sbeg) {
 								bool gotmatch;
 
 								c = *p;
 								*p = '\0';
-								gotmatch = tobool(gmatchx(sbeg, tpat0, false));
+								gotmatch = tobool(gmatchx(sbeg, pat, false));
 								*p = c;
 								if (gotmatch)
 									break;
