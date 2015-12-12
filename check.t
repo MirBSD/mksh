@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.713 2015/12/11 16:55:55 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.714 2015/12/12 16:37:44 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -7025,6 +7025,96 @@ expected-stdout:
 	2- 1 1 1 =
 	3- 0 0 0 =
 ---
+name: test-stnze-1
+description:
+	Check that the short form [ $x ] works
+stdin:
+	i=0
+	[ -n $x ]
+	rv=$?; echo $((++i)) $rv
+	[ $x ]
+	rv=$?; echo $((++i)) $rv
+	[ -n "$x" ]
+	rv=$?; echo $((++i)) $rv
+	[ "$x" ]
+	rv=$?; echo $((++i)) $rv
+	x=0
+	[ -n $x ]
+	rv=$?; echo $((++i)) $rv
+	[ $x ]
+	rv=$?; echo $((++i)) $rv
+	[ -n "$x" ]
+	rv=$?; echo $((++i)) $rv
+	[ "$x" ]
+	rv=$?; echo $((++i)) $rv
+	x='1 -a 1 = 2'
+	[ -n $x ]
+	rv=$?; echo $((++i)) $rv
+	[ $x ]
+	rv=$?; echo $((++i)) $rv
+	[ -n "$x" ]
+	rv=$?; echo $((++i)) $rv
+	[ "$x" ]
+	rv=$?; echo $((++i)) $rv
+expected-stdout:
+	1 0
+	2 1
+	3 1
+	4 1
+	5 0
+	6 0
+	7 0
+	8 0
+	9 1
+	10 1
+	11 0
+	12 0
+---
+name: test-stnze-2
+description:
+	Check that the short form [[ $x ]] works (ksh93 extension)
+stdin:
+	i=0
+	[[ -n $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ -n "$x" ]]
+	rv=$?; echo $((++i)) $rv
+	[[ "$x" ]]
+	rv=$?; echo $((++i)) $rv
+	x=0
+	[[ -n $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ -n "$x" ]]
+	rv=$?; echo $((++i)) $rv
+	[[ "$x" ]]
+	rv=$?; echo $((++i)) $rv
+	x='1 -a 1 = 2'
+	[[ -n $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ -n "$x" ]]
+	rv=$?; echo $((++i)) $rv
+	[[ "$x" ]]
+	rv=$?; echo $((++i)) $rv
+expected-stdout:
+	1 1
+	2 1
+	3 1
+	4 1
+	5 0
+	6 0
+	7 0
+	8 0
+	9 0
+	10 0
+	11 0
+	12 0
+---
 name: mkshrc-1
 description:
 	Check that ~/.mkshrc works correctly.
@@ -11201,96 +11291,6 @@ expected-stdout:
 	after:	x<8> y<2> z<7> R<4>
 	typeset t=$'foo\n\n'
 	this used to segfault.
----
-name: test-stnze-1
-description:
-	Check that the short form [ $x ] works
-stdin:
-	i=0
-	[ -n $x ]
-	rv=$?; echo $((++i)) $rv
-	[ $x ]
-	rv=$?; echo $((++i)) $rv
-	[ -n "$x" ]
-	rv=$?; echo $((++i)) $rv
-	[ "$x" ]
-	rv=$?; echo $((++i)) $rv
-	x=0
-	[ -n $x ]
-	rv=$?; echo $((++i)) $rv
-	[ $x ]
-	rv=$?; echo $((++i)) $rv
-	[ -n "$x" ]
-	rv=$?; echo $((++i)) $rv
-	[ "$x" ]
-	rv=$?; echo $((++i)) $rv
-	x='1 -a 1 = 2'
-	[ -n $x ]
-	rv=$?; echo $((++i)) $rv
-	[ $x ]
-	rv=$?; echo $((++i)) $rv
-	[ -n "$x" ]
-	rv=$?; echo $((++i)) $rv
-	[ "$x" ]
-	rv=$?; echo $((++i)) $rv
-expected-stdout:
-	1 0
-	2 1
-	3 1
-	4 1
-	5 0
-	6 0
-	7 0
-	8 0
-	9 1
-	10 1
-	11 0
-	12 0
----
-name: test-stnze-2
-description:
-	Check that the short form [[ $x ]] works (ksh93 extension)
-stdin:
-	i=0
-	[[ -n $x ]]
-	rv=$?; echo $((++i)) $rv
-	[[ $x ]]
-	rv=$?; echo $((++i)) $rv
-	[[ -n "$x" ]]
-	rv=$?; echo $((++i)) $rv
-	[[ "$x" ]]
-	rv=$?; echo $((++i)) $rv
-	x=0
-	[[ -n $x ]]
-	rv=$?; echo $((++i)) $rv
-	[[ $x ]]
-	rv=$?; echo $((++i)) $rv
-	[[ -n "$x" ]]
-	rv=$?; echo $((++i)) $rv
-	[[ "$x" ]]
-	rv=$?; echo $((++i)) $rv
-	x='1 -a 1 = 2'
-	[[ -n $x ]]
-	rv=$?; echo $((++i)) $rv
-	[[ $x ]]
-	rv=$?; echo $((++i)) $rv
-	[[ -n "$x" ]]
-	rv=$?; echo $((++i)) $rv
-	[[ "$x" ]]
-	rv=$?; echo $((++i)) $rv
-expected-stdout:
-	1 1
-	2 1
-	3 1
-	4 1
-	5 0
-	6 0
-	7 0
-	8 0
-	9 0
-	10 0
-	11 0
-	12 0
 ---
 name: event-subst-3
 description:
