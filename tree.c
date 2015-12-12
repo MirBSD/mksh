@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.78 2015/10/09 19:29:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.79 2015/12/12 19:08:58 tg Exp $");
 
 #define INDENT	8
 
@@ -308,7 +308,7 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 	 *	`...` -> $(...)
 	 *	'foo' -> "foo"
 	 *	x${foo:-"hi"} -> x${foo:-hi} unless WDS_TPUTS
-	 *	x${foo:-'hi'} -> x${foo:-hi} unless WDS_KEEPQ
+	 *	x${foo:-'hi'} -> x${foo:-hi}
 	 * could change encoding to:
 	 *	OQUOTE ["'] ... CQUOTE ["']
 	 *	COMSUB [(`] ...\0	(handle $ ` \ and maybe " in `...` case)
@@ -320,10 +320,6 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 		case ADELIM:
 		case CHAR:
 			c = *wp++;
-			if ((opmode & WDS_MAGIC) &&
-			    (ISMAGIC(c) || c == '[' || c == '!' ||
-			    c == '-' || c == ']' || c == '*' || c == '?'))
-				shf_putc(MAGIC, shf);
 			shf_putc(c, shf);
 			break;
 		case QCHAR: {
@@ -335,8 +331,7 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 				if (quotelevel == 0)
 					doq = true;
 			} else {
-				if (!(opmode & WDS_KEEPQ))
-					doq = false;
+				doq = false;
 			}
 			if (doq)
 				shf_putc('\\', shf);
@@ -392,21 +387,14 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 				shf_putc('}', shf);
 			return (wp);
 		case OPAT:
-			if (opmode & WDS_MAGIC) {
-				shf_putc(MAGIC, shf);
-				shf_putchar(*wp++ | 0x80, shf);
-			} else {
-				shf_putchar(*wp++, shf);
-				shf_putc('(', shf);
-			}
+			shf_putchar(*wp++, shf);
+			shf_putc('(', shf);
 			break;
 		case SPAT:
 			c = '|';
 			if (0)
 		case CPAT:
 				c = /*(*/ ')';
-			if (opmode & WDS_MAGIC)
-				shf_putc(MAGIC, shf);
 			shf_putc(c, shf);
 			break;
 		}
