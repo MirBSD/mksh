@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.176 2015/12/12 18:47:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.177 2015/12/12 20:38:56 tg Exp $");
 
 /*
  * string expansion
@@ -1041,6 +1041,17 @@ expand(
 	}
 }
 
+static bool
+hasnonempty(const char **strv)
+{
+	size_t i = 0;
+
+	while (strv[i])
+		if (*strv[i++])
+			return (true);
+	return (false);
+}
+
 /*
  * Prepare to generate the string returned by ${} substitution.
  */
@@ -1269,7 +1280,9 @@ varsub(Expand *xp, const char *sp, const char *word,
 	c = stype & 0x7F;
 	/* test the compiler's code generator */
 	if (((stype < 0x100) && (ctype(c, C_SUBOP2) || c == '/' ||
-	    (((stype & 0x80) ? *xp->str == '\0' : xp->str == null) ?
+	    (((stype & 0x80) ? *xp->str == '\0' : xp->str == null) &&
+	    (state != XARG || (ifs0 || xp->split ?
+	    (xp->u.strv[0] == NULL) : !hasnonempty(xp->u.strv))) ?
 	    c == '=' || c == '-' || c == '?' : c == '+'))) ||
 	    stype == (0x80 | '0') || stype == (0x100 | '#') ||
 	    stype == (0x100 | 'Q'))
