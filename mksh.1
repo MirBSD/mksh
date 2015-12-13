@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.382 2015/10/09 21:36:57 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.383 2015/12/12 22:25:14 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: October 9 2015 $
+.Dd $Mdocdate: December 12 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -914,7 +914,7 @@ is evaluated; equivalent to
 .Sx Arithmetic expressions
 and the
 .Ic let
-command, below).
+command, below) in a compound construct.
 .It Bq Bq Ar \ \&expression\ \&
 Similar to the
 .Ic test
@@ -1625,31 +1625,40 @@ Cannot be applied to a vector.
 .Xc
 .It Xo
 .Pf ${ Ar name
+.Pf /# Ar pattern / Ar string No }
+.Xc
+.It Xo
+.Pf ${ Ar name
+.Pf /% Ar pattern / Ar string No }
+.Xc
+.It Xo
+.Pf ${ Ar name
 .Pf // Ar pattern / Ar string No }
 .Xc
 .Sm on
-Similar to ${..##..} substitution, but it replaces the longest match of
-.Ar pattern ,
-anchored anywhere in the value, with
-.Ar string .
-If
+The longest match of
 .Ar pattern
-begins with
-.Ql # ,
-it is anchored at the beginning of the value; if it begins with
-.Ql % ,
-it is anchored at the end.
-Empty patterns cause no replacement to happen.
-A single leading
-.Ql /
-or use of a pattern that matches the empty string causes the
-replacement to happen only once; two leading slashes cause
-all occurrences of matches in the value to be replaced.
-If the trailing
-.Pf / Ar string
-is omitted, any matches of
+in the value of parameter
+.Ar name
+is replaced with
+.Ar string
+(deleted if
+.Ar string
+is empty; the trailing slash
+.Pq Ql /
+may be omitted in that case).
+A leading slash followed by
+.Ql #
+or
+.Ql %
+causes the pattern to be anchored at the beginning or end of
+the value, respectively; empty unanchored
+.Ar pattern Ns s
+cause no replacement; a single leading slash or use of a
 .Ar pattern
-are replaced by the empty string, i.e. deleted.
+that matches the empty string causes the replacement to
+happen only once; two leading slashes cause all occurrences
+of matches in the value to be replaced.
 Cannot be applied to a vector.
 Inefficiently implemented, may be slow.
 .Pp
@@ -3633,7 +3642,7 @@ the parsing or evaluation of an expression, the exit status is greater than 1.
 Since expressions may need to be quoted,
 .No \&(( Ar expr No ))
 is syntactic sugar for
-.No let \&" Ns Ar expr Ns \&" .
+.No "{ let '" Ns Ar expr Ns "'; }" .
 .Pp
 .It Ic let]
 Internally used alias for
@@ -5320,7 +5329,7 @@ The
 builtin does not interpret backslashes and only supports the exact option
 .Dq Fl n .
 .It
-\&... (list is incomplete)
+\&... (list is incomplete and may change for R53)
 .El
 .Ss SH mode
 Compatibility mode; intended for use with legacy scripts that
@@ -5341,7 +5350,7 @@ The
 builtin does not interpret backslashes and only supports the exact option
 .Dq Fl n .
 .It
-\&... (list is incomplete)
+\&... (list is incomplete and may change for R53)
 .El
 .Ss Interactive input line editing
 The shell supports three modes of reading command lines from a
@@ -6345,6 +6354,7 @@ contains the system and suid profile.
 .Xr cat 1 ,
 .Xr ed 1 ,
 .Xr getopt 1 ,
+.Xr lksh 1 ,
 .Xr sed 1 ,
 .Xr sh 1 ,
 .Xr stty 1 ,
@@ -6565,7 +6575,7 @@ for the in-memory portion of the history is slow, should use
 .Xr memmove 3 .
 .Pp
 This document attempts to describe
-.Nm mksh\ R51 Ns -CVS
+.Nm mksh\ R52
 and up,
 .\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as

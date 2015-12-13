@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.712 2015/10/24 19:46:07 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.716 2015/12/12 23:31:15 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R51 2015/10/24
+	@(#)MIRBSD KSH R52 2015/12/12
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R51 2015/10/24
+	@(#)LEGACY KSH R52 2015/12/12
 description:
 	Check version of legacy shell.
 stdin:
@@ -269,6 +269,14 @@ stdin:
 	foo 'bar - baz'
 expected-stdout:
 	bar - baz,z
+---
+name: arith-compound
+description:
+	Check that arithmetic expressions are compound constructs
+stdin:
+	{ ! (( 0$(cat >&2) )) <<<1; } <<<2
+expected-stderr:
+	1
 ---
 name: arith-lazy-1
 description:
@@ -1668,6 +1676,17 @@ expected-stdout:
 	1=02.
 	2=02.
 ---
+name: expand-weird-4
+description:
+	Check that tilde expansion is enabled in ${x#~}
+	and cases that are modelled after it (${x/~/~})
+stdin:
+	HOME=/etc
+	a="~/x"
+	echo "<${a#~}> <${a#\~}> <${b:-~}> <${b:-\~}> <${c:=~}><$c> <${a/~}> <${a/x/~}> <${a/x/\~}>"
+expected-stdout:
+	<~/x> </x> <~> <\~> <~><~> <~/x> <~//etc> <~/~>
+---
 name: expand-number-1
 description:
 	Check that positional arguments do not overflow
@@ -1861,13 +1880,15 @@ stdin:
 	echo 20: ${x/\//.}
 	echo 21: ${x//\//.}
 	echo 22: ${x///.}
-	echo 23: ${x//#1/9}
-	echo 24: ${x//%1/9}
-	echo 25: ${x//\%1/9}
-	echo 26: ${x//\\%1/9}
-	echo 27: ${x//\a/9}
-	echo 28: ${x//\\a/9}
-	echo 29: ${x/2/$y}
+	echo 23: ${x/#1/9}
+	echo 24: ${x//#1/9}
+	echo 25: ${x/%1/9}
+	echo 26: ${x//%1/9}
+	echo 27: ${x//\%1/9}
+	echo 28: ${x//\\%1/9}
+	echo 29: ${x//\a/9}
+	echo 30: ${x//\\a/9}
+	echo 31: ${x/2/$y}
 expected-stdout:
 	1: 122321_ab/cde_b/c_1221
 	2: 131_ab/cde_b/c_11
@@ -1892,12 +1913,14 @@ expected-stdout:
 	21: 1222321_ab.cde_b.c_1221
 	22: 1222321_ab/cde_b/c_1221
 	23: 9222321_ab/cde_b/c_1221
-	24: 1222321_ab/cde_b/c_1229
+	24: 1222321_ab/cde_b/c_1221
 	25: 1222321_ab/cde_b/c_1229
 	26: 1222321_ab/cde_b/c_1221
-	27: 1222321_9b/cde_b/c_1221
-	28: 1222321_9b/cde_b/c_1221
-	29: 1xyz22321_ab/cde_b/c_1221
+	27: 1222321_ab/cde_b/c_1221
+	28: 1222321_ab/cde_b/c_1221
+	29: 1222321_9b/cde_b/c_1221
+	30: 1222321_ab/cde_b/c_1221
+	31: 1xyz22321_ab/cde_b/c_1221
 ---
 name: eglob-substrpl-2
 description:
@@ -1922,6 +1945,7 @@ name: eglob-substrpl-3a
 description:
 	Check substring replacement works with variables and slashes, too
 stdin:
+	HOME=/etc
 	pfx=/home/user
 	wd=/home/user/tmp
 	echo "${wd/#$pfx/~}"
@@ -1931,9 +1955,9 @@ stdin:
 	echo "${wd/#"\$pfx"/~}"
 	echo "${wd/#'\$pfx'/~}"
 expected-stdout:
-	~/tmp
+	/etc/tmp
 	/home/user/tmp
-	~/tmp
+	/etc/tmp
 	/home/user/tmp
 	/home/user/tmp
 	/home/user/tmp
@@ -1942,20 +1966,22 @@ name: eglob-substrpl-3b
 description:
 	More of this, bash fails it (bash4 passes)
 stdin:
+	HOME=/etc
 	pfx=/home/user
 	wd=/home/user/tmp
 	echo "${wd/#$(echo /home/user)/~}"
 	echo "${wd/#"$(echo /home/user)"/~}"
 	echo "${wd/#'$(echo /home/user)'/~}"
 expected-stdout:
-	~/tmp
-	~/tmp
+	/etc/tmp
+	/etc/tmp
 	/home/user/tmp
 ---
 name: eglob-substrpl-3c
 description:
 	Even more weird cases
 stdin:
+	HOME=/etc
 	pfx=/home/user
 	wd='$pfx/tmp'
 	echo 1: ${wd/#$pfx/~}
@@ -1981,31 +2007,31 @@ stdin:
 	echo 17: ${ts/+($tp)/$tr}
 	echo 18: ${ts/+($tp)/c/d}
 	echo 19: ${ts/+($tp)/c\/d}
-	echo 25: ${ts//a\/b/$tr}
-	echo 26: ${ts//a\/b/\$tr}
-	echo 27: ${ts//$tp/$tr}
-	echo 28: ${ts//$tp/c/d}
-	echo 29: ${ts//$tp/c\/d}
-	echo 30: ${ts//+(a\/b)/$tr}
-	echo 31: ${ts//+(a\/b)/\$tr}
-	echo 32: ${ts//+($tp)/$tr}
-	echo 33: ${ts//+($tp)/c/d}
-	echo 34: ${ts//+($tp)/c\/d}
+	echo 20: ${ts//a\/b/$tr}
+	echo 21: ${ts//a\/b/\$tr}
+	echo 22: ${ts//$tp/$tr}
+	echo 23: ${ts//$tp/c/d}
+	echo 24: ${ts//$tp/c\/d}
+	echo 25: ${ts//+(a\/b)/$tr}
+	echo 26: ${ts//+(a\/b)/\$tr}
+	echo 27: ${ts//+($tp)/$tr}
+	echo 28: ${ts//+($tp)/c/d}
+	echo 29: ${ts//+($tp)/c\/d}
 	tp="+($tp)"
-	echo 40: ${ts/$tp/$tr}
-	echo 41: ${ts//$tp/$tr}
+	echo 30: ${ts/$tp/$tr}
+	echo 31: ${ts//$tp/$tr}
 expected-stdout:
 	1: $pfx/tmp
-	2: ~/tmp
+	2: /etc/tmp
 	3: $pfx/tmp
-	4: ~/tmp
-	5: ~/tmp
-	6: ~/tmp
+	4: /etc/tmp
+	5: /etc/tmp
+	6: $pfx/tmp
 	7: c/da/b$tp$tp_a/b$tp_*(a/b)_*($tp)
 	8: $tra/b$tp$tp_a/b$tp_*(a/b)_*($tp)
 	9: c/da/b$tp$tp_a/b$tp_*(a/b)_*($tp)
 	10: a/ba/bc/d$tp_a/b$tp_*(a/b)_*($tp)
-	11: c/da/b$tp$tp_a/b$tp_*(a/b)_*($tp)
+	11: a/ba/b$tp$tp_a/b$tp_*(a/b)_*($tp)
 	12: c/da/b$tp$tp_a/b$tp_*(a/b)_*($tp)
 	13: c/da/b$tp$tp_a/b$tp_*(a/b)_*($tp)
 	14: c\/da/b$tp$tp_a/b$tp_*(a/b)_*($tp)
@@ -2014,21 +2040,21 @@ expected-stdout:
 	17: c/d$tp$tp_a/b$tp_*(a/b)_*($tp)
 	18: c/d$tp$tp_a/b$tp_*(a/b)_*($tp)
 	19: c/d$tp$tp_a/b$tp_*(a/b)_*($tp)
-	25: c/dc/d$tp$tp_c/d$tp_*(c/d)_*($tp)
-	26: $tr$tr$tp$tp_$tr$tp_*($tr)_*($tp)
-	27: c/dc/d$tp$tp_c/d$tp_*(c/d)_*($tp)
-	28: c/dc/d$tp$tp_c/d$tp_*(c/d)_*($tp)
-	29: c/dc/d$tp$tp_c/d$tp_*(c/d)_*($tp)
-	30: c/d$tp$tp_c/d$tp_*(c/d)_*($tp)
-	31: $tr$tp$tp_$tr$tp_*($tr)_*($tp)
-	32: c/d$tp$tp_c/d$tp_*(c/d)_*($tp)
-	33: c/d$tp$tp_c/d$tp_*(c/d)_*($tp)
-	34: c/d$tp$tp_c/d$tp_*(c/d)_*($tp)
-	40: a/ba/b$tp$tp_a/b$tp_*(a/b)_*($tp)
-	41: a/ba/b$tp$tp_a/b$tp_*(a/b)_*($tp)
+	20: c/dc/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+	21: $tr$tr$tp$tp_$tr$tp_*($tr)_*($tp)
+	22: c/dc/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+	23: c/dc/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+	24: c/dc/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+	25: c/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+	26: $tr$tp$tp_$tr$tp_*($tr)_*($tp)
+	27: c/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+	28: c/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+	29: c/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+	30: a/ba/b$tp$tp_a/b$tp_*(a/b)_*($tp)
+	31: a/ba/b$tp$tp_a/b$tp_*(a/b)_*($tp)
 #	This is what GNU bash does:
-#	40: c/d$tp$tp_a/b$tp_*(a/b)_*($tp)
-#	41: c/d$tp$tp_c/d$tp_*(c/d)_*($tp)
+#	30: c/d$tp$tp_a/b$tp_*(a/b)_*($tp)
+#	31: c/d$tp$tp_c/d$tp_*(c/d)_*($tp)
 ---
 name: eglob-utf8-1
 description:
@@ -5068,7 +5094,7 @@ description:
 	called - I don't know what this will break.
 stdin:
 	: "${PWD:-`pwd 2> /dev/null`}"
-	: "${PWD:?"PWD not set - can't do test"}"
+	: "${PWD:?"PWD not set - cannot do test"}"
 	mkdir Y
 	cat > Y/xxxscript << EOF
 	#!/bin/sh
@@ -6384,6 +6410,41 @@ expected-stderr-pattern:
 	/bad substitution/
 expected-exit: 1
 ---
+name: xxx-variable-syntax-4
+description:
+	Not all kinds of trims are currently impossible, check those who do
+stdin:
+	foo() {
+		echo "<$*> X${*:+ }X"
+	}
+	foo a b
+	foo "" c
+	foo ""
+	foo "" ""
+	IFS=:
+	foo a b
+	foo "" c
+	foo ""
+	foo "" ""
+	IFS=
+	foo a b
+	foo "" c
+	foo ""
+	foo "" ""
+expected-stdout:
+	<a b> X X
+	< c> X X
+	<> XX
+	< > X X
+	<a:b> X X
+	<:c> X X
+	<> XX
+	<:> X X
+	<ab> X X
+	<c> X X
+	<> XX
+	<> XX
+---
 name: xxx-substitution-eval-order
 description:
 	Check order of evaluation of expressions
@@ -7025,6 +7086,131 @@ expected-stdout:
 	2- 1 1 1 =
 	3- 0 0 0 =
 ---
+name: test-stnze-1
+description:
+	Check that the short form [ $x ] works
+stdin:
+	i=0
+	[ -n $x ]
+	rv=$?; echo $((++i)) $rv
+	[ $x ]
+	rv=$?; echo $((++i)) $rv
+	[ -n "$x" ]
+	rv=$?; echo $((++i)) $rv
+	[ "$x" ]
+	rv=$?; echo $((++i)) $rv
+	x=0
+	[ -n $x ]
+	rv=$?; echo $((++i)) $rv
+	[ $x ]
+	rv=$?; echo $((++i)) $rv
+	[ -n "$x" ]
+	rv=$?; echo $((++i)) $rv
+	[ "$x" ]
+	rv=$?; echo $((++i)) $rv
+	x='1 -a 1 = 2'
+	[ -n $x ]
+	rv=$?; echo $((++i)) $rv
+	[ $x ]
+	rv=$?; echo $((++i)) $rv
+	[ -n "$x" ]
+	rv=$?; echo $((++i)) $rv
+	[ "$x" ]
+	rv=$?; echo $((++i)) $rv
+expected-stdout:
+	1 0
+	2 1
+	3 1
+	4 1
+	5 0
+	6 0
+	7 0
+	8 0
+	9 1
+	10 1
+	11 0
+	12 0
+---
+name: test-stnze-2
+description:
+	Check that the short form [[ $x ]] works (ksh93 extension)
+stdin:
+	i=0
+	[[ -n $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ -n "$x" ]]
+	rv=$?; echo $((++i)) $rv
+	[[ "$x" ]]
+	rv=$?; echo $((++i)) $rv
+	x=0
+	[[ -n $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ -n "$x" ]]
+	rv=$?; echo $((++i)) $rv
+	[[ "$x" ]]
+	rv=$?; echo $((++i)) $rv
+	x='1 -a 1 = 2'
+	[[ -n $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ $x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ -n "$x" ]]
+	rv=$?; echo $((++i)) $rv
+	[[ "$x" ]]
+	rv=$?; echo $((++i)) $rv
+expected-stdout:
+	1 1
+	2 1
+	3 1
+	4 1
+	5 0
+	6 0
+	7 0
+	8 0
+	9 0
+	10 0
+	11 0
+	12 0
+---
+name: test-numeq
+description:
+	Check numeric -eq works (R40d regression); spotted by Martijn Dekker
+stdin:
+	tst() {
+		eval "$2"
+		case $? in
+		(0) echo yepp 0 \#"$*" ;;
+		(1) echo nope 1 \#"$*" ;;
+		(2) echo terr 2 \#"$*" ;;
+		(*) echo wtf\? $? \#"$*" ;;
+		esac
+	}
+	tst 1 'test 2 -eq 2'
+	tst 2 'test 2 -eq 2a'
+	tst 3 'test 2 -eq 3'
+	tst 4 'test 2 -ne 2'
+	tst 5 'test 2 -ne 2a'
+	tst 6 'test 2 -ne 3'
+	tst 7 'test \! 2 -eq 2'
+	tst 8 'test \! 2 -eq 2a'
+	tst 9 'test \! 2 -eq 3'
+expected-stdout:
+	yepp 0 #1 test 2 -eq 2
+	terr 2 #2 test 2 -eq 2a
+	nope 1 #3 test 2 -eq 3
+	nope 1 #4 test 2 -ne 2
+	terr 2 #5 test 2 -ne 2a
+	yepp 0 #6 test 2 -ne 3
+	nope 1 #7 test \! 2 -eq 2
+	terr 2 #8 test \! 2 -eq 2a
+	yepp 0 #9 test \! 2 -eq 3
+expected-stderr-pattern:
+	/bad number/
+---
 name: mkshrc-1
 description:
 	Check that ~/.mkshrc works correctly.
@@ -7565,7 +7751,6 @@ expected-stdout:
 name: aliases-funcdef-1
 description:
 	Check if POSIX functions take precedences over aliases
-category: shell:legacy-no
 stdin:
 	alias foo='echo makro'
 	foo() {
@@ -7574,24 +7759,10 @@ stdin:
 	foo
 expected-stdout:
 	makro
----
-name: aliases-funcdef-1-legacy
-description:
-	Check if POSIX functions take precedences over aliases
-category: shell:legacy-yes
-stdin:
-	alias foo='echo makro'
-	foo() {
-		echo funktion
-	}
-	foo
-expected-stdout:
-	funktion
 ---
 name: aliases-funcdef-2
 description:
 	Check if POSIX functions take precedences over aliases
-category: shell:legacy-no
 stdin:
 	alias foo='echo makro'
 	foo () {
@@ -7600,19 +7771,6 @@ stdin:
 	foo
 expected-stdout:
 	makro
----
-name: aliases-funcdef-2-legacy
-description:
-	Check if POSIX functions take precedences over aliases
-category: shell:legacy-yes
-stdin:
-	alias foo='echo makro'
-	foo () {
-		echo funktion
-	}
-	foo
-expected-stdout:
-	funktion
 ---
 name: aliases-funcdef-3
 description:
@@ -8845,52 +9003,9 @@ expected-exit: e != 0
 expected-stderr-pattern:
 	/\.: missing argument.*\n.*source: missing argument/
 ---
-name: alias-function-no-conflict-legacy
-description:
-	make aliases not conflict with functions, legacy version:
-	undefine these aliases upon definition of the function
-	note: for ksh functions, the order of preference differs in GNU bash
-category: shell:legacy-yes
-stdin:
-	# POSIX function overrides and removes alias
-	alias foo='echo bar'
-	foo
-	foo() {
-		echo baz
-	}
-	foo
-	unset -f foo
-	foo 2>/dev/null || echo rab
-	# alias overrides ksh function
-	alias korn='echo bar'
-	korn
-	function korn {
-		echo baz
-	}
-	korn
-	# alias temporarily overrides POSIX function
-	bla() {
-		echo bfn
-	}
-	bla
-	alias bla='echo bal'
-	bla
-	unalias bla
-	bla
-expected-stdout:
-	bar
-	baz
-	rab
-	bar
-	bar
-	bfn
-	bal
-	bfn
----
 name: alias-function-no-conflict
 description:
 	make aliases not conflict with function definitions
-category: shell:legacy-no
 stdin:
 	# POSIX function can be defined, but alias overrides it
 	alias foo='echo bar'
@@ -10380,7 +10495,9 @@ expected-stdout:
 	}
 	inline_TWHILE() {
 		i=1 
-		while \let] " i < 10 " 
+		while {
+			      \let] " i < 10 " 
+		      } 
 		do
 			echo $i 
 			let ++i 
@@ -10390,20 +10507,22 @@ expected-stdout:
 		i=1; while (( i < 10 )); do echo $i; let ++i; done
 	); }
 	function comsub_TWHILE {
-		x=$(i=1 ; while \let] " i < 10 " ; do echo $i ; let ++i ; done ) 
+		x=$(i=1 ; while { \let] " i < 10 " ; } ; do echo $i ; let ++i ; done ) 
 	} 
 	function reread_TWHILE { x=$((
 		i=1; while (( i < 10 )); do echo $i; let ++i; done
 	)|tr u x); }
 	function reread_TWHILE {
-		x=$(( i=1 ; while \let] " i < 10 " ; do echo $i ; let ++i ; done ) | tr u x ) 
+		x=$(( i=1 ; while { \let] " i < 10 " ; } ; do echo $i ; let ++i ; done ) | tr u x ) 
 	} 
 	inline_TUNTIL() {
 		i=10; until  (( !--i )) ; do echo $i; done
 	}
 	inline_TUNTIL() {
 		i=10 
-		until \let] " !--i " 
+		until {
+			      \let] " !--i " 
+		      } 
 		do
 			echo $i 
 		done 
@@ -10412,13 +10531,13 @@ expected-stdout:
 		i=10; until  (( !--i )) ; do echo $i; done
 	); }
 	function comsub_TUNTIL {
-		x=$(i=10 ; until \let] " !--i " ; do echo $i ; done ) 
+		x=$(i=10 ; until { \let] " !--i " ; } ; do echo $i ; done ) 
 	} 
 	function reread_TUNTIL { x=$((
 		i=10; until  (( !--i )) ; do echo $i; done
 	)|tr u x); }
 	function reread_TUNTIL {
-		x=$(( i=10 ; until \let] " !--i " ; do echo $i ; done ) | tr u x ) 
+		x=$(( i=10 ; until { \let] " !--i " ; } ; do echo $i ; done ) | tr u x ) 
 	} 
 	inline_TCOPROC() {
 		cat  *  |&  ls
@@ -11032,7 +11151,9 @@ expected-stdout:
 	}
 	inline_TWHILE() {
 		i=1 
-		while \let] " i < 10 " >&3 
+		while {
+			      \let] " i < 10 " 
+		      } >&3 
 		do
 			echo $i 
 			let ++i 
@@ -11042,20 +11163,22 @@ expected-stdout:
 		i=1; while (( i < 10 )) >&3; do echo $i; let ++i; done >&3
 	); }
 	function comsub_TWHILE {
-		x=$(i=1 ; while \let] " i < 10 " >&3 ; do echo $i ; let ++i ; done >&3 ) 
+		x=$(i=1 ; while { \let] " i < 10 " ; } >&3 ; do echo $i ; let ++i ; done >&3 ) 
 	} 
 	function reread_TWHILE { x=$((
 		i=1; while (( i < 10 )) >&3; do echo $i; let ++i; done >&3
 	)|tr u x); }
 	function reread_TWHILE {
-		x=$(( i=1 ; while \let] " i < 10 " >&3 ; do echo $i ; let ++i ; done >&3 ) | tr u x ) 
+		x=$(( i=1 ; while { \let] " i < 10 " ; } >&3 ; do echo $i ; let ++i ; done >&3 ) | tr u x ) 
 	} 
 	inline_TUNTIL() {
 		i=10; until  (( !--i )) >&3 ; do echo $i; done >&3
 	}
 	inline_TUNTIL() {
 		i=10 
-		until \let] " !--i " >&3 
+		until {
+			      \let] " !--i " 
+		      } >&3 
 		do
 			echo $i 
 		done >&3 
@@ -11064,13 +11187,13 @@ expected-stdout:
 		i=10; until  (( !--i )) >&3 ; do echo $i; done >&3
 	); }
 	function comsub_TUNTIL {
-		x=$(i=10 ; until \let] " !--i " >&3 ; do echo $i ; done >&3 ) 
+		x=$(i=10 ; until { \let] " !--i " ; } >&3 ; do echo $i ; done >&3 ) 
 	} 
 	function reread_TUNTIL { x=$((
 		i=10; until  (( !--i )) >&3 ; do echo $i; done >&3
 	)|tr u x); }
 	function reread_TUNTIL {
-		x=$(( i=10 ; until \let] " !--i " >&3 ; do echo $i ; done >&3 ) | tr u x ) 
+		x=$(( i=10 ; until { \let] " !--i " ; } >&3 ; do echo $i ; done >&3 ) | tr u x ) 
 	} 
 	inline_TCOPROC() {
 		cat  *  >&3 |&  >&3 ls
@@ -11201,96 +11324,6 @@ expected-stdout:
 	after:	x<8> y<2> z<7> R<4>
 	typeset t=$'foo\n\n'
 	this used to segfault.
----
-name: test-stnze-1
-description:
-	Check that the short form [ $x ] works
-stdin:
-	i=0
-	[ -n $x ]
-	rv=$?; echo $((++i)) $rv
-	[ $x ]
-	rv=$?; echo $((++i)) $rv
-	[ -n "$x" ]
-	rv=$?; echo $((++i)) $rv
-	[ "$x" ]
-	rv=$?; echo $((++i)) $rv
-	x=0
-	[ -n $x ]
-	rv=$?; echo $((++i)) $rv
-	[ $x ]
-	rv=$?; echo $((++i)) $rv
-	[ -n "$x" ]
-	rv=$?; echo $((++i)) $rv
-	[ "$x" ]
-	rv=$?; echo $((++i)) $rv
-	x='1 -a 1 = 2'
-	[ -n $x ]
-	rv=$?; echo $((++i)) $rv
-	[ $x ]
-	rv=$?; echo $((++i)) $rv
-	[ -n "$x" ]
-	rv=$?; echo $((++i)) $rv
-	[ "$x" ]
-	rv=$?; echo $((++i)) $rv
-expected-stdout:
-	1 0
-	2 1
-	3 1
-	4 1
-	5 0
-	6 0
-	7 0
-	8 0
-	9 1
-	10 1
-	11 0
-	12 0
----
-name: test-stnze-2
-description:
-	Check that the short form [[ $x ]] works (ksh93 extension)
-stdin:
-	i=0
-	[[ -n $x ]]
-	rv=$?; echo $((++i)) $rv
-	[[ $x ]]
-	rv=$?; echo $((++i)) $rv
-	[[ -n "$x" ]]
-	rv=$?; echo $((++i)) $rv
-	[[ "$x" ]]
-	rv=$?; echo $((++i)) $rv
-	x=0
-	[[ -n $x ]]
-	rv=$?; echo $((++i)) $rv
-	[[ $x ]]
-	rv=$?; echo $((++i)) $rv
-	[[ -n "$x" ]]
-	rv=$?; echo $((++i)) $rv
-	[[ "$x" ]]
-	rv=$?; echo $((++i)) $rv
-	x='1 -a 1 = 2'
-	[[ -n $x ]]
-	rv=$?; echo $((++i)) $rv
-	[[ $x ]]
-	rv=$?; echo $((++i)) $rv
-	[[ -n "$x" ]]
-	rv=$?; echo $((++i)) $rv
-	[[ "$x" ]]
-	rv=$?; echo $((++i)) $rv
-expected-stdout:
-	1 1
-	2 1
-	3 1
-	4 1
-	5 0
-	6 0
-	7 0
-	8 0
-	9 0
-	10 0
-	11 0
-	12 0
 ---
 name: event-subst-3
 description:
@@ -11656,6 +11689,16 @@ stdin:
 	x=$((echo fubar)|(tr u x)); echo $x $?
 expected-stdout:
 	fxbar 0
+---
+name: better-parens-5
+description:
+	Another corner case
+stdin:
+	( (echo 'fo	o$bar' "baz\$bla\"" m\$eh) | tr a A)
+	((echo 'fo	o$bar' "baz\$bla\"" m\$eh) | tr a A)
+expected-stdout:
+	fo	o$bAr bAz$blA" m$eh
+	fo	o$bAr bAz$blA" m$eh
 ---
 name: echo-test-1
 description:

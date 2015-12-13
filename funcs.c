@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.287 2015/10/24 19:46:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.288 2015/12/12 19:27:36 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2856,7 +2856,7 @@ c_test(const char **wp)
 
 	/*
 	 * Attempt to conform to POSIX special cases. This is pretty
-	 * dumb code straight-forward from the 2008 spec, but unless
+	 * dumb code straight-forward from the 2008 spec, but unlike
 	 * the old pdksh code doesn't live from so many assumptions.
 	 * It does, though, inline some calls to '(*te.funcname)()'.
 	 */
@@ -2877,6 +2877,8 @@ c_test(const char **wp)
  ptest_unary:
 			rv = test_eval(&te, op, *te.pos.wp++, NULL, true);
  ptest_out:
+			if (te.flags & TEF_ERROR)
+				return (T_ERR_EXIT);
 			return ((invert & 1) ? rv : !rv);
 		}
 		/* let the parser deal with anything else */

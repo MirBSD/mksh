@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014
- *	mirabilos <tg@mirbsd.org>
+ *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.79 2015/10/24 19:45:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.80 2015/11/29 17:05:00 tg Exp $");
 
 /* the order of these enums is constrained by the order of opinfo[] */
 enum token {

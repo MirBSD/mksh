@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.691 2015/10/05 17:58:55 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.693 2015/12/12 22:25:10 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -100,6 +100,7 @@ do_genopt() {
 	srcfile=$1
 	test -f "$srcfile" || genopt_die Source file \$srcfile not set.
 	bn=`basename "$srcfile" | sed 's/.opt$//'`
+	o_hdr='/* +++ GENERATED FILE +++ DO NOT EDIT +++ */'
 	o_gen=
 	o_str=
 	o_sym=
@@ -128,6 +129,9 @@ do_genopt() {
 			;;
 		*:@@*)
 			genopt_die ;;
+		0:/\*-|0:\ \**|0:)
+			o_hdr=$o_hdr$nl$line
+			;;
 		0:@*|1:@*)
 			# begin of a definition block
 			sym=`echo "$line" | sed 's/^@//'`
@@ -177,6 +181,7 @@ do_genopt() {
 		echo "\"$opts\""
 		test -n "$cond" && echo "#endif"
 	done | {
+		echo "$o_hdr"
 		echo "#ifndef $o_sym$o_gen"
 		echo "#else"
 		cat
@@ -1197,7 +1202,7 @@ tcc)
 	;;
 tendra)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V 2>&1 | \
-	    fgrep -i -e version -e release"
+	    grep -F -i -e version -e release"
 	;;
 ucode)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
@@ -2339,7 +2344,7 @@ addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && add_cppflags -DMKSH_PRINTF_BUILTIN
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
-add_cppflags -DMKSH_BUILD_R=511
+add_cppflags -DMKSH_BUILD_R=521
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 
@@ -2411,7 +2416,7 @@ cat >test.sh <<-EOF
 		args[\${#args[*]}]=\$TMPDIR
 	fi
 	print Testing mksh for conformance:
-	fgrep -e Mir''OS: -e MIRBSD "\$sflag"
+	grep -F -e Mir''OS: -e MIRBSD "\$sflag"
 	print "This shell is actually:\\n\\t\$KSH_VERSION"
 	print 'test.sh built for mksh $dstversion'
 	cstr='\$os = defined \$^O ? \$^O : "unknown";'

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.174 2015/10/09 19:29:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.178 2015/12/12 22:24:07 tg Exp $");
 
 /*
  * string expansion
@@ -483,7 +483,7 @@ expand(
 					case '/': {
 						char *s, *p, *d, *sbeg, *end;
 						char *pat, *rrep;
-						char *tpat0, *tpat1, *tpat2;
+						char fpat = 0, *tpat1, *tpat2;
 
 						s = wdcopy(sp, ATEMP);
 						p = s + (wdscan(sp, ADELIM) - sp);
@@ -496,43 +496,26 @@ expand(
 						else
 							d[-2] = EOS;
 						sp += (d ? d : p) - s - 1;
-						tpat0 = wdstrip(s,
-						    WDS_KEEPQ | WDS_MAGIC);
-						pat = substitute(tpat0, 0);
-						if (d) {
-							d = wdstrip(p, WDS_KEEPQ);
-							rrep = substitute(d, 0);
-							afree(d, ATEMP);
-						} else
-							rrep = null;
+						if (!(stype & 0x80) &&
+						    s[0] == CHAR &&
+						    (s[1] == '#' || s[1] == '%'))
+							fpat = s[1];
+						pat = evalstr(s + (fpat ? 2 : 0),
+						    DOTILDE | DOSCALAR | DOPAT);
+						rrep = d ? evalstr(p,
+						    DOTILDE | DOSCALAR) : null;
 						afree(s, ATEMP);
-						s = d = pat;
-						while (*s)
-							if (*s != '\\' ||
-							    s[1] == '%' ||
-							    s[1] == '#' ||
-							    s[1] == '\0' ||
-				/* XXX really? */	    s[1] == '\\' ||
-							    s[1] == '/')
-								*d++ = *s++;
-							else
-								s++;
-						*d = '\0';
-						afree(tpat0, ATEMP);
 
 						/* check for special cases */
-						switch (*pat) {
-						case '#':
-						case '%':
-							tpat0 = pat + 1;
-							break;
-						case '\0':
-							/* empty pattern, reject */
+						if (!*pat && !fpat) {
+							/*
+							 * empty unanchored
+							 * pattern => reject
+							 */
 							goto no_repl;
-						default:
-							tpat0 = pat;
 						}
-						if (gmatchx(null, tpat0, false)) {
+						if ((stype & 0x80) &&
+						    gmatchx(null, pat, false)) {
 							/*
 							 * pattern matches empty
 							 * string => don't loop
@@ -545,15 +528,14 @@ expand(
 						sbeg = s;
 
 						/* first see if we have any match at all */
-						tpat0 = pat;
-						if (*pat == '#') {
+						if (fpat == '#') {
 							/* anchor at the beginning */
-							tpat1 = shf_smprintf("%s%c*", ++tpat0, MAGIC);
+							tpat1 = shf_smprintf("%s%c*", pat, MAGIC);
 							tpat2 = tpat1;
-						} else if (*pat == '%') {
+						} else if (fpat == '%') {
 							/* anchor at the end */
-							tpat1 = shf_smprintf("%c*%s", MAGIC, ++tpat0);
-							tpat2 = tpat0;
+							tpat1 = shf_smprintf("%c*%s", MAGIC, pat);
+							tpat2 = pat;
 						} else {
 							/* float */
 							tpat1 = shf_smprintf("%c*%s%c*", MAGIC, pat, MAGIC);
@@ -568,7 +550,7 @@ expand(
 							goto end_repl;
 						end = strnul(s);
 						/* now anchor the beginning of the match */
-						if (*pat != '#')
+						if (fpat != '#')
 							while (sbeg <= end) {
 								if (gmatchx(sbeg, tpat2, false))
 									break;
@@ -577,13 +559,13 @@ expand(
 							}
 						/* now anchor the end of the match */
 						p = end;
-						if (*pat != '%')
+						if (fpat != '%')
 							while (p >= sbeg) {
 								bool gotmatch;
 
 								c = *p;
 								*p = '\0';
-								gotmatch = tobool(gmatchx(sbeg, tpat0, false));
+								gotmatch = tobool(gmatchx(sbeg, pat, false));
 								*p = c;
 								if (gotmatch)
 									break;
@@ -608,9 +590,11 @@ expand(
 					    }
 					case '#':
 					case '%':
-						/* ! DOBLANK,DOBRACE,DOTILDE */
+						/* ! DOBLANK,DOBRACE */
 						f = (f & DONTRUNCOMMAND) |
-						    DOPAT | DOTEMP | DOSCALAR;
+						    DOPAT | DOTILDE |
+						    DOTEMP | DOSCALAR;
+						tilde_ok = 1;
 						st->quotew = quote = 0;
 						/*
 						 * Prepend open pattern (so |
@@ -1059,6 +1043,17 @@ expand(
 	}
 }
 
+static bool
+hasnonempty(const char **strv)
+{
+	size_t i = 0;
+
+	while (strv[i])
+		if (*strv[i++])
+			return (true);
+	return (false);
+}
+
 /*
  * Prepare to generate the string returned by ${} substitution.
  */
@@ -1287,7 +1282,9 @@ varsub(Expand *xp, const char *sp, const char *word,
 	c = stype & 0x7F;
 	/* test the compiler's code generator */
 	if (((stype < 0x100) && (ctype(c, C_SUBOP2) || c == '/' ||
-	    (((stype & 0x80) ? *xp->str == '\0' : xp->str == null) ?
+	    (((stype & 0x80) ? *xp->str == '\0' : xp->str == null) &&
+	    (state != XARG || (ifs0 || xp->split ?
+	    (xp->u.strv[0] == NULL) : !hasnonempty(xp->u.strv))) ?
 	    c == '=' || c == '-' || c == '?' : c == '+'))) ||
 	    stype == (0x80 | '0') || stype == (0x100 | '#') ||
 	    stype == (0x100 | 'Q'))

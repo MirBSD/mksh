@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.213 2015/10/24 19:46:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.214 2015/12/12 19:05:52 tg Exp $");
 
 /*
  * states while lexing word
@@ -784,7 +784,7 @@ yylex(int cf)
 					 */
 					*wp = EOS;
 					sp = Xstring(ws, wp);
-					dp = wdstrip(sp, WDS_KEEPQ);
+					dp = wdstrip(sp + 1, WDS_TPUTS);
 					s = pushs(SREREAD, source->areap);
 					s->start = s->str = s->u.freeme = dp;
 					s->next = source;

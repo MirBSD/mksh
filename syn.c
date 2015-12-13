@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.106 2015/10/09 19:29:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.107 2015/12/12 21:03:53 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -518,6 +518,12 @@ get_command(int cf)
 	} else {
 		XPfree(args);
 		XPfree(vars);
+	}
+
+	if (c == MDPAREN) {
+		t = block(TBRACE, t, NULL);
+		t->ioact = t->left->ioact;
+		t->left->ioact = NULL;
 	}
 
 	return (t);
