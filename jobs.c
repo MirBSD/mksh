@@ -1116,10 +1116,8 @@ j_waitj(Job *j,
 {
 	Proc *p;
 	int rv;
-#ifndef MKSH_NOPROSPECTOFWORK
 #ifdef MKSH_NO_SIGSUSPEND
 	sigset_t omask;
-#endif
 #endif
 
 	/*
@@ -1319,7 +1317,6 @@ j_sigchld(int sig MKSH_A_UNUSED)
 	pid_t pid;
 	int status;
 	struct rusage ru0, ru1;
-#ifndef MKSH_NOPROSPECTOFWORK
 #ifdef MKSH_NO_SIGSUSPEND
 	sigset_t omask;
 
@@ -1327,6 +1324,7 @@ j_sigchld(int sig MKSH_A_UNUSED)
 	sigprocmask(SIG_BLOCK, &sm_sigchld, &omask);
 #endif
 
+#ifndef MKSH_NOPROSPECTOFWORK
 	/*
 	 * Don't wait for any processes if a job is partially started.
 	 * This is so we don't do away with the process group leader
@@ -1409,10 +1407,8 @@ j_sigchld(int sig MKSH_A_UNUSED)
 #endif
 
  j_sigchld_out:
-#ifndef MKSH_NOPROSPECTOFWORK
 #ifdef MKSH_NO_SIGSUSPEND
 	sigprocmask(SIG_SETMASK, &omask, NULL);
-#endif
 #endif
 	errno = saved_errno;
 }
