@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.168 2015/10/09 21:36:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.169 2015/12/31 12:58:43 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -999,6 +999,7 @@ scriptexec(struct op *tp, const char **ap)
 		    (m == /* ECOFF_SH */   0x0500 || m == 0x0005) ||
 		    (m == /* bzip */ 0x425A) || (m == /* "MZ" */ 0x4D5A) ||
 		    (m == /* "NE" */ 0x4E45) || (m == /* "LX" */ 0x4C58) ||
+		    (m == /* ksh93 */ 0x0B13) || (m == /* LZIP */ 0x4C5A) ||
 		    (m == /* xz */ 0xFD37 && buf[2] == 'z' && buf[3] == 'X' &&
 		    buf[4] == 'Z') || (m == /* 7zip */ 0x377A) ||
 		    (m == /* gzip */ 0x1F8B) || (m == /* .Z */ 0x1F9D))
