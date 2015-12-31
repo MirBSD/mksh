@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.383 2015/12/12 22:25:14 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.384 2015/12/31 20:25:48 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: December 12 2015 $
+.Dd $Mdocdate: December 31 2015 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -4138,6 +4138,12 @@ or
 case-insensitively; for direct builtin calls depending on the
 aforementioned environment variables; or for stdin or scripts,
 if the input begins with a UTF-8 Byte Order Mark.
+.Pp
+In near future, locale tracking will be implemented, which means that
+.Ic set Fl +U
+is changed whenever one of the
+.Tn POSIX
+locale-related environment variables changes.
 .It Fl u \*(Ba Fl o Ic nounset
 Referencing of an unset parameter, other than
 .Dq $@
@@ -6552,6 +6558,7 @@ case ${KSH_VERSION:\-} in
 	esac ;;
 esac
 .Ed
+In near future, (Unicode) locale tracking will be implemented though.
 .Sh BUGS
 Suspending (using \*(haZ) pipelines like the one below will only suspend
 the currently running part of the pipeline; in this example,
