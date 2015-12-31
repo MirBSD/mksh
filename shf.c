@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.68 2015/10/09 15:38:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.69 2015/12/31 20:38:59 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1121,6 +1121,8 @@ cstrerror(int errnum)
 #endif
 	case EACCES:
 		return ("Permission denied");
+	case EEXIST:
+		return ("File exists");
 	case ENOTDIR:
 		return ("Not a directory");
 #ifdef EINVAL
