@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.693 2015/12/12 22:25:10 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.694 2015/12/31 21:16:20 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -1237,19 +1237,20 @@ dragonegg|llvm)
 	vv '|' "llc -version"
 	;;
 esac
+etd=" on $et"
 case $et in
 klibc)
 	add_cppflags -DMKSH_NO_LIMITS
 	;;
 unknown)
 	# nothing special detected, don’t worry
-	unset et
+	etd=
 	;;
 *)
 	# huh?
 	;;
 esac
-$e "$bi==> which compiler seems to be used...$ao $ui$ct${et+ on $et}$ao"
+$e "$bi==> which compiler seems to be used...$ao $ui$ct$etd$ao"
 rmf conftest.c conftest.o conftest a.out* a.exe* conftest.exe* vv.out
 
 #
