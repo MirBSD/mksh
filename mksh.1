@@ -1,8 +1,8 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.384 2015/12/31 20:25:48 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.385 2016/01/12 16:33:17 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-.\"		2010, 2011, 2012, 2013, 2014, 2015
+.\"		2010, 2011, 2012, 2013, 2014, 2015, 2016
 .\"	mirabilos <m@mirbsd.org>
 .\"
 .\" Provided that these terms and disclaimer and all copyright notices
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: December 31 2015 $
+.Dd $Mdocdate: January 12 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -3815,7 +3815,8 @@ Store the result without word splitting into the parameter
 .Ev REPLY )
 as array of characters (wide characters if the
 .Ic utf8\-mode
-option is enacted, octets otherwise).
+option is enacted, octets otherwise); the codepoints are
+encoded as decimal numbers by default.
 .It Fl d Ar x
 Use the first byte of
 .Ar x ,
