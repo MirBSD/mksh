@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *		 2010, 2011, 2012, 2013, 2014, 2015
+ *		 2010, 2011, 2012, 2013, 2014, 2015, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.288 2015/12/12 19:27:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.289 2016/01/13 17:20:49 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2355,16 +2355,14 @@ int
 c_exitreturn(const char **wp)
 {
 	int n, how = LEXIT;
-	const char *arg;
 
-	if (ksh_getopt(wp, &builtin_opt, null) == '?')
-		goto c_exitreturn_err;
-	arg = wp[builtin_opt.optind];
-
-	if (arg)
-		exstat = bi_getn(arg, &n) ? (n & 0xFF) : 1;
-	else if (trap_exstat != -1)
+	if (wp[1]) {
+		if (wp[2])
+			goto c_exitreturn_err;
+		exstat = bi_getn(wp[1], &n) ? (n & 0xFF) : 1;
+	} else if (trap_exstat != -1)
 		exstat = trap_exstat;
+
 	if (wp[0][0] == 'r') {
 		/* return */
 		struct env *ep;
@@ -2385,12 +2383,13 @@ c_exitreturn(const char **wp)
 		how = LSHELL;
 	}
 
-	/* get rid of any i/o redirections */
+	/* get rid of any I/O redirections */
 	quitenv(NULL);
 	unwind(how);
 	/* NOTREACHED */
 
  c_exitreturn_err:
+	bi_errorf("too many arguments");
 	return (1);
 }
 

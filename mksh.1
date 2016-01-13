@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.385 2016/01/12 16:33:17 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.386 2016/01/13 17:20:50 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 12 2016 $
+.Dd $Mdocdate: January 13 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2965,7 +2965,8 @@ Builtins that are not special:
 Once the type of command has been determined, any command-line parameter
 assignments are performed and exported for the duration of the command.
 .Pp
-The following describes the special and regular built-in commands:
+The following describes the special and regular built-in commands and
+builtin-like reserved words:
 .Pp
 .Bl -tag -width false -compact
 .It Ic \&. Ar file Op Ar arg ...
