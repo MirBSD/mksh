@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015
+ *		 2011, 2012, 2013, 2014, 2015, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.214 2015/12/12 19:05:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.215 2016/01/14 19:52:20 tg Exp $");
 
 /*
  * states while lexing word
@@ -777,6 +777,7 @@ yylex(int cf)
 					Source *s;
 
 					ungetsc(c2);
+					ungetsc(c);
 					/*
 					 * mismatched parenthesis -
 					 * assume we were really
@@ -789,6 +790,7 @@ yylex(int cf)
 					s->start = s->str = s->u.freeme = dp;
 					s->next = source;
 					source = s;
+					ungetsc('('/*)*/);
 					return ('('/*)*/);
 				}
 			} else if (c == '(')
