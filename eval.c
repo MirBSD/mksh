@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015
+ *		 2011, 2012, 2013, 2014, 2015, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.178 2015/12/12 22:24:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.179 2016/01/14 22:30:43 tg Exp $");
 
 /*
  * string expansion
@@ -437,8 +437,6 @@ expand(
 						beg = wdcopy(sp, ATEMP);
 						mid = beg + (wdscan(sp, ADELIM) - sp);
 						stg = beg + (wdscan(sp, CSUBST) - sp);
-						if (mid >= stg)
-							goto unwind_substsyn;
 						mid[-2] = EOS;
 						if (mid[-1] == /*{*/'}') {
 							sp += mid - beg - 1;
@@ -446,9 +444,8 @@ expand(
 						} else {
 							end = mid +
 							    (wdscan(mid, ADELIM) - mid);
-							if (end >= stg ||
-							    /* more than max delimiters */
-							    end[-1] != /*{*/ '}')
+							if (end[-1] != /*{*/ '}')
+								/* more than max delimiters */
 								goto unwind_substsyn;
 							end[-2] = EOS;
 							sp += end - beg - 1;
@@ -488,8 +485,6 @@ expand(
 						s = wdcopy(sp, ATEMP);
 						p = s + (wdscan(sp, ADELIM) - sp);
 						d = s + (wdscan(sp, CSUBST) - sp);
-						if (p >= d)
-							goto unwind_substsyn;
 						p[-2] = EOS;
 						if (p[-1] == /*{*/'}')
 							d = NULL;
