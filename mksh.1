@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.386 2016/01/13 17:20:50 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.387 2016/01/14 23:18:09 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 13 2016 $
+.Dd $Mdocdate: January 14 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -179,6 +179,11 @@ script use.
 Its command language is a superset of the
 .Xr sh C
 shell language and largely compatible to the original Korn shell.
+At times, this manual page may give scripting advice; while it
+sometimes does take portable shell scripting or various standards
+into account all information is first and foremost presented with
+.Nm
+in mind and should be taken as such.
 .Ss I'm an Android user, so what's mksh?
 .Nm mksh
 is a
@@ -1744,7 +1749,7 @@ command below for a list of options).
 The exit status of the last non-asynchronous command executed.
 If the last command was killed by a signal,
 .Ic $?\&
-is set to 128 plus the signal number.
+is set to 128 plus the signal number, but at most 255.
 .It Ev 0
 The name of the shell, determined as follows:
 the first argument to

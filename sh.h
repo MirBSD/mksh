@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.754 2016/01/14 22:49:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.755 2016/01/14 23:18:11 tg Exp $");
 #endif
-#define MKSH_VERSION "R52 2016/01/13"
+#define MKSH_VERSION "R52 2016/01/14"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -378,6 +378,8 @@ struct rusage {
 #ifndef ksh_NSIG
 #define ksh_NSIG 64
 #endif
+
+#define ksh_sigmask(sig) (((sig) < 1 || (sig) > 127) ? 255 : 128 + (sig))
 
 
 /* OS-dependent additions (functions, variables, by OS) */

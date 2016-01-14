@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
- *		 2012, 2013, 2014, 2015
+ *		 2012, 2013, 2014, 2015, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.116 2015/10/09 16:11:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.117 2016/01/14 23:18:09 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -215,14 +215,11 @@ j_init(void)
 static int
 proc_errorlevel(Proc *p)
 {
-	int termsig;
-
 	switch (p->state) {
 	case PEXITED:
 		return ((WEXITSTATUS(p->status)) & 255);
 	case PSIGNALLED:
-		termsig = WTERMSIG(p->status);
-		return ((termsig < 1 || termsig > 127) ? 255 : 128 + termsig);
+		return (ksh_sigmask(WTERMSIG(p->status)));
 	default:
 		return (0);
 	}
@@ -756,7 +753,7 @@ waitfor(const char *cp, int *sigp)
 
 	if (rv < 0)
 		/* we were interrupted */
-		*sigp = 128 + -rv;
+		*sigp = ksh_sigmask(-rv);
 
 	return (rv);
 }
