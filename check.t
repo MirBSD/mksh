@@ -1,8 +1,8 @@
-# $MirOS: src/bin/mksh/check.t,v 1.718 2016/01/13 17:20:46 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.719 2016/01/14 23:19:12 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#	      2011, 2012, 2013, 2014, 2015
+#	      2011, 2012, 2013, 2014, 2015, 2016
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R52 2016/01/13
+	@(#)MIRBSD KSH R52 2016/01/14
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R52 2016/01/13
+	@(#)LEGACY KSH R52 2016/01/14
 description:
 	Check version of legacy shell.
 stdin:
@@ -8515,7 +8515,7 @@ expected-stdout:
 name: varexpand-substr-3
 description:
 	Check that some things that work in bash fail.
-	This is by design. And that some things fail in both.
+	This is by design. Oh and vice versa, nowadays.
 stdin:
 	export x=abcdefghi n=2
 	"$__progname" -c 'echo v${x:(n)}x'
@@ -8523,12 +8523,13 @@ stdin:
 	"$__progname" -c 'echo x${x:n}x'
 	"$__progname" -c 'echo y${x:}x'
 	"$__progname" -c 'echo z${x}x'
+	# next fails only in bash
 	"$__progname" -c 'x=abcdef;y=123;echo ${x:${y:2:1}:2}' >/dev/null 2>&1; echo $?
 expected-stdout:
 	vcdefghix
 	wcdefghix
 	zabcdefghix
-	1
+	0
 expected-stderr-pattern:
 	/x:n.*bad substitution.*\n.*bad substitution/
 ---
