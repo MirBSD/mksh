@@ -10,7 +10,7 @@
 
 /*-
  * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *	       2011, 2012, 2013, 2014, 2015
+ *	       2011, 2012, 2013, 2014, 2015, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.753 2016/01/13 17:20:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.754 2016/01/14 22:49:32 tg Exp $");
 #endif
 #define MKSH_VERSION "R52 2016/01/13"
 
@@ -1186,6 +1186,8 @@ struct tbl {
 };
 
 EXTERN struct tbl vtemp;
+/* set by global() and local() */
+EXTERN bool last_lookup_was_array;
 
 /* common flag bits */
 #define ALLOC		BIT(0)	/* val.s has been allocated */

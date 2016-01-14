@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.289 2016/01/13 17:20:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.290 2016/01/14 22:49:31 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1851,13 +1851,15 @@ c_read(const char **wp)
 	enum { LINES, BYTES, UPTO, READALL } readmode = LINES;
 	char delim = '\n';
 	size_t bytesleft = 128, bytesread;
-	struct tbl *vp /* FU gcc */ = NULL, *vq;
+	struct tbl *vp /* FU gcc */ = NULL, *vq = NULL;
 	char *cp, *allocd = NULL, *xp;
 	const char *ccp;
 	XString xs;
 	size_t xsave = 0;
 	mksh_ttyst tios;
 	bool restore_tios = false;
+	/* to catch read -aN2 foo[i] */
+	bool subarray = false;
 #if HAVE_SELECT
 	bool hastimeout = false;
 	struct timeval tv, tvlim;
@@ -2102,6 +2104,7 @@ c_read(const char **wp)
 	XinitN(xs, 128, ATEMP);
 	if (intoarray) {
 		vp = global(*wp);
+		subarray = last_lookup_was_array;
 		if (vp->flag & RDONLY) {
  c_read_splitro:
 			bi_errorf("read-only: %s", *wp);
@@ -2110,10 +2113,10 @@ c_read(const char **wp)
 			afree(cp, ATEMP);
 			goto c_read_out;
 		}
-		/* exporting an array is currently pointless */
-		unset(vp, 1);
 		/* counter for array index */
-		c = 0;
+		c = subarray ? arrayindex(vp) : 0;
+		/* exporting an array is currently pointless */
+		unset(vp, subarray ? 0 : 1);
 	}
 	if (!aschars) {
 		/* skip initial IFS whitespace */
@@ -2215,7 +2218,18 @@ c_read(const char **wp)
  c_read_gotword:
 	Xput(xs, xp, '\0');
 	if (intoarray) {
-		vq = arraysearch(vp, c++);
+		if (subarray) {
+			/* array element passed, accept first read */
+			if (vq) {
+				bi_errorf("nested arrays not yet supported");
+				goto c_read_spliterr;
+			}
+			vq = vp;
+			if (c)
+				/* [0] doesn't */
+				vq->flag |= AINDEX;
+		} else
+			vq = arraysearch(vp, c++);
 	} else {
 		vq = global(*wp);
 		/* must be checked before exporting */

@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.196 2016/01/14 20:21:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.197 2016/01/14 22:49:33 tg Exp $");
 
 /*-
  * Variables
@@ -295,6 +295,7 @@ global(const char *n)
 	if (special(vn))
 		vp->flag |= SPECIAL;
  out:
+	last_lookup_was_array = array;
 	if (vn != n)
 		afree(vname.rw, ATEMP);
 	return (vp);
@@ -345,6 +346,7 @@ local(const char *n, bool copy)
 	if (special(vn))
 		vp->flag |= SPECIAL;
  out:
+	last_lookup_was_array = array;
 	if (vn != n)
 		afree(vname.rw, ATEMP);
 	return (vp);
@@ -1486,7 +1488,7 @@ arrayname(const char *str)
 	const char *p;
 	char *rv;
 
-	if ((p = cstrchr(str, '[')) == 0)
+	if (!(p = cstrchr(str, '[')))
 		/* Shouldn't happen, but why worry? */
 		strdupx(rv, str, ATEMP);
 	else
