@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.755 2016/01/14 23:18:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.756 2016/01/19 23:12:14 tg Exp $");
 #endif
-#define MKSH_VERSION "R52 2016/01/14"
+#define MKSH_VERSION "R52 2016/01/19"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -864,6 +864,8 @@ EXTERN const char Tgbuiltin[] E_INIT("=builtin");
 #define Tbuiltin	(Tgbuiltin + 1)		/* "builtin" */
 EXTERN const char T_function[] E_INIT(" function");
 #define Tfunction	(T_function + 1)	/* "function" */
+EXTERN const char T_funny_command[] E_INIT("funny $() command");
+#define Tcommand	(T_funny_command + 10)	/* "command" */
 EXTERN const char TC_LEX1[] E_INIT("|&;<>() \t\n");
 #define TC_IFSWS	(TC_LEX1 + 7)		/* space tab newline */
 
@@ -1632,13 +1634,12 @@ typedef union {
 #define ALIAS		BIT(2)	/* recognise alias */
 #define KEYWORD		BIT(3)	/* recognise keywords */
 #define LETEXPR		BIT(4)	/* get expression inside (( )) */
-#define VARASN		BIT(5)	/* check for var=word */
-#define ARRAYVAR	BIT(6)	/* parse x[1 & 2] as one word */
+#define CMDASN		BIT(5)	/* parse x[1 & 2] as one word, for typeset */
+#define HEREDOC 	BIT(6)	/* parsing a here document body */
 #define ESACONLY	BIT(7)	/* only accept esac keyword */
 #define CMDWORD		BIT(8)	/* parsing simple command (alias related) */
 #define HEREDELIM	BIT(9)	/* parsing <<,<<- delimiter */
 #define LQCHAR		BIT(10)	/* source string contains QCHAR */
-#define HEREDOC 	BIT(11)	/* parsing a here document body */
 
 #define HERES		10	/* max number of << in line */
 
@@ -1989,7 +1990,7 @@ char *shf_smprintf(const char *, ...)
 ssize_t shf_vfprintf(struct shf *, const char *, va_list)
     MKSH_A_FORMAT(__printf__, 2, 0);
 /* syn.c */
-int assign_command(const char *);
+int assign_command(const char *, bool);
 void initkeywords(void);
 struct op *compile(Source *, bool);
 bool parse_usec(const char *, struct timeval *);
