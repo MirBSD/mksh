@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.217 2016/01/19 23:12:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.218 2016/01/20 21:34:12 tg Exp $");
 
 /*
  * states while lexing word
@@ -94,8 +94,7 @@ static void ungetsc_i(int);
 static int getsc_uu(void);
 static void getsc_line(Source *);
 static int getsc_bn(void);
-static int s_get(void);
-static void s_put(int);
+static int getsc_i(void);
 static char *get_brace_var(XString *, char *);
 static bool arraysub(char **);
 static void gethere(void);
@@ -112,7 +111,7 @@ static int ignore_backslash_newline;
 #define	o_getsc_u()	((*source->str != '\0') ? *source->str++ : getsc_uu())
 
 /* retrace helper */
-#define o_getsc_r(carg)	{				\
+#define o_getsc_r(carg)					\
 	int cev = (carg);				\
 	struct sretrace_info *rp = retrace_info;	\
 							\
@@ -122,17 +121,17 @@ static int ignore_backslash_newline;
 		rp = rp->next;				\
 	}						\
 							\
-	return (cev);					\
-}
+	return (cev);
 
-#if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
-static int getsc(void);
-
+/* callback */
 static int
-getsc(void)
+getsc_i(void)
 {
 	o_getsc_r(o_getsc());
 }
+
+#if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
+#define getsc getsc_i
 #else
 static int getsc_r(int);
 
@@ -590,8 +589,8 @@ yylex(int cf)
 				*wp++ = CQUOTE;
 				ignore_backslash_newline--;
 			} else if (c == '\\') {
-				if ((c2 = unbksl(true, s_get, s_put)) == -1)
-					c2 = s_get();
+				if ((c2 = unbksl(true, getsc_i, ungetsc)) == -1)
+					c2 = getsc();
 				if (c2 == 0)
 					statep->ls_bool = true;
 				if (!statep->ls_bool) {
@@ -1786,16 +1785,4 @@ pop_state_i(State_info *si, Lex_state *old_end)
 	afree(old_base, ATEMP);
 
 	return (si->base + STATE_BSIZE - 1);
-}
-
-static int
-s_get(void)
-{
-	return (getsc());
-}
-
-static void
-s_put(int c)
-{
-	ungetsc(c);
 }
