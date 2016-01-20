@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.291 2016/01/19 23:12:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.292 2016/01/20 20:29:48 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3669,10 +3669,11 @@ c_realpath(const char **wp)
 int
 c_cat(const char **wp)
 {
-	int fd = STDIN_FILENO, rv, eno;
+	int fd = STDIN_FILENO, rv;
 	ssize_t n, w;
 	const char *fn = "<stdin>";
 	char *buf, *cp;
+	int opipe = 0;
 #define MKSH_CAT_BUFSIZ 4096
 
 	/* parse options: POSIX demands we support "-u" as no-op */
@@ -3694,54 +3695,64 @@ c_cat(const char **wp)
 		return (1);
 	}
 
+	/* catch SIGPIPE */
+	opipe = block_pipe();
+
 	do {
 		if (*wp) {
 			fn = *wp++;
 			if (ksh_isdash(fn))
 				fd = STDIN_FILENO;
 			else if ((fd = binopen2(fn, O_RDONLY)) < 0) {
-				eno = errno;
-				bi_errorf("%s: %s", fn, cstrerror(eno));
+				bi_errorf("%s: %s", fn, cstrerror(errno));
 				rv = 1;
 				continue;
 			}
 		}
 		while (/* CONSTCOND */ 1) {
-			n = blocking_read(fd, (cp = buf), MKSH_CAT_BUFSIZ);
-			eno = errno;
-			/* give the user a chance to ^C out */
-			intrcheck();
-			if (n == -1) {
-				if (eno == EINTR) {
+			if ((n = blocking_read(fd, (cp = buf),
+			    MKSH_CAT_BUFSIZ)) == -1) {
+				if (errno == EINTR) {
+					restore_pipe(opipe);
+					/* give the user a chance to ^C out */
+					intrcheck();
 					/* interrupted, try again */
+					opipe = block_pipe();
 					continue;
 				}
 				/* an error occured during reading */
-				bi_errorf("%s: %s", fn, cstrerror(eno));
+				bi_errorf("%s: %s", fn, cstrerror(errno));
 				rv = 1;
 				break;
 			} else if (n == 0)
 				/* end of file reached */
 				break;
 			while (n) {
-				w = write(STDOUT_FILENO, cp, n);
-				eno = errno;
-				/* give the user a chance to ^C out */
-				intrcheck();
-				if (w == -1) {
-					if (eno == EINTR)
-						/* interrupted, try again */
-						continue;
+				if ((w = write(STDOUT_FILENO, cp, n)) != -1) {
+					n -= w;
+					cp += w;
+					continue;
+				}
+				if (errno == EINTR) {
+					restore_pipe(opipe);
+					/* give the user a chance to ^C out */
+					intrcheck();
+					/* interrupted, try again */
+					opipe = block_pipe();
+					continue;
+				}
+				if (errno == EPIPE) {
+					/* fake receiving signel */
+					rv = ksh_sigmask(SIGPIPE);
+				} else {
 					/* an error occured during writing */
 					bi_errorf("%s: %s", "<stdout>",
-					    cstrerror(eno));
+					    cstrerror(errno));
 					rv = 1;
-					if (fd != STDIN_FILENO)
-						close(fd);
-					goto out;
 				}
-				n -= w;
-				cp += w;
+				if (fd != STDIN_FILENO)
+					close(fd);
+				goto out;
 			}
 		}
 		if (fd != STDIN_FILENO)
@@ -3749,6 +3760,7 @@ c_cat(const char **wp)
 	} while (*wp);
 
  out:
+	restore_pipe(opipe);
 	free_osfunc(buf);
 	return (rv);
 }
