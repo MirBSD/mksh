@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.197 2016/01/14 22:49:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.198 2016/01/21 18:24:45 tg Exp $");
 
 /*-
  * Variables
@@ -241,7 +241,7 @@ global(const char *n)
 	c = (unsigned char)vn[0];
 	if (!ksh_isalphx(c)) {
 		if (array)
-			errorf("bad substitution");
+			errorf(Tbadsubst);
 		vp = &vtemp;
 		vp->flag = DEFINED;
 		vp->type = 0;

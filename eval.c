@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.180 2016/01/19 23:12:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.181 2016/01/21 18:24:38 tg Exp $");
 
 /*
  * string expansion
@@ -120,7 +120,7 @@ substitute(const char *cp, int f)
 	s->start = s->str = cp;
 	source = s;
 	if (yylex(ONEWORD) != LWORD)
-		internal_errorf("bad substitution");
+		internal_errorf(Tbadsubst);
 	source = sold;
 	afree(s, ATEMP);
 	return (evalstr(yylval.cp, f));
@@ -382,7 +382,7 @@ expand(
 						*end = EOS;
 					str = snptreef(NULL, 64, "%S", beg);
 					afree(beg, ATEMP);
-					errorf("%s: %s", str, "bad substitution");
+					errorf("%s: %s", str, Tbadsubst);
 				}
 				if (f & DOBLANK)
 					doblank++;
@@ -1133,7 +1133,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 			}
 		}
 		if (Flag(FNOUNSET) && c == 0 && !zero_ok)
-			errorf("%s: %s", sp, "parameter not set");
+			errorf("%s: parameter not set", sp);
 		/* unqualified variable/string substitution */
 		*stypep = 0;
 		xp->str = shf_smprintf("%d", c);
@@ -1287,7 +1287,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		state = XBASE;
 	if (Flag(FNOUNSET) && xp->str == null && !zero_ok &&
 	    (ctype(c, C_SUBOP2) || (state != XBASE && c != '+')))
-		errorf("%s: %s", sp, "parameter not set");
+		errorf("%s: parameter not set", sp);
 	return (state);
 }
 

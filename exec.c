@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015
+ *		 2011, 2012, 2013, 2014, 2015, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.170 2015/12/31 21:03:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.171 2016/01/21 18:24:39 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1559,7 +1559,7 @@ hereinval(struct ioword *iop, int sub, char **resbuf, struct shf *shf)
 		s->start = s->str = ccp;
 		source = s;
 		if (yylex(sub) != LWORD)
-			internal_errorf("%s: %s", "herein", "yylex");
+			internal_errorf("herein: yylex");
 		source = osource;
 		ccp = evalstr(yylval.cp, DOSCALAR | DOHEREDOC);
 	}
@@ -1583,7 +1583,7 @@ herein(struct ioword *iop, char **resbuf)
 
 	/* ksh -c 'cat <<EOF' can cause this... */
 	if (iop->heredoc == NULL && !(iop->ioflag & IOHERESTR)) {
-		warningf(true, "%s missing", "here document");
+		warningf(true, Tmissinghere);
 		/* special to iosetup(): don't print error */
 		return (-2);
 	}

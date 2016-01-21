@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.293 2016/01/20 21:34:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.294 2016/01/21 18:24:39 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -594,9 +594,8 @@ c_whence(const char **wp)
 			break;
 		case CALIAS:
 			if (vflag)
-				shprintf("n %s%s for ",
-				    (tp->flag & EXPORT) ? "exported " : null,
-				    Talias);
+				shprintf("n %salias for ",
+				    (tp->flag & EXPORT) ? "exported " : null);
 			if (!iam_whence && !vflag)
 				shprintf("%s %s=", Talias, id);
 			print_value_quoted(shl_stdout, tp->val.s);
@@ -988,27 +987,27 @@ c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, bool pflag,
 			 */
 			shprintf("%s %s", Ttypeset, "");
 			if (((vp->flag & (ARRAY | ASSOC)) == ASSOC))
-				shprintf("%s ", "-n");
+				shprintf("-%c ", 'n');
 			if ((vp->flag & INTEGER))
-				shprintf("%s ", "-i");
+				shprintf("-%c ", 'i');
 			if ((vp->flag & EXPORT))
-				shprintf("%s ", "-x");
+				shprintf("-%c ", 'x');
 			if ((vp->flag & RDONLY))
-				shprintf("%s ", "-r");
+				shprintf("-%c ", 'r');
 			if ((vp->flag & TRACE))
-				shprintf("%s ", "-t");
+				shprintf("-%c ", 't');
 			if ((vp->flag & LJUST))
 				shprintf("-L%d ", vp->u2.field);
 			if ((vp->flag & RJUST))
 				shprintf("-R%d ", vp->u2.field);
 			if ((vp->flag & ZEROFIL))
-				shprintf("%s ", "-Z");
+				shprintf("-%c ", 'Z');
 			if ((vp->flag & LCASEV))
-				shprintf("%s ", "-l");
+				shprintf("-%c ", 'l');
 			if ((vp->flag & UCASEV_AL))
-				shprintf("%s ", "-u");
+				shprintf("-%c ", 'u');
 			if ((vp->flag & INT_U))
-				shprintf("%s ", "-U");
+				shprintf("-%c ", 'U');
 		} else if (pflag) {
 			shprintf("%s %s", istset ? Ttypeset :
 			    (flag & EXPORT) ? Texport : Treadonly, "");
@@ -1904,7 +1903,7 @@ c_read(const char **wp)
 		break;
 	case 'p':
 		if ((fd = coproc_getfd(R_OK, &ccp)) < 0) {
-			bi_errorf("%s: %s", "-p", ccp);
+			bi_errorf("-p: %s", ccp);
 			return (2);
 		}
 		break;
@@ -2369,8 +2368,8 @@ c_trap(const char **wp)
 	i = 0;
 	while (*wp)
 		if (!(p = gettrap(*wp++, true, true))) {
-			warningf(true, "%s: %s '%s'", builtin_argv0,
-			    "bad signal", wp[-1]);
+			warningf(true, "%s: bad signal '%s'",
+			    builtin_argv0, wp[-1]);
 			i = 1;
 		} else
 			settrap(p, s);
@@ -2437,7 +2436,7 @@ c_brkcont(const char **wp)
 		goto c_brkcont_err;
 	if (n <= 0) {
 		/* AT&T ksh does this for non-interactive shells only - weird */
-		bi_errorf("%s: %s", arg, "bad value");
+		bi_errorf("%s: bad value", arg);
 		goto c_brkcont_err;
 	}
 	quit = (unsigned int)n;
@@ -2458,7 +2457,7 @@ c_brkcont(const char **wp)
 		 * scripts, but don't generate an error (ie, keep going).
 		 */
 		if ((unsigned int)n == quit) {
-			warningf(true, "%s: %s %s", wp[0], "can't", wp[0]);
+			warningf(true, "%s: can't %s", wp[0], wp[0]);
 			return (0);
 		}
 		/*
@@ -2821,8 +2820,8 @@ c_mknod(const char **wp)
 		umask(oldmode);
 	return (rv);
  c_mknod_usage:
-	bi_errorf("%s: %s", "usage", "mknod [-m mode] name b|c major minor");
-	bi_errorf("%s: %s", "usage", "mknod [-m mode] name p");
+	bi_errorf("usage: mknod [-m mode] name %s", "b|c major minor");
+	bi_errorf("usage: mknod [-m mode] name %s", "p");
 	return (1);
 }
 #endif

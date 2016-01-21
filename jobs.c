@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.117 2016/01/14 23:18:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.118 2016/01/21 18:24:41 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -238,11 +238,11 @@ j_suspend(void)
 			mksh_tcset(tty_fd, &tty_state);
 		if (restore_ttypgrp >= 0) {
 			if (tcsetpgrp(tty_fd, restore_ttypgrp) < 0) {
-				warningf(false, "%s: %s %s: %s", "j_suspend",
-				    "tcsetpgrp", "failed", cstrerror(errno));
+				warningf(false, "%s: %s failed: %s",
+				    "j_suspend", "tcsetpgrp", cstrerror(errno));
 			} else if (setpgid(0, restore_ttypgrp) < 0) {
-				warningf(false, "%s: %s %s: %s", "j_suspend",
-				    "setpgid", "failed", cstrerror(errno));
+				warningf(false, "%s: %s failed: %s",
+				    "j_suspend", "setpgid", cstrerror(errno));
 			}
 		}
 	}
@@ -259,12 +259,12 @@ j_suspend(void)
 	if (ttypgrp_ok) {
 		if (restore_ttypgrp >= 0) {
 			if (setpgid(0, kshpid) < 0) {
-				warningf(false, "%s: %s %s: %s", "j_suspend",
-				    "setpgid", "failed", cstrerror(errno));
+				warningf(false, "%s: %s failed: %s",
+				    "j_suspend", "setpgid", cstrerror(errno));
 				ttypgrp_ok = false;
 			} else if (tcsetpgrp(tty_fd, kshpid) < 0) {
-				warningf(false, "%s: %s %s: %s", "j_suspend",
-				    "tcsetpgrp", "failed", cstrerror(errno));
+				warningf(false, "%s: %s failed: %s",
+				    "j_suspend", "tcsetpgrp", cstrerror(errno));
 				ttypgrp_ok = false;
 			}
 		}
@@ -349,8 +349,8 @@ j_change(void)
 				pid_t ttypgrp;
 
 				if ((ttypgrp = tcgetpgrp(tty_fd)) < 0) {
-					warningf(false, "%s: %s %s: %s",
-					    "j_init", "tcgetpgrp", "failed",
+					warningf(false, "%s: %s failed: %s",
+					    "j_init", "tcgetpgrp",
 					    cstrerror(errno));
 					ttypgrp_ok = false;
 					break;
@@ -365,13 +365,13 @@ j_change(void)
 			    SS_RESTORE_DFL|SS_FORCE);
 		if (ttypgrp_ok && kshpgrp != kshpid) {
 			if (setpgid(0, kshpid) < 0) {
-				warningf(false, "%s: %s %s: %s", "j_init",
-				    "setpgid", "failed", cstrerror(errno));
+				warningf(false, "%s: %s failed: %s",
+				    "j_init", "setpgid", cstrerror(errno));
 				ttypgrp_ok = false;
 			} else {
 				if (tcsetpgrp(tty_fd, kshpid) < 0) {
-					warningf(false, "%s: %s %s: %s",
-					    "j_init", "tcsetpgrp", "failed",
+					warningf(false, "%s: %s failed: %s",
+					    "j_init", "tcsetpgrp",
 					    cstrerror(errno));
 					ttypgrp_ok = false;
 				} else
@@ -467,8 +467,7 @@ exchild(struct op *t, int flags,
 	if (flags & XPIPEI) {
 		/* continuing with a pipe */
 		if (!last_job)
-			internal_errorf("%s %d",
-			    "exchild: XPIPEI and no last_job - pid",
+			internal_errorf("exchild: XPIPEI and no last_job - pid %d",
 			    (int)procpid);
 		j = last_job;
 		if (last_proc)
@@ -601,7 +600,7 @@ exchild(struct op *t, int flags,
 #ifndef MKSH_SMALL
 		if (t->type == TPIPE)
 			unwind(LLEAVE);
-		internal_warningf("%s: %s", "exchild", "execute() returned");
+		internal_warningf("%s: execute() returned", "exchild");
 		fptreef(shl_out, 8, "%s: tried to execute {\n\t%T\n}\n",
 		    "exchild", t);
 		shf_flush(shl_out);
@@ -862,10 +861,10 @@ j_resume(const char *cp, int bg)
 				if (j->flags & JF_SAVEDTTY)
 					mksh_tcset(tty_fd, &tty_state);
 				sigprocmask(SIG_SETMASK, &omask, NULL);
-				bi_errorf("%s %s(%d, %ld) %s: %s",
-				    "1st", "tcsetpgrp", tty_fd,
+				bi_errorf("%s %s(%d, %ld) failed: %s",
+				    "fg: 1st", "tcsetpgrp", tty_fd,
 				    (long)((j->flags & JF_SAVEDTTYPGRP) ?
-				    j->saved_ttypgrp : j->pgrp), "failed",
+				    j->saved_ttypgrp : j->pgrp),
 				    cstrerror(rv));
 				return (1);
 			}
@@ -884,9 +883,9 @@ j_resume(const char *cp, int bg)
 			if (ttypgrp_ok && (j->flags & JF_SAVEDTTY))
 				mksh_tcset(tty_fd, &tty_state);
 			if (ttypgrp_ok && tcsetpgrp(tty_fd, kshpgrp) < 0)
-				warningf(true, "%s %s(%d, %ld) %s: %s",
+				warningf(true, "%s %s(%d, %ld) failed: %s",
 				    "fg: 2nd", "tcsetpgrp", tty_fd,
-				    (long)kshpgrp, "failed", cstrerror(errno));
+				    (long)kshpgrp, cstrerror(errno));
 		}
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		bi_errorf("%s %s: %s", "can't continue job",
@@ -1176,9 +1175,9 @@ j_waitj(Job *j,
 			    (j->saved_ttypgrp = tcgetpgrp(tty_fd)) >= 0)
 				j->flags |= JF_SAVEDTTYPGRP;
 			if (tcsetpgrp(tty_fd, kshpgrp) < 0)
-				warningf(true, "%s %s(%d, %ld) %s: %s",
+				warningf(true, "%s %s(%d, %ld) failed: %s",
 				    "j_waitj:", "tcsetpgrp", tty_fd,
-				    (long)kshpgrp, "failed", cstrerror(errno));
+				    (long)kshpgrp, cstrerror(errno));
 			if (j->state == PSTOPPED) {
 				j->flags |= JF_SAVEDTTY;
 				mksh_tcget(tty_fd, &j->ttystat);
@@ -1904,8 +1903,8 @@ tty_init_talking(void)
 #endif
 		break;
 	case 3:
-		warningf(false, "%s: %s %s: %s", "j_ttyinit",
-		    "dup of tty fd", "failed", cstrerror(errno));
+		warningf(false, "%s: %s failed: %s", "j_ttyinit",
+		    "dup of tty fd", cstrerror(errno));
 		break;
 	case 4:
 		warningf(false, "%s: %s: %s", "j_ttyinit",

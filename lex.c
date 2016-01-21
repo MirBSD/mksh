@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.218 2016/01/20 21:34:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.219 2016/01/21 18:24:41 tg Exp $");
 
 /*
  * states while lexing word
@@ -1173,7 +1173,7 @@ readhere(struct ioword *iop)
 	while (c != '\n') {
 		if (!c)
 			/* oops, reached EOF */
-			yyerror("%s '%s' unclosed\n", "here document", eof);
+			yyerror("%s '%s' unclosed\n", Theredoc, eof);
 		/* store character */
 		Xcheck(xs, xp);
 		Xput(xs, xp, c);

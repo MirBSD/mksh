@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015
+ *		 2011, 2012, 2013, 2014, 2015, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.306 2015/10/09 21:36:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.307 2016/01/21 18:24:42 tg Exp $");
 
 extern char **environ;
 
@@ -435,7 +435,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	} else if (Flag(FCOMMAND)) {
 		s = pushs(SSTRINGCMDLINE, ATEMP);
 		if (!(s->start = s->str = argv[argi++]))
-			errorf("%s %s", "-c", "requires an argument");
+			errorf("-c %s", "requires an argument");
 		while (*s->str) {
 			if (*s->str != ' ' && ctype(*s->str, C_QUOTE))
 				break;
@@ -704,7 +704,7 @@ include(const char *name, int argc, const char **argv, bool intr_ok)
 			unwind(i);
 			/* NOTREACHED */
 		default:
-			internal_errorf("%s %d", "include", i);
+			internal_errorf("include %d", i);
 			/* NOTREACHED */
 		}
 	}
@@ -796,7 +796,7 @@ shell(Source * volatile s, volatile bool toplevel)
 	default:
 		source = old_source;
 		quitenv(NULL);
-		internal_errorf("%s %d", "shell", i);
+		internal_errorf("shell %d", i);
 		/* NOTREACHED */
 	}
 	while (/* CONSTCOND */ 1) {

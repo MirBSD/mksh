@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.109 2016/01/19 23:12:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.110 2016/01/21 18:24:44 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -447,8 +447,8 @@ get_command(int cf)
 		t = newtp((c == FOR) ? TFOR : TSELECT);
 		musthave(LWORD, CMDASN);
 		if (!is_wdvarname(yylval.cp, true))
-			yyerror("%s: %s\n", c == FOR ? "for" : Tselect,
-			    "bad identifier");
+			yyerror("%s: bad identifier\n",
+			    c == FOR ? "for" : Tselect);
 		strdupx(t->str, ident, ATEMP);
 		nesting_push(&old_nesting, c);
 		t->vars = wordlist();
@@ -705,7 +705,7 @@ function_body(char *name,
 	 */
 	for (p = sname; *p; p++)
 		if (ctype(*p, C_QUOTE))
-			yyerror("%s: %s\n", sname, "invalid function name");
+			yyerror("%s: invalid function name\n", sname);
 
 	/*
 	 * Note that POSIX allows only compound statements after foo(),
@@ -872,7 +872,7 @@ syntaxerr(const char *what)
 			goto Again;
 		}
 		/* don't quote the EOF */
-		yyerror("%s: %s %s\n", Tsynerr, "unexpected", "EOF");
+		yyerror("%s: unexpected EOF\n", Tsynerr);
 		/* NOTREACHED */
 
 	case LWORD:
