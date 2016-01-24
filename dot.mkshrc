@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.103 2015/12/12 18:47:40 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.104 2015/12/31 21:00:12 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015
@@ -596,8 +596,8 @@ done
 #\unset LANGUAGE LC_ADDRESS LC_ALL LC_COLLATE LC_IDENTIFICATION LC_MONETARY \
 #    LC_NAME LC_NUMERIC LC_TELEPHONE LC_TIME
 #p=en_GB.UTF-8
-#\set -U
 #\export LANG=C LC_CTYPE=$p LC_MEASUREMENT=$p LC_MESSAGES=$p LC_PAPER=$p
+#\set -U
 
 \unset p
 

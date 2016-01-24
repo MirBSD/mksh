@@ -10,7 +10,7 @@
 
 /*-
  * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *	       2011, 2012, 2013, 2014, 2015
+ *	       2011, 2012, 2013, 2014, 2015, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.751 2015/12/12 22:25:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.757 2016/01/20 21:34:13 tg Exp $");
 #endif
-#define MKSH_VERSION "R52 2015/12/12"
+#define MKSH_VERSION "R52 2016/01/20"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -378,6 +378,8 @@ struct rusage {
 #ifndef ksh_NSIG
 #define ksh_NSIG 64
 #endif
+
+#define ksh_sigmask(sig) (((sig) < 1 || (sig) > 127) ? 255 : 128 + (sig))
 
 
 /* OS-dependent additions (functions, variables, by OS) */
@@ -862,6 +864,8 @@ EXTERN const char Tgbuiltin[] E_INIT("=builtin");
 #define Tbuiltin	(Tgbuiltin + 1)		/* "builtin" */
 EXTERN const char T_function[] E_INIT(" function");
 #define Tfunction	(T_function + 1)	/* "function" */
+EXTERN const char T_funny_command[] E_INIT("funny $() command");
+#define Tcommand	(T_funny_command + 10)	/* "command" */
 EXTERN const char TC_LEX1[] E_INIT("|&;<>() \t\n");
 #define TC_IFSWS	(TC_LEX1 + 7)		/* space tab newline */
 
@@ -1186,6 +1190,8 @@ struct tbl {
 };
 
 EXTERN struct tbl vtemp;
+/* set by global() and local() */
+EXTERN bool last_lookup_was_array;
 
 /* common flag bits */
 #define ALLOC		BIT(0)	/* val.s has been allocated */
@@ -1628,13 +1634,12 @@ typedef union {
 #define ALIAS		BIT(2)	/* recognise alias */
 #define KEYWORD		BIT(3)	/* recognise keywords */
 #define LETEXPR		BIT(4)	/* get expression inside (( )) */
-#define VARASN		BIT(5)	/* check for var=word */
-#define ARRAYVAR	BIT(6)	/* parse x[1 & 2] as one word */
+#define CMDASN		BIT(5)	/* parse x[1 & 2] as one word, for typeset */
+#define HEREDOC 	BIT(6)	/* parsing a here document body */
 #define ESACONLY	BIT(7)	/* only accept esac keyword */
 #define CMDWORD		BIT(8)	/* parsing simple command (alias related) */
 #define HEREDELIM	BIT(9)	/* parsing <<,<<- delimiter */
 #define LQCHAR		BIT(10)	/* source string contains QCHAR */
-#define HEREDOC 	BIT(11)	/* parsing a here document body */
 
 #define HERES		10	/* max number of << in line */
 
@@ -1993,7 +1998,7 @@ char *shf_smprintf(const char *, ...)
 ssize_t shf_vfprintf(struct shf *, const char *, va_list)
     MKSH_A_FORMAT(__printf__, 2, 0);
 /* syn.c */
-int assign_command(const char *);
+int assign_command(const char *, bool);
 void initkeywords(void);
 struct op *compile(Source *, bool);
 bool parse_usec(const char *, struct timeval *);

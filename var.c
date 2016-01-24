@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015
+ *		 2011, 2012, 2013, 2014, 2015, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.195 2015/10/09 16:11:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.197 2016/01/14 22:49:33 tg Exp $");
 
 /*-
  * Variables
@@ -218,14 +218,16 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 	return (n);
 }
 
+#define vn vname.ro
 /*
  * Search for variable, if not found create globally.
  */
 struct tbl *
 global(const char *n)
 {
-	struct block *l = e->loc;
 	struct tbl *vp;
+	union mksh_cchack vname;
+	struct block *l = e->loc;
 	int c;
 	bool array;
 	uint32_t h, val;
@@ -234,9 +236,9 @@ global(const char *n)
 	 * check to see if this is an array;
 	 * dereference namerefs; must come first
 	 */
-	n = array_index_calc(n, &array, &val);
-	h = hash(n);
-	c = (unsigned char)n[0];
+	vn = array_index_calc(n, &array, &val);
+	h = hash(vn);
+	c = (unsigned char)vn[0];
 	if (!ksh_isalphx(c)) {
 		if (array)
 			errorf("bad substitution");
@@ -246,15 +248,15 @@ global(const char *n)
 		vp->areap = ATEMP;
 		*vp->name = c;
 		if (ksh_isdigit(c)) {
-			if (getn(n, &c) && (c <= l->argc))
+			if (getn(vn, &c) && (c <= l->argc))
 				/* setstr can't fail here */
 				setstr(vp, l->argv[c], KSH_RETURN_ERROR);
 			vp->flag |= RDONLY;
-			return (vp);
+			goto out;
 		}
 		vp->flag |= RDONLY;
-		if (n[1] != '\0')
-			return (vp);
+		if (vn[1] != '\0')
+			goto out;
 		vp->flag |= ISSET|INTEGER;
 		switch (c) {
 		case '$':
@@ -278,17 +280,24 @@ global(const char *n)
 		default:
 			vp->flag &= ~(ISSET|INTEGER);
 		}
-		return (vp);
+		goto out;
 	}
-	l = varsearch(e->loc, &vp, n, h);
-	if (vp != NULL)
-		return (array ? arraysearch(vp, val) : vp);
-	vp = ktenter(&l->vars, n, h);
+	l = varsearch(e->loc, &vp, vn, h);
+	if (vp != NULL) {
+		if (array)
+			vp = arraysearch(vp, val);
+		goto out;
+	}
+	vp = ktenter(&l->vars, vn, h);
 	if (array)
 		vp = arraysearch(vp, val);
 	vp->flag |= DEFINED;
-	if (special(n))
+	if (special(vn))
 		vp->flag |= SPECIAL;
+ out:
+	last_lookup_was_array = array;
+	if (vn != n)
+		afree(vname.rw, ATEMP);
 	return (vp);
 }
 
@@ -298,8 +307,9 @@ global(const char *n)
 struct tbl *
 local(const char *n, bool copy)
 {
-	struct block *l = e->loc;
 	struct tbl *vp;
+	union mksh_cchack vname;
+	struct block *l = e->loc;
 	bool array;
 	uint32_t h, val;
 
@@ -307,20 +317,20 @@ local(const char *n, bool copy)
 	 * check to see if this is an array;
 	 * dereference namerefs; must come first
 	 */
-	n = array_index_calc(n, &array, &val);
-	h = hash(n);
-	if (!ksh_isalphx(*n)) {
+	vn = array_index_calc(n, &array, &val);
+	h = hash(vn);
+	if (!ksh_isalphx(*vn)) {
 		vp = &vtemp;
 		vp->flag = DEFINED|RDONLY;
 		vp->type = 0;
 		vp->areap = ATEMP;
-		return (vp);
+		goto out;
 	}
-	vp = ktenter(&l->vars, n, h);
+	vp = ktenter(&l->vars, vn, h);
 	if (copy && !(vp->flag & DEFINED)) {
 		struct tbl *vq;
 
-		varsearch(l->next, &vq, n, h);
+		varsearch(l->next, &vq, vn, h);
 		if (vq != NULL) {
 			vp->flag |= vq->flag &
 			    (EXPORT | INTEGER | RDONLY | LJUST | RJUST |
@@ -333,10 +343,15 @@ local(const char *n, bool copy)
 	if (array)
 		vp = arraysearch(vp, val);
 	vp->flag |= DEFINED;
-	if (special(n))
+	if (special(vn))
 		vp->flag |= SPECIAL;
+ out:
+	last_lookup_was_array = array;
+	if (vn != n)
+		afree(vname.rw, ATEMP);
 	return (vp);
 }
+#undef vn
 
 /* get variable string value */
 char *
@@ -1492,7 +1507,7 @@ arrayname(const char *str)
 	const char *p;
 	char *rv;
 
-	if ((p = cstrchr(str, '[')) == 0)
+	if (!(p = cstrchr(str, '[')))
 		/* Shouldn't happen, but why worry? */
 		strdupx(rv, str, ATEMP);
 	else

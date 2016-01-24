@@ -1,8 +1,8 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.693 2015/12/12 22:25:10 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.695 2016/01/02 20:11:31 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#		2011, 2012, 2013, 2014, 2015
+#		2011, 2012, 2013, 2014, 2015, 2016
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -745,6 +745,7 @@ GNU)
 	*tendracc*) ;;
 	*) add_cppflags -D_GNU_SOURCE ;;
 	esac
+	add_cppflags -DSETUID_CAN_FAIL_WITH_EAGAIN
 	# define MKSH__NO_PATH_MAX to use Hurd-only functions
 	add_cppflags -DMKSH__NO_PATH_MAX
 	;;
@@ -753,6 +754,7 @@ GNU/kFreeBSD)
 	*tendracc*) ;;
 	*) add_cppflags -D_GNU_SOURCE ;;
 	esac
+	add_cppflags -DSETUID_CAN_FAIL_WITH_EAGAIN
 	;;
 Haiku)
 	add_cppflags -DMKSH_ASSUME_UTF8; HAVE_ISSET_MKSH_ASSUME_UTF8=1
@@ -1239,19 +1241,20 @@ dragonegg|llvm)
 	vv '|' "llc -version"
 	;;
 esac
+etd=" on $et"
 case $et in
 klibc)
 	add_cppflags -DMKSH_NO_LIMITS
 	;;
 unknown)
 	# nothing special detected, don’t worry
-	unset et
+	etd=
 	;;
 *)
 	# huh?
 	;;
 esac
-$e "$bi==> which compiler seems to be used...$ao $ui$ct${et+ on $et}$ao"
+$e "$bi==> which compiler seems to be used...$ao $ui$ct$etd$ao"
 rmf conftest.c conftest.o conftest a.out* a.exe* conftest.exe* vv.out
 
 #

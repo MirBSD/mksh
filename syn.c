@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *		 2011, 2012, 2013, 2014, 2015
+ *		 2011, 2012, 2013, 2014, 2015, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.107 2015/12/12 21:03:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.109 2016/01/19 23:12:15 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -272,7 +272,6 @@ get_command(int cf)
 	int c, iopn = 0, syniocf, lno;
 	struct ioword *iop, **iops;
 	XPtrV args, vars;
-	char *tcp;
 	struct nesting_state old_nesting;
 
 	/* NUFILE is small enough to leave this addition unchecked */
@@ -281,7 +280,7 @@ get_command(int cf)
 	XPinit(vars, 16);
 
 	syniocf = KEYWORD|sALIAS;
-	switch (c = token(cf|KEYWORD|sALIAS|VARASN)) {
+	switch (c = token(cf|KEYWORD|sALIAS|CMDASN)) {
 	default:
 		REJECT;
 		afree(iops, ATEMP);
@@ -296,9 +295,18 @@ get_command(int cf)
 		syniocf &= ~(KEYWORD|sALIAS);
 		t = newtp(TCOM);
 		t->lineno = source->line;
+		goto get_command_begin;
 		while (/* CONSTCOND */ 1) {
-			cf = (t->u.evalflags ? ARRAYVAR : 0) |
-			    (XPsize(args) == 0 ? sALIAS|VARASN : CMDWORD);
+			bool check_assign_cmd;
+
+			if (XPsize(args) == 0) {
+ get_command_begin:
+				check_assign_cmd = true;
+				cf = sALIAS | CMDASN;
+			} else if (t->u.evalflags)
+				cf = CMDWORD | CMDASN;
+			else
+				cf = CMDWORD;
 			switch (tpeek(cf)) {
 			case REDIR:
 				while ((iop = synio(cf)) != NULL) {
@@ -316,9 +324,12 @@ get_command(int cf)
 				 * dubious but AT&T ksh acts this way
 				 */
 				if (iopn == 0 && XPsize(vars) == 0 &&
-				    XPsize(args) == 0 &&
-				    assign_command(ident))
-					t->u.evalflags = DOVACHECK;
+				    check_assign_cmd) {
+					if (assign_command(ident, false))
+						t->u.evalflags = DOVACHECK;
+					else if (strcmp(ident, Tcommand) != 0)
+						check_assign_cmd = false;
+				}
 				if ((XPsize(args) == 0 || Flag(FKEYWORD)) &&
 				    is_wdvarassign(yylval.cp))
 					XPput(vars, yylval.cp);
@@ -329,6 +340,8 @@ get_command(int cf)
 			case '(' /*)*/:
 				if (XPsize(args) == 0 && XPsize(vars) == 1 &&
 				    is_wdvarassign(yylval.cp)) {
+					char *tcp;
+
 					/* wdarrassign: foo=(bar) */
 					ACCEPT;
 
@@ -400,6 +413,7 @@ get_command(int cf)
 		case LWORD:
 			break;
 		case '(': /*)*/
+			c = '(';
 			goto Subshell;
 		default:
 			syntaxerr(NULL);
@@ -431,7 +445,7 @@ get_command(int cf)
 	case FOR:
 	case SELECT:
 		t = newtp((c == FOR) ? TFOR : TSELECT);
-		musthave(LWORD, ARRAYVAR);
+		musthave(LWORD, CMDASN);
 		if (!is_wdvarname(yylval.cp, true))
 			yyerror("%s: %s\n", c == FOR ? "for" : Tselect,
 			    "bad identifier");
@@ -572,7 +586,7 @@ elsepart(void)
 {
 	struct op *t;
 
-	switch (token(KEYWORD|sALIAS|VARASN)) {
+	switch (token(KEYWORD|sALIAS|CMDASN)) {
 	case ELSE:
 		if ((t = c_list(true)) == NULL)
 			syntaxerr(NULL);
@@ -943,13 +957,14 @@ compile(Source *s, bool skiputf8bom)
  *	$
  */
 int
-assign_command(const char *s)
+assign_command(const char *s, bool docommand)
 {
 	if (!*s)
 		return (0);
 	return ((strcmp(s, Talias) == 0) ||
 	    (strcmp(s, Texport) == 0) ||
 	    (strcmp(s, Treadonly) == 0) ||
+	    (docommand && (strcmp(s, Tcommand) == 0)) ||
 	    (strcmp(s, Ttypeset) == 0));
 }
 
@@ -991,7 +1006,7 @@ static const char db_gthan[] = { CHAR, '>', EOS };
 static Test_op
 dbtestp_isa(Test_env *te, Test_meta meta)
 {
-	int c = tpeek(ARRAYVAR | (meta == TM_BINOP ? 0 : CONTIN));
+	int c = tpeek(CMDASN | (meta == TM_BINOP ? 0 : CONTIN));
 	bool uqword;
 	char *save = NULL;
 	Test_op ret = TO_NONOP;
@@ -1037,7 +1052,7 @@ static const char *
 dbtestp_getopnd(Test_env *te, Test_op op MKSH_A_UNUSED,
     bool do_eval MKSH_A_UNUSED)
 {
-	int c = tpeek(ARRAYVAR);
+	int c = tpeek(CMDASN);
 
 	if (c != LWORD)
 		return (NULL);

@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015
+ *		 2011, 2012, 2013, 2014, 2015, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.214 2015/12/12 19:05:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.218 2016/01/20 21:34:12 tg Exp $");
 
 /*
  * states while lexing word
@@ -94,8 +94,7 @@ static void ungetsc_i(int);
 static int getsc_uu(void);
 static void getsc_line(Source *);
 static int getsc_bn(void);
-static int s_get(void);
-static void s_put(int);
+static int getsc_i(void);
 static char *get_brace_var(XString *, char *);
 static bool arraysub(char **);
 static void gethere(void);
@@ -112,7 +111,7 @@ static int ignore_backslash_newline;
 #define	o_getsc_u()	((*source->str != '\0') ? *source->str++ : getsc_uu())
 
 /* retrace helper */
-#define o_getsc_r(carg)	{				\
+#define o_getsc_r(carg)					\
 	int cev = (carg);				\
 	struct sretrace_info *rp = retrace_info;	\
 							\
@@ -122,17 +121,17 @@ static int ignore_backslash_newline;
 		rp = rp->next;				\
 	}						\
 							\
-	return (cev);					\
-}
+	return (cev);
 
-#if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
-static int getsc(void);
-
+/* callback */
 static int
-getsc(void)
+getsc_i(void)
 {
 	o_getsc_r(o_getsc());
 }
+
+#if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
+#define getsc getsc_i
 #else
 static int getsc_r(int);
 
@@ -269,7 +268,7 @@ yylex(int cf)
 			}
 			/* FALLTHROUGH */
 		case SBASE:
-			if (c == '[' && (cf & (VARASN|ARRAYVAR))) {
+			if (c == '[' && (cf & CMDASN)) {
 				/* temporary */
 				*wp = EOS;
 				if (is_wdvarname(Xstring(ws, wp), false)) {
@@ -550,8 +549,10 @@ yylex(int cf)
 				 * undefined results occur.”).
 				 */
 				statep->ls_bool = false;
+#ifdef austingroupbugs1015_is_still_not_resolved
 				if (Flag(FPOSIX))
 					break;
+#endif
 				s2 = statep;
 				base = state_info.base;
 				while (/* CONSTCOND */ 1) {
@@ -588,8 +589,8 @@ yylex(int cf)
 				*wp++ = CQUOTE;
 				ignore_backslash_newline--;
 			} else if (c == '\\') {
-				if ((c2 = unbksl(true, s_get, s_put)) == -1)
-					c2 = s_get();
+				if ((c2 = unbksl(true, getsc_i, ungetsc)) == -1)
+					c2 = getsc();
 				if (c2 == 0)
 					statep->ls_bool = true;
 				if (!statep->ls_bool) {
@@ -777,6 +778,7 @@ yylex(int cf)
 					Source *s;
 
 					ungetsc(c2);
+					ungetsc(c);
 					/*
 					 * mismatched parenthesis -
 					 * assume we were really
@@ -789,6 +791,7 @@ yylex(int cf)
 					s->start = s->str = s->u.freeme = dp;
 					s->next = source;
 					source = s;
+					ungetsc('('/*)*/);
 					return ('('/*)*/);
 				}
 			} else if (c == '(')
@@ -1088,7 +1091,7 @@ yylex(int cf)
 		}
 	} else if (cf & ALIAS) {
 		/* retain typeset et al. even when quoted */
-		if (assign_command((dp = wdstrip(yylval.cp, 0))))
+		if (assign_command((dp = wdstrip(yylval.cp, 0)), true))
 			strlcpy(ident, dp, sizeof(ident));
 		afree(dp, ATEMP);
 	}
@@ -1782,16 +1785,4 @@ pop_state_i(State_info *si, Lex_state *old_end)
 	afree(old_base, ATEMP);
 
 	return (si->base + STATE_BSIZE - 1);
-}
-
-static int
-s_get(void)
-{
-	return (getsc());
-}
-
-static void
-s_put(int c)
-{
-	ungetsc(c);
 }

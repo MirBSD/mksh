@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2015
+ *		 2011, 2012, 2013, 2015, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.79 2015/12/12 19:08:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.80 2016/01/14 22:30:43 tg Exp $");
 
 #define INDENT	8
 
@@ -318,6 +318,10 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 		case EOS:
 			return (--wp);
 		case ADELIM:
+			if (*wp == /*{*/'}') {
+				++wp;
+				goto wdvarput_csubst;
+			}
 		case CHAR:
 			c = *wp++;
 			shf_putc(c, shf);
@@ -383,8 +387,10 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 			wp = wdvarput(shf, wp, 0, opmode);
 			break;
 		case CSUBST:
-			if (*wp++ == '}')
+			if (*wp++ == '}') {
+ wdvarput_csubst:
 				shf_putc('}', shf);
+			}
 			return (wp);
 		case OPAT:
 			shf_putchar(*wp++, shf);
@@ -581,8 +587,10 @@ wdscan(const char *wp, int c)
 		case EOS:
 			return (wp);
 		case ADELIM:
-			if (c == ADELIM)
+			if (c == ADELIM && nest == 0)
 				return (wp + 1);
+			if (*wp == /*{*/'}')
+				goto wdscan_csubst;
 			/* FALLTHROUGH */
 		case CHAR:
 		case QCHAR:
@@ -604,6 +612,7 @@ wdscan(const char *wp, int c)
 				;
 			break;
 		case CSUBST:
+ wdscan_csubst:
 			wp++;
 			if (c == CSUBST && nest == 0)
 				return (wp);
@@ -807,6 +816,10 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 			shf_puts("EOS", shf);
 			return (--wp);
 		case ADELIM:
+			if (*wp == /*{*/'}') {
+				shf_puts("]ADELIM(})", shf);
+				return (wp + 1);
+			}
 			shf_puts("ADELIM=", shf);
 			if (0)
 		case CHAR:

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.168 2015/10/09 21:36:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.170 2015/12/31 21:03:47 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1013,6 +1013,7 @@ scriptexec(struct op *tp, const char **ap)
 		    (m == /* ECOFF_SH */   0x0500 || m == 0x0005) ||
 		    (m == /* bzip */ 0x425A) || (m == /* "MZ" */ 0x4D5A) ||
 		    (m == /* "NE" */ 0x4E45) || (m == /* "LX" */ 0x4C58) ||
+		    (m == /* ksh93 */ 0x0B13) || (m == /* LZIP */ 0x4C5A) ||
 		    (m == /* xz */ 0xFD37 && buf[2] == 'z' && buf[3] == 'X' &&
 		    buf[4] == 'Z') || (m == /* 7zip */ 0x377A) ||
 		    (m == /* gzip */ 0x1F8B) || (m == /* .Z */ 0x1F9D))
@@ -1404,7 +1405,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	int u = -1;
 	char *cp = iop->ioname;
 	int iotype = iop->ioflag & IOTYPE;
-	bool do_open = true, do_close = false;
+	bool do_open = true, do_close = false, do_fstat = false;
 	int flags = 0;
 	struct ioword iotmp;
 	struct stat statb;
@@ -1433,14 +1434,27 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		break;
 
 	case IOWRITE:
-		flags = O_WRONLY | O_CREAT | O_TRUNC;
-		/*
-		 * The stat() is here to allow redirections to
-		 * things like /dev/null without error.
-		 */
-		if (Flag(FNOCLOBBER) && !(iop->ioflag & IOCLOB) &&
-		    (stat(cp, &statb) < 0 || S_ISREG(statb.st_mode)))
-			flags |= O_EXCL;
+		if (Flag(FNOCLOBBER) && !(iop->ioflag & IOCLOB)) {
+			/* >file under set -C */
+			if (stat(cp, &statb)) {
+				/* nonexistent file */
+				flags = O_WRONLY | O_CREAT | O_EXCL;
+			} else if (S_ISREG(statb.st_mode)) {
+				/* regular file, refuse clobbering */
+				goto clobber_refused;
+			} else {
+				/*
+				 * allow redirections to things
+				 * like /dev/null without error
+				 */
+				flags = O_WRONLY;
+				/* but check again after opening */
+				do_fstat = true;
+			}
+		} else {
+			/* >|file or set +C */
+			flags = O_WRONLY | O_CREAT | O_TRUNC;
+		}
 		break;
 
 	case IORDWR:
@@ -1485,6 +1499,15 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			return (-1);
 		}
 		u = binopen3(cp, flags, 0666);
+		if (do_fstat && u >= 0) {
+			/* prevent race conditions */
+			if (fstat(u, &statb) || S_ISREG(statb.st_mode)) {
+				close(u);
+ clobber_refused:
+				u = -1;
+				errno = EEXIST;
+			}
+		}
 	}
 	if (u < 0) {
 		/* herein() may already have printed message */
