@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.80 2016/01/14 22:30:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.81 2016/01/21 18:24:45 tg Exp $");
 
 #define INDENT	8
 
@@ -1095,7 +1095,7 @@ dumptree(struct shf *shf, struct op *t)
 		goto dumpleftandout;
 	OPEN(TFUNCT)
 		shf_fprintf(shf, " str<%s> ksh<%s>", t->str,
-		    t->u.ksh_func ? "yes" : "no");
+		    t->u.ksh_func ? "true" : "false");
 		goto dumpleftandout;
 	OPEN(TTIME)
 		goto dumpleftandout;

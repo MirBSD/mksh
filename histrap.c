@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.152 2016/01/14 23:18:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.153 2016/01/21 18:24:40 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -217,7 +217,7 @@ c_fc(const char **wp)
 				xp += rep_len;
 			}
 			if (!any_subst) {
-				bi_errorf("bad substitution");
+				bi_errorf(Tbadsubst);
 				return (1);
 			}
 			len = strlen(s) + 1;

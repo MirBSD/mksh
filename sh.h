@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.757 2016/01/20 21:34:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.760 2016/01/21 19:58:13 tg Exp $");
 #endif
-#define MKSH_VERSION "R52 2016/01/20"
+#define MKSH_VERSION "R52 2016/01/21"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -578,7 +578,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 521)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 522)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -831,13 +831,15 @@ EXTERN struct {
 #define OF_FIRSTTIME	0x10	/* as early as possible, once */
 #define OF_ANY		(OF_CMDLINE | OF_SET | OF_SPECIAL | OF_INTERNAL)
 
+/* trust GCC to have string pooling; -Wformat bitches otherwise */
+/*XXX TODO: make this with a .gen file plus not imake-style */
+
 /* null value for variable; comparison pointer for unset */
 EXTERN char null[] E_INIT("");
 /* helpers for string pooling */
 EXTERN const char Tintovfl[] E_INIT("integer overflow %zu %c %zu prevented");
 EXTERN const char Toomem[] E_INIT("can't allocate %zu data bytes");
 #if defined(__GNUC__)
-/* trust this to have string pooling; -Wformat bitches otherwise */
 #define Tsynerr		"syntax error"
 #else
 EXTERN const char Tsynerr[] E_INIT("syntax error");
@@ -866,6 +868,18 @@ EXTERN const char T_function[] E_INIT(" function");
 #define Tfunction	(T_function + 1)	/* "function" */
 EXTERN const char T_funny_command[] E_INIT("funny $() command");
 #define Tcommand	(T_funny_command + 10)	/* "command" */
+#if defined(__GNUC__)
+#define Tfg_badsubst	"fileglob: bad substitution"
+#else
+EXTERN const char Tfg_badsubst[] E_INIT("fileglob: bad substitution");
+#endif
+#define Tbadsubst	(Tfg_badsubst + 10)	/* "bad substitution" */
+#if defined(__GNUC__)
+#define Tmissinghere	"missing here document"
+#else
+EXTERN const char Tmissinghere[] E_INIT("missing here document");
+#endif
+#define Theredoc	(Tmissinghere + 8)	/* "here document" */
 EXTERN const char TC_LEX1[] E_INIT("|&;<>() \t\n");
 #define TC_IFSWS	(TC_LEX1 + 7)		/* space tab newline */
 

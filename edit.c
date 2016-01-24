@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015
+ *		 2011, 2012, 2013, 2014, 2015, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.292 2015/10/09 16:11:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.293 2016/01/21 18:24:37 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -385,7 +385,7 @@ x_file_glob(int *flagsp, char *toglob, char ***wordsp)
 	source = s;
 	if (yylex(ONEWORD | LQCHAR) != LWORD) {
 		source = sold;
-		internal_warningf("%s: %s", "fileglob", "bad substitution");
+		internal_warningf(Tfg_badsubst);
 		return (0);
 	}
 	source = sold;
@@ -2520,7 +2520,7 @@ x_bind(const char *a1, const char *a2,
 		m1 = msg;
 		while (*c && (size_t)(m1 - msg) < sizeof(msg) - 3)
 			x_mapout2(*c++, &m1);
-		bi_errorf("%s: %s", "too long key sequence", msg);
+		bi_errorf("too long key sequence: %s", msg);
 		return (1);
 	}
 #ifndef MKSH_SMALL
@@ -2544,7 +2544,7 @@ x_bind(const char *a1, const char *a2,
 			if (!strcmp(x_ftab[f].xf_name, a2))
 				break;
 		if (f == NELEM(x_ftab) || x_ftab[f].xf_flags & XF_NOBIND) {
-			bi_errorf("%s: %s %s", a2, "no such", Tfunction);
+			bi_errorf("%s: no such function", a2);
 			return (1);
 		}
 	}
@@ -5055,7 +5055,7 @@ grabhist(int save, int n)
 	}
 	(void)histnum(n);
 	if ((hptr = *histpos()) == NULL) {
-		internal_warningf("%s: %s", "grabhist", "bad history array");
+		internal_warningf("grabhist: bad history array");
 		return (-1);
 	}
 	if (save)
