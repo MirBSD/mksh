@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.722 2016/01/21 18:24:35 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.723 2016/02/11 20:19:44 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -12183,7 +12183,7 @@ stdin:
 	Copyright (C) 2002 Free Software Foundation, Inc.'
 	EOF
 	chmod +x bash
-	"$__progname" -xc 'foo=$(./bash --version 2>&1 | head -1); echo "=$foo="'
+	"$__progname" -xc 'foo=$(./bash --version 2>&1 | sed 1q); echo "=$foo="'
 expected-stdout:
 	=GNU bash, version 2.05b.0(1)-release (i386-ecce-mirbsd10)=
 expected-stderr-pattern:
