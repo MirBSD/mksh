@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.388 2016/01/20 22:04:54 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.389 2016/02/11 19:00:50 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -29,7 +29,9 @@
 .\" * ^ is size-reduced and placed atop in groff, so use \*(ha
 .\" * \(en does not work in nroff, so use \*(en
 .\" * <>| are problematic, so redefine and use \*(Lt\*(Gt\*(Ba
-.\" Also make sure to use \& especially with two-letter words.
+.\" Also make sure to use \& *before* a punctuation char that is to not
+.\" be interpreted as punctuation, and especially with two-letter words
+.\" but also (after) a period that does not end a sentence (“e.g.\&”).
 .\" The section after the "doc" macropackage has been loaded contains
 .\" additional code to convene between the UCB mdoc macropackage (and
 .\" its variant as BSD mdoc in groff) and the GNU mdoc macropackage.
@@ -74,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 20 2016 $
+.Dd $Mdocdate: February 11 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -431,7 +433,7 @@ statements;
 .Ql \&(( .. ))
 is used in arithmetic expressions;
 and lastly,
-.Ql \&( .. )\&
+.Ql \&( .. \&)
 is used to create subshells.
 .Pp
 Whitespace and meta-characters can be quoted individually using a backslash
@@ -1943,7 +1945,7 @@ Time since the epoch, as returned by
 formatted as decimal
 .Va tv_sec
 followed by a dot
-.Pq Sq .\&
+.Pq Sq \&.
 and
 .Va tv_usec
 padded to exactly six decimal digits.
@@ -3979,14 +3981,14 @@ becomes unusable, and directly calls
 .Pp
 .It Ic return Op Ar status
 Returns from a function or
-.Ic .\&
+.Ic \&.
 script, with exit status
 .Ar status .
 If no
 .Ar status
 is given, the exit status of the last executed command is used.
 If used outside of a function or
-.Ic .\&
+.Ic \&.
 script, it has the same effect as
 .Ic exit .
 Note that
@@ -3994,9 +3996,9 @@ Note that
 treats both profile and
 .Ev ENV
 files as
-.Ic .\&
+.Ic \&.
 scripts, while the original Korn shell only treats profiles as
-.Ic .\&
+.Ic \&.
 scripts.
 .Pp
 .It Xo
@@ -4074,7 +4076,7 @@ explicitly tested by a shell construct such as
 .Ic until ,
 .Ic while ,
 or
-.Ic !\&
+.Ic \&!
 statements.
 For
 .Ic &&
