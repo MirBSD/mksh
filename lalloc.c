@@ -23,7 +23,7 @@
 #include <err.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.24 2016/02/24 01:44:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.25 2016/02/24 02:08:39 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -33,7 +33,7 @@ __RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.24 2016/02/24 01:44:46 tg Exp $");
 #endif
 
 
-static ALLOC_ITEM *findptr(ALLOC_ITEM **, char *, Area *);
+static struct lalloc_common *findptr(struct lalloc_common **, char *, Area *);
 
 #ifndef MKSH_ALLOC_CATCH_UNDERRUNS
 #define ALLOC_ISUNALIGNED(p) (((size_t)(p)) % ALLOC_SIZE)
@@ -45,7 +45,7 @@ static ALLOC_ITEM *findptr(ALLOC_ITEM **, char *, Area *);
 static void
 free_osimalloc(void *ptr)
 {
-	struct lalloc *lp = ptr;
+	struct lalloc_item *lp = ptr;
 
 	if (munmap(lp, lp->len))
 		err(1, "free_osimalloc");
@@ -54,7 +54,7 @@ free_osimalloc(void *ptr)
 static void *
 remalloc(void *ptr, size_t size)
 {
-	struct lalloc *lp, *lold = ptr;
+	struct lalloc_item *lp, *lold = ptr;
 
 	size = (size + 4095) & ~(size_t)4095;
 
@@ -92,12 +92,12 @@ ainit(Area *ap)
 		abort();
 	}
 #endif
-	/* area pointer is an ALLOC_ITEM, just the head of the list */
+	/* area pointer and items share struct lalloc_common */
 	ap->next = NULL;
 }
 
-static ALLOC_ITEM *
-findptr(ALLOC_ITEM **lpp, char *ptr, Area *ap)
+static struct lalloc_common *
+findptr(struct lalloc_common **lpp, char *ptr, Area *ap)
 {
 	void *lp;
 
@@ -140,11 +140,11 @@ aresize2(void *ptr, size_t fac1, size_t fac2, Area *ap)
 void *
 aresize(void *ptr, size_t numb, Area *ap)
 {
-	ALLOC_ITEM *lp = NULL;
+	struct lalloc_common *lp = NULL;
 
 	/* resizing (true) or newly allocating? */
 	if (ptr != NULL) {
-		ALLOC_ITEM *pp;
+		struct lalloc_common *pp;
 
 		pp = findptr(&lp, ptr, ap);
 		pp->next = lp->next;
@@ -157,9 +157,9 @@ aresize(void *ptr, size_t numb, Area *ap)
 #endif
 	    )
 		internal_errorf(Toomem, numb);
-	/* this only works because Area is an ALLOC_ITEM */
+	/* this only works because Area and ALLOC_ITEM share lalloc_common */
 	lp->next = ap->next;
-	ap->next = (void *)lp;
+	ap->next = lp;
 	/* return user item address */
 	return ((char *)lp + ALLOC_SIZE);
 }
@@ -168,7 +168,7 @@ void
 afree(void *ptr, Area *ap)
 {
 	if (ptr != NULL) {
-		ALLOC_ITEM *lp, *pp;
+		struct lalloc_common *lp, *pp;
 
 		pp = findptr(&lp, ptr, ap);
 		/* unhook */
@@ -181,7 +181,7 @@ afree(void *ptr, Area *ap)
 void
 afreeall(Area *ap)
 {
-	Area *lp;
+	struct lalloc_common *lp;
 
 	/* traverse group (linked list) */
 	while ((lp = ap->next) != NULL) {
