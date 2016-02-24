@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.181 2016/01/21 18:24:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.182 2016/02/24 01:47:32 tg Exp $");
 
 /*
  * string expansion
@@ -1151,7 +1151,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 	if (!stype && c == '/') {
 		slen += 2;
 		stype = c;
-		if (word[slen] == ADELIM) {
+		if (word[slen] == ADELIM && word[slen + 1] == c) {
 			slen += 2;
 			stype |= 0x80;
 		}
