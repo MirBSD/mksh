@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.760 2016/01/21 19:58:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.761 2016/02/24 01:44:46 tg Exp $");
 #endif
-#define MKSH_VERSION "R52 2016/01/21"
+#define MKSH_VERSION "R52 2016/02/23"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -699,16 +699,29 @@ im_sorry_dave(void)
 
 
 /* 1. internal structure */
+struct lalloc_area {
+	struct lalloc_area *next;
+};
+
 struct lalloc {
-	struct lalloc *next;
+	struct lalloc_area *next;
+#ifdef MKSH_ALLOC_CATCH_UNDERRUNS
+	size_t len;
+	char dummy[8192 - sizeof(struct lalloc_area *) - sizeof(size_t)];
+#endif
 };
 
 /* 2. sizes */
 #define ALLOC_ITEM	struct lalloc
 #define ALLOC_SIZE	(sizeof(ALLOC_ITEM))
+#ifndef MKSH_ALLOC_CATCH_UNDERRUNS
+#define ALLOC_OVERHEAD	ALLOC_SIZE
+#else
+#define ALLOC_OVERHEAD	0
+#endif
 
-/* 3. group structure (only the same for lalloc.c) */
-typedef struct lalloc Area;
+/* 3. group structure */
+typedef struct lalloc_area Area;
 
 
 EXTERN Area aperm;		/* permanent object space */
@@ -1073,7 +1086,7 @@ EXTERN bool builtin_spec;
 EXTERN char	*current_wd;
 
 /* input line size */
-#define LINE		(4096 - ALLOC_SIZE)
+#define LINE		(4096 - ALLOC_OVERHEAD)
 /*
  * Minimum required space to work with on a line - if the prompt leaves
  * less space than this on a line, the prompt is truncated.

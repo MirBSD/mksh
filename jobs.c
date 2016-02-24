@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.118 2016/01/21 18:24:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.119 2016/02/24 01:44:45 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -45,8 +45,8 @@ struct proc {
 	int state;
 	int status;		/* wait status */
 	/* process command string from vistree */
-	char command[256 - (ALLOC_SIZE + sizeof(Proc *) + sizeof(pid_t) +
-	    2 * sizeof(int))];
+	char command[256 - (ALLOC_OVERHEAD + sizeof(Proc *) +
+	    sizeof(pid_t) + 2 * sizeof(int))];
 };
 
 /* Notify/print flag - j_print() argument */

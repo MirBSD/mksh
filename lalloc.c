@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009, 2010, 2011, 2013, 2014
+ * Copyright (c) 2009, 2010, 2011, 2013, 2014, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -19,8 +19,11 @@
  */
 
 #include "sh.h"
+#ifdef MKSH_ALLOC_CATCH_UNDERRUNS
+#include <err.h>
+#endif
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.23 2015/11/29 17:05:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.24 2016/02/24 01:44:46 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -29,13 +32,66 @@ __RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.23 2015/11/29 17:05:01 tg Exp $");
 #define remalloc(p,n)	realloc_osi((p), (n))
 #endif
 
-#define ALLOC_ISUNALIGNED(p) (((size_t)(p)) % ALLOC_SIZE)
 
 static ALLOC_ITEM *findptr(ALLOC_ITEM **, char *, Area *);
+
+#ifndef MKSH_ALLOC_CATCH_UNDERRUNS
+#define ALLOC_ISUNALIGNED(p) (((size_t)(p)) % ALLOC_SIZE)
+#else
+#define ALLOC_ISUNALIGNED(p) (((size_t)(p)) & 4095)
+#undef remalloc
+#undef free_osimalloc
+
+static void
+free_osimalloc(void *ptr)
+{
+	struct lalloc *lp = ptr;
+
+	if (munmap(lp, lp->len))
+		err(1, "free_osimalloc");
+}
+
+static void *
+remalloc(void *ptr, size_t size)
+{
+	struct lalloc *lp, *lold = ptr;
+
+	size = (size + 4095) & ~(size_t)4095;
+
+	if (lold && lold->len >= size)
+		return (ptr);
+
+	if ((lp = mmap(NULL, size, PROT_READ | PROT_WRITE,
+	    MAP_ANON | MAP_PRIVATE, -1, (off_t)0)) == MAP_FAILED)
+		err(1, "remalloc: mmap(%zu)", size);
+	if (ALLOC_ISUNALIGNED(lp))
+		errx(1, "remalloc: unaligned(%p)", lp);
+	if (mprotect(((char *)lp) + 4096, 4096, PROT_NONE))
+		err(1, "remalloc: mprotect");
+	lp->len = size;
+
+	if (lold) {
+		memcpy(((char *)lp) + 8192, ((char *)lold) + 8192,
+		    lold->len - 8192);
+		if (munmap(lold, lold->len))
+			err(1, "remalloc: munmap");
+	}
+
+	return (lp);
+}
+#endif
 
 void
 ainit(Area *ap)
 {
+#ifdef MKSH_ALLOC_CATCH_UNDERRUNS
+	if (sysconf(_SC_PAGESIZE) != 4096) {
+		fprintf(stderr, "mksh: fatal: pagesize %lu not 4096!\n",
+		    sysconf(_SC_PAGESIZE));
+		fflush(stderr);
+		abort();
+	}
+#endif
 	/* area pointer is an ALLOC_ITEM, just the head of the list */
 	ap->next = NULL;
 }
@@ -70,7 +126,7 @@ findptr(ALLOC_ITEM **lpp, char *ptr, Area *ap)
 			internal_errorf("rogue pointer %zX", (size_t)ptr);
 #endif
 		}
-	return (ap);
+	return ((void *)ap);
 }
 
 void *
@@ -103,7 +159,7 @@ aresize(void *ptr, size_t numb, Area *ap)
 		internal_errorf(Toomem, numb);
 	/* this only works because Area is an ALLOC_ITEM */
 	lp->next = ap->next;
-	ap->next = lp;
+	ap->next = (void *)lp;
 	/* return user item address */
 	return ((char *)lp + ALLOC_SIZE);
 }
@@ -125,7 +181,7 @@ afree(void *ptr, Area *ap)
 void
 afreeall(Area *ap)
 {
-	ALLOC_ITEM *lp;
+	Area *lp;
 
 	/* traverse group (linked list) */
 	while ((lp = ap->next) != NULL) {

@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.307 2016/01/21 18:24:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.308 2016/02/24 01:44:46 tg Exp $");
 
 extern char **environ;
 
@@ -130,6 +130,9 @@ rndsetup(void)
 	/* introduce variation (and yes, second arg MBZ for portability) */
 	mksh_TIME(bufptr->tv);
 
+#ifdef MKSH_ALLOC_CATCH_UNDERRUNS
+	mprotect(((char *)bufptr) + 4096, 4096, PROT_READ | PROT_WRITE);
+#endif
 	h = chvt_rndsetup(bufptr, sizeof(*bufptr));
 
 	afree(cp, APERM);
