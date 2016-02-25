@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.722 2016/01/21 18:24:35 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.724 2016/02/24 01:47:30 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R52 2016/01/21
+	@(#)MIRBSD KSH R52 2016/02/23
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R52 2016/01/21
+	@(#)LEGACY KSH R52 2016/02/23
 description:
 	Check version of legacy shell.
 stdin:
@@ -1858,7 +1858,7 @@ stdin:
 	[[ -n $BASH_VERSION ]] && shopt -s extglob
 	x=1222321_ab/cde_b/c_1221
 	y=xyz
-	echo 1: ${x/2}
+	echo 1: ${x/2} . ${x/}
 	echo 2: ${x//2}
 	echo 3: ${x/+(2)}
 	echo 4: ${x//+(2)}
@@ -1890,7 +1890,7 @@ stdin:
 	echo 30: ${x//\\a/9}
 	echo 31: ${x/2/$y}
 expected-stdout:
-	1: 122321_ab/cde_b/c_1221
+	1: 122321_ab/cde_b/c_1221 . 1222321_ab/cde_b/c_1221
 	2: 131_ab/cde_b/c_11
 	3: 1321_ab/cde_b/c_1221
 	4: 131_ab/cde_b/c_11
@@ -12183,7 +12183,7 @@ stdin:
 	Copyright (C) 2002 Free Software Foundation, Inc.'
 	EOF
 	chmod +x bash
-	"$__progname" -xc 'foo=$(./bash --version 2>&1 | head -1); echo "=$foo="'
+	"$__progname" -xc 'foo=$(./bash --version 2>&1 | sed 1q); echo "=$foo="'
 expected-stdout:
 	=GNU bash, version 2.05b.0(1)-release (i386-ecce-mirbsd10)=
 expected-stderr-pattern:

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009, 2010, 2011, 2013, 2014
+ * Copyright (c) 2009, 2010, 2011, 2013, 2014, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -19,8 +19,11 @@
  */
 
 #include "sh.h"
+#ifdef MKSH_ALLOC_CATCH_UNDERRUNS
+#include <err.h>
+#endif
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.23 2015/11/29 17:05:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.25 2016/02/24 02:08:39 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -29,19 +32,72 @@ __RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.23 2015/11/29 17:05:01 tg Exp $");
 #define remalloc(p,n)	realloc_osi((p), (n))
 #endif
 
-#define ALLOC_ISUNALIGNED(p) (((size_t)(p)) % ALLOC_SIZE)
 
-static ALLOC_ITEM *findptr(ALLOC_ITEM **, char *, Area *);
+static struct lalloc_common *findptr(struct lalloc_common **, char *, Area *);
+
+#ifndef MKSH_ALLOC_CATCH_UNDERRUNS
+#define ALLOC_ISUNALIGNED(p) (((size_t)(p)) % ALLOC_SIZE)
+#else
+#define ALLOC_ISUNALIGNED(p) (((size_t)(p)) & 4095)
+#undef remalloc
+#undef free_osimalloc
+
+static void
+free_osimalloc(void *ptr)
+{
+	struct lalloc_item *lp = ptr;
+
+	if (munmap(lp, lp->len))
+		err(1, "free_osimalloc");
+}
+
+static void *
+remalloc(void *ptr, size_t size)
+{
+	struct lalloc_item *lp, *lold = ptr;
+
+	size = (size + 4095) & ~(size_t)4095;
+
+	if (lold && lold->len >= size)
+		return (ptr);
+
+	if ((lp = mmap(NULL, size, PROT_READ | PROT_WRITE,
+	    MAP_ANON | MAP_PRIVATE, -1, (off_t)0)) == MAP_FAILED)
+		err(1, "remalloc: mmap(%zu)", size);
+	if (ALLOC_ISUNALIGNED(lp))
+		errx(1, "remalloc: unaligned(%p)", lp);
+	if (mprotect(((char *)lp) + 4096, 4096, PROT_NONE))
+		err(1, "remalloc: mprotect");
+	lp->len = size;
+
+	if (lold) {
+		memcpy(((char *)lp) + 8192, ((char *)lold) + 8192,
+		    lold->len - 8192);
+		if (munmap(lold, lold->len))
+			err(1, "remalloc: munmap");
+	}
+
+	return (lp);
+}
+#endif
 
 void
 ainit(Area *ap)
 {
-	/* area pointer is an ALLOC_ITEM, just the head of the list */
+#ifdef MKSH_ALLOC_CATCH_UNDERRUNS
+	if (sysconf(_SC_PAGESIZE) != 4096) {
+		fprintf(stderr, "mksh: fatal: pagesize %lu not 4096!\n",
+		    sysconf(_SC_PAGESIZE));
+		fflush(stderr);
+		abort();
+	}
+#endif
+	/* area pointer and items share struct lalloc_common */
 	ap->next = NULL;
 }
 
-static ALLOC_ITEM *
-findptr(ALLOC_ITEM **lpp, char *ptr, Area *ap)
+static struct lalloc_common *
+findptr(struct lalloc_common **lpp, char *ptr, Area *ap)
 {
 	void *lp;
 
@@ -70,7 +126,7 @@ findptr(ALLOC_ITEM **lpp, char *ptr, Area *ap)
 			internal_errorf("rogue pointer %zX", (size_t)ptr);
 #endif
 		}
-	return (ap);
+	return ((void *)ap);
 }
 
 void *
@@ -84,11 +140,11 @@ aresize2(void *ptr, size_t fac1, size_t fac2, Area *ap)
 void *
 aresize(void *ptr, size_t numb, Area *ap)
 {
-	ALLOC_ITEM *lp = NULL;
+	struct lalloc_common *lp = NULL;
 
 	/* resizing (true) or newly allocating? */
 	if (ptr != NULL) {
-		ALLOC_ITEM *pp;
+		struct lalloc_common *pp;
 
 		pp = findptr(&lp, ptr, ap);
 		pp->next = lp->next;
@@ -101,7 +157,7 @@ aresize(void *ptr, size_t numb, Area *ap)
 #endif
 	    )
 		internal_errorf(Toomem, numb);
-	/* this only works because Area is an ALLOC_ITEM */
+	/* this only works because Area and ALLOC_ITEM share lalloc_common */
 	lp->next = ap->next;
 	ap->next = lp;
 	/* return user item address */
@@ -112,7 +168,7 @@ void
 afree(void *ptr, Area *ap)
 {
 	if (ptr != NULL) {
-		ALLOC_ITEM *lp, *pp;
+		struct lalloc_common *lp, *pp;
 
 		pp = findptr(&lp, ptr, ap);
 		/* unhook */
@@ -125,7 +181,7 @@ afree(void *ptr, Area *ap)
 void
 afreeall(Area *ap)
 {
-	ALLOC_ITEM *lp;
+	struct lalloc_common *lp;
 
 	/* traverse group (linked list) */
 	while ((lp = ap->next) != NULL) {
