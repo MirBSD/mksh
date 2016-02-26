@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.81 2016/01/14 21:17:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.82 2016/02/26 18:48:12 tg Exp $");
 
 /* the order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -227,7 +227,7 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok,
 	exprtoken(es);
 	if (es->tok == END) {
 		es->tok = LIT;
-		es->val = tempvar();
+		es->val = tempvar("");
 	}
 	v = intvar(es, evalexpr(es, MAX_PREC));
 
@@ -649,7 +649,7 @@ exprtoken(Expr_state *es)
 			cp += len;
 		}
 		if (es->noassign) {
-			es->val = tempvar();
+			es->val = tempvar("");
 			es->val->flag |= EXPRLVALUE;
 		} else {
 			strndupx(tvar, es->tokp, cp - es->tokp, ATEMP);
@@ -684,7 +684,7 @@ exprtoken(Expr_state *es)
 			c = *cp++;
 		strndupx(tvar, es->tokp, --cp - es->tokp, ATEMP);
  process_tvar:
-		es->val = tempvar();
+		es->val = tempvar("");
 		es->val->flag &= ~INTEGER;
 		es->val->type = 0;
 		es->val->val.s = tvar;
@@ -719,17 +719,19 @@ assign_check(Expr_state *es, enum token op, struct tbl *vasn)
 }
 
 struct tbl *
-tempvar(void)
+tempvar(const char *vname)
 {
 	struct tbl *vp;
+	size_t vsize;
 
-	vp = alloc(sizeof(struct tbl), ATEMP);
+	vsize = strlen(vname) + 1;
+	vp = alloc(offsetof(struct tbl, name[0]) + vsize, ATEMP);
+	memcpy(vp->name, vname, vsize);
 	vp->flag = ISSET|INTEGER;
 	vp->type = 0;
 	vp->areap = ATEMP;
 	vp->ua.hval = 0;
 	vp->val.i = 0;
-	vp->name[0] = '\0';
 	return (vp);
 }
 
@@ -744,7 +746,7 @@ intvar(Expr_state *es, struct tbl *vp)
 	    (vp->flag & (ISSET|INTEGER|EXPRLVALUE)) == (ISSET|INTEGER))
 		return (vp);
 
-	vq = tempvar();
+	vq = tempvar("");
 	if (setint_v(vq, vp, es->arith) == NULL) {
 		if (vp->flag & EXPRINEVAL)
 			evalerr(es, ET_RECURSIVE, vp->name);

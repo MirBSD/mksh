@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.198 2016/01/21 18:24:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.199 2016/02/26 18:48:14 tg Exp $");
 
 /*-
  * Variables
@@ -242,18 +242,26 @@ global(const char *n)
 	if (!ksh_isalphx(c)) {
 		if (array)
 			errorf(Tbadsubst);
-		vp = &vtemp;
+		vp = vtemp;
 		vp->flag = DEFINED;
 		vp->type = 0;
 		vp->areap = ATEMP;
-		*vp->name = c;
 		if (ksh_isdigit(c)) {
-			if (getn(vn, &c) && (c <= l->argc))
-				/* setstr can't fail here */
-				setstr(vp, l->argv[c], KSH_RETURN_ERROR);
+			if (getn(vn, &c)) {
+				/* main.c:main_init() says 12 */
+				shf_snprintf(vp->name, 12, "%d", c);
+				if (c <= l->argc) {
+					/* setstr can't fail here */
+					setstr(vp, l->argv[c],
+					    KSH_RETURN_ERROR);
+				}
+			} else
+				vp->name[0] = '\0';
 			vp->flag |= RDONLY;
 			goto out;
 		}
+		vp->name[0] = c;
+		vp->name[1] = '\0';
 		vp->flag |= RDONLY;
 		if (vn[1] != '\0')
 			goto out;
@@ -320,7 +328,7 @@ local(const char *n, bool copy)
 	vn = array_index_calc(n, &array, &val);
 	h = hash(vn);
 	if (!ksh_isalphx(*vn)) {
-		vp = &vtemp;
+		vp = vtemp;
 		vp->flag = DEFINED|RDONLY;
 		vp->type = 0;
 		vp->areap = ATEMP;
@@ -479,13 +487,12 @@ void
 setint(struct tbl *vq, mksh_ari_t n)
 {
 	if (!(vq->flag&INTEGER)) {
-		struct tbl *vp = &vtemp;
-		vp->flag = (ISSET|INTEGER);
-		vp->type = 0;
-		vp->areap = ATEMP;
-		vp->val.i = n;
+		vtemp->flag = (ISSET|INTEGER);
+		vtemp->type = 0;
+		vtemp->areap = ATEMP;
+		vtemp->val.i = n;
 		/* setstr can't fail here */
-		setstr(vq, str_val(vp), KSH_RETURN_ERROR);
+		setstr(vq, str_val(vtemp), KSH_RETURN_ERROR);
 	} else
 		vq->val.i = n;
 	vq->flag |= ISSET;

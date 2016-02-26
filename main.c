@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.308 2016/02/24 01:44:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.309 2016/02/26 18:48:12 tg Exp $");
 
 extern char **environ;
 
@@ -208,6 +208,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	/* initialise permanent Area */
 	ainit(&aperm);
+	/* max. name length: -2147483648 = 11 (+ NUL) */
+	vtemp = alloc(offsetof(struct tbl, name[0]) + 12, APERM);
 
 	/* set up base environment */
 	env.type = E_NONE;

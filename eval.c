@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.183 2016/02/26 18:05:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.184 2016/02/26 18:48:12 tg Exp $");
 
 /*
  * string expansion
@@ -404,8 +404,8 @@ expand(
 					st->stype = stype;
 					st->base = Xsavepos(ds, dp);
 					st->f = f;
-					if (x.var == &vtemp) {
-						st->var = tempvar();
+					if (x.var == vtemp) {
+						st->var = tempvar(vtemp->name);
 						st->var->flag &= ~INTEGER;
 						/* can't fail here */
 						setstr(st->var,
