@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.184 2016/02/26 18:48:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.185 2016/02/26 19:05:21 tg Exp $");
 
 /*
  * string expansion
@@ -1193,6 +1193,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		/* can't trim a vector (yet) */
 		case '%':
 		case '#':
+		case '?':
 		case '0':
 		case '/':
 		case 0x100 | '#':
