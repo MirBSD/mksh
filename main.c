@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.309 2016/02/26 18:48:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.310 2016/02/26 21:53:36 tg Exp $");
 
 extern char **environ;
 
@@ -110,13 +110,13 @@ rndsetup(void)
 	} *bufptr;
 	char *cp;
 
-	cp = alloc(sizeof(*bufptr) - ALLOC_SIZE, APERM);
+	cp = alloc(sizeof(*bufptr) - sizeof(ALLOC_ITEM), APERM);
 #ifdef DEBUG
 	/* clear the allocated space, for valgrind */
-	memset(cp, 0, sizeof(*bufptr) - ALLOC_SIZE);
+	memset(cp, 0, sizeof(*bufptr) - sizeof(ALLOC_ITEM));
 #endif
 	/* undo what alloc() did to the malloc result address */
-	bufptr = (void *)(cp - ALLOC_SIZE);
+	bufptr = (void *)(cp - sizeof(ALLOC_ITEM));
 	/* PIE or something similar provides us with deltas here */
 	bufptr->dataptr = &rndsetupstate;
 	/* ASLR in at least Windows, Linux, some BSDs */
@@ -931,9 +931,9 @@ newenv(int type)
 	 * struct env includes ALLOC_ITEM for alignment constraints
 	 * so first get the actually used memory, then assign it
 	 */
-	cp = alloc(sizeof(struct env) - ALLOC_SIZE, ATEMP);
+	cp = alloc(sizeof(struct env) - sizeof(ALLOC_ITEM), ATEMP);
 	/* undo what alloc() did to the malloc result address */
-	ep = (void *)(cp - ALLOC_SIZE);
+	ep = (void *)(cp - sizeof(ALLOC_ITEM));
 	/* initialise public members of struct env (not the ALLOC_ITEM) */
 	ainit(&ep->area);
 	ep->oenv = e;
@@ -1029,7 +1029,7 @@ quitenv(struct shf *shf)
 
 	/* free the struct env - tricky due to the ALLOC_ITEM inside */
 	cp = (void *)ep;
-	afree(cp + ALLOC_SIZE, ATEMP);
+	afree(cp + sizeof(ALLOC_ITEM), ATEMP);
 }
 
 /* Called after a fork to cleanup stuff left over from parents environment */
