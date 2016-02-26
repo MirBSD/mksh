@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.182 2016/02/24 01:47:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.183 2016/02/26 18:05:10 tg Exp $");
 
 /*
  * string expansion
@@ -375,8 +375,9 @@ expand(
  unwind_substsyn:
 					/* restore sp */
 					sp = varname - 2;
-					end = (beg = wdcopy(sp, ATEMP)) +
-					    (wdscan(sp, CSUBST) - sp);
+					beg = wdcopy(sp, ATEMP);
+					end = (wdscan(cstrchr(sp, '\0') + 1,
+					    CSUBST) - sp) + beg;
 					/* ({) the } or x is already skipped */
 					if (end < wdscan(beg, EOS))
 						*end = EOS;
