@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.110 2016/01/21 18:24:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.111 2016/02/26 21:24:58 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -31,6 +31,7 @@ struct nesting_state {
 };
 
 struct yyrecursive_state {
+	struct ioword *old_heres[HERES];
 	struct yyrecursive_state *next;
 	struct ioword **old_herep;
 	int old_symbol;
@@ -1175,7 +1176,9 @@ yyrecursive(int subtype MKSH_A_UNUSED)
 	ys->old_reject = reject;
 	ys->old_symbol = symbol;
 	ACCEPT;
+	memcpy(ys->old_heres, heres, sizeof(heres));
 	ys->old_herep = herep;
+	herep = heres;
 	ys->old_salias = sALIAS;
 	sALIAS = 0;
 	ys->next = e->yyrecursive_statep;
@@ -1202,6 +1205,7 @@ yyrecursive_pop(bool popall)
 	e->yyrecursive_statep = ys->next;
 
 	sALIAS = ys->old_salias;
+	memcpy(heres, ys->old_heres, sizeof(heres));
 	herep = ys->old_herep;
 	reject = ys->old_reject;
 	symbol = ys->old_symbol;
