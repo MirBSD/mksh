@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.389 2016/02/11 19:00:50 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.390 2016/02/26 19:38:42 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: February 11 2016 $
+.Dd $Mdocdate: February 26 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -5141,38 +5141,20 @@ If job monitoring is enabled, the completion status of jobs is printed
 .Op Fl pv
 .Op Ar name ...
 .Xc
-For each
-.Ar name ,
-the type of command is listed (reserved word, built-in, alias,
-function, tracked alias, or executable).
-If the
-.Fl p
-option is used, a path search is performed even if
-.Ar name
-is a reserved word, alias, etc.
 Without the
 .Fl v
-option,
-.Ic whence
-is similar to
-.Ic command Fl v
-except that
-.Ic whence
-will find reserved words and won't print aliases as alias commands.
+option, it is the same as
+.Ic command Fl v ,
+except aliases are not printed as alias command.
 With the
 .Fl v
-option,
-.Ic whence
-is the same as
+option, it is exactly the same as
 .Ic command Fl V .
-Note that for
-.Ic whence ,
-the
+In either case, the
 .Fl p
-option does not affect the search path used, as it does for
-.Ic command .
-If the type of one or more of the names could not be determined, the exit
-status is non-zero.
+option differs: the search path is not affected in
+.Ic whence ,
+but the search is restricted to the path.
 .El
 .Ss Job control
 Job control refers to the shell's ability to monitor and control jobs which
@@ -6609,7 +6591,7 @@ and historic practice of several shells which several scripts
 (admittedly wrongly) depend on.
 .Pp
 This document attempts to describe
-.Nm mksh\ R52b
+.Nm mksh\ R52b+CVS
 and up,
 .\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as
