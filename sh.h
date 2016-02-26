@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.763 2016/02/26 18:48:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.764 2016/02/26 20:56:45 tg Exp $");
 #endif
 #define MKSH_VERSION "R52 2016/02/26"
 
@@ -1285,7 +1285,7 @@ enum namerefflag {
 #define FC_BI		(FC_SPECBI | FC_NORMBI)
 #define FC_PATH		BIT(3)	/* do path search */
 #define FC_DEFPATH	BIT(4)	/* use default path in path search */
-
+#define FC_WHENCE	BIT(5)	/* for use by command and whence */
 
 #define AF_ARGV_ALLOC	0x1	/* argv[] array allocated */
 #define AF_ARGS_ALLOCED	0x2	/* argument strings allocated */

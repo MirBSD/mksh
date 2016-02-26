@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.294 2016/01/21 18:24:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.295 2016/02/26 20:56:43 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -63,6 +63,8 @@ __RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.294 2016/01/21 18:24:39 tg Exp $");
 #if !defined(MKSH_UNEMPLOYED) && HAVE_GETSID
 static int c_suspend(const char **);
 #endif
+
+static int do_whence(const char **, int, bool, bool);
 
 /* getn() that prints error */
 static int
@@ -514,14 +516,10 @@ s_put(int c MKSH_A_UNUSED)
 int
 c_whence(const char **wp)
 {
-	struct tbl *tp;
-	const char *id;
-	bool pflag = false, vflag = false, Vflag = false;
-	int rv = 0, optc, fcflags;
-	bool iam_whence = wp[0][0] == 'w';
-	const char *opts = iam_whence ? "pv" : "pvV";
+	int optc;
+	bool pflag = false, vflag = false;
 
-	while ((optc = ksh_getopt(wp, &builtin_opt, opts)) != -1)
+	while ((optc = ksh_getopt(wp, &builtin_opt, "pv")) != -1)
 		switch (optc) {
 		case 'p':
 			pflag = true;
@@ -529,79 +527,82 @@ c_whence(const char **wp)
 		case 'v':
 			vflag = true;
 			break;
+		case '?':
+			return (1);
+		}
+	wp += builtin_opt.optind;
+
+	return (do_whence(wp, pflag ? FC_PATH :
+	    FC_BI | FC_FUNC | FC_PATH | FC_WHENCE, vflag, false));
+}
+
+/* note: command without -vV is dealt with in comexec() */
+int
+c_command(const char **wp)
+{
+	int optc, fcflags = FC_BI | FC_FUNC | FC_PATH | FC_WHENCE;
+	bool vflag = false;
+
+	/* options not sorted to facilitate string pooling */
+	while ((optc = ksh_getopt(wp, &builtin_opt, "Vpv")) != -1)
+		switch (optc) {
+		case 'p':
+			fcflags |= FC_DEFPATH;
+			break;
 		case 'V':
-			Vflag = true;
+			vflag = true;
+			break;
+		case 'v':
+			vflag = false;
 			break;
 		case '?':
 			return (1);
 		}
 	wp += builtin_opt.optind;
 
-	fcflags = FC_BI | FC_PATH | FC_FUNC;
-	if (!iam_whence) {
-		/* Note that -p on its own is deal with in comexec() */
-		if (pflag)
-			fcflags |= FC_DEFPATH;
-		/*
-		 * Convert command options to whence options - note that
-		 * command -pV uses a different path search than whence -v
-		 * or whence -pv. This should be considered a feature.
-		 */
-		vflag = Vflag;
-	}
-	if (pflag)
-		fcflags &= ~(FC_BI | FC_FUNC);
+	return (do_whence(wp, fcflags, vflag, true));
+}
+
+static int
+do_whence(const char **wp, int fcflags, bool vflag, bool iscommand)
+{
+	uint32_t h;
+	int rv = 0;
+	struct tbl *tp;
+	const char *id;
 
 	while ((vflag || rv == 0) && (id = *wp++) != NULL) {
-		uint32_t h = 0;
-
+		h = hash(id);
 		tp = NULL;
-		if (!pflag)
-			tp = ktsearch(&keywords, id, h = hash(id));
-		if (!tp && !pflag) {
-			tp = ktsearch(&aliases, id, h ? h : hash(id));
+
+		if (fcflags & FC_WHENCE)
+			tp = ktsearch(&keywords, id, h);
+		if (!tp && (fcflags & FC_WHENCE)) {
+			tp = ktsearch(&aliases, id, h);
 			if (tp && !(tp->flag & ISSET))
 				tp = NULL;
 		}
 		if (!tp)
 			tp = findcom(id, fcflags);
-		if (vflag || (tp->type != CALIAS && tp->type != CEXEC &&
-		    tp->type != CTALIAS))
+
+		switch (tp->type) {
+		case CSHELL:
+		case CFUNC:
+		case CKEYWD:
 			shf_puts(id, shl_stdout);
-		if (vflag) {
-			switch (tp->type) {
-			case CKEYWD:
-			case CALIAS:
-			case CFUNC:
-			case CSHELL:
-				shf_puts(" is a", shl_stdout);
-				break;
-			}
-			switch (tp->type) {
-			case CKEYWD:
-			case CSHELL:
-			case CTALIAS:
-			case CEXEC:
-				shf_putc(' ', shl_stdout);
-				break;
-			}
+			break;
 		}
 
 		switch (tp->type) {
-		case CKEYWD:
+		case CSHELL:
 			if (vflag)
-				shf_puts("reserved word", shl_stdout);
-			break;
-		case CALIAS:
-			if (vflag)
-				shprintf("n %salias for ",
-				    (tp->flag & EXPORT) ? "exported " : null);
-			if (!iam_whence && !vflag)
-				shprintf("%s %s=", Talias, id);
-			print_value_quoted(shl_stdout, tp->val.s);
+				shprintf(" is a %sshell %s",
+				    (tp->flag & SPEC_BI) ? "special " : "",
+				    Tbuiltin);
 			break;
 		case CFUNC:
 			if (vflag) {
+				shf_puts(" is a", shl_stdout);
 				if (tp->flag & EXPORT)
 					shf_puts("n exported", shl_stdout);
 				if (tp->flag & TRACE)
@@ -615,50 +616,47 @@ c_whence(const char **wp)
 				shf_puts(T_function, shl_stdout);
 			}
 			break;
-		case CSHELL:
-			if (vflag) {
-				if (tp->flag & SPEC_BI)
-					shf_puts("special ", shl_stdout);
-				shprintf("%s %s", "shell", Tbuiltin);
-			}
-			break;
-		case CTALIAS:
 		case CEXEC:
+		case CTALIAS:
 			if (tp->flag & ISSET) {
 				if (vflag) {
-					shf_puts("is ", shl_stdout);
+					shprintf("%s is ", id);
 					if (tp->type == CTALIAS)
 						shprintf("a tracked %s%s for ",
 						    (tp->flag & EXPORT) ?
-						    "exported " : null,
+						    "exported " : "",
 						    Talias);
 				}
 				shf_puts(tp->val.s, shl_stdout);
 			} else {
 				if (vflag)
-					shf_puts("not found", shl_stdout);
+					shprintf("%s not found", id);
 				rv = 1;
 			}
 			break;
-		default:
-			shf_puts(" is *GOK*", shl_stdout);
+		case CALIAS:
+			if (vflag) {
+				shprintf("%s is an %s%s for ", id,
+				    (tp->flag & EXPORT) ? "exported " : "",
+				    Talias);
+			} else if (iscommand)
+				shprintf("%s %s=", Talias, id);
+			print_value_quoted(shl_stdout, tp->val.s);
 			break;
+		case CKEYWD:
+			if (vflag)
+				shf_puts(" is a reserved word", shl_stdout);
+			break;
+#ifndef MKSH_SMALL
+		default:
+			bi_errorf("%s is of unknown type %d", id, tp->type);
+			return (1);
+#endif
 		}
 		if (vflag || !rv)
 			shf_putc('\n', shl_stdout);
 	}
 	return (rv);
-}
-
-/* Deal with command -vV - command -p dealt with in comexec() */
-int
-c_command(const char **wp)
-{
-	/*
-	 * Let c_whence do the work. Note that c_command() must be
-	 * a distinct function from c_whence() (tested in comexec()).
-	 */
-	return (c_whence(wp));
 }
 
 /* typeset, global, export, and readonly */
