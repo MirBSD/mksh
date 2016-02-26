@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.81 2016/01/21 18:24:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.82 2016/02/26 17:58:30 tg Exp $");
 
 #define INDENT	8
 
@@ -817,7 +817,7 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 			return (--wp);
 		case ADELIM:
 			if (*wp == /*{*/'}') {
-				shf_puts("]ADELIM(})", shf);
+				shf_puts(/*{*/ "]ADELIM(})", shf);
 				return (wp + 1);
 			}
 			shf_puts("ADELIM=", shf);
@@ -852,10 +852,10 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 			shf_puts("EXPRSUB<", shf);
 			goto dumpsub;
 		case OQUOTE:
-			shf_fprintf(shf, "OQUOTE{%d", ++quotelevel);
+			shf_fprintf(shf, "OQUOTE{%d" /*}*/, ++quotelevel);
 			break;
 		case CQUOTE:
-			shf_fprintf(shf, "%d}CQUOTE", quotelevel);
+			shf_fprintf(shf, /*{*/ "%d}CQUOTE", quotelevel);
 			if (quotelevel)
 				quotelevel--;
 			else
