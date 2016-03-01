@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.154 2016/02/24 01:45:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.155 2016/03/01 18:29:48 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -1033,7 +1033,7 @@ inittraps(void)
 #endif
 		if ((cs == NULL) ||
 		    (cs[0] == '\0'))
-			sigtraps[i].name = shf_smprintf("%d", i);
+			sigtraps[i].name = null;
 		else {
 			char *s;
 
@@ -1049,7 +1049,18 @@ inittraps(void)
 			sigtraps[i].name = s;
 			while ((*s = ksh_toupper(*s)))
 				++s;
+			/* check for reserved names */
+			if (!strcmp(sigtraps[i].name, "EXIT") ||
+			    !strcmp(sigtraps[i].name, "ERR")) {
+#ifndef MKSH_SMALL
+				internal_warningf("ignoring invalid signal name %s",
+				    sigtraps[i].name);
+#endif
+				sigtraps[i].name = null;
+			}
 		}
+		if (sigtraps[i].name == null)
+			sigtraps[i].name = shf_smprintf("%d", i);
 #if HAVE_SYS_SIGLIST
 		sigtraps[i].mess = sys_siglist[i];
 #elif HAVE_STRSIGNAL
