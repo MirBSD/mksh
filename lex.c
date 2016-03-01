@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.220 2016/03/01 18:00:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.221 2016/03/01 18:30:04 tg Exp $");
 
 /*
  * states while lexing word
@@ -1000,6 +1000,16 @@ yylex(int cf)
 				if (cf & CONTIN)
 					goto Again;
 			}
+		} else if (c == '\0' && !(cf & HEREDELIM)) {
+			struct ioword **p = heres;
+
+			while (p < herep)
+				if ((*p)->ioflag & IOHERESTR)
+					++p;
+				else
+					/* ksh -c 'cat <<EOF' can cause this */
+					yyerror("here document '%s' unclosed\n",
+					    evalstr((*p)->delim, 0));
 		}
 		return (c);
 	}
@@ -1173,7 +1183,7 @@ readhere(struct ioword *iop)
 	while (c != '\n') {
 		if (!c)
 			/* oops, reached EOF */
-			yyerror("%s '%s' unclosed\n", Theredoc, eof);
+			yyerror("here document '%s' unclosed\n", eof);
 		/* store character */
 		Xcheck(xs, xp);
 		Xput(xs, xp, c);

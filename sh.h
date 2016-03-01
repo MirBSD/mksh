@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.765 2016/02/26 21:53:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.766 2016/03/01 18:30:05 tg Exp $");
 #endif
-#define MKSH_VERSION "R52 2016/02/26"
+#define MKSH_VERSION "R52 2016/03/01"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -887,12 +887,6 @@ EXTERN const char T_funny_command[] E_INIT("funny $() command");
 EXTERN const char Tfg_badsubst[] E_INIT("fileglob: bad substitution");
 #endif
 #define Tbadsubst	(Tfg_badsubst + 10)	/* "bad substitution" */
-#if defined(__GNUC__)
-#define Tmissinghere	"missing here document"
-#else
-EXTERN const char Tmissinghere[] E_INIT("missing here document");
-#endif
-#define Theredoc	(Tmissinghere + 8)	/* "here document" */
 EXTERN const char TC_LEX1[] E_INIT("|&;<>() \t\n");
 #define TC_IFSWS	(TC_LEX1 + 7)		/* space tab newline */
 
