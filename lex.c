@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.219 2016/01/21 18:24:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.220 2016/03/01 18:00:08 tg Exp $");
 
 /*
  * states while lexing word
@@ -1359,8 +1359,10 @@ getsc_line(Source *s)
 		ksh_tmout_state = TMOUT_READING;
 		alarm(ksh_tmout);
 	}
-	if (interactive)
+	if (interactive) {
+		histsave(&s->line, NULL, HIST_FLUSH, true);
 		change_winsz();
+	}
 #ifndef MKSH_NO_CMDLINE_EDITING
 	if (have_tty && (
 #if !MKSH_S_NOVI
