@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.82 2016/02/26 18:48:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.83 2016/03/01 18:29:38 tg Exp $");
 
 /* the order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -665,7 +665,10 @@ exprtoken(Expr_state *es)
 		goto process_tvar;
 #ifndef MKSH_SMALL
 	} else if (c == '\'') {
-		++cp;
+		if (*++cp == '\0') {
+			es->tok = END;
+			evalerr(es, ET_UNEXPECTED, NULL);
+		}
 		cp += utf_ptradj(cp);
 		if (*cp++ != '\'')
 			evalerr(es, ET_STR,
