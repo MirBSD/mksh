@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.390 2016/02/26 19:38:42 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.391 2016/03/01 19:22:31 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: February 26 2016 $
+.Dd $Mdocdate: March 1 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1004,13 +1004,14 @@ quotes all characters, except
 .Ql \`
 and
 .Ql \e ,
-up to the next unquoted double quote.
+up to the next unescaped double quote.
 .Ql $
 and
 .Ql \`
 inside double quotes have their usual meaning (i.e. parameter, arithmetic,
 or command substitution) except no field splitting is carried out on the
-results of double-quoted substitutions.
+results of double-quoted substitutions, and the old-style form of command
+substitution has backslash-quoting for double quotes enabled.
 If a
 .Ql \e
 inside a double-quoted string is followed by
@@ -1307,13 +1308,13 @@ form, a
 followed by any of
 .Ql $ ,
 .Ql \` ,
-.Ql \&"
-.Pq currently, and violating Tn POSIX ,
 or
 .Ql \e
-is stripped (a
+is stripped (as is
+.Ql \&"
+when the substitution is part of a double-quoted string); a backslash
 .Ql \e
-followed by any other character is unchanged).
+followed by any other character is unchanged.
 As a special case in command substitutions, a command of the form
 .Pf \*(Lt Ar file
 is interpreted to mean substitute the contents of
@@ -6577,18 +6578,6 @@ lines has always been broken and prone to history file corruption
 when multiple shells are accessing the file; the rollover process
 for the in-memory portion of the history is slow, should use
 .Xr memmove 3 .
-.Pp
-Handling of backslash plus double-quote inside the (deprecated)
-.Pf \` Ns Ar command Ns \`
-form of command substitution when the substitution itself is
-also inside double quotes currently deliberately violates
-.Tn POSIX
-even in
-.Fl o Ic posix
-mode until Austin group bug 1015 has been resolved either way,
-as the current wording of the standard prohibits the current
-and historic practice of several shells which several scripts
-(admittedly wrongly) depend on.
 .Pp
 This document attempts to describe
 .Nm mksh\ R52b+CVS
