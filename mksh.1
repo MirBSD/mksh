@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.391 2016/03/01 19:22:31 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.392 2016/03/04 18:28:41 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 1 2016 $
+.Dd $Mdocdate: March 4 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -4313,6 +4313,11 @@ options (with single letter names) can be found in the parameter
 with no option name will list all the options and whether each is on or off;
 .Ic set +o
 will print the long names of all options that are currently on.
+In a future version,
+.Ic set +o
+will behave
+.Tn POSIX
+compliant and print commands to restore the current options instead.
 .Pp
 Remaining arguments, if any, are positional parameters and are assigned, in
 order, to the positional parameters (i.e. $1, $2, etc.).
@@ -6580,7 +6585,7 @@ for the in-memory portion of the history is slow, should use
 .Xr memmove 3 .
 .Pp
 This document attempts to describe
-.Nm mksh\ R52b+CVS
+.Nm mksh\ R52c
 and up,
 .\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as
