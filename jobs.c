@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.119 2016/02/24 01:44:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.120 2016/03/04 14:26:13 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1425,8 +1425,8 @@ check_job(Job *j)
 
 	/* XXX debugging (nasty - interrupt routine using shl_out) */
 	if (!(j->flags & JF_STARTED)) {
-		internal_warningf("check_job: job started (flags 0x%x)",
-		    j->flags);
+		internal_warningf("check_job: job started (flags 0x%X)",
+		    (unsigned int)j->flags);
 		return;
 	}
 

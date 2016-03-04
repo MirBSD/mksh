@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.766 2016/03/01 18:30:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.767 2016/03/04 14:26:14 tg Exp $");
 #endif
-#define MKSH_VERSION "R52 2016/03/01"
+#define MKSH_VERSION "R52 2016/03/04"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -850,11 +850,13 @@ EXTERN struct {
 /* null value for variable; comparison pointer for unset */
 EXTERN char null[] E_INIT("");
 /* helpers for string pooling */
-EXTERN const char Tintovfl[] E_INIT("integer overflow %zu %c %zu prevented");
-EXTERN const char Toomem[] E_INIT("can't allocate %zu data bytes");
 #if defined(__GNUC__)
 #define Tsynerr		"syntax error"
+#define Tintovfl	"integer overflow %zu %c %zu prevented"
+#define Toomem		"can't allocate %zu data bytes"
 #else
+EXTERN const char Tintovfl[] E_INIT("integer overflow %zu %c %zu prevented");
+EXTERN const char Toomem[] E_INIT("can't allocate %zu data bytes");
 EXTERN const char Tsynerr[] E_INIT("syntax error");
 #endif
 EXTERN const char Tselect[] E_INIT("select");
@@ -2011,7 +2013,7 @@ char *shf_smprintf(const char *, ...)
 ssize_t shf_vfprintf(struct shf *, const char *, va_list)
     MKSH_A_FORMAT(__printf__, 2, 0);
 /* syn.c */
-int assign_command(const char *, bool);
+int assign_command(const char *, bool) MKSH_A_PURE;
 void initkeywords(void);
 struct op *compile(Source *, bool);
 bool parse_usec(const char *, struct timeval *);
