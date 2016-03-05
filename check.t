@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.727 2016/03/04 14:26:09 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.728 2016/03/05 15:39:36 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -12196,13 +12196,76 @@ expected-stdout:
 	after	0='swc' 1='二' 2=''
 	= done
 ---
-name: command-path
+name: command-pvV-posix-priorities
 description:
-	Check 'command -p' is not 'whence -p'
+	For POSIX compatibility, command -v should find aliases and reserved
+	words, and command -p[vV] should find aliases, reserved words, and
+	builtins over external commands.
 stdin:
-	command -pv if
+	PATH=/bin:/usr/bin
+	alias foo="bar baz"
+	bar() { :; }
+	for word in 'if' 'foo' 'bar' 'set' 'true'; do
+		command -v "$word"
+		command -pv "$word"
+		command -V "$word"
+		command -pV "$word"
+	done
 expected-stdout:
 	if
+	if
+	if is a reserved word
+	if is a reserved word
+	alias foo='bar baz'
+	alias foo='bar baz'
+	foo is an alias for 'bar baz'
+	foo is an alias for 'bar baz'
+	bar
+	bar
+	bar is a function
+	bar is a function
+	set
+	set
+	set is a special shell builtin
+	set is a special shell builtin
+	true
+	true
+	true is a shell builtin
+	true is a shell builtin
+---
+name: whence-preserve-tradition
+description:
+	This regression test is to ensure that the POSIX compatibility
+	changes for 'command' (see previous test) do not affect traditional
+	'whence' behaviour.
+category: os:mirbsd
+stdin:
+	PATH=/bin:/usr/bin
+	alias foo="bar baz"
+	bar() { :; }
+	for word in 'if' 'foo' 'bar' 'set' 'true'; do
+		whence "$word"
+		whence -p "$word"
+		whence -v "$word"
+		whence -pv "$word"
+	done
+expected-stdout:
+	if
+	if is a reserved word
+	if not found
+	'bar baz'
+	foo is an alias for 'bar baz'
+	foo not found
+	bar
+	bar is a function
+	bar not found
+	set
+	set is a special shell builtin
+	set not found
+	true
+	/bin/true
+	true is a shell builtin
+	true is a tracked alias for /bin/true
 ---
 name: duffs-device
 description:
