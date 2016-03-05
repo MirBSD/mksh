@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.724 2016/02/24 01:47:30 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.727 2016/03/04 14:26:09 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R52 2016/02/23
+	@(#)MIRBSD KSH R52 2016/03/04
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R52 2016/02/23
+	@(#)LEGACY KSH R52 2016/03/04
 description:
 	Check version of legacy shell.
 stdin:
@@ -2249,13 +2249,41 @@ expected-stdout:
 	hi
 	there
 ---
-name: heredoc-4
+name: heredoc-4a
 description:
 	Check that an error occurs if the heredoc-delimiter is missing.
 stdin: !
 	cat << EOF
 	hi
 	there
+expected-exit: e > 0
+expected-stderr-pattern: /.*/
+---
+name: heredoc-4an
+description:
+	Check that an error occurs if the heredoc-delimiter is missing.
+arguments: !-n!
+stdin: !
+	cat << EOF
+	hi
+	there
+expected-exit: e > 0
+expected-stderr-pattern: /.*/
+---
+name: heredoc-4b
+description:
+	Check that an error occurs if the heredoc is missing.
+stdin: !
+	cat << EOF
+expected-exit: e > 0
+expected-stderr-pattern: /.*/
+---
+name: heredoc-4bn
+description:
+	Check that an error occurs if the heredoc is missing.
+arguments: !-n!
+stdin: !
+	cat << EOF
 expected-exit: e > 0
 expected-stderr-pattern: /.*/
 ---
@@ -2656,6 +2684,32 @@ stdin:
 	echo = $balanced =
 expected-stdout:
 	= these parens \( ) are a problem =
+---
+name: heredoc-comsub-5
+description:
+	Check heredoc and COMSUB mixture in input
+stdin:
+	prefix() { sed -e "s/^/$1:/"; }
+	XXX() { echo x-en; }
+	YYY() { echo y-es; }
+	
+	prefix A <<XXX && echo "$(prefix B <<XXX
+	echo line 1
+	XXX
+	echo line 2)" && prefix C <<YYY
+	echo line 3
+	XXX
+	echo line 4)"
+	echo line 5
+	YYY
+	XXX
+expected-stdout:
+	A:echo line 3
+	B:echo line 1
+	line 2
+	C:echo line 4)"
+	C:echo line 5
+	x-en
 ---
 name: heredoc-subshell-1
 description:
@@ -6577,6 +6631,37 @@ stdin:
 	echo x${foo?$x}
 expected-exit: 1
 expected-stderr-pattern: !/not set/
+---
+name: xxx-param-subst-qmark-namespec
+description:
+	Check special names are output correctly
+stdin:
+	doit() {
+		"$__progname" -c "$@" >o1 2>o2
+		rv=$?
+		echo RETVAL: $rv
+		sed -e "s^${__progname%.exe}\.*e*x*e*: PROG: " -e 's/^/STDOUT: /g' <o1
+		sed -e "s^${__progname%.exe}\.*e*x*e*: PROG: " -e 's/^/STDERR: /g' <o2
+	}
+	doit 'echo ${1x}'
+	doit 'echo "${1x}"'
+	doit 'echo ${1?}'
+	doit 'echo ${19?}'
+	doit 'echo ${!:?}'
+	doit -u 'echo ${*:?}' foo ""
+expected-stdout:
+	RETVAL: 1
+	STDERR: PROG: ${1x}: bad substitution
+	RETVAL: 1
+	STDERR: PROG: ${1x}: bad substitution
+	RETVAL: 1
+	STDERR: PROG: 1: parameter null or not set
+	RETVAL: 1
+	STDERR: PROG: 19: parameter null or not set
+	RETVAL: 1
+	STDERR: PROG: !: parameter null or not set
+	RETVAL: 1
+	STDERR: foo: ${*:?}: bad substitution
 ---
 name: xxx-param-_-1
 # fails due to weirdness of execv stuff
@@ -12111,6 +12196,14 @@ expected-stdout:
 	after	0='swc' 1='二' 2=''
 	= done
 ---
+name: command-path
+description:
+	Check 'command -p' is not 'whence -p'
+stdin:
+	command -pv if
+expected-stdout:
+	if
+---
 name: duffs-device
 description:
 	Check that the compiler did not optimise-break them
@@ -12183,7 +12276,7 @@ stdin:
 	Copyright (C) 2002 Free Software Foundation, Inc.'
 	EOF
 	chmod +x bash
-	"$__progname" -xc 'foo=$(./bash --version 2>&1 | sed 1q); echo "=$foo="'
+	"$__progname" -xc 'foo=$(./bash --version 2>&1 | sed q); echo "=$foo="'
 expected-stdout:
 	=GNU bash, version 2.05b.0(1)-release (i386-ecce-mirbsd10)=
 expected-stderr-pattern:

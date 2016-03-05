@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.154 2016/02/24 01:45:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.156 2016/03/04 14:26:13 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -1017,23 +1017,26 @@ inittraps(void)
 {
 	int i;
 	const char *cs;
+#if !HAVE_SYS_SIGNAME
+	const struct mksh_sigpair *pair;
+#endif
 
 	trap_exstat = -1;
 
-	/* Populate sigtraps based on sys_signame and sys_siglist. */
+	/* populate sigtraps based on sys_signame and sys_siglist */
 	for (i = 1; i < ksh_NSIG; i++) {
 		sigtraps[i].signal = i;
 #if HAVE_SYS_SIGNAME
 		cs = sys_signame[i];
 #else
-		const struct mksh_sigpair *pair = mksh_sigpairs;
+		pair = mksh_sigpairs;
 		while ((pair->nr != i) && (pair->name != NULL))
 			++pair;
 		cs = pair->name;
 #endif
 		if ((cs == NULL) ||
 		    (cs[0] == '\0'))
-			sigtraps[i].name = shf_smprintf("%d", i);
+			sigtraps[i].name = null;
 		else {
 			char *s;
 
@@ -1049,7 +1052,18 @@ inittraps(void)
 			sigtraps[i].name = s;
 			while ((*s = ksh_toupper(*s)))
 				++s;
+			/* check for reserved names */
+			if (!strcmp(sigtraps[i].name, "EXIT") ||
+			    !strcmp(sigtraps[i].name, "ERR")) {
+#ifndef MKSH_SMALL
+				internal_warningf("ignoring invalid signal name %s",
+				    sigtraps[i].name);
+#endif
+				sigtraps[i].name = null;
+			}
 		}
+		if (sigtraps[i].name == null)
+			sigtraps[i].name = shf_smprintf("%d", i);
 #if HAVE_SYS_SIGLIST
 		sigtraps[i].mess = sys_siglist[i];
 #elif HAVE_STRSIGNAL

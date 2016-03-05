@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.762 2016/02/24 02:08:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.768 2016/03/04 18:28:42 tg Exp $");
 #endif
-#define MKSH_VERSION "R52 2016/02/23"
+#define MKSH_VERSION "R52 2016/03/04"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -578,7 +578,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 522)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 523)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -703,21 +703,21 @@ struct lalloc_common {
 	struct lalloc_common *next;
 };
 
+#ifdef MKSH_ALLOC_CATCH_UNDERRUNS
 struct lalloc_item {
 	struct lalloc_common *next;
-#ifdef MKSH_ALLOC_CATCH_UNDERRUNS
 	size_t len;
 	char dummy[8192 - sizeof(struct lalloc_common *) - sizeof(size_t)];
-#endif
 };
+#endif
 
 /* 2. sizes */
+#ifdef MKSH_ALLOC_CATCH_UNDERRUNS
 #define ALLOC_ITEM	struct lalloc_item
-#define ALLOC_SIZE	(sizeof(ALLOC_ITEM))
-#ifndef MKSH_ALLOC_CATCH_UNDERRUNS
-#define ALLOC_OVERHEAD	ALLOC_SIZE
-#else
 #define ALLOC_OVERHEAD	0
+#else
+#define ALLOC_ITEM	struct lalloc_common
+#define ALLOC_OVERHEAD	(sizeof(ALLOC_ITEM))
 #endif
 
 /* 3. group structure */
@@ -850,11 +850,13 @@ EXTERN struct {
 /* null value for variable; comparison pointer for unset */
 EXTERN char null[] E_INIT("");
 /* helpers for string pooling */
-EXTERN const char Tintovfl[] E_INIT("integer overflow %zu %c %zu prevented");
-EXTERN const char Toomem[] E_INIT("can't allocate %zu data bytes");
 #if defined(__GNUC__)
 #define Tsynerr		"syntax error"
+#define Tintovfl	"integer overflow %zu %c %zu prevented"
+#define Toomem		"can't allocate %zu data bytes"
 #else
+EXTERN const char Tintovfl[] E_INIT("integer overflow %zu %c %zu prevented");
+EXTERN const char Toomem[] E_INIT("can't allocate %zu data bytes");
 EXTERN const char Tsynerr[] E_INIT("syntax error");
 #endif
 EXTERN const char Tselect[] E_INIT("select");
@@ -887,12 +889,6 @@ EXTERN const char T_funny_command[] E_INIT("funny $() command");
 EXTERN const char Tfg_badsubst[] E_INIT("fileglob: bad substitution");
 #endif
 #define Tbadsubst	(Tfg_badsubst + 10)	/* "bad substitution" */
-#if defined(__GNUC__)
-#define Tmissinghere	"missing here document"
-#else
-EXTERN const char Tmissinghere[] E_INIT("missing here document");
-#endif
-#define Theredoc	(Tmissinghere + 8)	/* "here document" */
 EXTERN const char TC_LEX1[] E_INIT("|&;<>() \t\n");
 #define TC_IFSWS	(TC_LEX1 + 7)		/* space tab newline */
 
@@ -1216,7 +1212,7 @@ struct tbl {
 	char name[4];
 };
 
-EXTERN struct tbl vtemp;
+EXTERN struct tbl *vtemp;
 /* set by global() and local() */
 EXTERN bool last_lookup_was_array;
 
@@ -1285,7 +1281,7 @@ enum namerefflag {
 #define FC_BI		(FC_SPECBI | FC_NORMBI)
 #define FC_PATH		BIT(3)	/* do path search */
 #define FC_DEFPATH	BIT(4)	/* use default path in path search */
-
+#define FC_WHENCE	BIT(5)	/* for use by command and whence */
 
 #define AF_ARGV_ALLOC	0x1	/* argv[] array allocated */
 #define AF_ARGS_ALLOCED	0x2	/* argument strings allocated */
@@ -1768,7 +1764,7 @@ size_t utf_ptradj(const char *) MKSH_A_PURE;
 int utf_wcwidth(unsigned int) MKSH_A_PURE;
 #endif
 int ksh_access(const char *, int);
-struct tbl *tempvar(void);
+struct tbl *tempvar(const char *);
 /* funcs.c */
 int c_hash(const char **);
 int c_pwd(const char **);
@@ -2025,7 +2021,7 @@ char *shf_smprintf(const char *, ...)
 ssize_t shf_vfprintf(struct shf *, const char *, va_list)
     MKSH_A_FORMAT(__printf__, 2, 0);
 /* syn.c */
-int assign_command(const char *, bool);
+int assign_command(const char *, bool) MKSH_A_PURE;
 void initkeywords(void);
 struct op *compile(Source *, bool);
 bool parse_usec(const char *, struct timeval *);

@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.293 2016/01/21 18:24:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.294 2016/03/04 14:26:12 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -4601,8 +4601,8 @@ vi_cmd(int argcnt, const char *cmd)
 static int
 domove(int argcnt, const char *cmd, int sub)
 {
-	int bcount, i = 0, t;
-	int ncursor = 0;
+	int ncursor = 0, i = 0, t;
+	unsigned int bcount;
 
 	switch (*cmd) {
 	case 'b':

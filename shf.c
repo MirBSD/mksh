@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
- *		 2012, 2013, 2015
+ *		 2012, 2013, 2015, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.69 2015/12/31 20:38:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.70 2016/03/04 14:26:16 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -197,7 +197,8 @@ shf_sopen(char *buf, ssize_t bsize, int sflags, struct shf *shf)
 {
 	/* can't have a read+write string */
 	if (!(!(sflags & SHF_RD) ^ !(sflags & SHF_WR)))
-		internal_errorf("%s: flags 0x%X", "shf_sopen", sflags);
+		internal_errorf("%s: flags 0x%X", "shf_sopen",
+		    (unsigned int)sflags);
 
 	if (!shf) {
 		shf = alloc(sizeof(struct shf), ATEMP);
@@ -452,7 +453,8 @@ shf_read(char *buf, ssize_t bsize, struct shf *shf)
 	ssize_t ncopy, orig_bsize = bsize;
 
 	if (!(shf->flags & SHF_RD))
-		internal_errorf("%s: flags 0x%X", "shf_read", shf->flags);
+		internal_errorf("%s: flags 0x%X", "shf_read",
+		    (unsigned int)shf->flags);
 
 	if (bsize <= 0)
 		internal_errorf("%s: %s %zd", "shf_write", "bsize", bsize);
@@ -489,7 +491,8 @@ shf_getse(char *buf, ssize_t bsize, struct shf *shf)
 	char *orig_buf = buf;
 
 	if (!(shf->flags & SHF_RD))
-		internal_errorf("%s: flags 0x%X", "shf_getse", shf->flags);
+		internal_errorf("%s: flags 0x%X", "shf_getse",
+		    (unsigned int)shf->flags);
 
 	if (bsize <= 0)
 		return (NULL);
@@ -525,7 +528,8 @@ int
 shf_getchar(struct shf *shf)
 {
 	if (!(shf->flags & SHF_RD))
-		internal_errorf("%s: flags 0x%X", "shf_getchar", shf->flags);
+		internal_errorf("%s: flags 0x%X", "shf_getchar",
+		    (unsigned int)shf->flags);
 
 	if (shf->rnleft == 0 && (shf_fillbuf(shf) == -1 || shf->rnleft == 0))
 		return (-1);
@@ -541,7 +545,8 @@ int
 shf_ungetc(int c, struct shf *shf)
 {
 	if (!(shf->flags & SHF_RD))
-		internal_errorf("%s: flags 0x%X", "shf_ungetc", shf->flags);
+		internal_errorf("%s: flags 0x%X", "shf_ungetc",
+		    (unsigned int)shf->flags);
 
 	if ((shf->flags & SHF_ERROR) || c == -1 ||
 	    (shf->rp == shf->buf && shf->rnleft))
@@ -578,7 +583,8 @@ int
 shf_putchar(int c, struct shf *shf)
 {
 	if (!(shf->flags & SHF_WR))
-		internal_errorf("%s: flags 0x%X", "shf_putchar", shf->flags);
+		internal_errorf("%s: flags 0x%X", "shf_putchar",
+		    (unsigned int)shf->flags);
 
 	if (c == -1)
 		return (-1);
@@ -633,7 +639,8 @@ shf_write(const char *buf, ssize_t nbytes, struct shf *shf)
 	ssize_t n, ncopy, orig_nbytes = nbytes;
 
 	if (!(shf->flags & SHF_WR))
-		internal_errorf("%s: flags 0x%X", "shf_write", shf->flags);
+		internal_errorf("%s: flags 0x%X", "shf_write",
+		    (unsigned int)shf->flags);
 
 	if (nbytes < 0)
 		internal_errorf("%s: %s %zd", "shf_write", "nbytes", nbytes);
@@ -764,7 +771,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 	const char *s;
 	char c, *cp;
 	int tmp = 0, flags;
-	ssize_t field, precision, len;
+	size_t field, precision, len;
 	unsigned long lnum;
 	/* %#o produces the longest output */
 	char numbuf[(8 * sizeof(long) + 2) / 3 + 1];
@@ -791,7 +798,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		 */
 		flags = 0;
 		field = precision = 0;
-		for ( ; (c = *fmt++) ; ) {
+		while ((c = *fmt++)) {
 			switch (c) {
 			case '#':
 				flags |= FL_HASH;
@@ -821,12 +828,17 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 
 			case '*':
 				tmp = VA(int);
-				if (flags & FL_DOT)
-					precision = tmp;
-				else if ((field = tmp) < 0) {
-					field = -field;
-					flags |= FL_RIGHT;
-				}
+				if (tmp < 0) {
+					if (flags & FL_DOT)
+						precision = 0;
+					else {
+						field = (unsigned int)-tmp;
+						flags |= FL_RIGHT;
+					}
+				} else if (flags & FL_DOT)
+					precision = (unsigned int)tmp;
+				else
+					field = (unsigned int)tmp;
 				continue;
 
 			case 'l':
@@ -848,25 +860,22 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 				bool overflowed = false;
 
 				tmp = ksh_numdig(c);
-				while (c = *fmt++, ksh_isdigit(c)) {
+				while (c = *fmt++, ksh_isdigit(c))
 					if (notok2mul(2147483647, tmp, 10))
 						overflowed = true;
-					tmp = tmp * 10 + ksh_numdig(c);
-				}
+					else
+						tmp = tmp * 10 + ksh_numdig(c);
 				--fmt;
 				if (overflowed)
 					tmp = 0;
 				if (flags & FL_DOT)
-					precision = tmp;
+					precision = (unsigned int)tmp;
 				else
-					field = tmp;
+					field = (unsigned int)tmp;
 				continue;
 			}
 			break;
 		}
-
-		if (precision < 0)
-			precision = 0;
 
 		if (!c)
 			/* nasty format */
@@ -953,7 +962,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 					*--cp = (flags & FL_UPPER) ? 'X' : 'x';
 					*--cp = '0';
 				}
-			}
+			    }
 			}
 			len = numbuf + sizeof(numbuf) - (s = cp);
 			if (flags & FL_DOT) {
@@ -999,7 +1008,6 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		if (field > precision) {
 			field -= precision;
 			if (!(flags & FL_RIGHT)) {
-				field = -field;
 				/* skip past sign or 0x when padding with 0 */
 				if ((flags & FL_ZERO) && (flags & FL_NUMBER)) {
 					if (*s == '+' || *s == '-' ||
@@ -1012,7 +1020,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 						shf_putc(*s, shf);
 						s++;
 						nwritten++;
-						if (--precision > 0 &&
+						if (--precision &&
 						    ksh_eq(*s, 'X', 'x')) {
 							shf_putc(*s, shf);
 							s++;
@@ -1023,19 +1031,16 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 					c = '0';
 				} else
 					c = flags & FL_ZERO ? '0' : ' ';
-				if (field < 0) {
-					nwritten += -field;
-					while (field < 0) {
-						shf_putc(c, shf);
-						++field;
-					}
-				}
+				nwritten += field;
+				while (field--)
+					shf_putc(c, shf);
+				field = 0;
 			} else
 				c = ' ';
 		} else
 			field = 0;
 
-		if (precision > 0) {
+		if (precision) {
 			const char *q;
 
 			nwritten += precision;
@@ -1044,11 +1049,9 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 				shf_putc(*s, shf);
 			} while (++s < q);
 		}
-		if (field > 0) {
-			nwritten += field;
-			for ( ; field > 0 ; --field)
-				shf_putc(c, shf);
-		}
+		nwritten += field;
+		while (field--)
+			shf_putc(c, shf);
 	}
 
 	return (shf_error(shf) ? -1 : nwritten);

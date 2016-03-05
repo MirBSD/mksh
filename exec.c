@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.171 2016/01/21 18:24:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.172 2016/03/01 18:30:04 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1622,13 +1622,6 @@ herein(struct ioword *iop, char **resbuf)
 	struct shf *shf;
 	struct temp *h;
 	int i;
-
-	/* ksh -c 'cat <<EOF' can cause this... */
-	if (iop->heredoc == NULL && !(iop->ioflag & IOHERESTR)) {
-		warningf(true, Tmissinghere);
-		/* special to iosetup(): don't print error */
-		return (-2);
-	}
 
 	/* lexer substitution flags */
 	i = (iop->ioflag & IOEVAL) ? (ONEWORD | HEREDOC) : 0;

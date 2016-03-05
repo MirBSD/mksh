@@ -23,7 +23,7 @@
 #include <err.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.25 2016/02/24 02:08:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.26 2016/02/26 21:53:36 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -36,7 +36,7 @@ __RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.25 2016/02/24 02:08:39 tg Exp $");
 static struct lalloc_common *findptr(struct lalloc_common **, char *, Area *);
 
 #ifndef MKSH_ALLOC_CATCH_UNDERRUNS
-#define ALLOC_ISUNALIGNED(p) (((size_t)(p)) % ALLOC_SIZE)
+#define ALLOC_ISUNALIGNED(p) (((size_t)(p)) % sizeof(struct lalloc_common))
 #else
 #define ALLOC_ISUNALIGNED(p) (((size_t)(p)) & 4095)
 #undef remalloc
@@ -107,10 +107,10 @@ findptr(struct lalloc_common **lpp, char *ptr, Area *ap)
 #endif
 	/* get address of ALLOC_ITEM from user item */
 	/*
-	 * note: the alignment of "ptr" to ALLOC_SIZE is checked
+	 * note: the alignment of "ptr" to ALLOC_ITEM is checked
 	 * above; the "void *" gets us rid of a gcc 2.95 warning
 	 */
-	*lpp = (lp = ptr - ALLOC_SIZE);
+	*lpp = (lp = ptr - sizeof(ALLOC_ITEM));
 	/* search for allocation item in group list */
 	while (ap->next != lp)
 		if ((ap = ap->next) == NULL) {
@@ -126,7 +126,7 @@ findptr(struct lalloc_common **lpp, char *ptr, Area *ap)
 			internal_errorf("rogue pointer %zX", (size_t)ptr);
 #endif
 		}
-	return ((void *)ap);
+	return (ap);
 }
 
 void *
@@ -150,18 +150,18 @@ aresize(void *ptr, size_t numb, Area *ap)
 		pp->next = lp->next;
 	}
 
-	if (notoktoadd(numb, ALLOC_SIZE) ||
-	    (lp = remalloc(lp, numb + ALLOC_SIZE)) == NULL
+	if (notoktoadd(numb, sizeof(ALLOC_ITEM)) ||
+	    (lp = remalloc(lp, numb + sizeof(ALLOC_ITEM))) == NULL
 #ifndef MKSH_SMALL
 	    || ALLOC_ISUNALIGNED(lp)
 #endif
 	    )
 		internal_errorf(Toomem, numb);
-	/* this only works because Area and ALLOC_ITEM share lalloc_common */
+	/* area pointer and items share struct lalloc_common */
 	lp->next = ap->next;
 	ap->next = lp;
 	/* return user item address */
-	return ((char *)lp + ALLOC_SIZE);
+	return ((char *)lp + sizeof(ALLOC_ITEM));
 }
 
 void

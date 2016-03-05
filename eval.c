@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.182 2016/02/24 01:47:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.185 2016/02/26 19:05:21 tg Exp $");
 
 /*
  * string expansion
@@ -375,8 +375,9 @@ expand(
  unwind_substsyn:
 					/* restore sp */
 					sp = varname - 2;
-					end = (beg = wdcopy(sp, ATEMP)) +
-					    (wdscan(sp, CSUBST) - sp);
+					beg = wdcopy(sp, ATEMP);
+					end = (wdscan(cstrchr(sp, '\0') + 1,
+					    CSUBST) - sp) + beg;
 					/* ({) the } or x is already skipped */
 					if (end < wdscan(beg, EOS))
 						*end = EOS;
@@ -403,8 +404,8 @@ expand(
 					st->stype = stype;
 					st->base = Xsavepos(ds, dp);
 					st->f = f;
-					if (x.var == &vtemp) {
-						st->var = tempvar();
+					if (x.var == vtemp) {
+						st->var = tempvar(vtemp->name);
 						st->var->flag &= ~INTEGER;
 						/* can't fail here */
 						setstr(st->var,
@@ -1192,6 +1193,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		/* can't trim a vector (yet) */
 		case '%':
 		case '#':
+		case '?':
 		case '0':
 		case '/':
 		case 0x100 | '#':

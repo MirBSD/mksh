@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.81 2016/01/21 18:24:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.83 2016/03/04 14:26:16 tg Exp $");
 
 #define INDENT	8
 
@@ -631,8 +631,8 @@ wdscan(const char *wp, int c)
 			break;
 		default:
 			internal_warningf(
-			    "wdscan: unknown char 0x%x (carrying on)",
-			    wp[-1]);
+			    "wdscan: unknown char 0x%X (carrying on)",
+			    (unsigned char)wp[-1]);
 		}
 }
 
@@ -817,7 +817,7 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 			return (--wp);
 		case ADELIM:
 			if (*wp == /*{*/'}') {
-				shf_puts("]ADELIM(})", shf);
+				shf_puts(/*{*/ "]ADELIM(})", shf);
 				return (wp + 1);
 			}
 			shf_puts("ADELIM=", shf);
@@ -852,10 +852,10 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 			shf_puts("EXPRSUB<", shf);
 			goto dumpsub;
 		case OQUOTE:
-			shf_fprintf(shf, "OQUOTE{%d", ++quotelevel);
+			shf_fprintf(shf, "OQUOTE{%d" /*}*/, ++quotelevel);
 			break;
 		case CQUOTE:
-			shf_fprintf(shf, "%d}CQUOTE", quotelevel);
+			shf_fprintf(shf, /*{*/ "%d}CQUOTE", quotelevel);
 			if (quotelevel)
 				quotelevel--;
 			else
