@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.392 2016/03/04 18:28:41 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.393 2016/03/06 21:01:28 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 4 2016 $
+.Dd $Mdocdate: March 6 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -3097,7 +3097,7 @@ The specified editing command is bound to the given
 .Ar string ,
 which should consist of a control character
 optionally preceded by one of the two prefix characters
-and optionally succeded by a tilde character.
+and optionally succeeded by a tilde character.
 Future input of the
 .Ar string
 will cause the editing command to be immediately invoked.
@@ -3903,7 +3903,7 @@ then leading whitespace will be removed (IFS) and backslashes processed.
 You might want to use
 .Ic while IFS= read \-r foo; do ...; done
 for pristine I/O.
-Similarily, when using the
+Similarly, when using the
 .Fl a
 option, use of the
 .Fl r
