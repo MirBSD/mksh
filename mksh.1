@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.393 2016/03/06 21:01:28 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.394 2016/03/12 20:45:38 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 6 2016 $
+.Dd $Mdocdate: March 12 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1001,9 +1001,9 @@ Third, a double quote
 .Pq Sq \&"
 quotes all characters, except
 .Ql $ ,
-.Ql \`
-and
 .Ql \e ,
+and
+.Ql \` ,
 up to the next unescaped double quote.
 .Ql $
 and
@@ -1015,13 +1015,15 @@ substitution has backslash-quoting for double quotes enabled.
 If a
 .Ql \e
 inside a double-quoted string is followed by
-.Ql \e ,
-.Ql $ ,
-.Ql \` ,
-or
 .Ql \&" ,
-it is replaced by the second character; if it is followed by a newline, both
-the
+.Ql $ ,
+.Ql \e ,
+or
+.Ql \` ,
+only the
+.Ql \e
+is removed, i.e. the combination is replaced by the second character;
+if it is followed by a newline, both the
 .Ql \e
 and the newline are stripped; otherwise, both the
 .Ql \e
