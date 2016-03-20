@@ -86,13 +86,13 @@ response(int *argcp, const char ***argvp)
 			filesize = ftell(f);
 			fseek(f, 0, SEEK_SET);
 
-			line = malloc(filesize + 1);
+			line = malloc(filesize + 1 + 1); /* 1 for type, 1 for NUL */
 			if (!line)
 				goto exit_out_of_memory;
 
 			line[0] = __KLIBC_ARG_NONZERO | __KLIBC_ARG_RESPONSE;
 			l = line + 1;
-			while (fgets(l, filesize - (l - line - 1), f)) {
+			while (fgets(l, (filesize + 1) - (l - (line + 1)), f)) {
 				p = strchr(l, '\n');
 				if (p) {
 					/* if a line ends with '\',
