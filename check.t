@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.728 2016/03/05 15:39:36 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.729 2016/04/09 13:55:09 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R52 2016/03/04
+	@(#)MIRBSD KSH R52 2016/04/09
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R52 2016/03/04
+	@(#)LEGACY KSH R52 2016/04/09
 description:
 	Check version of legacy shell.
 stdin:
@@ -3172,6 +3172,37 @@ expected-stdout:
 	1	echo hi
 expected-stderr-pattern:
 	/(.*can't unlink HISTFILE.*\n)?X*$/
+---
+name: history-multiline
+description:
+	Check correct multiline history, Debian #783978
+need-ctty: yes
+arguments: !-i!
+env-setup: !ENV=./Env!
+file-setup: file 644 "Env"
+	PS1=X
+	PS2=Y
+stdin:
+	for i in A B C
+	do
+	   print $i
+	   print $i
+	done
+	fc -l
+expected-stdout:
+	A
+	A
+	B
+	B
+	C
+	C
+	1	for i in A B C
+		do
+		   print $i
+		   print $i
+		done
+expected-stderr-pattern:
+	/^XYYYYXX$/
 ---
 name: history-e-minus-1
 description:
