@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.294 2016/03/04 14:26:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.295 2016/04/14 11:51:26 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -4918,16 +4918,16 @@ forwword(int argcnt)
 	ncursor = es->cursor;
 	while (ncursor < es->linelen && argcnt--) {
 		if (ksh_isalnux(es->cbuf[ncursor]))
-			while (ksh_isalnux(es->cbuf[ncursor]) &&
-			    ncursor < es->linelen)
+			while (ncursor < es->linelen &&
+			    ksh_isalnux(es->cbuf[ncursor]))
 				ncursor++;
 		else if (!ksh_isspace(es->cbuf[ncursor]))
-			while (!ksh_isalnux(es->cbuf[ncursor]) &&
-			    !ksh_isspace(es->cbuf[ncursor]) &&
-			    ncursor < es->linelen)
+			while (ncursor < es->linelen &&
+			    !ksh_isalnux(es->cbuf[ncursor]) &&
+			    !ksh_isspace(es->cbuf[ncursor]))
 				ncursor++;
-		while (ksh_isspace(es->cbuf[ncursor]) &&
-		    ncursor < es->linelen)
+		while (ncursor < es->linelen &&
+		    ksh_isspace(es->cbuf[ncursor]))
 			ncursor++;
 	}
 	return (ncursor);
@@ -4991,11 +4991,11 @@ Forwword(int argcnt)
 
 	ncursor = es->cursor;
 	while (ncursor < es->linelen && argcnt--) {
-		while (!ksh_isspace(es->cbuf[ncursor]) &&
-		    ncursor < es->linelen)
+		while (ncursor < es->linelen &&
+		    !ksh_isspace(es->cbuf[ncursor]))
 			ncursor++;
-		while (ksh_isspace(es->cbuf[ncursor]) &&
-		    ncursor < es->linelen)
+		while (ncursor < es->linelen &&
+		    ksh_isspace(es->cbuf[ncursor]))
 			ncursor++;
 	}
 	return (ncursor);
