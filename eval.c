@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.185 2016/02/26 19:05:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.186 2016/05/05 22:19:04 tg Exp $");
 
 /*
  * string expansion
@@ -1213,67 +1213,65 @@ varsub(Expand *xp, const char *sp, const char *word,
 		}
 		/* POSIX 2009? */
 		zero_ok = true;
-	} else {
-		if ((p = cstrchr(sp, '[')) && (p[1] == '*' || p[1] == '@') &&
-		    p[2] == ']') {
-			XPtrV wv;
+	} else if ((p = cstrchr(sp, '[')) && (p[1] == '*' || p[1] == '@') &&
+	    p[2] == ']') {
+		XPtrV wv;
 
-			switch (stype & 0x17F) {
-			/* can't assign to a vector */
-			case '=':
-			/* can't trim a vector (yet) */
-			case '%':
-			case '#':
-			case '?':
-			case '0':
-			case '/':
-			case 0x100 | '#':
-			case 0x100 | 'Q':
-				return (-1);
-			}
-			XPinit(wv, 32);
-			if ((c = sp[0]) == '!')
-				++sp;
-			vp = global(arrayname(sp));
-			for (; vp; vp = vp->u.array) {
-				if (!(vp->flag&ISSET))
-					continue;
-				XPput(wv, c == '!' ? shf_smprintf("%lu",
-				    arrayindex(vp)) :
-				    str_val(vp));
-			}
-			if (XPsize(wv) == 0) {
-				xp->str = null;
-				state = p[1] == '@' ? XNULLSUB : XSUB;
-				XPfree(wv);
-			} else {
-				XPput(wv, 0);
-				xp->u.strv = (const char **)XPptrv(wv);
-				xp->str = *xp->u.strv++;
-				/* ${foo[@]} */
-				xp->split = tobool(p[1] == '@');
-				state = XARG;
-			}
-		} else {
-			/* Can't assign things like $! or $1 */
-			if ((stype & 0x17F) == '=' &&
-			    ctype(*sp, C_VAR1 | C_DIGIT))
-				return (-1);
-			if (*sp == '!' && sp[1]) {
-				++sp;
-				xp->var = global(sp);
-				if (vstrchr(sp, '['))
-					xp->str = shf_smprintf("%s[%lu]",
-					    xp->var->name,
-					    arrayindex(xp->var));
-				else
-					xp->str = xp->var->name;
-			} else {
-				xp->var = global(sp);
-				xp->str = str_val(xp->var);
-			}
-			state = XSUB;
+		switch (stype & 0x17F) {
+		/* can't assign to a vector */
+		case '=':
+		/* can't trim a vector (yet) */
+		case '%':
+		case '#':
+		case '?':
+		case '0':
+		case '/':
+		case 0x100 | '#':
+		case 0x100 | 'Q':
+			return (-1);
 		}
+		XPinit(wv, 32);
+		if ((c = sp[0]) == '!')
+			++sp;
+		vp = global(arrayname(sp));
+		for (; vp; vp = vp->u.array) {
+			if (!(vp->flag&ISSET))
+				continue;
+			XPput(wv, c == '!' ? shf_smprintf("%lu",
+			    arrayindex(vp)) :
+			    str_val(vp));
+		}
+		if (XPsize(wv) == 0) {
+			xp->str = null;
+			state = p[1] == '@' ? XNULLSUB : XSUB;
+			XPfree(wv);
+		} else {
+			XPput(wv, 0);
+			xp->u.strv = (const char **)XPptrv(wv);
+			xp->str = *xp->u.strv++;
+			/* ${foo[@]} */
+			xp->split = tobool(p[1] == '@');
+			state = XARG;
+		}
+	} else {
+		/* Can't assign things like $! or $1 */
+		if ((stype & 0x17F) == '=' &&
+		    ctype(*sp, C_VAR1 | C_DIGIT))
+			return (-1);
+		if (*sp == '!' && sp[1]) {
+			++sp;
+			xp->var = global(sp);
+			if (vstrchr(sp, '['))
+				xp->str = shf_smprintf("%s[%lu]",
+				    xp->var->name,
+				    arrayindex(xp->var));
+			else
+				xp->str = xp->var->name;
+		} else {
+			xp->var = global(sp);
+			xp->str = str_val(xp->var);
+		}
+		state = XSUB;
 	}
 
 	c = stype & 0x7F;
