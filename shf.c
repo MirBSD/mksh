@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.72 2016/05/05 21:38:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.73 2016/05/05 22:56:15 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1041,7 +1041,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 			field = 0;
 
 		nwritten += precision;
-		precision = utf_skipcols(s, precision) - s;
+		precision = utf_skipcols(s, precision, &tmp) - s;
 		while (precision--)
 			shf_putc(*s++, shf);
 
