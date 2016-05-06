@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.294 2016/03/04 14:26:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.296 2016/05/05 22:56:12 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1580,7 +1580,7 @@ static void
 x_goto(char *cp)
 {
 	cp = cp >= xep ? xep : x_bs0(cp, xbuf);
-	if (cp < xbp || cp >= utf_skipcols(xbp, x_displen)) {
+	if (cp < xbp || cp >= utf_skipcols(xbp, x_displen, NULL)) {
 		/* we are heading off screen */
 		xcp = cp;
 		x_adjust();
@@ -4922,16 +4922,16 @@ forwword(int argcnt)
 	ncursor = es->cursor;
 	while (ncursor < es->linelen && argcnt--) {
 		if (ksh_isalnux(es->cbuf[ncursor]))
-			while (ksh_isalnux(es->cbuf[ncursor]) &&
-			    ncursor < es->linelen)
+			while (ncursor < es->linelen &&
+			    ksh_isalnux(es->cbuf[ncursor]))
 				ncursor++;
 		else if (!ksh_isspace(es->cbuf[ncursor]))
-			while (!ksh_isalnux(es->cbuf[ncursor]) &&
-			    !ksh_isspace(es->cbuf[ncursor]) &&
-			    ncursor < es->linelen)
+			while (ncursor < es->linelen &&
+			    !ksh_isalnux(es->cbuf[ncursor]) &&
+			    !ksh_isspace(es->cbuf[ncursor]))
 				ncursor++;
-		while (ksh_isspace(es->cbuf[ncursor]) &&
-		    ncursor < es->linelen)
+		while (ncursor < es->linelen &&
+		    ksh_isspace(es->cbuf[ncursor]))
 			ncursor++;
 	}
 	return (ncursor);
@@ -4995,11 +4995,11 @@ Forwword(int argcnt)
 
 	ncursor = es->cursor;
 	while (ncursor < es->linelen && argcnt--) {
-		while (!ksh_isspace(es->cbuf[ncursor]) &&
-		    ncursor < es->linelen)
+		while (ncursor < es->linelen &&
+		    !ksh_isspace(es->cbuf[ncursor]))
 			ncursor++;
-		while (ksh_isspace(es->cbuf[ncursor]) &&
-		    ncursor < es->linelen)
+		while (ncursor < es->linelen &&
+		    ksh_isspace(es->cbuf[ncursor]))
 			ncursor++;
 	}
 	return (ncursor);

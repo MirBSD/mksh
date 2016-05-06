@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.172 2016/03/01 18:30:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.173 2016/04/09 16:41:07 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1111,7 +1111,7 @@ define(const char *name, struct op *t)
 	}
 
 	if (tp->flag & ALLOC) {
-		tp->flag &= ~(ISSET|ALLOC);
+		tp->flag &= ~(ISSET|ALLOC|FKSH);
 		tfree(tp->val.t, tp->areap);
 	}
 

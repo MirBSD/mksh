@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.393 2016/03/06 21:01:28 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.395 2016/05/05 22:45:58 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 6 2016 $
+.Dd $Mdocdate: May 5 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1001,9 +1001,9 @@ Third, a double quote
 .Pq Sq \&"
 quotes all characters, except
 .Ql $ ,
-.Ql \`
-and
 .Ql \e ,
+and
+.Ql \` ,
 up to the next unescaped double quote.
 .Ql $
 and
@@ -1015,13 +1015,15 @@ substitution has backslash-quoting for double quotes enabled.
 If a
 .Ql \e
 inside a double-quoted string is followed by
-.Ql \e ,
-.Ql $ ,
-.Ql \` ,
-or
 .Ql \&" ,
-it is replaced by the second character; if it is followed by a newline, both
-the
+.Ql $ ,
+.Ql \e ,
+or
+.Ql \` ,
+only the
+.Ql \e
+is removed, i.e. the combination is replaced by the second character;
+if it is followed by a newline, both the
 .Ql \e
 and the newline are stripped; otherwise, both the
 .Ql \e
@@ -1591,6 +1593,8 @@ is a name reference (bound variable), created by the
 .Ic nameref
 command (which is an alias for
 .Ic typeset Fl n ) .
+.Ar name
+cannot be one of most special parameters (see below).
 .Pp
 .It Pf ${! Ns Ar name Ns \&[*]}
 .It Pf ${! Ns Ar name Ns \&[@]}
@@ -6585,7 +6589,7 @@ for the in-memory portion of the history is slow, should use
 .Xr memmove 3 .
 .Pp
 This document attempts to describe
-.Nm mksh\ R52c
+.Nm mksh\ R52c+CVS
 and up,
 .\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as

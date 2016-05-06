@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.728 2016/03/05 15:39:36 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.731 2016/05/05 22:58:19 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R52 2016/03/04
+	@(#)MIRBSD KSH R52 2016/05/05
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R52 2016/03/04
+	@(#)LEGACY KSH R52 2016/05/05
 description:
 	Check version of legacy shell.
 stdin:
@@ -1687,6 +1687,50 @@ stdin:
 expected-stdout:
 	<~/x> </x> <~> <\~> <~><~> <~/x> <~//etc> <~/~>
 ---
+name: expand-bang-1
+description:
+	Check corner case of ${!?} with ! being var vs. op
+stdin:
+	echo ${!?}
+expected-exit: 1
+expected-stderr-pattern: /not set/
+---
+name: expand-bang-2
+description:
+	Check corner case of ${!var} vs. ${var op} with var=!
+stdin:
+	echo 1 $! .
+	echo 2 ${!#} .
+	echo 3 ${!#[0-9]} .
+	echo 4 ${!-foo} .
+	# get an at least three-digit bg pid
+	while :; do
+		:&
+		x=$!
+		if [[ $x != +([0-9]) ]]; then
+			echo >&2 "cannot test, pid '$x' not numeric"
+			echo >&2 report this with as many details as possible
+			exit 1
+		fi
+		[[ $x = [0-9][0-9][0-9]* ]] && break
+	done
+	y=${x#?}
+	t=$!; [[ $t = $x ]]; echo 5 $? .
+	t=${!#}; [[ $t = $x ]]; echo 6 $? .
+	t=${!#[0-9]}; [[ $t = $y ]]; echo 7 $? .
+	t=${!-foo}; [[ $t = $x ]]; echo 8 $? .
+	t=${!?bar}; [[ $t = $x ]]; echo 9 $? .
+expected-stdout:
+	1 .
+	2 .
+	3 .
+	4 foo .
+	5 0 .
+	6 0 .
+	7 0 .
+	8 0 .
+	9 0 .
+---
 name: expand-number-1
 description:
 	Check that positional arguments do not overflow
@@ -3172,6 +3216,37 @@ expected-stdout:
 	1	echo hi
 expected-stderr-pattern:
 	/(.*can't unlink HISTFILE.*\n)?X*$/
+---
+name: history-multiline
+description:
+	Check correct multiline history, Debian #783978
+need-ctty: yes
+arguments: !-i!
+env-setup: !ENV=./Env!
+file-setup: file 644 "Env"
+	PS1=X
+	PS2=Y
+stdin:
+	for i in A B C
+	do
+	   print $i
+	   print $i
+	done
+	fc -l
+expected-stdout:
+	A
+	A
+	B
+	B
+	C
+	C
+	1	for i in A B C
+		do
+		   print $i
+		   print $i
+		done
+expected-stderr-pattern:
+	/^XYYYYXX$/
 ---
 name: history-e-minus-1
 description:
@@ -7774,6 +7849,27 @@ expected-stdout:
 	1 on
 	2 off
 	3 done
+---
+name: utf8bug-1
+description:
+	Ensure trailing combining characters are not lost
+stdin:
+	set -U
+	a=a
+	b=$'\u0301'
+	x=$a$b
+	print -r -- "<e$x>"
+	x=$a
+	x+=$b
+	print -r -- "<e$x>"
+	b=$'\u0301'b
+	x=$a
+	x+=$b
+	print -r -- "<e$x>"
+expected-stdout:
+	<eá>
+	<eá>
+	<eáb>
 ---
 name: aliases-1
 description:
