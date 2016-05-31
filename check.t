@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.732 2016/05/17 15:36:31 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.733 2016/05/31 19:59:53 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -199,7 +199,7 @@ description:
 stdin:
 	alias X='case '
 	alias Y=Z
-	X Y in 'Y') echo is y ;; Z) echo is z ; esac
+	X Y in 'Y') echo is y ;; Z) echo is z ;; esac
 expected-stdout:
 	is z
 ---
