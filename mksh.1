@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.398 2016/06/25 23:51:21 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.399 2016/06/25 23:52:06 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -5651,6 +5651,9 @@ Goes to history number
 .No KILL Pq \*(haU
 .Xc
 Deletes the entire input line.
+If Ctrl-U should only delete the line up to the cursor, use:
+.Pp
+.D1 $ bind \-m \*(haU='\*(ha[0\*(haK'
 .It kill\-region: \*(haW
 Deletes the input between the cursor and the mark.
 .It Xo kill\-to\-eol:
@@ -6609,7 +6612,7 @@ for the in-memory portion of the history is slow, should use
 .Xr memmove 3 .
 .Pp
 This document attempts to describe
-.Nm mksh\ R52c+CVS
+.Nm mksh\ R52d
 and up,
 .\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as
