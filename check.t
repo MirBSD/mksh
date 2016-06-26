@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.735 2016/06/26 00:00:53 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.736 2016/06/26 00:04:30 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -8945,17 +8945,45 @@ name: print-funny-chars
 description:
 	Check print builtin's capability to output designated characters
 stdin:
-	print '<\0144\0344\xDB\u00DB\u20AC\uDB\x40>'
-	print '<\x00>'
-	print '<\x01>'
-	print '<\u0000>'
-	print '<\u0001>'
+	{
+		print '<\0144\0344\xDB\u00DB\u20AC\uDB\x40>'
+		print '<\x00>'
+		print '<\x01>'
+		print '<\u0000>'
+		print '<\u0001>'
+	} | {
+		# integer-base-one-3Ar
+		typeset -Uui16 -Z11 pos=0
+		typeset -Uui16 -Z5 hv=2147483647
+		dasc=
+		if read -arN -1 line; then
+			typeset -i1 line
+			i=0
+			while (( i < ${#line[*]} )); do
+				hv=${line[i++]}
+				if (( (pos & 15) == 0 )); then
+					(( pos )) && print "$dasc|"
+					print -n "${pos#16#}  "
+					dasc=' |'
+				fi
+				print -n "${hv#16#} "
+				if (( (hv < 32) || (hv > 126) )); then
+					dasc=$dasc.
+				else
+					dasc=$dasc${line[i-1]#1#}
+				fi
+				(( (pos++ & 15) == 7 )) && print -n -- '- '
+			done
+		fi
+		while (( pos & 15 )); do
+			print -n '   '
+			(( (pos++ & 15) == 7 )) && print -n -- '- '
+		done
+		(( hv == 2147483647 )) || print "$dasc|"
+	}
 expected-stdout:
-	<d��Û€Û@>
-	< >
-	<>
-	< >
-	<>
+	00000000  3C 64 E4 DB C3 9B E2 82 - AC C3 9B 40 3E 0A 3C 00  |<d.........@>.<.|
+	00000010  3E 0A 3C 01 3E 0A 3C 00 - 3E 0A 3C 01 3E 0A        |>.<.>.<.>.<.>.|
 ---
 name: print-bksl-c
 description:
