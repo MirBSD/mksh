@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.83 2016/03/04 14:26:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.84 2016/06/26 00:07:31 tg Exp $");
 
 #define INDENT	8
 
@@ -322,26 +322,34 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 				++wp;
 				goto wdvarput_csubst;
 			}
+			/* FALLTHROUGH */
 		case CHAR:
 			c = *wp++;
 			shf_putc(c, shf);
 			break;
-		case QCHAR: {
-			bool doq;
-
+		case QCHAR:
 			c = *wp++;
-			doq = (c == '"' || c == '`' || c == '$' || c == '\\');
-			if (opmode & WDS_TPUTS) {
-				if (quotelevel == 0)
-					doq = true;
-			} else {
-				doq = false;
-			}
-			if (doq)
-				shf_putc('\\', shf);
+			if (opmode & WDS_TPUTS)
+				switch (c) {
+				case '\n':
+					if (quotelevel == 0) {
+						c = '\'';
+						shf_putc(c, shf);
+						shf_putc('\n', shf);
+					}
+					break;
+				default:
+					if (quotelevel == 0)
+						/* FALLTHROUGH */
+				case '"':
+				case '`':
+				case '$':
+				case '\\':
+					  shf_putc('\\', shf);
+					break;
+				}
 			shf_putc(c, shf);
 			break;
-		}
 		case COMSUB:
 			shf_puts("$(", shf);
 			cs = ")";
