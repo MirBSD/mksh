@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.738 2016/06/26 00:09:32 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.739 2016/06/26 00:44:55 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R52 2016/05/17
+	@(#)MIRBSD KSH R52 2016/06/25
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R52 2016/05/17
+	@(#)LEGACY KSH R52 2016/06/25
 description:
 	Check version of legacy shell.
 stdin:
@@ -2811,6 +2811,28 @@ expected-stdout:
 	C:echo line 4)"
 	C:echo line 5
 	x-en
+---
+name: heredoc-comsub-6
+description:
+	Check here documents and here strings can be used
+	without a specific command, like $(<…) (extension)
+stdin:
+	foo=bar
+	x=$(<<<EO${foo}F)
+	echo "3<$x>"
+		y=$(<<-EOF
+			hi!
+	
+			$foo) is not a problem
+	
+	
+		EOF)
+	echo "7<$y>"
+expected-stdout:
+	3<EObarF>
+	7<hi!
+	
+	bar) is not a problem>
 ---
 name: heredoc-subshell-1
 description:

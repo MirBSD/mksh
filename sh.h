@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.773 2016/06/25 23:49:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.774 2016/06/26 00:44:59 tg Exp $");
 #endif
-#define MKSH_VERSION "R52 2016/05/17"
+#define MKSH_VERSION "R52 2016/06/25"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1752,6 +1752,7 @@ int search_access(const char *, int);
 const char *search_path(const char *, const char *, int, int *);
 void pr_menu(const char * const *);
 void pr_list(char * const *);
+int herein(struct ioword *, char **);
 /* expr.c */
 int evaluate(const char *, mksh_ari_t *, int, bool);
 int v_evaluate(struct tbl *, const char *, volatile int, bool);
