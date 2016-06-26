@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.736 2016/06/26 00:04:30 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.737 2016/06/26 00:06:43 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -1311,6 +1311,7 @@ stdin:
 	(echo 38 ${IFS+x'a'y} / "${IFS+x'a'y}" .) 2>/dev/null || echo failed in 38
 	foo="x'a'y"; (echo 39 ${foo%*'a'*} / "${foo%*'a'*}" .) 2>/dev/null || echo failed in 39
 	foo="a b c"; (echo -n '40 '; ./pfs "${foo#a}"; echo .) 2>/dev/null || echo failed in 40
+	(foo() { return 100; }; foo; echo 41 ${#+${#:+${#?}}\ \}\}\}}) 2>/dev/null || echo failed in 41
 expected-stdout:
 	1 }z
 	2 ''z}
@@ -1352,6 +1353,7 @@ expected-stdout:
 	38 xay / x'a'y .
 	39 x' / x' .
 	40 < b c> .
+	41 3 }}}
 ---
 name: expand-unglob-dblq
 description:
@@ -1400,6 +1402,7 @@ stdin:
 		(echo "$1 QSTN brac foo ${v:?a$u{{{\}b} c ${v:?d{}} baz") 2>/dev/null || \
 		    echo "$1 QSTN brac -> error"
 	}
+	: '}}}' '}}}' '}}}' '}}}' '}}}' '}}}' '}}}' '}}}'
 	tl_norm 1 -
 	tl_norm 2 ''
 	tl_norm 3 x
@@ -1530,6 +1533,7 @@ stdin:
 		(echo $1 QSTN brac foo ${v:?a$u{{{\}b} c ${v:?d{}} baz) 2>/dev/null || \
 		    echo "$1 QSTN brac -> error"
 	}
+	: '}}}' '}}}' '}}}' '}}}' '}}}' '}}}' '}}}' '}}}'
 	tl_norm 1 -
 	tl_norm 2 ''
 	tl_norm 3 x
@@ -12036,6 +12040,17 @@ expected-stdout:
 	OPTARG=, OPTIND=4, optc=?.
 	done
 expected-stderr-pattern: /.*-x.*option/
+---
+name: utilities-getopts-3
+description:
+	Check unsetting OPTARG
+stdin:
+	set -- -x arg -y
+	getopts x:y opt && echo "${OPTARG-unset}"
+	getopts x:y opt && echo "${OPTARG-unset}"
+expected-stdout:
+	arg
+	unset
 ---
 name: wcswidth-1
 description:
