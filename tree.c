@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.84 2016/06/26 00:07:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.85 2016/06/26 00:09:35 tg Exp $");
 
 #define INDENT	8
 
@@ -49,6 +49,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 	struct ioword **ioact;
 	struct op *t1;
 	int i;
+	const char *ccp;
 
  Chain:
 	if (t == NULL)
@@ -56,12 +57,9 @@ ptree(struct op *t, int indent, struct shf *shf)
 	switch (t->type) {
 	case TCOM:
 		prevent_semicolon = false;
-		/*
-		 * special-case 'var=<<EOF' (rough; see
-		 * exec.c:execute() for full code)
-		 */
+		/* special-case 'var=<<EOF' (cf. exec.c:execute) */
 		if (
-		    /* we have zero arguments, i.e. no programme to run */
+		    /* we have zero arguments, i.e. no program to run */
 		    t->args[0] == NULL &&
 		    /* we have exactly one variable assignment */
 		    t->vars[0] != NULL && t->vars[1] == NULL &&
@@ -69,7 +67,13 @@ ptree(struct op *t, int indent, struct shf *shf)
 		    t->ioact != NULL && t->ioact[0] != NULL &&
 		    t->ioact[1] == NULL &&
 		    /* of type "here document" (or "here string") */
-		    (t->ioact[0]->ioflag & IOTYPE) == IOHERE) {
+		    (t->ioact[0]->ioflag & IOTYPE) == IOHERE &&
+		    /* the variable assignment begins with a valid varname */
+		    (ccp = skip_wdvarname(t->vars[0], true)) != t->vars[0] &&
+		    /* and has no right-hand side (i.e. "varname=") */
+		    ccp[0] == CHAR && ((ccp[1] == '=' && ccp[2] == EOS) ||
+		    /* or "varname+=" */ (ccp[1] == '+' && ccp[2] == CHAR &&
+		    ccp[3] == '=' && ccp[4] == EOS))) {
 			fptreef(shf, indent, "%S", t->vars[0]);
 			break;
 		}

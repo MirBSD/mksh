@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.737 2016/06/26 00:06:43 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.738 2016/06/26 00:09:32 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2613,6 +2613,10 @@ stdin:
 	eval "$fnd"
 	foo
 	print -r -- "| va={$va} vb={$vb} vc={$vc} vd={$vd} |"
+	x=y
+	foo
+	typeset -f foo
+	print -r -- "| vc={$vc} vd={$vd} |"
 	# check append
 	v=<<-
 		vapp1
@@ -2636,6 +2640,19 @@ expected-stdout:
 	| va={=a u \x40=
 	} vb={=b $x \x40=
 	} vc={=c u \x40=
+	} vd={=d $x \x40=
+	} |
+	function foo {
+		vc=<<- 
+	=c $x \x40=
+	<<
+	
+		vd=<<-"" 
+	=d $x \x40=
+	
+	
+	} 
+	| vc={=c y \x40=
 	} vd={=d $x \x40=
 	} |
 	| vapp1^vapp2^ |
