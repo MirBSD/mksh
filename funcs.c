@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.296 2016/06/25 23:52:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.297 2016/06/26 00:44:25 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2855,6 +2855,7 @@ c_test(const char **wp)
 	int argc, rv, invert = 0;
 	Test_env te;
 	Test_op op;
+	Test_meta tm;
 	const char *lhs, **swp;
 
 	te.flags = 0;
@@ -2913,6 +2914,16 @@ c_test(const char **wp)
 		if ((op = ptest_isa(&te, TM_BINOP))) {
 			/* test lhs op rhs */
 			rv = test_eval(&te, op, lhs, *te.pos.wp++, true);
+			goto ptest_out;
+		}
+		if (ptest_isa(&te, tm = TM_AND) || ptest_isa(&te, tm = TM_OR)) {
+			/* XSI */
+			argc = test_eval(&te, TO_STNZE, lhs, NULL, true);
+			rv = test_eval(&te, TO_STNZE, *te.pos.wp++, NULL, true);
+			if (tm == TM_AND)
+				rv = argc && rv;
+			else
+				rv = argc || rv;
 			goto ptest_out;
 		}
 		/* back up to lhs */
