@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.731 2016/05/05 22:58:19 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.739 2016/06/26 00:44:55 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -27,10 +27,10 @@
 # http://svnweb.freebsd.org/base/head/bin/test/tests/legacy_test.sh?view=co&content-type=text%2Fplain
 #
 # Integrated testsuites from:
-# (2013/12/02 20:39:44) http://openbsd.cs.toronto.edu/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
+# (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R52 2016/05/05
+	@(#)MIRBSD KSH R52 2016/06/25
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R52 2016/05/05
+	@(#)LEGACY KSH R52 2016/06/25
 description:
 	Check version of legacy shell.
 stdin:
@@ -199,7 +199,7 @@ description:
 stdin:
 	alias X='case '
 	alias Y=Z
-	X Y in 'Y') echo is y ;; Z) echo is z ; esac
+	X Y in 'Y') echo is y ;; Z) echo is z ;; esac
 expected-stdout:
 	is z
 ---
@@ -1311,6 +1311,7 @@ stdin:
 	(echo 38 ${IFS+x'a'y} / "${IFS+x'a'y}" .) 2>/dev/null || echo failed in 38
 	foo="x'a'y"; (echo 39 ${foo%*'a'*} / "${foo%*'a'*}" .) 2>/dev/null || echo failed in 39
 	foo="a b c"; (echo -n '40 '; ./pfs "${foo#a}"; echo .) 2>/dev/null || echo failed in 40
+	(foo() { return 100; }; foo; echo 41 ${#+${#:+${#?}}\ \}\}\}}) 2>/dev/null || echo failed in 41
 expected-stdout:
 	1 }z
 	2 ''z}
@@ -1352,6 +1353,7 @@ expected-stdout:
 	38 xay / x'a'y .
 	39 x' / x' .
 	40 < b c> .
+	41 3 }}}
 ---
 name: expand-unglob-dblq
 description:
@@ -1400,6 +1402,7 @@ stdin:
 		(echo "$1 QSTN brac foo ${v:?a$u{{{\}b} c ${v:?d{}} baz") 2>/dev/null || \
 		    echo "$1 QSTN brac -> error"
 	}
+	: '}}}' '}}}' '}}}' '}}}' '}}}' '}}}' '}}}' '}}}'
 	tl_norm 1 -
 	tl_norm 2 ''
 	tl_norm 3 x
@@ -1530,6 +1533,7 @@ stdin:
 		(echo $1 QSTN brac foo ${v:?a$u{{{\}b} c ${v:?d{}} baz) 2>/dev/null || \
 		    echo "$1 QSTN brac -> error"
 	}
+	: '}}}' '}}}' '}}}' '}}}' '}}}' '}}}' '}}}' '}}}'
 	tl_norm 1 -
 	tl_norm 2 ''
 	tl_norm 3 x
@@ -1637,7 +1641,7 @@ expected-exit: 1
 ---
 name: expand-weird-1
 description:
-	Check corner case of trim expansion vs. $# vs. ${#var}
+	Check corner cases of trim expansion vs. $# vs. ${#var} vs. ${var?}
 stdin:
 	set 1 2 3 4 5 6 7 8 9 10 11
 	echo ${#}	# value of $#
@@ -1645,23 +1649,59 @@ stdin:
 	echo ${##1}	# $# trimmed 1
 	set 1 2 3 4 5 6 7 8 9 10 11 12
 	echo ${##1}
-expected-stdout:
-	11
-	2
-	1
-	2
----
-name: expand-weird-2
-description:
-	Check corner case of ${var?} vs. ${#var}
-stdin:
 	(exit 0)
 	echo $? = ${#?} .
 	(exit 111)
 	echo $? = ${#?} .
 expected-stdout:
+	11
+	2
+	1
+	2
 	0 = 1 .
 	111 = 3 .
+---
+name: expand-weird-2
+description:
+	Check more substitution and extension corner cases
+stdin:
+	:& set -C; pid=$$; sub=$!; flg=$-; set -- i; exec 3>x.tmp
+	#echo "D: !=$! #=$# \$=$$ -=$- ?=$?"
+	echo >&3 3 = s^${!-word} , ${#-word} , p^${$-word} , f^${--word} , ${?-word} .
+	echo >&3 4 = ${!+word} , ${#+word} , ${$+word} , ${-+word} , ${?+word} .
+	echo >&3 5 = s^${!=word} , ${#=word} , p^${$=word} , f^${-=word} , ${?=word} .
+	echo >&3 6 = s^${!?word} , ${#?word} , p^${$?word} , f^${-?word} , ${??word} .
+	echo >&3 7 = sl^${#!} , ${##} , pl^${#$} , fl^${#-} , ${#?} .
+	echo >&3 8 = sw^${%!} , ${%#} , pw^${%$} , fw^${%-} , ${%?} .
+	echo >&3 9 = ${!!} , s^${!#} , ${!$} , s^${!-} , s^${!?} .
+	echo >&3 10 = s^${!#pattern} , ${##pattern} , p^${$#pattern} , f^${-#pattern} , ${?#pattern} .
+	echo >&3 11 = s^${!%pattern} , ${#%pattern} , p^${$%pattern} , f^${-%pattern} , ${?%pattern} .
+	echo >&3 12 = $# : ${##} , ${##1} .
+	set --
+	echo >&3 14 = $# : ${##} , ${##1} .
+	set -- 1 2 3 4 5
+	echo >&3 16 = $# : ${##} , ${##1} .
+	set -- 1 2 3 4 5 6 7 8 9 a b c d e
+	echo >&3 18 = $# : ${##} , ${##1} .
+	exec 3>&-
+	<x.tmp sed \
+	    -e "s/ pl^${#pid} / PID /g" -e "s/ sl^${#sub} / SUB /g" -e "s/ fl^${#flg} / FLG /g" \
+	    -e "s/ pw^${%pid} / PID /g" -e "s/ sw^${%sub} / SUB /g" -e "s/ fw^${%flg} / FLG /g" \
+	    -e "s/ p^$pid / PID /g" -e "s/ s^$sub / SUB /g" -e "s/ f^$flg / FLG /g"
+expected-stdout:
+	3 = SUB , 1 , PID , FLG , 0 .
+	4 = word , word , word , word , word .
+	5 = SUB , 1 , PID , FLG , 0 .
+	6 = SUB , 1 , PID , FLG , 0 .
+	7 = SUB , 1 , PID , FLG , 1 .
+	8 = SUB , 1 , PID , FLG , 1 .
+	9 = ! , SUB , $ , SUB , SUB .
+	10 = SUB , 1 , PID , FLG , 0 .
+	11 = SUB , 1 , PID , FLG , 0 .
+	12 = 1 : 1 , .
+	14 = 0 : 1 , 0 .
+	16 = 5 : 1 , 5 .
+	18 = 14 : 2 , 4 .
 ---
 name: expand-weird-3
 description:
@@ -2573,6 +2613,10 @@ stdin:
 	eval "$fnd"
 	foo
 	print -r -- "| va={$va} vb={$vb} vc={$vc} vd={$vd} |"
+	x=y
+	foo
+	typeset -f foo
+	print -r -- "| vc={$vc} vd={$vd} |"
 	# check append
 	v=<<-
 		vapp1
@@ -2596,6 +2640,19 @@ expected-stdout:
 	| va={=a u \x40=
 	} vb={=b $x \x40=
 	} vc={=c u \x40=
+	} vd={=d $x \x40=
+	} |
+	function foo {
+		vc=<<- 
+	=c $x \x40=
+	<<
+	
+		vd=<<-"" 
+	=d $x \x40=
+	
+	
+	} 
+	| vc={=c y \x40=
 	} vd={=d $x \x40=
 	} |
 	| vapp1^vapp2^ |
@@ -2754,6 +2811,28 @@ expected-stdout:
 	C:echo line 4)"
 	C:echo line 5
 	x-en
+---
+name: heredoc-comsub-6
+description:
+	Check here documents and here strings can be used
+	without a specific command, like $(<…) (extension)
+stdin:
+	foo=bar
+	x=$(<<<EO${foo}F)
+	echo "3<$x>"
+		y=$(<<-EOF
+			hi!
+	
+			$foo) is not a problem
+	
+	
+		EOF)
+	echo "7<$y>"
+expected-stdout:
+	3<EObarF>
+	7<hi!
+	
+	bar) is not a problem>
 ---
 name: heredoc-subshell-1
 description:
@@ -8909,17 +8988,45 @@ name: print-funny-chars
 description:
 	Check print builtin's capability to output designated characters
 stdin:
-	print '<\0144\0344\xDB\u00DB\u20AC\uDB\x40>'
-	print '<\x00>'
-	print '<\x01>'
-	print '<\u0000>'
-	print '<\u0001>'
+	{
+		print '<\0144\0344\xDB\u00DB\u20AC\uDB\x40>'
+		print '<\x00>'
+		print '<\x01>'
+		print '<\u0000>'
+		print '<\u0001>'
+	} | {
+		# integer-base-one-3Ar
+		typeset -Uui16 -Z11 pos=0
+		typeset -Uui16 -Z5 hv=2147483647
+		dasc=
+		if read -arN -1 line; then
+			typeset -i1 line
+			i=0
+			while (( i < ${#line[*]} )); do
+				hv=${line[i++]}
+				if (( (pos & 15) == 0 )); then
+					(( pos )) && print "$dasc|"
+					print -n "${pos#16#}  "
+					dasc=' |'
+				fi
+				print -n "${hv#16#} "
+				if (( (hv < 32) || (hv > 126) )); then
+					dasc=$dasc.
+				else
+					dasc=$dasc${line[i-1]#1#}
+				fi
+				(( (pos++ & 15) == 7 )) && print -n -- '- '
+			done
+		fi
+		while (( pos & 15 )); do
+			print -n '   '
+			(( (pos++ & 15) == 7 )) && print -n -- '- '
+		done
+		(( hv == 2147483647 )) || print "$dasc|"
+	}
 expected-stdout:
-	<d��Û€Û@>
-	< >
-	<>
-	< >
-	<>
+	00000000  3C 64 E4 DB C3 9B E2 82 - AC C3 9B 40 3E 0A 3C 00  |<d.........@>.<.|
+	00000010  3E 0A 3C 01 3E 0A 3C 00 - 3E 0A 3C 01 3E 0A        |>.<.>.<.>.<.>.|
 ---
 name: print-bksl-c
 description:
@@ -11972,6 +12079,17 @@ expected-stdout:
 	OPTARG=, OPTIND=4, optc=?.
 	done
 expected-stderr-pattern: /.*-x.*option/
+---
+name: utilities-getopts-3
+description:
+	Check unsetting OPTARG
+stdin:
+	set -- -x arg -y
+	getopts x:y opt && echo "${OPTARG-unset}"
+	getopts x:y opt && echo "${OPTARG-unset}"
+expected-stdout:
+	arg
+	unset
 ---
 name: wcswidth-1
 description:

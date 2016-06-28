@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.771 2016/05/05 22:56:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.774 2016/06/26 00:44:59 tg Exp $");
 #endif
-#define MKSH_VERSION "R52 2016/05/05"
+#define MKSH_VERSION "R52 2016/06/25"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1082,7 +1082,11 @@ EXTERN bool builtin_spec;
 EXTERN char	*current_wd;
 
 /* input line size */
+#ifdef MKSH_SMALL
 #define LINE		(4096 - ALLOC_OVERHEAD)
+#else
+#define LINE		(16384 - ALLOC_OVERHEAD)
+#endif
 /*
  * Minimum required space to work with on a line - if the prompt leaves
  * less space than this on a line, the prompt is truncated.
@@ -1748,6 +1752,7 @@ int search_access(const char *, int);
 const char *search_path(const char *, const char *, int, int *);
 void pr_menu(const char * const *);
 void pr_list(char * const *);
+int herein(struct ioword *, char **);
 /* expr.c */
 int evaluate(const char *, mksh_ari_t *, int, bool);
 int v_evaluate(struct tbl *, const char *, volatile int, bool);

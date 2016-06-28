@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.187 2016/05/05 22:45:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.189 2016/06/26 00:44:57 tg Exp $");
 
 /*
  * string expansion
@@ -1061,7 +1061,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 	int c;
 	int state;	/* next state: XBASE, XARG, XSUB, XNULLSUB */
 	int stype;	/* substitution type */
-	int slen;
+	int slen = 0;
 	const char *p;
 	struct tbl *vp;
 	bool zero_ok = false;
@@ -1140,10 +1140,24 @@ varsub(Expand *xp, const char *sp, const char *word,
 		xp->str = shf_smprintf("%d", c);
 		return (XSUB);
 	}
+	if (stype == '!' && c != '\0' && *word == CSUBST) {
+		sp++;
+		if ((p = cstrchr(sp, '[')) && (p[1] == '*' || p[1] == '@') &&
+		    p[2] == ']') {
+			c = '!';
+			stype = 0;
+			goto arraynames;
+		}
+		xp->var = global(sp);
+		xp->str = p ? shf_smprintf("%s[%lu]",
+		    xp->var->name, arrayindex(xp->var)) : xp->var->name;
+		*stypep = 0;
+		return (XSUB);
+	}
 
 	/* Check for qualifiers in word part */
 	stype = 0;
-	c = word[slen = 0] == CHAR ? word[1] : 0;
+	c = word[slen + 0] == CHAR ? word[slen + 1] : 0;
 	if (c == ':') {
 		slen += 2;
 		stype = 0x80;
@@ -1182,8 +1196,6 @@ varsub(Expand *xp, const char *sp, const char *word,
 		return (-1);
 	if (!stype && *word != CSUBST)
 		return (-1);
-	*stypep = stype;
-	*slenp = slen;
 
 	c = sp[0];
 	if (c == '*' || c == '@') {
@@ -1230,9 +1242,9 @@ varsub(Expand *xp, const char *sp, const char *word,
 		case 0x100 | 'Q':
 			return (-1);
 		}
+		c = 0;
+ arraynames:
 		XPinit(wv, 32);
-		if ((c = sp[0]) == '!')
-			++sp;
 		vp = global(arrayname(sp));
 		for (; vp; vp = vp->u.array) {
 			if (!(vp->flag&ISSET))
@@ -1254,23 +1266,12 @@ varsub(Expand *xp, const char *sp, const char *word,
 			state = XARG;
 		}
 	} else {
-		/* Can't assign things like $! or $1 */
-		if ((stype & 0x17F) == '=' &&
+		xp->var = global(sp);
+		xp->str = str_val(xp->var);
+		/* can't assign things like $! or $1 */
+		if ((stype & 0x17F) == '=' && !*xp->str &&
 		    ctype(*sp, C_VAR1 | C_DIGIT))
 			return (-1);
-		if (*sp == '!' && sp[1] && !ctype(sp[1], C_VAR1)) {
-			++sp;
-			xp->var = global(sp);
-			if (vstrchr(sp, '['))
-				xp->str = shf_smprintf("%s[%lu]",
-				    xp->var->name,
-				    arrayindex(xp->var));
-			else
-				xp->str = xp->var->name;
-		} else {
-			xp->var = global(sp);
-			xp->str = str_val(xp->var);
-		}
 		state = XSUB;
 	}
 
@@ -1288,6 +1289,8 @@ varsub(Expand *xp, const char *sp, const char *word,
 	if (Flag(FNOUNSET) && xp->str == null && !zero_ok &&
 	    (ctype(c, C_SUBOP2) || (state != XBASE && c != '+')))
 		errorf("%s: parameter not set", sp);
+	*stypep = stype;
+	*slenp = slen;
 	return (state);
 }
 
@@ -1323,14 +1326,31 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 		struct ioword *io = *t->ioact;
 		char *name;
 
-		if ((io->ioflag & IOTYPE) != IOREAD)
+		switch (io->ioflag & IOTYPE) {
+		case IOREAD:
+			shf = shf_open(name = evalstr(io->ioname, DOTILDE),
+				O_RDONLY, 0, SHF_MAPHI | SHF_CLEXEC);
+			if (shf == NULL)
+				warningf(!Flag(FTALKING), "%s: %s %s: %s",
+				    name, "can't open", "$(<...) input",
+				    cstrerror(errno));
+			break;
+		case IOHERE:
+			if (!herein(io, &name)) {
+				xp->str = name;
+				/* as $(…) requires, trim trailing newlines */
+				name += strlen(name);
+				while (name > xp->str && name[-1] == '\n')
+					--name;
+				*name = '\0';
+				return (XSUB);
+			}
+			shf = NULL;
+			break;
+		default:
 			errorf("%s: %s", T_funny_command,
 			    snptreef(NULL, 32, "%R", io));
-		shf = shf_open(name = evalstr(io->ioname, DOTILDE), O_RDONLY,
-			0, SHF_MAPHI | SHF_CLEXEC);
-		if (shf == NULL)
-			warningf(!Flag(FTALKING), "%s: %s %s: %s", name,
-			    "can't open", "$(<...) input", cstrerror(errno));
+		}
 	} else if (fn == FUNSUB) {
 		int ofd1;
 		struct temp *tf = NULL;

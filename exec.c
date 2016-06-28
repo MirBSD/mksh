@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.173 2016/04/09 16:41:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.175 2016/06/26 00:44:58 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -34,7 +34,6 @@ static int comexec(struct op *, struct tbl * volatile, const char **,
 static void scriptexec(struct op *, const char **) MKSH_A_NORETURN;
 static int call_builtin(struct tbl *, const char **, const char *, bool);
 static int iosetup(struct ioword *, struct tbl *);
-static int herein(struct ioword *, char **);
 static const char *do_selectargs(const char **, bool);
 static Test_op dbteste_isa(Test_env *, Test_meta);
 static const char *dbteste_getopnd(Test_env *, Test_op, bool);
@@ -60,7 +59,6 @@ execute(struct op * volatile t,
 	const char *s, *ccp;
 	struct ioword **iowp;
 	struct tbl *tp = NULL;
-	char *cp;
 
 	if (t == NULL)
 		return (0);
@@ -79,11 +77,18 @@ execute(struct op * volatile t,
 
 	/* we want to run an executable, do some variance checks */
 	if (t->type == TCOM) {
+		/*
+		 * Clear subst_exstat before argument expansion. Used by
+		 * null commands (see comexec() and c_eval()) and by c_set().
+		 */
+		subst_exstat = 0;
+
+		/* for $LINENO */
+		current_lineno = t->lineno;
+
 		/* check if this is 'var=<<EOF' */
-		/*XXX this is broken, don’t use! */
-		/*XXX https://bugs.launchpad.net/mksh/+bug/1380389 */
 		if (
-		    /* we have zero arguments, i.e. no programme to run */
+		    /* we have zero arguments, i.e. no program to run */
 		    t->args[0] == NULL &&
 		    /* we have exactly one variable assignment */
 		    t->vars[0] != NULL && t->vars[1] == NULL &&
@@ -97,41 +102,19 @@ execute(struct op * volatile t,
 		    /* and has no right-hand side (i.e. "varname=") */
 		    ccp[0] == CHAR && ((ccp[1] == '=' && ccp[2] == EOS) ||
 		    /* or "varname+=" */ (ccp[1] == '+' && ccp[2] == CHAR &&
-		    ccp[3] == '=' && ccp[4] == EOS)) &&
-		    /* plus we can have a here document content */
-		    herein(t->ioact[0], &cp) == 0 && cp && *cp) {
-			char *sp = cp, *dp;
-			size_t n = ccp - t->vars[0] + (ccp[1] == '+' ? 4 : 2);
-			size_t z;
+		    ccp[3] == '=' && ccp[4] == EOS))) {
+			char *cp, *dp;
 
-			/* drop redirection (will be garbage collected) */
-			t->ioact = NULL;
-
-			/* set variable to its expanded value */
-			z = strlen(cp);
-			if (notoktomul(z, 2) || notoktoadd(z * 2, n + 1))
-				internal_errorf(Toomem, (size_t)-1);
-			dp = alloc(z * 2 + n + 1, APERM);
-			memcpy(dp, t->vars[0], n);
-			t->vars[0] = dp;
-			dp += n;
-			while (*sp) {
-				*dp++ = QCHAR;
-				*dp++ = *sp++;
-			}
-			*dp = EOS;
+			if ((rv = herein(t->ioact[0], &cp) /*? 1 : 0*/))
+				cp = NULL;
+			dp = shf_smprintf("%s%s", evalstr(t->vars[0],
+			    DOASNTILDE | DOSCALAR), rv ? null : cp);
+			typeset(dp, Flag(FEXPORT) ? EXPORT : 0, 0, 0, 0);
 			/* free the expanded value */
 			afree(cp, APERM);
+			afree(dp, ATEMP);
+			goto Break;
 		}
-
-		/*
-		 * Clear subst_exstat before argument expansion. Used by
-		 * null commands (see comexec() and c_eval()) and by c_set().
-		 */
-		subst_exstat = 0;
-
-		/* for $LINENO */
-		current_lineno = t->lineno;
 
 		/*
 		 * POSIX says expand command words first, then redirections,
@@ -1615,7 +1598,7 @@ hereinval(struct ioword *iop, int sub, char **resbuf, struct shf *shf)
 	return (0);
 }
 
-static int
+int
 herein(struct ioword *iop, char **resbuf)
 {
 	int fd = -1;

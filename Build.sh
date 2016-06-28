@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.697 2016/03/04 18:28:39 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.698 2016/06/25 23:49:12 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016
@@ -1648,9 +1648,12 @@ ac_ifcpp 'ifdef MKSH_NOPROSPECTOFWORK' isset_MKSH_NOPROSPECTOFWORK '' \
     check_categories="$check_categories arge nojsig"
 ac_ifcpp 'ifdef MKSH_ASSUME_UTF8' isset_MKSH_ASSUME_UTF8 '' \
     'if the default UTF-8 mode is specified' && : "${HAVE_SETLOCALE_CTYPE=0}"
-ac_ifcpp 'ifdef MKSH_CONSERVATIVE_FDS' isset_MKSH_CONSERVATIVE_FDS '' \
-    'if traditional/conservative fd use is requested' && \
-    check_categories="$check_categories convfds"
+if ac_ifcpp 'ifdef MKSH_CONSERVATIVE_FDS' isset_MKSH_CONSERVATIVE_FDS '' \
+    'if traditional/conservative fd use is requested'; then
+	check_categories="$check_categories convfds"
+else
+	echo >&2 "WARNING: not building with -DMKSH_CONSERVATIVE_FDS is deprecated"
+fi
 #ac_ifcpp 'ifdef MKSH_DISABLE_DEPRECATED' isset_MKSH_DISABLE_DEPRECATED '' \
 #    "if deprecated features are to be omitted" && \
 #    check_categories="$check_categories nodeprecated"
@@ -2655,7 +2658,7 @@ MKSH_BINSHPOSIX			if */sh or */-sh, enable set -o posix
 MKSH_BINSHREDUCED		if */sh or */-sh, enable set -o sh
 MKSH_CLRTOEOL_STRING		"\033[K"
 MKSH_CLS_STRING			"\033[;H\033[J"
-MKSH_CONSERVATIVE_FDS		fd 0-9 for scripts, shell only up to 31
+MKSH_CONSERVATIVE_FDS		fd 0-9 for scripts, shell only up to 31 (soon default)
 MKSH_DEFAULT_EXECSHELL		"/bin/sh" (do not change)
 MKSH_DEFAULT_PROFILEDIR		"/etc" (do not change)
 MKSH_DEFAULT_TMPDIR		"/tmp" (do not change)
