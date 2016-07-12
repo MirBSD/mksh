@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.774 2016/06/26 00:44:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.775 2016/07/12 23:07:10 tg Exp $");
 #endif
-#define MKSH_VERSION "R52 2016/06/25"
+#define MKSH_VERSION "R52 2016/07/12"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1087,18 +1087,9 @@ EXTERN char	*current_wd;
 #else
 #define LINE		(16384 - ALLOC_OVERHEAD)
 #endif
-/*
- * Minimum required space to work with on a line - if the prompt leaves
- * less space than this on a line, the prompt is truncated.
- */
-#define MIN_EDIT_SPACE	7
-/*
- * Minimum allowed value for x_cols: 2 for prompt, 3 for " < " at end of line
- */
-#define MIN_COLS	(2 + MIN_EDIT_SPACE + 3)
-#define MIN_LINS	3
-EXTERN mksh_ari_t x_cols E_INIT(80);	/* tty columns */
-EXTERN mksh_ari_t x_lins E_INIT(24);	/* tty lines */
+/* columns and lines of the tty */
+EXTERN mksh_ari_t x_cols E_INIT(80);
+EXTERN mksh_ari_t x_lins E_INIT(24);
 
 
 /* Determine the location of the system (common) profile */

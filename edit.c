@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.296 2016/05/05 22:56:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.297 2016/07/12 23:07:09 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -149,7 +149,7 @@ x_getc(void)
 					/* redraw line in Emacs mode */
 					xx_cols = x_cols;
 					x_init_prompt(false);
-					x_e_rebuildline(MKSH_CLRTOEOL_STRING);
+					x_e_rebuildline(null);
 				}
 			}
 #endif
@@ -1183,6 +1183,12 @@ x_e_getmbc(char *sbuf)
 	return (pos);
 }
 
+/*
+ * minimum required space to work with on a line - if the prompt
+ * leaves less space than this on a line, the prompt is truncated
+ */
+#define MIN_EDIT_SPACE	7
+
 static void
 x_init_prompt(bool doprint)
 {
@@ -1826,7 +1832,6 @@ x_goto_hist(int c MKSH_A_UNUSED)
 static void
 x_load_hist(char **hp)
 {
-	int oldsize;
 	char *sp = NULL;
 
 	if (hp == histptr + 1) {
@@ -1839,17 +1844,12 @@ x_load_hist(char **hp)
 	if (sp == NULL)
 		sp = *hp;
 	x_histp = hp;
-	oldsize = x_size_str(xbuf);
 	if (modified)
 		strlcpy(holdbufp, xbuf, LINE);
 	strlcpy(xbuf, sp, xend - xbuf);
 	xbp = xbuf;
 	xep = xcp = xbuf + strlen(xbuf);
-	xlp_valid = false;
-	if (xep <= x_lastcp()) {
-		x_redraw(oldsize);
-	}
-	x_goto(xep);
+	x_adjust();
 	modified = 0;
 }
 
@@ -2103,9 +2103,9 @@ x_redraw(int limit)
 	x_displen = xx_cols - 2 - x_col;
 	xlp_valid = false;
 	x_zots(xbp);
-	if (xbp != xbuf || xep > xlp)
-		limit = xx_cols;
-	if (limit >= 0) {
+	if (limit >= xx_cols || xbp != xbuf || xep > xlp)
+		shf_puts(MKSH_CLRTOEOL_STRING, shl_out);
+	else if (limit >= 0) {
 		if (xep > xlp)
 			/* we fill the line */
 			i = 0;
@@ -3015,7 +3015,6 @@ x_set_arg(int c)
 static int
 x_comment(int c MKSH_A_UNUSED)
 {
-	int oldsize = x_size_str(xbuf);
 	ssize_t len = xep - xbuf;
 	int ret = x_do_comment(xbuf, xend - xbuf, &len);
 
@@ -3026,7 +3025,7 @@ x_comment(int c MKSH_A_UNUSED)
 		xep = xbuf + len;
 		*xep = '\0';
 		xcp = xbp = xbuf;
-		x_redraw(oldsize);
+		x_redraw(xx_cols);
 		if (ret > 0)
 			return (x_newline('\n'));
 	}
