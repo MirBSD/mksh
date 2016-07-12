@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.202 2016/05/05 22:56:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.203 2016/07/12 23:06:26 tg Exp $");
 
 /*-
  * Variables
@@ -1185,6 +1185,10 @@ unspecial(const char *name)
 
 static time_t seconds;		/* time SECONDS last set */
 static mksh_uari_t user_lineno;	/* what user set $LINENO to */
+
+/* minimum values from the OS we consider sane, lowered for R53 */
+#define MIN_COLS	4
+#define MIN_LINS	2
 
 static void
 getspec(struct tbl *vp)
