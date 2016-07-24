@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.400 2016/07/24 23:05:52 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.401 2016/07/24 23:11:51 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -3977,6 +3977,9 @@ it's also checked for existence and whether it is a directory; otherwise,
 .Ic realpath
 returns 0 if the pathname either exists or can be created immediately,
 i.e. all but the last component exist and are directories.
+For calls from the shell, if any options are given, an external
+.Xr realpath 1
+utility is preferred over the builtin.
 .Pp
 .It Xo
 .Ic rename
