@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.297 2016/06/26 00:44:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.298 2016/07/24 23:10:02 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -101,7 +101,7 @@ const struct builtin mkshbuiltins[] = {
 	{Talias, c_alias},
 	{"*=break", c_brkcont},
 	{Tgbuiltin, c_builtin},
-	{Tcat, c_cat},
+	{"!cat", c_cat},
 	{"cd", c_cd},
 	/* dash compatibility hack */
 	{"chdir", c_cd},
@@ -155,7 +155,7 @@ const struct builtin mkshbuiltins[] = {
 	{"mknod", c_mknod},
 #endif
 #ifdef MKSH_PRINTF_BUILTIN
-	{Tprintf, c_printf},
+	{"~printf", c_printf},
 #endif
 #if HAVE_SELECT
 	{"sleep", c_sleep},

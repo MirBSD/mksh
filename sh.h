@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.775 2016/07/12 23:07:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.776 2016/07/24 23:10:04 tg Exp $");
 #endif
 #define MKSH_VERSION "R52 2016/07/12"
 
@@ -864,12 +864,8 @@ EXTERN const char T_typeset[] E_INIT("=typeset");
 #define Ttypeset	(T_typeset + 1)		/* "typeset" */
 EXTERN const char Talias[] E_INIT("alias");
 EXTERN const char Tunalias[] E_INIT("unalias");
-EXTERN const char Tcat[] E_INIT("cat");
 #ifdef __OS2__
 EXTERN const char Textproc[] E_INIT("extproc");
-#endif
-#ifdef MKSH_PRINTF_BUILTIN
-EXTERN const char Tprintf[] E_INIT("printf");
 #endif
 EXTERN const char Tsgset[] E_INIT("*=set");
 #define Tset		(Tsgset + 2)		/* "set" */
@@ -1243,6 +1239,9 @@ EXTERN bool last_lookup_was_array;
 #define FDELETE		BIT(10)	/* function deleted while it was executing */
 #define FKSH		BIT(11)	/* function defined with function x (vs x()) */
 #define SPEC_BI		BIT(12)	/* a POSIX special builtin */
+#define LOWER_BI	BIT(13)	/* (with LOW_BI) override even w/o flags */
+#define LOW_BI		BIT(14)	/* external utility overrides built-in one */
+
 /*
  * Attributes that can be set by the user (used to decide if an unset
  * param should be repoted by set/typeset). Does not include ARRAY or

@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.310 2016/02/26 21:53:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.311 2016/07/24 23:10:03 tg Exp $");
 
 extern char **environ;
 

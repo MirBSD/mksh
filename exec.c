@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.176 2016/07/24 23:07:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.177 2016/07/24 23:10:02 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -533,11 +533,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			}
 			if ((tp = findcom(cp, FC_BI)) == NULL)
 				errorf("%s: %s: %s", Tbuiltin, cp, "not a builtin");
-			if (tp->type == CSHELL && (tp->val.f == c_cat
-#ifdef MKSH_PRINTF_BUILTIN
-			    || tp->val.f == c_printf
-#endif
-			    ))
+			if (tp->type == CSHELL && (tp->flag & LOW_BI))
 				break;
 			continue;
 		} else if (tp->val.f == c_exec) {
@@ -595,29 +591,21 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				subst_exstat = 0;
 				break;
 			}
-		} else if (tp->val.f == c_cat) {
+		} else if (tp->flag & LOW_BI) {
 			/* if we have any flags, do not use the builtin */
-			if (ap[1] && ap[1][0] == '-' && ap[1][1] != '\0' &&
+			if ((ap[1] && ap[1][0] == '-' && ap[1][1] != '\0' &&
 			    /* argument, begins with -, is not - or -- */
-			    (ap[1][1] != '-' || ap[1][2] != '\0')) {
-				struct tbl *ext_cat;
+			    (ap[1][1] != '-' || ap[1][2] != '\0')) ||
+			    /* always prefer the external utility */
+			    (tp->flag & LOWER_BI)) {
+				struct tbl *ext_cmd;
 
-				ext_cat = findcom(Tcat, FC_PATH | FC_FUNC);
-				if (ext_cat && (ext_cat->type != CTALIAS ||
-				    (ext_cat->flag & ISSET)))
-					tp = ext_cat;
+				ext_cmd = findcom(tp->name, FC_PATH | FC_FUNC);
+				if (ext_cmd && (ext_cmd->type != CTALIAS ||
+				    (ext_cmd->flag & ISSET)))
+					tp = ext_cmd;
 			}
 			break;
-#ifdef MKSH_PRINTF_BUILTIN
-		} else if (tp->val.f == c_printf) {
-			struct tbl *ext_printf;
-
-			ext_printf = findcom(Tprintf, FC_PATH | FC_FUNC);
-			if (ext_printf && (ext_printf->type != CTALIAS ||
-			    (ext_printf->flag & ISSET)))
-				tp = ext_printf;
-			break;
-#endif
 		} else if (tp->val.f == c_trap) {
 			t->u.evalflags &= ~DOTCOMEXEC;
 			break;
@@ -727,16 +715,12 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			    !(ftp = findfunc(cp, hash(cp), false)) ||
 			    !(ftp->flag & ISSET)) {
 				rv = errno;
-				if (!strcmp(cp, Tcat)) {
-					tp = findcom(Tcat, FC_BI);
+				if ((ftp = findcom(cp, FC_BI)) &&
+				    (ftp->type == CSHELL) &&
+				    (ftp->flag & LOW_BI)) {
+					tp = ftp;
 					goto do_call_builtin;
 				}
-#ifdef MKSH_PRINTF_BUILTIN
-				if (!strcmp(cp, Tprintf)) {
-					tp = findcom(Tprintf, FC_BI);
-					goto do_call_builtin;
-				}
-#endif
 				if (rv) {
 					tp->u2.errnov = rv;
 					cp = tp->u.fpath;
@@ -1089,23 +1073,38 @@ builtin(const char *name, int (*func) (const char **))
 	uint32_t flag = DEFINED;
 
 	/* see if any flags should be set for this builtin */
-	while (1) {
-		if (*name == '=')
-			/* command does variable assignment */
-			flag |= KEEPASN;
-		else if (*name == '*')
-			/* POSIX special builtin */
-			flag |= SPEC_BI;
-		else
-			break;
-		name++;
+ flags_loop:
+	switch (*name) {
+	case '=':
+		/* command does variable assignment */
+		flag |= KEEPASN;
+		break;
+	case '*':
+		/* POSIX special builtin */
+		flag |= SPEC_BI;
+		break;
+	case '~':
+		/* external utility overrides built-in utility, always */
+		flag |= LOWER_BI;
+		/* FALLTHROUGH */
+	case '!':
+		/* external utility overrides built-in utility, with flags */
+		flag |= LOW_BI;
+		break;
+	default:
+		goto flags_seen;
 	}
+	++name;
+	goto flags_loop;
+ flags_seen:
 
+	/* enter into the builtins hash table */
 	tp = ktenter(&builtins, name, hash(name));
 	tp->flag = flag;
 	tp->type = CSHELL;
 	tp->val.f = func;
 
+	/* return name, for direct builtin call check in main.c */
 	return (name);
 }
 
