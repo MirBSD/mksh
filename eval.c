@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.189 2016/06/26 00:44:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.190 2016/07/24 23:05:52 tg Exp $");
 
 /*
  * string expansion
@@ -1714,11 +1714,13 @@ maybe_expand_tilde(const char *p, XString *dsp, char **dpp, bool isassign)
  *
  * based on a version by Arnold Robbins
  */
-
 char *
 do_tilde(char *cp)
 {
 	char *dp = null;
+#ifndef MKSH_NOPWNAM
+	bool do_simplify = true;
+#endif
 
 	if (cp[0] == '\0')
 		dp = str_val(global("HOME"));
@@ -1727,11 +1729,25 @@ do_tilde(char *cp)
 	else if (ksh_isdash(cp))
 		dp = str_val(global("OLDPWD"));
 #ifndef MKSH_NOPWNAM
-	else
+	else {
 		dp = homedir(cp);
+		do_simplify = false;
+	}
 #endif
-	/* If HOME, PWD or OLDPWD are not set, don't expand ~ */
-	return (dp == null ? NULL : dp);
+
+	/* if parameters aren't set, don't expand ~ */
+	if (dp == NULL || dp == null)
+		return (NULL);
+
+	/* simplify parameters as if cwd upon entry */
+#ifndef MKSH_NOPWNAM
+	if (do_simplify)
+#endif
+	  {
+		strdupx(dp, dp, ATEMP);
+		simplify_path(dp);
+	}
+	return (dp);
 }
 
 #ifndef MKSH_NOPWNAM
