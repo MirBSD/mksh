@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.175 2016/06/26 00:44:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.176 2016/07/24 23:07:19 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -715,39 +715,33 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			struct tbl *ftp;
 
 			if (!tp->u.fpath) {
+ fpath_error:
 				rv = (tp->u2.errnov == ENOENT) ? 127 : 126;
 				warningf(true, "%s: %s %s: %s", cp,
 				    "can't find", "function definition file",
 				    cstrerror(tp->u2.errnov));
 				break;
 			}
-			if (include(tp->u.fpath, 0, NULL, false) < 0) {
+			errno = 0;
+			if (include(tp->u.fpath, 0, NULL, false) < 0 ||
+			    !(ftp = findfunc(cp, hash(cp), false)) ||
+			    !(ftp->flag & ISSET)) {
+				rv = errno;
 				if (!strcmp(cp, Tcat)) {
- no_cat_in_FPATH:
 					tp = findcom(Tcat, FC_BI);
 					goto do_call_builtin;
 				}
 #ifdef MKSH_PRINTF_BUILTIN
 				if (!strcmp(cp, Tprintf)) {
- no_printf_in_FPATH:
 					tp = findcom(Tprintf, FC_BI);
 					goto do_call_builtin;
 				}
 #endif
-				warningf(true, "%s: %s %s %s: %s", cp,
-				    "can't open", "function definition file",
-				    tp->u.fpath, cstrerror(errno));
-				rv = 127;
-				break;
-			}
-			if (!(ftp = findfunc(cp, hash(cp), false)) ||
-			    !(ftp->flag & ISSET)) {
-				if (!strcmp(cp, Tcat))
-					goto no_cat_in_FPATH;
-#ifdef MKSH_PRINTF_BUILTIN
-				if (!strcmp(cp, Tprintf))
-					goto no_printf_in_FPATH;
-#endif
+				if (rv) {
+					tp->u2.errnov = rv;
+					cp = tp->u.fpath;
+					goto fpath_error;
+				}
 				warningf(true, "%s: %s %s", cp,
 				    "function not defined by", tp->u.fpath);
 				rv = 127;
