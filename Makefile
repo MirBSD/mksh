@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.149 2016/07/25 00:04:37 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.150 2016/07/25 21:05:19 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016
@@ -57,7 +57,7 @@ CPPFLAGS+=	-DMKSH_ASSUME_UTF8 -DMKSH_DISABLE_DEPRECATED \
 		-DHAVE_SETGROUPS=1 -DHAVE_STRERROR=0 -DHAVE_STRSIGNAL=0 \
 		-DHAVE_STRLCPY=1 -DHAVE_FLOCK_DECL=1 -DHAVE_REVOKE_DECL=1 \
 		-DHAVE_SYS_ERRLIST_DECL=1 -DHAVE_SYS_SIGLIST_DECL=1 \
-		-DHAVE_PERSISTENT_HISTORY=1 -DMKSH_BUILD_R=523
+		-DHAVE_PERSISTENT_HISTORY=1 -DMKSH_BUILD_R=529
 CPPFLAGS+=	-D${${PROG:L}_tf:C/(Mir${MAN:E}{0,1}){2}/4/:S/x/mksh_BUILD/:U}
 CPPFLAGS+=	-I.
 COPTS+=		-std=c89 -Wall
@@ -102,6 +102,9 @@ regress: ${PROG} check.pl check.t
 	    -s ${SRCDIR}/check.t -v -p ./${PROG} \
 	    -C shell:legacy-no,int:32,fastbox
 
+TEST_BUILD_ENV:=	TARGET_OS= CPP=
+TEST_BUILD_ENV+=	HAVE_STRING_POOLING=0
+
 test-build: .PHONY
 	-rm -rf build-dir
 	mkdir -p build-dir
@@ -110,7 +113,7 @@ test-build: .PHONY
 .endif
 	cd build-dir; env CC=${CC:Q} CFLAGS=${CFLAGS:M*:Q} \
 	    CPPFLAGS=${CPPFLAGS:M*:Q} LDFLAGS=${LDFLAGS:M*:Q} \
-	    LIBS= NOWARN=-Wno-error TARGET_OS= CPP= /bin/sh \
+	    LIBS= NOWARN=-Wno-error ${TEST_BUILD_ENV} /bin/sh \
 	    ${SRCDIR}/Build.sh -Q -r ${_TBF} && ./test.sh -v -f
 
 CLEANFILES+=	lksh.cat1

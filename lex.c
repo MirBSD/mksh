@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.226 2016/07/25 00:04:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.227 2016/07/25 21:05:21 tg Exp $");
 
 /*
  * states while lexing word
@@ -887,20 +887,11 @@ yylex(int cf)
 #ifndef MKSH_LEGACY_MODE
 	    (c == '&' && !Flag(FSH) && !Flag(FPOSIX)) ||
 #endif
-	    c == '<' || c == '>')) {
+	    c == '<' || c == '>') && ((c2 = Xlength(ws, wp)) == 0 ||
+	    (c2 == 2 && dp[0] == CHAR && ksh_isdigit(dp[1])))) {
 		struct ioword *iop = alloc(sizeof(struct ioword), ATEMP);
 
-		if (Xlength(ws, wp) == 0)
-			iop->unit = c == '<' ? 0 : 1;
-		else for (iop->unit = 0, c2 = 0; c2 < Xlength(ws, wp); c2 += 2) {
-			if (dp[c2] != CHAR)
-				goto no_iop;
-			if (!ksh_isdigit(dp[c2 + 1]))
-				goto no_iop;
-			iop->unit = iop->unit * 10 + ksh_numdig(dp[c2 + 1]);
-			if (iop->unit >= FDBASE)
-				goto no_iop;
-		}
+		iop->unit = c2 == 2 ? ksh_numdig(dp[1]) : c == '<' ? 0 : 1;
 
 		if (c == '&') {
 			if ((c2 = getsc()) != '>') {

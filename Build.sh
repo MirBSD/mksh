@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.699 2016/07/25 00:04:35 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.700 2016/07/25 21:05:18 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016
@@ -596,7 +596,6 @@ else
 	check_categories="$check_categories shell:legacy-yes"
 	add_cppflags -DMKSH_LEGACY_MODE
 	HAVE_PERSISTENT_HISTORY=0
-	HAVE_ISSET_MKSH_CONSERVATIVE_FDS=1	# from sh.h
 fi
 
 if test x"$srcdir" = x"."; then
@@ -691,7 +690,6 @@ case $TARGET_OS in
 	: "${HAVE_CAN_OTWO=0}"
 	add_cppflags -DMKSH_NO_SIGSETJMP
 	add_cppflags -DMKSH_TYPEDEF_SIG_ATOMIC_T=int
-	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	;;
 AIX)
 	add_cppflags -D_ALL_SOURCE
@@ -721,7 +719,6 @@ Coherent)
 	add_cppflags -DMKSH__NO_SYMLINK
 	check_categories="$check_categories nosymlink"
 	add_cppflags -DMKSH__NO_SETEUGID
-	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	add_cppflags -DMKSH_DISABLE_TTY_WARNING
 	;;
 CYGWIN*)
@@ -737,7 +734,6 @@ FreeBSD)
 FreeMiNT)
 	oswarn="; it has minor issues"
 	add_cppflags -D_GNU_SOURCE
-	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 GNU)
@@ -787,14 +783,12 @@ MidnightBSD)
 Minix-vmd)
 	add_cppflags -DMKSH__NO_SETEUGID
 	add_cppflags -DMKSH_UNEMPLOYED
-	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	add_cppflags -D_MINIX_SOURCE
 	oldish_ed=no-stderr-ed		# no /bin/ed, maybe see below
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 Minix3)
 	add_cppflags -DMKSH_UNEMPLOYED
-	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	add_cppflags -DMKSH_NO_LIMITS
 	add_cppflags -D_POSIX_SOURCE -D_POSIX_1_SOURCE=2 -D_MINIX
 	oldish_ed=no-stderr-ed		# /usr/bin/ed(!) is broken
@@ -825,12 +819,10 @@ NEXTSTEP)
 		oswarn="; it needs libposix.a"
 		;;
 	esac
-	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	;;
 Ninix3)
 	# similar to Minix3
 	add_cppflags -DMKSH_UNEMPLOYED
-	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	add_cppflags -DMKSH_NO_LIMITS
 	# but no idea what else could be needed
 	oswarn="; it has unknown issues"
@@ -898,7 +890,6 @@ SCO_SV)
 		oswarn="$oswarn$nl$TARGET_OS ${TARGET_OSREV}, please tell me what to do"
 		;;
 	esac
-	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	: "${HAVE_SYS_SIGLIST=0}${HAVE__SYS_SIGLIST=0}"
 	;;
 skyos)
@@ -916,12 +907,10 @@ syllable)
 ULTRIX)
 	: "${CC=cc -YPOSIX}"
 	add_cppflags -DMKSH_TYPEDEF_SSIZE_T=int
-	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 UnixWare|UNIX_SV)
 	# SCO UnixWare
-	add_cppflags -DMKSH_CONSERVATIVE_FDS
 	: "${HAVE_SYS_SIGLIST=0}${HAVE__SYS_SIGLIST=0}"
 	;;
 UWIN*)
@@ -1536,7 +1525,7 @@ i1) fv=1 ;;
 i2) fv=2; fx=' (on demand)' ;;
 esac
 ac_testdone
-ac_cppflags
+test x"$HAVE_STRING_POOLING" = x"0" || ac_cppflags
 
 phase=x
 # The following tests run with -Werror or similar (all compilers) if possible
@@ -1645,7 +1634,6 @@ if ac_ifcpp 'ifdef MKSH_SMALL' isset_MKSH_SMALL '' \
 	: "${HAVE_NICE=0}"
 	: "${HAVE_PERSISTENT_HISTORY=0}"
 	check_categories="$check_categories smksh"
-	HAVE_ISSET_MKSH_CONSERVATIVE_FDS=1	# from sh.h
 fi
 ac_ifcpp 'if defined(MKSH_BINSHPOSIX) || defined(MKSH_BINSHREDUCED)' \
     isset_MKSH_BINSH '' 'if invoking as sh should be handled specially' && \
@@ -1658,12 +1646,6 @@ ac_ifcpp 'ifdef MKSH_NOPROSPECTOFWORK' isset_MKSH_NOPROSPECTOFWORK '' \
     check_categories="$check_categories arge nojsig"
 ac_ifcpp 'ifdef MKSH_ASSUME_UTF8' isset_MKSH_ASSUME_UTF8 '' \
     'if the default UTF-8 mode is specified' && : "${HAVE_SETLOCALE_CTYPE=0}"
-if ac_ifcpp 'ifdef MKSH_CONSERVATIVE_FDS' isset_MKSH_CONSERVATIVE_FDS '' \
-    'if traditional/conservative fd use is requested'; then
-	check_categories="$check_categories convfds"
-else
-	echo >&2 "WARNING: not building with -DMKSH_CONSERVATIVE_FDS is deprecated"
-fi
 #ac_ifcpp 'ifdef MKSH_DISABLE_DEPRECATED' isset_MKSH_DISABLE_DEPRECATED '' \
 #    "if deprecated features are to be omitted" && \
 #    check_categories="$check_categories nodeprecated"
@@ -2360,7 +2342,7 @@ addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && add_cppflags -DMKSH_PRINTF_BUILTIN
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
-add_cppflags -DMKSH_BUILD_R=523
+add_cppflags -DMKSH_BUILD_R=529
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 
@@ -2666,9 +2648,7 @@ MKSH_A4PB			force use of arc4random_pushb
 MKSH_ASSUME_UTF8		(0=disabled, 1=enabled; default: unset)
 MKSH_BINSHPOSIX			if */sh or */-sh, enable set -o posix
 MKSH_BINSHREDUCED		if */sh or */-sh, enable set -o sh
-MKSH_CLRTOEOL_STRING		"\033[K"
 MKSH_CLS_STRING			"\033[;H\033[J"
-MKSH_CONSERVATIVE_FDS		fd 0-9 for scripts, shell only up to 31 (soon default)
 MKSH_DEFAULT_EXECSHELL		"/bin/sh" (do not change)
 MKSH_DEFAULT_PROFILEDIR		"/etc" (do not change)
 MKSH_DEFAULT_TMPDIR		"/tmp" (do not change)

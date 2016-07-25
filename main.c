@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.313 2016/07/25 20:36:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.314 2016/07/25 21:05:22 tg Exp $");
 
 extern char **environ;
 
@@ -1471,25 +1471,20 @@ closepipe(int *pv)
 int
 check_fd(const char *name, int mode, const char **emsgp)
 {
-	int fd = 0, fl;
+	int fd, fl;
 
-	if (name[0] == 'p' && !name[1])
+	if (!name[0] || name[1])
+		goto illegal_fd_name;
+	if (name[0] == 'p')
 		return (coproc_getfd(mode, emsgp));
-	while (ksh_isdigit(*name)) {
-		fd = fd * 10 + ksh_numdig(*name);
-		if (fd >= FDBASE) {
-			if (emsgp)
-				*emsgp = "file descriptor too large";
-			return (-1);
-		}
-		++name;
-	}
-	if (*name) {
+	if (!ksh_isdigit(name[0])) {
+ illegal_fd_name:
 		if (emsgp)
 			*emsgp = "illegal file descriptor name";
 		return (-1);
 	}
-	if ((fl = fcntl(fd, F_GETFL, 0)) < 0) {
+
+	if ((fl = fcntl((fd = ksh_numdig(name[0])), F_GETFL, 0)) < 0) {
 		if (emsgp)
 			*emsgp = "bad file descriptor";
 		return (-1);

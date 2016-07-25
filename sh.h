@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.778 2016/07/25 20:43:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.779 2016/07/25 21:05:24 tg Exp $");
 #endif
-#define MKSH_VERSION "R52 2016/07/24"
+#define MKSH_VERSION "R53 2016/07/25"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -578,7 +578,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 523)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 529)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -634,17 +634,11 @@ im_sorry_dave(void)
 #ifndef MKSH_NO_CMDLINE_EDITING
 #define MKSH_NO_CMDLINE_EDITING	/* defined */
 #endif
-#ifndef MKSH_CONSERVATIVE_FDS
-#define MKSH_CONSERVATIVE_FDS	/* defined */
-#endif
 #undef MKSH_S_NOVI
 #define MKSH_S_NOVI		1
 #endif
 
 #ifdef MKSH_SMALL
-#ifndef MKSH_CONSERVATIVE_FDS
-#define MKSH_CONSERVATIVE_FDS	/* defined */
-#endif
 #ifndef MKSH_NOPWNAM
 #define MKSH_NOPWNAM		/* defined */
 #endif
@@ -661,14 +655,8 @@ im_sorry_dave(void)
 #define MKSH_UNEMPLOYED		1
 #endif
 
-/* these shall be smaller than 100 */
-#ifdef MKSH_CONSERVATIVE_FDS
 #define NUFILE		32	/* Number of user-accessible files */
 #define FDBASE		10	/* First file usable by Shell */
-#else
-#define NUFILE		56	/* Number of user-accessible files */
-#define FDBASE		24	/* First file usable by Shell */
-#endif
 
 /*
  * simple grouping allocator

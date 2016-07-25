@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.403 2016/07/25 20:41:23 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.404 2016/07/25 21:05:23 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -2463,12 +2463,6 @@ indicating the file descriptor associated with the output of the current
 co-process; or the character
 .Ql \- ,
 indicating standard input is to be closed.
-.Pp
-Note that the current version of
-.Nm
-supports some two-digit fd numbers in some environments;
-this feature is deprecated and will be removed from a subsequent release
-in favour of a ksh93-/perl-style "named file descriptors" feature.
 .It \*(Gt& Ns Ar fd
 Same as
 .Ic \*(Lt& ,

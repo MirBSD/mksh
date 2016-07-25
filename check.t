@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.743 2016/07/25 20:38:00 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.744 2016/07/25 21:05:19 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R52 2016/07/24
+	@(#)MIRBSD KSH R53 2016/07/25
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R52 2016/07/24
+	@(#)LEGACY KSH R53 2016/07/25
 description:
 	Check version of legacy shell.
 stdin:
@@ -10137,29 +10137,6 @@ expected-stdout:
 	1  = bar .
 	2  = bar .
 	3  = bar .
----
-name: mkshiop-1
-description:
-	Check for support of more than 9 file descriptors
-category: !convfds
-stdin:
-	read -u10 foo 10<<< bar
-	echo x$foo
-expected-stdout:
-	xbar
----
-name: mkshiop-2
-description:
-	Check for support of more than 9 file descriptors
-category: !convfds
-stdin:
-	exec 12>foo
-	print -u12 bar
-	echo baz >&12
-	cat foo
-expected-stdout:
-	bar
-	baz
 ---
 name: oksh-eval
 description:
