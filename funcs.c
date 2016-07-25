@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.300 2016/07/25 00:04:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.301 2016/07/25 20:38:02 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -288,6 +288,9 @@ c_print(const char **wp)
 	bool po_nl = true, po_exp = true;
 	/* print to history instead of file descriptor / stdout */
 	bool po_hist = false;
+	/* print characters */
+	bool po_char = false;
+	char ts[4];
 
 	if (wp[0][0] == 'e') {
 		/* "echo" builtin */
@@ -352,13 +355,16 @@ c_print(const char **wp)
 		}
 	} else {
 		/* "print" builtin */
-		const char *opts = "npRrsu,";
+		const char *opts = "AnpRrsu,";
 		const char *emsg;
 		/* print a "--" argument */
 		bool po_pminusminus = false;
 
 		while ((c = ksh_getopt(wp, &builtin_opt, opts)) != -1)
 			switch (c) {
+			case 'A':
+				po_char = true;
+				break;
 			case 'e':
 				po_exp = true;
 				break;
@@ -407,7 +413,22 @@ c_print(const char **wp)
 
 	Xinit(xs, xp, 128, ATEMP);
 
-	if (*wp != NULL) {
+	if (*wp != NULL && po_char) {
+		mksh_ari_t wc;
+
+		do {
+			if (!evaluate(*wp, &wc, KSH_RETURN_ERROR, true))
+				return (1);
+			if (UTFMODE) {
+				ts[utf_wctomb(ts, wc)] = 0;
+				c = 0;
+				do {
+					Xput(xs, xp, ts[c]);
+				} while (ts[++c]);
+			} else
+				Xput(xs, xp, wc & 0xFF);
+		} while (*++wp);
+	} else if (*wp != NULL) {
  print_read_arg:
 		s = *wp;
 		while ((c = *s++) != '\0') {
@@ -432,8 +453,6 @@ c_print(const char **wp)
 					}
 				} else if ((unsigned int)c > 0xFF) {
 					/* generic function returned Unicode */
-					char ts[4];
-
 					ts[utf_wctomb(ts, c - 0x100)] = 0;
 					c = 0;
 					do {

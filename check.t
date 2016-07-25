@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.742 2016/07/25 20:36:24 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.743 2016/07/25 20:38:00 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -9129,6 +9129,16 @@ stdin:
 	    ${#x} "$x" '<\0>'
 expected-stdout-pattern:
 	/^4 3 2 <> <\0>$/
+---
+name: print-array
+description:
+	Check that print -A works as expected
+stdin:
+	print -An 0x20AC 0xC3 0xBC 8#101
+	set -U
+	print -A 0x20AC 0xC3 0xBC 8#102
+expected-stdout:
+	�üA€Ã¼B
 ---
 name: print-escapes
 description:

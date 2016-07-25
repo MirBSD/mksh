@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.401 2016/07/24 23:11:51 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.402 2016/07/25 20:38:04 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 24 2016 $
+.Dd $Mdocdate: July 25 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -3714,7 +3714,7 @@ however, distributors may have added this as builtin as a speed hack.
 .Pp
 .It Xo
 .Ic print
-.Oo Fl nprsu Ns Oo Ar n Oc \*(Ba
+.Oo Fl Anprsu Ns Oo Ar n Oc \*(Ba
 .Fl R Op Fl en Oc
 .Op Ar argument ...
 .Xc
@@ -3750,6 +3750,10 @@ and the
 option prints to the co-process (see
 .Sx Co-processes
 above).
+The
+.Fl A
+option prints the character corresponding to each
+.Ar argument Ns 's value .
 .Pp
 The
 .Fl R
