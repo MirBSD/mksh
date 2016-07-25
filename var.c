@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.205 2016/07/25 20:43:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.206 2016/07/25 21:02:13 tg Exp $");
 
 /*-
  * Variables
@@ -1290,9 +1290,11 @@ setspec(struct tbl *vp)
 		/* clear tracked aliases */
 		flushcom(true);
 		return;
+#ifndef MKSH_NO_CMDLINE_EDITING
 	case V_TERM:
 		x_initterm(str_val(vp));
 		return;
+#endif
 	case V_TMPDIR:
 		afree(tmpdir, APERM);
 		tmpdir = NULL;
@@ -1409,9 +1411,11 @@ unsetspec(struct tbl *vp)
 		/* clear tracked aliases */
 		flushcom(true);
 		break;
+#ifndef MKSH_NO_CMDLINE_EDITING
 	case V_TERM:
 		x_initterm(null);
 		return;
+#endif
 	case V_TMPDIR:
 		/* should not become unspecial */
 		if (tmpdir) {
