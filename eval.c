@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.190 2016/07/24 23:05:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.191 2016/07/25 00:04:41 tg Exp $");
 
 /*
  * string expansion
@@ -381,9 +381,9 @@ expand(
 					/* ({) the } or x is already skipped */
 					if (end < wdscan(beg, EOS))
 						*end = EOS;
-					str = snptreef(NULL, 64, "%S", beg);
+					str = snptreef(NULL, 64, Tf_S, beg);
 					afree(beg, ATEMP);
-					errorf("%s: %s", str, Tbadsubst);
+					errorf(Tf_sD_s, str, Tbadsubst);
 				}
 				if (f & DOBLANK)
 					doblank++;
@@ -568,7 +568,7 @@ expand(
 								p--;
 							}
 						strndupx(end, s, sbeg - s, ATEMP);
-						d = shf_smprintf("%s%s%s", end, rrep, p);
+						d = shf_smprintf(Tf_sss, end, rrep, p);
 						afree(end, ATEMP);
 						sbeg = d + (sbeg - s) + strlen(rrep);
 						afree(s, ATEMP);
@@ -729,7 +729,7 @@ expand(
 				case '?':
 					dp = Xrestpos(ds, dp, st->base);
 
-					errorf("%s: %s", st->var->name,
+					errorf(Tf_sD_s, st->var->name,
 					    debunk(dp, dp, strlen(dp) + 1));
 					break;
 				case '0':
@@ -1134,10 +1134,10 @@ varsub(Expand *xp, const char *sp, const char *word,
 			}
 		}
 		if (Flag(FNOUNSET) && c == 0 && !zero_ok)
-			errorf("%s: parameter not set", sp);
+			errorf(Tf_parm, sp);
 		/* unqualified variable/string substitution */
 		*stypep = 0;
-		xp->str = shf_smprintf("%d", c);
+		xp->str = shf_smprintf(Tf_d, c);
 		return (XSUB);
 	}
 	if (stype == '!' && c != '\0' && *word == CSUBST) {
@@ -1249,7 +1249,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		for (; vp; vp = vp->u.array) {
 			if (!(vp->flag&ISSET))
 				continue;
-			XPput(wv, c == '!' ? shf_smprintf("%lu",
+			XPput(wv, c == '!' ? shf_smprintf(Tf_lu,
 			    arrayindex(vp)) :
 			    str_val(vp));
 		}
@@ -1288,7 +1288,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		state = XBASE;
 	if (Flag(FNOUNSET) && xp->str == null && !zero_ok &&
 	    (ctype(c, C_SUBOP2) || (state != XBASE && c != '+')))
-		errorf("%s: parameter not set", sp);
+		errorf(Tf_parm, sp);
 	*stypep = stype;
 	*slenp = slen;
 	return (state);
@@ -1331,8 +1331,8 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 			shf = shf_open(name = evalstr(io->ioname, DOTILDE),
 				O_RDONLY, 0, SHF_MAPHI | SHF_CLEXEC);
 			if (shf == NULL)
-				warningf(!Flag(FTALKING), "%s: %s %s: %s",
-				    name, "can't open", "$(<...) input",
+				warningf(!Flag(FTALKING), Tf_sD_s_sD_s,
+				    name, Tcant_open, "$(<...) input",
 				    cstrerror(errno));
 			break;
 		case IOHERE:
@@ -1348,8 +1348,8 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 			shf = NULL;
 			break;
 		default:
-			errorf("%s: %s", T_funny_command,
-			    snptreef(NULL, 32, "%R", io));
+			errorf(Tf_sD_s, T_funny_command,
+			    snptreef(NULL, 32, Tft_R, io));
 		}
 	} else if (fn == FUNSUB) {
 		int ofd1;
@@ -1361,8 +1361,8 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 		 */
 		maketemp(ATEMP, TT_FUNSUB, &tf);
 		if (!tf->shf) {
-			errorf("can't %s temporary file %s: %s",
-			    "create", tf->tffn, cstrerror(errno));
+			errorf(Tf_temp,
+			    Tcreate, tf->tffn, cstrerror(errno));
 		}
 		/* extract shf from temporary file, unlink and free it */
 		shf = tf->shf;
@@ -1612,7 +1612,7 @@ globit(XString *xs,	/* dest string */
 		/* xp = *xpp;	copy_non_glob() may have re-alloc'd xs */
 		*xp = '\0';
 		prefix_len = Xlength(*xs, xp);
-		dirp = opendir(prefix_len ? Xstring(*xs, xp) : ".");
+		dirp = opendir(prefix_len ? Xstring(*xs, xp) : Tdot);
 		if (dirp == NULL)
 			goto Nodir;
 		while ((d = readdir(dirp)) != NULL) {
@@ -1725,9 +1725,9 @@ do_tilde(char *cp)
 	if (cp[0] == '\0')
 		dp = str_val(global("HOME"));
 	else if (cp[0] == '+' && cp[1] == '\0')
-		dp = str_val(global("PWD"));
+		dp = str_val(global(TPWD));
 	else if (ksh_isdash(cp))
-		dp = str_val(global("OLDPWD"));
+		dp = str_val(global(TOLDPWD));
 #ifndef MKSH_NOPWNAM
 	else {
 		dp = homedir(cp);

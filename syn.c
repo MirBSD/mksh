@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.111 2016/02/26 21:24:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.112 2016/07/25 00:04:48 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -208,7 +208,7 @@ synio(int cf)
 			iop->ioflag |= IOEVAL;
 		}
 		if (herep > &heres[HERES - 1])
-			yyerror("too many %ss\n", "<<");
+			yyerror(Tf_toomany, "<<");
 		*herep++ = iop;
 	} else
 		iop->ioname = yylval.cp;
@@ -312,8 +312,8 @@ get_command(int cf)
 			case REDIR:
 				while ((iop = synio(cf)) != NULL) {
 					if (iopn >= NUFILE)
-						yyerror("too many %ss\n",
-						    "redirection");
+						yyerror(Tf_toomany,
+						    Tredirection);
 					iops[iopn++] = iop;
 				}
 				break;
@@ -512,7 +512,7 @@ get_command(int cf)
 
 	while ((iop = synio(syniocf)) != NULL) {
 		if (iopn >= NUFILE)
-			yyerror("too many %ss\n", "redirection");
+			yyerror(Tf_toomany, Tredirection);
 		iops[iopn++] = iop;
 	}
 
@@ -813,7 +813,7 @@ static const struct tokeninfo {
 	{ "done",	DONE,	true },
 	{ "in",		IN,	true },
 	{ Tfunction,	FUNCTION, true },
-	{ "time",	TIME,	true },
+	{ Ttime,	TIME,	true },
 	{ "{",		'{',	true },
 	{ Tcbrace,	'}',	true },
 	{ "!",		BANG,	true },
@@ -860,7 +860,7 @@ syntaxerr(const char *what)
 	int c;
 
 	if (!what)
-		what = "unexpected";
+		what = Tunexpected;
 	REJECT;
 	c = token(0);
  Again:
@@ -877,11 +877,11 @@ syntaxerr(const char *what)
 		/* NOTREACHED */
 
 	case LWORD:
-		s = snptreef(NULL, 32, "%S", yylval.cp);
+		s = snptreef(NULL, 32, Tf_S, yylval.cp);
 		break;
 
 	case REDIR:
-		s = snptreef(redir, sizeof(redir), "%R", yylval.iop);
+		s = snptreef(redir, sizeof(redir), Tft_R, yylval.iop);
 		break;
 
 	default:
@@ -1188,7 +1188,7 @@ yyrecursive(int subtype MKSH_A_UNUSED)
 	yyrecursive_pop(false);
 
 	/* t->left because nested(TPAREN, ...) hides our goodies there */
-	cp = snptreef(NULL, 0, "%T", t->left);
+	cp = snptreef(NULL, 0, Tf_T, t->left);
 	tfree(t, ATEMP);
 
 	return (cp);

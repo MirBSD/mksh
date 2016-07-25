@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.85 2016/06/26 00:09:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.86 2016/07/25 00:04:48 tg Exp $");
 
 #define INDENT	8
 
@@ -74,20 +74,20 @@ ptree(struct op *t, int indent, struct shf *shf)
 		    ccp[0] == CHAR && ((ccp[1] == '=' && ccp[2] == EOS) ||
 		    /* or "varname+=" */ (ccp[1] == '+' && ccp[2] == CHAR &&
 		    ccp[3] == '=' && ccp[4] == EOS))) {
-			fptreef(shf, indent, "%S", t->vars[0]);
+			fptreef(shf, indent, Tf_S, t->vars[0]);
 			break;
 		}
 
 		if (t->vars) {
 			w = (const char **)t->vars;
 			while (*w)
-				fptreef(shf, indent, "%S ", *w++);
+				fptreef(shf, indent, Tf_S_, *w++);
 		} else
 			shf_puts("#no-vars# ", shf);
 		if (t->args) {
 			w = t->args;
 			while (*w)
-				fptreef(shf, indent, "%S ", *w++);
+				fptreef(shf, indent, Tf_S_, *w++);
 		} else
 			shf_puts("#no-args# ", shf);
 		break;
@@ -119,7 +119,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		w = t->args;
 		shf_puts("[[", shf);
 		while (*w)
-			fptreef(shf, indent, " %S", *w++);
+			fptreef(shf, indent, Tf__S, *w++);
 		shf_puts(" ]] ", shf);
 		break;
 	case TSELECT:
@@ -130,8 +130,8 @@ ptree(struct op *t, int indent, struct shf *shf)
 			shf_puts("in ", shf);
 			w = (const char **)t->vars;
 			while (*w)
-				fptreef(shf, indent, "%S ", *w++);
-			fptreef(shf, indent, "%;");
+				fptreef(shf, indent, Tf_S_, *w++);
+			fptreef(shf, indent, Tft_end);
 		}
 		fptreef(shf, indent + INDENT, "do%N%T", t->left);
 		fptreef(shf, indent, "%;done ");
@@ -151,11 +151,9 @@ ptree(struct op *t, int indent, struct shf *shf)
 		}
 		fptreef(shf, indent, "%Nesac ");
 		break;
-#ifdef DEBUG
 	case TELIF:
-		internal_errorf("TELIF in tree.c:ptree() unexpected");
+		internal_errorf(TELIF_unexpected);
 		/* FALLTHROUGH */
-#endif
 	case TIF:
 		i = 2;
 		t1 = t;
@@ -163,19 +161,19 @@ ptree(struct op *t, int indent, struct shf *shf)
 		do {
 			t1 = t1->right;
 			i = 0;
-			fptreef(shf, indent, "%;");
+			fptreef(shf, indent, Tft_end);
  process_TIF:
 			/* 5 == strlen("elif ") */
 			fptreef(shf, indent + 5 - i, Telif_pT + i, t1->left);
 			t1 = t1->right;
 			if (t1->left != NULL) {
-				fptreef(shf, indent, "%;");
+				fptreef(shf, indent, Tft_end);
 				fptreef(shf, indent + INDENT, "%s%N%T",
 				    "then", t1->left);
 			}
 		} while (t1->right && t1->right->type == TELIF);
 		if (t1->right != NULL) {
-			fptreef(shf, indent, "%;");
+			fptreef(shf, indent, Tft_end);
 			fptreef(shf, indent + INDENT, "%s%N%T",
 			    "else", t1->right);
 		}
@@ -184,10 +182,10 @@ ptree(struct op *t, int indent, struct shf *shf)
 	case TWHILE:
 	case TUNTIL:
 		/* 6 == strlen("while "/"until ") */
-		fptreef(shf, indent + 6, "%s %T",
+		fptreef(shf, indent + 6, Tf_s_T,
 		    (t->type == TWHILE) ? "while" : "until",
 		    t->left);
-		fptreef(shf, indent, "%;");
+		fptreef(shf, indent, Tft_end);
 		fptreef(shf, indent + INDENT, "do%N%T", t->right);
 		fptreef(shf, indent, "%;done ");
 		break;
@@ -207,7 +205,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 		fpFUNCTf(shf, indent, tobool(t->u.ksh_func), t->str, t->left);
 		break;
 	case TTIME:
-		fptreef(shf, indent, "%s %T", "time", t->left);
+		fptreef(shf, indent, Tf_s_T, Ttime, t->left);
 		break;
 	default:
 		shf_puts("<botch>", shf);
@@ -229,7 +227,7 @@ ptree(struct op *t, int indent, struct shf *shf)
 			    iop->heredoc) {
 				shf_putc('\n', shf);
 				shf_puts(iop->heredoc, shf);
-				fptreef(shf, indent, "%s",
+				fptreef(shf, indent, Tf_s,
 				    evalstr(iop->delim, 0));
 				need_nl = true;
 			}
@@ -258,7 +256,7 @@ pioact(struct shf *shf, struct ioword *iop)
 	    (type == IODUP && (iop->unit == !(flag & IORDUP))) ? iop->unit :
 	    iop->unit + 1;
 	if (iop->unit != expected)
-		shf_fprintf(shf, "%d", (int)iop->unit);
+		shf_fprintf(shf, Tf_d, (int)iop->unit);
 
 	switch (type) {
 	case IOREAD:
@@ -472,7 +470,7 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 				break;
 			case 'd':
 				/* signed decimal */
-				shf_fprintf(shf, "%d", va_arg(va, int));
+				shf_fprintf(shf, Tf_d, va_arg(va, int));
 				break;
 			case 'u':
 				/* unsigned decimal */
@@ -768,7 +766,7 @@ vistree(char *dst, size_t sz, struct op *t)
 	size_t n;
 
 	buf = alloc(sz + 16, ATEMP);
-	snptreef(buf, sz + 16, "%T", t);
+	snptreef(buf, sz + 16, Tf_T, t);
 	cp = buf;
  vist_loop:
 	if (UTFMODE && (n = utf_mbtowc(&c, cp)) != (size_t)-1) {
@@ -1107,7 +1105,7 @@ dumptree(struct shf *shf, struct op *t)
 		goto dumpleftandout;
 	OPEN(TFUNCT)
 		shf_fprintf(shf, " str<%s> ksh<%s>", t->str,
-		    t->u.ksh_func ? "true" : "false");
+		    t->u.ksh_func ? Ttrue : Tfalse);
 		goto dumpleftandout;
 	OPEN(TTIME)
 		goto dumpleftandout;
@@ -1134,7 +1132,7 @@ dumptree(struct shf *shf, struct op *t)
 		break;
 	OPEN(TEOF)
  dumpunexpected:
-		shf_puts("unexpected", shf);
+		shf_puts(Tunexpected, shf);
 		break;
 	OPEN(TELIF)
 		goto dumpunexpected;

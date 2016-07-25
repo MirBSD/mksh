@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.156 2016/03/04 14:26:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.157 2016/07/25 00:04:43 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -68,12 +68,6 @@ static char *hname;
 static int histfd = -1;
 static off_t histfsize;
 #endif
-
-static const char Tnot_in_history[] = "not in history";
-#define Thistory (Tnot_in_history + 7)
-
-static const char TFCEDIT_dollaru[] = "${FCEDIT:-/bin/ed} $_";
-#define Tspdollaru (TFCEDIT_dollaru + 18)
 
 /* HISTSIZE default: size of saved history, persistent or standard */
 #ifdef MKSH_SMALL
@@ -153,7 +147,7 @@ c_fc(const char **wp)
 			else if (!last)
 				last = p;
 			else {
-				bi_errorf("too many arguments");
+				bi_errorf(Ttoo_many_args);
 				return (1);
 			}
 			break;
@@ -183,7 +177,7 @@ c_fc(const char **wp)
 		if (!first && (first = *wp))
 			wp++;
 		if (last || *wp) {
-			bi_errorf("too many arguments");
+			bi_errorf(Ttoo_many_args);
 			return (1);
 		}
 
@@ -239,7 +233,7 @@ c_fc(const char **wp)
 	if (!last && (last = *wp))
 		wp++;
 	if (*wp) {
-		bi_errorf("too many arguments");
+		bi_errorf(Ttoo_many_args);
 		return (1);
 	}
 	if (!first) {
@@ -278,7 +272,7 @@ c_fc(const char **wp)
 		for (hp = rflag ? hlast : hfirst;
 		    hp >= hfirst && hp <= hlast; hp += rflag ? -1 : 1) {
 			if (!nflag)
-				shf_fprintf(shl_stdout, "%lu",
+				shf_fprintf(shl_stdout, Tf_lu,
 				    (unsigned long)hist_source->line -
 				    (unsigned long)(histptr - hp));
 			shf_putc('\t', shl_stdout);
@@ -290,7 +284,7 @@ c_fc(const char **wp)
 				*t++ = '\n';
 				s = t;
 			}
-			shf_fprintf(shl_stdout, "%s\n", s);
+			shf_fprintf(shl_stdout, Tf_sN, s);
 		}
 		shf_flush(shl_stdout);
 		return (0);
@@ -300,16 +294,14 @@ c_fc(const char **wp)
 
 	tf = maketemp(ATEMP, TT_HIST_EDIT, &e->temps);
 	if (!(shf = tf->shf)) {
-		bi_errorf("can't %s temporary file %s: %s",
-		    "create", tf->tffn, cstrerror(errno));
+		bi_errorf(Tf_temp, Tcreate, tf->tffn, cstrerror(errno));
 		return (1);
 	}
 	for (hp = rflag ? hlast : hfirst;
 	    hp >= hfirst && hp <= hlast; hp += rflag ? -1 : 1)
-		shf_fprintf(shf, "%s\n", *hp);
+		shf_fprintf(shf, Tf_sN, *hp);
 	if (shf_close(shf) == -1) {
-		bi_errorf("can't %s temporary file %s: %s",
-		    "write", tf->tffn, cstrerror(errno));
+		bi_errorf(Tf_temp, Twrite, tf->tffn, cstrerror(errno));
 		return (1);
 	}
 
@@ -334,16 +326,15 @@ c_fc(const char **wp)
 		ssize_t n;
 
 		if (!(shf = shf_open(tf->tffn, O_RDONLY, 0, 0))) {
-			bi_errorf("can't %s temporary file %s: %s",
-			    "open", tf->tffn, cstrerror(errno));
+			bi_errorf(Tf_temp, Topen, tf->tffn, cstrerror(errno));
 			return (1);
 		}
 
 		if (stat(tf->tffn, &statb) < 0)
 			n = 128;
 		else if ((off_t)statb.st_size > MKSH_MAXHISTFSIZE) {
-			bi_errorf("%s %s too large: %lu", Thistory,
-			    "file", (unsigned long)statb.st_size);
+			bi_errorf(Tf_toolarge, Thistory,
+			    Tfile, (unsigned long)statb.st_size);
 			goto errout;
 		} else
 			n = (size_t)statb.st_size + 1;
@@ -354,8 +345,8 @@ c_fc(const char **wp)
 				XcheckN(xs, xp, Xlength(xs, xp));
 		}
 		if (n < 0) {
-			bi_errorf("can't %s temporary file %s: %s",
-			    "read", tf->tffn, cstrerror(shf_errno(shf)));
+			bi_errorf(Tf_temp, Tread, tf->tffn,
+			    cstrerror(shf_errno(shf)));
  errout:
 			shf_close(shf);
 			return (1);
@@ -388,7 +379,7 @@ hist_execute(char *cmd, Area *areap)
 	afree(cmd, areap);
 	cmd = *histptr;
 	/* pdksh says POSIX doesn’t say this is done, testsuite needs it */
-	shellf("%s\n", cmd);
+	shellf(Tf_sN, cmd);
 
 	/*-
 	 * Commands are executed here instead of pushing them onto the
@@ -420,18 +411,18 @@ hist_get(const char *str, bool approx, bool allow_cur)
 			if (approx)
 				hp = hist_get_oldest();
 			else {
-				bi_errorf("%s: %s", str, Tnot_in_history);
+				bi_errorf(Tf_sD_s, str, Tnot_in_history);
 				hp = NULL;
 			}
 		} else if ((size_t)hp > (size_t)histptr) {
 			if (approx)
 				hp = hist_get_newest(allow_cur);
 			else {
-				bi_errorf("%s: %s", str, Tnot_in_history);
+				bi_errorf(Tf_sD_s, str, Tnot_in_history);
 				hp = NULL;
 			}
 		} else if (!allow_cur && hp == histptr) {
-			bi_errorf("%s: %s", str, "invalid range");
+			bi_errorf(Tf_sD_s, str, "invalid range");
 			hp = NULL;
 		}
 	} else {
@@ -439,7 +430,7 @@ hist_get(const char *str, bool approx, bool allow_cur)
 
 		/* the -1 is to avoid the current fc command */
 		if ((n = findhist(histptr - history - 1, 0, str, anchored)) < 0)
-			bi_errorf("%s: %s", str, Tnot_in_history);
+			bi_errorf(Tf_sD_s, str, Tnot_in_history);
 		else
 			hp = &history[n];
 	}
@@ -852,7 +843,7 @@ hist_init(Source *s)
 			goto retry;
 		}
 		if (hs != hist_init_retry)
-			bi_errorf("can't %s %s: %s",
+			bi_errorf(Tf_cant,
 			    "unlink HISTFILE", hname, cstrerror(errno));
 		histfsize = 0;
 		return;
@@ -1063,7 +1054,7 @@ inittraps(void)
 			}
 		}
 		if (sigtraps[i].name == null)
-			sigtraps[i].name = shf_smprintf("%d", i);
+			sigtraps[i].name = shf_smprintf(Tf_d, i);
 #if HAVE_SYS_SIGLIST
 		sigtraps[i].mess = sys_siglist[i];
 #elif HAVE_STRSIGNAL
@@ -1073,7 +1064,7 @@ inittraps(void)
 #endif
 		if ((sigtraps[i].mess == NULL) ||
 		    (sigtraps[i].mess[0] == '\0'))
-			sigtraps[i].mess = shf_smprintf("%s %d",
+			sigtraps[i].mess = shf_smprintf(Tf_sd,
 			    "Signal", i);
 	}
 	sigtraps[ksh_SIGEXIT].signal = ksh_SIGEXIT;

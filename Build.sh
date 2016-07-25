@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.698 2016/06/25 23:49:12 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.699 2016/07/25 00:04:35 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016
@@ -1114,6 +1114,7 @@ clang)
 	:*)	;;
 	*:)	CCC_LD=$CCC_CC; export CCC_LD ;;
 	esac
+	: "${HAVE_STRING_POOLING=i1}"
 	;;
 dec)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
@@ -1130,6 +1131,7 @@ gcc)
 	vv '|' 'echo `$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS \
 	    -dumpmachine` gcc`$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN \
 	    $LIBS -dumpversion`'
+	: "${HAVE_STRING_POOLING=i2}"
 	;;
 hpcc)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
@@ -1525,6 +1527,16 @@ if test 1 = $i; then
 	ac_flags 1 wall -Wall
 	ac_flags 1 fwrapv -fwrapv
 fi
+
+# “on demand” means: GCC version >= 4
+fd='if to rely on compiler for string pooling'
+ac_cache string_pooling || case $HAVE_STRING_POOLING in
+2) fx=' (on demand, cached)' ;;
+i1) fv=1 ;;
+i2) fv=2; fx=' (on demand)' ;;
+esac
+ac_testdone
+ac_cppflags
 
 phase=x
 # The following tests run with -Werror or similar (all compilers) if possible

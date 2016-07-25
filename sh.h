@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.776 2016/07/24 23:10:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.777 2016/07/25 00:04:46 tg Exp $");
 #endif
-#define MKSH_VERSION "R52 2016/07/12"
+#define MKSH_VERSION "R52 2016/07/24"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -844,49 +844,322 @@ EXTERN struct {
 #define OF_FIRSTTIME	0x10	/* as early as possible, once */
 #define OF_ANY		(OF_CMDLINE | OF_SET | OF_SPECIAL | OF_INTERNAL)
 
-/* trust GCC to have string pooling; -Wformat bitches otherwise */
-/*XXX TODO: make this with a .gen file plus not imake-style */
-
 /* null value for variable; comparison pointer for unset */
 EXTERN char null[] E_INIT("");
-/* helpers for string pooling */
-#if defined(__GNUC__)
-#define Tsynerr		"syntax error"
-#define Tintovfl	"integer overflow %zu %c %zu prevented"
-#define Toomem		"can't allocate %zu data bytes"
-#else
-EXTERN const char Tintovfl[] E_INIT("integer overflow %zu %c %zu prevented");
-EXTERN const char Toomem[] E_INIT("can't allocate %zu data bytes");
-EXTERN const char Tsynerr[] E_INIT("syntax error");
+
+/* string pooling: do we rely on the compiler? */
+#ifndef HAVE_STRING_POOLING
+/* no, we use our own, saves quite some space */
+#elif HAVE_STRING_POOLING == 2
+/* “on demand” */
+#ifdef __GNUC__
+/* only for GCC 4 or later, older ones can get by without */
+#if __GNUC__ < 4
+#undef HAVE_STRING_POOLING
 #endif
-EXTERN const char Tselect[] E_INIT("select");
-EXTERN const char T_typeset[] E_INIT("=typeset");
-#define Ttypeset	(T_typeset + 1)		/* "typeset" */
+#else
+/* not GCC, default to on */
+#endif
+#elif HAVE_STRING_POOLING == 0
+/* default to on, unless explicitly set to 0 */
+#undef HAVE_STRING_POOLING
+#endif
+
+#ifndef HAVE_STRING_POOLING /* helpers for pooled strings */
+EXTERN const char T4spaces[] E_INIT("    ");
+#define T1space (T4spaces + 3)
+EXTERN const char Tcolsp[] E_INIT(": ");
+EXTERN const char TC_LEX1[] E_INIT("|&;<>() \t\n");
+#define TC_IFSWS (TC_LEX1 + 7)
+EXTERN const char TFCEDIT_dollaru[] E_INIT("${FCEDIT:-/bin/ed} $_");
+#define Tspdollaru (TFCEDIT_dollaru + 18)
+EXTERN const char Tsgdot[] E_INIT("*=.");
+EXTERN const char Taugo[] E_INIT("augo");
+EXTERN const char Tbracket[] E_INIT("[");
+#define Tdot (Tsgdot + 2)
 EXTERN const char Talias[] E_INIT("alias");
-EXTERN const char Tunalias[] E_INIT("unalias");
+EXTERN const char Tbadsubst[] E_INIT("bad substitution");
+EXTERN const char Tbg[] E_INIT("bg");
+EXTERN const char Tbad_bsize[] E_INIT("bad shf/buf/bsize");
+#define Tbsize (Tbad_bsize + 12)
+EXTERN const char Tbad_sig_ss[] E_INIT("%s: bad signal '%s'");
+#define Tbad_sig_s (Tbad_sig_ss + 4)
+EXTERN const char Tgbuiltin[] E_INIT("=builtin");
+#define Tbuiltin (Tgbuiltin + 1)
+EXTERN const char Toomem[] E_INIT("can't allocate %zu data bytes");
+EXTERN const char Tcant_cd[] E_INIT("restricted shell - can't cd");
+EXTERN const char Tcant_find[] E_INIT("can't find");
+EXTERN const char Tcant_open[] E_INIT("can't open");
+#define Tbytes (Toomem + 24)
+EXTERN const char Tbcat[] E_INIT("!cat");
+#define Tcat (Tbcat + 1)
+#define Tcd (Tcant_cd + 25)
+EXTERN const char Tcommand[] E_INIT("command");
+EXTERN const char Tcreate[] E_INIT("create");
+EXTERN const char TELIF_unexpected[] E_INIT("TELIF unexpected");
+EXTERN const char TEXECSHELL[] E_INIT("EXECSHELL");
+EXTERN const char Tsgexport[] E_INIT("*=export");
+#define Texport (Tsgexport + 2)
 #ifdef __OS2__
 EXTERN const char Textproc[] E_INIT("extproc");
 #endif
-EXTERN const char Tsgset[] E_INIT("*=set");
-#define Tset		(Tsgset + 2)		/* "set" */
-EXTERN const char Tsgexport[] E_INIT("*=export");
-#define Texport		(Tsgexport + 2)		/* "export" */
-EXTERN const char Tsgreadonly[] E_INIT("*=readonly");
-#define Treadonly	(Tsgreadonly + 2)	/* "readonly" */
-EXTERN const char Tgbuiltin[] E_INIT("=builtin");
-#define Tbuiltin	(Tgbuiltin + 1)		/* "builtin" */
-EXTERN const char T_function[] E_INIT(" function");
-#define Tfunction	(T_function + 1)	/* "function" */
-EXTERN const char T_funny_command[] E_INIT("funny $() command");
-#define Tcommand	(T_funny_command + 10)	/* "command" */
-#if defined(__GNUC__)
-#define Tfg_badsubst	"fileglob: bad substitution"
-#else
+EXTERN const char Tfalse[] E_INIT("false");
+EXTERN const char Tfg[] E_INIT("fg");
 EXTERN const char Tfg_badsubst[] E_INIT("fileglob: bad substitution");
+EXTERN const char Tfile[] E_INIT("file");
+EXTERN const char Tfile_fd[] E_INIT("function definition file");
+EXTERN const char TFPATH[] E_INIT("FPATH");
+EXTERN const char T_function[] E_INIT(" function");
+#define Tfunction (T_function + 1)
+EXTERN const char T_funny_command[] E_INIT("funny $() command");
+EXTERN const char Tgetopts[] E_INIT("getopts");
+EXTERN const char Thistory[] E_INIT("history");
+EXTERN const char Tintovfl[] E_INIT("integer overflow %zu %c %zu prevented");
+EXTERN const char Tjobs[] E_INIT("jobs");
+EXTERN const char Tjob_not_started[] E_INIT("job not started");
+EXTERN const char Tmksh[] E_INIT("mksh");
+EXTERN const char Tname[] E_INIT("name");
+EXTERN const char Tno_args[] E_INIT("missing argument");
+EXTERN const char Tno_OLDPWD[] E_INIT("no OLDPWD");
+EXTERN const char Tnot_ident[] E_INIT("is not an identifier");
+EXTERN const char Tnot_in_history[] E_INIT("not in history");
+EXTERN const char Tnot_found_s[] E_INIT("%s not found");
+#define Tnot_found (Tnot_found_s + 3)
+#define Tnot_started (Tjob_not_started + 4)
+#define TOLDPWD (Tno_OLDPWD + 3)
+#define Topen (Tcant_open + 6)
+#define TPATH (TFPATH + 1)
+EXTERN const char Tpv[] E_INIT("pv");
+EXTERN const char TpVv[] E_INIT("Vpv");
+#define TPWD (Tno_OLDPWD + 6)
+EXTERN const char Tread[] E_INIT("read");
+EXTERN const char Tsgreadonly[] E_INIT("*=readonly");
+#define Treadonly (Tsgreadonly + 2)
+EXTERN const char Tredirection_dup[] E_INIT("can't finish (dup) redirection");
+#define Tredirection (Tredirection_dup + 19)
+EXTERN const char Treal_sp1[] E_INIT("real ");
+EXTERN const char Treal_sp2[] E_INIT(" real ");
+EXTERN const char Trename[] E_INIT("rename");
+EXTERN const char Treq_arg[] E_INIT("requires an argument");
+EXTERN const char Tselect[] E_INIT("select");
+EXTERN const char Tsgset[] E_INIT("*=set");
+#define Tset (Tsgset + 2)
+#define Tsh (Tmksh + 2)
+#define TSHELL (TEXECSHELL + 4)
+EXTERN const char Tshf_read[] E_INIT("shf_read");
+EXTERN const char Tshf_write[] E_INIT("shf_write");
+EXTERN const char Tj_suspend[] E_INIT("j_suspend");
+#define Tsuspend (Tj_suspend + 2)
+EXTERN const char Tsynerr[] E_INIT("syntax error");
+EXTERN const char Ttime[] E_INIT("time");
+EXTERN const char Ttoo_many_args[] E_INIT("too many arguments");
+EXTERN const char Ttrue[] E_INIT("true");
+EXTERN const char Ttty_fd_dupof[] E_INIT("dup of tty fd");
+#define Ttty_fd (Ttty_fd_dupof + 7)
+EXTERN const char Tgtypeset[] E_INIT("=typeset");
+#define Ttypeset (Tgtypeset + 1)
+#define Tugo (Taugo + 1)
+EXTERN const char Tunalias[] E_INIT("unalias");
+#define Tunexpected (TELIF_unexpected + 6)
+EXTERN const char Tunknown_option[] E_INIT("unknown option");
+EXTERN const char Tuser_sp1[] E_INIT("user ");
+EXTERN const char Tuser_sp2[] E_INIT(" user ");
+#define Twrite (Tshf_write + 4)
+EXTERN const char Tf__S[] E_INIT(" %S");
+EXTERN const char Tf__d[] E_INIT(" %d");
+EXTERN const char Tf__ss[] E_INIT(" %s%s");
+EXTERN const char Tf__sN[] E_INIT(" %s\n");
+EXTERN const char Tf_sSs[] E_INIT("%s/%s");
+EXTERN const char Tf_T[] E_INIT("%T");
+EXTERN const char Tf_dN[] E_INIT("%d\n");
+EXTERN const char Tf_s_[] E_INIT("%s ");
+EXTERN const char Tf_s_T[] E_INIT("%s %T");
+EXTERN const char Tf_s_s_sN[] E_INIT("%s %s %s\n");
+EXTERN const char Tf_s_s[] E_INIT("%s %s");
+EXTERN const char Tf_s_sD_s[] E_INIT("%s %s: %s");
+EXTERN const char Tf_optfoo[] E_INIT("%s%s-%c: %s");
+EXTERN const char Tf_sD_[] E_INIT("%s: ");
+EXTERN const char Tf_szs[] E_INIT("%s: %zd %s");
+EXTERN const char Tf_parm[] E_INIT("%s: parameter not set");
+EXTERN const char Tf_coproc[] E_INIT("-p: %s");
+EXTERN const char Tf_cant[] E_INIT("can't %s %s: %s");
+EXTERN const char Tf_heredoc[] E_INIT("here document '%s' unclosed\n");
+#if HAVE_MKNOD
+EXTERN const char Tf_nonnum[] E_INIT("non-numeric %s %s '%s'");
 #endif
-#define Tbadsubst	(Tfg_badsubst + 10)	/* "bad substitution" */
-EXTERN const char TC_LEX1[] E_INIT("|&;<>() \t\n");
-#define TC_IFSWS	(TC_LEX1 + 7)		/* space tab newline */
+EXTERN const char Tf_S_[] E_INIT("%S ");
+#define Tf_S (Tf__S + 1)
+EXTERN const char Tf_lu[] E_INIT("%lu");
+EXTERN const char Tf_toolarge[] E_INIT("%s %s too large: %lu");
+EXTERN const char Tf_ldfailed[] E_INIT("%s %s(%d, %ld) failed: %s");
+#define Tf_ss (Tf__ss + 1)
+EXTERN const char Tf_sss[] E_INIT("%s%s%s");
+EXTERN const char Tf_sD_s_sD_s[] E_INIT("%s: %s %s: %s");
+EXTERN const char Tf_toomany[] E_INIT("too many %ss\n");
+EXTERN const char Tf_sd[] E_INIT("%s %d");
+#define Tf_s (Tf__ss + 3)
+EXTERN const char Tft_end[] E_INIT("%;");
+EXTERN const char Tft_R[] E_INIT("%R");
+#define Tf_d (Tf__d + 1)
+EXTERN const char Tf_sD_s_qs[] E_INIT("%s: %s '%s'");
+EXTERN const char Tf_ro[] E_INIT("read-only: %s");
+EXTERN const char Tf_flags[] E_INIT("%s: flags 0x%X");
+EXTERN const char Tf_temp[] E_INIT("can't %s temporary file %s: %s");
+EXTERN const char Tf_ssfaileds[] E_INIT("%s: %s failed: %s");
+EXTERN const char Tf_sD_sD_s[] E_INIT("%s: %s: %s");
+EXTERN const char Tf__c_[] E_INIT("-%c ");
+EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
+#define Tf_sN (Tf__sN + 1)
+#define Tf_sD_s (Tf_s_sD_s + 3)
+EXTERN const char T_devtty[] E_INIT("/dev/tty");
+#else /* helpers for string pooling */
+#define T4spaces "    "
+#define T1space " "
+#define Tcolsp ": "
+#define TC_LEX1 "|&;<>() \t\n"
+#define TC_IFSWS " \t\n"
+#define TFCEDIT_dollaru "${FCEDIT:-/bin/ed} $_"
+#define Tspdollaru " $_"
+#define Tsgdot "*=."
+#define Taugo "augo"
+#define Tbracket "["
+#define Tdot "."
+#define Talias "alias"
+#define Tbadsubst "bad substitution"
+#define Tbg "bg"
+#define Tbad_bsize "bad shf/buf/bsize"
+#define Tbsize "bsize"
+#define Tbad_sig_ss "%s: bad signal '%s'"
+#define Tbad_sig_s "bad signal '%s'"
+#define Tgbuiltin "=builtin"
+#define Tbuiltin "builtin"
+#define Toomem "can't allocate %zu data bytes"
+#define Tcant_cd "restricted shell - can't cd"
+#define Tcant_find "can't find"
+#define Tcant_open "can't open"
+#define Tbytes "bytes"
+#define Tbcat "!cat"
+#define Tcat "cat"
+#define Tcd "cd"
+#define Tcommand "command"
+#define Tcreate "create"
+#define TELIF_unexpected "TELIF unexpected"
+#define TEXECSHELL "EXECSHELL"
+#define Tsgexport "*=export"
+#define Texport "export"
+#ifdef __OS2__
+#define Textproc "extproc"
+#endif
+#define Tfalse "false"
+#define Tfg "fg"
+#define Tfg_badsubst "fileglob: bad substitution"
+#define Tfile "file"
+#define Tfile_fd "function definition file"
+#define TFPATH "FPATH"
+#define T_function " function"
+#define Tfunction "function"
+#define T_funny_command "funny $() command"
+#define Tgetopts "getopts"
+#define Thistory "history"
+#define Tintovfl "integer overflow %zu %c %zu prevented"
+#define Tjobs "jobs"
+#define Tjob_not_started "job not started"
+#define Tmksh "mksh"
+#define Tname "name"
+#define Tno_args "missing argument"
+#define Tno_OLDPWD "no OLDPWD"
+#define Tnot_ident "is not an identifier"
+#define Tnot_in_history "not in history"
+#define Tnot_found_s "%s not found"
+#define Tnot_found "not found"
+#define Tnot_started "not started"
+#define TOLDPWD "OLDPWD"
+#define Topen "open"
+#define TPATH "PATH"
+#define Tpv "pv"
+#define TpVv "Vpv"
+#define TPWD "PWD"
+#define Tread "read"
+#define Tsgreadonly "*=readonly"
+#define Treadonly "readonly"
+#define Tredirection_dup "can't finish (dup) redirection"
+#define Tredirection "redirection"
+#define Treal_sp1 "real "
+#define Treal_sp2 " real "
+#define Trename "rename"
+#define Treq_arg "requires an argument"
+#define Tselect "select"
+#define Tsgset "*=set"
+#define Tset "set"
+#define Tsh "sh"
+#define TSHELL "SHELL"
+#define Tshf_read "shf_read"
+#define Tshf_write "shf_write"
+#define Tj_suspend "j_suspend"
+#define Tsuspend "suspend"
+#define Tsynerr "syntax error"
+#define Ttime "time"
+#define Ttoo_many_args "too many arguments"
+#define Ttrue "true"
+#define Ttty_fd_dupof "dup of tty fd"
+#define Ttty_fd "tty fd"
+#define Tgtypeset "=typeset"
+#define Ttypeset "typeset"
+#define Tugo "ugo"
+#define Tunalias "unalias"
+#define Tunexpected "unexpected"
+#define Tunknown_option "unknown option"
+#define Tuser_sp1 "user "
+#define Tuser_sp2 " user "
+#define Twrite "write"
+#define Tf__S " %S"
+#define Tf__d " %d"
+#define Tf__ss " %s%s"
+#define Tf__sN " %s\n"
+#define Tf_sSs "%s/%s"
+#define Tf_T "%T"
+#define Tf_dN "%d\n"
+#define Tf_s_ "%s "
+#define Tf_s_T "%s %T"
+#define Tf_s_s_sN "%s %s %s\n"
+#define Tf_s_s "%s %s"
+#define Tf_s_sD_s "%s %s: %s"
+#define Tf_optfoo "%s%s-%c: %s"
+#define Tf_sD_ "%s: "
+#define Tf_szs "%s: %zd %s"
+#define Tf_parm "%s: parameter not set"
+#define Tf_coproc "-p: %s"
+#define Tf_cant "can't %s %s: %s"
+#define Tf_heredoc "here document '%s' unclosed\n"
+#if HAVE_MKNOD
+#define Tf_nonnum "non-numeric %s %s '%s'"
+#endif
+#define Tf_S_ "%S "
+#define Tf_S "%S"
+#define Tf_lu "%lu"
+#define Tf_toolarge "%s %s too large: %lu"
+#define Tf_ldfailed "%s %s(%d, %ld) failed: %s"
+#define Tf_ss "%s%s"
+#define Tf_sss "%s%s%s"
+#define Tf_sD_s_sD_s "%s: %s %s: %s"
+#define Tf_toomany "too many %ss\n"
+#define Tf_sd "%s %d"
+#define Tf_s "%s"
+#define Tft_end "%;"
+#define Tft_R "%R"
+#define Tf_d "%d"
+#define Tf_sD_s_qs "%s: %s '%s'"
+#define Tf_ro "read-only: %s"
+#define Tf_flags "%s: flags 0x%X"
+#define Tf_temp "can't %s temporary file %s: %s"
+#define Tf_ssfaileds "%s: %s failed: %s"
+#define Tf_sD_sD_s "%s: %s: %s"
+#define Tf__c_ "-%c "
+#define Tf_sD_s_s "%s: %s %s"
+#define Tf_sN "%s\n"
+#define Tf_sD_s "%s: %s"
+#define T_devtty "/dev/tty"
+#endif /* end of string pooling */
 
 typedef uint8_t Temp_type;
 /* expanded heredoc */

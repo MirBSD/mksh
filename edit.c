@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.297 2016/07/12 23:07:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.298 2016/07/25 00:04:39 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -332,7 +332,7 @@ x_glob_hlp_tilde_and_rem_qchar(char *s, bool magic_flag)
 			*--cp = '/';
 		} else {
 			/* ok, expand and replace */
-			cp = shf_smprintf("%s/%s", dp, cp);
+			cp = shf_smprintf(Tf_sSs, dp, cp);
 			if (magic_flag)
 				afree(s, ATEMP);
 			s = cp;
@@ -471,7 +471,7 @@ x_command_glob(int flags, char *toglob, char ***wordsp)
 		glob_table(pat, &w, &l->funs);
 
 	glob_path(flags, pat, &w, path);
-	if ((fpath = str_val(global("FPATH"))) != null)
+	if ((fpath = str_val(global(TFPATH))) != null)
 		glob_path(flags, pat, &w, fpath);
 
 	nwords = XPsize(w);
@@ -1662,7 +1662,7 @@ x_zotc3(char **cp)
 
 	if (c == '\t') {
 		/* Kludge, tabs are always four spaces. */
-		x_e_puts("    ");
+		x_e_puts(T4spaces);
 		(*cp)++;
 	} else if (ISCTRL(c) && /* but not C1 */ c < 0x80) {
 		x_e_putc2('^');
@@ -2443,7 +2443,7 @@ x_print(int prefix, int key)
 	shprintf("%s%s = ", x_mapout(key), (f & 0x80) ? "~" : "");
 	if (XFUNC_VALUE(f) != XFUNC_ins_string)
 #endif
-		shprintf("%s\n", x_ftab[XFUNC_VALUE(f)].xf_name);
+		shprintf(Tf_sN, x_ftab[XFUNC_VALUE(f)].xf_name);
 #ifndef MKSH_SMALL
 	else
 		shprintf("'%s'\n", x_atab[prefix][key]);
@@ -2475,7 +2475,7 @@ x_bind(const char *a1, const char *a2,
 	if (list) {
 		for (f = 0; f < NELEM(x_ftab); f++)
 			if (!(x_ftab[f].xf_flags & XF_NOBIND))
-				shprintf("%s\n", x_ftab[f].xf_name);
+				shprintf(Tf_sN, x_ftab[f].xf_name);
 		return (0);
 	}
 	if (a1 == NULL) {
@@ -2709,7 +2709,7 @@ x_expand(int c MKSH_A_UNUSED)
 	i = 0;
 	while (i < nwords) {
 		if (x_escape(words[i], strlen(words[i]), x_do_ins) < 0 ||
-		    (++i < nwords && x_ins(" ") < 0)) {
+		    (++i < nwords && x_ins(T1space) < 0)) {
 			x_e_putc2(7);
 			return (KSTD);
 		}
@@ -2794,7 +2794,7 @@ do_complete(
 	 */
 	if (nwords == 1 && words[0][nlen - 1] != '/' &&
 	    !(flags & XCF_IS_NOSPACE)) {
-		x_ins(" ");
+		x_ins(T1space);
 	}
 
 	x_free_words(nwords, words);
@@ -3083,7 +3083,7 @@ x_edit_line(int c MKSH_A_UNUSED)
 			x_arg = source->line - (histptr - x_histp);
 	}
 	if (x_arg)
-		shf_snprintf(xbuf, xend - xbuf, "%s %d",
+		shf_snprintf(xbuf, xend - xbuf, Tf_sd,
 		    "fc -e ${VISUAL:-${EDITOR:-vi}} --", x_arg);
 	else
 		strlcpy(xbuf, "fc -e ${VISUAL:-${EDITOR:-vi}} --", xend - xbuf);
@@ -4371,7 +4371,7 @@ vi_cmd(int argcnt, const char *cmd)
 					    (hlast - hnum);
 			}
 			if (argcnt)
-				shf_snprintf(es->cbuf, es->cbufsize, "%s %d",
+				shf_snprintf(es->cbuf, es->cbufsize, Tf_sd,
 				    "fc -e ${VISUAL:-${EDITOR:-vi}} --",
 				    argcnt);
 			else
@@ -4500,7 +4500,7 @@ vi_cmd(int argcnt, const char *cmd)
 					argcnt++;
 					p++;
 				}
-				if (putbuf(" ", 1, false) != 0 ||
+				if (putbuf(T1space, 1, false) != 0 ||
 				    putbuf(sp, argcnt, false) != 0) {
 					if (es->cursor != 0)
 						es->cursor--;
@@ -5318,7 +5318,7 @@ expand_word(int cmd)
 			rval = -1;
 			break;
 		}
-		if (++i < nwords && putbuf(" ", 1, false) != 0) {
+		if (++i < nwords && putbuf(T1space, 1, false) != 0) {
 			rval = -1;
 			break;
 		}
@@ -5436,7 +5436,7 @@ complete_word(int cmd, int count)
 		 */
 		if (match_len > 0 && match[match_len - 1] != '/' &&
 		    !(flags & XCF_IS_NOSPACE))
-			rval = putbuf(" ", 1, false);
+			rval = putbuf(T1space, 1, false);
 	}
 	x_free_words(nwords, words);
 

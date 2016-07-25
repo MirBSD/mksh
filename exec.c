@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.177 2016/07/24 23:10:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.178 2016/07/25 00:04:41 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -107,7 +107,7 @@ execute(struct op * volatile t,
 
 			if ((rv = herein(t->ioact[0], &cp) /*? 1 : 0*/))
 				cp = NULL;
-			dp = shf_smprintf("%s%s", evalstr(t->vars[0],
+			dp = shf_smprintf(Tf_ss, evalstr(t->vars[0],
 			    DOASNTILDE | DOSCALAR), rv ? null : cp);
 			typeset(dp, Flag(FEXPORT) ? EXPORT : 0, 0, 0, 0);
 			/* free the expanded value */
@@ -441,7 +441,7 @@ execute(struct op * volatile t,
 		if (rv == ENOEXEC)
 			scriptexec(t, (const char **)up);
 		else
-			errorf("%s: %s", t->str, cstrerror(rv));
+			errorf(Tf_sD_s, t->str, cstrerror(rv));
 	}
  Break:
 	exstat = rv & 0xFF;
@@ -532,7 +532,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				break;
 			}
 			if ((tp = findcom(cp, FC_BI)) == NULL)
-				errorf("%s: %s: %s", Tbuiltin, cp, "not a builtin");
+				errorf(Tf_sD_sD_s, Tbuiltin, cp, Tnot_found);
 			if (tp->type == CSHELL && (tp->flag & LOW_BI))
 				break;
 			continue;
@@ -573,7 +573,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			fcflags = FC_BI|FC_PATH;
 			if (saw_p) {
 				if (Flag(FRESTRICTED)) {
-					warningf(true, "%s: %s",
+					warningf(true, Tf_sD_s,
 					    "command -p", "restricted");
 					rv = 1;
 					goto Leave;
@@ -674,7 +674,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		goto Leave;
 	} else if (!tp) {
 		if (Flag(FRESTRICTED) && vstrchr(cp, '/')) {
-			warningf(true, "%s: %s", cp, "restricted");
+			warningf(true, Tf_sD_s, cp, "restricted");
 			rv = 1;
 			goto Leave;
 		}
@@ -705,8 +705,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			if (!tp->u.fpath) {
  fpath_error:
 				rv = (tp->u2.errnov == ENOENT) ? 127 : 126;
-				warningf(true, "%s: %s %s: %s", cp,
-				    "can't find", "function definition file",
+				warningf(true, Tf_sD_s_sD_s, cp,
+				    Tcant_find, Tfile_fd,
 				    cstrerror(tp->u2.errnov));
 				break;
 			}
@@ -726,7 +726,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 					cp = tp->u.fpath;
 					goto fpath_error;
 				}
-				warningf(true, "%s: %s %s", cp,
+				warningf(true, Tf_sD_s_s, cp,
 				    "function not defined by", tp->u.fpath);
 				rv = 127;
 				break;
@@ -807,7 +807,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			/* NOTREACHED */
 		default:
 			quitenv(NULL);
-			internal_errorf("%s %d", "CFUNC", i);
+			internal_errorf(Tf_sd, "CFUNC", i);
 		}
 		break;
 	}
@@ -819,10 +819,10 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		if (!(tp->flag&ISSET)) {
 			if (tp->u2.errnov == ENOENT) {
 				rv = 127;
-				warningf(true, "%s: %s", cp, "not found");
+				warningf(true, Tf_sD_s, cp, Tnot_found);
 			} else {
 				rv = 126;
-				warningf(true, "%s: %s: %s", cp, "can't execute",
+				warningf(true, Tf_sD_sD_s, cp, "can't execute",
 				    cstrerror(tp->u2.errnov));
 			}
 			break;
@@ -876,7 +876,7 @@ scriptexec(struct op *tp, const char **ap)
 #endif
 	union mksh_ccphack args, cap;
 
-	sh = str_val(global("EXECSHELL"));
+	sh = str_val(global(TEXECSHELL));
 	if (sh && *sh)
 		sh = search_path(sh, path, X_OK, NULL);
 	if (!sh || !*sh)
@@ -976,7 +976,7 @@ scriptexec(struct op *tp, const char **ap)
 	execve(args.rw[0], args.rw, cap.rw);
 
 	/* report both the programme that was run and the bogus interpreter */
-	errorf("%s: %s: %s", tp->str, sh, cstrerror(errno));
+	errorf(Tf_sD_sD_s, tp->str, sh, cstrerror(errno));
 }
 
 int
@@ -1140,7 +1140,7 @@ findcom(const char *name, int flags)
 	if (!tp && (flags & FC_FUNC)) {
 		tp = findfunc(name, h, false);
 		if (tp && !(tp->flag & ISSET)) {
-			if ((fpath = str_val(global("FPATH"))) == null) {
+			if ((fpath = str_val(global(TFPATH))) == null) {
 				tp->u.fpath = NULL;
 				tp->u2.errnov = ENOENT;
 			} else
@@ -1185,7 +1185,7 @@ findcom(const char *name, int flags)
 				afree(npath.rw, ATEMP);
 			tp->flag |= ISSET|ALLOC;
 		} else if ((flags & FC_FUNC) &&
-		    (fpath = str_val(global("FPATH"))) != null &&
+		    (fpath = str_val(global(TFPATH))) != null &&
 		    (npath.ro = search_path(name, fpath, R_OK,
 		    &tp->u2.errnov)) != NULL) {
 			/*
@@ -1314,7 +1314,7 @@ call_builtin(struct tbl *tp, const char **wp, const char *where, bool resetspec)
 	int rv;
 
 	if (!tp)
-		internal_errorf("%s: %s", where, wp[0]);
+		internal_errorf(Tf_sD_s, where, wp[0]);
 	builtin_argv0 = wp[0];
 	builtin_spec = tobool(!resetspec &&
 	    /*XXX odd use of KEEPASN */
@@ -1354,7 +1354,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 
 	if (Flag(FXTRACE)) {
 		change_xtrace(2, false);
-		fptreef(shl_xtrace, 0, "%R", &iotmp);
+		fptreef(shl_xtrace, 0, Tft_R, &iotmp);
 		change_xtrace(1, false);
 	}
 
@@ -1415,8 +1415,8 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		    &emsg)) < 0) {
 			char *sp;
 
-			warningf(true, "%s: %s",
-			    (sp = snptreef(NULL, 32, "%R", &iotmp)), emsg);
+			warningf(true, Tf_sD_s,
+			    (sp = snptreef(NULL, 32, Tft_R, &iotmp)), emsg);
 			afree(sp, ATEMP);
 			return (-1);
 		}
@@ -1429,7 +1429,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 
 	if (do_open) {
 		if (Flag(FRESTRICTED) && (flags & O_CREAT)) {
-			warningf(true, "%s: %s", cp, "restricted");
+			warningf(true, Tf_sD_s, cp, "restricted");
 			return (-1);
 		}
 		u = binopen3(cp, flags, 0666);
@@ -1447,10 +1447,10 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		/* herein() may already have printed message */
 		if (u == -1) {
 			u = errno;
-			warningf(true, "can't %s %s: %s",
+			warningf(true, Tf_cant,
 			    iotype == IODUP ? "dup" :
 			    (iotype == IOREAD || iotype == IOHERE) ?
-			    "open" : "create", cp, cstrerror(u));
+			    Topen : Tcreate, cp, cstrerror(u));
 		}
 		return (-1);
 	}
@@ -1478,9 +1478,8 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			char *sp;
 
 			eno = errno;
-			warningf(true, "%s %s: %s",
-			    "can't finish (dup) redirection",
-			    (sp = snptreef(NULL, 32, "%R", &iotmp)),
+			warningf(true, Tf_s_sD_s, Tredirection_dup,
+			    (sp = snptreef(NULL, 32, Tft_R, &iotmp)),
 			    cstrerror(eno));
 			afree(sp, ATEMP);
 			if (iotype != IODUP)
@@ -1571,8 +1570,8 @@ herein(struct ioword *iop, char **resbuf)
 	h = maketemp(ATEMP, TT_HEREDOC_EXP, &e->temps);
 	if (!(shf = h->shf) || (fd = binopen3(h->tffn, O_RDONLY, 0)) < 0) {
 		i = errno;
-		warningf(true, "can't %s temporary file %s: %s",
-		    !shf ? "create" : "open", h->tffn, cstrerror(i));
+		warningf(true, Tf_temp,
+		    !shf ? Tcreate : Topen, h->tffn, cstrerror(i));
 		if (shf)
 			shf_close(shf);
 		/* special to iosetup(): don't print error */
@@ -1588,8 +1587,8 @@ herein(struct ioword *iop, char **resbuf)
 	if (shf_close(shf) == -1) {
 		i = errno;
 		close(fd);
-		warningf(true, "can't %s temporary file %s: %s",
-		    "write", h->tffn, cstrerror(i));
+		warningf(true, Tf_temp,
+		    Twrite, h->tffn, cstrerror(i));
 		/* special to iosetup(): don't print error */
 		return (-2);
 	}
@@ -1605,7 +1604,7 @@ static const char *
 do_selectargs(const char **ap, bool print_menu)
 {
 	static const char *read_args[] = {
-		"read", "-r", "REPLY", NULL
+		Tread, "-r", "REPLY", NULL
 	};
 	char *s;
 	int i, argct;
@@ -1621,8 +1620,8 @@ do_selectargs(const char **ap, bool print_menu)
 		 */
 		if (print_menu || !*str_val(global("REPLY")))
 			pr_menu(ap);
-		shellf("%s", str_val(global("PS3")));
-		if (call_builtin(findcom("read", FC_BI), read_args, Tselect,
+		shellf(Tf_s, str_val(global("PS3")));
+		if (call_builtin(findcom(Tread, FC_BI), read_args, Tselect,
 		    false))
 			return (NULL);
 		if (*(s = str_val(global("REPLY"))))

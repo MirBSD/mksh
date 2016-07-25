@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.148 2016/03/04 18:28:40 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.149 2016/07/25 00:04:37 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016
@@ -186,3 +186,7 @@ d: all
 dr:
 	p=$$(realpath ${PROG:Q}) && cd ${SRCDIR:Q} && exec ${MKSH} \
 	    ${BSDSRCDIR:Q}/contrib/hosted/tg/sdmksh "$$p"
+
+repool:
+	cd ${.CURDIR:Q} && \
+	    exec ${MKSH} ${BSDSRCDIR:Q}/scripts/stringpool.sh sh.h

@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.203 2016/07/12 23:06:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.204 2016/07/25 00:04:48 tg Exp $");
 
 /*-
  * Variables
@@ -193,7 +193,7 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 			char *cp;
 
 			/* gotcha! */
-			cp = shf_smprintf("%s%s", str_val(vp), p);
+			cp = shf_smprintf(Tf_ss, str_val(vp), p);
 			afree(ap, ATEMP);
 			n = ap = cp;
 			goto redo_from_ref;
@@ -249,7 +249,7 @@ global(const char *n)
 		if (ksh_isdigit(c)) {
 			if (getn(vn, &c)) {
 				/* main.c:main_init() says 12 */
-				shf_snprintf(vp->name, 12, "%d", c);
+				shf_snprintf(vp->name, 12, Tf_d, c);
 				if (c <= l->argc) {
 					/* setstr can't fail here */
 					setstr(vp, l->argv[c],
@@ -441,7 +441,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 
 	error_ok &= ~0x4;
 	if ((vq->flag & RDONLY) && !no_ro_check) {
-		warningf(true, "read-only: %s", vq->name);
+		warningf(true, Tf_ro, vq->name);
 		if (!error_ok)
 			errorfxz(2);
 		return (0);
@@ -768,7 +768,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 	}
 	if (*val == '[') {
 		if (new_refflag != SRF_NOP)
-			errorf("%s: %s", var,
+			errorf(Tf_sD_s, var,
 			    "reference variable can't be an array");
 		len = array_ref_len(val);
 		if (len == 0)
@@ -844,7 +844,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 				goto nameref_rhs_checked;
 			}
  nameref_empty:
-			errorf("%s: %s", var, "empty nameref target");
+			errorf(Tf_sD_s, var, "empty nameref target");
 		}
 		len = (*ccp == '[') ? array_ref_len(ccp) : 0;
 		if (ccp[len]) {
@@ -853,14 +853,14 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 			 * junk after it" and "invalid array"; in the
 			 * latter case, len is also 0 and points to '['
 			 */
-			errorf("%s: %s", qval,
+			errorf(Tf_sD_s, qval,
 			    "nameref target not a valid parameter name");
 		}
  nameref_rhs_checked:
 		/* prevent nameref loops */
 		while (qval) {
 			if (!strcmp(qval, tvar))
-				errorf("%s: %s", qval,
+				errorf(Tf_sD_s, qval,
 				    "expression recurses on parameter");
 			varsearch(e->loc, &vp, qval, hash(qval));
 			qval = NULL;
@@ -870,9 +870,9 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 	}
 
 	/* prevent typeset from creating a local PATH/ENV/SHELL */
-	if (Flag(FRESTRICTED) && (strcmp(tvar, "PATH") == 0 ||
-	    strcmp(tvar, "ENV") == 0 || strcmp(tvar, "SHELL") == 0))
-		errorf("%s: %s", tvar, "restricted");
+	if (Flag(FRESTRICTED) && (strcmp(tvar, TPATH) == 0 ||
+	    strcmp(tvar, "ENV") == 0 || strcmp(tvar, TSHELL) == 0))
+		errorf(Tf_sD_s, tvar, "restricted");
 
 	innermost_refflag = new_refflag;
 	vp = (set & LOCAL) ? local(tvar, tobool(set & LOCAL_COPY)) :
@@ -909,7 +909,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 	if ((vpbase->flag & RDONLY) &&
 	    (val || clr || (set & ~EXPORT)))
 		/* XXX check calls - is error here ok by POSIX? */
-		errorfx(2, "read-only: %s", tvar);
+		errorfx(2, Tf_ro, tvar);
 	afree(tvar, ATEMP);
 
 	/* most calls are with set/clr == 0 */
@@ -982,7 +982,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 		char *tval;
 
 		if (vappend) {
-			tval = shf_smprintf("%s%s", str_val(vp), val);
+			tval = shf_smprintf(Tf_ss, str_val(vp), val);
 			val = tval;
 		} else
 			tval = NULL;
@@ -1327,7 +1327,7 @@ setspec(struct tbl *vp)
 		if (getint(vp, &num, false) == -1) {
 			s = str_val(vp);
 			if (st != V_RANDOM)
-				errorf("%s: %s: %s", vp->name, "bad number", s);
+				errorf(Tf_sD_sD_s, vp->name, "bad number", s);
 			num.u = hash(s);
 		}
 		vp->flag |= SPECIAL;
@@ -1531,7 +1531,7 @@ set_array(const char *var, bool reset, const char **vals)
 
 	/* Note: AT&T ksh allows set -A but not set +A of a read-only var */
 	if ((vp->flag&RDONLY))
-		errorfx(2, "read-only: %s", ccp);
+		errorfx(2, Tf_ro, ccp);
 	/* This code is quite non-optimal */
 	if (reset) {
 		/* trash existing values and attributes */

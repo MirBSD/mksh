@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.242 2016/03/04 14:26:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.243 2016/07/25 00:04:45 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -443,7 +443,8 @@ parse_args(const char **argv,
 			else if ((i != (size_t)-1) && (OFF(i) & what))
 				change_flag((enum sh_flag)i, what, set);
 			else {
-				bi_errorf("%s: %s", go.optarg, "bad option");
+				bi_errorf(Tf_sD_s, go.optarg,
+				    Tunknown_option);
 				return (-1);
 			}
 			break;
@@ -504,7 +505,7 @@ parse_args(const char **argv,
 		if (*array)
 			ccp = skip_varname(array, false);
 		if (!ccp || !(!ccp[0] || (ccp[0] == '+' && !ccp[1]))) {
-			bi_errorf("%s: %s", array, "is not an identifier");
+			bi_errorf(Tf_sD_s, array, Tnot_ident);
 			return (-1);
 		}
 	}
@@ -1038,10 +1039,10 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 			go->buf[0] = c;
 			go->optarg = go->buf;
 		} else {
-			warningf(true, "%s%s-%c: %s",
+			warningf(true, Tf_optfoo,
 			    (go->flags & GF_NONAME) ? "" : argv[0],
-			    (go->flags & GF_NONAME) ? "" : ": ", c,
-			    "unknown option");
+			    (go->flags & GF_NONAME) ? "" : Tcolsp,
+			    c, Tunknown_option);
 			if (go->flags & GF_ERROR)
 				bi_errorfz();
 		}
@@ -1066,10 +1067,10 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 				go->optarg = go->buf;
 				return (':');
 			}
-			warningf(true, "%s%s-%c: %s",
+			warningf(true, Tf_optfoo,
 			    (go->flags & GF_NONAME) ? "" : argv[0],
-			    (go->flags & GF_NONAME) ? "" : ": ", c,
-			    "requires an argument");
+			    (go->flags & GF_NONAME) ? "" : Tcolsp,
+			    c, Treq_arg);
 			if (go->flags & GF_ERROR)
 				bi_errorfz();
 			return ('?');
@@ -1419,7 +1420,7 @@ do_realpath(const char *upath)
 		/* upath is a relative pathname, prepend cwd */
 		if ((tp = ksh_get_wd()) == NULL || !mksh_abspath(tp))
 			return (NULL);
-		ipath = shf_smprintf("%s%s%s", tp, "/", upath);
+		ipath = shf_smprintf(Tf_sss, tp, "/", upath);
 		afree(tp, ATEMP);
 	}
 
@@ -1517,7 +1518,7 @@ do_realpath(const char *upath)
 			 * otherwise continue with currently resolved prefix
 			 */
 			/* append rest of current input path to link target */
-			tp = shf_smprintf("%s%s%s", ldest, *ip ? "/" : "", ip);
+			tp = shf_smprintf(Tf_sss, ldest, *ip ? "/" : "", ip);
 			afree(ipath, ATEMP);
 			ip = ipath = tp;
 			if (!mksh_abspath(ldest)) {
@@ -1819,12 +1820,12 @@ c_cd(const char **wp)
 	wp += builtin_opt.optind;
 
 	if (Flag(FRESTRICTED)) {
-		bi_errorf("restricted shell - can't cd");
+		bi_errorf(Tcant_cd);
 		return (2);
 	}
 
-	pwd_s = global("PWD");
-	oldpwd_s = global("OLDPWD");
+	pwd_s = global(TPWD);
+	oldpwd_s = global(TOLDPWD);
 
 	if (!wp[0]) {
 		/* No arguments - go home */
@@ -1840,7 +1841,7 @@ c_cd(const char **wp)
 			allocd = NULL;
 			dir = str_val(oldpwd_s);
 			if (dir == null) {
-				bi_errorf("no OLDPWD");
+				bi_errorf(Tno_OLDPWD);
 				return (2);
 			}
 			printpath = true;
@@ -1880,7 +1881,7 @@ c_cd(const char **wp)
 		memcpy(dir + ilen + nlen, current_wd + ilen + olen, elen);
 		printpath = true;
 	} else {
-		bi_errorf("too many arguments");
+		bi_errorf(Ttoo_many_args);
 		return (2);
 	}
 
@@ -1904,9 +1905,9 @@ c_cd(const char **wp)
 
 	if (rv < 0) {
 		if (cdnode)
-			bi_errorf("%s: %s", dir, "bad directory");
+			bi_errorf(Tf_sD_s, dir, "bad directory");
 		else
-			bi_errorf("%s: %s", tryp, cstrerror(errno));
+			bi_errorf(Tf_sD_s, tryp, cstrerror(errno));
 		afree(allocd, ATEMP);
 		Xfree(xs, xp);
 		return (2);
@@ -1955,7 +1956,7 @@ c_cd(const char **wp)
 			rv = 1;
 	}
 	if (printpath || cdnode)
-		shprintf("%s\n", pwd);
+		shprintf(Tf_sN, pwd);
 
 	afree(allocd, ATEMP);
 	Xfree(xs, xp);
@@ -1990,18 +1991,18 @@ chvt(const Getopt *go)
 				memmove(cp + 1, cp, /* /dev/tty */ 8);
 				dv = cp + 1;
 				if (stat(dv, &sb)) {
-					errorf("%s: %s: %s", "chvt",
+					errorf(Tf_sD_sD_s, "chvt",
 					    "can't find tty", go->optarg);
 				}
 			}
 		}
 		if (!(sb.st_mode & S_IFCHR))
-			errorf("%s: %s: %s", "chvt", "not a char device", dv);
+			errorf(Tf_sD_sD_s, "chvt", "not a char device", dv);
 #ifndef MKSH_DISABLE_REVOKE_WARNING
 #if HAVE_REVOKE
 		if (revoke(dv))
 #endif
-			warningf(false, "%s: %s %s", "chvt",
+			warningf(false, Tf_sD_s_s, "chvt",
 			    "new shell is potentially insecure, can't revoke",
 			    dv);
 #endif
@@ -2010,13 +2011,13 @@ chvt(const Getopt *go)
 	if ((fd = binopen2(dv, O_RDWR)) < 0) {
 		sleep(1);
 		if ((fd = binopen2(dv, O_RDWR)) < 0) {
-			errorf("%s: %s %s", "chvt", "can't open", dv);
+			errorf(Tf_sD_s_s, "chvt", Tcant_open, dv);
 		}
 	}
 	if (go->optarg[0] != '!') {
 		switch (fork()) {
 		case -1:
-			errorf("%s: %s %s", "chvt", "fork", "failed");
+			errorf(Tf_sD_s_s, "chvt", "fork", "failed");
 		case 0:
 			break;
 		default:
@@ -2024,12 +2025,12 @@ chvt(const Getopt *go)
 		}
 	}
 	if (setsid() == -1)
-		errorf("%s: %s %s", "chvt", "setsid", "failed");
+		errorf(Tf_sD_s_s, "chvt", "setsid", "failed");
 	if (go->optarg[0] != '-') {
 		if (ioctl(fd, TIOCSCTTY, NULL) == -1)
-			errorf("%s: %s %s", "chvt", "TIOCSCTTY", "failed");
+			errorf(Tf_sD_s_s, "chvt", "TIOCSCTTY", "failed");
 		if (tcflush(fd, TCIOFLUSH))
-			errorf("%s: %s %s", "chvt", "TCIOFLUSH", "failed");
+			errorf(Tf_sD_s_s, "chvt", "TCIOFLUSH", "failed");
 	}
 	ksh_dup2(fd, 0, false);
 	ksh_dup2(fd, 1, false);

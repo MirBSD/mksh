@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.225 2016/06/25 23:55:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.226 2016/07/25 00:04:44 tg Exp $");
 
 /*
  * states while lexing word
@@ -988,7 +988,7 @@ yylex(int cf)
 					++p;
 				else
 					/* ksh -c 'cat <<EOF' can cause this */
-					yyerror("here document '%s' unclosed\n",
+					yyerror(Tf_heredoc,
 					    evalstr((*p)->delim, 0));
 		}
 		return (c);
@@ -1163,7 +1163,7 @@ readhere(struct ioword *iop)
 	while (c != '\n') {
 		if (!c)
 			/* oops, reached EOF */
-			yyerror("here document '%s' unclosed\n", eof);
+			yyerror(Tf_heredoc, eof);
 		/* store character */
 		Xcheck(xs, xp);
 		Xput(xs, xp, c);
@@ -1263,7 +1263,7 @@ getsc_uu(void)
 				s->start = s->str = "\n";
 				s->type = SEOF;
 			} else {
-				s->start = s->str = " ";
+				s->start = s->str = T1space;
 				s->type = SWORDS;
 			}
 			break;
@@ -1474,7 +1474,7 @@ set_prompt(int to, Source *s)
 				if (*ps1 != '!' || *++ps1 == '!')
 					shf_putchar(*ps1++, shf);
 				else
-					shf_fprintf(shf, "%lu", s ?
+					shf_fprintf(shf, Tf_lu, s ?
 					    (unsigned long)s->line + 1 : 0UL);
 			ps1 = shf_sclose(shf);
 			saved_lineno = current_lineno;
