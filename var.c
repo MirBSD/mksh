@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.204 2016/07/25 00:04:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.205 2016/07/25 20:43:54 tg Exp $");
 
 /*-
  * Variables
@@ -133,7 +133,7 @@ initvar(void)
 	struct tbl *tp;
 
 	ktinit(APERM, &specials,
-	    /* currently 14 specials: 75% of 32 = 2^5 */
+	    /* currently 15 specials: 75% of 32 = 2^5 */
 	    5);
 	while (i < V_MAX - 1) {
 		tp = ktenter(&specials, initvar_names[i],
@@ -1290,6 +1290,9 @@ setspec(struct tbl *vp)
 		/* clear tracked aliases */
 		flushcom(true);
 		return;
+	case V_TERM:
+		x_initterm(str_val(vp));
+		return;
 	case V_TMPDIR:
 		afree(tmpdir, APERM);
 		tmpdir = NULL;
@@ -1406,6 +1409,9 @@ unsetspec(struct tbl *vp)
 		/* clear tracked aliases */
 		flushcom(true);
 		break;
+	case V_TERM:
+		x_initterm(null);
+		return;
 	case V_TMPDIR:
 		/* should not become unspecial */
 		if (tmpdir) {

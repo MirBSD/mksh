@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.298 2016/07/25 00:04:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.299 2016/07/25 20:43:51 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -38,9 +38,6 @@ __RCSID("$MirOS: src/bin/mksh/edit.c,v 1.298 2016/07/25 00:04:39 tg Exp $");
  */
 #ifndef MKSH_CLS_STRING
 #define MKSH_CLS_STRING		"\033[;H\033[J"
-#endif
-#ifndef MKSH_CLRTOEOL_STRING
-#define MKSH_CLRTOEOL_STRING	"\033[K"
 #endif
 
 /* tty driver characters we are interested in */
@@ -68,6 +65,10 @@ static int xx_cols;			/* for Emacs mode */
 static int modified;			/* buffer has been "modified" */
 static char *holdbufp;			/* place to hold last edit buffer */
 
+/* 0=dumb 1=tmux (for now) */
+static bool x_term_mode;
+
+static void x_adjust(void);
 static int x_getc(void);
 static void x_putcf(int);
 static void x_modified(void);
@@ -102,7 +103,6 @@ static int x_command_glob(int, char *, char ***);
 static int x_locate_word(const char *, int, int, int *, bool *);
 
 static int x_e_getmbc(char *);
-static int x_e_rebuildline(const char *);
 
 /* +++ generic editing functions +++ */
 
@@ -149,7 +149,7 @@ x_getc(void)
 					/* redraw line in Emacs mode */
 					xx_cols = x_cols;
 					x_init_prompt(false);
-					x_e_rebuildline(null);
+					x_adjust();
 				}
 			}
 #endif
@@ -977,7 +977,6 @@ static char *x_mapin(const char *, Area *);
 static char *x_mapout(int);
 static void x_mapout2(int, char **);
 static void x_print(int, int);
-static void x_adjust(void);
 static void x_e_ungetc(int);
 static int x_e_getc(void);
 static void x_e_putc2(int);
@@ -2065,17 +2064,11 @@ x_draw_line(int c MKSH_A_UNUSED)
 }
 
 static int
-x_e_rebuildline(const char *clrstr)
-{
-	shf_puts(clrstr, shl_out);
-	x_adjust();
-	return (KSTD);
-}
-
-static int
 x_cls(int c MKSH_A_UNUSED)
 {
-	return (x_e_rebuildline(MKSH_CLS_STRING));
+	shf_puts(MKSH_CLS_STRING, shl_out);
+	x_adjust();
+	return (KSTD);
 }
 
 /*
@@ -2104,7 +2097,9 @@ x_redraw(int limit)
 	xlp_valid = false;
 	x_zots(xbp);
 	if (limit >= xx_cols || xbp != xbuf || xep > xlp)
-		shf_puts(MKSH_CLRTOEOL_STRING, shl_out);
+		limit = xx_cols;
+	if (limit == xx_cols && x_term_mode == 1)
+		shf_puts("\033[K", shl_out);
 	else if (limit >= 0) {
 		if (xep > xlp)
 			/* we fill the line */
@@ -5547,4 +5542,14 @@ x_done(void)
 		afreeall(AEDIT);
 }
 #endif
+
+void
+x_initterm(const char *termtype)
+{
+	/* default must be 0 (bss) */
+	x_term_mode = 0;
+	/* this is what tmux uses, don't ask me about it */
+	if (!strcmp(termtype, "screen") || !strncmp(termtype, "screen-", 7))
+		x_term_mode = 1;
+}
 #endif /* !MKSH_NO_CMDLINE_EDITING */

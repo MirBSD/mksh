@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.777 2016/07/25 00:04:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.778 2016/07/25 20:43:53 tg Exp $");
 #endif
 #define MKSH_VERSION "R52 2016/07/24"
 
@@ -1994,6 +1994,7 @@ void x_done(void);
 int x_read(char *);
 #endif
 void x_mkraw(int, mksh_ttyst *, bool);
+void x_initterm(const char *);
 /* eval.c */
 char *substitute(const char *, int);
 char **eval(const char **, int);
