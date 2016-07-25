@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.312 2016/07/25 00:04:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.313 2016/07/25 20:36:27 tg Exp $");
 
 extern char **environ;
 
@@ -317,7 +317,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 #endif
 		/*
 		 * this is uniform across all OSes unless it
-		 * breaks somewhere; don't try to optimise,
+		 * breaks somewhere hard; don't try to optimise,
 		 * e.g. add stuff for Interix or remove /usr
 		 * for HURD, because e.g. Debian GNU/HURD is
 		 * "keeping a regular /usr"; this is supposed

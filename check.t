@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.741 2016/07/25 00:04:37 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.742 2016/07/25 20:36:24 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -358,6 +358,18 @@ stdin:
 	echo $((0 ? x+=2 : 20))
 expected-stdout:
 	20
+---
+name: arith-prec-1
+description:
+	Prove arithmetic expressions with embedded parameter
+	substitutions cannot be parsed ahead of time
+stdin:
+	a='3 + 4'
+	print 1 $((2 * a)) .
+	print 2 $((2 * $a)) .
+expected-stdout:
+	1 14 .
+	2 10 .
 ---
 name: arith-div-assoc-1
 description:

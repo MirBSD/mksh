@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.243 2016/07/25 00:04:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.244 2016/07/25 20:36:28 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -354,7 +354,7 @@ change_xtrace(unsigned char newval, bool dosnapshot)
  */
 int
 parse_args(const char **argv,
-    /* OF_CMDLINE or OF_SET */
+    /* OF_FIRSTTIME, OF_CMDLINE, or OF_SET */
     int what,
     bool *setargsp)
 {
