@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.86 2016/07/25 00:04:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.87 2016/07/25 20:41:23 tg Exp $");
 
 /* the order of these enums is constrained by the order of opinfo[] */
 enum token {
@@ -66,7 +66,7 @@ enum token {
 #define P_PRIMARY	0	/* VAR, LIT, (), ! ~ ++ -- */
 #define P_MULT		1	/* * / % */
 #define P_ADD		2	/* + - */
-#define P_SHIFT		3	/* <<< >>> << >> */
+#define P_SHIFT		3	/* ^< ^> << >> */
 #define P_RELATION	4	/* < <= > >= */
 #define P_EQUALITY	5	/* == != */
 #define P_BAND		6	/* & */
@@ -75,13 +75,13 @@ enum token {
 #define P_LAND		9	/* && */
 #define P_LOR		10	/* || */
 #define P_TERN		11	/* ?: */
-	/* = += -= *= /= %= <<<= >>>= <<= >>= &= ^= |= */
+	/* = += -= *= /= %= ^<= ^>= <<= >>= &= ^= |= */
 #define P_ASSIGN	12
 #define P_COMMA		13	/* , */
 #define MAX_PREC	P_COMMA
 
 struct opinfo {
-	char name[5];
+	char name[4];
 	/* name length */
 	uint8_t len;
 	/* precedence: lower is higher */
@@ -105,8 +105,8 @@ static const struct opinfo opinfo[] = {
 	{ "+=",   2, P_ASSIGN },
 	{ "-=",   2, P_ASSIGN },
 #ifndef MKSH_LEGACY_MODE
-	{ "<<<=", 4, P_ASSIGN },	/* before <<< */
-	{ ">>>=", 4, P_ASSIGN },	/* before >>> */
+	{ "^<=",  3, P_ASSIGN },	/* before ^< */
+	{ "^>=",  3, P_ASSIGN },	/* before ^> */
 #endif
 	{ "<<=",  3, P_ASSIGN },
 	{ ">>=",  3, P_ASSIGN },
@@ -114,8 +114,8 @@ static const struct opinfo opinfo[] = {
 	{ "^=",   2, P_ASSIGN },
 	{ "|=",   2, P_ASSIGN },
 #ifndef MKSH_LEGACY_MODE
-	{ "<<<",  3, P_SHIFT },		/* before << */
-	{ ">>>",  3, P_SHIFT },		/* before >> */
+	{ "^<",   2, P_SHIFT },		/* before ^ */
+	{ "^>",   2, P_SHIFT },		/* before ^ */
 #endif
 	{ "<<",   2, P_SHIFT },
 	{ ">>",   2, P_SHIFT },
