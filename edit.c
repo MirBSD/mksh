@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.302 2016/07/26 21:37:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.303 2016/07/26 22:55:35 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1381,9 +1381,7 @@ x_ins(const char *s)
 	x_lastcp();
 	x_adj_ok = tobool(xcp >= xlp);
 	x_zots(cp);
-	if (xlp == xep - 1)
-		x_redraw('\r');
-	else if (adj == x_adj_done)
+	if (adj == x_adj_done)
 		/* x_adjust() has not been called */
 		x_lastpos();
 	x_adj_ok = true;
