@@ -19,7 +19,7 @@
  */
 
 #if defined(EMACSFN_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/emacsfn.h,v 1.8 2016/07/26 21:37:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/emacsfn.h,v 1.9 2016/07/26 21:50:30 tg Exp $");
 #define FN(cname,sname,flags)	static int x_##cname(int);
 #elif defined(EMACSFN_ENUMS)
 #define FN(cname,sname,flags)	XFUNC_##cname,
@@ -54,7 +54,9 @@ FN(end_of_text, "eot", 0)
 FN(enumerate, "list", 0)
 FN(eot_del, "eot-or-delete", XF_ARG)
 FN(error, "error", 0)
+#ifndef MKSH_SMALL
 FN(eval_region, "evaluate-region", 0)
+#endif
 FN(expand, "expand-file", 0)
 #ifndef MKSH_SMALL
 FN(fold_capitalise, "capitalize-word", XF_ARG)
