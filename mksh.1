@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.404 2016/07/25 21:05:23 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.405 2016/07/26 21:37:26 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 25 2016 $
+.Dd $Mdocdate: July 26 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -5618,6 +5618,11 @@ otherwise,
 .Ic delete\-char\-forward .
 .It error: (not bound)
 Error (ring the bell).
+.It evaluate\-region: \*(ha[\*(haE
+Evaluates the text between the mark and the cursor position
+.Pq the entire line if no mark is set
+as function substitution (if it cannot be parsed, the editing state is
+unchanged and the bell is rung to signal an error); $? is updated accordingly.
 .It exchange\-point\-and\-mark: \*(haX\*(haX
 Places the cursor where the mark is and sets the mark to where the cursor was.
 .It expand\-file: \*(ha[*

@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.301 2016/07/26 20:43:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.302 2016/07/26 21:37:24 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -961,7 +961,6 @@ static size_t x_fword(bool);
 static void x_goto(char *);
 static char *x_bs0(char *, char *) MKSH_A_PURE;
 static void x_bs3(char **);
-static int x_size_str(char *);
 static int x_size2(char *, char **);
 static void x_zots(char *);
 static void x_zotc3(char **);
@@ -986,6 +985,7 @@ static void x_e_puts(const char *);
 static int x_fold_case(int);
 #endif
 static char *x_lastcp(void);
+static void x_lastpos(void);
 static void do_complete(int, Comp_type);
 static size_t x_nb2nc(size_t) MKSH_A_PURE;
 
@@ -1121,6 +1121,7 @@ static struct x_defbindings const x_defbindings[] = {
 #endif
 #ifndef MKSH_SMALL
 	/* more non-standard ones */
+	{ XFUNC_eval_region,		1, CTRL('E')	},
 	{ XFUNC_edit_line,		2,	'e'	}
 #endif
 };
@@ -1380,15 +1381,11 @@ x_ins(const char *s)
 	x_lastcp();
 	x_adj_ok = tobool(xcp >= xlp);
 	x_zots(cp);
-	/* has x_adjust() been called? */
-	if (adj == x_adj_done) {
-		/* no */
-		cp = xlp;
-		while (cp > xcp)
-			x_bs3(&cp);
-	}
 	if (xlp == xep - 1)
 		x_redraw('\r');
+	else if (adj == x_adj_done)
+		/* x_adjust() has not been called */
+		x_lastpos();
 	x_adj_ok = true;
 	return (0);
 }
@@ -1495,10 +1492,7 @@ x_delete(size_t nc, bool push)
 	/*x_goto(xcp);*/
 	x_adj_ok = true;
 	xlp_valid = false;
-	cp = x_lastcp();
-	while (cp > xcp)
-		x_bs3(&cp);
-
+	x_lastpos();
 	x_modified();
 	return;
 }
@@ -1615,15 +1609,6 @@ x_bs3(char **p)
 	i = x_size2(*p, NULL);
 	while (i--)
 		x_e_putc2('\b');
-}
-
-static int
-x_size_str(char *cp)
-{
-	int size = 0;
-	while (*cp)
-		size += x_size2(cp, &cp);
-	return (size);
 }
 
 static int
@@ -2066,67 +2051,70 @@ x_cls(int c MKSH_A_UNUSED)
 	return (KSTD);
 }
 
-/* output cr (if ≠ 0), then redraw the line, clearing to EOL if needed */
+/*
+ * clear line from x_col (current cursor position) to xx_cols - 2,
+ * then output lastch, then go back to x_col; if lastch is space,
+ * clear with termcap instead of spaces, or not if line_was_cleared;
+ * lastch MUST be an ASCII character with wcwidth(lastch) == 1
+ */
+static void
+x_clrtoeol(int lastch, bool line_was_cleared)
+{
+	int col;
+
+	if (lastch == ' ' && !line_was_cleared && x_term_mode == 1) {
+		shf_puts("\033[K", shl_out);
+		line_was_cleared = true;
+	}
+	if (lastch == ' ' && line_was_cleared)
+		return;
+
+	col = x_col;
+	while (col < (xx_cols - 2)) {
+		x_putc(' ');
+		++col;
+	}
+	x_putc(lastch);
+	++col;
+	while (col > x_col) {
+		x_putc('\b');
+		--col;
+	}
+}
+
+/* output the prompt, assuming a line has just been started */
+static void
+x_pprompt(void)
+{
+	if (prompt_trunc != -1)
+		pprompt(prompt, prompt_trunc);
+	x_col = pwidth;
+}
+
+/* output CR, then redraw the line, clearing to EOL if needed (cr ≠ 0, LF) */
 static void
 x_redraw(int cr)
 {
-	int i, j;
-	char *cp;
-	int limit = xx_cols; /*XXX tbm in the next commit */
+	int lch;
 
 	x_adj_ok = false;
+	/* clear the line */
 	x_e_putc2(cr ? cr : '\r');
 	x_flush();
-	if (xbp == xbuf) {
-		if (prompt_trunc != -1)
-			pprompt(prompt, prompt_trunc);
-		x_col = pwidth;
-	}
+	/* display the prompt */
+	if (xbp == xbuf)
+		x_pprompt();
 	x_displen = xx_cols - 2 - x_col;
+	/* display the line content */
 	xlp_valid = false;
 	x_zots(xbp);
-	if (limit >= xx_cols || xbp != xbuf || xep > xlp)
-		limit = xx_cols;
-	if (limit == xx_cols && x_term_mode == 1 && xbp == xbuf && xep <= xlp)
-		shf_puts("\033[K", shl_out);
-	else if (limit >= 0) {
-		if (xep > xlp)
-			/* we fill the line */
-			i = 0;
-		else {
-			char *cpl = xbp;
-
-			i = limit;
-			while (cpl < xlp)
-				i -= x_size2(cpl, &cpl);
-		}
-
-		j = 0;
-		while ((j < i) || (x_col < (xx_cols - 2))) {
-			if (!(x_col < (xx_cols - 2)))
-				break;
-			x_e_putc2(' ');
-			j++;
-		}
-		i = ' ';
-		if (xep > xlp) {
-			/* more off screen */
-			if (xbp > xbuf)
-				i = '*';
-			else
-				i = '>';
-		} else if (xbp > xbuf)
-			i = '<';
-		x_e_putc2(i);
-		j++;
-		while (j--)
-			x_e_putc2('\b');
-	}
-	cp = xlp;
-	while (cp > xcp)
-		x_bs3(&cp);
+	/* check whether there is more off-screen */
+	lch = xep > xlp ? (xbp > xbuf ? '*' : '>') : (xbp > xbuf) ? '<' : ' ';
+	/* clear the rest of the line */
+	x_clrtoeol(lch, !cr || cr == '\n');
+	/* go back to actual cursor position */
+	x_lastpos();
 	x_adj_ok = true;
-	return;
 }
 
 static int
@@ -3240,22 +3228,10 @@ x_fold_case(int c)
  * NAME:
  *	x_lastcp - last visible char
  *
- * SYNOPSIS:
- *	x_lastcp()
- *
  * DESCRIPTION:
  *	This function returns a pointer to that char in the
  *	edit buffer that will be the last displayed on the
- *	screen. The sequence:
- *
- *	cp = x_lastcp();
- *	while (cp > xcp)
- *		x_bs3(&cp);
- *
- *	Will position the cursor correctly on the screen.
- *
- * RETURN VALUE:
- *	cp or NULL
+ *	screen.
  */
 static char *
 x_lastcp(void)
@@ -3275,6 +3251,16 @@ x_lastcp(void)
 	}
 	xlp_valid = true;
 	return (xlp);
+}
+
+/* correctly position the cursor on the screen from end of visible area */
+static void
+x_lastpos(void)
+{
+	char *cp = x_lastcp();
+
+	while (cp > xcp)
+		x_bs3(&cp);
 }
 
 static void
@@ -5087,9 +5073,7 @@ redraw_line(bool newl)
 		x_putc('\r');
 		x_putc('\n');
 	}
-	if (prompt_trunc != -1)
-		pprompt(prompt, prompt_trunc);
-	x_col = pwidth;
+	x_pprompt();
 	morec = ' ';
 }
 
@@ -5244,9 +5228,7 @@ ed_mov_opt(int col, char *wb)
 	if (col < x_col) {
 		if (col + 1 < x_col - col) {
 			x_putc('\r');
-			if (prompt_trunc != -1)
-				pprompt(prompt, prompt_trunc);
-			x_col = pwidth;
+			x_pprompt();
 			while (x_col++ < col)
 				x_putcf(*wb++);
 		} else {
@@ -5539,4 +5521,79 @@ x_initterm(const char *termtype)
 	if (!strcmp(termtype, "screen") || !strncmp(termtype, "screen-", 7))
 		x_term_mode = 1;
 }
+
+#ifndef MKSH_SMALL
+static char *
+x_eval_region_helper(const char *cmd, size_t len)
+{
+	char * volatile cp;
+	newenv(E_ERRH);
+
+	if (!kshsetjmp(e->jbuf)) {
+		char *wds = alloc(len + 3, ATEMP);
+
+		wds[0] = FUNSUB;
+		memcpy(wds + 1, cmd, len);
+		wds[len + 1] = '\0';
+		wds[len + 2] = EOS;
+
+		cp = evalstr(wds, DOSCALAR);
+		strdupx(cp, cp, AEDIT);
+	} else
+		cp = NULL;
+	quitenv(NULL);
+	return (cp);
+}
+
+static int
+x_eval_region(int c MKSH_A_UNUSED)
+{
+	char *evbeg, *evend, *cp;
+	size_t newlen;
+	/* only for LINE overflow checking */
+	size_t restlen;
+
+	if (xmp == NULL) {
+		evbeg = xbuf;
+		evend = xep;
+	} else if (xmp < xcp) {
+		evbeg = xmp;
+		evend = xcp;
+	} else {
+		evbeg = xcp;
+		evend = xmp;
+	}
+
+	x_e_putc2('\r');
+	x_clrtoeol(' ', false);
+	x_flush();
+	x_mode(false);
+	cp = x_eval_region_helper(evbeg, evend - evbeg);
+	x_mode(true);
+
+	if (cp == NULL) {
+		/* command cannot be parsed */
+ x_eval_region_err:
+		x_e_putc2(7);
+		x_redraw('\r');
+		return (KSTD);
+	}
+
+	newlen = strlen(cp);
+	restlen = xep - evend;
+	/* check for LINE overflow, until this is dynamically allocated */
+	if (evbeg + newlen + restlen >= xend)
+		goto x_eval_region_err;
+
+	xmp = evbeg;
+	xcp = evbeg + newlen;
+	xep = xcp + restlen;
+	memmove(xcp, evend, restlen + /* NUL */ 1);
+	memcpy(xmp, cp, newlen);
+	afree(cp, AEDIT);
+	x_adjust();
+	x_modified();
+	return (KSTD);
+}
+#endif /* !MKSH_SMALL */
 #endif /* !MKSH_NO_CMDLINE_EDITING */
