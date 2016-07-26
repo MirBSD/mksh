@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.405 2016/07/26 21:37:26 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.406 2016/07/26 21:50:45 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -3987,9 +3987,10 @@ Renames the file
 to
 .Ar to .
 Both must be complete pathnames and on the same device.
-This builtin is intended for emergency situations where
-.Pa /bin/mv
-becomes unusable, and directly calls
+An external utility is preferred over this builtin,
+which is intended for emergency situations
+.Pq where Pa /bin/mv No becomes unusable
+and directly calls
 .Xr rename 2 .
 .Pp
 .It Ic return Op Ar status

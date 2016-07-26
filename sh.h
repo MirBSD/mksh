@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.779 2016/07/25 21:05:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.780 2016/07/26 21:50:46 tg Exp $");
 #endif
-#define MKSH_VERSION "R53 2016/07/25"
+#define MKSH_VERSION "R53 2016/07/26"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -927,7 +927,6 @@ EXTERN const char Tredirection_dup[] E_INIT("can't finish (dup) redirection");
 #define Tredirection (Tredirection_dup + 19)
 EXTERN const char Treal_sp1[] E_INIT("real ");
 EXTERN const char Treal_sp2[] E_INIT(" real ");
-EXTERN const char Trename[] E_INIT("rename");
 EXTERN const char Treq_arg[] E_INIT("requires an argument");
 EXTERN const char Tselect[] E_INIT("select");
 EXTERN const char Tsgset[] E_INIT("*=set");
@@ -1074,7 +1073,6 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tredirection "redirection"
 #define Treal_sp1 "real "
 #define Treal_sp2 " real "
-#define Trename "rename"
 #define Treq_arg "requires an argument"
 #define Tselect "select"
 #define Tsgset "*=set"
