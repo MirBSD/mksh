@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.300 2016/07/26 20:13:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.301 2016/07/26 20:43:14 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -972,7 +972,7 @@ static int x_search_dir(int);
 #endif
 static int x_match(char *, char *);
 static void x_redraw(int);
-static void x_push(int);
+static void x_push(size_t);
 static char *x_mapin(const char *, Area *);
 static char *x_mapout(int);
 static void x_mapout2(int, char **);
@@ -1388,7 +1388,7 @@ x_ins(const char *s)
 			x_bs3(&cp);
 	}
 	if (xlp == xep - 1)
-		x_redraw(xx_cols);
+		x_redraw('\r');
 	x_adj_ok = true;
 	return (0);
 }
@@ -1951,7 +1951,7 @@ x_search_hist(int c)
 		}
 	}
 	if (offset < 0)
-		x_redraw(-1);
+		x_redraw('\n');
 	return (KSTD);
 }
 
@@ -2026,18 +2026,13 @@ x_match(char *str, char *pat)
 static int
 x_del_line(int c MKSH_A_UNUSED)
 {
-	int i, j;
-
 	*xep = 0;
-	i = xep - xbuf;
-	j = x_size_str(xbuf);
-	xcp = xbuf;
-	x_push(i);
+	x_push(xep - (xcp = xbuf));
 	xlp = xbp = xep = xbuf;
 	xlp_valid = true;
 	*xcp = 0;
 	xmp = NULL;
-	x_redraw(j);
+	x_redraw('\r');
 	x_modified();
 	return (KSTD);
 }
@@ -2059,7 +2054,7 @@ x_mv_begin(int c MKSH_A_UNUSED)
 static int
 x_draw_line(int c MKSH_A_UNUSED)
 {
-	x_redraw(-1);
+	x_redraw('\n');
 	return (KSTD);
 }
 
@@ -2067,26 +2062,20 @@ static int
 x_cls(int c MKSH_A_UNUSED)
 {
 	shf_puts(MKSH_CLS_STRING, shl_out);
-	x_adjust();
+	x_redraw(0);
 	return (KSTD);
 }
 
-/*
- * Redraw (part of) the line. If limit is < 0, the everything is redrawn
- * on a NEW line, otherwise limit is the screen column up to which needs
- * redrawing.
- */
+/* output cr (if ≠ 0), then redraw the line, clearing to EOL if needed */
 static void
-x_redraw(int limit)
+x_redraw(int cr)
 {
 	int i, j;
 	char *cp;
+	int limit = xx_cols; /*XXX tbm in the next commit */
 
 	x_adj_ok = false;
-	if (limit == -1)
-		x_e_putc2('\n');
-	else
-		x_e_putc2('\r');
+	x_e_putc2(cr ? cr : '\r');
 	x_flush();
 	if (xbp == xbuf) {
 		if (prompt_trunc != -1)
@@ -2255,7 +2244,7 @@ x_kill(int c MKSH_A_UNUSED)
 }
 
 static void
-x_push(int nchars)
+x_push(size_t nchars)
 {
 	afree(killstack[killsp], AEDIT);
 	strndupx(killstack[killsp], xcp, nchars, AEDIT);
@@ -2272,7 +2261,7 @@ x_yank(int c MKSH_A_UNUSED)
 	killtp--;
 	if (killstack[killtp] == 0) {
 		x_e_puts("\nnothing to yank");
-		x_redraw(-1);
+		x_redraw('\n');
 		return (KSTD);
 	}
 	xmp = xcp;
@@ -2289,7 +2278,7 @@ x_meta_yank(int c MKSH_A_UNUSED)
 	    killstack[killtp] == 0) {
 		killtp = killsp;
 		x_e_puts("\nyank something first");
-		x_redraw(-1);
+		x_redraw('\n');
 		return (KSTD);
 	}
 	len = strlen(killstack[killtp]);
@@ -2849,7 +2838,7 @@ x_adjust(void)
 
  x_adjust_out:
 	xlp_valid = false;
-	x_redraw(xx_cols);
+	x_redraw('\r');
 	x_flush();
 }
 
@@ -3020,7 +3009,7 @@ x_comment(int c MKSH_A_UNUSED)
 		xep = xbuf + len;
 		*xep = '\0';
 		xcp = xbp = xbuf;
-		x_redraw(xx_cols);
+		x_redraw('\r');
 		if (ret > 0)
 			return (x_newline('\n'));
 	}
@@ -3032,15 +3021,13 @@ x_version(int c MKSH_A_UNUSED)
 {
 	char *o_xbuf = xbuf, *o_xend = xend;
 	char *o_xbp = xbp, *o_xep = xep, *o_xcp = xcp;
-	int lim = x_lastcp() - xbp;
-	size_t vlen;
 	char *v;
 
 	strdupx(v, KSH_VERSION, ATEMP);
 
 	xbuf = xbp = xcp = v;
-	xend = xep = v + (vlen = strlen(v));
-	x_redraw(lim);
+	xend = xep = v + strlen(v);
+	x_redraw('\r');
 	x_flush();
 
 	c = x_e_getc();
@@ -3049,7 +3036,7 @@ x_version(int c MKSH_A_UNUSED)
 	xbp = o_xbp;
 	xep = o_xep;
 	xcp = o_xcp;
-	x_redraw((int)vlen);
+	x_redraw('\r');
 
 	if (c < 0)
 		return (KSTD);
