@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.700 2016/07/25 21:05:18 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.701 2016/07/27 00:55:26 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016
@@ -2498,7 +2498,7 @@ echo tcfn=$mkshexe >>Rebuild.sh
 echo "$CC $CFLAGS $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
 echo "test -f \$tcfn || exit 1; $SIZE \$tcfn" >>Rebuild.sh
 if test $cm = makefile; then
-	extras='emacsfn.h rlimits.opt sh.h sh_flags.opt var_spec.h'
+	extras='emacsfn.h exprtok.h rlimits.opt sh.h sh_flags.opt var_spec.h'
 	test 0 = $HAVE_SYS_SIGNAME && extras="$extras signames.inc"
 	gens= genq=
 	for file in $optfiles; do
