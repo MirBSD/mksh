@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.303 2016/07/26 22:55:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.304 2016/07/28 21:39:04 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -41,16 +41,26 @@ __RCSID("$MirOS: src/bin/mksh/edit.c,v 1.303 2016/07/26 22:55:35 tg Exp $");
 #endif
 
 /* tty driver characters we are interested in */
-typedef struct {
-	int erase;
-	int kill;
-	int werase;
-	int intr;
-	int quit;
-	int eof;
-} X_chars;
+#define EDCHAR_DISABLED	0xFFFFU
+#define EDCHAR_INITIAL	0xFFFEU
+static struct {
+	unsigned short erase;
+	unsigned short kill;
+	unsigned short werase;
+	unsigned short intr;
+	unsigned short quit;
+	unsigned short eof;
+} edchars;
 
-static X_chars edchars;
+#define isched(x,e) ((unsigned short)(unsigned char)(x) == (e))
+#define isedchar(x) (!((x) & ~0xFF))
+#ifndef _POSIX_VDISABLE
+#define toedchar(x) ((unsigned short)(unsigned char)(x))
+#else
+#define toedchar(x) (((_POSIX_VDISABLE != -1) && ((x) == _POSIX_VDISABLE)) ? \
+			((unsigned short)EDCHAR_DISABLED) : \
+			((unsigned short)(unsigned char)(x)))
+#endif
 
 /* x_cf_glob() flags */
 #define XCF_COMMAND	BIT(0)	/* Do command completion */
@@ -79,7 +89,7 @@ static int x_cf_glob(int *, const char *, int, int, int *, int *, char ***);
 static size_t x_longest_prefix(int, char * const *);
 static void x_glob_hlp_add_qchar(char *);
 static char *x_glob_hlp_tilde_and_rem_qchar(char *, bool);
-static int x_basename(const char *, const char *);
+static size_t x_basename(const char *, const char *);
 static void x_free_words(int, char **);
 static int x_escape(const char *, size_t, int (*)(const char *, size_t));
 static int x_emacs(char *);
@@ -226,7 +236,7 @@ static void
 x_print_expansions(int nwords, char * const *words, bool is_command)
 {
 	bool use_copy = false;
-	int prefix_len;
+	size_t prefix_len;
 	XPtrV l = { NULL, 0, 0 };
 
 	/*
@@ -435,8 +445,8 @@ x_file_glob(int *flagsp, char *toglob, char ***wordsp)
 /* Data structure used in x_command_glob() */
 struct path_order_info {
 	char *word;
-	int base;
-	int path_order;
+	size_t base;
+	size_t path_order;
 };
 
 /* Compare routine used in x_command_glob() */
@@ -447,8 +457,13 @@ path_order_cmp(const void *aa, const void *bb)
 	const struct path_order_info *b = (const struct path_order_info *)bb;
 	int t;
 
-	t = strcmp(a->word + a->base, b->word + b->base);
-	return (t ? t : a->path_order - b->path_order);
+	if ((t = strcmp(a->word + a->base, b->word + b->base)))
+		return (t);
+	if (a->path_order > b->path_order)
+		return (1);
+	if (a->path_order < b->path_order)
+		return (-1);
+	return (0);
 }
 
 static int
@@ -716,7 +731,7 @@ x_free_words(int nwords, char **words)
  *	///		2
  *			0
  */
-static int
+static size_t
 x_basename(const char *s, const char *se)
 {
 	const char *p;
@@ -1758,9 +1773,11 @@ x_newline(int c MKSH_A_UNUSED)
 static int
 x_end_of_text(int c MKSH_A_UNUSED)
 {
-	char tmp = edchars.eof;
+	unsigned char tmp;
 	char *cp = &tmp;
 
+	tmp = isedchar(edchars.eof) ? (unsigned char)edchars.eof :
+	    (unsigned char)CTRL('D');
 	x_zotc3(&cp);
 	x_putc('\r');
 	x_putc('\n');
@@ -3273,13 +3290,13 @@ x_mode(bool onoff)
 	if (onoff) {
 		x_mkraw(tty_fd, NULL, false);
 
-		edchars.erase = tty_state.c_cc[VERASE];
-		edchars.kill = tty_state.c_cc[VKILL];
-		edchars.intr = tty_state.c_cc[VINTR];
-		edchars.quit = tty_state.c_cc[VQUIT];
-		edchars.eof = tty_state.c_cc[VEOF];
+		edchars.erase = toedchar(tty_state.c_cc[VERASE]);
+		edchars.kill = toedchar(tty_state.c_cc[VKILL]);
+		edchars.intr = toedchar(tty_state.c_cc[VINTR]);
+		edchars.quit = toedchar(tty_state.c_cc[VQUIT]);
+		edchars.eof = toedchar(tty_state.c_cc[VEOF]);
 #ifdef VWERASE
-		edchars.werase = tty_state.c_cc[VWERASE];
+		edchars.werase = toedchar(tty_state.c_cc[VWERASE]);
 #else
 		edchars.werase = 0;
 #endif
@@ -3297,33 +3314,17 @@ x_mode(bool onoff)
 		if (!edchars.werase)
 			edchars.werase = CTRL('W');
 
-#ifdef _POSIX_VDISABLE
-		/* Convert unset values to internal 'unset' value */
-		if (edchars.erase == _POSIX_VDISABLE)
-			edchars.erase = -1;
-		if (edchars.kill == _POSIX_VDISABLE)
-			edchars.kill = -1;
-		if (edchars.intr == _POSIX_VDISABLE)
-			edchars.intr = -1;
-		if (edchars.quit == _POSIX_VDISABLE)
-			edchars.quit = -1;
-		if (edchars.eof == _POSIX_VDISABLE)
-			edchars.eof = -1;
-		if (edchars.werase == _POSIX_VDISABLE)
-			edchars.werase = -1;
-#endif
-
-		if (edchars.erase >= 0) {
+		if (isedchar(edchars.erase)) {
 			bind_if_not_bound(0, edchars.erase, XFUNC_del_back);
 			bind_if_not_bound(1, edchars.erase, XFUNC_del_bword);
 		}
-		if (edchars.kill >= 0)
+		if (isedchar(edchars.kill))
 			bind_if_not_bound(0, edchars.kill, XFUNC_del_line);
-		if (edchars.werase >= 0)
+		if (isedchar(edchars.werase))
 			bind_if_not_bound(0, edchars.werase, XFUNC_del_bword);
-		if (edchars.intr >= 0)
+		if (isedchar(edchars.intr))
 			bind_if_not_bound(0, edchars.intr, XFUNC_abort);
-		if (edchars.quit >= 0)
+		if (isedchar(edchars.quit))
 			bind_if_not_bound(0, edchars.quit, XFUNC_noop);
 	} else
 		mksh_tcset(tty_fd, &tty_state);
@@ -3562,16 +3563,19 @@ x_vi(char *buf)
 		if (c == -1)
 			break;
 		if (state != VLIT) {
-			if (c == edchars.intr || c == edchars.quit) {
+			if (isched(c, edchars.intr) ||
+			    isched(c, edchars.quit)) {
 				/* pretend we got an interrupt */
 				x_vi_zotc(c);
 				x_flush();
-				trapsig(c == edchars.intr ? SIGINT : SIGQUIT);
+				trapsig(isched(c, edchars.intr) ?
+				    SIGINT : SIGQUIT);
 				x_mode(false);
 				unwind(LSHELL);
-			} else if (c == edchars.eof && state != VVERSION) {
+			} else if (isched(c, edchars.eof) &&
+			    state != VVERSION) {
 				if (es->linelen == 0) {
-					x_vi_zotc(edchars.eof);
+					x_vi_zotc(c);
 					c = -1;
 					break;
 				}
@@ -3758,7 +3762,7 @@ vi_hook(int ch)
 				memcpy(srchpat, locpat, srchlen + 1);
 			}
 			state = VCMD;
-		} else if (ch == edchars.erase || ch == CTRL('h')) {
+		} else if (isched(ch, edchars.erase) || ch == CTRL('h')) {
 			if (srchlen != 0) {
 				srchlen--;
 				es->linelen -= char_len(locpat[srchlen]);
@@ -3769,13 +3773,13 @@ vi_hook(int ch)
 			restore_cbuf();
 			state = VNORMAL;
 			refresh(0);
-		} else if (ch == edchars.kill) {
+		} else if (isched(ch, edchars.kill)) {
 			srchlen = 0;
 			es->linelen = 1;
 			es->cursor = 1;
 			refresh(0);
 			return (0);
-		} else if (ch == edchars.werase) {
+		} else if (isched(ch, edchars.werase)) {
 			unsigned int i, n;
 			struct edstate new_es, *save_es;
 
@@ -3929,7 +3933,7 @@ vi_insert(int ch)
 {
 	int tcursor;
 
-	if (ch == edchars.erase || ch == CTRL('h')) {
+	if (isched(ch, edchars.erase) || ch == CTRL('h')) {
 		if (insert == REPLACE) {
 			if (es->cursor == undo->cursor) {
 				vi_error();
@@ -3955,7 +3959,7 @@ vi_insert(int ch)
 		expanded = NONE;
 		return (0);
 	}
-	if (ch == edchars.kill) {
+	if (isched(ch, edchars.kill)) {
 		if (es->cursor != 0) {
 			inslen = 0;
 			memmove(es->cbuf, &es->cbuf[es->cursor],
@@ -3966,7 +3970,7 @@ vi_insert(int ch)
 		expanded = NONE;
 		return (0);
 	}
-	if (ch == edchars.werase) {
+	if (isched(ch, edchars.werase)) {
 		if (es->cursor != 0) {
 			tcursor = backword(1);
 			memmove(&es->cbuf[tcursor], &es->cbuf[es->cursor],
@@ -5468,12 +5472,11 @@ x_init(void)
 	int i, j;
 
 	/*
-	 * Set edchars to -2 to force initial binding, except
-	 * we need default values for some deficient systems…
+	 * set edchars to force initial binding, except we need
+	 * default values for ^W for some deficient systems…
 	 */
 	edchars.erase = edchars.kill = edchars.intr = edchars.quit =
-	    edchars.eof = -2;
-	/* ^W */
+	    edchars.eof = EDCHAR_INITIAL;
 	edchars.werase = 027;
 
 	/* command line editing specific memory allocation */
