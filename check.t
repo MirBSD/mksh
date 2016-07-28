@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.745 2016/07/26 21:50:42 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.746 2016/07/28 21:39:16 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R53 2016/07/26
+	@(#)MIRBSD KSH R53 2016/07/28
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R53 2016/07/26
+	@(#)LEGACY KSH R53 2016/07/28
 description:
 	Check version of legacy shell.
 stdin:
@@ -9325,6 +9325,17 @@ stdin:
 expected-exit: e != 0
 expected-stderr-pattern:
 	/\.: missing argument.*\n.*source: missing argument/
+---
+name: dot-errorlevel
+description:
+	Ensure dot resets $?
+stdin:
+	:>dotfile
+	(exit 42)
+	. ./dotfile
+	echo 1 $? .
+expected-stdout: 
+	1 0 .
 ---
 name: alias-function-no-conflict
 description:

@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.302 2016/07/26 21:50:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.303 2016/07/28 21:39:18 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1806,7 +1806,7 @@ int
 c_dot(const char **wp)
 {
 	const char *file, *cp, **argv;
-	int argc, i, errcode;
+	int argc, rv, errcode;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return (1);
@@ -1835,12 +1835,17 @@ c_dot(const char **wp)
 		argc = 0;
 		argv = NULL;
 	}
-	if ((i = include(file, argc, argv, false)) < 0) {
+	/* SUSv4: OR with a high value never written otherwise */
+	exstat |= 0x4000;
+	if ((rv = include(file, argc, argv, false)) < 0) {
 		/* should not happen */
 		bi_errorf(Tf_sD_s, cp, cstrerror(errno));
 		return (1);
 	}
-	return (i);
+	if (exstat & 0x4000)
+		/* detect old exstat, use 0 in that case */
+		rv = 0;
+	return (rv);
 }
 
 int
