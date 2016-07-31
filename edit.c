@@ -580,7 +580,7 @@ x_locate_word(const char *buf, int buflen, int pos, int *startp,
 		/* Figure out if this is a command */
 		while (p >= 0 && ksh_isspace(buf[p]))
 			p--;
-		iscmd = p < 0 || vstrchr(";|&()`", buf[p]);
+		iscmd = p < 0 || vstrchr(";|&()`", buf[p]) || !strncmp("sudo ", buf, 5);
 		if (iscmd) {
 			/*
 			 * If command has a /, path, etc. is not searched;
@@ -3462,6 +3462,7 @@ static struct edstate	undobuf;
 static struct edstate	*es;		/* current editor state */
 static struct edstate	*undo;
 
+static char edit_not_0 = 1;		/* arrow key at home signal */
 static char *ibuf;			/* input buffer */
 static bool first_insert;		/* set when starting in insert mode */
 static int saved_inslen;		/* saved inslen for first insert */
@@ -3823,27 +3824,33 @@ vi_hook(int ch)
 
 	case VPREFIX2:
  vi_xfunc_search_up:
-		state = VFAIL;
+		//state = VFAIL;
+		state = VNORMAL;
 		switch (ch) {
-		case 'A':
-			/* the cursor may not be at the BOL */
-			if (!es->cursor)
-				break;
-			/* nor further in the line than we can search for */
-			if ((size_t)es->cursor >= sizeof(srchpat) - 1)
-				es->cursor = sizeof(srchpat) - 2;
-			/* anchor the search pattern */
-			srchpat[0] = '^';
-			/* take the current line up to the cursor */
-			memmove(srchpat + 1, es->cbuf, es->cursor);
-			srchpat[es->cursor + 1] = '\0';
-			/* set a magic flag */
-			argc1 = 2 + (int)es->cursor;
-			/* and emulate a backwards history search */
-			lastsearch = '/';
-			*curcmd = 'n';
+		case 'A': /* up */
+			argc1 = 1;
+			*curcmd = 'k';
 			goto pseudo_VCMD;
+		case 'B': /* down */
+			argc1 = 1;
+			*curcmd = 'j';
+			goto pseudo_VCMD;
+		case 'C': /* move right */
+			if (edit_not_0)
+				es->cursor = domove(1, "l", 1);
+			break;
+		case 'D': /* move left */
+			es->cursor = domove(1, "h", 1);
+			break;
+		case 'H': /* home */
+			es->cursor = domove(1, "0", 1);
+			break;
+		case 'F': /* end */
+			es->cursor = domove(1, "$", 1);
+			break;
 		}
+		edit_not_0 = 1;
+		refresh(0);
 		break;
 	}
 
@@ -4717,6 +4724,7 @@ redo_insert(int count)
 	while (count-- > 0)
 		if (putbuf(ibuf, inslen, tobool(insert == REPLACE)) != 0)
 			return (-1);
+	if (!(es->cursor)) edit_not_0 = 0;
 	if (es->cursor > 0)
 		es->cursor--;
 	insert = 0;
