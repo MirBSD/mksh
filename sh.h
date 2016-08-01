@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.782 2016/08/01 20:23:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.783 2016/08/01 21:38:05 tg Exp $");
 #endif
-#define MKSH_VERSION "R53 2016/07/28"
+#define MKSH_VERSION "R53 2016/08/01"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -2319,6 +2319,7 @@ uint32_t chvt_rndsetup(const void *, size_t) MKSH_A_PURE;
 mksh_ari_t rndget(void);
 void rndset(unsigned long);
 void rndpush(const void *);
+void record_match(const char *);
 
 enum Test_op {
 	/* non-operator */

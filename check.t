@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.747 2016/08/01 21:29:05 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.748 2016/08/01 21:37:59 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R53 2016/07/28
+	@(#)MIRBSD KSH R53 2016/08/01
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R53 2016/07/28
+	@(#)LEGACY KSH R53 2016/08/01
 description:
 	Check version of legacy shell.
 stdin:
@@ -1790,6 +1790,41 @@ stdin:
 	echo "1 ${12345678901234567890} ."
 expected-stdout:
 	1  .
+---
+name: expand-slashes-1
+description:
+	Check that side effects in substring replacement are handled correctly
+stdin:
+	foo=n1n1n1n2n3
+	i=2
+	n=1
+	echo 1 ${foo//n$((n++))/[$((++i))]} .
+	echo 2 $n , $i .
+expected-stdout:
+	1 [3][3][3]n2n3 .
+	2 2 , 3 .
+---
+name: expand-slashes-2
+description:
+	Check that side effects in substring replacement are handled correctly
+stdin:
+	foo=n1n1n1n2n3
+	i=2
+	n=1
+	echo 1 ${foo@/n$((n++))/[$((++i))]} .
+	echo 2 $n , $i .
+expected-stdout:
+	1 [3]n1n1[4][5] .
+	2 5 , 5 .
+---
+name: expand-slashes-3
+description:
+	Check that we can access the replaced string
+stdin:
+	foo=n1n1n1n2n3
+	echo 1 ${foo@/n[12]/[$KSH_MATCH]} .
+expected-stdout:
+	1 [n1][n1][n1][n2]n3 .
 ---
 name: eglob-bad-1
 description:

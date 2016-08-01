@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.206 2016/07/25 21:02:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.207 2016/08/01 21:38:07 tg Exp $");
 
 /*-
  * Variables
@@ -1738,4 +1738,16 @@ rndpush(const void *s)
 	BAFHUpdateStr_reg(h, s);
 	BAFHUpdateOctet_reg(h, 0);
 	qh_state = h;
+}
+
+/* record last glob match */
+void
+record_match(const char *istr)
+{
+	struct tbl *vp;
+
+	vp = local("KSH_MATCH", false);
+	unset(vp, 1);
+	vp->flag = DEFINED | RDONLY;
+	setstr(vp, istr, 0x4);
 }

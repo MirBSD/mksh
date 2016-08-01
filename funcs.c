@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.304 2016/08/01 14:23:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.305 2016/08/01 21:38:02 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3202,14 +3202,20 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 
 	/* = */
 	case TO_STEQL:
-		if (te->flags & TEF_DBRACKET)
-			return (gmatchx(opnd1, opnd2, false));
+		if (te->flags & TEF_DBRACKET) {
+			if ((i = gmatchx(opnd1, opnd2, false)))
+				record_match(opnd1);
+			return (i);
+		}
 		return (strcmp(opnd1, opnd2) == 0);
 
 	/* != */
 	case TO_STNEQ:
-		if (te->flags & TEF_DBRACKET)
-			return (!gmatchx(opnd1, opnd2, false));
+		if (te->flags & TEF_DBRACKET) {
+			if ((i = gmatchx(opnd1, opnd2, false)))
+				record_match(opnd1);
+			return (!i);
+		}
 		return (strcmp(opnd1, opnd2) != 0);
 
 	/* < */

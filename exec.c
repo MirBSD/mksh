@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.178 2016/07/25 00:04:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.179 2016/08/01 21:38:02 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -390,6 +390,7 @@ execute(struct op * volatile t,
 			for (ap = (const char **)t->vars; *ap; ap++) {
 				if (i || ((s = evalstr(*ap, DOTILDE|DOPAT)) &&
 				    gmatchx(ccp, s, false))) {
+					record_match(ccp);
 					rv = execute(t->left, flags & XERROK,
 					    xerrok);
 					i = 0;

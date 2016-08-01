@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.227 2016/07/25 21:05:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.228 2016/08/01 21:38:03 tg Exp $");
 
 /*
  * states while lexing word
@@ -462,10 +462,12 @@ yylex(int cf)
 							break;
 						}
 					} else if (c == '/') {
+						c2 = ADELIM;
+ parse_adelim_slash:
 						*wp++ = CHAR;
 						*wp++ = c;
 						if ((c = getsc()) == '/') {
-							*wp++ = ADELIM;
+							*wp++ = c2;
 							*wp++ = c;
 						} else
 							ungetsc(c);
@@ -475,6 +477,13 @@ yylex(int cf)
 						statep->ls_adelim.num = 1;
 						statep->nparen = 0;
 						break;
+					} else if (c == '@') {
+						c2 = getsc();
+						ungetsc(c2);
+						if (c2 == '/') {
+							c2 = CHAR;
+							goto parse_adelim_slash;
+						}
 					}
 					/*
 					 * If this is a trim operation,

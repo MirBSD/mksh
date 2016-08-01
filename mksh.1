@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.408 2016/08/01 19:40:00 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.409 2016/08/01 21:38:04 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -1682,6 +1682,25 @@ Inefficiently implemented, may be slow.
 .Pp
 .Sm off
 .It Xo
+.Pf ${ Ar name
+.Pf @/ Ar pattern / Ar string No }
+.Xc
+.Sm on
+The same as
+.Sm off
+.Xo
+.Pf ${ Ar name
+.Pf // Ar pattern / Ar string No } ,
+.Xc
+.Sm on
+except that both
+.Ar pattern
+and
+.Ar string
+are expanded anew for each iteration.
+.Pp
+.Sm off
+.It Xo
 .Pf ${ Ar name : Ns Ar pos
 .Pf : Ns Ar len Ns }
 .Xc
@@ -1933,6 +1952,54 @@ The effective group id of the shell.
 The real group id of the shell.
 .It Ev KSHUID
 The real user id of the shell.
+.It Ev KSH_MATCH
+The last matched string.
+In a future version, this will be an indexed array,
+with indexes 1 and up capturing matching groups.
+Set by string comparisons (== and !=) in double-bracket test
+expressions when a match is found (when != returns false), by
+.Ic case
+when a match is encountered, and by the substitution operations
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf # Ar pat No } ,
+.Xc
+.Xo
+.Pf ${ Ar x
+.Pf ## Ar pat No } ,
+.Xc
+.Xo
+.Pf ${ Ar x
+.Pf % Ar pat No } ,
+.Xc
+.Xo
+.Pf ${ Ar x
+.Pf %% Ar pat No } ,
+.Xc
+.Xo
+.Pf ${ Ar x
+.Pf / Ar pat / Ar rpl No } ,
+.Xc
+.Xo
+.Pf ${ Ar x
+.Pf /# Ar pat / Ar rpl No } ,
+.Xc
+.Xo
+.Pf ${ Ar x
+.Pf /% Ar pat / Ar rpl No } ,
+.Xc
+.Xo
+.Pf ${ Ar x
+.Pf // Ar pat / Ar rpl No } ,
+.Xc
+and
+.Xo
+.Pf ${ Ar x
+.Pf @/ Ar pat / Ar rpl No } .
+.Xc
+.Sm on
+See the end of the Emacs editing mode documentation for an example.
 .It Ev KSH_VERSION
 The name and version of the shell (read-only).
 See also the version commands in
@@ -5794,6 +5861,11 @@ Immediately after a
 .Ic yank ,
 replaces the inserted text string with the next previously killed text string.
 .El
+.Pp
+The tab completion escapes characters the same way as the following code:
+.Bd -literal
+print \-nr \-\- "${x@/[\e"\-\e$&\-*:\-?[\e\e\e\`{\-\e}${IFS\-$\*(aq \et\en\*(aq}]/\e\e$KSH_MATCH}"
+.Ed
 .Ss Vi editing mode
 .Em Note:
 The vi command-line editing mode is orphaned, yet still functional.
