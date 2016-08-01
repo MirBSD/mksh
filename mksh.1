@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.407 2016/08/01 19:11:27 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.408 2016/08/01 19:40:00 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -1854,12 +1854,16 @@ binding to the actual terminal size in favour of the provided value.
 If this parameter is found to be set after any profile files are executed, the
 expanded value is used as a shell startup file.
 It typically contains function and alias definitions.
-.It Ev ERRNO
-Integer value of the shell's
-.Va errno
-variable.
-It indicates the reason the last system call failed.
-Not yet implemented.
+.It Ev EPOCHREALTIME
+Time since the epoch, as returned by
+.Xr gettimeofday 2 ,
+formatted as decimal
+.Va tv_sec
+followed by a dot
+.Pq Sq \&.
+and
+.Va tv_usec
+padded to exactly six decimal digits.
 .It Ev EXECSHELL
 If set, this parameter is assumed to contain the shell that is to be used to
 execute commands that
@@ -1944,16 +1948,6 @@ Set to the number of lines on the terminal or window.
 Always set, defaults to 24.
 See
 .Ev COLUMNS .
-.It Ev EPOCHREALTIME
-Time since the epoch, as returned by
-.Xr gettimeofday 2 ,
-formatted as decimal
-.Va tv_sec
-followed by a dot
-.Pq Sq \&.
-and
-.Va tv_usec
-padded to exactly six decimal digits.
 .It Ev OLDPWD
 The previous working directory.
 Unset if
