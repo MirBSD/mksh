@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.406 2016/07/26 21:50:45 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.407 2016/08/01 19:11:27 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 26 2016 $
+.Dd $Mdocdate: August 1 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2716,13 +2716,9 @@ Less than or equal, greater than, greater than or equal.
 See
 .Ic \*(Lt .
 .It \*(Lt\*(Lt \*(Gt\*(Gt
-Shift left (right); the result is the left argument with its bits logically
+Shift left (right); the result is the left argument with its bits
+arithmetically (signed operation) or logically (unsigned expression)
 shifted left (right) by the amount given in the right argument.
-.It \*(Gt\*(Gt\*(Gt
-Shift arithmetically right; the result is similar to shift,
-except that the top-most bit is repeated instead of filling
-the newly shifted-in bits with zero.
-.Em Scheduled to be implemented in R54 !
 .It \*(ha\*(Lt \*(ha\*(Gt
 Rotate left (right); the result is similar to shift,
 except that the bits shifted out at one end are shifted in
