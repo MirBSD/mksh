@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.781 2016/07/28 21:39:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.782 2016/08/01 20:23:15 tg Exp $");
 #endif
 #define MKSH_VERSION "R53 2016/07/28"
 
@@ -1373,7 +1373,7 @@ EXTERN mksh_ari_t x_lins E_INIT(24);
 				    (shf)->rnleft--, *(shf)->rp++ : \
 				    shf_getchar(shf))
 #define shf_putc_i(c, shf)	((shf)->wnleft == 0 ? \
-				    shf_putchar((c), (shf)) : \
+				    shf_putchar((uint8_t)(c), (shf)) : \
 				    ((shf)->wnleft--, *(shf)->wp++ = (c)))
 #define shf_eof(shf)		((shf)->flags & SHF_EOF)
 #define shf_error(shf)		((shf)->flags & SHF_ERROR)
