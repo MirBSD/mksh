@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.305 2016/08/01 14:25:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.306 2016/08/01 18:42:40 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -843,12 +843,11 @@ static int
 x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 {
 	size_t add = 0, wlen = len;
-	const char *ifs = str_val(local("IFS", 0));
 	int rval = 0;
 
 	while (wlen - add > 0)
 		if (vstrchr("\"#$&'()*:;<=>?[\\`{|}", s[add]) ||
-		    vstrchr(ifs, s[add])) {
+		    ctype(s[add], C_IFS)) {
 			if (putbuf_func(s, add) != 0) {
 				rval = -1;
 				break;
