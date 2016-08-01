@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.303 2016/07/28 21:39:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.304 2016/08/01 14:23:24 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -419,6 +419,7 @@ c_print(const char **wp)
 		do {
 			if (!evaluate(*wp, &wc, KSH_RETURN_ERROR, true))
 				return (1);
+			Xcheck(xs, xp);
 			if (UTFMODE) {
 				ts[utf_wctomb(ts, wc)] = 0;
 				c = 0;
