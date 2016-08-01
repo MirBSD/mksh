@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.746 2016/07/28 21:39:16 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.747 2016/08/01 21:29:05 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -10383,6 +10383,8 @@ name: fd-cloexec-1
 description:
 	Verify that file descriptors > 2 are private for Korn shells
 	AT&T ksh93 does this still, which means we must keep it as well
+	XXX fails on some old Perl installations
+need-pass: no
 category: shell:legacy-no
 stdin:
 	cat >cld <<-EOF
@@ -10401,6 +10403,8 @@ name: fd-cloexec-2
 description:
 	Verify that file descriptors > 2 are not private for POSIX shells
 	See Debian Bug #154540, Closes: #499139
+	XXX fails on some old Perl installations
+need-pass: no
 stdin:
 	cat >cld <<-EOF
 		#!$__perlname
