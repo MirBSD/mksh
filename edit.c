@@ -3603,7 +3603,7 @@ filter_from_binds(void)
 			return -1;
 		}
 		lastidx = 0;
-		if (lastread >= 3 && state != VLIT) {
+		if (lastread >= 3 && VNORMAL == state) {
 			int i;
 			for (i = 0; bind_keys[i].action; i++) {
 				if (!strncmp(bind_keys[i].seq, binds, bind_keys[i].seq[3] ? 4 : 3)) {
