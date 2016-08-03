@@ -142,6 +142,21 @@ x_read(char *buf)
 
 /* tty I/O */
 
+int
+x_gets(char *buf, size_t len)
+{
+	int ret;
+
+	while ((ret = blocking_read(0, buf, len)) < 0 && errno == EINTR) {
+		if (trap) {
+			x_mode(false);
+			runtraps(0);
+			x_mode(true);
+		}
+	}
+	return ret;
+}
+
 static int
 x_getc(void)
 {
@@ -2343,10 +2358,10 @@ x_vt_hack(int c)
 
 	/*-
 	 * At this point, we have read the following octets so far:
-	 * - ESC+[ or ESC+O or Ctrl-X (Prefix 2)
+	 * - ESC+[ or ESC+O or CTRL-X (Prefix 2)
 	 * - 1 (vt_hack)
 	 * - ;
-	 * - 5 (Ctrl key combiner) or 3 (Alt key combiner)
+	 * - 5 (CTRL key combiner) or 3 (Alt key combiner)
 	 * We can now accept one more octet designating the key.
 	 */
 
@@ -3450,7 +3465,6 @@ static const unsigned char classify[128] = {
 #define VLIT		8		/* ^V */
 #define VSEARCH		9		/* /, ? */
 #define VVERSION	10		/* <ESC> ^V */
-#define VPREFIX2	11		/* ^[[ and ^[O in insert mode */
 
 static struct edstate	*save_edstate(struct edstate *old);
 static void		restore_edstate(struct edstate *old, struct edstate *news);
@@ -3462,7 +3476,6 @@ static struct edstate	undobuf;
 static struct edstate	*es;		/* current editor state */
 static struct edstate	*undo;
 
-static char edit_not_0 = 1;		/* arrow key at home signal */
 static char *ibuf;			/* input buffer */
 static bool first_insert;		/* set when starting in insert mode */
 static int saved_inslen;		/* saved inslen for first insert */
@@ -3500,6 +3513,102 @@ static struct macro_state macro;
 static enum expand_mode {
 	NONE = 0, EXPAND, COMPLETE, PRINT
 } expanded;
+
+enum bind_action {
+	BIND_KEY_UP = 1,
+	BIND_KEY_DOWN,
+	BIND_KEY_RIGHT,
+	BIND_KEY_LEFT,
+	BIND_KEY_HOME,
+	BIND_KEY_END,
+	BIND_KEY_PGUP,
+	BIND_KEY_PGDN,
+	BIND_KEY_F1,
+};
+struct bind_key {
+	int action;
+	char seq[4];
+};
+static struct bind_key bind_keys[] = {
+	{BIND_KEY_UP, { CTRL('['), '[', 'A', '\0' }},
+	{BIND_KEY_DOWN, { CTRL('['), '[', 'B', '\0' }},
+	{BIND_KEY_RIGHT, { CTRL('['), '[', 'C', '\0' }},
+	{BIND_KEY_LEFT, { CTRL('['), '[', 'D', '\0' }},
+	{BIND_KEY_HOME, { CTRL('['), 'O', 'H', '\0' }},
+	{BIND_KEY_END, { CTRL('['), 'O', 'F', '\0' }},
+//	{BIND_KEY_PGUP, { CTRL('['), '[', '5', '~' }},
+//	{BIND_KEY_PGDN, { CTRL('['), '[', '6', '~' }},
+	{BIND_KEY_F1, { CTRL('['), 'O', 'P', '\0'}},
+	{0, ""}
+};
+
+static int
+bind_action(int action)
+{
+	
+	//printf("bind action %d\n", action);
+	switch (action) {
+	case BIND_KEY_UP:
+//	case BIND_KEY_PGUP:
+		domove(1, "k", 1);
+		break;
+	case BIND_KEY_DOWN:
+//	case BIND_KEY_PGDN:
+		domove(1, "j", 1);
+		break;
+	case BIND_KEY_RIGHT:
+		es->cursor = domove(1, "l", 1);
+		if (!insert && es->cursor == es->linelen) {
+			es->cursor--;
+		}
+		break;
+	case BIND_KEY_LEFT:
+		es->cursor = domove(1, "h", 1);
+		break;
+	case BIND_KEY_HOME:
+		es->cursor = domove(1, "0", 1);
+		break;
+	case BIND_KEY_END:
+		es->cursor = domove(1, "$", 1);
+		if (!insert) {
+			es->cursor--;
+		}
+		break;
+	case BIND_KEY_F1:
+		break;
+	}
+	refresh(0);
+	x_flush();
+	return 0;
+}
+static int
+filter_from_binds(void)
+{
+#define BND_BUF_NUM 8
+	static char binds[BND_BUF_NUM];
+	static short lastidx = BND_BUF_NUM;
+	static short lastread = BND_BUF_NUM;
+
+	while (1) {
+		if (lastidx < lastread) {
+			return (int) binds[lastidx++];
+		}
+		lastread = (short)x_gets(binds, BND_BUF_NUM);
+		if (lastread <= 0) {
+			return -1;
+		}
+		lastidx = 0;
+		if (lastread >= 3) {
+			int i;
+			for (i = 0; bind_keys[i].action; i++) {
+				lastidx = bind_keys[i].seq[3] ? 4 : 3;
+				if (!strncmp(bind_keys[i].seq, binds, lastidx)) {
+					bind_action(bind_keys[i].action);
+				}
+			}
+		}
+	}
+}
 
 static int
 x_vi(char *buf)
@@ -3559,7 +3668,7 @@ x_vi(char *buf)
 				c = x_getc();
 			}
 		} else
-			c = x_getc();
+			c = filter_from_binds();
 
 		if (c == -1)
 			break;
@@ -3616,7 +3725,6 @@ vi_hook(int ch)
 		if (!ch) switch (cmdlen = 0, (ch = x_getc())) {
 		case 71: ch = '0'; goto pseudo_vi_command;
 		case 72: ch = 'k'; goto pseudo_vi_command;
-		case 73: ch = 'A'; goto vi_xfunc_search_up;
 		case 75: ch = 'h'; goto pseudo_vi_command;
 		case 77: ch = 'l'; goto pseudo_vi_command;
 		case 79: ch = '$'; goto pseudo_vi_command;
@@ -3821,42 +3929,10 @@ vi_hook(int ch)
 			return (0);
 		}
 		break;
-
-	case VPREFIX2:
- vi_xfunc_search_up:
-		//state = VFAIL;
-		state = VNORMAL;
-		switch (ch) {
-		case 'A': /* up */
-			argc1 = 1;
-			*curcmd = 'k';
-			goto pseudo_VCMD;
-		case 'B': /* down */
-			argc1 = 1;
-			*curcmd = 'j';
-			goto pseudo_VCMD;
-		case 'C': /* move right */
-			if (edit_not_0)
-				es->cursor = domove(1, "l", 1);
-			break;
-		case 'D': /* move left */
-			es->cursor = domove(1, "h", 1);
-			break;
-		case 'H': /* home */
-			es->cursor = domove(1, "0", 1);
-			break;
-		case 'F': /* end */
-			es->cursor = domove(1, "$", 1);
-			break;
-		}
-		edit_not_0 = 1;
-		refresh(0);
-		break;
 	}
 
 	switch (state) {
 	case VCMD:
- pseudo_VCMD:
 		state = VNORMAL;
 		switch (vi_cmd(argc1, curcmd)) {
 		case -1:
@@ -4553,16 +4629,6 @@ vi_cmd(int argcnt, const char *cmd)
 		case CTRL('x'):
 			expand_word(1);
 			break;
-
-
-		/* mksh: cursor movement */
-		case '[':
-		case 'O':
-			state = VPREFIX2;
-			if (es->linelen != 0)
-				es->cursor++;
-			insert = INSERT;
-			return (0);
 		}
 		if (insert == 0 && es->cursor != 0 && es->cursor >= es->linelen)
 			es->cursor--;
@@ -4712,6 +4778,25 @@ domove(int argcnt, const char *cmd, int sub)
 			ncursor++;
 		break;
 
+		case 'j':
+			if (grabhist(modified, hnum + argcnt) < 0)
+				return (-1);
+			else {
+				modified = 0;
+				hnum += argcnt;
+			}
+			break;
+
+		case 'k':
+			if (grabhist(modified, hnum - argcnt) < 0)
+				return (-1);
+			else {
+				modified = 0;
+				hnum -= argcnt;
+			}
+			break;
+
+
 	default:
 		return (-1);
 	}
@@ -4724,7 +4809,7 @@ redo_insert(int count)
 	while (count-- > 0)
 		if (putbuf(ibuf, inslen, tobool(insert == REPLACE)) != 0)
 			return (-1);
-	if (!(es->cursor)) edit_not_0 = 0;
+
 	if (es->cursor > 0)
 		es->cursor--;
 	insert = 0;
