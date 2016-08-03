@@ -3523,6 +3523,7 @@ enum bind_action {
 	BIND_KEY_END,
 	BIND_KEY_PGUP,
 	BIND_KEY_PGDN,
+	BIND_KEY_DEL,
 	BIND_KEY_F1,
 };
 struct bind_key {
@@ -3536,8 +3537,9 @@ static struct bind_key bind_keys[] = {
 	{BIND_KEY_LEFT, { CTRL('['), '[', 'D', '\0' }},
 	{BIND_KEY_HOME, { CTRL('['), 'O', 'H', '\0' }},
 	{BIND_KEY_END, { CTRL('['), 'O', 'F', '\0' }},
-//	{BIND_KEY_PGUP, { CTRL('['), '[', '5', '~' }},
-//	{BIND_KEY_PGDN, { CTRL('['), '[', '6', '~' }},
+	{BIND_KEY_PGUP, { CTRL('['), '[', '5', '~' }},
+	{BIND_KEY_PGDN, { CTRL('['), '[', '6', '~' }},
+	{BIND_KEY_DEL, { CTRL('['), '[', '3', '~' }},
 	{BIND_KEY_F1, { CTRL('['), 'O', 'P', '\0'}},
 	{0, ""}
 };
@@ -3549,12 +3551,12 @@ bind_action(int action)
 	//printf("bind action %d\n", action);
 	switch (action) {
 	case BIND_KEY_UP:
-//	case BIND_KEY_PGUP:
-		domove(1, "k", 1);
+	case BIND_KEY_PGUP:
+		vi_cmd(1, "k");
 		break;
 	case BIND_KEY_DOWN:
-//	case BIND_KEY_PGDN:
-		domove(1, "j", 1);
+	case BIND_KEY_PGDN:
+		vi_cmd(1, "j");
 		break;
 	case BIND_KEY_RIGHT:
 		es->cursor = domove(1, "l", 1);
@@ -3573,6 +3575,9 @@ bind_action(int action)
 		if (!insert) {
 			es->cursor--;
 		}
+		break;
+	case BIND_KEY_DEL:
+		vi_cmd(1, "x");
 		break;
 	case BIND_KEY_F1:
 		break;
@@ -3598,11 +3603,11 @@ filter_from_binds(void)
 			return -1;
 		}
 		lastidx = 0;
-		if (lastread >= 3) {
+		if (lastread >= 3 && state != VLIT) {
 			int i;
 			for (i = 0; bind_keys[i].action; i++) {
-				lastidx = bind_keys[i].seq[3] ? 4 : 3;
-				if (!strncmp(bind_keys[i].seq, binds, lastidx)) {
+				if (!strncmp(bind_keys[i].seq, binds, bind_keys[i].seq[3] ? 4 : 3)) {
+					lastidx = bind_keys[i].seq[3] ? 4 : 3;
 					bind_action(bind_keys[i].action);
 				}
 			}
@@ -4777,25 +4782,6 @@ domove(int argcnt, const char *cmd, int sub)
 		if (sub && i > 0)
 			ncursor++;
 		break;
-
-		case 'j':
-			if (grabhist(modified, hnum + argcnt) < 0)
-				return (-1);
-			else {
-				modified = 0;
-				hnum += argcnt;
-			}
-			break;
-
-		case 'k':
-			if (grabhist(modified, hnum - argcnt) < 0)
-				return (-1);
-			else {
-				modified = 0;
-				hnum -= argcnt;
-			}
-			break;
-
 
 	default:
 		return (-1);
