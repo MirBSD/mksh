@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.314 2016/07/25 21:05:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.315 2016/08/04 20:31:01 tg Exp $");
 
 extern char **environ;
 
@@ -734,12 +734,15 @@ include(const char *name, int argc, const char **argv, bool intr_ok)
 int
 command(const char *comm, int line)
 {
-	Source *s;
+	Source *s, *sold = source;
+	int rv;
 
 	s = pushs(SSTRING, ATEMP);
 	s->start = s->str = comm;
 	s->line = line;
-	return (shell(s, false));
+	rv = shell(s, false);
+	source = sold;
+	return (rv);
 }
 
 /*

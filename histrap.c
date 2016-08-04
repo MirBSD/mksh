@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.157 2016/07/25 00:04:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.158 2016/08/04 20:31:00 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -308,16 +308,8 @@ c_fc(const char **wp)
 	/* Ignore setstr errors here (arbitrary) */
 	setstr(local("_", false), tf->tffn, KSH_RETURN_ERROR);
 
-	/* XXX: source should not get trashed by this.. */
-	{
-		Source *sold = source;
-		int ret;
-
-		ret = command(editor ? editor : TFCEDIT_dollaru, 0);
-		source = sold;
-		if (ret)
-			return (ret);
-	}
+	if ((optc = command(editor ? editor : TFCEDIT_dollaru, 0)))
+		return (optc);
 
 	{
 		struct stat statb;
@@ -363,8 +355,6 @@ static int
 hist_execute(char *cmd, Area *areap)
 {
 	static int last_line = -1;
-	Source *sold;
-	int ret;
 
 	/* Back up over last histsave */
 	if (histptr >= history && last_line != hist_source->line) {
@@ -388,11 +378,7 @@ hist_execute(char *cmd, Area *areap)
 	 *	X=y fc -e - 42 2> /dev/null
 	 * are to effect the repeated commands environment.
 	 */
-	/* XXX: source should not get trashed by this.. */
-	sold = source;
-	ret = command(cmd, 0);
-	source = sold;
-	return (ret);
+	return (command(cmd, 0));
 }
 
 /*
