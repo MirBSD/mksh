@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.113 2016/07/25 21:05:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.114 2016/08/04 20:32:14 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -964,9 +964,11 @@ assign_command(const char *s, bool docommand)
 static int
 inalias(struct source *s)
 {
-	for (; s && s->type == SALIAS; s = s->next)
+	while (s && s->type == SALIAS) {
 		if (!(s->flags & SF_ALIASEND))
 			return (1);
+		s = s->next;
+	}
 	return (0);
 }
 

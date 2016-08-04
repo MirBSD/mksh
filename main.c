@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.315 2016/08/04 20:31:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.316 2016/08/04 20:32:14 tg Exp $");
 
 extern char **environ;
 
@@ -1096,9 +1096,11 @@ reclaim(void)
 static void
 remove_temps(struct temp *tp)
 {
-	for (; tp != NULL; tp = tp->next)
+	while (tp) {
 		if (tp->pid == procpid)
 			unlink(tp->tffn);
+		tp = tp->next;
+	}
 }
 
 /*
