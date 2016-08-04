@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.410 2016/08/03 17:34:12 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.411 2016/08/04 09:27:59 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: August 3 2016 $
+.Dd $Mdocdate: August 4 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1964,41 +1964,57 @@ when a match is encountered, and by the substitution operations
 .Xo
 .Pf ${ Ar x
 .Pf # Ar pat No } ,
+.Sm on
 .Xc
+.Sm off
 .Xo
 .Pf ${ Ar x
 .Pf ## Ar pat No } ,
+.Sm on
 .Xc
+.Sm off
 .Xo
 .Pf ${ Ar x
 .Pf % Ar pat No } ,
+.Sm on
 .Xc
+.Sm off
 .Xo
 .Pf ${ Ar x
 .Pf %% Ar pat No } ,
+.Sm on
 .Xc
+.Sm off
 .Xo
 .Pf ${ Ar x
 .Pf / Ar pat / Ar rpl No } ,
+.Sm on
 .Xc
+.Sm off
 .Xo
 .Pf ${ Ar x
 .Pf /# Ar pat / Ar rpl No } ,
+.Sm on
 .Xc
+.Sm off
 .Xo
 .Pf ${ Ar x
 .Pf /% Ar pat / Ar rpl No } ,
+.Sm on
 .Xc
+.Sm off
 .Xo
 .Pf ${ Ar x
 .Pf // Ar pat / Ar rpl No } ,
+.Sm on
 .Xc
 and
+.Sm off
 .Xo
 .Pf ${ Ar x
 .Pf @/ Ar pat / Ar rpl No } .
-.Xc
 .Sm on
+.Xc
 See the end of the Emacs editing mode documentation for an example.
 .It Ev KSH_VERSION
 The name and version of the shell (read-only).
