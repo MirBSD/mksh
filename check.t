@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.748 2016/08/01 21:37:59 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.749 2016/08/04 20:51:32 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R53 2016/08/01
+	@(#)MIRBSD KSH R53 2016/08/04
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R53 2016/08/01
+	@(#)LEGACY KSH R53 2016/08/04
 description:
 	Check version of legacy shell.
 stdin:
@@ -6416,6 +6416,12 @@ stdin:
 expected-stdout:
 	ac_space=' '
 	ac_newline=$'\n'
+---
+name: regression-67
+description:
+	Check that we can both break and use source on the same line
+stdin:
+	for s in s; do break; done; print -s s
 ---
 name: readonly-0
 description:

@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.783 2016/08/01 21:38:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.784 2016/08/04 20:51:35 tg Exp $");
 #endif
-#define MKSH_VERSION "R53 2016/08/01"
+#define MKSH_VERSION "R53 2016/08/04"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1738,9 +1738,14 @@ struct ioword {
 #define X_EXTRA	20	/* this many extra bytes in X string */
 
 typedef struct XString {
-	char *end, *beg;	/* end, begin of string */
-	size_t len;		/* length */
-	Area *areap;		/* area to allocate/free from */
+	/* begin of string */
+	char *beg;
+	/* length of allocated area, minus safety margin */
+	size_t len;
+	/* end of string */
+	char *end;
+	/* memory area used */
+	Area *areap;
 } XString;
 
 typedef char *XStringP;
@@ -1826,24 +1831,39 @@ typedef struct {
 
 typedef struct source Source;
 struct source {
-	const char *str;	/* input pointer */
-	const char *start;	/* start of current buffer */
+	/* input buffer */
+	XString xs;
+	/* memory area, also checked in reclaim() */
+	Area *areap;
+	/* stacked source */
+	Source *next;
+	/* input pointer */
+	const char *str;
+	/* start of current buffer */
+	const char *start;
+	/* input file name */
+	const char *file;
+	/* extra data */
 	union {
-		const char **strv;	/* string [] */
-		struct shf *shf;	/* shell file */
-		struct tbl *tblp;	/* alias (SF_HASALIAS) */
-		char *freeme;		/* also for SREREAD */
+		/* string[] */
+		const char **strv;
+		/* shell file */
+		struct shf *shf;
+		/* alias (SF_HASALIAS) */
+		struct tbl *tblp;
+		/* (also for SREREAD) */
+		char *freeme;
 	} u;
-	const char *file;	/* input file name */
-	int	type;		/* input type */
-	int	line;		/* line number */
-	int	errline;	/* line the error occurred on (0 if not set) */
-	int	flags;		/* SF_* */
-	Area	*areap;
-	Source *next;		/* stacked source */
-	XString	xs;		/* input buffer */
-	char	ugbuf[2];	/* buffer for ungetsc() (SREREAD) and
-				 * alias (SALIAS) */
+	/* flags */
+	int flags;
+	/* input type */
+	int type;
+	/* line number */
+	int line;
+	/* line the error occurred on (0 if not set) */
+	int errline;
+	/* buffer for ungetsc() (SREREAD) and alias (SALIAS) */
+	char ugbuf[2];
 };
 
 /* Source.type values */
