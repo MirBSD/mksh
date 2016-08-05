@@ -147,7 +147,7 @@ x_gets(char *buf, size_t len)
 {
 	int ret;
 
-	while ((ret = blocking_read(0, buf, len)) < 0 && errno == EINTR) {
+	while ((ret = (int)blocking_read(0, buf, len)) < 0 && errno == EINTR) {
 		if (trap) {
 			x_mode(false);
 			runtraps(0);
@@ -3524,7 +3524,7 @@ enum bind_action {
 	BIND_KEY_PGUP,
 	BIND_KEY_PGDN,
 	BIND_KEY_DEL,
-	BIND_KEY_F1,
+	BIND_KEY_INS,
 };
 struct bind_key {
 	int action;
@@ -3540,15 +3540,13 @@ static struct bind_key bind_keys[] = {
 	{BIND_KEY_PGUP, { CTRL('['), '[', '5', '~' }},
 	{BIND_KEY_PGDN, { CTRL('['), '[', '6', '~' }},
 	{BIND_KEY_DEL, { CTRL('['), '[', '3', '~' }},
-	{BIND_KEY_F1, { CTRL('['), 'O', 'P', '\0'}},
+	{BIND_KEY_INS, { CTRL('['), '[', '2', '~' }},
 	{0, ""}
 };
 
 static int
 bind_action(int action)
 {
-	
-	//printf("bind action %d\n", action);
 	switch (action) {
 	case BIND_KEY_UP:
 	case BIND_KEY_PGUP:
@@ -3579,7 +3577,7 @@ bind_action(int action)
 	case BIND_KEY_DEL:
 		vi_cmd(1, "x");
 		break;
-	case BIND_KEY_F1:
+	case BIND_KEY_INS:
 		break;
 	}
 	refresh(0);
@@ -3604,11 +3602,16 @@ filter_from_binds(void)
 		}
 		lastidx = 0;
 		if (lastread >= 3 && VNORMAL == state) {
-			int i;
+			int i, len;
 			for (i = 0; bind_keys[i].action; i++) {
-				if (!strncmp(bind_keys[i].seq, binds, bind_keys[i].seq[3] ? 4 : 3)) {
-					lastidx = bind_keys[i].seq[3] ? 4 : 3;
-					bind_action(bind_keys[i].action);
+				/* do single check on [2] is enough, mostly. */
+				if (bind_keys[i].seq[2] == binds[2]) {
+					len = bind_keys[i].seq[3] ? 4 : 3;
+					if (!strncmp(bind_keys[i].seq, binds, len)) {
+						lastidx = len;
+						bind_action(bind_keys[i].action);
+					}
+					break;
 				}
 			}
 		}
