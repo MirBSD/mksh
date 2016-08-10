@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.411 2016/08/04 09:27:59 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.412 2016/08/10 18:15:18 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: August 4 2016 $
+.Dd $Mdocdate: August 10 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2673,7 +2673,7 @@ Integer constants may be specified with arbitrary bases using the notation
 .Ar base Ns # Ns Ar number ,
 where
 .Ar base
-is a decimal integer specifying the base, and
+is a decimal integer specifying the base (up to 36), and
 .Ar number
 is a number in the specified base.
 Additionally, base-16 integers may be specified by prefixing them with
