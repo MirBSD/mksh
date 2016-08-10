@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.412 2016/08/10 18:15:18 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.413 2016/08/10 18:20:05 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -2681,10 +2681,11 @@ Additionally, base-16 integers may be specified by prefixing them with
 .Pq case-insensitive
 in all forms of arithmetic expressions, except as numeric arguments to the
 .Ic test
-built-in command.
+built-in utility.
 Prefixing numbers with a sole digit zero
 .Pq Sq 0
-does not cause interpretation as octal, as that's unsafe to do.
+does not cause interpretation as octal (except in POSIX mode,
+as required by the standard), as that's unsafe to do.
 .Pp
 As a special
 .Nm mksh
@@ -5424,7 +5425,7 @@ The
 builtin does not interpret backslashes and only supports the exact option
 .Dq Fl n .
 .It
-\&... (list is incomplete and may change for R53)
+\&... (list is incomplete and may change for R54)
 .El
 .Ss SH mode
 Compatibility mode; intended for use with legacy scripts that
@@ -5445,7 +5446,35 @@ The
 builtin does not interpret backslashes and only supports the exact option
 .Dq Fl n .
 .It
-\&... (list is incomplete and may change for R53)
+The substitution operations
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf # Ar pat No } ,
+.Sm on
+.Xc
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf ## Ar pat No } ,
+.Sm on
+.Xc
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf % Ar pat No } ,
+.Sm on
+.Xc
+and
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf %% Ar pat No }
+.Sm on
+.Xc
+wrongly do not require a parenthesis to be escaped and do not parse extglobs.
+.It
+\&... (list is incomplete and may change for R54)
 .El
 .Ss Interactive input line editing
 The shell supports three modes of reading command lines from a

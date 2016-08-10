@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.749 2016/08/04 20:51:32 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.750 2016/08/10 18:20:03 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -9375,7 +9375,7 @@ stdin:
 	(exit 42)
 	. ./dotfile
 	echo 1 $? .
-expected-stdout: 
+expected-stdout:
 	1 0 .
 ---
 name: alias-function-no-conflict
