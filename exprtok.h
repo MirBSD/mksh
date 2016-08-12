@@ -19,7 +19,7 @@
  */
 
 #if defined(EXPRTOK_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/exprtok.h,v 1.1 2016/07/27 00:55:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exprtok.h,v 1.2 2016/08/12 16:48:05 tg Exp $");
 /* see range comment below */
 #define IS_ASSIGNOP(op) ((int)(op) >= (int)O_ASN && (int)(op) <= (int)O_BORASN)
 #define FN(name, len, prec, enum)	/* nothing */
@@ -61,7 +61,7 @@ FN("!=", 2, P_EQUALITY, O_NE)		/* before ! */
 /* assignments are assumed to be in range O_ASN .. O_BORASN */
 FN("=", 1, P_ASSIGN, O_ASN)
 FN("*=", 2, P_ASSIGN, O_TIMESASN)
-FN("/-", 2, P_ASSIGN, O_DIVASN)
+FN("/=", 2, P_ASSIGN, O_DIVASN)
 FN("%=", 2, P_ASSIGN, O_MODASN)
 FN("+=", 2, P_ASSIGN, O_PLUSASN)
 FN("-=", 2, P_ASSIGN, O_MINUSASN)
