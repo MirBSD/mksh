@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.310 2016/02/26 21:53:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.317 2016/08/04 20:51:35 tg Exp $");
 
 extern char **environ;
 
@@ -63,7 +63,7 @@ static const char initsubs[] =
 
 static const char *initcoms[] = {
 	Ttypeset, "-r", initvsn, NULL,
-	Ttypeset, "-x", "HOME", "PATH", "SHELL", NULL,
+	Ttypeset, "-x", "HOME", TPATH, TSHELL, NULL,
 	Ttypeset, "-i10", "COLUMNS", "LINES", "SECONDS", "TMOUT", NULL,
 	Talias,
 	"integer=\\typeset -i",
@@ -82,12 +82,12 @@ static const char *initcoms[] = {
 	 /* this is what AT&T ksh seems to track, with the addition of emacs */
 	Talias, "-tU",
 	Tcat, "cc", "chmod", "cp", "date", "ed", "emacs", "grep", "ls",
-	"make", "mv", "pr", "rm", "sed", "sh", "vi", "who", NULL,
+	"make", "mv", "pr", "rm", "sed", Tsh, "vi", "who", NULL,
 	NULL
 };
 
 static const char *restr_com[] = {
-	Ttypeset, "-r", "PATH", "ENV", "SHELL", NULL
+	Ttypeset, "-r", TPATH, "ENV", TSHELL, NULL
 };
 
 static bool initio_done;
@@ -149,7 +149,7 @@ chvt_reinit(void)
 }
 
 static const char *empty_argv[] = {
-	"mksh", NULL
+	Tmksh, NULL
 };
 
 static uint8_t
@@ -317,7 +317,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 #endif
 		/*
 		 * this is uniform across all OSes unless it
-		 * breaks somewhere; don't try to optimise,
+		 * breaks somewhere hard; don't try to optimise,
 		 * e.g. add stuff for Interix or remove /usr
 		 * for HURD, because e.g. Debian GNU/HURD is
 		 * "keeping a regular /usr"; this is supposed
@@ -333,7 +333,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	 * Set PATH to def_path (will set the path global variable).
 	 * (import of environment below will probably change this setting).
 	 */
-	vp = global("PATH");
+	vp = global(TPATH);
 	/* setstr can't fail here */
 	setstr(vp, def_path, KSH_RETURN_ERROR);
 
@@ -366,11 +366,11 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	substitute(initsubs, 0);
 
 	/* Figure out the current working directory and set $PWD */
-	vp = global("PWD");
+	vp = global(TPWD);
 	cp = str_val(vp);
 	/* Try to use existing $PWD if it is valid */
-	set_current_wd((mksh_abspath(cp) && test_eval(NULL, TO_FILEQ, cp, ".",
-	    true)) ? cp : NULL);
+	set_current_wd((mksh_abspath(cp) && test_eval(NULL, TO_FILEQ, cp,
+	    Tdot, true)) ? cp : NULL);
 	if (current_wd[0])
 		simplify_path(current_wd);
 	/* Only set pwd if we know where we are or if it had a bogus value */
@@ -440,7 +440,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	} else if (Flag(FCOMMAND)) {
 		s = pushs(SSTRINGCMDLINE, ATEMP);
 		if (!(s->start = s->str = argv[argi++]))
-			errorf("-c %s", "requires an argument");
+			errorf(Tf_optfoo, "", "", 'c', Treq_arg);
 		while (*s->str) {
 			if (*s->str != ' ' && ctype(*s->str, C_QUOTE))
 				break;
@@ -475,7 +475,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		    SHF_MAPHI | SHF_CLEXEC);
 		if (s->u.shf == NULL) {
 			shl_stdout_ok = false;
-			warningf(true, "%s: %s", s->file, cstrerror(errno));
+			warningf(true, Tf_sD_s, s->file, cstrerror(errno));
 			/* mandated by SUSv4 */
 			exstat = 127;
 			unwind(LERROR);
@@ -738,12 +738,15 @@ include(const char *name, int argc, const char **argv, bool intr_ok)
 int
 command(const char *comm, int line)
 {
-	Source *s;
+	Source *s, *sold = source;
+	int rv;
 
 	s = pushs(SSTRING, ATEMP);
 	s->start = s->str = comm;
 	s->line = line;
-	return (shell(s, false));
+	rv = shell(s, false);
+	source = sold;
+	return (rv);
 }
 
 /*
@@ -914,13 +917,6 @@ unwind(int i)
 			/* FALLTHROUGH */
 		default:
 			quitenv(NULL);
-			/*
-			 * quitenv() may have reclaimed the memory
-			 * used by source which will end badly when
-			 * we jump to a function that expects it to
-			 * be valid
-			 */
-			source = NULL;
 		}
 	}
 }
@@ -1091,15 +1087,25 @@ reclaim(void)
 
 	remove_temps(e->temps);
 	e->temps = NULL;
+
+	/*
+	 * if the memory backing source is reclaimed, things
+	 * will end up badly when a function expecting it to
+	 * be valid is run; a NULL pointer is easily debugged
+	 */
+	if (source && source->areap == &e->area)
+		source = NULL;
 	afreeall(&e->area);
 }
 
 static void
 remove_temps(struct temp *tp)
 {
-	for (; tp != NULL; tp = tp->next)
+	while (tp) {
 		if (tp->pid == procpid)
 			unlink(tp->tffn);
+		tp = tp->next;
+	}
 }
 
 /*
@@ -1133,7 +1139,7 @@ tty_init_fd(void)
 		goto got_fd;
 	}
 #endif
-	if ((fd = open("/dev/tty", O_RDWR, 0)) >= 0) {
+	if ((fd = open(T_devtty, O_RDWR, 0)) >= 0) {
 		do_close = true;
 		goto got_fd;
 	}
@@ -1190,13 +1196,13 @@ vwarningf(unsigned int flags, const char *fmt, va_list ap)
 {
 	if (fmt) {
 		if (flags & VWARNINGF_INTERNAL)
-			shf_fprintf(shl_out, "internal error: ");
+			shf_fprintf(shl_out, Tf_sD_, "internal error");
 		if (flags & VWARNINGF_ERRORPREFIX)
 			error_prefix(tobool(flags & VWARNINGF_FILELINE));
 		if ((flags & VWARNINGF_BUILTIN) &&
 		    /* not set when main() calls parse_args() */
 		    builtin_argv0 && builtin_argv0 != kshname)
-			shf_fprintf(shl_out, "%s: ", builtin_argv0);
+			shf_fprintf(shl_out, Tf_sD_, builtin_argv0);
 		shf_vfprintf(shl_out, fmt, ap);
 		shf_putchar('\n', shl_out);
 	}
@@ -1305,7 +1311,7 @@ error_prefix(bool fileline)
 	/* Avoid foo: foo[2]: ... */
 	if (!fileline || !source || !source->file ||
 	    strcmp(source->file, kshname) != 0)
-		shf_fprintf(shl_out, "%s: ", kshname + (*kshname == '-'));
+		shf_fprintf(shl_out, Tf_sD_, kshname + (*kshname == '-'));
 	if (fileline && source && source->file != NULL) {
 		shf_fprintf(shl_out, "%s[%lu]: ", source->file,
 		    (unsigned long)(source->errline ?
@@ -1375,7 +1381,7 @@ initio(void)
 	if ((lfp = getenv("SDMKSH_PATH")) == NULL) {
 		if ((lfp = getenv("HOME")) == NULL || !mksh_abspath(lfp))
 			errorf("cannot get home directory");
-		lfp = shf_smprintf("%s/mksh-dbg.txt", lfp);
+		lfp = shf_smprintf(Tf_sSs, lfp, "mksh-dbg.txt");
 	}
 
 	if ((shl_dbg_fd = open(lfp, O_WRONLY | O_APPEND | O_CREAT, 0600)) < 0)
@@ -1479,25 +1485,20 @@ closepipe(int *pv)
 int
 check_fd(const char *name, int mode, const char **emsgp)
 {
-	int fd = 0, fl;
+	int fd, fl;
 
-	if (name[0] == 'p' && !name[1])
+	if (!name[0] || name[1])
+		goto illegal_fd_name;
+	if (name[0] == 'p')
 		return (coproc_getfd(mode, emsgp));
-	while (ksh_isdigit(*name)) {
-		fd = fd * 10 + ksh_numdig(*name);
-		if (fd >= FDBASE) {
-			if (emsgp)
-				*emsgp = "file descriptor too large";
-			return (-1);
-		}
-		++name;
-	}
-	if (*name) {
+	if (!ksh_isdigit(name[0])) {
+ illegal_fd_name:
 		if (emsgp)
 			*emsgp = "illegal file descriptor name";
 		return (-1);
 	}
-	if ((fl = fcntl(fd, F_GETFL, 0)) < 0) {
+
+	if ((fl = fcntl((fd = ksh_numdig(name[0])), F_GETFL, 0)) < 0) {
 		if (emsgp)
 			*emsgp = "bad file descriptor";
 		return (-1);

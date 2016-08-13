@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.189 2016/06/26 00:44:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.192 2016/08/01 21:38:01 tg Exp $");
 
 /*
  * string expansion
@@ -186,7 +186,7 @@ evalonestr(const char *cp, int f)
 		rv = (char *) *XPptrv(w);
 		break;
 	default:
-		rv = evalstr(cp, f&~DOGLOB);
+		rv = evalstr(cp, f & ~DOGLOB);
 		break;
 	}
 	XPfree(w);
@@ -381,9 +381,9 @@ expand(
 					/* ({) the } or x is already skipped */
 					if (end < wdscan(beg, EOS))
 						*end = EOS;
-					str = snptreef(NULL, 64, "%S", beg);
+					str = snptreef(NULL, 64, Tf_S, beg);
 					afree(beg, ATEMP);
-					errorf("%s: %s", str, Tbadsubst);
+					errorf(Tf_sD_s, str, Tbadsubst);
 				}
 				if (f & DOBLANK)
 					doblank++;
@@ -478,12 +478,14 @@ expand(
 						strndupx(x.str, beg, num, ATEMP);
 						goto do_CSUBST;
 					    }
+					case 0x100 | '/':
 					case '/': {
 						char *s, *p, *d, *sbeg, *end;
-						char *pat, *rrep;
+						char *pat = NULL, *rrep = null;
 						char fpat = 0, *tpat1, *tpat2;
+						char *ws, *wpat, *wrep;
 
-						s = wdcopy(sp, ATEMP);
+						s = ws = wdcopy(sp, ATEMP);
 						p = s + (wdscan(sp, ADELIM) - sp);
 						d = s + (wdscan(sp, CSUBST) - sp);
 						p[-2] = EOS;
@@ -492,16 +494,24 @@ expand(
 						else
 							d[-2] = EOS;
 						sp += (d ? d : p) - s - 1;
-						if (!(stype & 0x80) &&
+						if (!(stype & 0x180) &&
 						    s[0] == CHAR &&
 						    (s[1] == '#' || s[1] == '%'))
 							fpat = s[1];
-						pat = evalstr(s + (fpat ? 2 : 0),
-						    DOTILDE | DOSCALAR | DOPAT);
-						rrep = d ? evalstr(p,
-						    DOTILDE | DOSCALAR) : null;
-						afree(s, ATEMP);
+						wpat = s + (fpat ? 2 : 0);
+						wrep = d ? p : NULL;
+						if (!(stype & 0x100)) {
+							rrep = wrep ? evalstr(wrep,
+							    DOTILDE | DOSCALAR) :
+							    null;
+						}
 
+						/* prepare string on which to work */
+						strdupx(s, str_val(st->var), ATEMP);
+						sbeg = s;
+ again_search:
+						pat = evalstr(wpat,
+						    DOTILDE | DOSCALAR | DOPAT);
 						/* check for special cases */
 						if (!*pat && !fpat) {
 							/*
@@ -510,18 +520,14 @@ expand(
 							 */
 							goto no_repl;
 						}
-						if ((stype & 0x80) &&
+						if ((stype & 0x180) &&
 						    gmatchx(null, pat, false)) {
 							/*
 							 * pattern matches empty
 							 * string => don't loop
 							 */
-							stype &= ~0x80;
+							stype &= ~0x180;
 						}
-
-						/* prepare string on which to work */
-						strdupx(s, str_val(st->var), ATEMP);
-						sbeg = s;
 
 						/* first see if we have any match at all */
 						if (fpat == '#') {
@@ -567,13 +573,27 @@ expand(
 									break;
 								p--;
 							}
+						strndupx(end, sbeg, p - sbeg, ATEMP);
+						record_match(end);
+						afree(end, ATEMP);
+						if (stype & 0x100) {
+							if (rrep != null)
+								afree(rrep, ATEMP);
+							rrep = wrep ? evalstr(wrep,
+							    DOTILDE | DOSCALAR) :
+							    null;
+						}
 						strndupx(end, s, sbeg - s, ATEMP);
-						d = shf_smprintf("%s%s%s", end, rrep, p);
+						d = shf_smprintf(Tf_sss, end, rrep, p);
 						afree(end, ATEMP);
 						sbeg = d + (sbeg - s) + strlen(rrep);
 						afree(s, ATEMP);
 						s = d;
-						if (stype & 0x80)
+						if (stype & 0x100) {
+							afree(tpat1, ATEMP);
+							afree(pat, ATEMP);
+							goto again_search;
+						} else if (stype & 0x80)
 							goto again_repl;
  end_repl:
 						afree(tpat1, ATEMP);
@@ -582,6 +602,7 @@ expand(
 						afree(pat, ATEMP);
 						if (rrep != null)
 							afree(rrep, ATEMP);
+						afree(ws, ATEMP);
 						goto do_CSUBST;
 					    }
 					case '#':
@@ -729,10 +750,11 @@ expand(
 				case '?':
 					dp = Xrestpos(ds, dp, st->base);
 
-					errorf("%s: %s", st->var->name,
+					errorf(Tf_sD_s, st->var->name,
 					    debunk(dp, dp, strlen(dp) + 1));
 					break;
 				case '0':
+				case 0x100 | '/':
 				case '/':
 				case 0x100 | '#':
 				case 0x100 | 'Q':
@@ -1134,10 +1156,10 @@ varsub(Expand *xp, const char *sp, const char *word,
 			}
 		}
 		if (Flag(FNOUNSET) && c == 0 && !zero_ok)
-			errorf("%s: parameter not set", sp);
+			errorf(Tf_parm, sp);
 		/* unqualified variable/string substitution */
 		*stypep = 0;
-		xp->str = shf_smprintf("%d", c);
+		xp->str = shf_smprintf(Tf_d, c);
 		return (XSUB);
 	}
 	if (stype == '!' && c != '\0' && *word == CSUBST) {
@@ -1207,6 +1229,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		case '#':
 		case '?':
 		case '0':
+		case 0x100 | '/':
 		case '/':
 		case 0x100 | '#':
 		case 0x100 | 'Q':
@@ -1237,6 +1260,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		case '#':
 		case '?':
 		case '0':
+		case 0x100 | '/':
 		case '/':
 		case 0x100 | '#':
 		case 0x100 | 'Q':
@@ -1249,7 +1273,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		for (; vp; vp = vp->u.array) {
 			if (!(vp->flag&ISSET))
 				continue;
-			XPput(wv, c == '!' ? shf_smprintf("%lu",
+			XPput(wv, c == '!' ? shf_smprintf(Tf_lu,
 			    arrayindex(vp)) :
 			    str_val(vp));
 		}
@@ -1277,18 +1301,18 @@ varsub(Expand *xp, const char *sp, const char *word,
 
 	c = stype & 0x7F;
 	/* test the compiler's code generator */
-	if (((stype < 0x100) && (ctype(c, C_SUBOP2) || c == '/' ||
+	if (((stype < 0x100) && (ctype(c, C_SUBOP2) ||
 	    (((stype & 0x80) ? *xp->str == '\0' : xp->str == null) &&
 	    (state != XARG || (ifs0 || xp->split ?
 	    (xp->u.strv[0] == NULL) : !hasnonempty(xp->u.strv))) ?
 	    c == '=' || c == '-' || c == '?' : c == '+'))) ||
 	    stype == (0x80 | '0') || stype == (0x100 | '#') ||
-	    stype == (0x100 | 'Q'))
+	    stype == (0x100 | 'Q') || (stype & 0x7F) == '/')
 		/* expand word instead of variable value */
 		state = XBASE;
 	if (Flag(FNOUNSET) && xp->str == null && !zero_ok &&
 	    (ctype(c, C_SUBOP2) || (state != XBASE && c != '+')))
-		errorf("%s: parameter not set", sp);
+		errorf(Tf_parm, sp);
 	*stypep = stype;
 	*slenp = slen;
 	return (state);
@@ -1331,8 +1355,8 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 			shf = shf_open(name = evalstr(io->ioname, DOTILDE),
 				O_RDONLY, 0, SHF_MAPHI | SHF_CLEXEC);
 			if (shf == NULL)
-				warningf(!Flag(FTALKING), "%s: %s %s: %s",
-				    name, "can't open", "$(<...) input",
+				warningf(!Flag(FTALKING), Tf_sD_s_sD_s,
+				    name, Tcant_open, "$(<...) input",
 				    cstrerror(errno));
 			break;
 		case IOHERE:
@@ -1348,8 +1372,8 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 			shf = NULL;
 			break;
 		default:
-			errorf("%s: %s", T_funny_command,
-			    snptreef(NULL, 32, "%R", io));
+			errorf(Tf_sD_s, T_funny_command,
+			    snptreef(NULL, 32, Tft_R, io));
 		}
 	} else if (fn == FUNSUB) {
 		int ofd1;
@@ -1361,8 +1385,8 @@ comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
 		 */
 		maketemp(ATEMP, TT_FUNSUB, &tf);
 		if (!tf->shf) {
-			errorf("can't %s temporary file %s: %s",
-			    "create", tf->tffn, cstrerror(errno));
+			errorf(Tf_temp,
+			    Tcreate, tf->tffn, cstrerror(errno));
 		}
 		/* extract shf from temporary file, unlink and free it */
 		shf = tf->shf;
@@ -1420,6 +1444,7 @@ trimsub(char *str, char *pat, int how)
 		for (p = str; p <= end; p += utf_ptradj(p)) {
 			c = *p; *p = '\0';
 			if (gmatchx(str, pat, false)) {
+				record_match(str);
 				*p = c;
 				return (p);
 			}
@@ -1431,6 +1456,7 @@ trimsub(char *str, char *pat, int how)
 		for (p = end; p >= str; p--) {
 			c = *p; *p = '\0';
 			if (gmatchx(str, pat, false)) {
+				record_match(str);
 				*p = c;
 				return (p);
 			}
@@ -1458,6 +1484,7 @@ trimsub(char *str, char *pat, int how)
 		for (p = str; p <= end; p++)
 			if (gmatchx(p, pat, false)) {
  trimsub_match:
+				record_match(p);
 				strndupx(end, str, p - str, ATEMP);
 				return (end);
 			}
@@ -1612,7 +1639,7 @@ globit(XString *xs,	/* dest string */
 		/* xp = *xpp;	copy_non_glob() may have re-alloc'd xs */
 		*xp = '\0';
 		prefix_len = Xlength(*xs, xp);
-		dirp = opendir(prefix_len ? Xstring(*xs, xp) : ".");
+		dirp = opendir(prefix_len ? Xstring(*xs, xp) : Tdot);
 		if (dirp == NULL)
 			goto Nodir;
 		while ((d = readdir(dirp)) != NULL) {
@@ -1714,24 +1741,40 @@ maybe_expand_tilde(const char *p, XString *dsp, char **dpp, bool isassign)
  *
  * based on a version by Arnold Robbins
  */
-
 char *
 do_tilde(char *cp)
 {
 	char *dp = null;
+#ifndef MKSH_NOPWNAM
+	bool do_simplify = true;
+#endif
 
 	if (cp[0] == '\0')
 		dp = str_val(global("HOME"));
 	else if (cp[0] == '+' && cp[1] == '\0')
-		dp = str_val(global("PWD"));
+		dp = str_val(global(TPWD));
 	else if (ksh_isdash(cp))
-		dp = str_val(global("OLDPWD"));
+		dp = str_val(global(TOLDPWD));
 #ifndef MKSH_NOPWNAM
-	else
+	else {
 		dp = homedir(cp);
+		do_simplify = false;
+	}
 #endif
-	/* If HOME, PWD or OLDPWD are not set, don't expand ~ */
-	return (dp == null ? NULL : dp);
+
+	/* if parameters aren't set, don't expand ~ */
+	if (dp == NULL || dp == null)
+		return (NULL);
+
+	/* simplify parameters as if cwd upon entry */
+#ifndef MKSH_NOPWNAM
+	if (do_simplify)
+#endif
+	  {
+		strdupx(dp, dp, ATEMP);
+		simplify_path(dp);
+	}
+	return (dp);
 }
 
 #ifndef MKSH_NOPWNAM

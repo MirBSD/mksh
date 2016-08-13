@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009, 2011, 2012
+ * Copyright (c) 2009, 2011, 2012, 2016
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -19,7 +19,7 @@
  */
 
 #if defined(VARSPEC_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/var_spec.h,v 1.7 2015/12/12 21:08:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var_spec.h,v 1.9 2016/07/25 21:02:13 tg Exp $");
 #define FN(name)			/* nothing */
 #elif defined(VARSPEC_ENUMS)
 #define FN(name)			V_##name,
@@ -53,6 +53,9 @@ FN(OPTIND)
 FN(PATH)
 FN(RANDOM)
 FN(SECONDS)
+#ifndef MKSH_NO_CMDLINE_EDITING
+FN(TERM)
+#endif
 FN(TMOUT)
 FN(TMPDIR)
 

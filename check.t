@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.739 2016/06/26 00:44:55 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.750 2016/08/10 18:20:03 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R52 2016/06/25
+	@(#)MIRBSD KSH R53 2016/08/04
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R52 2016/06/25
+	@(#)LEGACY KSH R53 2016/08/04
 description:
 	Check version of legacy shell.
 stdin:
@@ -358,6 +358,18 @@ stdin:
 	echo $((0 ? x+=2 : 20))
 expected-stdout:
 	20
+---
+name: arith-prec-1
+description:
+	Prove arithmetic expressions with embedded parameter
+	substitutions cannot be parsed ahead of time
+stdin:
+	a='3 + 4'
+	print 1 $((2 * a)) .
+	print 2 $((2 * $a)) .
+expected-stdout:
+	1 14 .
+	2 10 .
 ---
 name: arith-div-assoc-1
 description:
@@ -1778,6 +1790,41 @@ stdin:
 	echo "1 ${12345678901234567890} ."
 expected-stdout:
 	1  .
+---
+name: expand-slashes-1
+description:
+	Check that side effects in substring replacement are handled correctly
+stdin:
+	foo=n1n1n1n2n3
+	i=2
+	n=1
+	echo 1 ${foo//n$((n++))/[$((++i))]} .
+	echo 2 $n , $i .
+expected-stdout:
+	1 [3][3][3]n2n3 .
+	2 2 , 3 .
+---
+name: expand-slashes-2
+description:
+	Check that side effects in substring replacement are handled correctly
+stdin:
+	foo=n1n1n1n2n3
+	i=2
+	n=1
+	echo 1 ${foo@/n$((n++))/[$((++i))]} .
+	echo 2 $n , $i .
+expected-stdout:
+	1 [3]n1n1[4][5] .
+	2 5 , 5 .
+---
+name: expand-slashes-3
+description:
+	Check that we can access the replaced string
+stdin:
+	foo=n1n1n1n2n3
+	echo 1 ${foo@/n[12]/[$KSH_MATCH]} .
+expected-stdout:
+	1 [n1][n1][n1][n2]n3 .
 ---
 name: eglob-bad-1
 description:
@@ -6370,6 +6417,12 @@ expected-stdout:
 	ac_space=' '
 	ac_newline=$'\n'
 ---
+name: regression-67
+description:
+	Check that we can both break and use source on the same line
+stdin:
+	for s in s; do break; done; print -s s
+---
 name: readonly-0
 description:
 	Ensure readonly is honoured for assignments and unset
@@ -9118,6 +9171,16 @@ stdin:
 expected-stdout-pattern:
 	/^4 3 2 <> <\0>$/
 ---
+name: print-array
+description:
+	Check that print -A works as expected
+stdin:
+	print -An 0x20AC 0xC3 0xBC 8#101
+	set -U
+	print -A 0x20AC 0xC3 0xBC 8#102
+expected-stdout:
+	�üA€Ã¼B
+---
 name: print-escapes
 description:
 	Check backslash expansion by the print builtin
@@ -9303,6 +9366,17 @@ stdin:
 expected-exit: e != 0
 expected-stderr-pattern:
 	/\.: missing argument.*\n.*source: missing argument/
+---
+name: dot-errorlevel
+description:
+	Ensure dot resets $?
+stdin:
+	:>dotfile
+	(exit 42)
+	. ./dotfile
+	echo 1 $? .
+expected-stdout:
+	1 0 .
 ---
 name: alias-function-no-conflict
 description:
@@ -10116,29 +10190,6 @@ expected-stdout:
 	2  = bar .
 	3  = bar .
 ---
-name: mkshiop-1
-description:
-	Check for support of more than 9 file descriptors
-category: !convfds
-stdin:
-	read -u10 foo 10<<< bar
-	echo x$foo
-expected-stdout:
-	xbar
----
-name: mkshiop-2
-description:
-	Check for support of more than 9 file descriptors
-category: !convfds
-stdin:
-	exec 12>foo
-	print -u12 bar
-	echo baz >&12
-	cat foo
-expected-stdout:
-	bar
-	baz
----
 name: oksh-eval
 description:
 	Check expansions.
@@ -10373,6 +10424,8 @@ name: fd-cloexec-1
 description:
 	Verify that file descriptors > 2 are private for Korn shells
 	AT&T ksh93 does this still, which means we must keep it as well
+	XXX fails on some old Perl installations
+need-pass: no
 category: shell:legacy-no
 stdin:
 	cat >cld <<-EOF
@@ -10391,6 +10444,8 @@ name: fd-cloexec-2
 description:
 	Verify that file descriptors > 2 are not private for POSIX shells
 	See Debian Bug #154540, Closes: #499139
+	XXX fails on some old Perl installations
+need-pass: no
 stdin:
 	cat >cld <<-EOF
 		#!$__perlname

@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.399 2016/06/25 23:52:06 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.413 2016/08/10 18:20:05 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: June 25 2016 $
+.Dd $Mdocdate: August 10 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1682,6 +1682,25 @@ Inefficiently implemented, may be slow.
 .Pp
 .Sm off
 .It Xo
+.Pf ${ Ar name
+.Pf @/ Ar pattern / Ar string No }
+.Xc
+.Sm on
+The same as
+.Sm off
+.Xo
+.Pf ${ Ar name
+.Pf // Ar pattern / Ar string No } ,
+.Xc
+.Sm on
+except that both
+.Ar pattern
+and
+.Ar string
+are expanded anew for each iteration.
+.Pp
+.Sm off
+.It Xo
 .Pf ${ Ar name : Ns Ar pos
 .Pf : Ns Ar len Ns }
 .Xc
@@ -1854,12 +1873,16 @@ binding to the actual terminal size in favour of the provided value.
 If this parameter is found to be set after any profile files are executed, the
 expanded value is used as a shell startup file.
 It typically contains function and alias definitions.
-.It Ev ERRNO
-Integer value of the shell's
-.Va errno
-variable.
-It indicates the reason the last system call failed.
-Not yet implemented.
+.It Ev EPOCHREALTIME
+Time since the epoch, as returned by
+.Xr gettimeofday 2 ,
+formatted as decimal
+.Va tv_sec
+followed by a dot
+.Pq Sq \&.
+and
+.Va tv_usec
+padded to exactly six decimal digits.
 .It Ev EXECSHELL
 If set, this parameter is assumed to contain the shell that is to be used to
 execute commands that
@@ -1929,6 +1952,70 @@ The effective group id of the shell.
 The real group id of the shell.
 .It Ev KSHUID
 The real user id of the shell.
+.It Ev KSH_MATCH
+The last matched string.
+In a future version, this will be an indexed array,
+with indexes 1 and up capturing matching groups.
+Set by string comparisons (== and !=) in double-bracket test
+expressions when a match is found (when != returns false), by
+.Ic case
+when a match is encountered, and by the substitution operations
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf # Ar pat No } ,
+.Sm on
+.Xc
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf ## Ar pat No } ,
+.Sm on
+.Xc
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf % Ar pat No } ,
+.Sm on
+.Xc
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf %% Ar pat No } ,
+.Sm on
+.Xc
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf / Ar pat / Ar rpl No } ,
+.Sm on
+.Xc
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf /# Ar pat / Ar rpl No } ,
+.Sm on
+.Xc
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf /% Ar pat / Ar rpl No } ,
+.Sm on
+.Xc
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf // Ar pat / Ar rpl No } ,
+.Sm on
+.Xc
+and
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf @/ Ar pat / Ar rpl No } .
+.Sm on
+.Xc
+See the end of the Emacs editing mode documentation for an example.
 .It Ev KSH_VERSION
 The name and version of the shell (read-only).
 See also the version commands in
@@ -1944,16 +2031,6 @@ Set to the number of lines on the terminal or window.
 Always set, defaults to 24.
 See
 .Ev COLUMNS .
-.It Ev EPOCHREALTIME
-Time since the epoch, as returned by
-.Xr gettimeofday 2 ,
-formatted as decimal
-.Va tv_sec
-followed by a dot
-.Pq Sq \&.
-and
-.Va tv_usec
-padded to exactly six decimal digits.
 .It Ev OLDPWD
 The previous working directory.
 Unset if
@@ -2138,7 +2215,7 @@ If the login name is empty,
 .Ql + ,
 or
 .Ql \- ,
-the value of the
+the simplified value of the
 .Ev HOME ,
 .Ev PWD ,
 or
@@ -2463,12 +2540,6 @@ indicating the file descriptor associated with the output of the current
 co-process; or the character
 .Ql \- ,
 indicating standard input is to be closed.
-.Pp
-Note that the current version of
-.Nm
-supports some two-digit fd numbers in some environments;
-this feature is deprecated and will be removed from a subsequent release
-in favour of a ksh93-/perl-style "named file descriptors" feature.
 .It \*(Gt& Ns Ar fd
 Same as
 .Ic \*(Lt& ,
@@ -2573,7 +2644,7 @@ Unary operators:
 Binary operators:
 .Bd -literal -offset indent
 ,
-= += \-= *= /= %= \*(Lt\*(Lt\*(Lt= \*(Gt\*(Gt\*(Gt= \*(Lt\*(Lt= \*(Gt\*(Gt= &= \*(ha= \*(Ba=
+= += \-= *= /= %= \*(Lt\*(Lt= \*(Gt\*(Gt= \*(ha\*(Lt= \*(ha\*(Gt= &= \*(ha= \*(Ba=
 \*(Ba\*(Ba
 &&
 \*(Ba
@@ -2581,7 +2652,7 @@ Binary operators:
 &
 == !=
 \*(Lt \*(Lt= \*(Gt \*(Gt=
-\*(Lt\*(Lt\*(Lt \*(Gt\*(Gt\*(Gt \*(Lt\*(Lt \*(Gt\*(Gt
+\*(Lt\*(Lt \*(Gt\*(Gt \*(ha\*(Lt \*(ha\*(Gt
 + \-
 * / %
 .Ed
@@ -2602,7 +2673,7 @@ Integer constants may be specified with arbitrary bases using the notation
 .Ar base Ns # Ns Ar number ,
 where
 .Ar base
-is a decimal integer specifying the base, and
+is a decimal integer specifying the base (up to 36), and
 .Ar number
 is a number in the specified base.
 Additionally, base-16 integers may be specified by prefixing them with
@@ -2610,10 +2681,11 @@ Additionally, base-16 integers may be specified by prefixing them with
 .Pq case-insensitive
 in all forms of arithmetic expressions, except as numeric arguments to the
 .Ic test
-built-in command.
+built-in utility.
 Prefixing numbers with a sole digit zero
 .Pq Sq 0
-does not cause interpretation as octal, as that's unsafe to do.
+does not cause interpretation as octal (except in POSIX mode,
+as required by the standard), as that's unsafe to do.
 .Pp
 As a special
 .Nm mksh
@@ -2670,8 +2742,8 @@ The result is the value of the expression on the right-hand side.
 .It =
 Assignment; the variable on the left is set to the value on the right.
 .It Xo
-.No += \-= *= /= %= \*(Lt\*(Lt\*(Lt= \*(Gt\*(Gt\*(Gt=
-.No \*(Lt\*(Lt= \*(Gt\*(Gt= &= \*(ha= \*(Ba=
+.No += \-= *= /= %= \*(Lt\*(Lt= \*(Gt\*(Gt=
+.No \*(ha\*(Lt= \*(ha\*(Gt= &= \*(ha= \*(Ba=
 .Xc
 Assignment operators.
 .Sm off
@@ -2721,20 +2793,14 @@ not.
 Less than or equal, greater than, greater than or equal.
 See
 .Ic \*(Lt .
-.It \*(Lt\*(Lt\*(Lt \*(Gt\*(Gt\*(Gt
-Rotate left (right); the result is similar to shift (see
-.Ic \*(Lt\*(Lt )
+.It \*(Lt\*(Lt \*(Gt\*(Gt
+Shift left (right); the result is the left argument with its bits
+arithmetically (signed operation) or logically (unsigned expression)
+shifted left (right) by the amount given in the right argument.
+.It \*(ha\*(Lt \*(ha\*(Gt
+Rotate left (right); the result is similar to shift,
 except that the bits shifted out at one end are shifted in
 at the other end, instead of zero or sign bits.
-.Pp
-.Em Note :
-These operators are deprecated; in a subsequent mksh release,
-.Ic \*(ha\*(Lt No and Ic \*(ha\*(Gt
-.No will replace them, and Ic \*(Gt\*(Gt\*(Gt
-will be an arithmetic right shift.
-.It \*(Lt\*(Lt \*(Gt\*(Gt
-Shift left (right); the result is the left argument with its bits logically
-shifted left (right) by the amount given in the right argument.
 .It + \- * /
 Addition, subtraction, multiplication, and division.
 .It %
@@ -3714,7 +3780,7 @@ however, distributors may have added this as builtin as a speed hack.
 .Pp
 .It Xo
 .Ic print
-.Oo Fl nprsu Ns Oo Ar n Oc \*(Ba
+.Oo Fl Anprsu Ns Oo Ar n Oc \*(Ba
 .Fl R Op Fl en Oc
 .Op Ar argument ...
 .Xc
@@ -3750,6 +3816,10 @@ and the
 option prints to the co-process (see
 .Sx Co-processes
 above).
+The
+.Fl A
+option prints the character corresponding to each
+.Ar argument Ns 's value .
 .Pp
 The
 .Fl R
@@ -3977,6 +4047,9 @@ it's also checked for existence and whether it is a directory; otherwise,
 .Ic realpath
 returns 0 if the pathname either exists or can be created immediately,
 i.e. all but the last component exist and are directories.
+For calls from the shell, if any options are given, an external
+.Xr realpath 1
+utility is preferred over the builtin.
 .Pp
 .It Xo
 .Ic rename
@@ -3988,9 +4061,10 @@ Renames the file
 to
 .Ar to .
 Both must be complete pathnames and on the same device.
-This builtin is intended for emergency situations where
-.Pa /bin/mv
-becomes unusable, and directly calls
+An external utility is preferred over this builtin,
+which is intended for emergency situations
+.Pq where Pa /bin/mv No becomes unusable
+and directly calls
 .Xr rename 2 .
 .Pp
 .It Ic return Op Ar status
@@ -5351,7 +5425,7 @@ The
 builtin does not interpret backslashes and only supports the exact option
 .Dq Fl n .
 .It
-\&... (list is incomplete and may change for R53)
+\&... (list is incomplete and may change for R54)
 .El
 .Ss SH mode
 Compatibility mode; intended for use with legacy scripts that
@@ -5372,7 +5446,35 @@ The
 builtin does not interpret backslashes and only supports the exact option
 .Dq Fl n .
 .It
-\&... (list is incomplete and may change for R53)
+The substitution operations
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf # Ar pat No } ,
+.Sm on
+.Xc
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf ## Ar pat No } ,
+.Sm on
+.Xc
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf % Ar pat No } ,
+.Sm on
+.Xc
+and
+.Sm off
+.Xo
+.Pf ${ Ar x
+.Pf %% Ar pat No }
+.Sm on
+.Xc
+wrongly do not require a parenthesis to be escaped and do not parse extglobs.
+.It
+\&... (list is incomplete and may change for R54)
 .El
 .Ss Interactive input line editing
 The shell supports three modes of reading command lines from a
@@ -5619,6 +5721,11 @@ otherwise,
 .Ic delete\-char\-forward .
 .It error: (not bound)
 Error (ring the bell).
+.It evaluate\-region: \*(ha[\*(haE
+Evaluates the text between the mark and the cursor position
+.Pq the entire line if no mark is set
+as function substitution (if it cannot be parsed, the editing state is
+unchanged and the bell is rung to signal an error); $? is updated accordingly.
 .It exchange\-point\-and\-mark: \*(haX\*(haX
 Places the cursor where the mark is and sets the mark to where the cursor was.
 .It expand\-file: \*(ha[*
@@ -5799,6 +5906,11 @@ Immediately after a
 .Ic yank ,
 replaces the inserted text string with the next previously killed text string.
 .El
+.Pp
+The tab completion escapes characters the same way as the following code:
+.Bd -literal
+print \-nr \-\- "${x@/[\e"\-\e$\e&\-*:\-?[\e\e\e\`{\-\e}${IFS\-$\*(aq \et\en\*(aq}]/\e\e$KSH_MATCH}"
+.Ed
 .Ss Vi editing mode
 .Em Note:
 The vi command-line editing mode is orphaned, yet still functional.
@@ -6612,7 +6724,7 @@ for the in-memory portion of the history is slow, should use
 .Xr memmove 3 .
 .Pp
 This document attempts to describe
-.Nm mksh\ R52d
+.Nm mksh\ R53
 and up,
 .\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as

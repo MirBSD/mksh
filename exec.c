@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.175 2016/06/26 00:44:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.179 2016/08/01 21:38:02 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -107,7 +107,7 @@ execute(struct op * volatile t,
 
 			if ((rv = herein(t->ioact[0], &cp) /*? 1 : 0*/))
 				cp = NULL;
-			dp = shf_smprintf("%s%s", evalstr(t->vars[0],
+			dp = shf_smprintf(Tf_ss, evalstr(t->vars[0],
 			    DOASNTILDE | DOSCALAR), rv ? null : cp);
 			typeset(dp, Flag(FEXPORT) ? EXPORT : 0, 0, 0, 0);
 			/* free the expanded value */
@@ -390,6 +390,7 @@ execute(struct op * volatile t,
 			for (ap = (const char **)t->vars; *ap; ap++) {
 				if (i || ((s = evalstr(*ap, DOTILDE|DOPAT)) &&
 				    gmatchx(ccp, s, false))) {
+					record_match(ccp);
 					rv = execute(t->left, flags & XERROK,
 					    xerrok);
 					i = 0;
@@ -441,7 +442,7 @@ execute(struct op * volatile t,
 		if (rv == ENOEXEC)
 			scriptexec(t, (const char **)up);
 		else
-			errorf("%s: %s", t->str, cstrerror(rv));
+			errorf(Tf_sD_s, t->str, cstrerror(rv));
 	}
  Break:
 	exstat = rv & 0xFF;
@@ -532,12 +533,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				break;
 			}
 			if ((tp = findcom(cp, FC_BI)) == NULL)
-				errorf("%s: %s: %s", Tbuiltin, cp, "not a builtin");
-			if (tp->type == CSHELL && (tp->val.f == c_cat
-#ifdef MKSH_PRINTF_BUILTIN
-			    || tp->val.f == c_printf
-#endif
-			    ))
+				errorf(Tf_sD_sD_s, Tbuiltin, cp, Tnot_found);
+			if (tp->type == CSHELL && (tp->flag & LOW_BI))
 				break;
 			continue;
 		} else if (tp->val.f == c_exec) {
@@ -577,7 +574,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			fcflags = FC_BI|FC_PATH;
 			if (saw_p) {
 				if (Flag(FRESTRICTED)) {
-					warningf(true, "%s: %s",
+					warningf(true, Tf_sD_s,
 					    "command -p", "restricted");
 					rv = 1;
 					goto Leave;
@@ -595,29 +592,21 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				subst_exstat = 0;
 				break;
 			}
-		} else if (tp->val.f == c_cat) {
+		} else if (tp->flag & LOW_BI) {
 			/* if we have any flags, do not use the builtin */
-			if (ap[1] && ap[1][0] == '-' && ap[1][1] != '\0' &&
+			if ((ap[1] && ap[1][0] == '-' && ap[1][1] != '\0' &&
 			    /* argument, begins with -, is not - or -- */
-			    (ap[1][1] != '-' || ap[1][2] != '\0')) {
-				struct tbl *ext_cat;
+			    (ap[1][1] != '-' || ap[1][2] != '\0')) ||
+			    /* always prefer the external utility */
+			    (tp->flag & LOWER_BI)) {
+				struct tbl *ext_cmd;
 
-				ext_cat = findcom(Tcat, FC_PATH | FC_FUNC);
-				if (ext_cat && (ext_cat->type != CTALIAS ||
-				    (ext_cat->flag & ISSET)))
-					tp = ext_cat;
+				ext_cmd = findcom(tp->name, FC_PATH | FC_FUNC);
+				if (ext_cmd && (ext_cmd->type != CTALIAS ||
+				    (ext_cmd->flag & ISSET)))
+					tp = ext_cmd;
 			}
 			break;
-#ifdef MKSH_PRINTF_BUILTIN
-		} else if (tp->val.f == c_printf) {
-			struct tbl *ext_printf;
-
-			ext_printf = findcom(Tprintf, FC_PATH | FC_FUNC);
-			if (ext_printf && (ext_printf->type != CTALIAS ||
-			    (ext_printf->flag & ISSET)))
-				tp = ext_printf;
-			break;
-#endif
 		} else if (tp->val.f == c_trap) {
 			t->u.evalflags &= ~DOTCOMEXEC;
 			break;
@@ -686,7 +675,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		goto Leave;
 	} else if (!tp) {
 		if (Flag(FRESTRICTED) && mksh_vstrchr_dirsep(cp)) {
-			warningf(true, "%s: %s", cp, "restricted");
+			warningf(true, Tf_sD_s, cp, "restricted");
 			rv = 1;
 			goto Leave;
 		}
@@ -715,40 +704,30 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			struct tbl *ftp;
 
 			if (!tp->u.fpath) {
+ fpath_error:
 				rv = (tp->u2.errnov == ENOENT) ? 127 : 126;
-				warningf(true, "%s: %s %s: %s", cp,
-				    "can't find", "function definition file",
+				warningf(true, Tf_sD_s_sD_s, cp,
+				    Tcant_find, Tfile_fd,
 				    cstrerror(tp->u2.errnov));
 				break;
 			}
-			if (include(tp->u.fpath, 0, NULL, false) < 0) {
-				if (!strcmp(cp, Tcat)) {
- no_cat_in_FPATH:
-					tp = findcom(Tcat, FC_BI);
-					goto do_call_builtin;
-				}
-#ifdef MKSH_PRINTF_BUILTIN
-				if (!strcmp(cp, Tprintf)) {
- no_printf_in_FPATH:
-					tp = findcom(Tprintf, FC_BI);
-					goto do_call_builtin;
-				}
-#endif
-				warningf(true, "%s: %s %s %s: %s", cp,
-				    "can't open", "function definition file",
-				    tp->u.fpath, cstrerror(errno));
-				rv = 127;
-				break;
-			}
-			if (!(ftp = findfunc(cp, hash(cp), false)) ||
+			errno = 0;
+			if (include(tp->u.fpath, 0, NULL, false) < 0 ||
+			    !(ftp = findfunc(cp, hash(cp), false)) ||
 			    !(ftp->flag & ISSET)) {
-				if (!strcmp(cp, Tcat))
-					goto no_cat_in_FPATH;
-#ifdef MKSH_PRINTF_BUILTIN
-				if (!strcmp(cp, Tprintf))
-					goto no_printf_in_FPATH;
-#endif
-				warningf(true, "%s: %s %s", cp,
+				rv = errno;
+				if ((ftp = findcom(cp, FC_BI)) &&
+				    (ftp->type == CSHELL) &&
+				    (ftp->flag & LOW_BI)) {
+					tp = ftp;
+					goto do_call_builtin;
+				}
+				if (rv) {
+					tp->u2.errnov = rv;
+					cp = tp->u.fpath;
+					goto fpath_error;
+				}
+				warningf(true, Tf_sD_s_s, cp,
 				    "function not defined by", tp->u.fpath);
 				rv = 127;
 				break;
@@ -829,7 +808,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			/* NOTREACHED */
 		default:
 			quitenv(NULL);
-			internal_errorf("%s %d", "CFUNC", i);
+			internal_errorf(Tf_sd, "CFUNC", i);
 		}
 		break;
 	}
@@ -841,10 +820,10 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		if (!(tp->flag&ISSET)) {
 			if (tp->u2.errnov == ENOENT) {
 				rv = 127;
-				warningf(true, "%s: %s", cp, "not found");
+				warningf(true, Tf_sD_s, cp, Tnot_found);
 			} else {
 				rv = 126;
-				warningf(true, "%s: %s: %s", cp, "can't execute",
+				warningf(true, Tf_sD_sD_s, cp, "can't execute",
 				    cstrerror(tp->u2.errnov));
 			}
 			break;
@@ -898,7 +877,7 @@ scriptexec(struct op *tp, const char **ap)
 #endif
 	union mksh_ccphack args, cap;
 
-	sh = str_val(global("EXECSHELL"));
+	sh = str_val(global(TEXECSHELL));
 	if (sh && *sh)
 		sh = search_path(sh, path, X_OK, NULL);
 	if (!sh || !*sh)
@@ -1025,7 +1004,7 @@ scriptexec(struct op *tp, const char **ap)
 	execve(args.rw[0], args.rw, cap.rw);
 
 	/* report both the programme that was run and the bogus interpreter */
-	errorf("%s: %s: %s", tp->str, sh, cstrerror(errno));
+	errorf(Tf_sD_sD_s, tp->str, sh, cstrerror(errno));
 }
 
 int
@@ -1122,23 +1101,38 @@ builtin(const char *name, int (*func) (const char **))
 	uint32_t flag = DEFINED;
 
 	/* see if any flags should be set for this builtin */
-	while (1) {
-		if (*name == '=')
-			/* command does variable assignment */
-			flag |= KEEPASN;
-		else if (*name == '*')
-			/* POSIX special builtin */
-			flag |= SPEC_BI;
-		else
-			break;
-		name++;
+ flags_loop:
+	switch (*name) {
+	case '=':
+		/* command does variable assignment */
+		flag |= KEEPASN;
+		break;
+	case '*':
+		/* POSIX special builtin */
+		flag |= SPEC_BI;
+		break;
+	case '~':
+		/* external utility overrides built-in utility, always */
+		flag |= LOWER_BI;
+		/* FALLTHROUGH */
+	case '!':
+		/* external utility overrides built-in utility, with flags */
+		flag |= LOW_BI;
+		break;
+	default:
+		goto flags_seen;
 	}
+	++name;
+	goto flags_loop;
+ flags_seen:
 
+	/* enter into the builtins hash table */
 	tp = ktenter(&builtins, name, hash(name));
 	tp->flag = flag;
 	tp->type = CSHELL;
 	tp->val.f = func;
 
+	/* return name, for direct builtin call check in main.c */
 	return (name);
 }
 
@@ -1174,7 +1168,7 @@ findcom(const char *name, int flags)
 	if (!tp && (flags & FC_FUNC)) {
 		tp = findfunc(name, h, false);
 		if (tp && !(tp->flag & ISSET)) {
-			if ((fpath = str_val(global("FPATH"))) == null) {
+			if ((fpath = str_val(global(TFPATH))) == null) {
 				tp->u.fpath = NULL;
 				tp->u2.errnov = ENOENT;
 			} else
@@ -1219,7 +1213,7 @@ findcom(const char *name, int flags)
 				afree(npath.rw, ATEMP);
 			tp->flag |= ISSET|ALLOC;
 		} else if ((flags & FC_FUNC) &&
-		    (fpath = str_val(global("FPATH"))) != null &&
+		    (fpath = str_val(global(TFPATH))) != null &&
 		    (npath.ro = search_path(name, fpath, R_OK,
 		    &tp->u2.errnov)) != NULL) {
 			/*
@@ -1363,7 +1357,7 @@ call_builtin(struct tbl *tp, const char **wp, const char *where, bool resetspec)
 	int rv;
 
 	if (!tp)
-		internal_errorf("%s: %s", where, wp[0]);
+		internal_errorf(Tf_sD_s, where, wp[0]);
 	builtin_argv0 = wp[0];
 	builtin_spec = tobool(!resetspec &&
 	    /*XXX odd use of KEEPASN */
@@ -1403,7 +1397,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 
 	if (Flag(FXTRACE)) {
 		change_xtrace(2, false);
-		fptreef(shl_xtrace, 0, "%R", &iotmp);
+		fptreef(shl_xtrace, 0, Tft_R, &iotmp);
 		change_xtrace(1, false);
 	}
 
@@ -1464,8 +1458,8 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		    &emsg)) < 0) {
 			char *sp;
 
-			warningf(true, "%s: %s",
-			    (sp = snptreef(NULL, 32, "%R", &iotmp)), emsg);
+			warningf(true, Tf_sD_s,
+			    (sp = snptreef(NULL, 32, Tft_R, &iotmp)), emsg);
 			afree(sp, ATEMP);
 			return (-1);
 		}
@@ -1478,7 +1472,7 @@ iosetup(struct ioword *iop, struct tbl *tp)
 
 	if (do_open) {
 		if (Flag(FRESTRICTED) && (flags & O_CREAT)) {
-			warningf(true, "%s: %s", cp, "restricted");
+			warningf(true, Tf_sD_s, cp, "restricted");
 			return (-1);
 		}
 		u = binopen3(cp, flags, 0666);
@@ -1496,10 +1490,10 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		/* herein() may already have printed message */
 		if (u == -1) {
 			u = errno;
-			warningf(true, "can't %s %s: %s",
+			warningf(true, Tf_cant,
 			    iotype == IODUP ? "dup" :
 			    (iotype == IOREAD || iotype == IOHERE) ?
-			    "open" : "create", cp, cstrerror(u));
+			    Topen : Tcreate, cp, cstrerror(u));
 		}
 		return (-1);
 	}
@@ -1527,9 +1521,8 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			char *sp;
 
 			eno = errno;
-			warningf(true, "%s %s: %s",
-			    "can't finish (dup) redirection",
-			    (sp = snptreef(NULL, 32, "%R", &iotmp)),
+			warningf(true, Tf_s_sD_s, Tredirection_dup,
+			    (sp = snptreef(NULL, 32, Tft_R, &iotmp)),
 			    cstrerror(eno));
 			afree(sp, ATEMP);
 			if (iotype != IODUP)
@@ -1620,8 +1613,8 @@ herein(struct ioword *iop, char **resbuf)
 	h = maketemp(ATEMP, TT_HEREDOC_EXP, &e->temps);
 	if (!(shf = h->shf) || (fd = binopen3(h->tffn, O_RDONLY, 0)) < 0) {
 		i = errno;
-		warningf(true, "can't %s temporary file %s: %s",
-		    !shf ? "create" : "open", h->tffn, cstrerror(i));
+		warningf(true, Tf_temp,
+		    !shf ? Tcreate : Topen, h->tffn, cstrerror(i));
 		if (shf)
 			shf_close(shf);
 		/* special to iosetup(): don't print error */
@@ -1637,8 +1630,8 @@ herein(struct ioword *iop, char **resbuf)
 	if (shf_close(shf) == -1) {
 		i = errno;
 		close(fd);
-		warningf(true, "can't %s temporary file %s: %s",
-		    "write", h->tffn, cstrerror(i));
+		warningf(true, Tf_temp,
+		    Twrite, h->tffn, cstrerror(i));
 		/* special to iosetup(): don't print error */
 		return (-2);
 	}
@@ -1654,7 +1647,7 @@ static const char *
 do_selectargs(const char **ap, bool print_menu)
 {
 	static const char *read_args[] = {
-		"read", "-r", "REPLY", NULL
+		Tread, "-r", "REPLY", NULL
 	};
 	char *s;
 	int i, argct;
@@ -1670,8 +1663,8 @@ do_selectargs(const char **ap, bool print_menu)
 		 */
 		if (print_menu || !*str_val(global("REPLY")))
 			pr_menu(ap);
-		shellf("%s", str_val(global("PS3")));
-		if (call_builtin(findcom("read", FC_BI), read_args, Tselect,
+		shellf(Tf_s, str_val(global("PS3")));
+		if (call_builtin(findcom(Tread, FC_BI), read_args, Tselect,
 		    false))
 			return (NULL);
 		if (*(s = str_val(global("REPLY"))))

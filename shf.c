@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.74 2016/05/17 15:36:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.76 2016/07/25 00:04:47 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -119,7 +119,7 @@ shf_open_hlp(int fd, int *sflagsp, const char *where)
 	}
 
 	if (!(sflags & (SHF_RD | SHF_WR)))
-		internal_errorf("%s: %s", where, "missing read/write");
+		internal_errorf(Tf_sD_s, where, "missing read/write");
 }
 
 /* Set up the shf structure for a file descriptor. Doesn't fail. */
@@ -167,7 +167,7 @@ shf_reopen(int fd, int sflags, struct shf *shf)
 
 	shf_open_hlp(fd, &sflags, "shf_reopen");
 	if (!shf || !shf->buf || shf->bsize < bsize)
-		internal_errorf("%s: %s", "shf_reopen", "bad shf/buf/bsize");
+		internal_errorf(Tf_sD_s, "shf_reopen", Tbad_bsize);
 
 	/* assumes shf->buf and shf->bsize already set up */
 	shf->fd = fd;
@@ -197,7 +197,7 @@ shf_sopen(char *buf, ssize_t bsize, int sflags, struct shf *shf)
 {
 	/* can't have a read+write string */
 	if (!(!(sflags & SHF_RD) ^ !(sflags & SHF_WR)))
-		internal_errorf("%s: flags 0x%X", "shf_sopen",
+		internal_errorf(Tf_flags, "shf_sopen",
 		    (unsigned int)sflags);
 
 	if (!shf) {
@@ -293,7 +293,7 @@ shf_flush(struct shf *shf)
 		return ((shf->flags & SHF_WR) ? -1 : 0);
 
 	if (shf->fd < 0)
-		internal_errorf("%s: %s", "shf_flush", "no fd");
+		internal_errorf(Tf_sD_s, "shf_flush", "no fd");
 
 	if (shf->flags & SHF_ERROR) {
 		errno = shf->errnosv;
@@ -324,7 +324,7 @@ shf_emptybuf(struct shf *shf, int flags)
 	int ret = 0;
 
 	if (!(shf->flags & SHF_STRING) && shf->fd < 0)
-		internal_errorf("%s: %s", "shf_emptybuf", "no fd");
+		internal_errorf(Tf_sD_s, "shf_emptybuf", "no fd");
 
 	if (shf->flags & SHF_ERROR) {
 		errno = shf->errnosv;
@@ -410,7 +410,7 @@ shf_fillbuf(struct shf *shf)
 		return (0);
 
 	if (shf->fd < 0)
-		internal_errorf("%s: %s", "shf_fillbuf", "no fd");
+		internal_errorf(Tf_sD_s, "shf_fillbuf", "no fd");
 
 	if (shf->flags & (SHF_EOF | SHF_ERROR)) {
 		if (shf->flags & SHF_ERROR)
@@ -453,11 +453,11 @@ shf_read(char *buf, ssize_t bsize, struct shf *shf)
 	ssize_t ncopy, orig_bsize = bsize;
 
 	if (!(shf->flags & SHF_RD))
-		internal_errorf("%s: flags 0x%X", "shf_read",
+		internal_errorf(Tf_flags, Tshf_read,
 		    (unsigned int)shf->flags);
 
 	if (bsize <= 0)
-		internal_errorf("%s: %s %zd", "shf_write", "bsize", bsize);
+		internal_errorf(Tf_szs, Tshf_read, bsize, Tbsize);
 
 	while (bsize > 0) {
 		if (shf->rnleft == 0 &&
@@ -491,7 +491,7 @@ shf_getse(char *buf, ssize_t bsize, struct shf *shf)
 	char *orig_buf = buf;
 
 	if (!(shf->flags & SHF_RD))
-		internal_errorf("%s: flags 0x%X", "shf_getse",
+		internal_errorf(Tf_flags, "shf_getse",
 		    (unsigned int)shf->flags);
 
 	if (bsize <= 0)
@@ -528,7 +528,7 @@ int
 shf_getchar(struct shf *shf)
 {
 	if (!(shf->flags & SHF_RD))
-		internal_errorf("%s: flags 0x%X", "shf_getchar",
+		internal_errorf(Tf_flags, "shf_getchar",
 		    (unsigned int)shf->flags);
 
 	if (shf->rnleft == 0 && (shf_fillbuf(shf) == -1 || shf->rnleft == 0))
@@ -545,7 +545,7 @@ int
 shf_ungetc(int c, struct shf *shf)
 {
 	if (!(shf->flags & SHF_RD))
-		internal_errorf("%s: flags 0x%X", "shf_ungetc",
+		internal_errorf(Tf_flags, "shf_ungetc",
 		    (unsigned int)shf->flags);
 
 	if ((shf->flags & SHF_ERROR) || c == -1 ||
@@ -583,7 +583,7 @@ int
 shf_putchar(int c, struct shf *shf)
 {
 	if (!(shf->flags & SHF_WR))
-		internal_errorf("%s: flags 0x%X", "shf_putchar",
+		internal_errorf(Tf_flags, "shf_putchar",
 		    (unsigned int)shf->flags);
 
 	if (c == -1)
@@ -594,7 +594,7 @@ shf_putchar(int c, struct shf *shf)
 		ssize_t n;
 
 		if (shf->fd < 0)
-			internal_errorf("%s: %s", "shf_putchar", "no fd");
+			internal_errorf(Tf_sD_s, "shf_putchar", "no fd");
 		if (shf->flags & SHF_ERROR) {
 			errno = shf->errnosv;
 			return (-1);
@@ -639,11 +639,11 @@ shf_write(const char *buf, ssize_t nbytes, struct shf *shf)
 	ssize_t n, ncopy, orig_nbytes = nbytes;
 
 	if (!(shf->flags & SHF_WR))
-		internal_errorf("%s: flags 0x%X", "shf_write",
+		internal_errorf(Tf_flags, Tshf_write,
 		    (unsigned int)shf->flags);
 
 	if (nbytes < 0)
-		internal_errorf("%s: %s %zd", "shf_write", "nbytes", nbytes);
+		internal_errorf(Tf_szs, Tshf_write, nbytes, Tbytes);
 
 	/* Don't buffer if buffer is empty and we're writting a large amount. */
 	if ((ncopy = shf->wnleft) &&
