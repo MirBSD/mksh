@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.750 2016/08/10 18:20:03 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.751 2016/08/12 16:48:02 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R53 2016/08/04
+	@(#)MIRBSD KSH R53 2016/08/12
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R53 2016/08/04
+	@(#)LEGACY KSH R53 2016/08/12
 description:
 	Check version of legacy shell.
 stdin:
@@ -6422,6 +6422,100 @@ description:
 	Check that we can both break and use source on the same line
 stdin:
 	for s in s; do break; done; print -s s
+---
+name: regression-68
+description:
+	Check that all common arithmetic operators work as expected
+stdin:
+	echo 1 $(( a = 5 )) .
+	echo 2 $(( ++a )) , $(( a++ )) , $(( a )) .
+	echo 3 $(( --a )) , $(( a-- )) , $(( a )) .
+	echo 4 $(( a == 5 )) , $(( a == 6 )) .
+	echo 5 $(( a != 5 )) , $(( a != 6 )) .
+	echo 6 $(( a *= 3 )) .
+	echo 7 $(( a /= 5 )) .
+	echo 8 $(( a %= 2 )) .
+	echo 9 $(( a += 9 )) .
+	echo 10 $(( a -= 4 )) .
+	echo 11 $(( a <<= 1 )) .
+	echo 12 $(( a >>= 1 )) .
+	echo 13 $(( a &= 4 )) .
+	echo 14 $(( a ^= a )) .
+	echo 15 $(( a |= 5 )) .
+	echo 16 $(( 5 << 1 )) .
+	echo 17 $(( 5 >> 1 )) .
+	echo 18 $(( 5 <= 6 )) , $(( 5 <= 5 )) , $(( 5 <= 4 )) .
+	echo 19 $(( 5 >= 6 )) , $(( 5 >= 5 )) , $(( 5 >= 4 )) .
+	echo 20 $(( 5 < 6 )) , $(( 5 < 5 )) , $(( 5 < 4 )) .
+	echo 21 $(( 5 > 6 )) , $(( 5 > 5 )) , $(( 5 > 4 )) .
+	echo 22 $(( 0 && 0 )) , $(( 0 && 1 )) , $(( 1 && 0 )) , $(( 1 && 1 )) .
+	echo 23 $(( 0 || 0 )) , $(( 0 || 1 )) , $(( 1 || 0 )) , $(( 1 || 1 )) .
+	echo 24 $(( 5 * 3 )) .
+	echo 25 $(( 7 / 2 )) .
+	echo 26 $(( 5 % 5 )) , $(( 5 % 4 )) , $(( 5 % 1 )) , $(( 5 % -1 )) , $(( 5 % -2 )) .
+	echo 27 $(( 5 + 2 )) , $(( 5 + 0 )) , $(( 5 + -2 )) .
+	echo 28 $(( 5 - 2 )) , $(( 5 - 0 )) , $(( 5 - -2 )) .
+	echo 29 $(( 6 & 4 )) , $(( 6 & 8 )) .
+	echo 30 $(( 4 ^ 2 )) , $(( 4 ^ 4 )) .
+	echo 31 $(( 4 | 2 )) , $(( 4 | 4 )) , $(( 4 | 0 )) .
+	echo 32 $(( 0 ? 1 : 2 )) , $(( 3 ? 4 : 5 )) .
+	echo 33 $(( 5 , 2 , 3 )) .
+	echo 34 $(( ~0 )) , $(( ~1 )) , $(( ~~1 )) , $(( ~~2 )) .
+	echo 35 $(( !0 )) , $(( !1 )) , $(( !!1 )) , $(( !!2 )) .
+	echo 36 $(( (5) )) .
+expected-stdout:
+	1 5 .
+	2 6 , 6 , 7 .
+	3 6 , 6 , 5 .
+	4 1 , 0 .
+	5 0 , 1 .
+	6 15 .
+	7 3 .
+	8 1 .
+	9 10 .
+	10 6 .
+	11 12 .
+	12 6 .
+	13 4 .
+	14 0 .
+	15 5 .
+	16 10 .
+	17 2 .
+	18 1 , 1 , 0 .
+	19 0 , 1 , 1 .
+	20 1 , 0 , 0 .
+	21 0 , 0 , 1 .
+	22 0 , 0 , 0 , 1 .
+	23 0 , 1 , 1 , 1 .
+	24 15 .
+	25 3 .
+	26 0 , 1 , 0 , 0 , 1 .
+	27 7 , 5 , 3 .
+	28 3 , 5 , 7 .
+	29 4 , 0 .
+	30 6 , 0 .
+	31 6 , 4 , 4 .
+	32 2 , 4 .
+	33 3 .
+	34 -1 , -2 , 1 , 2 .
+	35 1 , 0 , 1 , 1 .
+	36 5 .
+---
+name: regression-69
+description:
+	Check that all non-lksh arithmetic operators work as expected
+category: shell:legacy-no
+stdin:
+	a=5 b=0x80000005
+	echo 1 $(( a ^<= 1 )) , $(( b ^<= 1 )) .
+	echo 2 $(( a ^>= 2 )) , $(( b ^>= 2 )) .
+	echo 3 $(( 5 ^< 1 )) .
+	echo 4 $(( 5 ^> 1 )) .
+expected-stdout:
+	1 10 , 11 .
+	2 -2147483646 , -1073741822 .
+	3 10 .
+	4 -2147483646 .
 ---
 name: readonly-0
 description:
