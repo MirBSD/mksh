@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.413 2016/08/10 18:20:05 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.414 2016/08/24 19:35:26 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: August 10 2016 $
+.Dd $Mdocdate: August 24 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -829,9 +829,7 @@ When
 .Ar list
 completes, the enumerated list is printed if
 .Ev REPLY
-is
-.Dv NULL ,
-the prompt is printed, and so on.
+is empty, the prompt is printed, and so on.
 This process continues until an end-of-file
 is read, an interrupt is received, or a
 .Ic break
@@ -1389,14 +1387,10 @@ and
 works equivalent to $* and $@ for positional parameters.
 If substitution is performed on a parameter
 (or an array parameter element)
-that is not set, a null string is substituted unless the
+that is not set, an empty string is substituted unless the
 .Ic nounset
 option
-.Po
-.Ic set Fl o Ic nounset
-or
-.Ic set Fl u
-.Pc
+.Pq Ic set Fl u
 is set, in which case an error occurs.
 .Pp
 Parameters can be assigned values in a number of ways.
@@ -1476,8 +1470,7 @@ form of parameter substitution:
 .Sm on
 If
 .Ar name
-is set and not
-.Dv NULL ,
+is set and not empty,
 it is substituted; otherwise,
 .Ar word
 is substituted.
@@ -1486,8 +1479,7 @@ is substituted.
 .Sm on
 If
 .Ar name
-is set and not
-.Dv NULL ,
+is set and not empty,
 .Ar word
 is substituted; otherwise, nothing is substituted.
 .Sm off
@@ -1495,8 +1487,7 @@ is substituted; otherwise, nothing is substituted.
 .Sm on
 If
 .Ar name
-is set and not
-.Dv NULL ,
+is set and not empty,
 it is substituted; otherwise, it is assigned
 .Ar word
 and the resulting value of
@@ -1507,8 +1498,7 @@ is substituted.
 .Sm on
 If
 .Ar name
-is set and not
-.Dv NULL ,
+is set and not empty,
 it is substituted; otherwise,
 .Ar word
 is printed on standard error (preceded by
@@ -1524,7 +1514,7 @@ is omitted, the string
 is used instead.
 Currently a bug, if
 .Ar word
-is a variable which expands to the null string, the
+is a variable which expands to the empty string, the
 error message is also printed.
 .El
 .Pp
@@ -1541,8 +1531,7 @@ In the above modifiers, the
 .Ql \&:
 can be omitted, in which case the conditions only depend on
 .Ar name
-being set (as opposed to set and not
-.Dv NULL ) .
+being set (as opposed to set and not empty).
 If
 .Ar word
 is needed, parameter, command, arithmetic, and tilde substitution are performed
@@ -1815,18 +1804,16 @@ by the first character of the
 .Ev IFS
 parameter (or the empty string if
 .Ev IFS
-is
-.Dv NULL ) .
+is unset.
 .It Ev @
 Same as
 .Ic $* ,
 unless it is used inside double quotes, in which case a separate word is
 generated for each positional parameter.
 If there are no positional parameters, no word is generated.
-.Ic $@
+.Ic \&"$@"
 can be used to access arguments, verbatim, without losing
-.Dv NULL
-arguments or splitting arguments with spaces.
+empty arguments or splitting arguments with spaces (IFS, actually).
 .El
 .Pp
 The following parameters are set and/or used by the shell:
@@ -2170,9 +2157,7 @@ You may want to set it to
 instead, to include timestamps.
 .It Ev PWD
 The current working directory.
-May be unset or
-.Dv NULL
-if the shell doesn't know where it is.
+May be unset or empty if the shell doesn't know where it is.
 .It Ev RANDOM
 Each time
 .Ev RANDOM
@@ -2434,7 +2419,7 @@ the shell.
 Three exceptions to this are commands in pipelines, for which
 standard input and/or standard output are those set up by the pipeline,
 asynchronous commands created when job control is disabled, for which standard
-input is initially set to be from
+input is initially set to
 .Pa /dev/null ,
 and commands for which any of the following redirections have been specified:
 .Bl -tag -width XXxxmarker
@@ -3277,16 +3262,13 @@ If the parameter
 .Ev CDPATH
 is set, it lists the search path for the directory containing
 .Ar dir .
-A
-.Dv NULL
-path means the current directory.
+An unset or empty path means the current directory.
 If
 .Ar dir
 is found in any component of the
 .Ev CDPATH
-search path other than the
-.Dv NULL
-path, the name of the new working directory will be written to standard output.
+search path other than an unset or empty path,
+the name of the new working directory will be written to standard output.
 If
 .Ar dir
 is missing, the home directory
@@ -4668,9 +4650,7 @@ A common mistake is to use
 .Dq if \&[ $foo = bar \&]
 which fails if parameter
 .Dq foo
-is
-.Dv NULL
-or unset, if it has embedded spaces (i.e.\&
+is empty or unset, if it has embedded spaces (i.e.\&
 .Ev IFS
 octets), or if it is a unary operator like
 .Sq \&!
