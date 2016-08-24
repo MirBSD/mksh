@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.415 2016/08/24 19:36:26 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.416 2016/08/24 20:40:00 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -300,10 +300,10 @@ option of the built-in command
 can't be used.
 .It
 Redirections that create files can't be used (i.e.\&
-.Ql \*(Gt ,
-.Ql \*(Gt\*(Ba ,
-.Ql \*(Gt\*(Gt ,
-.Ql \*(Lt\*(Gt ) .
+.Dq Li \*(Gt ,
+.Dq Li \*(Gt\*(Ba ,
+.Dq Li \*(Gt\*(Gt ,
+.Dq Li \*(Lt\*(Gt ) .
 .El
 .It Fl s
 The shell reads commands from standard input; all non-option arguments
@@ -323,12 +323,12 @@ are attempted in order.
 Unless
 .Ar name
 begins with an exclamation mark
-.Pq Sq \&! ,
+.Pq Ql \&! ,
 this is done in a subshell and returns immediately.
 If
 .Ar name
 is a dash
-.Pq Sq \&\- ,
+.Pq Ql \&\- ,
 detach from controlling terminal (daemonise) instead.
 .El
 .Pp
@@ -371,7 +371,7 @@ A non-privileged login shell processes the user profile next.
 A non-privileged interactive shell checks the value of the
 .Ev ENV
 parameter after subjecting it to parameter, command, arithmetic and tilde
-.Pq Sq \*(TI
+.Pq Ql \*(TI
 substitution; if unset or empty, the user mkshrc profile is processed;
 otherwise, if a file whose name is the substitution result exists,
 it is processed; non-existence is silently ignored.
@@ -398,56 +398,56 @@ Aside from delimiting words, spaces and tabs are ignored, while newlines
 usually delimit commands.
 The meta-characters are used in building the following
 .Em tokens :
-.Ql \*(Lt ,
-.Ql \*(Lt& ,
-.Ql \*(Lt\*(Lt ,
-.Ql \*(Lt\*(Lt\*(Lt ,
-.Ql \*(Gt ,
-.Ql \*(Gt& ,
-.Ql \*(Gt\*(Gt ,
-.Ql &\*(Gt ,
+.Dq Li \*(Lt ,
+.Dq Li \*(Lt& ,
+.Dq Li \*(Lt\*(Lt ,
+.Dq Li \*(Lt\*(Lt\*(Lt ,
+.Dq Li \*(Gt ,
+.Dq Li \*(Gt& ,
+.Dq Li \*(Gt\*(Gt ,
+.Dq Li &\*(Gt ,
 etc. are used to specify redirections (see
 .Sx Input/output redirection
 below);
-.Ql \*(Ba
+.Dq Li \*(Ba
 is used to create pipelines;
-.Ql \*(Ba&
+.Dq Li \*(Ba&
 is used to create co-processes (see
 .Sx Co-processes
 below);
-.Ql \&;
+.Dq Li \&;
 is used to separate commands;
-.Ql &
+.Dq Li &
 is used to create asynchronous pipelines;
-.Ql &&
+.Dq Li &&
 and
-.Ql \*(Ba\*(Ba
+.Dq Li \*(Ba\*(Ba
 are used to specify conditional execution;
-.Ql ;; ,
-.Ql ;&\&
+.Dq Li \&;; ,
+.Dq Li \&;&
 and
-.Ql ;\*(Ba\&
+.Dq Li \&;\*(Ba
 are used in
 .Ic case
 statements;
-.Ql \&(( .. ))
+.Dq Li \&(( ... \&))
 is used in arithmetic expressions;
 and lastly,
-.Ql \&( .. \&)
+.Dq Li \&( ... \&)
 is used to create subshells.
 .Pp
 Whitespace and meta-characters can be quoted individually using a backslash
-.Pq Sq \e ,
+.Pq Ql \e ,
 or in groups using double
-.Pq Sq \&"
+.Pq Ql \&"
 or single
-.Pq Dq \*(aq
+.Pq Dq Li \*(aq
 quotes.
 Note that the following characters are also treated specially by the
 shell and must be quoted if they are to represent themselves:
 .Ql \e ,
 .Ql \&" ,
-.Ql \*(aq ,
+.Dq Li \*(aq ,
 .Ql # ,
 .Ql $ ,
 .Ql \` ,
@@ -537,7 +537,7 @@ assignments is that of the last command substitution performed during the
 parameter assignment or 0 if there were no command substitutions.
 .Pp
 Commands can be chained together using the
-.Ql \*(Ba
+.Dq Li \*(Ba
 token to form pipelines, in which the standard output of each command but the
 last is piped (see
 .Xr pipe 2 )
@@ -553,7 +553,7 @@ where all but the last command were executed in subshells; see the
 .Ic read
 builtin's description for implications and workarounds.
 A pipeline may be prefixed by the
-.Ql \&!
+.Dq Li \&!
 reserved word which causes the exit status of the pipeline to be logically
 complemented: if the original status was 0, the complemented status will be 1;
 if the original status was not 0, the complemented status will be 0.
@@ -561,12 +561,12 @@ if the original status was not 0, the complemented status will be 0.
 .Em Lists
 of commands can be created by separating pipelines by any of the following
 tokens:
-.Ql && ,
-.Ql \*(Ba\*(Ba ,
-.Ql & ,
-.Ql \*(Ba& ,
+.Dq Li && ,
+.Dq Li \*(Ba\*(Ba ,
+.Dq Li & ,
+.Dq Li \*(Ba& ,
 and
-.Ql \&; .
+.Dq Li \&; .
 The first two are for conditional execution:
 .Dq Ar cmd1 No && Ar cmd2
 executes
@@ -574,25 +574,25 @@ executes
 only if the exit status of
 .Ar cmd1
 is zero;
-.Ql \*(Ba\*(Ba
+.Dq Li \*(Ba\*(Ba
 is the opposite \*(en
 .Ar cmd2
 is executed only if the exit status of
 .Ar cmd1
 is non-zero.
-.Ql &&
+.Dq Li &&
 and
-.Ql \*(Ba\*(Ba
+.Dq Li \*(Ba\*(Ba
 have equal precedence which is higher than that of
-.Ql & ,
-.Ql \*(Ba& ,
+.Dq Li & ,
+.Dq Li \*(Ba& ,
 and
-.Ql \&; ,
+.Dq Li \&; ,
 which also have equal precedence.
 Note that the
-.Ql &&
+.Dq Li &&
 and
-.Ql \*(Ba\*(Ba
+.Dq Li \*(Ba\*(Ba
 operators are
 .Qq left-associative .
 For example, both of these commands will print only
@@ -603,7 +603,7 @@ $ true \*(Ba\*(Ba echo foo && echo bar
 .Ed
 .Pp
 The
-.Ql &
+.Dq Li &
 token causes the preceding command to be executed asynchronously; that is,
 the shell starts the command but does not wait for it to complete (the shell
 does keep track of the status of asynchronous commands; see
@@ -618,20 +618,20 @@ ignored and with input redirected from
 .Pa /dev/null
 (however, redirections specified in the asynchronous command have precedence).
 The
-.Ql \*(Ba&
+.Dq Li \*(Ba&
 operator starts a co-process which is a special kind of asynchronous process
 (see
 .Sx Co-processes
 below).
 Note that a command must follow the
-.Ql &&
+.Dq Li &&
 and
-.Ql \*(Ba\*(Ba
+.Dq Li \*(Ba\*(Ba
 operators, while it need not follow
-.Ql & ,
-.Ql \*(Ba& ,
+.Dq Li & ,
+.Dq Li \*(Ba& ,
 or
-.Ql \&; .
+.Dq Li \&; .
 The exit status of a list is that of the last command executed, with the
 exception of asynchronous lists, for which the exit status is 0.
 .Pp
@@ -673,9 +673,9 @@ Compound construct;
 .Ar list
 is executed, but not in a subshell.
 Note that
-.Ql {
+.Dq Li {
 and
-.Ql }
+.Dq Li }
 are reserved words, not meta-characters.
 .It Xo case Ar word No in
 .Oo Op \&(
@@ -720,11 +720,11 @@ The list
 .Ic terminator Ns s
 are:
 .Bl -tag -width 4n
-.It Ql ;;
+.It Dq Li ;;
 Terminate after the list.
-.It Ql ;&\&
+.It Dq Li \&;&
 Fall through into the next list.
-.It Ql ;\*(Ba\&
+.It Dq Li \&;\*(Ba
 Evaluate the remaining pattern-list tuples.
 .El
 .Pp
@@ -748,9 +748,8 @@ is set to the word and
 is executed.
 If
 .Ic in
-is not used to specify a word list, the positional parameters
-($1, $2, etc.)\&
-are used instead.
+is not used to specify a word list, the positional parameters ($1, $2,
+etc.) are used instead.
 For historical reasons, open and close braces may be used instead of
 .Ic do
 and
@@ -809,8 +808,9 @@ An enumerated list of the specified
 .Ar word Ns (s)
 is printed on standard error, followed by a prompt
 .Po
-.Ev PS3: normally
-.Sq #?\ \&
+.Ev PS3 :
+normally
+.Dq Li #?\ \&
 .Pc .
 A number corresponding to one of the enumerated words is then read from
 standard input,
@@ -835,7 +835,7 @@ is read, an interrupt is received, or a
 .Ic break
 statement is executed inside the loop.
 If
-.Dq in word ...
+.Dq in Ar word ...
 is omitted, the positional parameters are used
 (i.e. $1, $2, etc.).
 For historical reasons, open and close braces may be used instead of
@@ -914,7 +914,7 @@ reserved word.
 The arithmetic expression
 .Ar expression
 is evaluated; equivalent to
-.Dq let expression
+.Dq Li let \&" Ns Ar expression Ns \&"
 (see
 .Sx Arithmetic expressions
 and the
@@ -937,22 +937,22 @@ and
 .Fl o
 .Pq OR
 operators are replaced with
-.Ql &&
+.Dq Li &&
 and
-.Ql \*(Ba\*(Ba ,
+.Dq Li \*(Ba\*(Ba ,
 respectively.
 .It
 Operators (e.g.\&
-.Sq Fl f ,
-.Sq = ,
-.Sq \&! )
+.Dq Li \-f ,
+.Dq Li = ,
+.Dq Li \&! )
 must be unquoted.
 .It
 Parameter, command, and arithmetic substitutions are performed as expressions
 are evaluated and lazy expression evaluation is used for the
-.Ql &&
+.Dq Li &&
 and
-.Ql \*(Ba\*(Ba
+.Dq Li \*(Ba\*(Ba
 operators.
 This means that in the following statement,
 .Ic $(\*(Ltfoo)
@@ -964,9 +964,9 @@ $ [[ \-r foo && $(\*(Ltfoo) = b*r ]]
 .Ed
 .It
 The second operand of the
-.Sq !=
+.Dq Li !=
 and
-.Sq =
+.Dq Li =
 expressions are a subset of patterns (e.g. the comparison
 .Ic \&[[ foobar = f*r ]]
 succeeds).
@@ -993,10 +993,10 @@ case both the
 .Ql \e
 and the newline are stripped.
 Second, a single quote
-.Pq Dq \*(aq
+.Pq Dq Li \*(aq
 quotes everything up to the next single quote (this may span lines).
 Third, a double quote
-.Pq Sq \&"
+.Pq Ql \&"
 quotes all characters, except
 .Ql $ ,
 .Ql \e ,
@@ -1045,68 +1045,68 @@ or GNU
 .Nm bash
 style escapes are translated.
 These include
-.Ql \ea ,
-.Ql \eb ,
-.Ql \ef ,
-.Ql \en ,
-.Ql \er ,
-.Ql \et ,
-.Ql \eU######## ,
-.Ql \eu#### ,
+.Dq Li \ea ,
+.Dq Li \eb ,
+.Dq Li \ef ,
+.Dq Li \en ,
+.Dq Li \er ,
+.Dq Li \et ,
+.Dq Li \eU######## ,
+.Dq Li \eu#### ,
 and
-.Ql \ev .
+.Dq Li \ev .
 For
-.Ql \eU########
+.Dq Li \eU########
 and
-.Ql \eu#### ,
+.Dq Li \eu#### ,
 .Dq #
 means a hexadecimal digit, of thich there may be none up to four or eight;
 these escapes translate a Unicode codepoint to UTF-8.
 Furthermore,
-.Ql \eE
+.Dq Li \eE
 and
-.Ql \ee
+.Dq Li \ee
 expand to the escape character.
 .Pp
 In the
 .Ic print
 builtin mode,
-.Ql \e" ,
-.Ql \e\*(aq ,
+.Dq Li \e" ,
+.Dq Li \e\*(aq ,
 and
-.Ql \e?
+.Dq Li \e?
 are explicitly excluded;
 octal sequences must have the none up to three octal digits
 .Dq #
 prefixed with the digit zero
-.Pq Ql \e0### ;
+.Pq Dq Li \e0### ;
 hexadecimal sequences
-.Ql \ex##
+.Dq Li \ex##
 are limited to none up to two hexadecimal digits
 .Dq # ;
 both octal and hexadecimal sequences convert to raw octets;
-.Ql \e# ,
+.Dq Li \e# ,
 where # is none of the above, translates to \e# (backslashes are retained).
 .Pp
 Backslash expansion in the C style mode slightly differs: octal sequences
-.Ql \e###
+.Dq Li \e###
 must have no digit zero prefixing the one up to three octal digits
 .Dq #
 and yield raw octets; hexadecimal sequences
-.Ql \ex#*
+.Dq Li \ex#*
 greedily eat up as many hexadecimal digits
 .Dq #
 as they can and terminate with the first non-hexadecimal digit;
 these translate a Unicode codepoint to UTF-8.
 The sequence
-.Ql \ec# ,
+.Dq Li \ec# ,
 where
 .Dq #
 is any octet, translates to Ctrl-# (which basically means,
-.Ql \ec?
+.Dq Li \ec?
 becomes DEL, everything else is bitwise ANDed with 0x1F).
 Finally,
-.Ql \e# ,
+.Dq Li \e# ,
 where # is none of the above, translates to # (has the backslash trimmed),
 even if it is a newline.
 .Ss Aliases
@@ -1251,16 +1251,16 @@ whitespace does create an empty field.
 Example: If
 .Ev IFS
 is set to
-.Dq \*(Ltspace\*(Gt: ,
+.Dq Li \*(Ltspace\*(Gt: ,
 and VAR is set to
-.Dq \*(Ltspace\*(GtA\*(Ltspace\*(Gt:\*(Ltspace\*(Gt\*(Ltspace\*(GtB::D ,
+.Dq Li \*(Ltspace\*(GtA\*(Ltspace\*(Gt:\*(Ltspace\*(Gt\*(Ltspace\*(GtB::D ,
 the substitution for $VAR results in four fields:
-.Sq A ,
-.Sq B ,
-.Sq
+.Dq Li A ,
+.Dq Li B ,
+.Dq
 (an empty field),
 and
-.Sq D .
+.Dq Li D .
 Note that if the
 .Ev IFS
 parameter is set to the empty string, no field splitting is done;
@@ -1270,18 +1270,18 @@ Also, note that the field splitting applies only to the immediate result of
 the substitution.
 Using the previous example, the substitution for $VAR:E
 results in the fields:
-.Sq A ,
-.Sq B ,
-.Sq ,
+.Dq Li A ,
+.Dq Li B ,
+.Dq ,
 and
-.Sq D:E ,
+.Dq Li D:E ,
 not
-.Sq A ,
-.Sq B ,
-.Sq ,
-.Sq D ,
+.Dq Li A ,
+.Dq Li B ,
+.Dq ,
+.Dq Li D ,
 and
-.Sq E .
+.Dq Li E .
 This behavior is POSIX compliant, but incompatible with some other shell
 implementations which do field splitting on the word which contained the
 substitution or use
@@ -1326,18 +1326,18 @@ has the same effect as
 .Pp
 Note that some shells do not use a recursive parser for command substitutions,
 leading to failure for certain constructs; to be portable, use as workaround
-.Ql x=$(cat) \*(Lt\*(Lt"EOF"
+.Dq Li x=$(cat) \*(Lt\*(Lt\eEOF
 (or the newline-keeping
-.Ql x=\*(Lt\*(Lt"EOF"
+.Dq Li x=\*(Lt\*(Lt\eEOF
 extension) instead to merely slurp the string.
 .St -p1003.1
-recommends to use case statements of the form
-.Ql "x=$(case $foo in (bar) echo $bar ;; (*) echo $baz ;; esac)"
+recommends using case statements of the form
+.Li "x=$(case $foo in (bar) echo $bar ;; (*) echo $baz ;; esac)"
 instead, which would work but not serve as example for this portability issue.
 .Bd -literal -offset indent
 x=$(case $foo in bar) echo $bar ;; *) echo $baz ;; esac)
 # above fails to parse on old shells; below is the workaround
-x=$(eval $(cat)) \*(Lt\*(Lt"EOF"
+x=$(eval $(cat)) \*(Lt\*(Lt\eEOF
 case $foo in bar) echo $bar ;; *) echo $baz ;; esac
 EOF
 .Ed
@@ -1395,18 +1395,18 @@ is set, in which case an error occurs.
 .Pp
 Parameters can be assigned values in a number of ways.
 First, the shell implicitly sets some parameters like
-.Ql # ,
-.Ql PWD ,
+.Dq Li # ,
+.Dq Li PWD ,
 and
-.Ql $ ;
+.Dq Li $ ;
 this is the only way the special single character parameters are set.
 Second, parameters are imported from the shell's environment at startup.
 Third, parameters can be assigned values on the command line: for example,
 .Ic FOO=bar
 sets the parameter
-.Dq FOO
+.Dq Li FOO
 to
-.Dq bar ;
+.Dq Li bar ;
 multiple parameter assignments can be given on a single command line and they
 can be followed by a simple-command, in which case the assignments are in
 effect only for the duration of the command (such assignments are also
@@ -1505,12 +1505,12 @@ is printed on standard error (preceded by
 .Ar name : )
 and an error occurs (normally causing termination of a shell script, function,
 or script sourced using the
-.Sq \&.
+.Dq Li \&.
 built-in).
 If
 .Ar word
 is omitted, the string
-.Dq parameter null or not set
+.Dq Li parameter null or not set
 is used instead.
 .El
 .Pp
@@ -1520,7 +1520,7 @@ is actually considered quoted, and special parsing rules apply.
 The parsing rules also differ on whether the expression is double-quoted:
 .Ar word
 then uses double-quoting rules, except for the double quote itself
-.Pq Sq \&"
+.Pq Ql \&"
 and the closing brace, which, if backslash escaped, gets quote removal applied.
 .Pp
 In the above modifiers, the
@@ -1546,8 +1546,8 @@ will be substituted in scalar context):
 The number of positional parameters if
 .Ar name
 is
-.Ql * ,
-.Ql @ ,
+.Dq Li * ,
+.Dq Li @ ,
 or not specified; otherwise the length
 .Pq in characters
 of the string value of parameter
@@ -1618,7 +1618,7 @@ Cannot be applied to a vector
 .Pf %% Ar pattern No }
 .Xc
 .Sm on
-Like ${..#..} substitution, but it deletes from the end of the value.
+Like ${...#...} substitution, but it deletes from the end of the value.
 Cannot be applied to a vector.
 .Pp
 .Sm off
@@ -1765,7 +1765,7 @@ command below for a list of options).
 .It Ev \&?
 The exit status of the last non-asynchronous command executed.
 If the last command was killed by a signal,
-.Ic $?\&
+.Ic \&$?
 is set to 128 plus the signal number, but at most 255.
 .It Ev 0
 The name of the shell, determined as follows:
@@ -1786,7 +1786,7 @@ keyword (i.e. a Korn shell style function).
 .It Ev 1 No .. Ev 9
 The first nine positional parameters that were supplied to the shell, function,
 or script sourced using the
-.Sq \&.
+.Dq Li \&.
 built-in.
 Further positional parameters may be accessed using
 .Pf ${ Ar number Ns } .
@@ -1831,7 +1831,7 @@ built-in command.
 Note that if
 .Ev CDPATH
 is set and does not contain
-.Sq \&.
+.Dq Li \&.
 or an empty string element, the current directory is not searched.
 Also, the
 .Ic cd
@@ -1862,7 +1862,7 @@ Time since the epoch, as returned by
 formatted as decimal
 .Va tv_sec
 followed by a dot
-.Pq Sq \&.
+.Pq Ql \&.
 and
 .Va tv_usec
 padded to exactly six decimal digits.
@@ -1871,7 +1871,7 @@ If set, this parameter is assumed to contain the shell that is to be used to
 execute commands that
 .Xr execve 2
 fails to execute and which do not start with a
-.Dq #! Ns Ar shell
+.Dq Li #! Ns Ar shell
 sequence.
 .It Ev FCEDIT
 The editor used by the
@@ -2033,11 +2033,11 @@ to process arguments from the beginning the next time it is invoked.
 .It Ev PATH
 A colon (semicolon on OS/2) separated list of directories that are
 searched when looking for commands and files sourced using the
-.Sq \&.
+.Dq Li \&.
 command (see below).
 An empty string resulting from a leading or trailing
 colon, or two adjacent colons, is treated as a
-.Sq \&.
+.Dq Li \&.
 (the current directory).
 .It Ev PGRP
 The process ID of the shell's process group leader.
@@ -2057,21 +2057,21 @@ command below).
 A literal
 .Ql \&!
 can be put in the prompt by placing
-.Ql !!
+.Dq Li !!
 in
 .Ev PS1 .
 .Pp
 The default prompt is
-.Sq $\ \&
+.Dq Li $\ \&
 for non-root users,
-.Sq #\ \&
+.Dq Li #\ \&
 for root.
 If
 .Nm
 is invoked by root and
 .Ev PS1
 does not contain a
-.Sq #
+.Ql #
 character, the default value will be used even if
 .Ev PS1
 already exists in the environment.
@@ -2132,14 +2132,14 @@ PS1=$'\e1\er\e1\ee[7m\e1$PWD\e1\ee[0m\e1\*(Gt '
 .Ed
 .It Ev PS2
 Secondary prompt string, by default
-.Sq \*(Gt\ \& ,
+.Dq Li \*(Gt\ \& ,
 used when more input is needed to complete a command.
 .It Ev PS3
 Prompt used by the
 .Ic select
 statement when reading a menu selection.
 The default is
-.Sq #?\ \& .
+.Dq Li #?\ \& .
 .It Ev PS4
 Used to prefix commands that are printed during execution tracing (see the
 .Ic set Fl x
@@ -2147,9 +2147,9 @@ command below).
 Parameter, command, and arithmetic substitutions are performed
 before it is printed.
 The default is
-.Sq +\ \& .
+.Dq Li +\ \& .
 You may want to set it to
-.Sq \&[$EPOCHREALTIME]\ \&
+.Dq Li \&[$EPOCHREALTIME]\ \&
 instead, to include timestamps.
 .It Ev PWD
 The current working directory.
@@ -2221,7 +2221,7 @@ and
 tilde expansion is done after any assignment
 (i.e. after the equals sign)
 or after an unquoted colon
-.Pq Sq \&: ;
+.Pq Ql \&: ;
 login names are also delimited by colons.
 .Pp
 The home directory of previously expanded login names are cached and re-used.
@@ -2248,17 +2248,17 @@ words, each of which is the concatenation of
 and
 .Ar suffix
 (e.g.\&
-.Dq a{c,b{X,Y},d}e
+.Dq Li a{c,b{X,Y},d}e
 expands to four words:
-.Dq ace ,
-.Dq abXe ,
-.Dq abYe ,
+.Dq Li ace ,
+.Dq Li abXe ,
+.Dq Li abYe ,
 and
-.Dq ade ) .
+.Dq Li ade ) .
 As noted in the example, brace expressions can be nested and the resulting
 words are not sorted.
 Brace expressions must contain an unquoted comma
-.Pq Sq \&,
+.Pq Ql \&,
 for expansion to occur (e.g.\&
 .Ic {}
 and
@@ -2275,7 +2275,7 @@ A file name pattern is a word containing one or more unquoted
 or
 .Ql \&!
 characters or
-.Dq \&[..]
+.Dq Li \&[...]
 sequences.
 Once brace expansion has been performed, the shell replaces file
 name patterns with the sorted names of all the files that match the pattern
@@ -2286,14 +2286,14 @@ The pattern elements have the following meaning:
 Matches any single character.
 .It \&*
 Matches any sequence of octets.
-.It \&[..]
+.It \&[...]
 Matches any of the octets inside the brackets.
 Ranges of octets can be specified by separating two octets by a
 .Ql \-
 (e.g.\&
-.Dq \&[a0\-9]
+.Dq Li \&[a0\-9]
 matches the letter
-.Sq a
+.Ql a
 or any digit).
 In order to represent itself, a
 .Ql \-
@@ -2306,8 +2306,8 @@ Also, a
 .Ql \&!
 appearing at the start of the list has special meaning (see below), so to
 represent itself it must be quoted or appear later in the list.
-.It \&[!..]
-Like [..],
+.It \&[!...]
+Like [...],
 except it matches any octet not inside the brackets.
 .Sm off
 .It *( Ar pattern\*(Ba No ...\*(Ba Ar pattern )
@@ -2318,9 +2318,9 @@ Example: The pattern
 .Ic *(foo\*(Babar)
 matches the strings
 .Dq ,
-.Dq foo ,
-.Dq bar ,
-.Dq foobarfoo ,
+.Dq Li foo ,
+.Dq Li bar ,
+.Dq Li foobarfoo ,
 etc.
 .Sm off
 .It +( Ar pattern\*(Ba No ...\*(Ba Ar pattern )
@@ -2330,9 +2330,9 @@ specified patterns.
 Example: The pattern
 .Ic +(foo\*(Babar)
 matches the strings
-.Dq foo ,
-.Dq bar ,
-.Dq foobar ,
+.Dq Li foo ,
+.Dq Li bar ,
+.Dq Li foobar ,
 etc.
 .Sm off
 .It ?( Ar pattern\*(Ba No ...\*(Ba Ar pattern )
@@ -2343,9 +2343,9 @@ Example: The pattern
 .Ic ?(foo\*(Babar)
 only matches the strings
 .Dq ,
-.Dq foo ,
+.Dq Li foo ,
 and
-.Dq bar .
+.Dq Li bar .
 .Sm off
 .It @( Ar pattern\*(Ba No ...\*(Ba Ar pattern )
 .Sm on
@@ -2353,9 +2353,9 @@ Matches a string that matches one of the specified patterns.
 Example: The pattern
 .Ic @(foo\*(Babar)
 only matches the strings
-.Dq foo
+.Dq Li foo
 and
-.Dq bar .
+.Dq Li bar .
 .Sm off
 .It !( Ar pattern\*(Ba No ...\*(Ba Ar pattern )
 .Sm on
@@ -2363,13 +2363,13 @@ Matches any string that does not match one of the specified patterns.
 Examples: The pattern
 .Ic !(foo\*(Babar)
 matches all strings except
-.Dq foo
+.Dq Li foo
 and
-.Dq bar ;
+.Dq Li bar ;
 the pattern
-.Ic !(*)
+.Ic \&!(*)
 matches no strings; the pattern
-.Ic !(?)*\&
+.Ic \&!(?)*
 matches all strings (think about it).
 .El
 .Pp
@@ -2380,9 +2380,9 @@ Note that
 .Nm mksh
 .Po and Nm pdksh Pc
 never matches
-.Sq \&.
+.Dq Li \&.
 and
-.Sq .. ,
+.Dq Li .. ,
 but
 .At
 .Nm ksh ,
@@ -2393,15 +2393,15 @@ and GNU
 do.
 .Pp
 Note that none of the above pattern elements match either a period
-.Pq Sq \&.
+.Pq Ql \&.
 at the start of a file name or a slash
-.Pq Sq / ,
-even if they are explicitly used in a [..] sequence; also, the names
-.Sq \&.
+.Pq Ql / ,
+even if they are explicitly used in a [...] sequence; also, the names
+.Dq Li \&.
 and
-.Sq ..
+.Dq Li ..
 are never matched, even by the pattern
-.Sq .* .
+.Dq Li .* .
 .Pp
 If the
 .Ic markdirs
@@ -2473,13 +2473,13 @@ contains no quoted characters, the contents of the temporary file are processed
 as if enclosed in double quotes each time the command is executed, so
 parameter, command, and arithmetic substitutions are performed, along with
 backslash
-.Pq Sq \e
+.Pq Ql \e
 escapes for
 .Ql $ ,
 .Ql \` ,
 .Ql \e ,
 and
-.Ql \enewline ,
+.Dq Li \enewline ,
 but not for
 .Ql \&" .
 If multiple here documents are used on the same command line, they are saved in
@@ -2493,9 +2493,9 @@ and substitution will be performed.
 If
 .Ar marker
 is only a set of either single
-.Dq \*(aq\*(aq
+.Dq Li \*(aq\*(aq
 or double
-.Sq \&""
+.Ql \&""
 quotes with nothing in between, the here document ends at the next empty line
 and substitution will not be performed.
 .It \*(Lt\*(Lt\- Ns Ar marker
@@ -2593,7 +2593,7 @@ File descriptors created by I/O redirections are private to the shell.
 .Ss Arithmetic expressions
 Integer arithmetic expressions can be used with the
 .Ic let
-command, inside $((..)) expressions, inside array references (e.g.\&
+command, inside $((...)) expressions, inside array references (e.g.\&
 .Ar name Ns Bq Ar expr ) ,
 as numeric arguments to the
 .Ic test
@@ -2608,7 +2608,7 @@ use unchecked user input, e.g. from the environment, in arithmetics!
 Expressions are calculated using signed arithmetic and the
 .Vt mksh_ari_t
 type (a 32-bit signed integer), unless they begin with a sole
-.Sq #
+.Ql #
 character, in which case they use
 .Vt mksh_uari_t
 .Po a 32-bit unsigned integer Pc .
@@ -2658,13 +2658,13 @@ is a decimal integer specifying the base (up to 36), and
 .Ar number
 is a number in the specified base.
 Additionally, base-16 integers may be specified by prefixing them with
-.Sq 0x
+.Dq Li 0x
 .Pq case-insensitive
 in all forms of arithmetic expressions, except as numeric arguments to the
 .Ic test
 built-in utility.
 Prefixing numbers with a sole digit zero
-.Pq Sq 0
+.Pq Dq Li 0
 does not cause interpretation as octal (except in POSIX mode,
 as required by the standard), as that's unsafe to do.
 .Pp
@@ -2678,9 +2678,9 @@ The
 .At
 .Nm ksh93
 syntax of
-.Dq \*(aqx\*(aq
+.Dq Li \*(aqx\*(aq
 instead of
-.Dq 1#x
+.Dq Li 1#x
 is also supported.
 Note that NUL bytes (integral value of zero) cannot be used.
 An unset or empty parameter evaluates to 0 in integer context.
@@ -2745,9 +2745,9 @@ with any operator precedence in
 .Aq Ar expr
 preserved.
 For example,
-.Dq var1 *= 5 + 3
+.Dq Li var1 *= 5 + 3
 is the same as specifying
-.Dq var1 = var1 * (5 + 3) .
+.Dq Li var1 = var1 * (5 + 3) .
 .It \*(Ba\*(Ba
 Logical OR;
 the result is 1 if either argument is non-zero, 0 if not.
@@ -2811,7 +2811,7 @@ The non-result argument is not evaluated.
 .El
 .Ss Co-processes
 A co-process (which is a pipeline created with the
-.Sq \*(Ba&
+.Dq Li \*(Ba&
 operator) is an asynchronous process that the shell can both write to (using
 .Ic print Fl p )
 and read from (using
@@ -2871,7 +2871,7 @@ syntax (see below for the difference between the two forms).
 Functions are like
 .Li .\(hyscripts
 (i.e. scripts sourced using the
-.Sq \&.
+.Dq Li \&.
 built-in)
 in that they are executed in the current environment.
 However, unlike
@@ -3108,7 +3108,7 @@ above).
 If the
 .Fl p
 option is used, each alias is prefixed with the string
-.Dq alias\ \& .
+.Dq Li alias\ \& .
 .Pp
 The
 .Fl t
@@ -3227,7 +3227,7 @@ standard output.
 If a
 .Ar file
 is a single dash
-.Pq Sq -
+.Pq Dq Li \-
 or absent, read from standard input.
 For direct builtin calls, the
 .Tn POSIX
@@ -3273,7 +3273,7 @@ is used.
 If
 .Ar dir
 is
-.Ql \- ,
+.Dq Li \- ,
 the previous working directory is used (see the
 .Ev OLDPWD
 parameter).
@@ -3285,7 +3285,7 @@ option (logical path) is used or if the
 option isn't set (see the
 .Ic set
 command below), references to
-.Sq ..
+.Dq Li ..
 in
 .Ar dir
 are relative to the path used to get to the directory.
@@ -3294,7 +3294,7 @@ If the
 option (physical path) is used or if the
 .Ic physical
 option is set,
-.Sq ..
+.Dq Li ..
 is relative to the filesystem directory tree.
 The
 .Ev PWD
@@ -3402,7 +3402,7 @@ Prints its arguments (separated by spaces) followed by a newline, to the
 standard output.
 The newline is suppressed if any of the arguments contain the
 backslash sequence
-.Ql \ec .
+.Dq Li \ec .
 See the
 .Ic print
 command below for a list of other backslash sequences that are recognised.
@@ -3424,7 +3424,7 @@ or
 .Ic sh
 option is set or this is a direct builtin call, only the first argument
 is treated as an option, and only if it is exactly
-.Dq Fl n .
+.Dq Li \-n .
 Backslash interpretation is disabled.
 .Pp
 .It Ic eval Ar command ...
@@ -3468,7 +3468,7 @@ The shell exits with the specified exit status.
 If
 .Ar status
 is not specified, the exit status is the current value of the
-.Ic $?\&
+.Ic \&$?
 parameter.
 .Pp
 .It Xo
@@ -3482,7 +3482,7 @@ If values are specified, the named parameters are also assigned.
 .Pp
 If no parameters are specified, all parameters with the export attribute
 set are printed one per line; either their names, or, if a
-.Ql \-
+.Dq Li \-
 with no option letter is specified, name=value pairs, or, with
 .Fl p ,
 .Ic export
@@ -3618,7 +3618,7 @@ Options end at the first (non-option
 argument) argument that does not start with a
 .Ql \- ,
 or when a
-.Ql \-\-
+.Dq Li \-\-
 argument is encountered.
 .Pp
 Option parsing can be reset by setting
@@ -3772,7 +3772,7 @@ By default, certain C escapes are translated.
 These include these mentioned in
 .Sx Backslash expansion
 above, as well as
-.Ql \ec ,
+.Dq Li \ec ,
 which is equivalent to using the
 .Fl n
 option.
@@ -3843,7 +3843,7 @@ If the
 option (physical path) is used or if the
 .Ic physical
 option is set, the path determined from the filesystem (by following
-.Sq ..
+.Dq Li ..
 directories to the root directory) is printed.
 .Pp
 .It Xo
@@ -4020,7 +4020,7 @@ Prints the resolved absolute pathname corresponding to
 If
 .Ar name
 ends with a slash
-.Pq Sq / ,
+.Pq Ql / ,
 it's also checked for existence and whether it is a directory; otherwise,
 .Ic realpath
 returns 0 if the pathname either exists or can be created immediately,
@@ -4227,9 +4227,9 @@ is changed whenever one of the
 locale-related environment variables changes.
 .It Fl u \*(Ba Fl o Ic nounset
 Referencing of an unset parameter, other than
-.Dq $@
+.Dq Li $@
 or
-.Dq $* ,
+.Dq Li $* ,
 is treated as an error, unless one of the
 .Ql \- ,
 .Ql + ,
@@ -4295,11 +4295,11 @@ and
 commands to use
 .Dq physical
 (i.e. the filesystem's)
-.Sq ..
+.Dq Li ..
 directories instead of
 .Dq logical
 directories (i.e. the shell handles
-.Sq .. ,
+.Dq Li .. ,
 which allows the user to be oblivious of symbolic links to directories).
 Clear by default.
 Note that setting this option does not affect the current value of the
@@ -4373,7 +4373,7 @@ is always in viraw mode.
 These options can also be used upon invocation of the shell.
 The current set of
 options (with single letter names) can be found in the parameter
-.Sq $\- .
+.Dq Li $\- .
 .Ic set Fl o
 with no option name will list all the options and whether each is on or off;
 .Ic set +o
@@ -4387,11 +4387,11 @@ compliant and print commands to restore the current options instead.
 Remaining arguments, if any, are positional parameters and are assigned, in
 order, to the positional parameters (i.e. $1, $2, etc.).
 If options end with
-.Ql \-\-
+.Dq Li \-\-
 and there are no remaining arguments, all positional parameters are cleared.
 If no options or arguments are given, the values of all names are printed.
 For unknown historical reasons, a lone
-.Ql \-
+.Dq Li \-
 option is treated specially \*(en it clears both the
 .Fl v
 and
@@ -4402,10 +4402,7 @@ options.
 The positional parameters
 .Ar number Ns +1 ,
 .Ar number Ns +2 ,
-etc. are renamed to
-.Sq 1 ,
-.Sq 2 ,
-etc.
+etc. are renamed to 1, 2, etc.
 .Ar number
 defaults to 1.
 .Pp
@@ -4518,11 +4515,11 @@ or
 .Ql +
 .Pq no logical negation ,
 for example
-.Ql \-x
+.Dq Li \-x
 or
-.Ql +x
+.Dq Li +x
 instead of
-.Ql xtrace .
+.Dq Li xtrace .
 .It Fl p Ar file
 .Ar file
 is a named pipe
@@ -4631,7 +4628,7 @@ Note that some special rules are applied (courtesy of
 or inside the brackets
 .Ic \&[ ... \&]
 is less than five: if leading
-.Ql \&!
+.Dq Li \&!
 arguments can be stripped such that only one to three arguments remain,
 then the lowered comparison is executed; (thanks to XSI) parentheses
 .Ic \e( ... \e)
@@ -4643,26 +4640,26 @@ prefer negation followed by parenthesis; the one-argument form always implies
 .Pp
 .Sy Note :
 A common mistake is to use
-.Dq if \&[ $foo = bar \&]
+.Dq Li if \&[ $foo = bar \&]
 which fails if parameter
 .Dq foo
 is empty or unset, if it has embedded spaces (i.e.\&
 .Ev IFS
 octets), or if it is a unary operator like
-.Sq \&!
+.Dq Li \&!
 or
-.Sq Fl n .
+.Dq Li \-n .
 Use tests like
-.Dq if \&[ x\&"$foo\&" = x"bar" \&]
+.Dq Li if \&[ x\&"$foo\&" = x"bar" \&]
 instead, or the double-bracket operator
-.Dq if \&[[ $foo = bar \&]]
+.Dq Li if \&[[ $foo = bar \&]]
 or, to avoid pattern matching (see
 .Ic \&[[
 above):
-.Dq if \&[[ $foo = \&"$bar" \&]]
+.Dq Li if \&[[ $foo = \&"$bar" \&]]
 .Pp
 The
-.Ic \&[[ ... ]]
+.Ic \&[[ ... \&]]
 construct is not only more secure to use but also often faster.
 .Pp
 .It Xo
@@ -4722,8 +4719,8 @@ The format of the output is:
 If the first operand is a decimal unsigned integer, this resets all
 specified signals to the default action, i.e. is the same as calling
 .Ic trap
-with a minus sign
-.Pq Sq \-
+with a dash
+.Pq Dq Li \-
 as
 .Ar handler ,
 followed by the arguments
@@ -4735,9 +4732,8 @@ Sets a trap handler that is to be executed when any of the specified
 .Ar signal Ns s
 are received.
 .Ar handler
-is either an empty string, indicating the signals are to be ignored,
-a minus sign
-.Pq Sq \- ,
+is either an empty string, indicating the signals are to be ignored, a dash
+.Pq Dq Li \- ,
 indicating that the default action is to be taken for the signals
 .Pq see Xr signal 3 ,
 or a string containing shell commands to be executed at the first opportunity
@@ -4817,7 +4813,7 @@ arguments, parameter attributes are displayed; if no options are used, the
 current attributes of all parameters are printed as
 .Ic typeset
 commands; if an option is given (or
-.Ql \-
+.Dq Li \-
 with no option letter), all parameters and their values with the specified
 attributes are printed; if options are introduced with
 .Ql + ,
@@ -5134,11 +5130,11 @@ Symbolic masks are like those used by
 When used, they describe what permissions may be made available (as opposed to
 octal masks in which a set bit means the corresponding bit is to be cleared).
 For example,
-.Dq ug=rwx,o=
+.Dq Li ug=rwx,o=
 sets the mask so files will not be readable, writable, or executable by
 .Dq others ,
 and is equivalent (on most systems) to the octal mask
-.Dq 007 .
+.Dq Li 007 .
 .Pp
 .It Xo
 .Ic unalias
@@ -5256,7 +5252,7 @@ cannot be.
 .Pp
 When a job is created, it is assigned a job number.
 For interactive shells, this number is printed inside
-.Dq \&[..] ,
+.Dq Li \&[...] ,
 followed by the process IDs of the processes in the job when an asynchronous
 command is run.
 A job may be referred to in the
@@ -5268,10 +5264,9 @@ and
 .Ic wait
 commands either by the process ID of the last process in the command pipeline
 (as stored in the
-.Ic $!\&
-parameter) or by prefixing the job number with a percent
-sign
-.Pq Sq % .
+.Ic \&$!
+parameter) or by prefixing the job number with a percent sign
+.Pq Ql % .
 Other percent sequences can also be used to refer to jobs:
 .Bl -tag -width "%+ x %% x %XX"
 .It %+ \*(Ba %% \*(Ba %
@@ -5334,7 +5329,7 @@ The job was killed by a signal (e.g. memory fault, hangup); use
 .Ic kill Fl l
 for a list of signal descriptions.
 The
-.Dq core dumped
+.Dq Li core dumped
 message indicates the process created a core file.
 .El
 .It Ar command
@@ -5399,7 +5394,7 @@ Numbers with a leading digit zero are interpreted as octal.
 The
 .Nm echo
 builtin does not interpret backslashes and only supports the exact option
-.Dq Fl n .
+.Dq Li \-n .
 .It
 \&... (list is incomplete and may change for R54)
 .El
@@ -5420,7 +5415,7 @@ child processes.
 The
 .Nm echo
 builtin does not interpret backslashes and only supports the exact option
-.Dq Fl n .
+.Dq Li \-n .
 .It
 The substitution operations
 .Sm off
@@ -5564,9 +5559,9 @@ characters.
 .Xc
 Moves the cursor backward to the beginning of the word; words consist of
 alphanumerics, underscore
-.Pq Sq _ ,
+.Pq Ql _ ,
 and dollar sign
-.Pq Sq $
+.Pq Ql $
 characters.
 .It beginning\-of\-history: \*(ha[\*(Lt
 Moves to the beginning of the history.
@@ -5997,7 +5992,7 @@ A
 .Dq word
 is a sequence of letters, digits, and underscore characters or a sequence of
 non-letter, non-digit, non-underscore, and non-whitespace characters (e.g.\&
-.Dq ab2*&\*(ha
+.Dq Li ab2*&\*(ha
 contains two words) and a
 .Dq big-word
 is a sequence of non-whitespace characters.
@@ -6020,7 +6015,7 @@ insert mode; if
 is not specified, the last word is inserted.
 .It #
 Insert the comment character
-.Pq Sq #
+.Pq Ql #
 at the start of the current line and return the line to the shell (equivalent
 to
 .Ic I#\*(haJ ) .
@@ -6059,7 +6054,7 @@ or follows one of the characters
 or
 .Ql \&) ,
 and does not contain a slash
-.Pq Sq / ,
+.Pq Ql / ,
 then command expansion is done; otherwise file name expansion is done.
 Command expansion will match the big-word against all aliases, functions, and
 built-in commands as well as any executable files found by searching the
@@ -6680,7 +6675,7 @@ In near future, (Unicode) locale tracking will be implemented though.
 .Sh BUGS
 Suspending (using \*(haZ) pipelines like the one below will only suspend
 the currently running part of the pipeline; in this example,
-.Dq fubar
+.Dq Li fubar
 is immediately printed on suspension (but not later after an
 .Ic fg ) .
 .Bd -literal -offset indent

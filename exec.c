@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.179 2016/08/01 21:38:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.180 2016/08/24 20:40:00 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -339,16 +339,14 @@ execute(struct op * volatile t,
 				rv = execute(t->left, flags & XERROK, xerrok);
 			}
 		} else {
-			/* TSELECT */
-			for (;;) {
-				if (!(ccp = do_selectargs(ap, is_first))) {
-					rv = 1;
-					break;
-				}
+ do_TSELECT:
+			if ((ccp = do_selectargs(ap, is_first))) {
 				is_first = false;
 				setstr(global(t->str), ccp, KSH_UNWIND_ERROR);
 				execute(t->left, flags & XERROK, xerrok);
+				goto do_TSELECT;
 			}
+			rv = 1;
 		}
 		break;
 	}
