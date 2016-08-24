@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.702 2016/08/10 18:20:16 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.703 2016/08/24 20:50:11 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016
@@ -1458,6 +1458,7 @@ gcc)
 		ac_flags $t_use $t_name "$t_cflags" \
 		    "if gcc supports $t_cflags $t_ldflags" "$t_ldflags"
 	done
+	ac_flags 1 data_abi_align -malign-data=abi
 	i=1
 	;;
 hpcc)
