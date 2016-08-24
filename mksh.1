@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.414 2016/08/24 19:35:26 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.415 2016/08/24 19:36:26 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -1512,10 +1512,6 @@ If
 is omitted, the string
 .Dq parameter null or not set
 is used instead.
-Currently a bug, if
-.Ar word
-is a variable which expands to the empty string, the
-error message is also printed.
 .El
 .Pp
 Note that, for all of the above,
