@@ -1309,7 +1309,7 @@ search_path(const char *name, const char *lpath,
 			if (errnop)
 				*errnop = 0;
 #ifndef __OS2__
-			return name;
+			return (name);
 #else
 			return real_exec_name(name);
 #endif
