@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.305 2016/08/01 21:38:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.306 2016/08/25 16:21:14 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3776,12 +3776,15 @@ c_cat(const char **wp)
 				/* end of file reached */
 				break;
 			while (n) {
+				if (intrsig)
+					goto has_intrsig;
 				if ((w = write(STDOUT_FILENO, cp, n)) != -1) {
 					n -= w;
 					cp += w;
 					continue;
 				}
 				if (errno == EINTR) {
+ has_intrsig:
 					restore_pipe(opipe);
 					/* give the user a chance to ^C out */
 					intrcheck();
