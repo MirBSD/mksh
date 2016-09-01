@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.752 2016/08/25 16:21:30 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.753 2016/09/01 12:59:05 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R53 2016/08/25
+	@(#)MIRBSD KSH R53 2016/09/01
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R53 2016/08/25
+	@(#)LEGACY KSH R53 2016/09/01
 description:
 	Check version of legacy shell.
 stdin:
@@ -11754,7 +11754,7 @@ stdin:
 	echo "before:	x<$x> y<$y> z<$z> R<$REPLY>"
 	x=${|
 		local y
-		echo "begin:	x<$x> y<$y> z<$z> R<$REPLY>"
+		echo "start:	x<$x> y<$y> z<$z> R<$REPLY>"
 		x=5
 		y=6
 		z=7
@@ -11769,7 +11769,7 @@ stdin:
 	echo ${|true;}$(true).
 expected-stdout:
 	before:	x<1> y<2> z<3> R<4>
-	begin:	x<1> y<> z<3> R<>
+	start:	x<1> y<> z<3> R<>
 	end:	x<5> y<6> z<7> R<8>
 	after:	x<8> y<2> z<7> R<4>
 	typeset t=$'foo\n\n'

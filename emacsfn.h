@@ -19,7 +19,7 @@
  */
 
 #if defined(EMACSFN_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/emacsfn.h,v 1.9 2016/07/26 21:50:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/emacsfn.h,v 1.10 2016/09/01 12:59:09 tg Exp $");
 #define FN(cname,sname,flags)	static int x_##cname(int);
 #elif defined(EMACSFN_ENUMS)
 #define FN(cname,sname,flags)	XFUNC_##cname,
@@ -78,7 +78,7 @@ FN(meta2, "prefix-2", XF_PREFIX)
 FN(meta3, "prefix-3", XF_PREFIX)
 FN(meta_yank, "yank-pop", 0)
 FN(mv_back, "backward-char", XF_ARG)
-FN(mv_begin, "beginning-of-line", 0)
+FN(mv_beg, "beginning-of-line", 0)
 FN(mv_bword, "backward-word", XF_ARG)
 FN(mv_end, "end-of-line", 0)
 FN(mv_forw, "forward-char", XF_ARG)

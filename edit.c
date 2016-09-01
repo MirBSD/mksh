@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.306 2016/08/01 18:42:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.307 2016/09/01 12:59:08 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1048,7 +1048,7 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_end_hist,		1,	'>'	},
 	{ XFUNC_goto_hist,		1,	'g'	},
 	{ XFUNC_mv_end,			0, CTRL('E')	},
-	{ XFUNC_mv_begin,		0, CTRL('A')	},
+	{ XFUNC_mv_beg,			0, CTRL('A')	},
 	{ XFUNC_draw_line,		0, CTRL('L')	},
 	{ XFUNC_cls,			1, CTRL('L')	},
 	{ XFUNC_meta1,			0, CTRL('[')	},
@@ -1106,8 +1106,8 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_mv_back,		2,	'D'	},
 #ifndef MKSH_SMALL
 	{ XFUNC_vt_hack,		2,	'1'	},
-	{ XFUNC_mv_begin | 0x80,	2,	'7'	},
-	{ XFUNC_mv_begin,		2,	'H'	},
+	{ XFUNC_mv_beg | 0x80,		2,	'7'	},
+	{ XFUNC_mv_beg,			2,	'H'	},
 	{ XFUNC_mv_end | 0x80,		2,	'4'	},
 	{ XFUNC_mv_end | 0x80,		2,	'8'	},
 	{ XFUNC_mv_end,			2,	'F'	},
@@ -1119,7 +1119,7 @@ static struct x_defbindings const x_defbindings[] = {
 	/* PC scancodes */
 #if !defined(MKSH_SMALL) || defined(__OS2__)
 	{ XFUNC_meta3,			0,	0	},
-	{ XFUNC_mv_begin,		3,	71	},
+	{ XFUNC_mv_beg,			3,	71	},
 	{ XFUNC_prev_com,		3,	72	},
 #ifndef MKSH_SMALL
 	{ XFUNC_search_hist_up,		3,	73	},
@@ -2044,7 +2044,7 @@ x_mv_end(int c MKSH_A_UNUSED)
 }
 
 static int
-x_mv_begin(int c MKSH_A_UNUSED)
+x_mv_beg(int c MKSH_A_UNUSED)
 {
 	x_goto(xbuf);
 	return (KSTD);
@@ -2328,7 +2328,7 @@ x_vt_hack(int c)
 	case '~':
 		x_arg = 1;
 		x_arg_defaulted = true;
-		return (x_mv_begin(0));
+		return (x_mv_beg(0));
 	case ';':
 		/* "interesting" sequence detected */
 		break;
@@ -4016,7 +4016,7 @@ vi_insert(int ch)
 		else
 			return (redo_insert(lastac - 1));
 
-	/* { Begin nonstandard vi commands */
+	/* { start nonstandard vi commands */
 	case CTRL('x'):
 		expand_word(0);
 		break;
@@ -4035,7 +4035,7 @@ vi_insert(int ch)
 			break;
 		}
 		/* FALLTHROUGH */
-	/* End nonstandard vi commands } */
+	/* end nonstandard vi commands } */
 
 	default:
 		if (es->linelen >= es->cbufsize - 1)

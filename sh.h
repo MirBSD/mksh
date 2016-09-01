@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.787 2016/08/25 16:21:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.788 2016/09/01 12:59:11 tg Exp $");
 #endif
-#define MKSH_VERSION "R53 2016/08/25"
+#define MKSH_VERSION "R53 2016/09/01"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1738,7 +1738,7 @@ struct ioword {
 #define X_EXTRA	20	/* this many extra bytes in X string */
 
 typedef struct XString {
-	/* begin of string */
+	/* beginning of string */
 	char *beg;
 	/* length of allocated area, minus safety margin */
 	size_t len;
@@ -1781,7 +1781,7 @@ typedef char *XStringP;
 /* close, return string */
 #define Xclose(xs, xp)	aresize((xs).beg, (xp) - (xs).beg, (xs).areap)
 
-/* begin of string */
+/* beginning of string */
 #define Xstring(xs, xp)	((xs).beg)
 
 #define Xnleft(xs, xp)	((xs).end - (xp))	/* may be less than 0 */
@@ -1797,7 +1797,7 @@ char *Xcheck_grow(XString *, const char *, size_t);
  */
 
 typedef struct {
-	/* begin of allocated area */
+	/* beginning of allocated area */
 	void **beg;
 	/* currently used number of entries */
 	size_t len;

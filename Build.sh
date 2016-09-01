@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.704 2016/08/25 16:21:28 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.705 2016/09/01 12:59:04 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016
@@ -120,7 +120,7 @@ do_genopt() {
 			state=3
 			;;
 		1:@@)
-			# begin of data block
+			# start of data block
 			o_gen=$o_gen$nl"#endif"
 			o_gen=$o_gen$nl"#ifndef F0"
 			o_gen=$o_gen$nl"#define F0 FN"
@@ -133,7 +133,7 @@ do_genopt() {
 			o_hdr=$o_hdr$nl$line
 			;;
 		0:@*|1:@*)
-			# begin of a definition block
+			# start of a definition block
 			sym=`echo "$line" | sed 's/^@//'`
 			if test $state = 0; then
 				o_gen=$o_gen$nl"#if defined($sym)"
@@ -980,7 +980,7 @@ drop us a success or failure notice or even send in diffs.
 $e "$bi$me: Building the MirBSD Korn Shell$ao $ui$dstversion$ao on $TARGET_OS ${TARGET_OSREV}..."
 
 #
-# Begin of mirtoconf checks
+# Start of mirtoconf checks
 #
 $e $bi$me: Scanning for functions... please ignore any errors.$ao
 

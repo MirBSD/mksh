@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.180 2016/08/24 20:40:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.181 2016/09/01 12:59:09 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -911,7 +911,7 @@ scriptexec(struct op *tp, const char **ap)
 		/* replace newline by NUL */
 		*cp = '\0';
 
-		/* restore begin of shebang position (buf+0 or buf+3) */
+		/* restore start of shebang position (buf+0 or buf+3) */
 		cp = buf + n;
 		/* bail out if no shebang magic found */
 		if (cp[0] == '#' && cp[1] == '!')
