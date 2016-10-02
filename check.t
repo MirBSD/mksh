@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.753 2016/09/01 12:59:05 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.754 2016/10/02 22:21:43 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R53 2016/09/01
+	@(#)MIRBSD KSH R53 2016/10/02
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R53 2016/09/01
+	@(#)LEGACY KSH R53 2016/10/02
 description:
 	Check version of legacy shell.
 stdin:
@@ -7151,6 +7151,19 @@ stdin:
 	db_input || :
 	db_go
 	exit 0
+---
+name: exit-err-9
+description:
+	"set -e" versus bang pipelines
+stdin:
+	set -e
+	! false | false
+	echo 1 ok
+	! false && false
+	echo 2 wrong
+expected-stdout:
+	1 ok
+expected-exit: 1
 ---
 name: exit-enoent-1
 description:

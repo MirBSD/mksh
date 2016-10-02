@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.181 2016/09/01 12:59:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.182 2016/10/02 22:21:46 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -282,7 +282,7 @@ execute(struct op * volatile t,
 
 	case TOR:
 	case TAND:
-		rv = execute(t->left, XERROK, xerrok);
+		rv = execute(t->left, XERROK, NULL);
 		if ((rv == 0) == (t->type == TAND))
 			rv = execute(t->right, flags & XERROK, xerrok);
 		else {
