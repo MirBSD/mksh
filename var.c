@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.207 2016/08/01 21:38:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.208 2016/10/22 23:56:50 tg Exp $");
 
 /*-
  * Variables
@@ -1686,10 +1686,8 @@ rndset(unsigned long v)
 		short r;
 	} z;
 
-#ifdef DEBUG
-	/* clear the allocated space, for valgrind */
+	/* clear the allocated space, for valgrind and to avoid UB */
 	memset(&z, 0, sizeof(z));
-#endif
 
 	h = lcg_state;
 	BAFHFinish_reg(h);
