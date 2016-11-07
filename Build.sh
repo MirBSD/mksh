@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.705 2016/09/01 12:59:04 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.706 2016/11/07 16:55:51 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016
@@ -1487,8 +1487,12 @@ msc)
 	ac_flags 1 wp64 "${ccpc}/Wp64" 'to enable 64-bit warnings'
 	;;
 nwcc)
-	i=1
 	#broken# ac_flags 1 ssp -stackprotect
+	i=1
+	;;
+pcc)
+	ac_flags 1 fstackprotectorall -fstack-protector-all
+	i=1
 	;;
 sunpro)
 	phase=u
@@ -2343,7 +2347,7 @@ addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && add_cppflags -DMKSH_PRINTF_BUILTIN
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
-add_cppflags -DMKSH_BUILD_R=531
+add_cppflags -DMKSH_BUILD_R=539
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 
