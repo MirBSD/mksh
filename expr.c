@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.89 2016/09/01 12:55:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.90 2016/11/07 16:58:48 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -326,7 +326,15 @@ evalexpr(Expr_state *es, unsigned int prec)
 	vl = evalexpr(es, prec - 1);
 	while ((int)(op = es->tok) >= (int)O_EQ && (int)op <= (int)O_COMMA &&
 	    opprec[(int)op] == prec) {
-		exprtoken(es);
+		switch ((int)op) {
+		case O_TERN:
+		case O_LAND:
+		case O_LOR:
+			break;
+		default:
+			exprtoken(es);
+		}
+
 		vasn = vl;
 		if (op != O_ASN)
 			/* vl may not have a value yet */
@@ -340,14 +348,15 @@ evalexpr(Expr_state *es, unsigned int prec)
 
 			if (!ev)
 				es->noassign++;
+			exprtoken(es);
 			vl = evalexpr(es, MAX_PREC);
 			if (!ev)
 				es->noassign--;
 			if (es->tok != CTERN)
 				evalerr(es, ET_STR, "missing :");
-			exprtoken(es);
 			if (ev)
 				es->noassign++;
+			exprtoken(es);
 			vr = evalexpr(es, P_TERN);
 			if (ev)
 				es->noassign--;
@@ -502,6 +511,7 @@ evalexpr(Expr_state *es, unsigned int prec)
 		case O_LAND:
 			if (!t1)
 				es->noassign++;
+			exprtoken(es);
 			vr = intvar(es, evalexpr(es, prec - 1));
 			res = t1 && vr->val.u;
 			if (!t1)
@@ -510,6 +520,7 @@ evalexpr(Expr_state *es, unsigned int prec)
 		case O_LOR:
 			if (t1)
 				es->noassign++;
+			exprtoken(es);
 			vr = intvar(es, evalexpr(es, prec - 1));
 			res = t1 || vr->val.u;
 			if (t1)

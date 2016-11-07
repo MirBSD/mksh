@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.754 2016/10/02 22:21:43 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.755 2016/11/07 16:58:45 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R53 2016/10/02
+	@(#)MIRBSD KSH R53 2016/11/07
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R53 2016/10/02
+	@(#)LEGACY KSH R53 2016/11/07
 description:
 	Check version of legacy shell.
 stdin:
@@ -338,6 +338,62 @@ expected-stdout:
 	2
 	0
 	2
+	0
+---
+name: arith-lazy-5-arr-n
+description: Check lazy evaluation with side effects
+stdin:
+	a=0; echo "$((0&&b[a++],a))"
+expected-stdout:
+	0
+---
+name: arith-lazy-5-arr-p
+description: Check lazy evaluation with side effects
+stdin:
+	a=0; echo "$((0&&(b[a++]),a))"
+expected-stdout:
+	0
+---
+name: arith-lazy-5-str-n
+description: Check lazy evaluation with side effects
+stdin:
+	a=0 b=a++; ((0&&b)); echo $a
+expected-stdout:
+	0
+---
+name: arith-lazy-5-str-p
+description: Check lazy evaluation with side effects
+stdin:
+	a=0 b=a++; ((0&&(b))); echo $a
+expected-stdout:
+	0
+---
+name: arith-lazy-5-tern-l-n
+description: Check lazy evaluation with side effects
+stdin:
+	a=0; echo "$((0?b[a++]:999,a))"
+expected-stdout:
+	0
+---
+name: arith-lazy-5-tern-l-p
+description: Check lazy evaluation with side effects
+stdin:
+	a=0; echo "$((0?(b[a++]):999,a))"
+expected-stdout:
+	0
+---
+name: arith-lazy-5-tern-r-n
+description: Check lazy evaluation with side effects
+stdin:
+	a=0; echo "$((1?999:b[a++],a))"
+expected-stdout:
+	0
+---
+name: arith-lazy-5-tern-r-p
+description: Check lazy evaluation with side effects
+stdin:
+	a=0; echo "$((1?999:(b[a++]),a))"
+expected-stdout:
 	0
 ---
 name: arith-ternary-prec-1
