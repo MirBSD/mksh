@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.245 2016/08/01 18:42:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.246 2016/11/11 20:14:18 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -195,6 +195,7 @@ printoptions(bool verbose)
 	if (verbose) {
 		size_t n = 0, len, octs = 0;
 		struct options_info oi;
+		struct columnise_opts co;
 
 		/* verbose version */
 		shf_puts("Current option settings\n", shl_stdout);
@@ -211,8 +212,10 @@ printoptions(bool verbose)
 			}
 			++i;
 		}
-		print_columns(shl_stdout, n, options_fmt_entry, &oi,
-		    octs + 4, oi.opt_width + 4, true);
+		co.shf = shl_stdout;
+		co.prefcol = true;
+		print_columns(&co, n, options_fmt_entry, &oi,
+		    octs + 4, oi.opt_width + 4);
 	} else {
 		/* short version like AT&T ksh93 */
 		shf_puts(Tset, shl_stdout);
@@ -1226,9 +1229,9 @@ print_value_quoted(struct shf *shf, const char *s)
  * the i-th element
  */
 void
-print_columns(struct shf *shf, unsigned int n,
+print_columns(struct columnise_opts *opts, unsigned int n,
     void (*func)(char *, size_t, unsigned int, const void *),
-    const void *arg, size_t max_oct, size_t max_colz, bool prefcol)
+    const void *arg, size_t max_oct, size_t max_colz)
 {
 	unsigned int i, r, c, rows, cols, nspace, max_col;
 	char *str;
@@ -1267,14 +1270,14 @@ print_columns(struct shf *shf, unsigned int n,
 	if (cols < 2) {
 		for (i = 0; i < n; ++i) {
 			(*func)(str, max_oct, i, arg);
-			shf_puts(str, shf);
-			shf_putc('\n', shf);
+			shf_puts(str, opts->shf);
+			shf_putc('\n', opts->shf);
 		}
 		goto out;
 	}
 
 	rows = (n + cols - 1) / cols;
-	if (prefcol && cols > rows) {
+	if (opts->prefcol && cols > rows) {
 		cols = rows;
 		rows = (n + cols - 1) / cols;
 	}
@@ -1289,12 +1292,12 @@ print_columns(struct shf *shf, unsigned int n,
 				break;
 			(*func)(str, max_oct, i, arg);
 			if (i + rows >= n)
-				shf_puts(str, shf);
+				shf_puts(str, opts->shf);
 			else
-				shf_fprintf(shf, "%*s%*s",
+				shf_fprintf(opts->shf, "%*s%*s",
 				    (int)max_col, str, (int)nspace, null);
 		}
-		shf_putchar('\n', shf);
+		shf_putchar('\n', opts->shf);
 	}
  out:
 	afree(str, ATEMP);

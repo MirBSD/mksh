@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.183 2016/11/11 19:59:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.184 2016/11/11 20:14:17 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1656,6 +1656,7 @@ pr_menu(const char * const *ap)
 	const char * const *pp;
 	size_t acols = 0, aocts = 0, i;
 	unsigned int n;
+	struct columnise_opts co;
 
 	/*
 	 * width/column calculations were done once and saved, but this
@@ -1684,9 +1685,10 @@ pr_menu(const char * const *ap)
 		smi.num_width++;
 
 	smi.args = ap;
-	print_columns(shl_out, n, select_fmt_entry, (void *)&smi,
-	    smi.num_width + 2 + aocts, smi.num_width + 2 + acols,
-	    true);
+	co.shf = shl_out;
+	co.prefcol = true;
+	print_columns(&co, n, select_fmt_entry, (void *)&smi,
+	    smi.num_width + 2 + aocts, smi.num_width + 2 + acols);
 }
 
 static void
@@ -1696,7 +1698,7 @@ plain_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 }
 
 void
-pr_list(struct shf *shf, char * const *ap)
+pr_list(struct columnise_opts *cop, char * const *ap)
 {
 	size_t acols = 0, aocts = 0, i;
 	unsigned int n;
@@ -1711,8 +1713,8 @@ pr_list(struct shf *shf, char * const *ap)
 			acols = i;
 	}
 
-	print_columns(shf, n, plain_fmt_entry, (const void *)ap,
-	    aocts, acols, false);
+	print_columns(cop, n, plain_fmt_entry, (const void *)ap,
+	    aocts, acols);
 }
 
 /*

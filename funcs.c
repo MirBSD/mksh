@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.313 2016/11/11 19:59:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.314 2016/11/11 20:14:17 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -521,15 +521,16 @@ c_print(const char **wp)
 	if (po.col) {
 		size_t w = XPsize(words);
 		char *cp;
-		struct shf shf;
+		struct columnise_opts co;
 
-		shf_sopen(NULL, 128, SHF_WR | SHF_DYNAMIC, &shf);
 		XPput(words, NULL);
-		pr_list(&shf, (char **)XPptrv(words));
+		co.shf = shf_sopen(NULL, 128, SHF_WR | SHF_DYNAMIC, NULL);
+		co.prefcol = false;
+		pr_list(&co, (char **)XPptrv(words));
 		while (w--)
 			afree(XPptrv(words)[w], ATEMP);
 		XPfree(words);
-		cp = shf_sclose(&shf);
+		cp = shf_sclose(co.shf);
 		w = strlen(cp);
 
 		XcheckN(xs, xp, w);
@@ -1495,6 +1496,7 @@ c_kill(const char **wp)
 			ssize_t w, mess_cols = 0, mess_octs = 0;
 			int j = ksh_NSIG - 1;
 			struct kill_info ki = { 0, 0 };
+			struct columnise_opts co;
 
 			do {
 				ki.num_width++;
@@ -1512,11 +1514,13 @@ c_kill(const char **wp)
 					mess_cols = w;
 			}
 
-			print_columns(shl_stdout, (unsigned int)(ksh_NSIG - 1),
+			co.shf = shl_stdout;
+			co.prefcol = true;
+
+			print_columns(&co, (unsigned int)(ksh_NSIG - 1),
 			    kill_fmt_entry, (void *)&ki,
 			    ki.num_width + 1 + ki.name_width + 1 + mess_octs,
-			    ki.num_width + 1 + ki.name_width + 1 + mess_cols,
-			    true);
+			    ki.num_width + 1 + ki.name_width + 1 + mess_cols);
 		}
 		return (0);
 	}
