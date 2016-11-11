@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.311 2016/11/11 19:12:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.312 2016/11/11 19:18:40 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -292,9 +292,9 @@ c_print(const char **wp)
 		/* temporary storage for a multibyte character */
 		char ts[4];
 		/* output word separator */
-		char ows;
-		/* print trailing newline? */
-		bool nl;
+		char ws;
+		/* output line separator ('!' to not print any) */
+		char nl;
 		/* expand backslash sequences? */
 		bool exp;
 		/* print to history instead of file descriptor / stdout? */
@@ -309,8 +309,8 @@ c_print(const char **wp)
 	} po;
 
 	po.fd = 1;
-	po.ows = ' ';
-	po.nl = true;
+	po.ws = ' ';
+	po.nl = '\n';
 	po.exp = true;
 	po.hist = false;
 	po.chars = false;
@@ -336,13 +336,14 @@ c_print(const char **wp)
 			/* Debian Policy 10.4 compliant "echo" builtin */
 			if (*wp && !strcmp(*wp, "-n")) {
 				/* recognise "-n" only as the first arg */
-				po.nl = false;
+				po.nl = '!';
 				++wp;
 			}
 			/* print everything as-is */
 			po.exp = false;
 		} else {
-			bool new_exp = po.exp, new_nl = po.nl;
+			bool new_exp = po.exp;
+			char new_nl = po.nl;
 
 			/**
 			 * a compromise between sysV and BSD echo commands:
@@ -366,7 +367,7 @@ c_print(const char **wp)
 					new_exp = true;
 					goto print_tradparse_ch;
 				case 'n':
-					new_nl = false;
+					new_nl = '!';
 					goto print_tradparse_ch;
 				case '\0':
 					po.exp = new_exp;
@@ -378,7 +379,7 @@ c_print(const char **wp)
 		}
 	} else {
 		/* "print" builtin */
-		const char *opts = "AlnpRrsu,";
+		const char *opts = "AlNnpRrsu,";
 		const char *emsg;
 
 		po.pminusminus = false;
@@ -392,10 +393,14 @@ c_print(const char **wp)
 				po.exp = true;
 				break;
 			case 'l':
-				po.ows = '\n';
+				po.ws = '\n';
+				break;
+			case 'N':
+				po.ws = '\0';
+				po.nl = '\0';
 				break;
 			case 'n':
-				po.nl = false;
+				po.nl = '!';
 				break;
 			case 'p':
 				if ((po.fd = coproc_getfd(W_OK, &emsg)) < 0) {
@@ -471,7 +476,7 @@ c_print(const char **wp)
 					/* rejected by generic function */
 					switch ((c = *s++)) {
 					case 'c':
-						po.nl = false;
+						po.nl = '!';
 						/* AT&T brain damage */
 						continue;
 					case '\0':
@@ -495,12 +500,12 @@ c_print(const char **wp)
 		}
 	}
 	if (*wp != NULL) {
-		Xput(xs, xp, po.ows);
+		Xput(xs, xp, po.ws);
 		goto print_read_arg;
 	}
  print_no_arg:
-	if (po.nl)
-		Xput(xs, xp, '\n');
+	if (po.nl != '!')
+		Xput(xs, xp, po.nl);
 
 	c = 0;
 	if (po.hist) {
