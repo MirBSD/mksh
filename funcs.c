@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.312 2016/11/11 19:18:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.313 2016/11/11 19:59:39 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -284,6 +284,7 @@ c_print(const char **wp)
 	const char *s;
 	char *xp;
 	XString xs;
+	XPtrV words;
 	struct {
 		/* temporary storage for a wide character */
 		mksh_ari_t wc;
@@ -297,6 +298,8 @@ c_print(const char **wp)
 		char nl;
 		/* expand backslash sequences? */
 		bool exp;
+		/* columnise output? */
+		bool col;
 		/* print to history instead of file descriptor / stdout? */
 		bool hist;
 		/* print words as wide characters? */
@@ -312,6 +315,7 @@ c_print(const char **wp)
 	po.ws = ' ';
 	po.nl = '\n';
 	po.exp = true;
+	po.col = false;
 	po.hist = false;
 	po.chars = false;
 
@@ -379,7 +383,7 @@ c_print(const char **wp)
 		}
 	} else {
 		/* "print" builtin */
-		const char *opts = "AlNnpRrsu,";
+		const char *opts = "AclNnpRrsu,";
 		const char *emsg;
 
 		po.pminusminus = false;
@@ -388,6 +392,9 @@ c_print(const char **wp)
 			switch (c) {
 			case 'A':
 				po.chars = true;
+				break;
+			case 'c':
+				po.col = true;
 				break;
 			case 'e':
 				po.exp = true;
@@ -446,6 +453,8 @@ c_print(const char **wp)
 
 	if (*wp == NULL)
 		goto print_no_arg;
+	if (po.col)
+		XPinit(words, 16);
  print_read_arg:
 	if (po.chars) {
 		while (*wp != NULL) {
@@ -499,9 +508,36 @@ c_print(const char **wp)
 			Xput(xs, xp, c);
 		}
 	}
+	if (po.col) {
+		Xput(xs, xp, '\0');
+		XPput(words, Xclose(xs, xp));
+		Xinit(xs, xp, 128, ATEMP);
+	}
 	if (*wp != NULL) {
-		Xput(xs, xp, po.ws);
+		if (!po.col)
+			Xput(xs, xp, po.ws);
 		goto print_read_arg;
+	}
+	if (po.col) {
+		size_t w = XPsize(words);
+		char *cp;
+		struct shf shf;
+
+		shf_sopen(NULL, 128, SHF_WR | SHF_DYNAMIC, &shf);
+		XPput(words, NULL);
+		pr_list(&shf, (char **)XPptrv(words));
+		while (w--)
+			afree(XPptrv(words)[w], ATEMP);
+		XPfree(words);
+		cp = shf_sclose(&shf);
+		w = strlen(cp);
+
+		XcheckN(xs, xp, w);
+		memcpy(xp, cp, w);
+		xp += w;
+		afree(cp, ATEMP);
+
+		po.nl = '!'; /* for now */
 	}
  print_no_arg:
 	if (po.nl != '!')

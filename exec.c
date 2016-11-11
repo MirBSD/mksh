@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.182 2016/10/02 22:21:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.183 2016/11/11 19:59:39 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1696,7 +1696,7 @@ plain_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 }
 
 void
-pr_list(char * const *ap)
+pr_list(struct shf *shf, char * const *ap)
 {
 	size_t acols = 0, aocts = 0, i;
 	unsigned int n;
@@ -1711,7 +1711,7 @@ pr_list(char * const *ap)
 			acols = i;
 	}
 
-	print_columns(shl_out, n, plain_fmt_entry, (const void *)ap,
+	print_columns(shf, n, plain_fmt_entry, (const void *)ap,
 	    aocts, acols, false);
 }
 

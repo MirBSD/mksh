@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.307 2016/09/01 12:59:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.308 2016/11/11 19:59:37 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -271,7 +271,7 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
 	 */
 	x_putc('\r');
 	x_putc('\n');
-	pr_list(use_copy ? (char **)XPptrv(l) : words);
+	pr_list(shl_out, use_copy ? (char **)XPptrv(l) : words);
 
 	if (use_copy)
 		/* not x_free_words() */
