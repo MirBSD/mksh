@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.310 2016/11/11 19:09:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.311 2016/11/11 19:12:52 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -291,6 +291,8 @@ c_print(const char **wp)
 		int fd;
 		/* temporary storage for a multibyte character */
 		char ts[4];
+		/* output word separator */
+		char ows;
 		/* print trailing newline? */
 		bool nl;
 		/* expand backslash sequences? */
@@ -307,6 +309,7 @@ c_print(const char **wp)
 	} po;
 
 	po.fd = 1;
+	po.ows = ' ';
 	po.nl = true;
 	po.exp = true;
 	po.hist = false;
@@ -375,7 +378,7 @@ c_print(const char **wp)
 		}
 	} else {
 		/* "print" builtin */
-		const char *opts = "AnpRrsu,";
+		const char *opts = "AlnpRrsu,";
 		const char *emsg;
 
 		po.pminusminus = false;
@@ -387,6 +390,9 @@ c_print(const char **wp)
 				break;
 			case 'e':
 				po.exp = true;
+				break;
+			case 'l':
+				po.ows = '\n';
 				break;
 			case 'n':
 				po.nl = false;
@@ -489,7 +495,7 @@ c_print(const char **wp)
 		}
 	}
 	if (*wp != NULL) {
-		Xput(xs, xp, ' ');
+		Xput(xs, xp, po.ows);
 		goto print_read_arg;
 	}
  print_no_arg:
