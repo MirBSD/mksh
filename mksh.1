@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.417 2016/09/29 09:04:56 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.418 2016/11/11 21:37:44 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: September 29 2016 $
+.Dd $Mdocdate: November 11 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -3757,46 +3757,57 @@ however, distributors may have added this as builtin as a speed hack.
 .Pp
 .It Xo
 .Ic print
-.Oo Fl Anprsu Ns Oo Ar n Oc \*(Ba
+.Oo Fl AclNnprsu Ns Oo Ar n Oc \*(Ba
 .Fl R Op Fl en Oc
 .Op Ar argument ...
 .Xc
-.Ic print
-prints its arguments on the standard output, separated by spaces and
-terminated with a newline.
-The
-.Fl n
-option suppresses the newline.
-By default, certain C escapes are translated.
-These include these mentioned in
+Print the specified argument(s) on the standard output,
+separated by spaces, terminated with a newline.
+The C escapes mentioned in
 .Sx Backslash expansion
 above, as well as
 .Dq Li \ec ,
 which is equivalent to using the
 .Fl n
-option.
-Backslash expansion may be inhibited with the
-.Fl r
-option.
-The
-.Fl s
-option prints to the history file instead of standard output; the
-.Fl u
-option prints to file descriptor
-.Ar n
-.Po
-.Ar n
-defaults to 1 if omitted
-.Pc ;
-and the
-.Fl p
-option prints to the co-process (see
+option, are interpreted.
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl A
+Each
+.Ar argument
+is arithmetically evaluated; the character corresponding to the
+resulting value is printed.
+Empty
+.Ar argument Ns s
+separate input words.
+.It Fl c
+The output is printed columnised, line by line, similar to how the
+.Xr rs 1
+utility, tab completion, the
+.Ic kill Fl l
+built-in utility and the
+.Ic select
+statement do.
+.It Fl l
+Change the output word separator to newline.
+.It Fl N
+Change the output word and line separator to ASCII NUL.
+.It Fl n
+Do not print the trailing line separator.
+.It Fl p
+Print to the co-process (see
 .Sx Co-processes
 above).
-The
-.Fl A
-option prints the character corresponding to each
-.Ar argument Ns 's value .
+.It Fl r
+Inhibit backslash expansion.
+.It Fl s
+Print to the history file instead of standard output.
+.It Fl u Op Ar n
+Print to the file descriptor
+.Ar n Pq defaults to 1 if omitted
+instead of standard output.
+.El
 .Pp
 The
 .Fl R
@@ -6694,7 +6705,7 @@ for the in-memory portion of the history is slow, should use
 .Xr memmove 3 .
 .Pp
 This document attempts to describe
-.Nm mksh\ R53
+.Nm mksh\ R54
 and up,
 .\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as
