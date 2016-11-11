@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.308 2016/11/11 18:50:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.309 2016/11/11 19:02:26 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -435,8 +435,11 @@ c_print(const char **wp)
 
 	while (*wp != NULL) {
 		if (po.chars) {
-			do {
-				if (!evaluate(*wp, &po.wc,
+			while (*wp != NULL) {
+				s = *wp++;
+				if (*s == '\0')
+					break;
+				if (!evaluate(s, &po.wc,
 				    KSH_RETURN_ERROR, true))
 					return (1);
 				Xcheck(xs, xp);
@@ -448,9 +451,9 @@ c_print(const char **wp)
 					} while (po.ts[++c]);
 				} else
 					Xput(xs, xp, po.wc & 0xFF);
-			} while (*++wp);
+			}
 		} else {
-			s = *wp;
+			s = *wp++;
 			while ((c = *s++) != '\0') {
 				Xcheck(xs, xp);
 				if (po.exp && c == '\\') {
@@ -484,9 +487,9 @@ c_print(const char **wp)
 				}
 				Xput(xs, xp, c);
 			}
-			if (*++wp != NULL)
-				Xput(xs, xp, ' ');
 		}
+		if (*wp != NULL)
+			Xput(xs, xp, ' ');
 	}
 	if (po.nl)
 		Xput(xs, xp, '\n');
