@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.246 2016/11/11 20:14:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.247 2016/11/11 20:22:52 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1233,7 +1233,7 @@ print_columns(struct columnise_opts *opts, unsigned int n,
     void (*func)(char *, size_t, unsigned int, const void *),
     const void *arg, size_t max_oct, size_t max_colz)
 {
-	unsigned int i, r, c, rows, cols, nspace, max_col;
+	unsigned int i, r = 0, c, rows, cols, nspace, max_col;
 	char *str;
 
 	if (!n)
@@ -1268,10 +1268,12 @@ print_columns(struct columnise_opts *opts, unsigned int n,
 
 	/* if we can only print one column anyway, skip the goo */
 	if (cols < 2) {
-		for (i = 0; i < n; ++i) {
-			(*func)(str, max_oct, i, arg);
-			shf_puts(str, opts->shf);
+		goto prcols_easy;
+		while (r < n) {
 			shf_putc('\n', opts->shf);
+ prcols_easy:
+			(*func)(str, max_oct, r++, arg);
+			shf_puts(str, opts->shf);
 		}
 		goto out;
 	}
@@ -1286,7 +1288,10 @@ print_columns(struct columnise_opts *opts, unsigned int n,
 	if (nspace < 2)
 		nspace = 2;
 	max_col = -max_col;
-	for (r = 0; r < rows; r++) {
+	goto prcols_hard;
+	while (r < rows) {
+		shf_putchar('\n', opts->shf);
+ prcols_hard:
 		for (c = 0; c < cols; c++) {
 			if ((i = c * rows + r) >= n)
 				break;
@@ -1297,9 +1302,10 @@ print_columns(struct columnise_opts *opts, unsigned int n,
 				shf_fprintf(opts->shf, "%*s%*s",
 				    (int)max_col, str, (int)nspace, null);
 		}
-		shf_putchar('\n', opts->shf);
+		++r;
 	}
  out:
+	shf_putchar('\n', opts->shf);
 	afree(str, ATEMP);
 }
 
