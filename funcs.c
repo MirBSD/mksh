@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.316 2016/11/11 21:13:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.317 2016/11/11 21:37:35 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -294,8 +294,10 @@ c_print(const char **wp)
 		char ts[4];
 		/* output word separator */
 		char ws;
-		/* output line separator ('!' to not print any) */
-		char nl;
+		/* output line separator */
+		char ls;
+		/* output a trailing line separator? */
+		bool nl;
 		/* expand backslash sequences? */
 		bool exp;
 		/* columnise output? */
@@ -313,7 +315,8 @@ c_print(const char **wp)
 
 	po.fd = 1;
 	po.ws = ' ';
-	po.nl = '\n';
+	po.ls = '\n';
+	po.nl = true;
 	po.exp = true;
 	po.col = false;
 	po.hist = false;
@@ -340,14 +343,13 @@ c_print(const char **wp)
 			/* Debian Policy 10.4 compliant "echo" builtin */
 			if (*wp && !strcmp(*wp, "-n")) {
 				/* recognise "-n" only as the first arg */
-				po.nl = '!';
+				po.nl = false;
 				++wp;
 			}
 			/* print everything as-is */
 			po.exp = false;
 		} else {
-			bool new_exp = po.exp;
-			char new_nl = po.nl;
+			bool new_exp = po.exp, new_nl = po.nl;
 
 			/**
 			 * a compromise between sysV and BSD echo commands:
@@ -371,7 +373,7 @@ c_print(const char **wp)
 					new_exp = true;
 					goto print_tradparse_ch;
 				case 'n':
-					new_nl = '!';
+					new_nl = false;
 					goto print_tradparse_ch;
 				case '\0':
 					po.exp = new_exp;
@@ -404,10 +406,10 @@ c_print(const char **wp)
 				break;
 			case 'N':
 				po.ws = '\0';
-				po.nl = '\0';
+				po.ls = '\0';
 				break;
 			case 'n':
-				po.nl = '!';
+				po.nl = false;
 				break;
 			case 'p':
 				if ((po.fd = coproc_getfd(W_OK, &emsg)) < 0) {
@@ -490,7 +492,7 @@ c_print(const char **wp)
 					/* rejected by generic function */
 					switch ((c = *s++)) {
 					case 'c':
-						po.nl = '!';
+						po.nl = false;
 						/* AT&T brain damage */
 						continue;
 					case '\0':
@@ -529,7 +531,7 @@ c_print(const char **wp)
 
 		XPput(words, NULL);
 		co.shf = shf_sopen(NULL, 128, SHF_WR | SHF_DYNAMIC, NULL);
-		co.linesep = po.nl;
+		co.linesep = po.ls;
 		co.prefcol = co.do_last = false;
 		pr_list(&co, (char **)XPptrv(words));
 		while (w--)
@@ -542,8 +544,8 @@ c_print(const char **wp)
 		shf_sclose(co.shf);
 	}
  print_no_arg:
-	if (po.nl != '!')
-		Xput(xs, xp, po.nl);
+	if (po.nl)
+		Xput(xs, xp, po.ls);
 
 	c = 0;
 	if (po.hist) {
