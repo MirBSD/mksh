@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.184 2016/11/11 20:14:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.185 2016/11/11 21:13:23 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1686,7 +1686,8 @@ pr_menu(const char * const *ap)
 
 	smi.args = ap;
 	co.shf = shl_out;
-	co.prefcol = true;
+	co.linesep = '\n';
+	co.prefcol = co.do_last = true;
 	print_columns(&co, n, select_fmt_entry, (void *)&smi,
 	    smi.num_width + 2 + aocts, smi.num_width + 2 + acols);
 }

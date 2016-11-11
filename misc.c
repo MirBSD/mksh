@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.247 2016/11/11 20:22:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.248 2016/11/11 21:13:25 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -213,7 +213,8 @@ printoptions(bool verbose)
 			++i;
 		}
 		co.shf = shl_stdout;
-		co.prefcol = true;
+		co.linesep = '\n';
+		co.prefcol = co.do_last = true;
 		print_columns(&co, n, options_fmt_entry, &oi,
 		    octs + 4, oi.opt_width + 4);
 	} else {
@@ -1270,7 +1271,7 @@ print_columns(struct columnise_opts *opts, unsigned int n,
 	if (cols < 2) {
 		goto prcols_easy;
 		while (r < n) {
-			shf_putc('\n', opts->shf);
+			shf_putc(opts->linesep, opts->shf);
  prcols_easy:
 			(*func)(str, max_oct, r++, arg);
 			shf_puts(str, opts->shf);
@@ -1290,7 +1291,7 @@ print_columns(struct columnise_opts *opts, unsigned int n,
 	max_col = -max_col;
 	goto prcols_hard;
 	while (r < rows) {
-		shf_putchar('\n', opts->shf);
+		shf_putchar(opts->linesep, opts->shf);
  prcols_hard:
 		for (c = 0; c < cols; c++) {
 			if ((i = c * rows + r) >= n)
@@ -1305,7 +1306,8 @@ print_columns(struct columnise_opts *opts, unsigned int n,
 		++r;
 	}
  out:
-	shf_putchar('\n', opts->shf);
+	if (opts->do_last)
+		shf_putchar(opts->linesep, opts->shf);
 	afree(str, ATEMP);
 }
 
