@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.158 2016/08/04 20:31:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.159 2016/11/11 18:44:32 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -1399,33 +1399,32 @@ settrap(Trap *p, const char *s)
 }
 
 /*
- * Called by c_print() when writing to a co-process to ensure SIGPIPE won't
- * kill shell (unless user catches it and exits)
+ * called by c_print() when writing to a co-process to ensure
+ * SIGPIPE won't kill shell (unless user catches it and exits)
  */
-int
+bool
 block_pipe(void)
 {
-	int restore_dfl = 0;
+	bool restore_dfl = false;
 	Trap *p = &sigtraps[SIGPIPE];
 
 	if (!(p->flags & (TF_ORIG_IGN|TF_ORIG_DFL))) {
 		setsig(p, SIG_IGN, SS_RESTORE_CURR);
 		if (p->flags & TF_ORIG_DFL)
-			restore_dfl = 1;
+			restore_dfl = true;
 	} else if (p->cursig == SIG_DFL) {
 		setsig(p, SIG_IGN, SS_RESTORE_CURR);
 		/* restore to SIG_DFL */
-		restore_dfl = 1;
+		restore_dfl = true;
 	}
 	return (restore_dfl);
 }
 
-/* Called by c_print() to undo whatever block_pipe() did */
+/* called by c_print() to undo whatever block_pipe() did */
 void
-restore_pipe(int restore_dfl)
+restore_pipe(void)
 {
-	if (restore_dfl)
-		setsig(&sigtraps[SIGPIPE], SIG_DFL, SS_RESTORE_CURR);
+	setsig(&sigtraps[SIGPIPE], SIG_DFL, SS_RESTORE_CURR);
 }
 
 /*
