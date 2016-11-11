@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.317 2016/11/11 21:37:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.318 2016/11/11 22:17:08 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2085,7 +2085,7 @@ c_read(const char **wp)
 		timersub(&tvlim, &tv, &tv);
 		if (tv.tv_sec < 0) {
 			/* timeout expired globally */
-			rv = 1;
+			rv = 3;
 			goto c_read_out;
 		}
 
@@ -2095,8 +2095,8 @@ c_read(const char **wp)
 		case 0:
 			/* timeout expired for this call */
 			bytesread = 0;
-			/* fake EOF read; all cases return 1 */
-			goto c_read_didread;
+			rv = 3;
+			goto c_read_readdone;
 		default:
 			bi_errorf(Tf_sD_s, Tselect, cstrerror(errno));
 			rv = 2;
@@ -2121,7 +2121,6 @@ c_read(const char **wp)
 		goto c_read_out;
 	}
 
- c_read_didread:
 	switch (readmode) {
 	case READALL:
 		if (bytesread == 0) {
@@ -2195,13 +2194,13 @@ c_read(const char **wp)
 	/*-
 	 * state: we finished reading the input and NUL terminated it
 	 * Xstring(xs, xp) -> xp-1 = input string without trailing delim
-	 * rv = 1 if EOF, 0 otherwise (errors handled already)
+	 * rv = 3 if timeout, 1 if EOF, 0 otherwise (errors handled already)
 	 */
 
-	if (rv == 1) {
-		/* clean up coprocess if needed, on EOF */
+	if (rv) {
+		/* clean up coprocess if needed, on EOF/error/timeout */
 		coproc_read_close(fd);
-		if (readmode == READALL)
+		if (readmode == READALL && (rv == 1 || (rv == 3 && bytesread)))
 			/* EOF is no error here */
 			rv = 0;
 	}
@@ -2367,7 +2366,7 @@ c_read(const char **wp)
 	Xfree(xs, xp);
 	if (restore_tios)
 		mksh_tcset(fd, &tios);
-	return (rv);
+	return (rv == 3 ? ksh_sigmask(SIGALRM) : rv);
 #undef is_ifsws
 }
 

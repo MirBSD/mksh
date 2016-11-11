@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.418 2016/11/11 21:37:44 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.419 2016/11/11 22:17:09 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -3912,7 +3912,10 @@ if empty, instead of the ASCII newline character as input line delimiter.
 Instead of reading till end-of-line, read exactly
 .Ar z
 bytes.
-If EOF or a timeout occurs, a partial read is returned with exit status 1.
+Upon EOF, a partial read is returned with exit status 1.
+After timeout, a partial read is returned with an exit status as if
+.Dv SIGALRM
+were caught.
 .It Fl n Ar z
 Instead of reading till end-of-line, read up to
 .Ar z
@@ -3933,7 +3936,9 @@ Interrupt reading after
 seconds (specified as positive decimal value with an optional fractional part).
 The exit status of
 .Nm read
-is 1 if the timeout occurred, but partial reads may still be returned.
+is the same as if
+.Dv SIGALRM
+were caught if the timeout occurred, but partial reads may still be returned.
 .It Fl r
 Normally, the ASCII backslash character escapes the special
 meaning of the following character and is stripped from the input;
