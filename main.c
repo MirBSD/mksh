@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.321 2016/11/11 23:31:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.322 2016/11/11 23:48:30 tg Exp $");
 
 extern char **environ;
 
@@ -566,8 +566,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 #endif
 		if (!isuc(ccp))
 			ccp = null;
-		/* FALLTHROUGH */
 #endif
+		/* FALLTHROUGH */
 
 	/* auto-detect from environment */
 	case 3:

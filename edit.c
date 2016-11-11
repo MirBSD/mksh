@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.311 2016/11/11 23:31:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.312 2016/11/11 23:48:28 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -4165,6 +4165,8 @@ vi_cmd(int argcnt, const char *cmd)
 		case 'Y':
 			cmd = "y$";
 			/* ahhhhhh... */
+
+			/* FALLTHROUGH */
 		case 'c':
 		case 'd':
 		case 'y':
@@ -4401,6 +4403,8 @@ vi_cmd(int argcnt, const char *cmd)
 			if (hnum == hlast)
 				hnum = -1;
 			/* ahhh */
+
+			/* FALLTHROUGH */
 		case '/':
 			c3 = 1;
 			srchlen = 0;
@@ -4539,6 +4543,7 @@ vi_cmd(int argcnt, const char *cmd)
 		case CTRL('['):
 			if (!Flag(FVIESCCOMPLETE))
 				return (-1);
+			/* FALLTHROUGH */
 		/* AT&T ksh */
 		case '\\':
 		/* Nonstandard vi/ksh */
@@ -4611,8 +4616,7 @@ domove(int argcnt, const char *cmd, int sub)
 	case 'T':
 		fsavecmd = *cmd;
 		fsavech = cmd[1];
-		/* drop through */
-
+		/* FALLTHROUGH */
 	case ',':
 	case ';':
 		if (fsavecmd == ' ')

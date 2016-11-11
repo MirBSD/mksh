@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.318 2016/11/11 22:17:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.319 2016/11/11 23:48:29 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -284,8 +284,9 @@ c_print(const char **wp)
 	const char *s;
 	char *xp;
 	XString xs;
-	XPtrV words;
 	struct {
+		/* storage for columnisation */
+		XPtrV words;
 		/* temporary storage for a wide character */
 		mksh_ari_t wc;
 		/* output file descriptor (if any) */
@@ -313,14 +314,12 @@ c_print(const char **wp)
 		bool copipe;
 	} po;
 
+	memset(&po, 0, sizeof(po));
 	po.fd = 1;
 	po.ws = ' ';
 	po.ls = '\n';
 	po.nl = true;
 	po.exp = true;
-	po.col = false;
-	po.hist = false;
-	po.chars = false;
 
 	if (wp[0][0] == 'e') {
 		/* "echo" builtin */
@@ -455,7 +454,7 @@ c_print(const char **wp)
 		if (*wp == NULL)
 			return (0);
 
-		XPinit(words, 16);
+		XPinit(po.words, 16);
 	}
 
 	Xinit(xs, xp, 128, ATEMP);
@@ -517,7 +516,7 @@ c_print(const char **wp)
 	}
 	if (po.col) {
 		Xput(xs, xp, '\0');
-		XPput(words, Xclose(xs, xp));
+		XPput(po.words, Xclose(xs, xp));
 		Xinit(xs, xp, 128, ATEMP);
 	}
 	if (*wp != NULL) {
@@ -526,17 +525,17 @@ c_print(const char **wp)
 		goto print_read_arg;
 	}
 	if (po.col) {
-		size_t w = XPsize(words);
+		size_t w = XPsize(po.words);
 		struct columnise_opts co;
 
-		XPput(words, NULL);
+		XPput(po.words, NULL);
 		co.shf = shf_sopen(NULL, 128, SHF_WR | SHF_DYNAMIC, NULL);
 		co.linesep = po.ls;
 		co.prefcol = co.do_last = false;
-		pr_list(&co, (char **)XPptrv(words));
+		pr_list(&co, (char **)XPptrv(po.words));
 		while (w--)
-			afree(XPptrv(words)[w], ATEMP);
-		XPfree(words);
+			afree(XPptrv(po.words)[w], ATEMP);
+		XPfree(po.words);
 		w = co.shf->wp - co.shf->buf;
 		XcheckN(xs, xp, w);
 		memcpy(xp, co.shf->buf, w);
