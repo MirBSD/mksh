@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.309 2016/11/11 19:02:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.310 2016/11/11 19:09:44 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -433,64 +433,66 @@ c_print(const char **wp)
 
 	Xinit(xs, xp, 128, ATEMP);
 
-	while (*wp != NULL) {
-		if (po.chars) {
-			while (*wp != NULL) {
-				s = *wp++;
-				if (*s == '\0')
-					break;
-				if (!evaluate(s, &po.wc,
-				    KSH_RETURN_ERROR, true))
-					return (1);
-				Xcheck(xs, xp);
-				if (UTFMODE) {
-					po.ts[utf_wctomb(po.ts, po.wc)] = 0;
+	if (*wp == NULL)
+		goto print_no_arg;
+ print_read_arg:
+	if (po.chars) {
+		while (*wp != NULL) {
+			s = *wp++;
+			if (*s == '\0')
+				break;
+			if (!evaluate(s, &po.wc, KSH_RETURN_ERROR, true))
+				return (1);
+			Xcheck(xs, xp);
+			if (UTFMODE) {
+				po.ts[utf_wctomb(po.ts, po.wc)] = 0;
+				c = 0;
+				do {
+					Xput(xs, xp, po.ts[c]);
+				} while (po.ts[++c]);
+			} else
+				Xput(xs, xp, po.wc & 0xFF);
+		}
+	} else {
+		s = *wp++;
+		while ((c = *s++) != '\0') {
+			Xcheck(xs, xp);
+			if (po.exp && c == '\\') {
+				s_ptr = s;
+				c = unbksl(false, s_get, s_put);
+				s = s_ptr;
+				if (c == -1) {
+					/* rejected by generic function */
+					switch ((c = *s++)) {
+					case 'c':
+						po.nl = false;
+						/* AT&T brain damage */
+						continue;
+					case '\0':
+						--s;
+						c = '\\';
+						break;
+					default:
+						Xput(xs, xp, '\\');
+					}
+				} else if ((unsigned int)c > 0xFF) {
+					/* generic function returned Unicode */
+					po.ts[utf_wctomb(po.ts, c - 0x100)] = 0;
 					c = 0;
 					do {
 						Xput(xs, xp, po.ts[c]);
 					} while (po.ts[++c]);
-				} else
-					Xput(xs, xp, po.wc & 0xFF);
-			}
-		} else {
-			s = *wp++;
-			while ((c = *s++) != '\0') {
-				Xcheck(xs, xp);
-				if (po.exp && c == '\\') {
-					s_ptr = s;
-					c = unbksl(false, s_get, s_put);
-					s = s_ptr;
-					if (c == -1) {
-						/* rejected by generic unbksl */
-						switch ((c = *s++)) {
-						case 'c':
-							po.nl = false;
-							/* AT&T brain damage */
-							continue;
-						case '\0':
-							--s;
-							c = '\\';
-							break;
-						default:
-							Xput(xs, xp, '\\');
-						}
-					} else if ((unsigned int)c > 0xFF) {
-						/* unbksl returned Unicode */
-						po.ts[utf_wctomb(po.ts,
-						    c - 0x100)] = 0;
-						c = 0;
-						do {
-							Xput(xs, xp, po.ts[c]);
-						} while (po.ts[++c]);
-						continue;
-					}
+					continue;
 				}
-				Xput(xs, xp, c);
 			}
+			Xput(xs, xp, c);
 		}
-		if (*wp != NULL)
-			Xput(xs, xp, ' ');
 	}
+	if (*wp != NULL) {
+		Xput(xs, xp, ' ');
+		goto print_read_arg;
+	}
+ print_no_arg:
 	if (po.nl)
 		Xput(xs, xp, '\n');
 
