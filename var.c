@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.208 2016/10/22 23:56:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.209 2016/11/11 23:31:39 tg Exp $");
 
 /*-
  * Variables
@@ -133,7 +133,7 @@ initvar(void)
 	struct tbl *tp;
 
 	ktinit(APERM, &specials,
-	    /* currently 15 specials: 75% of 32 = 2^5 */
+	    /* currently 18 specials: 75% of 32 = 2^5 */
 	    5);
 	while (i < V_MAX - 1) {
 		tp = ktenter(&specials, initvar_names[i],
@@ -1149,6 +1149,13 @@ makenv(void)
 					/* setstr can't fail here */
 					setstr(vp, val, KSH_RETURN_ERROR);
 				}
+#ifdef __OS2__
+				/* these special variables are not exported */
+				if (!strcmp(vp->name, "BEGINLIBPATH") ||
+				    !strcmp(vp->name, "ENDLIBPATH") ||
+				    !strcmp(vp->name, "LIBPATHSTRICT"))
+					continue;
+#endif
 				XPput(denv, vp->val.s);
 			}
 		if (l->flags & BF_STOPENV)
@@ -1274,6 +1281,13 @@ setspec(struct tbl *vp)
 	int st;
 
 	switch ((st = special(vp->name))) {
+#ifdef __OS2__
+	case V_BEGINLIBPATH:
+	case V_ENDLIBPATH:
+	case V_LIBPATHSTRICT:
+		setextlibpath(vp->name, str_val(vp));
+		return;
+#endif
 #if HAVE_PERSISTENT_HISTORY
 	case V_HISTFILE:
 		sethistfile(str_val(vp));
@@ -1396,6 +1410,13 @@ unsetspec(struct tbl *vp)
 	 */
 
 	switch (special(vp->name)) {
+#ifdef __OS2__
+	case V_BEGINLIBPATH:
+	case V_ENDLIBPATH:
+	case V_LIBPATHSTRICT:
+		setextlibpath(vp->name, "");
+		return;
+#endif
 #if HAVE_PERSISTENT_HISTORY
 	case V_HISTFILE:
 		sethistfile(NULL);

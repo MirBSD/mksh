@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.790 2016/11/07 16:58:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.791 2016/11/11 23:31:38 tg Exp $");
 #endif
-#define MKSH_VERSION "R53 2016/11/07"
+#define MKSH_VERSION "R54 2016/11/11"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -578,7 +578,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 539)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 541)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -1350,7 +1350,7 @@ EXTERN mksh_ari_t x_lins E_INIT(24);
 /* Determine the location of the system (common) profile */
 
 #ifndef MKSH_DEFAULT_PROFILEDIR
-#define MKSH_DEFAULT_PROFILEDIR	"/etc"
+#define MKSH_DEFAULT_PROFILEDIR	MKSH_UNIXROOT "/etc"
 #endif
 
 #define MKSH_SYSTEM_PROFILE	MKSH_DEFAULT_PROFILEDIR "/profile"
@@ -1748,8 +1748,6 @@ typedef struct XString {
 	Area *areap;
 } XString;
 
-typedef char *XStringP;
-
 /* initialise expandable string */
 #define XinitN(xs, length, area) do {				\
 	(xs).len = (length);					\
@@ -1824,6 +1822,15 @@ typedef struct {
 #define XPsize(x)	((x).len)
 #define XPclose(x)	aresize2((x).beg, XPsize(x), sizeof(void *), ATEMP)
 #define XPfree(x)	afree((x).beg, ATEMP)
+
+/* for print_columns */
+
+struct columnise_opts {
+	struct shf *shf;
+	char linesep;
+	bool do_last;
+	bool prefcol;
+};
 
 /*
  * Lexer internals
@@ -2021,7 +2028,7 @@ void flushcom(bool);
 int search_access(const char *, int);
 const char *search_path(const char *, const char *, int, int *);
 void pr_menu(const char * const *);
-void pr_list(char * const *);
+void pr_list(struct columnise_opts *, char * const *);
 int herein(struct ioword *, char **);
 /* expr.c */
 int evaluate(const char *, mksh_ari_t *, int, bool);
@@ -2122,8 +2129,8 @@ void runtrap(Trap *, bool);
 void cleartraps(void);
 void restoresigs(void);
 void settrap(Trap *, const char *);
-int block_pipe(void);
-void restore_pipe(int);
+bool block_pipe(void);
+void restore_pipe(void);
 int setsig(Trap *, sig_t, int);
 void setexecsig(Trap *, int);
 #if HAVE_FLOCK || HAVE_LOCK_FCNTL
@@ -2237,9 +2244,9 @@ void ksh_getopt_reset(Getopt *, int);
 int ksh_getopt(const char **, Getopt *, const char *);
 void print_value_quoted(struct shf *, const char *);
 char *quote_value(const char *);
-void print_columns(struct shf *, unsigned int,
+void print_columns(struct columnise_opts *, unsigned int,
     void (*)(char *, size_t, unsigned int, const void *),
-    const void *, size_t, size_t, bool);
+    const void *, size_t, size_t);
 void strip_nuls(char *, size_t)
     MKSH_A_BOUNDED(__string__, 1, 2);
 ssize_t blocking_read(int, char *, size_t)
@@ -2420,13 +2427,26 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 })
 #define mksh_abspath(s)			__extension__({			\
 	const char *mksh_abspath_s = (s);				\
-	(mksh_abspath_s[0] == '/' || (ksh_isalphx(mksh_abspath_s[0]) &&	\
+	(mksh_cdirsep(mksh_abspath_s[0]) ||				\
+	    (ksh_isalphx(mksh_abspath_s[0]) &&				\
 	    mksh_abspath_s[1] == ':'));					\
 })
+#define mksh_cdirsep(c)			__extension__({			\
+	char mksh_cdirsep_c = (c);					\
+	(mksh_cdirsep_c == '/' || mksh_cdirsep_c == '\\');		\
+})
+/*
+ * I've seen mksh_sdirsep(s) and mksh_vdirsep(s) but need to think
+ * more about the OS/2 port (and, possibly, toy with it) before I
+ * can merge this upstream, but good job so far @komh, thanks!
+ */
 #else
 #define binopen2(path,flags)		open((path), (flags) | O_BINARY)
 #define binopen3(path,flags,mode)	open((path), (flags) | O_BINARY, (mode))
 #define mksh_abspath(s)			((s)[0] == '/')
+#define mksh_cdirsep(c)			((c) == '/')
+#define mksh_sdirsep(s)			strchr((s), '/')
+#define mksh_vdirsep(s)			vstrchr((s), '/')
 #endif
 
 /* be sure not to interfere with anyone else's idea about EXTERN */

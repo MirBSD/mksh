@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.185 2016/11/11 21:13:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.186 2016/11/11 23:31:34 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -672,7 +672,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		rv = subst_exstat;
 		goto Leave;
 	} else if (!tp) {
-		if (Flag(FRESTRICTED) && vstrchr(cp, '/')) {
+		if (Flag(FRESTRICTED) && mksh_vdirsep(cp)) {
 			warningf(true, Tf_sD_s, cp, "restricted");
 			rv = 1;
 			goto Leave;
@@ -1123,7 +1123,7 @@ findcom(const char *name, int flags)
 	char *fpath;
 	union mksh_cchack npath;
 
-	if (vstrchr(name, '/')) {
+	if (mksh_vdirsep(name)) {
 		insert = 0;
 		/* prevent FPATH search below */
 		flags &= ~FC_FUNC;
@@ -1240,8 +1240,12 @@ search_access(const char *fn, int mode)
 		eno = errno;
 		return (eno ? eno : EACCES);
 	}
+#ifdef __OS2__
+	/* treat all files as executable on OS/2 */
+	sb.st_mode &= S_IXUSR | S_IXGRP | S_IXOTH;
+#endif
 	if (mode == X_OK && (!S_ISREG(sb.st_mode) ||
-	    !(sb.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH))))
+	    !(sb.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH))))
 		/* access(2) may say root can execute everything */
 		return (S_ISDIR(sb.st_mode) ? EISDIR : EACCES);
 	return (0);
@@ -1263,7 +1267,7 @@ search_path(const char *name, const char *lpath,
 	size_t namelen;
 	int ec = 0, ev;
 
-	if (vstrchr(name, '/')) {
+	if (mksh_vdirsep(name)) {
 		if ((ec = search_access(name, mode)) == 0) {
  search_path_ok:
 			if (errnop)

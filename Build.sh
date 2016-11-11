@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.706 2016/11/07 16:55:51 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.707 2016/11/11 23:31:29 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016
@@ -584,7 +584,7 @@ if test -d $tfn || test -d $tfn.exe; then
 	exit 1
 fi
 rmf a.exe* a.out* conftest.c conftest.exe* *core core.* ${tfn}* *.bc *.dbg \
-    *.ll *.o *.gen Rebuild.sh lft no signames.inc test.sh x vv.out
+    *.ll *.o *.gen *.cat1 Rebuild.sh lft no signames.inc test.sh x vv.out
 
 SRCS="lalloc.c eval.c exec.c expr.c funcs.c histrap.c jobs.c"
 SRCS="$SRCS lex.c main.c misc.c shf.c syn.c tree.c var.c"
@@ -755,6 +755,24 @@ GNU/kFreeBSD)
 Haiku)
 	add_cppflags -DMKSH_ASSUME_UTF8; HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	;;
+Harvey)
+	add_cppflags -D_POSIX_SOURCE
+	add_cppflags -D_LIMITS_EXTENSION
+	add_cppflags -D_BSD_EXTENSION
+	add_cppflags -D_SUSV2_SOURCE
+	add_cppflags -D_GNU_SOURCE
+	add_cppflags -DMKSH_ASSUME_UTF8; HAVE_ISSET_MKSH_ASSUME_UTF8=1
+	add_cppflags -DMKSH_NO_CMDLINE_EDITING
+	add_cppflags -DMKSH__NO_SETEUGID
+	oswarn=' and will currently not work'
+	add_cppflags -DMKSH_UNEMPLOYED
+	add_cppflags -DMKSH_NOPROSPECTOFWORK
+	# these taken from Harvey-OS github and need re-checking
+	add_cppflags -D_setjmp=setjmp -D_longjmp=longjmp
+	: "${HAVE_CAN_NO_EH_FRAME=0}"
+	: "${HAVE_CAN_FNOSTRICTALIASING=0}"
+	: "${HAVE_CAN_FSTACKPROTECTORSTRONG=0}"
+	;;
 HP-UX)
 	;;
 Interix)
@@ -833,12 +851,14 @@ OpenBSD)
 OS/2)
 	HAVE_TERMIOS_H=0
 	HAVE_MKNOD=0	# setmode() incompatible
-	oswarn="; it is currently being ported"
+	oswarn="; it is currently being ported, get it from"
+	oswarn="$oswarn${nl}https://github.com/komh/mksh-os2 in the meanwhile"
 	check_categories="$check_categories nosymlink"
 	: "${CC=gcc}"
 	: "${SIZE=: size}"
 	add_cppflags -DMKSH_UNEMPLOYED
 	add_cppflags -DMKSH_NOPROSPECTOFWORK
+	add_cppflags -DMKSH_NO_LIMITS
 	;;
 OSF1)
 	HAVE_SIG_T=0	# incompatible
@@ -2347,7 +2367,7 @@ addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && add_cppflags -DMKSH_PRINTF_BUILTIN
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
-add_cppflags -DMKSH_BUILD_R=539
+add_cppflags -DMKSH_BUILD_R=541
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 
@@ -2593,8 +2613,8 @@ esac
 tcfn=$mkshexe
 test $cm = combine || v "$CC $CFLAGS $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
 test -f $tcfn || exit 1
-test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >$tfn.cat1" || \
-    rmf $tfn.cat1
+test 1 = $r || v "$NROFF -mdoc <'$srcdir/lksh.1' >lksh.cat1" || rmf lksh.cat1
+test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || rmf mksh.cat1
 test 0 = $eq && v $SIZE $tcfn
 i=install
 test -f /usr/ucb/$i && i=/usr/ucb/$i
@@ -2608,12 +2628,14 @@ if test $legacy = 0; then
 fi
 $e
 $e Installing the manual:
-if test -f $tfn.cat1; then
-	$e "# $i -c -o root -g bin -m 444 $tfn.cat1" \
-	    "/usr/share/man/cat1/$tfn.0"
+if test -f mksh.cat1; then
+	$e "# $i -c -o root -g bin -m 444 lksh.cat1" \
+	    "/usr/share/man/cat1/lksh.0"
+	$e "# $i -c -o root -g bin -m 444 mksh.cat1" \
+	    "/usr/share/man/cat1/mksh.0"
 	$e or
 fi
-$e "# $i -c -o root -g bin -m 444 $tfn.1 /usr/share/man/man1/$tfn.1"
+$e "# $i -c -o root -g bin -m 444 lksh.1 mksh.1 /usr/share/man/man1/"
 $e
 $e Run the regression test suite: ./test.sh
 $e Please also read the sample file dot.mkshrc and the fine manual.

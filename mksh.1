@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.419 2016/11/11 22:17:09 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.420 2016/11/11 23:31:36 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -1060,7 +1060,7 @@ For
 and
 .Dq Li \eu#### ,
 .Dq #
-means a hexadecimal digit, of thich there may be none up to four or eight;
+means a hexadecimal digit, of which there may be none up to four or eight;
 these escapes translate a Unicode codepoint to UTF-8.
 Furthermore,
 .Dq Li \eE
@@ -2602,7 +2602,7 @@ This also affects implicit conversion to integer, for example as done by the
 .Ic let
 command.
 .Em Never
-use unchecked user input, e.g. from the environment, in arithmetics!
+use unchecked user input, e.g. from the environment, in an arithmetic context!
 .Pp
 Expressions are calculated using signed arithmetic and the
 .Vt mksh_ari_t
@@ -4899,7 +4899,7 @@ If necessary, values are either truncated or space padded
 to fit the field width.
 .It Fl l
 Lower case attribute.
-All upper case characters in values are converted to lower case.
+All upper case ASCII characters in values are converted to lower case.
 (In the original Korn shell, this parameter meant
 .Dq long integer
 when used with the
@@ -4923,7 +4923,7 @@ is lazily evaluated at the time
 .Ar name
 is accessed.
 This can be used by functions to access variables whose names are
-passed as parametres, instead of using
+passed as parameters, instead of using
 .Ic eval .
 .It Fl p
 Print complete
@@ -4964,7 +4964,7 @@ option).
 This option is not in the original Korn shell.
 .It Fl u
 Upper case attribute.
-All lower case characters in values are converted to upper case.
+All lower case ASCII characters in values are converted to upper case.
 (In the original Korn shell, this parameter meant
 .Dq unsigned integer
 when used with the
@@ -5381,11 +5381,11 @@ to behave even more
 compliant in places where the defaults or opinions differ.
 Note that
 .Nm mksh
-will still operate with unsigned 32-bit arithmetics; use
+will still operate with unsigned 32-bit arithmetic; use
 .Nm lksh
-if arithmetics on the host
+if arithmetic on the host
 .Vt long
-data type, complete with ISO C Undefined Behaviour, are required;
+data type, complete with ISO C Undefined Behaviour, is required;
 refer to the
 .Xr lksh 1
 manual page for details.
@@ -5586,7 +5586,7 @@ Moves the cursor to the beginning of the edited input line.
 .Op Ar n
 .No \*(ha[C , \*(ha[c
 .Xc
-Uppercase the first character in the next
+Uppercase the first ASCII character in the next
 .Ar n
 words, leaving the cursor past the end of the last word.
 .It clear\-screen: \*(ha[\*(haL
@@ -6586,8 +6586,8 @@ This shell is based on the public domain 7th edition Bourne shell clone by
 .An Charles Forsyth ,
 who kindly agreed to, in countries where the Public Domain status of the work
 may not be valid, grant a copyright licence to the general public to deal in
-the work without restriction and permission to sublicence derivates under the
-terms of any (OSI approved) Open Source licence,
+the work without restriction and permission to sublicence derivatives under
+the terms of any (OSI approved) Open Source licence,
 and parts of the BRL shell by
 .An Doug A. Gwyn ,
 .An Doug Kingston ,
@@ -6629,7 +6629,7 @@ The complete legalese is at:
 has a different scope model from
 .At
 .Nm ksh ,
-which leads to subtile differences in semantics for identical builtins.
+which leads to subtle differences in semantics for identical builtins.
 This can cause issues with a
 .Ic nameref
 to suddenly point to a local variable by accident; fixing this is hard.
@@ -6644,9 +6644,9 @@ foo \*(Ba bar \*(Ba& read \-p baz        # will, however, do so
 .Ed
 .Pp
 .Nm mksh
-provides a consistent set of 32-bit integer arithmetics, both signed
-and unsigned, with defined wraparound and sign of the result of a
-remainder operation, even (defying POSIX) on 36-bit and 64-bit systems.
+provides a consistent 32-bit integer arithmetic implementation, both
+signed and unsigned, with sign of the result of a remainder operation
+and wraparound defined, even (defying POSIX) on 36-bit and 64-bit systems.
 .Pp
 .Nm mksh
 provides a consistent, clear interface normally.
@@ -6701,7 +6701,7 @@ The truncation process involved when changing
 .Ev HISTFILE
 does not free old history entries (leaks memory) and leaks
 old entries into the new history if their line numbers are
-not overwritten by same-numer entries from the persistent
+not overwritten by same-number entries from the persistent
 history file; truncating the on-disc file to
 .Ev HISTSIZE
 lines has always been broken and prone to history file corruption

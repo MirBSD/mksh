@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.248 2016/11/11 21:13:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.249 2016/11/11 23:31:35 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -391,7 +391,7 @@ parse_args(const char **argv,
 		 */
 		if (*p != '-')
 			for (q = p; *q; )
-				if (*q++ == '/')
+				if (mksh_cdirsep(*q++))
 					p = q;
 		Flag(FLOGIN) = (*p == '-');
 		opts = cmd_opts;
@@ -1443,14 +1443,14 @@ do_realpath(const char *upath)
 
 	while (*ip) {
 		/* skip slashes in input */
-		while (*ip == '/')
+		while (mksh_cdirsep(*ip))
 			++ip;
 		if (!*ip)
 			break;
 
 		/* get next pathname component from input */
 		tp = ip;
-		while (*ip && *ip != '/')
+		while (*ip && !mksh_cdirsep(*ip))
 			++ip;
 		len = ip - tp;
 
@@ -1462,7 +1462,7 @@ do_realpath(const char *upath)
 			else if (len == 2 && tp[1] == '.') {
 				/* strip off last pathname component */
 				while (xp > Xstring(xs, xp))
-					if (*--xp == '/')
+					if (mksh_cdirsep(*--xp))
 						break;
 				/* then continue with the next one */
 				continue;
@@ -1485,7 +1485,7 @@ do_realpath(const char *upath)
 			/* lstat failed */
 			if (errno == ENOENT) {
 				/* because the pathname does not exist */
-				while (*ip == '/')
+				while (mksh_cdirsep(*ip))
 					/* skip any trailing slashes */
 					++ip;
 				/* no more components left? */
@@ -1545,6 +1545,7 @@ do_realpath(const char *upath)
 				/* assert: xp == xs.beg => start of path */
 
 				/* exactly two leading slashes? (SUSv4 3.266) */
+				/* @komh do NOT use mksh_cdirsep() here */
 				if (ip[1] == '/' && ip[2] != '/') {
 					/* keep them, e.g. for UNC pathnames */
 					Xput(xs, xp, '/');
@@ -1570,7 +1571,7 @@ do_realpath(const char *upath)
 	 * if source path had a trailing slash, check if target path
 	 * is not a non-directory existing file
 	 */
-	if (ip > ipath && ip[-1] == '/') {
+	if (ip > ipath && mksh_cdirsep(ip[-1])) {
 		if (stat(Xstring(xs, xp), &sb)) {
 			if (errno != ENOENT)
 				goto notfound;
@@ -1639,7 +1640,7 @@ make_path(const char *cwd, const char *file,
 
 			if (c == '.')
 				c = file[2];
-			if (c == '/' || c == '\0')
+			if (mksh_cdirsep(c) || c == '\0')
 				use_cdpath = false;
 		}
 
@@ -1661,7 +1662,7 @@ make_path(const char *cwd, const char *file,
 			XcheckN(*xsp, xp, len);
 			memcpy(xp, cwd, len);
 			xp += len;
-			if (cwd[len - 1] != '/')
+			if (!mksh_cdirsep(cwd[len - 1]))
 				Xput(*xsp, xp, '/');
 		}
 		*phys_pathp = Xlength(*xsp, xp);
@@ -1669,7 +1670,7 @@ make_path(const char *cwd, const char *file,
 			XcheckN(*xsp, xp, plen);
 			memcpy(xp, plist, plen);
 			xp += plen;
-			if (plist[plen - 1] != '/')
+			if (!mksh_cdirsep(plist[plen - 1]))
 				Xput(*xsp, xp, '/');
 			rval = 1;
 		}
@@ -1711,9 +1712,14 @@ simplify_path(char *p)
 		return;
 	case '/':
 		/* exactly two leading slashes? (SUSv4 3.266) */
+		/* @komh no mksh_cdirsep() here! */
 		if (p[1] == '/' && p[2] != '/')
 			/* keep them, e.g. for UNC pathnames */
 			++p;
+#ifdef __OS2__
+		/* FALLTHROUGH */
+	case '\\':
+#endif
 		needslash = true;
 		break;
 	default:
@@ -1723,14 +1729,14 @@ simplify_path(char *p)
 
 	while (*ip) {
 		/* skip slashes in input */
-		while (*ip == '/')
+		while (mksh_cdirsep(*ip))
 			++ip;
 		if (!*ip)
 			break;
 
 		/* get next pathname component from input */
 		tp = ip;
-		while (*ip && *ip != '/')
+		while (*ip && !mksh_cdirsep(*ip))
 			++ip;
 		len = ip - tp;
 
@@ -1750,7 +1756,7 @@ simplify_path(char *p)
  strip_last_component:
 					/* strip off last pathname component */
 					while (dp > sp)
-						if (*--dp == '/')
+						if (mksh_cdirsep(*--dp))
 							break;
 				} else {
 					/* relative path, at its beginning */

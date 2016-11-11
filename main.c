@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.320 2016/10/26 22:55:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.321 2016/11/11 23:31:35 tg Exp $");
 
 extern char **environ;
 
@@ -227,7 +227,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	ccp = kshname;
 	goto begin_parsing_kshname;
 	while ((i = ccp[argi++])) {
-		if (i == '/') {
+		if (mksh_cdirsep(i)) {
 			ccp += argi;
  begin_parsing_kshname:
 			argi = 0;
