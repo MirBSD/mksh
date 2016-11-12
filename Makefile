@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.154 2016/11/11 23:31:30 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.155 2016/11/12 00:20:37 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016
@@ -135,6 +135,13 @@ distribution:
 	chown ${BINOWN}:${CONFGRP} ${DESTDIR}/etc/skel/.mkshrc
 	chmod 0644 ${DESTDIR}/etc/skel/.mkshrc
 
+.if make(cats) || make(clean) || make(cleandir)
+MAN=		lksh.1 mksh.1
+.endif
+CLEANFILES+=	${MANALL:S/.cat/.ps/} ${MAN:S/$/.pdf/} ${MANALL:S/$/.gz/}
+CLEANFILES+=	${MAN:S/$/.htm/} ${MAN:S/$/.htm.gz/}
+CLEANFILES+=	${MAN:S/$/.txt/} ${MAN:S/$/.txt.gz/}
+
 .include <bsd.prog.mk>
 
 .ifmake cats
@@ -145,16 +152,14 @@ V_GHOSTSCRIPT!=	pkg_info -e 'ghostscript-*'
 .  endif
 .endif
 
-CLEANFILES+=	${MANALL:S/.cat/.ps/} ${MAN:S/$/.pdf/} ${MANALL:S/$/.gz/}
-CLEANFILES+=	${MAN:S/$/.htm/} ${MAN:S/$/.htm.gz/}
-CLEANFILES+=	${MAN:S/$/.txt/} ${MAN:S/$/.txt.gz/}
-CATS_KW=	mksh, ksh, sh
+CATS_KW=	mksh, lksh, ksh, sh, Korn Shell, Android
+CATS_TITLE_lksh_1=lksh - Legacy Korn shell built on mksh
 CATS_TITLE_mksh_1=mksh - The MirBSD Korn Shell
 cats: ${MANALL} ${MANALL:S/.cat/.ps/}
 .if "${MANALL:Nlksh.cat1:Nmksh.cat1}" != ""
 .  error Adjust here.
 .endif
-.for _m _n in mksh 1
+.for _m _n in lksh 1 mksh 1
 	x=$$(ident ${SRCDIR:Q}/${_m}.${_n} | \
 	    awk '/Mir''OS:/ { print $$4$$5; }' | \
 	    tr -dc 0-9); (( $${#x} == 14 )) || exit 1; exec \
