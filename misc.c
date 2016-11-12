@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.249 2016/11/11 23:31:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.250 2016/11/12 03:54:48 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1541,12 +1541,11 @@ do_realpath(const char *upath)
 				/* symlink target is an absolute path */
 				xp = Xstring(xs, xp);
  beginning_of_a_pathname:
-				/* assert: (ip == ipath)[0] == '/' */
+				/* assert: mksh_cdirsep((ip == ipath)[0]) */
 				/* assert: xp == xs.beg => start of path */
 
 				/* exactly two leading slashes? (SUSv4 3.266) */
-				/* @komh do NOT use mksh_cdirsep() here */
-				if (ip[1] == '/' && ip[2] != '/') {
+				if (ip[1] == ip[0] && !mksh_cdirsep(ip[2])) {
 					/* keep them, e.g. for UNC pathnames */
 					Xput(xs, xp, '/');
 				}
@@ -1711,15 +1710,13 @@ simplify_path(char *p)
 	case 0:
 		return;
 	case '/':
-		/* exactly two leading slashes? (SUSv4 3.266) */
-		/* @komh no mksh_cdirsep() here! */
-		if (p[1] == '/' && p[2] != '/')
-			/* keep them, e.g. for UNC pathnames */
-			++p;
 #ifdef __OS2__
-		/* FALLTHROUGH */
 	case '\\':
 #endif
+		/* exactly two leading slashes? (SUSv4 3.266) */
+		if (p[1] == p[0] && !mksh_cdirsep(p[2]))
+			/* keep them, e.g. for UNC pathnames */
+			++p;
 		needslash = true;
 		break;
 	default:
