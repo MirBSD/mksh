@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.245 2016/08/01 18:42:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.249 2016/11/11 23:31:35 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -195,6 +195,7 @@ printoptions(bool verbose)
 	if (verbose) {
 		size_t n = 0, len, octs = 0;
 		struct options_info oi;
+		struct columnise_opts co;
 
 		/* verbose version */
 		shf_puts("Current option settings\n", shl_stdout);
@@ -211,8 +212,11 @@ printoptions(bool verbose)
 			}
 			++i;
 		}
-		print_columns(shl_stdout, n, options_fmt_entry, &oi,
-		    octs + 4, oi.opt_width + 4, true);
+		co.shf = shl_stdout;
+		co.linesep = '\n';
+		co.prefcol = co.do_last = true;
+		print_columns(&co, n, options_fmt_entry, &oi,
+		    octs + 4, oi.opt_width + 4);
 	} else {
 		/* short version like AT&T ksh93 */
 		shf_puts(Tset, shl_stdout);
@@ -387,7 +391,7 @@ parse_args(const char **argv,
 		 */
 		if (*p != '-')
 			for (q = p; *q; )
-				if (mksh_dirsep(*q++))
+				if (mksh_cdirsep(*q++))
 					p = q;
 		Flag(FLOGIN) = (*p == '-');
 		opts = cmd_opts;
@@ -1226,11 +1230,11 @@ print_value_quoted(struct shf *shf, const char *s)
  * the i-th element
  */
 void
-print_columns(struct shf *shf, unsigned int n,
+print_columns(struct columnise_opts *opts, unsigned int n,
     void (*func)(char *, size_t, unsigned int, const void *),
-    const void *arg, size_t max_oct, size_t max_colz, bool prefcol)
+    const void *arg, size_t max_oct, size_t max_colz)
 {
-	unsigned int i, r, c, rows, cols, nspace, max_col;
+	unsigned int i, r = 0, c, rows, cols, nspace, max_col;
 	char *str;
 
 	if (!n)
@@ -1265,16 +1269,18 @@ print_columns(struct shf *shf, unsigned int n,
 
 	/* if we can only print one column anyway, skip the goo */
 	if (cols < 2) {
-		for (i = 0; i < n; ++i) {
-			(*func)(str, max_oct, i, arg);
-			shf_puts(str, shf);
-			shf_putc('\n', shf);
+		goto prcols_easy;
+		while (r < n) {
+			shf_putc(opts->linesep, opts->shf);
+ prcols_easy:
+			(*func)(str, max_oct, r++, arg);
+			shf_puts(str, opts->shf);
 		}
 		goto out;
 	}
 
 	rows = (n + cols - 1) / cols;
-	if (prefcol && cols > rows) {
+	if (opts->prefcol && cols > rows) {
 		cols = rows;
 		rows = (n + cols - 1) / cols;
 	}
@@ -1283,20 +1289,25 @@ print_columns(struct shf *shf, unsigned int n,
 	if (nspace < 2)
 		nspace = 2;
 	max_col = -max_col;
-	for (r = 0; r < rows; r++) {
+	goto prcols_hard;
+	while (r < rows) {
+		shf_putchar(opts->linesep, opts->shf);
+ prcols_hard:
 		for (c = 0; c < cols; c++) {
 			if ((i = c * rows + r) >= n)
 				break;
 			(*func)(str, max_oct, i, arg);
 			if (i + rows >= n)
-				shf_puts(str, shf);
+				shf_puts(str, opts->shf);
 			else
-				shf_fprintf(shf, "%*s%*s",
+				shf_fprintf(opts->shf, "%*s%*s",
 				    (int)max_col, str, (int)nspace, null);
 		}
-		shf_putchar('\n', shf);
+		++r;
 	}
  out:
+	if (opts->do_last)
+		shf_putchar(opts->linesep, opts->shf);
 	afree(str, ATEMP);
 }
 
@@ -1441,14 +1452,14 @@ do_realpath(const char *upath)
 
 	while (*ip) {
 		/* skip slashes in input */
-		while (mksh_dirsep(*ip))
+		while (mksh_cdirsep(*ip))
 			++ip;
 		if (!*ip)
 			break;
 
 		/* get next pathname component from input */
 		tp = ip;
-		while (*ip && !mksh_dirsep(*ip))
+		while (*ip && !mksh_cdirsep(*ip))
 			++ip;
 		len = ip - tp;
 
@@ -1460,7 +1471,7 @@ do_realpath(const char *upath)
 			else if (len == 2 && tp[1] == '.') {
 				/* strip off last pathname component */
 				while (xp > Xstring(xs, xp))
-					if (mksh_dirsep(*--xp))
+					if (mksh_cdirsep(*--xp))
 						break;
 				/* then continue with the next one */
 				continue;
@@ -1483,7 +1494,7 @@ do_realpath(const char *upath)
 			/* lstat failed */
 			if (errno == ENOENT) {
 				/* because the pathname does not exist */
-				while (mksh_dirsep(*ip))
+				while (mksh_cdirsep(*ip))
 					/* skip any trailing slashes */
 					++ip;
 				/* no more components left? */
@@ -1543,7 +1554,11 @@ do_realpath(const char *upath)
 				/* assert: xp == xs.beg => start of path */
 
 				/* exactly two leading slashes? (SUSv4 3.266) */
-				if (mksh_dirsep(ip[1]) && !mksh_dirsep(ip[2])) {
+				if (ip[1] == '/' && ip[2] != '/'
+#ifdef __OS2__
+					|| (mksh_cdirsep(ip[1]) && !mksh_cdirsep(ip[2]))
+#endif
+				   ) {
 					/* keep them, e.g. for UNC pathnames */
 					Xput(xs, xp, '/');
 				}
@@ -1568,7 +1583,7 @@ do_realpath(const char *upath)
 	 * if source path had a trailing slash, check if target path
 	 * is not a non-directory existing file
 	 */
-	if (ip > ipath && mksh_dirsep(ip[-1])) {
+	if (ip > ipath && mksh_cdirsep(ip[-1])) {
 		if (stat(Xstring(xs, xp), &sb)) {
 			if (errno != ENOENT)
 				goto notfound;
@@ -1637,7 +1652,7 @@ make_path(const char *cwd, const char *file,
 
 			if (c == '.')
 				c = file[2];
-			if (mksh_dirsep(c) || c == '\0')
+			if (mksh_cdirsep(c) || c == '\0')
 				use_cdpath = false;
 		}
 
@@ -1659,7 +1674,7 @@ make_path(const char *cwd, const char *file,
 			XcheckN(*xsp, xp, len);
 			memcpy(xp, cwd, len);
 			xp += len;
-			if (!mksh_dirsep(cwd[len - 1]))
+			if (!mksh_cdirsep(cwd[len - 1]))
 				Xput(*xsp, xp, '/');
 		}
 		*phys_pathp = Xlength(*xsp, xp);
@@ -1667,7 +1682,7 @@ make_path(const char *cwd, const char *file,
 			XcheckN(*xsp, xp, plen);
 			memcpy(xp, plist, plen);
 			xp += plen;
-			if (!mksh_dirsep(plist[plen - 1]))
+			if (!mksh_cdirsep(plist[plen - 1]))
 				Xput(*xsp, xp, '/');
 			rval = 1;
 		}
@@ -1712,7 +1727,11 @@ simplify_path(char *p)
 	case '\\':
 #endif
 		/* exactly two leading slashes? (SUSv4 3.266) */
-		if (mksh_dirsep(p[1]) && !mksh_dirsep(p[2]))
+		if (p[1] == '/' && p[2] != '/'
+#ifdef __OS2__
+			|| (mksh_cdirsep(p[1]) && !mksh_cdirsep(p[2]))
+#endif
+		   )
 			/* keep them, e.g. for UNC pathnames */
 			++p;
 		needslash = true;
@@ -1724,14 +1743,14 @@ simplify_path(char *p)
 
 	while (*ip) {
 		/* skip slashes in input */
-		while (mksh_dirsep(*ip))
+		while (mksh_cdirsep(*ip))
 			++ip;
 		if (!*ip)
 			break;
 
 		/* get next pathname component from input */
 		tp = ip;
-		while (*ip && !mksh_dirsep(*ip))
+		while (*ip && !mksh_cdirsep(*ip))
 			++ip;
 		len = ip - tp;
 
@@ -1751,7 +1770,7 @@ simplify_path(char *p)
  strip_last_component:
 					/* strip off last pathname component */
 					while (dp > sp)
-						if (mksh_dirsep(*--dp))
+						if (mksh_cdirsep(*--dp))
 							break;
 				} else {
 					/* relative path, at its beginning */

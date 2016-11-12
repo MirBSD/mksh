@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.317 2016/08/04 20:51:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.322 2016/11/11 23:48:30 tg Exp $");
 
 extern char **environ;
 
@@ -59,7 +59,12 @@ static void x_sigwinch(int);
 static const char initifs[] = "IFS= \t\n";
 
 static const char initsubs[] =
-    "${PS2=> } ${PS3=#? } ${PS4=+ } ${SECONDS=0} ${TMOUT=0} ${EPOCHREALTIME=}";
+    "${PS2=> }"
+    "${PS3=#? }"
+    "${PS4=+ }"
+    "${SECONDS=0}"
+    "${TMOUT=0}"
+    "${EPOCHREALTIME=}";
 
 static const char *initcoms[] = {
 	Ttypeset, "-r", initvsn, NULL,
@@ -111,10 +116,8 @@ rndsetup(void)
 	char *cp;
 
 	cp = alloc(sizeof(*bufptr) - sizeof(ALLOC_ITEM), APERM);
-#ifdef DEBUG
-	/* clear the allocated space, for valgrind */
+	/* clear the allocated space, for valgrind and to avoid UB */
 	memset(cp, 0, sizeof(*bufptr) - sizeof(ALLOC_ITEM));
-#endif
 	/* undo what alloc() did to the malloc result address */
 	bufptr = (void *)(cp - sizeof(ALLOC_ITEM));
 	/* PIE or something similar provides us with deltas here */
@@ -222,11 +225,11 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	/* determine the basename (without '-' or path) of the executable */
 	ccp = kshname;
-	goto begin_parse_kshname;
+	goto begin_parsing_kshname;
 	while ((i = ccp[argi++])) {
-		if (mksh_dirsep(i)) {
+		if (mksh_cdirsep(i)) {
 			ccp += argi;
- begin_parse_kshname:
+ begin_parsing_kshname:
 			argi = 0;
 			if (*ccp == '-')
 				++ccp;
@@ -563,8 +566,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 #endif
 		if (!isuc(ccp))
 			ccp = null;
-		/* FALLTHROUGH */
 #endif
+		/* FALLTHROUGH */
 
 	/* auto-detect from environment */
 	case 3:

@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.305 2016/08/01 21:38:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.319 2016/11/11 23:48:29 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -280,17 +280,46 @@ static void s_put(int);
 int
 c_print(const char **wp)
 {
-	int fd = 1, c;
+	int c;
 	const char *s;
-	XString xs;
 	char *xp;
-	/* print newline;  expand backslash sequences */
-	bool po_nl = true, po_exp = true;
-	/* print to history instead of file descriptor / stdout */
-	bool po_hist = false;
-	/* print characters */
-	bool po_char = false;
-	char ts[4];
+	XString xs;
+	struct {
+		/* storage for columnisation */
+		XPtrV words;
+		/* temporary storage for a wide character */
+		mksh_ari_t wc;
+		/* output file descriptor (if any) */
+		int fd;
+		/* temporary storage for a multibyte character */
+		char ts[4];
+		/* output word separator */
+		char ws;
+		/* output line separator */
+		char ls;
+		/* output a trailing line separator? */
+		bool nl;
+		/* expand backslash sequences? */
+		bool exp;
+		/* columnise output? */
+		bool col;
+		/* print to history instead of file descriptor / stdout? */
+		bool hist;
+		/* print words as wide characters? */
+		bool chars;
+		/* print a "--" argument? */
+		bool pminusminus;
+		/* writing to a coprocess (SIGPIPE blocked)? */
+		bool coproc;
+		bool copipe;
+	} po;
+
+	memset(&po, 0, sizeof(po));
+	po.fd = 1;
+	po.ws = ' ';
+	po.ls = '\n';
+	po.nl = true;
+	po.exp = true;
 
 	if (wp[0][0] == 'e') {
 		/* "echo" builtin */
@@ -302,7 +331,7 @@ c_print(const char **wp)
 			 * one that supports -e but does not enable it by
 			 * default
 			 */
-			po_exp = false;
+			po.exp = false;
 		}
 #endif
 		if (Flag(FPOSIX) ||
@@ -313,13 +342,13 @@ c_print(const char **wp)
 			/* Debian Policy 10.4 compliant "echo" builtin */
 			if (*wp && !strcmp(*wp, "-n")) {
 				/* recognise "-n" only as the first arg */
-				po_nl = false;
+				po.nl = false;
 				++wp;
 			}
 			/* print everything as-is */
-			po_exp = false;
+			po.exp = false;
 		} else {
-			bool new_exp = po_exp, new_nl = po_nl;
+			bool new_exp = po.exp, new_nl = po.nl;
 
 			/**
 			 * a compromise between sysV and BSD echo commands:
@@ -346,8 +375,8 @@ c_print(const char **wp)
 					new_nl = false;
 					goto print_tradparse_ch;
 				case '\0':
-					po_exp = new_exp;
-					po_nl = new_nl;
+					po.exp = new_exp;
+					po.nl = new_nl;
 					++wp;
 					goto print_tradparse_arg;
 				}
@@ -355,44 +384,54 @@ c_print(const char **wp)
 		}
 	} else {
 		/* "print" builtin */
-		const char *opts = "AnpRrsu,";
+		const char *opts = "AclNnpRrsu,";
 		const char *emsg;
-		/* print a "--" argument */
-		bool po_pminusminus = false;
+
+		po.pminusminus = false;
 
 		while ((c = ksh_getopt(wp, &builtin_opt, opts)) != -1)
 			switch (c) {
 			case 'A':
-				po_char = true;
+				po.chars = true;
+				break;
+			case 'c':
+				po.col = true;
 				break;
 			case 'e':
-				po_exp = true;
+				po.exp = true;
+				break;
+			case 'l':
+				po.ws = '\n';
+				break;
+			case 'N':
+				po.ws = '\0';
+				po.ls = '\0';
 				break;
 			case 'n':
-				po_nl = false;
+				po.nl = false;
 				break;
 			case 'p':
-				if ((fd = coproc_getfd(W_OK, &emsg)) < 0) {
+				if ((po.fd = coproc_getfd(W_OK, &emsg)) < 0) {
 					bi_errorf(Tf_coproc, emsg);
 					return (1);
 				}
 				break;
 			case 'R':
 				/* fake BSD echo command */
-				po_pminusminus = true;
-				po_exp = false;
+				po.pminusminus = true;
+				po.exp = false;
 				opts = "en";
 				break;
 			case 'r':
-				po_exp = false;
+				po.exp = false;
 				break;
 			case 's':
-				po_hist = true;
+				po.hist = true;
 				break;
 			case 'u':
 				if (!*(s = builtin_opt.optarg))
-					fd = 0;
-				else if ((fd = check_fd(s, W_OK, &emsg)) < 0) {
+					po.fd = 0;
+				else if ((po.fd = check_fd(s, W_OK, &emsg)) < 0) {
 					bi_errorf("-u%s: %s", s, emsg);
 					return (1);
 				}
@@ -406,35 +445,45 @@ c_print(const char **wp)
 			if (wp[builtin_opt.optind] &&
 			    ksh_isdash(wp[builtin_opt.optind]))
 				builtin_opt.optind++;
-			} else if (po_pminusminus)
+			} else if (po.pminusminus)
 				builtin_opt.optind--;
 		wp += builtin_opt.optind;
 	}
 
+	if (po.col) {
+		if (*wp == NULL)
+			return (0);
+
+		XPinit(po.words, 16);
+	}
+
 	Xinit(xs, xp, 128, ATEMP);
 
-	if (*wp != NULL && po_char) {
-		mksh_ari_t wc;
-
-		do {
-			if (!evaluate(*wp, &wc, KSH_RETURN_ERROR, true))
+	if (*wp == NULL)
+		goto print_no_arg;
+ print_read_arg:
+	if (po.chars) {
+		while (*wp != NULL) {
+			s = *wp++;
+			if (*s == '\0')
+				break;
+			if (!evaluate(s, &po.wc, KSH_RETURN_ERROR, true))
 				return (1);
 			Xcheck(xs, xp);
 			if (UTFMODE) {
-				ts[utf_wctomb(ts, wc)] = 0;
+				po.ts[utf_wctomb(po.ts, po.wc)] = 0;
 				c = 0;
 				do {
-					Xput(xs, xp, ts[c]);
-				} while (ts[++c]);
+					Xput(xs, xp, po.ts[c]);
+				} while (po.ts[++c]);
 			} else
-				Xput(xs, xp, wc & 0xFF);
-		} while (*++wp);
-	} else if (*wp != NULL) {
- print_read_arg:
-		s = *wp;
+				Xput(xs, xp, po.wc & 0xFF);
+		}
+	} else {
+		s = *wp++;
 		while ((c = *s++) != '\0') {
 			Xcheck(xs, xp);
-			if (po_exp && c == '\\') {
+			if (po.exp && c == '\\') {
 				s_ptr = s;
 				c = unbksl(false, s_get, s_put);
 				s = s_ptr;
@@ -442,7 +491,7 @@ c_print(const char **wp)
 					/* rejected by generic function */
 					switch ((c = *s++)) {
 					case 'c':
-						po_nl = false;
+						po.nl = false;
 						/* AT&T brain damage */
 						continue;
 					case '\0':
@@ -454,33 +503,55 @@ c_print(const char **wp)
 					}
 				} else if ((unsigned int)c > 0xFF) {
 					/* generic function returned Unicode */
-					ts[utf_wctomb(ts, c - 0x100)] = 0;
+					po.ts[utf_wctomb(po.ts, c - 0x100)] = 0;
 					c = 0;
 					do {
-						Xput(xs, xp, ts[c]);
-					} while (ts[++c]);
+						Xput(xs, xp, po.ts[c]);
+					} while (po.ts[++c]);
 					continue;
 				}
 			}
 			Xput(xs, xp, c);
 		}
-		if (*++wp != NULL) {
-			Xput(xs, xp, ' ');
-			goto print_read_arg;
-		}
 	}
-	if (po_nl)
-		Xput(xs, xp, '\n');
+	if (po.col) {
+		Xput(xs, xp, '\0');
+		XPput(po.words, Xclose(xs, xp));
+		Xinit(xs, xp, 128, ATEMP);
+	}
+	if (*wp != NULL) {
+		if (!po.col)
+			Xput(xs, xp, po.ws);
+		goto print_read_arg;
+	}
+	if (po.col) {
+		size_t w = XPsize(po.words);
+		struct columnise_opts co;
+
+		XPput(po.words, NULL);
+		co.shf = shf_sopen(NULL, 128, SHF_WR | SHF_DYNAMIC, NULL);
+		co.linesep = po.ls;
+		co.prefcol = co.do_last = false;
+		pr_list(&co, (char **)XPptrv(po.words));
+		while (w--)
+			afree(XPptrv(po.words)[w], ATEMP);
+		XPfree(po.words);
+		w = co.shf->wp - co.shf->buf;
+		XcheckN(xs, xp, w);
+		memcpy(xp, co.shf->buf, w);
+		xp += w;
+		shf_sclose(co.shf);
+	}
+ print_no_arg:
+	if (po.nl)
+		Xput(xs, xp, po.ls);
 
 	c = 0;
-	if (po_hist) {
+	if (po.hist) {
 		Xput(xs, xp, '\0');
 		histsave(&source->line, Xstring(xs, xp), HIST_STORE, false);
-		Xfree(xs, xp);
 	} else {
 		size_t len = Xlength(xs, xp);
-		bool po_coproc = false;
-		int opipe = 0;
 
 		/*
 		 * Ensure we aren't killed by a SIGPIPE while writing to
@@ -488,24 +559,25 @@ c_print(const char **wp)
 		 * to just check that the co-process is alive which is
 		 * not enough).
 		 */
-		if (coproc.write >= 0 && coproc.write == fd) {
-			po_coproc = true;
-			opipe = block_pipe();
-		}
+		if (coproc.write >= 0 && coproc.write == po.fd) {
+			po.coproc = true;
+			po.copipe = block_pipe();
+		} else
+			po.coproc = po.copipe = false;
 
 		s = Xstring(xs, xp);
 		while (len > 0) {
 			ssize_t nwritten;
 
-			if ((nwritten = write(fd, s, len)) < 0) {
+			if ((nwritten = write(po.fd, s, len)) < 0) {
 				if (errno == EINTR) {
-					if (po_coproc)
-						restore_pipe(opipe);
+					if (po.copipe)
+						restore_pipe();
 					/* give the user a chance to ^C out */
 					intrcheck();
 					/* interrupted, try again */
-					if (po_coproc)
-						opipe = block_pipe();
+					if (po.coproc)
+						po.copipe = block_pipe();
 					continue;
 				}
 				c = 1;
@@ -514,9 +586,10 @@ c_print(const char **wp)
 			s += nwritten;
 			len -= nwritten;
 		}
-		if (po_coproc)
-			restore_pipe(opipe);
+		if (po.copipe)
+			restore_pipe();
 	}
+	Xfree(xs, xp);
 
 	return (c);
 }
@@ -1425,6 +1498,7 @@ c_kill(const char **wp)
 			ssize_t w, mess_cols = 0, mess_octs = 0;
 			int j = ksh_NSIG - 1;
 			struct kill_info ki = { 0, 0 };
+			struct columnise_opts co;
 
 			do {
 				ki.num_width++;
@@ -1442,11 +1516,14 @@ c_kill(const char **wp)
 					mess_cols = w;
 			}
 
-			print_columns(shl_stdout, (unsigned int)(ksh_NSIG - 1),
+			co.shf = shl_stdout;
+			co.linesep = '\n';
+			co.prefcol = co.do_last = true;
+
+			print_columns(&co, (unsigned int)(ksh_NSIG - 1),
 			    kill_fmt_entry, (void *)&ki,
 			    ki.num_width + 1 + ki.name_width + 1 + mess_octs,
-			    ki.num_width + 1 + ki.name_width + 1 + mess_cols,
-			    true);
+			    ki.num_width + 1 + ki.name_width + 1 + mess_cols);
 		}
 		return (0);
 	}
@@ -2007,7 +2084,7 @@ c_read(const char **wp)
 		timersub(&tvlim, &tv, &tv);
 		if (tv.tv_sec < 0) {
 			/* timeout expired globally */
-			rv = 1;
+			rv = 3;
 			goto c_read_out;
 		}
 
@@ -2017,8 +2094,8 @@ c_read(const char **wp)
 		case 0:
 			/* timeout expired for this call */
 			bytesread = 0;
-			/* fake EOF read; all cases return 1 */
-			goto c_read_didread;
+			rv = 3;
+			goto c_read_readdone;
 		default:
 			bi_errorf(Tf_sD_s, Tselect, cstrerror(errno));
 			rv = 2;
@@ -2043,7 +2120,6 @@ c_read(const char **wp)
 		goto c_read_out;
 	}
 
- c_read_didread:
 	switch (readmode) {
 	case READALL:
 		if (bytesread == 0) {
@@ -2117,13 +2193,13 @@ c_read(const char **wp)
 	/*-
 	 * state: we finished reading the input and NUL terminated it
 	 * Xstring(xs, xp) -> xp-1 = input string without trailing delim
-	 * rv = 1 if EOF, 0 otherwise (errors handled already)
+	 * rv = 3 if timeout, 1 if EOF, 0 otherwise (errors handled already)
 	 */
 
-	if (rv == 1) {
-		/* clean up coprocess if needed, on EOF */
+	if (rv) {
+		/* clean up coprocess if needed, on EOF/error/timeout */
 		coproc_read_close(fd);
-		if (readmode == READALL)
+		if (readmode == READALL && (rv == 1 || (rv == 3 && bytesread)))
 			/* EOF is no error here */
 			rv = 0;
 	}
@@ -2289,7 +2365,7 @@ c_read(const char **wp)
 	Xfree(xs, xp);
 	if (restore_tios)
 		mksh_tcset(fd, &tios);
-	return (rv);
+	return (rv == 3 ? ksh_sigmask(SIGALRM) : rv);
 #undef is_ifsws
 }
 
@@ -3729,7 +3805,7 @@ c_cat(const char **wp)
 	ssize_t n, w;
 	const char *fn = "<stdin>";
 	char *buf, *cp;
-	int opipe = 0;
+	bool opipe;
 #define MKSH_CAT_BUFSIZ 4096
 
 	/* parse options: POSIX demands we support "-u" as no-op */
@@ -3769,7 +3845,8 @@ c_cat(const char **wp)
 			if ((n = blocking_read(fd, (cp = buf),
 			    MKSH_CAT_BUFSIZ)) == -1) {
 				if (errno == EINTR) {
-					restore_pipe(opipe);
+					if (opipe)
+						restore_pipe();
 					/* give the user a chance to ^C out */
 					intrcheck();
 					/* interrupted, try again */
@@ -3784,13 +3861,17 @@ c_cat(const char **wp)
 				/* end of file reached */
 				break;
 			while (n) {
+				if (intrsig)
+					goto has_intrsig;
 				if ((w = write(STDOUT_FILENO, cp, n)) != -1) {
 					n -= w;
 					cp += w;
 					continue;
 				}
 				if (errno == EINTR) {
-					restore_pipe(opipe);
+ has_intrsig:
+					if (opipe)
+						restore_pipe();
 					/* give the user a chance to ^C out */
 					intrcheck();
 					/* interrupted, try again */
@@ -3816,7 +3897,8 @@ c_cat(const char **wp)
 	} while (*wp);
 
  out:
-	restore_pipe(opipe);
+	if (opipe)
+		restore_pipe();
 	free_osfunc(buf);
 	return (rv);
 }

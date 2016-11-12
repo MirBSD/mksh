@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.179 2016/08/01 21:38:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.186 2016/11/11 23:31:34 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -282,7 +282,7 @@ execute(struct op * volatile t,
 
 	case TOR:
 	case TAND:
-		rv = execute(t->left, XERROK, xerrok);
+		rv = execute(t->left, XERROK, NULL);
 		if ((rv == 0) == (t->type == TAND))
 			rv = execute(t->right, flags & XERROK, xerrok);
 		else {
@@ -339,16 +339,14 @@ execute(struct op * volatile t,
 				rv = execute(t->left, flags & XERROK, xerrok);
 			}
 		} else {
-			/* TSELECT */
-			for (;;) {
-				if (!(ccp = do_selectargs(ap, is_first))) {
-					rv = 1;
-					break;
-				}
+ do_TSELECT:
+			if ((ccp = do_selectargs(ap, is_first))) {
 				is_first = false;
 				setstr(global(t->str), ccp, KSH_UNWIND_ERROR);
 				execute(t->left, flags & XERROK, xerrok);
+				goto do_TSELECT;
 			}
+			rv = 1;
 		}
 		break;
 	}
@@ -674,7 +672,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		rv = subst_exstat;
 		goto Leave;
 	} else if (!tp) {
-		if (Flag(FRESTRICTED) && mksh_vstrchr_dirsep(cp)) {
+		if (Flag(FRESTRICTED) && mksh_vdirsep(cp)) {
 			warningf(true, Tf_sD_s, cp, "restricted");
 			rv = 1;
 			goto Leave;
@@ -916,7 +914,7 @@ scriptexec(struct op *tp, const char **ap)
 		/* replace newline by NUL */
 		*cp = '\0';
 
-		/* restore begin of shebang position (buf+0 or buf+3) */
+		/* restore start of shebang position (buf+0 or buf+3) */
 		cp = buf + n;
 		/* bail out if no shebang magic found */
 		if (cp[0] == '#' && cp[1] == '!')
@@ -954,7 +952,7 @@ scriptexec(struct op *tp, const char **ap)
 		 * Search shell/interpreter name without directory in PATH
 		 * if specified path does not exist
 		 */
-		if (mksh_vstrchr_dirsep(sh) && !search_path(sh, path, X_OK, NULL)) {
+		if (mksh_vdirsep(sh) && !search_path(sh, path, X_OK, NULL)) {
 			cp = search_path(_getname(sh), path, X_OK, NULL);
 			if (cp)
 				sh = cp;
@@ -1152,7 +1150,7 @@ findcom(const char *name, int flags)
 	char *fpath;
 	union mksh_cchack npath;
 
-	if (mksh_vstrchr_dirsep(name)) {
+	if (mksh_vdirsep(name)) {
 		insert = 0;
 		/* prevent FPATH search below */
 		flags &= ~FC_FUNC;
@@ -1270,11 +1268,11 @@ search_access(const char *fn, int mode)
 		return (eno ? eno : EACCES);
 	}
 #ifdef __OS2__
-	/* Treat all the files as executables on OS/2 */
+	/* treat all files as executable on OS/2 */
 	sb.st_mode |= S_IXUSR | S_IXGRP | S_IXOTH;
 #endif
 	if (mode == X_OK && (!S_ISREG(sb.st_mode) ||
-	    !(sb.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH))))
+	    !(sb.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH))))
 		/* access(2) may say root can execute everything */
 		return (S_ISDIR(sb.st_mode) ? EISDIR : EACCES);
 	return (0);
@@ -1303,7 +1301,7 @@ search_path(const char *name, const char *lpath,
 	size_t namelen;
 	int ec = 0, ev;
 
-	if (mksh_vstrchr_dirsep(name)) {
+	if (mksh_vdirsep(name)) {
 		if ((ec = search_access(name, mode)) == 0) {
  search_path_ok:
 			if (errnop)
@@ -1700,6 +1698,7 @@ pr_menu(const char * const *ap)
 	const char * const *pp;
 	size_t acols = 0, aocts = 0, i;
 	unsigned int n;
+	struct columnise_opts co;
 
 	/*
 	 * width/column calculations were done once and saved, but this
@@ -1728,9 +1727,11 @@ pr_menu(const char * const *ap)
 		smi.num_width++;
 
 	smi.args = ap;
-	print_columns(shl_out, n, select_fmt_entry, (void *)&smi,
-	    smi.num_width + 2 + aocts, smi.num_width + 2 + acols,
-	    true);
+	co.shf = shl_out;
+	co.linesep = '\n';
+	co.prefcol = co.do_last = true;
+	print_columns(&co, n, select_fmt_entry, (void *)&smi,
+	    smi.num_width + 2 + aocts, smi.num_width + 2 + acols);
 }
 
 static void
@@ -1740,7 +1741,7 @@ plain_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 }
 
 void
-pr_list(char * const *ap)
+pr_list(struct columnise_opts *cop, char * const *ap)
 {
 	size_t acols = 0, aocts = 0, i;
 	unsigned int n;
@@ -1755,8 +1756,8 @@ pr_list(char * const *ap)
 			acols = i;
 	}
 
-	print_columns(shl_out, n, plain_fmt_entry, (const void *)ap,
-	    aocts, acols, false);
+	print_columns(cop, n, plain_fmt_entry, (const void *)ap,
+	    aocts, acols);
 }
 
 /*

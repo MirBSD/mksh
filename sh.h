@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.786 2016/08/12 16:48:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.791 2016/11/11 23:31:38 tg Exp $");
 #endif
-#define MKSH_VERSION "R53 2016/08/12"
+#define MKSH_VERSION "R54 2016/11/11"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -578,7 +578,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 530)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 541)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -1738,7 +1738,7 @@ struct ioword {
 #define X_EXTRA	20	/* this many extra bytes in X string */
 
 typedef struct XString {
-	/* begin of string */
+	/* beginning of string */
 	char *beg;
 	/* length of allocated area, minus safety margin */
 	size_t len;
@@ -1747,8 +1747,6 @@ typedef struct XString {
 	/* memory area used */
 	Area *areap;
 } XString;
-
-typedef char *XStringP;
 
 /* initialise expandable string */
 #define XinitN(xs, length, area) do {				\
@@ -1781,7 +1779,7 @@ typedef char *XStringP;
 /* close, return string */
 #define Xclose(xs, xp)	aresize((xs).beg, (xp) - (xs).beg, (xs).areap)
 
-/* begin of string */
+/* beginning of string */
 #define Xstring(xs, xp)	((xs).beg)
 
 #define Xnleft(xs, xp)	((xs).end - (xp))	/* may be less than 0 */
@@ -1797,7 +1795,7 @@ char *Xcheck_grow(XString *, const char *, size_t);
  */
 
 typedef struct {
-	/* begin of allocated area */
+	/* beginning of allocated area */
 	void **beg;
 	/* currently used number of entries */
 	size_t len;
@@ -1824,6 +1822,15 @@ typedef struct {
 #define XPsize(x)	((x).len)
 #define XPclose(x)	aresize2((x).beg, XPsize(x), sizeof(void *), ATEMP)
 #define XPfree(x)	afree((x).beg, ATEMP)
+
+/* for print_columns */
+
+struct columnise_opts {
+	struct shf *shf;
+	char linesep;
+	bool do_last;
+	bool prefcol;
+};
 
 /*
  * Lexer internals
@@ -2021,7 +2028,7 @@ void flushcom(bool);
 int search_access(const char *, int);
 const char *search_path(const char *, const char *, int, int *);
 void pr_menu(const char * const *);
-void pr_list(char * const *);
+void pr_list(struct columnise_opts *, char * const *);
 int herein(struct ioword *, char **);
 /* expr.c */
 int evaluate(const char *, mksh_ari_t *, int, bool);
@@ -2122,8 +2129,8 @@ void runtrap(Trap *, bool);
 void cleartraps(void);
 void restoresigs(void);
 void settrap(Trap *, const char *);
-int block_pipe(void);
-void restore_pipe(int);
+bool block_pipe(void);
+void restore_pipe(void);
 int setsig(Trap *, sig_t, int);
 void setexecsig(Trap *, int);
 #if HAVE_FLOCK || HAVE_LOCK_FCNTL
@@ -2237,9 +2244,9 @@ void ksh_getopt_reset(Getopt *, int);
 int ksh_getopt(const char **, Getopt *, const char *);
 void print_value_quoted(struct shf *, const char *);
 char *quote_value(const char *);
-void print_columns(struct shf *, unsigned int,
+void print_columns(struct columnise_opts *, unsigned int,
     void (*)(char *, size_t, unsigned int, const void *),
-    const void *, size_t, size_t, bool);
+    const void *, size_t, size_t);
 void strip_nuls(char *, size_t)
     MKSH_A_BOUNDED(__string__, 1, 2);
 ssize_t blocking_read(int, char *, size_t)
@@ -2428,41 +2435,41 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 })
 #define mksh_abspath(s)			__extension__({			\
 	const char *mksh_abspath_s = (s);				\
-	(mksh_dirsep(mksh_abspath_s[0]) || (ksh_isalphx(mksh_abspath_s[0]) &&	\
+	(mksh_cdirsep(mksh_abspath_s[0]) ||				\
+	    (ksh_isalphx(mksh_abspath_s[0]) &&				\
 	    mksh_abspath_s[1] == ':'));					\
 })
-#define mksh_dirsep(c)			__extension__({			\
-	char mksh_dirsep_c = (c);							\
-	(mksh_dirsep_c == '/' || mksh_dirsep_c == '\\');	\
+#define mksh_cdirsep(c)			__extension__({			\
+	char mksh_cdirsep_c = (c);					\
+	(mksh_cdirsep_c == '/' || mksh_cdirsep_c == '\\');		\
 })
-#define mksh_strchr_dirsep(s)	__extension__({					\
-	const char *mksh_strchr_dirsep_p = (s);						\
-	const char *mksh_strchr_dirsep_p1 = strchr(mksh_strchr_dirsep_p, '/');	\
-	const char *mksh_strchr_dirsep_p2 = strchr(mksh_strchr_dirsep_p, '\\');	\
-	const char *mksh_strchr_dirsep_p3 =							\
-		((ksh_isalphx(mksh_strchr_dirsep_p[0]) &&				\
-		  mksh_strchr_dirsep_p[1] == ':')						\
-	                    ? (mksh_strchr_dirsep_p + 1) : NULL );	\
-	mksh_strchr_dirsep_p1 = mksh_strchr_dirsep_p1 > mksh_strchr_dirsep_p2 ?	\
-		mksh_strchr_dirsep_p1 : mksh_strchr_dirsep_p2;			\
-	((char *)(mksh_strchr_dirsep_p1 > mksh_strchr_dirsep_p3 ?	\
-		mksh_strchr_dirsep_p1 : mksh_strchr_dirsep_p3));		\
+#define mksh_sdirsep(s)	__extension__({							\
+	const char *mksh_sdirsep_p = (s);							\
+	const char *mksh_sdirsep_p1 = strchr(mksh_sdirsep_p, '/');	\
+	const char *mksh_sdirsep_p2 = strchr(mksh_sdirsep_p, '\\');	\
+	const char *mksh_sdirsep_p3 =								\
+		((ksh_isalphx(mksh_sdirsep_p[0]) &&						\
+		  mksh_sdirsep_p[1] == ':')								\
+	                    ? (mksh_sdirsep_p + 1) : NULL );		\
+	mksh_sdirsep_p1 = mksh_sdirsep_p1 > mksh_sdirsep_p2 ?		\
+		mksh_sdirsep_p1 : mksh_sdirsep_p2;						\
+	((char *)(mksh_sdirsep_p1 > mksh_sdirsep_p3 ?				\
+		mksh_sdirsep_p1 : mksh_sdirsep_p3));					\
 })
-#define mksh_vstrchr_dirsep(s)	__extension__({					\
-	const char *mksh_vstrchr_dirsep_p = (s);					\
-	(vstrchr((mksh_vstrchr_dirsep_p), '/') || 					\
-	    vstrchr((mksh_vstrchr_dirsep_p), '\\') ||				\
-	    (ksh_isalphx(mksh_vstrchr_dirsep_p[0]) && 				\
-	        mksh_vstrchr_dirsep_p[1] == ':'));					\
+#define mksh_vdirsep(s)	__extension__({					\
+	const char *mksh_vdirsep_p = (s);					\
+	(vstrchr((mksh_vdirsep_p), '/') || 					\
+	    vstrchr((mksh_vdirsep_p), '\\') ||				\
+	    (ksh_isalphx(mksh_vdirsep_p[0]) && 				\
+	        mksh_vdirsep_p[1] == ':'));					\
 })
-
 #else
 #define binopen2(path,flags)		open((path), (flags) | O_BINARY)
 #define binopen3(path,flags,mode)	open((path), (flags) | O_BINARY, (mode))
 #define mksh_abspath(s)			((s)[0] == '/')
-#define mksh_dirsep(c)			((c) == '/')
-#define mksh_strchr_dirsep(s)	(strchr((s), '/'))
-#define mksh_vstrchr_dirsep(s)	(vstrchr((s), '/'))
+#define mksh_cdirsep(c)			((c) == '/')
+#define mksh_sdirsep(s)			strchr((s), '/')
+#define mksh_vdirsep(s)			vstrchr((s), '/')
 #endif
 
 /* be sure not to interfere with anyone else's idea about EXTERN */

@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/lksh.1,v 1.18 2016/08/10 18:20:05 tg Exp $
+.\" $MirOS: src/bin/mksh/lksh.1,v 1.20 2016/11/11 23:31:35 tg Exp $
 .\"-
 .\" Copyright (c) 2008, 2009, 2010, 2012, 2013, 2015, 2016
 .\"	mirabilos <m@mirbsd.org>
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: August 10 2016 $
+.Dd $Mdocdate: November 11 2016 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -209,9 +209,9 @@ The
 string identifies
 .Nm
 as
-.Dq LEGACY KSH
+.Dq Li LEGACY KSH
 instead of
-.Dq MIRBSD KSH .
+.Dq Li MIRBSD KSH .
 Note that the rest of the version string is identical between
 the two shell flavours, and the behaviour and differences can
 change between versions; see the accompanying manual page
@@ -221,8 +221,8 @@ for the versions this document applies to.
 .Nm
 uses
 .Tn POSIX
-arithmetics, which has quite a few implications:
-The data type for arithmetics is the host
+arithmetic, which has quite a few implications:
+The data type for arithmetic operations is the host
 .Tn ISO
 C
 .Vt long

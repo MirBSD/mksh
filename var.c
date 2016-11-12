@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.207 2016/08/01 21:38:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.209 2016/11/11 23:31:39 tg Exp $");
 
 /*-
  * Variables
@@ -133,7 +133,7 @@ initvar(void)
 	struct tbl *tp;
 
 	ktinit(APERM, &specials,
-	    /* currently 15 specials: 75% of 32 = 2^5 */
+	    /* currently 18 specials: 75% of 32 = 2^5 */
 	    5);
 	while (i < V_MAX - 1) {
 		tp = ktenter(&specials, initvar_names[i],
@@ -720,11 +720,6 @@ exportprep(struct tbl *vp, const char *val)
 	char *op = (vp->flag&ALLOC) ? vp->val.s : NULL;
 	size_t namelen, vallen;
 
-#ifdef __OS2__
-	/* On OS/2, BEGIN/ENDLIBPATH and LIBPATHSTRICT are special variables. */
-	setextlibpath(vp->name, val);
-#endif
-
 	namelen = strlen(vp->name);
 	vallen = strlen(val) + 1;
 
@@ -1021,11 +1016,6 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 void
 unset(struct tbl *vp, int flags)
 {
-#ifdef __OS2__
-	/* On OS/2, BEGIN/ENDLIBPATH and LIBPATHSTRICT are special variables. */
-	setextlibpath(vp->name, "");
-#endif
-
 	if (vp->flag & ALLOC)
 		afree(vp->val.s, vp->areap);
 	if ((vp->flag & ARRAY) && (flags & 1)) {
@@ -1160,13 +1150,11 @@ makenv(void)
 					setstr(vp, val, KSH_RETURN_ERROR);
 				}
 #ifdef __OS2__
-				/*
-				 * On OS/2, BEGINLIBPATH, ENDLIBPATH and LIBPATHSTRICT are
-				 * special variables, and are not inherited.
-				 */
-				if (strcmp(vp->name, "BEGINLIBPATH") &&
-				    strcmp(vp->name, "ENDLIBPATH") &&
-				    strcmp(vp->name, "LIBPATHSTRICT"))
+				/* these special variables are not exported */
+				if (!strcmp(vp->name, "BEGINLIBPATH") ||
+				    !strcmp(vp->name, "ENDLIBPATH") ||
+				    !strcmp(vp->name, "LIBPATHSTRICT"))
+					continue;
 #endif
 				XPput(denv, vp->val.s);
 			}
@@ -1293,6 +1281,13 @@ setspec(struct tbl *vp)
 	int st;
 
 	switch ((st = special(vp->name))) {
+#ifdef __OS2__
+	case V_BEGINLIBPATH:
+	case V_ENDLIBPATH:
+	case V_LIBPATHSTRICT:
+		setextlibpath(vp->name, str_val(vp));
+		return;
+#endif
 #if HAVE_PERSISTENT_HISTORY
 	case V_HISTFILE:
 		sethistfile(str_val(vp));
@@ -1415,6 +1410,13 @@ unsetspec(struct tbl *vp)
 	 */
 
 	switch (special(vp->name)) {
+#ifdef __OS2__
+	case V_BEGINLIBPATH:
+	case V_ENDLIBPATH:
+	case V_LIBPATHSTRICT:
+		setextlibpath(vp->name, "");
+		return;
+#endif
 #if HAVE_PERSISTENT_HISTORY
 	case V_HISTFILE:
 		sethistfile(NULL);
@@ -1705,10 +1707,8 @@ rndset(unsigned long v)
 		short r;
 	} z;
 
-#ifdef DEBUG
-	/* clear the allocated space, for valgrind */
+	/* clear the allocated space, for valgrind and to avoid UB */
 	memset(&z, 0, sizeof(z));
-#endif
 
 	h = lcg_state;
 	BAFHFinish_reg(h);

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.114 2016/08/04 20:32:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.115 2016/09/01 12:59:12 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -287,12 +287,12 @@ get_command(int cf)
 		syniocf &= ~(KEYWORD|sALIAS);
 		t = newtp(TCOM);
 		t->lineno = source->line;
-		goto get_command_begin;
+		goto get_command_start;
 		while (/* CONSTCOND */ 1) {
 			bool check_assign_cmd;
 
 			if (XPsize(args) == 0) {
- get_command_begin:
+ get_command_start:
 				check_assign_cmd = true;
 				cf = sALIAS | CMDASN;
 			} else if (t->u.evalflags)

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.751 2016/08/12 16:48:02 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.756 2016/11/11 23:31:31 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R53 2016/08/12
+	@(#)MIRBSD KSH R54 2016/11/11
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R53 2016/08/12
+	@(#)LEGACY KSH R54 2016/11/11
 description:
 	Check version of legacy shell.
 stdin:
@@ -338,6 +338,62 @@ expected-stdout:
 	2
 	0
 	2
+	0
+---
+name: arith-lazy-5-arr-n
+description: Check lazy evaluation with side effects
+stdin:
+	a=0; echo "$((0&&b[a++],a))"
+expected-stdout:
+	0
+---
+name: arith-lazy-5-arr-p
+description: Check lazy evaluation with side effects
+stdin:
+	a=0; echo "$((0&&(b[a++]),a))"
+expected-stdout:
+	0
+---
+name: arith-lazy-5-str-n
+description: Check lazy evaluation with side effects
+stdin:
+	a=0 b=a++; ((0&&b)); echo $a
+expected-stdout:
+	0
+---
+name: arith-lazy-5-str-p
+description: Check lazy evaluation with side effects
+stdin:
+	a=0 b=a++; ((0&&(b))); echo $a
+expected-stdout:
+	0
+---
+name: arith-lazy-5-tern-l-n
+description: Check lazy evaluation with side effects
+stdin:
+	a=0; echo "$((0?b[a++]:999,a))"
+expected-stdout:
+	0
+---
+name: arith-lazy-5-tern-l-p
+description: Check lazy evaluation with side effects
+stdin:
+	a=0; echo "$((0?(b[a++]):999,a))"
+expected-stdout:
+	0
+---
+name: arith-lazy-5-tern-r-n
+description: Check lazy evaluation with side effects
+stdin:
+	a=0; echo "$((1?999:b[a++],a))"
+expected-stdout:
+	0
+---
+name: arith-lazy-5-tern-r-p
+description: Check lazy evaluation with side effects
+stdin:
+	a=0; echo "$((1?999:(b[a++]),a))"
+expected-stdout:
 	0
 ---
 name: arith-ternary-prec-1
@@ -4892,7 +4948,7 @@ name: integer-base-check-flat
 description:
 	Check behaviour does not match POSuX (except if set -o posix),
 	because a not type-safe scripting language has *no* business
-	interpreting the string "010" as octal numer eight (dangerous).
+	interpreting the string "010" as octal number eight (dangerous).
 stdin:
 	echo 1 "$("$__progname" -c 'echo :$((10))/$((010)),$((0x10)):')" .
 	echo 2 "$("$__progname" -o posix -c 'echo :$((10))/$((010)),$((0x10)):')" .
@@ -7151,6 +7207,19 @@ stdin:
 	db_input || :
 	db_go
 	exit 0
+---
+name: exit-err-9
+description:
+	"set -e" versus bang pipelines
+stdin:
+	set -e
+	! false | false
+	echo 1 ok
+	! false && false
+	echo 2 wrong
+expected-stdout:
+	1 ok
+expected-exit: 1
 ---
 name: exit-enoent-1
 description:
@@ -11754,7 +11823,7 @@ stdin:
 	echo "before:	x<$x> y<$y> z<$z> R<$REPLY>"
 	x=${|
 		local y
-		echo "begin:	x<$x> y<$y> z<$z> R<$REPLY>"
+		echo "start:	x<$x> y<$y> z<$z> R<$REPLY>"
 		x=5
 		y=6
 		z=7
@@ -11769,7 +11838,7 @@ stdin:
 	echo ${|true;}$(true).
 expected-stdout:
 	before:	x<1> y<2> z<3> R<4>
-	begin:	x<1> y<> z<3> R<>
+	start:	x<1> y<> z<3> R<>
 	end:	x<5> y<6> z<7> R<8>
 	after:	x<8> y<2> z<7> R<4>
 	typeset t=$'foo\n\n'

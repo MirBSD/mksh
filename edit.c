@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.306 2016/08/01 18:42:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.312 2016/11/11 23:48:28 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -242,6 +242,7 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
 	bool use_copy = false;
 	size_t prefix_len;
 	XPtrV l = { NULL, 0, 0 };
+	struct columnise_opts co;
 
 	/*
 	 * Check if all matches are in the same directory (in this
@@ -261,7 +262,8 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
 				break;
 		/* All in same directory? */
 		if (i == nwords) {
-			while (prefix_len > 0 && !mksh_dirsep(words[0][prefix_len - 1]))
+			while (prefix_len > 0 &&
+			    !mksh_cdirsep(words[0][prefix_len - 1]))
 				prefix_len--;
 			use_copy = true;
 			XPinit(l, nwords + 1);
@@ -275,7 +277,11 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
 	 */
 	x_putc('\r');
 	x_putc('\n');
-	pr_list(use_copy ? (char **)XPptrv(l) : words);
+	co.shf = shl_out;
+	co.linesep = '\n';
+	co.do_last = true;
+	co.prefcol = false;
+	pr_list(&co, use_copy ? (char **)XPptrv(l) : words);
 
 	if (use_copy)
 		/* not x_free_words() */
@@ -337,7 +343,7 @@ x_glob_hlp_tilde_and_rem_qchar(char *s, bool magic_flag)
 	 * and if so, discern "~foo/bar" and "~/baz" from "~blah";
 	 * if we have a directory part (the former), try to expand
 	 */
-	if (*s == '~' && (cp = mksh_strchr_dirsep(s)) != NULL) {
+	if (*s == '~' && (cp = mksh_sdirsep(s)) != NULL) {
 		/* ok, so split into "~foo"/"bar" or "~"/"baz" */
 		*cp++ = 0;
 		/* try to expand the tilde */
@@ -592,7 +598,7 @@ x_locate_word(const char *buf, int buflen, int pos, int *startp,
 			 * like file globbing.
 			 */
 			for (p = start; p < end; p++)
-				if (mksh_dirsep(buf[p]))
+				if (mksh_cdirsep(buf[p]))
 					break;
 			iscmd = p == end;
 		}
@@ -656,7 +662,7 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 			}
 		}
 
-		if (*toglob == '~' && !mksh_vstrchr_dirsep(toglob)) {
+		if (*toglob == '~' && !mksh_vdirsep(toglob)) {
 			/* neither for '~foo' (but '~foo/bar') */
 			*flagsp |= XCF_IS_NOSPACE;
 			goto dont_add_glob;
@@ -745,13 +751,15 @@ x_basename(const char *s, const char *se)
 	if (s == se)
 		return (0);
 
-	/* Skip trailing slashes */
-	for (p = se - 1; p > s && mksh_dirsep(*p); p--)
-		;
-	for (; p > s && !mksh_dirsep(*p); p--)
-		;
-	if (mksh_dirsep(*p) && p + 1 < se)
-		p++;
+	/* skip trailing directory separators */
+	p = se - 1;
+	while (p > s && mksh_cdirsep(*p))
+		--p;
+	/* drop last component */
+	while (p > s && !mksh_cdirsep(*p))
+		--p;
+	if (mksh_cdirsep(*p) && p + 1 < se)
+		++p;
 
 	return (p - s);
 }
@@ -1052,7 +1060,7 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_end_hist,		1,	'>'	},
 	{ XFUNC_goto_hist,		1,	'g'	},
 	{ XFUNC_mv_end,			0, CTRL('E')	},
-	{ XFUNC_mv_begin,		0, CTRL('A')	},
+	{ XFUNC_mv_beg,			0, CTRL('A')	},
 	{ XFUNC_draw_line,		0, CTRL('L')	},
 	{ XFUNC_cls,			1, CTRL('L')	},
 	{ XFUNC_meta1,			0, CTRL('[')	},
@@ -1110,8 +1118,8 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_mv_back,		2,	'D'	},
 #ifndef MKSH_SMALL
 	{ XFUNC_vt_hack,		2,	'1'	},
-	{ XFUNC_mv_begin | 0x80,	2,	'7'	},
-	{ XFUNC_mv_begin,		2,	'H'	},
+	{ XFUNC_mv_beg | 0x80,		2,	'7'	},
+	{ XFUNC_mv_beg,			2,	'H'	},
 	{ XFUNC_mv_end | 0x80,		2,	'4'	},
 	{ XFUNC_mv_end | 0x80,		2,	'8'	},
 	{ XFUNC_mv_end,			2,	'F'	},
@@ -1123,7 +1131,7 @@ static struct x_defbindings const x_defbindings[] = {
 	/* PC scancodes */
 #if !defined(MKSH_SMALL) || defined(__OS2__)
 	{ XFUNC_meta3,			0,	0	},
-	{ XFUNC_mv_begin,		3,	71	},
+	{ XFUNC_mv_beg,			3,	71	},
 	{ XFUNC_prev_com,		3,	72	},
 #ifndef MKSH_SMALL
 	{ XFUNC_search_hist_up,		3,	73	},
@@ -2048,7 +2056,7 @@ x_mv_end(int c MKSH_A_UNUSED)
 }
 
 static int
-x_mv_begin(int c MKSH_A_UNUSED)
+x_mv_beg(int c MKSH_A_UNUSED)
 {
 	x_goto(xbuf);
 	return (KSTD);
@@ -2332,7 +2340,7 @@ x_vt_hack(int c)
 	case '~':
 		x_arg = 1;
 		x_arg_defaulted = true;
-		return (x_mv_begin(0));
+		return (x_mv_beg(0));
 	case ';':
 		/* "interesting" sequence detected */
 		break;
@@ -2782,7 +2790,7 @@ do_complete(
 	 * append a space if this is a single non-directory match
 	 * and not a parameter or homedir substitution
 	 */
-	if (nwords == 1 && !mksh_dirsep(words[0][nlen - 1]) &&
+	if (nwords == 1 && !mksh_cdirsep(words[0][nlen - 1]) &&
 	    !(flags & XCF_IS_NOSPACE)) {
 		x_ins(T1space);
 	}
@@ -4020,7 +4028,7 @@ vi_insert(int ch)
 		else
 			return (redo_insert(lastac - 1));
 
-	/* { Begin nonstandard vi commands */
+	/* { start nonstandard vi commands */
 	case CTRL('x'):
 		expand_word(0);
 		break;
@@ -4039,7 +4047,7 @@ vi_insert(int ch)
 			break;
 		}
 		/* FALLTHROUGH */
-	/* End nonstandard vi commands } */
+	/* end nonstandard vi commands } */
 
 	default:
 		if (es->linelen >= es->cbufsize - 1)
@@ -4161,6 +4169,8 @@ vi_cmd(int argcnt, const char *cmd)
 		case 'Y':
 			cmd = "y$";
 			/* ahhhhhh... */
+
+			/* FALLTHROUGH */
 		case 'c':
 		case 'd':
 		case 'y':
@@ -4397,6 +4407,8 @@ vi_cmd(int argcnt, const char *cmd)
 			if (hnum == hlast)
 				hnum = -1;
 			/* ahhh */
+
+			/* FALLTHROUGH */
 		case '/':
 			c3 = 1;
 			srchlen = 0;
@@ -4535,6 +4547,7 @@ vi_cmd(int argcnt, const char *cmd)
 		case CTRL('['):
 			if (!Flag(FVIESCCOMPLETE))
 				return (-1);
+			/* FALLTHROUGH */
 		/* AT&T ksh */
 		case '\\':
 		/* Nonstandard vi/ksh */
@@ -4607,8 +4620,7 @@ domove(int argcnt, const char *cmd, int sub)
 	case 'T':
 		fsavecmd = *cmd;
 		fsavech = cmd[1];
-		/* drop through */
-
+		/* FALLTHROUGH */
 	case ',':
 	case ';':
 		if (fsavecmd == ' ')
@@ -5403,7 +5415,7 @@ complete_word(int cmd, int count)
 		 * append a space if this is a non-directory match
 		 * and not a parameter or homedir substitution
 		 */
-		if (match_len > 0 && !mksh_dirsep(match[match_len - 1]) &&
+		if (match_len > 0 && !mksh_cdirsep(match[match_len - 1]) &&
 		    !(flags & XCF_IS_NOSPACE))
 			rval = putbuf(T1space, 1, false);
 	}

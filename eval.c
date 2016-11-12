@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.192 2016/08/01 21:38:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.194 2016/11/11 23:31:34 tg Exp $");
 
 /*
  * string expansion
@@ -62,7 +62,7 @@ typedef struct {
 #define IFS_WORD	0	/* word has chars (or quotes except "$@") */
 #define IFS_WS		1	/* have seen IFS white-space */
 #define IFS_NWS		2	/* have seen IFS non-white-space */
-#define IFS_IWS		3	/* begin of word, ignore IFS WS */
+#define IFS_IWS		3	/* beginning of word, ignore IFS WS */
 #define IFS_QUOTE	4	/* beg.w/quote, become IFS_WORD unless "$@" */
 
 static int varsub(Expand *, const char *, const char *, int *, int *);
@@ -198,7 +198,7 @@ typedef struct SubType {
 	struct tbl *var;	/* variable for ${var..} */
 	struct SubType *prev;	/* old type */
 	struct SubType *next;	/* poped type (to avoid re-allocating) */
-	size_t	base;		/* begin position of expanded word */
+	size_t	base;		/* start position of expanded word */
 	short	stype;		/* [=+-?%#] action after expanded word */
 	short	f;		/* saved value of f (DOPAT, etc) */
 	uint8_t	quotep;		/* saved value of quote (for ${..[%#]..}) */
@@ -1576,7 +1576,7 @@ globit(XString *xs,	/* dest string */
 			 * SunOS 4.1.3 does this...
 			 */
 			if ((check & GF_EXCHECK) && xp > Xstring(*xs, xp) &&
-			    mksh_dirsep(xp[-1]) && !S_ISDIR(lstatb.st_mode) &&
+			    mksh_cdirsep(xp[-1]) && !S_ISDIR(lstatb.st_mode) &&
 			    (!S_ISLNK(lstatb.st_mode) ||
 			    stat_check() < 0 || !S_ISDIR(statb.st_mode)))
 				return;
@@ -1586,7 +1586,7 @@ globit(XString *xs,	/* dest string */
 			 * directory
 			 */
 			if (((check & GF_MARKDIR) && (check & GF_GLOBBED)) &&
-			    xp > Xstring(*xs, xp) && !mksh_dirsep(xp[-1]) &&
+			    xp > Xstring(*xs, xp) && !mksh_cdirsep(xp[-1]) &&
 			    (S_ISDIR(lstatb.st_mode) ||
 			    (S_ISLNK(lstatb.st_mode) && stat_check() > 0 &&
 			    S_ISDIR(statb.st_mode)))) {
@@ -1601,11 +1601,11 @@ globit(XString *xs,	/* dest string */
 
 	if (xp > Xstring(*xs, xp))
 		*xp++ = '/';
-	while (mksh_dirsep(*sp)) {
+	while (mksh_cdirsep(*sp)) {
 		Xcheck(*xs, xp);
 		*xp++ = *sp++;
 	}
-	np = mksh_strchr_dirsep(sp);
+	np = mksh_sdirsep(sp);
 	if (np != NULL) {
 		se = np;
 		/* don't assume '/', can be multiple kinds */
@@ -1713,8 +1713,8 @@ maybe_expand_tilde(const char *p, XString *dsp, char **dpp, bool isassign)
 
 	Xinit(ts, tp, 16, ATEMP);
 	/* : only for DOASNTILDE form */
-	while (p[0] == CHAR && !mksh_dirsep(p[1]) && (!isassign || p[1] != ':'))
-	{
+	while (p[0] == CHAR && !mksh_cdirsep(p[1]) &&
+	    (!isassign || p[1] != ':')) {
 		Xcheck(ts, tp);
 		*tp++ = p[1];
 		p += 2;
