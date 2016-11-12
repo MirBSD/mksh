@@ -2443,26 +2443,15 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 	char mksh_cdirsep_c = (c);					\
 	(mksh_cdirsep_c == '/' || mksh_cdirsep_c == '\\');		\
 })
-#define mksh_sdirsep(s)	__extension__({							\
-	const char *mksh_sdirsep_p = (s);							\
-	const char *mksh_sdirsep_p1 = strchr(mksh_sdirsep_p, '/');	\
-	const char *mksh_sdirsep_p2 = strchr(mksh_sdirsep_p, '\\');	\
-	const char *mksh_sdirsep_p3 =								\
-		((ksh_isalphx(mksh_sdirsep_p[0]) &&						\
-		  mksh_sdirsep_p[1] == ':')								\
-	                    ? (mksh_sdirsep_p + 1) : NULL );		\
-	mksh_sdirsep_p1 = mksh_sdirsep_p1 > mksh_sdirsep_p2 ?		\
-		mksh_sdirsep_p1 : mksh_sdirsep_p2;						\
-	((char *)(mksh_sdirsep_p1 > mksh_sdirsep_p3 ?				\
-		mksh_sdirsep_p1 : mksh_sdirsep_p3));					\
+#define mksh_sdirsep(s)			__extension__({		\
+	const char *mksh_sdirsep_s = (s);				\
+	((char *)((ksh_isalphx(mksh_sdirsep_s[0]) &&	\
+			  mksh_sdirsep_s[1] == ':' &&			\
+			  !mksh_cdirsep(mksh_sdirsep_s[2])) ?	\
+				(mksh_sdirsep_s + 1) :				\
+				strpbrk(mksh_sdirsep_s, "/\\")));	\
 })
-#define mksh_vdirsep(s)	__extension__({					\
-	const char *mksh_vdirsep_p = (s);					\
-	(vstrchr((mksh_vdirsep_p), '/') || 					\
-	    vstrchr((mksh_vdirsep_p), '\\') ||				\
-	    (ksh_isalphx(mksh_vdirsep_p[0]) && 				\
-	        mksh_vdirsep_p[1] == ':'));					\
-})
+#define mksh_vdirsep(s)		(mksh_sdirsep((s)) != NULL)
 #else
 #define binopen2(path,flags)		open((path), (flags) | O_BINARY)
 #define binopen3(path,flags,mode)	open((path), (flags) | O_BINARY, (mode))
