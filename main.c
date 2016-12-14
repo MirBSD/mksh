@@ -197,6 +197,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	for (i = 0; i < 3; ++i)
 		if (!isatty(i))
 			setmode(i, O_BINARY);
+
+	os2_init(&argc, &argv);
 #endif
 
 	/* do things like getpgrp() et al. */
@@ -654,10 +656,6 @@ main(int argc, const char *argv[])
 	int rv;
 	Source *s;
 	struct block *l;
-
-#ifdef __OS2__
-	os2_init(&argc, &argv);
-#endif
 
 	if ((rv = main_init(argc, argv, &s, &l)) == 0) {
 		if (Flag(FAS_BUILTIN)) {
