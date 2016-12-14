@@ -396,9 +396,6 @@ int execve(const char *name, char * const *argv, char * const *envp)
 	char sign[2];
 	char *rsp_argv[3];
 	char *rsp_name_arg;
-	int saved_stdin_mode;
-	int saved_stdout_mode;
-	int saved_stderr_mode;
 	int pid;
 	int status;
 	int fd;
@@ -442,14 +439,6 @@ int execve(const char *name, char * const *argv, char * const *envp)
 	if (errno == ENOEXEC)
 		return -1;
 
-	/*
-	 * On kLIBC, a child inherits a translation mode of stdin/stdout/stderr
-	 * of a parent. Set stdin/stdout/stderr to a text mode, which is default.
-	 */
-	saved_stdin_mode = setmode(fileno(stdin), O_TEXT);
-	saved_stdout_mode = setmode(fileno(stdout), O_TEXT);
-	saved_stderr_mode = setmode(fileno(stderr), O_TEXT);
-
 	rsp_name_arg = make_response_file(argv);
 
 	if (rsp_name_arg) {
@@ -464,11 +453,6 @@ int execve(const char *name, char * const *argv, char * const *envp)
 
 	if (rsp_name_arg)
 		afree(rsp_name_arg, ATEMP);
-
-	/* Restore a translation mode of stdin/stdout/stderr. */
-	setmode(fileno(stdin), saved_stdin_mode);
-	setmode(fileno(stdout), saved_stdout_mode);
-	setmode(fileno(stderr), saved_stderr_mode);
 
 	if (pid == -1) {
 		cleanup_temps();
