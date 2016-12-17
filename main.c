@@ -1467,7 +1467,7 @@ openpipe(int *pv)
 	if (pv[1] != lpv[1])
 		close(lpv[1]);
 #ifdef __OS2__
-	setmode(pv[0], O_TEXT);
+	setmode(pv[0], O_BINARY);
 	setmode(pv[1], O_BINARY);
 #endif
 }

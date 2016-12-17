@@ -518,7 +518,23 @@ shf_getse(char *buf, ssize_t bsize, struct shf *shf)
 		shf->rnleft -= ncopy;
 		buf += ncopy;
 		bsize -= ncopy;
+#ifdef __OS2__
+		if (end && buf > orig_buf + 1 && buf[-2] == '\r') {
+			buf--;
+			bsize++;
+			buf[-1] = '\n';
+		}
+#endif
 	} while (!end && bsize);
+#ifdef __OS2__
+	if (!bsize && buf[-1] == '\r') {
+		int c = shf_getc(shf);
+		if (c == '\n')
+			buf[-1] = '\n';
+		else if (c != -1)
+			shf_ungetc(c, shf);
+	}
+#endif
 	*buf = '\0';
 	return (buf);
 }

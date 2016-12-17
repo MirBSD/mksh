@@ -1344,10 +1344,6 @@ blocking_read(int fd, char *buf, size_t nbytes)
 	ssize_t ret;
 	bool tried_reset = false;
 
-#ifdef __OS2__
-	int saved_mode = setmode(fd, O_TEXT);
-	int saved_errno;
-#endif
 	while ((ret = read(fd, buf, nbytes)) < 0) {
 		if (!tried_reset && errno == EAGAIN) {
 			if (reset_nonblock(fd) > 0) {
@@ -1358,11 +1354,6 @@ blocking_read(int fd, char *buf, size_t nbytes)
 		}
 		break;
 	}
-#ifdef __OS2__
-	saved_errno = errno;
-	setmode(fd, saved_mode);
-	errno = saved_errno;
-#endif
 	return (ret);
 }
 
