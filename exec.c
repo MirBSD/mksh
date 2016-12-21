@@ -1315,12 +1315,6 @@ search_path(const char *name, const char *lpath,
 		goto search_path_err;
 	}
 
-#ifdef __OS2__
-	/* look in a current directory first (OS/2 style) */
-	if (search_access(name, mode) == 0)
-		goto search_path_ok;
-#endif
-
 	namelen = strlen(name) + 1;
 	Xinit(xs, xp, 128, ATEMP);
 
