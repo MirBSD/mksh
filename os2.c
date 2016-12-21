@@ -478,6 +478,9 @@ int execve(const char *name, char * const *argv, char * const *envp)
 	if (rc == -1)
 		return -1;
 
+	if (WIFSIGNALED(status))
+		_exit(ksh_sigmask(WTERMSIG(status)));
+
 	_exit(WEXITSTATUS(status));
 }
 
