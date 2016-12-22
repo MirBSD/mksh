@@ -1338,7 +1338,7 @@ search_path(const char *name, const char *lpath,
 		 * current directory. For example, PATH=;...;;...;
 		 */
 		if (!mksh_vdirsep(Xstring(xs, xp)))
-		/* nothing */;
+			ev = ENOENT;
 		else
 #endif
 		if ((ev = search_access(Xstring(xs, xp), mode)) == 0) {
