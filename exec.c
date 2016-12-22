@@ -1332,6 +1332,15 @@ search_path(const char *name, const char *lpath,
 		sp = p;
 		XcheckN(xs, xp, namelen);
 		memcpy(xp, name, namelen);
+#ifdef __OS2__
+		/*
+		 * Skip path without a directory part to prevent from searching the
+		 * current directory. For example, PATH=;...;;...;
+		 */
+		if (!mksh_vdirsep(Xstring(xs, xp)))
+		/* nothing */;
+		else
+#endif
 		if ((ev = search_access(Xstring(xs, xp), mode)) == 0) {
 			name = Xclose(xs, xp + namelen);
 			goto search_path_ok;
