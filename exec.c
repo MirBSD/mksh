@@ -1327,6 +1327,10 @@ search_path(const char *name, const char *lpath,
 			XcheckN(xs, xp, p - sp);
 			memcpy(xp, sp, p - sp);
 			xp += p - sp;
+#ifdef __OS2__
+			if (xp > Xstring(xs, xp) && mksh_cdirsep(xp[-1]))
+				xp--;
+#endif
 			*xp++ = '/';
 		}
 		sp = p;
