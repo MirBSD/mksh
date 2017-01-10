@@ -880,10 +880,27 @@ expand(
 				c = '\n';
 				--newlines;
 			} else {
-				while ((c = shf_getc(x.u.shf)) == 0 || c == '\n')
+				while ((c = shf_getc(x.u.shf)) == 0 ||
+#ifdef __OS2__
+				       c == '\r' ||
+#endif
+				       c == '\n')
+#ifdef __OS2__
+				{
+					if (c == '\r') {
+						c = shf_getc(x.u.shf);
+						if (c == -1)
+							c == '\r';
+						else if (c != '\n')
+							shf_ungetc(c, x.u.shf);
+					}
+#endif
 					if (c == '\n')
 						/* save newlines */
 						newlines++;
+#ifdef __OS2__
+				}
+#endif
 				if (newlines && c != -1) {
 					shf_ungetc(c, x.u.shf);
 					c = '\n';
