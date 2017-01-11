@@ -470,7 +470,9 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		 * to search for it. This changes the behaviour of a
 		 * simple "mksh foo", but can't be helped.
 		 */
-		s->file = search_path(argv[argi++], path, X_OK, NULL);
+		s->file = argv[argi++];
+		if (search_access(s->file, X_OK) != 0)
+			s->file = search_path(s->file, path, X_OK, NULL);
 		if (!s->file || !*s->file)
 			s->file = argv[argi - 1];
 #else
