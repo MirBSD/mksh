@@ -890,7 +890,7 @@ expand(
 					if (c == '\r') {
 						c = shf_getc(x.u.shf);
 						if (c == -1)
-							c == '\r';
+							c = '\r';
 						else if (c != '\n')
 							shf_ungetc(c, x.u.shf);
 					}
