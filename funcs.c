@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *		 2010, 2011, 2012, 2013, 2014, 2015, 2016
+ *		 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.319 2016/11/11 23:48:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.320 2017/02/08 15:27:27 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -445,8 +445,8 @@ c_print(const char **wp)
 			if (wp[builtin_opt.optind] &&
 			    ksh_isdash(wp[builtin_opt.optind]))
 				builtin_opt.optind++;
-			} else if (po.pminusminus)
-				builtin_opt.optind--;
+		} else if (po.pminusminus)
+			builtin_opt.optind--;
 		wp += builtin_opt.optind;
 	}
 
