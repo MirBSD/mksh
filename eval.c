@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.194 2016/11/11 23:31:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.195 2017/02/17 20:52:15 tg Exp $");
 
 /*
  * string expansion
@@ -1207,8 +1207,16 @@ varsub(Expand *xp, const char *sp, const char *word,
 		}
 	} else if (c == '@') {
 		/* @x where x is command char */
-		slen += 2;
-		stype |= 0x100;
+		switch (c = word[slen + 2] == CHAR ? word[slen + 3] : 0) {
+		case '#':
+		case '/':
+		case 'Q':
+			break;
+		default:
+			return (-1);
+		}
+		stype |= 0x100 | c;
+		slen += 4;
 		if (word[slen] == CHAR) {
 			stype |= word[slen + 1];
 			slen += 2;
