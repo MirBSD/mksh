@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.320 2017/02/08 15:27:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.321 2017/02/17 22:28:25 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -307,8 +307,6 @@ c_print(const char **wp)
 		bool hist;
 		/* print words as wide characters? */
 		bool chars;
-		/* print a "--" argument? */
-		bool pminusminus;
 		/* writing to a coprocess (SIGPIPE blocked)? */
 		bool coproc;
 		bool copipe;
@@ -323,43 +321,36 @@ c_print(const char **wp)
 
 	if (wp[0][0] == 'e') {
 		/* "echo" builtin */
-		++wp;
-#ifdef MKSH_MIDNIGHTBSD01ASH_COMPAT
-		if (Flag(FSH)) {
-			/*
-			 * MidnightBSD /bin/sh needs a BSD echo, that is,
-			 * one that supports -e but does not enable it by
-			 * default
-			 */
-			po.exp = false;
-		}
-#endif
 		if (Flag(FPOSIX) ||
 #ifndef MKSH_MIDNIGHTBSD01ASH_COMPAT
 		    Flag(FSH) ||
 #endif
 		    Flag(FAS_BUILTIN)) {
-			/* Debian Policy 10.4 compliant "echo" builtin */
+			/* BSD "echo" cmd, Debian Policy 10.4 compliant */
+			++wp;
+ bsd_echo:
 			if (*wp && !strcmp(*wp, "-n")) {
-				/* recognise "-n" only as the first arg */
 				po.nl = false;
 				++wp;
 			}
-			/* print everything as-is */
 			po.exp = false;
 		} else {
-			bool new_exp = po.exp, new_nl = po.nl;
+			bool new_exp, new_nl = true;
 
-			/**
-			 * a compromise between sysV and BSD echo commands:
-			 * escape sequences are enabled by default, and -n,
-			 * -e and -E are recognised if they appear in argu-
-			 * ments with no illegal options (ie, echo -nq will
-			 * print -nq).
-			 * Different from sysV echo since options are reco-
-			 * gnised, different from BSD echo since escape se-
-			 * quences are enabled by default.
+			/*-
+			 * compromise between various historic echos: only
+			 * recognise -Een if they appear in arguments with
+			 * no illegal options; e.g. echo -nq outputs '-nq'
 			 */
+#ifdef MKSH_MIDNIGHTBSD01ASH_COMPAT
+			/* MidnightBSD /bin/sh needs -e supported but off */
+			if (Flag(FSH))
+				new_exp = false;
+			else
+#endif
+			/* otherwise compromise on -e enabled by default */
+			  new_exp = true;
+			goto print_tradparse_beg;
 
  print_tradparse_arg:
 			if ((s = *wp) && *s++ == '-' && *s) {
@@ -375,6 +366,7 @@ c_print(const char **wp)
 					new_nl = false;
 					goto print_tradparse_ch;
 				case '\0':
+ print_tradparse_beg:
 					po.exp = new_exp;
 					po.nl = new_nl;
 					++wp;
@@ -384,10 +376,8 @@ c_print(const char **wp)
 		}
 	} else {
 		/* "print" builtin */
-		const char *opts = "AclNnpRrsu,";
+		const char *opts = "AcelNnpRrsu,";
 		const char *emsg;
-
-		po.pminusminus = false;
 
 		while ((c = ksh_getopt(wp, &builtin_opt, opts)) != -1)
 			switch (c) {
@@ -417,11 +407,9 @@ c_print(const char **wp)
 				}
 				break;
 			case 'R':
-				/* fake BSD echo command */
-				po.pminusminus = true;
-				po.exp = false;
-				opts = "en";
-				break;
+				/* fake BSD echo but don't reset other flags */
+				wp += builtin_opt.optind;
+				goto bsd_echo;
 			case 'r':
 				po.exp = false;
 				break;
@@ -445,8 +433,7 @@ c_print(const char **wp)
 			if (wp[builtin_opt.optind] &&
 			    ksh_isdash(wp[builtin_opt.optind]))
 				builtin_opt.optind++;
-		} else if (po.pminusminus)
-			builtin_opt.optind--;
+		}
 		wp += builtin_opt.optind;
 	}
 

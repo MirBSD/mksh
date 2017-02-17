@@ -1,8 +1,8 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.422 2017/02/17 20:41:56 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.423 2017/02/17 22:28:26 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-.\"		2010, 2011, 2012, 2013, 2014, 2015, 2016
+.\"		2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 .\"	mirabilos <m@mirbsd.org>
 .\"
 .\" Provided that these terms and disclaimer and all copyright notices
@@ -3421,8 +3421,10 @@ If the
 .Ic posix
 or
 .Ic sh
-option is set or this is a direct builtin call, only the first argument
-is treated as an option, and only if it is exactly
+option is set or this is a direct builtin call or
+.Ic print
+.Fl R ,
+only the first argument is treated as an option, and only if it is exactly
 .Dq Li \-n .
 Backslash interpretation is disabled.
 .Pp
@@ -3758,12 +3760,12 @@ however, distributors may have added this as builtin as a speed hack.
 .It Xo
 .Ic print
 .Oo Fl AclNnprsu Ns Oo Ar n Oc \*(Ba
-.Fl R Op Fl en Oc
+.Fl R Op Fl n Oc
 .Op Ar argument ...
 .Xc
 Print the specified argument(s) on the standard output,
 separated by spaces, terminated with a newline.
-The C escapes mentioned in
+The escapes mentioned in
 .Sx Backslash expansion
 above, as well as
 .Dq Li \ec ,
@@ -3789,6 +3791,9 @@ utility, tab completion, the
 built-in utility and the
 .Ic select
 statement do.
+.It Fl e
+Restore backslash expansion after a previous
+.Fl r .
 .It Fl l
 Change the output word separator to newline.
 .It Fl N
@@ -3811,17 +3816,13 @@ instead of standard output.
 .Pp
 The
 .Fl R
-option is used to emulate, to some degree, the
+option mostly emulates the
 .Bx
 .Xr echo 1
-command which does not process
-.Ql \e
-sequences unless the
-.Fl e
-option is given.
-As above, the
-.Fl n
-option suppresses the trailing newline.
+command which does not expand backslashes and interprets
+its first argument as option only if it is exactly
+.Dq Li \-n
+.Pq to suppress the trailing newline .
 .Pp
 .It Ic pwd Op Fl LP
 Print the present working directory.
@@ -6696,7 +6697,7 @@ for the in-memory portion of the history is slow, should use
 .Xr memmove 3 .
 .Pp
 This document attempts to describe
-.Nm mksh\ R54
+.Nm mksh\ R55
 and up,
 .\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as
