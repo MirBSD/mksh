@@ -1,8 +1,8 @@
-# $MirOS: src/bin/mksh/check.t,v 1.756 2016/11/11 23:31:31 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.757 2017/02/17 22:40:09 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#	      2011, 2012, 2013, 2014, 2015, 2016
+#	      2011, 2012, 2013, 2014, 2015, 2016, 2017
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R54 2016/11/11
+	@(#)MIRBSD KSH R54 2017/02/17
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R54 2016/11/11
+	@(#)LEGACY KSH R54 2017/02/17
 description:
 	Check version of legacy shell.
 stdin:
@@ -4710,6 +4710,23 @@ expected-stdout:
 	7 ok
 	8 ok
 	<9> <ab> <a b> .
+---
+name: IFS-subst-10
+description:
+	Scalar context in ${var=$subst}
+stdin:
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
+	set -- one "two three" four
+	unset -v var
+	save_IFS=$IFS
+	IFS=
+	set -- ${var=$*}
+	IFS=$save_IFS
+	echo "var=$var"
+	showargs "$@"
+expected-stdout:
+	var=onetwo threefour
+	<onetwo threefour> .
 ---
 name: IFS-arith-1
 description:

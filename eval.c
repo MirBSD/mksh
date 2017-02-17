@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.196 2017/02/17 21:15:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.197 2017/02/17 22:40:12 tg Exp $");
 
 /*
  * string expansion
@@ -640,7 +640,7 @@ expand(
 						 */
 						if (!(x.var->flag & INTEGER))
 							f |= DOASNTILDE | DOTILDE;
-						f |= DOTEMP;
+						f |= DOTEMP | DOSCALAR;
 						/*
 						 * These will be done after the
 						 * value has been assigned.
