@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.321 2017/02/17 22:28:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.322 2017/02/18 01:27:24 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -317,7 +317,6 @@ c_print(const char **wp)
 	po.ws = ' ';
 	po.ls = '\n';
 	po.nl = true;
-	po.exp = true;
 
 	if (wp[0][0] == 'e') {
 		/* "echo" builtin */
@@ -378,6 +377,8 @@ c_print(const char **wp)
 		/* "print" builtin */
 		const char *opts = "AcelNnpRrsu,";
 		const char *emsg;
+
+		po.exp = true;
 
 		while ((c = ksh_getopt(wp, &builtin_opt, opts)) != -1)
 			switch (c) {
