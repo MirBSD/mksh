@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2013, 2014, 2015
+ * Copyright (c) 2013, 2014, 2015, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -19,7 +19,7 @@
  */
 
 @SHFLAGS_DEFNS
-__RCSID("$MirOS: src/bin/mksh/sh_flags.opt,v 1.4 2015/12/12 21:08:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh_flags.opt,v 1.5 2017/02/18 02:33:15 tg Exp $");
 @SHFLAGS_ENUMS
 #define FN(sname,cname,flags,ochar)	cname,
 #define F0(sname,cname,flags,ochar)	cname = 0,
@@ -52,7 +52,7 @@ FN("bgnice", FBGNICE, OF_ANY
 FN("braceexpand", FBRACEEXPAND, OF_ANY
 
 /* ./.	Emacs command line editing mode */
->|!defined(MKSH_NO_CMDLINE_EDITING) || defined(MKSH_LEGACY_MODE)
+>|!MKSH_NO_CMDLINE_EDITING
 FN("emacs", FEMACS, OF_ANY
 
 /* -e	quit on error */
@@ -60,7 +60,7 @@ FN("emacs", FEMACS, OF_ANY
 FN("errexit", FERREXIT, OF_ANY
 
 /* ./.	Emacs command line editing mode, gmacs variant */
->|!defined(MKSH_NO_CMDLINE_EDITING) || defined(MKSH_LEGACY_MODE)
+>|!MKSH_NO_CMDLINE_EDITING
 FN("gmacs", FGMACS, OF_ANY
 
 /* ./.	reading EOF does not exit */
@@ -160,19 +160,19 @@ FN("utf8-mode", FUNICODE, OF_ANY
 FN("verbose", FVERBOSE, OF_ANY
 
 /* ./.	Vi command line editing mode */
->|!defined(MKSH_NO_CMDLINE_EDITING) || defined(MKSH_LEGACY_MODE)
+>|!MKSH_NO_CMDLINE_EDITING
 FN("vi", FVI, OF_ANY
 
 /* ./.	enable ESC as file name completion character (non-standard) */
->|!defined(MKSH_NO_CMDLINE_EDITING) || defined(MKSH_LEGACY_MODE)
+>|!MKSH_NO_CMDLINE_EDITING
 FN("vi-esccomplete", FVIESCCOMPLETE, OF_ANY
 
 /* ./.	enable Tab as file name completion character (non-standard) */
->|!defined(MKSH_NO_CMDLINE_EDITING) || defined(MKSH_LEGACY_MODE)
+>|!MKSH_NO_CMDLINE_EDITING
 FN("vi-tabcomplete", FVITABCOMPLETE, OF_ANY
 
 /* ./.	always read in raw mode (no effect) */
->|!defined(MKSH_NO_CMDLINE_EDITING) || defined(MKSH_LEGACY_MODE)
+>|!MKSH_NO_CMDLINE_EDITING
 FN("viraw", FVIRAW, OF_ANY
 
 /* -x	execution trace (display commands as they are run) */

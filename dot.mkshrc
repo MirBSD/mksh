@@ -1,8 +1,8 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.108 2016/07/26 22:03:41 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.109 2017/02/18 02:33:11 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
-#		2011, 2012, 2013, 2014, 2015, 2016
+#		2011, 2012, 2013, 2014, 2015, 2016, 2017
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -22,19 +22,56 @@
 #-
 # ${ENV:-~/.mkshrc}: mksh initialisation file for interactive shells
 
-# catch non-mksh (including lksh) trying to run this file
+# catch non-mksh, non-lksh, trying to run this file
 case ${KSH_VERSION:-} in
-*MIRBSD\ KSH*) ;;
+*LEGACY\ KSH*|*MIRBSD\ KSH*) ;;
 *) return 0 ;;
 esac
 
-PS1='#'; (( USER_ID )) && PS1='$'; \: "${TERM:=vt100}${HOSTNAME:=$(\ulimit -c \
-    0; hostname 2>/dev/null)}${EDITOR:=/bin/ed}${USER:=$(\ulimit -c 0; id -un \
-    2>/dev/null || \echo \?)}${MKSH:=$(\builtin whence -p mksh)}"
-HOSTNAME=${HOSTNAME%%*([	 ]).*}; HOSTNAME=${HOSTNAME##*([	 ])}
-[[ $HOSTNAME = ?(ip6-)localhost?(6) ]] && HOSTNAME=
-\: "${HOSTNAME:=nil}${MKSH:=/bin/mksh}"; \export EDITOR HOSTNAME MKSH TERM USER
-PS4='[$EPOCHREALTIME] '; PS1=$'\001\r''${|
+# give MidnightBSD's laffer1 a bit of csh feeling
+function setenv {
+	if (( $# )); then
+		\eval '\export "$1"="${2:-}"'
+	else
+		\typeset -x
+	fi
+}
+
+# pager (not control character safe)
+smores() (
+	\set +m
+	\cat "$@" |&
+	\trap "rv=\$?; 'kill' $! >/dev/null 2>&1; 'exit' \$rv" EXIT
+	while IFS= \read -pr line; do
+		llen=${%line}
+		(( llen == -1 )) && llen=${#line}
+		(( llen = llen ? (llen + COLUMNS - 1) / COLUMNS : 1 ))
+		if (( (curlin += llen) >= LINES )); then
+			\builtin print -n -- '\e[7m--more--\e[0m'
+			\read -u1 || \exit $?
+			[[ $REPLY = [Qq]* ]] && \exit 0
+			curlin=$llen
+		fi
+		\builtin print -r -- "$line"
+	done
+)
+
+\: "${EDITOR:=/bin/ed}${TERM:=vt100}${HOSTNAME:=$(\ulimit -c 0; \echo \
+    $(hostname 2>/dev/null))}${USER:=$(\ulimit -c 0; id -un 2>/dev/null)}"
+[[ $HOSTNAME = ?(?(ip6-)localhost?(6)) ]] && HOSTNAME=nil; \: "${USER:=?}"
+\alias ls=ls l='ls -F' la='l -a' ll='l -l' lo='l -alo'; \unalias ls
+\export EDITOR HOSTNAME TERM USER
+
+# minimal support for lksh users
+if [[ $KSH_VERSION = *LEGACY\ KSH* ]]; then
+	PS1='$USER@${HOSTNAME%%.*}:$PWD>'
+	return 0
+fi
+
+# mksh-specific from here
+\: "${MKSH:=$(\builtin whence -p mksh)}"; \: "${MKSH:=/bin/mksh}"; \export MKSH
+
+PS4='[$EPOCHREALTIME] '; PS1='#'; (( USER_ID )) && PS1='$'; PS1=$'\001\r''${|
 	\typeset e=$?
 
 	(( e )) && REPLY+="$e|"
@@ -47,12 +84,6 @@ PS4='[$EPOCHREALTIME] '; PS1=$'\001\r''${|
 
 	\return $e
 } '"$PS1 "
-\alias ls=ls
-\unalias ls
-\alias l='ls -F'
-\alias la='l -a'
-\alias ll='l -l'
-\alias lo='l -alo'
 \alias doch='sudo mksh -c "$(\builtin fc -ln -1)"'
 \command -v rot13 >/dev/null || \alias rot13='tr \
     abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \
@@ -249,25 +280,6 @@ function pushd {
 	\dirs $fa
 }
 
-# pager (not control character safe)
-smores() (
-	\set +m
-	\cat "$@" |&
-	\trap "rv=\$?; 'kill' $! >/dev/null 2>&1; 'exit' \$rv" EXIT
-	while IFS= \read -pr line; do
-		llen=${%line}
-		(( llen == -1 )) && llen=${#line}
-		(( llen = llen ? (llen + COLUMNS - 1) / COLUMNS : 1 ))
-		if (( (curlin += llen) >= LINES )); then
-			\builtin print -n -- '\e[7m--more--\e[0m'
-			\read -u1 || \exit $?
-			[[ $REPLY = [Qq]* ]] && \exit 0
-			curlin=$llen
-		fi
-		\builtin print -r -- "$line"
-	done
-)
-
 # base64 encoder and decoder, RFC compliant, NUL safe, not EBCDIC safe
 function Lb64decode {
 	\set +U
@@ -378,15 +390,6 @@ function Lstripcom {
 		_line=${_line%%#*}
 		[[ -n $_line ]] && \builtin print -r -- $_line
 	done
-}
-
-# give MidnightBSD's laffer1 a bit of csh feeling
-function setenv {
-	if (( $# )); then
-		\eval '\export "$1"="${2:-}"'
-	else
-		\typeset -x
-	fi
 }
 
 # toggle built-in aliases and utilities, and aliases and functions from mkshrc

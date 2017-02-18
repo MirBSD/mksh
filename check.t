@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.757 2017/02/17 22:40:09 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.758 2017/02/18 02:33:09 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R54 2017/02/17
+	@(#)MIRBSD KSH R54 2017/02/18
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R54 2017/02/17
+	@(#)LEGACY KSH R54 2017/02/18
 description:
 	Check version of legacy shell.
 stdin:
@@ -91,23 +91,6 @@ description:
 category: disabled
 stdin:
 	set
----
-name: selftest-legacy
-description:
-	Check some things in the LEGACY KSH
-category: shell:legacy-yes
-stdin:
-	set +o emacs
-	set +o vi
-	[[ "$(set +o) -o" = *"-o emacs -o"* ]] && echo 1=emacs
-	[[ "$(set +o) -o" = *"-o vi -o"* ]] && echo 1=vi
-	set -o emacs
-	set -o vi
-	[[ "$(set +o) -o" = *"-o emacs -o"* ]] && echo 2=emacs
-	[[ "$(set +o) -o" = *"-o vi -o"* ]] && echo 2=vi
-expected-stdout:
-	2=emacs
-	2=vi
 ---
 name: selftest-direct-builtin-call
 description:
@@ -10187,7 +10170,6 @@ name: bashiop-1
 description:
 	Check if GNU bash-like I/O redirection works
 	Part 1: this is also supported by GNU bash
-category: shell:legacy-no
 stdin:
 	exec 3>&1
 	function threeout {
@@ -10208,7 +10190,6 @@ name: bashiop-2a
 description:
 	Check if GNU bash-like I/O redirection works
 	Part 2: this is *not* supported by GNU bash
-category: shell:legacy-no
 stdin:
 	exec 3>&1
 	function threeout {
@@ -10229,7 +10210,6 @@ name: bashiop-2b
 description:
 	Check if GNU bash-like I/O redirection works
 	Part 2: this is *not* supported by GNU bash
-category: shell:legacy-no
 stdin:
 	exec 3>&1
 	function threeout {
@@ -10250,7 +10230,6 @@ name: bashiop-2c
 description:
 	Check if GNU bash-like I/O redirection works
 	Part 2: this is supported by GNU bash 4 only
-category: shell:legacy-no
 stdin:
 	echo mir >foo
 	set -o noclobber
@@ -10274,7 +10253,6 @@ name: bashiop-3a
 description:
 	Check if GNU bash-like I/O redirection fails correctly
 	Part 1: this is also supported by GNU bash
-category: shell:legacy-no
 stdin:
 	echo mir >foo
 	set -o noclobber
@@ -10296,7 +10274,6 @@ name: bashiop-3b
 description:
 	Check if GNU bash-like I/O redirection fails correctly
 	Part 2: this is *not* supported by GNU bash
-category: shell:legacy-no
 stdin:
 	echo mir >foo
 	set -o noclobber
@@ -10320,7 +10297,6 @@ description:
 	Check if GNU bash-like I/O redirection works
 	Part 4: this is also supported by GNU bash,
 	but failed in some mksh versions
-category: shell:legacy-no
 stdin:
 	exec 3>&1
 	function threeout {
@@ -10342,31 +10318,16 @@ expected-stdout:
 	ras
 	dwa
 ---
-name: bashiop-5-normal
+name: bashiop-5
 description:
 	Check if GNU bash-like I/O redirection is only supported
 	in !POSIX !sh mode as it breaks existing scripts' syntax
-category: shell:legacy-no
 stdin:
 	:>x; echo 1 "$("$__progname" -c 'echo foo>/dev/null&>x echo bar')" = "$(<x)" .
 	:>x; echo 2 "$("$__progname" -o posix -c 'echo foo>/dev/null&>x echo bar')" = "$(<x)" .
 	:>x; echo 3 "$("$__progname" -o sh -c 'echo foo>/dev/null&>x echo bar')" = "$(<x)" .
 expected-stdout:
 	1  = foo echo bar .
-	2  = bar .
-	3  = bar .
----
-name: bashiop-5-legacy
-description:
-	Check if GNU bash-like I/O redirection is not parsed
-	in lksh as it breaks existing scripts' syntax
-category: shell:legacy-yes
-stdin:
-	:>x; echo 1 "$("$__progname" -c 'echo foo>/dev/null&>x echo bar')" = "$(<x)" .
-	:>x; echo 2 "$("$__progname" -o posix -c 'echo foo>/dev/null&>x echo bar')" = "$(<x)" .
-	:>x; echo 3 "$("$__progname" -o sh -c 'echo foo>/dev/null&>x echo bar')" = "$(<x)" .
-expected-stdout:
-	1  = bar .
 	2  = bar .
 	3  = bar .
 ---
@@ -10606,7 +10567,6 @@ description:
 	AT&T ksh93 does this still, which means we must keep it as well
 	XXX fails on some old Perl installations
 need-pass: no
-category: shell:legacy-no
 stdin:
 	cat >cld <<-EOF
 		#!$__perlname
@@ -10634,22 +10594,6 @@ stdin:
 	EOF
 	chmod +x cld
 	test -n "$POSH_VERSION" || set -o posix
-	exec 9>&1
-	./cld
-expected-stdout:
-	Fowl
----
-name: fd-cloexec-3
-description:
-	Verify that file descriptors > 2 are not private for LEGACY KSH
-category: shell:legacy-yes
-stdin:
-	cat >cld <<-EOF
-		#!$__perlname
-		open(my \$fh, ">&", 9) or die "E: open \$!";
-		syswrite(\$fh, "Fowl\\n", 5) or die "E: write \$!";
-	EOF
-	chmod +x cld
 	exec 9>&1
 	./cld
 expected-stdout:

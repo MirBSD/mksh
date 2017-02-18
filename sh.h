@@ -10,7 +10,7 @@
 
 /*-
  * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *	       2011, 2012, 2013, 2014, 2015, 2016
+ *	       2011, 2012, 2013, 2014, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.792 2017/02/17 22:40:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.793 2017/02/18 02:33:14 tg Exp $");
 #endif
-#define MKSH_VERSION "R54 2017/02/17"
+#define MKSH_VERSION "R54 2017/02/18"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -628,14 +628,6 @@ im_sorry_dave(void)
 	}								\
 	(d) = strdup_dst;						\
 } while (/* CONSTCOND */ 0)
-#endif
-
-#ifdef MKSH_LEGACY_MODE
-#ifndef MKSH_NO_CMDLINE_EDITING
-#define MKSH_NO_CMDLINE_EDITING	/* defined */
-#endif
-#undef MKSH_S_NOVI
-#define MKSH_S_NOVI		1
 #endif
 
 #ifdef MKSH_SMALL

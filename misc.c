@@ -3,7 +3,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.250 2016/11/12 03:54:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.251 2017/02/18 02:33:13 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -39,10 +39,6 @@ __RCSID("$MirOS: src/bin/mksh/misc.c,v 1.250 2016/11/12 03:54:48 tg Exp $");
 #ifdef TIOCSCTTY
 #define KSH_CHVT_CODE
 #define KSH_CHVT_FLAG
-#endif
-#ifdef MKSH_LEGACY_MODE
-#undef KSH_CHVT_CODE
-#undef KSH_CHVT_FLAG
 #endif
 
 /* type bits for unsigned char */
