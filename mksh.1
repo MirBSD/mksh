@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.423 2017/02/17 22:28:26 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.424 2017/02/27 16:08:04 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: February 17 2017 $
+.Dd $Mdocdate: February 27 2017 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -3759,7 +3759,7 @@ however, distributors may have added this as builtin as a speed hack.
 .Pp
 .It Xo
 .Ic print
-.Oo Fl AclNnprsu Ns Oo Ar n Oc \*(Ba
+.Oo Fl AcelNnprsu Ns Oo Ar n Oc \*(Ba
 .Fl R Op Fl n Oc
 .Op Ar argument ...
 .Xc
@@ -3808,7 +3808,7 @@ above).
 Inhibit backslash expansion.
 .It Fl s
 Print to the history file instead of standard output.
-.It Fl u Op Ar n
+.It Fl u Ns Op Ar n
 Print to the file descriptor
 .Ar n Pq defaults to 1 if omitted
 instead of standard output.
