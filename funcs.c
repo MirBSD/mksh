@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.324 2017/03/11 23:10:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.325 2017/03/11 23:22:35 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -100,6 +100,7 @@ const struct builtin mkshbuiltins[] = {
 	/* no =: AT&T manual wrong */
 	{Talias, c_alias},
 	{"*=break", c_brkcont},
+	{T_builtin, c_builtin},
 	{Tbuiltin, c_builtin},
 	{Tbcat, c_cat},
 	{Tcd, c_cd},

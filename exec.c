@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.188 2017/03/11 22:58:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.189 2017/03/11 23:22:34 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -978,13 +978,12 @@ scriptexec(struct op *tp, const char **ap)
 	errorf(Tf_sD_sD_s, tp->str, sh, cstrerror(errno));
 }
 
+/* actual 'builtin' built-in utility call is handled in comexec() */
 int
-shcomexec(const char **wp)
+c_builtin(const char **wp)
 {
-	struct tbl *tp;
-
-	tp = ktsearch(&builtins, *wp, hash(*wp));
-	return (call_builtin(tp, wp, "shcomexec", false));
+	return (call_builtin(ktsearch(&builtins, *wp, hash(*wp)), wp,
+	    Tbuiltin, false));
 }
 
 /*
