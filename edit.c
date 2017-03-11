@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.312 2016/11/11 23:48:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.313 2017/03/11 22:49:54 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -339,7 +339,7 @@ x_glob_hlp_tilde_and_rem_qchar(char *s, bool magic_flag)
 	 * and if so, discern "~foo/bar" and "~/baz" from "~blah";
 	 * if we have a directory part (the former), try to expand
 	 */
-	if (*s == '~' && (cp = mksh_sdirsep(s)) != NULL) {
+	if (*s == '~' && (cp = /* not sdirsep */ strchr(s, '/')) != NULL) {
 		/* ok, so split into "~foo"/"bar" or "~"/"baz" */
 		*cp++ = 0;
 		/* try to expand the tilde */
@@ -658,7 +658,7 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 			}
 		}
 
-		if (*toglob == '~' && !mksh_vdirsep(toglob)) {
+		if (*toglob == '~' && /* not vdirsep */ !vstrchr(toglob, '/')) {
 			/* neither for '~foo' (but '~foo/bar') */
 			*flagsp |= XCF_IS_NOSPACE;
 			goto dont_add_glob;

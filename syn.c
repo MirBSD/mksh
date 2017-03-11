@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *		 2011, 2012, 2013, 2014, 2015, 2016
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.115 2016/09/01 12:59:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.116 2017/03/11 22:49:56 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -937,17 +937,7 @@ compile(Source *s, bool skiputf8bom)
 	return (outtree);
 }
 
-/*-
- * This kludge exists to take care of sh/AT&T ksh oddity in which
- * the arguments of alias/export/readonly/typeset have no field
- * splitting, file globbing, or (normal) tilde expansion done.
- * AT&T ksh seems to do something similar to this since
- *	$ touch a=a; typeset a=[ab]; echo "$a"
- *	a=[ab]
- *	$ x=typeset; $x a=[ab]; echo "$a"
- *	a=a
- *	$
- */
+/* lexical analysis for declaration utilities */
 int
 assign_command(const char *s, bool docommand)
 {
