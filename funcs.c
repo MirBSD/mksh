@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.323 2017/02/18 02:33:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.324 2017/03/11 23:10:40 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -100,7 +100,7 @@ const struct builtin mkshbuiltins[] = {
 	/* no =: AT&T manual wrong */
 	{Talias, c_alias},
 	{"*=break", c_brkcont},
-	{Tgbuiltin, c_builtin},
+	{Tbuiltin, c_builtin},
 	{Tbcat, c_cat},
 	{Tcd, c_cd},
 	/* dash compatibility hack */
@@ -142,7 +142,7 @@ const struct builtin mkshbuiltins[] = {
 	{"umask", c_umask},
 	{Tunalias, c_unalias},
 	{"*=unset", c_unset},
-	{"=wait", c_wait},
+	{"wait", c_wait},
 	{"whence", c_whence},
 #ifndef MKSH_UNEMPLOYED
 	{Tbg, c_fgbg},
