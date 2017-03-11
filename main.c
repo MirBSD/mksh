@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.322 2016/11/11 23:48:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.323 2017/03/11 22:58:51 tg Exp $");
 
 extern char **environ;
 
@@ -1271,12 +1271,10 @@ bi_errorf(const char *fmt, ...)
 	    VWARNINGF_BUILTIN, fmt, va);
 	va_end(va);
 
-	/*
-	 * POSIX special builtins and ksh special builtins cause
-	 * non-interactive shells to exit. XXX may not want LERROR here
-	 */
+	/* POSIX special builtins cause non-interactive shells to exit */
 	if (builtin_spec) {
 		builtin_argv0 = NULL;
+		/* may not want to use LERROR here */
 		unwind(LERROR);
 	}
 }
