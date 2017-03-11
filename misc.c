@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.251 2017/02/18 02:33:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.252 2017/03/11 23:56:17 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -2150,7 +2150,7 @@ getrusage(int what, struct rusage *ru)
 int
 unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 {
-	int wc, i, c, fc;
+	int wc, i, c, fc, n;
 
 	fc = (*fg)();
 	switch (fc) {
@@ -2238,7 +2238,8 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		 *	four (U: eight) digits; convert to Unicode
 		 */
 		wc = 0;
-		while (i--) {
+		n = 0;
+		while (n < i || i == -1) {
 			wc <<= 4;
 			if ((c = (*fg)()) >= ord('0') && c <= ord('9'))
 				wc += ksh_numdig(c);
@@ -2251,7 +2252,10 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 				(*fp)(c);
 				break;
 			}
+			++n;
 		}
+		if (!n)
+			goto unknown_escape;
 		if ((cstyle && wc > 0xFF) || fc != 'x')
 			/* Unicode marker */
 			wc += 0x100;
