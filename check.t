@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.758 2017/02/18 02:33:09 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.759 2017/03/12 02:35:32 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R54 2017/02/18
+	@(#)MIRBSD KSH R54 2017/03/11
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R54 2017/02/18
+	@(#)LEGACY KSH R54 2017/03/11
 description:
 	Check version of legacy shell.
 stdin:
@@ -6326,7 +6326,7 @@ name: regression-62
 description:
 	Check if test -nt/-ot succeeds if second(first) file is missing.
 stdin:
-	touch a
+	:>a
 	test a -nt b && echo nt OK || echo nt BAD
 	test b -ot a && echo ot OK || echo ot BAD
 expected-stdout:
@@ -7058,6 +7058,11 @@ description:
 	Check tilde expansion works
 env-setup: !HOME=/sweet!
 stdin:
+	:>'c=a'
+	typeset c=[ab]
+	:>'d=a'
+	x=typeset; $x d=[ab]
+	echo "<$c>" "<$d>"
 	wd=$PWD
 	cd /
 	plus=$(print -r -- ~+)
@@ -7067,9 +7072,105 @@ stdin:
 	[[ $minus = "$wd" ]]; echo two $? .
 	[[ $nix = /sweet ]]; echo nix $? .
 expected-stdout:
+	<[ab]> <a>
 	one 0 .
 	two 0 .
 	nix 0 .
+---
+name: tilde-expand-3
+description:
+	Check mostly Austin 351 stuff
+stdin:
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
+	set "1 b=2" "3 d=4"
+	export a=$1 \c=$2
+	showargs 1 "$a" "$b" "$c" "$d"
+	unset a b c d
+	HOME=/tmp
+	export \a=~ b=~
+	command export c=~
+	builtin export d=~
+	\\builtin export e=~
+	showargs 2 "$a" "$b" "$c" "$d" "$e" ksh
+	unset a b c d e
+	set -o posix
+	export \a=~ b=~
+	command export c=~
+	builtin export d=~
+	\\builtin export e=~
+	showargs 3 "$a" "$b" "$c" "$d" "$e" posix
+	unset a b c d e
+	set +o posix
+	export a=$1
+	showargs 4 "$a" "$b" ksh
+	unset a b
+	showargs 5 a=$1 ksh
+	export \a=$1
+	showargs 6 "$a" "$b" ksh
+	unset a b
+	set -o posix
+	export a=$1
+	showargs 7 "$a" "$b" posix
+	unset a b
+	showargs 8 a=$1 posix
+	export \a=$1
+	showargs 9 "$a" "$b" posix
+	unset a b
+	set +o posix
+	command echo 10 ksh a=~
+	command command export a=~
+	showargs 11 "$a"
+	unset a
+	set -o posix
+	command echo 12 posix a=~
+	command command export a=~
+	showargs 13 "$a"
+	unset a
+	# unspecified whether /tmp or ~
+	var=export; command $var a=~
+	showargs 14 "$a"
+	echo 'echo "<$foo>"' >bar
+	"$__progname" bar
+	var=foo
+	export $var=1
+	"$__progname" bar
+	export $var=~
+	"$__progname" bar
+	# unspecified
+	command -- export a=~
+	showargs 18 "$a"
+	set -A bla
+	typeset bla[1]=~:~
+	global gbl=~ g2=$1
+	local lcl=~ l2=$1
+	readonly ro=~ r2=$1
+	showargs 19 "${bla[1]}" a=~ "$gbl" "$lcl" "$ro" "$g2" "$l2" "$r2"
+	set +o posix
+	echo "20 some arbitrary stuff "=~
+	set -o posix
+	echo "21 some arbitrary stuff "=~
+expected-stdout:
+	<1> <1 b=2> <> <3> <4> .
+	<2> </tmp> </tmp> </tmp> </tmp> </tmp> <ksh> .
+	<3> <~> </tmp> </tmp> <~> </tmp> <posix> .
+	<4> <1 b=2> <> <ksh> .
+	<5> <a=1> <b=2> <ksh> .
+	<6> <1> <2> <ksh> .
+	<7> <1 b=2> <> <posix> .
+	<8> <a=1> <b=2> <posix> .
+	<9> <1> <2> <posix> .
+	10 ksh a=/tmp
+	<11> </tmp> .
+	12 posix a=~
+	<13> </tmp> .
+	<14> <~> .
+	<>
+	<1>
+	<~>
+	<18> <~> .
+	<19> </tmp:/tmp> <a=~> </tmp> </tmp> </tmp> <1 b=2> <1 b=2> <1 b=2> .
+	20 some arbitrary stuff =/tmp
+	21 some arbitrary stuff =~
 ---
 name: exit-err-1
 description:
@@ -9221,7 +9322,7 @@ stdin:
 			while (( i < ${#line[*]} )); do
 				hv=${line[i++]}
 				if (( (pos & 15) == 0 )); then
-					(( pos )) && print "$dasc|"
+					(( pos )) && print -r -- "$dasc|"
 					print -n "${pos#16#}  "
 					dasc=' |'
 				fi
@@ -9238,7 +9339,7 @@ stdin:
 			print -n '   '
 			(( (pos++ & 15) == 7 )) && print -n -- '- '
 		done
-		(( hv == 2147483647 )) || print "$dasc|"
+		(( hv == 2147483647 )) || print -r -- "$dasc|"
 	}
 expected-stdout:
 	00000000  3C 64 E4 DB C3 9B E2 82 - AC C3 9B 40 3E 0A 3C 00  |<d.........@>.<.|
@@ -9364,7 +9465,7 @@ stdin:
 			while [[ -n $line ]]; do
 				hv=1#${line::1}
 				if (( (pos & 15) == 0 )); then
-					(( pos )) && print "$dasc|"
+					(( pos )) && print -r -- "$dasc|"
 					print -n "${pos#16#}  "
 					dasc=' |'
 				fi
@@ -9382,7 +9483,7 @@ stdin:
 			print -n '   '
 			(( (pos++ & 15) == 7 )) && print -n -- '- '
 		done
-		(( hv == 2147483647 )) || print "$dasc|"
+		(( hv == 2147483647 )) || print -r -- "$dasc|"
 	}
 expected-stdout:
 	00000000  5C 20 5C 21 5C 22 5C 23 - 5C 24 5C 25 5C 26 5C 27  |\ \!\"\#\$\%\&\'|
@@ -9391,13 +9492,13 @@ expected-stdout:
 	00000030  20 5C 39 5C 3A 5C 3B 5C - 3C 5C 3D 5C 3E 5C 3F 5C  | \9\:\;\<\=\>\?\|
 	00000040  40 5C 41 5C 42 5C 43 5C - 44 1B 5C 46 5C 47 5C 48  |@\A\B\C\D.\F\G\H|
 	00000050  5C 49 5C 4A 5C 4B 5C 4C - 5C 4D 5C 4E 5C 4F 5C 50  |\I\J\K\L\M\N\O\P|
-	00000060  5C 51 5C 52 5C 53 5C 54 - 20 5C 56 5C 57 5C 58 5C  |\Q\R\S\T \V\W\X\|
-	00000070  59 5C 5A 5C 5B 5C 5C 5D - 5C 5E 5C 5F 5C 60 07 08  |Y\Z\[\]\^\_\`..|
-	00000080  20 20 5C 64 1B 0C 5C 67 - 5C 68 5C 69 5C 6A 5C 6B  |  \d..\g\h\i\j\k|
-	00000090  5C 6C 5C 6D 0A 5C 6F 5C - 70 20 5C 71 0D 5C 73 09  |\l\m.\o\p \q.\s.|
-	000000A0  0B 5C 77 5C 79 5C 7A 5C - 7B 5C 7C 5C 7D 5C 7E 20  |.\w\y\z\{\|\}\~ |
-	000000B0  E2 82 AC 64 20 EF BF BD - 20 12 33 20 78 20 53 20  |...d ... .3 x S |
-	000000C0  53 34 0A                -                          |S4.|
+	00000060  5C 51 5C 52 5C 53 5C 54 - 20 5C 55 5C 56 5C 57 5C  |\Q\R\S\T \U\V\W\|
+	00000070  58 5C 59 5C 5A 5C 5B 5C - 5C 5D 5C 5E 5C 5F 5C 60  |X\Y\Z\[\\]\^\_\`|
+	00000080  07 08 20 20 5C 64 1B 0C - 5C 67 5C 68 5C 69 5C 6A  |..  \d..\g\h\i\j|
+	00000090  5C 6B 5C 6C 5C 6D 0A 5C - 6F 5C 70 20 5C 71 0D 5C  |\k\l\m.\o\p \q.\|
+	000000A0  73 09 5C 75 0B 5C 77 5C - 78 5C 79 5C 7A 5C 7B 5C  |s.\u.\w\x\y\z\{\|
+	000000B0  7C 5C 7D 5C 7E 20 E2 82 - AC 64 20 EF BF BD 20 12  ||\}\~ ...d ... .|
+	000000C0  33 20 78 20 53 20 53 34 - 0A                       |3 x S S4.|
 ---
 name: dollar-doublequoted-strings
 description:
@@ -9439,7 +9540,7 @@ stdin:
 			while [[ -n $line ]]; do
 				hv=1#${line::1}
 				if (( (pos & 15) == 0 )); then
-					(( pos )) && print "$dasc|"
+					(( pos )) && print -r -- "$dasc|"
 					print -n "${pos#16#}  "
 					dasc=' |'
 				fi
@@ -9457,7 +9558,7 @@ stdin:
 			print -n '   '
 			(( (pos++ & 15) == 7 )) && print -n -- '- '
 		done
-		(( hv == 2147483647 )) || print "$dasc|"
+		(( hv == 2147483647 )) || print -r -- "$dasc|"
 	}
 expected-stdout:
 	00000000  20 21 22 23 24 25 26 27 - 28 29 2A 2B 2C 2D 2E 2F  | !"#$%&'()*+,-./|
@@ -9767,7 +9868,7 @@ stdin:
 			while [[ -n $line ]]; do
 				hv=1#${line::1}
 				if (( (pos & 15) == 0 )); then
-					(( pos )) && print "$dasc|"
+					(( pos )) && print -r -- "$dasc|"
 					print -n "${pos#16#}  "
 					dasc=' |'
 				fi
@@ -9785,7 +9886,7 @@ stdin:
 			print -n '   '
 			(( (pos++ & 15) == 7 )) && print -n -- '- '
 		done
-		(( hv == 2147483647 )) || print "$dasc|"
+		(( hv == 2147483647 )) || print -r -- "$dasc|"
 	}
 expected-stdout:
 	00000000  48 65 6C 6C 6F 2C 20 57 - 6F 72 6C 64 21 5C 0A E3  |Hello, World!\..|
@@ -9855,7 +9956,7 @@ stdin:
 					dasc=$dasc$dch
 					dch=
 				elif (( (pos & 7) == 0 )); then
-					(( pos )) && print "$dasc|"
+					(( pos )) && print -r -- "$dasc|"
 					print -n "${pos#16#}  "
 					dasc=' |'
 				fi
@@ -9870,7 +9971,7 @@ stdin:
 			print -n '     '
 			(( (pos++ & 7) == 3 )) && print -n -- '- '
 		done
-		(( hv == 2147483647 )) || print "$dasc|"
+		(( hv == 2147483647 )) || print -r -- "$dasc|"
 	}
 expected-stdout:
 	00000000  0048 0065 006C 006C - 006F 002C 0020 0057  |Hello, W|
@@ -9936,7 +10037,7 @@ stdin:
 			while (( i < ${#line[*]} )); do
 				hv=${line[i++]}
 				if (( (pos & 15) == 0 )); then
-					(( pos )) && print "$dasc|"
+					(( pos )) && print -r -- "$dasc|"
 					print -n "${pos#16#}  "
 					dasc=' |'
 				fi
@@ -9953,7 +10054,7 @@ stdin:
 			print -n '   '
 			(( (pos++ & 15) == 7 )) && print -n -- '- '
 		done
-		(( hv == 2147483647 )) || print "$dasc|"
+		(( hv == 2147483647 )) || print -r -- "$dasc|"
 	}
 expected-stdout:
 	00000000  48 65 6C 6C 6F 2C 20 57 - 6F 72 6C 64 21 5C 0A E3  |Hello, World!\..|
@@ -10019,7 +10120,7 @@ stdin:
 					dasc=$dasc$dch
 					dch=
 				elif (( (pos & 7) == 0 )); then
-					(( pos )) && print "$dasc|"
+					(( pos )) && print -r -- "$dasc|"
 					print -n "${pos#16#}  "
 					dasc=' |'
 				fi
@@ -10033,7 +10134,7 @@ stdin:
 			print -n '     '
 			(( (pos++ & 7) == 3 )) && print -n -- '- '
 		done
-		(( hv == 2147483647 )) || print "$dasc|"
+		(( hv == 2147483647 )) || print -r -- "$dasc|"
 	}
 expected-stdout:
 	00000000  0048 0065 006C 006C - 006F 002C 0020 0057  |Hello, W|
