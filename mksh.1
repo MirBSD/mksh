@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.425 2017/03/11 23:10:41 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.426 2017/03/12 02:31:02 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 11 2017 $
+.Dd $Mdocdate: March 12 2017 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2185,9 +2185,18 @@ files are created in
 The effective user id of the shell.
 .El
 .Ss Tilde expansion
-Tilde expansion which is done in parallel with parameter substitution, is done
-on words starting with an unquoted
+Tilde expansion, which is done in parallel with parameter substitution,
+is applied to words starting with an unquoted
 .Ql \*(TI .
+In parameter assignments (such as those preceding a simple-command or those
+occurring in the arguments of a declaration utility), tilde expansion is done
+after any assignment (i.e. after the equals sign) or after an unquoted colon
+.Pq Ql \&: ;
+login names are also delimited by colons.
+The Korn shell, except in POSIX mode, always expands tildes after unquoted
+equals signs, not just in assignment context (see below), and enables tab
+completion for tildes after all unquoted colons during command line editing.
+.Pp
 The characters following the tilde, up to the first
 .Ql / ,
 if any, are assumed to be a login name.
@@ -2207,21 +2216,6 @@ user's home directory.
 If the login name is not found in the password file or
 if any quoting or parameter substitution occurs in the login name, no
 substitution is performed.
-.Pp
-In parameter assignments
-(such as those preceding a simple-command or those occurring
-in the arguments of
-.Ic alias ,
-.Ic export ,
-.Ic global ,
-.Ic readonly
-and
-.Ic typeset ) ,
-tilde expansion is done after any assignment
-(i.e. after the equals sign)
-or after an unquoted colon
-.Pq Ql \&: ;
-login names are also delimited by colons.
 .Pp
 The home directory of previously expanded login names are cached and re-used.
 The
@@ -3217,6 +3211,18 @@ Execute the built-in command
 .Ar command .
 .Pp
 .It Xo
+.Ic \ebuiltin
+.Ar command Op Ar arg ...
+.Xc
+Same as
+.Ic builtin .
+Additionally acts as declaration utility forwarder, i.e. this is a
+declaration utility (see
+.Sx Tilde expansion )
+.No iff Ar command
+is a declaration utility.
+.Pp
+.It Xo
 .Ic cat
 .Op Fl u
 .Op Ar
@@ -3346,6 +3352,7 @@ cannot be a shell function;
 and secondly, special built-in commands lose their specialness
 (i.e. redirection and utility errors do not cause the shell to
 exit, and command assignments are not permanent).
+The declaration utility property is not reset.
 .Pp
 If the
 .Fl p
@@ -3480,6 +3487,7 @@ parameter.
 Sets the export attribute of the named parameters.
 Exported parameters are passed in the environment to executed commands.
 If values are specified, the named parameters are also assigned.
+This is a declaration utility.
 .Pp
 If no parameters are specified, all parameters with the export attribute
 set are printed one per line; either their names, or, if a
@@ -3999,6 +4007,7 @@ exec 3\*(Gt&p; exec 3\*(Gt&\-
 .Ar ... Oc
 .Xc
 Sets the read-only attribute of the named parameters.
+This is a declaration utility.
 If values are given,
 parameters are set to them before setting the attribute.
 Once a parameter is
@@ -4253,7 +4262,6 @@ Background jobs are run with lower priority.
 .It Fl o Ic braceexpand
 Enable brace expansion (a.k.a. alternation).
 This is enabled by default.
-If disabled, tilde expansion after an equals sign is disabled as a side effect.
 .It Fl o Ic emacs
 Enable BRL emacs-like command-line editing (interactive shells only); see
 .Sx Emacs editing mode .
@@ -4809,6 +4817,7 @@ A command that exits with a zero value.
 .Ar ... Oc
 .Xc
 Display or set parameter attributes.
+This is a declaration utility.
 With no
 .Ar name
 arguments, parameter attributes are displayed; if no options are used, the
