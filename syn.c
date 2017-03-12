@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.116 2017/03/11 22:49:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.117 2017/03/12 02:04:15 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -289,11 +289,11 @@ get_command(int cf)
 		t->lineno = source->line;
 		goto get_command_start;
 		while (/* CONSTCOND */ 1) {
-			bool check_assign_cmd;
+			bool check_decl_utility;
 
 			if (XPsize(args) == 0) {
  get_command_start:
-				check_assign_cmd = true;
+				check_decl_utility = true;
 				cf = sALIAS | CMDASN;
 			} else if (t->u.evalflags)
 				cf = CMDWORD | CMDASN;
@@ -311,16 +311,15 @@ get_command(int cf)
 
 			case LWORD:
 				ACCEPT;
-				/*
-				 * the iopn == 0 and XPsize(vars) == 0 are
-				 * dubious but AT&T ksh acts this way
-				 */
-				if (iopn == 0 && XPsize(vars) == 0 &&
-				    check_assign_cmd) {
-					if (assign_command(ident, false))
+				if (check_decl_utility) {
+					struct tbl *tt = get_builtin(ident);
+					uint32_t flag;
+
+					flag = tt ? tt->flag : 0;
+					if (flag & DECL_UTIL)
 						t->u.evalflags = DOVACHECK;
-					else if (strcmp(ident, Tcommand) != 0)
-						check_assign_cmd = false;
+					if (!(flag & DECL_FWDR))
+						check_decl_utility = false;
 				}
 				if ((XPsize(args) == 0 || Flag(FKEYWORD)) &&
 				    is_wdvarassign(yylval.cp))
@@ -935,19 +934,6 @@ compile(Source *s, bool skiputf8bom)
 		yyskiputf8bom();
 	yyparse();
 	return (outtree);
-}
-
-/* lexical analysis for declaration utilities */
-int
-assign_command(const char *s, bool docommand)
-{
-	if (!*s)
-		return (0);
-	return ((strcmp(s, Talias) == 0) ||
-	    (strcmp(s, Texport) == 0) ||
-	    (strcmp(s, Treadonly) == 0) ||
-	    (docommand && (strcmp(s, Tcommand) == 0)) ||
-	    (strcmp(s, Ttypeset) == 0));
 }
 
 /* Check if we are in the middle of reading an alias */

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.229 2017/02/18 02:33:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.230 2017/03/12 02:04:14 tg Exp $");
 
 /*
  * states while lexing word
@@ -1014,15 +1014,12 @@ yylex(int cf)
 	while ((dp - ident) < IDENT && (c = *sp++) == CHAR)
 		*dp++ = *sp++;
 	if (c != EOS)
-		/* word is not unquoted */
+		/* word is not unquoted, or space ran out */
 		dp = ident;
 	/* make sure the ident array stays NUL padded */
 	memset(dp, 0, (ident + IDENT) - dp + 1);
 
-	if (!(cf & (KEYWORD | ALIAS)))
-		return (LWORD);
-
-	if (*ident != '\0') {
+	if (*ident != '\0' && (cf & (KEYWORD | ALIAS))) {
 		struct tbl *p;
 		uint32_t h = hash(ident);
 
@@ -1077,9 +1074,12 @@ yylex(int cf)
 				goto Again;
 			}
 		}
-	} else if (cf & ALIAS) {
+	} else if (*ident == '\0') {
 		/* retain typeset et al. even when quoted */
-		if (assign_command((dp = wdstrip(yylval.cp, 0)), true))
+		struct tbl *tt = get_builtin((dp = wdstrip(yylval.cp, 0)));
+		uint32_t flag = tt ? tt->flag : 0;
+
+		if (flag & (DECL_UTIL | DECL_FWDR))
 			strlcpy(ident, dp, sizeof(ident));
 		afree(dp, ATEMP);
 	}

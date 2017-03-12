@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.189 2017/03/11 23:22:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.190 2017/03/12 02:04:12 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -982,8 +982,13 @@ scriptexec(struct op *tp, const char **ap)
 int
 c_builtin(const char **wp)
 {
-	return (call_builtin(ktsearch(&builtins, *wp, hash(*wp)), wp,
-	    Tbuiltin, false));
+	return (call_builtin(get_builtin(*wp), wp, Tbuiltin, false));
+}
+
+struct tbl *
+get_builtin(const char *s)
+{
+	return (s && *s ? ktsearch(&builtins, s, hash(s)) : NULL);
 }
 
 /*
@@ -1088,6 +1093,14 @@ builtin(const char *name, int (*func) (const char **))
 	case '!':
 		/* external utility overrides built-in utility, with flags */
 		flag |= LOW_BI;
+		break;
+	case '-':
+		/* is declaration utility if argv[1] is one (POSIX: command) */
+		flag |= DECL_FWDR;
+		break;
+	case '^':
+		/* is declaration utility (POSIX: export, readonly) */
+		flag |= DECL_UTIL;
 		break;
 	default:
 		goto flags_seen;

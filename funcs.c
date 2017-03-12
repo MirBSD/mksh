@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.325 2017/03/11 23:22:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.326 2017/03/12 02:04:13 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -92,6 +92,7 @@ c_false(const char **wp MKSH_A_UNUSED)
 /*
  * A leading = means assignments before command are kept.
  * A leading * means a POSIX special builtin.
+ * A leading ^ means declaration utility, - forwarder.
  */
 const struct builtin mkshbuiltins[] = {
 	{Tsgdot, c_dot},
@@ -100,19 +101,19 @@ const struct builtin mkshbuiltins[] = {
 	/* no =: AT&T manual wrong */
 	{Talias, c_alias},
 	{"*=break", c_brkcont},
-	{T_builtin, c_builtin},
+	{T__builtin, c_builtin},
 	{Tbuiltin, c_builtin},
 	{Tbcat, c_cat},
 	{Tcd, c_cd},
 	/* dash compatibility hack */
 	{"chdir", c_cd},
-	{Tcommand, c_command},
+	{T_command, c_command},
 	{"*=continue", c_brkcont},
 	{"echo", c_print},
 	{"*=eval", c_eval},
 	{"*=exec", c_exec},
 	{"*=exit", c_exitreturn},
-	{Tsgexport, c_typeset},
+	{Tdsgexport, c_typeset},
 	{Tfalse, c_false},
 	{"fc", c_fc},
 	{Tgetopts, c_getopts},
@@ -124,7 +125,7 @@ const struct builtin mkshbuiltins[] = {
 	{"print", c_print},
 	{"pwd", c_pwd},
 	{Tread, c_read},
-	{Tsgreadonly, c_typeset},
+	{Tdsgreadonly, c_typeset},
 	{"!realpath", c_realpath},
 	{"~rename", c_rename},
 	{"*=return", c_exitreturn},
@@ -138,7 +139,7 @@ const struct builtin mkshbuiltins[] = {
 	{"*=times", c_times},
 	{"*=trap", c_trap},
 	{Ttrue, c_true},
-	{Tgtypeset, c_typeset},
+	{Tdgtypeset, c_typeset},
 	{"ulimit", c_ulimit},
 	{"umask", c_umask},
 	{Tunalias, c_unalias},

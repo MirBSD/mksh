@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.793 2017/02/18 02:33:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.794 2017/03/12 02:04:14 tg Exp $");
 #endif
-#define MKSH_VERSION "R54 2017/02/18"
+#define MKSH_VERSION "R54 2017/03/11"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -847,8 +847,8 @@ EXTERN char null[] E_INIT("");
 
 #ifndef HAVE_STRING_POOLING /* helpers for pooled strings */
 EXTERN const char T4spaces[] E_INIT("    ");
-#define T1space (T4spaces + 3)
-EXTERN const char Tcolsp[] E_INIT(": ");
+#define T1space (Treal_sp2 + 5)
+#define Tcolsp (Tf_sD_ + 2)
 EXTERN const char TC_LEX1[] E_INIT("|&;<>() \t\n");
 #define TC_IFSWS (TC_LEX1 + 7)
 EXTERN const char TFCEDIT_dollaru[] E_INIT("${FCEDIT:-/bin/ed} $_");
@@ -857,15 +857,15 @@ EXTERN const char Tsgdot[] E_INIT("*=.");
 EXTERN const char Taugo[] E_INIT("augo");
 EXTERN const char Tbracket[] E_INIT("[");
 #define Tdot (Tsgdot + 2)
-EXTERN const char Talias[] E_INIT("alias");
-EXTERN const char Tbadsubst[] E_INIT("bad substitution");
+#define Talias (Tunalias + 2)
+#define Tbadsubst (Tfg_badsubst + 10)
 EXTERN const char Tbg[] E_INIT("bg");
 EXTERN const char Tbad_bsize[] E_INIT("bad shf/buf/bsize");
 #define Tbsize (Tbad_bsize + 12)
 EXTERN const char Tbad_sig_ss[] E_INIT("%s: bad signal '%s'");
 #define Tbad_sig_s (Tbad_sig_ss + 4)
-EXTERN const char Tgbuiltin[] E_INIT("=builtin");
-#define Tbuiltin (Tgbuiltin + 1)
+EXTERN const char T__builtin[] E_INIT("-\\builtin");
+#define Tbuiltin (T__builtin + 2)
 EXTERN const char Toomem[] E_INIT("can't allocate %zu data bytes");
 EXTERN const char Tcant_cd[] E_INIT("restricted shell - can't cd");
 EXTERN const char Tcant_find[] E_INIT("can't find");
@@ -874,26 +874,27 @@ EXTERN const char Tcant_open[] E_INIT("can't open");
 EXTERN const char Tbcat[] E_INIT("!cat");
 #define Tcat (Tbcat + 1)
 #define Tcd (Tcant_cd + 25)
-EXTERN const char Tcommand[] E_INIT("command");
+#define T_command (T_funny_command + 9)
+#define Tcommand (T_funny_command + 10)
 EXTERN const char Tcreate[] E_INIT("create");
 EXTERN const char TELIF_unexpected[] E_INIT("TELIF unexpected");
 EXTERN const char TEXECSHELL[] E_INIT("EXECSHELL");
-EXTERN const char Tsgexport[] E_INIT("*=export");
-#define Texport (Tsgexport + 2)
+EXTERN const char Tdsgexport[] E_INIT("^*=export");
+#define Texport (Tdsgexport + 3)
 #ifdef __OS2__
 EXTERN const char Textproc[] E_INIT("extproc");
 #endif
 EXTERN const char Tfalse[] E_INIT("false");
 EXTERN const char Tfg[] E_INIT("fg");
 EXTERN const char Tfg_badsubst[] E_INIT("fileglob: bad substitution");
-EXTERN const char Tfile[] E_INIT("file");
+#define Tfile (Tfile_fd + 20)
 EXTERN const char Tfile_fd[] E_INIT("function definition file");
 EXTERN const char TFPATH[] E_INIT("FPATH");
 EXTERN const char T_function[] E_INIT(" function");
 #define Tfunction (T_function + 1)
-EXTERN const char T_funny_command[] E_INIT("funny $() command");
+EXTERN const char T_funny_command[] E_INIT("funny $()-command");
 EXTERN const char Tgetopts[] E_INIT("getopts");
-EXTERN const char Thistory[] E_INIT("history");
+#define Thistory (Tnot_in_history + 7)
 EXTERN const char Tintovfl[] E_INIT("integer overflow %zu %c %zu prevented");
 EXTERN const char Tjobs[] E_INIT("jobs");
 EXTERN const char Tjob_not_started[] E_INIT("job not started");
@@ -909,20 +910,20 @@ EXTERN const char Tnot_found_s[] E_INIT("%s not found");
 #define TOLDPWD (Tno_OLDPWD + 3)
 #define Topen (Tcant_open + 6)
 #define TPATH (TFPATH + 1)
-EXTERN const char Tpv[] E_INIT("pv");
+#define Tpv (TpVv + 1)
 EXTERN const char TpVv[] E_INIT("Vpv");
 #define TPWD (Tno_OLDPWD + 6)
-EXTERN const char Tread[] E_INIT("read");
-EXTERN const char Tsgreadonly[] E_INIT("*=readonly");
-#define Treadonly (Tsgreadonly + 2)
+#define Tread (Tshf_read + 4)
+EXTERN const char Tdsgreadonly[] E_INIT("^*=readonly");
+#define Treadonly (Tdsgreadonly + 3)
 EXTERN const char Tredirection_dup[] E_INIT("can't finish (dup) redirection");
 #define Tredirection (Tredirection_dup + 19)
-EXTERN const char Treal_sp1[] E_INIT("real ");
+#define Treal_sp1 (Treal_sp2 + 1)
 EXTERN const char Treal_sp2[] E_INIT(" real ");
 EXTERN const char Treq_arg[] E_INIT("requires an argument");
 EXTERN const char Tselect[] E_INIT("select");
 EXTERN const char Tsgset[] E_INIT("*=set");
-#define Tset (Tsgset + 2)
+#define Tset (Tf_parm + 18)
 #define Tsh (Tmksh + 2)
 #define TSHELL (TEXECSHELL + 4)
 EXTERN const char Tshf_read[] E_INIT("shf_read");
@@ -935,27 +936,27 @@ EXTERN const char Ttoo_many_args[] E_INIT("too many arguments");
 EXTERN const char Ttrue[] E_INIT("true");
 EXTERN const char Ttty_fd_dupof[] E_INIT("dup of tty fd");
 #define Ttty_fd (Ttty_fd_dupof + 7)
-EXTERN const char Tgtypeset[] E_INIT("=typeset");
-#define Ttypeset (Tgtypeset + 1)
+EXTERN const char Tdgtypeset[] E_INIT("^=typeset");
+#define Ttypeset (Tdgtypeset + 2)
 #define Tugo (Taugo + 1)
 EXTERN const char Tunalias[] E_INIT("unalias");
 #define Tunexpected (TELIF_unexpected + 6)
 EXTERN const char Tunknown_option[] E_INIT("unknown option");
-EXTERN const char Tuser_sp1[] E_INIT("user ");
+#define Tuser_sp1 (Tuser_sp2 + 1)
 EXTERN const char Tuser_sp2[] E_INIT(" user ");
 #define Twrite (Tshf_write + 4)
 EXTERN const char Tf__S[] E_INIT(" %S");
-EXTERN const char Tf__d[] E_INIT(" %d");
+#define Tf__d (Tf_sd + 2)
 EXTERN const char Tf__ss[] E_INIT(" %s%s");
-EXTERN const char Tf__sN[] E_INIT(" %s\n");
+#define Tf__sN (Tf_s_s_sN + 5)
 EXTERN const char Tf_sSs[] E_INIT("%s/%s");
-EXTERN const char Tf_T[] E_INIT("%T");
+#define Tf_T (Tf_s_T + 3)
 EXTERN const char Tf_dN[] E_INIT("%d\n");
 EXTERN const char Tf_s_[] E_INIT("%s ");
 EXTERN const char Tf_s_T[] E_INIT("%s %T");
 EXTERN const char Tf_s_s_sN[] E_INIT("%s %s %s\n");
-EXTERN const char Tf_s_s[] E_INIT("%s %s");
-EXTERN const char Tf_s_sD_s[] E_INIT("%s %s: %s");
+#define Tf_s_s (Tf_sD_s_s + 4)
+#define Tf_s_sD_s (Tf_cant + 6)
 EXTERN const char Tf_optfoo[] E_INIT("%s%s-%c: %s");
 EXTERN const char Tf_sD_[] E_INIT("%s: ");
 EXTERN const char Tf_szs[] E_INIT("%s: %zd %s");
@@ -968,18 +969,18 @@ EXTERN const char Tf_nonnum[] E_INIT("non-numeric %s %s '%s'");
 #endif
 EXTERN const char Tf_S_[] E_INIT("%S ");
 #define Tf_S (Tf__S + 1)
-EXTERN const char Tf_lu[] E_INIT("%lu");
+#define Tf_lu (Tf_toolarge + 17)
 EXTERN const char Tf_toolarge[] E_INIT("%s %s too large: %lu");
 EXTERN const char Tf_ldfailed[] E_INIT("%s %s(%d, %ld) failed: %s");
-#define Tf_ss (Tf__ss + 1)
+#define Tf_ss (Tf_sss + 2)
 EXTERN const char Tf_sss[] E_INIT("%s%s%s");
 EXTERN const char Tf_sD_s_sD_s[] E_INIT("%s: %s %s: %s");
 EXTERN const char Tf_toomany[] E_INIT("too many %ss\n");
 EXTERN const char Tf_sd[] E_INIT("%s %d");
-#define Tf_s (Tf__ss + 3)
+#define Tf_s (Tf_temp + 28)
 EXTERN const char Tft_end[] E_INIT("%;");
 EXTERN const char Tft_R[] E_INIT("%R");
-#define Tf_d (Tf__d + 1)
+#define Tf_d (Tf_sd + 3)
 EXTERN const char Tf_sD_s_qs[] E_INIT("%s: %s '%s'");
 EXTERN const char Tf_ro[] E_INIT("read-only: %s");
 EXTERN const char Tf_flags[] E_INIT("%s: flags 0x%X");
@@ -988,8 +989,8 @@ EXTERN const char Tf_ssfaileds[] E_INIT("%s: %s failed: %s");
 EXTERN const char Tf_sD_sD_s[] E_INIT("%s: %s: %s");
 EXTERN const char Tf__c_[] E_INIT("-%c ");
 EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
-#define Tf_sN (Tf__sN + 1)
-#define Tf_sD_s (Tf_s_sD_s + 3)
+#define Tf_sN (Tf_s_s_sN + 6)
+#define Tf_sD_s (Tf_temp + 24)
 EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #else /* helpers for string pooling */
 #define T4spaces "    "
@@ -1010,7 +1011,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tbsize "bsize"
 #define Tbad_sig_ss "%s: bad signal '%s'"
 #define Tbad_sig_s "bad signal '%s'"
-#define Tgbuiltin "=builtin"
+#define T__builtin "-\\builtin"
 #define Tbuiltin "builtin"
 #define Toomem "can't allocate %zu data bytes"
 #define Tcant_cd "restricted shell - can't cd"
@@ -1020,11 +1021,12 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tbcat "!cat"
 #define Tcat "cat"
 #define Tcd "cd"
+#define T_command "-command"
 #define Tcommand "command"
 #define Tcreate "create"
 #define TELIF_unexpected "TELIF unexpected"
 #define TEXECSHELL "EXECSHELL"
-#define Tsgexport "*=export"
+#define Tdsgexport "^*=export"
 #define Texport "export"
 #ifdef __OS2__
 #define Textproc "extproc"
@@ -1037,7 +1039,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define TFPATH "FPATH"
 #define T_function " function"
 #define Tfunction "function"
-#define T_funny_command "funny $() command"
+#define T_funny_command "funny $()-command"
 #define Tgetopts "getopts"
 #define Thistory "history"
 #define Tintovfl "integer overflow %zu %c %zu prevented"
@@ -1059,7 +1061,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define TpVv "Vpv"
 #define TPWD "PWD"
 #define Tread "read"
-#define Tsgreadonly "*=readonly"
+#define Tdsgreadonly "^*=readonly"
 #define Treadonly "readonly"
 #define Tredirection_dup "can't finish (dup) redirection"
 #define Tredirection "redirection"
@@ -1081,7 +1083,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Ttrue "true"
 #define Ttty_fd_dupof "dup of tty fd"
 #define Ttty_fd "tty fd"
-#define Tgtypeset "=typeset"
+#define Tdgtypeset "^=typeset"
 #define Ttypeset "typeset"
 #define Tugo "ugo"
 #define Tunalias "unalias"
@@ -1322,7 +1324,7 @@ EXTERN sigset_t		sm_default, sm_sigchld;
 
 /* name of called builtin function (used by error functions) */
 EXTERN const char *builtin_argv0;
-/* is called builtin SPEC_BI? (also KEEPASN, odd use though) */
+/* is called builtin a POSIX special builtin? (error functions only) */
 EXTERN bool builtin_spec;
 
 /* current working directory */
@@ -1492,6 +1494,8 @@ EXTERN bool last_lookup_was_array;
 #define SPEC_BI		BIT(12)	/* a POSIX special builtin */
 #define LOWER_BI	BIT(13)	/* (with LOW_BI) override even w/o flags */
 #define LOW_BI		BIT(14)	/* external utility overrides built-in one */
+#define DECL_UTIL	BIT(15)	/* is declaration utility */
+#define DECL_FWDR	BIT(16) /* is declaration utility forwarder */
 
 /*
  * Attributes that can be set by the user (used to decide if an unset
@@ -2011,7 +2015,8 @@ int glob_str(char *, XPtrV *, bool);
 char *do_tilde(char *);
 /* exec.c */
 int execute(struct op * volatile, volatile int, volatile int * volatile);
-int shcomexec(const char **);
+int c_builtin(const char **);
+struct tbl *get_builtin(const char *);
 struct tbl *findfunc(const char *, uint32_t, bool);
 int define(const char *, struct op *);
 const char *builtin(const char *, int (*)(const char **));
@@ -2078,8 +2083,6 @@ int c_times(const char **);
 int timex(struct op *, int, volatile int *);
 void timex_hook(struct op *, char ** volatile *);
 int c_exec(const char **);
-/* dummy function (just need pointer value), special case in comexec() */
-#define c_builtin shcomexec
 int c_test(const char **);
 #if HAVE_MKNOD
 int c_mknod(const char **);
@@ -2287,7 +2290,6 @@ char *shf_smprintf(const char *, ...)
 ssize_t shf_vfprintf(struct shf *, const char *, va_list)
     MKSH_A_FORMAT(__printf__, 2, 0);
 /* syn.c */
-int assign_command(const char *, bool) MKSH_A_PURE;
 void initkeywords(void);
 struct op *compile(Source *, bool);
 bool parse_usec(const char *, struct timeval *);
