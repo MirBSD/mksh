@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.759 2017/03/12 02:35:32 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.760 2017/03/17 22:45:48 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R54 2017/03/11
+	@(#)MIRBSD KSH R54 2017/03/17
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R54 2017/03/11
+	@(#)LEGACY KSH R54 2017/03/17
 description:
 	Check version of legacy shell.
 stdin:
@@ -8004,11 +8004,11 @@ expected-stderr-pattern:
 ---
 name: typeset-1
 description:
-	Check that global does what typeset is supposed to do
+	Check that typeset -g works correctly
 stdin:
 	set -A arrfoo 65
 	foo() {
-		global -Uui16 arrfoo[*]
+		typeset -g -Uui16 arrfoo[*]
 	}
 	echo before ${arrfoo[0]} .
 	foo
@@ -8018,7 +8018,7 @@ stdin:
 		echo inside before ${arrbar[0]} .
 		arrbar[0]=97
 		echo inside changed ${arrbar[0]} .
-		global -Uui16 arrbar[*]
+		typeset -g -Uui16 arrbar[*]
 		echo inside typeset ${arrbar[0]} .
 		arrbar[0]=48
 		echo inside changed ${arrbar[0]} .
@@ -8792,21 +8792,21 @@ expected-stdout:
 name: arrassign-fnc-global
 description:
 	Check locality of array access inside a function
-	with the mksh-specific global keyword
+	with the bash4/mksh/yash/zsh typeset -g keyword
 stdin:
 	function fn {
-		global x
+		typeset -g x
 		x+=(f)
 		echo ".fn:${x[0]}.${x[1]}.${x[2]}.${x[3]}:"
 	}
 	function rfn {
 		set -A y
-		global y
+		typeset -g y
 		y+=(f)
 		echo ".rfn:${y[0]}.${y[1]}.${y[2]}.${y[3]}:"
 	}
 	function fnr {
-		global z
+		typeset -g z
 		set -A z
 		z+=(f)
 		echo ".fnr:${z[0]}.${z[1]}.${z[2]}.${z[3]}:"
@@ -8944,21 +8944,21 @@ expected-stdout:
 name: strassign-fnc-global
 description:
 	Check locality of string access inside a function
-	with the mksh-specific global keyword
+	with the bash4/mksh/yash/zsh typeset -g keyword
 stdin:
 	function fn {
-		global x
+		typeset -g x
 		x+=f
 		echo ".fn:$x:"
 	}
 	function rfn {
 		y=
-		global y
+		typeset -g y
 		y+=f
 		echo ".rfn:$y:"
 	}
 	function fnr {
-		global z
+		typeset -g z
 		z=
 		z+=f
 		echo ".fnr:$z:"

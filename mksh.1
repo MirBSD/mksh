@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.428 2017/03/14 11:32:56 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.429 2017/03/17 22:45:51 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 14 2017 $
+.Dd $Mdocdate: March 17 2017 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -3649,9 +3649,22 @@ resetting
 .Ev OPTIND
 may lead to unexpected results.
 .Pp
-.It global Ar ...
+.It Xo
+.Ic global
+.Op Ic +\-aglpnrtUux
+.Oo Fl L Ns Op Ar n
+.No \*(Ba Fl R Ns Op Ar n
+.No \*(Ba Fl Z Ns Op Ar n Oc
+.Op Fl i Ns Op Ar n
+.Oo Ar name
+.Op Ns = Ns Ar value
+.Ar ... Oc
+.Xc
 See
-.Ic typeset .
+.Ic typeset Fl g .
+.No Deprecated , Em will
+be removed from a future version of
+.Nm .
 .Pp
 .It Xo
 .Ic hash
@@ -4802,26 +4815,20 @@ traps in functions are not yet implemented.
 A command that exits with a zero value.
 .Pp
 .It Xo
-.Ic global
-.Oo Op Ic +\-alpnrtUux
-.Op Fl L Ns Op Ar n
-.Op Fl R Ns Op Ar n
-.Op Fl Z Ns Op Ar n
+.Ic typeset
+.Op Ic +\-aglpnrtUux
+.Oo Fl L Ns Op Ar n
+.No \*(Ba Fl R Ns Op Ar n
+.No \*(Ba Fl Z Ns Op Ar n Oc
 .Op Fl i Ns Op Ar n
-.No \*(Ba Fl f Op Fl tux Oc
 .Oo Ar name
 .Op Ns = Ns Ar value
 .Ar ... Oc
 .Xc
 .It Xo
 .Ic typeset
-.Oo Op Ic +\-alpnrtUux
-.Op Fl LRZ Ns Op Ar n
-.Op Fl i Ns Op Ar n
-.No \*(Ba Fl f Op Fl tux Oc
-.Oo Ar name
-.Op Ns = Ns Ar value
-.Ar ... Oc
+.Fl f Op Fl tux
+.Op Ar name ...
 .Xc
 Display or set parameter attributes.
 This is a declaration utility.
@@ -4847,20 +4854,9 @@ Values for parameters may optionally be specified.
 For
 .Ar name Ns \&[*] ,
 the change affects the entire array, and no value may be specified.
-.Pp
-If
+Any parameters created by
 .Ic typeset
-is used inside a function, any parameters specified are localised.
-This is not done by the otherwise identical
-.Ic global .
-.Em Note :
-This means that
-.Nm Ns 's Ic global
-command is
-.Em not
-equivalent to other programming languages' as it does not allow a
-function called from another function to access a parameter at truly
-global scope, but only prevents putting an accessed one into local scope.
+have local scope by default.
 .Pp
 When
 .Fl f
@@ -4880,6 +4876,8 @@ Indexed array attribute.
 .It Fl f
 Function mode.
 Display or set functions and their attributes, instead of parameters.
+.It Fl g
+Create parameters in global scope, not in local scope.
 .It Fl i Ns Op Ar n
 Integer attribute.
 .Ar n

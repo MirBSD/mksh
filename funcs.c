@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.327 2017/03/12 02:31:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.328 2017/03/17 22:45:50 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -117,6 +117,7 @@ const struct builtin mkshbuiltins[] = {
 	{Tfalse, c_false},
 	{"fc", c_fc},
 	{Tgetopts, c_getopts},
+	/* deprecated, replaced by typeset -g */
 	{"^=global", c_typeset},
 	{Tjobs, c_jobs},
 	{"kill", c_kill},
@@ -742,7 +743,7 @@ do_whence(const char **wp, int fcflags, bool vflag, bool iscommand)
 	return (rv);
 }
 
-/* typeset, global, export, and readonly */
+/* typeset, global(deprecated), export, and readonly */
 static void c_typeset_vardump(struct tbl *, uint32_t, int, bool, bool);
 static void c_typeset_vardump_recursive(struct block *, uint32_t, int, bool,
     bool);
@@ -784,7 +785,7 @@ c_typeset(const char **wp)
 	}
 
 	/* see comment below regarding possible opions */
-	opts = istset ? "L#R#UZ#afi#lnprtux" : "p";
+	opts = istset ? "L#R#UZ#afgi#lnprtux" : "p";
 
 	builtin_opt.flags |= GF_PLUSOPT;
 	/*
@@ -828,6 +829,9 @@ c_typeset(const char **wp)
 			break;
 		case 'f':
 			func = true;
+			break;
+		case 'g':
+			localv = (builtin_opt.info & GI_PLUS) ? true : false;
 			break;
 		case 'i':
 			flag = INTEGER;
