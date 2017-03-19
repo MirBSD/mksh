@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.760 2017/03/17 22:45:48 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.761 2017/03/19 18:05:25 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -10225,8 +10225,15 @@ expected-stdout:
 ---
 name: ulimit-1
 description:
+	Check that ulimit as used in dot.mksh works or is stubbed
+stdin:
+	ulimit -c 0
+---
+name: ulimit-2
+description:
 	Check if we can use a specific syntax idiom for ulimit
-category: !os:syllable
+	XXX Haiku works, but only for -n and -V
+category: !os:haiku,!os:syllable
 stdin:
 	if ! x=$(ulimit -d) || [[ $x = unknown ]]; then
 		#echo expected to fail on this OS

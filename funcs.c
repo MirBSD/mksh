@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.328 2017/03/17 22:45:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.329 2017/03/19 18:05:28 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3655,7 +3655,7 @@ c_ulimit(const char **wp)
 	if (!all)
 		print_ulimit(rlimits[i], how);
 	else for (i = 0; i < NELEM(rlimits); ++i) {
-		shprintf("%-20s ", rlimits[i]->name);
+		shprintf("-%c: %-20s  ", rlimits[i]->optchar, rlimits[i]->name);
 		print_ulimit(rlimits[i], how);
 	}
 	return (0);
