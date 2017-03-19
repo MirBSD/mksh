@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.434 2017/03/19 22:04:49 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.435 2017/03/19 22:31:27 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -2020,9 +2020,11 @@ searched when looking for commands and files sourced using the
 .Dq Li \&.
 command (see below).
 An empty string resulting from a leading or trailing
-colon, or two adjacent colons, is treated as a
+(semi)colon, or two adjacent ones, is treated as a
 .Dq Li \&.
 (the current directory).
+.It Ev PATHSEP
+A colon (semicolon on OS/2), for the user's convenience.
 .It Ev PGRP
 The process ID of the shell's process group leader.
 .It Ev PIPESTATUS
@@ -6682,11 +6684,10 @@ Any privilege pop-ups you might be encountering are thus not
 .Nm mksh
 issues but questions by some other program utilising it.
 .Ss "I'm an OS/2 user, what do I need to know?"
-Unlike the native command prompt, the current working directory is
-not in the search path at all, for security reasons common on Unix
-systems (the shell is designed for Unix-like systems); if you really
-need this, run the command
-.Li PATH=".;$PATH"
+Unlike the native command prompt, the current working directory is,
+for security reasons common on Unix systems which the shell is designed for,
+not in the search path at all; if you really need this, run the command
+.Li PATH=.$PATHSEP$PATH
 or add that to a suitable initialisation file.
 .Pp
 You will have gotten this shell through komh's port on Shellworld

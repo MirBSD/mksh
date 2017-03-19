@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.763 2017/03/19 20:59:23 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.764 2017/03/19 22:31:24 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R54 2017/03/17
+	@(#)MIRBSD KSH R54 2017/03/19
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R54 2017/03/17
+	@(#)LEGACY KSH R54 2017/03/19
 description:
 	Check version of legacy shell.
 stdin:
@@ -101,6 +101,26 @@ stdin:
 	./echo -c 'echo  foo' | ./cat -u
 expected-stdout:
 	-c echo  foo
+---
+name: selftest-pathsep-unix
+description:
+	Check that $PATHSEP is set correctly.
+category: !os:os2
+stdin:
+	PATHSEP=.; export PATHSEP
+	"$__progname" -c 'print -r -- $PATHSEP'
+expected-stdout:
+	:
+---
+name: selftest-pathsep-os2
+description:
+	Check that $PATHSEP is set correctly.
+category: os:os2
+stdin:
+	PATHSEP=.; export PATHSEP
+	"$__progname" -c 'print -r -- $PATHSEP'
+expected-stdout:
+	;
 ---
 name: alias-1
 description:

@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.327 2017/03/19 22:23:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.328 2017/03/19 22:31:27 tg Exp $");
 
 extern char **environ;
 
@@ -364,6 +364,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	typeset("IFS= \t\n", 0, 0, 0, 0);
 
 	/* assign default shell variable values */
+	typeset("PATHSEP=" MKSH_PATHSEPS, 0, 0, 0, 0);
 	substitute(initsubs, 0);
 
 	/* Figure out the current working directory and set $PWD */
