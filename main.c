@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.326 2017/03/19 20:59:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.327 2017/03/19 22:23:45 tg Exp $");
 
 extern char **environ;
 
@@ -55,8 +55,6 @@ static mksh_uari_t rndsetup(void);
 #ifdef SIGWINCH
 static void x_sigwinch(int);
 #endif
-
-static const char initifs[] = "IFS= \t\n";
 
 static const char initsubs[] =
     "${PS2=> }"
@@ -363,7 +361,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	}
 
 	/* for security */
-	typeset(initifs, 0, 0, 0, 0);
+	typeset("IFS= \t\n", 0, 0, 0, 0);
 
 	/* assign default shell variable values */
 	substitute(initsubs, 0);
