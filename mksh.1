@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.429 2017/03/17 22:45:51 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.430 2017/03/19 16:48:51 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 17 2017 $
+.Dd $Mdocdate: March 19 2017 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -4847,16 +4847,16 @@ parameter values are not printed.
 If
 .Ar name
 arguments are given, the attributes of the named parameters are set
-.Pq Ic \-
+.Pq Ic \&\-
 or cleared
-.Pq Ic + .
+.Pq Ic \&+ ;
+inside a function, this will cause the parameters to be created
+(with no value) in the local scope (but see
+.Fl g ) .
 Values for parameters may optionally be specified.
 For
 .Ar name Ns \&[*] ,
-the change affects the entire array, and no value may be specified.
-Any parameters created by
-.Ic typeset
-have local scope by default.
+the change affects all elements of the array, and no value may be specified.
 .Pp
 When
 .Fl f
@@ -4877,7 +4877,8 @@ Indexed array attribute.
 Function mode.
 Display or set functions and their attributes, instead of parameters.
 .It Fl g
-Create parameters in global scope, not in local scope.
+Do not cause named parameters to be created in
+the local scope when called inside a function.
 .It Fl i Ns Op Ar n
 Integer attribute.
 .Ar n
