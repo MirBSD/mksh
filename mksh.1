@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.433 2017/03/19 20:59:27 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.434 2017/03/19 22:04:49 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -186,30 +186,8 @@ sometimes does take portable shell scripting or various standards
 into account all information is first and foremost presented with
 .Nm
 in mind and should be taken as such.
-.Ss I'm an Android user, so what's mksh?
-.Nm mksh
-is a
-.Ux
-shell / command interpreter, similar to
-.Nm COMMAND.COM
-or
-.Nm CMD.EXE ,
-which has been included with
-.Tn Android Open Source Project
-for a while now.
-Basically, it's a program that runs in a terminal (console window),
-takes user input and runs commands or scripts, which it can also
-be asked to do by other programs, even in the background.
-Any privilege pop-ups you might be encountering are thus not
-.Nm mksh
-issues but questions by some other program utilising it.
-.Ss "I'm an OS/2 user, what do I need to know?"
-Unlike the native command prompt, the current working directory is
-not in the search path at all, for security reasons common on Unix
-systems (the shell is designed for Unix-like systems); if you really
-need this, run the command
-.Li PATH=".;$PATH"
-or add that to a suitable initialisation file.
+.Ss I use Android, OS/2, etc. so what...?
+Please see the FAQ at the end of this document.
 .Ss Invocation
 Most builtins can be called directly, for example if a link points from its
 name to the shell; not all make sense, have been tested or work at all though.
@@ -2134,7 +2112,7 @@ Due to a strong suggestion from David G. Korn,
 .Nm
 now also supports the following form:
 .Bd -literal -offset indent
-PS1=$'\e1\er\e1\ee[7m\e1$PWD\e1\ee[0m\e1\*(Gt '
+PS1=$\*(aq\e1\er\e1\ee[7m\e1$PWD\e1\ee[0m\e1\*(Gt \*(aq
 .Ed
 .It Ev PS2
 Secondary prompt string, by default
@@ -2587,7 +2565,7 @@ Redirections are processed after
 pipelines are created and in the order they are given, so the following
 will print an error with a line number prepended to it:
 .Pp
-.D1 $ cat /foo/bar 2\*(Gt&1 \*(Gt/dev/null \*(Ba pr \-n \-t
+.Dl $ cat /foo/bar 2\*(Gt&1 \*(Gt/dev/null \*(Ba pr \-n \-t
 .Pp
 File descriptors created by I/O redirections are private to the shell.
 .Ss Arithmetic expressions
@@ -3743,7 +3721,7 @@ the parsing or evaluation of an expression, the exit status is greater than 1.
 Since expressions may need to be quoted,
 .No \&(( Ar expr No ))
 is syntactic sugar for:
-.Dl "{ \e\ebuiltin let '" Ns Ar expr Ns "'; }"
+.Dl "{ \e\ebuiltin let \*(aq" Ns Ar expr Ns "\*(aq; }"
 .Pp
 .It Xo
 .Ic mknod
@@ -3980,40 +3958,6 @@ any input is read) if the input is a
 If no input is read or a timeout occurred,
 .Ic read
 exits with a non-zero status.
-.Pp
-Another handy set of tricks:
-If
-.Ic read
-is run in a loop such as
-.Ic while read foo; do ...; done
-then leading whitespace will be removed (IFS) and backslashes processed.
-You might want to use
-.Ic while IFS= read \-r foo; do ...; done
-for pristine I/O.
-Similarly, when using the
-.Fl a
-option, use of the
-.Fl r
-option might be prudent; the same applies for:
-.Bd -literal -offset indent
-find . \-type f \-print0 \*(Ba& \e
-    while IFS= read \-d \*(aq\*(aq \-pr filename; do
-	print \-r \-\- "found \*(Lt${filename#./}\*(Gt"
-done
-.Ed
-.Pp
-The inner loop will be executed in a subshell and variable changes
-cannot be propagated if executed in a pipeline:
-.Bd -literal -offset indent
-bar \*(Ba baz \*(Ba while read foo; do ...; done
-.Ed
-.Pp
-Use co-processes instead:
-.Bd -literal -offset indent
-bar \*(Ba baz \*(Ba&
-while read \-p foo; do ...; done
-exec 3\*(Gt&p; exec 3\*(Gt&\-
-.Ed
 .Pp
 .It Xo
 .Ic readonly
@@ -5742,9 +5686,6 @@ Goes to history number
 .No KILL Pq \*(haU
 .Xc
 Deletes the entire input line.
-If Ctrl-U should only delete the line up to the cursor, use:
-.Pp
-.D1 $ bind \-m \*(haU='\*(ha[0\*(haK'
 .It kill\-region: \*(haW
 Deletes the input between the cursor and the mark.
 .It Xo kill\-to\-eol:
@@ -6623,24 +6564,6 @@ The complete legalese is at:
 .\" to protect it or lose it, which McKusick almost did.
 .\"
 .Sh CAVEATS
-.Nm
-has a different scope model from
-.At
-.Nm ksh ,
-which leads to subtle differences in semantics for identical builtins.
-This can cause issues with a
-.Ic nameref
-to suddenly point to a local variable by accident; fixing this is hard.
-.Pp
-The parts of a pipeline, like below, are executed in subshells.
-Thus, variable assignments inside them are not visible in the
-surrounding execution environment.
-Use co-processes instead.
-.Bd -literal -offset indent
-foo \*(Ba bar \*(Ba read baz            # will not change $baz
-foo \*(Ba bar \*(Ba& read \-p baz        # will, however, do so
-.Ed
-.Pp
 .Nm mksh
 provides a consistent 32-bit integer arithmetic implementation, both
 signed and unsigned, with sign of the result of a remainder operation
@@ -6685,6 +6608,8 @@ case ${KSH_VERSION:\-} in
 esac
 .Ed
 In near future, (Unicode) locale tracking will be implemented though.
+.Pp
+See also the FAQ below.
 .Sh BUGS
 Suspending (using \*(haZ) pipelines like the one below will only suspend
 the currently running part of the pipeline; in this example,
@@ -6735,3 +6660,161 @@ IRC channel at
 .Pq Port 6697 SSL, 6667 unencrypted ,
 or at:
 .Pa https://launchpad.net/mksh
+.Sh FREQUENTLY ASKED QUESTIONS
+This FAQ attempts to document some of the questions users of
+.Nm
+or readers of this manual page may encounter.
+.Ss I'm an Android user, so what's mksh?
+.Nm mksh
+is a
+.Ux
+shell / command interpreter, similar to
+.Nm COMMAND.COM
+or
+.Nm CMD.EXE ,
+which has been included with
+.Tn Android Open Source Project
+for a while now.
+Basically, it's a program that runs in a terminal (console window),
+takes user input and runs commands or scripts, which it can also
+be asked to do by other programs, even in the background.
+Any privilege pop-ups you might be encountering are thus not
+.Nm mksh
+issues but questions by some other program utilising it.
+.Ss "I'm an OS/2 user, what do I need to know?"
+Unlike the native command prompt, the current working directory is
+not in the search path at all, for security reasons common on Unix
+systems (the shell is designed for Unix-like systems); if you really
+need this, run the command
+.Li PATH=".;$PATH"
+or add that to a suitable initialisation file.
+.Pp
+You will have gotten this shell through komh's port on Shellworld
+most likely. It differs from standard mksh in that ASCII (CR+LF)
+newlines are accepted in many places.
+.Ss "How do I start mksh on a specific terminal?"
+Normally:
+.Dl mksh \-T/dev/tty2
+.Pp
+However, if you want for it to return (e.g. for an embedded
+system rescue shell), use this on your real console device instead:
+.Dl mksh \-T!/dev/ttyACM0
+.Pp
+.Nm
+can also daemonise (send to the background):
+.Dl mksh \-T\- \-c \*(aqexec cdio lock\*(aq
+.Ss "POSIX says..."
+Run the shell in POSIX mode (and possibly
+.Nm lksh
+instead of
+.Nm mksh ) :
+.Dl set \-o posix
+.Ss "My prompt from <some other shell> does not work!"
+Contact us on the mailing list or on IRC, we'll convert it for you.
+.Ss "Something is going wrong with my while...read loop"
+Most likely, you've encountered the problem in which the shell runs
+all parts of a pipeline as subshell.
+The inner loop will be executed in a subshell and variable changes
+cannot be propagated if run in a pipeline:
+.Bd -literal -offset indent
+bar \*(Ba baz \*(Ba while read foo; do ...; done
+.Ed
+.Pp
+Use co-processes instead:
+.Bd -literal -offset indent
+bar \*(Ba baz \*(Ba&
+while read \-p foo; do ...; done
+exec 3\*(Gt&p; exec 3\*(Gt&\-
+.Ed
+.Pp
+If
+.Ic read
+is run in a loop such as
+.Ic while read foo; do ...; done
+then leading whitespace will be removed (IFS) and backslashes processed.
+You might want to use
+.Ic while IFS= read \-r foo; do ...; done
+for pristine I/O.
+Similarly, when using the
+.Fl a
+option, use of the
+.Fl r
+option might be prudent
+.Pq Dq Li read \-raN\-1 arr \*(Ltfile ;
+the same applies for NUL-terminated lines:
+.Bd -literal -offset indent
+find . \-type f \-print0 \*(Ba& \e
+    while IFS= read \-d \*(aq\*(aq \-pr filename; do
+	print \-r \-\- "found \*(Lt${filename#./}\*(Gt"
+done
+.Ed
+.Pp
+.Ss "What differences in function-local scopes are there?"
+.Nm
+has a different scope model from
+.At
+.Nm ksh ,
+which leads to subtle differences in semantics for identical builtins.
+This can cause issues with a
+.Ic nameref
+to suddenly point to a local variable by accident.
+.Pp
+.Tn GNU
+.Nm bash
+allows unsetting local variables; in
+.Nm ,
+doing so in a function allows back access to the global variable
+(actually the one in the next scope up) with the same name.
+The following code, when run before the function definitions, changes
+the behaviour of
+.Ic unset
+to behave like other shells (the alias can be removed after the definitions):
+.Bd -literal -offset indent
+case ${KSH_VERSION:\-} in
+*MIRBSD\ KSH*\*(Ba*LEGACY\ KSH*)
+	function unset_compat {
+		\e\ebuiltin typeset unset_compat_x
+
+		for unset_compat_x in "$@"; do
+			eval "\e\e\e\ebuiltin unset $unset_compat_x[*]"
+		done
+	}
+	\e\ebuiltin alias unset=unset_compat
+	;;
+esac
+.Ed
+.Pp
+When a local variable is created (e.g. using
+.Ic local ,
+.Ic typeset ,
+.Ic integer ,
+.Ic \e\ebuiltin typeset )
+it does not, like in other shells, inherit the value from the global
+(next scope up) variable with the same name; it is rather created
+without any value (unset but defined).
+.Ss "I get an error in this regex comparison"
+Use extglobs instead of regexes:
+.Dl "[[ foo =~ (foo\*(Babar).*baz ]]	# becomes"
+.Dl "[[ foo = *@(foo\*(Babar)*baz* ]]	# instead"
+.Ss "Are there any extensions to avoid?"
+.Tn GNU
+.Nm bash
+supports
+.Dq Li &\*(Gt
+.Pq and Dq Li \*(Ba&
+to redirect both stdout and stderr in one go, but this breaks POSIX
+and Korn Shell syntax; use POSIX redirections instead:
+.Dl "foo \*(Ba& bar \*(Ba& baz &\*(Gtlog			     # GNU bash"
+.Dl "foo 2\*(Gt&1 \*(Ba bar 2\*(Gt&1 \*(Ba baz \*(Gtlog 2\*(Gt&1	# POSIX"
+.Ss "\*(haL (Ctrl-L) does not clear the screen"
+Use \*(ha[\*(haL (Escape+Ctrl-L) or rebind it:
+.Dl bind \*(aq\*(haL=clear-screen\*(aq
+.Ss "\*(haU (Ctrl-U) clears the entire line"
+If it should only delete the line up to the cursor, use:
+.Dl bind \-m \*(haU=\*(aq\*(ha[0\*(haK\*(aq
+.Ss "Cursor Up behaves differently from zsh"
+Some shells make Cursor Up search in the history only for
+commands starting with what was already entered.
+.Nm
+separates the shortcuts: Cursor Up goes up one command
+and PgUp searches the history as described above.
