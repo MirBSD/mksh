@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.329 2017/03/19 18:05:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.330 2017/03/19 20:59:25 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -122,8 +122,6 @@ const struct builtin mkshbuiltins[] = {
 	{Tjobs, c_jobs},
 	{"kill", c_kill},
 	{"let", c_let},
-	/* deprecated, to be replaced by \\builtin let */
-	{"let]", c_let},
 	{"print", c_print},
 	{"pwd", c_pwd},
 	{Tread, c_read},

@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.432 2017/03/19 20:36:08 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.433 2017/03/19 20:59:27 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -3742,12 +3742,8 @@ If an error occurs during
 the parsing or evaluation of an expression, the exit status is greater than 1.
 Since expressions may need to be quoted,
 .No \&(( Ar expr No ))
-is syntactic sugar for
-.No "{ let '" Ns Ar expr Ns "'; }" .
-.Pp
-.It Ic let]
-Internally used alias for
-.Ic let .
+is syntactic sugar for:
+.Dl "{ \e\ebuiltin let '" Ns Ar expr Ns "'; }"
 .Pp
 .It Xo
 .Ic mknod

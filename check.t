@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.762 2017/03/19 20:36:04 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.763 2017/03/19 20:59:23 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -11091,7 +11091,7 @@ expected-stdout:
 	inline_TWHILE() {
 		i=1 
 		while {
-			      \let] " i < 10 " 
+			      \\builtin let " i < 10 " 
 		      } 
 		do
 			echo $i 
@@ -11102,13 +11102,13 @@ expected-stdout:
 		i=1; while (( i < 10 )); do echo $i; let ++i; done
 	); }
 	function comsub_TWHILE {
-		x=$(i=1 ; while { \let] " i < 10 " ; } ; do echo $i ; let ++i ; done ) 
+		x=$(i=1 ; while { \\builtin let " i < 10 " ; } ; do echo $i ; let ++i ; done ) 
 	} 
 	function reread_TWHILE { x=$((
 		i=1; while (( i < 10 )); do echo $i; let ++i; done
 	)|tr u x); }
 	function reread_TWHILE {
-		x=$(( i=1 ; while { \let] " i < 10 " ; } ; do echo $i ; let ++i ; done ) | tr u x ) 
+		x=$(( i=1 ; while { \\builtin let " i < 10 " ; } ; do echo $i ; let ++i ; done ) | tr u x ) 
 	} 
 	inline_TUNTIL() {
 		i=10; until  (( !--i )) ; do echo $i; done
@@ -11116,7 +11116,7 @@ expected-stdout:
 	inline_TUNTIL() {
 		i=10 
 		until {
-			      \let] " !--i " 
+			      \\builtin let " !--i " 
 		      } 
 		do
 			echo $i 
@@ -11126,13 +11126,13 @@ expected-stdout:
 		i=10; until  (( !--i )) ; do echo $i; done
 	); }
 	function comsub_TUNTIL {
-		x=$(i=10 ; until { \let] " !--i " ; } ; do echo $i ; done ) 
+		x=$(i=10 ; until { \\builtin let " !--i " ; } ; do echo $i ; done ) 
 	} 
 	function reread_TUNTIL { x=$((
 		i=10; until  (( !--i )) ; do echo $i; done
 	)|tr u x); }
 	function reread_TUNTIL {
-		x=$(( i=10 ; until { \let] " !--i " ; } ; do echo $i ; done ) | tr u x ) 
+		x=$(( i=10 ; until { \\builtin let " !--i " ; } ; do echo $i ; done ) | tr u x ) 
 	} 
 	inline_TCOPROC() {
 		cat  *  |&  ls
@@ -11508,7 +11508,7 @@ expected-stdout:
 		case x in
 		(x)
 			a+=b 
-			\set -A c+ -- d e 
+			\\builtin set -A c+ -- d e 
 			;;
 		esac 
 	} 
@@ -11518,7 +11518,7 @@ expected-stdout:
 		esac
 	); }
 	function comsub_wdarrassign {
-		x=$(case x in (x) a+=b ; \set -A c+ -- d e  ;; esac ) 
+		x=$(case x in (x) a+=b ; \\builtin set -A c+ -- d e  ;; esac ) 
 	} 
 	function reread_wdarrassign { x=$((
 		case x in
@@ -11526,7 +11526,7 @@ expected-stdout:
 		esac
 	)|tr u x); }
 	function reread_wdarrassign {
-		x=$(( case x in (x) a+=b ; \set -A c+ -- d e  ;; esac ) | tr u x ) 
+		x=$(( case x in (x) a+=b ; \\builtin set -A c+ -- d e  ;; esac ) | tr u x ) 
 	} 
 ---
 name: comsub-torture-io
@@ -11747,7 +11747,7 @@ expected-stdout:
 	inline_TWHILE() {
 		i=1 
 		while {
-			      \let] " i < 10 " 
+			      \\builtin let " i < 10 " 
 		      } >&3 
 		do
 			echo $i 
@@ -11758,13 +11758,13 @@ expected-stdout:
 		i=1; while (( i < 10 )) >&3; do echo $i; let ++i; done >&3
 	); }
 	function comsub_TWHILE {
-		x=$(i=1 ; while { \let] " i < 10 " ; } >&3 ; do echo $i ; let ++i ; done >&3 ) 
+		x=$(i=1 ; while { \\builtin let " i < 10 " ; } >&3 ; do echo $i ; let ++i ; done >&3 ) 
 	} 
 	function reread_TWHILE { x=$((
 		i=1; while (( i < 10 )) >&3; do echo $i; let ++i; done >&3
 	)|tr u x); }
 	function reread_TWHILE {
-		x=$(( i=1 ; while { \let] " i < 10 " ; } >&3 ; do echo $i ; let ++i ; done >&3 ) | tr u x ) 
+		x=$(( i=1 ; while { \\builtin let " i < 10 " ; } >&3 ; do echo $i ; let ++i ; done >&3 ) | tr u x ) 
 	} 
 	inline_TUNTIL() {
 		i=10; until  (( !--i )) >&3 ; do echo $i; done >&3
@@ -11772,7 +11772,7 @@ expected-stdout:
 	inline_TUNTIL() {
 		i=10 
 		until {
-			      \let] " !--i " 
+			      \\builtin let " !--i " 
 		      } >&3 
 		do
 			echo $i 
@@ -11782,13 +11782,13 @@ expected-stdout:
 		i=10; until  (( !--i )) >&3 ; do echo $i; done >&3
 	); }
 	function comsub_TUNTIL {
-		x=$(i=10 ; until { \let] " !--i " ; } >&3 ; do echo $i ; done >&3 ) 
+		x=$(i=10 ; until { \\builtin let " !--i " ; } >&3 ; do echo $i ; done >&3 ) 
 	} 
 	function reread_TUNTIL { x=$((
 		i=10; until  (( !--i )) >&3 ; do echo $i; done >&3
 	)|tr u x); }
 	function reread_TUNTIL {
-		x=$(( i=10 ; until { \let] " !--i " ; } >&3 ; do echo $i ; done >&3 ) | tr u x ) 
+		x=$(( i=10 ; until { \\builtin let " !--i " ; } >&3 ; do echo $i ; done >&3 ) | tr u x ) 
 	} 
 	inline_TCOPROC() {
 		cat  *  >&3 |&  >&3 ls

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.117 2017/03/12 02:04:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.118 2017/03/19 20:59:29 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -244,11 +244,15 @@ nested(int type, int smark, int emark)
 	return (block(type, t, NULL));
 }
 
+static const char builtin_cmd[] = {
+	QCHAR, '\\', CHAR, 'b', CHAR, 'u', CHAR, 'i',
+	CHAR, 'l', CHAR, 't', CHAR, 'i', CHAR, 'n', EOS
+};
 static const char let_cmd[] = {
-	QCHAR, 'l', CHAR, 'e', CHAR, 't', CHAR, ']', EOS
+	CHAR, 'l', CHAR, 'e', CHAR, 't', EOS
 };
 static const char setA_cmd0[] = {
-	QCHAR, 's', CHAR, 'e', CHAR, 't', EOS
+	CHAR, 's', CHAR, 'e', CHAR, 't', EOS
 };
 static const char setA_cmd1[] = {
 	CHAR, '-', CHAR, 'A', EOS
@@ -342,6 +346,7 @@ get_command(int cf)
 					tcp[wdscan(tcp, EOS) - tcp - 3] = EOS;
 
 					/* construct new args strings */
+					XPput(args, wdcopy(builtin_cmd, ATEMP));
 					XPput(args, wdcopy(setA_cmd0, ATEMP));
 					XPput(args, wdcopy(setA_cmd1, ATEMP));
 					XPput(args, tcp);
@@ -411,6 +416,7 @@ get_command(int cf)
 		}
 		t = newtp(TCOM);
 		t->lineno = lno;
+		XPput(args, wdcopy(builtin_cmd, ATEMP));
 		XPput(args, wdcopy(let_cmd, ATEMP));
 		XPput(args, yylval.cp);
 		break;
