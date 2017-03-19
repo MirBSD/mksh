@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.324 2017/03/11 23:22:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.325 2017/03/19 20:36:07 tg Exp $");
 
 extern char **environ;
 
@@ -71,18 +71,18 @@ static const char *initcoms[] = {
 	Ttypeset, "-x", "HOME", TPATH, TSHELL, NULL,
 	Ttypeset, "-i10", "COLUMNS", "LINES", "SECONDS", "TMOUT", NULL,
 	Talias,
-	"integer=\\typeset -i",
-	"local=\\typeset",
+	"integer=\\\\builtin typeset -i",
+	"local=\\\\builtin typeset",
 	/* not "alias -t --": hash -r needs to work */
-	"hash=\\builtin alias -t",
-	"type=\\builtin whence -v",
-	"autoload=\\typeset -fu",
-	"functions=\\typeset -f",
-	"history=\\builtin fc -l",
-	"nameref=\\typeset -n",
+	"hash=\\\\builtin alias -t",
+	"type=\\\\builtin whence -v",
+	"autoload=\\\\builtin typeset -fu",
+	"functions=\\\\builtin typeset -f",
+	"history=\\\\builtin fc -l",
+	"nameref=\\\\builtin typeset -n",
 	"nohup=nohup ",
-	"r=\\builtin fc -e -",
-	"login=\\exec login",
+	"r=\\\\builtin fc -e -",
+	"login=\\\\builtin exec login",
 	NULL,
 	 /* this is what AT&T ksh seems to track, with the addition of emacs */
 	Talias, "-tU",

@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.431 2017/03/19 18:05:29 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.432 2017/03/19 20:36:08 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -1137,17 +1137,17 @@ also by newline) may be one same parse tree.
 .Pp
 The following command aliases are defined automatically by the shell:
 .Bd -literal -offset indent
-autoload=\*(aq\etypeset \-fu\*(aq
-functions=\*(aq\etypeset \-f\*(aq
-hash=\*(aq\ebuiltin alias \-t\*(aq
-history=\*(aq\ebuiltin fc \-l\*(aq
-integer=\*(aq\etypeset \-i\*(aq
-local=\*(aq\etypeset\*(aq
-login=\*(aq\eexec login\*(aq
-nameref=\*(aq\etypeset \-n\*(aq
+autoload=\*(aq\e\ebuiltin typeset \-fu\*(aq
+functions=\*(aq\e\ebuiltin typeset \-f\*(aq
+hash=\*(aq\e\ebuiltin alias \-t\*(aq
+history=\*(aq\e\ebuiltin fc \-l\*(aq
+integer=\*(aq\e\ebuiltin typeset \-i\*(aq
+local=\*(aq\e\ebuiltin typeset\*(aq
+login=\*(aq\e\ebuiltin exec login\*(aq
+nameref=\*(aq\e\ebuiltin typeset \-n\*(aq
 nohup=\*(aqnohup \*(aq
-r=\*(aq\ebuiltin fc \-e \-\*(aq
-type=\*(aq\ebuiltin whence \-v\*(aq
+r=\*(aq\e\ebuiltin fc \-e \-\*(aq
+type=\*(aq\e\ebuiltin whence \-v\*(aq
 .Ed
 .Pp
 Tracked aliases allow the shell to remember where it found a particular

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.761 2017/03/19 18:05:25 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.762 2017/03/19 20:36:04 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -244,13 +244,20 @@ name: alias-11
 description:
 	Check that special argument handling still applies with escaped aliases
 stdin:
-	alias local='\typeset'
-	function foo {
-		local x=$1 y=z
+	alias local1='\typeset'
+	alias local2='\\builtin typeset'
+	function fooa {
+		local1 x=$1 y=z
 		print -r -- "$x,$y"
 	}
-	foo 'bar - baz'
+	function foob {
+		local2 x=$1 y=z
+		print -r -- "$x,$y"
+	}
+	x=1 y=2; fooa 'bar - baz'
+	x=1 y=2; foob 'bar - baz'
 expected-stdout:
+	bar - baz,z
 	bar - baz,z
 ---
 name: arith-compound
@@ -8274,17 +8281,17 @@ stdin:
 	alias
 	typeset -f
 expected-stdout:
-	autoload='\typeset -fu'
-	functions='\typeset -f'
-	hash='\builtin alias -t'
-	history='\builtin fc -l'
-	integer='\typeset -i'
-	local='\typeset'
-	login='\exec login'
-	nameref='\typeset -n'
+	autoload='\\builtin typeset -fu'
+	functions='\\builtin typeset -f'
+	hash='\\builtin alias -t'
+	history='\\builtin fc -l'
+	integer='\\builtin typeset -i'
+	local='\\builtin typeset'
+	login='\\builtin exec login'
+	nameref='\\builtin typeset -n'
 	nohup='nohup '
-	r='\builtin fc -e -'
-	type='\builtin whence -v'
+	r='\\builtin fc -e -'
+	type='\\builtin whence -v'
 ---
 name: aliases-2b
 description:
@@ -8294,17 +8301,17 @@ stdin:
 	alias
 	typeset -f
 expected-stdout:
-	autoload='\typeset -fu'
-	functions='\typeset -f'
-	hash='\builtin alias -t'
-	history='\builtin fc -l'
-	integer='\typeset -i'
-	local='\typeset'
-	login='\exec login'
-	nameref='\typeset -n'
+	autoload='\\builtin typeset -fu'
+	functions='\\builtin typeset -f'
+	hash='\\builtin alias -t'
+	history='\\builtin fc -l'
+	integer='\\builtin typeset -i'
+	local='\\builtin typeset'
+	login='\\builtin exec login'
+	nameref='\\builtin typeset -n'
 	nohup='nohup '
-	r='\builtin fc -e -'
-	type='\builtin whence -v'
+	r='\\builtin fc -e -'
+	type='\\builtin whence -v'
 ---
 name: aliases-3b
 description:
@@ -8314,17 +8321,17 @@ stdin:
 	./sh -c 'alias; typeset -f'
 	rm -f sh
 expected-stdout:
-	autoload='\typeset -fu'
-	functions='\typeset -f'
-	hash='\builtin alias -t'
-	history='\builtin fc -l'
-	integer='\typeset -i'
-	local='\typeset'
-	login='\exec login'
-	nameref='\typeset -n'
+	autoload='\\builtin typeset -fu'
+	functions='\\builtin typeset -f'
+	hash='\\builtin alias -t'
+	history='\\builtin fc -l'
+	integer='\\builtin typeset -i'
+	local='\\builtin typeset'
+	login='\\builtin exec login'
+	nameref='\\builtin typeset -n'
 	nohup='nohup '
-	r='\builtin fc -e -'
-	type='\builtin whence -v'
+	r='\\builtin fc -e -'
+	type='\\builtin whence -v'
 ---
 name: aliases-cmdline
 description:
@@ -8381,8 +8388,8 @@ stdin:
 	:|| local() { :; }
 	alias local
 expected-stdout:
-	local='\typeset'
-	local='\typeset'
+	local='\\builtin typeset'
+	local='\\builtin typeset'
 ---
 name: arrays-1
 description:
