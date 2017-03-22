@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.187 2016/11/12 03:54:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.191 2017/03/22 00:20:51 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1005,13 +1005,17 @@ scriptexec(struct op *tp, const char **ap)
 	errorf(Tf_sD_sD_s, tp->str, sh, cstrerror(errno));
 }
 
+/* actual 'builtin' built-in utility call is handled in comexec() */
 int
-shcomexec(const char **wp)
+c_builtin(const char **wp)
 {
-	struct tbl *tp;
+	return (call_builtin(get_builtin(*wp), wp, Tbuiltin, false));
+}
 
-	tp = ktsearch(&builtins, *wp, hash(*wp));
-	return (call_builtin(tp, wp, "shcomexec", false));
+struct tbl *
+get_builtin(const char *s)
+{
+	return (s && *s ? ktsearch(&builtins, s, hash(s)) : NULL);
 }
 
 /*
@@ -1117,6 +1121,14 @@ builtin(const char *name, int (*func) (const char **))
 		/* external utility overrides built-in utility, with flags */
 		flag |= LOW_BI;
 		break;
+	case '-':
+		/* is declaration utility if argv[1] is one (POSIX: command) */
+		flag |= DECL_FWDR;
+		break;
+	case '^':
+		/* is declaration utility (POSIX: export, readonly) */
+		flag |= DECL_UTIL;
+		break;
 	default:
 		goto flags_seen;
 	}
@@ -1150,7 +1162,11 @@ findcom(const char *name, int flags)
 	char *fpath;
 	union mksh_cchack npath;
 
-	if (mksh_vdirsep(name)) {
+	if (mksh_vdirsep(name)
+#ifdef __OS2__
+	    && (strcmp(name, T_builtin) != 0)
+#endif
+	    ) {
 		insert = 0;
 		/* prevent FPATH search below */
 		flags &= ~FC_FUNC;
@@ -1361,9 +1377,7 @@ call_builtin(struct tbl *tp, const char **wp, const char *where, bool resetspec)
 	if (!tp)
 		internal_errorf(Tf_sD_s, where, wp[0]);
 	builtin_argv0 = wp[0];
-	builtin_spec = tobool(!resetspec &&
-	    /*XXX odd use of KEEPASN */
-	    ((tp->flag & SPEC_BI) || (Flag(FPOSIX) && (tp->flag & KEEPASN))));
+	builtin_spec = tobool(!resetspec && (tp->flag & SPEC_BI));
 	shf_reopen(1, SHF_WR, shl_stdout);
 	shl_stdout_ok = true;
 	ksh_getopt_reset(&builtin_opt, GF_ERROR);

@@ -3,7 +3,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.250 2016/11/12 03:54:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.252 2017/03/11 23:56:17 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -39,10 +39,6 @@ __RCSID("$MirOS: src/bin/mksh/misc.c,v 1.250 2016/11/12 03:54:48 tg Exp $");
 #ifdef TIOCSCTTY
 #define KSH_CHVT_CODE
 #define KSH_CHVT_FLAG
-#endif
-#ifdef MKSH_LEGACY_MODE
-#undef KSH_CHVT_CODE
-#undef KSH_CHVT_FLAG
 #endif
 
 /* type bits for unsigned char */
@@ -2154,7 +2150,7 @@ getrusage(int what, struct rusage *ru)
 int
 unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 {
-	int wc, i, c, fc;
+	int wc, i, c, fc, n;
 
 	fc = (*fg)();
 	switch (fc) {
@@ -2242,7 +2238,8 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		 *	four (U: eight) digits; convert to Unicode
 		 */
 		wc = 0;
-		while (i--) {
+		n = 0;
+		while (n < i || i == -1) {
 			wc <<= 4;
 			if ((c = (*fg)()) >= ord('0') && c <= ord('9'))
 				wc += ksh_numdig(c);
@@ -2255,7 +2252,10 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 				(*fp)(c);
 				break;
 			}
+			++n;
 		}
+		if (!n)
+			goto unknown_escape;
 		if ((cstyle && wc > 0xFF) || fc != 'x')
 			/* Unicode marker */
 			wc += 0x100;

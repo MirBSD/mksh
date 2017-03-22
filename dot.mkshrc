@@ -1,8 +1,8 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.108 2016/07/26 22:03:41 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.114 2017/03/19 22:31:26 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
-#		2011, 2012, 2013, 2014, 2015, 2016
+#		2011, 2012, 2013, 2014, 2015, 2016, 2017
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -22,65 +22,100 @@
 #-
 # ${ENV:-~/.mkshrc}: mksh initialisation file for interactive shells
 
-# catch non-mksh (including lksh) trying to run this file
+# catch non-mksh, non-lksh, trying to run this file
 case ${KSH_VERSION:-} in
-*MIRBSD\ KSH*) ;;
-*) return 0 ;;
+*LEGACY\ KSH*|*MIRBSD\ KSH*) ;;
+*) \return 0 ;;
 esac
 
-PS1='#'; (( USER_ID )) && PS1='$'; \: "${TERM:=vt100}${HOSTNAME:=$(\ulimit -c \
-    0; hostname 2>/dev/null)}${EDITOR:=/bin/ed}${USER:=$(\ulimit -c 0; id -un \
-    2>/dev/null || \echo \?)}${MKSH:=$(\builtin whence -p mksh)}"
-HOSTNAME=${HOSTNAME%%*([	 ]).*}; HOSTNAME=${HOSTNAME##*([	 ])}
-[[ $HOSTNAME = ?(ip6-)localhost?(6) ]] && HOSTNAME=
-\: "${HOSTNAME:=nil}${MKSH:=/bin/mksh}"; \export EDITOR HOSTNAME MKSH TERM USER
-PS4='[$EPOCHREALTIME] '; PS1=$'\001\r''${|
-	\typeset e=$?
+# give MidnightBSD's laffer1 a bit of csh feeling
+function setenv {
+	if (( $# )); then
+		\\builtin eval '\\builtin export "$1"="${2:-}"'
+	else
+		\\builtin typeset -x
+	fi
+}
+
+# pager (not control character safe)
+smores() (
+	\\builtin set +m
+	\\builtin cat "$@" |&
+	\\builtin trap "rv=\$?; \\\\builtin kill $! >/dev/null 2>&1; \\\\builtin exit \$rv" EXIT
+	while IFS= \\builtin read -pr line; do
+		llen=${%line}
+		(( llen == -1 )) && llen=${#line}
+		(( llen = llen ? (llen + COLUMNS - 1) / COLUMNS : 1 ))
+		if (( (curlin += llen) >= LINES )); then
+			\\builtin print -nr -- $'\e[7m--more--\e[0m'
+			\\builtin read -u1 || \\builtin exit $?
+			[[ $REPLY = [Qq]* ]] && \\builtin exit 0
+			curlin=$llen
+		fi
+		\\builtin print -r -- "$line"
+	done
+)
+
+\\builtin alias ls=ls l='ls -F' la='l -a' ll='l -l' lo='l -alo'
+\: "${HOSTNAME:=$(\\builtin ulimit -c 0; \\builtin print -r -- $(hostname \
+    2>/dev/null))}${EDITOR:=/bin/ed}${TERM:=vt100}${USER:=$(\\builtin ulimit \
+    -c 0; id -un 2>/dev/null)}${USER:=?}"
+[[ $HOSTNAME = ?(?(ip6-)localhost?(6)) ]] && HOSTNAME=nil; \\builtin unalias ls
+\\builtin export EDITOR HOSTNAME TERM USER
+
+# minimal support for lksh users
+if [[ $KSH_VERSION = *LEGACY\ KSH* ]]; then
+	PS1='$USER@${HOSTNAME%%.*}:$PWD>'
+	\\builtin return 0
+fi
+
+# mksh-specific from here
+\: "${MKSH:=$(\\builtin whence -p mksh)}${MKSH:=/bin/mksh}"
+\\builtin export MKSH
+
+PS4='[$EPOCHREALTIME] '; PS1='#'; (( USER_ID )) && PS1='$'; PS1=$'\001\r''${|
+	\\builtin typeset e=$?
 
 	(( e )) && REPLY+="$e|"
 	REPLY+=${USER}@${HOSTNAME%%.*}:
 
-	\typeset d=${PWD:-?}/ p=~; [[ $p = ?(*/) ]] || d=${d/#$p\//\~/}
-	d=${d%/}; \typeset m=${%d} n p=...; (( m > 0 )) || m=${#d}
+	\\builtin typeset d=${PWD:-?}/ p=~; [[ $p = ?(*/) ]] || d=${d/#$p\//\~/}
+	d=${d%/}; \\builtin typeset m=${%d} n p=...; (( m > 0 )) || m=${#d}
 	(( m > (n = (COLUMNS/3 < 7 ? 7 : COLUMNS/3)) )) && d=${d:(-n)} || p=
 	REPLY+=$p$d
 
-	\return $e
+	\\builtin return $e
 } '"$PS1 "
-\alias ls=ls
-\unalias ls
-\alias l='ls -F'
-\alias la='l -a'
-\alias ll='l -l'
-\alias lo='l -alo'
-\alias doch='sudo mksh -c "$(\builtin fc -ln -1)"'
-\command -v rot13 >/dev/null || \alias rot13='tr \
+\\builtin alias doch='sudo mksh -c "$(\\builtin fc -ln -1)"'
+\\builtin command -v rot13 >/dev/null || \\builtin alias rot13='tr \
     abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \
     nopqrstuvwxyzabcdefghijklmNOPQRSTUVWXYZABCDEFGHIJKLM'
-if \command -v hd >/dev/null; then \:; elif \command -v hexdump >/dev/null; then
+if \\builtin command -v hd >/dev/null; then
+	\:
+elif \\builtin command -v hexdump >/dev/null; then
 	function hd {
 		hexdump -e '"%08.8_ax  " 8/1 "%02X " " - " 8/1 "%02X "' \
 		    -e '"  |" "%_p"' -e '"|\n"' "$@"
 	}
 else
 	function hd {
-		\typeset -Uui16 -Z11 pos=0
-		\typeset -Uui16 -Z5 hv=2147483647
-		\typeset dasc line i
-		\set +U
+		\\builtin typeset -Uui16 -Z11 pos=0
+		\\builtin typeset -Uui16 -Z5 hv=2147483647
+		\\builtin typeset dasc line i
+		\\builtin set +U
 
-		\cat "$@" | if \read -arN -1 line; then
-			\typeset -i1 'line[*]'
+		\\builtin cat "$@" | if \\builtin read -arN -1 line; then
+			\\builtin typeset -i1 'line[*]'
 			i=0
 			while (( i < ${#line[*]} )); do
 				hv=${line[i++]}
 				if (( (pos & 15) == 0 )); then
 					(( pos )) && \
-					    \builtin print -r -- "$dasc|"
-					\builtin print -n "${pos#16#}  "
+					    \\builtin print -r -- "$dasc|"
+					\\builtin print -nr "${pos#16#}  "
 					dasc=' |'
 				fi
-				\builtin print -n "${hv#16#} "
+				\\builtin print -nr "${hv#16#} "
 				#XXX EBCDIC, but we need [[:print:]] to fix this
 				if (( (hv < 32) || (hv > 126) )); then
 					dasc+=.
@@ -88,69 +123,69 @@ else
 					dasc+=${line[i-1]#1#}
 				fi
 				(( (pos++ & 15) == 7 )) && \
-				    \builtin print -n -- '- '
+				    \\builtin print -nr -- '- '
 			done
 			while (( pos & 15 )); do
-				\builtin print -n '   '
+				\\builtin print -nr '   '
 				(( (pos++ & 15) == 7 )) && \
-				    \builtin print -n -- '- '
+				    \\builtin print -nr -- '- '
 			done
-			(( hv == 2147483647 )) || \builtin print -r -- "$dasc|"
+			(( hv == 2147483647 )) || \\builtin print -r -- "$dasc|"
 		fi
 	}
 fi
 
 # Berkeley C shell compatible dirs, popd, and pushd functions
 # Z shell compatible chpwd() hook, used to update DIRSTACK[0]
-DIRSTACKBASE=$(\builtin realpath ~/. 2>/dev/null || \
-    \builtin print -nr -- "${HOME:-/}")
-set -A DIRSTACK
+DIRSTACKBASE=$(\\builtin realpath ~/. 2>/dev/null || \
+    \\builtin print -nr -- "${HOME:-/}")
+\\builtin set -A DIRSTACK
 function chpwd {
-	DIRSTACK[0]=$(\builtin realpath . 2>/dev/null || \
-	    \builtin print -r -- "$PWD")
+	DIRSTACK[0]=$(\\builtin realpath . 2>/dev/null || \
+	    \\builtin print -nr -- "$PWD")
 	[[ $DIRSTACKBASE = ?(*/) ]] || \
 	    DIRSTACK[0]=${DIRSTACK[0]/#$DIRSTACKBASE/\~}
 	\:
 }
 \chpwd .
 cd() {
-	\builtin cd "$@" || \return $?
+	\\builtin cd "$@" || \\builtin return $?
 	\chpwd "$@"
 }
 function cd_csh {
-	\typeset d t=${1/#\~/$DIRSTACKBASE}
+	\\builtin typeset d t=${1/#\~/$DIRSTACKBASE}
 
-	if ! d=$(\builtin cd "$t" 2>&1); then
-		\builtin print -u2 "${1}: ${d##*cd: $t: }."
-		\return 1
+	if ! d=$(\\builtin cd "$t" 2>&1); then
+		\\builtin print -ru2 "${1}: ${d##*cd: $t: }."
+		\\builtin return 1
 	fi
 	\cd "$t"
 }
 function dirs {
-	\typeset d dwidth
-	\typeset -i fl=0 fv=0 fn=0 cpos=0
+	\\builtin typeset d dwidth
+	\\builtin typeset -i fl=0 fv=0 fn=0 cpos=0
 
-	while \getopts ":lvn" d; do
+	while \\builtin getopts ":lvn" d; do
 		case $d {
 		(l)	fl=1 ;;
 		(v)	fv=1 ;;
 		(n)	fn=1 ;;
-		(*)	\builtin print -u2 'Usage: dirs [-lvn].'
-			\return 1 ;;
+		(*)	\\builtin print -ru2 'Usage: dirs [-lvn].'
+			\\builtin return 1 ;;
 		}
 	done
-	\shift $((OPTIND - 1))
+	\\builtin shift $((OPTIND - 1))
 	if (( $# > 0 )); then
-		\builtin print -u2 'Usage: dirs [-lvn].'
-		\return 1
+		\\builtin print -ru2 'Usage: dirs [-lvn].'
+		\\builtin return 1
 	fi
 	if (( fv )); then
 		fv=0
 		while (( fv < ${#DIRSTACK[*]} )); do
 			d=${DIRSTACK[fv]}
 			(( fl )) && d=${d/#\~/$DIRSTACKBASE}
-			\builtin print -r -- "$fv	$d"
-			\builtin let fv++
+			\\builtin print -r -- "$fv	$d"
+			(( ++fv ))
 		done
 	else
 		fv=0
@@ -160,136 +195,117 @@ function dirs {
 			(( dwidth = (${%d} > 0 ? ${%d} : ${#d}) ))
 			if (( fn && (cpos += dwidth + 1) >= 79 && \
 			    dwidth < 80 )); then
-				\builtin print
+				\\builtin print
 				(( cpos = dwidth + 1 ))
 			fi
-			\builtin print -nr -- "$d "
-			\builtin let fv++
+			\\builtin print -nr -- "$d "
+			(( ++fv ))
 		done
-		\builtin print
+		\\builtin print
 	fi
-	\return 0
+	\\builtin return 0
 }
 function popd {
-	\typeset d fa
-	\typeset -i n=1
+	\\builtin typeset d fa
+	\\builtin typeset -i n=1
 
-	while \getopts ":0123456789lvn" d; do
+	while \\builtin getopts ":0123456789lvn" d; do
 		case $d {
 		(l|v|n)	fa+=" -$d" ;;
 		(+*)	n=2
-			\break ;;
-		(*)	\builtin print -u2 'Usage: popd [-lvn] [+<n>].'
-			\return 1 ;;
+			\\builtin break ;;
+		(*)	\\builtin print -ru2 'Usage: popd [-lvn] [+<n>].'
+			\\builtin return 1 ;;
 		}
 	done
-	\shift $((OPTIND - n))
+	\\builtin shift $((OPTIND - n))
 	n=0
 	if (( $# > 1 )); then
-		\builtin print -u2 popd: Too many arguments.
-		\return 1
+		\\builtin print -ru2 popd: Too many arguments.
+		\\builtin return 1
 	elif [[ $1 = ++([0-9]) && $1 != +0 ]]; then
 		if (( (n = ${1#+}) >= ${#DIRSTACK[*]} )); then
-			\builtin print -u2 popd: Directory stack not that deep.
-			\return 1
+			\\builtin print -ru2 popd: Directory stack not that deep.
+			\\builtin return 1
 		fi
 	elif [[ -n $1 ]]; then
-		\builtin print -u2 popd: Bad directory.
-		\return 1
+		\\builtin print -ru2 popd: Bad directory.
+		\\builtin return 1
 	fi
 	if (( ${#DIRSTACK[*]} < 2 )); then
-		\builtin print -u2 popd: Directory stack empty.
-		\return 1
+		\\builtin print -ru2 popd: Directory stack empty.
+		\\builtin return 1
 	fi
-	\unset DIRSTACK[n]
-	\set -A DIRSTACK -- "${DIRSTACK[@]}"
-	\cd_csh "${DIRSTACK[0]}" || \return 1
+	\\builtin unset DIRSTACK[n]
+	\\builtin set -A DIRSTACK -- "${DIRSTACK[@]}"
+	\cd_csh "${DIRSTACK[0]}" || \\builtin return 1
 	\dirs $fa
 }
 function pushd {
-	\typeset d fa
-	\typeset -i n=1
+	\\builtin typeset d fa
+	\\builtin typeset -i n=1
 
-	while \getopts ":0123456789lvn" d; do
+	while \\builtin getopts ":0123456789lvn" d; do
 		case $d {
 		(l|v|n)	fa+=" -$d" ;;
 		(+*)	n=2
-			\break ;;
-		(*)	\builtin print -u2 'Usage: pushd [-lvn] [<dir>|+<n>].'
-			\return 1 ;;
+			\\builtin break ;;
+		(*)	\\builtin print -ru2 'Usage: pushd [-lvn] [<dir>|+<n>].'
+			\\builtin return 1 ;;
 		}
 	done
-	\shift $((OPTIND - n))
+	\\builtin shift $((OPTIND - n))
 	if (( $# == 0 )); then
 		if (( ${#DIRSTACK[*]} < 2 )); then
-			\builtin print -u2 pushd: No other directory.
-			\return 1
+			\\builtin print -ru2 pushd: No other directory.
+			\\builtin return 1
 		fi
 		d=${DIRSTACK[1]}
 		DIRSTACK[1]=${DIRSTACK[0]}
-		\cd_csh "$d" || \return 1
+		\cd_csh "$d" || \\builtin return 1
 	elif (( $# > 1 )); then
-		\builtin print -u2 pushd: Too many arguments.
-		\return 1
+		\\builtin print -ru2 pushd: Too many arguments.
+		\\builtin return 1
 	elif [[ $1 = ++([0-9]) && $1 != +0 ]]; then
 		if (( (n = ${1#+}) >= ${#DIRSTACK[*]} )); then
-			\builtin print -u2 pushd: Directory stack not that deep.
-			\return 1
+			\\builtin print -ru2 pushd: Directory stack not that deep.
+			\\builtin return 1
 		fi
 		while (( n-- )); do
 			d=${DIRSTACK[0]}
-			\unset DIRSTACK[0]
-			\set -A DIRSTACK -- "${DIRSTACK[@]}" "$d"
+			\\builtin unset DIRSTACK[0]
+			\\builtin set -A DIRSTACK -- "${DIRSTACK[@]}" "$d"
 		done
-		\cd_csh "${DIRSTACK[0]}" || \return 1
+		\cd_csh "${DIRSTACK[0]}" || \\builtin return 1
 	else
-		\set -A DIRSTACK -- placeholder "${DIRSTACK[@]}"
-		\cd_csh "$1" || \return 1
+		\\builtin set -A DIRSTACK -- placeholder "${DIRSTACK[@]}"
+		\cd_csh "$1" || \\builtin return 1
 	fi
 	\dirs $fa
 }
 
-# pager (not control character safe)
-smores() (
-	\set +m
-	\cat "$@" |&
-	\trap "rv=\$?; 'kill' $! >/dev/null 2>&1; 'exit' \$rv" EXIT
-	while IFS= \read -pr line; do
-		llen=${%line}
-		(( llen == -1 )) && llen=${#line}
-		(( llen = llen ? (llen + COLUMNS - 1) / COLUMNS : 1 ))
-		if (( (curlin += llen) >= LINES )); then
-			\builtin print -n -- '\e[7m--more--\e[0m'
-			\read -u1 || \exit $?
-			[[ $REPLY = [Qq]* ]] && \exit 0
-			curlin=$llen
-		fi
-		\builtin print -r -- "$line"
-	done
-)
-
 # base64 encoder and decoder, RFC compliant, NUL safe, not EBCDIC safe
 function Lb64decode {
-	\set +U
-	\typeset c s="$*" t
-	[[ -n $s ]] || { s=$(\cat; \builtin print x); s=${s%x}; }
-	\typeset -i i=0 j=0 n=${#s} p=0 v x
-	\typeset -i16 o
+	\\builtin set +U
+	\\builtin typeset c s="$*" t
+	[[ -n $s ]] || { s=$(\\builtin cat; \\builtin print x); s=${s%x}; }
+	\\builtin typeset -i i=0 j=0 n=${#s} p=0 v x
+	\\builtin typeset -i16 o
 
 	while (( i < n )); do
 		c=${s:(i++):1}
 		case $c {
-		(=)	\break ;;
+		(=)	\\builtin break ;;
 		([A-Z])	(( v = 1#$c - 65 )) ;;
 		([a-z])	(( v = 1#$c - 71 )) ;;
 		([0-9])	(( v = 1#$c + 4 )) ;;
 		(+)	v=62 ;;
 		(/)	v=63 ;;
-		(*)	\continue ;;
+		(*)	\\builtin continue ;;
 		}
 		(( x = (x << 6) | v ))
 		case $((p++)) {
-		(0)	\continue ;;
+		(0)	\\builtin continue ;;
 		(1)	(( o = (x >> 4) & 255 )) ;;
 		(2)	(( o = (x >> 2) & 255 )) ;;
 		(3)	(( o = x & 255 ))
@@ -297,63 +313,60 @@ function Lb64decode {
 			;;
 		}
 		t+=\\x${o#16#}
-		(( ++j & 4095 )) && \continue
-		\builtin print -n $t
+		(( ++j & 4095 )) && \\builtin continue
+		\\builtin print -n $t
 		t=
 	done
-	\builtin print -n $t
+	\\builtin print -n $t
 }
-
-\set -A Lb64encode_tbl -- A B C D E F G H I J K L M N O P Q R S T U V W X Y Z \
-    a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9 + /
 function Lb64encode {
-	\set +U
-	\typeset c s t
+	\\builtin set +U
+	\\builtin typeset c s t table
+	\\builtin set -A table -- A B C D E F G H I J K L M N O P Q R S T U V W X Y Z \
+	    a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9 + /
 	if (( $# )); then
-		\read -raN-1 s <<<"$*"
-		\unset s[${#s[*]}-1]
+		\\builtin read -raN-1 s <<<"$*"
+		\\builtin unset s[${#s[*]}-1]
 	else
-		\read -raN-1 s
+		\\builtin read -raN-1 s
 	fi
-	\typeset -i i=0 n=${#s[*]} j v
+	\\builtin typeset -i i=0 n=${#s[*]} v
 
 	while (( i < n )); do
 		(( v = s[i++] << 16 ))
-		(( j = i < n ? s[i++] : 0 ))
-		(( v |= j << 8 ))
-		(( j = i < n ? s[i++] : 0 ))
-		(( v |= j ))
-		t+=${Lb64encode_tbl[v >> 18]}${Lb64encode_tbl[v >> 12 & 63]}
-		c=${Lb64encode_tbl[v >> 6 & 63]}
+		(( v |= s[i++] << 8 ))
+		(( v |= s[i++] ))
+		t+=${table[v >> 18]}${table[v >> 12 & 63]}
+		c=${table[v >> 6 & 63]}
 		if (( i <= n )); then
-			t+=$c${Lb64encode_tbl[v & 63]}
+			t+=$c${table[v & 63]}
 		elif (( i == n + 1 )); then
 			t+=$c=
 		else
 			t+===
 		fi
 		if (( ${#t} == 76 || i >= n )); then
-			\builtin print $t
+			\\builtin print -r $t
 			t=
 		fi
 	done
 }
 
 # Better Avalanche for the Jenkins Hash
-\typeset -Z11 -Uui16 Lbafh_v
+\\builtin typeset -Z11 -Uui16 Lbafh_v
 function Lbafh_init {
 	Lbafh_v=0
 }
 function Lbafh_add {
-	\set +U
-	\typeset s
+	\\builtin set +U
+	\\builtin typeset s
 	if (( $# )); then
-		\read -raN-1 s <<<"$*"
-		\unset s[${#s[*]}-1]
+		\\builtin read -raN-1 s <<<"$*"
+		\\builtin unset s[${#s[*]}-1]
 	else
-		\read -raN-1 s
+		\\builtin read -raN-1 s
 	fi
-	\typeset -i i=0 n=${#s[*]}
+	\\builtin typeset -i i=0 n=${#s[*]}
 
 	while (( i < n )); do
 		((# Lbafh_v = (Lbafh_v + s[i++] + 1) * 1025 ))
@@ -361,7 +374,7 @@ function Lbafh_add {
 	done
 }
 function Lbafh_finish {
-	\typeset -Ui t
+	\\builtin typeset -Ui t
 
 	((# t = (((Lbafh_v >> 7) & 0x01010101) * 0x1B) ^ \
 	    ((Lbafh_v << 1) & 0xFEFEFEFE) ))
@@ -373,42 +386,33 @@ function Lbafh_finish {
 # strip comments (and leading/trailing whitespace if IFS is set) from
 # any file(s) given as argument, or stdin if none, and spew to stdout
 function Lstripcom {
-	\set -o noglob
-	\cat "$@" | while \read _line; do
+	\\builtin set -o noglob
+	\\builtin cat "$@" | while \\builtin read _line; do
 		_line=${_line%%#*}
-		[[ -n $_line ]] && \builtin print -r -- $_line
+		[[ -n $_line ]] && \\builtin print -r -- $_line
 	done
-}
-
-# give MidnightBSD's laffer1 a bit of csh feeling
-function setenv {
-	if (( $# )); then
-		\eval '\export "$1"="${2:-}"'
-	else
-		\typeset -x
-	fi
 }
 
 # toggle built-in aliases and utilities, and aliases and functions from mkshrc
 function enable {
-	\typeset doprnt=0 mode=1 x y z rv=0
-	\typeset b_alias i_alias i_func nalias=0 nfunc=0 i_all
-	\set -A b_alias
-	\set -A i_alias
-	\set -A i_func
+	\\builtin typeset doprnt=0 mode=1 x y z rv=0
+	\\builtin typeset b_alias i_alias i_func nalias=0 nfunc=0 i_all
+	\\builtin set -A b_alias
+	\\builtin set -A i_alias
+	\\builtin set -A i_func
 
 	# accumulate mksh built-in aliases, in ASCIIbetical order
-	i_alias[nalias]=autoload; b_alias[nalias++]='\typeset -fu'
-	i_alias[nalias]=functions; b_alias[nalias++]='\typeset -f'
-	i_alias[nalias]=hash; b_alias[nalias++]='\builtin alias -t'
-	i_alias[nalias]=history; b_alias[nalias++]='\builtin fc -l'
-	i_alias[nalias]=integer; b_alias[nalias++]='\typeset -i'
-	i_alias[nalias]=local; b_alias[nalias++]='\typeset'
-	i_alias[nalias]=login; b_alias[nalias++]='\exec login'
-	i_alias[nalias]=nameref; b_alias[nalias++]='\typeset -n'
+	i_alias[nalias]=autoload; b_alias[nalias++]='\\builtin typeset -fu'
+	i_alias[nalias]=functions; b_alias[nalias++]='\\builtin typeset -f'
+	i_alias[nalias]=hash; b_alias[nalias++]='\\builtin alias -t'
+	i_alias[nalias]=history; b_alias[nalias++]='\\builtin fc -l'
+	i_alias[nalias]=integer; b_alias[nalias++]='\\builtin typeset -i'
+	i_alias[nalias]=local; b_alias[nalias++]='\\builtin typeset'
+	i_alias[nalias]=login; b_alias[nalias++]='\\builtin exec login'
+	i_alias[nalias]=nameref; b_alias[nalias++]='\\builtin typeset -n'
 	i_alias[nalias]=nohup; b_alias[nalias++]='nohup '
-	i_alias[nalias]=r; b_alias[nalias++]='\builtin fc -e -'
-	i_alias[nalias]=type; b_alias[nalias++]='\builtin whence -v'
+	i_alias[nalias]=r; b_alias[nalias++]='\\builtin fc -e -'
+	i_alias[nalias]=type; b_alias[nalias++]='\\builtin whence -v'
 
 	# accumulate mksh built-in utilities, in definition order, even ifndef
 	i_func[nfunc++]=.
@@ -416,6 +420,7 @@ function enable {
 	i_func[nfunc++]='['
 	i_func[nfunc++]=alias
 	i_func[nfunc++]=break
+	# \\builtin cannot, by design, be overridden
 	i_func[nfunc++]=builtin
 	i_func[nfunc++]=cat
 	i_func[nfunc++]=cd
@@ -434,7 +439,6 @@ function enable {
 	i_func[nfunc++]=jobs
 	i_func[nfunc++]=kill
 	i_func[nfunc++]=let
-	i_func[nfunc++]='let]'
 	i_func[nfunc++]=print
 	i_func[nfunc++]=pwd
 	i_func[nfunc++]=read
@@ -471,11 +475,13 @@ function enable {
 	i_alias[nalias]=la; b_alias[nalias++]='l -a'
 	i_alias[nalias]=ll; b_alias[nalias++]='l -l'
 	i_alias[nalias]=lo; b_alias[nalias++]='l -alo'
-	i_alias[nalias]=doch; b_alias[nalias++]='sudo mksh -c "$(\builtin fc -ln -1)"'
+	i_alias[nalias]=doch; b_alias[nalias++]='sudo mksh -c "$(\\builtin fc -ln -1)"'
 	i_alias[nalias]=rot13; b_alias[nalias++]='tr abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ nopqrstuvwxyzabcdefghijklmNOPQRSTUVWXYZABCDEFGHIJKLM'
-	i_alias[nalias]=cls; b_alias[nalias++]='\builtin print -n \\ec'
+	i_alias[nalias]=cls; b_alias[nalias++]='\\builtin print -n \\ec'
 
 	# accumulate functions from dot.mkshrc, in definition order
+	i_func[nfunc++]=setenv
+	i_func[nfunc++]=smores
 	i_func[nfunc++]=hd
 	i_func[nfunc++]=chpwd
 	i_func[nfunc++]=cd
@@ -483,21 +489,19 @@ function enable {
 	i_func[nfunc++]=dirs
 	i_func[nfunc++]=popd
 	i_func[nfunc++]=pushd
-	i_func[nfunc++]=smores
 	i_func[nfunc++]=Lb64decode
 	i_func[nfunc++]=Lb64encode
 	i_func[nfunc++]=Lbafh_init
 	i_func[nfunc++]=Lbafh_add
 	i_func[nfunc++]=Lbafh_finish
 	i_func[nfunc++]=Lstripcom
-	i_func[nfunc++]=setenv
 	i_func[nfunc++]=enable
 
 	# collect all identifiers, sorted ASCIIbetically
-	\set -sA i_all -- "${i_alias[@]}" "${i_func[@]}"
+	\\builtin set -sA i_all -- "${i_alias[@]}" "${i_func[@]}"
 
 	# handle options, we don't do dynamic loading
-	while \getopts "adf:nps" x; do
+	while \\builtin getopts "adf:nps" x; do
 		case $x {
 		(a)
 			mode=-1
@@ -506,8 +510,8 @@ function enable {
 			# deliberately causing an error, like bash-static
 			;|
 		(f)
-			\builtin print -u2 enable: dynamic loading not available
-			\return 2
+			\\builtin print -ru2 enable: dynamic loading not available
+			\\builtin return 2
 			;;
 		(n)
 			mode=0
@@ -516,88 +520,89 @@ function enable {
 			doprnt=1
 			;;
 		(s)
-			\set -sA i_all -- . : break continue eval exec exit \
-			    export readonly return set shift times trap unset
+			\\builtin set -sA i_all -- . : break continue eval \
+			    exec exit export readonly return set shift times \
+			    trap unset
 			;;
 		(*)
-			\builtin print -u2 enable: usage: \
+			\\builtin print -ru2 enable: usage: \
 			    "enable [-adnps] [-f filename] [name ...]"
 			return 2
 			;;
 		}
 	done
-	\shift $((OPTIND - 1))
+	\\builtin shift $((OPTIND - 1))
 
 	# display builtins enabled/disabled/all/special?
 	if (( doprnt || ($# == 0) )); then
 		for x in "${i_all[@]}"; do
-			y=$(\alias "$x") || y=
-			[[ $y = "$x='\\builtin whence -p $x >/dev/null || (\\builtin print mksh: $x: not found; exit 127) && \$(\\builtin whence -p $x)'" ]]; z=$?
+			y=$(\\builtin alias "$x") || y=
+			[[ $y = "$x='\\\\builtin whence -p $x >/dev/null || (\\\\builtin print -r mksh: $x: not found; \\\\builtin exit 127) && \$(\\\\builtin whence -p $x)'" ]]; z=$?
 			case $mode:$z {
 			(-1:0|0:0)
-				\print -r -- "enable -n $x"
+				\\builtin print -r -- "enable -n $x"
 				;;
 			(-1:1|1:1)
-				\print -r -- "enable $x"
+				\\builtin print -r -- "enable $x"
 				;;
 			}
 		done
-		\return 0
+		\\builtin return 0
 	fi
 
 	for x in "$@"; do
 		z=0
 		for y in "${i_alias[@]}" "${i_func[@]}"; do
-			[[ $x = "$y" ]] || \continue
+			[[ $x = "$y" ]] || \\builtin continue
 			z=1
-			\break
+			\\builtin break
 		done
 		if (( !z )); then
-			\builtin print -ru2 enable: "$x": not a shell builtin
+			\\builtin print -ru2 enable: "$x": not a shell builtin
 			rv=1
-			\continue
+			\\builtin continue
 		fi
 		if (( !mode )); then
 			# disable this
-			\alias "$x=\\builtin whence -p $x >/dev/null || (\\builtin print mksh: $x: not found; exit 127) && \$(\\builtin whence -p $x)"
+			\\builtin alias "$x=\\\\builtin whence -p $x >/dev/null || (\\\\builtin print -r mksh: $x: not found; \\\\builtin exit 127) && \$(\\\\builtin whence -p $x)"
 		else
 			# find out if this is an alias or not, first
 			z=0
 			y=-1
 			while (( ++y < nalias )); do
-				[[ $x = "${i_alias[y]}" ]] || \continue
+				[[ $x = "${i_alias[y]}" ]] || \\builtin continue
 				z=1
-				\break
+				\\builtin break
 			done
 			if (( z )); then
 				# re-enable the original alias body
-				\alias "$x=${b_alias[y]}"
+				\\builtin alias "$x=${b_alias[y]}"
 			else
 				# re-enable the original utility/function
-				\unalias "$x"
+				\\builtin unalias "$x"
 			fi
 		fi
 	done
-	\return $rv
+	\\builtin return $rv
 }
 
 \: place customisations below this line
 
 for p in ~/.etc/bin ~/bin; do
-	[[ -d $p/. ]] || \continue
-	#XXX OS/2
-	[[ :$PATH: = *:$p:* ]] || PATH=$p:$PATH
+	[[ -d $p/. ]] || \\builtin continue
+	[[ $PATHSEP$PATH$PATHSEP = *"$PATHSEP$p$PATHSEP"* ]] || \
+	    PATH=$p$PATHSEP$PATH
 done
 
-\export SHELL=$MKSH MANWIDTH=80 LESSHISTFILE=-
-\alias cls='\builtin print -n \\ec'
+\\builtin export SHELL=$MKSH MANWIDTH=80 LESSHISTFILE=-
+\\builtin alias cls='\\builtin print -n \\ec'
 
-#\unset LANGUAGE LC_ADDRESS LC_ALL LC_COLLATE LC_IDENTIFICATION LC_MONETARY \
+#\\builtin unset LANGUAGE LC_ADDRESS LC_ALL LC_COLLATE LC_IDENTIFICATION LC_MONETARY \
 #    LC_NAME LC_NUMERIC LC_TELEPHONE LC_TIME
 #p=en_GB.UTF-8
-#\export LANG=C LC_CTYPE=$p LC_MEASUREMENT=$p LC_MESSAGES=$p LC_PAPER=$p
-#\set -U
+#\\builtin export LANG=C LC_CTYPE=$p LC_MEASUREMENT=$p LC_MESSAGES=$p LC_PAPER=$p
+#\\builtin set -U
 
-\unset p
+\\builtin unset p
 
 \: place customisations above this line

@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *		 2010, 2011, 2012, 2013, 2014, 2015, 2016
+ *		 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.319 2016/11/11 23:48:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.331 2017/03/22 00:20:41 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -92,6 +92,7 @@ c_false(const char **wp MKSH_A_UNUSED)
 /*
  * A leading = means assignments before command are kept.
  * A leading * means a POSIX special builtin.
+ * A leading ^ means declaration utility, - forwarder.
  */
 const struct builtin mkshbuiltins[] = {
 	{Tsgdot, c_dot},
@@ -100,30 +101,31 @@ const struct builtin mkshbuiltins[] = {
 	/* no =: AT&T manual wrong */
 	{Talias, c_alias},
 	{"*=break", c_brkcont},
-	{Tgbuiltin, c_builtin},
+	{T__builtin, c_builtin},
+	{Tbuiltin, c_builtin},
 	{Tbcat, c_cat},
 	{Tcd, c_cd},
 	/* dash compatibility hack */
 	{"chdir", c_cd},
-	{Tcommand, c_command},
+	{T_command, c_command},
 	{"*=continue", c_brkcont},
 	{"echo", c_print},
 	{"*=eval", c_eval},
 	{"*=exec", c_exec},
 	{"*=exit", c_exitreturn},
-	{Tsgexport, c_typeset},
+	{Tdsgexport, c_typeset},
 	{Tfalse, c_false},
 	{"fc", c_fc},
 	{Tgetopts, c_getopts},
-	{"=global", c_typeset},
+	/* deprecated, replaced by typeset -g */
+	{"^=global", c_typeset},
 	{Tjobs, c_jobs},
 	{"kill", c_kill},
 	{"let", c_let},
-	{"let]", c_let},
 	{"print", c_print},
 	{"pwd", c_pwd},
 	{Tread, c_read},
-	{Tsgreadonly, c_typeset},
+	{Tdsgreadonly, c_typeset},
 	{"!realpath", c_realpath},
 	{"~rename", c_rename},
 	{"*=return", c_exitreturn},
@@ -137,12 +139,12 @@ const struct builtin mkshbuiltins[] = {
 	{"*=times", c_times},
 	{"*=trap", c_trap},
 	{Ttrue, c_true},
-	{Tgtypeset, c_typeset},
+	{Tdgtypeset, c_typeset},
 	{"ulimit", c_ulimit},
 	{"umask", c_umask},
 	{Tunalias, c_unalias},
 	{"*=unset", c_unset},
-	{"=wait", c_wait},
+	{"wait", c_wait},
 	{"whence", c_whence},
 #ifndef MKSH_UNEMPLOYED
 	{Tbg, c_fgbg},
@@ -307,8 +309,6 @@ c_print(const char **wp)
 		bool hist;
 		/* print words as wide characters? */
 		bool chars;
-		/* print a "--" argument? */
-		bool pminusminus;
 		/* writing to a coprocess (SIGPIPE blocked)? */
 		bool coproc;
 		bool copipe;
@@ -319,47 +319,39 @@ c_print(const char **wp)
 	po.ws = ' ';
 	po.ls = '\n';
 	po.nl = true;
-	po.exp = true;
 
 	if (wp[0][0] == 'e') {
 		/* "echo" builtin */
-		++wp;
-#ifdef MKSH_MIDNIGHTBSD01ASH_COMPAT
-		if (Flag(FSH)) {
-			/*
-			 * MidnightBSD /bin/sh needs a BSD echo, that is,
-			 * one that supports -e but does not enable it by
-			 * default
-			 */
-			po.exp = false;
-		}
-#endif
 		if (Flag(FPOSIX) ||
 #ifndef MKSH_MIDNIGHTBSD01ASH_COMPAT
 		    Flag(FSH) ||
 #endif
 		    Flag(FAS_BUILTIN)) {
-			/* Debian Policy 10.4 compliant "echo" builtin */
+			/* BSD "echo" cmd, Debian Policy 10.4 compliant */
+			++wp;
+ bsd_echo:
 			if (*wp && !strcmp(*wp, "-n")) {
-				/* recognise "-n" only as the first arg */
 				po.nl = false;
 				++wp;
 			}
-			/* print everything as-is */
 			po.exp = false;
 		} else {
-			bool new_exp = po.exp, new_nl = po.nl;
+			bool new_exp, new_nl = true;
 
-			/**
-			 * a compromise between sysV and BSD echo commands:
-			 * escape sequences are enabled by default, and -n,
-			 * -e and -E are recognised if they appear in argu-
-			 * ments with no illegal options (ie, echo -nq will
-			 * print -nq).
-			 * Different from sysV echo since options are reco-
-			 * gnised, different from BSD echo since escape se-
-			 * quences are enabled by default.
+			/*-
+			 * compromise between various historic echos: only
+			 * recognise -Een if they appear in arguments with
+			 * no illegal options; e.g. echo -nq outputs '-nq'
 			 */
+#ifdef MKSH_MIDNIGHTBSD01ASH_COMPAT
+			/* MidnightBSD /bin/sh needs -e supported but off */
+			if (Flag(FSH))
+				new_exp = false;
+			else
+#endif
+			/* otherwise compromise on -e enabled by default */
+			  new_exp = true;
+			goto print_tradparse_beg;
 
  print_tradparse_arg:
 			if ((s = *wp) && *s++ == '-' && *s) {
@@ -375,6 +367,7 @@ c_print(const char **wp)
 					new_nl = false;
 					goto print_tradparse_ch;
 				case '\0':
+ print_tradparse_beg:
 					po.exp = new_exp;
 					po.nl = new_nl;
 					++wp;
@@ -384,10 +377,10 @@ c_print(const char **wp)
 		}
 	} else {
 		/* "print" builtin */
-		const char *opts = "AclNnpRrsu,";
+		const char *opts = "AcelNnpRrsu,";
 		const char *emsg;
 
-		po.pminusminus = false;
+		po.exp = true;
 
 		while ((c = ksh_getopt(wp, &builtin_opt, opts)) != -1)
 			switch (c) {
@@ -417,11 +410,9 @@ c_print(const char **wp)
 				}
 				break;
 			case 'R':
-				/* fake BSD echo command */
-				po.pminusminus = true;
-				po.exp = false;
-				opts = "en";
-				break;
+				/* fake BSD echo but don't reset other flags */
+				wp += builtin_opt.optind;
+				goto bsd_echo;
 			case 'r':
 				po.exp = false;
 				break;
@@ -445,8 +436,7 @@ c_print(const char **wp)
 			if (wp[builtin_opt.optind] &&
 			    ksh_isdash(wp[builtin_opt.optind]))
 				builtin_opt.optind++;
-			} else if (po.pminusminus)
-				builtin_opt.optind--;
+		}
 		wp += builtin_opt.optind;
 	}
 
@@ -751,7 +741,7 @@ do_whence(const char **wp, int fcflags, bool vflag, bool iscommand)
 	return (rv);
 }
 
-/* typeset, global, export, and readonly */
+/* typeset, global(deprecated), export, and readonly */
 static void c_typeset_vardump(struct tbl *, uint32_t, int, bool, bool);
 static void c_typeset_vardump_recursive(struct block *, uint32_t, int, bool,
     bool);
@@ -793,7 +783,7 @@ c_typeset(const char **wp)
 	}
 
 	/* see comment below regarding possible opions */
-	opts = istset ? "L#R#UZ#afi#lnprtux" : "p";
+	opts = istset ? "L#R#UZ#afgi#lnprtux" : "p";
 
 	builtin_opt.flags |= GF_PLUSOPT;
 	/*
@@ -837,6 +827,9 @@ c_typeset(const char **wp)
 			break;
 		case 'f':
 			func = true;
+			break;
+		case 'g':
+			localv = (builtin_opt.info & GI_PLUS) ? true : false;
 			break;
 		case 'i':
 			flag = INTEGER;
@@ -2392,6 +2385,7 @@ c_eval(const char **wp)
 		return (1);
 	s = pushs(SWORDS, ATEMP);
 	s->u.strv = wp + builtin_opt.optind;
+	s->line = current_lineno;
 
 	/*-
 	 * The following code handles the case where the command is
@@ -2833,7 +2827,6 @@ c_exec(const char **wp MKSH_A_UNUSED)
 		for (i = 0; i < NUFILE; i++) {
 			if (e->savefd[i] > 0)
 				close(e->savefd[i]);
-#ifndef MKSH_LEGACY_MODE
 			/*
 			 * keep all file descriptors > 2 private for ksh,
 			 * but not for POSIX or legacy/kludge sh
@@ -2841,7 +2834,6 @@ c_exec(const char **wp MKSH_A_UNUSED)
 			if (!Flag(FPOSIX) && !Flag(FSH) && i > 2 &&
 			    e->savefd[i])
 				fcntl(i, F_SETFD, FD_CLOEXEC);
-#endif
 		}
 		e->savefd = NULL;
 	}
@@ -3682,7 +3674,7 @@ c_ulimit(const char **wp)
 	if (!all)
 		print_ulimit(rlimits[i], how);
 	else for (i = 0; i < NELEM(rlimits); ++i) {
-		shprintf("%-20s ", rlimits[i]->name);
+		shprintf("-%c: %-20s  ", rlimits[i]->optchar, rlimits[i]->name);
 		print_ulimit(rlimits[i], how);
 	}
 	return (0);

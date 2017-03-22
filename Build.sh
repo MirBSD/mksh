@@ -1,8 +1,8 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.707 2016/11/11 23:31:29 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.709 2017/03/17 23:47:05 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#		2011, 2012, 2013, 2014, 2015, 2016
+#		2011, 2012, 2013, 2014, 2015, 2016, 2017
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -586,11 +586,10 @@ fi
 rmf a.exe* a.out* conftest.c conftest.exe* *core core.* ${tfn}* *.bc *.dbg \
     *.ll *.o *.gen *.cat1 Rebuild.sh lft no signames.inc test.sh x vv.out
 
-SRCS="lalloc.c eval.c exec.c expr.c funcs.c histrap.c jobs.c"
+SRCS="lalloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c jobs.c"
 SRCS="$SRCS lex.c main.c misc.c shf.c syn.c tree.c var.c"
 
 if test $legacy = 0; then
-	SRCS="$SRCS edit.c"
 	check_categories="$check_categories shell:legacy-no int:32"
 else
 	check_categories="$check_categories shell:legacy-yes"
@@ -766,7 +765,6 @@ Harvey)
 	add_cppflags -DMKSH__NO_SETEUGID
 	oswarn=' and will currently not work'
 	add_cppflags -DMKSH_UNEMPLOYED
-	add_cppflags -DMKSH_NOPROSPECTOFWORK
 	# these taken from Harvey-OS github and need re-checking
 	add_cppflags -D_setjmp=setjmp -D_longjmp=longjmp
 	: "${HAVE_CAN_NO_EH_FRAME=0}"

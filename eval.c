@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.194 2016/11/11 23:31:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.198 2017/03/11 22:49:55 tg Exp $");
 
 /*
  * string expansion
@@ -625,13 +625,12 @@ expand(
 						break;
 					case '=':
 						/*
-						 * Enabling tilde expansion
-						 * after :s here is
-						 * non-standard ksh, but is
-						 * consistent with rules for
-						 * other assignments. Not
-						 * sure what POSIX thinks of
-						 * this.
+						 * Tilde expansion for string
+						 * variables in POSIX mode is
+						 * governed by Austinbug 351.
+						 * In non-POSIX mode historic
+						 * ksh behaviour (enable it!)
+						 * us followed.
 						 * Not doing tilde expansion
 						 * for integer variables is a
 						 * non-POSIX thing - makes
@@ -640,7 +639,7 @@ expand(
 						 */
 						if (!(x.var->flag & INTEGER))
 							f |= DOASNTILDE | DOTILDE;
-						f |= DOTEMP;
+						f |= DOTEMP | DOSCALAR;
 						/*
 						 * These will be done after the
 						 * value has been assigned.
@@ -1224,12 +1223,16 @@ varsub(Expand *xp, const char *sp, const char *word,
 		}
 	} else if (c == '@') {
 		/* @x where x is command char */
-		slen += 2;
-		stype |= 0x100;
-		if (word[slen] == CHAR) {
-			stype |= word[slen + 1];
-			slen += 2;
+		switch (c = word[slen + 2] == CHAR ? word[slen + 3] : 0) {
+		case '#':
+		case '/':
+		case 'Q':
+			break;
+		default:
+			return (-1);
 		}
+		stype |= 0x100 | c;
+		slen += 4;
 	} else if (stype)
 		/* : is not ok */
 		return (-1);
@@ -1730,7 +1733,7 @@ maybe_expand_tilde(const char *p, XString *dsp, char **dpp, bool isassign)
 
 	Xinit(ts, tp, 16, ATEMP);
 	/* : only for DOASNTILDE form */
-	while (p[0] == CHAR && !mksh_cdirsep(p[1]) &&
+	while (p[0] == CHAR && /* not cdirsep */ p[1] != '/' &&
 	    (!isassign || p[1] != ':')) {
 		Xcheck(ts, tp);
 		*tp++ = p[1];

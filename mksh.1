@@ -1,8 +1,8 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.420 2016/11/11 23:31:36 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.435 2017/03/19 22:31:27 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-.\"		2010, 2011, 2012, 2013, 2014, 2015, 2016
+.\"		2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 .\"	mirabilos <m@mirbsd.org>
 .\"
 .\" Provided that these terms and disclaimer and all copyright notices
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: November 11 2016 $
+.Dd $Mdocdate: March 19 2017 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -186,23 +186,8 @@ sometimes does take portable shell scripting or various standards
 into account all information is first and foremost presented with
 .Nm
 in mind and should be taken as such.
-.Ss I'm an Android user, so what's mksh?
-.Nm mksh
-is a
-.Ux
-shell / command interpreter, similar to
-.Nm COMMAND.COM
-or
-.Nm CMD.EXE ,
-which has been included with
-.Tn Android Open Source Project
-for a while now.
-Basically, it's a program that runs in a terminal (console window),
-takes user input and runs commands or scripts, which it can also
-be asked to do by other programs, even in the background.
-Any privilege pop-ups you might be encountering are thus not
-.Nm mksh
-issues but questions by some other program utilising it.
+.Ss I use Android, OS/2, etc. so what...?
+Please see the FAQ at the end of this document.
 .Ss Invocation
 Most builtins can be called directly, for example if a link points from its
 name to the shell; not all make sense, have been tested or work at all though.
@@ -1130,17 +1115,17 @@ also by newline) may be one same parse tree.
 .Pp
 The following command aliases are defined automatically by the shell:
 .Bd -literal -offset indent
-autoload=\*(aq\etypeset \-fu\*(aq
-functions=\*(aq\etypeset \-f\*(aq
-hash=\*(aq\ebuiltin alias \-t\*(aq
-history=\*(aq\ebuiltin fc \-l\*(aq
-integer=\*(aq\etypeset \-i\*(aq
-local=\*(aq\etypeset\*(aq
-login=\*(aq\eexec login\*(aq
-nameref=\*(aq\etypeset \-n\*(aq
+autoload=\*(aq\e\ebuiltin typeset \-fu\*(aq
+functions=\*(aq\e\ebuiltin typeset \-f\*(aq
+hash=\*(aq\e\ebuiltin alias \-t\*(aq
+history=\*(aq\e\ebuiltin fc \-l\*(aq
+integer=\*(aq\e\ebuiltin typeset \-i\*(aq
+local=\*(aq\e\ebuiltin typeset\*(aq
+login=\*(aq\e\ebuiltin exec login\*(aq
+nameref=\*(aq\e\ebuiltin typeset \-n\*(aq
 nohup=\*(aqnohup \*(aq
-r=\*(aq\ebuiltin fc \-e \-\*(aq
-type=\*(aq\ebuiltin whence \-v\*(aq
+r=\*(aq\e\ebuiltin fc \-e \-\*(aq
+type=\*(aq\e\ebuiltin whence \-v\*(aq
 .Ed
 .Pp
 Tracked aliases allow the shell to remember where it found a particular
@@ -2035,9 +2020,11 @@ searched when looking for commands and files sourced using the
 .Dq Li \&.
 command (see below).
 An empty string resulting from a leading or trailing
-colon, or two adjacent colons, is treated as a
+(semi)colon, or two adjacent ones, is treated as a
 .Dq Li \&.
 (the current directory).
+.It Ev PATHSEP
+A colon (semicolon on OS/2), for the user's convenience.
 .It Ev PGRP
 The process ID of the shell's process group leader.
 .It Ev PIPESTATUS
@@ -2127,7 +2114,7 @@ Due to a strong suggestion from David G. Korn,
 .Nm
 now also supports the following form:
 .Bd -literal -offset indent
-PS1=$'\e1\er\e1\ee[7m\e1$PWD\e1\ee[0m\e1\*(Gt '
+PS1=$\*(aq\e1\er\e1\ee[7m\e1$PWD\e1\ee[0m\e1\*(Gt \*(aq
 .Ed
 .It Ev PS2
 Secondary prompt string, by default
@@ -2185,9 +2172,18 @@ files are created in
 The effective user id of the shell.
 .El
 .Ss Tilde expansion
-Tilde expansion which is done in parallel with parameter substitution, is done
-on words starting with an unquoted
+Tilde expansion, which is done in parallel with parameter substitution,
+is applied to words starting with an unquoted
 .Ql \*(TI .
+In parameter assignments (such as those preceding a simple-command or those
+occurring in the arguments of a declaration utility), tilde expansion is done
+after any assignment (i.e. after the equals sign) or after an unquoted colon
+.Pq Ql \&: ;
+login names are also delimited by colons.
+The Korn shell, except in POSIX mode, always expands tildes after unquoted
+equals signs, not just in assignment context (see below), and enables tab
+completion for tildes after all unquoted colons during command line editing.
+.Pp
 The characters following the tilde, up to the first
 .Ql / ,
 if any, are assumed to be a login name.
@@ -2207,21 +2203,6 @@ user's home directory.
 If the login name is not found in the password file or
 if any quoting or parameter substitution occurs in the login name, no
 substitution is performed.
-.Pp
-In parameter assignments
-(such as those preceding a simple-command or those occurring
-in the arguments of
-.Ic alias ,
-.Ic export ,
-.Ic global ,
-.Ic readonly
-and
-.Ic typeset ) ,
-tilde expansion is done after any assignment
-(i.e. after the equals sign)
-or after an unquoted colon
-.Pq Ql \&: ;
-login names are also delimited by colons.
 .Pp
 The home directory of previously expanded login names are cached and re-used.
 The
@@ -2586,7 +2567,7 @@ Redirections are processed after
 pipelines are created and in the order they are given, so the following
 will print an error with a line number prepended to it:
 .Pp
-.D1 $ cat /foo/bar 2\*(Gt&1 \*(Gt/dev/null \*(Ba pr \-n \-t
+.Dl $ cat /foo/bar 2\*(Gt&1 \*(Gt/dev/null \*(Ba pr \-n \-t
 .Pp
 File descriptors created by I/O redirections are private to the shell.
 .Ss Arithmetic expressions
@@ -3022,18 +3003,18 @@ Additional
 .Nm
 commands keeping assignments:
 .Pp
-.Ic builtin , global , source , typeset ,
-.Ic wait
+.Ic global , source , typeset
 .Pp
 Builtins that are not special:
 .Pp
 .Ic [ , alias , bg , bind ,
-.Ic cat , cd , command , echo ,
-.Ic false , fc , fg , getopts ,
-.Ic jobs , kill , let , print ,
-.Ic pwd , read , realpath , rename ,
-.Ic sleep , suspend , test , true ,
-.Ic ulimit , umask , unalias , whence
+.Ic builtin , cat , cd , command ,
+.Ic echo , false , fc , fg ,
+.Ic getopts , jobs , kill , let ,
+.Ic print , pwd , read , realpath ,
+.Ic rename , sleep , suspend , test ,
+.Ic true , ulimit , umask , unalias ,
+.Ic wait , whence
 .Pp
 Once the type of command has been determined, any command-line parameter
 assignments are performed and exported for the duration of the command.
@@ -3217,6 +3198,18 @@ Execute the built-in command
 .Ar command .
 .Pp
 .It Xo
+.Ic \ebuiltin
+.Ar command Op Ar arg ...
+.Xc
+Same as
+.Ic builtin .
+Additionally acts as declaration utility forwarder, i.e. this is a
+declaration utility (see
+.Sx Tilde expansion )
+.No iff Ar command
+is a declaration utility.
+.Pp
+.It Xo
 .Ic cat
 .Op Fl u
 .Op Ar
@@ -3346,6 +3339,7 @@ cannot be a shell function;
 and secondly, special built-in commands lose their specialness
 (i.e. redirection and utility errors do not cause the shell to
 exit, and command assignments are not permanent).
+The declaration utility property is not reset.
 .Pp
 If the
 .Fl p
@@ -3421,8 +3415,10 @@ If the
 .Ic posix
 or
 .Ic sh
-option is set or this is a direct builtin call, only the first argument
-is treated as an option, and only if it is exactly
+option is set or this is a direct builtin call or
+.Ic print
+.Fl R ,
+only the first argument is treated as an option, and only if it is exactly
 .Dq Li \-n .
 Backslash interpretation is disabled.
 .Pp
@@ -3478,6 +3474,7 @@ parameter.
 Sets the export attribute of the named parameters.
 Exported parameters are passed in the environment to executed commands.
 If values are specified, the named parameters are also assigned.
+This is a declaration utility.
 .Pp
 If no parameters are specified, all parameters with the export attribute
 set are printed one per line; either their names, or, if a
@@ -3632,9 +3629,22 @@ resetting
 .Ev OPTIND
 may lead to unexpected results.
 .Pp
-.It global Ar ...
+.It Xo
+.Ic global
+.Op Ic +\-aglpnrtUux
+.Oo Fl L Ns Op Ar n
+.No \*(Ba Fl R Ns Op Ar n
+.No \*(Ba Fl Z Ns Op Ar n Oc
+.Op Fl i Ns Op Ar n
+.Oo Ar name
+.Op Ns = Ns Ar value
+.Ar ... Oc
+.Xc
 See
-.Ic typeset .
+.Ic typeset Fl g .
+.No Deprecated , Em will
+be removed from a future version of
+.Nm .
 .Pp
 .It Xo
 .Ic hash
@@ -3712,12 +3722,8 @@ If an error occurs during
 the parsing or evaluation of an expression, the exit status is greater than 1.
 Since expressions may need to be quoted,
 .No \&(( Ar expr No ))
-is syntactic sugar for
-.No "{ let '" Ns Ar expr Ns "'; }" .
-.Pp
-.It Ic let]
-Internally used alias for
-.Ic let .
+is syntactic sugar for:
+.Dl "{ \e\ebuiltin let \*(aq" Ns Ar expr Ns "\*(aq; }"
 .Pp
 .It Xo
 .Ic mknod
@@ -3757,13 +3763,13 @@ however, distributors may have added this as builtin as a speed hack.
 .Pp
 .It Xo
 .Ic print
-.Oo Fl AclNnprsu Ns Oo Ar n Oc \*(Ba
-.Fl R Op Fl en Oc
+.Oo Fl AcelNnprsu Ns Oo Ar n Oc \*(Ba
+.Fl R Op Fl n Oc
 .Op Ar argument ...
 .Xc
 Print the specified argument(s) on the standard output,
 separated by spaces, terminated with a newline.
-The C escapes mentioned in
+The escapes mentioned in
 .Sx Backslash expansion
 above, as well as
 .Dq Li \ec ,
@@ -3789,6 +3795,9 @@ utility, tab completion, the
 built-in utility and the
 .Ic select
 statement do.
+.It Fl e
+Restore backslash expansion after a previous
+.Fl r .
 .It Fl l
 Change the output word separator to newline.
 .It Fl N
@@ -3803,7 +3812,7 @@ above).
 Inhibit backslash expansion.
 .It Fl s
 Print to the history file instead of standard output.
-.It Fl u Op Ar n
+.It Fl u Ns Op Ar n
 Print to the file descriptor
 .Ar n Pq defaults to 1 if omitted
 instead of standard output.
@@ -3811,31 +3820,13 @@ instead of standard output.
 .Pp
 The
 .Fl R
-option is used to emulate, to some degree, the
+option mostly emulates the
 .Bx
 .Xr echo 1
-command which does not process
-.Ql \e
-sequences unless the
-.Fl e
-option is given.
-As above, the
-.Fl n
-option suppresses the trailing newline.
-.Pp
-.It Ic printf Ar format Op Ar arguments ...
-Formatted output.
-Approximately the same as the
-.Xr printf 1 ,
-utility, except it uses the same
-.Sx Backslash expansion
-and I/O code and does not handle floating point as the rest of
-.Nm mksh .
-An external utility is preferred over the builtin.
-This is not normally part of
-.Nm mksh ;
-however, distributors may have added this as builtin as a speed hack.
-Do not use in new code.
+command which does not expand backslashes and interprets
+its first argument as option only if it is exactly
+.Dq Li \-n
+.Pq to suppress the trailing newline .
 .Pp
 .It Ic pwd Op Fl LP
 Print the present working directory.
@@ -3970,40 +3961,6 @@ If no input is read or a timeout occurred,
 .Ic read
 exits with a non-zero status.
 .Pp
-Another handy set of tricks:
-If
-.Ic read
-is run in a loop such as
-.Ic while read foo; do ...; done
-then leading whitespace will be removed (IFS) and backslashes processed.
-You might want to use
-.Ic while IFS= read \-r foo; do ...; done
-for pristine I/O.
-Similarly, when using the
-.Fl a
-option, use of the
-.Fl r
-option might be prudent; the same applies for:
-.Bd -literal -offset indent
-find . \-type f \-print0 \*(Ba& \e
-    while IFS= read \-d \*(aq\*(aq \-pr filename; do
-	print \-r \-\- "found \*(Lt${filename#./}\*(Gt"
-done
-.Ed
-.Pp
-The inner loop will be executed in a subshell and variable changes
-cannot be propagated if executed in a pipeline:
-.Bd -literal -offset indent
-bar \*(Ba baz \*(Ba while read foo; do ...; done
-.Ed
-.Pp
-Use co-processes instead:
-.Bd -literal -offset indent
-bar \*(Ba baz \*(Ba&
-while read \-p foo; do ...; done
-exec 3\*(Gt&p; exec 3\*(Gt&\-
-.Ed
-.Pp
 .It Xo
 .Ic readonly
 .Op Fl p
@@ -4012,6 +3969,7 @@ exec 3\*(Gt&p; exec 3\*(Gt&\-
 .Ar ... Oc
 .Xc
 Sets the read-only attribute of the named parameters.
+This is a declaration utility.
 If values are given,
 parameters are set to them before setting the attribute.
 Once a parameter is
@@ -4266,7 +4224,6 @@ Background jobs are run with lower priority.
 .It Fl o Ic braceexpand
 Enable brace expansion (a.k.a. alternation).
 This is enabled by default.
-If disabled, tilde expansion after an equals sign is disabled as a side effect.
 .It Fl o Ic emacs
 Enable BRL emacs-like command-line editing (interactive shells only); see
 .Sx Emacs editing mode .
@@ -4800,28 +4757,23 @@ traps in functions are not yet implemented.
 A command that exits with a zero value.
 .Pp
 .It Xo
-.Ic global
-.Oo Op Ic +\-alpnrtUux
-.Op Fl L Ns Op Ar n
-.Op Fl R Ns Op Ar n
-.Op Fl Z Ns Op Ar n
+.Ic typeset
+.Op Ic +\-aglpnrtUux
+.Oo Fl L Ns Op Ar n
+.No \*(Ba Fl R Ns Op Ar n
+.No \*(Ba Fl Z Ns Op Ar n Oc
 .Op Fl i Ns Op Ar n
-.No \*(Ba Fl f Op Fl tux Oc
 .Oo Ar name
 .Op Ns = Ns Ar value
 .Ar ... Oc
 .Xc
 .It Xo
 .Ic typeset
-.Oo Op Ic +\-alpnrtUux
-.Op Fl LRZ Ns Op Ar n
-.Op Fl i Ns Op Ar n
-.No \*(Ba Fl f Op Fl tux Oc
-.Oo Ar name
-.Op Ns = Ns Ar value
-.Ar ... Oc
+.Fl f Op Fl tux
+.Op Ar name ...
 .Xc
 Display or set parameter attributes.
+This is a declaration utility.
 With no
 .Ar name
 arguments, parameter attributes are displayed; if no options are used, the
@@ -4837,27 +4789,16 @@ parameter values are not printed.
 If
 .Ar name
 arguments are given, the attributes of the named parameters are set
-.Pq Ic \-
+.Pq Ic \&\-
 or cleared
-.Pq Ic + .
+.Pq Ic \&+ ;
+inside a function, this will cause the parameters to be created
+(with no value) in the local scope (but see
+.Fl g ) .
 Values for parameters may optionally be specified.
 For
 .Ar name Ns \&[*] ,
-the change affects the entire array, and no value may be specified.
-.Pp
-If
-.Ic typeset
-is used inside a function, any parameters specified are localised.
-This is not done by the otherwise identical
-.Ic global .
-.Em Note :
-This means that
-.Nm No 's Ic global
-command is
-.Em not
-equivalent to other programming languages' as it does not allow a
-function called from another function to access a parameter at truly
-global scope, but only prevents putting an accessed one into local scope.
+the change affects all elements of the array, and no value may be specified.
 .Pp
 When
 .Fl f
@@ -4877,6 +4818,9 @@ Indexed array attribute.
 .It Fl f
 Function mode.
 Display or set functions and their attributes, instead of parameters.
+.It Fl g
+Do not cause named parameters to be created in
+the local scope when called inside a function.
 .It Fl i Ns Op Ar n
 Integer attribute.
 .Ar n
@@ -5028,7 +4972,7 @@ once they are set.
 Also note that the types of limits available are system
 dependent \*(en some systems have only the
 .Fl f
-limit.
+limit, or not even that, or can set only the soft limits
 .Bl -tag -width 5n
 .It Fl a
 Display all limits; unless
@@ -5744,9 +5688,6 @@ Goes to history number
 .No KILL Pq \*(haU
 .Xc
 Deletes the entire input line.
-If Ctrl-U should only delete the line up to the cursor, use:
-.Pp
-.D1 $ bind \-m \*(haU='\*(ha[0\*(haK'
 .It kill\-region: \*(haW
 Deletes the input between the cursor and the mark.
 .It Xo kill\-to\-eol:
@@ -6625,24 +6566,6 @@ The complete legalese is at:
 .\" to protect it or lose it, which McKusick almost did.
 .\"
 .Sh CAVEATS
-.Nm
-has a different scope model from
-.At
-.Nm ksh ,
-which leads to subtle differences in semantics for identical builtins.
-This can cause issues with a
-.Ic nameref
-to suddenly point to a local variable by accident; fixing this is hard.
-.Pp
-The parts of a pipeline, like below, are executed in subshells.
-Thus, variable assignments inside them are not visible in the
-surrounding execution environment.
-Use co-processes instead.
-.Bd -literal -offset indent
-foo \*(Ba bar \*(Ba read baz            # will not change $baz
-foo \*(Ba bar \*(Ba& read \-p baz        # will, however, do so
-.Ed
-.Pp
 .Nm mksh
 provides a consistent 32-bit integer arithmetic implementation, both
 signed and unsigned, with sign of the result of a remainder operation
@@ -6687,6 +6610,8 @@ case ${KSH_VERSION:\-} in
 esac
 .Ed
 In near future, (Unicode) locale tracking will be implemented though.
+.Pp
+See also the FAQ below.
 .Sh BUGS
 Suspending (using \*(haZ) pipelines like the one below will only suspend
 the currently running part of the pipeline; in this example,
@@ -6710,7 +6635,7 @@ for the in-memory portion of the history is slow, should use
 .Xr memmove 3 .
 .Pp
 This document attempts to describe
-.Nm mksh\ R54
+.Nm mksh\ R55
 and up,
 .\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as
@@ -6727,9 +6652,8 @@ for an operating environment supporting all of its advanced needs.
 Please report bugs in
 .Nm
 to the
-.Mx
-mailing list at
 .Aq Mt miros\-mksh@mirbsd.org
+mailing list
 or in the
 .Li \&#\&!/bin/mksh
 .Pq or Li \&#ksh
@@ -6738,3 +6662,160 @@ IRC channel at
 .Pq Port 6697 SSL, 6667 unencrypted ,
 or at:
 .Pa https://launchpad.net/mksh
+.Sh FREQUENTLY ASKED QUESTIONS
+This FAQ attempts to document some of the questions users of
+.Nm
+or readers of this manual page may encounter.
+.Ss I'm an Android user, so what's mksh?
+.Nm mksh
+is a
+.Ux
+shell / command interpreter, similar to
+.Nm COMMAND.COM
+or
+.Nm CMD.EXE ,
+which has been included with
+.Tn Android Open Source Project
+for a while now.
+Basically, it's a program that runs in a terminal (console window),
+takes user input and runs commands or scripts, which it can also
+be asked to do by other programs, even in the background.
+Any privilege pop-ups you might be encountering are thus not
+.Nm mksh
+issues but questions by some other program utilising it.
+.Ss "I'm an OS/2 user, what do I need to know?"
+Unlike the native command prompt, the current working directory is,
+for security reasons common on Unix systems which the shell is designed for,
+not in the search path at all; if you really need this, run the command
+.Li PATH=.$PATHSEP$PATH
+or add that to a suitable initialisation file.
+.Pp
+You will have gotten this shell through komh's port on Shellworld
+most likely. It differs from standard mksh in that ASCII (CR+LF)
+newlines are accepted in many places.
+.Ss "How do I start mksh on a specific terminal?"
+Normally:
+.Dl mksh \-T/dev/tty2
+.Pp
+However, if you want for it to return (e.g. for an embedded
+system rescue shell), use this on your real console device instead:
+.Dl mksh \-T!/dev/ttyACM0
+.Pp
+.Nm
+can also daemonise (send to the background):
+.Dl mksh \-T\- \-c \*(aqexec cdio lock\*(aq
+.Ss "POSIX says..."
+Run the shell in POSIX mode (and possibly
+.Nm lksh
+instead of
+.Nm mksh ) :
+.Dl set \-o posix
+.Ss "My prompt from <some other shell> does not work!"
+Contact us on the mailing list or on IRC, we'll convert it for you.
+.Ss "Something is going wrong with my while...read loop"
+Most likely, you've encountered the problem in which the shell runs
+all parts of a pipeline as subshell.
+The inner loop will be executed in a subshell and variable changes
+cannot be propagated if run in a pipeline:
+.Bd -literal -offset indent
+bar \*(Ba baz \*(Ba while read foo; do ...; done
+.Ed
+.Pp
+Use co-processes instead:
+.Bd -literal -offset indent
+bar \*(Ba baz \*(Ba&
+while read \-p foo; do ...; done
+exec 3\*(Gt&p; exec 3\*(Gt&\-
+.Ed
+.Pp
+If
+.Ic read
+is run in a loop such as
+.Ic while read foo; do ...; done
+then leading whitespace will be removed (IFS) and backslashes processed.
+You might want to use
+.Ic while IFS= read \-r foo; do ...; done
+for pristine I/O.
+Similarly, when using the
+.Fl a
+option, use of the
+.Fl r
+option might be prudent
+.Pq Dq Li read \-raN\-1 arr \*(Ltfile ;
+the same applies for NUL-terminated lines:
+.Bd -literal -offset indent
+find . \-type f \-print0 \*(Ba& \e
+    while IFS= read \-d \*(aq\*(aq \-pr filename; do
+	print \-r \-\- "found \*(Lt${filename#./}\*(Gt"
+done
+.Ed
+.Pp
+.Ss "What differences in function-local scopes are there?"
+.Nm
+has a different scope model from
+.At
+.Nm ksh ,
+which leads to subtle differences in semantics for identical builtins.
+This can cause issues with a
+.Ic nameref
+to suddenly point to a local variable by accident.
+.Pp
+.Tn GNU
+.Nm bash
+allows unsetting local variables; in
+.Nm ,
+doing so in a function allows back access to the global variable
+(actually the one in the next scope up) with the same name.
+The following code, when run before the function definitions, changes
+the behaviour of
+.Ic unset
+to behave like other shells (the alias can be removed after the definitions):
+.Bd -literal -offset indent
+case ${KSH_VERSION:\-} in
+*MIRBSD\ KSH*\*(Ba*LEGACY\ KSH*)
+	function unset_compat {
+		\e\ebuiltin typeset unset_compat_x
+
+		for unset_compat_x in "$@"; do
+			eval "\e\e\e\ebuiltin unset $unset_compat_x[*]"
+		done
+	}
+	\e\ebuiltin alias unset=unset_compat
+	;;
+esac
+.Ed
+.Pp
+When a local variable is created (e.g. using
+.Ic local ,
+.Ic typeset ,
+.Ic integer ,
+.Ic \e\ebuiltin typeset )
+it does not, like in other shells, inherit the value from the global
+(next scope up) variable with the same name; it is rather created
+without any value (unset but defined).
+.Ss "I get an error in this regex comparison"
+Use extglobs instead of regexes:
+.Dl "[[ foo =~ (foo\*(Babar).*baz ]]	# becomes"
+.Dl "[[ foo = *@(foo\*(Babar)*baz* ]]	# instead"
+.Ss "Are there any extensions to avoid?"
+.Tn GNU
+.Nm bash
+supports
+.Dq Li &\*(Gt
+.Pq and Dq Li \*(Ba&
+to redirect both stdout and stderr in one go, but this breaks POSIX
+and Korn Shell syntax; use POSIX redirections instead:
+.Dl "foo \*(Ba& bar \*(Ba& baz &\*(Gtlog			     # GNU bash"
+.Dl "foo 2\*(Gt&1 \*(Ba bar 2\*(Gt&1 \*(Ba baz \*(Gtlog 2\*(Gt&1	# POSIX"
+.Ss "\*(haL (Ctrl-L) does not clear the screen"
+Use \*(ha[\*(haL (Escape+Ctrl-L) or rebind it:
+.Dl bind \*(aq\*(haL=clear-screen\*(aq
+.Ss "\*(haU (Ctrl-U) clears the entire line"
+If it should only delete the line up to the cursor, use:
+.Dl bind \-m \*(haU=\*(aq\*(ha[0\*(haK\*(aq
+.Ss "Cursor Up behaves differently from zsh"
+Some shells make Cursor Up search in the history only for
+commands starting with what was already entered.
+.Nm
+separates the shortcuts: Cursor Up goes up one command
+and PgUp searches the history as described above.

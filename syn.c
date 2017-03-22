@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *		 2011, 2012, 2013, 2014, 2015, 2016
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.115 2016/09/01 12:59:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.118 2017/03/19 20:59:29 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -244,11 +244,15 @@ nested(int type, int smark, int emark)
 	return (block(type, t, NULL));
 }
 
+static const char builtin_cmd[] = {
+	QCHAR, '\\', CHAR, 'b', CHAR, 'u', CHAR, 'i',
+	CHAR, 'l', CHAR, 't', CHAR, 'i', CHAR, 'n', EOS
+};
 static const char let_cmd[] = {
-	QCHAR, 'l', CHAR, 'e', CHAR, 't', CHAR, ']', EOS
+	CHAR, 'l', CHAR, 'e', CHAR, 't', EOS
 };
 static const char setA_cmd0[] = {
-	QCHAR, 's', CHAR, 'e', CHAR, 't', EOS
+	CHAR, 's', CHAR, 'e', CHAR, 't', EOS
 };
 static const char setA_cmd1[] = {
 	CHAR, '-', CHAR, 'A', EOS
@@ -289,11 +293,11 @@ get_command(int cf)
 		t->lineno = source->line;
 		goto get_command_start;
 		while (/* CONSTCOND */ 1) {
-			bool check_assign_cmd;
+			bool check_decl_utility;
 
 			if (XPsize(args) == 0) {
  get_command_start:
-				check_assign_cmd = true;
+				check_decl_utility = true;
 				cf = sALIAS | CMDASN;
 			} else if (t->u.evalflags)
 				cf = CMDWORD | CMDASN;
@@ -311,16 +315,15 @@ get_command(int cf)
 
 			case LWORD:
 				ACCEPT;
-				/*
-				 * the iopn == 0 and XPsize(vars) == 0 are
-				 * dubious but AT&T ksh acts this way
-				 */
-				if (iopn == 0 && XPsize(vars) == 0 &&
-				    check_assign_cmd) {
-					if (assign_command(ident, false))
+				if (check_decl_utility) {
+					struct tbl *tt = get_builtin(ident);
+					uint32_t flag;
+
+					flag = tt ? tt->flag : 0;
+					if (flag & DECL_UTIL)
 						t->u.evalflags = DOVACHECK;
-					else if (strcmp(ident, Tcommand) != 0)
-						check_assign_cmd = false;
+					if (!(flag & DECL_FWDR))
+						check_decl_utility = false;
 				}
 				if ((XPsize(args) == 0 || Flag(FKEYWORD)) &&
 				    is_wdvarassign(yylval.cp))
@@ -343,6 +346,7 @@ get_command(int cf)
 					tcp[wdscan(tcp, EOS) - tcp - 3] = EOS;
 
 					/* construct new args strings */
+					XPput(args, wdcopy(builtin_cmd, ATEMP));
 					XPput(args, wdcopy(setA_cmd0, ATEMP));
 					XPput(args, wdcopy(setA_cmd1, ATEMP));
 					XPput(args, tcp);
@@ -412,6 +416,7 @@ get_command(int cf)
 		}
 		t = newtp(TCOM);
 		t->lineno = lno;
+		XPput(args, wdcopy(builtin_cmd, ATEMP));
 		XPput(args, wdcopy(let_cmd, ATEMP));
 		XPput(args, yylval.cp);
 		break;
@@ -935,29 +940,6 @@ compile(Source *s, bool skiputf8bom)
 		yyskiputf8bom();
 	yyparse();
 	return (outtree);
-}
-
-/*-
- * This kludge exists to take care of sh/AT&T ksh oddity in which
- * the arguments of alias/export/readonly/typeset have no field
- * splitting, file globbing, or (normal) tilde expansion done.
- * AT&T ksh seems to do something similar to this since
- *	$ touch a=a; typeset a=[ab]; echo "$a"
- *	a=[ab]
- *	$ x=typeset; $x a=[ab]; echo "$a"
- *	a=a
- *	$
- */
-int
-assign_command(const char *s, bool docommand)
-{
-	if (!*s)
-		return (0);
-	return ((strcmp(s, Talias) == 0) ||
-	    (strcmp(s, Texport) == 0) ||
-	    (strcmp(s, Treadonly) == 0) ||
-	    (docommand && (strcmp(s, Tcommand) == 0)) ||
-	    (strcmp(s, Ttypeset) == 0));
 }
 
 /* Check if we are in the middle of reading an alias */

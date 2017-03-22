@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.322 2016/11/11 23:48:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.328 2017/03/19 22:31:27 tg Exp $");
 
 extern char **environ;
 
@@ -56,8 +56,6 @@ static mksh_uari_t rndsetup(void);
 static void x_sigwinch(int);
 #endif
 
-static const char initifs[] = "IFS= \t\n";
-
 static const char initsubs[] =
     "${PS2=> }"
     "${PS3=#? }"
@@ -71,18 +69,18 @@ static const char *initcoms[] = {
 	Ttypeset, "-x", "HOME", TPATH, TSHELL, NULL,
 	Ttypeset, "-i10", "COLUMNS", "LINES", "SECONDS", "TMOUT", NULL,
 	Talias,
-	"integer=\\typeset -i",
-	"local=\\typeset",
+	"integer=\\\\builtin typeset -i",
+	"local=\\\\builtin typeset",
 	/* not "alias -t --": hash -r needs to work */
-	"hash=\\builtin alias -t",
-	"type=\\builtin whence -v",
-	"autoload=\\typeset -fu",
-	"functions=\\typeset -f",
-	"history=\\builtin fc -l",
-	"nameref=\\typeset -n",
+	"hash=\\\\builtin alias -t",
+	"type=\\\\builtin whence -v",
+	"autoload=\\\\builtin typeset -fu",
+	"functions=\\\\builtin typeset -f",
+	"history=\\\\builtin fc -l",
+	"nameref=\\\\builtin typeset -n",
 	"nohup=nohup ",
-	"r=\\builtin fc -e -",
-	"login=\\exec login",
+	"r=\\\\builtin fc -e -",
+	"login=\\\\builtin exec login",
 	NULL,
 	 /* this is what AT&T ksh seems to track, with the addition of emacs */
 	Talias, "-tU",
@@ -365,9 +363,10 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	}
 
 	/* for security */
-	typeset(initifs, 0, 0, 0, 0);
+	typeset("IFS= \t\n", 0, 0, 0, 0);
 
 	/* assign default shell variable values */
+	typeset("PATHSEP=" MKSH_PATHSEPS, 0, 0, 0, 0);
 	substitute(initsubs, 0);
 
 	/* Figure out the current working directory and set $PWD */
@@ -384,7 +383,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		setstr(vp, current_wd, KSH_RETURN_ERROR);
 
 	for (wp = initcoms; *wp != NULL; wp++) {
-		shcomexec(wp);
+		c_builtin(wp);
 		while (*wp != NULL)
 			wp++;
 	}
@@ -631,7 +630,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	}
 
 	if (restricted_shell) {
-		shcomexec(restr_com);
+		c_builtin(restr_com);
 		/* After typeset command... */
 		Flag(FRESTRICTED) = 1;
 	}
@@ -661,7 +660,7 @@ main(int argc, const char *argv[])
 
 	if ((rv = main_init(argc, argv, &s, &l)) == 0) {
 		if (Flag(FAS_BUILTIN)) {
-			rv = shcomexec(l->argv);
+			rv = c_builtin(l->argv);
 		} else {
 			shell(s, true);
 			/* NOTREACHED */
@@ -1275,12 +1274,10 @@ bi_errorf(const char *fmt, ...)
 	    VWARNINGF_BUILTIN, fmt, va);
 	va_end(va);
 
-	/*
-	 * POSIX special builtins and ksh special builtins cause
-	 * non-interactive shells to exit. XXX may not want LERROR here
-	 */
+	/* POSIX special builtins cause non-interactive shells to exit */
 	if (builtin_spec) {
 		builtin_argv0 = NULL;
+		/* may not want to use LERROR here */
 		unwind(LERROR);
 	}
 }
