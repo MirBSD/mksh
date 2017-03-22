@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.230 2017/03/12 02:04:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.231 2017/03/22 00:20:43 tg Exp $");
 
 /*
  * states while lexing word
@@ -1063,6 +1063,7 @@ yylex(int cf)
 				s->start = s->str = p->val.s;
 				s->u.tblp = p;
 				s->flags |= SF_HASALIAS;
+				s->line = source->line;
 				s->next = source;
 				if (source->type == SEOF) {
 					/* prevent infinite recursion at EOS */

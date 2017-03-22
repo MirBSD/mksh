@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.764 2017/03/19 22:31:24 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.765 2017/03/22 00:20:39 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R54 2017/03/19
+	@(#)MIRBSD KSH R54 2017/03/21
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: shell:legacy-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R54 2017/03/19
+	@(#)LEGACY KSH R54 2017/03/21
 description:
 	Check version of legacy shell.
 stdin:
@@ -5231,6 +5231,24 @@ stdin:
 expected-stdout:
 	line <6>
 expected-exit: 1
+---
+name: lineno-eval-alias
+description:
+	Check if LINENO is trapped in eval and aliases
+stdin:
+	${ZSH_VERSION+false} || emulate sh; echo $LINENO
+	echo $LINENO
+	eval '	echo $LINENO
+		echo $LINENO
+		echo $LINENO'
+	echo $LINENO
+expected-stdout:
+	1
+	2
+	3
+	3
+	3
+	6
 ---
 name: unknown-trap
 description:

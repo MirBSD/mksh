@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.330 2017/03/19 20:59:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.331 2017/03/22 00:20:41 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2373,6 +2373,7 @@ c_eval(const char **wp)
 		return (1);
 	s = pushs(SWORDS, ATEMP);
 	s->u.strv = wp + builtin_opt.optind;
+	s->line = current_lineno;
 
 	/*-
 	 * The following code handles the case where the command is
