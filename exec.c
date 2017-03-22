@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.190 2017/03/12 02:04:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.191 2017/03/22 00:20:51 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1135,7 +1135,11 @@ findcom(const char *name, int flags)
 	char *fpath;
 	union mksh_cchack npath;
 
-	if (mksh_vdirsep(name)) {
+	if (mksh_vdirsep(name)
+#ifdef __OS2__
+	    && (strcmp(name, T_builtin) != 0)
+#endif
+	    ) {
 		insert = 0;
 		/* prevent FPATH search below */
 		flags &= ~FC_FUNC;

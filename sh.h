@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.796 2017/03/19 22:31:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.797 2017/03/22 00:20:53 tg Exp $");
 #endif
-#define MKSH_VERSION "R54 2017/03/19"
+#define MKSH_VERSION "R54 2017/03/21"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -865,6 +865,7 @@ EXTERN const char Tbad_bsize[] E_INIT("bad shf/buf/bsize");
 EXTERN const char Tbad_sig_ss[] E_INIT("%s: bad signal '%s'");
 #define Tbad_sig_s (Tbad_sig_ss + 4)
 EXTERN const char T__builtin[] E_INIT("-\\builtin");
+#define T_builtin (T__builtin + 1)
 #define Tbuiltin (T__builtin + 2)
 EXTERN const char Toomem[] E_INIT("can't allocate %zu data bytes");
 EXTERN const char Tcant_cd[] E_INIT("restricted shell - can't cd");
@@ -1012,6 +1013,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tbad_sig_ss "%s: bad signal '%s'"
 #define Tbad_sig_s "bad signal '%s'"
 #define T__builtin "-\\builtin"
+#define T_builtin "\\builtin"
 #define Tbuiltin "builtin"
 #define Toomem "can't allocate %zu data bytes"
 #define Tcant_cd "restricted shell - can't cd"
