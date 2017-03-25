@@ -888,10 +888,16 @@ expand(
 				{
 					if (c == '\r') {
 						c = shf_getc(x.u.shf);
-						if (c == -1)
-							c = '\r';
-						else if (c != '\n')
+						switch (c) {
+						case '\n':
+							break;
+						default:
 							shf_ungetc(c, x.u.shf);
+							/* FALLTHROUGH */
+						case -1:
+							c = '\r';
+							break;
+						}
 					}
 #endif
 					if (c == '\n')
