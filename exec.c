@@ -984,7 +984,7 @@ scriptexec(struct op *tp, const char **ap)
 			/* execute .cmd and .bat with OS2_SHELL, usually CMD.EXE */
 			sh = getenv("OS2_SHELL");
 			*tp->args-- = "/c";
-			/* convert slahes to back-slashes */
+			/* convert slahes to backslashes */
 			for (cp = tp->str; *cp; cp++) {
 				if (*cp == '/')
 					*cp = '\\';

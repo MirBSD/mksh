@@ -883,9 +883,8 @@ expand(
 #ifdef __OS2__
 				       c == '\r' ||
 #endif
-				       c == '\n')
+				       c == '\n') {
 #ifdef __OS2__
-				{
 					if (c == '\r') {
 						c = shf_getc(x.u.shf);
 						switch (c) {
@@ -903,9 +902,7 @@ expand(
 					if (c == '\n')
 						/* save newlines */
 						newlines++;
-#ifdef __OS2__
 				}
-#endif
 				if (newlines && c != -1) {
 					shf_ungetc(c, x.u.shf);
 					c = '\n';

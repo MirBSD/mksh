@@ -2439,13 +2439,12 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 	char mksh_cdirsep_c = (c);					\
 	(mksh_cdirsep_c == '/' || mksh_cdirsep_c == '\\');		\
 })
-#define mksh_sdirsep(s)			__extension__({		\
+#define mksh_sdirsep(s)			__extension__({			\
 	const char *mksh_sdirsep_s = (s);				\
-	((char *)((ksh_isalphx(mksh_sdirsep_s[0]) &&	\
-			  mksh_sdirsep_s[1] == ':' &&			\
-			  !mksh_cdirsep(mksh_sdirsep_s[2])) ?	\
-				(mksh_sdirsep_s + 1) :				\
-				strpbrk(mksh_sdirsep_s, "/\\")));	\
+	((char *)((ksh_isalphx(mksh_sdirsep_s[0]) &&			\
+	    mksh_sdirsep_s[1] == ':' &&					\
+	    !mksh_cdirsep(mksh_sdirsep_s[2])) ?				\
+	    (mksh_sdirsep_s + 1) : strpbrk(mksh_sdirsep_s, "/\\")));	\
 })
 #define mksh_vdirsep(s)		(mksh_sdirsep((s)) != NULL)
 #else

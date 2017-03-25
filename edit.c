@@ -146,7 +146,7 @@ static int
 x_getc(void)
 {
 #ifdef __OS2__
-	return _read_kbd(0, 1, 0);
+	return (_read_kbd(0, 1, 0));
 #else
 	char c;
 	ssize_t n;
