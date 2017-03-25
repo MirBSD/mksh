@@ -1325,7 +1325,7 @@ search_path(const char *name, const char *lpath,
 #ifndef __OS2__
 			return (name);
 #else
-			return real_exec_name(name);
+			return (real_exec_name(name));
 #endif
 		}
 		goto search_path_err;

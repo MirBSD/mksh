@@ -257,7 +257,7 @@ remove_trailing_dots(char *name)
 }
 
 #define REMOVE_TRAILING_DOTS(name)	\
-	remove_trailing_dots(strcpy(alloca(strlen(name) + 1), name))
+	remove_trailing_dots(memcpy(alloca(strlen(name) + 1), name, strlen(name) + 1))
 
 /* alias of stat() */
 extern int _std_stat(const char *, struct stat *);
@@ -298,13 +298,14 @@ access_stat_ex(int (*fn)(), const char *name, void *arg)
 	char *x_name;
 	const char **x_suffix;
 	int rc = -1;
+	size_t x_namelen = strlen(name) + MAX_X_SUFFIX_LEN + 1;
 
 	/* otherwise, try to append executable suffixes */
-	x_name = alloc(strlen(name) + MAX_X_SUFFIX_LEN + 1, ATEMP);
+	x_name = alloc(x_namelen, ATEMP);
 
 	for (x_suffix = x_suffix_list; rc && *x_suffix; x_suffix++) {
-		strcpy(x_name, name);
-		strcat(x_name, *x_suffix);
+		strlcpy(x_name, name, x_namelen);
+		strlcat(x_name, *x_suffix, x_namelen);
 
 		rc = fn(x_name, arg);
 	}
@@ -318,6 +319,7 @@ access_stat_ex(int (*fn)(), const char *name, void *arg)
 int
 access_ex(int (*fn)(const char *, int), const char *name, int mode)
 {
+	/*XXX this smells fishy --mirabilos */
 	return (access_stat_ex(fn, name, (void *)mode));
 }
 
@@ -336,7 +338,8 @@ test_exec_exist(const char *name, char *real_name)
 	if (stat(name, &sb) < 0 || !S_ISREG(sb.st_mode))
 		return (-1);
 
-	strcpy(real_name, name);
+	/* safe due to calculations in real_exec_name() */
+	memcpy(real_name, name, strlen(name) + 1);
 
 	return (0);
 }
@@ -348,6 +351,7 @@ real_exec_name(const char *name)
 	const char *real_name = name;
 
 	if (access_stat_ex(test_exec_exist, real_name, x_name) != -1)
+		/*XXX memory leak */
 		strdupx(real_name, x_name, ATEMP);
 
 	return (real_name);
@@ -504,7 +508,7 @@ add_temp(const char *name)
 	struct temp *tp;
 
 	tp = alloc(offsetof(struct temp, tffn[0]) + strlen(name) + 1, APERM);
-	strcpy(tp->tffn, name);
+	memcpy(tp->tffn, name, strlen(name) + 1);
 	tp->next = templist;
 	templist = tp;
 }
