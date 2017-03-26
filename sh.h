@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.797 2017/03/22 00:20:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.798 2017/03/26 00:10:25 tg Exp $");
 #endif
-#define MKSH_VERSION "R54 2017/03/21"
+#define MKSH_VERSION "R54 2017/03/25"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1243,7 +1243,7 @@ EXTERN bool really_exit;
 /*
  * fast character classes
  */
-#define C_ALPHA	 BIT(0)		/* a-z_A-Z */
+#define C_ALPHX	 BIT(0)		/* A-Za-z_ */
 #define C_DIGIT	 BIT(1)		/* 0-9 */
 #define C_LEX1	 BIT(2)		/* \t \n\0|&;<>() */
 #define C_VAR1	 BIT(3)		/* *@#!$-? */
@@ -1251,17 +1251,16 @@ EXTERN bool really_exit;
 #define C_SUBOP1 BIT(5)		/* "=-+?" */
 #define C_QUOTE	 BIT(6)		/* \t\n "#$&'()*;<=>?[\]`| (needing quoting) */
 #define C_IFS	 BIT(7)		/* $IFS */
-#define C_SUBOP2 BIT(8)		/* "#%" (magic, see below) */
 
 extern unsigned char chtypes[];
 
-#define ctype(c, t)	tobool( ((t) == C_SUBOP2) ?			\
-			    (((c) == '#' || (c) == '%') ? 1 : 0) :	\
-			    (chtypes[(unsigned char)(c)] & (t)) )
+#define ctype(c, t)	tobool(chtypes[(unsigned char)(c)] & (t))
 #define ord(c)		((int)(unsigned char)(c))
-#define ksh_isalphx(c)	ctype((c), C_ALPHA)
-#define ksh_isalnux(c)	ctype((c), C_ALPHA | C_DIGIT)
-#define ksh_isdigit(c)	(((c) >= '0') && ((c) <= '9'))
+#define ksh_issubop2(c)	tobool((c) == ord('#') || (c) == ord('%'))
+#define ksh_isalpha(c)	(ctype((c), C_ALPHX) && (c) != ord('_'))
+#define ksh_isalphx(c)	ctype((c), C_ALPHX)
+#define ksh_isalnux(c)	ctype((c), C_ALPHX | C_DIGIT)
+#define ksh_isdigit(c)	ctype((c), C_DIGIT)
 #define ksh_islower(c)	(((c) >= 'a') && ((c) <= 'z'))
 #define ksh_isupper(c)	(((c) >= 'A') && ((c) <= 'Z'))
 #define ksh_tolower(c)	(ksh_isupper(c) ? (c) - 'A' + 'a' : (c))
@@ -2424,7 +2423,7 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 #define mksh_abspath(s)			__extension__({			\
 	const char *mksh_abspath_s = (s);				\
 	(mksh_cdirsep(mksh_abspath_s[0]) ||				\
-	    (ksh_isalphx(mksh_abspath_s[0]) &&				\
+	    (ksh_isalpha(mksh_abspath_s[0]) &&				\
 	    mksh_abspath_s[1] == ':'));					\
 })
 #define mksh_cdirsep(c)			__extension__({			\

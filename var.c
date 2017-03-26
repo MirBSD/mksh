@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.209 2016/11/11 23:31:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.210 2017/03/26 00:10:26 tg Exp $");
 
 /*-
  * Variables
@@ -1053,8 +1053,9 @@ skip_varname(const char *s, bool aok)
 	size_t alen;
 
 	if (s && ksh_isalphx(*s)) {
-		while (*++s && ksh_isalnux(*s))
-			;
+		do {
+			++s;
+		} while (ksh_isalnux(*s));
 		if (aok && *s == '[' && (alen = array_ref_len(s)))
 			s += alen;
 	}

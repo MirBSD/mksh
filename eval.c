@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.198 2017/03/11 22:49:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.199 2017/03/26 00:10:23 tg Exp $");
 
 /*
  * string expansion
@@ -1196,7 +1196,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 	} else if (ctype(c, C_SUBOP1)) {
 		slen += 2;
 		stype |= c;
-	} else if (ctype(c, C_SUBOP2)) {
+	} else if (ksh_issubop2(c)) {
 		/* Note: ksh88 allows :%, :%%, etc */
 		slen += 2;
 		stype = c;
@@ -1304,7 +1304,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 
 	c = stype & 0x7F;
 	/* test the compiler's code generator */
-	if (((stype < 0x100) && (ctype(c, C_SUBOP2) ||
+	if (((stype < 0x100) && (ksh_issubop2(c) ||
 	    (((stype & 0x80) ? *xp->str == '\0' : xp->str == null) &&
 	    (state != XARG || (ifs0 || xp->split ?
 	    (xp->u.strv[0] == NULL) : !hasnonempty(xp->u.strv))) ?
@@ -1314,7 +1314,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		/* expand word instead of variable value */
 		state = XBASE;
 	if (Flag(FNOUNSET) && xp->str == null && !zero_ok &&
-	    (ctype(c, C_SUBOP2) || (state != XBASE && c != '+')))
+	    (ksh_issubop2(c) || (state != XBASE && c != '+')))
 		errorf(Tf_parm, sp);
 	*stypep = stype;
 	*slenp = slen;
