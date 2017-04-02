@@ -1971,6 +1971,7 @@ c_read(const char **wp)
 #endif
 #if defined(__OS2__) && defined(MKSH_WITH_TEXTMODE)
 	int saved_mode;
+	int saved_errno;
 #endif
 
 	while ((c = ksh_getopt(wp, &builtin_opt, c_read_opts)) != -1)
@@ -2105,7 +2106,9 @@ c_read(const char **wp)
 #endif
 	if ((bytesread = blocking_read(fd, xp, bytesleft)) == (size_t)-1) {
 #if defined(__OS2__) && defined(MKSH_WITH_TEXTMODE)
+		saved_errno = errno;
 		setmode(fd, saved_mode);
+		errno = saved_errno;
 #endif
 		if (errno == EINTR) {
 			/* check whether the signal would normally kill */
@@ -2840,7 +2843,7 @@ c_exec(const char **wp MKSH_A_UNUSED)
 	return (0);
 }
 
-#if HAVE_MKNOD
+#if HAVE_MKNOD && !defined(__OS2__)
 int
 c_mknod(const char **wp)
 {
