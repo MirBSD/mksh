@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.709 2017/03/17 23:47:05 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.710 2017/04/02 13:38:01 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -594,7 +594,6 @@ if test $legacy = 0; then
 else
 	check_categories="$check_categories shell:legacy-yes"
 	add_cppflags -DMKSH_LEGACY_MODE
-	HAVE_PERSISTENT_HISTORY=0
 fi
 
 if test x"$srcdir" = x"."; then
