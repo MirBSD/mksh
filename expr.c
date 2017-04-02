@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2016
+ *		 2011, 2012, 2013, 2014, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.90 2016/11/07 16:58:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.91 2017/03/26 00:10:23 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -572,8 +572,9 @@ exprtoken(Expr_state *es)
 	if (c == '\0')
 		es->tok = END;
 	else if (ksh_isalphx(c)) {
-		for (; ksh_isalnux(c); c = *cp)
-			cp++;
+		do {
+			c = *++cp;
+		} while (ksh_isalnux(c));
 		if (c == '[') {
 			size_t len;
 

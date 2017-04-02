@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.252 2017/03/11 23:56:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.254 2017/04/02 13:08:06 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -89,11 +89,10 @@ setctypes(const char *s, int t)
 void
 initctypes(void)
 {
-	setctypes(letters_uc, C_ALPHA);
-	setctypes(letters_lc, C_ALPHA);
-	chtypes['_'] |= C_ALPHA;
+	setctypes(letters_uc, C_ALPHX);
+	setctypes(letters_lc, C_ALPHX);
+	chtypes['_'] |= C_ALPHX;
 	setctypes("0123456789", C_DIGIT);
-	/* \0 added automatically */
 	setctypes(TC_LEX1, C_LEX1);
 	setctypes("*@#!$-?", C_VAR1);
 	setctypes(TC_IFSWS, C_IFSWS);
@@ -1706,7 +1705,7 @@ simplify_path(char *p)
 	case 0:
 		return;
 	case '/':
-#ifdef __OS2__
+#ifdef MKSH_DOSPATH
 	case '\\':
 #endif
 		/* exactly two leading slashes? (SUSv4 3.266) */

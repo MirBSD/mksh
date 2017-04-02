@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.709 2017/03/17 23:47:05 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.711 2017/04/02 14:14:03 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -495,6 +495,7 @@ check_categories=
 last=
 tfn=
 legacy=0
+textmode=0
 
 for i
 do
@@ -551,6 +552,12 @@ do
 	:-r)
 		r=1
 		;;
+	:-T)
+		textmode=1
+		;;
+	:+T)
+		textmode=0
+		;;
 	:-t)
 		last=t
 		;;
@@ -594,7 +601,13 @@ if test $legacy = 0; then
 else
 	check_categories="$check_categories shell:legacy-yes"
 	add_cppflags -DMKSH_LEGACY_MODE
-	HAVE_PERSISTENT_HISTORY=0
+fi
+
+if test $textmode = 0; then
+	check_categories="$check_categories shell:textmode-no shell:binmode-yes"
+else
+	check_categories="$check_categories shell:textmode-yes shell:binmode-no"
+	add_cppflags -DMKSH_WITH_TEXTMODE
 fi
 
 if test x"$srcdir" = x"."; then
@@ -858,6 +871,28 @@ OS/2)
 	add_cppflags -DMKSH_UNEMPLOYED
 	add_cppflags -DMKSH_NOPROSPECTOFWORK
 	add_cppflags -DMKSH_NO_LIMITS
+	add_cppflags -DMKSH_DOSPATH
+	if test $textmode = 0; then
+		x='dis'
+		y='standard OS/2 tools'
+	else
+		x='en'
+		y='standard Unix mksh and other tools'
+	fi
+	echo >&2 "
+OS/2 Note: mksh can be built with or without 'textmode'.
+Without 'textmode' it will behave like a standard Unix utility,
+compatible to mksh on all other platforms, using only ASCII LF
+(0x0A) as line ending character. This is supported by the mksh
+upstream developer.
+With 'textmode', mksh will be modified to behave more like other
+OS/2 utilities, supporting ASCII CR+LF (0x0D 0x0A) as line ending
+at the cost of deviation from standard mksh. This is supported by
+the mksh-os2 porter.
+
+] You are currently compiling with textmode ${x}abled, introducing
+] incompatibilities with $y.
+"
 	;;
 OSF1)
 	HAVE_SIG_T=0	# incompatible
@@ -2366,7 +2401,7 @@ addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && add_cppflags -DMKSH_PRINTF_BUILTIN
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
-add_cppflags -DMKSH_BUILD_R=541
+add_cppflags -DMKSH_BUILD_R=549
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 

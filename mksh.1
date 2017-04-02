@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.435 2017/03/19 22:31:27 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.436 2017/04/02 14:14:07 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 19 2017 $
+.Dd $Mdocdate: April 2 2017 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -6455,7 +6455,7 @@ contains the system and suid profile.
 .Xr utf\-8 7 ,
 .Xr mknod 8
 .Pp
-.Pa https://www.mirbsd.org/ksh\-chan.htm
+.Pa http://www.mirbsd.org/ksh\-chan.htm
 .Rs
 .%A Morris Bolsky
 .%B "The KornShell Command and Programming Language"
@@ -6549,9 +6549,17 @@ The effort of several projects, such as Debian and OpenBSD, and other
 contributors including our users, to improve the shell is appreciated.
 See the documentation, web site and CVS for details.
 .Pp
+.Nm mksh\-os2
+is developed by
+.An KO Myung-Hun Aq Mt komh@chollian.net .
+.Pp
+.Nm mksh\-w32
+is developed by
+.An Michael Langguth Aq Mt lan@scalaris.com .
+.Pp
 The BSD daemon is Copyright \(co Marshall Kirk McKusick.
 The complete legalese is at:
-.Pa https://www.mirbsd.org/TaC\-mksh.txt
+.Pa http://www.mirbsd.org/TaC\-mksh.txt
 .\"
 .\" This boils down to: feel free to use mksh.ico as application icon
 .\" or shortcut for mksh or mksh/Win32 or OS/2; distro patches are ok
@@ -6690,9 +6698,19 @@ not in the search path at all; if you really need this, run the command
 .Li PATH=.$PATHSEP$PATH
 or add that to a suitable initialisation file.
 .Pp
-You will have gotten this shell through komh's port on Shellworld
-most likely. It differs from standard mksh in that ASCII (CR+LF)
-newlines are accepted in many places.
+There are two different newline modes for mksh-os2: standard (Unix) mode,
+in which only LF (0A hex) is supported as line separator, and "textmode",
+which also accepts ASCII newlines (CR+LF), like most other tools on OS/2,
+but creating an incompatibility with standard
+.Nm .
+If you compiled mksh from source, you will get the standard Unix mode unless
+.Fl T
+is added during compilation; you will most likely have gotten this shell
+through komh's port on OS/2World, or from his OS/2 Factory on eComStation
+Korea, which uses "textmode", though.
+Most OS/2 users will want to use "textmode" unless they need absolute
+compatibility with Unix
+.Nm .
 .Ss "How do I start mksh on a specific terminal?"
 Normally:
 .Dl mksh \-T/dev/tty2

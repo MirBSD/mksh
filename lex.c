@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.231 2017/03/22 00:20:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.232 2017/03/26 00:10:24 tg Exp $");
 
 /*
  * states while lexing word
@@ -489,7 +489,7 @@ yylex(int cf)
 					 * If this is a trim operation,
 					 * treat (,|,) specially in STBRACE.
 					 */
-					if (ctype(c, C_SUBOP2)) {
+					if (ksh_issubop2(c)) {
 						ungetsc(c);
 						if (Flag(FSH))
 							PUSH_STATE(STBRACEBOURNE);

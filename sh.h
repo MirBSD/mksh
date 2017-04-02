@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.797 2017/03/22 00:20:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.800 2017/04/02 14:14:08 tg Exp $");
 #endif
-#define MKSH_VERSION "R54 2017/03/21"
+#define MKSH_VERSION "R54 2017/03/25"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -392,13 +392,20 @@ struct rusage {
 #endif
 
 #ifdef __OS2__
+#define MKSH_UNIXROOT	"/@unixroot"
+#else
+#define MKSH_UNIXROOT	""
+#endif
+
+#ifdef MKSH_DOSPATH
+#ifndef __GNUC__
+# error GCC extensions needed later on
+#endif
 #define MKSH_PATHSEPS	";"
 #define MKSH_PATHSEPC	';'
-#define MKSH_UNIXROOT	"/@unixroot"
 #else
 #define MKSH_PATHSEPS	":"
 #define MKSH_PATHSEPC	':'
-#define MKSH_UNIXROOT	""
 #endif
 
 #if !HAVE_FLOCK_DECL
@@ -505,12 +512,20 @@ extern int __cdecl setegid(gid_t);
 EXTERN const char *safe_prompt; /* safe prompt if PS1 substitution fails */
 
 #ifdef MKSH_LEGACY_MODE
-#define KSH_VERSIONNAME	"LEGACY"
+#define KSH_VERSIONNAME_ISLEGACY	"LEGACY"
 #else
-#define KSH_VERSIONNAME	"MIRBSD"
+#define KSH_VERSIONNAME_ISLEGACY	"MIRBSD"
 #endif
-EXTERN const char initvsn[] E_INIT("KSH_VERSION=@(#)" KSH_VERSIONNAME \
-    " KSH " MKSH_VERSION);
+#ifdef MKSH_WITH_TEXTMODE
+#define KSH_VERSIONNAME_TEXTMODE	" +TEXTMODE"
+#else
+#define KSH_VERSIONNAME_TEXTMODE	""
+#endif
+#ifndef KSH_VERSIONNAME_VENDOR_EXT
+#define KSH_VERSIONNAME_VENDOR_EXT	""
+#endif
+EXTERN const char initvsn[] E_INIT("KSH_VERSION=@(#)" KSH_VERSIONNAME_ISLEGACY \
+    " KSH " MKSH_VERSION KSH_VERSIONNAME_TEXTMODE KSH_VERSIONNAME_VENDOR_EXT);
 #define KSH_VERSION	(initvsn + /* "KSH_VERSION=@(#)" */ 16)
 
 EXTERN const char digits_uc[] E_INIT("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
@@ -578,7 +593,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 541)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 549)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -1243,7 +1258,7 @@ EXTERN bool really_exit;
 /*
  * fast character classes
  */
-#define C_ALPHA	 BIT(0)		/* a-z_A-Z */
+#define C_ALPHX	 BIT(0)		/* A-Za-z_ */
 #define C_DIGIT	 BIT(1)		/* 0-9 */
 #define C_LEX1	 BIT(2)		/* \t \n\0|&;<>() */
 #define C_VAR1	 BIT(3)		/* *@#!$-? */
@@ -1251,17 +1266,16 @@ EXTERN bool really_exit;
 #define C_SUBOP1 BIT(5)		/* "=-+?" */
 #define C_QUOTE	 BIT(6)		/* \t\n "#$&'()*;<=>?[\]`| (needing quoting) */
 #define C_IFS	 BIT(7)		/* $IFS */
-#define C_SUBOP2 BIT(8)		/* "#%" (magic, see below) */
 
 extern unsigned char chtypes[];
 
-#define ctype(c, t)	tobool( ((t) == C_SUBOP2) ?			\
-			    (((c) == '#' || (c) == '%') ? 1 : 0) :	\
-			    (chtypes[(unsigned char)(c)] & (t)) )
+#define ctype(c, t)	tobool(chtypes[(unsigned char)(c)] & (t))
 #define ord(c)		((int)(unsigned char)(c))
-#define ksh_isalphx(c)	ctype((c), C_ALPHA)
-#define ksh_isalnux(c)	ctype((c), C_ALPHA | C_DIGIT)
-#define ksh_isdigit(c)	(((c) >= '0') && ((c) <= '9'))
+#define ksh_issubop2(c)	tobool((c) == ord('#') || (c) == ord('%'))
+#define ksh_isalpha(c)	(ctype((c), C_ALPHX) && (c) != ord('_'))
+#define ksh_isalphx(c)	ctype((c), C_ALPHX)
+#define ksh_isalnux(c)	ctype((c), C_ALPHX | C_DIGIT)
+#define ksh_isdigit(c)	ctype((c), C_DIGIT)
 #define ksh_islower(c)	(((c) >= 'a') && ((c) <= 'z'))
 #define ksh_isupper(c)	(((c) >= 'A') && ((c) <= 'Z'))
 #define ksh_tolower(c)	(ksh_isupper(c) ? (c) - 'A' + 'a' : (c))
@@ -2414,9 +2428,6 @@ EXTERN bool tty_hasstate;	/* true if tty_state is valid */
 extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 
 #ifdef __OS2__
-#ifndef __GNUC__
-# error oops?
-#endif
 #define binopen2(path,flags)		__extension__({			\
 	int binopen2_fd = open((path), (flags) | O_BINARY);		\
 	if (binopen2_fd >= 0)						\
@@ -2429,10 +2440,16 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 		setmode(binopen3_fd, O_BINARY);				\
 	(binopen3_fd);							\
 })
+#else
+#define binopen2(path,flags)		open((path), (flags) | O_BINARY)
+#define binopen3(path,flags,mode)	open((path), (flags) | O_BINARY, (mode))
+#endif
+
+#ifdef MKSH_DOSPATH
 #define mksh_abspath(s)			__extension__({			\
 	const char *mksh_abspath_s = (s);				\
 	(mksh_cdirsep(mksh_abspath_s[0]) ||				\
-	    (ksh_isalphx(mksh_abspath_s[0]) &&				\
+	    (ksh_isalpha(mksh_abspath_s[0]) &&				\
 	    mksh_abspath_s[1] == ':'));					\
 })
 #define mksh_cdirsep(c)			__extension__({			\
@@ -2448,8 +2465,6 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 })
 #define mksh_vdirsep(s)		(mksh_sdirsep((s)) != NULL)
 #else
-#define binopen2(path,flags)		open((path), (flags) | O_BINARY)
-#define binopen3(path,flags,mode)	open((path), (flags) | O_BINARY, (mode))
 #define mksh_abspath(s)			((s)[0] == '/')
 #define mksh_cdirsep(c)			((c) == '/')
 #define mksh_sdirsep(s)			strchr((s), '/')
