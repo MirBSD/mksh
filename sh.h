@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.798 2017/03/26 00:10:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.799 2017/04/02 13:08:07 tg Exp $");
 #endif
 #define MKSH_VERSION "R54 2017/03/25"
 
@@ -392,13 +392,21 @@ struct rusage {
 #endif
 
 #ifdef __OS2__
+#define MKSH_UNIXROOT	"/@unixroot"
+#define MKSH_DOSPATH
+#else
+#define MKSH_UNIXROOT	""
+#endif
+
+#ifdef MKSH_DOSPATH
+#ifndef __GNUC__
+# error GCC extensions needed later on
+#endif
 #define MKSH_PATHSEPS	";"
 #define MKSH_PATHSEPC	';'
-#define MKSH_UNIXROOT	"/@unixroot"
 #else
 #define MKSH_PATHSEPS	":"
 #define MKSH_PATHSEPC	':'
-#define MKSH_UNIXROOT	""
 #endif
 
 #if !HAVE_FLOCK_DECL
@@ -2405,9 +2413,6 @@ EXTERN bool tty_hasstate;	/* true if tty_state is valid */
 extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 
 #ifdef __OS2__
-#ifndef __GNUC__
-# error oops?
-#endif
 #define binopen2(path,flags)		__extension__({			\
 	int binopen2_fd = open((path), (flags) | O_BINARY);		\
 	if (binopen2_fd >= 0)						\
@@ -2420,6 +2425,12 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 		setmode(binopen3_fd, O_BINARY);				\
 	(binopen3_fd);							\
 })
+#else
+#define binopen2(path,flags)		open((path), (flags) | O_BINARY)
+#define binopen3(path,flags,mode)	open((path), (flags) | O_BINARY, (mode))
+#endif
+
+#ifdef MKSH_DOSPATH
 #define mksh_abspath(s)			__extension__({			\
 	const char *mksh_abspath_s = (s);				\
 	(mksh_cdirsep(mksh_abspath_s[0]) ||				\
@@ -2436,8 +2447,6 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
  * can merge this upstream, but good job so far @komh, thanks!
  */
 #else
-#define binopen2(path,flags)		open((path), (flags) | O_BINARY)
-#define binopen3(path,flags,mode)	open((path), (flags) | O_BINARY, (mode))
 #define mksh_abspath(s)			((s)[0] == '/')
 #define mksh_cdirsep(c)			((c) == '/')
 #define mksh_sdirsep(s)			strchr((s), '/')

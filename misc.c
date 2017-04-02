@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.253 2017/03/26 00:10:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.254 2017/04/02 13:08:06 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1705,7 +1705,7 @@ simplify_path(char *p)
 	case 0:
 		return;
 	case '/':
-#ifdef __OS2__
+#ifdef MKSH_DOSPATH
 	case '\\':
 #endif
 		/* exactly two leading slashes? (SUSv4 3.266) */
