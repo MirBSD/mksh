@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.211 2017/04/02 15:51:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.212 2017/04/02 16:07:04 tg Exp $");
 
 /*-
  * Variables
@@ -228,6 +228,13 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 struct tbl *
 global(const char *n)
 {
+	return (isglobal(n, true));
+}
+
+/* search for variable; if not found, return NULL or create globally */
+struct tbl *
+isglobal(const char *n, bool docreate)
+{
 	struct tbl *vp;
 	union mksh_cchack vname;
 	struct block *l = e->loc;
@@ -294,17 +301,19 @@ global(const char *n)
 		goto out;
 	}
 	l = varsearch(e->loc, &vp, vn, h);
+	if (vp == NULL && docreate)
+		vp = ktenter(&l->vars, vn, h);
+	else
+		docreate = false;
 	if (vp != NULL) {
 		if (array)
 			vp = arraysearch(vp, val);
-		goto out;
+		if (docreate) {
+			vp->flag |= DEFINED;
+			if (special(vn))
+				vp->flag |= SPECIAL;
+		}
 	}
-	vp = ktenter(&l->vars, vn, h);
-	if (array)
-		vp = arraysearch(vp, val);
-	vp->flag |= DEFINED;
-	if (special(vn))
-		vp->flag |= SPECIAL;
  out:
 	last_lookup_was_array = array;
 	if (vn != n)
