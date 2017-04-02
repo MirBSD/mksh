@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.314 2017/04/02 15:00:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.315 2017/04/02 15:42:59 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2937,8 +2937,12 @@ x_e_putc3(const char **cp)
 			char *cp2;
 
 			width = utf_widthadj(*cp, (const char **)&cp2);
-			while (*cp < cp2)
-				x_putcf(*(*cp)++);
+			if (cp2 == *cp + 1) {
+				(*cp)++;
+				shf_puts("\xEF\xBF\xBD", shl_out);
+			} else
+				while (*cp < cp2)
+					x_putcf(*(*cp)++);
 		} else {
 			(*cp)++;
 			x_putc(c);
