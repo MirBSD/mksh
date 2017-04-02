@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.91 2017/03/26 00:10:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.92 2017/04/02 15:00:42 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -857,6 +857,9 @@ utf_wctomb(char *dst, unsigned int wc)
 int
 ksh_access(const char *fn, int mode)
 {
+#ifdef __OS2__
+	return (access_ex(access, fn, mode));
+#else
 	int rv;
 	struct stat sb;
 
@@ -866,6 +869,7 @@ ksh_access(const char *fn, int mode)
 		rv = -1;
 
 	return (rv);
+#endif
 }
 
 #ifndef MIRBSD_BOOTFLOPPY

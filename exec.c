@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.192 2017/04/02 13:08:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.193 2017/04/02 15:00:42 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -889,6 +889,9 @@ scriptexec(struct op *tp, const char **ap)
 		unsigned short m;
 		ssize_t n;
 
+#if defined(__OS2__) && defined(MKSH_WITH_TEXTMODE)
+		setmode(fd, O_TEXT);
+#endif
 		/* read first couple of octets from file */
 		n = read(fd, buf, sizeof(buf) - 1);
 		close(fd);
@@ -944,6 +947,17 @@ scriptexec(struct op *tp, const char **ap)
 			if (*cp)
 				*tp->args-- = (char *)cp;
 		}
+#ifdef __OS2__
+		/*
+		 * Search shell/interpreter name without directory in PATH
+		 * if specified path does not exist
+		 */
+		if (mksh_vdirsep(sh) && !search_path(sh, path, X_OK, NULL)) {
+			cp = search_path(_getname(sh), path, X_OK, NULL);
+			if (cp)
+				sh = cp;
+		}
+#endif
 		goto nomagic;
  noshebang:
 		m = buf[0] << 8 | buf[1];
@@ -964,6 +978,19 @@ scriptexec(struct op *tp, const char **ap)
 		    buf[4] == 'Z') || (m == /* 7zip */ 0x377A) ||
 		    (m == /* gzip */ 0x1F8B) || (m == /* .Z */ 0x1F9D))
 			errorf("%s: not executable: magic %04X", tp->str, m);
+#ifdef __OS2__
+		cp = _getext(tp->str);
+		if (cp && (!stricmp(cp, ".cmd") || !stricmp(cp, ".bat"))) {
+			/* execute .cmd and .bat with OS2_SHELL, usually CMD.EXE */
+			sh = getenv("OS2_SHELL");
+			*tp->args-- = "/c";
+			/* convert slahes to backslashes */
+			for (cp = tp->str; *cp; cp++) {
+				if (*cp == '/')
+					*cp = '\\';
+			}
+		}
+#endif
  nomagic:
 		;
 	}
@@ -1267,6 +1294,13 @@ search_access(const char *fn, int mode)
 	return (0);
 }
 
+#ifdef __OS2__
+/* check if path is something we want to find, adding executable extensions */
+#define search_access(fn, mode)	access_ex((search_access), (fn), (mode))
+#else
+#define search_access(fn, mode)	(search_access)((fn), (mode))
+#endif
+
 /*
  * search for command with PATH
  */
@@ -1288,7 +1322,11 @@ search_path(const char *name, const char *lpath,
  search_path_ok:
 			if (errnop)
 				*errnop = 0;
+#ifndef __OS2__
 			return (name);
+#else
+			return (real_exec_name(name));
+#endif
 		}
 		goto search_path_err;
 	}
@@ -1305,6 +1343,10 @@ search_path(const char *name, const char *lpath,
 			XcheckN(xs, xp, p - sp);
 			memcpy(xp, sp, p - sp);
 			xp += p - sp;
+#ifdef __OS2__
+			if (xp > Xstring(xs, xp) && mksh_cdirsep(xp[-1]))
+				xp--;
+#endif
 			*xp++ = '/';
 		}
 		sp = p;

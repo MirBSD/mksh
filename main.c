@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.328 2017/03/19 22:31:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.329 2017/04/02 15:00:43 tg Exp $");
 
 extern char **environ;
 
@@ -195,6 +195,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	for (i = 0; i < 3; ++i)
 		if (!isatty(i))
 			setmode(i, O_BINARY);
+
+	os2_init(&argc, &argv);
 #endif
 
 	/* do things like getpgrp() et al. */
@@ -467,7 +469,9 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		 * to search for it. This changes the behaviour of a
 		 * simple "mksh foo", but can't be helped.
 		 */
-		s->file = search_path(argv[argi++], path, X_OK, NULL);
+		s->file = argv[argi++];
+		if (search_access(s->file, X_OK) != 0)
+			s->file = search_path(s->file, path, X_OK, NULL);
 		if (!s->file || !*s->file)
 			s->file = argv[argi - 1];
 #else
@@ -1461,6 +1465,10 @@ openpipe(int *pv)
 	pv[1] = savefd(lpv[1]);
 	if (pv[1] != lpv[1])
 		close(lpv[1]);
+#ifdef __OS2__
+	setmode(pv[0], O_BINARY);
+	setmode(pv[1], O_BINARY);
+#endif
 }
 
 void

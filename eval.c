@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.199 2017/03/26 00:10:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.200 2017/04/02 15:00:41 tg Exp $");
 
 /*
  * string expansion
@@ -879,10 +879,30 @@ expand(
 				c = '\n';
 				--newlines;
 			} else {
-				while ((c = shf_getc(x.u.shf)) == 0 || c == '\n')
+				while ((c = shf_getc(x.u.shf)) == 0 ||
+#ifdef MKSH_WITH_TEXTMODE
+				       c == '\r' ||
+#endif
+				       c == '\n') {
+#ifdef MKSH_WITH_TEXTMODE
+					if (c == '\r') {
+						c = shf_getc(x.u.shf);
+						switch (c) {
+						case '\n':
+							break;
+						default:
+							shf_ungetc(c, x.u.shf);
+							/* FALLTHROUGH */
+						case -1:
+							c = '\r';
+							break;
+						}
+					}
+#endif
 					if (c == '\n')
 						/* save newlines */
 						newlines++;
+				}
 				if (newlines && c != -1) {
 					shf_ungetc(c, x.u.shf);
 					c = '\n';

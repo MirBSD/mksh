@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.800 2017/04/02 14:14:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.801 2017/04/02 15:00:44 tg Exp $");
 #endif
 #define MKSH_VERSION "R54 2017/03/25"
 
@@ -2273,6 +2273,14 @@ char *strdup_i(const char *, Area *);
 char *strndup_i(const char *, size_t, Area *);
 #endif
 int unbksl(bool, int (*)(void), void (*)(int));
+#ifdef __OS2__
+/* os2.c */
+void os2_init(int *, const char ***);
+void setextlibpath(const char *, const char *);
+int access_ex(int (*)(const char *, int), const char *, int);
+int stat_ex(const char *, struct stat *);
+const char *real_exec_name(const char *);
+#endif
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);
 struct shf *shf_fdopen(int, int, struct shf *);
@@ -2448,11 +2456,14 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 	char mksh_cdirsep_c = (c);					\
 	(mksh_cdirsep_c == '/' || mksh_cdirsep_c == '\\');		\
 })
-/*
- * I've seen mksh_sdirsep(s) and mksh_vdirsep(s) but need to think
- * more about the OS/2 port (and, possibly, toy with it) before I
- * can merge this upstream, but good job so far @komh, thanks!
- */
+#define mksh_sdirsep(s)			__extension__({			\
+	const char *mksh_sdirsep_s = (s);				\
+	((char *)((ksh_isalphx(mksh_sdirsep_s[0]) &&			\
+	    mksh_sdirsep_s[1] == ':' &&					\
+	    !mksh_cdirsep(mksh_sdirsep_s[2])) ?				\
+	    (mksh_sdirsep_s + 1) : strpbrk(mksh_sdirsep_s, "/\\")));	\
+})
+#define mksh_vdirsep(s)			(mksh_sdirsep((s)) != NULL)
 #else
 #define mksh_abspath(s)			((s)[0] == '/')
 #define mksh_cdirsep(c)			((c) == '/')

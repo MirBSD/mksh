@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.711 2017/04/02 14:14:03 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.712 2017/04/02 15:00:39 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -862,11 +862,11 @@ OpenBSD)
 OS/2)
 	HAVE_TERMIOS_H=0
 	HAVE_MKNOD=0	# setmode() incompatible
-	oswarn="; it is currently being ported, get it from"
-	oswarn="$oswarn${nl}https://github.com/komh/mksh-os2 in the meanwhile"
+	oswarn="; it is being ported"
 	check_categories="$check_categories nosymlink"
 	: "${CC=gcc}"
 	: "${SIZE=: size}"
+	SRCS="$SRCS os2.c"
 	add_cppflags -DMKSH_UNEMPLOYED
 	add_cppflags -DMKSH_NOPROSPECTOFWORK
 	add_cppflags -DMKSH_NO_LIMITS

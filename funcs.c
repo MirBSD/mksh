@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.331 2017/03/22 00:20:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.332 2017/04/02 15:00:42 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1969,6 +1969,10 @@ c_read(const char **wp)
 #else
 #define c_read_opts "Aad:N:n:prsu,"
 #endif
+#if defined(__OS2__) && defined(MKSH_WITH_TEXTMODE)
+	int saved_mode;
+	int saved_errno;
+#endif
 
 	while ((c = ksh_getopt(wp, &builtin_opt, c_read_opts)) != -1)
 	switch (c) {
@@ -2097,7 +2101,15 @@ c_read(const char **wp)
 	}
 #endif
 
+#if defined(__OS2__) && defined(MKSH_WITH_TEXTMODE)
+	saved_mode = setmode(fd, O_TEXT);
+#endif
 	if ((bytesread = blocking_read(fd, xp, bytesleft)) == (size_t)-1) {
+#if defined(__OS2__) && defined(MKSH_WITH_TEXTMODE)
+		saved_errno = errno;
+		setmode(fd, saved_mode);
+		errno = saved_errno;
+#endif
 		if (errno == EINTR) {
 			/* check whether the signal would normally kill */
 			if (!fatal_trap_check()) {
@@ -2112,6 +2124,9 @@ c_read(const char **wp)
 		rv = 2;
 		goto c_read_out;
 	}
+#if defined(__OS2__) && defined(MKSH_WITH_TEXTMODE)
+	setmode(fd, saved_mode);
+#endif
 
 	switch (readmode) {
 	case READALL:
@@ -2828,7 +2843,7 @@ c_exec(const char **wp MKSH_A_UNUSED)
 	return (0);
 }
 
-#if HAVE_MKNOD
+#if HAVE_MKNOD && !defined(__OS2__)
 int
 c_mknod(const char **wp)
 {
@@ -3085,6 +3100,14 @@ test_isop(Test_meta meta, const char *s)
 	return (TO_NONOP);
 }
 
+#ifdef __OS2__
+#define test_access(name, mode) access_ex(access, (name), (mode))
+#define test_stat(name, buffer) stat_ex((name), (buffer))
+#else
+#define test_access(name, mode) access((name), (mode))
+#define test_stat(name, buffer) stat((name), (buffer))
+#endif
+
 int
 test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
     bool do_eval)
@@ -3150,12 +3173,12 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	/* -r */
 	case TO_FILRD:
 		/* LINTED use of access */
-		return (access(opnd1, R_OK) == 0);
+		return (test_access(opnd1, R_OK) == 0);
 
 	/* -w */
 	case TO_FILWR:
 		/* LINTED use of access */
-		return (access(opnd1, W_OK) == 0);
+		return (test_access(opnd1, W_OK) == 0);
 
 	/* -x */
 	case TO_FILEX:
@@ -3165,11 +3188,11 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	case TO_FILAXST:
 	/* -e */
 	case TO_FILEXST:
-		return (stat(opnd1, &b1) == 0);
+		return (test_stat(opnd1, &b1) == 0);
 
 	/* -r */
 	case TO_FILREG:
-		return (stat(opnd1, &b1) == 0 && S_ISREG(b1.st_mode));
+		return (test_stat(opnd1, &b1) == 0 && S_ISREG(b1.st_mode));
 
 	/* -d */
 	case TO_FILID:

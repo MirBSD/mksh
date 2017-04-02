@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.313 2017/03/11 22:49:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.314 2017/04/02 15:00:40 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -145,6 +145,9 @@ x_read(char *buf)
 static int
 x_getc(void)
 {
+#ifdef __OS2__
+	return (_read_kbd(0, 1, 0));
+#else
 	char c;
 	ssize_t n;
 
@@ -166,6 +169,7 @@ x_getc(void)
 			x_mode(true);
 		}
 	return ((n == 1) ? (int)(unsigned char)c : -1);
+#endif
 }
 
 static void
