@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.212 2017/04/02 16:07:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.213 2017/04/02 16:25:23 tg Exp $");
 
 /*-
  * Variables
@@ -45,7 +45,7 @@ static uint32_t lcg_state = 5381, qh_state = 4711;
 /* may only be set by typeset() just before call to array_index_calc() */
 static enum namerefflag innermost_refflag = SRF_NOP;
 
-static void c_typeset_vardump(struct tbl *, uint32_t, int, bool, bool);
+static void c_typeset_vardump(struct tbl *, uint32_t, int, int, bool, bool);
 static void c_typeset_vardump_recursive(struct block *, uint32_t, int, bool,
     bool);
 static char *formatstr(struct tbl *, const char *);
@@ -2032,8 +2032,9 @@ c_typeset(const char **wp)
 		}
 	} else if (wp[builtin_opt.optind]) {
 		for (i = builtin_opt.optind; wp[i]; i++) {
-			varsearch(e->loc, &vp, wp[i], hash(wp[i]));
-			c_typeset_vardump(vp, flag, thing, pflag, istset);
+			vp = isglobal(wp[i], false);
+			c_typeset_vardump(vp, flag, thing,
+			    last_lookup_was_array ? 4 : 0, pflag, istset);
 		}
 	} else
 		c_typeset_vardump_recursive(e->loc, flag, thing, pflag, istset);
@@ -2050,16 +2051,15 @@ c_typeset_vardump_recursive(struct block *l, uint32_t flag, int thing,
 		c_typeset_vardump_recursive(l->next, flag, thing, pflag, istset);
 	blockvars = ktsort(&l->vars);
 	while ((vp = *blockvars++))
-		c_typeset_vardump(vp, flag, thing, pflag, istset);
+		c_typeset_vardump(vp, flag, thing, 0, pflag, istset);
 	/*XXX doesn’t this leak? */
 }
 
 static void
-c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, bool pflag,
-    bool istset)
+c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, int any_set,
+    bool pflag, bool istset)
 {
 	struct tbl *tvp;
-	int any_set = 0;
 	char *s;
 
 	if (!vp)
@@ -2071,7 +2071,7 @@ c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, bool pflag,
 	 */
 	for (tvp = vp; tvp; tvp = tvp->u.array)
 		if (tvp->flag & ISSET) {
-			any_set = 1;
+			any_set |= 1;
 			break;
 		}
 
@@ -2159,5 +2159,5 @@ c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, bool pflag,
 		 */
 		if (!any_set)
 			return;
-	} while ((vp = vp->u.array));
+	} while (!(any_set & 4) && (vp = vp->u.array));
 }

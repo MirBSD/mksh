@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.767 2017/04/02 14:14:04 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.768 2017/04/02 16:25:20 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R54 2017/03/25
+	@(#)MIRBSD KSH R54 2017/04/02
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: !shell:legacy-yes,!shell:textmode-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R54 2017/03/25
+	@(#)LEGACY KSH R54 2017/04/02
 description:
 	Check version of legacy shell.
 stdin:
@@ -48,7 +48,7 @@ name: KSH_VERSION-legacy
 category: !shell:legacy-no,!shell:textmode-yes
 ---
 expected-stdout:
-	@(#)MIRBSD KSH R54 2017/03/25 +TEXTMODE
+	@(#)MIRBSD KSH R54 2017/04/02 +TEXTMODE
 description:
 	Check version of shell.
 stdin:
@@ -57,7 +57,7 @@ name: KSH_VERSION-textmode
 category: !shell:legacy-yes,!shell:textmode-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R54 2017/03/25 +TEXTMODE
+	@(#)LEGACY KSH R54 2017/04/02 +TEXTMODE
 description:
 	Check version of legacy shell.
 stdin:
@@ -8098,6 +8098,24 @@ expected-stdout:
 	inside typeset 16#61 .
 	inside changed 16#30 .
 	after 16#30 .
+---
+name: typeset-2
+description:
+	Check that typeset -p on arrays works correctly
+stdin:
+	set -A x -- a b c
+	echo =
+	typeset -p x
+	echo =
+	typeset -p x[1]
+expected-stdout:
+	=
+	set -A x
+	typeset x[0]=a
+	typeset x[1]=b
+	typeset x[2]=c
+	=
+	typeset x[1]=b
 ---
 name: typeset-padding-1
 description:
