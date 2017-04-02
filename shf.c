@@ -518,7 +518,7 @@ shf_getse(char *buf, ssize_t bsize, struct shf *shf)
 		shf->rnleft -= ncopy;
 		buf += ncopy;
 		bsize -= ncopy;
-#ifdef __OS2__
+#ifdef MKSH_WITH_TEXTMODE
 		if (end && buf > orig_buf + 1 && buf[-2] == '\r') {
 			buf--;
 			bsize++;
@@ -526,7 +526,7 @@ shf_getse(char *buf, ssize_t bsize, struct shf *shf)
 		}
 #endif
 	} while (!end && bsize);
-#ifdef __OS2__
+#ifdef MKSH_WITH_TEXTMODE
 	if (!bsize && buf[-1] == '\r') {
 		int c = shf_getc(shf);
 		if (c == '\n')

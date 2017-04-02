@@ -1969,7 +1969,7 @@ c_read(const char **wp)
 #else
 #define c_read_opts "Aad:N:n:prsu,"
 #endif
-#ifdef __OS2__
+#if defined(__OS2__) && defined(MKSH_WITH_TEXTMODE)
 	int saved_mode;
 #endif
 
@@ -2100,11 +2100,11 @@ c_read(const char **wp)
 	}
 #endif
 
-#ifdef __OS2__
+#if defined(__OS2__) && defined(MKSH_WITH_TEXTMODE)
 	saved_mode = setmode(fd, O_TEXT);
 #endif
 	if ((bytesread = blocking_read(fd, xp, bytesleft)) == (size_t)-1) {
-#ifdef __OS2__
+#if defined(__OS2__) && defined(MKSH_WITH_TEXTMODE)
 		setmode(fd, saved_mode);
 #endif
 		if (errno == EINTR) {
@@ -2121,7 +2121,7 @@ c_read(const char **wp)
 		rv = 2;
 		goto c_read_out;
 	}
-#ifdef __OS2__
+#if defined(__OS2__) && defined(MKSH_WITH_TEXTMODE)
 	setmode(fd, saved_mode);
 #endif
 

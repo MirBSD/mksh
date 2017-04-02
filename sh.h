@@ -2463,7 +2463,7 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 	    !mksh_cdirsep(mksh_sdirsep_s[2])) ?				\
 	    (mksh_sdirsep_s + 1) : strpbrk(mksh_sdirsep_s, "/\\")));	\
 })
-#define mksh_vdirsep(s)		(mksh_sdirsep((s)) != NULL)
+#define mksh_vdirsep(s)			(mksh_sdirsep((s)) != NULL)
 #else
 #define mksh_abspath(s)			((s)[0] == '/')
 #define mksh_cdirsep(c)			((c) == '/')

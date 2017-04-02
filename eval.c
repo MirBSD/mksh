@@ -880,11 +880,11 @@ expand(
 				--newlines;
 			} else {
 				while ((c = shf_getc(x.u.shf)) == 0 ||
-#ifdef __OS2__
+#ifdef MKSH_WITH_TEXTMODE
 				       c == '\r' ||
 #endif
 				       c == '\n') {
-#ifdef __OS2__
+#ifdef MKSH_WITH_TEXTMODE
 					if (c == '\r') {
 						c = shf_getc(x.u.shf);
 						switch (c) {
