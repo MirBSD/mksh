@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.315 2017/04/02 15:42:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.316 2017/04/02 15:43:24 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1926,8 +1926,10 @@ x_search_hist(int c)
 				offset = -1;
 				break;
 			}
-			if (p > pat)
-				*--p = '\0';
+			if (p > pat) {
+				p = x_bs0(p - 1, pat);
+				*p = '\0';
+			}
 			if (p == pat)
 				offset = -1;
 			else
