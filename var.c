@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.213 2017/04/02 16:25:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.214 2017/04/02 16:47:43 tg Exp $");
 
 /*-
  * Variables
@@ -1359,7 +1359,7 @@ setspec(struct tbl *vp)
 		if (getint(vp, &num, false) == -1) {
 			s = str_val(vp);
 			if (st != V_RANDOM)
-				errorf(Tf_sD_sD_s, vp->name, "bad number", s);
+				errorf(Tf_sD_sD_s, vp->name, Tbadnum, s);
 			num.u = hash(s);
 		}
 		vp->flag |= SPECIAL;
@@ -1917,7 +1917,7 @@ c_typeset(const char **wp)
 	}
 
 	if (fieldstr && !getn(fieldstr, &field)) {
-		bi_errorf(Tf_sD_s, "bad number", fieldstr);
+		bi_errorf(Tf_sD_s, Tbadnum, fieldstr);
 		return (1);
 	}
 	if (basestr) {

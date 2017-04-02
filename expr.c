@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.92 2017/04/02 15:00:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.93 2017/04/02 16:47:41 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -203,7 +203,7 @@ evalerr(Expr_state *es, enum error_type type, const char *str)
 
 	case ET_BADLIT:
 		warningf(true, Tf_sD_s_qs, es->expression,
-		    "bad number", str);
+		    Tbadnum, str);
 		break;
 
 	case ET_RECURSIVE:

@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.801 2017/04/02 15:00:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.802 2017/04/02 16:47:42 tg Exp $");
 #endif
-#define MKSH_VERSION "R54 2017/03/25"
+#define MKSH_VERSION "R54 2017/04/02"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -873,6 +873,7 @@ EXTERN const char Taugo[] E_INIT("augo");
 EXTERN const char Tbracket[] E_INIT("[");
 #define Tdot (Tsgdot + 2)
 #define Talias (Tunalias + 2)
+EXTERN const char Tbadnum[] E_INIT("bad number");
 #define Tbadsubst (Tfg_badsubst + 10)
 EXTERN const char Tbg[] E_INIT("bg");
 EXTERN const char Tbad_bsize[] E_INIT("bad shf/buf/bsize");
@@ -1021,6 +1022,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tbracket "["
 #define Tdot "."
 #define Talias "alias"
+#define Tbadnum "bad number"
 #define Tbadsubst "bad substitution"
 #define Tbg "bg"
 #define Tbad_bsize "bad shf/buf/bsize"
@@ -1473,7 +1475,7 @@ struct tbl {
 };
 
 EXTERN struct tbl *vtemp;
-/* set by global() and local() */
+/* set by isglobal(), global() and local() */
 EXTERN bool last_lookup_was_array;
 
 /* common flag bits */
@@ -2341,6 +2343,7 @@ void popblock(void);
 void initvar(void);
 struct block *varsearch(struct block *, struct tbl **, const char *, uint32_t);
 struct tbl *global(const char *);
+struct tbl *isglobal(const char *, bool);
 struct tbl *local(const char *, bool);
 char *str_val(struct tbl *);
 int setstr(struct tbl *, const char *, int);

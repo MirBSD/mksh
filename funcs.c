@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.333 2017/04/02 15:51:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.334 2017/04/02 16:47:41 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -73,7 +73,7 @@ bi_getn(const char *as, int *ai)
 	int rv;
 
 	if (!(rv = getn(as, ai)))
-		bi_errorf(Tf_sD_s, as, "bad number");
+		bi_errorf(Tf_sD_s, Tbadnum, as);
 	return (rv);
 }
 
@@ -1345,7 +1345,7 @@ c_shift(const char **wp)
 		/* nothing to do */
 		return (0);
 	} else if (n < 0) {
-		bi_errorf(Tf_sD_s, arg, "bad number");
+		bi_errorf(Tf_sD_s, Tbadnum, arg);
 		return (1);
 	}
 	if (l->argc < n) {
@@ -1406,7 +1406,7 @@ c_umask(const char **wp)
 				++cp;
 			}
 			if (*cp) {
-				bi_errorf("bad number");
+				bi_errorf(Tbadnum);
 				return (1);
 			}
 		} else {
