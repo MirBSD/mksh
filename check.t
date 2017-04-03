@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.768 2017/04/02 16:25:20 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.769 2017/04/03 02:08:57 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -8263,7 +8263,7 @@ description:
 	-UMKSH_ASSUME_UTF8 => not expected, but if your OS is old,
 	 try passing HAVE_SETLOCALE_CTYPE=0 to Build.sh
 need-pass: no
-category: !os:hpux,!os:msys
+category: !os:hpux,!os:msys,!os:os2
 need-ctty: yes
 arguments: !-i!
 env-setup: !PS1=!PS2=!LC_CTYPE=en_US.UTF-8!

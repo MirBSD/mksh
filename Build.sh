@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.712 2017/04/02 15:00:39 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.713 2017/04/03 02:08:56 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -860,6 +860,7 @@ OpenBSD)
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 OS/2)
+	add_cppflags -DMKSH_ASSUME_UTF8=0; HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_TERMIOS_H=0
 	HAVE_MKNOD=0	# setmode() incompatible
 	oswarn="; it is being ported"
