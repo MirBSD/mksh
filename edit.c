@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.316 2017/04/02 15:43:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.317 2017/04/05 22:54:51 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -5560,6 +5560,7 @@ x_eval_region_helper(const char *cmd, size_t len)
 		wds[len + 2] = EOS;
 
 		cp = evalstr(wds, DOSCALAR);
+		afree(wds, ATEMP);
 		strdupx(cp, cp, AEDIT);
 	} else
 		cp = NULL;
