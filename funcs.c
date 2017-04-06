@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.336 2017/04/06 01:59:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.337 2017/04/06 19:02:05 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -850,7 +850,7 @@ c_alias(const char **wp)
 			strndupx(xalias, alias, val++ - alias, ATEMP);
 			alias = xalias;
 		}
-		if (!valid_alias_name(alias)) {
+		if (!valid_alias_name(alias) || *alias == '-') {
 			bi_errorf(Tinvname, alias, Talias);
 			afree(xalias, ATEMP);
 			return (1);
