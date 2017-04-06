@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.156 2017/04/02 14:14:04 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.157 2017/04/06 01:46:42 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -194,6 +194,9 @@ d: all
 dr:
 	p=$$(realpath ${PROG:Q}) && cd ${SRCDIR:Q} && exec ${MKSH} \
 	    ${BSDSRCDIR:Q}/contrib/hosted/tg/sdmksh "$$p"
+
+r:
+	cd ${.CURDIR:Q} && exec env ENV=/nonexistent PS1='% ' ${.OBJDIR:Q}/mksh
 
 repool:
 	cd ${.CURDIR:Q} && \
