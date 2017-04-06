@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.769 2017/04/03 02:08:57 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.770 2017/04/06 00:41:38 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -7607,7 +7607,7 @@ expected-stdout:
 	After error 2
 	Exit trap
 expected-stderr-pattern:
-	/syntax error: 'newline' unexpected/
+	/syntax error: unexpected 'newline'/
 ---
 name: test-stlt-1
 description:

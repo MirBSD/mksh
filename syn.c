@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.118 2017/03/19 20:59:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.119 2017/04/06 00:41:42 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -444,7 +444,7 @@ get_command(int cf)
 		t = newtp((c == FOR) ? TFOR : TSELECT);
 		musthave(LWORD, CMDASN);
 		if (!is_wdvarname(yylval.cp, true))
-			yyerror("%s: bad identifier\n",
+			yyerror("%s: bad identifier",
 			    c == FOR ? "for" : Tselect);
 		strdupx(t->str, ident, ATEMP);
 		nesting_push(&old_nesting, c);
@@ -702,7 +702,7 @@ function_body(char *name,
 	 */
 	for (p = sname; *p; p++)
 		if (ctype(*p, C_QUOTE))
-			yyerror("%s: invalid function name\n", sname);
+			yyerror(Tinvname, sname, Tfunction);
 
 	/*
 	 * Note that POSIX allows only compound statements after foo(),
@@ -869,7 +869,7 @@ syntaxerr(const char *what)
 			goto Again;
 		}
 		/* don't quote the EOF */
-		yyerror("%s: unexpected EOF\n", Tsynerr);
+		yyerror("%s: unexpected EOF", Tsynerr);
 		/* NOTREACHED */
 
 	case LWORD:
@@ -896,7 +896,7 @@ syntaxerr(const char *what)
 			s = redir;
 		}
 	}
-	yyerror("%s: '%s' %s\n", Tsynerr, s, what);
+	yyerror(Tf_sD_s_qs, Tsynerr, what, s);
 }
 
 static void

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.232 2017/03/26 00:10:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.233 2017/04/06 00:41:41 tg Exp $");
 
 /*
  * states while lexing word
@@ -885,7 +885,7 @@ yylex(int cf)
 	Xcheck(ws, wp);
 	if (statep != &states[1])
 		/* XXX figure out what is missing */
-		yyerror("no closing quote\n");
+		yyerror("no closing quote");
 
 	/* This done to avoid tests for SHEREDELIM wherever SBASE tested */
 	if (state == SHEREDELIM)
@@ -1203,6 +1203,7 @@ yyerror(const char *fmt, ...)
 	error_prefix(true);
 	va_start(va, fmt);
 	shf_vfprintf(shl_out, fmt, va);
+	shf_putc('\n', shl_out);
 	va_end(va);
 	errorfz();
 }
@@ -1624,7 +1625,7 @@ get_brace_var(XString *wsp, char *wp)
 					char *tmp, *p;
 
 					if (!arraysub(&tmp))
-						yyerror("missing ]\n");
+						yyerror("missing ]");
 					*wp++ = c;
 					for (p = tmp; *p; ) {
 						Xcheck(*wsp, wp);

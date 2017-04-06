@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.802 2017/04/02 16:47:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.803 2017/04/06 00:41:42 tg Exp $");
 #endif
 #define MKSH_VERSION "R54 2017/04/02"
 
@@ -913,10 +913,11 @@ EXTERN const char T_funny_command[] E_INIT("funny $()-command");
 EXTERN const char Tgetopts[] E_INIT("getopts");
 #define Thistory (Tnot_in_history + 7)
 EXTERN const char Tintovfl[] E_INIT("integer overflow %zu %c %zu prevented");
+EXTERN const char Tinvname[] E_INIT("%s: invalid %s name");
 EXTERN const char Tjobs[] E_INIT("jobs");
 EXTERN const char Tjob_not_started[] E_INIT("job not started");
 EXTERN const char Tmksh[] E_INIT("mksh");
-EXTERN const char Tname[] E_INIT("name");
+#define Tname (Tinvname + 15)
 EXTERN const char Tno_args[] E_INIT("missing argument");
 EXTERN const char Tno_OLDPWD[] E_INIT("no OLDPWD");
 EXTERN const char Tnot_ident[] E_INIT("is not an identifier");
@@ -980,7 +981,7 @@ EXTERN const char Tf_szs[] E_INIT("%s: %zd %s");
 EXTERN const char Tf_parm[] E_INIT("%s: parameter not set");
 EXTERN const char Tf_coproc[] E_INIT("-p: %s");
 EXTERN const char Tf_cant[] E_INIT("can't %s %s: %s");
-EXTERN const char Tf_heredoc[] E_INIT("here document '%s' unclosed\n");
+EXTERN const char Tf_heredoc[] E_INIT("here document '%s' unclosed");
 #if HAVE_MKNOD
 EXTERN const char Tf_nonnum[] E_INIT("non-numeric %s %s '%s'");
 #endif
@@ -992,7 +993,7 @@ EXTERN const char Tf_ldfailed[] E_INIT("%s %s(%d, %ld) failed: %s");
 #define Tf_ss (Tf_sss + 2)
 EXTERN const char Tf_sss[] E_INIT("%s%s%s");
 EXTERN const char Tf_sD_s_sD_s[] E_INIT("%s: %s %s: %s");
-EXTERN const char Tf_toomany[] E_INIT("too many %ss\n");
+EXTERN const char Tf_toomany[] E_INIT("too many %ss");
 EXTERN const char Tf_sd[] E_INIT("%s %d");
 #define Tf_s (Tf_temp + 28)
 EXTERN const char Tft_end[] E_INIT("%;");
@@ -1062,6 +1063,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tgetopts "getopts"
 #define Thistory "history"
 #define Tintovfl "integer overflow %zu %c %zu prevented"
+#define Tinvname "%s: invalid %s name"
 #define Tjobs "jobs"
 #define Tjob_not_started "job not started"
 #define Tmksh "mksh"
@@ -1129,7 +1131,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tf_parm "%s: parameter not set"
 #define Tf_coproc "-p: %s"
 #define Tf_cant "can't %s %s: %s"
-#define Tf_heredoc "here document '%s' unclosed\n"
+#define Tf_heredoc "here document '%s' unclosed"
 #if HAVE_MKNOD
 #define Tf_nonnum "non-numeric %s %s '%s'"
 #endif
@@ -1141,7 +1143,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tf_ss "%s%s"
 #define Tf_sss "%s%s%s"
 #define Tf_sD_s_sD_s "%s: %s %s: %s"
-#define Tf_toomany "too many %ss\n"
+#define Tf_toomany "too many %ss"
 #define Tf_sd "%s %d"
 #define Tf_s "%s"
 #define Tft_end "%;"
