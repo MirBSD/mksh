@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.334 2017/04/02 16:47:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.335 2017/04/06 00:53:33 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -839,6 +839,14 @@ c_alias(const char **wp)
 			strndupx(xalias, alias, val++ - alias, ATEMP);
 			alias = xalias;
 		}
+		newval = alias;
+		while (*newval)
+			if (!ksh_isalias(*newval)) {
+				bi_errorf(Tinvname, alias, Talias);
+				afree(xalias, ATEMP);
+				return (1);
+			} else
+				++newval;
 		h = hash(alias);
 		if (val == NULL && !tflag && !xflag) {
 			ap = ktsearch(t, alias, h);
