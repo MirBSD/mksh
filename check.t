@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.771 2017/04/06 01:59:51 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.772 2017/04/06 02:15:22 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -10941,6 +10941,7 @@ stdin:
 	chmod +x pfn
 	alias echo='echo a'
 	foo() {
+		echo moo
 		./pfn "$(echo foo)"
 	}
 	./pfn "$(echo b)"
@@ -10953,12 +10954,16 @@ stdin:
 expected-stdout:
 	a b
 	foo() {
+		\echo a moo 
 		./pfn "$(\echo a foo )" 
 	} 
+	a moo
 	a foo
 	foo() {
+		\echo a moo 
 		./pfn "$(\echo a foo )" 
 	} 
+	a moo
 	a foo
 ---
 name: comsub-torture
