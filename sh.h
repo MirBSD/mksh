@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.804 2017/04/06 00:53:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.805 2017/04/06 01:59:56 tg Exp $");
 #endif
-#define MKSH_VERSION "R54 2017/04/02"
+#define MKSH_VERSION "R54 2017/04/05"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1690,6 +1690,8 @@ struct op {
 #define ADELIM	12	/* arbitrary delimiter: ${foo:2:3} ${foo/bar/baz} */
 #define FUNSUB	14	/* ${ foo;} substitution (NUL terminated) */
 #define VALSUB	15	/* ${|foo;} substitution (NUL terminated) */
+#define COMASUB	16	/* `…` substitution (COMSUB but expand aliases) */
+#define FUNASUB	17	/* function substitution but expand aliases */
 
 /*
  * IO redirection
@@ -2076,6 +2078,7 @@ int c_printf(const char **);
 int c_whence(const char **);
 int c_command(const char **);
 int c_typeset(const char **);
+bool valid_alias_name(const char *);
 int c_alias(const char **);
 int c_unalias(const char **);
 int c_let(const char **);
@@ -2321,7 +2324,7 @@ ssize_t shf_vfprintf(struct shf *, const char *, va_list)
     MKSH_A_FORMAT(__printf__, 2, 0);
 /* syn.c */
 void initkeywords(void);
-struct op *compile(Source *, bool);
+struct op *compile(Source *, bool, bool);
 bool parse_usec(const char *, struct timeval *);
 char *yyrecursive(int);
 void yyrecursive_pop(bool);

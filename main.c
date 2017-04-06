@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.329 2017/04/02 15:00:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.330 2017/04/06 01:59:56 tg Exp $");
 
 extern char **environ;
 
@@ -827,7 +827,7 @@ shell(Source * volatile s, volatile bool toplevel)
 			j_notify();
 			set_prompt(PS1, s);
 		}
-		t = compile(s, sfirst);
+		t = compile(s, sfirst, true);
 		if (interactive)
 			histsave(&s->line, NULL, HIST_FLUSH, true);
 		sfirst = false;

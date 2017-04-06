@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.200 2017/04/02 15:00:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.201 2017/04/06 01:59:54 tg Exp $");
 
 /*
  * string expansion
@@ -301,25 +301,36 @@ expand(
 					word = IFS_WORD;
 				quote = st->quotew;
 				continue;
+			case COMASUB:
 			case COMSUB:
+			case FUNASUB:
 			case FUNSUB:
 			case VALSUB:
 				tilde_ok = 0;
 				if (f & DONTRUNCOMMAND) {
 					word = IFS_WORD;
 					*dp++ = '$';
-					*dp++ = c == COMSUB ? '(' : '{';
-					if (c != COMSUB)
-						*dp++ = c == FUNSUB ? ' ' : '|';
+					switch (c) {
+					case COMASUB:
+					case COMSUB:
+						*dp++ = '(';
+						c = ')';
+						break;
+					case FUNASUB:
+					case FUNSUB:
+					case VALSUB:
+						*dp++ = '{';
+						*dp++ = c == VALSUB ? '|' : ' ';
+						c = '}';
+						break;
+					}
 					while (*sp != '\0') {
 						Xcheck(ds, dp);
 						*dp++ = *sp++;
 					}
-					if (c != COMSUB) {
+					if (c == '}')
 						*dp++ = ';';
-						*dp++ = '}';
-					} else
-						*dp++ = ')';
+					*dp++ = c;
 				} else {
 					type = comsub(&x, sp, c);
 					if (type != XBASE && (f & DOBLANK))
@@ -1345,17 +1356,28 @@ varsub(Expand *xp, const char *sp, const char *word,
  * Run the command in $(...) and read its output.
  */
 static int
-comsub(Expand *xp, const char *cp, int fn MKSH_A_UNUSED)
+comsub(Expand *xp, const char *cp, int fn)
 {
 	Source *s, *sold;
 	struct op *t;
 	struct shf *shf;
+	bool doalias = false;
 	uint8_t old_utfmode = UTFMODE;
+
+	switch (fn) {
+	case COMASUB:
+		fn = COMSUB;
+		if (0)
+			/* FALLTHROUGH */
+	case FUNASUB:
+		  fn = FUNSUB;
+		doalias = true;
+	}
 
 	s = pushs(SSTRING, ATEMP);
 	s->start = s->str = cp;
 	sold = source;
-	t = compile(s, true);
+	t = compile(s, true, doalias);
 	afree(s, ATEMP);
 	source = sold;
 

@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.317 2017/04/05 22:54:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.318 2017/04/06 01:59:53 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -5554,7 +5554,7 @@ x_eval_region_helper(const char *cmd, size_t len)
 	if (!kshsetjmp(e->jbuf)) {
 		char *wds = alloc(len + 3, ATEMP);
 
-		wds[0] = FUNSUB;
+		wds[0] = FUNASUB;
 		memcpy(wds + 1, cmd, len);
 		wds[len + 1] = '\0';
 		wds[len + 2] = EOS;

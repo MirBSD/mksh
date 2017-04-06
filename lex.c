@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.233 2017/04/06 00:41:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.234 2017/04/06 01:59:55 tg Exp $");
 
 /*
  * states while lexing word
@@ -532,7 +532,7 @@ yylex(int cf)
 			case '`':
  subst_gravis:
 				PUSH_STATE(SBQUOTE);
-				*wp++ = COMSUB;
+				*wp++ = COMASUB;
 				/*
 				 * We need to know whether we are within double
 				 * quotes in order to translate \" to " within

@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2015, 2016
+ *		 2011, 2012, 2013, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.86 2016/07/25 00:04:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.87 2017/04/06 01:59:58 tg Exp $");
 
 #define INDENT	8
 
@@ -86,6 +86,15 @@ ptree(struct op *t, int indent, struct shf *shf)
 			shf_puts("#no-vars# ", shf);
 		if (t->args) {
 			w = t->args;
+			if (*w && **w == CHAR) {
+				char *cp = wdstrip(*w++, WDS_TPUTS);
+
+				if (valid_alias_name(cp))
+					shf_putc('\\', shf);
+				shf_puts(cp, shf);
+				shf_putc(' ', shf);
+				afree(cp, ATEMP);
+			}
 			while (*w)
 				fptreef(shf, indent, Tf_S_, *w++);
 		} else
@@ -352,6 +361,7 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 				}
 			shf_putc(c, shf);
 			break;
+		case COMASUB:
 		case COMSUB:
 			shf_puts("$(", shf);
 			cs = ")";
@@ -360,6 +370,7 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 				shf_putc(c, shf);
 			shf_puts(cs, shf);
 			break;
+		case FUNASUB:
 		case FUNSUB:
 			c = ' ';
 			if (0)
@@ -409,8 +420,9 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 		case SPAT:
 			c = '|';
 			if (0)
+				/* FALLTHROUGH */
 		case CPAT:
-				c = /*(*/ ')';
+			  c = /*(*/ ')';
 			shf_putc(c, shf);
 			break;
 		}
@@ -606,7 +618,9 @@ wdscan(const char *wp, int c)
 		case QCHAR:
 			wp++;
 			break;
+		case COMASUB:
 		case COMSUB:
+		case FUNASUB:
 		case FUNSUB:
 		case VALSUB:
 		case EXPRSUB:
@@ -832,8 +846,9 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 			}
 			shf_puts("ADELIM=", shf);
 			if (0)
+				/* FALLTHROUGH */
 		case CHAR:
-				shf_puts("CHAR=", shf);
+			  shf_puts("CHAR=", shf);
 			dumpchar(shf, *wp++);
 			break;
 		case QCHAR:
@@ -844,6 +859,9 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 				shf_putc('\\', shf);
 			dumpchar(shf, c);
 			goto closeandout;
+		case COMASUB:
+			shf_puts("COMASUB<", shf);
+			goto dumpsub;
 		case COMSUB:
 			shf_puts("COMSUB<", shf);
  dumpsub:
@@ -852,6 +870,9 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
  closeandout:
 			shf_putc('>', shf);
 			break;
+		case FUNASUB:
+			shf_puts("FUNASUB<", shf);
+			goto dumpsub;
 		case FUNSUB:
 			shf_puts("FUNSUB<", shf);
 			goto dumpsub;
