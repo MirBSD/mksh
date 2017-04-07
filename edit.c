@@ -142,6 +142,21 @@ x_read(char *buf)
 
 /* tty I/O */
 
+int
+x_gets(char *buf, size_t len)
+{
+	int ret;
+
+	while ((ret = (int)blocking_read(0, buf, len)) < 0 && errno == EINTR) {
+		if (trap) {
+			x_mode(false);
+			runtraps(0);
+			x_mode(true);
+		}
+	}
+	return ret;
+}
+
 static int
 x_getc(void)
 {
@@ -590,7 +605,7 @@ x_locate_word(const char *buf, int buflen, int pos, int *startp,
 		/* Figure out if this is a command */
 		while (p >= 0 && ksh_isspace(buf[p]))
 			p--;
-		iscmd = p < 0 || vstrchr(";|&()`", buf[p]);
+		iscmd = p < 0 || vstrchr(";|&()`", buf[p]) || !strncmp("sudo ", buf, 5);
 		if (iscmd) {
 			/*
 			 * If command has a /, path, etc. is not searched;
@@ -2356,10 +2371,10 @@ x_vt_hack(int c)
 
 	/*-
 	 * At this point, we have read the following octets so far:
-	 * - ESC+[ or ESC+O or Ctrl-X (Prefix 2)
+	 * - ESC+[ or ESC+O or CTRL-X (Prefix 2)
 	 * - 1 (vt_hack)
 	 * - ;
-	 * - 5 (Ctrl key combiner) or 3 (Alt key combiner)
+	 * - 5 (CTRL key combiner) or 3 (Alt key combiner)
 	 * We can now accept one more octet designating the key.
 	 */
 
@@ -3467,7 +3482,6 @@ static const unsigned char classify[128] = {
 #define VLIT		8		/* ^V */
 #define VSEARCH		9		/* /, ? */
 #define VVERSION	10		/* <ESC> ^V */
-#define VPREFIX2	11		/* ^[[ and ^[O in insert mode */
 
 static struct edstate	*save_edstate(struct edstate *old);
 static void		restore_edstate(struct edstate *old, struct edstate *news);
@@ -3516,6 +3530,110 @@ static struct macro_state macro;
 static enum expand_mode {
 	NONE = 0, EXPAND, COMPLETE, PRINT
 } expanded;
+
+enum bind_action {
+	BIND_KEY_UP = 1,
+	BIND_KEY_DOWN,
+	BIND_KEY_RIGHT,
+	BIND_KEY_LEFT,
+	BIND_KEY_HOME,
+	BIND_KEY_END,
+	BIND_KEY_PGUP,
+	BIND_KEY_PGDN,
+	BIND_KEY_DEL,
+	BIND_KEY_INS,
+};
+struct bind_key {
+	int action;
+	char seq[4];
+};
+static struct bind_key bind_keys[] = {
+	{BIND_KEY_UP, { CTRL('['), '[', 'A', '\0' }},
+	{BIND_KEY_DOWN, { CTRL('['), '[', 'B', '\0' }},
+	{BIND_KEY_RIGHT, { CTRL('['), '[', 'C', '\0' }},
+	{BIND_KEY_LEFT, { CTRL('['), '[', 'D', '\0' }},
+	{BIND_KEY_HOME, { CTRL('['), 'O', 'H', '\0' }},
+	{BIND_KEY_END, { CTRL('['), 'O', 'F', '\0' }},
+	{BIND_KEY_PGUP, { CTRL('['), '[', '5', '~' }},
+	{BIND_KEY_PGDN, { CTRL('['), '[', '6', '~' }},
+	{BIND_KEY_DEL, { CTRL('['), '[', '3', '~' }},
+	{BIND_KEY_INS, { CTRL('['), '[', '2', '~' }},
+	{0, ""}
+};
+
+static int
+bind_action(int action)
+{
+	switch (action) {
+	case BIND_KEY_UP:
+	case BIND_KEY_PGUP:
+		vi_cmd(1, "k");
+		break;
+	case BIND_KEY_DOWN:
+	case BIND_KEY_PGDN:
+		vi_cmd(1, "j");
+		break;
+	case BIND_KEY_RIGHT:
+		es->cursor = domove(1, "l", 1);
+		if (!insert && es->cursor == es->linelen) {
+			es->cursor--;
+		}
+		break;
+	case BIND_KEY_LEFT:
+		es->cursor = domove(1, "h", 1);
+		break;
+	case BIND_KEY_HOME:
+		es->cursor = domove(1, "0", 1);
+		break;
+	case BIND_KEY_END:
+		es->cursor = domove(1, "$", 1);
+		if (!insert) {
+			es->cursor--;
+		}
+		break;
+	case BIND_KEY_DEL:
+		vi_cmd(1, "x");
+		break;
+	case BIND_KEY_INS:
+		break;
+	}
+	refresh(0);
+	x_flush();
+	return 0;
+}
+static int
+filter_from_binds(void)
+{
+#define BND_BUF_NUM 8
+	static char binds[BND_BUF_NUM];
+	static short lastidx = BND_BUF_NUM;
+	static short lastread = BND_BUF_NUM;
+
+	while (1) {
+		if (lastidx < lastread) {
+			return (int) binds[lastidx++];
+		}
+		lastread = (short)x_gets(binds, BND_BUF_NUM);
+		if (lastread <= 0) {
+			return -1;
+		}
+		lastidx = 0;
+		if (lastread >= 3 && VNORMAL == state) {
+			int i, len;
+			for (i = 0; bind_keys[i].action; i++) {
+				/* do single check on [2] is enough, mostly. */
+				if (bind_keys[i].seq[2] == binds[2]) {
+					len = bind_keys[i].seq[3] ? 4 : 3;
+					if (!strncmp(bind_keys[i].seq, binds, len)) {
+						lastidx = len;
+						bind_action(bind_keys[i].action);
+					}
+					break;
+				}
+			}
+		}
+	}
+}
 
 static int
 x_vi(char *buf)
@@ -3575,7 +3693,7 @@ x_vi(char *buf)
 				c = x_getc();
 			}
 		} else
-			c = x_getc();
+			c = filter_from_binds();
 
 		if (c == -1)
 			break;
@@ -3632,7 +3750,6 @@ vi_hook(int ch)
 		if (!ch) switch (cmdlen = 0, (ch = x_getc())) {
 		case 71: ch = '0'; goto pseudo_vi_command;
 		case 72: ch = 'k'; goto pseudo_vi_command;
-		case 73: ch = 'A'; goto vi_xfunc_search_up;
 		case 75: ch = 'h'; goto pseudo_vi_command;
 		case 77: ch = 'l'; goto pseudo_vi_command;
 		case 79: ch = '$'; goto pseudo_vi_command;
@@ -3837,36 +3954,10 @@ vi_hook(int ch)
 			return (0);
 		}
 		break;
-
-	case VPREFIX2:
- vi_xfunc_search_up:
-		state = VFAIL;
-		switch (ch) {
-		case 'A':
-			/* the cursor may not be at the BOL */
-			if (!es->cursor)
-				break;
-			/* nor further in the line than we can search for */
-			if ((size_t)es->cursor >= sizeof(srchpat) - 1)
-				es->cursor = sizeof(srchpat) - 2;
-			/* anchor the search pattern */
-			srchpat[0] = '^';
-			/* take the current line up to the cursor */
-			memmove(srchpat + 1, es->cbuf, es->cursor);
-			srchpat[es->cursor + 1] = '\0';
-			/* set a magic flag */
-			argc1 = 2 + (int)es->cursor;
-			/* and emulate a backwards history search */
-			lastsearch = '/';
-			*curcmd = 'n';
-			goto pseudo_VCMD;
-		}
-		break;
 	}
 
 	switch (state) {
 	case VCMD:
- pseudo_VCMD:
 		state = VNORMAL;
 		switch (vi_cmd(argc1, curcmd)) {
 		case -1:
@@ -4568,16 +4659,6 @@ vi_cmd(int argcnt, const char *cmd)
 		case CTRL('x'):
 			expand_word(1);
 			break;
-
-
-		/* mksh: cursor movement */
-		case '[':
-		case 'O':
-			state = VPREFIX2;
-			if (es->linelen != 0)
-				es->cursor++;
-			insert = INSERT;
-			return (0);
 		}
 		if (insert == 0 && es->cursor != 0 && es->cursor >= es->linelen)
 			es->cursor--;
@@ -4738,6 +4819,7 @@ redo_insert(int count)
 	while (count-- > 0)
 		if (putbuf(ibuf, inslen, tobool(insert == REPLACE)) != 0)
 			return (-1);
+
 	if (es->cursor > 0)
 		es->cursor--;
 	insert = 0;
