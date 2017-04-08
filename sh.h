@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.806 2017/04/06 19:02:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.807 2017/04/08 01:07:18 tg Exp $");
 #endif
-#define MKSH_VERSION "R54 2017/04/05"
+#define MKSH_VERSION "R54 2017/04/07"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -779,6 +779,7 @@ extern struct env {
 #define E_LOOP	5	/* executing for/while # */
 #define E_ERRH	6	/* general error handler # */
 #define E_GONE	7	/* hidden in child */
+#define E_EVAL	8	/* running eval # */
 /* # indicates env has valid jbuf (see unwind()) */
 
 /* struct env.flag values */
@@ -880,6 +881,8 @@ EXTERN const char Tbad_bsize[] E_INIT("bad shf/buf/bsize");
 #define Tbsize (Tbad_bsize + 12)
 EXTERN const char Tbad_sig_ss[] E_INIT("%s: bad signal '%s'");
 #define Tbad_sig_s (Tbad_sig_ss + 4)
+EXTERN const char Tsgbreak[] E_INIT("*=break");
+#define Tbreak (Tsgbreak + 2)
 EXTERN const char T__builtin[] E_INIT("-\\builtin");
 #define T_builtin (T__builtin + 1)
 #define Tbuiltin (T__builtin + 2)
@@ -893,6 +896,8 @@ EXTERN const char Tbcat[] E_INIT("!cat");
 #define Tcd (Tcant_cd + 25)
 #define T_command (T_funny_command + 9)
 #define Tcommand (T_funny_command + 10)
+EXTERN const char Tsgcontinue[] E_INIT("*=continue");
+#define Tcontinue (Tsgcontinue + 2)
 EXTERN const char Tcreate[] E_INIT("create");
 EXTERN const char TELIF_unexpected[] E_INIT("TELIF unexpected");
 EXTERN const char TEXECSHELL[] E_INIT("EXECSHELL");
@@ -944,13 +949,17 @@ EXTERN const char Tsgset[] E_INIT("*=set");
 #define Tset (Tf_parm + 18)
 #define Tsh (Tmksh + 2)
 #define TSHELL (TEXECSHELL + 4)
+#define Tshell (Ttoo_many_files + 23)
 EXTERN const char Tshf_read[] E_INIT("shf_read");
 EXTERN const char Tshf_write[] E_INIT("shf_write");
+EXTERN const char Tgsource[] E_INIT("=source");
+#define Tsource (Tgsource + 1)
 EXTERN const char Tj_suspend[] E_INIT("j_suspend");
 #define Tsuspend (Tj_suspend + 2)
 EXTERN const char Tsynerr[] E_INIT("syntax error");
 EXTERN const char Ttime[] E_INIT("time");
 EXTERN const char Ttoo_many_args[] E_INIT("too many arguments");
+EXTERN const char Ttoo_many_files[] E_INIT("too many open files in shell");
 EXTERN const char Ttrue[] E_INIT("true");
 EXTERN const char Ttty_fd_dupof[] E_INIT("dup of tty fd");
 #define Ttty_fd (Ttty_fd_dupof + 7)
@@ -959,12 +968,14 @@ EXTERN const char Tdgtypeset[] E_INIT("^=typeset");
 #define Tugo (Taugo + 1)
 EXTERN const char Tunalias[] E_INIT("unalias");
 #define Tunexpected (TELIF_unexpected + 6)
+EXTERN const char Tunexpected_type[] E_INIT("%s: unexpected %s type %d");
 EXTERN const char Tunknown_option[] E_INIT("unknown option");
+EXTERN const char Tunwind[] E_INIT("unwind");
 #define Tuser_sp1 (Tuser_sp2 + 1)
 EXTERN const char Tuser_sp2[] E_INIT(" user ");
 #define Twrite (Tshf_write + 4)
 EXTERN const char Tf__S[] E_INIT(" %S");
-#define Tf__d (Tf_sd + 2)
+#define Tf__d (Tunexpected_type + 22)
 EXTERN const char Tf__ss[] E_INIT(" %s%s");
 #define Tf__sN (Tf_s_s_sN + 5)
 EXTERN const char Tf_sSs[] E_INIT("%s/%s");
@@ -974,13 +985,14 @@ EXTERN const char Tf_s_[] E_INIT("%s ");
 EXTERN const char Tf_s_T[] E_INIT("%s %T");
 EXTERN const char Tf_s_s_sN[] E_INIT("%s %s %s\n");
 #define Tf_s_s (Tf_sD_s_s + 4)
-#define Tf_s_sD_s (Tf_cant + 6)
+#define Tf_s_sD_s (Tf_cant_ss_s + 6)
 EXTERN const char Tf_optfoo[] E_INIT("%s%s-%c: %s");
 EXTERN const char Tf_sD_[] E_INIT("%s: ");
 EXTERN const char Tf_szs[] E_INIT("%s: %zd %s");
 EXTERN const char Tf_parm[] E_INIT("%s: parameter not set");
 EXTERN const char Tf_coproc[] E_INIT("-p: %s");
-EXTERN const char Tf_cant[] E_INIT("can't %s %s: %s");
+EXTERN const char Tf_cant_s[] E_INIT("%s: can't %s");
+EXTERN const char Tf_cant_ss_s[] E_INIT("can't %s %s: %s");
 EXTERN const char Tf_heredoc[] E_INIT("here document '%s' unclosed");
 #if HAVE_MKNOD
 EXTERN const char Tf_nonnum[] E_INIT("non-numeric %s %s '%s'");
@@ -998,7 +1010,7 @@ EXTERN const char Tf_sd[] E_INIT("%s %d");
 #define Tf_s (Tf_temp + 28)
 EXTERN const char Tft_end[] E_INIT("%;");
 EXTERN const char Tft_R[] E_INIT("%R");
-#define Tf_d (Tf_sd + 3)
+#define Tf_d (Tunexpected_type + 23)
 EXTERN const char Tf_sD_s_qs[] E_INIT("%s: %s '%s'");
 EXTERN const char Tf_ro[] E_INIT("read-only: %s");
 EXTERN const char Tf_flags[] E_INIT("%s: flags 0x%X");
@@ -1030,6 +1042,8 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tbsize "bsize"
 #define Tbad_sig_ss "%s: bad signal '%s'"
 #define Tbad_sig_s "bad signal '%s'"
+#define Tsgbreak "*=break"
+#define Tbreak "break"
 #define T__builtin "-\\builtin"
 #define T_builtin "\\builtin"
 #define Tbuiltin "builtin"
@@ -1043,6 +1057,8 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tcd "cd"
 #define T_command "-command"
 #define Tcommand "command"
+#define Tsgcontinue "*=continue"
+#define Tcontinue "continue"
 #define Tcreate "create"
 #define TELIF_unexpected "TELIF unexpected"
 #define TEXECSHELL "EXECSHELL"
@@ -1094,13 +1110,17 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tset "set"
 #define Tsh "sh"
 #define TSHELL "SHELL"
+#define Tshell "shell"
 #define Tshf_read "shf_read"
 #define Tshf_write "shf_write"
+#define Tgsource "=source"
+#define Tsource "source"
 #define Tj_suspend "j_suspend"
 #define Tsuspend "suspend"
 #define Tsynerr "syntax error"
 #define Ttime "time"
 #define Ttoo_many_args "too many arguments"
+#define Ttoo_many_files "too many open files in shell"
 #define Ttrue "true"
 #define Ttty_fd_dupof "dup of tty fd"
 #define Ttty_fd "tty fd"
@@ -1109,7 +1129,9 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tugo "ugo"
 #define Tunalias "unalias"
 #define Tunexpected "unexpected"
+#define Tunexpected_type "%s: unexpected %s type %d"
 #define Tunknown_option "unknown option"
+#define Tunwind "unwind"
 #define Tuser_sp1 "user "
 #define Tuser_sp2 " user "
 #define Twrite "write"
@@ -1130,7 +1152,8 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tf_szs "%s: %zd %s"
 #define Tf_parm "%s: parameter not set"
 #define Tf_coproc "-p: %s"
-#define Tf_cant "can't %s %s: %s"
+#define Tf_cant_s "%s: can't %s"
+#define Tf_cant_ss_s "can't %s %s: %s"
 #define Tf_heredoc "here document '%s' unclosed"
 #if HAVE_MKNOD
 #define Tf_nonnum "non-numeric %s %s '%s'"
@@ -2191,7 +2214,7 @@ int pprompt(const char *, int);
 /* main.c */
 int include(const char *, int, const char **, bool);
 int command(const char *, int);
-int shell(Source * volatile, volatile bool);
+int shell(Source * volatile, volatile int);
 /* argument MUST NOT be 0 */
 void unwind(int) MKSH_A_NORETURN;
 void newenv(int);

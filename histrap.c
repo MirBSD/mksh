@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.159 2016/11/11 18:44:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.160 2017/04/08 01:07:16 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -829,7 +829,7 @@ hist_init(Source *s)
 			goto retry;
 		}
 		if (hs != hist_init_retry)
-			bi_errorf(Tf_cant,
+			bi_errorf(Tf_cant_ss_s,
 			    "unlink HISTFILE", hname, cstrerror(errno));
 		histfsize = 0;
 		return;
@@ -1033,8 +1033,8 @@ inittraps(void)
 			if (!strcmp(sigtraps[i].name, "EXIT") ||
 			    !strcmp(sigtraps[i].name, "ERR")) {
 #ifndef MKSH_SMALL
-				internal_warningf("ignoring invalid signal name %s",
-				    sigtraps[i].name);
+				internal_warningf(Tinvname, sigtraps[i].name,
+				    "signal");
 #endif
 				sigtraps[i].name = null;
 			}

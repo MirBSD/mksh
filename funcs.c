@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.337 2017/04/06 19:02:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.338 2017/04/08 01:07:15 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -100,7 +100,7 @@ const struct builtin mkshbuiltins[] = {
 	{Tbracket, c_test},
 	/* no =: AT&T manual wrong */
 	{Talias, c_alias},
-	{"*=break", c_brkcont},
+	{Tsgbreak, c_brkcont},
 	{T__builtin, c_builtin},
 	{Tbuiltin, c_builtin},
 	{Tbcat, c_cat},
@@ -108,7 +108,7 @@ const struct builtin mkshbuiltins[] = {
 	/* dash compatibility hack */
 	{"chdir", c_cd},
 	{T_command, c_command},
-	{"*=continue", c_brkcont},
+	{Tsgcontinue, c_brkcont},
 	{"echo", c_print},
 	{"*=eval", c_eval},
 	{"*=exec", c_exec},
@@ -131,7 +131,7 @@ const struct builtin mkshbuiltins[] = {
 	{"*=return", c_exitreturn},
 	{Tsgset, c_set},
 	{"*=shift", c_shift},
-	{"=source", c_dot},
+	{Tgsource, c_dot},
 #if !defined(MKSH_UNEMPLOYED) && HAVE_GETSID
 	{Tsuspend, c_suspend},
 #endif
@@ -731,7 +731,7 @@ do_whence(const char **wp, int fcflags, bool vflag, bool iscommand)
 			break;
 #ifndef MKSH_SMALL
 		default:
-			bi_errorf("%s is of unknown type %d", id, tp->type);
+			bi_errorf(Tunexpected_type, id, Tcommand, tp->type);
 			return (1);
 #endif
 		}
@@ -1263,7 +1263,7 @@ c_getopts(const char **wp)
 	if (user_opt.optarg == NULL)
 		unset(voptarg, 1);
 	else
-		/* This can't fail (have cleared readonly/integer) */
+		/* this can't fail (haing cleared readonly/integer) */
 		setstr(voptarg, user_opt.optarg, KSH_RETURN_ERROR);
 
 	rv = 0;
@@ -2063,7 +2063,7 @@ c_eval(const char **wp)
 
 	savef = Flag(FERREXIT);
 	Flag(FERREXIT) |= 0x80;
-	rv = shell(s, false);
+	rv = shell(s, 2);
 	Flag(FERREXIT) = savef;
 	source = saves;
 	afree(s, ATEMP);
@@ -2199,7 +2199,7 @@ c_brkcont(const char **wp)
 		 * scripts, but don't generate an error (ie, keep going).
 		 */
 		if ((unsigned int)n == quit) {
-			warningf(true, "%s: can't %s", wp[0], wp[0]);
+			warningf(true, Tf_cant_s, wp[0], wp[0]);
 			return (0);
 		}
 		/*

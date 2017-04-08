@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.330 2017/04/06 01:59:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.331 2017/04/08 01:07:17 tg Exp $");
 
 extern char **environ;
 
@@ -662,7 +662,7 @@ main(int argc, const char *argv[])
 		if (Flag(FAS_BUILTIN)) {
 			rv = c_builtin(l->argv);
 		} else {
-			shell(s, true);
+			shell(s, 0);
 			/* NOTREACHED */
 		}
 	}
@@ -715,7 +715,7 @@ include(const char *name, int argc, const char **argv, bool intr_ok)
 			unwind(i);
 			/* NOTREACHED */
 		default:
-			internal_errorf("include %d", i);
+			internal_errorf(Tunexpected_type, Tunwind, Tsource, i);
 			/* NOTREACHED */
 		}
 	}
@@ -726,7 +726,7 @@ include(const char *name, int argc, const char **argv, bool intr_ok)
 	s = pushs(SFILE, ATEMP);
 	s->u.shf = shf;
 	strdupx(s->file, name, ATEMP);
-	i = shell(s, false);
+	i = shell(s, 1);
 	quitenv(s->u.shf);
 	if (old_argv) {
 		e->loc->argv = old_argv;
@@ -746,7 +746,7 @@ command(const char *comm, int line)
 	s = pushs(SSTRING, ATEMP);
 	s->start = s->str = comm;
 	s->line = line;
-	rv = shell(s, false);
+	rv = shell(s, 1);
 	source = sold;
 	return (rv);
 }
@@ -755,22 +755,33 @@ command(const char *comm, int line)
  * run the commands from the input source, returning status.
  */
 int
-shell(Source * volatile s, volatile bool toplevel)
+shell(Source * volatile s, volatile int level)
 {
 	struct op *t;
 	volatile bool wastty = tobool(s->flags & SF_TTY);
 	volatile uint8_t attempts = 13;
-	volatile bool interactive = Flag(FTALKING) && toplevel;
+	volatile bool interactive = (level == 0) && Flag(FTALKING);
 	volatile bool sfirst = true;
 	Source *volatile old_source = source;
 	int i;
 
-	newenv(E_PARSE);
+	newenv(level == 2 ? E_EVAL : E_PARSE);
 	if (interactive)
 		really_exit = false;
 	switch ((i = kshsetjmp(e->jbuf))) {
 	case 0:
 		break;
+	case LBREAK:
+	case LCONTIN:
+		if (level != 2) {
+			source = old_source;
+			quitenv(NULL);
+			internal_errorf(Tf_cant_s, Tshell,
+			    i == LBREAK ? Tbreak : Tcontinue);
+			/* NOTREACHED */
+		}
+		/* assert: interactive == false */
+		/* FALLTHROUGH */
 	case LINTR:
 		/* we get here if SIGINT not caught or ignored */
 	case LERROR:
@@ -810,7 +821,7 @@ shell(Source * volatile s, volatile bool toplevel)
 	default:
 		source = old_source;
 		quitenv(NULL);
-		internal_errorf("shell %d", i);
+		internal_errorf(Tunexpected_type, Tunwind, Tshell, i);
 		/* NOTREACHED */
 	}
 	while (/* CONSTCOND */ 1) {
@@ -848,7 +859,7 @@ shell(Source * volatile s, volatile bool toplevel)
 				 * immediately after the last command
 				 * executed.
 				 */
-				if (toplevel)
+				if (level == 0)
 					unwind(LEXIT);
 				break;
 			}
@@ -911,6 +922,7 @@ unwind(int i)
 		case E_INCL:
 		case E_LOOP:
 		case E_ERRH:
+		case E_EVAL:
 			kshlongjmp(e->jbuf, i);
 			/* NOTREACHED */
 		case E_NONE:
@@ -1380,19 +1392,19 @@ initio(void)
 #ifdef DF
 	if ((lfp = getenv("SDMKSH_PATH")) == NULL) {
 		if ((lfp = getenv("HOME")) == NULL || !mksh_abspath(lfp))
-			errorf("cannot get home directory");
+			errorf("can't get home directory");
 		lfp = shf_smprintf(Tf_sSs, lfp, "mksh-dbg.txt");
 	}
 
 	if ((shl_dbg_fd = open(lfp, O_WRONLY | O_APPEND | O_CREAT, 0600)) < 0)
-		errorf("cannot open debug output file %s", lfp);
+		errorf("can't open debug output file %s", lfp);
 	if (shl_dbg_fd < FDBASE) {
 		int nfd;
 
 		nfd = fcntl(shl_dbg_fd, F_DUPFD, FDBASE);
 		close(shl_dbg_fd);
 		if ((shl_dbg_fd = nfd) == -1)
-			errorf("cannot dup debug output file");
+			errorf("can't dup debug output file");
 	}
 	fcntl(shl_dbg_fd, F_SETFD, FD_CLOEXEC);
 	shf_fdopen(shl_dbg_fd, SHF_WR, shl_dbg);
@@ -1408,7 +1420,7 @@ ksh_dup2(int ofd, int nfd, bool errok)
 	int rv;
 
 	if (((rv = dup2(ofd, nfd)) < 0) && !errok && (errno != EBADF))
-		errorf("too many files open in shell");
+		errorf(Ttoo_many_files);
 
 #ifdef __ultrix
 	/*XXX imake style */
@@ -1432,7 +1444,7 @@ savefd(int fd)
 	    (errno == EBADF || errno == EPERM))
 		return (-1);
 	if (nfd < 0 || nfd > SHRT_MAX)
-		errorf("too many files open in shell");
+		errorf(Ttoo_many_files);
 	fcntl(nfd, F_SETFD, FD_CLOEXEC);
 	return ((short)nfd);
 }
