@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.773 2017/04/08 01:07:12 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.774 2017/04/11 12:34:02 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -11097,7 +11097,7 @@ expected-stdout:
 		vara=1  varb='2  3'  cmd  arg1  $arg2  "$arg3  4"
 	)|tr u x); }
 	function reread_TCOM {
-		x=$(( vara=1 varb="2  3" \cmd arg1 $arg2 "$arg3  4" ) | \tr u x ) 
+		x=$( ( vara=1 varb="2  3" \cmd arg1 $arg2 "$arg3  4" ) | \tr u x ) 
 	} 
 	inline_TPAREN_TPIPE_TLIST() {
 		(echo $foo  |  tr -dc 0-9; echo)
@@ -11110,13 +11110,13 @@ expected-stdout:
 		(echo $foo  |  tr -dc 0-9; echo)
 	); }
 	function comsub_TPAREN_TPIPE_TLIST {
-		x=$(( \echo $foo | \tr -dc 0-9 ; \echo ) ) 
+		x=$( ( \echo $foo | \tr -dc 0-9 ; \echo ) ) 
 	} 
 	function reread_TPAREN_TPIPE_TLIST { x=$((
 		(echo $foo  |  tr -dc 0-9; echo)
 	)|tr u x); }
 	function reread_TPAREN_TPIPE_TLIST {
-		x=$(( ( \echo $foo | \tr -dc 0-9 ; \echo ) ) | \tr u x ) 
+		x=$( ( ( \echo $foo | \tr -dc 0-9 ; \echo ) ) | \tr u x ) 
 	} 
 	inline_TAND_TOR() {
 		cmd  &&  echo ja  ||  echo nein
@@ -11134,7 +11134,7 @@ expected-stdout:
 		cmd  &&  echo ja  ||  echo nein
 	)|tr u x); }
 	function reread_TAND_TOR {
-		x=$(( \cmd && \echo ja || \echo nein ) | \tr u x ) 
+		x=$( ( \cmd && \echo ja || \echo nein ) | \tr u x ) 
 	} 
 	inline_TSELECT() {
 		select  file  in  *;  do  echo  "<$file>" ;  break ;  done
@@ -11156,7 +11156,7 @@ expected-stdout:
 		select  file  in  *;  do  echo  "<$file>" ;  break ;  done
 	)|tr u x); }
 	function reread_TSELECT {
-		x=$(( select file in * ; do \echo "<$file>" ; \break ; done ) | \tr u x ) 
+		x=$( ( select file in * ; do \echo "<$file>" ; \break ; done ) | \tr u x ) 
 	} 
 	inline_TFOR_TTIME() {
 		time  for  i  in  {1,2,3}  ;  do  echo  $i ;  done
@@ -11177,7 +11177,7 @@ expected-stdout:
 		time  for  i  in  {1,2,3}  ;  do  echo  $i ;  done
 	)|tr u x); }
 	function reread_TFOR_TTIME {
-		x=$(( time for i in {1,2,3} ; do \echo $i ; done ) | \tr u x ) 
+		x=$( ( time for i in {1,2,3} ; do \echo $i ; done ) | \tr u x ) 
 	} 
 	inline_TCASE() {
 		case  $foo  in  1)  echo eins;& 2) echo zwei  ;| *) echo kann net bis drei zählen;;  esac
@@ -11205,7 +11205,7 @@ expected-stdout:
 		case  $foo  in  1)  echo eins;& 2) echo zwei  ;| *) echo kann net bis drei zählen;;  esac
 	)|tr u x); }
 	function reread_TCASE {
-		x=$(( case $foo in (1) \echo eins  ;& (2) \echo zwei  ;| (*) \echo kann net bis drei zählen  ;; esac ) | \tr u x ) 
+		x=$( ( case $foo in (1) \echo eins  ;& (2) \echo zwei  ;| (*) \echo kann net bis drei zählen  ;; esac ) | \tr u x ) 
 	} 
 	inline_TIF_TBANG_TDBRACKET_TELIF() {
 		if  !  [[  1  =  1  ]]  ;  then  echo eins;  elif [[ 1 = 2 ]]; then echo zwei  ;else echo drei; fi
@@ -11231,7 +11231,7 @@ expected-stdout:
 		if  !  [[  1  =  1  ]]  ;  then  echo eins;  elif [[ 1 = 2 ]]; then echo zwei  ;else echo drei; fi
 	)|tr u x); }
 	function reread_TIF_TBANG_TDBRACKET_TELIF {
-		x=$(( if ! [[ 1 = 1 ]] ; then \echo eins ; elif [[ 1 = 2 ]] ; then \echo zwei ; else \echo drei ; fi ) | \tr u x ) 
+		x=$( ( if ! [[ 1 = 1 ]] ; then \echo eins ; elif [[ 1 = 2 ]] ; then \echo zwei ; else \echo drei ; fi ) | \tr u x ) 
 	} 
 	inline_TWHILE() {
 		i=1; while (( i < 10 )); do echo $i; let ++i; done
@@ -11256,7 +11256,7 @@ expected-stdout:
 		i=1; while (( i < 10 )); do echo $i; let ++i; done
 	)|tr u x); }
 	function reread_TWHILE {
-		x=$(( i=1 ; while { \\builtin let " i < 10 " ; } ; do \echo $i ; \let ++i ; done ) | \tr u x ) 
+		x=$( ( i=1 ; while { \\builtin let " i < 10 " ; } ; do \echo $i ; \let ++i ; done ) | \tr u x ) 
 	} 
 	inline_TUNTIL() {
 		i=10; until  (( !--i )) ; do echo $i; done
@@ -11280,7 +11280,7 @@ expected-stdout:
 		i=10; until  (( !--i )) ; do echo $i; done
 	)|tr u x); }
 	function reread_TUNTIL {
-		x=$(( i=10 ; until { \\builtin let " !--i " ; } ; do \echo $i ; done ) | \tr u x ) 
+		x=$( ( i=10 ; until { \\builtin let " !--i " ; } ; do \echo $i ; done ) | \tr u x ) 
 	} 
 	inline_TCOPROC() {
 		cat  *  |&  ls
@@ -11299,7 +11299,7 @@ expected-stdout:
 		cat  *  |&  ls
 	)|tr u x); }
 	function reread_TCOPROC {
-		x=$(( \cat * |&  \ls ) | \tr u x ) 
+		x=$( ( \cat * |&  \ls ) | \tr u x ) 
 	} 
 	inline_TFUNCT_TBRACE_TASYNC() {
 		function  korn  {  echo eins; echo zwei ;  }
@@ -11326,7 +11326,7 @@ expected-stdout:
 		bourne  ()  {  logger *  &  }
 	)|tr u x); }
 	function reread_TFUNCT_TBRACE_TASYNC {
-		x=$(( function korn { \echo eins ; \echo zwei ; } ; bourne() { \logger * &  } ) | \tr u x ) 
+		x=$( ( function korn { \echo eins ; \echo zwei ; } ; bourne() { \logger * &  } ) | \tr u x ) 
 	} 
 	inline_IOREAD_IOCAT() {
 		tr  x  u  0<foo  >>bar
@@ -11344,7 +11344,7 @@ expected-stdout:
 		tr  x  u  0<foo  >>bar
 	)|tr u x); }
 	function reread_IOREAD_IOCAT {
-		x=$(( \tr x u <foo >>bar ) | \tr u x ) 
+		x=$( ( \tr x u <foo >>bar ) | \tr u x ) 
 	} 
 	inline_IOWRITE_IOCLOB_IOHERE_noIOSKIP() {
 		cat  >|bar  <<'EOFN'
@@ -11374,7 +11374,7 @@ expected-stdout:
 	EOFN
 	)|tr u x); }
 	function reread_IOWRITE_IOCLOB_IOHERE_noIOSKIP {
-		x=$(( \cat >|bar <<"EOFN" 
+		x=$( ( \cat >|bar <<"EOFN" 
 		foo
 	EOFN
 	) | \tr u x ) 
@@ -11407,7 +11407,7 @@ expected-stdout:
 		EOFI
 	)|tr u x); }
 	function reread_IOWRITE_noIOCLOB_IOHERE_IOSKIP {
-		x=$(( \cat >bar <<-EOFI 
+		x=$( ( \cat >bar <<-EOFI 
 	foo
 	EOFI
 	) | \tr u x ) 
@@ -11428,7 +11428,7 @@ expected-stdout:
 		sh  1<>/dev/console  0<&1  2>&1
 	)|tr u x); }
 	function reread_IORDWR_IODUP {
-		x=$(( \sh 1<>/dev/console <&1 2>&1 ) | \tr u x ) 
+		x=$( ( \sh 1<>/dev/console <&1 2>&1 ) | \tr u x ) 
 	} 
 	inline_COMSUB_EXPRSUB_FUNSUB_VALSUB() {
 		echo $(true) $((1+ 2)) ${  :;} ${| REPLY=x;}
@@ -11446,7 +11446,7 @@ expected-stdout:
 		echo $(true) $((1+ 2)) ${  :;} ${| REPLY=x;}
 	)|tr u x); }
 	function reread_COMSUB_EXPRSUB_FUNSUB_VALSUB {
-		x=$(( \echo $(\true ) $((1+ 2)) ${ : ;} ${|REPLY=x ;} ) | \tr u x ) 
+		x=$( ( \echo $(\true ) $((1+ 2)) ${ : ;} ${|REPLY=x ;} ) | \tr u x ) 
 	} 
 	inline_QCHAR_OQUOTE_CQUOTE() {
 		echo fo\ob\"a\`r\'b\$az
@@ -11472,7 +11472,7 @@ expected-stdout:
 		echo 'fo\ob\"a\`r'\''b\$az'
 	)|tr u x); }
 	function reread_QCHAR_OQUOTE_CQUOTE {
-		x=$(( \echo fo\ob\"a\`r\'b\$az ; \echo "fo\ob\"a\`r\'b\$az" ; \echo "fo\\ob\\\"a\\\`r"\'"b\\\$az" ) | \tr u x ) 
+		x=$( ( \echo fo\ob\"a\`r\'b\$az ; \echo "fo\ob\"a\`r\'b\$az" ; \echo "fo\\ob\\\"a\\\`r"\'"b\\\$az" ) | \tr u x ) 
 	} 
 	inline_OSUBST_CSUBST_OPAT_SPAT_CPAT() {
 		[[ ${foo#bl\(u\)b} = @(bar|baz) ]]
@@ -11490,7 +11490,7 @@ expected-stdout:
 		[[ ${foo#bl\(u\)b} = @(bar|baz) ]]
 	)|tr u x); }
 	function reread_OSUBST_CSUBST_OPAT_SPAT_CPAT {
-		x=$(( [[ ${foo#bl\(u\)b} = @(bar|baz) ]] ) | \tr u x ) 
+		x=$( ( [[ ${foo#bl\(u\)b} = @(bar|baz) ]] ) | \tr u x ) 
 	} 
 	inline_heredoc_closed() {
 		x=$(cat <<EOFN
@@ -11521,7 +11521,7 @@ expected-stdout:
 	EOFN); echo $x
 	)|tr u x); }
 	function reread_heredoc_closed {
-		x=$(( x=$(\cat <<EOFN 
+		x=$( ( x=$(\cat <<EOFN 
 		note there must be no space between EOFN and )
 	EOFN
 	) ; \echo $x ) | \tr u x ) 
@@ -11555,7 +11555,7 @@ expected-stdout:
 	EOFN ); echo $x
 	)|tr u x); }
 	function reread_heredoc_space {
-		x=$(( x=$(\cat <<EOFN\  
+		x=$( ( x=$(\cat <<EOFN\  
 		note the space between EOFN and ) is actually part of the here document marker
 	EOFN 
 	) ; \echo $x ) | \tr u x ) 
@@ -11637,7 +11637,7 @@ expected-stdout:
 		fi
 	)|tr u x); }
 	function reread_patch_motd {
-		x=$(( x=$(\sysctl -n kern.version | \sed 1q ) ; [[ -s /etc/motd && "$([[ "$(\head -1 /etc/motd )" != $x ]] && \ed -s /etc/motd 2>&1 <<-EOF 
+		x=$( ( x=$(\sysctl -n kern.version | \sed 1q ) ; [[ -s /etc/motd && "$([[ "$(\head -1 /etc/motd )" != $x ]] && \ed -s /etc/motd 2>&1 <<-EOF 
 	1,/^\$/d
 	0a
 	$x
@@ -11674,7 +11674,7 @@ expected-stdout:
 		esac
 	)|tr u x); }
 	function reread_wdarrassign {
-		x=$(( case x in (x) a+=b ; \\builtin set -A c+ -- d e  ;; esac ) | \tr u x ) 
+		x=$( ( case x in (x) a+=b ; \\builtin set -A c+ -- d e  ;; esac ) | \tr u x ) 
 	} 
 ---
 name: comsub-torture-io
@@ -11753,7 +11753,7 @@ expected-stdout:
 		vara=1  varb='2  3'  cmd  arg1  $arg2  "$arg3  4" >&3
 	)|tr u x); }
 	function reread_TCOM {
-		x=$(( vara=1 varb="2  3" \cmd arg1 $arg2 "$arg3  4" >&3 ) | \tr u x ) 
+		x=$( ( vara=1 varb="2  3" \cmd arg1 $arg2 "$arg3  4" >&3 ) | \tr u x ) 
 	} 
 	inline_TPAREN_TPIPE_TLIST() {
 		(echo $foo  |  tr -dc 0-9 >&3; echo >&3) >&3
@@ -11766,13 +11766,13 @@ expected-stdout:
 		(echo $foo  |  tr -dc 0-9 >&3; echo >&3) >&3
 	); }
 	function comsub_TPAREN_TPIPE_TLIST {
-		x=$(( \echo $foo | \tr -dc 0-9 >&3 ; \echo >&3 ) >&3 ) 
+		x=$( ( \echo $foo | \tr -dc 0-9 >&3 ; \echo >&3 ) >&3 ) 
 	} 
 	function reread_TPAREN_TPIPE_TLIST { x=$((
 		(echo $foo  |  tr -dc 0-9 >&3; echo >&3) >&3
 	)|tr u x); }
 	function reread_TPAREN_TPIPE_TLIST {
-		x=$(( ( \echo $foo | \tr -dc 0-9 >&3 ; \echo >&3 ) >&3 ) | \tr u x ) 
+		x=$( ( ( \echo $foo | \tr -dc 0-9 >&3 ; \echo >&3 ) >&3 ) | \tr u x ) 
 	} 
 	inline_TAND_TOR() {
 		cmd  >&3 &&  >&3 echo ja  ||  echo >&3 nein
@@ -11790,7 +11790,7 @@ expected-stdout:
 		cmd  >&3 &&  >&3 echo ja  ||  echo >&3 nein
 	)|tr u x); }
 	function reread_TAND_TOR {
-		x=$(( \cmd >&3 && \echo ja >&3 || \echo nein >&3 ) | \tr u x ) 
+		x=$( ( \cmd >&3 && \echo ja >&3 || \echo nein >&3 ) | \tr u x ) 
 	} 
 	inline_TSELECT() {
 		select  file  in  *;  do  echo  "<$file>" ;  break >&3 ;  done >&3
@@ -11812,7 +11812,7 @@ expected-stdout:
 		select  file  in  *;  do  echo  "<$file>" ;  break >&3 ;  done >&3
 	)|tr u x); }
 	function reread_TSELECT {
-		x=$(( select file in * ; do \echo "<$file>" ; \break >&3 ; done >&3 ) | \tr u x ) 
+		x=$( ( select file in * ; do \echo "<$file>" ; \break >&3 ; done >&3 ) | \tr u x ) 
 	} 
 	inline_TFOR_TTIME() {
 		for  i  in  {1,2,3}  ;  do  time  >&3 echo  $i ;  done >&3
@@ -11833,7 +11833,7 @@ expected-stdout:
 		for  i  in  {1,2,3}  ;  do  time  >&3 echo  $i ;  done >&3
 	)|tr u x); }
 	function reread_TFOR_TTIME {
-		x=$(( for i in {1,2,3} ; do time \echo $i >&3 ; done >&3 ) | \tr u x ) 
+		x=$( ( for i in {1,2,3} ; do time \echo $i >&3 ; done >&3 ) | \tr u x ) 
 	} 
 	inline_TCASE() {
 		case  $foo  in  1)  echo eins >&3;& 2) echo zwei >&3  ;| *) echo kann net bis drei zählen >&3;;  esac >&3
@@ -11861,7 +11861,7 @@ expected-stdout:
 		case  $foo  in  1)  echo eins >&3;& 2) echo zwei >&3  ;| *) echo kann net bis drei zählen >&3;;  esac >&3
 	)|tr u x); }
 	function reread_TCASE {
-		x=$(( case $foo in (1) \echo eins >&3  ;& (2) \echo zwei >&3  ;| (*) \echo kann net bis drei zählen >&3  ;; esac >&3 ) | \tr u x ) 
+		x=$( ( case $foo in (1) \echo eins >&3  ;& (2) \echo zwei >&3  ;| (*) \echo kann net bis drei zählen >&3  ;; esac >&3 ) | \tr u x ) 
 	} 
 	inline_TIF_TBANG_TDBRACKET_TELIF() {
 		if  !  [[  1  =  1  ]]  >&3 ;  then  echo eins;  elif [[ 1 = 2 ]] >&3; then echo zwei  ;else echo drei; fi >&3
@@ -11887,7 +11887,7 @@ expected-stdout:
 		if  !  [[  1  =  1  ]]  >&3 ;  then  echo eins;  elif [[ 1 = 2 ]] >&3; then echo zwei  ;else echo drei; fi >&3
 	)|tr u x); }
 	function reread_TIF_TBANG_TDBRACKET_TELIF {
-		x=$(( if ! [[ 1 = 1 ]] >&3 ; then \echo eins ; elif [[ 1 = 2 ]] >&3 ; then \echo zwei ; else \echo drei ; fi >&3 ) | \tr u x ) 
+		x=$( ( if ! [[ 1 = 1 ]] >&3 ; then \echo eins ; elif [[ 1 = 2 ]] >&3 ; then \echo zwei ; else \echo drei ; fi >&3 ) | \tr u x ) 
 	} 
 	inline_TWHILE() {
 		i=1; while (( i < 10 )) >&3; do echo $i; let ++i; done >&3
@@ -11912,7 +11912,7 @@ expected-stdout:
 		i=1; while (( i < 10 )) >&3; do echo $i; let ++i; done >&3
 	)|tr u x); }
 	function reread_TWHILE {
-		x=$(( i=1 ; while { \\builtin let " i < 10 " ; } >&3 ; do \echo $i ; \let ++i ; done >&3 ) | \tr u x ) 
+		x=$( ( i=1 ; while { \\builtin let " i < 10 " ; } >&3 ; do \echo $i ; \let ++i ; done >&3 ) | \tr u x ) 
 	} 
 	inline_TUNTIL() {
 		i=10; until  (( !--i )) >&3 ; do echo $i; done >&3
@@ -11936,7 +11936,7 @@ expected-stdout:
 		i=10; until  (( !--i )) >&3 ; do echo $i; done >&3
 	)|tr u x); }
 	function reread_TUNTIL {
-		x=$(( i=10 ; until { \\builtin let " !--i " ; } >&3 ; do \echo $i ; done >&3 ) | \tr u x ) 
+		x=$( ( i=10 ; until { \\builtin let " !--i " ; } >&3 ; do \echo $i ; done >&3 ) | \tr u x ) 
 	} 
 	inline_TCOPROC() {
 		cat  *  >&3 |&  >&3 ls
@@ -11955,7 +11955,7 @@ expected-stdout:
 		cat  *  >&3 |&  >&3 ls
 	)|tr u x); }
 	function reread_TCOPROC {
-		x=$(( \cat * >&3 |&  \ls >&3 ) | \tr u x ) 
+		x=$( ( \cat * >&3 |&  \ls >&3 ) | \tr u x ) 
 	} 
 	inline_TFUNCT_TBRACE_TASYNC() {
 		function  korn  {  echo eins; echo >&3 zwei ;  }
@@ -11982,7 +11982,7 @@ expected-stdout:
 		bourne  ()  {  logger *  >&3 &  }
 	)|tr u x); }
 	function reread_TFUNCT_TBRACE_TASYNC {
-		x=$(( function korn { \echo eins ; \echo zwei >&3 ; } ; bourne() { \logger * >&3 &  } ) | \tr u x ) 
+		x=$( ( function korn { \echo eins ; \echo zwei >&3 ; } ; bourne() { \logger * >&3 &  } ) | \tr u x ) 
 	} 
 	inline_COMSUB_EXPRSUB() {
 		echo $(true >&3) $((1+ 2))
@@ -12000,7 +12000,7 @@ expected-stdout:
 		echo $(true >&3) $((1+ 2))
 	)|tr u x); }
 	function reread_COMSUB_EXPRSUB {
-		x=$(( \echo $(\true >&3 ) $((1+ 2)) ) | \tr u x ) 
+		x=$( ( \echo $(\true >&3 ) $((1+ 2)) ) | \tr u x ) 
 	} 
 ---
 name: funsub-1
