@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.439 2017/04/06 19:02:05 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.440 2017/04/11 17:40:41 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 6 2017 $
+.Dd $Mdocdate: April 11 2017 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2927,6 +2927,12 @@ function.
 A function can be made to finish immediately using the
 .Ic return
 command; this may also be used to explicitly specify the exit status.
+Note that when called in a subshell,
+.Ic return
+will only exit that subshell and will not cause the original shell to exit
+a running function (see the
+.Ic while Ns Li \&... Ns Ic read
+loop FAQ below).
 .Pp
 Functions defined with the
 .Ic function
@@ -3461,7 +3467,7 @@ Note that the Bourne shell differs here;
 it does pass these file descriptors on.
 .Pp
 .It Ic exit Op Ar status
-The shell exits with the specified exit status.
+The shell or subshell exits with the specified exit status.
 If
 .Ar status
 is not specified, the exit status is the current value of the
@@ -6740,6 +6746,13 @@ cannot be propagated if run in a pipeline:
 .Bd -literal -offset indent
 bar \*(Ba baz \*(Ba while read foo; do ...; done
 .Ed
+.Pp
+Note that
+.Ic exit
+in the inner loop will only exit the subshell and not the original shell.
+Likewise, if the code is inside a function,
+.Ic return
+in the inner loop will only exit the subshell and won't terminate the function.
 .Pp
 Use co-processes instead:
 .Bd -literal -offset indent
