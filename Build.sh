@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.713 2017/04/03 02:08:56 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.714 2017/04/12 15:23:31 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -2193,8 +2193,7 @@ ac_testn compile_time_asserts_$$ '' 'whether compile-time assertions pass' <<-'E
 	#ifndef CHAR_BIT
 	#define CHAR_BIT 8	/* defuse this test on really legacy systems */
 	#endif
-	struct ctasserts {
-	#define cta(name, assertion) char name[(assertion) ? 1 : -1]
+	#define cta(name, assertion) struct cta_ ## name { char t[(assertion) ? 1 : -1]; }
 /* this one should be defined by the standard */
 cta(char_is_1_char, (sizeof(char) == 1) && (sizeof(signed char) == 1) &&
     (sizeof(unsigned char) == 1));
@@ -2223,9 +2222,6 @@ cta(uari_has_32_bit, 0 < (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 
 cta(uari_wrap_32_bit,
     (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 3) >
     (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 4));
-#define NUM 22
-#else
-#define NUM 16
 #endif
 /* these are always required */
 cta(ari_is_signed, (mksh_ari_t)-1 < (mksh_ari_t)0);
@@ -2239,11 +2235,8 @@ cta(sizet_funcptr_same_size, sizeof(size_t) == sizeof(void (*)(void)));
 /* our formatting routines assume this */
 cta(ptr_fits_in_long, sizeof(size_t) <= sizeof(long));
 cta(ari_fits_in_long, sizeof(mksh_ari_t) <= sizeof(long));
-/* for struct alignment people */
-		char padding[64 - NUM];
-	};
-char ctasserts_dblcheck[sizeof(struct ctasserts) == 64 ? 1 : -1];
-	int main(void) { return (sizeof(ctasserts_dblcheck) + isatty(0)); }
+
+	int main(void) { return (isatty(0)); }
 EOF
 CFLAGS=$save_CFLAGS
 eval test 1 = \$HAVE_COMPILE_TIME_ASSERTS_$$ || exit 1
