@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.714 2017/04/12 15:23:31 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.715 2017/04/12 16:01:44 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -2185,61 +2185,6 @@ esac
 test 1 = $fv || check_categories="$check_categories no-histfile"
 ac_testdone
 ac_cppflags
-
-save_CFLAGS=$CFLAGS
-ac_testn compile_time_asserts_$$ '' 'whether compile-time assertions pass' <<-'EOF'
-	#define MKSH_INCLUDES_ONLY
-	#include "sh.h"
-	#ifndef CHAR_BIT
-	#define CHAR_BIT 8	/* defuse this test on really legacy systems */
-	#endif
-	#define cta(name, assertion) struct cta_ ## name { char t[(assertion) ? 1 : -1]; }
-/* this one should be defined by the standard */
-cta(char_is_1_char, (sizeof(char) == 1) && (sizeof(signed char) == 1) &&
-    (sizeof(unsigned char) == 1));
-cta(char_is_8_bits, ((CHAR_BIT) == 8) && ((int)(unsigned char)0xFF == 0xFF) &&
-    ((int)(unsigned char)0x100 == 0) && ((int)(unsigned char)(int)-1 == 0xFF));
-/* the next assertion is probably not really needed */
-cta(short_is_2_char, sizeof(short) == 2);
-cta(short_size_no_matter_of_signedness, sizeof(short) == sizeof(unsigned short));
-/* the next assertion is probably not really needed */
-cta(int_is_4_char, sizeof(int) == 4);
-cta(int_size_no_matter_of_signedness, sizeof(int) == sizeof(unsigned int));
-
-cta(long_ge_int, sizeof(long) >= sizeof(int));
-cta(long_size_no_matter_of_signedness, sizeof(long) == sizeof(unsigned long));
-
-#ifndef MKSH_LEGACY_MODE
-/* the next assertion is probably not really needed */
-cta(ari_is_4_char, sizeof(mksh_ari_t) == 4);
-/* but this is */
-cta(ari_has_31_bit, 0 < (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 1));
-/* the next assertion is probably not really needed */
-cta(uari_is_4_char, sizeof(mksh_uari_t) == 4);
-/* but the next three are; we REQUIRE unsigned integer wraparound */
-cta(uari_has_31_bit, 0 < (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 2 + 1));
-cta(uari_has_32_bit, 0 < (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 3));
-cta(uari_wrap_32_bit,
-    (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 3) >
-    (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 4));
-#endif
-/* these are always required */
-cta(ari_is_signed, (mksh_ari_t)-1 < (mksh_ari_t)0);
-cta(uari_is_unsigned, (mksh_uari_t)-1 > (mksh_uari_t)0);
-/* we require these to have the precisely same size and assume 2s complement */
-cta(ari_size_no_matter_of_signedness, sizeof(mksh_ari_t) == sizeof(mksh_uari_t));
-
-cta(sizet_size_no_matter_of_signedness, sizeof(ssize_t) == sizeof(size_t));
-cta(sizet_voidptr_same_size, sizeof(size_t) == sizeof(void *));
-cta(sizet_funcptr_same_size, sizeof(size_t) == sizeof(void (*)(void)));
-/* our formatting routines assume this */
-cta(ptr_fits_in_long, sizeof(size_t) <= sizeof(long));
-cta(ari_fits_in_long, sizeof(mksh_ari_t) <= sizeof(long));
-
-	int main(void) { return (isatty(0)); }
-EOF
-CFLAGS=$save_CFLAGS
-eval test 1 = \$HAVE_COMPILE_TIME_ASSERTS_$$ || exit 1
 
 #
 # extra checks for legacy mksh
