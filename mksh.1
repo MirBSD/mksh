@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.441 2017/04/12 17:38:45 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.442 2017/04/12 18:30:58 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -5351,11 +5351,11 @@ Most other historic,
 or opinionated differences can be disabled by using this mode; these are:
 .Bl -bullet
 .It
-The GNU
+The incompatible GNU
 .Nm bash
 I/O redirection
 .Ic &\*(Gt Ns Ar file
-is no longer supported.
+is not supported.
 .It
 File descriptors created by I/O redirections are inherited by
 child processes.
@@ -5365,20 +5365,34 @@ Numbers with a leading digit zero are interpreted as octal.
 The
 .Nm echo
 builtin does not interpret backslashes and only supports the exact option
-.Dq Li \-n .
+.Fl n .
 .It
-\&... (list is incomplete and may change for R54)
+Alias expansion with a trailing space only reruns on command words.
+.It
+Tilde expansion follows POSIX instead of Korn shell rules.
+.It
+The exit status of
+.Ic fg
+is always 0.
+.It
+.Ic kill
+.Fl l
+only lists signal names, all in one line.
+.It
+.Ic getopts
+does not accept options with a leading
+.Ql + .
 .El
 .Ss SH mode
 Compatibility mode; intended for use with legacy scripts that
 cannot easily be fixed; the changes are as follows:
 .Bl -bullet
 .It
-The GNU
+The incompatible GNU
 .Nm bash
 I/O redirection
 .Ic &\*(Gt Ns Ar file
-is no longer supported.
+is not supported.
 .It
 File descriptors created by I/O redirections are inherited by
 child processes.
@@ -5386,7 +5400,9 @@ child processes.
 The
 .Nm echo
 builtin does not interpret backslashes and only supports the exact option
-.Dq Li \-n .
+.Fl n ,
+unless built with
+.Ev \-DMKSH_MIDNIGHTBSD01ASH_COMPAT .
 .It
 The substitution operations
 .Sm off
@@ -5416,7 +5432,16 @@ and
 .Xc
 wrongly do not require a parenthesis to be escaped and do not parse extglobs.
 .It
-\&... (list is incomplete and may change for R54)
+The getopt construct from
+.Xr lksh 1
+passes through the errorlevel.
+.It
+.Nm sh
+.Fl c
+eats a leading
+.Fl \-
+if built with
+.Ev \-DMKSH_MIDNIGHTBSD01ASH_COMPAT .
 .El
 .Ss Interactive input line editing
 The shell supports three modes of reading command lines from a
