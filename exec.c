@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.195 2017/04/08 01:07:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.196 2017/04/12 16:46:21 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -376,9 +376,8 @@ execute(struct op * volatile t,
 		if (t->right == NULL)
 			/* should be error */
 			break;
-		rv = execute(t->left, XERROK, NULL) == 0 ?
-		    execute(t->right->left, flags & XERROK, xerrok) :
-		    execute(t->right->right, flags & XERROK, xerrok);
+		rv = execute(execute(t->left, XERROK, NULL) == 0 ?
+		    t->right->left : t->right->right, flags & XERROK, xerrok);
 		break;
 
 	case TCASE:
@@ -1507,7 +1506,10 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		if (u == -1) {
 			u = errno;
 			warningf(true, Tf_cant_ss_s,
+#if 0
+			    /* can't happen */
 			    iotype == IODUP ? "dup" :
+#endif
 			    (iotype == IOREAD || iotype == IOHERE) ?
 			    Topen : Tcreate, cp, cstrerror(u));
 		}

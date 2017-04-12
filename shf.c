@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
- *		 2012, 2013, 2015, 2016
+ *		 2012, 2013, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.77 2017/04/02 15:00:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.78 2017/04/12 16:46:22 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -289,29 +289,32 @@ shf_sclose(struct shf *shf)
 int
 shf_flush(struct shf *shf)
 {
+	int rv;
+
 	if (shf->flags & SHF_STRING)
-		return ((shf->flags & SHF_WR) ? -1 : 0);
-
-	if (shf->fd < 0)
+		rv = (shf->flags & SHF_WR) ? -1 : 0;
+	else if (shf->fd < 0)
 		internal_errorf(Tf_sD_s, "shf_flush", "no fd");
-
-	if (shf->flags & SHF_ERROR) {
+	else if (shf->flags & SHF_ERROR) {
 		errno = shf->errnosv;
-		return (-1);
-	}
-
-	if (shf->flags & SHF_READING) {
+		rv = -1;
+	} else if (shf->flags & SHF_READING) {
+		rv = 0;
 		shf->flags &= ~(SHF_EOF | SHF_READING);
 		if (shf->rnleft > 0) {
-			lseek(shf->fd, (off_t)-shf->rnleft, SEEK_CUR);
+			if (lseek(shf->fd, (off_t)-shf->rnleft,
+			    SEEK_CUR) == -1) {
+				shf->flags |= SHF_ERROR;
+				shf->errnosv = errno;
+				rv = -1;
+			}
 			shf->rnleft = 0;
 			shf->rp = shf->buf;
 		}
-		return (0);
 	} else if (shf->flags & SHF_WRITING)
-		return (shf_emptybuf(shf, 0));
+		rv = shf_emptybuf(shf, 0);
 
-	return (0);
+	return (rv);
 }
 
 /*

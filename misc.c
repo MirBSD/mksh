@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.254 2017/04/02 13:08:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.255 2017/04/12 16:46:22 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -501,7 +501,7 @@ parse_args(const char **argv,
 	if (arrayset) {
 		const char *ccp = NULL;
 
-		if (*array)
+		if (array && *array)
 			ccp = skip_varname(array, false);
 		if (!ccp || !(!ccp[0] || (ccp[0] == '+' && !ccp[1]))) {
 			bi_errorf(Tf_sD_s, array, Tnot_ident);
