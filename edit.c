@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.319 2017/04/08 20:35:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.320 2017/04/12 15:54:47 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -953,6 +953,7 @@ static bool xlp_valid;		/* lastvis pointer was recalculated */
 static char **x_histp;		/* history position */
 static int x_nextcmd;		/* for newline-and-next */
 static char **x_histncp;	/* saved x_histp for " */
+static char **x_histmcp;	/* saved x_histp for " */
 static char *xmp;		/* mark pointer */
 static unsigned char x_last_command;
 static unsigned char (*x_tab)[X_TABSZ];	/* key definition */
@@ -1167,6 +1168,7 @@ static void
 x_modified(void)
 {
 	if (!modified) {
+		x_histmcp = x_histp;
 		x_histp = histptr + 1;
 		modified = 1;
 	}
@@ -1243,7 +1245,7 @@ x_emacs(char *buf)
 	xlp_valid = true;
 	xmp = NULL;
 	x_curprefix = 0;
-	x_histp = histptr + 1;
+	x_histmcp = x_histp = histptr + 1;
 	x_last_command = XFUNC_error;
 
 	x_init_prompt(true);
@@ -1866,9 +1868,11 @@ x_load_hist(char **hp)
 static int
 x_nl_next_com(int c MKSH_A_UNUSED)
 {
-	if (!x_histncp || (x_histp != x_histncp && x_histp != histptr + 1))
+	if (!modified)
+		x_histmcp = x_histp;
+	if (!x_histncp || (x_histmcp != x_histncp && x_histmcp != histptr + 1))
 		/* fresh start of ^O */
-		x_histncp = x_histp;
+		x_histncp = x_histmcp;
 	x_nextcmd = source->line - (histptr - x_histncp) + 1;
 	return (x_newline('\n'));
 }
@@ -3172,6 +3176,8 @@ x_prev_histword(int c MKSH_A_UNUSED)
 		x_ins(cp);
 		*rcp = ch;
 	}
+	if (!modified)
+		x_histmcp = x_histp;
 	modified = m + 1;
 	return (KSTD);
 }
