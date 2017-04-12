@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.807 2017/04/08 01:07:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.808 2017/04/12 17:38:46 tg Exp $");
 #endif
-#define MKSH_VERSION "R54 2017/04/07"
+#define MKSH_VERSION "R55 2017/04/12"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -593,7 +593,7 @@ char *ucstrstr(char *, const char *);
 #define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 549)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 551)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -2404,7 +2404,7 @@ enum Test_op {
 	/* non-operator */
 	TO_NONOP = 0,
 	/* unary operators */
-	TO_STNZE, TO_STZER, TO_OPTION,
+	TO_STNZE, TO_STZER, TO_ISSET, TO_OPTION,
 	TO_FILAXST,
 	TO_FILEXST,
 	TO_FILREG, TO_FILBDEV, TO_FILCDEV, TO_FILSYM, TO_FILFIFO, TO_FILSOCK,

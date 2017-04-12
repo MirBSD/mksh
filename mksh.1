@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.440 2017/04/11 17:40:41 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.441 2017/04/12 17:38:45 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 11 2017 $
+.Dd $Mdocdate: April 12 2017 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -4472,34 +4472,6 @@ is a symbolic link.
 .It Fl O Ar file
 .Ar file Ns 's
 owner is the shell's effective user ID.
-.It Fl o Ar option
-Shell
-.Ar option
-is set (see the
-.Ic set
-command above for a list of options).
-As a non-standard extension, if the option starts with a
-.Ql \&! ,
-the test is negated; the test always fails if
-.Ar option
-doesn't exist (so [ \-o foo \-o \-o !foo ] returns true if and only if option
-.Ar foo
-exists).
-The same can be achieved with [ \-o ?foo ] like in
-.At
-.Nm ksh93 .
-.Ar option
-can also be the short flag led by either
-.Ql \-
-or
-.Ql +
-.Pq no logical negation ,
-for example
-.Dq Li \-x
-or
-.Dq Li +x
-instead of
-.Dq Li xtrace .
 .It Fl p Ar file
 .Ar file
 is a named pipe
@@ -4561,6 +4533,38 @@ is not empty.
 .It Fl z Ar string
 .Ar string
 is empty.
+.It Fl v Ar name
+The shell parameter
+.Ar name
+is set.
+.It Fl o Ar option
+Shell
+.Ar option
+is set (see the
+.Ic set
+command above for a list of options).
+As a non-standard extension, if the option starts with a
+.Ql \&! ,
+the test is negated; the test always fails if
+.Ar option
+doesn't exist (so [ \-o foo \-o \-o !foo ] returns true if and only if option
+.Ar foo
+exists).
+The same can be achieved with [ \-o ?foo ] like in
+.At
+.Nm ksh93 .
+.Ar option
+can also be the short flag led by either
+.Ql \-
+or
+.Ql +
+.Pq no logical negation ,
+for example
+.Dq Li \-x
+or
+.Dq Li +x
+instead of
+.Dq Li xtrace .
 .It Ar string No = Ar string
 Strings are equal.
 .It Ar string No == Ar string

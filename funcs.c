@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.338 2017/04/08 01:07:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.339 2017/04/12 17:38:44 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -189,8 +189,8 @@ static const struct t_op {
 	{"-f",	TO_FILREG },
 	{"-G",	TO_FILGID },
 	{"-g",	TO_FILSETG },
-	{"-h",	TO_FILSYM },
 	{"-H",	TO_FILCDF },
+	{"-h",	TO_FILSYM },
 	{"-k",	TO_FILSTCK },
 	{"-L",	TO_FILSYM },
 	{"-n",	TO_STNZE },
@@ -198,10 +198,11 @@ static const struct t_op {
 	{"-o",	TO_OPTION },
 	{"-p",	TO_FILFIFO },
 	{"-r",	TO_FILRD },
-	{"-s",	TO_FILGZ },
 	{"-S",	TO_FILSOCK },
+	{"-s",	TO_FILGZ },
 	{"-t",	TO_FILTT },
 	{"-u",	TO_FILSETU },
+	{"-v",	TO_ISSET },
 	{"-w",	TO_FILWR },
 	{"-x",	TO_FILEX },
 	{"-z",	TO_STZER },
@@ -2753,6 +2754,7 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	size_t k;
 	struct stat b1, b2;
 	mksh_ari_t v1, v2;
+	struct tbl *vp;
 
 	if (!do_eval)
 		return (0);
@@ -2798,6 +2800,10 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	/* -z */
 	case TO_STZER:
 		return (*opnd1 == '\0');
+
+	/* -v */
+	case TO_ISSET:
+		return ((vp = isglobal(opnd1, false)) && (vp->flag & ISSET));
 
 	/* -o */
 	case TO_OPTION:

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.774 2017/04/11 12:34:02 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.775 2017/04/12 17:38:41 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R54 2017/04/07
+	@(#)MIRBSD KSH R55 2017/04/12
 description:
 	Check version of shell.
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: !shell:legacy-yes,!shell:textmode-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R54 2017/04/07
+	@(#)LEGACY KSH R55 2017/04/12
 description:
 	Check version of legacy shell.
 stdin:
@@ -48,7 +48,7 @@ name: KSH_VERSION-legacy
 category: !shell:legacy-no,!shell:textmode-yes
 ---
 expected-stdout:
-	@(#)MIRBSD KSH R54 2017/04/07 +TEXTMODE
+	@(#)MIRBSD KSH R55 2017/04/12 +TEXTMODE
 description:
 	Check version of shell.
 stdin:
@@ -57,7 +57,7 @@ name: KSH_VERSION-textmode
 category: !shell:legacy-yes,!shell:textmode-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R54 2017/04/07 +TEXTMODE
+	@(#)LEGACY KSH R55 2017/04/12 +TEXTMODE
 description:
 	Check version of legacy shell.
 stdin:
@@ -7747,6 +7747,58 @@ expected-stdout:
 	1- 0 0 0 =
 	2- 1 1 1 =
 	3- 0 0 0 =
+---
+name: test-varset-1
+description:
+	Test the test -v operator
+stdin:
+	[[ -v a ]]
+	rv=$?; echo $((++i)) $rv
+	a=
+	[[ -v a ]]
+	rv=$?; echo $((++i)) $rv
+	unset a
+	[[ -v a ]]
+	rv=$?; echo $((++i)) $rv
+	a=x
+	[[ -v a ]]
+	rv=$?; echo $((++i)) $rv
+	nameref b=a
+	[[ -v b ]]
+	rv=$?; echo $((++i)) $rv
+	unset a
+	[[ -v b ]]
+	rv=$?; echo $((++i)) $rv
+	x[1]=y
+	[[ -v x ]]
+	rv=$?; echo $((++i)) $rv
+	[[ -v x[0] ]]
+	rv=$?; echo $((++i)) $rv
+	[[ -v x[1] ]]
+	rv=$?; echo $((++i)) $rv
+	[[ -v x[2] ]]
+	rv=$?; echo $((++i)) $rv
+expected-stdout:
+	1 1
+	2 0
+	3 1
+	4 0
+	5 0
+	6 1
+	7 1
+	8 1
+	9 0
+	10 1
+---
+name: test-varset-2
+description:
+	test -v works only on scalars
+stdin:
+	[[ -v x[*] ]]
+	echo ok
+expected-exit: e != 0
+expected-stderr-pattern:
+	/unexpected '\*'/
 ---
 name: test-stnze-1
 description:
