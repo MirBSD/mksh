@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.78 2017/04/12 16:46:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.79 2017/04/12 17:08:49 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -289,7 +289,7 @@ shf_sclose(struct shf *shf)
 int
 shf_flush(struct shf *shf)
 {
-	int rv;
+	int rv = 0;
 
 	if (shf->flags & SHF_STRING)
 		rv = (shf->flags & SHF_WR) ? -1 : 0;
@@ -299,7 +299,6 @@ shf_flush(struct shf *shf)
 		errno = shf->errnosv;
 		rv = -1;
 	} else if (shf->flags & SHF_READING) {
-		rv = 0;
 		shf->flags &= ~(SHF_EOF | SHF_READING);
 		if (shf->rnleft > 0) {
 			if (lseek(shf->fd, (off_t)-shf->rnleft,
