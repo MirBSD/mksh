@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.339 2017/04/12 17:38:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.340 2017/04/12 17:46:29 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2578,14 +2578,13 @@ c_mknod(const char **wp)
 		| "(" oexpr ")"
 		;
 
-	unary-operator ::= "-a"|"-r"|"-w"|"-x"|"-e"|"-f"|"-d"|"-c"|"-b"|"-p"|
-			   "-u"|"-g"|"-k"|"-s"|"-t"|"-z"|"-n"|"-o"|"-O"|"-G"|
-			   "-L"|"-h"|"-S"|"-H";
+	unary-operator ::= "-a"|"-b"|"-c"|"-d"|"-e"|"-f"|"-G"|"-g"|"-H"|"-h"|
+			   "-k"|"-L"|"-n"|"-O"|"-o"|"-p"|"-r"|"-S"|"-s"|"-t"|
+			   "-u"|"-v"|"-w"|"-x"|"-z";
 
-	binary-operator ::= "="|"=="|"!="|"-eq"|"-ne"|"-ge"|"-gt"|"-le"|"-lt"|
-			    "-nt"|"-ot"|"-ef"|
-			    "<"|">"	# rules used for [[ ... ]] expressions
-			    ;
+	binary-operator ::= "="|"=="|"!="|"<"|">"|"-eq"|"-ne"|"-gt"|"-ge"|
+			    "-lt"|"-le"|"-ef"|"-nt"|"-ot";
+
 	operand ::= <anything>
 */
 
@@ -2833,7 +2832,7 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	case TO_FILEXST:
 		return (test_stat(opnd1, &b1) == 0);
 
-	/* -r */
+	/* -f */
 	case TO_FILREG:
 		return (test_stat(opnd1, &b1) == 0 && S_ISREG(b1.st_mode));
 
@@ -2934,7 +2933,7 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	 * Binary Operators
 	 */
 
-	/* = */
+	/* =, == */
 	case TO_STEQL:
 		if (te->flags & TEF_DBRACKET) {
 			if ((i = gmatchx(opnd1, opnd2, false)))
