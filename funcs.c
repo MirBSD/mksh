@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.340 2017/04/12 17:46:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.341 2017/04/17 19:51:46 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -758,7 +758,7 @@ c_alias(const char **wp)
 {
 	struct table *t = &aliases;
 	int rv = 0, prefix = 0;
-	bool rflag = false, tflag, Uflag = false, pflag = false;
+	bool rflag = false, tflag, Uflag = false, pflag = false, chkalias;
 	uint32_t xflag = 0;
 	int optc;
 
@@ -809,6 +809,7 @@ c_alias(const char **wp)
 	}
 
 	tflag = t == &taliases;
+	chkalias = t == &aliases;
 
 	/* "hash -r" means reset all the tracked aliases.. */
 	if (rflag) {
@@ -851,7 +852,7 @@ c_alias(const char **wp)
 			strndupx(xalias, alias, val++ - alias, ATEMP);
 			alias = xalias;
 		}
-		if (!valid_alias_name(alias) || *alias == '-') {
+		if (chkalias && (!valid_alias_name(alias) || *alias == '-')) {
 			bi_errorf(Tinvname, alias, Talias);
 			afree(xalias, ATEMP);
 			return (1);
