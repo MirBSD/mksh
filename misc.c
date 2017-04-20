@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.255 2017/04/12 16:46:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.256 2017/04/20 16:34:39 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -752,10 +752,7 @@ has_globbing(const char *xp, const char *xpe)
 			} else if (nest)
 				nest--;
 		}
-		/*
-		 * else must be a MAGIC-MAGIC, or MAGIC-!,
-		 * MAGIC--, MAGIC-], MAGIC-{, MAGIC-, MAGIC-}
-		 */
+		/* else must be MAGIC followed by MAGIC or one of: ]{},!- */
 	}
 	return (saw_glob && !in_bracket && !nest);
 }
