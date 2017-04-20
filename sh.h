@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.809 2017/04/17 19:51:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.810 2017/04/20 16:50:48 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/17"
 
@@ -505,6 +505,9 @@ extern int __cdecl setegid(gid_t);
  * Make MAGIC a char that might be printed to make bugs more obvious, but
  * not a char that is used often. Also, can't use the high bit as it causes
  * portability problems (calling strchr(x, 0x80 | 'x') is error prone).
+ *
+ * MAGIC can be followed by MAGIC (to escape the octet itself) or one of:
+ * ' !)*,-?[]{|}' 0x80|' !*+?@' (probably… hysteric raisins abound)
  */
 #define MAGIC		(7)	/* prefix for *?[!{,} during expand */
 #define ISMAGIC(c)	((unsigned char)(c) == MAGIC)
