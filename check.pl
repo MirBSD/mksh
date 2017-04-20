@@ -1,8 +1,8 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.42 2015/11/29 17:05:00 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.43 2017/04/20 21:43:43 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
-#		2012, 2013, 2014, 2015
+#		2012, 2013, 2014, 2015, 2017
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -78,7 +78,6 @@
 #					the test harness).
 #					CYGWIN is set to nodosfilewarning.
 #					ENV is set to /nonexistant.
-#					PATHSEP is set to either : or ;.
 #					__progname is set to the -p argument.
 #					__perlname is set to $^X (perlexe).
 #	file-setup		mps	Used to create files, directories
@@ -281,7 +280,6 @@ foreach $env (('HOME', 'LD_LIBRARY_PATH', 'LOCPATH', 'LOGNAME',
 }
 $new_env{'CYGWIN'} = 'nodosfilewarning';
 $new_env{'ENV'} = '/nonexistant';
-$new_env{'PATHSEP'} = $os eq 'os2' ? ';' : ':';
 if (($os eq 'VMS') || ($Config{perlpath} =~ m/$Config{_exe}$/i)) {
 	$new_env{'__perlname'} = $Config{perlpath};
 } else {
