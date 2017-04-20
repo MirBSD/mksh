@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.810 2017/04/20 16:50:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.811 2017/04/20 20:50:14 tg Exp $");
 #endif
-#define MKSH_VERSION "R55 2017/04/17"
+#define MKSH_VERSION "R55 2017/04/20"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1304,7 +1304,8 @@ extern unsigned char chtypes[];
 #define ksh_issubop2(c)	tobool((c) == ord('#') || (c) == ord('%'))
 #define ksh_isalias(c)	(ctype((c), C_ALPHX | C_DIGIT) || (c) == ord('!') || \
 			    (c) == ord('%') || (c) == ord(',') || \
-			    (c) == ord('@') || (c) == ord('-'))
+			    (c) == ord('.') || (c) == ord('@') || \
+			    (c) == ord('-'))
 #define ksh_isalpha(c)	(ctype((c), C_ALPHX) && (c) != ord('_'))
 #define ksh_isalphx(c)	ctype((c), C_ALPHX)
 #define ksh_isalnux(c)	ctype((c), C_ALPHX | C_DIGIT)
