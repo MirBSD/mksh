@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.776 2017/04/17 19:51:44 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.777 2017/04/20 18:44:07 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2364,6 +2364,18 @@ stdin:
 expected-stdout:
 	dir/abc
 	dir/abc
+---
+name: glob-bad-3
+description:
+	Check that the slash is parsed before the glob
+stdin:
+	mkdir a 'a[b'
+	(cd 'a[b'; echo ok >'c]d')
+	echo nok >abd
+	echo fail >a/d
+	cat a[b/c]d
+expected-stdout:
+	ok
 ---
 name: glob-range-1
 description:
