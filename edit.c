@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.322 2017/04/21 19:08:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.323 2017/04/21 19:50:06 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -3685,7 +3685,7 @@ vi_hook(int ch)
 				return (1);
 			cmdlen = 0;
 			argc1 = 0;
-			if (ch >= ord('1') && ch <= ord('9')) {
+			if (ksh_isdigit(ch)) {
 				argc1 = ksh_numdig(ch);
 				state = VARG1;
 			} else {
@@ -3740,7 +3740,7 @@ vi_hook(int ch)
 
 	case VEXTCMD:
 		argc2 = 0;
-		if (ch >= ord('1') && ch <= ord('9')) {
+		if (ksh_isdigit(ch)) {
 			argc2 = ksh_numdig(ch);
 			state = VARG2;
 			return (0);

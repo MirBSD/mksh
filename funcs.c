@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.341 2017/04/17 19:51:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.342 2017/04/21 19:50:07 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1419,7 +1419,7 @@ c_umask(const char **wp)
 
 		if (ksh_isdigit(*cp)) {
 			new_umask = 0;
-			while (*cp >= ord('0') && *cp <= ord('7')) {
+			while (asc(*cp) >= asc('0') && asc(*cp) <= asc('7')) {
 				new_umask = new_umask * 8 + ksh_numdig(*cp);
 				++cp;
 			}

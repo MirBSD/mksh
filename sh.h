@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.811 2017/04/20 20:50:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.812 2017/04/21 19:50:09 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/20"
 
@@ -1300,26 +1300,28 @@ EXTERN bool really_exit;
 extern unsigned char chtypes[];
 
 #define ctype(c, t)	tobool(chtypes[(unsigned char)(c)] & (t))
-#define ord(c)		((int)(unsigned char)(c))
-#define ksh_issubop2(c)	tobool((c) == ord('#') || (c) == ord('%'))
-#define ksh_isalias(c)	(ctype((c), C_ALPHX | C_DIGIT) || (c) == ord('!') || \
-			    (c) == ord('%') || (c) == ord(',') || \
-			    (c) == ord('.') || (c) == ord('@') || \
-			    (c) == ord('-'))
-#define ksh_isalpha(c)	(ctype((c), C_ALPHX) && (c) != ord('_'))
+#define ord(c)		((unsigned int)(unsigned char)(c))
+/* identity transformation in !EBCDIC; Unicode map (or higher) in EBCDIC */
+#define asc(c)		ord(c)
+#define ksh_issubop2(c)	tobool(ord(c) == ord('#') || ord(c) == ord('%'))
+#define ksh_isalias(c)	(ctype((c), C_ALPHX | C_DIGIT) || \
+			    ord(c) == ord('!') || ord(c) == ord('%') || \
+			    ord(c) == ord(',') || ord(c) == ord('.') || \
+			    ord(c) == ord('@') || ord(c) == ord('-'))
+#define ksh_isalpha(c)	(ctype((c), C_ALPHX) && ord(c) != ord('_'))
 #define ksh_isalphx(c)	ctype((c), C_ALPHX)
 #define ksh_isalnux(c)	ctype((c), C_ALPHX | C_DIGIT)
 #define ksh_isdigit(c)	ctype((c), C_DIGIT)
-#define ksh_islower(c)	(((c) >= 'a') && ((c) <= 'z'))
-#define ksh_isupper(c)	(((c) >= 'A') && ((c) <= 'Z'))
+#define ksh_islower(c)	((asc(c) >= asc('a')) && (asc(c) <= asc('z')))
+#define ksh_isupper(c)	((asc(c) >= asc('A')) && (asc(c) <= asc('Z')))
 #define ksh_tolower(c)	(ksh_isupper(c) ? (c) - 'A' + 'a' : (c))
 #define ksh_toupper(c)	(ksh_islower(c) ? (c) - 'a' + 'A' : (c))
 #define ksh_isdash(s)	(((s)[0] == '-') && ((s)[1] == '\0'))
 #define ksh_isspace(c)	((((c) >= 0x09) && ((c) <= 0x0D)) || ((c) == 0x20))
 #define ksh_eq(c,u,l)	(((c) | 0x20) == (l))
-#define ksh_numdig(c)	((c) - ord('0'))
-#define ksh_numuc(c)	((c) - ord('A'))
-#define ksh_numlc(c)	((c) - ord('a'))
+#define ksh_numdig(c)	(asc(c) - asc('0'))
+#define ksh_numuc(c)	(asc(c) - asc('A'))
+#define ksh_numlc(c)	(asc(c) - asc('a'))
 
 EXTERN int ifs0 E_INIT(' ');	/* for "$*" */
 
