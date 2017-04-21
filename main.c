@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.332 2017/04/12 16:01:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.333 2017/04/21 20:06:04 tg Exp $");
 
 extern char **environ;
 
@@ -1887,7 +1887,7 @@ tnamecmp(const void *p1, const void *p2)
 	const struct tbl *a = *((const struct tbl * const *)p1);
 	const struct tbl *b = *((const struct tbl * const *)p2);
 
-	return (strcmp(a->name, b->name));
+	return (ascstrcmp(a->name, b->name));
 }
 
 struct tbl **
