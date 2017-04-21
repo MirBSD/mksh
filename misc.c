@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.256 2017/04/20 16:34:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.257 2017/04/21 19:50:08 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -2209,7 +2209,7 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		wc = 0;
 		i = 3;
 		while (i--)
-			if ((c = (*fg)()) >= ord('0') && c <= ord('7'))
+			if (ksh_isdigit((c = (*fg)())) && asc(c) <= asc('7'))
 				wc = (wc << 3) + ksh_numdig(c);
 			else {
 				(*fp)(c);
@@ -2237,11 +2237,11 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		n = 0;
 		while (n < i || i == -1) {
 			wc <<= 4;
-			if ((c = (*fg)()) >= ord('0') && c <= ord('9'))
+			if (ksh_isdigit((c = (*fg)())))
 				wc += ksh_numdig(c);
-			else if (c >= ord('A') && c <= ord('F'))
+			else if (asc(c) >= asc('A') && asc(c) <= asc('F'))
 				wc += ksh_numuc(c) + 10;
-			else if (c >= ord('a') && c <= ord('f'))
+			else if (asc(c) >= asc('a') && asc(c) <= asc('f'))
 				wc += ksh_numlc(c) + 10;
 			else {
 				wc >>= 4;
