@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.443 2017/04/20 20:50:12 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.444 2017/04/21 19:08:18 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 20 2017 $
+.Dd $Mdocdate: April 21 2017 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -5537,7 +5537,7 @@ Emacs key bindings:
 .No INTR Pq \*(haC ,
 .No \*(haG
 .Xc
-Abort the current command, empty the line buffer and
+Abort the current command, save it to the history, empty the line buffer and
 set the exit state to interrupted.
 .It auto\-insert: Op Ar n
 Simply causes the character to appear as literal input.
@@ -6434,7 +6434,7 @@ Undo all changes that have been made to the current line.
 They move as expected, both in insert and command mode.
 .It Ar intr No and Ar quit
 The interrupt and quit terminal characters cause the current line to be
-deleted and a new prompt to be printed.
+removed to the history and a new prompt to be printed.
 .El
 .Sh FILES
 .Bl -tag -width XetcXsuid_profile -compact
