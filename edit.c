@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.323 2017/04/21 19:50:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.324 2017/04/21 20:06:03 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -468,7 +468,7 @@ path_order_cmp(const void *aa, const void *bb)
 	const struct path_order_info *b = (const struct path_order_info *)bb;
 	int t;
 
-	if ((t = strcmp(a->word + a->base, b->word + b->base)))
+	if ((t = ascstrcmp(a->word + a->base, b->word + b->base)))
 		return (t);
 	if (a->path_order > b->path_order)
 		return (1);
@@ -536,7 +536,7 @@ x_command_glob(int flags, char *toglob, char ***wordsp)
 		char **words = (char **)XPptrv(w);
 		size_t i, j;
 
-		qsort(words, nwords, sizeof(void *), xstrcmp);
+		qsort(words, nwords, sizeof(void *), ascpstrcmp);
 		for (i = j = 0; i < nwords - 1; i++) {
 			if (strcmp(words[i], words[i + 1]))
 				words[j++] = words[i];

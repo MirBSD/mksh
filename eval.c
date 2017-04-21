@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.201 2017/04/06 01:59:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.202 2017/04/21 20:06:04 tg Exp $");
 
 /*
  * string expansion
@@ -1555,7 +1555,7 @@ glob(char *cp, XPtrV *wp, bool markdirs)
 		XPput(*wp, debunk(cp, cp, strlen(cp) + 1));
 	else
 		qsort(XPptrv(*wp) + oldsize, XPsize(*wp) - oldsize,
-		    sizeof(void *), xstrcmp);
+		    sizeof(void *), ascpstrcmp);
 }
 
 #define GF_NONE		0

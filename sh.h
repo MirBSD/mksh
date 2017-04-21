@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.812 2017/04/21 19:50:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.813 2017/04/21 20:06:06 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/20"
 
@@ -2289,7 +2289,8 @@ int parse_args(const char **, int, bool *);
 int getn(const char *, int *);
 int gmatchx(const char *, const char *, bool);
 int has_globbing(const char *, const char *) MKSH_A_PURE;
-int xstrcmp(const void *, const void *) MKSH_A_PURE;
+int ascstrcmp(const void *, const void *) MKSH_A_PURE;
+int ascpstrcmp(const void *, const void *) MKSH_A_PURE;
 void ksh_getopt_reset(Getopt *, int);
 int ksh_getopt(const char **, Getopt *, const char *);
 void print_value_quoted(struct shf *, const char *);
