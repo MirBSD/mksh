@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.333 2017/04/21 20:06:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.334 2017/04/22 00:07:08 tg Exp $");
 
 extern char **environ;
 
@@ -333,6 +333,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	initvar();
 
+	/*XXX do this earlier, just call set_ifs(TC_IFSWS); with the new scheme, then ifs0 need not be E_INIT’d, drop initctypes and setctypes from misc.c/sh.h then */
 	initctypes();
 
 	inittraps();
@@ -408,7 +409,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	}
 
 	/* for security */
-	typeset("IFS= \t\n", 0, 0, 0, 0);
+	typeset(TinitIFS, 0, 0, 0, 0);
 
 	/* assign default shell variable values */
 	typeset("PATHSEP=" MKSH_PATHSEPS, 0, 0, 0, 0);

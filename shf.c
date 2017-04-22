@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.79 2017/04/12 17:08:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.80 2017/04/22 00:07:10 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1158,3 +1158,70 @@ cstrerror(int errnum)
 	}
 }
 #endif
+
+/* fast character classes */
+const uint32_t tpl_ctypes[128] = {
+	/* 0x00 */
+	CiCNTRL | CiNUL,	CiCNTRL,
+	CiCNTRL,		CiCNTRL,
+	CiCNTRL,		CiCNTRL,
+	CiCNTRL,		CiCNTRL,
+	CiCNTRL,		CiCNTRL | CiTAB,
+	CiCNTRL | CiNL,		CiCNTRL | CiSPX,
+	CiCNTRL | CiSPX,	CiCNTRL | CiCR,
+	CiCNTRL,		CiCNTRL,
+	/* 0x10 */
+	CiCNTRL,	CiCNTRL,	CiCNTRL,	CiCNTRL,
+	CiCNTRL,	CiCNTRL,	CiCNTRL,	CiCNTRL,
+	CiCNTRL,	CiCNTRL,	CiCNTRL,	CiCNTRL,
+	CiCNTRL,	CiCNTRL,	CiCNTRL,	CiCNTRL,
+	/* 0x20 */
+	CiSP,			CiALIAS | CiVAR1,
+	CiQC,			CiQCX | CiVAR1 | CiSUB2,
+	CiVAR1 | CiSS,		CiALIAS | CiSUB2,
+	CiQCL,			CiQC,
+	CiQCL,			CiQCL,
+	CiQCX | CiVAR1,		CiQCM | CiSUB1,
+	CiALIAS,		CiALIAS | CiVAR1 | CiSUB1,
+	CiALIAS,		CiQCM,
+	/* 0x30 */
+	CiOCTAL,	CiOCTAL,	CiOCTAL,	CiOCTAL,
+	CiOCTAL,	CiOCTAL,	CiOCTAL,	CiOCTAL,
+	CiDIGIT,	CiDIGIT,	CiQCM,		CiQCL,
+	CiQCL,		CiQCX | CiSUB1,	CiQCL,		CiQCX | CiVAR1 | CiSUB1,
+	/* 0x40 */
+	CiALIAS | CiVAR1,	CiUPPER | CiHEXLT,
+	CiUPPER | CiHEXLT,	CiUPPER | CiHEXLT,
+	CiUPPER | CiHEXLT,	CiUPPER | CiHEXLT,
+	CiUPPER | CiHEXLT,	CiUPPER,
+	CiUPPER,		CiUPPER,
+	CiUPPER,		CiUPPER,
+	CiUPPER,		CiUPPER,
+	CiUPPER,		CiUPPER,
+	/* 0x50 */
+	CiUPPER,	CiUPPER,	CiUPPER,	CiUPPER,
+	CiUPPER,	CiUPPER,	CiUPPER,	CiUPPER,
+	CiUPPER,	CiUPPER,	CiUPPER,	CiQCX,
+	CiQCX,		CiQCX,		CiQCM,		CiUNDER,
+	/* 0x60 */
+	CiQCX,			CiLOWER | CiHEXLT,
+	CiLOWER | CiHEXLT,	CiLOWER | CiHEXLT,
+	CiLOWER | CiHEXLT,	CiLOWER | CiHEXLT,
+	CiLOWER | CiHEXLT,	CiLOWER,
+	CiLOWER,		CiLOWER,
+	CiLOWER,		CiLOWER,
+	CiLOWER,		CiLOWER,
+	CiLOWER,		CiLOWER,
+	/* 0x70 */
+	CiLOWER,	CiLOWER,	CiLOWER,	CiLOWER,
+	CiLOWER,	CiLOWER,	CiLOWER,	CiLOWER,
+	CiLOWER,	CiLOWER,	CiLOWER,	CiQCM,
+	CiQCL,		CiQCM,		CiQCM,		CiCNTRL
+};
+
+void
+set_ifs(const char *s)
+{
+	setctypes(s, C_IFS);
+	ifs0 = *s;
+}
