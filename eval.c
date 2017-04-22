@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.202 2017/04/21 20:06:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.203 2017/04/22 00:07:08 tg Exp $");
 
 /*
  * string expansion
@@ -845,7 +845,7 @@ expand(
 						doblank--;
 					continue;
 				}
-				c = ifs0;
+				c = ord(ifs0);
 				if ((f & DOHEREDOC)) {
 					/* pseudo-field-split reliably */
 					if (c == 0)

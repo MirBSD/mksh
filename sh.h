@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.813 2017/04/21 20:06:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.814 2017/04/22 00:07:09 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/20"
 
@@ -870,6 +870,7 @@ EXTERN const char T4spaces[] E_INIT("    ");
 #define Tcolsp (Tf_sD_ + 2)
 EXTERN const char TC_LEX1[] E_INIT("|&;<>() \t\n");
 #define TC_IFSWS (TC_LEX1 + 7)
+EXTERN const char TinitIFS[] E_INIT("IFS= \t\n");
 EXTERN const char TFCEDIT_dollaru[] E_INIT("${FCEDIT:-/bin/ed} $_");
 #define Tspdollaru (TFCEDIT_dollaru + 18)
 EXTERN const char Tsgdot[] E_INIT("*=.");
@@ -1031,6 +1032,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tcolsp ": "
 #define TC_LEX1 "|&;<>() \t\n"
 #define TC_IFSWS " \t\n"
+#define TinitIFS "IFS= \t\n"
 #define TFCEDIT_dollaru "${FCEDIT:-/bin/ed} $_"
 #define Tspdollaru " $_"
 #define Tsgdot "*=."
@@ -1288,6 +1290,111 @@ EXTERN bool really_exit;
 /*
  * fast character classes
  */
+
+/* internal types, do not reference */
+#define CiCNTRL	BIT(0)	/* \x00‥\x1F\x7F	*/
+#define CiUPPER	BIT(1)	/* A‥Z			*/
+#define CiLOWER	BIT(2)	/* a‥z			*/
+#define CiHEXLT	BIT(3)	/* A‥Fa‥f		*/
+#define CiDIGIT	BIT(4)	/* 0‥9			*/
+#define CiOCTAL	BIT(5)	/* 0‥7			*/
+#define CiQCX	BIT(6)	/* #*=?[\\]`		*/
+#define CiQCM	BIT(7)	/* +/:^{}~		*/
+#define CiQCL	BIT(8)	/* &();<>|		*/
+#define CiVAR1	BIT(9)	/* !#$*-?@		*/
+#define CiALIAS	BIT(10)	/* !%,-.@		*/
+#define CiSUB1	BIT(11)	/* +-=?			*/
+#define CiSPX	BIT(12)	/* \x0B\x0C		*/
+#define CiQC	BIT(13)	/* "'			*/
+#define CiSUB2	BIT(14)	/* #%			*/
+#define CiUNDER	BIT(15)	/* _			*/
+#define CiNUL	BIT(16)	/* \x00			*/
+#define CiTAB	BIT(17)	/* \x09			*/
+#define CiNL	BIT(18)	/* \x0A			*/
+#define CiSP	BIT(19)	/* \x20			*/
+#define CiSS	BIT(20)	/* $			*/
+#define CiCR	BIT(21)	/* \x0D			*/
+/* initially empty — filled at runtime from $IFS */
+#define CiIFS	BIT(30)
+
+/* compile-time initialised, ASCII only */
+extern const uint32_t tpl_ctypes[128];
+/* run-time, contains C_IFS as well, full 2⁸ octet range */
+EXTERN uint32_t ksh_ctypes[256];
+
+#if 0
+/* external types */
+
+/* 0‥9A‥Za‥z!%,-.@	valid characters in alias name */
+#define C_ALIAS	(CiUPPER | CiLOWER | CiDIGIT | CiOCTAL | CiUNDER | CiALIAS)
+/* 0‥9A‥Za‥z		alphanumerical */
+#define C_ALNUM	(CiUPPER | CiLOWER | CiDIGIT | CiOCTAL)
+/* 0‥9A‥Za‥z_		alphanumerical plus underscore (“word character”) */
+#define C_ALNUX	(CiUPPER | CiLOWER | CiDIGIT | CiOCTAL | CiUNDER)
+/* A‥Za‥z		alphabetical (upper plus lower) */
+#define C_ALPHA	(CiUPPER | CiLOWER)
+/* A‥Za‥z_		alphabetical plus underscore (identifier lead) */
+#define C_ALPHX	(CiUPPER | CiLOWER | CiUNDER)
+/* \x09\x20		tab and space */
+#define C_BLANK	(CiTAB | CiSP)
+/* \x09\x20"'		separator for completion */
+#define C_CFS	(CiTAB | CiSP | CiQC)
+/* \x00‥\x1F\x7F	POSIX control characters */
+#define C_CNTRL	CiCNTRL
+/* 0‥9			decimal digits */
+#define C_DIGIT	(CiDIGIT | CiOCTAL)
+/* !‥~			POSIX graphical (alphanumerical plus punctuation) */
+#define C_GRAPH	(CiUPPER | CiLOWER | CiDIGIT | CiOCTAL | C_PUNCT)
+/* A‥Fa‥f		hex letter */
+#define C_HEXLT	CiHEXLT
+/* \x00 + $IFS		IFS whitespace, IFS non-whitespace, NUL */
+#define C_IFS	(CiIFS | CiNUL)
+/* \x09\x0A\x20		IFS whitespace */
+#define C_IFSWS	(CiTAB | CiSP | CiNL)
+/* \x00\x09\x0A\x20&();<>|	(for the lexer) */
+#define C_LEX1	(CiTAB | CiSP | CiNL | CiQCL | CiNUL)
+/* a‥z			lowercase letters */
+#define C_LOWER	CiLOWER
+/* not alnux or dollar	separator for motion */
+#define C_MFS	(CiCNTRL | CiSP | CiQCM | CiALIAS | CiQC | CiQCL | CiQCX)
+/* 0‥7			octal digit */
+#define C_OCTAL	CiOCTAL
+/* \x20‥\x7E		POSIX printable characters (graph plus space) */
+#define C_PRINT	(C_GRAPH | CiSP)
+/* !"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~	POSIX punctuation */
+#define C_PUNCT	(CiUNDER | CiALIAS | CiSS | CiQC | CiQCL | CiQCX)
+/* \x09\x0A\x20"#$&'()*;<=>?[\\]`|	characters requiring quoting */
+#define C_QUOTE	(CiTAB | CiSP | CiNL | CiSS | CiQC | CiQCL | CiQCX)
+/* 0‥9A‥Fa‥f		hexadecimal digit */
+#define C_SEDEC	(CiDIGIT | CiOCTAL | CiHEXLT)
+/* \x09‥\x0D\x20	POSIX space class */
+#define C_SPACE	(CiTAB | CiSP | CiNL | CiSPX | CiCR)
+/* +-=?			substitution operations with word */
+#define C_SUB1	CiSUB1
+/* #%			substitution operations with pattern */
+#define C_SUB2	CiSUB2
+/* A‥Z			uppercase letters */
+#define C_UPPER	CiUPPER
+/* !#$*-?@		substitution parameters, other than positional */
+#define C_VAR1	CiVAR1
+
+/* individual chars you might like */
+#define C_DOLAR	CiSS		/* $	dollar sign */
+#define C_LF	CiNL		/* \x0A	ASCII line feed */
+#ifdef MKSH_WITH_TEXTMODE
+#define C_NL	(CiNL | CiCR)	/* CR or LF under OS/2 TEXTMODE */
+#else
+#define C_NL	CiNL		/* LF only like under Unix */
+#endif
+#define C_NUL	CiNUL		/* \x00	ASCII NUL */
+#define C_QC	CiQC		/* "'	quote characters */
+#define C_SPC	CiSP		/* \x20	ASCII space */
+#define C_TAB	CiTAB		/* \x09	ASCII horizontal tabulator */
+#define C_UNDER	CiUNDER		/* _	underscore */
+#endif
+
+/* legacy not-so-fast character classes */
+
 #define C_ALPHX	 BIT(0)		/* A-Za-z_ */
 #define C_DIGIT	 BIT(1)		/* 0-9 */
 #define C_LEX1	 BIT(2)		/* \t \n\0|&;<>() */
@@ -1318,12 +1425,16 @@ extern unsigned char chtypes[];
 #define ksh_toupper(c)	(ksh_islower(c) ? (c) - 'a' + 'A' : (c))
 #define ksh_isdash(s)	(((s)[0] == '-') && ((s)[1] == '\0'))
 #define ksh_isspace(c)	((((c) >= 0x09) && ((c) <= 0x0D)) || ((c) == 0x20))
+/* EBCDIC needs to compare c with both */
 #define ksh_eq(c,u,l)	(((c) | 0x20) == (l))
-#define ksh_numdig(c)	(asc(c) - asc('0'))
+/* strictly speaking asc() here, but this works even in EBCDIC */
+#define ksh_numdig(c)	(ord(c) - ord('0'))
 #define ksh_numuc(c)	(asc(c) - asc('A'))
 #define ksh_numlc(c)	(asc(c) - asc('a'))
+#define	is_cfs(c)	((c) == ' ' || (c) == '\t' || (c) == '"' || (c) == '\'')	/* legacy */
+#define	is_mfs(c)	(!(ksh_isalnux(c) || (c) == '$' || ((c) & 0x80)))		/* legacy */
 
-EXTERN int ifs0 E_INIT(' ');	/* for "$*" */
+EXTERN char ifs0 E_INIT(' ');	/* for "$*" */
 
 /* Argument parsing for built-in commands and getopts command */
 
@@ -2353,6 +2464,7 @@ char *shf_smprintf(const char *, ...)
     MKSH_A_FORMAT(__printf__, 1, 2);
 ssize_t shf_vfprintf(struct shf *, const char *, va_list)
     MKSH_A_FORMAT(__printf__, 2, 0);
+void set_ifs(const char *);
 /* syn.c */
 void initkeywords(void);
 struct op *compile(Source *, bool, bool);

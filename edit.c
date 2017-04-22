@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.324 2017/04/21 20:06:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.325 2017/04/22 00:07:06 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -908,11 +908,6 @@ struct x_defbindings {
 #define XF_ARG		1	/* command takes number prefix */
 #define	XF_NOBIND	2	/* not allowed to bind to function */
 #define	XF_PREFIX	4	/* function sets prefix */
-
-/* Separator for completion */
-#define	is_cfs(c)	((c) == ' ' || (c) == '\t' || (c) == '"' || (c) == '\'')
-/* Separator for motion */
-#define	is_mfs(c)	(!(ksh_isalnux(c) || (c) == '$' || ((c) & 0x80)))
 
 #define X_NTABS		4			/* normal, meta1, meta2, pc */
 #define X_TABSZ		256			/* size of keydef tables etc */
