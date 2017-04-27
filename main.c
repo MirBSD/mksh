@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.335 2017/04/27 18:44:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.336 2017/04/27 19:16:08 tg Exp $");
 
 extern char **environ;
 
@@ -236,6 +236,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	ssize_t k;
 #endif
 
+	set_ifs(TC_IFSWS);
+
 #ifdef __OS2__
 	for (i = 0; i < 3; ++i)
 		if (!isatty(i))
@@ -333,9 +335,6 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	initvar();
 
-	/*XXX do this earlier, just call set_ifs(TC_IFSWS); with the new scheme, then ifs0 need not be E_INIT’d, drop initctypes and setctypes from misc.c/sh.h then */
-	initctypes();
-
 	inittraps();
 
 	coproc_init();
@@ -431,23 +430,40 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	shellf(" .\n");					\
 } while (0)
 #define dmpct(a,b) dmpcf(a,ctype(c,b))
+dmpct("C_ALIAS",C_ALIAS);
+dmpct("C_ALNUM",C_ALNUM);
+dmpct("C_ALNUX",C_ALNUX);
+dmpct("C_ALPHA",C_ALPHA);
 dmpct("C_ALPHX",C_ALPHX);
+dmpct("C_BLANK",C_BLANK);
+dmpct("C_CFS",C_CFS);
+dmpct("C_CNTRL",C_CNTRL);
 dmpct("C_DIGIT",C_DIGIT);
-dmpct("C_LEX1",C_LEX1);
-dmpct("C_VAR1",C_VAR1);
-dmpct("C_IFSWS",C_IFSWS);
-dmpct("C_SUB1",C_SUBOP1);
-dmpct("C_QUOTE",C_QUOTE);
+dmpct("C_DOLAR",C_DOLAR);
+dmpct("C_GRAPH",C_GRAPH);
+dmpct("C_HEXLT",C_HEXLT);
 dmpct("C_IFS",C_IFS);
-dmpcf("C_SUB2",ksh_issubop2(c));
-dmpcf("C_ALIAS",ksh_isalias(c));
-dmpcf("C_ALPHA",ksh_isalpha(c));
-dmpcf("C_ALNUX",ksh_isalnux(c));
-dmpcf("C_LOWER",ksh_islower(c));
-dmpcf("C_UPPER",ksh_isupper(c));
-dmpcf("C_SPACE",ksh_isspace(c));
-dmpcf("C_CFS",is_cfs(c));
-dmpcf("C_MFS",is_mfs(c));
+dmpct("C_IFSWS",C_IFSWS);
+dmpct("C_LEX1",C_LEX1);
+dmpct("C_LF",C_LF);
+dmpct("C_LOWER",C_LOWER);
+dmpct("C_MFS",C_MFS);
+dmpct("C_NL",C_NL);
+dmpct("C_NUL",C_NUL);
+dmpct("C_OCTAL",C_OCTAL);
+dmpct("C_PRINT",C_PRINT);
+dmpct("C_PUNCT",C_PUNCT);
+dmpct("C_QC",C_QC);
+dmpct("C_QUOTE",C_QUOTE);
+dmpct("C_SEDEC",C_SEDEC);
+dmpct("C_SPACE",C_SPACE);
+dmpct("C_SPC",C_SPC);
+dmpct("C_SUB1",C_SUB1);
+dmpct("C_SUB2",C_SUB2);
+dmpct("C_TAB",C_TAB);
+dmpct("C_UNDER",C_UNDER);
+dmpct("C_UPPER",C_UPPER);
+dmpct("C_VAR1",C_VAR1);
 exit(0);
 
 	/* assign default shell variable values */

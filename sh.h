@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.814 2017/04/22 00:07:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.815 2017/04/27 19:16:09 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/20"
 
@@ -533,8 +533,6 @@ EXTERN const char initvsn[] E_INIT("KSH_VERSION=@(#)" KSH_VERSIONNAME_ISLEGACY \
 
 EXTERN const char digits_uc[] E_INIT("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 EXTERN const char digits_lc[] E_INIT("0123456789abcdefghijklmnopqrstuvwxyz");
-#define letters_uc (digits_uc + 10)
-#define letters_lc (digits_lc + 10)
 
 /*
  * Evil hack for const correctness due to API brokenness
@@ -868,8 +866,7 @@ EXTERN char null[] E_INIT("");
 EXTERN const char T4spaces[] E_INIT("    ");
 #define T1space (Treal_sp2 + 5)
 #define Tcolsp (Tf_sD_ + 2)
-EXTERN const char TC_LEX1[] E_INIT("|&;<>() \t\n");
-#define TC_IFSWS (TC_LEX1 + 7)
+#define TC_IFSWS (TinitIFS + 4)
 EXTERN const char TinitIFS[] E_INIT("IFS= \t\n");
 EXTERN const char TFCEDIT_dollaru[] E_INIT("${FCEDIT:-/bin/ed} $_");
 #define Tspdollaru (TFCEDIT_dollaru + 18)
@@ -1030,7 +1027,6 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define T4spaces "    "
 #define T1space " "
 #define Tcolsp ": "
-#define TC_LEX1 "|&;<>() \t\n"
 #define TC_IFSWS " \t\n"
 #define TinitIFS "IFS= \t\n"
 #define TFCEDIT_dollaru "${FCEDIT:-/bin/ed} $_"
@@ -1321,8 +1317,9 @@ EXTERN bool really_exit;
 extern const uint32_t tpl_ctypes[128];
 /* run-time, contains C_IFS as well, full 2⁸ octet range */
 EXTERN uint32_t ksh_ctypes[256];
+/* first octet of $IFS, for concatenating "$*" */
+EXTERN char ifs0;
 
-#if 0
 /* external types */
 
 /* 0‥9A‥Za‥z!%,-.@	valid characters in alias name */
@@ -1391,50 +1388,36 @@ EXTERN uint32_t ksh_ctypes[256];
 #define C_SPC	CiSP		/* \x20	ASCII space */
 #define C_TAB	CiTAB		/* \x09	ASCII horizontal tabulator */
 #define C_UNDER	CiUNDER		/* _	underscore */
-#endif
 
-/* legacy not-so-fast character classes */
-
-#define C_ALPHX	 BIT(0)		/* A-Za-z_ */
-#define C_DIGIT	 BIT(1)		/* 0-9 */
-#define C_LEX1	 BIT(2)		/* \t \n\0|&;<>() */
-#define C_VAR1	 BIT(3)		/* *@#!$-? */
-#define C_IFSWS	 BIT(4)		/* \t \n (IFS white space) */
-#define C_SUBOP1 BIT(5)		/* "=-+?" */
-#define C_QUOTE	 BIT(6)		/* \t\n "#$&'()*;<=>?[\]`| (needing quoting) */
-#define C_IFS	 BIT(7)		/* $IFS */
-
-extern unsigned char chtypes[];
-
-#define ctype(c, t)	tobool(chtypes[(unsigned char)(c)] & (t))
+/* identity transform of octet */
 #define ord(c)		((unsigned int)(unsigned char)(c))
-/* identity transformation in !EBCDIC; Unicode map (or higher) in EBCDIC */
+/* identity transformation in !EBCDIC; ASCII or high in EBCDIC */
 #define asc(c)		ord(c)
-#define ksh_issubop2(c)	tobool(ord(c) == ord('#') || ord(c) == ord('%'))
-#define ksh_isalias(c)	(ctype((c), C_ALPHX | C_DIGIT) || \
-			    ord(c) == ord('!') || ord(c) == ord('%') || \
-			    ord(c) == ord(',') || ord(c) == ord('.') || \
-			    ord(c) == ord('@') || ord(c) == ord('-'))
-#define ksh_isalpha(c)	(ctype((c), C_ALPHX) && ord(c) != ord('_'))
-#define ksh_isalphx(c)	ctype((c), C_ALPHX)
-#define ksh_isalnux(c)	ctype((c), C_ALPHX | C_DIGIT)
-#define ksh_isdigit(c)	ctype((c), C_DIGIT)
-#define ksh_islower(c)	((asc(c) >= asc('a')) && (asc(c) <= asc('z')))
-#define ksh_isupper(c)	((asc(c) >= asc('A')) && (asc(c) <= asc('Z')))
+/* EBCDIC needs to compare c with both u and l */
+#define ksh_eq(c,u,l)	(((c) | 0x20) == (l))
+/* new fast character classes */
+#define ctype(c, t)	tobool(ksh_ctypes[ord(c)] & (t))
+/* helper functions */
+#define ksh_isdash(s)	tobool(ord((s)[0]) == '-' && ord((s)[1]) == '\0')
+/* invariant distance even in EBCDIC */
 #define ksh_tolower(c)	(ksh_isupper(c) ? (c) - 'A' + 'a' : (c))
 #define ksh_toupper(c)	(ksh_islower(c) ? (c) - 'a' + 'A' : (c))
-#define ksh_isdash(s)	(((s)[0] == '-') && ((s)[1] == '\0'))
-#define ksh_isspace(c)	((((c) >= 0x09) && ((c) <= 0x0D)) || ((c) == 0x20))
-/* EBCDIC needs to compare c with both */
-#define ksh_eq(c,u,l)	(((c) | 0x20) == (l))
 /* strictly speaking asc() here, but this works even in EBCDIC */
 #define ksh_numdig(c)	(ord(c) - ord('0'))
 #define ksh_numuc(c)	(asc(c) - asc('A'))
 #define ksh_numlc(c)	(asc(c) - asc('a'))
-#define	is_cfs(c)	((c) == ' ' || (c) == '\t' || (c) == '"' || (c) == '\'')	/* legacy */
-#define	is_mfs(c)	(!(ksh_isalnux(c) || (c) == '$' || ((c) & 0x80)))		/* legacy */
-
-EXTERN char ifs0 E_INIT(' ');	/* for "$*" */
+/* legacy functions */
+#define ksh_issubop2(c)	ctype((c), C_SUB2)
+#define ksh_isalias(c)	ctype((c), C_ALIAS)
+#define ksh_isalpha(c)	ctype((c), C_ALPHA)
+#define ksh_isalphx(c)	ctype((c), C_ALPHX)
+#define ksh_isalnux(c)	ctype((c), C_ALNUX)
+#define ksh_isdigit(c)	ctype((c), C_DIGIT)
+#define ksh_islower(c)	ctype((c), C_LOWER)
+#define ksh_isupper(c)	ctype((c), C_UPPER)
+#define ksh_isspace(c)	ctype((c), C_SPACE)
+#define is_cfs(c)	ctype((c), C_CFS)
+#define is_mfs(c)	ctype((c), C_MFS)
 
 /* Argument parsing for built-in commands and getopts command */
 
@@ -2390,8 +2373,6 @@ void DF(const char *, ...)
     MKSH_A_FORMAT(__printf__, 1, 2);
 #endif
 /* misc.c */
-void setctypes(const char *, int);
-void initctypes(void);
 size_t option(const char *) MKSH_A_PURE;
 char *getoptions(void);
 void change_flag(enum sh_flag, int, bool);

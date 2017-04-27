@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.258 2017/04/21 20:06:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.259 2017/04/27 19:16:08 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -68,37 +68,6 @@ static int make_path(const char *, const char *, char **, XString *, int *);
 #define DO_SETUID(func, argvec) func argvec
 #endif
 
-/*
- * Fast character classes
- */
-void
-setctypes(const char *s, int t)
-{
-	if (t & C_IFS) {
-		unsigned int i = 0;
-
-		while (++i <= UCHAR_MAX)
-			chtypes[i] &= ~C_IFS;
-		/* include '\0' in C_IFS */
-		chtypes[0] |= C_IFS;
-	}
-	while (*s != 0)
-		chtypes[(unsigned char)*s++] |= t;
-}
-
-void
-initctypes(void)
-{
-	setctypes(letters_uc, C_ALPHX);
-	setctypes(letters_lc, C_ALPHX);
-	chtypes['_'] |= C_ALPHX;
-	setctypes("0123456789", C_DIGIT);
-	setctypes(TC_LEX1, C_LEX1);
-	setctypes("*@#!$-?", C_VAR1);
-	setctypes(TC_IFSWS, C_IFSWS);
-	setctypes("=-+?", C_SUBOP1);
-	setctypes("\t\n \"#$&'()*;<=>?[\\]`|", C_QUOTE);
-}
 
 /* called from XcheckN() to grow buffer */
 char *
