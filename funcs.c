@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.342 2017/04/21 19:50:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.343 2017/04/27 19:33:48 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -746,7 +746,7 @@ bool
 valid_alias_name(const char *cp)
 {
 	while (*cp)
-		if (!ksh_isalias(*cp))
+		if (!ctype(*cp, C_ALIAS))
 			return (false);
 		else
 			++cp;
@@ -1067,8 +1067,8 @@ c_kill(const char **wp)
 	int i, n, rv, sig;
 
 	/* assume old style options if -digits or -UPPERCASE */
-	if ((p = wp[1]) && *p == '-' && (ksh_isdigit(p[1]) ||
-	    ksh_isupper(p[1]))) {
+	if ((p = wp[1]) && *p == '-' && (ctype(p[1], C_DIGIT) ||
+	    ctype(p[1], C_UPPER))) {
 		if (!(t = gettrap(p + 1, false, false))) {
 			bi_errorf(Tbad_sig_s, p + 1);
 			return (1);
@@ -1417,7 +1417,7 @@ c_umask(const char **wp)
 	} else {
 		mode_t new_umask;
 
-		if (ksh_isdigit(*cp)) {
+		if (ctype(*cp, C_DIGIT)) {
 			new_umask = 0;
 			while (asc(*cp) >= asc('0') && asc(*cp) <= asc('7')) {
 				new_umask = new_umask * 8 + ksh_numdig(*cp);
@@ -3345,7 +3345,7 @@ set_ulimit(const struct limits *l, const char *v, int how)
 		 * If this causes problems, will have to add parameter to
 		 * evaluate() to control if unset params are 0 or an error.
 		 */
-		if (!rval && !ksh_isdigit(v[0])) {
+		if (!rval && !ctype(v[0], C_DIGIT)) {
 			bi_errorf("invalid %s limit: %s", l->name, v);
 			return (1);
 		}

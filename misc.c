@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.259 2017/04/27 19:16:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.260 2017/04/27 19:33:52 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -502,7 +502,7 @@ getn(const char *s, int *ai)
 
 	do {
 		c = *s++;
-	} while (ksh_isspace(c));
+	} while (ctype(c, C_SPACE));
 
 	switch (c) {
 	case '-':
@@ -514,7 +514,7 @@ getn(const char *s, int *ai)
 	}
 
 	do {
-		if (!ksh_isdigit(c))
+		if (!ctype(c, C_DIGIT))
 			/* not numeric */
 			return (0);
 		if (num.u > 214748364U)
@@ -1066,13 +1066,13 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 		 * argument is missing.
 		 */
 		if (argv[go->optind - 1][go->p]) {
-			if (ksh_isdigit(argv[go->optind - 1][go->p])) {
+			if (ctype(argv[go->optind - 1][go->p], C_DIGIT)) {
 				go->optarg = argv[go->optind - 1] + go->p;
 				go->p = 0;
 			} else
 				go->optarg = NULL;
 		} else {
-			if (argv[go->optind] && ksh_isdigit(argv[go->optind][0])) {
+			if (argv[go->optind] && ctype(argv[go->optind][0], C_DIGIT)) {
 				go->optarg = argv[go->optind++];
 				go->p = 0;
 			} else
@@ -2192,7 +2192,7 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		wc = 0;
 		i = 3;
 		while (i--)
-			if (ksh_isdigit((c = (*fg)())) && asc(c) <= asc('7'))
+			if (ctype((c = (*fg)()), C_DIGIT) && asc(c) <= asc('7'))
 				wc = (wc << 3) + ksh_numdig(c);
 			else {
 				(*fp)(c);
@@ -2220,7 +2220,7 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		n = 0;
 		while (n < i || i == -1) {
 			wc <<= 4;
-			if (ksh_isdigit((c = (*fg)())))
+			if (ctype((c = (*fg)()), C_DIGIT))
 				wc += ksh_numdig(c);
 			else if (asc(c) >= asc('A') && asc(c) <= asc('F'))
 				wc += ksh_numuc(c) + 10;

@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.160 2017/04/08 01:07:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.161 2017/04/27 19:33:49 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -1114,7 +1114,7 @@ gettrap(const char *cs, bool igncase, bool allsigs)
 
 	/* signal number (1..ksh_NSIG) or 0? */
 
-	if (ksh_isdigit(*cs))
+	if (ctype(*cs, C_DIGIT))
 		return ((getn(cs, &i) && 0 <= i && i < ksh_NSIG) ?
 		    (&sigtraps[i]) : NULL);
 
