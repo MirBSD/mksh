@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.262 2017/04/27 23:12:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.263 2017/04/27 23:34:20 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -935,7 +935,7 @@ ascstrcmp(const void *s1, const void *s2)
 			return (0);
 		++cp2;
 	}
-	return (asc(*cp1) - asc(*cp2));
+	return ((int)asc(*cp1) - (int)asc(*cp2));
 }
 
 int
