@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.444 2017/04/21 19:08:18 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.445 2017/04/27 23:33:19 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 21 2017 $
+.Dd $Mdocdate: April 27 2017 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -3069,8 +3069,10 @@ For any name without a value, the existing alias is listed.
 Any name with a value defines an alias; see
 .Sx Aliases
 above.
-.Li \&[A\-Za\-z0\-9_!%,.@\-]
-are valid in names except they may not begin with a hyphen-minus.
+.Li \&[][A\-Za\-z0\-9_!%,.@:\-]
+are valid in names, except they may not begin with a hyphen-minus, and
+.Ic \&[[
+is not a valid alias name.
 .Pp
 When listing aliases, one of two formats is used.
 Normally, aliases are listed as

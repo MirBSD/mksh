@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.818 2017/04/27 23:12:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.819 2017/04/27 23:33:20 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/27"
 
@@ -1319,7 +1319,7 @@ EXTERN bool really_exit;
 #define CiCOLON	BIT(26)	/* :				*/
 #define CiEQUAL	BIT(27)	/* =				*/
 #define CiQUEST	BIT(28)	/* ?				*/
-#define CiCBRK	BIT(29)	/* ]				*/
+#define CiBRACK	BIT(29)	/* ]				*/
 #define CiUNDER	BIT(30)	/* _				*/
 #define CiGRAVE	BIT(31)	/* `				*/
 
@@ -1332,8 +1332,8 @@ EXTERN char ifs0;
 
 /* external types */
 
-/* !%,-.0‥9@A‥Z_a‥z	valid characters in alias name */
-#define C_ALIAS	(CiALIAS | CiDIGIT | CiLOWER | CiMINUS | CiOCTAL | CiPERCT | CiUNDER | CiUPPER)
+/* !%,-.0‥9:@A‥Z[]_a‥z	valid characters in alias names */
+#define C_ALIAS	(CiALIAS | CiBRACK | CiCOLON | CiDIGIT | CiLOWER | CiMINUS | CiOCTAL | CiPERCT | CiUNDER | CiUPPER)
 /* 0‥9A‥Za‥z		alphanumerical */
 #define C_ALNUM	(CiDIGIT | CiLOWER | CiOCTAL | CiUPPER)
 /* 0‥9A‥Z_a‥z		alphanumerical plus underscore (“word character”) */
@@ -1369,7 +1369,7 @@ EXTERN char ifs0;
 /* a‥z			lowercase letters */
 #define C_LOWER	CiLOWER
 /* not alnux or dollar	separator for motion */
-#define C_MFS	(CiALIAS | CiANGLE | CiCBRK | CiCNTRL | CiCOLON | CiCR | CiCURLY | CiEQUAL | CiGRAVE | CiHASH | CiMINUS | CiNL | CiNUL | CiPERCT | CiPLUS | CiQC | CiQCL | CiQCM | CiQCX | CiQUEST | CiSP | CiSPX | CiTAB)
+#define C_MFS	(CiALIAS | CiANGLE | CiBRACK | CiCNTRL | CiCOLON | CiCR | CiCURLY | CiEQUAL | CiGRAVE | CiHASH | CiMINUS | CiNL | CiNUL | CiPERCT | CiPLUS | CiQC | CiQCL | CiQCM | CiQCX | CiQUEST | CiSP | CiSPX | CiTAB)
 /* 0‥7			octal digit */
 #define C_OCTAL	CiOCTAL
 /* \x20!*+?@		pattern magical operator */
@@ -1377,9 +1377,9 @@ EXTERN char ifs0;
 /* \x20‥~		POSIX printable characters (graph plus space) */
 #define C_PRINT	(C_GRAPH | CiSP)
 /* !"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~	POSIX punctuation */
-#define C_PUNCT	(CiALIAS | CiANGLE | CiCBRK | CiCOLON | CiCURLY | CiEQUAL | CiGRAVE | CiHASH | CiMINUS | CiPERCT | CiPLUS | CiQC | CiQCL | CiQCM | CiQCX | CiQUEST | CiSS | CiUNDER)
+#define C_PUNCT	(CiALIAS | CiANGLE | CiBRACK | CiCOLON | CiCURLY | CiEQUAL | CiGRAVE | CiHASH | CiMINUS | CiPERCT | CiPLUS | CiQC | CiQCL | CiQCM | CiQCX | CiQUEST | CiSS | CiUNDER)
 /* \x09\x0A"#$&'()*;<=>?[\\]`|	characters requiring quoting, minus space */
-#define C_QUOTE	(CiANGLE | CiCBRK | CiEQUAL | CiGRAVE | CiHASH | CiNL | CiQC | CiQCL | CiQCX | CiQUEST | CiSS | CiTAB)
+#define C_QUOTE	(CiANGLE | CiBRACK | CiEQUAL | CiGRAVE | CiHASH | CiNL | CiQC | CiQCL | CiQCX | CiQUEST | CiSS | CiTAB)
 /* 0‥9A‥Fa‥f		hexadecimal digit */
 #define C_SEDEC	(CiDIGIT | CiHEXLT | CiOCTAL)
 /* \x09‥\x0D\x20	POSIX space class */
