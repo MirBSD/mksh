@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.334 2017/04/22 00:07:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.335 2017/04/27 18:44:35 tg Exp $");
 
 extern char **environ;
 
@@ -410,6 +410,45 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	/* for security */
 	typeset(TinitIFS, 0, 0, 0, 0);
+
+#define dmpcf(a,f) do {					\
+	int c = -1, lc = -3, il = 0;			\
+	shellf("%s\t",a);				\
+	while (++c < 256) {				\
+		if (!f) continue;			\
+		if (lc + 1 == c) {			\
+			il = 1;				\
+		} else {				\
+			if (il)				\
+				shellf("‥%02X", lc);	\
+			il = 0;				\
+			shellf(" %02X", c);		\
+		}					\
+		lc = c;					\
+	}						\
+	if (il)						\
+		shellf("‥%02X", lc);			\
+	shellf(" .\n");					\
+} while (0)
+#define dmpct(a,b) dmpcf(a,ctype(c,b))
+dmpct("C_ALPHX",C_ALPHX);
+dmpct("C_DIGIT",C_DIGIT);
+dmpct("C_LEX1",C_LEX1);
+dmpct("C_VAR1",C_VAR1);
+dmpct("C_IFSWS",C_IFSWS);
+dmpct("C_SUB1",C_SUBOP1);
+dmpct("C_QUOTE",C_QUOTE);
+dmpct("C_IFS",C_IFS);
+dmpcf("C_SUB2",ksh_issubop2(c));
+dmpcf("C_ALIAS",ksh_isalias(c));
+dmpcf("C_ALPHA",ksh_isalpha(c));
+dmpcf("C_ALNUX",ksh_isalnux(c));
+dmpcf("C_LOWER",ksh_islower(c));
+dmpcf("C_UPPER",ksh_isupper(c));
+dmpcf("C_SPACE",ksh_isspace(c));
+dmpcf("C_CFS",is_cfs(c));
+dmpcf("C_MFS",is_mfs(c));
+exit(0);
 
 	/* assign default shell variable values */
 	typeset("PATHSEP=" MKSH_PATHSEPS, 0, 0, 0, 0);
