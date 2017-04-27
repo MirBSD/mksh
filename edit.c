@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.327 2017/04/27 20:22:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.328 2017/04/27 23:12:44 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -553,8 +553,7 @@ x_command_glob(int flags, char *toglob, char ***wordsp)
 	return (nwords);
 }
 
-#define IS_WORDC(c)	(!ctype(c, C_LEX1 | C_QC) && \
-			    (c) != '`' && (c) != '=' && (c) != ':')
+#define IS_WORDC(c)	(!ctype(c, C_EDNWC))
 
 static int
 x_locate_word(const char *buf, int buflen, int pos, int *startp,
@@ -591,7 +590,7 @@ x_locate_word(const char *buf, int buflen, int pos, int *startp,
 		/* Figure out if this is a command */
 		while (p >= 0 && ctype(buf[p], C_SPACE))
 			p--;
-		iscmd = p < 0 || vstrchr(";|&()`", buf[p]);
+		iscmd = p < 0 || ctype(buf[p], C_EDCMD);
 		if (iscmd) {
 			/*
 			 * If command has a /, path, etc. is not searched;
@@ -859,8 +858,7 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 	int rval = 0;
 
 	while (wlen - add > 0)
-		if (vstrchr("#*=?[\\`" ":{}", s[add]) || /*…1…*/
-		    ctype(s[add], C_IFS | C_QC | C_DOLAR | CiQCL)) {
+		if (ctype(s[add], C_IFS | C_EDQ)) {
 			if (putbuf_func(s, add) != 0) {
 				rval = -1;
 				break;

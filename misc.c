@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.261 2017/04/27 20:22:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.262 2017/04/27 23:12:47 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -703,7 +703,7 @@ has_globbing(const char *xp, const char *xpe)
 					return (0);
 				in_bracket = false;
 			}
-		} else if ((c & 0x80) && vstrchr("*+?@! ", c & 0x7f)) {
+		} else if ((c & 0x80) && ctype(c & 0x7F, C_PATMO)) {
 			saw_glob = true;
 			if (in_bracket)
 				bnest++;
@@ -919,7 +919,7 @@ pat_scan(const unsigned char *p, const unsigned char *pe, bool match_sep)
 		if ((*++p == /*(*/ ')' && nest-- == 0) ||
 		    (*p == '|' && match_sep && nest == 0))
 			return (p + 1);
-		if ((*p & 0x80) && vstrchr("*+?@! ", *p & 0x7f))
+		if ((*p & 0x80) && ctype(*p & 0x7F, C_PATMO))
 			nest++;
 	}
 	return (NULL);

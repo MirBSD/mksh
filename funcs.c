@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.344 2017/04/27 20:22:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.345 2017/04/27 23:12:46 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1456,7 +1456,7 @@ c_umask(const char **wp)
 				if (!positions)
 					/* default is a */
 					positions = 0111;
-				if (!vstrchr("=+-", op = *cp))
+				if (!ctype((op = *cp), C_EQUAL | C_MINUS | C_PLUS))
 					break;
 				cp++;
 				new_val = 0;
@@ -1497,7 +1497,7 @@ c_umask(const char **wp)
 				if (*cp == ',') {
 					positions = 0;
 					cp++;
-				} else if (!vstrchr("=+-", *cp))
+				} else if (!ctype(*cp, C_EQUAL | C_MINUS | C_PLUS))
 					break;
 			}
 			if (*cp) {
