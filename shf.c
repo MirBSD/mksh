@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.83 2017/04/27 23:12:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.84 2017/04/27 23:33:22 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1191,8 +1191,8 @@ const uint32_t tpl_ctypes[128] = {
 	/* 0x50 */
 	CiUPPER,	CiUPPER,	CiUPPER,	CiUPPER,
 	CiUPPER,	CiUPPER,	CiUPPER,	CiUPPER,
-	CiUPPER,	CiUPPER,	CiUPPER,	CiQCX,
-	CiQCX,		CiCBRK,		CiQCM,		CiUNDER,
+	CiUPPER,	CiUPPER,	CiUPPER,	CiQCX | CiBRACK,
+	CiQCX,		CiBRACK,	CiQCM,		CiUNDER,
 	/* 0x60 */
 	CiGRAVE,		CiLOWER | CiHEXLT,
 	CiLOWER | CiHEXLT,	CiLOWER | CiHEXLT,
