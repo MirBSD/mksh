@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.337 2017/04/27 19:33:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.338 2017/04/27 20:22:25 tg Exp $");
 
 extern char **environ;
 
@@ -491,7 +491,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		if (!(s->start = s->str = argv[argi++]))
 			errorf(Tf_optfoo, "", "", 'c', Treq_arg);
 		while (*s->str) {
-			if (*s->str != ' ' && ctype(*s->str, C_QUOTE))
+			if (ctype(*s->str, C_QUOTE))
 				break;
 			s->str++;
 		}

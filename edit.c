@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.326 2017/04/27 19:33:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.327 2017/04/27 20:22:22 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -553,7 +553,7 @@ x_command_glob(int flags, char *toglob, char ***wordsp)
 	return (nwords);
 }
 
-#define IS_WORDC(c)	(!ctype(c, C_LEX1) && (c) != '\'' && (c) != '"' && \
+#define IS_WORDC(c)	(!ctype(c, C_LEX1 | C_QC) && \
 			    (c) != '`' && (c) != '=' && (c) != ':')
 
 static int
@@ -859,8 +859,8 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 	int rval = 0;
 
 	while (wlen - add > 0)
-		if (vstrchr("\"#$&'()*:;<=>?[\\`{|}", s[add]) ||
-		    ctype(s[add], C_IFS)) {
+		if (vstrchr("#*=?[\\`" ":{}", s[add]) || /*…1…*/
+		    ctype(s[add], C_IFS | C_QC | C_DOLAR | CiQCL)) {
 			if (putbuf_func(s, add) != 0) {
 				rval = -1;
 				break;
@@ -4470,14 +4470,13 @@ vi_cmd(int argcnt, const char *cmd)
 				if (histnum(-1) < 0)
 					return (-1);
 				p = *histpos();
-#define issp(c)		(ctype(c, C_SPACE) || (c) == '\n')
 				if (argcnt) {
-					while (*p && issp(*p))
+					while (ctype(*p, C_SPACE))
 						p++;
 					while (*p && --argcnt) {
-						while (*p && !issp(*p))
+						while (*p && !ctype(*p, C_SPACE))
 							p++;
-						while (*p && issp(*p))
+						while (ctype(*p, C_SPACE))
 							p++;
 					}
 					if (!*p)
@@ -4487,7 +4486,7 @@ vi_cmd(int argcnt, const char *cmd)
 					sp = p;
 					inspace = false;
 					while (*p) {
-						if (issp(*p))
+						if (ctype(*p, C_SPACE))
 							inspace = true;
 						else if (inspace) {
 							inspace = false;
@@ -4501,7 +4500,7 @@ vi_cmd(int argcnt, const char *cmd)
 				hnum = hlast;
 				if (vs->cursor != vs->linelen)
 					vs->cursor++;
-				while (*p && !issp(*p)) {
+				while (*p && !ctype(*p, C_SPACE)) {
 					argcnt++;
 					p++;
 				}
@@ -4927,8 +4926,7 @@ forwword(int argcnt)
 				ncursor++;
 		else if (!ctype(vs->cbuf[ncursor], C_SPACE))
 			while (ncursor < vs->linelen &&
-			    !ctype(vs->cbuf[ncursor], C_ALNUX) &&
-			    !ctype(vs->cbuf[ncursor], C_SPACE))
+			    !ctype(vs->cbuf[ncursor], C_ALNUX | C_SPACE))
 				ncursor++;
 		while (ncursor < vs->linelen &&
 		    ctype(vs->cbuf[ncursor], C_SPACE))
@@ -4953,8 +4951,7 @@ backword(int argcnt)
 					;
 			else
 				while (--ncursor >= 0 &&
-				    !ctype(vs->cbuf[ncursor], C_ALNUX) &&
-				    !ctype(vs->cbuf[ncursor], C_SPACE))
+				    !ctype(vs->cbuf[ncursor], C_ALNUX | C_SPACE))
 					;
 			ncursor++;
 		}
@@ -4979,8 +4976,7 @@ endword(int argcnt)
 					;
 			else
 				while (++ncursor < vs->linelen &&
-				    !ctype(vs->cbuf[ncursor], C_ALNUX) &&
-				    !ctype(vs->cbuf[ncursor], C_SPACE))
+				    !ctype(vs->cbuf[ncursor], C_ALNUX | C_SPACE))
 					;
 			ncursor--;
 		}

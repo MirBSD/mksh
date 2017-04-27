@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.121 2017/04/27 19:33:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.122 2017/04/27 20:22:28 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -697,10 +697,10 @@ function_body(char *name, int sALIAS,
 	 * only allow [a-zA-Z_0-9] but this allows more as old pdkshs
 	 * have allowed more; the following were never allowed:
 	 *	NUL TAB NL SP " $ & ' ( ) ; < = > \ ` |
-	 * C_QUOTE covers all but adds # * ? [ ]
+	 * C_QUOTE|C_SPC covers all but adds # * ? [ ]
 	 */
 	for (p = sname; *p; p++)
-		if (ctype(*p, C_QUOTE))
+		if (ctype(*p, C_QUOTE | C_SPC))
 			yyerror(Tinvname, sname, Tfunction);
 
 	/*
