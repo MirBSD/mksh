@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.235 2017/04/27 19:33:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.236 2017/04/27 20:22:25 tg Exp $");
 
 /*
  * states while lexing word
@@ -444,10 +444,9 @@ yylex(int cf)
 							statep->ls_adelim.num = 1;
 							statep->nparen = 0;
 							break;
-						} else if (ctype(c, C_DIGIT) ||
-						    c == '('/*)*/ || c == ' ' ||
+						} else if (ctype(c, C_DIGIT | C_DOLAR | C_SPC) ||
 						    /*XXX what else? */
-						    c == '$') {
+						    c == '('/*)*/) {
 							/* substring subst. */
 							if (c != ' ') {
 								*wp++ = CHAR;
@@ -1275,7 +1274,7 @@ getsc_uu(void)
 				source->flags |= s->flags & SF_ALIAS;
 				s = source;
 			} else if (*s->u.tblp->val.s &&
-			    (c = strnul(s->u.tblp->val.s)[-1], ctype(c, C_SPACE))) {
+			    ctype((c = strnul(s->u.tblp->val.s)[-1]), C_SPACE)) {
 				/* pop source stack */
 				source = s = s->next;
 				/*
@@ -1435,7 +1434,7 @@ getsc_line(Source *s)
 	} else if (interactive && cur_prompt == PS1) {
  check_for_sole_return:
 		cp = Xstring(s->xs, xp);
-		while (*cp && ctype(*cp, C_IFSWS))
+		while (ctype(*cp, C_IFSWS))
 			++cp;
 		if (!*cp) {
 			histsave(&s->line, NULL, HIST_FLUSH, true);

@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.816 2017/04/27 19:19:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.817 2017/04/27 20:22:27 tg Exp $");
 #endif
-#define MKSH_VERSION "R55 2017/04/20"
+#define MKSH_VERSION "R55 2017/04/27"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1360,8 +1360,8 @@ EXTERN char ifs0;
 #define C_PRINT	(C_GRAPH | CiSP)
 /* !"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~	POSIX punctuation */
 #define C_PUNCT	(CiUNDER | CiALIAS | CiSS | CiQC | CiQCL | CiQCX)
-/* \x09\x0A\x20"#$&'()*;<=>?[\\]`|	characters requiring quoting */
-#define C_QUOTE	(CiTAB | CiSP | CiNL | CiSS | CiQC | CiQCL | CiQCX)
+/* \x09\x0A"#$&'()*;<=>?[\\]`|	characters requiring quoting, minus space */
+#define C_QUOTE	(CiTAB | CiNL | CiSS | CiQC | CiQCL | CiQCX)
 /* 0‥9A‥Fa‥f		hexadecimal digit */
 #define C_SEDEC	(CiDIGIT | CiOCTAL | CiHEXLT)
 /* \x09‥\x0D\x20	POSIX space class */
@@ -1400,24 +1400,12 @@ EXTERN char ifs0;
 /* helper functions */
 #define ksh_isdash(s)	tobool(ord((s)[0]) == '-' && ord((s)[1]) == '\0')
 /* invariant distance even in EBCDIC */
-#define ksh_tolower(c)	(ksh_isupper(c) ? (c) - 'A' + 'a' : (c))
-#define ksh_toupper(c)	(ksh_islower(c) ? (c) - 'a' + 'A' : (c))
+#define ksh_tolower(c)	(ctype(c, C_UPPER) ? (c) - 'A' + 'a' : (c))
+#define ksh_toupper(c)	(ctype(c, C_LOWER) ? (c) - 'a' + 'A' : (c))
 /* strictly speaking asc() here, but this works even in EBCDIC */
 #define ksh_numdig(c)	(ord(c) - ord('0'))
 #define ksh_numuc(c)	(asc(c) - asc('A'))
 #define ksh_numlc(c)	(asc(c) - asc('a'))
-/* legacy functions */
-#define ksh_issubop2(c)	ctype((c), C_SUB2)
-#define ksh_isalias(c)	ctype((c), C_ALIAS)
-#define ksh_isalpha(c)	ctype((c), C_ALPHA)
-#define ksh_isalphx(c)	ctype((c), C_ALPHX)
-#define ksh_isalnux(c)	ctype((c), C_ALNUX)
-#define ksh_isdigit(c)	ctype((c), C_DIGIT)
-#define ksh_islower(c)	ctype((c), C_LOWER)
-#define ksh_isupper(c)	ctype((c), C_UPPER)
-#define ksh_isspace(c)	ctype((c), C_SPACE)
-#define is_cfs(c)	ctype((c), C_CFS)
-#define is_mfs(c)	ctype((c), C_MFS)
 
 /* Argument parsing for built-in commands and getopts command */
 
@@ -2583,7 +2571,7 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 #define mksh_abspath(s)			__extension__({			\
 	const char *mksh_abspath_s = (s);				\
 	(mksh_cdirsep(mksh_abspath_s[0]) ||				\
-	    (ksh_isalpha(mksh_abspath_s[0]) &&				\
+	    (ctype(mksh_abspath_s[0], C_ALPHA) &&			\
 	    mksh_abspath_s[1] == ':'));					\
 })
 #define mksh_cdirsep(c)			__extension__({			\
@@ -2592,7 +2580,7 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 })
 #define mksh_sdirsep(s)			__extension__({			\
 	const char *mksh_sdirsep_s = (s);				\
-	((char *)((ksh_isalphx(mksh_sdirsep_s[0]) &&			\
+	((char *)((ctype(mksh_sdirsep_s[0], C_ALPHA) &&			\
 	    mksh_sdirsep_s[1] == ':' &&					\
 	    !mksh_cdirsep(mksh_sdirsep_s[2])) ?				\
 	    (mksh_sdirsep_s + 1) : strpbrk(mksh_sdirsep_s, "/\\")));	\
