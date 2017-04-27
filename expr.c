@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.95 2017/04/27 20:22:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.96 2017/04/27 23:12:46 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -618,7 +618,7 @@ exprtoken(Expr_state *es)
 		goto process_tvar;
 #endif
 	} else if (ctype(c, C_DIGIT)) {
-		while (ctype(c, C_ALNUM) || c == '#')
+		while (ctype(c, C_ALNUM | C_HASH))
 			c = *cp++;
 		strndupx(tvar, es->tokp, --cp - es->tokp, ATEMP);
  process_tvar:
