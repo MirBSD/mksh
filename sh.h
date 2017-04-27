@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.815 2017/04/27 19:16:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.816 2017/04/27 19:19:05 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/20"
 
@@ -1348,8 +1348,8 @@ EXTERN char ifs0;
 #define C_IFS	(CiIFS | CiNUL)
 /* \x09\x0A\x20		IFS whitespace */
 #define C_IFSWS	(CiTAB | CiSP | CiNL)
-/* \x00\x09\x0A\x20&();<>|	(for the lexer) */
-#define C_LEX1	(CiTAB | CiSP | CiNL | CiQCL | CiNUL)
+/* \x09\x0A\x20&();<>|	(for the lexer) */
+#define C_LEX1	(CiTAB | CiSP | CiNL | CiQCL)
 /* a‥z			lowercase letters */
 #define C_LOWER	CiLOWER
 /* not alnux or dollar	separator for motion */
