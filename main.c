@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.338 2017/04/27 20:22:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.339 2017/04/27 22:38:49 tg Exp $");
 
 extern char **environ;
 
@@ -409,6 +409,107 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	/* for security */
 	typeset(TinitIFS, 0, 0, 0, 0);
+
+#define d(p,c) do {					\
+	if (c < 33 || c > 0x7E)				\
+		shellf("%s\\x%02X", p, c);		\
+	else						\
+		shellf("%s%c", p, c);			\
+} while (0)
+#define dmpcf(a,f) do {					\
+	int c = -1, lc = -3, il = 0;			\
+	shellf("%s\t",a);				\
+	while (++c < 256) {				\
+		if (!f) continue;			\
+		if (lc + 1 == c) {			\
+			il = 1;				\
+		} else {				\
+			if (il)				\
+				d("‥", lc);		\
+			il = 0;				\
+			d("", c);			\
+		}					\
+		lc = c;					\
+	}						\
+	if (il)						\
+		d("‥", lc);				\
+	shellf(" █\n");					\
+} while (0)
+#define dmpct(a,b) dmpcf(a,ctype(c,b))
+dmpct("C_ALIAS", C_ALIAS);
+dmpct("C_ALNUM", C_ALNUM);
+dmpct("C_ALNUX", C_ALNUX);
+dmpct("C_ALPHA", C_ALPHA);
+dmpct("C_ALPHX", C_ALPHX);
+dmpct("C_BLANK", C_BLANK);
+dmpct("C_CFS", C_CFS);
+dmpct("C_CNTRL", C_CNTRL);
+dmpct("C_COLON", C_COLON);
+dmpct("C_DIGIT", C_DIGIT);
+dmpct("C_DOLAR", C_DOLAR);
+dmpct("C_EDCMD", C_EDCMD);
+dmpct("C_EDNWC", C_EDNWC);
+dmpct("C_EDQ", C_EDQ);
+dmpct("C_GRAPH", C_GRAPH);
+dmpct("C_HASH", C_HASH);
+dmpct("C_HEXLT", C_HEXLT);
+dmpct("C_IFS", C_IFS);
+dmpct("C_IFSWS", C_IFSWS);
+dmpct("C_LEX1", C_LEX1);
+dmpct("C_LF", C_LF);
+dmpct("C_LOWER", C_LOWER);
+dmpct("C_MFS", C_MFS);
+dmpct("C_NL", C_NL);
+dmpct("C_NL", C_NL);
+dmpct("C_NUL", C_NUL);
+dmpct("C_OCTAL", C_OCTAL);
+dmpct("C_PATMO", C_PATMO);
+dmpct("C_PRINT", C_PRINT);
+dmpct("C_PUNCT", C_PUNCT);
+dmpct("C_QC", C_QC);
+dmpct("C_QUOTE", C_QUOTE);
+dmpct("C_SEDEC", C_SEDEC);
+dmpct("C_SPACE", C_SPACE);
+dmpct("C_SPC", C_SPC);
+dmpct("C_SUB1", C_SUB1);
+dmpct("C_SUB2", C_SUB2);
+dmpct("C_TAB", C_TAB);
+dmpct("C_UNDER", C_UNDER);
+dmpct("C_UPPER", C_UPPER);
+dmpct("C_VAR1", C_VAR1);
+dmpct("CiALIAS", CiALIAS);
+dmpct("CiANGLE", CiANGLE);
+dmpct("CiCBRK", CiCBRK);
+dmpct("CiCNTRL", CiCNTRL);
+dmpct("CiCOLON", CiCOLON);
+dmpct("CiCR", CiCR);
+dmpct("CiCURLY", CiCURLY);
+dmpct("CiDIGIT", CiDIGIT);
+dmpct("CiEQUAL", CiEQUAL);
+dmpct("CiGRAVE", CiGRAVE);
+dmpct("CiHASH", CiHASH);
+dmpct("CiHEXLT", CiHEXLT);
+dmpct("CiIFS", CiIFS);
+dmpct("CiLOWER", CiLOWER);
+dmpct("CiMINUS", CiMINUS);
+dmpct("CiNL", CiNL);
+dmpct("CiNUL", CiNUL);
+dmpct("CiOCTAL", CiOCTAL);
+dmpct("CiPERCT", CiPERCT);
+dmpct("CiPLUS", CiPLUS);
+dmpct("CiQC", CiQC);
+dmpct("CiQCL", CiQCL);
+dmpct("CiQCM", CiQCM);
+dmpct("CiQCX", CiQCX);
+dmpct("CiQUEST", CiQUEST);
+dmpct("CiSP", CiSP);
+dmpct("CiSPX", CiSPX);
+dmpct("CiSS", CiSS);
+dmpct("CiTAB", CiTAB);
+dmpct("CiUNDER", CiUNDER);
+dmpct("CiUPPER", CiUPPER);
+dmpct("CiVAR1", CiVAR1);
+exit(0);
 
 	/* assign default shell variable values */
 	typeset("PATHSEP=" MKSH_PATHSEPS, 0, 0, 0, 0);
