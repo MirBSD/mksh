@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.215 2017/04/22 00:07:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.216 2017/04/27 19:33:53 tg Exp $");
 
 /*-
  * Variables
@@ -183,7 +183,7 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 	*arrayp = false;
  redo_from_ref:
 	p = skip_varname(n, false);
-	if (innermost_refflag == SRF_NOP && (p != n) && ksh_isalphx(n[0])) {
+	if (innermost_refflag == SRF_NOP && (p != n) && ctype(n[0], C_ALPHX)) {
 		struct tbl *vp;
 		char *vn;
 
@@ -249,14 +249,14 @@ isglobal(const char *n, bool docreate)
 	vn = array_index_calc(n, &array, &val);
 	h = hash(vn);
 	c = (unsigned char)vn[0];
-	if (!ksh_isalphx(c)) {
+	if (!ctype(c, C_ALPHX)) {
 		if (array)
 			errorf(Tbadsubst);
 		vp = vtemp;
 		vp->flag = DEFINED;
 		vp->type = 0;
 		vp->areap = ATEMP;
-		if (ksh_isdigit(c)) {
+		if (ctype(c, C_DIGIT)) {
 			if (getn(vn, &c)) {
 				/* main.c:main_init() says 12 */
 				shf_snprintf(vp->name, 12, Tf_d, c);
@@ -339,7 +339,7 @@ local(const char *n, bool copy)
 	 */
 	vn = array_index_calc(n, &array, &val);
 	h = hash(vn);
-	if (!ksh_isalphx(*vn)) {
+	if (!ctype(*vn, C_ALPHX)) {
 		vp = vtemp;
 		vp->flag = DEFINED|RDONLY;
 		vp->type = 0;
@@ -532,7 +532,7 @@ getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 
 	do {
 		c = (unsigned char)*s++;
-	} while (ksh_isspace(c));
+	} while (ctype(c, C_SPACE));
 
 	switch (c) {
 	case '-':
@@ -549,7 +549,7 @@ getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 			base = 16;
 			++s;
 			goto getint_c_style_base;
-		} else if (Flag(FPOSIX) && ksh_isdigit(s[0]) &&
+		} else if (Flag(FPOSIX) && ctype(s[0], C_DIGIT) &&
 		    !(vp->flag & ZEROFIL)) {
 			/* interpret as octal (deprecated) */
 			base = 8;
@@ -586,11 +586,11 @@ getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 			have_base = true;
 			continue;
 		}
-		if (ksh_isdigit(c))
+		if (ctype(c, C_DIGIT))
 			c = ksh_numdig(c);
-		else if (ksh_isupper(c))
+		else if (ctype(c, C_UPPER))
 			c = ksh_numuc(c) + 10;
-		else if (ksh_islower(c))
+		else if (ctype(c, C_LOWER))
 			c = ksh_numlc(c) + 10;
 		else
 			return (-1);
@@ -670,7 +670,7 @@ formatstr(struct tbl *vp, const char *s)
 			qq = utf_skipcols(s, slen, &slen);
 
 			/* strip trailing spaces (AT&T uses qq[-1] == ' ') */
-			while (qq > s && ksh_isspace(qq[-1])) {
+			while (qq > s && ctype(qq[-1], C_SPACE)) {
 				--qq;
 				--slen;
 			}
@@ -700,7 +700,7 @@ formatstr(struct tbl *vp, const char *s)
 			    "%.*s", slen, s);
 		} else {
 			/* strip leading spaces/zeros */
-			while (ksh_isspace(*s))
+			while (ctype(*s, C_SPACE))
 				s++;
 			if (vp->flag & ZEROFIL)
 				while (*s == '0')
@@ -796,7 +796,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 			size_t i;
 
 			for (i = 1; i < len - 1; i++)
-				if (!ksh_isdigit(val[i]))
+				if (!ctype(val[i], C_DIGIT))
 					return (NULL);
 		}
 		val += len;
@@ -845,7 +845,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 
 			if (!(c = (unsigned char)qval[0]))
 				goto nameref_empty;
-			else if (ksh_isdigit(c) && getn(qval, &c))
+			else if (ctype(c, C_DIGIT) && getn(qval, &c))
 				goto nameref_rhs_checked;
 			else if (qval[1] == '\0') switch (c) {
 			case '$':
@@ -1064,10 +1064,10 @@ skip_varname(const char *s, bool aok)
 {
 	size_t alen;
 
-	if (s && ksh_isalphx(*s)) {
+	if (s && ctype(*s, C_ALPHX)) {
 		do {
 			++s;
-		} while (ksh_isalnux(*s));
+		} while (ctype(*s, C_ALNUX));
 		if (aok && *s == '[' && (alen = array_ref_len(s)))
 			s += alen;
 	}
@@ -1080,10 +1080,10 @@ skip_wdvarname(const char *s,
     /* skip array de-reference? */
     bool aok)
 {
-	if (s[0] == CHAR && ksh_isalphx(s[1])) {
+	if (s[0] == CHAR && ctype(s[1], C_ALPHX)) {
 		do {
 			s += 2;
-		} while (s[0] == CHAR && ksh_isalnux(s[1]));
+		} while (s[0] == CHAR && ctype(s[1], C_ALNUX));
 		if (aok && s[0] == CHAR && s[1] == '[') {
 			/* skip possible array de-reference */
 			const char *p = s;

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.93 2017/04/02 16:47:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.94 2017/04/27 19:33:48 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -558,7 +558,7 @@ exprtoken(Expr_state *es)
 
 	/* skip whitespace */
  skip_spaces:
-	while ((c = *cp), ksh_isspace(c))
+	while (ctype((c = *cp), C_SPACE))
 		++cp;
 	if (es->tokp == es->expression && c == '#') {
 		/* expression begins with # */
@@ -571,10 +571,10 @@ exprtoken(Expr_state *es)
 
 	if (c == '\0')
 		es->tok = END;
-	else if (ksh_isalphx(c)) {
+	else if (ctype(c, C_ALPHX)) {
 		do {
 			c = *++cp;
-		} while (ksh_isalnux(c));
+		} while (ctype(c, C_ALNUX));
 		if (c == '[') {
 			size_t len;
 
@@ -617,8 +617,8 @@ exprtoken(Expr_state *es)
 		tvar[c] = '\0';
 		goto process_tvar;
 #endif
-	} else if (ksh_isdigit(c)) {
-		while (c != '_' && (ksh_isalnux(c) || c == '#'))
+	} else if (ctype(c, C_DIGIT)) {
+		while (c != '_' && (ctype(c, C_ALNUX) || c == '#'))
 			c = *cp++;
 		strndupx(tvar, es->tokp, --cp - es->tokp, ATEMP);
  process_tvar:
