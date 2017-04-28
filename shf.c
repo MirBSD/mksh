@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.89 2017/04/28 04:13:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.90 2017/04/28 11:13:49 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1217,7 +1217,7 @@ set_ifs(const char *s)
 		ksh_ctypes[rtt2asc(*s++)] |= CiIFS;
 }
 
-#ifdef MKSH_EBCDIC
+#if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
 #include <locale.h>
 
 void
@@ -1229,10 +1229,12 @@ ebcdic_init(void)
 	while (i--)
 		ebcdic_rtt_toascii[i] = i;
 	setlocale(LC_ALL, "");
+#ifdef MKSH_EBCDIC
 	if (__etoa_l(ebcdic_rtt_toascii, 256) != 256) {
 		write(2, "mksh: could not map EBCDIC to ASCII\n", 36);
 		exit(255);
 	}
+#endif
 
 	i = 0;
 	do {
