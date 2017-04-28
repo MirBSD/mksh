@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.331 2017/04/28 02:24:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.332 2017/04/28 03:28:17 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1031,56 +1031,56 @@ static const struct x_ftab x_ftab[] = {
 };
 
 static struct x_defbindings const x_defbindings[] = {
-	{ XFUNC_del_back,		0, CTRL('?')	},
-	{ XFUNC_del_bword,		1, CTRL('?')	},
-	{ XFUNC_eot_del,		0, CTRL('D')	},
-	{ XFUNC_del_back,		0, CTRL('H')	},
-	{ XFUNC_del_bword,		1, CTRL('H')	},
+	{ XFUNC_del_back,		0,  CTRL_QM	},
+	{ XFUNC_del_bword,		1,  CTRL_QM	},
+	{ XFUNC_eot_del,		0,  CTRL_D	},
+	{ XFUNC_del_back,		0,  CTRL_H	},
+	{ XFUNC_del_bword,		1,  CTRL_H	},
 	{ XFUNC_del_bword,		1,	'h'	},
 	{ XFUNC_mv_bword,		1,	'b'	},
 	{ XFUNC_mv_fword,		1,	'f'	},
 	{ XFUNC_del_fword,		1,	'd'	},
-	{ XFUNC_mv_back,		0, CTRL('B')	},
-	{ XFUNC_mv_forw,		0, CTRL('F')	},
-	{ XFUNC_search_char_forw,	0, CTRL(']')	},
-	{ XFUNC_search_char_back,	1, CTRL(']')	},
-	{ XFUNC_newline,		0, CTRL('M')	},
-	{ XFUNC_newline,		0, CTRL('J')	},
-	{ XFUNC_end_of_text,		0, CTRL('_')	},
-	{ XFUNC_abort,			0, CTRL('G')	},
-	{ XFUNC_prev_com,		0, CTRL('P')	},
-	{ XFUNC_next_com,		0, CTRL('N')	},
-	{ XFUNC_nl_next_com,		0, CTRL('O')	},
-	{ XFUNC_search_hist,		0, CTRL('R')	},
+	{ XFUNC_mv_back,		0,  CTRL_B	},
+	{ XFUNC_mv_forw,		0,  CTRL_F	},
+	{ XFUNC_search_char_forw,	0,  CTRL_BC	},
+	{ XFUNC_search_char_back,	1,  CTRL_BC	},
+	{ XFUNC_newline,		0,  CTRL_M	},
+	{ XFUNC_newline,		0,  CTRL_J	},
+	{ XFUNC_end_of_text,		0,  CTRL_US	},
+	{ XFUNC_abort,			0,  CTRL_G	},
+	{ XFUNC_prev_com,		0,  CTRL_P	},
+	{ XFUNC_next_com,		0,  CTRL_N	},
+	{ XFUNC_nl_next_com,		0,  CTRL_O	},
+	{ XFUNC_search_hist,		0,  CTRL_R	},
 	{ XFUNC_beg_hist,		1,	'<'	},
 	{ XFUNC_end_hist,		1,	'>'	},
 	{ XFUNC_goto_hist,		1,	'g'	},
-	{ XFUNC_mv_end,			0, CTRL('E')	},
-	{ XFUNC_mv_beg,			0, CTRL('A')	},
-	{ XFUNC_draw_line,		0, CTRL('L')	},
-	{ XFUNC_cls,			1, CTRL('L')	},
-	{ XFUNC_meta1,			0, CTRL('[')	},
-	{ XFUNC_meta2,			0, CTRL('X')	},
-	{ XFUNC_kill,			0, CTRL('K')	},
-	{ XFUNC_yank,			0, CTRL('Y')	},
+	{ XFUNC_mv_end,			0,  CTRL_E	},
+	{ XFUNC_mv_beg,			0,  CTRL_A	},
+	{ XFUNC_draw_line,		0,  CTRL_L	},
+	{ XFUNC_cls,			1,  CTRL_L	},
+	{ XFUNC_meta1,			0,  CTRL_BO	},
+	{ XFUNC_meta2,			0,  CTRL_X	},
+	{ XFUNC_kill,			0,  CTRL_K	},
+	{ XFUNC_yank,			0,  CTRL_Y	},
 	{ XFUNC_meta_yank,		1,	'y'	},
-	{ XFUNC_literal,		0, CTRL('^')	},
+	{ XFUNC_literal,		0,  CTRL_CA	},
 	{ XFUNC_comment,		1,	'#'	},
-	{ XFUNC_transpose,		0, CTRL('T')	},
-	{ XFUNC_complete,		1, CTRL('[')	},
-	{ XFUNC_comp_list,		0, CTRL('I')	},
+	{ XFUNC_transpose,		0,  CTRL_T	},
+	{ XFUNC_complete,		1,  CTRL_BO	},
+	{ XFUNC_comp_list,		0,  CTRL_I	},
 	{ XFUNC_comp_list,		1,	'='	},
 	{ XFUNC_enumerate,		1,	'?'	},
 	{ XFUNC_expand,			1,	'*'	},
-	{ XFUNC_comp_file,		1, CTRL('X')	},
-	{ XFUNC_comp_comm,		2, CTRL('[')	},
+	{ XFUNC_comp_file,		1,  CTRL_X	},
+	{ XFUNC_comp_comm,		2,  CTRL_BO	},
 	{ XFUNC_list_comm,		2,	'?'	},
-	{ XFUNC_list_file,		2, CTRL('Y')	},
+	{ XFUNC_list_file,		2,  CTRL_Y	},
 	{ XFUNC_set_mark,		1,	' '	},
-	{ XFUNC_kill_region,		0, CTRL('W')	},
-	{ XFUNC_xchg_point_mark,	2, CTRL('X')	},
-	{ XFUNC_literal,		0, CTRL('V')	},
-	{ XFUNC_version,		1, CTRL('V')	},
+	{ XFUNC_kill_region,		0,  CTRL_W	},
+	{ XFUNC_xchg_point_mark,	2,  CTRL_X	},
+	{ XFUNC_literal,		0,  CTRL_V	},
+	{ XFUNC_version,		1,  CTRL_V	},
 	{ XFUNC_prev_histword,		1,	'.'	},
 	{ XFUNC_prev_histword,		1,	'_'	},
 	{ XFUNC_set_arg,		1,	'0'	},
@@ -1143,7 +1143,7 @@ static struct x_defbindings const x_defbindings[] = {
 #endif
 #ifndef MKSH_SMALL
 	/* more non-standard ones */
-	{ XFUNC_eval_region,		1, CTRL('E')	},
+	{ XFUNC_eval_region,		1,  CTRL_E	},
 	{ XFUNC_edit_line,		2,	'e'	}
 #endif
 };
@@ -1642,7 +1642,7 @@ x_size2(char *cp, char **dcp)
 	if (c == '\t')
 		/* Kludge, tabs are always four spaces. */
 		return (4);
-	if (ISCTRL(c) && /* but not C1 */ c < 0x80)
+	if (ksh_isctrl(c))
 		/* control unsigned char */
 		return (2);
 	return (1);
@@ -1667,9 +1667,9 @@ x_zotc3(char **cp)
 		/* Kludge, tabs are always four spaces. */
 		x_e_puts(T4spaces);
 		(*cp)++;
-	} else if (ISCTRL(c) && /* but not C1 */ c < 0x80) {
+	} else if (ksh_isctrl(c)) {
 		x_e_putc2('^');
-		x_e_putc2(UNCTRL(c));
+		x_e_putc2(ksh_unctrl(c));
 		(*cp)++;
 	} else
 		x_e_putc3((const char **)cp);
@@ -1782,7 +1782,7 @@ x_end_of_text(int c MKSH_A_UNUSED)
 	unsigned char tmp[1], *cp = tmp;
 
 	*tmp = isedchar(edchars.eof) ? (unsigned char)edchars.eof :
-	    (unsigned char)CTRL('D');
+	    (unsigned char)CTRL_D;
 	x_zotc3((char **)&cp);
 	x_putc('\r');
 	x_putc('\n');
@@ -1897,13 +1897,13 @@ x_search_hist(int c)
 		if ((c = x_e_getc()) < 0)
 			return (KSTD);
 		f = x_tab[0][c];
-		if (c == CTRL('[')) {
+		if (c == CTRL_BO) {
 			if ((f & 0x7F) == XFUNC_meta1) {
 				if ((c = x_e_getc()) < 0)
 					return (KSTD);
 				f = x_tab[1][c] & 0x7F;
 				if (f == XFUNC_meta1 || f == XFUNC_meta2)
-					x_meta1(CTRL('['));
+					x_meta1(CTRL_BO);
 				x_e_ungetc(c);
 			}
 			break;
@@ -2398,9 +2398,8 @@ x_mapin(const char *cp, Area *ap)
 		if (*cp == '^') {
 			cp++;
 			/*XXX or ^^ escape? this is ugly. */
-			if (*cp >= '?')
-				/* includes '?'; ASCII */
-				*op++ = CTRL(*cp);
+			if (rtt2asc(*cp) >= 0x3FU)
+				*op++ = ksh_toctrl(*cp);
 			else {
 				*op++ = '^';
 				cp--;
@@ -2419,9 +2418,9 @@ x_mapout2(int c, char **buf)
 {
 	char *p = *buf;
 
-	if (ISCTRL(c)) {
+	if (ksh_isctrl(c)) {
 		*p++ = '^';
-		*p++ = UNCTRL(c);
+		*p++ = ksh_unctrl(c);
 	} else
 		*p++ = c;
 	*p = 0;
@@ -2444,9 +2443,9 @@ x_print(int prefix, int key)
 	int f = x_tab[prefix][key];
 
 	if (prefix)
-		/* prefix == 1 || prefix == 2 */
-		shf_puts(x_mapout(prefix == 1 ? CTRL('[') :
-		    prefix == 2 ? CTRL('X') : 0), shl_stdout);
+		/* prefix == 1 || prefix == 2 || prefix == 3 */
+		shf_puts(x_mapout(prefix == 1 ? CTRL_BO :
+		    prefix == 2 ? CTRL_X : 0), shl_stdout);
 #ifdef MKSH_SMALL
 	shprintf("%s = ", x_mapout(key));
 #else
@@ -3331,17 +3330,17 @@ x_mode(bool onoff)
 #endif
 
 		if (!edchars.erase)
-			edchars.erase = CTRL('H');
+			edchars.erase = CTRL_H;
 		if (!edchars.kill)
-			edchars.kill = CTRL('U');
+			edchars.kill = CTRL_U;
 		if (!edchars.intr)
-			edchars.intr = CTRL('C');
+			edchars.intr = CTRL_C;
 		if (!edchars.quit)
-			edchars.quit = CTRL('\\');
+			edchars.quit = CTRL_BK;
 		if (!edchars.eof)
-			edchars.eof = CTRL('D');
+			edchars.eof = CTRL_D;
 		if (!edchars.werase)
-			edchars.werase = CTRL('W');
+			edchars.werase = CTRL_W;
 
 		if (isedchar(edchars.erase)) {
 			bind_if_not_bound(0, edchars.erase, XFUNC_del_back);
@@ -3401,11 +3400,10 @@ static void ed_mov_opt(int, char *);
 static int expand_word(int);
 static int complete_word(int, int);
 static int print_expansions(struct edstate *, int);
-#define char_len(c)	((ISCTRL((unsigned char)c) && \
-			/* but not C1 */ (unsigned char)c < 0x80) ? 2 : 1)
 static void vi_error(void);
 static void vi_macro_reset(void);
 static int x_vi_putbuf(const char *, size_t);
+#define char_len(c) (ksh_isctrl(c) ? 2 : 1)
 
 #define vC	0x01		/* a valid command that isn't a vM, vE, vU */
 #define vM	0x02		/* movement command (h, l, etc.) */
@@ -3653,7 +3651,7 @@ vi_hook(int ch)
 		default: ch = 0; goto vi_insert_failed;
 		}
 		if (insert != 0) {
-			if (ch == CTRL('v')) {
+			if (ch == CTRL_V) {
 				state = VLIT;
 				ch = '^';
 			}
@@ -3767,7 +3765,7 @@ vi_hook(int ch)
 		break;
 
 	case VXCH:
-		if (ch == CTRL('['))
+		if (ch == CTRL_BO)
 			state = VNORMAL;
 		else {
 			curcmd[cmdlen++] = ch;
@@ -3776,7 +3774,7 @@ vi_hook(int ch)
 		break;
 
 	case VSEARCH:
-		if (ctype(ch, C_CR | C_LF) /* || ch == CTRL('[') */ ) {
+		if (ctype(ch, C_CR | C_LF) /* || ch == CTRL_BO */ ) {
 			restore_cbuf();
 			/* Repeat last search? */
 			if (srchlen == 0) {
@@ -3791,7 +3789,7 @@ vi_hook(int ch)
 				memcpy(srchpat, locpat, srchlen + 1);
 			}
 			state = VCMD;
-		} else if (isched(ch, edchars.erase) || ch == CTRL('h')) {
+		} else if (isched(ch, edchars.erase) || ch == CTRL_H) {
 			if (srchlen != 0) {
 				srchlen--;
 				vs->linelen -= char_len(locpat[srchlen]);
@@ -3832,12 +3830,12 @@ vi_hook(int ch)
 				vi_error();
 			else {
 				locpat[srchlen++] = ch;
-				if (ISCTRL(ch) && /* but not C1 */ ch < 0x80) {
+				if (ksh_isctrl(ch)) {
 					if ((size_t)vs->linelen + 2 >
 					    (size_t)vs->cbufsize)
 						vi_error();
 					vs->cbuf[vs->linelen++] = '^';
-					vs->cbuf[vs->linelen++] = UNCTRL(ch);
+					vs->cbuf[vs->linelen++] = ksh_unctrl(ch);
 				} else {
 					if (vs->linelen >= vs->cbufsize)
 						vi_error();
@@ -3949,7 +3947,7 @@ nextstate(int ch)
 		return (VXCH);
 	else if (ch == '.')
 		return (VREDO);
-	else if (ch == CTRL('v'))
+	else if (ch == CTRL_V)
 		return (VVERSION);
 	else if (is_cmd(ch))
 		return (VCMD);
@@ -3962,7 +3960,7 @@ vi_insert(int ch)
 {
 	int tcursor;
 
-	if (isched(ch, edchars.erase) || ch == CTRL('h')) {
+	if (isched(ch, edchars.erase) || ch == CTRL_H) {
 		if (insert == REPLACE) {
 			if (vs->cursor == undo->cursor) {
 				vi_error();
@@ -4019,7 +4017,7 @@ vi_insert(int ch)
 	 * buffer (if user inserts & deletes char, ibuf gets trashed and
 	 * we don't want to use it)
 	 */
-	if (first_insert && ch != CTRL('['))
+	if (first_insert && ch != CTRL_BO)
 		saved_inslen = 0;
 	switch (ch) {
 	case '\0':
@@ -4029,7 +4027,7 @@ vi_insert(int ch)
 	case '\n':
 		return (1);
 
-	case CTRL('['):
+	case CTRL_BO:
 		expanded = NONE;
 		if (first_insert) {
 			first_insert = false;
@@ -4046,19 +4044,19 @@ vi_insert(int ch)
 			return (redo_insert(lastac - 1));
 
 	/* { start nonstandard vi commands */
-	case CTRL('x'):
+	case CTRL_X:
 		expand_word(0);
 		break;
 
-	case CTRL('f'):
+	case CTRL_F:
 		complete_word(0, 0);
 		break;
 
-	case CTRL('e'):
+	case CTRL_E:
 		print_expansions(vs, 0);
 		break;
 
-	case CTRL('i'):
+	case CTRL_I:
 		if (Flag(FVITABCOMPLETE)) {
 			complete_word(0, 0);
 			break;
@@ -4113,8 +4111,8 @@ vi_cmd(int argcnt, const char *cmd)
 		}
 		switch (*cmd) {
 
-		case CTRL('l'):
-		case CTRL('r'):
+		case CTRL_L:
+		case CTRL_R:
 			redraw_line(true);
 			break;
 
@@ -4302,7 +4300,7 @@ vi_cmd(int argcnt, const char *cmd)
 
 		case 'j':
 		case '+':
-		case CTRL('n'):
+		case CTRL_N:
 			if (grabhist(modified, hnum + argcnt) < 0)
 				return (-1);
 			else {
@@ -4313,7 +4311,7 @@ vi_cmd(int argcnt, const char *cmd)
 
 		case 'k':
 		case '-':
-		case CTRL('p'):
+		case CTRL_P:
 			if (grabhist(modified, hnum - argcnt) < 0)
 				return (-1);
 			else {
@@ -4546,27 +4544,27 @@ vi_cmd(int argcnt, const char *cmd)
 		/* AT&T ksh */
 		case '=':
 		/* Nonstandard vi/ksh */
-		case CTRL('e'):
+		case CTRL_E:
 			print_expansions(vs, 1);
 			break;
 
 
 		/* Nonstandard vi/ksh */
-		case CTRL('i'):
+		case CTRL_I:
 			if (!Flag(FVITABCOMPLETE))
 				return (-1);
 			complete_word(1, argcnt);
 			break;
 
 		/* some annoying AT&T kshs */
-		case CTRL('['):
+		case CTRL_BO:
 			if (!Flag(FVIESCCOMPLETE))
 				return (-1);
 			/* FALLTHROUGH */
 		/* AT&T ksh */
 		case '\\':
 		/* Nonstandard vi/ksh */
-		case CTRL('f'):
+		case CTRL_F:
 			complete_word(1, argcnt);
 			break;
 
@@ -4574,7 +4572,7 @@ vi_cmd(int argcnt, const char *cmd)
 		/* AT&T ksh */
 		case '*':
 		/* Nonstandard vi/ksh */
-		case CTRL('x'):
+		case CTRL_X:
 			expand_word(1);
 			break;
 
@@ -4652,7 +4650,7 @@ domove(int argcnt, const char *cmd, int sub)
 		break;
 
 	case 'h':
-	case CTRL('h'):
+	case CTRL_H:
 		if (!sub && vs->cursor == 0)
 			return (-1);
 		ncursor = vs->cursor - argcnt;
@@ -5188,10 +5186,10 @@ display(char *wb1, char *wb2, int leftside)
 				*twb1++ = ' ';
 			} while (++col < winwidth && (col & 7) != 0);
 		else if (col < winwidth) {
-			if (ISCTRL(ch) && /* but not C1 */ ch < 0x80) {
+			if (ksh_isctrl(ch)) {
 				*twb1++ = '^';
 				if (++col < winwidth) {
-					*twb1++ = UNCTRL(ch);
+					*twb1++ = ksh_unctrl(ch);
 					col++;
 				}
 			} else {
@@ -5467,9 +5465,9 @@ print_expansions(struct edstate *est, int cmd MKSH_A_UNUSED)
 static void
 x_vi_zotc(int c)
 {
-	if (ISCTRL(c)) {
+	if (ksh_isctrl(c)) {
 		x_putc('^');
-		c = UNCTRL(c);
+		c = ksh_unctrl(c);
 	}
 	x_putc(c);
 }

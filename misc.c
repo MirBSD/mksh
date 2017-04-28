@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.266 2017/04/28 02:24:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.267 2017/04/28 03:28:18 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1098,7 +1098,7 @@ print_value_quoted(struct shf *shf, const char *s)
 	bool inquote = true;
 
 	/* first, check whether any quotes are needed */
-	while ((c = *p++) >= 32)
+	while (asc(c = *p++) >= 32)
 		if (ctype(c, C_QUOTE | C_SPC))
 			inquote = false;
 
@@ -1137,6 +1137,7 @@ print_value_quoted(struct shf *shf, const char *s)
 		shf_putc('$', shf);
 		shf_putc('\'', shf);
 		while ((c = *p) != 0) {
+#ifndef MKSH_EBCDIC
 			if (c >= 0xC2) {
 				n = utf_mbtowc(&wc, (const char *)p);
 				if (n != (size_t)-1) {
@@ -1145,6 +1146,7 @@ print_value_quoted(struct shf *shf, const char *s)
 					continue;
 				}
 			}
+#endif
 			++p;
 			switch (c) {
 			/* see unbksl() in this file for comments */
@@ -1187,7 +1189,7 @@ print_value_quoted(struct shf *shf, const char *s)
 					/* FALLTHROUGH */
 			default:
 #ifdef MKSH_EBCDIC
-				  if (c < 64 || c == 0xFF)
+				  if (ksh_isctrl(c))
 #else
 				  if (c < 32 || c > 0x7E)
 #endif
@@ -2151,7 +2153,7 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		if (!cstyle)
 			goto unknown_escape;
 		c = (*fg)();
-		wc = CTRL(c);
+		wc = ksh_toctrl(c);
 		break;
 	case 'E':
 	case 'e':
