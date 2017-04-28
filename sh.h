@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.826 2017/04/28 03:46:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.827 2017/04/28 03:51:13 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/27"
 
@@ -1489,7 +1489,7 @@ extern void ebcdic_init(void);
 #define ksh_eq(c,u,l)	((ord(c) | 0x20) == ord(l))
 #endif
 /* new fast character classes */
-#define ctype(c,t)	tobool(ksh_ctypes[ord(c)] & (t))
+#define ctype(c,t)	tobool(ksh_ctypes[rtt2asc(c)] & (t))
 /* helper functions */
 #define ksh_isdash(s)	tobool(ord((s)[0]) == '-' && ord((s)[1]) == '\0')
 /* invariant distance even in EBCDIC */
