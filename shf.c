@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.91 2017/04/28 11:27:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.92 2017/04/28 11:31:53 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1209,12 +1209,21 @@ const uint32_t tpl_ctypes[128] = {
 void
 set_ifs(const char *s)
 {
+#if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
+	int i = 256;
+
+	memset(ksh_ctypes, 0, sizeof(ksh_ctypes));
+	while (i--)
+		if (ebcdic_map[i] < 0x80U)
+			ksh_ctypes[i] = tpl_ctypes[ebcdic_map[i]];
+#else
 	memcpy(ksh_ctypes, tpl_ctypes, sizeof(tpl_ctypes));
 	memset((char *)ksh_ctypes + sizeof(tpl_ctypes), '\0',
 	    sizeof(ksh_ctypes) - sizeof(tpl_ctypes));
+#endif
 	ifs0 = *s;
 	while (*s)
-		ksh_ctypes[rtt2asc(*s++)] |= CiIFS;
+		ksh_ctypes[ord(*s++)] |= CiIFS;
 }
 
 #if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
