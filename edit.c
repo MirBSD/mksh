@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.329 2017/04/28 00:38:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.330 2017/04/28 00:49:32 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1313,7 +1313,7 @@ x_insert(int c)
 	if (c == 0) {
  invmbs:
 		left = 0;
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return (KSTD);
 	}
 	if (UTFMODE) {
@@ -1375,7 +1375,7 @@ static int
 x_do_ins(const char *cp, size_t len)
 {
 	if (xep + len >= xend) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return (-1);
 	}
 	memmove(xcp + len, xcp, xep - xcp + 1);
@@ -1415,7 +1415,7 @@ x_del_back(int c MKSH_A_UNUSED)
 	ssize_t i = 0;
 
 	if (xcp == xbuf) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return (KSTD);
 	}
 	do {
@@ -1441,7 +1441,7 @@ x_del_char(int c MKSH_A_UNUSED)
 	}
 
 	if (!i) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return (KSTD);
 	}
 	x_delete(i, false);
@@ -1551,7 +1551,7 @@ x_bword(void)
 	char *cp = xcp;
 
 	if (cp == xbuf) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return (0);
 	}
 	while (x_arg--) {
@@ -1575,7 +1575,7 @@ x_fword(bool move)
 	char *cp = xcp;
 
 	if (cp == xep) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return (0);
 	}
 	while (x_arg--) {
@@ -1679,7 +1679,7 @@ static int
 x_mv_back(int c MKSH_A_UNUSED)
 {
 	if (xcp == xbuf) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return (KSTD);
 	}
 	while (x_arg--) {
@@ -1696,7 +1696,7 @@ x_mv_forw(int c MKSH_A_UNUSED)
 	char *cp = xcp, *cp2;
 
 	if (xcp == xep) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return (KSTD);
 	}
 	while (x_arg--) {
@@ -1717,13 +1717,13 @@ x_search_char_forw(int c MKSH_A_UNUSED)
 
 	*xep = '\0';
 	if (x_e_getmbc(tmp) < 0) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return (KSTD);
 	}
 	while (x_arg--) {
 		if ((cp = (cp == xep) ? NULL : strstr(cp + 1, tmp)) == NULL &&
 		    (cp = strstr(xbuf, tmp)) == NULL) {
-			x_e_putc2(7);
+			x_e_putc2(KSH_BEL);
 			return (KSTD);
 		}
 	}
@@ -1738,7 +1738,7 @@ x_search_char_back(int c MKSH_A_UNUSED)
 	bool b;
 
 	if (x_e_getmbc(tmp) < 0) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return (KSTD);
 	}
 	for (; x_arg--; cp = p)
@@ -1746,7 +1746,7 @@ x_search_char_back(int c MKSH_A_UNUSED)
 			if (p-- == xbuf)
 				p = xep;
 			if (p == cp) {
-				x_e_putc2(7);
+				x_e_putc2(KSH_BEL);
 				return (KSTD);
 			}
 			if ((tmp[1] && ((p+1) > xep)) ||
@@ -1842,7 +1842,7 @@ x_load_hist(char **hp)
 		sp = holdbufp;
 		modified = 0;
 	} else if (hp < history || hp > histptr) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return;
 	}
 	if (sp == NULL)
@@ -1935,7 +1935,7 @@ x_search_hist(int c)
 			/* add char to pattern */
 			/* overflow check... */
 			if ((size_t)(p - pat) >= sizeof(pat) - 1) {
-				x_e_putc2(7);
+				x_e_putc2(KSH_BEL);
 				continue;
 			}
 			*p++ = c, *p = '\0';
@@ -1981,7 +1981,7 @@ x_search(char *pat, int sameline, int offset)
 			return (i);
 		}
 	}
-	x_e_putc2(7);
+	x_e_putc2(KSH_BEL);
 	x_histp = histptr;
 	return (-1);
 }
@@ -2161,11 +2161,11 @@ x_transpose(int c MKSH_A_UNUSED)
 	 * to the one they want.
 	 */
 	if (xcp == xbuf) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return (KSTD);
 	} else if (xcp == xep || Flag(FGMACS)) {
 		if (xcp - xbuf == 1) {
-			x_e_putc2(7);
+			x_e_putc2(KSH_BEL);
 			return (KSTD);
 		}
 		/*
@@ -2174,12 +2174,12 @@ x_transpose(int c MKSH_A_UNUSED)
 		 */
 		x_bs3(&xcp);
 		if (utf_mbtowc(&tmpa, xcp) == (size_t)-1) {
-			x_e_putc2(7);
+			x_e_putc2(KSH_BEL);
 			return (KSTD);
 		}
 		x_bs3(&xcp);
 		if (utf_mbtowc(&tmpb, xcp) == (size_t)-1) {
-			x_e_putc2(7);
+			x_e_putc2(KSH_BEL);
 			return (KSTD);
 		}
 		utf_wctomb(xcp, tmpa);
@@ -2192,12 +2192,12 @@ x_transpose(int c MKSH_A_UNUSED)
 		 * cursor, move cursor position along one.
 		 */
 		if (utf_mbtowc(&tmpa, xcp) == (size_t)-1) {
-			x_e_putc2(7);
+			x_e_putc2(KSH_BEL);
 			return (KSTD);
 		}
 		x_bs3(&xcp);
 		if (utf_mbtowc(&tmpb, xcp) == (size_t)-1) {
-			x_e_putc2(7);
+			x_e_putc2(KSH_BEL);
 			return (KSTD);
 		}
 		utf_wctomb(xcp, tmpa);
@@ -2334,7 +2334,7 @@ x_abort(int c MKSH_A_UNUSED)
 static int
 x_error(int c MKSH_A_UNUSED)
 {
-	x_e_putc2(7);
+	x_e_putc2(KSH_BEL);
 	return (KSTD);
 }
 
@@ -2610,7 +2610,7 @@ x_kill_region(int c MKSH_A_UNUSED)
 	char *xr;
 
 	if (xmp == NULL) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return (KSTD);
 	}
 	if (xmp > xcp) {
@@ -2632,7 +2632,7 @@ x_xchg_point_mark(int c MKSH_A_UNUSED)
 	char *tmp;
 
 	if (xmp == NULL) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return (KSTD);
 	}
 	tmp = xmp;
@@ -2710,7 +2710,7 @@ x_expand(int c MKSH_A_UNUSED)
 	    &start, &end, &words);
 
 	if (nwords == 0) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return (KSTD);
 	}
 	x_goto(xbuf + start);
@@ -2720,7 +2720,7 @@ x_expand(int c MKSH_A_UNUSED)
 	while (i < nwords) {
 		if (x_escape(words[i], strlen(words[i]), x_do_ins) < 0 ||
 		    (++i < nwords && x_ins(T1space) < 0)) {
-			x_e_putc2(7);
+			x_e_putc2(KSH_BEL);
 			return (KSTD);
 		}
 	}
@@ -2744,7 +2744,7 @@ do_complete(
 	    &start, &end, &words);
 	/* no match */
 	if (nwords == 0) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return;
 	}
 	if (type == CT_LIST) {
@@ -2920,7 +2920,7 @@ x_e_putc2(int c)
 		} else
 			x_putc(c);
 		switch (c) {
-		case 7:
+		case KSH_BEL:
 			break;
 		case '\r':
 		case '\n':
@@ -2960,7 +2960,7 @@ x_e_putc3(const char **cp)
 			x_putc(c);
 		}
 		switch (c) {
-		case 7:
+		case KSH_BEL:
 			break;
 		case '\r':
 		case '\n':
@@ -3014,7 +3014,7 @@ x_set_arg(int c)
 	}
 	if (c < 0 || first) {
  x_set_arg_too_big:
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		x_arg = 1;
 		x_arg_defaulted = true;
 	} else {
@@ -3033,7 +3033,7 @@ x_comment(int c MKSH_A_UNUSED)
 	int ret = x_do_comment(xbuf, xend - xbuf, &len);
 
 	if (ret < 0)
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 	else {
 		x_modified();
 		xep = xbuf + len;
@@ -3084,7 +3084,7 @@ x_edit_line(int c MKSH_A_UNUSED)
 {
 	if (x_arg_defaulted) {
 		if (xep == xbuf) {
-			x_e_putc2(7);
+			x_e_putc2(KSH_BEL);
 			return (KSTD);
 		}
 		if (modified) {
@@ -3139,7 +3139,7 @@ x_prev_histword(int c MKSH_A_UNUSED)
 		last_arg = x_arg_defaulted ? -1 : x_arg;
 	xhp = histptr - (m - 1);
 	if ((xhp < history) || !(cp = *xhp)) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		x_modified();
 		return (KSTD);
 	}
@@ -3227,7 +3227,7 @@ x_fold_case(int c)
 	char *cp = xcp;
 
 	if (cp == xep) {
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		return (KSTD);
 	}
 	while (x_arg--) {
@@ -5480,7 +5480,7 @@ vi_error(void)
 {
 	/* Beem out of any macros as soon as an error occurs */
 	vi_macro_reset();
-	x_putc(7);
+	x_putc(KSH_BEL);
 	x_flush();
 }
 
@@ -5605,7 +5605,7 @@ x_eval_region(int c MKSH_A_UNUSED)
 	if (cp == NULL) {
 		/* command cannot be parsed */
  x_eval_region_err:
-		x_e_putc2(7);
+		x_e_putc2(KSH_BEL);
 		x_redraw('\r');
 		return (KSTD);
 	}
