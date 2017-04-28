@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.824 2017/04/28 02:40:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.825 2017/04/28 03:28:18 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/27"
 
@@ -1476,12 +1476,15 @@ extern void ebcdic_init(void);
 #define asc(c)		((unsigned int)ebcdic_map[(unsigned char)(c)])
 #define rtt2asc(c)	ebcdic_rtt_toascii[(unsigned char)(c)]
 #define asc2rtt(c)	ebcdic_rtt_fromascii[(unsigned char)(c)]
+/* control character foo */
+#define ksh_isctrl(c)	(ord(c) < 0x40 || ord(c) == 0xFF)
 /* case-independent char comparison */
 #define ksh_eq(c,u,l)	(ord(c) == ord(u) || ord(c) == ord(l))
 #else
 #define asc(c)		ord(c)
 #define rtt2asc(c)	((unsigned char)(c))
 #define asc2rtt(c)	((unsigned char)(c))
+#define ksh_isctrl(c)	(((c) & 0x7F) < 0x20 || (c) == 0x7F)
 #define ksh_eq(c,u,l)	((ord(c) | 0x20) == ord(l))
 #endif
 /* new fast character classes */
@@ -1495,6 +1498,8 @@ extern void ebcdic_init(void);
 #define ksh_numdig(c)	(ord(c) - ord('0'))
 #define ksh_numuc(c)	(asc(c) - asc('A'))
 #define ksh_numlc(c)	(asc(c) - asc('a'))
+#define ksh_toctrl(c)	asc2rtt(ord(c) == ord('?') ? 0x7F : rtt2asc(c) & 0x9F)
+#define ksh_unctrl(c)	asc2rtt(rtt2asc(c) ^ 0x40U)
 
 /* Argument parsing for built-in commands and getopts command */
 
@@ -2167,10 +2172,75 @@ typedef union {
 
 #define HERES		10	/* max number of << in line */
 
-#undef CTRL
-#define	CTRL(x)		((x) == '?' ? 0x7F : (x) & 0x1F)	/* ASCII */
-#define	UNCTRL(x)	((x) ^ 0x40)				/* ASCII */
-#define	ISCTRL(x)	(((signed char)((uint8_t)(x) + 1)) < 33)
+#ifdef MKSH_EBCDIC
+#define CTRL_AT	0x00
+#define CTRL_A	0x01
+#define CTRL_B	0x02
+#define CTRL_C	0x03
+#define CTRL_D	0x37
+#define CTRL_E	0x2D
+#define CTRL_F	0x2E
+#define CTRL_G	0x2F
+#define CTRL_H	0x16
+#define CTRL_I	0x05
+#define CTRL_J	0x15
+#define CTRL_K	0x0B
+#define CTRL_L	0x0C
+#define CTRL_M	0x0D
+#define CTRL_N	0x0E
+#define CTRL_O	0x0F
+#define CTRL_P	0x10
+#define CTRL_Q	0x11
+#define CTRL_R	0x12
+#define CTRL_S	0x13
+#define CTRL_T	0x3C
+#define CTRL_U	0x3D
+#define CTRL_V	0x32
+#define CTRL_W	0x26
+#define CTRL_X	0x18
+#define CTRL_Y	0x19
+#define CTRL_Z	0x3F
+#define CTRL_BO	0x27
+#define CTRL_BK	0x1C
+#define CTRL_BC	0x1D
+#define CTRL_CA	0x1E
+#define CTRL_US	0x1F
+#define CTRL_QM	0x07
+#else
+#define CTRL_AT	0x00
+#define CTRL_A	0x01
+#define CTRL_B	0x02
+#define CTRL_C	0x03
+#define CTRL_D	0x04
+#define CTRL_E	0x05
+#define CTRL_F	0x06
+#define CTRL_G	0x07
+#define CTRL_H	0x08
+#define CTRL_I	0x09
+#define CTRL_J	0x0A
+#define CTRL_K	0x0B
+#define CTRL_L	0x0C
+#define CTRL_M	0x0D
+#define CTRL_N	0x0E
+#define CTRL_O	0x0F
+#define CTRL_P	0x10
+#define CTRL_Q	0x11
+#define CTRL_R	0x12
+#define CTRL_S	0x13
+#define CTRL_T	0x14
+#define CTRL_U	0x15
+#define CTRL_V	0x16
+#define CTRL_W	0x17
+#define CTRL_X	0x18
+#define CTRL_Y	0x19
+#define CTRL_Z	0x1A
+#define CTRL_BO	0x1B
+#define CTRL_BK	0x1C
+#define CTRL_BC	0x1D
+#define CTRL_CA	0x1E
+#define CTRL_US	0x1F
+#define CTRL_QM	0x7F
+#endif
 
 #define IDENT		64
 
