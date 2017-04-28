@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.264 2017/04/28 00:38:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.265 2017/04/28 00:49:33 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1146,7 +1146,7 @@ print_value_quoted(struct shf *shf, const char *s)
 			++p;
 			switch (c) {
 			/* see unbksl() in this file for comments */
-			case 7:
+			case KSH_BEL:
 				c = 'a';
 				if (0)
 					/* FALLTHROUGH */
@@ -2135,13 +2135,7 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 	fc = (*fg)();
 	switch (fc) {
 	case 'a':
-		/*
-		 * according to the comments in pdksh, \007 seems
-		 * to be more portable than \a (due to HP-UX cc,
-		 * Ultrix cc, old pcc, etc.) so we avoid the escape
-		 * sequence altogether in mksh and assume ASCII
-		 */
-		wc = 7;
+		wc = KSH_BEL;
 		break;
 	case 'b':
 		wc = '\b';
