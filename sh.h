@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.830 2017/04/28 11:51:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.831 2017/04/28 12:02:41 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/27"
 
@@ -1391,6 +1391,8 @@ EXTERN char ifs0;
 #define C_ALPHA	(CiLOWER | CiUPPER)
 /* A‥Z_a‥z		alphabetical plus underscore (identifier lead) */
 #define C_ALPHX	(CiLOWER | CiUNDER | CiUPPER)
+/* \x01‥\x7F		7-bit ASCII except NUL */
+#define C_ASCII (CiALIAS | CiANGLE | CiBRACK | CiCNTRL | CiCOLON | CiCR | CiCURLY | CiDIGIT | CiEQUAL | CiGRAVE | CiHASH | CiLOWER | CiMINUS | CiNL | CiOCTAL | CiPERCT | CiPLUS | CiQC | CiQCL | CiQCM | CiQCX | CiQUEST | CiSP | CiSPX | CiSS | CiTAB | CiUNDER | CiUPPER)
 /* \x09\x20		tab and space */
 #define C_BLANK	(CiSP | CiTAB)
 /* \x09\x20"'		separator for completion */
