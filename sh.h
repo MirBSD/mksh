@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.822 2017/04/28 01:15:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.823 2017/04/28 02:24:58 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/27"
 
@@ -256,6 +256,21 @@ typedef MKSH_TYPEDEF_SSIZE_T ssize_t;
 
 
 #ifndef MKSH_INCLUDES_ONLY
+
+/* EBCDIC fun */
+
+#if defined(MKSH_FOR_Z_OS) && defined(__MVS__) && defined(__IBMC__) && defined(__CHARSET_LIB)
+# if !__CHARSET_LIB && !defined(MKSH_EBCDIC)
+#  error "Please compile with Build.sh -E for EBCDIC!"
+# endif
+# if __CHARSET_LIB && defined(MKSH_EBCDIC)
+#  error "Please compile without -E argument to Build.sh for ASCII!"
+# endif
+# if __CHARSET_LIB && !defined(_ENHANCED_ASCII_EXT)
+   /* go all-out on ASCII */
+#  define _ENHANCED_ASCII_EXT 0xFFFFFFFF
+# endif
+#endif
 
 /* extra types */
 
@@ -349,6 +364,8 @@ struct rusage {
 #define ksh_NSIG (_SIGMAX + 1)
 #elif defined(NSIG_MAX)
 #define ksh_NSIG (NSIG_MAX)
+#elif defined(MKSH_FOR_Z_OS)
+#define ksh_NSIG 40
 #else
 # error Please have your platform define NSIG.
 #endif
@@ -489,6 +506,9 @@ extern int __cdecl setegid(gid_t);
 
 #ifdef MKSH_EBCDIC
 #define KSH_BEL		'\a'
+#define KSH_ESC		047
+#define KSH_ESC_STRING	"\047"
+#define KSH_VTAB	'\v'
 #else
 /*
  * According to the comments in pdksh, \007 seems to be more portable
@@ -496,6 +516,9 @@ extern int __cdecl setegid(gid_t);
  * sequence if ASCII can be assumed.
  */
 #define KSH_BEL		7
+#define KSH_ESC		033
+#define KSH_ESC_STRING	"\033"
+#define KSH_VTAB	11
 #endif
 
 

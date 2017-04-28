@@ -5,6 +5,8 @@
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
+ * Copyright (c) 2015
+ *	Daniel Richard G. <skunk@iSKUNK.ORG>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -30,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.265 2017/04/28 00:49:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.266 2017/04/28 02:24:57 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1170,11 +1172,11 @@ print_value_quoted(struct shf *shf, const char *s)
 				  c = 't';
 				if (0)
 					/* FALLTHROUGH */
-			case 11:
+			case KSH_VTAB:
 				  c = 'v';
 				if (0)
 					/* FALLTHROUGH */
-			case '\033':
+			case KSH_ESC:
 				/* take E not e because \e is \ in *roff */
 				  c = 'E';
 				/* FALLTHROUGH */
@@ -1184,7 +1186,12 @@ print_value_quoted(struct shf *shf, const char *s)
 				if (0)
 					/* FALLTHROUGH */
 			default:
-				  if (c < 32 || c > 0x7E) {
+#ifdef MKSH_EBCDIC
+				  if (c < 64 || c == 0xFF)
+#else
+				  if (c < 32 || c > 0x7E)
+#endif
+				    {
 					/* FALLTHROUGH */
 			case '\'':
 					shf_fprintf(shf, "\\%03o", c);
@@ -2148,7 +2155,7 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		break;
 	case 'E':
 	case 'e':
-		wc = 033;
+		wc = KSH_ESC;
 		break;
 	case 'f':
 		wc = '\f';
@@ -2163,8 +2170,7 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		wc = '\t';
 		break;
 	case 'v':
-		/* assume ASCII here as well */
-		wc = 11;
+		wc = KSH_VTAB;
 		break;
 	case '1':
 	case '2':

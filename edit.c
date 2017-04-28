@@ -28,16 +28,16 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.330 2017/04/28 00:49:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.331 2017/04/28 02:24:56 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
  * dependencies are problematic, this has not yet been decided on; another
- * good string is "\033c" except on hardware terminals like the DEC VT420
- * which do a full power cycle then...
+ * good string is KSH_ESC_STRING "c" except on hardware terminals like the
+ * DEC VT420 which do a full power cycle then...
  */
 #ifndef MKSH_CLS_STRING
-#define MKSH_CLS_STRING		"\033[;H\033[J"
+#define MKSH_CLS_STRING		KSH_ESC_STRING "[;H" KSH_ESC_STRING "[J"
 #endif
 
 /* tty driver characters we are interested in */
@@ -2087,7 +2087,7 @@ x_clrtoeol(int lastch, bool line_was_cleared)
 	int col;
 
 	if (lastch == ' ' && !line_was_cleared && x_term_mode == 1) {
-		shf_puts("\033[K", shl_out);
+		shf_puts(KSH_ESC_STRING "[K", shl_out);
 		line_was_cleared = true;
 	}
 	if (lastch == ' ' && line_was_cleared)

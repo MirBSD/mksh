@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.717 2017/04/28 00:27:48 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.718 2017/04/28 02:24:53 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -52,6 +52,17 @@ allu=QWERTYUIOPASDFGHJKLZXCVBNM
 alll=qwertyuiopasdfghjklzxcvbnm
 alln=0123456789
 alls=______________________________________________________________
+
+case `echo a | tr '\201' X` in
+X)
+	ebcdic=true
+	lfcr='\n\r'
+	;;
+*)
+	ebcdic=false
+	lfcr='\012\015'
+	;;
+esac
 
 genopt_die() {
 	if test -n "$1"; then
@@ -425,7 +436,7 @@ ac_header() {
 		na=0
 	fi
 	hf=$1; shift
-	hv=`echo "$hf" | tr -d '\012\015' | tr -c $alll$allu$alln $alls`
+	hv=`echo "$hf" | tr -d "$lfcr" | tr -c $alll$allu$alln $alls`
 	echo "/* NeXTstep bug workaround */" >x
 	for i
 	do
@@ -904,6 +915,13 @@ the mksh-os2 porter.
 ] You are currently compiling with textmode ${x}abled, introducing
 ] incompatibilities with $y.
 "
+	;;
+OS/390)
+	add_cppflags -DMKSH_ASSUME_UTF8=0; HAVE_ISSET_MKSH_ASSUME_UTF8=1
+	: "${SIZE=: size}"
+	add_cppflags -DMKSH_FOR_Z_OS
+	add_cppflags -D_ALL_SOURCE
+	oswarn='; EBCDIC support is incomplete'
 	;;
 OSF1)
 	HAVE_SIG_T=0	# incompatible
@@ -1403,8 +1421,16 @@ watcom)
 	DOWARN=-Wc,-we
 	;;
 xlc)
-	save_NOWARN=-qflag=i:e
-	DOWARN=-qflag=i:i
+	case $TARGET_OS in
+	OS/390)
+		save_NOWARN=-qflag=e
+		DOWARN=-qflag=i
+		;;
+	*)
+		save_NOWARN=-qflag=i:e
+		DOWARN=-qflag=i:i
+		;;
+	esac
 	;;
 *)
 	test x"$save_NOWARN" = x"" && save_NOWARN=-Wno-error
@@ -1574,10 +1600,24 @@ tendra)
 	ac_flags 1 extansi -Xa
 	;;
 xlc)
-	ac_flags 1 rodata "-qro -qroconst -qroptr"
-	ac_flags 1 rtcheck -qcheck=all
-	#ac_flags 1 rtchkc -qextchk	# reported broken
-	ac_flags 1 wformat "-qformat=all -qformat=nozln"
+	case $TARGET_OS in
+	OS/390)
+		# On IBM z/OS, the following are warnings by default:
+		# CCN3296: #include file <foo.h> not found.
+		# CCN3944: Attribute "__foo__" is not supported and is ignored.
+		# CCN3963: The attribute "foo" is not a valid variable attribute and is ignored.
+		ac_flags 1 halton '-qhaltonmsg=CCN3296 -qhaltonmsg=CCN3944 -qhaltonmsg=CCN3963'
+		# CCN3290: Unknown macro name FOO on #undef directive.
+		# CCN4108: The use of keyword '__attribute__' is non-portable.
+		ac_flags 1 supprss '-qsuppress=CCN3290 -qsuppress=CCN4108'
+		;;
+	*)
+		ac_flags 1 rodata '-qro -qroconst -qroptr'
+		ac_flags 1 rtcheck -qcheck=all
+		#ac_flags 1 rtchkc -qextchk	# reported broken
+		ac_flags 1 wformat '-qformat=all -qformat=nozln'
+		;;
+	esac
 	#ac_flags 1 wp64 -qwarn64	# too verbose for now
 	;;
 esac
@@ -2658,7 +2698,7 @@ MKSH_A4PB			force use of arc4random_pushb
 MKSH_ASSUME_UTF8		(0=disabled, 1=enabled; default: unset)
 MKSH_BINSHPOSIX			if */sh or */-sh, enable set -o posix
 MKSH_BINSHREDUCED		if */sh or */-sh, enable set -o sh
-MKSH_CLS_STRING			"\033[;H\033[J"
+MKSH_CLS_STRING			KSH_ESC_STRING "[;H" KSH_ESC_STRING "[J"
 MKSH_DEFAULT_EXECSHELL		"/bin/sh" (do not change)
 MKSH_DEFAULT_PROFILEDIR		"/etc" (do not change)
 MKSH_DEFAULT_TMPDIR		"/tmp" (do not change)
