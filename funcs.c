@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.348 2017/04/28 00:38:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.349 2017/04/28 11:48:46 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1583,7 +1583,7 @@ c_wait(const char **wp)
 	return (rv);
 }
 
-static char REPLY[] = "REPLY";
+static const char REPLY[] = "REPLY";
 int
 c_read(const char **wp)
 {
