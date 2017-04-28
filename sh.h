@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.829 2017/04/28 11:31:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.830 2017/04/28 11:51:40 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/27"
 
@@ -802,8 +802,8 @@ enum sh_flag {
 struct sretrace_info;
 struct yyrecursive_state;
 
-EXTERN struct sretrace_info *retrace_info E_INIT(NULL);
-EXTERN int subshell_nesting_type E_INIT(0);
+EXTERN struct sretrace_info *retrace_info;
+EXTERN int subshell_nesting_type;
 
 extern struct env {
 	ALLOC_ITEM alloc_INT;	/* internal, do not touch */
@@ -1326,7 +1326,7 @@ enum tmout_enum {
 	TMOUT_LEAVING		/* have timed out */
 };
 EXTERN unsigned int ksh_tmout;
-EXTERN enum tmout_enum ksh_tmout_state E_INIT(TMOUT_EXECUTING);
+EXTERN enum tmout_enum ksh_tmout_state;
 
 /* For "You have stopped jobs" message */
 EXTERN bool really_exit;
