@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.827 2017/04/28 03:51:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.828 2017/04/28 11:13:48 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/27"
 
@@ -1467,7 +1467,7 @@ EXTERN char ifs0;
 
 /* identity transform of octet */
 #define ord(c)		((unsigned int)(unsigned char)(c))
-#ifdef MKSH_EBCDIC
+#if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
 EXTERN unsigned short ebcdic_map[256];
 EXTERN unsigned char ebcdic_rtt_toascii[256];
 EXTERN unsigned char ebcdic_rtt_fromascii[256];
@@ -1477,16 +1477,19 @@ extern void ebcdic_init(void);
 /* two-way round-trip conversion, for general use */
 #define rtt2asc(c)	ebcdic_rtt_toascii[(unsigned char)(c)]
 #define asc2rtt(c)	ebcdic_rtt_fromascii[(unsigned char)(c)]
-/* control character foo */
-#define ksh_isctrl(c)	(ord(c) < 0x40 || ord(c) == 0xFF)
 /* case-independent char comparison */
 #define ksh_eq(c,u,l)	(ord(c) == ord(u) || ord(c) == ord(l))
 #else
 #define asciibetical(c)	ord(c)
 #define rtt2asc(c)	((unsigned char)(c))
 #define asc2rtt(c)	((unsigned char)(c))
-#define ksh_isctrl(c)	(((c) & 0x7F) < 0x20 || (c) == 0x7F)
 #define ksh_eq(c,u,l)	((ord(c) | 0x20) == ord(l))
+#endif
+/* control character foo */
+#ifdef MKSH_EBCDIC
+#define ksh_isctrl(c)	(ord(c) < 0x40 || ord(c) == 0xFF)
+#else
+#define ksh_isctrl(c)	((ord(c) & 0x7F) < 0x20 || (c) == 0x7F)
 #endif
 /* new fast character classes */
 #define ctype(c,t)	tobool(ksh_ctypes[rtt2asc(c)] & (t))

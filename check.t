@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.781 2017/04/28 03:28:14 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.782 2017/04/28 11:13:45 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright Â© 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -9389,6 +9389,7 @@ expected-stdout:
 name: varexpand-special-quote
 description:
 	Check special ${var@Q} expansion for quoted strings
+category: !shell:faux-ebcdic
 stdin:
 	set +U
 	i=x
@@ -9407,6 +9408,29 @@ expected-stdout:
 	typeset u=x
 	typeset v='a b'
 	typeset w=$'c\nd\240e\u20ACf'
+---
+name: varexpand-special-quote-faux-EBCDIC
+description:
+	Check special ${var@Q} expansion for quoted strings
+category: shell:faux-ebcdic
+stdin:
+	set +U
+	i=x
+	j=a\ b
+	k=$'c
+	d\xA0''eâ‚¬f'
+	print -r -- "<i=$i j=$j k=$k>"
+	s="u=${i@Q} v=${j@Q} w=${k@Q}"
+	print -r -- "s=\"$s\""
+	eval "$s"
+	typeset -p u v w
+expected-stdout:
+	<i=x j=a b k=c
+	d eâ‚¬f>
+	s="u=x v='a b' w=$'c\nd e\u20ACf'"
+	typeset u=x
+	typeset v='a b'
+	typeset w=$'c\nd e\u20ACf'
 ---
 name: varexpand-null-1
 description:
@@ -13009,6 +13033,7 @@ name: duffs-device
 description:
 	Check that the compiler did not optimise-break them
 	(lex.c has got a similar one in SHEREDELIM)
+category: !shell:faux-ebcdic
 stdin:
 	set +U
 	s=
@@ -13020,6 +13045,22 @@ stdin:
 	typeset -p s
 expected-stdout:
 	typeset s=$'\001\002\003\004\005\006\a\b\t\n\v\f\r\016\017\020\021\022\023\024\025\026\027\030\031\032\E\034\035\036\037 !"#$%&\047()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\177\200\201\202\203\204\205\206\207\210\211\212\213\214\215\216\217\220\221\222\223\224\225\226\227\230\231\232\233\234\235\236\237\240\241\242\243\244\245\246\247\250\251\252\253\254\255\256\257\260\261\262\263\264\265\266\267\270\271\272\273\274\275\276\277\300\301\302\303\304\305\306\307\310\311\312\313\314\315\316\317\320\321\322\323\324\325\326\327\330\331\332\333\334\335\336\337\340\341\342\343\344\345\346\347\350\351\352\353\354\355\356\357\360\361\362\363\364\365\366\367\370\371\372\373\374\375\376\377\u00A0\u20AC\uFFFD\357\277\276\357\277\277\360\220\200\200.'
+---
+name: duffs-device-faux-EBCDIC
+description:
+	Check that the compiler did not optimise-break them
+category: shell:faux-ebcdic
+stdin:
+	set +U
+	s=
+	typeset -i1 i=0
+	while (( ++i < 256 )); do
+		s+=${i#1#}
+	done
+	s+=$'\xC2\xA0\xE2\x82\xAC\xEF\xBF\xBD\xEF\xBF\xBE\xEF\xBF\xBF\xF0\x90\x80\x80.'
+	typeset -p s
+expected-stdout:
+	typeset s=$'\001\002\003\004\005\006\a\b\t\n\v\f\r\016\017\020\021\022\023\024\025\026\027\030\031\032\E\034\035\036\037 !"#$%&\047()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\177\200\201\202\203\204\205\206\207\210\211\212\213\214\215\216\217\220\221\222\223\224\225\226\227\230\231\232\233\234\235\236\237 ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ\u00A0\u20AC\uFFFDï¿¾ï¿¿ð\220\200\200.'
 ---
 name: stateptr-underflow
 description:
