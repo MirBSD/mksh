@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.88 2017/04/28 03:51:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.89 2017/04/28 04:13:19 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1211,7 +1211,7 @@ set_ifs(const char *s)
 {
 	ifs0 = *s;
 	memcpy(ksh_ctypes, tpl_ctypes, sizeof(tpl_ctypes));
-	memset(ksh_ctypes + sizeof(tpl_ctypes), '\0',
+	memset((char *)ksh_ctypes + sizeof(tpl_ctypes), '\0',
 	    sizeof(ksh_ctypes) - sizeof(tpl_ctypes));
 	while (*s)
 		ksh_ctypes[rtt2asc(*s++)] |= CiIFS;
