@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.716 2017/04/12 18:33:22 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.717 2017/04/28 00:27:48 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -496,6 +496,7 @@ last=
 tfn=
 legacy=0
 textmode=0
+ebcdic=0
 
 for i
 do
@@ -518,6 +519,9 @@ do
 		;;
 	:-c)
 		last=c
+		;;
+	:-E)
+		ebcdic=1
 		;;
 	:-G)
 		echo "$me: Do not call me with '-G'!" >&2
@@ -601,6 +605,13 @@ if test $legacy = 0; then
 else
 	check_categories="$check_categories shell:legacy-yes"
 	add_cppflags -DMKSH_LEGACY_MODE
+fi
+
+if test $ebcdic = 0; then
+	check_categories="$check_categories shell:ebcdic-no shell:ascii-yes"
+else
+	check_categories="$check_categories shell:ebcdic-yes shell:ascii-no"
+	add_cppflags -DMKSH_EBCDIC
 fi
 
 if test $textmode = 0; then
