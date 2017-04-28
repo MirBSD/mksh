@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.269 2017/04/28 11:13:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.270 2017/04/28 21:43:30 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1191,7 +1191,7 @@ print_value_quoted(struct shf *shf, const char *s)
 #if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
 				  if (ksh_isctrl(c))
 #else
-				  if (c < 32 || c > 0x7E)
+				  if (!ctype(c, C_PRINT))
 #endif
 				    {
 					/* FALLTHROUGH */
