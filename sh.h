@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.823 2017/04/28 02:24:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.824 2017/04/28 02:40:25 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/27"
 
@@ -1470,12 +1470,18 @@ EXTERN char ifs0;
 /* one-way to-ascii-or-high conversion */
 #ifdef MKSH_EBCDIC
 EXTERN unsigned short ebcdic_map[256];
+EXTERN unsigned char ebcdic_rtt_toascii[256];
+EXTERN unsigned char ebcdic_rtt_fromascii[256];
 extern void ebcdic_init(void);
 #define asc(c)		((unsigned int)ebcdic_map[(unsigned char)(c)])
+#define rtt2asc(c)	ebcdic_rtt_toascii[(unsigned char)(c)]
+#define asc2rtt(c)	ebcdic_rtt_fromascii[(unsigned char)(c)]
 /* case-independent char comparison */
 #define ksh_eq(c,u,l)	(ord(c) == ord(u) || ord(c) == ord(l))
 #else
 #define asc(c)		ord(c)
+#define rtt2asc(c)	((unsigned char)(c))
+#define asc2rtt(c)	((unsigned char)(c))
 #define ksh_eq(c,u,l)	((ord(c) | 0x20) == ord(l))
 #endif
 /* new fast character classes */

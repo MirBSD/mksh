@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.86 2017/04/28 01:15:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.87 2017/04/28 02:40:26 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1225,18 +1225,19 @@ ebcdic_init(void)
 {
 	int i = 256;
 	unsigned char t;
-	char buf[256];
 
 	while (i--)
-		buf[i] = i;
+		ebcdic_rtt_toascii[i] = i;
 	setlocale(LC_ALL, "");
-	if (__etoa_l(buf, 256) != 256) {
+	if (__etoa_l(ebcdic_rtt_toascii, 256) != 256) {
 		write(2, "mksh: could not map EBCDIC to ASCII\n", 36);
 		exit(255);
 	}
 
 	i = 0;
 	do {
+		/* fill the complete round-trip map */
+		ebcdic_rtt_fromascii[ebcdic_rtt_toascii[i]] = i;
 		/*
 		 * Only use the converted value if it's in the range
 		 * [0x00; 0x7F], which I checked; the "extended ASCII"
@@ -1248,7 +1249,7 @@ ebcdic_init(void)
 		 * an unsigned int, and or the raw unconverted EBCDIC
 		 * values with 0x01000000 instead.
 		 */
-		if ((t = (unsigned char)buf[i]) < 0x80U)
+		if ((t = ebcdic_rtt_toascii[i]) < 0x80U)
 			ebcdic_map[i] = (unsigned short)ord(t);
 		else
 			ebcdic_map[i] = (unsigned short)(0x100U | ord(i));
