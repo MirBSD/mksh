@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.819 2017/04/27 23:33:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.820 2017/04/28 00:38:32 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/27"
 
@@ -524,11 +524,17 @@ EXTERN const char *safe_prompt; /* safe prompt if PS1 substitution fails */
 #else
 #define KSH_VERSIONNAME_TEXTMODE	""
 #endif
+#ifdef MKSH_EBCDIC
+#define KSH_VERSIONNAME_EBCDIC		" +EBCDIC"
+#else
+#define KSH_VERSIONNAME_EBCDIC		""
+#endif
 #ifndef KSH_VERSIONNAME_VENDOR_EXT
 #define KSH_VERSIONNAME_VENDOR_EXT	""
 #endif
 EXTERN const char initvsn[] E_INIT("KSH_VERSION=@(#)" KSH_VERSIONNAME_ISLEGACY \
-    " KSH " MKSH_VERSION KSH_VERSIONNAME_TEXTMODE KSH_VERSIONNAME_VENDOR_EXT);
+    " KSH " MKSH_VERSION KSH_VERSIONNAME_EBCDIC KSH_VERSIONNAME_TEXTMODE \
+    KSH_VERSIONNAME_VENDOR_EXT);
 #define KSH_VERSION	(initvsn + /* "KSH_VERSION=@(#)" */ 16)
 
 EXTERN const char digits_uc[] E_INIT("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
@@ -1322,6 +1328,7 @@ EXTERN bool really_exit;
 #define CiBRACK	BIT(29)	/* ]				*/
 #define CiUNDER	BIT(30)	/* _				*/
 #define CiGRAVE	BIT(31)	/* `				*/
+/* out of space, but one for *@ would make sense, possibly others */
 
 /* compile-time initialised, ASCII only */
 extern const uint32_t tpl_ctypes[128];
@@ -1372,8 +1379,8 @@ EXTERN char ifs0;
 #define C_MFS	(CiALIAS | CiANGLE | CiBRACK | CiCNTRL | CiCOLON | CiCR | CiCURLY | CiEQUAL | CiGRAVE | CiHASH | CiMINUS | CiNL | CiNUL | CiPERCT | CiPLUS | CiQC | CiQCL | CiQCM | CiQCX | CiQUEST | CiSP | CiSPX | CiTAB)
 /* 0‥7			octal digit */
 #define C_OCTAL	CiOCTAL
-/* \x20!*+?@		pattern magical operator */
-#define C_PATMO	(CiPLUS | CiQUEST | CiSP | CiVAR1)
+/* !*+?@		pattern magical operator, except space */
+#define C_PATMO	(CiPLUS | CiQUEST | CiVAR1)
 /* \x20‥~		POSIX printable characters (graph plus space) */
 #define C_PRINT	(C_GRAPH | CiSP)
 /* !"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~	POSIX punctuation */
@@ -1394,9 +1401,12 @@ EXTERN char ifs0;
 #define C_VAR1	(CiHASH | CiMINUS | CiQUEST | CiSS | CiVAR1)
 
 /* individual chars you might like */
+#define C_ANGLE	CiANGLE		/* <>	angle brackets */
 #define C_COLON	CiCOLON		/* :	colon */
+#define C_CR	CiCR		/* \x0D	ASCII carriage return */
 #define C_DOLAR	CiSS		/* $	dollar sign */
 #define C_EQUAL	CiEQUAL		/* =	equals sign */
+#define C_GRAVE	CiGRAVE		/* `	accent gravis */
 #define C_HASH	CiHASH		/* #	hash sign */
 #define C_LF	CiNL		/* \x0A	ASCII line feed */
 #define C_MINUS	CiMINUS		/* -	hyphen-minus */
@@ -1408,6 +1418,7 @@ EXTERN char ifs0;
 #define C_NUL	CiNUL		/* \x00	ASCII NUL */
 #define C_PLUS	CiPLUS		/* +	plus sign */
 #define C_QC	CiQC		/* "'	quote characters */
+#define C_QUEST	CiQUEST		/* ?	question mark */
 #define C_SPC	CiSP		/* \x20	ASCII space */
 #define C_TAB	CiTAB		/* \x09	ASCII horizontal tabulator */
 #define C_UNDER	CiUNDER		/* _	underscore */
@@ -2613,8 +2624,8 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 })
 #define mksh_vdirsep(s)			(mksh_sdirsep((s)) != NULL)
 #else
-#define mksh_abspath(s)			((s)[0] == '/')
-#define mksh_cdirsep(c)			((c) == '/')
+#define mksh_abspath(s)			(ord((s)[0]) == ord('/'))
+#define mksh_cdirsep(c)			(ord(c) == ord('/'))
 #define mksh_sdirsep(s)			strchr((s), '/')
 #define mksh_vdirsep(s)			vstrchr((s), '/')
 #endif

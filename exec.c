@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.196 2017/04/12 16:46:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.197 2017/04/28 00:38:29 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -885,7 +885,9 @@ scriptexec(struct op *tp, const char **ap)
 #ifndef MKSH_SMALL
 	if ((fd = binopen2(tp->str, O_RDONLY)) >= 0) {
 		unsigned char *cp;
+#ifndef MKSH_EBCDIC
 		unsigned short m;
+#endif
 		ssize_t n;
 
 #if defined(__OS2__) && defined(MKSH_WITH_TEXTMODE)
@@ -905,7 +907,7 @@ scriptexec(struct op *tp, const char **ap)
 		    (buf[2] == 0xBF)) ? 3 : 0);
 
 		/* scan for newline or NUL (end of buffer) */
-		while (*cp && *cp != '\n')
+		while (!ctype(*cp, C_NL | C_NUL))
 			++cp;
 		/* if the shebang line is longer than MAXINTERP, bail out */
 		if (!*cp)
@@ -920,13 +922,13 @@ scriptexec(struct op *tp, const char **ap)
 			cp += 2;
 #ifdef __OS2__
 		else if (!strncmp(cp, Textproc, 7) &&
-		    (cp[7] == ' ' || cp[7] == '\t'))
+		    ctype(cp[7], C_BLANK))
 			cp += 8;
 #endif
 		else
 			goto noshebang;
 		/* skip whitespace before shell name */
-		while (*cp == ' ' || *cp == '\t')
+		while (ctype(*cp, C_BLANK))
 			++cp;
 		/* just whitespace on the line? */
 		if (*cp == '\0')
@@ -934,13 +936,13 @@ scriptexec(struct op *tp, const char **ap)
 		/* no, we actually found an interpreter name */
 		sh = (char *)cp;
 		/* look for end of shell/interpreter name */
-		while (*cp != ' ' && *cp != '\t' && *cp != '\0')
+		while (!ctype(*cp, C_BLANK | C_NUL))
 			++cp;
 		/* any arguments? */
 		if (*cp) {
 			*cp++ = '\0';
 			/* skip spaces before arguments */
-			while (*cp == ' ' || *cp == '\t')
+			while (ctype(*cp, C_BLANK))
 				++cp;
 			/* pass it all in ONE argument (historic reasons) */
 			if (*cp)
@@ -959,6 +961,7 @@ scriptexec(struct op *tp, const char **ap)
 #endif
 		goto nomagic;
  noshebang:
+#ifndef MKSH_EBCDIC
 		m = buf[0] << 8 | buf[1];
 		if (m == 0x7F45 && buf[2] == 'L' && buf[3] == 'F')
 			errorf("%s: not executable: %d-bit ELF file", tp->str,
@@ -977,6 +980,7 @@ scriptexec(struct op *tp, const char **ap)
 		    buf[4] == 'Z') || (m == /* 7zip */ 0x377A) ||
 		    (m == /* gzip */ 0x1F8B) || (m == /* .Z */ 0x1F9D))
 			errorf("%s: not executable: magic %04X", tp->str, m);
+#endif
 #ifdef __OS2__
 		cp = _getext(tp->str);
 		if (cp && (!stricmp(cp, ".cmd") || !stricmp(cp, ".bat"))) {

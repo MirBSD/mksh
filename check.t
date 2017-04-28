@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.778 2017/04/20 20:50:09 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.779 2017/04/28 00:38:25 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,25 +30,43 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R55 2017/04/20
+	@(#)MIRBSD KSH R55 2017/04/27
 description:
 	Check version of shell.
 stdin:
 	echo $KSH_VERSION
 name: KSH_VERSION
-category: !shell:legacy-yes,!shell:textmode-yes
+category: !shell:legacy-yes,!shell:textmode-yes,!shell:ebcdic-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R55 2017/04/20
+	@(#)LEGACY KSH R55 2017/04/27
 description:
 	Check version of legacy shell.
 stdin:
 	echo $KSH_VERSION
 name: KSH_VERSION-legacy
-category: !shell:legacy-no,!shell:textmode-yes
+category: !shell:legacy-no,!shell:textmode-yes,!shell:ebcdic-yes
 ---
 expected-stdout:
-	@(#)MIRBSD KSH R55 2017/04/20 +TEXTMODE
+	@(#)MIRBSD KSH R55 2017/04/27 +EBCDIC
+description:
+	Check version of shell.
+stdin:
+	echo $KSH_VERSION
+name: KSH_VERSION-ebcdic
+category: !shell:legacy-yes,!shell:textmode-yes,!shell:ebcdic-no
+---
+expected-stdout:
+	@(#)LEGACY KSH R55 2017/04/27 +EBCDIC
+description:
+	Check version of legacy shell.
+stdin:
+	echo $KSH_VERSION
+name: KSH_VERSION-legacy-ebcdic
+category: !shell:legacy-no,!shell:textmode-yes,!shell:ebcdic-no
+---
+expected-stdout:
+	@(#)MIRBSD KSH R55 2017/04/27 +TEXTMODE
 description:
 	Check version of shell.
 stdin:
@@ -57,7 +75,7 @@ name: KSH_VERSION-textmode
 category: !shell:legacy-yes,!shell:textmode-no
 ---
 expected-stdout:
-	@(#)LEGACY KSH R55 2017/04/20 +TEXTMODE
+	@(#)LEGACY KSH R55 2017/04/27 +TEXTMODE
 description:
 	Check version of legacy shell.
 stdin:
@@ -11498,19 +11516,19 @@ expected-stdout:
 		echo $(true) $((1+ 2)) ${  :;} ${| REPLY=x;}
 	}
 	inline_COMSUB_EXPRSUB_FUNSUB_VALSUB() {
-		\echo $(\true ) $((1+ 2)) ${ : ;} ${|REPLY=x ;} 
+		\echo $(\true ) $((1+ 2)) ${ \: ;} ${|REPLY=x ;} 
 	} 
 	function comsub_COMSUB_EXPRSUB_FUNSUB_VALSUB { x=$(
 		echo $(true) $((1+ 2)) ${  :;} ${| REPLY=x;}
 	); }
 	function comsub_COMSUB_EXPRSUB_FUNSUB_VALSUB {
-		x=$(\echo $(\true ) $((1+ 2)) ${ : ;} ${|REPLY=x ;} ) 
+		x=$(\echo $(\true ) $((1+ 2)) ${ \: ;} ${|REPLY=x ;} ) 
 	} 
 	function reread_COMSUB_EXPRSUB_FUNSUB_VALSUB { x=$((
 		echo $(true) $((1+ 2)) ${  :;} ${| REPLY=x;}
 	)|tr u x); }
 	function reread_COMSUB_EXPRSUB_FUNSUB_VALSUB {
-		x=$( ( \echo $(\true ) $((1+ 2)) ${ : ;} ${|REPLY=x ;} ) | \tr u x ) 
+		x=$( ( \echo $(\true ) $((1+ 2)) ${ \: ;} ${|REPLY=x ;} ) | \tr u x ) 
 	} 
 	inline_QCHAR_OQUOTE_CQUOTE() {
 		echo fo\ob\"a\`r\'b\$az
