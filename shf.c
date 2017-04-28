@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.85 2017/04/28 00:38:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.86 2017/04/28 01:15:51 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1216,3 +1216,42 @@ set_ifs(const char *s)
 	while (*s)
 		ksh_ctypes[ord(*s++)] |= CiIFS;
 }
+
+#ifdef MKSH_EBCDIC
+#include <locale.h>
+
+void
+ebcdic_init(void)
+{
+	int i = 256;
+	unsigned char t;
+	char buf[256];
+
+	while (i--)
+		buf[i] = i;
+	setlocale(LC_ALL, "");
+	if (__etoa_l(buf, 256) != 256) {
+		write(2, "mksh: could not map EBCDIC to ASCII\n", 36);
+		exit(255);
+	}
+
+	i = 0;
+	do {
+		/*
+		 * Only use the converted value if it's in the range
+		 * [0x00; 0x7F], which I checked; the "extended ASCII"
+		 * characters can be any encoding, not just Latin1,
+		 * and the C1 control characters other than NEL are
+		 * hopeless, but we map EBCDIC NEL to ASCII LF so we
+		 * cannot even use C1 NEL.
+		 * If ever we map to Unicode, bump the table width to
+		 * an unsigned int, and or the raw unconverted EBCDIC
+		 * values with 0x01000000 instead.
+		 */
+		if ((t = (unsigned char)buf[i]) < 0x80U)
+			ebcdic_map[i] = (unsigned short)ord(t);
+		else
+			ebcdic_map[i] = (unsigned short)(0x100U | ord(i));
+	} while (++i < 256);
+}
+#endif
