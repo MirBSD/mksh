@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.267 2017/04/28 03:28:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.268 2017/04/28 03:46:49 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -937,7 +937,7 @@ ascstrcmp(const void *s1, const void *s2)
 			return (0);
 		++cp2;
 	}
-	return ((int)asc(*cp1) - (int)asc(*cp2));
+	return ((int)asciibetical(*cp1) - (int)asciibetical(*cp2));
 }
 
 int
@@ -1098,7 +1098,7 @@ print_value_quoted(struct shf *shf, const char *s)
 	bool inquote = true;
 
 	/* first, check whether any quotes are needed */
-	while (asc(c = *p++) >= 32)
+	while (rtt2asc(c = *p++) >= 32)
 		if (ctype(c, C_QUOTE | C_SPC))
 			inquote = false;
 
