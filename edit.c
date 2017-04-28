@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.332 2017/04/28 03:28:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.333 2017/04/28 03:37:43 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2394,18 +2394,18 @@ x_mapin(const char *cp, Area *ap)
 	strdupx(news, cp, ap);
 	op = news;
 	while (*cp) {
-		/* XXX -- should handle \^ escape? */
-		if (*cp == '^') {
+		switch (*cp) {
+		case '^':
 			cp++;
-			/*XXX or ^^ escape? this is ugly. */
-			if (rtt2asc(*cp) >= 0x3FU)
-				*op++ = ksh_toctrl(*cp);
-			else {
-				*op++ = '^';
-				cp--;
-			}
-		} else
+			*op++ = ksh_toctrl(*cp);
+			break;
+		case '\\':
+			if (cp[1] == '\\' || cp[1] == '^')
+				++cp;
+			/* FALLTHROUGH */
+		default:
 			*op++ = *cp;
+		}
 		cp++;
 	}
 	*op = '\0';
