@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.825 2017/04/28 03:28:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.826 2017/04/28 03:46:50 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/27"
 
@@ -1467,13 +1467,14 @@ EXTERN char ifs0;
 
 /* identity transform of octet */
 #define ord(c)		((unsigned int)(unsigned char)(c))
-/* one-way to-ascii-or-high conversion */
 #ifdef MKSH_EBCDIC
 EXTERN unsigned short ebcdic_map[256];
 EXTERN unsigned char ebcdic_rtt_toascii[256];
 EXTERN unsigned char ebcdic_rtt_fromascii[256];
 extern void ebcdic_init(void);
-#define asc(c)		((unsigned int)ebcdic_map[(unsigned char)(c)])
+/* one-way to-ascii-or-high conversion, for POSIX locale ordering */
+#define asciibetical(c)	((unsigned int)ebcdic_map[(unsigned char)(c)])
+/* two-way round-trip conversion, for general use */
 #define rtt2asc(c)	ebcdic_rtt_toascii[(unsigned char)(c)]
 #define asc2rtt(c)	ebcdic_rtt_fromascii[(unsigned char)(c)]
 /* control character foo */
@@ -1481,7 +1482,7 @@ extern void ebcdic_init(void);
 /* case-independent char comparison */
 #define ksh_eq(c,u,l)	(ord(c) == ord(u) || ord(c) == ord(l))
 #else
-#define asc(c)		ord(c)
+#define asciibetical(c)	ord(c)
 #define rtt2asc(c)	((unsigned char)(c))
 #define asc2rtt(c)	((unsigned char)(c))
 #define ksh_isctrl(c)	(((c) & 0x7F) < 0x20 || (c) == 0x7F)
@@ -1494,10 +1495,10 @@ extern void ebcdic_init(void);
 /* invariant distance even in EBCDIC */
 #define ksh_tolower(c)	(ctype(c, C_UPPER) ? (c) - 'A' + 'a' : (c))
 #define ksh_toupper(c)	(ctype(c, C_LOWER) ? (c) - 'a' + 'A' : (c))
-/* strictly speaking asc() here, but this works even in EBCDIC */
+/* strictly speaking rtt2asc() here, but this works even in EBCDIC */
 #define ksh_numdig(c)	(ord(c) - ord('0'))
-#define ksh_numuc(c)	(asc(c) - asc('A'))
-#define ksh_numlc(c)	(asc(c) - asc('a'))
+#define ksh_numuc(c)	(rtt2asc(c) - rtt2asc('A'))
+#define ksh_numlc(c)	(rtt2asc(c) - rtt2asc('a'))
 #define ksh_toctrl(c)	asc2rtt(ord(c) == ord('?') ? 0x7F : rtt2asc(c) & 0x9F)
 #define ksh_unctrl(c)	asc2rtt(rtt2asc(c) ^ 0x40U)
 
