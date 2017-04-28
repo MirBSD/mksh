@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.158 2017/04/12 18:33:23 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.159 2017/04/28 00:33:15 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -100,7 +100,7 @@ regress: ${PROG} check.pl check.t
 	echo export FNORD=666 >regress-dir/.mkshrc
 	HOME=$$(realpath regress-dir) perl ${SRCDIR}/check.pl \
 	    -s ${SRCDIR}/check.t -v -p ./${PROG} \
-	    -C shell:legacy-no,int:32,shell:textmode-no,shell:binmode-yes,fastbox
+	    -C shell:legacy-no,int:32,shell:ebcdic-no,shell:ascii-yes,shell:textmode-no,shell:binmode-yes,fastbox
 
 TEST_BUILD_ENV:=	TARGET_OS= CPP=
 TEST_BUILD_ENV+=	HAVE_STRING_POOLING=0
