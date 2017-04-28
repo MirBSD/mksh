@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.347 2017/04/27 23:33:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.348 2017/04/28 00:38:30 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -807,7 +807,7 @@ c_alias(const char **wp)
 	wp += builtin_opt.optind;
 
 	if (!(builtin_opt.info & GI_MINUSMINUS) && *wp &&
-	    (wp[0][0] == '-' || wp[0][0] == '+') && wp[0][1] == '\0') {
+	    ctype(wp[0][0], C_MINUS | C_PLUS) && wp[0][1] == '\0') {
 		prefix = wp[0][0];
 		wp++;
 	}

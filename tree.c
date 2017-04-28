@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.89 2017/04/12 16:46:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.90 2017/04/28 00:38:33 tg Exp $");
 
 #define INDENT	8
 
@@ -856,8 +856,8 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 		case QCHAR:
 			shf_puts("QCHAR<", shf);
 			c = *wp++;
-			if (quotelevel == 0 ||
-			    (c == '"' || c == '`' || c == '$' || c == '\\'))
+			if (quotelevel == 0 || c == '"' || c == '\\' ||
+			    ctype(c, C_DOLAR | C_GRAVE))
 				shf_putc('\\', shf);
 			dumpchar(shf, c);
 			goto closeandout;

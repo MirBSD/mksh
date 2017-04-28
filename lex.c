@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.236 2017/04/27 20:22:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.237 2017/04/28 00:38:31 tg Exp $");
 
 /*
  * states while lexing word
@@ -220,11 +220,11 @@ yylex(int cf)
 	} else {
 		/* normal lexing */
 		state = (cf & HEREDELIM) ? SHEREDELIM : SBASE;
-		while ((c = getsc()) == ' ' || c == '\t')
+		while (ctype((c = getsc()), C_BLANK))
 			;
 		if (c == '#') {
 			ignore_backslash_newline++;
-			while ((c = getsc()) != '\0' && c != '\n')
+			while (!ctype((c = getsc()), C_NUL | C_LF))
 				;
 			ignore_backslash_newline--;
 		}
@@ -301,8 +301,7 @@ yylex(int cf)
 			}
 			/* FALLTHROUGH */
  Sbase1:		/* includes *(...|...) pattern (*+?@!) */
-			if (c == '*' || c == '@' || c == '+' || c == '?' ||
-			    c == '!') {
+			if (ctype(c, C_PATMO)) {
 				c2 = getsc();
 				if (c2 == '(' /*)*/ ) {
 					*wp++ = OPAT;
@@ -676,7 +675,7 @@ yylex(int cf)
 				 * emitted (in heredocquote:)
 				 */
 				if ((c = getsc()) == '"' || c == '\\' ||
-				    c == '$' || c == '`' || c == /*{*/'}')
+				    ctype(c, C_DOLAR | C_GRAVE) || c == /*{*/'}')
 					goto store_qchar;
 				goto heredocquote;
 			}
@@ -893,7 +892,7 @@ yylex(int cf)
 	dp = Xstring(ws, wp);
 	if (state == SBASE && (
 	    (c == '&' && !Flag(FSH) && !Flag(FPOSIX)) ||
-	    c == '<' || c == '>') && ((c2 = Xlength(ws, wp)) == 0 ||
+	    ctype(c, C_ANGLE)) && ((c2 = Xlength(ws, wp)) == 0 ||
 	    (c2 == 2 && dp[0] == CHAR && ctype(dp[1], C_DIGIT)))) {
 		struct ioword *iop = alloc(sizeof(struct ioword), ATEMP);
 
@@ -1037,7 +1036,7 @@ yylex(int cf)
 			const char *cp = source->str;
 
 			/* prefer POSIX but not Korn functions over aliases */
-			while (*cp == ' ' || *cp == '\t')
+			while (ctype(*cp, C_BLANK))
 				/*
 				 * this is like getsc() without skipping
 				 * over Source boundaries (including not
@@ -1527,7 +1526,7 @@ pprompt(const char *cp, int ntruncate)
 	for (; *cp; cp++) {
 		if (indelimit && *cp != delimiter)
 			;
-		else if (*cp == '\n' || *cp == '\r') {
+		else if (ctype(*cp, C_CR | C_LF)) {
 			lines += columns / x_cols + ((*cp == '\n') ? 1 : 0);
 			columns = 0;
 		} else if (*cp == '\t') {

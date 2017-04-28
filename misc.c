@@ -30,7 +30,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.263 2017/04/27 23:34:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.264 2017/04/28 00:38:31 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -116,7 +116,7 @@ option(const char *n)
 {
 	size_t i = 0;
 
-	if ((n[0] == '-' || n[0] == '+') && n[1] && !n[2])
+	if (ctype(n[0], C_MINUS | C_PLUS) && n[1] && !n[2])
 		while (i < NELEM(options)) {
 			if (OFC(i) == n[1])
 				return (i);
@@ -452,7 +452,7 @@ parse_args(const char **argv,
 		}
 	}
 	if (!(go.info & GI_MINUSMINUS) && argv[go.optind] &&
-	    (argv[go.optind][0] == '-' || argv[go.optind][0] == '+') &&
+	    ctype(argv[go.optind][0], C_MINUS | C_PLUS) &&
 	    argv[go.optind][1] == '\0') {
 		/* lone - clears -v and -x flags */
 		if (argv[go.optind][0] == '-') {
@@ -703,7 +703,7 @@ has_globbing(const char *xp, const char *xpe)
 					return (0);
 				in_bracket = false;
 			}
-		} else if ((c & 0x80) && ctype(c & 0x7F, C_PATMO)) {
+		} else if ((c & 0x80) && ctype(c & 0x7F, C_PATMO | C_SPC)) {
 			saw_glob = true;
 			if (in_bracket)
 				bnest++;
@@ -919,7 +919,7 @@ pat_scan(const unsigned char *p, const unsigned char *pe, bool match_sep)
 		if ((*++p == /*(*/ ')' && nest-- == 0) ||
 		    (*p == '|' && match_sep && nest == 0))
 			return (p + 1);
-		if ((*p & 0x80) && ctype(*p & 0x7F, C_PATMO))
+		if ((*p & 0x80) && ctype(*p & 0x7F, C_PATMO | C_SPC))
 			nest++;
 	}
 	return (NULL);
@@ -1012,7 +1012,7 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 		go->info |= flag == '-' ? GI_MINUS : GI_PLUS;
 	}
 	go->p++;
-	if (c == '?' || c == ':' || c == ';' || c == ',' || c == '#' ||
+	if (ctype(c, C_QUEST | C_COLON | C_HASH) || c == ';' || c == ',' ||
 	    !(o = cstrchr(optionsp, c))) {
 		if (optionsp[0] == ':') {
 			go->buf[0] = c;

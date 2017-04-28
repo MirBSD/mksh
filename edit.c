@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.328 2017/04/27 23:12:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.329 2017/04/28 00:38:28 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -649,8 +649,8 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 		for (s = toglob; *s; s++) {
 			if (*s == '\\' && s[1])
 				s++;
-			else if (*s == '?' || *s == '*' || *s == '[' ||
-			    *s == '$' ||
+			else if (ctype(*s, C_QUEST | C_DOLAR) ||
+			    *s == '*' || *s == '[' ||
 			    /* ?() *() +() @() !() but two already checked */
 			    (s[1] == '(' /*)*/ &&
 			    (*s == '+' || *s == '@' || *s == '!'))) {
@@ -2901,7 +2901,7 @@ x_e_putc2(int c)
 {
 	int width = 1;
 
-	if (c == '\r' || c == '\n')
+	if (ctype(c, C_CR | C_LF))
 		x_col = 0;
 	if (x_col < xx_cols) {
 		if (UTFMODE && (c > 0x7F)) {
@@ -2942,7 +2942,7 @@ x_e_putc3(const char **cp)
 {
 	int width = 1, c = **(const unsigned char **)cp;
 
-	if (c == '\r' || c == '\n')
+	if (ctype(c, C_CR | C_LF))
 		x_col = 0;
 	if (x_col < xx_cols) {
 		if (UTFMODE && (c > 0x7F)) {
@@ -3674,7 +3674,7 @@ vi_hook(int ch)
 				return (1);
 			}
 		} else {
-			if (ch == '\r' || ch == '\n')
+			if (ctype(ch, C_CR | C_LF))
 				return (1);
 			cmdlen = 0;
 			argc1 = 0;
@@ -3776,7 +3776,7 @@ vi_hook(int ch)
 		break;
 
 	case VSEARCH:
-		if (ch == '\r' || ch == '\n' /*|| ch == CTRL('[')*/ ) {
+		if (ctype(ch, C_CR | C_LF) /* || ch == CTRL('[') */ ) {
 			restore_cbuf();
 			/* Repeat last search? */
 			if (srchlen == 0) {
@@ -3910,8 +3910,8 @@ vi_hook(int ch)
 			break;
 		case 0:
 			if (insert != 0) {
-				if (lastcmd[0] == 's' || lastcmd[0] == 'c' ||
-				    lastcmd[0] == 'C') {
+				if (lastcmd[0] == 's' ||
+				    ksh_eq(lastcmd[0], 'C', 'c')) {
 					if (redo_insert(1) != 0)
 						vi_error();
 				} else {
@@ -4040,8 +4040,7 @@ vi_insert(int ch)
 			lastcmd[0] = 'a';
 			lastac = 1;
 		}
-		if (lastcmd[0] == 's' || lastcmd[0] == 'c' ||
-		    lastcmd[0] == 'C')
+		if (lastcmd[0] == 's' || ksh_eq(lastcmd[0], 'C', 'c'))
 			return (redo_insert(0));
 		else
 			return (redo_insert(lastac - 1));
@@ -4200,8 +4199,7 @@ vi_cmd(int argcnt, const char *cmd)
 			else {
 				if ((ncursor = domove(argcnt, &cmd[1], 1)) < 0)
 					return (-1);
-				if (*cmd == 'c' &&
-				    (cmd[1] == 'w' || cmd[1] == 'W') &&
+				if (*cmd == 'c' && ksh_eq(cmd[1], 'W', 'w') &&
 				    !ctype(vs->cbuf[vs->cursor], C_SPACE)) {
 					do {
 						--ncursor;
@@ -4642,7 +4640,7 @@ domove(int argcnt, const char *cmd, int sub)
 	case ';':
 		if (fsavecmd == ' ')
 			return (-1);
-		i = fsavecmd == 'f' || fsavecmd == 'F';
+		i = ksh_eq(fsavecmd, 'F', 'f');
 		t = fsavecmd > 'a';
 		if (*cmd == ',')
 			t = !t;

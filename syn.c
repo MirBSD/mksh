@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.122 2017/04/27 20:22:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.123 2017/04/28 00:38:33 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -91,7 +91,7 @@ yyparse(bool doalias)
 	c = tpeek(0);
 	if (c == 0 && !outtree)
 		outtree = newtp(TEOF);
-	else if (c != '\n' && c != 0)
+	else if (!ctype(c, C_LF | C_NUL))
 		syntaxerr(NULL);
 }
 
