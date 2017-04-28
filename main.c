@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.340 2017/04/27 23:35:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.341 2017/04/28 01:15:50 tg Exp $");
 
 extern char **environ;
 
@@ -236,6 +236,9 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	ssize_t k;
 #endif
 
+#ifdef MKSH_EBCDIC
+	ebcdic_init();
+#endif
 	set_ifs(TC_IFSWS);
 
 #ifdef __OS2__

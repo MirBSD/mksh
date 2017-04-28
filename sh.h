@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.821 2017/04/28 00:49:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.822 2017/04/28 01:15:51 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/27"
 
@@ -1444,8 +1444,12 @@ EXTERN char ifs0;
 
 /* identity transform of octet */
 #define ord(c)		((unsigned int)(unsigned char)(c))
+/* one-way to-ascii-or-high conversion */
 #ifdef MKSH_EBCDIC
-/* asc(c) must do a table lookup, non-ASCII map high */
+EXTERN unsigned short ebcdic_map[256];
+extern void ebcdic_init(void);
+#define asc(c)		((unsigned int)ebcdic_map[(unsigned char)(c)])
+/* case-independent char comparison */
 #define ksh_eq(c,u,l)	(ord(c) == ord(u) || ord(c) == ord(l))
 #else
 #define asc(c)		ord(c)
