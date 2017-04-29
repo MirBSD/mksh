@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.197 2017/04/28 00:38:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.198 2017/04/29 22:04:28 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1341,7 +1341,7 @@ search_path(const char *name, const char *lpath,
 	while (sp != NULL) {
 		xp = Xstring(xs, xp);
 		if (!(p = cstrchr(sp, MKSH_PATHSEPC)))
-			p = sp + strlen(sp);
+			p = strnul(sp);
 		if (p != sp) {
 			XcheckN(xs, xp, p - sp);
 			memcpy(xp, sp, p - sp);

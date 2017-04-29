@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.833 2017/04/29 21:49:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.834 2017/04/29 22:04:30 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/27"
 
@@ -649,7 +649,7 @@ im_sorry_dave(void)
 #endif
 
 /* use this ipv strchr(s, 0) but no side effects in s! */
-#define strnul(s)	((s) + strlen(s))
+#define strnul(s)	((s) + strlen((const void *)s))
 
 #define utf_ptradjx(src, dst) do {					\
 	(dst) = (src) + utf_ptradj(src);				\

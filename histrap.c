@@ -3,7 +3,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2014, 2015, 2016
+ *		 2011, 2012, 2014, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.161 2017/04/27 19:33:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.162 2017/04/29 22:04:28 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -629,7 +629,7 @@ histsave(int *lnp, const char *cmd, int svmode, bool ignoredups)
 	if (svmode == HIST_FLUSH)
 		return;
 
-	ccp = cmd + strlen(cmd);
+	ccp = strnul(cmd);
 	while (ccp > cmd && ccp[-1] == '\n')
 		--ccp;
 	strndupx(c, cmd, ccp - cmd, APERM);
