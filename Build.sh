@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.718 2017/04/28 02:24:53 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.719 2017/04/29 14:36:12 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -787,7 +787,9 @@ GNU/kFreeBSD)
 	add_cppflags -DSETUID_CAN_FAIL_WITH_EAGAIN
 	;;
 Haiku)
-	add_cppflags -DMKSH_ASSUME_UTF8; HAVE_ISSET_MKSH_ASSUME_UTF8=1
+	add_cppflags -DMKSH_ASSUME_UTF8
+	HAVE_ISSET_MKSH_ASSUME_UTF8=1
+	HAVE_ISOFF_MKSH_ASSUME_UTF8=0
 	;;
 Harvey)
 	add_cppflags -D_POSIX_SOURCE
@@ -795,7 +797,9 @@ Harvey)
 	add_cppflags -D_BSD_EXTENSION
 	add_cppflags -D_SUSV2_SOURCE
 	add_cppflags -D_GNU_SOURCE
-	add_cppflags -DMKSH_ASSUME_UTF8; HAVE_ISSET_MKSH_ASSUME_UTF8=1
+	add_cppflags -DMKSH_ASSUME_UTF8
+	HAVE_ISSET_MKSH_ASSUME_UTF8=1
+	HAVE_ISOFF_MKSH_ASSUME_UTF8=0
 	add_cppflags -DMKSH_NO_CMDLINE_EDITING
 	add_cppflags -DMKSH__NO_SETEUGID
 	oswarn=' and will currently not work'
@@ -848,7 +852,9 @@ Minix3)
 MirBSD)
 	;;
 MSYS_*)
-	add_cppflags -DMKSH_ASSUME_UTF8=0; HAVE_ISSET_MKSH_ASSUME_UTF8=1
+	add_cppflags -DMKSH_ASSUME_UTF8=0
+	HAVE_ISSET_MKSH_ASSUME_UTF8=1
+	HAVE_ISOFF_MKSH_ASSUME_UTF8=1
 	# almost same as CYGWIN* (from RT|Chatzilla)
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	# broken on this OE (from ir0nh34d)
@@ -882,7 +888,9 @@ OpenBSD)
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 OS/2)
-	add_cppflags -DMKSH_ASSUME_UTF8=0; HAVE_ISSET_MKSH_ASSUME_UTF8=1
+	add_cppflags -DMKSH_ASSUME_UTF8=0
+	HAVE_ISSET_MKSH_ASSUME_UTF8=1
+	HAVE_ISOFF_MKSH_ASSUME_UTF8=1
 	HAVE_TERMIOS_H=0
 	HAVE_MKNOD=0	# setmode() incompatible
 	oswarn="; it is being ported"
@@ -917,7 +925,9 @@ the mksh-os2 porter.
 "
 	;;
 OS/390)
-	add_cppflags -DMKSH_ASSUME_UTF8=0; HAVE_ISSET_MKSH_ASSUME_UTF8=1
+	add_cppflags -DMKSH_ASSUME_UTF8=0
+	HAVE_ISSET_MKSH_ASSUME_UTF8=1
+	HAVE_ISOFF_MKSH_ASSUME_UTF8=1
 	: "${SIZE=: size}"
 	add_cppflags -DMKSH_FOR_Z_OS
 	add_cppflags -D_ALL_SOURCE
@@ -936,7 +946,9 @@ Plan9)
 	add_cppflags -D_LIMITS_EXTENSION
 	add_cppflags -D_BSD_EXTENSION
 	add_cppflags -D_SUSV2_SOURCE
-	add_cppflags -DMKSH_ASSUME_UTF8; HAVE_ISSET_MKSH_ASSUME_UTF8=1
+	add_cppflags -DMKSH_ASSUME_UTF8
+	HAVE_ISSET_MKSH_ASSUME_UTF8=1
+	HAVE_ISOFF_MKSH_ASSUME_UTF8=0
 	add_cppflags -DMKSH_NO_CMDLINE_EDITING
 	add_cppflags -DMKSH__NO_SETEUGID
 	oswarn=' and will currently not work'
@@ -1756,6 +1768,10 @@ ac_ifcpp 'ifdef MKSH_NOPROSPECTOFWORK' isset_MKSH_NOPROSPECTOFWORK '' \
     check_categories="$check_categories arge nojsig"
 ac_ifcpp 'ifdef MKSH_ASSUME_UTF8' isset_MKSH_ASSUME_UTF8 '' \
     'if the default UTF-8 mode is specified' && : "${HAVE_SETLOCALE_CTYPE=0}"
+ac_ifcpp 'if !MKSH_ASSUME_UTF8' isoff_MKSH_ASSUME_UTF8 \
+    isset_MKSH_ASSUME_UTF8 0 \
+    'if the default UTF-8 mode is disabled' && \
+    check_categories="$check_categories noutf8"
 #ac_ifcpp 'ifdef MKSH_DISABLE_DEPRECATED' isset_MKSH_DISABLE_DEPRECATED '' \
 #    "if deprecated features are to be omitted" && \
 #    check_categories="$check_categories nodeprecated"
