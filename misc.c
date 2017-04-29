@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.271 2017/04/29 21:49:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.272 2017/04/29 22:04:29 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -556,7 +556,7 @@ simplify_gmatch_pattern(const unsigned char *sp)
 	sp = cp;
  simplify_gmatch_pat1a:
 	dp = cp;
-	se = sp + strlen((const void *)sp);
+	se = strnul(sp);
 	while ((c = *sp++)) {
 		if (!ISMAGIC(c)) {
 			*dp++ = c;
@@ -628,8 +628,7 @@ gmatchx(const char *s, const char *p, bool isfile)
 	if (s == NULL || p == NULL)
 		return (0);
 
-	se = s + strlen(s);
-	pe = p + strlen(p);
+	pe = strnul(p);
 	/*
 	 * isfile is false iff no syntax check has been done on
 	 * the pattern. If check fails, just do a strcmp().
@@ -641,13 +640,14 @@ gmatchx(const char *s, const char *p, bool isfile)
 		debunk(t, p, len);
 		return (!strcmp(t, s));
 	}
+	se = strnul(s);
 
 	/*
 	 * since the do_gmatch() engine sucks so much, we must do some
 	 * pattern simplifications
 	 */
 	pnew = simplify_gmatch_pattern((const unsigned char *)p);
-	pe = pnew + strlen(pnew);
+	pe = strnul(pnew);
 
 	rv = do_gmatch((const unsigned char *)s, (const unsigned char *)se,
 	    (const unsigned char *)pnew, (const unsigned char *)pe);

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.208 2017/04/29 21:49:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.209 2017/04/29 22:04:27 tg Exp $");
 
 /*
  * string expansion
@@ -1405,7 +1405,7 @@ comsub(Expand *xp, const char *cp, int fn)
 			if (!herein(io, &name)) {
 				xp->str = name;
 				/* as $(…) requires, trim trailing newlines */
-				name += strlen(name);
+				name = strnul(name);
 				while (name > xp->str && name[-1] == '\n')
 					--name;
 				*name = '\0';
@@ -1655,7 +1655,7 @@ globit(XString *xs,	/* dest string */
 		*np++ = '\0';
 	} else {
 		odirsep = '\0'; /* keep gcc quiet */
-		se = sp + strlen(sp);
+		se = strnul(sp);
 	}
 
 
@@ -1669,7 +1669,7 @@ globit(XString *xs,	/* dest string */
 	if (!has_globbing(sp)) {
 		XcheckN(*xs, xp, se - sp + 1);
 		debunk(xp, sp, Xnleft(*xs, xp));
-		xp += strlen(xp);
+		xp = strnul(xp);
 		*xpp = xp;
 		globit(xs, xpp, np, wp, check);
 	} else {
@@ -1698,9 +1698,8 @@ globit(XString *xs,	/* dest string */
 			XcheckN(*xs, xp, len);
 			memcpy(xp, name, len);
 			*xpp = xp + len - 1;
-			globit(xs, xpp, np, wp,
-				(check & GF_MARKDIR) | GF_GLOBBED
-				| (np ? GF_EXCHECK : GF_NONE));
+			globit(xs, xpp, np, wp, (check & GF_MARKDIR) |
+			    GF_GLOBBED | (np ? GF_EXCHECK : GF_NONE));
 			xp = Xstring(*xs, xp) + prefix_len;
 		}
 		closedir(dirp);

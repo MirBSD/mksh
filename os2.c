@@ -1,6 +1,8 @@
 /*-
  * Copyright (c) 2015
  *	KO Myung-Hun <komh@chollian.net>
+ * Copyright (c) 2017
+ *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -28,7 +30,7 @@
 #include <unistd.h>
 #include <process.h>
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.1 2017/04/02 15:00:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.2 2017/04/29 22:04:29 tg Exp $");
 
 static char *remove_trailing_dots(char *);
 static int access_stat_ex(int (*)(), const char *, void *);
@@ -247,9 +249,9 @@ setextlibpath(const char *name, const char *val)
 static char *
 remove_trailing_dots(char *name)
 {
-	char *p;
+	char *p = strnul(name);
 
-	for (p = name + strlen(name); --p > name && *p == '.'; )
+	while (--p > name && *p == '.')
 		/* nothing */;
 
 	if (*p != '.' && *p != '/' && *p != '\\' && *p != ':')

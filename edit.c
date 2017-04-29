@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.334 2017/04/29 14:20:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.335 2017/04/29 22:04:26 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -747,7 +747,7 @@ x_basename(const char *s, const char *se)
 	const char *p;
 
 	if (se == NULL)
-		se = s + strlen(s);
+		se = strnul(s);
 	if (s == se)
 		return (0);
 
@@ -799,7 +799,7 @@ glob_path(int flags, const char *pat, XPtrV *wp, const char *lpath)
 	while (sp) {
 		xp = Xstring(xs, xp);
 		if (!(p = cstrchr(sp, MKSH_PATHSEPC)))
-			p = sp + strlen(sp);
+			p = strnul(sp);
 		pathlen = p - sp;
 		if (pathlen) {
 			/*
@@ -1852,7 +1852,7 @@ x_load_hist(char **hp)
 		strlcpy(holdbufp, xbuf, LINE);
 	strlcpy(xbuf, sp, xend - xbuf);
 	xbp = xbuf;
-	xep = xcp = xbuf + strlen(xbuf);
+	xep = xcp = strnul(xbuf);
 	x_adjust();
 	modified = 0;
 }
@@ -3055,7 +3055,7 @@ x_version(int c MKSH_A_UNUSED)
 	strdupx(v, KSH_VERSION, ATEMP);
 
 	xbuf = xbp = xcp = v;
-	xend = xep = v + strlen(v);
+	xend = xep = strnul(v);
 	x_redraw('\r');
 	x_flush();
 
@@ -3098,7 +3098,7 @@ x_edit_line(int c MKSH_A_UNUSED)
 		    "fc -e ${VISUAL:-${EDITOR:-vi}} --", x_arg);
 	else
 		strlcpy(xbuf, "fc -e ${VISUAL:-${EDITOR:-vi}} --", xend - xbuf);
-	xep = xbuf + strlen(xbuf);
+	xep = strnul(xbuf);
 	return (x_newline('\n'));
 }
 #endif
