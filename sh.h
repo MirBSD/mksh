@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.832 2017/04/29 14:20:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.833 2017/04/29 21:49:07 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/27"
 
@@ -2528,7 +2528,7 @@ void change_xtrace(unsigned char, bool);
 int parse_args(const char **, int, bool *);
 int getn(const char *, int *);
 int gmatchx(const char *, const char *, bool);
-int has_globbing(const char *, const char *) MKSH_A_PURE;
+bool has_globbing(const char *) MKSH_A_PURE;
 int ascstrcmp(const void *, const void *) MKSH_A_PURE;
 int ascpstrcmp(const void *, const void *) MKSH_A_PURE;
 void ksh_getopt_reset(Getopt *, int);

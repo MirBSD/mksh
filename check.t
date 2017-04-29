@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.785 2017/04/29 15:18:25 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.786 2017/04/29 21:49:04 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -1962,15 +1962,11 @@ expected-stdout:
 name: eglob-bad-1
 description:
 	Check that globbing isn't done when glob has syntax error
-file-setup: file 644 "abcx"
-file-setup: file 644 "abcz"
-file-setup: file 644 "bbc"
+file-setup: file 644 "@(a[b|)c]foo"
 stdin:
-	echo !([*)*
-	echo +(a|b[)*
+	echo @(a[b|)c]*
 expected-stdout:
-	!([*)*
-	+(a|b[)*
+	@(a[b|)c]*
 ---
 name: eglob-bad-2
 description:
@@ -2057,9 +2053,11 @@ stdin:
 	case foo in *(a|b[)) echo yes;; *) echo no;; esac
 	case foo in *(a|b[)|f*) echo yes;; *) echo no;; esac
 	case '*(a|b[)' in *(a|b[)) echo yes;; *) echo no;; esac
+	case 'aab[b[ab[a' in *(a|b[)) echo yes;; *) echo no;; esac
 expected-stdout:
 	no
 	yes
+	no
 	yes
 ---
 name: eglob-trim-1
@@ -2354,7 +2352,7 @@ expected-stdout:
 ---
 name: glob-bad-1
 description:
-	Check that globbing isn't done when glob has syntax error
+	Check that [ matches itself if it's not a valid bracket expr
 file-setup: dir 755 "[x"
 file-setup: file 644 "[x/foo"
 stdin:
@@ -2362,8 +2360,8 @@ stdin:
 	echo *[x
 	echo [x/*
 expected-stdout:
-	[*
-	*[x
+	[x
+	[x
 	[x/foo
 ---
 name: glob-bad-2
@@ -2403,24 +2401,31 @@ file-setup: file 644 "abc"
 file-setup: file 644 "bbc"
 file-setup: file 644 "cbc"
 file-setup: file 644 "-bc"
+file-setup: file 644 "!bc"
+file-setup: file 644 "^bc"
+file-setup: file 644 "+bc"
+file-setup: file 644 ",bc"
+file-setup: file 644 "0bc"
+file-setup: file 644 "1bc"
 stdin:
 	echo [ab-]*
 	echo [-ab]*
 	echo [!-ab]*
 	echo [!ab]*
 	echo []ab]*
-	:>'./!bc'
-	:>'./^bc'
 	echo [^ab]*
-	echo [!ab]*
+	echo [+--]*
+	echo [--1]*
+
 expected-stdout:
 	-bc abc bbc
 	-bc abc bbc
-	cbc
-	-bc cbc
+	!bc +bc ,bc 0bc 1bc ^bc cbc
+	!bc +bc ,bc -bc 0bc 1bc ^bc cbc
 	abc bbc
 	^bc abc bbc
-	!bc -bc ^bc cbc
+	+bc ,bc -bc
+	-bc 0bc 1bc
 ---
 name: glob-range-2
 description:

@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.270 2017/04/28 21:43:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.271 2017/04/29 21:49:07 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -634,7 +634,7 @@ gmatchx(const char *s, const char *p, bool isfile)
 	 * isfile is false iff no syntax check has been done on
 	 * the pattern. If check fails, just do a strcmp().
 	 */
-	if (!isfile && !has_globbing(p, pe)) {
+	if (!isfile && !has_globbing(p)) {
 		size_t len = pe - p + 1;
 		char tbuf[64];
 		char *t = len <= sizeof(tbuf) ? tbuf : alloc(len, ATEMP);
@@ -661,7 +661,7 @@ gmatchx(const char *s, const char *p, bool isfile)
  * Syntax errors are:
  *	- [ with no closing ]
  *	- imbalanced $(...) expression
- *	- [...] and *(...) not nested (eg, [a$(b|]c), *(a[b|c]d))
+ *	- [...] and *(...) not nested (eg, @(a[b|)c], *(a[b|c]d))
  */
 /*XXX
  * - if no magic,
@@ -672,60 +672,80 @@ gmatchx(const char *s, const char *p, bool isfile)
  *	return ?
  * - return ?
  */
-int
-has_globbing(const char *xp, const char *xpe)
+bool
+has_globbing(const char *pat)
 {
-	const unsigned char *p = (const unsigned char *) xp;
-	const unsigned char *pe = (const unsigned char *) xpe;
-	int c;
-	int nest = 0, bnest = 0;
+	unsigned char c, subc;
 	bool saw_glob = false;
-	/* inside [...] */
-	bool in_bracket = false;
+	unsigned int nest = 0;
+	const unsigned char *p = (const unsigned char *)pat;
+	const unsigned char *s;
 
-	for (; p < pe; p++) {
-		if (!ISMAGIC(*p))
+	while ((c = *p++)) {
+		/* regular character? ok. */
+		if (!ISMAGIC(c))
 			continue;
-		if ((c = *++p) == '*' || c == '?')
+		/* MAGIC + NUL? abort. */
+		if (!(c = *p++))
+			return (false);
+		/* some specials */
+		if (c == '*' || c == '?') {
+			/* easy glob, accept */
 			saw_glob = true;
-		else if (c == '[') {
-			if (!in_bracket) {
-				saw_glob = true;
-				in_bracket = true;
-				if (ISMAGIC(p[1]) && p[2] == '!')
-					p += 2;
-				if (ISMAGIC(p[1]) && p[2] == ']')
-					p += 2;
-			}
-			/*XXX Do we need to check ranges here? POSIX Q */
-		} else if (c == ']') {
-			if (in_bracket) {
-				if (bnest)
-					/* [a*(b]) */
-					return (0);
-				in_bracket = false;
+		} else if (c == '[') {
+			/* bracket expression; eat negation and initial ] */
+			if (ISMAGIC(p[0]) && p[1] == '!')
+				p += 2;
+			if (ISMAGIC(p[0]) && p[1] == ']')
+				p += 2;
+			/* check next string part */
+			s = p;
+			while ((c = *s++)) {
+				/* regular chars are ok */
+				if (!ISMAGIC(c))
+					continue;
+				/* MAGIC + NUL cannot happen */
+				if (!(c = *s++))
+					return (false);
+				/* terminating bracket? */
+				if (c == ']') {
+					/* accept and continue */
+					p = s;
+					saw_glob = true;
+					break;
+				}
+				/* collating, equivalence or character class */
+				if (c == '[' && (
+				    *s == '.' || *s == '=' || *s == ':')) {
+					/* must stop with exactly the same c */
+					subc = *s++;
+					/* arbitrarily many chars in betwixt */
+					while ((c = *s++))
+						/* but only this sequence... */
+						if (c == subc && ISMAGIC(*s) &&
+						    s[1] == ']') {
+							/* accept, terminate */
+							s += 2;
+							break;
+						}
+					/* EOS without: reject bracket expr */
+					if (!c)
+						break;
+					/* continue; */
+				}
+				/* anything else just goes on */
 			}
 		} else if ((c & 0x80) && ctype(c & 0x7F, C_PATMO | C_SPC)) {
+			/* opening pattern */
 			saw_glob = true;
-			if (in_bracket)
-				bnest++;
-			else
-				nest++;
-		} else if (c == '|') {
-			if (in_bracket && !bnest)
-				/* *(a[foo|bar]) */
-				return (0);
-		} else if (c == /*(*/ ')') {
-			if (in_bracket) {
-				if (!bnest--)
-					/* *(a[b)c] */
-					return (0);
-			} else if (nest)
-				nest--;
+			++nest;
+		} else if (c == /*(*/')') {
+			/* closing pattern */
+			if (nest)
+				--nest;
 		}
-		/* else must be MAGIC followed by MAGIC or one of: ]{},!- */
 	}
-	return (saw_glob && !in_bracket && !nest);
+	return (saw_glob && !nest);
 }
 
 /* Function must return either 0 or 1 (assumed by code for 0x80|'!') */
@@ -774,7 +794,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 			return (0);
 
 		/**
-		 * [*+?@!](pattern|pattern|..)
+		 * [+*?@!](pattern|pattern|..)
 		 * This is also needed for ${..%..}, etc.
 		 */
 
