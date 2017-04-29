@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.207 2017/04/28 00:38:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.208 2017/04/29 21:49:06 tg Exp $");
 
 /*
  * string expansion
@@ -1666,7 +1666,7 @@ globit(XString *xs,	/* dest string */
 	 * directory isn't readable - if no globbing is needed, only execute
 	 * permission should be required (as per POSIX)).
 	 */
-	if (!has_globbing(sp, se)) {
+	if (!has_globbing(sp)) {
 		XcheckN(*xs, xp, se - sp + 1);
 		debunk(xp, sp, Xnleft(*xs, xp));
 		xp += strlen(xp);
