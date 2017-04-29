@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.43 2017/04/20 21:43:43 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.44 2017/04/29 15:18:25 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -80,6 +80,7 @@
 #					ENV is set to /nonexistant.
 #					__progname is set to the -p argument.
 #					__perlname is set to $^X (perlexe).
+#					@utflocale@ is substituted from -U.
 #	file-setup		mps	Used to create files, directories
 #					and symlinks. First word is either
 #					file, dir or symlink; second word is
@@ -179,7 +180,7 @@ $os = defined $^O ? $^O : 'unknown';
 
 $Usage = <<EOF ;
 Usage: $prog [-Pv] [-C cat] [-e e=v] [-p prog] [-s fn] [-T dir] \
-       [-t tmo] name ...
+       [-t tmo] [-U lcl] name ...
 	-C c	Specify the comma separated list of categories the program
 		belongs to (see category field).
 	-e e=v	Set the environment variable e to v for all tests
@@ -192,6 +193,7 @@ Usage: $prog [-Pv] [-C cat] [-e e=v] [-p prog] [-s fn] [-T dir] \
 		scaned for test files (which end in .t).
 	-T dir	Use dir instead of /tmp to hold temporary files
 	-t t	Use t as default time limit for tests (default is unlimited)
+	-U lcl	Use lcl as UTF-8 locale (e.g. C.UTF-8) instead of the default
 	-v	Verbose mode: print reason test failed.
 	name	specifies the name of the test(s) to run; if none are
 		specified, all tests are run.
@@ -240,7 +242,7 @@ $nxpassed = 0;
 
 %known_tests = ();
 
-if (!getopts('C:e:Pp:s:T:t:v')) {
+if (!getopts('C:e:Pp:s:T:t:U:v')) {
     print STDERR $Usage;
     exit 1;
 }
@@ -251,6 +253,7 @@ $test_prog = $opt_p;
 $verbose = defined $opt_v && $opt_v;
 $test_set = $opt_s;
 $temp_base = $opt_T || "/tmp";
+$utflocale = $opt_U || (($os eq "hpux") ? "en_US.utf8" : "en_US.UTF-8");
 if (defined $opt_t) {
     die "$prog: bad -t argument (should be number > 0): $opt_t\n"
 	if $opt_t !~ /^\d+$/ || $opt_t <= 0;
@@ -1157,6 +1160,8 @@ read_test
 	    print STDERR "$prog:$test{':long-name'}: env-setup field doesn't start and end with the same character\n";
 	    return undef;
 	}
+
+	$test{'env-setup'} =~ s/\@utflocale\@/$utflocale/g;
     }
     if (defined $test{'expected-exit'}) {
 	local($val) = $test{'expected-exit'};
