@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.831 2017/04/28 12:02:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.832 2017/04/29 14:20:24 tg Exp $");
 #endif
 #define MKSH_VERSION "R55 2017/04/27"
 
@@ -700,11 +700,6 @@ im_sorry_dave(void)
 
 #ifndef MKSH_S_NOVI
 #define MKSH_S_NOVI		0
-#endif
-
-#ifdef MKSH_EBCDIC
-#undef MKSH_S_NOVI
-#define MKSH_S_NOVI		1
 #endif
 
 #if defined(MKSH_NOPROSPECTOFWORK) && !defined(MKSH_UNEMPLOYED)

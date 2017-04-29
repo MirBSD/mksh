@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.333 2017/04/28 03:37:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.334 2017/04/29 14:20:23 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -3414,14 +3414,14 @@ static int x_vi_putbuf(const char *, size_t);
 #define vZ	0x40		/* repeat count defaults to 0 (not 1) */
 #define vS	0x80		/* search (/, ?) */
 
-#define is_bad(c)	(classify[(c)&0x7f]&vB)
-#define is_cmd(c)	(classify[(c)&0x7f]&(vM|vE|vC|vU))
-#define is_move(c)	(classify[(c)&0x7f]&vM)
-#define is_extend(c)	(classify[(c)&0x7f]&vE)
-#define is_long(c)	(classify[(c)&0x7f]&vX)
-#define is_undoable(c)	(!(classify[(c)&0x7f]&vU))
-#define is_srch(c)	(classify[(c)&0x7f]&vS)
-#define is_zerocount(c)	(classify[(c)&0x7f]&vZ)
+#define is_bad(c)	(classify[rtt2asc(c) & 0x7F] & vB)
+#define is_cmd(c)	(classify[rtt2asc(c) & 0x7F] & (vM | vE | vC | vU))
+#define is_move(c)	(classify[rtt2asc(c) & 0x7F] & vM)
+#define is_extend(c)	(classify[rtt2asc(c) & 0x7F] & vE)
+#define is_long(c)	(classify[rtt2asc(c) & 0x7F] & vX)
+#define is_undoable(c)	(!(classify[rtt2asc(c) & 0x7F] & vU))
+#define is_srch(c)	(classify[rtt2asc(c) & 0x7F] & vS)
+#define is_zerocount(c)	(classify[rtt2asc(c) & 0x7F] & vZ)
 
 static const unsigned char classify[128] = {
 /*	 0	1	2	3	4	5	6	7	*/
