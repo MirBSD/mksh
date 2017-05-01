@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.720 2017/05/01 19:22:53 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.721 2017/05/01 20:03:25 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -2434,8 +2434,8 @@ cat >test.sh <<-EOF
 	set -A check_categories -- $check_categories
 	pflag='$curdir/$mkshexe'
 	sflag='$srcdir/check.t'
-	usee=0 Pflag=0 Sflag=0 uset=0 vflag=1 xflag=0
-	while getopts "C:e:fPp:QSs:t:v" ch; do case \$ch {
+	usee=0 useU=0 Pflag=0 Sflag=0 uset=0 vflag=1 xflag=0
+	while getopts "C:e:fPp:QSs:t:U:v" ch; do case \$ch {
 	(C)	check_categories[\${#check_categories[*]}]=\$OPTARG ;;
 	(e)	usee=1; eflag=\$OPTARG ;;
 	(f)	check_categories[\${#check_categories[*]}]=fastbox ;;
@@ -2448,6 +2448,7 @@ cat >test.sh <<-EOF
 	(+S)	Sflag=0 ;;
 	(s)	sflag=\$OPTARG ;;
 	(t)	uset=1; tflag=\$OPTARG ;;
+	(U)	useU=1; Uflag=\$OPTARG ;;
 	(v)	vflag=1 ;;
 	(+v)	vflag=0 ;;
 	(*)	xflag=1 ;;
@@ -2471,6 +2472,10 @@ cat >test.sh <<-EOF
 	if (( uset )); then
 		args[\${#args[*]}]=-t
 		args[\${#args[*]}]=\$tflag
+	fi
+	if (( useU )); then
+		args[\${#args[*]}]=-U
+		args[\${#args[*]}]=\$Uflag
 	fi
 	(( vflag )) && args[\${#args[*]}]=-v
 	(( xflag )) && args[\${#args[*]}]=-x	# force usage by synerr
