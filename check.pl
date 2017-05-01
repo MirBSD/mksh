@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.44 2017/04/29 15:18:25 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.45 2017/05/01 19:43:23 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -153,9 +153,15 @@
 #	p	tag takes parameters (used with m).
 #	s	tag can be used several times.
 
+# require Config only if it exists
 # pull EINTR from POSIX.pm or Errno.pm if they exist
 # otherwise just skip it
 BEGIN {
+	eval {
+		require Config;
+		import Config;
+		1;
+	};
 	$EINTR = 0;
 	eval {
 		require POSIX;
@@ -172,7 +178,6 @@ BEGIN {
 };
 
 use Getopt::Std;
-use Config;
 
 $os = defined $^O ? $^O : 'unknown';
 
