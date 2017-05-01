@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.834 2017/04/29 22:04:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.835 2017/05/01 19:44:16 tg Exp $");
 #endif
-#define MKSH_VERSION "R55 2017/04/27"
+#define MKSH_VERSION "R55 2017/05/01"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -629,12 +629,9 @@ char *ucstrstr(char *, const char *);
 #endif
 
 #if defined(DEBUG) || defined(__COVERITY__)
-#define mkssert(e)	do { if (!(e)) exit(255); } while (/* CONSTCOND */ 0)
 #ifndef DEBUG_LEAKS
 #define DEBUG_LEAKS
 #endif
-#else
-#define mkssert(e)	do { } while (/* CONSTCOND */ 0)
 #endif
 
 #if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 551)
