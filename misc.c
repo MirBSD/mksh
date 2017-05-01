@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.273 2017/05/01 15:59:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.274 2017/05/01 19:44:29 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -917,8 +917,84 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 	return (s == se);
 }
 
+/*XXX this is a prime example for bsearch or a const hashtable */
+static const struct cclass {
+	const char *name;
+	uint32_t value;
+} cclasses[] = {
+	/* POSIX */
+	{ "alnum",	C_ALNUM	},
+	{ "alpha",	C_ALPHA	},
+	{ "blank",	C_BLANK	},
+	{ "cntrl",	C_CNTRL	},
+	{ "digit",	C_DIGIT	},
+	{ "graph",	C_GRAPH	},
+	{ "lower",	C_LOWER	},
+	{ "print",	C_PRINT	},
+	{ "punct",	C_PUNCT	},
+	{ "space",	C_SPACE	},
+	{ "upper",	C_UPPER	},
+	{ "xdigit",	C_SEDEC	},
+	/* BSD */
+	/* "<" and ">" are handled inline */
+	/* GNU bash */
+	{ "ascii",	C_ASCII	},
+	{ "word",	C_ALNUX	},
+	/* mksh */
+	{ "sh_alias",	C_ALIAS	},
+	{ "sh_edq",	C_EDQ	},
+	{ "sh_ifs",	C_IFS	},
+	{ "sh_ifsws",	C_IFSWS	},
+	{ "sh_nl",	C_NL	},
+	{ "sh_quote",	C_QUOTE	},
+	/* sentinel */
+	{ NULL,		0	}
+};
+
 static const unsigned char *
 gmatch_cclass(const unsigned char *p, unsigned char sub)
+#if 0
+gmatch_cclass(const unsigned char *pat, unsigned char sc)
+{
+	unsigned char c, subc;
+	const unsigned char *p = pat, *s;
+	bool found = false;
+	bool negated = false;
+
+	/* check for negation */
+	if (ISMAGIC(p[0]) && ord(p[1]) == ord('!')) {
+		p += 2;
+		negated = true;
+	}
+	/* make initial ] non-MAGIC */
+	if (ISMAGIC(p[0]) && ord(p[1]) == ord(']'))
+		++p;
+	/* iterate over bracket expression, debunk()ing on the fly */
+	while ((c = *p++)) {
+		/* non-regular character? */
+		if (ISMAGIC(c)) {
+			/* MAGIC + NUL cannot happen */
+			if (!(c = *p++))
+				break;
+			/* terminating bracket? */
+			if (ord(c) == ord(']')) {
+				/* accept and return */
+				return (found != negated ? p : NULL);
+			}
+			/* sub-bracket expressions */
+			if (ord(c) == ord('[') && (
+			    /* collating element? */
+			    ord(*p) == ord('.') ||
+			    /* equivalence class? */
+			    ord(*p) == ord('=') ||
+			    /* character class? */
+			    ord(*p) == ord(':'))) {
+				/* must stop with exactly the same c */
+				subc = *p++;
+				/* save away start of substring */
+				s = p;
+}
+#endif
 {
 	unsigned char c, d;
 	bool notp, found = false;

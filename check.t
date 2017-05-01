@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.786 2017/04/29 21:49:04 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.787 2017/05/01 19:44:26 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,58 +30,62 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R55 2017/04/27
+	@(#)MIRBSD KSH R55 2017/05/01
 description:
-	Check version of shell.
+	Check base version of full shell
 stdin:
-	echo $KSH_VERSION
+	echo ${KSH_VERSION%%' +'*}
 name: KSH_VERSION
-category: !shell:legacy-yes,!shell:textmode-yes,!shell:ebcdic-yes
+category: !shell:legacy-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R55 2017/04/27
+	@(#)LEGACY KSH R55 2017/05/01
 description:
-	Check version of legacy shell.
+	Check base version of legacy shell
 stdin:
-	echo $KSH_VERSION
+	echo ${KSH_VERSION%%' +'*}
 name: KSH_VERSION-legacy
-category: !shell:legacy-no,!shell:textmode-yes,!shell:ebcdic-yes
+category: !shell:legacy-no
 ---
-expected-stdout:
-	@(#)MIRBSD KSH R55 2017/04/27 +EBCDIC
+name: KSH_VERSION-ascii
 description:
-	Check version of shell.
+	Check that the shell version tag does not include EBCDIC
+category: !shell:ebcdic-yes
 stdin:
-	echo $KSH_VERSION
+	for x in $KSH_VERSION; do
+		[[ $x = '+EBCDIC' ]] && exit 1
+	done
+	exit 0
+---
 name: KSH_VERSION-ebcdic
-category: !shell:legacy-yes,!shell:textmode-yes,!shell:ebcdic-no
----
-expected-stdout:
-	@(#)LEGACY KSH R55 2017/04/27 +EBCDIC
 description:
-	Check version of legacy shell.
+	Check that the shell version tag includes EBCDIC
+category: !shell:ebcdic-no
 stdin:
-	echo $KSH_VERSION
-name: KSH_VERSION-legacy-ebcdic
-category: !shell:legacy-no,!shell:textmode-yes,!shell:ebcdic-no
+	for x in $KSH_VERSION; do
+		[[ $x = '+EBCDIC' ]] && exit 0
+	done
+	exit 1
 ---
-expected-stdout:
-	@(#)MIRBSD KSH R55 2017/04/27 +TEXTMODE
+name: KSH_VERSION-binmode
 description:
-	Check version of shell.
+	Check that the shell version tag does not include TEXTMODE
+category: !shell:textmode-yes
 stdin:
-	echo $KSH_VERSION
+	for x in $KSH_VERSION; do
+		[[ $x = '+TEXTMODE' ]] && exit 1
+	done
+	exit 0
+---
 name: KSH_VERSION-textmode
-category: !shell:legacy-yes,!shell:textmode-no
----
-expected-stdout:
-	@(#)LEGACY KSH R55 2017/04/27 +TEXTMODE
 description:
-	Check version of legacy shell.
+	Check that the shell version tag includes TEXTMODE
+category: !shell:textmode-no
 stdin:
-	echo $KSH_VERSION
-name: KSH_VERSION-legacy-textmode
-category: !shell:legacy-no,!shell:textmode-no
+	for x in $KSH_VERSION; do
+		[[ $x = '+TEXTMODE' ]] && exit 0
+	done
+	exit 1
 ---
 name: selftest-1
 description:
@@ -2353,16 +2357,25 @@ expected-stdout:
 name: glob-bad-1
 description:
 	Check that [ matches itself if it's not a valid bracket expr
+	but does not prevent globbing, while backslash-escaping does
 file-setup: dir 755 "[x"
 file-setup: file 644 "[x/foo"
 stdin:
 	echo [*
 	echo *[x
 	echo [x/*
+	:>'ab[x'
+	:>'a[a-z][x'
+	echo a[a-z][*
+	echo a[a-z]*
+	echo a[a\-z]*
 expected-stdout:
 	[x
 	[x
 	[x/foo
+	ab[x
+	ab[x
+	a[a-z]*
 ---
 name: glob-bad-2
 description:
@@ -2470,10 +2483,32 @@ file-setup: file 644 "cbc"
 file-setup: file 644 "dbc"
 file-setup: file 644 "ebc"
 file-setup: file 644 "-bc"
+file-setup: file 644 "@bc"
 stdin:
 	echo [a-c-e]*
+	#XXX TODO: echo [a--@]*
+	# -> @bc
 expected-stdout:
 	-bc abc bbc cbc ebc
+---
+name: glob-word-1
+description:
+	Check BSD word boundary matches
+stdin:
+	t() { [[ $1 = *[[:\<:]]bar[[:\>:]]* ]]; echo =$?; }
+	t 'foo bar baz'
+	t 'foobar baz'
+	t 'foo barbaz'
+	t 'bar'
+	t '_bar'
+	t 'bar_'
+expected-stdout:
+	=0
+	=1
+	=1
+	=0
+	=1
+	=1
 ---
 name: glob-trim-1
 description:
