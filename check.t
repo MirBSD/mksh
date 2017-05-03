@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.788 2017/05/03 16:17:08 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.789 2017/05/03 17:48:06 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2487,10 +2487,10 @@ file-setup: file 644 "-bc"
 file-setup: file 644 "@bc"
 stdin:
 	echo [a-c-e]*
-	#XXX TODO: echo [a--@]*
-	# -> @bc
+	echo [a--@]*
 expected-stdout:
 	-bc abc bbc cbc ebc
+	@bc
 ---
 name: glob-word-1
 description:
