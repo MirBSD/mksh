@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.722 2017/05/03 13:00:09 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.723 2017/05/03 14:51:14 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -2454,9 +2454,6 @@ cat >test.sh <<-EOF
 	set -A args -- '$srcdir/check.pl' -p "\$pflag"
 	if $ebcdic; then
 		args[\${#args[*]}]=-E
-		x=shell:ebcdic-yes,shell:ascii-no
-	else
-		x=shell:ebcdic-no,shell:ascii-yes
 	fi
 	for y in "\${check_categories[@]}"; do
 		x=\$x,\$y
