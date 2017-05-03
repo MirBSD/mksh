@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.46 2017/05/03 13:00:10 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.47 2017/05/03 14:51:15 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -266,6 +266,14 @@ if (defined $opt_t) {
     $default_time_limit = $opt_t;
 }
 $program_kludge = defined $opt_P ? $opt_P : 0;
+
+if ($is_ebcdic) {
+	$categories{'shell:ebcdic-yes'} = 1;
+	$categories{'shell:ascii-no'} = 1;
+} else {
+	$categories{'shell:ebcdic-no'} = 1;
+	$categories{'shell:ascii-yes'} = 1;
+}
 
 if (defined $opt_C) {
     foreach $c (split(',', $opt_C)) {
