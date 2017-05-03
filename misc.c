@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.274 2017/05/01 19:44:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.275 2017/05/03 17:48:08 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -952,14 +952,13 @@ static const struct cclass {
 };
 
 static const unsigned char *
-gmatch_cclass(const unsigned char *p, unsigned char sub)
-#if 0
 gmatch_cclass(const unsigned char *pat, unsigned char sc)
 {
-	unsigned char c, subc;
+	unsigned char c, subc, lc;
 	const unsigned char *p = pat, *s;
 	bool found = false;
 	bool negated = false;
+	char *subp;
 
 	/* check for negation */
 	if (ISMAGIC(p[0]) && ord(p[1]) == ord('!')) {
@@ -971,6 +970,7 @@ gmatch_cclass(const unsigned char *pat, unsigned char sc)
 		++p;
 	/* iterate over bracket expression, debunk()ing on the fly */
 	while ((c = *p++)) {
+ nextc:
 		/* non-regular character? */
 		if (ISMAGIC(c)) {
 			/* MAGIC + NUL cannot happen */
@@ -993,51 +993,162 @@ gmatch_cclass(const unsigned char *pat, unsigned char sc)
 				subc = *p++;
 				/* save away start of substring */
 				s = p;
-}
-#endif
-{
-	unsigned char c, d;
-	bool notp, found = false;
-	const unsigned char *orig_p = p;
+				/* arbitrarily many chars in betwixt */
+				while ((c = *p++))
+					/* but only this sequence... */
+					if (c == subc && ISMAGIC(*p) &&
+					    ord(p[1]) == ord(']')) {
+						/* accept, terminate */
+						p += 2;
+						break;
+					}
+				/* EOS without: reject bracket expr */
+				if (!c)
+					break;
+				/* debunk substring */
+				strndupx(subp, s, p - s - 3, ATEMP);
+				debunk(subp, subp, p - s - 3 + 1);
+ cclass_common:
+				/* whither subexpression */
+				if (ord(subc) == ord(':')) {
+					const struct cclass *cls = cclasses;
 
-	if ((notp = tobool(ISMAGIC(*p) && *++p == '!')))
-		p++;
-	do {
-		c = *p++;
-		if (ISMAGIC(c)) {
-			c = *p++;
-			if ((c & 0x80) && !ISMAGIC(c)) {
-				/* extended pattern matching: *+?@! */
-				c &= 0x7F;
-				/* XXX the ( char isn't handled as part of [] */
-				if (c == ' ')
-					/* simile for @: plain (..) */
-					c = '(' /*)*/;
+					/* search for name in cclass list */
+					while (cls->name)
+						if (!strcmp(subp, cls->name)) {
+							/* found, match? */
+							if (ctype(sc,
+							    cls->value))
+								found = true;
+							/* break either way */
+							break;
+						} else
+							++cls;
+					/* that's all here */
+					afree(subp, ATEMP);
+					continue;
+				}
+				/* collating element or equivalence class */
+				/* Note: latter are treated as former */
+				if (ctype(subp[0], C_ASCII) && !subp[1])
+					/* [.a.] where a is one ASCII char */
+					c = subp[0];
+				else
+					/* force no match */
+					c = 0;
+				/* no longer needed */
+				afree(subp, ATEMP);
+			} else if (!ISMAGIC(c) && (c & 0x80)) {
+				/* 0x80|' ' is plain (...) */
+				if ((c &= 0x7F) != ' ') {
+					/* check single match NOW */
+					if (sc == c)
+						found = true;
+					/* next character is (...) */
+				}
+				c = '('/*)*/;
 			}
 		}
-		if (c == '\0')
-			/* No closing ] - act as if the opening [ was quoted */
-			return (sub == '[' ? orig_p : NULL);
-		if (ISMAGIC(p[0]) && p[1] == '-' &&
-		    (!ISMAGIC(p[2]) || p[3] != ']')) {
-			/* MAGIC- */
-			p += 2;
-			d = *p++;
-			if (ISMAGIC(d)) {
-				d = *p++;
-				if ((d & 0x80) && !ISMAGIC(d))
-					d &= 0x7f;
-			}
-			/* POSIX says this is an invalid expression */
-			if (c > d)
-				return (NULL);
-		} else
-			d = c;
-		if (c == sub || (c <= sub && sub <= d))
-			found = true;
-	} while (!(ISMAGIC(p[0]) && p[1] == ']'));
+		/* range expression? */
+		if (!(ISMAGIC(p[0]) && ord(p[1]) == ord('-') &&
+		    /* not terminating bracket? */
+		    (!ISMAGIC(p[2]) || ord(p[3]) != ord(']')))) {
+			/* no, check single match */
+			if (sc == c)
+				/* note: sc is never NUL */
+				found = true;
+			/* do the next "first" character */
+			continue;
+		}
+		/* save lower range bound */
+		lc = c;
+		/* skip over the range operator */
+		p += 2;
+		/* do the same shit as above... almost */
+		subc = 0;
+		if (!(c = *p++))
+			break;
+		/* non-regular character? */
+		if (ISMAGIC(c)) {
+			/* MAGIC + NUL cannot happen */
+			if (!(c = *p++))
+				break;
+			/* sub-bracket expressions */
+			if (ord(c) == ord('[') && (
+			    /* collating element? */
+			    ord(*p) == ord('.') ||
+			    /* equivalence class? */
+			    ord(*p) == ord('=') ||
+			    /* character class? */
+			    ord(*p) == ord(':'))) {
+				/* must stop with exactly the same c */
+				subc = *p++;
+				/* save away start of substring */
+				s = p;
+				/* arbitrarily many chars in betwixt */
+				while ((c = *p++))
+					/* but only this sequence... */
+					if (c == subc && ISMAGIC(*p) &&
+					    ord(p[1]) == ord(']')) {
+						/* accept, terminate */
+						p += 2;
+						break;
+					}
+				/* EOS without: reject bracket expr */
+				if (!c)
+					break;
+				/* debunk substring */
+				strndupx(subp, s, p - s - 3, ATEMP);
+				debunk(subp, subp, p - s - 3 + 1);
+				/* whither subexpression */
+				if (ord(subc) == ord(':')) {
+					/* oops, not a range */
 
-	return ((found != notp) ? p+2 : NULL);
+					/* match single previous char */
+					if (lc && (sc == lc))
+						found = true;
+					/* match hyphen-minus */
+					if (ord(sc) == ord('-'))
+						found = true;
+					/* handle cclass common part */
+					goto cclass_common;
+				}
+				/* collating element or equivalence class */
+				/* Note: latter are treated as former */
+				if (ctype(subp[0], C_ASCII) && !subp[1])
+					/* [.a.] where a is one ASCII char */
+					c = subp[0];
+				else
+					/* force no match */
+					c = 0;
+				/* no longer needed */
+				afree(subp, ATEMP);
+				/* other meaning below */
+				subc = 0;
+			} else if (c == (0x80 | ' ')) {
+				/* 0x80|' ' is plain (...) */
+				c = '('/*)*/;
+			} else if (!ISMAGIC(c) && (c & 0x80)) {
+				c &= 0x7F;
+				subc = '('/*)*/;
+			}
+		}
+		/* now do the actual range match check */
+		if (lc != 0 && /* c != 0 && */ lc <= sc && sc <= c)
+			found = true;
+		/* forced next character? */
+		if (subc) {
+			c = subc;
+			goto nextc;
+		}
+		/* otherwise, just go on with the pattern string */
+	}
+	/* if we broke here, the bracket expression was invalid */
+	if (ord(sc) == ord('['))
+		/* initial opening bracket as literal match */
+		return (pat);
+	/* or rather no match */
+	return (NULL);
 }
 
 /* Look for next ) or | (if match_sep) in *(foo|bar) pattern */
