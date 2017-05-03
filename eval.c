@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.211 2017/05/03 15:33:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.212 2017/05/03 15:36:12 tg Exp $");
 
 /*
  * string expansion
@@ -65,11 +65,11 @@ typedef struct {
 #define IFS_IWS		3	/* beginning of word, ignore IFS WS */
 #define IFS_QUOTE	4	/* beg.w/quote, become IFS_WORD unless "$@" */
 
-#define STYPE_CHAR	0x7F
-#define STYPE_DBL	0x80
-#define STYPE_AT	0x100
-#define STYPE_SINGLE	0x17F
-#define STYPE_MASK	0x180
+#define STYPE_CHAR	0xFF
+#define STYPE_DBL	0x100
+#define STYPE_AT	0x200
+#define STYPE_SINGLE	0x2FF
+#define STYPE_MASK	0x300
 
 static int varsub(Expand *, const char *, const char *, int *, int *);
 static int comsub(Expand *, const char *, int);
