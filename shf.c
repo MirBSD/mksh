@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.93 2017/05/03 17:51:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.94 2017/05/03 21:50:33 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1234,7 +1234,7 @@ ebcdic_init(void)
 {
 	int i = 256;
 	unsigned char t;
-	bool mapcache[128];
+	bool mapcache[256];
 
 	while (i--)
 		ebcdic_rtt_toascii[i] = i;
@@ -1251,6 +1251,16 @@ ebcdic_init(void)
 	i = 256;
 	while (i--) {
 		t = ebcdic_rtt_toascii[i];
+		/* ensure unique round-trip capable mapping */
+		if (mapcache[t]) {
+			write(2, "mksh: duplicate EBCDIC to ASCII mapping\n", 40);
+			exit(255);
+		}
+		/*
+		 * since there are 256 input octets, this also ensures
+		 * the other mapping direction is completely filled
+		 */
+		mapcache[t] = true;
 		/* fill the complete round-trip map */
 		ebcdic_rtt_fromascii[t] = i;
 		/*
@@ -1264,14 +1274,9 @@ ebcdic_init(void)
 		 * an unsigned int, and or the raw unconverted EBCDIC
 		 * values with 0x01000000 instead.
 		 */
-		if (t < 0x80U) {
-			if (mapcache[t]) {
-				write(2, "mksh: duplicate EBCDIC to ASCII mapping\n", 40);
-				exit(255);
-			}
-			mapcache[t] = true;
+		if (t < 0x80U)
 			ebcdic_map[i] = (unsigned short)ord(t);
-		} else
+		else
 			ebcdic_map[i] = (unsigned short)(0x100U | ord(i));
 	}
 	if (ebcdic_rtt_toascii[0] || ebcdic_rtt_fromascii[0] || ebcdic_map[0]) {
