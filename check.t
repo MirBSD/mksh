@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.787 2017/05/01 19:44:26 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.788 2017/05/03 16:17:08 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright Â© 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2325,6 +2325,7 @@ expected-stdout:
 name: eglob-utf8-1
 description:
 	UTF-8 mode differences for eglobbing
+category: !shell:ebcdic-yes
 stdin:
 	s=blÃ¶d
 	set +U
@@ -2765,6 +2766,7 @@ expected-stdout:
 name: heredoc-10
 description:
 	Check direct here document assignment
+category: !shell:ebcdic-yes
 stdin:
 	x=u
 	va=<<EOF
@@ -2813,6 +2815,62 @@ expected-stdout:
 	} vc={=c u \x40=
 	} vd={=d u \x40=
 	} ve={=e $x \x40=
+	} vf={=f $x @=
+	} |
+	| vapp1^vapp2^ |
+---
+name: heredoc-10-ebcdic
+description:
+	Check direct here document assignment
+category: !shell:ebcdic-no
+stdin:
+	x=u
+	va=<<EOF
+	=a $x \x7C=
+	EOF
+	vb=<<'EOF'
+	=b $x \x7C=
+	EOF
+	function foo {
+		vc=<<-EOF
+			=c $x \x7C=
+		EOF
+	}
+	fnd=$(typeset -f foo)
+	print -r -- "$fnd"
+	function foo {
+		echo blub
+	}
+	foo
+	eval "$fnd"
+	foo
+	# rather nonsensical, butâ€¦
+	vd=<<<"=d $x \x7C="
+	ve=<<<'=e $x \x7C='
+	vf=<<<$'=f $x \x7C='
+	# now check
+	print -r -- "| va={$va} vb={$vb} vc={$vc} vd={$vd} ve={$ve} vf={$vf} |"
+	# check append
+	v=<<-EOF
+		vapp1
+	EOF
+	v+=<<-EOF
+		vapp2
+	EOF
+	print -r -- "| ${v//$'\n'/^} |"
+expected-stdout:
+	function foo {
+		vc=<<-EOF 
+	=c $x \x7C=
+	EOF
+	
+	} 
+	blub
+	| va={=a u \x7C=
+	} vb={=b $x \x7C=
+	} vc={=c u \x7C=
+	} vd={=d u \x7C=
+	} ve={=e $x \x7C=
 	} vf={=f $x @=
 	} |
 	| vapp1^vapp2^ |
@@ -5104,18 +5162,34 @@ expected-stdout:
 	2 :10/8,16: .
 	3 :10/10,16: .
 ---
-name: integer-base-check-numeric-from
+name: integer-base-check-numeric-from-1
 description:
-	Check behaviour for base one to 36, and that 37 degrades to 10
+	Check behaviour for base one
+category: !shell:ebcdic-yes
 stdin:
 	echo 1:$((1#1))0.
+expected-stdout:
+	1:490.
+---
+name: integer-base-check-numeric-from-1-ebcdic
+description:
+	Check behaviour for base one
+category: !shell:ebcdic-no
+stdin:
+	echo 1:$((1#1))0.
+expected-stdout:
+	1:2410.
+---
+name: integer-base-check-numeric-from-2
+description:
+	Check behaviour for base two to 36, and that 37 degrades to 10
+stdin:
 	i=1
 	while (( ++i <= 37 )); do
 		eval 'echo '$i':$(('$i'#10)).'
 	done
 	echo 37:$($__progname -c 'echo $((37#10))').$?:
 expected-stdout:
-	1:490.
 	2:2.
 	3:3.
 	4:4.
@@ -5154,18 +5228,41 @@ expected-stdout:
 	37:10.
 	37:10.0:
 ---
-name: integer-base-check-numeric-to
+name: integer-base-check-numeric-to-1
 description:
-	Check behaviour for base one to 36, and that 37 degrades to 10
+	Check behaviour for base one
+category: !shell:ebcdic-yes
 stdin:
-	i=0
+	i=1
+	typeset -Uui$i x=0x40
+	eval "typeset -i10 y=$x"
+	print $i:$x.$y.
+expected-stdout:
+	1:1#@.64.
+---
+name: integer-base-check-numeric-to-1-ebcdic
+description:
+	Check behaviour for base one
+category: !shell:ebcdic-no
+stdin:
+	i=1
+	typeset -Uui$i x=0x7C
+	eval "typeset -i10 y=$x"
+	print $i:$x.$y.
+expected-stdout:
+	1:1#@.124.
+---
+name: integer-base-check-numeric-to-2
+description:
+	Check behaviour for base two to 36, and that 37 degrades to 10
+stdin:
+	i=1
 	while (( ++i <= 37 )); do
 		typeset -Uui$i x=0x40
 		eval "typeset -i10 y=$x"
 		print $i:$x.$y.
 	done
 expected-stdout:
-	1:1#@.64.
 	2:2#1000000.64.
 	3:3#2101.64.
 	4:4#1000.64.
@@ -8303,7 +8400,7 @@ description:
 	multibyte character of the shell input (with -c, from standard
 	input, as file, or as eval argument), but nowhere else
 # breaks on Mac OSX (HFS+ non-standard Unicode canonical decomposition)
-category: !os:darwin
+category: !os:darwin,!shell:ebcdic-yes
 stdin:
 	mkdir foo
 	print '#!/bin/sh\necho ohne' >foo/fnord
@@ -8360,7 +8457,7 @@ description:
 	note: Ultrix perl5 t4 returns 65280 (exit-code 255) and no text
 	XXX fails when LD_PRELOAD is set with -e and Perl chokes it (ASan)
 need-pass: no
-category: !os:cygwin,!os:msys,!os:ultrix,!os:uwin-nt,!smksh
+category: !os:cygwin,!os:msys,!os:ultrix,!os:uwin-nt,!smksh,!shell:ebcdic-yes
 env-setup: !FOO=BAR!
 stdin:
 	print '#!'"$__progname"'\nprint "1 a=$ENV{FOO}";' >t1
@@ -9381,6 +9478,7 @@ expected-stdout:
 name: varexpand-special-hash
 description:
 	Check special ${var@x} expansion for x=hash
+category: !shell:ebcdic-yes
 stdin:
 	typeset -i8 foo=10
 	bar=baz
@@ -9388,6 +9486,18 @@ stdin:
 	print ${foo@#} ${bar@#} ${baz@#} .
 expected-stdout:
 	9B15FBFB CFBDD32B 00000000 .
+---
+name: varexpand-special-hash-ebcdic
+description:
+	Check special ${var@x} expansion for x=hash
+category: !shell:ebcdic-no
+stdin:
+	typeset -i8 foo=10
+	bar=baz
+	unset baz
+	print ${foo@#} ${bar@#} ${baz@#} .
+expected-stdout:
+	016AE33D 9769C4AF 00000000 .
 ---
 name: varexpand-special-quote
 description:
@@ -10448,6 +10558,7 @@ expected-stdout:
 name: integer-base-one-5A
 description:
 	Check to see that weâ€™re NUL and Unicode safe
+category: !shell:ebcdic-yes
 stdin:
 	set +U
 	print 'a\0b\xfdz' >x
@@ -10457,6 +10568,20 @@ stdin:
 	print ${y[*]} .
 expected-stdout:
 	16#61 16#0 16#62 16#FD 16#7A .
+---
+name: integer-base-one-5E
+description:
+	Check to see that weâ€™re NUL and Unicode safe
+category: !shell:ebcdic-no
+stdin:
+	set +U
+	print 'a\0b\xfdz' >x
+	read -a y <x
+	set -U
+	typeset -Uui16 y
+	print ${y[*]} .
+expected-stdout:
+	16#81 16#0 16#82 16#FD 16#A9 .
 ---
 name: integer-base-one-5W
 description:
@@ -12555,8 +12680,19 @@ expected-stdout:
 name: echo-test-1
 description:
 	Test what the echo builtin does (mksh)
+category: !shell:ebcdic-yes
 stdin:
 	echo -n 'foo\x40bar'
+	echo -e '\tbaz'
+expected-stdout:
+	foo@bar	baz
+---
+name: echo-test-1-ebcdic
+description:
+	Test what the echo builtin does (mksh)
+category: !shell:ebcdic-no
+stdin:
+	echo -n 'foo\x7Cbar'
 	echo -e '\tbaz'
 expected-stdout:
 	foo@bar	baz
@@ -12591,7 +12727,7 @@ expected-stdout:
 name: echo-test-3-normal
 description:
 	Test what the echo builtin does, and test a compatibility flag.
-category: !mnbsdash
+category: !mnbsdash,!shell:ebcdic-yes
 stdin:
 	"$__progname" -c 'echo -n 1=\\x40$1; echo -e \\x2E' -- foo bar
 	"$__progname" -o posix -c 'echo -n 2=\\x40$1; echo -e \\x2E' -- foo bar
@@ -12600,6 +12736,19 @@ expected-stdout:
 	1=@foo.
 	2=\x40foo-e \x2E
 	3=\x40foo-e \x2E
+---
+name: echo-test-3-ebcdic
+description:
+	Test what the echo builtin does, and test a compatibility flag.
+category: !mnbsdash,!shell:ebcdic-no
+stdin:
+	"$__progname" -c 'echo -n 1=\\x7C$1; echo -e \\x2E' -- foo bar
+	"$__progname" -o posix -c 'echo -n 2=\\x7C$1; echo -e \\x2E' -- foo bar
+	"$__progname" -o sh -c 'echo -n 3=\\x7C$1; echo -e \\x2E' -- foo bar
+expected-stdout:
+	1=@foo.
+	2=\x7Cfoo-e \x2E
+	3=\x7Cfoo-e \x2E
 ---
 name: utilities-getopts-1
 description:
@@ -13036,7 +13185,7 @@ name: duffs-device
 description:
 	Check that the compiler did not optimise-break them
 	(lex.c has got a similar one in SHEREDELIM)
-category: !shell:faux-ebcdic
+category: !shell:faux-ebcdic,!shell:ebcdic-yes
 stdin:
 	set +U
 	s=
@@ -13048,6 +13197,22 @@ stdin:
 	typeset -p s
 expected-stdout:
 	typeset s=$'\001\002\003\004\005\006\a\b\t\n\v\f\r\016\017\020\021\022\023\024\025\026\027\030\031\032\E\034\035\036\037 !"#$%&\047()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\177\200\201\202\203\204\205\206\207\210\211\212\213\214\215\216\217\220\221\222\223\224\225\226\227\230\231\232\233\234\235\236\237\240\241\242\243\244\245\246\247\250\251\252\253\254\255\256\257\260\261\262\263\264\265\266\267\270\271\272\273\274\275\276\277\300\301\302\303\304\305\306\307\310\311\312\313\314\315\316\317\320\321\322\323\324\325\326\327\330\331\332\333\334\335\336\337\340\341\342\343\344\345\346\347\350\351\352\353\354\355\356\357\360\361\362\363\364\365\366\367\370\371\372\373\374\375\376\377\u00A0\u20AC\uFFFD\357\277\276\357\277\277\360\220\200\200.'
+---
+name: duffs-device-ebcdic
+description:
+	Check that the compiler did not optimise-break them
+category: !shell:ebcdic-no
+stdin:
+	set +U
+	s=
+	typeset -i1 i=0
+	while (( ++i < 256 )); do
+		s+=${i#1#}
+	done
+	#s+=$'\xC2\xA0\xE2\x82\xAC\xEF\xBF\xBD\xEF\xBF\xBE\xEF\xBF\xBF\xF0\x90\x80\x80.' #XXX
+	typeset -p s
+expected-stdout:
+	typeset s=$'\001\002\003\004\t\006\007\010\011\012\v\f\r\016\017\020\021\022\023\024\n\b\027\030\031\032\033\034\035\036\037\040\041\042\043\044\045\046\E\050\051\052\053\054\055\056\a\060\061\062\063\064\065\066\067\070\071\072\073\074\075\076\077  âäàáãåçñ¢.<(+|&éêëèíîïìß!$*);^-/ÂÄÀÁÃÅÇÑ¦,%_>?øÉÊËÈÍÎÏÌ`:#@\175="Øabcdefghi«»ðýþ±°jklmnopqrªºæ¸Æ¤µ~stuvwxyz¡¿Ð[Þ®¬£¥·©§¶¼½¾Ý¨¯]´×{ABCDEFGHI­ôöòóõ}JKLMNOPQR¹ûüùúÿ\\÷STUVWXYZ²ÔÖÒÓÕ0123456789³ÛÜÙÚ\377'
 ---
 name: duffs-device-faux-EBCDIC
 description:
