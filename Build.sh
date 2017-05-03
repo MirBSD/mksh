@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.721 2017/05/01 20:03:25 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.722 2017/05/03 13:00:09 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -55,11 +55,10 @@ alls=______________________________________________________________
 
 case `echo a | tr '\201' X` in
 X)
-	ebcdic=true
+	# EBCDIC build system
 	lfcr='\n\r'
 	;;
 *)
-	ebcdic=false
 	lfcr='\012\015'
 	;;
 esac
@@ -507,7 +506,7 @@ last=
 tfn=
 legacy=0
 textmode=0
-ebcdic=0
+ebcdic=false
 
 for i
 do
@@ -532,7 +531,7 @@ do
 		last=c
 		;;
 	:-E)
-		ebcdic=1
+		ebcdic=true
 		;;
 	:-G)
 		echo "$me: Do not call me with '-G'!" >&2
@@ -618,10 +617,7 @@ else
 	add_cppflags -DMKSH_LEGACY_MODE
 fi
 
-if test $ebcdic = 0; then
-	check_categories="$check_categories shell:ebcdic-no shell:ascii-yes"
-else
-	check_categories="$check_categories shell:ebcdic-yes shell:ascii-no"
+if $ebcdic; then
 	add_cppflags -DMKSH_EBCDIC
 fi
 
@@ -2456,13 +2452,18 @@ cat >test.sh <<-EOF
 	done
 	shift \$((OPTIND - 1))
 	set -A args -- '$srcdir/check.pl' -p "\$pflag"
-	x=
+	if $ebcdic; then
+		args[\${#args[*]}]=-E
+		x=shell:ebcdic-yes,shell:ascii-no
+	else
+		x=shell:ebcdic-no,shell:ascii-yes
+	fi
 	for y in "\${check_categories[@]}"; do
 		x=\$x,\$y
 	done
 	if [[ -n \$x ]]; then
 		args[\${#args[*]}]=-C
-		args[\${#args[*]}]=\${x#,}
+		args[\${#args[*]}]=\$x
 	fi
 	if (( usee )); then
 		args[\${#args[*]}]=-e
