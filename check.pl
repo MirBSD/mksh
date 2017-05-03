@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.45 2017/05/01 19:43:23 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.46 2017/05/03 13:00:10 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -247,7 +247,7 @@ $nxpassed = 0;
 
 %known_tests = ();
 
-if (!getopts('C:e:Pp:s:T:t:U:v')) {
+if (!getopts('C:Ee:Pp:s:T:t:U:v')) {
     print STDERR $Usage;
     exit 1;
 }
@@ -256,6 +256,7 @@ die "$prog: no program specified (use -p)\n" if !defined $opt_p;
 die "$prog: no test set specified (use -s)\n" if !defined $opt_s;
 $test_prog = $opt_p;
 $verbose = defined $opt_v && $opt_v;
+$is_ebcdic = defined $opt_E && $opt_E;
 $test_set = $opt_s;
 $temp_base = $opt_T || "/tmp";
 $utflocale = $opt_U || (($os eq "hpux") ? "en_US.utf8" : "en_US.UTF-8");
@@ -883,6 +884,20 @@ format_char
     local($ch, $s);
 
     $ch = ord($_[0]);
+
+    if ($is_ebcdic) {
+	if ($ch == 0x15) {
+		return '\n';
+	} elsif ($ch == 0x16) {
+		return '\b';
+	} elsif ($ch == 0x05) {
+		return '\t';
+	} elsif ($ch < 64 || $ch == 255) {
+		return sprintf("X'%02X'", $ch);
+	}
+	return chr($ch);
+    }
+
     if ($ch == 10) {
 	return '\n';
     } elsif ($ch == 13) {
