@@ -25,7 +25,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.92 2017/04/28 11:31:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.93 2017/05/03 17:51:06 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1273,6 +1273,10 @@ ebcdic_init(void)
 			ebcdic_map[i] = (unsigned short)ord(t);
 		} else
 			ebcdic_map[i] = (unsigned short)(0x100U | ord(i));
+	}
+	if (ebcdic_rtt_toascii[0] || ebcdic_rtt_fromascii[0] || ebcdic_map[0]) {
+		write(2, "mksh: NUL not at position 0\n", 28);
+		exit(255);
 	}
 }
 #endif
