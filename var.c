@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.217 2017/04/29 22:04:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.218 2017/05/05 20:36:03 tg Exp $");
 
 /*-
  * Variables
@@ -414,9 +414,11 @@ str_val(struct tbl *vp)
 
 			*(s = strbuf) = '1';
 			s[1] = '#';
-			if (!UTFMODE || ((n & 0xFF80) == 0xEF80))
+			if (!UTFMODE)
+				s[2] = (unsigned char)n;
+			else if ((n & 0xFF80) == 0xEF80)
 				/* OPTU-16 -> raw octet */
-				s[2] = n & 0xFF;
+				s[2] = asc2rtt(n & 0xFF);
 			else
 				sz = utf_wctomb(s + 2, n);
 			s[2 + sz] = '\0';
@@ -577,7 +579,7 @@ getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 					 * the same as 1#\x80 does, thus is
 					 * not round-tripping correctly XXX)
 					 */
-					wc = 0xEF00 + *(const unsigned char *)s;
+					wc = 0xEF00 + rtt2asc(*s);
 				nump->u = (mksh_uari_t)wc;
 				return (1);
 			} else if (base > 36)

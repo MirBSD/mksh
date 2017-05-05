@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.335 2017/04/29 22:04:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.336 2017/05/05 20:36:00 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -714,8 +714,8 @@ x_longest_prefix(int nwords, char * const * words)
 				break;
 			}
 	/* false for nwords==1 as 0 = words[0][prefix_len] then */
-	if (UTFMODE && prefix_len && (words[0][prefix_len] & 0xC0) == 0x80)
-		while (prefix_len && (words[0][prefix_len] & 0xC0) != 0xC0)
+	if (UTFMODE && prefix_len && (rtt2asc(words[0][prefix_len]) & 0xC0) == 0x80)
+		while (prefix_len && (rtt2asc(words[0][prefix_len]) & 0xC0) != 0xC0)
 			--prefix_len;
 	return (prefix_len);
 }
@@ -1186,17 +1186,19 @@ x_e_getmbc(char *sbuf)
 	if (c == -1)
 		return (-1);
 	if (UTFMODE) {
-		if ((buf[0] >= 0xC2) && (buf[0] < 0xF0)) {
+		if ((rtt2asc(buf[0]) >= (unsigned char)0xC2) &&
+		    (rtt2asc(buf[0]) < (unsigned char)0xF0)) {
 			c = x_e_getc();
 			if (c == -1)
 				return (-1);
-			if ((c & 0xC0) != 0x80) {
+			if ((rtt2asc(c) & 0xC0) != 0x80) {
 				x_e_ungetc(c);
 				return (1);
 			}
 			buf[pos++] = c;
 		}
-		if ((buf[0] >= 0xE0) && (buf[0] < 0xF0)) {
+		if ((rtt2asc(buf[0]) >= (unsigned char)0xE0) &&
+		    (rtt2asc(buf[0]) < (unsigned char)0xF0)) {
 			/* XXX x_e_ungetc is one-octet only */
 			buf[pos++] = c = x_e_getc();
 			if (c == -1)
@@ -1317,7 +1319,7 @@ x_insert(int c)
 		return (KSTD);
 	}
 	if (UTFMODE) {
-		if (((c & 0xC0) == 0x80) && left) {
+		if (((rtt2asc(c) & 0xC0) == 0x80) && left) {
 			str[pos++] = c;
 			if (!--left) {
 				str[pos] = '\0';
@@ -1614,7 +1616,7 @@ x_bs0(char *cp, char *lower_bound)
 {
 	if (UTFMODE)
 		while ((!lower_bound || (cp > lower_bound)) &&
-		    ((*(unsigned char *)cp & 0xC0) == 0x80))
+		    ((rtt2asc(*cp) & 0xC0) == 0x80))
 			--cp;
 	return (cp);
 }
@@ -1635,7 +1637,7 @@ x_size2(char *cp, char **dcp)
 {
 	uint8_t c = *(unsigned char *)cp;
 
-	if (UTFMODE && (c > 0x7F))
+	if (UTFMODE && (rtt2asc(c) > 0x7F))
 		return (utf_widthadj(cp, (const char **)dcp));
 	if (dcp)
 		*dcp = cp + 1;
@@ -2903,6 +2905,7 @@ x_e_putc2(int c)
 	if (ctype(c, C_CR | C_LF))
 		x_col = 0;
 	if (x_col < xx_cols) {
+#ifndef MKSH_EBCDIC
 		if (UTFMODE && (c > 0x7F)) {
 			char utf_tmp[3];
 			size_t x;
@@ -2917,6 +2920,7 @@ x_e_putc2(int c)
 				x_putc(utf_tmp[2]);
 			width = utf_wcwidth(c);
 		} else
+#endif
 			x_putc(c);
 		switch (c) {
 		case KSH_BEL:
@@ -2950,7 +2954,13 @@ x_e_putc3(const char **cp)
 			width = utf_widthadj(*cp, (const char **)&cp2);
 			if (cp2 == *cp + 1) {
 				(*cp)++;
+#ifdef MKSH_EBCDIC
+				x_putc(asc2rtt(0xEF));
+				x_putc(asc2rtt(0xBF));
+				x_putc(asc2rtt(0xBD));
+#else
 				shf_puts("\xEF\xBF\xBD", shl_out);
+#endif
 			} else
 				while (*cp < cp2)
 					x_putcf(*(*cp)++);

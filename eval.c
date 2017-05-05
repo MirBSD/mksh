@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.212 2017/05/03 15:36:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.213 2017/05/05 20:36:01 tg Exp $");
 
 /*
  * string expansion
@@ -1174,7 +1174,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 					if (!UTFMODE || (len = utf_mbtowc(&wc,
 					    s)) == (size_t)-1)
 						/* not UTFMODE or not UTF-8 */
-						wc = (unsigned char)(*s++);
+						wc = rtt2asc(*s++);
 					else
 						/* UTFMODE and UTF-8 */
 						s += len;
@@ -1522,7 +1522,7 @@ trimsub(char *str, char *pat, int how)
 				goto trimsub_match;
 			if (UTFMODE) {
 				char *op = p;
-				while ((p-- > str) && ((*p & 0xC0) == 0x80))
+				while ((p-- > str) && ((rtt2asc(*p) & 0xC0) == 0x80))
 					;
 				if ((p < str) || (p + utf_ptradj(p) != op))
 					p = op - 1;
