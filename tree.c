@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.91 2017/04/28 03:28:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.92 2017/05/05 20:36:03 tg Exp $");
 
 #define INDENT	8
 
@@ -805,7 +805,7 @@ vistree(char *dst, size_t sz, struct op *t)
 			goto vist_out;
 		*dst++ = '^';
 		c = ksh_unctrl(c);
-	} else if (UTFMODE && c > 0x7F) {
+	} else if (UTFMODE && rtt2asc(c) > 0x7F) {
 		/* better not try to display broken multibyte chars */
 		/* also go easy on the Unicode: no U+FFFD here */
 		c = '?';

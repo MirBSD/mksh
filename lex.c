@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.237 2017/04/28 00:38:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.238 2017/05/05 20:36:02 tg Exp $");
 
 /*
  * states while lexing word
@@ -1536,7 +1536,7 @@ pprompt(const char *cp, int ntruncate)
 				columns--;
 		} else if (*cp == delimiter)
 			indelimit = !indelimit;
-		else if (UTFMODE && ((unsigned char)*cp > 0x7F)) {
+		else if (UTFMODE && (rtt2asc(*cp) > 0x7F)) {
 			const char *cp2;
 			columns += utf_widthadj(cp, &cp2);
 			if (doprint && (indelimit ||
@@ -1754,19 +1754,19 @@ yyskiputf8bom(void)
 {
 	int c;
 
-	if ((unsigned char)(c = o_getsc_u()) != 0xEF) {
+	if (rtt2asc((c = o_getsc_u())) != 0xEF) {
 		ungetsc_i(c);
 		return;
 	}
-	if ((unsigned char)(c = o_getsc_u()) != 0xBB) {
+	if (rtt2asc((c = o_getsc_u())) != 0xBB) {
 		ungetsc_i(c);
-		ungetsc_i(0xEF);
+		ungetsc_i(asc2rtt(0xEF));
 		return;
 	}
-	if ((unsigned char)(c = o_getsc_u()) != 0xBF) {
+	if (rtt2asc((c = o_getsc_u())) != 0xBF) {
 		ungetsc_i(c);
-		ungetsc_i(0xBB);
-		ungetsc_i(0xEF);
+		ungetsc_i(asc2rtt(0xBB));
+		ungetsc_i(asc2rtt(0xEF));
 		return;
 	}
 	UTFMODE |= 8;
