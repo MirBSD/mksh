@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.276 2017/05/05 19:43:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.277 2017/05/05 22:53:30 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -746,7 +746,7 @@ has_globbing(const char *pat)
 			/* opening pattern */
 			saw_glob = true;
 			++nest;
-		} else if (ord(c) == ord(/*(*/')')) {
+		} else if (ord(c) == ord(/*(*/ ')')) {
 			/* closing pattern */
 			if (nest)
 				--nest;
@@ -779,8 +779,8 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 			sl = sc;
 			continue;
 		}
-		switch (*p++) {
-		case '[':
+		switch (ord(*p++)) {
+		case ord('['):
 			/* BSD cclass extension? */
 			if (ISMAGIC(p[0]) && ord(p[1]) == ord('[') &&
 			    ord(p[2]) == ord(':') &&
@@ -808,7 +808,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 				return (0);
 			break;
 
-		case '?':
+		case ord('?'):
 			if (sc == 0)
 				return (0);
 			if (UTFMODE) {
@@ -817,7 +817,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 			}
 			break;
 
-		case '*':
+		case ord('*'):
 			if (p == pe)
 				return (1);
 			s--;
@@ -833,14 +833,14 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 		 */
 
 		/* matches one or more times */
-		case 0x80|'+':
+		case 0x80|ord('+'):
 		/* matches zero or more times */
-		case 0x80|'*':
+		case 0x80|ord('*'):
 			if (!(prest = pat_scan(p, pe, false)))
 				return (0);
 			s--;
 			/* take care of zero matches */
-			if (p[-1] == (0x80 | '*') &&
+			if (ord(p[-1]) == (0x80 | ord('*')) &&
 			    do_gmatch(s, se, prest, pe, smin))
 				return (1);
 			for (psub = p; ; psub = pnext) {
@@ -858,16 +858,16 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 			return (0);
 
 		/* matches zero or once */
-		case 0x80|'?':
+		case 0x80|ord('?'):
 		/* matches one of the patterns */
-		case 0x80|'@':
+		case 0x80|ord('@'):
 		/* simile for @ */
-		case 0x80|' ':
+		case 0x80|ord(' '):
 			if (!(prest = pat_scan(p, pe, false)))
 				return (0);
 			s--;
 			/* Take care of zero matches */
-			if (p[-1] == (0x80 | '?') &&
+			if (ord(p[-1]) == (0x80 | ord('?')) &&
 			    do_gmatch(s, se, prest, pe, smin))
 				return (1);
 			for (psub = p; ; psub = pnext) {
@@ -884,7 +884,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 			return (0);
 
 		/* matches none of the patterns */
-		case 0x80|'!':
+		case 0x80|ord('!'):
 			if (!(prest = pat_scan(p, pe, false)))
 				return (0);
 			s--;
@@ -1046,7 +1046,7 @@ gmatch_cclass(const unsigned char *pat, unsigned char sc)
 						found = true;
 					/* next character is (...) */
 				}
-				c = '('/*)*/;
+				c = '(' /*)*/;
 			}
 		}
 		/* range expression? */
@@ -1127,10 +1127,10 @@ gmatch_cclass(const unsigned char *pat, unsigned char sc)
 				subc = 0;
 			} else if (c == (0x80 | ' ')) {
 				/* 0x80|' ' is plain (...) */
-				c = '('/*)*/;
+				c = '(' /*)*/;
 			} else if (!ISMAGIC(c) && (c & 0x80)) {
 				c &= 0x7F;
-				subc = '('/*)*/;
+				subc = '(' /*)*/;
 			}
 		}
 		/* now do the actual range match check */

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.213 2017/05/05 20:36:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.214 2017/05/05 22:53:27 tg Exp $");
 
 /*
  * string expansion
@@ -283,18 +283,18 @@ expand(
 		switch (type) {
 		case XBASE:
 			/* original prefixed string */
-			c = *sp++;
+			c = ord(*sp++);
 			switch (c) {
 			case EOS:
 				c = 0;
 				break;
 			case CHAR:
-				c = *sp++;
+				c = ord(*sp++);
 				break;
 			case QCHAR:
 				/* temporary quote */
 				quote |= 2;
-				c = *sp++;
+				c = ord(*sp++);
 				break;
 			case OQUOTE:
 				if (word != IFS_WORD)
@@ -320,21 +320,21 @@ expand(
 					case COMASUB:
 					case COMSUB:
 						*dp++ = '(';
-						c = ')';
+						c = ord(')');
 						break;
 					case FUNASUB:
 					case FUNSUB:
 					case VALSUB:
 						*dp++ = '{';
 						*dp++ = c == VALSUB ? '|' : ' ';
-						c = '}';
+						c = ord('}');
 						break;
 					}
 					while (*sp != '\0') {
 						Xcheck(ds, dp);
 						*dp++ = *sp++;
 					}
-					if (c == '}')
+					if (c == ord('}'))
 						*dp++ = ';';
 					*dp++ = c;
 				} else {
@@ -456,13 +456,13 @@ expand(
 						mid = beg + (wdscan(sp, ADELIM) - sp);
 						stg = beg + (wdscan(sp, CSUBST) - sp);
 						mid[-2] = EOS;
-						if (ord(mid[-1]) == ord(/*{*/'}')) {
+						if (ord(mid[-1]) == ord(/*{*/ '}')) {
 							sp += mid - beg - 1;
 							end = NULL;
 						} else {
 							end = mid +
 							    (wdscan(mid, ADELIM) - mid);
-							if (ord(end[-1]) != ord(/*{*/'}'))
+							if (ord(end[-1]) != ord(/*{*/ '}'))
 								/* more than max delimiters */
 								goto unwind_substsyn;
 							end[-2] = EOS;
@@ -506,7 +506,7 @@ expand(
 						p = s + (wdscan(sp, ADELIM) - sp);
 						d = s + (wdscan(sp, CSUBST) - sp);
 						p[-2] = EOS;
-						if (ord(p[-1]) == ord(/*{*/'}'))
+						if (ord(p[-1]) == ord(/*{*/ '}'))
 							d = NULL;
 						else
 							d[-2] = EOS;
@@ -1002,11 +1002,11 @@ expand(
 			tilde_ok <<= 1;
 			/* mark any special second pass chars */
 			if (!quote)
-				switch (c) {
-				case '[':
-				case '!':
-				case '-':
-				case ']':
+				switch (ord(c)) {
+				case ord('['):
+				case ord('!'):
+				case ord('-'):
+				case ord(']'):
 					/*
 					 * For character classes - doesn't hurt
 					 * to have magic !,-,]s outside of
@@ -1014,28 +1014,29 @@ expand(
 					 */
 					if (f & (DOPAT | DOGLOB)) {
 						fdo |= DOMAGIC;
-						if (c == '[')
+						if (c == ord('['))
 							fdo |= f & DOGLOB;
 						*dp++ = MAGIC;
 					}
 					break;
-				case '*':
-				case '?':
+				case ord('*'):
+				case ord('?'):
 					if (f & (DOPAT | DOGLOB)) {
 						fdo |= DOMAGIC | (f & DOGLOB);
 						*dp++ = MAGIC;
 					}
 					break;
-				case '{':
-				case '}':
-				case ',':
-					if ((f & DOBRACE) && (c == '{' /*}*/ ||
+				case ord('{'):
+				case ord('}'):
+				case ord(','):
+					if ((f & DOBRACE) &&
+					    (ord(c) == ord('{' /*}*/) ||
 					    (fdo & DOBRACE))) {
 						fdo |= DOBRACE|DOMAGIC;
 						*dp++ = MAGIC;
 					}
 					break;
-				case '=':
+				case ord('='):
 					/* Note first unquoted = for ~ */
 					if (!(f & DOTEMP) && (!Flag(FPOSIX) ||
 					    (f & DOASNTILDE)) && !saw_eq) {
@@ -1043,13 +1044,13 @@ expand(
 						tilde_ok = 1;
 					}
 					break;
-				case ':':
+				case ord(':'):
 					/* : */
 					/* Note unquoted : for ~ */
 					if (!(f & DOTEMP) && (f & DOASNTILDE))
 						tilde_ok = 1;
 					break;
-				case '~':
+				case ord('~'):
 					/*
 					 * tilde_ok is reset whenever
 					 * any of ' " $( $(( ${ } are seen.
@@ -1862,7 +1863,7 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 	char *p = exp_start;
 
 	/* search for open brace */
-	while ((p = strchr(p, MAGIC)) && p[1] != '{' /*}*/)
+	while ((p = strchr(p, MAGIC)) && ord(p[1]) != ord('{' /*}*/))
 		p += 2;
 	brace_start = p;
 
@@ -1873,9 +1874,9 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 		p += 2;
 		while (*p && count) {
 			if (ISMAGIC(*p++)) {
-				if (*p == '{' /*}*/)
+				if (ord(*p) == ord('{' /*}*/))
 					++count;
-				else if (*p == /*{*/ '}')
+				else if (ord(*p) == ord(/*{*/ '}'))
 					--count;
 				else if (*p == ',' && count == 1)
 					comma = p;
@@ -1907,9 +1908,9 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 	count = 1;
 	for (p = brace_start + 2; p != brace_end; p++) {
 		if (ISMAGIC(*p)) {
-			if (*++p == '{' /*}*/)
+			if (ord(*++p) == ord('{' /*}*/))
 				++count;
-			else if ((*p == /*{*/ '}' && --count == 0) ||
+			else if ((ord(*p) == ord(/*{*/ '}') && --count == 0) ||
 			    (*p == ',' && count == 1)) {
 				char *news;
 				int l1, l2, l3;

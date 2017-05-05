@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.835 2017/05/01 19:44:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.836 2017/05/05 22:53:30 tg Exp $");
 #endif
-#define MKSH_VERSION "R55 2017/05/01"
+#define MKSH_VERSION "R55 2017/05/05"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -258,6 +258,8 @@ typedef MKSH_TYPEDEF_SSIZE_T ssize_t;
 #ifndef MKSH_INCLUDES_ONLY
 
 /* EBCDIC fun */
+
+/* see the large comment in shf.c for an EBCDIC primer */
 
 #if defined(MKSH_FOR_Z_OS) && defined(__MVS__) && defined(__IBMC__) && defined(__CHARSET_LIB)
 # if !__CHARSET_LIB && !defined(MKSH_EBCDIC)
@@ -2171,76 +2173,76 @@ typedef union {
 #define HERES		10	/* max number of << in line */
 
 #ifdef MKSH_EBCDIC
-#define CTRL_AT	0x00
-#define CTRL_A	0x01
-#define CTRL_B	0x02
-#define CTRL_C	0x03
-#define CTRL_D	0x37
-#define CTRL_E	0x2D
-#define CTRL_F	0x2E
-#define CTRL_G	0x2F
-#define CTRL_H	0x16
-#define CTRL_I	0x05
-#define CTRL_J	0x15
-#define CTRL_K	0x0B
-#define CTRL_L	0x0C
-#define CTRL_M	0x0D
-#define CTRL_N	0x0E
-#define CTRL_O	0x0F
-#define CTRL_P	0x10
-#define CTRL_Q	0x11
-#define CTRL_R	0x12
-#define CTRL_S	0x13
-#define CTRL_T	0x3C
-#define CTRL_U	0x3D
-#define CTRL_V	0x32
-#define CTRL_W	0x26
-#define CTRL_X	0x18
-#define CTRL_Y	0x19
-#define CTRL_Z	0x3F
-#define CTRL_BO	0x27
-#define CTRL_BK	0x1C
-#define CTRL_BC	0x1D
-#define CTRL_CA	0x1E
-#define CTRL_US	0x1F
-#define CTRL_QM	0x07
+#define CTRL_AT	(0x00U)
+#define CTRL_A	(0x01U)
+#define CTRL_B	(0x02U)
+#define CTRL_C	(0x03U)
+#define CTRL_D	(0x37U)
+#define CTRL_E	(0x2DU)
+#define CTRL_F	(0x2EU)
+#define CTRL_G	(0x2FU)
+#define CTRL_H	(0x16U)
+#define CTRL_I	(0x05U)
+#define CTRL_J	(0x15U)
+#define CTRL_K	(0x0BU)
+#define CTRL_L	(0x0CU)
+#define CTRL_M	(0x0DU)
+#define CTRL_N	(0x0EU)
+#define CTRL_O	(0x0FU)
+#define CTRL_P	(0x10U)
+#define CTRL_Q	(0x11U)
+#define CTRL_R	(0x12U)
+#define CTRL_S	(0x13U)
+#define CTRL_T	(0x3CU)
+#define CTRL_U	(0x3DU)
+#define CTRL_V	(0x32U)
+#define CTRL_W	(0x26U)
+#define CTRL_X	(0x18U)
+#define CTRL_Y	(0x19U)
+#define CTRL_Z	(0x3FU)
+#define CTRL_BO	(0x27U)
+#define CTRL_BK	(0x1CU)
+#define CTRL_BC	(0x1DU)
+#define CTRL_CA	(0x1EU)
+#define CTRL_US	(0x1FU)
+#define CTRL_QM	(0x07U)
 #else
-#define CTRL_AT	0x00
-#define CTRL_A	0x01
-#define CTRL_B	0x02
-#define CTRL_C	0x03
-#define CTRL_D	0x04
-#define CTRL_E	0x05
-#define CTRL_F	0x06
-#define CTRL_G	0x07
-#define CTRL_H	0x08
-#define CTRL_I	0x09
-#define CTRL_J	0x0A
-#define CTRL_K	0x0B
-#define CTRL_L	0x0C
-#define CTRL_M	0x0D
-#define CTRL_N	0x0E
-#define CTRL_O	0x0F
-#define CTRL_P	0x10
-#define CTRL_Q	0x11
-#define CTRL_R	0x12
-#define CTRL_S	0x13
-#define CTRL_T	0x14
-#define CTRL_U	0x15
-#define CTRL_V	0x16
-#define CTRL_W	0x17
-#define CTRL_X	0x18
-#define CTRL_Y	0x19
-#define CTRL_Z	0x1A
-#define CTRL_BO	0x1B
-#define CTRL_BK	0x1C
-#define CTRL_BC	0x1D
-#define CTRL_CA	0x1E
-#define CTRL_US	0x1F
-#define CTRL_QM	0x7F
+#define CTRL_AT	(0x00U)
+#define CTRL_A	(0x01U)
+#define CTRL_B	(0x02U)
+#define CTRL_C	(0x03U)
+#define CTRL_D	(0x04U)
+#define CTRL_E	(0x05U)
+#define CTRL_F	(0x06U)
+#define CTRL_G	(0x07U)
+#define CTRL_H	(0x08U)
+#define CTRL_I	(0x09U)
+#define CTRL_J	(0x0AU)
+#define CTRL_K	(0x0BU)
+#define CTRL_L	(0x0CU)
+#define CTRL_M	(0x0DU)
+#define CTRL_N	(0x0EU)
+#define CTRL_O	(0x0FU)
+#define CTRL_P	(0x10U)
+#define CTRL_Q	(0x11U)
+#define CTRL_R	(0x12U)
+#define CTRL_S	(0x13U)
+#define CTRL_T	(0x14U)
+#define CTRL_U	(0x15U)
+#define CTRL_V	(0x16U)
+#define CTRL_W	(0x17U)
+#define CTRL_X	(0x18U)
+#define CTRL_Y	(0x19U)
+#define CTRL_Z	(0x1AU)
+#define CTRL_BO	(0x1BU)
+#define CTRL_BK	(0x1CU)
+#define CTRL_BC	(0x1DU)
+#define CTRL_CA	(0x1EU)
+#define CTRL_US	(0x1FU)
+#define CTRL_QM	(0x7FU)
 #endif
 
-#define IDENT		64
+#define IDENT	64
 
 EXTERN Source *source;		/* yyparse/yylex source */
 EXTERN YYSTYPE yylval;		/* result from yylex */

@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.349 2017/04/28 11:48:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.350 2017/05/05 22:53:28 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2298,8 +2298,9 @@ c_unset(const char **wp)
 			size_t n;
 
 			n = strlen(id);
-			if (n > 3 && id[n-3] == '[' && id[n-2] == '*' &&
-			    id[n-1] == ']') {
+			if (n > 3 && ord(id[n - 3]) == ord('[') &&
+			    ord(id[n - 2]) == ord('*') &&
+			    ord(id[n - 1]) == ord(']')) {
 				strndupx(cp, id, n - 3, ATEMP);
 				id = cp;
 				optc = 3;

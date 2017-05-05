@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.92 2017/05/05 20:36:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.93 2017/05/05 22:53:32 tg Exp $");
 
 #define INDENT	8
 
@@ -329,34 +329,34 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 		case EOS:
 			return (--wp);
 		case ADELIM:
-			if (*wp == /*{*/'}') {
+			if (ord(*wp) == ord(/*{*/ '}')) {
 				++wp;
 				goto wdvarput_csubst;
 			}
 			/* FALLTHROUGH */
 		case CHAR:
-			c = *wp++;
+			c = ord(*wp++);
 			shf_putc(c, shf);
 			break;
 		case QCHAR:
-			c = *wp++;
+			c = ord(*wp++);
 			if (opmode & WDS_TPUTS)
 				switch (c) {
-				case '\n':
+				case ord('\n'):
 					if (quotelevel == 0) {
-						c = '\'';
+						c = ord('\'');
 						shf_putc(c, shf);
-						shf_putc('\n', shf);
+						shf_putc(ord('\n'), shf);
 					}
 					break;
 				default:
 					if (quotelevel == 0)
 						/* FALLTHROUGH */
-				case '"':
-				case '`':
-				case '$':
-				case '\\':
-					  shf_putc('\\', shf);
+				case ord('"'):
+				case ord('`'):
+				case ord('$'):
+				case ord('\\'):
+					  shf_putc(ord('\\'), shf);
 					break;
 				}
 			shf_putc(c, shf);
@@ -365,7 +365,7 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 		case COMSUB:
 			shf_puts("$(", shf);
 			cs = ")";
-			if (*wp == '(' /*)*/)
+			if (ord(*wp) == ord('(' /*)*/))
 				shf_putc(' ', shf);
  pSUB:
 			while ((c = *wp++) != 0)
@@ -374,11 +374,11 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 			break;
 		case FUNASUB:
 		case FUNSUB:
-			c = ' ';
+			c = ord(' ');
 			if (0)
 				/* FALLTHROUGH */
 		case VALSUB:
-			  c = '|';
+			  c = ord('|');
 			shf_putc('$', shf);
 			shf_putc('{', shf);
 			shf_putc(c, shf);
@@ -403,14 +403,14 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 			break;
 		case OSUBST:
 			shf_putc('$', shf);
-			if (*wp++ == '{')
+			if (ord(*wp++) == ord('{'))
 				shf_putc('{', shf);
 			while ((c = *wp++) != 0)
 				shf_putc(c, shf);
 			wp = wdvarput(shf, wp, 0, opmode);
 			break;
 		case CSUBST:
-			if (*wp++ == '}') {
+			if (ord(*wp++) == ord('}')) {
  wdvarput_csubst:
 				shf_putc('}', shf);
 			}
@@ -420,11 +420,11 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 			shf_putc('(', shf);
 			break;
 		case SPAT:
-			c = '|';
+			c = ord('|');
 			if (0)
 				/* FALLTHROUGH */
 		case CPAT:
-			  c = /*(*/ ')';
+			  c = ord(/*(*/ ')');
 			shf_putc(c, shf);
 			break;
 		}
@@ -467,39 +467,39 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 {
 	int c;
 
-	while ((c = *fmt++)) {
+	while ((c = ord(*fmt++))) {
 		if (c == '%') {
-			switch ((c = *fmt++)) {
-			case 'c':
+			switch ((c = ord(*fmt++))) {
+			case ord('c'):
 				/* character (octet, probably) */
 				shf_putchar(va_arg(va, int), shf);
 				break;
-			case 's':
+			case ord('s'):
 				/* string */
 				shf_puts(va_arg(va, char *), shf);
 				break;
-			case 'S':
+			case ord('S'):
 				/* word */
 				wdvarput(shf, va_arg(va, char *), 0, WDS_TPUTS);
 				break;
-			case 'd':
+			case ord('d'):
 				/* signed decimal */
 				shf_fprintf(shf, Tf_d, va_arg(va, int));
 				break;
-			case 'u':
+			case ord('u'):
 				/* unsigned decimal */
 				shf_fprintf(shf, "%u", va_arg(va, unsigned int));
 				break;
-			case 'T':
+			case ord('T'):
 				/* format tree */
 				ptree(va_arg(va, struct op *), indent, shf);
 				goto dont_trash_prevent_semicolon;
-			case ';':
+			case ord(';'):
 				/* newline or ; */
-			case 'N':
+			case ord('N'):
 				/* newline or space */
 				if (shf->flags & SHF_STRING) {
-					if (c == ';' && !prevent_semicolon)
+					if (c == ord(';') && !prevent_semicolon)
 						shf_putc(';', shf);
 					shf_putc(' ', shf);
 				} else {
@@ -515,7 +515,7 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 						shf_putc(' ', shf);
 				}
 				break;
-			case 'R':
+			case ord('R'):
 				/* I/O redirection */
 				pioact(shf, va_arg(va, struct ioword *));
 				break;
@@ -613,7 +613,7 @@ wdscan(const char *wp, int c)
 		case ADELIM:
 			if (c == ADELIM && nest == 0)
 				return (wp + 1);
-			if (*wp == /*{*/'}')
+			if (ord(*wp) == ord(/*{*/ '}'))
 				goto wdscan_csubst;
 			/* FALLTHROUGH */
 		case CHAR:
@@ -795,7 +795,7 @@ vistree(char *dst, size_t sz, struct op *t)
 			*dst++ = *cp++;
 		goto vist_loop;
 	}
-	if (--sz == 0 || (c = (unsigned char)(*cp++)) == 0)
+	if (--sz == 0 || (c = ord(*cp++)) == 0)
 		/* NUL or not enough free space */
 		goto vist_out;
 	if (ksh_isctrl(c)) {
@@ -808,7 +808,7 @@ vistree(char *dst, size_t sz, struct op *t)
 	} else if (UTFMODE && rtt2asc(c) > 0x7F) {
 		/* better not try to display broken multibyte chars */
 		/* also go easy on the Unicode: no U+FFFD here */
-		c = '?';
+		c = ord('?');
 	}
 	*dst++ = c;
 	goto vist_loop;
@@ -842,7 +842,7 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 			shf_puts("EOS", shf);
 			return (--wp);
 		case ADELIM:
-			if (*wp == /*{*/'}') {
+			if (ord(*wp) == ord(/*{*/ '}')) {
 				shf_puts(/*{*/ "]ADELIM(})", shf);
 				return (wp + 1);
 			}
@@ -855,9 +855,9 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 			break;
 		case QCHAR:
 			shf_puts("QCHAR<", shf);
-			c = *wp++;
-			if (quotelevel == 0 || c == '"' || c == '\\' ||
-			    ctype(c, C_DOLAR | C_GRAVE))
+			c = ord(*wp++);
+			if (quotelevel == 0 || c == ord('"') ||
+			    c == ord('\\') || ctype(c, C_DOLAR | C_GRAVE))
 				shf_putc('\\', shf);
 			dumpchar(shf, c);
 			goto closeandout;
