@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.723 2017/05/03 14:51:14 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.724 2017/05/05 22:59:36 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -2455,12 +2455,13 @@ cat >test.sh <<-EOF
 	if $ebcdic; then
 		args[\${#args[*]}]=-E
 	fi
+	x=
 	for y in "\${check_categories[@]}"; do
 		x=\$x,\$y
 	done
 	if [[ -n \$x ]]; then
 		args[\${#args[*]}]=-C
-		args[\${#args[*]}]=\$x
+		args[\${#args[*]}]=\${x#,}
 	fi
 	if (( usee )); then
 		args[\${#args[*]}]=-e
