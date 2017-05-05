@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.789 2017/05/03 17:48:06 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.790 2017/05/05 19:43:50 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -1356,10 +1356,10 @@ name: cd-pe
 description:
 	Check package for cd -Pe
 need-pass: no
-# the mv command fails on Cygwin
+# the mv command fails on Cygwin and z/OS
 # Hurd aborts the testsuite (permission denied)
 # QNX does not find subdir to cd into
-category: !os:cygwin,!os:gnu,!os:msys,!os:nto,!nosymlink
+category: !os:cygwin,!os:gnu,!os:msys,!os:nto,!os:os390,!nosymlink
 file-setup: file 644 "x"
 	mkdir noread noread/target noread/target/subdir
 	ln -s noread link
@@ -12742,13 +12742,13 @@ description:
 	Test what the echo builtin does, and test a compatibility flag.
 category: !mnbsdash,!shell:ebcdic-no
 stdin:
-	"$__progname" -c 'echo -n 1=\\x7C$1; echo -e \\x2E' -- foo bar
-	"$__progname" -o posix -c 'echo -n 2=\\x7C$1; echo -e \\x2E' -- foo bar
-	"$__progname" -o sh -c 'echo -n 3=\\x7C$1; echo -e \\x2E' -- foo bar
+	"$__progname" -c 'echo -n 1=\\x7C$1; echo -e \\x4B' -- foo bar
+	"$__progname" -o posix -c 'echo -n 2=\\x7C$1; echo -e \\x4B' -- foo bar
+	"$__progname" -o sh -c 'echo -n 3=\\x7C$1; echo -e \\x4B' -- foo bar
 expected-stdout:
 	1=@foo.
-	2=\x7Cfoo-e \x2E
-	3=\x7Cfoo-e \x2E
+	2=\x7Cfoo-e \x4B
+	3=\x7Cfoo-e \x4B
 ---
 name: utilities-getopts-1
 description:
