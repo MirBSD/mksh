@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.97 2017/05/05 20:36:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.98 2017/05/05 22:53:28 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -558,9 +558,9 @@ exprtoken(Expr_state *es)
 
 	/* skip whitespace */
  skip_spaces:
-	while (ctype((c = *cp), C_SPACE))
+	while (ctype(ord((c = *cp)), C_SPACE))
 		++cp;
-	if (es->tokp == es->expression && c == '#') {
+	if (es->tokp == es->expression && c == ord('#')) {
 		/* expression begins with # */
 		/* switch to unsigned */
 		es->natural = true;
@@ -573,9 +573,9 @@ exprtoken(Expr_state *es)
 		es->tok = END;
 	else if (ctype(c, C_ALPHX)) {
 		do {
-			c = *++cp;
+			c = ord(*++cp);
 		} while (ctype(c, C_ALNUX));
-		if (c == '[') {
+		if (c == ord('[')) {
 			size_t len;
 
 			len = array_ref_len(cp);
@@ -619,7 +619,7 @@ exprtoken(Expr_state *es)
 #endif
 	} else if (ctype(c, C_DIGIT)) {
 		while (ctype(c, C_ALNUM | C_HASH))
-			c = *cp++;
+			c = ord(*cp++);
 		strndupx(tvar, es->tokp, --cp - es->tokp, ATEMP);
  process_tvar:
 		es->val = tempvar("");
@@ -633,7 +633,7 @@ exprtoken(Expr_state *es)
 	} else {
 		int i, n0;
 
-		for (i = 0; (n0 = opname[i][0]); i++)
+		for (i = 0; (n0 = ord(opname[i][0])); i++)
 			if (c == n0 && strncmp(cp, opname[i],
 			    (size_t)oplen[i]) == 0) {
 				es->tok = (enum token)i;
