@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.47 2017/05/03 14:51:15 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.48 2017/05/05 19:43:50 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -881,52 +881,50 @@ first_diff
 	    $char = 1;
 	}
     }
-    return "first difference: line $lineno, char $char (wanted '"
-	. &format_char($ce) . "', got '"
-	. &format_char($cg) . "'";
+    return "first difference: line $lineno, char $char (wanted " .
+	&format_char($ce) . ", got " . &format_char($cg);
 }
 
 sub
 format_char
 {
-    local($ch, $s);
+    local($ch, $s, $q);
 
     $ch = ord($_[0]);
+    $q = "'";
 
     if ($is_ebcdic) {
 	if ($ch == 0x15) {
-		return '\n';
+		return $q . '\n' . $q;
 	} elsif ($ch == 0x16) {
-		return '\b';
+		return $q . '\b' . $q;
 	} elsif ($ch == 0x05) {
-		return '\t';
+		return $q . '\t' . $q;
 	} elsif ($ch < 64 || $ch == 255) {
 		return sprintf("X'%02X'", $ch);
 	}
-	return chr($ch);
+	return sprintf("'%c' (X'%02X')", $ch, $ch);
     }
 
+    $s = sprintf("0x%02X (", $ch);
     if ($ch == 10) {
-	return '\n';
+	return $s . $q . '\n' . $q . ')';
     } elsif ($ch == 13) {
-	return '\r';
+	return $s . $q . '\r' . $q . ')';
     } elsif ($ch == 8) {
-	return '\b';
+	return $s . $q . '\b' . $q . ')';
     } elsif ($ch == 9) {
-	return '\t';
+	return $s . $q . '\t' . $q . ')';
     } elsif ($ch > 127) {
-	$ch -= 127;
-	$s = "M-";
-    } else {
-	$s = '';
+	$ch -= 128;
+	$s .= "M-";
     }
     if ($ch < 32) {
-	$s .= '^';
-	$ch += ord('@');
+	return sprintf("%s^%c)", $s, $ch + ord('@'));
     } elsif ($ch == 127) {
-	return $s . "^?";
+	return $s . "^?)";
     }
-    return $s . sprintf("%c", $ch);
+    return sprintf("%s'%c')", $s, $ch);
 }
 
 sub
