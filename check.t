@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.790 2017/05/05 19:43:50 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.791 2017/05/05 21:17:31 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -8457,7 +8457,7 @@ description:
 	note: Ultrix perl5 t4 returns 65280 (exit-code 255) and no text
 	XXX fails when LD_PRELOAD is set with -e and Perl chokes it (ASan)
 need-pass: no
-category: !os:cygwin,!os:msys,!os:ultrix,!os:uwin-nt,!smksh,!shell:ebcdic-yes
+category: !os:cygwin,!os:msys,!os:ultrix,!os:uwin-nt,!smksh
 env-setup: !FOO=BAR!
 stdin:
 	print '#!'"$__progname"'\nprint "1 a=$ENV{FOO}";' >t1
