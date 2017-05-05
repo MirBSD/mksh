@@ -4,6 +4,8 @@
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
  *		 2012, 2013, 2015, 2016, 2017
  *	mirabilos <m@mirbsd.org>
+ * Copyright (c) 2015
+ *	Daniel Richard G. <skunk@iSKUNK.ORG>
  *
  * Provided that these terms and disclaimer and all copyright notices
  * are retained or reproduced in an accompanying document, permission
@@ -25,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.94 2017/05/03 21:50:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.95 2017/05/05 22:45:58 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1228,6 +1230,38 @@ set_ifs(const char *s)
 
 #if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
 #include <locale.h>
+
+/*
+ * Many headaches with EBCDIC:
+ * 1. There are numerous EBCDIC variants, and it is not feasible for us
+ *    to support them all. But we can support the EBCDIC code pages that
+ *    contain all (most?) of the characters in ASCII, and these
+ *    usually tend to agree on the code points assigned to the ASCII
+ *    subset. If you need a representative example, look at EBCDIC 1047,
+ *    which is first among equals in the IBM MVS development
+ *    environment: https://en.wikipedia.org/wiki/EBCDIC_1047
+ *    Unfortunately, the square brackets are not consistently mapped,
+ *    and for certain reasons, we need an unambiguous bijective
+ *    mapping between EBCDIC and "extended ASCII".
+ * 2. Character ranges that are contiguous in ASCII, like the letters
+ *    in [A-Z], are broken up into segments (i.e. [A-IJ-RS-Z]), so we
+ *    can't implement e.g. islower() as { return c >= 'a' && c <= 'z'; }
+ *    because it will also return true for a handful of extraneous
+ *    characters (like the plus-minus sign at 0x8F in EBCDIC 1047, a
+ *    little after 'i'). But at least '_' is not one of these.
+ * 3. The normal [0-9A-Za-z] characters are at codepoints beyond 0x80.
+ *    Not only do they require all 8 bits instead of 7, if chars are
+ *    signed, they will have negative integer values! Something like
+ *    (c - 'A') could actually become (c + 63)! Use the ord() macro to
+ *    ensure you're getting a value in [0, 255].
+ * 4. '\n' is actually NL (0x15, U+0085) instead of LF (0x25, U+000A).
+ *    EBCDIC has a proper newline character instead of "emulating" one
+ *    with line feeds, although this is mapped to LF for our purposes.
+ * 5. Note that it is possible to compile programs in ASCII mode on IBM
+ *    mainframe systems, using the -qascii option to the XL C compiler.
+ *    We can determine the build mode by looking at __CHARSET_LIB:
+ *    0 == EBCDIC, 1 == ASCII
+ */
 
 void
 ebcdic_init(void)
