@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.48 2017/05/05 19:43:50 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.49 2017/05/05 21:17:31 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -297,11 +297,24 @@ foreach $env (('HOME', 'LD_LIBRARY_PATH', 'LOCPATH', 'LOGNAME',
 }
 $new_env{'CYGWIN'} = 'nodosfilewarning';
 $new_env{'ENV'} = '/nonexistant';
+
 if (($os eq 'VMS') || ($Config{perlpath} =~ m/$Config{_exe}$/i)) {
 	$new_env{'__perlname'} = $Config{perlpath};
 } else {
 	$new_env{'__perlname'} = $Config{perlpath} . $Config{_exe};
 }
+$new_env{'__perlname'} = $^X if ($new_env{'__perlname'} eq '') and -f $^X and -x $^X;
+if ($new_env{'__perlname'} eq '') {
+	foreach $pathelt (split /:/,$ENV{'PATH'}) {
+		chomp($pathelt = `pwd`) if $pathelt eq '';
+		my $x = $pathelt . '/' . $^X;
+		next unless -f $x and -x $x;
+		$new_env{'__perlname'} = $x;
+		last;
+	}
+}
+$new_env{'__perlname'} = $^X if ($new_env{'__perlname'} eq '');
+
 if (defined $opt_e) {
     # XXX need a way to allow many -e arguments...
     if ($opt_e =~ /^([a-zA-Z_]\w*)(|=(.*))$/) {
