@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.792 2017/05/05 22:53:24 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.793 2017/05/14 19:05:44 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -1966,6 +1966,7 @@ expected-stdout:
 name: eglob-bad-1
 description:
 	Check that globbing isn't done when glob has syntax error
+category: !os:cygwin,!os:msys,!os:os2
 file-setup: file 644 "@(a[b|)c]foo"
 stdin:
 	echo @(a[b|)c]*
