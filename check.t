@@ -2861,11 +2861,11 @@ stdin:
 	print -r -- "| ${v//$'\n'/^} |"
 expected-stdout:
 	function foo {
-		vc=<<-EOF
+		vc=<<-EOF 
 	=c $x \x7C=
 	EOF
-
-	}
+	
+	} 
 	blub
 	| va={=a u \x7C=
 	} vb={=b $x \x7C=
@@ -11669,19 +11669,19 @@ expected-stdout:
 		echo $(true) $((1+ 2)) ${  :;} ${| REPLY=x;}
 	}
 	inline_COMSUB_EXPRSUB_FUNSUB_VALSUB() {
-		\echo $(\true ) $((1+ 2)) ${ \: ;} ${|REPLY=x ;}
+		\echo $(\true ) $((1+ 2)) ${ \: ;} ${|REPLY=x ;} 
 	} 
 	function comsub_COMSUB_EXPRSUB_FUNSUB_VALSUB { x=$(
 		echo $(true) $((1+ 2)) ${  :;} ${| REPLY=x;}
 	); }
 	function comsub_COMSUB_EXPRSUB_FUNSUB_VALSUB {
-		x=$(\echo $(\true ) $((1+ 2)) ${ \: ;} ${|REPLY=x ;} )
+		x=$(\echo $(\true ) $((1+ 2)) ${ \: ;} ${|REPLY=x ;} ) 
 	} 
 	function reread_COMSUB_EXPRSUB_FUNSUB_VALSUB { x=$((
 		echo $(true) $((1+ 2)) ${  :;} ${| REPLY=x;}
 	)|tr u x); }
 	function reread_COMSUB_EXPRSUB_FUNSUB_VALSUB {
-		x=$( ( \echo $(\true ) $((1+ 2)) ${ \: ;} ${|REPLY=x ;} ) | \tr u x )
+		x=$( ( \echo $(\true ) $((1+ 2)) ${ \: ;} ${|REPLY=x ;} ) | \tr u x ) 
 	} 
 	inline_QCHAR_OQUOTE_CQUOTE() {
 		echo fo\ob\"a\`r\'b\$az
