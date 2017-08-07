@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.163 2017/08/07 20:40:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.164 2017/08/07 20:43:00 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -963,10 +963,11 @@ writehistfile(int lno, const char *cmd)
 	mksh_lockfd(histfd);
 	sizenow = lseek(histfd, (off_t)0, SEEK_END);
 	if (sizenow < histfsize) {
-		/* the file has shrunk; give up */
-		goto bad;
-	}
-	if (
+		/* the file has shrunk; trust it just appending the new data */
+		/* well, for now, anyway… since mksh strdups all into memory */
+		/* we can use a nicer approach some time later… */
+		;
+	} else if (
 		/* ignore changes when the file is too large */
 		sizenow <= MKSH_MAXHISTFSIZE
 	    &&
