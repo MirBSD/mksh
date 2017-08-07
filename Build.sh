@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.725 2017/05/15 13:35:38 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.726 2017/08/07 20:40:56 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -2090,6 +2090,11 @@ ac_test mmap lock_fcntl 0 'for mmap and munmap' <<-'EOF'
 	    munmap(NULL, 0)); }
 EOF
 
+ac_test ftruncate mmap 0 'for ftruncate' <<-'EOF'
+	#include <unistd.h>
+	int main(void) { return (ftruncate(0, 0)); }
+EOF
+
 ac_test nice <<-'EOF'
 	#include <unistd.h>
 	int main(void) { return (nice(4)); }
@@ -2244,8 +2249,8 @@ EOF
 # other checks
 #
 fd='if to use persistent history'
-ac_cache PERSISTENT_HISTORY || case $HAVE_MMAP$HAVE_FLOCK$HAVE_LOCK_FCNTL in
-11*|101) fv=1 ;;
+ac_cache PERSISTENT_HISTORY || case $HAVE_FTRUNCATE$HAVE_MMAP$HAVE_FLOCK$HAVE_LOCK_FCNTL in
+111*|1101) fv=1 ;;
 esac
 test 1 = $fv || check_categories="$check_categories no-histfile"
 ac_testdone
@@ -2404,7 +2409,7 @@ addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && add_cppflags -DMKSH_PRINTF_BUILTIN
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
-add_cppflags -DMKSH_BUILD_R=551
+add_cppflags -DMKSH_BUILD_R=561
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 
