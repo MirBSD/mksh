@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.337 2017/05/05 22:53:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.338 2017/08/07 23:23:12 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -4202,6 +4202,8 @@ vi_cmd(int argcnt, const char *cmd)
 		case ord('y'):
 			if (*cmd == cmd[1]) {
 				c1 = *cmd == 'c' ? domove(1, "^", 1) : 0;
+				if (c1 < 0)
+					return (-1);
 				c2 = vs->linelen;
 			} else if (!is_move(cmd[1]))
 				return (-1);
