@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.277 2017/05/05 22:53:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.278 2017/08/07 20:49:41 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -271,6 +271,11 @@ change_flag(enum sh_flag f, int what, bool newset)
 	} else if ((f == FPOSIX || f == FSH) && newval) {
 		/* Turning on -o posix or -o sh? */
 		Flag(FBRACEEXPAND) = 0;
+		/* Turning on -o posix? */
+		if (f == POSIX) {
+			/* C locale required for compliance */
+			UTFMODE = 0;
+		}
 	} else if (f == FTALKING) {
 		/* Changing interactive flag? */
 		if ((what == OF_CMDLINE || what == OF_SET) && procpid == kshpid)
