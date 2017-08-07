@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.794 2017/07/26 23:02:23 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.795 2017/08/07 21:16:29 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R55 2017/07/26
+	@(#)MIRBSD KSH R56 2017/08/07
 description:
 	Check base version of full shell
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: !shell:legacy-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R55 2017/07/26
+	@(#)LEGACY KSH R56 2017/08/07
 description:
 	Check base version of legacy shell
 stdin:
@@ -7045,6 +7045,48 @@ stdin:
 expected-stdout:
 	y1-
 	x2-3- z1-
+---
+name: exec-modern-korn-shell
+description:
+	Check that exec can execute any command that makes it
+	through syntax and parser
+stdin:
+	print '#!'"$__progname"'\necho tf' >lq
+	chmod +x lq
+	PATH=$PWD
+	exec 2>&1
+	foo() { print two; }
+	print =1
+	(exec print one)
+	print =2
+	(exec foo)
+	print =3
+	(exec ls)
+	print =4
+	(exec lq)
+expected-stdout-pattern:
+	/=1\none\n=2\ntwo\n=3\n.*: ls: not found\n=4\ntf\n/
+---
+name: exec-ksh88
+description:
+	Check that exec only executes after a PATH search
+arguments: !-o!posix!
+stdin:
+	print '#!'"$__progname"'\necho tf' >lq
+	chmod +x lq
+	PATH=$PWD
+	exec 2>&1
+	foo() { print two; }
+	print =1
+	(exec print one)
+	print =2
+	(exec foo)
+	print =3
+	(exec ls)
+	print =4
+	(exec lq)
+expected-stdout-pattern:
+	/=1\n.*: print: not found\n=2\n.*: foo: not found\n=3\n.*: ls: not found\n=4\ntf\n/
 ---
 name: xxx-what-do-you-call-this-1
 stdin:
