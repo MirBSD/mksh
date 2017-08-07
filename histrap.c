@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.165 2017/08/07 23:15:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.166 2017/08/07 23:25:09 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -724,12 +724,13 @@ hist_persist_back(int srcfd)
 	int rv = 0;
 #define MKSH_HS_BUFSIZ 4096
 
-	if ((buf = malloc_osfunc(MKSH_HS_BUFSIZ)) == NULL)
+	if ((tot = lseek(srcfd, (off_t)0, SEEK_END)) < 0 ||
+	    lseek(srcfd, (off_t)0, SEEK_SET) < 0 ||
+	    lseek(histfd, (off_t)0, SEEK_SET) < 0)
 		return (1);
 
-	tot = lseek(srcfd, (off_t)0, SEEK_END);
-	lseek(srcfd, (off_t)0, SEEK_SET);
-	lseek(histfd, (off_t)0, SEEK_SET);
+	if ((buf = malloc_osfunc(MKSH_HS_BUFSIZ)) == NULL)
+		return (1);
 
 	mis = tot;
 	while (mis > 0) {
