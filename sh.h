@@ -175,7 +175,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.838 2017/08/07 21:39:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.839 2017/08/07 21:56:54 tg Exp $");
 #endif
 #define MKSH_VERSION "R56 2017/08/07"
 
@@ -664,7 +664,7 @@ im_sorry_dave(void)
 #else
 /* be careful to evaluate arguments only once! */
 #define strdupx(d, s, ap) do {						\
-	const char *strdup_src = (s);					\
+	const char *strdup_src = (const void *)(s);			\
 	char *strdup_dst = NULL;					\
 									\
 	if (strdup_src != NULL) {					\
@@ -675,7 +675,7 @@ im_sorry_dave(void)
 	(d) = strdup_dst;						\
 } while (/* CONSTCOND */ 0)
 #define strndupx(d, s, n, ap) do {					\
-	const char *strdup_src = (s);					\
+	const char *strdup_src = (const void *)(s);			\
 	char *strdup_dst = NULL;					\
 									\
 	if (strdup_src != NULL) {					\
