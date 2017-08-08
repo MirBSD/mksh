@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.114 2017/03/19 22:31:26 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.115 2017/08/08 20:22:16 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -99,41 +99,45 @@ elif \\builtin command -v hexdump >/dev/null; then
 	}
 else
 	function hd {
-		\\builtin typeset -Uui16 -Z11 pos=0
-		\\builtin typeset -Uui16 -Z5 hv=2147483647
-		\\builtin typeset dasc line i
-		\\builtin set +U
-
-		\\builtin cat "$@" | if \\builtin read -arN -1 line; then
-			\\builtin typeset -i1 'line[*]'
-			i=0
-			while (( i < ${#line[*]} )); do
-				hv=${line[i++]}
-				if (( (pos & 15) == 0 )); then
-					(( pos )) && \
-					    \\builtin print -r -- "$dasc|"
-					\\builtin print -nr "${pos#16#}  "
-					dasc=' |'
-				fi
-				\\builtin print -nr "${hv#16#} "
-				#XXX EBCDIC, but we need [[:print:]] to fix this
-				if (( (hv < 32) || (hv > 126) )); then
-					dasc+=.
-				else
-					dasc+=${line[i-1]#1#}
-				fi
-				(( (pos++ & 15) == 7 )) && \
-				    \\builtin print -nr -- '- '
-			done
-			while (( pos & 15 )); do
-				\\builtin print -nr '   '
-				(( (pos++ & 15) == 7 )) && \
-				    \\builtin print -nr -- '- '
-			done
-			(( hv == 2147483647 )) || \\builtin print -r -- "$dasc|"
-		fi
+		hd_mksh "$@"
 	}
 fi
+
+function hd_mksh {
+	\\builtin typeset -Uui16 -Z11 pos=0
+	\\builtin typeset -Uui16 -Z5 hv=2147483647
+	\\builtin typeset dasc line i
+	\\builtin set +U
+
+	\\builtin cat "$@" | if \\builtin read -arN -1 line; then
+		\\builtin typeset -i1 'line[*]'
+		i=0
+		while (( i < ${#line[*]} )); do
+			hv=${line[i++]}
+			if (( (pos & 15) == 0 )); then
+				(( pos )) && \
+				    \\builtin print -r -- "$dasc|"
+				\\builtin print -nr "${pos#16#}  "
+				dasc=' |'
+			fi
+			\\builtin print -nr "${hv#16#} "
+			#XXX EBCDIC, but we need [[:print:]] to fix this
+			if (( (hv < 32) || (hv > 126) )); then
+				dasc+=.
+			else
+				dasc+=${line[i-1]#1#}
+			fi
+			(( (pos++ & 15) == 7 )) && \
+			    \\builtin print -nr -- '- '
+		done
+		while (( pos & 15 )); do
+			\\builtin print -nr '   '
+			(( (pos++ & 15) == 7 )) && \
+			    \\builtin print -nr -- '- '
+		done
+		(( hv == 2147483647 )) || \\builtin print -r -- "$dasc|"
+	fi
+}
 
 # Berkeley C shell compatible dirs, popd, and pushd functions
 # Z shell compatible chpwd() hook, used to update DIRSTACK[0]
@@ -483,6 +487,7 @@ function enable {
 	i_func[nfunc++]=setenv
 	i_func[nfunc++]=smores
 	i_func[nfunc++]=hd
+	i_func[nfunc++]=hd_mksh
 	i_func[nfunc++]=chpwd
 	i_func[nfunc++]=cd
 	i_func[nfunc++]=cd_csh
