@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.123 2017/08/08 14:29:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.124 2017/08/08 14:30:10 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1022,8 +1022,14 @@ j_notify(void)
 	}
 	for (j = job_list; j; j = tmp) {
 		tmp = j->next;
-		if (j->flags & JF_REMOVE)
-			remove_job(j, "notify");
+		if (j->flags & JF_REMOVE) {
+			if (j == async_job || (j->flags & JF_KNOWN)) {
+				j->flags = (j->flags & ~JF_REMOVE) | JF_ZOMBIE;
+				j->job = -1;
+				nzombie++;
+			} else
+				remove_job(j, "notify");
+		}
 	}
 	shf_flush(shl_out);
 #ifndef MKSH_NOPROSPECTOFWORK
