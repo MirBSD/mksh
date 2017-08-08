@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.116 2017/08/08 20:38:08 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.117 2017/08/08 20:40:25 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -106,7 +106,7 @@ fi
 function hd_mksh {
 	\\builtin typeset -Uui16 -Z11 pos=0
 	\\builtin typeset -Uui16 -Z5 hv=2147483647
-	\\builtin typeset dasc line i
+	\\builtin typeset dasc dn line i
 	\\builtin set +U
 
 	\\builtin cat "$@" | {
@@ -114,7 +114,8 @@ function hd_mksh {
 			\\builtin typeset -i1 'line[*]'
 			i=0
 			while (( i < ${#line[*]} )); do
-				hv=${line[i++]}
+				dn=
+				(( (hv = line[i++]) != 0 )) && dn=${line[i-1]#1#}
 				if (( (pos & 15) == 0 )); then
 					(( pos )) && \
 					    \\builtin print -r -- "$dasc|"
@@ -122,11 +123,10 @@ function hd_mksh {
 					dasc=' |'
 				fi
 				\\builtin print -nr "${hv#16#} "
-				#XXX EBCDIC, but we need [[:print:]] to fix this
-				if (( (hv < 32) || (hv > 126) )); then
-					dasc+=.
+				if [[ $dn = [[:print:]] ]]; then
+					dasc+=$dn
 				else
-					dasc+=${line[i-1]#1#}
+					dasc+=.
 				fi
 				(( (pos++ & 15) == 7 )) && \
 				    \\builtin print -nr -- '- '
