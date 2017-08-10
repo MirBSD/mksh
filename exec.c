@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.198 2017/04/29 22:04:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.199 2017/08/07 21:16:31 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -554,6 +554,9 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				}
 			ap += builtin_opt.optind;
 			flags |= XEXEC;
+			/* POSuX demands ksh88-like behaviour here */
+			if (Flag(FPOSIX))
+				fcflags = FC_PATH;
 		} else if (tp->val.f == c_command) {
 			bool saw_p = false;
 

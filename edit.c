@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.337 2017/05/05 22:53:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.339 2017/08/08 00:03:56 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -3385,6 +3385,7 @@ static int nextstate(int);
 static int vi_insert(int);
 static int vi_cmd(int, const char *);
 static int domove(int, const char *, int);
+static int domovebeg(void);
 static int redo_insert(int);
 static void yank_range(int, int);
 static int bracktype(int);
@@ -4185,7 +4186,7 @@ vi_cmd(int argcnt, const char *cmd)
 			break;
 
 		case ord('S'):
-			vs->cursor = domove(1, "^", 1);
+			vs->cursor = domovebeg();
 			del_range(vs->cursor, vs->linelen);
 			modified = 1;
 			hnum = hlast;
@@ -4201,7 +4202,7 @@ vi_cmd(int argcnt, const char *cmd)
 		case ord('d'):
 		case ord('y'):
 			if (*cmd == cmd[1]) {
-				c1 = *cmd == 'c' ? domove(1, "^", 1) : 0;
+				c1 = *cmd == 'c' ? domovebeg() : 0;
 				c2 = vs->linelen;
 			} else if (!is_move(cmd[1]))
 				return (-1);
@@ -4305,7 +4306,7 @@ vi_cmd(int argcnt, const char *cmd)
 		case ord('I'):
 			modified = 1;
 			hnum = hlast;
-			vs->cursor = domove(1, "^", 1);
+			vs->cursor = domovebeg();
 			insert = INSERT;
 			break;
 
@@ -4697,10 +4698,7 @@ domove(int argcnt, const char *cmd, int sub)
 		break;
 
 	case ord('^'):
-		ncursor = 0;
-		while (ncursor < vs->linelen - 1 &&
-		    ctype(vs->cbuf[ncursor], C_SPACE))
-			ncursor++;
+		ncursor = domovebeg();
 		break;
 
 	case ord('|'):
@@ -4747,6 +4745,17 @@ domove(int argcnt, const char *cmd, int sub)
 	default:
 		return (-1);
 	}
+	return (ncursor);
+}
+
+static int
+domovebeg(void)
+{
+	int ncursor = 0;
+
+	while (ncursor < vs->linelen - 1 &&
+	    ctype(vs->cbuf[ncursor], C_SPACE))
+		ncursor++;
 	return (ncursor);
 }
 

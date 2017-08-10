@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.162 2017/04/29 22:04:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.166 2017/08/07 23:25:09 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -714,26 +714,66 @@ histsave(int *lnp, const char *cmd, int svmode, bool ignoredups)
 
 #if HAVE_PERSISTENT_HISTORY
 static const unsigned char sprinkle[2] = { HMAGIC1, HMAGIC2 };
-#endif
 
-void
-hist_init(Source *s)
+static int
+hist_persist_back(int srcfd)
 {
-#if HAVE_PERSISTENT_HISTORY
+	off_t tot, mis;
+	ssize_t n, w;
+	char *buf, *cp;
+	int rv = 0;
+#define MKSH_HS_BUFSIZ 4096
+
+	if ((tot = lseek(srcfd, (off_t)0, SEEK_END)) < 0 ||
+	    lseek(srcfd, (off_t)0, SEEK_SET) < 0 ||
+	    lseek(histfd, (off_t)0, SEEK_SET) < 0)
+		return (1);
+
+	if ((buf = malloc_osfunc(MKSH_HS_BUFSIZ)) == NULL)
+		return (1);
+
+	mis = tot;
+	while (mis > 0) {
+		if ((n = blocking_read(srcfd, (cp = buf),
+		    MKSH_HS_BUFSIZ)) == -1) {
+			if (errno == EINTR) {
+				intrcheck();
+				continue;
+			}
+			goto copy_error;
+		}
+		mis -= n;
+		while (n) {
+			if (intrsig)
+				goto has_intrsig;
+			if ((w = write(histfd, cp, n)) != -1) {
+				n -= w;
+				cp += w;
+				continue;
+			}
+			if (errno == EINTR) {
+ has_intrsig:
+				intrcheck();
+				continue;
+			}
+			goto copy_error;
+		}
+	}
+	if (ftruncate(histfd, tot)) {
+ copy_error:
+		rv = 1;
+	}
+	free_osfunc(buf);
+	return (rv);
+}
+
+static void
+hist_persist_init(void)
+{
 	unsigned char *base;
 	int lines, fd;
-	enum { hist_init_first, hist_init_retry, hist_init_restore } hs;
-#endif
+	enum { hist_init_first, hist_init_retry, hist_use_it } hs;
 
-	histsave(NULL, NULL, HIST_DISCARD, true);
-
-	if (Flag(FTALKING) == 0)
-		return;
-
-	hstarted = true;
-	hist_source = s;
-
-#if HAVE_PERSISTENT_HISTORY
 	if (((hname = str_val(global("HISTFILE"))) == NULL) || !*hname) {
 		hname = NULL;
 		return;
@@ -745,17 +785,16 @@ hist_init(Source *s)
 	/* we have a file and are interactive */
 	if ((fd = binopen3(hname, O_RDWR | O_CREAT | O_APPEND, 0600)) < 0)
 		return;
-
-	histfd = savefd(fd);
+	if ((histfd = savefd(fd)) < 0)
+		return;
 	if (histfd != fd)
 		close(fd);
 
 	mksh_lockfd(histfd);
 
 	histfsize = lseek(histfd, (off_t)0, SEEK_END);
-	if (histfsize > MKSH_MAXHISTFSIZE || hs == hist_init_restore) {
+	if (histfsize > MKSH_MAXHISTFSIZE) {
 		/* we ignore too large files but still append to them */
-		/* we also don't need to re-read after truncation */
 		goto hist_init_tail;
 	} else if (histfsize > 2) {
 		/* we have some data, check its validity */
@@ -781,6 +820,7 @@ hist_init(Source *s)
 			if ((fd = binopen3(nhname, O_RDWR | O_CREAT | O_TRUNC |
 			    O_EXCL, 0600)) < 0) {
 				/* just don't truncate then, meh. */
+				hs = hist_use_it;
 				goto hist_trunc_dont;
 			}
 			if (fstat(histfd, &sb) >= 0 &&
@@ -795,28 +835,26 @@ hist_init(Source *s)
 			hp = history;
 			while (hp < histptr) {
 				if (!writehistline(fd,
-				    s->line - (histptr - hp), *hp))
+				    hist_source->line - (histptr - hp), *hp))
 					goto hist_trunc_abort;
 				++hp;
 			}
-			/* now unlock, close both, rename, rinse, repeat */
+			/* now transfer back */
+			if (!hist_persist_back(fd)) {
+				/* success! */
+				hs = hist_use_it;
+			}
+ hist_trunc_abort:
+			/* remove temporary file */
 			close(fd);
 			fd = -1;
-			hist_finish();
-			if (rename(nhname, hname) < 0) {
- hist_trunc_abort:
-				if (fd != -1)
-					close(fd);
-				unlink(nhname);
-				if (fd != -1)
-					goto hist_trunc_dont;
-				/* darn! restore histfd and pray */
-			}
-			hs = hist_init_restore;
+			unlink(nhname);
+			/* use whatever is in the file now */
  hist_trunc_dont:
 			afree(nhname, ATEMP);
-			if (hs == hist_init_restore)
-				goto retry;
+			if (hs == hist_use_it)
+				goto hist_trunc_done;
+			goto hist_init_fail;
 		}
 	} else if (histfsize != 0) {
 		/* negative or too small... */
@@ -840,9 +878,26 @@ hist_init(Source *s)
 			return;
 		}
 	}
+ hist_trunc_done:
 	histfsize = lseek(histfd, (off_t)0, SEEK_END);
  hist_init_tail:
 	mksh_unlkfd(histfd);
+}
+#endif
+
+void
+hist_init(Source *s)
+{
+	histsave(NULL, NULL, HIST_DISCARD, true);
+
+	if (Flag(FTALKING) == 0)
+		return;
+
+	hstarted = true;
+	hist_source = s;
+
+#if HAVE_PERSISTENT_HISTORY
+	hist_persist_init();
 #endif
 }
 
@@ -909,10 +964,11 @@ writehistfile(int lno, const char *cmd)
 	mksh_lockfd(histfd);
 	sizenow = lseek(histfd, (off_t)0, SEEK_END);
 	if (sizenow < histfsize) {
-		/* the file has shrunk; give up */
-		goto bad;
-	}
-	if (
+		/* the file has shrunk; trust it just appending the new data */
+		/* well, for now, anyway… since mksh strdups all into memory */
+		/* we can use a nicer approach some time later… */
+		;
+	} else if (
 		/* ignore changes when the file is too large */
 		sizenow <= MKSH_MAXHISTFSIZE
 	    &&

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.122 2017/04/27 19:33:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.124 2017/08/08 14:30:10 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -39,14 +39,27 @@ __RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.122 2017/04/27 19:33:50 tg Exp $");
 #define PSTOPPED	3
 
 typedef struct proc Proc;
-struct proc {
-	Proc *next;		/* next process in pipeline (if any) */
-	pid_t pid;		/* process id */
+/* to take alignment into consideration */
+struct proc_dummy {
+	Proc *next;
+	pid_t pid;
 	int state;
-	int status;		/* wait status */
+	int status;
+	char command[128];
+};
+/* real structure */
+struct proc {
+	/* next process in pipeline (if any) */
+	Proc *next;
+	/* process id of this Unix process in the job */
+	pid_t pid;
+	/* one of the four P… above */
+	int state;
+	/* wait status */
+	int status;
 	/* process command string from vistree */
-	char command[256 - (ALLOC_OVERHEAD + sizeof(Proc *) +
-	    sizeof(pid_t) + 2 * sizeof(int))];
+	char command[256 - (ALLOC_OVERHEAD +
+	    offsetof(struct proc_dummy, command[0]))];
 };
 
 /* Notify/print flag - j_print() argument */
@@ -1009,8 +1022,14 @@ j_notify(void)
 	}
 	for (j = job_list; j; j = tmp) {
 		tmp = j->next;
-		if (j->flags & JF_REMOVE)
-			remove_job(j, "notify");
+		if (j->flags & JF_REMOVE) {
+			if (j == async_job || (j->flags & JF_KNOWN)) {
+				j->flags = (j->flags & ~JF_REMOVE) | JF_ZOMBIE;
+				j->job = -1;
+				nzombie++;
+			} else
+				remove_job(j, "notify");
+		}
 	}
 	shf_flush(shl_out);
 #ifndef MKSH_NOPROSPECTOFWORK

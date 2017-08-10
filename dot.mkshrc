@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.114 2017/03/19 22:31:26 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.121 2017/08/08 21:10:21 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -56,6 +56,13 @@ smores() (
 	done
 )
 
+# customise your favourite editor here; the first one found is used
+for EDITOR in "${EDITOR:-}" jupp jstar mcedit ed vi; do
+	EDITOR=$(\\builtin whence -p "$EDITOR") || EDITOR=
+	[[ -n $EDITOR && -x $EDITOR ]] && break
+	EDITOR=
+done
+
 \\builtin alias ls=ls l='ls -F' la='l -a' ll='l -l' lo='l -alo'
 \: "${HOSTNAME:=$(\\builtin ulimit -c 0; \\builtin print -r -- $(hostname \
     2>/dev/null))}${EDITOR:=/bin/ed}${TERM:=vt100}${USER:=$(\\builtin ulimit \
@@ -73,6 +80,7 @@ fi
 \: "${MKSH:=$(\\builtin whence -p mksh)}${MKSH:=/bin/mksh}"
 \\builtin export MKSH
 
+# prompts
 PS4='[$EPOCHREALTIME] '; PS1='#'; (( USER_ID )) && PS1='$'; PS1=$'\001\r''${|
 	\\builtin typeset e=$?
 
@@ -86,6 +94,8 @@ PS4='[$EPOCHREALTIME] '; PS1='#'; (( USER_ID )) && PS1='$'; PS1=$'\001\r''${|
 
 	\\builtin return $e
 } '"$PS1 "
+
+# utilities
 \\builtin alias doch='sudo mksh -c "$(\\builtin fc -ln -1)"'
 \\builtin command -v rot13 >/dev/null || \\builtin alias rot13='tr \
     abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \
@@ -99,41 +109,46 @@ elif \\builtin command -v hexdump >/dev/null; then
 	}
 else
 	function hd {
-		\\builtin typeset -Uui16 -Z11 pos=0
-		\\builtin typeset -Uui16 -Z5 hv=2147483647
-		\\builtin typeset dasc line i
-		\\builtin set +U
-
-		\\builtin cat "$@" | if \\builtin read -arN -1 line; then
-			\\builtin typeset -i1 'line[*]'
-			i=0
-			while (( i < ${#line[*]} )); do
-				hv=${line[i++]}
-				if (( (pos & 15) == 0 )); then
-					(( pos )) && \
-					    \\builtin print -r -- "$dasc|"
-					\\builtin print -nr "${pos#16#}  "
-					dasc=' |'
-				fi
-				\\builtin print -nr "${hv#16#} "
-				#XXX EBCDIC, but we need [[:print:]] to fix this
-				if (( (hv < 32) || (hv > 126) )); then
-					dasc+=.
-				else
-					dasc+=${line[i-1]#1#}
-				fi
-				(( (pos++ & 15) == 7 )) && \
-				    \\builtin print -nr -- '- '
-			done
-			while (( pos & 15 )); do
-				\\builtin print -nr '   '
-				(( (pos++ & 15) == 7 )) && \
-				    \\builtin print -nr -- '- '
-			done
-			(( hv == 2147483647 )) || \\builtin print -r -- "$dasc|"
-		fi
+		\\builtin cat "$@" | hd_mksh "$@"
 	}
 fi
+
+# NUL-safe and EBCDIC-safe hexdump (from stdin)
+function hd_mksh {
+	\\builtin typeset -Uui16 -Z11 pos=0
+	\\builtin typeset -Uui16 -Z5 hv=2147483647
+	\\builtin typeset dasc dn line i
+	\\builtin set +U
+
+	while \\builtin read -arn 512 line; do
+		\\builtin typeset -i1 'line[*]'
+		i=0
+		while (( i < ${#line[*]} )); do
+			dn=
+			(( (hv = line[i++]) != 0 )) && dn=${line[i-1]#1#}
+			if (( (pos & 15) == 0 )); then
+				(( pos )) && \
+				    \\builtin print -r -- "$dasc|"
+				\\builtin print -nr "${pos#16#}  "
+				dasc=' |'
+			fi
+			\\builtin print -nr "${hv#16#} "
+			if [[ $dn = [[:print:]] ]]; then
+				dasc+=$dn
+			else
+				dasc+=.
+			fi
+			(( (pos++ & 15) == 7 )) && \
+			    \\builtin print -nr -- '- '
+		done
+	done
+	while (( pos & 15 )); do
+		\\builtin print -nr '   '
+		(( (pos++ & 15) == 7 )) && \
+		    \\builtin print -nr -- '- '
+	done
+	(( hv == 2147483647 )) || \\builtin print -r -- "$dasc|"
+}
 
 # Berkeley C shell compatible dirs, popd, and pushd functions
 # Z shell compatible chpwd() hook, used to update DIRSTACK[0]
@@ -483,6 +498,7 @@ function enable {
 	i_func[nfunc++]=setenv
 	i_func[nfunc++]=smores
 	i_func[nfunc++]=hd
+	i_func[nfunc++]=hd_mksh
 	i_func[nfunc++]=chpwd
 	i_func[nfunc++]=cd
 	i_func[nfunc++]=cd_csh
@@ -587,6 +603,11 @@ function enable {
 }
 
 \: place customisations below this line
+
+# some defaults follow — you are supposed to adjust these to your
+# liking; by default we add ~/.etc/bin and ~/bin (whichever exist)
+# to $PATH, set $SHELL to mksh, set some defaults for man and less
+# and show a few more possible things for users to begin moving in
 
 for p in ~/.etc/bin ~/bin; do
 	[[ -d $p/. ]] || \\builtin continue

@@ -175,9 +175,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.836 2017/05/05 22:53:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.840 2017/08/08 21:11:20 tg Exp $");
 #endif
-#define MKSH_VERSION "R55 2017/05/05"
+#define MKSH_VERSION "R56 2017/08/08"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -636,7 +636,7 @@ char *ucstrstr(char *, const char *);
 #endif
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 551)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 561)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -664,7 +664,7 @@ im_sorry_dave(void)
 #else
 /* be careful to evaluate arguments only once! */
 #define strdupx(d, s, ap) do {						\
-	const char *strdup_src = (s);					\
+	const char *strdup_src = (const void *)(s);			\
 	char *strdup_dst = NULL;					\
 									\
 	if (strdup_src != NULL) {					\
@@ -675,7 +675,7 @@ im_sorry_dave(void)
 	(d) = strdup_dst;						\
 } while (/* CONSTCOND */ 0)
 #define strndupx(d, s, n, ap) do {					\
-	const char *strdup_src = (s);					\
+	const char *strdup_src = (const void *)(s);			\
 	char *strdup_dst = NULL;					\
 									\
 	if (strdup_src != NULL) {					\

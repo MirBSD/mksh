@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.98 2017/05/05 22:53:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.100 2017/08/07 21:38:55 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -872,7 +872,7 @@ ksh_access(const char *fn, int mode)
 }
 
 #ifndef MIRBSD_BOOTFLOPPY
-/* From: X11/xc/programs/xterm/wcwidth.c,v 1.9 */
+/* From: X11/xc/programs/xterm/wcwidth.c,v 1.10 */
 
 struct mb_ucsrange {
 	unsigned short beg;
@@ -883,8 +883,8 @@ static int mb_ucsbsearch(const struct mb_ucsrange arr[], size_t elems,
     unsigned int val) MKSH_A_PURE;
 
 /*
- * Generated from the Unicode Character Database, Version 9.0.0, by
- * MirOS: contrib/code/Snippets/eawparse,v 1.3 2014/11/16 12:16:24 tg Exp $
+ * Generated from the Unicode Character Database, Version 10.0.0, by
+ * MirOS: contrib/code/Snippets/eawparse,v 1.10 2017/07/12 22:47:26 tg Exp $
  */
 
 static const struct mb_ucsrange mb_ucs_combining[] = {
@@ -940,6 +940,7 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0x0AC7, 0x0AC8 },
 	{ 0x0ACD, 0x0ACD },
 	{ 0x0AE2, 0x0AE3 },
+	{ 0x0AFA, 0x0AFF },
 	{ 0x0B01, 0x0B01 },
 	{ 0x0B3C, 0x0B3C },
 	{ 0x0B3F, 0x0B3F },
@@ -962,7 +963,8 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0x0CC6, 0x0CC6 },
 	{ 0x0CCC, 0x0CCD },
 	{ 0x0CE2, 0x0CE3 },
-	{ 0x0D01, 0x0D01 },
+	{ 0x0D00, 0x0D01 },
+	{ 0x0D3B, 0x0D3C },
 	{ 0x0D41, 0x0D44 },
 	{ 0x0D4D, 0x0D4D },
 	{ 0x0D62, 0x0D63 },
@@ -1047,7 +1049,7 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0x1CED, 0x1CED },
 	{ 0x1CF4, 0x1CF4 },
 	{ 0x1CF8, 0x1CF9 },
-	{ 0x1DC0, 0x1DF5 },
+	{ 0x1DC0, 0x1DF9 },
 	{ 0x1DFB, 0x1DFF },
 	{ 0x200B, 0x200F },
 	{ 0x202A, 0x202E },
@@ -1135,14 +1137,16 @@ static const struct mb_ucsrange mb_ucs_fullwidth[] = {
 	{ 0x2B1B, 0x2B1C },
 	{ 0x2B50, 0x2B50 },
 	{ 0x2B55, 0x2B55 },
-	{ 0x2E80, 0x303E },
-	{ 0x3040, 0xA4CF },
+	{ 0x2E80, 0x3029 },
+	{ 0x302E, 0x303E },
+	{ 0x3040, 0x3098 },
+	{ 0x309B, 0xA4CF },
 	{ 0xA960, 0xA97F },
 	{ 0xAC00, 0xD7A3 },
 	{ 0xF900, 0xFAFF },
 	{ 0xFE10, 0xFE19 },
 	{ 0xFE30, 0xFE6F },
-	{ 0xFF00, 0xFF60 },
+	{ 0xFF01, 0xFF60 },
 	{ 0xFFE0, 0xFFE6 }
 };
 

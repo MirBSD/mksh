@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.447 2017/05/05 22:45:57 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.449 2017/08/07 21:16:32 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: May 5 2017 $
+.Dd $Mdocdate: August 7 2017 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -4308,9 +4308,11 @@ Automatically enabled if the basename of the shell invocation begins with
 .Dq sh
 and this autodetection feature is compiled in
 .Pq not in MirBSD .
-As a side effect, setting this flag turns off
+As a side effect, setting this flag turns off the
 .Ic braceexpand
-mode, which can be turned back on manually, and
+and
+.Ic utf8\-mode
+flags, which can be turned back on manually, and
 .Ic sh
 mode (unless both are enabled at the same time).
 .It Fl o Ic sh
@@ -5385,6 +5387,11 @@ only lists signal names, all in one line.
 .Ic getopts
 does not accept options with a leading
 .Ql + .
+.It
+.Ic exec
+skips builtins, functions and other commands and uses a
+.Ev PATH
+search to determine the utility to execute.
 .El
 .Ss SH mode
 Compatibility mode; intended for use with legacy scripts that
@@ -6640,12 +6647,14 @@ supports only the
 locale.
 .Nm mksh Ns 's
 .Ic utf8\-mode
+.Em must
+be disabled in POSIX mode, and it
 only supports the Unicode BMP (Basic Multilingual Plane) and maps
 raw octets into the U+EF80..U+EFFF wide character range; compare
 .Sx Arithmetic expressions .
 The following
 .Tn POSIX
-.Nm sh
+.Nm sh Ns -compatible
 code toggles the
 .Ic utf8\-mode
 option dependent on the current
@@ -6687,7 +6696,7 @@ for the in-memory portion of the history is slow, should use
 .Xr memmove 3 .
 .Pp
 This document attempts to describe
-.Nm mksh\ R55
+.Nm mksh\ R56
 and up,
 .\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as

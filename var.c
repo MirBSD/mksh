@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.219 2017/05/05 22:53:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.220 2017/07/26 23:02:28 tg Exp $");
 
 /*-
  * Variables
@@ -917,12 +917,12 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 	vpbase = (vp->flag & ARRAY) ? global(arrayname(tvar)) : vp;
 
 	/*
-	 * only allow export flag to be set; AT&T ksh allows any
-	 * attribute to be changed which means it can be truncated or
-	 * modified (-L/-R/-Z/-i)
+	 * only allow export and readonly flag to be set; AT&T ksh
+	 * allows any attribute to be changed which means it can be
+	 * truncated or modified (-L/-R/-Z/-i)
 	 */
 	if ((vpbase->flag & RDONLY) &&
-	    (val || clr || (set & ~EXPORT)))
+	    (val || clr || (set & ~(EXPORT | RDONLY))))
 		/* XXX check calls - is error here ok by POSIX? */
 		errorfx(2, Tf_ro, tvar);
 	afree(tvar, ATEMP);
