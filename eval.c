@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.214 2017/05/05 22:53:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.215 2017/08/28 23:27:51 tg Exp $");
 
 /*
  * string expansion
@@ -637,7 +637,7 @@ expand(
 						 */
 						if (!Flag(FSH)) {
 							*dp++ = MAGIC;
-							*dp++ = 0x80 | '@';
+							*dp++ = ord(0x80 | '@');
 						}
 						break;
 					case ord('='):
