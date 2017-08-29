@@ -112,6 +112,13 @@
 #include <wchar.h>
 #endif
 
+/* monkey-patch known-bad offsetof versions to quell a warning */
+#if (defined(__KLIBC__) || defined(__dietlibc__)) && \
+    ((defined(__GNUC__) && (__GNUC__ > 3)) || defined(__NWCC__))
+#undef offsetof
+#define offsetof(s, e)		__builtin_offsetof(s, e)
+#endif
+
 #undef __attribute__
 #if HAVE_ATTRIBUTE_BOUNDED
 #define MKSH_A_BOUNDED(x,y,z)	__attribute__((__bounded__(x, y, z)))
@@ -175,9 +182,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.840 2017/08/08 21:11:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.841 2017/08/29 13:38:31 tg Exp $");
 #endif
-#define MKSH_VERSION "R56 2017/08/08"
+#define MKSH_VERSION "R56 2017/08/29"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -636,7 +643,7 @@ char *ucstrstr(char *, const char *);
 #endif
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 561)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 562)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
