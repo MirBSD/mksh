@@ -242,10 +242,6 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	set_ifs(TC_IFSWS);
 
 #ifdef __OS2__
-	for (i = 0; i < 3; ++i)
-		if (!isatty(i))
-			setmode(i, O_BINARY);
-
 	os2_init(&argc, &argv);
 #endif
 
