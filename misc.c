@@ -1783,6 +1783,14 @@ do_realpath(const char *upath)
 					/* keep them, e.g. for UNC pathnames */
 					Xput(xs, xp, '/');
 				}
+#ifdef __OS2__
+				/* drive letter ? */
+				if (ctype(ip[0], C_ALPHA) && ip[1] == ':') {
+					/* keep them */
+					Xput(xs, xp, *ip++);
+					Xput(xs, xp, *ip++);
+				}
+#endif
 			}
 		}
 		/* otherwise (no symlink) merely go on */
