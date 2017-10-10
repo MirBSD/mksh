@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.342 2017/04/28 11:13:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.343 2017/10/10 21:19:43 tg Exp $");
 
 extern char **environ;
 
@@ -242,10 +242,6 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	set_ifs(TC_IFSWS);
 
 #ifdef __OS2__
-	for (i = 0; i < 3; ++i)
-		if (!isatty(i))
-			setmode(i, O_BINARY);
-
 	os2_init(&argc, &argv);
 #endif
 
