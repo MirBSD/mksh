@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.284 2017/10/11 23:23:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.285 2017/10/11 23:48:36 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1704,6 +1704,7 @@ do_realpath(const char *upath)
 				continue;
 			else if (len == 2 && tp[1] == '.') {
 				/* strip off last pathname component */
+				/*XXX consider a rooted pathname */
 				while (xp > Xstring(xs, xp))
 					if (mksh_cdirsep(*--xp))
 						break;
@@ -1965,6 +1966,11 @@ make_path(const char *cwd, const char *file,
  * C:.					C:
  * C:..					C:..
  * C:foo/../../blah			C:../blah
+ *
+ * XXX consider a rooted pathname: we cannot really 'cd ..' for
+ * pathnames like: '/', 'c:/', '//foo', '//foo/', '/@unixroot/'
+ * (no effect), 'c:', 'c:.' (effect is retaining the '../') but
+ * we need to honour this throughout the shell
  */
 void
 simplify_path(char *p)
@@ -2021,7 +2027,7 @@ simplify_path(char *p)
 				/* just continue with the next one */
 				continue;
 			else if (len == 2 && tp[1] == '.') {
-				/* parent level, but how? */
+				/* parent level, but how? (see above) */
 				if (mksh_abspath(p))
 					/* absolute path, only one way */
 					goto strip_last_component;
