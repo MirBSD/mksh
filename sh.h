@@ -182,7 +182,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.842 2017/10/11 20:29:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.843 2017/10/11 20:50:46 tg Exp $");
 #endif
 #define MKSH_VERSION "R56 2017/08/29"
 
@@ -2753,7 +2753,12 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 	    !mksh_cdirsep(mksh_sdirsep_s[2])) ?				\
 	    (mksh_sdirsep_s + 1) : strpbrk(mksh_sdirsep_s, "/\\")));	\
 })
-#define mksh_vdirsep(s)			(mksh_sdirsep((s)) != NULL)
+#define mksh_vdirsep(s)			__extension__({			\
+	const char *mksh_vdirsep_s = (s);				\
+	((char *)((mksh_drvltr(mksh_vdirsep_s) &&			\
+	    !mksh_cdirsep(mksh_vdirsep_s[2])) ?				\
+	    (mksh_vdirsep_s + 1) : strpbrk(mksh_vdirsep_s, "/\\")));	\
+})
 #else
 #define mksh_abspath(s)			(ord((s)[0]) == ord('/'))
 #define mksh_cdirsep(c)			(ord(c) == ord('/'))
