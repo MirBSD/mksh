@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.282 2017/10/11 20:46:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.283 2017/10/11 21:49:06 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1948,8 +1948,10 @@ make_path(const char *cwd, const char *file,
  * ..					..
  * ./foo				foo
  * foo/../../../bar			../../bar
- * C:/../foo				C:/foo
- * C:../foo				C:../foo
+ * C:/foo/../..				C:/
+ * C:.					C:
+ * C:..					C:..
+ * C:foo/../../blah			C:../blah
  */
 void
 simplify_path(char *p)
@@ -1957,11 +1959,16 @@ simplify_path(char *p)
 	char *dp, *ip, *sp, *tp;
 	size_t len;
 	bool needslash;
-
 #ifdef MKSH_DOSPATH
+	bool needdot = true;
+
 	/* keep drive letter */
-	if (mksh_drvltr(p))
+	if (mksh_drvltr(p)) {
 		p += 2;
+		needdot = false;
+	}
+#else
+#define needdot true
 #endif
 
 	switch (*p) {
@@ -2040,10 +2047,15 @@ simplify_path(char *p)
 		needslash = true;
 		/* try next component */
 	}
-	if (dp == p)
-		/* empty path -> dot */
-		*dp++ = needslash ? '/' : '.';
+	if (dp == p) {
+		/* empty path -> dot (or slash, when absolute) */
+		if (needslash)
+			*dp++ = '/';
+		else if (needdot)
+			*dp++ = '.';
+	}
 	*dp = '\0';
+#undef needdot
 }
 
 void
