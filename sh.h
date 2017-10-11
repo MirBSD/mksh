@@ -182,7 +182,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.846 2017/10/11 21:52:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.847 2017/10/11 23:23:03 tg Exp $");
 #endif
 #define MKSH_VERSION "R56 2017/08/29"
 
@@ -2566,6 +2566,7 @@ void setextlibpath(const char *, const char *);
 int access_ex(int (*)(const char *, int), const char *, int);
 int stat_ex(const char *, struct stat *);
 const char *real_exec_name(const char *);
+int getdrvwd(char **, unsigned int);
 #endif
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);

@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.283 2017/10/11 21:49:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.284 2017/10/11 23:23:02 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1661,6 +1661,15 @@ do_realpath(const char *upath)
 	if (mksh_abspath(upath)) {
 		/* upath is an absolute pathname */
 		strdupx(ipath, upath, ATEMP);
+#ifdef MKSH_DOSPATH
+	} else if (mksh_drvltr(upath)) {
+		/* upath is a drive-relative pathname */
+		if (!getdrvwd(&ldest, ord(*upath)))
+			return (NULL);
+		/* A:foo -> A:/cwd/foo; A: -> A:/cwd */
+		ipath = shf_smprintf(Tf_sss, ldest,
+		    upath[2] ? "/" : "", upath + 2);
+#endif
 	} else {
 		/* upath is a relative pathname, prepend cwd */
 		if ((tp = ksh_get_wd()) == NULL || !mksh_abspath(tp))
@@ -1762,11 +1771,23 @@ do_realpath(const char *upath)
 			 * restart if symlink target is an absolute path,
 			 * otherwise continue with currently resolved prefix
 			 */
+#ifdef MKSH_DOSPATH
+ assemble_symlink:
+#endif
 			/* append rest of current input path to link target */
 			tp = shf_smprintf(Tf_sss, ldest, *ip ? "/" : "", ip);
 			afree(ipath, ATEMP);
 			ip = ipath = tp;
-			if (!mksh_abspath(ldest)) {
+			if (!mksh_abspath(ipath)) {
+#ifdef MKSH_DOSPATH
+				/* symlink target might be drive-relative */
+				if (mksh_drvltr(ipath)) {
+					if (!getdrvwd(&ldest, ord(*ipath)))
+						goto notfound;
+					ip += 2;
+					goto assemble_symlink;
+				}
+#endif
 				/* symlink target is a relative path */
 				xp = Xrestpos(xs, xp, pos);
 			} else
@@ -1775,7 +1796,7 @@ do_realpath(const char *upath)
 				/* symlink target is an absolute path */
 				xp = Xstring(xs, xp);
  beginning_of_a_pathname:
-				/* assert: mksh_cdirsep((ip == ipath)[0]) */
+				/* assert: mksh_abspath(ip == ipath) */
 				/* assert: xp == xs.beg => start of path */
 
 				/* exactly two leading slashes? (SUSv4 3.266) */
@@ -1789,14 +1810,6 @@ do_realpath(const char *upath)
 					/* keep it */
 					Xput(xs, xp, *ip++);
 					Xput(xs, xp, *ip++);
-					/*
-					 * XXX if (!mksh_cdirsep(*ip)): we
-					 * XXX must get the cwd on that drive
-					 * XXX and prepend it here as this is
-					 * XXX a drive-qualified relative path
-					 * XXX which we are supposed to convert
-					 * XXX to an absolute (with drive) one
-					 */
 				}
 #endif
 			}
