@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.280 2017/10/10 21:30:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.281 2017/10/11 19:06:44 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1789,11 +1789,9 @@ do_realpath(const char *upath)
 					/* keep it */
 					Xput(xs, xp, *ip++);
 					Xput(xs, xp, *ip++);
-					/* as well as a leading (back)slash */
-					if (mksh_cdirsep(*ip))
-						Xput(xs, xp, *ip++);
 					/*
-					 * XXX else: get the cwd on that drive
+					 * XXX if (!mksh_cdirsep(*ip)): we
+					 * XXX must get the cwd on that drive
 					 * XXX and prepend it here as this is
 					 * XXX a drive-qualified relative path
 					 * XXX which we are supposed to convert
