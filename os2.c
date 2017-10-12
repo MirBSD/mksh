@@ -33,7 +33,7 @@
 #include <unistd.h>
 #include <process.h>
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.3 2017/10/11 23:23:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.4 2017/10/12 15:17:04 tg Exp $");
 
 static char *remove_trailing_dots(char *);
 static int access_stat_ex(int (*)(), const char *, void *);
@@ -564,7 +564,7 @@ cleanup(void)
 int
 getdrvwd(char **cpp, unsigned int drvltr)
 {
-	PBYTE *cp;
+	PBYTE cp;
 	ULONG sz;
 	APIRET rc;
 	ULONG drvno;
@@ -578,10 +578,10 @@ getdrvwd(char **cpp, unsigned int drvltr)
 	/* allocate 'X:/' plus sz plus NUL */
 	checkoktoadd((size_t)sz, (size_t)4);
 	cp = aresize(*cpp, (size_t)sz + (size_t)4, ATEMP);
-	cp[0] = drvltr;
+	cp[0] = ksh_toupper(drvltr);
 	cp[1] = ':';
 	cp[2] = '/';
-	drvno = (rtt2asc(drvltr) | 0x20U) - rtt2asc('a') + 1;
+	drvno = ksh_numuc(cp[0]) + 1;
 	/* NUL is part of space within buffer passed */
 	++sz;
 	if ((rc = DosQueryCurrentDir(drvno, cp + 3, &sz)) == 0) {
