@@ -21,8 +21,6 @@
  */
 
 #define INCL_DOS
-#define INCL_DOSFILEMGR
-#define INCL_DOSMISC
 #include <os2.h>
 
 #include "sh.h"
@@ -33,7 +31,7 @@
 #include <unistd.h>
 #include <process.h>
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.4 2017/10/12 15:17:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.5 2017/10/13 11:54:06 tg Exp $");
 
 static char *remove_trailing_dots(char *);
 static int access_stat_ex(int (*)(), const char *, void *);
