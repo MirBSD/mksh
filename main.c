@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.343 2017/10/10 21:19:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.344 2017/10/13 23:02:11 tg Exp $");
 
 extern char **environ;
 
@@ -661,8 +661,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		if (Flag(FLOGIN))
 			include(substitute("$HOME/.profile", 0), 0, NULL, true);
 		if (Flag(FTALKING)) {
-			cp = substitute(substitute("${ENV:-" MKSHRC_PATH "}",
-			    0), DOTILDE);
+			cp = substitute("${ENV:-" MKSHRC_PATH "}", DOTILDE);
 			if (cp[0] != '\0')
 				include(cp, 0, NULL, true);
 		}
