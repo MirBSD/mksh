@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.449 2017/08/07 21:16:32 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.451 2017/08/16 21:40:14 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -76,7 +76,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: August 7 2017 $
+.Dd $Mdocdate: August 16 2017 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2091,7 +2091,7 @@ this hack; it's derived from the original
 which did print the delimiter character so you were out of luck
 if you did not have any non-printing characters.
 .Pp
-Since Backslashes and other special characters may be
+Since backslashes and other special characters may be
 interpreted by the shell, to set
 .Ev PS1
 either escape the backslash itself
@@ -2106,7 +2106,7 @@ in reverse video
 .Pq colour would work, too ,
 in the prompt string:
 .Bd -literal -offset indent
-x=$(print \e\e001)
+x=$(print \e\e001) # otherwise unused char
 PS1="$x$(print \e\er)$x$(tput so)$x\e$PWD$x$(tput se)$x\*(Gt "
 .Ed
 .Pp
@@ -5582,7 +5582,8 @@ Uppercase the first ASCII character in the next
 words, leaving the cursor past the end of the last word.
 .It clear\-screen: \*(ha[\*(haL
 Prints a compile-time configurable sequence to clear the screen and home
-the cursor, redraws the entire prompt and the currently edited input line.
+the cursor, redraws the last line of the prompt string and the currently
+edited input line.
 The default sequence works for almost all standard terminals.
 .It comment: \*(ha[#
 If the current line does not begin with a comment character, one is added at
@@ -6897,3 +6898,9 @@ commands starting with what was already entered.
 .Nm
 separates the shortcuts: Cursor Up goes up one command
 and PgUp searches the history as described above.
+.Ss "My question is not answered here!"
+Check
+.Pa http://www.mirbsd.org/mksh\-faq.htm
+which contains a collection of frequently asked questions about
+.Nm
+in general, for packagers, etc. while these above are in user scope.

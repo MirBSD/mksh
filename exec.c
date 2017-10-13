@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.199 2017/08/07 21:16:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.201 2017/10/11 21:09:24 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -953,8 +953,12 @@ scriptexec(struct op *tp, const char **ap)
 		}
 #ifdef __OS2__
 		/*
-		 * Search shell/interpreter name without directory in PATH
-		 * if specified path does not exist
+		 * On OS/2, the directory structure differs from normal
+		 * Unix, which can make many scripts whose shebang
+		 * hardcodes the path to an interpreter fail (and there
+		 * might be no /usr/bin/env); for user convenience, if
+		 * the specified interpreter is not usable, do a PATH
+		 * search to find it.
 		 */
 		if (mksh_vdirsep(sh) && !search_path(sh, path, X_OK, NULL)) {
 			cp = search_path(_getname(sh), path, X_OK, NULL);
@@ -1168,11 +1172,7 @@ findcom(const char *name, int flags)
 	char *fpath;
 	union mksh_cchack npath;
 
-	if (mksh_vdirsep(name)
-#ifdef MKSH_DOSPATH
-	    && (strcmp(name, T_builtin) != 0)
-#endif
-	    ) {
+	if (mksh_vdirsep(name)) {
 		insert = 0;
 		/* prevent FPATH search below */
 		flags &= ~FC_FUNC;

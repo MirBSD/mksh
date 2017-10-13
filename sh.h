@@ -112,6 +112,13 @@
 #include <wchar.h>
 #endif
 
+/* monkey-patch known-bad offsetof versions to quell a warning */
+#if (defined(__KLIBC__) || defined(__dietlibc__)) && \
+    ((defined(__GNUC__) && (__GNUC__ > 3)) || defined(__NWCC__))
+#undef offsetof
+#define offsetof(s, e)		__builtin_offsetof(s, e)
+#endif
+
 #undef __attribute__
 #if HAVE_ATTRIBUTE_BOUNDED
 #define MKSH_A_BOUNDED(x,y,z)	__attribute__((__bounded__(x, y, z)))
@@ -175,9 +182,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.840 2017/08/08 21:11:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.847 2017/10/11 23:23:03 tg Exp $");
 #endif
-#define MKSH_VERSION "R56 2017/08/08"
+#define MKSH_VERSION "R56 2017/08/29"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -636,7 +643,7 @@ char *ucstrstr(char *, const char *);
 #endif
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 561)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 562)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -2559,6 +2566,7 @@ void setextlibpath(const char *, const char *);
 int access_ex(int (*)(const char *, int), const char *, int);
 int stat_ex(const char *, struct stat *);
 const char *real_exec_name(const char *);
+int getdrvwd(char **, unsigned int);
 #endif
 /* shf.c */
 struct shf *shf_open(const char *, int, int, int);
@@ -2727,24 +2735,28 @@ extern int tty_init_fd(void);	/* initialise tty_fd, tty_devtty */
 #endif
 
 #ifdef MKSH_DOSPATH
+#define mksh_drvltr(s)			__extension__({			\
+	const char *mksh_drvltr_s = (s);				\
+	(ctype(mksh_drvltr_s[0], C_ALPHA) && mksh_drvltr_s[1] == ':');	\
+})
 #define mksh_abspath(s)			__extension__({			\
 	const char *mksh_abspath_s = (s);				\
 	(mksh_cdirsep(mksh_abspath_s[0]) ||				\
-	    (ctype(mksh_abspath_s[0], C_ALPHA) &&			\
-	    mksh_abspath_s[1] == ':'));					\
+	    (mksh_drvltr(mksh_abspath_s) &&				\
+	    mksh_cdirsep(mksh_abspath_s[2])));				\
 })
 #define mksh_cdirsep(c)			__extension__({			\
 	char mksh_cdirsep_c = (c);					\
 	(mksh_cdirsep_c == '/' || mksh_cdirsep_c == '\\');		\
 })
-#define mksh_sdirsep(s)			__extension__({			\
-	const char *mksh_sdirsep_s = (s);				\
-	((char *)((ctype(mksh_sdirsep_s[0], C_ALPHA) &&			\
-	    mksh_sdirsep_s[1] == ':' &&					\
-	    !mksh_cdirsep(mksh_sdirsep_s[2])) ?				\
-	    (mksh_sdirsep_s + 1) : strpbrk(mksh_sdirsep_s, "/\\")));	\
+#define mksh_sdirsep(s)			strpbrk((s), "/\\")
+#define mksh_vdirsep(s)			__extension__({			\
+	const char *mksh_vdirsep_s = (s);				\
+	(((mksh_drvltr(mksh_vdirsep_s) &&				\
+	    !mksh_cdirsep(mksh_vdirsep_s[2])) ? (!0) :			\
+	    (mksh_sdirsep(mksh_vdirsep_s) != NULL)) &&			\
+	    (strcmp(mksh_vdirsep_s, T_builtin) != 0));			\
 })
-#define mksh_vdirsep(s)			(mksh_sdirsep((s)) != NULL)
 #else
 #define mksh_abspath(s)			(ord((s)[0]) == ord('/'))
 #define mksh_cdirsep(c)			(ord(c) == ord('/'))

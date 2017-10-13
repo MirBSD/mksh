@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.279 2017/08/07 21:39:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.286 2017/10/12 15:17:03 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1661,6 +1661,15 @@ do_realpath(const char *upath)
 	if (mksh_abspath(upath)) {
 		/* upath is an absolute pathname */
 		strdupx(ipath, upath, ATEMP);
+#ifdef MKSH_DOSPATH
+	} else if (mksh_drvltr(upath)) {
+		/* upath is a drive-relative pathname */
+		if (getdrvwd(&ldest, ord(*upath)))
+			return (NULL);
+		/* A:foo -> A:/cwd/foo; A: -> A:/cwd */
+		ipath = shf_smprintf(Tf_sss, ldest,
+		    upath[2] ? "/" : "", upath + 2);
+#endif
 	} else {
 		/* upath is a relative pathname, prepend cwd */
 		if ((tp = ksh_get_wd()) == NULL || !mksh_abspath(tp))
@@ -1695,6 +1704,7 @@ do_realpath(const char *upath)
 				continue;
 			else if (len == 2 && tp[1] == '.') {
 				/* strip off last pathname component */
+				/*XXX consider a rooted pathname */
 				while (xp > Xstring(xs, xp))
 					if (mksh_cdirsep(*--xp))
 						break;
@@ -1762,11 +1772,23 @@ do_realpath(const char *upath)
 			 * restart if symlink target is an absolute path,
 			 * otherwise continue with currently resolved prefix
 			 */
+#ifdef MKSH_DOSPATH
+ assemble_symlink:
+#endif
 			/* append rest of current input path to link target */
 			tp = shf_smprintf(Tf_sss, ldest, *ip ? "/" : "", ip);
 			afree(ipath, ATEMP);
 			ip = ipath = tp;
-			if (!mksh_abspath(ldest)) {
+			if (!mksh_abspath(ipath)) {
+#ifdef MKSH_DOSPATH
+				/* symlink target might be drive-relative */
+				if (mksh_drvltr(ipath)) {
+					if (getdrvwd(&ldest, ord(*ipath)))
+						goto notfound;
+					ip += 2;
+					goto assemble_symlink;
+				}
+#endif
 				/* symlink target is a relative path */
 				xp = Xrestpos(xs, xp, pos);
 			} else
@@ -1775,7 +1797,7 @@ do_realpath(const char *upath)
 				/* symlink target is an absolute path */
 				xp = Xstring(xs, xp);
  beginning_of_a_pathname:
-				/* assert: mksh_cdirsep((ip == ipath)[0]) */
+				/* assert: mksh_abspath(ip == ipath) */
 				/* assert: xp == xs.beg => start of path */
 
 				/* exactly two leading slashes? (SUSv4 3.266) */
@@ -1783,10 +1805,10 @@ do_realpath(const char *upath)
 					/* keep them, e.g. for UNC pathnames */
 					Xput(xs, xp, '/');
 				}
-#ifdef __OS2__
-				/* drive letter ? */
-				if (ctype(ip[0], C_ALPHA) && ip[1] == ':') {
-					/* keep them */
+#ifdef MKSH_DOSPATH
+				/* drive letter? */
+				if (mksh_drvltr(ip)) {
+					/* keep it */
 					Xput(xs, xp, *ip++);
 					Xput(xs, xp, *ip++);
 				}
@@ -1940,6 +1962,15 @@ make_path(const char *cwd, const char *file,
  * ..					..
  * ./foo				foo
  * foo/../../../bar			../../bar
+ * C:/foo/../..				C:/
+ * C:.					C:
+ * C:..					C:..
+ * C:foo/../../blah			C:../blah
+ *
+ * XXX consider a rooted pathname: we cannot really 'cd ..' for
+ * pathnames like: '/', 'c:/', '//foo', '//foo/', '/@unixroot/'
+ * (no effect), 'c:', 'c:.' (effect is retaining the '../') but
+ * we need to honour this throughout the shell
  */
 void
 simplify_path(char *p)
@@ -1947,6 +1978,17 @@ simplify_path(char *p)
 	char *dp, *ip, *sp, *tp;
 	size_t len;
 	bool needslash;
+#ifdef MKSH_DOSPATH
+	bool needdot = true;
+
+	/* keep drive letter */
+	if (mksh_drvltr(p)) {
+		p += 2;
+		needdot = false;
+	}
+#else
+#define needdot true
+#endif
 
 	switch (*p) {
 	case 0:
@@ -1985,7 +2027,7 @@ simplify_path(char *p)
 				/* just continue with the next one */
 				continue;
 			else if (len == 2 && tp[1] == '.') {
-				/* parent level, but how? */
+				/* parent level, but how? (see above) */
 				if (mksh_abspath(p))
 					/* absolute path, only one way */
 					goto strip_last_component;
@@ -2024,10 +2066,15 @@ simplify_path(char *p)
 		needslash = true;
 		/* try next component */
 	}
-	if (dp == p)
-		/* empty path -> dot */
-		*dp++ = needslash ? '/' : '.';
+	if (dp == p) {
+		/* empty path -> dot (or slash, when absolute) */
+		if (needslash)
+			*dp++ = '/';
+		else if (needdot)
+			*dp++ = '.';
+	}
 	*dp = '\0';
+#undef needdot
 }
 
 void
