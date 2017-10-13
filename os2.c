@@ -31,14 +31,13 @@
 #include <unistd.h>
 #include <process.h>
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.5 2017/10/13 11:54:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.6 2017/10/13 23:34:49 tg Exp $");
 
 static char *remove_trailing_dots(char *);
 static int access_stat_ex(int (*)(), const char *, void *);
 static int test_exec_exist(const char *, char *);
 static void response(int *, const char ***);
 static char *make_response_file(char * const *);
-static void env_slashify(void);
 static void add_temp(const char *);
 static void cleanup_temps(void);
 static void cleanup(void);
@@ -170,44 +169,12 @@ init_extlibpath(void)
 	}
 }
 
-/*
- * Convert backslashes of environmental variables to forward slahes.
- * A backslash may be used as an escaped character when doing 'echo'.
- * This leads to an unexpected behavior.
- */
-static void
-env_slashify(void)
-{
-	/*
-	 * PATH and TMPDIR are used by OS/2 as well. That is, they may
-	 * have backslashes as a directory separator.
-	 * BEGINLIBPATH and ENDLIBPATH are special variables on OS/2.
-	 */
-	const char *var_list[] = {
-		"PATH",
-		"TMPDIR",
-		"BEGINLIBPATH",
-		"ENDLIBPATH",
-		NULL
-	};
-	const char **var;
-	char *value;
-
-	for (var = var_list; *var; var++) {
-		value = getenv(*var);
-
-		if (value)
-			_fnslashify(value);
-	}
-}
-
 void
 os2_init(int *argcp, const char ***argvp)
 {
 	response(argcp, argvp);
 
 	init_extlibpath();
-	env_slashify();
 
 	if (!isatty(STDIN_FILENO))
 		setmode(STDIN_FILENO, O_BINARY);

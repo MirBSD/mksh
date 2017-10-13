@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.220 2017/07/26 23:02:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.221 2017/10/13 23:34:49 tg Exp $");
 
 /*-
  * Variables
@@ -1294,9 +1294,29 @@ setspec(struct tbl *vp)
 {
 	mksh_ari_u num;
 	char *s;
-	int st;
+	int st = special(vp->name);
 
-	switch ((st = special(vp->name))) {
+#ifdef MKSH_DOSPATH
+	switch (st) {
+	case V_PATH:
+	case V_TMPDIR:
+#ifdef __OS2__
+	case V_BEGINLIBPATH:
+	case V_ENDLIBPATH:
+#endif
+		/* convert backslashes to slashes for convenience */
+		if (!(vp->flag&INTEGER)) {
+			s = str_val(vp);
+			do {
+				if (*s == ord('\\'))
+					*s = '/';
+			} while (*s++);
+		}
+		break;
+	}
+#endif
+
+	switch (st) {
 #ifdef __OS2__
 	case V_BEGINLIBPATH:
 	case V_ENDLIBPATH:
