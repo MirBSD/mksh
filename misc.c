@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.286 2017/10/12 15:17:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.287 2017/10/14 20:11:30 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -2187,6 +2187,17 @@ c_cd(const char **wp)
 		bi_errorf(Ttoo_many_args);
 		return (2);
 	}
+
+#ifdef MKSH_DOSPATH
+	if (mksh_drvltr(dir) && !mksh_cdirsep(dir[2]) &&
+	    !getdrvwd(&tryp, ord(*dir))) {
+		dir = shf_smprintf(Tf_sss, tryp,
+		    dir[2] ? "/" : "", dir + 2);
+		afree(tryp, ATEMP);
+		afree(allocd, ATEMP);
+		allocd = dir;
+	}
+#endif
 
 #ifdef MKSH__NO_PATH_MAX
 	/* only a first guess; make_path will enlarge xs if necessary */
