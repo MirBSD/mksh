@@ -329,49 +329,30 @@ real_exec_name(const char *name)
 	return (real_name);
 }
 
-/* OS/2 can process a command line up to 32 KiB */
-#define MAX_CMD_LINE_LEN 32768
-
 /* make a response file to pass a very long command line */
 static char *
 make_response_file(char * const *argv)
 {
 	char rsp_name_arg[] = "@mksh-rsp-XXXXXX";
 	char *rsp_name = &rsp_name_arg[1];
-	int arg_len = 0;
 	int i;
+	int fd;
+	char *result;
 
-	for (i = 0; argv[i]; i++)
-		arg_len += strlen(argv[i]) + 1;
+	if ((fd = mkstemp(rsp_name)) == -1)
+		return (NULL);
 
-	/*
-	 * If a length of command line is longer than MAX_CMD_LINE_LEN, then
-	 * use a response file. OS/2 cannot process a command line longer
-	 * than 32K. Of course, a response file cannot be recognised by a
-	 * normal OS/2 program, that is, neither non-EMX or non-kLIBC. But
-	 * it cannot accept a command line longer than 32K in itself. So
-	 * using a response file in this case, is an acceptable solution.
-	 */
-	if (arg_len > MAX_CMD_LINE_LEN) {
-		int fd;
-		char *result;
-
-		if ((fd = mkstemp(rsp_name)) == -1)
-			return (NULL);
-
-		/* write all the arguments except a 0th program name */
-		for (i = 1; argv[i]; i++) {
-			write(fd, argv[i], strlen(argv[i]));
-			write(fd, "\n", 1);
-		}
-
-		close(fd);
-		add_temp(rsp_name);
-		strdupx(result, rsp_name_arg, ATEMP);
-		return (result);
+	/* write all the arguments except a 0th program name */
+	for (i = 1; argv[i]; i++) {
+		write(fd, argv[i], strlen(argv[i]));
+		write(fd, "\n", 1);
 	}
 
-	return (NULL);
+	close(fd);
+	add_temp(rsp_name);
+	strdupx(result, rsp_name_arg, ATEMP);
+
+	return (result);
 }
 
 /* alias of execve() */
@@ -384,13 +365,12 @@ execve(const char *name, char * const *argv, char * const *envp)
 	const char *exec_name;
 	FILE *fp;
 	char sign[2];
-	char *rsp_argv[3];
-	char *rsp_name_arg;
 	int pid;
 	int status;
 	int fd;
 	int rc;
 	int saved_mode;
+	int saved_errno;
 
 	/*
 	 * #! /bin/sh : append .exe
@@ -430,16 +410,6 @@ execve(const char *name, char * const *argv, char * const *envp)
 	if (errno == ENOEXEC)
 		return (-1);
 
-	rsp_name_arg = make_response_file(argv);
-
-	if (rsp_name_arg) {
-		rsp_argv[0] = argv[0];
-		rsp_argv[1] = rsp_name_arg;
-		rsp_argv[2] = NULL;
-
-		argv = rsp_argv;
-	}
-
 	/*
 	* Normal OS/2 programs expect that standard IOs, especially stdin,
 	* are opened in text mode at the startup. By the way, on OS/2 kLIBC
@@ -451,15 +421,29 @@ execve(const char *name, char * const *argv, char * const *envp)
 	saved_mode = setmode(STDIN_FILENO, O_TEXT);
 
 	pid = spawnve(P_NOWAIT, exec_name, argv, envp);
+	saved_errno = errno;
+
+	/* arguments too long? */
+	if (pid == -1 && errno == EINVAL) {
+		/* retry with a response file */
+		char *rsp_name_arg = make_response_file(argv);
+		if (rsp_name_arg) {
+			char *rsp_argv[3] = { argv[0], rsp_name_arg, NULL };
+
+			pid = spawnve(P_NOWAIT, exec_name, rsp_argv, envp);
+			saved_errno = errno;
+
+			afree(rsp_name_arg, ATEMP);
+		}
+	}
 
 	/* restore a translation mode of stdin */
 	setmode(STDIN_FILENO, saved_mode);
 
-	afree(rsp_name_arg, ATEMP);
-
 	if (pid == -1) {
 		cleanup_temps();
 
+		errno = saved_errno;
 		return (-1);
 	}
 
