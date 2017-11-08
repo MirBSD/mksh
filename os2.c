@@ -390,6 +390,7 @@ execve(const char *name, char * const *argv, char * const *envp)
 	int status;
 	int fd;
 	int rc;
+	int saved_mode;
 
 	/*
 	 * #! /bin/sh : append .exe
@@ -439,7 +440,20 @@ execve(const char *name, char * const *argv, char * const *envp)
 		argv = rsp_argv;
 	}
 
+	/*
+	* Normal OS/2 programs expect that standard IOs, especially stdin,
+	* are opened in text mode at the startup. By the way, on OS/2 kLIBC
+	* child processes inherit a translation mode of a parent process.
+	* As a result, if stdin is set to binary mode in a parent process,
+	* stdin of child processes is opened in binary mode as well at the
+	* startup. In this case, some programs such as sed suffer from CR.
+	*/
+	saved_mode = setmode(STDIN_FILENO, O_TEXT);
+
 	pid = spawnve(P_NOWAIT, exec_name, argv, envp);
+
+	/* restore a translation mode of stdin */
+	setmode(STDIN_FILENO, saved_mode);
 
 	afree(rsp_name_arg, ATEMP);
 
