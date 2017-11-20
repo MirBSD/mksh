@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.350 2017/05/05 22:53:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.351 2017/11/20 02:32:32 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3533,7 +3533,7 @@ c_cat(const char **wp)
 					continue;
 				}
 				if (errno == EPIPE) {
-					/* fake receiving signel */
+					/* fake receiving signal */
 					rv = ksh_sigmask(SIGPIPE);
 				} else {
 					/* an error occured during writing */
