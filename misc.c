@@ -2104,7 +2104,7 @@ c_cd(const char **wp)
 	bool printpath = false, eflag = false;
 	struct tbl *pwd_s, *oldpwd_s;
 	XString xs;
-	char *dir, *allocd = NULL, *tryp = NULL, *pwd, *cdpath;
+	char *dir, *allocd = NULL, *tryp, *pwd, *cdpath;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, "eLP")) != -1)
 		switch (optc) {
