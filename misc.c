@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.287 2017/10/14 20:11:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.288 2017/10/15 20:21:51 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -2189,6 +2189,7 @@ c_cd(const char **wp)
 	}
 
 #ifdef MKSH_DOSPATH
+	tryp = NULL;
 	if (mksh_drvltr(dir) && !mksh_cdirsep(dir[2]) &&
 	    !getdrvwd(&tryp, ord(*dir))) {
 		dir = shf_smprintf(Tf_sss, tryp,

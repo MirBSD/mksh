@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.239 2017/05/05 22:53:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.240 2017/10/17 23:45:18 tg Exp $");
 
 /*
  * states while lexing word
@@ -284,15 +284,6 @@ yylex(int cf)
 						}
 						afree(tmp, ATEMP);
 						break;
-					} else {
-						Source *s;
-
-						s = pushs(SREREAD,
-						    source->areap);
-						s->start = s->str =
-						    s->u.freeme = tmp;
-						s->next = source;
-						source = s;
 					}
 				}
 				*wp++ = CHAR;
