@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.799 2017/10/17 23:45:16 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.800 2017/12/15 13:35:34 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -3328,7 +3328,7 @@ stdin:
 		echo B
 	      ) &
 	    ' &
-	sleep 2
+	sleep 5
 	echo Left overs: *
 expected-stdout:
 	A
@@ -3392,7 +3392,7 @@ stdin:
 		(sleep 1; foo) &
 		foo
 	    ' &
-	sleep 2
+	sleep 5
 	echo Left overs: *
 expected-stdout:
 	hi
@@ -6702,7 +6702,7 @@ name: regression-65
 description:
 	check for a regression with sleep builtin and signal mask
 category: !nojsig
-time-limit: 3
+time-limit: 5
 stdin:
 	sleep 1
 	echo blub |&

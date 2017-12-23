@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2015
+ * Copyright (c) 2015, 2017
  *	KO Myung-Hun <komh@chollian.net>
  * Copyright (c) 2017
  *	mirabilos <m@mirbsd.org>
@@ -31,7 +31,7 @@
 #include <unistd.h>
 #include <process.h>
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.6 2017/10/13 23:34:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.8 2017/12/22 16:41:42 tg Exp $");
 
 static char *remove_trailing_dots(char *);
 static int access_stat_ex(int (*)(), const char *, void *);
@@ -411,22 +411,23 @@ execve(const char *name, char * const *argv, char * const *envp)
 		return (-1);
 
 	/*
-	* Normal OS/2 programs expect that standard IOs, especially stdin,
-	* are opened in text mode at the startup. By the way, on OS/2 kLIBC
-	* child processes inherit a translation mode of a parent process.
-	* As a result, if stdin is set to binary mode in a parent process,
-	* stdin of child processes is opened in binary mode as well at the
-	* startup. In this case, some programs such as sed suffer from CR.
-	*/
+	 * Normal OS/2 programs expect that standard IOs, especially stdin,
+	 * are opened in text mode at the startup. By the way, on OS/2 kLIBC
+	 * child processes inherit a translation mode of a parent process.
+	 * As a result, if stdin is set to binary mode in a parent process,
+	 * stdin of child processes is opened in binary mode as well at the
+	 * startup. In this case, some programs such as sed suffer from CR.
+	 */
 	saved_mode = setmode(STDIN_FILENO, O_TEXT);
 
 	pid = spawnve(P_NOWAIT, exec_name, argv, envp);
 	saved_errno = errno;
 
 	/* arguments too long? */
-	if (pid == -1 && errno == EINVAL) {
+	if (pid == -1 && saved_errno == EINVAL) {
 		/* retry with a response file */
 		char *rsp_name_arg = make_response_file(argv);
+
 		if (rsp_name_arg) {
 			char *rsp_argv[3] = { argv[0], rsp_name_arg, NULL };
 
@@ -437,7 +438,7 @@ execve(const char *name, char * const *argv, char * const *envp)
 		}
 	}
 
-	/* restore a translation mode of stdin */
+	/* restore translation mode of stdin */
 	setmode(STDIN_FILENO, saved_mode);
 
 	if (pid == -1) {
