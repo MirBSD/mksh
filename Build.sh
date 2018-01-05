@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.729 2017/12/22 18:36:21 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.730 2018/01/05 20:05:26 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -822,9 +822,6 @@ IRIX*)
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 Jehanne)
-	: "${HAVE_TERMIOS_H=1}"
-	: "${HAVE_GETRUSAGE=1}"
-	: "${LDSTATIC=-static}"
 	add_cppflags -DMKSH_ASSUME_UTF8
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=0
