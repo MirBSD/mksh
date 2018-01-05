@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
- *		 2012, 2013, 2014, 2015, 2016
+ *		 2012, 2013, 2014, 2015, 2016, 2018
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.124 2017/08/08 14:30:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.125 2018/01/05 20:08:34 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1545,7 +1545,9 @@ j_print(Job *j, int how, struct shf *shf)
 	Proc *p;
 	int state;
 	int status;
+#ifdef WCOREDUMP
 	bool coredumped;
+#endif
 	char jobchar = ' ';
 	char buf[64];
 	const char *filler;
@@ -1569,7 +1571,9 @@ j_print(Job *j, int how, struct shf *shf)
 		jobchar = '-';
 
 	for (p = j->proc_list; p != NULL;) {
+#ifdef WCOREDUMP
 		coredumped = false;
+#endif
 		switch (p->state) {
 		case PRUNNING:
 			memcpy(buf, "Running", 8);
@@ -1603,7 +1607,10 @@ j_print(Job *j, int how, struct shf *shf)
 			 * kludge for not reporting 'normal termination
 			 * signals' (i.e. SIGINT, SIGPIPE)
 			 */
-			if (how == JP_SHORT && !coredumped &&
+			if (how == JP_SHORT &&
+#ifdef WCOREDUMP
+			    !coredumped &&
+#endif
 			    (termsig == SIGINT || termsig == SIGPIPE)) {
 				buf[0] = '\0';
 			} else
@@ -1629,14 +1636,22 @@ j_print(Job *j, int how, struct shf *shf)
 		if (how == JP_SHORT) {
 			if (buf[0]) {
 				output = 1;
+#ifdef WCOREDUMP
 				shf_fprintf(shf, "%s%s ",
 				    buf, coredumped ? " (core dumped)" : null);
+#else
+				shf_puts(buf, shf);
+				shf_putchar(' ', shf);
+#endif
 			}
 		} else {
 			output = 1;
 			shf_fprintf(shf, "%-20s %s%s%s", buf, p->command,
 			    p->next ? "|" : null,
-			    coredumped ? " (core dumped)" : null);
+#ifdef WCOREDUMP
+			    coredumped ? " (core dumped)" :
+#endif
+			     null);
 		}
 
 		state = p->state;
