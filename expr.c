@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.101 2017/11/18 12:01:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.102 2018/01/13 23:55:10 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -558,9 +558,9 @@ exprtoken(Expr_state *es)
 
 	/* skip whitespace */
  skip_spaces:
-	while (ctype(ord((c = *cp)), C_SPACE))
+	while (ctype((c = *cp), C_SPACE))
 		++cp;
-	if (es->tokp == es->expression && c == ord('#')) {
+	if (es->tokp == es->expression && (unsigned int)c == ORD('#')) {
 		/* expression begins with # */
 		/* switch to unsigned */
 		es->natural = true;
@@ -575,7 +575,7 @@ exprtoken(Expr_state *es)
 		do {
 			c = ord(*++cp);
 		} while (ctype(c, C_ALNUX));
-		if (c == ord('[')) {
+		if ((unsigned int)c == ORD('[')) {
 			size_t len;
 
 			len = array_ref_len(cp);

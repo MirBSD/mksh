@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.340 2017/08/27 23:33:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.341 2018/01/13 23:55:09 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -312,12 +312,12 @@ x_glob_hlp_add_qchar(char *cp)
 			 */
 			switch (ord(ch)) {
 			case QCHAR:
-			case ord('$'):
-			case ord('*'):
-			case ord('?'):
-			case ord('['):
-			case ord('\\'):
-			case ord('`'):
+			case CORD('$'):
+			case CORD('*'):
+			case CORD('?'):
+			case CORD('['):
+			case CORD('\\'):
+			case CORD('`'):
 				*dp++ = QCHAR;
 				break;
 			}
@@ -650,11 +650,11 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 			if (*s == '\\' && s[1])
 				s++;
 			else if (ctype(*s, C_QUEST | C_DOLAR) ||
-			    ord(*s) == ord('*') || ord(*s) == ord('[') ||
+			    ord(*s) == ORD('*') || ord(*s) == ORD('[') ||
 			    /* ?() *() +() @() !() but two already checked */
-			    (ord(s[1]) == ord('(' /*)*/) &&
-			    (ord(*s) == ord('+') || ord(*s) == ord('@') ||
-			    ord(*s) == ord('!')))) {
+			    (ord(s[1]) == ORD('(' /*)*/) &&
+			    (ord(*s) == ORD('+') || ord(*s) == ORD('@') ||
+			    ord(*s) == ORD('!')))) {
 				/*
 				 * just expand based on the extglob
 				 * or parameter
@@ -3688,7 +3688,7 @@ vi_hook(int ch)
 				return (1);
 			cmdlen = 0;
 			argc1 = 0;
-			if (ctype(ch, C_DIGIT) && ord(ch) != ord('0')) {
+			if (ctype(ch, C_DIGIT) && ord(ch) != ORD('0')) {
 				argc1 = ksh_numdig(ch);
 				state = VARG1;
 			} else {
@@ -3743,7 +3743,7 @@ vi_hook(int ch)
 
 	case VEXTCMD:
 		argc2 = 0;
-		if (ctype(ch, C_DIGIT) && ord(ch) != ord('0')) {
+		if (ctype(ch, C_DIGIT) && ord(ch) != ORD('0')) {
 			argc2 = ksh_numdig(ch);
 			state = VARG2;
 			return (0);
@@ -4128,7 +4128,7 @@ vi_cmd(int argcnt, const char *cmd)
 			redraw_line(true);
 			break;
 
-		case ord('@'):
+		case CORD('@'):
 			{
 				static char alias[] = "_\0";
 				struct tbl *ap;
@@ -4169,7 +4169,7 @@ vi_cmd(int argcnt, const char *cmd)
 			}
 			break;
 
-		case ord('a'):
+		case CORD('a'):
 			modified = 1;
 			hnum = hlast;
 			if (vs->linelen != 0)
@@ -4177,7 +4177,7 @@ vi_cmd(int argcnt, const char *cmd)
 			insert = INSERT;
 			break;
 
-		case ord('A'):
+		case CORD('A'):
 			modified = 1;
 			hnum = hlast;
 			del_range(0, 0);
@@ -4185,7 +4185,7 @@ vi_cmd(int argcnt, const char *cmd)
 			insert = INSERT;
 			break;
 
-		case ord('S'):
+		case CORD('S'):
 			vs->cursor = domovebeg();
 			del_range(vs->cursor, vs->linelen);
 			modified = 1;
@@ -4193,14 +4193,14 @@ vi_cmd(int argcnt, const char *cmd)
 			insert = INSERT;
 			break;
 
-		case ord('Y'):
+		case CORD('Y'):
 			cmd = "y$";
 			/* ahhhhhh... */
 
 			/* FALLTHROUGH */
-		case ord('c'):
-		case ord('d'):
-		case ord('y'):
+		case CORD('c'):
+		case CORD('d'):
+		case CORD('y'):
 			if (*cmd == cmd[1]) {
 				c1 = *cmd == 'c' ? domovebeg() : 0;
 				c2 = vs->linelen;
@@ -4239,7 +4239,7 @@ vi_cmd(int argcnt, const char *cmd)
 			}
 			break;
 
-		case ord('p'):
+		case CORD('p'):
 			modified = 1;
 			hnum = hlast;
 			if (vs->linelen != 0)
@@ -4253,7 +4253,7 @@ vi_cmd(int argcnt, const char *cmd)
 				return (-1);
 			break;
 
-		case ord('P'):
+		case CORD('P'):
 			modified = 1;
 			hnum = hlast;
 			any = 0;
@@ -4266,25 +4266,25 @@ vi_cmd(int argcnt, const char *cmd)
 				return (-1);
 			break;
 
-		case ord('C'):
+		case CORD('C'):
 			modified = 1;
 			hnum = hlast;
 			del_range(vs->cursor, vs->linelen);
 			insert = INSERT;
 			break;
 
-		case ord('D'):
+		case CORD('D'):
 			yank_range(vs->cursor, vs->linelen);
 			del_range(vs->cursor, vs->linelen);
 			if (vs->cursor != 0)
 				vs->cursor--;
 			break;
 
-		case ord('g'):
+		case CORD('g'):
 			if (!argcnt)
 				argcnt = hlast;
 			/* FALLTHROUGH */
-		case ord('G'):
+		case CORD('G'):
 			if (!argcnt)
 				argcnt = 1;
 			else
@@ -4297,21 +4297,21 @@ vi_cmd(int argcnt, const char *cmd)
 			}
 			break;
 
-		case ord('i'):
+		case CORD('i'):
 			modified = 1;
 			hnum = hlast;
 			insert = INSERT;
 			break;
 
-		case ord('I'):
+		case CORD('I'):
 			modified = 1;
 			hnum = hlast;
 			vs->cursor = domovebeg();
 			insert = INSERT;
 			break;
 
-		case ord('j'):
-		case ord('+'):
+		case CORD('j'):
+		case CORD('+'):
 		case CTRL_N:
 			if (grabhist(modified, hnum + argcnt) < 0)
 				return (-1);
@@ -4321,8 +4321,8 @@ vi_cmd(int argcnt, const char *cmd)
 			}
 			break;
 
-		case ord('k'):
-		case ord('-'):
+		case CORD('k'):
+		case CORD('-'):
 		case CTRL_P:
 			if (grabhist(modified, hnum - argcnt) < 0)
 				return (-1);
@@ -4332,7 +4332,7 @@ vi_cmd(int argcnt, const char *cmd)
 			}
 			break;
 
-		case ord('r'):
+		case CORD('r'):
 			if (vs->linelen == 0)
 				return (-1);
 			modified = 1;
@@ -4350,13 +4350,13 @@ vi_cmd(int argcnt, const char *cmd)
 			}
 			break;
 
-		case ord('R'):
+		case CORD('R'):
 			modified = 1;
 			hnum = hlast;
 			insert = REPLACE;
 			break;
 
-		case ord('s'):
+		case CORD('s'):
 			if (vs->linelen == 0)
 				return (-1);
 			modified = 1;
@@ -4367,7 +4367,7 @@ vi_cmd(int argcnt, const char *cmd)
 			insert = INSERT;
 			break;
 
-		case ord('v'):
+		case CORD('v'):
 			if (!argcnt) {
 				if (vs->linelen == 0)
 					return (-1);
@@ -4390,7 +4390,7 @@ vi_cmd(int argcnt, const char *cmd)
 			vs->linelen = strlen(vs->cbuf);
 			return (2);
 
-		case ord('x'):
+		case CORD('x'):
 			if (vs->linelen == 0)
 				return (-1);
 			modified = 1;
@@ -4401,7 +4401,7 @@ vi_cmd(int argcnt, const char *cmd)
 			del_range(vs->cursor, vs->cursor + argcnt);
 			break;
 
-		case ord('X'):
+		case CORD('X'):
 			if (vs->cursor > 0) {
 				modified = 1;
 				hnum = hlast;
@@ -4414,13 +4414,13 @@ vi_cmd(int argcnt, const char *cmd)
 				return (-1);
 			break;
 
-		case ord('u'):
+		case CORD('u'):
 			t = vs;
 			vs = undo;
 			undo = t;
 			break;
 
-		case ord('U'):
+		case CORD('U'):
 			if (!modified)
 				return (-1);
 			if (grabhist(modified, ohnum) < 0)
@@ -4429,19 +4429,19 @@ vi_cmd(int argcnt, const char *cmd)
 			hnum = ohnum;
 			break;
 
-		case ord('?'):
+		case CORD('?'):
 			if (hnum == hlast)
 				hnum = -1;
 			/* ahhh */
 
 			/* FALLTHROUGH */
-		case ord('/'):
+		case CORD('/'):
 			c3 = 1;
 			srchlen = 0;
 			lastsearch = *cmd;
 			/* FALLTHROUGH */
-		case ord('n'):
-		case ord('N'):
+		case CORD('n'):
+		case CORD('N'):
 			if (lastsearch == ' ')
 				return (-1);
 			if (lastsearch == '?')
@@ -4468,7 +4468,7 @@ vi_cmd(int argcnt, const char *cmd)
 				return (0);
 			}
 			break;
-		case ord('_'):
+		case CORD('_'):
 			{
 				bool inspace;
 				char *p, *sp;
@@ -4520,7 +4520,7 @@ vi_cmd(int argcnt, const char *cmd)
 			}
 			break;
 
-		case ord('~'):
+		case CORD('~'):
 			{
 				char *p;
 				int i;
@@ -4544,7 +4544,7 @@ vi_cmd(int argcnt, const char *cmd)
 				break;
 			}
 
-		case ord('#'):
+		case CORD('#'):
 			{
 				int ret = x_do_comment(vs->cbuf, vs->cbufsize,
 				    &vs->linelen);
@@ -4554,7 +4554,7 @@ vi_cmd(int argcnt, const char *cmd)
 			}
 
 		/* AT&T ksh */
-		case ord('='):
+		case CORD('='):
 		/* Nonstandard vi/ksh */
 		case CTRL_E:
 			print_expansions(vs, 1);
@@ -4574,7 +4574,7 @@ vi_cmd(int argcnt, const char *cmd)
 				return (-1);
 			/* FALLTHROUGH */
 		/* AT&T ksh */
-		case ord('\\'):
+		case CORD('\\'):
 		/* Nonstandard vi/ksh */
 		case CTRL_F:
 			complete_word(1, argcnt);
@@ -4582,7 +4582,7 @@ vi_cmd(int argcnt, const char *cmd)
 
 
 		/* AT&T ksh */
-		case ord('*'):
+		case CORD('*'):
 		/* Nonstandard vi/ksh */
 		case CTRL_X:
 			expand_word(1);
@@ -4590,8 +4590,8 @@ vi_cmd(int argcnt, const char *cmd)
 
 
 		/* mksh: cursor movement */
-		case ord('['):
-		case ord('O'):
+		case CORD('['):
+		case CORD('O'):
 			state = VPREFIX2;
 			if (vs->linelen != 0)
 				vs->cursor++;
@@ -4611,19 +4611,19 @@ domove(int argcnt, const char *cmd, int sub)
 	unsigned int bcount;
 
 	switch (ord(*cmd)) {
-	case ord('b'):
+	case CORD('b'):
 		if (!sub && vs->cursor == 0)
 			return (-1);
 		ncursor = backword(argcnt);
 		break;
 
-	case ord('B'):
+	case CORD('B'):
 		if (!sub && vs->cursor == 0)
 			return (-1);
 		ncursor = Backword(argcnt);
 		break;
 
-	case ord('e'):
+	case CORD('e'):
 		if (!sub && vs->cursor + 1 >= vs->linelen)
 			return (-1);
 		ncursor = endword(argcnt);
@@ -4631,7 +4631,7 @@ domove(int argcnt, const char *cmd, int sub)
 			ncursor++;
 		break;
 
-	case ord('E'):
+	case CORD('E'):
 		if (!sub && vs->cursor + 1 >= vs->linelen)
 			return (-1);
 		ncursor = Endword(argcnt);
@@ -4639,15 +4639,15 @@ domove(int argcnt, const char *cmd, int sub)
 			ncursor++;
 		break;
 
-	case ord('f'):
-	case ord('F'):
-	case ord('t'):
-	case ord('T'):
+	case CORD('f'):
+	case CORD('F'):
+	case CORD('t'):
+	case CORD('T'):
 		fsavecmd = *cmd;
 		fsavech = cmd[1];
 		/* FALLTHROUGH */
-	case ord(','):
-	case ord(';'):
+	case CORD(','):
+	case CORD(';'):
 		if (fsavecmd == ' ')
 			return (-1);
 		i = ksh_eq(fsavecmd, 'F', 'f');
@@ -4661,7 +4661,7 @@ domove(int argcnt, const char *cmd, int sub)
 			ncursor++;
 		break;
 
-	case ord('h'):
+	case CORD('h'):
 	case CTRL_H:
 		if (!sub && vs->cursor == 0)
 			return (-1);
@@ -4670,8 +4670,8 @@ domove(int argcnt, const char *cmd, int sub)
 			ncursor = 0;
 		break;
 
-	case ord(' '):
-	case ord('l'):
+	case CORD(' '):
+	case CORD('l'):
 		if (!sub && vs->cursor + 1 >= vs->linelen)
 			return (-1);
 		if (vs->linelen != 0) {
@@ -4681,27 +4681,27 @@ domove(int argcnt, const char *cmd, int sub)
 		}
 		break;
 
-	case ord('w'):
+	case CORD('w'):
 		if (!sub && vs->cursor + 1 >= vs->linelen)
 			return (-1);
 		ncursor = forwword(argcnt);
 		break;
 
-	case ord('W'):
+	case CORD('W'):
 		if (!sub && vs->cursor + 1 >= vs->linelen)
 			return (-1);
 		ncursor = Forwword(argcnt);
 		break;
 
-	case ord('0'):
+	case CORD('0'):
 		ncursor = 0;
 		break;
 
-	case ord('^'):
+	case CORD('^'):
 		ncursor = domovebeg();
 		break;
 
-	case ord('|'):
+	case CORD('|'):
 		ncursor = argcnt;
 		if (ncursor > vs->linelen)
 			ncursor = vs->linelen;
@@ -4709,14 +4709,14 @@ domove(int argcnt, const char *cmd, int sub)
 			ncursor--;
 		break;
 
-	case ord('$'):
+	case CORD('$'):
 		if (vs->linelen != 0)
 			ncursor = vs->linelen;
 		else
 			ncursor = 0;
 		break;
 
-	case ord('%'):
+	case CORD('%'):
 		ncursor = vs->cursor;
 		while (ncursor < vs->linelen &&
 		    (i = bracktype(vs->cbuf[ncursor])) == 0)
@@ -4784,22 +4784,22 @@ bracktype(int ch)
 {
 	switch (ord(ch)) {
 
-	case ord('('):
+	case CORD('('):
 		return (1);
 
-	case ord('['):
+	case CORD('['):
 		return (2);
 
-	case ord('{'):
+	case CORD('{'):
 		return (3);
 
-	case ord(')'):
+	case CORD(')'):
 		return (-1);
 
-	case ord(']'):
+	case CORD(']'):
 		return (-2);
 
-	case ord('}'):
+	case CORD('}'):
 		return (-3);
 
 	default:

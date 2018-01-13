@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.351 2017/11/20 02:32:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.352 2018/01/13 23:55:11 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -745,9 +745,9 @@ do_whence(const char **wp, int fcflags, bool vflag, bool iscommand)
 bool
 valid_alias_name(const char *cp)
 {
-	if (ord(*cp) == ord('-'))
+	if (ord(*cp) == ORD('-'))
 		return (false);
-	if (ord(cp[0]) == ord('[') && ord(cp[1]) == ord('[') && !cp[2])
+	if (ord(cp[0]) == ORD('[') && ord(cp[1]) == ORD('[') && !cp[2])
 		return (false);
 	while (*cp)
 		if (ctype(*cp, C_ALIAS))
@@ -2298,9 +2298,9 @@ c_unset(const char **wp)
 			size_t n;
 
 			n = strlen(id);
-			if (n > 3 && ord(id[n - 3]) == ord('[') &&
-			    ord(id[n - 2]) == ord('*') &&
-			    ord(id[n - 1]) == ord(']')) {
+			if (n > 3 && ord(id[n - 3]) == ORD('[') &&
+			    ord(id[n - 2]) == ORD('*') &&
+			    ord(id[n - 1]) == ORD(']')) {
 				strndupx(cp, id, n - 3, ATEMP);
 				id = cp;
 				optc = 3;

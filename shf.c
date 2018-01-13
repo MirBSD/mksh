@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.95 2017/05/05 22:45:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.96 2018/01/13 23:55:14 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1253,7 +1253,7 @@ set_ifs(const char *s)
  *    Not only do they require all 8 bits instead of 7, if chars are
  *    signed, they will have negative integer values! Something like
  *    (c - 'A') could actually become (c + 63)! Use the ord() macro to
- *    ensure you're getting a value in [0, 255].
+ *    ensure you're getting a value in [0, 255] (ORD for constants).
  * 4. '\n' is actually NL (0x15, U+0085) instead of LF (0x25, U+000A).
  *    EBCDIC has a proper newline character instead of "emulating" one
  *    with line feeds, although this is mapped to LF for our purposes.
