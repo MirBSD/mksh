@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.289 2018/01/13 23:55:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.290 2018/01/13 23:58:32 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1664,7 +1664,7 @@ do_realpath(const char *upath)
 #ifdef MKSH_DOSPATH
 	} else if (mksh_drvltr(upath)) {
 		/* upath is a drive-relative pathname */
-		if (getdrvwd(&ldest, ORD(*upath)))
+		if (getdrvwd(&ldest, ord(*upath)))
 			return (NULL);
 		/* A:foo -> A:/cwd/foo; A: -> A:/cwd */
 		ipath = shf_smprintf(Tf_sss, ldest,
@@ -1783,7 +1783,7 @@ do_realpath(const char *upath)
 #ifdef MKSH_DOSPATH
 				/* symlink target might be drive-relative */
 				if (mksh_drvltr(ipath)) {
-					if (getdrvwd(&ldest, ORD(*ipath)))
+					if (getdrvwd(&ldest, ord(*ipath)))
 						goto notfound;
 					ip += 2;
 					goto assemble_symlink;
@@ -2191,7 +2191,7 @@ c_cd(const char **wp)
 #ifdef MKSH_DOSPATH
 	tryp = NULL;
 	if (mksh_drvltr(dir) && !mksh_cdirsep(dir[2]) &&
-	    !getdrvwd(&tryp, ORD(*dir))) {
+	    !getdrvwd(&tryp, ord(*dir))) {
 		dir = shf_smprintf(Tf_sss, tryp,
 		    dir[2] ? "/" : "", dir + 2);
 		afree(tryp, ATEMP);
