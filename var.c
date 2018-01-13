@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.221 2017/10/13 23:34:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.222 2018/01/13 21:38:10 tg Exp $");
 
 /*-
  * Variables
@@ -136,7 +136,7 @@ initvar(void)
 	struct tbl *tp;
 
 	ktinit(APERM, &specials,
-	    /* currently 18 specials: 75% of 32 = 2^5 */
+	    /* currently 21 specials: 75% of 32 = 2^5 */
 	    5);
 	while (i < V_MAX - 1) {
 		tp = ktenter(&specials, initvar_names[i],
@@ -1386,6 +1386,13 @@ setspec(struct tbl *vp)
 		}
 		vp->flag |= SPECIAL;
 		break;
+#ifdef MKSH_EARLY_LOCALE_TRACKING
+	case V_LANG:
+	case V_LC_ALL:
+	case V_LC_CTYPE:
+		recheck_ctype();
+		return;
+#endif
 	default:
 		/* do nothing, do not touch vp at all */
 		return;
@@ -1485,6 +1492,13 @@ unsetspec(struct tbl *vp)
 		/* AT&T ksh leaves previous value in place */
 		unspecial(vp->name);
 		break;
+#ifdef MKSH_EARLY_LOCALE_TRACKING
+	case V_LANG:
+	case V_LC_ALL:
+	case V_LC_CTYPE:
+		recheck_ctype();
+		return;
+#endif
 	}
 }
 

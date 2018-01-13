@@ -182,7 +182,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.849 2017/10/17 23:45:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.850 2018/01/13 21:38:09 tg Exp $");
 #endif
 #define MKSH_VERSION "R56 2017/10/17"
 
@@ -643,7 +643,7 @@ char *ucstrstr(char *, const char *);
 #endif
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 562)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 563)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -2500,6 +2500,7 @@ void shprintf(const char *, ...)
     MKSH_A_FORMAT(__printf__, 1, 2);
 int can_seek(int);
 void initio(void);
+void recheck_ctype(void);
 int ksh_dup2(int, int, bool);
 short savefd(int);
 void restfd(int, int);

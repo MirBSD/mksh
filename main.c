@@ -5,7 +5,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.345 2017/10/14 21:05:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.346 2018/01/13 21:38:08 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -2047,5 +2047,29 @@ init_environ(void)
 		typeset(*wp, IMPORT | EXPORT, 0, 0, 0);
 		++wp;
 	}
+}
+#endif
+
+#ifdef MKSH_EARLY_LOCALE_TRACKING
+void
+recheck_ctype(void)
+{
+	const char *ccp;
+
+	ccp = str_val(global("LC_ALL"));
+	if (ccp == null)
+		ccp = str_val(global("LC_CTYPE"));
+	if (ccp == null)
+		ccp = str_val(global("LANG"));
+	UTFMODE = isuc(ccp);
+#if HAVE_SETLOCALE_CTYPE
+	ccp = setlocale(LC_CTYPE, ccp);
+#if HAVE_LANGINFO_CODESET
+	if (!isuc(ccp))
+		ccp = nl_langinfo(CODESET);
+#endif
+	if (isuc(ccp))
+		UTFMODE = 1;
+#endif
 }
 #endif
