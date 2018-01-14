@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.352 2018/01/13 23:55:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.353 2018/01/14 01:26:49 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -588,7 +588,7 @@ c_print(const char **wp)
 static int
 s_get(void)
 {
-	return (*s_ptr++);
+	return (ord(*s_ptr++));
 }
 
 static void
