@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.244 2018/01/14 00:51:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.245 2018/01/14 00:57:55 tg Exp $");
 
 /*
  * states while lexing word
@@ -131,7 +131,7 @@ getsc_i(void)
 }
 
 #if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
-#define getsc()		ord(getsc_i())
+#define getsc()		((unsigned int)(unsigned char)(getsc_i()))
 #else
 static int getsc_r(int);
 
@@ -141,7 +141,7 @@ getsc_r(int c)
 	o_getsc_r(c);
 }
 
-#define getsc()		ord(getsc_r(o_getsc()))
+#define getsc()		((unsigned int)(unsigned char)(getsc_r(o_getsc())))
 #endif
 
 #define STATE_BSIZE	8
