@@ -182,7 +182,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.855 2018/01/14 00:47:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.856 2018/01/14 01:28:15 tg Exp $");
 #endif
 #define MKSH_VERSION "R56 2017/10/17"
 
@@ -1481,7 +1481,7 @@ extern unsigned int eek_ord;
 	size_t ord_c = (c);					\
 								\
 	if (ord_c > (size_t)0xFFU)				\
-		internal_errorf("%s:%d:ord(%zu)",		\
+		internal_errorf("%s:%d:ord(%zX)",		\
 		    __FILE__, __LINE__, ord_c);			\
 	((unsigned int)(unsigned char)(ord_c));			\
 }))
@@ -1621,7 +1621,7 @@ EXTERN mksh_ari_t x_lins E_INIT(24);
 #define shf_fileno(shf)		((shf)->fd)
 #define shf_setfileno(shf,nfd)	((shf)->fd = (nfd))
 #define shf_getc_i(shf)		((shf)->rnleft > 0 ? \
-				    (shf)->rnleft--, *(shf)->rp++ : \
+				    (shf)->rnleft--, (int)ord(*(shf)->rp++) : \
 				    shf_getchar(shf))
 #define shf_putc_i(c, shf)	((shf)->wnleft == 0 ? \
 				    shf_putchar((uint8_t)(c), (shf)) : \
