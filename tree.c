@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.94 2018/01/13 23:55:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.95 2018/01/14 00:03:05 tg Exp $");
 
 #define INDENT	8
 
@@ -342,7 +342,7 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 			c = ord(*wp++);
 			if (opmode & WDS_TPUTS)
 				switch (c) {
-				case CORD('\n'):
+				case ORD('\n'):
 					if (quotelevel == 0) {
 						c = ORD('\'');
 						shf_putc(c, shf);
@@ -352,10 +352,10 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 				default:
 					if (quotelevel == 0)
 						/* FALLTHROUGH */
-				case CORD('"'):
-				case CORD('`'):
-				case CORD('$'):
-				case CORD('\\'):
+				case ORD('"'):
+				case ORD('`'):
+				case ORD('$'):
+				case ORD('\\'):
 					  shf_putc(ORD('\\'), shf);
 					break;
 				}
@@ -470,33 +470,33 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 	while ((c = ord(*fmt++))) {
 		if (c == '%') {
 			switch ((c = ord(*fmt++))) {
-			case CORD('c'):
+			case ORD('c'):
 				/* character (octet, probably) */
 				shf_putchar(va_arg(va, int), shf);
 				break;
-			case CORD('s'):
+			case ORD('s'):
 				/* string */
 				shf_puts(va_arg(va, char *), shf);
 				break;
-			case CORD('S'):
+			case ORD('S'):
 				/* word */
 				wdvarput(shf, va_arg(va, char *), 0, WDS_TPUTS);
 				break;
-			case CORD('d'):
+			case ORD('d'):
 				/* signed decimal */
 				shf_fprintf(shf, Tf_d, va_arg(va, int));
 				break;
-			case CORD('u'):
+			case ORD('u'):
 				/* unsigned decimal */
 				shf_fprintf(shf, "%u", va_arg(va, unsigned int));
 				break;
-			case CORD('T'):
+			case ORD('T'):
 				/* format tree */
 				ptree(va_arg(va, struct op *), indent, shf);
 				goto dont_trash_prevent_semicolon;
-			case CORD(';'):
+			case ORD(';'):
 				/* newline or ; */
-			case CORD('N'):
+			case ORD('N'):
 				/* newline or space */
 				if (shf->flags & SHF_STRING) {
 					if ((unsigned int)c == ORD(';') &&
@@ -516,7 +516,7 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 						shf_putc(' ', shf);
 				}
 				break;
-			case CORD('R'):
+			case ORD('R'):
 				/* I/O redirection */
 				pioact(shf, va_arg(va, struct ioword *));
 				break;

@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.290 2018/01/13 23:58:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.291 2018/01/14 00:03:03 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -785,7 +785,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 			continue;
 		}
 		switch (ord(*p++)) {
-		case CORD('['):
+		case ORD('['):
 			/* BSD cclass extension? */
 			if (ISMAGIC(p[0]) && ord(p[1]) == ORD('[') &&
 			    ord(p[2]) == ORD(':') &&
@@ -813,7 +813,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 				return (0);
 			break;
 
-		case CORD('?'):
+		case ORD('?'):
 			if (sc == 0)
 				return (0);
 			if (UTFMODE) {
@@ -822,7 +822,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 			}
 			break;
 
-		case CORD('*'):
+		case ORD('*'):
 			if (p == pe)
 				return (1);
 			s--;
@@ -838,9 +838,9 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 		 */
 
 		/* matches one or more times */
-		case CORD('+') | 0x80:
+		case ORD('+') | 0x80:
 		/* matches zero or more times */
-		case CORD('*') | 0x80:
+		case ORD('*') | 0x80:
 			if (!(prest = pat_scan(p, pe, false)))
 				return (0);
 			s--;
@@ -863,11 +863,11 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 			return (0);
 
 		/* matches zero or once */
-		case CORD('?') | 0x80:
+		case ORD('?') | 0x80:
 		/* matches one of the patterns */
-		case CORD('@') | 0x80:
+		case ORD('@') | 0x80:
 		/* simile for @ */
-		case CORD(' ') | 0x80:
+		case ORD(' ') | 0x80:
 			if (!(prest = pat_scan(p, pe, false)))
 				return (0);
 			s--;
@@ -889,7 +889,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 			return (0);
 
 		/* matches none of the patterns */
-		case CORD('!') | 0x80:
+		case ORD('!') | 0x80:
 			if (!(prest = pat_scan(p, pe, false)))
 				return (0);
 			s--;

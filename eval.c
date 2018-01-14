@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.216 2018/01/13 23:55:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.217 2018/01/14 00:03:02 tg Exp $");
 
 /*
  * string expansion
@@ -436,11 +436,11 @@ expand(
 					if (stype)
 						sp += slen;
 					switch (stype & STYPE_SINGLE) {
-					case CORD('#') | STYPE_AT:
+					case ORD('#') | STYPE_AT:
 						x.str = shf_smprintf("%08X",
 						    (unsigned int)hash(str_val(st->var)));
 						break;
-					case CORD('Q') | STYPE_AT: {
+					case ORD('Q') | STYPE_AT: {
 						struct shf shf;
 
 						shf_sopen(NULL, 0, SHF_WR|SHF_DYNAMIC, &shf);
@@ -448,7 +448,7 @@ expand(
 						x.str = shf_sclose(&shf);
 						break;
 					    }
-					case CORD('0'): {
+					case ORD('0'): {
 						char *beg, *mid, *end, *stg;
 						mksh_ari_t from = 0, num = -1, flen, finc = 0;
 
@@ -495,8 +495,8 @@ expand(
 						strndupx(x.str, beg, num, ATEMP);
 						goto do_CSUBST;
 					    }
-					case CORD('/') | STYPE_AT:
-					case CORD('/'): {
+					case ORD('/') | STYPE_AT:
+					case ORD('/'): {
 						char *s, *p, *d, *sbeg, *end;
 						char *pat = NULL, *rrep = null;
 						char fpat = 0, *tpat1, *tpat2;
@@ -622,8 +622,8 @@ expand(
 						afree(ws, ATEMP);
 						goto do_CSUBST;
 					    }
-					case CORD('#'):
-					case CORD('%'):
+					case ORD('#'):
+					case ORD('%'):
 						/* ! DOBLANK,DOBRACE */
 						f = (f & DONTRUNCOMMAND) |
 						    DOPAT | DOTILDE |
@@ -640,7 +640,7 @@ expand(
 							*dp++ = ORD(0x80 | '@');
 						}
 						break;
-					case CORD('='):
+					case ORD('='):
 						/*
 						 * Tilde expansion for string
 						 * variables in POSIX mode is
@@ -664,7 +664,7 @@ expand(
 						f &= ~(DOBLANK|DOGLOB|DOBRACE);
 						tilde_ok = 1;
 						break;
-					case CORD('?'):
+					case ORD('?'):
 						if (*sp == CSUBST)
 							errorf("%s: parameter null or not set",
 							    st->var->name);
@@ -699,8 +699,8 @@ expand(
 				if (f & DOBLANK)
 					doblank--;
 				switch (st->stype & STYPE_SINGLE) {
-				case CORD('#'):
-				case CORD('%'):
+				case ORD('#'):
+				case ORD('%'):
 					if (!Flag(FSH)) {
 						/* Append end-pattern */
 						*dp++ = MAGIC;
@@ -730,7 +730,7 @@ expand(
 						doblank++;
 					st = st->prev;
 					continue;
-				case CORD('='):
+				case ORD('='):
 					/*
 					 * Restore our position and substitute
 					 * the value of st->var (may not be
@@ -763,17 +763,17 @@ expand(
 					st = st->prev;
 					word = quote || (!*x.str && (f & DOSCALAR)) ? IFS_WORD : IFS_IWS;
 					continue;
-				case CORD('?'):
+				case ORD('?'):
 					dp = Xrestpos(ds, dp, st->base);
 
 					errorf(Tf_sD_s, st->var->name,
 					    debunk(dp, dp, strlen(dp) + 1));
 					break;
-				case CORD('0'):
-				case CORD('/') | STYPE_AT:
-				case CORD('/'):
-				case CORD('#') | STYPE_AT:
-				case CORD('Q') | STYPE_AT:
+				case ORD('0'):
+				case ORD('/') | STYPE_AT:
+				case ORD('/'):
+				case ORD('#') | STYPE_AT:
+				case ORD('Q') | STYPE_AT:
 					dp = Xrestpos(ds, dp, st->base);
 					type = XSUB;
 					word = quote || (!*x.str && (f & DOSCALAR)) ? IFS_WORD : IFS_IWS;
@@ -1003,10 +1003,10 @@ expand(
 			/* mark any special second pass chars */
 			if (!quote)
 				switch (ord(c)) {
-				case CORD('['):
-				case CORD('!'):
-				case CORD('-'):
-				case CORD(']'):
+				case ORD('['):
+				case ORD('!'):
+				case ORD('-'):
+				case ORD(']'):
 					/*
 					 * For character classes - doesn't hurt
 					 * to have magic !,-,]s outside of
@@ -1019,16 +1019,16 @@ expand(
 						*dp++ = MAGIC;
 					}
 					break;
-				case CORD('*'):
-				case CORD('?'):
+				case ORD('*'):
+				case ORD('?'):
 					if (f & (DOPAT | DOGLOB)) {
 						fdo |= DOMAGIC | (f & DOGLOB);
 						*dp++ = MAGIC;
 					}
 					break;
-				case CORD('{'):
-				case CORD('}'):
-				case CORD(','):
+				case ORD('{'):
+				case ORD('}'):
+				case ORD(','):
 					if ((f & DOBRACE) &&
 					    (ord(c) == ORD('{' /*}*/) ||
 					    (fdo & DOBRACE))) {
@@ -1036,7 +1036,7 @@ expand(
 						*dp++ = MAGIC;
 					}
 					break;
-				case CORD('='):
+				case ORD('='):
 					/* Note first unquoted = for ~ */
 					if (!(f & DOTEMP) && (!Flag(FPOSIX) ||
 					    (f & DOASNTILDE)) && !saw_eq) {
@@ -1044,13 +1044,13 @@ expand(
 						tilde_ok = 1;
 					}
 					break;
-				case CORD(':'):
+				case ORD(':'):
 					/* : */
 					/* Note unquoted : for ~ */
 					if (!(f & DOTEMP) && (f & DOASNTILDE))
 						tilde_ok = 1;
 					break;
-				case CORD('~'):
+				case ORD('~'):
 					/*
 					 * tilde_ok is reset whenever
 					 * any of ' " $( $(( ${ } are seen.
@@ -1247,9 +1247,9 @@ varsub(Expand *xp, const char *sp, const char *word,
 		/* @x where x is command char */
 		switch (c = ord(word[slen + 2]) == CHAR ?
 		    ord(word[slen + 3]) : 0) {
-		case CORD('#'):
-		case CORD('/'):
-		case CORD('Q'):
+		case ORD('#'):
+		case ORD('/'):
+		case ORD('Q'):
 			break;
 		default:
 			return (-1);
@@ -1266,16 +1266,16 @@ varsub(Expand *xp, const char *sp, const char *word,
 	if ((unsigned int)c == ORD('*') || (unsigned int)c == ORD('@')) {
 		switch (stype & STYPE_SINGLE) {
 		/* can't assign to a vector */
-		case CORD('='):
+		case ORD('='):
 		/* can't trim a vector (yet) */
-		case CORD('%'):
-		case CORD('#'):
-		case CORD('?'):
-		case CORD('0'):
-		case CORD('/') | STYPE_AT:
-		case CORD('/'):
-		case CORD('#') | STYPE_AT:
-		case CORD('Q') | STYPE_AT:
+		case ORD('%'):
+		case ORD('#'):
+		case ORD('?'):
+		case ORD('0'):
+		case ORD('/') | STYPE_AT:
+		case ORD('/'):
+		case ORD('#') | STYPE_AT:
+		case ORD('Q') | STYPE_AT:
 			return (-1);
 		}
 		if (e->loc->argc == 0) {
@@ -1297,16 +1297,16 @@ varsub(Expand *xp, const char *sp, const char *word,
 
 		switch (stype & STYPE_SINGLE) {
 		/* can't assign to a vector */
-		case CORD('='):
+		case ORD('='):
 		/* can't trim a vector (yet) */
-		case CORD('%'):
-		case CORD('#'):
-		case CORD('?'):
-		case CORD('0'):
-		case CORD('/') | STYPE_AT:
-		case CORD('/'):
-		case CORD('#') | STYPE_AT:
-		case CORD('Q') | STYPE_AT:
+		case ORD('%'):
+		case ORD('#'):
+		case ORD('?'):
+		case ORD('0'):
+		case ORD('/') | STYPE_AT:
+		case ORD('/'):
+		case ORD('#') | STYPE_AT:
+		case ORD('Q') | STYPE_AT:
 			return (-1);
 		}
 		c = 0;
@@ -1495,7 +1495,7 @@ trimsub(char *str, char *pat, int how)
 	char *p, c;
 
 	switch (how & (STYPE_CHAR | STYPE_DBL)) {
-	case CORD('#'):
+	case ORD('#'):
 		/* shortest match at beginning */
 		for (p = str; p <= end; p += utf_ptradj(p)) {
 			c = *p; *p = '\0';
@@ -1507,7 +1507,7 @@ trimsub(char *str, char *pat, int how)
 			*p = c;
 		}
 		break;
-	case CORD('#') | STYPE_DBL:
+	case ORD('#') | STYPE_DBL:
 		/* longest match at beginning */
 		for (p = end; p >= str; p--) {
 			c = *p; *p = '\0';
@@ -1519,7 +1519,7 @@ trimsub(char *str, char *pat, int how)
 			*p = c;
 		}
 		break;
-	case CORD('%'):
+	case ORD('%'):
 		/* shortest match at end */
 		p = end;
 		while (p >= str) {
@@ -1535,7 +1535,7 @@ trimsub(char *str, char *pat, int how)
 				--p;
 		}
 		break;
-	case CORD('%') | STYPE_DBL:
+	case ORD('%') | STYPE_DBL:
 		/* longest match at end */
 		for (p = str; p <= end; p++)
 			if (gmatchx(p, pat, false)) {

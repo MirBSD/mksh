@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.241 2018/01/13 23:55:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.242 2018/01/14 00:03:02 tg Exp $");
 
 /*
  * states while lexing word
@@ -312,7 +312,7 @@ yylex(int cf)
 			/* FALLTHROUGH */
  Sbase2:		/* doesn't include *(...|...) pattern (*+?@!) */
 			switch (c) {
-			case CORD('\\'):
+			case ORD('\\'):
  getsc_qchar:
 				if ((c = getsc())) {
 					/* trailing \ is lost */
@@ -320,7 +320,7 @@ yylex(int cf)
 					*wp++ = c;
 				}
 				break;
-			case CORD('\''):
+			case ORD('\''):
  open_ssquote_unless_heredoc:
 				if ((cf & HEREDOC))
 					goto store_char;
@@ -328,12 +328,12 @@ yylex(int cf)
 				ignore_backslash_newline++;
 				PUSH_STATE(SSQUOTE);
 				break;
-			case CORD('"'):
+			case ORD('"'):
  open_sdquote:
 				*wp++ = OQUOTE;
 				PUSH_STATE(SDQUOTE);
 				break;
-			case CORD('$'):
+			case ORD('$'):
 				/*
 				 * processing of dollar sign belongs into
 				 * Subst, except for those which can open
@@ -342,9 +342,9 @@ yylex(int cf)
  subst_dollar_ex:
 				c = getsc();
 				switch (c) {
-				case CORD('"'):
+				case ORD('"'):
 					goto open_sdquote;
-				case CORD('\''):
+				case ORD('\''):
 					goto open_sequote;
 				default:
 					goto SubstS;
@@ -356,16 +356,16 @@ yylex(int cf)
 
  Subst:
 			switch (c) {
-			case CORD('\\'):
+			case ORD('\\'):
 				c = getsc();
 				switch (c) {
-				case CORD('"'):
+				case ORD('"'):
 					if ((cf & HEREDOC))
 						goto heredocquote;
 					/* FALLTHROUGH */
-				case CORD('\\'):
-				case CORD('$'):
-				case CORD('`'):
+				case ORD('\\'):
+				case ORD('$'):
+				case ORD('`'):
  store_qchar:
 					*wp++ = QCHAR;
 					*wp++ = c;
@@ -383,7 +383,7 @@ yylex(int cf)
 					break;
 				}
 				break;
-			case CORD('$'):
+			case ORD('$'):
 				c = getsc();
  SubstS:
 				if ((unsigned int)c == ORD('(' /*)*/)) {
@@ -526,7 +526,7 @@ yylex(int cf)
 					ungetsc(c);
 				}
 				break;
-			case CORD('`'):
+			case ORD('`'):
  subst_gravis:
 				PUSH_STATE(SBQUOTE);
 				*wp++ = COMASUB;
@@ -729,12 +729,12 @@ yylex(int cf)
 				case 0:
 					/* trailing \ is lost */
 					break;
-				case CORD('$'):
-				case CORD('`'):
-				case CORD('\\'):
+				case ORD('$'):
+				case ORD('`'):
+				case ORD('\\'):
 					*wp++ = c;
 					break;
-				case CORD('"'):
+				case ORD('"'):
 					if (statep->ls_bool) {
 						*wp++ = c;
 						break;
@@ -798,16 +798,16 @@ yylex(int cf)
 			 * $ and `...` are not to be treated specially
 			 */
 			switch (c) {
-			case CORD('\\'):
+			case ORD('\\'):
 				if ((c = getsc())) {
 					/* trailing \ is lost */
 					*wp++ = QCHAR;
 					*wp++ = c;
 				}
 				break;
-			case CORD('\''):
+			case ORD('\''):
 				goto open_ssquote_unless_heredoc;
-			case CORD('$'):
+			case ORD('$'):
 				if ((unsigned int)(c2 = getsc()) == ORD('\'')) {
  open_sequote:
 					*wp++ = OQUOTE;
@@ -817,7 +817,7 @@ yylex(int cf)
 					break;
 				} else if ((unsigned int)c2 == ORD('"')) {
 					/* FALLTHROUGH */
-			case CORD('"'):
+			case ORD('"'):
 					PUSH_SRETRACE(SHEREDQUOTE);
 					break;
 				}
@@ -844,10 +844,10 @@ yylex(int cf)
 			while ((c = *dp++)) {
 				if (c == '\\') {
 					switch ((c = *dp++)) {
-					case CORD('\\'):
-					case CORD('"'):
-					case CORD('$'):
-					case CORD('`'):
+					case ORD('\\'):
+					case ORD('"'):
+					case ORD('$'):
+					case ORD('`'):
 						break;
 					default:
 						*wp++ = CHAR;
@@ -1139,7 +1139,7 @@ readhere(struct ioword *iop)
 	if (!*eofp) {
 		/* end of here document marker, what to do? */
 		switch (c) {
-		case CORD(/*(*/ ')'):
+		case ORD(/*(*/ ')'):
 			if (!subshell_nesting_type)
 				/*-
 				 * not allowed outside $(...) or (...)
@@ -1154,7 +1154,7 @@ readhere(struct ioword *iop)
 			 * Allow EOF here to commands without trailing
 			 * newlines (mksh -c '...') will work as well.
 			 */
-		case CORD('\n'):
+		case ORD('\n'):
 			/* Newline terminates here document marker */
 			goto heredoc_found_terminator;
 		}
@@ -1591,22 +1591,22 @@ get_brace_var(XString *wsp, char *wp)
 			goto ps_common;
 		case PS_SAW_BANG:
 			switch (ord(c)) {
-			case CORD('@'):
-			case CORD('#'):
-			case CORD('-'):
-			case CORD('?'):
+			case ORD('@'):
+			case ORD('#'):
+			case ORD('-'):
+			case ORD('?'):
 				goto out;
 			}
 			goto ps_common;
 		case PS_INITIAL:
 			switch (ord(c)) {
-			case CORD('%'):
+			case ORD('%'):
 				state = PS_SAW_PERCENT;
 				goto next;
-			case CORD('#'):
+			case ORD('#'):
 				state = PS_SAW_HASH;
 				goto next;
-			case CORD('!'):
+			case ORD('!'):
 				state = PS_SAW_BANG;
 				goto next;
 			}

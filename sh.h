@@ -182,7 +182,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.851 2018/01/13 23:55:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.852 2018/01/14 00:03:03 tg Exp $");
 #endif
 #define MKSH_VERSION "R56 2017/10/17"
 
@@ -1482,11 +1482,9 @@ extern unsigned int eek_ord;
 		    __FILE__, __LINE__, ord_c);		\
 	((unsigned int)(unsigned char)(c));		\
 })
-#define CORD(c)	ORD(c)
 #else
 #define ord(c)	((unsigned int)(unsigned char)(c))
-#define ORD(c)	((void)(c), ord(c))
-#define CORD(c)	ord(c)
+#define ORD(c)	ord(c) /* may evaluate arguments twice */
 #endif
 #if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
 EXTERN unsigned short ebcdic_map[256];

@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.125 2018/01/13 23:55:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.126 2018/01/14 00:03:04 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -334,7 +334,7 @@ get_command(int cf, int sALIAS)
 					XPput(args, yylval.cp);
 				break;
 
-			case CORD('(' /*)*/):
+			case ORD('(' /*)*/):
 				if (XPsize(args) == 0 && XPsize(vars) == 1 &&
 				    is_wdvarassign(yylval.cp)) {
 					char *tcp;
@@ -390,7 +390,7 @@ get_command(int cf, int sALIAS)
  Leave:
 		break;
 
-	case CORD('(' /*)*/): {
+	case ORD('(' /*)*/): {
 		unsigned int subshell_nesting_type_saved;
  Subshell:
 		subshell_nesting_type_saved = subshell_nesting_type;
@@ -400,7 +400,7 @@ get_command(int cf, int sALIAS)
 		break;
 	    }
 
-	case CORD('{' /*}*/):
+	case ORD('{' /*}*/):
 		t = nested(TBRACE, ORD('{'), ORD('}'), sALIAS);
 		break;
 
@@ -411,7 +411,7 @@ get_command(int cf, int sALIAS)
 		switch (token(LETEXPR)) {
 		case LWORD:
 			break;
-		case CORD('(' /*)*/):
+		case ORD('(' /*)*/):
 			c = ORD('(');
 			goto Subshell;
 		default:
@@ -646,7 +646,7 @@ casepart(int endtok, int sALIAS)
 		switch (token(0)) {
 		case LWORD:
 			break;
-		case CORD('}'):
+		case ORD('}'):
 		case ESAC:
 			if (symbol != endtok) {
 				strdupx(yylval.cp, (unsigned int)symbol ==
@@ -813,8 +813,8 @@ static const struct tokeninfo {
 	{ "in",		IN,	true },
 	{ Tfunction,	FUNCTION, true },
 	{ Ttime,	TIME,	true },
-	{ "{",		CORD('{'), true },
-	{ Tcbrace,	CORD('}'), true },
+	{ "{",		ORD('{'), true },
+	{ Tcbrace,	ORD('}'), true },
 	{ "!",		BANG,	true },
 	{ "[[",		DBRACKET, true },
 	/* Lexical tokens (0[EOF], LWORD and REDIR handled specially) */
@@ -826,7 +826,7 @@ static const struct tokeninfo {
 	{ "((",		MDPAREN, false },
 	{ "|&",		COPROC,	false },
 	/* and some special cases... */
-	{ "newline",	CORD('\n'), false },
+	{ "newline",	ORD('\n'), false },
 	{ NULL,		0,	false }
 };
 
