@@ -182,7 +182,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.856 2018/01/14 01:28:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.857 2018/01/14 01:44:02 tg Exp $");
 #endif
 #define MKSH_VERSION "R56 2017/10/17"
 
@@ -1515,10 +1515,9 @@ extern void ebcdic_init(void);
 #endif
 /* new fast character classes */
 #define ctype(c,t)	tobool(ksh_ctypes[ord(c)] & (t))
+#define cinttype(c,t)	((c) >= 0 && (c) <= 0xFF ? \
+			tobool(ksh_ctypes[(unsigned char)(c)] & (t)) : false)
 /* helper functions */
-#define cinttype(c,t)	(intischar(c) ? \
-			tobool(ksh_ctypes[(unsigned char)(c)] & (t)) : 0)
-#define intischar(i)	((i) >= 0 && (i) <= 0xFF)
 #define ksh_isdash(s)	tobool(ord((s)[0]) == '-' && ord((s)[1]) == '\0')
 /* invariant distance even in EBCDIC */
 #define ksh_tolower(c)	(ctype(c, C_UPPER) ? (c) - 'A' + 'a' : (c))
