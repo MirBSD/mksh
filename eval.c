@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.217 2018/01/14 00:03:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.218 2018/01/14 00:22:27 tg Exp $");
 
 /*
  * string expansion
@@ -897,7 +897,7 @@ expand(
 				--newlines;
 			} else {
 				while ((c = shf_getc(x.u.shf)) == 0 ||
-				    ctype(c, C_NL)) {
+				    cinttype(c, C_NL)) {
 #ifdef MKSH_WITH_TEXTMODE
 					if (c == '\r') {
 						c = shf_getc(x.u.shf);

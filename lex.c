@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.242 2018/01/14 00:03:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.243 2018/01/14 00:22:28 tg Exp $");
 
 /*
  * states while lexing word
@@ -248,7 +248,7 @@ yylex(int cf)
 
 	/* collect non-special or quoted characters to form word */
 	while (!((c = getsc()) == 0 ||
-	    ((state == SBASE || state == SHEREDELIM) && ctype(c, C_LEX1)))) {
+	    ((state == SBASE || state == SHEREDELIM) && cinttype(c, C_LEX1)))) {
 		if (state == SBASE &&
 		    subshell_nesting_type == ORD(/*{*/ '}') &&
 		    (unsigned int)c == ORD(/*{*/ '}'))
@@ -299,7 +299,7 @@ yylex(int cf)
 			}
 			/* FALLTHROUGH */
  Sbase1:		/* includes *(...|...) pattern (*+?@!) */
-			if (ctype(c, C_PATMO)) {
+			if (cinttype(c, C_PATMO)) {
 				c2 = getsc();
 				if ((unsigned int)c2 == ORD('(' /*)*/)) {
 					*wp++ = OPAT;
