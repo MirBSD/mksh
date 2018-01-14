@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.218 2018/01/14 00:22:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.219 2018/01/14 01:29:47 tg Exp $");
 
 /*
  * string expansion
@@ -582,7 +582,7 @@ expand(
 							while (p >= sbeg) {
 								bool gotmatch;
 
-								c = *p;
+								c = ord(*p);
 								*p = '\0';
 								gotmatch = tobool(gmatchx(sbeg, pat, false));
 								*p = c;
@@ -791,19 +791,19 @@ expand(
 				/* open pattern: *(foo|bar) */
 				/* Next char is the type of pattern */
 				make_magic = true;
-				c = *sp++ | 0x80;
+				c = ord(*sp++) | 0x80U;
 				break;
 
 			case SPAT:
 				/* pattern separator (|) */
 				make_magic = true;
-				c = '|';
+				c = ORD('|');
 				break;
 
 			case CPAT:
 				/* close pattern */
 				make_magic = true;
-				c = /*(*/ ')';
+				c = ORD(/*(*/ ')');
 				break;
 			}
 			break;
@@ -824,7 +824,7 @@ expand(
 
 		case XSUB:
 		case XSUBMID:
-			if ((c = *x.str++) == 0) {
+			if ((c = ord(*x.str++)) == 0) {
 				type = XBASE;
 				if (f & DOBLANK)
 					doblank--;
@@ -837,7 +837,7 @@ expand(
 			quote = 1;
 			/* FALLTHROUGH */
 		case XARG:
-			if ((c = *x.str++) == '\0') {
+			if ((c = ord(*x.str++)) == '\0') {
 				/*
 				 * force null words to be created so
 				 * set -- "" 2 ""; echo "$@" will do
@@ -855,13 +855,13 @@ expand(
 				if ((f & DOHEREDOC)) {
 					/* pseudo-field-split reliably */
 					if (c == 0)
-						c = ' ';
+						c = ORD(' ');
 					break;
 				}
 				if ((f & DOSCALAR)) {
 					/* do not field-split */
 					if (x.split) {
-						c = ' ';
+						c = ORD(' ');
 						break;
 					}
 					if (c == 0)
@@ -873,7 +873,7 @@ expand(
 					if (!quote && word == IFS_WS)
 						continue;
 					/* this is so we don't terminate */
-					c = ' ';
+					c = ORD(' ');
 					/* now force-emit a word */
 					goto emit_word;
 				}
@@ -893,33 +893,33 @@ expand(
 				c = -1;
 			} else if (newlines) {
 				/* spit out saved NLs */
-				c = '\n';
+				c = ORD('\n');
 				--newlines;
 			} else {
 				while ((c = shf_getc(x.u.shf)) == 0 ||
 				    cinttype(c, C_NL)) {
 #ifdef MKSH_WITH_TEXTMODE
-					if (c == '\r') {
+					if (c == ORD('\r')) {
 						c = shf_getc(x.u.shf);
 						switch (c) {
-						case '\n':
+						case ORD('\n'):
 							break;
 						default:
 							shf_ungetc(c, x.u.shf);
 							/* FALLTHROUGH */
 						case -1:
-							c = '\r';
+							c = ORD('\r');
 							break;
 						}
 					}
 #endif
-					if (c == '\n')
+					if (c == ORD('\n'))
 						/* save newlines */
 						newlines++;
 				}
 				if (newlines && c != -1) {
 					shf_ungetc(c, x.u.shf);
-					c = '\n';
+					c = ORD('\n');
 					--newlines;
 				}
 			}
