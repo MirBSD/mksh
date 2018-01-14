@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.243 2018/01/14 00:22:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.244 2018/01/14 00:51:35 tg Exp $");
 
 /*
  * states while lexing word
@@ -130,13 +130,8 @@ getsc_i(void)
 	o_getsc_r(o_getsc());
 }
 
-/*XXX
- * getsc() result is supposed to be ord()ed right now,
- * but results sometimes aren't handled correctly; re‐
- * check CVS history for *that* change and fix it
- */
 #if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
-#define getsc()		getsc_i()
+#define getsc()		ord(getsc_i())
 #else
 static int getsc_r(int);
 
@@ -146,7 +141,7 @@ getsc_r(int c)
 	o_getsc_r(c);
 }
 
-#define getsc()		getsc_r(o_getsc())
+#define getsc()		ord(getsc_r(o_getsc()))
 #endif
 
 #define STATE_BSIZE	8
@@ -225,12 +220,14 @@ yylex(int cf)
 	} else {
 		/* normal lexing */
 		state = (cf & HEREDELIM) ? SHEREDELIM : SBASE;
-		while (ctype((c = getsc()), C_BLANK))
-			;
-		if (ord(c) == '#') {
+		do {
+			c = getsc();
+		} while (ctype(c, C_BLANK));
+		if (c == '#') {
 			ignore_backslash_newline++;
-			while (!ctype((c = getsc()), C_NUL | C_LF))
-				;
+			do {
+				c = getsc();
+			} while (!ctype(c, C_NUL | C_LF));
 			ignore_backslash_newline--;
 		}
 		ungetsc(c);
