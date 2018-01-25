@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.731 2018/01/13 21:38:06 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.732 2018/01/25 12:33:54 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -1060,11 +1060,12 @@ AIX)
 Darwin)
 	vv '|' "hwprefs machine_type os_type os_class >&2"
 	vv '|' "sw_vers >&2"
-	vv '|' "system_profiler SPSoftwareDataType SPHardwareDataType >&2"
+	vv '|' "system_profiler -detailLevel mini SPSoftwareDataType SPHardwareDataType >&2"
 	vv '|' "/bin/sh --version >&2"
 	vv '|' "xcodebuild -version >&2"
 	vv '|' "uname -a >&2"
-	vv '|' "sysctl kern.version hw.machine hw.model hw.memsize hw.availcpu hw.cpufrequency hw.byteorder hw.cpu64bit_capable >&2"
+	vv '|' "sysctl kern.version hw.machine hw.model hw.memsize hw.availcpu hw.ncpu hw.cpufrequency hw.byteorder hw.cpu64bit_capable >&2"
+	vv '|' "sysctl hw.cpufrequency hw.byteorder hw.cpu64bit_capable hw.ncpu >&2"
 	;;
 IRIX*)
 	vv '|' "uname -a >&2"
