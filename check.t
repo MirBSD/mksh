@@ -1,8 +1,8 @@
-# $MirOS: src/bin/mksh/check.t,v 1.801 2018/01/14 01:47:33 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.802 2018/03/09 01:29:08 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#	      2011, 2012, 2013, 2014, 2015, 2016, 2017
+#	      2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R56 2018/01/14
+	@(#)MIRBSD KSH R56 2018/03/09
 description:
 	Check base version of full shell
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: !shell:legacy-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R56 2018/01/14
+	@(#)LEGACY KSH R56 2018/03/09
 description:
 	Check base version of legacy shell
 stdin:
@@ -3525,6 +3525,25 @@ stdin:
 	EOM
 expected-stdout:
 	'blah  1'
+---
+name: single-quotes-in-heredoc-trim
+description:
+	In some cases, single quotes inside {} in heredoc are not normal
+stdin:
+	x=notOK
+	cat <<EOF
+	1: ${x#not} ${x:+${x#not}}
+	2: ${x#\n\o\t} ${x:+${x#\n\o\t}}
+	3: ${x#"not"} ${x:+${x#"not"}}
+	4: ${x#'not'} ${x:+${x#'not'}}
+	5: ${x#$'not'} ${x:+${x#$'not'}}
+	EOF
+expected-stdout:
+	1: OK OK
+	2: OK OK
+	3: OK OK
+	4: OK OK
+	5: OK OK
 ---
 name: history-basic
 description:
