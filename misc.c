@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.291 2018/01/14 00:03:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.292 2018/03/17 22:46:09 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1346,7 +1346,14 @@ print_value_quoted(struct shf *shf, const char *s)
 	const unsigned char *p = (const unsigned char *)s;
 	bool inquote = true;
 
-	/* first, check whether any quotes are needed */
+	/* first, special-case empty strings (for re-entrancy) */
+	if (!*s) {
+		shf_putc('\'', shf);
+		shf_putc('\'', shf);
+		return;
+	}
+
+	/* non-empty; check whether any quotes are needed */
 	while (rtt2asc(c = *p++) >= 32)
 		if (ctype(c, C_QUOTE | C_SPC))
 			inquote = false;
