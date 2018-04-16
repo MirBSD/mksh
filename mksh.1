@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.452 2018/04/16 00:22:28 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.453 2018/04/16 00:32:35 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -2904,8 +2904,6 @@ option is turned on for the function's duration.
 The
 .Dq export
 attribute of functions is currently not used.
-In the original Korn shell,
-exported functions are visible to shell scripts that are executed.
 .Pp
 Since functions are executed in the current shell environment, parameter
 assignments made inside functions are visible after the function completes.
@@ -4933,9 +4931,9 @@ when used with the
 .Fl i
 option which meant upper case letters would never be used for bases greater
 than 10.
-See the
+See
 .Fl U
-option.)
+above.)
 .Pp
 For functions,
 .Fl u
@@ -4945,9 +4943,12 @@ See
 above for the implications of this.
 .It Fl x
 Export attribute.
-Parameters (or functions) are placed in the environment of
-any executed commands.
-Exported functions are not yet implemented.
+Parameters are placed in the environment of any executed commands;
+this includes the array member with the key
+.Dq 0
+if the parameter is an array.
+Functions cannot be exported for security reasons
+.Pq Dq shellshock .
 .It Fl Z Ns Op Ar n
 Zero fill attribute.
 If not combined with
@@ -4955,7 +4956,7 @@ If not combined with
 this is the same as
 .Fl R ,
 except zero padding is used instead of space padding.
-For integers, the number instead of the base is padded.
+For integers, the number is padded, not the base.
 .El
 .Pp
 If any of the
