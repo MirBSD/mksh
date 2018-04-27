@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.248 2018/03/09 01:29:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.249 2018/04/27 16:59:50 tg Exp $");
 
 /*
  * states while lexing word
@@ -1359,7 +1359,7 @@ getsc_line(Source *s)
 {
 	char *xp = Xstring(s->xs, xp), *cp;
 	bool interactive = Flag(FTALKING) && s->type == SSTDIN;
-	bool have_tty = tobool(interactive && (s->flags & SF_TTY));
+	bool have_tty = interactive && (s->flags & SF_TTY) && tty_hasstate;
 
 	/* Done here to ensure nothing odd happens when a timeout occurs */
 	XcheckN(s->xs, xp, LINE);
