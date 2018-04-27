@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.453 2018/04/16 00:32:35 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.454 2018/04/27 17:10:39 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -77,7 +77,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 16 2018 $
+.Dd $Mdocdate: April 27 2018 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -5199,6 +5199,15 @@ option differs: the search path is not affected in
 .Ic whence ,
 but the search is restricted to the path.
 .El
+.Ss Terminal state
+The state of the controlling terminal can be modified by a command executed
+in the shell, whether or not job control is enabled.
+The modified terminal state is not retained when the command exits
+unsuccessfully (i.e.\& with a non-zero status), or when job control is
+enabled and the command had been momentarily stopped (then restarted).
+In interactive mode, when line editing is enabled, the terminal state is
+saved before being reconfigured by the shell for the line editor, then
+restored before running a command.
 .Ss Job control
 Job control refers to the shell's ability to monitor and control jobs which
 are processes or groups of processes created for commands or pipelines.
@@ -5213,14 +5222,14 @@ or
 .Ic set Fl o Ic monitor ) ,
 as it is for interactive shells, the processes of a job are placed in their
 own process group.
-Foreground jobs can be stopped by typing the suspend
-character from the terminal (normally \*(haZ), jobs can be restarted in either the
-foreground or background using the
+Foreground jobs can be stopped by typing the suspend character from
+the terminal (normally \*(haZ); jobs can be restarted in either the
+foreground or background using the commands
 .Ic fg
 and
-.Ic bg
-commands, and the state of the terminal is saved or restored when a foreground
-job is stopped or restarted, respectively.
+.Ic bg .
+The state of the terminal is saved or restored when a job initially
+started in the foreground is stopped or restarted, respectively.
 .Pp
 Note that only commands that create processes (e.g. asynchronous commands,
 subshell commands and non-built-in, non-function commands) can be stopped;
