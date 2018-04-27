@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.347 2018/01/13 21:45:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.348 2018/04/27 16:54:45 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -1959,7 +1959,7 @@ x_mkraw(int fd, mksh_ttyst *ocb, bool forread)
 	/* OSF/1 processes lnext when ~icanon */
 	cb.c_cc[VLNEXT] = _POSIX_VDISABLE;
 #endif
-	/* SunOS 4.1.x & OSF/1 processes discard(flush) when ~icanon */
+	/* SunOS 4.1.x and OSF/1 process discard(flush) when ~icanon */
 #if defined(VDISCARD) && defined(_POSIX_VDISABLE)
 	cb.c_cc[VDISCARD] = _POSIX_VDISABLE;
 #endif
