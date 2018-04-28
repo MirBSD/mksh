@@ -3,7 +3,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2014, 2015, 2016, 2017
+ *		 2011, 2012, 2014, 2015, 2016, 2017, 2018
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.166 2017/08/07 23:25:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.167 2018/04/28 17:16:54 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -879,7 +879,8 @@ hist_persist_init(void)
 		}
 	}
  hist_trunc_done:
-	histfsize = lseek(histfd, (off_t)0, SEEK_END);
+	if ((histfsize = lseek(histfd, (off_t)0, SEEK_END)) < 0)
+		goto hist_init_fail;
  hist_init_tail:
 	mksh_unlkfd(histfd);
 }
@@ -962,8 +963,9 @@ writehistfile(int lno, const char *cmd)
 	unsigned char *base, *news;
 
 	mksh_lockfd(histfd);
-	sizenow = lseek(histfd, (off_t)0, SEEK_END);
-	if (sizenow < histfsize) {
+	if ((sizenow = lseek(histfd, (off_t)0, SEEK_END)) < 0)
+		goto bad;
+	else if (sizenow < histfsize) {
 		/* the file has shrunk; trust it just appending the new data */
 		/* well, for now, anyway… since mksh strdups all into memory */
 		/* we can use a nicer approach some time later… */
@@ -998,7 +1000,8 @@ writehistfile(int lno, const char *cmd)
 		hist_finish();
 		return;
 	}
-	histfsize = lseek(histfd, (off_t)0, SEEK_END);
+	if ((histfsize = lseek(histfd, (off_t)0, SEEK_END)) < 0)
+		goto bad;
 	mksh_unlkfd(histfd);
 }
 
