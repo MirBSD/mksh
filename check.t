@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.802 2018/03/09 01:29:08 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.803 2018/04/28 07:07:35 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R56 2018/03/09
+	@(#)MIRBSD KSH R56 2018/04/28
 description:
 	Check base version of full shell
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: !shell:legacy-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R56 2018/03/09
+	@(#)LEGACY KSH R56 2018/04/28
 description:
 	Check base version of legacy shell
 stdin:
@@ -6853,6 +6853,21 @@ expected-stdout:
 	2 -2147483646 , -1073741822 .
 	3 10 .
 	4 -2147483646 .
+---
+name: export-1
+description:
+	Check allexport works, basic
+stdin:
+	qa=1
+	set -A qb 2 3
+	set -a
+	qc=4
+	set -A qd 5 6
+	export -p | grep '^export q'
+expected-stdout:
+	export qc=4
+	export qd[0]=5
+	export qd[1]=6
 ---
 name: readonly-0
 description:

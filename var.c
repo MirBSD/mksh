@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.223 2018/01/13 23:55:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.224 2018/04/28 07:07:39 tg Exp $");
 
 /*-
  * Variables
@@ -1617,6 +1617,9 @@ set_array(const char *var, bool reset, const char **vals)
 		unset(vp, 1);
 		/* allocate-by-access the [0] element to keep in scope */
 		arraysearch(vp, 0);
+		/* honour set -o allexport */
+		if (Flag(FEXPORT))
+			typeset(ccp, EXPORT, 0, 0, 0);
 	}
 	/*
 	 * TODO: would be nice for assignment to completely succeed or
