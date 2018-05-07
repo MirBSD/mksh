@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.803 2018/04/28 07:07:35 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.804 2018/05/07 00:07:18 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R56 2018/04/28
+	@(#)MIRBSD KSH R56 2018/05/07
 description:
 	Check base version of full shell
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: !shell:legacy-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R56 2018/04/28
+	@(#)LEGACY KSH R56 2018/05/07
 description:
 	Check base version of legacy shell
 stdin:
@@ -8477,6 +8477,26 @@ stdin:
 	echo "<$ln> <$rn> <$zn> <$ls> <$rs> <$zs>"
 expected-stdout:
 	<16#1     > <     16#1> <16#000001> <16#1     > <     16#1> <0000016#1>
+---
+name: typeset-padding-3
+description:
+	Check for a regression in which Unicode wasn’t left-padded right
+stdin:
+	set -U
+	nl=$'\n'
+	typeset -L20 x='.  ak'
+	typeset -R20 y='.  ak'
+	print -r -- "<$x> (1$nl<12345678910 345678920$nl<$y> 1)"
+	typeset -L20 x='.  aẞ'
+	typeset -R20 y='.  aẞ'
+	print -r -- "<$x> (2$nl<12345678910 345678920$nl<$y> 2)"
+expected-stdout:
+	<.  ak               > (1
+	<12345678910 345678920
+	<               .  ak> 1)
+	<.  aẞ               > (2
+	<12345678910 345678920
+	<               .  aẞ> 2)
 ---
 name: utf8bom-1
 description:

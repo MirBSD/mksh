@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.224 2018/04/28 07:07:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.225 2018/05/07 00:07:23 tg Exp $");
 
 /*-
  * Variables
@@ -707,7 +707,7 @@ formatstr(struct tbl *vp, const char *s)
 			if (vp->flag & ZEROFIL)
 				while (*s == '0')
 					s++;
-			shf_snprintf(p, nlen + 1, "%-*.*s",
+			shf_snprintf(p, psiz, "%-*.*s",
 				vp->u2.field, vp->u2.field, s);
 		}
 	} else
