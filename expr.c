@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.103 2018/01/14 01:29:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.104 2018/06/26 21:22:21 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -885,7 +885,7 @@ static int mb_ucsbsearch(const struct mb_ucsrange arr[], size_t elems,
     unsigned int val) MKSH_A_PURE;
 
 /*
- * Generated from the Unicode Character Database, Version 10.0.0, by
+ * Generated from the Unicode Character Database, Version 11.0.0, by
  * MirOS: contrib/code/Snippets/eawparse,v 1.12 2017/09/06 16:05:45 tg Exp $
  */
 
@@ -909,12 +909,13 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0x0730, 0x074A },
 	{ 0x07A6, 0x07B0 },
 	{ 0x07EB, 0x07F3 },
+	{ 0x07FD, 0x07FD },
 	{ 0x0816, 0x0819 },
 	{ 0x081B, 0x0823 },
 	{ 0x0825, 0x0827 },
 	{ 0x0829, 0x082D },
 	{ 0x0859, 0x085B },
-	{ 0x08D4, 0x08E1 },
+	{ 0x08D3, 0x08E1 },
 	{ 0x08E3, 0x0902 },
 	{ 0x093A, 0x093A },
 	{ 0x093C, 0x093C },
@@ -927,6 +928,7 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0x09C1, 0x09C4 },
 	{ 0x09CD, 0x09CD },
 	{ 0x09E2, 0x09E3 },
+	{ 0x09FE, 0x09FE },
 	{ 0x0A01, 0x0A02 },
 	{ 0x0A3C, 0x0A3C },
 	{ 0x0A41, 0x0A42 },
@@ -953,6 +955,7 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0x0BC0, 0x0BC0 },
 	{ 0x0BCD, 0x0BCD },
 	{ 0x0C00, 0x0C00 },
+	{ 0x0C04, 0x0C04 },
 	{ 0x0C3E, 0x0C40 },
 	{ 0x0C46, 0x0C48 },
 	{ 0x0C4A, 0x0C4D },
@@ -1072,6 +1075,7 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0xA825, 0xA826 },
 	{ 0xA8C4, 0xA8C5 },
 	{ 0xA8E0, 0xA8F1 },
+	{ 0xA8FF, 0xA8FF },
 	{ 0xA926, 0xA92D },
 	{ 0xA947, 0xA951 },
 	{ 0xA980, 0xA982 },
