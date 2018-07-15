@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.225 2018/05/07 00:07:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.226 2018/07/15 17:21:24 tg Exp $");
 
 /*-
  * Variables
@@ -54,7 +54,7 @@ static int special(const char *);
 static void unspecial(const char *);
 static void getspec(struct tbl *);
 static void setspec(struct tbl *);
-static void unsetspec(struct tbl *);
+static void unsetspec(struct tbl *, bool);
 static int getint(struct tbl *, mksh_ari_u *, bool);
 static const char *array_index_calc(const char *, bool *, uint32_t *);
 
@@ -105,7 +105,7 @@ popblock(void)
 			if ((vq = global(vp->name))->flag & ISSET)
 				setspec(vq);
 			else
-				unsetspec(vq);
+				unsetspec(vq, false);
 		}
 	if (l->flags & BF_DOGETOPTS)
 		user_opt = l->getopts_state;
@@ -1054,7 +1054,7 @@ unset(struct tbl *vp, int flags)
 	vp->flag &= SPECIAL | ((flags & 1) ? 0 : ARRAY|DEFINED);
 	if (vp->flag & SPECIAL)
 		/* responsible for 'unspecial'ing var */
-		unsetspec(vp);
+		unsetspec(vp, true);
 }
 
 /*
@@ -1441,7 +1441,7 @@ setspec(struct tbl *vp)
 }
 
 static void
-unsetspec(struct tbl *vp)
+unsetspec(struct tbl *vp, bool dounset)
 {
 	/*
 	 * AT&T ksh man page says OPTIND, OPTARG and _ lose special
@@ -1466,13 +1466,13 @@ unsetspec(struct tbl *vp)
 #endif
 	case V_IFS:
 		set_ifs(TC_IFSWS);
-		break;
+		return;
 	case V_PATH:
 		afree(path, APERM);
 		strdupx(path, def_path, APERM);
 		/* clear tracked aliases */
 		flushcom(true);
-		break;
+		return;
 #ifndef MKSH_NO_CMDLINE_EDITING
 	case V_TERM:
 		x_initterm(null);
@@ -1484,14 +1484,14 @@ unsetspec(struct tbl *vp)
 			afree(tmpdir, APERM);
 			tmpdir = NULL;
 		}
-		break;
+		return;
 	case V_LINENO:
 	case V_RANDOM:
 	case V_SECONDS:
 	case V_TMOUT:
 		/* AT&T ksh leaves previous value in place */
 		unspecial(vp->name);
-		break;
+		return;
 #ifdef MKSH_EARLY_LOCALE_TRACKING
 	case V_LANG:
 	case V_LC_ALL:
@@ -1499,6 +1499,12 @@ unsetspec(struct tbl *vp)
 		recheck_ctype();
 		return;
 #endif
+	/* should not become unspecial, but allow unsetting */
+	case V_COLUMNS:
+	case V_LINES:
+		if (dounset)
+			unspecial(vp->name);
+		return;
 	}
 }
 
