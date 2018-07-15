@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.806 2018/06/26 21:22:21 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.807 2018/07/15 17:22:15 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R56 2018/06/26
+	@(#)MIRBSD KSH R56 2018/07/15
 description:
 	Check base version of full shell
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: !shell:legacy-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R56 2018/06/26
+	@(#)LEGACY KSH R56 2018/07/15
 description:
 	Check base version of legacy shell
 stdin:
@@ -161,6 +161,38 @@ stdin:
 	"$__progname" -c 'print -r -- $PATHSEP'
 expected-stdout:
 	;
+---
+name: selftest-tty-absent
+description:
+	Check that a controlling tty is not present as regress:no-ctty was used
+	(if this test fails for you DO NOT PASS regress:no-ctty and fix every
+	other test that fails: why u use it if u haz ctty?)
+category: regress:no-ctty
+env-setup: !ENV=./envf!
+file-setup: file 644 "envf"
+	PS1=X
+arguments: !-i!
+stdin:
+	echo ok
+expected-stdout:
+	ok
+expected-stderr-pattern:
+	/mksh: warning: won't have full job control\nXX/
+---
+name: selftest-tty-present
+description:
+	Check that a controlling tty is present as regress:no-ctty was not used
+need-ctty: yes
+env-setup: !ENV=./envf!
+file-setup: file 644 "envf"
+	PS1=X
+arguments: !-i!
+stdin:
+	echo ok
+expected-stdout:
+	ok
+expected-stderr: !
+	XX
 ---
 name: alias-1
 description:
