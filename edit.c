@@ -28,7 +28,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.342 2018/01/14 00:03:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.343 2018/07/15 16:16:38 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -3831,7 +3831,7 @@ vi_hook(int ch)
 			vs = save_es;
 
 			i = (unsigned)srchlen;
-			while (--i >= n)
+			while (i-- > n)
 				vs->linelen -= char_len(locpat[i]);
 			srchlen = (int)n;
 			vs->cursor = vs->linelen;
