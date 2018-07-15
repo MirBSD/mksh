@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.126 2018/05/08 17:37:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.127 2018/07/15 16:23:10 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1926,7 +1926,7 @@ tty_init_talking(void)
 		break;
 	case 2:
 #ifndef MKSH_DISABLE_TTY_WARNING
-		warningf(false, Tf_sD_s_s, Tcant_find, Ttty_fd,
+		warningf(false, Tf_s_sD_s, Tcant_find, Ttty_fd,
 		    cstrerror(errno));
 #endif
 		break;
