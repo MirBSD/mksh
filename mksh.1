@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.458 2018/07/15 17:21:22 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.459 2018/08/10 02:53:36 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -77,7 +77,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 15 2018 $
+.Dd $Mdocdate: August 10 2018 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1047,7 +1047,7 @@ and
 .Dq Li \eu#### ,
 .Dq #
 means a hexadecimal digit, of which there may be none up to four or eight;
-these escapes translate a Unicode codepoint to UTF-8.
+these escapes translate a Universal Coded Character Set codepoint to UTF-8.
 Furthermore,
 .Dq Li \eE
 and
@@ -1083,7 +1083,7 @@ and yield raw octets; hexadecimal sequences
 greedily eat up as many hexadecimal digits
 .Dq #
 as they can and terminate with the first non-hexadecimal digit;
-these translate a Unicode codepoint to UTF-8.
+these translate a Universal Coded Character Set codepoint to UTF-8.
 The sequence
 .Dq Li \ec# ,
 where
@@ -2652,7 +2652,8 @@ as required by the standard), as that's unsafe to do.
 As a special
 .Nm mksh
 extension, numbers to the base of one are treated as either (8-bit
-transparent) ASCII or Unicode codepoints, depending on the shell's
+transparent) ASCII or Universal Coded Character Set codepoints,
+depending on the shell's
 .Ic utf8\-mode
 flag (current setting).
 The
@@ -2665,7 +2666,7 @@ instead of
 is also supported.
 Note that NUL bytes (integral value of zero) cannot be used.
 An unset or empty parameter evaluates to 0 in integer context.
-In Unicode mode, raw octets are mapped into the range EF80..EFFF as in
+In UTF-8 mode, raw octets are mapped into the range EF80..EFFF as in
 OPTU-8, which is in the PUA and has been assigned by CSUR for this use.
 If more than one octet in ASCII mode, or a sequence of more than one
 octet not forming a valid and minimal CESU-8 sequence is passed, the
@@ -6658,7 +6659,7 @@ locale.
 .Ic utf8\-mode
 .Em must
 be disabled in POSIX mode, and it
-only supports the Unicode BMP (Basic Multilingual Plane) and maps
+only supports the BMP (Basic Multilingual Plane) of UCS and maps
 raw octets into the U+EF80..U+EFFF wide character range; compare
 .Sx Arithmetic expressions .
 The following
@@ -6679,7 +6680,7 @@ case ${KSH_VERSION:\-} in
 	esac ;;
 esac
 .Ed
-In near future, (Unicode) locale tracking will be implemented though.
+In near future, (UTF-8) locale tracking will be implemented though.
 .Pp
 See also the FAQ below.
 .Sh BUGS

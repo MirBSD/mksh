@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.292 2018/03/17 22:46:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.293 2018/08/10 02:53:35 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -2456,7 +2456,7 @@ getrusage(int what, struct rusage *ru)
  * and fp (put back a char) for backslash escapes,
  * assuming the first call to *fg gets the char di-
  * rectly after the backslash; return the character
- * (0..0xFF), Unicode (wc + 0x100), or -1 if no known
+ * (0..0xFF), UCS (wc + 0x100), or -1 if no known
  * escape sequence was found
  */
 int
@@ -2538,9 +2538,9 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		/**
 		 * x:	look for a hexadecimal number with up to
 		 *	two (C style: arbitrary) digits; convert
-		 *	to raw octet (C style: Unicode if >0xFF)
+		 *	to raw octet (C style: UCS if >0xFF)
 		 * u/U:	look for a hexadecimal number with up to
-		 *	four (U: eight) digits; convert to Unicode
+		 *	four (U: eight) digits; convert to UCS
 		 */
 		wc = 0;
 		n = 0;
@@ -2562,7 +2562,7 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		if (!n)
 			goto unknown_escape;
 		if ((cstyle && wc > 0xFF) || fc != 'x')
-			/* Unicode marker */
+			/* UCS marker */
 			wc += 0x100;
 		break;
 	case '\'':

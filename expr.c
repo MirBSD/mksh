@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.104 2018/06/26 21:22:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.105 2018/08/10 02:53:33 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -885,7 +885,7 @@ static int mb_ucsbsearch(const struct mb_ucsrange arr[], size_t elems,
     unsigned int val) MKSH_A_PURE;
 
 /*
- * Generated from the Unicode Character Database, Version 11.0.0, by
+ * Generated from the UCD 11.0.0 by
  * MirOS: contrib/code/Snippets/eawparse,v 1.12 2017/09/06 16:05:45 tg Exp $
  */
 
@@ -1177,7 +1177,7 @@ mb_ucsbsearch(const struct mb_ucsrange arr[], size_t elems, unsigned int val)
 	return (0);
 }
 
-/* Unix column width of a wide character (Unicode code point, really) */
+/* Unix column width of a wide character (UCS code point, really) */
 int
 utf_wcwidth(unsigned int wc)
 {

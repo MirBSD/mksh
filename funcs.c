@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.353 2018/01/14 01:26:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.354 2018/08/10 02:53:34 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -493,7 +493,7 @@ c_print(const char **wp)
 						Xput(xs, xp, '\\');
 					}
 				} else if ((unsigned int)c > 0xFF) {
-					/* generic function returned Unicode */
+					/* generic function returned UCS */
 					po.ts[utf_wctomb(po.ts, c - 0x100)] = 0;
 					c = 0;
 					do {

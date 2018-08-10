@@ -19,7 +19,7 @@
  */
 
 @SHFLAGS_DEFNS
-__RCSID("$MirOS: src/bin/mksh/sh_flags.opt,v 1.5 2017/02/18 02:33:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh_flags.opt,v 1.6 2018/08/10 02:53:39 tg Exp $");
 @SHFLAGS_ENUMS
 #define FN(sname,cname,flags,ochar)	cname,
 #define F0(sname,cname,flags,ochar)	cname = 0,
@@ -153,7 +153,7 @@ FN("trackall", FTRACKALL, OF_ANY
 
 /* -U	enable UTF-8 processing (non-standard) */
 >U|
-FN("utf8-mode", FUNICODE, OF_ANY
+FN("utf8-mode", FUNNYCODE, OF_ANY
 
 /* -v	echo input */
 >v|

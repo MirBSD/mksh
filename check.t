@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.807 2018/07/15 17:22:15 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.808 2018/08/10 02:53:31 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -2487,7 +2487,7 @@ expected-stdout:
 name: glob-range-3
 description:
 	Check that globbing matches the right things...
-# breaks on Mac OSX (HFS+ non-standard Unicode canonical decomposition)
+# breaks on Mac OSX (HFS+ non-standard UTF-8 canonical decomposition)
 # breaks on Cygwin 1.7 (files are now UTF-16 or something)
 # breaks on QNX 6.4.1 (says RT)
 category: !os:cygwin,!os:darwin,!os:msys,!os:nto,!os:os2,!os:os390
@@ -8512,7 +8512,7 @@ expected-stdout:
 ---
 name: typeset-padding-3
 description:
-	Check for a regression in which Unicode wasn’t left-padded right
+	Check for a regression in which UTF-8 wasn’t left-padded right
 stdin:
 	set -U
 	nl=$'\n'
@@ -8535,7 +8535,7 @@ description:
 	Check that the UTF-8 Byte Order Mark is ignored as the first
 	multibyte character of the shell input (with -c, from standard
 	input, as file, or as eval argument), but nowhere else
-# breaks on Mac OSX (HFS+ non-standard Unicode canonical decomposition)
+# breaks on Mac OSX (HFS+ non-standard UTF-8 canonical decomposition)
 category: !os:darwin,!shell:ebcdic-yes
 stdin:
 	mkdir foo
@@ -10414,7 +10414,7 @@ expected-stdout:
 ---
 name: integer-base-one-3Ws
 description:
-	some sample code for hexdumping Unicode
+	some sample code for hexdumping UCS-2
 	not NUL safe; input lines must be NL terminated
 stdin:
 	set -U
@@ -10582,7 +10582,7 @@ expected-stdout:
 ---
 name: integer-base-one-3Wr
 description:
-	some sample code for hexdumping Unicode; NUL and binary safe
+	some sample code for hexdumping UCS-2; NUL and binary safe
 stdin:
 	set -U
 	{
@@ -10702,7 +10702,7 @@ expected-stdout:
 ---
 name: integer-base-one-5A
 description:
-	Check to see that we’re NUL and Unicode safe
+	Check to see that we’re NUL and UCS safe
 category: !shell:ebcdic-yes
 stdin:
 	set +U
@@ -10716,7 +10716,7 @@ expected-stdout:
 ---
 name: integer-base-one-5E
 description:
-	Check to see that we’re NUL and Unicode safe
+	Check to see that we’re NUL and UCS safe
 category: !shell:ebcdic-no
 stdin:
 	set +U
@@ -10730,7 +10730,7 @@ expected-stdout:
 ---
 name: integer-base-one-5W
 description:
-	Check to see that we’re NUL and Unicode safe
+	Check to see that we’re NUL and UCS safe
 stdin:
 	set -U
 	print 'a\0b€c' >x
