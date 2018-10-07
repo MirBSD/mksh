@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.201 2017/10/11 21:09:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.202 2018/10/07 01:10:11 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1011,7 +1011,7 @@ scriptexec(struct op *tp, const char **ap)
 	cap.ro = ap;
 	execve(args.rw[0], args.rw, cap.rw);
 
-	/* report both the programme that was run and the bogus interpreter */
+	/* report both the program that was run and the bogus interpreter */
 	errorf(Tf_sD_sD_s, tp->str, sh, cstrerror(errno));
 }
 
