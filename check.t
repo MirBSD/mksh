@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.808 2018/08/10 02:53:31 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.809 2018/10/20 18:48:26 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R56 2018/07/15
+	@(#)MIRBSD KSH R56 2018/10/20
 description:
 	Check base version of full shell
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: !shell:legacy-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R56 2018/07/15
+	@(#)LEGACY KSH R56 2018/10/20
 description:
 	Check base version of legacy shell
 stdin:
@@ -3064,6 +3064,19 @@ expected-stdout:
 	got zero on stdin
 	got four on fd#4
 	got five on fd#5
+---
+name: heredoc-15
+description:
+	Check high-bit7 separators work
+stdin:
+	u=ä
+	tr a-z A-Z <<-…
+		m${u}h
+	…
+	echo ok
+expected-stdout:
+	MäH
+	ok
 ---
 name: heredoc-comsub-1
 description:
@@ -7244,6 +7257,32 @@ stdin:
 expected-stdout:
 	HI
 	2 4
+---
+name: xxx-substitution-eval-order-2
+description:
+	Check some corner cases
+stdin:
+	unset var
+	i=42
+	: ${var+${q[i=777]}} required to be lazy by POSIX
+	echo 1=$i
+	var=meow
+	i=42
+	: ${var+${q[i=777]}} eval since var is now set
+	echo 2=$i
+	unset var
+	i=42
+	: ${var#${q[i=777]}} pattern is needed even if var is empty
+	echo 3=$i
+	var=meow
+	i=42
+	: ${var#${q[i=777]}}
+	echo 4=$i
+expected-stdout:
+	1=42
+	2=777
+	3=777
+	4=777
 ---
 name: xxx-set-option-1
 description:
