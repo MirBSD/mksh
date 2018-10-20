@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.249 2018/04/27 16:59:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.250 2018/10/20 18:34:14 tg Exp $");
 
 /*
  * states while lexing word
@@ -1176,7 +1176,7 @@ readhere(struct ioword *iop)
 			/* Newline terminates here document marker */
 			goto heredoc_found_terminator;
 		}
-	} else if (c == *eofp++)
+	} else if ((unsigned int)c == ord(*eofp++))
 		/* store; then read and compare next character */
 		goto heredoc_store_and_loop;
 	/* nope, mismatch; read until end of line */
