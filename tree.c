@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.96 2018/08/10 02:53:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.97 2018/10/20 18:46:00 tg Exp $");
 
 #define INDENT	8
 
@@ -821,7 +821,7 @@ vistree(char *dst, size_t sz, struct op *t)
 
 #ifdef DEBUG
 void
-dumpchar(struct shf *shf, int c)
+dumpchar(struct shf *shf, unsigned char c)
 {
 	if (ksh_isctrl(c)) {
 		/* C0 or C1 control character or DEL */
