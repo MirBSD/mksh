@@ -34,7 +34,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.349 2018/05/08 17:37:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.350 2018/10/30 17:10:15 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -513,7 +513,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 #else
 		s->file = argv[argi++];
 #endif
-		s->u.shf = shf_open(s->file, O_RDONLY, 0,
+		s->u.shf = shf_open(s->file, O_RDONLY | O_MAYEXEC, 0,
 		    SHF_MAPHI | SHF_CLEXEC);
 		if (s->u.shf == NULL) {
 			shl_stdout_ok = false;
@@ -713,7 +713,7 @@ include(const char *name, int argc, const char **argv, bool intr_ok)
 	volatile int old_argc;
 	int i;
 
-	shf = shf_open(name, O_RDONLY, 0, SHF_MAPHI | SHF_CLEXEC);
+	shf = shf_open(name, O_RDONLY | O_MAYEXEC, 0, SHF_MAPHI | SHF_CLEXEC);
 	if (shf == NULL)
 		return (-1);
 

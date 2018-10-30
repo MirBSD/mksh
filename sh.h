@@ -182,7 +182,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.866 2018/10/20 18:45:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.867 2018/10/30 17:10:16 tg Exp $");
 #endif
 #define MKSH_VERSION "R56 2018/10/20"
 
@@ -489,6 +489,10 @@ extern int __cdecl setegid(gid_t);
 
 #ifndef O_BINARY
 #define O_BINARY	0
+#endif
+
+#ifndef O_MAYEXEC
+#define O_MAYEXEC	0
 #endif
 
 #ifdef MKSH__NO_SYMLINK
