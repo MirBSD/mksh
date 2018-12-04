@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.809 2018/10/20 18:48:26 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.810 2018/12/04 21:13:44 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -30,7 +30,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R56 2018/10/20
+	@(#)MIRBSD KSH R56 2018/12/04
 description:
 	Check base version of full shell
 stdin:
@@ -39,7 +39,7 @@ name: KSH_VERSION
 category: !shell:legacy-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R56 2018/10/20
+	@(#)LEGACY KSH R56 2018/12/04
 description:
 	Check base version of legacy shell
 stdin:
@@ -11263,6 +11263,34 @@ stdin:
 	./cld
 expected-stdout:
 	Fowl
+---
+name: fd-cloexec-3
+description:
+	Another check for close-on-exec
+stdin:
+	print '#!'"$__progname" >ts
+	cat >>ts <<'EOF'
+	s=ERR
+	read -rN-1 -u$1 s 2>/dev/null; e=$?
+	print -r -- "($1, $((!e)), $s)"
+	EOF
+	chmod +x ts
+	print foo >tx
+	runtest() {
+		s=$1; shift
+		print -r -- $("$__progname" "$@" -c "$s") "$@" .
+	}
+	runtest 'exec 3<tx; ./ts 3 3<&3; ./ts 3'
+	runtest 'exec 3<tx; ./ts 3 3<&3; ./ts 3' -o posix
+	runtest 'exec 3<tx; ./ts 3 3<&3; ./ts 3' -o sh
+	runtest 'exec 3<tx; ./ts 4 4<&3; ./ts 4 4<&3'
+	runtest 'exec 3<tx; ./ts 3 3<&3; ./ts 3 3<&3'
+expected-stdout:
+	(3, 1, foo) (3, 0, ERR) .
+	(3, 1, foo) (3, 1, ) -o posix .
+	(3, 1, foo) (3, 1, ) -o sh .
+	(4, 1, foo) (4, 1, ) .
+	(3, 1, foo) (3, 1, ) .
 ---
 name: comsub-1a
 description:

@@ -182,9 +182,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.867 2018/10/30 17:10:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.868 2018/12/04 21:13:47 tg Exp $");
 #endif
-#define MKSH_VERSION "R56 2018/10/20"
+#define MKSH_VERSION "R56 2018/12/04"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1954,10 +1954,11 @@ struct ioword {
 #define IOSKIP		BIT(5)	/* <<-, skip ^\t* */
 #define IOCLOB		BIT(6)	/* >|, override -o noclobber */
 #define IORDUP		BIT(7)	/* x<&y (as opposed to x>&y) */
-#define IONAMEXP	BIT(8)	/* name has been expanded */
-#define IOBASH		BIT(9)	/* &> etc. */
-#define IOHERESTR	BIT(10)	/* <<< (here string) */
-#define IONDELIM	BIT(11)	/* null delimiter (<<) */
+#define IODUPSELF	BIT(8)	/* x>&x (as opposed to x>&y) */
+#define IONAMEXP	BIT(9)	/* name has been expanded */
+#define IOBASH		BIT(10)	/* &> etc. */
+#define IOHERESTR	BIT(11)	/* <<< (here string) */
+#define IONDELIM	BIT(12)	/* null delimiter (<<) */
 
 /* execute/exchild flags */
 #define XEXEC	BIT(0)		/* execute without forking */

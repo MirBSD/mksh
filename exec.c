@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.203 2018/10/30 17:10:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.204 2018/12/04 21:13:47 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -429,6 +429,12 @@ execute(struct op * volatile t,
 		up = makenv();
 		restoresigs();
 		cleanup_proc_env();
+		/* I/O redirection cleanup to be done in child process */
+		if (!Flag(FPOSIX) && !Flag(FSH) && t->left->ioact != NULL)
+			for (iowp = t->left->ioact; *iowp != NULL; iowp++)
+				if ((*iowp)->ioflag & IODUPSELF)
+					fcntl((*iowp)->unit, F_SETFD, 0);
+		/* try to execute */
 		{
 			union mksh_ccphack cargs;
 
@@ -1485,9 +1491,11 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			afree(sp, ATEMP);
 			return (-1);
 		}
-		if (u == (int)iop->unit)
+		if (u == (int)iop->unit) {
 			/* "dup from" == "dup to" */
+			iop->ioflag |= IODUPSELF;
 			return (0);
+		}
 		break;
 	    }
 	}
