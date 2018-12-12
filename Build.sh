@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.732 2018/01/25 12:33:54 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.733 2018/12/12 10:41:23 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -418,6 +418,7 @@ ac_flags() {
 			#include <unistd.h>
 			int main(void) { return (isatty(0)); }
 		EOF
+		#'
 	fi
 	eval fv=\$HAVE_CAN_`upper $vn`
 	if test -n "$fl"; then
