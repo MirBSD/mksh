@@ -1,6 +1,6 @@
-.\" $MirOS: src/bin/mksh/lksh.1,v 1.24 2018/07/15 13:57:18 tg Exp $
+.\" $MirOS: src/bin/mksh/lksh.1,v 1.25 2018/12/25 19:38:08 tg Exp $
 .\"-
-.\" Copyright (c) 2008, 2009, 2010, 2012, 2013, 2015, 2016, 2017
+.\" Copyright (c) 2008, 2009, 2010, 2012, 2013, 2015, 2016, 2017, 2018
 .\"	mirabilos <m@mirbsd.org>
 .\"
 .\" Provided that these terms and disclaimer and all copyright notices
@@ -74,7 +74,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 15 2018 $
+.Dd $Mdocdate: December 25 2018 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -82,6 +82,7 @@
 .	if \*[.T]utf8 .tr \[la]\*(Lt
 .	if \*[.T]utf8 .tr \[ra]\*(Gt
 .	ie d volume-ds-1 .ds tT gnu
+.	el .ie d doc-volume-ds-1 .ds tT gnp
 .	el .ds tT bsd
 .\}
 .el .ds tT ucb
@@ -94,7 +95,7 @@
 .	nr curr-font \n[.f]
 .	nr curr-size \n[.ps]
 .	ds str-Mx \f[\n[curr-font]]\s[\n[curr-size]u]
-.	ds str-Mx1 \*[Tn-font-size]\%MirOS\*[str-Mx]
+.	ds str-Mx1 \*[Tn-font-size]\%MirBSD\*[str-Mx]
 .	if !\n[arg-limit] \
 .	if \n[.$] \{\
 .	ds macro-name Mx
@@ -120,19 +121,51 @@
 .	ds sP \s0
 .	ds tN \*[Tn-font-size]
 .\}
+.el .ie "\*(tT"gnp" \{\
+.	eo
+.	de Mx
+.	nr doc-curr-font \n[.f]
+.	nr doc-curr-size \n[.ps]
+.	ds doc-str-Mx \f[\n[doc-curr-font]]\s[\n[doc-curr-size]u]
+.	ds doc-str-Mx1 \*[doc-Tn-font-size]\%MirBSD\*[doc-str-Mx]
+.	if !\n[doc-arg-limit] \
+.	if \n[.$] \{\
+.	ds doc-macro-name Mx
+.	doc-parse-args \$@
+.	\}
+.	if (\n[doc-arg-limit] > \n[doc-arg-ptr]) \{\
+.	nr doc-arg-ptr +1
+.	ie (\n[doc-type\n[doc-arg-ptr]] == 2) \
+.	as doc-str-Mx1 \~\*[doc-arg\n[doc-arg-ptr]]
+.	el \
+.	nr doc-arg-ptr -1
+.	\}
+.	ds doc-arg\n[doc-arg-ptr] "\*[doc-str-Mx1]
+.	nr doc-type\n[doc-arg-ptr] 2
+.	ds doc-space\n[doc-arg-ptr] "\*[doc-space]
+.	nr doc-num-args (\n[doc-arg-limit] - \n[doc-arg-ptr])
+.	nr doc-arg-limit \n[doc-arg-ptr]
+.	if \n[doc-num-args] \
+.	doc-parse-space-vector
+.	doc-print-recursive
+..
+.	ec
+.	ds sP \s0
+.	ds tN \*[doc-Tn-font-size]
+.\}
 .el \{\
 .	de Mx
 .	nr cF \\n(.f
 .	nr cZ \\n(.s
 .	ds aa \&\f\\n(cF\s\\n(cZ
 .	if \\n(aC==0 \{\
-.		ie \\n(.$==0 \&MirOS\\*(aa
+.		ie \\n(.$==0 \&MirBSD\\*(aa
 .		el .aV \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8 \\$9
 .	\}
 .	if \\n(aC>\\n(aP \{\
 .		nr aP \\n(aP+1
 .		ie \\n(C\\n(aP==2 \{\
-.			as b1 \&MirOS\ #\&\\*(A\\n(aP\\*(aa
+.			as b1 \&MirBSD\ #\&\\*(A\\n(aP\\*(aa
 .			ie \\n(aC>\\n(aP \{\
 .				nr aP \\n(aP+1
 .				nR
@@ -140,7 +173,7 @@
 .			el .aZ
 .		\}
 .		el \{\
-.			as b1 \&MirOS\\*(aa
+.			as b1 \&MirBSD\\*(aa
 .			nR
 .		\}
 .	\}
