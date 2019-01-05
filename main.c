@@ -5,7 +5,8 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+ *		 2019
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -34,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.350 2018/10/30 17:10:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.351 2019/01/05 13:24:18 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -2055,6 +2056,7 @@ void
 recheck_ctype(void)
 {
 	const char *ccp;
+	uint8_t old_utfmode = UTFMODE;
 
 	ccp = str_val(global("LC_ALL"));
 	if (ccp == null)
@@ -2072,7 +2074,7 @@ recheck_ctype(void)
 		UTFMODE = 1;
 #endif
 
-	if (Flag(FPOSIX))
+	if (Flag(FPOSIX) && UTFMODE && !old_utfmode)
 		warningf(true, "early locale tracking enabled UTF-8 mode while in POSIX mode, you are now noncompliant");
 }
 #endif
