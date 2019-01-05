@@ -2,7 +2,8 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+ *		 2019
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.204 2018/12/04 21:13:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.205 2019/01/05 12:47:40 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -868,7 +869,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
  Leave:
 	if (flags & XEXEC) {
 		exstat = rv & 0xFF;
-		unwind(LLEAVE);
+		unwind(LEXIT);
 	}
 	return (rv);
 }

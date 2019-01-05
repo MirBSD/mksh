@@ -1,8 +1,9 @@
-# $MirOS: src/bin/mksh/check.t,v 1.810 2018/12/04 21:13:44 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.811 2019/01/05 12:47:38 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#	      2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+#	      2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+#	      2019
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -30,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R56 2018/12/04
+	@(#)MIRBSD KSH R56 2019/01/05
 description:
 	Check base version of full shell
 stdin:
@@ -39,7 +40,7 @@ name: KSH_VERSION
 category: !shell:legacy-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R56 2018/12/04
+	@(#)LEGACY KSH R56 2019/01/05
 description:
 	Check base version of legacy shell
 stdin:
@@ -7940,6 +7941,23 @@ expected-stdout:
 	xu: v: parameter null or not set
 	EXtrap
 	= noeval-undef 1 .
+---
+name: exit-trap-3
+description:
+	Check that the EXIT trap is run in many places, Debian #910276
+stdin:
+	fkt() {
+		trap -- "echo $1 >&2" EXIT
+	}
+	fkt shell_exit
+	$(fkt fn_exit)
+	$(trap -- "echo comsub_exit >&2" EXIT)
+	(trap -- "echo subshell_exit >&2" EXIT)
+expected-stderr:
+	fn_exit
+	comsub_exit
+	subshell_exit
+	shell_exit
 ---
 name: exit-trap-interactive
 description:
