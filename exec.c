@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.205 2019/01/05 12:47:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.206 2019/03/01 16:17:53 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -827,7 +827,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		if (!(tp->flag&ISSET)) {
 			if (tp->u2.errnov == ENOENT) {
 				rv = 127;
-				warningf(true, Tf_sD_s, cp, Tnot_found);
+				warningf(true, Tf_sD_s_s, cp,
+				    "inaccessible or", Tnot_found);
 			} else {
 				rv = 126;
 				warningf(true, Tf_sD_sD_s, cp, "can't execute",
