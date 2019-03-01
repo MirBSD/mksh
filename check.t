@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.811 2019/01/05 12:47:38 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.812 2019/03/01 16:17:29 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R56 2019/01/05
+	@(#)MIRBSD KSH R57 2019/03/01
 description:
 	Check base version of full shell
 stdin:
@@ -40,7 +40,7 @@ name: KSH_VERSION
 category: !shell:legacy-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R56 2019/01/05
+	@(#)LEGACY KSH R57 2019/03/01
 description:
 	Check base version of legacy shell
 stdin:
@@ -7145,7 +7145,7 @@ stdin:
 	print =4
 	(exec lq)
 expected-stdout-pattern:
-	/=1\none\n=2\ntwo\n=3\n.*: ls: not found\n=4\ntf\n/
+	/=1\none\n=2\ntwo\n=3\n.*: ls: inaccessible or not found\n=4\ntf\n/
 ---
 name: exec-ksh88
 description:
@@ -7166,7 +7166,7 @@ stdin:
 	print =4
 	(exec lq)
 expected-stdout-pattern:
-	/=1\n.*: print: not found\n=2\n.*: foo: not found\n=3\n.*: ls: not found\n=4\ntf\n/
+	/=1\n.*: print: inaccessible or not found\n=2\n.*: foo: inaccessible or not found\n=3\n.*: ls: inaccessible or not found\n=4\ntf\n/
 ---
 name: xxx-what-do-you-call-this-1
 stdin:
@@ -7385,6 +7385,28 @@ expected-stdout:
 	include: 3
 	trap: 4
 	exit: 4
+---
+name: xxx-stat-1
+description:
+	Check that tests on files are consistent
+stdin:
+	mkdir a
+	echo x >a/b
+	test -e a/b; echo 1e $? .
+	test -f a/b; echo 1f $? .
+	chmod 0 a
+	test -e a/b; echo 2e $? .
+	test -f a/b; echo 2f $? .
+	chmod 700 a
+	test -e a/b; echo 3e $? .
+	test -f a/b; echo 3f $? .
+expected-stdout:
+	1e 0 .
+	1f 0 .
+	2e 1 .
+	2f 1 .
+	3e 0 .
+	3f 0 .
 ---
 name: xxx-clean-chars-1
 description:

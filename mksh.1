@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.462 2019/01/05 12:54:49 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.463 2019/03/01 16:17:31 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -77,7 +77,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 5 2019 $
+.Dd $Mdocdate: March 1 2019 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -6842,6 +6842,10 @@ Run the shell in POSIX mode (and possibly
 instead of
 .Nm mksh ) :
 .Dl set \-o posix
+.Ss "I forbid stat(2) in my SELinux policy, and some things do not work!"
+Don't break Unix.
+Read up on the GIGO principle.
+Duh.
 .Ss "My prompt from <some other shell> does not work!"
 Contact us on the mailing list or on IRC, we'll convert it for you.
 .Ss "Something is going wrong with my while...read loop"
