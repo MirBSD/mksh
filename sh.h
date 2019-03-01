@@ -182,9 +182,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.869 2019/01/05 12:47:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.870 2019/03/01 16:18:14 tg Exp $");
 #endif
-#define MKSH_VERSION "R56 2019/01/05"
+#define MKSH_VERSION "R57 2019/03/01"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -647,7 +647,7 @@ char *ucstrstr(char *, const char *);
 #endif
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 563)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 571)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
