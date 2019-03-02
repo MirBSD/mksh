@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -28,7 +28,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.221 2017/10/13 23:34:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.226 2018/07/15 17:21:24 tg Exp $");
 
 /*-
  * Variables
@@ -54,7 +54,7 @@ static int special(const char *);
 static void unspecial(const char *);
 static void getspec(struct tbl *);
 static void setspec(struct tbl *);
-static void unsetspec(struct tbl *);
+static void unsetspec(struct tbl *, bool);
 static int getint(struct tbl *, mksh_ari_u *, bool);
 static const char *array_index_calc(const char *, bool *, uint32_t *);
 
@@ -105,7 +105,7 @@ popblock(void)
 			if ((vq = global(vp->name))->flag & ISSET)
 				setspec(vq);
 			else
-				unsetspec(vq);
+				unsetspec(vq, false);
 		}
 	if (l->flags & BF_DOGETOPTS)
 		user_opt = l->getopts_state;
@@ -136,7 +136,7 @@ initvar(void)
 	struct tbl *tp;
 
 	ktinit(APERM, &specials,
-	    /* currently 18 specials: 75% of 32 = 2^5 */
+	    /* currently 21 specials: 75% of 32 = 2^5 */
 	    5);
 	while (i < V_MAX - 1) {
 		tp = ktenter(&specials, initvar_names[i],
@@ -204,7 +204,7 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 	}
 	innermost_refflag = SRF_NOP;
 
-	if (p != n && ord(*p) == ord('[') && (len = array_ref_len(p))) {
+	if (p != n && ord(*p) == ORD('[') && (len = array_ref_len(p))) {
 		char *sub, *tmp;
 		mksh_ari_t rval;
 
@@ -707,7 +707,7 @@ formatstr(struct tbl *vp, const char *s)
 			if (vp->flag & ZEROFIL)
 				while (*s == '0')
 					s++;
-			shf_snprintf(p, nlen + 1, "%-*.*s",
+			shf_snprintf(p, psiz, "%-*.*s",
 				vp->u2.field, vp->u2.field, s);
 		}
 	} else
@@ -780,7 +780,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 		/* no variable name given */
 		return (NULL);
 	}
-	if (ord(*val) == ord('[')) {
+	if (ord(*val) == ORD('[')) {
 		if (new_refflag != SRF_NOP)
 			errorf(Tf_sD_s, var,
 			    "reference variable can't be an array");
@@ -803,13 +803,13 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 		}
 		val += len;
 	}
-	if (ord(val[0]) == ord('=')) {
+	if (ord(val[0]) == ORD('=')) {
 		strndupx(tvar, var, val - var, ATEMP);
 		++val;
 	} else if (set & IMPORT) {
 		/* environment invalid variable name or no assignment */
 		return (NULL);
-	} else if (ord(val[0]) == ord('+') && ord(val[1]) == ord('=')) {
+	} else if (ord(val[0]) == ORD('+') && ord(val[1]) == ORD('=')) {
 		strndupx(tvar, var, val - var, ATEMP);
 		val += 2;
 		vappend = true;
@@ -822,9 +822,9 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 		val = NULL;
 		/* handle foo[*] => foo (whole array) mapping for R39b */
 		len = strlen(tvar);
-		if (len > 3 && ord(tvar[len - 3]) == ord('[') &&
-		    ord(tvar[len - 2]) == ord('*') &&
-		    ord(tvar[len - 1]) == ord(']'))
+		if (len > 3 && ord(tvar[len - 3]) == ORD('[') &&
+		    ord(tvar[len - 2]) == ORD('*') &&
+		    ord(tvar[len - 1]) == ORD(']'))
 			tvar[len - 3] = '\0';
 	}
 
@@ -861,7 +861,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
  nameref_empty:
 			errorf(Tf_sD_s, var, "empty nameref target");
 		}
-		len = (ord(*ccp) == ord('[')) ? array_ref_len(ccp) : 0;
+		len = (ord(*ccp) == ORD('[')) ? array_ref_len(ccp) : 0;
 		if (ccp[len]) {
 			/*
 			 * works for cases "no array", "valid array with
@@ -1054,7 +1054,7 @@ unset(struct tbl *vp, int flags)
 	vp->flag &= SPECIAL | ((flags & 1) ? 0 : ARRAY|DEFINED);
 	if (vp->flag & SPECIAL)
 		/* responsible for 'unspecial'ing var */
-		unsetspec(vp);
+		unsetspec(vp, true);
 }
 
 /*
@@ -1071,7 +1071,7 @@ skip_varname(const char *s, bool aok)
 		do {
 			++s;
 		} while (ctype(*s, C_ALNUX));
-		if (aok && ord(*s) == ord('[') && (alen = array_ref_len(s)))
+		if (aok && ord(*s) == ORD('[') && (alen = array_ref_len(s)))
 			s += alen;
 	}
 	return (s);
@@ -1087,7 +1087,7 @@ skip_wdvarname(const char *s,
 		do {
 			s += 2;
 		} while (s[0] == CHAR && ctype(s[1], C_ALNUX));
-		if (aok && s[0] == CHAR && ord(s[1]) == ord('[')) {
+		if (aok && s[0] == CHAR && ord(s[1]) == ORD('[')) {
 			/* skip possible array de-reference */
 			const char *p = s;
 			char c;
@@ -1098,9 +1098,9 @@ skip_wdvarname(const char *s,
 					break;
 				c = p[1];
 				p += 2;
-				if (ord(c) == ord('['))
+				if (ord(c) == ORD('['))
 					depth++;
-				else if (ord(c) == ord(']') && --depth == 0) {
+				else if (ord(c) == ORD(']') && --depth == 0) {
 					s = p;
 					break;
 				}
@@ -1308,7 +1308,7 @@ setspec(struct tbl *vp)
 		if (!(vp->flag&INTEGER)) {
 			s = str_val(vp);
 			do {
-				if (*s == ord('\\'))
+				if (*s == ORD('\\'))
 					*s = '/';
 			} while (*s++);
 		}
@@ -1386,6 +1386,13 @@ setspec(struct tbl *vp)
 		}
 		vp->flag |= SPECIAL;
 		break;
+#ifdef MKSH_EARLY_LOCALE_TRACKING
+	case V_LANG:
+	case V_LC_ALL:
+	case V_LC_CTYPE:
+		recheck_ctype();
+		return;
+#endif
 	default:
 		/* do nothing, do not touch vp at all */
 		return;
@@ -1434,7 +1441,7 @@ setspec(struct tbl *vp)
 }
 
 static void
-unsetspec(struct tbl *vp)
+unsetspec(struct tbl *vp, bool dounset)
 {
 	/*
 	 * AT&T ksh man page says OPTIND, OPTARG and _ lose special
@@ -1459,13 +1466,13 @@ unsetspec(struct tbl *vp)
 #endif
 	case V_IFS:
 		set_ifs(TC_IFSWS);
-		break;
+		return;
 	case V_PATH:
 		afree(path, APERM);
 		strdupx(path, def_path, APERM);
 		/* clear tracked aliases */
 		flushcom(true);
-		break;
+		return;
 #ifndef MKSH_NO_CMDLINE_EDITING
 	case V_TERM:
 		x_initterm(null);
@@ -1477,14 +1484,27 @@ unsetspec(struct tbl *vp)
 			afree(tmpdir, APERM);
 			tmpdir = NULL;
 		}
-		break;
+		return;
 	case V_LINENO:
 	case V_RANDOM:
 	case V_SECONDS:
 	case V_TMOUT:
 		/* AT&T ksh leaves previous value in place */
 		unspecial(vp->name);
-		break;
+		return;
+#ifdef MKSH_EARLY_LOCALE_TRACKING
+	case V_LANG:
+	case V_LC_ALL:
+	case V_LC_CTYPE:
+		recheck_ctype();
+		return;
+#endif
+	/* should not become unspecial, but allow unsetting */
+	case V_COLUMNS:
+	case V_LINES:
+		if (dounset)
+			unspecial(vp->name);
+		return;
 	}
 }
 
@@ -1548,8 +1568,8 @@ array_ref_len(const char *cp)
 	char c;
 	int depth = 0;
 
-	while ((c = *s++) && (ord(c) != ord(']') || --depth))
-		if (ord(c) == ord('['))
+	while ((c = *s++) && (ord(c) != ORD(']') || --depth))
+		if (ord(c) == ORD('['))
 			depth++;
 	if (!c)
 		return (0);
@@ -1603,6 +1623,9 @@ set_array(const char *var, bool reset, const char **vals)
 		unset(vp, 1);
 		/* allocate-by-access the [0] element to keep in scope */
 		arraysearch(vp, 0);
+		/* honour set -o allexport */
+		if (Flag(FEXPORT))
+			typeset(ccp, EXPORT, 0, 0, 0);
 	}
 	/*
 	 * TODO: would be nice for assignment to completely succeed or
@@ -1621,18 +1644,18 @@ set_array(const char *var, bool reset, const char **vals)
 	}
 	while ((ccp = vals[i])) {
 #if 0 /* temporarily taken out due to regression */
-		if (ord(*ccp) == ord('[')) {
+		if (ord(*ccp) == ORD('[')) {
 			int level = 0;
 
 			while (*ccp) {
-				if (ord(*ccp) == ord(']') && --level == 0)
+				if (ord(*ccp) == ORD(']') && --level == 0)
 					break;
-				if (ord(*ccp) == ord('['))
+				if (ord(*ccp) == ORD('['))
 					++level;
 				++ccp;
 			}
-			if (ord(*ccp) == ord(']') && level == 0 &&
-			    ord(ccp[1]) == ord('=')) {
+			if (ord(*ccp) == ORD(']') && level == 0 &&
+			    ord(ccp[1]) == ORD('=')) {
 				strndupx(cp, vals[i] + 1, ccp - (vals[i] + 1),
 				    ATEMP);
 				evaluate(substitute(cp, 0), (mksh_ari_t *)&j,

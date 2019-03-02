@@ -2,7 +2,8 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017,
+ *		 2018
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.124 2017/05/05 22:53:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.127 2018/01/14 00:22:30 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -35,7 +36,7 @@ struct yyrecursive_state {
 	struct yyrecursive_state *next;
 	struct ioword **old_herep;
 	int old_symbol;
-	int old_nesting_type;
+	unsigned int old_nesting_type;
 	bool old_reject;
 };
 
@@ -75,7 +76,10 @@ static int symbol;			/* yylex value */
 #define ACCEPT		(reject = false)
 #define token(cf)	((reject) ? (ACCEPT, symbol) : (symbol = yylex(cf)))
 #define tpeek(cf)	((reject) ? (symbol) : (REJECT, symbol = yylex(cf)))
-#define musthave(c,cf)	do { if (token(cf) != (c)) syntaxerr(NULL); } while (/* CONSTCOND */ 0)
+#define musthave(c,cf)	do { 					\
+	if ((unsigned int)token(cf) != (unsigned int)(c))	\
+		syntaxerr(NULL);				\
+} while (/* CONSTCOND */ 0)
 
 static const char Tcbrace[] = "}";
 static const char Tesac[] = "esac";
@@ -91,7 +95,7 @@ yyparse(bool doalias)
 	c = tpeek(0);
 	if (c == 0 && !outtree)
 		outtree = newtp(TEOF);
-	else if (!ctype(c, C_LF | C_NUL))
+	else if (!cinttype(c, C_LF | C_NUL))
 		syntaxerr(NULL);
 }
 
@@ -330,7 +334,7 @@ get_command(int cf, int sALIAS)
 					XPput(args, yylval.cp);
 				break;
 
-			case ord('(' /*)*/):
+			case ORD('(' /*)*/):
 				if (XPsize(args) == 0 && XPsize(vars) == 1 &&
 				    is_wdvarassign(yylval.cp)) {
 					char *tcp;
@@ -386,18 +390,18 @@ get_command(int cf, int sALIAS)
  Leave:
 		break;
 
-	case ord('(' /*)*/): {
-		int subshell_nesting_type_saved;
+	case ORD('(' /*)*/): {
+		unsigned int subshell_nesting_type_saved;
  Subshell:
 		subshell_nesting_type_saved = subshell_nesting_type;
-		subshell_nesting_type = ord(')');
-		t = nested(TPAREN, ord('('), ord(')'), sALIAS);
+		subshell_nesting_type = ORD(')');
+		t = nested(TPAREN, ORD('('), ORD(')'), sALIAS);
 		subshell_nesting_type = subshell_nesting_type_saved;
 		break;
 	    }
 
-	case ord('{' /*}*/):
-		t = nested(TBRACE, ord('{'), ord('}'), sALIAS);
+	case ORD('{' /*}*/):
+		t = nested(TBRACE, ORD('{'), ORD('}'), sALIAS);
 		break;
 
 	case MDPAREN:
@@ -407,8 +411,8 @@ get_command(int cf, int sALIAS)
 		switch (token(LETEXPR)) {
 		case LWORD:
 			break;
-		case ord('(' /*)*/):
-			c = ord('(');
+		case ORD('(' /*)*/):
+			c = ORD('(');
 			goto Subshell;
 		default:
 			syntaxerr(NULL);
@@ -554,8 +558,8 @@ dogroup(int sALIAS)
 	 */
 	if (c == DO)
 		c = DONE;
-	else if (c == ord('{'))
-		c = ord('}');
+	else if ((unsigned int)c == ORD('{'))
+		c = ORD('}');
 	else
 		syntaxerr(NULL);
 	list = c_list(sALIAS, true);
@@ -610,8 +614,8 @@ caselist(int sALIAS)
 	/* A {...} can be used instead of in...esac for case statements */
 	if (c == IN)
 		c = ESAC;
-	else if (c == ord('{'))
-		c = ord('}');
+	else if ((unsigned int)c == ORD('{'))
+		c = ORD('}');
 	else
 		syntaxerr(NULL);
 	t = tl = NULL;
@@ -636,18 +640,17 @@ casepart(int endtok, int sALIAS)
 	XPinit(ptns, 16);
 	t = newtp(TPAT);
 	/* no ALIAS here */
-	if (token(CONTIN | KEYWORD) != ord('('))
+	if ((unsigned int)token(CONTIN | KEYWORD) != ORD('('))
 		REJECT;
 	do {
 		switch (token(0)) {
 		case LWORD:
 			break;
-		case ord('}'):
+		case ORD('}'):
 		case ESAC:
 			if (symbol != endtok) {
-				strdupx(yylval.cp,
-				    symbol == ord('}') ? Tcbrace : Tesac,
-				    ATEMP);
+				strdupx(yylval.cp, (unsigned int)symbol ==
+				    ORD('}') ? Tcbrace : Tesac, ATEMP);
 				break;
 			}
 			/* FALLTHROUGH */
@@ -659,23 +662,23 @@ casepart(int endtok, int sALIAS)
 	REJECT;
 	XPput(ptns, NULL);
 	t->vars = (char **)XPclose(ptns);
-	musthave(ord(')'), 0);
+	musthave(ORD(')'), 0);
 
 	t->left = c_list(sALIAS, true);
 
 	/* initialise to default for ;; or omitted */
-	t->u.charflag = ord(';');
+	t->u.charflag = ORD(';');
 	/* SUSv4 requires the ;; except in the last casepart */
 	if ((tpeek(CONTIN|KEYWORD|sALIAS)) != endtok)
 		switch (symbol) {
 		default:
 			syntaxerr(NULL);
 		case BRKEV:
-			t->u.charflag = ord('|');
+			t->u.charflag = ORD('|');
 			if (0)
 				/* FALLTHROUGH */
 		case BRKFT:
-			  t->u.charflag = ord('&');
+			  t->u.charflag = ORD('&');
 			/* FALLTHROUGH */
 		case BREAK:
 			/* initialised above, but we need to eat the token */
@@ -711,14 +714,14 @@ function_body(char *name, int sALIAS,
 	 * only accepts an open-brace.
 	 */
 	if (ksh_func) {
-		if (tpeek(CONTIN|KEYWORD|sALIAS) == ord('(' /*)*/)) {
+		if ((unsigned int)tpeek(CONTIN|KEYWORD|sALIAS) == ORD('(' /*)*/)) {
 			/* function foo () { //}*/
 			ACCEPT;
-			musthave(ord(/*(*/ ')'), 0);
+			musthave(ORD(/*(*/ ')'), 0);
 			/* degrade to POSIX function */
 			ksh_func = false;
 		}
-		musthave(ord('{' /*}*/), CONTIN|KEYWORD|sALIAS);
+		musthave(ORD('{' /*}*/), CONTIN|KEYWORD|sALIAS);
 		REJECT;
 	}
 
@@ -810,8 +813,8 @@ static const struct tokeninfo {
 	{ "in",		IN,	true },
 	{ Tfunction,	FUNCTION, true },
 	{ Ttime,	TIME,	true },
-	{ "{",		ord('{'), true },
-	{ Tcbrace,	ord('}'), true },
+	{ "{",		ORD('{'), true },
+	{ Tcbrace,	ORD('}'), true },
 	{ "!",		BANG,	true },
 	{ "[[",		DBRACKET, true },
 	/* Lexical tokens (0[EOF], LWORD and REDIR handled specially) */
@@ -823,7 +826,7 @@ static const struct tokeninfo {
 	{ "((",		MDPAREN, false },
 	{ "|&",		COPROC,	false },
 	/* and some special cases... */
-	{ "newline",	ord('\n'), false },
+	{ "newline",	ORD('\n'), false },
 	{ NULL,		0,	false }
 };
 
@@ -998,9 +1001,9 @@ dbtestp_isa(Test_env *te, Test_meta meta)
 		ret = (uqword && !strcmp(yylval.cp,
 		    dbtest_tokens[(int)TM_NOT])) ? TO_NONNULL : TO_NONOP;
 	else if (meta == TM_OPAREN)
-		ret = c == ord('(') /*)*/ ? TO_NONNULL : TO_NONOP;
+		ret = (unsigned int)c == ORD('(') /*)*/ ? TO_NONNULL : TO_NONOP;
 	else if (meta == TM_CPAREN)
-		ret = c == /*(*/ ord(')') ? TO_NONNULL : TO_NONOP;
+		ret = (unsigned int)c == /*(*/ ORD(')') ? TO_NONNULL : TO_NONOP;
 	else if (meta == TM_UNOP || meta == TM_BINOP) {
 		if (meta == TM_BINOP && c == REDIR &&
 		    (yylval.iop->ioflag == IOREAD ||
@@ -1131,14 +1134,14 @@ yyrecursive(int subtype)
 	struct op *t;
 	char *cp;
 	struct yyrecursive_state *ys;
-	int stok, etok;
+	unsigned int stok, etok;
 
 	if (subtype != COMSUB) {
-		stok = ord('{');
-		etok = ord('}');
+		stok = ORD('{');
+		etok = ORD('}');
 	} else {
-		stok = ord('(');
-		etok = ord(')');
+		stok = ORD('(');
+		etok = ORD(')');
 	}
 
 	ys = alloc(sizeof(struct yyrecursive_state), ATEMP);

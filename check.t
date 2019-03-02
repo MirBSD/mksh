@@ -1,8 +1,9 @@
-# $MirOS: src/bin/mksh/check.t,v 1.800 2017/12/15 13:35:34 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.812 2019/03/01 16:17:29 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#	      2011, 2012, 2013, 2014, 2015, 2016, 2017
+#	      2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+#	      2019
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -30,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R56 2017/10/17
+	@(#)MIRBSD KSH R57 2019/03/01
 description:
 	Check base version of full shell
 stdin:
@@ -39,7 +40,7 @@ name: KSH_VERSION
 category: !shell:legacy-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R56 2017/10/17
+	@(#)LEGACY KSH R57 2019/03/01
 description:
 	Check base version of legacy shell
 stdin:
@@ -161,6 +162,38 @@ stdin:
 	"$__progname" -c 'print -r -- $PATHSEP'
 expected-stdout:
 	;
+---
+name: selftest-tty-absent
+description:
+	Check that a controlling tty is not present as regress:no-ctty was used
+	(if this test fails for you DO NOT PASS regress:no-ctty and fix every
+	other test that fails: why u use it if u haz ctty?)
+category: regress:no-ctty
+env-setup: !ENV=./envf!
+file-setup: file 644 "envf"
+	PS1=X
+arguments: !-i!
+stdin:
+	echo ok
+expected-stdout:
+	ok
+expected-stderr-pattern:
+	/mksh: warning: won't have full job control\nXX/
+---
+name: selftest-tty-present
+description:
+	Check that a controlling tty is present as regress:no-ctty was not used
+need-ctty: yes
+env-setup: !ENV=./envf!
+file-setup: file 644 "envf"
+	PS1=X
+arguments: !-i!
+stdin:
+	echo ok
+expected-stdout:
+	ok
+expected-stderr: !
+	XX
 ---
 name: alias-1
 description:
@@ -2455,7 +2488,7 @@ expected-stdout:
 name: glob-range-3
 description:
 	Check that globbing matches the right things...
-# breaks on Mac OSX (HFS+ non-standard Unicode canonical decomposition)
+# breaks on Mac OSX (HFS+ non-standard UTF-8 canonical decomposition)
 # breaks on Cygwin 1.7 (files are now UTF-16 or something)
 # breaks on QNX 6.4.1 (says RT)
 category: !os:cygwin,!os:darwin,!os:msys,!os:nto,!os:os2,!os:os390
@@ -3033,6 +3066,19 @@ expected-stdout:
 	got four on fd#4
 	got five on fd#5
 ---
+name: heredoc-15
+description:
+	Check high-bit7 separators work
+stdin:
+	u=ä
+	tr a-z A-Z <<-…
+		m${u}h
+	…
+	echo ok
+expected-stdout:
+	MäH
+	ok
+---
 name: heredoc-comsub-1
 description:
 	Tests for here documents in COMSUB, taken from Austin ML
@@ -3525,6 +3571,25 @@ stdin:
 	EOM
 expected-stdout:
 	'blah  1'
+---
+name: single-quotes-in-heredoc-trim
+description:
+	In some cases, single quotes inside {} in heredoc are not normal
+stdin:
+	x=notOK
+	cat <<EOF
+	1: ${x#not} ${x:+${x#not}}
+	2: ${x#\n\o\t} ${x:+${x#\n\o\t}}
+	3: ${x#"not"} ${x:+${x#"not"}}
+	4: ${x#'not'} ${x:+${x#'not'}}
+	5: ${x#$'not'} ${x:+${x#$'not'}}
+	EOF
+expected-stdout:
+	1: OK OK
+	2: OK OK
+	3: OK OK
+	4: OK OK
+	5: OK OK
 ---
 name: history-basic
 description:
@@ -6835,6 +6900,21 @@ expected-stdout:
 	3 10 .
 	4 -2147483646 .
 ---
+name: export-1
+description:
+	Check allexport works, basic
+stdin:
+	qa=1
+	set -A qb 2 3
+	set -a
+	qc=4
+	set -A qd 5 6
+	export -p | grep '^export q'
+expected-stdout:
+	export qc=4
+	export qd[0]=5
+	export qd[1]=6
+---
 name: readonly-0
 description:
 	Ensure readonly is honoured for assignments and unset
@@ -7065,7 +7145,7 @@ stdin:
 	print =4
 	(exec lq)
 expected-stdout-pattern:
-	/=1\none\n=2\ntwo\n=3\n.*: ls: not found\n=4\ntf\n/
+	/=1\none\n=2\ntwo\n=3\n.*: ls: inaccessible or not found\n=4\ntf\n/
 ---
 name: exec-ksh88
 description:
@@ -7086,7 +7166,7 @@ stdin:
 	print =4
 	(exec lq)
 expected-stdout-pattern:
-	/=1\n.*: print: not found\n=2\n.*: foo: not found\n=3\n.*: ls: not found\n=4\ntf\n/
+	/=1\n.*: print: inaccessible or not found\n=2\n.*: foo: inaccessible or not found\n=3\n.*: ls: inaccessible or not found\n=4\ntf\n/
 ---
 name: xxx-what-do-you-call-this-1
 stdin:
@@ -7178,6 +7258,32 @@ stdin:
 expected-stdout:
 	HI
 	2 4
+---
+name: xxx-substitution-eval-order-2
+description:
+	Check some corner cases
+stdin:
+	unset var
+	i=42
+	: ${var+${q[i=777]}} required to be lazy by POSIX
+	echo 1=$i
+	var=meow
+	i=42
+	: ${var+${q[i=777]}} eval since var is now set
+	echo 2=$i
+	unset var
+	i=42
+	: ${var#${q[i=777]}} pattern is needed even if var is empty
+	echo 3=$i
+	var=meow
+	i=42
+	: ${var#${q[i=777]}}
+	echo 4=$i
+expected-stdout:
+	1=42
+	2=777
+	3=777
+	4=777
 ---
 name: xxx-set-option-1
 description:
@@ -7279,6 +7385,28 @@ expected-stdout:
 	include: 3
 	trap: 4
 	exit: 4
+---
+name: xxx-stat-1
+description:
+	Check that tests on files are consistent
+stdin:
+	mkdir a
+	echo x >a/b
+	test -e a/b; echo 1e $? .
+	test -f a/b; echo 1f $? .
+	chmod 0 a
+	test -e a/b; echo 2e $? .
+	test -f a/b; echo 2f $? .
+	chmod 700 a
+	test -e a/b; echo 3e $? .
+	test -f a/b; echo 3f $? .
+expected-stdout:
+	1e 0 .
+	1f 0 .
+	2e 1 .
+	2f 1 .
+	3e 0 .
+	3f 0 .
 ---
 name: xxx-clean-chars-1
 description:
@@ -7835,6 +7963,23 @@ expected-stdout:
 	xu: v: parameter null or not set
 	EXtrap
 	= noeval-undef 1 .
+---
+name: exit-trap-3
+description:
+	Check that the EXIT trap is run in many places, Debian #910276
+stdin:
+	fkt() {
+		trap -- "echo $1 >&2" EXIT
+	}
+	fkt shell_exit
+	$(fkt fn_exit)
+	$(trap -- "echo comsub_exit >&2" EXIT)
+	(trap -- "echo subshell_exit >&2" EXIT)
+expected-stderr:
+	fn_exit
+	comsub_exit
+	subshell_exit
+	shell_exit
 ---
 name: exit-trap-interactive
 description:
@@ -8444,12 +8589,32 @@ stdin:
 expected-stdout:
 	<16#1     > <     16#1> <16#000001> <16#1     > <     16#1> <0000016#1>
 ---
+name: typeset-padding-3
+description:
+	Check for a regression in which UTF-8 wasn’t left-padded right
+stdin:
+	set -U
+	nl=$'\n'
+	typeset -L20 x='.  ak'
+	typeset -R20 y='.  ak'
+	print -r -- "<$x> (1$nl<12345678910 345678920$nl<$y> 1)"
+	typeset -L20 x='.  aẞ'
+	typeset -R20 y='.  aẞ'
+	print -r -- "<$x> (2$nl<12345678910 345678920$nl<$y> 2)"
+expected-stdout:
+	<.  ak               > (1
+	<12345678910 345678920
+	<               .  ak> 1)
+	<.  aẞ               > (2
+	<12345678910 345678920
+	<               .  aẞ> 2)
+---
 name: utf8bom-1
 description:
 	Check that the UTF-8 Byte Order Mark is ignored as the first
 	multibyte character of the shell input (with -c, from standard
 	input, as file, or as eval argument), but nowhere else
-# breaks on Mac OSX (HFS+ non-standard Unicode canonical decomposition)
+# breaks on Mac OSX (HFS+ non-standard UTF-8 canonical decomposition)
 category: !os:darwin,!shell:ebcdic-yes
 stdin:
 	mkdir foo
@@ -9025,6 +9190,15 @@ expected-stdout:
 	.b:a.b.c.d:
 	.c:a  b.c  d..:
 	.d:a b.c d..:
+---
+name: arrassign-eol
+description:
+	Commands after array assignments are not permitted
+stdin:
+	foo=(a b) env
+expected-exit: e != 0
+expected-stderr-pattern:
+	/syntax error: unexpected 'env'/
 ---
 name: arrassign-fnc-none
 description:
@@ -10319,7 +10493,7 @@ expected-stdout:
 ---
 name: integer-base-one-3Ws
 description:
-	some sample code for hexdumping Unicode
+	some sample code for hexdumping UCS-2
 	not NUL safe; input lines must be NL terminated
 stdin:
 	set -U
@@ -10487,7 +10661,7 @@ expected-stdout:
 ---
 name: integer-base-one-3Wr
 description:
-	some sample code for hexdumping Unicode; NUL and binary safe
+	some sample code for hexdumping UCS-2; NUL and binary safe
 stdin:
 	set -U
 	{
@@ -10607,7 +10781,7 @@ expected-stdout:
 ---
 name: integer-base-one-5A
 description:
-	Check to see that we’re NUL and Unicode safe
+	Check to see that we’re NUL and UCS safe
 category: !shell:ebcdic-yes
 stdin:
 	set +U
@@ -10621,7 +10795,7 @@ expected-stdout:
 ---
 name: integer-base-one-5E
 description:
-	Check to see that we’re NUL and Unicode safe
+	Check to see that we’re NUL and UCS safe
 category: !shell:ebcdic-no
 stdin:
 	set +U
@@ -10635,7 +10809,7 @@ expected-stdout:
 ---
 name: integer-base-one-5W
 description:
-	Check to see that we’re NUL and Unicode safe
+	Check to see that we’re NUL and UCS safe
 stdin:
 	set -U
 	print 'a\0b€c' >x
@@ -11129,6 +11303,34 @@ stdin:
 	./cld
 expected-stdout:
 	Fowl
+---
+name: fd-cloexec-3
+description:
+	Another check for close-on-exec
+stdin:
+	print '#!'"$__progname" >ts
+	cat >>ts <<'EOF'
+	s=ERR
+	read -rN-1 -u$1 s 2>/dev/null; e=$?
+	print -r -- "($1, $((!e)), $s)"
+	EOF
+	chmod +x ts
+	print foo >tx
+	runtest() {
+		s=$1; shift
+		print -r -- $("$__progname" "$@" -c "$s") "$@" .
+	}
+	runtest 'exec 3<tx; ./ts 3 3<&3; ./ts 3'
+	runtest 'exec 3<tx; ./ts 3 3<&3; ./ts 3' -o posix
+	runtest 'exec 3<tx; ./ts 3 3<&3; ./ts 3' -o sh
+	runtest 'exec 3<tx; ./ts 4 4<&3; ./ts 4 4<&3'
+	runtest 'exec 3<tx; ./ts 3 3<&3; ./ts 3 3<&3'
+expected-stdout:
+	(3, 1, foo) (3, 0, ERR) .
+	(3, 1, foo) (3, 1, ) -o posix .
+	(3, 1, foo) (3, 1, ) -o sh .
+	(4, 1, foo) (4, 1, ) .
+	(3, 1, foo) (3, 1, ) .
 ---
 name: comsub-1a
 description:

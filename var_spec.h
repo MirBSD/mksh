@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009, 2011, 2012, 2016
+ * Copyright (c) 2009, 2011, 2012, 2016, 2018
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -19,7 +19,7 @@
  */
 
 #if defined(VARSPEC_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/var_spec.h,v 1.10 2016/11/11 23:31:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var_spec.h,v 1.11 2018/01/13 21:38:10 tg Exp $");
 #define FN(name)			/* nothing */
 #elif defined(VARSPEC_ENUMS)
 #define FN(name)			V_##name,
@@ -53,6 +53,11 @@ FN(HISTFILE)
 #endif
 FN(HISTSIZE)
 FN(IFS)
+#ifdef MKSH_EARLY_LOCALE_TRACKING
+FN(LANG)
+FN(LC_ALL)
+FN(LC_CTYPE)
+#endif
 #ifdef __OS2__
 FN(LIBPATHSTRICT)
 #endif

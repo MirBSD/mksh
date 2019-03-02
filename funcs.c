@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.351 2017/11/20 02:32:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.355 2018/10/20 21:04:28 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -493,7 +493,7 @@ c_print(const char **wp)
 						Xput(xs, xp, '\\');
 					}
 				} else if ((unsigned int)c > 0xFF) {
-					/* generic function returned Unicode */
+					/* generic function returned UCS */
 					po.ts[utf_wctomb(po.ts, c - 0x100)] = 0;
 					c = 0;
 					do {
@@ -588,7 +588,7 @@ c_print(const char **wp)
 static int
 s_get(void)
 {
-	return (*s_ptr++);
+	return (ord(*s_ptr++));
 }
 
 static void
@@ -745,9 +745,9 @@ do_whence(const char **wp, int fcflags, bool vflag, bool iscommand)
 bool
 valid_alias_name(const char *cp)
 {
-	if (ord(*cp) == ord('-'))
+	if (ord(*cp) == ORD('-'))
 		return (false);
-	if (ord(cp[0]) == ord('[') && ord(cp[1]) == ord('[') && !cp[2])
+	if (ord(cp[0]) == ORD('[') && ord(cp[1]) == ORD('[') && !cp[2])
 		return (false);
 	while (*cp)
 		if (ctype(*cp, C_ALIAS))
@@ -2298,9 +2298,9 @@ c_unset(const char **wp)
 			size_t n;
 
 			n = strlen(id);
-			if (n > 3 && ord(id[n - 3]) == ord('[') &&
-			    ord(id[n - 2]) == ord('*') &&
-			    ord(id[n - 1]) == ord(']')) {
+			if (n > 3 && ord(id[n - 3]) == ORD('[') &&
+			    ord(id[n - 2]) == ORD('*') &&
+			    ord(id[n - 1]) == ORD(']')) {
 				strndupx(cp, id, n - 3, ATEMP);
 				id = cp;
 				optc = 3;
@@ -2964,6 +2964,37 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 	case TO_STGT:
 		return (strcmp(opnd1, opnd2) > 0);
 
+	/* -nt */
+	case TO_FILNT:
+		/*
+		 * ksh88/ksh93 succeed if file2 can't be stated
+		 * (subtly different from 'does not exist').
+		 */
+		return (stat(opnd1, &b1) == 0 &&
+		    (((s = stat(opnd2, &b2)) == 0 &&
+		    b1.st_mtime > b2.st_mtime) || s < 0));
+
+	/* -ot */
+	case TO_FILOT:
+		/*
+		 * ksh88/ksh93 succeed if file1 can't be stated
+		 * (subtly different from 'does not exist').
+		 */
+		return (stat(opnd2, &b2) == 0 &&
+		    (((s = stat(opnd1, &b1)) == 0 &&
+		    b1.st_mtime < b2.st_mtime) || s < 0));
+
+	/* -ef */
+	case TO_FILEQ:
+		return (stat (opnd1, &b1) == 0 && stat (opnd2, &b2) == 0 &&
+		    b1.st_dev == b2.st_dev && b1.st_ino == b2.st_ino);
+
+	/* all other cases */
+	case TO_NONOP:
+	case TO_NONNULL:
+		/* throw the error */
+		break;
+
 	/* -eq */
 	case TO_INTEQ:
 	/* -ne */
@@ -3000,37 +3031,6 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 			break;
 		}
 		/* NOTREACHED */
-
-	/* -nt */
-	case TO_FILNT:
-		/*
-		 * ksh88/ksh93 succeed if file2 can't be stated
-		 * (subtly different from 'does not exist').
-		 */
-		return (stat(opnd1, &b1) == 0 &&
-		    (((s = stat(opnd2, &b2)) == 0 &&
-		    b1.st_mtime > b2.st_mtime) || s < 0));
-
-	/* -ot */
-	case TO_FILOT:
-		/*
-		 * ksh88/ksh93 succeed if file1 can't be stated
-		 * (subtly different from 'does not exist').
-		 */
-		return (stat(opnd2, &b2) == 0 &&
-		    (((s = stat(opnd1, &b1)) == 0 &&
-		    b1.st_mtime < b2.st_mtime) || s < 0));
-
-	/* -ef */
-	case TO_FILEQ:
-		return (stat (opnd1, &b1) == 0 && stat (opnd2, &b2) == 0 &&
-		    b1.st_dev == b2.st_dev && b1.st_ino == b2.st_ino);
-
-	/* all other cases */
-	case TO_NONOP:
-	case TO_NONNULL:
-		/* throw the error */
-		break;
 	}
 	(*te->error)(te, 0, "internal error: unknown op");
 	return (1);

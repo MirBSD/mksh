@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2016, 2017
+ *		 2011, 2012, 2013, 2014, 2016, 2017, 2018
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.101 2017/11/18 12:01:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.105 2018/08/10 02:53:33 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -558,9 +558,11 @@ exprtoken(Expr_state *es)
 
 	/* skip whitespace */
  skip_spaces:
-	while (ctype(ord((c = *cp)), C_SPACE))
-		++cp;
-	if (es->tokp == es->expression && c == ord('#')) {
+	--cp;
+	do {
+		c = ord(*++cp);
+	} while (ctype(c, C_SPACE));
+	if (es->tokp == es->expression && (unsigned int)c == ORD('#')) {
 		/* expression begins with # */
 		/* switch to unsigned */
 		es->natural = true;
@@ -575,7 +577,7 @@ exprtoken(Expr_state *es)
 		do {
 			c = ord(*++cp);
 		} while (ctype(c, C_ALNUX));
-		if (c == ord('[')) {
+		if ((unsigned int)c == ORD('[')) {
 			size_t len;
 
 			len = array_ref_len(cp);
@@ -883,7 +885,7 @@ static int mb_ucsbsearch(const struct mb_ucsrange arr[], size_t elems,
     unsigned int val) MKSH_A_PURE;
 
 /*
- * Generated from the Unicode Character Database, Version 10.0.0, by
+ * Generated from the UCD 11.0.0 by
  * MirOS: contrib/code/Snippets/eawparse,v 1.12 2017/09/06 16:05:45 tg Exp $
  */
 
@@ -907,12 +909,13 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0x0730, 0x074A },
 	{ 0x07A6, 0x07B0 },
 	{ 0x07EB, 0x07F3 },
+	{ 0x07FD, 0x07FD },
 	{ 0x0816, 0x0819 },
 	{ 0x081B, 0x0823 },
 	{ 0x0825, 0x0827 },
 	{ 0x0829, 0x082D },
 	{ 0x0859, 0x085B },
-	{ 0x08D4, 0x08E1 },
+	{ 0x08D3, 0x08E1 },
 	{ 0x08E3, 0x0902 },
 	{ 0x093A, 0x093A },
 	{ 0x093C, 0x093C },
@@ -925,6 +928,7 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0x09C1, 0x09C4 },
 	{ 0x09CD, 0x09CD },
 	{ 0x09E2, 0x09E3 },
+	{ 0x09FE, 0x09FE },
 	{ 0x0A01, 0x0A02 },
 	{ 0x0A3C, 0x0A3C },
 	{ 0x0A41, 0x0A42 },
@@ -951,6 +955,7 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0x0BC0, 0x0BC0 },
 	{ 0x0BCD, 0x0BCD },
 	{ 0x0C00, 0x0C00 },
+	{ 0x0C04, 0x0C04 },
 	{ 0x0C3E, 0x0C40 },
 	{ 0x0C46, 0x0C48 },
 	{ 0x0C4A, 0x0C4D },
@@ -1070,6 +1075,7 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0xA825, 0xA826 },
 	{ 0xA8C4, 0xA8C5 },
 	{ 0xA8E0, 0xA8F1 },
+	{ 0xA8FF, 0xA8FF },
 	{ 0xA926, 0xA92D },
 	{ 0xA947, 0xA951 },
 	{ 0xA980, 0xA982 },
@@ -1171,7 +1177,7 @@ mb_ucsbsearch(const struct mb_ucsrange arr[], size_t elems, unsigned int val)
 	return (0);
 }
 
-/* Unix column width of a wide character (Unicode code point, really) */
+/* Unix column width of a wide character (UCS code point, really) */
 int
 utf_wcwidth(unsigned int wc)
 {

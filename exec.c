@@ -2,7 +2,8 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+ *		 2019
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.201 2017/10/11 21:09:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.206 2019/03/01 16:17:53 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -429,6 +430,12 @@ execute(struct op * volatile t,
 		up = makenv();
 		restoresigs();
 		cleanup_proc_env();
+		/* I/O redirection cleanup to be done in child process */
+		if (!Flag(FPOSIX) && !Flag(FSH) && t->left->ioact != NULL)
+			for (iowp = t->left->ioact; *iowp != NULL; iowp++)
+				if ((*iowp)->ioflag & IODUPSELF)
+					fcntl((*iowp)->unit, F_SETFD, 0);
+		/* try to execute */
 		{
 			union mksh_ccphack cargs;
 
@@ -820,7 +827,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		if (!(tp->flag&ISSET)) {
 			if (tp->u2.errnov == ENOENT) {
 				rv = 127;
-				warningf(true, Tf_sD_s, cp, Tnot_found);
+				warningf(true, Tf_sD_s_s, cp,
+				    "inaccessible or", Tnot_found);
 			} else {
 				rv = 126;
 				warningf(true, Tf_sD_sD_s, cp, "can't execute",
@@ -862,7 +870,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
  Leave:
 	if (flags & XEXEC) {
 		exstat = rv & 0xFF;
-		unwind(LLEAVE);
+		unwind(LEXIT);
 	}
 	return (rv);
 }
@@ -886,7 +894,7 @@ scriptexec(struct op *tp, const char **ap)
 	*tp->args-- = tp->str;
 
 #ifndef MKSH_SMALL
-	if ((fd = binopen2(tp->str, O_RDONLY)) >= 0) {
+	if ((fd = binopen2(tp->str, O_RDONLY | O_MAYEXEC)) >= 0) {
 		unsigned char *cp;
 #ifndef MKSH_EBCDIC
 		unsigned short m;
@@ -1011,7 +1019,7 @@ scriptexec(struct op *tp, const char **ap)
 	cap.ro = ap;
 	execve(args.rw[0], args.rw, cap.rw);
 
-	/* report both the programme that was run and the bogus interpreter */
+	/* report both the program that was run and the bogus interpreter */
 	errorf(Tf_sD_sD_s, tp->str, sh, cstrerror(errno));
 }
 
@@ -1485,9 +1493,11 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			afree(sp, ATEMP);
 			return (-1);
 		}
-		if (u == (int)iop->unit)
+		if (u == (int)iop->unit) {
 			/* "dup from" == "dup to" */
+			iop->ioflag |= IODUPSELF;
 			return (0);
+		}
 		break;
 	    }
 	}

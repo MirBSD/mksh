@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
- *		 2012, 2013, 2015, 2016, 2017
+ *		 2012, 2013, 2015, 2016, 2017, 2018
  *	mirabilos <m@mirbsd.org>
  * Copyright (c) 2015
  *	Daniel Richard G. <skunk@iSKUNK.ORG>
@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.95 2017/05/05 22:45:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.98 2018/08/10 02:53:39 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -554,7 +554,7 @@ shf_getchar(struct shf *shf)
 	if (shf->rnleft == 0 && (shf_fillbuf(shf) == -1 || shf->rnleft == 0))
 		return (-1);
 	--shf->rnleft;
-	return (*shf->rp++);
+	return (ord(*shf->rp++));
 }
 
 /*
@@ -1253,7 +1253,7 @@ set_ifs(const char *s)
  *    Not only do they require all 8 bits instead of 7, if chars are
  *    signed, they will have negative integer values! Something like
  *    (c - 'A') could actually become (c + 63)! Use the ord() macro to
- *    ensure you're getting a value in [0, 255].
+ *    ensure you're getting a value in [0, 255] (ORD for constants).
  * 4. '\n' is actually NL (0x15, U+0085) instead of LF (0x25, U+000A).
  *    EBCDIC has a proper newline character instead of "emulating" one
  *    with line feeds, although this is mapped to LF for our purposes.
@@ -1304,7 +1304,7 @@ ebcdic_init(void)
 		 * and the C1 control characters other than NEL are
 		 * hopeless, but we map EBCDIC NEL to ASCII LF so we
 		 * cannot even use C1 NEL.
-		 * If ever we map to Unicode, bump the table width to
+		 * If ever we map to UCS, bump the table width to
 		 * an unsigned int, and or the raw unconverted EBCDIC
 		 * values with 0x01000000 instead.
 		 */

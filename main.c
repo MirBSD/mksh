@@ -5,7 +5,8 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+ *		 2019
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -34,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.345 2017/10/14 21:05:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.351 2019/01/05 13:24:18 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -457,7 +458,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	/* Set this before parsing arguments */
 	Flag(FPRIVILEGED) = (kshuid != ksheuid || kshgid != kshegid) ? 2 : 0;
 
-	/* this to note if monitor is set on command line (see below) */
+	/* record if monitor is set on command line (see j_init() in jobs.c) */
 #ifndef MKSH_UNEMPLOYED
 	Flag(FMONITOR) = 127;
 #endif
@@ -513,7 +514,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 #else
 		s->file = argv[argi++];
 #endif
-		s->u.shf = shf_open(s->file, O_RDONLY, 0,
+		s->u.shf = shf_open(s->file, O_RDONLY | O_MAYEXEC, 0,
 		    SHF_MAPHI | SHF_CLEXEC);
 		if (s->u.shf == NULL) {
 			shl_stdout_ok = false;
@@ -713,7 +714,7 @@ include(const char *name, int argc, const char **argv, bool intr_ok)
 	volatile int old_argc;
 	int i;
 
-	shf = shf_open(name, O_RDONLY, 0, SHF_MAPHI | SHF_CLEXEC);
+	shf = shf_open(name, O_RDONLY | O_MAYEXEC, 0, SHF_MAPHI | SHF_CLEXEC);
 	if (shf == NULL)
 		return (-1);
 
@@ -1959,7 +1960,7 @@ x_mkraw(int fd, mksh_ttyst *ocb, bool forread)
 	/* OSF/1 processes lnext when ~icanon */
 	cb.c_cc[VLNEXT] = _POSIX_VDISABLE;
 #endif
-	/* SunOS 4.1.x & OSF/1 processes discard(flush) when ~icanon */
+	/* SunOS 4.1.x and OSF/1 process discard(flush) when ~icanon */
 #if defined(VDISCARD) && defined(_POSIX_VDISABLE)
 	cb.c_cc[VDISCARD] = _POSIX_VDISABLE;
 #endif
@@ -2047,5 +2048,33 @@ init_environ(void)
 		typeset(*wp, IMPORT | EXPORT, 0, 0, 0);
 		++wp;
 	}
+}
+#endif
+
+#ifdef MKSH_EARLY_LOCALE_TRACKING
+void
+recheck_ctype(void)
+{
+	const char *ccp;
+	uint8_t old_utfmode = UTFMODE;
+
+	ccp = str_val(global("LC_ALL"));
+	if (ccp == null)
+		ccp = str_val(global("LC_CTYPE"));
+	if (ccp == null)
+		ccp = str_val(global("LANG"));
+	UTFMODE = isuc(ccp);
+#if HAVE_SETLOCALE_CTYPE
+	ccp = setlocale(LC_CTYPE, ccp);
+#if HAVE_LANGINFO_CODESET
+	if (!isuc(ccp))
+		ccp = nl_langinfo(CODESET);
+#endif
+	if (isuc(ccp))
+		UTFMODE = 1;
+#endif
+
+	if (Flag(FPOSIX) && UTFMODE && !old_utfmode)
+		warningf(true, "early locale tracking enabled UTF-8 mode while in POSIX mode, you are now noncompliant");
 }
 #endif

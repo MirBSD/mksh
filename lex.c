@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016, 2017
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.240 2017/10/17 23:45:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.250 2018/10/20 18:34:14 tg Exp $");
 
 /*
  * states while lexing word
@@ -77,11 +77,16 @@ typedef struct lex_state {
 	short nparen;
 	/* type of this state */
 	uint8_t type;
+	/* extra flags */
+	uint8_t ls_flags;
 } Lex_state;
 #define ls_base		u.base
 #define ls_start	u.start
 #define ls_bool		u.abool
 #define ls_adelim	u.adelim
+
+/* ls_flags */
+#define LS_HEREDOC	BIT(0)
 
 typedef struct {
 	Lex_state *base;
@@ -127,11 +132,11 @@ static int ignore_backslash_newline;
 static int
 getsc_i(void)
 {
-	o_getsc_r(o_getsc());
+	o_getsc_r((unsigned int)(unsigned char)o_getsc());
 }
 
 #if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
-#define getsc()		ord(getsc_i())
+#define getsc()		getsc_i()
 #else
 static int getsc_r(int);
 
@@ -141,15 +146,17 @@ getsc_r(int c)
 	o_getsc_r(c);
 }
 
-#define getsc()		ord(getsc_r(o_getsc()))
+#define getsc()		getsc_r((unsigned int)(unsigned char)o_getsc())
 #endif
 
 #define STATE_BSIZE	8
 
 #define PUSH_STATE(s)	do {					\
+	uint8_t state_flags = statep->ls_flags;			\
 	if (++statep == state_info.end)				\
 		statep = push_state_i(&state_info, statep);	\
 	state = statep->type = (s);				\
+	statep->ls_flags = state_flags;				\
 } while (/* CONSTCOND */ 0)
 
 #define POP_STATE()	do {					\
@@ -220,12 +227,14 @@ yylex(int cf)
 	} else {
 		/* normal lexing */
 		state = (cf & HEREDELIM) ? SHEREDELIM : SBASE;
-		while (ctype((c = getsc()), C_BLANK))
-			;
+		do {
+			c = getsc();
+		} while (ctype(c, C_BLANK));
 		if (c == '#') {
 			ignore_backslash_newline++;
-			while (!ctype((c = getsc()), C_NUL | C_LF))
-				;
+			do {
+				c = getsc();
+			} while (!ctype(c, C_NUL | C_LF));
 			ignore_backslash_newline--;
 		}
 		ungetsc(c);
@@ -240,35 +249,38 @@ yylex(int cf)
 
 	/* Initial state: one of SWORD SLETPAREN SHEREDELIM SBASE */
 	statep->type = state;
+	statep->ls_flags = (cf & HEREDOC) ? LS_HEREDOC : 0;
 
 	/* collect non-special or quoted characters to form word */
 	while (!((c = getsc()) == 0 ||
 	    ((state == SBASE || state == SHEREDELIM) && ctype(c, C_LEX1)))) {
 		if (state == SBASE &&
-		    subshell_nesting_type == ord(/*{*/ '}') &&
-		    c == ord(/*{*/ '}'))
+		    subshell_nesting_type == ORD(/*{*/ '}') &&
+		    (unsigned int)c == ORD(/*{*/ '}'))
 			/* possibly end ${ :;} */
 			break;
 		Xcheck(ws, wp);
 		switch (state) {
 		case SADELIM:
-			if (c == ord('('))
+			if ((unsigned int)c == ORD('('))
 				statep->nparen++;
-			else if (c == ord(')'))
+			else if ((unsigned int)c == ORD(')'))
 				statep->nparen--;
-			else if (statep->nparen == 0 && (c == ord(/*{*/ '}') ||
+			else if (statep->nparen == 0 &&
+			    ((unsigned int)c == ORD(/*{*/ '}') ||
 			    c == (int)statep->ls_adelim.delimiter)) {
 				*wp++ = ADELIM;
 				*wp++ = c;
-				if (c == ord(/*{*/ '}') || --statep->ls_adelim.num == 0)
+				if ((unsigned int)c == ORD(/*{*/ '}') ||
+				    --statep->ls_adelim.num == 0)
 					POP_STATE();
-				if (c == ord(/*{*/ '}'))
+				if ((unsigned int)c == ORD(/*{*/ '}'))
 					POP_STATE();
 				break;
 			}
 			/* FALLTHROUGH */
 		case SBASE:
-			if (c == ord('[') && (cf & CMDASN)) {
+			if ((unsigned int)c == ORD('[') && (cf & CMDASN)) {
 				/* temporary */
 				*wp = EOS;
 				if (is_wdvarname(Xstring(ws, wp), false)) {
@@ -294,7 +306,7 @@ yylex(int cf)
  Sbase1:		/* includes *(...|...) pattern (*+?@!) */
 			if (ctype(c, C_PATMO)) {
 				c2 = getsc();
-				if (c2 == ord('(' /*)*/)) {
+				if ((unsigned int)c2 == ORD('(' /*)*/)) {
 					*wp++ = OPAT;
 					*wp++ = c;
 					PUSH_STATE(SPATTERN);
@@ -305,7 +317,7 @@ yylex(int cf)
 			/* FALLTHROUGH */
  Sbase2:		/* doesn't include *(...|...) pattern (*+?@!) */
 			switch (c) {
-			case ord('\\'):
+			case ORD('\\'):
  getsc_qchar:
 				if ((c = getsc())) {
 					/* trailing \ is lost */
@@ -313,20 +325,20 @@ yylex(int cf)
 					*wp++ = c;
 				}
 				break;
-			case ord('\''):
+			case ORD('\''):
  open_ssquote_unless_heredoc:
-				if ((cf & HEREDOC))
+				if ((statep->ls_flags & LS_HEREDOC))
 					goto store_char;
 				*wp++ = OQUOTE;
 				ignore_backslash_newline++;
 				PUSH_STATE(SSQUOTE);
 				break;
-			case ord('"'):
+			case ORD('"'):
  open_sdquote:
 				*wp++ = OQUOTE;
 				PUSH_STATE(SDQUOTE);
 				break;
-			case ord('$'):
+			case ORD('$'):
 				/*
 				 * processing of dollar sign belongs into
 				 * Subst, except for those which can open
@@ -335,9 +347,9 @@ yylex(int cf)
  subst_dollar_ex:
 				c = getsc();
 				switch (c) {
-				case ord('"'):
+				case ORD('"'):
 					goto open_sdquote;
-				case ord('\''):
+				case ORD('\''):
 					goto open_sequote;
 				default:
 					goto SubstS;
@@ -349,16 +361,16 @@ yylex(int cf)
 
  Subst:
 			switch (c) {
-			case ord('\\'):
+			case ORD('\\'):
 				c = getsc();
 				switch (c) {
-				case ord('"'):
-					if ((cf & HEREDOC))
+				case ORD('"'):
+					if ((statep->ls_flags & LS_HEREDOC))
 						goto heredocquote;
 					/* FALLTHROUGH */
-				case ord('\\'):
-				case ord('$'):
-				case ord('`'):
+				case ORD('\\'):
+				case ORD('$'):
+				case ORD('`'):
  store_qchar:
 					*wp++ = QCHAR;
 					*wp++ = c;
@@ -376,14 +388,16 @@ yylex(int cf)
 					break;
 				}
 				break;
-			case ord('$'):
+			case ORD('$'):
 				c = getsc();
  SubstS:
-				if (c == ord('(' /*)*/)) {
+				if ((unsigned int)c == ORD('(' /*)*/)) {
 					c = getsc();
-					if (c == ord('(' /*)*/)) {
+					if ((unsigned int)c == ORD('(' /*)*/)) {
 						*wp++ = EXPRSUB;
 						PUSH_SRETRACE(SASPAREN);
+						/* unneeded? */
+						/*statep->ls_flags &= ~LS_HEREDOC;*/
 						statep->nparen = 2;
 						*retrace_info->xp++ = '(';
 					} else {
@@ -398,8 +412,8 @@ yylex(int cf)
 						memcpy(wp, sp, cz);
 						wp += cz;
 					}
-				} else if (c == ord('{' /*}*/)) {
-					if ((c = getsc()) == ord('|')) {
+				} else if ((unsigned int)c == ORD('{' /*}*/)) {
+					if ((unsigned int)(c = getsc()) == ORD('|')) {
 						/*
 						 * non-subenvironment
 						 * value substitution
@@ -420,16 +434,18 @@ yylex(int cf)
 					wp = get_brace_var(&ws, wp);
 					c = getsc();
 					/* allow :# and :% (ksh88 compat) */
-					if (c == ord(':')) {
+					if ((unsigned int)c == ORD(':')) {
 						*wp++ = CHAR;
 						*wp++ = c;
 						c = getsc();
-						if (c == ord(':')) {
+						if ((unsigned int)c == ORD(':')) {
 							*wp++ = CHAR;
 							*wp++ = '0';
 							*wp++ = ADELIM;
 							*wp++ = ':';
 							PUSH_STATE(SBRACE);
+							/* perhaps unneeded? */
+							statep->ls_flags &= ~LS_HEREDOC;
 							PUSH_STATE(SADELIM);
 							statep->ls_adelim.delimiter = ':';
 							statep->ls_adelim.num = 1;
@@ -445,6 +461,8 @@ yylex(int cf)
 							}
 							ungetsc(c);
 							PUSH_STATE(SBRACE);
+							/* perhaps unneeded? */
+							statep->ls_flags &= ~LS_HEREDOC;
 							PUSH_STATE(SADELIM);
 							statep->ls_adelim.delimiter = ':';
 							statep->ls_adelim.num = 2;
@@ -456,12 +474,14 @@ yylex(int cf)
  parse_adelim_slash:
 						*wp++ = CHAR;
 						*wp++ = c;
-						if ((c = getsc()) == ord('/')) {
+						if ((unsigned int)(c = getsc()) == ORD('/')) {
 							*wp++ = c2;
 							*wp++ = c;
 						} else
 							ungetsc(c);
 						PUSH_STATE(SBRACE);
+						/* perhaps unneeded? */
+						statep->ls_flags &= ~LS_HEREDOC;
 						PUSH_STATE(SADELIM);
 						statep->ls_adelim.delimiter = '/';
 						statep->ls_adelim.num = 1;
@@ -470,7 +490,7 @@ yylex(int cf)
 					} else if (c == '@') {
 						c2 = getsc();
 						ungetsc(c2);
-						if (c2 == ord('/')) {
+						if ((unsigned int)c2 == ORD('/')) {
 							c2 = CHAR;
 							goto parse_adelim_slash;
 						}
@@ -485,6 +505,8 @@ yylex(int cf)
 							PUSH_STATE(STBRACEBOURNE);
 						else
 							PUSH_STATE(STBRACEKORN);
+						/* single-quotes-in-heredoc-trim */
+						statep->ls_flags &= ~LS_HEREDOC;
 					} else {
 						ungetsc(c);
 						if (state == SDQUOTE ||
@@ -492,6 +514,8 @@ yylex(int cf)
 							PUSH_STATE(SQBRACE);
 						else
 							PUSH_STATE(SBRACE);
+						/* here no LS_HEREDOC removal */
+						/* single-quotes-in-heredoc-braces */
 					}
 				} else if (ctype(c, C_ALPHX)) {
 					*wp++ = OSUBST;
@@ -519,7 +543,7 @@ yylex(int cf)
 					ungetsc(c);
 				}
 				break;
-			case ord('`'):
+			case ORD('`'):
  subst_gravis:
 				PUSH_STATE(SBQUOTE);
 				*wp++ = COMASUB;
@@ -563,11 +587,11 @@ yylex(int cf)
 			break;
 
 		case SEQUOTE:
-			if (c == ord('\'')) {
+			if ((unsigned int)c == ORD('\'')) {
 				POP_STATE();
 				*wp++ = CQUOTE;
 				ignore_backslash_newline--;
-			} else if (c == ord('\\')) {
+			} else if ((unsigned int)c == ORD('\\')) {
 				if ((c2 = unbksl(true, getsc_i, ungetsc)) == -1)
 					c2 = getsc();
 				if (c2 == 0)
@@ -595,9 +619,10 @@ yylex(int cf)
 			break;
 
 		case SSQUOTE:
-			if (c == ord('\'')) {
+			if ((unsigned int)c == ORD('\'')) {
 				POP_STATE();
-				if ((cf & HEREDOC) || state == SQBRACE)
+				if ((statep->ls_flags & LS_HEREDOC) ||
+				    state == SQBRACE)
 					goto store_char;
 				*wp++ = CQUOTE;
 				ignore_backslash_newline--;
@@ -608,7 +633,7 @@ yylex(int cf)
 			break;
 
 		case SDQUOTE:
-			if (c == ord('"')) {
+			if ((unsigned int)c == ORD('"')) {
 				POP_STATE();
 				*wp++ = CQUOTE;
 			} else
@@ -617,15 +642,15 @@ yylex(int cf)
 
 		/* $(( ... )) */
 		case SASPAREN:
-			if (c == ord('('))
+			if ((unsigned int)c == ORD('('))
 				statep->nparen++;
-			else if (c == ord(')')) {
+			else if ((unsigned int)c == ORD(')')) {
 				statep->nparen--;
 				if (statep->nparen == 1) {
 					/* end of EXPRSUB */
 					POP_SRETRACE();
 
-					if ((c2 = getsc()) == ord(/*(*/ ')')) {
+					if ((unsigned int)(c2 = getsc()) == ORD(/*(*/ ')')) {
 						cz = strlen(sp) - 2;
 						XcheckN(ws, wp, cz);
 						memcpy(wp, sp + 1, cz);
@@ -657,7 +682,7 @@ yylex(int cf)
 			goto Sbase2;
 
 		case SQBRACE:
-			if (c == ord('\\')) {
+			if ((unsigned int)c == ORD('\\')) {
 				/*
 				 * perform POSIX "quote removal" if the back-
 				 * slash is "special", i.e. same cases as the
@@ -666,26 +691,28 @@ yylex(int cf)
 				 * write QCHAR+c, otherwise CHAR+\+CHAR+c are
 				 * emitted (in heredocquote:)
 				 */
-				if ((c = getsc()) == ord('"') || c == ord('\\') ||
-				    ctype(c, C_DOLAR | C_GRAVE) || c == ord(/*{*/ '}'))
+				if ((unsigned int)(c = getsc()) == ORD('"') ||
+				    (unsigned int)c == ORD('\\') ||
+				    ctype(c, C_DOLAR | C_GRAVE) ||
+				    (unsigned int)c == ORD(/*{*/ '}'))
 					goto store_qchar;
 				goto heredocquote;
 			}
 			goto common_SQBRACE;
 
 		case SBRACE:
-			if (c == ord('\''))
+			if ((unsigned int)c == ORD('\''))
 				goto open_ssquote_unless_heredoc;
-			else if (c == ord('\\'))
+			else if ((unsigned int)c == ORD('\\'))
 				goto getsc_qchar;
  common_SQBRACE:
-			if (c == ord('"'))
+			if ((unsigned int)c == ORD('"'))
 				goto open_sdquote;
-			else if (c == ord('$'))
+			else if ((unsigned int)c == ORD('$'))
 				goto subst_dollar_ex;
-			else if (c == ord('`'))
+			else if ((unsigned int)c == ORD('`'))
 				goto subst_gravis;
-			else if (c != ord(/*{*/ '}'))
+			else if ((unsigned int)c != ORD(/*{*/ '}'))
 				goto store_char;
 			POP_STATE();
 			*wp++ = CSUBST;
@@ -694,16 +721,16 @@ yylex(int cf)
 
 		/* Same as SBASE, except (,|,) treated specially */
 		case STBRACEKORN:
-			if (c == ord('|'))
+			if ((unsigned int)c == ORD('|'))
 				*wp++ = SPAT;
-			else if (c == ord('(')) {
+			else if ((unsigned int)c == ORD('(')) {
 				*wp++ = OPAT;
 				/* simile for @ */
 				*wp++ = ' ';
 				PUSH_STATE(SPATTERN);
 			} else /* FALLTHROUGH */
 		case STBRACEBOURNE:
-			  if (c == ord(/*{*/ '}')) {
+			  if ((unsigned int)c == ORD(/*{*/ '}')) {
 				POP_STATE();
 				*wp++ = CSUBST;
 				*wp++ = /*{*/ '}';
@@ -712,20 +739,20 @@ yylex(int cf)
 			break;
 
 		case SBQUOTE:
-			if (c == ord('`')) {
+			if ((unsigned int)c == ORD('`')) {
 				*wp++ = 0;
 				POP_STATE();
-			} else if (c == ord('\\')) {
+			} else if ((unsigned int)c == ORD('\\')) {
 				switch (c = getsc()) {
 				case 0:
 					/* trailing \ is lost */
 					break;
-				case ord('$'):
-				case ord('`'):
-				case ord('\\'):
+				case ORD('$'):
+				case ORD('`'):
+				case ORD('\\'):
 					*wp++ = c;
 					break;
-				case ord('"'):
+				case ORD('"'):
 					if (statep->ls_bool) {
 						*wp++ = c;
 						break;
@@ -746,10 +773,10 @@ yylex(int cf)
 
 		/* LETEXPR: (( ... )) */
 		case SLETPAREN:
-			if (c == ord(/*(*/ ')')) {
+			if ((unsigned int)c == ORD(/*(*/ ')')) {
 				if (statep->nparen > 0)
 					--statep->nparen;
-				else if ((c2 = getsc()) == ord(/*(*/ ')')) {
+				else if ((unsigned int)(c2 = getsc()) == ORD(/*(*/ ')')) {
 					c = 0;
 					*wp++ = CQUOTE;
 					goto Done;
@@ -771,9 +798,9 @@ yylex(int cf)
 					s->next = source;
 					source = s;
 					ungetsc('(' /*)*/);
-					return (ord('(' /*)*/));
+					return (ORD('(' /*)*/));
 				}
-			} else if (c == ord('('))
+			} else if ((unsigned int)c == ORD('('))
 				/*
 				 * parentheses inside quotes and
 				 * backslashes are lost, but AT&T ksh
@@ -789,26 +816,26 @@ yylex(int cf)
 			 * $ and `...` are not to be treated specially
 			 */
 			switch (c) {
-			case ord('\\'):
+			case ORD('\\'):
 				if ((c = getsc())) {
 					/* trailing \ is lost */
 					*wp++ = QCHAR;
 					*wp++ = c;
 				}
 				break;
-			case ord('\''):
+			case ORD('\''):
 				goto open_ssquote_unless_heredoc;
-			case ord('$'):
-				if ((c2 = getsc()) == ord('\'')) {
+			case ORD('$'):
+				if ((unsigned int)(c2 = getsc()) == ORD('\'')) {
  open_sequote:
 					*wp++ = OQUOTE;
 					ignore_backslash_newline++;
 					PUSH_STATE(SEQUOTE);
 					statep->ls_bool = false;
 					break;
-				} else if (c2 == ord('"')) {
+				} else if ((unsigned int)c2 == ORD('"')) {
 					/* FALLTHROUGH */
-			case ord('"'):
+			case ORD('"'):
 					PUSH_SRETRACE(SHEREDQUOTE);
 					break;
 				}
@@ -822,7 +849,7 @@ yylex(int cf)
 
 		/* " in << or <<- delimiter */
 		case SHEREDQUOTE:
-			if (c != ord('"'))
+			if ((unsigned int)c != ORD('"'))
 				goto Subst;
 			POP_SRETRACE();
 			dp = strnul(sp) - 1;
@@ -835,10 +862,10 @@ yylex(int cf)
 			while ((c = *dp++)) {
 				if (c == '\\') {
 					switch ((c = *dp++)) {
-					case ord('\\'):
-					case ord('"'):
-					case ord('$'):
-					case ord('`'):
+					case ORD('\\'):
+					case ORD('"'):
+					case ORD('$'):
+					case ORD('`'):
 						break;
 					default:
 						*wp++ = CHAR;
@@ -856,12 +883,12 @@ yylex(int cf)
 
 		/* in *(...|...) pattern (*+?@!) */
 		case SPATTERN:
-			if (c == ord(/*(*/ ')')) {
+			if ((unsigned int)c == ORD(/*(*/ ')')) {
 				*wp++ = CPAT;
 				POP_STATE();
-			} else if (c == ord('|')) {
+			} else if ((unsigned int)c == ORD('|')) {
 				*wp++ = SPAT;
-			} else if (c == ord('(')) {
+			} else if ((unsigned int)c == ORD('(')) {
 				*wp++ = OPAT;
 				/* simile for @ */
 				*wp++ = ' ';
@@ -891,7 +918,7 @@ yylex(int cf)
 		iop->unit = c2 == 2 ? ksh_numdig(dp[1]) : c == '<' ? 0 : 1;
 
 		if (c == '&') {
-			if ((c2 = getsc()) != ord('>')) {
+			if ((unsigned int)(c2 = getsc()) != ORD('>')) {
 				ungetsc(c2);
 				goto no_iop;
 			}
@@ -902,22 +929,23 @@ yylex(int cf)
 
 		c2 = getsc();
 		/* <<, >>, <> are ok, >< is not */
-		if (c == c2 || (c == ord('<') && c2 == ord('>'))) {
+		if (c == c2 || ((unsigned int)c == ORD('<') &&
+		    (unsigned int)c2 == ORD('>'))) {
 			iop->ioflag |= c == c2 ?
-			    (c == ord('>') ? IOCAT : IOHERE) : IORDWR;
+			    ((unsigned int)c == ORD('>') ? IOCAT : IOHERE) : IORDWR;
 			if (iop->ioflag == IOHERE) {
-				if ((c2 = getsc()) == ord('-'))
+				if ((unsigned int)(c2 = getsc()) == ORD('-'))
 					iop->ioflag |= IOSKIP;
-				else if (c2 == ord('<'))
+				else if ((unsigned int)c2 == ORD('<'))
 					iop->ioflag |= IOHERESTR;
 				else
 					ungetsc(c2);
 			}
-		} else if (c2 == ord('&'))
-			iop->ioflag |= IODUP | (c == ord('<') ? IORDUP : 0);
+		} else if ((unsigned int)c2 == ORD('&'))
+			iop->ioflag |= IODUP | ((unsigned int)c == ORD('<') ? IORDUP : 0);
 		else {
-			iop->ioflag |= c == ord('>') ? IOWRITE : IOREAD;
-			if (c == ord('>') && c2 == ord('|'))
+			iop->ioflag |= (unsigned int)c == ORD('>') ? IOWRITE : IOREAD;
+			if ((unsigned int)c == ORD('>') && (unsigned int)c2 == ORD('|'))
 				iop->ioflag |= IOCLOB;
 			else
 				ungetsc(c2);
@@ -938,30 +966,32 @@ yylex(int cf)
 		/* free word */
 		Xfree(ws, wp);
 		/* no word, process LEX1 character */
-		if ((c == ord('|')) || (c == ord('&')) || (c == ord(';')) ||
-		    (c == ord('(' /*)*/))) {
+		if (((unsigned int)c == ORD('|')) ||
+		    ((unsigned int)c == ORD('&')) ||
+		    ((unsigned int)c == ORD(';')) ||
+		    ((unsigned int)c == ORD('(' /*)*/))) {
 			if ((c2 = getsc()) == c)
-				c = (c == ord(';')) ? BREAK :
-				    (c == ord('|')) ? LOGOR :
-				    (c == ord('&')) ? LOGAND :
-				    /* c == ord('(' )) */ MDPAREN;
-			else if (c == ord('|') && c2 == ord('&'))
+				c = ((unsigned int)c == ORD(';')) ? BREAK :
+				    ((unsigned int)c == ORD('|')) ? LOGOR :
+				    ((unsigned int)c == ORD('&')) ? LOGAND :
+				    /* (unsigned int)c == ORD('(' )) */ MDPAREN;
+			else if ((unsigned int)c == ORD('|') && (unsigned int)c2 == ORD('&'))
 				c = COPROC;
-			else if (c == ord(';') && c2 == ord('|'))
+			else if ((unsigned int)c == ORD(';') && (unsigned int)c2 == ORD('|'))
 				c = BRKEV;
-			else if (c == ord(';') && c2 == ord('&'))
+			else if ((unsigned int)c == ORD(';') && (unsigned int)c2 == ORD('&'))
 				c = BRKFT;
 			else
 				ungetsc(c2);
 #ifndef MKSH_SMALL
 			if (c == BREAK) {
-				if ((c2 = getsc()) == ord('&'))
+				if ((unsigned int)(c2 = getsc()) == ORD('&'))
 					c = BRKEV;
 				else
 					ungetsc(c2);
 			}
 #endif
-		} else if (c == ord('\n')) {
+		} else if ((unsigned int)c == ORD('\n')) {
 			if (cf & HEREDELIM)
 				ungetsc(c);
 			else {
@@ -1016,7 +1046,7 @@ yylex(int cf)
 
 		if ((cf & KEYWORD) && (p = ktsearch(&keywords, ident, h)) &&
 		    (!(cf & ESACONLY) || p->val.i == ESAC ||
-		    p->val.i == ord(/*{*/ '}'))) {
+		    (unsigned int)p->val.i == ORD(/*{*/ '}'))) {
 			afree(yylval.cp, ATEMP);
 			return (p->val.i);
 		}
@@ -1127,7 +1157,7 @@ readhere(struct ioword *iop)
 	if (!*eofp) {
 		/* end of here document marker, what to do? */
 		switch (c) {
-		case ord(/*(*/ ')'):
+		case ORD(/*(*/ ')'):
 			if (!subshell_nesting_type)
 				/*-
 				 * not allowed outside $(...) or (...)
@@ -1142,11 +1172,11 @@ readhere(struct ioword *iop)
 			 * Allow EOF here to commands without trailing
 			 * newlines (mksh -c '...') will work as well.
 			 */
-		case ord('\n'):
+		case ORD('\n'):
 			/* Newline terminates here document marker */
 			goto heredoc_found_terminator;
 		}
-	} else if (c == *eofp++)
+	} else if ((unsigned int)c == ord(*eofp++))
 		/* store; then read and compare next character */
 		goto heredoc_store_and_loop;
 	/* nope, mismatch; read until end of line */
@@ -1329,7 +1359,7 @@ getsc_line(Source *s)
 {
 	char *xp = Xstring(s->xs, xp), *cp;
 	bool interactive = Flag(FTALKING) && s->type == SSTDIN;
-	bool have_tty = tobool(interactive && (s->flags & SF_TTY));
+	bool have_tty = interactive && (s->flags & SF_TTY) && tty_hasstate;
 
 	/* Done here to ensure nothing odd happens when a timeout occurs */
 	XcheckN(s->xs, xp, LINE);
@@ -1571,7 +1601,7 @@ get_brace_var(XString *wsp, char *wp)
 
 				c2 = getsc();
 				ungetsc(c2);
-				if (ord(c2) != ord(/*{*/ '}')) {
+				if (ord(c2) != ORD(/*{*/ '}')) {
 					ungetsc(c);
 					goto out;
 				}
@@ -1579,22 +1609,22 @@ get_brace_var(XString *wsp, char *wp)
 			goto ps_common;
 		case PS_SAW_BANG:
 			switch (ord(c)) {
-			case ord('@'):
-			case ord('#'):
-			case ord('-'):
-			case ord('?'):
+			case ORD('@'):
+			case ORD('#'):
+			case ORD('-'):
+			case ORD('?'):
 				goto out;
 			}
 			goto ps_common;
 		case PS_INITIAL:
 			switch (ord(c)) {
-			case ord('%'):
+			case ORD('%'):
 				state = PS_SAW_PERCENT;
 				goto next;
-			case ord('#'):
+			case ORD('#'):
 				state = PS_SAW_HASH;
 				goto next;
-			case ord('!'):
+			case ORD('!'):
 				state = PS_SAW_BANG;
 				goto next;
 			}
@@ -1612,7 +1642,7 @@ get_brace_var(XString *wsp, char *wp)
 			break;
 		case PS_IDENT:
 			if (!ctype(c, C_ALNUX)) {
-				if (ord(c) == ord('[')) {
+				if (ord(c) == ORD('[')) {
 					char *tmp, *p;
 
 					if (!arraysub(&tmp))
@@ -1667,9 +1697,9 @@ arraysub(char **strp)
 		c = getsc();
 		Xcheck(ws, wp);
 		*wp++ = c;
-		if (ord(c) == ord('['))
+		if (ord(c) == ORD('['))
 			depth++;
-		else if (ord(c) == ord(']'))
+		else if (ord(c) == ORD(']'))
 			depth--;
 	} while (depth > 0 && c && c != '\n');
 
