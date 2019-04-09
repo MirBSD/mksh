@@ -1,8 +1,8 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.734 2019/03/01 16:18:13 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.735 2019/04/09 16:15:41 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#		2011, 2012, 2013, 2014, 2015, 2016, 2017
+#		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -1230,9 +1230,8 @@ dmc)
 	;;
 gcc)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
-	vv '|' 'echo `$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS \
-	    -dumpmachine` gcc`$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN \
-	    $LIBS -dumpversion`'
+	vv '|' 'eval echo "\`$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -dumpmachine\`" \
+		 "gcc\`$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -dumpversion\`"'
 	: "${HAVE_STRING_POOLING=i2}"
 	;;
 hpcc)
