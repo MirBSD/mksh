@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.813 2019/04/16 10:29:59 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.814 2019/04/24 20:30:52 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R57 2019/03/01
+	@(#)MIRBSD KSH R57 2019/04/24
 description:
 	Check base version of full shell
 stdin:
@@ -40,7 +40,7 @@ name: KSH_VERSION
 category: !shell:legacy-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R57 2019/03/01
+	@(#)LEGACY KSH R57 2019/04/24
 description:
 	Check base version of legacy shell
 stdin:
@@ -10843,6 +10843,43 @@ stdin:
 	fi
 expected-stdout:
 	okay
+---
+name: ulimit-3
+description:
+	Check that there are no duplicate limits (if this fails,
+	immediately contact with system information the developers)
+stdin:
+	[[ -z $(set | grep ^opt) ]]; mis=$?
+	set | grep ^opt | sed 's/^/unexpectedly set in environment: /'
+	opta='<used for showing all limits>'
+	optH='<used to set hard limits>'
+	optS='<used to set soft limits>'
+	ulimit -a |&
+	set -o noglob
+	while IFS= read -pr line; do
+		x=${line:1:1}
+		if [[ -z $x || ${#x}/${%x} != 1/1 ]]; then
+			print -r -- "weird line: $line"
+			(( mis |= 1 ))
+			continue
+		fi
+		set -- $line
+		nameref v=opt$x
+		if [[ -n $v ]]; then
+			print -r -- "duplicate -$x \"$2\" already seen as \"$v\""
+			(( mis |= 2 ))
+		fi
+		v=$2
+	done
+	if (( mis & 2 )); then
+		echo failed
+	elif (( mis & 1 )); then
+		echo inconclusive
+	else
+		echo done
+	fi
+expected-stdout:
+	done
 ---
 name: redir-1
 description:
