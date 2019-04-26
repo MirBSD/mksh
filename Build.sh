@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.736 2019/04/09 16:19:52 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.737 2019/04/26 15:53:15 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019
@@ -846,6 +846,10 @@ Linux)
 	;;
 LynxOS)
 	oswarn="; it has minor issues"
+	;;
+midipix)
+	# their Perl (currently…) identifies as os:linux ☹
+	check_categories="$check_categories os:midipix"
 	;;
 MidnightBSD)
 	;;
