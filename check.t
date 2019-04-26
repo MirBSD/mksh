@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.814 2019/04/24 20:30:52 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.815 2019/04/26 15:52:40 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright Â© 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -1395,7 +1395,7 @@ need-pass: no
 # the mv command fails on Cygwin and z/OS
 # Hurd aborts the testsuite (permission denied)
 # QNX does not find subdir to cd into
-category: !os:cygwin,!os:gnu,!os:msys,!os:nto,!os:os390,!nosymlink
+category: !os:cygwin,!os:gnu,!os:midipix,!os:msys,!os:nto,!os:os390,!nosymlink
 file-setup: file 644 "x"
 	mkdir noread noread/target noread/target/subdir
 	ln -s noread link
@@ -2002,7 +2002,7 @@ expected-stdout:
 name: eglob-bad-1
 description:
 	Check that globbing isn't done when glob has syntax error
-category: !os:cygwin,!os:msys,!os:os2
+category: !os:cygwin,!os:midipix,!os:msys,!os:os2
 file-setup: file 644 "@(a[b|)c]foo"
 stdin:
 	echo @(a[b|)c]*
@@ -2494,7 +2494,7 @@ description:
 # breaks on Mac OSX (HFS+ non-standard UTF-8 canonical decomposition)
 # breaks on Cygwin 1.7 (files are now UTF-16 or something)
 # breaks on QNX 6.4.1 (says RT)
-category: !os:cygwin,!os:darwin,!os:msys,!os:nto,!os:os2,!os:os390
+category: !os:cygwin,!os:midipix,!os:darwin,!os:msys,!os:nto,!os:os2,!os:os390
 need-pass: no
 file-setup: file 644 "aÂc"
 stdin:
@@ -8675,7 +8675,7 @@ description:
 	note: Ultrix perl5 t4 returns 65280 (exit-code 255) and no text
 	XXX fails when LD_PRELOAD is set with -e and Perl chokes it (ASan)
 need-pass: no
-category: !os:cygwin,!os:msys,!os:ultrix,!os:uwin-nt,!smksh
+category: !os:cygwin,!os:midipix,!os:msys,!os:ultrix,!os:uwin-nt,!smksh
 env-setup: !FOO=BAR!
 stdin:
 	print '#!'"$__progname"'\nprint "1 a=$ENV{FOO}";' >t1
