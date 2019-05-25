@@ -523,7 +523,7 @@ shf_getse(char *buf, ssize_t bsize, struct shf *shf)
 		buf += ncopy;
 		bsize -= ncopy;
 #ifdef MKSH_WITH_TEXTMODE
-		if (end && buf > orig_buf + 1 && buf[-2] == '\r') {
+		if (buf > orig_buf + 1 && buf[-2] == '\r' && buf[-1] == '\n') {
 			buf--;
 			bsize++;
 			buf[-1] = '\n';
