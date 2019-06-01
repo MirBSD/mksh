@@ -10848,6 +10848,7 @@ name: ulimit-3
 description:
 	Check that there are no duplicate limits (if this fails,
 	immediately contact with system information the developers)
+category: !nojsig
 stdin:
 	[[ -z $(set | grep ^opt) ]]; mis=$?
 	set | grep ^opt | sed 's/^/unexpectedly set in environment: /'
