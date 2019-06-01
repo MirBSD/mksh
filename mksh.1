@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.463 2019/03/01 16:17:31 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.465 2019/04/24 20:56:29 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -77,7 +77,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 1 2019 $
+.Dd $Mdocdate: April 24 2019 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -5005,7 +5005,7 @@ unless they are also given on the same command line.
 .Pp
 .It Xo
 .Ic ulimit
-.Op Fl aBCcdefHilMmnOPpqrSsTtVvw
+.Op Fl aBCcdefHilMmnOPpqrSsTtVvwx
 .Op Ar value
 .Xc
 Display or set process limits.
@@ -5078,6 +5078,17 @@ Set the number of AIO operations to
 .It Fl P Ar n
 Limit the number of threads per process to
 .Ar n .
+.Pp
+This option mostly matches
+.At
+.Nm ksh93 Ns 's
+.Fl T ;
+on
+.Tn AIX ,
+see
+.Fl r
+.Pq as used by its Nm ksh
+though.
 .It Fl p Ar n
 Impose a limit of
 .Ar n
@@ -5089,6 +5100,11 @@ message queues to
 .Ar n
 bytes.
 .It Fl r Ar n
+.Pq Cm AIX
+Limit the number of threads per process to
+.Ar n .
+.br
+.Pq Cm Linux
 Set the maximum real-time priority to
 .Ar n .
 .It Fl S
@@ -5116,6 +5132,9 @@ kibibytes on the amount of virtual memory (address space) used.
 Impose a limit of
 .Ar n
 kibibytes on the amount of swap space used.
+.It Fl x Ar n
+Set the maximum number of file locks to
+.Ar n .
 .El
 .Pp
 As far as
@@ -6719,7 +6738,7 @@ Using
 .Ic set Fl o Ic pipefail
 makes the following construct error out:
 .Bd -literal -offset indent
-set -e
+set \-e
 for x in 1 2; do
 	false && echo $x
 done \*(Ba cat

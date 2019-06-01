@@ -1,8 +1,8 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.734 2019/03/01 16:18:13 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.738 2019/04/26 16:17:01 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#		2011, 2012, 2013, 2014, 2015, 2016, 2017
+#		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -847,6 +847,11 @@ Linux)
 LynxOS)
 	oswarn="; it has minor issues"
 	;;
+midipix)
+	add_cppflags -D_GNU_SOURCE
+	# their Perl (currently…) identifies as os:linux ☹
+	check_categories="$check_categories os:midipix"
+	;;
 MidnightBSD)
 	;;
 Minix-vmd)
@@ -1230,9 +1235,8 @@ dmc)
 	;;
 gcc)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
-	vv '|' 'echo `$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS \
-	    -dumpmachine` gcc`$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN \
-	    $LIBS -dumpversion`'
+	vv '|' 'eval echo "\`$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -dumpmachine\`" \
+		 "gcc\`$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -dumpversion\`"'
 	: "${HAVE_STRING_POOLING=i2}"
 	;;
 hpcc)
@@ -2740,6 +2744,7 @@ HAVE_CAN_FSTACKPROTECTORALL	ac_flags
 ==== cpp definitions ====
 DEBUG				dont use in production, wants gcc, implies:
 DEBUG_LEAKS			enable freeing resources before exiting
+KSH_VERSIONNAME_VENDOR_EXT	when patching; space+plus+word (e.g. " +SuSE")
 MKSHRC_PATH			"~/.mkshrc" (do not change)
 MKSH_A4PB			force use of arc4random_pushb
 MKSH_ASSUME_UTF8		(0=disabled, 1=enabled; default: unset)

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.812 2019/03/01 16:17:29 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.815 2019/04/26 15:52:40 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R57 2019/03/01
+	@(#)MIRBSD KSH R57 2019/04/24
 description:
 	Check base version of full shell
 stdin:
@@ -40,7 +40,7 @@ name: KSH_VERSION
 category: !shell:legacy-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R57 2019/03/01
+	@(#)LEGACY KSH R57 2019/04/24
 description:
 	Check base version of legacy shell
 stdin:
@@ -503,6 +503,9 @@ expected-stdout:
 name: arith-ternary-prec-1
 description:
 	Check precedence of ternary operator vs assignment
+	This test also fails if your GCC is buggy with LTO;
+	if so, remove “-c lto” from the Build.sh invocation
+	and retry; NEVER ship a binary that fails this test!
 stdin:
 	typeset -i x=2
 	y=$((1 ? 20 : x+=2))
@@ -1392,7 +1395,7 @@ need-pass: no
 # the mv command fails on Cygwin and z/OS
 # Hurd aborts the testsuite (permission denied)
 # QNX does not find subdir to cd into
-category: !os:cygwin,!os:gnu,!os:msys,!os:nto,!os:os390,!nosymlink
+category: !os:cygwin,!os:gnu,!os:midipix,!os:msys,!os:nto,!os:os390,!nosymlink
 file-setup: file 644 "x"
 	mkdir noread noread/target noread/target/subdir
 	ln -s noread link
@@ -1999,7 +2002,7 @@ expected-stdout:
 name: eglob-bad-1
 description:
 	Check that globbing isn't done when glob has syntax error
-category: !os:cygwin,!os:msys,!os:os2
+category: !os:cygwin,!os:midipix,!os:msys,!os:os2
 file-setup: file 644 "@(a[b|)c]foo"
 stdin:
 	echo @(a[b|)c]*
@@ -2491,7 +2494,7 @@ description:
 # breaks on Mac OSX (HFS+ non-standard UTF-8 canonical decomposition)
 # breaks on Cygwin 1.7 (files are now UTF-16 or something)
 # breaks on QNX 6.4.1 (says RT)
-category: !os:cygwin,!os:darwin,!os:msys,!os:nto,!os:os2,!os:os390
+category: !os:cygwin,!os:midipix,!os:darwin,!os:msys,!os:nto,!os:os2,!os:os390
 need-pass: no
 file-setup: file 644 "a�c"
 stdin:
@@ -8672,7 +8675,7 @@ description:
 	note: Ultrix perl5 t4 returns 65280 (exit-code 255) and no text
 	XXX fails when LD_PRELOAD is set with -e and Perl chokes it (ASan)
 need-pass: no
-category: !os:cygwin,!os:msys,!os:ultrix,!os:uwin-nt,!smksh
+category: !os:cygwin,!os:midipix,!os:msys,!os:ultrix,!os:uwin-nt,!smksh
 env-setup: !FOO=BAR!
 stdin:
 	print '#!'"$__progname"'\nprint "1 a=$ENV{FOO}";' >t1
@@ -10840,6 +10843,43 @@ stdin:
 	fi
 expected-stdout:
 	okay
+---
+name: ulimit-3
+description:
+	Check that there are no duplicate limits (if this fails,
+	immediately contact with system information the developers)
+stdin:
+	[[ -z $(set | grep ^opt) ]]; mis=$?
+	set | grep ^opt | sed 's/^/unexpectedly set in environment: /'
+	opta='<used for showing all limits>'
+	optH='<used to set hard limits>'
+	optS='<used to set soft limits>'
+	ulimit -a |&
+	set -o noglob
+	while IFS= read -pr line; do
+		x=${line:1:1}
+		if [[ -z $x || ${#x}/${%x} != 1/1 ]]; then
+			print -r -- "weird line: $line"
+			(( mis |= 1 ))
+			continue
+		fi
+		set -- $line
+		nameref v=opt$x
+		if [[ -n $v ]]; then
+			print -r -- "duplicate -$x \"$2\" already seen as \"$v\""
+			(( mis |= 2 ))
+		fi
+		v=$2
+	done
+	if (( mis & 2 )); then
+		echo failed
+	elif (( mis & 1 )); then
+		echo inconclusive
+	else
+		echo done
+	fi
+expected-stdout:
+	done
 ---
 name: redir-1
 description:
