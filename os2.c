@@ -20,6 +20,7 @@
  * of said person's immediate fault when using the work as intended.
  */
 
+#define INCL_KBD
 #define INCL_DOS
 #include <os2.h>
 
@@ -172,6 +173,8 @@ init_extlibpath(void)
 void
 os2_init(int *argcp, const char ***argvp)
 {
+	KBDINFO ki;
+
 	response(argcp, argvp);
 
 	init_extlibpath();
@@ -182,6 +185,12 @@ os2_init(int *argcp, const char ***argvp)
 		setmode(STDOUT_FILENO, O_BINARY);
 	if (!isatty(STDERR_FILENO))
 		setmode(STDERR_FILENO, O_BINARY);
+
+	/* ensure ECHO mode is ON so that read command echoes. */
+	memset(&ki, 0, sizeof(ki));
+	ki.cb = sizeof(ki);
+	ki.fsMask |= KEYBOARD_ECHO_ON;
+	KbdSetStatus(&ki, 0);
 
 	atexit(cleanup);
 }
