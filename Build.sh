@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.739 2019/07/25 17:11:00 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.740 2019/07/25 21:25:15 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019
@@ -234,7 +234,7 @@ vq() {
 rmf() {
 	for _f in "$@"; do
 		case $_f in
-		Build.sh|check.pl|check.t|dot.mkshrc|*.1|*.c|*.h|*.ico|*.opt) ;;
+		*.1|*.ico) ;;
 		*) rm -f "$_f" ;;
 		esac
 	done
@@ -524,10 +524,6 @@ do
 		optflags=$i
 		last=
 		;;
-	t:*)
-		tfn=$i
-		last=
-		;;
 	:-c)
 		last=c
 		;;
@@ -572,9 +568,6 @@ do
 		;;
 	:+T)
 		textmode=0
-		;;
-	:-t)
-		last=t
 		;;
 	:-v)
 		echo "Build.sh $srcversion"
@@ -652,7 +645,7 @@ oswarn=
 ccpc=-Wc,
 ccpl=-Wl,
 tsts=
-ccpr='|| for _f in ${tcfn}*; do case $_f in Build.sh|check.pl|check.t|dot.mkshrc|*.1|*.c|*.h|*.ico|*.opt) ;; *) rm -f "$_f" ;; esac; done'
+ccpr='|| for _f in ${tcfn}*; do case $_f in *.1|*.ico) ;; *) rm -f "$_f" ;; esac; done'
 
 # Evil hack
 if test x"$TARGET_OS" = x"Android"; then
@@ -1711,7 +1704,7 @@ ac_test attribute_format '' 'for __attribute__((__format__))' <<-'EOF'
 	#undef fprintf
 	extern int fprintf(FILE *, const char *format, ...)
 	    __attribute__((__format__(__printf__, 2, 3)));
-	int main(int ac, char **av) { return (fprintf(stderr, "%s%d", *av, ac)); }
+	int main(int ac, char *av[]) { return (fprintf(stderr, "%s%d", *av, ac)); }
 	#endif
 EOF
 ac_test attribute_noreturn '' 'for __attribute__((__noreturn__))' <<-'EOF'
@@ -1736,7 +1729,7 @@ ac_test attribute_pure '' 'for __attribute__((__pure__))' <<-'EOF'
 	#include <unistd.h>
 	#undef __attribute__
 	int foo(const char *) __attribute__((__pure__));
-	int main(int ac, char **av) { return (foo(av[ac - 1]) + isatty(0)); }
+	int main(int ac, char *av[]) { return (foo(av[ac - 1]) + isatty(0)); }
 	int foo(const char *s) { return ((int)s[0]); }
 	#endif
 EOF
@@ -1748,7 +1741,7 @@ ac_test attribute_unused '' 'for __attribute__((__unused__))' <<-'EOF'
 	#else
 	#include <unistd.h>
 	#undef __attribute__
-	int main(int ac __attribute__((__unused__)), char **av
+	int main(int ac __attribute__((__unused__)), char *av[]
 	    __attribute__((__unused__))) { return (isatty(0)); }
 	#endif
 EOF
@@ -1866,22 +1859,22 @@ rmf lft*	# end of large file support test
 ac_test can_inttypes '!' stdint_h 1 "for standard 32-bit integer types" <<-'EOF'
 	#include <sys/types.h>
 	#include <stddef.h>
-	int main(int ac, char **av) { return ((uint32_t)(size_t)*av + (int32_t)ac); }
+	int main(int ac, char *av[]) { return ((uint32_t)(size_t)*av + (int32_t)ac); }
 EOF
 ac_test can_ucbints '!' can_inttypes 1 "for UCB 32-bit integer types" <<-'EOF'
 	#include <sys/types.h>
 	#include <stddef.h>
-	int main(int ac, char **av) { return ((u_int32_t)(size_t)*av + (int32_t)ac); }
+	int main(int ac, char *av[]) { return ((u_int32_t)(size_t)*av + (int32_t)ac); }
 EOF
 ac_test can_int8type '!' stdint_h 1 "for standard 8-bit integer type" <<-'EOF'
 	#include <sys/types.h>
 	#include <stddef.h>
-	int main(int ac, char **av) { return ((uint8_t)(size_t)av[ac]); }
+	int main(int ac, char *av[]) { return ((uint8_t)(size_t)av[ac]); }
 EOF
 ac_test can_ucbint8 '!' can_int8type 1 "for UCB 8-bit integer type" <<-'EOF'
 	#include <sys/types.h>
 	#include <stddef.h>
-	int main(int ac, char **av) { return ((u_int8_t)(size_t)av[ac]); }
+	int main(int ac, char *av[]) { return ((u_int8_t)(size_t)av[ac]); }
 EOF
 
 ac_test rlim_t <<-'EOF'
