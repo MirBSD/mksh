@@ -292,7 +292,7 @@ $all_tests = @ARGV == 0;
 # Set up a very minimal environment
 %new_env = ();
 foreach $env (('HOME', 'LD_LIBRARY_PATH', 'LOCPATH', 'LOGNAME',
-  'PATH', 'SHELL', 'UNIXMODE', 'UNIXROOT', 'USER')) {
+  'PATH', 'PERLIO', 'SHELL', 'UNIXMODE', 'UNIXROOT', 'USER')) {
     $new_env{$env} = $ENV{$env} if defined $ENV{$env};
 }
 $new_env{'CYGWIN'} = 'nodosfilewarning';
