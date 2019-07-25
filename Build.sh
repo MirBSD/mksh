@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.738 2019/04/26 16:17:01 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.739 2019/07/25 17:11:00 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019
@@ -1380,14 +1380,14 @@ if ac_ifcpp 'if 0' compiler_fails '' \
 	case $ct in
 	dec)
 		CFLAGS="$CFLAGS ${ccpl}-non_shared"
-		ac_testn can_delexe compiler_fails 0 'for the -non_shared linker option' <<-EOF
+		ac_testn can_delexe compiler_fails 0 'for the -non_shared linker option' <<-'EOF'
 			#include <unistd.h>
 			int main(void) { return (isatty(0)); }
 		EOF
 		;;
 	dmc)
 		CFLAGS="$CFLAGS ${ccpl}/DELEXECUTABLE"
-		ac_testn can_delexe compiler_fails 0 'for the /DELEXECUTABLE linker option' <<-EOF
+		ac_testn can_delexe compiler_fails 0 'for the /DELEXECUTABLE linker option' <<-'EOF'
 			#include <unistd.h>
 			int main(void) { return (isatty(0)); }
 		EOF
@@ -1397,9 +1397,8 @@ if ac_ifcpp 'if 0' compiler_fails '' \
 		;;
 	esac
 	test 1 = $HAVE_CAN_DELEXE || CFLAGS=$save_CFLAGS
-	ac_testn compiler_still_fails '' 'if the compiler still does not fail correctly' <<-EOF
-	EOF
-	test 1 = $HAVE_COMPILER_STILL_FAILS && exit 1
+	ac_ifcpp 'if 0' compiler_still_fails \
+	    'if the compiler still does not fail correctly' && exit 1
 fi
 if ac_ifcpp 'ifdef __TINYC__' couldbe_tcc '!' compiler_known 0 \
     'if this could be tcc'; then
@@ -2009,15 +2008,15 @@ ac_cppflags SYS_ERRLIST
 
 for what in name list; do
 	uwhat=`upper $what`
-	ac_testn sys_sig$what '' "the sys_sig${what}[] array" <<-EOF
-		extern const char * const sys_sig${what}[];
+	ac_testn sys_sig$what '' "the sys_sig$what[] array" <<-EOF
+		extern const char * const sys_sig$what[];
 		extern int isatty(int);
-		int main(void) { return (sys_sig${what}[0][0] + isatty(0)); }
+		int main(void) { return (sys_sig$what[0][0] + isatty(0)); }
 	EOF
-	ac_testn _sys_sig$what '!' sys_sig$what 0 "the _sys_sig${what}[] array" <<-EOF
-		extern const char * const _sys_sig${what}[];
+	ac_testn _sys_sig$what '!' sys_sig$what 0 "the _sys_sig$what[] array" <<-EOF
+		extern const char * const _sys_sig$what[];
 		extern int isatty(int);
-		int main(void) { return (_sys_sig${what}[0][0] + isatty(0)); }
+		int main(void) { return (_sys_sig$what[0][0] + isatty(0)); }
 	EOF
 	eval uwhat_v=\$HAVE__SYS_SIG$uwhat
 	if test 1 = "$uwhat_v"; then
