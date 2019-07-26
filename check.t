@@ -12700,7 +12700,7 @@ stdin:
 	echo =14
 	(mypid=$$; try mypid)
 	echo =15
-	) 2>&1 | sed -e 's/^[^]]*]//' -e 's/^[^:]*: *//'
+	) 2>&1 | sed -e 's/^[A-Za-z]://' -e 's/^[^]]*]//' -e 's/^[^:]*: *//'
 	exit ${PIPESTATUS[0]}
 expected-stdout:
 	y
