@@ -182,9 +182,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.871 2019/04/24 20:56:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.872 2019/08/01 23:59:51 tg Exp $");
 #endif
-#define MKSH_VERSION "R57 2019/04/24"
+#define MKSH_VERSION "R57 2019/08/01"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1824,6 +1824,7 @@ struct block {
 /* Values for struct block.flags */
 #define BF_DOGETOPTS	BIT(0)	/* save/restore getopts state */
 #define BF_STOPENV	BIT(1)	/* do not export further */
+#define BF_RESETSPEC	BIT(2)	/* use ->next for set and shift */
 
 /*
  * Used by ktwalk() and ktnext() routines.
@@ -2511,6 +2512,8 @@ void warningf(bool, const char *, ...)
     MKSH_A_FORMAT(__printf__, 2, 3);
 void bi_errorf(const char *, ...)
     MKSH_A_FORMAT(__printf__, 1, 2);
+void maybe_errorf(int *, int, const char *, ...)
+    MKSH_A_FORMAT(__printf__, 3, 4);
 #define errorfz()	errorf(NULL)
 #define errorfxz(rc)	errorfx((rc), NULL)
 #define bi_errorfz()	bi_errorf(NULL)

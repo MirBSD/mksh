@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.208 2019/08/01 22:45:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.209 2019/08/01 23:59:49 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -694,11 +694,9 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	/* shell built-in */
 	case CSHELL:
  do_call_builtin:
+		if (l_expand != l_assign)
+			l_assign->flags |= BF_RESETSPEC;
 		rv = call_builtin(tp, (const char **)ap, null, resetspec);
-		if (resetspec && (tp->val.f == c_shift || tp->val.f == c_set)) {
-			l_expand->argc = l_assign->argc;
-			l_expand->argv = l_assign->argv;
-		}
 		break;
 
 	/* function call */

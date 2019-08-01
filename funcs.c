@@ -5,7 +5,8 @@
 
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *		 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+ *		 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
+ *		 2019
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -38,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.355 2018/10/20 21:04:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.356 2019/08/01 23:59:50 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1347,7 +1348,7 @@ c_bind(const char **wp)
 int
 c_shift(const char **wp)
 {
-	struct block *l = e->loc;
+	struct block *l;
 	int n;
 	mksh_ari_t val;
 	const char *arg;
@@ -1369,6 +1370,11 @@ c_shift(const char **wp)
 		bi_errorf(Tf_sD_s, Tbadnum, arg);
 		return (1);
 	}
+
+	if (((l = e->loc)->flags & BF_RESETSPEC))
+		/* operate on parent environment */
+		l = l->next;
+
 	if (l->argc < n) {
 		bi_errorf("nothing to shift");
 		return (1);
@@ -2230,8 +2236,6 @@ c_set(const char **wp)
 {
 	int argi;
 	bool setargs;
-	struct block *l = e->loc;
-	const char **owp;
 
 	if (wp[1] == NULL) {
 		static const char *args[] = { Tset, "-", NULL };
@@ -2242,6 +2246,13 @@ c_set(const char **wp)
 		return (2);
 	/* set $# and $* */
 	if (setargs) {
+		struct block *l;
+		const char **owp;
+
+		if (((l = e->loc)->flags & BF_RESETSPEC))
+			/* operate on parent environment */
+			l = l->next;
+
 		wp += argi - 1;
 		owp = wp;
 		/* save $0 */
