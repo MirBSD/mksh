@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.740 2019/07/25 21:25:15 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.741 2019/08/01 19:53:05 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019
@@ -25,8 +25,8 @@ srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.740 2019/07/25 21:25:15 tg Exp $'
 #
 # Used environment documentation is at the end of this file.
 
-LC_ALL=C
-export LC_ALL
+LC_ALL=C; LANGUAGE=C
+export LC_ALL; unset LANGUAGE
 
 case $ZSH_VERSION:$VERSION in
 :zsh*) ZSH_VERSION=2 ;;
@@ -1086,7 +1086,8 @@ test -z "$oswarn" || echo >&2 "
 Warning: mksh has not yet been ported to or tested on your
 operating system '$TARGET_OS'$oswarn. If you can provide
 a shell account to the developer, this may improve; please
-drop us a success or failure notice or even send in diffs.
+drop us a success or failure notice or even send in diffs,
+at the very least, complete logs (Build.sh + test.sh) will help.
 "
 $e "$bi$me: Building the MirBSD Korn Shell$ao $ui$dstversion$ao on $TARGET_OS ${TARGET_OSREV}..."
 
@@ -2610,8 +2611,8 @@ INDSRCS=	$extras
 NONSRCS_INST=	dot.mkshrc \$(MAN)
 NONSRCS_NOINST=	Build.sh Makefile Rebuild.sh check.pl check.t test.sh
 CC=		$CC
-CFLAGS=		$CFLAGS
 CPPFLAGS=	$CPPFLAGS
+CFLAGS=		$CFLAGS
 LDFLAGS=	$LDFLAGS
 LIBS=		$LIBS
 
