@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.98 2018/08/10 02:53:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.99 2019/08/01 20:02:33 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -523,7 +523,7 @@ shf_getse(char *buf, ssize_t bsize, struct shf *shf)
 		buf += ncopy;
 		bsize -= ncopy;
 #ifdef MKSH_WITH_TEXTMODE
-		if (end && buf > orig_buf + 1 && buf[-2] == '\r') {
+		if (buf > orig_buf + 1 && buf[-2] == '\r' && buf[-1] == '\n') {
 			buf--;
 			bsize++;
 			buf[-1] = '\n';
