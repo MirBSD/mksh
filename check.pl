@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.49 2017/05/05 21:17:31 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.50 2019/08/01 20:05:55 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -292,7 +292,7 @@ $all_tests = @ARGV == 0;
 # Set up a very minimal environment
 %new_env = ();
 foreach $env (('HOME', 'LD_LIBRARY_PATH', 'LOCPATH', 'LOGNAME',
-  'PATH', 'SHELL', 'UNIXMODE', 'UNIXROOT', 'USER')) {
+  'PATH', 'PERLIO', 'SHELL', 'UNIXMODE', 'UNIXROOT', 'USER')) {
     $new_env{$env} = $ENV{$env} if defined $ENV{$env};
 }
 $new_env{'CYGWIN'} = 'nodosfilewarning';
