@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.819 2019/08/01 20:17:27 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.820 2019/08/01 22:45:53 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -10858,7 +10858,7 @@ stdin:
 	optS='<used to set soft limits>'
 	ulimit -a >tmpf
 	set -o noglob
-	while IFS= read -pr line; do
+	while IFS= read -r line; do
 		x=${line:1:1}
 		if [[ -z $x || ${#x}/${%x} != 1/1 ]]; then
 			print -r -- "weird line: $line"
@@ -13403,6 +13403,21 @@ expected-stdout:
 	before	0='swc' 1='一' 2='二'
 	after	0='swc' 1='二' 2=''
 	= done
+---
+name: command-set
+description:
+	Same but with set
+stdin:
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
+	showargs 1 "$@"
+	set -- foo bar baz
+	showargs 2 "$@"
+	command set -- miau 'meow nyao'
+	showargs 3 "$@"
+expected-stdout:
+	<1> .
+	<2> <foo> <bar> <baz> .
+	<3> <miau> <meow nyao> .
 ---
 name: command-pvV-posix-priorities
 description:
