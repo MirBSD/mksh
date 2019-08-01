@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.741 2019/08/01 19:53:05 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.742 2019/08/01 22:08:55 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019
@@ -512,7 +512,7 @@ ebcdic=false
 for i
 do
 	case $last:$i in
-	c:combine|c:dragonegg|c:llvm|c:lto)
+	c:dragonegg|c:llvm)
 		cm=$i
 		last=
 		;;
@@ -2775,7 +2775,7 @@ them, set to a value other than 0 or 1. Ensure /bin/ed is installed. For
 MKSH_SMALL but with Vi mode, add -DMKSH_S_NOVI=0 to CPPFLAGS as well.
 
 Normally, the following command is what you want to run, then:
-$ (sh Build.sh -r -c lto && ./test.sh -f) 2>&1 | tee log
+$ (sh Build.sh -r && ./test.sh -f) 2>&1 | tee log
 
 Copy dot.mkshrc to /etc/skel/.mkshrc; install mksh into $prefix/bin; or
 /bin; install the manpage, if omitting the -r flag a catmanpage is made
@@ -2784,6 +2784,6 @@ http://anonscm.debian.org/cgit/collab-maint/mksh.git/plain/debian/.mkshrc
 and put dot.mkshrc as /etc/mkshrc so users need not keep up their HOME.
 
 You may also want to install the lksh binary (also as /bin/sh) built by:
-$ CPPFLAGS="$CPPFLAGS -DMKSH_BINSHPOSIX" sh Build.sh -L -r -c lto
+$ CPPFLAGS="$CPPFLAGS -DMKSH_BINSHPOSIX" sh Build.sh -L -r
 
 EOD
