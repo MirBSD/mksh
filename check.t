@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.817 2019/08/01 20:07:26 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.818 2019/08/01 20:16:15 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -10848,14 +10848,13 @@ name: ulimit-3
 description:
 	Check that there are no duplicate limits (if this fails,
 	immediately contact with system information the developers)
-category: !nojsig
 stdin:
 	[[ -z $(set | grep ^opt) ]]; mis=$?
 	set | grep ^opt | sed 's/^/unexpectedly set in environment: /'
 	opta='<used for showing all limits>'
 	optH='<used to set hard limits>'
 	optS='<used to set soft limits>'
-	ulimit -a |&
+	ulimit -a >tmpf
 	set -o noglob
 	while IFS= read -pr line; do
 		x=${line:1:1}
@@ -10871,7 +10870,7 @@ stdin:
 			(( mis |= 2 ))
 		fi
 		v=$2
-	done
+	done <tmpf
 	if (( mis & 2 )); then
 		echo failed
 	elif (( mis & 1 )); then
