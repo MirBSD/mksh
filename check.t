@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.816 2019/08/01 20:03:35 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.817 2019/08/01 20:07:26 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -12700,7 +12700,7 @@ stdin:
 	echo =14
 	(mypid=$$; try mypid)
 	echo =15
-	) 2>&1 | sed -e 's/^[^]]*]//' -e 's/^[^:]*: *//'
+	) 2>&1 | sed -e 's/^[A-Za-z]://' -e 's/^[^]]*]//' -e 's/^[^:]*: *//'
 	exit ${PIPESTATUS[0]}
 expected-stdout:
 	y
