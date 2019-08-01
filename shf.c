@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
- *		 2012, 2013, 2015, 2016, 2017, 2018
+ *		 2012, 2013, 2015, 2016, 2017, 2018, 2019
  *	mirabilos <m@mirbsd.org>
  * Copyright (c) 2015
  *	Daniel Richard G. <skunk@iSKUNK.ORG>
@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.99 2019/08/01 20:02:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.100 2019/08/01 20:10:57 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -523,7 +523,8 @@ shf_getse(char *buf, ssize_t bsize, struct shf *shf)
 		buf += ncopy;
 		bsize -= ncopy;
 #ifdef MKSH_WITH_TEXTMODE
-		if (buf > orig_buf + 1 && buf[-2] == '\r' && buf[-1] == '\n') {
+		if (buf > orig_buf + 1 && ord(buf[-2]) == ORD('\r') &&
+		    ord(buf[-1]) == ORD('\n')) {
 			buf--;
 			bsize++;
 			buf[-1] = '\n';
@@ -531,9 +532,9 @@ shf_getse(char *buf, ssize_t bsize, struct shf *shf)
 #endif
 	} while (!end && bsize);
 #ifdef MKSH_WITH_TEXTMODE
-	if (!bsize && buf[-1] == '\r') {
+	if (!bsize && ord(buf[-1]) == ORD('\r')) {
 		int c = shf_getc(shf);
-		if (c == '\n')
+		if (ord(c) == ORD('\n'))
 			buf[-1] = '\n';
 		else if (c != -1)
 			shf_ungetc(c, shf);
