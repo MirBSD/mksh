@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.206 2019/03/01 16:17:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.207 2019/08/01 22:20:53 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -446,7 +446,7 @@ execute(struct op * volatile t,
 		if (rv == ENOEXEC)
 			scriptexec(t, (const char **)up);
 		else
-			errorf(Tf_sD_s, t->str, cstrerror(rv));
+			errorfx(126, Tf_sD_s, t->str, cstrerror(rv));
 	}
  Break:
 	exstat = rv & 0xFF;
