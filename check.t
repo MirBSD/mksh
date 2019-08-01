@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.815 2019/04/26 15:52:40 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.816 2019/08/01 20:03:35 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -10848,6 +10848,7 @@ name: ulimit-3
 description:
 	Check that there are no duplicate limits (if this fails,
 	immediately contact with system information the developers)
+category: !nojsig
 stdin:
 	[[ -z $(set | grep ^opt) ]]; mis=$?
 	set | grep ^opt | sed 's/^/unexpectedly set in environment: /'
