@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.818 2019/08/01 20:16:15 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.819 2019/08/01 20:17:27 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -7392,6 +7392,8 @@ expected-stdout:
 name: xxx-stat-1
 description:
 	Check that tests on files are consistent
+	(fails when run as root, unfortunately)
+category: disabled
 stdin:
 	mkdir a
 	echo x >a/b
