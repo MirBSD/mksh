@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.820 2019/08/01 22:45:53 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.821 2019/08/01 23:57:22 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R57 2019/04/24
+	@(#)MIRBSD KSH R57 2019/08/01
 description:
 	Check base version of full shell
 stdin:
@@ -40,7 +40,7 @@ name: KSH_VERSION
 category: !shell:legacy-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R57 2019/04/24
+	@(#)LEGACY KSH R57 2019/08/01
 description:
 	Check base version of legacy shell
 stdin:
@@ -13418,6 +13418,27 @@ expected-stdout:
 	<1> .
 	<2> <foo> <bar> <baz> .
 	<3> <miau> <meow nyao> .
+---
+name: command-readonly
+description:
+	These should not exit on error when prefixed
+stdin:
+	exec 2>/dev/null
+	"$__progname" -c 'readonly v; export v=foo || echo ok'
+	echo ef=$?
+	"$__progname" -c 'readonly v; command export v=foo || echo ok'
+	echo en=$?
+	"$__progname" -c 'readonly v; readonly v=foo || echo ok'
+	echo rf=$?
+	"$__progname" -c 'readonly v; command readonly v=foo || echo ok'
+	echo rn=$?
+expected-stdout:
+	ef=2
+	ok
+	en=0
+	rf=2
+	ok
+	rn=0
 ---
 name: command-pvV-posix-priorities
 description:
