@@ -2,7 +2,8 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+ *		 2019
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -28,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.226 2018/07/15 17:21:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.227 2019/08/02 00:21:53 tg Exp $");
 
 /*-
  * Variables
@@ -57,6 +58,7 @@ static void setspec(struct tbl *);
 static void unsetspec(struct tbl *, bool);
 static int getint(struct tbl *, mksh_ari_u *, bool);
 static const char *array_index_calc(const char *, bool *, uint32_t *);
+static struct tbl *vtypeset(int *, const char *, uint32_t, uint32_t, int, int);
 
 /*
  * create a new block for function calls and simple commands
@@ -757,6 +759,12 @@ exportprep(struct tbl *vp, const char *val)
 struct tbl *
 typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 {
+	return (vtypeset(NULL, var, set, clr, field, base));
+}
+static struct tbl *
+vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
+    int field, int base)
+{
 	struct tbl *vp;
 	struct tbl *vpbase, *t;
 	char *tvar;
@@ -764,6 +772,9 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 	size_t len;
 	bool vappend = false;
 	enum namerefflag new_refflag = SRF_NOP;
+
+	if (ep)
+		*ep = 0;
 
 	if ((set & (ARRAY | ASSOC)) == ASSOC) {
 		new_refflag = SRF_ENABLE;
@@ -782,8 +793,8 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 	}
 	if (ord(*val) == ORD('[')) {
 		if (new_refflag != SRF_NOP)
-			errorf(Tf_sD_s, var,
-			    "reference variable can't be an array");
+			return (maybe_errorf(ep, 1, Tf_sD_s, var,
+			    "reference variable can't be an array"), NULL);
 		len = array_ref_len(val);
 		if (len == 0)
 			return (NULL);
@@ -833,7 +844,8 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 
 		/* bail out on 'nameref foo+=bar' */
 		if (vappend)
-			errorf("appending not allowed for nameref");
+			return (maybe_errorf(ep, 1,
+			    "appending not allowed for nameref"), NULL);
 		/* find value if variable already exists */
 		if ((qval = val) == NULL) {
 			varsearch(e->loc, &vp, tvar, hash(tvar));
@@ -859,7 +871,8 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 				goto nameref_rhs_checked;
 			}
  nameref_empty:
-			errorf(Tf_sD_s, var, "empty nameref target");
+			return (maybe_errorf(ep, 1, Tf_sD_s, var,
+			    "empty nameref target"), NULL);
 		}
 		len = (ord(*ccp) == ORD('[')) ? array_ref_len(ccp) : 0;
 		if (ccp[len]) {
@@ -868,15 +881,15 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 			 * junk after it" and "invalid array"; in the
 			 * latter case, len is also 0 and points to '['
 			 */
-			errorf(Tf_sD_s, qval,
-			    "nameref target not a valid parameter name");
+			return (maybe_errorf(ep, 1, Tf_sD_s, qval,
+			    "nameref target not a valid parameter name"), NULL);
 		}
  nameref_rhs_checked:
 		/* prevent nameref loops */
 		while (qval) {
 			if (!strcmp(qval, tvar))
-				errorf(Tf_sD_s, qval,
-				    "expression recurses on parameter");
+				return (maybe_errorf(ep, 1, Tf_sD_s, qval,
+				    "expression recurses on parameter"), NULL);
 			varsearch(e->loc, &vp, qval, hash(qval));
 			qval = NULL;
 			if (vp && ((vp->flag & (ARRAY | ASSOC)) == ASSOC))
@@ -887,7 +900,8 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 	/* prevent typeset from creating a local PATH/ENV/SHELL */
 	if (Flag(FRESTRICTED) && (strcmp(tvar, TPATH) == 0 ||
 	    strcmp(tvar, "ENV") == 0 || strcmp(tvar, TSHELL) == 0))
-		errorf(Tf_sD_s, tvar, "restricted");
+		return (maybe_errorf(ep, 1, Tf_sD_s,
+		    tvar, "restricted"), NULL);
 
 	innermost_refflag = new_refflag;
 	vp = (set & LOCAL) ? local(tvar, tobool(set & LOCAL_COPY)) :
@@ -923,8 +937,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 	 */
 	if ((vpbase->flag & RDONLY) &&
 	    (val || clr || (set & ~(EXPORT | RDONLY))))
-		/* XXX check calls - is error here ok by POSIX? */
-		errorfx(2, Tf_ro, tvar);
+		return (maybe_errorf(ep, 2, Tf_ro, tvar), NULL);
 	afree(tvar, ATEMP);
 
 	/* most calls are with set/clr == 0 */
@@ -990,7 +1003,7 @@ typeset(const char *var, uint32_t set, uint32_t clr, int field, int base)
 			}
 		}
 		if (!ok)
-			errorfz();
+			return (maybe_errorf(ep, 1, NULL), NULL);
 	}
 
 	if (val != NULL) {
@@ -2026,7 +2039,7 @@ c_typeset(const char **wp)
 	if (wp[builtin_opt.optind] &&
 	    /* not "typeset -p varname" */
 	    !(!func && pflag && !(fset | fclr))) {
-		int rv = 0;
+		int rv = 0, x;
 		struct tbl *f;
 
 		if (localv && !func)
@@ -2049,7 +2062,10 @@ c_typeset(const char **wp)
 					    wp[i], f->val.t);
 					shf_putc('\n', shl_stdout);
 				}
-			} else if (!typeset(wp[i], fset, fclr, field, base)) {
+			} else if (!vtypeset(&x, wp[i], fset, fclr,
+			    field, base)) {
+				if (x)
+					return (x);
 				bi_errorf(Tf_sD_s, wp[i], Tnot_ident);
 				return (1);
 			}

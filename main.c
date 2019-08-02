@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.351 2019/01/05 13:24:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.352 2019/08/02 00:21:53 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -1326,6 +1326,39 @@ bi_errorf(const char *fmt, ...)
 	if (builtin_spec) {
 		builtin_argv0 = NULL;
 		/* may not want to use LERROR here */
+		unwind(LERROR);
+	}
+}
+
+/*
+ * Used by functions called by builtins and not:
+ * identical to errorfx if first argument is nil,
+ * like bi_errorf storing the errorlevel into it otherwise
+ */
+void
+maybe_errorf(int *ep, int rc, const char *fmt, ...)
+{
+	va_list va;
+
+	/* debugging: note that stdout not valid */
+	shl_stdout_ok = false;
+
+	exstat = rc;
+
+	va_start(va, fmt);
+	vwarningf(VWARNINGF_ERRORPREFIX | VWARNINGF_FILELINE |
+	    (ep ? VWARNINGF_BUILTIN : 0), fmt, va);
+	va_end(va);
+
+	if (!ep)
+		goto and_out;
+	*ep = rc;
+
+	/* POSIX special builtins cause non-interactive shells to exit */
+	if (builtin_spec) {
+		builtin_argv0 = NULL;
+		/* may not want to use LERROR here */
+ and_out:
 		unwind(LERROR);
 	}
 }
