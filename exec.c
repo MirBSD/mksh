@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.209 2019/08/01 23:59:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.210 2019/08/02 19:27:15 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -695,7 +695,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	case CSHELL:
  do_call_builtin:
 		if (l_expand != l_assign)
-			l_assign->flags |= BF_RESETSPEC;
+			l_assign->flags |= (tp->flag & NEXTLOC_BI);
 		rv = call_builtin(tp, (const char **)ap, null, resetspec);
 		break;
 
@@ -1144,6 +1144,10 @@ builtin(const char *name, int (*func) (const char **))
 	case '^':
 		/* is declaration utility (POSIX: export, readonly) */
 		flag |= DECL_UTIL;
+		break;
+	case '#':
+		/* is set or shift */
+		flag |= NEXTLOC_BI;
 		break;
 	default:
 		goto flags_seen;

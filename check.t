@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.821 2019/08/01 23:57:22 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.822 2019/08/02 19:27:12 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R57 2019/08/01
+	@(#)MIRBSD KSH R57 2019/08/02
 description:
 	Check base version of full shell
 stdin:
@@ -40,7 +40,7 @@ name: KSH_VERSION
 category: !shell:legacy-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R57 2019/08/01
+	@(#)LEGACY KSH R57 2019/08/02
 description:
 	Check base version of legacy shell
 stdin:
@@ -13439,6 +13439,23 @@ expected-stdout:
 	rf=2
 	ok
 	rn=0
+---
+name: command-dot-regression
+description:
+	Check a regression in fixing the above does not appear
+stdin:
+	cat >test.mksh <<\EOF
+	set -- one two
+	shift
+	for s_arg in "$#" "$@"; do echo -n "<$s_arg> "; done; echo .
+	EOF
+	"$__progname" -c '. ./test.mksh' dummy oh dear this is not good
+	echo =
+	"$__progname" -c 'command . ./test.mksh' dummy oh dear this is not good
+expected-stdout:
+	<1> <two> .
+	=
+	<1> <two> .
 ---
 name: command-pvV-posix-priorities
 description:

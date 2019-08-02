@@ -182,9 +182,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.872 2019/08/01 23:59:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.873 2019/08/02 19:27:17 tg Exp $");
 #endif
-#define MKSH_VERSION "R57 2019/08/01"
+#define MKSH_VERSION "R57 2019/08/02"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -999,8 +999,8 @@ EXTERN const char Tredirection_dup[] E_INIT("can't finish (dup) redirection");
 EXTERN const char Treal_sp2[] E_INIT(" real ");
 EXTERN const char Treq_arg[] E_INIT("requires an argument");
 EXTERN const char Tselect[] E_INIT("select");
-EXTERN const char Tsgset[] E_INIT("*=set");
 #define Tset (Tf_parm + 18)
+EXTERN const char Tsghset[] E_INIT("*=#set");
 #define Tsh (Tmksh + 2)
 #define TSHELL (TEXECSHELL + 4)
 #define Tshell (Ttoo_many_files + 23)
@@ -1160,8 +1160,8 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Treal_sp2 " real "
 #define Treq_arg "requires an argument"
 #define Tselect "select"
-#define Tsgset "*=set"
 #define Tset "set"
+#define Tsghset "*=#set"
 #define Tsh "sh"
 #define TSHELL "SHELL"
 #define Tshell "shell"
@@ -1756,6 +1756,7 @@ EXTERN bool last_lookup_was_array;
 #define LOW_BI		BIT(14)	/* external utility overrides built-in one */
 #define DECL_UTIL	BIT(15)	/* is declaration utility */
 #define DECL_FWDR	BIT(16) /* is declaration utility forwarder */
+#define NEXTLOC_BI	BIT(17)	/* needs BF_RESETSPEC on e->loc */
 
 /*
  * Attributes that can be set by the user (used to decide if an unset
@@ -1824,7 +1825,8 @@ struct block {
 /* Values for struct block.flags */
 #define BF_DOGETOPTS	BIT(0)	/* save/restore getopts state */
 #define BF_STOPENV	BIT(1)	/* do not export further */
-#define BF_RESETSPEC	BIT(2)	/* use ->next for set and shift */
+/* BF_RESETSPEC and NEXTLOC_BI must be numerically identical! */
+#define BF_RESETSPEC	BIT(17)	/* use ->next for set and shift */
 
 /*
  * Used by ktwalk() and ktnext() routines.

@@ -39,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.356 2019/08/01 23:59:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.357 2019/08/02 19:27:15 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -130,8 +130,8 @@ const struct builtin mkshbuiltins[] = {
 	{"!realpath", c_realpath},
 	{"~rename", c_rename},
 	{"*=return", c_exitreturn},
-	{Tsgset, c_set},
-	{"*=shift", c_shift},
+	{Tsghset, c_set},
+	{"*=#shift", c_shift},
 	{Tgsource, c_dot},
 #if !defined(MKSH_UNEMPLOYED) && HAVE_GETSID
 	{Tsuspend, c_suspend},
@@ -1348,10 +1348,17 @@ c_bind(const char **wp)
 int
 c_shift(const char **wp)
 {
-	struct block *l;
 	int n;
 	mksh_ari_t val;
 	const char *arg;
+	struct block *l = e->loc;
+
+	if ((l->flags & BF_RESETSPEC)) {
+		/* prevent pollution */
+		l->flags &= ~BF_RESETSPEC;
+		/* operate on parent environment */
+		l = l->next;
+	}
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return (1);
@@ -1370,10 +1377,6 @@ c_shift(const char **wp)
 		bi_errorf(Tf_sD_s, Tbadnum, arg);
 		return (1);
 	}
-
-	if (((l = e->loc)->flags & BF_RESETSPEC))
-		/* operate on parent environment */
-		l = l->next;
 
 	if (l->argc < n) {
 		bi_errorf("nothing to shift");
@@ -2236,6 +2239,14 @@ c_set(const char **wp)
 {
 	int argi;
 	bool setargs;
+	struct block *l = e->loc;
+
+	if ((l->flags & BF_RESETSPEC)) {
+		/* prevent pollution */
+		l->flags &= ~BF_RESETSPEC;
+		/* operate on parent environment */
+		l = l->next;
+	}
 
 	if (wp[1] == NULL) {
 		static const char *args[] = { Tset, "-", NULL };
@@ -2246,12 +2257,7 @@ c_set(const char **wp)
 		return (2);
 	/* set $# and $* */
 	if (setargs) {
-		struct block *l;
 		const char **owp;
-
-		if (((l = e->loc)->flags & BF_RESETSPEC))
-			/* operate on parent environment */
-			l = l->next;
 
 		wp += argi - 1;
 		owp = wp;
