@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.122 2019/08/03 20:19:33 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.123 2019/08/03 20:25:37 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019
@@ -603,7 +603,7 @@ function enable {
 
 \: place customisations below this line
 
-# some defaults follow — you are supposed to adjust these to your
+# some defaults/samples — you are supposed to adjust these to your
 # liking; by default we add ~/.etc/bin and ~/bin (whichever exist)
 # to $PATH, set $SHELL to mksh, set some defaults for man and less
 # and show a few more possible things for users to begin moving in
@@ -617,11 +617,14 @@ done
 \\builtin export SHELL=$MKSH MANWIDTH=80 LESSHISTFILE=-
 \\builtin alias cls='\\builtin print -n \\ec'
 
-#\\builtin unset LANGUAGE LC_ADDRESS LC_ALL LC_COLLATE LC_IDENTIFICATION LC_MONETARY \
-#    LC_NAME LC_NUMERIC LC_TELEPHONE LC_TIME
+#\\builtin unset LC_ADDRESS LC_COLLATE LC_CTYPE LC_IDENTIFICATION \
+#    LC_MEASUREMENT LC_MESSAGES LC_MONETARY LC_NAME LC_NUMERIC LC_PAPER \
+#    LC_TELEPHONE LC_TIME LANGUAGE LANG LC_ALL
 #p=en_GB.UTF-8
 #\\builtin export LANG=C LC_CTYPE=$p LC_MEASUREMENT=$p LC_MESSAGES=$p LC_PAPER=$p
+#\\builtin export LC_ALL=C.UTF-8
 #\\builtin set -U
+#[[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} = *[Uu][Tt][Ff]?(-)8* ]] || \\builtin set +U
 
 \\builtin unset p
 
