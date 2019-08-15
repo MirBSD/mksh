@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.742 2019/08/01 22:08:55 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.743 2019/08/15 02:15:13 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019
@@ -1945,7 +1945,11 @@ else
 		#define MKSH_INCLUDES_ONLY
 		#include "sh.h"
 		__RCSID("$srcversion");
-		int main(void) { printf("Hello, World!\\n"); return (isatty(0)); }
+		int main(void) {
+			struct timeval tv;
+			printf("Hello, World!\\n");
+			return (time(&tv.tv_sec));
+		}
 EOF
 	case $cm in
 	llvm)
