@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.743 2019/08/15 02:15:13 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.744 2019/09/05 14:32:04 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019
@@ -1523,6 +1523,7 @@ dmc)
 	ac_flags 1 schk "${ccpc}-s" 'for stack overflow checking'
 	;;
 gcc)
+	ac_flags 1 fnolto -fno-lto 'whether we can explicitly disable buggy GCC LTO' -fno-lto
 	# The following tests run with -Werror (gcc only) if possible
 	NOWARN=$DOWARN; phase=u
 	ac_flags 1 wnodeprecateddecls -Wno-deprecated-declarations
