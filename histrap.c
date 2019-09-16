@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.168 2019/09/10 19:52:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.169 2019/09/16 21:10:33 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -502,7 +502,7 @@ findhist(int start, int fwd, const char *str, bool anchored)
  * set history; this means reallocating the dataspace
  */
 void
-sethistsize(mksh_uari_t n)
+sethistsize(mksh_ari_t n)
 {
 	if (n > 65535)
 		n = 65535;
