@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.822 2019/08/02 19:27:12 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.823 2019/09/25 22:50:09 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -503,9 +503,6 @@ expected-stdout:
 name: arith-ternary-prec-1
 description:
 	Check precedence of ternary operator vs assignment
-	This test also fails if your GCC is buggy with LTO;
-	if so, remove “-c lto” from the Build.sh invocation
-	and retry; NEVER ship a binary that fails this test!
 stdin:
 	typeset -i x=2
 	y=$((1 ? 20 : x+=2))
