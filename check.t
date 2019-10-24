@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.823 2019/09/25 22:50:09 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.824 2019/10/24 00:12:42 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -178,7 +178,7 @@ stdin:
 expected-stdout:
 	ok
 expected-stderr-pattern:
-	/mksh: warning: won't have full job control\nXX/
+	/ksh: warning: won't have full job control\nXX/
 ---
 name: selftest-tty-present
 description:
