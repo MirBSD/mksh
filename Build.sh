@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.744 2019/09/05 14:32:04 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.745 2019/12/11 17:59:16 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019
@@ -1114,6 +1114,8 @@ ct="icc"
 ct="xlc"
 #elif defined(__SUNPRO_C)
 ct="sunpro"
+#elif defined(__neatcc__)
+ct="neatcc"
 #elif defined(__ACK__)
 ct="ack"
 #elif defined(__BORLANDC__)
@@ -1278,6 +1280,12 @@ msc)
 		vv '|' "$C89_LINKER /LINK >&2"
 		;;
 	esac
+	;;
+neatcc)
+	add_cppflags -DMKSH_DONT_EMIT_IDSTRING
+	add_cppflags -DMKSH_NO_SIGSETJMP
+	add_cppflags -Dsig_atomic_t=int
+	vv '|' "$CC"
 	;;
 nwcc)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -version"

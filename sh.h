@@ -183,7 +183,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.874 2019/12/11 17:56:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.875 2019/12/11 17:59:17 tg Exp $");
 #endif
 #define MKSH_VERSION "R57 2019/08/02"
 
@@ -257,6 +257,12 @@ typedef MKSH_TYPEDEF_SSIZE_T ssize_t;
 #endif
 
 #if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
+#define MKSH_SHF_NO_INLINE
+#endif
+
+/* do not merge these conditionals as neatcc’s preprocessor is simple */
+#ifdef __neatcc__
+/* parsing of comma operator <,> in expressions broken */
 #define MKSH_SHF_NO_INLINE
 #endif
 
