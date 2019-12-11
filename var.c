@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.230 2019/12/11 21:32:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.231 2019/12/11 22:27:30 tg Exp $");
 
 /*-
  * Variables
@@ -50,7 +50,7 @@ static void c_typeset_vardump(struct tbl *, uint32_t, int, int, bool, bool);
 static void c_typeset_vardump_recursive(struct block *, uint32_t, int, bool,
     bool);
 static char *formatstr(struct tbl *, const char *);
-static void exportprep(struct tbl *, const char *);
+static void exportprep(struct tbl *, const char *, size_t);
 static int special(const char *);
 static void unspecial(const char *);
 static void getspec(struct tbl *);
@@ -212,13 +212,16 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 
 		/* calculate the value of the subscript */
 		*arrayp = true;
-		strndupx(tmp, p + 1, len - 2, ATEMP);
+		tmp = alloc((len - 2 > p - n ? len - 2 : p - n) + 1, ATEMP);
+		memcpy(tmp, p + 1, len - 2);
+		tmp[len - 2] = '\0';
 		sub = substitute(tmp, 0);
-		afree(tmp, ATEMP);
-		strndupx(n, n, p - n, ATEMP);
 		evaluate(sub, &rval, KSH_UNWIND_ERROR, true);
 		*valp = (uint32_t)rval;
 		afree(sub, ATEMP);
+		memcpy(tmp, n, p - n);
+		tmp[p - n] = '\0';
+		n = tmp;
 	}
 	return (n);
 }
@@ -452,7 +455,6 @@ str_val(struct tbl *vp)
 int
 setstr(struct tbl *vq, const char *s, int error_ok)
 {
-	char *salloc = NULL;
 	bool no_ro_check = tobool(error_ok & 0x4);
 
 	error_ok &= ~0x4;
@@ -464,29 +466,33 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 	}
 	if (!(vq->flag&INTEGER)) {
 		/* string dest */
-#ifdef DEBUG
+		char *salloc = NULL;
+		size_t cursz;
 		if ((vq->flag&ALLOC)) {
+			cursz = strlen(vq->val.s) + 1;
+#ifndef MKSH_SMALL
 			/* debugging */
-			if (s >= vq->val.s &&
-			    s <= strnul(vq->val.s)) {
+			if (s >= vq->val.s && s < (vq->val.s + cursz)) {
 				internal_errorf(
 				    "setstr: %s=%s: assigning to self",
 				    vq->name, s);
 			}
-		}
 #endif
+		} else
+			cursz = 0;
 		if (s && (vq->flag & (UCASEV_AL|LCASEV|LJUST|RJUST)))
 			s = salloc = formatstr(vq, s);
 		if ((vq->flag&EXPORT))
-			exportprep(vq, s);
+			exportprep(vq, s, cursz);
 		else {
 			size_t n = strlen(s) + 1;
-			vq->val.s = aresize((vq->flag & ALLOC) ?
+			vq->val.s = aresizeif(cursz, (vq->flag & ALLOC) ?
 			    vq->val.s : NULL, n, vq->areap);
 			memcpy(vq->val.s, s, n);
 			vq->flag |= ALLOC;
 			vq->type = 0;
 		}
+		afree(salloc, ATEMP);
 	} else {
 		/* integer dest */
 		if (!v_evaluate(vq, s, error_ok, true))
@@ -495,7 +501,6 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 	vq->flag |= ISSET;
 	if ((vq->flag&SPECIAL))
 		setspec(vq);
-	afree(salloc, ATEMP);
 	return (1);
 }
 
@@ -731,7 +736,7 @@ formatstr(struct tbl *vp, const char *s)
  * make vp->val.s be "name=value" for quick exporting.
  */
 static void
-exportprep(struct tbl *vp, const char *val)
+exportprep(struct tbl *vp, const char *val, size_t cursz)
 {
 	char *cp = (vp->flag & ALLOC) ? vp->val.s : NULL;
 	size_t namelen = strlen(vp->name);
@@ -740,7 +745,7 @@ exportprep(struct tbl *vp, const char *val)
 	vp->flag |= ALLOC;
 	vp->type = namelen + 1;
 	/* since name+val are both in memory this can go unchecked */
-	vp->val.s = aresize(cp, vp->type + vallen, vp->areap);
+	vp->val.s = aresizeif(cursz, cp, vp->type + vallen, vp->areap);
 	memmove(vp->val.s + vp->type, val == cp ? vp->val.s : val, vallen);
 	memcpy(vp->val.s, vp->name, namelen);
 	vp->val.s[namelen] = '=';
@@ -762,7 +767,7 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 {
 	struct tbl *vp;
 	struct tbl *vpbase, *t;
-	char *tvar;
+	char *tvar, tvarbuf[32];
 	const char *val;
 	size_t len;
 	bool vappend = false;
@@ -810,13 +815,19 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 		val += len;
 	}
 	if (ord(val[0]) == ORD('=')) {
-		strndupx(tvar, var, val - var, ATEMP);
+		len = val - var;
+		tvar = len < sizeof(tvarbuf) ? tvarbuf : alloc(len + 1, ATEMP);
+		memcpy(tvar, var, len);
+		tvar[len] = '\0';
 		++val;
 	} else if (set & IMPORT) {
 		/* environment invalid variable name or no assignment */
 		return (NULL);
 	} else if (ord(val[0]) == ORD('+') && ord(val[1]) == ORD('=')) {
-		strndupx(tvar, var, val - var, ATEMP);
+		len = val - var;
+		tvar = len < sizeof(tvarbuf) ? tvarbuf : alloc(len + 1, ATEMP);
+		memcpy(tvar, var, len);
+		tvar[len] = '\0';
 		val += 2;
 		vappend = true;
 	} else if (val[0] != '\0') {
@@ -824,10 +835,12 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 		return (NULL);
 	} else {
 		/* just varname with no value part nor equals sign */
-		strdupx(tvar, var, ATEMP);
+		len = strlen(var);
+		tvar = len < sizeof(tvarbuf) ? tvarbuf : alloc(len + 1, ATEMP);
+		memcpy(tvar, var, len);
+		tvar[len] = '\0';
 		val = NULL;
 		/* handle foo[*] => foo (whole array) mapping for R39b */
-		len = strlen(tvar);
 		if (len > 3 && ord(tvar[len - 3]) == ORD('[') &&
 		    ord(tvar[len - 2]) == ORD('*') &&
 		    ord(tvar[len - 1]) == ORD(']'))
@@ -933,7 +946,8 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 	if ((vpbase->flag & RDONLY) &&
 	    (val || clr || (set & ~(EXPORT | RDONLY))))
 		return (maybe_errorf(ep, 2, Tf_ro, tvar), NULL);
-	afree(tvar, ATEMP);
+	if (tvar != tvarbuf)
+		afree(tvar, ATEMP);
 
 	/* most calls are with set/clr == 0 */
 	if (set | clr) {
@@ -1027,13 +1041,15 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 			/* setstr can't fail (readonly check already done) */
 			setstr(vp, val, KSH_RETURN_ERROR | 0x4);
 
-		afree(tval, ATEMP);
+		if (vappend)
+			afree(tval, ATEMP);
 	}
 
 	/* only x[0] is ever exported, so use vpbase */
 	if ((vpbase->flag&EXPORT) && !(vpbase->flag&INTEGER) &&
 	    vpbase->type == 0)
-		exportprep(vpbase, (vpbase->flag&ISSET) ? vpbase->val.s : null);
+		exportprep(vpbase, (vpbase->flag & ISSET) ?
+		    vpbase->val.s : null, 0);
 
 	return (vp);
 }
