@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.100 2019/08/01 20:10:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.101 2019/12/11 17:56:58 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1074,7 +1074,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 	return (shf_error(shf) ? -1 : nwritten);
 }
 
-#if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
+#ifdef MKSH_SHF_NO_INLINE
 int
 shf_getc(struct shf *shf)
 {

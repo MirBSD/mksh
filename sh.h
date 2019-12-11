@@ -10,7 +10,8 @@
 
 /*-
  * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *	       2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+ *	       2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+ *	       2019
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -182,7 +183,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.873 2019/08/02 19:27:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.874 2019/12/11 17:56:57 tg Exp $");
 #endif
 #define MKSH_VERSION "R57 2019/08/02"
 
@@ -253,6 +254,10 @@ typedef MKSH_TYPEDEF_SIG_ATOMIC_T sig_atomic_t;
 
 #ifdef MKSH_TYPEDEF_SSIZE_T
 typedef MKSH_TYPEDEF_SSIZE_T ssize_t;
+#endif
+
+#if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
+#define MKSH_SHF_NO_INLINE
 #endif
 
 /* un-do vendor damage */
@@ -2612,7 +2617,7 @@ ssize_t shf_read(char *, ssize_t, struct shf *);
 char *shf_getse(char *, ssize_t, struct shf *);
 int shf_getchar(struct shf *s);
 int shf_ungetc(int, struct shf *);
-#if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
+#ifdef MKSH_SHF_NO_INLINE
 int shf_getc(struct shf *);
 int shf_putc(int, struct shf *);
 #else
