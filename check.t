@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.824 2019/10/24 00:12:42 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.825 2019/12/11 20:54:42 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,20 +31,29 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	@(#)MIRBSD KSH R57 2019/08/02
+	KSH R57 2019/12/11
 description:
 	Check base version of full shell
 stdin:
-	echo ${KSH_VERSION%%' +'*}
+	vsn=${KSH_VERSION%%' +'*}
+	echo "${vsn#* }"
 name: KSH_VERSION
+---
+expected-stdout:
+	@(#)MIRBSD
+description:
+	Check this identifies as legacy shell
+stdin:
+	echo "${KSH_VERSION%% *}"
+name: KSH_VERSION-modern
 category: !shell:legacy-yes
 ---
 expected-stdout:
-	@(#)LEGACY KSH R57 2019/08/02
+	@(#)LEGACY
 description:
-	Check base version of legacy shell
+	Check this identifies as legacy shell
 stdin:
-	echo ${KSH_VERSION%%' +'*}
+	echo "${KSH_VERSION%% *}"
 name: KSH_VERSION-legacy
 category: !shell:legacy-no
 ---
@@ -53,6 +62,7 @@ description:
 	Check that the shell version tag does not include EBCDIC
 category: !shell:ebcdic-yes
 stdin:
+	set -o noglob
 	for x in $KSH_VERSION; do
 		[[ $x = '+EBCDIC' ]] && exit 1
 	done
@@ -63,6 +73,7 @@ description:
 	Check that the shell version tag includes EBCDIC
 category: !shell:ebcdic-no
 stdin:
+	set -o noglob
 	for x in $KSH_VERSION; do
 		[[ $x = '+EBCDIC' ]] && exit 0
 	done
@@ -73,6 +84,7 @@ description:
 	Check that the shell version tag does not include TEXTMODE
 category: !shell:textmode-yes
 stdin:
+	set -o noglob
 	for x in $KSH_VERSION; do
 		[[ $x = '+TEXTMODE' ]] && exit 1
 	done
@@ -83,6 +95,7 @@ description:
 	Check that the shell version tag includes TEXTMODE
 category: !shell:textmode-no
 stdin:
+	set -o noglob
 	for x in $KSH_VERSION; do
 		[[ $x = '+TEXTMODE' ]] && exit 0
 	done
