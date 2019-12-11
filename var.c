@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.229 2019/12/11 20:55:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.230 2019/12/11 21:32:48 tg Exp $");
 
 /*-
  * Variables
@@ -464,8 +464,8 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 	}
 	if (!(vq->flag&INTEGER)) {
 		/* string dest */
-		if ((vq->flag&ALLOC)) {
 #ifdef DEBUG
+		if ((vq->flag&ALLOC)) {
 			/* debugging */
 			if (s >= vq->val.s &&
 			    s <= strnul(vq->val.s)) {
@@ -473,18 +473,19 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 				    "setstr: %s=%s: assigning to self",
 				    vq->name, s);
 			}
-#endif
-			afree(vq->val.s, vq->areap);
 		}
-		vq->flag &= ~(ISSET|ALLOC);
-		vq->type = 0;
+#endif
 		if (s && (vq->flag & (UCASEV_AL|LCASEV|LJUST|RJUST)))
 			s = salloc = formatstr(vq, s);
 		if ((vq->flag&EXPORT))
 			exportprep(vq, s);
 		else {
-			strdupx(vq->val.s, s, vq->areap);
+			size_t n = strlen(s) + 1;
+			vq->val.s = aresize((vq->flag & ALLOC) ?
+			    vq->val.s : NULL, n, vq->areap);
+			memcpy(vq->val.s, s, n);
 			vq->flag |= ALLOC;
+			vq->type = 0;
 		}
 	} else {
 		/* integer dest */
@@ -732,23 +733,17 @@ formatstr(struct tbl *vp, const char *s)
 static void
 exportprep(struct tbl *vp, const char *val)
 {
-	char *xp;
-	char *op = (vp->flag&ALLOC) ? vp->val.s : NULL;
-	size_t namelen, vallen;
-
-	namelen = strlen(vp->name);
-	vallen = strlen(val) + 1;
+	char *cp = (vp->flag & ALLOC) ? vp->val.s : NULL;
+	size_t namelen = strlen(vp->name);
+	size_t vallen = strlen(val) + 1;
 
 	vp->flag |= ALLOC;
+	vp->type = namelen + 1;
 	/* since name+val are both in memory this can go unchecked */
-	xp = alloc(namelen + 1 + vallen, vp->areap);
-	memcpy(vp->val.s = xp, vp->name, namelen);
-	xp += namelen;
-	*xp++ = '=';
-	/* offset to value */
-	vp->type = xp - vp->val.s;
-	memcpy(xp, val, vallen);
-	afree(op, vp->areap);
+	vp->val.s = aresize(cp, vp->type + vallen, vp->areap);
+	memmove(vp->val.s + vp->type, val == cp ? vp->val.s : val, vallen);
+	memcpy(vp->val.s, vp->name, namelen);
+	vp->val.s[namelen] = '=';
 }
 
 /*
