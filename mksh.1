@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.466 2019/09/10 19:52:53 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.467 2019/12/11 20:11:14 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -77,7 +77,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: September 10 2019 $
+.Dd $Mdocdate: December 11 2019 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -279,7 +279,7 @@ effective user ID or group ID (see
 and
 .Xr getgid 2 ) .
 Clearing the privileged option causes the shell to set
-its effective user ID (group ID) to its real user ID (group ID).
+its effective user ID (group ID) to its initial real user ID (group ID).
 For further implications, see
 .Sx Startup files .
 If the shell is privileged and this flag is not explicitly set, the
@@ -1946,11 +1946,11 @@ above for details.
 This parameter is not imported from the environment when the shell is
 started.
 .It Ev KSHEGID
-The effective group id of the shell.
+The effective group id of the shell at startup.
 .It Ev KSHGID
-The real group id of the shell.
+The real group id of the shell at startup.
 .It Ev KSHUID
-The real user id of the shell.
+The real user id of the shell at startup.
 .It Ev KSH_MATCH
 The last matched string.
 In a future version, this will be an indexed array,
@@ -2201,7 +2201,7 @@ set or does not contain the absolute path of a writable directory, temporary
 files are created in
 .Pa /tmp .
 .It Ev USER_ID
-The effective user id of the shell.
+The effective user id of the shell at startup.
 .El
 .Ss Tilde expansion
 Tilde expansion, which is done in parallel with parameter substitution,
@@ -4193,6 +4193,10 @@ It is set automatically if, when the shell starts,
 the real UID or GID does not match
 the effective UID (EUID) or GID (EGID), respectively.
 See above for a description of what this means.
+.Pp
+If the shell is privileged, setting this flag after startup files
+have been processed let it go full setuid and/or setgid.
+Clearing this flag makes the shell drop privileges.
 .It Fl r \*(Ba Fl o Ic restricted
 The shell is a restricted shell.
 This option can only be used when the shell is invoked.
@@ -6511,7 +6515,7 @@ removed to the history and a new prompt to be printed.
 .It Pa \*(TI/.mkshrc
 User mkshrc profile (non-privileged interactive shells); see
 .Sx Startup files.
-The location can be changed at compile time (for embedded systems);
+The location can be changed at compile time (e.g. for embedded systems);
 AOSP Android builds use
 .Pa /system/etc/mkshrc .
 .It Pa \*(TI/.profile
@@ -6524,7 +6528,7 @@ System profile (login shells); see
 .It Pa /etc/shells
 Shell database.
 .It Pa /etc/suid_profile
-Suid profile (privileged shells); see
+Privileged shells' profile (sugid); see
 .Sx Startup files.
 .El
 .Pp

@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.352 2019/08/02 00:21:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.353 2019/12/11 20:11:13 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -650,7 +650,16 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	if (Flag(FLOGIN))
 		include(MKSH_SYSTEM_PROFILE, 0, NULL, true);
-	if (!Flag(FPRIVILEGED)) {
+	if (Flag(FPRIVILEGED)) {
+		include(MKSH_SUID_PROFILE, 0, NULL, true);
+		/* note whether -p was enabled during startup */
+		if (Flag(FPRIVILEGED) == 1)
+			/* allow set -p to setuid() later */
+			Flag(FPRIVILEGED) = 3;
+		else
+			/* turn off -p if not set explicitly */
+			change_flag(FPRIVILEGED, OF_INTERNAL, false);
+	} else {
 		if (Flag(FLOGIN))
 			include(substitute("$HOME/.profile", 0), 0, NULL, true);
 		if (Flag(FTALKING)) {
@@ -658,13 +667,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 			if (cp[0] != '\0')
 				include(cp, 0, NULL, true);
 		}
-	} else {
-		include(MKSH_SUID_PROFILE, 0, NULL, true);
-		/* turn off -p if not set explicitly */
-		if (Flag(FPRIVILEGED) != 1)
-			change_flag(FPRIVILEGED, OF_INTERNAL, false);
 	}
-
 	if (restricted_shell) {
 		c_builtin(restr_com);
 		/* After typeset command... */
