@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.745 2019/12/11 17:59:16 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.746 2019/12/11 20:17:33 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019
@@ -2779,6 +2779,7 @@ MKSH_S_NOVI=1			disable Vi editing mode (default if MKSH_SMALL)
 MKSH_TYPEDEF_SIG_ATOMIC_T	define to e.g. 'int' if sig_atomic_t is missing
 MKSH_TYPEDEF_SSIZE_T		define to e.g. 'long' if your OS has no ssize_t
 MKSH_UNEMPLOYED			disable job control (but not jobs/co-processes)
+USE_REALLOC_MALLOC		define as 0 to not use realloc as malloc
 
 === generic installation instructions ===
 
