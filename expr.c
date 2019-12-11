@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2016, 2017, 2018
+ *		 2011, 2012, 2013, 2014, 2016, 2017, 2018, 2019
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.105 2018/08/10 02:53:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.106 2019/12/11 20:04:50 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -864,7 +864,8 @@ ksh_access(const char *fn, int mode)
 	int rv;
 	struct stat sb;
 
-	if ((rv = access(fn, mode)) == 0 && kshuid == 0 && (mode & X_OK) &&
+	if ((rv = access(fn, mode)) == 0 && (mode & X_OK) &&
+	    (kshuid == 0 || ksheuid == 0) &&
 	    (rv = stat(fn, &sb)) == 0 && !S_ISDIR(sb.st_mode) &&
 	    (sb.st_mode & (S_IXUSR|S_IXGRP|S_IXOTH)) == 0)
 		rv = -1;
