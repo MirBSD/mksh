@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.294 2019/12/11 20:11:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.295 2019/12/11 21:47:27 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -245,10 +245,10 @@ change_flag(enum sh_flag f, int what, bool newset)
 #endif /* !MKSH__NO_SETEUGID */
 #endif /* !HAVE_SETRESUGID */
 
-		/* +++ set groups vector +++ */
+		/* +++ wipe groups vector +++ */
 #if HAVE_SETGROUPS
 		/* setgroups doesn't EAGAIN on Linux */
-		setgroups(1, &kshegid);
+		setgroups(0, NULL);
 #endif /* HAVE_SETGROUPS */
 
 		/* +++ set user IDs +++ */

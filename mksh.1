@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.467 2019/12/11 20:11:14 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.468 2019/12/11 21:47:28 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -4197,6 +4197,7 @@ See above for a description of what this means.
 If the shell is privileged, setting this flag after startup files
 have been processed let it go full setuid and/or setgid.
 Clearing this flag makes the shell drop privileges.
+Changing this flag resets the groups vector.
 .It Fl r \*(Ba Fl o Ic restricted
 The shell is a restricted shell.
 This option can only be used when the shell is invoked.
