@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.227 2019/08/02 00:21:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.228 2019/12/11 20:34:42 tg Exp $");
 
 /*-
  * Variables
@@ -465,7 +465,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 	if (!(vq->flag&INTEGER)) {
 		/* string dest */
 		if ((vq->flag&ALLOC)) {
-#ifndef MKSH_SMALL
+#ifdef DEBUG
 			/* debugging */
 			if (s >= vq->val.s &&
 			    s <= strnul(vq->val.s)) {
