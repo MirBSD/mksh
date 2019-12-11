@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.228 2019/12/11 20:34:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.229 2019/12/11 20:55:14 tg Exp $");
 
 /*-
  * Variables
@@ -1006,7 +1006,14 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 			return (maybe_errorf(ep, 1, NULL), NULL);
 	}
 
-	if (val != NULL) {
+	if (/* val != NULL true for vappend */ vappend &&
+	    (vp->flag & (ISSET|ALLOC|SPECIAL|INTEGER|UCASEV_AL|LCASEV|LJUST|RJUST)) == (ISSET|ALLOC)) {
+		/* special-case trivial string appending */
+		size_t olen = strlen(vp->val.s);
+		size_t nlen = strlen(val) + 1;
+		vp->val.s = aresize(vp->val.s, olen + nlen, vp->areap);
+		memcpy(vp->val.s + olen, val, nlen);
+	} else if (val != NULL) {
 		char *tval;
 
 		if (vappend) {
