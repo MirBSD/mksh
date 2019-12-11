@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
- *		 2012, 2013, 2014, 2015, 2016, 2018
+ *		 2012, 2013, 2014, 2015, 2016, 2018, 2019
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.127 2018/07/15 16:23:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.128 2019/12/11 19:46:20 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -88,6 +88,7 @@ struct proc {
 
 typedef struct job Job;
 struct job {
+	ALLOC_ITEM alloc_INT;	/* internal, do not touch */
 	Job *next;		/* next job in list */
 	Proc *proc_list;	/* process list */
 	Proc *last_proc;	/* last process in list */
@@ -1778,16 +1779,26 @@ new_job(void)
 	if (free_jobs != NULL) {
 		newj = free_jobs;
 		free_jobs = free_jobs->next;
-	} else
-		newj = alloc(sizeof(Job), APERM);
+	} else {
+		char *cp;
+
+		/*
+		 * struct job includes ALLOC_ITEM for alignment constraints
+		 * so first get the actually used memory, then assign it
+		 */
+		cp = alloc(sizeof(Job) - sizeof(ALLOC_ITEM), APERM);
+		/* undo what alloc() did to the malloc result address */
+		newj = (void *)(cp - sizeof(ALLOC_ITEM));
+	}
 
 	/* brute force method */
-	for (i = 1; ; i++) {
-		for (j = job_list; j && j->job != i; j = j->next)
-			;
-		if (j == NULL)
-			break;
-	}
+	i = 0;
+	do {
+		++i;
+		j = job_list;
+		while (j && j->job != i)
+			j = j->next;
+	} while (j);
 	newj->job = i;
 
 	return (newj);
