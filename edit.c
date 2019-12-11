@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.344 2019/12/11 17:31:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.345 2019/12/11 17:36:12 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -177,7 +177,7 @@ x_getc(void)
 static void
 x_putcf(int c)
 {
-	shf_putc(c, shl_out);
+	shf_putc_i(c, shl_out);
 }
 
 /*********************************
