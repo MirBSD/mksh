@@ -5,7 +5,8 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+ *		 2019
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -28,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.343 2018/07/15 16:16:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.344 2019/12/11 17:31:22 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -3651,16 +3652,19 @@ vi_hook(int ch)
 
 	case VNORMAL:
 		/* PC scancodes */
-		if (!ch) switch (cmdlen = 0, (ch = x_getc())) {
-		case 71: ch = '0'; goto pseudo_vi_command;
-		case 72: ch = 'k'; goto pseudo_vi_command;
-		case 73: ch = 'A'; goto vi_xfunc_search_up;
-		case 75: ch = 'h'; goto pseudo_vi_command;
-		case 77: ch = 'l'; goto pseudo_vi_command;
-		case 79: ch = '$'; goto pseudo_vi_command;
-		case 80: ch = 'j'; goto pseudo_vi_command;
-		case 83: ch = 'x'; goto pseudo_vi_command;
-		default: ch = 0; goto vi_insert_failed;
+		if (!ch) {
+			cmdlen = 0;
+			switch (ch = x_getc()) {
+			case 71: ch = '0'; goto pseudo_vi_command;
+			case 72: ch = 'k'; goto pseudo_vi_command;
+			case 73: ch = 'A'; goto vi_xfunc_search_up;
+			case 75: ch = 'h'; goto pseudo_vi_command;
+			case 77: ch = 'l'; goto pseudo_vi_command;
+			case 79: ch = '$'; goto pseudo_vi_command;
+			case 80: ch = 'j'; goto pseudo_vi_command;
+			case 83: ch = 'x'; goto pseudo_vi_command;
+			default: ch = 0; goto vi_insert_failed;
+			}
 		}
 		if (insert != 0) {
 			if (ch == CTRL_V) {
