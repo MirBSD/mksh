@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.210 2019/08/02 19:27:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.211 2019/12/11 23:58:18 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -108,8 +108,8 @@ execute(struct op * volatile t,
 
 			if ((rv = herein(t->ioact[0], &cp) /*? 1 : 0*/))
 				cp = NULL;
-			dp = shf_smprintf(Tf_ss, evalstr(t->vars[0],
-			    DOASNTILDE | DOSCALAR), rv ? null : cp);
+			strdup2x(dp, evalstr(t->vars[0], DOASNTILDE | DOSCALAR),
+			    rv ? null : cp);
 			typeset(dp, Flag(FEXPORT) ? EXPORT : 0, 0, 0, 0);
 			/* free the expanded value */
 			afree(cp, APERM);

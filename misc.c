@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.295 2019/12/11 21:47:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.296 2019/12/11 23:58:19 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1689,14 +1689,13 @@ do_realpath(const char *upath)
 		if (getdrvwd(&ldest, ord(*upath)))
 			return (NULL);
 		/* A:foo -> A:/cwd/foo; A: -> A:/cwd */
-		ipath = shf_smprintf(Tf_sss, ldest,
-		    upath[2] ? "/" : "", upath + 2);
+		strpathx(ipath, ldest, upath + 2, 0);
 #endif
 	} else {
 		/* upath is a relative pathname, prepend cwd */
 		if ((tp = ksh_get_wd()) == NULL || !mksh_abspath(tp))
 			return (NULL);
-		ipath = shf_smprintf(Tf_sss, tp, "/", upath);
+		strpathx(ipath, tp, upath, 1);
 		afree(tp, ATEMP);
 	}
 
@@ -1798,7 +1797,7 @@ do_realpath(const char *upath)
  assemble_symlink:
 #endif
 			/* append rest of current input path to link target */
-			tp = shf_smprintf(Tf_sss, ldest, *ip ? "/" : "", ip);
+			strpathx(tp, ldest, ip, 0);
 			afree(ipath, ATEMP);
 			ip = ipath = tp;
 			if (!mksh_abspath(ipath)) {
@@ -2214,8 +2213,7 @@ c_cd(const char **wp)
 	tryp = NULL;
 	if (mksh_drvltr(dir) && !mksh_cdirsep(dir[2]) &&
 	    !getdrvwd(&tryp, ord(*dir))) {
-		dir = shf_smprintf(Tf_sss, tryp,
-		    dir[2] ? "/" : "", dir + 2);
+		strpathx(dir, tryp, dir + 2, 0);
 		afree(tryp, ATEMP);
 		afree(allocd, ATEMP);
 		allocd = dir;

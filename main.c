@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.353 2019/12/11 20:11:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.354 2019/12/11 23:58:19 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -1465,7 +1465,7 @@ initio(void)
 	if ((lfp = getenv("SDMKSH_PATH")) == NULL) {
 		if ((lfp = getenv("HOME")) == NULL || !mksh_abspath(lfp))
 			errorf("can't get home directory");
-		lfp = shf_smprintf(Tf_sSs, lfp, "mksh-dbg.txt");
+		strpathx(lfp, lfp, "mksh-dbg.txt", 1);
 	}
 
 	if ((shl_dbg_fd = open(lfp, O_WRONLY | O_APPEND | O_CREAT, 0600)) < 0)
@@ -2027,7 +2027,7 @@ init_environ(void)
 	errno = 0;
 	if ((dent = readdir(dirp)) != NULL) {
 		if (skip_varname(dent->d_name, true)[0] == '\0') {
-			xp = shf_smprintf(Tf_sSs, MKSH_ENVDIR, dent->d_name);
+			strpathx(xp, MKSH_ENVDIR, dent->d_name, 1);
 			if (!(shf = shf_open(xp, O_RDONLY, 0, 0))) {
 				warningf(false,
 				    "cannot read environment %s from %s: %s",

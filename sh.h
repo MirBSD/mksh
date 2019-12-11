@@ -183,9 +183,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.875 2019/12/11 17:59:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.876 2019/12/11 23:58:20 tg Exp $");
 #endif
-#define MKSH_VERSION "R57 2019/08/02"
+#define MKSH_VERSION "R57 2019/12/11"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -709,6 +709,33 @@ im_sorry_dave(void)
 	(d) = strdup_dst;						\
 } while (/* CONSTCOND */ 0)
 #endif
+#define strdup2x(d, s1, s2) do {					\
+	const char *strdup_src = (const void *)(s1);			\
+	const char *strdup_app = (const void *)(s2);			\
+	size_t strndup_len = strlen(strdup_src);			\
+	size_t strndup_ln2 = strlen(strdup_app) + 1;			\
+	char *strdup_dst = alloc(strndup_len + strndup_ln2, ATEMP);	\
+									\
+	memcpy(strdup_dst, strdup_src, strndup_len);			\
+	memcpy(strdup_dst + strndup_len, strdup_app, strndup_ln2);	\
+	(d) = strdup_dst;						\
+} while (/* CONSTCOND */ 0)
+#define strpathx(d, s1, s2, cond) do {					\
+	const char *strdup_src = (const void *)(s1);			\
+	const char *strdup_app = (const void *)(s2);			\
+	size_t strndup_len = strlen(strdup_src) + 1;			\
+	size_t strndup_ln2 = ((cond) || *strdup_app) ?			\
+	    strlen(strdup_app) + 1 : 0;					\
+	char *strdup_dst = alloc(strndup_len + strndup_ln2, ATEMP);	\
+									\
+	memcpy(strdup_dst, strdup_src, strndup_len);			\
+	if (strndup_ln2) {						\
+		strdup_dst[strndup_len - 1] = '/';			\
+		memcpy(strdup_dst + strndup_len, strdup_app,		\
+		    strndup_ln2);					\
+	}								\
+	(d) = strdup_dst;						\
+} while (/* CONSTCOND */ 0)
 
 #ifdef MKSH_SMALL
 #ifndef MKSH_NOPWNAM
@@ -879,9 +906,9 @@ EXTERN uint8_t trap_nested;	/* running nested traps */
 EXTERN uint8_t shell_flags[FNFLAGS];
 EXTERN const char *kshname;	/* $0 */
 EXTERN struct {
-	uid_t kshuid_v;		/* real UID of shell */
+	uid_t kshuid_v;		/* real UID of shell at startup */
 	uid_t ksheuid_v;	/* effective UID of shell */
-	gid_t kshgid_v;		/* real GID of shell */
+	gid_t kshgid_v;		/* real GID of shell at startup */
 	gid_t kshegid_v;	/* effective GID of shell */
 	pid_t kshpgrp_v;	/* process group of shell */
 	pid_t kshppid_v;	/* PID of parent of shell */
@@ -1043,7 +1070,6 @@ EXTERN const char Tf__S[] E_INIT(" %S");
 #define Tf__d (Tunexpected_type + 22)
 EXTERN const char Tf__ss[] E_INIT(" %s%s");
 #define Tf__sN (Tf_s_s_sN + 5)
-EXTERN const char Tf_sSs[] E_INIT("%s/%s");
 #define Tf_T (Tf_s_T + 3)
 EXTERN const char Tf_dN[] E_INIT("%d\n");
 EXTERN const char Tf_s_[] E_INIT("%s ");
@@ -1067,8 +1093,6 @@ EXTERN const char Tf_S_[] E_INIT("%S ");
 #define Tf_lu (Tf_toolarge + 17)
 EXTERN const char Tf_toolarge[] E_INIT("%s %s too large: %lu");
 EXTERN const char Tf_ldfailed[] E_INIT("%s %s(%d, %ld) failed: %s");
-#define Tf_ss (Tf_sss + 2)
-EXTERN const char Tf_sss[] E_INIT("%s%s%s");
 EXTERN const char Tf_sD_s_sD_s[] E_INIT("%s: %s %s: %s");
 EXTERN const char Tf_toomany[] E_INIT("too many %ss");
 EXTERN const char Tf_sd[] E_INIT("%s %d");
@@ -1204,7 +1228,6 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tf__d " %d"
 #define Tf__ss " %s%s"
 #define Tf__sN " %s\n"
-#define Tf_sSs "%s/%s"
 #define Tf_T "%T"
 #define Tf_dN "%d\n"
 #define Tf_s_ "%s "
@@ -1228,8 +1251,6 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tf_lu "%lu"
 #define Tf_toolarge "%s %s too large: %lu"
 #define Tf_ldfailed "%s %s(%d, %ld) failed: %s"
-#define Tf_ss "%s%s"
-#define Tf_sss "%s%s%s"
 #define Tf_sD_s_sD_s "%s: %s %s: %s"
 #define Tf_toomany "too many %ss"
 #define Tf_sd "%s %d"
@@ -2009,6 +2030,11 @@ struct ioword {
 #define DOHERESTR BIT(14)	/* append a newline char */
 
 #define X_EXTRA	20	/* this many extra bytes in X string */
+#if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
+#define X_WASTE 15	/* allowed extra bytes to avoid shrinking, */
+#else
+#define X_WASTE 255	/* … must be 2ⁿ-1 */
+#endif
 
 typedef struct XString {
 	/* beginning of string */
@@ -2331,6 +2357,9 @@ void afreeall(Area *);
 void *aresize(void *, size_t, Area *);
 void *aresize2(void *, size_t, size_t, Area *);
 void afree(void *, Area *);	/* can take NULL */
+#define aresizeif(z, p, n, ap)	(((p) == NULL) || ((z) < (n)) || \
+				    (((z) & ~X_WASTE) > ((n) & ~X_WASTE)) ? \
+				    aresize((p), (n), (ap)) : (p))
 /* edit.c */
 #ifndef MKSH_NO_CMDLINE_EDITING
 #ifndef MKSH_SMALL

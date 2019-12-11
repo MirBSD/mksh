@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.345 2019/12/11 17:36:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.346 2019/12/11 23:58:16 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -354,7 +354,7 @@ x_glob_hlp_tilde_and_rem_qchar(char *s, bool magic_flag)
 			*--cp = '/';
 		} else {
 			/* ok, expand and replace */
-			cp = shf_smprintf(Tf_sSs, dp, cp);
+			strpathx(cp, dp, cp, 1);
 			if (magic_flag)
 				afree(s, ATEMP);
 			s = cp;

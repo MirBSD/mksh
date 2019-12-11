@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.231 2019/12/11 22:27:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.232 2019/12/11 23:58:21 tg Exp $");
 
 /*-
  * Variables
@@ -198,7 +198,7 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 			char *cp;
 
 			/* gotcha! */
-			cp = shf_smprintf(Tf_ss, str_val(vp), p);
+			strdup2x(cp, str_val(vp), p);
 			afree(ap, ATEMP);
 			n = ap = cp;
 			goto redo_from_ref;
@@ -209,18 +209,20 @@ array_index_calc(const char *n, bool *arrayp, uint32_t *valp)
 	if (p != n && ord(*p) == ORD('[') && (len = array_ref_len(p))) {
 		char *sub, *tmp;
 		mksh_ari_t rval;
+		size_t tmplen = p - n;
 
 		/* calculate the value of the subscript */
 		*arrayp = true;
-		tmp = alloc((len - 2 > p - n ? len - 2 : p - n) + 1, ATEMP);
-		memcpy(tmp, p + 1, len - 2);
-		tmp[len - 2] = '\0';
+		len -= 2;
+		tmp = alloc((len > tmplen ? len : tmplen) + 1, ATEMP);
+		memcpy(tmp, p + 1, len);
+		tmp[len] = '\0';
 		sub = substitute(tmp, 0);
 		evaluate(sub, &rval, KSH_UNWIND_ERROR, true);
 		*valp = (uint32_t)rval;
 		afree(sub, ATEMP);
-		memcpy(tmp, n, p - n);
-		tmp[p - n] = '\0';
+		memcpy(tmp, n, tmplen);
+		tmp[tmplen] = '\0';
 		n = tmp;
 	}
 	return (n);
@@ -1026,7 +1028,7 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 		char *tval;
 
 		if (vappend) {
-			tval = shf_smprintf(Tf_ss, str_val(vp), val);
+			strdup2x(tval, str_val(vp), val);
 			val = tval;
 		} else
 			tval = NULL;

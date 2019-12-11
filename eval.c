@@ -2,7 +2,8 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+ *		 2019
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.219 2018/01/14 01:29:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.220 2019/12/11 23:58:17 tg Exp $");
 
 /*
  * string expansion
@@ -500,7 +501,7 @@ expand(
 						char *s, *p, *d, *sbeg, *end;
 						char *pat = NULL, *rrep = null;
 						char fpat = 0, *tpat1, *tpat2;
-						char *ws, *wpat, *wrep;
+						char *ws, *wpat, *wrep, tch;
 
 						s = ws = wdcopy(sp, ATEMP);
 						p = s + (wdscan(sp, ADELIM) - sp);
@@ -590,9 +591,12 @@ expand(
 									break;
 								p--;
 							}
-						strndupx(end, sbeg, p - sbeg, ATEMP);
-						record_match(end);
-						afree(end, ATEMP);
+						/* record partial string as match */
+						tch = *p;
+						*p = '\0';
+						record_match(sbeg);
+						*p = tch;
+						/* go on */
 						if (stype & STYPE_AT) {
 							if (rrep != null)
 								afree(rrep, ATEMP);
@@ -600,10 +604,19 @@ expand(
 							    DOTILDE | DOSCALAR) :
 							    null;
 						}
-						strndupx(end, s, sbeg - s, ATEMP);
-						d = shf_smprintf(Tf_sss, end, rrep, p);
-						afree(end, ATEMP);
-						sbeg = d + (sbeg - s) + strlen(rrep);
+						{
+							size_t n1 = sbeg - s;
+							size_t n2 = strlen(rrep);
+							size_t n3 = strlen(p);
+							/*XXX do this without alloc+free */
+							d = alloc(n1 + n2 + n3 + 1, ATEMP);
+							memcpy(d, s, n1);
+							memcpy(d + n1, rrep, n2);
+							/* this can become tricky */
+							memcpy(d + n1 + n2, p, n3);
+							d[n1 + n2 + n3] = '\0';
+							sbeg = d + n1 + n2;
+						}
 						afree(s, ATEMP);
 						s = d;
 						if (stype & STYPE_AT) {
