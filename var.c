@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.232 2019/12/11 23:58:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.233 2019/12/12 12:13:25 tg Exp $");
 
 /*-
  * Variables
@@ -1017,22 +1017,21 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 			return (maybe_errorf(ep, 1, NULL), NULL);
 	}
 
-	if (/* val != NULL true for vappend */ vappend &&
-	    (vp->flag & (ISSET|ALLOC|SPECIAL|INTEGER|UCASEV_AL|LCASEV|LJUST|RJUST)) == (ISSET|ALLOC)) {
-		/* special-case trivial string appending */
-		size_t olen = strlen(vp->val.s);
-		size_t nlen = strlen(val) + 1;
-		vp->val.s = aresize(vp->val.s, olen + nlen, vp->areap);
-		memcpy(vp->val.s + olen, val, nlen);
+	if (vappend) {
+		size_t tlen;
+		if ((vp->flag & (ISSET|ALLOC|SPECIAL|INTEGER|UCASEV_AL|LCASEV|LJUST|RJUST)) != (ISSET|ALLOC)) {
+			/* cannot special-case this */
+			strdup2x(tvar, str_val(vp), val);
+			val = tvar;
+			goto vassign;
+		}
+		/* trivial string appending */
+		len = strlen(vp->val.s);
+		tlen = strlen(val) + 1;
+		vp->val.s = aresize(vp->val.s, len + tlen, vp->areap);
+		memcpy(vp->val.s + len, val, tlen);
 	} else if (val != NULL) {
-		char *tval;
-
-		if (vappend) {
-			strdup2x(tval, str_val(vp), val);
-			val = tval;
-		} else
-			tval = NULL;
-
+ vassign:
 		if (vp->flag&INTEGER) {
 			/* do not zero base before assignment */
 			setstr(vp, val, KSH_UNWIND_ERROR | 0x4);
@@ -1043,12 +1042,13 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 			/* setstr can't fail (readonly check already done) */
 			setstr(vp, val, KSH_RETURN_ERROR | 0x4);
 
+		/* came here from vappend? need to free temp val */
 		if (vappend)
-			afree(tval, ATEMP);
+			afree(tvar, ATEMP);
 	}
 
 	/* only x[0] is ever exported, so use vpbase */
-	if ((vpbase->flag&EXPORT) && !(vpbase->flag&INTEGER) &&
+	if ((vpbase->flag & (EXPORT|INTEGER)) == EXPORT &&
 	    vpbase->type == 0)
 		exportprep(vpbase, (vpbase->flag & ISSET) ?
 		    vpbase->val.s : null, 0);
