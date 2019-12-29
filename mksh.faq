@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.2 2019/12/29 23:40:41 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.3 2019/12/29 23:53:50 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -478,6 +478,20 @@ Title: “sleep” does not accept ‘m’ for minutes!
 	[[ $arg = *+ ]] &amp;&amp; arg+=0
 	sleep $(($arg)
 }</pre>
+----
+ToC: string-concat
+Title: “+=” behaves differently from other shells
+
+<p>In POSIX shell, “=” in code like <tt>var=content</tt> is a string
+ assignment, always. You can use <tt>var=$((content))</tt> for an
+ arithmetic assignment that mostly uses C language rules.</p>
+<p>It stands to consider that the common shell extension “+=” as in
+ <tt>var+=content</tt> would always do string concatenation; it does
+ in mksh, but not in some other shells, in which, when <tt>var</tt> has
+ been declared integer, addition is done instead.</p>
+<p>You can make the code portable by using “((…))” (a.k.a. <tt>let</tt>)
+ instead: <tt>(( var += content ))</tt> does arithmetic addition in
+ all shells involved.</p>
 ----
 ToC: set-e
 Title: I use “set -e” and my code unexpectedly errors out
