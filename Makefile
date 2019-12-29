@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.164 2019/03/01 16:18:14 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.165 2019/12/29 23:40:40 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -207,3 +207,10 @@ r:
 repool:
 	cd ${.CURDIR:Q} && \
 	    exec ${MKSH} ${BSDSRCDIR:Q}/scripts/stringpool.sh sh.h
+
+.ifmake validate
+.  include "${BSDSRCDIR}/www/Defs.mk"
+.endif
+validate:
+	${_inc2xhtml} <${.CURDIR}/mksh.faq | xmlstarlet val -d ${_xhtmldtd} -e -
+	#(cd ${BSDSRCDIR:Q}/www && make obj && exec make validate=mksh-faq)

@@ -1,10 +1,12 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.1 2019/12/29 21:34:47 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.2 2019/12/29 23:40:41 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
-<p>The <a href="mksh.htm">shell</a> is spelt either “<tt>mksh</tt>” (with <a
+<p>This <a href="@@RELPATH@@mksh.htm">shell</a> is spelt either
+ “<tt>mksh</tt>” (with, even at the beginning of a sentence, <a
  href="https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Capital_letters#Items_that_require_initial_lower_case">an
- initial lowercase letter</a>, this is important) or “MirBSD Korn Shell”.</p>
+ initial lowercase letter</a>; this is important) or “MirBSD Korn Shell”,
+ possibly with “the”.</p>
 <p>I usually pronounce it as “<span xml:lang="de-DE-1901">em-ka-es-ha</span>”,
  that is, the letters individually in my native German, or say “MirBSD Korn
  Shell”, although it is manageable, mostly for Slavic speakers, to actually
@@ -14,7 +16,7 @@ Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
  “Mir-beas’tie” is fine.</p>
 ----
 ToC: sowhatismksh
-Title: I’m a $OS (<i>Android, …</i>) user, so what’s mksh?
+Title: I’m a $OS (<i>Android, OS/2, …</i>) user, so what’s mksh?
 
 <p>mksh is a so-called (Unix) “shell” or “command interpreter”, similar to
  <tt>COMMAND.COM</tt>, <tt>CMD.EXE</tt> or PowerShell on other operating
@@ -31,14 +33,35 @@ Title: I’m a $OS (<i>Android, …</i>) user, so what’s mksh?
  caused by mksh</a> but by some other code invoking mksh to do something
  on its behalf.</p>
 ----
+ToC: os2
+Title: I’m an OS/2 user, what else do I need to know?
+
+<p>Unlike the native command prompt, the current working directory is,
+ for security reasons common on Unix systems which the shell is designed
+ for, not in the search path at all; if you really need this, run the
+ command <tt>PATH=.$PATHSEP$PATH</tt> or add that to a suitable
+ initialisation file (<tt>~/.mkshrc</tt>).</p>
+<p>There are two different newline modes for mksh-os2: standard (Unix)
+ mode, in which only LF (0A hex) is supported as line separator, and
+ “textmode”, which also accepts ASCII newlines (CR+LF), like most other
+ tools on OS/2, but creating an incompatibility with standard mksh. If
+ you compiled mksh from source, you will get the standard Unix mode unless
+ <tt>-T</tt> is added during compilation; however, you will most likely
+ have gotten this shell through komh’s port on Hobbes, or from his OS/2
+ Factory on eComStation Korea, which uses “textmode”, though. Most OS/2
+ users will want to use “textmode” unless they need absolute compatibility
+ with Unix mksh and other Unix shells and tools.</p>
+----
 ToC: kornshell
 Title: How does this relate to ksh or the Korn Shell?
 
 <p>The Korn Shell (AT&amp;T ksh) was authored by David Korn; two major
  flavours exist (ksh88 and ksh93), the latter having been maintained
- until 2012 (last formal release) and 2014 (last beta snapshot), with
- development having been taken up by a third party around November 2017.
+ until 2012 (last formal release) and 2014 (last beta snapshot, buggy).
  A ksh86 did exist.</p>
+<p>There’s now <tt>ksh2020</tt>, a project having restarted development
+ around November 2017 forking the last <tt>ksh93 v-</tt> (beta) snapshot
+ and continuing to develop it, presented at FOSDEM.</p>
 <p>AT&amp;T ksh88 is “the (original) Korn Shell”. Other implementations,
  of varying quality (MKS Toolkit’s MKS ksh being named as an example of
  the lower end, MirBSD’s mksh at the upper end). They are all <em>not</em>
@@ -107,8 +130,8 @@ Title: How should I package mksh? (common cases)
  manually resynchronise their home directories’ copies after every package
  upgrade) or as <tt>/etc/mkshrc</tt>, in which case you install a <a
  href="https://evolvis.org/plugins/scmgit/cgi-bin/gitweb.cgi?p=alioth/mksh.git;a=blob;f=debian/.mkshrc;hb=HEAD">redirection
- script like Debian’s</a> into <tt>/etc/skel/.mkshrc</tt>. If you need a <a
- href="TaC-mksh.txt">summary of the licence information</a>, take it.</p>
+ script like Debian’s</a> into <tt>/etc/skel/.mkshrc</tt>. You may need a <a
+ href="@@RELPATH@@TaC-mksh.txt">summary of the licence information</a>.</p>
 <p>At runtime, the presence of <tt>/bin/ed</tt> as default history editor
  is recommended, as well as a manpage formatter; you can also install
  preformatted manpages from <tt>build-*ksh/*ksh.cat1</tt> if nroff(1) (or
@@ -162,6 +185,11 @@ Title: The testsuite fails!
  and tends to do wrong code generation quite a bit. Otherwise, try
  lowering the optimisation levels, bisecting, etc.</p>
 ----
+ToC: selinux-androidiocy
+Title: I forbid stat(2) in my SELinux policy, and some things do not work!
+
+Don’t break Unix. Read up on the GIGO principle. Duh.
+----
 ToC: makefile
 Title: Why doesn’t this use a Makefile to build?
 
@@ -199,18 +227,6 @@ dared so as to not lose their commit bit. If you try, succeed, and
 survive Theo, however, kudos to you! See also <a href="#oldbsd">the
 “other BSDs” FAQ entry</a>.
 ----
-ToC: os2
-Title: I’m an OS/2 user, what do I need to know?
-
-This issue is discussed at more length in the <a href="#faq">FAQ
-section in the manpage</a>. You can install plain mksh (usually
-by compiling it yourself) which behaves like one expects from a
-Unix shell in a Unix environment (LF line endings, binary mode
-file I/O, etc.) or “mksh-os2” from komh (binaries on Hobbes),
-which are built from the same source with the <tt>-T</tt> flag,
-enabling “textmode” to behave more similar to native applications
-(CR+LF line endings, text mode file I/O, etc).
-----
 ToC: book
 Title: I’d like an introduction.
 
@@ -231,9 +247,30 @@ ToC: ps1conv
 Title: My prompt from &lt;<i>some other shell</i>&gt; does not work!
 
 <a href="#contact">Contact</a> us on the mailing list or on IRC,
-we'll convert it for you. Also have a look at the PS1 section in
+we’ll convert it for you. Also have a look at the PS1 section in
 the mksh(1) manpage (search for “otherwise unused char”, e.g. with
 <tt>/</tt> in less(1), to spot it quickly).
+----
+ToC: ctrl-l-cls
+Title: ^L (Ctrl-L) does not clear the screen
+
+Use ^[^L (Escape+Ctrl-L) or rebind it:<br />
+<tt>bind '^L=clear-screen'</tt>
+----
+ToC: ctrl-u-pico
+Title: ^U (Ctrl-U) clears the entire line
+
+If it should only delete the line up to the cursor, use:<br />
+<tt>bind -m ^U='^[0^K'</tt>
+----
+ToC: cur-up-zsh
+Title: Cursor Up behaves differently from zsh
+
+Some shells make Cursor Up search in the history only for commands
+starting with what was already entered. mksh separates the shortcuts:
+Cursor Up goes up one command and PgUp searches the history as described
+above. You can, of course, rebind:<br />
+<tt>bind '^XA=search-history-up'</tt>
 ----
 ToC: current
 Title: Can mksh set the title of the window according to the command running?
@@ -258,6 +295,16 @@ for example <strong>here documents</strong> or <strong>loops</strong> press
 <strong>Ctrl-J instead of Enter/Return</strong> after <em>each</em> line
 including the first (at PS1) and final (at PS2) one.
 ----
+ToC: other-tty
+Title: How do I start mksh on a specific terminal?
+
+<p>Normally: <tt>mksh -T<i>/dev/tty2</i></tt></p>
+<p>However, if you want for it to return (e.g. for an embedded system rescue
+ shell), use this on your real console device instead:
+ <tt>mksh -T!<i>/dev/ttyACM0</i></tt></p>
+<p>mksh can also daemonise (send to the background):
+ <tt>mksh -T- -c 'exec cdio lock'</tt></p>
+----
 ToC: completion
 Title: What about programmable tab completion?
 
@@ -269,6 +316,136 @@ convenience, editor command) together with shell functions to
 implement a programmable completion engine. Multiple people have
 been considering doing so in our IRC channel; we’ll hyperlink to
 these engines when they are available.
+----
+ToC: posix-mode
+Title: How POSIX compliant is mksh? Also, UTF-8 vs. locales?
+
+<p>You’ll need to use the <tt>lksh</tt> binary, unless your C <tt>long</tt>
+ type is 32 bits wide, for POSIX-compliant arithmetic in the shell. This is
+ because <tt>mksh</tt> provides consistent, wraparound-defined, 32-bit
+ arithmetics on all platforms normally. You’ll also need to enable POSIX mode
+ (<tt>set -o posix</tt>) explicitly, which also disables brace expansion upon
+ being enabled (use <tt>set -o braceexpand</tt> to reenable if needed).</p>
+<p>For the purpose of POSIX, mksh supports only the <tt>C</tt> locale. mksh’s
+ <tt>utf8-mode</tt> (which only supports the BMP (Basic Multilingual Plane) of
+ UCS and maps raw octets into the U+EF80‥U+EFFF wide character range; see
+ <tt>Arithmetic expressions</tt> in mksh(1) for details) <em>must</em> stay
+ disabled in POSIX mode (it is disabled upon enabling POSIX mode in R56+).</p>
+<p class="boxhead">The following POSIX sh-compatible code toggles the
+ <tt>utf8-mode</tt> option dependent on the current POSIX locale, for mksh
+ to allow using the UTF-8 mode, within the constraints outlined above, in
+ code portable across various shell implementations:</p>
+<div class="boxtext">
+ <pre>
+	case ${KSH_VERSION:-} in
+	*MIRBSD KSH*|*LEGACY KSH*)
+		case ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} in
+		*[Uu][Tt][Ff]8*|*[Uu][Tt][Ff]-8*) set -U ;;
+		*) set +U ;;
+		esac ;;
+	esac
+ </pre>
+</div><p class="boxfoot">In near future, (UTF-8) locale tracking will
+ be implemented, though.</p>
+<p>The shell is pretty close to POSIX, when run as <tt>lksh -o posix</tt>
+ under the "C" locale it is intended to match. It does not do everything
+ like other POSIX-compatible or ‑compliant shells, though.</p>
+----
+ToC: function-local-scopes
+Title: What differences in function-local scopes are there?
+
+<p><tt>mksh</tt> has a different scope model from AT&amp;T <tt>ksh</tt>,
+ which leads to subtle differences in semantics for identical builtins.
+ This can cause issues with a <tt>nameref</tt> to suddenly point to a
+ local variable by accident. (Other common shells share mksh’s scoping
+ model.)</p>
+<p class="boxhead">GNU <tt>bash</tt> allows unsetting local variables; in
+ <tt>mksh</tt>, doing so in a function allows back access to the global
+ variable (actually the one in the next scope up) with the same name. The
+ following code, when run before function definitions, changes the behaviour
+ of <tt>unset</tt> to behave like other shells (the alias can be removed
+ after the definitions):</p>
+<div class="boxtext">
+ <pre>
+	case ${KSH_VERSION:-} in
+	*MIRBSD KSH*|*LEGACY KSH*)
+		function unset_compat {
+			\\builtin typeset unset_compat_x
+
+			for unset_compat_x in "$@"; do
+				eval "\\\\builtin unset $unset_compat_x[*]"
+			done
+		}
+		\\builtin alias unset=unset_compat
+		;;
+	esac
+ </pre>
+</div><p class="boxfoot">When a local variable is created (e.g. using
+ <tt>local</tt>, <tt>typeset</tt>, <tt>integer</tt> or
+ <tt>\\builtin typeset</tt>) it does not, like in other shells, inherit
+ the value from the global (next scope up) variable with the same name;
+ it is rather created without any value (unset but defined).</p>
+----
+ToC: regex-comparison
+Title: I get an error in this regex comparison
+
+<p>Use extglobs instead of regexes:<br />
+ <tt>[[ foo =~ (foo|bar).*baz ]]</tt><br />
+ … becomes…<br />
+ <tt>[[ foo = *@(foo|bar)*baz* ]]</tt></p>
+----
+ToC: extensions-to-avoid
+Title: Are there any extensions to avoid?
+
+<p>GNU <tt>bash</tt> supports “<tt>&amp;&gt;</tt>” (and “|&amp;”) to redirect
+ both stdout and stderr in one go, but this breaks POSIX and Korn Shell syntax;
+ use POSIX redirections instead:</p>
+<table border="1" cellpadding="3">
+ <tr><td>GNU bash</td><td>
+  <tt>foo |&amp; bar |&amp; baz &amp;&gt;log</tt>
+ </td></tr>
+ <tr><td>POSIX</td><td>
+  <tt>foo 2&gt;&amp;1 | bar 2&gt;&amp;1 | baz &gt;log 2&gt;&amp;1</tt>
+ </td></tr>
+</table>
+----
+ToC: while-read-pipe
+Title: Something is going wrong with my while...read loop
+
+<p class="boxhead">Most likely, you’ve encountered the problem in which
+ the shell runs all parts of a pipeline as subshell. The inner loop will
+ be executed in a subshell and variable changes cannot be propagated if
+ run in a pipeline:</p>
+<div class="boxtext">
+ <pre>
+	bar | baz | while read foo; do ...; done
+ </pre>
+</div><p class="boxfoot">Note that <tt>exit</tt> in the inner loop will
+ also only exit the subshell and not the original shell. Likewise, if the
+ code is inside a function, <tt>return</tt> in the inner loop will only
+ exit the subshell and won’t terminate the function.</p>
+<p class="boxhead">Use co-processes instead:</p>
+<div class="boxtext">
+ <pre>
+	bar | baz |&amp;
+	while read -p foo; do ...; done
+	exec 3&gt;&amp;p; exec 3&gt;&amp;-
+ </pre>
+</div><p class="boxfoot">If <tt>read</tt> is run in a way such as
+ <tt>while read foo; do ...; done</tt> then leading whitespace will be
+ removed (IFS) and backslashes processed. You might want to use
+ <tt>while IFS= read -r foo; do ...; done</tt> for pristine I/O.</p>
+<p class="boxhead">Similarly, when using the <tt>-a</tt> option, use of the
+ <tt>-r</tt> option might be prudent (<tt>read -raN-1 arr &lt;file</tt>);
+ the same applies for NUL-terminated lines:</p>
+<div class="boxtext">
+ <pre>
+	find . -type f -print0 |&amp; \
+	    while IFS= read -d '' -pr filename; do
+		print -r -- "found &lt;${filename#./}&gt;"
+	done
+ </pre>
+</div>
 ----
 ToC: builtin-rename
 Title: “rename” doesn’t work as expected!
@@ -337,19 +514,40 @@ echo END</pre>
  or, more explicitly, “<tt>return 0</tt>” at its end is still needed
  if the <em>caller</em> runs under <tt>set -e</tt>.</p>
 ----
+ToC: set-eo-pipefail
+Title: I use “set -eo pipefail” and my code unexpectedly errors out
+
+<p class="boxhead">Related to the above FAQ entry, using
+ <tt>set -o pipefail</tt> makes the following construct error out:</p>
+<div class="boxtext">
+ <pre>
+	set -e
+	for x in 1 2; do
+		false &amp;&amp; echo $x
+	done | cat
+ </pre>
+</div><p class="boxfoot">This is because, while the <tt>&amp;&amp;</tt>
+ ensures that the inner command’s failure is not taken, it sets the entire
+ <tt>for</tt>‥<tt>done</tt> loop’s errorlevel, which is passed on by
+ <tt>-o pipefail</tt>.</p>
+<p>Invert the inner command:<br />
+ <tt>true || echo $x</tt></p>
+----
 ToC: faq
 Title: My question is not answered here!
 
-Check out the FAQ section at the end of the mksh(1) manual page which
-contains questions that are in user scope; this webpage collects those
-about mksh in general, by packagers, etc.
+Do read the mksh(1) manual page. You might also wish to read the <a
+ href="@@RELPATH@@ksh-chan.htm">homepage of the <tt>#ksh</tt> IRC channel
+on Freenode</a> which lists several resources for Korn or POSIX-compatible
+shells in general. Or, <a href="#contact">contact</a> us (developer and
+users), for example via IRC.
 ----
 ToC: contact
 Title: How do I contact you (to say thanks)?
 
 You can say hi in the <tt>#!/bin/mksh</tt> channel on Freenode <a
- href="irc.htm">IRC</a>, although a <a
- href="danke.htm">donation</a> wouldn’t be amiss ☺ The <a
+ href="@@RELPATH@@irc.htm">IRC</a>, although a <a
+ href="@@RELPATH@@danke.htm">donation</a> wouldn’t be amiss ☺ The <a
  href="http://www.mail-archive.com/miros-mksh@mirbsd.org/">mailing
 list</a> can also be used.
 ----
