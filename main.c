@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.355 2019/12/30 00:45:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.356 2019/12/30 01:10:57 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -924,19 +924,17 @@ void
 unwind(int i)
 {
 	/*
-	 * This is a kludge. We need to restore everything that was
+	 * This might still be a kludge. We need to restore "everything"
 	 * changed in the new environment, see cid 1005090337C7A669439
-	 * and 10050903386452ACBF1, but fail to even save things most of
-	 * the time. funcs.c:c_eval() changes FERREXIT temporarily to 0,
-	 * which needs to be restored thus (related to Debian #696823).
-	 * We did not save the shell flags, so we use a special or'd
-	 * value here... this is mostly to clean up behind *other*
-	 * callers of unwind(LERROR) here; exec.c has the regular case.
+	 * and 10050903386452ACBF1, but don't save things most of the
+	 * time. We use FEVALERR since we haven't saved the flags; this
+	 * is mostly cleanup behind *other* callers of unwind(LERROR)
+	 * here; exec.c has the regular case.
 	 */
-	if (Flag(FERREXIT) & 0x80) {
+	if (Flag(FEVALERR)) {
 		/* GNU bash does not run this trapsig */
 		trapsig(ksh_SIGERR);
-		Flag(FERREXIT) &= ~0x80;
+		Flag(FEVALERR) = 0;
 	}
 
 	/* ordering for EXIT vs ERR is a bit odd (this is what AT&T ksh does) */

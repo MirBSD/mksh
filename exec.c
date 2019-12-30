@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.211 2019/12/11 23:58:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.212 2019/12/30 01:10:56 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -464,8 +464,9 @@ execute(struct op * volatile t,
 		unwind(LEXIT);
 	if (rv != 0 && !(flags & XERROK) &&
 	    (xerrok == NULL || !*xerrok)) {
-		if (Flag(FERREXIT) & 0x80) {
+		if (Flag(FEVALERR)) {
 			/* inside eval */
+			Flag(FEVALERR) = 0;
 			Flag(FERREXIT) = 0;
 		} else {
 			trapsig(ksh_SIGERR);

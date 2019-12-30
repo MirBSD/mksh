@@ -39,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.357 2019/08/02 19:27:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.358 2019/12/30 01:10:56 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2076,9 +2076,10 @@ c_eval(const char **wp)
 	exstat |= 0x4000;
 
 	savef = Flag(FERREXIT);
-	Flag(FERREXIT) |= 0x80;
+	Flag(FEVALERR) = 1;
 	rv = shell(s, 2);
 	Flag(FERREXIT) = savef;
+	Flag(FEVALERR) = 0;
 	source = saves;
 	afree(s, ATEMP);
 	if (exstat & 0x4000)

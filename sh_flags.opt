@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2013, 2014, 2015, 2017
+ * Copyright (c) 2013, 2014, 2015, 2017, 2019
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -19,7 +19,7 @@
  */
 
 @SHFLAGS_DEFNS
-__RCSID("$MirOS: src/bin/mksh/sh_flags.opt,v 1.6 2018/08/10 02:53:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh_flags.opt,v 1.7 2019/12/30 01:10:58 tg Exp $");
 @SHFLAGS_ENUMS
 #define FN(sname,cname,flags,ochar)	cname,
 #define F0(sname,cname,flags,ochar)	cname = 0,
@@ -184,12 +184,16 @@ FN("xtrace", FXTRACE, OF_ANY
 FN("", FCOMMAND, OF_CMDLINE
 
 /*
- * anonymous flags: used internally by shell only (not visible to user
+ * anonymous flags: used internally by shell only (not visible to user)
  */
 
 /* ./.	direct builtin call (divined from argv[0] multi-call binary) */
 >|
 FN("", FAS_BUILTIN, OF_INTERNAL
+
+/* ./.	(internal) FERREXIT temporarily inhibited, during eval */
+>|
+FN("", FEVALERR, OF_INTERNAL
 
 /* ./.	(internal) initial shell was interactive */
 >|
