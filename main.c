@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.359 2019/12/30 03:45:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.360 2019/12/30 03:58:56 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -806,6 +806,8 @@ shell(Source * volatile s, volatile int level)
 	int i;
 
 	newenv(level == 2 ? E_EVAL : E_PARSE);
+	if (level == 2)
+		e->flags |= EF_IN_EVAL;
 	if (interactive)
 		really_exit = false;
 	switch ((i = kshsetjmp(e->jbuf))) {
@@ -930,7 +932,7 @@ void
 unwind(int i)
 {
 	/* during eval, skip FERREXIT trap */
-	if (i == LERREXT && Flag(FEVALERR))
+	if (i == LERREXT && (e->flags & EF_IN_EVAL))
 		goto defer_traps;
 
 	/* ordering for EXIT vs ERR is a bit odd (this is what AT&T ksh does) */
@@ -990,8 +992,7 @@ newenv(int type)
 	ep->temps = NULL;
 	ep->yyrecursive_statep = NULL;
 	ep->type = type;
-	ep->flags = 0;
-	/* jump buffer is invalid because flags == 0 */
+	ep->flags = e->flags & EF_IN_EVAL;
 	e = ep;
 }
 

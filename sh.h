@@ -183,7 +183,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.877 2019/12/30 03:45:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.878 2019/12/30 03:58:57 tg Exp $");
 #endif
 #define MKSH_VERSION "R57 2019/12/29"
 
@@ -877,6 +877,7 @@ extern struct env {
 /* struct env.flag values */
 #define EF_BRKCONT_PASS	BIT(1)	/* set if E_LOOP must pass break/continue on */
 #define EF_FAKE_SIGDIE	BIT(2)	/* hack to get info from unwind to quitenv */
+#define EF_IN_EVAL	BIT(3)	/* inside an eval */
 
 /* Do breaks/continues stop at env type e? */
 #define STOP_BRKCONT(t)	((t) == E_NONE || (t) == E_PARSE || \

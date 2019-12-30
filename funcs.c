@@ -39,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.359 2019/12/30 01:15:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.360 2019/12/30 03:58:55 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2074,9 +2074,7 @@ c_eval(const char **wp)
 	/* SUSv4: OR with a high value never written otherwise */
 	exstat |= 0x4000;
 
-	Flag(FEVALERR) = 1;
 	rv = shell(s, 2);
-	Flag(FEVALERR) = 0;
 	source = saves;
 	afree(s, ATEMP);
 	if (exstat & 0x4000)
