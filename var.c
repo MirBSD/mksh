@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.233 2019/12/12 12:13:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.234 2019/12/30 04:49:31 tg Exp $");
 
 /*-
  * Variables
@@ -280,7 +280,7 @@ isglobal(const char *n, bool docreate)
 		vp->name[0] = c;
 		vp->name[1] = '\0';
 		vp->flag |= RDONLY;
-		if (vn[1] != '\0')
+		if (!c || vn[1] != '\0')
 			goto out;
 		vp->flag |= ISSET|INTEGER;
 		switch (c) {
