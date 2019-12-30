@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.356 2019/12/30 01:10:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.357 2019/12/30 01:13:48 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -934,7 +934,6 @@ unwind(int i)
 	if (Flag(FEVALERR)) {
 		/* GNU bash does not run this trapsig */
 		trapsig(ksh_SIGERR);
-		Flag(FEVALERR) = 0;
 	}
 
 	/* ordering for EXIT vs ERR is a bit odd (this is what AT&T ksh does) */
