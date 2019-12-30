@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.826 2019/12/30 03:45:09 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.827 2019/12/30 04:18:48 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -7131,13 +7131,13 @@ stdin:
 name: exec-function-environment-1
 description:
 	Check assignments in function calls and whether they affect
-	the current execution environment (ksh93, SUSv4)
+	the current execution environment
 stdin:
 	f() { a=2; }; g() { b=3; echo y$c-; }; a=1 f; b=2; c=1 g
 	echo x$a-$b- z$c-
 expected-stdout:
 	y1-
-	x2-3- z1-
+	x-3- z-
 ---
 name: exec-modern-korn-shell
 description:
@@ -11276,7 +11276,7 @@ description:
 	(Inspired by PR 2450 on OpenBSD.) Calling
 		FOO=bar f
 	where f is a ksh style function, should not set FOO in the current
-	env. If f is a Bourne style function, FOO should be set. Furthermore,
+	env. If f is a Bourne style function, (new) also not. Furthermore,
 	the function should receive a correct value of FOO. However, differing
 	from oksh, setting FOO in the function itself must change the value in
 	setting FOO in the function itself should not change the value in
@@ -11322,7 +11322,7 @@ stdin:
 	if [ $? != 0 ]; then
 		exit 1
 	fi
-	if [ x$FOO != xfoo ]; then
+	if [ x$FOO != x ]; then
 		exit 1
 	fi
 	FOO=barbar
@@ -11337,7 +11337,7 @@ stdin:
 	if [ $? != 0 ]; then
 		exit 1
 	fi
-	if [ x$FOO != xfoo ]; then
+	if [ x$FOO != xbarbar ]; then
 		exit 1
 	fi
 ---

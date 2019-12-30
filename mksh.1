@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.470 2019/12/29 23:53:48 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.471 2019/12/30 04:18:51 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -77,7 +77,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: December 29 2019 $
+.Dd $Mdocdate: December 30 2019 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2977,9 +2977,6 @@ notation:
 .It
 The $0 parameter is set to the name of the function
 (Bourne-style functions leave $0 untouched).
-.It
-Parameter assignments preceding function calls are not kept in the shell
-environment (executing Bourne-style functions will keep assignments).
 .It
 .Ev OPTIND
 is saved/reset and restored on entry and exit from the function so
@@ -6736,7 +6733,7 @@ for the in-memory portion of the history is slow, should use
 .Xr memmove 3 .
 .Pp
 This document attempts to describe
-.Nm mksh\ R57
+.Nm mksh\ R58
 and up,
 .\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as
