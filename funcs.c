@@ -39,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.358 2019/12/30 01:10:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.359 2019/12/30 01:15:57 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2032,7 +2032,6 @@ int
 c_eval(const char **wp)
 {
 	struct source *s, *saves = source;
-	unsigned char savef;
 	int rv;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
@@ -2075,10 +2074,8 @@ c_eval(const char **wp)
 	/* SUSv4: OR with a high value never written otherwise */
 	exstat |= 0x4000;
 
-	savef = Flag(FERREXIT);
 	Flag(FEVALERR) = 1;
 	rv = shell(s, 2);
-	Flag(FERREXIT) = savef;
 	Flag(FEVALERR) = 0;
 	source = saves;
 	afree(s, ATEMP);
