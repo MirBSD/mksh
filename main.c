@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.357 2019/12/30 01:13:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.358 2019/12/30 01:29:53 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -929,7 +929,8 @@ unwind(int i)
 	 * and 10050903386452ACBF1, but don't save things most of the
 	 * time. We use FEVALERR since we haven't saved the flags; this
 	 * is mostly cleanup behind *other* callers of unwind(LERROR)
-	 * here; exec.c has the regular case.
+	 * here; exec.c has the regular case. If this explodes, see cids
+	 * 1005E094F5633C8F0AB 1005E094FE436511ED6 1005E0950692C5D1944
 	 */
 	if (Flag(FEVALERR)) {
 		/* GNU bash does not run this trapsig */
