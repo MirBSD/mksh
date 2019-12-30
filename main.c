@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.358 2019/12/30 01:29:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.359 2019/12/30 03:45:13 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -738,6 +738,7 @@ include(const char *name, int argc, const char **argv, bool intr_ok)
 		switch (i) {
 		case LRETURN:
 		case LERROR:
+		case LERREXT:
 			/* see below */
 			return (exstat & 0xFF);
 		case LINTR:
@@ -812,18 +813,21 @@ shell(Source * volatile s, volatile int level)
 		break;
 	case LBREAK:
 	case LCONTIN:
-		if (level != 2) {
-			source = old_source;
-			quitenv(NULL);
-			internal_errorf(Tf_cant_s, Tshell,
-			    i == LBREAK ? Tbreak : Tcontinue);
+		/* assert: interactive == false */
+		source = old_source;
+		quitenv(NULL);
+		if (level == 2) {
+			/* keep on going */
+			unwind(i);
 			/* NOTREACHED */
 		}
-		/* assert: interactive == false */
-		/* FALLTHROUGH */
+		internal_errorf(Tf_cant_s, Tshell,
+		    i == LBREAK ? Tbreak : Tcontinue);
+		/* NOTREACHED */
 	case LINTR:
 		/* we get here if SIGINT not caught or ignored */
 	case LERROR:
+	case LERREXT:
 	case LSHELL:
 		if (interactive) {
 			if (i == LINTR)
@@ -854,6 +858,8 @@ shell(Source * volatile s, volatile int level)
 	case LRETURN:
 		source = old_source;
 		quitenv(NULL);
+		if (i == LERREXT && level == 2)
+			return (exstat & 0xFF);
 		/* keep on going */
 		unwind(i);
 		/* NOTREACHED */
@@ -913,8 +919,8 @@ shell(Source * volatile s, volatile int level)
  source_no_tree:
 		reclaim();
 	}
-	quitenv(NULL);
 	source = old_source;
+	quitenv(NULL);
 	return (exstat & 0xFF);
 }
 
@@ -923,34 +929,25 @@ shell(Source * volatile s, volatile int level)
 void
 unwind(int i)
 {
-	/*
-	 * This might still be a kludge. We need to restore "everything"
-	 * changed in the new environment, see cid 1005090337C7A669439
-	 * and 10050903386452ACBF1, but don't save things most of the
-	 * time. We use FEVALERR since we haven't saved the flags; this
-	 * is mostly cleanup behind *other* callers of unwind(LERROR)
-	 * here; exec.c has the regular case. If this explodes, see cids
-	 * 1005E094F5633C8F0AB 1005E094FE436511ED6 1005E0950692C5D1944
-	 */
-	if (Flag(FEVALERR)) {
-		/* GNU bash does not run this trapsig */
-		trapsig(ksh_SIGERR);
-	}
+	/* during eval, skip FERREXIT trap */
+	if (i == LERREXT && Flag(FEVALERR))
+		goto defer_traps;
 
 	/* ordering for EXIT vs ERR is a bit odd (this is what AT&T ksh does) */
-	if (i == LEXIT || ((i == LERROR || i == LINTR) &&
+	if (i == LEXIT || ((i == LERROR || i == LERREXT || i == LINTR) &&
 	    sigtraps[ksh_SIGEXIT].trap &&
 	    (!Flag(FTALKING) || Flag(FERREXIT)))) {
 		++trap_nested;
 		runtrap(&sigtraps[ksh_SIGEXIT], trap_nested == 1);
 		--trap_nested;
 		i = LLEAVE;
-	} else if (Flag(FERREXIT) && (i == LERROR || i == LINTR)) {
+	} else if (Flag(FERREXIT) && (i == LERROR || i == LERREXT || i == LINTR)) {
 		++trap_nested;
 		runtrap(&sigtraps[ksh_SIGERR], trap_nested == 1);
 		--trap_nested;
 		i = LLEAVE;
 	}
+ defer_traps:
 
 	while (/* CONSTCOND */ 1) {
 		switch (e->type) {

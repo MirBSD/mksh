@@ -183,9 +183,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.876 2019/12/11 23:58:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.877 2019/12/30 03:45:14 tg Exp $");
 #endif
-#define MKSH_VERSION "R57 2019/12/11"
+#define MKSH_VERSION "R57 2019/12/29"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -889,12 +889,13 @@ extern struct env {
 #define LRETURN	1	/* return statement */
 #define LEXIT	2	/* exit statement */
 #define LERROR	3	/* errorf() called */
-#define LLEAVE	4	/* untrappable exit/error */
+#define LERREXT 4	/* set -e caused */
 #define LINTR	5	/* ^C noticed */
 #define LBREAK	6	/* break statement */
 #define LCONTIN	7	/* continue statement */
 #define LSHELL	8	/* return to interactive shell() */
 #define LAEXPR	9	/* error in arithmetic expression */
+#define LLEAVE	10	/* untrappable exit/error */
 
 /* sort of shell global state */
 EXTERN pid_t procpid;		/* PID of executing process */
