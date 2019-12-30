@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.221 2019/12/12 00:36:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.222 2019/12/30 04:43:37 tg Exp $");
 
 /*
  * string expansion
@@ -438,17 +438,8 @@ expand(
 						sp += slen;
 					switch (stype & STYPE_SINGLE) {
 					case ORD('#') | STYPE_AT:
-						x.str = shf_smprintf("%08X",
-						    (unsigned int)hash(str_val(st->var)));
+					case ORD('Q') | STYPE_AT:
 						break;
-					case ORD('Q') | STYPE_AT: {
-						struct shf shf;
-
-						shf_sopen(NULL, 0, SHF_WR|SHF_DYNAMIC, &shf);
-						print_value_quoted(&shf, str_val(st->var));
-						x.str = shf_sclose(&shf);
-						break;
-					    }
 					case ORD('0'): {
 						char *beg, *mid, *end, *stg;
 						mksh_ari_t from = 0, num = -1, flen, finc = 0;
@@ -811,11 +802,22 @@ expand(
 					errorf(Tf_sD_s, st->var->name,
 					    debunk(dp, dp, strlen(dp) + 1));
 					break;
+				case ORD('#') | STYPE_AT:
+					x.str = shf_smprintf("%08X",
+					    (unsigned int)hash(str_val(st->var)));
+					goto common_CSUBST;
+				case ORD('Q') | STYPE_AT: {
+					struct shf shf;
+
+					shf_sopen(NULL, 0, SHF_WR|SHF_DYNAMIC, &shf);
+					print_value_quoted(&shf, str_val(st->var));
+					x.str = shf_sclose(&shf);
+					goto common_CSUBST;
+				    }
 				case ORD('0'):
 				case ORD('/') | STYPE_AT:
 				case ORD('/'):
-				case ORD('#') | STYPE_AT:
-				case ORD('Q') | STYPE_AT:
+ common_CSUBST:
 					dp = Xrestpos(ds, dp, st->base);
 					type = XSUB;
 					word = quote || (!*x.str && (f & DOSCALAR)) ? IFS_WORD : IFS_IWS;
