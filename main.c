@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.354 2019/12/11 23:58:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.355 2019/12/30 00:45:15 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -947,7 +947,7 @@ unwind(int i)
 		runtrap(&sigtraps[ksh_SIGEXIT], trap_nested == 1);
 		--trap_nested;
 		i = LLEAVE;
-	} else if (Flag(FERREXIT) == 1 && (i == LERROR || i == LINTR)) {
+	} else if (Flag(FERREXIT) && (i == LERROR || i == LINTR)) {
 		++trap_nested;
 		runtrap(&sigtraps[ksh_SIGERR], trap_nested == 1);
 		--trap_nested;
