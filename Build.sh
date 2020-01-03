@@ -1,8 +1,9 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.746 2019/12/11 20:17:33 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.747 2020/01/03 21:58:50 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019
+#		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
+#		2020
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -1116,6 +1117,8 @@ ct="xlc"
 ct="sunpro"
 #elif defined(__neatcc__)
 ct="neatcc"
+#elif defined(__lacc__)
+ct="lacc"
 #elif defined(__ACK__)
 ct="ack"
 #elif defined(__BORLANDC__)
@@ -1250,6 +1253,9 @@ icc)
 kencc)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
 	;;
+lacc)
+	# no version information
+	;;
 lcc)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
 	add_cppflags -D__inline__=__inline
@@ -1339,7 +1345,7 @@ xlc)
 *)
 	test x"$ct" = x"untested" && $e "!!! detecting preprocessor failed"
 	ct=unknown
-	vv "$CC --version"
+	vv '|' "$CC --version"
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
 	;;
