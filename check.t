@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.827 2019/12/30 04:18:48 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.828 2020/01/03 22:04:06 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -13313,7 +13313,7 @@ description:
 	Crashed during March 2011, fixed on vernal equinōx ☺
 category: os:mirbsd,os:openbsd
 stdin:
-	export MALLOC_OPTIONS=FGJPRSX
+	export MALLOC_OPTIONS=FGJRSX
 	"$__progname" -c 'x=$(tr z r <<<baz); echo $x'
 expected-stdout:
 	bar
