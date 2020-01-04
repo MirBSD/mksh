@@ -11,7 +11,7 @@
 /*-
  * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *	       2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *	       2019
+ *	       2019, 2020
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -172,6 +172,14 @@
 #define __IDSTRING_EXPAND(l,p)		__IDSTRING_CONCAT(l,p)
 #ifdef MKSH_DONT_EMIT_IDSTRING
 #define __IDSTRING(prefix, string)	/* nothing */
+#elif defined(__ELF__) && defined(__GNUC__) && \
+    !(defined(__GNUC__) && defined(__mips16)) && \
+    !defined(__llvm__) && !defined(__NWCC__) && !defined(NO_ASM)
+#define __IDSTRING(prefix, string)				\
+	__asm__(".section .comment"				\
+	"\n	.ascii	\"@(\"\"#)" #prefix ": \""		\
+	"\n	.asciz	\"" string "\""				\
+	"\n	.previous")
 #else
 #define __IDSTRING(prefix, string)				\
 	static const char __IDSTRING_EXPAND(__LINE__,prefix) []	\
@@ -183,7 +191,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.878 2019/12/30 03:58:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.879 2020/01/04 00:04:56 tg Exp $");
 #endif
 #define MKSH_VERSION "R57 2019/12/29"
 
