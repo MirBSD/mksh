@@ -173,7 +173,7 @@
 #ifdef MKSH_DONT_EMIT_IDSTRING
 #define __IDSTRING(prefix, string)	/* nothing */
 #elif defined(__ELF__) && defined(__GNUC__) && \
-    !(defined(__GNUC__) && defined(__mips16)) && \
+    !(defined(__GNUC__) && defined(__mips16) && (__GNUC__ >= 8)) && \
     !defined(__llvm__) && !defined(__NWCC__) && !defined(NO_ASM)
 #define __IDSTRING(prefix, string)				\
 	__asm__(".section .comment"				\
@@ -191,7 +191,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.879 2020/01/04 00:04:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.880 2020/01/09 14:39:23 tg Exp $");
 #endif
 #define MKSH_VERSION "R57 2019/12/29"
 
