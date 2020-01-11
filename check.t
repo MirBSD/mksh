@@ -1,9 +1,9 @@
-# $MirOS: src/bin/mksh/check.t,v 1.828 2020/01/03 22:04:06 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.829 2020/01/11 21:11:28 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #	      2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-#	      2019
+#	      2019, 2020
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -2538,6 +2538,19 @@ stdin:
 expected-stdout:
 	-bc abc bbc cbc ebc
 	@bc
+---
+name: glob-range-6
+description:
+	ksh93 fails this but POSIX probably demands it
+file-setup: file 644 "abc"
+file-setup: file 644 "cbc"
+stdin:
+	echo *b*
+	[ '*b*' = *b* ] && echo yep; echo $?
+expected-stdout:
+	abc cbc
+	2
+expected-stderr-pattern: /.*/
 ---
 name: glob-word-1
 description:
