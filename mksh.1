@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.472 2020/01/11 21:12:29 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.473 2020/01/24 18:57:09 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -77,7 +77,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 11 2020 $
+.Dd $Mdocdate: January 24 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -5957,7 +5957,8 @@ print \-nr \-\- "${x@/[\e"\-\e$\e&\-*:\-?[\e\e\e\`{\-\e}${IFS\-$\*(aq \et\en\*(a
 .Ed
 .Ss Vi editing mode
 .Em Note:
-The vi command-line editing mode is orphaned, yet still functional.
+The vi command-line editing mode has not yet been brought up to the
+same quality and feature set as the emacs mode.
 It is 8-bit clean but specifically does not support UTF-8 or MBCS.
 .Pp
 The vi command-line editor in
