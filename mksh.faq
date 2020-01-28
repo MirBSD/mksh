@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.4 2019/12/30 22:16:20 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.5 2020/01/28 18:24:56 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -250,6 +250,52 @@ Title: My prompt from &lt;<i>some other shell</i>&gt; does not work!
 we’ll convert it for you. Also have a look at the PS1 section in
 the mksh(1) manpage (search for “otherwise unused char”, e.g. with
 <tt>/</tt> in less(1), to spot it quickly).
+----
+ToC: ps1weird
+Title: My prompt is weird!
+
+<p>There are several reasons why your <tt>PS1</tt> might be not
+ what you’d expect:</p><ul>
+<li><tt>$PS1</tt> is <tt>export</tt>ed. <strong>Do not export PS1!</strong>
+ (This was agreed upon as suggestion in a discussion between bash, zsh and
+ Korn shell developers.) The feature set of different shells vastly differs
+ and each shell should use its default PS1 or from its startup files.</li>
+<li><tt>$ENV</tt> <a href="#env">is set and/or <tt>export</tt>ed</a>.</li>
+<li>Your prompt is just “<tt># </tt>”: you’re entering a root shell, and
+ <tt>$PS1</tt> does not contain the ‘#’ character, in which case the shell
+ forces this prompt, making extra privileges obvious.</li>
+<li>Your prompt is just “<tt>$ </tt>”: perhaps your system administrator
+ did not install the shipped <tt>dot.mkshrc</tt> file, or you did not copy
+ <tt>/etc/skel/.mkshrc</tt> into your home directory (perhaps it was created
+ before <tt>mksh</tt> was installed?). Without another idea for a fix, get <a
+ href="http://www.mirbsd.org/cvs.cgi/~checkout~/src/bin/mksh/dot.mkshrc?rev=HEAD;content-type=text%2Fplain">this
+ file</a> and store it as <tt>~/.mkshrc</tt> then run <tt>mksh</tt>; this
+ will at the very least install our sample (“user@host:path $ ”) prompt.</li>
+<li>Your prompt contains things like “\u” or “\w”: it is for another shell
+ and <a href="#ps1conv">needs converting</a>.</li>
+<li>Your prompt contains colours, and when the command line is long the
+ cursor position or screen contents, especially using the history, is off:
+ terminal escapes must be escaped from the shell; check the PS1 section in
+ the manpage: search for “otherwise unused char” (see above).</li>
+<li>If the prompt doesn’t leave enough space on the right, the shell inserts
+ a line break after it when rendering.</li>
+</ul>
+----
+ToC: env
+Title: On startup files and <tt>$ENV</tt> across and detecting various shells
+
+Interactive shells look at <tt>~/.mkshrc</tt> (or <tt>/system/etc/mkshrc</tt>
+on Android and <tt>/etc/mkshrc</tt> on FreeWRT and OpenWrt) by default. This
+location can, however, be overridden by setting the <tt>ENV</tt> environment
+variable. (FreeBSD is rumoured to set it in their system profile.) It’s better
+to not set <tt>$ENV</tt> if possible and let every shell user their native
+startup files; otherwise, you must ensure that it runs under all shells. Check
+<tt>$BASH_VERSION</tt> (GNU bash), <tt>$KSH_VERSION</tt> (contains “LEGACY KSH”
+or “MIRBSD KSH” for mksh, “PD KSH” for ancient mirbsdksh/oksh/pdksh, “Version”
+for ksh93); <tt>$NETBSD_SHELL</tt> (NetBSD ash); <tt>POSH_VERSION</tt> (posh, a
+pdksh derivative); <tt>$SH_VERSION</tt> (“PD KSH” as sh), <tt>$YASH_VERSION</tt>
+(yash), <tt>$ZSH_VERSION</tt> (or if <tt>$VERSION</tt> begins with “zsh”); a <a
+href="@@RELPATH@@ksh-chan.htm#which-shell">list of more approaches</a> exists.
 ----
 ToC: ctrl-l-cls
 Title: ^L (Ctrl-L) does not clear the screen
