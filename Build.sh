@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.747 2020/01/03 21:58:50 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.748 2020/02/03 22:23:32 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -600,7 +600,7 @@ if test -d $tfn || test -d $tfn.exe; then
 	exit 1
 fi
 rmf a.exe* a.out* conftest.c conftest.exe* *core core.* ${tfn}* *.bc *.dbg \
-    *.ll *.o *.gen *.cat1 Rebuild.sh lft no signames.inc test.sh x vv.out
+    *.ll *.o *.gen *.cat1 Rebuild.sh lft no signames.inc test.sh x vv.out *.htm
 
 SRCS="lalloc.c edit.c eval.c exec.c expr.c funcs.c histrap.c jobs.c"
 SRCS="$SRCS lex.c main.c misc.c shf.c syn.c tree.c var.c"
@@ -2701,6 +2701,7 @@ test $cm = combine || v "$CC $CFLAGS $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
 test -f $tcfn || exit 1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/lksh.1' >lksh.cat1" || rmf lksh.cat1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || rmf mksh.cat1
+test 1 = $r || v "(set -- ''; . '$srcdir/FAQ2HTML.sh')" || rmf FAQ.htm
 test 0 = $eq && v $SIZE $tcfn
 i=install
 test -f /usr/ucb/$i && i=/usr/ucb/$i
@@ -2714,7 +2715,13 @@ if test $legacy = 0; then
 fi
 $e
 $e Installing the manual:
+if test -e FAQ.htm; then
+	$e "# $i -c -o root -g bin -m 444 FAQ.htm /usr/share/doc/mksh/"
+fi
 if test -f mksh.cat1; then
+	if test -e FAQ.htm; then
+		$e plus either
+	fi
 	$e "# $i -c -o root -g bin -m 444 lksh.cat1" \
 	    "/usr/share/man/cat1/lksh.0"
 	$e "# $i -c -o root -g bin -m 444 mksh.cat1" \
@@ -2725,6 +2732,8 @@ $e "# $i -c -o root -g bin -m 444 lksh.1 mksh.1 /usr/share/man/man1/"
 $e
 $e Run the regression test suite: ./test.sh
 $e Please also read the sample file dot.mkshrc and the fine manual.
+test -e FAQ.htm || \
+    $e Run FAQ2HTML.sh and place FAQ.htm into a suitable location as well.
 exit 0
 
 : <<'EOD'
