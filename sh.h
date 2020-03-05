@@ -1429,7 +1429,7 @@ EXTERN char ifs0;
 /* external types */
 
 /* !%,-.0‥9:@A‥Z[]_a‥z	valid characters in alias names */
-#define C_ALIAS	(CiALIAS | CiBRACK | CiCOLON | CiDIGIT | CiLOWER | CiMINUS | CiOCTAL | CiPERCT | CiUNDER | CiUPPER)
+#define C_ALIAS	(CiALIAS | CiBRACK | CiCOLON | CiDIGIT | CiLOWER | CiMINUS | CiOCTAL | CiPERCT | CiPLUS | CiUNDER | CiUPPER)
 /* 0‥9A‥Za‥z		alphanumerical */
 #define C_ALNUM	(CiDIGIT | CiLOWER | CiOCTAL | CiUPPER)
 /* 0‥9A‥Z_a‥z		alphanumerical plus underscore (“word character”) */
