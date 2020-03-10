@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.225 2020/03/10 21:43:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.226 2020/03/10 22:00:02 tg Exp $");
 
 /*
  * string expansion
@@ -1365,20 +1365,27 @@ varsub(Expand *xp, const char *sp, const char *word,
 
 	switch (sc & 3) {
 	case 1:
+		/* can’t assign/trim a vector (yet) */
 		switch (stype & STYPE_SINGLE) {
-		/* can't assign to a vector */
-		case ORD('='):
-		/* can't trim a vector (yet) */
-		case ORD('%'):
-		case ORD('#'):
+		case ORD('-'):
+		case ORD('+'):
+			/* allowed ops */
+		case 0:
+			/* or no ops */
+			break;
+	/*	case ORD('='):
 		case ORD('?'):
-		case ORD('0'):
-		case ORD('/') | STYPE_AT:
+		case ORD('#'):
+		case ORD('%'):
 		case ORD('/'):
+		case ORD('/') | STYPE_AT:
+		case ORD('0'):
 		case ORD('#') | STYPE_AT:
 		case ORD('Q') | STYPE_AT:
+	*/	default:
 			return (-1);
 		}
+		/* do what we can */
 		/* POSIX 2009? */
 		zero_ok = true;
 		if (e->loc->argc == 0) {
@@ -1396,20 +1403,27 @@ varsub(Expand *xp, const char *sp, const char *word,
 		}
 		break;
 	case 3:
+		/* can’t assign/trim a vector (yet) */
 		switch (stype & STYPE_SINGLE) {
-		/* can't assign to a vector */
-		case ORD('='):
-		/* can't trim a vector (yet) */
-		case ORD('%'):
-		case ORD('#'):
+		case ORD('-'):
+		case ORD('+'):
+			/* allowed ops */
+		case 0:
+			/* or no ops */
+			break;
+	/*	case ORD('='):
 		case ORD('?'):
-		case ORD('0'):
-		case ORD('/') | STYPE_AT:
+		case ORD('#'):
+		case ORD('%'):
 		case ORD('/'):
+		case ORD('/') | STYPE_AT:
+		case ORD('0'):
 		case ORD('#') | STYPE_AT:
 		case ORD('Q') | STYPE_AT:
+	*/	default:
 			return (-1);
 		}
+		/* do what we can */
 		c = 0;
  arraynames:
 		XPinit(wv, 32);
