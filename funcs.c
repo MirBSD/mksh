@@ -39,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.361 2020/03/10 19:18:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.362 2020/03/10 23:50:33 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -747,6 +747,7 @@ bool
 valid_alias_name(const char *cp)
 {
 	switch (ord(*cp)) {
+	case ORD('+'):
 	case ORD('-'):
 		return (false);
 	case ORD('['):
