@@ -191,7 +191,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.881 2020/03/10 23:50:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.882 2020/03/10 23:51:35 tg Exp $");
 #endif
 #define MKSH_VERSION "R57 2020/03/10"
 
@@ -1414,7 +1414,7 @@ EXTERN bool really_exit;
 #define CiCOLON	BIT(26)	/* :				*/
 #define CiEQUAL	BIT(27)	/* =				*/
 #define CiQUEST	BIT(28)	/* ?				*/
-#define CiBRACK	BIT(29)	/* ]				*/
+#define CiBRACK	BIT(29)	/* []				*/
 #define CiUNDER	BIT(30)	/* _				*/
 #define CiGRAVE	BIT(31)	/* `				*/
 /* out of space, but one for *@ would make sense, possibly others */
