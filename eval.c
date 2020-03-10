@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.226 2020/03/10 22:00:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.227 2020/03/10 22:26:01 tg Exp $");
 
 /*
  * string expansion
@@ -1239,8 +1239,14 @@ varsub(Expand *xp, const char *sp, const char *word,
 		switch (stype) {
 		case ORD('!'):
 			if (sc & 2) {
-				c = ORD('!');
 				stype = 0;
+				XPinit(wv, 32);
+				vp = global(arrayname(sp));
+				do {
+					if (vp->flag & ISSET)
+						XPput(wv, shf_smprintf(Tf_lu,
+						    arrayindex(vp)));
+				} while ((vp = vp->u.array));
 				goto arraynames;
 			}
 			xp->var = global(sp);
@@ -1262,15 +1268,13 @@ varsub(Expand *xp, const char *sp, const char *word,
 			/* partial utf_mbswidth reimplementation */
 			sc = 0;
 			while (*p) {
-				size_t len;
-
 				if (!UTFMODE ||
-				    (len = utf_mbtowc(&c, p)) == (size_t)-1)
+				    (wv.len = utf_mbtowc(&c, p)) == (size_t)-1)
 					/* not UTFMODE or not UTF-8 */
 					c = rtt2asc(*p++);
 				else
 					/* UTFMODE and UTF-8 */
-					p += len;
+					p += wv.len;
 				/* c == char or wchar at p++ */
 				if ((slen = utf_wcwidth(c)) == -1) {
 					/* 646, 8859-1, 10646 C0/C1 */
@@ -1363,85 +1367,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 	if (!stype && *word != CSUBST)
 		return (-1);
 
-	switch (sc & 3) {
-	case 1:
-		/* can’t assign/trim a vector (yet) */
-		switch (stype & STYPE_SINGLE) {
-		case ORD('-'):
-		case ORD('+'):
-			/* allowed ops */
-		case 0:
-			/* or no ops */
-			break;
-	/*	case ORD('='):
-		case ORD('?'):
-		case ORD('#'):
-		case ORD('%'):
-		case ORD('/'):
-		case ORD('/') | STYPE_AT:
-		case ORD('0'):
-		case ORD('#') | STYPE_AT:
-		case ORD('Q') | STYPE_AT:
-	*/	default:
-			return (-1);
-		}
-		/* do what we can */
-		/* POSIX 2009? */
-		zero_ok = true;
-		if (e->loc->argc == 0) {
-			xp->var = global(sp);
- argc0:
-			xp->str = null;
-			state = sc & 4 ? XNULLSUB : XSUB;
-		} else {
-			xp->u.strv = (const char **)e->loc->argv + 1;
- argc1:
-			xp->str = *xp->u.strv++;
-			/* $@ or (via goto) ${foo[@]} */
-			xp->split = tobool(sc & 4);
-			state = XARG;
-		}
-		break;
-	case 3:
-		/* can’t assign/trim a vector (yet) */
-		switch (stype & STYPE_SINGLE) {
-		case ORD('-'):
-		case ORD('+'):
-			/* allowed ops */
-		case 0:
-			/* or no ops */
-			break;
-	/*	case ORD('='):
-		case ORD('?'):
-		case ORD('#'):
-		case ORD('%'):
-		case ORD('/'):
-		case ORD('/') | STYPE_AT:
-		case ORD('0'):
-		case ORD('#') | STYPE_AT:
-		case ORD('Q') | STYPE_AT:
-	*/	default:
-			return (-1);
-		}
-		/* do what we can */
-		c = 0;
- arraynames:
-		XPinit(wv, 32);
-		for (vp = global(arrayname(sp)); vp; vp = vp->u.array) {
-			if (!(vp->flag & ISSET))
-				continue;
-			XPput(wv, c == ORD('!') ?
-			    shf_smprintf(Tf_lu, arrayindex(vp)) :
-			    str_val(vp));
-		}
-		if (XPsize(wv) == 0) {
-			XPfree(wv);
-			goto argc0;
-		}
-		XPput(wv, NULL);
-		xp->u.strv = (const char **)XPptrv(wv);
-		goto argc1;
-	default:
+	if (!sc) {
 		xp->var = global(sp);
 		xp->str = str_val(xp->var);
 		/* can't assign things like $! or $1 */
@@ -1449,7 +1375,62 @@ varsub(Expand *xp, const char *sp, const char *word,
 		    !*xp->str && ctype(*sp, C_VAR1 | C_DIGIT))
 			return (-1);
 		state = XSUB;
-		break;
+	} else {
+		/* can’t assign/trim a vector (yet) */
+		switch (stype & STYPE_SINGLE) {
+		case ORD('-'):
+		case ORD('+'):
+			/* allowed ops */
+		case 0:
+			/* or no ops */
+			break;
+	/*	case ORD('='):
+		case ORD('?'):
+		case ORD('#'):
+		case ORD('%'):
+		case ORD('/'):
+		case ORD('/') | STYPE_AT:
+		case ORD('0'):
+		case ORD('#') | STYPE_AT:
+		case ORD('Q') | STYPE_AT:
+	*/	default:
+			return (-1);
+		}
+		/* do what we can */
+		if (sc & 2) {
+			XPinit(wv, 32);
+			vp = global(arrayname(sp));
+			do {
+				if (vp->flag & ISSET)
+					XPput(wv, str_val(vp));
+			} while ((vp = vp->u.array));
+ arraynames:
+			if ((c = (XPsize(wv) == 0)))
+				XPfree(wv);
+			else {
+				XPput(wv, NULL);
+				xp->u.strv = (const char **)XPptrv(wv);
+			}
+		} else {
+			if ((c = (e->loc->argc == 0)))
+				xp->var = global(sp);
+			else
+				xp->u.strv = (const char **)e->loc->argv + 1;
+			/* POSIX 2009? */
+			zero_ok = true;
+		}
+		/* have we got any elements? */
+		if (c) {
+			/* no */
+			xp->str = null;
+			state = sc & 4 ? XNULLSUB : XSUB;
+		} else {
+			/* yes → load first */
+			xp->str = *xp->u.strv++;
+			/* $@ or ${foo[@]} */
+			xp->split = tobool(sc & 4);
+			state = XARG;
+		}
 	}
 
 	c = stype & STYPE_CHAR;
