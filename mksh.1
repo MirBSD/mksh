@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.473 2020/01/24 18:57:09 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.474 2020/03/10 19:12:20 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -77,7 +77,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: January 24 2020 $
+.Dd $Mdocdate: March 10 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1079,9 +1079,11 @@ For
 .Dq Li \eU########
 and
 .Dq Li \eu#### ,
-.Dq #
-means a hexadecimal digit, of which there may be none up to four or eight;
-these escapes translate a Universal Coded Character Set codepoint to UTF-8.
+.Sq Li #
+means a hexadecimal digit (up to 4 or 8); these translate a
+Universal Coded Character Set codepoint to UTF-8 (see
+.Sx CAVEATS
+on UCS limitations).
 Furthermore,
 .Dq Li \eE
 and
@@ -1091,44 +1093,48 @@ expand to the escape character.
 In the
 .Ic print
 builtin mode,
-.Dq Li \e" ,
-.Dq Li \e\*(aq
-and
-.Dq Li \e?
-are explicitly excluded;
-octal sequences must have the none up to three octal digits
-.Dq #
+octal sequences must have the optional up to three octal digits
+.Sq Li #
 prefixed with the digit zero
 .Pq Dq Li \e0### ;
 hexadecimal sequences
 .Dq Li \ex##
-are limited to none up to two hexadecimal digits
-.Dq # ;
+are limited to up to two hexadecimal digits
+.Sq Li # ;
 both octal and hexadecimal sequences convert to raw octets;
-.Dq Li \e# ,
-where # is none of the above, translates to \e# (backslashes are retained).
-.Pp
-Backslash expansion in the C style mode slightly differs: octal sequences
-.Dq Li \e###
-must have no digit zero prefixing the one up to three octal digits
-.Dq #
-and yield raw octets; hexadecimal sequences
-.Dq Li \ex#*
-greedily eat up as many hexadecimal digits
-.Dq #
-as they can and terminate with the first non-hexadecimal digit;
-these translate a Universal Coded Character Set codepoint to UTF-8.
-The sequence
-.Dq Li \ec# ,
+.Dq Li \e% ,
 where
-.Dq #
-is any octet, translates to Ctrl-# (which basically means,
+.Sq Li %
+is none of the above, translates to
+.Li \e%
+.Pq backslashes are retained .
+.Pp
+In C style mode, raw octet-yielding octal sequences
+.Dq Li \e###
+must not have the one up to three octal digits prefixed with the
+digit zero; hexadecimal sequences
+.Dq Li \ex##
+greedily eat up as many hexadecimal digits
+.Sq Li #
+as they can and terminate with the first non-xdigit; below
+.Li \ex100
+these produce raw octets; above, they are equivalent to
+.Dq Li \eU# .
+The sequence
+.Dq Li \ec% ,
+where
+.Sq Li %
+is any octet, translates to
+.Ic Ctrl- Ns Li % ,
+that is,
 .Dq Li \ec?
-becomes DEL, everything else is bitwise ANDed with 0x1F).
-Finally,
-.Dq Li \e# ,
-where # is none of the above, translates to # (has the backslash trimmed),
-even if it is a newline.
+becomes DEL, everything else is bitwise ANDed with 0x9F.
+.Dq Li \e% ,
+where
+.Sq Li %
+is none of the above, translates to
+.Li % :
+backslashes are trimmed even before newlines.
 .Ss Aliases
 There are two types of aliases: normal command aliases and tracked aliases.
 Command aliases are normally used as a short hand for a long or often used
@@ -2699,16 +2705,16 @@ instead of
 is also supported.
 Note that NUL bytes (integral value of zero) cannot be used.
 An unset or empty parameter evaluates to 0 in integer context.
-In UTF-8 mode, raw octets are mapped into the range EF80..EFFF as in
-OPTU-8, which is in the PUA and has been assigned by CSUR for this use.
-If more than one octet in ASCII mode, or a sequence of more than one
-octet not forming a valid and minimal CESU-8 sequence is passed, the
-behaviour is undefined (usually, the shell aborts with a parse error,
-but rarely, it succeeds, e.g. on the sequence C2 20).
-That's why you should always use ASCII mode unless you know that the
-input is well-formed UTF-8 in the range of 0000..FFFD if you use this
-feature, as opposed to
-.Ic read Fl a .
+If
+.Sq Li x
+isn't comprised of exactly one valid character, the behaviour is undefined
+(usually, the shell aborts with a parse error, but rarely, it succeeds,
+e.g. on the sequence C2 20); users of this feature (as opposed to
+.Ic read Fl a )
+must validate the input first.
+See
+.Sx CAVEATS
+for UTF-8 mode handling.
 .Pp
 The operators are evaluated as follows:
 .Bl -tag -width Ds -offset indent
@@ -6717,6 +6723,11 @@ especially regarding locales.
 provides a consistent 32-bit integer arithmetic implementation, both
 signed and unsigned, with sign of the result of a remainder operation
 and wraparound defined, even (defying POSIX) on 36-bit and 64-bit systems.
+.Pp
+.Nm mksh
+currently uses OPTU-16 internally, which is the same as UTF-8 and CESU-8
+with 0000..FFFD being valid codepoints; raw octets are mapped into the
+PUA range EF80..EFFF, which is assigned by CSUR for this purpose.
 .Sh BUGS
 Suspending (using \*(haZ) pipelines like the one below will only suspend
 the currently running part of the pipeline; in this example,
