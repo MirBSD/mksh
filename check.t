@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.829 2020/01/11 21:11:28 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.830 2020/03/10 23:48:38 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R57 2019/12/29
+	KSH R57 2020/03/10
 description:
 	Check base version of full shell
 stdin:
@@ -5007,6 +5007,17 @@ expected-stdout:
 	var=onetwo threefour
 	<onetwo threefour> .
 ---
+name: IFS-subst-11
+description:
+	Check leading non-whitespace after trim makes only one field
+stdin:
+	showargs() { for s_arg in "$@"; do echo -n "<$s_arg> "; done; echo .; }
+	v="foo!one!two!three"
+	IFS="!"
+	showargs x ${v:3} y
+expected-stdout:
+	<x> <> <one> <two> <three> <y> .
+---
 name: IFS-arith-1
 description:
 	http://austingroupbugs.net/view.php?id=832
@@ -9672,8 +9683,7 @@ expected-stdout:
 ---
 name: varexpand-substr-3
 description:
-	Check that some things that work in bash fail.
-	This is by design. Oh and vice versa, nowadays.
+	Match bash5
 stdin:
 	export x=abcdefghi n=2
 	"$__progname" -c 'echo v${x:(n)}x'
@@ -9681,15 +9691,15 @@ stdin:
 	"$__progname" -c 'echo x${x:n}x'
 	"$__progname" -c 'echo y${x:}x'
 	"$__progname" -c 'echo z${x}x'
-	# next fails only in bash
-	"$__progname" -c 'x=abcdef;y=123;echo ${x:${y:2:1}:2}' >/dev/null 2>&1; echo $?
+	"$__progname" -c 'x=abcdef;y=123;echo q${x:${y:2:1}:2}q'
 expected-stdout:
 	vcdefghix
 	wcdefghix
+	xcdefghix
 	zabcdefghix
-	0
+	qdeq
 expected-stderr-pattern:
-	/x:n.*bad substitution.*\n.*bad substitution/
+	/x:}.*bad substitution/
 ---
 name: varexpand-substr-4
 description:

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.250 2018/10/20 18:34:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.251 2020/03/10 23:48:40 tg Exp $");
 
 /*
  * states while lexing word
@@ -451,8 +451,7 @@ yylex(int cf)
 							statep->ls_adelim.num = 1;
 							statep->nparen = 0;
 							break;
-						} else if (ctype(c, C_DIGIT | C_DOLAR | C_SPC) ||
-						    /*XXX what else? */
+						} else if (ctype(c, C_ALNUX | C_DOLAR | C_SPC) ||
 						    c == '(' /*)*/) {
 							/* substring subst. */
 							if (c != ' ') {

@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.474 2020/03/10 19:12:20 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.475 2020/03/10 23:48:41 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -1631,8 +1631,6 @@ A single
 .Ql #
 results in the shortest match, and two
 of them result in the longest match.
-Cannot be applied to a vector
-.Pq ${*} or ${@} or ${array[*]} or ${array[@]} .
 .Pp
 .Sm off
 .It Xo
@@ -1644,8 +1642,7 @@ Cannot be applied to a vector
 .Pf %% Ar pattern No }
 .Xc
 .Sm on
-Like ${...#...} substitution, but it deletes from the end of the value.
-Cannot be applied to a vector.
+Like ${...#...} but deletes from the end of the value.
 .Pp
 .Sm off
 .It Xo
@@ -1688,8 +1685,7 @@ cause no replacement; a single leading slash or use of a
 that matches the empty string causes the replacement to
 happen only once; two leading slashes cause all occurrences
 of matches in the value to be replaced.
-Cannot be applied to a vector.
-Inefficiently implemented, may be slow.
+May be slow on long strings.
 .Pp
 .Sm off
 .It Xo
@@ -1709,6 +1705,8 @@ except that both
 and
 .Ar string
 are expanded anew for each iteration.
+Use with
+.Ev KSH_MATCH .
 .Pp
 .Sm off
 .It Xo
@@ -1741,10 +1739,6 @@ Both
 and
 .Ar len
 are evaluated as arithmetic expressions.
-Currently,
-.Ar pos
-must start with a space, opening parenthesis or digit to be recognised.
-Cannot be applied to a vector.
 .Pp
 .It Pf ${ Ns Ar name Ns @#}
 The hash (using the BAFH algorithm) of the expansion of
