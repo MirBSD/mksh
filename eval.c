@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019
+ *		 2019, 2020
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.222 2019/12/30 04:43:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.223 2020/03/10 19:48:03 tg Exp $");
 
 /*
  * string expansion
@@ -72,7 +72,7 @@ typedef struct {
 #define STYPE_SINGLE	0x2FF
 #define STYPE_MASK	0x300
 
-static int varsub(Expand *, const char *, const char *, int *, int *);
+static int varsub(Expand *, const char *, const char *, unsigned int *, int *);
 static int comsub(Expand *, const char *, int);
 static char *valsub(struct op *, Area *);
 static char *trimsub(char *, char *, int);
@@ -206,7 +206,7 @@ typedef struct SubType {
 	struct SubType *prev;	/* old type */
 	struct SubType *next;	/* poped type (to avoid re-allocating) */
 	size_t	base;		/* start position of expanded word */
-	short	stype;		/* [=+-?%#] action after expanded word */
+	unsigned short stype;	/* [=+-?%#] action after expanded word */
 	short	f;		/* saved value of f (DOPAT, etc) */
 	uint8_t	quotep;		/* saved value of quote (for ${..[%#]..}) */
 	uint8_t	quotew;		/* saved value of quote (for ${..[+-=]..}) */
@@ -382,7 +382,7 @@ expand(
 			 */
 				/* skip the { or x (}) */
 				const char *varname = ++sp;
-				int stype;
+				unsigned int stype;
 				int slen = 0;
 
 				/* skip variable */
@@ -1155,12 +1155,14 @@ hasnonempty(const char **strv)
  */
 static int
 varsub(Expand *xp, const char *sp, const char *word,
-    int *stypep,	/* becomes qualifier type */
-    int *slenp)		/* " " len (=, :=, etc.) valid iff *stypep != 0 */
+    /* becomes qualifier type */
+    unsigned int *stypep,
+    /* becomes qualifier type len (=, :=, etc.) valid iff *stypep != 0 */
+    int *slenp)
 {
-	int c;
-	int state;	/* next state: XBASE, XARG, XSUB, XNULLSUB */
-	int stype;	/* substitution type */
+	unsigned int c;
+	int state;		/* next state: XBASE, XARG, XSUB, XNULLSUB */
+	unsigned int stype;	/* substitution type */
 	int slen = 0;
 	const char *p;
 	struct tbl *vp;
@@ -1177,9 +1179,11 @@ varsub(Expand *xp, const char *sp, const char *word,
 	 * ${%var}, string width (-U: screen columns, +U: octets)
 	 */
 	c = ord(sp[1]);
-	if ((unsigned int)stype == ORD('%') && c == '\0')
+	if (stype == ORD('%') && c == '\0')
 		return (-1);
 	if (ctype(stype, C_SUB2) && c != '\0') {
+		int sc;
+
 		/* Can't have any modifiers for ${#...} or ${%...} */
 		if (*word != CSUBST)
 			return (-1);
@@ -1189,7 +1193,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		    ord(p[1]) == ORD('@')) && ord(p[2]) == ORD(']')) {
 			int n = 0;
 
-			if ((unsigned int)stype != ORD('#'))
+			if (stype != ORD('#'))
 				return (-1);
 			vp = global(arrayname(sp));
 			if (vp->flag & (ISSET|ARRAY))
@@ -1197,17 +1201,16 @@ varsub(Expand *xp, const char *sp, const char *word,
 			for (; vp; vp = vp->u.array)
 				if (vp->flag & ISSET)
 					n++;
-			c = n;
-		} else if ((unsigned int)c == ORD('*') ||
-		    (unsigned int)c == ORD('@')) {
-			if ((unsigned int)stype != ORD('#'))
+			sc = n;
+		} else if (c == ORD('*') || c == ORD('@')) {
+			if (stype != ORD('#'))
 				return (-1);
-			c = e->loc->argc;
+			sc = e->loc->argc;
 		} else {
 			p = str_val(global(sp));
 			zero_ok = p != null;
-			if ((unsigned int)stype == ORD('#'))
-				c = utflen(p);
+			if (stype == ORD('#'))
+				sc = utflen(p);
 			else {
 				/* partial utf_mbswidth reimplementation */
 				const char *s = p;
@@ -1215,7 +1218,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 				size_t len;
 				int cw;
 
-				c = 0;
+				sc = 0;
 				while (*s) {
 					if (!UTFMODE || (len = utf_mbtowc(&wc,
 					    s)) == (size_t)-1)
@@ -1227,21 +1230,21 @@ varsub(Expand *xp, const char *sp, const char *word,
 					/* wc == char or wchar at s++ */
 					if ((cw = utf_wcwidth(wc)) == -1) {
 						/* 646, 8859-1, 10646 C0/C1 */
-						c = -1;
+						sc = -1;
 						break;
 					}
-					c += cw;
+					sc += cw;
 				}
 			}
 		}
-		if (Flag(FNOUNSET) && c == 0 && !zero_ok)
+		if (Flag(FNOUNSET) && sc == 0 && !zero_ok)
 			errorf(Tf_parm, sp);
 		/* unqualified variable/string substitution */
 		*stypep = 0;
-		xp->str = shf_smprintf(Tf_d, c);
+		xp->str = shf_smprintf(Tf_d, sc);
 		return (XSUB);
 	}
-	if ((unsigned int)stype == ORD('!') && c != '\0' && *word == CSUBST) {
+	if (stype == ORD('!') && c != '\0' && *word == CSUBST) {
 		sp++;
 		if ((p = cstrchr(sp, '[')) && (ord(p[1]) == ORD('*') ||
 		    ord(p[1]) == ORD('@')) && ord(p[2]) == ORD(']')) {
@@ -1259,21 +1262,20 @@ varsub(Expand *xp, const char *sp, const char *word,
 	/* Check for qualifiers in word part */
 	stype = 0;
 	c = word[slen + 0] == CHAR ? ord(word[slen + 1]) : 0;
-	if ((unsigned int)c == ORD(':')) {
+	if (c == ORD(':')) {
 		slen += 2;
 		stype = STYPE_DBL;
 		c = word[slen + 0] == CHAR ? ord(word[slen + 1]) : 0;
 	}
-	if (!stype && (unsigned int)c == ORD('/')) {
+	if (!stype && c == ORD('/')) {
 		slen += 2;
 		stype = c;
 		if (word[slen] == ADELIM &&
-		    ord(word[slen + 1]) == (unsigned int)c) {
+		    ord(word[slen + 1]) == c) {
 			slen += 2;
 			stype |= STYPE_DBL;
 		}
-	} else if (stype == STYPE_DBL && ((unsigned int)c == ORD(' ') ||
-	    (unsigned int)c == ORD('0'))) {
+	} else if (stype == STYPE_DBL && (c == ORD(' ') || c == ORD('0'))) {
 		stype |= ORD('0');
 	} else if (ctype(c, C_SUB1)) {
 		slen += 2;
@@ -1282,12 +1284,11 @@ varsub(Expand *xp, const char *sp, const char *word,
 		/* Note: ksh88 allows :%, :%%, etc */
 		slen += 2;
 		stype = c;
-		if (word[slen + 0] == CHAR &&
-		    ord(word[slen + 1]) == (unsigned int)c) {
+		if (word[slen + 0] == CHAR && ord(word[slen + 1]) == c) {
 			stype |= STYPE_DBL;
 			slen += 2;
 		}
-	} else if ((unsigned int)c == ORD('@')) {
+	} else if (c == ORD('@')) {
 		/* @x where x is command char */
 		switch (c = ord(word[slen + 2]) == CHAR ?
 		    ord(word[slen + 3]) : 0) {
@@ -1307,7 +1308,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		return (-1);
 
 	c = ord(sp[0]);
-	if ((unsigned int)c == ORD('*') || (unsigned int)c == ORD('@')) {
+	if (c == ORD('*') || c == ORD('@')) {
 		switch (stype & STYPE_SINGLE) {
 		/* can't assign to a vector */
 		case ORD('='):
@@ -1325,12 +1326,12 @@ varsub(Expand *xp, const char *sp, const char *word,
 		if (e->loc->argc == 0) {
 			xp->str = null;
 			xp->var = global(sp);
-			state = (unsigned int)c == ORD('@') ? XNULLSUB : XSUB;
+			state = c == ORD('@') ? XNULLSUB : XSUB;
 		} else {
 			xp->u.strv = (const char **)e->loc->argv + 1;
 			xp->str = *xp->u.strv++;
 			/* $@ */
-			xp->split = tobool((unsigned int)c == ORD('@'));
+			xp->split = tobool(c == ORD('@'));
 			state = XARG;
 		}
 		/* POSIX 2009? */
@@ -1360,7 +1361,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		for (; vp; vp = vp->u.array) {
 			if (!(vp->flag&ISSET))
 				continue;
-			XPput(wv, (unsigned int)c == ORD('!') ?
+			XPput(wv, c == ORD('!') ?
 			    shf_smprintf(Tf_lu, arrayindex(vp)) :
 			    str_val(vp));
 		}
@@ -1380,7 +1381,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		xp->var = global(sp);
 		xp->str = str_val(xp->var);
 		/* can't assign things like $! or $1 */
-		if ((unsigned int)(stype & STYPE_SINGLE) == ORD('=') &&
+		if ((stype & STYPE_SINGLE) == ORD('=') &&
 		    !*xp->str && ctype(*sp, C_VAR1 | C_DIGIT))
 			return (-1);
 		state = XSUB;
@@ -1392,15 +1393,15 @@ varsub(Expand *xp, const char *sp, const char *word,
 	    (((stype & STYPE_DBL) ? *xp->str == '\0' : xp->str == null) &&
 	    (state != XARG || (ifs0 || xp->split ?
 	    (xp->u.strv[0] == NULL) : !hasnonempty(xp->u.strv))) ?
-	    ctype(c, C_EQUAL | C_MINUS | C_QUEST) : (unsigned int)c == ORD('+')))) ||
-	    (unsigned int)stype == (ORD('0') | STYPE_DBL) ||
-	    (unsigned int)stype == (ORD('#') | STYPE_AT) ||
-	    (unsigned int)stype == (ORD('Q') | STYPE_AT) ||
-	    (unsigned int)(stype & STYPE_CHAR) == ORD('/'))
+	    ctype(c, C_EQUAL | C_MINUS | C_QUEST) : c == ORD('+')))) ||
+	    stype == (ORD('0') | STYPE_DBL) ||
+	    stype == (ORD('#') | STYPE_AT) ||
+	    stype == (ORD('Q') | STYPE_AT) ||
+	    (stype & STYPE_CHAR) == ORD('/'))
 		/* expand word instead of variable value */
 		state = XBASE;
 	if (Flag(FNOUNSET) && xp->str == null && !zero_ok &&
-	    (ctype(c, C_SUB2) || (state != XBASE && (unsigned int)c != ORD('+'))))
+	    (ctype(c, C_SUB2) || (state != XBASE && c != ORD('+'))))
 		errorf(Tf_parm, sp);
 	*stypep = stype;
 	*slenp = slen;
