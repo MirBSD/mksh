@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.227 2020/03/10 22:26:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.228 2020/03/10 23:37:45 tg Exp $");
 
 /*
  * string expansion
@@ -1033,14 +1033,8 @@ expand(
 			if (word != IFS_NWS)
 				word = ctype(c, C_IFSWS) ? IFS_WS : IFS_NWS;
 		} else {
-			if (type == XSUB) {
-				if (word == IFS_NWS &&
-				    Xlength(ds, dp) == 0) {
-					*(cp = alloc(1, ATEMP)) = '\0';
-					XPput(*wp, cp);
-				}
+			if (type == XSUB)
 				type = XSUBMID;
-			}
 
 			/* age tilde_ok info - ~ code tests second bit */
 			tilde_ok <<= 1;
