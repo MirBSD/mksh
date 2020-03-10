@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.224 2020/03/10 21:41:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.225 2020/03/10 21:43:15 tg Exp $");
 
 /*
  * string expansion
@@ -1221,12 +1221,9 @@ varsub(Expand *xp, const char *sp, const char *word,
 			/* $# or $! */
 			goto nopfx;
 		}
-		/* can’t have any modifiers for ${#…} or ${%…} */
-		if (*word != CSUBST) {
-			if (ctype(stype, C_SUB2))
-				return (-1);
-			goto nopfx;
-		}
+		/* can’t have any modifiers for ${#…} or ${%…} or ${!…} */
+		if (*word != CSUBST)
+			return (-1);
 		/* check for argv past prefix */
 		if (!sc) switch (c) {
 		case ORD('*'):
