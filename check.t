@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.831 2020/03/13 20:14:15 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.832 2020/03/13 20:22:41 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R57 2020/03/10
+	KSH R57 2020/03/13
 description:
 	Check base version of full shell
 stdin:
@@ -2769,6 +2769,12 @@ stdin:
 	tr abcdefghijklmnopqrstuvwxyz nopqrstuvwxyzabcdefghijklm <<< bar
 	echo $(tr r z <<<'bar' 2>/dev/null)
 	cat <<< "$(  :                                                             )aa"
+	IFS=$'\n'
+	x=(a "b c")
+	tr ac 12 <<< ${x[*]}
+	tr ac 34 <<< "${x[*]}"
+	tr ac 56 <<< ${x[@]}
+	tr ac 78 <<< "${x[@]}"
 expected-stdout:
 	sbb
 	sbb
@@ -2786,6 +2792,12 @@ expected-stdout:
 	one
 	baz
 	aa
+	1
+	b 2
+	3
+	b 4
+	5 b 6
+	7 b 8
 ---
 name: heredoc-10
 description:

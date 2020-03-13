@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019
+ *		 2019, 2020
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.217 2019/12/30 04:18:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.218 2020/03/13 20:22:44 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1599,7 +1599,7 @@ hereinval(struct ioword *iop, int sub, char **resbuf, struct shf *shf)
 		return (-2);
 	}
 	if (iop->ioflag & IOHERESTR) {
-		ccp = evalstr(iop->delim, DOHERESTR | DOSCALAR | DOHEREDOC);
+		ccp = evalstr(iop->delim, DOHERESTR | DOSCALAR);
 	} else if (sub) {
 		/* do substitutions on the content of heredoc */
 		s = pushs(SSTRING, ATEMP);
