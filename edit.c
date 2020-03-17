@@ -6,7 +6,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019
+ *		 2019, 2020
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.346 2019/12/11 23:58:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.347 2020/03/17 13:34:23 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -3508,11 +3508,11 @@ static int inslen;			/* length of input buffer */
 static int srchlen;			/* length of current search pattern */
 static char *ybuf;			/* yank buffer */
 static int yanklen;			/* length of yank buffer */
-static int fsavecmd = ' ';		/* last find command */
+static uint8_t fsavecmd = ORD(' ');	/* last find command */
 static int fsavech;			/* character to find */
 static char lastcmd[MAXVICMD];		/* last non-move command */
 static int lastac;			/* argcnt for lastcmd */
-static int lastsearch = ' ';		/* last search command */
+static uint8_t lastsearch = ORD(' ');	/* last search command */
 static char srchpat[SRCHLEN];		/* last search pattern */
 static int insert;			/* <>0 in insert mode */
 static int hnum;			/* position in history */
@@ -3655,21 +3655,22 @@ vi_hook(int ch)
 		if (!ch) {
 			cmdlen = 0;
 			switch (ch = x_getc()) {
-			case 71: ch = '0'; goto pseudo_vi_command;
-			case 72: ch = 'k'; goto pseudo_vi_command;
-			case 73: ch = 'A'; goto vi_xfunc_search_up;
-			case 75: ch = 'h'; goto pseudo_vi_command;
-			case 77: ch = 'l'; goto pseudo_vi_command;
-			case 79: ch = '$'; goto pseudo_vi_command;
-			case 80: ch = 'j'; goto pseudo_vi_command;
-			case 83: ch = 'x'; goto pseudo_vi_command;
+			case 71: ch = ORD('0'); goto pseudo_vi_command;
+			case 72: ch = ORD('k'); goto pseudo_vi_command;
+			case 73: ch = ORD('A'); goto vi_xfunc_search;
+			case 75: ch = ORD('h'); goto pseudo_vi_command;
+			case 77: ch = ORD('l'); goto pseudo_vi_command;
+			case 79: ch = ORD('$'); goto pseudo_vi_command;
+			case 80: ch = ORD('j'); goto pseudo_vi_command;
+			case 81: ch = ORD('B'); goto vi_xfunc_search;
+			case 83: ch = ORD('x'); goto pseudo_vi_command;
 			default: ch = 0; goto vi_insert_failed;
 			}
 		}
 		if (insert != 0) {
 			if (ch == CTRL_V) {
 				state = VLIT;
-				ch = '^';
+				ch = ORD('^');
 			}
 			switch (vi_insert(ch)) {
 			case -1:
@@ -3703,8 +3704,8 @@ vi_hook(int ch)
 					save_cbuf();
 					vs->cursor = 0;
 					vs->linelen = 0;
-					if (putbuf(ch == '/' ? "/" : "?", 1,
-					    false) != 0)
+					if (putbuf(ord(ch) == ORD('/') ?
+					    "/" : "?", 1, false) != 0)
 						return (-1);
 					refresh(0);
 				}
@@ -3865,10 +3866,11 @@ vi_hook(int ch)
 		break;
 
 	case VPREFIX2:
- vi_xfunc_search_up:
+ vi_xfunc_search:
 		state = VFAIL;
 		switch (ch) {
-		case 'A':
+		case ORD('A'):
+		case ORD('B'):
 			/* the cursor may not be at the BOL */
 			if (!vs->cursor)
 				break;
@@ -3877,13 +3879,14 @@ vi_hook(int ch)
 				vs->cursor = sizeof(srchpat) - 2;
 			/* anchor the search pattern */
 			srchpat[0] = '^';
-			/* take the current line up to the cursor */
-			memmove(srchpat + 1, vs->cbuf, vs->cursor);
+			/* take current line up to the cursor */
+			memcpy(srchpat + 1, vs->cbuf, vs->cursor);
 			srchpat[vs->cursor + 1] = '\0';
 			/* set a magic flag */
 			argc1 = 2 + (int)vs->cursor;
-			/* and emulate a backwards history search */
-			lastsearch = '/';
+			/* and emulate a history search */
+			/* search backwards if PgUp, forwards for PgDn */
+			lastsearch = ch == ORD('A') ? '/' : '?';
 			*curcmd = 'n';
 			goto pseudo_VCMD;
 		}
@@ -4446,9 +4449,9 @@ vi_cmd(int argcnt, const char *cmd)
 			/* FALLTHROUGH */
 		case ORD('n'):
 		case ORD('N'):
-			if (lastsearch == ' ')
+			if (lastsearch == ORD(' '))
 				return (-1);
-			if (lastsearch == '?')
+			if (lastsearch == ORD('?'))
 				c1 = 1;
 			else
 				c1 = 0;
@@ -4652,10 +4655,10 @@ domove(int argcnt, const char *cmd, int sub)
 		/* FALLTHROUGH */
 	case ORD(','):
 	case ORD(';'):
-		if (fsavecmd == ' ')
+		if (fsavecmd == ORD(' '))
 			return (-1);
 		i = ksh_eq(fsavecmd, 'F', 'f');
-		t = fsavecmd > 'a';
+		t = rtt2asc(fsavecmd) > rtt2asc('a');
 		if (*cmd == ',')
 			t = !t;
 		if ((ncursor = findch(fsavech, argcnt, tobool(t),
