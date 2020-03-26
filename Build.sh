@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.750 2020/03/18 22:17:29 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.751 2020/03/26 23:08:07 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -54,6 +54,15 @@ alll=qwertyuiopasdfghjklzxcvbnm
 alln=0123456789
 alls=______________________________________________________________
 
+test_n() {
+	test x"$1" = x"" || return 0
+	return 1
+}
+
+test_z() {
+	test x"$1" = x""
+}
+
 case `echo a | tr '\201' X` in
 X)
 	# EBCDIC build system
@@ -65,7 +74,7 @@ X)
 esac
 
 genopt_die() {
-	if test x"$1" = x""; then
+	if test_z "$1"; then
 		echo >&2 "E: invalid input in '$srcfile': '$line'"
 	else
 		echo >&2 "E: $*"
@@ -173,9 +182,9 @@ do_genopt() {
 			esac
 			IFS= read line || genopt_die Unexpected EOF
 			IFS=$safeIFS
-			test x"$cond" = x"" || o_gen=$o_gen$nl"$cond"
+			test_z "$cond" || o_gen=$o_gen$nl"$cond"
 			o_gen=$o_gen$nl"$line, $optc)"
-			test x"$cond" = x"" || o_gen=$o_gen$nl"#endif"
+			test_z "$cond" || o_gen=$o_gen$nl"#endif"
 			;;
 		esac
 	done
@@ -186,11 +195,11 @@ do_genopt() {
 	esac
 	echo "$o_str" | sort | while IFS='|' read x opts cond; do
 		IFS=$safeIFS
-		test x"$x" = x"" && continue
+		test_n "$x" || continue
 		genopt_scond
-		test x"$cond" = x"" || echo "$cond"
+		test_z "$cond" || echo "$cond"
 		echo "\"$opts\""
-		test x"$cond" = x"" || echo "#endif"
+		test_z "$cond" || echo "#endif"
 	done | {
 		echo "$o_hdr"
 		echo "#ifndef $o_sym$o_gen"
@@ -344,7 +353,7 @@ ac_testnnd() {
 		test $ct = pcc && vscan='unsupported'
 		test $ct = sunpro && vscan='-e ignored -e turned.off'
 	fi
-	test x"$vscan" '!=' x"" && grep $vscan vv.out >/dev/null 2>&1 && fv=$fr
+	test_n "$vscan" && grep $vscan vv.out >/dev/null 2>&1 && fv=$fr
 	return 0
 }
 ac_testn() {
@@ -408,7 +417,7 @@ ac_flags() {
 	save_CFLAGS=$CFLAGS
 	CFLAGS="$CFLAGS $f"
 	save_LDFLAGS=$LDFLAGS
-	test x"$fl" = x"" || LDFLAGS="$LDFLAGS $fl"
+	test_z "$fl" || LDFLAGS="$LDFLAGS $fl"
 	if test 1 = $hf; then
 		ac_testn can_$vn '' "$ft"
 	else
@@ -420,7 +429,7 @@ ac_flags() {
 		#'
 	fi
 	eval fv=\$HAVE_CAN_`upper $vn`
-	test x"$fl" = x"" || test 11 = $fa$fv || LDFLAGS=$save_LDFLAGS
+	test_z "$fl" || test 11 = $fa$fv || LDFLAGS=$save_LDFLAGS
 	test 11 = $fa$fv || CFLAGS=$save_CFLAGS
 }
 
@@ -581,12 +590,12 @@ do
 		;;
 	esac
 done
-test x"$last" = x"" || {
+if test_n "$last"; then
 	echo "$me: Option -'$last' not followed by argument!" >&2
 	exit 1
-}
+fi
 
-test x"$tfn" = x"" && if test $legacy = 0; then
+test_n "$tfn" || if test $legacy = 0; then
 	tfn=mksh
 else
 	tfn=lksh
@@ -624,17 +633,17 @@ if test x"$srcdir" = x"."; then
 else
 	CPPFLAGS="-I. -I'$srcdir' $CPPFLAGS"
 fi
-test x"$LDSTATIC" = x"" || if test x"$LDFLAGS" = x""; then
+test_z "$LDSTATIC" || if test_z "$LDFLAGS"; then
 	LDFLAGS=$LDSTATIC
 else
 	LDFLAGS="$LDFLAGS $LDSTATIC"
 fi
 
-if test x"$TARGET_OS" = x""; then
+if test_z "$TARGET_OS"; then
 	x=`uname -s 2>/dev/null || uname`
 	test x"$x" = x"`uname -n 2>/dev/null`" || TARGET_OS=$x
 fi
-if test x"$TARGET_OS" = x""; then
+if test_z "$TARGET_OS"; then
 	echo "$me: Set TARGET_OS, your uname is broken!" >&2
 	exit 1
 fi
@@ -696,12 +705,12 @@ fi
 # Configuration depending on OS revision, on OSes that need them
 case $TARGET_OS in
 NEXTSTEP)
-	test x"$TARGET_OSREV" = x"" && TARGET_OSREV=`hostinfo 2>&1 | \
+	test_n "$TARGET_OSREV" || TARGET_OSREV=`hostinfo 2>&1 | \
 	    grep 'NeXT Mach [0-9][0-9.]*:' | \
 	    sed 's/^.*NeXT Mach \([0-9][0-9.]*\):.*$/\1/'`
 	;;
 QNX|SCO_SV)
-	test x"$TARGET_OSREV" = x"" && TARGET_OSREV=`uname -r`
+	test_n "$TARGET_OSREV" || TARGET_OSREV=`uname -r`
 	;;
 esac
 
@@ -1032,11 +1041,11 @@ _svr4)
 	# generic target for SVR4 Unix with uname -s = uname -n
 	# this duplicates the * target below
 	oswarn='; it may or may not work'
-	test x"$TARGET_OSREV" = x"" && TARGET_OSREV=`uname -r`
+	test_n "$TARGET_OSREV" || TARGET_OSREV=`uname -r`
 	;;
 *)
 	oswarn='; it may or may not work'
-	test x"$TARGET_OSREV" = x"" && TARGET_OSREV=`uname -r`
+	test_n "$TARGET_OSREV" || TARGET_OSREV=`uname -r`
 	;;
 esac
 
@@ -1079,7 +1088,7 @@ SCO_SV|UnixWare|UNIX_SV)
 	vv '|' "uname -a >&2"
 	;;
 esac
-test x"$oswarn" = x"" || echo >&2 "
+test_z "$oswarn" || echo >&2 "
 Warning: mksh has not yet been ported to or tested on your
 operating system '$TARGET_OS'$oswarn. If you can provide
 a shell account to the developer, this may improve; please
@@ -1268,12 +1277,12 @@ msc)
 	ccpr=		# errorlevels are not reliable
 	case $TARGET_OS in
 	Interix)
-		if test x"$C89_COMPILER" = x""; then
+		if test_z "$C89_COMPILER"; then
 			C89_COMPILER=CL.EXE
 		else
 			C89_COMPILER=`ntpath2posix -c "$C89_COMPILER"`
 		fi
-		if test x"$C89_LINKER" = x""; then
+		if test_z "$C89_LINKER"; then
 			C89_LINKER=LINK.EXE
 		else
 			C89_LINKER=`ntpath2posix -c "$C89_LINKER"`
@@ -1485,7 +1494,7 @@ NOWARN=$save_NOWARN
 #
 i=`echo :"$orig_CFLAGS" | sed 's/^://' | tr -c -d $alll$allu$alln`
 # optimisation: only if orig_CFLAGS is empty
-test x"$i" = x"" && case $ct in
+test_n "$i" || case $ct in
 hpcc)
 	phase=u
 	ac_flags 1 otwo +O2
