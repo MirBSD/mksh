@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2016
+ * Copyright (c) 2016, 2020
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -19,7 +19,7 @@
  */
 
 #if defined(EXPRTOK_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/exprtok.h,v 1.2 2016/08/12 16:48:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exprtok.h,v 1.3 2020/03/26 05:47:26 tg Exp $");
 /* see range comment below */
 #define IS_ASSIGNOP(op) ((int)(op) >= (int)O_ASN && (int)(op) <= (int)O_BORASN)
 #define FN(name, len, prec, enum)	/* nothing */
@@ -53,7 +53,7 @@ __RCSID("$MirOS: src/bin/mksh/exprtok.h,v 1.2 2016/08/12 16:48:05 tg Exp $");
 /* tokens must be ordered so the longest are first (e.g. += before +) */
 
 /* some (long) unary operators */
-FN("++", 2, P_PRIMARY, O_PLUSPLUS = 0)	/* before + */
+F0("++", 2, P_PRIMARY, O_PLUSPLUS)	/* before + */
 FN("--", 2, P_PRIMARY, O_MINUSMINUS)	/* before - */
 /* binary operators */
 FN("==", 2, P_EQUALITY, O_EQ)		/* before = */
