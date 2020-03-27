@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.832 2020/03/13 20:22:41 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.833 2020/03/27 09:57:06 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R57 2020/03/13
+	KSH R58 2020/03/27
 description:
 	Check base version of full shell
 stdin:
@@ -6666,12 +6666,35 @@ name: regression-62
 description:
 	Check if test -nt/-ot succeeds if second(first) file is missing.
 stdin:
+	matrix() {
+		local a b c d e f g h
+		test a -nt b; a=$?
+		test b -nt a; b=$?
+		test a -ot b; c=$?
+		test b -ot a; d=$?
+		test a -nt a; e=$?
+		test b -nt b; f=$?
+		test a -ot a; g=$?
+		test b -ot b; h=$?
+		echo $1 $a $b $c $d / $e $f $g $h .
+	}
+	matrix a
 	:>a
-	test a -nt b && echo nt OK || echo nt BAD
-	test b -ot a && echo ot OK || echo ot BAD
+	matrix b
+	sleep 1
+	:>b
+	matrix c
+	sleep 1
+	:>a
+	matrix d
+	rm a
+	matrix e
 expected-stdout:
-	nt OK
-	ot OK
+	a 1 1 1 1 / 1 1 1 1 .
+	b 0 1 1 0 / 1 1 1 1 .
+	c 1 0 0 1 / 1 1 1 1 .
+	d 0 1 1 0 / 1 1 1 1 .
+	e 1 0 0 1 / 1 1 1 1 .
 ---
 name: regression-63
 description:

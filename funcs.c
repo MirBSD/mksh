@@ -39,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.362 2020/03/10 23:50:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.363 2020/03/27 09:57:05 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2768,6 +2768,16 @@ test_isop(Test_meta meta, const char *s)
 #define test_stat(name, buffer) stat((name), (buffer))
 #endif
 
+static int
+mtimecmp(const struct stat *sb1, const struct stat *sb2)
+{
+	if (sb1->st_mtime < sb2->st_mtime)
+		return (-1);
+	if (sb1->st_mtime > sb2->st_mtime)
+		return (1);
+	return (0);
+}
+
 int
 test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
     bool do_eval)
@@ -2990,7 +3000,7 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 		 */
 		return (stat(opnd1, &b1) == 0 &&
 		    (((s = stat(opnd2, &b2)) == 0 &&
-		    b1.st_mtime > b2.st_mtime) || s < 0));
+		    mtimecmp(&b1, &b2) > 0) || s < 0));
 
 	/* -ot */
 	case TO_FILOT:
@@ -3000,7 +3010,7 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 		 */
 		return (stat(opnd2, &b2) == 0 &&
 		    (((s = stat(opnd1, &b1)) == 0 &&
-		    b1.st_mtime < b2.st_mtime) || s < 0));
+		    mtimecmp(&b1, &b2) < 0) || s < 0));
 
 	/* -ef */
 	case TO_FILEQ:
