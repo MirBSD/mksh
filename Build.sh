@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.752 2020/03/27 10:15:52 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.753 2020/03/27 23:36:23 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -244,7 +244,7 @@ vq() {
 rmf() {
 	for _f in "$@"; do
 		case $_f in
-		*.1|*.ico) ;;
+		*.1|*.faq|*.ico) ;;
 		*) rm -f "$_f" ;;
 		esac
 	done
@@ -651,7 +651,7 @@ oswarn=
 ccpc=-Wc,
 ccpl=-Wl,
 tsts=
-ccpr='|| for _f in ${tcfn}*; do case $_f in *.1|*.ico) ;; *) rm -f "$_f" ;; esac; done'
+ccpr='|| for _f in ${tcfn}*; do case $_f in *.1|*.faq|*.ico) ;; *) rm -f "$_f" ;; esac; done'
 
 # Evil hack
 if test x"$TARGET_OS" = x"Android"; then
