@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.751 2020/03/26 23:08:07 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.752 2020/03/27 10:15:52 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -2286,6 +2286,17 @@ ac_test sys_siglist_decl sys_siglist 0 'for declaration of sys_siglist[]' <<-'EO
 	int main(void) { return (sys_siglist[0][0] + isatty(0)); }
 EOF
 
+ac_test st_mtim '' 'for struct stat.st_mtim.tv_nsec' <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	int main(void) { struct stat sb; return (sizeof(sb.st_mtim.tv_nsec)); }
+EOF
+ac_test st_mtimensec '!' st_mtim 0 'for struct stat.st_mtimensec' <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	int main(void) { struct stat sb; return (sizeof(sb.st_mtimensec)); }
+EOF
+
 #
 # other checks
 #
@@ -2450,7 +2461,7 @@ addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
 test 1 = "$USE_PRINTF_BUILTIN" && add_cppflags -DMKSH_PRINTF_BUILTIN
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
-add_cppflags -DMKSH_BUILD_R=571
+add_cppflags -DMKSH_BUILD_R=581
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 
