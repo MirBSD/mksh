@@ -6681,10 +6681,10 @@ stdin:
 	matrix a
 	:>a
 	matrix b
-	sleep 1
+	sleep 2
 	:>b
 	matrix c
-	sleep 1
+	sleep 2
 	:>a
 	matrix d
 	rm a
