@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.833 2020/03/27 09:57:06 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.834 2020/03/29 23:52:00 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -6681,11 +6681,11 @@ stdin:
 	matrix a
 	:>a
 	matrix b
-	sleep 1
+	sleep 2		# mtime granularity for OS/2 and FAT
 	:>b
 	matrix c
-	sleep 1
-	:>a
+	sleep 2
+	echo dummy >a	# Debian GNU/Hurd #955270
 	matrix d
 	rm a
 	matrix e
