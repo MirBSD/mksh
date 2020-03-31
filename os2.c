@@ -304,11 +304,12 @@ access_ex(int (*fn)(const char *, int), const char *name, int mode)
 	return (access_stat_ex(fn, name, (void *)mode));
 }
 
-/* stat() version */
+/* stat()/lstat() version */
 int
-stat_ex(const char *name, struct stat *buffer)
+stat_ex(int (*fn)(const char *, struct stat *),
+        const char *name, struct stat *buffer)
 {
-	return (access_stat_ex(stat, name, buffer));
+	return (access_stat_ex(fn, name, buffer));
 }
 
 static int
