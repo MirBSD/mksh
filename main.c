@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.360 2019/12/30 03:58:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.361 2020/04/07 11:56:46 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -100,7 +100,7 @@ static struct env env;
 struct env *e = &env;
 
 /* compile-time assertions */
-#define cta(name, expr) struct cta_ ## name { char t[(expr) ? 1 : -1]; }
+#define cta(name,expr)	struct cta_ ## name { char t[(expr) ? 1 : -1]; }
 
 /* this one should be defined by the standard */
 cta(char_is_1_char, (sizeof(char) == 1) && (sizeof(signed char) == 1) &&

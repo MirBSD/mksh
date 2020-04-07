@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.220 2020/04/07 10:26:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.221 2020/04/07 11:56:45 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1303,10 +1303,10 @@ search_access(const char *fn, int mode)
 }
 
 #ifdef __OS2__
-/* check if path is something we want to find, adding executable extensions */
-#define search_access(fn, mode)	access_ex((search_access), (fn), (mode))
+/* check if path is something we want to find adding executable extensions */
+#define search_access(fn,mode)	access_ex((search_access), (fn), (mode))
 #else
-#define search_access(fn, mode)	(search_access)((fn), (mode))
+#define search_access(fn,mode)	(search_access)((fn), (mode))
 #endif
 
 /*

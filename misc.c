@@ -32,7 +32,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.296 2019/12/11 23:58:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.297 2020/04/07 11:56:46 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -62,13 +62,13 @@ static int make_path(const char *, const char *, char **, XString *, int *);
 
 #ifdef SETUID_CAN_FAIL_WITH_EAGAIN
 /* we don't need to check for other codes, EPERM won't happen */
-#define DO_SETUID(func, argvec) do {					\
+#define DO_SETUID(func,argvec) do {					\
 	if ((func argvec) && errno == EAGAIN)				\
 		errorf("%s failed with EAGAIN, probably due to a"	\
 		    " too low process limit; aborting", #func);		\
 } while (/* CONSTCOND */ 0)
 #else
-#define DO_SETUID(func, argvec) func argvec
+#define DO_SETUID(func,argvec) func argvec
 #endif
 
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.753 2020/03/27 23:36:23 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.754 2020/04/07 11:56:44 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -2319,7 +2319,7 @@ if test $legacy = 1; then
 		#define CHAR_BIT 0
 		#endif
 		struct ctasserts {
-		#define cta(name, assertion) char name[(assertion) ? 1 : -1]
+		#define cta(name,assertion) char name[(assertion) ? 1 : -1]
 			cta(char_is_8_bits, (CHAR_BIT) == 8);
 			cta(long_is_32_bits, sizeof(long) == 4);
 		};
@@ -2333,7 +2333,7 @@ EOF
 		#define CHAR_BIT 0
 		#endif
 		struct ctasserts {
-		#define cta(name, assertion) char name[(assertion) ? 1 : -1]
+		#define cta(name,assertion) char name[(assertion) ? 1 : -1]
 			cta(char_is_8_bits, (CHAR_BIT) == 8);
 			cta(long_is_64_bits, sizeof(long) == 8);
 		};
