@@ -39,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.366 2020/04/07 12:08:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.367 2020/04/07 20:10:07 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1297,54 +1297,32 @@ c_bind(const char **wp)
 #ifndef MKSH_SMALL
 	bool macro = false;
 #endif
-	bool list = false;
-	const char *cp;
-	char *up;
 
-	while ((optc = ksh_getopt(wp, &builtin_opt,
-#ifndef MKSH_SMALL
-	    "lm"
-#else
-	    "l"
-#endif
-	    )) != -1)
+	if (x_bind_check()) {
+		bi_errorf("can't bind, not a tty");
+		return (1);
+	}
+
+	while ((optc = ksh_getopt(wp, &builtin_opt, "lm")) != -1)
 		switch (optc) {
 		case 'l':
-			list = true;
-			break;
+			return (x_bind_list());
 #ifndef MKSH_SMALL
 		case 'm':
 			macro = true;
 			break;
 #endif
-		case '?':
+		default:
 			return (1);
 		}
 	wp += builtin_opt.optind;
 
 	if (*wp == NULL)
-		/* list all */
-		rv = x_bind(NULL, NULL,
-#ifndef MKSH_SMALL
-		    false,
-#endif
-		    list);
+		return (x_bind_showall());
 
-	for (; *wp != NULL; wp++) {
-		if ((cp = cstrchr(*wp, '=')) == NULL)
-			up = NULL;
-		else {
-			strdupx(up, *wp, ATEMP);
-			up[cp++ - *wp] = '\0';
-		}
-		if (x_bind(up ? up : *wp, cp,
-#ifndef MKSH_SMALL
-		    macro,
-#endif
-		    false))
-			rv = 1;
-		afree(up, ATEMP);
-	}
+	do {
+		rv |= x_bind(*wp SMALLP(macro));
+	} while (*++wp);
 
 	return (rv);
 }

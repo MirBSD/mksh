@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.478 2020/03/26 22:36:04 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.479 2020/04/07 20:10:08 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -77,7 +77,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: March 26 2020 $
+.Dd $Mdocdate: April 7 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -3154,68 +3154,58 @@ See
 .Sx Job control
 below for more information.
 .Pp
-.It Ic bind Op Fl l
-The current bindings are listed.
-If the
-.Fl l
-flag is given,
-.Ic bind
-instead lists the names of the functions to which keys may be bound.
+.It Ic bind Fl l
+The names of editing commands strings can be bound to are listed.
 See
 .Sx Emacs editing mode
 for more information.
 .Pp
-.It Xo Ic bind Op Fl m
-.Ar string Ns = Ns Op Ar substitute
-.Ar ...
-.Xc
+.It Ic bind Op Ar string ...
+The current bindings, for
+.Ar string ,
+if given, else all, are listed.
+.Em Note:
+Default prefix bindings
+.Pq 1=Esc , 2=\*(haX , 3=NUL
+assumed.
+.Pp
 .It Xo Ic bind
 .Ar string Ns = Ns Op Ar editing-command
-.Ar ...
+.Op Ar ...
 .Xc
-The specified editing command is bound to the given
+.It Xo Ic bind Fl m
+.Ar string Ns = Ns Ar substitute
+.Op Ar ...
+.Xc
+To
 .Ar string ,
 which should consist of a control character
-optionally preceded by one of the two prefix characters
-and optionally succeeded by a tilde character.
-Future input of the
+optionally preceded by one of the three prefix characters
+and optionally succeeded by a tilde character, the
+.Ar editing-command
+is bound so that future input of the
 .Ar string
-will cause the editing command to be immediately invoked.
-If the
+will immediately invoke that editing command.
+If a tilde postfix is given, a tilde trailing the control character is ignored.
+If
 .Fl m
-flag is given, the specified input
+.Pq macro
+is given, future input of the
 .Ar string
-will afterwards be immediately replaced by the given
+will be replaced by the given NUL-terminated
 .Ar substitute
-string which may contain editing commands but not other macros.
-If a tilde postfix is given, a tilde trailing the one or
-two prefices and the control character is ignored, any
-other trailing character will be processed afterwards.
+string, wherein prefix/control/tilde characters mapped to editing commands
+.Pq but not those mapped to other macros
+will be processed.
 .Pp
-Control characters may be written using caret notation
-i.e. \*(haX represents Ctrl-X.
-The caret itself can be escaped by a backslash, which also escapes itself.
-Note that although only three prefix characters (usually ESC, \*(haX and NUL)
+Prefix and control characters may be written using caret notation, i.e.\&
+.No \*(ha Ns Li Z
+represents
+.No Ctrl- Ns Li Z .
+Use a backslash to escape the caret, an equals sign or another backslash.
+Note that, although only three prefix characters
+.Pq usually ESC, \*(haX and NUL
 are supported, some multi-character sequences can be supported.
-.Pp
-The following default bindings show how the arrow keys, the home, end and
-delete key on a BSD wsvt25, xterm\-xfree86 or GNU screen terminal are bound
-(of course some escape sequences won't work out quite this nicely):
-.Bd -literal -offset indent
-bind \*(aq\*(haX\*(aq=prefix\-2
-bind \*(aq\*(ha[[\*(aq=prefix\-2
-bind \*(aq\*(haXA\*(aq=up\-history
-bind \*(aq\*(haXB\*(aq=down\-history
-bind \*(aq\*(haXC\*(aq=forward\-char
-bind \*(aq\*(haXD\*(aq=backward\-char
-bind \*(aq\*(haX1\*(TI\*(aq=beginning\-of\-line
-bind \*(aq\*(haX7\*(TI\*(aq=beginning\-of\-line
-bind \*(aq\*(haXH\*(aq=beginning\-of\-line
-bind \*(aq\*(haX4\*(TI\*(aq=end\-of\-line
-bind \*(aq\*(haX8\*(TI\*(aq=end\-of\-line
-bind \*(aq\*(haXF\*(aq=end\-of\-line
-bind \*(aq\*(haX3\*(TI\*(aq=delete\-char\-forward
-.Ed
 .Pp
 .It Ic break Op Ar level
 Exit the

@@ -191,7 +191,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.886 2020/04/07 11:56:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.887 2020/04/07 20:10:10 tg Exp $");
 #endif
 #define MKSH_VERSION "R58 2020/03/27"
 
@@ -1575,6 +1575,12 @@ extern void ebcdic_init(void);
 #define ksh_toctrl(c)	asc2rtt(ord(c) == ORD('?') ? 0x7F : rtt2asc(c) & 0x9F)
 #define ksh_unctrl(c)	asc2rtt(rtt2asc(c) ^ 0x40U)
 
+#ifdef MKSH_SMALL
+#define SMALLP(x)	/* nothing */
+#else
+#define SMALLP(x)	, x
+#endif
+
 /* Argument parsing for built-in commands and getopts command */
 
 /* Values for Getopt.flags */
@@ -2372,11 +2378,10 @@ void afree(void *, Area *);	/* can take NULL */
 				    aresize((p), (n), (ap)) : (p))
 /* edit.c */
 #ifndef MKSH_NO_CMDLINE_EDITING
-#ifndef MKSH_SMALL
-int x_bind(const char *, const char *, bool, bool);
-#else
-int x_bind(const char *, const char *, bool);
-#endif
+int x_bind(const char * SMALLP(bool));
+int x_bind_check(void);
+int x_bind_list(void);
+int x_bind_showall(void);
 void x_init(void);
 #ifdef DEBUG_LEAKS
 void x_done(void);

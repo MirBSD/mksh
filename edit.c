@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.347 2020/03/17 13:34:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.348 2020/04/07 20:10:06 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -996,10 +996,7 @@ static int x_search_dir(int);
 static int x_match(char *, char *);
 static void x_redraw(int);
 static void x_push(size_t);
-static char *x_mapin(const char *, Area *);
-static char *x_mapout(int);
-static void x_mapout2(int, char **);
-static void x_print(int, int);
+static void x_bind_showone(int, int);
 static void x_e_ungetc(int);
 static int x_e_getc(void);
 static void x_e_putc2(int);
@@ -2390,190 +2387,223 @@ x_vt_hack(int c)
 }
 #endif
 
-static char *
-x_mapin(const char *cp, Area *ap)
+int
+x_bind_check(void)
 {
-	char *news, *op;
+	return (x_tab == NULL);
+}
 
-	strdupx(news, cp, ap);
-	op = news;
-	while (*cp) {
-		switch (*cp) {
-		case '^':
-			cp++;
-			*op++ = ksh_toctrl(*cp);
-			break;
-		case '\\':
-			if (cp[1] == '\\' || cp[1] == '^')
-				++cp;
-			/* FALLTHROUGH */
-		default:
-			*op++ = *cp;
-		}
-		cp++;
+static XString x_bind_show_xs;
+static char *x_bind_show_xp;
+
+static void
+x_bind_show_ch(unsigned char ch)
+{
+	Xcheck(x_bind_show_xs, x_bind_show_xp);
+	switch (ch) {
+	case ORD('^'):
+	case ORD('\\'):
+	case ORD('='):
+		*x_bind_show_xp++ = '\\';
+		*x_bind_show_xp++ = ch;
+		break;
+	default:
+		if (ksh_isctrl(ch)) {
+			*x_bind_show_xp++ = '^';
+			*x_bind_show_xp++ = ksh_unctrl(ch);
+		} else
+			*x_bind_show_xp++ = ch;
+		break;
 	}
-	*op = '\0';
-
-	return (news);
 }
 
 static void
-x_mapout2(int c, char **buf)
+x_bind_showone(int prefix, int key)
 {
-	char *p = *buf;
+	unsigned char f = XFUNC_VALUE(x_tab[prefix][key]);
 
-	if (ksh_isctrl(c)) {
-		*p++ = '^';
-		*p++ = ksh_unctrl(c);
-	} else
-		*p++ = c;
-	*p = 0;
-	*buf = p;
-}
+	if (!x_bind_show_xs.areap)
+		XinitN(x_bind_show_xs, 16, AEDIT);
 
-static char *
-x_mapout(int c)
-{
-	static char buf[8];
-	char *bp = buf;
-
-	x_mapout2(c, &bp);
-	return (buf);
-}
-
-static void
-x_print(int prefix, int key)
-{
-	int f = x_tab[prefix][key];
-
-	if (prefix)
-		/* prefix == 1 || prefix == 2 || prefix == 3 */
-		shf_puts(x_mapout(prefix == 1 ? CTRL_BO :
-		    prefix == 2 ? CTRL_X : 0), shl_stdout);
-#ifdef MKSH_SMALL
-	shprintf("%s = ", x_mapout(key));
-#else
-	shprintf("%s%s = ", x_mapout(key), (f & 0x80) ? "~" : "");
-	if (XFUNC_VALUE(f) != XFUNC_ins_string)
-#endif
-		shprintf(Tf_sN, x_ftab[XFUNC_VALUE(f)].xf_name);
+	x_bind_show_xp = Xstring(x_bind_show_xs, x_bind_show_xp);
+	shf_puts("bind ", shl_stdout);
 #ifndef MKSH_SMALL
-	else
-		shprintf("'%s'\n", x_atab[prefix][key]);
+	if (f == XFUNC_ins_string)
+		shf_puts("-m ", shl_stdout);
 #endif
+	switch (prefix) {
+	case 1:
+		x_bind_show_ch(CTRL_BO);
+		break;
+	case 2:
+		x_bind_show_ch(CTRL_X);
+		break;
+	case 3:
+		x_bind_show_ch(0);
+		break;
+	}
+	x_bind_show_ch(key);
+#ifndef MKSH_SMALL
+	if (x_tab[prefix][key] & 0x80)
+		*x_bind_show_xp++ = '~';
+#endif
+	*x_bind_show_xp = '\0';
+	x_bind_show_xp = Xstring(x_bind_show_xs, x_bind_show_xp);
+	print_value_quoted(shl_stdout, x_bind_show_xp);
+	shf_putc('=', shl_stdout);
+#ifndef MKSH_SMALL
+	if (f == XFUNC_ins_string) {
+		const unsigned char *cp = (const void *)x_atab[prefix][key];
+		unsigned char c;
+
+		while ((c = *cp++))
+			x_bind_show_ch(c);
+		*x_bind_show_xp = '\0';
+		x_bind_show_xp = Xstring(x_bind_show_xs, x_bind_show_xp);
+		print_value_quoted(shl_stdout, x_bind_show_xp);
+	} else
+#endif
+	  shf_puts(x_ftab[f].xf_name, shl_stdout);
+	shf_putc('\n', shl_stdout);
 }
 
 int
-x_bind(const char *a1, const char *a2,
-#ifndef MKSH_SMALL
-    /* bind -m */
-    bool macro,
-#endif
-    /* bind -l */
-    bool list)
+x_bind_list(void)
 {
-	unsigned char f;
+	size_t f;
+
+	for (f = 0; f < NELEM(x_ftab); f++)
+		if (!(x_ftab[f].xf_flags & XF_NOBIND))
+			shprintf(Tf_sN, x_ftab[f].xf_name);
+	return (0);
+}
+
+int
+x_bind_showall(void)
+{
 	int prefix, key;
-	char *m1, *m2;
-#ifndef MKSH_SMALL
-	char *sp = NULL;
-	bool hastilde;
-#endif
 
-	if (x_tab == NULL) {
-		bi_errorf("can't bind, not a tty");
-		return (1);
-	}
-	/* List function names */
-	if (list) {
-		for (f = 0; f < NELEM(x_ftab); f++)
-			if (!(x_ftab[f].xf_flags & XF_NOBIND))
-				shprintf(Tf_sN, x_ftab[f].xf_name);
-		return (0);
-	}
-	if (a1 == NULL) {
-		for (prefix = 0; prefix < X_NTABS; prefix++)
-			for (key = 0; key < X_TABSZ; key++) {
-				f = XFUNC_VALUE(x_tab[prefix][key]);
-				if (f == XFUNC_insert || f == XFUNC_error
-#ifndef MKSH_SMALL
-				    || (macro && f != XFUNC_ins_string)
-#endif
-				    )
-					continue;
-				x_print(prefix, key);
-			}
-		return (0);
-	}
-	m2 = m1 = x_mapin(a1, ATEMP);
-	prefix = 0;
-	for (;; m1++) {
-		key = (unsigned char)*m1;
-		f = XFUNC_VALUE(x_tab[prefix][key]);
-		if (f == XFUNC_meta1)
-			prefix = 1;
-		else if (f == XFUNC_meta2)
-			prefix = 2;
-		else if (f == XFUNC_meta3)
-			prefix = 3;
-		else
-			break;
-	}
-	if (*++m1
-#ifndef MKSH_SMALL
-	    && ((*m1 != '~') || *(m1 + 1))
-#endif
-	    ) {
-		char msg[256];
-		const char *c = a1;
-		m1 = msg;
-		while (*c && (size_t)(m1 - msg) < sizeof(msg) - 3)
-			x_mapout2(*c++, &m1);
-		bi_errorf("too long key sequence: %s", msg);
-		return (1);
-	}
-#ifndef MKSH_SMALL
-	hastilde = tobool(*m1);
-#endif
-	afree(m2, ATEMP);
-
-	if (a2 == NULL) {
-		x_print(prefix, key);
-		return (0);
-	}
-	if (*a2 == 0) {
-		f = XFUNC_insert;
-#ifndef MKSH_SMALL
-	} else if (macro) {
-		f = XFUNC_ins_string;
-		sp = x_mapin(a2, AEDIT);
-#endif
-	} else {
-		for (f = 0; f < NELEM(x_ftab); f++)
-			if (!strcmp(x_ftab[f].xf_name, a2))
+	for (prefix = 0; prefix < X_NTABS; prefix++)
+		for (key = 0; key < X_TABSZ; key++)
+			switch (XFUNC_VALUE(x_tab[prefix][key])) {
+			case XFUNC_error:	/* unset */
+			case XFUNC_insert:	/* auto-insert */
 				break;
-		if (f == NELEM(x_ftab) || x_ftab[f].xf_flags & XF_NOBIND) {
-			bi_errorf("%s: no such function", a2);
+			default:
+				x_bind_showone(prefix, key);
+				break;
+			}
+	return (0);
+}
+
+static unsigned int
+x_bind_getc(const char **ccpp)
+{
+	unsigned int ch, ec;
+
+	if ((ch = ord(**ccpp)))
+		++(*ccpp);
+	switch (ch) {
+	case ORD('^'):
+		ch = ksh_toctrl(**ccpp) | 0x100U;
+		if (**ccpp)
+			++(*ccpp);
+		break;
+	case ORD('\\'):
+		switch ((ec = ord(**ccpp))) {
+		case ORD('^'):
+		case ORD('\\'):
+		case ORD('='):
+			ch = ec | 0x100U;
+			++(*ccpp);
+			break;
+		}
+		break;
+	}
+	return (ch);
+}
+
+int
+x_bind(const char *s SMALLP(bool macro))
+{
+	const char *ccp = s;
+	int prefix, key;
+	unsigned int c;
+#ifndef MKSH_SMALL
+	bool hastilde = false;
+	char *ms = NULL;
+#endif
+
+	prefix = 0;
+	c = x_bind_getc(&ccp);
+	if (!c || c == ORD('=')) {
+		bi_errorf("no key to bind");
+		return (1);
+	}
+	key = c & 0xFF;
+	while ((c = x_bind_getc(&ccp)) != ORD('=')) {
+		if (!c) {
+			x_bind_showone(prefix, key);
+			return (0);
+		}
+		switch (XFUNC_VALUE(x_tab[prefix][key])) {
+		case XFUNC_meta1:
+			prefix = 1;
+			if (0)
+				/* FALLTHROUGH */
+		case XFUNC_meta2:
+			  prefix = 2;
+			if (0)
+				/* FALLTHROUGH */
+		case XFUNC_meta3:
+			  prefix = 3;
+			key = c & 0xFF;
+			continue;
+		}
+#ifndef MKSH_SMALL
+		if (c == ORD('~')) {
+			hastilde = true;
+			continue;
+		}
+#endif
+		bi_errorf("too long key sequence: %s", s);
+		return (-1);
+	}
+
+#ifndef MKSH_SMALL
+	if (macro) {
+		char *cp;
+
+		cp = ms = alloc(strlen(ccp) + 1, AEDIT);
+		while ((c = x_bind_getc(&ccp)))
+			*cp++ = c;
+		*cp = '\0';
+		c = XFUNC_ins_string;
+	} else
+#endif
+	  if (!*ccp) {
+		c = XFUNC_insert;
+	} else {
+		for (c = 0; c < NELEM(x_ftab); ++c)
+			if (!strcmp(x_ftab[c].xf_name, ccp))
+				break;
+		if (c == NELEM(x_ftab) || x_ftab[c].xf_flags & XF_NOBIND) {
+			bi_errorf("%s: no such editing command", ccp);
 			return (1);
 		}
 	}
 
 #ifndef MKSH_SMALL
-	if (XFUNC_VALUE(x_tab[prefix][key]) == XFUNC_ins_string &&
-	    x_atab[prefix][key])
+	if (XFUNC_VALUE(x_tab[prefix][key]) == XFUNC_ins_string)
 		afree(x_atab[prefix][key], AEDIT);
+	x_atab[prefix][key] = ms;
+	if (hastilde)
+		c |= 0x80U;
 #endif
-	x_tab[prefix][key] = f
-#ifndef MKSH_SMALL
-	    | (hastilde ? 0x80 : 0)
-#endif
-	    ;
-#ifndef MKSH_SMALL
-	x_atab[prefix][key] = sp;
-#endif
+	x_tab[prefix][key] = c;
 
-	/* Track what the user has bound so x_mode(true) won't toast things */
-	if (f == XFUNC_insert)
+	/* track what the user has bound, so x_mode(true) won't toast things */
+	if (c == XFUNC_insert)
 		x_bound[(prefix * X_TABSZ + key) / 8] &=
 		    ~(1 << ((prefix * X_TABSZ + key) % 8));
 	else
