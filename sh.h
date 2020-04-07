@@ -191,7 +191,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.884 2020/03/27 10:25:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.885 2020/04/07 11:13:45 tg Exp $");
 #endif
 #define MKSH_VERSION "R58 2020/03/27"
 
@@ -2646,7 +2646,7 @@ int unbksl(bool, int (*)(void), void (*)(int));
 void os2_init(int *, const char ***);
 void setextlibpath(const char *, const char *);
 int access_ex(int (*)(const char *, int), const char *, int);
-int stat_ex(const char *, struct stat *);
+int stat_ex(int (*)(const char *, struct stat *), const char *, struct stat *);
 const char *real_exec_name(const char *);
 #endif
 /* shf.c */

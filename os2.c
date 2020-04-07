@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2015, 2017
+ * Copyright (c) 2015, 2017, 2020
  *	KO Myung-Hun <komh@chollian.net>
  * Copyright (c) 2017
  *	mirabilos <m@mirbsd.org>
@@ -32,7 +32,7 @@
 #include <unistd.h>
 #include <process.h>
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.9 2019/08/01 20:05:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.10 2020/04/07 11:13:45 tg Exp $");
 
 static char *remove_trailing_dots(char *);
 static int access_stat_ex(int (*)(), const char *, void *);
@@ -304,11 +304,12 @@ access_ex(int (*fn)(const char *, int), const char *name, int mode)
 	return (access_stat_ex(fn, name, (void *)mode));
 }
 
-/* stat() version */
+/* stat()/lstat() version */
 int
-stat_ex(const char *name, struct stat *buffer)
+stat_ex(int (*fn)(const char *, struct stat *),
+    const char *name, struct stat *buffer)
 {
-	return (access_stat_ex(stat, name, buffer));
+	return (access_stat_ex(fn, name, buffer));
 }
 
 static int

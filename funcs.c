@@ -39,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.364 2020/03/27 10:15:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.365 2020/04/07 11:13:44 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2761,11 +2761,13 @@ test_isop(Test_meta meta, const char *s)
 }
 
 #ifdef __OS2__
-#define test_access(name, mode) access_ex(access, (name), (mode))
-#define test_stat(name, buffer) stat_ex((name), (buffer))
+#define test_access(name,mode)	access_ex(access, (name), (mode))
+#define test_stat(name,buffer)	stat_ex(stat, (name), (buffer))
+#define test_lstat(name,buffer)	stat_ex(lstat, (name), (buffer))
 #else
-#define test_access(name, mode) access((name), (mode))
-#define test_stat(name, buffer) stat((name), (buffer))
+#define test_access(name,mode)	access((name), (mode))
+#define test_stat(name,buffer)	stat((name), (buffer))
+#define test_lstat(name,buffer)	lstat((name), (buffer))
 #endif
 
 #if HAVE_ST_MTIM
@@ -2882,31 +2884,31 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 
 	/* -d */
 	case TO_FILID:
-		return (stat(opnd1, &b1) == 0 && S_ISDIR(b1.st_mode));
+		return (test_stat(opnd1, &b1) == 0 && S_ISDIR(b1.st_mode));
 
 	/* -c */
 	case TO_FILCDEV:
-		return (stat(opnd1, &b1) == 0 && S_ISCHR(b1.st_mode));
+		return (test_stat(opnd1, &b1) == 0 && S_ISCHR(b1.st_mode));
 
 	/* -b */
 	case TO_FILBDEV:
-		return (stat(opnd1, &b1) == 0 && S_ISBLK(b1.st_mode));
+		return (test_stat(opnd1, &b1) == 0 && S_ISBLK(b1.st_mode));
 
 	/* -p */
 	case TO_FILFIFO:
-		return (stat(opnd1, &b1) == 0 && S_ISFIFO(b1.st_mode));
+		return (test_stat(opnd1, &b1) == 0 && S_ISFIFO(b1.st_mode));
 
 	/* -h or -L */
 	case TO_FILSYM:
 #ifdef MKSH__NO_SYMLINK
 		return (0);
 #else
-		return (lstat(opnd1, &b1) == 0 && S_ISLNK(b1.st_mode));
+		return (test_lstat(opnd1, &b1) == 0 && S_ISLNK(b1.st_mode));
 #endif
 
 	/* -S */
 	case TO_FILSOCK:
-		return (stat(opnd1, &b1) == 0 && S_ISSOCK(b1.st_mode));
+		return (test_stat(opnd1, &b1) == 0 && S_ISSOCK(b1.st_mode));
 
 	/* -H => HP context dependent files (directories) */
 	case TO_FILCDF:
@@ -2925,7 +2927,7 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 		 */
 
 		nv = shf_smprintf("%s+", opnd1);
-		i = (stat(nv, &b1) == 0 && S_ISCDF(b1.st_mode));
+		i = (test_stat(nv, &b1) == 0 && S_ISCDF(b1.st_mode));
 		afree(nv, ATEMP);
 		return (i);
 	}
@@ -2935,18 +2937,18 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 
 	/* -u */
 	case TO_FILSETU:
-		return (stat(opnd1, &b1) == 0 &&
+		return (test_stat(opnd1, &b1) == 0 &&
 		    (b1.st_mode & S_ISUID) == S_ISUID);
 
 	/* -g */
 	case TO_FILSETG:
-		return (stat(opnd1, &b1) == 0 &&
+		return (test_stat(opnd1, &b1) == 0 &&
 		    (b1.st_mode & S_ISGID) == S_ISGID);
 
 	/* -k */
 	case TO_FILSTCK:
 #ifdef S_ISVTX
-		return (stat(opnd1, &b1) == 0 &&
+		return (test_stat(opnd1, &b1) == 0 &&
 		    (b1.st_mode & S_ISVTX) == S_ISVTX);
 #else
 		return (0);
@@ -2954,7 +2956,8 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 
 	/* -s */
 	case TO_FILGZ:
-		return (stat(opnd1, &b1) == 0 && (off_t)b1.st_size > (off_t)0);
+		return (test_stat(opnd1, &b1) == 0 &&
+		    (off_t)b1.st_size > (off_t)0);
 
 	/* -t */
 	case TO_FILTT:
@@ -2967,11 +2970,13 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 
 	/* -O */
 	case TO_FILUID:
-		return (stat(opnd1, &b1) == 0 && (uid_t)b1.st_uid == ksheuid);
+		return (test_stat(opnd1, &b1) == 0 &&
+		    (uid_t)b1.st_uid == ksheuid);
 
 	/* -G */
 	case TO_FILGID:
-		return (stat(opnd1, &b1) == 0 && (gid_t)b1.st_gid == getegid());
+		return (test_stat(opnd1, &b1) == 0 &&
+		    (gid_t)b1.st_gid == getegid());
 
 	/*
 	 * Binary Operators
@@ -3009,8 +3014,8 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 		 * ksh88/ksh93 succeed if file2 can't be stated
 		 * (subtly different from 'does not exist').
 		 */
-		return (stat(opnd1, &b1) == 0 &&
-		    (((s = stat(opnd2, &b2)) == 0 &&
+		return (test_stat(opnd1, &b1) == 0 &&
+		    (((s = test_stat(opnd2, &b2)) == 0 &&
 		    mtimecmp(&b1, &b2) > 0) || s < 0));
 
 	/* -ot */
@@ -3019,13 +3024,14 @@ test_eval(Test_env *te, Test_op op, const char *opnd1, const char *opnd2,
 		 * ksh88/ksh93 succeed if file1 can't be stated
 		 * (subtly different from 'does not exist').
 		 */
-		return (stat(opnd2, &b2) == 0 &&
-		    (((s = stat(opnd1, &b1)) == 0 &&
+		return (test_stat(opnd2, &b2) == 0 &&
+		    (((s = test_stat(opnd1, &b1)) == 0 &&
 		    mtimecmp(&b1, &b2) < 0) || s < 0));
 
 	/* -ef */
 	case TO_FILEQ:
-		return (stat (opnd1, &b1) == 0 && stat (opnd2, &b2) == 0 &&
+		return (test_stat(opnd1, &b1) == 0 &&
+		    test_stat(opnd2, &b2) == 0 &&
 		    b1.st_dev == b2.st_dev && b1.st_ino == b2.st_ino);
 
 	/* all other cases */
