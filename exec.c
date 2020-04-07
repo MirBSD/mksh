@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.219 2020/04/07 10:25:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.220 2020/04/07 10:26:35 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -604,7 +604,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 				struct tbl *ext_cmd;
 
 				ext_cmd = findcom(tp->name, FC_FUNC | FC_PATH);
-				if (ext_cmd && (ext_cmd->type != CTALIAS ||
+				if (ext_cmd && (ext_cmd->type == CFUNC ||
 				    (ext_cmd->flag & ISSET)))
 					tp = ext_cmd;
 			}
