@@ -39,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.367 2020/04/07 20:10:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.368 2020/04/07 20:44:01 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1575,7 +1575,6 @@ c_wait(const char **wp)
 	return (rv);
 }
 
-static const char REPLY[] = "REPLY";
 int
 c_read(const char **wp)
 {
@@ -1665,7 +1664,7 @@ c_read(const char **wp)
 	}
 	wp += builtin_opt.optind;
 	if (*wp == NULL)
-		*--wp = REPLY;
+		*--wp = TREPLY;
 
 	if (intoarray && wp[1] != NULL) {
 		bi_errorf(Ttoo_many_args);

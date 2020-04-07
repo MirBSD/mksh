@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.228 2020/03/10 23:37:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.229 2020/04/07 20:44:00 tg Exp $");
 
 /*
  * string expansion
@@ -2035,7 +2035,7 @@ valsub(struct op *t, Area *ap)
 	newenv(E_FUNC);
 	newblock();
 	if (ap)
-		vp = local("REPLY", false);
+		vp = local(TREPLY, false);
 	if (!kshsetjmp(e->jbuf))
 		execute(t, XXCOM | XERROK, NULL);
 	if (vp)

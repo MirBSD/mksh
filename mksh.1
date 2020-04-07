@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.479 2020/04/07 20:10:08 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.480 2020/04/07 20:44:03 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -290,8 +290,9 @@ option is cleared automatically after processing the startup files.
 Restricted shell.
 A shell is
 .Dq restricted
-if this
-option is used.
+if the basename the shell is called with (i.e. argv[0]) starts with
+.Ql r
+or if this option is used.
 The following restrictions come into effect after the shell processes any
 profile and
 .Ev ENV

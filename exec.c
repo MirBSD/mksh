@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.221 2020/04/07 11:56:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.222 2020/04/07 20:44:01 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1676,7 +1676,7 @@ static const char *
 do_selectargs(const char **ap, bool print_menu)
 {
 	static const char *read_args[] = {
-		Tread, "-r", "REPLY", NULL
+		Tread, Tdr, TREPLY, NULL
 	};
 	char *s;
 	int i, argct;
@@ -1690,13 +1690,13 @@ do_selectargs(const char **ap, bool print_menu)
 		 *	- the user enters a blank line
 		 *	- the REPLY parameter is empty
 		 */
-		if (print_menu || !*str_val(global("REPLY")))
+		if (print_menu || !*str_val(global(TREPLY)))
 			pr_menu(ap);
 		shellf(Tf_s, str_val(global("PS3")));
 		if (call_builtin(findcom(Tread, FC_BI), read_args, Tselect,
 		    false))
 			return (NULL);
-		if (*(s = str_val(global("REPLY"))))
+		if (*(s = str_val(global(TREPLY))))
 			return ((getn(s, &i) && i >= 1 && i <= argct) ?
 			    ap[i - 1] : null);
 		print_menu = true;

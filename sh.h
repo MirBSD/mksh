@@ -191,7 +191,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.887 2020/04/07 20:10:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.888 2020/04/07 20:44:05 tg Exp $");
 #endif
 #define MKSH_VERSION "R58 2020/03/27"
 
@@ -1003,6 +1003,7 @@ EXTERN const char Tsgcontinue[] E_INIT("*=continue");
 EXTERN const char Tcreate[] E_INIT("create");
 EXTERN const char TELIF_unexpected[] E_INIT("TELIF unexpected");
 EXTERN const char TEXECSHELL[] E_INIT("EXECSHELL");
+EXTERN const char TENV[] E_INIT("ENV");
 EXTERN const char Tdsgexport[] E_INIT("^*=export");
 #define Texport (Tdsgexport + 3)
 #ifdef __OS2__
@@ -1038,6 +1039,7 @@ EXTERN const char Tnot_found_s[] E_INIT("%s not found");
 #define Tpv (TpVv + 1)
 EXTERN const char TpVv[] E_INIT("Vpv");
 #define TPWD (Tno_OLDPWD + 6)
+EXTERN const char Tdr[] E_INIT("-r");
 #define Tread (Tshf_read + 4)
 EXTERN const char Tdsgreadonly[] E_INIT("^*=readonly");
 #define Treadonly (Tdsgreadonly + 3)
@@ -1045,6 +1047,7 @@ EXTERN const char Tredirection_dup[] E_INIT("can't finish (dup) redirection");
 #define Tredirection (Tredirection_dup + 19)
 #define Treal_sp1 (Treal_sp2 + 1)
 EXTERN const char Treal_sp2[] E_INIT(" real ");
+EXTERN const char TREPLY[] E_INIT("REPLY");
 EXTERN const char Treq_arg[] E_INIT("requires an argument");
 EXTERN const char Tselect[] E_INIT("select");
 #define Tset (Tf_parm + 18)
@@ -1161,6 +1164,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tcreate "create"
 #define TELIF_unexpected "TELIF unexpected"
 #define TEXECSHELL "EXECSHELL"
+#define TENV "ENV"
 #define Tdsgexport "^*=export"
 #define Texport "export"
 #ifdef __OS2__
@@ -1196,6 +1200,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tpv "pv"
 #define TpVv "Vpv"
 #define TPWD "PWD"
+#define Tdr "-r"
 #define Tread "read"
 #define Tdsgreadonly "^*=readonly"
 #define Treadonly "readonly"
@@ -1203,6 +1208,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tredirection "redirection"
 #define Treal_sp1 "real "
 #define Treal_sp2 " real "
+#define TREPLY "REPLY"
 #define Treq_arg "requires an argument"
 #define Tselect "select"
 #define Tset "set"

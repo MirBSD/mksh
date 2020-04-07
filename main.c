@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.361 2020/04/07 11:56:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.362 2020/04/07 20:44:02 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -65,7 +65,7 @@ static const char initsubs[] =
     "${EPOCHREALTIME=}";
 
 static const char *initcoms[] = {
-	Ttypeset, "-r", initvsn, NULL,
+	Ttypeset, Tdr, initvsn, NULL,
 	Ttypeset, "-x", "HOME", TPATH, TSHELL, NULL,
 	Ttypeset, "-i10", "COLUMNS", "LINES", "SECONDS", "TMOUT", NULL,
 	Talias,
@@ -90,7 +90,7 @@ static const char *initcoms[] = {
 };
 
 static const char *restr_com[] = {
-	Ttypeset, "-r", TPATH, "ENV", TSHELL, NULL
+	Ttypeset, Tdr, TPATH, TENV, TSHELL, NULL
 };
 
 static bool initio_done;
@@ -227,7 +227,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	int argi, i;
 	Source *s = NULL;
 	struct block *l;
-	unsigned char restricted_shell, errexit, utf_flag;
+	unsigned char restricted_shell = 0, errexit, utf_flag;
 	char *cp;
 	const char *ccp, **wp;
 	struct tbl *vp;
@@ -315,7 +315,11 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		argi = parse_args(argv, OF_FIRSTTIME, NULL);
 		if (argi < 0)
 			return (1);
-
+		/* called as rsh, rmksh, -rsh, -rmksh, etc.? */
+		if (ord(*ccp) == ORD('r')) {
+			++ccp;
+			++restricted_shell;
+		}
 #if defined(MKSH_BINSHPOSIX) || defined(MKSH_BINSHREDUCED)
 		/* are we called as -sh or /bin/sh or so? */
 		if (!strcmp(ccp, "sh" MKSH_EXE_EXT)) {
@@ -636,7 +640,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	}
 
 	/* Disable during .profile/ENV reading */
-	restricted_shell = Flag(FRESTRICTED);
+	restricted_shell |= Flag(FRESTRICTED);
 	Flag(FRESTRICTED) = 0;
 	errexit = Flag(FERREXIT);
 	Flag(FERREXIT) = 0;
