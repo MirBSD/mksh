@@ -191,7 +191,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.888 2020/04/07 20:44:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.889 2020/04/07 23:14:44 tg Exp $");
 #endif
 #define MKSH_VERSION "R58 2020/03/27"
 
@@ -666,7 +666,7 @@ char *ucstrstr(char *, const char *);
 #endif
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 581)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 591)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -2050,6 +2050,7 @@ struct ioword {
 #define DOSCALAR BIT(12)	/* change field handling to non-list context */
 #define DOHEREDOC BIT(13)	/* change scalar handling to heredoc body */
 #define DOHERESTR BIT(14)	/* append a newline char */
+#define DODBMAGIC BIT(15)	/* add magic to expansions for [[ x = $y ]] */
 
 #define X_EXTRA	20	/* this many extra bytes in X string */
 #if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)

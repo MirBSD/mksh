@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.229 2020/04/07 20:44:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.230 2020/04/07 23:14:41 tg Exp $");
 
 /*
  * string expansion
@@ -51,13 +51,17 @@ typedef struct {
 	bool split;
 } Expand;
 
-#define	XBASE		0	/* scanning original */
-#define	XSUB		1	/* expanding ${} string */
-#define	XARGSEP		2	/* ifs0 between "$*" */
-#define	XARG		3	/* expanding $*, $@ */
-#define	XCOM		4	/* expanding $() */
-#define XNULLSUB	5	/* "$@" when $# is 0 (don't generate word) */
-#define XSUBMID		6	/* middle of expanding ${} */
+#define XBASE		0	/* scanning original string */
+#define XARGSEP		1	/* ifs0 between "$*" */
+#define XARG		2	/* expanding $*, $@ */
+#define XCOM		3	/* expanding $() */
+#define XNULLSUB	4	/* "$@" when $# is 0, so don't generate word */
+#define XSUB		5	/* expanding ${} string */
+#define XSUBMID		6	/* middle of expanding ${}; must be XSUB+1 */
+#define XSUBPAT		7	/* expanding [[ x = ${} ]] string */
+#define XSUBPATMID	8	/* middle, must be XSUBPAT+1 */
+
+#define isXSUB(t)	((t) == XSUB || (t) == XSUBPAT)
 
 /* States used for field splitting */
 #define IFS_WORD	0	/* word has chars (or quotes except "$@") */
@@ -335,7 +339,7 @@ expand(
 						Xcheck(ds, dp);
 						*dp++ = *sp++;
 					}
-					if ((unsigned int)c == ORD('}'))
+					if ((unsigned int)c == ORD(/*{*/'}'))
 						*dp++ = ';';
 					*dp++ = c;
 				} else {
@@ -866,9 +870,69 @@ expand(
 			}
 			continue;
 
+		case XSUBPAT:
+		case XSUBPATMID:
+ XSUBPAT_beg:
+			switch ((c = ord(*x.str++))) {
+			case 0:
+				goto XSUB_end;
+			case ORD('\\'):
+				if ((c = ord(*x.str)) == 0)
+					/* keep backslash at EOS */
+					c = ORD('\\');
+				else
+					++x.str;
+				break;
+			/* ctype(c, C_PATMO) */
+			case ORD('!'):
+			case ORD('*'):
+			case ORD('+'):
+			case ORD('?'):
+			case ORD('@'):
+				if (ord(*x.str) == ORD('('/*)*/)) {
+					++x.str;
+					c |= 0x80U;
+					make_magic = true;
+				}
+				break;
+			case ORD('('):
+				c = ORD(' ') | 0x80U;
+				/* FALLTHROUGH */
+			case ORD('|'):
+			case ORD(')'):
+				make_magic = true;
+				break;
+			}
+			break;
+
 		case XSUB:
+			if (!quote && (f & DODBMAGIC)) {
+				const char *cs = x.str;
+				int level = 0;
+
+				while ((c = *cs++))
+					switch (c) {
+					case '\\':
+						if ((c = *cs))
+							++cs;
+						break;
+					case ORD('('):
+						++level;
+						break;
+					case ORD(')'):
+						--level;
+						break;
+					}
+				/* balanced parentheses? */
+				if (!level) {
+					type = XSUBPAT;
+					goto XSUBPAT_beg;
+				}
+			}
+			/* FALLTHROUGH */
 		case XSUBMID:
 			if ((c = ord(*x.str++)) == 0) {
+ XSUB_end:
 				type = XBASE;
 				if (f & DOBLANK)
 					doblank--;
@@ -1024,17 +1088,17 @@ expand(
 				Xinit(ds, dp, 128, ATEMP);
 			} else if (c == 0) {
 				return;
-			} else if (type == XSUB && ctype(c, C_IFS) &&
+			} else if (isXSUB(type) && ctype(c, C_IFS) &&
 			    !ctype(c, C_IFSWS) && Xlength(ds, dp) == 0) {
 				*(cp = alloc(1, ATEMP)) = '\0';
 				XPput(*wp, cp);
-				type = XSUBMID;
+				++type;
 			}
 			if (word != IFS_NWS)
 				word = ctype(c, C_IFSWS) ? IFS_WS : IFS_NWS;
 		} else {
-			if (type == XSUB)
-				type = XSUBMID;
+			if (isXSUB(type))
+				++type;
 
 			/* age tilde_ok info - ~ code tests second bit */
 			tilde_ok <<= 1;

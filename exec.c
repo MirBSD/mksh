@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.222 2020/04/07 20:44:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.223 2020/04/07 23:14:41 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1855,8 +1855,11 @@ dbteste_getopnd(Test_env *te, Test_op op, bool do_eval)
 	if (!do_eval)
 		return (null);
 
-	if (op == TO_STEQL || op == TO_STNEQ)
+	if (op == TO_STEQL || op == TO_STNEQ) {
 		flags |= DOPAT;
+		if (!Flag(FSH))
+			flags |= DODBMAGIC;
+	}
 
 	return (evalstr(s, flags));
 }

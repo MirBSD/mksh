@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.481 2020/04/07 20:53:42 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.482 2020/04/07 23:14:42 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -988,19 +988,15 @@ The second operand of the
 .Dq Li !=
 and
 .Dq Li =
-expressions are a subset of patterns (e.g. the comparison
+expressions are patterns (e.g. the comparison
 .Ic \&[[ foobar = f*r ]]
 succeeds).
-This even works indirectly:
+This even works indirectly (quoting forces literal interpretation):
 .Bd -literal -offset indent
-$ bar=foobar; baz=\*(aqf*r\*(aq
-$ [[ $bar = $baz ]]; echo $?
-$ [[ $bar = \&"$baz" ]]; echo $?
+$ bar=foobar; baz=\*(aqf*r\*(aq         # or: baz=\*(aqf+(o)b?r\*(aq
+$ [[ $bar = $baz ]]; echo $?    # 0
+$ [[ $bar = \&"$baz" ]]; echo $?  # 1
 .Ed
-.Pp
-Perhaps surprisingly, the first comparison succeeds,
-whereas the second doesn't.
-This does not apply to all extglob metacharacters, currently.
 .El
 .El
 .Ss Quoting
@@ -4674,12 +4670,11 @@ Use tests like
 .Dq Li if \&[ x\&"$foo\&" = x"bar" \&]
 instead, or the double-bracket operator
 .Dq Li if \&[[ $foo = bar \&]]
-or, to avoid pattern matching (see
-.Ic \&[[
-above):
+or
 .Dq Li if \&[[ $foo = \&"$bar" \&]]
-.Pp
-The
+to avoid pattern matching (see
+.Ic \&[[
+above); the
 .Ic \&[[ ... \&]]
 construct is not only more secure to use but also often faster.
 .Pp
@@ -6741,7 +6736,7 @@ for the in-memory portion of the history is slow, should use
 .Xr memmove 3 .
 .Pp
 This document attempts to describe
-.Nm mksh\ R58
+.Nm mksh\ R59
 and up,
 .\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as
