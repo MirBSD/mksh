@@ -39,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.369 2020/04/13 16:29:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.370 2020/04/13 16:36:56 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2566,25 +2566,25 @@ c_mknod(const char **wp)
 #endif
 
 /*-
-   test(1) roughly accepts the following grammar:
-	oexpr	::= aexpr | aexpr "-o" oexpr ;
-	aexpr	::= nexpr | nexpr "-a" aexpr ;
-	nexpr	::= primary | "!" nexpr ;
-	primary	::= unary-operator operand
-		| operand binary-operator operand
-		| operand
-		| "(" oexpr ")"
-		;
-
-	unary-operator ::= "-a"|"-b"|"-c"|"-d"|"-e"|"-f"|"-G"|"-g"|"-H"|"-h"|
-			   "-k"|"-L"|"-n"|"-O"|"-o"|"-p"|"-r"|"-S"|"-s"|"-t"|
-			   "-u"|"-v"|"-w"|"-x"|"-z";
-
-	binary-operator ::= "="|"=="|"!="|"<"|">"|"-eq"|"-ne"|"-gt"|"-ge"|
-			    "-lt"|"-le"|"-ef"|"-nt"|"-ot";
-
-	operand ::= <anything>
-*/
+ * test(1) roughly accepts the following grammar:
+ *	oexpr	::= aexpr | aexpr "-o" oexpr ;
+ *	aexpr	::= nexpr | nexpr "-a" aexpr ;
+ *	nexpr	::= primary | "!" nexpr ;
+ *	primary	::= unary-operator operand
+ *		| operand binary-operator operand
+ *		| operand
+ *		| "(" oexpr ")"
+ *		;
+ *
+ *	unary-operator ::= "-a"|"-b"|"-c"|"-d"|"-e"|"-f"|"-G"|"-g"|"-H"|"-h"|
+ *			   "-k"|"-L"|"-n"|"-O"|"-o"|"-p"|"-r"|"-S"|"-s"|"-t"|
+ *			   "-u"|"-v"|"-w"|"-x"|"-z";
+ *
+ *	binary-operator ::= "="|"=="|"!="|"<"|">"|"-eq"|"-ne"|"-gt"|"-ge"|
+ *			    "-lt"|"-le"|"-ef"|"-nt"|"-ot";
+ *
+ *	operand ::= <anything>
+ */
 
 /* POSIX says > 1 for errors */
 #define T_ERR_EXIT 2
