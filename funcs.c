@@ -39,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.370 2020/04/13 16:36:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.371 2020/04/13 17:04:13 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -176,11 +176,8 @@ struct kill_info {
 	int name_width;
 };
 
-static const struct t_op {
-	char op_text[4];
-	Test_op op_num;
-} u_ops[] = {
-	{"-a",	TO_FILAXST },
+const struct t_op u_ops[] = {
+/* 0*/	{"-a",	TO_FILAXST },
 	{"-b",	TO_FILBDEV },
 	{"-c",	TO_FILCDEV },
 	{"-d",	TO_FILID },
@@ -192,22 +189,23 @@ static const struct t_op {
 	{"-h",	TO_FILSYM },
 	{"-k",	TO_FILSTCK },
 	{"-L",	TO_FILSYM },
-	{"-n",	TO_STNZE },
+/*12*/	{"-n",	TO_STNZE },
 	{"-O",	TO_FILUID },
-	{"-o",	TO_OPTION },
+/*14*/	{"-o",	TO_OPTION },
 	{"-p",	TO_FILFIFO },
-	{"-r",	TO_FILRD },
+/*16*/	{"-r",	TO_FILRD },
 	{"-S",	TO_FILSOCK },
 	{"-s",	TO_FILGZ },
 	{"-t",	TO_FILTT },
-	{"-u",	TO_FILSETU },
+/*20*/	{"-u",	TO_FILSETU },
 	{"-v",	TO_ISSET },
 	{"-w",	TO_FILWR },
-	{"-x",	TO_FILEX },
+/*23*/	{"-x",	TO_FILEX },
 	{"-z",	TO_STZER },
 	{"",	TO_NONOP }
 };
-static const struct t_op b_ops[] = {
+cta(u_ops_size, NELEM(u_ops) == 26);
+const struct t_op b_ops[] = {
 	{"=",	TO_STEQL },
 	{"==",	TO_STEQL },
 	{"!=",	TO_STNEQ },
@@ -330,7 +328,7 @@ c_print(const char **wp)
 			/* BSD "echo" cmd, Debian Policy 10.4 compliant */
 			++wp;
  bsd_echo:
-			if (*wp && !strcmp(*wp, "-n")) {
+			if (*wp && !strcmp(*wp, Tdn)) {
 				po.nl = false;
 				++wp;
 			}
@@ -1653,7 +1651,7 @@ c_read(const char **wp)
 		if (!builtin_opt.optarg[0])
 			fd = 0;
 		else if ((fd = check_fd(builtin_opt.optarg, R_OK, &ccp)) < 0) {
-			bi_errorf(Tf_sD_sD_s, "-u", builtin_opt.optarg, ccp);
+			bi_errorf(Tf_sD_sD_s, Tdu, builtin_opt.optarg, ccp);
 			return (2);
 		}
 		break;
@@ -3169,7 +3167,7 @@ ptest_isa(Test_env *te, Test_meta meta)
 {
 	/* Order important - indexed by Test_meta values */
 	static const char * const tokens[] = {
-		"-o", "-a", "!", "(", ")"
+		Tdo, Tda, "!", "(", ")"
 	};
 	Test_op rv;
 
@@ -3483,7 +3481,7 @@ c_cat(const char **wp)
 #define MKSH_CAT_BUFSIZ 4096
 
 	/* parse options: POSIX demands we support "-u" as no-op */
-	while ((rv = ksh_getopt(wp, &builtin_opt, "u")) != -1) {
+	while ((rv = ksh_getopt(wp, &builtin_opt, Tu)) != -1) {
 		switch (rv) {
 		case 'u':
 			/* we already operate unbuffered */

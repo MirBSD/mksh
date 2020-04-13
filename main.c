@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.363 2020/04/13 16:29:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.364 2020/04/13 17:04:14 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -66,7 +66,7 @@ static const char initsubs[] =
 
 static const char *initcoms[] = {
 	Ttypeset, Tdr, initvsn, NULL,
-	Ttypeset, "-x", "HOME", TPATH, TSHELL, NULL,
+	Ttypeset, Tdx, "HOME", TPATH, TSHELL, NULL,
 	Ttypeset, "-i10", "COLUMNS", "LINES", "SECONDS", "TMOUT", NULL,
 	Talias,
 	"integer=\\\\builtin typeset -i",
@@ -100,7 +100,6 @@ static struct env env;
 struct env *e = &env;
 
 /* compile-time assertions */
-#define cta(name,expr)	struct cta_ ## name { char t[(expr) ? 1 : -1]; }
 
 /* this one should be defined by the standard */
 cta(char_is_1_char, (sizeof(char) == 1) && (sizeof(signed char) == 1) &&

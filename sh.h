@@ -191,7 +191,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.890 2020/04/12 20:44:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.891 2020/04/13 17:04:14 tg Exp $");
 #endif
 #define MKSH_VERSION "R58 2020/04/07"
 
@@ -282,6 +282,9 @@ typedef MKSH_TYPEDEF_SSIZE_T ssize_t;
 
 
 #ifndef MKSH_INCLUDES_ONLY
+
+/* compile-time assertions */
+#define cta(name,expr)	struct cta_ ## name { char t[(expr) ? 1 : -1]; }
 
 /* EBCDIC fun */
 
@@ -1039,7 +1042,6 @@ EXTERN const char Tnot_found_s[] E_INIT("%s not found");
 #define Tpv (TpVv + 1)
 EXTERN const char TpVv[] E_INIT("Vpv");
 #define TPWD (Tno_OLDPWD + 6)
-EXTERN const char Tdr[] E_INIT("-r");
 #define Tread (Tshf_read + 4)
 EXTERN const char Tdsgreadonly[] E_INIT("^*=readonly");
 #define Treadonly (Tdsgreadonly + 3)
@@ -1200,7 +1202,6 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tpv "pv"
 #define TpVv "Vpv"
 #define TPWD "PWD"
-#define Tdr "-r"
 #define Tread "read"
 #define Tdsgreadonly "^*=readonly"
 #define Treadonly "readonly"
@@ -2778,6 +2779,24 @@ enum Test_meta {
 	TM_END		/* end of input */
 };
 typedef enum Test_meta Test_meta;
+
+struct t_op {
+	const char op_text[4];
+	Test_op op_num;
+};
+
+/* for string reuse */
+extern const struct t_op u_ops[];
+extern const struct t_op b_ops[];
+/* ensure order with funcs.c */
+#define Tda (u_ops[0].op_text)
+#define Tdn (u_ops[12].op_text)
+#define Tdo (u_ops[14].op_text)
+#define Tdr (u_ops[16].op_text)
+#define Tdu (u_ops[20].op_text)	/* "-u" */
+#define Tdx (u_ops[23].op_text)
+
+#define Tu (Tdu + 1)	/* "u" */
 
 #define TEF_ERROR	BIT(0)		/* set if we've hit an error */
 #define TEF_DBRACKET	BIT(1)		/* set if [[ .. ]] test */
