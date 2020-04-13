@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.482 2020/04/07 23:14:42 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.483 2020/04/13 16:29:33 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -77,7 +77,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 7 2020 $
+.Dd $Mdocdate: April 13 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -1446,7 +1446,6 @@ is also recognised;
 the old and new values are string-concatenated with no separator.
 The fourth way of setting a parameter is with the
 .Ic export ,
-.Ic global ,
 .Ic readonly
 and
 .Ic typeset
@@ -3020,11 +3019,6 @@ Regular built-in commands are different only in that the
 .Ev PATH
 parameter is not used to find them.
 .Pp
-The original
-.Nm ksh
-and POSIX differ somewhat in which commands are considered
-special or regular.
-.Pp
 POSIX special built-in utilities:
 .Pp
 .Ic \&. , \&: , break , continue ,
@@ -3036,11 +3030,11 @@ Additional
 .Nm
 commands keeping assignments:
 .Pp
-.Ic global , source , typeset
+.Ic source , typeset
 .Pp
-Builtins that are not special:
+All other builtins are not special; these are at least:
 .Pp
-.Ic [ , alias , bg , bind ,
+.Ic [\& , alias , bg , bind ,
 .Ic builtin , cat , cd , command ,
 .Ic echo , false , fc , fg ,
 .Ic getopts , jobs , kill , let ,
@@ -3656,23 +3650,6 @@ to a value other than 1 or parsing different sets of arguments without
 resetting
 .Ev OPTIND
 may lead to unexpected results.
-.Pp
-.It Xo
-.Ic global
-.Op Ic +\-aglpnrtUux
-.Oo Fl L Ns Op Ar n
-.No \*(Ba Fl R Ns Op Ar n
-.No \*(Ba Fl Z Ns Op Ar n Oc
-.Op Fl i Ns Op Ar n
-.Oo Ar name
-.Op Ns = Ns Ar value
-.Ar ... Oc
-.Xc
-See
-.Ic typeset Fl g .
-.No Deprecated , Em will
-be removed from a future version of
-.Nm .
 .Pp
 .It Xo
 .Ic hash

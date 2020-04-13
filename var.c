@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.235 2020/04/07 20:44:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.236 2020/04/13 16:29:34 tg Exp $");
 
 /*-
  * Variables
@@ -1862,7 +1862,7 @@ record_match(const char *istr)
 	setstr(vp, istr, 0x4);
 }
 
-/* typeset, global(deprecated), export, and readonly */
+/* typeset, export and readonly */
 int
 c_typeset(const char **wp)
 {

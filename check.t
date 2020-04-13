@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.836 2020/04/12 20:44:51 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.837 2020/04/13 16:29:28 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -7618,7 +7618,7 @@ stdin:
 	showargs 18 "$a"
 	set -A bla
 	typeset bla[1]=~:~
-	global gbl=~ g2=$1
+	typeset -g gbl=~ g2=$1
 	local lcl=~ l2=$1
 	readonly ro=~ r2=$1
 	showargs 19 "${bla[1]}" a=~ "$gbl" "$lcl" "$ro" "$g2" "$l2" "$r2"
