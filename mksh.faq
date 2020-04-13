@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.5 2020/01/28 18:24:56 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.6 2020/04/13 20:46:39 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -357,8 +357,7 @@ Title: What about programmable tab completion?
 The shell itself provides static deterministic tab completion.
 However, you can use hooks like reprogramming the Tab key to a
 command line editor macro, and using the <tt>evaluate-region</tt>
-editor command (modulo a bugfix and possibly adding another,
-convenience, editor command) together with shell functions to
+editor command (modulo a bugfix) together with <tt>quote-region<tt> and shell functions to
 implement a programmable completion engine. Multiple people have
 been considering doing so in our IRC channel; we’ll hyperlink to
 these engines when they are available.

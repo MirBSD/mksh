@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.349 2020/04/13 17:29:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.350 2020/04/13 20:46:37 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1143,6 +1143,7 @@ static struct x_defbindings const x_defbindings[] = {
 #ifndef MKSH_SMALL
 	/* more non-standard ones */
 	{ XFUNC_eval_region,		1,  CTRL_E	},
+	{ XFUNC_quote_region,		1,	'Q'	},
 	{ XFUNC_edit_line,		2,	'e'	}
 #endif
 };
@@ -5687,6 +5688,29 @@ static int
 x_eval_region(int c MKSH_A_UNUSED)
 {
 	return (x_operate_region(x_eval_region_helper));
+}
+
+static char *
+x_quote_region_helper(const char *cmd, size_t len)
+{
+	char *s;
+	size_t newlen;
+	struct shf shf;
+
+	strndupx(s, cmd, len, ATEMP);
+	newlen = len < 256 ? 256 : 4096;
+	shf_sopen(alloc(newlen, AEDIT), newlen, SHF_WR | SHF_DYNAMIC, &shf);
+	shf.areap = AEDIT;
+	shf.flags |= SHF_ALLOCB;
+	print_value_quoted(&shf, s);
+	afree(s, ATEMP);
+	return (shf_sclose(&shf));
+}
+
+static int
+x_quote_region(int c MKSH_A_UNUSED)
+{
+	return (x_operate_region(x_quote_region_helper));
 }
 #endif /* !MKSH_SMALL */
 #endif /* !MKSH_NO_CMDLINE_EDITING */
