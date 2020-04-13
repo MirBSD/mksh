@@ -39,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.371 2020/04/13 17:04:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.372 2020/04/13 19:51:07 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -715,12 +715,16 @@ do_whence(const char **wp, int fcflags, bool vflag, bool iscommand)
 			}
 			break;
 		case CALIAS:
-			if (vflag) {
-				shprintf("%s is an %s%s for ", id,
+			if (!vflag && iscommand)
+				shprintf(Tf_s_, Talias);
+			if (vflag || iscommand)
+				print_value_quoted(shl_stdout, id);
+			if (vflag)
+				shprintf(" is an %s%s for ",
 				    (tp->flag & EXPORT) ? "exported " : "",
 				    Talias);
-			} else if (iscommand)
-				shprintf("%s %s=", Talias, id);
+			else if (iscommand)
+				shf_putc('=', shl_stdout);
 			print_value_quoted(shl_stdout, tp->val.s);
 			break;
 		case CKEYWD:
@@ -839,7 +843,7 @@ c_alias(const char **wp)
 			if ((ap->flag & (ISSET|xflag)) == (ISSET|xflag)) {
 				if (pflag)
 					shprintf(Tf_s_, Talias);
-				shf_puts(ap->name, shl_stdout);
+				print_value_quoted(shl_stdout, ap->name);
 				if (prefix != '+') {
 					shf_putc('=', shl_stdout);
 					print_value_quoted(shl_stdout, ap->val.s);
@@ -869,7 +873,7 @@ c_alias(const char **wp)
 			if (ap != NULL && (ap->flag&ISSET)) {
 				if (pflag)
 					shprintf(Tf_s_, Talias);
-				shf_puts(ap->name, shl_stdout);
+				print_value_quoted(shl_stdout, ap->name);
 				if (prefix != '+') {
 					shf_putc('=', shl_stdout);
 					print_value_quoted(shl_stdout, ap->val.s);
