@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.486 2020/04/14 14:33:00 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.487 2020/04/14 16:59:00 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -689,29 +689,14 @@ This is not valid:
 .Pp
 .Dl $ { echo foo; echo bar }
 .Bl -tag -width 4n
-.It Pq Ar list
-Execute
-.Ar list
-in a subshell.
-There is no implicit way to pass environment changes from a
-subshell back to its parent.
-.It { Ar list ; No }
-Compound construct;
-.Ar list
-is executed, but not in a subshell.
-Note that
-.Dq Li {
-and
-.Dq Li }
-are reserved words, not meta-characters.
-.It Xo case Ar word No in
+.It Xo Ic case Ar word Ic in
 .Oo Op \&(
 .Ar pattern
 .Op \*(Ba Ar pattern
 .No ... Ns )
 .Ar list
-.Ic terminator
-.Oc No ... esac
+.Aq terminator
+.Oc No ... Ic esac
 .Xc
 The
 .Ic case
@@ -739,12 +724,12 @@ well as tilde substitution.
 For historical reasons, open and close braces may be used instead of
 .Ic in
 and
-.Ic esac
-e.g.\&
-.Ic case $foo { *) echo bar ;; } .
+.Ic esac ,
+for example:
+.Dq Li case $foo { (ba[rz]\*(Bablah) date ;; }
 .Pp
 The list
-.Ic terminator Ns s
+.Ao terminator Ac Ns s
 are:
 .Bl -tag -width 4n
 .It Dq Li ;;
@@ -762,9 +747,9 @@ statement is that of the executed
 if no
 .Ar list
 is executed, the exit status is zero.
-.It Xo for Ar name
-.Oo in Ar word No ... Oc ;
-.No do Ar list ; No done
+.It Xo Ic for Ar name
+.Oo Ic in Ar word ... Oc Ic ;
+.Ic do Ar list ; Ic done
 .Xc
 For each
 .Ar word
@@ -773,16 +758,6 @@ in the specified word list, the parameter
 is set to the word and
 .Ar list
 is executed.
-If
-.Ic in
-is not used to specify a word list, the positional parameters ($1, $2,
-etc.) are used instead.
-For historical reasons, open and close braces may be used instead of
-.Ic do
-and
-.Ic done
-e.g.\&
-.Ic for i; { echo $i; } .
 The exit status of a
 .Ic for
 statement is the last exit status of
@@ -790,13 +765,52 @@ statement is the last exit status of
 if
 .Ar list
 is never executed, the exit status is zero.
-.It Xo if Ar list ;
-.No then Ar list ;
-.Oo elif Ar list ;
-.No then Ar list ; Oc
+If
+.Ic in
+is not used to specify a word list, the positional parameters ($1, $2,
+etc.) are used instead; in this case, use a newline instead of the semicolon
+.Pq Sq Ic ;\&
+for portability.
+For historical reasons, open and close braces may be used instead of
+.Ic do
+and
+.Ic done ,
+as in
+.Dq Li for i; { echo $i; }
+.Pq not portable .
+.It Xo Ic function Ar name
+.No { Ar list ; No }
+.Xc
+Defines the function
+.Ar name
+(see
+.Sx Functions
+below).
+All redirections specified after a function definition are performed whenever
+the function is executed, not when the function definition is executed.
+.It Ar name Ns \&() Ar command
+Mostly the same as
+.Ic function
+(see above and
+.Sx Functions
+below).
+Most amounts of space and tab after
+.Ar name
+will be ignored.
+.It Xo Ic function Ar name Ns \&()
+.No { Ar list ; No }
+.Xc
+.Nm bash Ns ism for
+.Ar name Ns Li ()\ {
+.Ar list Ns Li ;\ }
+.Pq the Ic function No keyword is ignored .
+.It Xo Ic if Ar list ;
+.Ic then Ar list ;
+.Oo Ic elif Ar list ;
+.Ic then Ar list ; Oc
 .No ...
-.Oo else Ar list ; Oc
-.No fi
+.Oo Ic else Ar list ; Oc
+.Ic fi
 .Xc
 If the exit status of the first
 .Ar list
@@ -818,21 +832,22 @@ following the
 is executed.
 The exit status of an
 .Ic if
-statement is that of non-conditional
+statement is that of whatever non-conditional
+.Pq not the first
 .Ar list
 that is executed; if no non-conditional
 .Ar list
 is executed, the exit status is zero.
-.It Xo select Ar name
-.Oo in Ar word No ... Oc ;
-.No do Ar list ; No done
+.It Xo Ic select Ar name
+.Oo Ic in Ar word No ... Oc ;
+.Ic do Ar list ; Ic done
 .Xc
 The
 .Ic select
 statement provides an automatic method of presenting the user with a menu and
 selecting from it.
 An enumerated list of the specified
-.Ar word Ns (s)
+.Ar word Ns s
 is printed on standard error, followed by a prompt
 .Po
 .Ev PS3 :
@@ -844,7 +859,7 @@ standard input,
 .Ar name
 is set to the selected word (or unset if the selection is not valid),
 .Ev REPLY
-is set to what was read (leading/trailing space is stripped), and
+is set to what was read (leading and trailing space is stripped), and
 .Ar list
 is executed.
 If a blank line (i.e. zero or more
@@ -861,74 +876,20 @@ This process continues until an end-of-file
 is read, an interrupt is received, or a
 .Ic break
 statement is executed inside the loop.
-If
-.Dq in Ar word ...
-is omitted, the positional parameters are used
-(i.e. $1, $2, etc.).
-For historical reasons, open and close braces may be used instead of
-.Ic do
-and
-.Ic done
-e.g.\&
-.Ic select i; { echo $i; } .
 The exit status of a
 .Ic select
 statement is zero if a
 .Ic break
 statement is used to exit the loop, non-zero otherwise.
-.It Xo until Ar list ;
-.No do Ar list ;
-.No done
-.Xc
-This works like
-.Ic while ,
-except that the body is executed only while the exit status of the first
-.Ar list
-is non-zero.
-.It Xo while Ar list ;
-.No do Ar list ;
-.No done
-.Xc
-A
-.Ic while
-is a pre-checked loop.
-Its body is executed as often as the exit status of the first
-.Ar list
-is zero.
-The exit status of a
-.Ic while
-statement is the last exit status of the
-.Ar list
-in the body of the loop; if the body is not executed, the exit status is zero.
-.It Xo function Ar name
-.No { Ar list ; No }
-.Xc
-Defines the function
-.Ar name
-(see
-.Sx Functions
-below).
-Note that redirections specified after a function definition are
-performed whenever the function is executed, not when the function definition
-is executed.
-.It Ar name Ns \&() Ar command
-Mostly the same as
-.Ic function
-(see
-.Sx Functions
-below).
-Whitespace (space or tab) after
-.Ar name
-will be ignored most of the time.
-.It Xo function Ar name Ns \&()
-.No { Ar list ; No }
-.Xc
-The same as
-.Ar name Ns \&()
-.Pq Nm bash Ns ism .
-The
-.Ic function
-keyword is ignored.
+If
+.Dq Ic in Ar word ...
+is omitted, the positional parameters are used.
+For historical reasons, open and close braces may be used instead of
+.Ic do
+and
+.Ic done ,
+as in:
+.Dq Li select i; { echo $i; }
 .It Xo Ic time Op Fl p
 .Op Ar pipeline
 .Xc
@@ -937,16 +898,32 @@ The
 section describes the
 .Ic time
 reserved word.
-.It \&(( Ar expression No ))
-The arithmetic expression
-.Ar expression
-is evaluated; equivalent to
-.Dq Li let \&" Ns Ar expression Ns \&"
-(see
-.Sx Arithmetic expressions
-and the
-.Ic let
-command, below) in a compound construct.
+.It Xo Ic until Ar list ;
+.Ic do Ar list ; Ic done
+.Xc
+This works like
+.Ic while Pq see below ,
+except that the body
+.Ar list
+is executed only while the exit status of the first
+.Ar list
+is non-zero.
+.It Xo Ic while Ar list ;
+.Ic do Ar list ; Ic done
+.Xc
+A
+.Ic while
+is a pre-checked loop.
+Its body
+.Ar list
+is executed as often as the exit status of the first
+.Ar list
+is zero.
+The exit status of a
+.Ic while
+statement is the last exit status of the
+.Ar list
+in the body of the loop; if the body is not executed, the exit status is zero.
 .It Bq Bq Ar \ \&expression\ \&
 Similar to the
 .Ic test
@@ -955,7 +932,7 @@ and
 commands (described later), with the following exceptions:
 .Bl -bullet
 .It
-Field splitting and file name generation are not performed on arguments.
+Field splitting and globbing are not performed on arguments.
 .It
 The
 .Fl a
@@ -963,23 +940,22 @@ The
 and
 .Fl o
 .Pq OR
-operators are replaced with
-.Dq Li &&
+operators are replaced, respectively, with
+.Dq Ic &&
 and
-.Dq Li \*(Ba\*(Ba ,
-respectively.
+.Dq Ic \*(Ba\*(Ba .
 .It
 Operators (e.g.\&
-.Dq Li \-f ,
-.Dq Li = ,
-.Dq Li \&! )
+.Dq Ic \-f ,
+.Dq Ic = ,
+.Dq Ic \&! )
 must be unquoted.
 .It
 Parameter, command and arithmetic substitutions are performed as expressions
 are evaluated and lazy expression evaluation is used for the
-.Dq Li &&
+.Dq Ic &&
 and
-.Dq Li \*(Ba\*(Ba
+.Dq Ic \*(Ba\*(Ba
 operators.
 This means that in the following statement,
 .Ic $(\*(Ltfoo)
@@ -991,19 +967,47 @@ $ [[ \-r foo && $(\*(Ltfoo) = b*r ]]
 .Ed
 .It
 The second operand of the
-.Dq Li !=
+.Dq Ic =
 and
-.Dq Li =
-expressions are patterns (e.g. the comparison
+.Dq Ic !=
+expressions is a pattern (e.g. the comparison
 .Ic \&[[ foobar = f*r ]]
 succeeds).
-This even works indirectly (quoting forces literal interpretation):
+This even works indirectly, while quoting forces literal interpretation:
 .Bd -literal -offset indent
 $ bar=foobar; baz=\*(aqf*r\*(aq         # or: baz=\*(aqf+(o)b?r\*(aq
 $ [[ $bar = $baz ]]; echo $?    # 0
 $ [[ $bar = \&"$baz" ]]; echo $?  # 1
 .Ed
 .El
+.It { Ar list ; No }
+Compound construct;
+.Ar list
+is executed, but not in a subshell.
+.br
+Note that
+.Dq Li {
+and
+.Dq Li }
+are reserved words, not meta-characters.
+.It Pq Ar list
+Execute
+.Ar list
+in a subshell, forking.
+There is no implicit way to pass environment changes from a
+subshell back to its parent.
+.It \&(( Ar expression No ))
+The arithmetic expression
+.Ar expression
+is evaluated; equivalent to
+.Sq Li let \&" Ns Ar expression Ns \&"
+in a compound construct.
+.br
+See the
+.Ic let
+command and
+.Sx Arithmetic expressions
+below.
 .El
 .Ss Quoting
 Quoting is used to prevent the shell from treating characters or words
