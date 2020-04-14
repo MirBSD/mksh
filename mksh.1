@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.488 2020/04/14 22:25:07 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.489 2020/04/14 22:45:21 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -6171,6 +6171,10 @@ third-last, etc.) command is inserted at the cursor.
 Use of this editing command trashes the mark.
 .It quote: \*(ha\*(ha , \*(haV
 The following character is taken literally rather than as an editing command.
+.It quote\-region: \*(ha[Q
+Escapes the text between the mark and the cursor position
+.Pq the entire line if no mark is set
+into a shell command argument.
 .It redraw: \*(haL
 Reprints the last line of the prompt string and the current input line
 on a new line.
