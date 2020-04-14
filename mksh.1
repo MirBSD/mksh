@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.483 2020/04/13 16:29:33 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.484 2020/04/14 01:48:43 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -28,7 +28,8 @@
 .\"   thus use - for hyphens and \- for minus signs and option dashes
 .\" * ~ is size-reduced and placed atop in groff, so use \*(TI
 .\" * ^ is size-reduced and placed atop in groff, so use \*(ha
-.\" * \(en does not work in nroff, so use \*(en
+.\" * \(en does not work in nroff, so use \*(en for a solo en dash
+.\" *   and \*(EM for a correctly spaced em dash
 .\" * <>| are problematic, so redefine and use \*(Lt\*(Gt\*(Ba
 .\" Also make sure to use \& *before* a punctuation char that is to not
 .\" be interpreted as punctuation, and especially with two-letter words
@@ -62,6 +63,12 @@
 .	ds ha ^
 .	ds en \(em
 .\}
+.ie n \{\
+.	ds EM \ \*(en\ \&
+.\}
+.el \{\
+.	ds EM \^\(em\^\&
+.\}
 .\"
 .\" Implement .Dd with the Mdocdate RCS keyword
 .\"
@@ -77,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: April 13 2020 $
+.Dd $Mdocdate: April 14 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -3047,10 +3054,11 @@ Once the type of command has been determined, any command-line parameter
 assignments are performed and exported for the duration of the command.
 .Pp
 The following describes the special and regular built-in commands and
-builtin-like reserved words:
+builtin-like reserved words, as well as some optional utilities:
 .Pp
 .Bl -tag -width false -compact
 .It Ic \&. Ar file Op Ar arg ...
+.Pq keeps assignments , special
 This is called the
 .Dq dot
 command.
@@ -3067,22 +3075,62 @@ If no arguments are given, the positional parameters are
 those of the environment the command is used in.
 .Pp
 .It Ic \&: Op Ar ...
+.Pq keeps assignments , special
 The null command.
+.br
 Exit status is set to zero.
 .Pp
+.It Ic Lb64decode Op Ar string
+.Pq Li dot.mkshrc No function
+Decode
+.Ar string
+or standard input to binary.
+.Pp
+.It Ic Lb64encode Op Ar string
+.Pq Li dot.mkshrc No function
+Encode
+.Ar string
+or standard input as base64.
+.Pp
+.It Ic Lbafh_init
+.It Ic Lbafh_add Op Ar string
+.It Ic Lbafh_finish
+.Pq Li dot.mkshrc No functions
+Implement the Better Avalance for the Jenkins Hash.
+This is the same hash
+.Nm
+currently uses internally.
+.No "After calling" Ic Lbafh_init , No call Ic Lbafh_add
+multiple times until all input is read, then call
+.Ic Lbafh_finish ,
+which writes the result to the unsigned integer
+.Va Lbafh_v
+variable for your consumption.
+.Pp
+.It Ic Lstripcom Op Ar
+.Pq Li dot.mkshrc No function
+Same as
+.Ic cat
+but strips any empty lines and comments (from any
+.Sq #
+character onwards, no escapes)
+and reduces any amount of whitespace to one space character.
+.Pp
 .It Ic \&[ Ar expression Ic \&]
+.Pq regular
 See
 .Ic test .
 .Pp
 .It Xo Ic alias
 .Oo Fl d \*(Ba t Oo Fl r Oc \*(Ba
-.Cm +\-x Oc
+.Fl +x Oc
 .Op Fl p
 .Op Cm +
 .Oo Ar name
 .Op Ns = Ns Ar value
 .Ar ... Oc
 .Xc
+.Pq regular
 Without arguments,
 .Ic alias
 lists all aliases.
@@ -3100,7 +3148,7 @@ Normally, aliases are listed as
 .Ar name Ns = Ns Ar value ,
 where
 .Ar value
-is quoted.
+is quoted as necessary.
 If options were preceded with
 .Ql + ,
 or a lone
@@ -3116,15 +3164,17 @@ listed or set (see
 .Sx Tilde expansion
 above).
 .Pp
-If the
-.Fl p
-option is used, each alias is prefixed with the string
-.Dq Li alias\ \& .
+With
+.Fl p ,
+each alias is listed with the string
+.Dq Li alias\ \&
+prefixed.
 .Pp
 The
 .Fl t
-option indicates that tracked aliases are to be listed/set (values specified on
-the command line are ignored for tracked aliases).
+option indicates that tracked aliases are to be listed/set (values given
+with the command are ignored for tracked aliases).
+.Pp
 The
 .Fl r
 option indicates that all tracked aliases are to be reset.
@@ -3136,7 +3186,14 @@ option sets
 the export attribute of an alias, or, if no names are given, lists the aliases
 with the export attribute (exporting an alias has no effect).
 .Pp
+.It Ic autoload
+.Pq built-in alias
+See
+.Sx Functions
+above.
+.Pp
 .It Ic bg Op Ar job ...
+.Pq regular , needs job control
 Resume the specified stopped job(s) in the background.
 If no jobs are specified,
 .Ic %+
@@ -3146,6 +3203,7 @@ See
 below for more information.
 .Pp
 .It Ic bind Fl l
+.Pq regular
 The names of editing commands strings can be bound to are listed.
 See
 .Sx Emacs editing mode
@@ -3199,6 +3257,7 @@ Note that, although only three prefix characters
 are supported, some multi-character sequences can be supported.
 .Pp
 .It Ic break Op Ar level
+.Pq keeps assignments , special
 Exit the
 .Ar level Ns th
 inner-most
@@ -3216,6 +3275,7 @@ defaults to 1.
 .Op Fl \-
 .Ar command Op Ar arg ...
 .Xc
+.Pq regular
 Execute the built-in command
 .Ar command .
 .Pp
@@ -3223,6 +3283,7 @@ Execute the built-in command
 .Ic \ebuiltin
 .Ar command Op Ar arg ...
 .Xc
+.Pq regular , decl-forwarder
 Same as
 .Ic builtin .
 Additionally acts as declaration utility forwarder, i.e. this is a
@@ -3236,8 +3297,8 @@ is a declaration utility.
 .Op Fl u
 .Op Ar
 .Xc
-Read files sequentially, in command line order, and write them to
-standard output.
+.Pq defer with flags
+Copy files in command line order to standard output.
 If a
 .Ar file
 is a single dash
@@ -3266,6 +3327,7 @@ utility is preferred over the builtin.
 .Op Fl eLP
 .Op Ar dir
 .Xc
+.Pq regular
 Set the working directory to
 .Ar dir .
 If the parameter
@@ -3333,6 +3395,7 @@ error occurred, 0 otherwise.
 .Op Fl eLP
 .Ar old new
 .Xc
+.Pq regular
 The string
 .Ar new
 is substituted for
@@ -3340,12 +3403,17 @@ is substituted for
 in the current directory, and the shell attempts to change to the new
 directory.
 .Pp
+.It Ic cls
+.Pq Li dot.mkshrc No alias
+Reinitialise the display (hard reset).
+.Pp
 .It Xo
 .Ic command
 .Op Fl pVv
 .Ar cmd
 .Op Ar arg ...
 .Xc
+.Pq regular , decl-forwarder
 If neither the
 .Fl v
 nor
@@ -3361,20 +3429,18 @@ cannot be a shell function;
 and secondly, special built-in commands lose their specialness
 (i.e. redirection and utility errors do not cause the shell to
 exit, and command assignments are not permanent).
-The declaration utility property is not reset.
 .Pp
 If the
 .Fl p
-option is given, a default search path is used instead of the current value of
-.Ev PATH ,
-the actual value of which is system dependent.
+option is given, a default search path, whose actual value is
+system-dependent, is used instead of the current
+.Ev PATH .
 .Pp
 If the
 .Fl v
 option is given, instead of executing
 .Ar cmd ,
-information about what would be executed is given (and the same is done for
-.Ar arg ... ) .
+information about what would be executed is given for each argument.
 For builtins, functions and keywords, their names are simply printed;
 for aliases, a command that defines them is printed;
 for utilities found by searching the
@@ -3388,9 +3454,10 @@ The
 .Fl V
 option is like the
 .Fl v
-option, except it is more verbose.
+option, but more verbose.
 .Pp
 .It Ic continue Op Ar level
+.Pq keeps assignments , special
 Jumps to the beginning of the
 .Ar level Ns th
 inner-most
@@ -3403,17 +3470,33 @@ loop.
 .Ar level
 defaults to 1.
 .Pp
+.It Ic dirs Op Fl lnv
+.Pq Li dot.mkshrc No function
+Print the directory stack.
+.Fl l
+causes tilde expansion to occur in the output.
+.Fl n
+causes line wrapping before 80 columns, whereas
+.Fl v
+causes numbered vertical output.
+.Pp
+.It Ic doch
+.Pq Li dot.mkshrc No alias
+Execute the last command with
+.Xr sudo 8 .
+.Pp
 .It Xo
 .Ic echo
 .Op Fl Een
 .Op Ar arg ...
 .Xc
+.Pq regular
 .Em Warning:
-this utility is not portable; use the Korn shell builtin
+this utility is not portable; use the standard Korn shell built-in utility
 .Ic print
-instead.
+in new code instead.
 .Pp
-Prints its arguments (separated by spaces) followed by a newline, to the
+Print arguments, separated by spaces, followed by a newline, to
 standard output.
 The newline is suppressed if any of the arguments contain the
 backslash sequence
@@ -3426,12 +3509,13 @@ The options are provided for compatibility with
 .Bx
 shell scripts.
 The
-.Fl n
-option suppresses the trailing newline,
-.Fl e
-enables backslash interpretation (a no-op, since this is normally done), and
 .Fl E
-suppresses backslash interpretation.
+option suppresses backslash interpretation,
+.Fl e
+enables it (normally default),
+.Fl n
+suppresses the trailing newline,
+and anything else causes the word to be printed as argument instead.
 .Pp
 If the
 .Ic posix
@@ -3444,9 +3528,40 @@ only the first argument is treated as an option, and only if it is exactly
 .Dq Li \-n .
 Backslash interpretation is disabled.
 .Pp
+.It Xo
+.Ic enable
+.Op Fl anps
+.Op Ar name ...
+.Xc
+.Pq Li dot.mkshrc No function
+Hide and unhide built-in utilities, aliases and functions and those defined in
+.Li dot.mkshrc .
+.Pp
+If no
+.Ar name
+is given or the
+.Fl p
+option is used, builtins are printed (behind the string
+.Dq Li enable\ \& ,
+followed by
+.Dq Li \-n\ \&
+if the builtin is currently disabled), otherwise, they are disabled (if
+.Fl n
+is given) or re-enabled.
+.Pp
+When printing, only enabled builtins are printed by default; the
+.Fl a
+options prints all builtins, while
+.Fl n
+prints only disabled builtins instead;
+.Fl s
+limits the list to POSIX special builtins.
+.Pp
 .It Ic eval Ar command ...
-The arguments are concatenated (with spaces between them) to form a single
-string which the shell then parses and executes in the current environment.
+.Pq keeps assignments , special
+The arguments are concatenated, with a space between each,
+to form a single string which the shell then parses
+and executes in the current execution environment.
 .Pp
 .It Xo
 .Ic exec
@@ -3454,8 +3569,9 @@ string which the shell then parses and executes in the current environment.
 .Op Fl c
 .Op Ar command Op Ar arg ...
 .Xc
-The command is executed without forking, replacing the shell process.
-This is currently absolute, i.e.\&
+.Pq keeps assignments , special
+The command (with arguments) is executed without forking,
+fully replacing the shell process; this is absolute, i.e.\&
 .Ic exec
 never returns, even if the
 .Ar command
@@ -3468,7 +3584,7 @@ value, and
 .Fl c
 clears the environment before executing the child process, except for the
 .Ev _
-variable and direct assignments.
+parameter and direct assignments.
 .Pp
 If no command is given except for I/O redirection, the I/O redirection is
 permanent and the shell is
@@ -3481,32 +3597,38 @@ Note that the Bourne shell differs here;
 it does pass these file descriptors on.
 .Pp
 .It Ic exit Op Ar status
-The shell or subshell exits with the specified exit status.
-If
-.Ar status
-is not specified, the exit status is the current value of the
-.Ic \&$?
-parameter.
+.Pq keeps assignments , special
+The shell or subshell exits with the specified errorlevel
+(or the current value of the
+.Va $?\&
+parameter).
 .Pp
 .It Xo
 .Ic export
 .Op Fl p
 .Op Ar parameter Ns Op = Ns Ar value
 .Xc
+.Pq keeps assignments , special, decl-util
 Sets the export attribute of the named parameters.
 Exported parameters are passed in the environment to executed commands.
 If values are specified, the named parameters are also assigned.
 This is a declaration utility.
 .Pp
 If no parameters are specified, all parameters with the export attribute
-set are printed one per line; either their names, or, if a
+set are printed one per line: either their names, or, if a
 .Dq Li \-
-with no option letter is specified, name=value pairs, or, with
-.Fl p ,
+with no option letter is specified, name=value pairs, or, with the
+.Fl p
+option,
 .Ic export
 commands suitable for re-entry.
 .Pp
+.It Ic extproc
+.Pq OS/2
+Null command required for shebang-like functionality.
+.Pp
 .It Ic false
+.Pq regular
 A command that exits with a non-zero status.
 .Pp
 .It Xo
@@ -3516,6 +3638,7 @@ A command that exits with a non-zero status.
 .Op Fl r
 .Op Ar first Op Ar last
 .Xc
+.Pq regular
 .Ar first
 and
 .Ar last
@@ -3541,7 +3664,7 @@ is specified, the editor specified by the
 .Ev FCEDIT
 parameter (if this parameter is not set,
 .Pa /bin/ed
-is used), and then executed by the shell.
+is used), and the result is executed by the shell.
 .Pp
 .It Xo
 .Ic fc
@@ -3550,6 +3673,7 @@ is used), and then executed by the shell.
 .Op Ar old Ns = Ns Ar new
 .Op Ar prefix
 .Xc
+.Pq regular
 Re-execute the selected command (the previous command by default) after
 performing the optional substitution of
 .Ar old
@@ -3570,71 +3694,73 @@ This command is usually accessed with the predefined:
 .Ic alias r=\*(aqfc \-e \-\*(aq
 .Pp
 .It Ic fg Op Ar job ...
+.Pq regular , needs job control
 Resume the specified job(s) in the foreground.
 If no jobs are specified,
 .Ic %+
 is assumed.
+.br
 See
 .Sx Job control
 below for more information.
+.Pp
+.It Ic functions Op Ar name ...
+.Pq built-in alias
+Display the function definition commands corresponding to the listed,
+or all defined, functions.
 .Pp
 .It Xo
 .Ic getopts
 .Ar optstring name
 .Op Ar arg ...
 .Xc
+.Pq regular
 Used by shell procedures to parse the specified arguments (or positional
 parameters, if no arguments are given) and to check for legal options.
-.Ar optstring
-contains the option letters that
-.Ic getopts
-is to recognise.
-If a letter is followed by a colon, the option is expected to
-have an argument.
 Options that do not take arguments may be grouped in a single argument.
-If an option takes an argument and the option character is not the
-last character of the argument it is found in, the remainder of the argument is
-taken to be the option's argument; otherwise, the next argument is the option's
-argument.
+If an option takes an argument and the option character is not the last
+character of the word it is found in, the remainder of the word is taken to
+be the option's argument; otherwise, the next word is the option's argument.
+.Pp
+.Ar optstring
+contains the option letters to be recognised.
+If a letter is followed by a colon, the option takes an argument.
 .Pp
 Each time
 .Ic getopts
 is invoked, it places the next option in the shell parameter
-.Ar name
-and the index of the argument to be processed by the next call to
-.Ic getopts
-in the shell parameter
-.Ev OPTIND .
+.Ar name .
 If the option was introduced with a
 .Ql + ,
-the option placed in
+the character placed in
 .Ar name
 is prefixed with a
 .Ql + .
-When an option requires an argument,
-.Ic getopts
-places it in the shell parameter
-.Ev OPTARG .
+If the option takes an argument, it is placed in the shell parameter
+.Ev OPTARG.
 .Pp
 When an illegal option or a missing option argument is encountered, a question
 mark or a colon is placed in
 .Ar name
 (indicating an illegal option or missing argument, respectively) and
 .Ev OPTARG
-is set to the option character that caused the problem.
-Furthermore, if
+is set to the option letter that caused the problem.
+Furthermore, unless
 .Ar optstring
-does not begin with a colon, a question mark is placed in
+begins with a colon, a question mark is placed in
 .Ar name ,
 .Ev OPTARG
-is unset, and an error message is printed to standard error.
+is unset and a diagnostic is shown on standard error.
 .Pp
+.Ic getopts
+records the index of the argument to be processed by the next call in
+.Ev OPTIND .
 When the end of the options is encountered,
 .Ic getopts
-exits with a non-zero exit status.
-Options end at the first (non-option
-argument) argument that does not start with a
-.Ql \- ,
+returns a non-zero exit status.
+Options end at the first argument that does not start with a
+.Ql \-
+.Pq non-option argument
 or when a
 .Dq Li \-\-
 argument is encountered.
@@ -3644,7 +3770,8 @@ Option parsing can be reset by setting
 to 1 (this is done automatically whenever the shell or a shell procedure is
 invoked).
 .Pp
-Warning: Changing the value of the shell parameter
+.Em Warning:
+Changing the value of the shell parameter
 .Ev OPTIND
 to a value other than 1 or parsing different sets of arguments without
 resetting
@@ -3656,20 +3783,46 @@ may lead to unexpected results.
 .Op Fl r
 .Op Ar name ...
 .Xc
-Without arguments, any hashed executable command pathnames are listed.
+.Pq built-in alias
+Without arguments, any hashed executable command paths are listed.
 The
 .Fl r
-option causes all hashed commands to be removed from the hash table.
+option causes all hashed commands to be removed from the cache.
 Each
 .Ar name
-is searched as if it were a command name and added to the hash table if it is
-an executable command.
+is searched as if it were a command name
+and added to the cache if it is an executable command.
+.Pp
+.It Ic hd Op Ar
+.Pq Li dot.mkshrc No alias or function
+Hexdump stdin or arguments legibly.
+.Pp
+.It Xo
+.Ic history
+.Op Fl nr
+.Op Ar first Op Ar last
+.Xc
+.Pq built-in alias
+Same as
+.Ic fc Fl l Pq see above .
+.Pp
+.It Xo
+.Ic integer
+.Op flags
+.Oo Ar name
+.Op Ns = Ns Ar value
+.Ar ... Oc
+.Xc
+.Pq built-in alias
+Same as
+.Ic typeset Fl i Pq see below .
 .Pp
 .It Xo
 .Ic jobs
 .Op Fl lnp
 .Op Ar job ...
 .Xc
+.Pq regular
 Display information about the specified job(s); if no jobs are specified, all
 jobs are displayed.
 The
@@ -3696,6 +3849,7 @@ and the displayed job.
 .No { Ar job \*(Ba pid \*(Ba pgrp No }
 .Ar ...
 .Xc
+.Pq regular
 Send the specified signal to the specified jobs, process IDs or process
 groups.
 If no signal is specified, the
@@ -3712,23 +3866,36 @@ below for the format of
 .Fl l
 .Op Ar exit-status ...
 .Xc
+.Pq regular
 Print the signal name corresponding to
 .Ar exit-status .
 If no arguments are specified, a list of all the signals with their numbers
 and a short description of each are printed.
 .Pp
 .It Ic let Op Ar expression ...
+.Pq regular
 Each expression is evaluated (see
 .Sx Arithmetic expressions
 above).
-If all expressions are successfully evaluated, the exit status is 0 (1)
-if the last expression evaluated to non-zero (zero).
+If all expressions evaluate successfully, the exit status is
+0 (1) if the last expression evaluated to non-zero (zero).
 If an error occurs during
 the parsing or evaluation of an expression, the exit status is greater than 1.
 Since expressions may need to be quoted,
-.No \&(( Ar expr No ))
+.Li \&(( Ar expr Li ))
 is syntactic sugar for:
-.Dl "{ \e\ebuiltin let \*(aq" Ns Ar expr Ns "\*(aq; }"
+.Dl "{ \e\ebuiltin let \*(aq" Ns Ar expr Ns Li "\*(aq; }"
+.Pp
+.It Xo
+.Ic local
+.Op flags
+.Oo Ar name
+.Op Ns = Ns Ar value
+.Ar ... Oc
+.Xc
+.Pq built-in alias
+Same as
+.Ic typeset Pq see below .
 .Pp
 .It Xo
 .Ic mknod
@@ -3743,8 +3910,9 @@ is syntactic sugar for:
 .Ar name
 .Cm p
 .Xc
+.Pq optional
 Create a device special file.
-The file type may be
+The file type may be one of
 .Cm b
 (block type device),
 .Cm c
@@ -3767,11 +3935,36 @@ This is not normally part of
 however, distributors may have added this as builtin as a speed hack.
 .Pp
 .It Xo
+.Ic nameref
+.Op flags
+.Oo Ar name
+.Op Ns = Ns Ar value
+.Ar ... Oc
+.Xc
+.Pq built-in alias
+Same as
+.Ic typeset Fl n Pq see below .
+.Pp
+.It Xo
+.Ic popd
+.Op Fl lnv
+.Op Ic + Ns Ar n
+.Xc
+.Pq Li dot.mkshrc No function
+Pops the directory stack and returns to the new top directory.
+The flags are as in
+.Ic dirs Pq see above .
+A numeric argument
+.Ic + Ns Ar n
+selects the entry in the stack to discard.
+.Pp
+.It Xo
 .Ic print
 .Oo Fl AcelNnprsu Ns Oo Ar n Oc \*(Ba
 .Fl R Op Fl n Oc
 .Op Ar argument ...
 .Xc
+.Pq regular
 Print the specified argument(s) on the standard output,
 separated by spaces, terminated with a newline.
 The escapes mentioned in
@@ -3783,7 +3976,7 @@ which is equivalent to using the
 option, are interpreted.
 .Pp
 The options are as follows:
-.Bl -tag -width Ds
+.Bl -tag -width XuXnX
 .It Fl A
 Each
 .Ar argument
@@ -3833,24 +4026,73 @@ its first argument as option only if it is exactly
 .Dq Li \-n
 .Pq to suppress the trailing newline .
 .Pp
+.It Ic printf Ar format Op Ar arguments ...
+.Pq optional , defer always
+If compiled in, format and print the arguments, supporting the bare
+.Tn POSIX Ns -mandated
+minimum.
+If an external utility of the same name is found, it is deferred to,
+unless run as direct builtin call or from the
+.Ic builtin
+utility.
+.Pp
+.It Ic pushd Op Fl lnv
+.Pq Li dot.mkshrc No function
+Rotate the top two elements of the directory stack.
+The options are the same as for
+.Ic dirs Pq see above ,
+and
+.Ic pushd
+changes to the topmost directory stack entry after acting.
+.Pp
+.It Xo
+.Ic pushd
+.Op Fl lnv
+.Ic + Ns Ar n
+.Xc
+.Pq Li dot.mkshrc No function
+Rotate the element number
+.Ar n
+to the top.
+.Pp
+.It Xo
+.Ic pushd
+.Op Fl lnv
+.Ar name
+.Xc
+.Pq Li dot.mkshrc No function
+Push
+.Ar name
+on top of the stack.
+.Pp
 .It Ic pwd Op Fl LP
+.Pq regular
 Print the present working directory.
-If the
-.Fl L
-option is used or if the
-.Ic physical
-option isn't set (see the
-.Ic set
-command below), the logical path is printed (i.e. the path used to
-.Ic cd
-to the current directory).
-If the
+If no options are given,
+.Ic pwd
+behaves as if the
 .Fl P
-option (physical path) is used or if the
+option (print physical path) was used if the
 .Ic physical
-option is set, the path determined from the filesystem (by following
-.Dq Li ..
-directories to the root directory) is printed.
+shell option is set, the
+.Fl L
+option (print logical path) otherwise.
+The logical path is the path used to
+.Ic cd
+to the current directory;
+the physical path is determined from the filesystem (by following
+.Dq Li ..\&
+directories to the root directory).
+.Pp
+.It Xo
+.Ic r
+.Op Fl g
+.Op Ar old Ns = Ns Ar new
+.Op Ar prefix
+.Xc
+.Pq built-in alias
+Same as
+.Ic fc Fl e \& Pq see above .
 .Pp
 .It Xo
 .Ic read
@@ -3864,20 +4106,17 @@ directories to the root directory) is printed.
 .Op Fl rs
 .Op Ar p ...
 .Xc
+.Pq regular
 Reads a line of input, separates the input into fields using the
 .Ev IFS
 parameter (see
 .Sx Substitution
-above), and assigns each field to the specified parameters
+above) or other specified means,
+and assigns each field to the specified parameters
 .Ar p .
 If no parameters are specified, the
 .Ev REPLY
 parameter is used to store the result.
-With the
-.Fl A
-and
-.Fl a
-options, only no or one parameter is accepted.
 If there are more parameters than fields, the extra parameters are set to
 the empty string or 0; if there are more fields than parameters, the last
 parameter is assigned the remaining fields (including the word separators).
@@ -3890,8 +4129,9 @@ Store the result into the parameter
 (or
 .Ev REPLY )
 as array of words.
+Only no or one parameter is accepted.
 .It Fl a
-Store the result without word splitting into the parameter
+Store the result, without applying IFS word splitting, into the parameter
 .Ar p
 (or
 .Ev REPLY )
@@ -3899,11 +4139,12 @@ as array of characters (wide characters if the
 .Ic utf8\-mode
 option is enacted, octets otherwise); the codepoints are
 encoded as decimal numbers by default.
+Only no or one parameter is accepted.
 .It Fl d Ar x
 Use the first byte of
 .Ar x ,
 .Dv NUL
-if empty, instead of the ASCII newline character as input line delimiter.
+if empty, instead of the ASCII newline character to delimit input lines.
 .It Fl N Ar z
 Instead of reading till end-of-line, read exactly
 .Ar z
@@ -3918,13 +4159,14 @@ Instead of reading till end-of-line, read up to
 bytes but return as soon as any bytes are read, e.g.\& from a
 slow terminal device, or if EOF or a timeout occurs.
 .It Fl p
-Read from the currently active co-process, see
+Read from the currently active co-process (see
 .Sx Co-processes
-above for details on this.
+above for details) instead of from a file descriptor.
 .It Fl u Ns Op Ar n
-Read from the file descriptor
+Read from the file descriptor number
 .Ar n
 (defaults to 0, i.e.\& standard input).
+.br
 The argument must immediately follow the option character.
 .It Fl t Ar n
 Interrupt reading after
@@ -3936,12 +4178,10 @@ is the same as if
 .Dv SIGALRM
 were caught if the timeout occurred, but partial reads may still be returned.
 .It Fl r
-Normally, the ASCII backslash character escapes the special
-meaning of the following character and is stripped from the input;
+Normally,
 .Ic read
-does not stop when encountering a backslash-newline sequence and
-does not store that newline in the result.
-This option enables raw mode, in which backslashes are not processed.
+strips backslash-newline sequences and any remaining backslashes from input.
+This option enables raw mode, in which backslashes are retained and ignored.
 .It Fl s
 The input line is saved to the history.
 .El
@@ -3973,12 +4213,12 @@ exits with a non-zero status.
 .Op Ns = Ns Ar value
 .Ar ... Oc
 .Xc
+.Pq keeps assignments , special, decl-util
 Sets the read-only attribute of the named parameters.
-This is a declaration utility.
 If values are given,
-parameters are set to them before setting the attribute.
-Once a parameter is
-made read-only, it cannot be unset and its value cannot be changed.
+parameters are assigned these before disallowing writes.
+Once a parameter is made read-only,
+it cannot be unset and its value cannot be changed.
 .Pp
 If no parameters are specified, the names of all parameters with the read-only
 attribute are printed one per line, unless the
@@ -3993,40 +4233,40 @@ printed.
 .Op Fl \-
 .Ar name
 .Xc
-Prints the resolved absolute pathname corresponding to
+.Pq defer with flags
+Resolves an absolute pathname corresponding to
 .Ar name .
+If the resolved pathname either exists or can be created immediately,
+.Ic realpath
+returns 0 and prints the resolved pathname,
+otherwise or if an error occurs, it issues a diagnostic and returns nonzero.
 If
 .Ar name
 ends with a slash
 .Pq Ql / ,
-it's also checked for existence and whether it is a directory; otherwise,
-.Ic realpath
-returns 0 if the pathname either exists or can be created immediately,
-i.e. all but the last component exist and are directories.
-For calls from the shell, if any options are given, an external
-.Xr realpath 1
-utility is preferred over the builtin.
+resolving to an extant non-directory is also treated as error.
 .Pp
 .It Xo
 .Ic rename
 .Op Fl \-
 .Ar from to
 .Xc
+.Pq defer always
 Renames the file
 .Ar from
 to
 .Ar to .
 Both must be complete pathnames and on the same device.
-An external utility is preferred over this builtin,
-which is intended for emergency situations
-.Pq where Pa /bin/mv No becomes unusable
-and directly calls
+Intended for emergency situations
+.Pq where Pa /bin/mv No becomes unusable ;
+directly calls
 .Xr rename 2 .
 .Pp
 .It Ic return Op Ar status
+.Pq keeps assignments , special
 Returns from a function or
 .Ic \&.
-script, with exit status
+script with errorlevel
 .Ar status .
 If no
 .Ar status
@@ -4041,50 +4281,65 @@ treats both profile and
 .Ev ENV
 files as
 .Ic \&.
-scripts, while the original Korn shell only treats profiles as
+scripts, while the original Korn shell only treated profiles as
 .Ic \&.
 scripts.
 .Pp
+.It Ic rot13
+.Pq Li dot.mkshrc No alias
+ROT13-encrypts/-decrypts stdin to stdout.
+.Pp
 .It Xo
-.Ic set Op Ic +\-abCefhiklmnprsUuvXx
-.Op Ic +\-o Ar option
-.Op Ic +\-A Ar name
+.Ic set Op Fl +abCefhiklmnprsUuvXx
+.Op Fl +o Ar option
+.Op Fl +A Ar name
 .Op Fl \-
 .Op Ar arg ...
 .Xc
+.Pq keeps assignments , special
 The
 .Ic set
-command can be used to set
+command can be used to show all shell parameters
+.Pq like Ic typeset \- ,
+set
 .Pq Ic \-
 or clear
 .Pq Ic +
-shell options, set the positional parameters, or set an array parameter.
+shell options, set an array parameter or the positional parameters.
+.Pp
 Options can be changed using the
-.Cm +\-o Ar option
+.Fl +o Ar option
 syntax, where
 .Ar option
 is the long name of an option, or using the
-.Cm +\- Ns Ar letter
+.Fl + Ns Ar letter
 syntax, where
 .Ar letter
 is the option's single letter name (not all options have a single letter name).
-The following table lists both option letters (if they exist) and long names
-along with a description of what the option does:
+The following table lists short (if extant) and long names
+along with a description of what each option does:
 .Bl -tag -width 3n
 .It Fl A Ar name
 Sets the elements of the array parameter
 .Ar name
 to
 .Ar arg ...
+.Pp
 If
 .Fl A
 is used, the array is reset (i.e. emptied) first; if
 .Ic +A
 is used, the first N elements are set (where N is the number of arguments);
 the rest are left untouched.
+If
+.Ar name
+ends with a
+.Sq + ,
+the array is appended to instead.
 .Pp
 An alternative syntax for the command
-.Ic set \-A foo \-\- a b c
+.Ic set \-A foo \-\- a b c;
+.Ic set \-A foo+ \-\- d e
 which is compatible to
 .Tn GNU
 .Nm bash
@@ -4096,14 +4351,15 @@ is:
 .It Fl a \*(Ba Fl o Ic allexport
 All new parameters are created with the export attribute.
 .It Fl b \*(Ba Fl o Ic notify
-Print job notification messages asynchronously, instead of just before the
+Print job notification messages asynchronously instead of just before the
 prompt.
-Only used if job control is enabled
+Only used with job control
 .Pq Fl m .
 .It Fl C \*(Ba Fl o Ic noclobber
 Prevent \*(Gt redirection from overwriting existing files.
 Instead, \*(Gt\*(Ba must be used to force an overwrite.
-Note that this is not safe to use for creation of temporary files or
+.Em Note:
+This is not safe to use for creation of temporary files or
 lockfiles due to a TOCTOU in a check allowing one to redirect output to
 .Pa /dev/null
 or other device files even in
@@ -4116,16 +4372,17 @@ trap) as soon as an error occurs or a command fails (i.e. exits with a
 non-zero status).
 This does not apply to commands whose exit status is
 explicitly tested by a shell construct such as
+.Ic !\& ,
 .Ic if ,
-.Ic until ,
-.Ic while
+.Ic until
 or
-.Ic \&!
+.Ic while
 statements.
 For
-.Ic &&
-or
-.Ic \*(Ba\*(Ba ,
+.Ic && ,
+.Ic \*(Ba\*(Ba
+and pipelines (but mind
+.Fl o Ic pipefail ) ,
 only the status of the last command is tested.
 .It Fl f \*(Ba Fl o Ic noglob
 Do not expand file name patterns.
@@ -4137,19 +4394,19 @@ Enabled by default for non-interactive shells.
 .It Fl i \*(Ba Fl o Ic interactive
 The shell is an interactive shell.
 This option can only be used when the shell is invoked.
-See above for a description of what this means.
+See above for details.
 .It Fl k \*(Ba Fl o Ic keyword
 Parameter assignments are recognised anywhere in a command.
 .It Fl l \*(Ba Fl o Ic login
 The shell is a login shell.
 This option can only be used when the shell is invoked.
-See above for a description of what this means.
+See above for what this means.
 .It Fl m \*(Ba Fl o Ic monitor
 Enable job control (default for interactive shells).
 .It Fl n \*(Ba Fl o Ic noexec
 Do not execute any commands.
-Useful for checking the syntax of scripts
-(ignored if interactive).
+Useful for checking the syntax of scripts.
+Ignored if reading commands from a tty.
 .It Fl p \*(Ba Fl o Ic privileged
 The shell is a privileged shell.
 It is set automatically if, when the shell starts,
@@ -4164,7 +4421,7 @@ Changing this flag resets the groups vector.
 .It Fl r \*(Ba Fl o Ic restricted
 The shell is a restricted shell.
 This option can only be used when the shell is invoked.
-See above for a description of what this means.
+See above for what this means.
 .It Fl s \*(Ba Fl o Ic stdin
 If used when the shell is invoked, commands are read from standard input.
 Set automatically if the shell is invoked with no arguments.
@@ -4173,12 +4430,11 @@ When
 .Fl s
 is used with the
 .Ic set
-command it causes the specified arguments to be sorted before assigning them to
-the positional parameters (or to array
+command it causes the specified arguments to be sorted ASCIIbetically
+before assigning them to the positional parameters (or to array
 .Ar name ,
-if
-.Fl A
-is used).
+with
+.Fl A ) .
 .It Fl U \*(Ba Fl o Ic utf8\-mode
 Enable UTF-8 support in the
 .Sx Emacs editing mode
@@ -4224,23 +4480,24 @@ Write shell input to standard error as it is read.
 .It Fl X \*(Ba Fl o Ic markdirs
 Mark directories with a trailing
 .Ql /
-during file name generation.
+during globbing.
 .It Fl x \*(Ba Fl o Ic xtrace
-Print command trees when they are executed, preceded by
-the value of
+Print commands when they are executed, preceded by
 .Ev PS4 .
 .It Fl o Ic bgnice
 Background jobs are run with lower priority.
 .It Fl o Ic braceexpand
-Enable brace expansion (a.k.a. alternation).
+Enable brace expansion.
 This is enabled by default.
 .It Fl o Ic emacs
 Enable BRL emacs-like command-line editing (interactive shells only); see
 .Sx Emacs editing mode .
+Enabled by default.
 .It Fl o Ic gmacs
 Enable gmacs-like command-line editing (interactive shells only).
-Currently identical to emacs editing except that transpose\-chars (\*(haT) acts
-slightly differently.
+Currently identical to emacs editing except that
+.Li transpose\-chars Pq \*(haT
+acts slightly differently.
 .It Fl o Ic ignoreeof
 The shell will not (easily) exit when end-of-file is read;
 .Ic exit
@@ -4251,8 +4508,7 @@ is read 13 times in a row.
 .It Fl o Ic inherit\-xtrace
 Do not reset
 .Fl o Ic xtrace
-upon entering functions.
-This is enabled by default.
+upon entering functions (default).
 .It Fl o Ic nohup
 Do not kill running jobs with a
 .Dv SIGHUP
@@ -4267,7 +4523,7 @@ doesn't have this option, but does send the
 signal.
 .It Fl o Ic nolog
 No effect.
-In the original Korn shell, this prevents function definitions from
+In the original Korn shell, this prevented function definitions from
 being stored in the history file.
 .It Fl o Ic physical
 Causes the
@@ -4290,14 +4546,14 @@ parameter; only the
 .Ic cd
 command changes
 .Ev PWD .
-See the
+See
 .Ic cd
 and
 .Ic pwd
-commands above for more details.
+above for more details.
 .It Fl o Ic pipefail
-Make the exit status of a pipeline (before logically complementing) the
-rightmost non-zero errorlevel, or zero if all commands exited with zero.
+Make the exit status of a pipeline the rightmost non-zero errorlevel,
+or zero if all commands exited with zero.
 .It Fl o Ic posix
 Behave closer to the standards
 (see
@@ -4305,15 +4561,17 @@ Behave closer to the standards
 for details).
 Automatically enabled if the basename of the shell invocation begins with
 .Dq sh
-and this autodetection feature is compiled in
-.Pq not in MirBSD .
+and this autodetection feature is compiled in (not in MirBSD; commonly used for
+.Nm lksh
+only).
 As a side effect, setting this flag turns off the
 .Ic braceexpand
 and
 .Ic utf8\-mode
 flags, which can be turned back on manually, and
+.Pq unless both are enabled at the same time
 .Ic sh
-mode (unless both are enabled at the same time).
+mode.
 .It Fl o Ic sh
 Enable
 .Pa /bin/sh
@@ -4323,7 +4581,7 @@ mode (see
 Automatically enabled if the basename of the shell invocation begins with
 .Dq sh
 and this autodetection feature is compiled in
-.Pq not in MirBSD .
+.Pq rather uncommon .
 As a side effect, setting this flag turns off
 .Ic braceexpand
 mode, which can be turned back on manually, and
@@ -4337,19 +4595,20 @@ See
 .Sx Vi editing mode
 for documentation and limitations.
 .It Fl o Ic vi\-esccomplete
-In vi command-line editing, do command and file name completion when escape
-(\*(ha[) is entered in command mode.
+In vi command-line editing, do command and file name completion when Esc
+.Pq \*(ha[
+is entered in command mode.
 .It Fl o Ic vi\-tabcomplete
-In vi command-line editing, do command and file name completion when tab (\*(haI)
-is entered in insert mode.
-This is the default.
+In vi command-line editing, do command and file name completion when Tab
+.Pq \*(haI
+is entered in insert mode (default).
 .It Fl o Ic viraw
 No effect.
 In the original Korn shell, unless
 .Ic viraw
 was set, the vi command-line mode would let the
 .Xr tty 4
-driver do the work until ESC (\*(ha[) was entered.
+driver do the work until Esc was entered.
 .Nm
 is always in viraw mode.
 .El
@@ -4373,16 +4632,29 @@ order, to the positional parameters (i.e. $1, $2, etc.).
 If options end with
 .Dq Li \-\-
 and there are no remaining arguments, all positional parameters are cleared.
-If no options or arguments are given, the values of all names are printed.
 For unknown historical reasons, a lone
 .Dq Li \-
-option is treated specially \*(en it clears both the
+option is treated specially\*(EMit clears both the
 .Fl v
 and
 .Fl x
 options.
+If no options or arguments are given, the values of all parameters are printed
+.Pq suitably quoted .
+.Pp
+.It Xo
+.Ic setenv
+.Op Ar name Op Ar value
+.Xc
+.Pq Li dot.mkshrc No function
+Without arguments, display the names and values of all exported parameters.
+Otherwise, set
+.Ar name Ns 's
+export attribute, and its value to
+.Ar value Pq empty string if none given .
 .Pp
 .It Ic shift Op Ar number
+.Pq keeps assignments , special
 The positional parameters
 .Ar number Ns +1 ,
 .Ar number Ns +2 ,
@@ -4397,6 +4669,7 @@ specified as positive decimal value with an optional fractional part.
 Signal delivery may continue execution earlier.
 .Pp
 .It Ic source Ar file Op Ar arg ...
+.Pq keeps assignments
 Like
 .Ic \&. Po Do dot Dc Pc ,
 except that the current working directory is appended to the
@@ -4700,6 +4973,7 @@ Times for the first command do not go to
 but those of the second command do.
 .Pp
 .It Ic times
+.Pq keeps assignments , special
 Print the accumulated user and system times used both by the shell
 and by processes that the shell started which have exited.
 The format of the output is:
@@ -4709,6 +4983,7 @@ The format of the output is:
 .Ed
 .Pp
 .It Ic trap Ar n Op Ar signal ...
+.Pq keeps assignments , special
 If the first operand is a decimal unsigned integer, this resets all
 specified signals to the default action, i.e. is the same as calling
 .Ic trap
@@ -4779,7 +5054,7 @@ A command that exits with a zero value.
 .Pp
 .It Xo
 .Ic typeset
-.Op Ic +\-aglpnrtUux
+.Op Fl +aglpnrtUux
 .Oo Fl L Ns Op Ar n
 .No \*(Ba Fl R Ns Op Ar n
 .No \*(Ba Fl Z Ns Op Ar n Oc
@@ -4793,8 +5068,8 @@ A command that exits with a zero value.
 .Fl f Op Fl tux
 .Op Ar name ...
 .Xc
+.Pq keeps assignments , decl-util
 Display or set parameter attributes.
-This is a declaration utility.
 With no
 .Ar name
 arguments, parameter attributes are displayed; if no options are used, the
@@ -5156,6 +5431,7 @@ directory aliases, respectively.
 .Op Fl fv
 .Ar parameter ...
 .Xc
+.Pq keeps assignments , special
 Unset the named parameters
 .Po
 .Fl v ,
