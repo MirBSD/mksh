@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.350 2020/04/13 20:46:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.351 2020/04/15 20:16:19 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -5603,9 +5603,19 @@ x_initterm(const char *termtype)
 {
 	/* default must be 0 (bss) */
 	x_term_mode = 0;
-	/* this is what tmux uses, don't ask me about it */
-	if (!strcmp(termtype, "screen") || !strncmp(termtype, "screen-", 7))
-		x_term_mode = 1;
+	/* catch any of the TERM types tmux uses, don’t ask m̲e̲ about it… */
+	switch (*termtype) {
+	case 's':
+		if (!strncmp(termtype, "screen", 6) &&
+		    (termtype[6] == '\0' || termtype[6] == '-'))
+			x_term_mode = 1;
+		break;
+	case 't':
+		if (!strncmp(termtype, "tmux", 4) &&
+		    (termtype[4] == '\0' || termtype[4] == '-'))
+			x_term_mode = 1;
+		break;
+	}
 }
 
 #ifndef MKSH_SMALL
