@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.167 2020/04/07 23:15:13 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.168 2020/04/29 19:48:41 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -77,8 +77,8 @@ DEBUGFILE?=	No
 CPPFLAGS+=	-DDF=mksh_debugtofile
 .endif
 
-MANLINKS=	[ false pwd sh sleep test true
-BINLINKS=	${MANLINKS} echo domainname kill
+MANLINKS=	[ false pwd rksh sh sleep test true
+BINLINKS=	${MANLINKS} domainname echo kill
 .for _i in ${BINLINKS}
 LINKS+=		${BINDIR}/${PROG} ${BINDIR}/${_i}
 .endfor
