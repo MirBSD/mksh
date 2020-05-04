@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.839 2020/04/15 20:16:15 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.840 2020/05/04 22:56:08 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -8081,6 +8081,7 @@ expected-stderr-pattern: !/unexpected op/
 name: test-str-pattern
 description:
 	Check that [[ x = $y ]] can take extglobs, like ksh93
+expected-fail: yes
 stdin:
 	x='a\'
 	[[ $x = a\  ]]; echo 1 $? .
@@ -8106,6 +8107,16 @@ stdin:
 	y=$x
 	[[ $x = $y ]]; echo 13 $? .
 	[[ $x = "$y" ]]; echo 14 $? .
+	x=foo
+	[[ $x = $y ]]; echo 15 $? .
+	[[ $x = "$y" ]]; echo 16 $? .
+	y='a\*e'
+	x=abcde
+	[[ $x = $y ]]; echo 17 $? .
+	[[ $x = "$y" ]]; echo 18 $? .
+	x=$y
+	[[ $x = $y ]]; echo 19 $? .
+	[[ $x = "$y" ]]; echo 20 $? .
 expected-stdout:
 	1 1 .
 	2 0 .
@@ -8121,6 +8132,12 @@ expected-stdout:
 	12 0 .
 	13 0 .
 	14 0 .
+	15 1 .
+	16 1 .
+	17 1 .
+	18 1 .
+	19 0 .
+	20 0 .
 ---
 name: test-precedence-1
 description:
