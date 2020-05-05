@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.230 2020/04/07 23:14:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.231 2020/05/05 21:34:27 tg Exp $");
 
 /*
  * string expansion
@@ -882,6 +882,7 @@ expand(
 					c = ORD('\\');
 				else
 					++x.str;
+				quote |= 2;
 				break;
 			/* ctype(c, C_PATMO) */
 			case ORD('!'):

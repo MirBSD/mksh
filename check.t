@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.841 2020/05/05 14:55:50 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.842 2020/05/05 21:34:25 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2020/04/15
+	KSH R59 2020/05/05
 description:
 	Check base version of full shell
 stdin:
@@ -8081,7 +8081,6 @@ expected-stderr-pattern: !/unexpected op/
 name: test-str-pattern
 description:
 	Check that [[ x = $y ]] can take extglobs, like ksh93
-expected-fail: yes
 stdin:
 	[[ -n $BASH_VERSION ]] && shopt -s extglob
 	function one {
