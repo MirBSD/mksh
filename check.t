@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.840 2020/05/04 22:56:08 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.841 2020/05/05 14:55:50 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -8083,61 +8083,50 @@ description:
 	Check that [[ x = $y ]] can take extglobs, like ksh93
 expected-fail: yes
 stdin:
+	[[ -n $BASH_VERSION ]] && shopt -s extglob
+	function one {
+		n=$1 x=$2 y=$3 z=${4:-$3}
+		[[ $x = $y ]]; a=$?
+		[[ $x = "$y" ]]; b=$?
+		eval '[[ $x = '"$z"' ]]; c=$?'
+		eval '[[ $x = "'"$z"'" ]]; d=$?'
+		echo $n $a $b $c $d .
+	}
 	x='a\'
-	[[ $x = a\  ]]; echo 1 $? .
-	[[ $x = a\\  ]]; echo 2 $? .
-	y='a\'
-	[[ $x = $y ]]; echo 3 $? .
-	[[ $x = "$y" ]]; echo 4 $? .
-	x='a\b'
-	y='a\b'
-	[[ $x = $y ]]; echo 5 $? .
-	[[ $x = "$y" ]]; echo 6 $? .
-	y='a\\b'
-	[[ $x = $y ]]; echo 7 $? .
-	[[ $x = "$y" ]]; echo 8 $? .
-	x='foo'
-	y='f+(o)'
-	[[ $x = $y ]]; echo 9 $? .
-	[[ $x = "$y" ]]; echo 10 $? .
-	x=$y
-	[[ $x = $y ]]; echo 11 $? .
-	[[ $x = "$y" ]]; echo 12 $? .
+	[[ $x = a\  ]]; echo 01 $? .
+	[[ $x = a\\ ]]; echo 02 $? .
+	one 03 'a\'	'a\'	'a\\'
+	one 04 'a\b'	'a\b'
+	one 05 'a\b'	'a\\b'
+	one 06 'foo'	'f+(o)'
+	one 07 'f+(o)'	'f+(o)'
+	one 08 'f+(o'	'f+(o'	'f+\(o'
+	one 09 foo	'f+(o'	'f+\(o'
+	one 10 abcde	'a\*e'
+	one 11 'a*e'	'a\*e'
+	one 12 'a\*e'	'a\*e'
+	echo extras:
 	x='f+(o'
-	y=$x
-	[[ $x = $y ]]; echo 13 $? .
-	[[ $x = "$y" ]]; echo 14 $? .
+	z='f+(o'
+	eval '[[ $x = "'"$z"'" ]]; echo 14 $? "(08:4)" .'
 	x=foo
-	[[ $x = $y ]]; echo 15 $? .
-	[[ $x = "$y" ]]; echo 16 $? .
-	y='a\*e'
-	x=abcde
-	[[ $x = $y ]]; echo 17 $? .
-	[[ $x = "$y" ]]; echo 18 $? .
-	x=$y
-	[[ $x = $y ]]; echo 19 $? .
-	[[ $x = "$y" ]]; echo 20 $? .
+	eval '[[ $x = "'"$z"'" ]]; echo 15 $? "(09:4)" .'
 expected-stdout:
-	1 1 .
-	2 0 .
-	3 0 .
-	4 0 .
-	5 1 .
-	6 0 .
-	7 0 .
-	8 1 .
-	9 0 .
-	10 1 .
-	11 1 .
-	12 0 .
-	13 0 .
-	14 0 .
-	15 1 .
-	16 1 .
-	17 1 .
-	18 1 .
-	19 0 .
-	20 0 .
+	01 1 .
+	02 0 .
+	03 0 0 0 0 .
+	04 1 0 1 0 .
+	05 0 1 0 0 .
+	06 0 1 0 1 .
+	07 1 0 1 0 .
+	08 0 0 0 1 .
+	09 1 1 1 1 .
+	10 1 1 1 1 .
+	11 0 1 0 1 .
+	12 1 0 1 0 .
+	extras:
+	14 0 (08:4) .
+	15 1 (09:4) .
 ---
 name: test-precedence-1
 description:
