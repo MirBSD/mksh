@@ -191,7 +191,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.894 2020/05/05 21:34:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.895 2020/05/15 18:57:26 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2020/05/05"
 
@@ -513,9 +513,8 @@ extern int __cdecl setegid(gid_t);
 #define O_BINARY	0
 #endif
 
-#ifndef O_MAYEXEC
+#undef O_MAYEXEC	/* https://lwn.net/Articles/820658/ */
 #define O_MAYEXEC	0
-#endif
 
 #ifdef MKSH__NO_SYMLINK
 #undef S_ISLNK
