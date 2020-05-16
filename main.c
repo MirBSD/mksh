@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.368 2020/05/16 21:24:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.369 2020/05/16 22:19:58 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -279,10 +279,11 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 			ccp += argi;
  begin_parsing_kshname:
 			argi = 0;
-			if (*ccp == '-')
-				++ccp;
 		}
 	}
+	Flag(FLOGIN) = (ord(*ccp) == ORD('-')) || (ord(*kshname) == ORD('-'));
+	if (ord(*ccp) == ORD('-'))
+		++ccp;
 	if (!*ccp)
 		ccp = empty_argv[0];
 
@@ -323,7 +324,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 			++restricted_shell;
 		}
 #if defined(MKSH_BINSHPOSIX) || defined(MKSH_BINSHREDUCED)
-		/* are we called as -sh or /bin/sh or SH.EXE or so? */
+		/* are we called as -rsh or /bin/sh or SH.EXE or so? */
 		if (ksh_eq(ccp[0], 'S', 's') &&
 		    ksh_eq(ccp[1], 'H', 'h')) {
 			/* either also turns off braceexpand */

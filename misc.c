@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.298 2020/05/16 18:53:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.299 2020/05/16 22:19:58 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -390,7 +390,8 @@ parse_args(const char **argv,
 #undef SHFLAGS_NOT_CMD
 	    ;
 	bool set;
-	const char *opts;
+	const char *opts = what == OF_CMDLINE || what == OF_FIRSTTIME ?
+	    cmd_opts : set_opts;
 	const char *array = NULL;
 	Getopt go;
 	size_t i;
@@ -398,22 +399,6 @@ parse_args(const char **argv,
 	bool sortargs = false;
 	bool fcompatseen = false;
 
-	if (what == OF_CMDLINE) {
-		const char *p = argv[0], *q;
-		/*
-		 * Set FLOGIN before parsing options so user can clear
-		 * flag using +l.
-		 */
-		if (*p != '-')
-			for (q = p; *q; )
-				if (mksh_cdirsep(*q++))
-					p = q;
-		Flag(FLOGIN) = (*p == '-');
-		opts = cmd_opts;
-	} else if (what == OF_FIRSTTIME) {
-		opts = cmd_opts;
-	} else
-		opts = set_opts;
 	ksh_getopt_reset(&go, GF_ERROR|GF_PLUSOPT);
 	while ((optc = ksh_getopt(argv, &go, opts)) != -1) {
 		set = tobool(!(go.info & GI_PLUS));
