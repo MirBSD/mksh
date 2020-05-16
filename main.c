@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.365 2020/05/16 18:53:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.366 2020/05/16 20:56:19 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -652,8 +652,10 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	/* ensure these always show up setting, for FPOSIX/FSH */
 	baseline_flags[(int)FBRACEEXPAND] = 0;
 	baseline_flags[(int)FUNNYCODE] = 0;
+#if !defined(MKSH_SMALL) || defined(DEBUG)
 	/* mark as initialised */
 	baseline_flags[(int)FNFLAGS] = 1;
+#endif
 
 	/*
 	 * Do this before profile/$ENV so that if it causes problems in them,

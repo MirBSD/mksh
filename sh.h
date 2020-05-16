@@ -191,7 +191,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.896 2020/05/16 18:53:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.897 2020/05/16 20:56:19 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2020/05/16"
 
@@ -917,7 +917,7 @@ EXTERN short trap_exstat;	/* exit status before running a trap */
 EXTERN uint8_t trap_nested;	/* running nested traps */
 EXTERN uint8_t shell_flags[FNFLAGS];
 EXTERN uint8_t baseline_flags[FNFLAGS
-#ifndef MKSH_SMALL
+#if !defined(MKSH_SMALL) || defined(DEBUG)
     + 1
 #endif
     ];
