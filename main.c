@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.371 2020/05/16 22:44:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.372 2020/05/16 22:51:24 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -668,6 +668,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	/* mark as initialised */
 	baseline_flags[(int)FNFLAGS] = 1;
 #endif
+	if (as_builtin)
+		goto skip_startup_files;
 
 	/*
 	 * Do this before profile/$ENV so that if it causes problems in them,
@@ -711,6 +713,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		hist_init(s);
 	else {
 		/* set after ENV */
+ skip_startup_files:
 		Flag(FTRACKALL) = 1;
 		/* track shell-imposed change (might lower surprise) */
 		baseline_flags[(int)FTRACKALL] = 1;
