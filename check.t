@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.843 2020/05/16 18:53:03 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.844 2020/05/16 21:21:19 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -8493,42 +8493,78 @@ description:
 	Check that posix or sh mode is *not* automatically turned on
 category: !binsh
 stdin:
-	ln -s "$__progname" ksh || cp "$__progname" ksh
-	ln -s "$__progname" sh || cp "$__progname" sh
-	ln -s "$__progname" ./-ksh || cp "$__progname" ./-ksh
-	ln -s "$__progname" ./-sh || cp "$__progname" ./-sh
-	for shell in {,-}{,k}sh; do
+	for shell in {,-}{,r}{,k,mk}sh {,-}{,R}{,K,MK}SH.EXE; do
+		ln -s "$__progname" ./$shell || cp "$__progname" ./$shell
 		print -- $shell $(./$shell +l -c '
 			[[ -o sh || -o posix ]] && echo sh
 			[[ -o !sh && -o !posix ]] && echo nosh
+			[[ -o restricted ]] && echo lim || echo ok
 		    ')
 	done
 expected-stdout:
-	sh nosh
-	ksh nosh
-	-sh nosh
-	-ksh nosh
+	sh nosh ok
+	ksh nosh ok
+	mksh nosh ok
+	rsh nosh lim
+	rksh nosh lim
+	rmksh nosh lim
+	-sh nosh ok
+	-ksh nosh ok
+	-mksh nosh ok
+	-rsh nosh lim
+	-rksh nosh lim
+	-rmksh nosh lim
+	SH.EXE nosh ok
+	KSH.EXE nosh ok
+	MKSH.EXE nosh ok
+	RSH.EXE nosh lim
+	RKSH.EXE nosh lim
+	RMKSH.EXE nosh lim
+	-SH.EXE nosh ok
+	-KSH.EXE nosh ok
+	-MKSH.EXE nosh ok
+	-RSH.EXE nosh lim
+	-RKSH.EXE nosh lim
+	-RMKSH.EXE nosh lim
 ---
 name: sh-mode-2b
 description:
 	Check that posix or sh mode *is* automatically turned on
 category: binsh
 stdin:
-	ln -s "$__progname" ksh || cp "$__progname" ksh
-	ln -s "$__progname" sh || cp "$__progname" sh
-	ln -s "$__progname" ./-ksh || cp "$__progname" ./-ksh
-	ln -s "$__progname" ./-sh || cp "$__progname" ./-sh
-	for shell in {,-}{,k}sh; do
+	for shell in {,-}{,r}{,k,mk}sh {,-}{,R}{,K,MK}SH.EXE; do
+		ln -s "$__progname" ./$shell || cp "$__progname" ./$shell
 		print -- $shell $(./$shell +l -c '
 			[[ -o sh || -o posix ]] && echo sh
 			[[ -o !sh && -o !posix ]] && echo nosh
+			[[ -o restricted ]] && echo lim || echo ok
 		    ')
 	done
 expected-stdout:
-	sh sh
-	ksh nosh
-	-sh sh
-	-ksh nosh
+	sh sh ok
+	ksh nosh ok
+	mksh nosh ok
+	rsh sh lim
+	rksh nosh lim
+	rmksh nosh lim
+	-sh sh ok
+	-ksh nosh ok
+	-mksh nosh ok
+	-rsh sh lim
+	-rksh nosh lim
+	-rmksh nosh lim
+	SH.EXE sh ok
+	KSH.EXE nosh ok
+	MKSH.EXE nosh ok
+	RSH.EXE sh lim
+	RKSH.EXE nosh lim
+	RMKSH.EXE nosh lim
+	-SH.EXE sh ok
+	-KSH.EXE nosh ok
+	-MKSH.EXE nosh ok
+	-RSH.EXE sh lim
+	-RKSH.EXE nosh lim
+	-RMKSH.EXE nosh lim
 ---
 name: sh-options
 description:

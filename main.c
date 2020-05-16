@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.366 2020/05/16 20:56:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.367 2020/05/16 21:21:21 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -314,14 +314,15 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		argi = parse_args(argv, OF_FIRSTTIME, NULL);
 		if (argi < 0)
 			return (1);
-		/* called as rsh, rmksh, -rsh, -rmksh, etc.? */
-		if (ord(*ccp) == ORD('r')) {
+		/* called as rsh, rmksh, -rsh, RKSH.EXE, etc.? */
+		if (ksh_eq(*ccp, 'R', 'r')) {
 			++ccp;
 			++restricted_shell;
 		}
 #if defined(MKSH_BINSHPOSIX) || defined(MKSH_BINSHREDUCED)
-		/* are we called as -sh or /bin/sh or so? */
-		if (!strcmp(ccp, "sh" MKSH_EXE_EXT)) {
+		/* are we called as -sh or /bin/sh or SH.EXE or so? */
+		if (ksh_eq(ccp[0], 'S', 's') &&
+		    ksh_eq(ccp[1], 'H', 'h')) {
 			/* either also turns off braceexpand */
 #ifdef MKSH_BINSHPOSIX
 			/* enable better POSIX conformance */
