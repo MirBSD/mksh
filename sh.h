@@ -191,7 +191,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.897 2020/05/16 20:56:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.898 2020/05/16 22:38:23 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2020/05/16"
 
@@ -921,6 +921,7 @@ EXTERN uint8_t baseline_flags[FNFLAGS
     + 1
 #endif
     ];
+EXTERN bool as_builtin;		/* direct builtin call */
 EXTERN const char *kshname;	/* $0 */
 EXTERN struct {
 	uid_t kshuid_v;		/* real UID of shell at startup */

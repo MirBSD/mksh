@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.369 2020/05/16 22:19:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.370 2020/05/16 22:38:23 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -308,12 +308,19 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	ktinit(APERM, &builtins,
 	    /* currently up to 52 builtins: 75% of 128 = 2^7 */
 	    7);
-	for (i = 0; mkshbuiltins[i].name != NULL; i++)
-		if (!builtin_name_cmp(ccp,
-		    builtin(mkshbuiltins[i].name, mkshbuiltins[i].func)))
-			Flag(FAS_BUILTIN) = 1;
+	for (i = 0; mkshbuiltins[i].name != NULL; ++i) {
+		const char *builtin_name;
 
-	if (!Flag(FAS_BUILTIN)) {
+		builtin_name = builtin(mkshbuiltins[i].name,
+		    mkshbuiltins[i].func);
+		if (!builtin_name_cmp(ccp, builtin_name)) {
+			/* canonicalise argv[0] */
+			ccp = builtin_name;
+			as_builtin = true;
+		}
+	}
+
+	if (!as_builtin) {
 		/* check for -T option early */
 		argi = parse_args(argv, OF_FIRSTTIME, NULL);
 		if (argi < 0)
@@ -473,7 +480,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	/* this to note if utf-8 mode is set on command line (see below) */
 	UTFMODE = 2;
 
-	if (!Flag(FAS_BUILTIN)) {
+	if (!as_builtin) {
 		argi = parse_args(argv, OF_CMDLINE, NULL);
 		if (argi < 0)
 			return (1);
@@ -483,7 +490,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	utf_flag = UTFMODE;
 	UTFMODE = 0;
 
-	if (Flag(FAS_BUILTIN)) {
+	if (as_builtin) {
 		/* auto-detect from environment variables, always */
 		utf_flag = 3;
 	} else if (Flag(FCOMMAND)) {
@@ -581,7 +588,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 #endif
 
 	l = e->loc;
-	if (Flag(FAS_BUILTIN)) {
+	if (as_builtin) {
 		l->argc = argc;
 		l->argv = argv;
 		l->argv[0] = ccp;
@@ -726,7 +733,7 @@ main(int argc, const char *argv[])
 	struct block *l;
 
 	if ((rv = main_init(argc, argv, &s, &l)) == 0) {
-		if (Flag(FAS_BUILTIN)) {
+		if (as_builtin) {
 			rv = c_builtin(l->argv);
 		} else {
 			shell(s, 0);

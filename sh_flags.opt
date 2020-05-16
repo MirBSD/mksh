@@ -19,7 +19,7 @@
  */
 
 @SHFLAGS_DEFNS
-__RCSID("$MirOS: src/bin/mksh/sh_flags.opt,v 1.8 2019/12/30 03:58:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh_flags.opt,v 1.9 2020/05/16 22:38:25 tg Exp $");
 @SHFLAGS_ENUMS
 #define FN(sname,cname,flags,ochar)	cname,
 #define F0(sname,cname,flags,ochar)	cname = 0,
@@ -186,10 +186,6 @@ FN("", FCOMMAND, OF_CMDLINE
 /*
  * anonymous flags: used internally by shell only (not visible to user)
  */
-
-/* ./.	direct builtin call (divined from argv[0] multi-call binary) */
->|
-FN("", FAS_BUILTIN, OF_INTERNAL
 
 /* ./.	(internal) initial shell was interactive */
 >|

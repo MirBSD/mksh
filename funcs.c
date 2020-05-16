@@ -39,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.372 2020/04/13 19:51:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.373 2020/05/16 22:38:21 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -324,7 +324,7 @@ c_print(const char **wp)
 #ifndef MKSH_MIDNIGHTBSD01ASH_COMPAT
 		    Flag(FSH) ||
 #endif
-		    Flag(FAS_BUILTIN)) {
+		    as_builtin) {
 			/* BSD "echo" cmd, Debian Policy 10.4 compliant */
 			++wp;
  bsd_echo:
