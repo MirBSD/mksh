@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.367 2020/05/16 21:21:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.368 2020/05/16 21:24:28 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -242,6 +242,9 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 #ifdef __OS2__
 	os2_init(&argc, &argv);
+#define builtin_name_cmp stricmp
+#else
+#define builtin_name_cmp strcmp
 #endif
 
 	/* do things like getpgrp() et al. */
@@ -305,8 +308,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	    /* currently up to 52 builtins: 75% of 128 = 2^7 */
 	    7);
 	for (i = 0; mkshbuiltins[i].name != NULL; i++)
-		if (!strcmp(ccp, builtin(mkshbuiltins[i].name,
-		    mkshbuiltins[i].func)))
+		if (!builtin_name_cmp(ccp,
+		    builtin(mkshbuiltins[i].name, mkshbuiltins[i].func)))
 			Flag(FAS_BUILTIN) = 1;
 
 	if (!Flag(FAS_BUILTIN)) {
