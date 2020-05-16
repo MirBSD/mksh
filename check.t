@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.842 2020/05/05 21:34:25 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.843 2020/05/16 18:53:03 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2020/05/05
+	KSH R59 2020/05/16
 description:
 	Check base version of full shell
 stdin:
@@ -8453,8 +8453,10 @@ description:
 stdin:
 	set -o braceexpand
 	set +o sh
-	[[ $(set +o) == *@(-o sh)@(| *) ]] && echo sh || echo nosh
-	[[ $(set +o) == *@(-o braceexpand)@(| *) ]] && echo brex || echo nobrex
+	[[ -o sh ]] && echo sh
+	[[ -o !sh ]] && echo nosh
+	[[ -o braceexpand ]] && echo brex
+	[[ -o !braceexpand ]] && echo nobrex
 	echo {a,b,c}
 	set +o braceexpand
 	echo {a,b,c}
@@ -8462,12 +8464,17 @@ stdin:
 	echo {a,b,c}
 	set -o sh
 	echo {a,b,c}
-	[[ $(set +o) == *@(-o sh)@(| *) ]] && echo sh || echo nosh
-	[[ $(set +o) == *@(-o braceexpand)@(| *) ]] && echo brex || echo nobrex
+	[[ -o sh ]] && echo sh
+	[[ -o !sh ]] && echo nosh
+	[[ -o braceexpand ]] && echo brex
+	[[ -o !braceexpand ]] && echo nobrex
 	set -o braceexpand
 	echo {a,b,c}
-	[[ $(set +o) == *@(-o sh)@(| *) ]] && echo sh || echo nosh
-	[[ $(set +o) == *@(-o braceexpand)@(| *) ]] && echo brex || echo nobrex
+	[[ -o sh ]] && echo sh
+	[[ -o !sh ]] && echo nosh
+	[[ -o braceexpand ]] && echo brex
+	[[ -o !braceexpand ]] && echo nobrex
+	:
 expected-stdout:
 	nosh
 	brex
@@ -8491,8 +8498,10 @@ stdin:
 	ln -s "$__progname" ./-ksh || cp "$__progname" ./-ksh
 	ln -s "$__progname" ./-sh || cp "$__progname" ./-sh
 	for shell in {,-}{,k}sh; do
-		print -- $shell $(./$shell +l -c \
-		    '[[ $(set +o) == *"-o "@(sh|posix)@(| *) ]] && echo sh || echo nosh')
+		print -- $shell $(./$shell +l -c '
+			[[ -o sh || -o posix ]] && echo sh
+			[[ -o !sh && -o !posix ]] && echo nosh
+		    ')
 	done
 expected-stdout:
 	sh nosh
@@ -8510,14 +8519,41 @@ stdin:
 	ln -s "$__progname" ./-ksh || cp "$__progname" ./-ksh
 	ln -s "$__progname" ./-sh || cp "$__progname" ./-sh
 	for shell in {,-}{,k}sh; do
-		print -- $shell $(./$shell +l -c \
-		    '[[ $(set +o) == *"-o "@(sh|posix)@(| *) ]] && echo sh || echo nosh')
+		print -- $shell $(./$shell +l -c '
+			[[ -o sh || -o posix ]] && echo sh
+			[[ -o !sh && -o !posix ]] && echo nosh
+		    ')
 	done
 expected-stdout:
 	sh sh
 	ksh nosh
 	-sh sh
 	-ksh nosh
+---
+name: sh-options
+description:
+	Check that "set +o" DTRT per POSIX
+stdin:
+	t() {
+		[[ -o vi ]]; a=$?
+		[[ -o pipefail ]]; b=$?
+		echo $((++i)) $a $b .
+	}
+	set -e
+	set -o vi
+	set +o pipefail
+	set +e
+	t
+	x=$(set +o)
+	set +o vi
+	set -o pipefail
+	t
+	eval "$x"
+	t
+expected-stdout:
+	1 0 1 .
+	2 1 0 .
+	3 0 1 .
 ---
 name: pipeline-1
 description:

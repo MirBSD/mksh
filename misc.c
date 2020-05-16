@@ -3,7 +3,8 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
+ *		 2020
  *	mirabilos <m@mirbsd.org>
  * Copyright (c) 2015
  *	Daniel Richard G. <skunk@iSKUNK.ORG>
@@ -32,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.297 2020/04/07 11:56:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.298 2020/05/16 18:53:07 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -141,7 +142,8 @@ struct options_info {
 };
 
 static void options_fmt_entry(char *, size_t, unsigned int, const void *);
-static void printoptions(bool);
+static int printoptions(bool);
+static int printoption(size_t);
 
 /* format a single select menu item */
 static void
@@ -154,10 +156,32 @@ options_fmt_entry(char *buf, size_t buflen, unsigned int i, const void *arg)
 	    Flag(oi->opts[i]) ? "on" : "off");
 }
 
-static void
+static int
+printoption(size_t i)
+{
+	if (Flag(i) == baseline_flags[i])
+		return (0);
+	if (!OFN(i)[0]) {
+#if !defined(MKSH_SMALL) || defined(DEBUG)
+		bi_errorf(Tf_sd, "change in unnamed option", (int)i);
+#endif
+		return (1);
+	}
+	if (Flag(i) != 0 && Flag(i) != 1) {
+#if !defined(MKSH_SMALL) || defined(DEBUG)
+		bi_errorf(Tf_s_sD_s, Tdo, OFN(i), "not 0 or 1");
+#endif
+		return (1);
+	}
+	shprintf(Tf__s_s, Flag(i) ? Tdo : Tpo, OFN(i));
+	return (0);
+}
+
+static int
 printoptions(bool verbose)
 {
 	size_t i = 0;
+	int rv = 0;
 
 	if (verbose) {
 		size_t n = 0, len, octs = 0;
@@ -187,13 +211,17 @@ printoptions(bool verbose)
 	} else {
 		/* short version like AT&T ksh93 */
 		shf_puts(Tset, shl_stdout);
-		while (i < NELEM(options)) {
-			if (Flag(i) && OFN(i)[0])
-				shprintf(" -o %s", OFN(i));
+		shf_puts(To_o_reset, shl_stdout);
+		printoption(FSH);
+		printoption(FPOSIX);
+		while (i < FNFLAGS) {
+			if (i != FSH && i != FPOSIX)
+				rv |= printoption(i);
 			++i;
 		}
 		shf_putc('\n', shl_stdout);
 	}
+	return (rv);
 }
 
 char *
@@ -408,7 +436,15 @@ parse_args(const char **argv,
 				 * an option (ie, can't get here if what is
 				 * OF_CMDLINE).
 				 */
-				printoptions(set);
+#if !defined(MKSH_SMALL) || defined(DEBUG)
+				if (!set && !baseline_flags[(int)FNFLAGS]) {
+					bi_errorf(Tf_s_s, "too early",
+					    Tset_po);
+					return (-1);
+				}
+#endif
+				if (printoptions(set))
+					return (-1);
 				break;
 			}
 			i = option(go.optarg);
@@ -433,7 +469,23 @@ parse_args(const char **argv,
 				;
 			else if ((i != (size_t)-1) && (OFF(i) & what))
 				change_flag((enum sh_flag)i, what, set);
-			else {
+			else if (!strcmp(go.optarg, To_reset)) {
+#if !defined(MKSH_SMALL) || defined(DEBUG)
+				if (!baseline_flags[(int)FNFLAGS]) {
+					bi_errorf(Tf_ss, "too early",
+					    To_o_reset);
+					return (-1);
+				}
+#endif
+				/*
+				 * ordering, with respect to side effects,
+				 * was ensured above by printoptions
+				 */
+				for (i = 0; i < FNFLAGS; ++i)
+					if (Flag(i) != baseline_flags[i])
+						change_flag((enum sh_flag)i,
+						    what, baseline_flags[i]);
+			} else {
 				bi_errorf(Tf_sD_s, go.optarg,
 				    Tunknown_option);
 				return (-1);

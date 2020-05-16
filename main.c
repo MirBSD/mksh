@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.364 2020/04/13 17:04:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.365 2020/05/16 18:53:06 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -644,6 +644,17 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	errexit = Flag(FERREXIT);
 	Flag(FERREXIT) = 0;
 
+	/* save flags for "set +o" handling */
+	memcpy(baseline_flags, shell_flags, sizeof(shell_flags));
+	/* disable these because they have special handling */
+	baseline_flags[(int)FPOSIX] = 0;
+	baseline_flags[(int)FSH] = 0;
+	/* ensure these always show up setting, for FPOSIX/FSH */
+	baseline_flags[(int)FBRACEEXPAND] = 0;
+	baseline_flags[(int)FUNNYCODE] = 0;
+	/* mark as initialised */
+	baseline_flags[(int)FNFLAGS] = 1;
+
 	/*
 	 * Do this before profile/$ENV so that if it causes problems in them,
 	 * user will know why things broke.
@@ -662,6 +673,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		else
 			/* turn off -p if not set explicitly */
 			change_flag(FPRIVILEGED, OF_INTERNAL, false);
+		/* track shell-imposed changes */
+		baseline_flags[(int)FPRIVILEGED] = Flag(FPRIVILEGED);
 	} else {
 		if (Flag(FLOGIN))
 			include(substitute("$HOME/.profile", 0), 0, NULL, true);
@@ -675,14 +688,19 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		c_builtin(restr_com);
 		/* After typeset command... */
 		Flag(FRESTRICTED) = 1;
+		/* track shell-imposed changes */
+		baseline_flags[(int)FRESTRICTED] = 1;
 	}
 	Flag(FERREXIT) = errexit;
 
 	if (Flag(FTALKING) && s)
 		hist_init(s);
-	else
+	else {
 		/* set after ENV */
 		Flag(FTRACKALL) = 1;
+		/* track shell-imposed change (might lower surprise) */
+		baseline_flags[(int)FTRACKALL] = 1;
+	}
 
 	alarm_init();
 

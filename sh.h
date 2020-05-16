@@ -191,9 +191,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.895 2020/05/15 18:57:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.896 2020/05/16 18:53:09 tg Exp $");
 #endif
-#define MKSH_VERSION "R59 2020/05/05"
+#define MKSH_VERSION "R59 2020/05/16"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -668,7 +668,7 @@ char *ucstrstr(char *, const char *);
 #endif
 #endif
 
-#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 591)
+#if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 592)
 #error Must run Build.sh to compile this.
 extern void thiswillneverbedefinedIhope(void);
 int
@@ -916,6 +916,11 @@ EXTERN struct tbl *vp_pipest;	/* global PIPESTATUS array */
 EXTERN short trap_exstat;	/* exit status before running a trap */
 EXTERN uint8_t trap_nested;	/* running nested traps */
 EXTERN uint8_t shell_flags[FNFLAGS];
+EXTERN uint8_t baseline_flags[FNFLAGS
+#ifndef MKSH_SMALL
+    + 1
+#endif
+    ];
 EXTERN const char *kshname;	/* $0 */
 EXTERN struct {
 	uid_t kshuid_v;		/* real UID of shell at startup */
@@ -1037,7 +1042,10 @@ EXTERN const char Tnot_found_s[] E_INIT("%s not found");
 #define Tnot_started (Tjob_not_started + 4)
 #define TOLDPWD (Tno_OLDPWD + 3)
 #define Topen (Tcant_open + 6)
+EXTERN const char To_o_reset[] E_INIT(" -o .reset");
+#define To_reset (To_o_reset + 4)
 #define TPATH (TFPATH + 1)
+#define Tpo (Tset_po + 4)
 #define Tpv (TpVv + 1)
 EXTERN const char TpVv[] E_INIT("Vpv");
 #define TPWD (Tno_OLDPWD + 6)
@@ -1052,6 +1060,7 @@ EXTERN const char TREPLY[] E_INIT("REPLY");
 EXTERN const char Treq_arg[] E_INIT("requires an argument");
 EXTERN const char Tselect[] E_INIT("select");
 #define Tset (Tf_parm + 18)
+EXTERN const char Tset_po[] E_INIT("set +o");
 EXTERN const char Tsghset[] E_INIT("*=#set");
 #define Tsh (Tmksh + 2)
 #define TSHELL (TEXECSHELL + 4)
@@ -1082,6 +1091,7 @@ EXTERN const char Tuser_sp2[] E_INIT(" user ");
 #define Twrite (Tshf_write + 4)
 EXTERN const char Tf__S[] E_INIT(" %S");
 #define Tf__d (Tunexpected_type + 22)
+#define Tf_ss (Tf__ss + 1)
 EXTERN const char Tf__ss[] E_INIT(" %s%s");
 #define Tf__sN (Tf_s_s_sN + 5)
 #define Tf_T (Tf_s_T + 3)
@@ -1090,6 +1100,7 @@ EXTERN const char Tf_s_[] E_INIT("%s ");
 EXTERN const char Tf_s_T[] E_INIT("%s %T");
 EXTERN const char Tf_s_s_sN[] E_INIT("%s %s %s\n");
 #define Tf_s_s (Tf_sD_s_s + 4)
+#define Tf__s_s (Tf_sD_s_s + 3)
 #define Tf_s_sD_s (Tf_cant_ss_s + 6)
 EXTERN const char Tf_optfoo[] E_INIT("%s%s-%c: %s");
 EXTERN const char Tf_sD_[] E_INIT("%s: ");
@@ -1197,7 +1208,10 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tnot_started "not started"
 #define TOLDPWD "OLDPWD"
 #define Topen "open"
+#define To_o_reset " -o .reset"
+#define To_reset ".reset"
 #define TPATH "PATH"
+#define Tpo "+o"
 #define Tpv "pv"
 #define TpVv "Vpv"
 #define TPWD "PWD"
@@ -1212,6 +1226,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Treq_arg "requires an argument"
 #define Tselect "select"
 #define Tset "set"
+#define Tset_po "set +o"
 #define Tsghset "*=#set"
 #define Tsh "sh"
 #define TSHELL "SHELL"
@@ -1242,6 +1257,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Twrite "write"
 #define Tf__S " %S"
 #define Tf__d " %d"
+#define Tf_ss "%s%s"
 #define Tf__ss " %s%s"
 #define Tf__sN " %s\n"
 #define Tf_T "%T"
@@ -1250,6 +1266,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tf_s_T "%s %T"
 #define Tf_s_s_sN "%s %s %s\n"
 #define Tf_s_s "%s %s"
+#define Tf__s_s " %s %s"
 #define Tf_s_sD_s "%s %s: %s"
 #define Tf_optfoo "%s%s-%c: %s"
 #define Tf_sD_ "%s: "
