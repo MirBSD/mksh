@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.844 2020/05/16 21:21:19 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.845 2020/05/16 22:19:15 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -8474,7 +8474,7 @@ stdin:
 	[[ -o !sh ]] && echo nosh
 	[[ -o braceexpand ]] && echo brex
 	[[ -o !braceexpand ]] && echo nobrex
-	:
+	[[ $(exec -a -set "$__progname" -o) = *login+(' ')on* ]]; echo $?
 expected-stdout:
 	nosh
 	brex
@@ -8487,6 +8487,7 @@ expected-stdout:
 	a b c
 	sh
 	brex
+	0
 ---
 name: sh-mode-2a
 description:
