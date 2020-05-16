@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.490 2020/05/16 18:53:08 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.491 2020/05/16 22:12:36 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -270,7 +270,7 @@ option is on by default (see the
 command below).
 .It Fl l
 Login shell.
-If the basename the shell is called with (i.e. argv[0])
+If the name or basename the shell is called with (i.e. argv[0])
 starts with
 .Ql \-
 or if this option is used,
@@ -297,7 +297,9 @@ option is cleared automatically after processing the startup files.
 Restricted shell.
 A shell is
 .Dq restricted
-if the basename the shell is called with (i.e. argv[0]) starts with
+if the basename the shell is called with, after
+.Ql \-
+processing, starts with
 .Ql r
 or if this option is used.
 The following restrictions come into effect after the shell processes any
@@ -382,7 +384,7 @@ is determined as follows: if the
 .Fl c
 option is used and there is a non-option argument, it is used as the name;
 if commands are being read from a file, the file is used as the name;
-otherwise, the basename the shell was called with (i.e. argv[0]) is used.
+otherwise, the name the shell was called with (i.e. argv[0]) is used.
 .Pp
 The exit status of the shell is 127 if the command file specified on the
 command line could not be opened, or non-zero if a fatal syntax error
@@ -1801,12 +1803,11 @@ if it was invoked with the
 .Fl c
 option and arguments were given; otherwise the
 .Ar file
-argument, if it was supplied;
-or else the basename the shell was invoked with (i.e.\&
-.Li argv[0] ) .
+argument, if it was supplied; or else the name the shell was invoked with
+.Pq i.e.\& Li argv[0] .
 .Ev $0
-is also set to the name of the current script or
-the name of the current function, if it was defined with the
+is also set to the name of the current script,
+or to the name of the current function if it was defined with the
 .Ic function
 keyword (i.e. a Korn shell style function).
 .It Ev 1 No .. Ev 9
@@ -2024,7 +2025,7 @@ and
 .Xc
 See the end of the Emacs editing mode documentation for an example.
 .It Ev KSH_VERSION
-The name and version of the shell (read-only).
+The name (self-identification) and version of the shell (read-only).
 See also the version commands in
 .Sx Emacs editing mode
 and
@@ -4562,34 +4563,42 @@ Behave closer to the standards
 (see
 .Sx POSIX mode
 for details).
-Automatically enabled if the basename of the shell invocation begins with
+Automatically enabled if the shell invocation basename, after
+.Sq \-
+and
+.Sq r
+processing, begins with
 .Dq sh
-and this autodetection feature is compiled in (not in MirBSD; commonly used for
-.Nm lksh
-only).
+and
+.Pq often used for the Nm lksh No binary
+this autodetection feature is compiled in.
 As a side effect, setting this flag turns off the
 .Ic braceexpand
 and
 .Ic utf8\-mode
 flags, which can be turned back on manually, and
-.Pq unless both are enabled at the same time
+.Pq unless both are set in the same command
 .Ic sh
 mode.
 .It Fl o Ic sh
-Enable
+Enable kludge
 .Pa /bin/sh
-.Pq kludge
-mode (see
-.Sx SH mode ) .
-Automatically enabled if the basename of the shell invocation begins with
+compatibility mode (see
+.Sx SH mode
+below for details).
+Automatically enabled if the basename of the shell invocation, after
+.Sq \-
+and
+.Sq r
+processing, begins with
 .Dq sh
 and this autodetection feature is compiled in
 .Pq rather uncommon .
-As a side effect, setting this flag turns off
+As a side effect, setting this flag turns off the
 .Ic braceexpand
-mode, which can be turned back on manually, and
+flag, which can be turned back on manually, and
 .Ic posix
-mode (unless both are enabled at the same time).
+mode (unless both are set in the same command).
 .It Fl o Ic vi
 Enable
 .Xr vi 1 Ns -like
