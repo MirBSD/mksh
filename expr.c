@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.107 2020/03/27 02:49:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.108 2020/06/20 02:27:50 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -886,8 +886,8 @@ static int mb_ucsbsearch(const struct mb_ucsrange arr[], size_t elems,
     unsigned int val) MKSH_A_PURE;
 
 /*
- * Generated from the UCD 13.0.0 by
- * MirOS: contrib/code/Snippets/eawparse,v 1.14 2020/03/27 01:33:21 tg Exp $
+ * Generated from the UCD 13.0.0 - see /usr/share/doc/legal/LICENCE-BSD - by
+ * MirOS: contrib/code/Snippets/eawparse,v 1.15 2020/06/15 20:31:13 tg Exp $
  */
 
 /*-
@@ -1136,6 +1136,7 @@ static const struct mb_ucsrange mb_ucs_combining[] = {
 	{ 0xABE5, 0xABE5 },
 	{ 0xABE8, 0xABE8 },
 	{ 0xABED, 0xABED },
+	{ 0xD7B0, 0xD7FF },
 	{ 0xFB1E, 0xFB1E },
 	{ 0xFE00, 0xFE0F },
 	{ 0xFE20, 0xFE2F },
