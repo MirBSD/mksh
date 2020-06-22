@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.299 2020/05/16 22:19:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.300 2020/06/22 17:11:02 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1927,7 +1927,7 @@ do_realpath(const char *upath)
  *	- if file starts with '/', append file to result & set cdpathp to NULL
  *	- if file starts with ./ or ../ append cwd and file to result
  *	  and set cdpathp to NULL
- *	- if the first element of cdpathp doesnt start with a '/' xx or '.' xx
+ *	- if the first element of cdpathp doesn't start with a '/' xx or '.' xx
  *	  then cwd is appended to result.
  *	- the first element of cdpathp is appended to result
  *	- file is appended to result

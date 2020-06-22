@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.372 2020/05/16 22:51:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.373 2020/06/22 17:11:01 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -1197,7 +1197,7 @@ remove_temps(struct temp *tp)
 
 /*
  * Initialise tty_fd. Used for tracking the size of the terminal,
- * saving/resetting tty modes upon forground job completion, and
+ * saving/resetting tty modes upon foreground job completion, and
  * for setting up the tty process group. Return values:
  *	0 = got controlling tty
  *	1 = got terminal but no controlling tty

@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.236 2020/04/13 16:29:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.237 2020/06/22 17:11:03 tg Exp $");
 
 /*-
  * Variables
@@ -1900,7 +1900,7 @@ c_typeset(const char **wp)
 		break;
 	}
 
-	/* see comment below regarding possible opions */
+	/* see comment below regarding possible options */
 	opts = istset ? "L#R#UZ#afgi#lnprtux" : "p";
 
 	builtin_opt.flags |= GF_PLUSOPT;

@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.7 2020/04/25 12:09:55 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.8 2020/06/22 17:11:03 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -207,7 +207,7 @@ Title: Why doesn’t this use a Makefile to build?
 ToC: oldbsd
 Title: Why do other BSDs and QNX still use pdksh instead of mksh?
 
-<p>Some systems are resistent to change, mostly due to bikeshedding
+<p>Some systems are resistant to change, mostly due to bikeshedding
  (some people would, for example, rather see all shells banned to
  ports/pkgsrc®) and hysterial raisins (historical reasons ☻). Most
  BSDs have mksh packages available, and it works on all of them and

@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.101 2019/12/11 17:56:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.102 2020/06/22 17:11:03 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -666,7 +666,7 @@ shf_write(const char *buf, ssize_t nbytes, struct shf *shf)
 	if (nbytes < 0)
 		internal_errorf(Tf_szs, Tshf_write, nbytes, Tbytes);
 
-	/* Don't buffer if buffer is empty and we're writting a large amount. */
+	/* don't buffer if buffer is empty and we're writing a large amount */
 	if ((ncopy = shf->wnleft) &&
 	    (shf->wp != shf->buf || nbytes < shf->wnleft)) {
 		if (ncopy > nbytes)
@@ -782,7 +782,7 @@ shf_smprintf(const char *fmt, ...)
 #define FL_ZERO		0x040	/* '0' seen */
 #define FL_DOT		0x080	/* '.' seen */
 #define FL_UPPER	0x100	/* format character was uppercase */
-#define FL_NUMBER	0x200	/* a number was formated %[douxefg] */
+#define FL_NUMBER	0x200	/* a number was formatted %[douxefg] */
 #define FL_SIZET	0x400	/* 'z' seen */
 #define FM_SIZES	0x430	/* h/l/z mask */
 

@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.846 2020/06/20 02:27:47 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.847 2020/06/22 17:10:59 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -6109,7 +6109,7 @@ expected-stderr-pattern: /does\/not\/exist/
 ---
 name: regression-28
 description:
-	variable assignements not detected well
+	variable assignments not detected well
 stdin:
 	a.x=1 echo hi
 expected-exit: e != 0
@@ -6184,7 +6184,7 @@ expected-stdout:
 ---
 name: regression-35
 description:
-	Tempory files used for here-docs in functions get trashed after
+	Temporay files used for here-docs in functions get trashed after
 	the function is parsed (before it is executed)
 stdin:
 	f1() {
@@ -7457,7 +7457,7 @@ expected-stdout:
 name: xxx-param-subst-qmark-1
 description:
 	Check suppresion of error message with null string.  According to
-	POSIX, it shouldn't print the error as 'word' isn't ommitted.
+	POSIX, it shouldn't print the error as 'word' isn't omitted.
 	ksh88/93, Solaris /bin/sh and /usr/xpg4/bin/sh all print the error.
 stdin:
 	unset foo

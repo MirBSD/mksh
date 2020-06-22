@@ -39,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.373 2020/05/16 22:38:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.374 2020/06/22 17:11:00 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3529,7 +3529,7 @@ c_cat(const char **wp)
 					opipe = block_pipe();
 					continue;
 				}
-				/* an error occured during reading */
+				/* an error occurred during reading */
 				bi_errorf(Tf_sD_s, fn, cstrerror(errno));
 				rv = 1;
 				break;
@@ -3558,7 +3558,7 @@ c_cat(const char **wp)
 					/* fake receiving signal */
 					rv = ksh_sigmask(SIGPIPE);
 				} else {
-					/* an error occured during writing */
+					/* an error occurred during writing */
 					bi_errorf(Tf_sD_s, "<stdout>",
 					    cstrerror(errno));
 					rv = 1;

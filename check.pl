@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.50 2019/08/01 20:05:55 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.51 2020/06/22 17:10:59 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -55,7 +55,7 @@
 #					default is no arguments.
 #	script			m	Value is written to a file which
 #					is passed as an argument to the program
-#					(after the arguments arguments)
+#					(after the arguments from arguments)
 #	stdin			m	Value is written to a file which is
 #					used as standard-input for the program;
 #					default is to use /dev/null.
@@ -195,7 +195,7 @@ Usage: $prog [-Pv] [-C cat] [-e e=v] [-p prog] [-s fn] [-T dir] \
 		the path (kludge option)
 	-p p	Use p as the program to test
 	-s s	Read tests from file s; if s is a directory, it is recursively
-		scaned for test files (which end in .t).
+		scanned for test files (which end in .t).
 	-T dir	Use dir instead of /tmp to hold temporary files
 	-t t	Use t as default time limit for tests (default is unlimited)
 	-U lcl	Use lcl as UTF-8 locale (e.g. C.UTF-8) instead of the default

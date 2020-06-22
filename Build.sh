@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.756 2020/05/16 22:53:03 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.757 2020/06/22 17:10:58 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -2782,7 +2782,7 @@ HAVE_STRING_H			ac_header
 HAVE_CAN_FSTACKPROTECTORALL	ac_flags
 
 ==== cpp definitions ====
-DEBUG				dont use in production, wants gcc, implies:
+DEBUG				don’t use in production, wants gcc, implies:
 DEBUG_LEAKS			enable freeing resources before exiting
 KSH_VERSIONNAME_VENDOR_EXT	when patching; space+plus+word (e.g. " +SuSE")
 MKSHRC_PATH			"~/.mkshrc" (do not change)
