@@ -39,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.374 2020/06/22 17:11:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.375 2020/06/25 14:48:38 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3240,7 +3240,9 @@ ptest_error(Test_env *te, int ofs, const char *msg)
 #else
 #define ULIMIT_M_IS_RSS
 #endif
-#if defined(ULIMIT_M_IS_RSS) && defined(RLIMIT_AS) && (RLIMIT_RSS == RLIMIT_AS)
+#if defined(ULIMIT_M_IS_RSS) && defined(RLIMIT_AS) && \
+    !defined(__APPLE__) && (RLIMIT_RSS == RLIMIT_AS)
+/* On Mac OSX keep -m as -v alias for pkgsrc and other software expecting it */
 #undef ULIMIT_M_IS_RSS
 #endif
 #endif
