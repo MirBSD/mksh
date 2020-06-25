@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.757 2020/06/22 17:10:58 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.758 2020/06/25 14:36:17 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -2734,11 +2734,11 @@ if test $legacy = 0; then
 fi
 $e
 $e Installing the manual:
-if test -e FAQ.htm; then
+if test -f FAQ.htm; then
 	$e "# $i -c -o root -g bin -m 444 FAQ.htm /usr/share/doc/mksh/"
 fi
 if test -f mksh.cat1; then
-	if test -e FAQ.htm; then
+	if test -f FAQ.htm; then
 		$e plus either
 	fi
 	$e "# $i -c -o root -g bin -m 444 lksh.cat1" \
@@ -2751,7 +2751,7 @@ $e "# $i -c -o root -g bin -m 444 lksh.1 mksh.1 /usr/share/man/man1/"
 $e
 $e Run the regression test suite: ./test.sh
 $e Please also read the sample file dot.mkshrc and the fine manual.
-test -e FAQ.htm || \
+test -f FAQ.htm || \
     $e Run FAQ2HTML.sh and place FAQ.htm into a suitable location as well.
 exit 0
 
