@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.300 2020/06/22 17:11:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.301 2020/07/24 20:50:10 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1328,7 +1328,7 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 			if (go->flags & GF_ERROR)
 				bi_errorfz();
 		}
-		return ('?');
+		return (ORD('?'));
 	}
 	/**
 	 * : means argument must be present, may be part of option argument
@@ -1347,7 +1347,7 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 			if (optionsp[0] == ':') {
 				go->buf[0] = c;
 				go->optarg = go->buf;
-				return (':');
+				return (ORD(':'));
 			}
 			warningf(true, Tf_optfoo,
 			    (go->flags & GF_NONAME) ? "" : argv[0],
@@ -1355,7 +1355,7 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 			    c, Treq_arg);
 			if (go->flags & GF_ERROR)
 				bi_errorfz();
-			return ('?');
+			return (ORD('?'));
 		}
 		go->p = 0;
 	} else if (*o == ',') {
@@ -1383,7 +1383,7 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 				go->optarg = NULL;
 		}
 	}
-	return (c);
+	return (ord(c));
 }
 
 /*

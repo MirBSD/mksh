@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.1 2020/07/24 20:11:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.2 2020/07/24 20:50:11 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2
@@ -91,6 +91,8 @@ typedef unsigned long rlim_t;
 
 #else /* !HAVE_RLIMIT */
 
+#undef RLIMIT_CORE	/* just in case */
+
 #if defined(UL_GETFSIZE)
 #define KSH_UL_GFIL	UL_GETFSIZE
 #elif defined(UL_GFILLIM)
@@ -127,6 +129,9 @@ typedef unsigned long rlim_t;
 #elif defined(__GLIBC__) || defined(KSH_ULIMIT2_TEST)
 #define KSH_UL_GDES	4
 #endif
+
+extern char etext;
+extern long ulimit(int, long);
 
 #define LIMITS_GEN	"ulimits.gen"
 
@@ -169,7 +174,7 @@ struct limits {
 		bool writable;				\
 		char optchar;				\
 		char name[sizeof(lname)];		\
-	} rlimits_ ## lid = {				\
+	} rlimits_ ## lg = {				\
 		lg, ls, lw, lopt, lname			\
 	};
 #endif
@@ -186,27 +191,31 @@ static const struct limits * const rlimits[] = {
 static const char rlimits_opts[] =
 #define RLIMITS_OPTCS
 #include LIMITS_GEN
+#ifndef RLIMIT_CORE
+	"c"
+#endif
     ;
 
 int
 c_ulimit(const char **wp)
 {
 	size_t i = 0;
-	int how = SOFT | HARD, optc, what = 'f';
+	int how = SOFT | HARD, optc;
+	char what = 'f';
 	bool all = false;
 
 	while ((optc = ksh_getopt(wp, &builtin_opt, rlimits_opts)) != -1)
 		switch (optc) {
-		case 'H':
+		case ORD('H'):
 			how = HARD;
 			break;
-		case 'S':
+		case ORD('S'):
 			how = SOFT;
 			break;
-		case 'a':
+		case ORD('a'):
 			all = true;
 			break;
-		case '?':
+		case ORD('?'):
 			bi_errorf("usage: ulimit [-%s] [value]", rlimits_opts);
 			return (1);
 		default:
@@ -218,6 +227,11 @@ c_ulimit(const char **wp)
 			goto found;
 		++i;
 	}
+#ifndef RLIMIT_CORE
+	if (what == ORD('c'))
+		/* silently accept */
+		return 0;
+#endif
 	internal_warningf("ulimit: %c", what);
 	return (1);
  found:
@@ -237,14 +251,24 @@ c_ulimit(const char **wp)
 	return (0);
 }
 
+#if HAVE_RLIMIT
+#define RL_T rlim_t
+#define RL_U (rlim_t)RLIM_INFINITY
+#else
+#define RL_T long
+#define RL_U LONG_MAX
+#endif
+
 static int
-set_ulimit(const struct limits *l, const char *v, int how)
+set_ulimit(const struct limits *l, const char *v, int how MKSH_A_UNUSED)
 {
-	rlim_t val = (rlim_t)0;
+	RL_T val = (RL_T)0;
+#if HAVE_RLIMIT
 	struct rlimit limit;
+#endif
 
 	if (strcmp(v, "unlimited") == 0)
-		val = (rlim_t)RLIM_INFINITY;
+		val = RL_U;
 	else {
 		mksh_uari_t rval;
 
@@ -260,9 +284,14 @@ set_ulimit(const struct limits *l, const char *v, int how)
 			bi_errorf("invalid %s limit: %s", l->name, v);
 			return (1);
 		}
+#if HAVE_RLIMIT
 		val = (rlim_t)((rlim_t)rval * l->factor);
+#else
+		val = (RL_T)rval;
+#endif
 	}
 
+#if HAVE_RLIMIT
 	if (getrlimit(l->resource, &limit) < 0) {
 #ifndef MKSH_SMALL
 		bi_errorf("limit %s could not be read, contact the mksh developers: %s",
@@ -278,6 +307,14 @@ set_ulimit(const struct limits *l, const char *v, int how)
 		limit.rlim_max = val;
 	if (!setrlimit(l->resource, &limit))
 		return (0);
+#else
+	if (l->writable == false) {
+		bi_errorf(Tf_ro, l->name);
+		return (1);
+	}
+	if (ulimit(l->wesource, val) != -1L)
+		return (0);
+#endif
 	if (errno == EPERM)
 		bi_errorf("%s exceeds allowable %s limit", v, l->name);
 	else
@@ -286,21 +323,36 @@ set_ulimit(const struct limits *l, const char *v, int how)
 }
 
 static void
-print_ulimit(const struct limits *l, int how)
+print_ulimit(const struct limits *l, int how MKSH_A_UNUSED)
 {
-	rlim_t val = (rlim_t)0;
+	RL_T val = (RL_T)0;
+#if HAVE_RLIMIT
 	struct rlimit limit;
 
-	if (getrlimit(l->resource, &limit)) {
+	if (getrlimit(l->resource, &limit))
+#else
+	if ((val = ulimit(l->resource, 0)) < 0)
+#endif
+	    {
 		shf_puts("unknown\n", shl_stdout);
 		return;
 	}
+#if HAVE_RLIMIT
 	if (how & SOFT)
 		val = limit.rlim_cur;
 	else if (how & HARD)
 		val = limit.rlim_max;
-	if (val == (rlim_t)RLIM_INFINITY)
+#endif
+	if (val == RL_U)
 		shf_puts("unlimited\n", shl_stdout);
-	else
-		shprintf("%lu\n", (unsigned long)(val / l->factor));
+	else {
+#if HAVE_RLIMIT
+		val /= l->factor;
+#elif defined(KSH_UL_GBRK)
+		if (l->resource == KSH_UL_GBRK)
+			val = (RL_T)(((size_t)val - (size_t)&etext) /
+			    (size_t)1024);
+#endif
+		shprintf("%lu\n", (unsigned long)val);
+	}
 }

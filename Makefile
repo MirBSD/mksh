@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.170 2020/07/24 20:11:15 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.171 2020/07/24 20:50:09 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -75,7 +75,7 @@ CPPFLAGS+=	-DMKSH_PRINTF_BUILTIN
 
 KSH_ULIMIT2_TEST?=	0
 .if ${KSH_ULIMIT2_TEST} == 1
-CPPFLAGS+=	-UHAVE_RLIMIT -DHAVE_RLIMIT=0
+CPPFLAGS+=	-DKSH_ULIMIT2_TEST -UHAVE_RLIMIT -DHAVE_RLIMIT=0
 LDFLAGS+=	-L${BSDSRCDIR:Q}/contrib/code/Snippets
 LDADD+=		-lulimit
 .endif

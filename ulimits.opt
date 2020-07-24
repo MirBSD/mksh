@@ -21,9 +21,9 @@
  */
 
 @RLIMITS_DEFNS
-__RCSID("$MirOS: src/bin/mksh/ulimits.opt,v 1.1 2020/07/24 20:11:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/ulimits.opt,v 1.2 2020/07/24 20:50:11 tg Exp $");
 @RLIMITS_ITEMS
-#define FN(lname,lg,ls,lw,lopt) (const struct limits *)(&rlimits_ ## lid),
+#define FN(lname,lg,ls,lw,lopt) (const struct limits *)(&rlimits_ ## lg),
 @@
 
 /* generic options for the ulimit builtin */
