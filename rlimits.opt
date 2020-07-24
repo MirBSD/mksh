@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2013, 2015
+ * Copyright (c) 2013, 2015, 2019
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -16,10 +16,12 @@
  * of dealing in the work, even if advised of the possibility of such
  * damage or existence of a defect, except proven that it results out
  * of said person's immediate fault when using the work as intended.
+ *-
+ * Keep {r,u}limits.opt in sync with each other!
  */
 
 @RLIMITS_DEFNS
-__RCSID("$MirOS: src/bin/mksh/rlimits.opt,v 1.4 2019/04/24 20:56:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/rlimits.opt,v 1.5 2020/07/24 20:11:18 tg Exp $");
 @RLIMITS_ITEMS
 #define FN(lname,lid,lfac,lopt) (const struct limits *)(&rlimits_ ## lid),
 @@

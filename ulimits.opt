@@ -1,0 +1,46 @@
+/*-
+ * Copyright (c) 2013, 2015, 2020
+ *	mirabilos <m@mirbsd.org>
+ *
+ * Provided that these terms and disclaimer and all copyright notices
+ * are retained or reproduced in an accompanying document, permission
+ * is granted to deal in this work without restriction, including un-
+ * limited rights to use, publicly perform, distribute, sell, modify,
+ * merge, give away, or sublicence.
+ *
+ * This work is provided "AS IS" and WITHOUT WARRANTY of any kind, to
+ * the utmost extent permitted by applicable law, neither express nor
+ * implied; without malicious intent or gross negligence. In no event
+ * may a licensor, author or contributor be held liable for indirect,
+ * direct, other damage, loss, or other issues arising in any way out
+ * of dealing in the work, even if advised of the possibility of such
+ * damage or existence of a defect, except proven that it results out
+ * of said person's immediate fault when using the work as intended.
+ *-
+ * Keep {r,u}limits.opt in sync with each other!
+ */
+
+@RLIMITS_DEFNS
+__RCSID("$MirOS: src/bin/mksh/ulimits.opt,v 1.1 2020/07/24 20:11:20 tg Exp $");
+@RLIMITS_ITEMS
+#define FN(lname,lg,ls,lw,lopt) (const struct limits *)(&rlimits_ ## lid),
+@@
+
+/* generic options for the ulimit builtin */
+
+<a|
+<H|
+<S|
+
+/* do not use options -H, -S or -a or change the order */
+
+>f|KSH_UL_GFIL
+FN("file(blocks)", KSH_UL_GFIL, KSH_UL_SFIL, KSH_UL_WFIL
+
+>d|KSH_UL_GBRK
+FN("data(KiB)", KSH_UL_GBRK, 0, false
+
+>n|KSH_UL_GDES
+FN("nofiles(descriptors)", KSH_UL_GDES, 0, false
+
+|RLIMITS_OPTCS

@@ -1,7 +1,6 @@
 /*	$OpenBSD: c_ksh.c,v 1.37 2015/09/10 22:48:58 nicm Exp $	*/
 /*	$OpenBSD: c_sh.c,v 1.46 2015/07/20 20:46:24 guenther Exp $	*/
 /*	$OpenBSD: c_test.c,v 1.18 2009/03/01 20:11:06 otto Exp $	*/
-/*	$OpenBSD: c_ulimit.c,v 1.19 2013/11/28 10:33:37 sobrado Exp $	*/
 
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -39,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.376 2020/07/24 14:54:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.377 2020/07/24 20:11:17 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -52,12 +51,7 @@ __RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.376 2020/07/24 14:54:05 tg Exp $");
 #define mksh_kill	kill
 #endif
 
-/* XXX conditions correct? */
-#if !defined(RLIM_INFINITY) && !defined(MKSH_NO_LIMITS)
-#define MKSH_NO_LIMITS	1
-#endif
-
-#ifdef MKSH_NO_LIMITS
+#ifdef MKSH_UNLIMITED
 #define c_ulimit	c_true
 #endif
 
@@ -3212,216 +3206,6 @@ ptest_error(Test_env *te, int ofs, const char *msg)
 	else
 		bi_errorf(Tf_s, msg);
 }
-
-#ifndef MKSH_NO_LIMITS
-#define SOFT	0x1
-#define HARD	0x2
-
-/* Magic to divine the 'm' and 'v' limits */
-
-#ifdef RLIMIT_AS
-#if !defined(RLIMIT_VMEM) || (RLIMIT_VMEM == RLIMIT_AS) || \
-    !defined(RLIMIT_RSS) || (RLIMIT_VMEM == RLIMIT_RSS)
-#define ULIMIT_V_IS_AS
-#elif defined(RLIMIT_VMEM)
-#if !defined(RLIMIT_RSS) || (RLIMIT_RSS == RLIMIT_AS)
-#define ULIMIT_V_IS_AS
-#else
-#define ULIMIT_V_IS_VMEM
-#endif
-#endif
-#endif
-
-#ifdef RLIMIT_RSS
-#ifdef ULIMIT_V_IS_VMEM
-#define ULIMIT_M_IS_RSS
-#elif defined(RLIMIT_VMEM) && (RLIMIT_VMEM == RLIMIT_RSS)
-#define ULIMIT_M_IS_VMEM
-#else
-#define ULIMIT_M_IS_RSS
-#endif
-#if defined(ULIMIT_M_IS_RSS) && defined(RLIMIT_AS) && \
-    !defined(__APPLE__) && (RLIMIT_RSS == RLIMIT_AS)
-/* On Mac OSX keep -m as -v alias for pkgsrc and other software expecting it */
-#undef ULIMIT_M_IS_RSS
-#endif
-#endif
-
-#if !defined(RLIMIT_AS) && !defined(ULIMIT_M_IS_VMEM) && defined(RLIMIT_VMEM)
-#define ULIMIT_V_IS_VMEM
-#endif
-
-#if !defined(ULIMIT_V_IS_VMEM) && defined(RLIMIT_VMEM) && \
-    (!defined(RLIMIT_RSS) || (defined(RLIMIT_AS) && (RLIMIT_RSS == RLIMIT_AS)))
-#define ULIMIT_M_IS_VMEM
-#endif
-
-#if defined(ULIMIT_M_IS_VMEM) && defined(RLIMIT_AS) && \
-    (RLIMIT_VMEM == RLIMIT_AS)
-#undef ULIMIT_M_IS_VMEM
-#endif
-
-#if defined(ULIMIT_M_IS_RSS) && defined(ULIMIT_M_IS_VMEM)
-# error nonsensical m ulimit
-#endif
-
-#if defined(ULIMIT_V_IS_VMEM) && defined(ULIMIT_V_IS_AS)
-# error nonsensical v ulimit
-#endif
-
-struct limits {
-	/* limit resource */
-	int resource;
-	/* multiply by to get rlim_{cur,max} values */
-	unsigned int factor;
-	/* getopts char */
-	char optchar;
-	/* limit name */
-	char name[1];
-};
-
-#define RLIMITS_DEFNS
-#define FN(lname,lid,lfac,lopt)				\
-	static const struct {				\
-		int resource;				\
-		unsigned int factor;			\
-		char optchar;				\
-		char name[sizeof(lname)];		\
-	} rlimits_ ## lid = {				\
-		lid, lfac, lopt, lname			\
-	};
-#include "rlimits.gen"
-
-static void print_ulimit(const struct limits *, int);
-static int set_ulimit(const struct limits *, const char *, int);
-
-static const struct limits * const rlimits[] = {
-#define RLIMITS_ITEMS
-#include "rlimits.gen"
-};
-
-static const char rlimits_opts[] =
-#define RLIMITS_OPTCS
-#include "rlimits.gen"
-    ;
-
-int
-c_ulimit(const char **wp)
-{
-	size_t i = 0;
-	int how = SOFT | HARD, optc, what = 'f';
-	bool all = false;
-
-	while ((optc = ksh_getopt(wp, &builtin_opt, rlimits_opts)) != -1)
-		switch (optc) {
-		case 'H':
-			how = HARD;
-			break;
-		case 'S':
-			how = SOFT;
-			break;
-		case 'a':
-			all = true;
-			break;
-		case '?':
-			bi_errorf("usage: ulimit [-%s] [value]", rlimits_opts);
-			return (1);
-		default:
-			what = optc;
-		}
-
-	while (i < NELEM(rlimits)) {
-		if (rlimits[i]->optchar == what)
-			goto found;
-		++i;
-	}
-	internal_warningf("ulimit: %c", what);
-	return (1);
- found:
-	if (wp[builtin_opt.optind]) {
-		if (all || wp[builtin_opt.optind + 1]) {
-			bi_errorf(Ttoo_many_args);
-			return (1);
-		}
-		return (set_ulimit(rlimits[i], wp[builtin_opt.optind], how));
-	}
-	if (!all)
-		print_ulimit(rlimits[i], how);
-	else for (i = 0; i < NELEM(rlimits); ++i) {
-		shprintf("-%c: %-20s  ", rlimits[i]->optchar, rlimits[i]->name);
-		print_ulimit(rlimits[i], how);
-	}
-	return (0);
-}
-
-static int
-set_ulimit(const struct limits *l, const char *v, int how)
-{
-	rlim_t val = (rlim_t)0;
-	struct rlimit limit;
-
-	if (strcmp(v, "unlimited") == 0)
-		val = (rlim_t)RLIM_INFINITY;
-	else {
-		mksh_uari_t rval;
-
-		if (!evaluate(v, (mksh_ari_t *)&rval, KSH_RETURN_ERROR, false))
-			return (1);
-		/*
-		 * Avoid problems caused by typos that evaluate misses due
-		 * to evaluating unset parameters to 0...
-		 * If this causes problems, will have to add parameter to
-		 * evaluate() to control if unset params are 0 or an error.
-		 */
-		if (!rval && !ctype(v[0], C_DIGIT)) {
-			bi_errorf("invalid %s limit: %s", l->name, v);
-			return (1);
-		}
-		val = (rlim_t)((rlim_t)rval * l->factor);
-	}
-
-	if (getrlimit(l->resource, &limit) < 0) {
-#ifndef MKSH_SMALL
-		bi_errorf("limit %s could not be read, contact the mksh developers: %s",
-		    l->name, cstrerror(errno));
-#endif
-		/* some can't be read */
-		limit.rlim_cur = RLIM_INFINITY;
-		limit.rlim_max = RLIM_INFINITY;
-	}
-	if (how & SOFT)
-		limit.rlim_cur = val;
-	if (how & HARD)
-		limit.rlim_max = val;
-	if (!setrlimit(l->resource, &limit))
-		return (0);
-	if (errno == EPERM)
-		bi_errorf("%s exceeds allowable %s limit", v, l->name);
-	else
-		bi_errorf("bad %s limit: %s", l->name, cstrerror(errno));
-	return (1);
-}
-
-static void
-print_ulimit(const struct limits *l, int how)
-{
-	rlim_t val = (rlim_t)0;
-	struct rlimit limit;
-
-	if (getrlimit(l->resource, &limit)) {
-		shf_puts("unknown\n", shl_stdout);
-		return;
-	}
-	if (how & SOFT)
-		val = limit.rlim_cur;
-	else if (how & HARD)
-		val = limit.rlim_max;
-	if (val == (rlim_t)RLIM_INFINITY)
-		shf_puts("unlimited\n", shl_stdout);
-	else
-		shprintf("%lu\n", (unsigned long)(val / l->factor));
-}
-#endif
 
 int
 c_rename(const char **wp)

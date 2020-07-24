@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.758 2020/06/25 14:36:17 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.759 2020/07/24 20:11:13 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -721,6 +721,13 @@ case $TARGET_OS in
 	add_cppflags -DMKSH_NO_SIGSETJMP
 	add_cppflags -DMKSH_TYPEDEF_SIG_ATOMIC_T=int
 	;;
+A/UX)
+	add_cppflags -D_POSIX_SOURCE
+	: "${LIBS=-lposix}"
+	# GCC defines AUX but cc nothing
+	add_cppflags -D__A_UX__
+	oswarn="; it is being ported"
+	;;
 AIX)
 	add_cppflags -D_ALL_SOURCE
 	: "${HAVE_SETLOCALE_CTYPE=0}"
@@ -862,10 +869,9 @@ Minix-vmd)
 	;;
 Minix3)
 	add_cppflags -DMKSH_UNEMPLOYED
-	add_cppflags -DMKSH_NO_LIMITS
 	add_cppflags -D_POSIX_SOURCE -D_POSIX_1_SOURCE=2 -D_MINIX
 	oldish_ed=no-stderr-ed		# /usr/bin/ed(!) is broken
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_SETLOCALE_CTYPE=0}${MKSH_UNLIMITED=1}" #XXX recheck ulimit
 	;;
 MirBSD)
 	;;
@@ -898,7 +904,7 @@ NEXTSTEP)
 Ninix3)
 	# similar to Minix3
 	add_cppflags -DMKSH_UNEMPLOYED
-	add_cppflags -DMKSH_NO_LIMITS
+	: "${MKSH_UNLIMITED=1}" #XXX recheck ulimit
 	# but no idea what else could be needed
 	oswarn="; it has unknown issues"
 	;;
@@ -918,8 +924,8 @@ OS/2)
 	SRCS="$SRCS os2.c"
 	add_cppflags -DMKSH_UNEMPLOYED
 	add_cppflags -DMKSH_NOPROSPECTOFWORK
-	add_cppflags -DMKSH_NO_LIMITS
 	add_cppflags -DMKSH_DOSPATH
+	: "${MKSH_UNLIMITED=1}"
 	if test $textmode = 0; then
 		x='dis'
 		y='standard OS/2 tools'
@@ -1363,7 +1369,7 @@ esac
 etd=" on $et"
 case $et in
 klibc)
-	add_cppflags -DMKSH_NO_LIMITS
+	: "${MKSH_UNLIMITED=1}"
 	;;
 unknown)
 	# nothing special detected, don’t worry
@@ -1898,23 +1904,6 @@ ac_test can_ucbint8 '!' can_int8type 1 "for UCB 8-bit integer type" <<-'EOF'
 	int main(int ac, char *av[]) { return ((u_int8_t)(size_t)av[ac]); }
 EOF
 
-ac_test rlim_t <<-'EOF'
-	#include <sys/types.h>
-	#if HAVE_BOTH_TIME_H
-	#include <sys/time.h>
-	#include <time.h>
-	#elif HAVE_SYS_TIME_H
-	#include <sys/time.h>
-	#elif HAVE_TIME_H
-	#include <time.h>
-	#endif
-	#if HAVE_SYS_RESOURCE_H
-	#include <sys/resource.h>
-	#endif
-	#include <unistd.h>
-	int main(void) { return (((int)(rlim_t)0) + isatty(0)); }
-EOF
-
 # only testn: added later below
 ac_testn sig_t <<-'EOF'
 	#include <sys/types.h>
@@ -2065,6 +2054,35 @@ ac_test lock_fcntl '!' flock 1 'whether we can lock files with fcntl' <<-'EOF'
 		lks.l_type = F_WRLCK | F_UNLCK;
 		return (fcntl(0, F_SETLKW, &lks));
 	}
+EOF
+
+ac_test rlimit '' 'getrlimit and setrlimit' <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	int main(void) {
+		struct rlimit l;
+		if (getrlimit(0, &l)) return 1;
+		l.rlim_max = l.rlim_cur;
+		l.rlim_cur = RLIM_INFINITY;
+		return (setrlimit(0, &l));
+	}
+EOF
+
+ac_test rlim_t rlimit 0 <<-'EOF'
+	#include <sys/types.h>
+	#if HAVE_BOTH_TIME_H
+	#include <sys/time.h>
+	#include <time.h>
+	#elif HAVE_SYS_TIME_H
+	#include <sys/time.h>
+	#elif HAVE_TIME_H
+	#include <time.h>
+	#endif
+	#if HAVE_SYS_RESOURCE_H
+	#include <sys/resource.h>
+	#endif
+	#include <unistd.h>
+	int main(void) { return (((int)(rlim_t)0) + isatty(0)); }
 EOF
 
 ac_test getrusage <<-'EOF'
@@ -2457,11 +2475,24 @@ mksh_cfg= cfg_NSIG
 	$e done.
 fi
 
+if test 1 = "$MKSH_UNLIMITED"; then
+	add_cppflags -DMKSH_UNLIMITED
+else
+	MKSH_UNLIMITED=0
+fi
+
+if test 1 = "$USE_PRINTF_BUILTIN"; then
+	add_cppflags -DMKSH_PRINTF_BUILTIN
+else
+	USE_PRINTF_BUILTIN=0
+fi
+
 addsrcs '!' HAVE_STRLCPY strlcpy.c
 addsrcs USE_PRINTF_BUILTIN printf.c
-test 1 = "$USE_PRINTF_BUILTIN" && add_cppflags -DMKSH_PRINTF_BUILTIN
+addsrcs '!' MKSH_UNLIMITED ulimit.c
+
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
-add_cppflags -DMKSH_BUILD_R=592
+add_cppflags -DMKSH_BUILD_R=593
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 
@@ -2628,7 +2659,7 @@ echo tcfn=$mkshexe >>Rebuild.sh
 echo "$CC $CFLAGS $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
 echo "test -f \$tcfn || exit 1; $SIZE \$tcfn" >>Rebuild.sh
 if test $cm = makefile; then
-	extras='emacsfn.h exprtok.h rlimits.opt sh.h sh_flags.opt var_spec.h'
+	extras='emacsfn.h exprtok.h rlimits.opt sh.h sh_flags.opt ulimits.opt var_spec.h'
 	test 0 = $HAVE_SYS_SIGNAME && extras="$extras signames.inc"
 	gens= genq=
 	for file in $optfiles; do
@@ -2775,6 +2806,7 @@ TARGET_OS			default: $(uname -s || uname)
 TARGET_OSREV			[QNX] default: $(uname -r)
 
 ==== feature selectors ====
+MKSH_UNLIMITED			1 to omit ulimit builtin completely
 USE_PRINTF_BUILTIN		1 to include (unsupported) printf(1) as builtin
 ===== general format =====
 HAVE_STRLEN			ac_test
@@ -2804,7 +2836,6 @@ MKSH_NOPROSPECTOFWORK		disable jobs, co-processes, etc. (do not use)
 MKSH_NOPWNAM			skip PAM calls, for -static on glibc or Solaris
 MKSH_NO_CMDLINE_EDITING		disable command line editing code entirely
 MKSH_NO_DEPRECATED_WARNING	omit warning when deprecated stuff is run
-MKSH_NO_LIMITS			omit ulimit code
 MKSH_NO_SIGSETJMP		define if sigsetjmp is broken or not available
 MKSH_NO_SIGSUSPEND		use sigprocmask+pause instead of sigsuspend
 MKSH_SMALL			omit some code, optimise hard for size (slower)
