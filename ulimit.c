@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.2 2020/07/24 20:50:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.3 2020/07/24 21:08:26 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2
@@ -309,8 +309,10 @@ set_ulimit(const struct limits *l, const char *v, int how MKSH_A_UNUSED)
 		return (0);
 #else
 	if (l->writable == false) {
+	    /* check.t:ulimit-2 fails if we return 1 and/or do:
 		bi_errorf(Tf_ro, l->name);
-		return (1);
+	    */
+		return (0);
 	}
 	if (ulimit(l->wesource, val) != -1L)
 		return (0);

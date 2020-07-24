@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.492 2020/06/22 17:11:02 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.493 2020/07/24 21:08:24 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: June 22 2020 $
+.Dd $Mdocdate: July 24 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -5333,10 +5333,16 @@ Set the number of cached threads to
 Impose a size limit of
 .Ar n
 blocks on the size of core dumps.
+Silently ignored if the system does not support this limit.
 .It Fl d Ar n
 Limit the size of the data area to
 .Ar n
 kibibytes.
+.br
+On some systems, read-only maximum
+.Xr brk 2
+size minus
+.Li etext .
 .It Fl e Ar n
 Set the maximum niceness to
 .Ar n .
@@ -5369,6 +5375,7 @@ kibibytes on the amount of physical memory used.
 Impose a limit of
 .Ar n
 file descriptors that can be open at once.
+On some systems attempts to set are silently ignored.
 .It Fl O Ar n
 Set the number of AIO operations to
 .Ar n .
@@ -7072,7 +7079,7 @@ for the in-memory portion of the history is slow, should use
 .Xr memmove 3 .
 .Pp
 This document attempts to describe
-.Nm mksh\ R59b
+.Nm mksh\ R59c
 and up,
 .\" with vendor patches from insert-your-name-here,
 compiled without any options impacting functionality, such as
