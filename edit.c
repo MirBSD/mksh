@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.351 2020/04/15 20:16:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.352 2020/07/24 14:54:04 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -153,7 +153,7 @@ x_getc(void)
 	char c;
 	ssize_t n;
 
-	while ((n = blocking_read(STDIN_FILENO, &c, 1)) < 0 && errno == EINTR)
+	while ((n = blocking_read(0, &c, 1)) < 0 && errno == EINTR)
 		if (trap) {
 			x_mode(false);
 			runtraps(0);

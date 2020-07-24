@@ -39,7 +39,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.375 2020/06/25 14:48:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.376 2020/07/24 14:54:05 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -3479,7 +3479,7 @@ c_realpath(const char **wp)
 int
 c_cat(const char **wp)
 {
-	int fd = STDIN_FILENO, rv;
+	int fd = 0, rv;
 	ssize_t n, w;
 	const char *fn = "<stdin>";
 	char *buf, *cp;
@@ -3512,7 +3512,7 @@ c_cat(const char **wp)
 		if (*wp) {
 			fn = *wp++;
 			if (ksh_isdash(fn))
-				fd = STDIN_FILENO;
+				fd = 0;
 			else if ((fd = binopen2(fn, O_RDONLY)) < 0) {
 				bi_errorf(Tf_sD_s, fn, cstrerror(errno));
 				rv = 1;
@@ -3541,7 +3541,7 @@ c_cat(const char **wp)
 			while (n) {
 				if (intrsig)
 					goto has_intrsig;
-				if ((w = write(STDOUT_FILENO, cp, n)) != -1) {
+				if ((w = write(1, cp, n)) != -1) {
 					n -= w;
 					cp += w;
 					continue;
@@ -3565,12 +3565,12 @@ c_cat(const char **wp)
 					    cstrerror(errno));
 					rv = 1;
 				}
-				if (fd != STDIN_FILENO)
+				if (fd != 0)
 					close(fd);
 				goto out;
 			}
 		}
-		if (fd != STDIN_FILENO)
+		if (fd != 0)
 			close(fd);
 	} while (*wp);
 
