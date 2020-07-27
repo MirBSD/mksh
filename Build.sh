@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.759 2020/07/24 20:11:13 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.760 2020/07/27 11:42:57 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -723,10 +723,10 @@ case $TARGET_OS in
 	;;
 A/UX)
 	add_cppflags -D_POSIX_SOURCE
+	: "${CC=gcc}"
 	: "${LIBS=-lposix}"
 	# GCC defines AUX but cc nothing
 	add_cppflags -D__A_UX__
-	oswarn="; it is being ported"
 	;;
 AIX)
 	add_cppflags -D_ALL_SOURCE
@@ -917,7 +917,6 @@ OS/2)
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=1
 	HAVE_TERMIOS_H=0
 	HAVE_MKNOD=0	# setmode() incompatible
-	oswarn="; it is being ported"
 	check_categories="$check_categories nosymlink"
 	: "${CC=gcc}"
 	: "${SIZE=: size}"
@@ -2575,7 +2574,7 @@ cat >test.sh <<-EOF
 		args[\${#args[*]}]=\$TMPDIR
 	fi
 	print Testing mksh for conformance:
-	grep -F -e Mir''OS: -e MIRBSD "\$sflag"
+	grep -F -e 'KSH R' -e Mir''OS: "\$sflag" | sed '/KSH/s/^./&           /'
 	print "This shell is actually:\\n\\t\$KSH_VERSION"
 	print 'test.sh built for mksh $dstversion'
 	cstr='\$os = defined \$^O ? \$^O : "unknown";'
