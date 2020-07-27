@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.848 2020/07/24 20:11:15 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.849 2020/07/27 11:41:19 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -11490,13 +11490,11 @@ name: fd-cloexec-1
 description:
 	Verify that file descriptors > 2 are private for Korn shells
 	AT&T ksh93 does this still, which means we must keep it as well
-	XXX fails on some old Perl installations
-need-pass: no
 stdin:
 	cat >cld <<-EOF
 		#!$__perlname
-		open(my \$fh, ">&", 9) or die "E: open \$!";
-		syswrite(\$fh, "Fowl\\n", 5) or die "E: write \$!";
+		open(FH, ">&9") or die "E: open \$!";
+		syswrite(FH, "Fowl\\n", 5) or die "E: write \$!";
 	EOF
 	chmod +x cld
 	exec 9>&1
@@ -11509,13 +11507,11 @@ name: fd-cloexec-2
 description:
 	Verify that file descriptors > 2 are not private for POSIX shells
 	See Debian Bug #154540, Closes: #499139
-	XXX fails on some old Perl installations
-need-pass: no
 stdin:
 	cat >cld <<-EOF
 		#!$__perlname
-		open(my \$fh, ">&", 9) or die "E: open \$!";
-		syswrite(\$fh, "Fowl\\n", 5) or die "E: write \$!";
+		open(FH, ">&9") or die "E: open \$!";
+		syswrite(FH, "Fowl\\n", 5) or die "E: write \$!";
 	EOF
 	chmod +x cld
 	test -n "$POSH_VERSION" || set -o posix
