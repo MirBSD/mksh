@@ -78,7 +78,9 @@
 #if HAVE_PATHS_H
 #include <paths.h>
 #endif
+#ifndef MKSH_NOPWNAM
 #include <pwd.h>
+#endif
 #include <setjmp.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -191,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.900 2020/07/24 20:11:19 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.901 2020/08/13 20:20:54 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2020/07/24"
 
