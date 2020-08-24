@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.377 2020/07/24 20:11:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.378 2020/08/24 20:56:02 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -700,6 +700,11 @@ do_whence(const char **wp, int fcflags, bool vflag, bool iscommand)
 						    (tp->flag & EXPORT) ?
 						    "exported " : "",
 						    Talias);
+				}
+				if (!mksh_abspath(tp->val.s)) {
+					shf_puts(current_wd[0] ?
+					    current_wd : ".", shl_stdout);
+					shf_putc('/', shl_stdout);
 				}
 				shf_puts(tp->val.s, shl_stdout);
 			} else {

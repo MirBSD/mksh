@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.849 2020/07/27 11:41:19 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.850 2020/08/24 20:55:59 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2020/07/24
+	KSH R59 2020/08/24
 description:
 	Check base version of full shell
 stdin:
@@ -13637,6 +13637,11 @@ description:
 	words, and command -p[vV] should find aliases, reserved words, and
 	builtins over external commands.
 stdin:
+	# extra checks prep
+	mkdir mrr
+	:>mrr/miau
+	chmod +x mrr/miau
+	# priorities
 	PATH=/bin:/usr/bin
 	alias foo="bar baz"
 	alias '[ab]=:'
@@ -13650,6 +13655,14 @@ stdin:
 	# extra checks
 	alias '[ab]'
 	whence '[ab]'
+	PATH=mrr
+	case $(command -v miau) {
+	(mrr/miau) echo fail ;;
+	([!/]*) echo fail2 ;;
+	($PWD/mrr/miau) echo ok ;;
+	(/*) echo pwd bad? ;;
+	(*) echo not reached ;;
+	}
 expected-stdout:
 	if
 	if
@@ -13677,6 +13690,7 @@ expected-stdout:
 	'[ab]' is an alias for :
 	'[ab]'=:
 	:
+	ok
 ---
 name: whence-preserve-tradition
 description:
