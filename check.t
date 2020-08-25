@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.850 2020/08/24 20:55:59 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.851 2020/08/25 13:55:09 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -13658,9 +13658,9 @@ stdin:
 	PATH=mrr
 	case $(command -v miau) {
 	(mrr/miau) echo fail ;;
-	([!/]*) echo fail2 ;;
+	(!(/*|[A-Z]:/*)) echo fail2 ;;
 	($PWD/mrr/miau) echo ok ;;
-	(/*) echo pwd bad? ;;
+	(/*|[A-Z]:/*) echo pwd bad? ;;
 	(*) echo not reached ;;
 	}
 expected-stdout:
