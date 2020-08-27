@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.223 2020/04/07 23:14:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.224 2020/08/27 19:52:43 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1213,7 +1213,7 @@ findcom(const char *name, int flags)
 	}
 
  Search:
-	if ((!tp || (tp->type == CTALIAS && !(tp->flag&ISSET))) &&
+	if ((!tp || (tp->type == CTALIAS && !(tp->flag & ISSET))) &&
 	    (flags & FC_PATH)) {
 		if (!tp) {
 			if (insert && !(flags & FC_DEFPATH)) {
@@ -1351,10 +1351,8 @@ search_path(const char *name, const char *lpath,
 			XcheckN(xs, xp, p - sp);
 			memcpy(xp, sp, p - sp);
 			xp += p - sp;
-#ifdef __OS2__
-			if (xp > Xstring(xs, xp) && mksh_cdirsep(xp[-1]))
+			if (mksh_cdirsep(xp[-1]))
 				xp--;
-#endif
 			*xp++ = '/';
 		}
 		sp = p;

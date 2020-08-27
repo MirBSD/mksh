@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.8 2020/06/22 17:11:03 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.9 2020/08/27 19:52:46 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -438,6 +438,15 @@ Title: I get an error in this regex comparison
  <tt>[[ foo =~ (foo|bar).*baz ]]</tt><br />
  … becomes…<br />
  <tt>[[ foo = *@(foo|bar)*baz* ]]</tt></p>
+----
+ToC: trim-vector
+Title: ${@?}: bad substitution
+
+<p>In mksh, you cannot assign to or trim a vector (yet). For most
+ cases it is possible to write the affected code in a way avoiding
+ this extension; for example, trimming <tt>${@#foo}</tt> could be
+ applied to <tt>$1</tt> only and <tt>${@?}</tt> can be replaced
+ with a test whether <tt>$# -eq 0</tt>.</p>
 ----
 ToC: extensions-to-avoid
 Title: Are there any extensions to avoid?

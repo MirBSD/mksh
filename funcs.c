@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.378 2020/08/24 20:56:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.379 2020/08/27 19:52:44 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -702,11 +702,22 @@ do_whence(const char **wp, int fcflags, bool vflag, bool iscommand)
 						    Talias);
 				}
 				if (!mksh_abspath(tp->val.s)) {
-					shf_puts(current_wd[0] ?
-					    current_wd : ".", shl_stdout);
-					shf_putc('/', shl_stdout);
-				}
-				shf_puts(tp->val.s, shl_stdout);
+					const char *xcwd = current_wd[0] ?
+					    current_wd : ".";
+					size_t xlen = strlen(xcwd);
+					size_t clen = strlen(tp->val.s) + 1;
+					char *xp = alloc(xlen + 1 + clen, ATEMP);
+
+					memcpy(xp, xcwd, xlen);
+					if (mksh_cdirsep(xp[xlen - 1]))
+						--xlen;
+					xp[xlen++] = '/';
+					memcpy(xp + xlen, tp->val.s, clen);
+					simplify_path(xp);
+					shf_puts(xp, shl_stdout);
+					afree(xp, ATEMP);
+				} else
+					shf_puts(tp->val.s, shl_stdout);
 			} else {
 				if (vflag)
 					shprintf(Tnot_found_s, id);

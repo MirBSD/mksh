@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.301 2020/07/24 20:50:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.302 2020/08/27 19:52:45 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1983,16 +1983,18 @@ make_path(const char *cwd, const char *file,
 			XcheckN(*xsp, xp, len);
 			memcpy(xp, cwd, len);
 			xp += len;
-			if (!mksh_cdirsep(cwd[len - 1]))
-				Xput(*xsp, xp, '/');
+			if (mksh_cdirsep(xp[-1]))
+				xp--;
+			*xp++ = '/';
 		}
 		*phys_pathp = Xlength(*xsp, xp);
 		if (use_cdpath && plen) {
 			XcheckN(*xsp, xp, plen);
 			memcpy(xp, plist, plen);
 			xp += plen;
-			if (!mksh_cdirsep(plist[plen - 1]))
-				Xput(*xsp, xp, '/');
+			if (mksh_cdirsep(xp[-1]))
+				xp--;
+			*xp++ = '/';
 			rval = 1;
 		}
 	}
@@ -2056,9 +2058,14 @@ simplify_path(char *p)
 	case '\\':
 #endif
 		/* exactly two leading slashes? (SUSv4 3.266) */
-		if (p[1] == p[0] && !mksh_cdirsep(p[2]))
+		if (p[1] == p[0] && !mksh_cdirsep(p[2])) {
 			/* keep them, e.g. for UNC pathnames */
+#ifdef MKSH_DOSPATH
+			*p++ = '/';
+#else
 			++p;
+#endif
+		}
 		needslash = true;
 		break;
 	default:
@@ -2189,26 +2196,26 @@ c_cd(const char **wp)
 	oldpwd_s = global(TOLDPWD);
 
 	if (!wp[0]) {
-		/* No arguments - go home */
+		/* no arguments; go home */
 		if ((dir = str_val(global("HOME"))) == null) {
 			bi_errorf("no home directory (HOME not set)");
 			return (2);
 		}
 	} else if (!wp[1]) {
-		/* One argument: - or dir */
-		strdupx(allocd, wp[0], ATEMP);
-		if (ksh_isdash((dir = allocd))) {
-			afree(allocd, ATEMP);
-			allocd = NULL;
+		/* one argument: - or dir */
+		if (ksh_isdash(wp[0])) {
 			dir = str_val(oldpwd_s);
 			if (dir == null) {
 				bi_errorf(Tno_OLDPWD);
 				return (2);
 			}
 			printpath = true;
+		} else {
+			strdupx(allocd, wp[0], ATEMP);
+			dir = allocd;
 		}
 	} else if (!wp[2]) {
-		/* Two arguments - substitute arg1 in PWD for arg2 */
+		/* two arguments; substitute arg1 in PWD for arg2 */
 		size_t ilen, olen, nlen, elen;
 		char *cp;
 
@@ -2217,10 +2224,9 @@ c_cd(const char **wp)
 			return (2);
 		}
 		/*
-		 * substitute arg1 for arg2 in current path.
-		 * if the first substitution fails because the cd fails
-		 * we could try to find another substitution. For now
-		 * we don't
+		 * Substitute arg1 for arg2 in current path. If the first
+		 * substitution fails because the cd fails we could try to
+		 * find another substitution. For now, we don't.
 		 */
 		if ((cp = strstr(current_wd, wp[0])) == NULL) {
 			bi_errorf(Tbadsubst);
