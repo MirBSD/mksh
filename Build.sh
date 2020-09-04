@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.762 2020/08/14 03:32:28 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.763 2020/09/04 21:01:37 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -2634,7 +2634,6 @@ for file in $SRCS; do
 	op=`echo x"$file" | sed 's/^x\(.*\)\.c$/\1./'`
 	test -f $file || file=$srcdir/$file
 	files="$files$sp$file"
-	sp=' '
 	echo "$CC $CFLAGS $CPPFLAGS $emitbc $file || exit 1" >>Rebuild.sh
 	if test $cm = dragonegg; then
 		echo "mv ${op}s ${op}ll" >>Rebuild.sh
@@ -2643,6 +2642,7 @@ for file in $SRCS; do
 	else
 		objs="$objs$sp${op}o"
 	fi
+	sp=' '
 done
 case $cm in
 dragonegg|llvm)
