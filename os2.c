@@ -1,7 +1,7 @@
 /*-
  * Copyright (c) 2015, 2017, 2020
  *	KO Myung-Hun <komh@chollian.net>
- * Copyright (c) 2017
+ * Copyright (c) 2017, 2020
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -32,11 +32,23 @@
 #include <unistd.h>
 #include <process.h>
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.10 2020/04/07 11:13:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.11 2020/10/01 21:13:45 tg Exp $");
 
-static char *remove_trailing_dots(char *);
-static int access_stat_ex(int (*)(), const char *, void *);
-static int test_exec_exist(const char *, char *);
+struct a_s_arg {
+	union {
+		int (*i)(const char *, int);
+		int (*p)(const char *, void *);
+	} fn;
+	union {
+		int i;
+		void *p;
+	} arg;
+	bool isint;
+};
+
+static void remove_trailing_dots(char *, size_t);
+static int access_stat_ex(const char *, struct a_s_arg *);
+static int test_exec_exist(const char *, void *);
 static void response(int *, const char ***);
 static char *make_response_file(char * const *);
 static void add_temp(const char *);
@@ -223,22 +235,17 @@ setextlibpath(const char *name, const char *val)
 }
 
 /* remove trailing dots */
-static char *
-remove_trailing_dots(char *name)
+static void
+remove_trailing_dots(char *name, size_t namelen)
 {
-	char *p = strnul(name);
+	char *p = name + namelen;
 
 	while (--p > name && *p == '.')
 		/* nothing */;
 
 	if (*p != '.' && *p != '/' && *p != '\\' && *p != ':')
 		p[1] = '\0';
-
-	return (name);
 }
-
-#define REMOVE_TRAILING_DOTS(name)	\
-	remove_trailing_dots(memcpy(alloca(strlen(name) + 1), name, strlen(name) + 1))
 
 /* alias of stat() */
 extern int _std_stat(const char *, struct stat *);
@@ -247,7 +254,12 @@ extern int _std_stat(const char *, struct stat *);
 int
 stat(const char *name, struct stat *buffer)
 {
-	return (_std_stat(REMOVE_TRAILING_DOTS(name), buffer));
+	size_t namelen = strlen(name) + 1;
+	char nodots[namelen];
+
+	memcpy(nodots, name, namelen);
+	remove_trailing_dots(nodots, namelen);
+	return (_std_stat(nodots, buffer));
 }
 
 /* alias of access() */
@@ -257,6 +269,9 @@ extern int _std_access(const char *, int);
 int
 access(const char *name, int mode)
 {
+	size_t namelen = strlen(name) + 1;
+	char nodots[namelen];
+
 	/*
 	 * On OS/2 kLIBC, X_OK is set only for executable files.
 	 * This prevents scripts from being executed.
@@ -264,7 +279,9 @@ access(const char *name, int mode)
 	if (mode & X_OK)
 		mode = (mode & ~X_OK) | R_OK;
 
-	return (_std_access(REMOVE_TRAILING_DOTS(name), mode));
+	memcpy(nodots, name, namelen);
+	remove_trailing_dots(nodots, namelen);
+	return (_std_access(nodots, mode));
 }
 
 #define MAX_X_SUFFIX_LEN	4
@@ -274,7 +291,7 @@ static const char *x_suffix_list[] =
 
 /* call fn() by appending executable extensions */
 static int
-access_stat_ex(int (*fn)(), const char *name, void *arg)
+access_stat_ex(const char *name, struct a_s_arg *action)
 {
 	char *x_name;
 	const char **x_suffix;
@@ -288,7 +305,8 @@ access_stat_ex(int (*fn)(), const char *name, void *arg)
 		strlcpy(x_name, name, x_namelen);
 		strlcat(x_name, *x_suffix, x_namelen);
 
-		rc = fn(x_name, arg);
+		rc = action->isint ? action->fn.i(x_name, action->arg.i) :
+		    action->fn.p(x_name, action->arg.p);
 	}
 
 	afree(x_name, ATEMP);
@@ -300,8 +318,12 @@ access_stat_ex(int (*fn)(), const char *name, void *arg)
 int
 access_ex(int (*fn)(const char *, int), const char *name, int mode)
 {
-	/*XXX this smells fishy --mirabilos */
-	return (access_stat_ex(fn, name, (void *)mode));
+	struct a_s_arg arg;
+
+	arg.fn.i = fn;
+	arg.arg.i = mode;
+	arg.isint = true;
+	return (access_stat_ex(name, &arg));
 }
 
 /* stat()/lstat() version */
@@ -309,34 +331,39 @@ int
 stat_ex(int (*fn)(const char *, struct stat *),
     const char *name, struct stat *buffer)
 {
-	return (access_stat_ex(fn, name, buffer));
+	struct a_s_arg arg;
+
+	arg.fn.p = fn;
+	arg.arg.p = buffer;
+	arg.isint = false;
+	return (access_stat_ex(name, &arg));
 }
 
 static int
-test_exec_exist(const char *name, char *real_name)
+test_exec_exist(const char *name, void *arg)
 {
 	struct stat sb;
+	char *real_name;
 
 	if (stat(name, &sb) < 0 || !S_ISREG(sb.st_mode))
 		return (-1);
 
-	/* safe due to calculations in real_exec_name() */
-	memcpy(real_name, name, strlen(name) + 1);
-
+	/*XXX memory leak */
+	strdupx(real_name, name, ATEMP);
+	*((char **)arg) = real_name;
 	return (0);
 }
 
 const char *
 real_exec_name(const char *name)
 {
-	char x_name[strlen(name) + MAX_X_SUFFIX_LEN + 1];
-	const char *real_name = name;
+	struct a_s_arg arg;
+	char *real_name;
 
-	if (access_stat_ex(test_exec_exist, real_name, x_name) != -1)
-		/*XXX memory leak */
-		strdupx(real_name, x_name, ATEMP);
-
-	return (real_name);
+	arg.fn.p = &test_exec_exist;
+	arg.arg.p = (void *)(&real_name);
+	arg.isint = false;
+	return (access_stat_ex(name, &arg) ? name : real_name);
 }
 
 /* make a response file to pass a very long command line */
