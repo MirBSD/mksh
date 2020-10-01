@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.352 2020/07/24 14:54:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.353 2020/10/01 20:51:31 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -970,7 +970,7 @@ static char *wbuf[2];		/* window buffers */
 static int wbuf_len;		/* length of window buffers (x_cols - 3) */
 static int win;			/* window buffer in use */
 static char morec;		/* more character at right of window */
-static int lastref;		/* argument to last refresh() */
+static bool lastref;		/* argument to last refresh() */
 static int holdlen;		/* length of holdbuf */
 #endif
 static int pwidth;		/* width of prompt */
@@ -989,11 +989,11 @@ static void x_zots(char *);
 static void x_zotc3(char **);
 static void x_vi_zotc(int);
 static void x_load_hist(char **);
-static int x_search(char *, int, int);
+static int x_search(const char *, int, int);
 #ifndef MKSH_SMALL
 static int x_search_dir(int);
 #endif
-static int x_match(char *, char *);
+static int x_match(const char *, const char *);
 static void x_redraw(int);
 static void x_push(size_t);
 static void x_bind_showone(int, int);
@@ -1946,7 +1946,7 @@ x_search_hist(int c)
 				offset = x_match(xbuf, pat);
 				if (offset >= 0) {
 					x_goto(xbuf + offset + (p - pat) -
-					    (*pat == '^'));
+					    (*pat == '^' ? 1 : 0));
 					continue;
 				}
 			}
@@ -1968,18 +1968,21 @@ x_search_hist(int c)
 
 /* search backward from current line */
 static int
-x_search(char *pat, int sameline, int offset)
+x_search(const char *pat, int sameline, int offset)
 {
 	char **hp;
 	int i;
+	size_t patlen = strlen(pat);
 
+	if (*pat == '^')
+		--patlen;
 	for (hp = x_histp - (sameline ? 0 : 1); hp >= history; --hp) {
 		i = x_match(*hp, pat);
 		if (i >= 0) {
 			if (offset < 0)
 				x_e_putc2('\n');
 			x_load_hist(hp);
-			x_goto(xbuf + i + strlen(pat) - (*pat == '^'));
+			x_goto(xbuf + i + patlen);
 			return (i);
 		}
 	}
@@ -2024,7 +2027,7 @@ x_search_dir(int search_dir /* should've been bool */)
 
 /* return position of first match of pattern in string, else -1 */
 static int
-x_match(char *str, char *pat)
+x_match(const char *str, const char *pat)
 {
 	if (*pat == '^') {
 		return ((strncmp(str, pat + 1, strlen(pat + 1)) == 0) ? 0 : -1);
@@ -3433,13 +3436,13 @@ static int Forwword(int);
 static int Backword(int);
 static int Endword(int);
 static int grabhist(int, int);
-static int grabsearch(int, int, int, const char *);
+static int grabsearch(const char *, int, int, bool);
 static void redraw_line(bool);
-static void refresh(int);
+static void refresh(bool);
 static int outofwin(void);
 static void rewindow(void);
 static int newcol(unsigned char, int);
-static void display(char *, char *, int);
+static void display(char *, char *, bool);
 static void ed_mov_opt(int, char *);
 static int expand_word(int);
 static int complete_word(int, int);
@@ -3610,7 +3613,7 @@ x_vi(char *buf)
 	winwidth = x_cols - pwidth - 3;
 	win = 0;
 	morec = ' ';
-	lastref = 1;
+	lastref = true;
 	holdlen = 0;
 
 	editmode = 2;
@@ -3712,7 +3715,7 @@ vi_hook(int ch)
 			case 0:
 				if (state == VLIT) {
 					vs->cursor--;
-					refresh(0);
+					refresh(false);
 				} else
 					refresh(insert != 0);
 				break;
@@ -3738,7 +3741,7 @@ vi_hook(int ch)
 					if (putbuf(ord(ch) == ORD('/') ?
 					    "/" : "?", 1, false) != 0)
 						return (-1);
-					refresh(0);
+					refresh(false);
 				}
 				if (state == VVERSION) {
 					save_cbuf();
@@ -3746,7 +3749,7 @@ vi_hook(int ch)
 					vs->linelen = 0;
 					putbuf(KSH_VERSION,
 					    strlen(KSH_VERSION), false);
-					refresh(0);
+					refresh(false);
 				}
 			}
 		}
@@ -3758,14 +3761,14 @@ vi_hook(int ch)
 			vi_error();
 		} else
 			vs->cbuf[vs->cursor++] = ch;
-		refresh(1);
+		refresh(true);
 		state = VNORMAL;
 		break;
 
 	case VVERSION:
 		restore_cbuf();
 		state = VNORMAL;
-		refresh(0);
+		refresh(false);
 		break;
 
 	case VARG1:
@@ -3829,7 +3832,7 @@ vi_hook(int ch)
 				if (!srchpat[0]) {
 					vi_error();
 					state = VNORMAL;
-					refresh(0);
+					refresh(false);
 					return (0);
 				}
 			} else {
@@ -3842,17 +3845,17 @@ vi_hook(int ch)
 				srchlen--;
 				vs->linelen -= char_len(locpat[srchlen]);
 				vs->cursor = vs->linelen;
-				refresh(0);
+				refresh(false);
 				return (0);
 			}
 			restore_cbuf();
 			state = VNORMAL;
-			refresh(0);
+			refresh(false);
 		} else if (isched(ch, edchars.kill)) {
 			srchlen = 0;
 			vs->linelen = 1;
 			vs->cursor = 1;
-			refresh(0);
+			refresh(false);
 			return (0);
 		} else if (isched(ch, edchars.werase)) {
 			unsigned int i, n;
@@ -3871,7 +3874,7 @@ vi_hook(int ch)
 				vs->linelen -= char_len(locpat[i]);
 			srchlen = (int)n;
 			vs->cursor = vs->linelen;
-			refresh(0);
+			refresh(false);
 			return (0);
 		} else {
 			if (srchlen == SRCHLEN - 1)
@@ -3890,7 +3893,7 @@ vi_hook(int ch)
 					vs->cbuf[vs->linelen++] = ch;
 				}
 				vs->cursor = vs->linelen;
-				refresh(0);
+				refresh(false);
 			}
 			return (0);
 		}
@@ -3931,7 +3934,7 @@ vi_hook(int ch)
 		switch (vi_cmd(argc1, curcmd)) {
 		case -1:
 			vi_error();
-			refresh(0);
+			refresh(false);
 			break;
 		case 0:
 			if (insert != 0)
@@ -3939,7 +3942,7 @@ vi_hook(int ch)
 			refresh(insert != 0);
 			break;
 		case 1:
-			refresh(0);
+			refresh(false);
 			return (1);
 		case 2:
 			/* back from a 'v' command - don't redraw the screen */
@@ -3954,7 +3957,7 @@ vi_hook(int ch)
 		switch (vi_cmd(lastac, lastcmd)) {
 		case -1:
 			vi_error();
-			refresh(0);
+			refresh(false);
 			break;
 		case 0:
 			if (insert != 0) {
@@ -3967,10 +3970,10 @@ vi_hook(int ch)
 						vi_error();
 				}
 			}
-			refresh(0);
+			refresh(false);
 			break;
 		case 1:
-			refresh(0);
+			refresh(false);
 			return (1);
 		case 2:
 			/* back from a 'v' command - can't happen */
@@ -4135,8 +4138,9 @@ static int
 vi_cmd(int argcnt, const char *cmd)
 {
 	int ncursor;
-	int cur, c1, c2, c3 = 0;
+	int cur, c1, c2;
 	int any;
+	bool b;
 	struct edstate *t;
 
 	if (argcnt == 0 && !is_zerocount(*cmd))
@@ -4474,25 +4478,23 @@ vi_cmd(int argcnt, const char *cmd)
 
 			/* FALLTHROUGH */
 		case ORD('/'):
-			c3 = 1;
+			c1 = 1;
 			srchlen = 0;
 			lastsearch = *cmd;
-			/* FALLTHROUGH */
+			if (0)
+				/* FALLTHROUGH */
 		case ORD('n'):
 		case ORD('N'):
+			  c1 = 0;
 			if (lastsearch == ORD(' '))
 				return (-1);
-			if (lastsearch == ORD('?'))
-				c1 = 1;
-			else
-				c1 = 0;
+			b = (lastsearch == ORD('?'));
 			if (*cmd == 'N')
-				c1 = !c1;
-			if ((c2 = grabsearch(modified, hnum,
-			    c1, srchpat)) < 0) {
-				if (c3) {
+				b = !b;
+			if ((c2 = grabsearch(srchpat, modified, hnum, b)) < 0) {
+				if (c1) {
 					restore_cbuf();
-					refresh(0);
+					refresh(false);
 				}
 				return (-1);
 			} else {
@@ -5117,20 +5119,20 @@ grabhist(int save, int n)
 }
 
 static int
-grabsearch(int save, int start, int fwd, const char *pat)
+grabsearch(const char *pat, int save, int start, bool fwd)
 {
 	char *hptr;
 	int hist;
 	bool anchored;
 
-	if ((start == 0 && fwd == 0) || (start >= hlast - 1 && fwd == 1))
+	if ((start == 0 && !fwd) || (start >= hlast - 1 && fwd))
 		return (-1);
 	if (fwd)
 		start++;
 	else
 		start--;
 	anchored = *pat == '^' ? (++pat, true) : false;
-	if ((hist = findhist(start, fwd, pat, anchored)) < 0) {
+	if ((hist = findhist(start, pat, fwd, anchored)) < 0) {
 		/* (start != 0 && fwd && match(holdbufp, pat) >= 0) */
 		if (start != 0 && fwd && strcmp(holdbufp, pat) >= 0) {
 			restore_cbuf();
@@ -5163,9 +5165,10 @@ redraw_line(bool newl)
 }
 
 static void
-refresh(int leftside)
+refresh(bool leftside)
 {
-	if (leftside < 0)
+	/* this was "leftside < 0" before, never reached? */
+	if (leftside)
 		leftside = lastref;
 	else
 		lastref = leftside;
@@ -5224,7 +5227,7 @@ newcol(unsigned char ch, int col)
 }
 
 static void
-display(char *wb1, char *wb2, int leftside)
+display(char *wb1, char *wb2, bool leftside)
 {
 	unsigned char ch;
 	char *twb1, *twb2, mc;
@@ -5379,7 +5382,7 @@ expand_word(int cmd)
 	hnum = hlast;
 	insert = INSERT;
 	lastac = 0;
-	refresh(0);
+	refresh(false);
 	return (rval);
 }
 
@@ -5494,7 +5497,7 @@ complete_word(int cmd, int count)
 	insert = INSERT;
 	/* prevent this from being redone... */
 	lastac = 0;
-	refresh(0);
+	refresh(false);
 
 	return (rval);
 }
