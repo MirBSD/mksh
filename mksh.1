@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.493 2020/07/24 21:08:24 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.494 2020/10/01 22:39:57 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 24 2020 $
+.Dd $Mdocdate: October 1 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -6071,11 +6071,18 @@ words.
 .Op Ar n
 .No \*(haXe
 .Xc
-Edit line
+Internally run the command
+.Ic fc \-e \&"${VISUAL:\-${EDITOR:\-vi}}" Fl \- Ar n
+.br
+on a temporary script file to interactively edit line
 .Ar n
-or the current line, if not specified, interactively.
-The actual command executed is
-.Ic fc \-e ${VISUAL:\-${EDITOR:\-vi}} Ar n .
+(if
+.Ar n
+is not specified, the current line); then, unless the editor invoked
+exits nonzero but even if the script was not changed, execute the
+resulting script as if typed on the command line; both the edited
+.Pq resulting
+and original lines are added onto history.
 .It end\-of\-history: \*(ha[\*(Gt
 Moves to the end of the history.
 .It end\-of\-line: \*(haE, ANSI-End, PC-End
@@ -6433,15 +6440,18 @@ is not specified, it goes to the most recent remembered line.
 .It Xo
 .Oo Ar n Oc Ns v
 .Xc
-Edit line
+Internally run the command
+.Ic fc \-e \&"${VISUAL:\-${EDITOR:\-vi}}" Fl \- Ar n
+.br
+on a temporary script file to interactively edit line
 .Ar n
-using the
-.Xr vi 1
-editor; if
+(if
 .Ar n
-is not specified, the current line is edited.
-The actual command executed is
-.Ic fc \-e ${VISUAL:\-${EDITOR:\-vi}} Ar n .
+is not specified, the current line); then, unless the editor invoked
+exits nonzero but even if the script was not changed, execute the
+resulting script as if typed on the command line; both the edited
+.Pq resulting
+and original lines are added onto history.
 .It * and \*(haX
 Command or file name expansion is applied to the current big-word (with an
 appended

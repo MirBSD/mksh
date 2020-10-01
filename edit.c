@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.355 2020/10/01 22:38:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.356 2020/10/01 22:39:56 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -41,7 +41,7 @@ __RCSID("$MirOS: src/bin/mksh/edit.c,v 1.355 2020/10/01 22:38:09 tg Exp $");
 #define MKSH_CLS_STRING		KSH_ESC_STRING "[;H" KSH_ESC_STRING "[J"
 #endif
 
-static const char ctrl_x_e[] = "fc -e ${VISUAL:-${EDITOR:-vi}} --";
+static const char ctrl_x_e[] = "fc -e \"${VISUAL:-${EDITOR:-vi}}\" --";
 
 /* tty driver characters we are interested in */
 #define EDCHAR_DISABLED	0xFFFFU
