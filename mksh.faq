@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.9 2020/08/27 19:52:46 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.10 2020/10/01 22:59:12 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -296,6 +296,29 @@ for ksh93); <tt>$NETBSD_SHELL</tt> (NetBSD ash); <tt>POSH_VERSION</tt> (posh, a
 pdksh derivative); <tt>$SH_VERSION</tt> (“PD KSH” as sh), <tt>$YASH_VERSION</tt>
 (yash), <tt>$ZSH_VERSION</tt> (or if <tt>$VERSION</tt> begins with “zsh”); a <a
 href="@@RELPATH@@ksh-chan.htm#which-shell">list of more approaches</a> exists.
+----
+ToC: ctrl-x-e
+Title: Multiline command editing
+
+<p>mksh is very independent of the terminal and external libraries and
+ databases, such as termcap, and therefore is conservative in which ANSI
+ control codes are sent to the terminal.</p>
+<p>For this reason, mksh’s input line editing uses a “windowed one-line”
+ concept: the line the cursor is on is a “window” into the whole input,
+ horizontally scrolled. Some other shells (that are much larger and have
+ more dependencies on external tooling) use a “multi-line” editing mode,
+ and users occasionally wish for this. It is on the long-term TODO, but
+ (due to the aforementioned implications) this is not trivial.</p>
+<p>One way to achieve multi-line editing is to <em>dis</em>able input
+ line editing: <tt>set +o emacs +o vi</tt><br />This will, however, lose
+ you all editing features: tab completion, cursor keys, history, etc.</p>
+<p>Another way, if you don’t need it all the time, is to use a function
+ that spawns your editor on the input line: press <tt>^Xe</tt> in the
+ default emacs mode or <tt>Esc + v</tt> in vi mode. Once you exit the
+ editor, whatever was written there is run; this includes the original
+ command line if you quit without saving, so request the editor to exit
+ nōn-zero (e.g. using jupp’s “abendjoe” command) to prevent execution.
+ This is <em>really</em> useful to write ad-hōc scripts as well.</p>
 ----
 ToC: ctrl-l-cls
 Title: ^L (Ctrl-L) does not clear the screen
