@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.353 2020/10/01 20:51:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.354 2020/10/01 21:20:35 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -40,6 +40,8 @@ __RCSID("$MirOS: src/bin/mksh/edit.c,v 1.353 2020/10/01 20:51:31 tg Exp $");
 #ifndef MKSH_CLS_STRING
 #define MKSH_CLS_STRING		KSH_ESC_STRING "[;H" KSH_ESC_STRING "[J"
 #endif
+
+static const char ctrl_x_e[] = "fc -e ${VISUAL:-${EDITOR:-vi}} --";
 
 /* tty driver characters we are interested in */
 #define EDCHAR_DISABLED	0xFFFFU
@@ -970,7 +972,6 @@ static char *wbuf[2];		/* window buffers */
 static int wbuf_len;		/* length of window buffers (x_cols - 3) */
 static int win;			/* window buffer in use */
 static char morec;		/* more character at right of window */
-static bool lastref;		/* argument to last refresh() */
 static int holdlen;		/* length of holdbuf */
 #endif
 static int pwidth;		/* width of prompt */
@@ -3140,10 +3141,9 @@ x_edit_line(int c MKSH_A_UNUSED)
 			x_arg = source->line - (histptr - x_histp);
 	}
 	if (x_arg)
-		shf_snprintf(xbuf, xend - xbuf, Tf_sd,
-		    "fc -e ${VISUAL:-${EDITOR:-vi}} --", x_arg);
+		shf_snprintf(xbuf, xend - xbuf, Tf_sd, ctrl_x_e, x_arg);
 	else
-		strlcpy(xbuf, "fc -e ${VISUAL:-${EDITOR:-vi}} --", xend - xbuf);
+		strlcpy(xbuf, ctrl_x_e, xend - xbuf);
 	xep = strnul(xbuf);
 	return (x_newline('\n'));
 }
@@ -3613,7 +3613,6 @@ x_vi(char *buf)
 	winwidth = x_cols - pwidth - 3;
 	win = 0;
 	morec = ' ';
-	lastref = true;
 	holdlen = 0;
 
 	editmode = 2;
@@ -4423,12 +4422,9 @@ vi_cmd(int argcnt, const char *cmd)
 			}
 			if (argcnt)
 				shf_snprintf(vs->cbuf, vs->cbufsize, Tf_sd,
-				    "fc -e ${VISUAL:-${EDITOR:-vi}} --",
-				    argcnt);
+				    ctrl_x_e, argcnt);
 			else
-				strlcpy(vs->cbuf,
-				    "fc -e ${VISUAL:-${EDITOR:-vi}} --",
-				    vs->cbufsize);
+				strlcpy(vs->cbuf, ctrl_x_e, vs->cbufsize);
 			vs->linelen = strlen(vs->cbuf);
 			return (2);
 
@@ -5167,11 +5163,6 @@ redraw_line(bool newl)
 static void
 refresh(bool leftside)
 {
-	/* this was "leftside < 0" before, never reached? */
-	if (leftside)
-		leftside = lastref;
-	else
-		lastref = leftside;
 	if (outofwin())
 		rewindow();
 	display(wbuf[1 - win], wbuf[win], leftside);
