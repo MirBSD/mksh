@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.373 2020/06/22 17:11:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.374 2020/10/01 20:28:54 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -1429,7 +1429,8 @@ error_prefix(bool fileline)
 	/* Avoid foo: foo[2]: ... */
 	if (!fileline || !source || !source->file ||
 	    strcmp(source->file, kshname) != 0)
-		shf_fprintf(shl_out, Tf_sD_, kshname + (*kshname == '-'));
+		shf_fprintf(shl_out, Tf_sD_, kshname +
+		    (*kshname == '-' ? 1 : 0));
 	if (fileline && source && source->file != NULL) {
 		shf_fprintf(shl_out, "%s[%lu]: ", source->file,
 		    (unsigned long)(source->errline ?
