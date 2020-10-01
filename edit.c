@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.354 2020/10/01 21:20:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.355 2020/10/01 22:38:09 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -3129,10 +3129,6 @@ static int
 x_edit_line(int c MKSH_A_UNUSED)
 {
 	if (x_arg_defaulted) {
-		if (xep == xbuf) {
-			x_e_putc2(KSH_BEL);
-			return (KSTD);
-		}
 		if (modified) {
 			*xep = '\0';
 			histsave(&source->line, xbuf, HIST_STORE, true);
@@ -4410,8 +4406,6 @@ vi_cmd(int argcnt, const char *cmd)
 
 		case ORD('v'):
 			if (!argcnt) {
-				if (vs->linelen == 0)
-					return (-1);
 				if (modified) {
 					vs->cbuf[vs->linelen] = '\0';
 					histsave(&source->line, vs->cbuf,
