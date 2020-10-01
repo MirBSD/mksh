@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.851 2020/08/25 13:55:09 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.852 2020/10/01 22:53:18 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2020/08/24
+	KSH R59 2020/10/01
 description:
 	Check base version of full shell
 stdin:

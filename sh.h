@@ -193,9 +193,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.902 2020/08/24 20:56:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.903 2020/10/01 22:53:21 tg Exp $");
 #endif
-#define MKSH_VERSION "R59 2020/08/24"
+#define MKSH_VERSION "R59 2020/10/01"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -2520,7 +2520,7 @@ void sethistfile(const char *);
 char **histpos(void) MKSH_A_PURE;
 int histnum(int);
 #endif
-int findhist(int, int, const char *, bool) MKSH_A_PURE;
+int findhist(int, const char *, bool, bool) MKSH_A_PURE;
 char **hist_get_newest(bool);
 void inittraps(void);
 void alarm_init(void);

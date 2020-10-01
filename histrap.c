@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.169 2019/09/16 21:10:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.170 2020/10/01 22:53:20 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -415,7 +415,8 @@ hist_get(const char *str, bool approx, bool allow_cur)
 		bool anchored = *str == '?' ? (++str, false) : true;
 
 		/* the -1 is to avoid the current fc command */
-		if ((n = findhist(histptr - history - 1, 0, str, anchored)) < 0)
+		if ((n = findhist(histptr - history - 1, str, false,
+		    anchored)) < 0)
 			bi_errorf(Tf_sD_s, str, Tnot_in_history);
 		else
 			hp = &history[n];
@@ -479,7 +480,7 @@ histnum(int n)
  * direction.
  */
 int
-findhist(int start, int fwd, const char *str, bool anchored)
+findhist(int start, const char *str, bool fwd, bool anchored)
 {
 	char **hp;
 	int maxhist = histptr - history;
