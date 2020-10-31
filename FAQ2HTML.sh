@@ -1,5 +1,5 @@
-#!/bin/mksh
-rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.1 2020/02/03 22:23:33 tg Exp $'
+#!/bin/sh
+rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.2 2020/10/31 04:17:36 tg Exp $'
 #-
 # Copyright © 2020
 #	mirabilos <m@mirbsd.org>
@@ -37,7 +37,7 @@ fi
 src_id=$(sed $p -n '/^RCSID: /s///p' "$srcdir"/mksh.faq)
 # sanity check
 case $src_id in
-(*"$nl"*)
+*"$nl"*)
 	echo >&2 "E: more than one RCSID in mksh.faq?"
 	exit 1 ;;
 esac
