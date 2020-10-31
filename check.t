@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.852 2020/10/01 22:53:18 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.853 2020/10/31 03:53:03 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2020/10/01
+	KSH R59 2020/10/31
 description:
 	Check base version of full shell
 stdin:
@@ -12076,10 +12076,10 @@ expected-stdout:
 	EOFN
 	)|tr u x); }
 	function reread_IOWRITE_IOCLOB_IOHERE_noIOSKIP {
-		x=$( ( \cat >|bar <<"EOFN" 
+		x=$( ( \cat >|bar <<"EOFN" ) | \tr u x 
 		foo
 	EOFN
-	) | \tr u x ) 
+	) 
 	} 
 	inline_IOWRITE_noIOCLOB_IOHERE_IOSKIP() {
 		cat  1>bar  <<-EOFI
@@ -12109,10 +12109,10 @@ expected-stdout:
 		EOFI
 	)|tr u x); }
 	function reread_IOWRITE_noIOCLOB_IOHERE_IOSKIP {
-		x=$( ( \cat >bar <<-EOFI 
+		x=$( ( \cat >bar <<-EOFI ) | \tr u x 
 	foo
 	EOFI
-	) | \tr u x ) 
+	) 
 	} 
 	inline_IORDWR_IODUP() {
 		sh  1<>/dev/console  0<&1  2>&1
