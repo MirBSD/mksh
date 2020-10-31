@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.128 2020/03/31 00:30:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.129 2020/10/31 01:21:58 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -268,13 +268,12 @@ get_command(int cf, int sALIAS)
 {
 	struct op *t;
 	int c, iopn = 0, syniocf, lno;
-	struct ioword *iop, **iops;
+	struct ioword *iop;
 	XPtrV args, vars;
 	struct nesting_state old_nesting;
 	bool check_decl_utility;
+	static struct ioword *iops[NUFILE + 1];
 
-	/* NUFILE is small enough to leave this addition unchecked */
-	iops = alloc2((NUFILE + 1), sizeof(struct ioword *), ATEMP);
 	XPinit(args, 16);
 	XPinit(vars, 16);
 
@@ -282,7 +281,6 @@ get_command(int cf, int sALIAS)
 	switch (c = token(cf|KEYWORD|sALIAS|CMDASN)) {
 	default:
 		REJECT;
-		afree(iops, ATEMP);
 		XPfree(args);
 		XPfree(vars);
 		/* empty line */
@@ -510,12 +508,11 @@ get_command(int cf, int sALIAS)
 	}
 
 	if (iopn == 0) {
-		afree(iops, ATEMP);
 		t->ioact = NULL;
 	} else {
 		iops[iopn++] = NULL;
-		iops = aresize2(iops, iopn, sizeof(struct ioword *), ATEMP);
-		t->ioact = iops;
+		t->ioact = alloc2(iopn, sizeof(struct ioword *), ATEMP);
+		memcpy(t->ioact, iops, iopn * sizeof(struct ioword *));
 	}
 
 	if (t->type == TCOM || t->type == TDBRACKET) {
