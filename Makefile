@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.171 2020/07/24 20:50:09 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.172 2020/10/31 05:17:46 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -24,6 +24,10 @@ __CRAZY=	Yes
 MKC_DEBG=	cpp
 DEBUGFILE=	Yes
 NOMAN=		Yes
+.endif
+
+.ifdef cats
+.MAIN: cats
 .endif
 
 .include <bsd.own.mk>
@@ -170,11 +174,16 @@ V_GHOSTSCRIPT!=	pkg_info -e 'ghostscript-*'
 CATS_KW=	mksh, lksh, ksh, sh, Korn Shell, Android
 CATS_TITLE_lksh_1=lksh - Legacy Korn shell built on mksh
 CATS_TITLE_mksh_1=mksh - The MirBSD Korn Shell
-cats: ${MANALL} ${MANALL:S/.cat/.ps/}
-.if "${MANALL:Nlksh.cat1:Nmksh.cat1}" != ""
+CATS_PAGES=	lksh 1 mksh 1
+catsall:=	${MANALL}
+.for _m _n in ${CATS_PAGES}
+catsall:=	${catsall:N${_m}.cat${_n}}
+.endfor
+.if "${catsall}" != ""
 .  error Adjust here.
 .endif
-.for _m _n in lksh 1 mksh 1
+cats: ${MANALL} ${MANALL:S/.cat/.ps/}
+.for _m _n in ${CATS_PAGES}
 	x=$$(ident ${SRCDIR:Q}/${_m}.${_n} | \
 	    awk '/Mir''OS:/ { print $$4$$5; }' | \
 	    tr -dc 0-9); (( $${#x} == 14 )) || exit 1; exec \
@@ -197,6 +206,14 @@ cats: ${MANALL} ${MANALL:S/.cat/.ps/}
 		do_conversion_verbose "$$bn" "$$ext" "$$m" "$$bn.$$ext.htm"; \
 		rm -f "$$bn.$$ext.htm.gz"; gzip -n9 "$$bn.$$ext.htm"; \
 	done
+.ifdef cats
+.  for _m _n in ${CATS_PAGES}
+	mv -f ${_m}.cat${_n}.gz ${_m}-${cats}.cat${_n}.gz
+	mv -f ${_m}.${_n}.htm.gz ${_m}-${cats}.htm.gz
+	mv -f ${_m}.${_n}.pdf ${_m}-${cats}.pdf
+	mv -f ${_m}.${_n}.txt.gz ${_m}-${cats}.txt.gz
+.  endfor
+.endif
 
 .ifmake d
 .  ifmake obj || depend || all || install || regress || test-build
