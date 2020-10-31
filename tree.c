@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.99 2020/10/31 03:56:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.100 2020/10/31 04:28:54 tg Exp $");
 
 #define INDENT	8
 
@@ -96,8 +96,10 @@ ptree(struct op *t, int indent, struct shf *shf)
 			while (*w)
 				fptreef(shf, indent, Tf_S_, *w++);
 		}
+#ifndef MKSH_SMALL
 		  else
 			shf_puts("#no-vars# ", shf);
+#endif
 		if (t->args) {
 			w = t->args;
 			if (*w && **w == CHAR) {
@@ -112,8 +114,10 @@ ptree(struct op *t, int indent, struct shf *shf)
 			while (*w)
 				fptreef(shf, indent, Tf_S_, *w++);
 		}
+#ifndef MKSH_SMALL
 		  else
 			shf_puts("#no-args# ", shf);
+#endif
 		break;
 	case TEXEC:
 		t = t->left;
