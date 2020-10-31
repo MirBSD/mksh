@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.98 2020/10/31 03:53:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.99 2020/10/31 03:56:01 tg Exp $");
 
 #define INDENT	8
 
@@ -345,13 +345,6 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 			c = ord(*wp++);
 			if (opmode & WDS_TPUTS)
 				switch (c) {
-				case ORD('\n'):
-					if (quotelevel == 0) {
-						c = ORD('\'');
-						shf_putc(c, shf);
-						shf_putc(ORD('\n'), shf);
-					}
-					break;
 				default:
 					if (quotelevel == 0)
 						/* FALLTHROUGH */
