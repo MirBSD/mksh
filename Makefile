@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.172 2020/10/31 05:17:46 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.173 2020/11/08 18:33:35 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017
@@ -67,7 +67,7 @@ CPPFLAGS+=	-DMKSH_ASSUME_UTF8 -DMKSH_DISABLE_DEPRECATED \
 		-DHAVE_PERSISTENT_HISTORY=1 -DMKSH_BUILD_R=593
 CPPFLAGS+=	-D${${PROG:L}_tf:C/(Mir${MAN:E}{0,1}){2}/4/:S/x/mksh_BUILD/:U}
 CPPFLAGS+=	-I.
-COPTS+=		-std=c89 -Wall
+COPTS+=		-std=c89 -U__STRICT_ANSI__ -Wall
 .endif
 
 USE_PRINTF_BUILTIN?=	0
