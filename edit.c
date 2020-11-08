@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.357 2020/10/31 05:02:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.358 2020/11/08 18:41:00 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -103,6 +103,7 @@ static void x_init_prompt(bool);
 static int x_vi(char *);
 #endif
 static void x_intr(int, int) MKSH_A_NORETURN;
+static void x_clrtoeol(int, bool);
 
 #define x_flush()	shf_flush(shl_out)
 #if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
@@ -2079,6 +2080,14 @@ static int
 x_cls(int c MKSH_A_UNUSED)
 {
 	shf_puts(MKSH_CLS_STRING, shl_out);
+	if (prompt_trunc) {
+		/* multi-line prompt */
+		pprompt(prompt, 0);
+		/* x_redraw takes care of the last line */
+		x_putc('\r');
+		x_col = 0;
+		x_clrtoeol(' ', false);
+	}
 	x_redraw(0);
 	return (KSTD);
 }
