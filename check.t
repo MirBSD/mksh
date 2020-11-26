@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.853 2020/10/31 03:53:03 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.854 2020/11/26 03:11:43 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -6184,7 +6184,7 @@ expected-stdout:
 ---
 name: regression-35
 description:
-	Temporay files used for here-docs in functions get trashed after
+	Temporary files used for heredocs in functions get trashed after
 	the function is parsed (before it is executed)
 stdin:
 	f1() {
@@ -6228,8 +6228,8 @@ description:
 	Machines with broken times() (reported by <sjg@void.zen.oz.au>)
 	time does not report correct real time
 stdin:
-	time sleep 1
-expected-stderr-pattern: !/^\s*0\.0[\s\d]+real|^\s*real[\s]+0+\.0/
+	time -p sleep 1
+expected-stderr-pattern: /^real +(?![0.]*$)[0-9]+(?:\.[0-9]+)?$/m
 ---
 name: regression-38
 description:
