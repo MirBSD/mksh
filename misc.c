@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.302 2020/08/27 19:52:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.303 2020/11/26 00:42:27 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1704,7 +1704,7 @@ do_realpath(const char *upath)
 	char *xp, *ip, *tp, *ipath, *ldest = NULL;
 	XString xs;
 	size_t pos, len;
-	int llen;
+	ssize_t llen;
 	struct stat sb;
 #ifdef MKSH__NO_PATH_MAX
 	size_t ldestlen = 0;
@@ -1820,8 +1820,8 @@ do_realpath(const char *upath)
 #endif
 				ldest = aresize(ldest, pathlen + 1, ATEMP);
 			}
-			llen = readlink(Xstring(xs, xp), ldest, pathlen);
-			if (llen < 0)
+			llen = readlink(Xstring(xs, xp), ldest, pathlen + 1);
+			if (llen < 0 || llen > pathlen)
 				/* oops... */
 				goto notfound;
 			ldest[llen] = '\0';
@@ -1910,11 +1910,11 @@ do_realpath(const char *upath)
 
  notfound:
 	/* save; freeing memory might trash it */
-	llen = errno;
+	symlinks = errno;
 	afree(ldest, ATEMP);
 	afree(ipath, ATEMP);
 	Xfree(xs, xp);
-	errno = llen;
+	errno = symlinks;
 	return (NULL);
 
 #undef pathlen
