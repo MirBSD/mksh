@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.494 2020/10/01 22:39:57 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.495 2020/11/26 04:14:15 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: October 1 2020 $
+.Dd $Mdocdate: November 26 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -4678,6 +4678,19 @@ Suspends execution for a minimum of the
 .Ar seconds
 (specified as positive decimal value with an optional fractional part).
 Signal delivery may continue execution earlier.
+.Pp
+.Em Warning:
+This builtin
+.Em will
+be removed in the next
+.Nm
+release.
+External
+.Xr sleep 1
+supporting sub-second sleeping are, by now, more widespread;
+.Mx
+will be providing a stand-alone portable implementation
+for operating systems still lacking a suitable utility.
 .Pp
 .It Ic smores Op Ar
 .Pq Li dot.mkshrc No function
