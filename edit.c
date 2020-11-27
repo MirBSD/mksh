@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.358 2020/11/08 18:41:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.359 2020/11/27 21:56:09 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2036,7 +2036,7 @@ x_match(const char *str, const char *pat)
 	if (*pat == '^') {
 		return ((strncmp(str, pat + 1, strlen(pat + 1)) == 0) ? 0 : -1);
 	} else {
-		char *q = strstr(str, pat);
+		const char *q = cstrstr(str, pat);
 		return ((q == NULL) ? -1 : q - str);
 	}
 }
