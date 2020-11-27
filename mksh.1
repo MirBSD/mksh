@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.497 2020/11/27 01:07:24 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.498 2020/11/27 01:35:16 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -2999,6 +2999,8 @@ outside the function).
 .It
 Shell options
 .Pq Ic set Fl o
+except
+.Fl p Pq Fl o Ic privileged
 have local scope, i.e. changes inside a function are reset upon its exit.
 .El
 .Pp

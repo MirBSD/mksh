@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.224 2020/08/27 19:52:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.225 2020/11/27 01:35:13 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -773,8 +773,14 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		if (tp->flag & FKSH) {
 			/* Korn style functions restore Flags on return */
 			old_flags[(int)FXTRACE] = Flag(FXTRACE);
+			/* some must not be restored / need special handling */
 			for (type_flags = 0; type_flags < FNFLAGS; ++type_flags)
-				shell_flags[type_flags] = old_flags[type_flags];
+				if (type_flags == FMONITOR)
+					change_flag(type_flags, OF_INTERNAL,
+					    old_flags[type_flags]);
+				else if (type_flags != FPRIVILEGED)
+					shell_flags[type_flags] =
+					    old_flags[type_flags];
 		}
 #endif
 		tp->flag = (tp->flag & ~FINUSE) | old_inuse;
