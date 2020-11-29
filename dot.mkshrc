@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.131 2020/11/28 23:40:57 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.132 2020/11/29 00:09:26 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -47,6 +47,18 @@ function _dot_mkshrc_wrapped_cat {
 		"$fn"
 	else
 		\cat "$@" | "$fn"
+	fi
+}
+function _dot_mkshrc_cat_for_readN {
+	\\builtin typeset fn=$1
+	\\builtin shift
+
+	if (( $# )); then
+		\\builtin print -nr -- "$*" | "$fn"
+	elif [[ -t 0 ]]; then
+		\cat | "$fn"
+	else
+		"$fn"
 	fi
 }
 
@@ -359,8 +371,16 @@ function pushd {
 # base64 encoder and decoder, RFC compliant, NUL safe, not EBCDIC safe
 function Lb64decode {
 	\\builtin set +U
-	\\builtin typeset c s="$*" t
-	[[ -n $s ]] || \\builtin read -rN-1 s || \\builtin return $?
+	\\builtin typeset c s t
+	if (( $# )); then
+		s="$*"
+	elif [[ -t 0 ]]; then
+		s=$(\cat || \builtin exit $?; \\builtin print x) || \
+		    \\builtin return $?
+		s=${s%x}
+	else
+		\\builtin read -rN-1 s || \\builtin return $?
+	fi
 	\\builtin typeset -i i=0 j=0 n=${#s} p=0 v x
 	\\builtin typeset -i16 o
 
@@ -392,16 +412,14 @@ function Lb64decode {
 	\\builtin print -n -- "$t"
 }
 function Lb64encode {
+	\_dot_mkshrc_cat_for_readN _dot_mkshrc_b64encode "$@"
+}
+function _dot_mkshrc_b64encode {
 	\\builtin set +U
 	\\builtin typeset c s t table
 	\\builtin set -A table -- A B C D E F G H I J K L M N O P Q R S T U V W X Y Z \
 	    a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9 + /
-	if (( $# )); then
-		\\builtin read -raN-1 s <<<"$*"
-		\\builtin unset s[${#s[*]}-1]
-	else
-		\\builtin read -raN-1 s
-	fi
+	\\builtin read -raN-1 s
 	\\builtin typeset -i i=0 n=${#s[*]} v
 
 	while (( i < n )); do
@@ -431,14 +449,12 @@ function Lbafh_init {
 	Lbafh_v=0
 }
 function Lbafh_add {
+	\_dot_mkshrc_cat_for_readN _dot_mkshrc_bafh_add "$@"
+}
+function _dot_mkshrc_bafh_add {
 	\\builtin set +U
 	\\builtin typeset s
-	if (( $# )); then
-		\\builtin read -raN-1 s <<<"$*"
-		\\builtin unset s[${#s[*]}-1]
-	else
-		\\builtin read -raN-1 s
-	fi
+	\\builtin read -raN-1 s
 	\\builtin typeset -i i=0 n=${#s[*]}
 
 	while (( i < n )); do
