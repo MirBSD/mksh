@@ -1,5 +1,5 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.132 2020/11/29 00:09:26 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.133 2020/11/29 00:24:43 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -67,6 +67,7 @@ function smores {
 	\_dot_mkshrc_wrapped_cat _dot_mkshrc_smores "$@"
 }
 function _dot_mkshrc_smores {
+	\\builtin set +e
 	\\builtin typeset line llen curlin=0 x
 
 	while IFS= \\builtin read -r line; do
@@ -108,10 +109,10 @@ fi
 
 # prompts
 PS4='[$EPOCHREALTIME] '; PS1='#'; (( USER_ID )) && PS1='$'; PS1=$'\001\r''${|
-	\\builtin typeset e=$?
+	\\builtin typeset e=$? hn=${HOSTNAME:-nil}
 
-	(( e )) && REPLY+="$e|"
-	REPLY+=${USER}@${HOSTNAME%%.*}:
+	(( !e )) || REPLY+="$e|"
+	REPLY+=${USER:-?}@${hn%%.*}:
 
 	\\builtin typeset d=${PWD:-?}/ p=~; [[ $p = ?(*/) ]] || d=${d/#$p\//\~/}
 	d=${d%/}; \\builtin typeset m=${%d} n p=...; (( m > 0 )) || m=${#d}
@@ -145,7 +146,7 @@ function hd_mksh {
 	\\builtin typeset -Uui16 -Z11 pos=0
 	\\builtin typeset -Uui16 -Z5 hv=2147483647
 	\\builtin typeset dasc dn line i
-	\\builtin set +U
+	\\builtin set +Ue
 
 	while \\builtin read -arn 512 line; do
 		\\builtin typeset -i1 'line[*]'
@@ -246,6 +247,7 @@ function cd_csh {
 	\cd "$t"
 }
 function dirs {
+	\\builtin set +e
 	\\builtin typeset d dwidth
 	\\builtin typeset -i fl=0 fv=0 fn=0 cpos=0
 
@@ -370,7 +372,7 @@ function pushd {
 
 # base64 encoder and decoder, RFC compliant, NUL safe, not EBCDIC safe
 function Lb64decode {
-	\\builtin set +U
+	\\builtin set +Ue
 	\\builtin typeset c s t
 	if (( $# )); then
 		s="$*"
@@ -415,11 +417,11 @@ function Lb64encode {
 	\_dot_mkshrc_cat_for_readN _dot_mkshrc_b64encode "$@"
 }
 function _dot_mkshrc_b64encode {
-	\\builtin set +U
+	\\builtin set +Ue
 	\\builtin typeset c s t table
 	\\builtin set -A table -- A B C D E F G H I J K L M N O P Q R S T U V W X Y Z \
 	    a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9 + /
-	\\builtin read -raN-1 s
+	\\builtin read -raN-1 s || \\builtin return $?
 	\\builtin typeset -i i=0 n=${#s[*]} v
 
 	while (( i < n )); do
@@ -452,9 +454,9 @@ function Lbafh_add {
 	\_dot_mkshrc_cat_for_readN _dot_mkshrc_bafh_add "$@"
 }
 function _dot_mkshrc_bafh_add {
-	\\builtin set +U
+	\\builtin set +Ue
 	\\builtin typeset s
-	\\builtin read -raN-1 s
+	\\builtin read -raN-1 s || \\builtin return $?
 	\\builtin typeset -i i=0 n=${#s[*]}
 
 	while (( i < n )); do
@@ -464,6 +466,7 @@ function _dot_mkshrc_bafh_add {
 	\:
 }
 function Lbafh_finish {
+	\\builtin set +e
 	\\builtin typeset -Ui t
 
 	((# t = (((Lbafh_v >> 7) & 0x01010101) * 0x1B) ^ \
