@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.854 2020/11/26 03:11:43 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.855 2020/12/12 00:31:07 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -7130,7 +7130,7 @@ expected-stdout:
 ---
 name: xxx-exec-environment-1
 description:
-	Check to see if exec sets it's environment correctly
+	Check to see if exec sets its environment correctly
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
@@ -7162,47 +7162,73 @@ expected-stdout:
 	y1-
 	x-3- z-
 ---
-name: exec-modern-korn-shell
+name: exec-execs
+description:
+	Ensure that exec never returns
+need-ctty: yes
+env-setup: !ENV=./envf!
+file-setup: file 644 "envf"
+	PS1=X
+arguments: !-i!
+stdin:
+	oldPATH=$PATH
+	PATH=$PWD
+	exec bla
+	PATH=$oldPATH
+	echo fail
+expected-stderr-pattern:
+	/X+.*: bla: (?:inaccessible or )?not found\n/
+expected-exit: 127
+---
+name: exec-modern
 description:
 	Check that exec can execute any command that makes it
 	through syntax and parser
 stdin:
-	print '#!'"$__progname"'\necho tf' >lq
-	chmod +x lq
+	echo '#!'"$__progname" >f
+	echo 'echo >&3 FAIL' >>f
+	echo '#!'"$__progname" >lq
+	echo 'echo tf' >>lq
+	chmod +x lq f
 	PATH=$PWD
-	exec 2>&1
-	foo() { print two; }
-	print =1
-	(exec print one)
-	print =2
-	(exec foo)
-	print =3
-	(exec ls)
-	print =4
-	(exec lq)
+	exec 3>&2 2>&1
+	foo() { echo two; }
+	echo =1
+	(exec echo one; ./f)
+	echo =2
+	(exec foo; ./f)
+	echo =3
+	(exec ls; ./f)
+	echo =4
+	(exec lq; ./f)
 expected-stdout-pattern:
-	/=1\none\n=2\ntwo\n=3\n.*: ls: inaccessible or not found\n=4\ntf\n/
+	/=1\none\n=2\ntwo\n=3\n.*: ls: (?:inaccessible or )?not found\n=4\ntf\n/
 ---
 name: exec-ksh88
 description:
 	Check that exec only executes after a PATH search
+	(POSIX Issue 8 uses utility ipv command for the synopsis)
+	cf. https://www.austingroupbugs.net/view.php?id=1157
 arguments: !-o!posix!
 stdin:
-	print '#!'"$__progname"'\necho tf' >lq
-	chmod +x lq
+	echo '#!'"$__progname" >f
+	echo 'echo >&3 FAIL' >>f
+	echo '#!'"$__progname" >lq
+	echo 'echo tf' >>lq
+	chmod +x lq f
 	PATH=$PWD
-	exec 2>&1
-	foo() { print two; }
-	print =1
-	(exec print one)
-	print =2
-	(exec foo)
-	print =3
-	(exec ls)
-	print =4
-	(exec lq)
+	exec 3>&2 2>&1
+	foo() { echo two; }
+	echo =1
+	(exec echo one; ./f)
+	echo =2
+	(exec foo; ./f)
+	echo =3
+	(exec ls; ./f)
+	echo =4
+	(exec lq; ./f)
 expected-stdout-pattern:
-	/=1\n.*: print: inaccessible or not found\n=2\n.*: foo: inaccessible or not found\n=3\n.*: ls: inaccessible or not found\n=4\ntf\n/
+	/=1\n.*: echo: (?:inaccessible or )?not found\n=2\n.*: foo: (?:inaccessible or )?not found\n=3\n.*: ls: (?:inaccessible or )?not found\n=4\ntf\n/
 ---
 name: xxx-what-do-you-call-this-1
 stdin:
@@ -7339,7 +7365,7 @@ need-ctty: yes
 arguments: !-i!
 stdin:
 	exec echo hi
-	echo still herre
+	echo still here
 expected-stdout:
 	hi
 expected-stderr-pattern: /.*/
