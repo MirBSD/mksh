@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.855 2020/12/12 00:31:07 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.856 2020/12/14 00:21:06 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -4786,7 +4786,7 @@ description:
 	'emulate sh' zsh has extra fields in
 	- a5ins (IFS_NWS unquoted $*)
 	- b5ins, matching mksh’s
-	!!WARNING!! more to come: http://austingroupbugs.net/view.php?id=888
+	!!WARNING!! more to come: https://www.austingroupbugs.net/view.php?id=888
 stdin:
 	"$__progname" -c 'pfb() { for s_arg in "$@"; do print -r -- "[$s_arg]"; done; }; pfn() { for s_arg in "$@"; do print -r -- "<$s_arg>"; done; };
 		IFS=; set -- "" 2 ""; pfb $*; x=$*; pfn "$x"'
@@ -4936,7 +4936,7 @@ expected-stdout:
 ---
 name: IFS-subst-8
 description:
-	http://austingroupbugs.net/view.php?id=221
+	https://www.austingroupbugs.net/view.php?id=221
 stdin:
 	n() { echo "$#"; }; n "${foo-$@}"
 expected-stdout:
@@ -4996,7 +4996,7 @@ expected-stdout:
 ---
 name: IFS-arith-1
 description:
-	http://austingroupbugs.net/view.php?id=832
+	https://www.austingroupbugs.net/view.php?id=832
 stdin:
 	${ZSH_VERSION+false} || emulate sh
 	${BASH_VERSION+set -o posix}
@@ -6971,7 +6971,7 @@ expected-stderr-pattern:
 ---
 name: readonly-1
 description:
-	http://austingroupbugs.net/view.php?id=367 for export
+	https://www.austingroupbugs.net/view.php?id=367 for export
 stdin:
 	"$__progname" -c 'readonly foo; export foo=a; echo $?' || echo aborted, $?
 expected-stdout:
@@ -6990,7 +6990,7 @@ expected-stdout:
 ---
 name: readonly-2b
 description:
-	http://austingroupbugs.net/view.php?id=367 for getopts
+	https://www.austingroupbugs.net/view.php?id=367 for getopts
 stdin:
 	"$__progname" -c 'readonly c; set -- -a b; getopts a c; echo $? $c .' || echo aborted, $?
 expected-stdout:
@@ -7000,7 +7000,7 @@ expected-stderr-pattern:
 ---
 name: readonly-3
 description:
-	http://austingroupbugs.net/view.php?id=367 for read
+	https://www.austingroupbugs.net/view.php?id=367 for read
 stdin:
 	echo x | "$__progname" -c 'read s; echo $? $s .' || echo aborted, $?
 	echo y | "$__progname" -c 'readonly s; read s; echo $? $s .' || echo aborted, $?

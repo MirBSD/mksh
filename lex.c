@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.251 2020/03/10 23:48:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.252 2020/12/14 00:21:09 tg Exp $");
 
 /*
  * states while lexing word
@@ -552,7 +552,7 @@ yylex(int cf)
 				 * "…`…\"…`…" because, unlike for COMSUBs, the
 				 * outer double quoteing changes the backslash
 				 * meaning for the inside. For more details:
-				 * http://austingroupbugs.net/view.php?id=1015
+				 * https://www.austingroupbugs.net/view.php?id=1015
 				 */
 				statep->ls_bool = false;
 				s2 = statep;
