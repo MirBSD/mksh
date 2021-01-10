@@ -1,9 +1,9 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.498 2020/11/27 01:35:16 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.499 2021/01/10 18:44:05 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
 .\"		2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
-.\"		2018, 2019, 2020
+.\"		2018, 2019, 2020, 2021
 .\"	mirabilos <m@mirbsd.org>
 .\"
 .\" Provided that these terms and disclaimer and all copyright notices
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: November 27 2020 $
+.Dd $Mdocdate: January 10 2021 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -5427,6 +5427,12 @@ Limit the size of
 message queues to
 .Ar n
 bytes.
+.It Fl R Ar n
+.Pq Cm Linux
+Limit the CPU time slice a real-time process can use before
+performing a blocking syscall to
+.Ar n
+milliseconds.
 .It Fl r Ar n
 .Pq Cm AIX
 Limit the number of threads per process to
