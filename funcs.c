@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.379 2020/08/27 19:52:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.380 2021/01/23 04:05:04 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -98,7 +98,6 @@ const struct builtin mkshbuiltins[] = {
 	{Tsgbreak, c_brkcont},
 	{T__builtin, c_builtin},
 	{Tbuiltin, c_builtin},
-	{Tbcat, c_cat},
 	{Tcd, c_cd},
 	/* dash compatibility hack */
 	{"chdir", c_cd},
@@ -151,9 +150,6 @@ const struct builtin mkshbuiltins[] = {
 #endif
 #ifdef MKSH_PRINTF_BUILTIN
 	{"~printf", c_printf},
-#endif
-#if HAVE_SELECT
-	{"sleep", c_sleep},
 #endif
 #ifdef __MirBSD__
 	/* alias to "true" for historical reasons */
@@ -3275,167 +3271,6 @@ c_realpath(const char **wp)
 
 	return (rv);
 }
-
-int
-c_cat(const char **wp)
-{
-	int fd = 0, rv;
-	ssize_t n, w;
-	const char *fn = "<stdin>";
-	char *buf, *cp;
-	bool opipe;
-#define MKSH_CAT_BUFSIZ 4096
-
-	/* parse options: POSIX demands we support "-u" as no-op */
-	while ((rv = ksh_getopt(wp, &builtin_opt, Tu)) != -1) {
-		switch (rv) {
-		case 'u':
-			/* we already operate unbuffered */
-			break;
-		default:
-			bi_errorf(Tsynerr);
-			return (1);
-		}
-	}
-	wp += builtin_opt.optind;
-	rv = 0;
-
-	if ((buf = malloc_osfunc(MKSH_CAT_BUFSIZ)) == NULL) {
-		bi_errorf(Toomem, (size_t)MKSH_CAT_BUFSIZ);
-		return (1);
-	}
-
-	/* catch SIGPIPE */
-	opipe = block_pipe();
-
-	do {
-		if (*wp) {
-			fn = *wp++;
-			if (ksh_isdash(fn))
-				fd = 0;
-			else if ((fd = binopen2(fn, O_RDONLY)) < 0) {
-				bi_errorf(Tf_sD_s, fn, cstrerror(errno));
-				rv = 1;
-				continue;
-			}
-		}
-		while (/* CONSTCOND */ 1) {
-			if ((n = blocking_read(fd, (cp = buf),
-			    MKSH_CAT_BUFSIZ)) == -1) {
-				if (errno == EINTR) {
-					if (opipe)
-						restore_pipe();
-					/* give the user a chance to ^C out */
-					intrcheck();
-					/* interrupted, try again */
-					opipe = block_pipe();
-					continue;
-				}
-				/* an error occurred during reading */
-				bi_errorf(Tf_sD_s, fn, cstrerror(errno));
-				rv = 1;
-				break;
-			} else if (n == 0)
-				/* end of file reached */
-				break;
-			while (n) {
-				if (intrsig)
-					goto has_intrsig;
-				if ((w = write(1, cp, n)) != -1) {
-					n -= w;
-					cp += w;
-					continue;
-				}
-				if (errno == EINTR) {
- has_intrsig:
-					if (opipe)
-						restore_pipe();
-					/* give the user a chance to ^C out */
-					intrcheck();
-					/* interrupted, try again */
-					opipe = block_pipe();
-					continue;
-				}
-				if (errno == EPIPE) {
-					/* fake receiving signal */
-					rv = ksh_sigmask(SIGPIPE);
-				} else {
-					/* an error occurred during writing */
-					bi_errorf(Tf_sD_s, "<stdout>",
-					    cstrerror(errno));
-					rv = 1;
-				}
-				if (fd != 0)
-					close(fd);
-				goto out;
-			}
-		}
-		if (fd != 0)
-			close(fd);
-	} while (*wp);
-
- out:
-	if (opipe)
-		restore_pipe();
-	free_osfunc(buf);
-	return (rv);
-}
-
-#if HAVE_SELECT
-int
-c_sleep(const char **wp)
-{
-	struct timeval tv;
-	int rv = 1;
-
-	/* skip argv[0] */
-	++wp;
-	if (wp[0] && !strcmp(wp[0], "--"))
-		/* skip "--" (options separator) */
-		++wp;
-
-	if (!wp[0] || wp[1])
-		bi_errorf(Tsynerr);
-	else if (parse_usec(wp[0], &tv))
-		bi_errorf(Tf_sD_s_qs, Tsynerr, cstrerror(errno), wp[0]);
-	else {
-#ifndef MKSH_NOPROSPECTOFWORK
-		sigset_t omask, bmask;
-
-		/* block a number of signals from interrupting us, though */
-		(void)sigemptyset(&bmask);
-		(void)sigaddset(&bmask, SIGPIPE);
-		(void)sigaddset(&bmask, SIGCHLD);
-#ifdef SIGWINCH
-		(void)sigaddset(&bmask, SIGWINCH);
-#endif
-#ifdef SIGINFO
-		(void)sigaddset(&bmask, SIGINFO);
-#endif
-#ifdef SIGUSR1
-		(void)sigaddset(&bmask, SIGUSR1);
-#endif
-#ifdef SIGUSR2
-		(void)sigaddset(&bmask, SIGUSR2);
-#endif
-		sigprocmask(SIG_BLOCK, &bmask, &omask);
-#endif
-		if (select(1, NULL, NULL, NULL, &tv) == 0 || errno == EINTR)
-			/*
-			 * strictly speaking only for SIGALRM, but the
-			 * execution may be interrupted by other signals
-			 */
-			rv = 0;
-		else
-			bi_errorf(Tf_sD_s, Tselect, cstrerror(errno));
-#ifndef MKSH_NOPROSPECTOFWORK
-		/* this will re-schedule signal delivery */
-		sigprocmask(SIG_SETMASK, &omask, NULL);
-#endif
-	}
-	return (rv);
-}
-#endif
 
 #if !defined(MKSH_UNEMPLOYED) && HAVE_GETSID
 static int

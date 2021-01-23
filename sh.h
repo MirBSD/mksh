@@ -193,9 +193,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.904 2020/10/31 03:53:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.905 2021/01/23 04:05:06 tg Exp $");
 #endif
-#define MKSH_VERSION "R59 2020/10/31"
+#define MKSH_VERSION "R59 2021/01/22"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -999,8 +999,6 @@ EXTERN const char Tcant_cd[] E_INIT("restricted shell - can't cd");
 EXTERN const char Tcant_find[] E_INIT("can't find");
 EXTERN const char Tcant_open[] E_INIT("can't open");
 #define Tbytes (Toomem + 24)
-EXTERN const char Tbcat[] E_INIT("!cat");
-#define Tcat (Tbcat + 1)
 #define Tcd (Tcant_cd + 25)
 #define T_command (T_funny_command + 9)
 #define Tcommand (T_funny_command + 10)
@@ -1165,8 +1163,6 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tcant_find "can't find"
 #define Tcant_open "can't open"
 #define Tbytes "bytes"
-#define Tbcat "!cat"
-#define Tcat "cat"
 #define Tcd "cd"
 #define T_command "-command"
 #define Tcommand "command"
@@ -2499,8 +2495,6 @@ int c_mknod(const char **);
 #endif
 int c_realpath(const char **);
 int c_rename(const char **);
-int c_cat(const char **);
-int c_sleep(const char **);
 /* histrap.c */
 void init_histvec(void);
 void hist_init(Source *);

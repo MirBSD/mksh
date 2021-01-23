@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.374 2020/10/01 20:28:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.375 2021/01/23 04:05:05 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -84,7 +84,7 @@ static const char *initcoms[] = {
 	NULL,
 	 /* this is what AT&T ksh seems to track, with the addition of emacs */
 	Talias, "-tU",
-	Tcat, "cc", "chmod", "cp", "date", "ed", "emacs", "grep", "ls",
+	"cat", "cc", "chmod", "cp", "date", "ed", "emacs", "grep", "ls",
 	"make", "mv", "pr", "rm", "sed", Tsh, "vi", "who", NULL,
 	NULL
 };
@@ -306,7 +306,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	/* define built-in commands and see if we were called as one */
 	ktinit(APERM, &builtins,
-	    /* currently up to 52 builtins: 75% of 128 = 2^7 */
+	    /* currently up to 50 builtins: 75% of 128 = 2^7 */
 	    7);
 	for (i = 0; mkshbuiltins[i].name != NULL; ++i) {
 		const char *builtin_name;
