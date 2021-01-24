@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.381 2021/01/24 19:37:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.382 2021/01/24 20:38:30 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -150,10 +150,6 @@ const struct builtin mkshbuiltins[] = {
 #endif
 #ifdef MKSH_PRINTF_BUILTIN
 	{"~printf", c_printf},
-#endif
-#ifdef __MirBSD__
-	/* alias to "true" for historical reasons */
-	{"domainname", c_true},
 #endif
 #ifdef __OS2__
 	{Textproc, c_true},
