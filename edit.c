@@ -6,7 +6,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020
+ *		 2019, 2020, 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.359 2020/11/27 21:56:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.360 2021/01/24 18:14:40 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2084,9 +2084,6 @@ x_cls(int c MKSH_A_UNUSED)
 		/* multi-line prompt */
 		pprompt(prompt, 0);
 		/* x_redraw takes care of the last line */
-		x_putc('\r');
-		x_col = 0;
-		x_clrtoeol(' ', false);
 	}
 	x_redraw(0);
 	return (KSTD);
@@ -2103,12 +2100,14 @@ x_clrtoeol(int lastch, bool line_was_cleared)
 {
 	int col;
 
-	if (lastch == ' ' && !line_was_cleared && x_term_mode == 1) {
-		shf_puts(KSH_ESC_STRING "[K", shl_out);
-		line_was_cleared = true;
+	if (lastch == ' ') {
+		if (line_was_cleared)
+			return;
+		if (x_term_mode == 1) {
+			shf_puts(KSH_ESC_STRING "[K", shl_out);
+			return;
+		}
 	}
-	if (lastch == ' ' && line_was_cleared)
-		return;
 
 	col = x_col;
 	while (col < (xx_cols - 2)) {
