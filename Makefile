@@ -1,7 +1,7 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.176 2021/01/24 20:38:29 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.177 2021/01/24 22:45:23 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-#		2011, 2012, 2013, 2014, 2015, 2016, 2017
+#		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2021
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -140,7 +140,13 @@ test-build-lksh: .PHONY
 	cd ${SRCDIR} && exec ${MAKE} lksh.cat1 test-build _TBF=-L
 
 bothmans: .PHONY
-	cd ${SRCDIR} && exec ${MAKE} MAN='lksh.1 mksh.1' __MANALL
+	cd ${SRCDIR} && exec ${MAKE} MAN='lksh.1 mksh.1' __MANALL faq
+
+faq: FAQ.htm
+
+CLEANFILES+=	FAQ.htm FAQ.tmp
+FAQ.htm: FAQ2HTML.sh mksh.faq sh.h
+	sh ${SRCDIR:Q}/FAQ2HTML.sh
 
 cleandir: clean-extra
 

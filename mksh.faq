@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.10 2020/10/01 22:59:12 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.11 2021/01/24 22:45:25 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -532,6 +532,15 @@ This is because AT&amp;T ksh93 ships a predefined alias enabling this:<br />
 put this into your <tt>~/.mkshrc</tt>
 (note the space before the closing single quote)
 ----
+ToC: builtin-cat
+Title: Didn’t there used to be a cat(1) builtin?
+
+<p>Up to and including mksh R59c, we indeed shipped a built-in cat(1)
+ inside mksh; this was added originally because Android did not have
+ one <em>at all</em> (but they have since imported a BSD cat). While
+ it could speed up some sh scripts correct signal handling is hard to
+ get right, so (with regret) it was removed in 2021. 🙀</p>
+----
 ToC: builtin-rename
 Title: “rename” doesn’t work as expected!
 
@@ -546,23 +555,25 @@ Title: “rename” doesn’t work as expected!
 <pre>alias rename="$(whence -p rename)"</pre>
 ----
 ToC: builtin-sleep
-Title: “sleep” does not accept ‘m’ for minutes!
+Title: Didn’t there used to be a sleep(1) builtin?
 
-<p>mksh contains a <tt>sleep</tt> built-in utility, in order to be
- able to offer sub-second sleep to shell scripts for most platforms.
- (It does not exist if the platform lacks select(2) — which should
- be rare.)</p>
-<p>GNU coreutils contains a sleep implementation accepting suffixed
- numbers. If you wish to invoke an external utility (in favour over a
- builtin), you can use <tt>dot.mkshrc</tt>’s function <tt>enable</tt>
- or put something along the following lines into <tt>~/.mkshrc</tt>:</p>
-<pre>alias sleep="$(whence -p sleep)"</pre>
-<pre>timer() { sleep $(($1*60${2:++$2})); } # timer mins [secs]</pre>
-<pre>timer() {
-	local arg=${1/m/'*60+'}
-	[[ $arg = *+ ]] &amp;&amp; arg+=0
-	sleep $(($arg)
-}</pre>
+<p>Up to and including mksh R59c, we indeed shipped a subsecond-capable
+ select(2)-based built-in sleep(1). This got originally added because
+ too many platforms do not support sub-second sleep, which nowadays is
+ of less concern. It also led to users complaining about lack for system
+ *ahem* GNU extensions, but the cause of its demise is that getting signal
+ handling right, in a portable way and without too many syscalls (there’s
+ a threshold over which fork+exec is cheaper!), isn’t feasible if even at
+ all possible.</p>
+<p>The MirOS Project now ships <a href="@@RELPATH@@subprj.htm#sleep">a
+ portable sleep</a> which similarily is select(2)-based and capable of
+ subsecond sleep but in addition supports all GNU extensions related to
+ specifying the amount of time to sleep. It will work on <em>at least</em>
+ all platforms on which mksh had a builtin before. Please install this
+ if your operating system lacks a good enough sleep(1) utility.</p>
+<p>Note that, if your OS lacks select(2), you’ll lose out either way.
+ In that case, GNU coreutils’ sleep, which is built on older syscalls,
+ may work if the copyleft licence isn’t a showstopper for you.</p>
 ----
 ToC: string-concat
 Title: “+=” behaves differently from other shells
