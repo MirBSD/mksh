@@ -1,9 +1,9 @@
-# $MirOS: src/bin/mksh/check.t,v 1.858 2021/01/24 19:26:04 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.859 2021/01/24 19:41:07 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #	      2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-#	      2019, 2020
+#	      2019, 2020, 2021
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -150,9 +150,8 @@ name: selftest-direct-builtin-call
 description:
 	Check that direct builtin calls work
 stdin:
-	ln -s "$__progname" cat || cp "$__progname" cat
 	ln -s "$__progname" echo || cp "$__progname" echo
-	./echo -c 'echo  foo' | ./cat -u
+	./echo -c 'echo  foo'
 expected-stdout:
 	-c echo  foo
 ---
