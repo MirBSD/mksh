@@ -1,9 +1,9 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.763 2020/09/04 21:01:37 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.764 2021/01/24 19:37:28 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
-#		2020
+#		2020, 2021
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -2303,15 +2303,20 @@ ac_test sys_siglist_decl sys_siglist 0 'for declaration of sys_siglist[]' <<-'EO
 	int main(void) { return (sys_siglist[0][0] + isatty(0)); }
 EOF
 
-ac_test st_mtim '' 'for struct stat.st_mtim.tv_nsec' <<-'EOF'
-	#define MKSH_INCLUDES_ONLY
-	#include "sh.h"
-	int main(void) { struct stat sb; return (sizeof(sb.st_mtim.tv_nsec)); }
-EOF
-ac_test st_mtimensec '!' st_mtim 0 'for struct stat.st_mtimensec' <<-'EOF'
+ac_test st_mtimensec '' 'for struct stat.st_mtimensec' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int main(void) { struct stat sb; return (sizeof(sb.st_mtimensec)); }
+EOF
+ac_test st_mtimespec '!' st_mtimensec 0 'for struct stat.st_mtimespec.tv_nsec' <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	int main(void) { struct stat sb; return (sizeof(sb.st_mtimespec.tv_nsec)); }
+EOF
+ac_test st_mtim '!' st_mtimespec 0 'for struct stat.st_mtim.tv_nsec' <<-'EOF'
+	#define MKSH_INCLUDES_ONLY
+	#include "sh.h"
+	int main(void) { struct stat sb; return (sizeof(sb.st_mtim.tv_nsec)); }
 EOF
 
 #
@@ -2491,7 +2496,7 @@ addsrcs USE_PRINTF_BUILTIN printf.c
 addsrcs '!' MKSH_UNLIMITED ulimit.c
 
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
-add_cppflags -DMKSH_BUILD_R=593
+add_cppflags -DMKSH_BUILD_R=599
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 
