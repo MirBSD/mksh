@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.375 2021/01/23 04:05:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.376 2021/01/24 23:03:11 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -90,7 +90,7 @@ static const char *initcoms[] = {
 };
 
 static const char *restr_com[] = {
-	Ttypeset, Tdr, TPATH, TENV, TSHELL, NULL
+	Ttypeset, Tdr, TENV, "HISTFILE", TPATH, TSHELL, NULL
 };
 
 static bool initio_done;

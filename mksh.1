@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.500 2021/01/24 22:45:24 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.501 2021/01/24 23:03:11 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -309,31 +309,32 @@ files:
 .Pp
 .Bl -bullet -compact
 .It
-The
-.Ic cd
-.Po and Ic chdir Pc
-command is disabled.
-.It
-The
-.Ev SHELL ,
-.Ev ENV
-and
+Command names cannot be specified with pathnames, absolute or relative,
+nor using the
+.Fl p
+option of the
+.Ic command
+built-in utility; the
+.Ev ENV ,
 .Ev PATH
+and
+.Ev SHELL
 parameters cannot be changed.
 .It
-Command names can't be specified with absolute or relative paths.
-.It
-The
-.Fl p
-option of the built-in command
-.Ic command
-can't be used.
+The current location is fixed: the
+.Ic cd
+command and its alias
+.Ic chdir
+is disabled.
 .It
 Redirections that create files can't be used (i.e.\&
 .Dq Li \*(Gt ,
 .Dq Li \*(Gt\*(Ba ,
 .Dq Li \*(Gt\*(Gt ,
-.Dq Li \*(Lt\*(Gt ) .
+.Dq Li \*(Lt\*(Gt ) ,
+and the
+.Ev HISTFILE
+parameter cannot be changed.
 .El
 .It Fl s
 The shell reads commands from standard input; all non-option arguments
@@ -1316,7 +1317,7 @@ not
 .Dq Li D
 and
 .Dq Li E .
-This behavior is POSIX compliant, but incompatible with some other shell
+This behavior is POSIX compliant but incompatible with some other shell
 implementations which do field splitting on the word which contained the
 substitution or use
 .Dv IFS
