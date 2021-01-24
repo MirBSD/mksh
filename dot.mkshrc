@@ -1,9 +1,9 @@
 # $Id$
-# $MirOS: src/bin/mksh/dot.mkshrc,v 1.134 2021/01/24 19:42:42 tg Exp $
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.135 2021/01/24 20:35:15 tg Exp $
 #-
 # Copyright (c) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
-#		2020
+#		2020, 2021
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -377,7 +377,7 @@ function Lb64decode {
 	if (( $# )); then
 		s="$*"
 	elif [[ -t 0 ]]; then
-		s=$(\cat || \builtin exit $?; \\builtin print x) || \
+		s=$(\cat || \\builtin exit $?; \\builtin print x) || \
 		    \\builtin return $?
 		s=${s%x}
 	else
@@ -524,7 +524,6 @@ function enable {
 	i_func[nfunc++]=break
 	# \\builtin cannot, by design, be overridden
 	i_func[nfunc++]=builtin
-	i_func[nfunc++]=cat
 	i_func[nfunc++]=cd
 	i_func[nfunc++]=chdir
 	i_func[nfunc++]=command
@@ -567,7 +566,6 @@ function enable {
 	i_func[nfunc++]=bind
 	i_func[nfunc++]=mknod
 	i_func[nfunc++]=printf
-	i_func[nfunc++]=sleep
 	i_func[nfunc++]=domainname
 	i_func[nfunc++]=extproc
 
