@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.305 2021/01/26 23:48:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.306 2021/01/26 23:49:49 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1829,6 +1829,7 @@ do_realpath(const char *upath)
 				/* ldestsz == pathlen + 1 */
 				ldest = aresize(ldest, ldestsz, ATEMP);
 			}
+			errno = ENAMETOOLONG; /* for > pathlen case */
 			llen = readlink(Xstring(xs, xp), ldest, ldestsz);
 			if (llen < 0 || (size_t)llen > pathlen)
 				/* oops... */
