@@ -4,7 +4,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
- *		 2020
+ *		 2020, 2021
  *	mirabilos <m@mirbsd.org>
  * Copyright (c) 2015
  *	Daniel Richard G. <skunk@iSKUNK.ORG>
@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.303 2020/11/26 00:42:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.304 2021/01/26 23:11:08 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1678,14 +1678,18 @@ ksh_get_wd(void)
 	char *rv, *cp;
 
 	if ((cp = get_current_dir_name())) {
-		strdupx(rv, cp, ATEMP);
+		if (mksh_abspath(cp))
+			strdupx(rv, cp, ATEMP);
+		else
+			rv = NULL;
 		free_gnu_gcdn(cp);
 	} else
 		rv = NULL;
 #else
 	char *rv;
 
-	if (!getcwd((rv = alloc(PATH_MAX + 1, ATEMP)), PATH_MAX)) {
+	if (!getcwd((rv = alloc(PATH_MAX + 1, ATEMP)), PATH_MAX) ||
+	    !mksh_abspath(rv)) {
 		afree(rv, ATEMP);
 		rv = NULL;
 	}
@@ -1730,7 +1734,7 @@ do_realpath(const char *upath)
 #endif
 	} else {
 		/* upath is a relative pathname, prepend cwd */
-		if ((tp = ksh_get_wd()) == NULL || !mksh_abspath(tp))
+		if ((tp = ksh_get_wd()) == NULL)
 			return (NULL);
 		strpathx(ipath, tp, upath, 1);
 		afree(tp, ATEMP);
