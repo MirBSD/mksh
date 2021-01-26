@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.304 2021/01/26 23:11:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.305 2021/01/26 23:48:46 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1711,12 +1711,14 @@ do_realpath(const char *upath)
 	ssize_t llen;
 	struct stat sb;
 #ifdef MKSH__NO_PATH_MAX
-	size_t ldestlen = 0;
-#define pathlen sb.st_size
-#define pathcnd (ldestlen < (pathlen + 1))
+	off_t ldestlen = 0;
+#define pathlen ((size_t)sb.st_size)
+#define pathcnd ((ldestlen < 1) || ((ldestlen - 1) < sb.st_size))
+#define ldestsz ((size_t)ldestlen)
 #else
-#define pathlen PATH_MAX
+#define pathlen ((size_t)PATH_MAX)
 #define pathcnd (!ldest)
+#define ldestsz (pathlen + 1U)
 #endif
 	/* max. recursion depth */
 	int symlinks = 32;
@@ -1817,15 +1819,18 @@ do_realpath(const char *upath)
 			/* get symlink(7) target */
 			if (pathcnd) {
 #ifdef MKSH__NO_PATH_MAX
-				if (notoktoadd(pathlen, 1)) {
+				/* same as notoktoadd(pathlen, 1) but adapted */
+				if ((uintmax_t)sb.st_size >= (uintmax_t)SIZE_MAX) {
 					errno = ENAMETOOLONG;
 					goto notfound;
 				}
+				ldestlen = sb.st_size + 1; /* <= SIZE_MAX */
 #endif
-				ldest = aresize(ldest, pathlen + 1, ATEMP);
+				/* ldestsz == pathlen + 1 */
+				ldest = aresize(ldest, ldestsz, ATEMP);
 			}
-			llen = readlink(Xstring(xs, xp), ldest, pathlen + 1);
-			if (llen < 0 || llen > pathlen)
+			llen = readlink(Xstring(xs, xp), ldest, ldestsz);
+			if (llen < 0 || (size_t)llen > pathlen)
 				/* oops... */
 				goto notfound;
 			ldest[llen] = '\0';
