@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.382 2021/01/24 20:38:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.383 2021/01/27 15:59:33 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2749,16 +2749,6 @@ test_isop(Test_meta meta, const char *s)
 #define test_lstat(name,buffer)	lstat((name), (buffer))
 #endif
 
-#if HAVE_ST_MTIMESPEC
-#undef st_mtimensec
-#define st_mtimensec st_mtimespec.tv_nsec
-#endif
-
-#if HAVE_ST_MTIM
-#undef st_mtimensec
-#define st_mtimensec st_mtim.tv_nsec
-#endif
-
 static int
 mtimecmp(const struct stat *sb1, const struct stat *sb2)
 {
@@ -2766,7 +2756,7 @@ mtimecmp(const struct stat *sb1, const struct stat *sb2)
 		return (-1);
 	if (sb1->st_mtime > sb2->st_mtime)
 		return (1);
-#if (HAVE_ST_MTIMENSEC || HAVE_ST_MTIMESPEC || HAVE_ST_MTIM)
+#if HAVE_ST_MTIMENSEC
 	if (sb1->st_mtimensec < sb2->st_mtimensec)
 		return (-1);
 	if (sb1->st_mtimensec > sb2->st_mtimensec)

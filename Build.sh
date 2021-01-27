@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.765 2021/01/24 19:56:19 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.766 2021/01/27 15:59:32 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -2315,16 +2315,25 @@ ac_test st_mtimensec '' 'for struct stat.st_mtimensec' <<-'EOF'
 	#include "sh.h"
 	int main(void) { struct stat sb; return (sizeof(sb.st_mtimensec)); }
 EOF
-ac_test st_mtimespec '!' st_mtimensec 0 'for struct stat.st_mtimespec.tv_nsec' <<-'EOF'
+ac_testn st_mtimespec '!' st_mtimensec 0 'for struct stat.st_mtimespec.tv_nsec' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int main(void) { struct stat sb; return (sizeof(sb.st_mtimespec.tv_nsec)); }
 EOF
-ac_test st_mtim '!' st_mtimespec 0 'for struct stat.st_mtim.tv_nsec' <<-'EOF'
+if test 1 = "$HAVE_ST_MTIMESPEC"; then
+	add_cppflags -Dst_mtimensec=st_mtimespec.tv_nsec
+	HAVE_ST_MTIMENSEC=1
+fi
+ac_testn st_mtim '!' st_mtimensec 0 'for struct stat.st_mtim.tv_nsec' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int main(void) { struct stat sb; return (sizeof(sb.st_mtim.tv_nsec)); }
 EOF
+if test 1 = "$HAVE_ST_MTIM"; then
+	add_cppflags -Dst_mtimensec=st_mtim.tv_nsec
+	HAVE_ST_MTIMENSEC=1
+fi
+ac_cppflags ST_MTIMENSEC
 
 #
 # other checks
