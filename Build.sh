@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.766 2021/01/27 15:59:32 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.767 2021/01/27 16:45:26 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -2310,7 +2310,7 @@ ac_test sys_siglist_decl sys_siglist 0 'for declaration of sys_siglist[]' <<-'EO
 	int main(void) { return (sys_siglist[0][0] + isatty(0)); }
 EOF
 
-ac_test st_mtimensec '' 'for struct stat.st_mtimensec' <<-'EOF'
+ac_testn st_mtimensec '' 'for struct stat.st_mtimensec' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
 	int main(void) { struct stat sb; return (sizeof(sb.st_mtimensec)); }
