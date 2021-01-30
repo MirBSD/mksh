@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.11 2021/01/24 22:45:25 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.12 2021/01/30 05:56:15 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -8,12 +8,15 @@ Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
  initial lowercase letter</a>; this is important) or “MirBSD Korn Shell”,
  possibly with “the”.</p>
 <p>I usually pronounce it as “<span xml:lang="de-DE-1901">em-ka-es-ha</span>”,
- that is, the letters individually in my native German, or say “MirBSD Korn
- Shell”, although it is manageable, mostly for Slavic speakers, to actually
- say “mksh” as if it were a word ☺</p>
+ that is, the letters individually in my native German, emphasis on the
+ first syllable, or say “MirBSD Korn Shell”, although it is manageable,
+ mostly for Slavic speakers, to actually say “mksh” as if it were a word ☺</p>
 <p>Oh… I’ve run into this one, didn’t I? “MirBSD” is pronounced “<span
  xml:lang="de-DE-1901">Mir-Be-Es-De</span>” germanically, for anglophones
  “Mir-beas’tie” is fine.</p>
+<p>This translates well into other languages, such as <span
+ xml:lang="es">eme-ka-ese-ache</span> in Spanish, although English
+ speakers may still find “Mir-beastie korn shell” more palatable.</p>
 ----
 ToC: sowhatismksh
 Title: I’m a $OS (<i>Android, OS/2, …</i>) user, so what’s mksh?
