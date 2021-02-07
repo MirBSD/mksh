@@ -6,7 +6,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020
+ *		 2019, 2020, 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.376 2021/01/24 23:03:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.377 2021/02/07 02:02:26 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -2136,7 +2136,7 @@ recheck_ctype(void)
 		ccp = str_val(global("LANG"));
 	UTFMODE = isuc(ccp);
 #if HAVE_SETLOCALE_CTYPE
-	ccp = setlocale(LC_CTYPE, ccp);
+	ccp = setlocale(LC_CTYPE, *ccp ? ccp : "C");
 #if HAVE_LANGINFO_CODESET
 	if (!isuc(ccp))
 		ccp = nl_langinfo(CODESET);
