@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.361 2021/02/26 11:48:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.362 2021/02/26 11:51:07 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -3193,7 +3193,7 @@ x_edit_line(int c MKSH_A_UNUSED)
 
 /*-
  * NAME:
- *	x_prev_histword - recover word from prev command
+ *	x_prev_histword - recover bigword from prev command
  *
  * DESCRIPTION:
  *	This function recovers the last bigword from the previous

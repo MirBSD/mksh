@@ -19,7 +19,7 @@
  */
 
 #if defined(EMACSFN_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/emacsfn.h,v 1.14 2021/02/26 11:49:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/emacsfn.h,v 1.15 2021/02/26 11:51:08 tg Exp $");
 #define FN(cname,sname,flags)	static int x_##cname(int);
 #elif defined(EMACSFN_ENUMS)
 #define FN(cname,sname,flags)	XFUNC_##cname,
@@ -103,7 +103,7 @@ FN(next_com, "down-history", XF_ARG)
 FN(nl_next_com, "newline-and-next", 0)
 FN(noop, "no-op", 0)
 FN(prev_com, "up-history", XF_ARG)
-FN(prev_histword, "prev-hist-word", XF_ARG)
+FN(prev_histword, "prev-hist-bigword", XF_ARG)
 #ifndef MKSH_SMALL
 FN(quote_region, "quote-region", 0)
 #endif
