@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.14 2021/02/07 01:30:34 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.15 2021/02/26 08:32:46 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -403,6 +403,9 @@ Title: How POSIX compliant is mksh? Also, UTF-8 vs. locales?
  <tt>Arithmetic expressions</tt> in mksh(1) for details) <em>must</em> stay
  disabled in POSIX mode (it is disabled upon enabling POSIX mode in R56+ but
  don’t depend on this to stay once locale tracking will be implemented).</p>
+<p><strong>Future compatibility note:</strong> there’s work underway to use
+ full 21-bit UTF-8 in mksh R60 or so. Raw octet mapping will almost certainly
+ be moved out of the PUA and to some range outside of UCS.</p>
 <p class="boxhead">The following POSIX sh-compatible code toggles the
  <tt>utf8-mode</tt> option dependent on the current POSIX locale, for mksh
  to allow using the UTF-8 mode, within the constraints outlined above, in
