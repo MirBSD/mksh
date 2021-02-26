@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009, 2010, 2015, 2016, 2020
+ * Copyright (c) 2009, 2010, 2015, 2016, 2020, 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -19,7 +19,7 @@
  */
 
 #if defined(EMACSFN_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/emacsfn.h,v 1.11 2020/04/13 20:46:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/emacsfn.h,v 1.12 2021/02/26 11:48:56 tg Exp $");
 #define FN(cname,sname,flags)	static int x_##cname(int);
 #elif defined(EMACSFN_ENUMS)
 #define FN(cname,sname,flags)	XFUNC_##cname,
@@ -42,8 +42,14 @@ FN(comp_list, "complete-list", 0)
 FN(complete, "complete", 0)
 FN(del_back, "delete-char-backward", XF_ARG)
 FN(del_bword, "delete-word-backward", XF_ARG)
+#ifndef MKSH_SMALL
+FN(del_bbigword, "delete-bigword-backward", XF_ARG)
+#endif
 FN(del_char, "delete-char-forward", XF_ARG)
 FN(del_fword, "delete-word-forward", XF_ARG)
+#ifndef MKSH_SMALL
+FN(del_fbigword, "delete-bigword-forward", XF_ARG)
+#endif
 FN(del_line, "kill-line", 0)
 FN(draw_line, "redraw", 0)
 #ifndef MKSH_SMALL
@@ -59,8 +65,11 @@ FN(eval_region, "evaluate-region", 0)
 #endif
 FN(expand, "expand-file", 0)
 #ifndef MKSH_SMALL
+FN(foldb_capitalise, "capitalize-bigword", XF_ARG)
 FN(fold_capitalise, "capitalize-word", XF_ARG)
+FN(foldb_lower, "downcase-bigword", XF_ARG)
 FN(fold_lower, "downcase-word", XF_ARG)
+FN(foldb_upper, "upcase-bigword", XF_ARG)
 FN(fold_upper, "upcase-word", XF_ARG)
 #endif
 FN(goto_hist, "goto-history", XF_ARG)
@@ -80,9 +89,15 @@ FN(meta_yank, "yank-pop", 0)
 FN(mv_back, "backward-char", XF_ARG)
 FN(mv_beg, "beginning-of-line", 0)
 FN(mv_bword, "backward-word", XF_ARG)
+#ifndef MKSH_SMALL
+FN(mv_bbigword, "backward-bigword", XF_ARG)
+#endif
 FN(mv_end, "end-of-line", 0)
 FN(mv_forw, "forward-char", XF_ARG)
 FN(mv_fword, "forward-word", XF_ARG)
+#ifndef MKSH_SMALL
+FN(mv_fbigword, "forward-bigword", XF_ARG)
+#endif
 FN(newline, "newline", 0)
 FN(next_com, "down-history", XF_ARG)
 FN(nl_next_com, "newline-and-next", 0)

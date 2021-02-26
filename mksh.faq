@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.15 2021/02/26 08:32:46 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.16 2021/02/26 11:48:57 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -332,8 +332,14 @@ Use ^[^L (Escape+Ctrl-L) or rebind it:<br />
 ToC: ctrl-u-pico
 Title: ^U (Ctrl-U) clears the entire line
 
-If it should only delete the line up to the cursor, use:<br />
+If you want it to only delete the line up to the cursor, use:<br />
 <tt>bind -m ^U='^[0^K'</tt>
+----
+ToC: ctrl-w-bash
+Title: ^W (Ctrl-W) deletes a word, not a bigword
+
+If you want it to delete more, with R60 you can use:<br />
+<tt>bind '^W=delete-bigword-backward'</tt>
 ----
 ToC: cur-up-zsh
 Title: Cursor Up behaves differently from zsh

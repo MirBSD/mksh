@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.360 2021/01/24 18:14:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.361 2021/02/26 11:48:55 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -983,8 +983,8 @@ static int x_col;		/* current column on line */
 
 static int x_ins(const char *);
 static void x_delete(size_t, bool);
-static size_t x_bword(void);
-static size_t x_fword(bool);
+static void x_bword(uint32_t, bool);
+static void x_fword(uint32_t, bool);
 static void x_goto(char *);
 static char *x_bs0(char *, char *) MKSH_A_PURE;
 static void x_bs3(char **);
@@ -1007,7 +1007,7 @@ static void x_e_putc2(int);
 static void x_e_putc3(const char **);
 static void x_e_puts(const char *);
 #ifndef MKSH_SMALL
-static int x_fold_case(int);
+static int x_fold_case(int, uint32_t);
 #endif
 static char *x_lastcp(void);
 static void x_lastpos(void);
@@ -1043,6 +1043,12 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_mv_bword,		1,	'b'	},
 	{ XFUNC_mv_fword,		1,	'f'	},
 	{ XFUNC_del_fword,		1,	'd'	},
+#ifndef MKSH_SMALL
+	{ XFUNC_del_bbigword,		1,	'H'	},
+	{ XFUNC_mv_bbigword,		1,	'B'	},
+	{ XFUNC_mv_fbigword,		1,	'F'	},
+	{ XFUNC_del_fbigword,		1,	'D'	},
+#endif
 	{ XFUNC_mv_back,		0,  CTRL_B	},
 	{ XFUNC_mv_forw,		0,  CTRL_F	},
 	{ XFUNC_search_char_forw,	0,  CTRL_BC	},
@@ -1097,11 +1103,11 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_set_arg,		1,	'8'	},
 	{ XFUNC_set_arg,		1,	'9'	},
 #ifndef MKSH_SMALL
-	{ XFUNC_fold_upper,		1,	'U'	},
+	{ XFUNC_foldb_upper,		1,	'U'	},
 	{ XFUNC_fold_upper,		1,	'u'	},
-	{ XFUNC_fold_lower,		1,	'L'	},
+	{ XFUNC_foldb_lower,		1,	'L'	},
 	{ XFUNC_fold_lower,		1,	'l'	},
-	{ XFUNC_fold_capitalise,	1,	'C'	},
+	{ XFUNC_foldb_capitalise,	1,	'C'	},
 	{ XFUNC_fold_capitalise,	1,	'c'	},
 #endif
 	/*
@@ -1525,75 +1531,105 @@ x_delete(size_t nc, bool push)
 static int
 x_del_bword(int c MKSH_A_UNUSED)
 {
-	x_delete(x_bword(), true);
+	x_bword(C_MFS, true);
 	return (KSTD);
 }
 
 static int
 x_mv_bword(int c MKSH_A_UNUSED)
 {
-	x_bword();
+	x_bword(C_MFS, false);
 	return (KSTD);
 }
 
 static int
 x_mv_fword(int c MKSH_A_UNUSED)
 {
-	x_fword(true);
+	x_fword(C_MFS, false);
 	return (KSTD);
 }
 
 static int
 x_del_fword(int c MKSH_A_UNUSED)
 {
-	x_delete(x_fword(false), true);
+	x_fword(C_MFS, true);
 	return (KSTD);
 }
 
-static size_t
-x_bword(void)
+#ifndef MKSH_SMALL
+static int
+x_del_bbigword(int c MKSH_A_UNUSED)
+{
+	x_bword(C_BLANK, true);
+	return (KSTD);
+}
+
+static int
+x_mv_bbigword(int c MKSH_A_UNUSED)
+{
+	x_bword(C_BLANK, false);
+	return (KSTD);
+}
+
+static int
+x_mv_fbigword(int c MKSH_A_UNUSED)
+{
+	x_fword(C_BLANK, false);
+	return (KSTD);
+}
+
+static int
+x_del_fbigword(int c MKSH_A_UNUSED)
+{
+	x_fword(C_BLANK, true);
+	return (KSTD);
+}
+#endif
+
+static void
+x_bword(uint32_t separator, bool erase)
 {
 	size_t nb = 0;
 	char *cp = xcp;
 
 	if (cp == xbuf) {
 		x_e_putc2(KSH_BEL);
-		return (0);
+		return;
 	}
 	while (x_arg--) {
-		while (cp != xbuf && ctype(cp[-1], C_MFS)) {
+		while (cp != xbuf && ctype(cp[-1], separator)) {
 			cp--;
 			nb++;
 		}
-		while (cp != xbuf && !ctype(cp[-1], C_MFS)) {
+		while (cp != xbuf && !ctype(cp[-1], separator)) {
 			cp--;
 			nb++;
 		}
 	}
 	x_goto(cp);
-	return (x_nb2nc(nb));
+	if (erase)
+		x_delete(x_nb2nc(nb), true);
 }
 
-static size_t
-x_fword(bool move)
+static void
+x_fword(uint32_t separator, bool erase)
 {
-	size_t nc;
 	char *cp = xcp;
 
 	if (cp == xep) {
 		x_e_putc2(KSH_BEL);
-		return (0);
+		return;
 	}
 	while (x_arg--) {
-		while (cp != xep && ctype(*cp, C_MFS))
+		while (cp != xep && ctype(*cp, separator))
 			cp++;
-		while (cp != xep && !ctype(*cp, C_MFS))
+		while (cp != xep && !ctype(*cp, separator))
 			cp++;
 	}
-	nc = x_nb2nc(cp - xcp);
-	if (move)
+	if (erase)
+		x_delete(x_nb2nc(cp - xcp), true);
+	else
 		x_goto(cp);
-	return (nc);
 }
 
 static void
@@ -3160,9 +3196,9 @@ x_edit_line(int c MKSH_A_UNUSED)
  *	x_prev_histword - recover word from prev command
  *
  * DESCRIPTION:
- *	This function recovers the last word from the previous
+ *	This function recovers the last bigword from the previous
  *	command and inserts it into the current edit line. If a
- *	numeric arg is supplied then the n'th word from the
+ *	numeric arg is supplied then the n'th bigword from the
  *	start of the previous command is used.
  *	As a side effect, trashes the mark in order to achieve
  *	being called in a repeatable fashion.
@@ -3200,13 +3236,13 @@ x_prev_histword(int c MKSH_A_UNUSED)
 
 		rcp = &cp[strlen(cp) - 1];
 		/*
-		 * ignore white-space after the last word
+		 * ignore whitespace after the last bigword
 		 */
-		while (rcp > cp && ctype(*rcp, C_CFS))
+		while (rcp > cp && ctype(*rcp, C_BLANK))
 			rcp--;
-		while (rcp > cp && !ctype(*rcp, C_CFS))
+		while (rcp > cp && !ctype(*rcp, C_BLANK))
 			rcp--;
-		if (ctype(*rcp, C_CFS))
+		if (ctype(*rcp, C_BLANK))
 			rcp++;
 		x_ins(rcp);
 	} else {
@@ -3215,18 +3251,18 @@ x_prev_histword(int c MKSH_A_UNUSED)
 
 		rcp = cp;
 		/*
-		 * ignore white-space at start of line
+		 * ignore whitespace at start of line
 		 */
-		while (*rcp && ctype(*rcp, C_CFS))
+		while (*rcp && ctype(*rcp, C_BLANK))
 			rcp++;
 		while (x_arg-- > 0) {
-			while (*rcp && !ctype(*rcp, C_CFS))
+			while (*rcp && !ctype(*rcp, C_BLANK))
 				rcp++;
-			while (*rcp && ctype(*rcp, C_CFS))
+			while (*rcp && ctype(*rcp, C_BLANK))
 				rcp++;
 		}
 		cp = rcp;
-		while (*rcp && !ctype(*rcp, C_CFS))
+		while (*rcp && !ctype(*rcp, C_BLANK))
 			rcp++;
 		ch = *rcp;
 		*rcp = '\0';
@@ -3244,21 +3280,42 @@ x_prev_histword(int c MKSH_A_UNUSED)
 static int
 x_fold_upper(int c MKSH_A_UNUSED)
 {
-	return (x_fold_case('U'));
+	return (x_fold_case('U', C_MFS));
 }
 
 /* Lowercase N(1) words */
 static int
 x_fold_lower(int c MKSH_A_UNUSED)
 {
-	return (x_fold_case('L'));
+	return (x_fold_case('L', C_MFS));
 }
 
 /* Titlecase N(1) words */
 static int
 x_fold_capitalise(int c MKSH_A_UNUSED)
 {
-	return (x_fold_case('C'));
+	return (x_fold_case('C', C_MFS));
+}
+
+/* Uppercase N(1) bigwords */
+static int
+x_foldb_upper(int c MKSH_A_UNUSED)
+{
+	return (x_fold_case('U', C_BLANK));
+}
+
+/* Lowercase N(1) bigwords */
+static int
+x_foldb_lower(int c MKSH_A_UNUSED)
+{
+	return (x_fold_case('L', C_BLANK));
+}
+
+/* Titlecase N(1) bigwords */
+static int
+x_foldb_capitalise(int c MKSH_A_UNUSED)
+{
+	return (x_fold_case('C', C_BLANK));
 }
 
 /*-
@@ -3267,13 +3324,13 @@ x_fold_capitalise(int c MKSH_A_UNUSED)
  *
  * DESCRIPTION:
  *	This function is used to implement M-U/M-u, M-L/M-l, M-C/M-c
- *	to UPPER CASE, lower case or Capitalise Words.
+ *	to UPPER CASE, lower case or Capitalise words and bigwords.
  *
  * RETURN VALUE:
  *	None
  */
 static int
-x_fold_case(int c)
+x_fold_case(int c, uint32_t separator)
 {
 	char *cp = xcp;
 
@@ -3285,7 +3342,7 @@ x_fold_case(int c)
 		/*
 		 * first skip over any white-space
 		 */
-		while (cp != xep && ctype(*cp, C_MFS))
+		while (cp != xep && ctype(*cp, separator))
 			cp++;
 		/*
 		 * do the first char on its own since it may be
@@ -3303,7 +3360,7 @@ x_fold_case(int c)
 		/*
 		 * now for the rest of the word
 		 */
-		while (cp != xep && !ctype(*cp, C_MFS)) {
+		while (cp != xep && !ctype(*cp, separator)) {
 			if (c == 'U')
 				/* uppercase */
 				*cp = ksh_toupper(*cp);
