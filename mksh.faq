@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.16 2021/02/26 11:48:57 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.17 2021/03/11 14:16:08 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -263,7 +263,7 @@ Title: My prompt is weird!
  (This was agreed upon as suggestion in a discussion between bash, zsh and
  Korn shell developers.) The feature set of different shells vastly differs
  and each shell should use its default PS1 or from its startup files.</li>
-<li><tt>$ENV</tt> <a href="#env">is set and/or <tt>export</tt>ed</a>.</li>
+<li><tt>$ENV</tt> <a href="#env">is set and probably <tt>export</tt>ed</a>.</li>
 <li>Your prompt is just “<tt># </tt>”: you’re entering a root shell, and
  <tt>$PS1</tt> does not contain the ‘#’ character, in which case the shell
  forces this prompt, making extra privileges obvious.</li>
@@ -287,7 +287,7 @@ Title: My prompt is weird!
 ToC: env
 Title: On startup files and <tt>$ENV</tt> across and detecting various shells
 
-Interactive shells look at <tt>~/.mkshrc</tt> (or <tt>/system/etc/mkshrc</tt>
+<p>Interactive shells look at <tt>~/.mkshrc</tt> (or <tt>/system/etc/mkshrc</tt>
 on Android and <tt>/etc/mkshrc</tt> on FreeWRT and OpenWrt) by default. This
 location can, however, be overridden by setting the <tt>ENV</tt> environment
 variable. (FreeBSD is rumoured to set it in their system profile.) It’s better
@@ -298,7 +298,30 @@ or “MIRBSD KSH” for mksh, “PD KSH” for ancient mirbsdksh/oksh/pdksh, “
 for ksh93); <tt>$NETBSD_SHELL</tt> (NetBSD ash); <tt>POSH_VERSION</tt> (posh, a
 pdksh derivative); <tt>$SH_VERSION</tt> (“PD KSH” as sh), <tt>$YASH_VERSION</tt>
 (yash), <tt>$ZSH_VERSION</tt> (or if <tt>$VERSION</tt> begins with “zsh”); a <a
-href="@@RELPATH@@ksh-chan.htm#which-shell">list of more approaches</a> exists.
+href="@@RELPATH@@ksh-chan.htm#which-shell">list of more approaches</a> exists.</p>
+
+<p>Note that, in some scenarios, it might be very useful to actually set
+ <tt>$ENV</tt>: the regular interactive shell startup file lies in the
+ user’s home directory, relying on being copied from <tt>/etc/skel/</tt>
+ which normally is only done at user creation time. If mksh was installed
+ later, the user often won’t get it at all, and delivering updates is
+ challenging. One way of partially working around this is to ship an
+ <tt>/etc/skel/.mkshrc</tt> that reads <tt>/etc/mkshrc</tt> by default
+ (but the user can change it of course) and ship the <tt>dot.mkshrc</tt>
+ file as <tt>/etc/mkshrc</tt>, but that won’t fully help. This is where
+ <tt>$ENV</tt> comes into play:</p><ul>
+  <li>In <tt>/etc/profile</tt>, set <tt>ENV</tt> to a, say, <tt>shrc</tt>
+   file shipped in <tt>/etc/</tt> and export it.</li>
+  <li>In that new file, which must use only constructs compatible with
+   all shells, usually a subset of POSIX, read the various rc files
+   (<tt>.mkshrc</tt> for mksh, <tt>.kshrc</tt> for AT&amp;T ksh93, etc.)
+   from the user’s home if they exist, from <tt>/etc/skel/</tt> otherwise.</li>
+</ul><p>This may very well be <em>required</em> if the alternative would
+ be <a href="#ps1weird">to <del><tt>export PS1</tt></del>[sic!]</a>. <a
+  href="https://gitlab.alpinelinux.org/alpine/aports/-/issues/12398#note_146574"
+ >alpine Linux</a> encountered this very problem, and the linked post is
+ a (draft) solution using the <tt>$ENV</tt> method and looks at various
+ other shells’ startup file situation as well.</p>
 ----
 ToC: ctrl-x-e
 Title: Multiline command editing
