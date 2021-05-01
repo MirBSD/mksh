@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019, 2020
+ *		 2019, 2020, 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.231 2020/05/05 21:34:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.232 2021/05/01 22:59:10 tg Exp $");
 
 /*
  * string expansion
@@ -1005,8 +1005,8 @@ expand(
 				c = ORD('\n');
 				--newlines;
 			} else {
-				while ((c = shf_getc(x.u.shf)) == 0 ||
-				    cinttype(c, C_NL)) {
+				while (c = shf_getc(x.u.shf),
+				    cinttype(c, C_NL | C_NUL)) {
 #ifdef MKSH_WITH_TEXTMODE
 					if (c == ORD('\r')) {
 						c = shf_getc(x.u.shf);
