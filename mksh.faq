@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.17 2021/03/11 14:16:08 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.18 2021/05/02 05:50:46 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -610,6 +610,20 @@ Title: Didn’t there used to be a sleep(1) builtin?
 <p>Note that, if your OS lacks select(2), you’ll lose out either way.
  In that case, GNU coreutils’ sleep, which is built on older syscalls,
  may work if the copyleft licence isn’t a showstopper for you.</p>
+----
+ToC: arith-import
+Title: Some integer variables are 0?
+
+<p class="boxhead">To mitigate potential exploits, variables imported
+ from the environment are not trusted in arithmetic context; that is…</p>
+<div class="boxtext">
+ <pre>
+	foo=1+1 mksh -c 'integer foo; print $foo'
+	foo=1+1 mksh -c 'integer foo=$foo; print $foo'
+ </pre>
+</div><p class="boxfoot">… will lose the value in the first line,
+ while the second line explicitly “untaints”, to use a Perl term,
+ the content. Purely numeric values will pass, though.</p>
 ----
 ToC: string-concat
 Title: “+=” behaves differently from other shells

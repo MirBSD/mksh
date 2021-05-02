@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.859 2021/01/24 19:41:07 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.860 2021/05/02 05:50:44 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2021/01/24
+	KSH R59 2021/05/01
 description:
 	Check base version of full shell
 stdin:
@@ -13229,6 +13229,37 @@ expected-stdout:
 	1=@foo.
 	2=\x7Cfoo-e \x4B
 	3=\x7Cfoo-e \x4B
+---
+name: env-intvars
+description:
+	Check that importing integers fails except for numbers
+stdin:
+	unset foo bar
+	print 1 $foo , $(typeset -p bar) .
+	print 2 $(foo=123 "$__progname" -c 'integer foo; print -- $foo' 2>&1) , \
+	    $(env 'bar[123]=baz' "$__progname" -c 'typeset -p bar') .
+	print 3 $(foo='abc[$(echo >&2 fowled)0]' "$__progname" -c 'integer foo; print -- $foo' 2>&1) , \
+	    $(env 'bar[$(echo >&2 fowled)0]=baz' "$__progname" -c 'typeset -p bar') .
+	print 4 $(foo=0123 "$__progname" +o posix -c 'integer foo; print -- $foo' 2>&1) , \
+	    $(env 'bar[0123]=baz' "$__progname" +o posix -c 'typeset -p bar') .
+	# ksh93 does not do this:
+	print 5 $(foo=0123 "$__progname" -o posix -c 'integer foo; print -- $foo' 2>&1) .
+	# at import time FPOSIX is not yet set
+	print 6 $(foo=0x123 "$__progname" -c 'integer foo; print -- $foo' 2>&1) , \
+	    $(env 'bar[0x123]=baz' "$__progname" -c 'typeset -p bar') .
+	print 7 $(foo=12#123 "$__progname" -c 'integer foo; print -- $foo' 2>&1) , \
+	    $(env 'bar[12#123]=baz' "$__progname" -c 'typeset -p bar') .
+	print 8 $(foo=1+1 "$__progname" -c 'integer foo; print -- $foo' 2>&1) , \
+	    $(env 'bar[1+1]=baz' "$__progname" -c 'typeset -p bar') .
+expected-stdout:
+	1 , .
+	2 123 , set -A bar typeset -x bar[123]=baz .
+	3 0 , .
+	4 123 , set -A bar typeset -x bar[123]=baz .
+	5 8#123 .
+	6 16#123 , set -A bar typeset -x bar[291]=baz .
+	7 12#123 , set -A bar typeset -x bar[171]=baz .
+	8 0 , .
 ---
 name: utilities-getopts-1
 description:

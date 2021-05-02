@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *		 2019
+ *		 2019, 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.237 2020/06/22 17:11:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.238 2021/05/02 05:50:47 tg Exp $");
 
 /*-
  * Variables
@@ -57,6 +57,7 @@ static void getspec(struct tbl *);
 static void setspec(struct tbl *);
 static void unsetspec(struct tbl *, bool);
 static int getint(struct tbl *, mksh_ari_u *, bool);
+static int getnum(const char *, mksh_ari_u *, bool, bool);
 static const char *array_index_calc(const char *, bool *, uint32_t *);
 static struct tbl *vtypeset(int *, const char *, uint32_t, uint32_t, int, int);
 
@@ -527,10 +528,6 @@ setint(struct tbl *vq, mksh_ari_t n)
 static int
 getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 {
-	mksh_uari_t c, num = 0, base = 10;
-	const char *s;
-	bool have_base = false, neg = false;
-
 	if (vp->flag & SPECIAL)
 		getspec(vp);
 	/* XXX is it possible for ISSET to be set and val.s to be NULL? */
@@ -540,7 +537,15 @@ getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 		nump->i = vp->val.i;
 		return (vp->type);
 	}
-	s = vp->val.s + vp->type;
+	return (getnum(vp->val.s + vp->type, nump, arith,
+	    Flag(FPOSIX) && !(vp->flag & ZEROFIL)));
+}
+
+static int
+getnum(const char *s, mksh_ari_u *nump, bool arith, bool psxoctal)
+{
+	mksh_uari_t c, num = 0, base = 10;
+	bool have_base = false, neg = false;
 
 	do {
 		c = (unsigned char)*s++;
@@ -561,8 +566,7 @@ getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 			base = 16;
 			++s;
 			goto getint_c_style_base;
-		} else if (Flag(FPOSIX) && ctype(s[0], C_DIGIT) &&
-		    !(vp->flag & ZEROFIL)) {
+		} else if (psxoctal && ctype(s[0], C_DIGIT)) {
 			/* interpret as octal (deprecated) */
 			base = 8;
  getint_c_style_base:
@@ -798,7 +802,7 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 			return (maybe_errorf(ep, 1, Tf_sD_s, var,
 			    "reference variable can't be an array"), NULL);
 		len = array_ref_len(val);
-		if (len == 0)
+		if (len < 3)
 			return (NULL);
 		/*
 		 * IMPORT is only used when the shell starts up and is
@@ -808,11 +812,20 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 		 * would be a major security hole.
 		 */
 		if (set & IMPORT) {
-			size_t i;
+			mksh_ari_u num;
 
-			for (i = 1; i < len - 1; i++)
-				if (!ctype(val[i], C_DIGIT))
-					return (NULL);
+			len -= 2;
+			tvar = len < sizeof(tvarbuf) ? tvarbuf :
+			    alloc(len + 1, ATEMP);
+			memcpy(tvar, val + 1, len);
+			tvar[len] = '\0';
+			if (getnum(tvar, &num, true, false) == -1)
+				len = 0;
+			if (tvar != tvarbuf)
+				afree(tvar, ATEMP);
+			if (!len)
+				return (NULL);
+			len += 2;
 		}
 		val += len;
 	}
@@ -961,7 +974,7 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 		 */
 		for (t = vpbase; t; t = t->u.array) {
 			bool fake_assign;
-			char *s = NULL;
+			const char *s = NULL;
 			char *free_me = NULL;
 
 			fake_assign = (t->flag & ISSET) && (!val || t != vp) &&
@@ -984,12 +997,25 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 				t->flag &= ~ALLOC;
 			}
 			t->flag = (t->flag | set) & ~clr;
-			/*
-			 * Don't change base if assignment is to be
-			 * done, in case assignment fails.
-			 */
-			if ((set & INTEGER) && base > 0 && (!val || t != vp))
-				t->type = base;
+			if (set & INTEGER) {
+				/*
+				 * Don't change base if assignment is to
+				 * be done, in case assignment fails.
+				 */
+				if (base > 0 && (!val || t != vp))
+					t->type = base;
+				/*
+				 * Do not permit content from the
+				 * environment to e.g. execute commands.
+				 */
+				if ((t->flag & IMPORT) && fake_assign) {
+					mksh_ari_u num;
+
+					if (getnum(s, &num, true,
+					    tobool(Flag(FPOSIX))) == -1)
+						s = "0";
+				}
+			}
 			if (set & (LJUST|RJUST|ZEROFIL))
 				t->u2.field = field;
 			if (fake_assign) {
