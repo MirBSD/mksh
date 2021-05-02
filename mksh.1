@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.507 2021/05/02 16:57:53 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.508 2021/05/02 18:14:33 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -2318,14 +2318,21 @@ Ranges of octets can be specified by separating two octets by a
 matches the letter
 .Ql a
 or any digit).
+Character classes can be specified by wrapping the name of the class between
+.Dq Li \&[:
+and
+.Dq Li \&:]
+(e.g.\&
+.Dq Li \&[[:alpha:][:digit:].]
+matches any ASCII letter or digit and the full stop).
+.Pp
 In order to represent itself, a
 .Ql \-
 must either be quoted or the first or last octet in the octet list.
-Similarly, a
+Similarly, if it is to represent itself instead of the end of the list, a
 .Ql \&]
-must be quoted or the first octet in the list if it is to represent itself
-instead of the end of the list.
-Also, a
+must be quoted or the first octet in the list.
+Also, an
 .Ql \&!
 appearing at the start of the list has special meaning (see below), so to
 represent itself it must be quoted or appear later in the list.
@@ -2394,6 +2401,114 @@ the pattern
 matches no strings; the pattern
 .Ic \&!(?)*
 matches all strings (think about it).
+.El
+.Pp
+The following character classes are supported (note all
+.Tn POSIX
+references assume the
+.Dv C
+locale; EBCDIC systems use the bytes from the codepage
+that map to the named ASCII characters so e.g.\&
+.Dq Li \&[[:upper:]]
+is correct while
+.Dq Li \&[A\-Z]
+will contain probably-unwanted characters on EBCDIC systems):
+.Pp
+.Bl -tag -width sh_quote -offset indent -compact
+.It Ic \*(Lt
+.Pq Tn BSD
+the null string at the beginning of a word
+.It Ic \*(Gt
+.Pq Tn BSD
+the null string at the end of a word
+.It Ic alnum
+.Pq Tn POSIX
+alphanumerical
+.Pq Ic alpha No or Ic digit
+.It Ic alpha
+.Pq Tn POSIX
+alphabetical
+.Pq Ic upper No or Ic lower
+.It Ic ascii
+.Pq Tn GNU Nm bash
+any 7-bit
+.Tn ASCII
+character except
+.Dv NUL
+.It Ic blank
+.Pq Tn POSIX
+space or horizontal\ tab
+.It Ic cntrl
+.Pq Tn POSIX
+ASCII C0 control characters
+.Pq \ex00\*(en\ex1F
+or \ex7F
+.It Ic digit
+.Pq Tn POSIX
+ASCII decimal digits
+.Pq 0\*(en9
+.It Ic graph
+.Pq Tn POSIX
+.Ic alnum No or Ic punct
+.Pq !\*(en\*(TI
+.It Ic lower
+.Pq Tn POSIX
+ASCII lowercase letters
+.Pq a\*(enz
+.It Ic print
+.Pq Tn POSIX
+.No space or Ic graph
+.Pq \ex20\*(en\*(TI
+.It Ic punct
+.Pq Tn POSIX
+punctuation
+.Pq Ic graph No except Ic alnum :
+.Li \&!"#$%&\*(aq()*+,\-./:;\*(Lt=\*(Gt?@[\e\e]\*(ha_\`{\*(Ba}\*(TI
+.It Ic sh_alias
+.Pq Nm mksh
+valid in alias names:
+.Ic alnum
+or
+.Li \&!%+,\-.:@[]_
+.It Ic sh_edq
+.Pq Nm mksh
+quoted by tab completion:
+.Li \&"#$&\*(aq()*:;\*(Lt=\*(Gt?[\e\e\`{\*(Ba}\*(TI
+.It Ic sh_ifs
+.Pq Nm mksh
+IFS whitespace, IFS non-whitespace,
+.Dv NUL
+.Pq via Ev $IFS
+.It Ic sh_ifsws
+.Pq Nm mksh
+IFS WS candidates: space, horizontal\ tab, linefeed
+.It Ic sh_nl
+.Pq Nm mksh
+linefeed or (OS/2 TEXTMODE only) carriage\ return
+.It Ic sh_quote
+.Pq Nm mksh
+characters requiring quoting, minus space:
+.Li \&\ex09\ex0A"#$&\*(aq()*;\*(Lt=\*(Gt?[\e\e]\`{\*(Ba}\*(TI
+.It Ic space
+.Pq Tn POSIX
+horizontal\ tab, line\ feed, vertical\ tab, form\ feed,
+carriage\ return, space
+.Pq \ex09\*(en\ex0D\ex20
+.It Ic upper
+.Pq Tn POSIX
+ASCII uppercase letters
+.Pq A\*(enZ
+.It Ic word
+.Pq Tn GNU Nm bash
+alphanumerical
+.Pq Ic alnum
+or underscore
+.Pq Dq Li \&_
+.It Ic xdigit
+.Pq Tn POSIX
+hexadecimal digits
+.Pq 0\*(en9A\*(enFa\*(enf
+a.k.a. nybbles
 .El
 .Pp
 Note that complicated globbing, especially with alternatives,

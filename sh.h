@@ -193,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.910 2021/05/02 16:57:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.911 2021/05/02 18:14:35 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/05/01"
 
@@ -1491,7 +1491,7 @@ EXTERN char ifs0;
 #define C_HEXLT	CiHEXLT
 /* \x00 + $IFS		IFS whitespace, IFS non-whitespace, NUL */
 #define C_IFS	(CiIFS | CiNUL)
-/* \x09\x0A\x20		IFS whitespace */
+/* \x09\x0A\x20		IFS whitespace candidates */
 #define C_IFSWS	(CiNL | CiSP | CiTAB)
 /* \x09\x0A\x20&();<>|	(for the lexer) */
 #define C_LEX1	(CiANGLE | CiNL | CiQCL | CiSP | CiTAB)

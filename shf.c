@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.106 2021/05/02 16:57:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.107 2021/05/02 18:14:35 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1455,7 +1455,7 @@ debug_ccls(void)
 	D(C_GRAPH, 1, 24, "POSIX graphical (alphanumerical plus punctuation)"); \
 	D(C_HEXLT, 1, 24, "hex letter"); \
 	D(C_IFS, 0, 24, "IFS whitespace, IFS non-whitespace, NUL"); \
-	D(C_IFSWS, 0, 24, "IFS whitespace"); \
+	D(C_IFSWS, 0, 24, "IFS whitespace candidates"); \
 	D(C_LEX1, 0, 24, "(for the lexer)"); \
 	D(C_LOWER, 1, 24, "lowercase letters"); \
 	D(C_MFS, 3, 24, "separator for motion"); \
