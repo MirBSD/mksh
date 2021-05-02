@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.362 2021/02/26 11:51:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.363 2021/05/02 07:43:41 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -74,6 +74,7 @@ static struct {
 #define XCF_COMMAND_FILE (XCF_COMMAND | XCF_FILE)
 #define XCF_IS_COMMAND	BIT(3)	/* return flag: is command */
 #define XCF_IS_NOSPACE	BIT(4)	/* return flag: do not append a space */
+#define XCF_IS_HOMEDIR	BIT(5)	/* return flag: tilde needs slash */
 
 static char editmode;
 static int xx_cols;			/* for Emacs mode */
@@ -671,7 +672,7 @@ x_cf_glob(int *flagsp, const char *buf, int buflen, int pos, int *startp,
 
 		if (*toglob == '~' && /* not vdirsep */ !vstrchr(toglob, '/')) {
 			/* neither for '~foo' (but '~foo/bar') */
-			*flagsp |= XCF_IS_NOSPACE;
+			*flagsp |= XCF_IS_HOMEDIR;
 			goto dont_add_glob;
 		}
 
@@ -2884,11 +2885,13 @@ do_complete(
 	x_adjust();
 	/*
 	 * append a space if this is a single non-directory match
-	 * and not a parameter or homedir substitution
+	 * and not a parameter substitution, slash for homedir
 	 */
-	if (nwords == 1 && !mksh_cdirsep(words[0][nlen - 1]) &&
-	    !(flags & XCF_IS_NOSPACE)) {
-		x_ins(T1space);
+	if (nwords == 1 && !mksh_cdirsep(words[0][nlen - 1])) {
+		if (flags & XCF_IS_HOMEDIR)
+			x_ins("/");
+		else if (!(flags & XCF_IS_NOSPACE))
+			x_ins(T1space);
 	}
 
 	x_free_words(nwords, words);
@@ -5536,11 +5539,14 @@ complete_word(int cmd, int count)
 
 		/*
 		 * append a space if this is a non-directory match
-		 * and not a parameter or homedir substitution
+		 * and not a parameter substitution, slash for homedir
 		 */
-		if (match_len > 0 && !mksh_cdirsep(match[match_len - 1]) &&
-		    !(flags & XCF_IS_NOSPACE))
-			rval = putbuf(T1space, 1, false);
+		if (match_len > 0 && !mksh_cdirsep(match[match_len - 1])) {
+			if (flags & XCF_IS_HOMEDIR)
+				rval = putbuf("/", 1, false);
+			else if (!(flags & XCF_IS_NOSPACE))
+				rval = putbuf(T1space, 1, false);
+		}
 	}
 	x_free_words(nwords, words);
 
