@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009,
  *		 2011, 2012, 2013, 2014, 2015, 2016, 2017,
- *		 2018, 2020
+ *		 2018, 2020, 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.129 2020/10/31 01:21:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.130 2021/05/02 08:26:03 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -74,8 +74,8 @@ static int symbol;			/* yylex value */
 
 #define REJECT		(reject = true)
 #define ACCEPT		(reject = false)
-#define token(cf)	((reject) ? (ACCEPT, symbol) : (symbol = yylex(cf)))
-#define tpeek(cf)	((reject) ? (symbol) : (REJECT, symbol = yylex(cf)))
+#define token(cf)	((reject ? 0 : (symbol = yylex(cf))), ACCEPT, symbol)
+#define tpeek(cf)	((reject ? 0 : (symbol = yylex(cf))), REJECT, symbol)
 #define musthave(c,cf)	do { 					\
 	if ((unsigned int)token(cf) != (unsigned int)(c))	\
 		syntaxerr(NULL);				\
