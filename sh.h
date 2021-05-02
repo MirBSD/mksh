@@ -193,9 +193,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.909 2021/05/02 16:21:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.910 2021/05/02 16:57:55 tg Exp $");
 #endif
-#define MKSH_VERSION "R59 2021/01/24"
+#define MKSH_VERSION "R59 2021/05/01"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1424,9 +1424,9 @@ EXTERN bool really_exit;
 #define CiOCTAL	BIT(5)	/* 0‥7				*/
 #define CiQCL	BIT(6)	/* &();|			*/
 #define CiALIAS	BIT(7)	/* !,.@				*/
-#define CiQCX	BIT(8)	/* *[\\				*/
+#define CiQCX	BIT(8)	/* *[\\~			*/
 #define CiVAR1	BIT(9)	/* !*@				*/
-#define CiQCM	BIT(10)	/* /^~				*/
+#define CiQCM	BIT(10)	/* /^				*/
 #define CiDIGIT	BIT(11)	/* 89				*/
 #define CiQC	BIT(12)	/* "'				*/
 #define CiSPX	BIT(13)	/* \x0B\x0C			*/
@@ -1479,9 +1479,11 @@ EXTERN char ifs0;
 #define C_DIGIT	(CiDIGIT | CiOCTAL)
 /* &();`|			editor x_locate_word() command */
 #define C_EDCMD	(CiGRAVE | CiQCL)
+/* $*?[\\`~			escape for globbing */
+#define C_EDGLB	(CiGRAVE | CiQCX | CiQUEST | CiSS)
 /* \x09\x0A\x20"&'():;<=>`|	editor non-word characters */
 #define C_EDNWC	(CiANGLE | CiCOLON | CiEQUAL | CiGRAVE | CiNL | CiQC | CiQCL | CiSP | CiTAB)
-/* "#$&'()*:;<=>?[\\`{|}	editor quotes for tab completion */
+/* "#$&'()*:;<=>?[\\`{|}~	editor quotes for tab completion */
 #define C_EDQ	(CiANGLE | CiCOLON | CiCURLY | CiEQUAL | CiGRAVE | CiHASH | CiQC | CiQCL | CiQCX | CiQUEST | CiSS)
 /* !‥~			POSIX graphical (alphanumerical plus punctuation) */
 #define C_GRAPH	(C_PUNCT | CiDIGIT | CiLOWER | CiOCTAL | CiUPPER)
@@ -1505,8 +1507,8 @@ EXTERN char ifs0;
 #define C_PRINT	(C_GRAPH | CiSP)
 /* !"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~	POSIX punctuation */
 #define C_PUNCT	(CiALIAS | CiANGLE | CiBRACK | CiCOLON | CiCURLY | CiEQUAL | CiGRAVE | CiHASH | CiMINUS | CiPERCT | CiPLUS | CiQC | CiQCL | CiQCM | CiQCX | CiQUEST | CiSS | CiUNDER)
-/* \x09\x0A"#$&'()*;<=>?[\\]`|	characters requiring quoting, minus space */
-#define C_QUOTE	(CiANGLE | CiBRACK | CiEQUAL | CiGRAVE | CiHASH | CiNL | CiQC | CiQCL | CiQCX | CiQUEST | CiSS | CiTAB)
+/* \x09\x0A"#$&'()*;<=>?[\\]`{|}~	characters requiring quoting, minus space */
+#define C_QUOTE	(CiANGLE | CiBRACK | CiCURLY | CiEQUAL | CiGRAVE | CiHASH | CiNL | CiQC | CiQCL | CiQCX | CiQUEST | CiSS | CiTAB)
 /* 0‥9A‥Fa‥f		hexadecimal digit */
 #define C_SEDEC	(CiDIGIT | CiHEXLT | CiOCTAL)
 /* \x09‥\x0D\x20	POSIX space class */

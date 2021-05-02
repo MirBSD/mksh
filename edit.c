@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.364 2021/05/02 15:44:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.365 2021/05/02 16:57:52 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -323,24 +323,9 @@ x_glob_hlp_add_qchar(char *cp)
 			continue;
 		}
 		XcheckN(xs, dp, 2);
-		if (escaping || ch == QCHAR) {
-			/*
-			 * empirically made list of chars to escape
-			 * for globbing as well as QCHAR itself
-			 */
-			switch (ord(ch)) {
-			case QCHAR:
-			case ORD('$'):
-			case ORD('*'):
-			case ORD('?'):
-			case ORD('['):
-			case ORD('\\'):
-			case ORD('`'):
-				*dp++ = QCHAR;
-				break;
-			}
-			escaping = false;
-		}
+		if ((escaping && ctype(ch, C_EDGLB)) || ch == QCHAR)
+			*dp++ = QCHAR;
+		escaping = false;
 		*dp++ = ch;
 	}
 	*dp = '\0';

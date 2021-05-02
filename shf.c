@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.105 2021/05/02 04:47:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.106 2021/05/02 16:57:56 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1197,7 +1197,7 @@ const uint32_t tpl_ctypes[128] = {
 	CiLOWER,	CiLOWER,	CiLOWER,	CiLOWER,
 	CiLOWER,	CiLOWER,	CiLOWER,	CiLOWER,
 	CiLOWER,	CiLOWER,	CiLOWER,	CiCURLY,
-	CiQCL,		CiCURLY,	CiQCM,		CiCNTRL
+	CiQCL,		CiCURLY,	CiQCX,		CiCNTRL
 };
 
 #ifdef MKSH__DEBUG_CCLASSES
@@ -1449,6 +1449,7 @@ debug_ccls(void)
 	D(C_CNTRL, 1, 24, "POSIX control characters"); \
 	D(C_DIGIT, 1, 24, "decimal digits"); \
 	D(C_EDCMD, 0, 32, "editor x_locate_word() command"); \
+	D(C_EDGLB, 0, 32, "escape for globbing"); \
 	D(C_EDNWC, 0, 32, "editor non-word characters"); \
 	D(C_EDQ, 0, 32, "editor quotes for tab completion"); \
 	D(C_GRAPH, 1, 24, "POSIX graphical (alphanumerical plus punctuation)"); \
@@ -1462,7 +1463,7 @@ debug_ccls(void)
 	D(C_PATMO, 0, 24, "pattern magical operator, except space"); \
 	D(C_PRINT, 1, 24, "POSIX printable characters (graph plus space)"); \
 	D(C_PUNCT, 0, 40, "POSIX punctuation"); \
-	D(C_QUOTE, 0, 32, "characters requiring quoting, minus space"); \
+	D(C_QUOTE, 0, 40, "characters requiring quoting, minus space"); \
 	D(C_SEDEC, 1, 24, "hexadecimal digit"); \
 	D(C_SPACE, 1, 24, "POSIX space class"); \
 	D(C_SUB1, 0, 24, "substitution operations with word"); \
