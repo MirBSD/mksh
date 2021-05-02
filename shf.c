@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.103 2021/05/02 01:29:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.104 2021/05/02 01:40:28 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1455,7 +1455,6 @@ debug_ccls(void)
 	D(C_ALPHX, 1, 24, "alphabetical plus underscore (identifier lead)"); \
 	D(C_ASCII, 1, 24, "7-bit ASCII except NUL"); \
 	D(C_BLANK, 0, 24, "tab and space"); \
-	D(C_CFS, 0, 24, "separator for completion"); \
 	D(C_CNTRL, 1, 24, "POSIX control characters"); \
 	D(C_DIGIT, 1, 24, "decimal digits"); \
 	D(C_EDCMD, 0, 32, "editor x_locate_word() command"); \
@@ -1693,7 +1692,6 @@ debug_ccls(void)
 		cnd = cond;				\
 		fnd = 0;				\
 		if (cnd != C_GRAPH &&			\
-		/*XXX*/ cnd != C_ASCII &&		\
 		    (cnd & C_GRAPH) == C_GRAPH) {	\
 			len += printf("%s%s",		\
 			    fnd ? " | " : "(",		\
@@ -1702,7 +1700,6 @@ debug_ccls(void)
 			cnd &= ~C_GRAPH;		\
 		}					\
 		if (cnd != C_PUNCT &&			\
-		/*XXX*/ cnd != C_ASCII &&		\
 		    (cnd & C_PUNCT) == C_PUNCT) {	\
 			len += printf("%s%s",		\
 			    fnd ? " | " : "(",		\
@@ -1755,18 +1752,13 @@ debug_ccls(void)
 	if (cond & CiIFS)				\
 		y += printf(" + $IFS");			\
 	tabto(y, tabstop);				\
-	printf("%s */\n#define %s%c", lbl, #cond,	\
-	    cond == C_ASCII ? ' ' : '\t');		\
+	printf("%s */\n#define %s\t", lbl, #cond);	\
 	expcond(cond, y, i, z, j, k);			\
 	putchar('\n');					\
 } while (/* CONSTCOND */ 0)
 	printf("/* external types */\n\n");
 	DC_();
 #undef D
-#if 0
-	printf("%s */\n#define %s\t", lbl, #cond);	\
-/*XXX*/
-#endif
 
 #define D(x,lbl) do {			\
 	y = printf("#define %s", #x);	\
@@ -1789,10 +1781,9 @@ debug_ccls(void)
 	D(C_LF, "ASCII line feed");
 	D(C_MINUS, "hyphen-minus");
 	printf("#ifdef MKSH_WITH_TEXTMODE\n"
-						/*XXX space before tab twice */
-		"#define C_NL\t(CiNL | CiCR)\t/* \tCR or LF under OS/2 TEXTMODE */\n"
+		"#define C_NL\t(CiNL | CiCR)\t/*\tCR or LF under OS/2 TEXTMODE */\n"
 		"#else\n"
-		"#define C_NL\tCiNL\t\t/* \tLF only like under Unix */\n"
+		"#define C_NL\tCiNL\t\t/*\tLF only like under Unix */\n"
 		"#endif\n");
 	D(C_NUL, "ASCII NUL");
 	D(C_PLUS, "plus sign");
