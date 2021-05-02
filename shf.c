@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.104 2021/05/02 01:40:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.105 2021/05/02 04:47:54 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -878,17 +878,8 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 				continue;
 			}
 			if (ctype(c, C_DIGIT)) {
-				bool overflowed = false;
-
-				tmp = ksh_numdig(c);
-				while (ctype((c = *fmt++), C_DIGIT))
-					if (notok2mul(2147483647, tmp, 10))
-						overflowed = true;
-					else
-						tmp = tmp * 10 + ksh_numdig(c);
 				--fmt;
-				if (overflowed)
-					tmp = 0;
+				getpn((const char **)&fmt, &tmp);
 				if (flags & FL_DOT)
 					precision = (unsigned int)tmp;
 				else

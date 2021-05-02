@@ -11,7 +11,7 @@
 /*-
  * Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
  *	       2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
- *	       2019, 2020
+ *	       2019, 2020, 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -193,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.906 2021/01/24 19:37:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.907 2021/05/02 04:47:53 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/01/24"
 
@@ -2637,6 +2637,7 @@ void change_flag(enum sh_flag, int, bool);
 void change_xtrace(unsigned char, bool);
 int parse_args(const char **, int, bool *);
 int getn(const char *, int *);
+int getpn(const char **, int *);
 int gmatchx(const char *, const char *, bool);
 bool has_globbing(const char *) MKSH_A_PURE;
 int ascstrcmp(const void *, const void *) MKSH_A_PURE;

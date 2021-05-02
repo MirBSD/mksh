@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.307 2021/05/02 02:25:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.308 2021/05/02 04:47:52 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -554,11 +554,26 @@ parse_args(const char **argv,
 int
 getn(const char *s, int *ai)
 {
+	return (getpn(&s, ai) && !*s);
+}
+
+/*
+ * parse a decimal number
+ * on success, returns 1 and *ai contains it and *sp points past it
+ * on overflow, returns 0, *ai is 0, *sp points and *sp points behind it
+ * on parse error (not numeric) returns 0, *ai is 0, *sp is not changed
+ */
+int
+getpn(const char **sp, int *ai)
+{
 	char c;
+	const char *s;
 	mksh_ari_u num;
+	uint8_t state = 0;
 	bool neg = false;
 
 	num.u = 0;
+	s = *sp;
 
 	do {
 		c = *s++;
@@ -573,23 +588,31 @@ getn(const char *s, int *ai)
 		break;
 	}
 
-	do {
-		if (!ctype(c, C_DIGIT))
-			/* not numeric */
-			return (0);
+	while (ctype(c, C_DIGIT)) {
 		if (num.u > 214748364U)
 			/* overflow on multiplication */
-			return (0);
-		num.u = num.u * 10U + (unsigned int)ksh_numdig(c);
+			state = 2;
+		if (state < 2) {
+			state = 1;
+			num.u = num.u * 10U + (unsigned int)ksh_numdig(c);
+		}
 		/* now: num.u <= 2147483649U */
-	} while ((c = *s++));
+		c = *s++;
+	}
+	--s;
 
 	if (num.u > (neg ? 2147483648U : 2147483647U))
 		/* overflow for signed 32-bit int */
-		return (0);
+		state = 2;
 
 	if (neg)
 		num.u = -num.u;
+	if (state)
+		*sp = s;
+	if (state != 1) {
+		*ai = 0;
+		return (0);
+	}
 	*ai = num.i;
 	return (1);
 }
