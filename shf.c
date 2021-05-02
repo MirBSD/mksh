@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
- *		 2012, 2013, 2015, 2016, 2017, 2018, 2019
+ *		 2012, 2013, 2015, 2016, 2017, 2018, 2019, 2021
  *	mirabilos <m@mirbsd.org>
  * Copyright (c) 2015
  *	Daniel Richard G. <skunk@iSKUNK.ORG>
@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.102 2020/06/22 17:11:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.103 2021/05/02 01:29:08 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1209,8 +1209,12 @@ const uint32_t tpl_ctypes[128] = {
 	CiQCL,		CiCURLY,	CiQCM,		CiCNTRL
 };
 
-void
-set_ifs(const char *s)
+#ifdef MKSH__DEBUG_CCLASSES
+static int debug_ccls(void);
+#endif
+
+static void
+set_ccls(void)
 {
 #if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
 	int i = 256;
@@ -1224,9 +1228,19 @@ set_ifs(const char *s)
 	memset((char *)ksh_ctypes + sizeof(tpl_ctypes), '\0',
 	    sizeof(ksh_ctypes) - sizeof(tpl_ctypes));
 #endif
+}
+
+void
+set_ifs(const char *s)
+{
+	set_ccls();
 	ifs0 = *s;
 	while (*s)
 		ksh_ctypes[ord(*s++)] |= CiIFS;
+#ifdef MKSH__DEBUG_CCLASSES
+	if (debug_ccls())
+		exit(254);
+#endif
 }
 
 #if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
@@ -1318,5 +1332,477 @@ ebcdic_init(void)
 		write(2, "mksh: NUL not at position 0\n", 28);
 		exit(255);
 	}
+}
+#endif
+
+#ifdef MKSH__DEBUG_CCLASSES
+/*
+ * This is developer debugging code. It makes no attempt
+ * at being performant, not redundant, have acceptable
+ * style, or anything really.
+ */
+
+static unsigned int
+v(unsigned int c)
+{
+	if (ord(c) == ORD('\\')) {
+		printf("\\\\");
+		return (2);
+	} else if (c < 0x21U || c > 0x7EU) {
+		printf("\\x%02X", c);
+		return (4);
+	} else {
+		putchar(c);
+		return (1);
+	}
+}
+
+#define tabto(len,to) do {		\
+	while (len < to) {		\
+		putchar('\t');		\
+		len = (len | 7) + 1;	\
+	}				\
+} while (/* CONSTCOND */ 0)
+
+static char vert[40][40];
+
+static struct ciname {
+	const char *name;
+	uint32_t val;
+	uint32_t bit;
+} ci[32], *cibit[32];
+
+static int
+cicomp(const void *a_, const void *b_)
+{
+	const struct ciname *a = a_;
+	const struct ciname *b = b_;
+	return (strcmp(a->name, b->name));
+}
+
+static int
+debug_ccls(void)
+{
+	unsigned int i, j, k, x, y, z;
+
+	printf("\t0               1               2               3               4               5               6               7            ->7\n");
+	printf("\t0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF\n");
+#define D(x) do { \
+	printf("%s\t", #x); \
+	for (i = 0; i <= 0x7F; ++i) \
+		putchar(tpl_ctypes[i] & x ? '#' : '-'); \
+	putchar('\n'); \
+} while (/* CONSTCOND */ 0)
+#define DCi() do {	\
+	D(CiIFS);	\
+	D(CiCNTRL);	\
+	D(CiUPPER);	\
+	D(CiLOWER);	\
+	D(CiHEXLT);	\
+	D(CiOCTAL);	\
+	D(CiQCL);	\
+	D(CiALIAS);	\
+	D(CiQCX);	\
+	D(CiVAR1);	\
+	D(CiQCM);	\
+	D(CiDIGIT);	\
+	D(CiQC);	\
+	D(CiSPX);	\
+	D(CiCURLY);	\
+	D(CiANGLE);	\
+	D(CiNUL);	\
+	D(CiTAB);	\
+	D(CiNL);	\
+	D(CiCR);	\
+	D(CiSP);	\
+	D(CiHASH);	\
+	D(CiSS);	\
+	D(CiPERCT);	\
+	D(CiPLUS);	\
+	D(CiMINUS);	\
+	D(CiCOLON);	\
+	D(CiEQUAL);	\
+	D(CiQUEST);	\
+	D(CiBRACK);	\
+	D(CiUNDER);	\
+	D(CiGRAVE);	\
+} while (/* CONSTCOND */ 0)
+	DCi();
+#undef D
+	putchar('\n');
+
+	printf("\t  i i i i i   i       i     i i               i   i i i i i i i\n");
+	printf("\tC C U L H O   A   i   D     C A           i   P i M C E Q B U G\n");
+	printf("\ti N P O E C i L i V i I   i U N i i       H   E P I O Q U R N R\n");
+	printf("\tI T P W X T Q I Q A Q G i S R G N T i i i A i R L N L U E A D A\n");
+	printf("\tF R E E L A C A C R C I Q P L L U A N C S S S C U U O A S C E V\n");
+	printf("\tS L R R T L L S X 1 M T C X Y E L B L R P H S T S S N L T K R E\n");
+	j = 0;
+#define D(x,i1,i2,i3) do { \
+	printf("%s\t", #x); \
+	for (i = 0; i <= 31; ++i) { \
+		printf(x & BIT(i) ? "**" : "- "); \
+		vert[i][j] = (x & BIT(i) ? '#' : '-'); \
+	} \
+	printf("\t%08X\n", x); \
+	++j; \
+} while (/* CONSTCOND */ 0)
+#define DC_() do {	\
+	D(C_ALIAS, 2, 24, "valid characters in alias names"); \
+	D(C_ALNUM, 1, 24, "alphanumerical"); \
+	D(C_ALNUX, 1, 24, "alphanumerical plus underscore (“word character”)"); \
+	D(C_ALPHA, 1, 24, "alphabetical (upper plus lower)"); \
+	D(C_ALPHX, 1, 24, "alphabetical plus underscore (identifier lead)"); \
+	D(C_ASCII, 1, 24, "7-bit ASCII except NUL"); \
+	D(C_BLANK, 0, 24, "tab and space"); \
+	D(C_CFS, 0, 24, "separator for completion"); \
+	D(C_CNTRL, 1, 24, "POSIX control characters"); \
+	D(C_DIGIT, 1, 24, "decimal digits"); \
+	D(C_EDCMD, 0, 32, "editor x_locate_word() command"); \
+	D(C_EDNWC, 0, 32, "editor non-word characters"); \
+	D(C_EDQ, 0, 32, "editor quotes for tab completion"); \
+	D(C_GRAPH, 1, 24, "POSIX graphical (alphanumerical plus punctuation)"); \
+	D(C_HEXLT, 1, 24, "hex letter"); \
+	D(C_IFS, 0, 24, "IFS whitespace, IFS non-whitespace, NUL"); \
+	D(C_IFSWS, 0, 24, "IFS whitespace"); \
+	D(C_LEX1, 0, 24, "(for the lexer)"); \
+	D(C_LOWER, 1, 24, "lowercase letters"); \
+	D(C_MFS, 3, 24, "separator for motion"); \
+	D(C_OCTAL, 1, 24, "octal digit"); \
+	D(C_PATMO, 0, 24, "pattern magical operator, except space"); \
+	D(C_PRINT, 1, 24, "POSIX printable characters (graph plus space)"); \
+	D(C_PUNCT, 0, 40, "POSIX punctuation"); \
+	D(C_QUOTE, 0, 32, "characters requiring quoting, minus space"); \
+	D(C_SEDEC, 1, 24, "hexadecimal digit"); \
+	D(C_SPACE, 1, 24, "POSIX space class"); \
+	D(C_SUB1, 0, 24, "substitution operations with word"); \
+	D(C_SUB2, 0, 24, "substitution operations with pattern"); \
+	D(C_UPPER, 1, 24, "uppercase letters"); \
+	D(C_VAR1, 0, 24, "substitution parameters, other than positional"); \
+} while (/* CONSTCOND */ 0)
+	DC_();
+#undef D
+	putchar('\n');
+
+	for (i = 0; i <= 31; ++i)
+		vert[i][j] = 0;
+	j = 0;
+#define D(x) do { \
+	printf("%s\t%s\n", #x, vert[j++]); \
+} while (/* CONSTCOND */ 0)
+	DCi();
+#undef D
+	putchar('\n');
+
+#define D(x) do {					\
+	y = 0;						\
+	while (BIT(y) != x)				\
+		if (y++ == 31) {			\
+			printf("E: %s=%X\n", #x, x);	\
+			exit(255);			\
+		}					\
+	ci[y].name = #x;				\
+	ci[y].val = x;				\
+	ci[y].bit = y;					\
+} while (/* CONSTCOND */ 0)
+	DCi();
+#undef D
+	qsort(ci, NELEM(ci), sizeof(struct ciname), &cicomp);
+	for (i = 0; i < NELEM(ci); ++i) {
+		cibit[ci[i].bit] = &ci[i];
+		printf("BIT(%d)\t%08X  %s\n", ci[i].bit, ci[i].val, ci[i].name);
+	}
+	putchar('\n');
+
+#define D(x) do { \
+	if (x != CiIFS && (ksh_ctypes[i] & x)) { \
+		if (z) { \
+			printf(" | "); \
+			z += 3; \
+		} \
+		printf("%s", #x); \
+		z += strlen(#x); \
+	} \
+} while (/* CONSTCOND */ 0)
+	printf("// shf.c {{{ begin\n/* fast character classes */\n");
+	printf("const uint32_t tpl_ctypes[128] = {\n");
+	x = 0, y = 0; /* fsck GCC */
+	for (i = 0; i <= 0x7F; ++i) {
+		if (!(i & 0x0F)) {
+			printf("\t/* 0x%02X */\n", i);
+			x = 1; /* did newline */
+		}
+		if (x) {
+			printf("\t");
+			x = 0;
+			y = 16;
+		}
+		z = 0;
+		DCi();
+		if (i != 0x7F) {
+			putchar(',');
+			++z;
+		}
+		if (((i & 0x03) == 0x03) || ((i & 0x59) == 0x41)) {
+			putchar('\n');
+			x = 1;
+		} else {
+			if ((i & 0x58) == 0x40)
+				y = 24;
+			tabto(z, y);
+			if (z > 16) {
+				y = 8;
+				tabto(z, 24);
+			}
+		}
+	}
+#undef D
+	printf("};\n// shf.c }}} end\n\n");
+
+#define putrangef(len,cond,count) do {			\
+	for (count = 0; count <= 0xFF; ++count)		\
+		if (ksh_ctypes[count] & cond)		\
+			len += v(count);		\
+} while (/* CONSTCOND */ 0)
+#define putranget(len,cond,count,hold,flag) do {	\
+	flag = 0;					\
+	count = -1;					\
+	while (1) {					\
+		++count;				\
+		if (!flag) {				\
+			if (count > 0xFF)		\
+				break;			\
+			if (ksh_ctypes[count] & cond) {	\
+				hold = count;		\
+				flag = 1;		\
+			}				\
+		} else if (count > 0xFF ||		\
+		    !(ksh_ctypes[count] & cond)) {	\
+			flag = count - 1;		\
+			len += v(hold);			\
+			if (flag == hold + 1) {		\
+				len += v(flag);		\
+			} else if (flag > hold) {	\
+				printf("‥");		\
+				len += 1 + v(flag);	\
+			}				\
+			if (count > 0xFF)		\
+				break;			\
+			flag = 0;			\
+		}					\
+	}						\
+} while (/* CONSTCOND */ 0)
+#define putrangea(len,cond,count,hold,flag) do {	\
+	flag = 0;					\
+	count = -1;					\
+	while (1) {					\
+		++count;				\
+		if (!flag) {				\
+			if (count > 0xFF)		\
+				break;			\
+			if (ksh_ctypes[count] & cond) {	\
+				len += v(count);	\
+				hold = count;		\
+				flag = count == '0' ||	\
+				    count == 'A' ||	\
+				    count == 'a';	\
+			}				\
+		} else if (count > 0xFF ||		\
+		    !(ksh_ctypes[count] & cond)) {	\
+			flag = count - 1;		\
+			if (flag == hold + 1) {		\
+				len += v(flag);		\
+			} else if (flag > hold) {	\
+				printf("‥");		\
+				len += 1 + v(flag);	\
+			}				\
+			if (count > 0xFF)		\
+				break;			\
+			flag = 0;			\
+		} else if ((count - 1) == '9' ||	\
+		    (count - 1) == 'Z' ||		\
+		    (count - 1) == 'z') {		\
+			flag = count - 1;		\
+			if (flag == hold + 1) {		\
+				len += v(flag);		\
+			} else if (flag > hold) {	\
+				printf("‥");		\
+				len += 1 + v(flag);	\
+			}				\
+			len += v(count);		\
+			flag = 0;			\
+		}					\
+	}						\
+} while (/* CONSTCOND */ 0)
+
+#define DD(n,x,ign) do {				\
+	y = 0;						\
+	while (BIT(y) != x)				\
+		if (y++ == 31) {			\
+			printf("E: %s=%X\n", n, x);	\
+			exit(255);			\
+		}					\
+	printf("#define %s\tBIT(%d)", n, y);		\
+	if (x != ign) {					\
+		printf("\t/* ");			\
+		y = 3;					\
+		switch (x) {				\
+		case CiCNTRL:				\
+		case CiUPPER: case CiLOWER:		\
+		case CiHEXLT: case CiOCTAL:		\
+			putranget(y, x, i, j, k);	\
+			break;				\
+		default:				\
+			putrangef(y, x, i);		\
+		}					\
+		tabto(y, 32);				\
+		printf("*/");				\
+	}						\
+	putchar('\n');					\
+} while (/* CONSTCOND */ 0)
+	DD("??IFS", CiIFS, CiCNTRL);
+
+	printf("// sh.h {{{ begin\n/*\n * fast character classes\n */\n\n");
+	printf("/* internal types, do not reference */\n\n");
+
+#define D(x) DD(#x, x, CiIFS)
+	printf("/* initially empty — filled at runtime from $IFS */\n");
+	DCi();
+#undef DD
+#undef D
+	printf("/* out of space, but one for *@ would make sense, possibly others */\n\n");
+
+	printf("/* compile-time initialised, ASCII only */\n"
+		"extern const uint32_t tpl_ctypes[128];\n"
+		"/* run-time, contains C_IFS as well, full 2⁸ octet range */\n"
+		"EXTERN uint32_t ksh_ctypes[256];\n"
+		"/* first octet of $IFS, for concatenating \"$*\" */\n"
+		"EXTERN char ifs0;\n"
+		"\n");
+
+#define expcond(cond,len,cnt,flg,fnd,cnd) do {		\
+	flg = 1;					\
+	for (cnt = 0; cnt < NELEM(ci); ++cnt)		\
+		if (cond == ci[cnt].val) {		\
+			len += printf("%s",		\
+			    ci[cnt].name);		\
+			flg = 0;			\
+			break;				\
+		}					\
+	if (flg) {					\
+		cnd = cond;				\
+		fnd = 0;				\
+		if (cnd != C_GRAPH &&			\
+		/*XXX*/ cnd != C_ASCII &&		\
+		    (cnd & C_GRAPH) == C_GRAPH) {	\
+			len += printf("%s%s",		\
+			    fnd ? " | " : "(",		\
+			    "C_GRAPH");			\
+			fnd = 1;			\
+			cnd &= ~C_GRAPH;		\
+		}					\
+		if (cnd != C_PUNCT &&			\
+		/*XXX*/ cnd != C_ASCII &&		\
+		    (cnd & C_PUNCT) == C_PUNCT) {	\
+			len += printf("%s%s",		\
+			    fnd ? " | " : "(",		\
+			    "C_PUNCT");			\
+			fnd = 1;			\
+			cnd &= ~C_PUNCT;		\
+		}					\
+		for (cnt = 0; cnt < NELEM(ci); ++cnt)	\
+		   if (cnd & ci[cnt].val) {		\
+			len += printf("%s%s",		\
+			    fnd ? " | " : "(",		\
+			    ci[cnt].name);		\
+			fnd = 1;			\
+		}					\
+		if (!fnd) {				\
+			printf("<ERR>\n");		\
+			exit(255);			\
+		}					\
+		putchar(')');				\
+		++len;					\
+	}						\
+} while (/* CONSTCOND */ 0)
+
+	set_ccls(); /* drop CiIFS from ksh_ctypes */
+#define D(cond,rng,tabstop,lbl) do {			\
+	printf("/* ");					\
+	y = 3;						\
+	switch (rng) {					\
+	case 0:						\
+		putrangef(y, cond, i);			\
+		break;					\
+	case 1:						\
+		putranget(y, cond, i, j, k);		\
+		break;					\
+	case 2:						\
+		putrangea(y, cond, i, j, k);		\
+		break;					\
+	case 3:						\
+		for (i = 0; i <= 0x7F; ++i) {		\
+			if (!!(ksh_ctypes[i] & cond) ^	\
+			    !!(ksh_ctypes[i] & (	\
+			    C_ALNUX | CiSS)))		\
+				continue;		\
+			printf("<ERR(%02X)>\n", i);	\
+			exit(255);			\
+		}					\
+		y += printf("not alnux or dollar");	\
+		break;					\
+	}						\
+	if (cond & CiIFS)				\
+		y += printf(" + $IFS");			\
+	tabto(y, tabstop);				\
+	printf("%s */\n#define %s%c", lbl, #cond,	\
+	    cond == C_ASCII ? ' ' : '\t');		\
+	expcond(cond, y, i, z, j, k);			\
+	putchar('\n');					\
+} while (/* CONSTCOND */ 0)
+	printf("/* external types */\n\n");
+	DC_();
+#undef D
+#if 0
+	printf("%s */\n#define %s\t", lbl, #cond);	\
+/*XXX*/
+#endif
+
+#define D(x,lbl) do {			\
+	y = printf("#define %s", #x);	\
+	tabto(y, 16);			\
+	expcond(x, y, i, z, j, k);	\
+	tabto(y, 32);			\
+	y += printf("/* ");		\
+	putrangef(y, x, i);		\
+	tabto(y, 40);			\
+	printf("%s */\n", lbl);		\
+} while (/* CONSTCOND */ 0)
+	printf("\n/* individual chars you might like */\n");
+	D(C_ANGLE, "angle brackets");
+	D(C_COLON, "colon");
+	D(C_CR, "ASCII carriage return");
+	D(C_DOLAR, "dollar sign");
+	D(C_EQUAL, "equals sign");
+	D(C_GRAVE, "accent gravis");
+	D(C_HASH, "hash sign");
+	D(C_LF, "ASCII line feed");
+	D(C_MINUS, "hyphen-minus");
+	printf("#ifdef MKSH_WITH_TEXTMODE\n"
+						/*XXX space before tab twice */
+		"#define C_NL\t(CiNL | CiCR)\t/* \tCR or LF under OS/2 TEXTMODE */\n"
+		"#else\n"
+		"#define C_NL\tCiNL\t\t/* \tLF only like under Unix */\n"
+		"#endif\n");
+	D(C_NUL, "ASCII NUL");
+	D(C_PLUS, "plus sign");
+	D(C_QC, "quote characters");
+	D(C_QUEST, "question mark");
+	D(C_SPC, "ASCII space");
+	D(C_TAB, "ASCII horizontal tabulator");
+	D(C_UNDER, "underscore");
+
+	printf("// sh.h }}} end\n");
+	return (ksh_ctypes[0] == CiNUL);
 }
 #endif
