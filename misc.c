@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.306 2021/01/26 23:49:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.307 2021/05/02 02:25:18 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -2402,6 +2402,7 @@ chvt(const Getopt *go)
 			errorf(Tf_sD_s_s, "chvt", Tcant_open, dv);
 		}
 	}
+	afree(cp, ATEMP);
 	if (go->optarg[0] != '!') {
 		switch (fork()) {
 		case -1:
