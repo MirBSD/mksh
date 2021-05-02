@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.363 2021/05/02 07:43:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.364 2021/05/02 15:44:22 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -93,7 +93,7 @@ static int x_do_comment(char *, ssize_t, ssize_t *);
 static void x_print_expansions(int, char * const *, bool);
 static int x_cf_glob(int *, const char *, int, int, int *, int *, char ***);
 static size_t x_longest_prefix(int, char * const *);
-static void x_glob_hlp_add_qchar(char *);
+static char *x_glob_hlp_add_qchar(char *);
 static char *x_glob_hlp_tilde_and_rem_qchar(char *, bool);
 static size_t x_basename(const char *, const char *);
 static void x_free_words(int, char **);
@@ -298,21 +298,32 @@ x_print_expansions(int nwords, char * const *words, bool is_command)
 
 /*
  * Convert backslash-escaped string to QCHAR-escaped
- * string useful for globbing; loses QCHAR unless it
- * can squeeze in, eg. by previous loss of backslash
+ * string useful for globbing
  */
-static void
+static char *
 x_glob_hlp_add_qchar(char *cp)
 {
-	char ch, *dp = cp;
+	char ch, *dp;
 	bool escaping = false;
+	XString xs;
+	size_t n;
+
+	if (memchr(cp, QCHAR, (n = strlen(cp)))) {
+		Xinit(xs, dp, n, ATEMP);
+	} else {
+		xs.len = n + 1;
+		xs.areap = NULL; /* won’t be used */
+		xs.beg = dp = cp;
+		xs.end = xs.beg + xs.len;
+	}
 
 	while ((ch = *cp++)) {
 		if (ch == '\\' && !escaping) {
 			escaping = true;
 			continue;
 		}
-		if (escaping || (ch == QCHAR && (cp - dp) > 1)) {
+		XcheckN(xs, dp, 2);
+		if (escaping || ch == QCHAR) {
 			/*
 			 * empirically made list of chars to escape
 			 * for globbing as well as QCHAR itself
@@ -333,6 +344,7 @@ x_glob_hlp_add_qchar(char *cp)
 		*dp++ = ch;
 	}
 	*dp = '\0';
+	return (Xstring(xs, dp));
 }
 
 /*
@@ -368,8 +380,12 @@ x_glob_hlp_tilde_and_rem_qchar(char *s, bool magic_flag)
 	}
 
 	/* ... convert it from backslash-escaped via QCHAR-escaped... */
-	if (magic_flag)
-		x_glob_hlp_add_qchar(s);
+	if (magic_flag) {
+		cp = x_glob_hlp_add_qchar(s);
+		if (cp != s)
+			afree(s, ATEMP);
+		s = cp;
+	}
 	/* ... to unescaped, for comparison with the matches */
 	cp = dp = s;
 
@@ -392,25 +408,26 @@ x_glob_hlp_tilde_and_rem_qchar(char *s, bool magic_flag)
 static int
 x_file_glob(int *flagsp, char *toglob, char ***wordsp)
 {
-	char **words, *cp;
+	char **words, *cp, *qglob;
 	int nwords;
 	XPtrV w;
 	struct source *s, *sold;
 
 	/* remove all escaping backward slashes */
-	x_glob_hlp_add_qchar(toglob);
+	qglob = x_glob_hlp_add_qchar(toglob);
 
 	/*
 	 * Convert "foo*" (toglob) to an array of strings (words)
 	 */
 	sold = source;
 	s = pushs(SWSTR, ATEMP);
-	s->start = s->str = toglob;
+	s->start = s->str = qglob;
 	source = s;
 	if (yylex(ONEWORD | LQCHAR) != LWORD) {
 		source = sold;
 		internal_warningf(Tfg_badsubst);
-		return (0);
+		nwords = 0;
+		goto out;
 	}
 	source = sold;
 	afree(s, ATEMP);
@@ -435,7 +452,7 @@ x_file_glob(int *flagsp, char *toglob, char ***wordsp)
 		struct stat statb;
 
 		/* Expand any tilde and drop all QCHAR for comparison */
-		toglob = x_glob_hlp_tilde_and_rem_qchar(toglob, false);
+		qglob = x_glob_hlp_tilde_and_rem_qchar(qglob, false);
 
 		/*
 		 * Check if globbing failed (returned glob pattern),
@@ -445,7 +462,7 @@ x_file_glob(int *flagsp, char *toglob, char ***wordsp)
 		 * to glob something which evaluated to an empty
 		 * string (e.g., "$FOO" when there is no FOO, etc).
 		 */
-		if ((strcmp(words[0], toglob) == 0 &&
+		if ((strcmp(words[0], qglob) == 0 &&
 		    stat(words[0], &statb) < 0) ||
 		    words[0][0] == '\0') {
 			x_free_words(nwords, words);
@@ -457,6 +474,9 @@ x_file_glob(int *flagsp, char *toglob, char ***wordsp)
 	if ((*wordsp = nwords ? words : NULL) == NULL && words != NULL)
 		x_free_words(nwords, words);
 
+ out:
+	if (qglob != toglob)
+		afree(qglob, ATEMP);
 	return (nwords);
 }
 
