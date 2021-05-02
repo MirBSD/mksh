@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.232 2021/05/01 22:59:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.233 2021/05/02 05:57:03 tg Exp $");
 
 /*
  * string expansion
@@ -1300,7 +1300,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 			if (sc & 2) {
 				stype = 0;
 				XPinit(wv, 32);
-				vp = global(arrayname(sp));
+				vp = arraybase(sp);
 				do {
 					if (vp->flag & ISSET)
 						XPput(wv, shf_smprintf(Tf_lu,
@@ -1347,7 +1347,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		case ORD('#'):
 			  switch (sc & 3) {
 			case 3:
-				vp = global(arrayname(sp));
+				vp = arraybase(sp);
 				if (vp->flag & (ISSET|ARRAY))
 					zero_ok = true;
 				sc = 0;
@@ -1458,7 +1458,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		/* do what we can */
 		if (sc & 2) {
 			XPinit(wv, 32);
-			vp = global(arrayname(sp));
+			vp = arraybase(sp);
 			do {
 				if (vp->flag & ISSET)
 					XPput(wv, str_val(vp));

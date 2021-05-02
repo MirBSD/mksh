@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.238 2021/05/02 05:50:47 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.239 2021/05/02 05:57:05 tg Exp $");
 
 /*-
  * Variables
@@ -951,7 +951,7 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 
 	set &= ~(LOCAL|LOCAL_COPY);
 
-	vpbase = (vp->flag & ARRAY) ? global(arrayname(tvar)) : vp;
+	vpbase = (vp->flag & ARRAY) ? arraybase(tvar) : vp;
 
 	/*
 	 * only allow export and readonly flag to be set; AT&T ksh
@@ -1636,19 +1636,22 @@ array_ref_len(const char *cp)
 }
 
 /*
- * Make a copy of the base of an array name
+ * same effect as global(copy of the base of an array name)
  */
-char *
-arrayname(const char *str)
+struct tbl *
+arraybase(const char *str)
 {
 	const char *p;
-	char *rv;
+	char *s;
+	struct tbl *rv;
 
 	if (!(p = cstrchr(str, '[')))
 		/* Shouldn't happen, but why worry? */
-		strdupx(rv, str, ATEMP);
+		strdupx(s, str, ATEMP);
 	else
-		strndupx(rv, str, p - str, ATEMP);
+		strndupx(s, str, p - str, ATEMP);
+	rv = global(s);
+	afree(s, ATEMP);
 
 	return (rv);
 }

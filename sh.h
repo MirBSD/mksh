@@ -193,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.907 2021/05/02 04:47:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.908 2021/05/02 05:57:04 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/01/24"
 
@@ -2750,7 +2750,7 @@ struct tbl *arraysearch(struct tbl *, uint32_t);
 char **makenv(void);
 void change_winsz(void);
 size_t array_ref_len(const char *) MKSH_A_PURE;
-char *arrayname(const char *);
+struct tbl *arraybase(const char *);
 mksh_uari_t set_array(const char *, bool, const char **);
 uint32_t hash(const void *) MKSH_A_PURE;
 uint32_t chvt_rndsetup(const void *, size_t) MKSH_A_PURE;
