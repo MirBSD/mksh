@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.239 2021/05/02 05:57:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.240 2021/05/02 16:21:57 tg Exp $");
 
 /*-
  * Variables
@@ -815,10 +815,7 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 			mksh_ari_u num;
 
 			len -= 2;
-			tvar = len < sizeof(tvarbuf) ? tvarbuf :
-			    alloc(len + 1, ATEMP);
-			memcpy(tvar, val + 1, len);
-			tvar[len] = '\0';
+			strnbdupx(tvar, val + 1, len, ATEMP, tvarbuf);
 			if (getnum(tvar, &num, true, false) == -1)
 				len = 0;
 			if (tvar != tvarbuf)
@@ -831,18 +828,14 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 	}
 	if (ord(val[0]) == ORD('=')) {
 		len = val - var;
-		tvar = len < sizeof(tvarbuf) ? tvarbuf : alloc(len + 1, ATEMP);
-		memcpy(tvar, var, len);
-		tvar[len] = '\0';
+		strnbdupx(tvar, var, len, ATEMP, tvarbuf);
 		++val;
 	} else if (set & IMPORT) {
 		/* environment invalid variable name or no assignment */
 		return (NULL);
 	} else if (ord(val[0]) == ORD('+') && ord(val[1]) == ORD('=')) {
 		len = val - var;
-		tvar = len < sizeof(tvarbuf) ? tvarbuf : alloc(len + 1, ATEMP);
-		memcpy(tvar, var, len);
-		tvar[len] = '\0';
+		strnbdupx(tvar, var, len, ATEMP, tvarbuf);
 		val += 2;
 		vappend = true;
 	} else if (val[0] != '\0') {
@@ -851,9 +844,7 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 	} else {
 		/* just varname with no value part nor equals sign */
 		len = strlen(var);
-		tvar = len < sizeof(tvarbuf) ? tvarbuf : alloc(len + 1, ATEMP);
-		memcpy(tvar, var, len);
-		tvar[len] = '\0';
+		strnbdupx(tvar, var, len, ATEMP, tvarbuf);
 		val = NULL;
 		/* handle foo[*] => foo (whole array) mapping for R39b */
 		if (len > 3 && ord(tvar[len - 3]) == ORD('[') &&
@@ -1642,16 +1633,17 @@ struct tbl *
 arraybase(const char *str)
 {
 	const char *p;
-	char *s;
+	char *s, sbuf[32];
+	size_t n;
 	struct tbl *rv;
 
-	if (!(p = cstrchr(str, '[')))
-		/* Shouldn't happen, but why worry? */
-		strdupx(s, str, ATEMP);
-	else
-		strndupx(s, str, p - str, ATEMP);
+	n = strlen(str);
+	if ((p = memchr(str, '[', n)))
+		n = p - str;
+	strnbdupx(s, str, n, ATEMP, sbuf);
 	rv = global(s);
-	afree(s, ATEMP);
+	if (s != sbuf)
+		afree(s, ATEMP);
 
 	return (rv);
 }

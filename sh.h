@@ -193,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.908 2021/05/02 05:57:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.909 2021/05/02 16:21:55 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/01/24"
 
@@ -717,6 +717,19 @@ im_sorry_dave(void)
 	(d) = strdup_dst;						\
 } while (/* CONSTCOND */ 0)
 #endif
+#define strnbdupx(d,s,n,ap,b) do {					\
+	const char *strdup_src = (const void *)(s);			\
+	char *strdup_dst = NULL;					\
+									\
+	if (strdup_src != NULL) {					\
+		size_t strndup_len = (n);				\
+		strdup_dst = strndup_len < sizeof(b) ? (b) :		\
+		    alloc(strndup_len + 1, (ap));			\
+		memcpy(strdup_dst, strdup_src, strndup_len);		\
+		strdup_dst[strndup_len] = '\0';				\
+	}								\
+	(d) = strdup_dst;						\
+} while (/* CONSTCOND */ 0)
 #define strdup2x(d,s1,s2) do {						\
 	const char *strdup_src = (const void *)(s1);			\
 	const char *strdup_app = (const void *)(s2);			\
@@ -1457,11 +1470,9 @@ EXTERN char ifs0;
 /* A‥Z_a‥z		alphabetical plus underscore (identifier lead) */
 #define C_ALPHX	(CiLOWER | CiUNDER | CiUPPER)
 /* \x01‥\x7F		7-bit ASCII except NUL */
-#define C_ASCII (CiALIAS | CiANGLE | CiBRACK | CiCNTRL | CiCOLON | CiCR | CiCURLY | CiDIGIT | CiEQUAL | CiGRAVE | CiHASH | CiLOWER | CiMINUS | CiNL | CiOCTAL | CiPERCT | CiPLUS | CiQC | CiQCL | CiQCM | CiQCX | CiQUEST | CiSP | CiSPX | CiSS | CiTAB | CiUNDER | CiUPPER)
+#define C_ASCII	(C_GRAPH | CiCNTRL | CiCR | CiNL | CiSP | CiSPX | CiTAB)
 /* \x09\x20		tab and space */
 #define C_BLANK	(CiSP | CiTAB)
-/* \x09\x20"'		separator for completion */
-#define C_CFS	(CiQC | CiSP | CiTAB)
 /* \x00‥\x1F\x7F	POSIX control characters */
 #define C_CNTRL	(CiCNTRL | CiCR | CiNL | CiNUL | CiSPX | CiTAB)
 /* 0‥9			decimal digits */
@@ -1520,9 +1531,9 @@ EXTERN char ifs0;
 #define C_LF	CiNL		/* \x0A	ASCII line feed */
 #define C_MINUS	CiMINUS		/* -	hyphen-minus */
 #ifdef MKSH_WITH_TEXTMODE
-#define C_NL	(CiNL | CiCR)	/* 	CR or LF under OS/2 TEXTMODE */
+#define C_NL	(CiNL | CiCR)	/*	CR or LF under OS/2 TEXTMODE */
 #else
-#define C_NL	CiNL		/* 	LF only like under Unix */
+#define C_NL	CiNL		/*	LF only like under Unix */
 #endif
 #define C_NUL	CiNUL		/* \x00	ASCII NUL */
 #define C_PLUS	CiPLUS		/* +	plus sign */
