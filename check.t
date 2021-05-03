@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.860 2021/05/02 05:50:44 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.861 2021/05/03 01:24:18 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -13251,6 +13251,8 @@ stdin:
 	    $(env 'bar[12#123]=baz' "$__progname" -c 'typeset -p bar') .
 	print 8 $(foo=1+1 "$__progname" -c 'integer foo; print -- $foo' 2>&1) , \
 	    $(env 'bar[1+1]=baz' "$__progname" -c 'typeset -p bar') .
+	print 9 $(a=1 b=2 c=a "$__progname" -c 'typeset -p c; c=b; typeset -p c; integer c; typeset -p c') .
+	print 0 $(a=1 b=2 c=a "$__progname" -c 'typeset -p c;      typeset -p c; integer c; typeset -p c') .
 expected-stdout:
 	1 , .
 	2 123 , set -A bar typeset -x bar[123]=baz .
@@ -13260,6 +13262,8 @@ expected-stdout:
 	6 16#123 , set -A bar typeset -x bar[291]=baz .
 	7 12#123 , set -A bar typeset -x bar[171]=baz .
 	8 0 , .
+	9 typeset -x c=a typeset -x c=b typeset -i -x c=2 .
+	0 typeset -x c=a typeset -x c=a typeset -i -x c=0 .
 ---
 name: utilities-getopts-1
 description:

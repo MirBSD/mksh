@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.240 2021/05/02 16:21:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.241 2021/05/03 01:24:20 tg Exp $");
 
 /*-
  * Variables
@@ -495,6 +495,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 			vq->flag |= ALLOC;
 			vq->type = 0;
 		}
+		vq->flag &= ~IMPORT;
 		afree(salloc, ATEMP);
 	} else {
 		/* integer dest */
@@ -645,10 +646,11 @@ setint_v(struct tbl *vq, struct tbl *vp, bool arith)
 void
 setint_n(struct tbl *vq, mksh_ari_t num, int newbase)
 {
-	if (!(vq->flag & INTEGER) && (vq->flag & ALLOC)) {
-		vq->flag &= ~ALLOC;
+	if (!(vq->flag & INTEGER)) {
+		if (vq->flag & ALLOC)
+			afree(vq->val.s, vq->areap);
+		vq->flag &= ~(ALLOC | IMPORT);
 		vq->type = 0;
-		afree(vq->val.s, vq->areap);
 	}
 	vq->val.i = num;
 	if (newbase != 0)
@@ -987,7 +989,6 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 				t->type = 0;
 				t->flag &= ~ALLOC;
 			}
-			t->flag = (t->flag | set) & ~clr;
 			if (set & INTEGER) {
 				/*
 				 * Don't change base if assignment is to
@@ -1005,8 +1006,10 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 					if (getnum(s, &num, true,
 					    tobool(Flag(FPOSIX))) == -1)
 						s = "0";
+					clr |= IMPORT;
 				}
 			}
+			t->flag = (t->flag | set) & ~clr;
 			if (set & (LJUST|RJUST|ZEROFIL))
 				t->u2.field = field;
 			if (fake_assign) {
@@ -1036,7 +1039,7 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 
 	if (vappend) {
 		size_t tlen;
-		if ((vp->flag & (ISSET|ALLOC|SPECIAL|INTEGER|UCASEV_AL|LCASEV|LJUST|RJUST)) != (ISSET|ALLOC)) {
+		if ((vp->flag & (ISSET|ALLOC|SPECIAL|INTEGER|UCASEV_AL|LCASEV|LJUST|RJUST|IMPORT)) != (ISSET|ALLOC)) {
 			/* cannot special-case this */
 			strdup2x(tvar, str_val(vp), val);
 			val = tvar;
@@ -1055,9 +1058,11 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 			/* done after assignment to override default */
 			if (base > 0)
 				vp->type = base;
-		} else
+		} else {
 			/* setstr can't fail (readonly check already done) */
 			setstr(vp, val, KSH_RETURN_ERROR | 0x4);
+			vp->flag |= (set & IMPORT);
+		}
 
 		/* came here from vappend? need to free temp val */
 		if (vappend)
