@@ -193,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.911 2021/05/02 18:14:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.912 2021/05/05 19:19:22 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/05/01"
 
@@ -852,6 +852,8 @@ enum sh_flag {
  * parsing & execution environment
  *
  * note that kshlongjmp MUST NOT be passed 0 as second argument!
+ *
+ * kshsetjmp() is to *not* save (and kshlongjmp() to not restore) signals!
  */
 #ifdef MKSH_NO_SIGSETJMP
 #define kshjmp_buf	jmp_buf
