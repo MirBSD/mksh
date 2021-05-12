@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.308 2021/05/02 04:47:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.309 2021/05/12 23:08:27 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1422,11 +1422,8 @@ print_value_quoted(struct shf *shf, const char *s)
 	bool inquote = true;
 
 	/* first, special-case empty strings (for re-entrancy) */
-	if (!*s) {
-		shf_putc('\'', shf);
-		shf_putc('\'', shf);
-		return;
-	}
+	if (!*s)
+		goto shortcutemptystr;
 
 	/* non-empty; check whether any quotes are needed */
 	while (rtt2asc(c = *p++) >= 32)
@@ -1440,6 +1437,7 @@ print_value_quoted(struct shf *shf, const char *s)
 			shf_puts(s, shf);
 			return;
 		}
+		/* assert: inquote == false */
 
 		/* otherwise, quote nicely via state machine */
 		while ((c = *p++) != 0) {
@@ -1460,12 +1458,15 @@ print_value_quoted(struct shf *shf, const char *s)
 			}
 			shf_putc(c, shf);
 		}
+		if (inquote)
+			goto outquote;
 	} else {
 		unsigned int wc;
 		size_t n;
 
 		/* use $'...' quote format */
 		shf_putc('$', shf);
+ shortcutemptystr:
 		shf_putc('\'', shf);
 		while ((c = *p) != 0) {
 #ifndef MKSH_EBCDIC
@@ -1535,10 +1536,9 @@ print_value_quoted(struct shf *shf, const char *s)
 				break;
 			}
 		}
-		inquote = true;
-	}
-	if (inquote)
+ outquote:
 		shf_putc('\'', shf);
+	}
 }
 
 /*
