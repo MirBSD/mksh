@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.107 2021/05/02 18:14:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.108 2021/05/12 22:39:50 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1244,8 +1244,8 @@ set_ifs(const char *s)
  *    contain all (most?) of the characters in ASCII, and these
  *    usually tend to agree on the code points assigned to the ASCII
  *    subset. If you need a representative example, look at EBCDIC 1047,
- *    which is first among equals in the IBM MVS development
- *    environment: https://en.wikipedia.org/wiki/EBCDIC_1047
+ *    which is first among equals in the IBM MVS development environment:
+ * https://web.archive.org/web/20200810035140/https://en.wikipedia.org/wiki/EBCDIC_1047
  *    Unfortunately, the square brackets are not consistently mapped,
  *    and for certain reasons, we need an unambiguous bijective
  *    mapping between EBCDIC and "extended ASCII".
