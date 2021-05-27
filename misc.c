@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.309 2021/05/12 23:08:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.310 2021/05/27 21:01:41 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -560,7 +560,7 @@ getn(const char *s, int *ai)
 /*
  * parse a decimal number
  * on success, returns 1 and *ai contains it and *sp points past it
- * on overflow, returns 0, *ai is 0, *sp points and *sp points behind it
+ * on overflow, returns 0, *ai is 0, *sp points behind the parsed number
  * on parse error (not numeric) returns 0, *ai is 0, *sp is not changed
  */
 int
