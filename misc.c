@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.312 2021/05/30 04:42:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.313 2021/05/30 23:00:48 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1553,7 +1553,7 @@ dollarqU(struct shf *shf, const unsigned char *s)
 				 * interlinear annotations, LTR/RTL mark,
 				 * U+2028, U+2029, U+2066..U+206F, etc.
 				 */
-				shf_write(s, n, shf);
+				shf_write((const char *)s, n, shf);
 			}
 			s += n;
 			continue;
