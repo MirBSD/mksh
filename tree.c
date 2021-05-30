@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.101 2021/05/30 01:19:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.102 2021/05/30 04:42:44 tg Exp $");
 
 #define INDENT	8
 
@@ -304,7 +304,8 @@ pioact(struct shf *shf, struct ioword *iop)
 		shf_puts("<>", shf);
 		break;
 	case IODUP:
-		shf_puts(flag & IORDUP ? "<&" : ">&", shf);
+		shf_putc(flag & IORDUP ? '<' : '>', shf);
+		shf_putc('&', shf);
 		break;
 	}
 	/* name is NULL for IOHERE or when printing syntax errors */
@@ -420,7 +421,8 @@ wdvarput(struct shf *shf, const char *wp, int quotelevel, int opmode)
 			}
 			return (wp);
 		case OPAT:
-			shf_putchar(*wp++, shf);
+			c = *wp++;
+			shf_putc(c, shf);
 			shf_putc('(', shf);
 			break;
 		case SPAT:
@@ -477,10 +479,6 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 	while ((c = ord(*fmt++))) {
 		if (c == '%') {
 			switch ((c = ord(*fmt++))) {
-			case ORD('c'):
-				/* character (octet, probably) */
-				shf_putchar(va_arg(va, int), shf);
-				break;
 			case ORD('s'):
 				/* string */
 				shf_puts(va_arg(va, char *), shf);
@@ -527,6 +525,10 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 				/* I/O redirection */
 				pioact(shf, va_arg(va, struct ioword *));
 				break;
+			case ORD('c'):
+				/* character (octet, probably) */
+				c = va_arg(va, int);
+				/* FALLTHROUGH */
 			default:
 				shf_putc(c, shf);
 				break;

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.128 2019/12/11 19:46:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.129 2021/05/30 04:42:42 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -635,7 +635,7 @@ exchild(struct op *t, int flags,
 				for (p = j->proc_list; p; p = p->next)
 					shf_fprintf(shl_out, Tf__d,
 					    (int)p->pid);
-				shf_putchar('\n', shl_out);
+				shf_putc('\n', shl_out);
 				shf_flush(shl_out);
 			}
 		} else
@@ -1636,7 +1636,7 @@ j_print(Job *j, int how, struct shf *shf)
 				    buf, coredumped ? " (core dumped)" : null);
 #else
 				shf_puts(buf, shf);
-				shf_putchar(' ', shf);
+				shf_putc(' ', shf);
 #endif
 			}
 		} else {

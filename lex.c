@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.253 2021/05/30 01:19:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.254 2021/05/30 04:42:42 tg Exp $");
 
 /*
  * states while lexing word
@@ -1483,6 +1483,7 @@ set_prompt(int to, Source *s)
 		 * substitutions, POSIX doesn't say which is to be done.
 		 */
 		{
+			char ch;
 			struct shf *shf;
 			char * volatile ps1;
 			Area *saved_atemp;
@@ -1491,12 +1492,14 @@ set_prompt(int to, Source *s)
 			ps1 = str_val(global("PS1"));
 			shf = shf_sopen(NULL, strlen(ps1) * 2,
 			    SHF_WR | SHF_DYNAMIC, NULL);
-			while (*ps1)
-				if (*ps1 != '!' || *++ps1 == '!')
-					shf_putchar(*ps1++, shf);
-				else
+			while ((ch = *ps1++))
+				if (ch != '!' || *ps1++ == '!')
+					shf_putc(ch, shf);
+				else {
+					--ps1;
 					shf_fprintf(shf, Tf_lu, s ?
 					    (unsigned long)s->line + 1 : 0UL);
+				}
 			ps1 = shf_sclose(shf);
 			saved_lineno = current_lineno;
 			if (s)

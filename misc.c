@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.311 2021/05/30 04:17:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.312 2021/05/30 04:42:43 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1750,7 +1750,7 @@ print_columns(struct columnise_opts *opts, unsigned int n,
 	max_col = -max_col;
 	goto prcols_hard;
 	while (r < rows) {
-		shf_putchar(opts->linesep, opts->shf);
+		shf_putc(opts->linesep, opts->shf);
  prcols_hard:
 		for (c = 0; c < cols; c++) {
 			if ((i = c * rows + r) >= n)
@@ -1766,7 +1766,7 @@ print_columns(struct columnise_opts *opts, unsigned int n,
 	}
  out:
 	if (opts->do_last)
-		shf_putchar(opts->linesep, opts->shf);
+		shf_putc(opts->linesep, opts->shf);
 	afree(str, ATEMP);
 }
 

@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.377 2021/02/07 02:02:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.378 2021/05/30 04:42:43 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -1291,7 +1291,7 @@ vwarningf(unsigned int flags, const char *fmt, va_list ap)
 		    builtin_argv0 && builtin_argv0 != kshname)
 			shf_fprintf(shl_out, Tf_sD_, builtin_argv0);
 		shf_vfprintf(shl_out, fmt, ap);
-		shf_putchar('\n', shl_out);
+		shf_putc('\n', shl_out);
 	}
 	shf_flush(shl_out);
 }
