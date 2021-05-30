@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.254 2021/05/30 04:42:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.255 2021/05/30 04:58:35 tg Exp $");
 
 /*
  * states while lexing word
@@ -1489,6 +1489,8 @@ set_prompt(int to, Source *s)
 			Area *saved_atemp;
 			int saved_lineno;
 
+			saved_atemp = ATEMP;
+			newenv(E_ERRH);
 			ps1 = str_val(global("PS1"));
 			shf = shf_sopen(NULL, strlen(ps1) * 2,
 			    SHF_WR | SHF_DYNAMIC, NULL);
@@ -1504,8 +1506,6 @@ set_prompt(int to, Source *s)
 			saved_lineno = current_lineno;
 			if (s)
 				current_lineno = s->line + 1;
-			saved_atemp = ATEMP;
-			newenv(E_ERRH);
 			if (kshsetjmp(e->jbuf)) {
 				prompt = safe_prompt;
 				/*
@@ -1519,8 +1519,8 @@ set_prompt(int to, Source *s)
 				char *cp = substitute(ps1, 0);
 				strdupx(prompt, cp, saved_atemp);
 			}
-			afree(ps1, saved_atemp);
 			current_lineno = saved_lineno;
+			/* frees everything in post-newenv ATEMP */
 			quitenv(NULL);
 		}
 		break;
