@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2015, 2016, 2017
+ *		 2011, 2012, 2013, 2015, 2016, 2017, 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.100 2020/10/31 04:28:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.101 2021/05/30 01:19:09 tg Exp $");
 
 #define INDENT	8
 
@@ -43,8 +43,12 @@ static bool ptree_hashere;
 static struct shf ptree_heredoc;
 #define ptree_outhere(shf) do {					\
 	if (ptree_hashere) {					\
-		shf_puts(shf_sclose(&ptree_heredoc), (shf));	\
+		char *ptree_thehere;				\
+								\
+		ptree_thehere = shf_sclose(&ptree_heredoc);	\
+		shf_puts(ptree_thehere, (shf));			\
 		shf_putc('\n', (shf));				\
+		afree(ptree_thehere, ATEMP);			\
 		ptree_hashere = false;				\
 		/*prevent_semicolon = true;*/			\
 	}							\

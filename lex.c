@@ -2,7 +2,8 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+ *		 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+ *		 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.252 2020/12/14 00:21:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.253 2021/05/30 01:19:08 tg Exp $");
 
 /*
  * states while lexing word
@@ -1515,6 +1516,7 @@ set_prompt(int to, Source *s)
 				char *cp = substitute(ps1, 0);
 				strdupx(prompt, cp, saved_atemp);
 			}
+			afree(ps1, saved_atemp);
 			current_lineno = saved_lineno;
 			quitenv(NULL);
 		}
