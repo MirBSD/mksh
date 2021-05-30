@@ -193,9 +193,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.912 2021/05/05 19:19:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.913 2021/05/30 04:17:54 tg Exp $");
 #endif
-#define MKSH_VERSION "R59 2021/05/01"
+#define MKSH_VERSION "R59 2021/05/29"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1584,13 +1584,14 @@ extern void ebcdic_init(void);
 #define asciibetical(c)	ord(c)
 #define rtt2asc(c)	((unsigned char)(c))
 #define asc2rtt(c)	((unsigned char)(c))
-#define ksh_eq(c,u,l)	((ord(c) | 0x20) == ord(l))
+#define ksh_eq(c,u,l)	((ord(c) | 0x20U) == ord(l))
 #endif
 /* control character foo */
 #ifdef MKSH_EBCDIC
-#define ksh_isctrl(c)	(ord(c) < 0x40 || ord(c) == 0xFF)
+#define ksh_isctrl(c)	(ord(c) < 0x40U || ord(c) == 0xFFU)
 #else
-#define ksh_isctrl(c)	((ord(c) & 0x7F) < 0x20 || ord(c) == 0x7F)
+#define ksh_isctrl(c)	((ord(c) & 0x7FU) < 0x20U || ord(c) == 0x7FU)
+#define ksh_asisctrl(c)	(ord(c) < 0x20U || ord(c) == 0x7FU)
 #endif
 /* new fast character classes */
 #define ctype(c,t)	tobool(ksh_ctypes[ord(c)] & (t))

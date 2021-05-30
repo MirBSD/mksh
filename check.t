@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.862 2021/05/20 17:43:55 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.863 2021/05/30 04:17:49 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright Â© 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2021/05/01
+	KSH R59 2021/05/29
 description:
 	Check base version of full shell
 stdin:
@@ -9920,7 +9920,6 @@ expected-stdout:
 name: varexpand-special-quote
 description:
 	Check special ${var@Q} expansion for quoted strings
-category: !shell:faux-ebcdic
 stdin:
 	set +U
 	i=x
@@ -9932,36 +9931,19 @@ stdin:
 	print -r -- "s=\"$s\""
 	eval "$s"
 	typeset -p u v w
+	set -o asis
+	typeset -p w
+	set -U
+	typeset -p w
 expected-stdout:
 	<i=x j=a b k=c
 	d eâ‚¬f>
-	s="u=x v='a b' w=$'c\nd\240e\u20ACf'"
+	s="u=x v='a b' w=$'c\nd eâ\202¬f'"
 	typeset u=x
 	typeset v='a b'
-	typeset w=$'c\nd\240e\u20ACf'
----
-name: varexpand-special-quote-faux-EBCDIC
-description:
-	Check special ${var@Q} expansion for quoted strings
-category: shell:faux-ebcdic
-stdin:
-	set +U
-	i=x
-	j=a\ b
-	k=$'c
-	d\xA0''eâ‚¬f'
-	print -r -- "<i=$i j=$j k=$k>"
-	s="u=${i@Q} v=${j@Q} w=${k@Q}"
-	print -r -- "s=\"$s\""
-	eval "$s"
-	typeset -p u v w
-expected-stdout:
-	<i=x j=a b k=c
-	d eâ‚¬f>
-	s="u=x v='a b' w=$'c\nd e\u20ACf'"
-	typeset u=x
-	typeset v='a b'
-	typeset w=$'c\nd e\u20ACf'
+	typeset w=$'c\nd eâ\202¬f'
+	typeset w=$'c\nd eâ‚¬f'
+	typeset w=$'c\nd\240eâ‚¬f'
 ---
 name: varexpand-null-1
 description:
@@ -13776,7 +13758,7 @@ name: duffs-device
 description:
 	Check that the compiler did not optimise-break them
 	(lex.c has got a similar one in SHEREDELIM)
-category: !shell:faux-ebcdic,!shell:ebcdic-yes
+category: !shell:ebcdic-yes
 stdin:
 	set +U
 	s=
@@ -13786,8 +13768,14 @@ stdin:
 	done
 	s+=$'\xC2\xA0\xE2\x82\xAC\xEF\xBF\xBD\xEF\xBF\xBE\xEF\xBF\xBF\xF0\x90\x80\x80.'
 	typeset -p s
+	set -o asis
+	typeset -p s
+	set -U
+	typeset -p s
 expected-stdout:
-	typeset s=$'\001\002\003\004\005\006\a\b\t\n\v\f\r\016\017\020\021\022\023\024\025\026\027\030\031\032\E\034\035\036\037 !"#$%&\047()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\177\200\201\202\203\204\205\206\207\210\211\212\213\214\215\216\217\220\221\222\223\224\225\226\227\230\231\232\233\234\235\236\237\240\241\242\243\244\245\246\247\250\251\252\253\254\255\256\257\260\261\262\263\264\265\266\267\270\271\272\273\274\275\276\277\300\301\302\303\304\305\306\307\310\311\312\313\314\315\316\317\320\321\322\323\324\325\326\327\330\331\332\333\334\335\336\337\340\341\342\343\344\345\346\347\350\351\352\353\354\355\356\357\360\361\362\363\364\365\366\367\370\371\372\373\374\375\376\377\u00A0\u20AC\uFFFD\357\277\276\357\277\277\360\220\200\200.'
+	typeset s=$'\001\002\003\004\005\006\a\b\t\n\v\f\r\016\017\020\021\022\023\024\025\026\027\030\031\032\E\034\035\036\037 !"#$%&\047()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\177\200\201\202\203\204\205\206\207\210\211\212\213\214\215\216\217\220\221\222\223\224\225\226\227\230\231\232\233\234\235\236\237 ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖ×ØÙÚÛÜİŞßàáâãäåæçèéêëìíîïğñòóôõö÷øùúûüışÿÂ â\202¬ï¿½ï¿¾ï¿¿ğ\220\200\200.'
+	typeset s=$'\001\002\003\004\005\006\a\b\t\n\v\f\r\016\017\020\021\022\023\024\025\026\027\030\031\032\E\034\035\036\037 !"#$%&\047()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\177€‚ƒ„…†‡ˆ‰Š‹Œ‘’“”•–—˜™š›œŸ ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖ×ØÙÚÛÜİŞßàáâãäåæçèéêëìíîïğñòóôõö÷øùúûüışÿÂ â‚¬ï¿½ï¿¾ï¿¿ğ€€.'
+	typeset s=$'\001\002\003\004\005\006\a\b\t\n\v\f\r\016\017\020\021\022\023\024\025\026\027\030\031\032\E\034\035\036\037 !"#$%&\047()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\177\200\201\202\203\204\205\206\207\210\211\212\213\214\215\216\217\220\221\222\223\224\225\226\227\230\231\232\233\234\235\236\237\240\241\242\243\244\245\246\247\250\251\252\253\254\255\256\257\260\261\262\263\264\265\266\267\270\271\272\273\274\275\276\277\300\301\302\303\304\305\306\307\310\311\312\313\314\315\316\317\320\321\322\323\324\325\326\327\330\331\332\333\334\335\336\337\340\341\342\343\344\345\346\347\350\351\352\353\354\355\356\357\360\361\362\363\364\365\366\367\370\371\372\373\374\375\376\377Â â‚¬ï¿½\357\277\276\357\277\277\360\220\200\200.'
 ---
 name: duffs-device-ebcdic
 description:
@@ -13804,22 +13792,6 @@ stdin:
 	typeset -p s
 expected-stdout:
 	typeset s=$'\001\002\003\004\t\006\007\010\011\012\v\f\r\016\017\020\021\022\023\024\n\b\027\030\031\032\033\034\035\036\037\040\041\042\043\044\045\046\E\050\051\052\053\054\055\056\a\060\061\062\063\064\065\066\067\070\071\072\073\074\075\076\077  âäàáãåçñ¢.<(+|&éêëèíîïìß!$*);^-/ÂÄÀÁÃÅÇÑ¦,%_>?øÉÊËÈÍÎÏÌ`:#@\175="Øabcdefghi«»ğış±°jklmnopqrªºæ¸Æ¤µ~stuvwxyz¡¿Ğ[Ş®¬£¥·©§¶¼½¾İ¨¯]´×{ABCDEFGHI­ôöòóõ}JKLMNOPQR¹ûüùúÿ\\÷STUVWXYZ²ÔÖÒÓÕ0123456789³ÛÜÙÚ\377'
----
-name: duffs-device-faux-EBCDIC
-description:
-	Check that the compiler did not optimise-break them
-category: shell:faux-ebcdic
-stdin:
-	set +U
-	s=
-	typeset -i1 i=0
-	while (( ++i < 256 )); do
-		s+=${i#1#}
-	done
-	s+=$'\xC2\xA0\xE2\x82\xAC\xEF\xBF\xBD\xEF\xBF\xBE\xEF\xBF\xBF\xF0\x90\x80\x80.'
-	typeset -p s
-expected-stdout:
-	typeset s=$'\001\002\003\004\005\006\a\b\t\n\v\f\r\016\017\020\021\022\023\024\025\026\027\030\031\032\E\034\035\036\037 !"#$%&\047()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\177\200\201\202\203\204\205\206\207\210\211\212\213\214\215\216\217\220\221\222\223\224\225\226\227\230\231\232\233\234\235\236\237 ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖ×ØÙÚÛÜİŞßàáâãäåæçèéêëìíîïğñòóôõö÷øùúûüışÿ\u00A0\u20AC\uFFFDï¿¾ï¿¿ğ\220\200\200.'
 ---
 name: stateptr-underflow
 description:

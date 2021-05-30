@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.310 2021/05/27 21:01:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.311 2021/05/30 04:17:51 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -56,6 +56,12 @@ static const unsigned char *gmatch_cclass(const unsigned char *, unsigned char)
     MKSH_A_PURE;
 #ifdef KSH_CHVT_CODE
 static void chvt(const Getopt *);
+#endif
+static unsigned int dollarqU(struct shf *, const unsigned char *);
+#ifndef MKSH_SMALL
+static void dollarq8(struct shf *, const unsigned char *);
+#else
+#define dollarq8 dollarqU
 #endif
 
 /*XXX this should go away */
@@ -1422,124 +1428,261 @@ print_value_quoted(struct shf *shf, const char *s)
 	bool inquote = true;
 
 	/* first, special-case empty strings (for re-entrancy) */
-	if (!*s)
-		goto shortcutemptystr;
+	if (!*s) {
+		shf_putc('\'', shf);
+		shf_putc('\'', shf);
+		return;
+	}
 
 	/* non-empty; check whether any quotes are needed */
-	while (rtt2asc(c = *p++) >= 32)
-		if (ctype(c, C_QUOTE | C_SPC))
-			inquote = false;
-
-	p = (const unsigned char *)s;
-	if (c == 0) {
-		if (inquote) {
-			/* nope, use the shortcut */
-			shf_puts(s, shf);
-			return;
-		}
-		/* assert: inquote == false */
-
-		/* otherwise, quote nicely via state machine */
+	if (UTFMODE) {
+		/* C1 always escaped; multibyte makes this tricky */
 		while ((c = *p++) != 0) {
-			if (c == '\'') {
-				/*
-				 * multiple single quotes or any of them
-				 * at the beginning of a string look nicer
-				 * this way than when simply substituting
-				 */
-				if (inquote) {
-					shf_putc('\'', shf);
-					inquote = false;
-				}
-				shf_putc('\\', shf);
-			} else if (!inquote) {
-				shf_putc('\'', shf);
-				inquote = true;
+			if (ctype(c, C_CNTRL)) {
+				dollarqU(shf, (const unsigned char *)s);
+				return;
 			}
-			shf_putc(c, shf);
+			/* anything out of ASCII present? */
+			if (rtt2asc(c) > 0x7EU) {
+				/* dollar-quote, but be prepared to redo */
+				char *guess;
+				struct shf to;
+
+				shf_sopen(NULL, 0, SHF_WR | SHF_DYNAMIC, &to);
+				c = dollarqU(&to, (const unsigned char *)s);
+				guess = shf_sclose(&to);
+				/* output guess if it was right */
+				if (c > 1)
+					shf_puts(guess, shf);
+				afree(guess, ATEMP);
+				if (c == 1)
+					goto always_single;
+				if (c == 0)
+ noquoteneeded:
+					shf_puts(s, shf);
+				return;
+			}
+			if (ctype(c, C_QUOTE | C_SPC))
+				inquote = false;
 		}
-		if (inquote)
-			goto outquote;
-	} else {
-		unsigned int wc;
-		size_t n;
-
-		/* use $'...' quote format */
-		shf_putc('$', shf);
- shortcutemptystr:
-		shf_putc('\'', shf);
-		while ((c = *p) != 0) {
+		/* assert: c == 0; all chars in [20;7E] ASCII */
 #ifndef MKSH_EBCDIC
-			if (c >= 0xC2) {
-				n = utf_mbtowc(&wc, (const char *)p);
-				if (n != (size_t)-1) {
-					p += n;
-					shf_fprintf(shf, "\\u%04X", wc);
-					continue;
-				}
+	} else if (Flag(FASIS)) {
+		while ((c = *p++), !ksh_asisctrl(c))
+			if (ctype(c, C_QUOTE | C_SPC))
+				inquote = false;
+#endif
+	} else {
+		while ((c = *p++), !ksh_isctrl(c))
+			if (ctype(c, C_QUOTE | C_SPC))
+				inquote = false;
+	}
+	/* state: if c == 0, all chars printable, inquote shortcuts */
+
+	if (c) {
+		/* otherwise, escape control chars */
+		dollarq8(shf, (const unsigned char *)s);
+		return;
+	}
+
+	/* can we shortcut? */
+	if (inquote)
+		goto noquoteneeded;
+	/* no */
+ always_single:
+	/* all chars printable, no control chars, quote nicely */
+	inquote = false;
+	p = (const unsigned char *)s;
+
+	while ((c = *p++) != 0) {
+		if (c == '\'') {
+			if (inquote) {
+				shf_putc('\'', shf);
+				inquote = false;
 			}
-#endif
-			++p;
-			switch (c) {
-			/* see unbksl() in this file for comments */
-			case KSH_BEL:
-				c = 'a';
-				if (0)
-					/* FALLTHROUGH */
-			case '\b':
-				  c = 'b';
-				if (0)
-					/* FALLTHROUGH */
-			case '\f':
-				  c = 'f';
-				if (0)
-					/* FALLTHROUGH */
-			case '\n':
-				  c = 'n';
-				if (0)
-					/* FALLTHROUGH */
-			case '\r':
-				  c = 'r';
-				if (0)
-					/* FALLTHROUGH */
-			case '\t':
-				  c = 't';
-				if (0)
-					/* FALLTHROUGH */
-			case KSH_VTAB:
-				  c = 'v';
-				if (0)
-					/* FALLTHROUGH */
-			case KSH_ESC:
-				/* take E not e because \e is \ in *roff */
-				  c = 'E';
-				/* FALLTHROUGH */
-			case '\\':
-				shf_putc('\\', shf);
+			shf_putc('\\', shf);
+		} else if (!inquote) {
+			shf_putc('\'', shf);
+			inquote = true;
+		}
+		shf_putc(c, shf);
+	}
+	if (inquote)
+		shf_putc('\'', shf);
+}
 
-				if (0)
-					/* FALLTHROUGH */
-			default:
-#if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
-				  if (ksh_isctrl(c))
+#ifdef MKSH_EBCDIC
+#define dollarq_isctrl8(c)	ksh_isctrl(c)
 #else
-				  if (!ctype(c, C_PRINT))
+#define dollarq_isctrl8(c)	Flag(FASIS) ? ksh_asisctrl(c) : ksh_isctrl(c)
 #endif
-				    {
-					/* FALLTHROUGH */
-			case '\'':
-					shf_fprintf(shf, "\\%03o", c);
-					break;
-				}
 
-				shf_putc(c, shf);
+#define dollarq_Uctrl(c)	!ctype(c, C_PRINT)
+#ifndef MKSH_SMALL
+#define dollarq_isctrlU(c)	dollarq_Uctrl(c)
+#else
+#define dollarq_isctrlU(c)	UTFMODE ? dollarq_Uctrl(c) : dollarq_isctrl8(c)
+#endif
+
+/* escape with $'...' (!MKSH_SMALL: in UTFMODE) */
+static unsigned int
+dollarqU(struct shf *shf, const unsigned char *s)
+{
+	unsigned char c;
+	unsigned int wc;
+	size_t n;
+	unsigned int rv = 0;
+
+	shf_putc('$', shf);
+	shf_putc('\'', shf);
+	while ((c = *s) != 0) {
+		if (
+#ifdef MKSH_SMALL
+		    UTFMODE &&
+#endif
+		    rtt2asc(c) >= 0xC2U && (n = utf_mbtowc(&wc,
+		    (const char *)s)) != (size_t)-1) {
+			/* valid UTF-8 multibyte character > 0x7F */
+			if ((wc ^ 0x80U) < 0x20U) {
+				/* C1 control character */
+				shf_fprintf(shf, "\\u%04X", wc);
+				rv = 2;
+			} else {
+				/*
+				 * print as-is; we assume the tty DTRT for
+				 * interlinear annotations, LTR/RTL mark,
+				 * U+2028, U+2029, U+2066..U+206F, etc.
+				 */
+				shf_write(s, n, shf);
+			}
+			s += n;
+			continue;
+		}
+		++s;
+		/* single octet */
+		rv |= ctype(c, C_QUOTE | C_SPC);
+		switch (c) {
+		/* see unbksl() in this file for comments */
+		case KSH_BEL:
+			c = 'a';
+			if (0)
+				/* FALLTHROUGH */
+		case '\b':
+			  c = 'b';
+			if (0)
+				/* FALLTHROUGH */
+		case '\f':
+			  c = 'f';
+			if (0)
+				/* FALLTHROUGH */
+		case '\n':
+			  c = 'n';
+			if (0)
+				/* FALLTHROUGH */
+		case '\r':
+			  c = 'r';
+			if (0)
+				/* FALLTHROUGH */
+		case '\t':
+			  c = 't';
+			if (0)
+				/* FALLTHROUGH */
+		case KSH_VTAB:
+			  c = 'v';
+			if (0)
+				/* FALLTHROUGH */
+		case KSH_ESC:
+			/* take E not e because \e is \ in *roff */
+			  c = 'E';
+			rv = 2;
+			/* FALLTHROUGH */
+		case '\\':
+			shf_putc('\\', shf);
+
+			if (0)
+				/* FALLTHROUGH */
+		default:
+			  if (dollarq_isctrlU(c)) {
+				rv = 2;
+				/* FALLTHROUGH */
+		case '\'':
+				shf_fprintf(shf, "\\%03o", c);
 				break;
 			}
+
+			shf_putc(c, shf);
+			break;
 		}
- outquote:
-		shf_putc('\'', shf);
 	}
+	shf_putc('\'', shf);
+	return (rv);
 }
+
+#ifndef MKSH_SMALL
+/* escape with $'...' outside UTFMODE */
+static void
+dollarq8(struct shf *shf, const unsigned char *s)
+{
+	unsigned char c;
+
+	shf_putc('$', shf);
+	shf_putc('\'', shf);
+	while ((c = *s++) != 0) {
+		/* single octet */
+		switch (c) {
+		/* see unbksl() in this file for comments */
+		case KSH_BEL:
+			c = 'a';
+			if (0)
+				/* FALLTHROUGH */
+		case '\b':
+			  c = 'b';
+			if (0)
+				/* FALLTHROUGH */
+		case '\f':
+			  c = 'f';
+			if (0)
+				/* FALLTHROUGH */
+		case '\n':
+			  c = 'n';
+			if (0)
+				/* FALLTHROUGH */
+		case '\r':
+			  c = 'r';
+			if (0)
+				/* FALLTHROUGH */
+		case '\t':
+			  c = 't';
+			if (0)
+				/* FALLTHROUGH */
+		case KSH_VTAB:
+			  c = 'v';
+			if (0)
+				/* FALLTHROUGH */
+		case KSH_ESC:
+			/* take E not e because \e is \ in *roff */
+			  c = 'E';
+			/* FALLTHROUGH */
+		case '\\':
+			shf_putc('\\', shf);
+
+			if (0)
+				/* FALLTHROUGH */
+		default:
+			  if (dollarq_isctrl8(c)) {
+				/* FALLTHROUGH */
+		case '\'':
+				shf_fprintf(shf, "\\%03o", c);
+				break;
+			}
+
+			shf_putc(c, shf);
+			break;
+		}
+	}
+	shf_putc('\'', shf);
+}
+#endif
 
 /*
  * Print things in columns and rows - func() is called to format

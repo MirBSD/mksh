@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.178 2021/01/27 16:45:27 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.179 2021/05/30 04:17:48 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2021
@@ -109,9 +109,6 @@ CLEANFILES+=	${GENERATED}
 ${PROG} beforedepend: ${GENERATED}
 
 REGRESS_CATEGORIES:=shell:legacy-no,int:32,shell:textmode-no,shell:binmode-yes,fastbox
-.if !empty(GCEXTRA:M-DMKSH_FAUX_EBCDIC)
-REGRESS_CATEGORIES:=${REGRESS_CATEGORIES},shell:faux-ebcdic
-.endif
 
 regress: ${PROG} check.pl check.t
 	-rm -rf regress-dir

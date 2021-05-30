@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2013, 2014, 2015, 2017
+ * Copyright (c) 2013, 2014, 2015, 2017, 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -19,7 +19,7 @@
  */
 
 @SHFLAGS_DEFNS
-__RCSID("$MirOS: src/bin/mksh/sh_flags.opt,v 1.9 2020/05/16 22:38:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh_flags.opt,v 1.10 2021/05/30 04:17:56 tg Exp $");
 @SHFLAGS_ENUMS
 #define FN(sname,cname,flags,ochar)	cname,
 #define F0(sname,cname,flags,ochar)	cname = 0,
@@ -42,6 +42,10 @@ __RCSID("$MirOS: src/bin/mksh/sh_flags.opt,v 1.9 2020/05/16 22:38:25 tg Exp $");
 /* -a	all new parameters are created with the export attribute */
 >a|
 F0("allexport", FEXPORT, OF_ANY
+
+/* ./.	when quoting, show C1 control characters as-is; +U only */
+>|
+FN("asis", FASIS, OF_ANY
 
 /* ./.	bgnice */
 >| HAVE_NICE
