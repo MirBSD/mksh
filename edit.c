@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.365 2021/05/02 16:57:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.366 2021/06/05 14:41:25 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1642,6 +1642,7 @@ static void
 x_goto(char *cp)
 {
 	cp = cp >= xep ? xep : x_bs0(cp, xbuf);
+	/*XXX utf_skipcols is wrong, we must take the x_size */
 	if (cp < xbp || cp >= utf_skipcols(xbp, x_displen, NULL)) {
 		/* we are heading off screen */
 		xcp = cp;
