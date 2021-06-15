@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.21 2021/06/15 01:27:20 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.22 2021/06/15 13:20:06 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -717,17 +717,22 @@ Title: I use “set -eo pipefail” and my code unexpectedly errors out
 ToC: faq
 Title: My question is not answered here!
 
-Do read the mksh(1) manual page. You might also wish to read the <a
+Do read the mksh(1) and lksh(1) manual page. You might also wish to read the <a
  href="@@RELPATH@@ksh-chan.htm">homepage of the <tt>#ksh</tt> IRC channel</a>
 which lists several resources for Korn or POSIX-compatible shells in general.
 Or, <a href="#contact">contact</a> us (developer and users).
 ----
 ToC: contact
-Title: How do I contact you (to say thanks)?
+Title: How do I contact you (to say thanks, for bugreports and questions)?
 
-You can say hi in the <tt>#!/bin/mksh</tt> channel on <a
- href="@@RELPATH@@irc.htm">IRC</a>, although a <a
- href="@@RELPATH@@danke.htm">donation</a> wouldn’t be amiss ☺ The <a
- href="http://www.mail-archive.com/miros-mksh@mirbsd.org/">mailing
-list</a> can also be used.
+<p>You can say hi in the <tt>#!/bin/mksh</tt> channel on <a
+ href="@@RELPATH@@irc.htm">IRC</a> (OFTC, for now), although… a
+ <a href="@@RELPATH@@danke.htm">donation</a> wouldn’t be amiss ☻
+<br />The <a href="@@RELPATH@@rss.htm#lists">mailing list</a> can also
+ be used for this. The <a href="#faq">extra resources</a> from the FAQ
+ entry just one above should also be considered ;-)</p>
+<p>If you insist on sending a bugreport, IRC and the mailing list are
+ great places for that; <a href="https://launchpad.net/mksh">Launchpad</a>,
+ an external gratis service provided by a company, can also be used if you
+ like web-based issue trackers better.</p>
 ----
