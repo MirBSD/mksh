@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.20 2021/05/30 04:17:54 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.21 2021/06/15 01:27:20 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -101,8 +101,8 @@ Title: How does this relate to ksh or the Korn Shell?
  getting close to, ksh88 compatibility.</p>
 <p>SKsh is an AmigaOS-specific Korn Shell-lookalike by Steve Koren.</p>
 <p>The <a href="@@RELPATH@@ksh-chan.htm">Homepage of the <tt>#ksh</tt>
- channel on Freenode IRC</a> contains more information about the Korn
- Shell in general and its flavours.</p>
+ channel on IRC</a> contains more information about the Korn Shell in
+ general and its flavours.</p>
 ----
 ToC: packaging
 Title: How should I package mksh? (common cases)
@@ -718,15 +718,14 @@ ToC: faq
 Title: My question is not answered here!
 
 Do read the mksh(1) manual page. You might also wish to read the <a
- href="@@RELPATH@@ksh-chan.htm">homepage of the <tt>#ksh</tt> IRC channel
-on Freenode</a> which lists several resources for Korn or POSIX-compatible
-shells in general. Or, <a href="#contact">contact</a> us (developer and
-users), for example via IRC.
+ href="@@RELPATH@@ksh-chan.htm">homepage of the <tt>#ksh</tt> IRC channel</a>
+which lists several resources for Korn or POSIX-compatible shells in general.
+Or, <a href="#contact">contact</a> us (developer and users).
 ----
 ToC: contact
 Title: How do I contact you (to say thanks)?
 
-You can say hi in the <tt>#!/bin/mksh</tt> channel on Freenode <a
+You can say hi in the <tt>#!/bin/mksh</tt> channel on <a
  href="@@RELPATH@@irc.htm">IRC</a>, although a <a
  href="@@RELPATH@@danke.htm">donation</a> wouldn’t be amiss ☺ The <a
  href="http://www.mail-archive.com/miros-mksh@mirbsd.org/">mailing
