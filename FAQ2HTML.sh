@@ -1,5 +1,5 @@
 #!/bin/sh
-rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.2 2020/10/31 04:17:36 tg Exp $'
+rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.3 2021/06/15 01:09:43 tg Exp $'
 #-
 # Copyright © 2020
 #	mirabilos <m@mirbsd.org>
@@ -109,7 +109,7 @@ cat <<EOF
  }
  /*]]>*/--></style>
 </head><body>
-<p>Note: Links marked like <a href="irc://chat.freenode.net/!/bin/mksh">this
+<p>Note: Links marked like <a href="irc://irc.mirbsd.org/!/bin/mksh">this
  one to the mksh IRC channel</a> connect to external resources.</p>
 <p>⚠ <b>Notice:</b> the website will have <a
  href="http://www.mirbsd.org/mksh-faq.htm">the latest version of the
