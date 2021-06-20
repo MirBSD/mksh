@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.241 2021/05/03 01:24:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.242 2021/06/20 23:21:00 tg Exp $");
 
 /*-
  * Variables
@@ -685,7 +685,7 @@ formatstr(struct tbl *vp, const char *s)
 			const char *qq;
 			int n = 0;
 
-			qq = utf_skipcols(s, slen, &slen);
+			qq = s + strlen(s);
 
 			/* strip trailing spaces (AT&T uses qq[-1] == ' ') */
 			while (qq > s && ctype(qq[-1], C_SPACE)) {
