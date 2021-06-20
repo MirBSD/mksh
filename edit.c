@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.369 2021/06/20 20:17:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.370 2021/06/20 20:30:21 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -909,11 +909,21 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
  * |<--------- $COLUMNS -------->|
  *      |<---- x_displen ------->|
  *  PS1 |
+ *      +=====+=========+......................................+
+ *      |\     \        |\                                      \
+ *   xbuf xbp   xcp   xlp xep                                    xend
+ *
+ * [B] larger input line
+ *
+ *      buf
+ * |<--------- $COLUMNS -------->|
+ *      |<---- x_displen ------->|
+ *  PS1 |
  *      +===========+============+---------------------+.......+
  *      |\          \             \                     \       \
  *   xbuf xbp        xcp           xlp                   xep     xend
  *
- * [B] scrolled
+ * [C] scrolled
  *
  *      buf
  *      |       |<--------- $COLUMNS -------->|
@@ -3455,8 +3465,8 @@ x_lastcp(void)
 			i += j;
 			xlp = xlp2;
 		}
+		xlp_valid = true;
 	}
-	xlp_valid = true;
 	return (xlp);
 }
 
