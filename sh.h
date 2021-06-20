@@ -193,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.913 2021/05/30 04:17:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.914 2021/06/20 18:12:49 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/05/29"
 
@@ -985,7 +985,6 @@ EXTERN char null[] E_INIT("");
 #endif
 
 #ifndef HAVE_STRING_POOLING /* helpers for pooled strings */
-EXTERN const char T4spaces[] E_INIT("    ");
 #define T1space (Treal_sp2 + 5)
 #define Tcolsp (Tf_sD_ + 2)
 #define TC_IFSWS (TinitIFS + 4)
@@ -1149,7 +1148,6 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Tf_sD_s (Tf_temp + 24)
 EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #else /* helpers for string pooling */
-#define T4spaces "    "
 #define T1space " "
 #define Tcolsp ": "
 #define TC_IFSWS " \t\n"

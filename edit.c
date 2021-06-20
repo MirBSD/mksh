@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.366 2021/06/05 14:41:25 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.367 2021/06/20 18:12:48 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -997,7 +997,6 @@ static void x_bs3(char **);
 static int x_size2(char *, char **);
 static void x_zots(char *);
 static void x_zotc3(char **);
-static void x_vi_zotc(int);
 static void x_load_hist(char **);
 static int x_search(const char *, int, int);
 #ifndef MKSH_SMALL
@@ -1714,7 +1713,7 @@ x_zotc3(char **cp)
 
 	if (c == '\t') {
 		/* Kludge, tabs are always four spaces. */
-		x_e_puts(T4spaces);
+		x_e_puts("    ");
 		(*cp)++;
 	} else if (ksh_isctrl(c)) {
 		x_e_putc2('^');
@@ -2369,7 +2368,11 @@ x_meta_yank(int c MKSH_A_UNUSED)
 static void
 x_intr(int signo, int c)
 {
-	x_vi_zotc(c);
+	if (ksh_isctrl(c)) {
+		x_putc('^');
+		c = ksh_unctrl(c);
+	}
+	x_putc(c);
 	*xep = '\0';
 	strip_nuls(xbuf, xep - xbuf);
 	if (*xbuf)
@@ -3720,7 +3723,11 @@ x_vi(char *buf)
 			} else if (isched(c, edchars.eof) &&
 			    state != VVERSION) {
 				if (vs->linelen == 0) {
-					x_vi_zotc(c);
+					if (ksh_isctrl(c)) {
+						x_putc('^');
+						c = ksh_unctrl(c);
+					}
+					x_putc(c);
 					c = -1;
 					break;
 				}
@@ -5584,20 +5591,7 @@ print_expansions(struct edstate *est, int cmd MKSH_A_UNUSED)
 	redraw_line(false);
 	return (0);
 }
-#endif /* !MKSH_S_NOVI */
 
-/* Similar to x_zotc(emacs.c), but no tab weirdness */
-static void
-x_vi_zotc(int c)
-{
-	if (ksh_isctrl(c)) {
-		x_putc('^');
-		c = ksh_unctrl(c);
-	}
-	x_putc(c);
-}
-
-#if !MKSH_S_NOVI
 static void
 vi_error(void)
 {
