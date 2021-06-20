@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.367 2021/06/20 18:12:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.368 2021/06/20 18:55:10 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1661,7 +1661,7 @@ static char *
 x_bs0(char *cp, char *lower_bound)
 {
 	if (UTFMODE)
-		while ((!lower_bound || (cp > lower_bound)) &&
+		while ((cp > lower_bound) &&
 		    ((rtt2asc(*cp) & 0xC0) == 0x80))
 			--cp;
 	return (cp);
@@ -1672,7 +1672,7 @@ x_bs3(char **p)
 {
 	int i;
 
-	*p = x_bs0((*p) - 1, NULL);
+	*p = x_bs0((*p) - 1, xbuf);
 	i = x_size2(*p, NULL);
 	while (i--)
 		x_e_putc2('\b');
