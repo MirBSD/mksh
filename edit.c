@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.373 2021/06/20 22:45:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.374 2021/06/20 23:02:45 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1719,16 +1719,22 @@ x_goto(char *cp)
 static char *
 x_bs0(char *cp, char *lower_bound)
 {
-	/*
-	 * Note: this can and will be off if nōn-UTF8 chars are present.
-	 * For example, \xE2\x82\xAC\x80 is to be backwarded over; we’re
-	 * called with cp pointing to the final \x80 and skip backwards
-	 * over both the € sign and the raw octet.
-	 */
-	if (UTFMODE)
-		while ((cp > lower_bound) &&
-		    ((rtt2asc(*cp) & 0xC0) == 0x80))
-			--cp;
+	if (UTFMODE) {
+		char *bp = cp;
+		size_t n;
+
+		/* skip backwards knowing the UTF-8 encoding */
+		while (bp > lower_bound && (rtt2asc(*bp) & 0xC0U) == 0x80U)
+			--bp;
+		/* ensure we arrive back at the original point */
+		n = utf_mbtowc(NULL, bp);
+		if (n == (size_t)-1)
+			n = 1;
+		/* back where we started? if so, this was indeed UTF-8 */
+		if (bp + n - 1 == cp)
+			return (bp);
+		/* no so some raw octet is at *cp */
+	}
 	return (cp);
 }
 
