@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.372 2021/06/20 21:55:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.373 2021/06/20 22:45:41 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2990,40 +2990,50 @@ do_complete(
 static void
 x_adjust(void)
 {
-	int col_left, n;
+	int colcur, colmax;
 
 	/* flag the fact that we were called */
 	x_adj_done++;
 
+	/* fix up xcp to just past a character end first */
+	xcp = xcp >= xep ? xep : x_bs0(xcp, xbuf);
+	/* shortcut if going to beginning of line */
+	if (xcp == (xbp = xbuf))
+		goto x_adjust_out;
+
+	/* check if the entire line fits */
+	x_displen = xx_cols - 2 - pwidth;
+	xlp_valid = false;
+	x_lastcp();
+	/* accept if the cursor is still in the editable area */
+	if (xcp < xdp /*|| xdp >= xep */)
+		goto x_adjust_out;
+
+	/* ok, that was a failure so we need to proceed backwards from xcp */
+	xbp = xcp;
+	/* assert xbp > xbuf */
+
 	/*
-	 * calculate the amount of columns we need to "go back"
-	 * from xcp to set xbp to (but never < xbuf) to 2/3 of
-	 * the display width; take care of pwidth though
+	 * if we have enough space left on screen, we aim to
+	 * position the cursor at 3/4 of the display width;
+	 * if not we emergency-fit just one character before…
 	 */
-	if ((col_left = xx_cols * 2 / 3) < MIN_EDIT_SPACE) {
-		/*
-		 * cowardly refuse to do anything
-		 * if the available space is too small;
-		 * fall back to dumb pdksh code
-		 */
-		if ((xbp = xcp - (x_displen / 2)) < xbuf)
-			xbp = xbuf;
-		/* elide UTF-8 fixup as penalty */
+	if ((colmax = xx_cols * 3 / 4) < MIN_EDIT_SPACE) {
+		/* one backwards though */
+		xbp = x_bs0(xbp - 1, xbuf);
+		/* go for it */
 		goto x_adjust_out;
 	}
 
-	/* fix up xbp to just past a character end first */
-	xbp = xcp >= xep ? xep : x_bs0(xcp, xbuf);
-	/* walk backwards */
-	while (xbp > xbuf && col_left > 0) {
+	/* go backwards until we reached the target width */
+	colcur = 0;
+	while (xbp > xbuf && colcur < colmax) {
 		xbp = x_bs0(xbp - 1, xbuf);
-		col_left -= (n = x_size2(xbp, NULL));
+		colcur += x_size2(xbp, NULL);
 	}
-	/* check if we hit the prompt */
-	if (xbp == xbuf && xcp != xbuf && col_left >= 0 && col_left < pwidth) {
-		/* so we did; force scrolling occurs */
+	/* check if we hit the prompt and force scrolling if so */
+	if (xbp == xbuf)
 		xbp += utf_ptradj(xbp);
-	}
 
  x_adjust_out:
 	xlp_valid = false;
