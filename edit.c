@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.368 2021/06/20 18:55:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.369 2021/06/20 20:17:15 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -896,6 +896,49 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 
 /* +++ emacs editing mode +++ */
 
+/*-
+ * The input buffer "buf" is pointed to by "xbuf" and its end is
+ * pointed to by "xend".  The current position in "xbuf" and end of
+ * the edit line are pointed to by "xcp" and "xep" respectively.
+ * "xbp" points to the start of a display window within "xbuf", and
+ * "xlp" points to the last visible character on screen, if valid.
+ *
+ * [A] starting position
+ *
+ *      buf
+ * |<--------- $COLUMNS -------->|
+ *      |<---- x_displen ------->|
+ *  PS1 |
+ *      +===========+============+---------------------+.......+
+ *      |\          \             \                     \       \
+ *   xbuf xbp        xcp           xlp                   xep     xend
+ *
+ * [B] scrolled
+ *
+ *      buf
+ *      |       |<--------- $COLUMNS -------->|
+ *      |       |<--------- x_displen ------->|
+ *      |
+ *      +-------+==============+==============+--------+.......+
+ *      |        \              \              \        \       \
+ *   xbuf         xbp            xcp            xlp      xep     xend
+ *
+ * In the above -------- represents the current edit line while
+ * ===== represents that portion which is visible on the screen;
+ * ....... is unused space in buf. Note that initially xbp == xbuf
+ * and PS1 is displayed. PS1 uses some of the screen width and thus
+ * "x_displen" is less than $COLUMNS.
+ *
+ * Any time that "xcp" moves outside the region bounded by "xbp"
+ * and "xbp" + "x_displen", the function x_adjust() is called to
+ * relocate "xbp" appropriately and redraw the line.
+ *
+ * Excessive I/O is avoided where possible.  x_goto() for instance
+ * calculates whether the destination is outside the visible
+ * region, and if so simply adjusts "xcp" and calls x_adjust()
+ * directly.  Normally though x_adjust() is called from x_putc().
+ */
+
 static	Area	aedit;
 #define	AEDIT	&aedit		/* area for kill ring and macro defns */
 
@@ -949,7 +992,7 @@ static bool x_adj_ok;
  * we use x_adj_done so that functions can tell
  * whether x_adjust() has been called while they are active.
  */
-static int x_adj_done;		/* is incremented by x_adjust() */
+static uint8_t x_adj_done;	/* is incremented by x_adjust() */
 
 static int x_displen;
 static int x_arg;		/* general purpose arg */
@@ -1407,7 +1450,7 @@ static int
 x_ins(const char *s)
 {
 	char *cp = xcp;
-	int adj = x_adj_done;
+	uint8_t adj = x_adj_done;
 
 	if (x_do_ins(s, strlen(s)) < 0)
 		return (-1);
@@ -1699,7 +1742,7 @@ x_size2(char *cp, char **dcp)
 static void
 x_zots(char *str)
 {
-	int adj = x_adj_done;
+	uint8_t adj = x_adj_done;
 
 	x_lastcp();
 	while (*str && str < xlp && x_col < xx_cols && adj == x_adj_done)
@@ -3084,7 +3127,7 @@ x_e_putc3(const char **cp)
 static void
 x_e_puts(const char *s)
 {
-	int adj = x_adj_done;
+	uint8_t adj = x_adj_done;
 
 	while (*s && adj == x_adj_done)
 		x_e_putc3(&s);
