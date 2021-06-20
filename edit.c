@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.371 2021/06/20 21:27:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.372 2021/06/20 21:55:23 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1701,8 +1701,7 @@ static void
 x_goto(char *cp)
 {
 	cp = cp >= xep ? xep : x_bs0(cp, xbuf);
-	/*XXX utf_skipcols is wrong, we must take the x_size */
-	if (cp < xbp || cp >= utf_skipcols(xbp, x_displen, NULL)) {
+	if (cp < xbp || (x_lastcp(), cp >= xdp)) {
 		/* we are heading off screen */
 		xcp = cp;
 		x_adjust();
@@ -1720,6 +1719,12 @@ x_goto(char *cp)
 static char *
 x_bs0(char *cp, char *lower_bound)
 {
+	/*
+	 * Note: this can and will be off if nōn-UTF8 chars are present.
+	 * For example, \xE2\x82\xAC\x80 is to be backwarded over; we’re
+	 * called with cp pointing to the final \x80 and skip backwards
+	 * over both the € sign and the raw octet.
+	 */
 	if (UTFMODE)
 		while ((cp > lower_bound) &&
 		    ((rtt2asc(*cp) & 0xC0) == 0x80))

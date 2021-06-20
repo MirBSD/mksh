@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.108 2020/06/20 02:27:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.109 2021/06/20 21:55:24 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -752,18 +752,14 @@ utf_skipcols(const char *p, int cols, int *colp)
 	const char *q;
 
 	while (c < cols) {
-		if (!*p) {
-			/* end of input; special handling for edit.c */
-			if (!colp)
-				return (p + cols - c);
-			*colp = c;
-			return (p);
-		}
+		if (!*p)
+			goto out;
 		c += utf_widthadj(p, &p);
 	}
 	if (UTFMODE)
 		while (utf_widthadj(p, &q) == 0)
 			p = q;
+ out:
 	if (colp)
 		*colp = c;
 	return (p);
