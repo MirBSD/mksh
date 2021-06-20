@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.370 2021/06/20 20:30:21 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.371 2021/06/20 21:27:10 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -901,7 +901,9 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
  * pointed to by "xend".  The current position in "xbuf" and end of
  * the edit line are pointed to by "xcp" and "xep" respectively.
  * "xbp" points to the start of a display window within "xbuf", and
- * "xlp" points to the last visible character on screen, if valid.
+ * "xlp" points to the last visible character on screen, if valid;
+ * "xdp" points to the end of x_displen, adding one-column bytes if
+ * necessary when the input line is shorter.
  *
  * [A] starting position
  *
@@ -909,9 +911,9 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
  * |<--------- $COLUMNS -------->|
  *      |<---- x_displen ------->|
  *  PS1 |
- *      +=====+=========+......................................+
- *      |\     \        |\                                      \
- *   xbuf xbp   xcp   xlp xep                                    xend
+ *      +=====+=========+........+.............................+
+ *      |\     \        |\        \                             \
+ *   xbuf xbp   xcp   xlp xep      xdp                           xend
  *
  * [B] larger input line
  *
@@ -921,7 +923,7 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
  *  PS1 |
  *      +===========+============+---------------------+.......+
  *      |\          \             \                     \       \
- *   xbuf xbp        xcp           xlp                   xep     xend
+ *   xbuf xbp        xcp           xlp=xdp               xep     xend
  *
  * [C] scrolled
  *
@@ -931,7 +933,7 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
  *      |
  *      +-------+==============+==============+--------+.......+
  *      |        \              \              \        \       \
- *   xbuf         xbp            xcp            xlp      xep     xend
+ *   xbuf         xbp            xcp            xlp=xdp  xep     xend
  *
  * In the above -------- represents the current edit line while
  * ===== represents that portion which is visible on the screen;
@@ -997,6 +999,7 @@ static char *xcp;		/* current position */
 static char *xep;		/* current end */
 static char *xbp;		/* start of visible portion of input buffer */
 static char *xlp;		/* last char visible on screen */
+static char *xdp;		/* xbuf + x_displen except multibyte-aware */
 static bool x_adj_ok;
 /*
  * we use x_adj_done so that functions can tell
@@ -1008,6 +1011,7 @@ static int x_displen;
 static int x_arg;		/* general purpose arg */
 static bool x_arg_defaulted;	/* x_arg not explicitly set; defaulted to 1 */
 
+/* indicates both xlp and xdp are valid (x_goto needs the latter) */
 static bool xlp_valid;		/* lastvis pointer was recalculated */
 
 static char **x_histp;		/* history position */
@@ -1307,14 +1311,17 @@ x_emacs(char *buf)
 	xend = buf + LINE;
 	xlp = xcp = xep = buf;
 	*xcp = 0;
-	xlp_valid = true;
 	xmp = NULL;
 	x_curprefix = 0;
 	x_histmcp = x_histp = histptr + 1;
 	x_last_command = XFUNC_error;
 
+	xx_cols = x_cols;
+	x_adj_ok = false;
 	x_init_prompt(true);
-	x_displen = (xx_cols = x_cols) - 2 - (x_col = pwidth);
+	x_displen = xx_cols - 2 - (x_col = pwidth);
+	xdp = xbp + x_displen;
+	xlp_valid = true;
 	x_adj_done = 0;
 	x_adj_ok = true;
 
@@ -2142,6 +2149,7 @@ x_del_line(int c MKSH_A_UNUSED)
 	*xep = 0;
 	x_push(xep - (xcp = xbuf));
 	xlp = xbp = xep = xbuf;
+	xdp = xbp + x_displen;
 	xlp_valid = true;
 	*xcp = 0;
 	xmp = NULL;
@@ -2431,6 +2439,7 @@ x_intr(int signo, int c)
 	if (*xbuf)
 		histsave(&source->line, xbuf, HIST_STORE, true);
 	xlp = xep = xcp = xbp = xbuf;
+	xdp = xbp + x_displen;
 	xlp_valid = true;
 	*xcp = 0;
 	x_modified();
@@ -3048,16 +3057,18 @@ x_e_getc(void)
 static void
 x_e_putc2(int c)
 {
-	int width = 1;
-
 	if (ctype(c, C_CR | C_LF))
 		x_col = 0;
 	if (x_col < xx_cols) {
-#ifndef MKSH_EBCDIC
-		if (UTFMODE && (c > 0x7F)) {
+		int width;
+
+		/*XXX to go away once x_zotc3 no longer x_e_putc2(ksh_unctrl */
+		/*XXX this function should take 1-column SBCS only except ↑ */
+		if (UTFMODE && (rtt2asc(c) > 0x7FU)) {
 			char utf_tmp[3];
 			size_t x;
 
+			/*XXX bad semantics vs EBCDIC */
 			if (c < 0xA0)
 				c = 0xFFFD;
 			x = utf_wctomb(utf_tmp, c);
@@ -3067,9 +3078,10 @@ x_e_putc2(int c)
 			if (x > 2)
 				x_putc(utf_tmp[2]);
 			width = utf_wcwidth(c);
-		} else
-#endif
+		} else {
 			x_putc(c);
+			width = 1;
+		}
 		switch (c) {
 		case KSH_BEL:
 			break;
@@ -3091,30 +3103,31 @@ x_e_putc2(int c)
 static void
 x_e_putc3(const char **cp)
 {
-	int width = 1, c = **(const unsigned char **)cp;
+	int c = **(const unsigned char **)cp;
 
 	if (ctype(c, C_CR | C_LF))
 		x_col = 0;
 	if (x_col < xx_cols) {
-		if (UTFMODE && (c > 0x7F)) {
+		int width;
+
+		if (UTFMODE && (rtt2asc(c) > 0x7FU)) {
 			char *cp2;
 
 			width = utf_widthadj(*cp, (const char **)&cp2);
 			if (cp2 == *cp + 1) {
 				(*cp)++;
-#ifdef MKSH_EBCDIC
 				x_putc(asc2rtt(0xEF));
 				x_putc(asc2rtt(0xBF));
 				x_putc(asc2rtt(0xBD));
-#else
-				shf_puts("\xEF\xBF\xBD", shl_out);
-#endif
 			} else
-				while (*cp < cp2)
-					x_putcf(*(*cp)++);
+				while (*cp < cp2) {
+					c = *(*cp)++;
+					x_putc(c);
+				}
 		} else {
 			(*cp)++;
 			x_putc(c);
+			width = 1;
 		}
 		switch (c) {
 		case KSH_BEL:
@@ -3448,7 +3461,7 @@ x_fold_case(int c, uint32_t separator)
  * DESCRIPTION:
  *	This function returns a pointer to that char in the
  *	edit buffer that will be the last displayed on the
- *	screen.
+ *	screen. It also updates xlp and xdp.
  */
 static char *
 x_lastcp(void)
@@ -3460,11 +3473,17 @@ x_lastcp(void)
 		xlp = xbp;
 		while (xlp < xep) {
 			j = x_size2(xlp, &xlp2);
-			if ((i + j) > x_displen)
-				break;
+			if ((i + j) > x_displen) {
+				/* don’t add (x_displen - i) here */
+				/* can be 2-column doesn’t-fit char */
+				xdp = xlp;
+				goto xlp_longline;
+			}
 			i += j;
 			xlp = xlp2;
 		}
+		xdp = xlp + (x_displen - i);
+ xlp_longline:
 		xlp_valid = true;
 	}
 	return (xlp);
