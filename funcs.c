@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.383 2021/01/27 15:59:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.384 2021/06/21 00:17:54 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1134,7 +1134,8 @@ c_kill(const char **wp)
 			n = 1;
 			while (n < ksh_NSIG) {
 				shf_puts(sigtraps[n].name, shl_stdout);
-				shf_putc(++n == ksh_NSIG ? '\n' : ' ',
+				++n;
+				shf_putc(n == ksh_NSIG ? '\n' : ' ',
 				    shl_stdout);
 			}
 		} else {
