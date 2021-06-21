@@ -193,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.914 2021/06/20 18:12:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.915 2021/06/21 00:29:32 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/05/29"
 
@@ -2454,7 +2454,6 @@ size_t utf_mbtowc(unsigned int *, const char *);
 size_t utf_wctomb(char *, unsigned int);
 int utf_widthadj(const char *, const char **);
 size_t utf_mbswidth(const char *) MKSH_A_PURE;
-const char *utf_skipcols(const char *, int, int *);
 size_t utf_ptradj(const char *) MKSH_A_PURE;
 #ifdef MIRBSD_BOOTFLOPPY
 #define utf_wcwidth(i) wcwidth((wchar_t)(i))

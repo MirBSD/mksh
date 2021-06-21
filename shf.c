@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.109 2021/05/30 00:26:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.110 2021/06/21 00:29:33 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -798,6 +798,8 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 	char numbuf[(8 * sizeof(long) + 2) / 3 + 1 + /* NUL */ 1];
 	/* this stuff for dealing with the buffer */
 	ssize_t nwritten = 0;
+	/* for width determination */
+	const char *lp, *np;
 
 #define VA(type) va_arg(args, type)
 
@@ -1018,11 +1020,30 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		 */
 		if (!(flags & FL_DOT) || len < precision)
 			precision = len;
+		/* determine whether we can indeed write precision columns */
+		len = 0;
+		lp = s;
+		while (*lp) {
+			int w = utf_widthadj(lp, &np);
+
+			if ((len + w) > precision)
+				break;
+			lp = np;
+			len += w;
+		}
+		/* trailing combining characters */
+		if (UTFMODE)
+			while (*lp && utf_widthadj(lp, &np) == 0)
+				lp = np;
+		/* how much we can actually output */
+		precision = len;
+
+		/* output leading padding */
 		if (field > precision) {
 			field -= precision;
 			if (!(flags & FL_RIGHT)) {
 				/* skip past sign or 0x when padding with 0 */
-				if ((flags & FL_ZERO) && (flags & FL_NUMBER)) {
+				if ((flags & (FL_ZERO | FL_NUMBER)) == (FL_ZERO | FL_NUMBER)) {
 					if (ctype(*s, C_SPC | C_PLUS | C_MINUS)) {
 						shf_putc(*s, shf);
 						s++;
@@ -1052,11 +1073,11 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		} else
 			field = 0;
 
-		nwritten += precision;
-		precision = utf_skipcols(s, precision, &tmp) - s;
-		while (precision--)
-			shf_putc(*s++, shf);
+		/* output string */
+		nwritten += (lp - s);
+		shf_write(s, lp - s, shf);
 
+		/* output trailing padding */
 		nwritten += field;
 		while (field--)
 			shf_putc(c, shf);
