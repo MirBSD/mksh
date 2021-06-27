@@ -193,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.916 2021/06/27 21:48:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.917 2021/06/27 21:51:44 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/05/29"
 
@@ -2733,11 +2733,13 @@ const char *wdscan(const char *, int);
 #define WDS_TPUTS	BIT(0)		/* tputS (dumpwdvar) mode */
 char *wdstrip(const char *, int);
 void tfree(struct op *, Area *);
+#ifdef DEBUG
 void dumpchar(struct shf *, unsigned char);
 const void *dumpstr(struct shf *, const void *);
 void dumptree(struct shf *, struct op *);
 void dumpwdvar(struct shf *, const char *);
-void dumpioact(struct shf *shf, struct op *t);
+void dumpioact(struct shf *, struct op *);
+#endif
 void vistree(char *, size_t, struct op *)
     MKSH_A_BOUNDED(__string__, 1, 2);
 void fpFUNCTf(struct shf *, int, bool, const char *, struct op *);
