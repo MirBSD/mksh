@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.103 2021/06/27 21:48:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.104 2021/06/27 22:46:42 tg Exp $");
 
 #define INDENT	8
 
@@ -791,11 +791,11 @@ void
 vistree(char *dst, size_t sz, struct op *t)
 {
 	unsigned int c;
-	char *cp, *buf;
+	char *cp;
 	size_t n;
+	char buf[244];
 
-	buf = alloc(sz + 16, ATEMP);
-	snptreef(buf, sz + 16, Tf_T, t);
+	snptreef(buf, sizeof(buf), Tf_T, t);
 	cp = buf;
  vist_loop:
 	if (UTFMODE && (n = utf_mbtowc(&c, cp)) != (size_t)-1) {
@@ -828,7 +828,6 @@ vistree(char *dst, size_t sz, struct op *t)
 
  vist_out:
 	*dst = '\0';
-	afree(buf, ATEMP);
 }
 
 #ifdef DEBUG
