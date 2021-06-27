@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.374 2021/06/20 23:02:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.375 2021/06/27 22:34:35 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1898,10 +1898,11 @@ x_newline(int c MKSH_A_UNUSED)
 static int
 x_end_of_text(int c MKSH_A_UNUSED)
 {
-	unsigned char tmp[1], *cp = tmp;
+	unsigned char tmp[2], *cp = tmp;
 
 	*tmp = isedchar(edchars.eof) ? (unsigned char)edchars.eof :
 	    (unsigned char)CTRL_D;
+	tmp[1] = '\0';
 	x_zotc3((char **)&cp);
 	x_putc('\r');
 	x_putc('\n');
