@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.376 2021/06/27 22:37:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.377 2021/06/27 23:06:52 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2558,7 +2558,7 @@ x_bind_showone(int prefix, int key)
 	unsigned char f = XFUNC_VALUE(x_tab[prefix][key]);
 
 	if (!x_bind_show_xs.areap)
-		XinitN(x_bind_show_xs, 16, AEDIT);
+		XinitN(x_bind_show_xs, 26 - X_EXTRA, AEDIT);
 
 	x_bind_show_xp = Xstring(x_bind_show_xs, x_bind_show_xp);
 	shf_puts("bind ", shl_stdout);
