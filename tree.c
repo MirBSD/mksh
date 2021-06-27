@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.102 2021/05/30 04:42:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.103 2021/06/27 21:48:17 tg Exp $");
 
 #define INDENT	8
 
@@ -843,6 +843,17 @@ dumpchar(struct shf *shf, unsigned char c)
 	shf_putc(c, shf);
 }
 
+const void *
+dumpstr(struct shf *shf, const void *s)
+{
+	unsigned char c;
+	const unsigned char *wp = s;
+
+	while ((c = *wp++) != 0)
+		dumpchar(shf, c);
+	return (wp);
+}
+
 /* see: wdvarput */
 static const char *
 dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
@@ -850,7 +861,7 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 	int c;
 
 	while (/* CONSTCOND */ 1) {
-		switch(*wp++) {
+		switch (*wp++) {
 		case EOS:
 			shf_puts("EOS", shf);
 			return (--wp);
@@ -880,8 +891,7 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 		case COMSUB:
 			shf_puts("COMSUB<", shf);
  dumpsub:
-			while ((c = *wp++) != 0)
-				dumpchar(shf, c);
+			wp = dumpstr(shf, wp);
  closeandout:
 			shf_putc('>', shf);
 			break;
@@ -911,8 +921,7 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 			shf_puts("OSUBST(", shf);
 			dumpchar(shf, *wp++);
 			shf_puts(")[", shf);
-			while ((c = *wp++) != 0)
-				dumpchar(shf, c);
+			wp = dumpstr(shf, wp);
 			shf_putc('|', shf);
 			wp = dumpwdvar_i(shf, wp, 0);
 			break;
