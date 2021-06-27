@@ -193,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.917 2021/06/27 21:51:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.918 2021/06/27 22:37:55 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/05/29"
 
@@ -1604,7 +1604,6 @@ extern void ebcdic_init(void);
 #define ksh_numdig(c)	(ord(c) - ORD('0'))
 #define ksh_numuc(c)	(rtt2asc(c) - rtt2asc('A'))
 #define ksh_numlc(c)	(rtt2asc(c) - rtt2asc('a'))
-#define ksh_toctrl(c)	asc2rtt(ord(c) == ORD('?') ? 0x7F : rtt2asc(c) & 0x9F)
 #define ksh_unctrl(c)	asc2rtt(rtt2asc(c) ^ 0x40U)
 
 #ifdef MKSH_SMALL

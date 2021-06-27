@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.313 2021/05/30 23:00:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.314 2021/06/27 22:37:54 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -2709,7 +2709,7 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 		if (!cstyle)
 			goto unknown_escape;
 		c = (*fg)();
-		wc = ksh_toctrl(c);
+		wc = asc2rtt(ord(c) == ORD('?') ? 0x7F : rtt2asc(c) & 0x9F);
 		break;
 	case 'E':
 	case 'e':

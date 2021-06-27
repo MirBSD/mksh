@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.375 2021/06/27 22:34:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.376 2021/06/27 22:37:53 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2640,7 +2640,8 @@ x_bind_getc(const char **ccpp)
 		++(*ccpp);
 	switch (ch) {
 	case ORD('^'):
-		ch = ksh_toctrl(**ccpp) | 0x100U;
+		ch = asc2rtt(ord(**ccpp) == ORD('?') ? 0x7F :
+		    rtt2asc(**ccpp) & 0x9F) | 0x100U;
 		if (**ccpp)
 			++(*ccpp);
 		break;
