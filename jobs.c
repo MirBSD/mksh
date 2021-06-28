@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.131 2021/06/28 21:28:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.132 2021/06/28 21:30:18 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1969,7 +1969,7 @@ tty_init_state(void)
 static void
 vistree(char *dst, size_t sz, struct op *t)
 {
-#if 1
+#if 0
 	char *cp;
 	size_t n;
 	char buf[PROC_TGTSZ - 12];
