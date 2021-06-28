@@ -193,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.921 2021/06/28 21:09:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.922 2021/06/28 21:13:22 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/05/29"
 
@@ -2742,8 +2742,6 @@ void dumptree(struct shf *, struct op *);
 void dumpwdvar(struct shf *, const char *);
 void dumpioact(struct shf *, struct op *);
 #endif
-void vistree(char *, size_t, struct op *)
-    MKSH_A_BOUNDED(__string__, 1, 2);
 void uprntc(unsigned char, struct shf *);
 size_t uescmb(unsigned char *, const char **)
     MKSH_A_BOUNDED(__minbytes__, 1, 5);

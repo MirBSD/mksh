@@ -2,7 +2,7 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
- *		 2012, 2013, 2014, 2015, 2016, 2018, 2019
+ *		 2012, 2013, 2014, 2015, 2016, 2018, 2019, 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.129 2021/05/30 04:42:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.130 2021/06/28 21:13:22 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -165,6 +165,9 @@ static int		kill_job(Job *, int);
 
 static void tty_init_talking(void);
 static void tty_init_state(void);
+
+static void vistree(char *, size_t, struct op *)
+    MKSH_A_BOUNDED(__string__, 1, 2);
 
 /* initialise job control */
 void
@@ -1959,4 +1962,34 @@ tty_init_state(void)
 		mksh_tcget(tty_fd, &tty_state);
 		tty_hasstate = true;
 	}
+}
+
+static void
+vistree(char *dst, size_t sz, struct op *t)
+{
+#if 1
+	char *cp;
+	size_t n;
+	char buf[244];
+	char esc[5];
+
+	snptreef(buf, sizeof(buf), Tf_T, t);
+	cp = buf;
+	while (*cp) {
+		if ((n = uescmb(esc, (const char **)&cp)) >= sz)
+			break;
+		memcpy(dst, esc, n);
+		sz -= n;
+		dst += n;
+	}
+	*dst = '\0';
+#else
+	char buf[244];
+	struct shf shf;
+
+	snptreef(buf, sizeof(buf), Tf_T, t);
+	shf_sopen(dst, sz, SHF_WR, &shf);
+	uprntmbs(buf, false, &shf);
+	shf_sclose(&shf);
+#endif
 }

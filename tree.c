@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.106 2021/06/28 21:09:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.107 2021/06/28 21:13:23 tg Exp $");
 
 #define INDENT	8
 
@@ -783,38 +783,6 @@ fpFUNCTf(struct shf *shf, int i, bool isksh, const char *k, struct op *v)
 		fptreef(shf, i, "%s %s() %T", Tfunction, k, v);
 	else
 		fptreef(shf, i, "%s() %T", k, v);
-}
-
-
-/* for jobs.c */
-void
-vistree(char *dst, size_t sz, struct op *t)
-{
-#if 1
-	char *cp;
-	size_t n;
-	char buf[244];
-	char esc[5];
-
-	snptreef(buf, sizeof(buf), Tf_T, t);
-	cp = buf;
-	while (*cp) {
-		if ((n = uescmb(esc, (const char **)&cp)) >= sz)
-			break;
-		memcpy(dst, esc, n);
-		sz -= n;
-		dst += n;
-	}
-	*dst = '\0';
-#else
-	char buf[244];
-	struct shf shf;
-
-	snptreef(buf, sizeof(buf), Tf_T, t);
-	shf_sopen(dst, sz, SHF_WR, &shf);
-	uprntmbs(buf, false, &shf);
-	shf_sclose(&shf);
-#endif
 }
 
 void
