@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.113 2021/06/28 19:42:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.114 2021/06/28 20:31:08 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -679,8 +679,8 @@ shf_putchar(int c, struct shf *shf)
 }
 
 /*
- * Write a string. Returns the length of the string if successful, -1
- * if the string could not be written.
+ * Write a string. Returns the length of the string if successful,
+ * less if truncated, and -1 if the string could not be written.
  */
 ssize_t
 shf_puts(const char *s, struct shf *shf)
@@ -691,7 +691,10 @@ shf_puts(const char *s, struct shf *shf)
 	return (shf_write(s, strlen(s), shf));
 }
 
-/* Write a buffer. Returns nbytes if successful, -1 if there is an error. */
+/*
+ * Write a buffer. Returns nbytes if successful, less if truncated
+ * (outputting to string only), and -1 if there is an error.
+ */
 ssize_t
 shf_write(const char *buf, ssize_t nbytes, struct shf *shf)
 {
@@ -719,8 +722,13 @@ shf_write(const char *buf, ssize_t nbytes, struct shf *shf)
 		if (shf->flags & SHF_STRING) {
 			/* resize buffer until there's enough space left */
 			while (nbytes > shf->wnleft)
-				if (shf_emptybuf(shf, EB_GROW) == -1)
-					return (-1);
+				if (shf_emptybuf(shf, EB_GROW) == -1) {
+					/* truncate if possible */
+					if (shf->wnleft == 0)
+						return (-1);
+					nbytes = shf->wnleft;
+					break;
+				}
 			/* then write everything into the buffer */
 		} else {
 			/* flush deals with sticky errors */
