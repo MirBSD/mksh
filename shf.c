@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.112 2021/06/28 03:13:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.113 2021/06/28 19:42:30 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -236,6 +236,32 @@ shf_sreopen(char *buf, ssize_t bsize, Area *ap, struct shf *oshf)
 	shf->areap = ap;
 	shf->flags |= SHF_ALLOCB;
 	return (shf);
+}
+
+/* Check whether the string can grow to take n bytes, close it up otherwise */
+int
+shf_scheck_grow(ssize_t n, struct shf *shf)
+{
+	if (!(shf->flags & SHF_WR))
+		internal_errorf(Tf_flags, "shf_scheck",
+		    (unsigned int)shf->flags);
+
+	/* if n < 0 we lose in the macro already */
+
+	/* nōn-string can always grow flushing */
+	if (!(shf->flags & SHF_STRING))
+		return (0);
+
+	while (shf->wnleft < n)
+		if (shf_emptybuf(shf, EB_GROW) == -1)
+			break;
+
+	if (shf->wnleft < n) {
+		/* block subsequent writes as we truncate here */
+		shf->wnleft = 0;
+		return (1);
+	}
+	return (0);
 }
 
 /* Flush and close file descriptor, free the shf structure */
