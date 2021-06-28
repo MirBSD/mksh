@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.105 2021/06/28 03:13:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.106 2021/06/28 21:09:29 tg Exp $");
 
 #define INDENT	8
 
@@ -832,15 +832,21 @@ uprntc(unsigned char c, struct shf *shf)
 		if (!ksh_isctrl8(c))
 			goto doprnt;
 		if ((a = rtt2asc(c)) >= 0x80U) {
+			shf_scheck(3, shf);
 			shf_putc('^', shf);
 			shf_putc('!', shf);
 			a &= 0x7FU;
 			goto unctrl;
 		}
 	} else if ((a = rtt2asc(c)) >= 0x80U) {
-		shf_fprintf(shf, "\\x%02X", a);
+		shf_scheck(4, shf);
+		shf_putc('\\', shf);
+		shf_putc('x', shf);
+		shf_putc(digits_uc[(a >> 4) & 0x0F], shf);
+		shf_putc(digits_uc[a & 0x0F], shf);
 		return;
 	}
+	shf_scheck(2, shf);
 	shf_putc('^', shf);
  unctrl:
 	shf_putc(asc2rtt(a ^ 0x40U), shf);
@@ -938,8 +944,10 @@ uprntmbs(const char *cp, bool esc_caret, struct shf *shf)
 	while ((c = *cp++) != 0) {
 		/* test cheap first (easiest) */
 		if (ctype(c, C_PRINT)) {
-			if (esc_caret && (c == ORD('\\') || c == ORD('^')))
+			if (esc_caret && (c == ORD('\\') || c == ORD('^'))) {
+				shf_scheck(2, shf);
 				shf_putc('\\', shf);
+			}
  prntb:
 			shf_putc(c, shf);
 			continue;
@@ -951,6 +959,7 @@ uprntmbs(const char *cp, bool esc_caret, struct shf *shf)
 			if ((n = utf_mbtowc(&wc, cp - 1)) == (size_t)-1) {
 				/* failed: invalid UTF-8 */
 				wc = rtt2asc(c);
+				shf_scheck(4, shf);
 				shf_putc('\\', shf);
 				shf_putc('x', shf);
 				shf_putc(digits_uc[(wc >> 4) & 0x0F], shf);
@@ -963,6 +972,7 @@ uprntmbs(const char *cp, bool esc_caret, struct shf *shf)
 			 * not escaped either, anything in between is special
 			 */
 			if (wc >= 0xA0U) {
+				shf_scheck(n, shf);
 				goto utflead;
 				while (n--) {
 					c = *cp++;
@@ -995,12 +1005,14 @@ uprntmbs(const char *cp, bool esc_caret, struct shf *shf)
 		if (wc >= 0x80U) {
 			c = '!';
  prntC1:
+			shf_scheck(3, shf);
 			shf_putc('^', shf);
 			shf_putc(c, shf);
 			wc &= 0x7FU;
 		} else {
 			/* nope, so C0 or DEL, anything else went to prntb */
  prntC0:
+			shf_scheck(2, shf);
 			shf_putc('^', shf);
 		}
 		shf_putc(asc2rtt(wc ^ 0x40U), shf);

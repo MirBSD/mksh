@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.315 2021/06/28 03:13:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.316 2021/06/28 21:09:27 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1497,6 +1497,7 @@ print_value_quoted(struct shf *shf, const char *s)
 	while ((c = *p++) != 0) {
 		if (c == '\'') {
 			if (inquote) {
+				shf_scheck(2, shf);
 				shf_putc('\'', shf);
 				inquote = false;
 			}
@@ -1547,6 +1548,7 @@ dollarqU(struct shf *shf, const unsigned char *s)
 				 * interlinear annotations, LTR/RTL mark,
 				 * U+2028, U+2029, U+2066..U+206F, etc.
 				 */
+				shf_scheck(n, shf);
 				shf_write((const char *)s, n, shf);
 			}
 			s += n;
