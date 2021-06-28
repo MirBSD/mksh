@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.378 2021/05/30 04:42:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.379 2021/06/28 19:20:30 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -738,6 +738,9 @@ main(int argc, const char *argv[])
 	if ((rv = main_init(argc, argv, &s, &l)) == 0) {
 		if (as_builtin) {
 			rv = c_builtin(l->argv);
+			exstat = rv & 0xFF;
+			unwind(LEXIT);
+			/* NOTREACHED */
 		} else {
 			shell(s, 0);
 			/* NOTREACHED */
