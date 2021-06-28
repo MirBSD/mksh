@@ -193,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.923 2021/06/28 21:46:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.924 2021/06/28 23:34:34 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/05/29"
 
@@ -2689,7 +2689,8 @@ struct shf *shf_reopen(int, int, struct shf *);
 struct shf *shf_sopen(char *, ssize_t, int, struct shf *);
 struct shf *shf_sreopen(char *, ssize_t, Area *, struct shf *);
 int shf_scheck_grow(ssize_t, struct shf *);
-#define shf_scheck(n,shf) ((shf)->wnleft < (ssize_t)(n) && shf_scheck_grow((n), (shf)))
+#define shf_scheck(n,shf)	(((shf)->wnleft < (ssize_t)(n)) ? \
+				    shf_scheck_grow((n), (shf)) : 0)
 int shf_close(struct shf *);
 int shf_fdclose(struct shf *);
 char *shf_sclose(struct shf *);
