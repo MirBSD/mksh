@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.114 2021/06/28 20:31:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.115 2021/06/28 20:57:52 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -313,10 +313,8 @@ shf_sclose(struct shf *shf)
 	unsigned char *s = shf->buf;
 
 	/* NUL terminate */
-	if (shf->flags & SHF_WR) {
-		shf->wnleft++;
-		shf_putc('\0', shf);
-	}
+	if (shf->flags & SHF_WR)
+		*shf->wp = '\0';
 	if (shf->flags & SHF_ALLOCS)
 		afree(shf, shf->areap);
 	return ((char *)s);
