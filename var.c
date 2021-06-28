@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.242 2021/06/20 23:21:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.243 2021/06/28 20:58:41 tg Exp $");
 
 /*-
  * Variables
@@ -2244,10 +2244,9 @@ c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, int any_set,
 			shprintf(Tf_s_s, istset ? Ttypeset :
 			    (flag & EXPORT) ? Texport : Treadonly, "");
 		}
+		shf_puts(vp->name, shl_stdout);
 		if (any_set)
-			shprintf("%s[%lu]", vp->name, arrayindex(vp));
-		else
-			shf_puts(vp->name, shl_stdout);
+			shprintf("[%lu]", arrayindex(vp));
 		if ((!thing && !flag && pflag) ||
 		    (thing == '-' && (vp->flag & ISSET))) {
 			s = str_val(vp);
