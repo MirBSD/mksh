@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.316 2021/06/28 21:09:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.317 2021/06/28 21:46:12 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -463,7 +463,7 @@ parse_args(const char **argv,
 			else if (!strcmp(go.optarg, To_reset)) {
 #if !defined(MKSH_SMALL) || defined(DEBUG)
 				if (!baseline_flags[(int)FNFLAGS]) {
-					bi_errorf(Tf_ss, "too early",
+					bi_errorf("%s%s", "too early",
 					    To_o_reset);
 					return (-1);
 				}

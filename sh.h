@@ -193,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.922 2021/06/28 21:13:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.923 2021/06/28 21:46:13 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/05/29"
 
@@ -1102,8 +1102,6 @@ EXTERN const char Tuser_sp2[] E_INIT(" user ");
 #define Twrite (Tshf_write + 4)
 EXTERN const char Tf__S[] E_INIT(" %S");
 #define Tf__d (Tunexpected_type + 22)
-#define Tf_ss (Tf__ss + 1)
-EXTERN const char Tf__ss[] E_INIT(" %s%s");
 #define Tf__sN (Tf_s_s_sN + 5)
 #define Tf_T (Tf_s_T + 3)
 EXTERN const char Tf_dN[] E_INIT("%d\n");
@@ -1265,8 +1263,6 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Twrite "write"
 #define Tf__S " %S"
 #define Tf__d " %d"
-#define Tf_ss "%s%s"
-#define Tf__ss " %s%s"
 #define Tf__sN " %s\n"
 #define Tf_T "%T"
 #define Tf_dN "%d\n"

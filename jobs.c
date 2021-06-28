@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.132 2021/06/28 21:30:18 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.133 2021/06/28 21:46:12 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -839,8 +839,10 @@ j_resume(const char *cp, int bg)
 		return (1);
 	}
 
-	if (bg)
-		shprintf("[%d] ", j->job);
+	if (bg) {
+		shprintf("[%d]", j->job);
+		shf_putc(' ', shl_stdout);
+	}
 
 	running = false;
 	for (p = j->proc_list; p != NULL; p = p->next) {
@@ -1624,9 +1626,12 @@ j_print(Job *j, int how, struct shf *shf)
 		}
 
 		if (how != JP_SHORT) {
-			if (p == j->proc_list)
-				shf_fprintf(shf, "[%d] %c ", j->job, jobchar);
-			else
+			if (p == j->proc_list) {
+				shf_fprintf(shf, "[%d]", j->job);
+				shf_putc(' ', shf);
+				shf_putc(jobchar, shf);
+				shf_putc(' ', shf);
+			} else
 				shf_puts(filler, shf);
 		}
 
@@ -1636,35 +1641,46 @@ j_print(Job *j, int how, struct shf *shf)
 		if (how == JP_SHORT) {
 			if (buf[0]) {
 				output = 1;
-#ifdef WCOREDUMP
-				shf_fprintf(shf, "%s%s ",
-				    buf, coredumped ? " (core dumped)" : null);
-#else
 				shf_puts(buf, shf);
-				shf_putc(' ', shf);
+#ifdef WCOREDUMP
+				if (coredumped)
+					shf_puts(" (core dumped)", shf);
 #endif
+				shf_putc(' ', shf);
 			}
 		} else {
 			output = 1;
-			shf_fprintf(shf, "%-20s %s%s%s", buf, p->command,
-			    p->next ? " |" : null,
+			shf_fprintf(shf, "%-20s ", buf);
+			shf_puts(p->command, shf);
+			if (p->next) {
+				shf_putc(' ', shf);
+				shf_putc('|', shf);
+			}
 #ifdef WCOREDUMP
-			    coredumped ? " (core dumped)" :
+			if (coredumped)
+				shf_puts(" (core dumped)", shf);
 #endif
-			     null);
 		}
 
 		state = p->state;
 		status = p->status;
 		p = p->next;
 		while (p && p->state == state && p->status == status) {
-			if (how == JP_LONG)
-				shf_fprintf(shf, "%s%5d %-20s %s%s", filler,
-				    (int)p->pid, T1space, p->command,
-				    p->next ? " |" : null);
-			else if (how == JP_MEDIUM)
-				shf_fprintf(shf, Tf__ss, p->command,
-				    p->next ? " |" : null);
+			switch (how) {
+			case JP_LONG:
+				shf_puts(filler, shf);
+				shf_fprintf(shf, "%5d %-20s",
+				    (int)p->pid, T1space);
+				/* FALLTHROUGH */
+			case JP_MEDIUM:
+				shf_putc(' ', shf);
+				shf_puts(p->command, shf);
+				if (p->next) {
+					shf_putc(' ', shf);
+					shf_putc('|', shf);
+				}
+				break;
+			}
 			p = p->next;
 		}
 	}
