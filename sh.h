@@ -193,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.918 2021/06/27 22:37:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.919 2021/06/28 03:13:52 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/05/29"
 
@@ -1587,9 +1587,11 @@ extern void ebcdic_init(void);
 /* control character foo */
 #ifdef MKSH_EBCDIC
 #define ksh_isctrl(c)	(ord(c) < 0x40U || ord(c) == 0xFFU)
+#define ksh_isctrl8(c)	ksh_isctrl(c)
 #else
 #define ksh_isctrl(c)	((ord(c) & 0x7FU) < 0x20U || ord(c) == 0x7FU)
 #define ksh_asisctrl(c)	(ord(c) < 0x20U || ord(c) == 0x7FU)
+#define ksh_isctrl8(c)	(Flag(FASIS) ? ksh_asisctrl(c) : ksh_isctrl(c))
 #endif
 /* new fast character classes */
 #define ctype(c,t)	tobool(ksh_ctypes[ord(c)] & (t))
@@ -2689,6 +2691,7 @@ struct shf *shf_open(const char *, int, int, int);
 struct shf *shf_fdopen(int, int, struct shf *);
 struct shf *shf_reopen(int, int, struct shf *);
 struct shf *shf_sopen(char *, ssize_t, int, struct shf *);
+struct shf *shf_sreopen(char *, ssize_t, Area *, struct shf *);
 int shf_close(struct shf *);
 int shf_fdclose(struct shf *);
 char *shf_sclose(struct shf *);
@@ -2733,14 +2736,16 @@ const char *wdscan(const char *, int);
 char *wdstrip(const char *, int);
 void tfree(struct op *, Area *);
 #ifdef DEBUG
-void dumpchar(struct shf *, unsigned char);
-const void *dumpstr(struct shf *, const void *);
 void dumptree(struct shf *, struct op *);
 void dumpwdvar(struct shf *, const char *);
 void dumpioact(struct shf *, struct op *);
 #endif
 void vistree(char *, size_t, struct op *)
     MKSH_A_BOUNDED(__string__, 1, 2);
+void uprntc(unsigned char, struct shf *);
+size_t uescmb(unsigned char *, const char **)
+    MKSH_A_BOUNDED(__minbytes__, 1, 5);
+const char *uprntmbs(const char *, bool, struct shf *);
 void fpFUNCTf(struct shf *, int, bool, const char *, struct op *);
 /* var.c */
 void newblock(void);

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.104 2021/06/27 22:46:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.105 2021/06/28 03:13:53 tg Exp $");
 
 #define INDENT	8
 
@@ -790,69 +790,226 @@ fpFUNCTf(struct shf *shf, int i, bool isksh, const char *k, struct op *v)
 void
 vistree(char *dst, size_t sz, struct op *t)
 {
-	unsigned int c;
+#if 1
 	char *cp;
 	size_t n;
 	char buf[244];
+	char esc[5];
 
 	snptreef(buf, sizeof(buf), Tf_T, t);
 	cp = buf;
- vist_loop:
-	if (UTFMODE && (n = utf_mbtowc(&c, cp)) != (size_t)-1) {
-		if (c == 0 || n >= sz)
-			/* NUL or not enough free space */
-			goto vist_out;
-		/* copy multibyte char */
+	while (*cp) {
+		if ((n = uescmb(esc, (const char **)&cp)) >= sz)
+			break;
+		memcpy(dst, esc, n);
 		sz -= n;
-		while (n--)
-			*dst++ = *cp++;
-		goto vist_loop;
+		dst += n;
 	}
-	if (--sz == 0 || (c = ord(*cp++)) == 0)
-		/* NUL or not enough free space */
-		goto vist_out;
-	if (ksh_isctrl(c)) {
-		/* C0 or C1 control character or DEL */
-		if (--sz == 0)
-			/* not enough free space for two chars */
-			goto vist_out;
-		*dst++ = '^';
-		c = ksh_unctrl(c);
-	} else if (UTFMODE && rtt2asc(c) > 0x7F) {
-		/* better not try to display broken multibyte chars */
-		/* also go easy on the UCS: no U+FFFD here */
-		c = ORD('?');
-	}
-	*dst++ = c;
-	goto vist_loop;
-
- vist_out:
 	*dst = '\0';
+#else
+	char buf[244];
+	struct shf shf;
+
+	snptreef(buf, sizeof(buf), Tf_T, t);
+	shf_sopen(dst, sz, SHF_WR, &shf);
+	uprntmbs(buf, false, &shf);
+	shf_sclose(&shf);
+#endif
+}
+
+void
+uprntc(unsigned char c, struct shf *shf)
+{
+	unsigned char a;
+
+	if (ctype(c, C_PRINT)) {
+ doprnt:
+		shf_putc(c, shf);
+		return;
+	}
+
+	if (!UTFMODE) {
+		if (!ksh_isctrl8(c))
+			goto doprnt;
+		if ((a = rtt2asc(c)) >= 0x80U) {
+			shf_putc('^', shf);
+			shf_putc('!', shf);
+			a &= 0x7FU;
+			goto unctrl;
+		}
+	} else if ((a = rtt2asc(c)) >= 0x80U) {
+		shf_fprintf(shf, "\\x%02X", a);
+		return;
+	}
+	shf_putc('^', shf);
+ unctrl:
+	shf_putc(asc2rtt(a ^ 0x40U), shf);
+}
+
+size_t
+uescmb(unsigned char *dst, const char **cpp)
+{
+	unsigned char c;
+	unsigned int wc;
+	size_t n, dstsz = 0;
+	const char *cp = *cpp;
+
+	c = *cp++;
+	/* test cheap first (easiest) */
+	if (ctype(c, C_PRINT)) {
+ prntb:
+		dst[dstsz++] = c;
+		goto out;
+	}
+
+	/* more specialised tests depend on shell state */
+	if (UTFMODE) {
+		/* wc = rtt2asc(c) except UTF-8 is decoded */
+		if ((n = utf_mbtowc(&wc, cp - 1)) == (size_t)-1) {
+			/* failed: invalid UTF-8 */
+			wc = rtt2asc(c);
+			dst[dstsz++] = '\\';
+			dst[dstsz++] = 'x';
+			dst[dstsz++] = digits_uc[(wc >> 4) & 0x0F];
+			dst[dstsz++] = digits_uc[wc & 0x0F];
+			goto out;
+		}
+		/*
+		 * printable as-is? U+0020‥U+007E already handled
+		 * above as they are C_PRINT, U+00A0 or higher are
+		 * not escaped either, anything in between is special
+		 */
+		if (wc >= 0xA0U) {
+			goto utflead;
+			while (n--) {
+				c = *cp++;
+ utflead:
+				dst[dstsz++] = c;
+			}
+			goto out;
+		}
+		/* and encoded with either 1 or 2 octets */
+
+		/* C1 control character, UTF-8 encoded */
+		if (wc >= 0x80U) {
+			/* n == 2 so we miss one out */
+			++cp;
+
+			c = '+';
+			goto prntC1;
+		}
+		/* nope, must be C0 or DEL */
+		/* n == 1 so cp needs no adjustment */
+		goto prntC0;
+	}
+
+	/* not UTFMODE allows more but the test is more expensive */
+	if (!ksh_isctrl8(c))
+		goto prntb;
+	/* UTF-8 is not decoded, we just transfer an octet to ASCII */
+	wc = rtt2asc(c);
+	/* C1 control character octet? */
+	if (wc >= 0x80U) {
+		c = '!';
+ prntC1:
+		dst[dstsz++] = '^';
+		dst[dstsz++] = c;
+		wc &= 0x7FU;
+	} else {
+		/* nope, so C0 or DEL, anything else went to prntb */
+ prntC0:
+		dst[dstsz++] = '^';
+	}
+	dst[dstsz++] = asc2rtt(wc ^ 0x40U);
+
+ out:
+	*cpp = cp;
+	dst[dstsz] = '\0';
+	return (dstsz);
+}
+
+const char *
+uprntmbs(const char *cp, bool esc_caret, struct shf *shf)
+{
+	unsigned char c;
+	unsigned int wc;
+	size_t n;
+
+	while ((c = *cp++) != 0) {
+		/* test cheap first (easiest) */
+		if (ctype(c, C_PRINT)) {
+			if (esc_caret && (c == ORD('\\') || c == ORD('^')))
+				shf_putc('\\', shf);
+ prntb:
+			shf_putc(c, shf);
+			continue;
+		}
+
+		/* more specialised tests depend on shell state */
+		if (UTFMODE) {
+			/* wc = rtt2asc(c) except UTF-8 is decoded */
+			if ((n = utf_mbtowc(&wc, cp - 1)) == (size_t)-1) {
+				/* failed: invalid UTF-8 */
+				wc = rtt2asc(c);
+				shf_putc('\\', shf);
+				shf_putc('x', shf);
+				shf_putc(digits_uc[(wc >> 4) & 0x0F], shf);
+				shf_putc(digits_uc[wc & 0x0F], shf);
+				continue;
+			}
+			/*
+			 * printable as-is? U+0020‥U+007E already handled
+			 * above as they are C_PRINT, U+00A0 or higher are
+			 * not escaped either, anything in between is special
+			 */
+			if (wc >= 0xA0U) {
+				goto utflead;
+				while (n--) {
+					c = *cp++;
+ utflead:
+					shf_putc(c, shf);
+				}
+				continue;
+			}
+			/* and encoded with either 1 or 2 octets */
+
+			/* C1 control character, UTF-8 encoded */
+			if (wc >= 0x80U) {
+				/* n == 2 so we miss one out */
+				++cp;
+
+				c = '+';
+				goto prntC1;
+			}
+			/* nope, must be C0 or DEL */
+			/* n == 1 so cp needs no adjustment */
+			goto prntC0;
+		}
+
+		/* not UTFMODE allows more but the test is more expensive */
+		if (!ksh_isctrl8(c))
+			goto prntb;
+		/* UTF-8 is not decoded, we just transfer an octet to ASCII */
+		wc = rtt2asc(c);
+		/* C1 control character octet? */
+		if (wc >= 0x80U) {
+			c = '!';
+ prntC1:
+			shf_putc('^', shf);
+			shf_putc(c, shf);
+			wc &= 0x7FU;
+		} else {
+			/* nope, so C0 or DEL, anything else went to prntb */
+ prntC0:
+			shf_putc('^', shf);
+		}
+		shf_putc(asc2rtt(wc ^ 0x40U), shf);
+	}
+	/* point to the trailing NUL for continuation */
+	return ((const void *)cp);
 }
 
 #ifdef DEBUG
-void
-dumpchar(struct shf *shf, unsigned char c)
-{
-	if (ksh_isctrl(c)) {
-		/* C0 or C1 control character or DEL */
-		shf_putc('^', shf);
-		c = ksh_unctrl(c);
-	}
-	shf_putc(c, shf);
-}
-
-const void *
-dumpstr(struct shf *shf, const void *s)
-{
-	unsigned char c;
-	const unsigned char *wp = s;
-
-	while ((c = *wp++) != 0)
-		dumpchar(shf, c);
-	return (wp);
-}
-
 /* see: wdvarput */
 static const char *
 dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
@@ -874,7 +1031,7 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 				/* FALLTHROUGH */
 		case CHAR:
 			  shf_puts("CHAR=", shf);
-			dumpchar(shf, *wp++);
+			uprntc(*wp++, shf);
 			break;
 		case QCHAR:
 			shf_puts("QCHAR<", shf);
@@ -882,7 +1039,7 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 			if (quotelevel == 0 || c == ORD('"') ||
 			    c == ORD('\\') || ctype(c, C_DOLAR | C_GRAVE))
 				shf_putc('\\', shf);
-			dumpchar(shf, c);
+			uprntc(c, shf);
 			goto closeandout;
 		case COMASUB:
 			shf_puts("COMASUB<", shf);
@@ -890,7 +1047,7 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 		case COMSUB:
 			shf_puts("COMSUB<", shf);
  dumpsub:
-			wp = dumpstr(shf, wp);
+			wp = uprntmbs(wp, false, shf) + 1;
  closeandout:
 			shf_putc('>', shf);
 			break;
@@ -918,20 +1075,20 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 			break;
 		case OSUBST:
 			shf_puts("OSUBST(", shf);
-			dumpchar(shf, *wp++);
+			uprntc(*wp++, shf);
 			shf_puts(")[", shf);
-			wp = dumpstr(shf, wp);
+			wp = uprntmbs(wp, false, shf) + 1;
 			shf_putc('|', shf);
 			wp = dumpwdvar_i(shf, wp, 0);
 			break;
 		case CSUBST:
 			shf_puts("]CSUBST(", shf);
-			dumpchar(shf, *wp++);
+			uprntc(*wp++, shf);
 			shf_putc(')', shf);
 			return (wp);
 		case OPAT:
 			shf_puts("OPAT=", shf);
-			dumpchar(shf, *wp++);
+			uprntc(*wp++, shf);
 			break;
 		case SPAT:
 			shf_puts("SPAT", shf);

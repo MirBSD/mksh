@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.314 2021/06/27 22:37:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.315 2021/06/28 03:13:51 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -1511,17 +1511,11 @@ print_value_quoted(struct shf *shf, const char *s)
 		shf_putc('\'', shf);
 }
 
-#ifdef MKSH_EBCDIC
-#define dollarq_isctrl8(c)	ksh_isctrl(c)
-#else
-#define dollarq_isctrl8(c)	Flag(FASIS) ? ksh_asisctrl(c) : ksh_isctrl(c)
-#endif
-
-#define dollarq_Uctrl(c)	!ctype(c, C_PRINT)
+#define dollarq_Uctrl(c)	(!ctype((c), C_PRINT))
 #ifndef MKSH_SMALL
 #define dollarq_isctrlU(c)	dollarq_Uctrl(c)
 #else
-#define dollarq_isctrlU(c)	UTFMODE ? dollarq_Uctrl(c) : dollarq_isctrl8(c)
+#define dollarq_isctrlU(c)	(UTFMODE ? dollarq_Uctrl(c) : ksh_isctrl8(c))
 #endif
 
 /* escape with $'...' (!MKSH_SMALL: in UTFMODE) */
@@ -1669,7 +1663,7 @@ dollarq8(struct shf *shf, const unsigned char *s)
 			if (0)
 				/* FALLTHROUGH */
 		default:
-			  if (dollarq_isctrl8(c)) {
+			  if (ksh_isctrl8(c)) {
 				/* FALLTHROUGH */
 		case '\'':
 				shf_fprintf(shf, "\\%03o", c);

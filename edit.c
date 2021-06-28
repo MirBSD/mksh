@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.377 2021/06/27 23:06:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.378 2021/06/28 03:13:49 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2441,11 +2441,7 @@ x_meta_yank(int c MKSH_A_UNUSED)
 static void
 x_intr(int signo, int c)
 {
-	if (ksh_isctrl(c)) {
-		x_putc('^');
-		c = ksh_unctrl(c);
-	}
-	x_putc(c);
+	uprntc(c, shl_out);
 	*xep = '\0';
 	strip_nuls(xbuf, xep - xbuf);
 	if (*xbuf)
@@ -2528,74 +2524,62 @@ x_bind_check(void)
 	return (x_tab == NULL);
 }
 
-static XString x_bind_show_xs;
-static char *x_bind_show_xp;
-
-static void
-x_bind_show_ch(unsigned char ch)
-{
-	Xcheck(x_bind_show_xs, x_bind_show_xp);
-	switch (ch) {
-	case ORD('^'):
-	case ORD('\\'):
-	case ORD('='):
-		*x_bind_show_xp++ = '\\';
-		*x_bind_show_xp++ = ch;
-		break;
-	default:
-		if (ksh_isctrl(ch)) {
-			*x_bind_show_xp++ = '^';
-			*x_bind_show_xp++ = ksh_unctrl(ch);
-		} else
-			*x_bind_show_xp++ = ch;
-		break;
-	}
-}
+static char *x_bind_show_s;
+static size_t x_bind_show_n;
 
 static void
 x_bind_showone(int prefix, int key)
 {
 	unsigned char f = XFUNC_VALUE(x_tab[prefix][key]);
+	struct shf shf;
 
-	if (!x_bind_show_xs.areap)
-		XinitN(x_bind_show_xs, 26 - X_EXTRA, AEDIT);
+	if (!x_bind_show_n)
+		x_bind_show_s = aresize(x_bind_show_s,
+		    (x_bind_show_n = 12), AEDIT);
 
-	x_bind_show_xp = Xstring(x_bind_show_xs, x_bind_show_xp);
 	shf_puts("bind ", shl_stdout);
 #ifndef MKSH_SMALL
 	if (f == XFUNC_ins_string)
 		shf_puts("-m ", shl_stdout);
 #endif
+
+	shf_sreopen(x_bind_show_s, x_bind_show_n, AEDIT, &shf);
 	switch (prefix) {
 	case 1:
-		x_bind_show_ch(CTRL_BO);
+		uprntc(CTRL_BO, &shf);
 		break;
 	case 2:
-		x_bind_show_ch(CTRL_X);
+		uprntc(CTRL_X, &shf);
 		break;
 	case 3:
-		x_bind_show_ch(0);
+		uprntc(CTRL_AT, &shf);
 		break;
 	}
-	x_bind_show_ch(key);
+	switch (key) {
+	case ORD('^'):
+	case ORD('\\'):
+	case ORD('='):
+		shf_putc('\\', &shf);
+		shf_putc(key, &shf);
+		break;
+	default:
+		uprntc(key, &shf);
+	}
 #ifndef MKSH_SMALL
 	if (x_tab[prefix][key] & 0x80)
-		*x_bind_show_xp++ = '~';
+		shf_putc('~', &shf);
 #endif
-	*x_bind_show_xp = '\0';
-	x_bind_show_xp = Xstring(x_bind_show_xs, x_bind_show_xp);
-	print_value_quoted(shl_stdout, x_bind_show_xp);
+	x_bind_show_n = shf.wbsize;
+	x_bind_show_s = shf_sclose(&shf);
+	print_value_quoted(shl_stdout, x_bind_show_s);
 	shf_putc('=', shl_stdout);
 #ifndef MKSH_SMALL
 	if (f == XFUNC_ins_string) {
-		const unsigned char *cp = (const void *)x_atab[prefix][key];
-		unsigned char c;
-
-		while ((c = *cp++))
-			x_bind_show_ch(c);
-		*x_bind_show_xp = '\0';
-		x_bind_show_xp = Xstring(x_bind_show_xs, x_bind_show_xp);
-		print_value_quoted(shl_stdout, x_bind_show_xp);
+		shf_sreopen(x_bind_show_s, x_bind_show_n, AEDIT, &shf);
+		uprntmbs(x_atab[prefix][key], true, &shf);
+		x_bind_show_n = shf.wbsize;
+		x_bind_show_s = shf_sclose(&shf);
+		print_value_quoted(shl_stdout, x_bind_show_s);
 	} else
 #endif
 	  shf_puts(x_ftab[f].xf_name, shl_stdout);
@@ -5865,9 +5849,7 @@ x_quote_region_helper(const char *cmd, size_t len)
 
 	strndupx(s, cmd, len, ATEMP);
 	newlen = len < 256 ? 256 : 4096;
-	shf_sopen(alloc(newlen, AEDIT), newlen, SHF_WR | SHF_DYNAMIC, &shf);
-	shf.areap = AEDIT;
-	shf.flags |= SHF_ALLOCB;
+	shf_sreopen(alloc(newlen, AEDIT), newlen, AEDIT, &shf);
 	print_value_quoted(&shf, s);
 	afree(s, ATEMP);
 	return (shf_sclose(&shf));

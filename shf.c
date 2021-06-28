@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.111 2021/06/27 21:10:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.112 2021/06/28 03:13:53 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -223,6 +223,18 @@ shf_sopen(char *buf, ssize_t bsize, int sflags, struct shf *shf)
 	shf->errnosv = 0;
 	shf->bsize = bsize;
 
+	return (shf);
+}
+
+/* Open a string for dynamic writing, using already-allocated buffer */
+struct shf *
+shf_sreopen(char *buf, ssize_t bsize, Area *ap, struct shf *oshf)
+{
+	struct shf *shf;
+
+	shf = shf_sopen(buf, bsize, SHF_WR | SHF_DYNAMIC, oshf);
+	shf->areap = ap;
+	shf->flags |= SHF_ALLOCB;
 	return (shf);
 }
 
