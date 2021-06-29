@@ -193,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.925 2021/06/29 20:54:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.926 2021/06/29 21:03:30 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/05/29"
 
@@ -1112,6 +1112,7 @@ EXTERN const char Tf_s_s_sN[] E_INIT("%s %s %s\n");
 #define Tf_s_s (Tf_sD_s_s + 4)
 #define Tf__s_s (Tf_sD_s_s + 3)
 #define Tf_s_sD_s (Tf_cant_ss_s + 6)
+#define Tf_optdcs (Tf_optfoo + 4)
 EXTERN const char Tf_optfoo[] E_INIT("%s%s-%c: %s");
 EXTERN const char Tf_sD_[] E_INIT("%s: ");
 EXTERN const char Tf_parm[] E_INIT("%s: parameter not set");
@@ -1270,6 +1271,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tf_s_s "%s %s"
 #define Tf__s_s " %s %s"
 #define Tf_s_sD_s "%s %s: %s"
+#define Tf_optdcs "-%c: %s"
 #define Tf_optfoo "%s%s-%c: %s"
 #define Tf_sD_ "%s: "
 #define Tf_parm "%s: parameter not set"

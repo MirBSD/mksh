@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.380 2021/06/29 20:54:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.381 2021/06/29 21:03:29 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -496,7 +496,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	} else if (Flag(FCOMMAND)) {
 		s = pushs(SSTRINGCMDLINE, ATEMP);
 		if (!(s->start = s->str = argv[argi++]))
-			errorf(Tf_optfoo, "", "", 'c', Treq_arg);
+			errorf(Tf_optdcs, 'c', Treq_arg);
 		while (*s->str) {
 			if (ctype(*s->str, C_QUOTE))
 				break;
