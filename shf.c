@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.116 2021/06/29 20:54:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.117 2021/06/29 21:30:28 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -169,7 +169,8 @@ shf_reopen(int fd, int sflags, struct shf *shf)
 
 	shf_open_hlp(fd, &sflags, "shf_reopen");
 	if (!shf->buf || shf->bsize < bsize)
-		internal_errorf(Tbad_buf, "shf_reopen", shf->buf, shf->bsize);
+		internal_errorf(Tbad_buf, "shf_reopen",
+		    (size_t)shf->buf, shf->bsize);
 
 	/* assumes shf->buf and shf->bsize already set up */
 	shf->fd = fd;
@@ -493,7 +494,7 @@ shf_read(char *buf, ssize_t bsize, struct shf *shf)
 		internal_errorf(Tbad_flags, Tshf_read, shf->flags);
 
 	if (bsize <= 0)
-		internal_errorf(Tbad_buf, Tshf_read, buf, bsize);
+		internal_errorf(Tbad_buf, Tshf_read, (size_t)buf, bsize);
 
 	while (bsize > 0) {
 		if (shf->rnleft == 0 &&
@@ -694,7 +695,7 @@ shf_write(const char *buf, ssize_t nbytes, struct shf *shf)
 		internal_errorf(Tbad_flags, Tshf_write, shf->flags);
 
 	if (nbytes < 0)
-		internal_errorf(Tbad_buf, Tshf_write, buf, nbytes);
+		internal_errorf(Tbad_buf, Tshf_write, (size_t)buf, nbytes);
 
 	/* don't buffer if buffer is empty and we're writing a large amount */
 	if ((ncopy = shf->wnleft) &&
@@ -782,7 +783,7 @@ shf_snprintf(char *buf, ssize_t bsize, const char *fmt, ...)
 	ssize_t n;
 
 	if (!buf || bsize <= 0)
-		internal_errorf(Tbad_buf, "shf_snprintf", buf, bsize);
+		internal_errorf(Tbad_buf, "shf_snprintf", (size_t)buf, bsize);
 
 	shf_sopen(buf, bsize, SHF_WR, &shf);
 	va_start(args, fmt);
