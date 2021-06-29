@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.134 2021/06/29 20:54:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.135 2021/06/29 21:11:33 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1974,26 +1974,6 @@ tty_init_state(void)
 static void
 vistree(char *dst, size_t sz, struct op *t)
 {
-#if 0
-	char *cp;
-	size_t n;
-	char buf[PROC_TGTSZ - 12];
-	char esc[5];
-	char *odst = dst;
-
-	snptreef(buf, sizeof(buf), Tf_T, t);
-	cp = buf;
-	while (*cp) {
-		if ((n = uescmb(esc, (const char **)&cp)) >= sz)
-			break;
-		memcpy(dst, esc, n);
-		sz -= n;
-		dst += n;
-	}
-	while (dst > odst && ctype(dst[-1], C_IFSWS))
-		--dst;
-	*dst = '\0';
-#else
 	char buf[PROC_TGTSZ - 12];
 	struct shf shf;
 
@@ -2003,5 +1983,4 @@ vistree(char *dst, size_t sz, struct op *t)
 	while ((char *)shf.wp > dst && ctype(shf.wp[-1], C_IFSWS))
 		--shf.wp;
 	shf_sclose(&shf);
-#endif
 }
