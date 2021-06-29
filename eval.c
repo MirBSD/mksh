@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.233 2021/05/02 05:57:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.234 2021/06/29 20:54:41 tg Exp $");
 
 /*
  * string expansion
@@ -807,7 +807,7 @@ expand(
 					    debunk(dp, dp, strlen(dp) + 1));
 					break;
 				case ORD('#') | STYPE_AT:
-					x.str = shf_smprintf("%08X",
+					x.str = shf_smprintf(Thex32,
 					    (unsigned int)hash(str_val(st->var)));
 					goto common_CSUBST;
 				case ORD('Q') | STYPE_AT: {
@@ -1561,9 +1561,8 @@ comsub(Expand *xp, const char *cp, int fn)
 			shf = shf_open(name = evalstr(io->ioname, DOTILDE),
 				O_RDONLY, 0, SHF_MAPHI | SHF_CLEXEC);
 			if (shf == NULL)
-				warningf(!Flag(FTALKING), Tf_sD_s_sD_s,
-				    name, Tcant_open, "$(<...) input",
-				    cstrerror(errno));
+				warningf(!Flag(FTALKING), Tf_sD_sD_s,
+				    name, Tcant_filesub, cstrerror(errno));
 			break;
 		case IOHERE:
 			if (!herein(io, &name)) {

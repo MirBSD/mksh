@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.243 2021/06/28 20:58:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.244 2021/06/29 20:54:46 tg Exp $");
 
 /*-
  * Variables
@@ -2217,7 +2217,7 @@ c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, int any_set,
 			 * leftadj, zerofill, etc., but POSIX says must
 			 * be suitable for re-entry...
 			 */
-			shprintf(Tf_s_s, Ttypeset, "");
+			shprintf(Tf_s_, Ttypeset);
 			if (((vp->flag & (ARRAY | ASSOC)) == ASSOC))
 				shprintf(Tf__c_, 'n');
 			if ((vp->flag & INTEGER))
@@ -2241,8 +2241,8 @@ c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, int any_set,
 			if ((vp->flag & INT_U))
 				shprintf(Tf__c_, 'U');
 		} else if (pflag) {
-			shprintf(Tf_s_s, istset ? Ttypeset :
-			    (flag & EXPORT) ? Texport : Treadonly, "");
+			shprintf(Tf_s_, istset ? Ttypeset :
+			    (flag & EXPORT) ? Texport : Treadonly);
 		}
 		shf_puts(vp->name, shl_stdout);
 		if (any_set)

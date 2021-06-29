@@ -193,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.924 2021/06/28 23:34:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.925 2021/06/29 20:54:45 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/05/29"
 
@@ -757,6 +757,7 @@ im_sorry_dave(void)
 	}								\
 	(d) = strdup_dst;						\
 } while (/* CONSTCOND */ 0)
+#define memstr(d,s) memcpy((d), (s), sizeof(s))
 
 #ifdef MKSH_SMALL
 #ifndef MKSH_NOPWNAM
@@ -999,8 +1000,8 @@ EXTERN const char Tbracket[] E_INIT("[");
 EXTERN const char Tbadnum[] E_INIT("bad number");
 #define Tbadsubst (Tfg_badsubst + 10)
 EXTERN const char Tbg[] E_INIT("bg");
-EXTERN const char Tbad_bsize[] E_INIT("bad shf/buf/bsize");
-#define Tbsize (Tbad_bsize + 12)
+EXTERN const char Tbad_buf[] E_INIT("%s: buf %zX len %zd");
+EXTERN const char Tbad_flags[] E_INIT("%s: flags 0x%08X");
 EXTERN const char Tbad_sig_ss[] E_INIT("%s: bad signal '%s'");
 #define Tbad_sig_s (Tbad_sig_ss + 4)
 EXTERN const char Tsgbreak[] E_INIT("*=break");
@@ -1010,10 +1011,10 @@ EXTERN const char T__builtin[] E_INIT("-\\builtin");
 #define Tbuiltin (T__builtin + 2)
 EXTERN const char Toomem[] E_INIT("can't allocate %zu data bytes");
 EXTERN const char Tcant_cd[] E_INIT("restricted shell - can't cd");
-EXTERN const char Tcant_find[] E_INIT("can't find");
-EXTERN const char Tcant_open[] E_INIT("can't open");
-#define Tbytes (Toomem + 24)
+EXTERN const char Tcant_filesub[] E_INIT("can't open $(<...) file");
 #define Tcd (Tcant_cd + 25)
+EXTERN const char Tchvt2[] E_INIT("chvt: %s: %s");
+EXTERN const char Tchvt_failed[] E_INIT("chvt: %s failed");
 #define T_command (T_funny_command + 9)
 #define Tcommand (T_funny_command + 10)
 EXTERN const char Tsgcontinue[] E_INIT("*=continue");
@@ -1030,8 +1031,7 @@ EXTERN const char Textproc[] E_INIT("extproc");
 EXTERN const char Tfalse[] E_INIT("false");
 EXTERN const char Tfg[] E_INIT("fg");
 EXTERN const char Tfg_badsubst[] E_INIT("fileglob: bad substitution");
-#define Tfile (Tfile_fd + 20)
-EXTERN const char Tfile_fd[] E_INIT("function definition file");
+#define Tfile (Tcant_filesub + 19)
 EXTERN const char TFPATH[] E_INIT("FPATH");
 EXTERN const char T_function[] E_INIT(" function");
 #define Tfunction (T_function + 1)
@@ -1052,11 +1052,12 @@ EXTERN const char Tnot_found_s[] E_INIT("%s not found");
 #define Tnot_found (Tnot_found_s + 3)
 #define Tnot_started (Tjob_not_started + 4)
 #define TOLDPWD (Tno_OLDPWD + 3)
-#define Topen (Tcant_open + 6)
+EXTERN const char Topen[] E_INIT("open");
+EXTERN const char Ttooearly[] E_INIT("too early%s");
 EXTERN const char To_o_reset[] E_INIT(" -o .reset");
 #define To_reset (To_o_reset + 4)
 #define TPATH (TFPATH + 1)
-#define Tpo (Tset_po + 4)
+#define Tpo (T_set_po + 5)
 #define Tpv (TpVv + 1)
 EXTERN const char TpVv[] E_INIT("Vpv");
 #define TPWD (Tno_OLDPWD + 6)
@@ -1071,7 +1072,8 @@ EXTERN const char TREPLY[] E_INIT("REPLY");
 EXTERN const char Treq_arg[] E_INIT("requires an argument");
 EXTERN const char Tselect[] E_INIT("select");
 #define Tset (Tf_parm + 18)
-EXTERN const char Tset_po[] E_INIT("set +o");
+#define Tset_po (T_set_po + 1)
+EXTERN const char T_set_po[] E_INIT(" set +o");
 EXTERN const char Tsghset[] E_INIT("*=#set");
 #define Tsh (Tmksh + 2)
 #define TSHELL (TEXECSHELL + 4)
@@ -1087,8 +1089,6 @@ EXTERN const char Ttime[] E_INIT("time");
 EXTERN const char Ttoo_many_args[] E_INIT("too many arguments");
 EXTERN const char Ttoo_many_files[] E_INIT("too many open files in shell");
 EXTERN const char Ttrue[] E_INIT("true");
-EXTERN const char Ttty_fd_dupof[] E_INIT("dup of tty fd");
-#define Ttty_fd (Ttty_fd_dupof + 7)
 EXTERN const char Tdgtypeset[] E_INIT("^=typeset");
 #define Ttypeset (Tdgtypeset + 2)
 #define Tugo (Taugo + 1)
@@ -1100,6 +1100,7 @@ EXTERN const char Tunwind[] E_INIT("unwind");
 #define Tuser_sp1 (Tuser_sp2 + 1)
 EXTERN const char Tuser_sp2[] E_INIT(" user ");
 #define Twrite (Tshf_write + 4)
+#define Thex32 (Tbad_flags + 12)
 EXTERN const char Tf__S[] E_INIT(" %S");
 #define Tf__d (Tunexpected_type + 22)
 #define Tf__sN (Tf_s_s_sN + 5)
@@ -1113,7 +1114,6 @@ EXTERN const char Tf_s_s_sN[] E_INIT("%s %s %s\n");
 #define Tf_s_sD_s (Tf_cant_ss_s + 6)
 EXTERN const char Tf_optfoo[] E_INIT("%s%s-%c: %s");
 EXTERN const char Tf_sD_[] E_INIT("%s: ");
-EXTERN const char Tf_szs[] E_INIT("%s: %zd %s");
 EXTERN const char Tf_parm[] E_INIT("%s: parameter not set");
 EXTERN const char Tf_coproc[] E_INIT("-p: %s");
 EXTERN const char Tf_cant_s[] E_INIT("%s: can't %s");
@@ -1127,7 +1127,6 @@ EXTERN const char Tf_S_[] E_INIT("%S ");
 #define Tf_lu (Tf_toolarge + 17)
 EXTERN const char Tf_toolarge[] E_INIT("%s %s too large: %lu");
 EXTERN const char Tf_ldfailed[] E_INIT("%s %s(%d, %ld) failed: %s");
-EXTERN const char Tf_sD_s_sD_s[] E_INIT("%s: %s %s: %s");
 EXTERN const char Tf_toomany[] E_INIT("too many %ss");
 EXTERN const char Tf_sd[] E_INIT("%s %d");
 #define Tf_s (Tf_temp + 28)
@@ -1136,7 +1135,6 @@ EXTERN const char Tft_R[] E_INIT("%R");
 #define Tf_d (Tunexpected_type + 23)
 EXTERN const char Tf_sD_s_qs[] E_INIT("%s: %s '%s'");
 EXTERN const char Tf_ro[] E_INIT("read-only: %s");
-EXTERN const char Tf_flags[] E_INIT("%s: flags 0x%X");
 EXTERN const char Tf_temp[] E_INIT("can't %s temporary file %s: %s");
 EXTERN const char Tf_ssfaileds[] E_INIT("%s: %s failed: %s");
 EXTERN const char Tf_sD_sD_s[] E_INIT("%s: %s: %s");
@@ -1160,8 +1158,8 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tbadnum "bad number"
 #define Tbadsubst "bad substitution"
 #define Tbg "bg"
-#define Tbad_bsize "bad shf/buf/bsize"
-#define Tbsize "bsize"
+#define Tbad_buf "%s: buf %zX len %zd"
+#define Tbad_flags "%s: flags 0x%08X"
 #define Tbad_sig_ss "%s: bad signal '%s'"
 #define Tbad_sig_s "bad signal '%s'"
 #define Tsgbreak "*=break"
@@ -1171,10 +1169,10 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tbuiltin "builtin"
 #define Toomem "can't allocate %zu data bytes"
 #define Tcant_cd "restricted shell - can't cd"
-#define Tcant_find "can't find"
-#define Tcant_open "can't open"
-#define Tbytes "bytes"
+#define Tcant_filesub "can't open $(<...) file"
 #define Tcd "cd"
+#define Tchvt2 "chvt: %s: %s"
+#define Tchvt_failed "chvt: %s failed"
 #define T_command "-command"
 #define Tcommand "command"
 #define Tsgcontinue "*=continue"
@@ -1192,7 +1190,6 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tfg "fg"
 #define Tfg_badsubst "fileglob: bad substitution"
 #define Tfile "file"
-#define Tfile_fd "function definition file"
 #define TFPATH "FPATH"
 #define T_function " function"
 #define Tfunction "function"
@@ -1214,6 +1211,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tnot_started "not started"
 #define TOLDPWD "OLDPWD"
 #define Topen "open"
+#define Ttooearly "too early%s"
 #define To_o_reset " -o .reset"
 #define To_reset ".reset"
 #define TPATH "PATH"
@@ -1233,6 +1231,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tselect "select"
 #define Tset "set"
 #define Tset_po "set +o"
+#define T_set_po " set +o"
 #define Tsghset "*=#set"
 #define Tsh "sh"
 #define TSHELL "SHELL"
@@ -1248,8 +1247,6 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Ttoo_many_args "too many arguments"
 #define Ttoo_many_files "too many open files in shell"
 #define Ttrue "true"
-#define Ttty_fd_dupof "dup of tty fd"
-#define Ttty_fd "tty fd"
 #define Tdgtypeset "^=typeset"
 #define Ttypeset "typeset"
 #define Tugo "ugo"
@@ -1261,6 +1258,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tuser_sp1 "user "
 #define Tuser_sp2 " user "
 #define Twrite "write"
+#define Thex32 "%08X"
 #define Tf__S " %S"
 #define Tf__d " %d"
 #define Tf__sN " %s\n"
@@ -1274,7 +1272,6 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tf_s_sD_s "%s %s: %s"
 #define Tf_optfoo "%s%s-%c: %s"
 #define Tf_sD_ "%s: "
-#define Tf_szs "%s: %zd %s"
 #define Tf_parm "%s: parameter not set"
 #define Tf_coproc "-p: %s"
 #define Tf_cant_s "%s: can't %s"
@@ -1288,7 +1285,6 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tf_lu "%lu"
 #define Tf_toolarge "%s %s too large: %lu"
 #define Tf_ldfailed "%s %s(%d, %ld) failed: %s"
-#define Tf_sD_s_sD_s "%s: %s %s: %s"
 #define Tf_toomany "too many %ss"
 #define Tf_sd "%s %d"
 #define Tf_s "%s"
@@ -1297,7 +1293,6 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tf_d "%d"
 #define Tf_sD_s_qs "%s: %s '%s'"
 #define Tf_ro "read-only: %s"
-#define Tf_flags "%s: flags 0x%X"
 #define Tf_temp "can't %s temporary file %s: %s"
 #define Tf_ssfaileds "%s: %s failed: %s"
 #define Tf_sD_sD_s "%s: %s: %s"

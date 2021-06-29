@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.317 2021/06/28 21:46:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.318 2021/06/29 20:54:44 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -43,9 +43,6 @@ __RCSID("$MirOS: src/bin/mksh/misc.c,v 1.317 2021/06/28 21:46:12 tg Exp $");
 #define KSH_CHVT_CODE
 #define KSH_CHVT_FLAG
 #endif
-
-/* type bits for unsigned char */
-unsigned char chtypes[UCHAR_MAX + 1];
 
 static const unsigned char *pat_scan(const unsigned char *,
     const unsigned char *, bool) MKSH_A_PURE;
@@ -429,8 +426,7 @@ parse_args(const char **argv,
 				 */
 #if !defined(MKSH_SMALL) || defined(DEBUG)
 				if (!set && !baseline_flags[(int)FNFLAGS]) {
-					bi_errorf(Tf_s_s, "too early",
-					    Tset_po);
+					bi_errorf(Ttooearly, T_set_po);
 					return (-1);
 				}
 #endif
@@ -463,8 +459,7 @@ parse_args(const char **argv,
 			else if (!strcmp(go.optarg, To_reset)) {
 #if !defined(MKSH_SMALL) || defined(DEBUG)
 				if (!baseline_flags[(int)FNFLAGS]) {
-					bi_errorf("%s%s", "too early",
-					    To_o_reset);
+					bi_errorf(Ttooearly, To_o_reset);
 					return (-1);
 				}
 #endif
@@ -2541,18 +2536,18 @@ chvt(const Getopt *go)
 				memmove(cp + 1, cp, /* /dev/tty */ 8);
 				dv = cp + 1;
 				if (stat(dv, &sb)) {
-					errorf(Tf_sD_sD_s, "chvt",
+					errorf(Tchvt2,
 					    "can't find tty", go->optarg);
 				}
 			}
 		}
 		if (!(sb.st_mode & S_IFCHR))
-			errorf(Tf_sD_sD_s, "chvt", "not a char device", dv);
+			errorf(Tchvt2, "not a char device", dv);
 #ifndef MKSH_DISABLE_REVOKE_WARNING
 #if HAVE_REVOKE
 		if (revoke(dv))
 #endif
-			warningf(false, Tf_sD_s_s, "chvt",
+			warningf(false, Tchvt2,
 			    "new shell is potentially insecure, can't revoke",
 			    dv);
 #endif
@@ -2561,14 +2556,14 @@ chvt(const Getopt *go)
 	if ((fd = binopen2(dv, O_RDWR)) < 0) {
 		sleep(1);
 		if ((fd = binopen2(dv, O_RDWR)) < 0) {
-			errorf(Tf_sD_s_s, "chvt", Tcant_open, dv);
+			errorf(Tchvt2, Topen, dv);
 		}
 	}
 	afree(cp, ATEMP);
 	if (go->optarg[0] != '!') {
 		switch (fork()) {
 		case -1:
-			errorf(Tf_sD_s_s, "chvt", "fork", "failed");
+			errorf(Tchvt_failed, "fork");
 		case 0:
 			break;
 		default:
@@ -2576,12 +2571,12 @@ chvt(const Getopt *go)
 		}
 	}
 	if (setsid() == -1)
-		errorf(Tf_sD_s_s, "chvt", "setsid", "failed");
+		errorf(Tchvt_failed, "setsid");
 	if (go->optarg[0] != '-') {
 		if (ioctl(fd, TIOCSCTTY, NULL) == -1)
-			errorf(Tf_sD_s_s, "chvt", "TIOCSCTTY", "failed");
+			errorf(Tchvt_failed, "TIOCSCTTY");
 		if (tcflush(fd, TCIOFLUSH))
-			errorf(Tf_sD_s_s, "chvt", "TCIOFLUSH", "failed");
+			errorf(Tchvt_failed, "TCIOFLUSH");
 	}
 	ksh_dup2(fd, 0, false);
 	ksh_dup2(fd, 1, false);

@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.379 2021/06/28 19:20:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.380 2021/06/29 20:54:43 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -1758,7 +1758,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	cp += offsetof(struct temp, tffn[0]);
 	memcpy(cp, dir, len);
 	cp += len;
-	memcpy(cp, "/shXXXXXX.tmp", 14);
+	memstr(cp, "/shXXXXXX.tmp");
 	/* point to the first of six Xes */
 	cp += 3;
 

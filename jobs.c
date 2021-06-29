@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.133 2021/06/28 21:46:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.134 2021/06/29 20:54:43 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1550,10 +1550,11 @@ j_print(Job *j, int how, struct shf *shf)
 #ifdef WCOREDUMP
 	bool coredumped;
 #endif
-	char jobchar = ' ';
-	char buf[64];
+	char jobchar;
+	bool output = false;
+	const char *msg;
 	const char *filler;
-	int output = 0;
+	char msgbuf[sizeof("Done (255)")];
 
 	if (how == JP_PGRP) {
 		/*
@@ -1565,12 +1566,15 @@ j_print(Job *j, int how, struct shf *shf)
 		    (j->last_proc ? j->last_proc->pid : 0)));
 		return;
 	}
+	/* how is one of JP_SHORT, JP_MEDIUM, JP_LONG from here */
 	j->flags &= ~JF_CHANGED;
 	filler = j->job > 10 ? "\n       " : "\n      ";
 	if (j == job_list)
 		jobchar = '+';
 	else if (j == job_list->next)
 		jobchar = '-';
+	else
+		jobchar = ' ';
 
 	for (p = j->proc_list; p != NULL;) {
 #ifdef WCOREDUMP
@@ -1578,70 +1582,49 @@ j_print(Job *j, int how, struct shf *shf)
 #endif
 		switch (p->state) {
 		case PRUNNING:
-			memcpy(buf, "Running", 8);
+			msg = "Running";
 			break;
-		case PSTOPPED: {
-			int stopsig = WSTOPSIG(p->status);
-
-			strlcpy(buf, stopsig > 0 && stopsig < ksh_NSIG ?
-			    sigtraps[stopsig].mess : "Stopped", sizeof(buf));
+		case PSTOPPED:
+			status = WSTOPSIG(p->status);
+			msg = status > 0 && status < ksh_NSIG ?
+			    sigtraps[status].mess : "Stopped";
 			break;
-		}
-		case PEXITED: {
-			int exitstatus = (WEXITSTATUS(p->status)) & 255;
-
+		case PEXITED:
 			if (how == JP_SHORT)
-				buf[0] = '\0';
-			else if (exitstatus == 0)
-				memcpy(buf, "Done", 5);
-			else
-				shf_snprintf(buf, sizeof(buf), "Done (%d)",
-				    exitstatus);
+				msg = null;
+			else if ((status = (WEXITSTATUS(p->status)) & 255) == 0)
+				msg = "Done";
+			else {
+				shf_snprintf(msgbuf, sizeof(msgbuf),
+				    "Done (%d)", status);
+				msg = msgbuf;
+			}
 			break;
-		}
-		case PSIGNALLED: {
-			int termsig = WTERMSIG(p->status);
+		case PSIGNALLED:
 #ifdef WCOREDUMP
 			if (WCOREDUMP(p->status))
 				coredumped = true;
 #endif
-			/*
-			 * kludge for not reporting 'normal termination
-			 * signals' (i.e. SIGINT, SIGPIPE)
-			 */
-			if (how == JP_SHORT &&
+			status = WTERMSIG(p->status);
+			/* only report “abnormal” termination signals short */
+			if (how != JP_SHORT ||
 #ifdef WCOREDUMP
-			    !coredumped &&
+			    coredumped ||
 #endif
-			    (termsig == SIGINT || termsig == SIGPIPE)) {
-				buf[0] = '\0';
-			} else
-				strlcpy(buf, termsig > 0 && termsig < ksh_NSIG ?
-				    sigtraps[termsig].mess : "Signalled",
-				    sizeof(buf));
-			break;
-		}
+			    (status != SIGINT && status != SIGPIPE)) {
+				msg = status > 0 && status < ksh_NSIG ?
+				    sigtraps[status].mess : "Signalled";
+				break;
+			}
+			/* FALLTHROUGH */
 		default:
-			buf[0] = '\0';
+			msg = null;
 		}
-
-		if (how != JP_SHORT) {
-			if (p == j->proc_list) {
-				shf_fprintf(shf, "[%d]", j->job);
-				shf_putc(' ', shf);
-				shf_putc(jobchar, shf);
-				shf_putc(' ', shf);
-			} else
-				shf_puts(filler, shf);
-		}
-
-		if (how == JP_LONG)
-			shf_fprintf(shf, "%5d ", (int)p->pid);
 
 		if (how == JP_SHORT) {
-			if (buf[0]) {
-				output = 1;
-				shf_puts(buf, shf);
+			if (msg[0]) {
+				output = true;
+				shf_puts(msg, shf);
 #ifdef WCOREDUMP
 				if (coredumped)
 					shf_puts(" (core dumped)", shf);
@@ -1649,9 +1632,15 @@ j_print(Job *j, int how, struct shf *shf)
 				shf_putc(' ', shf);
 			}
 		} else {
-			output = 1;
-			shf_fprintf(shf, "%-20s ", buf);
-			shf_puts(p->command, shf);
+			/* JP_MEDIUM or JP_LONG */
+			if (p == j->proc_list)
+				shf_fprintf(shf, "[%d] %c ", j->job, jobchar);
+			else
+				shf_puts(filler, shf);
+			if (how == JP_LONG)
+				shf_fprintf(shf, "%5d ", (int)p->pid);
+			output = true;
+			shf_fprintf(shf, "%-20s %s", msg, p->command);
 			if (p->next) {
 				shf_putc(' ', shf);
 				shf_putc('|', shf);
@@ -1952,19 +1941,19 @@ tty_init_talking(void)
 		break;
 	case 1:
 #ifndef MKSH_DISABLE_TTY_WARNING
-		warningf(false, Tf_sD_s_sD_s,
-		    "No controlling tty", Topen, T_devtty, cstrerror(errno));
+		warningf(false, "can't find controlling tty: %s",
+		    cstrerror(errno));
 #endif
 		break;
 	case 2:
 #ifndef MKSH_DISABLE_TTY_WARNING
-		warningf(false, Tf_s_sD_s, Tcant_find, Ttty_fd,
+		warningf(false, "can't find tty fd: %s",
 		    cstrerror(errno));
 #endif
 		break;
 	case 3:
 		warningf(false, Tf_ssfaileds, "j_ttyinit",
-		    Ttty_fd_dupof, cstrerror(errno));
+		    "dup of tty fd", cstrerror(errno));
 		break;
 	case 4:
 		warningf(false, Tf_sD_sD_s, "j_ttyinit",

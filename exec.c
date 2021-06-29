@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.226 2021/01/27 15:49:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.227 2021/06/29 20:54:42 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -702,9 +702,9 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			if (!tp->u.fpath) {
  fpath_error:
 				rv = (tp->u2.errnov == ENOENT) ? 127 : 126;
-				warningf(true, Tf_sD_s_sD_s, cp,
-				    Tcant_find, Tfile_fd,
-				    cstrerror(tp->u2.errnov));
+				warningf(true,
+				    "%s: can't find function definition file: %s",
+				    cp, cstrerror(tp->u2.errnov));
 				break;
 			}
 			errno = 0;
