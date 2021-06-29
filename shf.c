@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.117 2021/06/29 21:30:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.118 2021/06/29 21:34:52 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -417,6 +417,8 @@ shf_emptybuf(struct shf *shf, int flags)
 						memmove(shf->buf, buf,
 						    ntowrite);
 						shf->wp = shf->buf + ntowrite;
+						/* restore errno for caller */
+						errno = shf->errnosv;
 					}
 					return (-1);
 				}
