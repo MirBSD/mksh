@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.227 2021/06/29 20:54:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.228 2021/06/29 22:57:45 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -1397,7 +1397,11 @@ call_builtin(struct tbl *tp, const char **wp, const char *where, bool resetspec)
 	shl_stdout_ok = true;
 	ksh_getopt_reset(&builtin_opt, GF_ERROR);
 	rv = (*tp->val.f)(wp);
-	shf_flush(shl_stdout);
+	if (shf_flush(shl_stdout) < 0) {
+		bi_errorf(Tf_sD_s, Twrite, cstrerror(errno));
+		if (rv == 0)
+			rv = 1;
+	}
 	shl_stdout_ok = false;
 	builtin_argv0 = NULL;
 	builtin_spec = false;

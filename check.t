@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.863 2021/05/30 04:17:49 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.864 2021/06/29 22:57:43 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2021/05/29
+	KSH R59 2021/06/29
 description:
 	Check base version of full shell
 stdin:
@@ -7894,6 +7894,77 @@ expected-stdout:
 	F 0
 	G 12
 	H 0
+---
+name: exit-stdout-1
+description:
+	cf. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=990265, Austin ML
+stdin:
+	if test -c /dev/full && test -w /dev/full; then
+		if pwd >/dev/full 2>e; then
+			cat e
+			echo fail
+		else
+			echo pass
+		fi
+	else
+		echo skip
+	fi
+	case " $(echo $( (set -o posix) >/dev/null 2>&1 && set -o posix >/dev/null 2>&1; kill -l)) " in
+	(*' PIPE '*)
+		:>s
+		{ trap '' PIPE; sleep 1; pwd 2>e; echo $? >s; } | :
+		case x$(cat s) in
+		(x)
+			cat e
+			echo fail else ;;
+		(x0)
+			cat e
+			echo fail 0 ;;
+		(*)
+			echo pass ;;
+		esac
+		;;
+	(*)
+		echo skip ;;
+	esac
+expected-stdout-pattern:
+	/^(pass|skip)\n(pass|skip)\n$/
+---
+name: exit-stdout-2
+description:
+	same, except for external utility / direct builtin call
+stdin:
+	ln -s "$__progname" pwd || cp "$__progname" pwd
+	if test -c /dev/full && test -w /dev/full; then
+		if ./pwd >/dev/full 2>e; then
+			cat e
+			echo fail
+		else
+			echo pass
+		fi
+	else
+		echo skip
+	fi
+	case " $(echo $( (set -o posix) >/dev/null 2>&1 && set -o posix >/dev/null 2>&1; kill -l)) " in
+	(*' PIPE '*)
+		:>s
+		{ trap '' PIPE; sleep 1; ./pwd 2>e; echo $? >s; } | :
+		case x$(cat s) in
+		(x)
+			cat e
+			echo fail else ;;
+		(x0)
+			cat e
+			echo fail 0 ;;
+		(*)
+			echo pass ;;
+		esac
+		;;
+	(*)
+		echo skip ;;
+	esac
+expected-stdout-pattern:
+	/^(pass|skip)\n(pass|skip)\n$/
 ---
 name: exit-trap-1
 description:
