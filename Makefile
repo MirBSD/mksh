@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.180 2021/06/29 19:44:05 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.181 2021/06/29 20:50:01 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2021
@@ -87,6 +87,10 @@ LDADD+=		-lulimit
 DEBUGFILE?=	No
 .if ${DEBUGFILE:L} == "yes"
 CPPFLAGS+=	-DDF=mksh_debugtofile
+.endif
+
+.if "${MKC_DEBG:L:Mgc-sections}"
+CPPFLAGS+=	-DHAVE_STRING_POOLING=1
 .endif
 
 MANLINKS=	[ pwd rksh sh test
