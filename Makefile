@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/Makefile,v 1.179 2021/05/30 04:17:48 tg Exp $
+# $MirOS: src/bin/mksh/Makefile,v 1.180 2021/06/29 19:44:05 tg Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2021
@@ -236,6 +236,12 @@ r:
 repool:
 	cd ${.CURDIR:Q} && \
 	    exec ${MKSH} ${BSDSRCDIR:Q}/scripts/stringpool.sh sh.h
+
+repoolcheck:
+	cd ${.CURDIR:Q} && while IFS= read -r name; do \
+		print -r -- "# $$name"; \
+		fgrep -w -e "$$name" *.[ch]; \
+	done <sh.h.stringnames
 
 .ifmake validate
 .  include "${BSDSRCDIR}/www/Defs.mk"
