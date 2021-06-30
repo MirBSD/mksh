@@ -38,7 +38,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.384 2021/06/21 00:17:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.385 2021/06/30 00:10:28 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -554,6 +554,7 @@ c_print(const char **wp)
 						po.copipe = block_pipe();
 					continue;
 				}
+				bi_errorf(Tf_sD_s, Twrite, cstrerror(errno));
 				c = 1;
 				break;
 			}
