@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.22 2021/06/15 13:20:06 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.23 2021/07/10 17:39:27 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -357,14 +357,14 @@ Title: Some characters don’t display right
  present, for example 1047. Furthermore ensure the compile-time and runtime
  codepages match. (Other encoding schemes, e.g. DBCS or ISO-2022-JP, are
  not supported.) This should already fix most relevant issues.</p>
-<p>If you’re on an 8-bit codepage which uses the codepoints 0x80‥0x9F, as
- opposed to placing control characters in that range (like ISO 8859), such
- as codepages 437, 850, 1252, … (usually on OS/2 or DOS-based systems),
- enable the new option <tt>set -o asis</tt>; otherwise these characters
- will be escaped to avoid accidentally reconfiguring the terminal.</p>
-<p>Note that escaping of characters is, at runtime, dependent on whether
- the shell was compiled for EBCDIC and on both <tt>utf8-mode</tt> and
- <tt>asis</tt>, the latter being ignored if the former is enabled, though
+<p>If using an 8-bit coding system that (unlike e.g. ISO 8859 or EBCDIC)
+ does not assign control characters to “Extended ASCII” codepoints 0x80‥0x9F,
+ such as codepages 437, 850, 1252, … (usually on OS/2 or DOS-based systems),
+ enable the option <tt>set -o asis</tt> (new in R60); otherwise, they will
+ be escaped to avoid accidentally setting off terminal control sequences.</p>
+<p>Note that escaping of characters is, at runtime, dependent on whether the
+ shell was compiled for EBCDIC and/or <tt>utf8-mode</tt> and/or <tt>asis</tt>
+ are enabled, the latter being ignored if either of the former two are true
  (in UTF-8 mode, UCS C1 codepoints are always escaped).</p>
 ----
 ToC: ctrl-l-cls
