@@ -2,7 +2,8 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2013, 2014, 2016, 2017, 2018, 2019
+ *		 2011, 2012, 2013, 2014, 2016, 2017, 2018, 2019,
+ *		 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.110 2021/06/21 00:29:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.111 2021/07/14 23:12:17 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -391,6 +392,10 @@ evalexpr(Expr_state *es, unsigned int prec)
 		case O_RORASN:
 			t1 = vl->val.u;
 			t2 = vr->val.u & 31;
+			if (!t2) {
+				res = t1;
+				goto rotate_by_zero;
+			}
 			break;
 #endif
 		case O_LAND:
@@ -466,6 +471,7 @@ evalexpr(Expr_state *es, unsigned int prec)
 		case O_ROR:
 		case O_RORASN:
 			res = (t1 >> t2) | (t1 << (32 - t2));
+ rotate_by_zero:
 			break;
 #endif
 		case O_LSHIFT:
