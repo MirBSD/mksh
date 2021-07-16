@@ -193,7 +193,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.927 2021/06/29 22:57:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.928 2021/07/16 02:33:16 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/06/29"
 
@@ -283,6 +283,11 @@ typedef MKSH_TYPEDEF_SSIZE_T ssize_t;
 
 /* compile-time assertions */
 #define cta(name,expr)	struct cta_ ## name { char t[(expr) ? 1 : -1]; }
+
+/* counts the value bits when given inttype_MAX as argument */
+#define IMAX_BITS(m) ((m) / ((m) % 255 + 1) / 255 % 255 * 8 + 7 - \
+	    86 / ((m) % 255 + 12))
+/* taken from comp.lang.c by Hallvard B Furuseth */
 
 /* EBCDIC fun */
 
