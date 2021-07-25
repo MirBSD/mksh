@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.769 2021/05/05 19:19:21 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.770 2021/07/25 16:07:19 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -384,6 +384,11 @@ EOF
 	test x"$fv" = x"1"
 }
 
+# simple only (is IFS-split by shell)
+cpp_define() {
+	add_cppflags "-D$1=$2"
+}
+
 add_cppflags() {
 	CPPFLAGS="$CPPFLAGS $*"
 }
@@ -392,7 +397,7 @@ ac_cppflags() {
 	test x"$1" = x"" || fu=$1
 	fv=$2
 	test x"$2" = x"" && eval fv=\$HAVE_$fu
-	add_cppflags -DHAVE_$fu=$fv
+	cpp_define HAVE_$fu $fv
 }
 
 ac_test() {
@@ -507,7 +512,7 @@ else
 	srcdisp=$srcdir/
 fi
 dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\([^"]*\)".*$/\1/p' "$srcdir/sh.h"`
-add_cppflags -DMKSH_BUILDSH
+cpp_define MKSH_BUILDSH 1
 
 e=echo
 r=0
@@ -549,7 +554,7 @@ do
 		;;
 	:-g)
 		# checker, debug, valgrind build
-		add_cppflags -DDEBUG
+		cpp_define DEBUG 1
 		CFLAGS="$CFLAGS -g3 -fno-builtin"
 		;;
 	:-j)
@@ -621,18 +626,18 @@ if test $legacy = 0; then
 	check_categories="$check_categories shell:legacy-no int:32"
 else
 	check_categories="$check_categories shell:legacy-yes"
-	add_cppflags -DMKSH_LEGACY_MODE
+	cpp_define MKSH_LEGACY_MODE 1
 fi
 
 if $ebcdic; then
-	add_cppflags -DMKSH_EBCDIC
+	cpp_define MKSH_EBCDIC 1
 fi
 
 if test $textmode = 0; then
 	check_categories="$check_categories shell:textmode-no shell:binmode-yes"
 else
 	check_categories="$check_categories shell:textmode-yes shell:binmode-no"
-	add_cppflags -DMKSH_WITH_TEXTMODE
+	cpp_define MKSH_WITH_TEXTMODE 1
 fi
 
 if test x"$srcdir" = x"."; then
@@ -725,8 +730,8 @@ esac
 case $TARGET_OS in
 386BSD)
 	: "${HAVE_CAN_OTWO=0}"
-	add_cppflags -DMKSH_NO_SIGSETJMP
-	add_cppflags -DMKSH_TYPEDEF_SIG_ATOMIC_T=int
+	cpp_define MKSH_NO_SIGSETJMP 1
+	cpp_define MKSH_TYPEDEF_SIG_ATOMIC_T int
 	;;
 A/UX)
 	add_cppflags -D_POSIX_SOURCE
@@ -750,20 +755,20 @@ BeOS)
 		;;
 	esac
 	# BeOS has no real tty either
-	add_cppflags -DMKSH_UNEMPLOYED
-	add_cppflags -DMKSH_DISABLE_TTY_WARNING
+	cpp_define MKSH_UNEMPLOYED 1
+	cpp_define MKSH_DISABLE_TTY_WARNING 1
 	# BeOS doesn't have different UIDs and GIDs
-	add_cppflags -DMKSH__NO_SETEUGID
+	cpp_define MKSH__NO_SETEUGID 1
 	;;
 BSD/OS)
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 Coherent)
 	oswarn="; it has major issues"
-	add_cppflags -DMKSH__NO_SYMLINK
+	cpp_define MKSH__NO_SYMLINK 1
 	check_categories="$check_categories nosymlink"
-	add_cppflags -DMKSH__NO_SETEUGID
-	add_cppflags -DMKSH_DISABLE_TTY_WARNING
+	cpp_define MKSH__NO_SETEUGID 1
+	cpp_define MKSH_DISABLE_TTY_WARNING 1
 	;;
 CYGWIN*)
 	: "${HAVE_SETLOCALE_CTYPE=0}"
@@ -785,19 +790,19 @@ GNU)
 	*tendracc*) ;;
 	*) add_cppflags -D_GNU_SOURCE ;;
 	esac
-	add_cppflags -DSETUID_CAN_FAIL_WITH_EAGAIN
+	cpp_define SETUID_CAN_FAIL_WITH_EAGAIN 1
 	# define MKSH__NO_PATH_MAX to use Hurd-only functions
-	add_cppflags -DMKSH__NO_PATH_MAX
+	cpp_define MKSH__NO_PATH_MAX 1
 	;;
 GNU/kFreeBSD)
 	case $CC in
 	*tendracc*) ;;
 	*) add_cppflags -D_GNU_SOURCE ;;
 	esac
-	add_cppflags -DSETUID_CAN_FAIL_WITH_EAGAIN
+	cpp_define SETUID_CAN_FAIL_WITH_EAGAIN 1
 	;;
 Haiku)
-	add_cppflags -DMKSH_ASSUME_UTF8
+	cpp_define MKSH_ASSUME_UTF8 1
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=0
 	;;
@@ -807,18 +812,19 @@ Harvey)
 	add_cppflags -D_BSD_EXTENSION
 	add_cppflags -D_SUSV2_SOURCE
 	add_cppflags -D_GNU_SOURCE
-	add_cppflags -DMKSH_ASSUME_UTF8
+	cpp_define MKSH_ASSUME_UTF8 1
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=0
-	add_cppflags -DMKSH__NO_SYMLINK
+	cpp_define MKSH__NO_SYMLINK 1
 	check_categories="$check_categories nosymlink"
-	add_cppflags -DMKSH_NO_CMDLINE_EDITING
-	add_cppflags -DMKSH__NO_SETEUGID
+	cpp_define MKSH_NO_CMDLINE_EDITING 1
+	cpp_define MKSH__NO_SETEUGID 1
 	oswarn=' and will currently not work'
-	add_cppflags -DMKSH_UNEMPLOYED
-	add_cppflags -DMKSH_NOPROSPECTOFWORK
+	cpp_define MKSH_UNEMPLOYED 1
+	cpp_define MKSH_NOPROSPECTOFWORK 1
 	# these taken from Harvey-OS github and need re-checking
-	add_cppflags -D_setjmp=setjmp -D_longjmp=longjmp
+	cpp_define _setjmp setjmp
+	cpp_define _longjmp longjmp
 	: "${HAVE_CAN_NO_EH_FRAME=0}"
 	: "${HAVE_CAN_FNOSTRICTALIASING=0}"
 	: "${HAVE_CAN_FSTACKPROTECTORSTRONG=0}"
@@ -836,13 +842,13 @@ IRIX*)
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 Jehanne)
-	add_cppflags -DMKSH_ASSUME_UTF8
+	cpp_define MKSH_ASSUME_UTF8 1
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=0
-	add_cppflags -DMKSH__NO_SYMLINK
+	cpp_define MKSH__NO_SYMLINK 1
 	check_categories="$check_categories nosymlink"
-	add_cppflags -DMKSH_NO_CMDLINE_EDITING
-	add_cppflags -DMKSH_DISABLE_REVOKE_WARNING
+	cpp_define MKSH_NO_CMDLINE_EDITING 1
+	cpp_define MKSH_DISABLE_REVOKE_WARNING 1
 	add_cppflags '-D_PATH_DEFPATH=\"/cmd\"'
 	add_cppflags '-DMKSH_DEFAULT_EXECSHELL=\"/cmd/mksh\"'
 	add_cppflags '-DMKSH_DEFAULT_PROFILEDIR=\"/cfg/mksh\"'
@@ -854,7 +860,7 @@ Linux)
 	*tendracc*) ;;
 	*) add_cppflags -D_GNU_SOURCE ;;
 	esac
-	add_cppflags -DSETUID_CAN_FAIL_WITH_EAGAIN
+	cpp_define SETUID_CAN_FAIL_WITH_EAGAIN 1
 	: "${HAVE_REVOKE=0}"
 	;;
 LynxOS)
@@ -868,22 +874,22 @@ midipix)
 MidnightBSD)
 	;;
 Minix-vmd)
-	add_cppflags -DMKSH__NO_SETEUGID
-	add_cppflags -DMKSH_UNEMPLOYED
 	add_cppflags -D_MINIX_SOURCE
+	cpp_define MKSH__NO_SETEUGID 1
+	cpp_define MKSH_UNEMPLOYED 1
 	oldish_ed=no-stderr-ed		# no /bin/ed, maybe see below
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 Minix3)
-	add_cppflags -DMKSH_UNEMPLOYED
 	add_cppflags -D_POSIX_SOURCE -D_POSIX_1_SOURCE=2 -D_MINIX
+	cpp_define MKSH_UNEMPLOYED 1
 	oldish_ed=no-stderr-ed		# /usr/bin/ed(!) is broken
 	: "${HAVE_SETLOCALE_CTYPE=0}${MKSH_UNLIMITED=1}" #XXX recheck ulimit
 	;;
 MirBSD)
 	;;
 MSYS_*)
-	add_cppflags -DMKSH_ASSUME_UTF8=0
+	cpp_define MKSH_ASSUME_UTF8 0
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=1
 	# almost same as CYGWIN* (from RT|Chatzilla)
@@ -898,9 +904,9 @@ NEXTSTEP)
 	add_cppflags -D_POSIX_SOURCE
 	: "${AWK=gawk}"
 	: "${CC=cc -posix}"
-	add_cppflags -DMKSH_NO_SIGSETJMP
+	cpp_define MKSH_NO_SIGSETJMP 1
 	# NeXTstep cannot get a controlling tty
-	add_cppflags -DMKSH_UNEMPLOYED
+	cpp_define MKSH_UNEMPLOYED 1
 	case $TARGET_OSREV in
 	4.2*)
 		# OpenStep 4.2 is broken by default
@@ -910,7 +916,7 @@ NEXTSTEP)
 	;;
 Ninix3)
 	# similar to Minix3
-	add_cppflags -DMKSH_UNEMPLOYED
+	cpp_define MKSH_UNEMPLOYED 1
 	: "${MKSH_UNLIMITED=1}" #XXX recheck ulimit
 	# but no idea what else could be needed
 	oswarn="; it has unknown issues"
@@ -919,7 +925,7 @@ OpenBSD)
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 OS/2)
-	add_cppflags -DMKSH_ASSUME_UTF8=0
+	cpp_define MKSH_ASSUME_UTF8 0
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=1
 	HAVE_TERMIOS_H=0
@@ -928,9 +934,9 @@ OS/2)
 	: "${CC=gcc}"
 	: "${SIZE=: size}"
 	SRCS="$SRCS os2.c"
-	add_cppflags -DMKSH_UNEMPLOYED
-	add_cppflags -DMKSH_NOPROSPECTOFWORK
-	add_cppflags -DMKSH_DOSPATH
+	cpp_define MKSH_UNEMPLOYED 1
+	cpp_define MKSH_NOPROSPECTOFWORK 1
+	cpp_define MKSH_DOSPATH 1
 	: "${MKSH_UNLIMITED=1}"
 	if test $textmode = 0; then
 		x='dis'
@@ -955,12 +961,12 @@ the mksh-os2 porter.
 "
 	;;
 OS/390)
-	add_cppflags -DMKSH_ASSUME_UTF8=0
+	cpp_define MKSH_ASSUME_UTF8 0
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=1
 	: "${CC=xlc}"
 	: "${SIZE=: size}"
-	add_cppflags -DMKSH_FOR_Z_OS
+	cpp_define MKSH_FOR_Z_OS 1
 	add_cppflags -D_ALL_SOURCE
 	oswarn='; EBCDIC support is incomplete'
 	;;
@@ -977,17 +983,17 @@ Plan9)
 	add_cppflags -D_LIMITS_EXTENSION
 	add_cppflags -D_BSD_EXTENSION
 	add_cppflags -D_SUSV2_SOURCE
-	add_cppflags -DMKSH_ASSUME_UTF8
+	cpp_define MKSH_ASSUME_UTF8 1
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=0
-	add_cppflags -DMKSH__NO_SYMLINK
+	cpp_define MKSH__NO_SYMLINK 1
 	check_categories="$check_categories nosymlink"
-	add_cppflags -DMKSH_NO_CMDLINE_EDITING
-	add_cppflags -DMKSH__NO_SETEUGID
+	cpp_define MKSH_NO_CMDLINE_EDITING 1
+	cpp_define MKSH__NO_SETEUGID 1
 	oswarn=' and will currently not work'
-	add_cppflags -DMKSH_UNEMPLOYED
+	cpp_define MKSH_UNEMPLOYED 1
 	# this is for detecting kencc
-	add_cppflags -DMKSH_MAYBE_KENCC
+	cpp_define MKSH_MAYBE_KENCC 1
 	;;
 PW32*)
 	HAVE_SIG_T=0	# incompatible
@@ -1008,7 +1014,7 @@ SCO_SV)
 	case $TARGET_OSREV in
 	3.2*)
 		# SCO OpenServer 5
-		add_cppflags -DMKSH_UNEMPLOYED
+		cpp_define MKSH_UNEMPLOYED 1
 		;;
 	5*)
 		# SCO OpenServer 6
@@ -1029,12 +1035,12 @@ SunOS)
 	;;
 syllable)
 	add_cppflags -D_GNU_SOURCE
-	add_cppflags -DMKSH_NO_SIGSUSPEND
+	cpp_define MKSH_NO_SIGSUSPEND 1
 	oswarn=' and will currently not work'
 	;;
 ULTRIX)
 	: "${CC=cc -YPOSIX}"
-	add_cppflags -DMKSH_TYPEDEF_SSIZE_T=int
+	cpp_define MKSH_TYPEDEF_SSIZE_T int
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 UnixWare|UNIX_SV)
@@ -1275,7 +1281,7 @@ lacc)
 	;;
 lcc)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
-	add_cppflags -D__inline__=__inline
+	cpp_define __inline__ __inline
 	;;
 metrowerks)
 	echo >&2 'Warning: Metrowerks C compiler detected. This has not yet
@@ -1305,9 +1311,9 @@ msc)
 	esac
 	;;
 neatcc)
-	add_cppflags -DMKSH_DONT_EMIT_IDSTRING
-	add_cppflags -DMKSH_NO_SIGSETJMP
-	add_cppflags -Dsig_atomic_t=int
+	cpp_define MKSH_DONT_EMIT_IDSTRING 1
+	cpp_define MKSH_NO_SIGSETJMP 1
+	cpp_define sig_atomic_t int
 	vv '|' "$CC"
 	;;
 nwcc)
@@ -1375,7 +1381,9 @@ esac
 etd=" on $et"
 case $et in
 klibc)
-	add_cppflags -DMKSH_NO_SIGSETJMP -D_setjmp=setjmp -D_longjmp=longjmp
+	cpp_define MKSH_NO_SIGSETJMP 1
+	cpp_define _setjmp setjmp
+	cpp_define _longjmp longjmp
 	: "${MKSH_UNLIMITED=1}"
 	;;
 unknown)
@@ -1928,7 +1936,7 @@ ac_testn sighandler_t '!' sig_t 0 <<-'EOF'
 	int main(void) { return (foo == (sighandler_t)0); }
 EOF
 if test 1 = $HAVE_SIGHANDLER_T; then
-	add_cppflags -Dsig_t=sighandler_t
+	cpp_define sig_t sighandler_t
 	HAVE_SIG_T=1
 fi
 
@@ -1940,11 +1948,11 @@ ac_testn __sighandler_t '!' sig_t 0 <<-'EOF'
 	int main(void) { return (foo == (__sighandler_t)0); }
 EOF
 if test 1 = $HAVE___SIGHANDLER_T; then
-	add_cppflags -Dsig_t=__sighandler_t
+	cpp_define sig_t __sighandler_t
 	HAVE_SIG_T=1
 fi
 
-test 1 = $HAVE_SIG_T || add_cppflags -Dsig_t=nosig_t
+test 1 = $HAVE_SIG_T || add_cppflags sig_t nosig_t
 ac_cppflags SIG_T
 
 #
@@ -2014,8 +2022,8 @@ ac_testn _sys_errlist '!' sys_errlist 0 "the _sys_errlist[] array and _sys_nerr"
 	int main(void) { return (*_sys_errlist[_sys_nerr - 1] + isatty(0)); }
 EOF
 if test 1 = "$HAVE__SYS_ERRLIST"; then
-	add_cppflags -Dsys_nerr=_sys_nerr
-	add_cppflags -Dsys_errlist=_sys_errlist
+	cpp_define sys_nerr _sys_nerr
+	cpp_define sys_errlist _sys_errlist
 	HAVE_SYS_ERRLIST=1
 fi
 ac_cppflags SYS_ERRLIST
@@ -2034,7 +2042,7 @@ for what in name list; do
 	EOF
 	eval uwhat_v=\$HAVE__SYS_SIG$uwhat
 	if test 1 = "$uwhat_v"; then
-		add_cppflags -Dsys_sig$what=_sys_sig$what
+		cpp_define sys_sig$what _sys_sig$what
 		eval HAVE_SYS_SIG$uwhat=1
 	fi
 	ac_cppflags SYS_SIG$uwhat
@@ -2263,7 +2271,7 @@ EOF
 
 	if test "000" = "$HAVE___RT_SIGSUSPEND$HAVE___SIGSUSPEND_S$HAVE___SIGSUSPEND_XXS"; then
 		# no usable sigsuspend(), use pause() *ugh*
-		add_cppflags -DMKSH_NO_SIGSUSPEND
+		cpp_define MKSH_NO_SIGSUSPEND 1
 	fi
 fi
 
@@ -2322,7 +2330,7 @@ ac_testn st_mtimespec '!' st_mtimensec 0 'for struct stat.st_mtimespec.tv_nsec' 
 	int main(void) { struct stat sb; return (sizeof(sb.st_mtimespec.tv_nsec)); }
 EOF
 if test 1 = "$HAVE_ST_MTIMESPEC"; then
-	add_cppflags -Dst_mtimensec=st_mtimespec.tv_nsec
+	cpp_define st_mtimensec st_mtimespec.tv_nsec
 	HAVE_ST_MTIMENSEC=1
 fi
 ac_testn st_mtim '!' st_mtimensec 0 'for struct stat.st_mtim.tv_nsec' <<-'EOF'
@@ -2331,7 +2339,7 @@ ac_testn st_mtim '!' st_mtimensec 0 'for struct stat.st_mtim.tv_nsec' <<-'EOF'
 	int main(void) { struct stat sb; return (sizeof(sb.st_mtim.tv_nsec)); }
 EOF
 if test 1 = "$HAVE_ST_MTIM"; then
-	add_cppflags -Dst_mtimensec=st_mtim.tv_nsec
+	cpp_define st_mtimensec st_mtim.tv_nsec
 	HAVE_ST_MTIMENSEC=1
 fi
 ac_cppflags ST_MTIMENSEC
@@ -2497,13 +2505,13 @@ mksh_cfg= cfg_NSIG
 fi
 
 if test 1 = "$MKSH_UNLIMITED"; then
-	add_cppflags -DMKSH_UNLIMITED
+	cpp_define MKSH_UNLIMITED 1
 else
 	MKSH_UNLIMITED=0
 fi
 
 if test 1 = "$USE_PRINTF_BUILTIN"; then
-	add_cppflags -DMKSH_PRINTF_BUILTIN
+	cpp_define MKSH_PRINTF_BUILTIN 1
 else
 	USE_PRINTF_BUILTIN=0
 fi
@@ -2513,7 +2521,7 @@ addsrcs USE_PRINTF_BUILTIN printf.c
 addsrcs '!' MKSH_UNLIMITED ulimit.c
 
 test 1 = "$HAVE_CAN_VERB" && CFLAGS="$CFLAGS -verbose"
-add_cppflags -DMKSH_BUILD_R=599
+cpp_define MKSH_BUILD_R 599
 
 $e $bi$me: Finished configuration testing, now producing output.$ao
 
@@ -2523,7 +2531,7 @@ sp=
 case $tcfn in
 a.exe|conftest.exe)
 	mkshexe=$tfn.exe
-	add_cppflags -DMKSH_EXE_EXT
+	cpp_define MKSH_EXE_EXT 1
 	;;
 *)
 	mkshexe=$tfn
