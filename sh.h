@@ -30,6 +30,12 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
+#ifdef MKSH_USE_AUTOCONF_H
+/* things that “should” have been on the command line */
+#include "autoconf.h"
+#undef MKSH_USE_AUTOCONF_H
+#endif
+
 #ifdef __dietlibc__
 /* XXX imake style */
 #define _BSD_SOURCE	/* live, BSD, live❣ */
@@ -193,7 +199,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.928 2021/07/16 02:33:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.929 2021/07/25 16:32:57 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/06/29"
 

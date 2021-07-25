@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.770 2021/07/25 16:07:19 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.771 2021/07/25 16:32:56 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -28,6 +28,8 @@ srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.770 2021/07/25 16:07:19 tg Exp $'
 
 LC_ALL=C; LANGUAGE=C
 export LC_ALL; unset LANGUAGE
+
+use_ach=x; unset use_ach
 
 case $ZSH_VERSION:$VERSION in
 :zsh*) ZSH_VERSION=2 ;;
@@ -326,6 +328,17 @@ ac_testinit() {
 	return 0
 }
 
+cat_h_blurb() {
+	echo '#ifdef MKSH_USE_AUTOCONF_H
+/* things that “should” have been on the command line */
+#include "autoconf.h"
+#undef MKSH_USE_AUTOCONF_H
+#endif
+
+'
+	cat
+}
+
 # pipe .c | ac_test[n] [!] label [!] checkif[!]0 [setlabelifcheckis[!]0] useroutput
 ac_testnnd() {
 	if test x"$1" = x"!"; then
@@ -335,7 +348,7 @@ ac_testnnd() {
 		fr=0
 	fi
 	ac_testinit "$@" || return 1
-	cat >conftest.c
+	cat_h_blurb >conftest.c
 	vv ']' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS $ccpr"
 	test $tcfn = no && test -f a.out && tcfn=a.out
 	test $tcfn = no && test -f a.exe && tcfn=a.exe
@@ -384,9 +397,29 @@ EOF
 	test x"$fv" = x"1"
 }
 
+addtoach() {
+	if echo "$1" >>autoconf.h; then
+		echo ">>> $1"
+	else
+		echo >&2 "E: could not write autoconf.h"
+		exit 255
+	fi
+}
+
 # simple only (is IFS-split by shell)
 cpp_define() {
-	add_cppflags "-D$1=$2"
+	case $use_ach in
+	0)
+		add_cppflags "-D$1=$2"
+		;;
+	1)
+		addtoach "#define $1 $2"
+		;;
+	*)
+		echo >&2 "E: cpp_define() called too early!"
+		exit 255
+		;;
+	esac
 }
 
 add_cppflags() {
@@ -512,7 +545,6 @@ else
 	srcdisp=$srcdir/
 fi
 dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\([^"]*\)".*$/\1/p' "$srcdir/sh.h"`
-cpp_define MKSH_BUILDSH 1
 
 e=echo
 r=0
@@ -541,6 +573,12 @@ do
 	o:*)
 		optflags=$i
 		last=
+		;;
+	:-A)
+		rm -f autoconf.h
+		addtoach '/* work around NeXTstep bug */'
+		use_ach=1
+		add_cppflags -DMKSH_USE_AUTOCONF_H
 		;;
 	:-c)
 		last=c
@@ -616,6 +654,8 @@ if test -d $tfn || test -d $tfn.exe; then
 	echo "$me: Error: ./$tfn is a directory!" >&2
 	exit 1
 fi
+test x"$use_ach" = x"1" || use_ach=0
+cpp_define MKSH_BUILDSH 1
 rmf a.exe* a.out* conftest.c conftest.exe* *core core.* ${tfn}* *.bc *.dbg \
     *.ll *.o *.gen *.cat1 Rebuild.sh lft no signames.inc test.sh x vv.out *.htm
 
@@ -677,7 +717,7 @@ if test x"$TARGET_OS" = x"Minix"; then
 WARNING: additional checks before running Build.sh required!
 You can avoid these by calling Build.sh correctly, see below.
 "
-	cat >conftest.c <<'EOF'
+	cat_h_blurb >conftest.c <<'EOF'
 #include <sys/types.h>
 const char *
 #ifdef _NETBSD_SOURCE
@@ -1130,7 +1170,7 @@ $e $bi$me: Scanning for functions... please ignore any errors.$ao
 # - nwcc defines __GNUC__ too
 CPP="$CC -E"
 $e ... which compiler type seems to be used
-cat >conftest.c <<'EOF'
+cat_h_blurb >conftest.c <<'EOF'
 const char *
 #if defined(__ICC) || defined(__INTEL_COMPILER)
 ct="icc"
@@ -1212,7 +1252,7 @@ vv ']' "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c | \
 sed 's/^/[ /' x
 eval `cat x`
 rmf x vv.out
-cat >conftest.c <<'EOF'
+cat_h_blurb >conftest.c <<'EOF'
 #include <unistd.h>
 int main(void) { return (isatty(0)); }
 EOF
@@ -2443,7 +2483,7 @@ if test 0 = $HAVE_SYS_SIGNAME; then
 #endif
 int
 mksh_cfg= cfg_NSIG
-;' >conftest.c
+;' | cat_h_blurb >conftest.c
 	# GNU sed 2.03 segfaults when optimising this to sed -n
 	NSIG=`vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
 	    grep -v '^#' | \
