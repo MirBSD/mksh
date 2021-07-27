@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.778 2021/07/27 04:27:58 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.779 2021/07/27 04:30:02 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -812,6 +812,7 @@ BeOS)
 	cpp_define MKSH_DISABLE_TTY_WARNING 1
 	# BeOS doesn't have different UIDs and GIDs
 	cpp_define MKSH__NO_SETEUGID 1
+	: "${HAVE_SETRESUGID=0}"
 	;;
 BSD/OS)
 	: "${HAVE_SETLOCALE_CTYPE=0}"
@@ -821,6 +822,7 @@ Coherent)
 	cpp_define MKSH__NO_SYMLINK 1
 	check_categories="$check_categories nosymlink"
 	cpp_define MKSH__NO_SETEUGID 1
+	: "${HAVE_SETRESUGID=0}"
 	cpp_define MKSH_DISABLE_TTY_WARNING 1
 	;;
 CYGWIN*)
@@ -872,6 +874,7 @@ Harvey)
 	check_categories="$check_categories nosymlink"
 	cpp_define MKSH_NO_CMDLINE_EDITING 1
 	cpp_define MKSH__NO_SETEUGID 1
+	: "${HAVE_SETRESUGID=0}"
 	oswarn=' and will currently not work'
 	cpp_define MKSH_UNEMPLOYED 1
 	cpp_define MKSH_NOPROSPECTOFWORK 1
@@ -929,6 +932,7 @@ MidnightBSD)
 Minix-vmd)
 	add_cppflags -D_MINIX_SOURCE
 	cpp_define MKSH__NO_SETEUGID 1
+	: "${HAVE_SETRESUGID=0}"
 	cpp_define MKSH_UNEMPLOYED 1
 	oldish_ed=no-stderr-ed		# no /bin/ed, maybe see below
 	: "${HAVE_SETLOCALE_CTYPE=0}"
@@ -1043,6 +1047,7 @@ Plan9)
 	check_categories="$check_categories nosymlink"
 	cpp_define MKSH_NO_CMDLINE_EDITING 1
 	cpp_define MKSH__NO_SETEUGID 1
+	: "${HAVE_SETRESUGID=0}"
 	oswarn=' and will currently not work'
 	cpp_define MKSH_UNEMPLOYED 1
 	# this is for detecting kencc
@@ -1067,6 +1072,7 @@ scosysv)
 	cmplrflgs=-DMKSH_MAYBE_QUICK_C
 	add_cppflags -D_IBCS2
 	cpp_define MKSH__NO_SETEUGID 1
+	: "${HAVE_SETRESUGID=0}"
 	cpp_define MKSH_BROKEN_OFFSETOF 1
 	cpp_define MKSH_TYPEDEF_SSIZE_T int
 	cpp_define MKSH_UNEMPLOYED 1
