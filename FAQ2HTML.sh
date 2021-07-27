@@ -1,5 +1,5 @@
 #!/bin/sh
-rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.3 2021/06/15 01:09:43 tg Exp $'
+rcsid='$MirOS: src/bin/mksh/FAQ2HTML.sh,v 1.4 2021/07/27 02:36:55 tg Exp $'
 #-
 # Copyright © 2020
 #	mirabilos <m@mirbsd.org>
@@ -25,16 +25,16 @@ LC_ALL=C; LANGUAGE=C
 export LC_ALL; unset LANGUAGE
 nl='
 '
-srcdir=$(dirname "$0")
+srcdir=`dirname "$0" 2>/dev/null`
 
 p=--posix
 sed $p -e q </dev/null >/dev/null 2>&1 || p=
 
 v=$1
 if test -z "$v"; then
-	v=$(sed $p -n '/^#define MKSH_VERSION "\(.*\)"$/s//\1/p' "$srcdir"/sh.h)
+	v=`sed $p -n '/^#define MKSH_VERSION "\(.*\)"$/s//\1/p' "$srcdir"/sh.h`
 fi
-src_id=$(sed $p -n '/^RCSID: /s///p' "$srcdir"/mksh.faq)
+src_id=`sed $p -n '/^RCSID: /s///p' "$srcdir"/mksh.faq`
 # sanity check
 case $src_id in
 *"$nl"*)
