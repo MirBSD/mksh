@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.234 2021/06/29 20:54:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.235 2021/07/27 00:21:05 tg Exp $");
 
 /*
  * string expansion
@@ -1871,7 +1871,7 @@ globit(XString *xs,	/* dest string */
 	}
 
 	if (np != NULL)
-		*--np = odirsep;
+		*(char *)(--np) = odirsep;
 }
 
 /* remove MAGIC from string */
