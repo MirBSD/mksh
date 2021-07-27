@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.774 2021/07/27 01:10:03 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.775 2021/07/27 01:25:25 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -1054,6 +1054,7 @@ scosysv)
 	add_cppflags -D_IBCS2
 	cpp_define MKSH__NO_SETEUGID 1
 	cpp_define MKSH_BROKEN_OFFSETOF 1
+	cpp_define MKSH_TYPEDEF_SSIZE_T int
 	oswarn='; it may or may not work'
 	;;
 SCO_SV)
