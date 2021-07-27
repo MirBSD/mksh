@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.777 2021/07/27 04:02:38 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.778 2021/07/27 04:27:58 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -1917,7 +1917,7 @@ ac_test both_time_h '' 'whether <sys/time.h> and <time.h> can both be included' 
 	#include <sys/time.h>
 	#include <time.h>
 	#include <unistd.h>
-	int main(void) { struct tm tm; return ((int)sizeof(tm) + isatty(0)); }
+	int main(void) { struct timeval tv; return ((int)sizeof(tv) + isatty(0)); }
 EOF
 ac_header sys/select.h sys/types.h
 test "11" = "$HAVE_SYS_TIME_H$HAVE_SYS_SELECT_H" || HAVE_SELECT_TIME_H=1
@@ -1925,7 +1925,7 @@ ac_test select_time_h '' 'whether <sys/time.h> and <sys/select.h> can both be in
 	#include <sys/time.h>
 	#include <sys/select.h>
 	#include <unistd.h>
-	int main(void) { struct tm tm; return ((int)sizeof(tm) + isatty(0)); }
+	int main(void) { struct timeval tv; return ((int)sizeof(tv) + isatty(0)); }
 EOF
 ac_header sys/bsdtypes.h
 ac_header sys/file.h sys/types.h
