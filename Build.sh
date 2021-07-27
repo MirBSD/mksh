@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.773 2021/07/27 00:16:43 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.774 2021/07/27 01:10:03 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -1050,6 +1050,12 @@ QNX)
 	esac
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
+scosysv)
+	add_cppflags -D_IBCS2
+	cpp_define MKSH__NO_SETEUGID 1
+	cpp_define MKSH_BROKEN_OFFSETOF 1
+	oswarn='; it may or may not work'
+	;;
 SCO_SV)
 	case $TARGET_OSREV in
 	3.2*)
@@ -1097,12 +1103,6 @@ UWIN*)
 	;;
 _svr4)
 	# generic target for SVR4 Unix with uname -s = uname -n
-	#XXX this is for "_svr4 3.2"
-	# $ uname -a >&2
-	# | scosysv scosysv 3.2 2 i386
-	add_cppflags -D_IBCS2
-	cpp_define MKSH__NO_SETEUGID 1
-	cpp_define MKSH_BROKEN_OFFSETOF 1
 	# this duplicates the * target below
 	oswarn='; it may or may not work'
 	;;
