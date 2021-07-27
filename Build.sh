@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.772 2021/07/25 18:17:35 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.773 2021/07/27 00:16:43 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -1097,15 +1097,20 @@ UWIN*)
 	;;
 _svr4)
 	# generic target for SVR4 Unix with uname -s = uname -n
+	#XXX this is for "_svr4 3.2"
+	# $ uname -a >&2
+	# | scosysv scosysv 3.2 2 i386
+	add_cppflags -D_IBCS2
+	cpp_define MKSH__NO_SETEUGID 1
+	cpp_define MKSH_BROKEN_OFFSETOF 1
 	# this duplicates the * target below
 	oswarn='; it may or may not work'
-	test_n "$TARGET_OSREV" || TARGET_OSREV=`uname -r`
 	;;
 *)
 	oswarn='; it may or may not work'
-	test_n "$TARGET_OSREV" || TARGET_OSREV=`uname -r`
 	;;
 esac
+test_n "$TARGET_OSREV" || TARGET_OSREV=`uname -r`
 
 : "${HAVE_MKNOD=0}"
 
@@ -2872,7 +2877,7 @@ LIBS				default empty; added after sources
 NOWARN				-Wno-error or similar
 NROFF				default: nroff
 TARGET_OS			default: $(uname -s || uname)
-TARGET_OSREV			[QNX] default: $(uname -r)
+TARGET_OSREV			default: $(uname -r) [only needed on some OS]
 
 ==== feature selectors ====
 MKSH_UNLIMITED			1 to omit ulimit builtin completely

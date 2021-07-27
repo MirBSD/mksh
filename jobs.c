@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.135 2021/06/29 21:11:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.136 2021/07/27 00:16:44 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -49,6 +49,12 @@ struct proc_dummy {
 	int status;
 	char command[PROC_TGTSZ - (ALLOC_OVERHEAD + 32)];
 };
+#ifdef MKSH_BROKEN_OFFSETOF
+/* assumes no padding; check manually! */
+#define PROC_OFS (sizeof(Proc *) + sizeof(pid_t) + 2 * sizeof(int))
+#else
+#define PROC_OFS (offsetof(struct proc_dummy, command[0]))
+#endif
 /* real structure */
 struct proc {
 	/* next process in pipeline (if any) */
@@ -60,8 +66,7 @@ struct proc {
 	/* wait status */
 	int status;
 	/* process command string from vistree */
-	char command[PROC_TGTSZ - (ALLOC_OVERHEAD +
-	    offsetof(struct proc_dummy, command[0]))];
+	char command[PROC_TGTSZ - (ALLOC_OVERHEAD + PROC_OFS)];
 };
 
 /* Notify/print flag - j_print() argument */
