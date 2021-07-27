@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.775 2021/07/27 01:25:25 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.776 2021/07/27 02:51:39 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -693,7 +693,15 @@ fi
 
 if test_z "$TARGET_OS"; then
 	x=`uname -s 2>/dev/null || uname`
-	test x"$x" = x"`uname -n 2>/dev/null`" || TARGET_OS=$x
+	case $x in
+	scosysv)
+		# SVR4 Unix with uname -s = uname -n, whitelist
+		TARGET_OS=$x
+		;;
+	*)
+		test x"$x" = x"`uname -n 2>/dev/null`" || TARGET_OS=$x
+		;;
+	esac
 fi
 if test_z "$TARGET_OS"; then
 	echo "$me: Set TARGET_OS, your uname is broken!" >&2
@@ -1055,6 +1063,8 @@ scosysv)
 	cpp_define MKSH__NO_SETEUGID 1
 	cpp_define MKSH_BROKEN_OFFSETOF 1
 	cpp_define MKSH_TYPEDEF_SSIZE_T int
+	cpp_define MKSH_UNEMPLOYED 1
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	oswarn='; it may or may not work'
 	;;
 SCO_SV)
@@ -1144,7 +1154,7 @@ OSF1)
 	vv '|' "uname -a >&2"
 	vv '|' "/usr/sbin/sizer -v >&2"
 	;;
-SCO_SV|UnixWare|UNIX_SV)
+scosysv|SCO_SV|UnixWare|UNIX_SV)
 	vv '|' "uname -a >&2"
 	vv '|' "uname -X >&2"
 	;;
