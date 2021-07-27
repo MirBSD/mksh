@@ -29,7 +29,7 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.244 2021/06/29 20:54:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.245 2021/07/27 01:24:16 tg Exp $");
 
 /*-
  * Variables
@@ -756,7 +756,7 @@ exportprep(struct tbl *vp, const char *val, size_t cursz)
 	vp->val.s = aresizeif(cursz, cp, vp->type + vallen, vp->areap);
 	memmove(vp->val.s + vp->type, val == cp ? vp->val.s : val, vallen);
 	memcpy(vp->val.s, vp->name, namelen);
-	vp->val.s[namelen] = '=';
+	((char *)(vp->val.s))[namelen] = '=';
 }
 
 /*
