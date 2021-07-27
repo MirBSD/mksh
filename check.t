@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.864 2021/06/29 22:57:43 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.865 2021/07/27 02:40:06 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -3072,7 +3072,7 @@ description:
 	Check high-bit7 separators work
 stdin:
 	u=ä
-	tr a-z A-Z <<-…
+	tr abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ <<-…
 		m${u}h
 	…
 	echo ok
