@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.776 2021/07/27 02:51:39 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.777 2021/07/27 04:02:38 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -486,13 +486,16 @@ ac_header() {
 	do
 		case $i in
 		_time)
-			echo '#if HAVE_BOTH_TIME_H' >>x
+			echo '#if HAVE_BOTH_TIME_H && HAVE_SELECT_TIME_H' >>x
 			echo '#include <sys/time.h>' >>x
 			echo '#include <time.h>' >>x
-			echo '#elif HAVE_SYS_TIME_H' >>x
+			echo '#elif HAVE_SYS_TIME_H && HAVE_SELECT_TIME_H' >>x
 			echo '#include <sys/time.h>' >>x
 			echo '#elif HAVE_TIME_H' >>x
 			echo '#include <time.h>' >>x
+			echo '#endif' >>x
+			echo '#if HAVE_SYS_SELECT_H' >>x
+			echo '#include <sys/select.h>' >>x
 			echo '#endif' >>x
 			;;
 		*)
@@ -774,6 +777,8 @@ QNX|SCO_SV)
 	;;
 esac
 
+cmplrflgs=
+
 # Configuration depending on OS name
 case $TARGET_OS in
 386BSD)
@@ -1041,7 +1046,7 @@ Plan9)
 	oswarn=' and will currently not work'
 	cpp_define MKSH_UNEMPLOYED 1
 	# this is for detecting kencc
-	cpp_define MKSH_MAYBE_KENCC 1
+	cmplrflgs=-DMKSH_MAYBE_KENCC
 	;;
 PW32*)
 	HAVE_SIG_T=0	# incompatible
@@ -1059,13 +1064,13 @@ QNX)
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 scosysv)
+	cmplrflgs=-DMKSH_MAYBE_QUICK_C
 	add_cppflags -D_IBCS2
 	cpp_define MKSH__NO_SETEUGID 1
 	cpp_define MKSH_BROKEN_OFFSETOF 1
 	cpp_define MKSH_TYPEDEF_SSIZE_T int
 	cpp_define MKSH_UNEMPLOYED 1
 	: "${HAVE_SETLOCALE_CTYPE=0}"
-	oswarn='; it may or may not work'
 	;;
 SCO_SV)
 	case $TARGET_OSREV in
@@ -1246,6 +1251,8 @@ ct="ucode"
 ct="uslc"
 #elif defined(__LCC__)
 ct="lcc"
+#elif defined(MKSH_MAYBE_QUICK_C) && defined(_M_BITFIELDS)
+ct="quickc"
 #elif defined(MKSH_MAYBE_KENCC)
 /* and none of the above matches */
 ct="kencc"
@@ -1263,7 +1270,7 @@ et="unknown"
 EOF
 ct=untested
 et=untested
-vv ']' "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c | \
+vv ']' "$CPP $CFLAGS $CPPFLAGS $NOWARN $cmplrflgs conftest.c | \
     sed -n '/^ *[ce]t *= */s/^ *\([ce]t\) *= */\1=/p' | tr -d \\\\015 >x"
 sed 's/^/[ /' x
 eval `cat x`
@@ -1382,6 +1389,9 @@ pgi)
 	echo >&2 'Warning: PGI detected. This unknown compiler has not yet
     been tested for compatibility with mksh. Continue at your
     own risk, please report success/failure to the developers.'
+	;;
+quickc)
+	# no version information
 	;;
 sdcc)
 	echo >&2 'Warning: sdcc (http://sdcc.sourceforge.net), the small devices
@@ -1525,6 +1535,8 @@ msc)
 	save_NOWARN="${ccpc}/w"
 	DOWARN="${ccpc}/WX"
 	;;
+quickc)
+	;;
 sunpro)
 	test x"$save_NOWARN" = x"" && save_NOWARN='-errwarn=%none'
 	ac_flags 0 errwarnnone "$save_NOWARN"
@@ -1577,7 +1589,7 @@ hpcc)
 	ac_flags 1 otwo +O2
 	phase=x
 	;;
-kencc|tcc|tendra)
+kencc|quickc|tcc|tendra)
 	# no special optimisation
 	;;
 sunpro)
@@ -1907,13 +1919,20 @@ ac_test both_time_h '' 'whether <sys/time.h> and <time.h> can both be included' 
 	#include <unistd.h>
 	int main(void) { struct tm tm; return ((int)sizeof(tm) + isatty(0)); }
 EOF
+ac_header sys/select.h sys/types.h
+test "11" = "$HAVE_SYS_TIME_H$HAVE_SYS_SELECT_H" || HAVE_SELECT_TIME_H=1
+ac_test select_time_h '' 'whether <sys/time.h> and <sys/select.h> can both be included' <<-'EOF'
+	#include <sys/time.h>
+	#include <sys/select.h>
+	#include <unistd.h>
+	int main(void) { struct tm tm; return ((int)sizeof(tm) + isatty(0)); }
+EOF
 ac_header sys/bsdtypes.h
 ac_header sys/file.h sys/types.h
 ac_header sys/mkdev.h sys/types.h
 ac_header sys/mman.h sys/types.h
 ac_header sys/param.h
 ac_header sys/resource.h sys/types.h _time
-ac_header sys/select.h sys/types.h
 ac_header sys/sysmacros.h
 ac_header bstring.h
 ac_header grp.h sys/types.h
@@ -2141,13 +2160,16 @@ EOF
 
 ac_test rlim_t rlimit 0 <<-'EOF'
 	#include <sys/types.h>
-	#if HAVE_BOTH_TIME_H
+	#if HAVE_BOTH_TIME_H && HAVE_SELECT_TIME_H
 	#include <sys/time.h>
 	#include <time.h>
-	#elif HAVE_SYS_TIME_H
+	#elif HAVE_SYS_TIME_H && HAVE_SELECT_TIME_H
 	#include <sys/time.h>
 	#elif HAVE_TIME_H
 	#include <time.h>
+	#endif
+	#if HAVE_SYS_SELECT_H
+	#include <sys/select.h>
 	#endif
 	#if HAVE_SYS_RESOURCE_H
 	#include <sys/resource.h>
@@ -2253,19 +2275,19 @@ EOF
 
 ac_test select <<-'EOF'
 	#include <sys/types.h>
-	#if HAVE_BOTH_TIME_H
+	#if HAVE_BOTH_TIME_H && HAVE_SELECT_TIME_H
 	#include <sys/time.h>
 	#include <time.h>
-	#elif HAVE_SYS_TIME_H
+	#elif HAVE_SYS_TIME_H && HAVE_SELECT_TIME_H
 	#include <sys/time.h>
 	#elif HAVE_TIME_H
 	#include <time.h>
 	#endif
-	#if HAVE_SYS_BSDTYPES_H
-	#include <sys/bsdtypes.h>
-	#endif
 	#if HAVE_SYS_SELECT_H
 	#include <sys/select.h>
+	#endif
+	#if HAVE_SYS_BSDTYPES_H
+	#include <sys/bsdtypes.h>
 	#endif
 	#if HAVE_BSTRING_H
 	#include <bstring.h>

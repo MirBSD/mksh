@@ -30,15 +30,12 @@
 #if HAVE_SYS_BSDTYPES_H
 #include <sys/bsdtypes.h>
 #endif
-#if HAVE_SYS_SELECT_H
-#include <sys/select.h>
-#endif
 #if HAVE_BSTRING_H
 #include <bstring.h>
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.385 2021/06/30 00:10:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.386 2021/07/27 04:02:39 tg Exp $");
 
 #if HAVE_KILLPG
 /*

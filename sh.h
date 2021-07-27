@@ -45,13 +45,16 @@
 #include <sys/param.h>
 #endif
 #include <sys/types.h>
-#if HAVE_BOTH_TIME_H
+#if HAVE_BOTH_TIME_H && HAVE_SELECT_TIME_H
 #include <sys/time.h>
 #include <time.h>
-#elif HAVE_SYS_TIME_H
+#elif HAVE_SYS_TIME_H && HAVE_SELECT_TIME_H
 #include <sys/time.h>
 #elif HAVE_TIME_H
 #include <time.h>
+#endif
+#if HAVE_SYS_SELECT_H
+#include <sys/select.h>
 #endif
 #include <sys/ioctl.h>
 #if HAVE_SYS_SYSMACROS_H
@@ -199,7 +202,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.929 2021/07/25 16:32:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.930 2021/07/27 04:02:40 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/06/29"
 
