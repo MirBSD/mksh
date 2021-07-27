@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.865 2021/07/27 02:40:06 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.866 2021/07/27 19:17:14 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -6726,7 +6726,7 @@ stdin:
 		echo FNORD-7
 		typeset -
 		echo FNORD-8
-	} | fgrep FNORD
+	} | grep FNORD
 	fnord=(42 23)
 	typeset -p fnord
 	echo FNORD-9
@@ -8723,8 +8723,8 @@ stdin:
 	(echo x; exit 12) | (cat; exit 23) | (cat; exit 42)
 	echo 5 $? , $PIPESTATUS , ${PIPESTATUS[0]} , ${PIPESTATUS[1]} , ${PIPESTATUS[2]} , ${PIPESTATUS[3]} .
 	echo 6 ${PIPESTATUS[0]} .
-	set | fgrep PIPESTATUS
-	echo 8 $(set | fgrep PIPESTATUS) .
+	set | grep PIPESTATUS
+	echo 8 $(set | grep PIPESTATUS) .
 expected-stdout:
 	1 0 .
 	2 0 .

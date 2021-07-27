@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.779 2021/07/27 04:30:02 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.780 2021/07/27 19:17:12 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -1413,7 +1413,7 @@ tcc)
 	;;
 tendra)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V 2>&1 | \
-	    grep -F -i -e version -e release"
+	    grep -i -e version -e release"
 	;;
 ucode)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
@@ -2688,7 +2688,7 @@ cat >test.sh <<-EOF
 		args[\${#args[*]}]=\$TMPDIR
 	fi
 	print Testing mksh for conformance:
-	grep -F -e 'KSH R' -e Mir''OS: "\$sflag" | sed '/KSH/s/^./&           /'
+	grep -e 'KSH R' -e Mir''OS: "\$sflag" | sed '/KSH/s/^./&           /'
 	print "This shell is actually:\\n\\t\$KSH_VERSION"
 	print 'test.sh built for mksh $dstversion'
 	cstr='\$os = defined \$^O ? \$^O : "unknown";'
