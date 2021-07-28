@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.318 2021/06/29 20:54:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.319 2021/07/28 04:07:54 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -606,15 +606,15 @@ getpn(const char **sp, int *ai)
 		/* overflow for signed 32-bit int */
 		state = 2;
 
-	if (neg)
-		num.u = -num.u;
 	if (state)
 		*sp = s;
 	if (state != 1) {
 		*ai = 0;
 		return (0);
 	}
-	*ai = num.i;
+	*ai = (neg && num.u > 0) ?
+	    (mksh_ari_t)(-(mksh_ari_t)((num.u - 1U) & 0x7FFFFFFF) - 1) :
+	    (mksh_ari_t)num.u;
 	return (1);
 }
 
