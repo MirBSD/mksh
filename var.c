@@ -29,7 +29,14 @@
 #include <sys/sysctl.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.245 2021/07/27 01:24:16 tg Exp $");
+#if HAVE_SYS_PTEM_H
+/* prerequisite */
+#include <sys/stream.h>
+/* struct winsize */
+#include <sys/ptem.h>
+#endif
+
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.246 2021/07/30 03:16:03 tg Exp $");
 
 /*-
  * Variables
