@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.383 2021/07/30 03:02:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.384 2021/07/30 03:04:01 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -2021,15 +2021,17 @@ x_mkraw(int fd, mksh_ttyst *ocb, bool forread)
 		mksh_tcget(fd, ocb);
 	else
 		ocb = &tty_state;
+#ifdef FLUSHO
+	ocb->c_lflag &= ~(FLUSHO);
+#endif
 
 	cb = *ocb;
-	if (forread) {
-		cb.c_iflag &= ~(ISTRIP);
-		cb.c_lflag &= ~(ICANON) | ECHO;
-	} else {
-		cb.c_iflag &= ~(INLCR | ICRNL | ISTRIP);
+	cb.c_iflag &= ~(IGNPAR | PARMRK | INLCR | IGNCR | ICRNL | ISTRIP);
+	cb.c_iflag |= BRKINT;
+	if (forread)
+		cb.c_lflag &= ~(ICANON);
+	else
 		cb.c_lflag &= ~(ISIG | ICANON | ECHO);
-	}
 #if defined(VLNEXT) && defined(_POSIX_VDISABLE)
 	/* OSF/1 processes lnext when ~icanon */
 	cb.c_cc[VLNEXT] = _POSIX_VDISABLE;
