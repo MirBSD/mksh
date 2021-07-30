@@ -202,7 +202,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.932 2021/07/30 02:58:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.933 2021/07/30 02:59:11 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/06/29"
 
@@ -644,20 +644,23 @@ typedef union {
 } mksh_ari_u;
 
 /* for const debugging */
-#ifdef DEBUG
+#if defined(DEBUG)
 char *ucstrchr(char *, int);
-char *ucstrstr(char *, const char *);
 const char *cstrchr(const char *, int);
-const char *cstrstr(const char *, const char *);
-#define strchr poisoned_strchr
-#define strstr poisoned_strstr
+#define strchr		poisoned_strchr
 #else
 #define ucstrchr(s,c)	strchr((s), (c))
-#define ucstrstr(s,c)	strstr((s), (c))
 #define cstrchr(s,c)	((const char *)strchr((s), (c)))
-#define cstrstr(s,c)	((const char *)strstr((s), (c)))
 #endif
 #define vstrchr(s,c)	(cstrchr((s), (c)) != NULL)
+#if defined(DEBUG) || !HAVE_STRSTR
+char *ucstrstr(char *, const char *);
+const char *cstrstr(const char *, const char *);
+#define strstr		poisoned_strstr
+#else
+#define ucstrstr(s,c)	strstr((s), (c))
+#define cstrstr(s,c)	((const char *)strstr((s), (c)))
+#endif
 #define vstrstr(b,l)	(cstrstr((b), (l)) != NULL)
 
 #if defined(DEBUG) || defined(__COVERITY__)

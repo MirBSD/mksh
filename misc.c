@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.321 2021/07/30 02:58:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.322 2021/07/30 02:59:10 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -2776,7 +2776,6 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 
 #ifdef DEBUG
 #undef strchr
-#undef strstr
 char *
 ucstrchr(char *s, int c)
 {
@@ -2788,7 +2787,37 @@ cstrchr(const char *s, int c)
 {
 	return (strchr(s, c));
 }
+#endif
 
+#if !HAVE_STRSTR
+char *
+ucstrstr(char *big, const char *little)
+{
+	union mksh_cchack res;
+
+	res.ro = cstrstr(big, little);
+	return (res.rw);
+}
+
+const char *
+cstrstr(const char *big, const char *little)
+{
+	char first, c;
+	size_t n;
+
+	if ((first = *little++) == '\0')
+		return (big);
+	n = strlen(little);
+ strstr_look:
+	while ((c = *big++) != first)
+		if (c == '\0')
+			return (NULL);
+	if (strncmp(big, little, n))
+		goto strstr_look;
+	return (big - 1);
+}
+#elif defined(DEBUG)
+#undef strstr
 char *
 ucstrstr(char *big, const char *little)
 {

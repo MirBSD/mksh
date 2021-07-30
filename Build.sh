@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.781 2021/07/30 02:53:17 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.782 2021/07/30 02:59:09 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -2374,6 +2374,11 @@ ac_test strlcpy <<-'EOF'
 	#include <string.h>
 	int main(int ac, char *av[]) { return (strlcpy(*av, av[1],
 	    (size_t)ac)); }
+EOF
+
+ac_test strstr <<-'EOF'
+	#include <string.h>
+	int main(int ac, char *av[]) { return (!strstr(av[ac - 1], "meow")); }
 EOF
 
 #
