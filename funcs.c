@@ -5,7 +5,7 @@
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
  *		 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
- *		 2019, 2020
+ *		 2019, 2020, 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.386 2021/07/27 04:02:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.387 2021/07/30 03:02:33 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -1673,8 +1673,7 @@ c_read(const char **wp)
 	}
 
 	if ((ccp = cstrchr(*wp, '?')) != NULL) {
-		strdupx(allocd, *wp, ATEMP);
-		allocd[ccp - *wp] = '\0';
+		strndupx(allocd, *wp, ccp - *wp, ATEMP);
 		*wp = allocd;
 		if (isatty(fd)) {
 			/*

@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.382 2021/07/30 02:58:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.383 2021/07/30 03:02:33 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -2000,8 +2000,8 @@ DF(const char *fmt, ...)
 	mksh_TIME(tv);
 	timet2mjd(&mjd, tv.tv_sec);
 	shf_fprintf(shl_dbg, "[%02u:%02u:%02u (%u) %u.%06u] ",
-	    (unsigned)mjd.sec / 3600, ((unsigned)mjd.sec / 60) % 60,
-	    (unsigned)mjd.sec % 60, (unsigned)getpid(),
+	    (unsigned)mjd.sec / 3600U, ((unsigned)mjd.sec / 60U) % 60U,
+	    (unsigned)mjd.sec % 60U, (unsigned)getpid(),
 	    (unsigned)tv.tv_sec, (unsigned)tv.tv_usec);
 	va_start(args, fmt);
 	shf_vfprintf(shl_dbg, fmt, args);
