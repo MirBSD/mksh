@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.788 2021/07/30 03:16:02 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.789 2021/07/30 03:16:59 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -225,6 +225,16 @@ fi
 
 echo "For the build logs, demonstrate that /dev/null and /dev/tty exist:"
 ls -l /dev/null /dev/tty
+cat <<EOF
+Flags on entry (plus HAVE_* which are not shown here):
+ CC        <$CC>
+ CFLAGS    <$CFLAGS>
+ CPPFLAGS  <$CPPFLAGS>
+ LDFLAGS   <$LDFLAGS>
+ LIBS      <$LIBS>
+ TARGET_OS <$TARGET_OS>
+
+EOF
 
 v() {
 	$e "$*"
@@ -1077,7 +1087,7 @@ scosysv)
 	cpp_define MKSH_BROKEN_OFFSETOF 1
 	cpp_define MKSH_TYPEDEF_SSIZE_T int
 	cpp_define MKSH_UNEMPLOYED 1
-	: "${HAVE_SETLOCALE_CTYPE=0}"
+	: "${HAVE_SETLOCALE_CTYPE=0}${HAVE_TERMIOS_H=0}"
 	;;
 SCO_SV)
 	case $TARGET_OSREV in
@@ -1124,6 +1134,26 @@ UWIN*)
 	oswarn="$oswarn${nl}platform itself is very flakey/unreliable"
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
+XENIX)
+	# mostly when crosscompiling from scosysv
+	cmplrflgs=-DMKSH_MAYBE_QUICK_C
+	# this can barely do anything
+	cpp_define MKSH__NO_SETEUGID 1
+	: "${HAVE_SETRESUGID=0}"
+	cpp_define MKSH_NO_SIGSETJMP 1
+	cpp_define _setjmp setjmp
+	cpp_define _longjmp longjmp
+	cpp_define USE_REALLOC_MALLOC 0
+	cpp_define MKSH_BROKEN_OFFSETOF 1
+	cpp_define MKSH_TYPEDEF_SSIZE_T int
+	cpp_define MKSH_UNEMPLOYED 1
+	cpp_define MKSH_NOPROSPECTOFWORK 1
+	cpp_define MKSH__NO_SYMLINK 1
+	check_categories="$check_categories nosymlink"
+	: "${HAVE_SETLOCALE_CTYPE=0}"
+	# these are broken
+	HAVE_TERMIOS_H=0
+	;;
 _svr4)
 	# generic target for SVR4 Unix with uname -s = uname -n
 	# this duplicates the * target below
@@ -1166,7 +1196,7 @@ OSF1)
 	vv '|' "uname -a >&2"
 	vv '|' "/usr/sbin/sizer -v >&2"
 	;;
-scosysv|SCO_SV|UnixWare|UNIX_SV)
+scosysv|SCO_SV|UnixWare|UNIX_SV|XENIX)
 	vv '|' "uname -a >&2"
 	vv '|' "uname -X >&2"
 	;;
