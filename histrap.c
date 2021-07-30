@@ -28,7 +28,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.172 2021/07/30 03:13:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.173 2021/07/30 03:14:33 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -1639,5 +1639,17 @@ ksh_sigrestore(int sig, ksh_sigsaved *savedp)
 {
 	if (sigaction(sig, savedp, NULL))
 		internal_errorf("sigaction: %s", cstrerror(errno));
+}
+#elif defined(MKSH_USABLE_SIGNALFUNC)
+/* masks the signal, may (probably will, not always) restart, not oneshot */
+void
+ksh_sigset(int sig, sig_t act, ksh_sigsaved *old)
+{
+	sig_t res;
+
+	if ((res = MKSH_USABLE_SIGNALFUNC(sig, act)) == SIG_ERR)
+		internal_errorf("signal: %s", cstrerror(errno));
+	if (old)
+		*old = res;
 }
 #endif

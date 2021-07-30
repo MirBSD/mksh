@@ -202,7 +202,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.935 2021/07/30 03:13:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.936 2021/07/30 03:14:33 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/06/29"
 
@@ -448,6 +448,7 @@ void ksh_sigrestore(int, ksh_sigsaved *);
 #else
 typedef sig_t ksh_sigsaved;
 #define ksh_sighandler(saved) (saved)
+#define ksh_sigrestore(s,svp) ksh_sigset((s), *(svp), NULL)
 #endif
 
 /* contract: masks the signal, may restart, not oneshot */
