@@ -202,7 +202,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.931 2021/07/30 02:55:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.932 2021/07/30 02:58:07 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/06/29"
 
@@ -2897,7 +2897,7 @@ int getdrvwd(char **, unsigned int);
 #else
 #define mksh_abspath(s)			(ord((s)[0]) == ORD('/'))
 #define mksh_cdirsep(c)			(ord(c) == ORD('/'))
-#define mksh_sdirsep(s)			strchr((s), '/')
+#define mksh_sdirsep(s)			ucstrchr((s), '/')
 #define mksh_vdirsep(s)			vstrchr((s), '/')
 #endif
 

@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.320 2021/07/30 02:55:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.321 2021/07/30 02:58:06 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -2395,7 +2395,7 @@ c_cd(const char **wp)
 		 * substitution fails because the cd fails we could try to
 		 * find another substitution. For now, we don't.
 		 */
-		if ((cp = strstr(current_wd, wp[0])) == NULL) {
+		if ((cp = ucstrstr(current_wd, wp[0])) == NULL) {
 			bi_errorf(Tbadsubst);
 			return (2);
 		}

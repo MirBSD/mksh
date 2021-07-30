@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.136 2021/07/27 00:16:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.137 2021/07/30 02:58:06 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1742,7 +1742,7 @@ j_lookup(const char *cp, int *ecodep)
 		last_match = NULL;
 		for (j = job_list; j != NULL; j = j->next)
 			for (p = j->proc_list; p != NULL; p = p->next)
-				if (strstr(p->command, cp + 1) != NULL) {
+				if (vstrstr(p->command, cp + 1)) {
 					if (last_match) {
 						if (ecodep)
 							*ecodep = JL_AMBIG;

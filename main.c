@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.381 2021/06/29 21:03:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.382 2021/07/30 02:58:06 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -212,7 +212,7 @@ isuc(const char *cx) {
 		++cp;
 
 	/* check for UTF-8 */
-	if (strstr(x, "UTF-8") || strstr(x, "UTF8"))
+	if (vstrstr(x, "UTF-8") || vstrstr(x, "UTF8"))
 		rv = 1;
 
 	/* free copy and out */
@@ -449,7 +449,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	vp = global("PS1");
 	/* Set PS1 if unset or we are root and prompt doesn't contain a # */
 	if (!(vp->flag & ISSET) ||
-	    (!ksheuid && !strchr(str_val(vp), '#')))
+	    (!ksheuid && !vstrchr(str_val(vp), '#')))
 		/* setstr can't fail here */
 		setstr(vp, safe_prompt, KSH_RETURN_ERROR);
 	setint_n((vp = global("BASHPID")), 0, 10);

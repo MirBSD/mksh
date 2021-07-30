@@ -32,7 +32,7 @@
 #include <unistd.h>
 #include <process.h>
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.11 2020/10/01 21:13:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.12 2021/07/30 02:58:07 tg Exp $");
 
 struct a_s_arg {
 	union {
@@ -113,7 +113,7 @@ response(int *argcp, const char ***argvp)
 			line[0] = __KLIBC_ARG_NONZERO | __KLIBC_ARG_RESPONSE;
 			l = line + 1;
 			while (fgets(l, (filesize + 1) - (l - (line + 1)), f)) {
-				p = strchr(l, '\n');
+				p = ucstrchr(l, '\n');
 				if (p) {
 					/*
 					 * if a line ends with a backslash,

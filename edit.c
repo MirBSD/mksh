@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.378 2021/06/28 03:13:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.379 2021/07/30 02:58:04 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -348,7 +348,7 @@ x_glob_hlp_tilde_and_rem_qchar(char *s, bool magic_flag)
 	 * and if so, discern "~foo/bar" and "~/baz" from "~blah";
 	 * if we have a directory part (the former), try to expand
 	 */
-	if (*s == '~' && (cp = /* not sdirsep */ strchr(s, '/')) != NULL) {
+	if (*s == '~' && (cp = /* not sdirsep */ ucstrchr(s, '/')) != NULL) {
 		/* ok, so split into "~foo"/"bar" or "~"/"baz" */
 		*cp++ = 0;
 		/* try to expand the tilde */
@@ -1840,8 +1840,8 @@ x_search_char_forw(int c MKSH_A_UNUSED)
 		return (KSTD);
 	}
 	while (x_arg--) {
-		if ((cp = (cp == xep) ? NULL : strstr(cp + 1, tmp)) == NULL &&
-		    (cp = strstr(xbuf, tmp)) == NULL) {
+		if ((cp = (cp == xep) ? NULL : ucstrstr(cp + 1, tmp)) == NULL &&
+		    (cp = ucstrstr(xbuf, tmp)) == NULL) {
 			x_e_putc2(KSH_BEL);
 			return (KSTD);
 		}

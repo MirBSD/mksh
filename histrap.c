@@ -27,7 +27,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.170 2020/10/01 22:53:20 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.171 2021/07/30 02:58:05 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 static struct sigaction Sigact_ign;
@@ -198,7 +198,7 @@ c_fc(const char **wp)
 			pat_len = strlen(pat);
 			rep_len = strlen(rep);
 			Xinit(xs, xp, 128, ATEMP);
-			for (s = *hp; (s1 = strstr(s, pat)) &&
+			for (s = *hp; (s1 = ucstrstr(s, pat)) &&
 			    (!any_subst || gflag); s = s1 + pat_len) {
 				any_subst = true;
 				len = s1 - s;
@@ -278,7 +278,7 @@ c_fc(const char **wp)
 			shf_putc('\t', shl_stdout);
 			/* print multi-line commands correctly */
 			s = *hp;
-			while ((t = strchr(s, '\n'))) {
+			while ((t = ucstrchr(s, '\n'))) {
 				*t = '\0';
 				shf_fprintf(shl_stdout, "%s\n\t", s);
 				*t++ = '\n';
@@ -493,7 +493,7 @@ findhist(int start, const char *str, bool fwd, bool anchored)
 	hp = &history[start];
 	for (; hp >= history && hp <= histptr; hp += incr)
 		if ((anchored && strncmp(*hp, str, len) == 0) ||
-		    (!anchored && strstr(*hp, str)))
+		    (!anchored && vstrstr(*hp, str)))
 			return (hp - history);
 
 	return (-1);

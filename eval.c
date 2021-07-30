@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.235 2021/07/27 00:21:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.236 2021/07/30 02:58:05 tg Exp $");
 
 /*
  * string expansion
@@ -2016,7 +2016,7 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 	char *p = exp_start;
 
 	/* search for open brace */
-	while ((p = strchr(p, MAGIC)) && ord(p[1]) != ORD('{' /*}*/))
+	while ((p = ucstrchr(p, MAGIC)) && ord(p[1]) != ORD('{' /*}*/))
 		p += 2;
 	brace_start = p;
 
