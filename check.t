@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.866 2021/07/27 19:17:14 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.867 2021/07/30 03:00:44 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -150,7 +150,7 @@ name: selftest-direct-builtin-call
 description:
 	Check that direct builtin calls work
 stdin:
-	ln -s "$__progname" echo || cp "$__progname" echo
+	ln -s "$__progname" echo 2>/dev/null || cp "$__progname" echo
 	./echo -c 'echo  foo'
 expected-stdout:
 	-c echo  foo
@@ -7934,7 +7934,7 @@ name: exit-stdout-2
 description:
 	same, except for external utility / direct builtin call
 stdin:
-	ln -s "$__progname" pwd || cp "$__progname" pwd
+	ln -s "$__progname" pwd 2>/dev/null || cp "$__progname" pwd
 	if test -c /dev/full && test -w /dev/full; then
 		if ./pwd >/dev/full 2>e; then
 			cat e
@@ -8577,7 +8577,7 @@ description:
 category: !binsh
 stdin:
 	for shell in {,-}{,r}{,k,mk}sh {,-}{,R}{,K,MK}SH.EXE; do
-		ln -s "$__progname" ./$shell || cp "$__progname" ./$shell
+		ln -s "$__progname" ./$shell 2>/dev/null || cp "$__progname" ./$shell
 		print -- $shell $(./$shell +l -c '
 			[[ -o sh || -o posix ]] && echo sh
 			[[ -o !sh && -o !posix ]] && echo nosh
@@ -8616,7 +8616,7 @@ description:
 category: binsh
 stdin:
 	for shell in {,-}{,r}{,k,mk}sh {,-}{,R}{,K,MK}SH.EXE; do
-		ln -s "$__progname" ./$shell || cp "$__progname" ./$shell
+		ln -s "$__progname" ./$shell 2>/dev/null || cp "$__progname" ./$shell
 		print -- $shell $(./$shell +l -c '
 			[[ -o sh || -o posix ]] && echo sh
 			[[ -o !sh && -o !posix ]] && echo nosh
