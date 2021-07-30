@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.319 2021/07/28 04:07:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.320 2021/07/30 02:55:08 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -2588,38 +2588,6 @@ chvt(const Getopt *go)
 }
 #endif
 
-#ifdef DEBUG
-char *
-strchr(char *p, int ch)
-{
-	for (;; ++p) {
-		if (*p == ch)
-			return (p);
-		if (!*p)
-			return (NULL);
-	}
-	/* NOTREACHED */
-}
-
-char *
-strstr(char *b, const char *l)
-{
-	char first, c;
-	size_t n;
-
-	if ((first = *l++) == '\0')
-		return (b);
-	n = strlen(l);
- strstr_look:
-	while ((c = *b++) != first)
-		if (c == '\0')
-			return (NULL);
-	if (strncmp(b, l, n))
-		goto strstr_look;
-	return (b - 1);
-}
-#endif
-
 #if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
 char *
 strndup_i(const char *src, size_t len, Area *ap)
@@ -2805,3 +2773,31 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 
 	return (wc);
 }
+
+#ifdef DEBUG
+#undef strchr
+#undef strstr
+char *
+ucstrchr(char *s, int c)
+{
+	return (strchr(s, c));
+}
+
+const char *
+cstrchr(const char *s, int c)
+{
+	return (strchr(s, c));
+}
+
+char *
+ucstrstr(char *big, const char *little)
+{
+	return (strstr(big, little));
+}
+
+const char *
+cstrstr(const char *big, const char *little)
+{
+	return (strstr(big, little));
+}
+#endif
