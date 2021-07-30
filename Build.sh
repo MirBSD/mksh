@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.789 2021/07/30 03:16:59 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.790 2021/07/30 03:19:24 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -1146,6 +1146,8 @@ XENIX)
 	cpp_define USE_REALLOC_MALLOC 0
 	cpp_define MKSH_BROKEN_OFFSETOF 1
 	cpp_define MKSH_TYPEDEF_SSIZE_T int
+	# per http://www.polarhome.com/service/man/?qf=signal&of=Xenix
+	cpp_define MKSH_USABLE_SIGNALFUNC signal
 	cpp_define MKSH_UNEMPLOYED 1
 	cpp_define MKSH_NOPROSPECTOFWORK 1
 	cpp_define MKSH__NO_SYMLINK 1
