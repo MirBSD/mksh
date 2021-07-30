@@ -23,7 +23,7 @@
 #include <err.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.26 2016/02/26 21:53:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.27 2021/07/30 04:00:11 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -158,6 +158,7 @@ aresize(void *ptr, size_t numb, Area *ap)
 	    )
 		internal_errorf(Toomem, numb);
 	/* area pointer and items share struct lalloc_common */
+	/*XXX C99 §6.5(6) and footnote 72 may dislike this? */
 	lp->next = ap->next;
 	ap->next = lp;
 	/* return user item address */
