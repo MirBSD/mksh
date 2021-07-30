@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.782 2021/07/30 02:59:09 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.783 2021/07/30 02:59:54 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -1289,6 +1289,7 @@ case $ct in
 ack)
 	# work around "the famous ACK const bug"
 	CPPFLAGS="-Dconst= $CPPFLAGS"
+	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
 	;;
 adsp)
 	echo >&2 'Warning: Analog Devices C++ compiler for Blackfin, TigerSHARC
@@ -1317,6 +1318,7 @@ clang)
 dec)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -Wl,-V conftest.c $LIBS"
+	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
 	;;
 dmc)
 	echo >&2 "Warning: Digital Mars Compiler detected. When running under"
@@ -1344,6 +1346,7 @@ icc)
 	;;
 kencc)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
+	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
 	;;
 lacc)
 	# no version information
@@ -1351,6 +1354,7 @@ lacc)
 lcc)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
 	cpp_define __inline__ __inline
+	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
 	;;
 metrowerks)
 	echo >&2 'Warning: Metrowerks C compiler detected. This has not yet
@@ -1398,6 +1402,7 @@ pgi)
 	;;
 quickc)
 	# no version information
+	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
 	;;
 sdcc)
 	echo >&2 'Warning: sdcc (http://sdcc.sourceforge.net), the small devices
@@ -1418,6 +1423,7 @@ tendra)
 ucode)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -Wl,-V conftest.c $LIBS"
+	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
 	;;
 uslc)
 	case $TARGET_OS:$TARGET_OSREV in
@@ -1428,6 +1434,7 @@ uslc)
 		;;
 	esac
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
+	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
 	;;
 watcom)
 	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
@@ -1787,7 +1794,7 @@ test $ct = pcc && phase=u
 #
 # Compiler: check for stuff that only generates warnings
 #
-ac_test attribute_bounded '' 'for __attribute__((__bounded__))' <<-'EOF'
+ac_test attribute_bounded attribute_extension 0 'for __attribute__((__bounded__))' <<-'EOF'
 	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
 	extern int thiswillneverbedefinedIhope(void);
 	/* force a failure: TenDRA and gcc 1.42 have false positive here */
@@ -1808,7 +1815,7 @@ ac_test attribute_bounded '' 'for __attribute__((__bounded__))' <<-'EOF'
 	}
 	#endif
 EOF
-ac_test attribute_format '' 'for __attribute__((__format__))' <<-'EOF'
+ac_test attribute_format attribute_extension 0 'for __attribute__((__format__))' <<-'EOF'
 	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
 	extern int thiswillneverbedefinedIhope(void);
 	/* force a failure: TenDRA and gcc 1.42 have false positive here */
@@ -1823,7 +1830,7 @@ ac_test attribute_format '' 'for __attribute__((__format__))' <<-'EOF'
 	int main(int ac, char *av[]) { return (fprintf(stderr, "%s%d", *av, ac)); }
 	#endif
 EOF
-ac_test attribute_noreturn '' 'for __attribute__((__noreturn__))' <<-'EOF'
+ac_test attribute_noreturn attribute_extension 0 'for __attribute__((__noreturn__))' <<-'EOF'
 	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
 	extern int thiswillneverbedefinedIhope(void);
 	/* force a failure: TenDRA and gcc 1.42 have false positive here */
@@ -1836,7 +1843,7 @@ ac_test attribute_noreturn '' 'for __attribute__((__noreturn__))' <<-'EOF'
 	void fnord(void) { exit(0); }
 	#endif
 EOF
-ac_test attribute_pure '' 'for __attribute__((__pure__))' <<-'EOF'
+ac_test attribute_pure attribute_extension 0 'for __attribute__((__pure__))' <<-'EOF'
 	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
 	extern int thiswillneverbedefinedIhope(void);
 	/* force a failure: TenDRA and gcc 1.42 have false positive here */
@@ -1849,7 +1856,7 @@ ac_test attribute_pure '' 'for __attribute__((__pure__))' <<-'EOF'
 	int foo(const char *s) { return ((int)s[0]); }
 	#endif
 EOF
-ac_test attribute_unused '' 'for __attribute__((__unused__))' <<-'EOF'
+ac_test attribute_unused attribute_extension 0 'for __attribute__((__unused__))' <<-'EOF'
 	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
 	extern int thiswillneverbedefinedIhope(void);
 	/* force a failure: TenDRA and gcc 1.42 have false positive here */
@@ -1861,7 +1868,7 @@ ac_test attribute_unused '' 'for __attribute__((__unused__))' <<-'EOF'
 	    __attribute__((__unused__))) { return (isatty(0)); }
 	#endif
 EOF
-ac_test attribute_used '' 'for __attribute__((__used__))' <<-'EOF'
+ac_test attribute_used attribute_extension 0 'for __attribute__((__used__))' <<-'EOF'
 	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
 	extern int thiswillneverbedefinedIhope(void);
 	/* force a failure: TenDRA and gcc 1.42 have false positive here */
