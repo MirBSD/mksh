@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.387 2021/07/30 03:02:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.388 2021/07/30 03:05:51 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -116,7 +116,9 @@ const struct builtin mkshbuiltins[] = {
 	{Tread, c_read},
 	{Tdsgreadonly, c_typeset},
 	{"!realpath", c_realpath},
+#if HAVE_RENAME
 	{"~rename", c_rename},
+#endif
 	{"*=return", c_exitreturn},
 	{Tsghset, c_set},
 	{"*=#shift", c_shift},
@@ -3208,6 +3210,7 @@ ptest_error(Test_env *te, int ofs, const char *msg)
 		bi_errorf(Tf_s, msg);
 }
 
+#if HAVE_RENAME
 int
 c_rename(const char **wp)
 {
@@ -3231,6 +3234,7 @@ c_rename(const char **wp)
 
 	return (rv);
 }
+#endif
 
 int
 c_realpath(const char **wp)

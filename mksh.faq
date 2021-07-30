@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.23 2021/07/10 17:39:27 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.24 2021/07/30 03:05:53 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -605,6 +605,7 @@ Title: “rename” doesn’t work as expected!
  thin wrapper around the rename(2) syscall. It receives two pathnames,
  source and destination where the first is then atomically renamed to
  the latter. It does not move, i.e. fails for different filesystems.</p>
+<p>The builtin may be absent if your OS doesn’t have rename(2), e.g. Xenix.</p>
 <p>The GNU package <tt>util-linux</tt> has a different <tt>rename</tt>
  command. If you wish to invoke an external utility (in favour over a
  builtin), you can use <tt>dot.mkshrc</tt>’s function <tt>enable</tt>

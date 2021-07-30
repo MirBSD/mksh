@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.512 2021/07/10 17:39:25 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.513 2021/07/30 03:05:52 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 10 2021 $
+.Dd $Mdocdate: July 30 2021 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -4353,16 +4353,15 @@ resolving to an extant non-directory is also treated as error.
 .Op Fl \-
 .Ar from to
 .Xc
-.Pq defer always
+.Pq defer always , needs Xr rename 2
 Renames the file
 .Ar from
 to
 .Ar to .
-Both must be complete pathnames and on the same device.
+Both pathnames must be on the same device.
 Intended for emergency situations
 .Pq where Pa /bin/mv No becomes unusable ;
-directly calls
-.Xr rename 2 .
+thin syscall wrapper.
 .Pp
 .It Ic return Op Ar status
 .Pq keeps assignments , special

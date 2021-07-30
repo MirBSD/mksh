@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.783 2021/07/30 02:59:54 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.784 2021/07/30 03:05:50 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -2263,6 +2263,13 @@ EOF
 ac_test nice <<-'EOF'
 	#include <unistd.h>
 	int main(void) { return (nice(4)); }
+EOF
+
+ac_test rename <<-'EOF'
+	#include <fcntl.h>
+	#include <stdio.h>
+	#include <unistd.h>
+	int main(int ac, char *av[]) { return (rename(*av, av[ac - 1])); }
 EOF
 
 ac_test revoke <<-'EOF'
