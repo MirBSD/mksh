@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.137 2021/07/30 02:58:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.138 2021/07/30 03:13:43 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -248,7 +248,7 @@ proc_errorlevel(Proc *p)
 void
 j_suspend(void)
 {
-	struct sigaction sa, osa;
+	ksh_sigsaved ohandler;
 
 	/* Restore tty and pgrp. */
 	if (ttypgrp_ok) {
@@ -266,14 +266,11 @@ j_suspend(void)
 	}
 
 	/* Suspend the shell. */
-	memset(&sa, 0, sizeof(sa));
-	sigemptyset(&sa.sa_mask);
-	sa.sa_handler = SIG_DFL;
-	sigaction(SIGTSTP, &sa, &osa);
+	ksh_sigset(SIGTSTP, SIG_DFL, &ohandler);
 	kill(0, SIGTSTP);
 
 	/* Back from suspend, reset signals, pgrp and tty. */
-	sigaction(SIGTSTP, &osa, NULL);
+	ksh_sigrestore(SIGTSTP, &ohandler);
 	if (ttypgrp_ok) {
 		if (restore_ttypgrp >= 0) {
 			if (setpgid(0, kshpid) < 0) {

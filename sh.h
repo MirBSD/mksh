@@ -202,7 +202,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.934 2021/07/30 03:07:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.935 2021/07/30 03:13:44 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/06/29"
 
@@ -440,6 +440,18 @@ struct rusage {
 #endif
 
 #define ksh_sigmask(sig) (((sig) < 1 || (sig) > 127) ? 255 : 128 + (sig))
+
+#if HAVE_SIGACTION
+typedef struct sigaction ksh_sigsaved;
+#define ksh_sighandler(saved) (saved.sa_handler)
+void ksh_sigrestore(int, ksh_sigsaved *);
+#else
+typedef sig_t ksh_sigsaved;
+#define ksh_sighandler(saved) (saved)
+#endif
+
+/* contract: masks the signal, may restart, not oneshot */
+void ksh_sigset(int, sig_t, ksh_sigsaved *);
 
 
 /* OS-dependent additions (functions, variables, by OS) */

@@ -3,7 +3,8 @@
 
 /*-
  * Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
- *		 2011, 2012, 2014, 2015, 2016, 2017, 2018, 2019
+ *		 2011, 2012, 2014, 2015, 2016, 2017, 2018, 2019,
+ *		 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -27,10 +28,9 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.171 2021/07/30 02:58:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.172 2021/07/30 03:13:43 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
-static struct sigaction Sigact_ign;
 
 #if HAVE_PERSISTENT_HISTORY
 static int histload(Source *, unsigned char *, size_t);
@@ -1122,10 +1122,6 @@ inittraps(void)
 	sigtraps[ksh_SIGERR].name = "ERR";
 	sigtraps[ksh_SIGERR].mess = "Error handler";
 
-	(void)sigemptyset(&Sigact_ign.sa_mask);
-	Sigact_ign.sa_flags = 0; /* interruptible */
-	Sigact_ign.sa_handler = SIG_IGN;
-
 	sigtraps[SIGINT].flags |= TF_DFL_INTR | TF_TTY_INTR;
 	sigtraps[SIGQUIT].flags |= TF_DFL_INTR | TF_TTY_INTR;
 	/* SIGTERM is not fatal for interactive */
@@ -1496,20 +1492,18 @@ restore_pipe(void)
 int
 setsig(Trap *p, sig_t f, int flags)
 {
-	struct sigaction sigact;
-
 	if (p->signal == ksh_SIGEXIT || p->signal == ksh_SIGERR)
 		return (1);
-
-	memset(&sigact, 0, sizeof(sigact));
 
 	/*
 	 * First time setting this signal? If so, get and note the current
 	 * setting.
 	 */
 	if (!(p->flags & (TF_ORIG_IGN|TF_ORIG_DFL))) {
-		sigaction(p->signal, &Sigact_ign, &sigact);
-		p->flags |= sigact.sa_handler == SIG_IGN ?
+		ksh_sigsaved ohandler;
+
+		ksh_sigset(p->signal, SIG_IGN, &ohandler);
+		p->flags |= ksh_sighandler(ohandler) == SIG_IGN ?
 		    TF_ORIG_IGN : TF_ORIG_DFL;
 		p->cursig = SIG_IGN;
 	}
@@ -1540,11 +1534,7 @@ setsig(Trap *p, sig_t f, int flags)
 
 	if (p->cursig != f) {
 		p->cursig = f;
-		(void)sigemptyset(&sigact.sa_mask);
-		/* interruptible */
-		sigact.sa_flags = 0;
-		sigact.sa_handler = f;
-		sigaction(p->signal, &sigact, NULL);
+		ksh_sigset(p->signal, f, NULL);
 	}
 
 	return (1);
@@ -1628,4 +1618,26 @@ mksh_unlkfd(int fd)
 	(void)fcntl(fd, F_SETLKW, &lks);
 }
 #endif
+#endif
+
+#if HAVE_SIGACTION
+/* masks the signal, does not (may) restart, not oneshot */
+void
+ksh_sigset(int sig, sig_t act, ksh_sigsaved *old)
+{
+	struct sigaction sa;
+
+	memset(&sa, 0, sizeof(sa));
+	sigemptyset(&sa.sa_mask);
+	sa.sa_handler = act;
+	if (sigaction(sig, &sa, old))
+		internal_errorf("sigaction: %s", cstrerror(errno));
+}
+
+void
+ksh_sigrestore(int sig, ksh_sigsaved *savedp)
+{
+	if (sigaction(sig, savedp, NULL))
+		internal_errorf("sigaction: %s", cstrerror(errno));
+}
 #endif
