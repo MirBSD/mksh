@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.784 2021/07/30 03:05:50 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.785 2021/07/30 03:07:52 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -2226,6 +2226,19 @@ ac_test memmove <<-'EOF'
 	#endif
 	int main(int ac, char *av[]) {
 		return (*(int *)(void *)memmove(av[0], av[1], (size_t)ac));
+	}
+EOF
+
+ac_test bcopy '!' memmove 1 <<-'EOF'
+	#include <sys/types.h>
+	#include <stddef.h>
+	#include <string.h>
+	#if HAVE_STRINGS_H
+	#include <strings.h>
+	#endif
+	int main(int ac, char *av[]) {
+		bcopy(av[0], av[1], (size_t)ac);
+		return (0);
 	}
 EOF
 

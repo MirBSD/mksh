@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.384 2021/07/30 03:04:01 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.385 2021/07/30 03:07:53 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -2152,5 +2152,25 @@ recheck_ctype(void)
 
 	if (Flag(FPOSIX) && UTFMODE && !old_utfmode)
 		warningf(true, "early locale tracking enabled UTF-8 mode while in POSIX mode, you are now noncompliant");
+}
+#endif
+
+#if !HAVE_MEMMOVE && !HAVE_BCOPY
+void
+rpl_bcopy(const void *src, void *dst, size_t len)
+{
+	const unsigned char *s = src;
+	unsigned char *d = dst;
+
+	if (len) {
+		if (src < dst) {
+			s += len;
+			d += len;
+			while (len--)
+				*--d = *--s;
+		} else
+			while (len--)
+				*d++ = *s++;
+	}
 }
 #endif
