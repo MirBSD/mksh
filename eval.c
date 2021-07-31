@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.236 2021/07/30 02:58:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.237 2021/07/31 01:37:16 tg Exp $");
 
 /*
  * string expansion
@@ -386,7 +386,7 @@ expand(
 			 */
 				/* skip the { or x (}) */
 				const char *varname = ++sp;
-				unsigned int stype;
+				unsigned int stype /* for GCC */ = 0;
 				int slen = 0;
 
 				/* skip variable */
