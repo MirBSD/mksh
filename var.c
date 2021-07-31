@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.246 2021/07/30 03:16:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.247 2021/07/31 19:12:17 tg Exp $");
 
 /*-
  * Variables
@@ -52,6 +52,14 @@ static struct table specials;
 static uint32_t lcg_state = 5381, qh_state = 4711;
 /* may only be set by typeset() just before call to array_index_calc() */
 static enum namerefflag innermost_refflag = SRF_NOP;
+
+/*
+ * Evil hack since casting uint to sint is implementation-defined
+ */
+typedef union {
+	mksh_ari_t i;
+	mksh_uari_t u;
+} mksh_ari_u;
 
 static void c_typeset_vardump(struct tbl *, uint32_t, int, int, bool, bool);
 static void c_typeset_vardump_recursive(struct block *, uint32_t, int, bool,
