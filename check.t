@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.868 2021/07/31 01:42:18 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.869 2021/07/31 17:10:48 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -1415,10 +1415,10 @@ name: cd-pe
 description:
 	Check package for cd -Pe
 need-pass: no
-# the mv command fails on Cygwin and z/OS
+# the mv command fails on Cygwin, LynxOS 3.0, z/OS
 # Hurd aborts the testsuite (permission denied)
 # QNX does not find subdir to cd into
-category: !os:cygwin,!os:gnu,!os:midipix,!os:msys,!os:nto,!os:os390,!nosymlink
+category: !os:cygwin,!os:gnu,!os:lynxos,!os:midipix,!os:msys,!os:nto,!os:os390,!nosymlink
 file-setup: file 644 "x"
 	mkdir noread noread/target noread/target/subdir
 	ln -s noread link
@@ -2025,7 +2025,7 @@ expected-stdout:
 name: eglob-bad-1
 description:
 	Check that globbing isn't done when glob has syntax error
-category: !os:cygwin,!os:midipix,!os:msys,!os:os2
+category: !os:cygwin,!os:lynxos,!os:midipix,!os:msys,!os:os2
 file-setup: file 644 "@(a[b|)c]foo"
 stdin:
 	echo @(a[b|)c]*
