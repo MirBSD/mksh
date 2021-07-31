@@ -35,7 +35,7 @@
  *	We are looking into it. Changing the core
  *	hash function in PHP isn't a trivial change
  *	and will take us some time.
- * -- Rasmus Lerdorf
+ *		-- Rasmus Lerdorf
  */
 
 #ifndef SYSKERN_MIRHASH_H
@@ -44,7 +44,7 @@
 
 #include <sys/types.h>
 
-__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.7 2021/07/31 19:35:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.8 2021/07/31 19:54:22 tg Exp $");
 
 /*-
  * BAFH itself is defined by the following primitives:
@@ -83,16 +83,12 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.7 2021/07/31 19:35:55 tg Exp $");
  *
  * • BAFHUpdateMem(ctx,buf,len) adds a memory block to a context.
  * • BAFHUpdateStr(ctx,buf) is equivalent to using len=strlen(buf).
- * • BAFHHostMem(ctx,buf,len) calculates the hash of the memory buf‐
- *   fer using the first 4 octets (mixed) for IV, as outlined above;
- *   the result is endian-dependent; “ctx” assumed to be a register.
- * • BAFHHostStr(ctx,buf) does the same for C strings.
  *
  * All macros may use ctx multiple times in their expansion, but all
  * other arguments are always evaluated at most once except BAFHror.
  *
- * To stay portable, never use the BAFHHost*() macros (these are for
- * host-local entropy shuffling), and encode numbers using ULEB128.
+ * To stay portable, encode numbers using ULEB128, or better and for
+ * sortability, VLQ (same unsigned but big endian), normal or Git’s.
  */
 
 #define BAFHInit(h) do {					\
@@ -174,55 +170,6 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.7 2021/07/31 19:35:55 tg Exp $");
 								\
 	BAFHUpdateStr_reg(BAFH_h, (s));				\
 	(m) = BAFH_h;						\
-} while (/* CONSTCOND */ 0)
-
-#define BAFHHost4StaticAssert (sizeof(uint32_t) == 4 ? 4 : -1)
-
-#define BAFHHostMem(h,p,z) do {					\
-	register const unsigned char *BAFHUpdate_p;		\
-	register size_t BAFHUpdate_z = (z);			\
-	size_t BAFHHost_z;					\
-	union {							\
-		unsigned char as_u8[BAFHHost4StaticAssert];	\
-		uint32_t as_u32;				\
-	} BAFHHost_v;						\
-								\
-	BAFHUpdate_p = (const void *)(p);			\
-	BAFHHost_v.as_u32 = 0;					\
-	BAFHHost_z = BAFHUpdate_z < 4 ? BAFHUpdate_z : 4;	\
-	memcpy(BAFHHost_v.as_u8, BAFHUpdate_p, BAFHHost_z);	\
-	BAFHUpdate_p += BAFHHost_z;				\
-	BAFHUpdate_z -= BAFHHost_z;				\
-	(h) = BAFHHost_v.as_u32;				\
-	BAFHFinish_reg(h);					\
-	while (BAFHUpdate_z--)					\
-		BAFHUpdateOctet_reg((h), *BAFHUpdate_p++);	\
-	BAFHFinish_reg(h);					\
-} while (/* CONSTCOND */ 0)
-
-#define BAFHHostStr(h,s) do {					\
-	register const unsigned char *BAFHUpdate_s;		\
-	register unsigned char BAFHUpdate_c;			\
-	union {							\
-		unsigned char as_u8[BAFHHost4StaticAssert];	\
-		uint32_t as_u32;				\
-	} BAFHHost_v;						\
-								\
-	BAFHUpdate_s = (const void *)(s);			\
-	BAFHHost_v.as_u32 = 0;					\
-	if ((BAFHHost_v.as_u8[0] = *BAFHUpdate_s) != 0)		\
-		++BAFHUpdate_s;					\
-	if ((BAFHHost_v.as_u8[1] = *BAFHUpdate_s) != 0)		\
-		++BAFHUpdate_s;					\
-	if ((BAFHHost_v.as_u8[2] = *BAFHUpdate_s) != 0)		\
-		++BAFHUpdate_s;					\
-	if ((BAFHHost_v.as_u8[3] = *BAFHUpdate_s) != 0)		\
-		++BAFHUpdate_s;					\
-	(h) = BAFHHost_v.as_u32;				\
-	BAFHFinish_reg(h);					\
-	while ((BAFHUpdate_c = *BAFHUpdate_s++) != 0)		\
-		BAFHUpdateOctet_reg((h), BAFHUpdate_c);		\
-	BAFHFinish_reg(h);					\
 } while (/* CONSTCOND */ 0)
 
 #endif
