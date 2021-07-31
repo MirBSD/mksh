@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.870 2021/07/31 17:30:57 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.871 2021/07/31 17:44:39 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -152,6 +152,20 @@ stdin:
 expected-stdout:
 	333
 	= 0
+---
+name: selftest-exec-a
+description:
+	Ensure using 'exec -a' to change argv[0] works
+file-setup: file 644 "pass"
+	print -r -- "fail, args:"
+	i=-1
+	for x in "$0" "$@"; do
+		print -r -- "$((++i))<$x>"
+	done
+stdin:
+	exec -a -print "$__progname" pass '\u20AC'
+expected-stdout:
+	pass €
 ---
 name: selftest-env
 description:
@@ -8573,7 +8587,6 @@ stdin:
 	[[ -o !sh ]] && echo nosh
 	[[ -o braceexpand ]] && echo brex
 	[[ -o !braceexpand ]] && echo nobrex
-	[[ $(exec -a -set "$__progname" -o) = *login+(' ')on* ]]; echo $?
 expected-stdout:
 	nosh
 	brex
@@ -8586,6 +8599,15 @@ expected-stdout:
 	a b c
 	sh
 	brex
+---
+name: sh-mode-1-exec-a
+description:
+	Was part of sh-mode-1 but exclude where selftest-exec-a fails
+	or better fix that
+category: !os:beos
+stdin:
+	[[ $(exec -a -set "$__progname" -o) = *login+(' ')on* ]]; echo $?
+expected-stdout:
 	0
 ---
 name: sh-mode-2a
