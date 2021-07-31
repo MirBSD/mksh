@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.237 2021/07/31 01:37:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.238 2021/07/31 19:35:53 tg Exp $");
 
 /*
  * string expansion
@@ -212,8 +212,8 @@ typedef struct SubType {
 	size_t	base;		/* start position of expanded word */
 	unsigned short stype;	/* [=+-?%#] action after expanded word */
 	short	f;		/* saved value of f (DOPAT, etc) */
-	uint8_t	quotep;		/* saved value of quote (for ${..[%#]..}) */
-	uint8_t	quotew;		/* saved value of quote (for ${..[+-=]..}) */
+	kby	quotep;		/* saved value of quote (for ${..[%#]..}) */
+	kby	quotew;		/* saved value of quote (for ${..[+-=]..}) */
 } SubType;
 
 void
@@ -1523,7 +1523,7 @@ comsub(Expand *xp, const char *cp, int fn)
 	struct op *t;
 	struct shf *shf;
 	bool doalias = false;
-	uint8_t old_utfmode = UTFMODE;
+	kby old_utfmode = UTFMODE;
 
 	switch (fn) {
 	case COMASUB:

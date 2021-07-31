@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.323 2021/07/31 19:12:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.324 2021/07/31 19:35:55 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -570,7 +570,7 @@ getpn(const char **sp, int *ai)
 	char c;
 	const char *s;
 	mksh_uari_t num = 0;
-	uint8_t state = 0;
+	kby state = 0;
 	bool neg = false;
 
 	s = *sp;
@@ -625,7 +625,7 @@ getpn(const char **sp, int *ai)
 static void *
 simplify_gmatch_pattern(const unsigned char *sp)
 {
-	uint8_t c;
+	kby c;
 	unsigned char *cp, *dp;
 	const unsigned char *ps, *se;
 
@@ -1254,7 +1254,7 @@ pat_scan(const unsigned char *p, const unsigned char *pe, bool match_sep)
 int
 ascstrcmp(const void *s1, const void *s2)
 {
-	const uint8_t *cp1 = s1, *cp2 = s2;
+	const kby *cp1 = s1, *cp2 = s2;
 
 	while (*cp1 == *cp2) {
 		if (*cp1++ == '\0')

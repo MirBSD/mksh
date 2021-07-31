@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.228 2021/06/29 22:57:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.229 2021/07/31 19:35:54 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -694,7 +694,7 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 	case CFUNC: {
 		volatile uint32_t old_inuse;
 		const char * volatile old_kshname;
-		volatile uint8_t old_flags[FNFLAGS];
+		volatile kby old_flags[FNFLAGS];
 
 		if (!(tp->flag & ISSET)) {
 			struct tbl *ftp;

@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.794 2021/07/31 18:01:26 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.795 2021/07/31 19:35:51 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -2051,16 +2051,6 @@ ac_test can_ucbints '!' can_inttypes 1 "for UCB 32-bit integer types" <<-'EOF'
 	#include <sys/types.h>
 	#include <stddef.h>
 	int main(int ac, char *av[]) { return ((u_int32_t)(size_t)*av + (int32_t)ac); }
-EOF
-ac_test can_int8type '!' stdint_h 1 "for standard 8-bit integer type" <<-'EOF'
-	#include <sys/types.h>
-	#include <stddef.h>
-	int main(int ac, char *av[]) { return ((uint8_t)(size_t)av[ac]); }
-EOF
-ac_test can_ucbint8 '!' can_int8type 1 "for UCB 8-bit integer type" <<-'EOF'
-	#include <sys/types.h>
-	#include <stddef.h>
-	int main(int ac, char *av[]) { return ((u_int8_t)(size_t)av[ac]); }
 EOF
 
 # only testn: added later below

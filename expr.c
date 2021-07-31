@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.111 2021/07/14 23:12:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.112 2021/07/31 19:35:54 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -57,12 +57,12 @@ static const char opname[][4] = {
 #include "exprtok.h"
 };
 
-static const uint8_t oplen[] = {
+static const kby oplen[] = {
 #define EXPRTOK_LEN
 #include "exprtok.h"
 };
 
-static const uint8_t opprec[] = {
+static const kby opprec[] = {
 #define EXPRTOK_PREC
 #include "exprtok.h"
 };
@@ -79,7 +79,7 @@ typedef struct expr_state {
 	/* token from token() */
 	enum token tok;
 	/* don't do assignments (for ?:, &&, ||) */
-	uint8_t noassign;
+	kby noassign;
 	/* evaluating an $(()) expression? */
 	bool arith;
 	/* unsigned arithmetic calculation */

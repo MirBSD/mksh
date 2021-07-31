@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.255 2021/05/30 04:58:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.256 2021/07/31 19:35:54 tg Exp $");
 
 /*
  * states while lexing word
@@ -77,9 +77,9 @@ typedef struct lex_state {
 	/* count open parentheses */
 	short nparen;
 	/* type of this state */
-	uint8_t type;
+	kby type;
 	/* extra flags */
-	uint8_t ls_flags;
+	kby ls_flags;
 } Lex_state;
 #define ls_base		u.base
 #define ls_start	u.start
@@ -153,7 +153,7 @@ getsc_r(int c)
 #define STATE_BSIZE	8
 
 #define PUSH_STATE(s)	do {					\
-	uint8_t state_flags = statep->ls_flags;			\
+	kby state_flags = statep->ls_flags;			\
 	if (++statep == state_info.end)				\
 		statep = push_state_i(&state_info, statep);	\
 	state = statep->type = (s);				\
@@ -1471,7 +1471,7 @@ getsc_line(Source *s)
 void
 set_prompt(int to, Source *s)
 {
-	cur_prompt = (uint8_t)to;
+	cur_prompt = (kby)to;
 
 	switch (to) {
 	/* command */

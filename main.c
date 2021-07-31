@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.385 2021/07/30 03:07:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.386 2021/07/31 19:35:55 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -45,7 +45,7 @@ __RCSID("$MirOS: src/bin/mksh/main.c,v 1.385 2021/07/30 03:07:53 tg Exp $");
 #define MKSH_DEFAULT_TMPDIR	MKSH_UNIXROOT "/tmp"
 #endif
 
-static uint8_t isuc(const char *);
+static kby isuc(const char *);
 static int main_init(int, const char *[], Source **, struct block **);
 void chvt_reinit(void);
 static void reclaim(void);
@@ -197,10 +197,10 @@ static const char *empty_argv[] = {
 	Tmksh, NULL
 };
 
-static uint8_t
+static kby
 isuc(const char *cx) {
 	char *cp, *x;
-	uint8_t rv = 0;
+	kby rv = 0;
 
 	if (!cx || !*cx)
 		return (0);
@@ -840,7 +840,7 @@ shell(Source * volatile s, volatile int level)
 {
 	struct op *t;
 	volatile bool wastty = tobool(s->flags & SF_TTY);
-	volatile uint8_t attempts = 13;
+	volatile kby attempts = 13;
 	volatile bool interactive = (level == 0) && Flag(FTALKING);
 	volatile bool sfirst = true;
 	Source *volatile old_source = source;
@@ -1859,7 +1859,7 @@ tgrow(struct table *tp)
 }
 
 void
-ktinit(Area *ap, struct table *tp, uint8_t initshift)
+ktinit(Area *ap, struct table *tp, kby initshift)
 {
 	tp->areap = ap;
 	tp->tbls = NULL;
@@ -2132,7 +2132,7 @@ void
 recheck_ctype(void)
 {
 	const char *ccp;
-	uint8_t old_utfmode = UTFMODE;
+	kby old_utfmode = UTFMODE;
 
 	ccp = str_val(global("LC_ALL"));
 	if (ccp == null)

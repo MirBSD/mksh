@@ -202,7 +202,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.937 2021/07/31 19:12:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.938 2021/07/31 19:35:56 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/06/29"
 
@@ -215,6 +215,11 @@ typedef unsigned int uint32_t;
 typedef u_int32_t uint32_t;
 #endif
 #endif
+
+/* shell types */
+typedef unsigned char kby;		/* byte */
+typedef unsigned long kul;		/* long, arithmetic */
+typedef signed long ksl;		/* signed long, arithmetic */
 
 /* arithmetic types: shell arithmetics */
 #ifdef MKSH_LEGACY_MODE
@@ -246,15 +251,6 @@ typedef unsigned char mksh_bool;
 #define true		1
 /* make any-type into bool or short */
 #define tobool(cond)	((cond) ? true : false)
-
-/* char (octet) type: C implementation */
-#if !HAVE_CAN_INT8TYPE
-#if !HAVE_CAN_UCBINT8
-typedef unsigned char uint8_t;
-#else
-typedef u_int8_t uint8_t;
-#endif
-#endif
 
 /* other standard types */
 
@@ -894,8 +890,8 @@ extern struct env {
 	/* saved parser recursion state */
 	struct yyrecursive_state *yyrecursive_statep;
 	kshjmp_buf jbuf;	/* long jump back to env creator */
-	uint8_t type;		/* environment type - see below */
-	uint8_t flags;		/* EF_* */
+	kby type;		/* environment type - see below */
+	kby flags;		/* EF_* */
 } *e;
 
 /* struct env.type values */
@@ -940,9 +936,9 @@ EXTERN int exstat;		/* exit status */
 EXTERN int subst_exstat;	/* exit status of last $(..)/`..` */
 EXTERN struct tbl *vp_pipest;	/* global PIPESTATUS array */
 EXTERN short trap_exstat;	/* exit status before running a trap */
-EXTERN uint8_t trap_nested;	/* running nested traps */
-EXTERN uint8_t shell_flags[FNFLAGS];
-EXTERN uint8_t baseline_flags[FNFLAGS
+EXTERN kby trap_nested;		/* running nested traps */
+EXTERN kby shell_flags[FNFLAGS];
+EXTERN kby baseline_flags[FNFLAGS
 #if !defined(MKSH_SMALL) || defined(DEBUG)
     + 1
 #endif
@@ -1317,7 +1313,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define T_devtty "/dev/tty"
 #endif /* end of string pooling */
 
-typedef uint8_t Temp_type;
+typedef kby Temp_type;
 /* expanded heredoc */
 #define TT_HEREDOC_EXP	0
 /* temporary file used for history editing (fc -e) */
@@ -1713,7 +1709,7 @@ EXTERN mksh_ari_t x_lins E_INIT(24);
 				    (shf)->rnleft--, (int)ord(*(shf)->rp++) : \
 				    shf_getchar(shf))
 #define shf_putc_i(c,shf)	((shf)->wnleft == 0 ? \
-				    shf_putchar((uint8_t)(c), (shf)) : \
+				    shf_putchar((kby)(c), (shf)) : \
 				    ((shf)->wnleft--, *(shf)->wp++ = (c)))
 #define shf_eof(shf)		((shf)->flags & SHF_EOF)
 #define shf_error(shf)		((shf)->flags & SHF_ERROR)
@@ -1763,7 +1759,7 @@ struct table {
 	Area *areap;		/* area to allocate entries */
 	struct tbl **tbls;	/* hashed table items */
 	size_t nfree;		/* free table entries */
-	uint8_t tshift;		/* table size (2^tshift) */
+	kby tshift;		/* table size (2^tshift) */
 };
 
 /* table item */
@@ -1945,7 +1941,7 @@ EXTERN char *path;		/* copy of either PATH or def_path */
 EXTERN const char *def_path;	/* path to use if PATH not set */
 EXTERN char *tmpdir;		/* TMPDIR value */
 EXTERN const char *prompt;
-EXTERN uint8_t cur_prompt;	/* PS1 or PS2 */
+EXTERN kby cur_prompt;		/* PS1 or PS2 */
 EXTERN int current_lineno;	/* LINENO value */
 
 /*
@@ -2636,7 +2632,7 @@ void coproc_write_close(int);
 int coproc_getfd(int, const char **);
 void coproc_cleanup(int);
 struct temp *maketemp(Area *, Temp_type, struct temp **);
-void ktinit(Area *, struct table *, uint8_t);
+void ktinit(Area *, struct table *, kby);
 struct tbl *ktscan(struct table *, const char *, uint32_t, struct tbl ***);
 /* table, name (key) to search for, hash(n) */
 #define ktsearch(tp,s,h) ktscan((tp), (s), (h), NULL)

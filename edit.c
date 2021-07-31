@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.379 2021/07/30 02:58:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.380 2021/07/31 19:35:52 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -82,7 +82,7 @@ static int modified;			/* buffer has been "modified" */
 static char *holdbufp;			/* place to hold last edit buffer */
 
 /* 0=dumb 1=tmux (for now) */
-static uint8_t x_term_mode;
+static kby x_term_mode;
 
 static void x_adjust(void);
 static int x_getc(void);
@@ -1005,7 +1005,7 @@ static bool x_adj_ok;
  * we use x_adj_done so that functions can tell
  * whether x_adjust() has been called while they are active.
  */
-static uint8_t x_adj_done;	/* is incremented by x_adjust() */
+static kby x_adj_done;		/* is incremented by x_adjust() */
 
 static int x_displen;
 static int x_arg;		/* general purpose arg */
@@ -1467,7 +1467,7 @@ static int
 x_ins(const char *s)
 {
 	char *cp = xcp;
-	uint8_t adj = x_adj_done;
+	kby adj = x_adj_done;
 
 	if (x_do_ins(s, strlen(s)) < 0)
 		return (-1);
@@ -1752,7 +1752,7 @@ x_bs3(char **p)
 static int
 x_size2(char *cp, char **dcp)
 {
-	uint8_t c = *(unsigned char *)cp;
+	kby c = *(unsigned char *)cp;
 
 	if (UTFMODE && (rtt2asc(c) > 0x7F))
 		return (utf_widthadj(cp, (const char **)dcp));
@@ -1770,7 +1770,7 @@ x_size2(char *cp, char **dcp)
 static void
 x_zots(char *str)
 {
-	uint8_t adj = x_adj_done;
+	kby adj = x_adj_done;
 
 	x_lastcp();
 	while (*str && str < xlp && x_col < xx_cols && adj == x_adj_done)
@@ -3157,7 +3157,7 @@ x_e_putc3(const char **cp)
 static void
 x_e_puts(const char *s)
 {
-	uint8_t adj = x_adj_done;
+	kby adj = x_adj_done;
 
 	while (*s && adj == x_adj_done)
 		x_e_putc3(&s);
@@ -3696,11 +3696,11 @@ static int inslen;			/* length of input buffer */
 static int srchlen;			/* length of current search pattern */
 static char *ybuf;			/* yank buffer */
 static int yanklen;			/* length of yank buffer */
-static uint8_t fsavecmd = ORD(' ');	/* last find command */
+static kby fsavecmd = ORD(' ');		/* last find command */
 static int fsavech;			/* character to find */
 static char lastcmd[MAXVICMD];		/* last non-move command */
 static int lastac;			/* argcnt for lastcmd */
-static uint8_t lastsearch = ORD(' ');	/* last search command */
+static kby lastsearch = ORD(' ');	/* last search command */
 static char srchpat[SRCHLEN];		/* last search pattern */
 static int insert;			/* <>0 in insert mode */
 static int hnum;			/* position in history */

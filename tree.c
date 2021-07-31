@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.107 2021/06/28 21:13:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.108 2021/07/31 19:35:57 tg Exp $");
 
 #define INDENT	8
 
@@ -1077,7 +1077,7 @@ dumpwdvar_i(struct shf *shf, const char *wp, int quotelevel)
 			shf_puts("CPAT", shf);
 			break;
 		default:
-			shf_fprintf(shf, "INVAL<%u>", (uint8_t)wp[-1]);
+			shf_fprintf(shf, "INVAL<%u>", (kby)wp[-1]);
 			break;
 		}
 		shf_putc(' ', shf);

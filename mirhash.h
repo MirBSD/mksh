@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2011, 2014, 2015
+ * Copyright © 2011, 2014, 2015, 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -44,7 +44,7 @@
 
 #include <sys/types.h>
 
-__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.6 2015/11/29 17:05:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.7 2021/07/31 19:35:55 tg Exp $");
 
 /*-
  * BAFH itself is defined by the following primitives:
@@ -100,7 +100,7 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.6 2015/11/29 17:05:02 tg Exp $");
 } while (/* CONSTCOND */ 0)
 
 #define BAFHUpdateOctet_reg(h,b) do {				\
-	(h) += (uint8_t)(b);					\
+	(h) += (unsigned char)(b);				\
 	++(h);							\
 	(h) += (h) << 10;					\
 	(h) ^= (h) >> 6;					\
@@ -144,7 +144,7 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.6 2015/11/29 17:05:02 tg Exp $");
 } while (/* CONSTCOND */ 0)
 
 #define BAFHUpdateMem_reg(h,p,z) do {				\
-	register const uint8_t *BAFHUpdate_p;			\
+	register const unsigned char *BAFHUpdate_p;		\
 	register size_t BAFHUpdate_z = (z);			\
 								\
 	BAFHUpdate_p = (const void *)(p);			\
@@ -161,8 +161,8 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.6 2015/11/29 17:05:02 tg Exp $");
 } while (/* CONSTCOND */ 0)
 
 #define BAFHUpdateStr_reg(h,s) do {				\
-	register const uint8_t *BAFHUpdate_s;			\
-	register uint8_t BAFHUpdate_c;				\
+	register const unsigned char *BAFHUpdate_s;		\
+	register unsigned char BAFHUpdate_c;			\
 								\
 	BAFHUpdate_s = (const void *)(s);			\
 	while ((BAFHUpdate_c = *BAFHUpdate_s++) != 0)		\
@@ -176,12 +176,14 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.6 2015/11/29 17:05:02 tg Exp $");
 	(m) = BAFH_h;						\
 } while (/* CONSTCOND */ 0)
 
+#define BAFHHost4StaticAssert (sizeof(uint32_t) == 4 ? 4 : -1)
+
 #define BAFHHostMem(h,p,z) do {					\
-	register const uint8_t *BAFHUpdate_p;			\
+	register const unsigned char *BAFHUpdate_p;		\
 	register size_t BAFHUpdate_z = (z);			\
 	size_t BAFHHost_z;					\
 	union {							\
-		uint8_t as_u8[4];				\
+		unsigned char as_u8[BAFHHost4StaticAssert];	\
 		uint32_t as_u32;				\
 	} BAFHHost_v;						\
 								\
@@ -199,10 +201,10 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.6 2015/11/29 17:05:02 tg Exp $");
 } while (/* CONSTCOND */ 0)
 
 #define BAFHHostStr(h,s) do {					\
-	register const uint8_t *BAFHUpdate_s;			\
-	register uint8_t BAFHUpdate_c;				\
+	register const unsigned char *BAFHUpdate_s;		\
+	register unsigned char BAFHUpdate_c;			\
 	union {							\
-		uint8_t as_u8[4];				\
+		unsigned char as_u8[BAFHHost4StaticAssert];	\
 		uint32_t as_u32;				\
 	} BAFHHost_v;						\
 								\
