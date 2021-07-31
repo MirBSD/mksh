@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.867 2021/07/30 03:00:44 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.868 2021/07/31 01:42:18 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -136,8 +136,22 @@ stdin:
 	print '#!'"$__progname"'\necho tf' >lq
 	chmod +x lq
 	./lq
+	echo = $?
 expected-stdout:
 	tf
+	= 0
+---
+name: selftest-exec-perl
+description:
+	Ensure we can run perl scriptlets in tests as well
+stdin:
+	print '#!'"$__perlname"'\nprint 3x"3"."\\n";' >lq
+	chmod +x lq
+	./lq
+	echo = $?
+expected-stdout:
+	333
+	= 0
 ---
 name: selftest-env
 description:
@@ -11578,11 +11592,16 @@ stdin:
 		syswrite(FH, "Fowl\\n", 5) or die "E: write \$!";
 	EOF
 	chmod +x cld
+	./cld 9>&2
+	echo >&2 =
 	test -n "$POSH_VERSION" || set -o posix
 	exec 9>&1
 	./cld
 expected-stdout:
 	Fowl
+expected-stderr:
+	Fowl
+	=
 ---
 name: fd-cloexec-3
 description:
