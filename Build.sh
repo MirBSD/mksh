@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.791 2021/07/31 01:47:24 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.792 2021/07/31 17:30:56 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -819,8 +819,14 @@ BeOS)
 	*)
 		oswarn="; you must recompile mksh with"
 		oswarn="$oswarn${nl}itself in a second stage"
+		case $ZSH_VERSION in
+		*[0-9]*)
+			oswarn="; it has minor issues"
+			;;
+		esac
 		;;
 	esac
+	: "${MKSH_UNLIMITED=1}"
 	# BeOS has no real tty either
 	cpp_define MKSH_UNEMPLOYED 1
 	cpp_define MKSH_DISABLE_TTY_WARNING 1

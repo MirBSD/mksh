@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.869 2021/07/31 17:10:48 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.870 2021/07/31 17:30:57 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -7912,6 +7912,8 @@ expected-stdout:
 name: exit-stdout-1
 description:
 	cf. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=990265, Austin ML
+# SIGPIPE seems hosed on BeOS
+category: !os:beos
 stdin:
 	if test -c /dev/full && test -w /dev/full; then
 		if pwd >/dev/full 2>e; then
@@ -7947,6 +7949,7 @@ expected-stdout-pattern:
 name: exit-stdout-2
 description:
 	same, except for external utility / direct builtin call
+category: !os:beos
 stdin:
 	ln -s "$__progname" pwd 2>/dev/null || cp "$__progname" pwd
 	if test -c /dev/full && test -w /dev/full; then
@@ -11568,6 +11571,8 @@ name: fd-cloexec-1
 description:
 	Verify that file descriptors > 2 are private for Korn shells
 	AT&T ksh93 does this still, which means we must keep it as well
+# broken on Xenix and BeOS
+category: !os:beos,!os:sco_xenix
 stdin:
 	cat >cld <<-EOF
 		#!$__perlname
@@ -11585,6 +11590,7 @@ name: fd-cloexec-2
 description:
 	Verify that file descriptors > 2 are not private for POSIX shells
 	See Debian Bug #154540, Closes: #499139
+category: !os:beos,!os:sco_xenix
 stdin:
 	cat >cld <<-EOF
 		#!$__perlname
