@@ -44,7 +44,7 @@
 
 #include <sys/types.h>
 
-__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.8 2021/07/31 19:54:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.9 2021/07/31 19:56:33 tg Exp $");
 
 /*-
  * BAFH itself is defined by the following primitives:
@@ -61,7 +61,7 @@ __RCSID("$MirOS: src/bin/mksh/mirhash.h,v 1.8 2021/07/31 19:54:22 tg Exp $");
  *   the context is (still) zero, adding a NUL byte is not ignored.
  *
  * • BAFHror(eax,cl) evaluates to the unsigned 32-bit integer “eax”,
- *   rotated right by “cl” ∈ [0; 31] (no casting, be careful!) where
+ *   rotated right by “cl” ∈ [1; 31] (no casting, be careful!) where
  *   “eax” must be uint32_t and “cl” an in-range integer.
  *
  * • BAFHFinish(ctx) avalanches the context around so every sub-byte
