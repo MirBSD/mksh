@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.793 2021/07/31 17:50:02 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.794 2021/07/31 18:01:26 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -232,7 +232,7 @@ Flags on entry (plus HAVE_* which are not shown here):
  CPPFLAGS  <$CPPFLAGS>
  LDFLAGS   <$LDFLAGS>
  LIBS      <$LIBS>
- TARGET_OS <$TARGET_OS>
+ TARGET_OS <$TARGET_OS> TARGET_OSREV <$TARGET_OSREV>
 
 EOF
 
@@ -786,7 +786,7 @@ NEXTSTEP)
 	    grep 'NeXT Mach [0-9][0-9.]*:' | \
 	    sed 's/^.*NeXT Mach \([0-9][0-9.]*\):.*$/\1/'`
 	;;
-QNX|SCO_SV)
+BeOS|QNX|SCO_SV)
 	test_n "$TARGET_OSREV" || TARGET_OSREV=`uname -r`
 	;;
 esac
@@ -812,17 +812,28 @@ AIX)
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 BeOS)
+TARGET_OSREV
 	: "${CC=gcc}"
-	case $KSH_VERSION in
-	*MIRBSD\ KSH*)
-		oswarn="; it has minor issues"
+	case $TARGET_OSREV in
+	[012345].*)
+		oswarn="; it has MAJOR issues"
+		test x"$TARGET_OSREV" = x"5.1" || \
+		    cpp_define MKSH_NO_SIGSUSPEND 1
 		;;
 	*)
-		oswarn="; you must recompile mksh with"
-		oswarn="$oswarn${nl}itself in a second stage"
+		oswarn="; it has minor issues"
+		;;
+	esac
+	case $KSH_VERSION in
+	*MIRBSD\ KSH*)
+		;;
+	*)
 		case $ZSH_VERSION in
 		*[0-9]*)
-			oswarn="; it has minor issues"
+			;;
+		*)
+			oswarn="; you must recompile mksh with"
+			oswarn="$oswarn${nl}itself in a second stage"
 			;;
 		esac
 		;;
