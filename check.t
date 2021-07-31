@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.871 2021/07/31 17:44:39 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.872 2021/07/31 19:40:36 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -8587,6 +8587,7 @@ stdin:
 	[[ -o !sh ]] && echo nosh
 	[[ -o braceexpand ]] && echo brex
 	[[ -o !braceexpand ]] && echo nobrex
+	:
 expected-stdout:
 	nosh
 	brex
