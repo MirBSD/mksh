@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.792 2021/07/31 17:30:56 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.793 2021/07/31 17:50:02 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -812,6 +812,7 @@ AIX)
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 BeOS)
+	: "${CC=gcc}"
 	case $KSH_VERSION in
 	*MIRBSD\ KSH*)
 		oswarn="; it has minor issues"
