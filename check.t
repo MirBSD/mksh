@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.872 2021/07/31 19:40:36 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.873 2021/08/01 15:55:58 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -6199,6 +6199,8 @@ expected-stdout:
 name: regression-33
 description:
 	Does umask print a leading 0 when umask is 3 digits?
+# prints 0600…
+category: !os:skyos
 stdin:
 	# on MiNT, the first umask call seems to fail
 	umask 022
@@ -7866,25 +7868,35 @@ expected-stdout:
 ---
 name: exit-enoent-1
 description:
-	SUSv4 says that the shell should exit with 126/127 in some situations
+	SUSv4 says that the shell should exit with 127 in some situations
 stdin:
-	i=0
 	(echo; echo :) >x
-	"$__progname" ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
-	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
+	"$__progname" ./x >/dev/null 2>&1; r=$?; echo 0 $r .
 	echo exit 42 >x
-	"$__progname" ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
-	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
+	"$__progname" ./x >/dev/null 2>&1; r=$?; echo 42 $r .
 	rm -f x
-	"$__progname" ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
-	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo $((i++)) $r .
+	"$__progname" ./x >/dev/null 2>&1; r=$?; echo notexist $r .
 expected-stdout:
 	0 0 .
-	1 126 .
-	2 42 .
-	3 126 .
-	4 127 .
-	5 127 .
+	42 42 .
+	notexist 127 .
+---
+name: exit-enoent-2
+description:
+	SUSv4 says that the shell should exit with 126 in some situations
+# fails because x permissions handled wrong
+category: !os:skyos
+stdin:
+	(echo; echo :) >x
+	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo 0 $r .
+	echo exit 42 >x
+	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo 42 $r .
+	rm -f x
+	"$__progname" -c ./x >/dev/null 2>&1; r=$?; echo notexist $r .
+expected-stdout:
+	0 126 .
+	42 126 .
+	notexist 127 .
 ---
 name: exit-eval-1
 description:
@@ -7926,8 +7938,8 @@ expected-stdout:
 name: exit-stdout-1
 description:
 	cf. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=990265, Austin ML
-# SIGPIPE seems hosed on BeOS
-category: !os:beos
+# SIGPIPE seems hosed on BeOS and SkyOS
+category: !os:beos,!os:skyos
 stdin:
 	if test -c /dev/full && test -w /dev/full; then
 		if pwd >/dev/full 2>e; then
@@ -7963,7 +7975,7 @@ expected-stdout-pattern:
 name: exit-stdout-2
 description:
 	same, except for external utility / direct builtin call
-category: !os:beos
+category: !os:beos,!os:skyos
 stdin:
 	ln -s "$__progname" pwd 2>/dev/null || cp "$__progname" pwd
 	if test -c /dev/full && test -w /dev/full; then
