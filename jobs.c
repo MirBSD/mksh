@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.138 2021/07/30 03:13:43 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.139 2021/08/04 16:57:36 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1135,7 +1135,7 @@ j_waitj(Job *j,
 {
 	Proc *p;
 	int rv;
-#ifdef MKSH_NO_SIGSUSPEND
+#if !defined(MKSH_NOPROSPECTOFWORK) && defined(MKSH_NO_SIGSUSPEND)
 	sigset_t omask;
 #endif
 
@@ -1336,7 +1336,7 @@ j_sigchld(int sig MKSH_A_UNUSED)
 	pid_t pid;
 	int status;
 	struct rusage ru0, ru1;
-#ifdef MKSH_NO_SIGSUSPEND
+#if !defined(MKSH_NOPROSPECTOFWORK) && defined(MKSH_NO_SIGSUSPEND)
 	sigset_t omask;
 
 	/* this handler can run while SIGCHLD is not blocked, so block it now */
@@ -1426,7 +1426,7 @@ j_sigchld(int sig MKSH_A_UNUSED)
 #endif
 
  j_sigchld_out:
-#ifdef MKSH_NO_SIGSUSPEND
+#if !defined(MKSH_NOPROSPECTOFWORK) && defined(MKSH_NO_SIGSUSPEND)
 	sigprocmask(SIG_SETMASK, &omask, NULL);
 #endif
 	errno = saved_errno;
