@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.795 2021/07/31 19:35:51 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.796 2021/08/06 16:38:14 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -1126,6 +1126,17 @@ SCO_SV)
 		;;
 	esac
 	: "${HAVE_SYS_SIGLIST=0}${HAVE__SYS_SIGLIST=0}"
+	;;
+SerenityOS)
+	oswarn="; it has major issues"
+	cpp_define MKSH_NO_SIGSUSPEND 1
+	: "${MKSH_UNLIMITED=1}"
+	cpp_define MKSH_UNEMPLOYED 1
+	cpp_define MKSH_DISABLE_TTY_WARNING 1
+	cpp_define MKSH_NO_SIGSETJMP 1
+	cpp_define _setjmp setjmp
+	cpp_define _longjmp longjmp
+	cpp_define MKSH_USABLE_SIGNALFUNC signal
 	;;
 skyos)
 	oswarn="; it has minor issues"
