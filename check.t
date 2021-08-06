@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.873 2021/08/01 15:55:58 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.874 2021/08/06 17:40:29 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -202,6 +202,25 @@ stdin:
 	"$__progname" -c 'print -r -- $PATHSEP'
 expected-stdout:
 	;
+---
+name: selftest-tools
+description:
+	Check that relevant tools work as expected. If not, e.g. on SerenityOS,
+	install better tools from ports and prepend /usr/local/bin to $PATH.
+stdin:
+	echo foobarbaz | grep bar
+	echo = $?
+	echo abc | sed y/ac/AC/
+	echo = $?
+	echo abc | tr ac AC
+	echo = $?
+expected-stdout:
+	foobarbaz
+	= 0
+	AbC
+	= 0
+	AbC
+	= 0
 ---
 name: selftest-tty-absent
 description:

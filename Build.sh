@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.798 2021/08/06 17:28:42 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.799 2021/08/06 17:40:28 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -45,6 +45,20 @@ if test -d /usr/xpg4/bin/. >/dev/null 2>&1; then
 	PATH=/usr/xpg4/bin:$PATH
 	export PATH
 fi
+
+test_tool() {
+	x=`echo $2 | $3`
+	y=$?
+
+	test x"$y" = x"0" && test x"$x" = x"$4" && return
+	echo >&2 "E: your $1 does not work correctly!"
+	echo >&2 "N: 'echo $2 | $3' exited $y and returned '$x' instead of '$4'"
+	echo >&2 'N: install a better one and prepend e.g. /usr/local/bin to $PATH'
+	exit 1
+}
+test_tool grep foobarbaz 'grep bar' foobarbaz
+test_tool sed abc 'sed y/ac/AC/' AbC
+test_tool tr abc 'tr ac AC' AbC
 
 nl='
 '
