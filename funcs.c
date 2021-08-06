@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.388 2021/07/30 03:05:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.389 2021/08/06 16:46:44 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2336,13 +2336,13 @@ c_times(const char **wp MKSH_A_UNUSED)
 {
 	struct rusage usage;
 
-	getrusage(RUSAGE_SELF, &usage);
+	ksh_getrusage(RUSAGE_SELF, &usage);
 	p_time(shl_stdout, false, usage.ru_utime.tv_sec,
 	    usage.ru_utime.tv_usec, 0, null, T1space);
 	p_time(shl_stdout, false, usage.ru_stime.tv_sec,
 	    usage.ru_stime.tv_usec, 0, null, "\n");
 
-	getrusage(RUSAGE_CHILDREN, &usage);
+	ksh_getrusage(RUSAGE_CHILDREN, &usage);
 	p_time(shl_stdout, false, usage.ru_utime.tv_sec,
 	    usage.ru_utime.tv_usec, 0, null, T1space);
 	p_time(shl_stdout, false, usage.ru_stime.tv_sec,
@@ -2365,8 +2365,8 @@ timex(struct op *t, int f, volatile int *xerrok)
 	struct timeval usrtime, systime, tv0, tv1;
 
 	mksh_TIME(tv0);
-	getrusage(RUSAGE_SELF, &ru0);
-	getrusage(RUSAGE_CHILDREN, &cru0);
+	ksh_getrusage(RUSAGE_SELF, &ru0);
+	ksh_getrusage(RUSAGE_CHILDREN, &cru0);
 	if (t->left) {
 		/*
 		 * Two ways of getting cpu usage of a command: just use t0
@@ -2382,8 +2382,8 @@ timex(struct op *t, int f, volatile int *xerrok)
 		if (t->left->type == TCOM)
 			tf |= t->left->str[0];
 		mksh_TIME(tv1);
-		getrusage(RUSAGE_SELF, &ru1);
-		getrusage(RUSAGE_CHILDREN, &cru1);
+		ksh_getrusage(RUSAGE_SELF, &ru1);
+		ksh_getrusage(RUSAGE_CHILDREN, &cru1);
 	} else
 		tf = TF_NOARGS;
 

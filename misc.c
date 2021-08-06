@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.324 2021/07/31 19:35:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.325 2021/08/06 16:46:45 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -2615,7 +2615,7 @@ strdup_i(const char *src, Area *ap)
 } while (/* CONSTCOND */ 0)
 
 int
-getrusage(int what, struct rusage *ru)
+ksh_getrusage(int what, struct rusage *ru)
 {
 	struct tms tms;
 	clock_t u, s;

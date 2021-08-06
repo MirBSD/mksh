@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.139 2021/08/04 16:57:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.140 2021/08/06 16:46:45 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1357,7 +1357,7 @@ j_sigchld(int sig MKSH_A_UNUSED)
 		}
 #endif
 
-	getrusage(RUSAGE_CHILDREN, &ru0);
+	ksh_getrusage(RUSAGE_CHILDREN, &ru0);
 	do {
 #ifndef MKSH_NOPROSPECTOFWORK
 		pid = waitpid(-1, &status, (WNOHANG |
@@ -1376,7 +1376,7 @@ j_sigchld(int sig MKSH_A_UNUSED)
 		if (pid <= 0)
 			goto j_sigchld_out;
 
-		getrusage(RUSAGE_CHILDREN, &ru1);
+		ksh_getrusage(RUSAGE_CHILDREN, &ru1);
 
 		/* find job and process structures for this pid */
 		for (j = job_list; j != NULL; j = j->next)

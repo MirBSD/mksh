@@ -202,7 +202,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.938 2021/07/31 19:35:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.939 2021/08/06 16:46:46 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/06/29"
 
@@ -313,8 +313,8 @@ typedef MKSH_TYPEDEF_SSIZE_T ssize_t;
 
 /* extra types */
 
-/* getrusage does not exist on OS/2 kLIBC */
-#if !HAVE_GETRUSAGE && !defined(__OS2__)
+/* getrusage does not exist on OS/2 kLIBC and is stubbed on SerenityOS */
+#if !HAVE_GETRUSAGE
 #undef rusage
 #undef RUSAGE_SELF
 #undef RUSAGE_CHILDREN
@@ -326,6 +326,10 @@ struct rusage {
 	struct timeval ru_utime;
 	struct timeval ru_stime;
 };
+
+extern int ksh_getrusage(int, struct rusage *);
+#else
+#define ksh_getrusage getrusage
 #endif
 
 /* extra macros */
@@ -488,10 +492,6 @@ extern int flock(int, int);
 } while (/* CONSTCOND */ 0)
 #else
 #define mksh_TIME(tv) gettimeofday(&(tv), NULL)
-#endif
-
-#if !HAVE_GETRUSAGE
-extern int getrusage(int, struct rusage *);
 #endif
 
 #if !HAVE_MEMMOVE
