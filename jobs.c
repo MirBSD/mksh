@@ -22,8 +22,11 @@
  */
 
 #include "sh.h"
+#ifdef MKSH_POLL_FOR_PAUSE
+#include <poll.h>
+#endif
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.140 2021/08/06 16:46:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.141 2021/08/06 17:28:43 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -1156,7 +1159,11 @@ j_waitj(Job *j,
 #ifndef MKSH_NOPROSPECTOFWORK
 #ifdef MKSH_NO_SIGSUSPEND
 		sigprocmask(SIG_SETMASK, &sm_default, &omask);
+#ifdef MKSH_POLL_FOR_PAUSE
+		poll(NULL, 0, -1);
+#else
 		pause();
+#endif
 		/* note that handlers may run here so they need to know */
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 #else

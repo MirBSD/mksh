@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.797 2021/08/06 16:46:43 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.798 2021/08/06 17:28:42 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -1130,6 +1130,7 @@ SCO_SV)
 SerenityOS)
 	oswarn="; it has major issues"
 	cpp_define MKSH_NO_SIGSUSPEND 1
+	cpp_define MKSH_POLL_FOR_PAUSE 1
 	: "${MKSH_UNLIMITED=1}${HAVE_GETRUSAGE=0}"
 	cpp_define MKSH_UNEMPLOYED 1
 	cpp_define MKSH_DISABLE_TTY_WARNING 1
