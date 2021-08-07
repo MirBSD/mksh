@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.325 2021/08/06 16:46:45 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.326 2021/08/07 03:22:14 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -2619,6 +2619,9 @@ ksh_getrusage(int what, struct rusage *ru)
 {
 	struct tms tms;
 	clock_t u, s;
+#ifndef CLK_TCK
+	long CLK_TCK;
+#endif
 
 	if (/* ru == NULL || */ times(&tms) == (clock_t)-1)
 		return (-1);
@@ -2636,6 +2639,15 @@ ksh_getrusage(int what, struct rusage *ru)
 		errno = EINVAL;
 		return (-1);
 	}
+#ifndef CLK_TCK
+#ifdef ENOSYS
+	errno = ENOSYS;
+#else
+	errno = EINVAL;
+#endif
+	if ((CLK_TCK = sysconf(_SC_CLK_TCK)) == -1L)
+		internal_errorf("sysconf(_SC_CLK_TCK): %s", cstrerror(errno));
+#endif
 	INVTCK(ru->ru_utime, u);
 	INVTCK(ru->ru_stime, s);
 	return (0);
