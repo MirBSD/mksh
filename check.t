@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.874 2021/08/06 17:40:29 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.875 2021/08/07 18:35:10 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -4190,7 +4190,7 @@ description:
 category: stdout-ed
 need-ctty: yes
 need-pass: no
-arguments: !-i!
+arguments: !-ie!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
 	PS1=X
@@ -4214,7 +4214,7 @@ description:
 category: stdout-ed
 need-ctty: yes
 need-pass: no
-arguments: !-i!
+arguments: !-ie!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
 	PS1=X
@@ -4246,7 +4246,7 @@ description:
 category: stdout-ed
 need-ctty: yes
 need-pass: no
-arguments: !-i!
+arguments: !-ie!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
 	PS1=X
@@ -4279,7 +4279,7 @@ description:
 category: !no-stderr-ed
 need-ctty: yes
 need-pass: no
-arguments: !-i!
+arguments: !-ie!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
 	PS1=X
@@ -4301,7 +4301,7 @@ description:
 category: !no-stderr-ed
 need-ctty: yes
 need-pass: no
-arguments: !-i!
+arguments: !-ie!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
 	PS1=X
@@ -4330,7 +4330,7 @@ description:
 category: !no-stderr-ed
 need-ctty: yes
 need-pass: no
-arguments: !-i!
+arguments: !-ie!
 env-setup: !ENV=./Env!HISTFILE=hist.file!
 file-setup: file 644 "Env"
 	PS1=X
