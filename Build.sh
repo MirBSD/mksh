@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.799 2021/08/06 17:40:28 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.800 2021/08/07 02:45:21 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -1152,6 +1152,10 @@ SerenityOS)
 	cpp_define _setjmp setjmp
 	cpp_define _longjmp longjmp
 	cpp_define MKSH_USABLE_SIGNALFUNC signal
+	# this is NOT generally correct: CLOCKS_PER_SEC is for clock(3),
+	# while CLK_TCK (or sysconf(_SC_CLK_TCK) as of POSIX.1-1996) is
+	# for times(3) so they need not match, but in SerenityOS they do
+	cpp_define CLK_TCK CLOCKS_PER_SEC
 	;;
 skyos)
 	oswarn="; it has minor issues"
