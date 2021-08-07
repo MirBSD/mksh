@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.801 2021/08/07 03:22:13 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.802 2021/08/07 18:39:40 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -988,6 +988,11 @@ Minix3)
 	cpp_define MKSH_UNEMPLOYED 1
 	oldish_ed=no-stderr-ed		# /usr/bin/ed(!) is broken
 	: "${HAVE_SETLOCALE_CTYPE=0}${MKSH_UNLIMITED=1}" #XXX recheck ulimit
+	;;
+Minoca)
+	: "${CC=gcc}"
+	# heredoc-tmpfile-{5,6}
+	oswarn="; it has minor issues"
 	;;
 MirBSD)
 	# for testing HAVE_SIGACTION=0 builds only (but fulfills the contract)
