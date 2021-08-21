@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.515 2021/08/21 08:42:29 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.516 2021/08/21 18:20:32 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -6287,8 +6287,11 @@ Goes to history number
 .No KILL Pq \*(haU
 .Xc
 Deletes the entire input line.
-.It kill\-region: \*(haW
+.It kill\-region: \*(ha[\*(haW
 Deletes the input between the cursor and the mark.
+Note: this used to be bound to \*(haW like in Emacs, which is usually taken by
+.Dv WERASE
+though, so it was moved.
 .It Xo kill\-to\-eol:
 .Op Ar n
 .No \*(haK

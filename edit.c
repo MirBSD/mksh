@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.381 2021/08/21 06:15:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.382 2021/08/21 18:20:30 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1148,7 +1148,7 @@ static struct x_defbindings const x_defbindings[] = {
 	{ XFUNC_list_comm,		2,	'?'	},
 	{ XFUNC_list_file,		2,  CTRL_Y	},
 	{ XFUNC_set_mark,		1,	' '	},
-	{ XFUNC_kill_region,		0,  CTRL_W	},
+	{ XFUNC_kill_region,		1,  CTRL_W	},
 	{ XFUNC_xchg_point_mark,	2,  CTRL_X	},
 	{ XFUNC_literal,		0,  CTRL_V	},
 	{ XFUNC_version,		1,  CTRL_V	},
