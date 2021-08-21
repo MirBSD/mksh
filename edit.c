@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.380 2021/07/31 19:35:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.381 2021/08/21 06:15:46 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2944,8 +2944,7 @@ do_complete(
 	}
 	if (completed) {
 		/* expand on the command line */
-		xmp = NULL;
-		xcp = xbuf + start;
+		xmp = xcp = xbuf + start;
 		xep -= olen;
 		memmove(xcp, xcp + olen, xep - xcp + 1);
 		x_escape(words[0], nlen, x_do_ins);
