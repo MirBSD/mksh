@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.386 2021/07/31 19:35:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.387 2021/08/21 08:23:41 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -393,7 +393,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	/*
 	 * Set PATH to def_path (will set the path global variable).
-	 * (import of environment below will probably change this setting).
+	 * Import of environment below will probably change this setting;
+	 * the EXPORT flag is only added via initcoms for this to work.
 	 */
 	vp = global(TPATH);
 	/* setstr can't fail here */

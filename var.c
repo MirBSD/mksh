@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.248 2021/08/21 07:41:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.249 2021/08/21 08:23:41 tg Exp $");
 
 /*-
  * Variables
@@ -938,7 +938,8 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 	vp = (set & LOCAL) ? local(tvar, tobool(set & LOCAL_COPY)) :
 	    global(tvar);
 	/* when importing environment, resolve duplicates as first-wins */
-	if ((set & IMPORT) && (vp->flag & ISSET))
+	/* the EXPORT check is to permit overwriting the default $PATH */
+	if ((set & IMPORT) && (vp->flag & (ISSET | EXPORT)) == (ISSET | EXPORT))
 		return (NULL);
 	if (new_refflag == SRF_DISABLE && (vp->flag & (ARRAY|ASSOC)) == ASSOC)
 		vp->flag &= ~ASSOC;
