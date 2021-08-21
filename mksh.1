@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.513 2021/07/30 03:05:52 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.514 2021/08/21 07:53:56 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: July 30 2021 $
+.Dd $Mdocdate: August 21 2021 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -2741,7 +2741,9 @@ This also affects implicit conversion to integer, for example as done by the
 .Ic let
 command.
 .Em Never
-use unchecked user input, e.g. from the environment, in an arithmetic context!
+use unchecked user input, e.g. from the environment (although the shell
+tracks import status and refuses to automatically coerce those), in
+arithmetic context!
 .Pp
 Expressions are calculated using signed arithmetic and the
 .Vt mksh_ari_t
