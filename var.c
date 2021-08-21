@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.249 2021/08/21 08:23:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.250 2021/08/21 08:42:30 tg Exp $");
 
 /*-
  * Variables
@@ -1203,6 +1203,21 @@ is_wdvarassign(const char *s)
 	    (p[1] == '=' || (p[1] == '+' && p[2] == CHAR && p[3] == '=')));
 }
 
+/* don’t leak internal hash table order */
+static int
+envsort(const void *a, const void *b)
+{
+	const kby *cp1 = *(const kby * const *)a;
+	const kby *cp2 = *(const kby * const *)b;
+
+	while (*cp1 == *cp2) {
+		if (*cp1 == '=' || *cp1++ == '\0')
+			return (0);
+		++cp2;
+	}
+	return ((int)asciibetical(*cp1) - (int)asciibetical(*cp2));
+}
+
 /*
  * Make the exported environment from the exported names in the dictionary.
  */
@@ -1251,6 +1266,7 @@ makenv(void)
 		if (l->flags & BF_STOPENV)
 			break;
 	}
+	qsort(XPptrv(denv), XPsize(denv), sizeof(void *), envsort);
 	XPput(denv, NULL);
 	return ((char **)XPclose(denv));
 }
