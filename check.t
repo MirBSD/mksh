@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.875 2021/08/07 18:35:10 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.876 2021/08/31 16:39:25 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -13365,6 +13365,9 @@ name: env-intvars
 description:
 	Check that importing integers fails except for numbers
 stdin:
+	print '#!'"$__perlname"'\n($k, $v) = split(/=/, shift(@ARGV),' \
+	    '2);\n$ENV{$k} = $v;\nexec { $ARGV[0] } @ARGV or die $!;' \
+	    >env; chmod +x env; PATH=.$PATHSEP$PATH
 	unset foo bar
 	print 1 $foo , $(typeset -p bar) .
 	print 2 $(foo=123 "$__progname" -c 'integer foo; print -- $foo' 2>&1) , \
