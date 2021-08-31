@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.803 2021/08/13 16:26:26 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.804 2021/08/31 16:40:52 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -1011,7 +1011,7 @@ NEXTSTEP)
 	add_cppflags -D_NEXT_SOURCE
 	add_cppflags -D_POSIX_SOURCE
 	: "${AWK=gawk}"
-	: "${CC=cc -posix}"
+	: "${CC=cc -posix -traditional-cpp}"
 	cpp_define MKSH_NO_SIGSETJMP 1
 	# NeXTstep cannot get a controlling tty
 	cpp_define MKSH_UNEMPLOYED 1
