@@ -202,7 +202,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.939 2021/08/06 16:46:46 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.940 2021/09/01 13:23:22 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/06/29"
 
@@ -592,6 +592,10 @@ extern int __cdecl setegid(gid_t);
 
 /* define bit in flag */
 #define BIT(i)		(1U << (i))
+/* check bit(s) */
+#define HAS(v,f)	(((v) & (f)) == (f))
+#define IS(v,f,t)	(((v) & (f)) == (t))
+/* array sizing */
 #define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
 
 /*

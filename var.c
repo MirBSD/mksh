@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.250 2021/08/21 08:42:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.251 2021/09/01 13:23:24 tg Exp $");
 
 /*-
  * Variables
@@ -430,14 +430,15 @@ str_val(struct tbl *vp)
 			n = (vp->val.i < 0) ? -vp->val.u : vp->val.u;
 		base = (vp->type == 0) ? 10U : (unsigned int)vp->type;
 
-		if (base == 1 && n == 0)
-			base = 2;
 		if (base == 1) {
 			size_t sz = 1;
 
 			*(s = strbuf) = '1';
 			s[1] = '#';
-			if (!UTFMODE)
+			if (n == 0) {
+				s[0] = '2';
+				s[2] = '0';
+			} else if (!UTFMODE)
 				s[2] = (unsigned char)n;
 			else if ((n & 0xFF80) == 0xEF80)
 				/* OPTU-16 -> raw octet */
@@ -707,7 +708,7 @@ formatstr(struct tbl *vp, const char *s)
 				--qq;
 				--slen;
 			}
-			if (vp->flag & ZEROFIL && vp->flag & INTEGER) {
+			if (HAS(vp->flag, ZEROFIL | INTEGER)) {
 				if (!s[0] || !s[1])
 					goto uhm_no;
 				if (s[1] == '#')
@@ -2202,7 +2203,6 @@ c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, int any_set,
     bool pflag, bool istset)
 {
 	struct tbl *tvp;
-	char *s;
 
 	if (!vp)
 		return;
@@ -2234,6 +2234,8 @@ c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, int any_set,
 		/* optimise later conditionals */
 		any_set = 0;
 	do {
+		bool baseone = false;
+
 		/*
 		 * Ignore array elements that aren't set unless there
 		 * are no set elements, in which case the first is
@@ -2255,8 +2257,13 @@ c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, int any_set,
 			shprintf(Tf_s_, Ttypeset);
 			if (((vp->flag & (ARRAY | ASSOC)) == ASSOC))
 				shprintf(Tf__c_, 'n');
-			if ((vp->flag & INTEGER))
-				shprintf(Tf__c_, 'i');
+			if ((vp->flag & INTEGER)) {
+				if (vp->type == 1) {
+					baseone = true;
+					shf_puts("-i1 ", shl_stdout);
+				} else
+					shprintf(Tf__c_, 'i');
+			}
 			if ((vp->flag & EXPORT))
 				shprintf(Tf__c_, 'x');
 			if ((vp->flag & RDONLY))
@@ -2284,13 +2291,20 @@ c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, int any_set,
 			shprintf("[%lu]", arrayindex(vp));
 		if ((!thing && !flag && pflag) ||
 		    (thing == '-' && (vp->flag & ISSET))) {
-			s = str_val(vp);
 			shf_putc('=', shl_stdout);
-			/* AT&T ksh can't have justified integers... */
-			if ((vp->flag & (INTEGER | LJUST | RJUST)) == INTEGER)
-				shf_puts(s, shl_stdout);
-			else
-				print_value_quoted(shl_stdout, s);
+			if (baseone)
+				shprintf(vp->val.u > 0xFF ? "16#%04X" :
+				    "16#%02X", (unsigned int)vp->val.u);
+			else {
+				const char *s = str_val(vp);
+
+				/* AT&T ksh can't have justified integers... */
+				if (IS(vp->flag, INTEGER | LJUST | RJUST,
+				    INTEGER))
+					shf_puts(s, shl_stdout);
+				else
+					print_value_quoted(shl_stdout, s);
+			}
 		}
 		shf_putc('\n', shl_stdout);
 
