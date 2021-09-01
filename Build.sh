@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.804 2021/08/31 16:40:52 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.805 2021/09/01 13:32:36 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -906,6 +906,7 @@ Haiku)
 	cpp_define MKSH_ASSUME_UTF8 1
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=0
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 Harvey)
 	add_cppflags -D_POSIX_SOURCE
@@ -916,6 +917,7 @@ Harvey)
 	cpp_define MKSH_ASSUME_UTF8 1
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=0
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	cpp_define MKSH__NO_SYMLINK 1
 	check_categories="$check_categories nosymlink"
 	cpp_define MKSH_NO_CMDLINE_EDITING 1
@@ -947,6 +949,7 @@ Jehanne)
 	cpp_define MKSH_ASSUME_UTF8 1
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=0
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	cpp_define MKSH__NO_SYMLINK 1
 	check_categories="$check_categories nosymlink"
 	cpp_define MKSH_NO_CMDLINE_EDITING 1
@@ -1036,6 +1039,7 @@ OS/2)
 	cpp_define MKSH_ASSUME_UTF8 0
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=1
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	HAVE_TERMIOS_H=0
 	HAVE_MKNOD=0	# setmode() incompatible
 	check_categories="$check_categories nosymlink"
@@ -1072,6 +1076,7 @@ OS/390)
 	cpp_define MKSH_ASSUME_UTF8 0
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=1
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	: "${CC=xlc}"
 	: "${SIZE=: size}"
 	cpp_define MKSH_FOR_Z_OS 1
@@ -1094,6 +1099,7 @@ Plan9)
 	cpp_define MKSH_ASSUME_UTF8 1
 	HAVE_ISSET_MKSH_ASSUME_UTF8=1
 	HAVE_ISOFF_MKSH_ASSUME_UTF8=0
+	: "${HAVE_SETLOCALE_CTYPE=0}"
 	cpp_define MKSH__NO_SYMLINK 1
 	check_categories="$check_categories nosymlink"
 	cpp_define MKSH_NO_CMDLINE_EDITING 1
