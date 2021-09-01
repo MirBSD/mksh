@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.517 2021/09/01 13:23:21 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.518 2021/09/01 13:28:59 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -3257,8 +3257,7 @@ See
 .Fl +x Oc
 .Op Fl p
 .Op Cm +
-.Oo Ar name
-.Op Ns = Ns Ar value
+.Oo Ar name Ns Op = Ns Ar value
 .Ar ... Oc
 .Xc
 .Pq regular
@@ -3920,8 +3919,7 @@ Same as
 .It Xo
 .Ic integer
 .Op flags
-.Oo Ar name
-.Op Ns = Ns Ar value
+.Oo Ar name Ns Op = Ns Ar value
 .Ar ... Oc
 .Xc
 .Pq built-in alias
@@ -4000,8 +3998,7 @@ is syntactic sugar for:
 .It Xo
 .Ic local
 .Op flags
-.Oo Ar name
-.Op Ns = Ns Ar value
+.Oo Ar name Ns Op = Ns Ar value
 .Ar ... Oc
 .Xc
 .Pq built-in alias
@@ -4048,8 +4045,7 @@ however, distributors may have added this as builtin as a speed hack.
 .It Xo
 .Ic nameref
 .Op flags
-.Oo Ar name
-.Op Ns = Ns Ar value
+.Oo Ar name Ns Op = Ns Ar value
 .Ar ... Oc
 .Xc
 .Pq built-in alias
@@ -4320,8 +4316,7 @@ exits with a non-zero status.
 .It Xo
 .Ic readonly
 .Op Fl p
-.Oo Ar parameter
-.Op Ns = Ns Ar value
+.Oo Ar parameter Ns Op = Ns Ar value
 .Ar ... Oc
 .Xc
 .Pq keeps assignments , special, decl-util
@@ -5208,8 +5203,7 @@ would be interpreted as command.
 .No \*(Ba Fl R Ns Op Ar n
 .No \*(Ba Fl Z Ns Op Ar n Oc
 .Op Fl i Ns Op Ar n
-.Oo Ar name
-.Op Ns = Ns Ar value
+.Oo Ar name Ns Op = Ns Ar value
 .Ar ... Oc
 .Xc
 .It Xo
