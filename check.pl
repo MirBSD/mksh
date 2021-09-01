@@ -1,8 +1,8 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.51 2020/06/22 17:10:59 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.52 2021/09/01 11:31:37 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
-#		2012, 2013, 2014, 2015, 2017
+#		2012, 2013, 2014, 2015, 2017, 2021
 #	mirabilos <m@mirbsd.org>
 #
 # Provided that these terms and disclaimer and all copyright notices
@@ -40,6 +40,18 @@
 #	is expected to produce "hi*" (no trailing newline) on standard output,
 #	"+ echo hi*\n+false\n" on standard error, and an exit code of 1.
 #
+# The test-program is invoked with a new environment vector by default which
+# is composed of the following parameters from the inherited environ if set:
+#	HOME, LD_LIBRARY_PATH, LOCPATH, LOGNAME,
+#	PATH, PERLIO, SHELL, UNIXMODE, UNIXROOT, USER
+# Additionally, some parameters are set as follows (without the quotes):
+#	CYGWIN to "nodosfilewarning"
+#	ENV to "/nonexistant"
+#	__perlname to $^X (perlexe)
+# Any -e option arguments are added, or, if no equals sign is given, removed.
+# Each test's env-setup (see below) is processed in the same way affecting
+# the environment of that test. Finally, in the per-test environ, __progname
+# is set to the -p argument or (if -P) its first word.
 #
 # Format of test files:
 # - blank lines and lines starting with # are ignored
@@ -65,22 +77,12 @@
 #	perl-cleanup		m	Value is a perl script which is executed
 #					just after the test is run. Try to
 #					avoid using this...
-#	env-setup		M	Value is a list of NAME=VALUE elements
-#					which are put in the environment before
-#					the test is run. If the =VALUE is
-#					missing, NAME is removed from the
-#					environment. Programs are run with
-#					the following minimal environment:
-#					    HOME, LD_LIBRARY_PATH, LOCPATH,
-#					    LOGNAME, PATH, SHELL, UNIXMODE,
-#					    UNIXROOT, USER
-#					(values taken from the environment of
-#					the test harness).
-#					CYGWIN is set to nodosfilewarning.
-#					ENV is set to /nonexistant.
-#					__progname is set to the -p argument.
-#					__perlname is set to $^X (perlexe).
-#					@utflocale@ is substituted from -U.
+#	env-setup		M	Value is a list of elements that are
+#					removed from the per-test environment
+#					(if no equals sign present) or added
+#					to it if of the NAME=VALUE form, after
+#					substituting @utflocale@ for -U option.
+#					For more about test environ see above.
 #	file-setup		mps	Used to create files, directories
 #					and symlinks. First word is either
 #					file, dir or symlink; second word is
@@ -198,7 +200,7 @@ Usage: $prog [-Pv] [-C cat] [-e e=v] [-p prog] [-s fn] [-T dir] \
 		scanned for test files (which end in .t).
 	-T dir	Use dir instead of /tmp to hold temporary files
 	-t t	Use t as default time limit for tests (default is unlimited)
-	-U lcl	Use lcl as UTF-8 locale (e.g. C.UTF-8) instead of the default
+	-U lcl	Specify UTF-8 locale (e.g. en_US.UTF-8) instead of the default
 	-v	Verbose mode: print reason test failed.
 	name	specifies the name of the test(s) to run; if none are
 		specified, all tests are run.
@@ -259,7 +261,7 @@ $verbose = defined $opt_v && $opt_v;
 $is_ebcdic = defined $opt_E && $opt_E;
 $test_set = $opt_s;
 $temp_base = $opt_T || "/tmp";
-$utflocale = $opt_U || (($os eq "hpux") ? "en_US.utf8" : "en_US.UTF-8");
+$utflocale = $opt_U || (($os eq "hpux") ? "en_US.utf8" : "C.UTF-8");
 if (defined $opt_t) {
     die "$prog: bad -t argument (should be number > 0): $opt_t\n"
 	if $opt_t !~ /^\d+$/ || $opt_t <= 0;
