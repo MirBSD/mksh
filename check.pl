@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.52 2021/09/01 11:31:37 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.53 2021/09/01 11:33:34 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -47,6 +47,7 @@
 # Additionally, some parameters are set as follows (without the quotes):
 #	CYGWIN to "nodosfilewarning"
 #	ENV to "/nonexistant"
+#	LANG to "C"
 #	__perlname to $^X (perlexe)
 # Any -e option arguments are added, or, if no equals sign is given, removed.
 # Each test's env-setup (see below) is processed in the same way affecting
@@ -299,6 +300,7 @@ foreach $env (('HOME', 'LD_LIBRARY_PATH', 'LOCPATH', 'LOGNAME',
 }
 $new_env{'CYGWIN'} = 'nodosfilewarning';
 $new_env{'ENV'} = '/nonexistant';
+$new_env{'LANG'} = 'C';
 
 if (($os eq 'VMS') || ($Config{perlpath} =~ m/$Config{_exe}$/i)) {
 	$new_env{'__perlname'} = $Config{perlpath};
