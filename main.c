@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.387 2021/08/21 08:23:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.388 2021/09/01 11:57:35 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -2048,6 +2048,9 @@ x_mkraw(int fd, mksh_ttyst *ocb, bool forread)
 }
 
 #ifdef MKSH_ENVDIR
+#if HAVE_SETLOCALE_CTYPE
+# error MKSH_ENVDIR has not been adapted to work with POSIX locale!
+#else
 static void
 init_environ(void)
 {
@@ -2086,7 +2089,7 @@ init_environ(void)
 			while ((n = shf_read(xp, Xnleft(xs, xp), shf)) > 0) {
 				xp += n;
 				if (Xnleft(xs, xp) <= 0)
-					XcheckN(xs, xp, Xlength(xs, xp));
+					XcheckN(xs, xp, 128);
 			}
 			if (n < 0) {
 				warningf(false,
@@ -2108,6 +2111,7 @@ init_environ(void)
 	closedir(dirp);
 	Xfree(xs, xp);
 }
+#endif
 #else
 extern char **environ;
 
