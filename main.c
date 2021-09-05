@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.388 2021/09/01 11:57:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.389 2021/09/05 17:42:13 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -2160,9 +2160,9 @@ recheck_ctype(void)
 }
 #endif
 
-#if !HAVE_MEMMOVE && !HAVE_BCOPY
-void
-rpl_bcopy(const void *src, void *dst, size_t len)
+#if !HAVE_MEMMOVE
+void *
+rpl_memmove(void *dst, const void *src, size_t len)
 {
 	const unsigned char *s = src;
 	unsigned char *d = dst;
@@ -2177,5 +2177,6 @@ rpl_bcopy(const void *src, void *dst, size_t len)
 			while (len--)
 				*d++ = *s++;
 	}
+	return (dst);
 }
 #endif

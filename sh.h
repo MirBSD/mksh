@@ -202,7 +202,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.940 2021/09/01 13:23:22 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.941 2021/09/05 17:42:13 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/06/29"
 
@@ -495,12 +495,9 @@ extern int flock(int, int);
 #endif
 
 #if !HAVE_MEMMOVE
-#if HAVE_BCOPY
-#define memmove(dst,src,len)	bcopy((src), (dst), (len))
-#else
-#define memmove(dst,src,len)	rpl_bcopy((src), (dst), (len))
-void rpl_bcopy(const void *, void *, size_t);
-#endif
+#undef memmove
+#define memmove rpl_memmove
+void *rpl_memmove(void *, const void *, size_t);
 #endif
 
 #if !HAVE_REVOKE_DECL
