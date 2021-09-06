@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.53 2021/09/01 11:33:34 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.54 2021/09/06 14:06:31 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -302,22 +302,24 @@ $new_env{'CYGWIN'} = 'nodosfilewarning';
 $new_env{'ENV'} = '/nonexistant';
 $new_env{'LANG'} = 'C';
 
-if (($os eq 'VMS') || ($Config{perlpath} =~ m/$Config{_exe}$/i)) {
-	$new_env{'__perlname'} = $Config{perlpath};
-} else {
-	$new_env{'__perlname'} = $Config{perlpath} . $Config{_exe};
+$pn = $Config{perlpath};
+if ($pn ne '' and $os ne 'VMS' and $pn !~ m/$Config{_exe}$/i) {
+	$pn .= $Config{_exe};
 }
-$new_env{'__perlname'} = $^X if ($new_env{'__perlname'} eq '') and -f $^X and -x $^X;
-if ($new_env{'__perlname'} eq '') {
-	foreach $pathelt (split /:/,$ENV{'PATH'}) {
+if (($pn eq '' or ! -f $pn or ! -x $pn) and -f $^X and -x $^X) {
+	$pn = $^X;
+}
+if ($pn eq '' or ! -f $pn or ! -x $pn) {
+	foreach $pathelt (split /:/, $ENV{'PATH'}) {
 		chomp($pathelt = `pwd`) if $pathelt eq '';
 		my $x = $pathelt . '/' . $^X;
 		next unless -f $x and -x $x;
-		$new_env{'__perlname'} = $x;
+		$pn = $x;
 		last;
 	}
 }
-$new_env{'__perlname'} = $^X if ($new_env{'__perlname'} eq '');
+$pn = $^X if ($pn eq '');
+$new_env{'__perlname'} = $pn;
 
 if (defined $opt_e) {
     # XXX need a way to allow many -e arguments...
