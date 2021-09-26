@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.389 2021/09/05 17:42:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.390 2021/09/26 22:29:00 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -236,6 +236,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 #endif
 
 #if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
+	/* this must come *really* early due to locale use */
 	ebcdic_init();
 #endif
 	set_ifs(TC_IFSWS);
@@ -2127,7 +2128,23 @@ init_environ(void)
 	while (*wp != NULL) {
 		rndpush(*wp);
 		typeset(*wp, IMPORT | EXPORT, 0, 0, 0);
+#ifdef notyet
+		if (ord((*wp)[0]) == ORD('L') && (
+		    (ord((*wp)[1]) == ORD('C') && ord((*wp)[2]) == ORD('_')) ||
+		    !strcmp(*wp, "LANG"))) {
+			const char **P;
+
+			/* remove LC_* / LANG from own environment */
+			P = wp;
+			while ((*P = *(P + 1)))
+				++P;
+			/* now setlocale with "" will use the default locale */
+			/* matching the user expectation wrt passed-in vars */
+		} else
+			++wp;
+#else
 		++wp;
+#endif
 	}
 }
 #endif

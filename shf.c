@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.118 2021/06/29 21:34:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.119 2021/09/26 22:29:01 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1293,6 +1293,9 @@ set_ifs(const char *s)
 }
 
 #if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
+#if !HAVE_SETLOCALE_CTYPE
+# error EBCDIC support requires use of the system locale
+#endif
 #include <locale.h>
 
 /*
