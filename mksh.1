@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.518 2021/09/01 13:28:59 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.519 2021/09/26 20:27:45 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: September 1 2021 $
+.Dd $Mdocdate: September 26 2021 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -3377,14 +3377,28 @@ string, wherein prefix/control/tilde characters mapped to editing commands
 .Pq but not those mapped to other macros
 will be processed.
 .Pp
-Prefix and control characters may be written using caret notation, i.e.\&
+The entire argument may be written using extended caret notation:
 .No \*(ha Ns Li Z
 represents
-.No Ctrl- Ns Li Z .
-Use a backslash to escape the caret, an equals sign or another backslash.
+.No Ctrl- Ns Li Z ;
+.No \*(ha Ns Li +Z
+represents UTF-8
+.No Meta-Ctrl- Ns Li Z ,
+and both
+.No \*(ha Ns Li !Z
+and
+.No \ex Ns Li 9A
+represent ASCII
+.No Meta-Ctrl- Ns Li Z .
+Otherwise, a backslash escapes the next character,
+removing the special meaning from backslashes, carets and
+.Pq for the Ar string No part
+equals signs.
+.Pf ( Em These
+backslashes obviously must be quoted for the shell.)
 Note that, although only three prefix characters
 .Pq usually Esc, \*(haX and NUL
-are supported, some multi-character sequences can be supported.
+are usable, some multi-character sequences can be supported.
 .Pp
 .It Ic break Op Ar level
 .Pq keeps assignments , special

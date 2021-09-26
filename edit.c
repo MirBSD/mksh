@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.382 2021/08/21 18:20:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.383 2021/09/26 20:27:44 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2615,29 +2615,69 @@ x_bind_showall(void)
 	return (0);
 }
 
-static unsigned int
-x_bind_getc(const char **ccpp)
-{
-	unsigned int ch, ec;
+struct x_bind_getc {
+	const char *cp;
+	unsigned char next;
+};
 
-	if ((ch = ord(**ccpp)))
-		++(*ccpp);
+static unsigned int
+x_bind_getc(struct x_bind_getc *ctx)
+{
+	unsigned int ch;
+	unsigned char tmp[4];
+
+	if ((ch = ctx->next)) {
+		ctx->next = 0;
+		return (ch);
+	}
+	if ((ch = ord(*(ctx->cp))))
+		++(ctx->cp);
 	switch (ch) {
 	case ORD('^'):
-		ch = asc2rtt(ord(**ccpp) == ORD('?') ? 0x7F :
-		    rtt2asc(**ccpp) & 0x9F) | 0x100U;
-		if (**ccpp)
-			++(*ccpp);
-		break;
-	case ORD('\\'):
-		switch ((ec = ord(**ccpp))) {
-		case ORD('^'):
-		case ORD('\\'):
-		case ORD('='):
-			ch = ec | 0x100U;
-			++(*ccpp);
+		if ((ch = ord(*(ctx->cp))))
+			++(ctx->cp);
+		switch (ch) {
+		case ORD('!'):
+			if ((ch = ord(*(ctx->cp))))
+				++(ctx->cp);
+			ch = asc2rtt((rtt2asc(ch) & 0x1FU) + 0x80U);
+			break;
+		case ORD('+'):
+			if ((ch = ord(*(ctx->cp))))
+				++(ctx->cp);
+			utf_wctomb((char *)tmp, (rtt2asc(ch) & 0x1FU) + 0x80U);
+			ch = tmp[0];
+			ctx->next = tmp[1];
+			break;
+		case ORD('?'):
+			ch = CTRL_QM;
+			break;
+		default:
+			ch = asc2rtt(rtt2asc(ch) & 0x1FU);
 			break;
 		}
+		break;
+	case ORD('\\'):
+		if ((ch = ord(*(ctx->cp))))
+			++(ctx->cp);
+		if (ch == ORD('x') && ctype(ctx->cp[0], C_SEDEC) &&
+		    ctype(ctx->cp[1], C_SEDEC)) {
+			if (ctype(ctx->cp[0], C_DIGIT))
+				ch = ksh_numdig(ctx->cp[0]);
+			else if (ctype(ctx->cp[0], C_UPPER))
+				ch = ksh_numuc(ctx->cp[0]) + 10;
+			else
+				ch = ksh_numlc(ctx->cp[0]) + 10;
+			ch <<= 4;
+			if (ctype(ctx->cp[1], C_DIGIT))
+				ch |= ksh_numdig(ctx->cp[1]);
+			else if (ctype(ctx->cp[1], C_UPPER))
+				ch |= ksh_numuc(ctx->cp[1]) + 10;
+			else
+				ch |= ksh_numlc(ctx->cp[1]) + 10;
+			ctx->cp += 2;
+		}
+		ch |= 0x100U;
 		break;
 	}
 	return (ch);
@@ -2646,7 +2686,7 @@ x_bind_getc(const char **ccpp)
 int
 x_bind(const char *s SMALLP(bool macro))
 {
-	const char *ccp = s;
+	struct x_bind_getc state = { s, 0 };
 	int prefix, key;
 	unsigned int c;
 #ifndef MKSH_SMALL
@@ -2655,13 +2695,13 @@ x_bind(const char *s SMALLP(bool macro))
 #endif
 
 	prefix = 0;
-	c = x_bind_getc(&ccp);
+	c = x_bind_getc(&state);
 	if (!c || c == ORD('=')) {
 		bi_errorf("no key to bind");
 		return (1);
 	}
 	key = c & 0xFF;
-	while ((c = x_bind_getc(&ccp)) != ORD('=')) {
+	while ((c = x_bind_getc(&state)) != ORD('=')) {
 		if (!c) {
 			x_bind_showone(prefix, key);
 			return (0);
@@ -2694,21 +2734,21 @@ x_bind(const char *s SMALLP(bool macro))
 	if (macro) {
 		char *cp;
 
-		cp = ms = alloc(strlen(ccp) + 1, AEDIT);
-		while ((c = x_bind_getc(&ccp)))
+		cp = ms = alloc(strlen(state.cp) + 1, AEDIT);
+		while ((c = x_bind_getc(&state)))
 			*cp++ = c;
 		*cp = '\0';
 		c = XFUNC_ins_string;
 	} else
 #endif
-	  if (!*ccp) {
+	  if (state.cp[0] == '\0') {
 		c = XFUNC_insert;
 	} else {
 		for (c = 0; c < NELEM(x_ftab); ++c)
-			if (!strcmp(x_ftab[c].xf_name, ccp))
+			if (!strcmp(x_ftab[c].xf_name, state.cp))
 				break;
 		if (c == NELEM(x_ftab) || x_ftab[c].xf_flags & XF_NOBIND) {
-			bi_errorf("%s: no such editing command", ccp);
+			bi_errorf("%s: no such editing command", state.cp);
 			return (1);
 		}
 	}
