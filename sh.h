@@ -202,7 +202,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.942 2021/09/30 03:20:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.943 2021/09/30 21:31:03 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/09/29"
 
@@ -2466,7 +2466,7 @@ int v_evaluate(struct tbl *, const char *, volatile int, bool);
 char *ez_bs(char *, char *);
 size_t utf_mbtowc(unsigned int *, const char *);
 size_t utf_wctomb(char *, unsigned int);
-#define OPTUISRAW(wc) HAS(wc, 0x00200080U)
+#define OPTUISRAW(wc) IS(wc, 0xFFFFFF80U, 0x00200080U)
 #define OPTUMKRAW(ch) (ord(ch) | 0x00200000U)
 #if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
 size_t ez_mbtowc(unsigned int *, const char *);
