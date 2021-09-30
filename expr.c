@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.112 2021/07/31 19:35:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.113 2021/09/30 03:20:05 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -603,7 +603,7 @@ exprtoken(Expr_state *es)
 	} else if (c == '1' && cp[1] == '#') {
 		cp += 2;
 		if (*cp)
-			cp += utf_ptradj(cp);
+			cp += ez_mbtoc(NULL, cp);
 		strndupx(tvar, es->tokp, cp - es->tokp, ATEMP);
 		goto process_tvar;
 #ifndef MKSH_SMALL
@@ -612,7 +612,7 @@ exprtoken(Expr_state *es)
 			es->tok = END;
 			evalerr(es, ET_UNEXPECTED, NULL);
 		}
-		cp += utf_ptradj(cp);
+		cp += ez_mbtoc(NULL, cp);
 		if (*cp++ != '\'')
 			evalerr(es, ET_STR,
 			    "multi-character character constant");
@@ -710,6 +710,26 @@ intvar(Expr_state *es, struct tbl *vp)
  * UTF-8 support code: high-level functions
  */
 
+char *
+ez_bs(char *cp, char *lower_bound)
+{
+	if (UTFMODE) {
+		char *bp = cp;
+		size_t n;
+
+		/* skip backwards knowing the UTF-8 encoding */
+		while (bp > lower_bound && (rtt2asc(*bp) & 0xC0U) == 0x80U)
+			--bp;
+		/* ensure we arrive back at the original point */
+		n = ez_mbtoc(NULL, bp);
+		/* back where we started? if so, this was indeed UTF-8 */
+		if (bp + n - 1 == cp)
+			return (bp);
+		/* no so some raw octet is at *cp */
+	}
+	return (cp);
+}
+
 int
 utf_widthadj(const char *src, const char **dst)
 {
@@ -717,15 +737,12 @@ utf_widthadj(const char *src, const char **dst)
 	unsigned int wc;
 	int width;
 
-	if (!UTFMODE || (len = utf_mbtowc(&wc, src)) == (size_t)-1 ||
-	    wc == 0)
+	if (!UTFMODE || !*src || (len = utf_mbtowc(&wc, src)) == (size_t)-1)
 		len = width = 1;
 	else if ((width = utf_wcwidth(wc)) < 0)
-		/* XXX use 2 for x_zotc3 here? */
 		width = 1;
 
-	if (dst)
-		*dst = src + len;
+	*dst = src + len;
 	return (width);
 }
 
@@ -749,17 +766,6 @@ utf_mbswidth(const char *s)
 			width += cw;
 		}
 	return (width);
-}
-
-size_t
-utf_ptradj(const char *src)
-{
-	register size_t n;
-
-	if (!UTFMODE || rtt2asc(*src) < 0xC2 ||
-	    (n = utf_mbtowc(NULL, src)) == (size_t)-1)
-		n = 1;
-	return (n);
 }
 
 /*
@@ -830,6 +836,54 @@ utf_wctomb(char *dst, unsigned int wc)
 	}
 	*d++ = asc2rtt((wc & 0x3F) | 0x80);
 	return ((char *)d - dst);
+}
+
+/* “give me that character right now” */
+
+#if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
+/* as UCS codepoint; dst must not be NULL */
+size_t
+ez_mbtowc(unsigned int *dst, const char *src)
+{
+	size_t n;
+
+	if (UTFMODE) {
+		if ((n = utf_mbtowc(dst, src)) != (size_t)-1)
+			return (n);
+		*dst = OPTUMKRAW(rtt2asc(*src));
+	} else
+		*dst = ord(rtt2asc(*src));
+	return (*src ? 1 : 0);
+}
+/* identical to ez_mbtoc, unless EBCDIC… */
+#endif
+
+/* as kby if !UTFMODE, UCS codepoint or OPTURAW otherwise */
+size_t
+ez_mbtoc(unsigned int *dst, const char *src)
+{
+	size_t n;
+
+	if (UTFMODE) {
+		if ((n = utf_mbtowc(dst, src)) != (size_t)-1)
+			return (n);
+		if (dst)
+			*dst = OPTUMKRAW(rtt2asc(*src));
+	} else if (dst)
+		*dst = ord(*src);
+	return (*src ? 1 : 0);
+}
+
+size_t
+ez_ctomb(char *dst, unsigned int wc)
+{
+	if (!UTFMODE)
+		*dst = (kby)wc;
+	else if (OPTUISRAW(wc))
+		*dst = asc2rtt((kby)wc);
+	else
+		return (utf_wctomb(dst, wc));
+	return (1);
 }
 
 /*
@@ -1202,8 +1256,12 @@ int
 utf_wcwidth(unsigned int wc)
 {
 	/* except NUL, C0/C1 control characters and DEL yield -1 */
-	if (wc < 0x20 || (wc >= 0x7F && wc < 0xA0))
+	if (wc < 0x20)
 		return (wc ? -1 : 0);
+	if (wc < 0x7F)
+		return (1);
+	if (wc < 0xA0)
+		return (-1);
 
 	/* combining characters use 0 screen columns */
 	if (mb_ucsbsearch(mb_ucs_combining, NELEM(mb_ucs_combining), wc))

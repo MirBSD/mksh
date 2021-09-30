@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.24 2021/07/30 03:05:53 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.25 2021/09/30 03:20:10 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -449,7 +449,7 @@ Title: How POSIX compliant is mksh? Also, UTF-8 vs. locales?
  being enabled (use <tt>set -o braceexpand</tt> to reenable if needed).</p>
 <p>For the purpose of POSIX, mksh supports only the <tt>C</tt> locale. mksh’s
  <tt>utf8-mode</tt> (which only supports the BMP (Basic Multilingual Plane) of
- UCS and maps raw octets into the U+EF80‥U+EFFF wide character range; see
+ UCS and maps raw octets into the U-00200080‥U-002000FF (used to be U+EF80‥U+EFFF) wide character range; see
  <tt>Arithmetic expressions</tt> in mksh(1) for details) <em>must</em> stay
  disabled in POSIX mode (it is disabled upon enabling POSIX mode in R56+ but
  don’t depend on this to stay once locale tracking will be implemented).</p>

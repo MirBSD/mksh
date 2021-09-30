@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.383 2021/09/26 20:27:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.384 2021/09/30 03:20:03 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -99,6 +99,9 @@ static size_t x_basename(const char *, const char *);
 static void x_free_words(int, char **);
 static int x_escape(const char *, size_t, int (*)(const char *, size_t));
 static int x_emacs(char *);
+#ifdef DF
+static void x_emacs_DF(const char *);
+#endif
 static void x_init_prompt(bool);
 #if !MKSH_S_NOVI
 static int x_vi(char *);
@@ -1049,11 +1052,9 @@ static void x_delete(size_t, bool);
 static void x_bword(uint32_t, bool);
 static void x_fword(uint32_t, bool);
 static void x_goto(char *);
-static char *x_bs0(char *, char *) MKSH_A_PURE;
 static void x_bs3(char **);
-static int x_size2(char *, char **);
-static void x_zots(char *);
-static void x_zotc3(char **);
+static void x_uescs(char *);
+static void x_uescmb(char **);
 static void x_load_hist(char **);
 static int x_search(const char *, int, int);
 #ifndef MKSH_SMALL
@@ -1065,8 +1066,7 @@ static void x_push(size_t);
 static void x_bind_showone(int, int);
 static void x_e_ungetc(int);
 static int x_e_getc(void);
-static void x_e_putc2(int);
-static void x_e_putc3(const char **);
+static void x_e_putb(int);
 static void x_e_puts(const char *);
 #ifndef MKSH_SMALL
 static int x_fold_case(int, uint32_t);
@@ -1227,7 +1227,7 @@ x_nb2nc(size_t nb)
 	size_t nc = 0;
 
 	for (cp = xcp; cp < (xcp + nb); ++nc)
-		cp += utf_ptradj(cp);
+		cp += ez_mbtoc(NULL, cp);
 	return (nc);
 }
 
@@ -1297,7 +1297,7 @@ x_init_prompt(bool doprint)
 		prompt_trunc = -1;
 		pwidth = 0;
 		if (doprint)
-			x_e_putc2('\n');
+			x_e_putb('\n');
 	}
 }
 
@@ -1390,7 +1390,7 @@ x_insert(int c)
 	if (c == 0) {
  invmbs:
 		left = 0;
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return (KSTD);
 	}
 	if (UTFMODE) {
@@ -1452,7 +1452,7 @@ static int
 x_do_ins(const char *cp, size_t len)
 {
 	if (xep + len >= xend) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return (-1);
 	}
 	memmove(xcp + len, xcp, xep - xcp + 1);
@@ -1472,13 +1472,13 @@ x_ins(const char *s)
 	if (x_do_ins(s, strlen(s)) < 0)
 		return (-1);
 	/*
-	 * x_zots() may result in a call to x_adjust()
-	 * we want xcp to reflect the new position.
+	 * x_uescs() may result in a call to x_adjust()
+	 * we want xcp to reflect the new position
 	 */
 	xlp_valid = false;
 	x_lastcp();
 	x_adj_ok = tobool(xcp >= xlp);
-	x_zots(cp);
+	x_uescs(cp);
 	if (adj == x_adj_done)
 		/* x_adjust() has not been called */
 		x_lastpos();
@@ -1492,7 +1492,7 @@ x_del_back(int c MKSH_A_UNUSED)
 	ssize_t i = 0;
 
 	if (xcp == xbuf) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return (KSTD);
 	}
 	do {
@@ -1510,7 +1510,7 @@ x_del_char(int c MKSH_A_UNUSED)
 
 	cp = xcp;
 	while (i < (size_t)x_arg) {
-		utf_ptradjx(cp, cp2);
+		cp2 = cp + ez_mbtoc(NULL, cp);
 		if (cp2 > xep)
 			break;
 		cp = cp2;
@@ -1518,7 +1518,7 @@ x_del_char(int c MKSH_A_UNUSED)
 	}
 
 	if (!i) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return (KSTD);
 	}
 	x_delete(i, false);
@@ -1541,7 +1541,7 @@ x_delete(size_t nc, bool push)
 		char *cp2;
 		int j;
 
-		j = x_size2(cp, &cp2);
+		j = uwidthmbT(cp, &cp2);
 		if (cp2 > xep)
 			break;
 		cp = cp2;
@@ -1568,7 +1568,7 @@ x_delete(size_t nc, bool push)
 	/* don't redraw */
 	x_adj_ok = false;
 	xlp_valid = false;
-	x_zots(xcp);
+	x_uescs(xcp);
 	/*
 	 * if we are already filling the line,
 	 * there is no need to ' ', '\b'.
@@ -1577,13 +1577,13 @@ x_delete(size_t nc, bool push)
 	if ((i = xx_cols - 2 - x_col) > 0 || xep - xlp == 0) {
 		nw = i = (nw < i) ? nw : i;
 		while (i--)
-			x_e_putc2(' ');
+			x_e_putb(' ');
 		if (x_col == xx_cols - 2) {
-			x_e_putc2((xep > xlp) ? '>' : (xbp > xbuf) ? '<' : ' ');
+			x_e_putb((xep > xlp) ? '>' : (xbp > xbuf) ? '<' : ' ');
 			++nw;
 		}
 		while (nw--)
-			x_e_putc2('\b');
+			x_e_putb('\b');
 	}
 	/*x_goto(xcp);*/
 	x_adj_ok = true;
@@ -1658,7 +1658,7 @@ x_bword(uint32_t separator, bool erase)
 	char *cp = xcp;
 
 	if (cp == xbuf) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return;
 	}
 	while (x_arg--) {
@@ -1682,7 +1682,7 @@ x_fword(uint32_t separator, bool erase)
 	char *cp = xcp;
 
 	if (cp == xep) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return;
 	}
 	while (x_arg--) {
@@ -1698,9 +1698,18 @@ x_fword(uint32_t separator, bool erase)
 }
 
 static void
+x_uescmb(char **cp)
+{
+	unsigned char esc[5];
+
+	uescmbT(esc, (const char **)cp);
+	x_e_puts((const void *)esc);
+}
+
+static void
 x_goto(char *cp)
 {
-	cp = cp >= xep ? xep : x_bs0(cp, xbuf);
+	cp = cp >= xep ? xep : ez_bs(cp, xbuf);
 	if (cp < xbp || (x_lastcp(), cp >= xdp)) {
 		/* we are heading off screen */
 		xcp = cp;
@@ -1712,30 +1721,8 @@ x_goto(char *cp)
 	} else if (cp > xcp) {
 		/* move forward */
 		while (cp > xcp)
-			x_zotc3(&xcp);
+			x_uescmb(&xcp);
 	}
-}
-
-static char *
-x_bs0(char *cp, char *lower_bound)
-{
-	if (UTFMODE) {
-		char *bp = cp;
-		size_t n;
-
-		/* skip backwards knowing the UTF-8 encoding */
-		while (bp > lower_bound && (rtt2asc(*bp) & 0xC0U) == 0x80U)
-			--bp;
-		/* ensure we arrive back at the original point */
-		n = utf_mbtowc(NULL, bp);
-		if (n == (size_t)-1)
-			n = 1;
-		/* back where we started? if so, this was indeed UTF-8 */
-		if (bp + n - 1 == cp)
-			return (bp);
-		/* no so some raw octet is at *cp */
-	}
-	return (cp);
 }
 
 static void
@@ -1743,62 +1730,27 @@ x_bs3(char **p)
 {
 	int i;
 
-	*p = x_bs0((*p) - 1, xbuf);
-	i = x_size2(*p, NULL);
+	*p = ez_bs((*p) - 1, xbuf);
+	i = uwidthmbT(*p, NULL);
 	while (i--)
-		x_e_putc2('\b');
-}
-
-static int
-x_size2(char *cp, char **dcp)
-{
-	kby c = *(unsigned char *)cp;
-
-	if (UTFMODE && (rtt2asc(c) > 0x7F))
-		return (utf_widthadj(cp, (const char **)dcp));
-	if (dcp)
-		*dcp = cp + 1;
-	if (c == '\t')
-		/* Kludge, tabs are always four spaces. */
-		return (4);
-	if (ksh_isctrl(c))
-		/* control unsigned char */
-		return (2);
-	return (1);
+		x_e_putb('\b');
 }
 
 static void
-x_zots(char *str)
+x_uescs(char *str)
 {
 	kby adj = x_adj_done;
 
 	x_lastcp();
 	while (*str && str < xlp && x_col < xx_cols && adj == x_adj_done)
-		x_zotc3(&str);
-}
-
-static void
-x_zotc3(char **cp)
-{
-	unsigned char c = **(unsigned char **)cp;
-
-	if (c == '\t') {
-		/* Kludge, tabs are always four spaces. */
-		x_e_puts("    ");
-		(*cp)++;
-	} else if (ksh_isctrl(c)) {
-		x_e_putc2('^');
-		x_e_putc2(ksh_unctrl(c));
-		(*cp)++;
-	} else
-		x_e_putc3((const char **)cp);
+		x_uescmb(&str);
 }
 
 static int
 x_mv_back(int c MKSH_A_UNUSED)
 {
 	if (xcp == xbuf) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return (KSTD);
 	}
 	while (x_arg--) {
@@ -1815,11 +1767,11 @@ x_mv_forw(int c MKSH_A_UNUSED)
 	char *cp = xcp, *cp2;
 
 	if (xcp == xep) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return (KSTD);
 	}
 	while (x_arg--) {
-		utf_ptradjx(cp, cp2);
+		cp2 = cp + ez_mbtoc(NULL, cp);
 		if (cp2 > xep)
 			break;
 		cp = cp2;
@@ -1836,13 +1788,13 @@ x_search_char_forw(int c MKSH_A_UNUSED)
 
 	*xep = '\0';
 	if (x_e_getmbc(tmp) < 0) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return (KSTD);
 	}
 	while (x_arg--) {
 		if ((cp = (cp == xep) ? NULL : ucstrstr(cp + 1, tmp)) == NULL &&
 		    (cp = ucstrstr(xbuf, tmp)) == NULL) {
-			x_e_putc2(KSH_BEL);
+			x_e_putb(KSH_BEL);
 			return (KSTD);
 		}
 	}
@@ -1857,7 +1809,7 @@ x_search_char_back(int c MKSH_A_UNUSED)
 	bool b;
 
 	if (x_e_getmbc(tmp) < 0) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return (KSTD);
 	}
 	for (; x_arg--; cp = p)
@@ -1865,7 +1817,7 @@ x_search_char_back(int c MKSH_A_UNUSED)
 			if (p-- == xbuf)
 				p = xep;
 			if (p == cp) {
-				x_e_putc2(KSH_BEL);
+				x_e_putb(KSH_BEL);
 				return (KSTD);
 			}
 			if ((tmp[1] && ((p+1) > xep)) ||
@@ -1888,8 +1840,8 @@ x_search_char_back(int c MKSH_A_UNUSED)
 static int
 x_newline(int c MKSH_A_UNUSED)
 {
-	x_e_putc2('\r');
-	x_e_putc2('\n');
+	x_e_putb('\r');
+	x_e_putb('\n');
 	x_flush();
 	*xep++ = '\n';
 	return (KEOL);
@@ -1903,7 +1855,7 @@ x_end_of_text(int c MKSH_A_UNUSED)
 	*tmp = isedchar(edchars.eof) ? (unsigned char)edchars.eof :
 	    (unsigned char)CTRL_D;
 	tmp[1] = '\0';
-	x_zotc3((char **)&cp);
+	x_uescmb((char **)&cp);
 	x_putc('\r');
 	x_putc('\n');
 	x_flush();
@@ -1962,7 +1914,7 @@ x_load_hist(char **hp)
 		sp = holdbufp;
 		modified = 0;
 	} else if (hp < history || hp > histptr) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return;
 	}
 	if (sp == NULL)
@@ -2043,7 +1995,7 @@ x_search_hist(int c)
 				break;
 			}
 			if (p > pat) {
-				p = x_bs0(p - 1, pat);
+				p = ez_bs(p - 1, pat);
 				*p = '\0';
 			}
 			if (p == pat)
@@ -2055,7 +2007,7 @@ x_search_hist(int c)
 			/* add char to pattern */
 			/* overflow check... */
 			if ((size_t)(p - pat) >= sizeof(pat) - 1) {
-				x_e_putc2(KSH_BEL);
+				x_e_putb(KSH_BEL);
 				continue;
 			}
 			*p++ = c, *p = '\0';
@@ -2098,13 +2050,13 @@ x_search(const char *pat, int sameline, int offset)
 		i = x_match(*hp, pat);
 		if (i >= 0) {
 			if (offset < 0)
-				x_e_putc2('\n');
+				x_e_putb('\n');
 			x_load_hist(hp);
 			x_goto(xbuf + i + patlen);
 			return (i);
 		}
 	}
-	x_e_putc2(KSH_BEL);
+	x_e_putb(KSH_BEL);
 	x_histp = histptr;
 	return (-1);
 }
@@ -2254,7 +2206,7 @@ x_redraw(int cr)
 
 	x_adj_ok = false;
 	/* clear the line */
-	x_e_putc2(cr ? cr : '\r');
+	x_e_putb(cr ? cr : '\r');
 	x_flush();
 	/* display the prompt */
 	if (xbp == xbuf)
@@ -2262,7 +2214,7 @@ x_redraw(int cr)
 	x_displen = xx_cols - 2 - x_col;
 	/* display the line content */
 	xlp_valid = false;
-	x_zots(xbp);
+	x_uescs(xbp);
 	/* check whether there is more off-screen */
 	lch = xep > xlp ? (xbp > xbuf ? '*' : '>') : (xbp > xbuf) ? '<' : ' ';
 	/* clear the rest of the line */
@@ -2284,19 +2236,20 @@ x_transpose(int c MKSH_A_UNUSED)
 	 *	Who			Before	After	Before	After
 	 *	AT&T ksh in emacs mode:	abCd	abdC	abcd_	(bell)
 	 *	AT&T ksh in gmacs mode:	abCd	baCd	abcd_	abdc_
-	 *	gnu emacs:		abCd	acbD	abcd_	abdc_
-	 * Pdksh currently goes with GNU behavior since I believe this is the
+	 *	GNU emacs:		abCd	acbD	abcd_	abdc_
+	 * pdksh currently goes with GNU behavior since I believe this is the
 	 * most common version of emacs, unless in gmacs mode, in which case
 	 * it does the AT&T ksh gmacs mode.
 	 * This should really be broken up into 3 functions so users can bind
 	 * to the one they want.
 	 */
 	if (xcp == xbuf) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return (KSTD);
-	} else if (xcp == xep || Flag(FGMACS)) {
+	}
+	if (xcp == xep || Flag(FGMACS)) {
 		if (xcp - xbuf == 1) {
-			x_e_putc2(KSH_BEL);
+			x_e_putb(KSH_BEL);
 			return (KSTD);
 		}
 		/*
@@ -2304,38 +2257,24 @@ x_transpose(int c MKSH_A_UNUSED)
 		 * the cursor, do not change cursor position
 		 */
 		x_bs3(&xcp);
-		if (utf_mbtowc(&tmpa, xcp) == (size_t)-1) {
-			x_e_putc2(KSH_BEL);
-			return (KSTD);
-		}
-		x_bs3(&xcp);
-		if (utf_mbtowc(&tmpb, xcp) == (size_t)-1) {
-			x_e_putc2(KSH_BEL);
-			return (KSTD);
-		}
-		utf_wctomb(xcp, tmpa);
-		x_zotc3(&xcp);
-		utf_wctomb(xcp, tmpb);
-		x_zotc3(&xcp);
-	} else {
-		/*
+	}
+	/* else
 		 * GNU emacs style: Swap the characters before and under the
 		 * cursor, move cursor position along one.
 		 */
-		if (utf_mbtowc(&tmpa, xcp) == (size_t)-1) {
-			x_e_putc2(KSH_BEL);
-			return (KSTD);
-		}
-		x_bs3(&xcp);
-		if (utf_mbtowc(&tmpb, xcp) == (size_t)-1) {
-			x_e_putc2(KSH_BEL);
-			return (KSTD);
-		}
-		utf_wctomb(xcp, tmpa);
-		x_zotc3(&xcp);
-		utf_wctomb(xcp, tmpb);
-		x_zotc3(&xcp);
+	if (utf_mbtowc(&tmpa, xcp) == (size_t)-1) {
+		x_e_putb(KSH_BEL);
+		return (KSTD);
 	}
+	x_bs3(&xcp);
+	if (utf_mbtowc(&tmpb, xcp) == (size_t)-1) {
+		x_e_putb(KSH_BEL);
+		return (KSTD);
+	}
+	utf_wctomb(xcp, tmpa);
+	x_uescmb(&xcp);
+	utf_wctomb(xcp, tmpb);
+	x_uescmb(&xcp);
 	x_modified();
 	return (KSTD);
 }
@@ -2466,7 +2405,7 @@ x_abort(int c MKSH_A_UNUSED)
 static int
 x_error(int c MKSH_A_UNUSED)
 {
-	x_e_putc2(KSH_BEL);
+	x_e_putb(KSH_BEL);
 	return (KSTD);
 }
 
@@ -2803,7 +2742,7 @@ x_kill_region(int c MKSH_A_UNUSED)
 	char *xr;
 
 	if (xmp == NULL) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return (KSTD);
 	}
 	if (xmp > xcp) {
@@ -2825,7 +2764,7 @@ x_xchg_point_mark(int c MKSH_A_UNUSED)
 	char *tmp;
 
 	if (xmp == NULL) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return (KSTD);
 	}
 	tmp = xmp;
@@ -2903,7 +2842,7 @@ x_expand(int c MKSH_A_UNUSED)
 	    &start, &end, &words);
 
 	if (nwords == 0) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return (KSTD);
 	}
 	x_goto(xbuf + start);
@@ -2913,7 +2852,7 @@ x_expand(int c MKSH_A_UNUSED)
 	while (i < nwords) {
 		if (x_escape(words[i], strlen(words[i]), x_do_ins) < 0 ||
 		    (++i < nwords && x_ins(T1space) < 0)) {
-			x_e_putc2(KSH_BEL);
+			x_e_putb(KSH_BEL);
 			return (KSTD);
 		}
 	}
@@ -2937,7 +2876,7 @@ do_complete(
 	    &start, &end, &words);
 	/* no match */
 	if (nwords == 0) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return;
 	}
 	if (type == CT_LIST) {
@@ -3027,7 +2966,7 @@ x_adjust(void)
 	x_adj_done++;
 
 	/* fix up xcp to just past a character end first */
-	xcp = xcp >= xep ? xep : x_bs0(xcp, xbuf);
+	xcp = xcp >= xep ? xep : ez_bs(xcp, xbuf);
 	/* shortcut if going to beginning of line */
 	if (xcp == (xbp = xbuf))
 		goto x_adjust_out;
@@ -3051,7 +2990,7 @@ x_adjust(void)
 	 */
 	if ((colmax = xx_cols * 3 / 4) < MIN_EDIT_SPACE) {
 		/* one backwards though */
-		xbp = x_bs0(xbp - 1, xbuf);
+		xbp = ez_bs(xbp - 1, xbuf);
 		/* go for it */
 		goto x_adjust_out;
 	}
@@ -3059,12 +2998,12 @@ x_adjust(void)
 	/* go backwards until we reached the target width */
 	colcur = 0;
 	while (xbp > xbuf && colcur < colmax) {
-		xbp = x_bs0(xbp - 1, xbuf);
-		colcur += x_size2(xbp, NULL);
+		xbp = ez_bs(xbp - 1, xbuf);
+		colcur += uwidthmbT(xbp, NULL);
 	}
 	/* check if we hit the prompt and force scrolling if so */
 	if (xbp == xbuf)
-		xbp += utf_ptradj(xbp);
+		xbp += ez_mbtoc(NULL, xbp);
 
  x_adjust_out:
 	xlp_valid = false;
@@ -3100,92 +3039,23 @@ x_e_getc(void)
 	return (x_getc());
 }
 
+/* takes single-column single-byte characters only */
 static void
-x_e_putc2(int c)
+x_e_putb(int c)
 {
-	if (ctype(c, C_CR | C_LF))
+	if (ctype(c, C_CR | C_LF)) {
+		x_putc(c);
 		x_col = 0;
-	if (x_col < xx_cols) {
-		int width;
-
-		/*XXX to go away once x_zotc3 no longer x_e_putc2(ksh_unctrl */
-		/*XXX this function should take 1-column SBCS only except ↑ */
-		if (UTFMODE && (rtt2asc(c) > 0x7FU)) {
-			char utf_tmp[3];
-			size_t x;
-
-			/*XXX bad semantics vs EBCDIC */
-			if (c < 0xA0)
-				c = 0xFFFD;
-			x = utf_wctomb(utf_tmp, c);
-			x_putc(utf_tmp[0]);
-			if (x > 1)
-				x_putc(utf_tmp[1]);
-			if (x > 2)
-				x_putc(utf_tmp[2]);
-			width = utf_wcwidth(c);
-		} else {
-			x_putc(c);
-			width = 1;
-		}
-		switch (c) {
-		case KSH_BEL:
+	} else if (x_col < xx_cols) {
+		x_putc(c);
+		switch (ord(c)) {
+		case ORD(KSH_BEL):
 			break;
-		case '\r':
-		case '\n':
-			break;
-		case '\b':
-			x_col--;
+		case ORD('\b'):
+			--x_col;
 			break;
 		default:
-			x_col += width;
-			break;
-		}
-	}
-	if (x_adj_ok && (x_col < 0 || x_col >= (xx_cols - 2)))
-		x_adjust();
-}
-
-static void
-x_e_putc3(const char **cp)
-{
-	int c = **(const unsigned char **)cp;
-
-	if (ctype(c, C_CR | C_LF))
-		x_col = 0;
-	if (x_col < xx_cols) {
-		int width;
-
-		if (UTFMODE && (rtt2asc(c) > 0x7FU)) {
-			char *cp2;
-
-			width = utf_widthadj(*cp, (const char **)&cp2);
-			if (cp2 == *cp + 1) {
-				(*cp)++;
-				x_putc(asc2rtt(0xEF));
-				x_putc(asc2rtt(0xBF));
-				x_putc(asc2rtt(0xBD));
-			} else
-				while (*cp < cp2) {
-					c = *(*cp)++;
-					x_putc(c);
-				}
-		} else {
-			(*cp)++;
-			x_putc(c);
-			width = 1;
-		}
-		switch (c) {
-		case KSH_BEL:
-			break;
-		case '\r':
-		case '\n':
-			break;
-		case '\b':
-			x_col--;
-			break;
-		default:
-			x_col += width;
+			++x_col;
 			break;
 		}
 	}
@@ -3196,10 +3066,48 @@ x_e_putc3(const char **cp)
 static void
 x_e_puts(const char *s)
 {
+	unsigned int c;
+	int width;
+	size_t len;
 	kby adj = x_adj_done;
 
-	while (*s && adj == x_adj_done)
-		x_e_putc3(&s);
+	while ((c = ord(*s)) && adj == x_adj_done) {
+		if (ctype(c, C_CR | C_LF)) {
+			x_putc(c);
+			x_col = 0;
+			++s;
+		} else if (x_col < xx_cols) {
+			if (rtt2asc(c) < 0x80U || !UTFMODE) {
+				x_putc(c);
+				switch (c) {
+				case ORD(KSH_BEL):
+					break;
+				case ORD('\b'):
+					--x_col;
+					break;
+				default:
+					++x_col;
+					break;
+				}
+				++s;
+			} else if ((len = utf_mbtowc(&c, s)) == (size_t)-1) {
+				/* substitute U+FFFD */
+				x_putcf(asc2rtt(0xEF));
+				x_putcf(asc2rtt(0xBF));
+				x_putcf(asc2rtt(0xBD));
+				++x_col;
+				++s;
+			} else {
+				/* C1 control character? C0/DEL use 1 above */
+				if ((width = utf_wcwidth(c)) < 0)
+					width = /* for consistency */ 1;
+				shf_wr_sm(s, len, shl_out);
+				x_col += width;
+			}
+		}
+		if (x_adj_ok && (x_col < 0 || x_col >= (xx_cols - 2)))
+			x_adjust();
+	}
 }
 
 /*-
@@ -3230,7 +3138,7 @@ x_set_arg(int c)
 	}
 	if (c < 0 || first) {
  x_set_arg_too_big:
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		x_arg = 1;
 		x_arg_defaulted = true;
 	} else {
@@ -3249,7 +3157,7 @@ x_comment(int c MKSH_A_UNUSED)
 	int ret = x_do_comment(xbuf, xend - xbuf, &len);
 
 	if (ret < 0)
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 	else {
 		x_modified();
 		xep = xbuf + len;
@@ -3350,7 +3258,7 @@ x_prev_histword(int c MKSH_A_UNUSED)
 		last_arg = x_arg_defaulted ? -1 : x_arg;
 	xhp = histptr - (m - 1);
 	if ((xhp < history) || !(cp = *xhp)) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		x_modified();
 		return (KSTD);
 	}
@@ -3459,7 +3367,7 @@ x_fold_case(int c, uint32_t separator)
 	char *cp = xcp;
 
 	if (cp == xep) {
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		return (KSTD);
 	}
 	while (x_arg--) {
@@ -3518,7 +3426,7 @@ x_lastcp(void)
 
 		xlp = xbp;
 		while (xlp < xep) {
-			j = x_size2(xlp, &xlp2);
+			j = uwidthmbT(xlp, &xlp2);
 			if ((i + j) > x_displen) {
 				/* don’t add (x_displen - i) here */
 				/* can be 2-column doesn’t-fit char */
@@ -3644,6 +3552,7 @@ static void vi_error(void);
 static void vi_macro_reset(void);
 static int x_vi_putbuf(const char *, size_t);
 #define char_len(c) (ksh_isctrl(c) ? 2 : 1)
+#define ksh_unctrl(c) asc2rtt(rtt2asc(c) ^ 0x40U)
 
 #define vC	0x01		/* a valid command that isn't a vM, vE, vU */
 #define vM	0x02		/* movement command (h, l, etc.) */
@@ -5841,7 +5750,7 @@ x_operate_region(char *(*helper)(const char *, size_t))
 		rgend = xmp;
 	}
 
-	x_e_putc2('\r');
+	x_e_putb('\r');
 	x_clrtoeol(' ', false);
 	x_flush();
 	x_mode(false);
@@ -5851,7 +5760,7 @@ x_operate_region(char *(*helper)(const char *, size_t))
 	if (cp == NULL) {
 		/* error return from helper */
  x_eval_region_err:
-		x_e_putc2(KSH_BEL);
+		x_e_putb(KSH_BEL);
 		x_redraw('\r');
 		return (KSTD);
 	}
@@ -5900,4 +5809,81 @@ x_quote_region(int c MKSH_A_UNUSED)
 	return (x_operate_region(x_quote_region_helper));
 }
 #endif /* !MKSH_SMALL */
+
+#ifdef DF
+/* debug code to dump the Emacs buffer state */
+#define TL() do {							\
+	tmp = ofs & 0xFU;						\
+	if (tmp) {							\
+		while (tmp != 0x10U) {					\
+			shf_puts(tmp == 0x8U ? " -   " : "   ", &to);	\
+			++tmp;						\
+		}							\
+		tmp = ofs & (size_t)~(size_t)0xFU;			\
+	} else if (ofs)							\
+		tmp = ofs - 0x10U;					\
+	shf_puts("  ", &to);						\
+	while ((tmp & 0xFU) < lbeg) {					\
+		shf_putc(' ', &to);					\
+		++tmp;							\
+	}								\
+	shf_putc('|', &to);						\
+	while (tmp < ofs) {						\
+		kby c = xbuf[tmp++];					\
+		shf_putc(ctype(c, C_PRINT) ? c : '.', &to);		\
+	}								\
+	shf_putc('|', &to);						\
+	lbeg = ofs & 0xFU;						\
+	nl = 1;								\
+} while (/* CONSTCOND */ 0)
+
+#define DP(p) do { if ((xbuf + ofs) == p) {				\
+	if (!nl) TL();							\
+	shf_fprintf(&to, nl < 2 ? "\n   ↓ = %s" : " and %s", #p);	\
+	nl = 2;								\
+} } while (/* CONSTCOND */ 0)
+
+static void
+x_emacs_DF(const char *reason)
+{
+	struct shf to;
+	kby nl;
+	size_t ofs, end, tmp, lbeg = 0;
+
+	shf_sopen(NULL, 0, SHF_WR | SHF_DYNAMIC, &to);
+	ofs = 0;
+	nl = 1;
+	if (xdp > xep)
+		end = xdp - xbuf + 1;
+	else
+		end = xep - xbuf + 1;
+	/* end is within xend + X_EXTRA */
+	while (ofs < end) {
+		DP(xbp);
+		DP(xmp);
+		DP(xcp);
+		DP(xlp);
+		DP(xdp);
+		DP(xep);
+		if (nl) {
+			shf_fprintf(&to, "\n%04zX ", ofs);
+			tmp = ofs & (size_t)~(size_t)0xFU;
+			while (tmp < ofs) {
+				shf_puts((tmp & 0xFU) == 0x8U ?
+				    " -   " : "   ", &to);
+				++tmp;
+			}
+			nl = 0;
+		}
+		shf_fprintf(&to, (ofs & 0xFU) == 0x8U ? " - %02X" : " %02X",
+		    ord(xbuf[ofs]));
+		++ofs;
+		if (!(ofs & 0xFU))
+			TL();
+	}
+	if (!nl)
+		TL();
+	DF("‣ xbuf: %s%s", reason, shf_sclose(&to));
+}
+#endif
 #endif /* !MKSH_NO_CMDLINE_EDITING */

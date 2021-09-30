@@ -202,9 +202,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.941 2021/09/05 17:42:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.942 2021/09/30 03:20:10 tg Exp $");
 #endif
-#define MKSH_VERSION "R59 2021/06/29"
+#define MKSH_VERSION "R59 2021/09/29"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -688,10 +688,6 @@ im_sorry_dave(void)
 
 /* use this ipv strchr(s, 0) but no side effects in s! */
 #define strnul(s)	((s) + strlen((const void *)s))
-
-#define utf_ptradjx(src,dst) do {					\
-	(dst) = (src) + utf_ptradj(src);				\
-} while (/* CONSTCOND */ 0)
 
 #if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
 #define strdupx(d,s,ap) do {						\
@@ -1608,7 +1604,6 @@ extern void ebcdic_init(void);
 #define ksh_numdig(c)	(ord(c) - ORD('0'))
 #define ksh_numuc(c)	(rtt2asc(c) - rtt2asc('A'))
 #define ksh_numlc(c)	(rtt2asc(c) - rtt2asc('a'))
-#define ksh_unctrl(c)	asc2rtt(rtt2asc(c) ^ 0x40U)
 
 #ifdef MKSH_SMALL
 #define SMALLP(x)	/* nothing */
@@ -1712,6 +1707,21 @@ EXTERN mksh_ari_t x_lins E_INIT(24);
 #define shf_putc_i(c,shf)	((shf)->wnleft == 0 ? \
 				    shf_putchar((kby)(c), (shf)) : \
 				    ((shf)->wnleft--, *(shf)->wp++ = (c)))
+/*
+ * small strings (e.g. one multibyte character) only, atomically
+ * no side effects in arguments please; does s+=n; may do n=0
+ */
+#define shf_wr_sm(s,n,shf)	do {				\
+	if ((shf)->wnleft < (ssize_t)(n)) {			\
+		shf_scheck_grow((n), (shf));			\
+		shf_write((const void *)(s), (n), (shf));	\
+		(s) += (n);					\
+	} else {						\
+		(shf)->wnleft -= n;				\
+		while ((n)--)					\
+			*(shf)->wp++ = *(s)++;			\
+	}							\
+} while (/* CONSTCOND */ 0)
 #define shf_eof(shf)		((shf)->flags & SHF_EOF)
 #define shf_error(shf)		((shf)->flags & SHF_ERROR)
 #define shf_errno(shf)		((shf)->errnosv)
@@ -2453,11 +2463,20 @@ int herein(struct ioword *, char **);
 int evaluate(const char *, mksh_ari_t *, int, bool);
 int v_evaluate(struct tbl *, const char *, volatile int, bool);
 /* UTF-8 stuff */
+char *ez_bs(char *, char *);
 size_t utf_mbtowc(unsigned int *, const char *);
 size_t utf_wctomb(char *, unsigned int);
+#define OPTUISRAW(wc) HAS(wc, 0x00200080U)
+#define OPTUMKRAW(ch) (ord(ch) | 0x00200000U)
+#if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
+size_t ez_mbtowc(unsigned int *, const char *);
+#else
+#define ez_mbtowc ez_mbtoc
+#endif
+size_t ez_mbtoc(unsigned int *, const char *);
+size_t ez_ctomb(char *, unsigned int);
 int utf_widthadj(const char *, const char **);
 size_t utf_mbswidth(const char *) MKSH_A_PURE;
-size_t utf_ptradj(const char *) MKSH_A_PURE;
 #ifdef MIRBSD_BOOTFLOPPY
 #define utf_wcwidth(i) wcwidth((wchar_t)(i))
 #else
@@ -2746,8 +2765,11 @@ void dumpwdvar(struct shf *, const char *);
 void dumpioact(struct shf *, struct op *);
 #endif
 void uprntc(unsigned char, struct shf *);
-size_t uescmb(unsigned char *, const char **)
+#ifndef MKSH_NO_CMDLINE_EDITING
+void uescmbT(unsigned char *, const char **)
     MKSH_A_BOUNDED(__minbytes__, 1, 5);
+int uwidthmbT(char *, char **);
+#endif
 const char *uprntmbs(const char *, bool, struct shf *);
 void fpFUNCTf(struct shf *, int, bool, const char *, struct op *);
 /* var.c */

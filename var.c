@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.251 2021/09/01 13:23:24 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.252 2021/09/30 03:20:12 tg Exp $");
 
 /*-
  * Variables
@@ -431,21 +431,16 @@ str_val(struct tbl *vp)
 		base = (vp->type == 0) ? 10U : (unsigned int)vp->type;
 
 		if (base == 1) {
-			size_t sz = 1;
-
-			*(s = strbuf) = '1';
+			s = strbuf;
 			s[1] = '#';
 			if (n == 0) {
 				s[0] = '2';
 				s[2] = '0';
-			} else if (!UTFMODE)
-				s[2] = (unsigned char)n;
-			else if ((n & 0xFF80) == 0xEF80)
-				/* OPTU-16 -> raw octet */
-				s[2] = asc2rtt(n & 0xFF);
-			else
-				sz = utf_wctomb(s + 2, n);
-			s[2 + sz] = '\0';
+				s[3] = '\0';
+			} else {
+				s[0] = '1';
+				s[2 + ez_ctomb(s + 2, n)] = '\0';
+			}
 		} else {
 			*--s = '\0';
 			do {
@@ -601,16 +596,7 @@ getnum(const char *s, mksh_ari_u *nump, bool arith, bool psxoctal)
 				/* mksh-specific extension */
 				unsigned int wc;
 
-				if (!UTFMODE)
-					wc = *(const unsigned char *)s;
-				else if (utf_mbtowc(&wc, s) == (size_t)-1)
-					/* OPTU-8 -> OPTU-16 */
-					/*
-					 * (with a twist: 1#\uEF80 converts
-					 * the same as 1#\x80 does, thus is
-					 * not round-tripping correctly XXX)
-					 */
-					wc = 0xEF00 + rtt2asc(*s);
+				ez_mbtoc(&wc, s);
 				nump->u = (mksh_uari_t)wc;
 				return (1);
 			} else if (base > 36)

@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.108 2021/07/31 19:35:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.109 2021/09/30 03:20:11 tg Exp $");
 
 #define INDENT	8
 
@@ -820,8 +820,15 @@ uprntc(unsigned char c, struct shf *shf)
 	shf_putc(asc2rtt(a ^ 0x40U), shf);
 }
 
-size_t
-uescmb(unsigned char *dst, const char **cpp)
+#ifndef MKSH_NO_CMDLINE_EDITING
+/*
+ * For now, these are only used by the edit code, which requires
+ * a difference: tab is output as three spaces, not as control
+ * character in caret notation. If these will ever be used else‐
+ * where split them up.
+ */
+/*size_t*/ void
+uescmbT(unsigned char *dst, const char **cpp)
 {
 	unsigned char c;
 	unsigned int wc;
@@ -833,6 +840,13 @@ uescmb(unsigned char *dst, const char **cpp)
 	if (ctype(c, C_PRINT)) {
  prntb:
 		dst[dstsz++] = c;
+		goto out;
+	}
+	/* differently from uprntc, note tab as three spaces */
+	if (ord(c) == CTRL_I) {
+		dst[dstsz++] = ' ';
+		dst[dstsz++] = ' ';
+		dst[dstsz++] = ' ';
 		goto out;
 	}
 
@@ -899,8 +913,80 @@ uescmb(unsigned char *dst, const char **cpp)
  out:
 	*cpp = cp;
 	dst[dstsz] = '\0';
+#ifdef usedoutsideofedit
 	return (dstsz);
+#endif
 }
+
+int
+uwidthmbT(char *cp, char **dcp)
+{
+	unsigned char c;
+	unsigned int wc;
+	int w;
+	size_t n;
+
+	c = *cp++;
+	/* test cheap first (easiest) */
+	if (ctype(c, C_PRINT)) {
+ prntb:
+		w = 1;
+		goto out;
+	}
+	/* differently from uprntc, note tab as three spaces */
+	if (ord(c) == CTRL_I) {
+		w = 3;
+		goto out;
+	}
+
+	/* more specialised tests depend on shell state */
+	if (UTFMODE) {
+		/* wc = rtt2asc(c) except UTF-8 is decoded */
+		if ((n = utf_mbtowc(&wc, cp - 1)) == (size_t)-1) {
+			/* \x## */
+			w = 4;
+			goto out;
+		}
+		cp += n - 1;
+		/*
+		 * printable as-is? U+0020‥U+007E already handled
+		 * above as they are C_PRINT, U+00A0 or higher are
+		 * not escaped either, anything in between is special
+		 */
+		if (wc >= 0xA0U) {
+			w = utf_wcwidth(wc);
+			goto out;
+		}
+		/* and encoded with either 1 or 2 octets */
+
+		/* C1 control character, UTF-8 encoded */
+		if (wc >= 0x80U)
+			goto prntC1;
+		/* nope, must be C0 or DEL */
+		goto prntC0;
+	}
+
+	/* not UTFMODE allows more but the test is more expensive */
+	if (!ksh_isctrl8(c))
+		goto prntb;
+	/* UTF-8 is not decoded, we just transfer an octet to ASCII */
+	wc = rtt2asc(c);
+	/* C1 control character octet? */
+	if (wc >= 0x80U) {
+ prntC1:
+		w = 3;
+	} else {
+		/* nope, so C0 or DEL, anything else went to prntb */
+ prntC0:
+		w = 2;
+	}
+
+ out:
+	if (dcp)
+		*dcp = cp;
+	return (w);
+}
+#endif
 
 const char *
 uprntmbs(const char *cp, bool esc_caret, struct shf *shf)
@@ -940,13 +1026,8 @@ uprntmbs(const char *cp, bool esc_caret, struct shf *shf)
 			 * not escaped either, anything in between is special
 			 */
 			if (wc >= 0xA0U) {
-				shf_scheck(n, shf);
-				goto utflead;
-				while (n--) {
-					c = *cp++;
- utflead:
-					shf_putc(c, shf);
-				}
+				--cp;
+				shf_wr_sm(cp, n, shf);
 				continue;
 			}
 			/* and encoded with either 1 or 2 octets */
@@ -986,7 +1067,7 @@ uprntmbs(const char *cp, bool esc_caret, struct shf *shf)
 		shf_putc(asc2rtt(wc ^ 0x40U), shf);
 	}
 	/* point to the trailing NUL for continuation */
-	return ((const void *)cp);
+	return ((const void *)(cp - 1));
 }
 
 #ifdef DEBUG

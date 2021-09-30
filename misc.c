@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.326 2021/08/07 03:22:14 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.327 2021/09/30 03:20:07 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -893,7 +893,7 @@ do_gmatch(const unsigned char *s, const unsigned char *se,
 				return (0);
 			if (UTFMODE) {
 				--s;
-				s += utf_ptradj((const void *)s);
+				s += ez_mbtoc(NULL, (const void *)s);
 			}
 			break;
 
@@ -1491,7 +1491,7 @@ print_value_quoted(struct shf *shf, const char *s)
 	while ((c = *p++) != 0) {
 		if (c == '\'') {
 			if (inquote) {
-				shf_scheck(2, shf);
+				shf_scheck(3, shf);
 				shf_putc('\'', shf);
 				inquote = false;
 			}
@@ -1536,16 +1536,15 @@ dollarqU(struct shf *shf, const unsigned char *s)
 				/* C1 control character */
 				shf_fprintf(shf, "\\u%04X", wc);
 				rv = 2;
+				s += n;
 			} else {
 				/*
 				 * print as-is; we assume the tty DTRT for
 				 * interlinear annotations, LTR/RTL mark,
 				 * U+2028, U+2029, U+2066..U+206F, etc.
 				 */
-				shf_scheck(n, shf);
-				shf_write((const char *)s, n, shf);
+				shf_wr_sm(s, n, shf);
 			}
-			s += n;
 			continue;
 		}
 		++s;

@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.390 2021/08/07 03:54:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.391 2021/09/30 03:20:05 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -276,8 +276,6 @@ c_print(const char **wp)
 		mksh_ari_t wc;
 		/* output file descriptor (if any) */
 		int fd;
-		/* temporary storage for a multibyte character */
-		char ts[4];
 		/* output word separator */
 		char ws;
 		/* output line separator */
@@ -442,20 +440,13 @@ c_print(const char **wp)
 				break;
 			if (!evaluate(s, &po.wc, KSH_RETURN_ERROR, true))
 				return (1);
-			Xcheck(xs, xp);
-			if (UTFMODE) {
-				po.ts[utf_wctomb(po.ts, po.wc)] = 0;
-				c = 0;
-				do {
-					Xput(xs, xp, po.ts[c]);
-				} while (po.ts[++c]);
-			} else
-				Xput(xs, xp, po.wc & 0xFF);
+			XcheckN(xs, xp, 4);
+			xp += ez_ctomb(xp, po.wc);
 		}
 	} else {
 		s = *wp++;
 		while ((c = *s++) != '\0') {
-			Xcheck(xs, xp);
+			XcheckN(xs, xp, 4);
 			if (po.exp && c == '\\') {
 				s_ptr = s;
 				c = unbksl(false, s_get, s_put);
@@ -476,11 +467,7 @@ c_print(const char **wp)
 					}
 				} else if ((unsigned int)c > 0xFF) {
 					/* generic function returned UCS */
-					po.ts[utf_wctomb(po.ts, c - 0x100)] = 0;
-					c = 0;
-					do {
-						Xput(xs, xp, po.ts[c]);
-					} while (po.ts[++c]);
+					xp += utf_wctomb(xp, c - 0x100);
 					continue;
 				}
 			}
@@ -1891,17 +1878,22 @@ c_read(const char **wp)
 		goto c_read_gotword;
 	}
 	if (aschars) {
+		bytesleft = ez_mbtoc(NULL, ccp);
+		if (!bytesleft) {
+			/* got a NUL byte */
+			Xput(xs, xp, '2');
+			Xput(xs, xp, '#');
+			Xput(xs, xp, '0');
+			++ccp;
+			--bytesread;
+			goto c_read_gotword;
+		}
 		Xput(xs, xp, '1');
 		Xput(xs, xp, '#');
-		bytesleft = utf_ptradj(ccp);
 		while (bytesleft && bytesread) {
 			*xp++ = *ccp++;
 			--bytesleft;
 			--bytesread;
-		}
-		if (xp[-1] == '\0') {
-			xp[-1] = '0';
-			xp[-3] = '2';
 		}
 		goto c_read_gotword;
 	}

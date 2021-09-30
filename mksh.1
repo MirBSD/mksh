@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.519 2021/09/26 20:27:45 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.520 2021/09/30 03:20:08 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: September 26 2021 $
+.Dd $Mdocdate: September 30 2021 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -7249,14 +7249,10 @@ and wraparound defined, even (defying POSIX) on 36-bit and 64-bit systems.
 .Pp
 .Nm mksh
 currently uses OPTU-16 internally, which is the same as UTF-8 and CESU-8
-with 0000..FFFD being valid codepoints; raw octets are mapped into the
-PUA range EF80..EFFF, which is assigned by CSUR for this purpose.
+with 0000..FFFD being valid codepoints; raw octets are mapped outside
+UCS as 200080..2000FF.
 .Em Future compatibility note :
 there's work underway to use full 21-bit UTF-8 in mksh R60 or so.
-Raw octet mapping will almost certainly be moved out of the PUA and into
-some range outside of UCS, such as 0x00400000 with the lower bits
-corresponding to the octet; high-bit7 octets only to keep ASCII unambiguous
-(EBCDIC will have to see, perhaps using the extant ASCII mapping).
 .Sh BUGS
 Suspending (using \*(haZ) pipelines like the one below will only suspend
 the currently running part of the pipeline; in this example,
