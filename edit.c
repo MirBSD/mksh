@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.384 2021/09/30 03:20:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.385 2021/09/30 21:03:10 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2262,19 +2262,15 @@ x_transpose(int c MKSH_A_UNUSED)
 		 * GNU emacs style: Swap the characters before and under the
 		 * cursor, move cursor position along one.
 		 */
-	if (utf_mbtowc(&tmpa, xcp) == (size_t)-1) {
-		x_e_putb(KSH_BEL);
-		return (KSTD);
-	}
+	ez_mbtoc(&tmpa, xcp);
 	x_bs3(&xcp);
-	if (utf_mbtowc(&tmpb, xcp) == (size_t)-1) {
-		x_e_putb(KSH_BEL);
-		return (KSTD);
-	}
-	utf_wctomb(xcp, tmpa);
+	ez_mbtoc(&tmpb, xcp);
+	/* ensure that swapping e.g. raw 0xA4 0xC3 doesn’t break separation */
+	xcp[ez_ctomb(xcp, tmpa)] = '\0';
 	x_uescmb(&xcp);
-	utf_wctomb(xcp, tmpb);
+	ez_ctomb(xcp, tmpb);
 	x_uescmb(&xcp);
+	/* though a ^L now re-recognises that, probably okay */
 	x_modified();
 	return (KSTD);
 }
