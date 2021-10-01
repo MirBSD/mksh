@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.386 2021/10/01 23:25:28 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.387 2021/10/01 23:57:23 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -1056,7 +1056,7 @@ static int x_col;		/* current column on line */
 #define X_KTAB(pfx,key)		x_ktab[X_xTABidx((pfx), (key))]
 #define X_MTAB(pfx,key)		x_mtab[X_xTABidx((pfx), (key))]
 
-static int x_ins(const char *);
+static int x_ins(const void *);
 static void x_delete(size_t, bool);
 static void x_bword(uint32_t, bool);
 static void x_fword(uint32_t, bool);
@@ -1476,7 +1476,7 @@ x_do_ins(const char *cp, size_t len)
 }
 
 static int
-x_ins(const char *s)
+x_ins(const void *s)
 {
 	char *cp = xcp;
 	kby adj = x_adj_done;
