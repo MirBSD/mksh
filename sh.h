@@ -205,7 +205,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.944 2021/10/01 23:25:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.945 2021/10/01 23:56:52 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/09/29"
 
@@ -664,6 +664,7 @@ union mksh_ccphack {
 #if defined(DEBUG)
 char *ucstrchr(char *, int);
 const char *cstrchr(const char *, int);
+#undef strchr
 #define strchr		poisoned_strchr
 #else
 #define ucstrchr(s,c)	strchr((s), (c))
