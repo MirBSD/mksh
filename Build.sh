@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.806 2021/09/05 17:42:12 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.807 2021/10/01 23:37:55 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -373,7 +373,7 @@ ac_testnnd() {
 	fi
 	ac_testinit "$@" || return 1
 	cat_h_blurb >conftest.c
-	vv ']' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS $ccpr"
+	vv ']' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN conftest.c $LIBS $ccpr"
 	test $tcfn = no && test -f a.out && tcfn=a.out
 	test $tcfn = no && test -f a.exe && tcfn=a.exe
 	test $tcfn = no && test -f conftest.exe && tcfn=conftest.exe
@@ -578,6 +578,7 @@ r=0
 eq=0
 pm=0
 cm=normal
+Cg=
 optflags=-std-compile-opts
 check_categories=
 last=
@@ -620,7 +621,7 @@ do
 	:-g)
 		# checker, debug, valgrind build
 		add_cppflags -DDEBUG
-		CFLAGS="$CFLAGS -g3 -fno-builtin"
+		Cg='-g3 -fno-builtin'
 		;;
 	:-j)
 		pm=1
@@ -767,7 +768,7 @@ ct="Minix3"
 ;
 EOF
 	ct=unknown
-	vv ']' "${CC-cc} -E $CFLAGS $CPPFLAGS $NOWARN conftest.c | grep ct= | tr -d \\\\015 >x"
+	vv ']' "${CC-cc} -E $CFLAGS $Cg $CPPFLAGS $NOWARN conftest.c | grep ct= | tr -d \\\\015 >x"
 	sed 's/^/[ /' x
 	eval `cat x`
 	rmf x vv.out
@@ -1366,7 +1367,7 @@ et="unknown"
 EOF
 ct=untested
 et=untested
-vv ']' "$CPP $CFLAGS $CPPFLAGS $NOWARN $cmplrflgs conftest.c | \
+vv ']' "$CPP $CFLAGS $Cg $CPPFLAGS $NOWARN $cmplrflgs conftest.c | \
     sed -n '/^ *[ce]t *= */s/^ *\([ce]t\) *= */\1=/p' | tr -d \\\\015 >x"
 sed 's/^/[ /' x
 eval `cat x`
@@ -1394,7 +1395,7 @@ bcc)
 	;;
 clang)
 	# does not work with current "ccc" compiler driver
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -version"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -version"
 	# one of these two works, for now
 	vv '|' "${CLANG-clang} -version"
 	vv '|' "${CLANG-clang} --version"
@@ -1406,8 +1407,8 @@ clang)
 	: "${HAVE_STRING_POOLING=i1}"
 	;;
 dec)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -Wl,-V conftest.c $LIBS"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN -Wl,-V conftest.c $LIBS"
 	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
 	;;
 dmc)
@@ -1417,13 +1418,13 @@ dmc)
 	echo >&2 "    please report success/failure to the developers."
 	;;
 gcc)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
-	vv '|' 'eval echo "\`$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -dumpmachine\`" \
-		 "gcc\`$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -dumpversion\`"'
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
+	vv '|' 'eval echo "\`$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -dumpmachine\`" \
+		 "gcc\`$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -dumpversion\`"'
 	: "${HAVE_STRING_POOLING=i2}"
 	;;
 hpcc)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
 	;;
 iar)
 	echo >&2 'Warning: IAR Systems (http://www.iar.com) compiler for embedded
@@ -1432,17 +1433,17 @@ iar)
     own risk, please report success/failure to the developers.'
 	;;
 icc)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
 	;;
 kencc)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
 	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
 	;;
 lacc)
 	# no version information
 	;;
 lcc)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
 	cpp_define __inline__ __inline
 	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
 	;;
@@ -1452,7 +1453,7 @@ metrowerks)
     own risk, please report success/failure to the developers.'
 	;;
 mipspro)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -version"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -version"
 	;;
 msc)
 	ccpr=		# errorlevels are not reliable
@@ -1480,10 +1481,10 @@ neatcc)
 	vv '|' "$CC"
 	;;
 nwcc)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -version"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -version"
 	;;
 pcc)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -v"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -v"
 	;;
 pgi)
 	echo >&2 'Warning: PGI detected. This unknown compiler has not yet
@@ -1501,18 +1502,18 @@ sdcc)
     own risk, please report success/failure to the developers.'
 	;;
 sunpro)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
 	;;
 tcc)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -v"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -v"
 	;;
 tendra)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V 2>&1 | \
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V 2>&1 | \
 	    grep -i -e version -e release"
 	;;
 ucode)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -Wl,-V conftest.c $LIBS"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN -Wl,-V conftest.c $LIBS"
 	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
 	;;
 uslc)
@@ -1523,23 +1524,23 @@ uslc)
 		: "${HAVE_CAN_OTWO=0}${HAVE_CAN_OPTIMISE=0}"
 		;;
 	esac
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
 	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
 	;;
 watcom)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
 	;;
 xlc)
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -qversion"
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN $LIBS -qversion=verbose"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -qversion"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -qversion=verbose"
 	vv '|' "ld -V"
 	;;
 *)
 	test x"$ct" = x"untested" && $e "!!! detecting preprocessor failed"
 	ct=unknown
 	vv '|' "$CC --version"
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
-	vv '|' "$CC $CFLAGS $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN -V conftest.c $LIBS"
 	;;
 esac
 case $cm in
@@ -1744,7 +1745,7 @@ gcc)
 	ac_flags 1 fstackprotectorstrong -fstack-protector-strong
 	test 1 = $HAVE_CAN_FSTACKPROTECTORSTRONG || \
 	    ac_flags 1 fstackprotectorall -fstack-protector-all
-	test $cm = dragonegg && case " $CC $CFLAGS $LDFLAGS " in
+	test $cm = dragonegg && case " $CC $CFLAGS $Cg $LDFLAGS " in
 	*\ -fplugin=*dragonegg*) ;;
 	*) ac_flags 1 fplugin_dragonegg -fplugin=dragonegg ;;
 	esac
@@ -2146,26 +2147,26 @@ else
 EOF
 	case $cm in
 	llvm)
-		v "$CC $CFLAGS $CPPFLAGS $NOWARN -emit-llvm -c conftest.c" || fv=0
+		v "$CC $CFLAGS $Cg $CPPFLAGS $NOWARN -emit-llvm -c conftest.c" || fv=0
 		rmf $tfn.s
 		test $fv = 0 || v "llvm-link -o - conftest.o | opt $optflags | llc -o $tfn.s" || fv=0
-		test $fv = 0 || v "$CC $CFLAGS $LDFLAGS -o $tcfn $tfn.s $LIBS $ccpr"
+		test $fv = 0 || v "$CC $CFLAGS $Cg $LDFLAGS -o $tcfn $tfn.s $LIBS $ccpr"
 		;;
 	dragonegg)
-		v "$CC $CFLAGS $CPPFLAGS $NOWARN -S -flto conftest.c" || fv=0
+		v "$CC $CFLAGS $Cg $CPPFLAGS $NOWARN -S -flto conftest.c" || fv=0
 		test $fv = 0 || v "mv conftest.s conftest.ll"
 		test $fv = 0 || v "llvm-as conftest.ll" || fv=0
 		rmf $tfn.s
 		test $fv = 0 || v "llvm-link -o - conftest.bc | opt $optflags | llc -o $tfn.s" || fv=0
-		test $fv = 0 || v "$CC $CFLAGS $LDFLAGS -o $tcfn $tfn.s $LIBS $ccpr"
+		test $fv = 0 || v "$CC $CFLAGS $Cg $LDFLAGS -o $tcfn $tfn.s $LIBS $ccpr"
 		;;
 	combine)
-		v "$CC $CFLAGS $CPPFLAGS $LDFLAGS -fwhole-program --combine $NOWARN -o $tcfn conftest.c $LIBS $ccpr"
+		v "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS -fwhole-program --combine $NOWARN -o $tcfn conftest.c $LIBS $ccpr"
 		;;
 	lto|normal)
 		cm=normal
-		v "$CC $CFLAGS $CPPFLAGS $NOWARN -c conftest.c" || fv=0
-		test $fv = 0 || v "$CC $CFLAGS $LDFLAGS -o $tcfn conftest.o $LIBS $ccpr"
+		v "$CC $CFLAGS $Cg $CPPFLAGS $NOWARN -c conftest.c" || fv=0
+		test $fv = 0 || v "$CC $CFLAGS $Cg $LDFLAGS -o $tcfn conftest.o $LIBS $ccpr"
 		;;
 	esac
 	test -f $tcfn || fv=0
@@ -2601,7 +2602,7 @@ fi
 test 0 = $HAVE_SYS_SIGNAME && if ac_testinit cpp_dd '' \
     'checking if the C Preprocessor supports -dD'; then
 	echo '#define foo bar' >conftest.c
-	vv ']' "$CPP $CFLAGS $CPPFLAGS $NOWARN -dD conftest.c >x"
+	vv ']' "$CPP $CFLAGS $Cg $CPPFLAGS $NOWARN -dD conftest.c >x"
 	grep '#define foo bar' x >/dev/null 2>&1 && fv=1
 	rmf conftest.c x vv.out
 	ac_testdone
@@ -2646,7 +2647,7 @@ int
 mksh_cfg= cfg_NSIG
 ;' | cat_h_blurb >conftest.c
 	# GNU sed 2.03 segfaults when optimising this to sed -n
-	NSIG=`vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
+	NSIG=`vq "$CPP $CFLAGS $Cg $CPPFLAGS $NOWARN conftest.c" | \
 	    grep -v '^#' | \
 	    sed '/mksh_cfg.*= *$/{
 		N
@@ -2668,7 +2669,7 @@ mksh_cfg= cfg_NSIG
 	sigs="$sigs XCPU XFSZ INFO WINCH EMT IO DIL LOST PWR SAK CLD IOT STKFLT"
 	sigs="$sigs ABND DCE DUMP IOERR TRACE DANGER THCONT THSTOP RESV UNUSED"
 	test 1 = $HAVE_CPP_DD && test $NSIG -gt 1 && sigs="$sigs "`vq \
-	    "$CPP $CFLAGS $CPPFLAGS $NOWARN -dD conftest.c" | \
+	    "$CPP $CFLAGS $Cg $CPPFLAGS $NOWARN -dD conftest.c" | \
 	    grep '[	 ]SIG[A-Z0-9][A-Z0-9]*[	 ]' | \
 	    sed 's/^.*[	 ]SIG\([A-Z0-9][A-Z0-9]*\)[	 ].*$/\1/' | sort`
 	test $NSIG -gt 1 || sigs=
@@ -2682,7 +2683,7 @@ mksh_cfg= cfg_NSIG
 		echo mksh_cfg= SIG$name >>conftest.c
 		echo ';' >>conftest.c
 		# GNU sed 2.03 croaks on optimising this, too
-		vq "$CPP $CFLAGS $CPPFLAGS $NOWARN conftest.c" | \
+		vq "$CPP $CFLAGS $Cg $CPPFLAGS $NOWARN conftest.c" | \
 		    grep -v '^#' | \
 		    sed '/mksh_cfg.*= *$/{
 			N
@@ -2865,7 +2866,7 @@ for file in $SRCS; do
 	op=`echo x"$file" | sed 's/^x\(.*\)\.c$/\1./'`
 	test -f $file || file=$srcdir/$file
 	files="$files$sp$file"
-	echo "$CC $CFLAGS $CPPFLAGS $emitbc $file || exit 1" >>Rebuild.sh
+	echo "$CC $CFLAGS $Cg $CPPFLAGS $emitbc $file || exit 1" >>Rebuild.sh
 	if test $cm = dragonegg; then
 		echo "mv ${op}s ${op}ll" >>Rebuild.sh
 		echo "llvm-as ${op}ll || exit 1" >>Rebuild.sh
@@ -2886,7 +2887,7 @@ dragonegg|llvm)
 	;;
 esac
 echo tcfn=$mkshexe >>Rebuild.sh
-echo "$CC $CFLAGS $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
+echo "$CC $CFLAGS $Cg $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
 echo "test -f \$tcfn || exit 1; $SIZE \$tcfn" >>Rebuild.sh
 if test $cm = makefile; then
 	extras='emacsfn.h exprtok.h rlimits.opt sh.h sh_flags.opt ulimits.opt var_spec.h'
@@ -2911,7 +2912,7 @@ NONSRCS_INST=	dot.mkshrc \$(MAN)
 NONSRCS_NOINST=	Build.sh Makefile Rebuild.sh check.pl check.t test.sh
 CC=		$CC
 CPPFLAGS=	$CPPFLAGS
-CFLAGS=		$CFLAGS
+CFLAGS=		$CFLAGS $Cg
 LDFLAGS=	$LDFLAGS
 LIBS=		$LIBS
 
@@ -2951,11 +2952,11 @@ if test $cm = combine; then
 		objs="$objs $file"
 	done
 	emitbc="-fwhole-program --combine"
-	v "$CC $CFLAGS $CPPFLAGS $LDFLAGS $emitbc $objs $LIBS $ccpr"
+	v "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $emitbc $objs $LIBS $ccpr"
 elif test 1 = $pm; then
 	for file in $SRCS; do
 		test -f $file || file=$srcdir/$file
-		v "$CC $CFLAGS $CPPFLAGS $emitbc $file" &
+		v "$CC $CFLAGS $Cg $CPPFLAGS $emitbc $file" &
 	done
 	wait
 else
@@ -2963,7 +2964,7 @@ else
 		test $cm = dragonegg && \
 		    op=`echo x"$file" | sed 's/^x\(.*\)\.c$/\1./'`
 		test -f $file || file=$srcdir/$file
-		v "$CC $CFLAGS $CPPFLAGS $emitbc $file" || exit 1
+		v "$CC $CFLAGS $Cg $CPPFLAGS $emitbc $file" || exit 1
 		if test $cm = dragonegg; then
 			v "mv ${op}s ${op}ll"
 			v "llvm-as ${op}ll" || exit 1
@@ -2977,7 +2978,7 @@ dragonegg|llvm)
 	;;
 esac
 tcfn=$mkshexe
-test $cm = combine || v "$CC $CFLAGS $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
+test $cm = combine || v "$CC $CFLAGS $Cg $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
 test -f $tcfn || exit 1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/lksh.1' >lksh.cat1" || rmf lksh.cat1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/mksh.1' >mksh.cat1" || rmf mksh.cat1
