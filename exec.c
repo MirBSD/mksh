@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.229 2021/07/31 19:35:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.230 2021/10/01 23:25:29 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -433,8 +433,11 @@ execute(struct op * volatile t,
 		/* I/O redirection cleanup to be done in child process */
 		if (!Flag(FPOSIX) && !Flag(FSH) && t->left->ioact != NULL)
 			for (iowp = t->left->ioact; *iowp != NULL; iowp++)
-				if ((*iowp)->ioflag & IODUPSELF)
-					fcntl((*iowp)->unit, F_SETFD, 0);
+				if (((*iowp)->ioflag & IODUPSELF) &&
+				    fcntl((*iowp)->unit, F_SETFD, 0) == -1)
+					internal_warningf(Tcloexec_failed,
+					    "clear", (*iowp)->unit,
+					    cstrerror(errno));
 		/* try to execute */
 		{
 			union mksh_ccphack cargs;

@@ -71,6 +71,9 @@
 #endif
 #include <sys/stat.h>
 #include <sys/wait.h>
+#ifdef DEBUG
+#include <assert.h>
+#endif
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -202,7 +205,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.943 2021/09/30 21:31:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.944 2021/10/01 23:25:34 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/09/29"
 
@@ -218,8 +221,13 @@ typedef u_int32_t uint32_t;
 
 /* shell types */
 typedef unsigned char kby;		/* byte */
+typedef unsigned int kui;		/* wchar; kby or EOF; etc. */
 typedef unsigned long kul;		/* long, arithmetic */
 typedef signed long ksl;		/* signed long, arithmetic */
+
+#define KBY(c)	((kby)(c))		/* byte, truncated if necessary */
+#define KBI(c)	((kui)(kby)(c))		/* byte as u_int, truncated */
+#define KUI(u)	((kui)(u))		/* int as u_int, not truncated */
 
 /* arithmetic types: shell arithmetics */
 #ifdef MKSH_LEGACY_MODE
@@ -380,6 +388,9 @@ extern int ksh_getrusage(int, struct rusage *);
 #else
 #define SIZE_MAX	((size_t)-1)
 #endif
+#endif
+#ifndef S_ISCHR
+#define S_ISCHR(m)	((m & 0170000) == 0020000)
 #endif
 #ifndef S_ISLNK
 #define S_ISLNK(m)	((m & 0170000) == 0120000)
@@ -1020,6 +1031,7 @@ EXTERN const char Tcant_filesub[] E_INIT("can't open $(<...) file");
 #define Tcd (Tcant_cd + 25)
 EXTERN const char Tchvt2[] E_INIT("chvt: %s: %s");
 EXTERN const char Tchvt_failed[] E_INIT("chvt: %s failed");
+EXTERN const char Tcloexec_failed[] E_INIT("failed to %s close-on-exec flag for fd#%d: %s");
 #define T_command (T_funny_command + 9)
 #define Tcommand (T_funny_command + 10)
 EXTERN const char Tsgcontinue[] E_INIT("*=continue");
@@ -1135,7 +1147,7 @@ EXTERN const char Tf_toolarge[] E_INIT("%s %s too large: %lu");
 EXTERN const char Tf_ldfailed[] E_INIT("%s %s(%d, %ld) failed: %s");
 EXTERN const char Tf_toomany[] E_INIT("too many %ss");
 EXTERN const char Tf_sd[] E_INIT("%s %d");
-#define Tf_s (Tf_temp + 28)
+#define Tf_s (Tcloexec_failed + 43)
 EXTERN const char Tft_end[] E_INIT("%;");
 EXTERN const char Tft_R[] E_INIT("%R");
 #define Tf_d (Tunexpected_type + 23)
@@ -1179,6 +1191,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tcd "cd"
 #define Tchvt2 "chvt: %s: %s"
 #define Tchvt_failed "chvt: %s failed"
+#define Tcloexec_failed "failed to %s close-on-exec flag for fd#%d: %s"
 #define T_command "-command"
 #define Tcommand "command"
 #define Tsgcontinue "*=continue"
@@ -1546,22 +1559,21 @@ EXTERN char ifs0;
 /* identity transform of octet */
 #if defined(DEBUG) && defined(__GNUC__) && !defined(__ICC) && \
     !defined(__INTEL_COMPILER) && !defined(__SUNPRO_C)
-extern unsigned int eek_ord;
-#define ORD(c)	((size_t)(c) > 0xFF ? eek_ord : \
-		    ((unsigned int)(unsigned char)(c)))
+extern kui eek_ord;
+#define ORD(c)	((size_t)(c) > 0xFF ? eek_ord : KBI(c))
 #define ord(c)	__builtin_choose_expr(				\
     __builtin_types_compatible_p(__typeof__(c), char) ||	\
     __builtin_types_compatible_p(__typeof__(c), unsigned char),	\
-    ((unsigned int)(unsigned char)(c)), ({			\
+    KBI(c), ({							\
 	size_t ord_c = (c);					\
 								\
 	if (ord_c > (size_t)0xFFU)				\
 		internal_errorf("%s:%d:ord(%zX)",		\
 		    __FILE__, __LINE__, ord_c);			\
-	((unsigned int)(unsigned char)(ord_c));			\
+	(KBI(ord_c));						\
 }))
 #else
-#define ord(c)	((unsigned int)(unsigned char)(c))
+#define ord(c)	KBI(c)
 #define ORD(c)	ord(c) /* may evaluate arguments twice */
 #endif
 #if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
@@ -1570,16 +1582,16 @@ EXTERN unsigned char ebcdic_rtt_toascii[256];
 EXTERN unsigned char ebcdic_rtt_fromascii[256];
 extern void ebcdic_init(void);
 /* one-way to-ascii-or-high conversion, for POSIX locale ordering */
-#define asciibetical(c)	((unsigned int)ebcdic_map[(unsigned char)(c)])
+#define asciibetical(c)	KUI(ebcdic_map[ord(c)])
 /* two-way round-trip conversion, for general use */
-#define rtt2asc(c)	ebcdic_rtt_toascii[(unsigned char)(c)]
-#define asc2rtt(c)	ebcdic_rtt_fromascii[(unsigned char)(c)]
+#define rtt2asc(c)	ebcdic_rtt_toascii[KBY(c)]
+#define asc2rtt(c)	ebcdic_rtt_fromascii[KBY(c)]
 /* case-independent char comparison */
 #define ksh_eq(c,u,l)	(ord(c) == ord(u) || ord(c) == ord(l))
 #else
 #define asciibetical(c)	ord(c)
-#define rtt2asc(c)	((unsigned char)(c))
-#define asc2rtt(c)	((unsigned char)(c))
+#define rtt2asc(c)	KBY(c)
+#define asc2rtt(c)	KBY(c)
 #define ksh_eq(c,u,l)	((ord(c) | 0x20U) == ord(l))
 #endif
 /* control character foo */
@@ -1594,7 +1606,7 @@ extern void ebcdic_init(void);
 /* new fast character classes */
 #define ctype(c,t)	tobool(ksh_ctypes[ord(c)] & (t))
 #define cinttype(c,t)	((c) >= 0 && (c) <= 0xFF ? \
-			tobool(ksh_ctypes[(unsigned char)(c)] & (t)) : false)
+			tobool(ksh_ctypes[KBY(c)] & (t)) : false)
 /* helper functions */
 #define ksh_isdash(s)	tobool(ord((s)[0]) == '-' && ord((s)[1]) == '\0')
 /* invariant distance even in EBCDIC */
@@ -2432,7 +2444,7 @@ void x_init(void);
 #ifdef DEBUG_LEAKS
 void x_done(void);
 #endif
-int x_read(char *);
+char *x_read(char *);
 #endif
 void x_mkraw(int, mksh_ttyst *, bool);
 void x_initterm(const char *);
@@ -2763,6 +2775,8 @@ void tfree(struct op *, Area *);
 void dumptree(struct shf *, struct op *);
 void dumpwdvar(struct shf *, const char *);
 void dumpioact(struct shf *, struct op *);
+void dumphex(struct shf *, const void *, size_t)
+    MKSH_A_BOUNDED(__string__, 2, 3);
 #endif
 void uprntc(unsigned char, struct shf *);
 #ifndef MKSH_NO_CMDLINE_EDITING

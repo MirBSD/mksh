@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.385 2021/09/30 21:03:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.386 2021/10/01 23:25:28 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -98,13 +98,13 @@ static char *x_glob_hlp_tilde_and_rem_qchar(char *, bool);
 static size_t x_basename(const char *, const char *);
 static void x_free_words(int, char **);
 static int x_escape(const char *, size_t, int (*)(const char *, size_t));
-static int x_emacs(char *);
+static ssize_t x_emacs(char *);
 #ifdef DF
 static void x_emacs_DF(const char *);
 #endif
 static void x_init_prompt(bool);
 #if !MKSH_S_NOVI
-static int x_vi(char *);
+static ssize_t x_vi(char *);
 #endif
 static void x_intr(int, int) MKSH_A_NORETURN;
 static void x_clrtoeol(int, bool);
@@ -130,10 +130,10 @@ static int x_e_getmbc(char *);
 /*
  * read an edited command line
  */
-int
+char *
 x_read(char *buf)
 {
-	int i;
+	ssize_t i;
 
 	x_mode(true);
 	modified = 1;
@@ -148,7 +148,12 @@ x_read(char *buf)
 		i = -1;
 	editmode = 0;
 	x_mode(false);
-	return (i);
+	if (i < 0) {
+		/* pdksh had no error handling here, just return null */
+		return (buf);
+	}
+	buf += i;
+	return (buf);
 }
 
 /* tty I/O */
@@ -325,6 +330,7 @@ x_glob_hlp_add_qchar(char *cp)
 			escaping = true;
 			continue;
 		}
+		/* coverity[var_deref_model : SUPPRESS] */
 		XcheckN(xs, dp, 2);
 		if ((escaping && ctype(ch, C_EDGLB)) || ch == QCHAR)
 			*dp++ = QCHAR;
@@ -978,9 +984,6 @@ struct x_defbindings {
 #define	XF_NOBIND	2	/* not allowed to bind to function */
 #define	XF_PREFIX	4	/* function sets prefix */
 
-#define X_NTABS		4			/* normal, meta1, meta2, pc */
-#define X_TABSZ		256			/* size of keydef tables etc */
-
 /*-
  * Arguments for do_complete()
  * 0 = enumerate	M-=	complete as much as possible and then list
@@ -1023,18 +1026,16 @@ static char **x_histncp;	/* saved x_histp for " */
 static char **x_histmcp;	/* saved x_histp for " */
 static char *xmp;		/* mark pointer */
 static unsigned char x_last_command;
-static unsigned char (*x_tab)[X_TABSZ];	/* key definition */
+static kby x_curprefix;
+static kby *x_btab;		/* bitmap of keys bound by the user */
+static kby *x_ktab;		/* key definitions */
 #ifndef MKSH_SMALL
-static char *(*x_atab)[X_TABSZ];	/* macro definitions */
+static char **x_mtab;		/* macro definitions */
+static char *macroptr;		/* bind key macro active? */
 #endif
-static unsigned char x_bound[(X_TABSZ * X_NTABS + 7) / 8];
 #define KILLSIZE	20
 static char *killstack[KILLSIZE];
 static int killsp, killtp;
-static int x_curprefix;
-#ifndef MKSH_SMALL
-static char *macroptr;		/* bind key macro active? */
-#endif
 #if !MKSH_S_NOVI
 static int winwidth;		/* width of window */
 static char *wbuf[2];		/* window buffers */
@@ -1046,6 +1047,14 @@ static int holdlen;		/* length of holdbuf */
 static int pwidth;		/* width of prompt */
 static int prompt_trunc;	/* how much of prompt to truncate or -1 */
 static int x_col;		/* current column on line */
+
+/* normal, prefix1, prefix2, IBM PC, ^V (literal) */
+#define X_NTABS			4U
+#define X_NOTAB			0xFFU
+/* array indicēs; x_btab is inlined, bitmap at only two places */
+#define X_xTABidx(pfx,key)	((KBI(pfx) << 8) | KBI(key))
+#define X_KTAB(pfx,key)		x_ktab[X_xTABidx((pfx), (key))]
+#define X_MTAB(pfx,key)		x_mtab[X_xTABidx((pfx), (key))]
 
 static int x_ins(const char *);
 static void x_delete(size_t, bool);
@@ -1063,7 +1072,7 @@ static int x_search_dir(int);
 static int x_match(const char *, const char *);
 static void x_redraw(int);
 static void x_push(size_t);
-static void x_bind_showone(int, int);
+static void x_bind_showone(kui, kui);
 static void x_e_ungetc(int);
 static int x_e_getc(void);
 static void x_e_putb(int);
@@ -1244,39 +1253,45 @@ x_modified(void)
 #ifdef MKSH_SMALL
 #define XFUNC_VALUE(f) (f)
 #else
-#define XFUNC_VALUE(f) (f & 0x7F)
+#define XFUNC_VALUE(f) (f & 0x7FU)
 #endif
 
 static int
-x_e_getmbc(char *sbuf)
+x_e_getmbc(char *buf)
 {
-	int c, pos = 0;
-	unsigned char *buf = (unsigned char *)sbuf;
+	int c, pos;
+	kby f;
 
-	memset(buf, 0, 4);
-	buf[pos++] = c = x_e_getc();
-	if (c == -1)
+	if ((c = x_e_getc()) == -1)
 		return (-1);
-	if (UTFMODE) {
-		if ((rtt2asc(buf[0]) >= (unsigned char)0xC2) &&
-		    (rtt2asc(buf[0]) < (unsigned char)0xF0)) {
-			c = x_e_getc();
-			if (c == -1)
-				return (-1);
-			if ((rtt2asc(c) & 0xC0) != 0x80) {
-				x_e_ungetc(c);
-				return (1);
-			}
-			buf[pos++] = c;
+	buf[0] = c;
+	if (!UTFMODE) {
+		buf[1] = '\0';
+		return (1);
+	}
+
+	pos = 1;
+	f = rtt2asc(c);
+	if (f >= 0xC2U && f < 0xF0U) {
+		if ((c = x_e_getc()) == -1)
+			return (-1);
+		if ((rtt2asc(c) & 0xC0U) != 0x80U) {
+			x_e_ungetc(c);
+			goto out;
 		}
-		if ((rtt2asc(buf[0]) >= (unsigned char)0xE0) &&
-		    (rtt2asc(buf[0]) < (unsigned char)0xF0)) {
-			/* XXX x_e_ungetc is one-octet only */
-			buf[pos++] = c = x_e_getc();
-			if (c == -1)
+		buf[pos++] = c;
+		if (f >= 0xE0U) {
+			if ((c = x_e_getc()) == -1)
 				return (-1);
+			/* XXX x_e_ungetc is one-octet only */
+			if ((rtt2asc(c) & 0xC0U) != 0x80U)
+				x_e_ungetc(c);
+			else
+				buf[pos++] = c;
 		}
 	}
+ out:
+	buf[pos] = '\0';
 	return (pos);
 }
 
@@ -1301,7 +1316,7 @@ x_init_prompt(bool doprint)
 	}
 }
 
-static int
+static ssize_t
 x_emacs(char *buf)
 {
 	int c, i;
@@ -1338,10 +1353,10 @@ x_emacs(char *buf)
 	while (/* CONSTCOND */ 1) {
 		x_flush();
 		if ((c = x_e_getc()) < 0)
-			return (0);
+			return (-1);
 
-		f = x_curprefix == -1 ? XFUNC_insert :
-		    x_tab[x_curprefix][c];
+		f = x_curprefix == X_NOTAB ? XFUNC_insert :
+		    X_KTAB(x_curprefix, c);
 #ifndef MKSH_SMALL
 		if (f & 0x80) {
 			f &= 0x7F;
@@ -1359,7 +1374,7 @@ x_emacs(char *buf)
 			x_arg = 1;
 			x_arg_defaulted = true;
 		}
-		i = c | (x_curprefix << 8);
+		i = (int)X_xTABidx(x_curprefix, c);
 		x_curprefix = 0;
 		switch ((*x_ftab[f].xf_func)(i)) {
 		case KSTD:
@@ -1367,8 +1382,7 @@ x_emacs(char *buf)
 				x_last_command = f;
 			break;
 		case KEOL:
-			i = xep - xbuf;
-			return (i);
+			return (xep - xbuf);
 		case KINTR:
 			/* special case for interrupt */
 			x_intr(SIGINT, c);
@@ -1381,57 +1395,55 @@ x_emacs(char *buf)
 static int
 x_insert(int c)
 {
-	static int left, pos, save_arg;
-	static char str[4];
+	static kby str[5], state;
+	static int save_arg;
+	kby b;
 
 	/*
 	 * Should allow tab and control chars.
 	 */
 	if (c == 0) {
- invmbs:
-		left = 0;
 		x_e_putb(KSH_BEL);
+		state = 0;
 		return (KSTD);
 	}
-	if (UTFMODE) {
-		if (((rtt2asc(c) & 0xC0) == 0x80) && left) {
-			str[pos++] = c;
-			if (!--left) {
-				str[pos] = '\0';
-				x_arg = save_arg;
-				while (x_arg--)
-					x_ins(str);
-			}
-			return (KSTD);
-		}
-		if (left) {
-			if (x_curprefix == -1) {
-				/* flush invalid multibyte */
-				str[pos] = '\0';
-				while (save_arg--)
-					x_ins(str);
-			}
-		}
-		if ((c >= 0xC2) && (c < 0xE0))
-			left = 1;
-		else if ((c >= 0xE0) && (c < 0xF0))
-			left = 2;
-		else if (c > 0x7F)
-			goto invmbs;
-		else
-			left = 0;
-		if (left) {
-			save_arg = x_arg;
-			pos = 1;
-			str[0] = c;
-			return (KSTD);
-		}
+	if (!UTFMODE) {
+ sbc:
+		str[0] = c;
+		str[1] = '\0';
+ mbc:
+		while (x_arg--)
+			x_ins(str);
+		state = 0;
+		return (KSTD);
 	}
-	left = 0;
+	b = rtt2asc(c);
+	if (state) {
+		/* this a continuation octet? */
+		if ((b & 0xC0U) == 0x80U) {
+			/* states: 1, 5, 6 */
+			str[state & 3] = c;
+			++state;
+			/* states: 2, 6, 7 */
+			if (state == 6)
+				/* another octet needed */
+				return (KSTD);
+			/* finishing up this multibyte character */
+			str[state & 3] = '\0';
+			x_arg = save_arg;
+			goto mbc;
+		}
+		/* flush invalid multibyte octets */
+		str[state & 3] = '\0';
+		while (save_arg--)
+			x_ins(str);
+		/* begin a new multibyte character */
+	}
+	if (b < 0xC2U || b >= 0xF0)
+		goto sbc;
+	state = b < 0xE0U ? 1 : 5;
 	str[0] = c;
-	str[1] = '\0';
-	while (x_arg--)
-		x_ins(str);
+	save_arg = x_arg;
 	return (KSTD);
 }
 
@@ -1439,7 +1451,7 @@ x_insert(int c)
 static int
 x_ins_string(int c)
 {
-	macroptr = x_atab[c >> 8][c & 255];
+	macroptr = x_mtab[KUI(c)];
 	/*
 	 * we no longer need to bother checking if macroptr is
 	 * not NULL but first char is NUL; x_e_getc() does it
@@ -1784,7 +1796,7 @@ static int
 x_search_char_forw(int c MKSH_A_UNUSED)
 {
 	char *cp = xcp;
-	char tmp[4];
+	char tmp[5];
 
 	*xep = '\0';
 	if (x_e_getmbc(tmp) < 0) {
@@ -1805,7 +1817,7 @@ x_search_char_forw(int c MKSH_A_UNUSED)
 static int
 x_search_char_back(int c MKSH_A_UNUSED)
 {
-	char *cp = xcp, *p, tmp[4];
+	char *cp = xcp, *p, tmp[5];
 	bool b;
 
 	if (x_e_getmbc(tmp) < 0) {
@@ -1968,12 +1980,12 @@ x_search_hist(int c)
 		x_flush();
 		if ((c = x_e_getc()) < 0)
 			return (KSTD);
-		f = x_tab[0][c];
-		if (c == CTRL_BO) {
+		f = X_KTAB(0, c);
+		if (ord(c) == CTRL_BO) {
 			if ((f & 0x7F) == XFUNC_meta1) {
 				if ((c = x_e_getc()) < 0)
 					return (KSTD);
-				f = x_tab[1][c] & 0x7F;
+				f = X_KTAB(1, c) & 0x7F;
 				if (f == XFUNC_meta1 || f == XFUNC_meta2)
 					x_meta1(CTRL_BO);
 				x_e_ungetc(c);
@@ -2278,7 +2290,7 @@ x_transpose(int c MKSH_A_UNUSED)
 static int
 x_literal(int c MKSH_A_UNUSED)
 {
-	x_curprefix = -1;
+	x_curprefix = X_NOTAB;
 	return (KSTD);
 }
 
@@ -2456,16 +2468,16 @@ x_vt_hack(int c)
 int
 x_bind_check(void)
 {
-	return (x_tab == NULL);
+	return (x_btab == NULL);
 }
 
 static char *x_bind_show_s;
 static size_t x_bind_show_n;
 
 static void
-x_bind_showone(int prefix, int key)
+x_bind_showone(kui prefix, kui key)
 {
-	unsigned char f = XFUNC_VALUE(x_tab[prefix][key]);
+	kby f = XFUNC_VALUE(X_KTAB(prefix, key));
 	struct shf shf;
 
 	if (!x_bind_show_n)
@@ -2501,7 +2513,7 @@ x_bind_showone(int prefix, int key)
 		uprntc(key, &shf);
 	}
 #ifndef MKSH_SMALL
-	if (x_tab[prefix][key] & 0x80)
+	if (X_KTAB(prefix, key) & 0x80U)
 		shf_putc('~', &shf);
 #endif
 	x_bind_show_n = shf.wbsize;
@@ -2511,7 +2523,7 @@ x_bind_showone(int prefix, int key)
 #ifndef MKSH_SMALL
 	if (f == XFUNC_ins_string) {
 		shf_sreopen(x_bind_show_s, x_bind_show_n, AEDIT, &shf);
-		uprntmbs(x_atab[prefix][key], true, &shf);
+		uprntmbs(X_MTAB(prefix, key), true, &shf);
 		x_bind_show_n = shf.wbsize;
 		x_bind_show_s = shf_sclose(&shf);
 		print_value_quoted(shl_stdout, x_bind_show_s);
@@ -2535,11 +2547,11 @@ x_bind_list(void)
 int
 x_bind_showall(void)
 {
-	int prefix, key;
+	kui prefix, key;
 
-	for (prefix = 0; prefix < X_NTABS; prefix++)
-		for (key = 0; key < X_TABSZ; key++)
-			switch (XFUNC_VALUE(x_tab[prefix][key])) {
+	for (prefix = 0; prefix < X_NTABS; ++prefix)
+		for (key = 0; key <= 0xFF; ++key)
+			switch (XFUNC_VALUE(X_KTAB(prefix, key))) {
 			case XFUNC_error:	/* unset */
 			case XFUNC_insert:	/* auto-insert */
 				break;
@@ -2552,14 +2564,14 @@ x_bind_showall(void)
 
 struct x_bind_getc {
 	const char *cp;
-	unsigned char next;
+	kby next;
 };
 
-static unsigned int
+static kui
 x_bind_getc(struct x_bind_getc *ctx)
 {
-	unsigned int ch;
-	unsigned char tmp[4];
+	kui ch;
+	kby tmp[4];
 
 	if ((ch = ctx->next)) {
 		ctx->next = 0;
@@ -2621,9 +2633,9 @@ x_bind_getc(struct x_bind_getc *ctx)
 int
 x_bind(const char *s SMALLP(bool macro))
 {
+	register kui t;
 	struct x_bind_getc state = { s, 0 };
-	int prefix, key;
-	unsigned int c;
+	kui c, key, prefix;
 #ifndef MKSH_SMALL
 	bool hastilde = false;
 	char *ms = NULL;
@@ -2635,13 +2647,13 @@ x_bind(const char *s SMALLP(bool macro))
 		bi_errorf("no key to bind");
 		return (1);
 	}
-	key = c & 0xFF;
+	key = KBI(c);
 	while ((c = x_bind_getc(&state)) != ORD('=')) {
 		if (!c) {
 			x_bind_showone(prefix, key);
 			return (0);
 		}
-		switch (XFUNC_VALUE(x_tab[prefix][key])) {
+		switch (XFUNC_VALUE(X_KTAB(prefix, key))) {
 		case XFUNC_meta1:
 			prefix = 1;
 			if (0)
@@ -2652,7 +2664,7 @@ x_bind(const char *s SMALLP(bool macro))
 				/* FALLTHROUGH */
 		case XFUNC_meta3:
 			  prefix = 3;
-			key = c & 0xFF;
+			key = KBI(c);
 			continue;
 		}
 #ifndef MKSH_SMALL
@@ -2688,22 +2700,21 @@ x_bind(const char *s SMALLP(bool macro))
 		}
 	}
 
+	t = X_xTABidx(prefix, key);
 #ifndef MKSH_SMALL
-	if (XFUNC_VALUE(x_tab[prefix][key]) == XFUNC_ins_string)
-		afree(x_atab[prefix][key], AEDIT);
-	x_atab[prefix][key] = ms;
+	if (XFUNC_VALUE(x_ktab[t]) == XFUNC_ins_string)
+		afree(x_mtab[t], AEDIT);
+	x_mtab[t] = ms;
 	if (hastilde)
 		c |= 0x80U;
 #endif
-	x_tab[prefix][key] = c;
+	x_ktab[t] = c;
 
 	/* track what the user has bound, so x_mode(true) won't toast things */
 	if (c == XFUNC_insert)
-		x_bound[(prefix * X_TABSZ + key) / 8] &=
-		    ~(1 << ((prefix * X_TABSZ + key) % 8));
+		x_btab[t >> 3] &= ~BIT(t & 7);
 	else
-		x_bound[(prefix * X_TABSZ + key) / 8] |=
-		    (1 << ((prefix * X_TABSZ + key) % 8));
+		x_btab[t >> 3] |= BIT(t & 7);
 
 	return (0);
 }
@@ -2711,17 +2722,15 @@ x_bind(const char *s SMALLP(bool macro))
 static void
 bind_if_not_bound(int p, int k, int func)
 {
-	int t;
+	register kui t = X_xTABidx(p, k);
 
 	/*
 	 * Has user already bound this key?
 	 * If so, do not override it.
 	 */
-	t = p * X_TABSZ + k;
-	if (x_bound[t >> 3] & (1 << (t & 7)))
+	if (x_btab[t >> 3] & BIT(t & 7))
 		return;
-
-	x_tab[p][k] = func;
+	x_ktab[t] = func;
 }
 
 static int
@@ -3124,7 +3133,8 @@ x_set_arg(int c)
 
 	/* strip command prefix */
 	c &= 255;
-	while (c >= 0 && ctype(c, C_DIGIT)) {
+	/* loop to get digits */
+	while (cinttype(c, C_DIGIT)) {
 		n = n * 10 + ksh_numdig(c);
 		if (n > LINE)
 			/* upper bound for repeat */
@@ -3671,7 +3681,7 @@ static enum expand_mode {
 	NONE = 0, EXPAND, COMPLETE, PRINT
 } expanded;
 
-static int
+static ssize_t
 x_vi(char *buf)
 {
 	int c;
@@ -5638,7 +5648,7 @@ vi_macro_reset(void)
 void
 x_init(void)
 {
-	int i, j;
+	size_t i;
 
 	/*
 	 * set edchars to force initial binding, except we need
@@ -5655,29 +5665,32 @@ x_init(void)
 	/* initialise Emacs command line editing mode */
 	x_nextcmd = -1;
 
-	x_tab = alloc2(X_NTABS, sizeof(*x_tab), AEDIT);
-	for (j = 0; j < X_TABSZ; j++)
-		x_tab[0][j] = XFUNC_insert;
-	for (i = 1; i < X_NTABS; i++)
-		for (j = 0; j < X_TABSZ; j++)
-			x_tab[i][j] = XFUNC_error;
-	for (i = 0; i < (int)NELEM(x_defbindings); i++)
-		x_tab[x_defbindings[i].xdb_tab][x_defbindings[i].xdb_char]
-		    = x_defbindings[i].xdb_func;
+	x_ktab = alloc2(X_NTABS << 8, sizeof(kby), AEDIT);
+	i = 0;
+	while (i <= 0xFF)
+		x_ktab[i++] = XFUNC_insert;
+	while (i < (X_NTABS << 8))
+		x_ktab[i++] = XFUNC_error;
+	for (i = 0; i < NELEM(x_defbindings); ++i)
+		X_KTAB(x_defbindings[i].xdb_tab,
+		    x_defbindings[i].xdb_char) = x_defbindings[i].xdb_func;
 
 #ifndef MKSH_SMALL
-	x_atab = alloc2(X_NTABS, sizeof(*x_atab), AEDIT);
-	for (i = 1; i < X_NTABS; i++)
-		for (j = 0; j < X_TABSZ; j++)
-			x_atab[i][j] = NULL;
+	x_mtab = alloc2(X_NTABS << 8, sizeof(char *), AEDIT);
+	i = 0;
+	while (i < (X_NTABS << 8))
+		x_mtab[i++] = NULL;
 #endif
+
+	x_btab = alloc2(X_NTABS << (8 - 3), sizeof(kby), AEDIT);
+	memset(x_btab, 0, (X_NTABS << (8 - 3)) * sizeof(kby));
 }
 
 #ifdef DEBUG_LEAKS
 void
 x_done(void)
 {
-	if (x_tab != NULL)
+	if (x_btab != NULL)
 		afreeall(AEDIT);
 }
 #endif
@@ -5691,12 +5704,12 @@ x_initterm(const char *termtype)
 	switch (*termtype) {
 	case 's':
 		if (!strncmp(termtype, "screen", 6) &&
-		    (termtype[6] == '\0' || termtype[6] == '-'))
+		    (!termtype[6] || ord(termtype[6]) == ORD('-')))
 			x_term_mode = 1;
 		break;
 	case 't':
 		if (!strncmp(termtype, "tmux", 4) &&
-		    (termtype[4] == '\0' || termtype[4] == '-'))
+		    (!termtype[4] || ord(termtype[4]) == ORD('-')))
 			x_term_mode = 1;
 		break;
 	}

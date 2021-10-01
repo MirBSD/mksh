@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.390 2021/09/26 22:29:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.391 2021/10/01 23:25:32 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -92,6 +92,8 @@ static const char *initcoms[] = {
 static const char *restr_com[] = {
 	Ttypeset, Tdr, TENV, "HISTFILE", TPATH, TSHELL, NULL
 };
+
+extern const char Tpipest[];
 
 static bool initio_done;
 
@@ -470,7 +472,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	vp->flag |= INT_U;
 	setint_n((vp = global("RANDOM")), rndsetup(), 10);
 	vp->flag |= INT_U;
-	setint_n((vp_pipest = global("PIPESTATUS")), 0, 10);
+	setint_n((vp_pipest = global(Tpipest)), 0, 10);
 
 	/* Set this before parsing arguments */
 	Flag(FPRIVILEGED) = (kshuid != ksheuid || kshgid != kshegid) ? 2 : 0;
@@ -1557,7 +1559,9 @@ savefd(int fd)
 		return (-1);
 	if (nfd < 0 || nfd > SHRT_MAX)
 		errorf(Ttoo_many_files);
-	fcntl(nfd, F_SETFD, FD_CLOEXEC);
+	if (fcntl(nfd, F_SETFD, FD_CLOEXEC) == -1)
+		internal_warningf(Tcloexec_failed, "set", nfd,
+		    cstrerror(errno));
 	return ((short)nfd);
 }
 

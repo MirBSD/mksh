@@ -28,7 +28,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.173 2021/07/30 03:14:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.174 2021/10/01 23:25:30 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -788,8 +788,10 @@ hist_persist_init(void)
 	/* we have a file and are interactive */
 	if ((fd = binopen3(hname, O_RDWR | O_CREAT | O_APPEND, 0600)) < 0)
 		return;
-	if ((histfd = savefd(fd)) < 0)
+	if ((histfd = savefd(fd)) < 0) {
+		close(fd);
 		return;
+	}
 	if (histfd != fd)
 		close(fd);
 

@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.327 2021/09/30 03:20:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.328 2021/10/01 23:25:33 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -2114,8 +2114,12 @@ make_path(const char *cwd, const char *file,
 	size_t len, plen = 0;
 	char *xp = Xstring(*xsp, xp);
 
-	if (!file)
+	if (!file) {
 		file = null;
+#ifdef DEBUG
+		assert(file[0] == '\0'); /* for Coverity */
+#endif
+	}
 
 	if (mksh_abspath(file)) {
 		*phys_pathp = 0;
@@ -2539,7 +2543,7 @@ chvt(const Getopt *go)
 				}
 			}
 		}
-		if (!(sb.st_mode & S_IFCHR))
+		if (!S_ISCHR(sb.st_mode))
 			errorf(Tchvt2, "not a char device", dv);
 #ifndef MKSH_DISABLE_REVOKE_WARNING
 #if HAVE_REVOKE

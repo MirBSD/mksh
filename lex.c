@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.257 2021/09/30 03:20:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.258 2021/10/01 23:25:31 tg Exp $");
 
 /*
  * states while lexing word
@@ -1381,14 +1381,8 @@ getsc_line(Source *s)
 	    Flag(FVI) ||
 #endif
 	    Flag(FEMACS) || Flag(FGMACS))) {
-		int nread;
-
-		nread = x_read(xp);
-		if (nread < 0)
-			/* read error */
-			nread = 0;
-		xp[nread] = '\0';
-		xp += nread;
+		xp = x_read(xp);
+		*xp = '\0';
 	} else
 #endif
 	  {

@@ -26,7 +26,7 @@
 #include <poll.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.142 2021/08/07 03:54:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.143 2021/10/01 23:25:31 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -129,6 +129,8 @@ struct job {
 #define JL_NOSUCH	0	/* no such job */
 #define JL_AMBIG	1	/* %foo or %?foo is ambiguous */
 #define JL_INVALID	2	/* non-pid, non-% job id */
+
+const char Tpipest[] = "PIPESTATUS";
 
 static const char * const lookup_msgs[] = {
 	"no such job",
@@ -240,6 +242,7 @@ proc_errorlevel(Proc *p)
 	case PEXITED:
 		return ((WEXITSTATUS(p->status)) & 255);
 	case PSIGNALLED:
+		/* coverity[result_independent_of_operands : SUPPRESS] */
 		return (ksh_sigmask(WTERMSIG(p->status)));
 	default:
 		return (0);
@@ -1273,6 +1276,7 @@ j_waitj(Job *j,
 	} else if (flags & JW_PIPEST) {
 		uint32_t num = 0;
 		struct tbl *vp;
+		kby *vt;
 
 		unset(vp_pipest, 1);
 		vp = vp_pipest;
@@ -1280,17 +1284,13 @@ j_waitj(Job *j,
 		goto got_array;
 
 		while (p != NULL) {
-			{
-				struct tbl *vq;
-
-				/* strlen(vp_pipest->name) == 10 */
-				vq = alloc(offsetof(struct tbl, name[0]) + 11,
-				    vp_pipest->areap);
-				memset(vq, 0, offsetof(struct tbl, name[0]));
-				memcpy(vq->name, vp_pipest->name, 11);
-				vp->u.array = vq;
-				vp = vq;
-			}
+			vt = alloc(offsetof(struct tbl, name[0]) +
+			    sizeof(Tpipest), vp_pipest->areap);
+			memset(vt, 0, offsetof(struct tbl, name[0]));
+			memcpy(vt + offsetof(struct tbl, name[0]),
+			    Tpipest, sizeof(Tpipest));
+			vp->u.array = (void *)vt;
+			vp = (void *)vt;
 			vp->areap = vp_pipest->areap;
 			vp->ua.index = ++num;
 			vp->flag = DEFINED | ISSET | INTEGER | RDONLY |

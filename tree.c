@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.109 2021/09/30 03:20:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.110 2021/10/01 23:25:35 tg Exp $");
 
 #define INDENT	8
 
@@ -1410,5 +1410,48 @@ dumptree(struct shf *shf, struct op *t)
  out:
 	shf_fprintf(shf, /*{*/ " /%s}\n", name);
 	--nesting;
+}
+
+void
+dumphex(struct shf *shf, const void *buf, size_t len)
+{
+	const kby *s = buf;
+	size_t i = 0;
+
+	if (!len--) {
+		shf_puts("00000000  <\n", shf);
+		goto out;
+	}
+
+ loop:
+	if ((i & 0xFU) == 0x0U)
+		shf_fprintf(shf, "%08zX  ", i);
+	else if ((i & 0xFU) == 0x8U)
+		shf_puts("- ", shf);
+	shf_fprintf(shf, "%02X%c", ord(s[i]), i == len ? '<' : ' ');
+	if (i < len && (i & 0xFU) != 0xFU) {
+		++i;
+		goto loop;
+	}
+	while ((i & 0xFU) != 0xFU) {
+		++i;
+		if ((i & 0xFU) == 0x8U)
+			shf_puts("  ", shf);
+		shf_puts("   ", shf);
+	}
+	shf_puts(" |", shf);
+	i &= (size_t)~(size_t)0xFU;
+ visloop:
+	if (i <= len) {
+		shf_putc(ctype(s[i], C_PRINT) ? ord(s[i]) : '.', shf);
+		++i;
+		if ((i & 0xFU) != 0x0U)
+			goto visloop;
+	}
+	shf_puts("|\n", shf);
+	if (i <= len)
+		goto loop;
+ out:
+	shf_flush(shf);
 }
 #endif
