@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.387 2021/10/01 23:57:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.388 2021/10/02 00:18:10 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -438,10 +438,12 @@ x_file_glob(int *flagsp, char *toglob, char ***wordsp)
 	}
 	expand(yylval.cp, &w, nwords);
 	XPput(w, NULL);
-	words = (char **)XPclose(w);
+	nwords = 0;
+	while (XPptrv(w)[nwords])
+		++nwords;
+	/* XPclose(w) except for nwords */
+	words = aresize2(XPptrv(w), (kui)nwords, sizeof(void *), ATEMP);
 
-	for (nwords = 0; words[nwords]; nwords++)
-		;
 	if (nwords == 1) {
 		struct stat statb;
 
