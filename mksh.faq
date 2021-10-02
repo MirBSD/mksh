@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.25 2021/09/30 03:20:10 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.26 2021/10/02 01:14:16 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -366,6 +366,19 @@ Title: Some characters don’t display right
  shell was compiled for EBCDIC and/or <tt>utf8-mode</tt> and/or <tt>asis</tt>
  are enabled, the latter being ignored if either of the former two are true
  (in UTF-8 mode, UCS C1 codepoints are always escaped).</p>
+----
+ToC: carets
+Title: What’s with these ^Q, ^!Q and ^+Q (e.g. from tab completion)? \x80 too!
+
+The extended caret notation escapes characters that can be harmful for your
+terminal from being output as active control characters. This is dependent
+on the shell mode (see <a href="#escaping">above</a>. The caret (<tt>^</tt>)
+means Ctrl; <tt>^+</tt> is used to denote UTF-8 C1 control characters, while
+raw 8-bit C1 control characters use <tt>^!</tt>, and invalid UTF-8 sequences
+show up as <tt>\x</tt> in <tt>utf8-mode</tt>. The manpage also documents
+these (search for “caret”). Note that the <tt>bind</tt> utility and explicit
+parameter escaping also quote carets and backslashes with a backslash, while
+mere output (tab completion, input line editing) don’t.
 ----
 ToC: ctrl-l-cls
 Title: ^L (Ctrl-L) does not clear the screen
