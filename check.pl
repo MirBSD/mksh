@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.pl,v 1.54 2021/09/06 14:06:31 tg Exp $
+# $MirOS: src/bin/mksh/check.pl,v 1.55 2021/10/03 22:45:34 tg Exp $
 # $OpenBSD: th,v 1.1 2013/12/02 20:39:44 millert Exp $
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011,
@@ -262,7 +262,7 @@ $verbose = defined $opt_v && $opt_v;
 $is_ebcdic = defined $opt_E && $opt_E;
 $test_set = $opt_s;
 $temp_base = $opt_T || "/tmp";
-$utflocale = $opt_U || (($os eq "hpux") ? "en_US.utf8" : "C.UTF-8");
+$utflocale = $opt_U || (($os eq "hpux") ? "en_US.utf8" : ($os eq "darwin") ? "UTF-8" : "C.UTF-8");
 if (defined $opt_t) {
     die "$prog: bad -t argument (should be number > 0): $opt_t\n"
 	if $opt_t !~ /^\d+$/ || $opt_t <= 0;
