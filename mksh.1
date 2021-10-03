@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.522 2021/10/03 22:23:39 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.523 2021/10/03 23:38:11 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -1756,6 +1756,15 @@ This is also used internally for the shell's hashtables.
 A quoted expression safe for re-entry, whose value is the value of the
 .Ar name
 parameter, is substituted.
+.Pp
+.It Pf ${ Ns Ar name Ns @\*(ha}
+The value of
+.Ar name
+in extended caret notation, with both caret
+.Pq Ql \*(ha\&
+and backslash
+.Pq Ql \e\&
+backslash-escaped to avoid ambiguity.
 .El
 .Pp
 Note that
@@ -4700,7 +4709,7 @@ and
 this autodetection feature is compiled in.
 As a side effect, setting this flag turns off the
 .Ic braceexpand
-flags, which can be turned back on manually, and
+flag, which can be turned back on manually, and
 .Pq unless both are set in the same command
 .Ic sh
 mode.
@@ -7245,8 +7254,8 @@ and wraparound defined, even (defying POSIX) on 36-bit and 64-bit systems.
 .Pp
 .Nm mksh
 currently uses OPTU-16 internally, which is the same as UTF-8 and CESU-8
-with 0000..FFFD being valid codepoints; raw octets are mapped outside
-UCS as 200080..2000FF.
+with 0000..FFFD being valid codepoints; raw octets map to U+EF80..U+EFFF
+for releases before R60, U-00200080..U-002000FF for R60 onwards.
 .Em Future compatibility note :
 there's work underway to use full 21-bit UTF-8 in mksh R60 or so.
 .Sh BUGS

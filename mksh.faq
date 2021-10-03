@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.27 2021/10/03 22:23:40 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.28 2021/10/03 23:38:13 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -461,14 +461,22 @@ Title: How POSIX compliant is mksh? Also, UTF-8 vs. locales?
  (<tt>set -o posix</tt>) explicitly, which also disables brace expansion upon
  being enabled (use <tt>set -o braceexpand</tt> to reenable if needed).</p>
 <p>For the purpose of POSIX, mksh supports only the <tt>C</tt> locale. mksh’s
- <tt>utf8-mode</tt> (which <b>currently</b> (soon to change) only supports the BMP (Basic Multilingual Plane) of
- UCS and maps raw octets into the U-00200080‥U-002000FF (used to be U+EF80‥U+EFFF) wide character range; see
- <tt>Arithmetic expressions</tt> in mksh(1) for details) <em>must</em> stay
- disabled in POSIX mode (it was disabled upon enabling POSIX mode between
- R56 and R59c, inclusive, but this was removed for R59d).</p>
-<p><strong>Future compatibility note:</strong> there’s work underway to use
- full 21-bit UTF-8 in mksh R60 or so. Raw octet mapping is being moved out
- of the PUA and to some range outside of UCS (see above).</p>
+ <tt>utf8-mode</tt> <em>must</em> stay disabled in POSIX mode (it was disabled
+ upon enabling POSIX mode in R56‥R59c but decoupled again with R59d).</p>
+<p>EBCDIC interacts with <tt>utf8-mode</tt> in a special way: UTF-EBCDIC is
+ not used by anyone, we cannot use UCS-2/4 in the shell, so “nega-UTF-8”, a
+ scheme in which UTF-8 calculations are done on the octets converted per the
+ current EBCDIC codepage to “extended ASCII”.</p>
+<p>The shell’s <tt>utf8-mode</tt> <em>before</em> mksh R60 supported only the
+ BMP (Basic Multilingual Plane) of UCS and mapped raw (extended ASCII) octets,
+ i.e. these which are not valid UTF-8 BMP codepoints) into the U+EF80‥U+EFFF
+ range, which is allocated at the CSUR for this purpose. (It otherwise lies in
+ the PUA; however, there is ambiguity if encountering those UTF-8-encoded, so
+ it changed for R60.) The <tt>Arithmetic expressions</tt> and <tt>CAVEATS</tt>
+ sections in mksh(1) contain more details about encoding and mapping.</p>
+<p>As of R60, <tt>utf8-mode</tt> maps “raw octets” to U-00200080‥U-002000FF,
+ which is outside the UCS and therefore collision-free. There’s work underway
+ to make the shell support the full 21-bit UCS range for R60.</p>
 <p class="boxhead">The following POSIX sh-compatible code toggles the
  <tt>utf8-mode</tt> option dependent on the current POSIX locale, for mksh
  to allow using the UTF-8 mode, within the constraints outlined above, in
@@ -483,9 +491,9 @@ Title: How POSIX compliant is mksh? Also, UTF-8 vs. locales?
 		esac ;;
 	esac
  </pre>
-</div><p class="boxfoot">In near future, (UTF-8) locale tracking will
- make this code completely obsolete as it’s currently in the process to
- be implemented, though.</p>
+</div><p class="boxfoot">This only applies to mksh before R60 without
+ locale tracking and is obsolete as of R60’s release, except for backwards
+ compatibility.</p>
 <p>The shell is pretty close to POSIX, when run as <tt>lksh -o posix</tt>
  under the "C" locale it is intended to match. It does not do everything
  like other POSIX-compatible or ‑compliant shells, though.</p>

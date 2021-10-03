@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.877 2021/09/30 03:20:00 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.878 2021/10/03 23:38:08 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright Â© 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -10086,6 +10086,33 @@ expected-stdout:
 	typeset w=$'c\nd eâ\202¬f'
 	typeset w=$'c\nd eâ‚¬f'
 	typeset w=$'c\nd\240eâ‚¬f'
+---
+name: varexpand-special-caret
+description:
+	Check special ${var@^} expansion for quoted strings
+stdin:
+	if (( 1#1 == 49 )); then
+		CSI=$'\x9B'	# ISO-8859-1
+	else
+		CSI=$'\x3B'	# EBCDIC
+	fi
+	s=$'a\cbc d\te f\c?g h'$CSI$'0mi j\u009B''0mk l^m\n'
+	set +U +o asis
+	# this works because check.t is iconvâ€™d to EBCDIC copying to OS/390
+	print -r -- "raw <$s> ."
+	print -r -- "Ai <${s@^}> ."
+	set -o asis
+	print -r -- "Aa <${s@^}> ."
+	set -U +o asis
+	print -r -- "Ui <${s@^}> ."
+	set -o asis
+	print -r -- "Ua <${s@^}> ."
+expected-stdout:
+	raw <ac d	e fg h›0mi jÂ›0mk l^m\n> .
+	Ai <a^Bc d^Ie f^?g h^![0mi jÂ^![0mk l\^m\\n> .
+	Aa <a^Bc d^Ie f^?g h›0mi jÂ›0mk l\^m\\n> .
+	Ui <a^Bc d^Ie f^?g h\x9B0mi j^+[0mk l\^m\\n> .
+	Ua <a^Bc d^Ie f^?g h\x9B0mi j^+[0mk l\^m\\n> .
 ---
 name: varexpand-null-1
 description:

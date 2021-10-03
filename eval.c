@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.239 2021/09/30 03:20:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.240 2021/10/03 23:38:10 tg Exp $");
 
 /*
  * string expansion
@@ -443,6 +443,7 @@ expand(
 					switch (stype & STYPE_SINGLE) {
 					case ORD('#') | STYPE_AT:
 					case ORD('Q') | STYPE_AT:
+					case ORD('^') | STYPE_AT:
 						break;
 					case ORD('0'): {
 						char *beg, *mid, *end, *stg;
@@ -815,6 +816,14 @@ expand(
 
 					shf_sopen(NULL, 0, SHF_WR|SHF_DYNAMIC, &shf);
 					print_value_quoted(&shf, str_val(st->var));
+					x.str = shf_sclose(&shf);
+					goto common_CSUBST;
+				    }
+				case ORD('^') | STYPE_AT: {
+					struct shf shf;
+
+					shf_sopen(NULL, 0, SHF_WR|SHF_DYNAMIC, &shf);
+					uprntmbs(str_val(st->var), true, &shf);
 					x.str = shf_sclose(&shf);
 					goto common_CSUBST;
 				    }
@@ -1408,6 +1417,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		case ORD('#'):
 		case ORD('/'):
 		case ORD('Q'):
+		case ORD('^'):
 			break;
 		default:
 			return (-1);
@@ -1446,6 +1456,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 		case ORD('0'):
 		case ORD('#') | STYPE_AT:
 		case ORD('Q') | STYPE_AT:
+		case ORD('^') | STYPE_AT:
 	*/	default:
 			return (-1);
 		}
@@ -1496,6 +1507,7 @@ varsub(Expand *xp, const char *sp, const char *word,
 	    stype == (ORD('0') | STYPE_DBL) ||
 	    stype == (ORD('#') | STYPE_AT) ||
 	    stype == (ORD('Q') | STYPE_AT) ||
+	    stype == (ORD('^') | STYPE_AT) ||
 	    (stype & STYPE_CHAR) == ORD('/'))
 		/* expand word instead of variable value */
 		state = XBASE;
