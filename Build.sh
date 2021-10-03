@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.807 2021/10/01 23:37:55 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.808 2021/10/03 20:48:03 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -270,7 +270,7 @@ vq() {
 rmf() {
 	for _f in "$@"; do
 		case $_f in
-		*.1|*.faq|*.ico) ;;
+		lksh.1|mksh.1|mksh.faq|mksh.ico) ;;
 		*) rm -f "$_f" ;;
 		esac
 	done
@@ -572,6 +572,8 @@ else
 	srcdisp=$srcdir/
 fi
 dstversion=`sed -n '/define MKSH_VERSION/s/^.*"\([^"]*\)".*$/\1/p' "$srcdir/sh.h"`
+whatlong='The MirBSD Korn Shell (mksh)'
+whatshort=mksh
 
 e=echo
 r=0
@@ -621,7 +623,7 @@ do
 	:-g)
 		# checker, debug, valgrind build
 		add_cppflags -DDEBUG
-		Cg='-g3 -fno-builtin'
+		Cg=YES
 		;;
 	:-j)
 		pm=1
@@ -655,7 +657,7 @@ do
 		;;
 	:-v)
 		echo "Build.sh $srcversion"
-		echo "for mksh $dstversion"
+		echo "for $whatlong $dstversion"
 		exit 0
 		;;
 	:*)
@@ -739,11 +741,12 @@ if test_z "$TARGET_OS"; then
 	echo "$me: Set TARGET_OS, your uname is broken!" >&2
 	exit 1
 fi
+osnote=
 oswarn=
 ccpc=-Wc,
 ccpl=-Wl,
 tsts=
-ccpr='|| for _f in ${tcfn}*; do case $_f in *.1|*.faq|*.ico) ;; *) rm -f "$_f" ;; esac; done'
+ccpr='|| for _f in ${tcfn}*; do case $_f in lksh.1|mksh.1|mksh.faq|mksh.ico) ;; *) rm -f "$_f" ;; esac; done'
 
 # Evil hack
 if test x"$TARGET_OS" = x"Android"; then
@@ -827,7 +830,6 @@ AIX)
 	: "${HAVE_SETLOCALE_CTYPE=0}"
 	;;
 BeOS)
-TARGET_OSREV
 	: "${CC=gcc}"
 	case $TARGET_OSREV in
 	[012345].*)
@@ -1225,8 +1227,6 @@ _svr4)
 esac
 test_n "$TARGET_OSREV" || TARGET_OSREV=`uname -r`
 
-: "${HAVE_MKNOD=0}"
-
 : "${AWK=awk}${CC=cc}${NROFF=nroff}${SIZE=size}"
 test 0 = $r && echo | $NROFF -v 2>&1 | grep GNU >/dev/null 2>&1 && \
     echo | $NROFF -c >/dev/null 2>&1 && NROFF="$NROFF -c"
@@ -1265,13 +1265,18 @@ scosysv|SCO_SV|UnixWare|UNIX_SV|XENIX)
 	;;
 esac
 test_z "$oswarn" || echo >&2 "
-Warning: mksh has not yet been ported to or tested on your
-operating system '$TARGET_OS'$oswarn. If you can provide
-a shell account to the developer, this may improve; please
-drop us a success or failure notice or even send in diffs,
-at the very least, complete logs (Build.sh + test.sh) will help.
+Warning: $whatshort has not yet been ported to or tested on your
+operating system '$TARGET_OS'$oswarn."
+test_z "$osnote" || echo >&2 "
+Note: $whatshort is not fully ported to or tested yet on your
+operating system '$TARGET_OS'$osnote."
+test_z "$osnote$oswarn" || echo >&2 "
+If you can provide a shell account to the developer, this
+may improve; please drop us a success or failure notice or
+even send patches for the remaining issues, or, at the very
+least, complete logs (Build.sh + test.sh) will help.
 "
-$e "$bi$me: Building the MirBSD Korn Shell$ao $ui$dstversion$ao on $TARGET_OS ${TARGET_OSREV}..."
+$e "$bi$me: Building $whatlong$ao $ui$dstversion$ao on $TARGET_OS ${TARGET_OSREV}..."
 
 #
 # Start of mirtoconf checks
@@ -1367,7 +1372,7 @@ et="unknown"
 EOF
 ct=untested
 et=untested
-vv ']' "$CPP $CFLAGS $Cg $CPPFLAGS $NOWARN $cmplrflgs conftest.c | \
+vv ']' "$CPP $CFLAGS $CPPFLAGS $NOWARN $cmplrflgs conftest.c | \
     sed -n '/^ *[ce]t *= */s/^ *\([ce]t\) *= */\1=/p' | tr -d \\\\015 >x"
 sed 's/^/[ /' x
 eval `cat x`
@@ -1376,6 +1381,7 @@ cat_h_blurb >conftest.c <<'EOF'
 #include <unistd.h>
 int main(void) { return (isatty(0)); }
 EOF
+test_z "$Cg" || Cg=-g  # generic
 case $ct in
 ack)
 	# work around "the famous ACK const bug"
@@ -1385,7 +1391,7 @@ ack)
 adsp)
 	echo >&2 'Warning: Analog Devices C++ compiler for Blackfin, TigerSHARC
     and SHARC (21000) DSPs detected. This compiler has not yet
-    been tested for compatibility with mksh. Continue at your
+    been tested for compatibility with this. Continue at your
     own risk, please report success/failure to the developers.'
 	;;
 bcc)
@@ -1418,6 +1424,7 @@ dmc)
 	echo >&2 "    please report success/failure to the developers."
 	;;
 gcc)
+	test_z "$Cg" || Cg='-g3 -fno-builtin'
 	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
 	vv '|' 'eval echo "\`$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -dumpmachine\`" \
 		 "gcc\`$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -dumpversion\`"'
@@ -1429,7 +1436,7 @@ hpcc)
 iar)
 	echo >&2 'Warning: IAR Systems (http://www.iar.com) compiler for embedded
     systems detected. This unsupported compiler has not yet
-    been tested for compatibility with mksh. Continue at your
+    been tested for compatibility with this. Continue at your
     own risk, please report success/failure to the developers.'
 	;;
 icc)
@@ -1449,7 +1456,7 @@ lcc)
 	;;
 metrowerks)
 	echo >&2 'Warning: Metrowerks C compiler detected. This has not yet
-    been tested for compatibility with mksh. Continue at your
+    been tested for compatibility with this. Continue at your
     own risk, please report success/failure to the developers.'
 	;;
 mipspro)
@@ -1488,7 +1495,7 @@ pcc)
 	;;
 pgi)
 	echo >&2 'Warning: PGI detected. This unknown compiler has not yet
-    been tested for compatibility with mksh. Continue at your
+    been tested for compatibility with this. Continue at your
     own risk, please report success/failure to the developers.'
 	;;
 quickc)
@@ -1498,7 +1505,7 @@ quickc)
 sdcc)
 	echo >&2 'Warning: sdcc (http://sdcc.sourceforge.net), the small devices
     C compiler for embedded systems detected. This has not yet
-    been tested for compatibility with mksh. Continue at your
+    been tested for compatibility with this. Continue at your
     own risk, please report success/failure to the developers.'
 	;;
 sunpro)
@@ -1713,7 +1720,16 @@ xlc)
 	test 1 = $HAVE_CAN_OTHREE || ac_flags 1 otwo -O2
 	;;
 *)
-	ac_flags 1 otwo -O2
+	if test_n "$Cg"; then
+		ac_flags 1 ogee -Og
+		if test 1 = $HAVE_CAN_OGEE; then
+			HAVE_CAN_OTWO=1 # for below
+		else
+			ac_flags 1 otwo -O2
+		fi
+	else
+		ac_flags 1 otwo -O2
+	fi
 	test 1 = $HAVE_CAN_OTWO || ac_flags 1 optimise -O
 	;;
 esac
@@ -1739,7 +1755,7 @@ gcc)
 	# The following tests run with -Werror (gcc only) if possible
 	NOWARN=$DOWARN; phase=u
 	ac_flags 1 wnodeprecateddecls -Wno-deprecated-declarations
-	# mksh is not written in CFrustFrust!
+	# we do not even use CFrustFrust in MirBSD so don’t code in it…
 	ac_flags 1 no_eh_frame -fno-asynchronous-unwind-tables
 	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
 	ac_flags 1 fstackprotectorstrong -fstack-protector-strong
@@ -2311,6 +2327,7 @@ ac_test memmove <<-'EOF'
 	}
 EOF
 
+: "${HAVE_MKNOD=0}"
 ac_test mknod '' 'if to use mknod(), makedev() and friends' <<-'EOF'
 	#define MKSH_INCLUDES_ONLY
 	#include "sh.h"
@@ -2732,16 +2749,16 @@ objs=
 sp=
 case $tcfn in
 a.exe|conftest.exe)
-	mkshexe=$tfn.exe
+	buildoutput=$tfn.exe
 	cpp_define MKSH_EXE_EXT 1
 	;;
 *)
-	mkshexe=$tfn
+	buildoutput=$tfn
 	;;
 esac
 case $curdir in
-*\ *)	mkshshebang="#!./$mkshexe" ;;
-*)	mkshshebang="#!$curdir/$mkshexe" ;;
+*\ *)	mkshshebang="#!./$buildoutput" ;;
+*)	mkshshebang="#!$curdir/$buildoutput" ;;
 esac
 cat >test.sh <<-EOF
 	$mkshshebang
@@ -2751,7 +2768,7 @@ cat >test.sh <<-EOF
 	*) exit 1 ;;
 	esac
 	set -A check_categories -- $check_categories
-	pflag='$curdir/$mkshexe'
+	pflag='$curdir/$buildoutput'
 	sflag='$srcdir/check.t'
 	usee=0 useU=0 Pflag=0 Sflag=0 uset=0 vflag=1 xflag=0
 	while getopts "C:e:fPp:QSs:t:U:v" ch; do case \$ch {
@@ -2886,7 +2903,7 @@ dragonegg|llvm)
 	lobjs=$objs
 	;;
 esac
-echo tcfn=$mkshexe >>Rebuild.sh
+echo tcfn=$buildoutput >>Rebuild.sh
 echo "$CC $CFLAGS $Cg $LDFLAGS -o \$tcfn $lobjs $LIBS $ccpr" >>Rebuild.sh
 echo "test -f \$tcfn || exit 1; $SIZE \$tcfn" >>Rebuild.sh
 if test $cm = makefile; then
@@ -2900,9 +2917,9 @@ if test $cm = makefile; then
 			srcfile=$srcdir/$file; BUILDSH_RUN_GENOPT=1; . $srcdir/Build.sh"
 	done
 	cat >Makefrag.inc <<EOF
-# Makefile fragment for building mksh $dstversion
+# Makefile fragment for building $whatlong $dstversion
 
-PROG=		$mkshexe
+PROG=		$buildoutput
 MAN=		mksh.1
 SRCS=		$SRCS
 SRCS_FP=	$files
@@ -2946,7 +2963,7 @@ for file in $optfiles; do
 	do_genopt "$srcdir/$file" || exit 1
 done
 if test $cm = combine; then
-	objs="-o $mkshexe"
+	objs="-o $buildoutput"
 	for file in $SRCS; do
 		test -f $file || file=$srcdir/$file
 		objs="$objs $file"
@@ -2977,7 +2994,7 @@ dragonegg|llvm)
 	v "llvm-link -o - $objs | opt $optflags | llc -o $tfn.s"
 	;;
 esac
-tcfn=$mkshexe
+tcfn=$buildoutput
 test $cm = combine || v "$CC $CFLAGS $Cg $LDFLAGS -o $tcfn $lobjs $LIBS $ccpr"
 test -f $tcfn || exit 1
 test 1 = $r || v "$NROFF -mdoc <'$srcdir/lksh.1' >lksh.cat1" || rmf lksh.cat1
