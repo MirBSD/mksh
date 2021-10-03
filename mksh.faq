@@ -1,4 +1,4 @@
-RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.26 2021/10/02 01:14:16 tg Exp $
+RCSID: $MirOS: src/bin/mksh/mksh.faq,v 1.27 2021/10/03 22:23:40 tg Exp $
 ToC: spelling
 Title: How do you spell <tt>mksh</tt>? How do you pronounce it?
 
@@ -461,14 +461,14 @@ Title: How POSIX compliant is mksh? Also, UTF-8 vs. locales?
  (<tt>set -o posix</tt>) explicitly, which also disables brace expansion upon
  being enabled (use <tt>set -o braceexpand</tt> to reenable if needed).</p>
 <p>For the purpose of POSIX, mksh supports only the <tt>C</tt> locale. mksh’s
- <tt>utf8-mode</tt> (which only supports the BMP (Basic Multilingual Plane) of
+ <tt>utf8-mode</tt> (which <b>currently</b> (soon to change) only supports the BMP (Basic Multilingual Plane) of
  UCS and maps raw octets into the U-00200080‥U-002000FF (used to be U+EF80‥U+EFFF) wide character range; see
  <tt>Arithmetic expressions</tt> in mksh(1) for details) <em>must</em> stay
- disabled in POSIX mode (it is disabled upon enabling POSIX mode in R56+ but
- don’t depend on this to stay once locale tracking will be implemented).</p>
+ disabled in POSIX mode (it was disabled upon enabling POSIX mode between
+ R56 and R59c, inclusive, but this was removed for R59d).</p>
 <p><strong>Future compatibility note:</strong> there’s work underway to use
- full 21-bit UTF-8 in mksh R60 or so. Raw octet mapping will almost certainly
- be moved out of the PUA and to some range outside of UCS.</p>
+ full 21-bit UTF-8 in mksh R60 or so. Raw octet mapping is being moved out
+ of the PUA and to some range outside of UCS (see above).</p>
 <p class="boxhead">The following POSIX sh-compatible code toggles the
  <tt>utf8-mode</tt> option dependent on the current POSIX locale, for mksh
  to allow using the UTF-8 mode, within the constraints outlined above, in
@@ -484,6 +484,7 @@ Title: How POSIX compliant is mksh? Also, UTF-8 vs. locales?
 	esac
  </pre>
 </div><p class="boxfoot">In near future, (UTF-8) locale tracking will
+ make this code completely obsolete as it’s currently in the process to
  be implemented, though.</p>
 <p>The shell is pretty close to POSIX, when run as <tt>lksh -o posix</tt>
  under the "C" locale it is intended to match. It does not do everything

@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.521 2021/10/02 00:49:28 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.522 2021/10/03 22:23:39 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: October 2 2021 $
+.Dd $Mdocdate: October 3 2021 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -4578,7 +4578,7 @@ or
 case-insensitively; for direct builtin calls depending on the
 aforementioned environment variables; or for stdin or scripts,
 if the input begins with a UTF-8 Byte Order Mark.
-The BOM processing may be removed with locale tracking.
+The BOM processing *WILL* be removed with locale tracking.
 .Pp
 In near future, locale tracking will be implemented, which means that
 .Ic set Fl +U
@@ -4700,15 +4700,10 @@ and
 this autodetection feature is compiled in.
 As a side effect, setting this flag turns off the
 .Ic braceexpand
-and
-.Ic utf8\-mode
 flags, which can be turned back on manually, and
 .Pq unless both are set in the same command
 .Ic sh
 mode.
-Note that locale tracking will probably remove turning off
-.Ic utf8\-mode
-when entering POSIX mode.
 .It Fl o Ic sh
 Enable kludge
 .Pa /bin/sh

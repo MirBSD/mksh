@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.391 2021/10/01 23:25:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.392 2021/10/03 22:23:38 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -611,10 +611,15 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		getopts_reset(1);
 	}
 
+/*XXX to go away entirely with locale tracking */
 	/* divine the initial state of the utf8-mode Flag */
 	ccp = null;
 	switch (utf_flag) {
 
+#ifdef MKSH_EARLY_LOCALE_TRACKING
+	/* not set on command line, not FTALKING */
+	case 2:
+#endif
 	/* auto-detect from locale or environment */
 	case 4:
 #if HAVE_SETLOCALE_CTYPE
@@ -640,8 +645,10 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		UTFMODE = isuc(ccp);
 		break;
 
+#ifndef MKSH_EARLY_LOCALE_TRACKING
 	/* not set on command line, not FTALKING */
 	case 2:
+#endif
 	/* unknown values */
 	default:
 		utf_flag = 0;
@@ -2158,7 +2165,6 @@ void
 recheck_ctype(void)
 {
 	const char *ccp;
-	kby old_utfmode = UTFMODE;
 
 	ccp = str_val(global("LC_ALL"));
 	if (ccp == null)
@@ -2167,6 +2173,12 @@ recheck_ctype(void)
 		ccp = str_val(global("LANG"));
 	UTFMODE = isuc(ccp);
 #if HAVE_SETLOCALE_CTYPE
+	/*
+	 * XXX this is broken: POSIXly, only the locale may determine
+	 * this, and we need to clean LANGUAGE, LANG, LC_* from envp,
+	 * then use "" if empty, to get the default as musl already
+	 * has "C.UTF-8" as default, when all env aren’t set :/
+	 */
 	ccp = setlocale(LC_CTYPE, *ccp ? ccp : "C");
 #if HAVE_LANGINFO_CODESET
 	if (!isuc(ccp))
@@ -2175,9 +2187,6 @@ recheck_ctype(void)
 	if (isuc(ccp))
 		UTFMODE = 1;
 #endif
-
-	if (Flag(FPOSIX) && UTFMODE && !old_utfmode)
-		warningf(true, "early locale tracking enabled UTF-8 mode while in POSIX mode, you are now noncompliant");
 }
 #endif
 
