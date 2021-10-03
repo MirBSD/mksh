@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.392 2021/10/03 22:23:38 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.393 2021/10/03 22:38:49 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -482,6 +482,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	Flag(FMONITOR) = 127;
 #endif
 	/* this to note if utf-8 mode is set on command line (see below) */
+/*XXX this and the below can probably go away */
+/*XXX UTFMODE should be set from env here if locale tracking, just keep it */
 	UTFMODE = 2;
 
 	if (!as_builtin) {
@@ -490,6 +492,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 			return (1);
 	}
 
+/*XXX drop this and the entire cases below */
 	/* process this later only, default to off (hysterical raisins) */
 	utf_flag = UTFMODE;
 	UTFMODE = 0;
@@ -622,6 +625,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 #endif
 	/* auto-detect from locale or environment */
 	case 4:
+#ifndef MKSH_EARLY_LOCALE_TRACKING
 #if HAVE_SETLOCALE_CTYPE
 		ccp = setlocale(LC_CTYPE, "");
 #if HAVE_LANGINFO_CODESET
@@ -631,10 +635,12 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		if (!isuc(ccp))
 			ccp = null;
 #endif
+#endif
 		/* FALLTHROUGH */
 
 	/* auto-detect from environment */
 	case 3:
+#ifndef MKSH_EARLY_LOCALE_TRACKING
 		/* these were imported from environ earlier */
 		if (ccp == null)
 			ccp = str_val(global("LC_ALL"));
@@ -643,6 +649,9 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		if (ccp == null)
 			ccp = str_val(global("LANG"));
 		UTFMODE = isuc(ccp);
+#else
+		recheck_ctype(); /*XXX probably unnecessary here */
+#endif
 		break;
 
 #ifndef MKSH_EARLY_LOCALE_TRACKING
@@ -2139,7 +2148,7 @@ init_environ(void)
 	while (*wp != NULL) {
 		rndpush(*wp);
 		typeset(*wp, IMPORT | EXPORT, 0, 0, 0);
-#ifdef notyet
+#ifdef MKSH_EARLY_LOCALE_TRACKING
 		if (ord((*wp)[0]) == ORD('L') && (
 		    (ord((*wp)[1]) == ORD('C') && ord((*wp)[2]) == ORD('_')) ||
 		    !strcmp(*wp, "LANG"))) {
@@ -2166,6 +2175,7 @@ recheck_ctype(void)
 {
 	const char *ccp;
 
+	/*XXX OSX has LC_CTYPE=UTF-8 */
 	ccp = str_val(global("LC_ALL"));
 	if (ccp == null)
 		ccp = str_val(global("LC_CTYPE"));
@@ -2173,13 +2183,7 @@ recheck_ctype(void)
 		ccp = str_val(global("LANG"));
 	UTFMODE = isuc(ccp);
 #if HAVE_SETLOCALE_CTYPE
-	/*
-	 * XXX this is broken: POSIXly, only the locale may determine
-	 * this, and we need to clean LANGUAGE, LANG, LC_* from envp,
-	 * then use "" if empty, to get the default as musl already
-	 * has "C.UTF-8" as default, when all env aren’t set :/
-	 */
-	ccp = setlocale(LC_CTYPE, *ccp ? ccp : "C");
+	ccp = setlocale(LC_CTYPE, ccp);
 #if HAVE_LANGINFO_CODESET
 	if (!isuc(ccp))
 		ccp = nl_langinfo(CODESET);
