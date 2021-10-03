@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.328 2021/10/01 23:25:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.329 2021/10/03 22:18:03 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -295,10 +295,6 @@ change_flag(enum sh_flag f, int what, bool newset)
 
 		/* +++ privs changed +++ */
 	} else if ((f == FPOSIX || f == FSH) && newval) {
-		/* Turning on -o posix? */
-		if (f == FPOSIX)
-			/* C locale required for compliance */
-			UTFMODE = 0;
 		/* Turning on -o posix or -o sh? */
 		Flag(FBRACEEXPAND) = 0;
 #ifndef MKSH_NO_CMDLINE_EDITING
