@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.878 2021/10/03 23:38:08 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.879 2021/10/03 23:45:52 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright Â© 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2021/09/29
+	KSH R59 2021/10/03
 description:
 	Check base version of full shell
 stdin:
@@ -10652,15 +10652,15 @@ stdin:
 	echo "specX <${tv1#16#}> <${tv2#16#}> <${tv3#16#}> <${tv4#16#}> <${tv5#16#}> <${tv6#16#}> <${tv7#16#}> <${tv8#16#}>"
 	typeset -i1 tv1 tv2 tv3 tv4 tv5 tv6 tv7 tv8
 	echo "specW <${tv1#1#}> <${tv2#1#}> <${tv3#1#}> <${tv4#1#}> <${tv5#1#}> <${tv6#1#}> <${tv7#1#}> <${tv8#1#}>"
-	typeset -i1 xs1=0x20007F xs2=0x200080 xs3=0xFDD0
+	typeset -i1 xs1=0xEF7F xs2=0xEF80 xs3=0xFDD0
 	echo "specU <${xs1#1#}> <${xs2#1#}> <${xs3#1#}>"
 expected-stdout:
-	in <16#2000EF> <16#20AC>
+	in <16#EFEF> <16#20AC>
 	out <@|~> <â˜º|ï·>
 	pass <16#cafe> <1# > <1#â€¦> <1#f> <ï|â‚¬>
-	specX <7E> <7F> <200080> <200081> <2000C0> <2000C1> <A0> <80>
+	specX <7E> <7F> <EF80> <EF81> <EFC0> <EFC1> <A0> <80>
 	specW <~> <> <€> <> <À> <Á> <Â > <Â€>
-	specU <ï¿½> <€> <ï·>
+	specU <î½¿> <€> <ï·>
 ---
 name: integer-base-one-2a
 description:
@@ -10713,7 +10713,7 @@ stdin:
 	typeset -i16 x=1#ÿ
 	echo /$x/	# invalid utf-8
 expected-stdout:
-	/16#2000ff/
+	/16#efff/
 ---
 name: integer-base-one-2d2
 description:
@@ -10723,7 +10723,7 @@ stdin:
 	typeset -i16 x=1#Â
 	echo /$x/	# invalid 2-byte
 expected-stdout:
-	/16#2000c2/
+	/16#efc2/
 ---
 name: integer-base-one-2d3
 description:
@@ -10733,7 +10733,7 @@ stdin:
 	typeset -i16 x=1#ï
 	echo /$x/	# invalid 2-byte
 expected-stdout:
-	/16#2000ef/
+	/16#efef/
 ---
 name: integer-base-one-2d4
 description:
@@ -10874,10 +10874,10 @@ stdin:
 				if (( (wc < 32) || \
 				    ((wc > 126) && (wc < 160)) )); then
 					dch=.
-				elif (( (wc & ~0x7F) == 0x200080 )); then
+				elif (( (wc & ~0x7F) == 0xEF80 )); then
 					dch=ï¿½
 					# OPTU-8 value mapping, to keep test
-					(( hv = 0xEF80 | (wc & 0x7F) ))
+					#(( hv = 0xEF80 | (hv & 0x7F) ))
 				else
 					dch=${wc#1#}
 				fi
@@ -11039,10 +11039,10 @@ stdin:
 				if (( (hv < 32) || \
 				    ((hv > 126) && (hv < 160)) )); then
 					dch=.
-				elif (( (hv & ~0x7F) == 0x200080 )); then
+				elif (( (hv & ~0x7F) == 0xEF80 )); then
 					dch=ï¿½
 					# OPTU-8 value mapping, to keep test
-					(( hv = 0xEF80 | (hv & 0x7F) ))
+					#(( hv = 0xEF80 | (hv & 0x7F) ))
 				else
 					dch=${line[i-1]#1#}
 				fi
