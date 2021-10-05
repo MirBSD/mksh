@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.879 2021/10/03 23:45:52 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.880 2021/10/05 22:06:32 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2021/10/03
+	KSH R59 2021/10/04
 description:
 	Check base version of full shell
 stdin:
@@ -5609,6 +5609,20 @@ expected-stdout:
 	PROG: trap: bad signal 'FNORD'
 	= 1
 	trap 2 executed
+---
+name: uncatchable-trap
+description:
+	Ensure trying to trap SIGKILL is a nop (POSIX says undefined)
+stdin:
+	trap 'echo sighit $? .' KILL EXIT
+	"$__perlname" -e 'print $=.$/;'
+	echo meow $? .
+	(exit 7)
+expected-exit: 7
+expected-stdout:
+	60
+	meow 0 .
+	sighit 7 .
 ---
 name: read-IFS-1
 description:

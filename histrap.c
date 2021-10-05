@@ -28,7 +28,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.174 2021/10/01 23:25:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.175 2021/10/05 22:06:34 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -1622,25 +1622,61 @@ mksh_unlkfd(int fd)
 #endif
 #endif
 
+/*
+ * On handling errors when setting signals
+ *
+ * The signal management calls fail with:
+ * - EFAULT: (sigaction only) &sa or old point to invalid memory,
+ *   which is not bloody likely
+ * - E?????: (sigaction only) if SA_SIGINFO is set and […]
+ *   but we don’t ever set SA_SIGINFO
+ * - EINVAL: on invalid signal number; operating on uncatchable
+ *   respectively unignorable signals (SIGKILL, SIGSTOP)
+ *
+ * The signal number is already verified in higher-up code. We
+ * deliberately do not error nor even warn for SIGKILL or SIGSTOP
+ * because startx on Debian for example attempts that (POSIX says
+ * undefined); therefore silently ignoring invalid signal numbers
+ * that otherwise pass muster is acceptable.
+ */
+
 #if HAVE_SIGACTION
+#ifndef SIG_ERR
+static void
+ksh_sigerr(int sig MKSH_A_UNUSED)
+{
+}
+#define SIG_ERR (&ksh_sigerr)
+#endif
+
 /* masks the signal, does not (may) restart, not oneshot */
 void
 ksh_sigset(int sig, sig_t act, ksh_sigsaved *old)
 {
-	struct sigaction sa;
+	int rv;
 
-	memset(&sa, 0, sizeof(sa));
-	sigemptyset(&sa.sa_mask);
-	sa.sa_handler = act;
-	if (sigaction(sig, &sa, old))
-		internal_errorf("sigaction: %s", cstrerror(errno));
+	if (act != SIG_ERR) {
+		struct sigaction sa;
+
+		memset(&sa, '\0', sizeof(sa));
+		sigemptyset(&sa.sa_mask);
+		sa.sa_handler = act;
+		rv = sigaction(sig, &sa, old);
+	} else if (!old)
+		return;
+	else
+		rv = sigaction(sig, NULL, old);
+	if (rv && old) {
+		memset(old, '\0', sizeof(*old));
+		old->sa_handler = SIG_ERR;
+	}
 }
 
 void
 ksh_sigrestore(int sig, ksh_sigsaved *savedp)
 {
-	if (sigaction(sig, savedp, NULL))
-		internal_errorf("sigaction: %s", cstrerror(errno));
+	if (savedp->sa_handler != SIG_ERR)
+		sigaction(sig, savedp, NULL);
 }
 #elif defined(MKSH_USABLE_SIGNALFUNC)
 /* masks the signal, may (probably will, not always) restart, not oneshot */
@@ -1649,8 +1685,7 @@ ksh_sigset(int sig, sig_t act, ksh_sigsaved *old)
 {
 	sig_t res;
 
-	if ((res = MKSH_USABLE_SIGNALFUNC(sig, act)) == SIG_ERR)
-		internal_errorf("signal: %s", cstrerror(errno));
+	res = act == SIG_ERR ? SIG_ERR : MKSH_USABLE_SIGNALFUNC(sig, act);
 	if (old)
 		*old = res;
 }
