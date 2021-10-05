@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.230 2021/10/01 23:25:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.231 2021/10/05 22:04:42 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -856,14 +856,6 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			if (exec_argv0)
 				texec.args[0] = exec_argv0;
 			j_exit();
-			if (!(flags & XBGND)
-#ifndef MKSH_UNEMPLOYED
-			    || Flag(FMONITOR)
-#endif
-			    ) {
-				setexecsig(&sigtraps[SIGINT], SS_RESTORE_ORIG);
-				setexecsig(&sigtraps[SIGQUIT], SS_RESTORE_ORIG);
-			}
 		}
 
 		rv = exchild(&texec, flags, xerrok, -1);
