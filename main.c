@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.393 2021/10/03 22:38:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.394 2021/10/05 22:01:33 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -1428,6 +1428,10 @@ void
 internal_errorf(const char *fmt, ...)
 {
 	va_list va;
+
+	exstat = 0xFF;
+	if (trap_exstat != -1)
+		trap_exstat = exstat;
 
 	va_start(va, fmt);
 	vwarningf(VWARNINGF_INTERNAL, fmt, va);
