@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.880 2021/10/05 22:06:32 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.881 2021/10/06 22:46:46 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2021/10/04
+	KSH R59 2021/10/06
 description:
 	Check base version of full shell
 stdin:
@@ -12915,7 +12915,6 @@ expected-stdout:
 name: funsub-2
 description:
 	You can now reliably use local and return in funsubs
-	(not exit though)
 stdin:
 	x=q; e=1; x=${ echo a; e=2; echo x$e;}; echo 1:y$x,$e,$?.
 	x=q; e=1; x=${ echo a; typeset e=2; echo x$e;}; echo 2:y$x,$e,$?.
@@ -12924,6 +12923,32 @@ expected-stdout:
 	1:ya x2,2,0.
 	2:ya x2,1,0.
 	3:ya,1,3.
+---
+name: funsub-3
+description:
+	… not exit though, like in ksh93
+stdin:
+	function foo {
+		if [[ $1 = 2 ]]; then
+			print -u2 ERR
+			exit 42
+		fi
+		print -r -- "<$1>"
+	}
+	for i in 1 2 3; do
+		print $i ${ foo $i;} || {
+			print SUB=$?
+			exit 1
+		}
+	done
+	print END=$?
+expected-stdout:
+	1 <1>
+	2
+	3 <3>
+	END=0
+expected-stderr:
+	ERR
 ---
 name: valsub-1
 description:
@@ -12956,6 +12981,30 @@ expected-stdout:
 	after:	x<8> y<2> z<7> R<4>
 	typeset t=$'foo\n\n'
 	this used to segfault.
+---
+name: valsub-2
+description:
+	Can use exit here, in contrast to funsubs
+stdin:
+	function foo {
+		if [[ $1 = 2 ]]; then
+			print -u2 ERR
+			exit 42
+		fi
+		REPLY="<$1>"
+	}
+	for i in 1 2 3; do
+		print $i ${|foo $i;} || {
+			print SUB=$?
+			exit 1
+		}
+	done
+	print END=$?
+expected-exit: 42
+expected-stdout:
+	1 <1>
+expected-stderr:
+	ERR
 ---
 name: event-subst-3
 description:
