@@ -23,7 +23,7 @@
 #include <err.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.27 2021/07/30 04:00:11 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.28 2021/10/10 20:41:17 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -31,7 +31,6 @@ __RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.27 2021/07/30 04:00:11 tg Exp $");
 #else
 #define remalloc(p,n)	realloc_osi((p), (n))
 #endif
-
 
 static struct lalloc_common *findptr(struct lalloc_common **, char *, Area *);
 

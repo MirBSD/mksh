@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.329 2021/10/03 22:18:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.330 2021/10/10 20:41:17 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -75,7 +75,6 @@ static int make_path(const char *, const char *, char **, XString *, int *);
 #define DO_SETUID(func,argvec) func argvec
 #endif
 
-
 /* called from XcheckN() to grow buffer */
 char *
 Xcheck_grow(XString *xsp, const char *xp, size_t more)
@@ -90,7 +89,6 @@ Xcheck_grow(XString *xsp, const char *xp, size_t more)
 	xsp->end = xsp->beg + xsp->len;
 	return (xsp->beg + (xp - old_beg));
 }
-
 
 #define SHFLAGS_DEFNS
 #define FN(sname,cname,flags,ochar)		\
@@ -1278,7 +1276,6 @@ ksh_getopt_reset(Getopt *go, int flags)
 	go->info = 0;
 	go->buf[1] = '\0';
 }
-
 
 /**
  * getopt() used for shell built-in commands, the getopts command, and
@@ -2505,7 +2502,6 @@ c_cd(const char **wp)
 	Xfree(xs, xp);
 	return (rv);
 }
-
 
 #ifdef KSH_CHVT_CODE
 extern void chvt_reinit(void);

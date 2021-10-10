@@ -26,7 +26,7 @@
 #include <poll.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.144 2021/10/10 20:30:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.145 2021/10/10 20:41:17 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -952,7 +952,6 @@ j_stopped_running(void)
 
 	return (0);
 }
-
 
 /* list jobs for jobs built-in */
 int

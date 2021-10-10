@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.113 2021/09/30 03:20:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.114 2021/10/10 20:41:16 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -704,7 +704,6 @@ intvar(Expr_state *es, struct tbl *vp)
 	}
 	return (vq);
 }
-
 
 /*
  * UTF-8 support code: high-level functions

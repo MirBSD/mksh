@@ -28,7 +28,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.175 2021/10/05 22:06:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.176 2021/10/10 20:41:16 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -573,7 +573,6 @@ init_histvec(void)
 	}
 }
 
-
 /*
  * It turns out that there is a lot of ghastly hackery here
  */
@@ -1036,6 +1035,7 @@ hist_finish(void)
 }
 #endif
 
+/* +++ signals +++ */
 
 #if !HAVE_SYS_SIGNAME
 static const struct mksh_sigpair {

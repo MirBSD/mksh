@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.390 2021/10/10 20:18:39 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.391 2021/10/10 20:41:15 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -903,7 +903,6 @@ x_escape(const char *s, size_t len, int (*putbuf_func)(const char *, size_t))
 
 	return (rval);
 }
-
 
 /* +++ emacs editing mode +++ */
 
@@ -4708,7 +4707,6 @@ vi_cmd(int argcnt, const char *cmd)
 			print_expansions(vs, 1);
 			break;
 
-
 		/* Nonstandard vi/ksh */
 		case CTRL_I:
 			if (!Flag(FVITABCOMPLETE))
@@ -4728,14 +4726,12 @@ vi_cmd(int argcnt, const char *cmd)
 			complete_word(1, argcnt);
 			break;
 
-
 		/* AT&T ksh */
 		case ORD('*'):
 		/* Nonstandard vi/ksh */
 		case CTRL_X:
 			expand_word(1);
 			break;
-
 
 		/* mksh: cursor movement */
 		case ORD('['):
@@ -5433,7 +5429,6 @@ ed_mov_opt(int col, char *wb)
 	}
 	x_col = col;
 }
-
 
 /* replace word with all expansions (ie, expand word*) */
 static int
