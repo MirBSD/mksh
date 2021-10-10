@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.882 2021/10/10 20:30:29 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.883 2021/10/10 21:33:50 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -8961,9 +8961,7 @@ expected-stdout:
 ---
 name: utf8bom-1
 description:
-	Check that the UTF-8 Byte Order Mark is ignored as the first
-	multibyte character of the shell input (with -c, from standard
-	input, as file, or as eval argument), but nowhere else
+	Check that the UTF-8 Byte Order Mark is not ignored any more
 # breaks on Mac OSX (HFS+ non-standard UTF-8 canonical decomposition)
 category: !os:darwin,!shell:ebcdic-yes
 stdin:
@@ -8990,33 +8988,33 @@ stdin:
 	rm -rf foo
 expected-stdout:
 	got 4 files
-	ohne
+	mit
 	=
-	ohne
+	mit
 	ohne
 	mit
 	ohne
 	=
-	ohne
+	mit
 	ohne
 	mit
 	ohne
 	=
-	ohne
+	mit
 	ohne
 	mit
 	ohne
 	=
-	ohne
+	mit
 	ohne
 	mit
 	ohne
 	=
-	﻿: ohne
+	﻿: mit
 ---
 name: utf8bom-2
 description:
-	Check that we can execute BOM-shebangs (failures not fatal)
+	Check that we cannot any more execute BOM-shebangs (failures not fatal)
 	XXX if the OS can already execute them, we lose
 	note: cygwin execve(2) doesn't return to us with ENOEXEC, we lose
 	note: Ultrix perl5 t4 returns 65280 (exit-code 255) and no text
@@ -9035,13 +9033,13 @@ stdin:
 	./t2
 	./t3
 	./t4
+	echo .
 expected-stdout:
 	1 a=/nonexistant{FOO}
-	2 a=/nonexistant{FOO}
 	3 a=BAR
-	4 a=BAR
+	.
 expected-stderr-pattern:
-	/(Unrecognized character .... ignored at \..t4 line 1)*/
+	/t2: not executable: magic EFBB.*\n.*t4: not executable: magic EFBB/
 ---
 name: utf8opt-1
 description:

@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.241 2021/10/06 22:46:49 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.242 2021/10/10 21:33:53 tg Exp $");
 
 /*
  * string expansion
@@ -1545,7 +1545,7 @@ comsub(Expand *xp, const char *cp, int fn)
 	s = pushs(SSTRING, ATEMP);
 	s->start = s->str = cp;
 	sold = source;
-	t = compile(s, true, doalias);
+	t = compile(s, doalias);
 	afree(s, ATEMP);
 	source = sold;
 

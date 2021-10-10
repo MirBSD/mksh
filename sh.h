@@ -205,7 +205,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.950 2021/10/10 20:30:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.951 2021/10/10 21:33:57 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/10/10"
 
@@ -2648,7 +2648,6 @@ pid_t j_async(void);
 int j_stopped_running(void);
 /* lex.c */
 int yylex(int);
-void yyskiputf8bom(void);
 void yyerror(const char *, ...)
     MKSH_A_NORETURN
     MKSH_A_FORMAT(__printf__, 1, 2);
@@ -2800,7 +2799,7 @@ ssize_t shf_vfprintf(struct shf *, const char *, va_list)
 void set_ifs(const char *);
 /* syn.c */
 void initkeywords(void);
-struct op *compile(Source *, bool, bool);
+struct op *compile(Source *, bool);
 bool parse_usec(const char *, struct timeval *);
 char *yyrecursive(int);
 void yyrecursive_pop(bool);

@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.396 2021/10/10 20:30:34 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.397 2021/10/10 21:33:55 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -862,7 +862,6 @@ shell(Source * volatile s, volatile int level)
 	volatile bool wastty = tobool(s->flags & SF_TTY);
 	volatile kby attempts = 13;
 	volatile bool interactive = (level == 0) && Flag(FTALKING);
-	volatile bool sfirst = true;
 	Source *volatile old_source = source;
 	int i;
 
@@ -946,10 +945,9 @@ shell(Source * volatile s, volatile int level)
 			j_notify();
 			set_prompt(PS1, s);
 		}
-		t = compile(s, sfirst, true);
+		t = compile(s, true);
 		if (interactive)
 			histsave(&s->line, NULL, HIST_FLUSH, true);
-		sfirst = false;
 		if (!t)
 			goto source_no_tree;
 		if (t->type == TEOF) {

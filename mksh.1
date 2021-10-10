@@ -1,4 +1,4 @@
-.\" $MirOS: src/bin/mksh/mksh.1,v 1.524 2021/10/06 22:46:49 tg Exp $
+.\" $MirOS: src/bin/mksh/mksh.1,v 1.525 2021/10/10 21:33:55 tg Exp $
 .\" $OpenBSD: ksh.1,v 1.160 2015/07/04 13:27:04 feinerer Exp $
 .\"-
 .\" Copyright © 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: October 6 2021 $
+.Dd $Mdocdate: October 10 2021 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -4593,9 +4593,7 @@ and at least one of these returns something that matches
 or
 .Dq utf8
 case-insensitively; for direct builtin calls depending on the
-aforementioned environment variables; or for stdin or scripts,
-if the input begins with a UTF-8 Byte Order Mark.
-The BOM processing *WILL* be removed with locale tracking.
+aforementioned environment variables.
 .Pp
 In near future, locale tracking will be implemented, which means that
 .Ic set Fl +U

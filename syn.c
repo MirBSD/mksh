@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.131 2021/10/10 20:30:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.132 2021/10/10 21:33:58 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -924,14 +924,12 @@ newtp(int type)
 }
 
 struct op *
-compile(Source *s, bool skiputf8bom, bool doalias)
+compile(Source *s, bool doalias)
 {
 	nesting.start_token = 0;
 	nesting.start_line = 0;
 	herep = heres;
 	source = s;
-	if (skiputf8bom)
-		yyskiputf8bom();
 	yyparse(doalias);
 	return (outtree);
 }

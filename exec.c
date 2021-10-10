@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.232 2021/10/10 20:30:32 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.233 2021/10/10 21:33:53 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -907,11 +907,8 @@ scriptexec(struct op *tp, const char **ap)
 		/* terminate buffer */
 		buf[n] = '\0';
 
-		/* skip UTF-8 Byte Order Mark, if present */
-		cp = buf + (n = ((buf[0] == 0xEF) && (buf[1] == 0xBB) &&
-		    (buf[2] == 0xBF)) ? 3 : 0);
-
 		/* scan for newline or NUL (end of buffer) */
+		cp = buf;
 		while (!ctype(*cp, C_NL | C_NUL))
 			++cp;
 		/* if the shebang line is longer than MAXINTERP, bail out */
@@ -920,8 +917,8 @@ scriptexec(struct op *tp, const char **ap)
 		/* replace newline by NUL */
 		*cp = '\0';
 
-		/* restore start of shebang position (buf+0 or buf+3) */
-		cp = buf + n;
+		/* restore start of shebang position */
+		cp = buf;
 		/* bail out if no shebang magic found */
 		if (cp[0] == '#' && cp[1] == '!')
 			cp += 2;
@@ -987,7 +984,9 @@ scriptexec(struct op *tp, const char **ap)
 		    (m == /* ksh93 */ 0x0B13) || (m == /* LZIP */ 0x4C5A) ||
 		    (m == /* xz */ 0xFD37 && buf[2] == 'z' && buf[3] == 'X' &&
 		    buf[4] == 'Z') || (m == /* 7zip */ 0x377A) ||
-		    (m == /* gzip */ 0x1F8B) || (m == /* .Z */ 0x1F9D))
+		    (m == /* gzip */ 0x1F8B) || (m == /* .Z */ 0x1F9D) ||
+		    (m == /* UTF-8 BOM */ 0xEFBB && buf[2] == 0xBF) ||
+		    (m == /* UCS-2LE */ 0xFFFE) || (m == /* UCS-2BE */ 0xFEFF))
 			errorf("%s: not executable: magic %04X", tp->str, m);
 #endif
 #ifdef __OS2__

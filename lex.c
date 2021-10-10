@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.259 2021/10/03 22:23:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.260 2021/10/10 21:33:54 tg Exp $");
 
 /*
  * states while lexing word
@@ -1769,32 +1769,6 @@ getsc_bn(void)
 		}
 		return (c);
 	}
-}
-
-/*XXX BOM processing is going to be removed RSN! */
-void
-yyskiputf8bom(void)
-{
-	int c;
-
-	if (rtt2asc((c = o_getsc_u())) != 0xEF) {
-		ungetsc_i(c);
-		return;
-	}
-	if (rtt2asc((c = o_getsc_u())) != 0xBB) {
-		ungetsc_i(c);
-		ungetsc_i(asc2rtt(0xEF));
-		return;
-	}
-	if (rtt2asc((c = o_getsc_u())) != 0xBF) {
-		ungetsc_i(c);
-		ungetsc_i(asc2rtt(0xBB));
-		ungetsc_i(asc2rtt(0xEF));
-		return;
-	}
-#ifndef MKSH_EARLY_LOCALE_TRACKING
-	UTFMODE |= 8;
-#endif
 }
 
 static Lex_state *
