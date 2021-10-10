@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.394 2021/10/05 22:01:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.395 2021/10/10 20:18:40 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -2058,13 +2058,13 @@ x_mkraw(int fd, mksh_ttyst *ocb, bool forread)
 		cb.c_lflag &= ~(ICANON);
 	else
 		cb.c_lflag &= ~(ISIG | ICANON | ECHO);
-#if defined(VLNEXT) && defined(_POSIX_VDISABLE)
+#if defined(VLNEXT)
 	/* OSF/1 processes lnext when ~icanon */
-	cb.c_cc[VLNEXT] = _POSIX_VDISABLE;
+	KSH_DOVDIS(cb.c_cc[VLNEXT]);
 #endif
 	/* SunOS 4.1.x and OSF/1 process discard(flush) when ~icanon */
-#if defined(VDISCARD) && defined(_POSIX_VDISABLE)
-	cb.c_cc[VDISCARD] = _POSIX_VDISABLE;
+#if defined(VDISCARD)
+	KSH_DOVDIS(cb.c_cc[VDISCARD]);
 #endif
 	cb.c_cc[VTIME] = 0;
 	cb.c_cc[VMIN] = 1;

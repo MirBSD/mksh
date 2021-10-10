@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.389 2021/10/02 00:49:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.390 2021/10/10 20:18:39 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -58,14 +58,8 @@ static struct {
 } edchars;
 
 #define isched(x,e) ((unsigned short)(unsigned char)(x) == (e))
-#define isedchar(x) (!((x) & ~0xFF))
-#ifndef _POSIX_VDISABLE
-#define toedchar(x) ((unsigned short)(unsigned char)(x))
-#else
-#define toedchar(x) (((_POSIX_VDISABLE != -1) && ((x) == _POSIX_VDISABLE)) ? \
-			((unsigned short)EDCHAR_DISABLED) : \
-			((unsigned short)(unsigned char)(x)))
-#endif
+#define isedchar(x) (!((x) & ~0xFFU))
+#define toedchar(x) ((unsigned short)KSH_ISVDIS(x, EDCHAR_DISABLED))
 
 /* x_cf_glob() flags */
 #define XCF_COMMAND	BIT(0)	/* Do command completion */

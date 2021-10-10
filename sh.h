@@ -205,7 +205,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.948 2021/10/06 22:46:51 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.949 2021/10/10 20:18:41 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/10/06"
 
@@ -382,6 +382,7 @@ extern int ksh_getrusage(int, struct rusage *);
 #endif
 #endif
 #endif
+
 #ifndef SIZE_MAX
 #ifdef SIZE_T_MAX
 #define SIZE_MAX	SIZE_T_MAX
@@ -389,6 +390,21 @@ extern int ksh_getrusage(int, struct rusage *);
 #define SIZE_MAX	((size_t)-1)
 #endif
 #endif
+
+#ifndef _POSIX_VDISABLE
+/* we could do fpathconf(tty_fd, _PC_VDISABLE) but… only if needed */
+/* default to old BSD value */
+#define KSH_VDISABLE	0xFFU
+#define KSH_ISVDIS(x,d)	(KBI(x) == KSH_VDISABLE ? (d) : KBI(x))
+#define KSH_DOVDIS(x)	(x) = KSH_VDISABLE;
+#elif _POSIX_VDISABLE == -1
+#define KSH_ISVDIS(x,d)	KBI(x)
+#define KSH_DOVDIS(x)	/* nothing */
+#else
+#define KSH_ISVDIS(x,d)	((x) == _POSIX_VDISABLE ? (d) : KBI(x))
+#define KSH_DOVDIS(x)	(x) = _POSIX_VDISABLE
+#endif
+
 #ifndef S_ISCHR
 #define S_ISCHR(m)	((m & 0170000) == 0020000)
 #endif
