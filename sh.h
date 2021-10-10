@@ -205,7 +205,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.952 2021/10/10 21:36:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.953 2021/10/10 21:41:09 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/10/10"
 
@@ -700,7 +700,7 @@ const char *cstrstr(const char *, const char *);
 #endif
 
 #if (!defined(MKSH_BUILDMAKEFILE4BSD) && !defined(MKSH_BUILDSH)) || (MKSH_BUILD_R != 599)
-#error Must run Build.sh to compile this.
+#error Use the documented way to build this.
 extern void thiswillneverbedefinedIhope(void);
 int
 im_sorry_dave(void)
