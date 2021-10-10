@@ -205,7 +205,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.951 2021/10/10 21:33:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.952 2021/10/10 21:36:53 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/10/10"
 
@@ -290,7 +290,6 @@ typedef MKSH_TYPEDEF_SSIZE_T ssize_t;
 #undef BAD		/* AIX defines that somewhere */
 #undef PRINT		/* LynxOS defines that somewhere */
 #undef flock		/* SCO UnixWare defines that to flock64 but ENOENT */
-
 
 #ifndef MKSH_INCLUDES_ONLY
 
@@ -421,7 +420,6 @@ extern int ksh_getrusage(int, struct rusage *);
 #define DEFFILEMODE	(S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
 #endif
 
-
 /* determine ksh_NSIG: first, use the traditional definitions */
 #undef ksh_NSIG
 #if defined(NSIG)
@@ -480,7 +478,6 @@ typedef sig_t ksh_sigsaved;
 
 /* contract: masks the signal, may restart, not oneshot */
 void ksh_sigset(int, sig_t, ksh_sigsaved *);
-
 
 /* OS-dependent additions (functions, variables, by OS) */
 
@@ -603,7 +600,6 @@ extern int __cdecl setegid(gid_t);
 #define KSH_ESC_STRING	"\033"
 #define KSH_VTAB	11
 #endif
-
 
 /* some useful #defines */
 #ifdef EXTERN
@@ -841,7 +837,6 @@ typedef kby ksh_fdsave;
  * simple grouping allocator
  */
 
-
 /* 0. OS API: where to get memory from and how to free it (grouped) */
 
 /* malloc(3)/realloc(3) -> free(3) for use by the memory allocator */
@@ -863,7 +858,6 @@ typedef kby ksh_fdsave;
 /* GNU libc: get_current_dir_name(3) -> free(3) */
 #define free_gnu_gcdn(p)	free(p)
 #endif
-
 
 /* 1. internal structure */
 struct lalloc_common {
@@ -889,7 +883,6 @@ struct lalloc_item {
 
 /* 3. group structure */
 typedef struct lalloc_common Area;
-
 
 EXTERN Area aperm;		/* permanent object space */
 #define APERM	&aperm
@@ -1012,7 +1005,6 @@ EXTERN struct {
 #define kshgid		rndsetupstate.kshgid_v
 #define kshegid		rndsetupstate.kshegid_v
 #define kshppid		rndsetupstate.kshppid_v
-
 
 /* option processing */
 #define OF_CMDLINE	0x01	/* command line */
@@ -1732,7 +1724,6 @@ EXTERN char	*current_wd;
 EXTERN mksh_ari_t x_cols E_INIT(80);
 EXTERN mksh_ari_t x_lins E_INIT(24);
 
-
 /* Determine the location of the system (common) profile */
 
 #ifndef MKSH_DEFAULT_PROFILEDIR
@@ -1741,7 +1732,6 @@ EXTERN mksh_ari_t x_lins E_INIT(24);
 
 #define MKSH_SYSTEM_PROFILE	MKSH_DEFAULT_PROFILEDIR "/profile"
 #define MKSH_SUID_PROFILE	MKSH_DEFAULT_PROFILEDIR "/suid_profile"
-
 
 /* Used by v_evaluate() and setstr() to control action when error occurs */
 #define KSH_UNWIND_ERROR	0	/* unwind the stack (kshlongjmp) */
@@ -1801,7 +1791,6 @@ EXTERN mksh_ari_t x_lins E_INIT(24);
 #define SHF_EOF		0x1000		/* read eof (sticky) */
 #define SHF_READING	0x2000		/* currently reading: rnleft,rp valid */
 #define SHF_WRITING	0x4000		/* currently writing: wnleft,wp valid */
-
 
 struct shf {
 	Area *areap;		/* area shf/buf were allocated in */
@@ -2462,7 +2451,6 @@ EXTERN struct timeval j_usrtime, j_systime;
 		internal_errorf(Tintovfl, (size_t)(val),		\
 		    '+', (size_t)(cnst));				\
 } while (/* CONSTCOND */ 0)
-
 
 /* lalloc.c */
 void ainit(Area *);

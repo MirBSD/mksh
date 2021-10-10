@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.242 2021/10/10 21:33:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.243 2021/10/10 21:36:52 tg Exp $");
 
 /*
  * string expansion
@@ -1826,7 +1826,6 @@ globit(XString *xs,	/* dest string */
 		odirsep = '\0'; /* keep gcc quiet */
 		se = strnul(sp);
 	}
-
 
 	/*
 	 * Check if sp needs globbing - done to avoid pattern checks for strings

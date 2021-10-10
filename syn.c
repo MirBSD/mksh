@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.132 2021/10/10 21:33:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.133 2021/10/10 21:36:54 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -945,7 +945,6 @@ inalias(struct source *s)
 	}
 	return (0);
 }
-
 
 /*
  * Order important - indexed by Test_meta values

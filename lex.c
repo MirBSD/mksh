@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.260 2021/10/10 21:33:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.261 2021/10/10 21:36:53 tg Exp $");
 
 /*
  * states while lexing word
@@ -1740,7 +1740,6 @@ ungetsc_i(int c)
 		source = s;
 	}
 }
-
 
 /* Called to get a char that isn't a \newline sequence. */
 static int
