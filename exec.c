@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.231 2021/10/05 22:04:42 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.232 2021/10/10 20:30:32 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -132,9 +132,9 @@ execute(struct op * volatile t,
 	flags &= ~XTIME;
 
 	if (t->ioact != NULL || t->type == TPIPE || t->type == TCOPROC) {
-		e->savefd = alloc2(NUFILE, sizeof(short), ATEMP);
+		e->savedfd = alloc2(NUFILE, sizeof(ksh_fdsave), ATEMP);
 		/* initialise to not redirected */
-		memset(e->savefd, 0, NUFILE * sizeof(short));
+		memset(e->savedfd, 0, NUFILE * sizeof(ksh_fdsave));
 	}
 
 	/* mark for replacement later (unless TPIPE) */
@@ -169,8 +169,8 @@ execute(struct op * volatile t,
 	case TPIPE:
 		flags |= XFORK;
 		flags &= ~XEXEC;
-		e->savefd[0] = savefd(0);
-		e->savefd[1] = savefd(1);
+		FDSAVE(0, savefd(0));
+		FDSAVE(1, savefd(1));
 		while (t->type == TPIPE) {
 			openpipe(pv);
 			/* stdout of curr */
@@ -190,9 +190,9 @@ execute(struct op * volatile t,
 			t = t->right;
 		}
 		/* stdout of last */
-		restfd(1, e->savefd[1]);
+		restfd(1, SAVEDFD(e, 1));
 		/* no need to re-restore this */
-		e->savefd[1] = 0;
+		e->savedfd[1] = 0;
 		/* Let exchild() close 0 in parent, after fork, before wait */
 		i = exchild(t, flags | XPCLOSE | XPIPEST, xerrok, 0);
 		if (!(flags&XBGND) && !(flags&XXCOM))
@@ -232,8 +232,8 @@ execute(struct op * volatile t,
 		coproc_cleanup(true);
 
 		/* do this before opening pipes, in case these fail */
-		e->savefd[0] = savefd(0);
-		e->savefd[1] = savefd(1);
+		FDSAVE(0, savefd(0));
+		FDSAVE(1, savefd(1));
 
 		openpipe(pv);
 		if (pv[0] != 0) {
@@ -1404,7 +1404,7 @@ call_builtin(struct tbl *tp, const char **wp, const char *where, bool resetspec)
 }
 
 /*
- * set up redirection, saving old fds in e->savefd
+ * set up redirection, saving old fds in e->savedfd
  */
 static int
 iosetup(struct ioword *iop, struct tbl *tp)
@@ -1532,25 +1532,20 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		}
 		return (-1);
 	}
-	/* Do not save if it has already been redirected (i.e. "cat >x >y"). */
-	if (e->savefd[iop->unit] == 0) {
-		/* If these are the same, it means unit was previously closed */
-		if (u == (int)iop->unit)
-			e->savefd[iop->unit] = -1;
-		else
-			/*
-			 * c_exec() assumes e->savefd[fd] set for any
-			 * redirections. Ask savefd() not to close iop->unit;
-			 * this allows error messages to be seen if iop->unit
-			 * is 2; also means we can't lose the fd (eg, both
-			 * dup2 below and dup2 in restfd() failing).
-			 */
-			e->savefd[iop->unit] = savefd(iop->unit);
-	}
+	/* only save if it has not yet been redirected (e.g. by "cat >x >y") */
+	if (FDSVNUM(e, iop->unit) == 0U) {
+		/* c_exec() assumes e->savedfd[fd] set for any redirection */
+		FDSAVE(iop->unit, u == (int)iop->unit ?
+		    /* previously closed (exec >&-; ls >x; print e) */ -1 :
+		    savefd(iop->unit));
+	} else
+		/* clear previous fd-was-closed flag */
+		e->savedfd[iop->unit] &= FDNUMMASK;
 
-	if (do_close)
+	if (do_close) {
 		close(iop->unit);
-	else if (u != (int)iop->unit) {
+		e->savedfd[iop->unit] |= FDICLMASK;
+	} else if (u != (int)iop->unit) {
 		if (ksh_dup2(u, iop->unit, true) < 0) {
 			int eno;
 			char *sp;

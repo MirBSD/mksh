@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.392 2021/10/01 23:25:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.393 2021/10/10 20:30:33 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -2464,8 +2464,9 @@ int
 c_exec(const char **wp MKSH_A_UNUSED)
 {
 	int i;
+	kui sfd;
 
-	if (e->savefd == NULL)
+	if (e->savedfd == NULL)
 		return (0);
 
 	/* make sure redirects stay in place */
@@ -2473,21 +2474,25 @@ c_exec(const char **wp MKSH_A_UNUSED)
 	/* for ksh, keep file descriptors private (except stdin/out/err)… */
 	if (!Flag(FPOSIX) && !Flag(FSH)) {
 		for (i = 0; i < NUFILE; i++) {
-			if (e->savefd[i] > 0)
-				close(e->savefd[i]);
-			else if (i > 2 && e->savefd[i] &&
+			if (!(sfd = FDSVNUM(e, i)))
+				continue;
+			if (sfd > (kui)FDBASE)
+				close((int)sfd);
+			if (i > 2 && !(e->savedfd[i] & FDICLMASK) &&
 			    fcntl(i, F_SETFD, FD_CLOEXEC) == -1)
 				internal_warningf(Tcloexec_failed, "set", i,
 				    cstrerror(errno));
 		}
 	} else {
 		/* … but not for POSIX or legacy/kludge sh */
-		for (i = 0; i < NUFILE; i++)
-			if (e->savefd[i] > 0)
-				close(e->savefd[i]);
+		for (i = 0; i < NUFILE; i++) {
+			sfd = FDSVNUM(e, i);
+			if (sfd > (kui)FDBASE)
+				close((int)sfd);
+		}
 	}
 
-	e->savefd = NULL;
+	e->savedfd = NULL;
 	return (0);
 }
 

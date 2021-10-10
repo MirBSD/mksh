@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.130 2021/05/02 08:26:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.131 2021/10/10 20:30:37 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -221,7 +221,7 @@ synio(int cf)
 		nextiop = alloc(sizeof(*iop), ATEMP);
 		nextiop->ioname = cp = alloc(3, ATEMP);
 		*cp++ = CHAR;
-		*cp++ = digits_lc[iop->unit % 10];
+		*cp++ = digits_lc[iop->unit];
 		*cp = EOS;
 
 		iop->ioflag &= ~IOBASH;

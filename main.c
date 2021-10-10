@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.395 2021/10/10 20:18:40 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.396 2021/10/10 20:30:34 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -1049,7 +1049,7 @@ newenv(int type)
 	ainit(&ep->area);
 	ep->oenv = e;
 	ep->loc = e->loc;
-	ep->savefd = NULL;
+	ep->savedfd = NULL;
 	ep->temps = NULL;
 	ep->yyrecursive_statep = NULL;
 	ep->type = type;
@@ -1062,17 +1062,16 @@ quitenv(struct shf *shf)
 {
 	struct env *ep = e;
 	char *cp;
-	int fd;
+	int fd, i;
 
 	yyrecursive_pop(true);
 	while (ep->oenv && ep->oenv->loc != ep->loc)
 		popblock();
-	if (ep->savefd != NULL) {
+	if (ep->savedfd != NULL) {
 		for (fd = 0; fd < NUFILE; fd++)
-			/* if ep->savefd[fd] < 0, means fd was closed */
-			if (ep->savefd[fd])
-				restfd(fd, ep->savefd[fd]);
-		if (ep->savefd[2])
+			if ((i = SAVEDFD(ep, fd)))
+				restfd(fd, i);
+		if (SAVEDFD(ep, 2))
 			/* Clear any write errors */
 			shf_reopen(2, SHF_WR, shl_out);
 	}
@@ -1081,10 +1080,6 @@ quitenv(struct shf *shf)
 	 * Either main shell is exiting or cleanup_parents_env() was called.
 	 */
 	if (ep->oenv == NULL) {
-#ifdef DEBUG_LEAKS
-		int i;
-#endif
-
 		if (ep->type == E_NONE) {
 			/* Main shell exiting? */
 #if HAVE_PERSISTENT_HISTORY
@@ -1155,14 +1150,14 @@ cleanup_parents_env(void)
 	 * anywhere.
 	 */
 
-	/* close all file descriptors hiding in savefd */
+	/* close all file descriptors hiding in savedfd */
 	for (ep = e; ep; ep = ep->oenv) {
-		if (ep->savefd) {
+		if (ep->savedfd) {
 			for (fd = 0; fd < NUFILE; fd++)
-				if (ep->savefd[fd] > 0)
-					close(ep->savefd[fd]);
-			afree(ep->savefd, &ep->area);
-			ep->savefd = NULL;
+				if (FDSVNUM(ep, fd) > (kui)FDBASE)
+					close((int)FDSVNUM(ep, fd));
+			afree(ep->savedfd, &ep->area);
+			ep->savedfd = NULL;
 		}
 #ifdef DEBUG_LEAKS
 		if (ep->type != E_NONE)
@@ -1554,7 +1549,7 @@ ksh_dup2(int ofd, int nfd, bool errok)
 	int rv;
 
 	if (((rv = dup2(ofd, nfd)) < 0) && !errok && (errno != EBADF))
-		errorf(Ttoo_many_files);
+		errorf(Ttoo_many_files, ofd, nfd, cstrerror(errno));
 
 #ifdef __ultrix
 	/*XXX imake style */
@@ -1566,23 +1561,24 @@ ksh_dup2(int ofd, int nfd, bool errok)
 }
 
 /*
- * Move fd from user space (0 <= fd < 10) to shell space (fd >= 10),
- * set close-on-exec flag. See FDBASE in sh.h, maybe 24 not 10 here.
+ * Move fd from user space (0 <= fd < FDBASE) to shell space (fd >= FDBASE)
+ * set moved fd’s close-on-exec flag (see sh.h for FDBASE).
  */
-short
+int
 savefd(int fd)
 {
 	int nfd = fd;
 
+	errno = 0;
 	if (fd < FDBASE && (nfd = fcntl(fd, F_DUPFD, FDBASE)) < 0 &&
 	    (errno == EBADF || errno == EPERM))
 		return (-1);
-	if (nfd < 0 || nfd > SHRT_MAX)
-		errorf(Ttoo_many_files);
+	if (nfd < FDBASE || nfd > (int)(kui)FDMAXNUM)
+		errorf(Ttoo_many_files, fd, nfd, cstrerror(errno));
 	if (fcntl(nfd, F_SETFD, FD_CLOEXEC) == -1)
 		internal_warningf(Tcloexec_failed, "set", nfd,
 		    cstrerror(errno));
-	return ((short)nfd);
+	return (nfd);
 }
 
 void

@@ -205,9 +205,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.949 2021/10/10 20:18:41 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.950 2021/10/10 20:30:35 tg Exp $");
 #endif
-#define MKSH_VERSION "R59 2021/10/06"
+#define MKSH_VERSION "R59 2021/10/10"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -809,8 +809,33 @@ im_sorry_dave(void)
 #define MKSH_UNEMPLOYED		1
 #endif
 
-#define NUFILE		32	/* Number of user-accessible files */
-#define FDBASE		10	/* First file usable by Shell */
+/* savedfd data type */
+typedef kby ksh_fdsave;
+/* savedfd “index is closed” mask */
+#define FDICLMASK	((ksh_fdsave)0x80U)
+/* savedfd “fd number” mask */
+#define FDNUMMASK	((ksh_fdsave)0x7FU)
+/* savedfd fd numbers are ≥ FDBASE */
+/* savedfd “not saved” number: 0 */
+/* savedfd “saved is closed” or savefd error indicator number */
+#define FDCLOSED	((ksh_fdsave)0x01U)
+/* savefd() to savedfd mapper */
+#define FDSAVE(i,sfd)	do {					\
+	int FDSAVEsavedfd = (sfd);				\
+	e->savedfd[i] = FDSAVEsavedfd < FDBASE ? FDCLOSED :	\
+	    /* ≤ FDMAXNUM checked in savefd() already */	\
+	    (ksh_fdsave)(FDSAVEsavedfd & FDNUMMASK);		\
+} while (/* CONSTCOND */ 0)
+/* savedfd to restfd mapper */
+#define FDSVNUM(ep,i)	((kui)((ep)->savedfd[i] & FDNUMMASK))
+#define SAVEDFD(ep,i)	(FDSVNUM(ep, i) == (kui)FDCLOSED ? \
+			    -1 : (int)FDSVNUM(ep, i))
+/* first fd number usable by the shell for its own purposes */
+#define FDBASE		10
+/* … and last one */
+#define FDMAXNUM	127 /* 0x7FU, cf. FDNUMMASK */
+/* number of user-accessible file descriptors */
+#define NUFILE		10
 
 /*
  * simple grouping allocator
@@ -910,7 +935,7 @@ extern struct env {
 	Area area;		/* temporary allocation area */
 	struct env *oenv;	/* link to previous environment */
 	struct block *loc;	/* local variables and functions */
-	short *savefd;		/* original redirected fds */
+	ksh_fdsave *savedfd;	/* original fds for redirected fds */
 	struct temp *temps;	/* temp files */
 	/* saved parser recursion state */
 	struct yyrecursive_state *yyrecursive_statep;
@@ -1111,7 +1136,7 @@ EXTERN const char T_set_po[] E_INIT(" set +o");
 EXTERN const char Tsghset[] E_INIT("*=#set");
 #define Tsh (Tmksh + 2)
 #define TSHELL (TEXECSHELL + 4)
-#define Tshell (Ttoo_many_files + 23)
+EXTERN const char Tshell[] E_INIT("shell");
 EXTERN const char Tshf_read[] E_INIT("shf_read");
 EXTERN const char Tshf_write[] E_INIT("shf_write");
 EXTERN const char Tgsource[] E_INIT("=source");
@@ -1121,7 +1146,7 @@ EXTERN const char Tj_suspend[] E_INIT("j_suspend");
 EXTERN const char Tsynerr[] E_INIT("syntax error");
 EXTERN const char Ttime[] E_INIT("time");
 EXTERN const char Ttoo_many_args[] E_INIT("too many arguments");
-EXTERN const char Ttoo_many_files[] E_INIT("too many open files in shell");
+EXTERN const char Ttoo_many_files[] E_INIT("too many open files (%d -> %d): %s");
 EXTERN const char Ttrue[] E_INIT("true");
 EXTERN const char Tdgtypeset[] E_INIT("^=typeset");
 #define Ttypeset (Tdgtypeset + 2)
@@ -1281,7 +1306,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tsynerr "syntax error"
 #define Ttime "time"
 #define Ttoo_many_args "too many arguments"
-#define Ttoo_many_files "too many open files in shell"
+#define Ttoo_many_files "too many open files (%d -> %d): %s"
 #define Ttrue "true"
 #define Tdgtypeset "^=typeset"
 #define Ttypeset "typeset"
@@ -2064,7 +2089,7 @@ struct ioword {
 	char *delim;		/* delimiter for <<, <<- */
 	char *heredoc;		/* content of heredoc */
 	unsigned short ioflag;	/* action (below) */
-	short unit;		/* unit (fd) affected */
+	signed char unit;	/* unit (fd) affected */
 };
 
 /* ioword.flag - type of redirection */
@@ -2669,7 +2694,7 @@ int can_seek(int);
 void initio(void);
 void recheck_ctype(void);
 int ksh_dup2(int, int, bool);
-short savefd(int);
+int savefd(int);
 void restfd(int, int);
 void openpipe(int *);
 void closepipe(int *);
