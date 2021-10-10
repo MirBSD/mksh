@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.233 2021/10/10 21:33:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.234 2021/10/10 21:35:04 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -986,6 +986,7 @@ scriptexec(struct op *tp, const char **ap)
 		    buf[4] == 'Z') || (m == /* 7zip */ 0x377A) ||
 		    (m == /* gzip */ 0x1F8B) || (m == /* .Z */ 0x1F9D) ||
 		    (m == /* UTF-8 BOM */ 0xEFBB && buf[2] == 0xBF) ||
+		    (m == /* UCS-4, may also be general binary */ 0x0000) ||
 		    (m == /* UCS-2LE */ 0xFFFE) || (m == /* UCS-2BE */ 0xFEFF))
 			errorf("%s: not executable: magic %04X", tp->str, m);
 #endif
