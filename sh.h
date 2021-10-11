@@ -205,7 +205,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.953 2021/10/10 21:41:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.954 2021/10/11 22:35:23 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/10/10"
 
@@ -390,19 +390,13 @@ extern int ksh_getrusage(int, struct rusage *);
 #endif
 #endif
 
+/* if this breaks, see sh.h,v 1.954 commit message and diff */
 #ifndef _POSIX_VDISABLE
-/* we could do fpathconf(tty_fd, _PC_VDISABLE) but… only if needed */
-/* default to old BSD value */
-#define KSH_VDISABLE	0xFFU
-#define KSH_ISVDIS(x,d)	(KBI(x) == KSH_VDISABLE ? (d) : KBI(x))
-#define KSH_DOVDIS(x)	(x) = KSH_VDISABLE;
-#elif _POSIX_VDISABLE == -1
-#define KSH_ISVDIS(x,d)	KBI(x)
-#define KSH_DOVDIS(x)	/* nothing */
-#else
+/* Linux klibc lacks this definition */
+#define _POSIX_VDISABLE 0xFFU /* unsigned (for cc_t) default (BSD) value */
+#endif
 #define KSH_ISVDIS(x,d)	((x) == _POSIX_VDISABLE ? (d) : KBI(x))
 #define KSH_DOVDIS(x)	(x) = _POSIX_VDISABLE
-#endif
 
 #ifndef S_ISCHR
 #define S_ISCHR(m)	((m & 0170000) == 0020000)
