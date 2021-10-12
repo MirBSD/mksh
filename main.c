@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.397 2021/10/10 21:33:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.398 2021/10/12 23:18:13 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -43,6 +43,15 @@ __RCSID("$MirOS: src/bin/mksh/main.c,v 1.397 2021/10/10 21:33:55 tg Exp $");
 
 #ifndef MKSH_DEFAULT_TMPDIR
 #define MKSH_DEFAULT_TMPDIR	MKSH_UNIXROOT "/tmp"
+#endif
+
+#if !HAVE_SETLOCALE_CTYPE
+/* this is the “implementation-defined default locale” */
+#ifdef MKSH_DEFAULT_UTFLOC
+#define MKSH_DEFAULT_LOCALE	"UTF-8"
+#else
+#define MKSH_DEFAULT_LOCALE	"C"
+#endif
 #endif
 
 static kby isuc(const char *);
@@ -2179,10 +2188,17 @@ recheck_ctype(void)
 		ccp = str_val(global("LC_CTYPE"));
 	if (ccp == null)
 		ccp = str_val(global("LANG"));
+#if !HAVE_SETLOCALE_CTYPE
+	/*XXX == null? this :- or - ? */
+	if (ccp == null)
+		ccp = MKSH_DEFAULT_LOCALE;
+#endif
+/*XXX check either the parameters directly or setlocale, not both */
 	UTFMODE = isuc(ccp);
 #if HAVE_SETLOCALE_CTYPE
 	ccp = setlocale(LC_CTYPE, ccp);
 #if HAVE_LANGINFO_CODESET
+/*XXX setlocale without nl_langinfo(CODESET) makes no sense for us */
 	if (!isuc(ccp))
 		ccp = nl_langinfo(CODESET);
 #endif
