@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.110 2021/10/01 23:25:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.111 2021/10/16 02:20:02 tg Exp $");
 
 #define INDENT	8
 
@@ -868,11 +868,19 @@ uescmbT(unsigned char *dst, const char **cpp)
 		 * not escaped either, anything in between is special
 		 */
 		if (wc >= 0xA0U) {
-			goto utflead;
-			while (n--) {
-				c = *cp++;
- utflead:
-				dst[dstsz++] = c;
+			dst[dstsz++] = c;
+			switch (n) {
+#ifdef notyet
+			case 4:
+				dst[dstsz++] = *cp++;
+				/* FALLTHROUGH */
+#endif
+			case 3:
+				dst[dstsz++] = *cp++;
+				/* FALLTHROUGH */
+			default:
+				dst[dstsz++] = *cp++;
+				break;
 			}
 			goto out;
 		}
