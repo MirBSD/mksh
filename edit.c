@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.391 2021/10/10 20:41:15 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.392 2021/10/16 01:28:05 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -5890,6 +5890,13 @@ x_emacs_DF(const char *reason)
 	if (!nl)
 		TL();
 	DF("‣ xbuf: %s%s", reason, shf_sclose(&to));
+}
+
+static int
+x_debug_buf(int c MKSH_A_UNUSED)
+{
+	x_emacs_DF("from keyboard");
+	return (KSTD);
 }
 #endif
 #endif /* !MKSH_NO_CMDLINE_EDITING */

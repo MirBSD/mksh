@@ -19,7 +19,7 @@
  */
 
 #if defined(EMACSFN_DEFNS)
-__RCSID("$MirOS: src/bin/mksh/emacsfn.h,v 1.15 2021/02/26 11:51:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/emacsfn.h,v 1.16 2021/10/16 01:28:06 tg Exp $");
 #define FN(cname,sname,flags)	static int x_##cname(int);
 #elif defined(EMACSFN_ENUMS)
 #define FN(cname,sname,flags)	XFUNC_##cname,
@@ -40,6 +40,9 @@ FN(comp_comm, "complete-command", 0)
 FN(comp_file, "complete-file", 0)
 FN(comp_list, "complete-list", 0)
 FN(complete, "complete", 0)
+#ifdef DF
+FN(debug_buf, "debug-buffer", 0)
+#endif
 FN(del_back, "delete-char-backward", XF_ARG)
 FN(del_bword, "delete-word-backward", XF_ARG)
 #ifndef MKSH_SMALL
