@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.810 2021/10/11 22:23:01 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.811 2021/10/27 01:09:06 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -1461,7 +1461,10 @@ metrowerks)
     own risk, please report success/failure to the developers.'
 	;;
 mipspro)
+	test_z "$Cg" || Cg='-g3'
 	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -version"
+	: "${HAVE_STDINT_H=0}" # broken unless building with __c99
+	: "${HAVE_ATTRIBUTE_EXTENSION=0}"  # skip checking as we know it absent
 	;;
 msc)
 	ccpr=		# errorlevels are not reliable
@@ -1823,6 +1826,9 @@ icc)
 	;;
 mipspro)
 	ac_flags 1 fullwarn -fullwarn 'for remark output support'
+	# unreachable-from-prevline loop, unused variable, enum vs int @exec.c
+	# unused parameter, conversion pointer/same-sized integer
+	ac_flags 1 diagsupp '-diag_suppress 1127,1174,1185,3201,3970' 'to quieten MIPSpro down'
 	;;
 msc)
 	ac_flags 1 strpool "${ccpc}/GF" 'if string pooling can be enabled'
