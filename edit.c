@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.392 2021/10/16 01:28:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.393 2021/10/27 00:56:48 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -2635,13 +2635,15 @@ int
 x_bind(const char *s SMALLP(bool macro))
 {
 	register kui t;
-	struct x_bind_getc state = { s, 0 };
+	struct x_bind_getc state;
 	kui c, key, prefix;
 #ifndef MKSH_SMALL
 	bool hastilde = false;
 	char *ms = NULL;
 #endif
 
+	state.cp = s;
+	state.next = 0;
 	prefix = 0;
 	c = x_bind_getc(&state);
 	if (!c || c == ORD('=')) {
