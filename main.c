@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.398 2021/10/12 23:18:13 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.399 2021/10/27 00:47:44 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -285,11 +285,10 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 
 	/* determine the basename (without '-' or path) of the executable */
 	ccp = kshname;
-	goto begin_parsing_kshname;
+	argi = 0;
 	while ((i = ccp[argi++])) {
 		if (mksh_cdirsep(i)) {
 			ccp += argi;
- begin_parsing_kshname:
 			argi = 0;
 		}
 	}
