@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.252 2021/09/30 03:20:12 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.253 2021/10/27 00:47:50 tg Exp $");
 
 /*-
  * Variables
@@ -803,8 +803,8 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 	}
 	if (ord(*val) == ORD('[')) {
 		if (new_refflag != SRF_NOP)
-			return (maybe_errorf(ep, 1, Tf_sD_s, var,
-			    "reference variable can't be an array"), NULL);
+			not_errorf(NULL, (ep, 1, Tf_sD_s, var,
+			    "reference variable can't be an array"));
 		len = array_ref_len(val);
 		if (len < 3)
 			return (NULL);
@@ -862,8 +862,8 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 
 		/* bail out on 'nameref foo+=bar' */
 		if (vappend)
-			return (maybe_errorf(ep, 1,
-			    "appending not allowed for nameref"), NULL);
+			not_errorf(NULL, (ep, 1,
+			    "appending not allowed for nameref"));
 		/* find value if variable already exists */
 		if ((qval = val) == NULL) {
 			varsearch(e->loc, &vp, tvar, hash(tvar));
@@ -889,8 +889,8 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 				goto nameref_rhs_checked;
 			}
  nameref_empty:
-			return (maybe_errorf(ep, 1, Tf_sD_s, var,
-			    "empty nameref target"), NULL);
+			not_errorf(NULL, (ep, 1, Tf_sD_s, var,
+			    "empty nameref target"));
 		}
 		len = (ord(*ccp) == ORD('[')) ? array_ref_len(ccp) : 0;
 		if (ccp[len]) {
@@ -899,15 +899,15 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 			 * junk after it" and "invalid array"; in the
 			 * latter case, len is also 0 and points to '['
 			 */
-			return (maybe_errorf(ep, 1, Tf_sD_s, qval,
-			    "nameref target not a valid parameter name"), NULL);
+			not_errorf(NULL, (ep, 1, Tf_sD_s, qval,
+			    "nameref target not a valid parameter name"));
 		}
  nameref_rhs_checked:
 		/* prevent nameref loops */
 		while (qval) {
 			if (!strcmp(qval, tvar))
-				return (maybe_errorf(ep, 1, Tf_sD_s, qval,
-				    "expression recurses on parameter"), NULL);
+				not_errorf(NULL, (ep, 1, Tf_sD_s, qval,
+				    "expression recurses on parameter"));
 			varsearch(e->loc, &vp, qval, hash(qval));
 			qval = NULL;
 			if (vp && ((vp->flag & (ARRAY | ASSOC)) == ASSOC))
@@ -918,8 +918,7 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 	/* prevent typeset from creating a local PATH/ENV/SHELL */
 	if (Flag(FRESTRICTED) && (strcmp(tvar, TPATH) == 0 ||
 	    strcmp(tvar, TENV) == 0 || strcmp(tvar, TSHELL) == 0))
-		return (maybe_errorf(ep, 1, Tf_sD_s,
-		    tvar, "restricted"), NULL);
+		not_errorf(NULL, (ep, 1, Tf_sD_s, tvar, "restricted"));
 
 	innermost_refflag = new_refflag;
 	vp = (set & LOCAL) ? local(tvar, tobool(set & LOCAL_COPY)) :
@@ -959,7 +958,7 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 	 */
 	if ((vpbase->flag & RDONLY) &&
 	    (val || clr || (set & ~(EXPORT | RDONLY))))
-		return (maybe_errorf(ep, 2, Tf_ro, tvar), NULL);
+		not_errorf(NULL, (ep, 2, Tf_ro, tvar));
 	if (tvar != tvarbuf)
 		afree(tvar, ATEMP);
 
@@ -1040,7 +1039,7 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 			}
 		}
 		if (!ok)
-			return (maybe_errorf(ep, 1, NULL), NULL);
+			not_errorf(NULL, (ep, 1, NULL));
 	}
 
 	if (vappend) {

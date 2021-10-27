@@ -205,7 +205,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.954 2021/10/11 22:35:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.955 2021/10/27 00:47:48 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/10/10"
 
@@ -2658,6 +2658,10 @@ void bi_errorf(const char *, ...)
     MKSH_A_FORMAT(__printf__, 1, 2);
 void maybe_errorf(int *, int, const char *, ...)
     MKSH_A_FORMAT(__printf__, 3, 4);
+#define not_errorf(v,a)	do {	\
+	maybe_errorf a;		\
+	return (v);		\
+} while (/* CONSTCOND */ 0)
 #define errorfz()	errorf(NULL)
 #define errorfxz(rc)	errorfx((rc), NULL)
 #define bi_errorfz()	bi_errorf(NULL)
