@@ -205,7 +205,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.955 2021/10/27 00:47:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.956 2021/11/11 02:44:08 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/10/10"
 
@@ -230,6 +230,34 @@ typedef signed long ksl;		/* signed long, arithmetic */
 #define KUI(u)	((kui)(u))		/* int as u_int, not truncated */
 
 /* arithmetic types: shell arithmetics */
+
+/* counts the value bits when given inttype_MAX as argument */
+#define IMAX_BITS(m) ((unsigned int)((m) / ((m) % 255 + 1) / 255 % 255 * 8 + \
+	    7 - 86 / ((m) % 255 + 12)))
+/* calculation by Hallvard B Furuseth from comp.lang.c */
+#define UMAX_TYPE(t) ((t)~(t)0)
+#define UMAX_BITS(t) IMAX_BITS(UMAX_TYPE(t))
+
+/* “cast” between unsigned / signed long */
+#define KUL2SL(ul)	(((ul) > (kul)(LONG_MAX)) ? \
+			    (ksl)(-(ksl)(~(ul)) - 1L) : \
+			    (ksl)(ul))
+#define KSL2UL(sl)	(((sl) < 0) ? \
+			    (kul)(~(kul)(-((sl) + 1L))) : \
+			    (kul)(sl))
+
+/* convert between signed and sign variable plus magnitude */
+#define KNEGUL2SL(n,ul)	(((n) && (ul) > 0) ? \
+			    (ksl)(-(ksl)((ul) - 1UL) - 1L) : \
+			    (ksl)(ul))
+/* n = sl < 0; */
+#define KSL2NEGUL(sl)	(((sl) < 0) ? \
+			    ((kul)(-((sl) + 1L)) + 1UL) : \
+			    (kul)(sl))
+
+/* new arithmetics tbd, commitid 1006100D6F11B839C0E etc */
+
+/* older arithmetics, to be replaced later */
 #ifdef MKSH_LEGACY_MODE
 /*
  * POSIX demands these to be the C environment's long type
@@ -291,15 +319,18 @@ typedef MKSH_TYPEDEF_SSIZE_T ssize_t;
 #undef PRINT		/* LynxOS defines that somewhere */
 #undef flock		/* SCO UnixWare defines that to flock64 but ENOENT */
 
-#ifndef MKSH_INCLUDES_ONLY
-
 /* compile-time assertions */
 #define cta(name,expr)	struct cta_ ## name { char t[(expr) ? 1 : -1]; }
 
-/* counts the value bits when given inttype_MAX as argument */
-#define IMAX_BITS(m) ((m) / ((m) % 255 + 1) / 255 % 255 * 8 + 7 - \
-	    86 / ((m) % 255 + 12))
-/* taken from comp.lang.c by Hallvard B Furuseth */
+/* compiler shenanigans… */
+#ifdef _FORTIFY_SOURCE
+/* workaround via https://stackoverflow.com/a/64407070/2171120 */
+#define SHIKATANAI	(void)!
+#else
+#define SHIKATANAI	(void)
+#endif
+
+#ifndef MKSH_INCLUDES_ONLY
 
 /* EBCDIC fun */
 
@@ -706,6 +737,10 @@ im_sorry_dave(void)
 
 /* use this ipv strchr(s, 0) but no side effects in s! */
 #define strnul(s)	((s) + strlen((const void *)s))
+
+/* inspired by jupp, where they are in lowercase though */
+#define SC(s)		(s), (sizeof(s) / sizeof(s[0]) - 1U)
+#define SZ(s)		(s), strlen(s)
 
 #if defined(MKSH_SMALL) && !defined(MKSH_SMALL_BUT_FAST)
 #define strdupx(d,s,ap) do {						\
@@ -2783,6 +2818,38 @@ char *shf_smprintf(const char *, ...)
 ssize_t shf_vfprintf(struct shf *, const char *, va_list)
     MKSH_A_FORMAT(__printf__, 2, 0);
 void set_ifs(const char *);
+/* flags for numfmt below */
+#define FL_SGN		0x0000	/* signed decimal */
+#define FL_DEC		0x0001	/* unsigned decimal */
+#define FL_OCT		0x0002	/* unsigned octal */
+#define FL_HEX		0x0003	/* unsigned sedecimal */
+#define FM_TYPE		0x0003	/* mask: decimal/octal/hex */
+#define FL_UCASE	0x0004	/* use upper-case digits beyond 9 */
+#define FL_UPPER	0x000C	/* use upper-case digits beyond 9 and 'X' */
+#define FL_PLUS		0x0010	/* FL_SGN force sign output */
+#define FL_BLANK	0x0020	/* FL_SGN output space unless sign present */
+#define FL_HASH		0x0040	/* FL_OCT force 0; FL_HEX force 0x/0X */
+/* internal flags to numfmt / shf_vfprintf */
+#define FL_NEG		0x0080	/* negative number, negated */
+#define FL_SHORT	0x0100	/* ‘h’ seen */
+#define FL_LONG		0x0200	/* ‘l’ seen */
+#define FL_SIZET	0x0400	/* ‘z’ seen */
+#define FM_SIZES	0x0700	/* mask: short/long/sizet */
+#define FL_NUMBER	0x0800	/* %[douxefg] a number was formatted */
+#define FL_RIGHT	0x1000	/* ‘-’ seen: right-pad, left-align */
+#define FL_ZERO		0x2000	/* ‘0’ seen: pad with leading zeros */
+#define FL_DOT		0x4000	/* ‘.’ seen: printf(3) precision specified */
+/*
+ * %#o produces the longest output: '0' + w/3 + NUL
+ * %#x produces '0x' + w/4 + NUL which is at least as long (w=8)
+ * %+d produces sign + w/log₂(10) + NUL
+ */
+#define NUMBUFSZ (1U + (UMAX_BITS(kul) + 2U) / 3U + /* NUL */ 1U)
+#define NUMBUFLEN(base,result) ((base) + NUMBUFSZ - (result) - 1U)
+char *kulfmt(kul number, kui flags, char *numbuf)
+    MKSH_A_BOUNDED(__minbytes__, 3, NUMBUFSZ);
+char *kslfmt(ksl number, kui flags, char *numbuf)
+    MKSH_A_BOUNDED(__minbytes__, 3, NUMBUFSZ);
 /* syn.c */
 void initkeywords(void);
 struct op *compile(Source *, bool);

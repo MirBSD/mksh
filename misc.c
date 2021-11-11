@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.330 2021/10/10 20:41:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.331 2021/11/11 02:44:07 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -2782,6 +2782,7 @@ unbksl(bool cstyle, int (*fg)(void), void (*fp)(int))
 
 #ifdef DEBUG
 #undef strchr
+/* pre-initio() */
 char *
 ucstrchr(char *s, int c)
 {

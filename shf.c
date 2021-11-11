@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.120 2021/10/01 23:25:35 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.121 2021/11/11 02:44:09 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -92,6 +92,7 @@ shf_open(const char *name, int oflags, int mode, int sflags)
 }
 
 /* helper function for shf_fdopen and shf_reopen */
+/* pre-initio() *sflagsp=SHF_WR */
 static void
 shf_open_hlp(int fd, int *sflagsp, const char *where)
 {
@@ -125,12 +126,13 @@ shf_open_hlp(int fd, int *sflagsp, const char *where)
 }
 
 /* Set up the shf structure for a file descriptor. Doesn't fail. */
+/* pre-initio() sflags=SHF_WR */
 struct shf *
 shf_fdopen(int fd, int sflags, struct shf *shf)
 {
 	ssize_t bsize =
 	    /* at most 512 */
-	    sflags & SHF_UNBUF ? (sflags & SHF_RD ? 1 : 0) : SHF_BSIZE;
+	    (sflags & SHF_UNBUF) ? ((sflags & SHF_RD) ? 1 : 0) : SHF_BSIZE;
 
 	shf_open_hlp(fd, &sflags, "shf_fdopen");
 	if (shf) {
@@ -140,8 +142,11 @@ shf_fdopen(int fd, int sflags, struct shf *shf)
 		} else
 			shf->buf = NULL;
 	} else {
-		shf = alloc(sizeof(struct shf) + bsize, ATEMP);
-		shf->buf = (unsigned char *)&shf[1];
+		unsigned char *cp;
+
+		cp = alloc(sizeof(struct shf) + bsize, ATEMP);
+		shf = (void *)cp;
+		shf->buf = cp + sizeof(struct shf);
 		sflags |= SHF_ALLOCS;
 	}
 	shf->areap = ATEMP;
@@ -812,29 +817,87 @@ shf_smprintf(const char *fmt, ...)
 	return (shf_sclose(&shf));
 }
 
-#define	FL_HASH		0x001	/* '#' seen */
-#define FL_PLUS		0x002	/* '+' seen */
-#define FL_RIGHT	0x004	/* '-' seen */
-#define FL_BLANK	0x008	/* ' ' seen */
-#define FL_SHORT	0x010	/* 'h' seen */
-#define FL_LONG		0x020	/* 'l' seen */
-#define FL_ZERO		0x040	/* '0' seen */
-#define FL_DOT		0x080	/* '.' seen */
-#define FL_UPPER	0x100	/* format character was uppercase */
-#define FL_NUMBER	0x200	/* a number was formatted %[douxefg] */
-#define FL_SIZET	0x400	/* 'z' seen */
-#define FM_SIZES	0x430	/* h/l/z mask */
+/* pre-initio() */
+char *
+kslfmt(ksl number, kui flags, char *numbuf)
+{
+	if (!IS(flags, FM_TYPE, FL_SGN)) {
+		/* uh-oh, unsigned? what? be bitwise faithful here */
+		union {
+			/*XXX hopefully not UB… */
+			ksl s;
+			kul u;
+		} v;
+
+		v.s = number;
+		return (kulfmt(v.u, flags, numbuf));
+	}
+	if (number < 0)
+		flags |= FL_NEG;
+	return (kulfmt(KSL2NEGUL(number), flags, numbuf));
+}
+
+/* pre-initio() */
+char *
+kulfmt(kul number, kui flags, char *numbuf)
+{
+	char *cp;
+
+	cp = numbuf + NUMBUFSZ;
+	*--cp = '\0';
+	switch (flags & FM_TYPE) {
+	case FL_OCT:
+		do {
+			*--cp = digits_lc[number & 07UL];
+			number >>= 3;
+		} while (number);
+
+		if (HAS(flags, FL_HASH) && ord(*cp) != ORD('0'))
+			*--cp = '0';
+		break;
+	case FL_HEX: {
+		const char *digits;
+
+		digits = HAS(flags, FL_UCASE) ? digits_uc : digits_lc;
+		do {
+			*--cp = digits[number & 0xFUL];
+			number >>= 4;
+		} while (number);
+
+		if (HAS(flags, FL_HASH)) {
+			*--cp = IS(flags, FL_UPPER, FL_UPPER) ? 'X' : 'x';
+			*--cp = '0';
+		}
+		break;
+	    }
+	default:
+		do {
+			*--cp = digits_lc[number % 10UL];
+			number /= 10UL;
+		} while (number);
+
+		if (!IS(flags, FM_TYPE, FL_DEC)) {
+			if (HAS(flags, FL_NEG))
+				*--cp = '-';
+			else if (HAS(flags, FL_PLUS))
+				*--cp = '+';
+			else if (HAS(flags, FL_BLANK))
+				*--cp = '-';
+		}
+		break;
+	}
+
+	return (cp);
+}
 
 ssize_t
 shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 {
+	char numbuf[NUMBUFSZ];
 	const char *s;
-	char c, *cp;
+	char c;
 	int tmp = 0, flags;
 	size_t field, precision, len;
-	unsigned long lnum;
-	/* %#o produces the longest output */
-	char numbuf[(8 * sizeof(long) + 2) / 3 + 1 + /* NUL */ 1];
 	/* this stuff for dealing with the buffer */
 	ssize_t nwritten = 0;
 	/* for width determination */
@@ -942,83 +1005,30 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 		switch (c) {
 		case 'd':
 		case 'i':
-			if (flags & FL_SIZET)
-				lnum = (long)VA(ssize_t);
-			else if (flags & FL_LONG)
-				lnum = VA(long);
-			else if (flags & FL_SHORT)
-				lnum = (long)(short)VA(int);
-			else
-				lnum = (long)VA(int);
+			s = kslfmt(HAS(flags, FL_SIZET) ? (ksl)VA(ssize_t) :
+			    HAS(flags, FL_LONG) ? (ksl)VA(long) :
+			    HAS(flags, FL_SHORT) ? (ksl)(short)VA(int) :
+			    (ksl)VA(int), flags | FL_SGN, numbuf);
 			goto integral;
 
 		case 'o':
+			flags |= FL_OCT;
+			if (0)
+				/* FALLTHROUGH */
 		case 'u':
+			  flags |= FL_DEC;
+			if (0)
+				/* FALLTHROUGH */
 		case 'x':
-			if (flags & FL_SIZET)
-				lnum = VA(size_t);
-			else if (flags & FL_LONG)
-				lnum = VA(unsigned long);
-			else if (flags & FL_SHORT)
-				lnum = (unsigned long)(unsigned short)VA(int);
-			else
-				lnum = (unsigned long)VA(unsigned int);
+			  flags |= FL_HEX;
 
+			s = kulfmt(HAS(flags, FL_SIZET) ? (kul)VA(size_t) :
+			    HAS(flags, FL_LONG) ? (kul)VA(unsigned long) :
+			    HAS(flags, FL_SHORT) ? (kul)(unsigned short)VA(int) :
+			    (kul)VA(unsigned int), flags, numbuf);
  integral:
 			flags |= FL_NUMBER;
-			cp = numbuf + sizeof(numbuf);
-			*--cp = '\0';
-
-			switch (c) {
-			case 'd':
-			case 'i':
-				if (0 > (long)lnum) {
-					lnum = -(long)lnum;
-					tmp = 1;
-				} else
-					tmp = 0;
-				/* FALLTHROUGH */
-			case 'u':
-				do {
-					*--cp = digits_lc[lnum % 10];
-					lnum /= 10;
-				} while (lnum);
-
-				if (c != 'u') {
-					if (tmp)
-						*--cp = '-';
-					else if (flags & FL_PLUS)
-						*--cp = '+';
-					else if (flags & FL_BLANK)
-						*--cp = ' ';
-				}
-				break;
-
-			case 'o':
-				do {
-					*--cp = digits_lc[lnum & 0x7];
-					lnum >>= 3;
-				} while (lnum);
-
-				if ((flags & FL_HASH) && *cp != '0')
-					*--cp = '0';
-				break;
-
-			case 'x': {
-				const char *digits = (flags & FL_UPPER) ?
-				    digits_uc : digits_lc;
-				do {
-					*--cp = digits[lnum & 0xF];
-					lnum >>= 4;
-				} while (lnum);
-
-				if (flags & FL_HASH) {
-					*--cp = (flags & FL_UPPER) ? 'X' : 'x';
-					*--cp = '0';
-				}
-			    }
-			}
-			len = numbuf + sizeof(numbuf) - 1 - (s = cp);
+			len = NUMBUFLEN(numbuf, s);
 			if (flags & FL_DOT) {
 				if (precision > len) {
 					field = precision;
@@ -1140,6 +1150,7 @@ shf_putc(int c, struct shf *shf)
 #endif
 
 #ifdef DEBUG
+/* pre-initio() */
 const char *
 cstrerror(int errnum)
 {
@@ -1156,11 +1167,14 @@ extern const char * const sys_errlist[];
 #endif
 #endif
 
+/* pre-initio() */
 const char *
 cstrerror(int errnum)
 {
-	/* "Unknown error: " + sign + rough estimate + NUL */
-	static char errbuf[15 + 1 + (8 * sizeof(int) + 2) / 3 + 1];
+#define unkerrstr "Unknown error: "
+#define unkerrlen (sizeof(unkerrstr) - 1U)
+	static char errbuf[unkerrlen + NUMBUFSZ];
+	char *cp;
 
 #if HAVE_SYS_ERRLIST
 	if (errnum > 0 && errnum < sys_nerr && sys_errlist[errnum])
@@ -1205,10 +1219,13 @@ cstrerror(int errnum)
 		return ("Too many levels of symbolic links");
 #endif
 	default:
-		shf_snprintf(errbuf, sizeof(errbuf),
-		    "Unknown error: %d", errnum);
-		return (errbuf);
+		cp = kslfmt(errnum, FL_SGN, errbuf + unkerrlen);
+		cp -= unkerrlen;
+		memcpy(cp, unkerrstr, unkerrlen);
+		return (cp);
 	}
+#undef unkerrlen
+#undef unkerrstr
 }
 #endif
 
@@ -1264,6 +1281,7 @@ const uint32_t tpl_ctypes[128] = {
 static int debug_ccls(void);
 #endif
 
+/* pre-initio() */
 static void
 set_ccls(void)
 {
@@ -1281,6 +1299,7 @@ set_ccls(void)
 #endif
 }
 
+/* pre-initio() */
 void
 set_ifs(const char *s)
 {
@@ -1295,10 +1314,12 @@ set_ifs(const char *s)
 }
 
 #if defined(MKSH_EBCDIC) || defined(MKSH_FAUX_EBCDIC)
-#if !HAVE_SETLOCALE_CTYPE
+#if !HAVE_SETLOCALE_CTYPE && !(defined(__MirBSD__) && defined(MKSH_FAUX_EBCDIC))
 # error EBCDIC support requires use of the system locale
 #endif
 #include <locale.h>
+
+static void ebcdic_initerr(const char *, size_t, int, int, int) MKSH_A_NORETURN;
 
 /*
  * Many headaches with EBCDIC:
@@ -1339,6 +1360,7 @@ set_ifs(const char *s)
  * side, but as it's not really used anyway we decided to take the risk.
  */
 
+/* pre-initio() */
 void
 ebcdic_init(void)
 {
@@ -1351,10 +1373,10 @@ ebcdic_init(void)
 	memset(ebcdic_rtt_fromascii, 0xFF, sizeof(ebcdic_rtt_fromascii));
 	setlocale(LC_ALL, "");
 #ifdef MKSH_EBCDIC
-	if (__etoa_l(ebcdic_rtt_toascii, 256) != 256) {
-		write(2, "mksh: could not map EBCDIC to ASCII\n", 36);
-		exit(255);
-	}
+	errno = ENOTDIR;
+	if ((i = __etoa_l(ebcdic_rtt_toascii, 256)) != 256)
+		ebcdic_initerr(SC("mksh: could not map EBCDIC to ASCII"),
+		    -1, i, errno);
 #endif
 
 	memset(mapcache, 0, sizeof(mapcache));
@@ -1362,10 +1384,9 @@ ebcdic_init(void)
 	while (i--) {
 		t = ebcdic_rtt_toascii[i];
 		/* ensure unique round-trip capable mapping */
-		if (mapcache[t]) {
-			write(2, "mksh: duplicate EBCDIC to ASCII mapping\n", 40);
-			exit(255);
-		}
+		if (mapcache[t])
+			ebcdic_initerr(SC("mksh: duplicate EBCDIC to ASCII mapping"),
+			    -2, i, ebcdic_rtt_fromascii[t]);
 		/*
 		 * since there are 256 input octets, this also ensures
 		 * the other mapping direction is completely filled
@@ -1389,10 +1410,10 @@ ebcdic_init(void)
 		else
 			ebcdic_map[i] = (unsigned short)(0x100U | ord(i));
 	}
-	if (ebcdic_rtt_toascii[0] || ebcdic_rtt_fromascii[0] || ebcdic_map[0]) {
-		write(2, "mksh: NUL not at position 0\n", 28);
-		exit(255);
-	}
+	if (ebcdic_rtt_toascii[0] || ebcdic_rtt_fromascii[0] || ebcdic_map[0])
+		ebcdic_initerr(SC("mksh: NUL not at position 0"),
+		    ebcdic_rtt_toascii[0], ebcdic_rtt_fromascii[0],
+		    ebcdic_map[0]);
 	/* ensure control characters, i.e. 0x00‥0x3F and 0xFF, map sanely */
 	for (i = 0x00; i < 0x20; ++i)
 		if (!ksh_isctrl(asc2rtt(i)))
@@ -1400,125 +1421,186 @@ ebcdic_init(void)
 	for (i = 0x7F; i < 0xA0; ++i)
 		if (!ksh_isctrl(asc2rtt(i))) {
  ebcdic_ctrlmis:
-			write(2, "mksh: control character mismapping\n", 35);
-			exit(255);
+			ebcdic_initerr(SC("mksh: control character mismapping"),
+			    -2, i, asc2rtt(i));
 		}
 	/* validate character literals used in the code */
-	if (rtt2asc('\n') != 0x0AU || rtt2asc('\r') != 0x0DU ||
-	    rtt2asc(' ') != 0x20U ||
-	    rtt2asc('!') != 0x21U ||
-	    rtt2asc('"') != 0x22U ||
-	    rtt2asc('#') != 0x23U ||
-	    rtt2asc('$') != 0x24U ||
-	    rtt2asc('%') != 0x25U ||
-	    rtt2asc('&') != 0x26U ||
-	    rtt2asc('\'') != 0x27U ||
-	    rtt2asc('(') != 0x28U ||
-	    rtt2asc(')') != 0x29U ||
-	    rtt2asc('*') != 0x2AU ||
-	    rtt2asc('+') != 0x2BU ||
-	    rtt2asc(',') != 0x2CU ||
-	    rtt2asc('-') != 0x2DU ||
-	    rtt2asc('.') != 0x2EU ||
-	    rtt2asc('/') != 0x2FU ||
-	    rtt2asc('0') != 0x30U ||
-	    rtt2asc(':') != 0x3AU ||
-	    rtt2asc(';') != 0x3BU ||
-	    rtt2asc('<') != 0x3CU ||
-	    rtt2asc('=') != 0x3DU ||
-	    rtt2asc('>') != 0x3EU ||
-	    rtt2asc('?') != 0x3FU ||
-	    rtt2asc('@') != 0x40U ||
-	    rtt2asc('A') != 0x41U ||
-	    rtt2asc('B') != 0x42U ||
-	    rtt2asc('C') != 0x43U ||
-	    rtt2asc('D') != 0x44U ||
-	    rtt2asc('E') != 0x45U ||
-	    rtt2asc('F') != 0x46U ||
-	    rtt2asc('G') != 0x47U ||
-	    rtt2asc('H') != 0x48U ||
-	    rtt2asc('I') != 0x49U ||
-	    rtt2asc('N') != 0x4EU ||
-	    rtt2asc('O') != 0x4FU ||
-	    rtt2asc('P') != 0x50U ||
-	    rtt2asc('Q') != 0x51U ||
-	    rtt2asc('R') != 0x52U ||
-	    rtt2asc('S') != 0x53U ||
-	    rtt2asc('T') != 0x54U ||
-	    rtt2asc('U') != 0x55U ||
-	    rtt2asc('W') != 0x57U ||
-	    rtt2asc('X') != 0x58U ||
-	    rtt2asc('Y') != 0x59U ||
-	    rtt2asc('[') != 0x5BU ||
-	    rtt2asc('\\') != 0x5CU ||
-	    rtt2asc(']') != 0x5DU ||
-	    rtt2asc('^') != 0x5EU ||
-	    rtt2asc('_') != 0x5FU ||
-	    rtt2asc('`') != 0x60U ||
-	    rtt2asc('a') != 0x61U ||
-	    rtt2asc('b') != 0x62U ||
-	    rtt2asc('c') != 0x63U ||
-	    rtt2asc('d') != 0x64U ||
-	    rtt2asc('e') != 0x65U ||
-	    rtt2asc('f') != 0x66U ||
-	    rtt2asc('g') != 0x67U ||
-	    rtt2asc('h') != 0x68U ||
-	    rtt2asc('i') != 0x69U ||
-	    rtt2asc('j') != 0x6AU ||
-	    rtt2asc('k') != 0x6BU ||
-	    rtt2asc('l') != 0x6CU ||
-	    rtt2asc('n') != 0x6EU ||
-	    rtt2asc('p') != 0x70U ||
-	    rtt2asc('r') != 0x72U ||
-	    rtt2asc('s') != 0x73U ||
-	    rtt2asc('t') != 0x74U ||
-	    rtt2asc('u') != 0x75U ||
-	    rtt2asc('v') != 0x76U ||
-	    rtt2asc('w') != 0x77U ||
-	    rtt2asc('x') != 0x78U ||
-	    rtt2asc('y') != 0x79U ||
-	    rtt2asc('{') != 0x7BU ||
-	    rtt2asc('|') != 0x7CU ||
-	    rtt2asc('}') != 0x7DU ||
-	    rtt2asc('~') != 0x7EU) {
-		write(2, "mksh: compiler vs. runtime codepage mismatch!\n", 46);
+#define litcheck(c,v) \
+	if (rtt2asc(c) != v) \
+		ebcdic_initerr(SC("mksh: compiler vs. runtime codepage mismatch"), \
+		    -3, c, rtt2asc(c))
+	litcheck('\n', 0x0AU);
+	litcheck('\r', 0x0DU);
+	litcheck(' ', 0x20U);
+	litcheck('!', 0x21U);
+	litcheck('"', 0x22U);
+	litcheck('#', 0x23U);
+	litcheck('$', 0x24U);
+	litcheck('%', 0x25U);
+	litcheck('&', 0x26U);
+	litcheck('\'', 0x27U);
+	litcheck('(', 0x28U);
+	litcheck(')', 0x29U);
+	litcheck('*', 0x2AU);
+	litcheck('+', 0x2BU);
+	litcheck(',', 0x2CU);
+	litcheck('-', 0x2DU);
+	litcheck('.', 0x2EU);
+	litcheck('/', 0x2FU);
+	litcheck('0', 0x30U);
+	litcheck(':', 0x3AU);
+	litcheck(';', 0x3BU);
+	litcheck('<', 0x3CU);
+	litcheck('=', 0x3DU);
+	litcheck('>', 0x3EU);
+	litcheck('?', 0x3FU);
+	litcheck('@', 0x40U);
+	litcheck('A', 0x41U);
+	litcheck('B', 0x42U);
+	litcheck('C', 0x43U);
+	litcheck('D', 0x44U);
+	litcheck('E', 0x45U);
+	litcheck('F', 0x46U);
+	litcheck('G', 0x47U);
+	litcheck('H', 0x48U);
+	litcheck('I', 0x49U);
+	litcheck('N', 0x4EU);
+	litcheck('O', 0x4FU);
+	litcheck('P', 0x50U);
+	litcheck('Q', 0x51U);
+	litcheck('R', 0x52U);
+	litcheck('S', 0x53U);
+	litcheck('T', 0x54U);
+	litcheck('U', 0x55U);
+	litcheck('W', 0x57U);
+	litcheck('X', 0x58U);
+	litcheck('Y', 0x59U);
+	litcheck('[', 0x5BU);
+	litcheck('\\', 0x5CU);
+	litcheck(']', 0x5DU);
+	litcheck('^', 0x5EU);
+	litcheck('_', 0x5FU);
+	litcheck('`', 0x60U);
+	litcheck('a', 0x61U);
+	litcheck('b', 0x62U);
+	litcheck('c', 0x63U);
+	litcheck('d', 0x64U);
+	litcheck('e', 0x65U);
+	litcheck('f', 0x66U);
+	litcheck('g', 0x67U);
+	litcheck('h', 0x68U);
+	litcheck('i', 0x69U);
+	litcheck('j', 0x6AU);
+	litcheck('k', 0x6BU);
+	litcheck('l', 0x6CU);
+	litcheck('n', 0x6EU);
+	litcheck('p', 0x70U);
+	litcheck('r', 0x72U);
+	litcheck('s', 0x73U);
+	litcheck('t', 0x74U);
+	litcheck('u', 0x75U);
+	litcheck('v', 0x76U);
+	litcheck('w', 0x77U);
+	litcheck('x', 0x78U);
+	litcheck('y', 0x79U);
+	litcheck('{', 0x7BU);
+	litcheck('|', 0x7CU);
+	litcheck('}', 0x7DU);
+	litcheck('~', 0x7EU);
+#undef litcheck
+	/* validate sh.h control character literals */
+#define ctlcheck(n,c,v) \
+	if (rtt2asc(c) != v) \
+		ebcdic_initerr(SC("mksh: control character mismapping"), \
+		    -3, n, rtt2asc(c))
+	ctlcheck('@', CTRL_AT, 0x00U);
+	ctlcheck('A', CTRL_A, 0x01U);
+	ctlcheck('B', CTRL_B, 0x02U);
+	ctlcheck('C', CTRL_C, 0x03U);
+	ctlcheck('D', CTRL_D, 0x04U);
+	ctlcheck('E', CTRL_E, 0x05U);
+	ctlcheck('F', CTRL_F, 0x06U);
+	ctlcheck('G', CTRL_G, 0x07U);
+	ctlcheck('H', CTRL_H, 0x08U);
+	ctlcheck('I', CTRL_I, 0x09U);
+	ctlcheck('J', CTRL_J, 0x0AU);
+	ctlcheck('K', CTRL_K, 0x0BU);
+	ctlcheck('L', CTRL_L, 0x0CU);
+	ctlcheck('M', CTRL_M, 0x0DU);
+	ctlcheck('N', CTRL_N, 0x0EU);
+	ctlcheck('O', CTRL_O, 0x0FU);
+	ctlcheck('P', CTRL_P, 0x10U);
+	ctlcheck('Q', CTRL_Q, 0x11U);
+	ctlcheck('R', CTRL_R, 0x12U);
+	ctlcheck('S', CTRL_S, 0x13U);
+	ctlcheck('T', CTRL_T, 0x14U);
+	ctlcheck('U', CTRL_U, 0x15U);
+	ctlcheck('V', CTRL_V, 0x16U);
+	ctlcheck('W', CTRL_W, 0x17U);
+	ctlcheck('X', CTRL_X, 0x18U);
+	ctlcheck('Y', CTRL_Y, 0x19U);
+	ctlcheck('Z', CTRL_Z, 0x1AU);
+	ctlcheck('[', CTRL_BO, 0x1BU);
+	ctlcheck('\\', CTRL_BK, 0x1CU);
+	ctlcheck(']', CTRL_BC, 0x1DU);
+	ctlcheck('^', CTRL_CA, 0x1EU);
+	ctlcheck('_', CTRL_US, 0x1FU);
+	ctlcheck('?', CTRL_QM, 0x7FU);
+#undef ctlcheck
+}
+
+/* pre-initio() */
+static void
+ebcdic_initerr(const char *s, size_t n, int a, int b, int c)
+{
+	char buf[NUMBUFSZ + 3];
+	char *cp;
+	const char *ccp;
+
+	SHIKATANAI write(2, s, n);
+	/*
+	 * a>=0: a,b,c=hex
+	 * a=-1: b=sgn c=errno
+	 * a=-2: b=hex c=hex
+	 * a=-3: b=chr c=hex
+	 */
+	if (a == -1) {
+		ccp = cstrerror(c);
+		cp = kslfmt(b, FL_SGN, buf + 1U);
+		*--cp = '<';
+		buf[NUMBUFSZ] = '>';
+		buf[NUMBUFSZ + 1U] = ccp ? '<' : '(';
+		SHIKATANAI write(2, cp, NUMBUFLEN(buf + 1U, cp) + 2U);
+		if (ccp) {
+			SHIKATANAI write(2, SZ(ccp));
+			SHIKATANAI write(2, SC(">\n"));
+		} else
+			SHIKATANAI write(2, SC("unknown error)\n"));
 		exit(255);
 	}
-	/* validate sh.h control character literals */
-	if (rtt2asc(CTRL_AT) != 0x00U ||
-	    rtt2asc(CTRL_A) != 0x01U ||
-	    rtt2asc(CTRL_B) != 0x02U ||
-	    rtt2asc(CTRL_C) != 0x03U ||
-	    rtt2asc(CTRL_D) != 0x04U ||
-	    rtt2asc(CTRL_E) != 0x05U ||
-	    rtt2asc(CTRL_F) != 0x06U ||
-	    rtt2asc(CTRL_G) != 0x07U ||
-	    rtt2asc(CTRL_H) != 0x08U ||
-	    rtt2asc(CTRL_I) != 0x09U ||
-	    rtt2asc(CTRL_J) != 0x0AU ||
-	    rtt2asc(CTRL_K) != 0x0BU ||
-	    rtt2asc(CTRL_L) != 0x0CU ||
-	    rtt2asc(CTRL_M) != 0x0DU ||
-	    rtt2asc(CTRL_N) != 0x0EU ||
-	    rtt2asc(CTRL_O) != 0x0FU ||
-	    rtt2asc(CTRL_P) != 0x10U ||
-	    rtt2asc(CTRL_Q) != 0x11U ||
-	    rtt2asc(CTRL_R) != 0x12U ||
-	    rtt2asc(CTRL_S) != 0x13U ||
-	    rtt2asc(CTRL_T) != 0x14U ||
-	    rtt2asc(CTRL_U) != 0x15U ||
-	    rtt2asc(CTRL_V) != 0x16U ||
-	    rtt2asc(CTRL_W) != 0x17U ||
-	    rtt2asc(CTRL_X) != 0x18U ||
-	    rtt2asc(CTRL_Y) != 0x19U ||
-	    rtt2asc(CTRL_Z) != 0x1AU ||
-	    rtt2asc(CTRL_BO) != 0x1BU ||
-	    rtt2asc(CTRL_BK) != 0x1CU ||
-	    rtt2asc(CTRL_BC) != 0x1DU ||
-	    rtt2asc(CTRL_CA) != 0x1EU ||
-	    rtt2asc(CTRL_US) != 0x1FU ||
-	    rtt2asc(CTRL_QM) != 0x7FU)
-		goto ebcdic_ctrlmis;
+	if (a == -3) {
+		buf[0] = '<';
+		buf[1] = b;
+		buf[2] = '>';
+		SHIKATANAI write(2, buf, 3);
+	} else {
+		if (a != -2) {
+			cp = kslfmt(a, FL_HEX | FL_UCASE | FL_HASH, buf + 1);
+			*--cp = '<';
+			buf[NUMBUFSZ] = '>';
+			SHIKATANAI write(2, cp, NUMBUFLEN(buf + 1U, cp) + 1U);
+		}
+		cp = kslfmt(b, FL_HEX | FL_UCASE | FL_HASH, buf + 1);
+		*--cp = '<';
+		buf[NUMBUFSZ] = '>';
+		SHIKATANAI write(2, cp, NUMBUFLEN(buf + 1U, cp) + 1U);
+	}
+	cp = kslfmt(c, FL_HEX | FL_UCASE | FL_HASH, buf + 1);
+	*--cp = '<';
+	buf[NUMBUFSZ] = '>';
+	buf[NUMBUFSZ + 1U] = '\n';
+	SHIKATANAI write(2, cp, NUMBUFLEN(buf + 1U, cp) + 2U);
+	exit(255);
 }
 #endif
 
@@ -1529,6 +1611,7 @@ ebcdic_init(void)
  * style, or anything really.
  */
 
+/* pre-initio() */
 static unsigned int
 v(unsigned int c)
 {
@@ -1559,6 +1642,7 @@ static struct ciname {
 	uint32_t bit;
 } ci[32], *cibit[32];
 
+/* pre-initio() */
 static int
 cicomp(const void *a_, const void *b_)
 {
@@ -1567,6 +1651,7 @@ cicomp(const void *a_, const void *b_)
 	return (strcmp(a->name, b->name));
 }
 
+/* pre-initio() */
 static int
 debug_ccls(void)
 {

@@ -23,7 +23,7 @@
 #include <err.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.28 2021/10/10 20:41:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.29 2021/11/11 02:44:06 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -80,6 +80,7 @@ remalloc(void *ptr, size_t size)
 }
 #endif
 
+/* pre-initio() */
 void
 ainit(Area *ap)
 {
@@ -128,6 +129,7 @@ findptr(struct lalloc_common **lpp, char *ptr, Area *ap)
 	return (ap);
 }
 
+/* pre-initio() */
 void *
 aresize2(void *ptr, size_t fac1, size_t fac2, Area *ap)
 {
@@ -136,6 +138,7 @@ aresize2(void *ptr, size_t fac1, size_t fac2, Area *ap)
 	return (aresize(ptr, fac1 * fac2, ap));
 }
 
+/* pre-initio() ptr=NULL */
 void *
 aresize(void *ptr, size_t numb, Area *ap)
 {

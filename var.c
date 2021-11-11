@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.253 2021/10/27 00:47:50 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.254 2021/11/11 02:44:10 tg Exp $");
 
 /*-
  * Variables
@@ -80,6 +80,7 @@ static struct tbl *vtypeset(int *, const char *, uint32_t, uint32_t, int, int);
  * create a new block for function calls and simple commands
  * assume caller has allocated and set up e->loc
  */
+/* pre-initio() */
 void
 newblock(void)
 {

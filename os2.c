@@ -32,7 +32,7 @@
 #include <unistd.h>
 #include <process.h>
 
-__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.12 2021/07/30 02:58:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/os2.c,v 1.13 2021/11/11 02:44:08 tg Exp $");
 
 struct a_s_arg {
 	union {
@@ -68,6 +68,7 @@ static void cleanup(void);
 #define KLIBC_ARG_RESPONSE_EXCLUDE	\
 	(__KLIBC_ARG_DQUOTE | __KLIBC_ARG_WILDCARD | __KLIBC_ARG_SHELL)
 
+/* pre-initio() */
 static void
 response(int *argcp, const char ***argvp)
 {
@@ -163,6 +164,7 @@ response(int *argcp, const char ***argvp)
 	*argvp = new_argv;
 }
 
+/* pre-initio() */
 static void
 init_extlibpath(void)
 {
@@ -182,6 +184,7 @@ init_extlibpath(void)
 	}
 }
 
+/* pre-initio() */
 void
 os2_init(int *argcp, const char ***argvp)
 {

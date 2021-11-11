@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.399 2021/10/27 00:47:44 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.400 2021/11/11 02:44:06 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -115,8 +115,13 @@ struct env *e = &env;
 /* this one should be defined by the standard */
 cta(char_is_1_char, (sizeof(char) == 1) && (sizeof(signed char) == 1) &&
     (sizeof(unsigned char) == 1));
-cta(char_is_8_bits, ((CHAR_BIT) == 8) && ((int)(unsigned char)0xFF == 0xFF) &&
-    ((int)(unsigned char)0x100 == 0) && ((int)(unsigned char)(int)-1 == 0xFF));
+cta(char_is_8_bits, ((CHAR_BIT) == 8) && (CHAR_MAX) < 1024 &&
+    (((unsigned int)(unsigned char)255U) == 255U) &&
+    (((unsigned int)(unsigned char)256U) == 0U) &&
+    UMAX_BITS(unsigned char) == 8U && IMAX_BITS(CHAR_MAX) == 7U &&
+    UMAX_BITS(unsigned char) == IMAX_BITS(UCHAR_MAX));
+/* so IMAX_BITS does not explode */
+cta(long_sane_enough, sizeof(long) < 255);
 /* the next assertion is probably not really needed */
 cta(short_is_2_char, sizeof(short) == 2);
 cta(short_size_no_matter_of_signedness, sizeof(short) == sizeof(unsigned short));
@@ -127,6 +132,16 @@ cta(int_size_no_matter_of_signedness, sizeof(int) == sizeof(unsigned int));
 cta(long_ge_int, sizeof(long) >= sizeof(int));
 cta(long_size_no_matter_of_signedness, sizeof(long) == sizeof(unsigned long));
 
+/* C99 §6.2.6.2(1, 2, 6); ensure width independent of signedness (M < N) */
+cta(short_value_bits_sane, UMAX_BITS(unsigned short) > IMAX_BITS(SHRT_MAX) &&
+    UMAX_TYPE(unsigned short) == (USHRT_MAX));
+cta(int_value_bits_sane, UMAX_BITS(unsigned int) > IMAX_BITS(INT_MAX) &&
+    UMAX_TYPE(unsigned int) == (UINT_MAX));
+cta(long_value_bits_sane, UMAX_BITS(unsigned long) > IMAX_BITS(LONG_MAX) &&
+    UMAX_TYPE(unsigned long) == (ULONG_MAX));
+/* assert minimum 32-bit size for guaranteed calculations */
+cta(ulong_min32bits, UMAX_BITS(unsigned long) >= 32U);
+
 #ifndef MKSH_LEGACY_MODE
 /* the next assertion is probably not really needed */
 cta(ari_is_4_char, sizeof(mksh_ari_t) == 4);
@@ -134,6 +149,7 @@ cta(ari_is_4_char, sizeof(mksh_ari_t) == 4);
 cta(ari_has_31_bit, 0 < (mksh_ari_t)(((((mksh_ari_t)1 << 15) << 15) - 1) * 2 + 1));
 /* the next assertion is probably not really needed */
 cta(uari_is_4_char, sizeof(mksh_uari_t) == 4);
+cta(uari_is_32_bit, UMAX_BITS(mksh_uari_t) == 32);
 /* but the next three are; we REQUIRE unsigned integer wraparound */
 cta(uari_has_31_bit, 0 < (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 2 + 1));
 cta(uari_has_32_bit, 0 < (mksh_uari_t)(((((mksh_uari_t)1 << 15) << 15) - 1) * 4 + 3));
@@ -195,6 +211,7 @@ rndsetup(void)
 	return ((mksh_uari_t)h);
 }
 
+/* pre-initio() */
 void
 chvt_reinit(void)
 {
@@ -231,6 +248,7 @@ isuc(const char *cx) {
 	return (rv);
 }
 
+/* pre-initio() */
 static int
 main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 {
@@ -1425,10 +1443,17 @@ maybe_errorf(int *ep, int rc, const char *fmt, ...)
 }
 
 /* Called when something that shouldn't happen does */
+/* pre-initio() */
 void
 internal_errorf(const char *fmt, ...)
 {
 	va_list va;
+
+	if (!initio_done) {
+		/* from aresize() as alloc() */
+		SHIKATANAI write(2, SC("mksh: out of memory? early\n"));
+		exit(255);
+	}
 
 	exstat = 0xFF;
 	if (trap_exstat != -1)
@@ -1473,9 +1498,6 @@ shellf(const char *fmt, ...)
 {
 	va_list va;
 
-	if (!initio_done)
-		/* shl_out may not be set up yet... */
-		return;
 	va_start(va, fmt);
 	shf_vfprintf(shl_out, fmt, va);
 	va_end(va);
@@ -1513,6 +1535,7 @@ int shl_dbg_fd;
 #endif
 struct shf shf_iob[NSHF_IOB];
 
+/* pre-initio() */
 void
 initio(void)
 {
@@ -1524,6 +1547,7 @@ initio(void)
 	shf_fdopen(1, SHF_WR, shl_stdout);
 	shf_fdopen(2, SHF_WR, shl_out);
 	shf_fdopen(2, SHF_WR, shl_xtrace);
+	initio_done = true;
 #ifdef DF
 	if ((lfp = getenv("SDMKSH_PATH")) == NULL) {
 		if ((lfp = getenv("HOME")) == NULL || !mksh_abspath(lfp))
@@ -1544,8 +1568,8 @@ initio(void)
 	fcntl(shl_dbg_fd, F_SETFD, FD_CLOEXEC);
 	shf_fdopen(shl_dbg_fd, SHF_WR, shl_dbg);
 	DF("=== open ===");
+	initio_done = 2;
 #endif
-	initio_done = true;
 }
 
 /* A dup2() with error checking */
@@ -1836,6 +1860,7 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 static void tgrow(struct table *);
 static int tnamecmp(const void *, const void *);
 
+/* pre-initio() tp->tbls=NULL tp->tshift=INIT_TBLSHIFT-1 */
 static void
 tgrow(struct table *tp)
 {
@@ -1886,6 +1911,7 @@ tgrow(struct table *tp)
 	afree(otblp, tp->areap);
 }
 
+/* pre-initio() initshift=0 */
 void
 ktinit(Area *ap, struct table *tp, kby initshift)
 {

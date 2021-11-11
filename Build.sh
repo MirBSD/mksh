@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.811 2021/10/27 01:09:06 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.812 2021/11/11 02:44:05 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -2592,9 +2592,10 @@ if test $legacy = 1; then
 		#define CHAR_BIT 0
 		#endif
 		struct ctasserts {
-		#define cta(name,assertion) char name[(assertion) ? 1 : -1]
 			cta(char_is_8_bits, (CHAR_BIT) == 8);
-			cta(long_is_32_bits, sizeof(long) == 4);
+			cta(long_is_4_chars, sizeof(long) == 4);
+			cta(ulong_is_32_bits, UMAX_BITS(unsigned long) == 32U);
+			cta(slong_is_31_bits, IMAX_BITS(LONG_MAX) == 31U);
 		};
 		int main(void) { return (sizeof(struct ctasserts)); }
 EOF
@@ -2606,9 +2607,10 @@ EOF
 		#define CHAR_BIT 0
 		#endif
 		struct ctasserts {
-		#define cta(name,assertion) char name[(assertion) ? 1 : -1]
 			cta(char_is_8_bits, (CHAR_BIT) == 8);
-			cta(long_is_64_bits, sizeof(long) == 8);
+			cta(long_is_8_chars, sizeof(long) == 8);
+			cta(ulong_is_64_bits, UMAX_BITS(unsigned long) == 64U);
+			cta(slong_is_63_bits, IMAX_BITS(LONG_MAX) == 63U);
 		};
 		int main(void) { return (sizeof(struct ctasserts)); }
 EOF
