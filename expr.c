@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.114 2021/10/10 20:41:16 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.115 2021/11/12 05:05:56 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -142,7 +142,11 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok,
 		if (i == LAEXPR) {
 			if (error_ok == KSH_RETURN_ERROR)
 				return (0);
-			errorfz();
+			/* error already printed */
+			/* (cf. syn.c for why) */
+			exstat = 1;
+			shl_stdout_ok = false;
+			i = LERROR;
 		}
 		unwind(i);
 		/* NOTREACHED */
@@ -163,7 +167,7 @@ v_evaluate(struct tbl *vp, const char *expr, volatile int error_ok,
 	if (vp->flag & INTEGER)
 		setint_v(vp, v, es->arith);
 	else
-		/* can fail if readonly */
+		/* can fail if read-only */
 		setstr(vp, str_val(v), error_ok);
 
 	quitenv(NULL);
@@ -198,33 +202,34 @@ evalerr(Expr_state *es, enum error_type type, const char *str)
 		default:
 			s = opname[(int)es->tok];
 		}
-		warningf(true, Tf_sD_s_qs, es->expression,
-		    Tunexpected, s);
+		kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO, Tf_sD_s_qs,
+		    es->expression, Tunexpected, s);
 		break;
 
 	case ET_BADLIT:
-		warningf(true, Tf_sD_s_qs, es->expression,
-		    Tbadnum, str);
+		kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO, Tf_sD_s_qs,
+		    es->expression, Tbadnum, str);
 		break;
 
 	case ET_RECURSIVE:
-		warningf(true, Tf_sD_s_qs, es->expression,
-		    "expression recurses on parameter", str);
+		kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO, Tf_sD_s_qs,
+		    es->expression, "expression recurses on parameter", str);
 		break;
 
 	case ET_LVALUE:
-		warningf(true, Tf_sD_s_s,
+		kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO, Tf_sD_s_s,
 		    es->expression, str, "requires lvalue");
 		break;
 
 	case ET_RDONLY:
-		warningf(true, Tf_sD_s_s,
+		kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO, Tf_sD_s_s,
 		    es->expression, str, "applied to read-only variable");
 		break;
 
 	default: /* keep gcc happy */
 	case ET_STR:
-		warningf(true, Tf_sD_s, es->expression, str);
+		kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG | KWF_NOERRNO,
+		    es->expression, str);
 		break;
 	}
 	unwind(LAEXPR);

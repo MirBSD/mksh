@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.331 2021/11/11 02:44:07 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.332 2021/11/12 05:05:59 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -358,7 +358,7 @@ change_xtrace(unsigned char newval, bool dosnapshot)
 	if ((Flag(FXTRACE) = newval) == 2) {
 		in_xtrace = true;
 		Flag(FXTRACE) = 0;
-		shf_puts(substitute(str_val(global("PS4")), 0), shl_xtrace);
+		shf_putsv(substitute(str_val(global("PS4")), 0), shl_xtrace);
 		Flag(FXTRACE) = 2;
 		in_xtrace = false;
 	}
@@ -503,7 +503,8 @@ parse_args(const char **argv,
 					break;
 				}
 			if (i == NELEM(options))
-				internal_errorf("parse_args: '%c'", optc);
+				kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+				    "parse_args: '%c'", optc);
 		}
 	}
 	if (!(go.info & GI_MINUSMINUS) && argv[go.optind] &&
@@ -1337,12 +1338,11 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 			go->buf[0] = c;
 			go->optarg = go->buf;
 		} else {
-			warningf(true, Tf_optfoo,
-			    (go->flags & GF_NONAME) ? "" : argv[0],
-			    (go->flags & GF_NONAME) ? "" : Tcolsp,
-			    c, Tunknown_option);
+			ksh_getopt_opterr(c,
+			    (go->flags & GF_NONAME) ? null : argv[0],
+			    Tunknown_option);
 			if (go->flags & GF_ERROR)
-				bi_errorfz();
+				bi_unwind(1);
 		}
 		return (ORD('?'));
 	}
@@ -1365,12 +1365,11 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 				go->optarg = go->buf;
 				return (ORD(':'));
 			}
-			warningf(true, Tf_optfoo,
-			    (go->flags & GF_NONAME) ? "" : argv[0],
-			    (go->flags & GF_NONAME) ? "" : Tcolsp,
-			    c, Treq_arg);
+			ksh_getopt_opterr(c,
+			    (go->flags & GF_NONAME) ? null : argv[0],
+			    Treq_arg);
 			if (go->flags & GF_ERROR)
-				bi_errorfz();
+				bi_unwind(1);
 			return (ORD('?'));
 		}
 		go->p = 0;
@@ -1400,6 +1399,20 @@ ksh_getopt(const char **argv, Getopt *go, const char *optionsp)
 		}
 	}
 	return (ord(c));
+}
+
+void
+ksh_getopt_opterr(int ch, const char *name, const char *msg)
+{
+	static char buf[3] = { '-', KSH_BEL, '\0' };
+
+	buf[1] = ch;
+	if (name == null)
+		kwarnf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
+		    KWF_TWOMSG | KWF_NOERRNO, buf, msg);
+	else
+		kwarnf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
+		    KWF_THREEMSG | KWF_NOERRNO, name, buf, msg);
 }
 
 /*
@@ -1683,7 +1696,8 @@ print_columns(struct columnise_opts *opts, unsigned int n,
 
 	if (max_colz > 2147483646) {
 #ifndef MKSH_SMALL
-		internal_warningf("print_columns called with %s=%zu >= INT_MAX",
+		kwarnf0(KWF_INTERNAL | KWF_WARNING | KWF_NOERRNO,
+		    "print_columns called with %s=%zu >= INT_MAX",
 		    "max_col", max_colz);
 #endif
 		return;
@@ -1692,7 +1706,8 @@ print_columns(struct columnise_opts *opts, unsigned int n,
 
 	if (max_oct > 2147483646) {
 #ifndef MKSH_SMALL
-		internal_warningf("print_columns called with %s=%zu >= INT_MAX",
+		kwarnf0(KWF_INTERNAL | KWF_WARNING | KWF_NOERRNO,
+		    "print_columns called with %s=%zu >= INT_MAX",
 		    "max_oct", max_oct);
 #endif
 		return;
@@ -2467,7 +2482,7 @@ c_cd(const char **wp)
 	 * setting in AT&T ksh)
 	 */
 	if (current_wd[0])
-		/* Ignore failure (happens if readonly or integer) */
+		/* Ignore failure (happens if read-only or integer) */
 		setstr(oldpwd_s, current_wd, KSH_RETURN_ERROR);
 
 	if (!mksh_abspath(Xstring(xs, xp))) {
@@ -2486,7 +2501,7 @@ c_cd(const char **wp)
 		char *ptmp = pwd;
 
 		set_current_wd(ptmp);
-		/* Ignore failure (happens if readonly or integer) */
+		/* Ignore failure (happens if read-only or integer) */
 		setstr(pwd_s, ptmp, KSH_RETURN_ERROR);
 	} else {
 		set_current_wd(null);
@@ -2530,27 +2545,34 @@ chvt(const Getopt *go)
 				memmove(cp + 1, cp, /* /dev/tty */ 8);
 				dv = cp + 1;
 				if (stat(dv, &sb)) {
-					errorf(Tchvt2,
+					errorf("chvt: %s: %s",
 					    "can't find tty", go->optarg);
 				}
 			}
 		}
 		if (!S_ISCHR(sb.st_mode))
-			errorf(Tchvt2, "not a char device", dv);
+			kerrf(KWF_VERRNO | KWF_ERR(1) | KWF_PREFIX |
+			    KWF_FILELINE | KWF_TWOMSG, (int)(ENOTTY),
+			    "chvt", dv);
 #ifndef MKSH_DISABLE_REVOKE_WARNING
 #if HAVE_REVOKE
 		if (revoke(dv))
+#else
+#ifdef ENOSYS
+		errno = ENOSYS;
+#else
+		errno = EINVAL;
 #endif
-			warningf(false, Tchvt2,
-			    "new shell is potentially insecure, can't revoke",
-			    dv);
+#endif
+			kwarnf(KWF_PREFIX | KWF_THREEMSG, "chvt", dv,
+			    "can't revoke; new shell is potentially insecure");
 #endif
 	    }
 	}
 	if ((fd = binopen2(dv, O_RDWR)) < 0) {
 		sleep(1);
 		if ((fd = binopen2(dv, O_RDWR)) < 0) {
-			errorf(Tchvt2, Topen, dv);
+			errorf("chvt: %s: %s", Topen, dv);
 		}
 	}
 	afree(cp, ATEMP);
@@ -2641,7 +2663,8 @@ ksh_getrusage(int what, struct rusage *ru)
 	errno = EINVAL;
 #endif
 	if ((CLK_TCK = sysconf(_SC_CLK_TCK)) == -1L)
-		internal_errorf("sysconf(_SC_CLK_TCK): %s", cstrerror(errno));
+		kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_ONEMSG,
+		    "sysconf(_SC_CLK_TCK)");
 #endif
 	INVTCK(ru->ru_utime, u);
 	INVTCK(ru->ru_stime, s);

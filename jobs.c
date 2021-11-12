@@ -26,7 +26,7 @@
 #include <poll.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.145 2021/10/10 20:41:17 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/jobs.c,v 1.146 2021/11/12 05:05:57 tg Exp $");
 
 #if HAVE_KILLPG
 #define mksh_killpg		killpg
@@ -262,11 +262,11 @@ j_suspend(void)
 			mksh_tcset(tty_fd, &tty_state);
 		if (restore_ttypgrp >= 0) {
 			if (tcsetpgrp(tty_fd, restore_ttypgrp) < 0) {
-				warningf(false, Tf_ssfaileds,
-				    Tj_suspend, "tcsetpgrp", cstrerror(errno));
+				kwarnf0(KWF_PREFIX, Tf_ssfailed,
+				    Tj_suspend, "tcsetpgrp");
 			} else if (setpgid(0, restore_ttypgrp) < 0) {
-				warningf(false, Tf_ssfaileds,
-				    Tj_suspend, "setpgid", cstrerror(errno));
+				kwarnf0(KWF_PREFIX, Tf_ssfailed,
+				    Tj_suspend, "setpgid");
 			}
 		}
 	}
@@ -280,12 +280,12 @@ j_suspend(void)
 	if (ttypgrp_ok) {
 		if (restore_ttypgrp >= 0) {
 			if (setpgid(0, kshpid) < 0) {
-				warningf(false, Tf_ssfaileds,
-				    Tj_suspend, "setpgid", cstrerror(errno));
+				kwarnf0(KWF_PREFIX, Tf_ssfailed,
+				    Tj_suspend, "setpgid");
 				ttypgrp_ok = false;
 			} else if (tcsetpgrp(tty_fd, kshpid) < 0) {
-				warningf(false, Tf_ssfaileds,
-				    Tj_suspend, "tcsetpgrp", cstrerror(errno));
+				kwarnf0(KWF_PREFIX, Tf_ssfailed,
+				    Tj_suspend, "tcsetpgrp");
 				ttypgrp_ok = false;
 			}
 		}
@@ -370,9 +370,8 @@ j_change(void)
 				pid_t ttypgrp;
 
 				if ((ttypgrp = tcgetpgrp(tty_fd)) < 0) {
-					warningf(false, Tf_ssfaileds,
-					    "j_init", "tcgetpgrp",
-					    cstrerror(errno));
+					kwarnf0(KWF_PREFIX, Tf_ssfailed,
+					    "j_init", "tcgetpgrp");
 					ttypgrp_ok = false;
 					break;
 				}
@@ -386,14 +385,13 @@ j_change(void)
 			    SS_RESTORE_DFL|SS_FORCE);
 		if (ttypgrp_ok && kshpgrp != kshpid) {
 			if (setpgid(0, kshpid) < 0) {
-				warningf(false, Tf_ssfaileds,
-				    "j_init", "setpgid", cstrerror(errno));
+				kwarnf0(KWF_PREFIX, Tf_ssfailed,
+				    "j_init", "setpgid");
 				ttypgrp_ok = false;
 			} else {
 				if (tcsetpgrp(tty_fd, kshpid) < 0) {
-					warningf(false, Tf_ssfaileds,
-					    "j_init", "tcsetpgrp",
-					    cstrerror(errno));
+					kwarnf0(KWF_PREFIX, Tf_ssfailed,
+					    "j_init", "tcsetpgrp");
 					ttypgrp_ok = false;
 				} else
 					restore_ttypgrp = kshpgrp;
@@ -402,7 +400,7 @@ j_change(void)
 		}
 #ifndef MKSH_DISABLE_TTY_WARNING
 		if (use_tty && !ttypgrp_ok)
-			warningf(false, Tf_sD_s, "warning",
+			kwarnf(KWF_PREFIX | KWF_ONEMSG | KWF_NOERRNO,
 			    "won't have full job control");
 #endif
 	} else {
@@ -436,7 +434,7 @@ ksh_nice(int ness)
 	errno = 0;
 	/* this is gonna annoy users; complain to your distro, people! */
 	if (nice(ness) == -1 && (eno = errno) != 0)
-		warningf(false, Tf_sD_s, "bgnice", cstrerror(eno));
+		kwarnf(KWF_VERRNO | KWF_PREFIX | KWF_ONEMSG, eno, "bgnice");
 #else
 	(void)nice(ness);
 #endif
@@ -488,8 +486,9 @@ exchild(struct op *t, int flags,
 	if (flags & XPIPEI) {
 		/* continuing with a pipe */
 		if (!last_job)
-			internal_errorf("exchild: XPIPEI and no last_job - pid %d",
-			    (int)procpid);
+			kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+			    "exchild: XPIPEI and no last_job - pid %ld",
+			    (long)procpid);
 		j = last_job;
 		if (last_proc)
 			last_proc->next = p;
@@ -621,7 +620,8 @@ exchild(struct op *t, int flags,
 #ifndef MKSH_SMALL
 		if (t->type == TPIPE)
 			unwind(LLEAVE);
-		internal_warningf("%s: execute() returned", "exchild");
+		kwarnf(KWF_INTERNAL | KWF_WARNING | KWF_TWOMSG,
+		    "exchild", "execute() returned");
 		fptreef(shl_out, 8, "%s: tried to execute {\n\t%T\n}\n",
 		    "exchild", t);
 		shf_flush(shl_out);
@@ -698,9 +698,11 @@ waitlast(void)
 	j = last_job;
 	if (!j || !(j->flags & JF_STARTED)) {
 		if (!j)
-			warningf(true, Tf_sD_s, "waitlast", "no last job");
+			kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG |
+			    KWF_NOERRNO, "waitlast", "no last job");
 		else
-			internal_warningf(Tf_sD_s, "waitlast", Tnot_started);
+			kwarnf(KWF_INTERNAL | KWF_WARNING | KWF_TWOMSG | KWF_NOERRNO,
+			    "waitlast", Tnot_started);
 #ifndef MKSH_NOPROSPECTOFWORK
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 #endif
@@ -884,7 +886,7 @@ j_resume(const char *cp, int bg)
 				if (j->flags & JF_SAVEDTTY)
 					mksh_tcset(tty_fd, &tty_state);
 				sigprocmask(SIG_SETMASK, &omask, NULL);
-				bi_errorf(Tf_ldfailed,
+				bi_errorf(Tf_ldfailed ": %s",
 				    "fg: 1st", "tcsetpgrp", tty_fd,
 				    (long)((j->flags & JF_SAVEDTTYPGRP) ?
 				    j->saved_ttypgrp : j->pgrp),
@@ -906,9 +908,9 @@ j_resume(const char *cp, int bg)
 			if (ttypgrp_ok && (j->flags & JF_SAVEDTTY))
 				mksh_tcset(tty_fd, &tty_state);
 			if (ttypgrp_ok && tcsetpgrp(tty_fd, kshpgrp) < 0)
-				warningf(true, Tf_ldfailed,
-				    "fg: 2nd", "tcsetpgrp", tty_fd,
-				    (long)kshpgrp, cstrerror(errno));
+				kwarnf0(KWF_PREFIX | KWF_FILELINE,
+				    Tf_ldfailed, "fg: 2nd", "tcsetpgrp",
+				    tty_fd, (long)kshpgrp);
 		}
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		bi_errorf(Tf_s_sD_s, "can't continue job",
@@ -1079,7 +1081,8 @@ j_set_async(Job *j)
 	if (async_job && (async_job->flags & (JF_KNOWN|JF_ZOMBIE)) == JF_ZOMBIE)
 		remove_job(async_job, "async");
 	if (!(j->flags & JF_STARTED)) {
-		internal_warningf(Tf_sD_s, "j_async", Tjob_not_started);
+		kwarnf(KWF_INTERNAL | KWF_WARNING | KWF_TWOMSG | KWF_NOERRNO,
+		    "j_async", Tjob_not_started);
 		return;
 	}
 	async_job = j;
@@ -1093,8 +1096,8 @@ j_set_async(Job *j)
 		if (!oldest) {
 			/* XXX debugging */
 			if (!(async_job->flags & JF_ZOMBIE) || nzombie != 1) {
-				internal_warningf("%s: bad nzombie (%d)",
-				    "j_async", nzombie);
+				kwarnf0(KWF_INTERNAL | KWF_WARNING | KWF_NOERRNO,
+				    "%s: bad nzombie (%d)", "j_async", nzombie);
 				nzombie = 0;
 			}
 			break;
@@ -1207,9 +1210,9 @@ j_waitj(Job *j,
 			    (j->saved_ttypgrp = tcgetpgrp(tty_fd)) >= 0)
 				j->flags |= JF_SAVEDTTYPGRP;
 			if (tcsetpgrp(tty_fd, kshpgrp) < 0)
-				warningf(true, Tf_ldfailed,
-				    "j_waitj:", "tcsetpgrp", tty_fd,
-				    (long)kshpgrp, cstrerror(errno));
+				kwarnf0(KWF_PREFIX | KWF_FILELINE,
+				    Tf_ldfailed, "j_waitj:", "tcsetpgrp",
+				    tty_fd, (long)kshpgrp);
 			if (j->state == PSTOPPED) {
 				j->flags |= JF_SAVEDTTY;
 				mksh_tcget(tty_fd, &j->ttystat);
@@ -1364,7 +1367,7 @@ j_sigchld(int sig MKSH_A_UNUSED)
 #endif
 
 	if (ksh_getrusage(RUSAGE_CHILDREN, &ru0))
-		warningf(true, "getrusage1: %s", cstrerror(errno));
+		kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_ONEMSG, Tgetrusage);
 	do {
 #ifndef MKSH_NOPROSPECTOFWORK
 		pid = waitpid(-1, &status, (WNOHANG |
@@ -1384,7 +1387,8 @@ j_sigchld(int sig MKSH_A_UNUSED)
 			goto j_sigchld_out;
 
 		if (ksh_getrusage(RUSAGE_CHILDREN, &ru1))
-			warningf(true, "getrusage2: %s", cstrerror(errno));
+			kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_ONEMSG,
+			    Tgetrusage);
 
 		/* find job and process structures for this pid */
 		for (j = job_list; j != NULL; j = j->next)
@@ -1394,8 +1398,8 @@ j_sigchld(int sig MKSH_A_UNUSED)
  found:
 		if (j == NULL) {
 			/* Can occur if process has kids, then execs shell
-			warningf(true, "bad process waited for (pid = %d)",
-				pid);
+			kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO,
+			    "bad process waited for (pid = %d)", pid);
 			 */
 			ru0 = ru1;
 			continue;
@@ -1456,7 +1460,8 @@ check_job(Job *j)
 
 	/* XXX debugging (nasty - interrupt routine using shl_out) */
 	if (!(j->flags & JF_STARTED)) {
-		internal_warningf("check_job: job started (flags 0x%X)",
+		kwarnf0(KWF_INTERNAL | KWF_WARNING | KWF_NOERRNO,
+		    "check_job: job started (flags 0x%X)",
 		    (unsigned int)j->flags);
 		return;
 	}
@@ -1863,7 +1868,8 @@ remove_job(Job *j, const char *where)
 		curr = *prev;
 	}
 	if (curr != j) {
-		internal_warningf("remove_job: job %s (%s)", Tnot_found, where);
+		kwarnf0(KWF_INTERNAL | KWF_WARNING | KWF_NOERRNO,
+		    "remove_job: job %s (%s)", Tnot_found, where);
 		return;
 	}
 	*prev = curr->next;
@@ -1952,23 +1958,21 @@ tty_init_talking(void)
 		break;
 	case 1:
 #ifndef MKSH_DISABLE_TTY_WARNING
-		warningf(false, "can't find controlling tty: %s",
-		    cstrerror(errno));
+		kwarnf(KWF_PREFIX | KWF_ONEMSG, "can't find controlling tty");
 #endif
 		break;
 	case 2:
 #ifndef MKSH_DISABLE_TTY_WARNING
-		warningf(false, "can't find tty fd: %s",
-		    cstrerror(errno));
+		kwarnf(KWF_PREFIX | KWF_ONEMSG, "can't find tty fd");
 #endif
 		break;
 	case 3:
-		warningf(false, Tf_ssfaileds, "j_ttyinit",
-		    "dup of tty fd", cstrerror(errno));
+		kwarnf0(KWF_PREFIX, Tf_ssfailed,
+		    "j_ttyinit", "dup of tty fd");
 		break;
 	case 4:
-		warningf(false, Tf_sD_sD_s, "j_ttyinit",
-		    "can't set close-on-exec flag", cstrerror(errno));
+		kwarnf(KWF_PREFIX | KWF_TWOMSG, "j_ttyinit",
+		    "can't set close-on-exec flag");
 		break;
 	}
 }

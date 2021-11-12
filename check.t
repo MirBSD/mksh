@@ -1,4 +1,4 @@
-# $MirOS: src/bin/mksh/check.t,v 1.883 2021/10/10 21:33:50 tg Exp $
+# $MirOS: src/bin/mksh/check.t,v 1.884 2021/11/12 05:05:51 tg Exp $
 # -*- mode: sh -*-
 #-
 # Copyright © 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
@@ -31,7 +31,7 @@
 # (2013/12/02 20:39:44) http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/bin/ksh/?sortby=date
 
 expected-stdout:
-	KSH R59 2021/10/10
+	KSH R59 2021/11/11
 description:
 	Check base version of full shell
 stdin:
@@ -5599,14 +5599,17 @@ stdin:
 	echo =1
 	trap "echo trap 2 executed" UNKNOWNSIGNAL EXIT 999999 FNORD
 	echo = $?
-	) 2>&1 | sed "s^${__progname%.exe}\.*e*x*e*: <stdin>\[[0-9]*]PROG"
+	) 2>&1 | sed \
+	    -e "s^${__progname%.exe}\.*e*x*e*: <stdin>\[[0-9]*]PROG" \
+	    -e "s^[EW]: ${__progname%.exe}\.*e*x*e*: <stdin>\[[0-9]*]PROG" \
+	    -e "s/bad signal '\\(.*\\)'\$/bad signal: \\1/"
 expected-stdout:
-	PROG: trap: bad signal 'UNKNOWNSIGNAL'
+	PROG: trap: bad signal: UNKNOWNSIGNAL
 	foo
 	=1
-	PROG: trap: bad signal 'UNKNOWNSIGNAL'
-	PROG: trap: bad signal '999999'
-	PROG: trap: bad signal 'FNORD'
+	PROG: trap: bad signal: UNKNOWNSIGNAL
+	PROG: trap: bad signal: 999999
+	PROG: trap: bad signal: FNORD
 	= 1
 	trap 2 executed
 ---
@@ -6340,7 +6343,7 @@ expected-stdout:
 ---
 name: regression-42
 description:
-	Can't use command line assignments to assign readonly parameters.
+	Can't use command line assignments to assign read-only parameters.
 stdin:
 	print '#!'"$__progname"'\nunset RANDOM\nexport | while IFS= read -r' \
 	    'RANDOM; do eval '\''print -r -- "$RANDOM=$'\''"$RANDOM"'\'\"\'\; \
@@ -11370,7 +11373,7 @@ stdin:
 expected-stdout:
 	===
 	mir
-expected-stderr-pattern: /.*: can't (create|overwrite) .*/
+expected-stderr-pattern: /.*: foo: (create: |cannot overwrite existing file).*/
 ---
 name: bashiop-3b
 description:

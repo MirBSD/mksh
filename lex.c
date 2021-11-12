@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.261 2021/10/10 21:36:53 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lex.c,v 1.262 2021/11/12 05:05:58 tg Exp $");
 
 /*
  * states while lexing word
@@ -1208,25 +1208,6 @@ readhere(struct ioword *iop)
 
 	if (!(iop->ioflag & IOEVAL))
 		ignore_backslash_newline--;
-}
-
-void
-yyerror(const char *fmt, ...)
-{
-	va_list va;
-
-	/* pop aliases and re-reads */
-	while (source->type == SALIAS || source->type == SREREAD)
-		source = source->next;
-	/* zap pending input */
-	source->str = null;
-
-	error_prefix(true);
-	va_start(va, fmt);
-	shf_vfprintf(shl_out, fmt, va);
-	shf_putc('\n', shl_out);
-	va_end(va);
-	errorfz();
 }
 
 /*

@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.121 2021/11/11 02:44:09 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.122 2021/11/12 05:06:02 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -122,7 +122,8 @@ shf_open_hlp(int fd, int *sflagsp, const char *where)
 	}
 
 	if (!(sflags & (SHF_RD | SHF_WR)))
-		internal_errorf(Tbad_flags, where, sflags);
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+		    Tbad_flags, where, sflags);
 }
 
 /* Set up the shf structure for a file descriptor. Doesn't fail. */
@@ -160,8 +161,7 @@ shf_fdopen(int fd, int sflags, struct shf *shf)
 	shf->errnosv = 0;
 	shf->bsize = bsize;
 	if ((sflags & SHF_CLEXEC) && fcntl(fd, F_SETFD, FD_CLOEXEC) == -1)
-		internal_warningf(Tcloexec_failed, "set", fd,
-		    cstrerror(errno));
+		kwarnf0(KWF_INTERNAL | KWF_WARNING, Tcloexec_failed, "set", fd);
 	return (shf);
 }
 
@@ -175,8 +175,8 @@ shf_reopen(int fd, int sflags, struct shf *shf)
 
 	shf_open_hlp(fd, &sflags, "shf_reopen");
 	if (!shf->buf || shf->bsize < bsize)
-		internal_errorf(Tbad_buf, "shf_reopen",
-		    (size_t)shf->buf, shf->bsize);
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+		    Tbad_buf, "shf_reopen", (size_t)shf->buf, shf->bsize);
 
 	/* assumes shf->buf and shf->bsize already set up */
 	shf->fd = fd;
@@ -188,8 +188,7 @@ shf_reopen(int fd, int sflags, struct shf *shf)
 	shf->flags = (shf->flags & (SHF_ALLOCS | SHF_ALLOCB)) | sflags;
 	shf->errnosv = 0;
 	if ((sflags & SHF_CLEXEC) && fcntl(fd, F_SETFD, FD_CLOEXEC) == -1)
-		internal_warningf(Tcloexec_failed, "set", fd,
-		    cstrerror(errno));
+		kwarnf0(KWF_INTERNAL | KWF_WARNING, Tcloexec_failed, "set", fd);
 	return (shf);
 }
 
@@ -206,7 +205,8 @@ struct shf *
 shf_sopen(char *buf, ssize_t bsize, int sflags, struct shf *shf)
 {
 	if (!((sflags & SHF_RD) ^ (sflags & SHF_WR)))
-		internal_errorf(Tbad_flags, "shf_sopen", sflags);
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+		    Tbad_flags, "shf_sopen", sflags);
 
 	if (!shf) {
 		shf = alloc(sizeof(struct shf), ATEMP);
@@ -249,7 +249,8 @@ int
 shf_scheck_grow(ssize_t n, struct shf *shf)
 {
 	if (!(shf->flags & SHF_WR))
-		internal_errorf(Tbad_flags, "shf_scheck", shf->flags);
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+		    Tbad_flags, "shf_scheck", shf->flags);
 
 	/* if n < 0 we lose in the macro already */
 
@@ -337,7 +338,8 @@ shf_flush(struct shf *shf)
 	if (shf->flags & SHF_STRING)
 		rv = (shf->flags & SHF_WR) ? -1 : 0;
 	else if (shf->fd < 0)
-		internal_errorf(Tf_sD_s, "shf_flush", "no fd");
+		kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_TWOMSG | KWF_NOERRNO,
+		    "shf_flush", "no fd");
 	else if (shf->flags & SHF_ERROR) {
 		errno = shf->errnosv;
 		rv = -1;
@@ -369,7 +371,8 @@ shf_emptybuf(struct shf *shf, int flags)
 	int ret = 0;
 
 	if (!(shf->flags & SHF_STRING) && shf->fd < 0)
-		internal_errorf(Tf_sD_s, "shf_emptybuf", "no fd");
+		kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_TWOMSG | KWF_NOERRNO,
+		    "shf_emptybuf", "no fd");
 
 	if (shf->flags & SHF_ERROR) {
 		errno = shf->errnosv;
@@ -457,7 +460,8 @@ shf_fillbuf(struct shf *shf)
 		return (0);
 
 	if (shf->fd < 0)
-		internal_errorf(Tf_sD_s, "shf_fillbuf", "no fd");
+		kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_TWOMSG | KWF_NOERRNO,
+		    "shf_fillbuf", "no fd");
 
 	if (shf->flags & (SHF_EOF | SHF_ERROR)) {
 		if (shf->flags & SHF_ERROR)
@@ -500,10 +504,12 @@ shf_read(char *buf, ssize_t bsize, struct shf *shf)
 	ssize_t ncopy, orig_bsize = bsize;
 
 	if (!(shf->flags & SHF_RD))
-		internal_errorf(Tbad_flags, Tshf_read, shf->flags);
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+		    Tbad_flags, Tshf_read, shf->flags);
 
 	if (bsize <= 0)
-		internal_errorf(Tbad_buf, Tshf_read, (size_t)buf, bsize);
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+		    Tbad_buf, Tshf_read, (size_t)buf, bsize);
 
 	while (bsize > 0) {
 		if (shf->rnleft == 0 &&
@@ -537,7 +543,8 @@ shf_getse(char *buf, ssize_t bsize, struct shf *shf)
 	char *orig_buf = buf;
 
 	if (!(shf->flags & SHF_RD))
-		internal_errorf(Tbad_flags, "shf_getse", shf->flags);
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+		    Tbad_flags, "shf_getse", shf->flags);
 
 	if (bsize <= 0)
 		return (NULL);
@@ -590,7 +597,8 @@ int
 shf_getchar(struct shf *shf)
 {
 	if (!(shf->flags & SHF_RD))
-		internal_errorf(Tbad_flags, "shf_getchar", shf->flags);
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+		    Tbad_flags, "shf_getchar", shf->flags);
 
 	if (shf->rnleft == 0 && (shf_fillbuf(shf) == -1 || shf->rnleft == 0))
 		return (-1);
@@ -606,7 +614,8 @@ int
 shf_ungetc(int c, struct shf *shf)
 {
 	if (!(shf->flags & SHF_RD))
-		internal_errorf(Tbad_flags, "shf_ungetc", shf->flags);
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+		    Tbad_flags, "shf_ungetc", shf->flags);
 
 	if ((shf->flags & SHF_ERROR) || c == -1 ||
 	    (shf->rp == shf->buf && shf->rnleft))
@@ -643,7 +652,8 @@ int
 shf_putchar(int c, struct shf *shf)
 {
 	if (!(shf->flags & SHF_WR))
-		internal_errorf(Tbad_flags, "shf_putchar",shf->flags);
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+		    Tbad_flags, "shf_putchar", shf->flags);
 
 	if (c == -1)
 		return (-1);
@@ -653,7 +663,8 @@ shf_putchar(int c, struct shf *shf)
 		ssize_t n;
 
 		if (shf->fd < 0)
-			internal_errorf(Tf_sD_s, "shf_putchar", "no fd");
+			kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_TWOMSG | KWF_NOERRNO,
+			    "shf_putchar", "no fd");
 		if (shf->flags & SHF_ERROR) {
 			errno = shf->errnosv;
 			return (-1);
@@ -683,7 +694,7 @@ shf_putchar(int c, struct shf *shf)
  * less if truncated, and -1 if the string could not be written.
  */
 ssize_t
-shf_puts(const char *s, struct shf *shf)
+shf_putsv(const char *s, struct shf *shf)
 {
 	if (!s)
 		return (-1);
@@ -701,10 +712,12 @@ shf_write(const char *buf, ssize_t nbytes, struct shf *shf)
 	ssize_t n, ncopy, orig_nbytes = nbytes;
 
 	if (!(shf->flags & SHF_WR))
-		internal_errorf(Tbad_flags, Tshf_write, shf->flags);
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+		    Tbad_flags, Tshf_write, shf->flags);
 
 	if (nbytes < 0)
-		internal_errorf(Tbad_buf, Tshf_write, (size_t)buf, nbytes);
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+		    Tbad_buf, Tshf_write, (size_t)buf, nbytes);
 
 	/* don't buffer if buffer is empty and we're writing a large amount */
 	if ((ncopy = shf->wnleft) &&
@@ -792,7 +805,8 @@ shf_snprintf(char *buf, ssize_t bsize, const char *fmt, ...)
 	ssize_t n;
 
 	if (!buf || bsize <= 0)
-		internal_errorf(Tbad_buf, "shf_snprintf", (size_t)buf, bsize);
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+		    Tbad_buf, "shf_snprintf", (size_t)buf, bsize);
 
 	shf_sopen(buf, bsize, SHF_WR, &shf);
 	va_start(args, fmt);
@@ -1041,7 +1055,7 @@ shf_vfprintf(struct shf *shf, const char *fmt, va_list args)
 
 		case 's':
 			if ((s = VA(const char *)) == NULL)
-				s = "(null)";
+				s = Tnil;
 			else if (flags & FL_HASH) {
 				print_value_quoted(shf, s);
 				continue;
@@ -1192,10 +1206,8 @@ cstrerror(int errnum)
 	case ESRCH:
 		return ("No such process");
 #endif
-#ifdef E2BIG
 	case E2BIG:
 		return ("Argument list too long");
-#endif
 	case ENOEXEC:
 		return ("Exec format error");
 	case EBADF:

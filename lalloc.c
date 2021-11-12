@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009, 2010, 2011, 2013, 2014, 2016
+ * Copyright (c) 2009, 2010, 2011, 2013, 2014, 2016, 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -23,7 +23,7 @@
 #include <err.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.29 2021/11/11 02:44:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.30 2021/11/12 05:05:58 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -118,12 +118,14 @@ findptr(struct lalloc_common **lpp, char *ptr, Area *ap)
  fail:
 #endif
 #ifdef DEBUG
-			internal_warningf("rogue pointer %zX in ap %zX",
+			kwarnf0(KWF_INTERNAL | KWF_WARNING | KWF_NOERRNO,
+			    "rogue pointer %zX in ap %zX",
 			    (size_t)ptr, (size_t)ap);
 			/* try to get a coredump */
 			abort();
 #else
-			internal_errorf("rogue pointer %zX", (size_t)ptr);
+			kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+			    "rogue pointer %zX", (size_t)ptr);
 #endif
 		}
 	return (ap);
@@ -134,7 +136,8 @@ void *
 aresize2(void *ptr, size_t fac1, size_t fac2, Area *ap)
 {
 	if (notoktomul(fac1, fac2))
-		internal_errorf(Tintovfl, fac1, '*', fac2);
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+		    Tintovfl, fac1, '*', fac2);
 	return (aresize(ptr, fac1 * fac2, ap));
 }
 
@@ -152,13 +155,27 @@ aresize(void *ptr, size_t numb, Area *ap)
 		pp->next = lp->next;
 	}
 
-	if (notoktoadd(numb, sizeof(ALLOC_ITEM)) ||
-	    (lp = remalloc(lp, numb + sizeof(ALLOC_ITEM))) == NULL
+	if (notoktoadd(numb, sizeof(ALLOC_ITEM))) {
+		errno = E2BIG;
+ alloc_fail:
+		if (!initio_done) {
+			SHIKATANAI write(2, SC("mksh: out of memory early\n"));
+			exit(255);
+		}
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF),
+		    "can't allocate %zu data bytes", numb);
+	}
+	if ((lp = remalloc(lp, numb + sizeof(ALLOC_ITEM))) == NULL)
+		goto alloc_fail;
 #ifndef MKSH_SMALL
-	    || ALLOC_ISUNALIGNED(lp)
+	if (ALLOC_ISUNALIGNED(lp)) {
+#ifdef EPROTO
+		errno = EPROTO;
 #endif
-	    )
-		internal_errorf(Toomem, numb);
+		goto alloc_fail;
+	}
+#endif
+
 	/* area pointer and items share struct lalloc_common */
 	/*XXX C99 §6.5(6) and footnote 72 may dislike this? */
 	lp->next = ap->next;

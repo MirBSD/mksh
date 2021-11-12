@@ -3,7 +3,7 @@
 /*-
  * Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
  *		 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
- *		 2019, 2020
+ *		 2019, 2020, 2021
  *	mirabilos <m@mirbsd.org>
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.3 2020/07/24 21:08:26 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/ulimit.c,v 1.4 2021/11/12 05:06:03 tg Exp $");
 
 #define SOFT	0x1
 #define HARD	0x2
@@ -232,7 +232,7 @@ c_ulimit(const char **wp)
 		/* silently accept */
 		return 0;
 #endif
-	internal_warningf("ulimit: %c", what);
+	kwarnf0(KWF_INTERNAL | KWF_WARNING | KWF_NOERRNO, "ulimit: %c", what);
 	return (1);
  found:
 	if (wp[builtin_opt.optind]) {
@@ -310,7 +310,7 @@ set_ulimit(const struct limits *l, const char *v, int how MKSH_A_UNUSED)
 #else
 	if (l->writable == false) {
 	    /* check.t:ulimit-2 fails if we return 1 and/or do:
-		bi_errorf(Tf_ro, l->name);
+		bi_errorf(Tread_only ": %s", l->name);
 	    */
 		return (0);
 	}

@@ -22,9 +22,11 @@
  * of said person's immediate fault when using the work as intended.
  */
 
+/* to avoid -Wmissing-format-attribute on vwarnf(), which is no candidate */
+#define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.133 2021/10/10 21:36:54 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.134 2021/11/12 05:06:02 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -65,6 +67,14 @@ static const char *dbtestp_getopnd(Test_env *, Test_op, bool);
 static int dbtestp_eval(Test_env *, Test_op, const char *,
     const char *, bool);
 static void dbtestp_error(Test_env *, int, const char *) MKSH_A_NORETURN;
+
+static void vwarnf(unsigned int, int, const char *, va_list);
+#ifndef MKSH_SMALL
+static void vwarnf0(unsigned int, int, const char *, va_list)
+    MKSH_A_FORMAT(__printf__, 3, 0);
+#else
+#define vwarnf0 vwarnf
+#endif
 
 static struct op *outtree;		/* yyparse output */
 static struct nesting_state nesting;	/* \n changed to ; */
@@ -1179,3 +1189,283 @@ yyrecursive_pop(bool popall)
 	if (popall)
 		goto popnext;
 }
+
+void
+yyerror(const char *fmt, ...)
+{
+	va_list ap;
+
+	/* pop aliases and re-reads */
+	while (source->type == SALIAS || source->type == SREREAD)
+		source = source->next;
+	/* zap pending input */
+	source->str = null;
+
+	va_start(ap, fmt);
+	vwarnf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO,
+	    0, fmt, ap);
+	va_end(ap);
+	unwind(LERROR);
+}
+
+/* used by error reporting functions to print "ksh: .kshrc[25]: " */
+bool
+error_prefix(bool fileline)
+{
+	bool kshname_shown = false;
+
+	/* Avoid foo: foo[2]: ... */
+	if (!fileline || !source || !source->file ||
+	    strcmp(source->file, kshname) != 0) {
+		kshname_shown = true;
+		shf_puts(kshname + (ksh_is(*kshname, '-') ? 1 : 0), shl_out);
+		shf_putc_i(':', shl_out);
+		shf_putc_i(' ', shl_out);
+	}
+	if (fileline && source && source->file != NULL) {
+		shf_fprintf(shl_out, "%s[%d]: ", source->file, source->errline ?
+		    source->errline : source->line);
+		source->errline = 0;
+	}
+	return (kshname_shown);
+}
+
+/* error reporting functions */
+
+static void
+vwarnf(unsigned int flags, int verrno, const char *fmt, va_list ap)
+{
+	int rept = 0;
+	bool show_builtin_argv0 = false;
+
+	if (HAS(flags, KWF_ERROR)) {
+		if (HAS(flags, KWF_INTERNAL))
+			shf_write(SC("internal error: "), shl_out);
+		else
+			shf_write(SC("E: "), shl_out);
+		/* additional things to do on error */
+		exstat = flags & KWF_EXSTAT;
+		if (HAS(flags, KWF_INTERNAL) && trap_exstat != -1)
+			trap_exstat = exstat;
+		/* debugging: note that stdout not valid */
+		shl_stdout_ok = false;
+	} else {
+		if (HAS(flags, KWF_INTERNAL))
+			shf_write(SC("internal warning: "), shl_out);
+		else
+			shf_write(SC("W: "), shl_out);
+	}
+	if (HAS(flags, KWF_BUILTIN) &&
+	    /* not set when main() calls parse_args() */
+	    builtin_argv0 && builtin_argv0 != kshname)
+		show_builtin_argv0 = true;
+	if (HAS(flags, KWF_PREFIX) && error_prefix(HAS(flags, KWF_FILELINE)) &&
+	    show_builtin_argv0) {
+		const char *kshbasename;
+
+		kshname_islogin(&kshbasename);
+		show_builtin_argv0 = strcmp(builtin_argv0, kshbasename) != 0;
+	}
+	if (show_builtin_argv0) {
+		shf_puts(builtin_argv0, shl_out);
+		shf_putc_i(':', shl_out);
+		shf_putc_i(' ', shl_out);
+	}
+	switch (flags & KWF_MSGMASK) {
+	default:
+#undef shf_vfprintf
+		shf_vfprintf(shl_out, fmt, ap);
+#define shf_vfprintf poisoned_shf_vfprintf
+		break;
+	case KWF_THREEMSG:
+		rept = 2;
+		if (0)
+			/* FALLTHROUGH */
+	case KWF_TWOMSG:
+		  rept = 1;
+		/* FALLTHROUGH */
+	case KWF_ONEMSG:
+		while (/* CONSTCOND */ 1) {
+			shf_puts(fmt ? fmt : Tnil, shl_out);
+			if (!rept--)
+				break;
+			shf_putc_i(':', shl_out);
+			shf_putc_i(' ', shl_out);
+			fmt = va_arg(ap, const char *);
+		}
+		break;
+	}
+	if (!HAS(flags, KWF_NOERRNO)) {
+		/* compare shf.c */
+#if !defined(DEBUG) && !HAVE_STRERROR
+		shf_putc_i(':', shl_out);
+		shf_putc_i(' ', shl_out);
+		shf_putsv(cstrerror(verrno), shl_out);
+#else
+		/* may be nil */
+		shf_fprintf(shl_out, ": %s", cstrerror(verrno));
+#endif
+	}
+	shf_putc_i('\n', shl_out);
+	shf_flush(shl_out);
+}
+
+#ifndef MKSH_SMALL
+static void
+vwarnf0(unsigned int flags, int verrno, const char *fmt, va_list ap)
+{
+	return (vwarnf(flags, verrno, fmt, ap));
+}
+#endif
+
+void
+kwarnf(unsigned int flags, ...)
+{
+	const char *fmt;
+	va_list ap;
+	int verrno;
+
+	verrno = errno;
+
+	va_start(ap, flags);
+	if (HAS(flags, KWF_VERRNO))
+		verrno = va_arg(ap, int);
+	fmt = va_arg(ap, const char *);
+	vwarnf(flags, verrno, fmt, ap);
+	va_end(ap);
+	if (HAS(flags, KWF_BIUNWIND))
+		bi_unwind(0);
+}
+
+#ifndef MKSH_SMALL
+void
+kwarnf0(unsigned int flags, const char *fmt, ...)
+{
+	va_list ap;
+	int verrno;
+
+	verrno = errno;
+
+	va_start(ap, fmt);
+	vwarnf0(flags, verrno, fmt, ap);
+	va_end(ap);
+	if (HAS(flags, KWF_BIUNWIND))
+		bi_unwind(0);
+}
+
+void
+kwarnf1(unsigned int flags, int verrno, const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	vwarnf0(flags, verrno, fmt, ap);
+	va_end(ap);
+	if (HAS(flags, KWF_BIUNWIND))
+		bi_unwind(0);
+}
+#endif
+
+/* presented by lack of portable variadic macros in early C */
+
+void
+kerrf(unsigned int flags, ...)
+{
+	const char *fmt;
+	va_list ap;
+	int verrno;
+
+	verrno = errno;
+
+	va_start(ap, flags);
+	if (HAS(flags, KWF_VERRNO))
+		verrno = va_arg(ap, int);
+	fmt = va_arg(ap, const char *);
+	vwarnf(flags, verrno, fmt, ap);
+	va_end(ap);
+	unwind(LERROR);
+}
+
+#ifndef MKSH_SMALL
+void
+kerrf0(unsigned int flags, const char *fmt, ...)
+{
+	va_list ap;
+	int verrno;
+
+	verrno = errno;
+
+	va_start(ap, fmt);
+	vwarnf0(flags, verrno, fmt, ap);
+	va_end(ap);
+	unwind(LERROR);
+}
+
+void
+kerrf1(unsigned int flags, int verrno, const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	vwarnf0(flags, verrno, fmt, ap);
+	va_end(ap);
+	unwind(LERROR);
+}
+#endif
+
+/* maybe error, maybe builtin error; use merrf() macro */
+void
+merrF(int *ep, unsigned int flags, ...)
+{
+	const char *fmt;
+	va_list ap;
+	int verrno;
+
+	verrno = errno;
+
+	if (ep)
+		flags |= KWF_BUILTIN;
+
+	va_start(ap, flags);
+	if (HAS(flags, KWF_VERRNO))
+		verrno = va_arg(ap, int);
+	fmt = va_arg(ap, const char *);
+	vwarnf(flags, verrno, fmt, ap);
+	va_end(ap);
+
+	if (ep) {
+		*ep = exstat;
+		bi_unwind(0);
+	} else
+		unwind(LERROR);
+}
+
+/* transform warning into bi_errorf */
+void
+bi_unwind(int rc)
+{
+	if (rc)
+		exstat = rc;
+	/* debugging: note that stdout not valid */
+	shl_stdout_ok = false;
+
+	/* POSIX special builtins cause non-interactive shells to exit */
+	if (builtin_spec) {
+		builtin_argv0 = NULL;
+		/* may not want to use LERROR here */
+		unwind(LERROR);
+	}
+}
+
+/*XXX replace:
+bi_errorf(fmt, ...)	kwarnf0(KWF_BIERR | KWF_NOERRNO, fmt, ...)
+			kwarnf0(KWF_BIERR, fmt, ...)
+			kwarnf1(KWF_VERRNO | KWF_BIERR, errno, fmt, ...)
+bi_errorf("%s", s)	 kwarnf(KWF_BIERR | KWF_ONEMSG [| KWF_NOERRNO], s)
+bi_errorf("%s: %s", a,b) kwarnf(KWF_BIERR | KWF_TWOMSG [| KWF_NOERRNO], a, b)
+ * etc.
+
+errorf(fmt, ...)	kerrf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE [| KWF_NOERRNO], fmt, ...)
+errorf("%s: %s", a,b)	 kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG [| KWF_NOERRNO], a, b)
+ * etc.
+ */

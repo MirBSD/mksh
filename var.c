@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.254 2021/11/11 02:44:10 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.255 2021/11/12 05:06:03 tg Exp $");
 
 /*-
  * Variables
@@ -474,9 +474,11 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 
 	error_ok &= ~0x4;
 	if ((vq->flag & RDONLY) && !no_ro_check) {
-		warningf(true, Tf_ro, vq->name);
+		kwarnf((error_ok ? KWF_WARNING : KWF_ERR(2)) | KWF_PREFIX |
+		    KWF_FILELINE | KWF_TWOMSG | KWF_NOERRNO,
+		    Tread_only, vq->name);
 		if (!error_ok)
-			errorfxz(2);
+			unwind(LERROR);
 		return (0);
 	}
 	if (!(vq->flag&INTEGER)) {
@@ -488,7 +490,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 #ifndef MKSH_SMALL
 			/* debugging */
 			if (s >= vq->val.s && s < (vq->val.s + cursz)) {
-				internal_errorf(
+				kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
 				    "setstr: %s=%s: assigning to self",
 				    vq->name, s);
 			}
@@ -804,8 +806,9 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 	}
 	if (ord(*val) == ORD('[')) {
 		if (new_refflag != SRF_NOP)
-			not_errorf(NULL, (ep, 1, Tf_sD_s, var,
-			    "reference variable can't be an array"));
+			merrf(NULL, (ep, KWF_ERR(1) | KWF_PREFIX |
+			    KWF_FILELINE | KWF_TWOMSG | KWF_NOERRNO,
+			    var, "reference variable can't be an array"));
 		len = array_ref_len(val);
 		if (len < 3)
 			return (NULL);
@@ -863,7 +866,8 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 
 		/* bail out on 'nameref foo+=bar' */
 		if (vappend)
-			not_errorf(NULL, (ep, 1,
+			merrf(NULL, (ep, KWF_ERR(1) | KWF_PREFIX |
+			    KWF_FILELINE | KWF_ONEMSG | KWF_NOERRNO,
 			    "appending not allowed for nameref"));
 		/* find value if variable already exists */
 		if ((qval = val) == NULL) {
@@ -890,8 +894,9 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 				goto nameref_rhs_checked;
 			}
  nameref_empty:
-			not_errorf(NULL, (ep, 1, Tf_sD_s, var,
-			    "empty nameref target"));
+			merrf(NULL, (ep, KWF_ERR(1) | KWF_PREFIX |
+			    KWF_FILELINE | KWF_TWOMSG | KWF_NOERRNO,
+			    var, "empty nameref target"));
 		}
 		len = (ord(*ccp) == ORD('[')) ? array_ref_len(ccp) : 0;
 		if (ccp[len]) {
@@ -900,15 +905,17 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 			 * junk after it" and "invalid array"; in the
 			 * latter case, len is also 0 and points to '['
 			 */
-			not_errorf(NULL, (ep, 1, Tf_sD_s, qval,
-			    "nameref target not a valid parameter name"));
+			merrf(NULL, (ep, KWF_ERR(1) | KWF_PREFIX |
+			    KWF_FILELINE | KWF_TWOMSG | KWF_NOERRNO,
+			    qval, "nameref target not a valid parameter name"));
 		}
  nameref_rhs_checked:
 		/* prevent nameref loops */
 		while (qval) {
 			if (!strcmp(qval, tvar))
-				not_errorf(NULL, (ep, 1, Tf_sD_s, qval,
-				    "expression recurses on parameter"));
+				merrf(NULL, (ep, KWF_ERR(1) | KWF_PREFIX |
+				    KWF_FILELINE | KWF_TWOMSG | KWF_NOERRNO,
+				    qval, "expression recurses on parameter"));
 			varsearch(e->loc, &vp, qval, hash(qval));
 			qval = NULL;
 			if (vp && ((vp->flag & (ARRAY | ASSOC)) == ASSOC))
@@ -919,7 +926,8 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 	/* prevent typeset from creating a local PATH/ENV/SHELL */
 	if (Flag(FRESTRICTED) && (strcmp(tvar, TPATH) == 0 ||
 	    strcmp(tvar, TENV) == 0 || strcmp(tvar, TSHELL) == 0))
-		not_errorf(NULL, (ep, 1, Tf_sD_s, tvar, "restricted"));
+		merrf(NULL, (ep, KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
+		    KWF_TWOMSG | KWF_NOERRNO, tvar, "restricted"));
 
 	innermost_refflag = new_refflag;
 	vp = (set & LOCAL) ? local(tvar, tobool(set & LOCAL_COPY)) :
@@ -953,13 +961,14 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 	vpbase = (vp->flag & ARRAY) ? arraybase(tvar) : vp;
 
 	/*
-	 * only allow export and readonly flag to be set; AT&T ksh
+	 * only allow export and read-only flag to be set; AT&T ksh
 	 * allows any attribute to be changed which means it can be
 	 * truncated or modified (-L/-R/-Z/-i)
 	 */
 	if ((vpbase->flag & RDONLY) &&
 	    (val || clr || (set & ~(EXPORT | RDONLY))))
-		not_errorf(NULL, (ep, 2, Tf_ro, tvar));
+		merrf(NULL, (ep, KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE |
+		    KWF_TWOMSG | KWF_NOERRNO, Tread_only, tvar));
 	if (tvar != tvarbuf)
 		afree(tvar, ATEMP);
 
@@ -1040,7 +1049,9 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 			}
 		}
 		if (!ok)
-			not_errorf(NULL, (ep, 1, NULL));
+			merrf(NULL, (ep, KWF_ERR(1) | KWF_PREFIX |
+			    KWF_FILELINE | KWF_ONEMSG | KWF_NOERRNO,
+			    "failed to set string value"));
 	}
 
 	if (vappend) {
@@ -1065,7 +1076,7 @@ vtypeset(int *ep, const char *var, uint32_t set, uint32_t clr,
 			if (base > 0)
 				vp->type = base;
 		} else {
-			/* setstr can't fail (readonly check already done) */
+			/* setstr can't fail (read-only check already done) */
 			setstr(vp, val, KSH_RETURN_ERROR | 0x4);
 			vp->flag |= (set & IMPORT);
 		}
@@ -1697,7 +1708,8 @@ set_array(const char *var, bool reset, const char **vals)
 
 	/* Note: AT&T ksh allows set -A but not set +A of a read-only var */
 	if ((vp->flag&RDONLY))
-		errorfx(2, Tf_ro, ccp);
+		kerrf(KWF_ERR(2) | KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG |
+		    KWF_NOERRNO, Tread_only, ccp);
 	/* This code is quite non-optimal */
 	if (reset) {
 		/* trash existing values and attributes */
@@ -2274,7 +2286,7 @@ c_typeset_vardump(struct tbl *vp, uint32_t flag, int thing, int any_set,
 		}
 		shf_puts(vp->name, shl_stdout);
 		if (any_set)
-			shprintf("[%lu]", arrayindex(vp));
+			shprintf(Tf_SQlu, arrayindex(vp));
 		if ((!thing && !flag && pflag) ||
 		    (thing == '-' && (vp->flag & ISSET))) {
 			shf_putc('=', shl_stdout);

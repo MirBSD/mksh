@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.243 2021/10/10 21:36:52 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.244 2021/11/12 05:05:55 tg Exp $");
 
 /*
  * string expansion
@@ -132,7 +132,8 @@ substitute(const char *cp, int f)
 	s->start = s->str = cp;
 	source = s;
 	if (yylex(ONEWORD) != LWORD)
-		internal_errorf(Tbadsubst);
+		kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_ONEMSG | KWF_NOERRNO,
+		    Tbadsubst);
 	source = sold;
 	afree(s, ATEMP);
 	return (evalstr(yylval.cp, f));
@@ -255,7 +256,8 @@ expand(
 	char *cp;
 
 	if (ccp == NULL)
-		internal_errorf("expand(NULL)");
+		kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_ONEMSG | KWF_NOERRNO,
+		    "expand(NULL)");
 	/* for alias, readonly, set, typeset commands */
 	if ((f & DOVACHECK) && is_wdvarassign(ccp)) {
 		f &= ~(DOVACHECK | DOBLANK | DOGLOB | DOTILDE);
@@ -787,9 +789,9 @@ expand(
 					 * in AT&T ksh.
 					 */
 					/*
-					 * XXX POSIX says readonly is only
+					 * XXX POSIX says read-only is only
 					 * fatal for special builtins (setstr
-					 * does readonly check).
+					 * does read-only check).
 					 */
 					len = strlen(dp) + 1;
 					setstr(st->var,
@@ -1320,12 +1322,13 @@ varsub(Expand *xp, const char *sp, const char *word,
 			}
 			xp->var = global(sp);
 			/* use saved p from above */
-			xp->str = p ? shf_smprintf("%s[%lu]", xp->var->name,
+			xp->str = p ? shf_smprintf(Tf_sSQlu, xp->var->name,
 			    arrayindex(xp->var)) : xp->var->name;
 			break;
 #ifdef DEBUG
 		default:
-			internal_errorf("stype mismatch");
+			kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_ONEMSG | KWF_NOERRNO,
+			    "stype mismatch");
 			/* NOTREACHED */
 #endif
 		case ORD('%'):
@@ -1568,8 +1571,9 @@ comsub(Expand *xp, const char *cp, int fn)
 			shf = shf_open(name = evalstr(io->ioname, DOTILDE),
 				O_RDONLY, 0, SHF_MAPHI | SHF_CLEXEC);
 			if (shf == NULL)
-				warningf(!Flag(FTALKING), Tf_sD_sD_s,
-				    name, Tcant_filesub, cstrerror(errno));
+				kwarnf(KWF_PREFIX | (Flag(FTALKING) ?
+				    KWF_FILELINE : 0) | KWF_TWOMSG,
+				    name, Tcant_filesub);
 			break;
 		case IOHERE:
 			if (!herein(io, &name)) {
@@ -1596,10 +1600,9 @@ comsub(Expand *xp, const char *cp, int fn)
 		 * with an shf open for reading (buffered) but yet unused
 		 */
 		maketemp(ATEMP, TT_FUNSUB, &tf);
-		if (!tf->shf) {
-			errorf(Tf_temp,
-			    Tcreate, tf->tffn, cstrerror(errno));
-		}
+		if (!tf->shf)
+			kerrf0(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE,
+			    Tf_temp, Tcreate, tf->tffn);
 		/* extract shf from temporary file, unlink and free it */
 		shf = tf->shf;
 		unlink(tf->tffn);

@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.393 2021/10/10 20:30:33 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.394 2021/11/12 05:05:56 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -164,7 +164,7 @@ struct kill_info {
 const struct t_op u_ops[] = {
 /* 0*/	{"-a",	TO_FILAXST },
 	{"-b",	TO_FILBDEV },
-	{"-c",	TO_FILCDEV },
+/* 2*/	{"-c",	TO_FILCDEV },
 	{"-d",	TO_FILID },
 	{"-e",	TO_FILEXST },
 	{"-f",	TO_FILREG },
@@ -177,7 +177,7 @@ const struct t_op u_ops[] = {
 /*12*/	{"-n",	TO_STNZE },
 	{"-O",	TO_FILUID },
 /*14*/	{"-o",	TO_OPTION },
-	{"-p",	TO_FILFIFO },
+/*15*/	{"-p",	TO_FILFIFO },
 /*16*/	{"-r",	TO_FILRD },
 	{"-S",	TO_FILSOCK },
 	{"-s",	TO_FILGZ },
@@ -386,7 +386,7 @@ c_print(const char **wp)
 				break;
 			case 'p':
 				if ((po.fd = coproc_getfd(W_OK, &emsg)) < 0) {
-					bi_errorf(Tf_coproc, emsg);
+					bi_errorf("%s: %s", Tdp, emsg);
 					return (1);
 				}
 				break;
@@ -671,9 +671,11 @@ do_whence(const char **wp, int fcflags, bool vflag, bool iscommand)
 			break;
 		case CEXEC:
 		case CTALIAS:
+			if (vflag)
+				shf_puts(id, shl_stdout);
 			if (tp->flag & ISSET) {
 				if (vflag) {
-					shprintf("%s is ", id);
+					shf_puts(" is ", shl_stdout);
 					if (tp->type == CTALIAS)
 						shprintf("a tracked %s%s for ",
 						    (tp->flag & EXPORT) ?
@@ -699,7 +701,7 @@ do_whence(const char **wp, int fcflags, bool vflag, bool iscommand)
 					shf_puts(tp->val.s, shl_stdout);
 			} else {
 				if (vflag)
-					shprintf(Tnot_found_s, id);
+					shf_puts(Tsp_not_found, shl_stdout);
 				rv = 1;
 			}
 			break;
@@ -1066,9 +1068,11 @@ c_kill(const char **wp)
 	int i, n, rv, sig;
 
 	/* assume old style options if -digits or -UPPERCASE */
-	if ((p = wp[1]) && *p == '-' && ctype(p[1], C_DIGIT | C_UPPER)) {
-		if (!(t = gettrap(p + 1, false, false))) {
-			bi_errorf(Tbad_sig_s, p + 1);
+	if ((p = wp[1]) && ksh_is(*p, '-') && ctype(p[1], C_DIGIT | C_UPPER)) {
+		++p;
+		if (!(t = gettrap(p, false, false))) {
+			kwarnf(KWF_BIERR | KWF_TWOMSG | KWF_NOERRNO,
+			    Tbad_sig, p);
 			return (1);
 		}
 		i = (wp[2] && strcmp(wp[2], "--") == 0) ? 3 : 2;
@@ -1083,7 +1087,8 @@ c_kill(const char **wp)
 			case 's':
 				if (!(t = gettrap(builtin_opt.optarg,
 				    true, false))) {
-					bi_errorf(Tbad_sig_s,
+					kwarnf(KWF_BIERR | KWF_TWOMSG |
+					    KWF_NOERRNO, Tbad_sig,
 					    builtin_opt.optarg);
 					return (1);
 				}
@@ -1099,7 +1104,7 @@ c_kill(const char **wp)
 		    " { job | pid | pgrp } ...\n"
 		    "\tkill -l [exit_status ...]\n", shl_out);
 #endif
-		bi_errorfz();
+		bi_unwind(1);
 		return (1);
 	}
 
@@ -1217,7 +1222,8 @@ c_getopts(const char **wp)
 	}
 
 	if (e->loc->next == NULL) {
-		internal_warningf(Tf_sD_s, Tgetopts, Tno_args);
+		kwarnf(KWF_INTERNAL | KWF_WARNING | KWF_TWOMSG | KWF_NOERRNO,
+		    Tgetopts, Tno_args);
 		return (1);
 	}
 	/* Which arguments are we parsing... */
@@ -1341,7 +1347,7 @@ c_shift(const char **wp)
 		n = 1;
 	else if (!evaluate(arg, &val, KSH_RETURN_ERROR, false)) {
 		/* error already printed */
-		bi_errorfz();
+		bi_unwind(1);
 		return (1);
 	} else if (!(n = val)) {
 		/* nothing to do */
@@ -1621,7 +1627,7 @@ c_read(const char **wp)
 		break;
 	case 'p':
 		if ((fd = coproc_getfd(R_OK, &ccp)) < 0) {
-			bi_errorf(Tf_coproc, ccp);
+			bi_errorf("%s: %s", Tdp, ccp);
 			return (2);
 		}
 		break;
@@ -1845,7 +1851,7 @@ c_read(const char **wp)
 		subarray = last_lookup_was_array;
 		if (vp->flag & RDONLY) {
  c_read_splitro:
-			bi_errorf(Tf_ro, *wp);
+			bi_errorf(Tread_only ": %s", *wp);
  c_read_spliterr:
 			rv = 2;
 			afree(cp, ATEMP);
@@ -2097,7 +2103,8 @@ c_trap(const char **wp)
 	i = 0;
 	while (*wp)
 		if (!(p = gettrap(*wp++, true, true))) {
-			warningf(true, Tbad_sig_ss, builtin_argv0, wp[-1]);
+			kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_BUILTIN |
+			    KWF_TWOMSG | KWF_NOERRNO, Tbad_sig, wp[-1]);
 			i = 1;
 		} else
 			settrap(p, s);
@@ -2185,7 +2192,8 @@ c_brkcont(const char **wp)
 		 * scripts, but don't generate an error (ie, keep going).
 		 */
 		if ((unsigned int)n == quit) {
-			warningf(true, Tf_cant_s, wp[0], wp[0]);
+			kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO,
+			    Tf_cant_s, wp[0], wp[0]);
 			return (0);
 		}
 		/*
@@ -2195,7 +2203,8 @@ c_brkcont(const char **wp)
 		 */
 		if (last_ep)
 			last_ep->flags &= ~EF_BRKCONT_PASS;
-		warningf(true, "%s: can only %s %u level(s)",
+		kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO,
+		    "%s: can only %s %u level(s)",
 		    wp[0], wp[0], (unsigned int)n - quit);
 	}
 
@@ -2275,7 +2284,7 @@ c_unset(const char **wp)
 			unset_var = true;
 			break;
 		case '?':
-			/*XXX not reached due to GF_ERROR */
+			/*XXX not reached due to GF_ERROR in spec_bi */
 			return (2);
 		}
 	wp += builtin_opt.optind;
@@ -2300,7 +2309,8 @@ c_unset(const char **wp)
 			afree(cp, ATEMP);
 
 			if ((vp->flag&RDONLY)) {
-				warningf(true, Tf_ro, vp->name);
+				kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG |
+				    KWF_NOERRNO, Tread_only, vp->name);
 				rv = 1;
 			} else
 				unset(vp, optc);
@@ -2361,7 +2371,8 @@ timex(struct op *t, int f, volatile int *xerrok)
 	mksh_TIME(tv0);
 	if (ksh_getrusage(RUSAGE_SELF, &ru0) ||
 	    ksh_getrusage(RUSAGE_CHILDREN, &cru0)) {
-		warningf(true, "time: getrusage: %s", cstrerror(errno));
+		kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_ONEMSG,
+		    Ttime_getrusage);
 		return (125);
 	}
 	if (t->left) {
@@ -2381,7 +2392,8 @@ timex(struct op *t, int f, volatile int *xerrok)
 		mksh_TIME(tv1);
 		if (ksh_getrusage(RUSAGE_SELF, &ru1) ||
 		    ksh_getrusage(RUSAGE_CHILDREN, &cru1)) {
-			warningf(true, "time: getrusage: %s", cstrerror(errno));
+			kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_ONEMSG,
+			    Ttime_getrusage);
 			return (rv);
 		}
 	} else
@@ -2441,11 +2453,13 @@ timex_hook(struct op *t, char **volatile *app)
 			t->str[0] |= TF_POSIX;
 			break;
 		case '?':
-			errorf(Tf_optfoo, Ttime, Tcolsp,
-			    opt.optarg[0], Tunknown_option);
+			ksh_getopt_opterr(opt.optarg[0], Ttime,
+			    Tunknown_option);
+			unwind(LERROR);
 		case ':':
-			errorf(Tf_optfoo, Ttime, Tcolsp,
-			    opt.optarg[0], Treq_arg);
+			ksh_getopt_opterr(opt.optarg[0], Ttime,
+			    Treq_arg);
+			unwind(LERROR);
 		}
 	/* Copy command words down over options. */
 	if (opt.optind != 0) {
@@ -2480,8 +2494,8 @@ c_exec(const char **wp MKSH_A_UNUSED)
 				close((int)sfd);
 			if (i > 2 && !(e->savedfd[i] & FDICLMASK) &&
 			    fcntl(i, F_SETFD, FD_CLOEXEC) == -1)
-				internal_warningf(Tcloexec_failed, "set", i,
-				    cstrerror(errno));
+				kwarnf0(KWF_INTERNAL | KWF_WARNING,
+				    Tcloexec_failed, "set", i);
 		}
 	} else {
 		/* … but not for POSIX or legacy/kludge sh */
@@ -2546,21 +2560,21 @@ c_mknod(const char **wp)
 
 		majnum = strtoul(argv[2], &c, 0);
 		if ((c == argv[2]) || (*c != '\0')) {
-			bi_errorf(Tf_nonnum, "device", "major", argv[2]);
+			bi_errorf("%s: %s: %s", "major", "non-numeric", argv[2]);
 			goto c_mknod_err;
 		}
 		minnum = strtoul(argv[3], &c, 0);
 		if ((c == argv[3]) || (*c != '\0')) {
-			bi_errorf(Tf_nonnum, "device", "minor", argv[3]);
+			bi_errorf("%s: %s: %s", "minor", "non-numeric", argv[3]);
 			goto c_mknod_err;
 		}
 		dv = makedev(majnum, minnum);
 		if ((unsigned long)(major(dv)) != majnum) {
-			bi_errorf(Tf_toolarge, "device", "major", majnum);
+			bi_errorf(Tf_toolarge, "major", majnum);
 			goto c_mknod_err;
 		}
 		if ((unsigned long)(minor(dv)) != minnum) {
-			bi_errorf(Tf_toolarge, "device", "minor", minnum);
+			bi_errorf(Tf_toolarge, "minor", minnum);
 			goto c_mknod_err;
 		}
 		if (mknod(argv[0], mode, dv))

@@ -29,7 +29,7 @@
 
 #ifndef MKSH_NO_CMDLINE_EDITING
 
-__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.393 2021/10/27 00:56:48 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/edit.c,v 1.394 2021/11/12 05:05:53 tg Exp $");
 
 /*
  * in later versions we might use libtermcap for this, but since external
@@ -419,7 +419,8 @@ x_file_glob(int *flagsp, char *toglob, char ***wordsp)
 	source = s;
 	if (yylex(ONEWORD | LQCHAR) != LWORD) {
 		source = sold;
-		internal_warningf(Tfg_badsubst);
+		kwarnf(KWF_INTERNAL | KWF_WARNING | KWF_ONEMSG | KWF_NOERRNO,
+		    Tfg_badsubst);
 		nwords = 0;
 		goto out;
 	}
@@ -5211,7 +5212,8 @@ grabhist(int save, int n)
 	}
 	(void)histnum(n);
 	if ((hptr = *histpos()) == NULL) {
-		internal_warningf("grabhist: bad history array");
+		kwarnf(KWF_INTERNAL | KWF_WARNING | KWF_ONEMSG | KWF_NOERRNO,
+		    "grabhist: bad history array");
 		return (-1);
 	}
 	if (save)

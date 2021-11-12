@@ -23,7 +23,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.111 2021/10/16 02:20:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/tree.c,v 1.112 2021/11/12 05:06:03 tg Exp $");
 
 #define INDENT	8
 
@@ -184,7 +184,8 @@ ptree(struct op *t, int indent, struct shf *shf)
 		fptreef(shf, indent, "%Nesac ");
 		break;
 	case TELIF:
-		internal_errorf(TELIF_unexpected);
+		kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_ONEMSG | KWF_NOERRNO,
+		    TELIF_unexpected);
 		/* FALLTHROUGH */
 	case TIF:
 		i = 2;
@@ -285,7 +286,7 @@ pioact(struct shf *shf, struct ioword *iop)
 			shf_putc('\n', &ptree_heredoc);
 			shf_puts(iop->heredoc, &ptree_heredoc);
 			/* iop->delim is set before iop->heredoc */
-			shf_puts(evalstr(iop->delim, 0), &ptree_heredoc);
+			shf_putsv(evalstr(iop->delim, 0), &ptree_heredoc);
 		}
  ioheredelim:
 		/* delim is NULL during syntax error printing */
@@ -481,7 +482,7 @@ vfptreef(struct shf *shf, int indent, const char *fmt, va_list va)
 			switch ((c = ord(*fmt++))) {
 			case ORD('s'):
 				/* string */
-				shf_puts(va_arg(va, char *), shf);
+				shf_putsv(va_arg(va, char *), shf);
 				break;
 			case ORD('S'):
 				/* word */
@@ -669,9 +670,9 @@ wdscan(const char *wp, int c)
 				nest--;
 			break;
 		default:
-			internal_warningf(
+			kwarnf0(KWF_INTERNAL | KWF_WARNING | KWF_NOERRNO,
 			    "wdscan: unknown char 0x%X (carrying on)",
-			    (unsigned char)wp[-1]);
+			    KBI(wp[-1]));
 		}
 }
 
@@ -1250,7 +1251,7 @@ dumptree(struct shf *shf, struct op *t)
 	++nesting;
 	shf_puts("{tree:" /*}*/, shf);
 	if (t == NULL) {
-		name = "(null)";
+		name = Tnil;
 		goto out;
 	}
 	dumpioact(shf, t);

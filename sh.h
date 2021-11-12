@@ -205,9 +205,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.956 2021/11/11 02:44:08 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.957 2021/11/12 05:06:00 tg Exp $");
 #endif
-#define MKSH_VERSION "R59 2021/10/10"
+#define MKSH_VERSION "R59 2021/11/11"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES
@@ -1066,7 +1066,6 @@ EXTERN char null[] E_INIT("");
 
 #ifndef HAVE_STRING_POOLING /* helpers for pooled strings */
 #define T1space (Treal_sp2 + 5)
-#define Tcolsp (Tf_sD_ + 2)
 #define TC_IFSWS (TinitIFS + 4)
 EXTERN const char TinitIFS[] E_INIT("IFS= \t\n");
 EXTERN const char TFCEDIT_dollaru[] E_INIT("${FCEDIT:-/bin/ed} $_");
@@ -1081,20 +1080,17 @@ EXTERN const char Tbadnum[] E_INIT("bad number");
 EXTERN const char Tbg[] E_INIT("bg");
 EXTERN const char Tbad_buf[] E_INIT("%s: buf %zX len %zd");
 EXTERN const char Tbad_flags[] E_INIT("%s: flags 0x%08X");
-EXTERN const char Tbad_sig_ss[] E_INIT("%s: bad signal '%s'");
-#define Tbad_sig_s (Tbad_sig_ss + 4)
+EXTERN const char Tbad_sig[] E_INIT("bad signal");
 EXTERN const char Tsgbreak[] E_INIT("*=break");
 #define Tbreak (Tsgbreak + 2)
 EXTERN const char T__builtin[] E_INIT("-\\builtin");
 #define T_builtin (T__builtin + 1)
 #define Tbuiltin (T__builtin + 2)
-EXTERN const char Toomem[] E_INIT("can't allocate %zu data bytes");
 EXTERN const char Tcant_cd[] E_INIT("restricted shell - can't cd");
 EXTERN const char Tcant_filesub[] E_INIT("can't open $(<...) file");
 #define Tcd (Tcant_cd + 25)
-EXTERN const char Tchvt2[] E_INIT("chvt: %s: %s");
 EXTERN const char Tchvt_failed[] E_INIT("chvt: %s failed");
-EXTERN const char Tcloexec_failed[] E_INIT("failed to %s close-on-exec flag for fd#%d: %s");
+EXTERN const char Tcloexec_failed[] E_INIT("failed to %s close-on-exec flag for fd#%d");
 #define T_command (T_funny_command + 9)
 #define Tcommand (T_funny_command + 10)
 EXTERN const char Tsgcontinue[] E_INIT("*=continue");
@@ -1105,9 +1101,6 @@ EXTERN const char TEXECSHELL[] E_INIT("EXECSHELL");
 EXTERN const char TENV[] E_INIT("ENV");
 EXTERN const char Tdsgexport[] E_INIT("^*=export");
 #define Texport (Tdsgexport + 3)
-#ifdef __OS2__
-EXTERN const char Textproc[] E_INIT("extproc");
-#endif
 EXTERN const char Tfalse[] E_INIT("false");
 EXTERN const char Tfg[] E_INIT("fg");
 EXTERN const char Tfg_badsubst[] E_INIT("fileglob: bad substitution");
@@ -1117,6 +1110,8 @@ EXTERN const char T_function[] E_INIT(" function");
 #define Tfunction (T_function + 1)
 EXTERN const char T_funny_command[] E_INIT("funny $()-command");
 EXTERN const char Tgetopts[] E_INIT("getopts");
+#define Tgetrusage (Ttime_getrusage + 6)
+EXTERN const char Ttime_getrusage[] E_INIT("time: getrusage");
 #define Thistory (Tnot_in_history + 7)
 EXTERN const char Tintovfl[] E_INIT("integer overflow %zu %c %zu prevented");
 EXTERN const char Tinvname[] E_INIT("%s: invalid %s name");
@@ -1124,12 +1119,14 @@ EXTERN const char Tjobs[] E_INIT("jobs");
 EXTERN const char Tjob_not_started[] E_INIT("job not started");
 EXTERN const char Tmksh[] E_INIT("mksh");
 #define Tname (Tinvname + 15)
+EXTERN const char Tnil[] E_INIT("(null)");
 EXTERN const char Tno_args[] E_INIT("missing argument");
 EXTERN const char Tno_OLDPWD[] E_INIT("no OLDPWD");
 EXTERN const char Tnot_ident[] E_INIT("is not an identifier");
 EXTERN const char Tnot_in_history[] E_INIT("not in history");
-EXTERN const char Tnot_found_s[] E_INIT("%s not found");
-#define Tnot_found (Tnot_found_s + 3)
+#define Tnot_found (Tinacc_not_found + 16)
+#define Tsp_not_found (Tinacc_not_found + 15)
+EXTERN const char Tinacc_not_found[] E_INIT("inaccessible or not found");
 #define Tnot_started (Tjob_not_started + 4)
 #define TOLDPWD (Tno_OLDPWD + 3)
 EXTERN const char Topen[] E_INIT("open");
@@ -1144,6 +1141,7 @@ EXTERN const char TpVv[] E_INIT("Vpv");
 #define Tread (Tshf_read + 4)
 EXTERN const char Tdsgreadonly[] E_INIT("^*=readonly");
 #define Treadonly (Tdsgreadonly + 3)
+EXTERN const char Tread_only[] E_INIT("read-only");
 EXTERN const char Tredirection_dup[] E_INIT("can't finish (dup) redirection");
 #define Tredirection (Tredirection_dup + 19)
 #define Treal_sp1 (Treal_sp2 + 1)
@@ -1184,49 +1182,40 @@ EXTERN const char Tuser_sp2[] E_INIT(" user ");
 EXTERN const char Tf__S[] E_INIT(" %S");
 #define Tf__d (Tunexpected_type + 22)
 #define Tf__sN (Tf_s_s_sN + 5)
+EXTERN const char Tf_s_T[] E_INIT("%s %T");
 #define Tf_T (Tf_s_T + 3)
 EXTERN const char Tf_dN[] E_INIT("%d\n");
 EXTERN const char Tf_s_[] E_INIT("%s ");
-EXTERN const char Tf_s_T[] E_INIT("%s %T");
 EXTERN const char Tf_s_s_sN[] E_INIT("%s %s %s\n");
-#define Tf_s_s (Tf_sD_s_s + 4)
 #define Tf__s_s (Tf_sD_s_s + 3)
-#define Tf_s_sD_s (Tf_cant_ss_s + 6)
-#define Tf_optdcs (Tf_optfoo + 4)
-EXTERN const char Tf_optfoo[] E_INIT("%s%s-%c: %s");
-EXTERN const char Tf_sD_[] E_INIT("%s: ");
+EXTERN const char Tf_s_sD_s[] E_INIT("%s %s: %s");
 EXTERN const char Tf_parm[] E_INIT("%s: parameter not set");
-EXTERN const char Tf_coproc[] E_INIT("-p: %s");
 EXTERN const char Tf_cant_s[] E_INIT("%s: can't %s");
-EXTERN const char Tf_cant_ss_s[] E_INIT("can't %s %s: %s");
 EXTERN const char Tf_heredoc[] E_INIT("here document '%s' unclosed");
-#if HAVE_MKNOD
-EXTERN const char Tf_nonnum[] E_INIT("non-numeric %s %s '%s'");
-#endif
 EXTERN const char Tf_S_[] E_INIT("%S ");
 #define Tf_S (Tf__S + 1)
-#define Tf_lu (Tf_toolarge + 17)
-EXTERN const char Tf_toolarge[] E_INIT("%s %s too large: %lu");
-EXTERN const char Tf_ldfailed[] E_INIT("%s %s(%d, %ld) failed: %s");
+EXTERN const char Tf_sSQlu[] E_INIT("%s[%lu]");
+#define Tf_SQlu (Tf_sSQlu + 2)
+#define Tf_lu (Tf_toolarge + 14)
+EXTERN const char Tf_toolarge[] E_INIT("%s too large: %lu");
+EXTERN const char Tf_ldfailed[] E_INIT("%s %s(%d, %ld) failed");
 EXTERN const char Tf_toomany[] E_INIT("too many %ss");
 EXTERN const char Tf_sd[] E_INIT("%s %d");
-#define Tf_s (Tcloexec_failed + 43)
+#define Tf_s (Ttoo_many_files + 32)
 EXTERN const char Tft_end[] E_INIT("%;");
-EXTERN const char Tft_R[] E_INIT("%R");
-#define Tf_d (Tunexpected_type + 23)
+#define Tft_R (Tft_s_R + 3)
+EXTERN const char Tft_s_R[] E_INIT("%s %R");
+#define Tf_d (Tcloexec_failed + 39)
 EXTERN const char Tf_sD_s_qs[] E_INIT("%s: %s '%s'");
-EXTERN const char Tf_ro[] E_INIT("read-only: %s");
-EXTERN const char Tf_temp[] E_INIT("can't %s temporary file %s: %s");
-EXTERN const char Tf_ssfaileds[] E_INIT("%s: %s failed: %s");
+EXTERN const char Tf_temp[] E_INIT("can't %s temporary file %s");
+EXTERN const char Tf_ssfailed[] E_INIT("%s: %s failed");
 EXTERN const char Tf_sD_sD_s[] E_INIT("%s: %s: %s");
 EXTERN const char Tf__c_[] E_INIT("-%c ");
 EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Tf_sN (Tf_s_s_sN + 6)
-#define Tf_sD_s (Tf_temp + 24)
-EXTERN const char T_devtty[] E_INIT("/dev/tty");
+#define Tf_sD_s (Tf_sD_sD_s + 4)
 #else /* helpers for string pooling */
 #define T1space " "
-#define Tcolsp ": "
 #define TC_IFSWS " \t\n"
 #define TinitIFS "IFS= \t\n"
 #define TFCEDIT_dollaru "${FCEDIT:-/bin/ed} $_"
@@ -1241,20 +1230,17 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tbg "bg"
 #define Tbad_buf "%s: buf %zX len %zd"
 #define Tbad_flags "%s: flags 0x%08X"
-#define Tbad_sig_ss "%s: bad signal '%s'"
-#define Tbad_sig_s "bad signal '%s'"
+#define Tbad_sig "bad signal"
 #define Tsgbreak "*=break"
 #define Tbreak "break"
 #define T__builtin "-\\builtin"
 #define T_builtin "\\builtin"
 #define Tbuiltin "builtin"
-#define Toomem "can't allocate %zu data bytes"
 #define Tcant_cd "restricted shell - can't cd"
 #define Tcant_filesub "can't open $(<...) file"
 #define Tcd "cd"
-#define Tchvt2 "chvt: %s: %s"
 #define Tchvt_failed "chvt: %s failed"
-#define Tcloexec_failed "failed to %s close-on-exec flag for fd#%d: %s"
+#define Tcloexec_failed "failed to %s close-on-exec flag for fd#%d"
 #define T_command "-command"
 #define Tcommand "command"
 #define Tsgcontinue "*=continue"
@@ -1265,9 +1251,6 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define TENV "ENV"
 #define Tdsgexport "^*=export"
 #define Texport "export"
-#ifdef __OS2__
-#define Textproc "extproc"
-#endif
 #define Tfalse "false"
 #define Tfg "fg"
 #define Tfg_badsubst "fileglob: bad substitution"
@@ -1277,6 +1260,8 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tfunction "function"
 #define T_funny_command "funny $()-command"
 #define Tgetopts "getopts"
+#define Tgetrusage "getrusage"
+#define Ttime_getrusage "time: getrusage"
 #define Thistory "history"
 #define Tintovfl "integer overflow %zu %c %zu prevented"
 #define Tinvname "%s: invalid %s name"
@@ -1284,12 +1269,14 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tjob_not_started "job not started"
 #define Tmksh "mksh"
 #define Tname "name"
+#define Tnil "(null)"
 #define Tno_args "missing argument"
 #define Tno_OLDPWD "no OLDPWD"
 #define Tnot_ident "is not an identifier"
 #define Tnot_in_history "not in history"
-#define Tnot_found_s "%s not found"
 #define Tnot_found "not found"
+#define Tsp_not_found " not found"
+#define Tinacc_not_found "inaccessible or not found"
 #define Tnot_started "not started"
 #define TOLDPWD "OLDPWD"
 #define Topen "open"
@@ -1304,6 +1291,7 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tread "read"
 #define Tdsgreadonly "^*=readonly"
 #define Treadonly "readonly"
+#define Tread_only "read-only"
 #define Tredirection_dup "can't finish (dup) redirection"
 #define Tredirection "redirection"
 #define Treal_sp1 "real "
@@ -1344,47 +1332,43 @@ EXTERN const char T_devtty[] E_INIT("/dev/tty");
 #define Tf__S " %S"
 #define Tf__d " %d"
 #define Tf__sN " %s\n"
+#define Tf_s_T "%s %T"
 #define Tf_T "%T"
 #define Tf_dN "%d\n"
 #define Tf_s_ "%s "
-#define Tf_s_T "%s %T"
 #define Tf_s_s_sN "%s %s %s\n"
-#define Tf_s_s "%s %s"
 #define Tf__s_s " %s %s"
 #define Tf_s_sD_s "%s %s: %s"
-#define Tf_optdcs "-%c: %s"
-#define Tf_optfoo "%s%s-%c: %s"
-#define Tf_sD_ "%s: "
 #define Tf_parm "%s: parameter not set"
-#define Tf_coproc "-p: %s"
 #define Tf_cant_s "%s: can't %s"
-#define Tf_cant_ss_s "can't %s %s: %s"
 #define Tf_heredoc "here document '%s' unclosed"
-#if HAVE_MKNOD
-#define Tf_nonnum "non-numeric %s %s '%s'"
-#endif
 #define Tf_S_ "%S "
 #define Tf_S "%S"
+#define Tf_sSQlu "%s[%lu]"
+#define Tf_SQlu "[%lu]"
 #define Tf_lu "%lu"
-#define Tf_toolarge "%s %s too large: %lu"
-#define Tf_ldfailed "%s %s(%d, %ld) failed: %s"
+#define Tf_toolarge "%s too large: %lu"
+#define Tf_ldfailed "%s %s(%d, %ld) failed"
 #define Tf_toomany "too many %ss"
 #define Tf_sd "%s %d"
 #define Tf_s "%s"
 #define Tft_end "%;"
 #define Tft_R "%R"
+#define Tft_s_R "%s %R"
 #define Tf_d "%d"
 #define Tf_sD_s_qs "%s: %s '%s'"
-#define Tf_ro "read-only: %s"
-#define Tf_temp "can't %s temporary file %s: %s"
-#define Tf_ssfaileds "%s: %s failed: %s"
+#define Tf_temp "can't %s temporary file %s"
+#define Tf_ssfailed "%s: %s failed"
 #define Tf_sD_sD_s "%s: %s: %s"
 #define Tf__c_ "-%c "
 #define Tf_sD_s_s "%s: %s %s"
 #define Tf_sN "%s\n"
 #define Tf_sD_s "%s: %s"
-#define T_devtty "/dev/tty"
 #endif /* end of string pooling */
+
+#ifdef __OS2__
+EXTERN const char Textproc[] E_INIT("extproc");
+#endif
 
 typedef kby Temp_type;
 /* expanded heredoc */
@@ -1415,6 +1399,7 @@ struct temp {
 #ifdef DF
 #define shl_dbg		(&shf_iob[3])	/* for DF() */
 #endif
+EXTERN bool initio_done;		/* shl_*out:true/1, shl_dbg:2 */
 EXTERN bool shl_stdout_ok;
 
 /*
@@ -1624,16 +1609,16 @@ EXTERN char ifs0;
     !defined(__INTEL_COMPILER) && !defined(__SUNPRO_C)
 extern kui eek_ord;
 #define ORD(c)	((size_t)(c) > 0xFF ? eek_ord : KBI(c))
-#define ord(c)	__builtin_choose_expr(				\
-    __builtin_types_compatible_p(__typeof__(c), char) ||	\
-    __builtin_types_compatible_p(__typeof__(c), unsigned char),	\
-    KBI(c), ({							\
-	size_t ord_c = (c);					\
-								\
-	if (ord_c > (size_t)0xFFU)				\
-		internal_errorf("%s:%d:ord(%zX)",		\
-		    __FILE__, __LINE__, ord_c);			\
-	(KBI(ord_c));						\
+#define ord(c)	__builtin_choose_expr(					\
+    __builtin_types_compatible_p(__typeof__(c), char) ||		\
+    __builtin_types_compatible_p(__typeof__(c), unsigned char),		\
+    KBI(c), ({								\
+	size_t ord_c = (c);						\
+									\
+	if (ord_c > (size_t)0xFFU)					\
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,	\
+		    "%s:%d:ord(%zX)", __FILE__, __LINE__, ord_c);	\
+	(KBI(ord_c));							\
 }))
 #else
 #define ord(c)	KBI(c)
@@ -1657,6 +1642,7 @@ extern void ebcdic_init(void);
 #define asc2rtt(c)	KBY(c)
 #define ksh_eq(c,u,l)	((ord(c) | 0x20U) == ord(l))
 #endif
+#define ksh_is(c,t)	(ord(c) == ORD(t))
 /* control character foo */
 #ifdef MKSH_EBCDIC
 #define ksh_isctrl(c)	(ord(c) < 0x40U || ord(c) == 0xFFU)
@@ -1689,7 +1675,7 @@ extern void ebcdic_init(void);
 /* Argument parsing for built-in commands and getopts command */
 
 /* Values for Getopt.flags */
-#define GF_ERROR	BIT(0)	/* call errorf() if there is an error */
+#define GF_ERROR	BIT(0)	/* call bi_errorf() if there is an error */
 #define GF_PLUSOPT	BIT(1)	/* allow +c as an option */
 #define GF_NONAME	BIT(2)	/* don't print argv[0] in errors */
 
@@ -2477,8 +2463,8 @@ EXTERN struct timeval j_usrtime, j_systime;
 #define notoktoadd(val,cnst)	notok2add(SIZE_MAX, (val), (cnst))
 #define checkoktoadd(val,cnst) do {					\
 	if (notoktoadd((val), (cnst)))					\
-		internal_errorf(Tintovfl, (size_t)(val),		\
-		    '+', (size_t)(cnst));				\
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,	\
+		    Tintovfl, (size_t)(val), '+', (size_t)(cnst));	\
 } while (/* CONSTCOND */ 0)
 
 /* lalloc.c */
@@ -2665,13 +2651,11 @@ pid_t j_async(void);
 int j_stopped_running(void);
 /* lex.c */
 int yylex(int);
-void yyerror(const char *, ...)
-    MKSH_A_NORETURN
-    MKSH_A_FORMAT(__printf__, 1, 2);
 Source *pushs(int, Area *);
 void set_prompt(int, Source *);
 int pprompt(const char *, int);
 /* main.c */
+kby kshname_islogin(const char **);
 int include(const char *, int, const char **, bool);
 int command(const char *, int);
 int shell(Source * volatile, volatile int);
@@ -2681,31 +2665,13 @@ void newenv(int);
 void quitenv(struct shf *);
 void cleanup_parents_env(void);
 void cleanup_proc_env(void);
+/* old {{{ */
 void errorf(const char *, ...)
     MKSH_A_NORETURN
     MKSH_A_FORMAT(__printf__, 1, 2);
-void errorfx(int, const char *, ...)
-    MKSH_A_NORETURN
-    MKSH_A_FORMAT(__printf__, 2, 3);
-void warningf(bool, const char *, ...)
-    MKSH_A_FORMAT(__printf__, 2, 3);
 void bi_errorf(const char *, ...)
     MKSH_A_FORMAT(__printf__, 1, 2);
-void maybe_errorf(int *, int, const char *, ...)
-    MKSH_A_FORMAT(__printf__, 3, 4);
-#define not_errorf(v,a)	do {	\
-	maybe_errorf a;		\
-	return (v);		\
-} while (/* CONSTCOND */ 0)
-#define errorfz()	errorf(NULL)
-#define errorfxz(rc)	errorfx((rc), NULL)
-#define bi_errorfz()	bi_errorf(NULL)
-void internal_errorf(const char *, ...)
-    MKSH_A_NORETURN
-    MKSH_A_FORMAT(__printf__, 1, 2);
-void internal_warningf(const char *, ...)
-    MKSH_A_FORMAT(__printf__, 1, 2);
-void error_prefix(bool);
+/* old }}} */
 void shellf(const char *, ...)
     MKSH_A_FORMAT(__printf__, 1, 2);
 void shprintf(const char *, ...)
@@ -2751,6 +2717,7 @@ int gmatchx(const char *, const char *, bool);
 bool has_globbing(const char *) MKSH_A_PURE;
 int ascstrcmp(const void *, const void *) MKSH_A_PURE;
 int ascpstrcmp(const void *, const void *) MKSH_A_PURE;
+void ksh_getopt_opterr(int, const char *, const char *);
 void ksh_getopt_reset(Getopt *, int);
 int ksh_getopt(const char **, Getopt *, const char *);
 void print_value_quoted(struct shf *, const char *);
@@ -2806,7 +2773,12 @@ int shf_putc(int, struct shf *);
 #define shf_putc shf_putc_i
 #endif
 int shf_putchar(int, struct shf *);
-ssize_t shf_puts(const char *, struct shf *);
+#ifdef MKSH_SHF_NO_INLINE
+#define shf_puts shf_putsv
+#else
+#define shf_puts(s,shf) ((s) ? shf_write((s), strlen(s), (shf)) : (ssize_t)-1)
+#endif
+ssize_t shf_putsv(const char *, struct shf *);
 ssize_t shf_write(const char *, ssize_t, struct shf *);
 ssize_t shf_fprintf(struct shf *, const char *, ...)
     MKSH_A_FORMAT(__printf__, 2, 3);
@@ -2816,7 +2788,12 @@ ssize_t shf_snprintf(char *, ssize_t, const char *, ...)
 char *shf_smprintf(const char *, ...)
     MKSH_A_FORMAT(__printf__, 1, 2);
 ssize_t shf_vfprintf(struct shf *, const char *, va_list)
-    MKSH_A_FORMAT(__printf__, 2, 0);
+#ifdef MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
+#define shf_vfprintf poisoned_shf_vfprintf
+#else
+    MKSH_A_FORMAT(__printf__, 2, 0)
+#endif
+    ;
 void set_ifs(const char *);
 /* flags for numfmt below */
 #define FL_SGN		0x0000	/* signed decimal */
@@ -2856,6 +2833,58 @@ struct op *compile(Source *, bool);
 bool parse_usec(const char *, struct timeval *);
 char *yyrecursive(int);
 void yyrecursive_pop(bool);
+void yyerror(const char *, ...)
+    MKSH_A_NORETURN
+    MKSH_A_FORMAT(__printf__, 1, 2);
+/* shell error reporting */
+void bi_unwind(int);
+bool error_prefix(bool);
+#define KWF_BIERR	(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE | \
+			    KWF_BUILTIN | KWF_BIUNWIND)
+#define KWF_ERR(n)	((((unsigned int)(n)) & KWF_EXSTAT) | KWF_ERROR)
+#define KWF_EXSTAT	0x0000FFU	/* (mask) errorlevel to use */
+#define KWF_VERRNO	0x000100U	/* int vararg: use ipv errno */
+#define KWF_INTERNAL	0x000200U	/* internal {error,warning} */
+#define KWF_WARNING	0x000000U	/* (default) warning */
+#define KWF_ERROR	0x000400U	/* error + consequences */
+#define KWF_PREFIX	0x000800U	/* run error_prefix() */
+#define KWF_FILELINE	0x001000U	/* error_prefix arg:=true */
+#define KWF_BUILTIN	0x002000U	/* possibly show builtin_argv0 */
+#define KWF_MSGMASK	0x00C000U	/* (mask) message to display */
+#define KWF_MSGFMT	0x000000U	/* (default) printf-style variadic */
+#define KWF_ONEMSG	0x004000U	/* only one string to show */
+#define KWF_TWOMSG	0x008000U	/* two strings to show with colon */
+#define KWF_THREEMSG	0x00C000U	/* three strings to colonise */
+#define KWF_NOERRNO	0x010000U	/* omit showing strerror */
+#define KWF_BIUNWIND	0x020000U	/* let kwarnf* tailcall bi_unwind(0) */
+void kwarnf(unsigned int, ...);
+#ifndef MKSH_SMALL
+void kwarnf0(unsigned int, const char *, ...)
+    MKSH_A_FORMAT(__printf__, 2, 3);
+void kwarnf1(unsigned int, int, const char *, ...)
+    MKSH_A_FORMAT(__printf__, 3, 4);
+#else
+#define kwarnf0 kwarnf	/* with KWF_MSGFMT and !KWF_VERRNO */
+#define kwarnf1 kwarnf	/* with KWF_MSGFMT and KWF_VERRNO */
+#endif
+void kerrf(unsigned int, ...)
+    MKSH_A_NORETURN;
+#ifndef MKSH_SMALL
+void kerrf0(unsigned int, const char *, ...)
+    MKSH_A_NORETURN
+    MKSH_A_FORMAT(__printf__, 2, 3);
+void kerrf1(unsigned int, int, const char *, ...)
+    MKSH_A_NORETURN
+    MKSH_A_FORMAT(__printf__, 3, 4);
+#else
+#define kerrf0 kerrf	/* with KWF_MSGFMT and !KWF_VERRNO */
+#define kerrf1 kerrf	/* with KWF_MSGFMT and KWF_VERRNO */
+#endif
+void merrF(int *, unsigned int, ...);
+#define merrf(rv,va) do {	\
+	merrF va;		\
+	return (rv);		\
+} while (/* CONSTCOND */ 0)
 /* tree.c */
 void fptreef(struct shf *, int, const char *, ...);
 char *snptreef(char *, ssize_t, const char *, ...);
@@ -2953,8 +2982,10 @@ extern const struct t_op u_ops[];
 extern const struct t_op b_ops[];
 /* ensure order with funcs.c */
 #define Tda (u_ops[0].op_text)
+#define Tdc (u_ops[2].op_text)
 #define Tdn (u_ops[12].op_text)
 #define Tdo (u_ops[14].op_text)
+#define Tdp (u_ops[15].op_text)
 #define Tdr (u_ops[16].op_text)
 #define Tdu (u_ops[20].op_text)	/* "-u" */
 #define Tdx (u_ops[23].op_text)

@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.400 2021/11/11 02:44:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.401 2021/11/12 05:05:59 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -103,8 +103,6 @@ static const char *restr_com[] = {
 };
 
 extern const char Tpipest[];
-
-static bool initio_done;
 
 /* top-level parsing and execution environment */
 static struct env env;
@@ -248,11 +246,36 @@ isuc(const char *cx) {
 	return (rv);
 }
 
+kby
+kshname_islogin(const char **kshbasenamep)
+{
+	const char *cp;
+	size_t o;
+	kby rv;
+
+	/* determine the basename (without '-' or path) of the executable */
+	cp = kshname;
+	o = 0;
+	while ((rv = cp[o++])) {
+		if (mksh_cdirsep(rv)) {
+			cp += o;
+			o = 0;
+		}
+	}
+	rv = ksh_is(*cp, '-') || ksh_is(*kshname, '-');
+	if (ksh_is(*cp, '-'))
+		++cp;
+	if (!*cp)
+		cp = empty_argv[0];
+	*kshbasenamep = cp;
+	return (rv);
+}
+
 /* pre-initio() */
 static int
 main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 {
-	int argi, i;
+	int argi = 0, i;
 	Source *s = NULL;
 	struct block *l;
 	unsigned char restricted_shell = 0, errexit, utf_flag;
@@ -301,20 +324,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	/* Do this first so output routines (eg, errorf, shellf) can work */
 	initio();
 
-	/* determine the basename (without '-' or path) of the executable */
-	ccp = kshname;
-	argi = 0;
-	while ((i = ccp[argi++])) {
-		if (mksh_cdirsep(i)) {
-			ccp += argi;
-			argi = 0;
-		}
-	}
-	Flag(FLOGIN) = (ord(*ccp) == ORD('-')) || (ord(*kshname) == ORD('-'));
-	if (ord(*ccp) == ORD('-'))
-		++ccp;
-	if (!*ccp)
-		ccp = empty_argv[0];
+	/* check kshname: leading dash, determine basename */
+	Flag(FLOGIN) = kshname_islogin(&ccp);
 
 	/*
 	 * Turn on nohup by default. (AT&T ksh does not have a nohup
@@ -529,7 +540,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	} else if (Flag(FCOMMAND)) {
 		s = pushs(SSTRINGCMDLINE, ATEMP);
 		if (!(s->start = s->str = argv[argi++]))
-			errorf(Tf_optdcs, 'c', Treq_arg);
+			errorf("%s: %s", Tdc, Treq_arg);
 		while (*s->str) {
 			if (ctype(*s->str, C_QUOTE))
 				break;
@@ -566,7 +577,7 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 		    SHF_MAPHI | SHF_CLEXEC);
 		if (s->u.shf == NULL) {
 			shl_stdout_ok = false;
-			warningf(true, Tf_sD_s, s->file, cstrerror(errno));
+			kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_ONEMSG, s->file);
 			/* mandated by SUSv4 */
 			exstat = 127;
 			unwind(LERROR);
@@ -722,7 +733,8 @@ main_init(int argc, const char *argv[], Source **sp, struct block **lp)
 	 * user will know why things broke.
 	 */
 	if (!current_wd[0] && Flag(FTALKING))
-		warningf(false, "can't determine current directory");
+		kwarnf(KWF_PREFIX | KWF_ONEMSG | KWF_NOERRNO,
+		    "can't determine current directory");
 
 	if (Flag(FLOGIN))
 		include(MKSH_SYSTEM_PROFILE, 0, NULL, true);
@@ -842,7 +854,8 @@ include(const char *name, int argc, const char **argv, bool intr_ok)
 			unwind(i);
 			/* NOTREACHED */
 		default:
-			internal_errorf(Tunexpected_type, Tunwind, Tsource, i);
+			kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+			    Tunexpected_type, Tunwind, Tsource, i);
 			/* NOTREACHED */
 		}
 	}
@@ -909,8 +922,8 @@ shell(Source * volatile s, volatile int level)
 			unwind(i);
 			/* NOTREACHED */
 		}
-		internal_errorf(Tf_cant_s, Tshell,
-		    i == LBREAK ? Tbreak : Tcontinue);
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+		    Tf_cant_s, Tshell, i == LBREAK ? Tbreak : Tcontinue);
 		/* NOTREACHED */
 	case LINTR:
 		/* we get here if SIGINT not caught or ignored */
@@ -954,7 +967,8 @@ shell(Source * volatile s, volatile int level)
 	default:
 		source = old_source;
 		quitenv(NULL);
-		internal_errorf(Tunexpected_type, Tunwind, Tshell, i);
+		kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+		    Tunexpected_type, Tunwind, Tshell, i);
 		/* NOTREACHED */
 	}
 	while (/* CONSTCOND */ 1) {
@@ -1268,7 +1282,7 @@ tty_init_fd(void)
 		goto got_fd;
 	}
 #endif
-	if ((fd = open(T_devtty, O_RDWR, 0)) >= 0) {
+	if ((fd = open("/dev/tty", O_RDWR, 0)) >= 0) {
 		do_close = true;
 		goto got_fd;
 	}
@@ -1325,33 +1339,17 @@ vwarningf(unsigned int flags, const char *fmt, va_list ap)
 {
 	if (fmt) {
 		if (flags & VWARNINGF_INTERNAL)
-			shf_fprintf(shl_out, Tf_sD_, "internal error");
+			shf_fprintf(shl_out, "%s: ", "internal error");
 		if (flags & VWARNINGF_ERRORPREFIX)
 			error_prefix(tobool(flags & VWARNINGF_FILELINE));
 		if ((flags & VWARNINGF_BUILTIN) &&
 		    /* not set when main() calls parse_args() */
 		    builtin_argv0 && builtin_argv0 != kshname)
-			shf_fprintf(shl_out, Tf_sD_, builtin_argv0);
+			shf_fprintf(shl_out, "%s: ", builtin_argv0);
 		shf_vfprintf(shl_out, fmt, ap);
 		shf_putc('\n', shl_out);
 	}
 	shf_flush(shl_out);
-}
-
-void
-errorfx(int rc, const char *fmt, ...)
-{
-	va_list va;
-
-	exstat = rc;
-
-	/* debugging: note that stdout not valid */
-	shl_stdout_ok = false;
-
-	va_start(va, fmt);
-	vwarningf(VWARNINGF_ERRORPREFIX | VWARNINGF_FILELINE, fmt, va);
-	va_end(va);
-	unwind(LERROR);
 }
 
 void
@@ -1370,18 +1368,6 @@ errorf(const char *fmt, ...)
 	unwind(LERROR);
 }
 
-/* like errorf(), but no unwind is done */
-void
-warningf(bool fileline, const char *fmt, ...)
-{
-	va_list va;
-
-	va_start(va, fmt);
-	vwarningf(VWARNINGF_ERRORPREFIX | (fileline ? VWARNINGF_FILELINE : 0),
-	    fmt, va);
-	va_end(va);
-}
-
 /*
  * Used by built-in utilities to prefix shell and utility name to message
  * (also unwinds environments for special builtins).
@@ -1391,105 +1377,12 @@ bi_errorf(const char *fmt, ...)
 {
 	va_list va;
 
-	/* debugging: note that stdout not valid */
-	shl_stdout_ok = false;
-
-	exstat = 1;
-
 	va_start(va, fmt);
 	vwarningf(VWARNINGF_ERRORPREFIX | VWARNINGF_FILELINE |
 	    VWARNINGF_BUILTIN, fmt, va);
 	va_end(va);
 
-	/* POSIX special builtins cause non-interactive shells to exit */
-	if (builtin_spec) {
-		builtin_argv0 = NULL;
-		/* may not want to use LERROR here */
-		unwind(LERROR);
-	}
-}
-
-/*
- * Used by functions called by builtins and not:
- * identical to errorfx if first argument is nil,
- * like bi_errorf storing the errorlevel into it otherwise
- */
-void
-maybe_errorf(int *ep, int rc, const char *fmt, ...)
-{
-	va_list va;
-
-	/* debugging: note that stdout not valid */
-	shl_stdout_ok = false;
-
-	exstat = rc;
-
-	va_start(va, fmt);
-	vwarningf(VWARNINGF_ERRORPREFIX | VWARNINGF_FILELINE |
-	    (ep ? VWARNINGF_BUILTIN : 0), fmt, va);
-	va_end(va);
-
-	if (!ep)
-		goto and_out;
-	*ep = rc;
-
-	/* POSIX special builtins cause non-interactive shells to exit */
-	if (builtin_spec) {
-		builtin_argv0 = NULL;
-		/* may not want to use LERROR here */
- and_out:
-		unwind(LERROR);
-	}
-}
-
-/* Called when something that shouldn't happen does */
-/* pre-initio() */
-void
-internal_errorf(const char *fmt, ...)
-{
-	va_list va;
-
-	if (!initio_done) {
-		/* from aresize() as alloc() */
-		SHIKATANAI write(2, SC("mksh: out of memory? early\n"));
-		exit(255);
-	}
-
-	exstat = 0xFF;
-	if (trap_exstat != -1)
-		trap_exstat = exstat;
-
-	va_start(va, fmt);
-	vwarningf(VWARNINGF_INTERNAL, fmt, va);
-	va_end(va);
-	unwind(LERROR);
-}
-
-void
-internal_warningf(const char *fmt, ...)
-{
-	va_list va;
-
-	va_start(va, fmt);
-	vwarningf(VWARNINGF_INTERNAL, fmt, va);
-	va_end(va);
-}
-
-/* used by error reporting functions to print "ksh: .kshrc[25]: " */
-void
-error_prefix(bool fileline)
-{
-	/* Avoid foo: foo[2]: ... */
-	if (!fileline || !source || !source->file ||
-	    strcmp(source->file, kshname) != 0)
-		shf_fprintf(shl_out, Tf_sD_, kshname +
-		    (*kshname == '-' ? 1 : 0));
-	if (fileline && source && source->file != NULL) {
-		shf_fprintf(shl_out, "%s[%lu]: ", source->file,
-		    (unsigned long)(source->errline ?
-		    source->errline : source->line));
-		source->errline = 0;
-	}
+	bi_unwind(1);
 }
 
 /* printf to shl_out (stderr) with flush */
@@ -1511,7 +1404,8 @@ shprintf(const char *fmt, ...)
 	va_list va;
 
 	if (!shl_stdout_ok)
-		internal_errorf("shl_stdout not valid");
+		kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_ONEMSG | KWF_NOERRNO,
+		    "shl_stdout not valid");
 	va_start(va, fmt);
 	shf_vfprintf(shl_stdout, fmt, va);
 	va_end(va);
@@ -1606,8 +1500,8 @@ savefd(int fd)
 	if (nfd < FDBASE || nfd > (int)(kui)FDMAXNUM)
 		errorf(Ttoo_many_files, fd, nfd, cstrerror(errno));
 	if (fcntl(nfd, F_SETFD, FD_CLOEXEC) == -1)
-		internal_warningf(Tcloexec_failed, "set", nfd,
-		    cstrerror(errno));
+		kwarnf0(KWF_INTERNAL | KWF_WARNING, Tcloexec_failed,
+		    "set", nfd);
 	return (nfd);
 }
 
@@ -1869,7 +1763,8 @@ tgrow(struct table *tp)
 	struct tbl **ntblp, **otblp = tp->tbls;
 
 	if (tp->tshift > 29)
-		internal_errorf("hash table size limit reached");
+		kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_ONEMSG | KWF_NOERRNO,
+		    "hash table size limit reached");
 
 	/* calculate old size, new shift and new size */
 	osize = (size_t)1 << (tp->tshift++);
@@ -2115,8 +2010,8 @@ init_environ(void)
 	struct dirent *dent;
 
 	if ((dirp = opendir(MKSH_ENVDIR)) == NULL) {
-		warningf(false, "cannot read environment from %s: %s",
-		    MKSH_ENVDIR, cstrerror(errno));
+		kwarnf(KWF_PREFIX | KWF_TWOMSG, MKSH_ENVDIR,
+		    "cannot read environment");
 		return;
 	}
 	XinitN(xs, 256, ATEMP);
@@ -2126,10 +2021,8 @@ init_environ(void)
 		if (skip_varname(dent->d_name, true)[0] == '\0') {
 			strpathx(xp, MKSH_ENVDIR, dent->d_name, 1);
 			if (!(shf = shf_open(xp, O_RDONLY, 0, 0))) {
-				warningf(false,
-				    "cannot read environment %s from %s: %s",
-				    dent->d_name, MKSH_ENVDIR,
-				    cstrerror(errno));
+				kwarnf(KWF_PREFIX | KWF_THREEMSG, MKSH_ENVDIR,
+				    dent->d_name, "cannot read environment");
 				goto read_envfile;
 			}
 			afree(xp, ATEMP);
@@ -2145,10 +2038,9 @@ init_environ(void)
 					XcheckN(xs, xp, 128);
 			}
 			if (n < 0) {
-				warningf(false,
-				    "cannot read environment %s from %s: %s",
-				    dent->d_name, MKSH_ENVDIR,
-				    cstrerror(shf_errno(shf)));
+				kwarnf(KWF_VERRNO | KWF_PREFIX | KWF_THREEMSG,
+				    shf_errno(shf), MKSH_ENVDIR,
+				    dent->d_name, "cannot read environment");
 			} else {
 				*xp = '\0';
 				xp = Xstring(xs, xp);
@@ -2159,8 +2051,8 @@ init_environ(void)
 		}
 		goto read_envfile;
 	} else if (errno)
-		warningf(false, "cannot read environment from %s: %s",
-		    MKSH_ENVDIR, cstrerror(errno));
+		kwarnf(KWF_PREFIX | KWF_TWOMSG, MKSH_ENVDIR,
+		    "cannot read environment");
 	closedir(dirp);
 	Xfree(xs, xp);
 }

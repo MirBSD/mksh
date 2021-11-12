@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.234 2021/10/10 21:35:04 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/exec.c,v 1.235 2021/11/12 05:05:55 tg Exp $");
 
 #ifndef MKSH_DEFAULT_EXECSHELL
 #define MKSH_DEFAULT_EXECSHELL	MKSH_UNIXROOT "/bin/sh"
@@ -151,7 +151,7 @@ execute(struct op * volatile t,
 				 */
 				if (tp && tp->type == CSHELL &&
 				    (tp->flag & SPEC_BI))
-					errorfz();
+					errorf("redirection failure");
 				/* Deal with FERREXIT, quitenv(), etc. */
 				goto Break;
 			}
@@ -435,9 +435,9 @@ execute(struct op * volatile t,
 			for (iowp = t->left->ioact; *iowp != NULL; iowp++)
 				if (((*iowp)->ioflag & IODUPSELF) &&
 				    fcntl((*iowp)->unit, F_SETFD, 0) == -1)
-					internal_warningf(Tcloexec_failed,
-					    "clear", (*iowp)->unit,
-					    cstrerror(errno));
+					kwarnf0(KWF_INTERNAL | KWF_WARNING,
+					    Tcloexec_failed, "clear",
+					    (*iowp)->unit);
 		/* try to execute */
 		{
 			union mksh_ccphack cargs;
@@ -449,7 +449,8 @@ execute(struct op * volatile t,
 		if (rv == ENOEXEC)
 			scriptexec(t, (const char **)up);
 		else
-			errorfx(126, Tf_sD_s, t->str, cstrerror(rv));
+			kerrf(KWF_VERRNO | KWF_ERR(126) | KWF_PREFIX |
+			    KWF_FILELINE | KWF_ONEMSG, rv, t->str);
 	}
  Break:
 	exstat = rv & 0xFF;
@@ -579,7 +580,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			fcflags = FC_BI | FC_PATH;
 			if (saw_p) {
 				if (Flag(FRESTRICTED)) {
-					warningf(true, Tf_sD_s,
+					kwarnf(KWF_PREFIX | KWF_FILELINE |
+					    KWF_TWOMSG | KWF_NOERRNO,
 					    "command -p", "restricted");
 					rv = 1;
 					goto Leave;
@@ -676,7 +678,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		goto Leave;
 	} else if (!tp) {
 		if (Flag(FRESTRICTED) && mksh_vdirsep(cp)) {
-			warningf(true, Tf_sD_s, cp, "restricted");
+			kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG |
+			    KWF_NOERRNO, cp, "restricted");
 			rv = 1;
 			goto Leave;
 		}
@@ -705,9 +708,9 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			if (!tp->u.fpath) {
  fpath_error:
 				rv = (tp->u2.errnov == ENOENT) ? 127 : 126;
-				warningf(true,
-				    "%s: can't find function definition file: %s",
-				    cp, cstrerror(tp->u2.errnov));
+				kwarnf(KWF_VERRNO | KWF_PREFIX | KWF_FILELINE |
+				    KWF_TWOMSG, tp->u2.errnov, cp,
+				    "can't find function definition file");
 				break;
 			}
 			errno = 0;
@@ -726,7 +729,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 					cp = tp->u.fpath;
 					goto fpath_error;
 				}
-				warningf(true, Tf_sD_s_s, cp,
+				kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO,
+				    Tf_sD_s_s, cp,
 				    "function not defined by", tp->u.fpath);
 				rv = 127;
 				break;
@@ -817,7 +821,8 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 			/* NOTREACHED */
 		default:
 			quitenv(NULL);
-			internal_errorf(Tunexpected_type, Tunwind, Tfunction, i);
+			kerrf0(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_NOERRNO,
+			    Tunexpected_type, Tunwind, Tfunction, i);
 		}
 		break;
 	}
@@ -829,12 +834,13 @@ comexec(struct op *t, struct tbl * volatile tp, const char **ap,
 		if (!(tp->flag&ISSET)) {
 			if (tp->u2.errnov == ENOENT) {
 				rv = 127;
-				warningf(true, Tf_sD_s_s, cp,
-				    "inaccessible or", Tnot_found);
+				kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG |
+				    KWF_NOERRNO, cp, Tinacc_not_found);
 			} else {
 				rv = 126;
-				warningf(true, Tf_sD_sD_s, cp, "can't execute",
-				    cstrerror(tp->u2.errnov));
+				kwarnf(KWF_VERRNO | KWF_PREFIX | KWF_FILELINE |
+				    KWF_TWOMSG, tp->u2.errnov, cp,
+				    "can't execute");
 			}
 			break;
 		}
@@ -1385,7 +1391,8 @@ call_builtin(struct tbl *tp, const char **wp, const char *where, bool resetspec)
 	int rv;
 
 	if (!tp)
-		internal_errorf(Tf_sD_s, where, wp[0]);
+		kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_TWOMSG | KWF_NOERRNO,
+		    where, wp[0]);
 	builtin_argv0 = wp[0];
 	builtin_spec = tobool(!resetspec && (tp->flag & SPEC_BI));
 	shf_reopen(1, SHF_WR, shl_stdout);
@@ -1488,8 +1495,9 @@ iosetup(struct ioword *iop, struct tbl *tp)
 		    &emsg)) < 0) {
 			char *sp;
 
-			warningf(true, Tf_sD_s,
-			    (sp = snptreef(NULL, 32, Tft_R, &iotmp)), emsg);
+			sp = snptreef(NULL, 32, Tft_R, &iotmp);
+			kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG |
+			    KWF_NOERRNO, sp, emsg);
 			afree(sp, ATEMP);
 			return (-1);
 		}
@@ -1504,7 +1512,8 @@ iosetup(struct ioword *iop, struct tbl *tp)
 
 	if (do_open) {
 		if (Flag(FRESTRICTED) && (flags & O_CREAT)) {
-			warningf(true, Tf_sD_s, cp, "restricted");
+			kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG |
+			    KWF_NOERRNO, cp, "restricted");
 			return (-1);
 		}
 		u = binopen3(cp, flags, 0666);
@@ -1521,14 +1530,13 @@ iosetup(struct ioword *iop, struct tbl *tp)
 	if (u < 0) {
 		/* herein() may already have printed message */
 		if (u == -1) {
-			u = errno;
-			warningf(true, Tf_cant_ss_s,
+			kwarnf(KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG, cp,
+			    (iotype == IOREAD || iotype == IOHERE) ? Topen :
 #if 0
 			    /* can't happen */
 			    iotype == IODUP ? "dup" :
 #endif
-			    (iotype == IOREAD || iotype == IOHERE) ?
-			    Topen : Tcreate, cp, cstrerror(u));
+			    Tcreate);
 		}
 		return (-1);
 	}
@@ -1551,9 +1559,10 @@ iosetup(struct ioword *iop, struct tbl *tp)
 			char *sp;
 
 			eno = errno;
-			warningf(true, Tf_s_sD_s, Tredirection_dup,
-			    (sp = snptreef(NULL, 32, Tft_R, &iotmp)),
-			    cstrerror(eno));
+			sp = snptreef(NULL, 32, Tft_s_R, Tredirection_dup,
+			    &iotmp);
+			kwarnf(KWF_VERRNO | KWF_PREFIX | KWF_FILELINE |
+			    KWF_ONEMSG, eno, sp);
 			afree(sp, ATEMP);
 			if (iotype != IODUP)
 				close(u);
@@ -1607,7 +1616,8 @@ hereinval(struct ioword *iop, int sub, char **resbuf, struct shf *shf)
 		s->start = s->str = ccp;
 		source = s;
 		if (yylex(sub) != LWORD)
-			internal_errorf("herein: yylex");
+			kerrf(KWF_INTERNAL | KWF_ERR(0xFF) | KWF_ONEMSG | KWF_NOERRNO,
+			    "herein: yylex");
 		source = osource;
 		ccp = evalstr(yylval.cp, DOSCALAR | DOHEREDOC);
 	}
@@ -1642,9 +1652,8 @@ herein(struct ioword *iop, char **resbuf)
 	 */
 	h = maketemp(ATEMP, TT_HEREDOC_EXP, &e->temps);
 	if (!(shf = h->shf) || (fd = binopen3(h->tffn, O_RDONLY, 0)) < 0) {
-		i = errno;
-		warningf(true, Tf_temp,
-		    !shf ? Tcreate : Topen, h->tffn, cstrerror(i));
+		kwarnf0(KWF_PREFIX | KWF_FILELINE, Tf_temp,
+		    !shf ? Tcreate : Topen, h->tffn);
 		if (shf)
 			shf_close(shf);
 		/* special to iosetup(): don't print error */
@@ -1660,8 +1669,8 @@ herein(struct ioword *iop, char **resbuf)
 	if (shf_close(shf) == -1) {
 		i = errno;
 		close(fd);
-		warningf(true, Tf_temp,
-		    Twrite, h->tffn, cstrerror(i));
+		kwarnf1(KWF_VERRNO | KWF_PREFIX | KWF_FILELINE, i,
+		    Tf_temp, Twrite, h->tffn);
 		/* special to iosetup(): don't print error */
 		return (-2);
 	}
@@ -1869,5 +1878,6 @@ static void
 dbteste_error(Test_env *te, int offset, const char *msg)
 {
 	te->flags |= TEF_ERROR;
-	internal_warningf("dbteste_error: %s (offset %d)", msg, offset);
+	kwarnf0(KWF_INTERNAL | KWF_WARNING | KWF_NOERRNO,
+	    "dbteste_error: %s (offset %d)", msg, offset);
 }
