@@ -35,7 +35,7 @@
 #endif
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.394 2021/11/12 05:05:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/funcs.c,v 1.395 2021/11/13 21:22:35 tg Exp $");
 
 #if HAVE_KILLPG
 /*
@@ -684,7 +684,7 @@ do_whence(const char **wp, int fcflags, bool vflag, bool iscommand)
 				}
 				if (!mksh_abspath(tp->val.s)) {
 					const char *xcwd = current_wd[0] ?
-					    current_wd : ".";
+					    current_wd : Tdot;
 					size_t xlen = strlen(xcwd);
 					size_t clen = strlen(tp->val.s) + 1;
 					char *xp = alloc(xlen + 1 + clen, ATEMP);

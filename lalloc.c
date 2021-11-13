@@ -23,7 +23,7 @@
 #include <err.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.30 2021/11/12 05:05:58 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/lalloc.c,v 1.31 2021/11/13 21:22:36 tg Exp $");
 
 /* build with CPPFLAGS+= -DUSE_REALLOC_MALLOC=0 on ancient systems */
 #if defined(USE_REALLOC_MALLOC) && (USE_REALLOC_MALLOC == 0)
@@ -55,7 +55,7 @@ remalloc(void *ptr, size_t size)
 {
 	struct lalloc_item *lp, *lold = ptr;
 
-	size = (size + 4095) & ~(size_t)4095;
+	size = (size + 4095U) & (size_t)~(size_t)4095;
 
 	if (lold && lold->len >= size)
 		return (ptr);

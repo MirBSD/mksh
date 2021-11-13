@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.401 2021/11/12 05:05:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.402 2021/11/13 21:22:37 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -1688,23 +1688,22 @@ maketemp(Area *ap, Temp_type type, struct temp **tlist)
 	dir = tmpdir ? tmpdir : MKSH_DEFAULT_TMPDIR;
 	/* add "/shXXXXXX.tmp" plus NUL */
 	len = strlen(dir);
-	checkoktoadd(len, offsetof(struct temp, tffn[0]) + 14);
-	tp = alloc(offsetof(struct temp, tffn[0]) + 14 + len, ap);
+	checkoktoadd(len, offsetof(struct temp, tffn[0]) + 14U);
+	cp = alloc(offsetof(struct temp, tffn[0]) + 14U + len, ap);
 
+	tp = (void *)cp;
 	tp->shf = NULL;
 	tp->pid = procpid;
 	tp->type = type;
 
-	if (stat(dir, &sb) || !S_ISDIR(sb.st_mode)) {
-		tp->tffn[0] = '\0';
-		goto maketemp_out;
-	}
-
-	cp = (void *)tp;
 	cp += offsetof(struct temp, tffn[0]);
 	memcpy(cp, dir, len);
 	cp += len;
 	memstr(cp, "/shXXXXXX.tmp");
+
+	if (stat(dir, &sb) || !S_ISDIR(sb.st_mode))
+		goto maketemp_out;
+
 	/* point to the first of six Xes */
 	cp += 3;
 

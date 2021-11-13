@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.244 2021/11/12 05:05:55 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/eval.c,v 1.245 2021/11/13 21:22:35 tg Exp $");
 
 /*
  * string expansion
@@ -1761,6 +1761,8 @@ globit(XString *xs,	/* dest string */
 	char *xp = *xpp;
 	char *se;
 	char odirsep;
+	DIR *dirp;
+	size_t prefix_len;
 
 	/* This to allow long expansions to be interrupted */
 	intrcheck();
@@ -1819,6 +1821,7 @@ globit(XString *xs,	/* dest string */
 		Xcheck(*xs, xp);
 		*xp++ = *sp++;
 	}
+	*xp = '\0';
 	np = mksh_sdirsep(sp);
 	if (np != NULL) {
 		se = np;
@@ -1843,39 +1846,30 @@ globit(XString *xs,	/* dest string */
 		xp = strnul(xp);
 		*xpp = xp;
 		globit(xs, xpp, np, wp, check);
-	} else {
-		DIR *dirp;
+	} else if ((dirp = opendir((prefix_len = Xlength(*xs, xp)) ?
+	    Xstring(*xs, xp) : Tdot))) {
 		struct dirent *d;
-		char *name;
-		size_t len, prefix_len;
 
-		/* xp = *xpp;	copy_non_glob() may have re-alloc'd xs */
-		*xp = '\0';
-		prefix_len = Xlength(*xs, xp);
-		dirp = opendir(prefix_len ? Xstring(*xs, xp) : Tdot);
-		if (dirp == NULL)
-			goto Nodir;
 		while ((d = readdir(dirp)) != NULL) {
-			name = d->d_name;
-			if (name[0] == '.' &&
-			    (name[1] == 0 || (name[1] == '.' && name[2] == 0)))
+			size_t len;
+
+			if (ksh_is(d->d_name[0], '.') && (!d->d_name[1] ||
+			    (ksh_is(d->d_name[1], '.') && !d->d_name[2])))
 				/* always ignore . and .. */
 				continue;
-			if ((*name == '.' && *sp != '.') ||
-			    !gmatchx(name, sp, true))
+			if ((ksh_is(d->d_name[0], '.') && !ksh_is(*sp, '.')) ||
+			    !gmatchx(d->d_name, sp, true))
 				continue;
 
 			len = strlen(d->d_name) + 1;
 			XcheckN(*xs, xp, len);
-			memcpy(xp, name, len);
+			memcpy(xp, d->d_name, len);
 			*xpp = xp + len - 1;
 			globit(xs, xpp, np, wp, (check & GF_MARKDIR) |
 			    GF_GLOBBED | (np ? GF_EXCHECK : GF_NONE));
 			xp = Xstring(*xs, xp) + prefix_len;
 		}
 		closedir(dirp);
- Nodir:
-		;
 	}
 
 	if (np != NULL)
