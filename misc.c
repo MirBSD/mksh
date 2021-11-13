@@ -33,7 +33,7 @@
 #include <grp.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.332 2021/11/12 05:05:59 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/misc.c,v 1.333 2021/11/13 22:09:03 tg Exp $");
 
 #define KSH_CHVT_FLAG
 #ifdef MKSH_SMALL
@@ -550,7 +550,12 @@ parse_args(const char **argv,
 int
 getn(const char *s, int *ai)
 {
-	return (getpn(&s, ai) && !*s);
+	if (!getpn(&s, ai))
+		return (0);
+	if (!*s)
+		return (1);
+	errno = EINVAL;
+	return (0);
 }
 
 /*
@@ -584,9 +589,11 @@ getpn(const char **sp, int *ai)
 	}
 
 	while (ctype(c, C_DIGIT)) {
-		if (num > 214748364U)
+		if (num > 214748364U) {
 			/* overflow on multiplication */
 			state = 2;
+			errno = EOVERFLOW;
+		}
 		if (state < 2) {
 			state = 1;
 			num = num * 10U + (unsigned int)ksh_numdig(c);
@@ -596,12 +603,16 @@ getpn(const char **sp, int *ai)
 	}
 	--s;
 
-	if (num > (neg ? 2147483648U : 2147483647U))
+	if (num > (neg ? 2147483648U : 2147483647U)) {
 		/* overflow for signed 32-bit int */
 		state = 2;
+		errno = EOVERFLOW;
+	}
 
 	if (state)
 		*sp = s;
+	else
+		errno = EINVAL;
 	if (state != 1) {
 		*ai = 0;
 		return (0);

@@ -26,7 +26,7 @@
 #define MKSH_SHF_VFPRINTF_NO_GCC_FORMAT_ATTRIBUTE
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.134 2021/11/12 05:06:02 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/syn.c,v 1.135 2021/11/13 22:09:06 tg Exp $");
 
 struct nesting_state {
 	int start_token;	/* token than began nesting (eg, FOR) */
@@ -1064,15 +1064,6 @@ dbtestp_error(Test_env *te, int offset, const char *msg)
 }
 
 #if HAVE_SELECT
-
-#ifndef EOVERFLOW
-#ifdef ERANGE
-#define EOVERFLOW	ERANGE
-#else
-#define EOVERFLOW	EINVAL
-#endif
-#endif
-
 bool
 parse_usec(const char *s, struct timeval *tv)
 {

@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.123 2021/11/13 21:22:37 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.124 2021/11/13 22:09:05 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1195,6 +1195,7 @@ cstrerror(int errnum)
 		return (sys_errlist[errnum]);
 #endif
 
+	/* do not add ERANGE, might be EOVERFLOW */
 	switch (errnum) {
 	case 0:
 		return ("Undefined error: 0");
@@ -1222,14 +1223,14 @@ cstrerror(int errnum)
 		return ("File exists");
 	case ENOTDIR:
 		return ("Not a directory");
-#ifdef EINVAL
 	case EINVAL:
 		return ("Invalid argument");
-#endif
 #ifdef ELOOP
 	case ELOOP:
 		return ("Too many levels of symbolic links");
 #endif
+	case EOVERFLOW:
+		return ("Value too large");
 	default:
 		cp = kslfmt(errnum, FL_SGN, errbuf + unkerrlen);
 		cp -= unkerrlen;

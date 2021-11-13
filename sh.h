@@ -205,7 +205,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.958 2021/11/13 21:31:30 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.959 2021/11/13 22:09:04 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/11/11"
 
@@ -551,6 +551,10 @@ void *rpl_memmove(void *, const void *, size_t);
 
 #if !HAVE_REVOKE_DECL
 extern int revoke(const char *);
+#endif
+
+#ifndef EOVERFLOW
+#define EOVERFLOW		ERANGE
 #endif
 
 #if defined(DEBUG) || !HAVE_STRERROR

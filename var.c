@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.255 2021/11/12 05:06:03 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.256 2021/11/13 22:09:06 tg Exp $");
 
 /*-
  * Variables
@@ -275,7 +275,8 @@ isglobal(const char *n, bool docreate)
 	c = (unsigned char)vn[0];
 	if (!ctype(c, C_ALPHX)) {
 		if (array)
-			errorf(Tbadsubst);
+			kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
+			    KWF_ONEMSG | KWF_NOERRNO, Tbadsubst);
 		vp = vtemp;
 		vp->flag = DEFINED;
 		vp->type = 0;
@@ -593,8 +594,10 @@ getnum(const char *s, mksh_ari_u *nump, bool arith, bool psxoctal)
 	do {
 		if (c == '#') {
 			/* ksh-style base determination */
-			if (have_base || num < 1)
+			if (have_base || num < 1) {
+				errno = EINVAL;
 				return (-1);
+			}
 			if ((base = num) == 1) {
 				/* mksh-specific extension */
 				unsigned int wc;
@@ -614,10 +617,14 @@ getnum(const char *s, mksh_ari_u *nump, bool arith, bool psxoctal)
 			c = ksh_numuc(c) + 10;
 		else if (ctype(c, C_LOWER))
 			c = ksh_numlc(c) + 10;
-		else
+		else {
+			errno = EINVAL;
 			return (-1);
-		if (c >= base)
+		}
+		if (c >= base) {
+			errno = EINVAL;
 			return (-1);
+		}
 		/* handle overflow as truncation */
 		num = num * base + c;
 	} while ((c = (unsigned char)*s++));
@@ -1469,7 +1476,9 @@ setspec(struct tbl *vp)
 		if (getint(vp, &num, false) == -1) {
 			s = str_val(vp);
 			if (st != V_RANDOM)
-				errorf(Tf_sD_sD_s, vp->name, Tbadnum, s);
+				kerrf(KWF_ERR(1) | KWF_PREFIX | KWF_FILELINE |
+				    KWF_THREEMSG | KWF_NOERRNO,
+				    vp->name, Tbadnum, s);
 			num.u = hash(s);
 		}
 		vp->flag |= SPECIAL;
@@ -2055,12 +2064,13 @@ c_typeset(const char **wp)
 	}
 
 	if (fieldstr && !getn(fieldstr, &field)) {
-		bi_errorf(Tf_sD_s, Tbadnum, fieldstr);
+		kwarnf(KWF_BIERR | KWF_TWOMSG, Tbadnum, fieldstr);
 		return (1);
 	}
 	if (basestr) {
 		if (!getn(basestr, &base)) {
-			bi_errorf(Tf_sD_s, "bad integer base", basestr);
+			kwarnf(KWF_BIERR | KWF_TWOMSG,
+			    "bad integer base", basestr);
 			return (1);
 		}
 		if (base < 1 || base > 36)
@@ -2077,7 +2087,8 @@ c_typeset(const char **wp)
 
 	if (func && (((fset|fclr) & ~(TRACE|UCASEV_AL|EXPORT)) ||
 	    new_refflag != SRF_NOP)) {
-		bi_errorf("only -t, -u and -x options may be used with -f");
+		kwarnf(KWF_BIERR | KWF_ONEMSG | KWF_NOERRNO,
+		    "only -t, -u and -x options may be used with -f");
 		return (1);
 	}
 	if (wp[builtin_opt.optind]) {
@@ -2146,7 +2157,8 @@ c_typeset(const char **wp)
 			    field, base)) {
 				if (x)
 					return (x);
-				bi_errorf(Tf_sD_s, wp[i], Tnot_ident);
+				kwarnf(KWF_BIERR | KWF_TWOMSG | KWF_NOERRNO,
+				    wp[i], Tnot_ident);
 				return (1);
 			}
 		}
