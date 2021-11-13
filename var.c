@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.256 2021/11/13 22:09:06 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.257 2021/11/13 22:17:05 tg Exp $");
 
 /*-
  * Variables
@@ -547,8 +547,10 @@ getint(struct tbl *vp, mksh_ari_u *nump, bool arith)
 	if (vp->flag & SPECIAL)
 		getspec(vp);
 	/* XXX is it possible for ISSET to be set and val.s to be NULL? */
-	if (!(vp->flag & ISSET) || (!(vp->flag & INTEGER) && vp->val.s == NULL))
+	if (!(vp->flag & ISSET) || (!(vp->flag & INTEGER) && vp->val.s == NULL)) {
+		errno = EINVAL;
 		return (-1);
+	}
 	if (vp->flag & INTEGER) {
 		nump->i = vp->val.i;
 		return (vp->type);

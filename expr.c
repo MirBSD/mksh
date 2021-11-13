@@ -24,7 +24,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.115 2021/11/12 05:05:56 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/expr.c,v 1.116 2021/11/13 22:17:04 tg Exp $");
 
 #define EXPRTOK_DEFNS
 #include "exprtok.h"
@@ -207,8 +207,12 @@ evalerr(Expr_state *es, enum error_type type, const char *str)
 		break;
 
 	case ET_BADLIT:
-		kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_NOERRNO, Tf_sD_s_qs,
-		    es->expression, Tbadnum, str);
+		if (!strcmp(es->expression, str))
+			kwarnf0(KWF_PREFIX | KWF_FILELINE | KWF_TWOMSG,
+			    es->expression, Tbadnum);
+		else
+			kwarnf0(KWF_PREFIX | KWF_FILELINE, Tf_sD_s_qs,
+			    es->expression, Tbadnum, str);
 		break;
 
 	case ET_RECURSIVE:
