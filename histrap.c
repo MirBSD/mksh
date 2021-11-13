@@ -28,7 +28,7 @@
 #include <sys/file.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.177 2021/11/12 05:05:57 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/histrap.c,v 1.178 2021/11/13 21:31:30 tg Exp $");
 
 Trap sigtraps[ksh_NSIG + 1];
 
@@ -109,9 +109,9 @@ c_fc(const char **wp)
 				size_t len = strlen(p);
 
 				/* almost certainly not overflowing */
-				editor = alloc(len + 4, ATEMP);
+				editor = alloc(len + 6U, ATEMP);
 				memcpy(editor, p, len);
-				memcpy(editor + len, Tspdollaru, 4);
+				memcpy(editor + len, Tspdollaru, 6U);
 			}
 			break;
 

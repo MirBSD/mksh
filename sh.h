@@ -205,7 +205,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.957 2021/11/12 05:06:00 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.958 2021/11/13 21:31:30 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/11/11"
 
@@ -1068,7 +1068,7 @@ EXTERN char null[] E_INIT("");
 #define T1space (Treal_sp2 + 5)
 #define TC_IFSWS (TinitIFS + 4)
 EXTERN const char TinitIFS[] E_INIT("IFS= \t\n");
-EXTERN const char TFCEDIT_dollaru[] E_INIT("${FCEDIT:-/bin/ed} $_");
+EXTERN const char TFCEDIT_dollaru[] E_INIT("${FCEDIT:-/bin/ed} \"$_\"");
 #define Tspdollaru (TFCEDIT_dollaru + 18)
 EXTERN const char Tsgdot[] E_INIT("*=.");
 EXTERN const char Taugo[] E_INIT("augo");
@@ -1122,7 +1122,7 @@ EXTERN const char Tmksh[] E_INIT("mksh");
 EXTERN const char Tnil[] E_INIT("(null)");
 EXTERN const char Tno_args[] E_INIT("missing argument");
 EXTERN const char Tno_OLDPWD[] E_INIT("no OLDPWD");
-EXTERN const char Tnot_ident[] E_INIT("is not an identifier");
+EXTERN const char Tnot_ident[] E_INIT("not an identifier");
 EXTERN const char Tnot_in_history[] E_INIT("not in history");
 #define Tnot_found (Tinacc_not_found + 16)
 #define Tsp_not_found (Tinacc_not_found + 15)
@@ -1218,8 +1218,8 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define T1space " "
 #define TC_IFSWS " \t\n"
 #define TinitIFS "IFS= \t\n"
-#define TFCEDIT_dollaru "${FCEDIT:-/bin/ed} $_"
-#define Tspdollaru " $_"
+#define TFCEDIT_dollaru "${FCEDIT:-/bin/ed} \"$_\""
+#define Tspdollaru " \"$_\""
 #define Tsgdot "*=."
 #define Taugo "augo"
 #define Tbracket "["
@@ -1272,7 +1272,7 @@ EXTERN const char Tf_sD_s_s[] E_INIT("%s: %s %s");
 #define Tnil "(null)"
 #define Tno_args "missing argument"
 #define Tno_OLDPWD "no OLDPWD"
-#define Tnot_ident "is not an identifier"
+#define Tnot_ident "not an identifier"
 #define Tnot_in_history "not in history"
 #define Tnot_found "not found"
 #define Tsp_not_found " not found"
