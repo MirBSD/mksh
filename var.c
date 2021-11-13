@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.257 2021/11/13 22:17:05 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.258 2021/11/13 23:10:36 tg Exp $");
 
 /*-
  * Variables
@@ -677,23 +677,26 @@ setint_n(struct tbl *vq, mksh_ari_t num, int newbase)
 static char *
 formatstr(struct tbl *vp, const char *s)
 {
-	int olen, nlen;
 	char *p, *q;
-	size_t psiz;
 
-	olen = (int)utf_mbswidth(s);
+	if (vp->flag & (RJUST | LJUST)) {
+		int slen, nlen;
+		size_t psiz;
 
-	if (vp->flag & (RJUST|LJUST)) {
+		psiz = utf_mbswidth(s);
+		if (psiz > (size_t)INT_MAX) {
+			errno = EOVERFLOW;
+			kerrf0(KWF_ERR(0xFF) | KWF_PREFIX | KWF_FILELINE,
+			    "string width %zu", psiz);
+		}
+		slen = (int)psiz;
 		if (!vp->u2.field)
 			/* default field width */
-			vp->u2.field = olen;
+			vp->u2.field = slen;
 		nlen = vp->u2.field;
-	} else
-		nlen = olen;
 
-	p = alloc((psiz = nlen * /* MB_LEN_MAX */ 3 + 1), ATEMP);
-	if (vp->flag & (RJUST|LJUST)) {
-		int slen = olen;
+		p = alloc2(nlen + 1, /* MB_LEN_MAX */ 4, ATEMP);
+		psiz = ((size_t)nlen + 1U) * 4U;
 
 		if (vp->flag & RJUST) {
 			const char *qq;
@@ -741,7 +744,7 @@ formatstr(struct tbl *vp, const char *s)
 				vp->u2.field, vp->u2.field, s);
 		}
 	} else
-		memcpy(p, s, strlen(s) + 1);
+		strdupx(p, s, ATEMP);
 
 	if (vp->flag & UCASEV_AL) {
 		for (q = p; *q; q++)
