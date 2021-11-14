@@ -36,7 +36,7 @@
 #include <sys/ptem.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/var.c,v 1.258 2021/11/13 23:10:36 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/var.c,v 1.259 2021/11/14 03:36:05 tg Exp $");
 
 /*-
  * Variables
@@ -1356,9 +1356,13 @@ getspec(struct tbl *vp)
 
 		vp->flag &= ~SPECIAL;
 		mksh_TIME(tv);
-		shf_snprintf(buf, sizeof(buf), "%u.%06u",
-		    (unsigned)tv.tv_sec, (unsigned)tv.tv_usec);
-		setstr(vp, buf, KSH_RETURN_ERROR | 0x4);
+		if (vp->flag & INTEGER)
+			setint(vp, (mksh_ari_t)tv.tv_sec);
+		else {
+			shf_snprintf(buf, sizeof(buf), "%u.%06u",
+			    (unsigned)tv.tv_sec, (unsigned)tv.tv_usec);
+			setstr(vp, buf, KSH_RETURN_ERROR | 0x4);
+		}
 		vp->flag |= SPECIAL;
 		return;
 	}
