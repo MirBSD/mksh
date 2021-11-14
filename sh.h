@@ -36,11 +36,6 @@
 #undef MKSH_USE_AUTOCONF_H
 #endif
 
-#ifdef __dietlibc__
-/* XXX imake style */
-#define _BSD_SOURCE	/* live, BSD, live❣ */
-#endif
-
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
@@ -205,9 +200,9 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.962 2021/11/14 04:33:23 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.963 2021/11/14 04:59:14 tg Exp $");
 #endif
-#define MKSH_VERSION "R59 2021/11/11"
+#define MKSH_VERSION "R59 2021/10/10"
 
 /* arithmetic types: C implementation */
 #if !HAVE_CAN_INTTYPES

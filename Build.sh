@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.814 2021/11/14 04:33:22 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.815 2021/11/14 04:59:13 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -246,6 +246,7 @@ Flags on entry (plus HAVE_* which are not shown here):
  CPPFLAGS  <$CPPFLAGS>
  LDFLAGS   <$LDFLAGS>
  LIBS      <$LIBS>
+ LDSTATIC  <$LDSTATIC>
  TARGET_OS <$TARGET_OS> TARGET_OSREV <$TARGET_OSREV>
 
 EOF
@@ -385,10 +386,12 @@ ac_testnnd() {
 	fi
 	vscan=
 	if test $phase = u; then
-		test $ct = gcc && vscan='unrecogni[sz]ed'
-		test $ct = hpcc && vscan='unsupported'
-		test $ct = pcc && vscan='unsupported'
-		test $ct = sunpro && vscan='-e ignored -e turned.off'
+		case $ct in
+		gcc*) vscan='unrecogni[sz]ed' ;;
+		hpcc) vscan='unsupported' ;;
+		pcc) vscan='unsupported' ;;
+		sunpro) vscan='-e ignored -e turned.off' ;;
+		esac
 	fi
 	test_n "$vscan" && grep $vscan vv.out >/dev/null 2>&1 && fv=$fr
 	return 0
@@ -1338,6 +1341,8 @@ ct="tcc"
 ct="clang"
 #elif defined(__NWCC__)
 ct="nwcc"
+#elif defined(__GNUC__) && (__GNUC__ < 2)
+ct="gcc1"
 #elif defined(__GNUC__)
 ct="gcc"
 #elif defined(_COMPILER_VERSION)
@@ -1364,6 +1369,8 @@ ct="unknown"
 const char *
 #if defined(__KLIBC__) && !defined(__OS2__)
 et="klibc"
+#elif defined(__dietlibc__)
+et="dietlibc"
 #else
 et="unknown"
 #endif
@@ -1421,6 +1428,12 @@ dmc)
 	echo >&2 "    UWIN, mksh tends to be unstable due to the limitations"
 	echo >&2 "    of this platform. Continue at your own risk,"
 	echo >&2 "    please report success/failure to the developers."
+	;;
+gcc1)
+	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN -v conftest.c $LIBS"
+	vv '|' 'eval echo "\`$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -dumpmachine\`" \
+		 "gcc\`$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -dumpversion\`"'
+	: "${HAVE_ATTRIBUTE_EXTENSION=0}" # false positive
 	;;
 gcc)
 	test_z "$Cg" || Cg='-g3 -fno-builtin'
@@ -1519,6 +1532,7 @@ tcc)
 tendra)
 	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V 2>&1 | \
 	    grep -i -e version -e release"
+	: "${HAVE_ATTRIBUTE_EXTENSION=0}" # false positive
 	;;
 ucode)
 	vv '|' "$CC $CFLAGS $Cg $CPPFLAGS $LDFLAGS $NOWARN $LIBS -V"
@@ -1558,7 +1572,14 @@ dragonegg|llvm)
 	;;
 esac
 etd=" on $et"
+# still imake style but… can’t be helped
 case $et in
+dietlibc)
+	# live, BSD, live❣
+	add_cppflags -D_BSD_SOURCE
+	# broken
+	HAVE_POSIX_UTF8_LOCALE=0
+	;;
 klibc)
 	cpp_define MKSH_NO_SIGSETJMP 1
 	cpp_define _setjmp setjmp
@@ -1752,6 +1773,16 @@ dmc)
 	ac_flags 1 decl "${ccpc}-r" 'for strict prototype checks'
 	ac_flags 1 schk "${ccpc}-s" 'for stack overflow checking'
 	;;
+gcc1)
+	# The following tests run with -Werror (gcc only) if possible
+	NOWARN=$DOWARN; phase=u
+	ac_flags 1 wnodeprecateddecls -Wno-deprecated-declarations
+	# we do not even use CFrustFrust in MirBSD so don’t code in it…
+	ac_flags 1 no_eh_frame -fno-asynchronous-unwind-tables
+	ac_flags 1 fnostrictaliasing -fno-strict-aliasing
+	ac_flags 1 data_abi_align -malign-data=abi
+	i=1
+	;;
 gcc)
 	ac_flags 1 fnolto -fno-lto 'whether we can explicitly disable buggy GCC LTO' -fno-lto
 	# The following tests run with -Werror (gcc only) if possible
@@ -1907,11 +1938,6 @@ test $ct = pcc && phase=u
 # Compiler: check for stuff that only generates warnings
 #
 ac_test attribute_bounded attribute_extension 0 'for __attribute__((__bounded__))' <<-'EOF'
-	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
-	extern int thiswillneverbedefinedIhope(void);
-	/* force a failure: TenDRA and gcc 1.42 have false positive here */
-	int main(void) { return (thiswillneverbedefinedIhope()); }
-	#else
 	#include <string.h>
 	#undef __attribute__
 	int xcopy(const void *, void *, size_t)
@@ -1925,14 +1951,8 @@ ac_test attribute_bounded attribute_extension 0 'for __attribute__((__bounded__)
 		 */
 		memmove(d, s, n); return ((int)n);
 	}
-	#endif
 EOF
 ac_test attribute_format attribute_extension 0 'for __attribute__((__format__))' <<-'EOF'
-	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
-	extern int thiswillneverbedefinedIhope(void);
-	/* force a failure: TenDRA and gcc 1.42 have false positive here */
-	int main(void) { return (thiswillneverbedefinedIhope()); }
-	#else
 	#define fprintf printfoo
 	#include <stdio.h>
 	#undef __attribute__
@@ -1940,57 +1960,32 @@ ac_test attribute_format attribute_extension 0 'for __attribute__((__format__))'
 	extern int fprintf(FILE *, const char *format, ...)
 	    __attribute__((__format__(__printf__, 2, 3)));
 	int main(int ac, char *av[]) { return (fprintf(stderr, "%s%d", *av, ac)); }
-	#endif
 EOF
 ac_test attribute_noreturn attribute_extension 0 'for __attribute__((__noreturn__))' <<-'EOF'
-	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
-	extern int thiswillneverbedefinedIhope(void);
-	/* force a failure: TenDRA and gcc 1.42 have false positive here */
-	int main(void) { return (thiswillneverbedefinedIhope()); }
-	#else
 	#include <stdlib.h>
 	#undef __attribute__
 	void fnord(void) __attribute__((__noreturn__));
 	int main(void) { fnord(); }
 	void fnord(void) { exit(0); }
-	#endif
 EOF
 ac_test attribute_pure attribute_extension 0 'for __attribute__((__pure__))' <<-'EOF'
-	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
-	extern int thiswillneverbedefinedIhope(void);
-	/* force a failure: TenDRA and gcc 1.42 have false positive here */
-	int main(void) { return (thiswillneverbedefinedIhope()); }
-	#else
 	#include <unistd.h>
 	#undef __attribute__
 	int foo(const char *) __attribute__((__pure__));
 	int main(int ac, char *av[]) { return (foo(av[ac - 1]) + isatty(0)); }
 	int foo(const char *s) { return ((int)s[0]); }
-	#endif
 EOF
 ac_test attribute_unused attribute_extension 0 'for __attribute__((__unused__))' <<-'EOF'
-	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
-	extern int thiswillneverbedefinedIhope(void);
-	/* force a failure: TenDRA and gcc 1.42 have false positive here */
-	int main(void) { return (thiswillneverbedefinedIhope()); }
-	#else
 	#include <unistd.h>
 	#undef __attribute__
 	int main(int ac __attribute__((__unused__)), char *av[]
 	    __attribute__((__unused__))) { return (isatty(0)); }
-	#endif
 EOF
 ac_test attribute_used attribute_extension 0 'for __attribute__((__used__))' <<-'EOF'
-	#if defined(__TenDRA__) || (defined(__GNUC__) && (__GNUC__ < 2))
-	extern int thiswillneverbedefinedIhope(void);
-	/* force a failure: TenDRA and gcc 1.42 have false positive here */
-	int main(void) { return (thiswillneverbedefinedIhope()); }
-	#else
 	#include <unistd.h>
 	#undef __attribute__
 	static const char fnord[] __attribute__((__used__)) = "42";
 	int main(void) { return (isatty(0)); }
-	#endif
 EOF
 
 # End of tests run with -Werror
