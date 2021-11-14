@@ -27,7 +27,7 @@
 
 #include "sh.h"
 
-__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.125 2021/11/14 02:56:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/shf.c,v 1.126 2021/11/14 04:33:25 tg Exp $");
 
 /* flags to shf_emptybuf() */
 #define EB_READSW	0x01	/* about to switch to reading */
@@ -1163,18 +1163,11 @@ shf_putc(int c, struct shf *shf)
 }
 #endif
 
-#ifdef DEBUG
-/* pre-initio() */
-const char *
-cstrerror(int errnum)
-{
-#undef strerror
-	return (strerror(errnum));
-#define strerror dontuse_strerror /* poisoned */
-}
-#elif !HAVE_STRERROR
+#if !HAVE_STRERROR
 
-#if HAVE_SYS_ERRLIST
+#if HAVE_STRERRORDESC_NP
+/* assume prototype, _GNU_SOURCE may be needed */
+#elif HAVE_SYS_ERRLIST
 #if !HAVE_SYS_ERRLIST_DECL
 extern const int sys_nerr;
 extern const char * const sys_errlist[];
@@ -1188,9 +1181,15 @@ cstrerror(int errnum)
 #define unkerrstr "Unknown error: "
 #define unkerrlen (sizeof(unkerrstr) - 1U)
 	static char errbuf[unkerrlen + NUMBUFSZ];
+#if HAVE_STRERRORDESC_NP
+	const char *ccp;
+#endif
 	char *cp;
 
-#if HAVE_SYS_ERRLIST
+#if HAVE_STRERRORDESC_NP
+	if ((ccp = strerrordesc_np(errnum)))
+		return (ccp);
+#elif HAVE_SYS_ERRLIST
 	if (errnum > 0 && errnum < sys_nerr && sys_errlist[errnum])
 		return (sys_errlist[errnum]);
 #endif
@@ -1239,6 +1238,15 @@ cstrerror(int errnum)
 	}
 #undef unkerrlen
 #undef unkerrstr
+}
+#elif defined(DEBUG)
+/* pre-initio() */
+const char *
+cstrerror(int errnum)
+{
+#undef strerror
+	return (strerror(errnum));
+#define strerror dontuse_strerror /* poisoned */
 }
 #endif
 

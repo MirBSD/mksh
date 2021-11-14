@@ -205,7 +205,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.961 2021/11/14 04:02:31 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.962 2021/11/14 04:33:23 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/11/11"
 
@@ -557,7 +557,6 @@ extern int revoke(const char *);
 #if defined(DEBUG) || !HAVE_STRERROR
 #undef strerror
 #define strerror		/* poisoned */ dontuse_strerror
-#define cstrerror		/* replaced */ cstrerror
 extern const char *cstrerror(int);
 #else
 #define cstrerror(errnum)	((const char *)strerror(errnum))

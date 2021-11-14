@@ -1,5 +1,5 @@
 #!/bin/sh
-srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.813 2021/11/14 02:56:22 tg Exp $'
+srcversion='$MirOS: src/bin/mksh/Build.sh,v 1.814 2021/11/14 04:33:22 tg Exp $'
 #-
 # Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
 #		2011, 2012, 2013, 2014, 2015, 2016, 2017, 2019,
@@ -2198,15 +2198,24 @@ fi
 #
 # Environment: errors and signals
 #
-test x"NetBSD" = x"$TARGET_OS" && $e Ignore the compatibility warning.
 
-ac_testn sys_errlist '' "the sys_errlist[] array and sys_nerr" <<-'EOF'
+HAVE_SOME_ERRLIST=0
+
+ac_test strerrordesc_np '!' some_errlist 0 "GNU strerrordesc_np()" <<-'EOF'
+	extern const char *strerrordesc_np(int);
+	int main(int ac, char *av[]) { return (*strerrordesc_np(*av[ac])); }
+EOF
+test 1 = "$HAVE_STRERRORDESC_NP" && HAVE_SOME_ERRLIST=1
+
+ac_testn sys_errlist '!' some_errlist 0 "the sys_errlist[] array and sys_nerr" <<-'EOF'
 	extern const int sys_nerr;
 	extern const char * const sys_errlist[];
 	extern int isatty(int);
 	int main(void) { return (*sys_errlist[sys_nerr - 1] + isatty(0)); }
 EOF
-ac_testn _sys_errlist '!' sys_errlist 0 "the _sys_errlist[] array and _sys_nerr" <<-'EOF'
+test 1 = "$HAVE_SYS_ERRLIST" && HAVE_SOME_ERRLIST=1
+
+ac_testn _sys_errlist '!' some_errlist 0 "the _sys_errlist[] array and _sys_nerr" <<-'EOF'
 	extern const int _sys_nerr;
 	extern const char * const _sys_errlist[];
 	extern int isatty(int);
@@ -2216,7 +2225,9 @@ if test 1 = "$HAVE__SYS_ERRLIST"; then
 	cpp_define sys_nerr _sys_nerr
 	cpp_define sys_errlist _sys_errlist
 	HAVE_SYS_ERRLIST=1
+	HAVE_SOME_ERRLIST=1
 fi
+
 ac_cppflags SYS_ERRLIST
 
 for what in name list; do
@@ -2493,7 +2504,7 @@ EOF
 	fi
 fi
 
-ac_test strerror '!' sys_errlist 0 <<-'EOF'
+ac_test strerror '!' some_errlist 0 <<-'EOF'
 	extern char *strerror(int);
 	int main(int ac, char *av[]) { return (*strerror(*av[ac])); }
 EOF
