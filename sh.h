@@ -205,7 +205,7 @@
 #endif
 
 #ifdef EXTERN
-__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.960 2021/11/14 02:56:29 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/sh.h,v 1.961 2021/11/14 04:02:31 tg Exp $");
 #endif
 #define MKSH_VERSION "R59 2021/11/11"
 
@@ -320,7 +320,8 @@ typedef MKSH_TYPEDEF_SSIZE_T ssize_t;
 #undef flock		/* SCO UnixWare defines that to flock64 but ENOENT */
 
 /* compile-time assertions */
-#define cta(name,expr)	struct cta_ ## name { char t[(expr) ? 1 : -1]; }
+/* use between struct ctasserts_file_basename { and }; */
+#define cta(name,expr)	char name[(expr) ? 1 : -1]
 
 /* compiler shenanigans… */
 #ifdef _FORTIFY_SOURCE

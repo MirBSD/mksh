@@ -33,7 +33,7 @@
 #include <langinfo.h>
 #endif
 
-__RCSID("$MirOS: src/bin/mksh/main.c,v 1.403 2021/11/14 02:56:27 tg Exp $");
+__RCSID("$MirOS: src/bin/mksh/main.c,v 1.404 2021/11/14 04:02:30 tg Exp $");
 
 #ifndef MKSHRC_PATH
 #define MKSHRC_PATH	"~/.mkshrc"
@@ -106,6 +106,7 @@ static struct env env;
 struct env *e = &env;
 
 /* compile-time assertions */
+struct ctasserts_main {
 
 /* this one should be defined by the standard */
 cta(char_is_1_char, (sizeof(char) == 1) && (sizeof(signed char) == 1) &&
@@ -164,6 +165,9 @@ cta(sizet_funcptr_same_size, sizeof(size_t) == sizeof(void (*)(void)));
 /* our formatting routines assume this */
 cta(ptr_fits_in_long, sizeof(size_t) <= sizeof(long));
 cta(ari_fits_in_long, sizeof(mksh_ari_t) <= sizeof(long));
+
+};
+/* end of compile-time asserts */
 
 static mksh_uari_t
 rndsetup(void)
